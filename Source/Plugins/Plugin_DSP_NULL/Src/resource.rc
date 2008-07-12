@@ -1,0 +1,145 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SETTINGS DIALOGEX 0, 0, 241, 206
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Dolphin DSP-HLE Plugin 0.1 Settings"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,129,185,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,184,185,50,14
+    GROUPBOX        "&Sound settings",IDC_STATIC,7,7,227,45
+    EDITTEXT        IDC_SAMPLEDUMPPATH,13,158,155,13,ES_AUTOHSCROLL | 
+                    WS_DISABLED
+    CONTROL         "&Enable HLE Audio",IDC_ENABLE_HLE_AUDIO,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,22,84,8
+    GROUPBOX        "Sample d&umping",IDC_STATIC,7,128,227,51
+    CONTROL         "Enab&le DTK Music",IDC_ENABLE_DTK_MUSIC,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,13,36,102,8
+    CONTROL         "&Dump all samples longer than",IDC_DUMPSAMPLES,"Button",
+                    BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,13,142,105,9
+    EDITTEXT        IDC_SAMPLEMINLENGTH,122,140,47,12,ES_AUTOHSCROLL | 
+                    WS_DISABLED
+    LTEXT           "seconds to:",IDC_STATIC,173,142,40,10
+    PUSHBUTTON      "&Browse...",IDC_BROWSE,173,158,54,14
+    GROUPBOX        "&Audio quality",IDC_STATIC,7,55,227,70
+    LTEXT           "Sample &rate:",IDC_STATIC,13,71,67,9
+    COMBOBOX        IDC_SAMPLERATE,81,69,65,13,CBS_DROPDOWNLIST | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "48000hz recommended, if it doesn't work use 44100, it will slow down some music. Changing this during a game will have no effect.",
+                    IDC_STATIC,81,84,146,32
+    CONTROL         "&Anti-gap (dangerous!)",IDC_ANTIGAP,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,122,22,96,9
+    CONTROL         "&Reverb",IDC_CHECK3,"Button",BS_AUTOCHECKBOX | 
+                    WS_DISABLED | WS_TABSTOP,122,36,89,10
+END
+
+IDD_ABOUT DIALOGEX 0, 0, 184, 65
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "About Dolphin DSP-HLE Plugin 0.1"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,127,44,50,14
+    LTEXT           "Coded by ector and F|RES",IDC_STATIC,51,25,104,14
+    LTEXT           "Dolphin DSP-HLE plugin",IDC_STATIC,51,7,104,14
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_SETTINGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 234
+        VERTGUIDE, 13
+        VERTGUIDE, 122
+        VERTGUIDE, 168
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 199
+        HORZGUIDE, 31
+    END
+
+    IDD_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 177
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 58
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

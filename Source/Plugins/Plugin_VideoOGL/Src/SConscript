@@ -1,0 +1,26 @@
+Import('env')
+
+files = ["BPStructs.cpp",
+		 "DataReader.cpp",
+		 "Fifo.cpp",
+         "Globals.cpp",
+         "GLInit.cpp",
+		 "main.cpp",
+         "memcpy_amd.cpp",
+		 "OpcodeDecoding.cpp",
+#		 "OpcodeReaders.cpp",   # outdated
+		 "PixelShader.cpp",
+         "rasterfont.cpp",
+		 "Render.cpp",
+         "TextureDecoder.cpp",
+		 "TextureMngr.cpp",
+		 "VertexLoader.cpp",
+		 "VertexLoader_Normal.cpp",
+		 "VertexShader.cpp",
+#		 "Linux/Conf.cpp",
+		 "Linux/Linux.cpp",
+		 ]
+
+gfxenv=env.Copy(CXXFLAGS = " `pkg-config --cflags gtk+-2.0`", LINKFLAGS = " `pkg-config --libs gtk+-2.0`")
+
+gfxenv.SharedLibrary("../../../../Binary/linux/Plugins/zeroogl.so", files, LIBS=["common", "cairo", "GL", "GLEW", "CgGL", "Cg"])

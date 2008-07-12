@@ -1,0 +1,25 @@
+Import('env')
+
+files = ["Common.cpp",
+		 "CPUDetect.cpp",
+		 "DynamicLibrary.cpp",
+         "Hash.cpp",
+		 "HTTP.cpp",
+         "IniFile.cpp",
+		 "Logging.cpp",
+		 "MappedFile.cpp",
+		 "MathUtil.cpp",
+         "MemArena.cpp",
+		 "MemoryUtil.cpp",
+         "Plugin.cpp",
+		 "PortableSockets.cpp",
+		 "StringUtil.cpp",
+		 "TestFramework.cpp",
+		 "Timer.cpp",
+		 "Thread.cpp",
+		 "x64Emitter.cpp", 
+		 "x64Analyzer.cpp",
+		 ]
+
+env_common = env.Copy(CXXFLAGS = " -fPIC ")
+env_common.StaticLibrary("common", files)

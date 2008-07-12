@@ -1,0 +1,77 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
+#ifndef _ARC_FILE_H
+#define _ARC_FILE_H
+
+#include <string>
+#include <vector>
+
+#include "Common.h"
+#include "Filesystem.h"
+
+namespace DiscIO
+{
+class CARCFile
+{
+	public:
+
+		CARCFile(const u8* _pBuffer, size_t _BufferSize);
+
+		virtual ~CARCFile();
+
+		bool IsInitialized();
+
+		size_t GetFileSize(const std::string& _rFullPath);
+
+		size_t ReadFile(const std::string& _rFullPath, u8* _pBuffer, size_t _MaxBufferSize);
+
+		bool ExportFile(const std::string& _rFullPath, const std::string& _rExportFilename);
+
+		bool ExportAllFiles(const std::string& _rFullPath);
+
+
+	private:
+
+		u8* m_pBuffer;
+
+		bool m_Initialized;
+
+		struct SFileInfo
+		{
+			u32 m_NameOffset;
+			u32 m_Offset;
+			u32 m_FileSize;
+
+			std::string m_FullPath;
+
+			bool IsDirectory() {return((m_NameOffset& 0xFF000000) != 0 ? true : false);}
+		};
+
+		typedef std::vector<SFileInfo>CFileInfoVector;
+		CFileInfoVector m_FileInfoVector;
+
+		bool ParseBuffer();
+
+		size_t BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const char* _szDirectory, const char* _szNameTable);
+
+		const SFileInfo* FindFileInfo(std::string _rFullPath) const;
+};
+} // namespace
+
+#endif
+

@@ -1,0 +1,170 @@
+//__________________________________________________________________________________________________
+// Common dsp plugin spec, version #1.0 maintained by F|RES
+//
+
+#ifndef _DSP_H_INCLUDED__
+#define _DSP_H_INCLUDED__
+
+#include "PluginSpecs.h"
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+#ifdef _WIN32
+#define EXPORT				__declspec(dllexport)
+#define CALL				__cdecl
+#else
+#define EXPORT
+#define CALL
+#endif
+
+typedef unsigned char	(*TARAM_Read_U8)(const unsigned int _uAddress);
+typedef unsigned char*	(*TGetMemoryPointer)(const unsigned int  _uAddress);
+typedef unsigned char*	(*TGetARAMPointer)(void);
+typedef void			(*TLog)(const char* _szMessage);
+typedef void			(*TDebuggerBreak)(void);
+typedef void			(*TGenerateDSPInt)(void);
+typedef unsigned int(*TAudioGetStreaming)(short* _pDestBuffer, unsigned int _numSamples);
+
+typedef struct
+{
+	void* hWnd;
+	TARAM_Read_U8			pARAM_Read_U8;
+	TGetMemoryPointer		pGetMemoryPointer;
+	TGetARAMPointer			pGetARAMPointer;
+	TLog					pLog;	
+	TDebuggerBreak			pDebuggerBreak;
+	TGenerateDSPInt			pGenerateDSPInterrupt;
+	TAudioGetStreaming		pGetAudioStreaming;
+} DSPInitialize;
+
+// __________________________________________________________________________________________________
+// Function: GetDllInfo
+// Purpose:  This function allows the emulator to gather information
+//           about the DLL by filling in the PluginInfo structure.
+// input:    a pointer to a PLUGIN_INFO structure that needs to be
+//           filled by the function. (see def above)
+// output:   none
+//
+EXPORT void CALL GetDllInfo(PLUGIN_INFO* _pPluginInfo);
+
+// __________________________________________________________________________________________________
+// Function: DllAbout
+// Purpose:  This function is optional function that is provided
+//           to give further information about the DLL.
+// input:    a handle to the window that calls this function
+// output:   none
+//
+EXPORT void CALL DllAbout(HWND _hParent);
+
+// __________________________________________________________________________________________________
+// Function: DllConfig
+// Purpose:  This function is optional function that is provided
+//           to allow the user to configure the DLL
+// input:    a handle to the window that calls this function
+// output:   none
+//
+EXPORT void CALL DllConfig(HWND _hParent);
+
+// __________________________________________________________________________________________________
+// Function: DllConfig
+// Purpose:  This function is optional function that is provided
+//           to allow the user to configure the DLL
+// input:    a handle to the window that calls this function
+// output:   none
+//
+EXPORT void CALL DllConfig(HWND _hParent);
+
+// __________________________________________________________________________________________________
+// Function: DllDebugger
+// Purpose:  Open the debugger
+// input:    a handle to the window that calls this function
+// output:   none
+//
+EXPORT void CALL DllDebugger(HWND _hParent);
+
+// __________________________________________________________________________________________________
+// Function: DSP_Initialize
+// Purpose:  
+// input:    DSPInitialize
+// output:   none
+//
+EXPORT void CALL DSP_Initialize(DSPInitialize _dspInitialize);
+
+// __________________________________________________________________________________________________
+// Function: DSP_Shutdown
+// Purpose:  This function is called when the emulator is shutting down
+//           a game allowing the dll to de-initialise.
+// input:    none
+// output:   none
+//
+EXPORT void CALL DSP_Shutdown(void);
+
+// __________________________________________________________________________________________________
+// Function: DSP_ReadMailboxHigh
+// Purpose:  Send mail to high DSP Mailbox
+// input:    none
+// output:   none
+//
+EXPORT unsigned short CALL DSP_ReadMailboxHigh(bool _CPUMailbox);
+
+// __________________________________________________________________________________________________
+// Function: DSP_ReadMailboxLow
+// Purpose:  Send mail to low DSP Mailbox
+// input:    none
+// output:   none
+//
+EXPORT unsigned short CALL DSP_ReadMailboxLow(bool _CPUMailbox);
+
+// __________________________________________________________________________________________________
+// Function: DSP_WriteMailboxHigh
+// Purpose:  Send mail to high CPU Mailbox
+// input:    none
+// output:   none
+//
+EXPORT void CALL DSP_WriteMailboxHigh(bool _CPUMailbox, unsigned short _uHighMail);
+
+// __________________________________________________________________________________________________
+// Function: DSP_WriteMailboxLow
+// Purpose:  Send mail to low CPU Mailbox
+// input:    none
+// output:   none
+//
+EXPORT void CALL DSP_WriteMailboxLow(bool _CPUMailbox, unsigned short _uLowMail);
+
+// __________________________________________________________________________________________________
+// Function: DSP_WriteControlRegister
+// Purpose:  This function is called if the core reads from the DSP control register
+// input:    Value to be written
+// output:   value of the control register
+// 
+EXPORT unsigned short CALL DSP_WriteControlRegister(unsigned short _Value);
+
+// __________________________________________________________________________________________________
+// Function: DSP_ReadControlRegister
+// Purpose:  This function is called if the core reads from the DSP control register
+// output:   value of the control register
+// 
+EXPORT unsigned short CALL DSP_ReadControlRegister(void);
+
+// __________________________________________________________________________________________________
+// Function: DSP_Update
+// Purpose:  This function is called from time to time from the core. 
+// input:    flag (DSP_FLAG_RESET, DSP_FLAG_ASSERT_INT, ...)
+// output:   TRUE if the flag is set, else FALSE
+// 
+EXPORT void CALL DSP_Update(void);
+
+// __________________________________________________________________________________________________
+// Function: DSP_SendAIBuffer
+// Purpose:  This function sends the current AI Buffer to the DSP plugin
+// input:    _Address : Memory-Address
+// input:    _Size : Size of the Buffer
+// 
+EXPORT void CALL DSP_SendAIBuffer(unsigned int _Address, unsigned int _Size);
+ #undef CALL
+#if defined(__cplusplus)
+}
+#endif
+#endif

@@ -1,0 +1,86 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
+#ifndef CODEWINDOW_H_
+#define CODEWINDOW_H_
+
+#include "wx/dialog.h"
+#include "wx/textctrl.h"
+#include "wx/listbox.h"
+#include "Debugger.h"
+#include "CodeView.h"
+#include "Thread.h"
+
+#include "CoreParameter.h"
+
+class CRegisterWindow;
+class CLogWindow;
+
+class CCodeWindow
+	: public wxFrame
+{
+	public:
+
+		CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent,
+			wxWindowID id = wxID_ANY,
+			const wxString& title = _T("Dolphin-Debugger"),
+		const wxPoint& pos = wxPoint(950, 100),
+		const wxSize& size = wxSize(400, 500),
+		long style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE);
+
+		void Update();
+		void NotifyMapLoaded();
+
+		bool UseInterpreter();
+		bool UseDualCore();
+
+
+	private:
+
+		// sub dialogs
+		CLogWindow* m_logwindow;
+		CRegisterWindow* m_RegisterWindow;
+
+		CCodeView* codeview;
+		wxListBox* callstack;
+		wxListBox* symbols;
+		Common::Event sync_event;
+
+		wxButton* buttonGo;
+		wxButton* buttonStep;
+		wxButton* buttonStepOver;
+		wxButton* buttonSkip;
+		wxButton* buttonGotoPC;
+
+		wxTextCtrl* addrbox;
+		DECLARE_EVENT_TABLE()
+
+		void OnSymolListChange(wxCommandEvent& event);
+		void OnCallstackListChange(wxCommandEvent& event);
+		void OnCodeStep(wxCommandEvent& event);
+		void OnAddrBoxChange(wxCommandEvent& event);
+
+		void OnToggleRegisterWindow(wxCommandEvent& event);
+		void OnToggleLogWindow(wxCommandEvent& event);
+		void OnHostMessage(wxCommandEvent& event);
+
+		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter);
+
+		void UpdateButtonStates();
+};
+
+#endif /*CODEWINDOW_*/

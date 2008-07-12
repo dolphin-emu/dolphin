@@ -1,0 +1,46 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
+#ifndef _CONFIG_H
+#define _CONFIG_H
+
+#include <string>
+
+struct CConfig
+{
+	bool m_AntiGap;
+	bool m_EnableHLEAudio;
+	bool m_EnableDTKMusic;
+	bool m_Interpolation;
+	bool m_DumpSamples;
+	std::string m_szSamplePath;
+	int m_SampleRate;
+	bool m_DumpSampleMinLength;
+
+	CConfig();
+
+	void LoadDefaults();
+
+	void Load();
+
+	void Save();
+};
+
+extern CConfig g_Config;
+
+#endif
+

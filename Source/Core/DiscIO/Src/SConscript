@@ -1,0 +1,23 @@
+Import('env')
+
+files = ["BannerLoader.cpp", 
+         "BannerLoaderGC.cpp", 
+         "BannerLoaderWii.cpp",
+         "Blob.cpp", 
+         "FileHandlerARC.cpp",
+         "FileHandlerLZ77.cpp",
+         "Filesystem.cpp",
+         "FileSystemGCWii.cpp",
+         "VolumeCreator.cpp",
+         "VolumeGC.cpp",
+         "VolumeWiiCrypted.cpp",
+         "AES/aes_cbc.c",
+         "AES/aes_cfb.c",
+         "AES/aes_core.c",
+         "AES/aes_ctr.c",
+         "AES/aes_ecb.c",
+         "AES/aes_ige.c",
+         "AES/aes_misc.c",
+         "AES/aes_ofb.c",
+        ]
+env.StaticLibrary("discio", files, LIBS = ["common"])

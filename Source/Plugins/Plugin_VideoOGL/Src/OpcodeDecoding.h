@@ -1,0 +1,42 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
+#ifndef _OPCODE_DECODING_H
+#define _OPCODE_DECODING_H
+
+#define GX_NOP                      0x00
+
+#define GX_LOAD_BP_REG              0x61
+#define GX_LOAD_CP_REG              0x08
+#define GX_LOAD_XF_REG              0x10
+#define GX_LOAD_INDX_A              0x20
+#define GX_LOAD_INDX_B              0x28
+#define GX_LOAD_INDX_C              0x30
+#define GX_LOAD_INDX_D              0x38
+
+#define GX_CMD_CALL_DL              0x40
+#define GX_CMD_INVL_VC              0x48
+
+#define GX_PRIMITIVE_MASK           0x78
+#define GX_PRIMITIVE_SHIFT          3
+#define GX_VAT_MASK                 0x07
+
+void OpcodeDecoder_Init();
+void OpcodeDecoder_Shutdown();
+void OpcodeDecoder_Run();
+
+#endif

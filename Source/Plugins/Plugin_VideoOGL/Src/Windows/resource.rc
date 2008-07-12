@@ -1,0 +1,206 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Swedish resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_SVE)
+#ifdef _WIN32
+LANGUAGE LANG_SWEDISH, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUT DIALOGEX 0, 0, 188, 81
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dolphin OpenGL Video Plugin"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Close",IDOK,131,60,50,14
+    LTEXT           "Author: zerofrog(@gmail.com)",IDC_STATIC,7,7,126,9
+    LTEXT           "Vertex/Pixel Shader 2.0 or higher, framebuffer objects, multiple render targets",IDC_STATIC,7,19,174,26
+END
+
+IDD_SETTINGS DIALOGEX 0, 0, 231, 141
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    LTEXT           "&Fullscreen video mode:",IDC_STATIC,7,22,74,8
+    LTEXT           "&Antialias mode:",IDC_STATIC,7,60,61,8
+    COMBOBOX        IDC_ANTIALIASMODE,68,57,156,73,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Windowed resolution:",IDC_STATIC,7,41,74,8
+    COMBOBOX        IDC_RESOLUTIONWINDOWED,87,39,137,73,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Fullscreen",IDC_FULLSCREENENABLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,87,7,84,8
+    COMBOBOX        IDC_RESOLUTION,87,20,137,73,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_DEBUGGER DIALOGEX 0, 0, 234, 254
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LIST1,7,16,70,231,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Command Stream",IDC_STATIC,7,7,70,8
+    PUSHBUTTON      "&Step",IDC_DEBUGSTEP,81,16,35,15
+    CONTROL         "",IDC_REGISTERS,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,81,68,146,179
+    LTEXT           "&Registers",IDC_STATIC,81,41,137,9
+    CONTROL         "&Enable debugging",IDC_ENABLEDEBUGGING,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,121,19,70,8
+    CONTROL         "",IDC_REGISTERSELECT,"SysTabControl32",TCS_BUTTONS,80,52,145,13
+END
+
+IDD_ADVANCED DIALOGEX 0, 0, 206, 144
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 0, 0, 0x0
+BEGIN
+    GROUPBOX        "&Settings",IDC_STATIC,7,7,192,81
+    CONTROL         "&Wireframe",IDC_WIREFRAME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,19,79,9
+    CONTROL         "&Overlay some statistics",IDC_OVERLAYSTATS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,31,88,9
+    LTEXT           "&Default display list optimization level:",IDC_STATIC,14,57,137,9,WS_DISABLED
+    COMBOBOX        IDC_DLOPTLEVEL,14,67,178,63,CBS_DROPDOWNLIST | WS_DISABLED | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Dump textures to:",IDC_TEXDUMP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,104,70,9
+    EDITTEXT        IDC_TEXDUMPPATH,25,116,148,12,ES_AUTOHSCROLL
+    GROUPBOX        "&Data dumping",IDC_STATIC,7,91,192,44
+    PUSHBUTTON      "...",IDC_BROWSETEXDUMPPATH,176,116,14,13
+    CONTROL         "Show s&hader compilation errors",IDC_SHOWSHADERERRORS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,43,127,9
+END
+
+IDD_ENHANCEMENTS DIALOGEX 0, 0, 207, 175
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    GROUPBOX        "Texture &enhancements",IDC_STATIC,7,61,193,34
+    CONTROL         "&Pre-upscale:",IDC_PREUPSCALE,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,16,76,54,10
+    COMBOBOX        IDC_PREUPSCALETYPE,74,74,117,49,CBS_DROPDOWNLIST | CBS_SORT | WS_DISABLED | WS_VSCROLL | WS_TABSTOP
+    GROUPBOX        "Texture &filtering",IDC_STATIC,7,7,193,50
+    CONTROL         "&Force bi/trilinear (may cause very small glitches)",IDC_FORCEFILTERING,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,20,170,9
+    CONTROL         "&Force maximum anisotropy filtering",IDC_FORCEANISOTROPY,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,35,127,10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 181
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 74
+    END
+
+    IDD_SETTINGS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 224
+        VERTGUIDE, 7
+        VERTGUIDE, 68
+        VERTGUIDE, 81
+        VERTGUIDE, 87
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 134
+    END
+
+    IDD_DEBUGGER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 227
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 247
+    END
+
+    IDD_ADVANCED, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 199
+        VERTGUIDE, 14
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 137
+    END
+
+    IDD_ENHANCEMENTS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 200
+        VERTGUIDE, 16
+        VERTGUIDE, 74
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 168
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Swedish resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

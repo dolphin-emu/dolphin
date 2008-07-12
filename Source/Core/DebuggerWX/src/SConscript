@@ -1,0 +1,13 @@
+Import('env')
+
+files = ["LogWindow.cpp", 
+         "CodeWindow.cpp",
+         "CodeView.cpp",
+         "Debugger.cpp", 
+         "RegisterWindow.cpp",
+         "RegisterView.cpp",
+        ]
+wxenv = env.Copy(CXXFLAGS = "`wx-config --cppflags --debug` -DUSE_XPM_BITMAPS -DwxNEEDS_CHARPP",
+                 LINKFLAGS = "-L/usr/local/lib -pthread `wx-config --libs --debug`")
+                 
+wxenv.StaticLibrary("debwx", files, LIBS = ["common"])
