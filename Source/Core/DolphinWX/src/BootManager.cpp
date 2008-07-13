@@ -42,12 +42,6 @@ namespace BootManager
 extern "C" HINSTANCE wxGetInstance();
 #endif
 
-
-
-
-
-
-
 bool BootCore(const std::string& _rFilename)
 {
 	SCoreStartupParameter StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;

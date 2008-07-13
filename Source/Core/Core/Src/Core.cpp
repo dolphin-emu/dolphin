@@ -222,7 +222,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pGetMemoryPointer	= Memory::GetPointer;
 	VideoInitialize.pSetPEToken			= PixelEngine::SetToken;
 	VideoInitialize.pSetPEFinish		= PixelEngine::SetFinish;
-	VideoInitialize.pWindowHandle		= NULL; //_CoreParameter.hMainWindow; //      NULL; // filled by video_initialize
+	VideoInitialize.pWindowHandle		= _CoreParameter.hMainWindow; //      NULL; // filled by video_initialize
 	VideoInitialize.pLog				= Callback_VideoLog;
 	VideoInitialize.pRequestWindowSize	= NULL; //Callback_VideoRequestWindowSize;
 	VideoInitialize.pCopiedToXFB		= Callback_VideoCopiedToXFB;
