@@ -470,7 +470,10 @@ bool Init()
 	// Do a poor mans version - just grab 1GB, possibly discontiguous, and use &0x3FFFFFFF as the mask whenever it is accessed.
 	base = (u8*)MemArena::Find4GBBase();
 	if (!base) {
-		PanicAlert("Failed to grab 1 GB of contiguous memory!");
+		PanicAlert("Failed to grab 1 GB of contiguous memory!\nDo you have an antivirus program or any other program\n"
+			       "that injects itself into every process, consuming address space?\nOr simply a bad graphics driver?\n\n"
+				   "Dolphin will handle this better in the future by falling back to slow memory emulation.\n"
+				   "For now, sorry, but it won't work. Try the 64-bit build if you can.");
 	}
 	position = 0;
 	m_pPhysicalRAM        = (u8*)g_arena.CreateViewAt(position, RAM_SIZE, base + (0x00000000 & MEMVIEW32_MASK));

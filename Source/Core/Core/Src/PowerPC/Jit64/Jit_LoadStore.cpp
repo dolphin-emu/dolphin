@@ -569,6 +569,7 @@ namespace Jit64
 				MOV(16, R(EAX), MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
 				MOV(32, M(&temp64), R(EAX));
 				MOVD_xmm(XMM0, M(&temp64));
+				// SSE4 optimization opportunity here.
 				PXOR(XMM1, R(XMM1));
 				PUNPCKLBW(XMM0, R(XMM1));
 				PUNPCKLWD(XMM0, R(XMM1));
