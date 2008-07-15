@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="Plugin_PadSimple"
 	ProjectGUID="{9A183B48-ECC2-4121-876A-9B3793686073}"
 	RootNamespace="Plugin_PadSimple"
@@ -89,8 +89,8 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				ProgramDatabaseFile=".\Release/Pad_Simple.pdb"
-				ImportLibrary=".\Release/Pad_Simple.lib"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -190,8 +190,8 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				ProgramDatabaseFile=".\Release/Pad_Simple.pdb"
-				ImportLibrary=".\Release/Pad_Simple.lib"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -287,8 +287,8 @@
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/Pad_Simple.pdb"
-				ImportLibrary=".\Debug/Pad_Simple.lib"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -384,8 +384,8 @@
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/Pad_Simple.pdb"
-				ImportLibrary=".\Debug/Pad_Simple.lib"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -415,8 +415,8 @@
 		</Configuration>
 		<Configuration
 			Name="DebugFast|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -485,8 +485,8 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				ProgramDatabaseFile=".\Release/Pad_Simple.pdb"
-				ImportLibrary=".\Release/Pad_Simple.lib"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -586,8 +586,8 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
-				ProgramDatabaseFile=".\Release/Pad_Simple.pdb"
-				ImportLibrary=".\Release/Pad_Simple.lib"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool

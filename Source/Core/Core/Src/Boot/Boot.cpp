@@ -288,7 +288,7 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		for (int i=0x3000; i<=0x3038; i+=4)
 		{
 			Memory::Write_U32(0x00000000, i);
-		}
+		}	
 
 		// app
 		VolumeHandler::ReadToPtr(Memory::GetPointer(0x3180), 0, 4);
@@ -296,7 +296,7 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 	}
 
 	// apploader
-	if (VolumeHandler::IsValid())
+	if (VolumeHandler::IsValid())	
 	{
 		UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
 		m_MSR.FP = 1;

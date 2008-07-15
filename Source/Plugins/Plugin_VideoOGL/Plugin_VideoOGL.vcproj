@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="Plugin_VideoOGL"
 	ProjectGUID="{CFDCEE0E-FA45-4F72-9FCC-0B88F5A75160}"
 	RootNamespace="Plugin_VideoOGL"
@@ -94,8 +94,8 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="Src\Windows\GL;Src\Windows\libjpeg;..\..\..\Externals\Cg"
 				GenerateManifest="false"
-				ProgramDatabaseFile=".\Release/VideoOGL.pdb"
-				ImportLibrary=".\Release/VideoOGL.lib"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -125,7 +125,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="..\..\..\Binary\x64\Plugins\"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
@@ -204,8 +204,8 @@
 				AdditionalLibraryDirectories="Src\Windows\GL;Src\Windows\libjpeg;..\..\..\Externals\Cg64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/$(TargetName).pdb"
-				ImportLibrary=".\Release/VideoOGL.lib"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="17"
 				FixedBaseAddress="1"
 			/>
@@ -304,8 +304,8 @@
 				AdditionalLibraryDirectories="Src\Windows\GL;Src\Windows\libjpeg;..\..\..\Externals\Cg"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/VideoOGL.pdb"
-				ImportLibrary=".\Debug/VideoOGL.lib"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -403,9 +403,9 @@
 				AdditionalLibraryDirectories="Src\Windows\GL;Src\Windows\libjpeg;..\..\..\Externals\Cg64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/VideoOGL.pdb"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				LargeAddressAware="1"
-				ImportLibrary=".\Debug/VideoOGL.lib"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -435,8 +435,8 @@
 		</Configuration>
 		<Configuration
 			Name="DebugFast|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
@@ -511,8 +511,8 @@
 				AdditionalLibraryDirectories="Src\Windows\GL;Src\Windows\libjpeg;..\..\..\Externals\Cg"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Release/VideoOGLDF.pdb"
-				ImportLibrary=".\Release/VideoOGL.lib"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -620,8 +620,8 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="Src\Windows\GL;Src\Windows\libjpeg;..\..\..\Externals\Cg64"
 				GenerateManifest="false"
-				ProgramDatabaseFile=".\Release/VideoOGL.pdb"
-				ImportLibrary=".\Release/VideoOGL.lib"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool

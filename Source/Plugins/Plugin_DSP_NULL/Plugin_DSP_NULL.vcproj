@@ -72,9 +72,9 @@
 				LinkIncremental="2"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/DSP_HLE.pdb"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				SubSystem="2"
-				ImportLibrary="$(OutDir)/DSP_HLE.lib"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -157,9 +157,9 @@
 				LinkIncremental="2"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)/DSP_HLE.pdb"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				SubSystem="2"
-				ImportLibrary="$(OutDir)/DSP_HLE.lib"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -245,10 +245,11 @@
 				LinkIncremental="1"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/DSP_HLE.lib"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -335,10 +336,11 @@
 				LinkIncremental="1"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/DSP_HLE.lib"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -424,10 +426,11 @@
 				LinkIncremental="1"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/DSP_HLE.lib"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -514,10 +517,11 @@
 				LinkIncremental="1"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				ImportLibrary="$(OutDir)/DSP_HLE.lib"
+				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool

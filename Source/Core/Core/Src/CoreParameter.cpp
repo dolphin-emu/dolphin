@@ -141,4 +141,6 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
     m_strMemoryCardA = BaseDataPath + "/MemoryCardA.raw";
     m_strMemoryCardB = BaseDataPath + "/MemoryCardB.raw";
     m_strSRAM = BaseDataPath + "/SRAM.raw";
+
+	return true;
 }

@@ -130,7 +130,7 @@ bool CReBarSettings::Load(LPCTSTR szRegKey, LPCTSTR szPrefix, HKEY hkRootKey /* 
 
 	if (err == ERROR_SUCCESS)
 	{
-		reg.QueryValue(m_cbBandCount, CString(szPrefix) + S_BAR_BANDCOUNT);
+		reg.QueryDWORDValue(CString(szPrefix) + S_BAR_BANDCOUNT, m_cbBandCount);
 
 		if (m_cbBandCount > 0)
 		{
@@ -141,11 +141,11 @@ bool CReBarSettings::Load(LPCTSTR szRegKey, LPCTSTR szPrefix, HKEY hkRootKey /* 
 		{
 			CString s;
 			s.Format(_T("%s%i_"), szPrefix, i);
-			reg.QueryValue(m_pBands[i].ID, s + S_BAR_ID_VAL);
-			reg.QueryValue(m_pBands[i].cx, s + S_BAR_CX_VAL);
+			reg.QueryDWORDValue(s + S_BAR_ID_VAL, m_pBands[i].ID);
+			reg.QueryDWORDValue(s + S_BAR_CX_VAL, m_pBands[i].cx);
 
 			DWORD dw;
-			reg.QueryValue(dw, s + S_BAR_BREAKLINE_VAL);
+			reg.QueryDWORDValue(s + S_BAR_BREAKLINE_VAL, dw);
 			m_pBands[i].BreakLine = dw != 0;
 		}
 	}
@@ -161,17 +161,17 @@ bool CReBarSettings::Save(LPCTSTR szRegKey, LPCTSTR szPrefix, HKEY hkRootKey /* 
 
 	if (err == ERROR_SUCCESS)
 	{
-		reg.SetValue(m_cbBandCount, CString(szPrefix) + S_BAR_BANDCOUNT);
+		reg.SetDWORDValue(CString(szPrefix) + S_BAR_BANDCOUNT, m_cbBandCount);
 
 		for (DWORD i = 0; i < m_cbBandCount; i++)
 		{
 			CString s;
 			s.Format(_T("%s%i_"), szPrefix, i);
-			reg.SetValue(m_pBands[i].ID, s + S_BAR_ID_VAL);
-			reg.SetValue(m_pBands[i].cx, s + S_BAR_CX_VAL);
+			reg.SetDWORDValue(s + S_BAR_ID_VAL, m_pBands[i].ID);
+			reg.SetDWORDValue(s + S_BAR_CX_VAL, m_pBands[i].cx);
 
 			DWORD dw = m_pBands[i].BreakLine;
-			reg.SetValue(dw, s + S_BAR_BREAKLINE_VAL);
+			reg.SetDWORDValue(s + S_BAR_BREAKLINE_VAL, dw);
 		}
 	}
 
@@ -249,7 +249,7 @@ bool CSplitterSettings::Load(LPCTSTR szRegKey, LPCTSTR szPrefix, HKEY hkRootKey 
 
 	if (err == ERROR_SUCCESS)
 	{
-		reg.QueryValue(m_dwPos, CString(szPrefix) + S_SPLITTER_POS);
+		reg.QueryDWORDValue(CString(szPrefix) + S_SPLITTER_POS, m_dwPos);
 	}
 
 	return(err == ERROR_SUCCESS);
@@ -263,7 +263,7 @@ bool CSplitterSettings::Save(LPCTSTR szRegKey, LPCTSTR szPrefix, HKEY hkRootKey 
 
 	if (err == ERROR_SUCCESS)
 	{
-		reg.SetValue(m_dwPos, CString(szPrefix) + S_SPLITTER_POS);
+		reg.SetDWORDValue(CString(szPrefix) + S_SPLITTER_POS, m_dwPos);
 	}
 
 	return(err == ERROR_SUCCESS);
