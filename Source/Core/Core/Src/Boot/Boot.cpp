@@ -210,32 +210,34 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 //
 bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 {	
-	if (!VolumeHandler::IsValid())
-	{
-		 LOG(MASTER_LOG, "Invalid volume");	
-		 return false;
-	}
-
-
 	LOG(BOOT, "Faking Wii BIOS...");
 
 	// load settings.txt
 	{
-		std::string filename;
-		switch(VolumeHandler::GetVolume()->GetCountry())
+		std::string filename("wii/setting-eur.txt");
+		if (VolumeHandler::IsValid())
 		{
-		case DiscIO::IVolume::COUNTRY_JAP:
-			filename = "wii/setting-jpn.txt";
-			break;
+			switch(VolumeHandler::GetVolume()->GetCountry())
+			{
+			case DiscIO::IVolume::COUNTRY_JAP:
+				filename = "wii/setting-jpn.txt";
+				break;
 
-		case DiscIO::IVolume::COUNTRY_USA:
-			filename = "wii/setting-usa.txt";
-			break;
+			case DiscIO::IVolume::COUNTRY_USA:
+				filename = "wii/setting-usa.txt";
+				break;
 
-		default:
-			filename = "wii/setting-eur.txt";
-			break;
+			case DiscIO::IVolume::COUNTRY_EUROPE:
+				filename = "wii/setting-eur.txt";
+				break;
+
+			default:
+				PanicAlert("Unknown country. Wii boot process will be switched to European settings.");
+				filename = "wii/setting-eur.txt";
+				break;
+			}
 		}
+
 		FILE* pTmp = fopen(filename.c_str(), "rb");
 		if (!pTmp)
 		{
@@ -249,22 +251,25 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 
 	// int global vars
 	{
+		Memory::Write_U32(0x8179b500, 0x000000f4);		// __start
 		Memory::Write_U32(0x00000000, 0x000030f0);		// apploader
 		Memory::Write_U16(0x0113, 0x0000315e);			// apploader
 		Memory::Write_U32(0x5d1c9ea3, 0x00000018);		// magic word it is a wii disc
 		Memory::Write_U32(0x01800000, 0x00000028);		
 		Memory::Write_U32(0x04000000, 0x00003118);
 		Memory::Write_U32(0x00000023, 0x0000002c);
-		Memory::Write_U32(0x00000000, 0x000030dc);		// OSTime
-		Memory::Write_U32(0x00000000, 0x000030d8);		// OSTime
-		Memory::Write_U32(0x00000000, 0x0000310c);		// OSInit
-		Memory::Write_U32(0x90000800, 0x00003124);		// OSInit - MEM2 low
-		Memory::Write_U32(0x933e0000, 0x00003128);		// OSInit - MEM2 high
+		Memory::Write_U32(0x00000000, 0x000030dc);		// Time
+		Memory::Write_U32(0x00000000, 0x000030d8);		// Time
+		Memory::Write_U32(0x00000000, 0x00000030);		// Init
+		Memory::Write_U32(0x00000000, 0x0000310c);		// Init
+		Memory::Write_U32(0x8179d500, 0x00003110);		// Init
+		Memory::Write_U32(0x90000800, 0x00003124);		// Init - MEM2 low
+		Memory::Write_U32(0x933e0000, 0x00003128);		// Init - MEM2 high
 		Memory::Write_U32(0x933e0000, 0x00003130);		// IPC MEM2 low
 		Memory::Write_U32(0x93400000, 0x00003134);		// IPC MEM2 high
-		Memory::Write_U32(0x38a00040, 0x00000060);		// exception init
-		Memory::Write_U16(0x0000, 0x000030e6);			// console type
-		Memory::Write_U32(0x00000011, 0x00003138);		// console type
+		Memory::Write_U32(0x38a00040, 0x00000060);		// Exception init
+		Memory::Write_U16(0x0000, 0x000030e6);			// Console type
+		Memory::Write_U32(0x00000011, 0x00003138);		// Console type
 		Memory::Write_U32(0x0e7be2c0, 0x000000f8);		// EXI
 		Memory::Write_U32(0x00000000, 0x000030c0);		// EXI
 		Memory::Write_U32(0x00000000, 0x000030c4);		// EXI
@@ -279,12 +284,19 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		Memory::Write_U32(0x00000005, 0x000000cc);		// VIInit
 		Memory::Write_U16(0x0000, 0x000030e0);			// PADInit
 
+		// clear exception handler
+		for (int i=0x3000; i<=0x3038; i+=4)
+		{
+			Memory::Write_U32(0x00000000, i);
+		}
+
 		// app
 		VolumeHandler::ReadToPtr(Memory::GetPointer(0x3180), 0, 4);
 		Memory::Write_U8(0x80, 0x00003184);
 	}
 
 	// apploader
+	if (VolumeHandler::IsValid())
 	{
 		UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
 		m_MSR.FP = 1;

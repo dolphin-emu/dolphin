@@ -347,7 +347,7 @@ CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 					wxFileSelectorDefaultWildcardStr,
 					wxFileSelectorDefaultWildcardStr
 			),
-			wxFD_OPEN | wxFD_PREVIEW,
+			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
 
 	if (!path)

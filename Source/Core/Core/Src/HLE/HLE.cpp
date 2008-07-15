@@ -54,14 +54,15 @@ SPatch OSPatches[] =
 //	{ "THPPlayerGetState",			HLE_Misc:THPPlayerGetState },
 
 
-    // Debugout is very nice .)
+    // debug out is very nice ;)
     { "OSReport",					HLE_OS::HLE_OSReport    },
     { "OSPanic",					HLE_OS::HLE_OSPanic     },
     { "vprintf",					HLE_OS::HLE_vprintf     },		
     { "printf",						HLE_OS::HLE_printf      },
 
 	// wii only
-	{ "SCCheckStatus",				HLE_Misc::UnimplementedFunctionFalse },    // SC is SystemConfig ... dunn
+	{ "SCCheckStatus",				HLE_Misc::UnimplementedFunctionFalse },	
+	{ "__OSInitAudioSystem",        HLE_Misc::UnimplementedFunction },			
 
     // special
 //	{ "GXPeekZ",					HLE_Misc::GXPeekZ},
@@ -71,7 +72,6 @@ SPatch OSPatches[] =
 SPatch OSBreakPoints[] =
 {
 	{ "FAKE_TO_SKIP_0",									HLE_Misc::UnimplementedFunction },
-	//{ "__OSInitAudioSystem",							CHLE_Audio::__OSInitAudioSystem },
 };
 
 void PatchFunctions(const char* _gameID)
