@@ -124,14 +124,14 @@ void VertexLoader::Setup()
 	}
 
 	// Texture matrix indices
-	if (m_VtxDesc.Tex0MatIdx) {m_components|=VB_HAS_TEXMTXIDX0; WriteCall(TexMtx_ReadDirect_UByte0); m_VertexSize+=1;}
-	if (m_VtxDesc.Tex1MatIdx) {m_components|=VB_HAS_TEXMTXIDX1; WriteCall(TexMtx_ReadDirect_UByte1); m_VertexSize+=1;}
-	if (m_VtxDesc.Tex2MatIdx) {m_components|=VB_HAS_TEXMTXIDX2; WriteCall(TexMtx_ReadDirect_UByte2); m_VertexSize+=1;}
-	if (m_VtxDesc.Tex3MatIdx) {m_components|=VB_HAS_TEXMTXIDX3; WriteCall(TexMtx_ReadDirect_UByte3); m_VertexSize+=1;}
-	if (m_VtxDesc.Tex4MatIdx) {m_components|=VB_HAS_TEXMTXIDX4; WriteCall(TexMtx_ReadDirect_UByte4); m_VertexSize+=1;}
-	if (m_VtxDesc.Tex5MatIdx) {m_components|=VB_HAS_TEXMTXIDX5; WriteCall(TexMtx_ReadDirect_UByte5); m_VertexSize+=1;}
-	if (m_VtxDesc.Tex6MatIdx) {m_components|=VB_HAS_TEXMTXIDX6; WriteCall(TexMtx_ReadDirect_UByte6); m_VertexSize+=1;}
-	if (m_VtxDesc.Tex7MatIdx) {m_components|=VB_HAS_TEXMTXIDX7; WriteCall(TexMtx_ReadDirect_UByte7); m_VertexSize+=1;}
+	if (m_VtxDesc.Tex0MatIdx) {m_components|=VB_HAS_TEXMTXIDX0; WriteCall(TexMtx_ReadDirect_UByte); m_VertexSize+=1;}
+	if (m_VtxDesc.Tex1MatIdx) {m_components|=VB_HAS_TEXMTXIDX1; WriteCall(TexMtx_ReadDirect_UByte); m_VertexSize+=1;}
+	if (m_VtxDesc.Tex2MatIdx) {m_components|=VB_HAS_TEXMTXIDX2; WriteCall(TexMtx_ReadDirect_UByte); m_VertexSize+=1;}
+	if (m_VtxDesc.Tex3MatIdx) {m_components|=VB_HAS_TEXMTXIDX3; WriteCall(TexMtx_ReadDirect_UByte); m_VertexSize+=1;}
+	if (m_VtxDesc.Tex4MatIdx) {m_components|=VB_HAS_TEXMTXIDX4; WriteCall(TexMtx_ReadDirect_UByte); m_VertexSize+=1;}
+	if (m_VtxDesc.Tex5MatIdx) {m_components|=VB_HAS_TEXMTXIDX5; WriteCall(TexMtx_ReadDirect_UByte); m_VertexSize+=1;}
+	if (m_VtxDesc.Tex6MatIdx) {m_components|=VB_HAS_TEXMTXIDX6; WriteCall(TexMtx_ReadDirect_UByte); m_VertexSize+=1;}
+	if (m_VtxDesc.Tex7MatIdx) {m_components|=VB_HAS_TEXMTXIDX7; WriteCall(TexMtx_ReadDirect_UByte); m_VertexSize+=1;}
 	
 	// Position
 	switch (m_VtxDesc.Position)
@@ -388,6 +388,7 @@ void VertexLoader::RunVertices(int count)
 	{
 		tcIndex = 0;
 		colIndex = 0;
+		s_texmtxread = 0;
 		for (int i = 0; i < m_numPipelineStates; i++)
 		{
 			m_PipelineStates[i](&m_VtxAttr);

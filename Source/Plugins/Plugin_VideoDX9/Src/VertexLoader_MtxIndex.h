@@ -10,24 +10,15 @@
 void LOADERDECL PosMtx_ReadDirect_UByte(void* _p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
-	int index = ReadBuffer8();
+	int index = ReadBuffer8() & 0x3f;
 	float *flipmem = (float *)xfmem;
 	varray->SetPosNrmIdx(index);
 }
 
-#define MAKETEX(n) \
-void LOADERDECL TexMtx_ReadDirect_UByte##n(void* _p) \
-{                                         \
-	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;   \
-	int index = ReadBuffer8();            \
-	varray->SetTcIdx(n, index);           \
+int s_texmtxread = 0, s_texmtxwrite = 0;
+void LOADERDECL TexMtx_ReadDirect_UByte(void* _p)
+{
+	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
+	int index = ReadBuffer8() & 0x3f;
+	varray->SetTcIdx(s_texmtxread++, index);
 }
-
-MAKETEX(0)
-MAKETEX(1)
-MAKETEX(2)
-MAKETEX(3)
-MAKETEX(4)
-MAKETEX(5)
-MAKETEX(6)
-MAKETEX(7)

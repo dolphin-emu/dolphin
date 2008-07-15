@@ -36,6 +36,17 @@ enum Compare
 	COMPARE_ALWAYS
 };
 
+#define TEVCMP_R8_GT 8
+#define TEVCMP_R8_EQ 9
+#define TEVCMP_GR16_GT 10
+#define TEVCMP_GR16_EQ 11
+#define TEVCMP_BGR24_GT 12
+#define TEVCMP_BGR24_EQ 13
+#define TEVCMP_RGB8_GT  14
+#define TEVCMP_RGB8_EQ  15
+#define TEVCMP_A8_GT 14
+#define TEVCMP_A8_EQ 15
+
 //color chan above:
 //  rasterized color selections
 #define RAS1_CC_0	0x00000000 /* color channel 0 */
@@ -49,6 +60,63 @@ enum Compare
 #define TEV_Z_TYPE_U16	0x00000001
 #define TEV_Z_TYPE_U24	0x00000002
 
+#define ZTEXTURE_DISABLE 0
+#define ZTEXTURE_ADD 1
+#define ZTEXTURE_REPLACE 2
+
+
+union IND_MTXA
+{
+    struct
+    {
+        signed ma : 11;
+        signed mb : 11;
+        unsigned s0 : 2; // bits 0-1 of scale factor
+        unsigned rid : 8;
+    };
+    u32 hex;
+};
+
+union IND_MTXB
+{
+    struct
+    {
+        signed mc : 11;
+        signed md : 11;
+        unsigned s1 : 2; // bits 2-3 of scale factor
+        unsigned rid : 8;
+    };
+    u32 hex;
+};
+
+union IND_MTXC
+{
+    struct
+    {
+        signed me : 11;
+        signed mf : 11;
+        unsigned s2 : 2; // bits 4-5 of scale factor
+        unsigned rid : 8;
+    };
+    u32 hex;
+};
+
+struct IND_MTX
+{
+    IND_MTXA col0;
+    IND_MTXB col1;
+    IND_MTXC col2;
+};
+
+union IND_IMASK
+{
+    struct
+    {
+        unsigned mask : 24;
+        unsigned rid : 8;
+    };
+    u32 hex;
+};
 
 struct TevStageCombiner
 {
@@ -65,7 +133,7 @@ struct TevStageCombiner
 			unsigned op : 1;
 			unsigned clamp : 1;
 
-			unsigned scale : 2;
+			unsigned shift : 2;
 			unsigned outreg : 2;  //1,2,3
 
 		};
@@ -86,7 +154,7 @@ struct TevStageCombiner
 			unsigned op : 1;
 			unsigned clamp : 1;
 
-			unsigned scale : 2;
+			unsigned shift : 2;
 			unsigned outreg : 2;  //1,2,3
 		};
 		u32 hex;
@@ -94,6 +162,68 @@ struct TevStageCombiner
 
 	ColorCombiner colorC;
 	AlphaCombiner alphaC;
+};
+
+#define ITF_8 0
+#define ITF_5 1
+#define ITF_4 2
+#define ITF_3 3
+
+#define ITB_NONE 0
+#define ITB_S 1
+#define ITB_T 2
+#define ITB_ST 3
+#define ITB_U 4
+#define ITB_SU 5
+#define ITB_TU 6
+#define ITB_STU 7
+
+#define ITBA_OFF 0
+#define ITBA_S 1
+#define ITBA_T 2
+#define ITBA_U 3
+
+#define ITW_OFF 0
+#define ITW_256 1
+#define ITW_128 2
+#define ITW_64 3
+#define ITW_32 4
+#define ITW_16 5
+#define ITW_0 6
+
+// several discoveries:
+// GXSetTevIndBumpST(tevstage, indstage, matrixind)
+//  if( matrix == 2 ) realmat = 6; // 10
+//  else if( matrix == 3 ) realmat = 7; // 11
+//  else if( matrix == 1 ) realmat = 5; // 9
+//  GXSetTevIndirect(tevstage, indstage, 0, 3, realmat, 6, 6, 0, 0, 0)
+//  GXSetTevIndirect(tevstage+1, indstage, 0, 3, realmat+4, 6, 6, 1, 0, 0)
+//  GXSetTevIndirect(tevstage+2, indstage, 0, 0, 0, 0, 0, 1, 0, 0)
+
+union TevStageIndirect
+{
+    // if mid, sw, tw, and addprev are 0, then no indirect stage is used, mask = 0x17fe00
+    struct
+    {
+        unsigned bt        : 2; // indirect tex stage ID
+        unsigned fmt       : 2; // format: ITF_X
+        unsigned bias      : 3; // ITB_X
+        unsigned bs        : 2; // ITBA_X, indicates which coordinate will become the 'bump alpha'
+        unsigned mid       : 4; // matrix id to multiply offsets with
+        unsigned sw        : 3; // ITW_X, wrapping factor for S of regular coord
+        unsigned tw        : 3; // ITW_X, wrapping factor for T of regular coord
+        unsigned lb_utclod : 1; // use modified or unmodified texture coordinates for LOD computation
+        unsigned fb_addprev : 1; // 1 if the texture coordinate results from the previous TEV stage should be added
+        unsigned pad0 : 3;
+        unsigned rid : 8;
+    };
+    struct
+    {
+        u32 hex : 21; 
+        u32 unused : 11;
+    };
+
+    bool IsActive() { return (hex&0x17fe00)!=0; }
 };
 
 union TwoTevStageOrders
@@ -121,7 +251,42 @@ union TwoTevStageOrders
 	int getColorChan(int i){return i?colorchan1:colorchan0;}
 };
 
+union TEXSCALE
+{
+    struct
+    {
+        unsigned ss0 : 4; // indirect tex stage 0, 2^(-ss0)
+        unsigned ts0 : 4; // indirect tex stage 0
+        unsigned ss1 : 4; // indirect tex stage 1
+        unsigned ts1 : 4; // indirect tex stage 1
+        unsigned pad : 8;
+        unsigned rid : 8;
+    };
+    u32 hex;
 
+    float getScaleS(int i){return 1.0f/(float)(1<<(i?ss1:ss0));}
+    float getScaleT(int i){return 1.0f/(float)(1<<(i?ts1:ts0));}
+};
+
+union RAS1_IREF
+{
+    struct
+    {
+        unsigned bi0 : 3; // indirect tex stage 0 ntexmap
+        unsigned bc0 : 3; // indirect tex stage 0 ntexcoord
+        unsigned bi1 : 3;
+        unsigned bc1 : 3;
+        unsigned bi2 : 3;
+        unsigned bc3 : 3;
+        unsigned bi4 : 3;
+        unsigned bc4 : 3;
+        unsigned rid : 8;
+    };
+    u32 hex;
+
+    u32 getTexCoord(int i) { return (hex>>(6*i+3))&3; }
+    u32 getTexMap(int i) { return (hex>>(6*i))&3; }
+};
 
 //////////////////////////////////////////////////////////////////////////
 // Texture structs
@@ -328,17 +493,27 @@ union FogParam0
 };
 union FogParam3
 {
-	struct
-	{
-		unsigned cShifted12 : 20;
-		unsigned proj : 1;
-		unsigned fsel : 3;
-	};
-	u32 hex;
+    struct
+    {
+        unsigned c_mant : 11;
+        unsigned c_exp : 8;
+        unsigned c_sign : 1;
+        unsigned proj : 1; // 0 - perspective, 1 - orthographic
+        unsigned fsel : 3; // 0 - off, 2 - linear, 4 - exp, 5 - exp2, 6 - backward exp, 7 - backward exp2
+    };
+
+    // amount to subtract from eyespacez after range adjustment
+    float GetC() { 
+		union { u32 i; float f; } dummy;
+		dummy.i = ((u32)c_sign << 31) | ((u32)c_exp << 23) | ((u32)c_mant << 12);
+		return dummy.f;
+	}
+
+    u32 hex;
 };
 struct FogParams
 {
-	u32 a;
+    FogParam0 a;
 	u32 b_magnitude;
 	u32 b_exponent;
 	FogParam3 c_proj_fsel;
@@ -366,6 +541,29 @@ union ConstantAlpha
 	u32 hex;
 };
 
+#define PIXELFMT_RGB8_Z24 0
+#define PIXELFMT_RGBA6_Z24 1
+#define PIXELFMT_RGB565_Z16 2
+#define PIXELFMT_Z24 3
+#define PIXELFMT_Y8 4
+#define PIXELFMT_U8 5
+#define PIXELFMT_V8 6
+#define PIXELFMT_YUV420 7
+
+union PE_CONTROL
+{
+    struct
+    {
+        unsigned pixel_format : 3; // PIXELFMT_X
+        unsigned zformat : 3; // 0 - linear, 1 - near, 2 - mid, 3 - far
+        unsigned zcomploc : 1; // 1: before tex stage
+        unsigned unused : 17;
+        unsigned rid : 8;
+    };
+    u32 hex;
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 // Texture coordinate stuff
 //////////////////////////////////////////////////////////////////////////
@@ -384,11 +582,6 @@ struct TCoordInfo
 	TCInfo s;
 	TCInfo t;
 };
-
-
-//////////////////////////////////////////////////////////////////////////
-// All of BP memory
-//////////////////////////////////////////////////////////////////////////
 
 union ColReg
 {
@@ -460,31 +653,48 @@ union UPE_Copy
 #define EFBCOPY_CLEAR 0x800
 #define EFBCOPY_GENERATEMIPS 0x200 
 
+
+//////////////////////////////////////////////////////////////////////////
+// All of BP memory
+//////////////////////////////////////////////////////////////////////////
+
 struct BPMemory
 {
 	GenMode genMode;
-	u32 unknown[15]; //0f = flushtexturestate
-	u32 tevind[16];
+    u32 display_copy_filter[4]; //01-04
+    u32 unknown; //05
+    // indirect matrices (set by GXSetIndTexMtx, selected by TevStageIndirect::mid)
+    // abc form a 2x3 offset matrix, there's 3 such matrices
+    // the 3 offset matrices can either be indirect type, S-type, or T-type
+    // 6bit scale factor s is distributed across IND_MTXA/B/C. 
+    // before using matrices scale by 2^-(s-17)
+    IND_MTX indmtx[3];//06-0e GXSetIndTexMtx, 2x3 matrices
+    IND_IMASK imask;//0f
+    TevStageIndirect tevind[16];//10 GXSetTevIndirect
 	X12Y12 scissorTL; //20
 	X12Y12 scissorBR; //21
 	LPSize lineptwidth; //22 line and point width
-	u32 unknown1[2]; //23-24
-	u32 unknown2[3]; //25-27
+	u32 sucounter;  //23
+	u32 rascounter; //24
+    TEXSCALE texscale[2]; //25-26 GXSetIndTexCoordScale
+    RAS1_IREF tevindref; //27 GXSetIndTexOrder
 	TwoTevStageOrders tevorders[8]; //28-2F
 	TCoordInfo texcoords[8]; //0x30 s,t,s,t,s,t,s,t...
 	ZMode zmode; //40
 	BlendMode blendmode; //41
 	ConstantAlpha dstalpha;  //42
-	u32 unknown4;  //43	// GXSetZCompLoc, GXPixModeSync
+    PE_CONTROL zcontrol; //43 GXSetZCompLoc, GXPixModeSync
 	u32 fieldmask; //44
-	u32 drawdone;  //45
-	u32 unknown5;  //46
-	u32 drawsync1; //47
-	u32 drawsync2; //48
+	u32 drawdone;  //45, bit1=1 if end of list
+	u32 unknown5;  //46 clock?
+	u32 petoken; //47
+	u32 petokenint; //48
 	X10Y10 copyTexSrcXY; //49
 	X10Y10 copyTexSrcWH; //4a
 	u32 copyTexDest; //4b// 4b == CopyAddress (GXDispCopy and GXTexCopy use it)
-	u32 unknown6[2]; //4c, 4d   
+	u32 unknown6; //4c, 4d   
+    u32 copyMipMapStrideChannels; // 4d usually set to 4 when dest is single channel, 8 when dest is 2 channel, 16 when dest is RGBA
+                                // also, doubles whenever mipmap box filter option is set (excent on RGBA). Probably to do with number of bytes to look at when smoothing
 	u32 dispcopyyscale; //4e
 	u32 clearcolorAR; //4f
 	u32 clearcolorGB; //50
@@ -500,13 +710,16 @@ struct BPMemory
 	u32 tlutXferDest; //65
 	u32 texinvalidate;//66
 	u32 unknown9; //67
-	u32 unknown10[8];//68-6F
+	u32 fieldmode; //68
+	u32 unknown10[7];//69-6F
 	u32 unknown11[16];//70-7F
 	FourTexUnits tex[2]; //80-bf
 	TevStageCombiner combiners[16]; //0xC0-0xDF
 	TevReg tevregs[4];  //0xE0
 	u32 fogRangeAdj;   //0xE8
-	u32 unknown15[5];  //0xe9,0xea,0xeb,0xec,0xed
+	u32 unknown15[3];  //0xe9,0xea,0xeb,0xec,0xed
+    u32 tev_range_adj_c; //0xec - screenx center for range adjustment, range adjustment enable
+    u32 tev_range_adj_k; //0xed - specifies range adjustment function = sqrt(x*x+k*k)/k
 	FogParams fog; //0xEE,0xEF,0xF0,0xF1,0xF2
 	AlphaFunc alphaFunc; //0xF3
 	ZTex1 ztex1; //0xf4,0xf5

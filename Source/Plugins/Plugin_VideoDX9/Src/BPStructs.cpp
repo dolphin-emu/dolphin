@@ -18,6 +18,9 @@ BPMemory bpmem;
 bool textureChanged[8];
 
 #define BPMEM_GENMODE          0x00
+#define BPMEM_IND_MTX          0x06
+#define BPMEM_RAS1_SS0         0x25 // ind tex coord scale 0
+#define BPMEM_RAS1_SS1         0x26 // ind tex coord scale 1
 #define BPMEM_ZMODE            0x40
 #define BPMEM_BLENDMODE        0x41
 #define BPMEM_CONSTANTALPHA    0x42
@@ -138,6 +141,29 @@ void BPWritten(int addr, int changes, int newval)
 			}
 		}
 		break;
+    case BPMEM_IND_MTX+0:
+    case BPMEM_IND_MTX+1:
+    case BPMEM_IND_MTX+2:
+    case BPMEM_IND_MTX+3:
+    case BPMEM_IND_MTX+4:
+    case BPMEM_IND_MTX+5:
+    case BPMEM_IND_MTX+6:
+    case BPMEM_IND_MTX+7:
+    case BPMEM_IND_MTX+8:
+        if (changes) {
+            CVertexHandler::Flush();
+            ((u32*)&bpmem)[addr] = newval;
+            // PixelShaderMngr::SetIndMatrixChanged((addr-BPMEM_IND_MTX)/3);
+        }
+        break;
+    case BPMEM_RAS1_SS0:
+    case BPMEM_RAS1_SS1:
+        if (changes) {
+            CVertexHandler::Flush();
+            ((u32*)&bpmem)[addr] = newval;
+            // PixelShaderMngr::SetIndTexScaleChanged();
+        }
+        break;
 
 	case BPMEM_ZMODE:
 		if (changes)
@@ -195,63 +221,91 @@ void BPWritten(int addr, int changes, int newval)
 		break;
 
 	case BPMEM_LINEPTWIDTH:
-//		glPointSize(1); //bpmem.lineptwidth.pointsize);
-//		glLineWidth(1); //bpmem.lineptwidth.linesize);
+		// We can't change line width in D3D. However, we can change point size. TODO
+		//bpmem.lineptwidth.pointsize);
+		//bpmem.lineptwidth.linesize);
 		break;
-		
+	
+	case 0x43:
+        if (changes) {
+            CVertexHandler::Flush();
+            ((u32*)&bpmem)[addr] = newval;
+        }
+        break;
+	
 	case BPMEM_BLENDMODE:	
 		if (changes & 0xFFFF)
 		{
 			CVertexHandler::Flush();
 			((u32*)&bpmem)[addr] = newval;
 			if (changes & 1) dev->SetRenderState(D3DRS_ALPHABLENDENABLE,bpmem.blendmode.blendenable);
-			if (changes & 4) dev->SetRenderState(D3DRS_DITHERENABLE,bpmem.blendmode.dither);
+			if (changes & 2) ; // Logic op blending. D3D can't do this but can fake some modes.
+			if (changes & 4) {
+				// Dithering is pointless. Will make things uglier and will be different from GC.
+				// dev->SetRenderState(D3DRS_DITHERENABLE,bpmem.blendmode.dither);
+			}
 			D3DBLEND src = d3dSrcFactors[bpmem.blendmode.srcfactor];
 			D3DBLEND dst = d3dDestFactors[bpmem.blendmode.dstfactor];
-			if (changes & 0x700) dev->SetRenderState(D3DRS_SRCBLEND, src);
-			if (changes & 0xE0)  dev->SetRenderState(D3DRS_DESTBLEND, dst);
-			if (changes & 0x800)
-				dev->SetRenderState(D3DRS_BLENDOP,bpmem.blendmode.subtract?D3DBLENDOP_SUBTRACT:D3DBLENDOP_ADD);
 
+			if (changes & 0x700) {
+				dev->SetRenderState(D3DRS_SRCBLEND, src);
+			}
+			if (changes & 0xE0) {
+				if (!bpmem.blendmode.subtract)
+					dev->SetRenderState(D3DRS_DESTBLEND, dst);
+				else
+					dev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+			}
+			if (changes & 0x800) {
+				if (bpmem.blendmode.subtract) {
+					dev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
+					dev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+				} else {
+					dev->SetRenderState(D3DRS_SRCBLEND, src);
+					dev->SetRenderState(D3DRS_DESTBLEND, dst);
+				}
+				dev->SetRenderState(D3DRS_BLENDOP,bpmem.blendmode.subtract?D3DBLENDOP_SUBTRACT:D3DBLENDOP_ADD);
+			}
 			//if (bpmem.blendmode.logicopenable) // && bpmem.blendmode.logicmode == 4)
 			//	MessageBox(0,"LOGIC",0,0);
 
 			if (changes & 0x18) 
 			{
+				// Color Mask
 				DWORD write = 0;
 				if (bpmem.blendmode.alphaupdate) 
 					write = D3DCOLORWRITEENABLE_ALPHA;
 				if (bpmem.blendmode.colorupdate) 
 					write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
-				dev->SetRenderState(D3DRS_COLORWRITEENABLE,write);
+				dev->SetRenderState(D3DRS_COLORWRITEENABLE, write);
 			}
 		}
 		break;
 
 	case BPMEM_FOGPARAM0:
 		{
-			u32 fogATemp = bpmem.fog.a<<12;
-			float fogA = *(float*)(&fogATemp);
+			// u32 fogATemp = bpmem.fog.a<<12;
+			// float fogA = *(float*)(&fogATemp);
+            CVertexHandler::Flush();
+            ((u32*)&bpmem)[addr] = newval;
 		}
 		break;
 
 	case BPMEM_FOGBEXPONENT: 
-		{
-
-		}
-		break;
-
 	case BPMEM_FOGBMAGNITUDE:
 		{
-
+            CVertexHandler::Flush();
+            ((u32*)&bpmem)[addr] = newval;
 		}
 		break;
 
 	case BPMEM_FOGPARAM3:
 		//fog settings
 		{
-			u32 fogCTemp = bpmem.fog.c_proj_fsel.cShifted12 << 12;
-			float fogC = *(float*)(&fogCTemp);
+			/// u32 fogCTemp = bpmem.fog.c_proj_fsel.cShifted12 << 12;
+			// float fogC = *(float*)(&fogCTemp);
+            CVertexHandler::Flush();
+            ((u32*)&bpmem)[addr] = newval;
 		}
 		break;
 
@@ -272,11 +326,6 @@ void BPWritten(int addr, int changes, int newval)
 		{
 			CVertexHandler::Flush();
 			((u32*)&bpmem)[addr] = newval;
-			int x=bpmem.scissorOffset.x*2-342;
-			int y=bpmem.scissorOffset.y*2-342;
-			char temp[256];
-			sprintf(temp,"ScissorOffset: %i %i",x,y);
-			g_VideoInitialize.pLog(temp, FALSE);
 		}
 		break;
 
@@ -304,9 +353,41 @@ void BPWritten(int addr, int changes, int newval)
 		}
 		break;
 	case BPMEM_ZTEX1:
+        if (changes) {
+            CVertexHandler::Flush();
+            ((u32*)&bpmem)[addr] = newval;
+            //PRIM_LOG("ztex bias=0x%x\n", bpmem.ztex1.bias);
+            //PixelShaderMngr::SetZTextureBias(bpmem.ztex1.bias);
+        }
 		break;
 	case BPMEM_ZTEX2:
+        if (changes) {
+            CVertexHandler::Flush();
+            ((u32*)&bpmem)[addr] = newval;
+#ifdef _DEBUG
+            const char* pzop[] = {"DISABLE", "ADD", "REPLACE", "?"};
+            const char* pztype[] = {"Z8", "Z16", "Z24", "?"};
+            PRIM_LOG("ztex op=%s, type=%s\n", pzop[bpmem.ztex2.op], pztype[bpmem.ztex2.type]);
+#endif
+        }
 		break;
+
+    case 0xf6: // ksel0
+    case 0xf7: // ksel1
+    case 0xf8: // ksel2
+    case 0xf9: // ksel3
+    case 0xfa: // ksel4
+    case 0xfb: // ksel5
+    case 0xfc: // ksel6
+    case 0xfd: // ksel7
+        if (changes)
+        {
+            CVertexHandler::Flush();
+            ((u32*)&bpmem)[addr] = newval;
+            // PixelShaderMngr::SetTevKSelChanged(addr-0xf6);
+        }
+        break;
+
 	default:
 		switch(addr & 0xF8)  //texture sampler filter
 		{
@@ -412,6 +493,15 @@ void BPWritten(int addr, int changes, int newval)
 					//dev->SetRenderState(D3DRS_WRAP0+stage, D3DWRAPCOORD_0);
 				}
 				break;
+            case 0xC0:
+            case 0xD0:
+                if (changes)
+                {
+                    CVertexHandler::Flush();
+                    ((u32*)&bpmem)[addr] = newval;
+                    // PixelShaderMngr::SetTevCombinerChanged((addr&0x1f)/2);
+                }
+                break;
 
 			case 0xE0:
 				if (addr<0xe8)
@@ -446,8 +536,6 @@ void BPWritten(int addr, int changes, int newval)
 				}
 				break;
 			case 0x20:
-			case 0xC0:
-			case 0xD0:
 			case 0x80:
 			case 0x90:
 			case 0xA0:
@@ -510,14 +598,8 @@ void LoadBPReg(u32 value0)
 		DebugLog("SetPEToken + INT 0x%04x", (value0 & 0xFFFF));
 		break;
 
-	case 0x67:
-		{
-//			char test[256];
-//			sprintf(test, "Setgpmetric: 0x%08x", value0);
-//			MessageBox(0, test, "Setgpmetric", 0);
-		}
-		//Setgpmetric
-		break;
+    case 0x67: // set gp metric?
+        break;
 
 	case 0x52:
 		{
@@ -551,6 +633,7 @@ void LoadBPReg(u32 value0)
 			if (PE_copy.copy_to_xfb == 0) // bpmem.triggerEFBCopy & EFBCOPY_EFBTOTEXTURE)
 			{
 				// EFB to texture 
+                // for some reason it sets bpmem.zcontrol.pixel_format to PIXELFMT_Z24 every time a zbuffer format is given as a dest to GXSetTexCopyDst
 				TextureCache::CopyEFBToRenderTarget(bpmem.copyTexDest<<5, &rc);
 			}
 			else

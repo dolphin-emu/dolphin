@@ -233,7 +233,12 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			//Figure out what address was hit
 			DWORD_PTR badAddress = (DWORD_PTR)pPtrs->ExceptionRecord->ExceptionInformation[1];
 			//TODO: First examine the address, make sure it's within the emulated memory space
+			if (badAddress < memspaceBottom) {
+				PanicAlert("Exception handler - access below memory space. %08x%08x",
+					badAddress >> 32, badAddress);
+			}
 			u32 emAddress = (u32)(badAddress - memspaceBottom);
+
 			//Now we have the emulated address.
 			//_assert_msg_(DYNA_REC,0,"MT : %08x",emAddress);
 

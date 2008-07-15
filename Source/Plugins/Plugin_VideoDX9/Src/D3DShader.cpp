@@ -1,4 +1,5 @@
 #include <d3dx9.h>
+#include <string>
 
 #include "Globals.h"
 #include "D3DShader.h"
@@ -9,7 +10,7 @@ namespace D3D
 	LPDIRECT3DVERTEXSHADER9 CompileVShader(const char *code, int len)
 	{
 		//try to compile
-		LPD3DXBUFFER shaderBuffer=0,errorBuffer=0;
+		LPD3DXBUFFER shaderBuffer = 0, errorBuffer = 0;
 		LPDIRECT3DVERTEXSHADER9 vShader = 0;
 	 	HRESULT hr = D3DXCompileShader(code,len,0,0,"main","vs_1_1",0,&shaderBuffer,&errorBuffer,0);
 		if (FAILED(hr))
@@ -20,10 +21,13 @@ namespace D3D
 
 		if (FAILED(hr))
 		{
-		//compilation error, damnit
+			//compilation error
+			std::string hello = (char*)errorBuffer->GetBufferPointer();
+			hello += "\n\n";
+			hello += code;
 			if (g_Config.bShowShaderErrors)
-				MessageBox(0,(char*)errorBuffer->GetBufferPointer(),"VS compilation error",MB_ICONERROR);
-			vShader=0;
+				MessageBox(0, hello.c_str(), "Error compiling vertex shader", MB_ICONERROR);
+			vShader = 0;
 		}
 		else if (SUCCEEDED(hr))
 		{
@@ -72,7 +76,7 @@ namespace D3D
 
 	LPDIRECT3DPIXELSHADER9 CompilePShader(const char *code, int len)
 	{
-		LPD3DXBUFFER shaderBuffer=0,errorBuffer=0;
+		LPD3DXBUFFER shaderBuffer = 0, errorBuffer = 0;
 		LPDIRECT3DPIXELSHADER9 pShader = 0;
 		static char *versions[6] = {"ERROR","ps_1_1","ps_1_4","ps_2_0","ps_3_0","ps_4_0"};
 		HRESULT hr = D3DXCompileShader(code,len,0,0,
@@ -81,10 +85,12 @@ namespace D3D
 
 		if (FAILED(hr))
 		{
-			// We should not be getting these
-			MessageBox(0,code,(char*)errorBuffer->GetBufferPointer(),MB_ICONERROR);
-			
-			pShader=0;
+			std::string hello = (char*)errorBuffer->GetBufferPointer();
+			hello += "\n\n";
+			hello += code;
+			if (g_Config.bShowShaderErrors)
+				MessageBox(0, hello.c_str(), "Error compiling pixel shader", MB_ICONERROR);
+			pShader = 0;
 		}
 		else 
 		{

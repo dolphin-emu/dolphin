@@ -183,22 +183,26 @@ const char *tevAInputTable[] =
     "rastemp.a",        //RASA,
     "konsttemp.a",      //KONST,  (hw1 had quarter)
     "0.0",				//ZERO
-	"PADERROR",
-	"PADERROR",
-	"PADERROR",
-	"PADERROR",
-	"PADERROR",
-	"PADERROR",
-	"PADERROR",
-	"PADERROR",
-	"PADERROR",
-	"PADERROR",
-	"PADERROR",
-	"PADERROR",
-	"PADERROR",
-	"PADERROR",
-	"PADERROR",
+	"PADERROR", "PADERROR",	"PADERROR",	"PADERROR",
+	"PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
+	"PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
+	"PADERROR",	"PADERROR",	"PADERROR", "PADERROR",
+};	
 
+const char *tevAInputTable2[] = 
+{
+    "prev",           //APREV,
+    "c0",             //A0,
+    "c1",             //A1,
+    "c2",             //A2,
+    "textemp",        //TEXA,
+    "rastemp",        //RASA,
+    "konsttemp",      //KONST,  (hw1 had quarter)
+    "0.0",				//ZERO
+	"PADERROR", "PADERROR",	"PADERROR",	"PADERROR",
+	"PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
+	"PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
+	"PADERROR",	"PADERROR",	"PADERROR", "PADERROR",
 };	
 
 const char *tevRasTable[] = 
@@ -208,48 +212,49 @@ const char *tevRasTable[] =
 	"ERROR", //2
 	"ERROR", //3
 	"ERROR", //4
-	"float4(0,1,0,1)", //RAS1_CC_B	0x00000005 /* indirect texture bump alpha */ //green cuz unsupported
-	"float4(0,1,0,1)", //RAS1_CC_BN	0x00000006 /* ind tex bump alpha, normalized 0-255 *///green cuz unsupported
+	"alphabump", //RAS1_CC_B	0x00000005 /* indirect texture bump alpha */ //green cuz unsupported
+	"(alphabump*(255.0f/248.0f))", //RAS1_CC_BN	0x00000006 /* ind tex bump alpha, normalized 0-255 *///green cuz unsupported
 	"float4(0,0,0,0)", //RAS1_CC_Z	0x00000007 /* set color value to zero */
 };
 
-const char *tevCOutputTable[] = 
-{
-	"prev.rgb",
-	"c0.rgb",
-	"c1.rgb",
-	"c2.rgb",
-};
-const char *tevAOutputTable[] = 
-{
-	"prev.a",
-	"c0.a",
-	"c1.a",
-	"c2.a",
-};
+const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
+const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
+const char *tevIndAlphaSel[]   = {"", "x", "y", "z"};
+const char *tevIndAlphaScale[] = {"", "*32","*16","*8"};
+const char *tevIndBiasField[]  = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
+const char *tevIndBiasAdd[]    = {"-128.0f", "1.0f", "1.0f", "1.0f" }; // indexed by fmt
+const char *tevIndWrapStart[]  = {"0", "256", "128", "64", "32", "16", "0.001" };
+const char *tevIndFmtScale[]   = {"255.0f", "31.0f", "15.0f", "8.0f" };
 
-const char *texFuncs[] = 
+const char *tevTexFuncs[] = 
 {
 	"tex2D",
 	"tex2Dproj"
 };
+
+const char *alphaRef[2] = 
+{
+	"alphaRef.x",
+	"alphaRef.y"
+};
+
 
 //I hope we don't get too many hash collisions :p
 //all these magic numbers are primes, it should help a bit
 tevhash GetCurrentTEV()
 {
 	u32 hash = bpmem.genMode.numindstages + bpmem.genMode.numtevstages*11 + bpmem.genMode.numtexgens*8*17;
-	for (int i=0; i<(int)bpmem.genMode.numtevstages+1; i++)
+	for (int i = 0; i < (int)bpmem.genMode.numtevstages+1; i++)
 	{
 		hash = _rotl(hash,3) ^ (bpmem.combiners[i].colorC.hex*13);
 		hash = _rotl(hash,7) ^ ((bpmem.combiners[i].alphaC.hex&0xFFFFFFFC)*3);
 		hash = _rotl(hash,9) ^ texcoords[i].texmtxinfo.projection*451;
 	}
-	for (int i=0; i<(int)bpmem.genMode.numtevstages/2+1; i++)
+	for (int i = 0; i < (int)bpmem.genMode.numtevstages/2+1; i++)
 	{
 		hash = _rotl(hash,13) ^ (bpmem.tevorders[i].hex*7);
 	}
-	for (int i=0; i<8; i++)
+	for (int i = 0; i < 8; i++)
 	{
 		hash = _rotl(hash,3) ^ bpmem.tevksel[i].swap1;
 		hash = _rotl(hash,3) ^ bpmem.tevksel[i].swap2;
@@ -275,7 +280,7 @@ char swapModeTable[4][5];
 void BuildSwapModeTable()
 {
 	//bpmem.tevregs[0].
-	for (int i=0; i<4; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		swapModeTable[i][0]=swapColors[bpmem.tevksel[i*2].swap1];
 		swapModeTable[i][1]=swapColors[bpmem.tevksel[i*2].swap2];
@@ -302,10 +307,10 @@ LPDIRECT3DPIXELSHADER9 GeneratePixelShader()
 		bpmem.genMode.numtevstages,bpmem.genMode.numtexgens,bpmem.genMode.numindstages,bpmem.genMode.numcolchans);
 
 	//write kcolor declarations
-	for (int i=0; i<4; i++)
+	for (int i = 0; i < 4; i++)
 		WRITE(p,"float4 k%i : register(c%i);\n",i,PS_CONST_KCOLORS+i);
 
-	for (int i=0; i<3; i++)
+	for (int i = 0; i < 3; i++)
 		WRITE(p,"float4 color%i : register(c%i);\n",i,PS_CONST_COLORS+i+1);
 
 	WRITE(p,"float constalpha : register(c%i);\n",PS_CONST_CONSTALPHA);
@@ -330,7 +335,7 @@ LPDIRECT3DPIXELSHADER9 GeneratePixelShader()
     //WRITE(p, "return 1;}\n");
     //return D3D::CompilePShader(text,(int)(p-text));
 
-	for (int i=0; i<numStages; i++)
+	for (int i = 0; i < numStages; i++)
 		WriteStage(p,i); //build the equation for this stage
 
     //WRITE(p, "prev = textemp;\n");
@@ -369,7 +374,7 @@ void WriteStage(char *&p, int n)
 	WRITE(p,"rastemp=%s.%s;\n",tevRasTable[bpmem.tevorders[n/2].getColorChan(n&1)],rasswap);
 	if (bpmem.tevorders[n/2].getEnable(n&1))
 		WRITE(p,"textemp=%s(samp[%i],uv[%i]).%s;\n",
-			texFuncs[texfun],
+			tevTexFuncs[texfun],
 			bpmem.tevorders[n/2].getTexMap(n&1),
 			bpmem.tevorders[n/2].getTexCoord(n&1),texswap);
 	else
@@ -393,7 +398,7 @@ void WriteStage(char *&p, int n)
 	if (cc.bias != TB_COMPARE)
 	{
 		//normal color combiner goes here
-		WRITE(p,"   %s*(%s%s",tevScaleTable[cc.scale],tevCInputTable[cc.d],tevOpTable[cc.op]);
+		WRITE(p,"   %s*(%s%s",tevScaleTable[cc.shift],tevCInputTable[cc.d],tevOpTable[cc.op]);
 		WRITE(p,"(lerp(%s,%s,%s)%s)),\n",
 			tevCInputTable[cc.a],tevCInputTable[cc.b],
 			tevCInputTable[cc.c],tevBiasTable[cc.bias]);
@@ -401,7 +406,7 @@ void WriteStage(char *&p, int n)
 	else
 	{
 		//compare color combiner goes here
-		switch(cc.scale)  // yep comparemode stored here :P
+		switch(cc.shift)  // yep comparemode stored here :P
 		{
 		case TEV_COMP_R8:
 			if (cc.op == 0)  //equality check needs tolerance, fp in gpu has drawbacks :(
@@ -426,34 +431,47 @@ void WriteStage(char *&p, int n)
 	if (ac.bias != TB_COMPARE)
 	{
 		//normal alpha combiner goes here
-		WRITE(p,"   %s*(%s%s",tevScaleTable[ac.scale],tevAInputTable[ac.d],tevOpTable[ac.op]);
-		WRITE(p,"(lerp(%s,%s,%s)%s))\n",
+		WRITE(p,"   %s*(%s%s",tevScaleTable[ac.shift],tevAInputTable[ac.d],tevOpTable[ac.op]);
+		WRITE(p,"lerp(%s,%s,%s) %s)\n",
 			tevAInputTable[ac.a],tevAInputTable[ac.b],
 			tevAInputTable[ac.c],tevBiasTable[ac.bias]);
 	}
 	else
 	{
+        int cmp = (ac.shift<<1)|ac.op|8; // comparemode stored here
 		//compare alpha combiner goes here
-		if (ac.op==0)
-			WRITE(p,"   %s + ((%s > %s) ? %s : 0)\n",
-				tevAInputTable[ac.d],tevAInputTable[ac.a],
-				tevAInputTable[ac.b],tevAInputTable[ac.c]);
-		else
-			WRITE(p,"   %s + (abs(%s - %s)<%f ? %s : 0)\n",
-				tevAInputTable[ac.d],tevAInputTable[ac.a],
-				tevAInputTable[ac.b],epsilon,tevAInputTable[ac.c]);
-
+        switch(cmp) {
+        case TEVCMP_R8_GT:
+        case TEVCMP_A8_GT:
+            WRITE(p,"   %s + ((%s.%s > %s.%s) ? %s : 0)\n",
+                tevAInputTable[ac.d],tevAInputTable2[ac.a], cmp==TEVCMP_R8_GT?"r":"a", tevAInputTable2[ac.b], cmp==TEVCMP_R8_GT?"r":"a", tevAInputTable[ac.c]);
+            break;
+        case TEVCMP_R8_EQ:
+        case TEVCMP_A8_EQ:
+            WRITE(p,"   %s + (abs(%s.r - %s.r)<%f ? %s : 0)\n",
+                tevAInputTable[ac.d],tevAInputTable2[ac.a], tevAInputTable2[ac.b],epsilon,tevAInputTable[ac.c]);
+            break;
+        
+        case TEVCMP_GR16_GT: // 16 bit compares: 255*g+r (probably used for ztextures, so make sure in ztextures, g is the most significant byte)
+        case TEVCMP_BGR24_GT: // 24 bit compares: 255*255*b+255*g+r
+            WRITE(p,"   %s + (( dot(%s.rgb-%s.rgb, comp%s) > 0) ? %s : 0)\n",
+                tevAInputTable[ac.d],tevAInputTable2[ac.a], tevAInputTable2[ac.b], cmp==TEVCMP_GR16_GT?"16":"24", tevAInputTable[ac.c]);
+            break;
+        case TEVCMP_GR16_EQ:
+        case TEVCMP_BGR24_EQ:
+            WRITE(p,"   %s + (abs(dot(%s.rgb - %s.rgb, comp%s))<%f ? %s : 0)\n",
+                tevAInputTable[ac.d],tevAInputTable2[ac.a], tevAInputTable2[ac.b],cmp==TEVCMP_GR16_GT?"16":"24",epsilon,tevAInputTable[ac.c]);
+            break;
+        default:
+            WRITE(p,"0)\n");
+            break;
+        }
 	}
-	WRITE(p,");");
-	//end of alpha
-	WRITE(p,"\n");
+	WRITE(p, ");");
+    if (ac.clamp)
+        WRITE(p, "%s = clamp(%s, 0.0f, 1.0f);\n", tevAOutputTable[ac.outreg], tevAOutputTable[ac.outreg]);
+	WRITE(p, "\n");
 }
-
-char *alphaRef[2] = 
-{
-	"alphaRef.x",
-	"alphaRef.y"
-};
 
 void WriteAlphaCompare(char *&p, int num, int comp)
 {
@@ -478,7 +496,7 @@ void WriteAlphaTest(char *&p)
 	//first kill all the simple cases
 	if (op == ALPHAOP_AND && (comp[0] == COMPARE_ALWAYS && comp[1] == COMPARE_ALWAYS)) return;
 	if (op == ALPHAOP_OR  && (comp[0] == COMPARE_ALWAYS || comp[1] == COMPARE_ALWAYS)) return;
-	for (int i=0; i<2; i++)
+	for (int i = 0; i < 2; i++)
 	{
 		int one = i;
 		int other = 1-i;
@@ -495,11 +513,11 @@ void WriteAlphaTest(char *&p)
 
 	//Ok, didn't get to do the easy way out :P
 	// do the general way
-	WRITE(p,"float res0,res1;\n");
-	WriteAlphaCompare(p,0,bpmem.alphaFunc.comp0);
-	WriteAlphaCompare(p,1,bpmem.alphaFunc.comp1);
-	WRITE(p,"res0=max(res0,0);\n");
-	WRITE(p,"res1=max(res1,0);\n");
+	WRITE(p,"float res0, res1;\n");
+	WriteAlphaCompare(p, 0, bpmem.alphaFunc.comp0);
+	WriteAlphaCompare(p, 1, bpmem.alphaFunc.comp1);
+	WRITE(p,"res0 = max(res0, 0);\n");
+	WRITE(p,"res1 = max(res1, 0);\n");
 	//probably should use lookup textures for some of these :P
 	switch(bpmem.alphaFunc.logic) {
 	case ALPHAOP_AND: // if both are 0

@@ -37,7 +37,7 @@ void PShaderCache::SetShader()
 	
 	if (iter != pshaders.end())
 	{
-		iter->second.frameCount=frameCount;
+		iter->second.frameCount = frameCount;
 		PSCacheEntry &entry = iter->second;
 		if (!lastShader || entry.shader != lastShader)
 		{
@@ -54,7 +54,7 @@ void PShaderCache::SetShader()
 		//Make an entry in the table
 		PSCacheEntry newentry;
 		newentry.shader = shader;
-		newentry.frameCount=frameCount;
+		newentry.frameCount = frameCount;
 		pshaders[currentHash] = newentry;
 	}
 
@@ -66,13 +66,13 @@ void PShaderCache::SetShader()
 
 void PShaderCache::Cleanup()
 {
-  PSCache::iterator iter;
-  iter = pshaders.begin();
+	PSCache::iterator iter;
+	iter = pshaders.begin();
 
-	while(iter!=pshaders.end())
+	while(iter != pshaders.end())
 	{
 		PSCacheEntry &entry = iter->second;
-		if (entry.frameCount<frameCount-30)
+		if (entry.frameCount < frameCount-30)
 		{
 			entry.Destroy();
 			iter = pshaders.erase(iter);

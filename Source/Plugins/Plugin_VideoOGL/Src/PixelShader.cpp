@@ -693,7 +693,7 @@ const char *tevAInputTable2[] = // CA
     "PADERROR", "PADERROR", "PADERROR", "PADERROR",
     "PADERROR", "PADERROR", "PADERROR", "PADERROR",
     "PADERROR", "PADERROR", "PADERROR", "PADERROR",
-    "PADERROR", "PADERROR", "PADERROR",
+    "PADERROR", "PADERROR", "PADERROR", "PADERROR",
 };	
 
 const char *tevRasTable[] =
@@ -708,14 +708,14 @@ const char *tevRasTable[] =
     "float4(0,0,0,0)", // zero
 };
 
-const char* tevTexFunc[] = { "tex2D", "texRECT" };
+const char *tevTexFunc[] = { "tex2D", "texRECT" };
 
 const char *tevCOutputTable[] = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
 const char *tevAOutputTable[] = { "prev.a", "c0.a", "c1.a", "c2.a" };
 const char* tevIndAlphaSel[] = {"", "x", "y", "z"};
 const char* tevIndAlphaScale[] = {"", "*32","*16","*8"};
 const char* tevIndBiasField[] = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
-const char* tevIndBiasAdd[] = {"-128.0f", "1.0f", "1.0f", "1.0f" }; // indexecd by fmt
+const char* tevIndBiasAdd[] = {"-128.0f", "1.0f", "1.0f", "1.0f" }; // indexed by fmt
 const char* tevIndWrapStart[] = {"0", "256", "128", "64", "32", "16", "0.001" };
 const char* tevIndFmtScale[] = {"255.0f", "31.0f", "15.0f", "8.0f" };
 

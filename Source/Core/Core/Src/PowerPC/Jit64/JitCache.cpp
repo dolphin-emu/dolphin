@@ -347,7 +347,6 @@ namespace Jit64
 		SetCodePtr(prev_code);
 	}
 
-	
 #define BLR_OP 0x4e800020
 
 	void InvalidateCodeRange(u32 address, u32 length)
@@ -368,7 +367,6 @@ namespace Jit64
 
 	void ClearCache()
 	{
-
 		// Is destroying the blocks really necessary?
 		for (int i = 0; i < numBlocks; i++)
 		{
@@ -393,8 +391,8 @@ namespace Jit64
 		++counter;
 		if (counter == 30)
 		{
-			counter ++;
-			counter --;
+			counter++;
+			counter--;
 		}
 		
 		// TODO: also mark and remember the instruction address as known HW memory access, for use in later compiles.
