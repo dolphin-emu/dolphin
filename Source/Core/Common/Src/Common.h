@@ -69,7 +69,9 @@ typedef signed __int16 s16;
 typedef signed __int8 s8;
 
 #define GC_ALIGNED16(x) __declspec(align(16)) x
+#define GC_ALIGNED64(x) __declspec(align(64)) x
 #define GC_ALIGNED16_DECL(x) __declspec(align(16)) x
+#define GC_ALIGNED64_DECL(x) __declspec(align(64)) x
 
 #else
 

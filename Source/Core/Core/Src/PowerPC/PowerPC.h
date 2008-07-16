@@ -36,7 +36,7 @@ namespace PowerPC
 		CORE_INTERPRETER,
 		CORE_DYNAREC,
 	};
-	struct GC_ALIGNED16(PowerPCState)
+	struct GC_ALIGNED64(PowerPCState)
 	{
 		u32 mojs[128];
 		// sets of registers

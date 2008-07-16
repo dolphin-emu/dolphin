@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="Common"
 	ProjectGUID="{C573CAF7-EE6A-458E-8049-16C0BF34C2E9}"
 	RootNamespace="Common"
@@ -469,6 +469,14 @@
 		</File>
 		<File
 			RelativePath=".\Src\DynamicLibrary.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\FileUtil.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\FileUtil.h"
 			>
 		</File>
 		<File

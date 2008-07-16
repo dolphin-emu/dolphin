@@ -233,6 +233,7 @@ void Advance()
 	if (!first) 
 	{
 		LOG(GEKKO, "WARNING - no events in queue. Setting downcount to 10000");
+		// PanicAlert?
 		downcount += 10000;
 	}
 	else

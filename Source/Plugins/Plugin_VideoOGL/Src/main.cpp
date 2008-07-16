@@ -39,9 +39,9 @@ SVideoInitialize g_VideoInitialize;
 #define VERSION_STRING "0.1"
 
 #ifdef _WIN32
-BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
-                        DWORD dwReason,		// reason called
-                        LPVOID lpvReserved)	// reserved
+BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
+                      DWORD dwReason,		// reason called
+                      LPVOID lpvReserved)	// reserved
 {
     switch (dwReason)
     {

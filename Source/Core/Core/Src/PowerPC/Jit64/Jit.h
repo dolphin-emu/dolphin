@@ -14,6 +14,11 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
+// Low hanging fruit:
+// all used in zelda
+// negx
+
 #ifndef _JIT_H
 #define _JIT_H
 
@@ -74,7 +79,6 @@ namespace Jit64
 	void WriteExitDestInEAX(int exit_num);
 	void WriteExceptionExit(u32 exception);
 	void WriteRfiExitDestInEAX();
-	void BackPatch(u8 *codePtr, int accessType);
 
 	void HLEFunction(UGeckoInstruction _inst);
 

@@ -18,10 +18,11 @@
 #include <string>
 #include <vector>
 
-#include "Globals.h"
 #include "Common.h"
-#include "PluginManager.h"
+#include "Globals.h"
 #include "FileSearch.h"
+#include "FileUtil.h"
+#include "PluginManager.h"
 #include "StringUtil.h"
 
 CPluginManager CPluginManager::m_Instance;
@@ -57,7 +58,7 @@ CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 	{
 		wxProgressDialog dialog(_T("Scanning for Plugins"),
 					_T("Scanning..."),
-					rFilenames.size(), // range
+					(int)rFilenames.size(), // range
 					_wxWindow, // parent
 					wxPD_CAN_ABORT |
 					wxPD_APP_MODAL |
@@ -67,8 +68,6 @@ CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 					wxPD_REMAINING_TIME |
 					wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 					);
-
-
 		dialog.CenterOnParent();
 
 		for (size_t i = 0; i < rFilenames.size(); i++)
@@ -85,7 +84,7 @@ CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 
 			wxString msg;
 			msg.Printf("Scanning %s", FileName.c_str());
-			bool Cont = dialog.Update(i, msg);
+			bool Cont = dialog.Update((int)i, msg);
 
 			if (!Cont)
 			{
@@ -154,7 +153,11 @@ CPluginInfo::CPluginInfo(const std::string& _rFileName)
 	}
 	else
 	{
-		PanicAlert("Failed to load plugin %s\nhello world", _rFileName.c_str());
+		if (!File::Exists(_rFileName)) {
+			PanicAlert("Could not load plugin %s - file does not exist", _rFileName.c_str());
+		} else {
+			PanicAlert("Failed to load plugin %s - unknown error.\n", _rFileName.c_str());
+		}
 	}
 }
 

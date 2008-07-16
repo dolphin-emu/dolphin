@@ -170,7 +170,6 @@ void Host_UpdateDisasmDialog()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEDISASMDIALOG);
 	wxPostEvent(main_frame, event);
-
 	if (code_frame)
 	{
 		wxPostEvent(code_frame, event);

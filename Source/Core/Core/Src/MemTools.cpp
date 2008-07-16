@@ -24,12 +24,12 @@
 #include <vector>
 
 #include "Common.h"
-#include "x64Analyzer.h"
-#include "PowerPC/Jit64/Jit.h"
-
 #include "MemTools.h"
+#include "HW/Memmap.h"
+#include "PowerPC/Jit64/Jit.h"
+#include "PowerPC/Jit64/JitBackpatch.h"
+#include "x64Analyzer.h"
 
-//#ifdef ASDFKJLASJDF
 namespace EMM
 {
 /* DESIGN
@@ -98,13 +98,10 @@ struct Watch
 
 std::vector<Watch> watches;
 
-
-
 void UpdateProtection(EAddr startAddr, EAddr endAddr)
 {
 	
 }
-
 
 int AddWatchRegion(EAddr startAddr, EAddr endAddr, WR watchFor, WatchType type, WatchCallback callback, u64 userData)
 {
@@ -123,8 +120,6 @@ int AddWatchRegion(EAddr startAddr, EAddr endAddr, WR watchFor, WatchType type, 
 
 	return watch.ID;
 }
-
-
 
 void Notify(EAddr address, WR action)
 {
@@ -208,6 +203,9 @@ public:
 	}
 };
 
+// ======
+// From here on is the code in this file that actually works and is active.
+
 LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 {
 	switch (pPtrs->ExceptionRecord->ExceptionCode)
@@ -233,6 +231,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			//Figure out what address was hit
 			DWORD_PTR badAddress = (DWORD_PTR)pPtrs->ExceptionRecord->ExceptionInformation[1];
 			//TODO: First examine the address, make sure it's within the emulated memory space
+			u64 memspaceBottom = (u64)Memory::base;
 			if (badAddress < memspaceBottom) {
 				PanicAlert("Exception handler - access below memory space. %08x%08x",
 					badAddress >> 32, badAddress);
@@ -240,17 +239,15 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			u32 emAddress = (u32)(badAddress - memspaceBottom);
 
 			//Now we have the emulated address.
-			//_assert_msg_(DYNA_REC,0,"MT : %08x",emAddress);
-
 			//Let's notify everyone who wants to be notified
 			//Notify(emAddress, accessType == 0 ? Read : Write);
 
 			CONTEXT *ctx = pPtrs->ContextRecord;
-			//opportunity to change the debug regs!
+			//opportunity to play with the context - we can change the debug regs!
 
 			//We could emulate the memory accesses here, but then they would still be around to take up
-			//execution resources. Instead, we backpatch and retry.
-			Jit64::BackPatch(codePtr, accessType);
+			//execution resources. Instead, we backpatch into a generic memory call and retry.
+			Jit64::BackPatch(codePtr, accessType, emAddress);
 			
 			// We no longer touch Rip, since we return back to the instruction, after overwriting it with a
 			// trampoline jump and some nops

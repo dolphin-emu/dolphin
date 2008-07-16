@@ -104,11 +104,10 @@ u64 MemArena::Find4GBBase()
 {
 #ifdef _M_X64
 #ifdef _WIN32
-	// The highest thing in any 1GB section of memory space is the locked cache. We only need to fit it.
+	// 64 bit
 	u8* base = (u8*)VirtualAlloc(0, 0xE1000000, MEM_RESERVE, PAGE_READWRITE);
 	VirtualFree(base, 0, MEM_RELEASE);
 	return((u64)base);
-
 #else
 	// Very precarious - mmap cannot return an error when trying to map already used pages.
 	// This makes the Windows approach above unusable on Linux, so we will simply pray...
@@ -116,12 +115,13 @@ u64 MemArena::Find4GBBase()
 #endif
 
 #else
-	// Only grab a bit less than 1GB
+	// 32 bit
+	// The highest thing in any 1GB section of memory space is the locked cache. We only need to fit it.
 	u8* base = (u8*)VirtualAlloc(0, 0x31000000, MEM_RESERVE, PAGE_READWRITE);
-	VirtualFree(base, 0, MEM_RELEASE);
+	if (base) {
+		VirtualFree(base, 0, MEM_RELEASE);
+	}
 	return((u64)base);
 #endif
 
 }
-
-

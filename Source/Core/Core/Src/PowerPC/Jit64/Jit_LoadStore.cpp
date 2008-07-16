@@ -44,21 +44,21 @@
 namespace Jit64
 {
 #ifdef _M_X64
-	void SafeLoadECXtoEAX(int accessSize, int offset)
+	void SafeLoadECXtoEAX(int accessSize, s32 offset)
 	{
 		if (offset)
-			ADD(32,R(ECX),Imm32((u32)offset));
-		TEST(32,R(ECX),Imm32(0x0C000000));
+			ADD(32, R(ECX), Imm32((u32)offset));
+		TEST(32, R(ECX), Imm32(0x0C000000));
 		FixupBranch argh = J_CC(CC_NZ);
 		if (accessSize != 32)
 			XOR(32, R(EAX), R(EAX));
 		MOV(accessSize, R(EAX), MComplex(RBX, ECX, SCALE_1, 0));
 		if (accessSize == 32)
-			BSWAP(32,EAX);
+			BSWAP(32, EAX);
 		else if (accessSize == 16)
 		{
-			BSWAP(32,EAX);
-			SHR(32,R(EAX),Imm8(16));
+			BSWAP(32, EAX);
+			SHR(32, R(EAX), Imm8(16));
 		}
 		FixupBranch arg2 = J();
 		SetJumpTarget(argh);
@@ -71,7 +71,7 @@ namespace Jit64
 		SetJumpTarget(arg2);
 	}
 #elif _M_IX86
-	void SafeLoadECXtoEAX(int accessSize, int offset)
+	void SafeLoadECXtoEAX(int accessSize, s32 offset)
 	{
 		if (offset)
 			ADD(32, R(ECX), Imm32((u32)offset));
@@ -86,7 +86,7 @@ namespace Jit64
 			BSWAP(32,EAX);
 		else if (accessSize == 16)
 		{
-			BSWAP(32,EAX);
+			BSWAP(32, EAX);
 			SHR(32, R(EAX), Imm8(16));
 		}
 		FixupBranch arg2 = J();
@@ -183,10 +183,10 @@ namespace Jit64
 			// Safe and boring
 			gpr.Flush(FLUSH_VOLATILE);
 			gpr.Lock(d, a);
-			MOV(32,R(ECX), gpr.R(a));
+			MOV(32, R(ECX), gpr.R(a));
 			SafeLoadECXtoEAX(accessSize, offset);
 			gpr.LoadToX64(d, false, true);
-			MOV(32,gpr.R(d), R(EAX));
+			MOV(32, gpr.R(d), R(EAX));
 			gpr.UnlockAll();
 			return;
 		}

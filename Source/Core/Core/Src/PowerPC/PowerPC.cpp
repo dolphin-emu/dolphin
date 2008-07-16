@@ -29,7 +29,8 @@
 
 namespace PowerPC
 {
-	GC_ALIGNED16_DECL(PowerPCState ppcState);
+	// align to cache line
+	GC_ALIGNED64_DECL(PowerPCState ppcState);
 	ICPUCore* m_pCore = NULL;
 
 	volatile CPUState state = CPU_STEPPING;

@@ -23,6 +23,11 @@
 #include "JitCache.h"
 #include "JitRegCache.h"
 
+// TODO
+// ps_madds0
+// ps_muls0
+// ps_madds1
+
 
 //#define OLD Default(inst); return;
 #define OLD

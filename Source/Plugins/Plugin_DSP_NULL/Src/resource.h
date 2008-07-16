@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by Plugin_DSP.rc
+// Used by resource.rc
 //
 #define IDD_SETTINGS                    101
 #define IDD_DIALOG2                     102
@@ -21,7 +21,7 @@
 #define IDC_CHECK3                      1010
 
 // Next default values for new objects
-//
+// 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        103
