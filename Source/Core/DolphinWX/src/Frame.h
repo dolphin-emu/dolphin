@@ -65,10 +65,12 @@ class CFrame
 		void OnStop(wxCommandEvent& event);
 		void OnBrowse(wxCommandEvent& event);
 		void OnToggleFullscreen(wxCommandEvent& event);
+		void OnToggleDualCore(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event);
 		void OnHostMessage(wxCommandEvent& event);
 
 
+		wxStatusBar* m_pStatusBar;
 		wxMenuBar* m_pMenuBar;
 
 		wxMenuItem* m_pMenuItemPlay;

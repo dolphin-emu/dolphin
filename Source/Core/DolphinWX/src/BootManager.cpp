@@ -48,12 +48,12 @@ bool BootCore(const std::string& _rFilename)
 
 	if (code_frame)
 	{
-		StartUp.bUseDualCore = code_frame->UseDualCore();
+//		StartUp.bUseDualCore = code_frame->UseDualCore();
 		StartUp.bUseDynarec = !code_frame->UseInterpreter();
 	}
 	else
 	{
-		StartUp.bUseDualCore = false;
+//		StartUp.bUseDualCore = false;
 		StartUp.bUseDynarec = true;
 	}
 

@@ -221,4 +221,10 @@ void Host_CreateDisplay()
 void Host_CloseDisplay()
 {}
 
+void Host_UpdateStatusBar(const char* _pText)
+{
+	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATESTATUSBAR);
+	event.SetString(_pText);
 
+	wxPostEvent(main_frame, event);
+}

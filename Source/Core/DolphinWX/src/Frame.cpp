@@ -89,6 +89,7 @@ EVT_MENU(IDM_CONFIG_DSP_PLUGIN, CFrame::OnPluginDSP)
 EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnPluginPAD)
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
+EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 END_EVENT_TABLE()
 
@@ -106,6 +107,7 @@ CFrame::CFrame(wxFrame* parent,
 	, m_pMenuBar(NULL)
 	, m_Panel(NULL)
 	, m_pBootProcessDialog(NULL)
+	, m_pStatusBar(NULL)
 {
 	InitBitmaps();
 
@@ -115,7 +117,7 @@ CFrame::CFrame(wxFrame* parent,
 	SetIcon(IconTemp);
 
 	// Give it a status line
-	CreateStatusBar();
+	m_pStatusBar = CreateStatusBar();
 	CreateMenu();
 
 	// this panel is the parent for rendering and it holds the gamelistctrl
@@ -202,12 +204,18 @@ CFrame::CreateMenu()
 			m_pMenuItemStop->SetDisabledBitmap(m_BitmapsMenu[Toolbar_Stop_Dis]);
 			pEmulationMenu->Append(m_pMenuItemStop);
 		}
-		pEmulationMenu->AppendSeparator();
-		// full screen
+		pEmulationMenu->AppendSeparator();		
 		{
+			// full screen
 			wxMenuItem* pItem = new wxMenuItem(pEmulationMenu, IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen"));
 			pItem->SetBitmap(m_BitmapsMenu[Toolbar_FullScreen]);
 			pEmulationMenu->Append(pItem);
+		}
+		{
+			// dual core
+			wxMenuItem* pItem = new wxMenuItem(pEmulationMenu, IDM_TOGGLE_DUALCORE, _T("&Dual Core (instable!)"), wxEmptyString, wxITEM_CHECK);
+			pEmulationMenu->Append(pItem);
+			pItem->Check(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);			
 		}
 		m_pMenuBar->Append(pEmulationMenu, _T("&Emulation"));
 	}
@@ -510,7 +518,6 @@ CFrame::OnHostMessage(wxCommandEvent& event)
 
 			    m_pBootProcessDialog = new wxBusyInfo("Booting...", this);
 		    }
-
 		    break;
 
 	    case IDM_BOOTING_ENDED:
@@ -521,8 +528,15 @@ CFrame::OnHostMessage(wxCommandEvent& event)
 			    delete m_pBootProcessDialog;
 			    m_pBootProcessDialog = NULL;
 		    }
-
 		    break;
+
+		case IDM_UPDATESTATUSBAR:
+
+			if (m_pStatusBar != NULL)
+			{
+				m_pStatusBar->SetStatusText(event.GetString());
+			}
+			break;
 	}
 }
 
@@ -532,6 +546,14 @@ CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
 {
 	ShowFullScreen(true);
 	UpdateGUI();
+}
+
+
+void 
+CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED (event))
+{
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore = !SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore;
+	SConfig::GetInstance().SaveSettings();
 }
 
 

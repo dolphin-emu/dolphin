@@ -444,6 +444,9 @@ void Callback_VideoCopiedToXFB()
 		if( g_pUpdateFPSDisplay != NULL )
             g_pUpdateFPSDisplay(temp);
 
+		Host_UpdateStatusBar(temp);
+
+
 		frames = 0;
         Timer.Update();
 	}

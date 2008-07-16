@@ -144,8 +144,8 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		wxMenuItem* interpreter = pDebugMenu->Append(IDM_INTERPRETER, _T("&Interpreter"), wxEmptyString, wxITEM_CHECK);
 		interpreter->Check(!_LocalCoreStartupParameter.bUseDynarec);
 
-		wxMenuItem* dualcore = pDebugMenu->Append(IDM_DUALCORE, _T("&DualCore"), wxEmptyString, wxITEM_CHECK);
-		dualcore->Check(_LocalCoreStartupParameter.bUseDualCore);
+//		wxMenuItem* dualcore = pDebugMenu->Append(IDM_DUALCORE, _T("&DualCore"), wxEmptyString, wxITEM_CHECK);
+//		dualcore->Check(_LocalCoreStartupParameter.bUseDualCore);
 
 		pMenuBar->Append(pDebugMenu, _T("&Core Startup"));
 	}
