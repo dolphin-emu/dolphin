@@ -197,11 +197,16 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_PAD;
 
-#ifndef _DEBUG
-	strcpy(_PluginInfo->Name, "Dolphin KB/X360pad");
+#ifdef DEBUGFAST 
+	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad (DebugFast)");
 #else
-	strcpy(_PluginInfo->Name, "Dolphin KB/X360pad (Debug)");
+#ifndef _DEBUG
+	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad ");
+#else
+	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad (Debug)");
 #endif
+#endif
+
 }
 
 

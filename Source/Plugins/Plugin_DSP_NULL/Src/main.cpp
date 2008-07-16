@@ -66,10 +66,15 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_DSP;
+
+#ifdef DEBUGFAST 
+	sprintf(_PluginInfo->Name, "Dolphin DSP-NULL Plugin (DebugFast)");
+#else
 #ifndef _DEBUG
 	sprintf(_PluginInfo->Name, "Dolphin DSP-NULL Plugin");
 #else
-	sprintf(_PluginInfo->Name, "Dolphin DSP-NULL Plugin Debug");
+	sprintf(_PluginInfo->Name, "Dolphin DSP-NULL Plugin (Debug)");
+#endif
 #endif
 }
 
