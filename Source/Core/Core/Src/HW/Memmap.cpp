@@ -1038,7 +1038,9 @@ void SDRUpdated()
 
 u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag)
 {
-	_assert_msg_(GEKKO,0,"DBAT! WTF - %08x", _Address);
+	PanicAlert("TLB: Read from unknown memory (0x%08x)\n"
+				"Several games uses the TLB to map memory. This\n"
+				"function is not support in dolphin. Cheers!", _Address);
 
 	u32 sr = PowerPC::ppcState.sr[EA_SR(_Address)]; 
 
@@ -1092,7 +1094,8 @@ u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag)
 		{
 			if (VSID == PTE1_VSID(pte) && (api == PTE1_API(pte))) 
 			{
-				PanicAlert("Page found2 ww");
+				PanicAlert("TLB: Address found at the second hash function.\n"
+						   "i have never seen this before");
 
 				pte = bswap(*(u32*)&pRAM[(pteg_addr+4)]);
 
