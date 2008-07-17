@@ -112,7 +112,7 @@ CPluginManager::OpenAbout(void* _Parent, const std::string& _rFilename)
 {
 	if (Common::CPlugin::Load(_rFilename.c_str()))
 	{
-		Common::CPlugin::Config((HWND)_Parent);
+		Common::CPlugin::About((HWND)_Parent);
 		Common::CPlugin::Release();
 	}
 }
