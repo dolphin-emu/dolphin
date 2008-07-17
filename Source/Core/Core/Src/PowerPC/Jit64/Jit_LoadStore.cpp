@@ -43,6 +43,9 @@
 
 namespace Jit64
 {
+	static u64 GC_ALIGNED16(temp64);
+	static u32 GC_ALIGNED16(temp32);
+
 #ifdef _M_X64
 	void SafeLoadECXtoEAX(int accessSize, s32 offset)
 	{
@@ -117,11 +120,6 @@ namespace Jit64
 		SafeLoadECXtoEAX(8, 0);
 		MOV(32, gpr.R(d), R(EAX));
 		gpr.UnlockAll();
-	}
-
-	void SafeStoreECXtoEDX(int accessSize, int offset)
-	{
-
 	}
 
 	void lXz(UGeckoInstruction inst)
@@ -209,9 +207,6 @@ namespace Jit64
 		gpr.UnlockAll();
 	}
 
- 	u32 GC_ALIGNED16(temp32);
-	u64 GC_ALIGNED16(temp64);
-
 	void lfs(UGeckoInstruction inst)
 	{
 //		BIT32OLD;
@@ -227,15 +222,15 @@ namespace Jit64
 		gpr.Flush(FLUSH_VOLATILE);
 		gpr.Lock(d, a);
 		
-		MOV(32,R(ECX),gpr.R(a));
+		MOV(32,R(ECX), gpr.R(a));
 #ifdef _M_X64
 		if (!jo.noAssumeFPLoadFromMem)
 		{
-			MOV(32, R(EAX), MComplex(RBX,ECX,SCALE_1,offset));
+			MOV(32, R(EAX), MComplex(RBX, ECX, SCALE_1, offset));
 //#else
 //			MOV(32, R(EAX), MDisp(ECX, (u32)Memory::GetMainRAMPtr() + (u32)offset));
 //#endif
-			BSWAP(32,EAX);
+			BSWAP(32, EAX);
 		}
 		else
 #endif
@@ -243,7 +238,7 @@ namespace Jit64
 			SafeLoadECXtoEAX(32, offset);
 		}
 
-		MOV(32,M(&temp32), R(EAX));
+		MOV(32, M(&temp32), R(EAX));
 		fpr.Lock(d);
 		fpr.LoadToX64(d, false);
 		CVTSS2SD(fpr.RX(d), M(&temp32));
@@ -251,7 +246,6 @@ namespace Jit64
 		gpr.UnlockAll();
 		fpr.UnlockAll();
 	}
-
 
 	void lfd(UGeckoInstruction inst)
 	{
@@ -301,8 +295,6 @@ namespace Jit64
 		fpr.UnlockAll();
 	}
 
-	double GC_ALIGNED16(psTemp[2])  = {1.0, 1.0};
-	
 	void stfs(UGeckoInstruction inst)
 	{
 		BIT32OLD;
@@ -364,255 +356,7 @@ namespace Jit64
 		fpr.UnlockAll();
 	}
 
-
-	// TODO(ector): Improve 64-bit version
-	void WriteDual32(u64 value, u32 address)
-	{
-		Memory::Write_U32((u32)(value>>32), address);
-		Memory::Write_U32((u32)value, address+4);
-	}
-
-	const double m_quantizeTableD[] =
-	{
-		(1 <<  0),	(1 <<  1),	(1 <<  2),	(1 <<  3),
-		(1 <<  4),	(1 <<  5),	(1 <<  6),	(1 <<  7),
-		(1 <<  8),	(1 <<  9),	(1 << 10),	(1 << 11),
-		(1 << 12),	(1 << 13),	(1 << 14),	(1 << 15),
-		(1 << 16),	(1 << 17),	(1 << 18),	(1 << 19),
-		(1 << 20),	(1 << 21),	(1 << 22),	(1 << 23),
-		(1 << 24),	(1 << 25),	(1 << 26),	(1 << 27),
-		(1 << 28),	(1 << 29),	(1 << 30),	(1 << 31),
-		1.0 / (1ULL << 32),	1.0 / (1 << 31),	1.0 / (1 << 30),	1.0 / (1 << 29),
-		1.0 / (1 << 28),	1.0 / (1 << 27),	1.0 / (1 << 26),	1.0 / (1 << 25),
-		1.0 / (1 << 24),	1.0 / (1 << 23),	1.0 / (1 << 22),	1.0 / (1 << 21),
-		1.0 / (1 << 20),	1.0 / (1 << 19),	1.0 / (1 << 18),	1.0 / (1 << 17),
-		1.0 / (1 << 16),	1.0 / (1 << 15),	1.0 / (1 << 14),	1.0 / (1 << 13),
-		1.0 / (1 << 12),	1.0 / (1 << 11),	1.0 / (1 << 10),	1.0 / (1 <<  9),
-		1.0 / (1 <<  8),	1.0 / (1 <<  7),	1.0 / (1 <<  6),	1.0 / (1 <<  5),
-		1.0 / (1 <<  4),	1.0 / (1 <<  3),	1.0 / (1 <<  2),	1.0 / (1 <<  1),
-	}; 
-
-	const double m_dequantizeTableD[] =
-	{
-		1.0 / (1 <<  0),	1.0 / (1 <<  1),	1.0 / (1 <<  2),	1.0 / (1 <<  3),
-		1.0 / (1 <<  4),	1.0 / (1 <<  5),	1.0 / (1 <<  6),	1.0 / (1 <<  7),
-		1.0 / (1 <<  8),	1.0 / (1 <<  9),	1.0 / (1 << 10),	1.0 / (1 << 11),
-		1.0 / (1 << 12),	1.0 / (1 << 13),	1.0 / (1 << 14),	1.0 / (1 << 15),
-		1.0 / (1 << 16),	1.0 / (1 << 17),	1.0 / (1 << 18),	1.0 / (1 << 19),
-		1.0 / (1 << 20),	1.0 / (1 << 21),	1.0 / (1 << 22),	1.0 / (1 << 23),
-		1.0 / (1 << 24),	1.0 / (1 << 25),	1.0 / (1 << 26),	1.0 / (1 << 27),
-		1.0 / (1 << 28),	1.0 / (1 << 29),	1.0 / (1 << 30),	1.0 / (1 << 31),
-		(1ULL << 32),	(1 << 31),		(1 << 30),		(1 << 29),
-		(1 << 28),		(1 << 27),		(1 << 26),		(1 << 25),
-		(1 << 24),		(1 << 23),		(1 << 22),		(1 << 21),
-		(1 << 20),		(1 << 19),		(1 << 18),		(1 << 17),
-		(1 << 16),		(1 << 15),		(1 << 14),		(1 << 13),
-		(1 << 12),		(1 << 11),		(1 << 10),		(1 <<  9),
-		(1 <<  8),		(1 <<  7),		(1 <<  6),		(1 <<  5),
-		(1 <<  4),		(1 <<  3),		(1 <<  2),		(1 <<  1),
-	};  
-
-	u32 temp;
-	void psq_st(UGeckoInstruction inst)
-	{
-		BIT32OLD;
-		OLD;
-		const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
-		const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
-		int stScale = gqr.ST_SCALE;
-		bool update = inst.OPCD == 61;
-		if (!inst.RA || inst.W)
-		{
-		//	PanicAlert(inst.RA ? "W" : "inst");
-			Default(inst);
-			return;
-		}
-
-		int offset = inst.SIMM_12;
-		int a = inst.RA;
-		int s = inst.RS; // Fp numbers
-
-		if (stType == QUANTIZE_FLOAT)
-		{
-			gpr.Flush(FLUSH_VOLATILE);
-			gpr.Lock(a);
-			fpr.Lock(s);
-			if (update)
-				gpr.LoadToX64(a, true, true);
-			MOV(32, R(EDX), gpr.R(a));
-			if (offset)
-				ADD(32, R(EDX), Imm32((u32)offset));
-			TEST(32, R(EDX), Imm32(0x0C000000));
-			if (update && offset)
-				MOV(32, gpr.R(a), R(EDX));
-			CVTPD2PS(XMM0, fpr.R(s));
-			SHUFPS(XMM0, R(XMM0), 1);
-			MOVAPS(M(&temp64), XMM0);
-			MOV(64, R(ECX), M(&temp64));
-			FixupBranch argh = J_CC(CC_NZ);
-			BSWAP(64, ECX);
-			MOV(64, MComplex(RBX, EDX, SCALE_1, 0), R(ECX));
-			FixupBranch arg2 = J();
-			SetJumpTarget(argh);
-			CALL((void *)&WriteDual32); 
-			SetJumpTarget(arg2);
-			if (update)
-				MOV(32, gpr.R(a), R(EDX));
-			gpr.UnlockAll();
-			fpr.UnlockAll();
-		}
-		else if (stType == QUANTIZE_U8)
-		{
-			gpr.Flush(FLUSH_VOLATILE);
-			gpr.Lock(a);
-			fpr.Lock(s);
-			if (update)
-				gpr.LoadToX64(a, true, update);
-			MOV(32, R(EDX), gpr.R(a));
-			if (offset)
-				ADD(32,R(EDX),Imm32((u32)offset));
-			MOVAPS(XMM0, fpr.R(s));
-			MOVDDUP(XMM1, M((void*)&m_quantizeTableD[stScale]));
-			MULPD(XMM0, R(XMM1));
-			CVTPD2DQ(XMM0, R(XMM0));
-			PACKSSDW(XMM0, R(XMM0));
-			PACKUSWB(XMM0, R(XMM0));
-			MOVAPS(M(&temp64), XMM0);
-			MOV(16, R(ECX), M(&temp64));
-#ifdef _M_X64
-			MOV(16, MComplex(RBX, RDX, SCALE_1, 0), R(ECX));
-#else
-			BSWAP(32, ECX);
-			SHR(32, R(ECX), Imm8(16));
-			CALL(&Memory::Write_U16);
-#endif
-			if (update)
-				MOV(32, gpr.R(a), R(EDX));
-			gpr.UnlockAll();
-			fpr.UnlockAll();
-		} 
-		else if (stType == QUANTIZE_S16)
-		{
-			gpr.Lock(a);
-			fpr.Lock(s);
-			if (update)
-				gpr.LoadToX64(a, true, update);
-			MOV(32, R(EDX), gpr.R(a));
-			if (offset)
-				ADD(32,R(EDX),Imm32((u32)offset));
-			MOVAPS(XMM0, fpr.R(s));
-			MOVDDUP(XMM1, M((void*)&m_quantizeTableD[stScale]));
-			MULPD(XMM0, R(XMM1));
-			SHUFPD(XMM0, R(XMM0), 1);
-			CVTPD2DQ(XMM0, R(XMM0));
-			PACKSSDW(XMM0, R(XMM0));
-			MOVD_xmm(M(&temp64), XMM0);
-			MOV(32, R(ECX), M(&temp64));
-#ifdef _M_X64
-			BSWAP(32, ECX);
-			MOV(32, MComplex(RBX, RDX, SCALE_1, 0), R(ECX));
-#else
-			BSWAP(32, ECX);
-			CALL(&Memory::Write_U32);
-#endif
-			if (update)
-				MOV(32, gpr.R(a), R(EDX));
-			gpr.UnlockAll();
-			fpr.UnlockAll();
-		}
-		else {
-			// Dodger uses this.
-			PanicAlert("st %i:%i", stType, inst.W);
-			Default(inst);
-		}
-	}
-
-	
-	void psq_l(UGeckoInstruction inst)
-	{
-		BIT32OLD;
-		OLD;
-		const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
-		const EQuantizeType ldType = static_cast<EQuantizeType>(gqr.LD_TYPE);
-		int ldScale = gqr.LD_SCALE;
-		if (!inst.RA || inst.W)
-		{
-			// 0 1 during load
-			//PanicAlert("ld:%i %i", ldType, (int)inst.W);
-			Default(inst);
-			return;
-		}
-		bool update = inst.OPCD == 57;
-		int offset = inst.SIMM_12;
-		//INT3();
-		switch (ldType) {
-#ifdef _M_X64
-			case QUANTIZE_FLOAT:
-				{
-				gpr.LoadToX64(inst.RA);
-				MOV(64, R(RAX), MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
-				BSWAP(64, RAX);
-				MOV(64, M(&psTemp[0]),R(RAX));
-				fpr.LoadToX64(inst.RS, false);
-				X64Reg r = fpr.R(inst.RS).GetSimpleReg();
-				CVTPS2PD(r, M(&psTemp[0]));
-				SHUFPD(r, R(r),1);
-				if (update)
-					ADD(32, gpr.R(inst.RA), Imm32(offset));
-				break;
-				}
-
-			case QUANTIZE_U8:
-				{
-				gpr.LoadToX64(inst.RA);
-				XOR(32, R(EAX), R(EAX));
-				MOV(16, R(EAX), MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
-				MOV(32, M(&temp64), R(EAX));
-				MOVD_xmm(XMM0, M(&temp64));
-				// SSE4 optimization opportunity here.
-				PXOR(XMM1, R(XMM1));
-				PUNPCKLBW(XMM0, R(XMM1));
-				PUNPCKLWD(XMM0, R(XMM1));
-				CVTDQ2PD(XMM0, R(XMM0));
-				fpr.LoadToX64(inst.RS, false);
-				X64Reg r = fpr.R(inst.RS).GetSimpleReg();
-				MOVDDUP(r, M((void *)&m_dequantizeTableD[ldScale]));
-				MULPD(r, R(XMM0));
-				if (update)
-					ADD(32, gpr.R(inst.RA), Imm32(offset));
-				}
-				break;
-			case QUANTIZE_S16:
-				{
-				gpr.LoadToX64(inst.RA);
-				MOV(32, R(EAX), MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
-				BSWAP(32, EAX);
-				MOV(32, M(&temp64), R(EAX));
-				//INT3();
-				fpr.LoadToX64(inst.RS, false);
-				X64Reg r = fpr.R(inst.RS).GetSimpleReg();
-				MOVD_xmm(XMM0, M(&temp64));
-				PUNPCKLWD(XMM0, R(XMM0)); // unpack to higher word in each dword..
-				PSRAD(XMM0, 16);          // then use this signed shift to sign extend. clever eh? :P
-				CVTDQ2PD(XMM0, R(XMM0));
-				MOVDDUP(r, M((void*)&m_dequantizeTableD[ldScale]));
-				MULPD(r, R(XMM0));
-				SHUFPD(r, R(r), 1);
-				if (update)
-					ADD(32, gpr.R(inst.RA), Imm32(offset));
-				}
-				break;
-#endif	
-			default:
-				// 4 0
-				PanicAlert("ld:%i %i", ldType, (int)inst.W);
-				Default(inst);
-				return;
-		}
-
-		//u32 EA = (m_GPR[_inst.RA] + _inst.SIMM_12) : _inst.SIMM_12;
-	}
-
+	// Zero cache line.
 	void dcbz(UGeckoInstruction inst)
 	{
 #ifdef _M_IX86

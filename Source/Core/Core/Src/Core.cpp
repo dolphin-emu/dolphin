@@ -182,7 +182,8 @@ THREAD_RETURN CpuThread(void *pArg)
 		CPUCompare::ConnectAsClient();
 	}
 
-	Common::Thread::SetCurrentThreadAffinity(1); //Force to first core
+	if (_CoreParameter.bLockThreads)
+		Common::Thread::SetCurrentThreadAffinity(1); //Force to first core
 
 	// Let's run under memory watch
 	EMM::InstallExceptionHandler();
@@ -208,7 +209,8 @@ THREAD_RETURN EmuThread(void *pArg)
 	Common::SetCurrentThreadName("Emuthread - starting");
 	const SCoreStartupParameter& _CoreParameter = *(SCoreStartupParameter*)pArg;
 
-	Common::Thread::SetCurrentThreadAffinity(2); //Force to second core
+	if (_CoreParameter.bLockThreads)
+		Common::Thread::SetCurrentThreadAffinity(2); //Force to second core
 	
 	LOG(OSREPORT, "Starting core = %s mode", _CoreParameter.bWii ? "Wii" : "Gamecube");
 	LOG(OSREPORT, "Dualcore = %s", _CoreParameter.bUseDualCore ? "Yes" : "No");
@@ -222,7 +224,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pGetMemoryPointer	= Memory::GetPointer;
 	VideoInitialize.pSetPEToken			= PixelEngine::SetToken;
 	VideoInitialize.pSetPEFinish		= PixelEngine::SetFinish;
-	VideoInitialize.pWindowHandle		= _CoreParameter.hMainWindow; //      NULL; // filled by video_initialize
+	VideoInitialize.pWindowHandle		= NULL; // _CoreParameter.hMainWindow; //      NULL; // filled by video_initialize
 	VideoInitialize.pLog				= Callback_VideoLog;
 	VideoInitialize.pRequestWindowSize	= NULL; //Callback_VideoRequestWindowSize;
 	VideoInitialize.pCopiedToXFB		= Callback_VideoCopiedToXFB;

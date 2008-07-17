@@ -886,6 +886,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Src\PowerPC\Jit64\Jit_LoadStorePaired.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\Src\PowerPC\Jit64\Jit_Paired.cpp"
 					>
 				</File>

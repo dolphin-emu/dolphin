@@ -41,6 +41,8 @@ struct SCoreStartupParameter
     bool bHLEBios;
 	bool bThrottle;
 	bool bUseFastMem;
+	bool bLockThreads;
+	bool bOptimizeQuantizers;
 
 	bool bRunCompareServer;
 	bool bRunCompareClient;

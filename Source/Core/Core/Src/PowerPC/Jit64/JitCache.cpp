@@ -62,7 +62,7 @@ namespace Jit64
 	JitBlock *blocks;
 	int numBlocks;
 
-	//stats
+	//stats	
 	int numFlushes;
 
 	void PrintStats()

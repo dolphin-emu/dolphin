@@ -64,10 +64,12 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "PadPlugin",  m_LocalCoreStartupParameter.m_strPadPlugin);
 
 		ini.Set("Core", "HLEBios",        m_LocalCoreStartupParameter.bHLEBios);
-		ini.Set("Core", "UseDynarec", m_LocalCoreStartupParameter.bUseDynarec);
+		ini.Set("Core", "UseDynarec",     m_LocalCoreStartupParameter.bUseDynarec);
 		ini.Set("Core", "UseDualCore",    m_LocalCoreStartupParameter.bUseDualCore);
 		ini.Set("Core", "Throttle",       m_LocalCoreStartupParameter.bThrottle);
-		ini.Set("Core", "DefaultGCM", m_LocalCoreStartupParameter.m_strDefaultGCM);
+		ini.Set("Core", "LockThreads",    m_LocalCoreStartupParameter.bLockThreads);
+		ini.Set("Core", "DefaultGCM",     m_LocalCoreStartupParameter.m_strDefaultGCM);
+		ini.Set("Core", "OptimizeQuantizers", m_LocalCoreStartupParameter.bOptimizeQuantizers);
 	}
 
 	ini.Save("Dolphin.ini");
@@ -115,7 +117,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "UseDynarec",  &m_LocalCoreStartupParameter.bUseDynarec,   false);
 		ini.Get("Core", "UseDualCore", &m_LocalCoreStartupParameter.bUseDualCore,  false);
 		ini.Get("Core", "Throttle",    &m_LocalCoreStartupParameter.bThrottle,     true);
+		ini.Get("Core", "LockThreads", &m_LocalCoreStartupParameter.bLockThreads,  true);
+		ini.Get("Core", "OptimizeQuantizers", &m_LocalCoreStartupParameter.bOptimizeQuantizers, true);
 	}
 }
-
-

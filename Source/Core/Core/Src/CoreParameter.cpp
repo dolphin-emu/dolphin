@@ -32,6 +32,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bUseDynarec = false;
 	bUseDualCore = false;
 	bRunCompareServer = false;
+	bLockThreads = true;
 	bWii = false;
 }
 
