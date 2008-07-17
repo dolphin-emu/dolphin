@@ -239,7 +239,7 @@ void BPWritten(int addr, int changes, int newval)
 			CVertexHandler::Flush();
 			((u32*)&bpmem)[addr] = newval;
 			if (changes & 1) dev->SetRenderState(D3DRS_ALPHABLENDENABLE,bpmem.blendmode.blendenable);
-			if (changes & 2) ; // Logic op blending. D3D can't do this but can fake some modes.
+			if (changes & 2) {} // Logic op blending. D3D can't do this but can fake some modes.
 			if (changes & 4) {
 				// Dithering is pointless. Will make things uglier and will be different from GC.
 				// dev->SetRenderState(D3DRS_DITHERENABLE,bpmem.blendmode.dither);

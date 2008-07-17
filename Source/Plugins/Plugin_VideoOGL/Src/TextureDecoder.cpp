@@ -16,11 +16,9 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Globals.h"
+#include "Common.h"
 
-#include "BPStructs.h"
 #include "TextureDecoder.h"
-
-#include "OpcodeDecoding.h"
 
 // TRAM
 u8 texMem[TMEM_SIZE];
@@ -48,6 +46,7 @@ int TexDecoder_GetTexelSizeInNibbles(int format)
     default: return 1;
     }
 }
+
 int TexDecoder_GetBlockWidthInTexels(int format)
 {
     switch(format) {
@@ -62,7 +61,7 @@ int TexDecoder_GetBlockWidthInTexels(int format)
     case GX_TF_C8: return 8;
     case GX_TF_C14X2: return 4;
     case GX_TF_CMPR: return 8;
-    default:return 8;
+    default: return 8;
     }
 }
 

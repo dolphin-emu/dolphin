@@ -66,7 +66,6 @@ void CEXIMemoryCard::Flush()
 {
 	FILE* pFile = NULL;
 	pFile = fopen(m_strFilename.c_str(), "wb");
-
 	if (pFile)
 	{
 		fwrite(memory_card_content, memory_card_size, 1, pFile);
@@ -74,7 +73,8 @@ void CEXIMemoryCard::Flush()
 	}
 	else
 	{
-		PanicAlert("ERROR - could not write memory card file %s", m_strFilename.c_str());
+		PanicAlert("Could not write memory card file %s.\n\n"
+			       "Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?", m_strFilename.c_str());
 	}
 }
 

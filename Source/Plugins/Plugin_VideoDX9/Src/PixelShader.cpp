@@ -388,7 +388,7 @@ void WriteStage(char *&p, int n)
 	TevStageCombiner::ColorCombiner &cc = bpmem.combiners[n].colorC;
 	TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[n].alphaC;
 
-	WRITE(p,"float4(%s,%s)=", tevCOutputTable[cc.outreg], tevAOutputTable[ac.outreg]); 
+	WRITE(p,"float4(%s,%s)=", tevCOutputTable[cc.dest], tevAOutputTable[ac.dest]); 
 
 	//////////////////////////////////////////////////////////////////////////
 	//start of color
@@ -469,7 +469,7 @@ void WriteStage(char *&p, int n)
 	}
 	WRITE(p, ");");
     if (ac.clamp)
-        WRITE(p, "%s = clamp(%s, 0.0f, 1.0f);\n", tevAOutputTable[ac.outreg], tevAOutputTable[ac.outreg]);
+        WRITE(p, "%s = clamp(%s, 0.0f, 1.0f);\n", tevAOutputTable[ac.dest], tevAOutputTable[ac.dest]);
 	WRITE(p, "\n");
 }
 
@@ -477,14 +477,14 @@ void WriteAlphaCompare(char *&p, int num, int comp)
 {
 	WRITE(p,"  res%i = ",num);
 	switch(comp) {
-	case COMPARE_ALWAYS:  WRITE(p,"0;\n");	break;
-	case COMPARE_NEVER:   WRITE(p,"1;\n");	break;
-	case COMPARE_LEQUAL:  WRITE(p,"prev.a - %s.x;\n",alphaRef[num]);	break;
-	case COMPARE_LESS:    WRITE(p,"prev.a - %s.x + %f;\n",alphaRef[num],epsilon*2);break;
-	case COMPARE_GEQUAL:  WRITE(p,"%s - prev.a;\n",alphaRef[num]);	break;
-	case COMPARE_GREATER: WRITE(p,"%s - prev.a + %f;\n",alphaRef[num],epsilon*2);break;
-	case COMPARE_EQUAL:   WRITE(p,"abs(%s-prev.a)-%f;\n",alphaRef[num],epsilon*2); break;
-	case COMPARE_NEQUAL:  WRITE(p,"%f-abs(%s-prev.a);\n",epsilon*2,alphaRef[num]); break;
+	case ALPHACMP_ALWAYS:  WRITE(p,"0;\n");	break;
+	case ALPHACMP_NEVER:   WRITE(p,"1;\n");	break;
+	case ALPHACMP_LEQUAL:  WRITE(p,"prev.a - %s.x;\n",alphaRef[num]);	break;
+	case ALPHACMP_LESS:    WRITE(p,"prev.a - %s.x + %f;\n",alphaRef[num],epsilon*2);break;
+	case ALPHACMP_GEQUAL:  WRITE(p,"%s - prev.a;\n",alphaRef[num]);	break;
+	case ALPHACMP_GREATER: WRITE(p,"%s - prev.a + %f;\n",alphaRef[num],epsilon*2);break;
+	case ALPHACMP_EQUAL:   WRITE(p,"abs(%s-prev.a)-%f;\n",alphaRef[num],epsilon*2); break;
+	case ALPHACMP_NEQUAL:  WRITE(p,"%f-abs(%s-prev.a);\n",epsilon*2,alphaRef[num]); break;
 	}
 }
 

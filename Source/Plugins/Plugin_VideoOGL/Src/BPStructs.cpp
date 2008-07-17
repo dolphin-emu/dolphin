@@ -26,9 +26,6 @@
 #include "VertexShader.h"
 #include "PixelShader.h"
 
-//BP state
-BPMemory bpmem;
-
 #define BPMEM_GENMODE          0x00
 #define BPMEM_IND_MTX          0x06
 #define BPMEM_RAS1_SS0         0x25 // ind tex coord scale 0

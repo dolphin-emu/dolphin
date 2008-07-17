@@ -172,15 +172,15 @@ struct XFRegisters
     bool bEnableDualTexTransform;
 };
 
-#define XFMEM_SIZE 0x8000
-#define XFMEM_POSMATRICES     0x000
-#define XFMEM_POSMATRICES_END 0x100
-#define XFMEM_NORMALMATRICES  0x400
+#define XFMEM_SIZE               0x8000
+#define XFMEM_POSMATRICES        0x000
+#define XFMEM_POSMATRICES_END    0x100
+#define XFMEM_NORMALMATRICES     0x400
 #define XFMEM_NORMALMATRICES_END 0x460
-#define XFMEM_POSTMATRICES    0x500
-#define XFMEM_POSTMATRICES_END 0x600
-#define XFMEM_LIGHTS          0x600
-#define XFMEM_LIGHTS_END      0x680
+#define XFMEM_POSTMATRICES       0x500
+#define XFMEM_POSTMATRICES_END   0x600
+#define XFMEM_LIGHTS             0x600
+#define XFMEM_LIGHTS_END         0x680
 
 // Matrix indices
 union TMatrixIndexA

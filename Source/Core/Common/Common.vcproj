@@ -53,7 +53,6 @@
 				PrecompiledHeaderThrough="stdafx.h"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
 				ForcedIncludeFiles="stdafx.h"
 			/>
@@ -125,7 +124,6 @@
 				PrecompiledHeaderThrough="stdafx.h"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
@@ -198,7 +196,6 @@
 				PrecompiledHeaderThrough="stdafx.h"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
@@ -272,7 +269,6 @@
 				PrecompiledHeaderThrough="stdafx.h"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
@@ -340,7 +336,6 @@
 				PrecompiledHeaderThrough="stdafx.h"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
@@ -409,7 +404,6 @@
 				PrecompiledHeaderThrough="stdafx.h"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>

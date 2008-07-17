@@ -1,45 +1,38 @@
 #ifndef _XFSTRUCTS_H
 #define _XFSTRUCTS_H
 
-
 #include "Common.h"
 #include "Vec3.h"
-
 
 #pragma pack(4)
 
 //////////////////////////////////////////////////////////////////////////
 // Lighting
 //////////////////////////////////////////////////////////////////////////
-//  xf_tex_projection_f enum
 #define XF_TEX_ST   0x00000000
 #define XF_TEX_STQ  0x00000001
 
-//  xf_tex_input_form_f enum
 #define XF_TEX_AB11 0x00000000
 #define XF_TEX_ABC1 0x00000001
 
-//  xf_tex_texgen_type_f enum
 #define XF_TEXGEN_REGULAR       0x00000000
 #define XF_TEXGEN_EMBOSS_MAP    0x00000001
 #define XF_TEXGEN_COLOR_STRGBC0 0x00000002
 #define XF_TEXGEN_COLOR_STRGBC1 0x00000003
 
-//  xf_tex_source_row_f enum
-#define XF_GEOM_INROW   0x00000000
-#define XF_NORMAL_INROW 0x00000001
-#define XF_COLORS_INROW 0x00000002
+#define XF_GEOM_INROW       0x00000000
+#define XF_NORMAL_INROW     0x00000001
+#define XF_COLORS_INROW     0x00000002
 #define XF_BINORMAL_T_INROW 0x00000003
 #define XF_BINORMAL_B_INROW 0x00000004
-#define XF_TEX0_INROW   0x00000005
-#define XF_TEX1_INROW   0x00000006
-#define XF_TEX2_INROW   0x00000007
-#define XF_TEX3_INROW   0x00000008
-#define XF_TEX4_INROW   0x00000009
-#define XF_TEX5_INROW   0x0000000a
-#define XF_TEX6_INROW   0x0000000b
-#define XF_TEX7_INROW   0x0000000c
-
+#define XF_TEX0_INROW       0x00000005
+#define XF_TEX1_INROW       0x00000006
+#define XF_TEX2_INROW       0x00000007
+#define XF_TEX3_INROW       0x00000008
+#define XF_TEX4_INROW       0x00000009
+#define XF_TEX5_INROW       0x0000000a
+#define XF_TEX6_INROW       0x0000000b
+#define XF_TEX7_INROW       0x0000000c
 
 struct Light
 {
@@ -68,8 +61,6 @@ struct Light
 #define GX_SRC_REG 0
 #define GX_SRC_VTX 1
 
-
-
 union LitChannel
 {
 	struct
@@ -88,6 +79,7 @@ union LitChannel
 		return lightMask0_3 | (lightMask4_7 << 4);
 	}
 };
+
 struct ColorChannel
 {
 	u32 ambColor;
@@ -95,10 +87,12 @@ struct ColorChannel
 	LitChannel color;
 	LitChannel alpha;
 };
+
 struct MiscXF
 {
 	int numTexGens;
 };
+
 union TexMtxInfo
 {
 	struct 
@@ -113,6 +107,7 @@ union TexMtxInfo
 	};
 	u32 hex;
 };
+
 union PostMtxInfo
 {
 	struct 
@@ -122,6 +117,7 @@ union PostMtxInfo
 	};
 	u32 hex;
 };
+
 struct TexCoordInfo
 {
 	TexMtxInfo texmtxinfo;
@@ -138,14 +134,15 @@ struct Viewport
 	float farZ;
 };
 
-
-#define XFMEM_SIZE 0x8000
-
-
-#define XFMEM_POSMATRICES     0x000
-#define XFMEM_NORMALMATRICES  0x400
-#define XFMEM_POSTMATRICES    0x500
-#define XFMEM_LIGHTS          0x600
+#define XFMEM_SIZE               0x8000
+#define XFMEM_POSMATRICES        0x000
+#define XFMEM_POSMATRICES_END    0x100
+#define XFMEM_NORMALMATRICES     0x400
+#define XFMEM_NORMALMATRICES_END 0x460
+#define XFMEM_POSTMATRICES       0x500
+#define XFMEM_POSTMATRICES_END   0x600
+#define XFMEM_LIGHTS             0x600
+#define XFMEM_LIGHTS_END         0x680
 
 
 extern TexCoordInfo texcoords[8];

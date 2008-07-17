@@ -6,10 +6,6 @@
 #include "VertexHandler.h"
 #include "VertexLoader.h"
 
-// CP state
-u32 arraybases[16];
-u32 arraystrides[16];
-
 TMatrixIndexA MatrixIndexA;
 TMatrixIndexB MatrixIndexB;
 

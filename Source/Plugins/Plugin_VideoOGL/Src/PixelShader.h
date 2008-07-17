@@ -48,7 +48,7 @@ class PixelShaderMngr
 				values[i] = r.values[i];
         }
 
-        bool operator<(const PIXELSHADERUID& _Right) const
+        bool operator <(const PIXELSHADERUID& _Right) const
         {
             if( values[0] < _Right.values[0] )
                 return true;
@@ -75,7 +75,7 @@ class PixelShaderMngr
             return false;
         }
 
-        bool operator==(const PIXELSHADERUID& _Right) const
+        bool operator ==(const PIXELSHADERUID& _Right) const
         {
             if( values[0] != _Right.values[0] )
                 return false;

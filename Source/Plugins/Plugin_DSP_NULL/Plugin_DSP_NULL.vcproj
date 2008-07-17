@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="Plugin_DSP_NULL"
 	ProjectGUID="{9AC65CBE-7854-4A86-AA10-D73FF9E5D61F}"
 	RootNamespace="Plugin_DSP_NULL"
@@ -52,7 +52,6 @@
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
 				ForcedIncludeFiles="stdafx.h"
 			/>
@@ -137,7 +136,6 @@
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
@@ -225,7 +223,6 @@
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
@@ -316,7 +313,6 @@
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
@@ -406,7 +402,6 @@
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
@@ -497,7 +492,6 @@
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>

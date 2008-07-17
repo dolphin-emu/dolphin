@@ -35,9 +35,6 @@
 
 #define MAX_BUFFER_SIZE 0x4000
 
-// CP state
-u32 arraybases[16];
-u32 arraystrides[16];
 
 // internal state for loading vertices
 static u32 s_prevvbstride, s_prevcomponents; // previous state set
