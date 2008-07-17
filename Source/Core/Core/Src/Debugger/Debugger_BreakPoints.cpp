@@ -18,6 +18,12 @@
 // Lame slow breakpoint system
 // TODO: a real one
 
+//
+// [F|RES]: this class isn't really nice... for a better management we should use a base class for
+// breakpoints and memory checks. but probably this will be slower too
+//
+
+
 #include "Common.h"
 
 #include "../HW/CPU.h"
@@ -154,6 +160,37 @@ void CBreakPoints::AddAutoBreakpoints()
 			AddBreakPoint(symbol.vaddress, false);
 		}
 	}
+
+    Host_UpdateBreakPointView();
 #endif
 #endif
+}
+
+void CBreakPoints::DeleteElementByAddress(u32 _Address)
+{
+    // first check breakpoints
+    {
+        std::vector<TBreakPoint>::iterator iter;
+        for (iter = m_BreakPoints.begin(); iter != m_BreakPoints.end(); ++iter)
+        {
+            if ((*iter).iAddress == _Address)
+            {
+                m_BreakPoints.erase(iter);
+                Host_UpdateBreakPointView();
+                return;
+            }
+        }
+    }
+
+    // second memory check checkpoint
+    std::vector<TMemCheck>::iterator iter;
+    for (iter = m_MemChecks.begin(); iter != m_MemChecks.end(); ++iter)
+    {
+        if ((*iter).iStartAddress == _Address)
+        {
+            m_MemChecks.erase(iter);
+            Host_UpdateBreakPointView();
+            return;
+        }
+    }
 }

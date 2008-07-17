@@ -24,6 +24,7 @@
 
 BEGIN_EVENT_TABLE(CBreakPointView, wxListCtrl)
 
+
 END_EVENT_TABLE()
 
 CBreakPointView::CBreakPointView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -43,7 +44,10 @@ CBreakPointView::Update()
 	InsertColumn(0, wxT("Active"), wxLIST_FORMAT_LEFT, 50);
 	InsertColumn(1, wxT("Type"), wxLIST_FORMAT_LEFT, 50);
 	InsertColumn(2, wxT("Function"), wxLIST_FORMAT_CENTER, 200);
+    InsertColumn(3, wxT("Address"), wxLIST_FORMAT_CENTER, 100);
+    InsertColumn(4, wxT("Flags"), wxLIST_FORMAT_CENTER, 100);
 
+    char szBuffer[32];
 	const CBreakPoints::TBreakPoints& rBreakPoints = CBreakPoints::GetBreakPoints();
 	for (size_t i=0; i<rBreakPoints.size(); i++)
 	{
@@ -58,12 +62,11 @@ CBreakPointView::Update()
 			{
 				SetItem(Item, 2, Debugger::GetDescription(rBP.iAddress));
 			}
-			else
-			{
-				char szBuffer[32];
-				sprintf(szBuffer, "0x%08x", rBP.iAddress);
-				SetItem(Item, 2, szBuffer);
-			}
+			
+            sprintf(szBuffer, "0x%08x", rBP.iAddress);
+			SetItem(Item, 3, szBuffer);
+
+            SetItemData(Item, rBP.iAddress);
 		}
 	}
 
@@ -71,7 +74,12 @@ CBreakPointView::Update()
 	Refresh();
 }
 
-void CBreakPointView::DeleteCurrentSelection()
-{
-
+    void CBreakPointView::DeleteCurrentSelection()
+    {
+    int Item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    if (Item >= 0)
+    {
+        u32 Address = GetItemData(Item);
+        CBreakPoints::DeleteElementByAddress(Address);
+    }
 }

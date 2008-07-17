@@ -240,6 +240,13 @@ bool TryParseInt(const char* str, int* outVal)
 {
 	const char* s = str;
 	int value = 0;
+    bool negativ = false;
+
+    if (*s == '-')
+    {
+        negativ = true;
+        s++;
+    }
 
 	while (*s)
 	{
@@ -252,6 +259,8 @@ bool TryParseInt(const char* str, int* outVal)
 
 		value = value * 10 + (c - '0');
 	}
+    if (negativ)
+        value = -value;
 
 	*outVal = value;
 	return(true);

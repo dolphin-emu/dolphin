@@ -43,12 +43,14 @@ class CCodeWindow
 		const wxSize& size = wxSize(400, 500),
 		long style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE);
 
+        ~CCodeWindow();
+
 		void Update();
 		void NotifyMapLoaded();
 
 		bool UseInterpreter();
 		bool UseDualCore();
-
+        void JumpToAddress(u32 _Address);
 
 	private:
 

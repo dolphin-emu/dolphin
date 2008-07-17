@@ -34,7 +34,7 @@ static std::string s_DataBasePath_USA = "Data_USA";
 static std::string s_DataBasePath_JAP = "Data_JAP";
 
 extern CFrame* main_frame;
-extern CCodeWindow* code_frame;
+extern CCodeWindow* g_pCodeWindow;
 
 namespace BootManager
 {
@@ -46,10 +46,10 @@ bool BootCore(const std::string& _rFilename)
 {
 	SCoreStartupParameter StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
-	if (code_frame)
+	if (g_pCodeWindow)
 	{
 //		StartUp.bUseDualCore = code_frame->UseDualCore();
-		StartUp.bUseDynarec = !code_frame->UseInterpreter();
+		StartUp.bUseDynarec = !g_pCodeWindow->UseInterpreter();
 	}
 	else
 	{
@@ -62,7 +62,7 @@ bool BootCore(const std::string& _rFilename)
 	StartUp.bHLEBios = true;
 	StartUp.bRunCompareClient = false;
 	StartUp.bRunCompareServer = false;
-	StartUp.bEnableDebugging = code_frame ? true : false; // RUNNING_DEBUG
+	StartUp.bEnableDebugging = g_pCodeWindow ? true : false; // RUNNING_DEBUG
 	std::string BaseDataPath;
     #ifdef _WIN32
 	StartUp.hInstance = wxGetInstance();
@@ -79,7 +79,7 @@ bool BootCore(const std::string& _rFilename)
 		return(false);
 	}
 
-	Core::SetState(code_frame ? Core::CORE_PAUSE : Core::CORE_RUN);
+	Core::SetState(g_pCodeWindow ? Core::CORE_PAUSE : Core::CORE_RUN);
 	return(true);
 }
 

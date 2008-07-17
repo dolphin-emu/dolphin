@@ -20,6 +20,7 @@
 #include "RegisterWindow.h"
 #include "LogWindow.h"
 #include "BreakpointWindow.h"
+#include "IniFile.h"
 
 #include "wx/button.h"
 #include "wx/textctrl.h"
@@ -89,7 +90,7 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	: wxFrame(parent, id, title, pos, size, style)
 	, m_RegisterWindow(NULL)
 	, m_logwindow(NULL)
-{
+{    
 	CreateMenu(_LocalCoreStartupParameter);
 
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
@@ -133,11 +134,70 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	m_RegisterWindow = new CRegisterWindow(this);
 	m_RegisterWindow->Show(true);
 
-	m_BreakpointWindow = new CBreakPointWindow(this);
+	m_BreakpointWindow = new CBreakPointWindow(this, this);
 	m_BreakpointWindow->Show(true);
 
 
 	UpdateButtonStates();
+
+
+    int x,y,w,h;
+
+    IniFile file;
+    file.Load("Debugger.ini");
+
+    file.Get("Code", "x", &x, GetPosition().x);
+    file.Get("Code", "y", &y, GetPosition().y);
+    file.Get("Code", "w", &w, GetSize().GetWidth());
+    file.Get("Code", "h", &h, GetSize().GetHeight());
+    this->SetSize(x, y, w, h);
+
+    file.Get("BreakPoint", "x", &x, m_BreakpointWindow->GetPosition().x);
+    file.Get("BreakPoint", "y", &y, m_BreakpointWindow->GetPosition().y);
+    file.Get("BreakPoint", "w", &w, m_BreakpointWindow->GetSize().GetWidth());
+    file.Get("BreakPoint", "h", &h, m_BreakpointWindow->GetSize().GetHeight());
+    m_BreakpointWindow->SetSize(x, y, w, h);
+
+    file.Get("LogWindow", "x", &x, m_logwindow->GetPosition().x);
+    file.Get("LogWindow", "y", &y, m_logwindow->GetPosition().y);
+    file.Get("LogWindow", "w", &w, m_logwindow->GetSize().GetWidth());
+    file.Get("LogWindow", "h", &h, m_logwindow->GetSize().GetHeight());
+    m_logwindow->SetSize(x, y, w, h);
+
+    file.Get("RegisterWindow", "x", &x, m_RegisterWindow->GetPosition().x);
+    file.Get("RegisterWindow", "y", &y, m_RegisterWindow->GetPosition().y);
+    file.Get("RegisterWindow", "w", &w, m_RegisterWindow->GetSize().GetWidth());
+    file.Get("RegisterWindow", "h", &h, m_RegisterWindow->GetSize().GetHeight());
+    m_RegisterWindow->SetSize(x, y, w, h);
+}
+
+
+CCodeWindow::~CCodeWindow()
+{
+    IniFile file;
+    file.Load("Debugger.ini");
+
+    file.Set("Code", "x", GetPosition().x);
+    file.Set("Code", "y", GetPosition().y);
+    file.Set("Code", "w", GetSize().GetWidth());
+    file.Set("Code", "h", GetSize().GetHeight());
+
+    file.Set("BreakPoint", "x", m_BreakpointWindow->GetPosition().x);
+    file.Set("BreakPoint", "y", m_BreakpointWindow->GetPosition().y);
+    file.Set("BreakPoint", "w", m_BreakpointWindow->GetSize().GetWidth());
+    file.Set("BreakPoint", "h", m_BreakpointWindow->GetSize().GetHeight());
+
+    file.Set("LogWindow", "x", m_logwindow->GetPosition().x);
+    file.Set("LogWindow", "y", m_logwindow->GetPosition().y);
+    file.Set("LogWindow", "w", m_logwindow->GetSize().GetWidth());
+    file.Set("LogWindow", "h", m_logwindow->GetSize().GetHeight());
+
+    file.Set("RegisterWindow", "x", m_RegisterWindow->GetPosition().x);
+    file.Set("RegisterWindow", "y", m_RegisterWindow->GetPosition().y);
+    file.Set("RegisterWindow", "w", m_RegisterWindow->GetSize().GetWidth());
+    file.Set("RegisterWindow", "h", m_RegisterWindow->GetSize().GetHeight());
+
+    file.Save("Debugger.ini");
 }
 
 
@@ -187,6 +247,12 @@ bool CCodeWindow::UseInterpreter()
 bool CCodeWindow::UseDualCore()
 {
 	return(GetMenuBar()->IsChecked(IDM_DUALCORE));
+}
+
+
+void CCodeWindow::JumpToAddress(u32 _Address)
+{
+    codeview->Center(_Address);
 }
 
 
@@ -437,7 +503,7 @@ void CCodeWindow::OnToggleBreakPointWindow(wxCommandEvent& event)
 	{
 		if (!m_BreakpointWindow)
 		{
-			m_BreakpointWindow = new CBreakPointWindow(this);
+			m_BreakpointWindow = new CBreakPointWindow(this, this);
 		}
 
 		m_BreakpointWindow->Show(true);
@@ -485,12 +551,12 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 		    break;
 
 		case IDM_UPDATEBREAKPOINTS:
+            Update();
 
 			if (m_BreakpointWindow)
 			{
 				m_BreakpointWindow->NotifyUpdate();
 			}
-
 			break;
 
 	}

@@ -46,7 +46,7 @@ namespace Memory
 
 // GLOABL DEFINES
 
-// #define NOCHECK
+#define NOCHECK
 
 static const bool bFakeVMEM = false;
 

@@ -25,7 +25,7 @@
 
 struct TBreakPoint
 {
-	u32    iAddress;
+	u32     iAddress;
 	bool	bOn;
 	bool    bTemporary;
 };
@@ -82,6 +82,8 @@ public:
 	static void ClearAllBreakPoints();
 
 	static void AddAutoBreakpoints();
+
+    static void DeleteElementByAddress(u32 _Address);
 
 private:
 

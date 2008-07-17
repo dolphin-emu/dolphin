@@ -6,6 +6,8 @@
 #define __BREAKPOINTWINDOW_h__
 
 class CBreakPointView;
+class CCodeWindow;
+class wxListEvent;
 
 #undef BREAKPOINT_WINDOW_STYLE
 #define BREAKPOINT_WINDOW_STYLE wxCAPTION | wxSYSTEM_MENU | wxCLOSE_BOX | wxRESIZE_BORDER
@@ -19,7 +21,7 @@ class CBreakPointWindow
 
 	public:
 
-		CBreakPointWindow(wxWindow* parent, wxWindowID id = 1, const wxString& title = wxT("Breakpoints"), 
+		CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent, wxWindowID id = 1, const wxString& title = wxT("Breakpoints"), 
 			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(400, 250), 
 			long style = BREAKPOINT_WINDOW_STYLE);
 
@@ -48,6 +50,8 @@ class CBreakPointWindow
 		};
 
 		CBreakPointView* m_BreakPointListView;
+        CCodeWindow* m_pCodeWindow;
+
 		wxBitmap m_Bitmaps[Bitmaps_max];
 
 		void OnClose(wxCloseEvent& event);
@@ -60,6 +64,7 @@ class CBreakPointWindow
 		void OnDelete(wxCommandEvent& event);
 		void OnAddBreakPoint(wxCommandEvent& event);
 		void OnAddMemoryCheck(wxCommandEvent& event);
+        void OnActivated(wxListEvent& event);
 };
 
 #endif

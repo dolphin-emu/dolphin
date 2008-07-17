@@ -5,6 +5,7 @@
 #include "Debugger.h"
 #include "BreakPointWindow.h"
 #include "BreakpointView.h"
+#include "CodeWindow.h"
 
 #include "wx/mstream.h"
 
@@ -21,6 +22,7 @@ BEGIN_EVENT_TABLE(CBreakPointWindow, wxFrame)
 	EVT_MENU(IDM_DELETE, CBreakPointWindow::OnDelete)
 	EVT_MENU(IDM_ADD_BREAKPOINT, CBreakPointWindow::OnAddBreakPoint)
 	EVT_MENU(IDM_ADD_MEMORYCHECK, CBreakPointWindow::OnAddMemoryCheck)
+    EVT_LIST_ITEM_ACTIVATED(ID_BPS, CBreakPointWindow::OnActivated)
 END_EVENT_TABLE()
 
 
@@ -32,9 +34,10 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
 }
 
 
-CBreakPointWindow::CBreakPointWindow(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
+CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxFrame(parent, id, title, position, size, style)
 	, m_BreakPointListView(NULL)
+    , m_pCodeWindow(_pCodeWindow)
 {
 	InitBitmaps();
 
@@ -157,4 +160,17 @@ CBreakPointWindow::OnAddMemoryCheck(wxCommandEvent& event)
 }
 
 
+void
+CBreakPointWindow::OnActivated(wxListEvent& event)
+{
+    long Index = event.GetIndex();
+    if (Index >= 0)
+    {
+        u32 Address = (u32)m_BreakPointListView->GetItemData(Index);
+        if (m_pCodeWindow != NULL)
+        {
+            m_pCodeWindow->JumpToAddress(Address);
+        }
+    }
+}
 

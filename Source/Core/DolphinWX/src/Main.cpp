@@ -30,7 +30,7 @@
 IMPLEMENT_APP(DolphinApp)
 
 CFrame * main_frame = NULL;
-CCodeWindow* code_frame = NULL;
+CCodeWindow* g_pCodeWindow = NULL;
 
 // The `main program' equivalent, creating the windows and returning the
 // main frame
@@ -93,8 +93,8 @@ bool DolphinApp::OnInit()
 	// create debugger
 	if (UseDebugger)
 	{
-		code_frame = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, main_frame);
-		code_frame->Show(true);
+		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, main_frame);
+		g_pCodeWindow->Show(true);
 	}
 
 	SetTopWindow(main_frame);
@@ -121,9 +121,9 @@ void Host_BootingStarted()
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_BOOTING_STARTED);
 	wxPostEvent(main_frame, event);
 
-	if (code_frame)
+	if (g_pCodeWindow)
 	{
-		wxPostEvent(code_frame, event);
+		wxPostEvent(g_pCodeWindow, event);
 	}
 }
 
@@ -133,9 +133,9 @@ void Host_BootingEnded()
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_BOOTING_ENDED);
 	wxPostEvent(main_frame, event);
 
-	if (code_frame)
+	if (g_pCodeWindow)
 	{
-		wxPostEvent(code_frame, event);
+		wxPostEvent(g_pCodeWindow, event);
 	}
 }
 
@@ -147,9 +147,9 @@ void Host_NotifyMapLoaded()
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_NOTIFYMAPLOADED);
 	wxPostEvent(main_frame, event);
 
-	if (code_frame)
+	if (g_pCodeWindow)
 	{
-		wxPostEvent(code_frame, event);
+		wxPostEvent(g_pCodeWindow, event);
 	}
 }
 
@@ -159,9 +159,9 @@ void Host_UpdateLogDisplay()
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATELOGDISPLAY);
 	wxPostEvent(main_frame, event);
 
-	if (code_frame)
+	if (g_pCodeWindow)
 	{
-		wxPostEvent(code_frame, event);
+		wxPostEvent(g_pCodeWindow, event);
 	}
 }
 
@@ -170,9 +170,9 @@ void Host_UpdateDisasmDialog()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEDISASMDIALOG);
 	wxPostEvent(main_frame, event);
-	if (code_frame)
+	if (g_pCodeWindow)
 	{
-		wxPostEvent(code_frame, event);
+		wxPostEvent(g_pCodeWindow, event);
 	}
 }
 
@@ -182,9 +182,9 @@ void Host_UpdateMainFrame()
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEGUI);
 	wxPostEvent(main_frame, event);
 
-	if (code_frame)
+	if (g_pCodeWindow)
 	{
-		wxPostEvent(code_frame, event);
+		wxPostEvent(g_pCodeWindow, event);
 	}
 }
 
@@ -193,9 +193,9 @@ void Host_UpdateBreakPointView()
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEBREAKPOINTS);
 	wxPostEvent(main_frame, event);
 
-	if (code_frame)
+	if (g_pCodeWindow)
 	{
-		wxPostEvent(code_frame, event);
+		wxPostEvent(g_pCodeWindow, event);
 	}
 }
 
