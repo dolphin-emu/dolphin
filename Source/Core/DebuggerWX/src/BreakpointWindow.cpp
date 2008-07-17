@@ -6,6 +6,7 @@
 #include "BreakPointWindow.h"
 #include "BreakpointView.h"
 #include "CodeWindow.h"
+#include "HW/Memmap.h"
 
 #include "wx/mstream.h"
 
@@ -75,10 +76,15 @@ CBreakPointWindow::PopulateToolbar(wxToolBar* toolBar)
 		h = m_Bitmaps[Toolbar_Delete].GetHeight();
 
 	toolBar->SetToolBitmapSize(wxSize(w, h));
-	toolBar->AddTool(IDM_DELETE, _T("Delete"), m_Bitmaps[Toolbar_Delete], _T("Refresh"));
+	toolBar->AddTool(IDM_DELETE, _T("Delete"), m_Bitmaps[Toolbar_Delete], _T("Delete the selected BreakPoint or MemoryCheck"));
 	toolBar->AddSeparator();
-	toolBar->AddTool(IDM_ADD_BREAKPOINT,    _T("BP"),    m_Bitmaps[Toolbar_Add_BreakPoint], _T("Open file..."));
-	toolBar->AddTool(IDM_ADD_MEMORYCHECK, _T("MemCheck"), m_Bitmaps[Toolbar_Add_Memcheck], _T("Refresh"));
+	toolBar->AddTool(IDM_ADD_BREAKPOINT,    _T("BP"),    m_Bitmaps[Toolbar_Add_BreakPoint], _T("Add BreakPoint..."));
+
+    // just add memory breakpoints if you can use them
+    if (Memory::AreMemoryBreakpointsActivated())
+    {
+	    toolBar->AddTool(IDM_ADD_MEMORYCHECK, _T("MC"), m_Bitmaps[Toolbar_Add_Memcheck], _T("Add MemoryCheck..."));
+    }
 
 	// after adding the buttons to the toolbar, must call Realize() to reflect
 	// the changes
