@@ -116,7 +116,6 @@ void Config::Save()
 	iniFile.Set("Hardware", "RenderToMainframe", renderToMainframe);
 
     iniFile.Set("Settings", "OverlayStats", bOverlayStats);
-    iniFile.Set("Settings", "OverlayStats", bOverlayStats);
     iniFile.Set("Settings", "Postprocess", iPostprocessEffect);
     iniFile.Set("Settings", "DLOptimize", iCompileDLsLevel);
     iniFile.Set("Settings", "DumpTextures", bDumpTextures);

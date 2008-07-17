@@ -25,8 +25,8 @@
 #include "BPStructs.h"
 #include "DataReader.h"
 
-#include "VertexShader.h"
-#include "PixelShader.h"
+#include "VertexShaderManager.h"
+#include "PixelShaderManager.h"
 #include "TextureMngr.h"
 
 #include "MemoryUtil.h"

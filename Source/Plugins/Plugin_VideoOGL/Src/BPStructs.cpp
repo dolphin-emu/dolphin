@@ -23,8 +23,8 @@
 #include "OpcodeDecoding.h"
 #include "TextureMngr.h"
 #include "TextureDecoder.h"
-#include "VertexShader.h"
-#include "PixelShader.h"
+#include "VertexShaderManager.h"
+#include "PixelShaderManager.h"
 
 #define BPMEM_GENMODE          0x00
 #define BPMEM_IND_MTX          0x06

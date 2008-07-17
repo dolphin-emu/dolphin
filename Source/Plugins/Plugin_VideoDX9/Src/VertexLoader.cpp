@@ -35,7 +35,7 @@ int ComputeVertexSize(u32 comp)
 		size += 4;
 	if (comp & VB_HAS_NRM0)
 		size += 4;
-	if (comp & (VB_HAS_NRM1|VB_HAS_NRM2)) //combine into single check for speed
+	if (comp & (VB_HAS_NRM1 | VB_HAS_NRM2)) //combine into single check for speed
 		size += 8;
 	if (comp & VB_HAS_COL0)
 		size += 4; 

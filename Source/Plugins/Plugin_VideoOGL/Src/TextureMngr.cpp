@@ -27,8 +27,8 @@
 #include "BPStructs.h"
 #include "TextureDecoder.h"
 #include "TextureMngr.h"
-#include "PixelShader.h"
-#include "VertexShader.h"
+#include "PixelShaderManager.h"
+#include "VertexShaderManager.h"
 
 u8 *TextureMngr::temp = NULL;
 TextureMngr::TexCache TextureMngr::textures;

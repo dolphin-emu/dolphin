@@ -1,7 +1,6 @@
 #ifndef _UTILS_H
 #define _UTILS_H
 
-
 #include "Common.h"
 #include "main.h"
 
@@ -16,7 +15,6 @@ extern float luts8tosfloat[256];
 
 LRESULT CALLBACK AboutProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 void InitLUTs();
-
 
 //#define RAM_MASK 0x1FFFFFF
 

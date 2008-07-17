@@ -30,8 +30,8 @@
 #include "EmuWindow.h"
 #endif
 #include "VertexLoader.h"
-#include "VertexShader.h"
-#include "PixelShader.h"
+#include "PixelShaderManager.h"
+#include "VertexShaderManager.h"
 
 
 HINSTANCE g_hInstance = NULL;

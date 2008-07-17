@@ -1302,6 +1302,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\PixelShaderManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PixelShaderManager.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\rasterfont.cpp"
 				>
 				<FileConfiguration
@@ -1347,6 +1355,14 @@
 			</File>
 			<File
 				RelativePath=".\Src\VertexShader.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexShaderManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexShaderManager.h"
 				>
 			</File>
 		</Filter>

@@ -27,7 +27,7 @@
 #include "Globals.h"
 #include "OpcodeDecoding.h"
 #include "VertexLoader.h"
-#include "VertexShader.h"
+#include "VertexShaderManager.h"
 #include "TextureMngr.h"
 
 #include "BPStructs.h"
