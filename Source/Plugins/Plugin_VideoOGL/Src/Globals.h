@@ -164,6 +164,7 @@ struct Config
     int iPostprocessEffect;
     int iCompileDLsLevel;
 
+	bool renderToMainframe;
     int iLog; // CONF_ bits
     bool bFullscreen;
     bool bWireFrame;

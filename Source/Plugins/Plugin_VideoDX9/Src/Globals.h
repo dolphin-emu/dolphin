@@ -16,7 +16,7 @@ struct Config
 	int iPostprocessEffect;
 	int iCompileDLsLevel;
 
-	bool renderInMainframe;
+	bool renderToMainframe;
 	bool bFullscreen;
 	bool bVsync;
 	bool bWireFrame;

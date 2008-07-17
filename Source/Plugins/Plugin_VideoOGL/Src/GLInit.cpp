@@ -21,7 +21,6 @@
 #endif
 #include "GLInit.h"
 
-
 // Handles OpenGL and the window
 
 
@@ -104,7 +103,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _width, int _height)
 
 #ifdef _WIN32
     // create the window
-    if (g_VideoInitialize.pWindowHandle == NULL) {
+    if (!g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL) {
         // create the window
         g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, "Please wait...");
         if (g_VideoInitialize.pWindowHandle == NULL) {

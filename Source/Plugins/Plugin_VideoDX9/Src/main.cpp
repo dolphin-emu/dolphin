@@ -71,7 +71,7 @@ bool Init()
 	if (initCount==0)
 	{
         // create the window
-        if( !g_Config.renderInMainframe || g_VideoInitialize.pWindowHandle == NULL ) // ignore parent for this plugin
+        if( !g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL ) // ignore parent for this plugin
         {
             g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, "Please wait...");
         }

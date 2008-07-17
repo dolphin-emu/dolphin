@@ -48,6 +48,7 @@ struct TabOGL : public W32Util::Tab
         ComboBox_SetCurSel(GetDlgItem(hDlg,IDC_RESOLUTION), g_Config.iFSResolution);
 
 		CheckDlgButton(hDlg, IDC_FULLSCREENENABLE, g_Config.bFullscreen ? TRUE : FALSE);
+		CheckDlgButton(hDlg, IDC_RENDER_TO_MAINWINDOW, g_Config.renderToMainframe ? TRUE : FALSE);	
 	}
 
 	void Command(HWND hDlg,WPARAM wParam)
@@ -67,6 +68,8 @@ struct TabOGL : public W32Util::Tab
 		g_Config.iMultisampleMode = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_ANTIALIASMODE));
 		g_Config.iFSResolution = ComboBox_GetCurSel(GetDlgItem(hDlg,IDC_RESOLUTION));
 		g_Config.bFullscreen = Button_GetCheck(GetDlgItem(hDlg, IDC_FULLSCREENENABLE)) ? true : false;
+		g_Config.renderToMainframe = Button_GetCheck(GetDlgItem(hDlg, IDC_RENDER_TO_MAINWINDOW)) ? true : false;
+		g_Config.Save();
 	}
 };
 
