@@ -99,23 +99,23 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 		switch(command)
 		{
 		case CMD_RESET:
-		{
-			*(u32*)&_pBuffer[0] = SI_GC_CONTROLLER; // | SI_GC_NOMOTOR;
-			iPosition = _iLength; // break the while loop
-		}
-		break;
+			{
+				*(u32*)&_pBuffer[0] = SI_GC_CONTROLLER; // | SI_GC_NOMOTOR;
+				iPosition = _iLength; // break the while loop
+			}
+			break;
 
 		case CMD_ORIGIN:
-		{
-			LOG(SERIALINTERFACE, "SI - Get Origin");
-			u8* pCalibration = reinterpret_cast<u8*>(&m_origin);
-			for (int i = 0; i < (int)sizeof(SOrigin); i++)
 			{
-				_pBuffer[i ^ 3] = *pCalibration++;
-			}				
-		}
-		iPosition = _iLength;
-		break;
+				LOG(SERIALINTERFACE, "SI - Get Origin");
+				u8* pCalibration = reinterpret_cast<u8*>(&m_origin);
+				for (int i = 0; i < (int)sizeof(SOrigin); i++)
+				{
+					_pBuffer[i ^ 3] = *pCalibration++;
+				}				
+			}
+			iPosition = _iLength;
+			break;
 
 		// Recalibrate (FiRES: i am not 100 percent sure about this)
 		case CMD_RECALIBRATE:

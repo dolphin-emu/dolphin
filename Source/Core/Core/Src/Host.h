@@ -43,6 +43,7 @@ void Host_UpdateDisasmDialog();
 void Host_UpdateLogDisplay();
 void Host_UpdateMemoryView();
 void Host_NotifyMapLoaded();
+void Host_UpdateBreakPointView();
 void Host_SetDebugMode(bool enable);
 
 void Host_SetWaitCursor(bool enable);

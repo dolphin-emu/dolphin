@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="DebuggerWX"
 	ProjectGUID="{4D3CD4C5-412B-4B49-9B1B-A68A2A129C77}"
 	RootNamespace="DebuggerWX"
@@ -420,6 +420,14 @@
 			Name="Controls"
 			>
 			<File
+				RelativePath=".\src\BreakpointView.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\BreakpointView.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\CodeView.cpp"
 				>
 			</File>
@@ -436,6 +444,14 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\src\BreakpointWindow.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\src\BreakpointWindow.h"
+			>
+		</File>
 		<File
 			RelativePath=".\src\CodeWindow.cpp"
 			>

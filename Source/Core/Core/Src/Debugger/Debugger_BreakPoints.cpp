@@ -21,14 +21,15 @@
 #include "Common.h"
 
 #include "../HW/CPU.h"
+#include "../Host.h"
 
 #include "Debugger_SymbolMap.h"
 #include "Debugger_BreakPoints.h"
 
 using namespace Debugger;
 
-std::vector<TBreakPoint> CBreakPoints::m_iBreakPoints;
-std::vector<TMemCheck> CBreakPoints::MemChecks;
+CBreakPoints::TBreakPoints CBreakPoints::m_BreakPoints;
+CBreakPoints::TMemChecks CBreakPoints::m_MemChecks;
 u32 CBreakPoints::m_iBreakOnCount = 0;
 
 TMemCheck::TMemCheck()
@@ -54,7 +55,7 @@ bool CBreakPoints::IsAddressBreakPoint(u32 _iAddress)
 {
 	std::vector<TBreakPoint>::iterator iter;
 
-	for (iter = m_iBreakPoints.begin(); iter != m_iBreakPoints.end(); ++iter)
+	for (iter = m_BreakPoints.begin(); iter != m_BreakPoints.end(); ++iter)
 		if ((*iter).iAddress == _iAddress)
 			return true;
 
@@ -65,7 +66,7 @@ bool CBreakPoints::IsTempBreakPoint(u32 _iAddress)
 {
 	std::vector<TBreakPoint>::iterator iter;
 
-	for (iter = m_iBreakPoints.begin(); iter != m_iBreakPoints.end(); ++iter)
+	for (iter = m_BreakPoints.begin(); iter != m_BreakPoints.end(); ++iter)
 		if ((*iter).iAddress == _iAddress && (*iter).bTemporary)
 			return true;
 
@@ -75,7 +76,7 @@ bool CBreakPoints::IsTempBreakPoint(u32 _iAddress)
 TMemCheck *CBreakPoints::GetMemCheck(u32 address)
 {
 	std::vector<TMemCheck>::iterator iter;
-	for (iter = MemChecks.begin(); iter != MemChecks.end(); ++iter)
+	for (iter = m_MemChecks.begin(); iter != m_MemChecks.end(); ++iter)
 	{
 		if ((*iter).bRange)
 		{
@@ -102,7 +103,9 @@ void CBreakPoints::AddBreakPoint(u32 _iAddress, bool temp)
 		pt.bTemporary = temp;
 		pt.iAddress = _iAddress;
 
-		m_iBreakPoints.push_back(pt);
+		m_BreakPoints.push_back(pt);
+
+		Host_UpdateBreakPointView();
 	}
 }
 
@@ -110,19 +113,28 @@ void CBreakPoints::RemoveBreakPoint(u32 _iAddress)
 {
 	std::vector<TBreakPoint>::iterator iter;
 
-	for (iter = m_iBreakPoints.begin(); iter != m_iBreakPoints.end(); ++iter)
+	for (iter = m_BreakPoints.begin(); iter != m_BreakPoints.end(); ++iter)
 	{
 		if ((*iter).iAddress == _iAddress)
 		{
-			m_iBreakPoints.erase(iter);
+			m_BreakPoints.erase(iter);
 			break;
 		}
 	}
+
+	Host_UpdateBreakPointView();
 }
 
 void CBreakPoints::ClearAllBreakPoints()
 {
-	m_iBreakPoints.clear();
+	m_BreakPoints.clear();
+	Host_UpdateBreakPointView();
+}
+
+void CBreakPoints::AddMemoryCheck(const TMemCheck& _rMemoryCheck)
+{
+	m_MemChecks.push_back(_rMemoryCheck);
+	Host_UpdateBreakPointView();
 }
 
 void CBreakPoints::AddAutoBreakpoints()

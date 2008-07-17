@@ -29,6 +29,7 @@
 
 class CRegisterWindow;
 class CLogWindow;
+class CBreakPointWindow;
 
 class CCodeWindow
 	: public wxFrame
@@ -54,6 +55,7 @@ class CCodeWindow
 		// sub dialogs
 		CLogWindow* m_logwindow;
 		CRegisterWindow* m_RegisterWindow;
+		CBreakPointWindow* m_BreakpointWindow;
 
 		CCodeView* codeview;
 		wxListBox* callstack;
@@ -75,6 +77,7 @@ class CCodeWindow
 		void OnAddrBoxChange(wxCommandEvent& event);
 
 		void OnToggleRegisterWindow(wxCommandEvent& event);
+		void OnToggleBreakPointWindow(wxCommandEvent& event);
 		void OnToggleLogWindow(wxCommandEvent& event);
 		void OnHostMessage(wxCommandEvent& event);
 

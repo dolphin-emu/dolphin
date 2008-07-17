@@ -270,7 +270,8 @@ int LoadSymbolsFromO(const char* filename, unsigned int base, unsigned int count
 	fseek (ifil, ELF_SH.offset, SEEK_SET);
 	if (ELF_SH.size<0 || ELF_SH.size>0x10000000)
 	{
-		PanicAlert("WTF??");
+		PanicAlert("Failed to load symbols from object file.\n"
+					"Header size is invalid");
 	}
 	abuf = (unsigned char *)malloc (ELF_SH.size);
 	fread (abuf, 1, ELF_SH.size, ifil);

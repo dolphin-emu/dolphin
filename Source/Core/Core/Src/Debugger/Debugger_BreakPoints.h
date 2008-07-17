@@ -14,6 +14,7 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #ifndef _DEBUGGER_BREAKPOINTS_H
 #define _DEBUGGER_BREAKPOINTS_H
 
@@ -50,17 +51,13 @@ struct TMemCheck
 
 class CBreakPoints
 {
-private:
-
-	enum { MAX_NUMBER_OF_CALLSTACK_ENTRIES = 16384};
-	enum { MAX_NUMBER_OF_BREAKPOINTS = 16};
-	
-	static std::vector<TBreakPoint> m_iBreakPoints;
-
-	static u32	m_iBreakOnCount;
-
 public:
-	static std::vector<TMemCheck> MemChecks;
+
+	typedef std::vector<TBreakPoint> TBreakPoints;
+	typedef std::vector<TMemCheck> TMemChecks;
+
+	static const TBreakPoints& GetBreakPoints() { return m_BreakPoints; }
+	static const TMemChecks& GetMemChecks()		{ return m_MemChecks; }
 
 	// is address breakpoint
 	static bool IsAddressBreakPoint(u32 _iAddress);
@@ -80,9 +77,20 @@ public:
 	// Remove Breakpoint
 	static void RemoveBreakPoint(u32 _iAddress);
 
+	static void AddMemoryCheck(const TMemCheck& _rMemoryCheck);
+
 	static void ClearAllBreakPoints();
 
 	static void AddAutoBreakpoints();
+
+private:
+
+	static TBreakPoints m_BreakPoints;
+
+	static TMemChecks m_MemChecks;
+
+	static u32	m_iBreakOnCount;
+
 };
 
 #endif

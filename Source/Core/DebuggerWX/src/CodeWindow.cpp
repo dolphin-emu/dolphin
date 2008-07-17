@@ -19,6 +19,7 @@
 
 #include "RegisterWindow.h"
 #include "LogWindow.h"
+#include "BreakpointWindow.h"
 
 #include "wx/button.h"
 #include "wx/textctrl.h"
@@ -62,7 +63,8 @@ enum
 	IDM_INTERPRETER,
 	IDM_DUALCORE,
 	IDM_LOGWINDOW,
-	IDM_REGISTERWINDOW
+	IDM_REGISTERWINDOW,
+	IDM_BREAKPOINTWINDOW
 };
 
 BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
@@ -78,6 +80,7 @@ EVT_LISTBOX(IDM_CALLSTACKLIST,  CCodeWindow::OnCallstackListChange)
 EVT_HOST_COMMAND(wxID_ANY,      CCodeWindow::OnHostMessage)
 EVT_MENU(IDM_LOGWINDOW,         CCodeWindow::OnToggleLogWindow)
 EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleRegisterWindow)
+EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleBreakPointWindow)
 END_EVENT_TABLE()
 
 
@@ -130,6 +133,9 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	m_RegisterWindow = new CRegisterWindow(this);
 	m_RegisterWindow->Show(true);
 
+	m_BreakpointWindow = new CBreakPointWindow(this);
+	m_BreakpointWindow->Show(true);
+
 
 	UpdateButtonStates();
 }
@@ -161,6 +167,9 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 
 		wxMenuItem* pRegister = pDebugDialogs->Append(IDM_REGISTERWINDOW, _T("&Registers"), wxEmptyString, wxITEM_CHECK);
 		pRegister->Check(true);
+
+		wxMenuItem* pBreakPoints = pDebugDialogs->Append(IDM_BREAKPOINTWINDOW, _T("&BreakPoints"), wxEmptyString, wxITEM_CHECK);
+		pBreakPoints->Check(true);
 
 		pMenuBar->Append(pDebugDialogs, _T("&Dialogs"));
 	}
@@ -420,6 +429,33 @@ void CCodeWindow::OnToggleRegisterWindow(wxCommandEvent& event)
 	}
 }
 
+void CCodeWindow::OnToggleBreakPointWindow(wxCommandEvent& event)
+{
+	bool show = GetMenuBar()->IsChecked(event.GetId());
+
+	if (show)
+	{
+		if (!m_BreakpointWindow)
+		{
+			m_BreakpointWindow = new CBreakPointWindow(this);
+		}
+
+		m_BreakpointWindow->Show(true);
+	}
+	else // hide
+	{
+		// If m_dialog is NULL, then possibly the system
+		// didn't report the checked menu item status correctly.
+		// It should be true just after the menu item was selected,
+		// if there was no modeless dialog yet.
+		wxASSERT(m_BreakpointWindow != NULL);
+
+		if (m_BreakpointWindow)
+		{
+			m_BreakpointWindow->Hide();
+		}
+	}
+}
 
 void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 {
@@ -447,6 +483,16 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 		    }
 
 		    break;
+
+		case IDM_UPDATEBREAKPOINTS:
+
+			if (m_BreakpointWindow)
+			{
+				m_BreakpointWindow->NotifyUpdate();
+			}
+
+			break;
+
 	}
 }
 

@@ -318,7 +318,7 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		u32 iAppLoaderSize = VolumeHandler::Read32(iAppLoaderOffset + 0x14);
 		if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1)) 
 		{
-			LOG(BOOT, "Invalid apploader. WTF.");
+			LOG(BOOT, "Invalid apploader. Probably your image is corrupted.");
 			return false;
 		}
 		VolumeHandler::ReadToPtr(Memory::GetPointer(0x81200000), iAppLoaderOffset + 0x20, iAppLoaderSize);

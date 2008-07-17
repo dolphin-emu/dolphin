@@ -41,7 +41,7 @@ void* AllocateExecutableMemory(int size)
 
 	if ((u64)ptr >= 0x80000000)
 	{
-		PanicAlert("Executable memory ended up above 2GB! WTF!");
+		PanicAlert("Executable memory ended up above 2GB!");
 		// If this happens, we have to implement a free ram search scheme. ector knows how.
 	}
 
