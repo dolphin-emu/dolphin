@@ -23,9 +23,9 @@
 
 namespace EmuWindow
 {
-	HWND m_hWnd;
+	HWND m_hWnd = NULL;
     HWND m_hParent = NULL;
-	HINSTANCE m_hInstance;
+	HINSTANCE m_hInstance = NULL;
 	WNDCLASSEX wndClass;
 	const TCHAR m_szClassName[] = "DolphinEmuWnd";
     int g_winstyle;

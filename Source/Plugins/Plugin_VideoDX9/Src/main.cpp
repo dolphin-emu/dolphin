@@ -66,25 +66,28 @@ void UpdateFPSDisplay(const char *text)
 
 bool Init()
 {
+	g_Config.Load();
+
 	if (initCount==0)
 	{
         // create the window
-        // if( g_VideoInitialize.pWindowHandle == NULL ) // ignore parent for this plugin
+        if( !g_Config.renderInMainframe || g_VideoInitialize.pWindowHandle == NULL ) // ignore parent for this plugin
         {
-            // create the window
             g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, "Please wait...");
-            if( g_VideoInitialize.pWindowHandle == NULL ) {
-                MessageBox(GetActiveWindow(), "failed to create window", "Fatal Error", MB_OK);
-                return false;
-            }
-
-            g_VideoInitialize.pPeekMessages = Callback_PeekMessages;
-            g_VideoInitialize.pUpdateFPSDisplay = UpdateFPSDisplay;
-            EmuWindow::Show();
         }
+		else
+		{
+			g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, "Please wait...");
+		}
 
-        if( g_VideoInitialize.pPeekMessages == NULL )
-            return false;
+		if( g_VideoInitialize.pWindowHandle == NULL ) {
+			MessageBox(GetActiveWindow(), "failed to create window", "Fatal Error", MB_OK);
+			return false;
+		}
+
+		EmuWindow::Show();
+		g_VideoInitialize.pPeekMessages = Callback_PeekMessages;
+		g_VideoInitialize.pUpdateFPSDisplay = UpdateFPSDisplay;
 
 		if (FAILED(D3D::Init()))
 		{
@@ -95,7 +98,6 @@ bool Init()
 
 	}
 	initCount++;
-	g_Config.Load();
 
 	return true;
 }

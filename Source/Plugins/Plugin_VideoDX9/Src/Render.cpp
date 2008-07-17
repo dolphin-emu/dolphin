@@ -100,6 +100,20 @@ void Renderer::ReinitView()
 
 void Renderer::SwapBuffers(void)
 {
+	// center window again
+	if (EmuWindow::GetParentWnd())
+	{
+		RECT rcWindow;
+		GetWindowRect(EmuWindow::GetParentWnd(), &rcWindow);
+
+		int width = rcWindow.right - rcWindow.left;
+		int height = rcWindow.bottom - rcWindow.top;
+
+		::MoveWindow(EmuWindow::GetWnd(), 0,0,width,height, FALSE);
+	//	nBackbufferWidth = width;
+	//	nBackbufferHeight = height;
+	}
+
 	//Finish up the current frame, print some stats
 	Postprocess::FinalizeFrame();
 	if (g_Config.bOverlayStats)

@@ -62,6 +62,7 @@ struct TabDirect3D : public W32Util::Tab
 
 		CheckDlgButton(hDlg, IDC_FULLSCREENENABLE, g_Config.bFullscreen ? TRUE : FALSE);
 		CheckDlgButton(hDlg, IDC_VSYNC, g_Config.bVsync ? TRUE : FALSE);
+		CheckDlgButton(hDlg, IDC_RENDER_IN_MAINWINDOW, g_Config.renderInMainframe ? TRUE : FALSE);		
 	}
 
 	void Command(HWND hDlg,WPARAM wParam)
@@ -83,6 +84,8 @@ struct TabDirect3D : public W32Util::Tab
 		g_Config.iFSResolution = ComboBox_GetCurSel(GetDlgItem(hDlg,IDC_RESOLUTION));
 		g_Config.bFullscreen = Button_GetCheck(GetDlgItem(hDlg, IDC_FULLSCREENENABLE)) ? true : false;
 		g_Config.bVsync = Button_GetCheck(GetDlgItem(hDlg, IDC_VSYNC)) ? true : false;
+		g_Config.renderInMainframe = Button_GetCheck(GetDlgItem(hDlg, IDC_RENDER_IN_MAINWINDOW)) ? true : false;
+		g_Config.Save();
 	}
 };
 

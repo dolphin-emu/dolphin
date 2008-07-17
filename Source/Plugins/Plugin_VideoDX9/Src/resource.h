@@ -17,6 +17,8 @@
 #define IDC_FULLSCREENENABLE2           1003
 #define IDC_VSYNC                       1003
 #define IDC_DEBUGSTEP                   1004
+#define IDC_VSYNC2                      1004
+#define IDC_RENDER_IN_MAINWINDOW        1004
 #define IDC_REGISTERS                   1005
 #define IDC_ENABLEDEBUGGING             1006
 #define IDC_TAB1                        1007

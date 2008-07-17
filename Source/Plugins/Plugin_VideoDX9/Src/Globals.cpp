@@ -15,6 +15,7 @@ void Config::Load()
 	iniFile.Get("Hardware", "WindowedRes", &iWindowedRes, 0);
 	iniFile.Get("Hardware", "FullscreenRes", &iFSResolution, 0);
 	iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0);
+	iniFile.Get("Hardware", "RenderInMainframe", &renderInMainframe, true);
 	iniFile.Get("Hardware", "VSync", &bVsync, 0);
 	if (iAdapter == -1) 
 		iAdapter = 0;
@@ -40,6 +41,7 @@ void Config::Save()
 	iniFile.Set("Hardware", "FullscreenRes", iFSResolution);
 	iniFile.Set("Hardware", "Fullscreen", bFullscreen);
 	iniFile.Set("Hardware", "VSync", bVsync);
+	iniFile.Set("Hardware", "RenderInMainframe", renderInMainframe);
 
 	iniFile.Set("Settings", "OverlayStats", bOverlayStats);
 	iniFile.Set("Settings", "OverlayStats", bOverlayStats);

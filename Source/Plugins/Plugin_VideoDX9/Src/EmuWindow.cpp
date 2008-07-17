@@ -6,15 +6,21 @@
 
 namespace EmuWindow
 {
-	HWND m_hWnd;
-	HINSTANCE m_hInstance;
+	HWND m_hWnd = NULL;
+	HWND m_hParent = NULL;
+	HINSTANCE m_hInstance = NULL;
 	WNDCLASSEX wndClass;
 	const TCHAR m_szClassName[] = "DolphinEmuWnd";
+	int g_winstyle;
 
 	HWND GetWnd()
 	{
-
 		return m_hWnd;
+	}
+
+	HWND GetParentWnd()
+	{
+		return m_hParent;
 	}
 
 	LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
@@ -80,23 +86,42 @@ namespace EmuWindow
 		m_hInstance = hInstance;
 		RegisterClassEx( &wndClass );
 
-		DWORD style = windowed ? WS_OVERLAPPEDWINDOW : WS_POPUP;
+		if (parent && windowed)
+		{
+			m_hWnd = CreateWindow(m_szClassName, title,
+				WS_CHILD,
+				CW_USEDEFAULT, CW_USEDEFAULT,CW_USEDEFAULT, CW_USEDEFAULT,
+				parent, NULL, hInstance, NULL );
 
-		RECT rc = {0, 0, width, height};
-		AdjustWindowRect(&rc, style, false);
+			m_hParent = parent;
 
-		int w = rc.right - rc.left;
-		int h = rc.bottom - rc.top;
+			ShowWindow(m_hWnd, SW_SHOWMAXIMIZED);            
+		}
+		else
+		{
+			DWORD style = windowed ? WS_OVERLAPPEDWINDOW : WS_POPUP;
 
-		rc.left = (1280 - w)/2;
-		rc.right = rc.left + w;
-		rc.top = (1024 - h)/2;
-		rc.bottom = rc.top + h;
+			RECT rc = {0, 0, width, height};
+			AdjustWindowRect(&rc, style, false);
 
-		m_hWnd = CreateWindow(m_szClassName, title,
-			style,
-			rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top,
-			parent, NULL, hInstance, NULL );
+			int w = rc.right - rc.left;
+			int h = rc.bottom - rc.top;
+
+			rc.left = (1280 - w)/2;
+			rc.right = rc.left + w;
+			rc.top = (1024 - h)/2;
+			rc.bottom = rc.top + h;
+
+
+			m_hWnd = CreateWindow(m_szClassName, title,
+				style,
+				rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top,
+				parent, NULL, hInstance, NULL );
+
+			g_winstyle = GetWindowLong( m_hWnd, GWL_STYLE );
+			g_winstyle &= ~WS_MAXIMIZE & ~WS_MINIMIZE; // remove minimize/maximize style
+
+		}
 
 		return m_hWnd;
 	}
