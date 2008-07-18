@@ -68,6 +68,12 @@ int TexDecoder_GetTexelSizeInNibbles(int format);
 int TexDecoder_GetBlockWidthInTexels(int format);
 int TexDecoder_GetPaletteSize(int fmt);
 
-TEXTUREFMT TexDecoder_Decode(u8 *dst, u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt);
+enum PC_TexFormat
+{
+	PC_TEX_FMT_NONE = 0,
+	PC_TEX_FMT_BGRA32 = 1,
+};
+
+PC_TexFormat TexDecoder_Decode(u8 *dst, u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt);
 
 #endif

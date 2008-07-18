@@ -35,15 +35,32 @@ namespace Jit64
 		{
 		case SPR_LR:
 		case SPR_CTR:
-			gpr.Lock(d);
-			gpr.LoadToX64(d,true);
-			MOV(32, M(&PowerPC::ppcState.spr[iIndex]), gpr.R(d));
-			gpr.UnlockAll();
+			// These are safe to do the easy way, see the bottom of this function.
 			break;
+
+		case SPR_GQR0:
+		case SPR_GQR0 + 1:
+		case SPR_GQR0 + 2:
+		case SPR_GQR0 + 3:
+		case SPR_GQR0 + 4:
+		case SPR_GQR0 + 5:
+		case SPR_GQR0 + 6:
+		case SPR_GQR0 + 7:
+			js.blockSetsQuantizers = false;
+			// Prevent recompiler from compiling in old quantizer values.
+			// TODO - actually save the set state and use it in following quantizer ops.
+			break;
+		// TODO - break block if quantizers are written to.
 		default:
 			Default(inst);
 			return;
 		}
+
+		// OK, this is easy.
+		gpr.Lock(d);
+		gpr.LoadToX64(d,true);
+		MOV(32, M(&PowerPC::ppcState.spr[iIndex]), gpr.R(d));
+		gpr.UnlockAll();
 	}
 
 	void mfspr(UGeckoInstruction inst)

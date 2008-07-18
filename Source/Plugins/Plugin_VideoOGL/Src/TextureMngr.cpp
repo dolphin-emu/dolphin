@@ -224,7 +224,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     
     int bs = TexDecoder_GetBlockWidthInTexels(format)-1; //TexelSizeInNibbles(format)*width*height/16;
     int expandedWidth = (width+bs) & (~bs);
-    TEXTUREFMT dfmt = TexDecoder_Decode(temp,ptr,expandedWidth,height,format, tlutaddr, tlutfmt);
+    PC_TexFormat dfmt = TexDecoder_Decode(temp,ptr,expandedWidth,height,format, tlutaddr, tlutfmt);
 
     //Make an entry in the table
     TCacheEntry& entry = textures[address];
@@ -247,12 +247,22 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     if (expandedWidth != width)
         glPixelStorei(GL_UNPACK_ROW_LENGTH, expandedWidth);
 
+	int gl_format;
+	int gl_type;
+	switch (dfmt) {
+	case PC_TEX_FMT_NONE:
+		PanicAlert("Invalid PC texture format %i", dfmt); 
+	case PC_TEX_FMT_BGRA32:
+		gl_format = GL_BGRA;
+		gl_type = GL_UNSIGNED_BYTE;
+		break;
+	}
     if( !entry.isNonPow2 && ((tm0.min_filter&3)==1||(tm0.min_filter&3)==2) ) {
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, GL_BGRA, GL_UNSIGNED_BYTE, temp);
+        gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, gl_format, gl_type, temp);
         entry.bHaveMipMaps = true;
     }
     else
-        glTexImage2D(target, 0, 4, width, height, 0, dfmt.format, dfmt.type, temp);
+        glTexImage2D(target, 0, 4, width, height, 0, gl_format, gl_type, temp);
 
     if (expandedWidth != width) // reset
         glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);

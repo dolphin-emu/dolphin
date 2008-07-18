@@ -1,5 +1,6 @@
 #include "Common.h"
 #include "Globals.h"
+#include "Vec3.h"
 #include "TransformEngine.h"
 #include "VertexHandler.h"
 #include "VertexLoader.h"
@@ -34,7 +35,7 @@ float DoLighting(const Light *light, const LitChannel &chan, const Vec3 &pos, co
 	float val;
 	if (chan.attnfunc == 0 || chan.attnfunc == 2) //no attn
 	{
-		Vec3 ldir = (light->dpos-pos);
+		Vec3 ldir = (Vec3(light->dpos) - pos);
 		val = ldir.normalized() * normal;
 	}
 	else
@@ -44,17 +45,17 @@ float DoLighting(const Light *light, const LitChannel &chan, const Vec3 &pos, co
 		float mul = 1.0f;
 		if (chan.attnfunc == 3)
 		{
-			Vec3 ldir = (light->dpos - pos);
+			Vec3 ldir = (Vec3(light->dpos) - pos);
 			d = ldir.length();
 			Vec3 ldirNorm = ldir / d; //normalize
 			float l = ldirNorm * normal;
-			aattn = light->ddir * ldirNorm;
+			aattn = Vec3(light->ddir) * ldirNorm;
 			mul = l;
 		}
 		else if (chan.attnfunc == 1)
 		{
-			d = aattn = light->shalfangle * normal;
-			mul = (light->sdir * normal > 0) ? (normal * light->shalfangle) : 0;
+			d = aattn = Vec3(light->shalfangle) * normal;
+			mul = (Vec3(light->sdir) * normal > 0) ? (normal * Vec3(light->shalfangle)) : 0;
 			if (mul < 0) 
 				mul = 0;
 		}
@@ -167,14 +168,14 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 		//////////////////////////////////////////////////////////////////////////
 		//find all used lights
 		u32 lightMask = 
-			colChans[0].color.GetFullLightMask() | colChans[0].alpha.GetFullLightMask() |
-			colChans[1].color.GetFullLightMask() | colChans[1].alpha.GetFullLightMask();
+			xfregs.colChans[0].color.GetFullLightMask() | xfregs.colChans[0].alpha.GetFullLightMask() |
+			xfregs.colChans[1].color.GetFullLightMask() | xfregs.colChans[1].alpha.GetFullLightMask();
 		
 		float r0=0,g0=0,b0=0,a0=0;
 
 		//go through them and compute the lit colors
 		//Sum lighting for both two color channels if they're active
-		for (int j=0; j<(int)bpmem.genMode.numcolchans; j++)
+		for (int j = 0; j < (int)bpmem.genMode.numcolchans; j++)
 		{
 			RGBAFloat material;
             RGBAFloat lightSum(0,0,0,0);
@@ -182,8 +183,8 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 			bool hasColorJ = (varray->GetComponents() & (VB_HAS_COL0 << j)) != 0;
 
 			//get basic material color from appropriate sources (this would compile nicely!:)
-			if (colChans[j].color.matsource==GX_SRC_REG)
-				material.convertRGB_GC(colChans[j].matColor);
+			if (xfregs.colChans[j].color.matsource == GX_SRC_REG)
+				material.convertRGB_GC(xfregs.colChans[j].matColor);
 			else
 			{
 				if (hasColorJ)
@@ -192,8 +193,8 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 					material.r=material.g=material.b=1.0f;
 			}
 
-			if (colChans[j].alpha.matsource==GX_SRC_REG)
-				material.convertA_GC(colChans[j].matColor);
+			if (xfregs.colChans[j].alpha.matsource == GX_SRC_REG)
+				material.convertA_GC(xfregs.colChans[j].matColor);
 			else
 			{
 				if (hasColorJ)
@@ -203,11 +204,11 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 			}
 
 			//combine together the light values from the lights that affect the color
-			if (colChans[j].color.enablelighting)
+			if (xfregs.colChans[j].color.enablelighting)
 			{
 				//choose ambient source and start our lightsum accumulator with its value..
-				if (colChans[j].color.ambsource == GX_SRC_REG)
-					lightSum.convertRGB_GC(colChans[j].ambColor); //ambient
+				if (xfregs.colChans[j].color.ambsource == GX_SRC_REG)
+					lightSum.convertRGB_GC(xfregs.colChans[j].ambColor); //ambient
 				else
 				{
 					if (hasColorJ)
@@ -219,12 +220,12 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 				}
 
 				//accumulate light colors
-				int cmask = colChans[j].color.GetFullLightMask();
+				int cmask = xfregs.colChans[j].color.GetFullLightMask();
 				for (int l=0; l<8; l++)
 				{
 					if (cmask&1)
 					{
-						float val = DoLighting(GetLight(l), colChans[j].color, TempPos, TempNormal);
+						float val = DoLighting(GetLight(l), xfregs.colChans[j].color, TempPos, TempNormal);
 						float r = lightColors[l].r * val;
 						float g = lightColors[l].g * val;
 						float b = lightColors[l].b * val;
@@ -237,15 +238,15 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 			}
 			else
 			{
-				lightSum.r=lightSum.g=lightSum.b=1.0f;
+				lightSum.r = lightSum.g = lightSum.b = 1.0f;
 			}
 
 			//combine together the light values from the lights that affect alpha (should be rare)
-			if (colChans[j].alpha.enablelighting)
+			if (xfregs.colChans[j].alpha.enablelighting)
 			{
 				//choose ambient source..
-				if (colChans[j].alpha.ambsource==GX_SRC_REG)
-					lightSum.convertA_GC(colChans[j].ambColor);
+				if (xfregs.colChans[j].alpha.ambsource==GX_SRC_REG)
+					lightSum.convertA_GC(xfregs.colChans[j].ambColor);
 				else
 				{
 					if (hasColorJ)
@@ -254,12 +255,12 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 						lightSum.a=0.0f;
 				}
 				//accumulate light alphas
-				int amask = colChans[j].alpha.GetFullLightMask();
-				for (int l=0; l<8; l++)
+				int amask = xfregs.colChans[j].alpha.GetFullLightMask();
+				for (int l = 0; l < 8; l++)
 				{
 					if (amask&1)
 					{
-						float val = DoLighting(GetLight(l),colChans[j].alpha,TempPos,TempNormal);
+						float val = DoLighting(GetLight(l), xfregs.colChans[j].alpha, TempPos, TempNormal);
 						float a = lightColors[l].a * val;
 						lightSum.a += a;
 					}
@@ -279,21 +280,21 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 		//Step 3: Generate texture coordinates!
 		//////////////////////////////////////////////////////////////////////////
 		Vec3 TempUVs[8];
-		for (int j=0; j<miscxf.numTexGens; j++)
+		for (int j = 0; j < xfregs.numTexGens; j++)
 		{
-			int n = bpmem.tevorders[j/2].getTexCoord(j&1); // <- yazor: dirty zelda patch ^^
+			int n = bpmem.tevorders[j / 2].getTexCoord(j & 1); // <- yazor: dirty zelda patch ^^
 			n = j;
 			Vec3 t;
  
-			switch(texcoords[n].texmtxinfo.sourcerow) {
-			case XF_GEOM_INROW:   t = OrigPos; break;   //HACK WTFF???
-			case XF_NORMAL_INROW: t = OrigNormal; break;
-			case XF_COLORS_INROW: break; //set uvs to something? 
-			case XF_BINORMAL_T_INROW: t=Vec3(0,0,0);break;
-			case XF_BINORMAL_B_INROW: t=Vec3(0,0,0);break;
+			switch (xfregs.texcoords[n].texmtxinfo.sourcerow) {
+			case XF_SRCGEOM_INROW:   t = OrigPos; break;   //HACK WTFF???
+			case XF_SRCNORMAL_INROW: t = OrigNormal; break;
+			case XF_SRCCOLORS_INROW: break; //set uvs to something? 
+			case XF_SRCBINORMAL_T_INROW: t=Vec3(0,0,0);break;
+			case XF_SRCBINORMAL_B_INROW: t=Vec3(0,0,0);break;
 			default:
 				{
-					int c = texcoords[n].texmtxinfo.sourcerow - XF_TEX0_INROW;
+					int c = xfregs.texcoords[n].texmtxinfo.sourcerow - XF_SRCTEX0_INROW;
 					bool hasTCC = (varray->GetComponents() & (VB_HAS_UV0 << c)) != 0;
 					if (c >= 0 && c <= 7 && hasTCC)
 					{
@@ -304,26 +305,26 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 			}
 
 			Vec3 out,out2;
-			switch (texcoords[n].texmtxinfo.texgentype) 
+			switch (xfregs.texcoords[n].texmtxinfo.texgentype) 
 			{
 			case XF_TEXGEN_COLOR_STRGBC0:
-				out=Vec3(chans[0].r*255, chans[0].g*255, 1)/255.0f;
+				out = Vec3(chans[0].r*255, chans[0].g*255, 1)/255.0f;
 				break;
 			case XF_TEXGEN_COLOR_STRGBC1:
-				out=Vec3(chans[1].r*255, chans[1].g*255, 1)/255.0f; //FIX: take color1 instead
+				out = Vec3(chans[1].r*255, chans[1].g*255, 1)/255.0f; //FIX: take color1 instead
 				break;
 			case XF_TEXGEN_REGULAR:
-				if (texcoords[n].texmtxinfo.projection)
+				if (xfregs.texcoords[n].texmtxinfo.projection)
 					VtxMulMtx43(out, t, m_pTexMatrix[n]);
 				else
 					VtxMulMtx42(out, t, m_pTexMatrix[n]);
 				break;
 			}
 
-			if (texcoords[n].postmtxinfo.normalize)
+			if (xfregs.texcoords[n].postmtxinfo.normalize)
 				out.normalize();
 
-			int postMatrix = texcoords[n].postmtxinfo.index;
+			int postMatrix = xfregs.texcoords[n].postmtxinfo.index;
 			float *pmtx = ((float*)xfmem) + 0x500 + postMatrix * 4; //CHECK
 			//multiply with postmatrix
 			VtxMulMtx43(TempUVs[j], out, pmtx);
@@ -332,12 +333,12 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 		//////////////////////////////////////////////////////////////////////////
 		//Step 4: Output the vertex!
 		//////////////////////////////////////////////////////////////////////////
-		for (int j=0; j<2; j++)
+		for (int j = 0; j < 2; j++)
 			chans[j].convertToD3DColor(vbuffer[i].colors[j]);
 
 		vbuffer[i].pos = TempPos;
 		vbuffer[i].normal = TempNormal;
-		for (int j=0; j<(int)bpmem.genMode.numtexgens; j++)
+		for (int j = 0; j < (int)bpmem.genMode.numtexgens; j++)
 		{
 			vbuffer[i].uv[j].u = TempUVs[j].x;
 			vbuffer[i].uv[j].v = TempUVs[j].y;

@@ -22,27 +22,16 @@
 
 #include "VertexShader.h"
 
-// shader variables
-#define I_POSNORMALMATRIX "cpnmtx"
-#define I_PROJECTION "cproj"
-#define I_MATERIALS "cmtrl"
-#define I_LIGHTS "clights"
-#define I_TEXMATRICES "ctexmtx"
-#define I_TRANSFORMMATRICES "ctrmtx"
-#define I_NORMALMATRICES "cnmtx"
-#define I_POSTTRANSFORMMATRICES "cpostmtx"
-#define I_FOGPARAMS "cfog"
 
-#define C_POSNORMALMATRIX 0
-#define C_PROJECTION (C_POSNORMALMATRIX+6)
-#define C_MATERIALS (C_PROJECTION+4)
-#define C_LIGHTS (C_MATERIALS+4)
-#define C_TEXMATRICES (C_LIGHTS+40)
-#define C_TRANSFORMMATRICES (C_TEXMATRICES+24)
-#define C_NORMALMATRICES (C_TRANSFORMMATRICES+64)
-#define C_POSTTRANSFORMMATRICES (C_NORMALMATRICES+32)
-#define C_FOGPARAMS (C_POSTTRANSFORMMATRICES+64)
+struct VERTEXSHADER
+{
+    VERTEXSHADER() : glprogid(0) {}
+    GLuint glprogid; // opengl program id
 
+#ifdef _DEBUG
+	std::string strprog;
+#endif
+};
 
 class VertexShaderMngr
 {
@@ -109,6 +98,8 @@ class VertexShaderMngr
 
     static void GetVertexShaderId(VERTEXSHADERUID& uid, u32 components);
 
+	static void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4);
+	static void SetVSConstant4fv(int const_number, const float *f);
 public:
     static void Init();
     static void Cleanup();
@@ -135,6 +126,5 @@ public:
     static float rawViewport[6];
     static float rawProjection[7];
 };
-
 
 #endif

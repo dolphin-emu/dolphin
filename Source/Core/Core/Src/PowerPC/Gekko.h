@@ -279,13 +279,11 @@ union UGQR
 	{
 		unsigned	ST_TYPE		: 3;
 		unsigned				: 5;
-//		signed		ST_SCALE	: 6;
-		unsigned		ST_SCALE	: 6;
+		unsigned	ST_SCALE	: 6;
 		unsigned				: 2;
 		unsigned	LD_TYPE		: 3;
 		unsigned				: 5;
-//		signed		LD_SCALE	: 6;
-		unsigned		LD_SCALE	: 6;
+		unsigned	LD_SCALE	: 6;
 		unsigned				: 2;
 	};
 

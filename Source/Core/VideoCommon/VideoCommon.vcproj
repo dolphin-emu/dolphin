@@ -405,6 +405,22 @@
 			RelativePath=".\Src\CPMemory.h"
 			>
 		</File>
+		<File
+			RelativePath=".\Src\LookUpTables.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\LookUpTables.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\XFMemory.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\XFMemory.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

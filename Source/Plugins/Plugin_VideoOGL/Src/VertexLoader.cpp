@@ -21,6 +21,7 @@
 
 #include "x64Emitter.h"
 
+#include "Render.h"
 #include "VertexLoader.h"
 #include "BPStructs.h"
 #include "DataReader.h"

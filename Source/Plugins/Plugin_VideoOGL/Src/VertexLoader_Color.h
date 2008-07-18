@@ -18,6 +18,8 @@
 #ifndef _VERTEXLOADERCOLOR_H
 #define _VERTEXLOADERCOLOR_H
 
+#include "LookUpTables.h"
+
 #define RSHIFT 0
 #define GSHIFT 8
 #define BSHIFT 16

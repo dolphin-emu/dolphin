@@ -49,6 +49,7 @@ namespace Jit64
 		int downcountAmount;
 
 		bool isLastInstruction;
+		bool blockSetsQuantizers;
 
 		int fifoBytesThisBlock;
 

@@ -27,16 +27,29 @@ enum TextureFormat
     GX_TF_C14X2  = 0xA,
     GX_TF_CMPR   = 0xE,
 
-	_GX_TF_CTF   = 0x20, /* copy-texture-format only */
-    _GX_TF_ZTF   = 0x10, /* Z-texture-format */
+    _GX_TF_CTF   = 0x20,  // copy-texture-format only (simply means linear?)
+    _GX_TF_ZTF   = 0x10,  // Z-texture-format
 
-	GX_TF_Z8     = 0x1 | _GX_TF_ZTF,
+    // these formats are also valid when copying targets
+    GX_CTF_R4    = 0x0 | _GX_TF_CTF,
+    GX_CTF_RA4   = 0x2 | _GX_TF_CTF,
+    GX_CTF_RA8   = 0x3 | _GX_TF_CTF,
+    GX_CTF_YUVA8 = 0x6 | _GX_TF_CTF,
+    GX_CTF_A8    = 0x7 | _GX_TF_CTF,
+    GX_CTF_R8    = 0x8 | _GX_TF_CTF,
+    GX_CTF_G8    = 0x9 | _GX_TF_CTF,
+    GX_CTF_B8    = 0xA | _GX_TF_CTF,
+    GX_CTF_RG8   = 0xB | _GX_TF_CTF,
+    GX_CTF_GB8   = 0xC | _GX_TF_CTF,
+
+    GX_TF_Z8     = 0x1 | _GX_TF_ZTF,
     GX_TF_Z16    = 0x3 | _GX_TF_ZTF,
     GX_TF_Z24X8  = 0x6 | _GX_TF_ZTF,
 
-	//and the strange copy texture formats..
-	
-
+    GX_CTF_Z4    = 0x0 | _GX_TF_ZTF | _GX_TF_CTF,
+    GX_CTF_Z8M   = 0x9 | _GX_TF_ZTF | _GX_TF_CTF,
+    GX_CTF_Z8L   = 0xA | _GX_TF_ZTF | _GX_TF_CTF,
+    GX_CTF_Z16L  = 0xC | _GX_TF_ZTF | _GX_TF_CTF,
 };
 
 int TexDecoder_GetTexelSizeInNibbles(int format);

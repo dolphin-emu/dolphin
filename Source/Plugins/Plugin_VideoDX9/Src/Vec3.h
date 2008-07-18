@@ -10,6 +10,7 @@ public:
 	float x,y,z;
 	Vec3() { }
 	explicit Vec3(float f) {x=y=z=f;}
+	explicit Vec3(const float *f) {x=f[0]; y=f[1]; z=f[2];}
 	Vec3(const float _x, const float _y, const float _z) {
 		x=_x; y=_y; z=_z;
 	}

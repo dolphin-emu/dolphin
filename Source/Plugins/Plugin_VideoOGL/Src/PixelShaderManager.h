@@ -20,8 +20,19 @@
 
 #include "PixelShader.h"
 
-extern u32 s_texturemask;
+#include "BPMemory.h"
 
+#include <map>
+
+struct FRAGMENTSHADER
+{
+    FRAGMENTSHADER() : glprogid(0) { }
+    GLuint glprogid; // opengl program id
+
+#ifdef _DEBUG
+	std::string strprog;
+#endif
+};
 class PixelShaderMngr
 {
     class PIXELSHADERUID
@@ -110,6 +121,8 @@ class PixelShaderMngr
     static void GetPixelShaderId(PIXELSHADERUID&);
     static PIXELSHADERUID s_curuid; // the current pixel shader uid (progressively changed as memory is written)
 
+	static void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4);
+	static void SetPSConstant4fv(int const_number, const float *f);
 public:
     static void Init();
     static void Cleanup();

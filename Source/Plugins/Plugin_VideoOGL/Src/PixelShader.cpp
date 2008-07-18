@@ -16,12 +16,13 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Globals.h"
+
 #include <cmath>
 #include <assert.h>
 
 #include "PixelShader.h"
-#include "VertexShader.h"  // for texture projection mode
-#include "PixelShaderManager.h"
+#include "XFMemory.h"  // for texture projection mode
+#include "BPMemory.h"
 
 //   old tev->pixelshader notes
 //
@@ -32,8 +33,8 @@
 //   output is given by .outreg
 //   tevtemp is set according to swapmodetables and 
 
-void WriteStage(char *&p, int n);
-void WrapNonPow2Tex(char* &p, const char* var, int texmap);
+void WriteStage(char *&p, int n, u32 texture_mask);
+void WrapNonPow2Tex(char* &p, const char* var, int texmap, u32 texture_mask);
 void WriteAlphaCompare(char *&p, int num, int comp);
 bool WriteAlphaTest(char *&p);
 
@@ -234,14 +235,14 @@ const char *tevRasTable[] =
 
 const char *tevTexFunc[] = { "tex2D", "texRECT" };
 
-const char *tevCOutputTable[] = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
-const char *tevAOutputTable[] = { "prev.a", "c0.a", "c1.a", "c2.a" };
-const char* tevIndAlphaSel[] = {"", "x", "y", "z"};
+const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
+const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
+const char* tevIndAlphaSel[]   = {"", "x", "y", "z"};
 const char* tevIndAlphaScale[] = {"", "*32","*16","*8"};
-const char* tevIndBiasField[] = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
-const char* tevIndBiasAdd[] = {"-128.0f", "1.0f", "1.0f", "1.0f" }; // indexed by fmt
-const char* tevIndWrapStart[] = {"0", "256", "128", "64", "32", "16", "0.001" };
-const char* tevIndFmtScale[] = {"255.0f", "31.0f", "15.0f", "8.0f" };
+const char* tevIndBiasField[]  = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
+const char* tevIndBiasAdd[]    = {"-128.0f", "1.0f", "1.0f", "1.0f" }; // indexed by fmt
+const char* tevIndWrapStart[]  = {"0", "256", "128", "64", "32", "16", "0.001" };
+const char* tevIndFmtScale[]   = {"255.0f", "31.0f", "15.0f", "8.0f" };
 
 #define WRITE p+=sprintf
 
@@ -251,7 +252,7 @@ char swapModeTable[4][5];
 void BuildSwapModeTable()
 {
     //bpmem.tevregs[0].
-    for (int i=0; i<4; i++)
+    for (int i = 0; i < 4; i++)
     {
         swapModeTable[i][0]=swapColors[bpmem.tevksel[i*2].swap1];
         swapModeTable[i][1]=swapColors[bpmem.tevksel[i*2].swap2];
@@ -262,7 +263,7 @@ void BuildSwapModeTable()
 }
 
 static char text[16384];
-bool GeneratePixelShader(FRAGMENTSHADER& ps)
+char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRenderZToCol0)
 {
     DVSTARTPROFILE();
 
@@ -275,11 +276,11 @@ bool GeneratePixelShader(FRAGMENTSHADER& ps)
     WRITE(p,"//%i TEV stages, %i texgens, %i IND stages\n",
         numStages,numTexgen,bpmem.genMode.numindstages);
 
-    bool bRenderZ = Renderer::GetZBufferTarget() != 0 && bpmem.zmode.updateenable;
+    bool bRenderZ = has_zbuffer_target && bpmem.zmode.updateenable;
     bool bOutputZ = bpmem.ztex2.op != ZTEXTURE_DISABLE;
     bool bInputZ = bpmem.ztex2.op==ZTEXTURE_ADD || bRenderZ;
 
-    bool bRenderZToCol0 = Renderer::GetRenderMode()!=Renderer::RM_Normal; // output z and alpha to color0
+    // bool bRenderZToCol0 = ; // output z and alpha to color0
     assert( !bRenderZToCol0 || bRenderZ );
 
     int ztexcoord = -1;
@@ -296,11 +297,11 @@ bool GeneratePixelShader(FRAGMENTSHADER& ps)
     }
 
     // samplers
-    if( s_texturemask ) {
+    if( texture_mask ) {
         WRITE(p,"uniform samplerRECT ");
         bool bfirst = true;
         for(int i = 0; i < 8; ++i) {
-            if( s_texturemask & (1<<i) ) {
+            if( texture_mask & (1<<i) ) {
                 WRITE(p, "%s samp%d : register(s%d)", bfirst?"":",", i, i);
                 bfirst = false;
             }
@@ -308,11 +309,11 @@ bool GeneratePixelShader(FRAGMENTSHADER& ps)
         WRITE(p, ";\n");
     }
 
-    if( s_texturemask != 0xff ) {
+    if( texture_mask != 0xff ) {
         WRITE(p,"uniform sampler2D ");
         bool bfirst = true;
         for(int i = 0; i < 8; ++i) {
-            if( !(s_texturemask & (1<<i)) ) {
+            if( !(texture_mask & (1<<i)) ) {
                 WRITE(p, "%s samp%d : register(s%d)", bfirst?"":",",i, i);
                 bfirst = false;
             }
@@ -378,13 +379,13 @@ bool GeneratePixelShader(FRAGMENTSHADER& ps)
             // note that we have to scale by the regular texture map's coordinates since this is a texRECT call
             // (and we have to match with the game's texscale calls)
             int texcoord = bpmem.tevindref.getTexCoord(i);
-            if( s_texturemask & (1<<bpmem.tevindref.getTexMap(i)) ) {
+            if( texture_mask & (1<<bpmem.tevindref.getTexMap(i)) ) {
                 // TODO - Buggy? "Too many arguments for format"
 				WRITE(p, "float2 induv%d=uv%d.xy * "I_INDTEXSCALE"[%d].%s;\n", i, texcoord, i/2, (i&1)?"zw":"xy",bpmem.tevindref.getTexMap(i));
 
                 char str[16];
                 sprintf(str, "induv%d", i);
-                WrapNonPow2Tex(p, str, bpmem.tevindref.getTexMap(i));
+                WrapNonPow2Tex(p, str, bpmem.tevindref.getTexMap(i), texture_mask);
                 WRITE(p,"float3 indtex%d=texRECT(samp%d,induv%d.xy).abg;\n", i, bpmem.tevindref.getTexMap(i), i);
             }
             else {
@@ -393,8 +394,8 @@ bool GeneratePixelShader(FRAGMENTSHADER& ps)
         }
     }
 
-    for (int i=0; i<numStages; i++)
-        WriteStage(p,i); //build the equation for this stage
+    for (int i = 0; i < numStages; i++)
+        WriteStage(p, i, texture_mask); //build the equation for this stage
 
     if( bOutputZ ) {
         // use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
@@ -441,11 +442,11 @@ bool GeneratePixelShader(FRAGMENTSHADER& ps)
     }
 
     WRITE(p,"}\n\0");
-    
-    return PixelShaderMngr::CompilePixelShader(ps, text);
+ 
+	return text;
 }
 
-void WriteStage(char *&p, int n)
+void WriteStage(char *&p, int n, u32 texture_mask)
 {
     char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
     char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
@@ -456,7 +457,7 @@ void WriteStage(char *&p, int n)
     int texfun = xfregs.texcoords[texcoord].texmtxinfo.projection;
     bool bHasIndStage = bpmem.tevind[n].IsActive() && bpmem.tevind[n].bt < bpmem.genMode.numindstages;
 
-    if( bHasIndStage ) {
+    if (bHasIndStage) {
         // perform the indirect op on the incoming regular coordinates using indtex%d as the offset coords
         bHasIndStage = true;
         int texmap = bpmem.tevorders[n/2].getEnable(n&1) ? bpmem.tevorders[n/2].getTexMap(n&1) : bpmem.tevindref.getTexMap(bpmem.tevind[n].bt);
@@ -496,7 +497,7 @@ void WriteStage(char *&p, int n)
         }
 
         // wrapping
-        if( !bpmem.tevorders[n/2].getEnable(n&1) || (s_texturemask & (1<<texmap)) ) {
+        if( !bpmem.tevorders[n/2].getEnable(n&1) || (texture_mask & (1<<texmap)) ) {
             // non pow2
 
             if( bpmem.tevind[n].sw != ITW_OFF || bpmem.tevind[n].tw != ITW_OFF ) {
@@ -577,17 +578,16 @@ void WriteStage(char *&p, int n)
     WRITE(p,"rastemp=%s.%s;\n",tevRasTable[bpmem.tevorders[n/2].getColorChan(n&1)],rasswap);
 
     if (bpmem.tevorders[n/2].getEnable(n&1)) {
-        
         int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
         if(!bHasIndStage) {
             // calc tevcord
-            if( s_texturemask & (1<<texmap) ) {
+            if( texture_mask & (1<<texmap) ) {
                 // nonpow2
                 if( texfun == XF_TEXPROJ_STQ )
                     WRITE(p,"tevcoord.xy = uv%d.xy / uv%d.z;\n", texcoord, texcoord);
                 else
                     WRITE(p,"tevcoord.xy = uv%d.xy;\n", texcoord);
-                WrapNonPow2Tex(p, "tevcoord", texmap);
+                WrapNonPow2Tex(p, "tevcoord", texmap, texture_mask);
             }
             else {
                 if( texfun == XF_TEXPROJ_STQ ) {
@@ -598,11 +598,11 @@ void WriteStage(char *&p, int n)
                 }
             }
         }
-        else if( s_texturemask & (1<<texmap) ) {
+        else if( texture_mask & (1<<texmap) ) {
             // if non pow 2, have to manually repeat
             //WrapNonPow2Tex(p, "tevcoord", texmap);
-            bool bwraps = !!(s_texturemask & (0x100<<texmap));
-            bool bwrapt = !!(s_texturemask & (0x10000<<texmap));
+            bool bwraps = !!(texture_mask & (0x100<<texmap));
+            bool bwrapt = !!(texture_mask & (0x10000<<texmap));
                 
             if( bwraps || bwrapt ) {
                 const char* field = bwraps ? (bwrapt ? "xy" : "x") : "y";
@@ -610,7 +610,7 @@ void WriteStage(char *&p, int n)
             }
         }
 
-        if( s_texturemask & (1<<texmap) )
+        if( texture_mask & (1<<texmap) )
             WRITE(p,"textemp=texRECT(samp%d,tevcoord.xy).%s;\n", texmap, texswap);
         else
             WRITE(p,"textemp=tex2D(samp%d,tevcoord.xy).%s;\n", texmap, texswap);
@@ -720,11 +720,11 @@ void WriteStage(char *&p, int n)
     WRITE(p, "\n");
 }
 
-void WrapNonPow2Tex(char* &p, const char* var, int texmap)
+void WrapNonPow2Tex(char* &p, const char* var, int texmap, u32 texture_mask)
 {
-    _assert_(s_texturemask & (1<<texmap));
-    bool bwraps = !!(s_texturemask & (0x100<<texmap));
-    bool bwrapt = !!(s_texturemask & (0x10000<<texmap));
+    _assert_(texture_mask & (1<<texmap));
+    bool bwraps = !!(texture_mask & (0x100<<texmap));
+    bool bwrapt = !!(texture_mask & (0x10000<<texmap));
         
     if( bwraps || bwrapt ) {
         const char* field = bwraps ? (bwrapt ? "xy" : "x") : "y";

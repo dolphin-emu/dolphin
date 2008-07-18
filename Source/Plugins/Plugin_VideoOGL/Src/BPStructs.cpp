@@ -20,6 +20,7 @@
 #include "VertexLoader.h"
 
 #include "BPStructs.h"
+#include "Render.h"
 #include "OpcodeDecoding.h"
 #include "TextureMngr.h"
 #include "TextureDecoder.h"

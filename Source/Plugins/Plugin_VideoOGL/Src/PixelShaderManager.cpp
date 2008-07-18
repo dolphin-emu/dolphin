@@ -20,6 +20,7 @@
 #include <cmath>
 
 #include "Common.h"
+#include "Render.h"
 #include "VertexShader.h"
 #include "PixelShaderManager.h"
 #include "PixelShader.h"
@@ -46,6 +47,14 @@ static int maptocoord[8]; // indexed by texture map, holds the texcoord associat
 static u32 maptocoord_mask=0;
     
 static GLuint s_ColorMatrixProgram=0;
+
+void PixelShaderMngr::SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4) {
+    glProgramEnvParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f1, f2, f3, f4);
+}
+
+void PixelShaderMngr::SetPSConstant4fv(int const_number, const float *f) {
+	glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f);
+}
 
 void PixelShaderMngr::Init()
 {
@@ -119,7 +128,10 @@ FRAGMENTSHADER* PixelShaderMngr::GetShader()
 
     PSCacheEntry& newentry = pshaders[uid];
     
-    if (!GeneratePixelShader(newentry.shader)) {
+	char *code = GeneratePixelShader(s_texturemask,
+		                             Renderer::GetZBufferTarget() != 0,
+									 Renderer::GetRenderMode() != Renderer::RM_Normal);
+    if (!code || !CompilePixelShader(newentry.shader, code)) {
         ERROR_LOG("failed to create pixel shader\n");
         return NULL;
     }
@@ -218,7 +230,7 @@ void PixelShaderMngr::SetConstants(FRAGMENTSHADER& ps)
             int baseind = i?C_KCOLORS:C_COLORS;
             for(int j = 0; j < 4; ++j) {
                 if( s_nColorsChanged[i] & (1<<j) ) {
-                    glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, baseind+j, &lastRGBAfull[i][j][0]);
+                    SetPSConstant4fv(baseind+j, &lastRGBAfull[i][j][0]);
                 }
             }
             s_nColorsChanged[i] = 0;
@@ -283,13 +295,13 @@ void PixelShaderMngr::SetConstants(FRAGMENTSHADER& ps)
             }
 
             PRIM_LOG("texdims%d: %f %f %f %f\n", i, fdims[0], fdims[1], fdims[2], fdims[3]);
-            glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, C_TEXDIMS+i, fdims);
+            SetPSConstant4fv(C_TEXDIMS + i, fdims);
         }
         s_nTexDimsChanged[0] = s_nTexDimsChanged[1] = -1;
     }
 
     if( s_bAlphaChanged ) {
-        glProgramEnvParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, C_ALPHA, (lastAlpha&0xff)/255.0f, ((lastAlpha>>8)&0xff)/255.0f, 0, ((lastAlpha>>16)&0xff)/255.0f);
+        SetPSConstant4f(C_ALPHA, (lastAlpha&0xff)/255.0f, ((lastAlpha>>8)&0xff)/255.0f, 0, ((lastAlpha>>16)&0xff)/255.0f);
     }
 
     if( s_bZBiasChanged ) {
@@ -311,8 +323,8 @@ void PixelShaderMngr::SetConstants(FRAGMENTSHADER& ps)
                 break;
         }
         //ERROR_LOG("pixel=%x,%x, bias=%x\n", bpmem.zcontrol.pixel_format, bpmem.ztex2.type, lastZBias);
-        glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, C_ZBIAS, ftemp);
-        glProgramEnvParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, C_ZBIAS+1, 0, 0, 0, (float)( (((int)lastZBias<<8)>>8))/16777216.0f);
+        SetPSConstant4fv(C_ZBIAS, ftemp);
+        SetPSConstant4f(C_ZBIAS+1, 0, 0, 0, (float)( (((int)lastZBias<<8)>>8))/16777216.0f);
     }
 
     // indirect incoming texture scales, update all!
@@ -330,10 +342,10 @@ void PixelShaderMngr::SetConstants(FRAGMENTSHADER& ps)
             PRIM_LOG("tex indscale%d: %f %f\n", i, f[2*i], f[2*i+1]);
         }
 
-        glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, C_INDTEXSCALE, f);
+        SetPSConstant4fv(C_INDTEXSCALE, f);
 
         if( bpmem.genMode.numindstages > 2 )
-            glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, C_INDTEXSCALE+1, &f[4]);
+            SetPSConstant4fv(C_INDTEXSCALE+1, &f[4]);
        
         s_bIndTexScaleChanged = false;
     }
@@ -346,9 +358,9 @@ void PixelShaderMngr::SetConstants(FRAGMENTSHADER& ps)
 
                 // xyz - static matrix
                 //TODO w - dynamic matrix scale / 256...... somehow / 4 works better
-                glProgramEnvParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, C_INDTEXMTX+2*i,
+                SetPSConstant4f(C_INDTEXMTX+2*i,
                     bpmem.indmtx[i].col0.ma * fscale, bpmem.indmtx[i].col1.mc * fscale, bpmem.indmtx[i].col2.me * fscale, fscale * 256.0f);
-                glProgramEnvParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, C_INDTEXMTX+2*i+1,
+                SetPSConstant4f(C_INDTEXMTX+2*i+1,
                     bpmem.indmtx[i].col0.mb * fscale, bpmem.indmtx[i].col1.md * fscale, bpmem.indmtx[i].col2.mf * fscale, fscale * 256.0f);
 
                 PRIM_LOG("indmtx%d: scale=%f, mat=(%f %f %f; %f %f %f)\n", i,
@@ -470,11 +482,11 @@ void PixelShaderMngr::SetTexDimsChanged(int texmapid)
 
 void PixelShaderMngr::SetColorMatrix(const float* pmatrix, const float* pfConstAdd)
 {
-    glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, C_COLORMATRIX, pmatrix);
-    glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, C_COLORMATRIX+1, pmatrix+4);
-    glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, C_COLORMATRIX+2, pmatrix+8);
-    glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, C_COLORMATRIX+3, pmatrix+12);
-    glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, C_COLORMATRIX+4, pfConstAdd);
+    SetPSConstant4fv(C_COLORMATRIX, pmatrix);
+    SetPSConstant4fv(C_COLORMATRIX+1, pmatrix+4);
+    SetPSConstant4fv(C_COLORMATRIX+2, pmatrix+8);
+    SetPSConstant4fv(C_COLORMATRIX+3, pmatrix+12);
+    SetPSConstant4fv(C_COLORMATRIX+4, pfConstAdd);
 }
 
 GLuint PixelShaderMngr::GetColorMatrixProgram()

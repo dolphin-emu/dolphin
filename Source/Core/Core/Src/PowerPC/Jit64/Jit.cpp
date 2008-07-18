@@ -346,6 +346,7 @@ namespace Jit64
 		js.blockStart = emaddress;
 		js.fifoBytesThisBlock = 0;
 		js.curBlock = &b;
+		js.blockSetsQuantizers = false;
 
 		//Analyze the block, collect all instructions it is made of (including inlining,
 		//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.

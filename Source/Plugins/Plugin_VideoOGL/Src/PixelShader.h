@@ -18,8 +18,7 @@
 #ifndef GCOGL_PIXELSHADER
 #define GCOGL_PIXELSHADER
 
-#include "Render.h"
-#include "BPStructs.h"
+#include "Common.h"
 
 #define I_COLORS "color"
 #define I_KCOLORS "k"
@@ -40,16 +39,6 @@
 
 #define C_COLORMATRIX (C_INDTEXMTX+6)
 
-struct FRAGMENTSHADER
-{
-    FRAGMENTSHADER() : glprogid(0) { }
-    GLuint glprogid; // opengl program id
-
-#ifdef _DEBUG
-	std::string strprog;
-#endif
-};
-
-bool GeneratePixelShader(FRAGMENTSHADER& ps);
+char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRenderZToCol0);
 
 #endif

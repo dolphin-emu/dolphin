@@ -128,20 +128,7 @@ struct RECT
 #define SAVELOAD(what,size) memcpy((void*)((save)?(void*)(ptr):(void*)(what)),(void*)((save)?(void*)(what):(void*)(ptr)),(size)); ptr+=(size);
 #define ENDSAVELOAD return ptr-optr;
 
-struct TEXTUREFMT
-{
-    TEXTUREFMT(GLenum format, GLenum type) : type(type), format(format) {}
-    GLenum type, format;
-};
-
 extern int frameCount;
-extern int lut3to8[8];
-extern int lut4to8[16];
-extern int lut5to8[32];
-extern int lut6to8[64];
-extern float lutu8tosfloat[256];
-extern float lutu8toufloat[256];
-extern float luts8tosfloat[256];
 
 #define NUMWNDRES 6
 extern int g_Res[NUMWNDRES][2];

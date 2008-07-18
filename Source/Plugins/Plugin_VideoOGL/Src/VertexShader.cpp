@@ -15,13 +15,13 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
 #include "Globals.h"
 #include <math.h>
-#include "Render.h"
-#include "VertexShader.h"
-#include "VertexShaderManager.h"
+
 #include "BPStructs.h"
+#include "VertexShader.h"
+
+// This is the tricky one to get rid off.
 #include "VertexLoader.h"
 
 static char text[16384];
@@ -29,9 +29,9 @@ static char text[16384];
 
 #define LIGHTS_POS ""
 
-char* GenerateLightShader(char* p, int index, const LitChannel& chan, const char* dest, int coloralpha);
+char *GenerateLightShader(char* p, int index, const LitChannel& chan, const char* dest, int coloralpha);
 
-bool GenerateVertexShader(VERTEXSHADER& vs, u32 components)
+char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
 {
     DVSTARTPROFILE();
 
@@ -44,7 +44,7 @@ bool GenerateVertexShader(VERTEXSHADER& vs, u32 components)
     if( xfregs.nNumChans > 1 )
         lightMask |= xfregs.colChans[1].color.GetFullLightMask() | xfregs.colChans[1].alpha.GetFullLightMask();
 
-    bool bOutputZ = bpmem.ztex2.op==ZTEXTURE_ADD || Renderer::GetZBufferTarget()!=0;
+    bool bOutputZ = bpmem.ztex2.op==ZTEXTURE_ADD || has_zbuffer_target;
     int ztexcoord = -1;
 
     char *p = text;
@@ -95,15 +95,15 @@ bool GenerateVertexShader(VERTEXSHADER& vs, u32 components)
     // if outputting Z, embed the Z coordinate in the w component of a texture coordinate
     // if number of tex gens occupies all the texture coordinates, use the last tex coord
     // otherwise use the next available tex coord
-    for(int i = 0; i < xfregs.numTexGens; ++i) {
+    for (int i = 0; i < xfregs.numTexGens; ++i) {
         WRITE(p,"  float%d tex%d : TEXCOORD%d;\n", (i==(xfregs.numTexGens-1)&&bOutputZ)?4:3, i, i);
     }
-    if( bOutputZ && xfregs.numTexGens == 0 ) {
+    if (bOutputZ && xfregs.numTexGens == 0) {
         ztexcoord = 0;
         WRITE(p,"  float4 tex%d : TEXCOORD%d;\n", ztexcoord, ztexcoord);
     }
-    else if( bOutputZ )
-        ztexcoord = xfregs.numTexGens-1;
+    else if (bOutputZ)
+        ztexcoord = xfregs.numTexGens - 1;
 
     WRITE(p,"};\n");
     WRITE(p,"\n");
@@ -404,7 +404,7 @@ bool GenerateVertexShader(VERTEXSHADER& vs, u32 components)
 
     WRITE(p,"return o;\n}\n\0");
 
-    return VertexShaderMngr::CompileVertexShader(vs, text);
+    return text;
 }
 
 // coloralpha - 1 if color, 2 if alpha

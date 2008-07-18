@@ -248,7 +248,7 @@ tevhash GetCurrentTEV()
 	{
 		hash = _rotl(hash,3) ^ (bpmem.combiners[i].colorC.hex*13);
 		hash = _rotl(hash,7) ^ ((bpmem.combiners[i].alphaC.hex&0xFFFFFFFC)*3);
-		hash = _rotl(hash,9) ^ texcoords[i].texmtxinfo.projection*451;
+		hash = _rotl(hash,9) ^ xfregs.texcoords[i].texmtxinfo.projection*451;
 	}
 	for (int i = 0; i < (int)bpmem.genMode.numtevstages/2+1; i++)
 	{
@@ -369,7 +369,7 @@ void WriteStage(char *&p, int n)
 	char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
 	char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 
-	int texfun = texcoords[n].texmtxinfo.projection;
+	int texfun = xfregs.texcoords[n].texmtxinfo.projection;
 
 	WRITE(p,"rastemp=%s.%s;\n",tevRasTable[bpmem.tevorders[n/2].getColorChan(n&1)],rasswap);
 	if (bpmem.tevorders[n/2].getEnable(n&1))

@@ -95,12 +95,14 @@ const double m_dequantizeTableD[] =
 	(1 <<  4),		(1 <<  3),		(1 <<  2),		(1 <<  1),
 };  
 
+// The big problem is likely instructions that set the quantizers in the same block.
+// We will have to break block after quantizers are written to.
 u32 temp;
 void psq_st(UGeckoInstruction inst)
 {
 	BIT32OLD;
 	OLD;
-	if (!Core::GetStartupParameter().bOptimizeQuantizers)
+	if (js.blockSetsQuantizers || !Core::GetStartupParameter().bOptimizeQuantizers)
 	{
 		Default(inst);
 		return;
@@ -220,7 +222,7 @@ void psq_l(UGeckoInstruction inst)
 {
 	BIT32OLD;
 	OLD;
-	if (!Core::GetStartupParameter().bOptimizeQuantizers)
+	if (js.blockSetsQuantizers || !Core::GetStartupParameter().bOptimizeQuantizers)
 	{
 		Default(inst);
 		return;
@@ -296,6 +298,14 @@ void psq_l(UGeckoInstruction inst)
 				ADD(32, gpr.R(inst.RA), Imm32(offset));
 			}
 			break;
+
+			/*
+			Dynamic quantizer. Todo when we have a test set.
+			MOVZX(32, 8, EAX, M(((char *)&PowerPC::ppcState.spr[SPR_GQR0 + inst.I]) + 3));  // it's in the high byte.
+			AND(32, R(EAX), Imm8(0x3F));
+			MOV(32, R(ECX), Imm32((u32)&m_dequantizeTableD));
+			MOVDDUP(r, MComplex(RCX, EAX, 8, 0));
+			*/
 #endif	
 		default:
 			// 4 0

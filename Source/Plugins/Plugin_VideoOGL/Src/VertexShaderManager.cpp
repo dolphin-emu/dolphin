@@ -22,9 +22,9 @@
 #include "Render.h"
 #include "VertexShader.h"
 #include "VertexShaderManager.h"
-#include "BPStructs.h"
 #include "VertexLoader.h"
-
+#include "BPMemory.h"
+#include "XFMemory.h"
 
 VertexShaderMngr::VSCache VertexShaderMngr::vshaders;
 VERTEXSHADER* VertexShaderMngr::pShaderLast = NULL;
@@ -39,8 +39,6 @@ static int s_nMaxVertexInstructions;
 ////////////////////////
 // Internal Variables //
 ////////////////////////
-XFRegisters xfregs;
-static u32 xfmem[XFMEM_SIZE];
 static float s_fMaterials[16];
 
 // track changes
@@ -50,6 +48,14 @@ static int nTransformMatricesChanged[2]; // min,max
 static int nNormalMatricesChanged[2]; // min,max
 static int nPostTransformMatricesChanged[2]; // min,max
 static int nLightsChanged[2]; // min,max
+
+void VertexShaderMngr::SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4) {
+    glProgramEnvParameter4fARB(GL_VERTEX_PROGRAM_ARB, const_number, f1, f2, f3, f4);
+}
+
+void VertexShaderMngr::SetVSConstant4fv(int const_number, const float *f) {
+	glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number, f);
+}
 
 void VertexShaderMngr::Init()
 {
@@ -93,10 +99,11 @@ VERTEXSHADER* VertexShaderMngr::GetShader(u32 components)
     }
 
     VSCacheEntry& entry = vshaders[uid];
-        
-    if (!GenerateVertexShader(entry.shader, components)) {
+    char *code = GenerateVertexShader(components, Renderer::GetZBufferTarget() != 0);
+    if (!code || !VertexShaderMngr::CompileVertexShader(entry.shader, code)) {
         ERROR_LOG("failed to create vertex shader\n");
-    }
+		return NULL;
+	}
 
     //Make an entry in the table
     entry.frameCount=frameCount;
@@ -210,7 +217,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
         int endn = (nTransformMatricesChanged[1]+3)/4;
         const float* pstart = (const float*)&xfmem[startn*4];
         for(int i = startn; i < endn; ++i, pstart += 4)
-            glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_TRANSFORMMATRICES+i, pstart);
+            SetVSConstant4fv(C_TRANSFORMMATRICES+i, pstart);
         nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
     }
     if (nNormalMatricesChanged[0] >= 0) {
@@ -219,7 +226,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
         const float* pnstart = (const float*)&xfmem[XFMEM_NORMALMATRICES+3*startn];
 
         for(int i = startn; i < endn; ++i, pnstart += 3)
-            glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_NORMALMATRICES+i, pnstart);
+            SetVSConstant4fv(C_NORMALMATRICES+i, pnstart);
 
         nNormalMatricesChanged[0] = nNormalMatricesChanged[1] = -1;
     }
@@ -229,7 +236,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
         int endn = (nPostTransformMatricesChanged[1]+3)/4;
         const float* pstart = (const float*)&xfmem[XFMEM_POSTMATRICES+startn*4];
         for(int i = startn; i < endn; ++i, pstart += 4)
-            glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_POSTTRANSFORMMATRICES+i, pstart);
+            SetVSConstant4fv(C_POSTTRANSFORMMATRICES+i, pstart);
     }
 
     if (nLightsChanged[0] >= 0) {
@@ -240,16 +247,16 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
         
         for(int i = istart; i < iend; ++i) {
             u32 color = *(const u32*)(xfmemptr+3);
-            glProgramEnvParameter4fARB(GL_VERTEX_PROGRAM_ARB, C_LIGHTS+5*i,
+            SetVSConstant4f(C_LIGHTS+5*i,
                 ((color>>24)&0xFF)/255.0f, ((color>>16)&0xFF)/255.0f, ((color>>8)&0xFF)/255.0f, ((color)&0xFF)/255.0f);
             xfmemptr += 4;
             for(int j = 0; j < 4; ++j, xfmemptr += 3) {
 				if( j == 1 && fabs(xfmemptr[0]) < 0.00001f && fabs(xfmemptr[1]) < 0.00001f && fabs(xfmemptr[2]) < 0.00001f) {
                     // dist atten, make sure not equal to 0!!!
-                    glProgramEnvParameter4fARB(GL_VERTEX_PROGRAM_ARB, C_LIGHTS+5*i+j+1, 0.00001f, xfmemptr[1], xfmemptr[2], 0);
+                    SetVSConstant4f(C_LIGHTS+5*i+j+1, 0.00001f, xfmemptr[1], xfmemptr[2], 0);
                 }
                 else
-                    glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_LIGHTS+5*i+j+1, xfmemptr);
+                    SetVSConstant4fv(C_LIGHTS+5*i+j+1, xfmemptr);
             }
         }
 
@@ -259,7 +266,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
     if (nMaterialsChanged) {
         for(int i = 0; i < 4; ++i) {
             if( nMaterialsChanged&(1<<i) )
-                glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_MATERIALS+i, &s_fMaterials[4*i]);
+                SetVSConstant4fv(C_MATERIALS+i, &s_fMaterials[4*i]);
         }
         nMaterialsChanged = 0;
     }
@@ -270,12 +277,12 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
         float* pos = (float*)xfmem + MatrixIndexA.PosNormalMtxIdx * 4;
         float* norm = (float*)xfmem + XFMEM_NORMALMATRICES + 3 * (MatrixIndexA.PosNormalMtxIdx & 31);
 
-        glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_POSNORMALMATRIX, pos);
-        glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_POSNORMALMATRIX+1, pos+4);
-        glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_POSNORMALMATRIX+2, pos+8);
-        glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_POSNORMALMATRIX+3, norm);
-        glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_POSNORMALMATRIX+4, norm+3);
-        glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_POSNORMALMATRIX+5, norm+6);
+        SetVSConstant4fv(C_POSNORMALMATRIX, pos);
+        SetVSConstant4fv(C_POSNORMALMATRIX+1, pos+4);
+        SetVSConstant4fv(C_POSNORMALMATRIX+2, pos+8);
+        SetVSConstant4fv(C_POSNORMALMATRIX+3, norm);
+        SetVSConstant4fv(C_POSNORMALMATRIX+4, norm+3);
+        SetVSConstant4fv(C_POSNORMALMATRIX+5, norm+6);
     }
 
     if (bTexMatricesChanged[0]) {
@@ -285,9 +292,9 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
             (float*)xfmem + MatrixIndexA.Tex2MtxIdx * 4, (float*)xfmem + MatrixIndexA.Tex3MtxIdx * 4 };
         
         for(int i = 0; i < 4; ++i) {
-            glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_TEXMATRICES+3*i, fptrs[i]);
-            glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_TEXMATRICES+3*i+1, fptrs[i]+4);
-            glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_TEXMATRICES+3*i+2, fptrs[i]+8);
+            SetVSConstant4fv(C_TEXMATRICES+3*i, fptrs[i]);
+            SetVSConstant4fv(C_TEXMATRICES+3*i+1, fptrs[i]+4);
+            SetVSConstant4fv(C_TEXMATRICES+3*i+2, fptrs[i]+8);
         }
     }
 
@@ -298,9 +305,9 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
             (float*)xfmem + MatrixIndexB.Tex6MtxIdx * 4, (float*)xfmem + MatrixIndexB.Tex7MtxIdx * 4 };
         
         for(int i = 0; i < 4; ++i) {
-            glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_TEXMATRICES+3*i+12, fptrs[i]);
-            glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_TEXMATRICES+3*i+12+1, fptrs[i]+4);
-            glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_TEXMATRICES+3*i+12+2, fptrs[i]+8);
+            SetVSConstant4fv(C_TEXMATRICES+3*i+12, fptrs[i]);
+            SetVSConstant4fv(C_TEXMATRICES+3*i+12+1, fptrs[i]+4);
+            SetVSConstant4fv(C_TEXMATRICES+3*i+12+2, fptrs[i]+8);
         }
     }
 
@@ -367,10 +374,10 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
         }
 
         PRIM_LOG("Projection: %f %f %f %f %f %f\n",rawProjection[0], rawProjection[1], rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
-        glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_PROJECTION, &g_fProjectionMatrix[0]);
-        glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_PROJECTION+1, &g_fProjectionMatrix[4]);
-        glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_PROJECTION+2, &g_fProjectionMatrix[8]);
-        glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, C_PROJECTION+3, &g_fProjectionMatrix[12]);
+        SetVSConstant4fv(C_PROJECTION, &g_fProjectionMatrix[0]);
+        SetVSConstant4fv(C_PROJECTION+1, &g_fProjectionMatrix[4]);
+        SetVSConstant4fv(C_PROJECTION+2, &g_fProjectionMatrix[8]);
+        SetVSConstant4fv(C_PROJECTION+3, &g_fProjectionMatrix[12]);
     }
 }
 
