@@ -17,6 +17,7 @@
 
 #include "Globals.h"
 
+#include <stdio.h>
 #include <cmath>
 #include <assert.h>
 

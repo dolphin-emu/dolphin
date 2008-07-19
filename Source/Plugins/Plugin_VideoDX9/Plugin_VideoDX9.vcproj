@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="Plugin_VideoDX9"
 	ProjectGUID="{636FAD5F-02D1-4E9A-BE67-FB8EA99B9A18}"
 	RootNamespace="Plugin_VideoDX9"
@@ -506,6 +506,7 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
+				IgnoreDefaultLibraryNames="LIBCMTD.lib"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
