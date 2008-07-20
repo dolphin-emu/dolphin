@@ -128,6 +128,7 @@ void CPUInfoStruct::Detect()
 		// Interpret CPU brand string and cache information.
 		if (i == 0x80000001)
 		{
+			// This block seems bugged.
 			nFeatureInfo2 = CPUInfo[1]; // ECX
 			bSSE5  = (nFeatureInfo2 & (1 << 11)) ? true : false;
 			bLZCNT = (nFeatureInfo2 & (1 << 5)) ? true : false;

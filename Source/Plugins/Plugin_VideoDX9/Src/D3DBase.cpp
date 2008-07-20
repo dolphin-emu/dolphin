@@ -212,10 +212,24 @@ namespace D3D
 			&d3dpp, &dev ) ) )
 		{
 			MessageBox(wnd,
-				"Direct3D Device creation failed!\n" 
-				"Your device does not support the desired settings.", 
-				"D3D error", MB_OK|MB_ICONERROR);
-			return E_FAIL;
+				"Sorry, but it looks like your 3D accelerator is too old,\n"
+				"or doesn't support features that Dolphin requires.\n"
+				"Falling back to software vertex processing.\n", 
+				"Dolphin Direct3D plugin", MB_OK | MB_ICONERROR);
+			if( FAILED( D3D->CreateDevice( 
+				adapter, 
+				D3DDEVTYPE_HAL, 
+				wnd,
+				D3DCREATE_SOFTWARE_VERTEXPROCESSING|D3DCREATE_MULTITHREADED,
+				// |D3DCREATE_MULTITHREADED /* | D3DCREATE_PUREDEVICE*/,
+				//D3DCREATE_SOFTWARE_VERTEXPROCESSING ,
+				&d3dpp, &dev ) ) )
+			{
+				MessageBox(wnd,
+					"Software VP failed too. Upgrade your graphics card.", 
+					"Dolphin Direct3D plugin", MB_OK | MB_ICONERROR);
+				return E_FAIL;
+			}
 		}
 		dev->GetDeviceCaps(&caps);
 		dev->GetRenderTarget(0,&backBuffer);
@@ -224,7 +238,6 @@ namespace D3D
 		psMinor = (D3D::caps.PixelShaderVersion) & 0xFF;
 		vsMajor = (D3D::caps.VertexShaderVersion >>8) & 0xFF;
 		vsMinor = (D3D::caps.VertexShaderVersion) & 0xFF;
-
 
 		// Device state would normally be set here
 		return S_OK;

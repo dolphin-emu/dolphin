@@ -28,6 +28,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="$(ProjectDir)..\Common\SubWCRev.exe $(SolutionDir) $(ProjectDir)..\Common\src\svnrev_template.h $(ProjectDir)..\Common\src\svnrev.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -135,6 +136,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="$(ProjectDir)..\Common\SubWCRev.exe $(SolutionDir) $(ProjectDir)..\Common\src\svnrev_template.h $(ProjectDir)..\Common\src\svnrev.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -243,6 +245,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="$(ProjectDir)..\Common\SubWCRev.exe $(SolutionDir) $(ProjectDir)..\Common\src\svnrev_template.h $(ProjectDir)..\Common\src\svnrev.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -348,6 +351,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="$(ProjectDir)..\Common\SubWCRev.exe $(SolutionDir) $(ProjectDir)..\Common\src\svnrev_template.h $(ProjectDir)..\Common\src\svnrev.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -453,6 +457,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="$(ProjectDir)..\Common\SubWCRev.exe $(SolutionDir) $(ProjectDir)..\Common\src\svnrev_template.h $(ProjectDir)..\Common\src\svnrev.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -560,6 +565,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine="$(ProjectDir)..\Common\SubWCRev.exe $(SolutionDir) $(ProjectDir)..\Common\src\svnrev_template.h $(ProjectDir)..\Common\src\svnrev.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"

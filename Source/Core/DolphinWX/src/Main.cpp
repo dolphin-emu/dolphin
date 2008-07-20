@@ -42,20 +42,27 @@ bool DolphinApp::OnInit()
 //	RegisterPanicAlertHandler(&wxPanicAlert);
 #endif
 
-#if 0
 #ifdef _WIN32
 	// TODO: if First Boot
+	if (!cpu_info.bSSE2Extensions) 
+	{
+		MessageBox(0, _T("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
+			             "Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
+						 "Sayonara!\n"), "Dolphin", MB_ICONINFORMATION);
+		return false;
+	}
+	/*
 #ifdef _M_IX86
-	if (cpu_info.CPU64Bit && !cpu_info.OS64Bit)
+	if (cpu_info.CPU64bit && cpu_info.OS64bit)
 	{
 		MessageBox(0, _T("This is the 32-bit version of Dolphin. This computer is running a 64-bit OS.\n"
 				 "Thus, this computer is capable of running Dolphin 64-bit, which is considerably "
-				 "faster than Dolphin 32-bit. So, why are you running Dolphin 32-bit? :-)"));
+				 "faster than Dolphin 32-bit. So, why are you running Dolphin 32-bit? :-)"), "Dolphin", MB_ICONINFORMATION);
 	}
 
 	// missing check
 #endif
-#endif
+	*/
 #endif
 
 	bool UseDebugger = false;
@@ -79,7 +86,7 @@ bool DolphinApp::OnInit()
 	if (parser.Parse() != 0)
 	{
 		return(false);
-	}
+	} 
 
 	UseDebugger = parser.Found(_T("debugger"));
 #endif

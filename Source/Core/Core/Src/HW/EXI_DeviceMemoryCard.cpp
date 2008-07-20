@@ -15,6 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "Common.h"
+#include "FileUtil.h"
+#include "StringUtil.h"
 #include "../Core.h"
 #include "../CoreTiming.h"
 
@@ -52,7 +55,7 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 	else
 	{
 		LOG(EXPANSIONINTERFACE, "No memory card found. Will create new.");
-		//MessageBox(0, "Could not read memory card file - starting with corrupt", m_strFilename.c_str(),0);
+		Flush();
 	}
 
 	formatDelay = 0;
@@ -66,16 +69,21 @@ void CEXIMemoryCard::Flush()
 {
 	FILE* pFile = NULL;
 	pFile = fopen(m_strFilename.c_str(), "wb");
-	if (pFile)
+	if (!pFile)
 	{
-		fwrite(memory_card_content, memory_card_size, 1, pFile);
-		fclose(pFile);
+		std::string dir;
+		SplitPath(m_strFilename, &dir, 0, 0);
+		File::CreateDir(dir);
+		pFile = fopen(m_strFilename.c_str(), "wb");
 	}
-	else
+	if (!pFile) //Note - pFile changed inside above if
 	{
 		PanicAlert("Could not write memory card file %s.\n\n"
 			       "Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?", m_strFilename.c_str());
+		return;
 	}
+	fwrite(memory_card_content, memory_card_size, 1, pFile);
+	fclose(pFile);
 }
 
 void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)

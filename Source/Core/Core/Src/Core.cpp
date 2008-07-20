@@ -432,11 +432,9 @@ void Callback_VideoCopiedToXFB()
 		idleTicks = newIdleTicks;
 
 		float t = (float)(Timer.GetTimeDifference()) / 1000.f;
-		char isoName[64];
-        isoName[0] = 0x00;
 		char temp[256];
-		sprintf(temp, "%s - FPS: %8.2f - %s - %i MHz (%i real, %i idle skipped) out of %i MHz", 
-			isoName, (float)frames / t, 
+		sprintf(temp, "FPS: %8.2f - %s - %i MHz (%i real, %i idle skipped) out of %i MHz", 
+			(float)frames / t, 
 			g_CoreStartupParameter.bUseDynarec ? "JIT" : "Interpreter", 
 			(int)(diff),
 			(int)(diff-idleDiff),

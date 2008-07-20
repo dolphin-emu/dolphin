@@ -51,3 +51,25 @@ void File::Explore(const std::string &path)
 	ShellExecuteEx(&shex);
 #endif
 }
+
+// Returns true if successful, or path already exists.
+bool File::CreateDir(const std::string &path)
+{
+#ifdef _WIN32
+	if (::CreateDirectory(path.c_str(), NULL))
+	{
+		return true;
+	}
+	else
+	{
+		DWORD error = GetLastError();
+		if (error == ERROR_ALREADY_EXISTS)
+		{
+			PanicAlert("%s already exists", path.c_str());
+			return true;
+		}
+		PanicAlert("Error creating directory: %i", error);
+		return false;
+	}
+#endif
+}
