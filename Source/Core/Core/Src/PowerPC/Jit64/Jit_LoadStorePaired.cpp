@@ -212,7 +212,8 @@ void psq_st(UGeckoInstruction inst)
 	}
 	else {
 		// Dodger uses this.
-		PanicAlert("st %i:%i", stType, inst.W);
+        // mario tennis
+		//PanicAlert("st %i:%i", stType, inst.W);
 		Default(inst);
 	}
 }
@@ -311,7 +312,7 @@ void psq_l(UGeckoInstruction inst)
 			// 4 0
 			// 6 0 //power tennis
 			// 5 0 
-			PanicAlert("ld:%i %i", ldType, (int)inst.W);
+			//PanicAlert("ld:%i %i", ldType, (int)inst.W);
 			Default(inst);
 			return;
 	}
