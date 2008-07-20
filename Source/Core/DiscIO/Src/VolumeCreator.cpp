@@ -37,7 +37,13 @@ enum EDiscType
 	DISC_TYPE_WII_CONTAINER,
 	DISC_TYPE_GC
 };
-
+#ifndef WIN32
+	struct SPartition
+	{
+		u64 Offset;
+		u32 Type;
+	}; //gcc 4.3 cries if it's local
+#endif
 class CBlobBigEndianReader
 {
 	public:
@@ -150,12 +156,13 @@ IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, int _VolumeType)
 
 	u32 numPartitions = Reader.Read32(0x40000);
 	u64 PartitionsOffset = (u64)Reader.Read32(0x40004) << 2;
-
+	#ifdef WIN32
 	struct SPartition
 	{
 		u64 Offset;
 		u32 Type;
 	};
+	#endif
 	std::vector<SPartition>PartitionsVec;
 
 	// read all partitions

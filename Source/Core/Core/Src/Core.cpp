@@ -22,7 +22,7 @@
 #endif
 
 #include "Thread.h"
-#include "Timer.H"
+#include "Timer.h"
 
 #include "Console.h"
 #include "Core.h"

@@ -23,7 +23,7 @@
 #include <time.h>
 
 #include "Common.h"
-#include "Timer.H"
+#include "Timer.h"
 
 #ifdef __GNUC__
 #include <sys/timeb.h>

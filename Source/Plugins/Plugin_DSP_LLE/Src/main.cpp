@@ -28,10 +28,10 @@
 HINSTANCE g_hInstance = NULL;
 HANDLE g_hDSPThread = NULL;
 CRITICAL_SECTION g_CriticalSection;
+CDisAsmDlg g_Dialog;
 #endif
 
 DSPInitialize g_dspInitialize;
-CDisAsmDlg g_Dialog;
 
 #define GDSP_MBOX_CPU   0
 #define GDSP_MBOX_DSP   1

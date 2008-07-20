@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Timer.H"
+#include "Timer.h"
 
 #include "EXI_DeviceIPL.h"
 #include "../Core.h"

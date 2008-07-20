@@ -194,14 +194,18 @@ CFrame::CreateMenu()
 		{
 			m_pMenuItemPlay = new wxMenuItem(pEmulationMenu, IDM_PLAY, _T("&Play"));
 			m_pMenuItemPlay->SetBitmap(m_BitmapsMenu[Toolbar_Play]);
-			m_pMenuItemPlay->SetDisabledBitmap(m_BitmapsMenu[Toolbar_Play_Dis]);
+			#ifdef WIN32
+				m_pMenuItemPlay->SetDisabledBitmap(m_BitmapsMenu[Toolbar_Play_Dis]); //Linux Doesn't have
+			#endif
 			pEmulationMenu->Append(m_pMenuItemPlay);
 		}
 		// stop
 		{
 			m_pMenuItemStop = new wxMenuItem(pEmulationMenu, IDM_STOP, _T("&Stop"));
 			m_pMenuItemStop->SetBitmap(m_BitmapsMenu[Toolbar_Stop]);
-			m_pMenuItemStop->SetDisabledBitmap(m_BitmapsMenu[Toolbar_Stop_Dis]);
+			#ifdef WIN32
+				m_pMenuItemStop->SetDisabledBitmap(m_BitmapsMenu[Toolbar_Stop_Dis]); //Linux doesn't have
+			#endif
 			pEmulationMenu->Append(m_pMenuItemStop);
 		}
 		pEmulationMenu->AppendSeparator();		
@@ -226,7 +230,9 @@ CFrame::CreateMenu()
 		{
 			m_pPluginOptions = pPluginMenu->Append(IDM_PLUGIN_OPTIONS, _T("&Choose Plugins..."));
 			m_pPluginOptions->SetBitmap(m_BitmapsMenu[Toolbar_PluginOptions]);
-			m_pPluginOptions->SetDisabledBitmap(m_BitmapsMenu[Toolbar_PluginOptions_Dis]);
+			#ifdef WIN32
+				m_pPluginOptions->SetDisabledBitmap(m_BitmapsMenu[Toolbar_PluginOptions_Dis]); //Linux doesn't have
+			#endif
 		}
 		pPluginMenu->AppendSeparator();
 		{
@@ -362,8 +368,9 @@ CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 	{
 		return;
 	}
-
-	BootManager::BootCore(path.c_str());
+	std::string temp;
+	temp.insert(0, path.ToAscii()); //Need to convert to C++ style string first
+	BootManager::BootCore(temp);
 }
 
 
@@ -403,7 +410,7 @@ CFrame::OnAbout(wxCommandEvent& WXUNUSED (event))
 void
 CFrame::OnHelp(wxCommandEvent& WXUNUSED (event))
 {
-	wxMessageBox("missing OnHelp()");
+	wxMessageBox(wxString::FromAscii("missing OnHelp()"));
 }
 
 
@@ -516,7 +523,7 @@ CFrame::OnHostMessage(wxCommandEvent& event)
 			       	    wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 			       	    );*/
 
-			    m_pBootProcessDialog = new wxBusyInfo("Booting...", this);
+			    m_pBootProcessDialog = new wxBusyInfo(wxString::FromAscii("Booting..."), this);
 		    }
 		    break;
 

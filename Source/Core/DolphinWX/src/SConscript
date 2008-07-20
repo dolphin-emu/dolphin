@@ -1,0 +1,19 @@
+Import('env')
+
+files = ["BootManager.cpp",
+        "Config.cpp",
+        "FileSearch.cpp",
+        "Frame.cpp",
+        "GameListCtrl.cpp",
+        "Globals.cpp",
+        "ISOFile.cpp",
+        "Main.cpp",
+#        "MainNoGUI.cpp",
+        "PluginManager.cpp",
+        "PluginOptions.cpp",
+        "stdafx.cpp",
+        ]
+wxenv = env.Copy(CXXFLAGS = "`wx-config --cppflags --debug` -DUSE_XPM_BITMAPS -DwxNEEDS_CHARPP",
+                 LINKFLAGS = "-L/usr/local/lib -pthread `wx-config --libs --debug`")
+                 
+wxenv.Program("../../../../Binary/linux/Dolphin", files, LIBS = ["debwx", "discio", "core", "bdisasm", "videocommon", "common"])

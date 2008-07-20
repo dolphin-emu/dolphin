@@ -161,7 +161,7 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
 }
 
 std::queue<u32> m_Ack;
-std::queue<std::pair<u32,std::string>> m_ReplyQueue;
+std::queue<std::pair<u32,std::string> > m_ReplyQueue;
 
 void ExecuteCommand(u32 _Address);
 bool AckCommand(u32 _Address)

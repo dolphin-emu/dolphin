@@ -18,7 +18,6 @@
 #include <string>
 #include <vector>
 
-#include "Common.h"
 #include "Globals.h"
 #include "FileSearch.h"
 #include "FileUtil.h"
@@ -42,7 +41,9 @@ CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 	m_PluginInfos.clear();
 
 	CFileSearch::XStringVector Directories;
-	Directories.push_back(_T("Plugins"));
+	std::string temp;
+	temp.insert(0, "Plugins");
+	Directories.push_back(temp);
 
 	CFileSearch::XStringVector Extensions;
 #ifdef _WIN32
@@ -83,7 +84,9 @@ CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 			}
 
 			wxString msg;
-			msg.Printf("Scanning %s", FileName.c_str());
+			wxString temp;
+			temp = wxString::FromAscii("Scanning %s");
+			msg.Printf(temp, FileName.c_str());
 			bool Cont = dialog.Update((int)i, msg);
 
 			if (!Cont)

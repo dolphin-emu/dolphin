@@ -39,10 +39,10 @@ CRegisterView::CRegisterView(wxWindow* parent, const wxWindowID id, const wxPoin
 	for (int i = 0; i < 16; i++)
 	{
 		// 0-15
-		int Item = InsertItem(0, GetGRPName(i));
+		int Item = InsertItem(0, wxString::FromAscii(GetGRPName(i)));
 
 		// 16-31
-		SetItem(Item, 2, GetGRPName(16 + i));
+		SetItem(Item, 2, wxString::FromAscii(GetGRPName(16 + i)));
 
 		// just for easy sort
 

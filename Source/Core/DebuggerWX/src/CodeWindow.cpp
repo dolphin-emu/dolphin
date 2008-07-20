@@ -39,7 +39,7 @@
 #include "LogManager.h"
 
 // ugly that this lib included code from the main
-#include "../../DolphinWX/src/globals.h"
+#include "../../DolphinWX/src/Globals.h"
 
 class SymbolList
 	: public wxListCtrl
@@ -348,7 +348,7 @@ void CCodeWindow::Update()
 	}
 	else
 	{
-		callstack->Append("invalid callstack");
+		callstack->Append(wxString::FromAscii("invalid callstack"));
 	}
 
 	UpdateButtonStates();

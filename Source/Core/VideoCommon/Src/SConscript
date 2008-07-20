@@ -1,0 +1,10 @@
+Import('env')
+
+files = ["BPMemory.cpp",
+		 "CPMemory.cpp",
+		 "LookUpTables.cpp",
+		 "XFMemory.cpp",
+		 ]
+
+env_common = env.Copy(CXXFLAGS = " -fPIC ")
+env_common.StaticLibrary("videocommon", files)

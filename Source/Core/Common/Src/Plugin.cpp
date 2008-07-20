@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "plugin.h"
+#include "Plugin.h"
 
 namespace Common
 {

@@ -1,5 +1,5 @@
 Import('env')
-output = "../../../../Binary/linux/Plugins/temp/dsplle.so"
+output = "../../../../Binary/linux/Plugins/dsplle.so"
 files = ["disassemble.cpp",
 		 "gdsp_aram.cpp",
 		 "gdsp_ext_op.cpp",
@@ -11,7 +11,6 @@ files = ["disassemble.cpp",
          "Globals.cpp",
          "opcodes.cpp",
          "Tools.cpp",
-         "UCode_AX.cpp",
 		 ]
 #env.Append(LINKFLAGS = "-symbolic")
 env.SharedLibrary(output, files)

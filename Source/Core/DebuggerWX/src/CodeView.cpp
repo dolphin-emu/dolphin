@@ -163,14 +163,14 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 		    break;
 
 	    case IDM_COPYCODE:
-		    wxTheClipboard->SetData(new wxTextDataObject(debugger->disasm(selection)));
+		    wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(debugger->disasm(selection)))); //Have to manually convert from char* to wxString, don't have to in Windows?
 		    break;
 
 	    case IDM_COPYHEX:
 	    {
 		    char temp[24];
 		    sprintf(temp, "%08x", debugger->readMemory(selection));
-		    wxTheClipboard->SetData(new wxTextDataObject(temp));
+		    wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(temp)));
 	    }
 		    break;
 #endif
@@ -205,9 +205,9 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
 	wxMenu menu;
 	//menu.Append(IDM_GOTOINMEMVIEW, "&Goto in mem view");
 #if wxUSE_CLIPBOARD
-	menu.Append(IDM_COPYADDRESS, "Copy &address");
-	menu.Append(IDM_COPYCODE, "Copy &code");
-	menu.Append(IDM_COPYHEX, "Copy &hex");
+	menu.Append(IDM_COPYADDRESS, wxString::FromAscii("Copy &address"));
+	menu.Append(IDM_COPYCODE, wxString::FromAscii("Copy &code"));
+	menu.Append(IDM_COPYHEX, wxString::FromAscii("Copy &hex"));
 #endif
 	menu.Append(IDM_RUNTOHERE, _T("&Run To Here"));
 	//menu.Append(IDM_DYNARECRESULTS, "Copy &address");

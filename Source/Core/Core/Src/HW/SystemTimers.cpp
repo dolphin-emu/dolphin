@@ -29,7 +29,7 @@
 #include "../Core.h"
 #include "../IPC_HLE/WII_IPC_HLE.h"
 #include "Thread.h"
-#include "Timer.H"
+#include "Timer.h"
 
 namespace SystemTimers
 {

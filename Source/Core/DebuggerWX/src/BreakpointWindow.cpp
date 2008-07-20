@@ -3,7 +3,7 @@
 //
 
 #include "Debugger.h"
-#include "BreakPointWindow.h"
+#include "BreakpointWindow.h"
 #include "BreakpointView.h"
 #include "CodeWindow.h"
 #include "HW/Memmap.h"

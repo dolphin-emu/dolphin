@@ -83,7 +83,9 @@ CGameListCtrl::BrowseForDirectory()
 
 	if (dialog.ShowModal() == wxID_OK)
 	{
-		SConfig::GetInstance().m_ISOFolder.push_back(dialog.GetPath().c_str());
+		std::string temp;
+		temp.insert(0, dialog.GetPath().ToAscii()); //Manual conversion to C++ string
+		SConfig::GetInstance().m_ISOFolder.push_back(temp);
 		SConfig::GetInstance().SaveSettings();
 		Update();
 	}
@@ -154,7 +156,9 @@ wxString NiceSizeFormat(s64 _size)
 	float f = (float)_size + ((float)frac / 1024.0f);
 
 	wxString NiceString;
-	NiceString.Printf("%3.1f %s", f, sizes[s]);
+	wxString tempstring;
+	tempstring = wxString::FromAscii("%3.1f %s"); // Gotta convert to wxString first or else it complains
+	NiceString.Printf(tempstring, f, sizes[s]);
 	return(NiceString);
 }
 
@@ -192,7 +196,7 @@ CGameListCtrl::InsertItemInReportView(size_t _Index)
 		wxListItem item;
 		item.SetId(ItemIndex);
 		item.SetColumn(COLUMN_TITLE);
-		item.SetText(rISOFile.GetName());
+		item.SetText(wxString::FromAscii(rISOFile.GetName().c_str()));
 		SetItem(item);
 	}
 
@@ -201,7 +205,7 @@ CGameListCtrl::InsertItemInReportView(size_t _Index)
 		wxListItem item;
 		item.SetId(ItemIndex);
 		item.SetColumn(COLUMN_COMPANY);
-		item.SetText(rISOFile.GetCompany());
+		item.SetText(wxString::FromAscii(rISOFile.GetCompany().c_str()));
 		SetItem(item);
 	}
 
@@ -276,7 +280,9 @@ CGameListCtrl::ScanForISOs()
 			SplitPath(rFilenames[i], NULL, &FileName, NULL);
 
 			wxString msg;
-			msg.Printf("Scanning %s", FileName.c_str());
+			wxString tempstring;
+			tempstring = wxString::FromAscii("Scanning %s");
+			msg.Printf(tempstring, FileName.c_str());
 
 			bool Cont = dialog.Update(i, msg);
 

@@ -10,6 +10,7 @@ files = ["BPStructs.cpp",
 		 "OpcodeDecoding.cpp",
 #		 "OpcodeReaders.cpp",   # outdated
 		 "PixelShader.cpp",
+		 "PixelShaderManager.cpp",
          "rasterfont.cpp",
 		 "Render.cpp",
          "TextureDecoder.cpp",
@@ -17,10 +18,11 @@ files = ["BPStructs.cpp",
 		 "VertexLoader.cpp",
 		 "VertexLoader_Normal.cpp",
 		 "VertexShader.cpp",
+		 "VertexShaderManager.cpp",
 #		 "Linux/Conf.cpp",
 		 "Linux/Linux.cpp",
 		 ]
 
-gfxenv=env.Copy(CXXFLAGS = " `pkg-config --cflags gtk+-2.0`", LINKFLAGS = " `pkg-config --libs gtk+-2.0`")
+gfxenv=env.Copy(CXXFLAGS = " `pkg-config --cflags gtk+-2.0 xxf86vm`", LINKFLAGS = " `pkg-config --libs gtk+-2.0 xxf86vm`")
 
-gfxenv.SharedLibrary("../../../../Binary/linux/Plugins/zeroogl.so", files, LIBS=["common", "cairo", "GL", "GLEW", "CgGL", "Cg"])
+gfxenv.SharedLibrary("../../../../Binary/linux/Plugins/zeroogl.so", files, LIBS=["videocommon", "common", "cairo", "GL", "GLEW", "CgGL", "Cg", "X11"])

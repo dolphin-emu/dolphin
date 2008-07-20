@@ -1,6 +1,9 @@
 Import('env')
 
 files = ["LogWindow.cpp", 
+         "BreakpointView.cpp",
+         "CodeView.cpp",
+         "BreakpointWindow.cpp",
          "CodeWindow.cpp",
          "CodeView.cpp",
          "Debugger.cpp", 

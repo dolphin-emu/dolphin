@@ -18,7 +18,6 @@
 #include <string>
 #include <vector>
 
-#include "Common.h"
 #include "Globals.h"
 
 #include "PluginOptions.h"
@@ -232,7 +231,9 @@ CPluginOptions::FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::st
 
 		if (rPluginInfo.Type == _PluginType)
 		{
-			int NewIndex = _pChoice->Append(rInfos[i].GetPluginInfo().Name, (void*)&rInfos[i]);
+			wxString temp;
+			temp = wxString::FromAscii(rInfos[i].GetPluginInfo().Name);
+			int NewIndex = _pChoice->Append(temp, (void*)&rInfos[i]);
 
 			if (rInfos[i].GetFileName() == _SelectFilename)
 			{

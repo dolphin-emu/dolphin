@@ -26,7 +26,7 @@
 #include "VolumeCreator.h"
 #include "Config.h"
 #include "Core.h"
-#include "frame.h"
+#include "Frame.h"
 #include "CodeWindow.h"
 
 static std::string s_DataBasePath_EUR = "Data_EUR";

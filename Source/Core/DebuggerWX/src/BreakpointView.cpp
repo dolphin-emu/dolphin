@@ -54,17 +54,22 @@ CBreakPointView::Update()
 		const TBreakPoint& rBP = rBreakPoints[i];
 		if (!rBP.bTemporary)
 		{
-			int Item = InsertItem(0, rBP.bOn ? "on" : " ");
-			SetItem(Item, 1, "BP");
+			wxString temp;
+			temp = wxString::FromAscii(rBP.bOn ? "on" : " ");
+			int Item = InsertItem(0, temp);
+			temp = wxString::FromAscii("BP");
+			SetItem(Item, 1, temp);
 			
 			Debugger::XSymbolIndex index = Debugger::FindSymbol(rBP.iAddress);
 			if (index > 0)
 			{
-				SetItem(Item, 2, Debugger::GetDescription(rBP.iAddress));
+				temp = wxString::FromAscii(Debugger::GetDescription(rBP.iAddress));
+				SetItem(Item, 2, temp);
 			}
 			
             sprintf(szBuffer, "0x%08x", rBP.iAddress);
-			SetItem(Item, 3, szBuffer);
+            temp = wxString::FromAscii(szBuffer);
+			SetItem(Item, 3, temp);
 
             SetItemData(Item, rBP.iAddress);
 		}

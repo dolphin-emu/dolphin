@@ -111,7 +111,7 @@ void DolphinApp::OnEndSession()
 
 bool wxPanicAlert(const char* text, bool /*yes_no*/)
 {
-	wxMessageBox(text, _T("PANIC ALERT"));
+	wxMessageBox(wxString::FromAscii(text), _T("PANIC ALERT"));
 	return(true);
 }
 
@@ -234,7 +234,7 @@ void Host_CloseDisplay()
 void Host_UpdateStatusBar(const char* _pText)
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATESTATUSBAR);
-	event.SetString(_pText);
+	event.SetString(wxString::FromAscii(_pText));
 
 	wxPostEvent(main_frame, event);
 }

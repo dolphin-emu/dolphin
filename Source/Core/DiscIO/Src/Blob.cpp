@@ -1,10 +1,11 @@
 #ifdef WIN32
 #include <io.h>
 #include <windows.h>
+#else
+#include <unistd.h>
 #endif
 
 #include "stdafx.h"
-
 #include "../../../../Externals/zlib/zlib.h"
 
 #include "Blob.h"
@@ -103,7 +104,11 @@ class PlainFileReader
 		PlainFileReader(const char* filename)
 		{
 			file_ = fopen(filename, "rb");
-			fseek64(file_, 0, SEEK_END);
+			#if 0
+				fseek64(file_, 0, SEEK_END);
+			#else
+				fseek(file_, 0, SEEK_END); // I don't have fseek64 with gcc 4.3
+			#endif
 			size = ftell(file_);
 			fseek(file_, 0, SEEK_SET);
 		}

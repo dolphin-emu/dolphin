@@ -18,7 +18,7 @@
 #ifndef __PLUGIN_MANAGER_H_
 #define __PLUGIN_MANAGER_H_
 
-#include "plugin.h"
+#include "Plugin.h"
 
 class CPluginInfo
 {

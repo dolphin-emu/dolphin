@@ -237,4 +237,5 @@ void DSP_Update()
 void DSP_SendAIBuffer(unsigned int _Address, unsigned int _Size)
 {}
 
-
+void DllDebugger(HWND _hParent)
+{}

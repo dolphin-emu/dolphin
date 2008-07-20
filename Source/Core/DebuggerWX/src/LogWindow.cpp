@@ -74,7 +74,7 @@ CLogWindow::CLogWindow(wxWindow* parent)
 
 void CLogWindow::OnSubmit(wxCommandEvent& event)
 {
-	Console_Submit(m_cmdline->GetValue().c_str());
+	Console_Submit(m_cmdline->GetValue().To8BitData());
 	m_cmdline->SetValue(_T(""));
 	NotifyUpdate();
 }
@@ -128,7 +128,7 @@ void CLogWindow::UpdateChecks()
 
 		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 		{
-			m_checks->Append(LogManager::m_Log[i]->m_szName);
+			m_checks->Append(wxString::FromAscii(LogManager::m_Log[i]->m_szName));
 		}
 
 		m_checks->Show(true);
@@ -218,7 +218,7 @@ void CLogWindow::UpdateLog()
 	}
 
 	*p = 0; //end the string
-	m_log->SetValue(m_logBuffer);
+	m_log->SetValue(wxString::FromAscii(m_logBuffer));
 	m_log->SetInsertionPoint(p - m_logBuffer - 1);
 }
 
