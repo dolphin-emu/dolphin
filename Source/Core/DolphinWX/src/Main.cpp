@@ -18,6 +18,7 @@
 #include <vector>
 #include <string>
 
+#include "svnrev.h"
 #include "CPUDetect.h"
 #include "Globals.h"
 #include "Common.h"
@@ -86,8 +87,12 @@ bool DolphinApp::OnInit()
 	SConfig::GetInstance().LoadSettings();
 	wxInitAllImageHandlers();
 	// Create the main frame window
-	main_frame = new CFrame((wxFrame*) NULL, wxID_ANY,
-			_T("Dolphin"),
+#ifdef _DEBUG
+	const char *title = "Dolphin Debug SVN R " SVN_REV_STR;
+#else
+	const char *title = "Dolphin SVN R " SVN_REV_STR;
+#endif
+	main_frame = new CFrame((wxFrame*) NULL, wxID_ANY, title,
 			wxPoint(100, 100), wxSize(800, 600));
 
 	// create debugger

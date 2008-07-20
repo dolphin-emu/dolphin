@@ -79,8 +79,8 @@ CBreakPointView::Update()
 	Refresh();
 }
 
-    void CBreakPointView::DeleteCurrentSelection()
-    {
+void CBreakPointView::DeleteCurrentSelection()
+{
     int Item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     if (Item >= 0)
     {

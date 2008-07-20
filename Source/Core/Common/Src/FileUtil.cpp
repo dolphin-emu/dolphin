@@ -11,6 +11,13 @@ bool File::Exists(const std::string &filename)
 #endif
 }
 
+bool File::IsDirectory(const std::string &filename) {
+#ifdef _WIN32
+	return (GetFileAttributes(filename.c_str()) & FILE_ATTRIBUTE_DIRECTORY) != 0;
+#else
+	return false; //TODO
+#endif
+}
 
 std::string SanitizePath(const std::string &filename) {
 	std::string copy = filename;

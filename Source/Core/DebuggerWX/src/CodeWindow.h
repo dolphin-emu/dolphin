@@ -73,7 +73,7 @@ class CCodeWindow
 		wxTextCtrl* addrbox;
 		DECLARE_EVENT_TABLE()
 
-		void OnSymolListChange(wxCommandEvent& event);
+		void OnSymbolListChange(wxCommandEvent& event);
 		void OnCallstackListChange(wxCommandEvent& event);
 		void OnCodeStep(wxCommandEvent& event);
 		void OnAddrBoxChange(wxCommandEvent& event);

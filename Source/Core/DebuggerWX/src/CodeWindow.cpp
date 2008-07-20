@@ -76,7 +76,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
     EVT_BUTTON(IDM_SETPC,           CCodeWindow::OnCodeStep)
     EVT_BUTTON(IDM_GOTOPC,          CCodeWindow::OnCodeStep)
     EVT_TEXT(IDM_ADDRBOX,           CCodeWindow::OnAddrBoxChange)
-    EVT_LISTBOX(IDM_SYMBOLLIST,     CCodeWindow::OnSymolListChange)
+    EVT_LISTBOX(IDM_SYMBOLLIST,     CCodeWindow::OnSymbolListChange)
     EVT_LISTBOX(IDM_CALLSTACKLIST,  CCodeWindow::OnCallstackListChange)
     EVT_HOST_COMMAND(wxID_ANY,      CCodeWindow::OnHostMessage)
     EVT_MENU(IDM_LOGWINDOW,         CCodeWindow::OnToggleLogWindow)
@@ -411,7 +411,7 @@ void CCodeWindow::UpdateButtonStates()
 }
 
 
-void CCodeWindow::OnSymolListChange(wxCommandEvent& event)
+void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
 {
 	int index = symbols->GetSelection();
 	Debugger::CSymbol* pSymbol = static_cast<Debugger::CSymbol*>(symbols->GetClientData(index));

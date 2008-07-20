@@ -9,6 +9,7 @@ public:
 	static bool Exists(const std::string &filename);
 	static void Launch(const std::string &filename);
 	static void Explore(const std::string &path);
+	static bool IsDirectory(const std::string &filename);
 };
 
 #endif
