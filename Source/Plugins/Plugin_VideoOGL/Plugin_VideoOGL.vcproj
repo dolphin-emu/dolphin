@@ -1432,10 +1432,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\GPUOpenGL.cpp"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\main.cpp"
 			>
 		</File>
