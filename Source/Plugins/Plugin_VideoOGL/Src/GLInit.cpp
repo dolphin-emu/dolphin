@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Globals.h"
+#include "svnrev.h"
 #ifdef _WIN32
 #include "EmuWindow.h"
 #endif
@@ -81,7 +82,10 @@ BOOL Callback_PeekMessages()
 
 void UpdateFPSDisplay(const char *text)
 {
-    OpenGL_SetWindowText(text);
+ 	char temp[512];
+	sprintf(temp, "SVN R%i: %s", SVN_REV, text);
+    SetWindowText(EmuWindow::GetWnd(), temp);
+    OpenGL_SetWindowText(temp);
 }
 
 

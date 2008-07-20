@@ -4,6 +4,7 @@
 
 #include "Common.h"
 
+#include "svnrev.h"
 #include "resource.h"
 #include "main.h"
 #include "Globals.h"
@@ -61,7 +62,9 @@ BOOL Callback_PeekMessages()
 
 void UpdateFPSDisplay(const char *text)
 {
-    SetWindowText(EmuWindow::GetWnd(), text);
+	char temp[512];
+	sprintf(temp, "SVN R%i: %s", SVN_REV, text);
+    SetWindowText(EmuWindow::GetWnd(), temp);
 }
 
 bool Init()
