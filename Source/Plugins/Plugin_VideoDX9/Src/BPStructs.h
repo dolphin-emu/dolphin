@@ -9,7 +9,6 @@ void BPInit();
 size_t BPSaveLoadState(char *ptr, BOOL save);
 //bool BPWritten(int addr, int changes);
 void LoadBPReg(u32 value0);
-
 void ActivateTextures();
 
 #endif

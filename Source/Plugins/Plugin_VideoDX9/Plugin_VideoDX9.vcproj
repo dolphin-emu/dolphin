@@ -1367,14 +1367,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\TextureDecoder.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\TextureDecoder.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\TransformEngine.cpp"
 				>
 			</File>
@@ -1392,18 +1384,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\VertexShader.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Retired"
-			>
-			<File
-				RelativePath=".\Src\DLCompiler.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DLCompiler.h"
 				>
 			</File>
 		</Filter>
@@ -1485,6 +1465,10 @@
 		</File>
 		<File
 			RelativePath=".\Src\Globals.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\GPUDirect3D9.cpp"
 			>
 		</File>
 		<File

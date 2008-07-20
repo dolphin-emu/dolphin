@@ -113,7 +113,7 @@ void Execute(u32 _CurrentPC, u32 _Instruction)
 	}			
 	else
 	{
-		_dbg_assert_(HLE, 0);
+		PanicAlert("HLE system tried to call an undefined HLE function %i.", FunctionIndex);
 	}			
 
 //	_dbg_assert_msg_(HLE,NPC == LR, "Broken HLE function (doesn't set NPC)", OSPatches[pos].m_szPatchName);

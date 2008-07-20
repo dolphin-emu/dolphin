@@ -18,8 +18,10 @@
 #include "Globals.h"
 
 #include <wx/imaglist.h>
+#include <algorithm>
 
 #include "FileSearch.h"
+#include "FileUtil.h"
 #include "StringUtil.h"
 #include "BootManager.h"
 #include "Config.h"
@@ -42,6 +44,8 @@ EVT_LIST_COL_BEGIN_DRAG(LIST_CTRL, CGameListCtrl::OnColBeginDrag)
 EVT_LIST_ITEM_SELECTED(LIST_CTRL, CGameListCtrl::OnSelected)
 EVT_LIST_ITEM_ACTIVATED(LIST_CTRL, CGameListCtrl::OnActivated)
 EVT_LIST_COL_END_DRAG(LIST_CTRL, CGameListCtrl::OnColEndDrag)
+EVT_MENU(IDM_EDITPATCHFILE, CGameListCtrl::OnEditPatchFile)
+EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
 END_EVENT_TABLE()
 
 
@@ -116,6 +120,7 @@ CGameListCtrl::Update()
 		{
 			InsertItemInReportView(i);
 		}
+		SetItemState(0, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
 	}
 	else
 	{
@@ -126,6 +131,7 @@ CGameListCtrl::Update()
 		long item = InsertItem(0, buf, -1);
 		SetItemFont(item, *wxITALIC_FONT);
 		SetColumnWidth(item, wxLIST_AUTOSIZE);
+		SetItemState(0, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
 	}
 
 	AutomaticColumnWidth();
@@ -299,6 +305,7 @@ CGameListCtrl::ScanForISOs()
 			}
 		}
 	}
+	std::sort(m_ISOFiles.begin(), m_ISOFiles.end());
 }
 
 
@@ -317,8 +324,25 @@ CGameListCtrl::OnColEndDrag(wxListEvent& WXUNUSED (event))
 
 
 void
-CGameListCtrl::OnRightClick(wxMouseEvent& WXUNUSED (event))
-{}
+CGameListCtrl::OnRightClick(wxMouseEvent& event)
+{
+	// Focus the clicked item.
+	int flags;
+    long item = HitTest(event.GetPosition(), flags);
+	if (item != wxNOT_FOUND) {
+		SetItemState(item, wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED,
+			               wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED);
+	}
+	const CISOFile *selected_iso = GetSelectedISO();
+	if (selected_iso) {
+		std::string unique_id = selected_iso->GetUniqueID();
+		wxMenu popupMenu;
+		std::string menu_text = StringFromFormat("Edit &patch file: %s.ini", unique_id.c_str());
+		popupMenu.Append(IDM_EDITPATCHFILE, menu_text);
+		popupMenu.Append(IDM_OPENCONTAININGFOLDER, "Open &containing folder");
+		PopupMenu(&popupMenu);
+	}
+}
 
 
 void
@@ -331,13 +355,53 @@ CGameListCtrl::OnActivated(wxListEvent& event)
 	else
 	{
 		size_t Index = event.GetData();
-
 		if (Index < m_ISOFiles.size())
 		{
 			const CISOFile& rISOFile = m_ISOFiles[Index];
 			BootManager::BootCore(rISOFile.GetFileName());
 		}
 	}
+}
+
+const CISOFile *
+CGameListCtrl::GetSelectedISO() const
+{
+	int item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); 
+	if (item == -1)
+		return 0;
+	else
+		return &m_ISOFiles[GetItemData(item)];
+}
+
+void
+CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event)) {
+	const CISOFile *iso = GetSelectedISO();
+	if (!iso)
+		return;
+	std::string path;
+	SplitPath(iso->GetFileName(), &path, 0, 0);
+	File::Explore(path);
+}
+
+void
+CGameListCtrl::OnEditPatchFile(wxCommandEvent& WXUNUSED (event))
+{
+	const CISOFile *iso = GetSelectedISO();
+	if (!iso)
+		return;
+	std::string filename = "Patches/" + iso->GetUniqueID() + ".ini";
+	if (!File::Exists(filename)) {
+		if (AskYesNo("%s.ini does not exist. Do you want to create it?", iso->GetUniqueID().c_str())) {
+			FILE *f = fopen(filename.c_str(), "w");
+			fprintf(f, "# %s - %s\r\n\r\n", iso->GetUniqueID().c_str(), iso->GetName().c_str());
+			fprintf(f, "[OnFrame]\r\n#Add memory patches here.\r\n\r\n");
+			fprintf(f, "[ActionReplay]\r\n#Add decrypted action replay cheats here.\r\n");
+			fclose(f);
+		} else {
+			return;
+		}
+	}
+	File::Launch(filename);
 }
 
 

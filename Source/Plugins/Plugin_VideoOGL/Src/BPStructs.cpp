@@ -27,35 +27,6 @@
 #include "VertexShaderManager.h"
 #include "PixelShaderManager.h"
 
-#define BPMEM_GENMODE          0x00
-#define BPMEM_IND_MTX          0x06
-#define BPMEM_RAS1_SS0         0x25 // ind tex coord scale 0
-#define BPMEM_RAS1_SS1         0x26 // ind tex coord scale 1
-#define BPMEM_ZMODE            0x40
-#define BPMEM_BLENDMODE        0x41
-#define BPMEM_CONSTANTALPHA    0x42
-#define BPMEM_ALPHACOMPARE     0xF3
-#define BPMEM_LINEPTWIDTH      0x22
-#define BPMEM_TEXINVALIDATE    0x66
-#define BPMEM_SCISSORTL        0x20
-#define BPMEM_SCISSORBR        0x21
-#define BPMEM_SCISSOROFFSET    0x59
-#define BPMEM_CLEARBBOX1       0x55 //	let's hope not many games use bboxes..
-#define BPMEM_CLEARBBOX2       0x56 //  TODO(ector): add something that watches bboxes
-#define BPMEM_TEXMODE0_1       0x80
-#define BPMEM_TEXMODE0_2       0xA0
-#define BPMEM_FOGPARAM0        0xEE
-#define BPMEM_FOGBMAGNITUDE    0xEF
-#define BPMEM_FOGBEXPONENT     0xF0
-#define BPMEM_FOGPARAM3        0xF1
-#define BPMEM_FOGCOLOR         0xF2
-#define BPMEM_ZTEX1			   0xF4
-#define BPMEM_ZTEX2			   0xF5
-#define BPMEM_DRAWDONE	       0x45
-
-#define BPMEM_PE_TOKEN_ID		0x47
-#define BPMEM_PE_TOKEN_INT_ID	0x48
-
 // State translation lookup tables
 const GLenum glSrcFactors[8] =
 {
@@ -214,6 +185,7 @@ void BPWritten(int addr, int changes, int newval)
                 if( Renderer::CanBlendLogicOp() ) {
                     if( bpmem.blendmode.logicopenable ) {
                         glEnable(GL_COLOR_LOGIC_OP);
+						PanicAlert("Logic Op Blend : %i", bpmem.blendmode.logicmode);
                         glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);
                     }
                     else glDisable(GL_COLOR_LOGIC_OP);

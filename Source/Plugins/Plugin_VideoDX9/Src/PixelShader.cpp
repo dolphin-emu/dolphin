@@ -1,10 +1,7 @@
 #include "Globals.h"
-#include "D3DShader.h"
 #include "PixelShader.h"
 #include "BPStructs.h"
 #include "XFStructs.h"
-#include "W32Util/Misc.h"
-#include "Utils.h"
 
 /*
    old tev->pixelshader notes
@@ -239,32 +236,6 @@ const char *alphaRef[2] =
 };
 
 
-//I hope we don't get too many hash collisions :p
-//all these magic numbers are primes, it should help a bit
-tevhash GetCurrentTEV()
-{
-	u32 hash = bpmem.genMode.numindstages + bpmem.genMode.numtevstages*11 + bpmem.genMode.numtexgens*8*17;
-	for (int i = 0; i < (int)bpmem.genMode.numtevstages+1; i++)
-	{
-		hash = _rotl(hash,3) ^ (bpmem.combiners[i].colorC.hex*13);
-		hash = _rotl(hash,7) ^ ((bpmem.combiners[i].alphaC.hex&0xFFFFFFFC)*3);
-		hash = _rotl(hash,9) ^ xfregs.texcoords[i].texmtxinfo.projection*451;
-	}
-	for (int i = 0; i < (int)bpmem.genMode.numtevstages/2+1; i++)
-	{
-		hash = _rotl(hash,13) ^ (bpmem.tevorders[i].hex*7);
-	}
-	for (int i = 0; i < 8; i++)
-	{
-		hash = _rotl(hash,3) ^ bpmem.tevksel[i].swap1;
-		hash = _rotl(hash,3) ^ bpmem.tevksel[i].swap2;
-	}
-	hash ^= bpmem.dstalpha.enable ^ 0xc0debabe;
-	hash = _rotl(hash,4) ^ bpmem.alphaFunc.comp0*7;
-	hash = _rotl(hash,4) ^ bpmem.alphaFunc.comp1*13;
-	hash = _rotl(hash,4) ^ bpmem.alphaFunc.logic*11;
-	return hash;
-}
 
 char text[65536];
 #define WRITE p+=sprintf
@@ -290,12 +261,8 @@ void BuildSwapModeTable()
 	}
 }
 
-
-
-LPDIRECT3DPIXELSHADER9 GeneratePixelShader()
+const char *GeneratePixelShader()
 {
-    DVSTARTPROFILE();
-
 	BuildSwapModeTable();
 	int numStages = bpmem.genMode.numtevstages + 1;
 	int numTexgen = bpmem.genMode.numtexgens;
@@ -332,14 +299,9 @@ LPDIRECT3DPIXELSHADER9 GeneratePixelShader()
 	WRITE(p,"float4 c0=color0,c1=color1,c2=color2,prev=float4(0.0f,0.0f,0.0f,0.0f),textemp,rastemp,konsttemp;\n");
 	WRITE(p,"\n");
 
-    //WRITE(p, "return 1;}\n");
-    //return D3D::CompilePShader(text,(int)(p-text));
-
 	for (int i = 0; i < numStages; i++)
 		WriteStage(p,i); //build the equation for this stage
 
-    //WRITE(p, "prev = textemp;\n");
-    //WRITE(p, "prev = float4(uv[0].x,uv[0].y,0,1);\n");
 	WriteAlphaTest(p);
 	
 	if (bpmem.dstalpha.enable)
@@ -350,18 +312,7 @@ LPDIRECT3DPIXELSHADER9 GeneratePixelShader()
 	WRITE(p,"}\n");
 	WRITE(p,"\0");
 	
-//#ifndef TEASER
-/*
-	FILE *f=fopen("D:\\dlistlogs.txt","a");
-	fprintf(f,"===========================================\n");
-	fprintf(f,"%s",text);
-	fclose(f);
-*/
-	//W32Util::CopyTextToClipboard(0,text);
-//#endif
-
-	//MessageBox(0,text,0,0);
-	return D3D::CompilePShader(text,(int)(p-text));
+	return text;
 }
 
 void WriteStage(char *&p, int n)

@@ -6,6 +6,9 @@
 #include "PixelShader.h"
 #include "VertexShader.h"
 
+typedef u32 tevhash;
+
+tevhash GetCurrentTEV();
 
 
 class PShaderCache

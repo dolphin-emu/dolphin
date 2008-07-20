@@ -38,7 +38,7 @@ class IBannerLoader
 
 		virtual bool GetBanner(u32* _pBannerImage) = 0;
 
-		virtual bool GetName(std::string& _rName) = 0;
+		virtual bool GetName(std::string& _rName, int language) = 0;
 
 		virtual bool GetCompany(std::string& _rCompany) = 0;
 

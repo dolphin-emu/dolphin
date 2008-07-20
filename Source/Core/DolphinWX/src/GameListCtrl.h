@@ -20,20 +20,18 @@
 
 #include <vector>
 
+#include "wx/listctrl.h"
+
 #include "ISOFile.h"
 
-// Define a new application
-class CGameListCtrl
-	: public wxListCtrl
+class CGameListCtrl : public wxListCtrl
 {
 	public:
 
 		CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style);
-
 		void Update();
-
 		void BrowseForDirectory();
-
+		const CISOFile *GetSelectedISO() const;
 
 	private:
 
@@ -51,12 +49,11 @@ class CGameListCtrl
 		std::vector<int>m_FlagImageIndex;
 
 		bool m_test;
-		std::vector<CISOFile>m_ISOFiles;
+		std::vector<CISOFile> m_ISOFiles;
 
 		void InitBitmaps();
 		void InsertItemInReportView(size_t _Index);
 		void ScanForISOs();
-
 
 		DECLARE_EVENT_TABLE()
 
@@ -68,6 +65,8 @@ class CGameListCtrl
 		void OnSelected(wxListEvent& event);
 		void OnActivated(wxListEvent& event);
 		void OnSize(wxSizeEvent& event);
+		void OnEditPatchFile(wxCommandEvent& event);
+		void OnOpenContainingFolder(wxCommandEvent& event);
 
 		virtual bool MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem);
 

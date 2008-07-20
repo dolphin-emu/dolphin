@@ -223,6 +223,8 @@ inline u64 swap64(u64 data) {return(((u64)swap32(data) << 32) | swap32(data >> 3
 
 void PanicAlert(const char* text, ...);
 bool PanicYesNo(const char* text, ...);
+bool AskYesNo(const char* text, ...);
+
 extern void __Log(int logNumber, const char* text, ...);
 
 

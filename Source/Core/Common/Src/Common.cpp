@@ -78,6 +78,23 @@ bool PanicYesNo(const char* format, ...)
 }
 
 
+bool AskYesNo(const char* format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	bool retval;
+#ifdef _WIN32
+	std::string msg;
+	StringFromFormatV(&msg, format, args);
+	retval = IDYES == MessageBox(0, msg.c_str(), "Dolphin", MB_ICONQUESTION | MB_YESNO);
+#elif __GNUC__
+	//vprintf(format, args);
+	return(true); //#error Do a messagebox!
+#endif
+
+	va_end(args);
+	return(retval);
+}
 // Standard implementation of logging - simply print to standard output.
 // Programs are welcome to override this.
 /*

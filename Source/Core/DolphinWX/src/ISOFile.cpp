@@ -44,6 +44,7 @@ CISOFile::CISOFile(const std::string& _rFileName)
 		m_Country  = pVolume->GetCountry();
 		m_FileSize = pVolume->GetSize();
 		m_Name = pVolume->GetName();
+		m_UniqueID = pVolume->GetUniqueID();
 
 		// check if we can get some infos from the banner file too
 		DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(*pVolume);
@@ -56,7 +57,7 @@ CISOFile::CISOFile(const std::string& _rFileName)
 			{
 				if (pBannerLoader->IsValid())
 				{
-					pBannerLoader->GetName(m_Name);
+					pBannerLoader->GetName(m_Name, 0); //m_Country == DiscIO::IVolume::COUNTRY_JAP ? 1 : 0);
 					pBannerLoader->GetCompany(m_Company);
 
 					if (pBannerLoader->GetBanner(g_ImageTemp))

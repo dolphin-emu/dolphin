@@ -1,11 +1,9 @@
 #pragma once
 
 #include "Common.h"
+#include "D3DShader.h"
 
-typedef u32 tevhash;
-
-tevhash GetCurrentTEV();
-LPDIRECT3DPIXELSHADER9 GeneratePixelShader();
+const char *GeneratePixelShader();
 
 #define PS_CONST_COLORS  0
 #define PS_CONST_KCOLORS 4

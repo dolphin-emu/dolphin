@@ -234,6 +234,12 @@ const char *tevRasTable[] =
     "float4(0,0,0,0)", // zero
 };
 
+const char *alphaRef[2] = 
+{
+    I_ALPHA"[0].x",
+    I_ALPHA"[0].y"
+};
+
 const char *tevTexFunc[] = { "tex2D", "texRECT" };
 
 const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
@@ -741,12 +747,6 @@ void WrapNonPow2Tex(char* &p, const char* var, int texmap, u32 texture_mask)
         WRITE(p, "%s.xy *= "I_TEXDIMS"[%d].xy * "I_TEXDIMS"[%d].zw;\n", var, texmap, texmap);
     }
 }
-
-const char *alphaRef[2] = 
-{
-    I_ALPHA"[0].x",
-    I_ALPHA"[0].y"
-};
 
 void WriteAlphaCompare(char *&p, int num, int comp)
 {

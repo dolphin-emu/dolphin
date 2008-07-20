@@ -152,8 +152,14 @@ bool FifoCommandRunnable(void)
 		}
 		else
 		{
-			char szTemp[512];
-			sprintf(szTemp, "Error: Unknown Opcode (0x%x)", Cmd);
+            char szTemp[1024];
+            sprintf(szTemp, "GFX: Unknown Opcode (0x%x).\n"
+				"This means one of the following:\n"
+				"* The emulated GPU got desynced, disabling dual core can help\n"
+				"* Command stream corrupted by some spurious memory bug\n"
+				"* This really is an unknown opcode (unlikely)\n\n"
+				"* Some other sort of bug\n\n"
+				"Dolphin will now likely crash or hang. Enjoy.", Cmd);
 			MessageBox(NULL, szTemp, "Video-Plugin", MB_OK);			
 			g_VideoInitialize.pLog(szTemp, TRUE);
 		}

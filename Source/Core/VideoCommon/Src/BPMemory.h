@@ -1,9 +1,55 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
 #ifndef _BPMEMORY_H
 #define _BPMEMORY_H
 
 #include "Common.h"
 
 #pragma pack(4)
+
+#define BPMEM_GENMODE          0x00
+#define BPMEM_IND_MTX          0x06
+#define BPMEM_RAS1_SS0         0x25 // ind tex coord scale 0
+#define BPMEM_RAS1_SS1         0x26 // ind tex coord scale 1
+#define BPMEM_ZMODE            0x40
+#define BPMEM_BLENDMODE        0x41
+#define BPMEM_CONSTANTALPHA    0x42
+#define BPMEM_ALPHACOMPARE     0xF3
+#define BPMEM_LINEPTWIDTH      0x22
+#define BPMEM_TEXINVALIDATE    0x66
+#define BPMEM_SCISSORTL        0x20
+#define BPMEM_SCISSORBR        0x21
+#define BPMEM_SCISSOROFFSET    0x59
+#define BPMEM_CLEARBBOX1       0x55 //	let's hope not many games use bboxes..
+#define BPMEM_CLEARBBOX2       0x56 //  TODO(ector): add something that watches bboxes
+#define BPMEM_TEXMODE0_1       0x80
+#define BPMEM_TEXMODE0_2       0xA0
+#define BPMEM_FOGPARAM0        0xEE
+#define BPMEM_FOGBMAGNITUDE    0xEF
+#define BPMEM_FOGBEXPONENT     0xF0
+#define BPMEM_FOGPARAM3        0xF1
+#define BPMEM_FOGCOLOR         0xF2
+#define BPMEM_ZTEX1			   0xF4
+#define BPMEM_ZTEX2			   0xF5
+#define BPMEM_DRAWDONE	       0x45
+
+#define BPMEM_PE_TOKEN_ID		0x47
+#define BPMEM_PE_TOKEN_INT_ID	0x48
 
 //////////////////////////////////////////////////////////////////////////
 // Tev/combiner things

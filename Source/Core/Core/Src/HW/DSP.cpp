@@ -281,12 +281,12 @@ void Write16(const u16 _Value, const u32 _Address)
 		PluginDSP::DSP_WriteMailboxLow(true, _Value);
 		break;
 
-	case DSP_MAIL_FROM_DSP_HI:		
-		_dbg_assert_(DSPINTERFACE,0);
+	case DSP_MAIL_FROM_DSP_HI:	
+		_dbg_assert_msg_(DSPINTERFACE, 0, "W16: DSP_MAIL_FROM_DSP_HI");
 		break;
 
 	case DSP_MAIL_FROM_DSP_LO:	
-		_dbg_assert_(DSPINTERFACE,0);
+		_dbg_assert_msg_(DSPINTERFACE, 0, "W16: DSP_MAIL_FROM_DSP_LO");
 		break;
 
 	// ==================================================================================

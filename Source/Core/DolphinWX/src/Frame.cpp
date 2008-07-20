@@ -187,6 +187,15 @@ CFrame::CreateMenu()
 		m_pMenuBar->Append(fileMenu, _T("&File"));
 	}
 
+	// Game menu
+	{
+		wxMenu* pGameMenu = new wxMenu;
+		{
+			wxMenuItem *pItem = new wxMenuItem(pGameMenu, IDM_EDITPATCHFILE, "Edit patch file");
+			pGameMenu->Append(pItem);
+		}
+	}
+
 	// emulation menu
 	{
 		wxMenu* pEmulationMenu = new wxMenu;

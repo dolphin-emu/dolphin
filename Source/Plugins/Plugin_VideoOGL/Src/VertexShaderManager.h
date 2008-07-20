@@ -93,10 +93,8 @@ class VertexShaderMngr
 
     static VSCache vshaders;
     static VERTEXSHADER* pShaderLast;
-    static TMatrixIndexA MatrixIndexA;
-    static TMatrixIndexB MatrixIndexB;
 
-    static void GetVertexShaderId(VERTEXSHADERUID& uid, u32 components);
+	static void GetVertexShaderId(VERTEXSHADERUID& uid, u32 components);
 
 	static void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4);
 	static void SetVSConstant4fv(int const_number, const float *f);
@@ -126,5 +124,6 @@ public:
     static float rawViewport[6];
     static float rawProjection[7];
 };
+
 
 #endif

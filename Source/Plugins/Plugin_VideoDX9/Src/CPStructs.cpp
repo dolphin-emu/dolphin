@@ -6,9 +6,6 @@
 #include "VertexHandler.h"
 #include "VertexLoader.h"
 
-TMatrixIndexA MatrixIndexA;
-TMatrixIndexB MatrixIndexB;
-
 // PROBLEM - matrix switching within vbuffers may be stateful!
 
 void CPUpdateMatricesA()
@@ -65,10 +62,10 @@ void LoadCPReg(u32 SubCmd, u32 Value)
 size_t CPSaveLoadState(char *ptr, BOOL save)
 {
 	BEGINSAVELOAD;
-	SAVELOAD(arraybases,16*sizeof(u32));
-	SAVELOAD(arraystrides,16*sizeof(u32));
-	SAVELOAD(&MatrixIndexA,sizeof(TMatrixIndexA));
-	SAVELOAD(&MatrixIndexB,sizeof(TMatrixIndexB));
+	SAVELOAD(arraybases, 16 * sizeof(u32));
+	SAVELOAD(arraystrides, 16 * sizeof(u32));
+	SAVELOAD(&MatrixIndexA, sizeof(TMatrixIndexA));
+	SAVELOAD(&MatrixIndexB, sizeof(TMatrixIndexB));
 	if (!save)
 	{
 		CPUpdateMatricesA();

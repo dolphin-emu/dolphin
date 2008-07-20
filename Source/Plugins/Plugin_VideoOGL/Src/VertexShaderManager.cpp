@@ -28,8 +28,6 @@
 
 VertexShaderMngr::VSCache VertexShaderMngr::vshaders;
 VERTEXSHADER* VertexShaderMngr::pShaderLast = NULL;
-TMatrixIndexA VertexShaderMngr::MatrixIndexA;
-TMatrixIndexB VertexShaderMngr::MatrixIndexB;
 float VertexShaderMngr::rawViewport[6] = {0};
 float VertexShaderMngr::rawProjection[7] = {0};
 float GC_ALIGNED16(g_fProjectionMatrix[16]);

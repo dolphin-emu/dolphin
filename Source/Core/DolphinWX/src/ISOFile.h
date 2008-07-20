@@ -29,30 +29,31 @@ class CISOFile
 
 		bool IsValid() const {return(m_Valid);}
 
-
 		const std::string& GetFileName() const {return(m_FileName);}
-
 
 		const std::string& GetName() const {return(m_Name);}
 
-
 		const std::string& GetCompany() const {return(m_Company);}
 
+		const std::string& GetUniqueID() const {return(m_UniqueID);}
 
 		DiscIO::IVolume::ECountry GetCountry() const {return(m_Country);}
 
-
 		u64 GetFileSize() const {return(m_FileSize);}
-
 
 		const wxImage& GetImage() const {return(m_Image);}
 
+		bool operator < (const CISOFile &other) const {
+			// HACK - they end up in reverse order in the list view
+			return strcmp(m_Name.c_str(), other.m_Name.c_str()) > 0;
+		}
 
 	private:
 
 		std::string m_FileName;
 		std::string m_Name;
 		std::string m_Company;
+		std::string m_UniqueID;
 
 		u64 m_FileSize;
 

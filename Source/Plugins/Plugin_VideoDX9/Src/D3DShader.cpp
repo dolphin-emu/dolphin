@@ -50,29 +50,6 @@ namespace D3D
 
 		return vShader;
 	}
-	LPDIRECT3DVERTEXSHADER9 LoadVShader(const char *filename)
-	{
-		//alloc a temp buffer for code
-		char *temp = new char[65536];
-		
-		//open and read the file
-		FILE *f = fopen(filename,"rb");
-		if (!f)
-		{
-			MessageBox(0,"FATAL ERROR Vertex Shader file not found",filename,0);
-			return 0;
-		}
-		fseek(f,0,SEEK_END);
-		int len = ftell(f);
-		fseek(f,0,SEEK_SET);
-		fread(temp,len,1,f);
-		fclose(f);
-		LPDIRECT3DVERTEXSHADER9 vShader = CompileVShader(temp,len);
-		//kill off our temp code buffer
-		delete [] temp;
-		//return the compiled shader, or null
-		return vShader;
-	}
 
 	LPDIRECT3DPIXELSHADER9 CompilePShader(const char *code, int len)
 	{
@@ -109,28 +86,6 @@ namespace D3D
 		if (errorBuffer)
 			errorBuffer->Release();
 
-		return pShader;
-	}
-
-	LPDIRECT3DPIXELSHADER9 LoadPShader(const char *filename)
-	{
-		//open and read the file
-		FILE *f = fopen(filename,"rb");
-		if (!f)
-		{
-			MessageBox(0,"FATAL ERROR Pixel Shader file not found",filename,0);
-			return 0;
-		}
-		fseek(f,0,SEEK_END);
-		int len = ftell(f);
-		char *temp = new char[len];
-		fseek(f,0,SEEK_SET);
-		fread(temp,len,1,f);
-		fclose(f);
-		LPDIRECT3DPIXELSHADER9 pShader = CompilePShader(temp,len);
-		//kill off our temp code buffer
-		delete [] temp;
-		//return the compiled shader, or null
 		return pShader;
 	}
 }

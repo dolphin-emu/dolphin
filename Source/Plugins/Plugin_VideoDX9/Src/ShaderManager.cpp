@@ -2,6 +2,37 @@
 #include "Utils.h"
 #include "Globals.h"
 #include "ShaderManager.h"
+#include "BPMemory.h"
+#include "XFMemory.h"
+
+
+//I hope we don't get too many hash collisions :p
+//all these magic numbers are primes, it should help a bit
+tevhash GetCurrentTEV()
+{
+	u32 hash = bpmem.genMode.numindstages + bpmem.genMode.numtevstages*11 + bpmem.genMode.numtexgens*8*17;
+	for (int i = 0; i < (int)bpmem.genMode.numtevstages+1; i++)
+	{
+		hash = _rotl(hash,3) ^ (bpmem.combiners[i].colorC.hex*13);
+		hash = _rotl(hash,7) ^ ((bpmem.combiners[i].alphaC.hex&0xFFFFFFFC)*3);
+		hash = _rotl(hash,9) ^ xfregs.texcoords[i].texmtxinfo.projection*451;
+	}
+	for (int i = 0; i < (int)bpmem.genMode.numtevstages/2+1; i++)
+	{
+		hash = _rotl(hash,13) ^ (bpmem.tevorders[i].hex*7);
+	}
+	for (int i = 0; i < 8; i++)
+	{
+		hash = _rotl(hash,3) ^ bpmem.tevksel[i].swap1;
+		hash = _rotl(hash,3) ^ bpmem.tevksel[i].swap2;
+	}
+	hash ^= bpmem.dstalpha.enable ^ 0xc0debabe;
+	hash = _rotl(hash,4) ^ bpmem.alphaFunc.comp0*7;
+	hash = _rotl(hash,4) ^ bpmem.alphaFunc.comp1*13;
+	hash = _rotl(hash,4) ^ bpmem.alphaFunc.logic*11;
+	return hash;
+}
+
 
 PShaderCache::PSCache PShaderCache::pshaders;
 VShaderCache::VSCache VShaderCache::vshaders;
@@ -47,8 +78,8 @@ void PShaderCache::SetShader()
 		return;
 	}
 
-	LPDIRECT3DPIXELSHADER9 shader = GeneratePixelShader();
-
+	const char *code = GeneratePixelShader();
+	LPDIRECT3DPIXELSHADER9 shader = D3D::CompilePShader(code, strlen(code));
 	if (shader)
 	{
 		//Make an entry in the table

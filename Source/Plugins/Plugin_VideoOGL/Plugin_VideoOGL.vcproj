@@ -1343,14 +1343,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\TextureDecoder.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\TextureDecoder.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\VertexShader.cpp"
 				>
 			</File>
@@ -1437,6 +1429,10 @@
 		</File>
 		<File
 			RelativePath=".\Src\Globals.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\GPUOpenGL.cpp"
 			>
 		</File>
 		<File

@@ -35,7 +35,7 @@ class CBannerLoaderWii
 
 		virtual bool GetBanner(u32* _pBannerImage);
 
-		virtual bool GetName(std::string& _rName);
+		virtual bool GetName(std::string& _rName, int language);
 
 		virtual bool GetCompany(std::string& _rCompany);
 

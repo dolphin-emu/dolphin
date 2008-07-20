@@ -89,7 +89,7 @@ CBannerLoaderWii::GetBanner(u32* _pBannerImage)
 
 
 bool
-CBannerLoaderWii::GetName(std::string& _rName)
+CBannerLoaderWii::GetName(std::string& _rName, int language)
 {
 	_rName = m_Name;
 	return(true);

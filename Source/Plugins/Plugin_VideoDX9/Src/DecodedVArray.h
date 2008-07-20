@@ -29,7 +29,7 @@ public:
 	int count;
 	DecodedVArray();
 	~DecodedVArray();
-	void SetComponents(u32 comps) {components = comps; vertexSize=ComputeVertexSize(components);}
+	void SetComponents(u32 comps) {components = comps; vertexSize = ComputeVertexSize(components);}
 	u32  GetComponents() const {return components;}
 	void Create(int _size, int pmcount, int tmcount, int nrmcount, int colcount, int tccount);
 	void Zero();

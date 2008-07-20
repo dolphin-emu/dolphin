@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Globals.h"
 #include "Common.h"
 
 #include "TextureDecoder.h"
@@ -329,8 +328,6 @@ void decodeDXTBlock(u32 *dst, DXTBlock *src, int pitch)
 //need to add DXT support too
 PC_TexFormat TexDecoder_Decode(u8 *dst, u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
-    DVSTARTPROFILE();
-
     switch (texformat)
     {
     case GX_TF_C4:

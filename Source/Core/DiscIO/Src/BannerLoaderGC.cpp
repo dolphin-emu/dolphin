@@ -82,7 +82,7 @@ CBannerLoaderGC::GetBanner(u32* _pBannerImage)
 
 
 bool
-CBannerLoaderGC::GetName(std::string& _rName)
+CBannerLoaderGC::GetName(std::string& _rName, int language)
 {
 	_rName = "invalid image";
 
@@ -93,7 +93,9 @@ CBannerLoaderGC::GetName(std::string& _rName)
 
 	DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
 
-	if (!CopyToStringAndCheck(_rName, pBanner->comment[0].longTitle))
+	int lang = 0;
+
+	if (!CopyToStringAndCheck(_rName, language != 0 ? pBanner->comment[0].shortTitle : pBanner->comment[0].longTitle))
 	{
 		return(false);
 	}

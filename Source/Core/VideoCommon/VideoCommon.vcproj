@@ -406,11 +406,23 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\GPUInterface.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\LookUpTables.cpp"
 			>
 		</File>
 		<File
 			RelativePath=".\Src\LookUpTables.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\TextureDecoder.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\TextureDecoder.h"
 			>
 		</File>
 		<File

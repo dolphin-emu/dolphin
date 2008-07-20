@@ -141,7 +141,13 @@ void TextureCache::Load(int stage, DWORD address, int width, int height, int for
 	
 	int bs = TexDecoder_GetBlockWidthInTexels(format)-1; //TexelSizeInNibbles(format)*width*height/16;
 	int expandedWidth = (width+bs) & (~bs);
-	D3DFORMAT dfmt = TexDecoder_Decode(temp,ptr,expandedWidth,height,format, tlutaddr, tlutfmt);
+	PC_TexFormat pcfmt = TexDecoder_Decode(temp,ptr,expandedWidth,height,format, tlutaddr, tlutfmt);
+	D3DFORMAT d3d_fmt;
+	switch (pcfmt) {
+	case PC_TEX_FMT_BGRA32:
+		d3d_fmt = D3DFMT_A8R8G8B8;
+		break;
+	}
 
 	//Make an entry in the table
 	TCacheEntry entry;
@@ -154,7 +160,7 @@ void TextureCache::Load(int stage, DWORD address, int width, int height, int for
 	entry.addr = address;
 	entry.isRenderTarget=false;
 	entry.isNonPow2 = ((width&(width-1)) || (height&(height-1)));
-	entry.texture = D3D::CreateTexture2D((BYTE*)temp,width,height,expandedWidth,dfmt);
+	entry.texture = D3D::CreateTexture2D((BYTE*)temp, width, height, expandedWidth, d3d_fmt);
 	entry.frameCount = frameCount;
 	entry.w=width;
 	entry.h=height;
