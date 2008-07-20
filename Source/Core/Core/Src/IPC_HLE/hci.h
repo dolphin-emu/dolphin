@@ -7,7 +7,7 @@
 
 
 typedef u8 uint8_t;
-#ifdef WIN32
+#ifdef _WIN32
     typedef s8 int8_t;
 #endif
 typedef u16 uint16_t;
