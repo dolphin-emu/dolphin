@@ -1,3 +1,4 @@
+﻿
 Microsoft Visual Studio Solution File, Format Version 9.00
 # Visual Studio 2005
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Core", "Core\Core\Core.vcproj", "{F0B874CB-4476-4199-9315-8343D05AE684}"
@@ -79,6 +80,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VideoCommon", "Core\VideoCo
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin_PadDX9", "Plugins\Plugin_PadDX9\Plugin_PadDX9.vcproj", "{805B34AA-82A5-4875-8DC7-3C85BDC0BCEE}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin_nJoy_SDL", "Plugins\Plugin_nJoy_SDL\Plugin_nJoy_SDL\Plugin_nJoy_SDL.vcproj", "{521498BE-6089-4780-8223-E67C22F4E068}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -282,6 +285,15 @@ Global
 		{805B34AA-82A5-4875-8DC7-3C85BDC0BCEE}.Release|Win32.Build.0 = Release|Win32
 		{805B34AA-82A5-4875-8DC7-3C85BDC0BCEE}.Release|x64.ActiveCfg = Release|x64
 		{805B34AA-82A5-4875-8DC7-3C85BDC0BCEE}.Release|x64.Build.0 = Release|x64
+		{521498BE-6089-4780-8223-E67C22F4E068}.Debug|Win32.ActiveCfg = Debug|Win32
+		{521498BE-6089-4780-8223-E67C22F4E068}.Debug|Win32.Build.0 = Debug|Win32
+		{521498BE-6089-4780-8223-E67C22F4E068}.Debug|x64.ActiveCfg = Debug|Win32
+		{521498BE-6089-4780-8223-E67C22F4E068}.DebugFast|Win32.ActiveCfg = Debug|Win32
+		{521498BE-6089-4780-8223-E67C22F4E068}.DebugFast|Win32.Build.0 = Debug|Win32
+		{521498BE-6089-4780-8223-E67C22F4E068}.DebugFast|x64.ActiveCfg = Debug|Win32
+		{521498BE-6089-4780-8223-E67C22F4E068}.Release|Win32.ActiveCfg = Release|Win32
+		{521498BE-6089-4780-8223-E67C22F4E068}.Release|Win32.Build.0 = Release|Win32
+		{521498BE-6089-4780-8223-E67C22F4E068}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
