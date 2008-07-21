@@ -251,11 +251,9 @@ CDIHandler::ChangeNumPlayers( DWORD dwNumPlayers, BOOL bResetOwnership, BOOL bRe
 					MessageBox( m_hWnd, sz, _T("Too Many Users"), MB_OK | MB_ICONEXCLAMATION );                    
 					break;
 				}
-
 			default:
-				MessageBox(NULL, "ChangeNumPlayers", "Pad", MB_OK);
+				MessageBox(NULL, "Error creating DirectInput device.", "Pad DX9", MB_OK);
 				return S_FALSE;
-				break;
 			}
 
 			m_pInputDeviceManager->Cleanup();                                

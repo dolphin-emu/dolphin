@@ -20,6 +20,7 @@
 #include "RegisterWindow.h"
 #include "LogWindow.h"
 #include "BreakpointWindow.h"
+#include "MemoryWindow.h"
 #include "IniFile.h"
 
 #include "wx/button.h"
@@ -28,6 +29,7 @@
 #include "wx/thread.h"
 #include "wx/listctrl.h"
 #include "CodeWindow.h"
+#include "CodeView.h"
 #include "HW/CPU.h"
 #include "PowerPC/PowerPC.h"
 #include "Host.h"
@@ -65,7 +67,8 @@ enum
 	IDM_DUALCORE,
 	IDM_LOGWINDOW,
 	IDM_REGISTERWINDOW,
-	IDM_BREAKPOINTWINDOW
+	IDM_BREAKPOINTWINDOW,
+	IDM_MEMORYWINDOW,
 };
 
 BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
@@ -82,6 +85,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
     EVT_MENU(IDM_LOGWINDOW,         CCodeWindow::OnToggleLogWindow)
     EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleRegisterWindow)
     EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleBreakPointWindow)
+    EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleMemoryWindow)
 END_EVENT_TABLE()
 
 
@@ -137,9 +141,10 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	m_BreakpointWindow = new CBreakPointWindow(this, this);
 	m_BreakpointWindow->Show(true);
 
+	m_MemoryWindow = new CMemoryWindow(this);
+	m_MemoryWindow->Show(true);
 
 	UpdateButtonStates();
-
 
     int x,y,w,h;
 
@@ -152,23 +157,38 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
     file.Get("Code", "h", &h, GetSize().GetHeight());
     this->SetSize(x, y, w, h);
 
-    file.Get("BreakPoint", "x", &x, m_BreakpointWindow->GetPosition().x);
-    file.Get("BreakPoint", "y", &y, m_BreakpointWindow->GetPosition().y);
-    file.Get("BreakPoint", "w", &w, m_BreakpointWindow->GetSize().GetWidth());
-    file.Get("BreakPoint", "h", &h, m_BreakpointWindow->GetSize().GetHeight());
-    m_BreakpointWindow->SetSize(x, y, w, h);
+	// These really should be in the respective constructors.
+	if (m_BreakpointWindow) {
+		file.Get("BreakPoint", "x", &x, m_BreakpointWindow->GetPosition().x);
+		file.Get("BreakPoint", "y", &y, m_BreakpointWindow->GetPosition().y);
+		file.Get("BreakPoint", "w", &w, m_BreakpointWindow->GetSize().GetWidth());
+		file.Get("BreakPoint", "h", &h, m_BreakpointWindow->GetSize().GetHeight());
+		m_BreakpointWindow->SetSize(x, y, w, h);
+	}
 
-    file.Get("LogWindow", "x", &x, m_logwindow->GetPosition().x);
-    file.Get("LogWindow", "y", &y, m_logwindow->GetPosition().y);
-    file.Get("LogWindow", "w", &w, m_logwindow->GetSize().GetWidth());
-    file.Get("LogWindow", "h", &h, m_logwindow->GetSize().GetHeight());
-    m_logwindow->SetSize(x, y, w, h);
+	if (m_logwindow) {
+		file.Get("LogWindow", "x", &x, m_logwindow->GetPosition().x);
+		file.Get("LogWindow", "y", &y, m_logwindow->GetPosition().y);
+		file.Get("LogWindow", "w", &w, m_logwindow->GetSize().GetWidth());
+		file.Get("LogWindow", "h", &h, m_logwindow->GetSize().GetHeight());
+		m_logwindow->SetSize(x, y, w, h);
+	}
 
-    file.Get("RegisterWindow", "x", &x, m_RegisterWindow->GetPosition().x);
-    file.Get("RegisterWindow", "y", &y, m_RegisterWindow->GetPosition().y);
-    file.Get("RegisterWindow", "w", &w, m_RegisterWindow->GetSize().GetWidth());
-    file.Get("RegisterWindow", "h", &h, m_RegisterWindow->GetSize().GetHeight());
-    m_RegisterWindow->SetSize(x, y, w, h);
+	if (m_RegisterWindow) {
+		file.Get("RegisterWindow", "x", &x, m_RegisterWindow->GetPosition().x);
+		file.Get("RegisterWindow", "y", &y, m_RegisterWindow->GetPosition().y);
+		//file.Get("RegisterWindow", "w", &w, m_RegisterWindow->GetSize().GetWidth());
+		//file.Get("RegisterWindow", "h", &h, m_RegisterWindow->GetSize().GetHeight());
+		m_RegisterWindow->SetSize(x, y, w, h);
+	}
+
+	if (m_MemoryWindow) {
+		file.Get("MemoryWindow", "x", &x, m_MemoryWindow->GetPosition().x);
+		file.Get("MemoryWindow", "y", &y, m_MemoryWindow->GetPosition().y);
+		file.Get("MemoryWindow", "w", &w, m_MemoryWindow->GetSize().GetWidth());
+		file.Get("MemoryWindow", "h", &h, m_MemoryWindow->GetSize().GetHeight());
+		m_RegisterWindow->SetSize(x, y, w, h);
+	}
 }
 
 
@@ -182,22 +202,35 @@ CCodeWindow::~CCodeWindow()
     file.Set("Code", "w", GetSize().GetWidth());
     file.Set("Code", "h", GetSize().GetHeight());
 
-    file.Set("BreakPoint", "x", m_BreakpointWindow->GetPosition().x);
-    file.Set("BreakPoint", "y", m_BreakpointWindow->GetPosition().y);
-    file.Set("BreakPoint", "w", m_BreakpointWindow->GetSize().GetWidth());
-    file.Set("BreakPoint", "h", m_BreakpointWindow->GetSize().GetHeight());
+	// These really should be in the respective destructors.
+	if (m_BreakpointWindow) {
+		file.Set("BreakPoint", "x", m_BreakpointWindow->GetPosition().x);
+		file.Set("BreakPoint", "y", m_BreakpointWindow->GetPosition().y);
+		file.Set("BreakPoint", "w", m_BreakpointWindow->GetSize().GetWidth());
+		file.Set("BreakPoint", "h", m_BreakpointWindow->GetSize().GetHeight());
+	}
 
-    file.Set("LogWindow", "x", m_logwindow->GetPosition().x);
-    file.Set("LogWindow", "y", m_logwindow->GetPosition().y);
-    file.Set("LogWindow", "w", m_logwindow->GetSize().GetWidth());
-    file.Set("LogWindow", "h", m_logwindow->GetSize().GetHeight());
+	if (m_logwindow) {
+		file.Set("LogWindow", "x", m_logwindow->GetPosition().x);
+		file.Set("LogWindow", "y", m_logwindow->GetPosition().y);
+		file.Set("LogWindow", "w", m_logwindow->GetSize().GetWidth());
+		file.Set("LogWindow", "h", m_logwindow->GetSize().GetHeight());
+	}
 
-    file.Set("RegisterWindow", "x", m_RegisterWindow->GetPosition().x);
-    file.Set("RegisterWindow", "y", m_RegisterWindow->GetPosition().y);
-    file.Set("RegisterWindow", "w", m_RegisterWindow->GetSize().GetWidth());
-    file.Set("RegisterWindow", "h", m_RegisterWindow->GetSize().GetHeight());
+	if (m_RegisterWindow) {
+		file.Set("RegisterWindow", "x", m_RegisterWindow->GetPosition().x);
+		file.Set("RegisterWindow", "y", m_RegisterWindow->GetPosition().y);
+		file.Set("RegisterWindow", "w", m_RegisterWindow->GetSize().GetWidth());
+		file.Set("RegisterWindow", "h", m_RegisterWindow->GetSize().GetHeight());
+	}
 
-    file.Save("Debugger.ini");
+	if (m_MemoryWindow) {
+		file.Set("MemoryWindow", "x", m_MemoryWindow->GetPosition().x);
+		file.Set("MemoryWindow", "y", m_MemoryWindow->GetPosition().y);
+		file.Set("MemoryWindow", "w", m_MemoryWindow->GetSize().GetWidth());
+		file.Set("MemoryWindow", "h", m_MemoryWindow->GetSize().GetHeight());
+	}
+	file.Save("Debugger.ini");
 }
 
 
@@ -231,7 +264,9 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		wxMenuItem* pBreakPoints = pDebugDialogs->Append(IDM_BREAKPOINTWINDOW, _T("&BreakPoints"), wxEmptyString, wxITEM_CHECK);
 		pBreakPoints->Check(true);
 
-		pMenuBar->Append(pDebugDialogs, _T("&Dialogs"));
+		wxMenuItem* pMemory = pDebugDialogs->Append(IDM_MEMORYWINDOW, _T("&Memory"), wxEmptyString, wxITEM_CHECK);
+		pMemory->Check(true);
+		pMenuBar->Append(pDebugDialogs, _T("&Views"));
 	}
 
 	SetMenuBar(pMenuBar);
@@ -523,6 +558,33 @@ void CCodeWindow::OnToggleBreakPointWindow(wxCommandEvent& event)
 	}
 }
 
+void CCodeWindow::OnToggleMemoryWindow(wxCommandEvent& event)
+{
+	bool show = GetMenuBar()->IsChecked(event.GetId());
+
+	if (show)
+	{
+		if (!m_MemoryWindow)
+		{
+			m_MemoryWindow = new CMemoryWindow(this);
+		}
+
+		m_MemoryWindow->Show(true);
+	}
+	else // hide
+	{
+		// If m_dialog is NULL, then possibly the system
+		// didn't report the checked menu item status correctly.
+		// It should be true just after the menu item was selected,
+		// if there was no modeless dialog yet.
+		wxASSERT(m_MemoryWindow != NULL);
+
+		if (m_MemoryWindow)
+		{
+			m_MemoryWindow->Hide();
+		}
+	}
+}
 void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 {
 	switch (event.GetId())

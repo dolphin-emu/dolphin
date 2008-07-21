@@ -15,14 +15,14 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef CODEWINDOW_H_
-#define CODEWINDOW_H_
+#ifndef MEMORYWINDOW_H_
+#define MEMORYWINDOW_H_
 
 #include "wx/dialog.h"
 #include "wx/textctrl.h"
 #include "wx/listbox.h"
 #include "Debugger.h"
-#include "CodeView.h"
+#include "MemoryView.h"
 #include "Thread.h"
 
 #include "CoreParameter.h"
@@ -30,66 +30,39 @@
 class CRegisterWindow;
 class CLogWindow;
 class CBreakPointWindow;
-class CMemoryWindow;
-class CCodeView;
 
-class CCodeWindow
+class CMemoryWindow
 	: public wxFrame
 {
 	public:
 
-		CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent,
+		CMemoryWindow(wxWindow* parent,
 			wxWindowID id = wxID_ANY,
-			const wxString& title = _T("Dolphin-Debugger"),
+			const wxString& title = _T("Dolphin-Memory"),
 		const wxPoint& pos = wxPoint(950, 100),
 		const wxSize& size = wxSize(400, 500),
 		long style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE);
 
-        ~CCodeWindow();
+        ~CMemoryWindow();
 
 		void Update();
 		void NotifyMapLoaded();
 
-		bool UseInterpreter();
-		bool UseDualCore();
         void JumpToAddress(u32 _Address);
 
 	private:
-
-		// sub dialogs
-		CLogWindow* m_logwindow;
-		CRegisterWindow* m_RegisterWindow;
-		CBreakPointWindow* m_BreakpointWindow;
-		CMemoryWindow* m_MemoryWindow;
-
-		CCodeView* codeview;
-		wxListBox* callstack;
+		CMemoryView* memview;
 		wxListBox* symbols;
-		Common::Event sync_event;
 
 		wxButton* buttonGo;
-		wxButton* buttonStep;
-		wxButton* buttonStepOver;
-		wxButton* buttonSkip;
-		wxButton* buttonGotoPC;
-
 		wxTextCtrl* addrbox;
+
 		DECLARE_EVENT_TABLE()
 
 		void OnSymbolListChange(wxCommandEvent& event);
 		void OnCallstackListChange(wxCommandEvent& event);
-		void OnCodeStep(wxCommandEvent& event);
 		void OnAddrBoxChange(wxCommandEvent& event);
-
-		void OnToggleRegisterWindow(wxCommandEvent& event);
-		void OnToggleBreakPointWindow(wxCommandEvent& event);
-		void OnToggleLogWindow(wxCommandEvent& event);
-		void OnToggleMemoryWindow(wxCommandEvent& event);
 		void OnHostMessage(wxCommandEvent& event);
-
-		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter);
-
-		void UpdateButtonStates();
 };
 
-#endif /*CODEWINDOW_*/
+#endif /*MEMORYWINDOW_*/

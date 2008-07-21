@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="DebuggerWX"
 	ProjectGUID="{4D3CD4C5-412B-4B49-9B1B-A68A2A129C77}"
 	RootNamespace="DebuggerWX"
@@ -430,6 +430,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\MemoryView.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\MemoryView.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\RegisterView.cpp"
 				>
 			</File>
@@ -484,6 +492,14 @@
 		</File>
 		<File
 			RelativePath=".\src\MemoryCheckDlg.h"
+			>
+		</File>
+		<File
+			RelativePath=".\src\MemoryWindow.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\src\MemoryWindow.h"
 			>
 		</File>
 		<File

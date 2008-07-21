@@ -26,7 +26,7 @@ class CRegisterView;
 class CRegisterWindow
 	: public wxDialog
 {
-	private:
+	private:	
 
 		DECLARE_EVENT_TABLE();
 

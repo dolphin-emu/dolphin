@@ -84,8 +84,8 @@ void SConfig::LoadSettings()
 	// hard coded default plugin
 	{
 		ini.Get("Default", "GFXPlugin", &m_DefaultGFXPlugin);
-		ini.Get("Default", "DSPPlugin",   &m_DefaultDSPPlugin);
-		ini.Get("Default", "PadPlugin",   &m_DefaultPADPlugin);
+		ini.Get("Default", "DSPPlugin", &m_DefaultDSPPlugin);
+		ini.Get("Default", "PadPlugin", &m_DefaultPADPlugin);
 	}
 
 	// misc
@@ -114,7 +114,8 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "DSPPlugin",  &m_LocalCoreStartupParameter.m_strDSPPlugin, m_DefaultDSPPlugin.c_str());
 		ini.Get("Core", "PadPlugin",  &m_LocalCoreStartupParameter.m_strPadPlugin, m_DefaultPADPlugin.c_str());
 
-		ini.Get("Core", "UseDynarec",  &m_LocalCoreStartupParameter.bUseDynarec,   false);
+		ini.Get("Core", "HLEBios",     &m_LocalCoreStartupParameter.bHLEBios,      true);
+		ini.Get("Core", "UseDynarec",  &m_LocalCoreStartupParameter.bUseDynarec,   true);
 		ini.Get("Core", "UseDualCore", &m_LocalCoreStartupParameter.bUseDualCore,  false);
 		ini.Get("Core", "Throttle",    &m_LocalCoreStartupParameter.bThrottle,     true);
 		ini.Get("Core", "LockThreads", &m_LocalCoreStartupParameter.bLockThreads,  true);
