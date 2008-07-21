@@ -229,7 +229,7 @@ void Init()
 
 	for (int i=0; i<4; i++)
 	{
-		if (PluginPAD::PAD_GetNumberOfPads() & (1<i))
+		if (PluginPAD::PAD_GetNumberOfPads() & (1<<i))
 			g_Channel[i].m_pDevice = new CSIDevice_GCController(i);
 		else
 			g_Channel[i].m_pDevice = new CSIDevice_Dummy(i);
