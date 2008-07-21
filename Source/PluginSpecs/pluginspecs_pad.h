@@ -126,6 +126,14 @@ EXPORT void CALL PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus);
 EXPORT void CALL PAD_Rumble(BYTE _numPAD, unsigned int _uType, unsigned int _uStrength);
 
 // __________________________________________________________________________________________________
+// Function: PAD_GetNumberOfPads
+// Purpose:  Get number of pads (it is flag eg: controller 1 & 4 -> 5)
+// input:	 none
+// output:   number of pads
+//
+EXPORT unsigned int CALL PAD_GetNumberOfPads();
+
+// __________________________________________________________________________________________________
 // Function: SaveLoadState
 // Purpose:  Saves/load state
 // input:    pointer to a 32k scratchpad/saved state

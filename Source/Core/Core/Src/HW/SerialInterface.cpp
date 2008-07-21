@@ -24,6 +24,7 @@
 #include "CPU.h"
 
 #include "../PowerPC/PowerPC.h"
+#include "../Plugins/Plugin_PAD.h"
 
 namespace SerialInterface
 {
@@ -226,11 +227,14 @@ void Init()
 		g_Channel[i].m_InLo.Hex = 0;		
 	}	
 
-	g_Channel[0].m_pDevice = new CSIDevice_GCController(0);
-	g_Channel[1].m_pDevice = new CSIDevice_Dummy(1);//new CSIDevice_GCController(1);
-	g_Channel[2].m_pDevice = new CSIDevice_Dummy(2);//new CSIDevice_GCController(2);
-	g_Channel[3].m_pDevice = new CSIDevice_Dummy(3);//new CSIDevice_GCController(3);
-
+	for (int i=0; i<4; i++)
+	{
+		if (PluginPAD::PAD_GetNumberOfPads() & (1<i))
+			g_Channel[i].m_pDevice = new CSIDevice_GCController(i);
+		else
+			g_Channel[i].m_pDevice = new CSIDevice_Dummy(i);
+	}
+	
 	g_Poll.Hex = 0;
 	g_ComCSR.Hex = 0;
 	g_StatusReg.Hex = 0;

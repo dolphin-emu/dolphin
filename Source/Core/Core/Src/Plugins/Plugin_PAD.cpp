@@ -29,6 +29,8 @@ typedef void (__cdecl* TPAD_Initialize)(SPADInitialize);
 typedef void (__cdecl* TPAD_Shutdown)();
 typedef void (__cdecl* TPAD_GetStatus)(BYTE, SPADStatus*);
 typedef void (__cdecl* TPAD_Rumble)(BYTE, unsigned int, unsigned int);
+typedef unsigned int (__cdecl* TPAD_GetNumberOfPads)();
+
 
 //! Function Pointer
 TGetDllInfo		g_GetDllInfo		= 0;
@@ -38,6 +40,7 @@ TDllConfig		g_DllConfig			= 0;
 TPAD_Initialize g_PAD_Initialize	= 0;
 TPAD_GetStatus	g_PAD_GetStatus		= 0;
 TPAD_Rumble		g_PAD_Rumble		= 0;
+TPAD_GetNumberOfPads g_PAD_GetNumberOfPads = 0;
 
 //! Library Instance
 DynamicLibrary plugin;
@@ -71,6 +74,7 @@ bool LoadPlugin(const char *_Filename)
 		g_PAD_Shutdown	= reinterpret_cast<TPAD_Shutdown>	(plugin.Get("PAD_Shutdown"));
 		g_PAD_GetStatus	= reinterpret_cast<TPAD_GetStatus>	(plugin.Get("PAD_GetStatus"));
 		g_PAD_Rumble	= reinterpret_cast<TPAD_Rumble>		(plugin.Get("PAD_Rumble"));
+		g_PAD_GetNumberOfPads = reinterpret_cast<TPAD_GetNumberOfPads>(plugin.Get("PAD_GetNumberOfPads"));
 
 		if ((g_GetDllInfo != 0) &&
 			(g_DllAbout != 0) &&
@@ -130,6 +134,14 @@ void PAD_Rumble(BYTE _numPAD, unsigned int _iType, unsigned int _iStrength)
 {
     if (g_PAD_Rumble)
 	    g_PAD_Rumble(_numPAD, _iType, _iStrength);
+}
+
+unsigned int PAD_GetNumberOfPads()
+{
+	if (g_PAD_GetNumberOfPads)
+		return g_PAD_GetNumberOfPads();
+
+	return 1;
 }
 
 } // end of namespace PluginPAD
