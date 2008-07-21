@@ -126,12 +126,12 @@ EXPORT void CALL PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus);
 EXPORT void CALL PAD_Rumble(BYTE _numPAD, unsigned int _uType, unsigned int _uStrength);
 
 // __________________________________________________________________________________________________
-// Function: PAD_GetNumberOfPads
-// Purpose:  Get number of pads (it is flag eg: controller 1 & 4 -> 5)
+// Function: PAD_GetAttachedPads
+// Purpose:  Get mask of attached pads (eg: controller 1 & 4 -> 0x9)
 // input:	 none
 // output:   number of pads
 //
-EXPORT unsigned int CALL PAD_GetNumberOfPads();
+EXPORT unsigned int CALL PAD_GetAttachedPads();
 
 // __________________________________________________________________________________________________
 // Function: SaveLoadState

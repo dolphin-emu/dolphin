@@ -38,7 +38,7 @@ void PAD_Initialize(SPADInitialize _PADInitialize);
 void PAD_Shutdown();
 void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus);
 void PAD_Rumble(BYTE _numPAD, unsigned int _uType, unsigned int _uStrength);
-unsigned int PAD_GetNumberOfPads();
+unsigned int PAD_GetAttachedPads();
 unsigned int SaveLoadState(char* _ptr, BOOL save);
 
 } // end of namespace PluginPAD
