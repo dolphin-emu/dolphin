@@ -338,8 +338,8 @@ CGameListCtrl::OnRightClick(wxMouseEvent& event)
 		std::string unique_id = selected_iso->GetUniqueID();
 		wxMenu popupMenu;
 		std::string menu_text = StringFromFormat("Edit &patch file: %s.ini", unique_id.c_str());
-		popupMenu.Append(IDM_EDITPATCHFILE, menu_text);
-		popupMenu.Append(IDM_OPENCONTAININGFOLDER, "Open &containing folder");
+		popupMenu.Append(IDM_EDITPATCHFILE, wxString::FromAscii(menu_text.c_str())); //Pretty much everything in wxwidgets is a wxString, try to convert to those first!
+		popupMenu.Append(IDM_OPENCONTAININGFOLDER, wxString::FromAscii("Open &containing folder"));
 		PopupMenu(&popupMenu);
 	}
 }

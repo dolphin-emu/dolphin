@@ -56,7 +56,9 @@ bool BootCore(const std::string& _rFilename)
 //		StartUp.bUseDualCore = false;
 		StartUp.bUseDynarec = true;
 	}
-
+	#ifndef _WIN32
+		StartUp.bUseDynarec = false;//Never use Dynarec in Linux, crashes
+	#endif
 	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
 	StartUp.m_strFilename = _rFilename;
 	StartUp.bHLEBios = true;

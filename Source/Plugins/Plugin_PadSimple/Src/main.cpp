@@ -367,7 +367,6 @@ void DInput_Read(int _numPad, SPADStatus* _pPADStatus)
 	if (dinput.diks[keyForControl[CTL_START]]    & 0xFF){_pPADStatus->button |= PAD_BUTTON_START;}
 }
 
-
 void XInput_Read(int _numPAD, SPADStatus* _pPADStatus)
 {
 #ifdef XINPUT_ENABLE

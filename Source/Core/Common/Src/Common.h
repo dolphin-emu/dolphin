@@ -105,7 +105,9 @@ typedef union _LARGE_INTEGER
 #define GC_ALIGNED16_DECL(x) x
 #else
 #define GC_ALIGNED16(x)  x
+#define GC_ALIGNED64(x)  x
 #define GC_ALIGNED16_DECL(x) x __attribute((aligned(16)))
+#define GC_ALIGNED64_DECL(x) x
 #endif
 
 #ifndef __forceinline

@@ -1,6 +1,8 @@
 #include "Common.h"
 #include "FileUtil.h"
+#ifdef _WIN32
 #include <shellapi.h>
+#endif
 
 bool File::Exists(const std::string &filename)
 {

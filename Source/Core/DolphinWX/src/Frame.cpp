@@ -191,7 +191,7 @@ CFrame::CreateMenu()
 	{
 		wxMenu* pGameMenu = new wxMenu;
 		{
-			wxMenuItem *pItem = new wxMenuItem(pGameMenu, IDM_EDITPATCHFILE, "Edit patch file");
+			wxMenuItem *pItem = new wxMenuItem(pGameMenu, IDM_EDITPATCHFILE, wxString::FromAscii("Edit patch file"));
 			pGameMenu->Append(pItem);
 		}
 	}

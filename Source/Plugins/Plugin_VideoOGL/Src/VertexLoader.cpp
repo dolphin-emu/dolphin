@@ -54,7 +54,10 @@ float tcScaleU[8];
 float tcScaleV[8];
 int tcIndex;
 int colIndex;
-
+#ifndef _WIN32
+    #undef inline
+    #define inline
+#endif
 inline u8 ReadBuffer8()
 {
     return g_pDataReader->Read8();

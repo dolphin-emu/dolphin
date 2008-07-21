@@ -3,6 +3,7 @@ Import('env')
 files = ["BPMemory.cpp",
 		 "CPMemory.cpp",
 		 "LookUpTables.cpp",
+		 "TextureDecoder.cpp",
 		 "XFMemory.cpp",
 		 ]
 
