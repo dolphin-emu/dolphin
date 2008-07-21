@@ -174,21 +174,21 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 
 	// Adjust range
 	// The value returned by SDL_JoystickGetAxis is a signed integer (-32768 to 32768)
-	// -128 and 128
-	int main_stick_x = joystate[_numPAD].axis[CTL_MAIN_X] / 256;
-	int main_stick_y = joystate[_numPAD].axis[CTL_MAIN_Y] / 256;	
-    int sub_stick_x = joystate[_numPAD].axis[CTL_SUB_X] / 256;
-	int sub_stick_y = joystate[_numPAD].axis[CTL_SUB_Y] / 256;	
+	// The value used for the gamecube controller is an unsigned char (0 to 255)
+	int main_stick_x = (joystate[_numPAD].axis[CTL_MAIN_X]>>8)+127;
+	int main_stick_y = (joystate[_numPAD].axis[CTL_MAIN_Y]>>8)+127;
+    int sub_stick_x = (joystate[_numPAD].axis[CTL_SUB_X]>>8)+127;
+	int sub_stick_y = (joystate[_numPAD].axis[CTL_SUB_Y]>>8)+127;
 
-	// TODO: fix, 128 would cause 0x00
-	if(main_stick_x > 127)
-		main_stick_x = 127;
-	if(main_stick_y > 127)
-		main_stick_y = 127;
-	if(sub_stick_x > 127)
-		sub_stick_x = 127;
-	if(sub_stick_y > 127)
-		sub_stick_y = 127;
+	// Quick fix
+	if(main_stick_x > 255)
+		main_stick_x = 255;
+	if(main_stick_y > 255)
+		main_stick_y = 255;
+	if(sub_stick_x > 255)
+		sub_stick_x = 255;
+	if(sub_stick_y > 255)
+		sub_stick_y = 255;
 
 	// Send values to Dolpin
 	if ((main_stick_x < deadzone2)	|| (main_stick_x > deadzone))	_pPADStatus->stickX += main_stick_x;

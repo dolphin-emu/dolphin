@@ -421,7 +421,9 @@ void SetControllerAll(HWND hDlg, int controller)
 	SetButton(hDlg, IDTEXT_Y, joysticks[controller].buttons[CTL_Y_BUTTON]);
 	SetButton(hDlg, IDTEXT_Z, joysticks[controller].buttons[CTL_Z_TRIGGER]);
 	SetButton(hDlg, IDTEXT_START, joysticks[controller].buttons[CTL_START]);
+	
 	SetButton(hDlg, IDTEXT_DPAD, joysticks[controller].dpad);
+	
 	SetButton(hDlg, IDTEXT_MX, joysticks[controller].axis[CTL_MAIN_X]);
 	SetButton(hDlg, IDTEXT_MY, joysticks[controller].axis[CTL_MAIN_Y]);
 	SetButton(hDlg, IDTEXT_SX, joysticks[controller].axis[CTL_SUB_X]);
@@ -439,15 +441,14 @@ void GetControllerAll(HWND hDlg, int controller)
 	joysticks[controller].ID = (int)SendMessage(GetDlgItem(hDlg, IDC_JOYNAME), CB_GETCURSEL, 0, 0); 
 
 	joysticks[controller].buttons[CTL_L_SHOULDER] = GetButton(hDlg, IDTEXT_SHOULDERL);
-	joysticks[controller].buttons[CTL_L_SHOULDER] = GetButton(hDlg, IDTEXT_SHOULDERL);
-
+	joysticks[controller].buttons[CTL_R_SHOULDER] = GetButton(hDlg, IDTEXT_SHOULDERR);
 	joysticks[controller].buttons[CTL_A_BUTTON] = GetButton(hDlg, IDTEXT_A);
 	joysticks[controller].buttons[CTL_B_BUTTON] = GetButton(hDlg, IDTEXT_B);
 	joysticks[controller].buttons[CTL_X_BUTTON] = GetButton(hDlg, IDTEXT_X);
 	joysticks[controller].buttons[CTL_Y_BUTTON] = GetButton(hDlg, IDTEXT_Y);
 	joysticks[controller].buttons[CTL_Z_TRIGGER] = GetButton(hDlg, IDTEXT_Z);
-
 	joysticks[controller].buttons[CTL_START] = GetButton(hDlg, IDTEXT_START);
+
 	joysticks[controller].dpad = GetButton(hDlg, IDTEXT_DPAD);
 
 	joysticks[controller].axis[CTL_MAIN_X] = GetButton(hDlg, IDTEXT_MX);
