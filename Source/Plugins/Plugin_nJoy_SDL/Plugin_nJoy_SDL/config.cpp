@@ -47,7 +47,7 @@ int OpenConfig(HINSTANCE hInst, HWND _hParent)
     psp[0].hInstance = hInst;
     psp[0].pszTemplate = MAKEINTRESOURCE(IDD_CONFIG);
     psp[0].pszIcon = NULL;
-    psp[0].pfnDlgProc = ControllerTab1;
+    psp[0].pfnDlgProc = (DLGPROC)ControllerTab1;
     psp[0].pszTitle = "Controller 1";
     psp[0].lParam = 0;
 
@@ -56,7 +56,7 @@ int OpenConfig(HINSTANCE hInst, HWND _hParent)
     psp[1].hInstance = hInst;
     psp[1].pszTemplate = MAKEINTRESOURCE(IDD_CONFIG);
     psp[1].pszIcon = NULL;
-    psp[1].pfnDlgProc = ControllerTab2;
+    psp[1].pfnDlgProc = (DLGPROC)ControllerTab2;
     psp[1].pszTitle = "Controller 2";
     psp[1].lParam = 0;
     
@@ -65,7 +65,7 @@ int OpenConfig(HINSTANCE hInst, HWND _hParent)
     psp[2].hInstance = hInst;
     psp[2].pszTemplate = MAKEINTRESOURCE(IDD_CONFIG);
     psp[2].pszIcon = NULL;
-    psp[2].pfnDlgProc = ControllerTab3;
+    psp[2].pfnDlgProc = (DLGPROC)ControllerTab3;
     psp[2].pszTitle = "Controller 3";
     psp[2].lParam = 0;
 
@@ -74,7 +74,7 @@ int OpenConfig(HINSTANCE hInst, HWND _hParent)
     psp[3].hInstance = hInst;
     psp[3].pszTemplate = MAKEINTRESOURCE(IDD_CONFIG);
     psp[3].pszIcon = NULL;
-    psp[3].pfnDlgProc = ControllerTab4;
+    psp[3].pfnDlgProc = (DLGPROC)ControllerTab4;
     psp[3].pszTitle = "Controller 4";
     psp[3].lParam = 0;
 
@@ -484,7 +484,7 @@ int GetButton(HWND hDlg, int item)
 
 void OpenAbout(HINSTANCE hInst, HWND _hParent)
 {
-	DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUT), _hParent, AboutDlg);
+	DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUT), _hParent, (DLGPROC)AboutDlg);
 }
 
 BOOL CALLBACK AboutDlg(HWND abouthWnd, UINT message, WPARAM wParam, LPARAM lParam)

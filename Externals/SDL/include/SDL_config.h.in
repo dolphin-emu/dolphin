@@ -136,6 +136,7 @@
 #undef HAVE_CLOCK_GETTIME
 #undef HAVE_DLVSYM
 #undef HAVE_GETPAGESIZE
+#undef HAVE_MPROTECT
 
 #else
 /* We may need some replacement for stdarg.h here */
@@ -201,13 +202,13 @@
 #undef SDL_CDROM_WIN32
 
 /* Enable various input drivers */
+#undef SDL_INPUT_LINUXEV
 #undef SDL_INPUT_TSLIB
 #undef SDL_JOYSTICK_BEOS
 #undef SDL_JOYSTICK_DC
 #undef SDL_JOYSTICK_DUMMY
 #undef SDL_JOYSTICK_IOKIT
 #undef SDL_JOYSTICK_LINUX
-#undef SDL_JOYSTICK_LINUXEV
 #undef SDL_JOYSTICK_MACOS
 #undef SDL_JOYSTICK_MINT
 #undef SDL_JOYSTICK_OS2
