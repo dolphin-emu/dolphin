@@ -218,6 +218,8 @@ void DllAbout(HWND _hParent)
 	aboutDlg.DoModal(_hParent);
 #endif
 }
+
+#ifndef _WIN32
 void SDL_Inputinit()
 {
 	if ( SDL_Init(SDL_INIT_JOYSTICK) < 0 ) 
@@ -243,9 +245,8 @@ void SDL_Inputinit()
   }
   else
     printf("Couldn't open Joystick 0\n");
-
-
 }
+#endif
 
 void DllConfig(HWND _hParent)
 {
