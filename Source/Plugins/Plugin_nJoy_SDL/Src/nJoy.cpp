@@ -206,10 +206,26 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 	if ((sub_stick_y < deadzone2)	|| (sub_stick_y > deadzone))	_pPADStatus->substickY += sub_stick_y;
 
 	// Set buttons
-	if (joystate[_numPAD].buttons[CTL_L_SHOULDER])	_pPADStatus->button|=PAD_TRIGGER_L;
-	if (joystate[_numPAD].buttons[CTL_R_SHOULDER])	_pPADStatus->button|=PAD_TRIGGER_R;
-	if (joystate[_numPAD].buttons[CTL_A_BUTTON])	_pPADStatus->button|=PAD_BUTTON_A;
-	if (joystate[_numPAD].buttons[CTL_B_BUTTON])	_pPADStatus->button|=PAD_BUTTON_B;
+	if (joystate[_numPAD].buttons[CTL_L_SHOULDER])
+	{
+		_pPADStatus->button|=PAD_TRIGGER_L;
+		_pPADStatus->triggerLeft  = 255;	// Perhaps support halfpress/pressure
+	}
+	if (joystate[_numPAD].buttons[CTL_R_SHOULDER])	
+	{
+		_pPADStatus->button|=PAD_TRIGGER_R;
+		_pPADStatus->triggerRight = 255;	// Perhaps support halfpress/pressure
+	}
+	if (joystate[_numPAD].buttons[CTL_A_BUTTON])
+	{
+		_pPADStatus->button|=PAD_BUTTON_A;
+		_pPADStatus->analogA = 255;			// Perhaps support halfpress/pressure
+	}
+	if (joystate[_numPAD].buttons[CTL_B_BUTTON])
+	{
+		_pPADStatus->button|=PAD_BUTTON_B;
+		_pPADStatus->analogB = 255;			// Perhaps support halfpress/pressure
+	}
 	if (joystate[_numPAD].buttons[CTL_X_BUTTON])	_pPADStatus->button|=PAD_BUTTON_X;
 	if (joystate[_numPAD].buttons[CTL_Y_BUTTON])	_pPADStatus->button|=PAD_BUTTON_Y;
 	if (joystate[_numPAD].buttons[CTL_Z_TRIGGER])	_pPADStatus->button|=PAD_TRIGGER_Z;
