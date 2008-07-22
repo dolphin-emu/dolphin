@@ -176,9 +176,9 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 	// The value returned by SDL_JoystickGetAxis is a signed integer (-32768 to 32768)
 	// The value used for the gamecube controller is an unsigned char (0 to 255)
 	int main_stick_x = (joystate[_numPAD].axis[CTL_MAIN_X]>>8);
-	int main_stick_y = (joystate[_numPAD].axis[CTL_MAIN_Y]>>8);
+	int main_stick_y = -(joystate[_numPAD].axis[CTL_MAIN_Y]>>8);
     int sub_stick_x = (joystate[_numPAD].axis[CTL_SUB_X]>>8);
-	int sub_stick_y = (joystate[_numPAD].axis[CTL_SUB_Y]>>8);
+	int sub_stick_y = -(joystate[_numPAD].axis[CTL_SUB_Y]>>8);
 
 	// Quick fix
 	if(main_stick_x > 127)
@@ -201,9 +201,9 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 
 	// Send values to Dolpin
 	if ((main_stick_x < deadzone2)	|| (main_stick_x > deadzone))	_pPADStatus->stickX += main_stick_x;
-	if ((main_stick_y < deadzone2)	|| (main_stick_y > deadzone))	_pPADStatus->stickY -= main_stick_y;
+	if ((main_stick_y < deadzone2)	|| (main_stick_y > deadzone))	_pPADStatus->stickY += main_stick_y;
 	if ((sub_stick_x < deadzone2)	|| (sub_stick_x > deadzone))	_pPADStatus->substickX += sub_stick_x;
-	if ((sub_stick_y < deadzone2)	|| (sub_stick_y > deadzone))	_pPADStatus->substickY -= sub_stick_y;
+	if ((sub_stick_y < deadzone2)	|| (sub_stick_y > deadzone))	_pPADStatus->substickY += sub_stick_y;
 
 	// Set buttons
 	if (joystate[_numPAD].buttons[CTL_L_SHOULDER])	_pPADStatus->button|=PAD_TRIGGER_L;
