@@ -38,6 +38,20 @@ HINSTANCE g_hInstance = NULL;
 SVideoInitialize g_VideoInitialize;
 #define VERSION_STRING "0.1"
 
+#include "wx/wx.h"
+#include "wx/aboutdlg.h"
+
+class wxDLLApp : public wxApp
+{
+	bool OnInit()
+	{
+		return true;
+	}
+};
+IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+
+WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+
 #ifdef _WIN32
 BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
                       DWORD dwReason,		// reason called
@@ -46,9 +60,19 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
     switch (dwReason)
     {
     case DLL_PROCESS_ATTACH:
-        break;
+		{       //use wxInitialize() if you don't want GUI instead of the following 12 lines
+			wxSetInstance((HINSTANCE)hinstDLL);
+			int argc = 0;
+			char **argv = NULL;
+			wxEntryStart(argc, argv);
+			if ( !wxTheApp || !wxTheApp->CallOnInit() )
+				return FALSE;
+		}
+		break; 
+
     case DLL_PROCESS_DETACH:
         CloseConsole();
+		wxEntryCleanup(); //use wxUninitialize() if you don't want GUI 
         break;
     default:
         break;
@@ -76,9 +100,10 @@ void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 
 void DllAbout(HWND _hParent) 
 {
-#ifdef _WIN32
-    DialogBox(g_hInstance,(LPCSTR)IDD_ABOUT,_hParent,(DLGPROC)AboutProc);
-#endif
+	wxAboutDialogInfo info;
+	info.AddDeveloper(_T("zerofrog(@gmail.com)"));
+	info.SetDescription(_T("Vertex/Pixel Shader 2.0 or higher, framebuffer objects, multiple render targets"));
+	wxAboutBox(info);
 }
 
 void DllConfig(HWND _hParent)
@@ -169,8 +194,8 @@ bool ScreenShot(TCHAR *File)
     sprintf(str, "Dolphin OGL " VERSION_STRING);
 
     Renderer::ResetGLState();
-    Renderer::DrawText(str, left+1, top+1, 0xff000000);
-    Renderer::DrawText(str, left, top, 0xffc0ffff);
+//    Renderer::DrawText(str, left+1, top+1, 0xff000000);
+//    Renderer::DrawText(str, left, top, 0xffc0ffff);
     Renderer::RestoreGLState();
 
     if (Renderer::SaveRenderTarget(File, 0)) {
