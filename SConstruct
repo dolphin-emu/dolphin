@@ -1,6 +1,6 @@
 import os
 
-ccflags = '-g -O2 -msse2 -Wall -DLOGGING -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE'
+ccflags = '-g -O3 -fno-strict-aliasing -fPIC -m64 -msse2 -Wall -DLOGGING -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE'
 
 if False:
 	ccflags += ' -fomit-frame-pointer'
@@ -26,6 +26,7 @@ dirs = ["Source/Core/Common/Src",
 		"Source/Plugins/Plugin_DSP_NULL/Src",
 		"Source/Plugins/Plugin_DSP_LLE/Src",
 		"Source/Plugins/Plugin_PadSimple/Src",
+		"Source/Plugins/Plugin_nJoy_SDL/Plugin_nJoy_SDL",
         "Source/Core/DolphinWX/src",
        ]
 

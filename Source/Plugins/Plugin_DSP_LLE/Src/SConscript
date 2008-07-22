@@ -13,4 +13,4 @@ files = ["disassemble.cpp",
          "Tools.cpp",
 		 ]
 #env.Append(LINKFLAGS = "-symbolic")
-env.SharedLibrary(output, files)
+env.SharedLibrary(output, files, LIBS = ["common"])

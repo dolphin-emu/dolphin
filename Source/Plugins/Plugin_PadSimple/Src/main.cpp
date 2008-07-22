@@ -43,11 +43,12 @@ DInput dinput;
 
 #else
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/keysym.h>
+#include <SDL.h>
+SDL_Joystick *joy;
+int numaxes = 0;
+int numbuttons = 0;
+int numballs = 0;
 
-Display* GXdsp;
 #endif
 
 // controls
@@ -217,7 +218,34 @@ void DllAbout(HWND _hParent)
 	aboutDlg.DoModal(_hParent);
 #endif
 }
+void SDL_Inputinit()
+{
+	if ( SDL_Init(SDL_INIT_JOYSTICK) < 0 ) 
+	{
+		printf("Unable to init SDL: %s\n", SDL_GetError());
+		exit(1);
+	}
+	for(int a = 0; a < SDL_NumJoysticks();a ++)
+		printf("Name:%s\n",SDL_JoystickName(a));
+	// Open joystick
+	joy=SDL_JoystickOpen(0);
+  
+  if(joy)
+  {
+    printf("Opened Joystick 0\n");
+    printf("Name: %s\n", SDL_JoystickName(0));
+    printf("Number of Axes: %d\n", SDL_JoystickNumAxes(joy));
+    printf("Number of Buttons: %d\n", SDL_JoystickNumButtons(joy));
+    printf("Number of Balls: %d\n", SDL_JoystickNumBalls(joy));
+    numaxes = SDL_JoystickNumAxes(joy);
+    numbuttons = SDL_JoystickNumButtons(joy);
+    numballs = SDL_JoystickNumBalls(joy);
+  }
+  else
+    printf("Couldn't open Joystick 0\n");
 
+
+}
 
 void DllConfig(HWND _hParent)
 {
@@ -228,6 +256,8 @@ void DllConfig(HWND _hParent)
 	configDlg.DoModal(_hParent);
 
 	SaveConfig();
+#else
+	SDL_Inputinit();
 #endif
 }
 
@@ -242,7 +272,7 @@ void PAD_Initialize(SPADInitialize _PADInitialize)
 #ifdef _WIN32
 	dinput.Init((HWND)g_PADInitialize.hWnd);
 #else
-	GXdsp = (Display*)g_PADInitialize.hWnd;
+	SDL_Inputinit();
 #endif
 
 	LoadConfig();
@@ -256,6 +286,10 @@ void PAD_Shutdown()
 #endif
 #ifdef _WIN32
 	dinput.Free();
+#else
+  // Close if opened
+  if(SDL_JoystickOpened(0))
+    SDL_JoystickClose(joy);
 #endif
 	SaveConfig();
 }
@@ -435,7 +469,7 @@ void XInput_Read(int _numPAD, SPADStatus* _pPADStatus)
 
 
 #endif
-
+int a = 0;
 #ifndef _WIN32
 // The graphics plugin in the PCSX2 design leaves a lot of the window processing to the pad plugin, weirdly enough.
 void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
@@ -445,59 +479,47 @@ void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
 	{
 		return;
 	}
-
-	// This code is from Zerofrog's pcsx2 pad plugin
-	XEvent E;
-	//int keyPress=0, keyRelease=0;
-	KeySym key;
-
-	// keyboard input
-	while (XPending(GXdsp) > 0)
+	SDL_JoystickUpdate();
+	for(int a = 0;a < numbuttons;a++)
 	{
-		XNextEvent(GXdsp, &E);
-
-		switch (E.type)
+		if(SDL_JoystickGetButton(joy, a))
 		{
-		    case KeyPress:
-			    //_KeyPress(pad, XLookupKeysym((XKeyEvent *)&E, 0)); break;
-			    key = XLookupKeysym((XKeyEvent*)&E, 0);
-			    /*
-			       for (i = 0; i < PADKEYS; i++) {
-			       	if (key == conf.keys[pad][i]) {
-			       	    keyPress |= (1<<i);
-			       	    keyRelease&=~(1<<i);
-			       	    break;
-			       	}
-			       }*/
-			    break;
-
-		    case KeyRelease:
-			    key = XLookupKeysym((XKeyEvent*)&E, 0);
-			    /*
-			       //_KeyRelease(pad, XLookupKeysym((XKeyEvent *)&E, 0));
-			       for (i=0; i<PADKEYS; i++) {
-			       	if (key == conf.keys[pad][i]) {
-			       	    keyPress&=~(1<<i);
-			       	    keyRelease|= (1<<i);
-			       	    break;
-			       	}
-			       }*/
-			    break;
-
-		    case FocusIn:
-			    XAutoRepeatOff(GXdsp);
-			    break;
-
-		    case FocusOut:
-			    XAutoRepeatOn(GXdsp);
-			    break;
+			switch(a)
+			{
+				case 0://A
+					_pPADStatus->button |= PAD_BUTTON_A;
+					_pPADStatus->analogA = 255;
+				break;
+				case 1://B
+					_pPADStatus->button |= PAD_BUTTON_B;
+					_pPADStatus->analogB = 255;
+				break;
+				case 2://X
+					_pPADStatus->button |= PAD_BUTTON_Y;
+				break;
+				case 3://Y
+					_pPADStatus->button |= PAD_BUTTON_X;
+				break;
+				case 5://RB
+					_pPADStatus->button |= PAD_TRIGGER_Z;
+				break;
+				case 6://Start
+					_pPADStatus->button |= PAD_BUTTON_START;
+				break;
+			}
 		}
 	}
+
 }
 
 
 #endif
-
+unsigned int PAD_GetAttachedPads()
+{
+	unsigned int connected = 0;
+	connected |= 1;	
+	return connected;
+}
 void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 {
 	// check if all is okay

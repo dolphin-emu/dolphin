@@ -151,7 +151,7 @@ wxString NiceSizeFormat(s64 _size)
 	const char* sizes[] = {"b", "KB", "MB", "GB", "TB", "PB", "EB"};
 	int s = 0;
 	int frac = 0;
-
+	
 	while (_size > (s64)1024)
 	{
 		s++;
@@ -162,9 +162,9 @@ wxString NiceSizeFormat(s64 _size)
 	float f = (float)_size + ((float)frac / 1024.0f);
 
 	wxString NiceString;
-	wxString tempstring;
-	tempstring = wxString::FromAscii("%3.1f %s"); // Gotta convert to wxString first or else it complains
-	NiceString.Printf(tempstring, f, sizes[s]);
+	char tempstr[32];
+	sprintf(tempstr,"%3.1f %s", f, sizes[s]);
+	NiceString = wxString::FromAscii(tempstr);
 	return(NiceString);
 }
 

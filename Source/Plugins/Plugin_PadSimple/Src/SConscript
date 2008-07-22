@@ -2,4 +2,5 @@ Import('env')
 output = "../../../../Binary/linux/Plugins/padsimple.so"
 files = ["main.cpp",
 		 ]
-env.SharedLibrary(output, files, LIBS=["common"])
+padenv=env.Copy(CXXFLAGS = " `pkg-config --cflags sdl`", LINKFLAGS = " `pkg-config --libs sdl`")
+padenv.SharedLibrary(output, files, LIBS=["common"])
