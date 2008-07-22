@@ -81,7 +81,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VideoCommon", "Core\VideoCo
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin_PadDX9", "Plugins\Plugin_PadDX9\Plugin_PadDX9.vcproj", "{805B34AA-82A5-4875-8DC7-3C85BDC0BCEE}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin_nJoy_SDL", "Plugins\Plugin_nJoy_SDL\Plugin_nJoy_SDL\Plugin_nJoy_SDL.vcproj", "{521498BE-6089-4780-8223-E67C22F4E068}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin_nJoy_SDL", "Plugins\Plugin_nJoy_SDL\Plugin_nJoy_SDL.vcproj", "{521498BE-6089-4780-8223-E67C22F4E068}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C573CAF7-EE6A-458E-8049-16C0BF34C2E9} = {C573CAF7-EE6A-458E-8049-16C0BF34C2E9}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
