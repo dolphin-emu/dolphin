@@ -242,8 +242,7 @@ void Decode(void)
         if (Cmd&0x80)
         {			
             // load vertices
-            u16 numVertices = g_pDataReader->Read16();	
-            printf("numVertices %d\n",numVertices);		
+            u16 numVertices = g_pDataReader->Read16();		
             if( numVertices > 0 ) {
                 g_VertexLoaders[Cmd & GX_VAT_MASK].RunVertices((Cmd & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, numVertices);
             }
