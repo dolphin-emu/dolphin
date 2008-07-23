@@ -41,7 +41,7 @@
 #include <time.h>
 #include <SDL.h>		// includes SDL
 
-#include "Common.h"	// only linux?
+#include "Common.h"
 
 #include "pluginspecs_pad.h"
 #include "config.h"
