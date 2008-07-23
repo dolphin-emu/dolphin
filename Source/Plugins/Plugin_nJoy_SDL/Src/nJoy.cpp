@@ -90,9 +90,12 @@ void DllConfig(HWND _hParent)
 		return;
 	}
 
-	LoadConfig();
+	LoadConfig();	// load settings
 	if(OpenConfig(nJoy_hInst, _hParent))
+	{
 		SaveConfig();
+	}
+	LoadConfig();	// reload settings
 }
 
 // Init PAD (start emulation)

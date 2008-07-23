@@ -520,11 +520,13 @@ void GetControllerAll(HWND hDlg, int controller)
 
 void UpdateVisibleItems(HWND hDlg, int controllertype)
 {	
+	/*
 	if(controllertype == CTL_TYPE_KEYBOARD)	
 		ComboBox_Enable(GetDlgItem(hDlg, IDC_JOYNAME), FALSE);		
 	else
 		ComboBox_Enable(GetDlgItem(hDlg, IDC_JOYNAME), TRUE);
-	
+	*/
+
 	if(controllertype)
 	{
 		// 4 extra buttons
