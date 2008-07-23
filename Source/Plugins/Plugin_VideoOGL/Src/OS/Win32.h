@@ -18,15 +18,17 @@
 #pragma once
 
 #include "stdafx.h"
-#include <xstring>
-#include <vector>
 
-namespace W32Util
+namespace EmuWindow
 {
-	std::string BrowseForFolder(HWND parent, char *title);
-	bool BrowseForFileName (bool _bLoad, HWND _hParent, const char *_pTitle,
-		const char *_pInitialFolder,const char *_pFilter,const char *_pExtension, 
-		std::string& _strFileName);
-	std::vector<std::string> BrowseForFileNameMultiSelect(bool _bLoad, HWND _hParent, const char *_pTitle,
-		const char *_pInitialFolder,const char *_pFilter,const char *_pExtension);
+    extern int g_winstyle;
+
+    HWND GetWnd();
+    HWND GetParentWnd();
+    HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title);
+    void Show();
+    void Close();
+    void SetSize(int displayWidth, int displayHeight);
 }
+
+void SysMessage(char *fmt, ...);

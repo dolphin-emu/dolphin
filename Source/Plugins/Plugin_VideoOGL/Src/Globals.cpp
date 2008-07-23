@@ -77,6 +77,8 @@ void Config::Load()
     
     iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
     iniFile.Get("Enhancements", "ForceMaxAniso", &bForceMaxAniso, 0);
+
+	bFullscreen = true;
 }
 
 void Config::Save()

@@ -30,7 +30,7 @@
 
 
 #ifdef _WIN32
-#include "EmuWindow.h"
+#include "OS\Win32.h"
 #else
 #endif
 

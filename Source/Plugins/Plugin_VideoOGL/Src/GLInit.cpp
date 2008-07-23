@@ -18,7 +18,7 @@
 #include "Globals.h"
 #ifdef _WIN32
 #include "svnrev.h"
-#include "EmuWindow.h"
+#include "OS\Win32.h"
 #endif
 #include "GLInit.h"
 

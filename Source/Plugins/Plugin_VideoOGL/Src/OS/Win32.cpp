@@ -19,7 +19,7 @@
 #include <windows.h>
 
 #include "../../Core/Src/Core.h"
-#include "EmuWindow.h"
+#include "Win32.h"
 
 namespace EmuWindow
 {
@@ -171,4 +171,15 @@ namespace EmuWindow
 		rc.bottom = rc.top + h;
 		::MoveWindow(m_hWnd, rc.left,rc.top,rc.right-rc.left,rc.bottom-rc.top, TRUE);
 	}
+}
+
+void SysMessage(char *fmt, ...)
+{
+	va_list list;
+	char tmp[512];
+
+	va_start(list,fmt);
+	vsprintf(tmp,fmt,list);
+	va_end(list);
+	MessageBox(0, tmp, "Video-Plugin", 0);
 }

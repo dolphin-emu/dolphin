@@ -14,14 +14,18 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
+#include "Globals.h"
+
+
 #include <wx/wx.h>
 #include <wx/filepicker.h>
 #include <wx/notebook.h>
 #include <wx/dialog.h>
 #include <wx/aboutdlg.h>
 
-#include <stdarg.h>
-#include "Globals.h"
+
+#include "GUI/ConfigDlg.h"
 
 #include "Render.h"
 #include "GLInit.h"
@@ -29,16 +33,17 @@
 #include "OpcodeDecoding.h"
 #include "TextureMngr.h"
 #include "BPStructs.h"
+
 #ifdef _WIN32
-#include "DlgSettings.h"
-#include "Misc.h"
-#include "EmuWindow.h"
+#include "OS\Win32.h"
 #else
 #include "Linux/Linux.h"
 #endif
 #include "VertexLoader.h"
 #include "PixelShaderManager.h"
 #include "VertexShaderManager.h"
+
+
 
 
 HINSTANCE g_hInstance = NULL;
@@ -112,11 +117,22 @@ void DllAbout(HWND _hParent)
 
 void DllConfig(HWND _hParent)
 {
-#ifdef _WIN32
-    DlgSettings_Show(g_hInstance,_hParent);
-#else
-    Show_OGLSettings();
-#endif
+	wxWindow win;
+	win.SetHWND((WXHWND)_hParent);
+	win.Enable(false);  
+
+	ConfigDialog frame(&win);
+	frame.ShowModal();
+
+/*	wxWindow win;
+	win.SetHWND((WXHWND)_hParent);
+	win.Enable(false);  
+
+	ConfigDialog frame(&win);
+	frame.ShowModal();
+
+	win.Enable(true);
+	win.SetHWND(0); */
 }
 
 void Video_Initialize(SVideoInitialize* _pVideoInitialize)

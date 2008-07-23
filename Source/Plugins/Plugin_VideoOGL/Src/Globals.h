@@ -30,17 +30,15 @@
 #include <windowsx.h>
 #include <mmsystem.h>
 
-#include "resource.h"
-
 void OpenConsole();
 void CloseConsole();
 
 #define GLEW_STATIC
 
-#include "GL/glew.h"
-#include "GL/wglew.h"
-#include "GL/gl.h"
-#include "GL/glext.h"
+#include "GLew/glew.h"
+#include "GLew/wglew.h"
+#include "GLew/gl.h"
+#include "GLew/glext.h"
 
 #else // linux basic definitions
 
