@@ -17,6 +17,10 @@
 
 #include "Globals.h"
 
+#ifdef _WIN32
+#include "OS\Win32.h"
+#endif
+
 #include "GUI/ConfigDlg.h"
 
 #include "Render.h"
@@ -25,64 +29,13 @@
 #include "OpcodeDecoding.h"
 #include "TextureMngr.h"
 #include "BPStructs.h"
-
-#ifdef _WIN32
-#include "OS\Win32.h"
-#else
-//#include "Linux/Linux.h"
-#endif
 #include "VertexLoader.h"
 #include "PixelShaderManager.h"
 #include "VertexShaderManager.h"
 
-
-
-
-HINSTANCE g_hInstance = NULL;
 SVideoInitialize g_VideoInitialize;
 #define VERSION_STRING "0.1"
 
-class wxDLLApp : public wxApp
-{
-        bool OnInit()
-        {
-                return true;
-        }
-};
-IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
-
-WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-
-#ifdef _WIN32
-BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
-                      DWORD dwReason,		// reason called
-                      LPVOID lpvReserved)	// reserved
-{
-    switch (dwReason)
-    {
-    case DLL_PROCESS_ATTACH:
-		{       //use wxInitialize() if you don't want GUI instead of the following 12 lines
-			wxSetInstance((HINSTANCE)hinstDLL);
-			int argc = 0;
-			char **argv = NULL;
-			wxEntryStart(argc, argv);
-			if ( !wxTheApp || !wxTheApp->CallOnInit() )
-				return FALSE;
-		}
-		break; 
-
-    case DLL_PROCESS_DETACH:
-        CloseConsole();
-		wxEntryCleanup(); //use wxUninitialize() if you don't want GUI 
-        break;
-    default:
-        break;
-    }
-
-    g_hInstance = hinstDLL;
-    return TRUE;
-}
-#endif
 
 void GetDllInfo (PLUGIN_INFO* _PluginInfo) 
 {
@@ -99,6 +52,7 @@ void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 #endif
 }
 
+
 void DllAbout(HWND _hParent) 
 {
 	wxAboutDialogInfo info;
@@ -107,21 +61,11 @@ void DllAbout(HWND _hParent)
 	wxAboutBox(info);
 }
 
+
 void DllConfig(HWND _hParent)
 {
-    #ifdef _WIN32
+#ifdef _WIN32
 	wxWindow win;
-	win.SetHWND((WXHWND)_hParent);
-	win.Enable(false);  
-
-	ConfigDialog frame(&win);
-	frame.ShowModal();
-	#else
-	ConfigDialog frame(NULL);
-	frame.ShowModal();
-	#endif
-
-/*	wxWindow win;
 	win.SetHWND((WXHWND)_hParent);
 	win.Enable(false);  
 
@@ -129,8 +73,14 @@ void DllConfig(HWND _hParent)
 	frame.ShowModal();
 
 	win.Enable(true);
-	win.SetHWND(0); */
+	win.SetHWND(0); 
+
+#else
+	ConfigDialog frame(NULL);
+	frame.ShowModal();
+#endif
 }
+
 
 void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 {
@@ -155,9 +105,6 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
     _pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
 }
 
-#ifdef _WIN32
-HANDLE g_hthread;
-#endif
 
 void Video_Prepare(void)
 {
@@ -178,6 +125,7 @@ void Video_Prepare(void)
     GL_REPORT_ERRORD();
 }
  
+
 void Video_Shutdown(void) 
 {
     VertexShaderMngr::Shutdown();
@@ -206,6 +154,7 @@ void DebugLog(const char* _fmt, ...)
 #endif
 }
 
+
 bool ScreenShot(TCHAR *File) 
 {
     char str[64];
@@ -213,8 +162,8 @@ bool ScreenShot(TCHAR *File)
     sprintf(str, "Dolphin OGL " VERSION_STRING);
 
     Renderer::ResetGLState();
-//    Renderer::DrawText(str, left+1, top+1, 0xff000000);
-//    Renderer::DrawText(str, left, top, 0xffc0ffff);
+    Renderer::DrawText(str, left+1, top+1, 0xff000000);
+    Renderer::DrawText(str, left, top, 0xffc0ffff);
     Renderer::RestoreGLState();
 
     if (Renderer::SaveRenderTarget(File, 0)) {
@@ -226,6 +175,7 @@ bool ScreenShot(TCHAR *File)
 	return false;
 }
 
+
 BOOL Video_Screenshot(TCHAR* _szFilename)
 {
     if (ScreenShot(_szFilename))
@@ -233,6 +183,7 @@ BOOL Video_Screenshot(TCHAR* _szFilename)
 
     return FALSE;
 }
+
 
 void Video_UpdateXFB(BYTE* _pXFB, DWORD _dwWidth, DWORD _dwHeight)
 {
