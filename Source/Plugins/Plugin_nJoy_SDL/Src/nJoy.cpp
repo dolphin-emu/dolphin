@@ -205,26 +205,31 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 	if ((sub_stick_x < deadzone2)	|| (sub_stick_x > deadzone))	_pPADStatus->substickX += sub_stick_x;
 	if ((sub_stick_y < deadzone2)	|| (sub_stick_y > deadzone))	_pPADStatus->substickY += sub_stick_y;
 
+	int triggervalue = 255;
+	if (joystate[_numPAD].halfpress)
+		triggervalue = 100;
+
 	// Set buttons
 	if (joystate[_numPAD].buttons[CTL_L_SHOULDER])
 	{
 		_pPADStatus->button|=PAD_TRIGGER_L;
-		_pPADStatus->triggerLeft  = 255;	// Perhaps support halfpress/pressure
+		_pPADStatus->triggerLeft  = triggervalue;
 	}
 	if (joystate[_numPAD].buttons[CTL_R_SHOULDER])	
 	{
 		_pPADStatus->button|=PAD_TRIGGER_R;
-		_pPADStatus->triggerRight = 255;	// Perhaps support halfpress/pressure
+		_pPADStatus->triggerRight = triggervalue;
 	}
+
 	if (joystate[_numPAD].buttons[CTL_A_BUTTON])
 	{
 		_pPADStatus->button|=PAD_BUTTON_A;
-		_pPADStatus->analogA = 255;			// Perhaps support halfpress/pressure
+		_pPADStatus->analogA = 255;			// Perhaps support pressure?
 	}
 	if (joystate[_numPAD].buttons[CTL_B_BUTTON])
 	{
 		_pPADStatus->button|=PAD_BUTTON_B;
-		_pPADStatus->analogB = 255;			// Perhaps support halfpress/pressure
+		_pPADStatus->analogB = 255;			// Perhaps support pressure?
 	}
 	if (joystate[_numPAD].buttons[CTL_X_BUTTON])	_pPADStatus->button|=PAD_BUTTON_X;
 	if (joystate[_numPAD].buttons[CTL_Y_BUTTON])	_pPADStatus->button|=PAD_BUTTON_Y;
@@ -232,11 +237,25 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 	if (joystate[_numPAD].buttons[CTL_START])		_pPADStatus->button|=PAD_BUTTON_START;
 
 	// Set D-pad
-	if(joystate[_numPAD].dpad == SDL_HAT_LEFTUP		|| joystate[_numPAD].dpad == SDL_HAT_UP		|| joystate[_numPAD].dpad == SDL_HAT_RIGHTUP )		_pPADStatus->button|=PAD_BUTTON_UP;
-	if(joystate[_numPAD].dpad == SDL_HAT_LEFTUP		|| joystate[_numPAD].dpad == SDL_HAT_LEFT	|| joystate[_numPAD].dpad == SDL_HAT_LEFTDOWN )		_pPADStatus->button|=PAD_BUTTON_LEFT;
-	if(joystate[_numPAD].dpad == SDL_HAT_LEFTDOWN	|| joystate[_numPAD].dpad == SDL_HAT_DOWN	|| joystate[_numPAD].dpad == SDL_HAT_RIGHTDOWN )	_pPADStatus->button|=PAD_BUTTON_DOWN;
-	if(joystate[_numPAD].dpad == SDL_HAT_RIGHTUP	|| joystate[_numPAD].dpad == SDL_HAT_RIGHT	|| joystate[_numPAD].dpad == SDL_HAT_RIGHTDOWN )	_pPADStatus->button|=PAD_BUTTON_RIGHT;
-
+	if(joysticks[_numPAD].controllertype == CTL_TYPE_JOYSTICK)
+	{
+		if(joystate[_numPAD].dpad == SDL_HAT_LEFTUP		|| joystate[_numPAD].dpad == SDL_HAT_UP		|| joystate[_numPAD].dpad == SDL_HAT_RIGHTUP )		_pPADStatus->button|=PAD_BUTTON_UP;
+		if(joystate[_numPAD].dpad == SDL_HAT_LEFTUP		|| joystate[_numPAD].dpad == SDL_HAT_LEFT	|| joystate[_numPAD].dpad == SDL_HAT_LEFTDOWN )		_pPADStatus->button|=PAD_BUTTON_LEFT;
+		if(joystate[_numPAD].dpad == SDL_HAT_LEFTDOWN	|| joystate[_numPAD].dpad == SDL_HAT_DOWN	|| joystate[_numPAD].dpad == SDL_HAT_RIGHTDOWN )	_pPADStatus->button|=PAD_BUTTON_DOWN;
+		if(joystate[_numPAD].dpad == SDL_HAT_RIGHTUP	|| joystate[_numPAD].dpad == SDL_HAT_RIGHT	|| joystate[_numPAD].dpad == SDL_HAT_RIGHTDOWN )	_pPADStatus->button|=PAD_BUTTON_RIGHT;
+	}
+	else
+	{
+		if(joystate[_numPAD].dpad2[CTL_D_PAD_UP])
+			_pPADStatus->button|=PAD_BUTTON_UP;
+		if(joystate[_numPAD].dpad2[CTL_D_PAD_DOWN])
+			_pPADStatus->button|=PAD_BUTTON_DOWN;
+		if(joystate[_numPAD].dpad2[CTL_D_PAD_LEFT])
+			_pPADStatus->button|=PAD_BUTTON_LEFT;
+		if(joystate[_numPAD].dpad2[CTL_D_PAD_RIGHT])
+			_pPADStatus->button|=PAD_BUTTON_RIGHT;
+	}
+	
 	_pPADStatus->err = PAD_ERR_NONE;
 }
 
@@ -299,7 +318,17 @@ void GetJoyState(int controller)
 	joystate[controller].buttons[CTL_Z_TRIGGER] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].buttons[CTL_Z_TRIGGER]);
 	joystate[controller].buttons[CTL_START] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].buttons[CTL_START]);
 
-	joystate[controller].dpad = SDL_JoystickGetHat(joystate[controller].joy, joysticks[controller].dpad);
+	joystate[controller].halfpress = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].halfpress);
+
+	if(joysticks[controller].controllertype == CTL_TYPE_JOYSTICK)
+		joystate[controller].dpad = SDL_JoystickGetHat(joystate[controller].joy, joysticks[controller].dpad);
+	else
+	{
+		joystate[controller].dpad2[CTL_D_PAD_UP] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].dpad2[CTL_D_PAD_UP]);
+		joystate[controller].dpad2[CTL_D_PAD_DOWN] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].dpad2[CTL_D_PAD_DOWN]);
+		joystate[controller].dpad2[CTL_D_PAD_LEFT] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].dpad2[CTL_D_PAD_LEFT]);
+		joystate[controller].dpad2[CTL_D_PAD_RIGHT] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].dpad2[CTL_D_PAD_RIGHT]);
+	}
 }
 
 // Search attached devices
@@ -399,7 +428,7 @@ void DEBUG_QUIT()
 void SaveConfig()
 {
 	IniFile file;
-	file.Load("nJoy");
+	file.Load("nJoy.ini");
 
 	for (int i=0; i<4; i++)
 	{
@@ -415,6 +444,10 @@ void SaveConfig()
 		file.Set(SectionName, "z_trigger", joysticks[i].buttons[CTL_Z_TRIGGER]);
 		file.Set(SectionName, "start_button", joysticks[i].buttons[CTL_START]);
 		file.Set(SectionName, "dpad", joysticks[i].dpad);	
+		file.Set(SectionName, "dpad_up", joysticks[i].dpad2[CTL_D_PAD_UP]);
+		file.Set(SectionName, "dpad_down", joysticks[i].dpad2[CTL_D_PAD_DOWN]);
+		file.Set(SectionName, "dpad_left", joysticks[i].dpad2[CTL_D_PAD_LEFT]);
+		file.Set(SectionName, "dpad_right", joysticks[i].dpad2[CTL_D_PAD_RIGHT]);
 		file.Set(SectionName, "main_x", joysticks[i].axis[CTL_MAIN_X]);
 		file.Set(SectionName, "main_y", joysticks[i].axis[CTL_MAIN_Y]);
 		file.Set(SectionName, "sub_x", joysticks[i].axis[CTL_SUB_X]);
@@ -423,9 +456,10 @@ void SaveConfig()
 		file.Set(SectionName, "deadzone", joysticks[i].deadzone);
 		file.Set(SectionName, "halfpress", joysticks[i].halfpress);
 		file.Set(SectionName, "joy_id", joysticks[i].ID);
+		file.Set(SectionName, "controllertype", joysticks[i].controllertype);
 	}
 
-	file.Save("nJoy");
+	file.Save("nJoy.ini");
 }
 
 // Load settings from file
@@ -433,7 +467,7 @@ void SaveConfig()
 void LoadConfig()
 {
 	IniFile file;
-	file.Load("nJoy");
+	file.Load("nJoy.ini");
 
 	for (int i=0; i<4; i++)
 	{
@@ -449,13 +483,18 @@ void LoadConfig()
 		file.Get(SectionName, "z_trigger", &joysticks[i].buttons[CTL_Z_TRIGGER], 7);
 		file.Get(SectionName, "start_button", &joysticks[i].buttons[CTL_START], 9);	
 		file.Get(SectionName, "dpad", &joysticks[i].dpad, 0);	
+		file.Get(SectionName, "dpad_up", &joysticks[i].dpad2[CTL_D_PAD_UP], 0);
+		file.Get(SectionName, "dpad_down", &joysticks[i].dpad2[CTL_D_PAD_DOWN], 0);
+		file.Get(SectionName, "dpad_left", &joysticks[i].dpad2[CTL_D_PAD_LEFT], 0);
+		file.Get(SectionName, "dpad_right", &joysticks[i].dpad2[CTL_D_PAD_RIGHT], 0);
 		file.Get(SectionName, "main_x", &joysticks[i].axis[CTL_MAIN_X], 0);	
 		file.Get(SectionName, "main_y", &joysticks[i].axis[CTL_MAIN_Y], 1);	
 		file.Get(SectionName, "sub_x", &joysticks[i].axis[CTL_SUB_X], 2);	
 		file.Get(SectionName, "sub_y", &joysticks[i].axis[CTL_SUB_Y], 3);	
 		file.Get(SectionName, "enabled", &joysticks[i].enabled, 1);	
 		file.Get(SectionName, "deadzone", &joysticks[i].deadzone, 9);	
-		file.Get(SectionName, "halfpress", &joysticks[i].halfpress, 0);	
+		file.Get(SectionName, "halfpress", &joysticks[i].halfpress, 6);	
 		file.Get(SectionName, "joy_id", &joysticks[i].ID, 0);
+		file.Get(SectionName, "controllertype", &joysticks[i].controllertype, 0);
 	}
 }

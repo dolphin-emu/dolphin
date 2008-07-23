@@ -53,6 +53,8 @@ bool GetButtons(HWND hDlg, int buttonid, int controller);
 bool GetHats(HWND hDlg, int buttonid, int controller);
 bool GetAxis(HWND hDlg, int buttonid, int controller);
 
+void UpdateVisibleItems(HWND hDlg, int controllertype);
+
 void GetControllerAll(HWND hDlg, int controller);
 void SetControllerAll(HWND hDlg, int controller);
 

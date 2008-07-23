@@ -35,6 +35,13 @@ extern CONTROLLER_INFO	*joyinfo;
 extern CONTROLLER_MAPPING joysticks[4];
 extern bool emulator_running;
 
+static const char* ControllerType[] =
+{
+	"Joystick (default)",
+	"Joystick (no hat)",
+	"Keyboard"
+};
+
 // Create dialog and pages
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 int OpenConfig(HINSTANCE hInst, HWND _hParent)
@@ -128,11 +135,13 @@ BOOL ControllerTab(HWND hDlg, UINT message, UINT wParam, LONG lParam, int contro
 			{
 				ComboBox_Enable(GetDlgItem(hDlg, IDC_JOYNAME), FALSE);
 				Button_Enable(GetDlgItem(hDlg, IDC_JOYATTACH), FALSE);
+				ComboBox_Enable(GetDlgItem(hDlg, IDC_CONTROLTYPE), FALSE);
 			}
 			else
 			{
 				ComboBox_Enable(GetDlgItem(hDlg, IDC_JOYNAME), TRUE);
 				Button_Enable(GetDlgItem(hDlg, IDC_JOYATTACH), TRUE);
+				ComboBox_Enable(GetDlgItem(hDlg, IDC_CONTROLTYPE), TRUE);
 			}
 			
 			// Search for devices and add the to the device list
@@ -144,6 +153,11 @@ BOOL ControllerTab(HWND hDlg, UINT message, UINT wParam, LONG lParam, int contro
 					SendMessage(CB, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>((LPCTSTR)joyinfo[x].Name));
 				}
 				
+				CB = GetDlgItem(hDlg, IDC_CONTROLTYPE);
+				SendMessage(CB, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>((LPCTSTR)ControllerType[CTL_TYPE_JOYSTICK]));
+				SendMessage(CB, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>((LPCTSTR)ControllerType[CTL_TYPE_JOYSTICK_NO_HAT]));
+				//SendMessage(CB, CB_ADDSTRING, 0, reinterpret_cast<LPARAM>((LPCTSTR)ControllerType[CTL_TYPE_KEYBOARD]));
+
 				char buffer [8];				
 				CB = GetDlgItem(hDlg, IDC_DEADZONE);
 				SendMessage(CB, CB_RESETCONTENT, 0, 0);
@@ -173,12 +187,24 @@ BOOL ControllerTab(HWND hDlg, UINT message, UINT wParam, LONG lParam, int contro
 					// Selected a different joystick
 					if(HIWORD(wParam) == CBN_SELCHANGE)
 					{
-						joysticks[controller].ID = (int)SendMessage(GetDlgItem(hDlg, IDC_JOYNAME), CB_GETCURSEL, 0, 0);
+						joysticks[controller].ID = (int)SendMessage(GetDlgItem(hDlg, IDC_JOYNAME), CB_GETCURSEL, 0, 0);						
 					}
 					return TRUE;
 				}
 				break;
 
+				case IDC_CONTROLTYPE:
+				{
+					// Selected a different joystick
+					if(HIWORD(wParam) == CBN_SELCHANGE)
+					{
+						joysticks[controller].controllertype = (int)SendMessage(GetDlgItem(hDlg, IDC_CONTROLTYPE), CB_GETCURSEL, 0, 0);
+						UpdateVisibleItems(hDlg, joysticks[controller].controllertype);
+					}
+					return TRUE;
+				}
+				break;
+				
 				case IDC_SHOULDERL:
 				case IDC_SHOULDERR:
 				case IDC_A:
@@ -187,6 +213,10 @@ BOOL ControllerTab(HWND hDlg, UINT message, UINT wParam, LONG lParam, int contro
 				case IDC_Y:
 				case IDC_Z:
 				case IDC_START:
+				case IDC_HALFPRESS:
+				case IDC_DPAD_DOWN:
+				case IDC_DPAD_LEFT:
+				case IDC_DPAD_RIGHT:
 				{
 					GetButtons(hDlg, LOWORD(wParam), controller);
 					return TRUE;
@@ -195,7 +225,10 @@ BOOL ControllerTab(HWND hDlg, UINT message, UINT wParam, LONG lParam, int contro
 				
 				case IDC_DPAD:
 				{
-					GetHats(hDlg, LOWORD(wParam), controller);
+					if(joysticks[controller].controllertype)
+						GetButtons(hDlg, LOWORD(wParam), controller);
+					else
+						GetHats(hDlg, LOWORD(wParam), controller);
 					return TRUE;
 				}
 				break;
@@ -422,7 +455,7 @@ void SetControllerAll(HWND hDlg, int controller)
 	SetButton(hDlg, IDTEXT_Z, joysticks[controller].buttons[CTL_Z_TRIGGER]);
 	SetButton(hDlg, IDTEXT_START, joysticks[controller].buttons[CTL_START]);
 	
-	SetButton(hDlg, IDTEXT_DPAD, joysticks[controller].dpad);
+	SetButton(hDlg, IDTEXT_HALFPRESS, joysticks[controller].halfpress);
 	
 	SetButton(hDlg, IDTEXT_MX, joysticks[controller].axis[CTL_MAIN_X]);
 	SetButton(hDlg, IDTEXT_MY, joysticks[controller].axis[CTL_MAIN_Y]);
@@ -431,7 +464,20 @@ void SetControllerAll(HWND hDlg, int controller)
 
 	SendDlgItemMessage(hDlg, IDC_JOYATTACH, BM_SETCHECK, joysticks[controller].enabled, 0);
 
+	SendMessage(GetDlgItem(hDlg, IDC_CONTROLTYPE), CB_SETCURSEL, joysticks[controller].controllertype, 0);	
 	SendMessage(GetDlgItem(hDlg, IDC_DEADZONE), CB_SETCURSEL, joysticks[controller].deadzone, 0);	
+
+	UpdateVisibleItems(hDlg, joysticks[controller].controllertype);
+
+	if(joysticks[controller].controllertype == CTL_TYPE_JOYSTICK)
+		SetButton(hDlg, IDTEXT_DPAD, joysticks[controller].dpad);
+	else
+	{
+		SetButton(hDlg, IDTEXT_DPAD, joysticks[controller].dpad2[CTL_D_PAD_UP]);
+		SetButton(hDlg, IDTEXT_DPAD_DOWN, joysticks[controller].dpad2[CTL_D_PAD_DOWN]);
+		SetButton(hDlg, IDTEXT_DPAD_LEFT, joysticks[controller].dpad2[CTL_D_PAD_LEFT]);
+		SetButton(hDlg, IDTEXT_DPAD_RIGHT, joysticks[controller].dpad2[CTL_D_PAD_RIGHT]);
+	}
 }
 
 // Get dialog items
@@ -448,8 +494,18 @@ void GetControllerAll(HWND hDlg, int controller)
 	joysticks[controller].buttons[CTL_Y_BUTTON] = GetButton(hDlg, IDTEXT_Y);
 	joysticks[controller].buttons[CTL_Z_TRIGGER] = GetButton(hDlg, IDTEXT_Z);
 	joysticks[controller].buttons[CTL_START] = GetButton(hDlg, IDTEXT_START);
-
-	joysticks[controller].dpad = GetButton(hDlg, IDTEXT_DPAD);
+	
+	joysticks[controller].halfpress = GetButton(hDlg, IDTEXT_HALFPRESS);
+	
+	if(joysticks[controller].controllertype == CTL_TYPE_JOYSTICK)
+		joysticks[controller].dpad = GetButton(hDlg, IDTEXT_DPAD);		
+	else
+	{
+		joysticks[controller].dpad2[CTL_D_PAD_UP] = GetButton(hDlg, IDTEXT_DPAD);
+		joysticks[controller].dpad2[CTL_D_PAD_DOWN] = GetButton(hDlg, IDTEXT_DPAD_DOWN);
+		joysticks[controller].dpad2[CTL_D_PAD_LEFT] = GetButton(hDlg, IDTEXT_DPAD_LEFT);
+		joysticks[controller].dpad2[CTL_D_PAD_RIGHT] = GetButton(hDlg, IDTEXT_DPAD_RIGHT);
+	}
 
 	joysticks[controller].axis[CTL_MAIN_X] = GetButton(hDlg, IDTEXT_MX);
 	joysticks[controller].axis[CTL_MAIN_Y] = GetButton(hDlg, IDTEXT_MY);
@@ -458,7 +514,44 @@ void GetControllerAll(HWND hDlg, int controller)
 
 	joysticks[controller].enabled = (int)SendMessage(GetDlgItem(hDlg, IDC_JOYATTACH), BM_GETCHECK, 0, 0);
 	
+	joysticks[controller].controllertype = (int)SendMessage(GetDlgItem(hDlg, IDC_CONTROLTYPE), CB_GETCURSEL, 0, 0); 
 	joysticks[controller].deadzone = (int)SendMessage(GetDlgItem(hDlg, IDC_DEADZONE), CB_GETCURSEL, 0, 0);
+}
+
+void UpdateVisibleItems(HWND hDlg, int controllertype)
+{	
+	if(controllertype == CTL_TYPE_KEYBOARD)	
+		ComboBox_Enable(GetDlgItem(hDlg, IDC_JOYNAME), FALSE);		
+	else
+		ComboBox_Enable(GetDlgItem(hDlg, IDC_JOYNAME), TRUE);
+	
+	if(controllertype)
+	{
+		// 4 extra buttons
+		ShowWindow(GetDlgItem(hDlg, IDTEXT_DPAD_DOWN), TRUE);
+		ShowWindow(GetDlgItem(hDlg, IDTEXT_DPAD_LEFT), TRUE);
+		ShowWindow(GetDlgItem(hDlg, IDTEXT_DPAD_RIGHT), TRUE);
+		ShowWindow(GetDlgItem(hDlg, IDC_DPAD_DOWN), TRUE);
+		ShowWindow(GetDlgItem(hDlg, IDC_DPAD_LEFT), TRUE);
+		ShowWindow(GetDlgItem(hDlg, IDC_DPAD_RIGHT), TRUE);
+		ShowWindow(GetDlgItem(hDlg, IDC_DPAD_TEXT1), TRUE);
+		ShowWindow(GetDlgItem(hDlg, IDC_DPAD_TEXT2), TRUE);
+		ShowWindow(GetDlgItem(hDlg, IDC_DPAD_TEXT3), TRUE);
+		ShowWindow(GetDlgItem(hDlg, IDC_DPAD_TEXT4), TRUE);
+	}
+	else
+	{
+		ShowWindow(GetDlgItem(hDlg, IDTEXT_DPAD_DOWN), FALSE);	
+		ShowWindow(GetDlgItem(hDlg, IDTEXT_DPAD_LEFT), FALSE);
+		ShowWindow(GetDlgItem(hDlg, IDTEXT_DPAD_RIGHT), FALSE);
+		ShowWindow(GetDlgItem(hDlg, IDC_DPAD_DOWN), FALSE);	
+		ShowWindow(GetDlgItem(hDlg, IDC_DPAD_LEFT), FALSE);
+		ShowWindow(GetDlgItem(hDlg, IDC_DPAD_RIGHT), FALSE);
+		ShowWindow(GetDlgItem(hDlg, IDC_DPAD_TEXT1), FALSE);
+		ShowWindow(GetDlgItem(hDlg, IDC_DPAD_TEXT2), FALSE);
+		ShowWindow(GetDlgItem(hDlg, IDC_DPAD_TEXT3), FALSE);
+		ShowWindow(GetDlgItem(hDlg, IDC_DPAD_TEXT4), FALSE);
+	}
 }
 
 // Set text in static text item

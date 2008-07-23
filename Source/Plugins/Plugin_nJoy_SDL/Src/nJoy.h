@@ -59,18 +59,22 @@
 struct CONTROLLER_STATE{	// GC PAD INFO/STATE
 	int buttons[8];			// Amount of buttons (A B X Y Z, L-Trigger R-Trigger Start) might need to change the triggers buttons
 	int dpad;				// 1 HAT (8 directions + neutral)
+	int dpad2[4];			// d-pad using buttons
 	int axis[4];			// 2 x 2 Axes (Main & Sub)
+	int halfpress;			// ...
 	SDL_Joystick *joy;		// SDL joystick device
 };
 
 struct CONTROLLER_MAPPING{	// GC PAD MAPPING
 	int buttons[8];			// Amount of buttons (A B X Y Z, L-Trigger R-Trigger Start) might need to change the triggers buttons
 	int dpad;				// 1 HAT (8 directions + neutral)
+	int dpad2[4];			// d-pad using buttons
 	int axis[4];			// 2 x 2 Axes (Main & Sub)
 	int enabled;			// Pad attached?
 	int deadzone;			// Deadzone... what else?
-	int halfpress;			// Not implemented
+	int halfpress;			// Halfpress... you know, like not fully pressed ;)...
 	int ID;					// SDL joystick device ID
+	int controllertype;		// Joystick, Joystick no hat or a keyboard (perhaps a mouse later)
 };
 
 struct CONTROLLER_INFO{		// CONNECTED WINDOWS DEVICES INFO
@@ -100,9 +104,23 @@ enum
 	CTL_X_BUTTON,
 	CTL_Y_BUTTON,
 	CTL_Z_TRIGGER,	
-	CTL_START
+	CTL_START	
 };
 
+enum
+{
+	CTL_TYPE_JOYSTICK = 0,
+	CTL_TYPE_JOYSTICK_NO_HAT,
+	CTL_TYPE_KEYBOARD
+};
+
+enum
+{
+	CTL_D_PAD_UP = 0,
+	CTL_D_PAD_DOWN,
+	CTL_D_PAD_LEFT,
+	CTL_D_PAD_RIGHT
+};
 //////////////////////////////////////////////////////////////////////////////////////////
 // Custom Functions
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
