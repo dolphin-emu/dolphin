@@ -18,7 +18,7 @@ files = ["Console.cpp",
          "Debugger/Debugger_SymbolMap.cpp",
          "Debugger/Dump.cpp",
          "Debugger/PPCDebugInterface.cpp",
-         "Debugger/GClibloc.cpp",
+#        "Debugger/GClibloc.cpp", #Outdated
          "HW/AudioInterface.cpp",
          "HW/CommandProcessor.cpp",
 		 "HW/CPU.cpp",

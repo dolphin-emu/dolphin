@@ -17,7 +17,6 @@
 
 #include <string.h>
 
-#include "Common.h"
 #include "Globals.h"
 #include "MemoryUtil.h"
 #include "Fifo.h"
