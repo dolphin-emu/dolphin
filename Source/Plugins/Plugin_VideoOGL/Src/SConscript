@@ -20,7 +20,8 @@ files = ["BPStructs.cpp",
 		 "VertexShader.cpp",
 		 "VertexShaderManager.cpp",
 #		 "Linux/Conf.cpp",
-		 "Linux/Linux.cpp",
+#		 "Linux/Linux.cpp",
+		 "GUI/ConfigDlg.cpp",
 		 ]
 
 gfxenv=env.Copy(CXXFLAGS = " `wx-config --cppflags --debug` `pkg-config --cflags gtk+-2.0 xxf86vm` ", LINKFLAGS = "`wx-config --libs --debug` `pkg-config --libs gtk+-2.0 xxf86vm` ")

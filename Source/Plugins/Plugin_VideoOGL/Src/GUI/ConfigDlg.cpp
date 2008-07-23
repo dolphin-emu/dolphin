@@ -15,7 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Globals.h"
+#ifdef _Win32
+#include "Globals.h" //Is this even needed in here?
+#endif
 #include "ConfigDlg.h"
 
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
@@ -41,80 +43,57 @@ ConfigDialog::~ConfigDialog()
 void ConfigDialog::CreateGUIControls()
 {
 	m_Notebook = new wxNotebook(this, ID_PAGEENHANCEMENTS, wxPoint(0,0),wxSize(484,198));
-	m_Notebook->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	m_PageVideo = new wxPanel(m_Notebook, ID_PAGEVIDEO, wxPoint(4,24), wxSize(476,170));
-	m_PageVideo->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 	m_Notebook->AddPage(m_PageVideo, wxT("Video"));
 
 	m_PageEnhancements = new wxPanel(m_Notebook, ID_WXNOTEBOOKPAGE3, wxPoint(4,24), wxSize(476,170));
-	m_PageEnhancements->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 	m_Notebook->AddPage(m_PageEnhancements, wxT("Enhancements"));
 
 	m_PageAdvanced = new wxPanel(m_Notebook, ID_PAGEADVANCED, wxPoint(4,24), wxSize(476,170));
-	m_PageAdvanced->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 	m_Notebook->AddPage(m_PageAdvanced, wxT("Advanced"));
 
 	m_Fullscreen = new wxCheckBox(m_PageVideo, ID_FULLSCREEN, wxT("Fullscreen"), wxPoint(12,16), wxSize(137,25), 0, wxDefaultValidator, wxT("Fullscreen"));
-	m_Fullscreen->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	m_RenderToMainWindow = new wxCheckBox(m_PageVideo, ID_RENDERTOMAINWINDOW, wxT("Render to Main Window"), wxPoint(12,40), wxSize(137,25), 0, wxDefaultValidator, wxT("RenderToMainWindow"));
-	m_RenderToMainWindow->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	wxArrayString arrayStringFor_FullscreenCB;
 	m_FullscreenCB = new wxComboBox(m_PageVideo, ID_FULLSCREENCB, wxT("FullscreenCB"), wxPoint(132,72), wxSize(121,21), arrayStringFor_FullscreenCB, 0, wxDefaultValidator, wxT("FullscreenCB"));
-	m_FullscreenCB->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	wxArrayString arrayStringFor_WindowResolutionCB;
 	m_WindowResolutionCB = new wxComboBox(m_PageVideo, ID_WINDOWRESOLUTIONCB, wxT("WxComboBox1"), wxPoint(132,104), wxSize(121,21), arrayStringFor_WindowResolutionCB, 0, wxDefaultValidator, wxT("WindowResolutionCB"));
-	m_WindowResolutionCB->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	wxStaticText *WxStaticText1 = new wxStaticText(m_PageVideo, ID_WXSTATICTEXT1, wxT("Windowed Resolution:"), wxPoint(12,104), wxDefaultSize, 0, wxT("WxStaticText1"));
-	WxStaticText1->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	wxStaticText *WxStaticText2 = new wxStaticText(m_PageVideo, ID_WXSTATICTEXT2, wxT("Fullscreen Video Mode:"), wxPoint(12,72), wxDefaultSize, 0, wxT("WxStaticText2"));
-	WxStaticText2->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	wxArrayString arrayStringFor_AliasModeCB;
 	m_AliasModeCB = new wxComboBox(m_PageVideo, ID_ALIASMODECB, wxT("WxComboBox1"), wxPoint(132,136), wxSize(121,21), arrayStringFor_AliasModeCB, 0, wxDefaultValidator, wxT("AliasModeCB"));
-	m_AliasModeCB->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	wxStaticText *WxStaticText3 = new wxStaticText(m_PageVideo, ID_WXSTATICTEXT3, wxT("Alias Mode:"), wxPoint(12,136), wxDefaultSize, 0, wxT("WxStaticText3"));
-	WxStaticText3->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	m_ForceFiltering = new wxCheckBox(m_PageEnhancements, ID_FORCEFILTERING, wxT("Force bi/trlinear (May cause small glitches)"), wxPoint(12,16), wxSize(233,25), 0, wxDefaultValidator, wxT("ForceFiltering"));
-	m_ForceFiltering->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	m_ForceAnsitropy = new wxCheckBox(m_PageEnhancements, ID_FORCEANSITROPY, wxT("Force maximum ansitropy filtering"), wxPoint(12,48), wxSize(233,25), 0, wxDefaultValidator, wxT("ForceAnsitropy"));
-	m_ForceAnsitropy->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	m_Wireframe = new wxCheckBox(m_PageAdvanced, ID_WIREFRAME, wxT("Wireframe"), wxPoint(12,16), wxSize(233,25), 0, wxDefaultValidator, wxT("Wireframe"));
-	m_Wireframe->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	m_DumpTextures = new wxCheckBox(m_PageAdvanced, ID_DUMPTEXTURES, wxT("Dump texture to:"), wxPoint(12,88), wxSize(233,25), 0, wxDefaultValidator, wxT("DumpTextures"));
-	m_DumpTextures->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	m_Statistics = new wxCheckBox(m_PageAdvanced, ID_STATISTICS, wxT("Overlay some statistics"), wxPoint(12,40), wxSize(233,25), 0, wxDefaultValidator, wxT("Statistics"));
-	m_Statistics->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	m_ShaderErrors = new wxCheckBox(m_PageAdvanced, ID_SHADERERRORS, wxT("Show shader compilation issues"), wxPoint(12,64), wxSize(233,25), 0, wxDefaultValidator, wxT("ShaderErrors"));
-	m_ShaderErrors->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	m_Browse = new wxButton(m_PageAdvanced, ID_BROWSE, wxT("Browse"), wxPoint(156,136), wxSize(65,25), 0, wxDefaultValidator, wxT("Browse"));
-	m_Browse->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	m_TexturePath = new wxTextCtrl(m_PageAdvanced, ID_TEXTUREPATH, wxT("TexturePath"), wxPoint(20,136), wxSize(129,25), 0, wxDefaultValidator, wxT("TexturePath"));
 	m_TexturePath->Enable(false);
-	m_TexturePath->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(404,208), wxSize(73,25), 0, wxDefaultValidator, wxT("OK"));
-	m_OK->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"), wxPoint(324,208), wxSize(73,25), 0, wxDefaultValidator, wxT("Apply"));
-	m_Apply->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"), wxPoint(244,208), wxSize(73,25), 0, wxDefaultValidator, wxT("Close"));
-	m_Close->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	SetTitle(wxT("Opengl Plugin Configuration"));
 	SetIcon(wxNullIcon);

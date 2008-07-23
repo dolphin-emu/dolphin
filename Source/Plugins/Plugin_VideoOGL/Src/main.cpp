@@ -15,15 +15,13 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Globals.h"
-
-
 #include <wx/wx.h>
 #include <wx/filepicker.h>
 #include <wx/notebook.h>
 #include <wx/dialog.h>
 #include <wx/aboutdlg.h>
 
+#include "Globals.h"
 
 #include "GUI/ConfigDlg.h"
 
@@ -37,7 +35,7 @@
 #ifdef _WIN32
 #include "OS\Win32.h"
 #else
-#include "Linux/Linux.h"
+//#include "Linux/Linux.h"
 #endif
 #include "VertexLoader.h"
 #include "PixelShaderManager.h"
@@ -91,6 +89,19 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
     return TRUE;
 }
 #endif
+void SysMessage(const char *fmt, ...) {
+    GtkWidget *Ok,*Txt;
+    GtkWidget *Box,*Box1;
+    va_list list;
+    char msg[512];
+
+    va_start(list, fmt);
+    vsprintf(msg, fmt, list);
+    va_end(list);
+
+    if (msg[strlen(msg)-1] == '\n') msg[strlen(msg)-1] = 0;
+    wxMessageBox(wxString::FromAscii(msg));
+}
 
 void GetDllInfo (PLUGIN_INFO* _PluginInfo) 
 {
@@ -117,12 +128,17 @@ void DllAbout(HWND _hParent)
 
 void DllConfig(HWND _hParent)
 {
+    #ifdef _WIN32
 	wxWindow win;
 	win.SetHWND((WXHWND)_hParent);
 	win.Enable(false);  
 
 	ConfigDialog frame(&win);
 	frame.ShowModal();
+	#else
+	ConfigDialog frame(NULL);
+	frame.ShowModal();
+	#endif
 
 /*	wxWindow win;
 	win.SetHWND((WXHWND)_hParent);
