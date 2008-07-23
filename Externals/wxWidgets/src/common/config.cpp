@@ -4,8 +4,8 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.04.98
-// RCS-ID:      $Id: config.cpp 44868 2007-03-17 14:40:30Z VZ $
-// Copyright:   (c) 1997 Karsten Ballüder   Ballueder@usa.net
+// RCS-ID:      $Id: config.cpp 50711 2007-12-15 02:57:58Z VZ $
+// Copyright:   (c) 1997 Karsten Ballueder   Ballueder@usa.net
 //                       Vadim Zeitlin      <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
 // Author:      Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     28.12.2000
-// RCS-ID:      $Id: filename.cpp 44813 2007-03-15 00:21:59Z VZ $
+// RCS-ID:      $Id: filename.cpp 52996 2008-04-03 12:47:16Z VZ $
 // Copyright:   (c) 2000 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1825,7 +1825,7 @@ wxString wxFileName::GetLongPath() const
 
 #if defined(__WIN32__) && !defined(__WXWINCE__) && !defined(__WXMICROWIN__)
 
-#if wxUSE_DYNAMIC_LOADER
+#if wxUSE_DYNLIB_CLASS
     typedef DWORD (WINAPI *GET_LONG_PATH_NAME)(const wxChar *, wxChar *, DWORD);
 
     // this is MT-safe as in the worst case we're going to resolve the function
@@ -1876,7 +1876,7 @@ wxString wxFileName::GetLongPath() const
             }
         }
     }
-#endif // wxUSE_DYNAMIC_LOADER
+#endif // wxUSE_DYNLIB_CLASS
 
     // The OS didn't support GetLongPathName, or some other error.
     // We need to call FindFirstFile on each component in turn.
@@ -2230,6 +2230,15 @@ bool wxFileName::Touch()
 #endif // platforms
 }
 
+#ifdef wxNEED_WX_UNISTD_H
+
+static int wxStat( const char *file_name, wxStructStat *buf )
+{
+    return stat( file_name , buf );
+}
+
+#endif
+
 bool wxFileName::GetTimes(wxDateTime *dtAccess,
                           wxDateTime *dtMod,
                           wxDateTime *dtCreate) const
@@ -2282,7 +2291,7 @@ bool wxFileName::GetTimes(wxDateTime *dtAccess,
 #elif defined(__UNIX_LIKE__) || defined(__WXMAC__) || defined(__OS2__) || (defined(__DOS__) && defined(__WATCOMC__))
     // no need to test for IsDir() here
     wxStructStat stBuf;
-    if ( wxStat( GetFullPath().c_str(), &stBuf) == 0 )
+    if ( wxStat( GetFullPath().fn_str(), &stBuf) == 0 )
     {
         if ( dtAccess )
             dtAccess->Set(stBuf.st_atime);

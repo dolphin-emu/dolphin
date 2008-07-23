@@ -5,7 +5,7 @@
 // Modified by:
 //  Chris Elliott (biol75@york.ac.uk) 5 Dec 00: write support for Win32
 // Created:     23.09.98
-// RCS-ID:      $Id: mimetype.h 49563 2007-10-31 20:46:21Z VZ $
+// RCS-ID:      $Id: mimetype.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence (part of wxExtra library)
 /////////////////////////////////////////////////////////////////////////////
@@ -203,7 +203,7 @@ WX_DECLARE_USER_EXPORTED_OBJARRAY(wxFileTypeInfo, wxArrayFileTypeInfo,
 
 class WXDLLIMPEXP_BASE wxFileType
 {
-friend class WXDLLIMPEXP_BASE wxMimeTypesManagerImpl;  // it has access to m_impl
+friend class WXDLLIMPEXP_FWD_BASE wxMimeTypesManagerImpl;  // it has access to m_impl
 
 public:
     // An object of this class must be passed to Get{Open|Print}Command. The

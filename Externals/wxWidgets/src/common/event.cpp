@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: event.cpp 48332 2007-08-22 14:46:50Z DE $
+// RCS-ID:      $Id: event.cpp 51404 2008-01-27 12:57:04Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -40,6 +40,13 @@
         #include "wx/validate.h"
     #endif // wxUSE_GUI
 #endif
+
+#if wxUSE_BASE
+    #include "wx/ptr_scpd.h"
+
+    wxDECLARE_SCOPED_PTR(wxEvent, wxEventPtr)
+    wxDEFINE_SCOPED_PTR(wxEvent, wxEventPtr)
+#endif // wxUSE_BASE
 
 // ----------------------------------------------------------------------------
 // wxWin macros
@@ -1170,9 +1177,9 @@ void wxEvtHandler::ProcessPendingEvents()
           node;
           node = m_pendingEvents->GetFirst() )
     {
-        wxEvent *event = (wxEvent *)node->GetData();
+        wxEventPtr event(wx_static_cast(wxEvent *, node->GetData()));
 
-        // It's importan we remove event from list before processing it.
+        // It's important we remove event from list before processing it.
         // Else a nested event loop, for example from a modal dialog, might
         // process the same event again.
 
@@ -1181,8 +1188,6 @@ void wxEvtHandler::ProcessPendingEvents()
         wxLEAVE_CRIT_SECT( Lock() );
 
         ProcessEvent(*event);
-
-        delete event;
 
         wxENTER_CRIT_SECT( Lock() );
 

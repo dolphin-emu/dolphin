@@ -2,7 +2,7 @@
 // Name:        src/common/zipstrm.cpp
 // Purpose:     Streams for Zip files
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: zipstrm.cpp 44087 2007-01-01 22:27:42Z PC $
+// RCS-ID:      $Id: zipstrm.cpp 51009 2008-01-03 17:11:45Z MW $
 // Copyright:   (c) Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////

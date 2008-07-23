@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.05.99
-// RCS-ID:      $Id: datetime.cpp 49000 2007-09-30 20:37:29Z VZ $
+// RCS-ID:      $Id: datetime.cpp 53900 2008-06-01 14:37:26Z VZ $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              parts of code taken from sndcal library by Scott E. Lee:
 //
@@ -2879,8 +2879,9 @@ const wxChar *wxDateTime::ParseRfc822Date(const wxChar* date)
     min = (wxDateTime_t)(min + *p++ - _T('0'));
 
     wxDateTime_t sec = 0;
-    if ( *p++ == _T(':') )
+    if ( *p == _T(':') )
     {
+        p++;
         if ( !wxIsdigit(*p) )
         {
             return (wxChar *)NULL;
@@ -3000,7 +3001,7 @@ const wxChar *wxDateTime::ParseRfc822Date(const wxChar* date)
 
     // the spec was correct, construct the date from the values we found
     Set(day, mon, year, hour, min, sec);
-    MakeFromTimezone(TimeZone((wxDateTime_t)(offset*SEC_PER_MIN)));
+    MakeFromTimezone(TimeZone::Make(offset*SEC_PER_MIN));
 
     return p;
 }
@@ -3992,14 +3993,16 @@ const wxChar *wxDateTime::ParseDate(const wxChar *date)
             }
             else // not a valid month name
             {
-                wday = GetWeekDayFromName(token, Name_Full | Name_Abbr);
-                if ( wday != Inv_WeekDay )
+                WeekDay wday2 = GetWeekDayFromName(token, Name_Full | Name_Abbr);
+                if ( wday2 != Inv_WeekDay )
                 {
                     // a week day
                     if ( haveWDay )
                     {
                         break;
                     }
+
+                    wday = wday2;
 
                     haveWDay = true;
                 }

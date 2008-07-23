@@ -1,5 +1,5 @@
 /* XPM */
-static char *htmsidep_xpm[] = {
+static const char * htmsidep_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "16 15 6 1",
 ". c Black",

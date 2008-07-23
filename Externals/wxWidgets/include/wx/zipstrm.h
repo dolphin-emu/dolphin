@@ -2,7 +2,7 @@
 // Name:        wx/zipstrm.h
 // Purpose:     Streams for Zip files
 // Author:      Mike Wetherell
-// RCS-ID:      $Id: zipstrm.h 43887 2006-12-09 22:28:11Z MW $
+// RCS-ID:      $Id: zipstrm.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Mike Wetherell
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -112,8 +112,8 @@ enum wxZipFlags
 
 // Forward decls
 //
-class WXDLLIMPEXP_BASE wxZipEntry;
-class WXDLLIMPEXP_BASE wxZipInputStream;
+class WXDLLIMPEXP_FWD_BASE wxZipEntry;
+class WXDLLIMPEXP_FWD_BASE wxZipInputStream;
 
 
 /////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: string.h 45861 2007-05-06 12:57:43Z VS $
+// RCS-ID:      $Id: string.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,7 +55,7 @@
 #include "wx/buffer.h"      // for wxCharBuffer
 #include "wx/strconv.h"     // for wxConvertXXX() macros and wxMBConv classes
 
-class WXDLLIMPEXP_BASE wxString;
+class WXDLLIMPEXP_FWD_BASE wxString;
 
 // ---------------------------------------------------------------------------
 // macros
@@ -252,7 +252,7 @@ struct WXDLLIMPEXP_BASE wxStringData
 class WXDLLIMPEXP_BASE wxStringBase
 {
 #if !wxUSE_STL
-friend class WXDLLIMPEXP_BASE wxArrayString;
+friend class WXDLLIMPEXP_FWD_BASE wxArrayString;
 #endif
 public :
   // an 'invalid' value for string index, moved to this place due to a CW bug
@@ -659,7 +659,7 @@ public:
 class WXDLLIMPEXP_BASE wxString : public wxStringBase
 {
 #if !wxUSE_STL
-friend class WXDLLIMPEXP_BASE wxArrayString;
+friend class WXDLLIMPEXP_FWD_BASE wxArrayString;
 #endif
 
   // NB: special care was taken in arranging the member functions in such order

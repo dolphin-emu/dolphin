@@ -5,7 +5,7 @@
 // Modified by: Vadim Zeitlin on 13.05.99: complete refont of message handling,
 //              elimination of Default(), ...
 // Created:     01/02/97
-// RCS-ID:      $Id: window.h 47962 2007-08-08 12:38:13Z JS $
+// RCS-ID:      $Id: window.h 53929 2008-06-02 18:27:16Z RD $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -428,7 +428,11 @@ public:
 
     // check if a native double-buffering applies for this window
     virtual bool IsDoubleBuffered() const;
-
+    
+#if wxABI_VERSION >= 20808
+    void SetDoubleBuffered(bool on);
+#endif
+    
     // synthesize a wxEVT_LEAVE_WINDOW event and set m_mouseInWindow to false
     void GenerateMouseLeave();
 

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     28.10.99
-// RCS-ID:      $Id: spinctlg.h 35650 2005-09-23 12:56:45Z MR $
+// RCS-ID:      $Id: spinctlg.h 52582 2008-03-17 13:46:31Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -74,6 +74,7 @@ public:
     // forward these functions to all subcontrols
     virtual bool Enable(bool enable = true);
     virtual bool Show(bool show = true);
+    virtual bool Reparent(wxWindow *newParent);
 
     // get the subcontrols
     wxTextCtrl *GetText() const { return m_text; }

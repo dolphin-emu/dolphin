@@ -4,7 +4,7 @@
  * Author:      Joel Farley, Ove Kåven
  * Modified by: Vadim Zeitlin, Robert Roebling, Ron Lee
  * Created:     1998/06/12
- * RCS-ID:      $Id: wxchar.h 49328 2007-10-22 11:32:59Z VZ $
+ * RCS-ID:      $Id: wxchar.h 50987 2008-01-02 16:31:38Z VZ $
  * Copyright:   (c) 1998-2006 wxWidgets dev team
  * Licence:     wxWindows licence
  */
@@ -250,6 +250,9 @@
 /* another name for _T() which should be used to avoid confusion between _T() */
 /* and _() in wxWidgets sources */
 #define wxT(x)       _T(x)
+
+/* this macro exists only for forward compatibility with wx 3.0 */
+#define wxS(x)       _T(x)
 
 /* a helper macro allowing to make another macro Unicode-friendly, see below */
 #define wxAPPLY_T(x) _T(x)

@@ -4,7 +4,7 @@
 // Author:      Wolfram Gloger/adapted by Guilhem Lavaux
 // Modified by:
 // Created:     04/11/98
-// RCS-ID:      $Id: module.h 40943 2006-08-31 19:31:43Z ABX $
+// RCS-ID:      $Id: module.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Wolfram Gloger and Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,7 +17,7 @@
 #include "wx/dynarray.h"
 
 // declare a linked list of modules
-class WXDLLIMPEXP_BASE wxModule;
+class WXDLLIMPEXP_FWD_BASE wxModule;
 WX_DECLARE_USER_EXPORTED_LIST(wxModule, wxModuleList, WXDLLIMPEXP_BASE);
 
 // and an array of class info objects

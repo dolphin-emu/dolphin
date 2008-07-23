@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi
 // Modified by:
 // Created:     15/04/2006
-// RCS-ID:      $Id: fontpickerg.cpp 42999 2006-11-03 21:54:13Z VZ $
+// RCS-ID:      $Id: fontpickerg.cpp 52835 2008-03-26 15:49:08Z JS $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -60,7 +60,7 @@ bool wxGenericFontButton::Create( wxWindow *parent, wxWindowID id,
     }
 
     // and handle user clicks on it
-    Connect(wxEVT_COMMAND_BUTTON_CLICKED,
+    Connect(GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             wxCommandEventHandler(wxGenericFontButton::OnButtonClick),
             NULL, this);
 

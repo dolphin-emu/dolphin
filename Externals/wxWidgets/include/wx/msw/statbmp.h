@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: statbmp.h 37393 2006-02-08 21:47:09Z VZ $
+// RCS-ID:      $Id: statbmp.h 51824 2008-02-16 01:59:21Z SN $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -67,6 +67,12 @@ protected:
 
     void SetImage(const wxGDIImage* image);
     void SetImageNoCopy( wxGDIImage* image );
+
+#if wxABI_VERSION >= 20808
+    // draw the bitmap ourselves here if the OS can't do it correctly (if it
+    // can we leave it to it)
+    void DoPaintManually(wxPaintEvent& event);
+#endif
 
     // we can have either an icon or a bitmap
     bool m_isIcon;

@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: log.h 49804 2007-11-10 01:09:42Z VZ $
+// RCS-ID:      $Id: log.h 50993 2008-01-02 21:18:15Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -297,7 +297,11 @@ private:
 
     // this is the replacement of DoLogNumberOfRepeats() (which has to be kept
     // to avoid breaking ABI in this version)
-    unsigned LogLastRepetitionCountIfNeeded();
+    unsigned LogLastRepeatIfNeeded();
+
+    // implementation of the function above which supposes that the caller had
+    // already locked gs_prevCS
+    unsigned LogLastRepeatIfNeededUnlocked();
 };
 
 // ----------------------------------------------------------------------------

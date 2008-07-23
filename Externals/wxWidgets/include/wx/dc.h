@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     05/25/99
-// RCS-ID:      $Id: dc.h 43745 2006-12-02 14:11:15Z VZ $
+// RCS-ID:      $Id: dc.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -30,8 +30,8 @@
 #include "wx/dynarray.h"
 #include "wx/math.h"
 
-class WXDLLEXPORT wxDC;
-class WXDLLEXPORT wxDCBase;
+class WXDLLIMPEXP_FWD_CORE wxDC;
+class WXDLLIMPEXP_FWD_CORE wxDCBase;
 
 class WXDLLEXPORT wxDrawObject
 {

@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling, Vadim Zeitlin
 // Modified by:
 // Created:     31.05.01 (extracted from other files)
-// RCS-ID:      $Id: accel.h 49563 2007-10-31 20:46:21Z VZ $
+// RCS-ID:      $Id: accel.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -137,7 +137,7 @@ private:
     wxMenuItem *m_item;
 
     // for compatibility with old code, use accessors now!
-    friend class WXDLLEXPORT wxMenu;
+    friend class WXDLLIMPEXP_FWD_CORE wxMenu;
 };
 
 // ----------------------------------------------------------------------------

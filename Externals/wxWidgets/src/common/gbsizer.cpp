@@ -6,7 +6,7 @@
 //
 // Author:      Robin Dunn
 // Created:     03-Nov-2003
-// RCS-ID:      $Id: gbsizer.cpp 45407 2007-04-11 21:54:15Z RD $
+// RCS-ID:      $Id: gbsizer.cpp 53000 2008-04-03 23:28:16Z RD $
 // Copyright:   (c) Robin Dunn
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -453,7 +453,7 @@ wxSize wxGridBagSizer::CalcMin()
     while (node)
     {
         wxGBSizerItem* item = (wxGBSizerItem*)node->GetData();
-        if ( item->IsShown() )
+        if ( item->ShouldAccountFor() )
         {
             int row, col, endrow, endcol;
 
@@ -476,6 +476,7 @@ wxSize wxGridBagSizer::CalcMin()
         node = node->GetNext();
     }
 
+    AdjustForOverflow();
     AdjustForFlexDirection();
 
     // Now traverse the heights and widths arrays calcing the totals, including gaps
@@ -538,7 +539,7 @@ void wxGridBagSizer::RecalcSizes()
         int row, col, endrow, endcol;
         wxGBSizerItem* item = (wxGBSizerItem*)node->GetData();
 
-        if ( item->IsShown() )
+        if ( item->ShouldAccountFor() )
         {
             item->GetPos(row, col);
             item->GetEndPos(endrow, endcol);
@@ -561,6 +562,96 @@ void wxGridBagSizer::RecalcSizes()
 }
 
 
+// Sometimes CalcMin can result in some rows or cols having too much space in
+// them because as it traverses the items it makes some assumptions when
+// items span to other cells.  But those assumptions can become invalid later
+// on when other items are fitted into the same rows or columns that the
+// spanning item occupies. This method tries to find those situations and
+// fixes them.
+void wxGridBagSizer::AdjustForOverflow()
+{
+    int row, col;
+    
+    for (row=0; row<(int)m_rowHeights.GetCount(); row++)
+    {
+        int rowExtra=INT_MAX;
+        int rowHeight = m_rowHeights[row];
+        for (col=0; col<(int)m_colWidths.GetCount(); col++)
+        {
+            wxGBPosition pos(row,col);
+            wxGBSizerItem* item = FindItemAtPosition(pos);
+            if ( !item )
+                continue;
+
+            int endrow, endcol;
+            item->GetEndPos(endrow, endcol);
+            
+            // If the item starts in this position and doesn't span rows, then
+            // just look at the whole item height
+            if ( item->GetPos() == pos && endrow == row )
+            {
+                int itemHeight = item->CalcMin().GetHeight();
+                rowExtra = wxMin(rowExtra, rowHeight - itemHeight);
+                continue;
+            }
+
+            // Otherwise, only look at spanning items if they end on this row
+            if ( endrow == row )
+            {
+                // first deduct the portions of the item that are on prior rows
+                int itemHeight = item->CalcMin().GetHeight();
+                for (int r=item->GetPos().GetRow(); r<row; r++)
+                    itemHeight -= (m_rowHeights[r] + GetHGap());
+
+                if ( itemHeight < 0 )
+                    itemHeight = 0;
+                
+                // and check how much is left
+                rowExtra = wxMin(rowExtra, rowHeight - itemHeight);
+            }
+        }
+        if ( rowExtra && rowExtra != INT_MAX )
+            m_rowHeights[row] -= rowExtra;
+    }
+
+    // Now do the same thing for columns
+    for (col=0; col<(int)m_colWidths.GetCount(); col++)
+    {
+        int colExtra=INT_MAX;
+        int colWidth = m_colWidths[col];
+        for (row=0; row<(int)m_rowHeights.GetCount(); row++)
+        {
+            wxGBPosition pos(row,col);
+            wxGBSizerItem* item = FindItemAtPosition(pos);
+            if ( !item )
+                continue;
+
+            int endrow, endcol;
+            item->GetEndPos(endrow, endcol);
+            
+            if ( item->GetPos() == pos && endcol == col )
+            {
+                int itemWidth = item->CalcMin().GetWidth();
+                colExtra = wxMin(colExtra, colWidth - itemWidth);
+                continue;
+            }
+
+            if ( endcol == col )
+            {
+                int itemWidth = item->CalcMin().GetWidth();
+                for (int c=item->GetPos().GetCol(); c<col; c++)
+                    itemWidth -= (m_colWidths[c] + GetVGap());
+
+                if ( itemWidth < 0 )
+                    itemWidth = 0;
+                
+                colExtra = wxMin(colExtra, colWidth - itemWidth);
+            }
+        }
+        if ( colExtra && colExtra != INT_MAX )
+            m_colWidths[col] -= colExtra;
+    }
+}
 
 //---------------------------------------------------------------------------
 

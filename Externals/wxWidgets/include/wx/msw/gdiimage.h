@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.11.99
-// RCS-ID:      $Id: gdiimage.h 41751 2006-10-08 21:56:55Z VZ $
+// RCS-ID:      $Id: gdiimage.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -20,9 +20,9 @@
 #include "wx/gdicmn.h"          // wxBITMAP_TYPE_INVALID
 #include "wx/list.h"
 
-class WXDLLEXPORT wxGDIImageRefData;
-class WXDLLEXPORT wxGDIImageHandler;
-class WXDLLEXPORT wxGDIImage;
+class WXDLLIMPEXP_FWD_CORE wxGDIImageRefData;
+class WXDLLIMPEXP_FWD_CORE wxGDIImageHandler;
+class WXDLLIMPEXP_FWD_CORE wxGDIImage;
 
 WX_DECLARE_EXPORTED_LIST(wxGDIImageHandler, wxGDIImageHandlerList);
 

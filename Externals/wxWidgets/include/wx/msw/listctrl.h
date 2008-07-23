@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Agron Selimaj
 // Created:     01/02/97
-// RCS-ID:      $Id: listctrl.h 49563 2007-10-31 20:46:21Z VZ $
+// RCS-ID:      $Id: listctrl.h 51773 2008-02-13 22:46:30Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -341,10 +341,10 @@ public:
     bool SortItems(wxListCtrlCompare fn, long data);
 
     // IMPLEMENTATION
+	virtual bool MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem);
     virtual bool MSWCommand(WXUINT param, WXWORD id);
     virtual bool MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result);
     virtual bool MSWShouldPreProcessMessage(WXMSG* msg);
-	virtual bool MSWDrawSubItem(wxPaintDC& rPainDC, int tem, int subitem);
 
     // bring the control in sync with current m_windowStyle value
     void UpdateStyle();
@@ -431,6 +431,11 @@ protected:
 private:
     // process NM_CUSTOMDRAW notification message
     WXLPARAM OnCustomDraw(WXLPARAM lParam);
+
+    // set the extended styles for the control (used by Create() and
+    // UpdateStyle()), only should be called if InReportView()
+    void MSWSetExListStyles();
+
 
     DECLARE_DYNAMIC_CLASS(wxListCtrl)
     DECLARE_EVENT_TABLE()

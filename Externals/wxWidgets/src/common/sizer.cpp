@@ -5,7 +5,7 @@
 //              Dirk Holtwick, Ron Lee
 // Modified by: Ron Lee
 // Created:
-// RCS-ID:      $Id: sizer.cpp 49676 2007-11-06 10:47:58Z JS $
+// RCS-ID:      $Id: sizer.cpp 52359 2008-03-06 13:48:50Z VS $
 // Copyright:   (c) Robin Dunn, Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -85,6 +85,17 @@ WX_DEFINE_EXPORTED_LIST( wxSizerItemList )
        growablecols
     minsize
 */
+
+
+// ----------------------------------------------------------------------------
+// wxSizerFlags
+// ----------------------------------------------------------------------------
+
+wxSizerFlags& wxSizerFlags::ReserveSpaceEvenIfHidden()
+{
+    m_flags |= wxRESERVE_SPACE_EVEN_IF_HIDDEN;
+    return *this;
+}
 
 // ----------------------------------------------------------------------------
 // wxSizerItem
@@ -487,6 +498,37 @@ bool wxSizerItem::IsShown() const
     return false;
 }
 
+// This is a helper to support wxRESERVE_SPACE_EVEN_IF_HIDDEN. In wx 2.9+,
+// this flag is respected by IsShown(), but not in wx 2.8.
+bool wxSizerItem::ShouldAccountFor() const
+{
+    if ( m_flag & wxRESERVE_SPACE_EVEN_IF_HIDDEN )
+        return true;
+
+    if ( IsSizer() )
+    {
+        // this mirrors wxSizerItem::IsShown() code above
+        const wxSizerItemList& children = m_sizer->GetChildren();
+        if ( children.GetCount() == 0 )
+            return true;
+
+        for ( wxSizerItemList::compatibility_iterator
+              node = children.GetFirst();
+              node;
+              node = node->GetNext() )
+        {
+            if ( node->GetData()->ShouldAccountFor() )
+                return true;
+        }
+        return false;
+    }
+    else
+    {
+        return IsShown();
+    }
+}
+
+
 #if WXWIN_COMPATIBILITY_2_6
 void wxSizerItem::SetOption( int option )
 {
@@ -767,7 +809,7 @@ void wxSizer::DeleteWindows()
     }
 }
 
-wxSize wxSizer::Fit( wxWindow *window )
+wxSize wxSizer::ComputeFittingWindowSize(wxWindow *window)
 {
     // take the min size by default and limit it by max size
     wxSize size = GetMinWindowSize(window);
@@ -800,9 +842,20 @@ wxSize wxSizer::Fit( wxWindow *window )
     if ( sizeMax.y != wxDefaultCoord && size.y > sizeMax.y )
         size.y = sizeMax.y;
 
+    return size;
+}
 
-    window->SetSize( size );
+wxSize wxSizer::ComputeFittingClientSize(wxWindow *window)
+{
+    wxCHECK_MSG( window, wxDefaultSize, _T("window can't be NULL") );
 
+    return window->WindowToClientSize(ComputeFittingWindowSize(window));
+}
+
+wxSize wxSizer::Fit( wxWindow *window )
+{
+    wxSize size = ComputeFittingWindowSize(window);
+    window->SetSize(size);
     return size;
 }
 
@@ -832,12 +885,19 @@ void wxSizer::SetSizeHints( wxWindow *window )
     // Preserve the window's max size hints, but set the
     // lower bound according to the sizer calculations.
 
-    wxSize size = Fit( window );
+    // This is equivalent to calling Fit(), except that we need to set
+    // the size hints _in between_ the two steps performed by Fit
+    // (1. ComputeFittingWindowSize, 2. SetSize). That's because
+    // otherwise SetSize() could have no effect if there already are
+    // size hints in effect that forbid requested size.
+    const wxSize size = ComputeFittingWindowSize(window);
 
     window->SetSizeHints( size.x,
                           size.y,
                           window->GetMaxWidth(),
                           window->GetMaxHeight() );
+
+    window->SetSize(size);
 }
 
 void wxSizer::SetVirtualSizeHints( wxWindow *window )
@@ -1415,7 +1475,7 @@ wxSize wxFlexGridSizer::CalcMin()
     while (node)
     {
         wxSizerItem    *item = node->GetData();
-        if ( item->IsShown() )
+        if ( item->ShouldAccountFor() )
         {
             wxSize sz( item->CalcMin() );
             int row = i / ncols;
@@ -1660,7 +1720,7 @@ void wxBoxSizer::RecalcSizes()
     {
         wxSizerItem     *item = node->GetData();
 
-        if (item->IsShown())
+        if (item->ShouldAccountFor())
         {
             wxSize size( item->GetMinSizeWithBorder() );
 
@@ -1753,7 +1813,7 @@ wxSize wxBoxSizer::CalcMin()
     {
         wxSizerItem *item = node->GetData();
 
-        if ( item->IsShown() )
+        if ( item->ShouldAccountFor() )
         {
             item->CalcMin();  // result is stored in the item
 
@@ -1771,7 +1831,7 @@ wxSize wxBoxSizer::CalcMin()
     {
         wxSizerItem *item = node->GetData();
 
-        if (item->IsShown() && item->GetProportion() != 0)
+        if (item->ShouldAccountFor() && item->GetProportion() != 0)
         {
             int stretch = item->GetProportion();
             wxSize size( item->GetMinSizeWithBorder() );
@@ -1797,7 +1857,7 @@ wxSize wxBoxSizer::CalcMin()
     {
         wxSizerItem *item = node->GetData();
 
-        if (item->IsShown())
+        if (item->ShouldAccountFor())
         {
             wxSize size( item->GetMinSizeWithBorder() );
             if (item->GetProportion() != 0)

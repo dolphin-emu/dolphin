@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     13.07.99
-// RCS-ID:      $Id: textctrl.h 41754 2006-10-08 22:40:14Z VZ $
+// RCS-ID:      $Id: textctrl.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -44,8 +44,8 @@
     #define NO_TEXT_WINDOW_STREAM
 #endif
 
-class WXDLLEXPORT wxTextCtrl;
-class WXDLLEXPORT wxTextCtrlBase;
+class WXDLLIMPEXP_FWD_CORE wxTextCtrl;
+class WXDLLIMPEXP_FWD_CORE wxTextCtrlBase;
 
 // ----------------------------------------------------------------------------
 // wxTextCtrl types
@@ -232,7 +232,7 @@ public:
     bool HasTextColour() const { return m_colText.Ok() && HasFlag(wxTEXT_ATTR_TEXT_COLOUR) ; }
     bool HasBackgroundColour() const { return m_colBack.Ok() && HasFlag(wxTEXT_ATTR_BACKGROUND_COLOUR) ; }
     bool HasFont() const { return m_font.Ok() && HasFlag(wxTEXT_ATTR_FONT) ; }
-    bool HasAlignment() const { return (m_textAlignment != wxTEXT_ALIGNMENT_DEFAULT) || ((m_flags & wxTEXT_ATTR_ALIGNMENT) != 0) ; }
+    bool HasAlignment() const { return (m_textAlignment != wxTEXT_ALIGNMENT_DEFAULT) && ((m_flags & wxTEXT_ATTR_ALIGNMENT) != 0) ; }
     bool HasTabs() const { return (m_flags & wxTEXT_ATTR_TABS) != 0 ; }
     bool HasLeftIndent() const { return (m_flags & wxTEXT_ATTR_LEFT_INDENT) != 0 ; }
     bool HasRightIndent() const { return (m_flags & wxTEXT_ATTR_RIGHT_INDENT) != 0 ; }

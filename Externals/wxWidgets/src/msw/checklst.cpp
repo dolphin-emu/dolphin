@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     16.11.97
-// RCS-ID:      $Id: checklst.cpp 49804 2007-11-10 01:09:42Z VZ $
+// RCS-ID:      $Id: checklst.cpp 53057 2008-04-06 15:57:54Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -186,7 +186,7 @@ bool wxCheckListBoxItem::OnDrawItem(wxDC& dc, const wxRect& rc,
     HDC hdc = (HDC)dc.GetHDC();
 
     // create pens, brushes &c
-    COLORREF colBg = ::GetSysColor(COLOR_WINDOW);
+    COLORREF colBg = wxColourToRGB(GetBackgroundColour());
     AutoHPEN hpenBack(colBg),
              hpenGray(RGB(0xc0, 0xc0, 0xc0));
 

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     31/7/98
-// RCS-ID:      $Id: accel.h 42752 2006-10-30 19:26:48Z VZ $
+// RCS-ID:      $Id: accel.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,7 +12,7 @@
 #ifndef _WX_ACCEL_H_
 #define _WX_ACCEL_H_
 
-class WXDLLIMPEXP_CORE wxWindow;
+class WXDLLIMPEXP_FWD_CORE wxWindow;
 
 // ----------------------------------------------------------------------------
 // the accel table has all accelerators for a given window or menu

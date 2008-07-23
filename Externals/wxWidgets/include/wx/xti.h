@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     27/07/03
-// RCS-ID:      $Id: xti.h 41020 2006-09-05 20:47:48Z VZ $
+// RCS-ID:      $Id: xti.h 52488 2008-03-14 14:13:05Z JS $
 // Copyright:   (c) 1997 Julian Smart
 //              (c) 2003 Stefan Csomor
 // Licence:     wxWindows licence
@@ -2026,7 +2026,7 @@ private :
     (int) sizeof(name),                              \
     (wxObjectConstructorFn) wxConstructorFor##name   ,   \
     name::GetPropertiesStatic(),name::GetHandlersStatic(),name::ms_constructor , name::ms_constructorProperties ,     \
-    name::ms_constructorPropertiesCount , wxVariantToObjectConverter##name , wxObjectToVariantConverter##name);    \
+    name::ms_constructorPropertiesCount , wxVariantToObjectConverter##name, wxVariantToObjectConverter##name , wxObjectToVariantConverter##name);    \
 
 #define IMPLEMENT_DYNAMIC_CLASS2( name , basename , basename2) \
     _IMPLEMENT_DYNAMIC_CLASS2( name , basename , basename2 , "") \

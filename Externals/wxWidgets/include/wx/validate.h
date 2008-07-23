@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: validate.h 45498 2007-04-16 13:03:05Z VZ $
+// RCS-ID:      $Id: validate.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,8 +18,8 @@
 
 #include "wx/event.h"
 
-class WXDLLEXPORT wxWindow;
-class WXDLLEXPORT wxWindowBase;
+class WXDLLIMPEXP_FWD_CORE wxWindow;
+class WXDLLIMPEXP_FWD_CORE wxWindowBase;
 
 /*
  A validator has up to three purposes:

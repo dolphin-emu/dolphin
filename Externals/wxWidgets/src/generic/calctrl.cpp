@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29.12.99
-// RCS-ID:      $Id: calctrl.cpp 43778 2006-12-03 21:30:23Z VZ $
+// RCS-ID:      $Id: calctrl.cpp 53987 2008-06-05 15:48:55Z VZ $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -300,7 +300,7 @@ void wxCalendarCtrl::CreateMonthComboBox()
                           wxDefaultCoord,
                           wxSIZE_AUTO_WIDTH|wxSIZE_AUTO_HEIGHT);
 
-    m_comboMonth->Connect(wxEVT_COMMAND_COMBOBOX_SELECTED,
+    m_comboMonth->Connect(m_comboMonth->GetId(), wxEVT_COMMAND_COMBOBOX_SELECTED,
                           wxCommandEventHandler(wxCalendarCtrl::OnMonthChange),
                           NULL, this);
 }
@@ -314,11 +314,11 @@ void wxCalendarCtrl::CreateYearSpinCtrl()
                                 wxSP_ARROW_KEYS | wxCLIP_SIBLINGS,
                                 -4300, 10000, GetDate().GetYear());
 
-    m_spinYear->Connect(wxEVT_COMMAND_TEXT_UPDATED,
+    m_spinYear->Connect(m_spinYear->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
                         wxCommandEventHandler(wxCalendarCtrl::OnYearTextChange),
                         NULL, this);
 
-    m_spinYear->Connect(wxEVT_COMMAND_SPINCTRL_UPDATED,
+    m_spinYear->Connect(m_spinYear->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
                         wxCommandEventHandler(wxCalendarCtrl::OnYearChange),
                         NULL, this);
 }
@@ -1477,6 +1477,10 @@ void wxCalendarCtrl::OnClick(wxMouseEvent& event)
             event.Skip();
             break;
     }
+
+    // as we don't (always) skip the message, we're not going to receive the
+    // focus on click by default if we don't do it ourselves
+    SetFocus();
 }
 
 wxCalendarHitTestResult wxCalendarCtrl::HitTest(const wxPoint& pos,

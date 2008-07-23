@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin, Ryan Norton
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: string.cpp 49342 2007-10-23 03:30:16Z DE $
+// RCS-ID:      $Id: string.cpp 53702 2008-05-22 17:22:00Z SN $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //              (c) 2004 Ryan Norton <wxprojects@comcast.net>
 // Licence:     wxWindows licence
@@ -209,8 +209,8 @@ bool wxStringBase::AllocBuffer(size_t nLen)
   wxASSERT( nLen >  0 );
 
   // make sure that we don't overflow
-  wxASSERT( nLen < (INT_MAX / sizeof(wxChar)) -
-                   (sizeof(wxStringData) + EXTRA_ALLOC + 1) );
+  wxCHECK( nLen < (INT_MAX / sizeof(wxChar)) -
+                  (sizeof(wxStringData) + EXTRA_ALLOC + 1), false );
 
   STATISTICS_ADD(Length, nLen);
 
@@ -843,6 +843,16 @@ bool wxStringBase::ConcatSelf(size_t nSrcLen, const wxChar *pszSrcData,
     wxStringData *pData = GetStringData();
     size_t nLen = pData->nDataLength;
     size_t nNewLen = nLen + nSrcLen;
+
+    // take special care when appending part of this string to itself: the code
+    // below reallocates our buffer and this invalidates pszSrcData pointer so
+    // we have to copy it in another temporary string in this case (but avoid
+    // doing this unnecessarily)
+    if ( pszSrcData >= m_pchData && pszSrcData < m_pchData + nLen )
+    {
+        wxStringBase tmp(pszSrcData, nSrcLen);
+        return ConcatSelf(nSrcLen, tmp.m_pchData, nSrcLen);
+    }
 
     // alloc new buffer if current is too small
     if ( pData->IsShared() ) {
@@ -1589,9 +1599,9 @@ wxString& wxString::MakeLower()
 // ---------------------------------------------------------------------------
 
 // some compilers (VC++ 6.0 not to name them) return true for a call to
-// isspace('ê') in the C locale which seems to be broken to me, but we have to
-// live with this by checking that the character is a 7 bit one - even if this
-// may fail to detect some spaces (I don't know if Unicode doesn't have
+// isspace('\xEA') in the C locale which seems to be broken to me, but we have
+// to live with this by checking that the character is a 7 bit one - even if 
+// this may fail to detect some spaces (I don't know if Unicode doesn't have
 // space-like symbols somewhere except in the first 128 chars), it is arguably
 // still better than trimming away accented letters
 inline int wxSafeIsspace(wxChar ch) { return (ch < 127) && wxIsspace(ch); }
@@ -1908,7 +1918,7 @@ int wxString::PrintfV(const wxChar* pszFormat, va_list argptr)
             // the user's format string
             return -1;
 #else // assume that system version only returns error if not enough space
-#ifndef __WXWINCE__
+#if !defined(__WXWINCE__) && (!defined(__OS2__) || defined(__INNOTEK_LIBC__))
             if( (errno == EILSEQ) || (errno == EINVAL) )
             // If errno was set to one of the two well-known hard errors
             // then fail immediately to avoid an infinite loop.

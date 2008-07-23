@@ -440,15 +440,7 @@ wxMenuItem *wxMenuItemBase::New(wxMenu *parentMenu,
                                 wxItemKind kind,
                                 wxMenu *subMenu)
 {
-    wxMenuItem* pItem = new wxMenuItem(parentMenu, id, name, help, kind, subMenu);
-
-#if wxUSE_OWNER_DRAWN
-
-    pItem->SetOwnerDrawn(true);
-
-#endif
-
-    return pItem;
+    return new wxMenuItem(parentMenu, id, name, help, kind, subMenu);
 }
 
 #endif // wxUSE_MENUS

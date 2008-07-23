@@ -6,7 +6,7 @@
 //              Guillermo Rodriguez (updated for wxSocket v2) Jan 2000
 //                                  (callbacks deprecated)    Mar 2000
 // Created:     1993
-// RCS-ID:      $Id: sckipc.h 36183 2005-11-15 18:05:48Z VZ $
+// RCS-ID:      $Id: sckipc.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Julian Smart 1993
 //              (c) Guilhem Lavaux 1997, 1998
 //              (c) 2000 Guillermo Rodriguez <guille@iies.es>
@@ -49,8 +49,8 @@
  *
  */
 
-class WXDLLIMPEXP_NET wxTCPServer;
-class WXDLLIMPEXP_NET wxTCPClient;
+class WXDLLIMPEXP_FWD_NET wxTCPServer;
+class WXDLLIMPEXP_FWD_NET wxTCPClient;
 
 class WXDLLIMPEXP_NET wxTCPConnection: public wxConnectionBase
 {

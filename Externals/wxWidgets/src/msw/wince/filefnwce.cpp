@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: filefnwce.cpp 38791 2006-04-18 09:56:17Z ABX $
+// RCS-ID:      $Id: filefnwce.cpp 52111 2008-02-26 14:15:12Z JS $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -44,16 +44,19 @@ int wxOpen(const wxChar *filename, int oflag, int WXUNUSED(pmode))
     {
         access = GENERIC_READ;
         shareMode = FILE_SHARE_READ|FILE_SHARE_WRITE;
-        disposition |= OPEN_EXISTING;
+        disposition = OPEN_EXISTING;
     }
     else if ((oflag & (O_RDONLY | O_WRONLY | O_RDWR)) == O_WRONLY)
     {
         access = GENERIC_WRITE;
+        disposition = OPEN_ALWAYS;
     }
     else if ((oflag & (O_RDONLY | O_WRONLY | O_RDWR)) == O_RDWR)
     {
         access = GENERIC_READ|GENERIC_WRITE;
+        disposition = OPEN_ALWAYS;
     }
+
     if (oflag & O_APPEND)
     {
         if ( wxFile::Exists(filename) )
@@ -62,16 +65,16 @@ int wxOpen(const wxChar *filename, int oflag, int WXUNUSED(pmode))
             shareMode = FILE_SHARE_READ;
             disposition = OPEN_EXISTING;
         }
-        //else: fall through as write_append is the same as write if the
-        //      file doesn't exist
         else
+        {
             oflag |= O_TRUNC;
+        }
     }
     if (oflag & O_TRUNC)
     {
         access |= GENERIC_WRITE;
         shareMode = 0;
-        disposition = (oflag & O_CREAT) ? CREATE_ALWAYS : TRUNCATE_EXISTING;
+        disposition = oflag & O_CREAT ? CREATE_ALWAYS : TRUNCATE_EXISTING;
     }
     else if (oflag & O_CREAT)
     {
@@ -119,21 +122,19 @@ int wxClose(int fd)
 
 int wxEof(int fd)
 {
-    LONG high0 = 0;
-    DWORD off0 = SetFilePointer((HANDLE) fd, 0, &high0, FILE_CURRENT);
+    DWORD off0 = SetFilePointer((HANDLE) fd, 0, NULL, FILE_CURRENT);
     if (off0 == 0xFFFFFFFF && GetLastError() != NO_ERROR)
         return -1;
 
-    LONG high1 = 0;
-    DWORD off1 = SetFilePointer((HANDLE) fd, 0, &high0, FILE_END);
+    DWORD off1 = SetFilePointer((HANDLE) fd, 0, NULL, FILE_END);
     if (off1 == 0xFFFFFFFF && GetLastError() != NO_ERROR)
         return -1;
 
-    if (off0 == off1 && high0 == high1)
+    if (off0 == off1)
         return 1;
     else
     {
-        SetFilePointer((HANDLE) fd, off0, &high0, FILE_BEGIN);
+        SetFilePointer((HANDLE) fd, off0, NULL, FILE_BEGIN);
         return 0;
     }
 }
@@ -178,8 +179,7 @@ __int64 wxSeek(int fd, __int64 offset, int origin)
             break;
     }
 
-    LONG high = 0;
-    DWORD res = SetFilePointer((HANDLE) fd, offset, &high, method) ;
+    DWORD res = SetFilePointer((HANDLE) fd, offset, NULL, method) ;
     if (res == 0xFFFFFFFF && GetLastError() != NO_ERROR)
     {
         wxLogSysError(_("can't seek on file descriptor %d"), fd);
@@ -191,15 +191,16 @@ __int64 wxSeek(int fd, __int64 offset, int origin)
 
 __int64 wxTell(int fd)
 {
-    LONG high = 0;
-    DWORD res = SetFilePointer((HANDLE) fd, 0, &high, FILE_CURRENT) ;
+    // WinCE apparently doesn't support lpDistanceToMoveHigh.
+    // LONG high = 0;
+    DWORD res = SetFilePointer((HANDLE) fd, 0, NULL, FILE_CURRENT) ;
     if (res == 0xFFFFFFFF && GetLastError() != NO_ERROR)
     {
         wxLogSysError(_("can't get seek position on file descriptor %d"), fd);
         return wxInvalidOffset;
     }
     else
-        return res + (((__int64)high) << 32);
+        return res ; // + (((__int64)high) << 32);
 }
 
 int wxFsync(int WXUNUSED(fd))

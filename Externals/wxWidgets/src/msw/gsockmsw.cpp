@@ -5,7 +5,7 @@
  * Licence:     wxWindows Licence
  * Author:      Guillermo Rodriguez Garcia <guille@iies.es>
  * Purpose:     GSocket GUI-specific MSW code
- * CVSID:       $Id: gsockmsw.cpp 39404 2006-05-28 23:38:11Z VZ $
+ * CVSID:       $Id: gsockmsw.cpp 50893 2007-12-22 14:05:25Z VZ $
  * -------------------------------------------------------------------------
  */
 
@@ -336,7 +336,19 @@ void GSocketGUIFunctionsTableConcrete::Destroy_Socket(GSocket *socket)
   /* Remove the socket from the list */
   EnterCriticalSection(&critical);
   if ( socket->IsOk() )
-      socketList[(socket->m_msgnumber - WM_USER)] = NULL;
+  {
+      const int msgnum = socket->m_msgnumber;
+
+      // we need to remove any pending messages for this socket to avoid having
+      // them sent to a new socket which could reuse the same message number as
+      // soon as we destroy this one
+      MSG msg;
+      while ( ::PeekMessage(&msg, hWin, msgnum, msgnum, PM_REMOVE) )
+          ;
+
+      socketList[msgnum - WM_USER] = NULL;
+  }
+
   LeaveCriticalSection(&critical);
 }
 

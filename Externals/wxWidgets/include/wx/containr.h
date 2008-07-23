@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.08.01
-// RCS-ID:      $Id: containr.h 49563 2007-10-31 20:46:21Z VZ $
+// RCS-ID:      $Id: containr.h 50863 2007-12-20 18:32:55Z VS $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -126,6 +126,7 @@ void classname::SetFocusIgnoringChildren() \
 void classname::OnChildFocus(wxChildFocusEvent& event) \
 { \
     m_container.SetLastFocus(event.GetWindow()); \
+    event.Skip(); \
 } \
  \
 void classname::OnFocus(wxFocusEvent& event) \

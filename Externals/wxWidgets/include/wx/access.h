@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-02-12
-// RCS-ID:      $Id: access.h 43047 2006-11-04 17:43:58Z VZ $
+// RCS-ID:      $Id: access.h 51246 2008-01-16 12:56:37Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -224,10 +224,10 @@ typedef enum
 // All functions return an indication of success, failure, or not implemented.
 // ----------------------------------------------------------------------------
 
-class WXDLLEXPORT wxAccessible;
-class WXDLLEXPORT wxWindow;
-class WXDLLEXPORT wxPoint;
-class WXDLLEXPORT wxRect;
+class WXDLLIMPEXP_FWD_CORE wxAccessible;
+class WXDLLIMPEXP_FWD_CORE wxWindow;
+class WXDLLIMPEXP_FWD_CORE wxPoint;
+class WXDLLIMPEXP_FWD_CORE wxRect;
 class WXDLLEXPORT wxAccessibleBase : public wxObject
 {
     DECLARE_NO_COPY_CLASS(wxAccessibleBase)

@@ -4,7 +4,7 @@
 // Author:      Hans Van Leemputten
 // Modified by: Benjamin I. Williams / Kirix Corporation
 // Created:     29/07/2002
-// RCS-ID:      $Id: tabmdi.h 45498 2007-04-16 13:03:05Z VZ $
+// RCS-ID:      $Id: tabmdi.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Hans Van Leemputten
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,9 +28,9 @@
 // classes
 //-----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_AUI wxAuiMDIParentFrame;
-class WXDLLIMPEXP_AUI wxAuiMDIClientWindow;
-class WXDLLIMPEXP_AUI wxAuiMDIChildFrame;
+class WXDLLIMPEXP_FWD_AUI wxAuiMDIParentFrame;
+class WXDLLIMPEXP_FWD_AUI wxAuiMDIClientWindow;
+class WXDLLIMPEXP_FWD_AUI wxAuiMDIChildFrame;
 
 //-----------------------------------------------------------------------------
 // wxAuiMDIParentFrame

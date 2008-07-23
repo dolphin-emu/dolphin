@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.09.00
-// RCS-ID:      $Id: radiobox.h 42862 2006-10-31 16:39:07Z VZ $
+// RCS-ID:      $Id: radiobox.h 50255 2007-11-26 13:48:36Z VZ $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -20,7 +20,7 @@
 
 #include "wx/dynarray.h"
 
-class WXDLLEXPORT wxToolTip;
+class WXDLLIMPEXP_FWD_CORE wxToolTip;
 
 WX_DEFINE_EXPORTED_ARRAY_PTR(wxToolTip *, wxToolTipArray);
 

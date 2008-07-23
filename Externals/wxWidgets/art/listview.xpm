@@ -1,5 +1,5 @@
 /* XPM */
-static char *listview_xpm[] = {
+static const char * listview_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "16 15 4 1",
 "  c Black",

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: slider95.h 37393 2006-02-08 21:47:09Z VZ $
+// RCS-ID:      $Id: slider95.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -12,7 +12,7 @@
 #ifndef _WX_SLIDER95_H_
 #define _WX_SLIDER95_H_
 
-class WXDLLEXPORT wxSubwindows;
+class WXDLLIMPEXP_FWD_CORE wxSubwindows;
 
 // Slider
 class WXDLLEXPORT wxSlider : public wxSliderBase

@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Modified by:
 // Created:     08.01.06
-// RCS-ID:      $Id: dataview.h 42909 2006-11-01 15:24:48Z RR $
+// RCS-ID:      $Id: dataview.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -39,11 +39,11 @@
 // wxDataViewCtrl globals
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_ADV wxDataViewModel;
-class WXDLLIMPEXP_ADV wxDataViewListModel;
-class WXDLLIMPEXP_ADV wxDataViewCtrl;
-class WXDLLIMPEXP_ADV wxDataViewColumn;
-class WXDLLIMPEXP_ADV wxDataViewRenderer;
+class WXDLLIMPEXP_FWD_ADV wxDataViewModel;
+class WXDLLIMPEXP_FWD_ADV wxDataViewListModel;
+class WXDLLIMPEXP_FWD_ADV wxDataViewCtrl;
+class WXDLLIMPEXP_FWD_ADV wxDataViewColumn;
+class WXDLLIMPEXP_FWD_ADV wxDataViewRenderer;
 
 extern WXDLLIMPEXP_DATA_ADV(const wxChar) wxDataViewCtrlNameStr[];
 

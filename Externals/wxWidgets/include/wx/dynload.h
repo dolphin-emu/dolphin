@@ -5,7 +5,7 @@
 //               (derived in part from dynlib.cpp (c) 1998 Guilhem Lavaux)
 // Modified by:
 // Created:      03/12/01
-// RCS-ID:       $Id: dynload.h 36973 2006-01-18 16:45:41Z JS $
+// RCS-ID:       $Id: dynload.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:    (c) 2001 Ron Lee <ron@debian.org>
 // Licence:      wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@
 #include "wx/hashmap.h"
 #include "wx/module.h"
 
-class WXDLLIMPEXP_BASE wxPluginLibrary;
+class WXDLLIMPEXP_FWD_BASE wxPluginLibrary;
 
 
 WX_DECLARE_STRING_HASH_MAP_WITH_DECL(wxPluginLibrary *, wxDLManifest,

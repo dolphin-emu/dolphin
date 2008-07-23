@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin, Vaclav Slavik
 // Modified by:
 // Created:     06.08.01
-// RCS-ID:      $Id: toplevel.h 43843 2006-12-07 05:44:44Z PC $
+// RCS-ID:      $Id: toplevel.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 //                       Vaclav Slavik <vaclav@wxwidgets.org>
 // Licence:     wxWindows licence
@@ -24,7 +24,7 @@
 // the default names for various classes
 extern WXDLLEXPORT_DATA(const wxChar) wxFrameNameStr[];
 
-class WXDLLEXPORT wxTopLevelWindowBase;
+class WXDLLIMPEXP_FWD_CORE wxTopLevelWindowBase;
 
 // ----------------------------------------------------------------------------
 // constants

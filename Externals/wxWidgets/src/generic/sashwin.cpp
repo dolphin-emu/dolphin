@@ -6,7 +6,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: sashwin.cpp 39745 2006-06-15 17:58:49Z ABX $
+// RCS-ID:      $Id: sashwin.cpp 51249 2008-01-16 13:50:23Z JS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -289,7 +289,7 @@ void wxSashWindow::OnMouseEvent(wxMouseEvent& event)
            ReleaseMouse();
         m_mouseCaptured = false;
     }
-    else if (event.Moving() && !event.Dragging())
+    else if ((event.Moving() || event.Leaving()) && !event.Dragging())
     {
         // Just change the cursor if required
         if ( sashHit != wxSASH_NONE )

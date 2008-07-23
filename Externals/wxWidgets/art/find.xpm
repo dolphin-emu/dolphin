@@ -1,5 +1,5 @@
 /* XPM */
-static char *find_xpm[] = {
+static const char * find_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "16 15 41 1",
 "y c #A06959",

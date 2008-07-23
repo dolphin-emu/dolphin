@@ -13,7 +13,7 @@
 
 #if wxUSE_XRC && wxUSE_CHOICEBOOK
 
-class WXDLLEXPORT wxChoicebook;
+class WXDLLIMPEXP_FWD_CORE wxChoicebook;
 
 class WXDLLIMPEXP_XRC wxChoicebookXmlHandler : public wxXmlResourceHandler
 {

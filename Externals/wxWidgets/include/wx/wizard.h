@@ -9,7 +9,7 @@
 //              Added wxWIZARD_HELP event
 //              Robert Vazan (sizers)
 // Created:     15.08.99
-// RCS-ID:      $Id: wizard.h 35858 2005-10-09 15:48:42Z MBN $
+// RCS-ID:      $Id: wizard.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,7 +34,7 @@
 #define wxWIZARD_EX_HELPBUTTON   0x00000010
 
 // forward declarations
-class WXDLLIMPEXP_ADV wxWizard;
+class WXDLLIMPEXP_FWD_ADV wxWizard;
 
 // ----------------------------------------------------------------------------
 // wxWizardPage is one of the wizards screen: it must know what are the

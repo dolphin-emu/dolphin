@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     04/04/2003
-// RCS-ID:      $Id: taskbarx11.h 35650 2005-09-23 12:56:45Z MR $
+// RCS-ID:      $Id: taskbarx11.h 53563 2008-05-11 22:45:36Z PC $
 // Copyright:   (c) Vaclav Slavik, 2003
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////
@@ -35,6 +35,9 @@ public:
 
 protected:
     wxTaskBarIconArea *m_iconWnd;
+
+private:
+    void OnDestroy(wxWindowDestroyEvent&);
 
     DECLARE_DYNAMIC_CLASS(wxTaskBarIcon)
 };

@@ -5,7 +5,7 @@
 // Modified by: Michael N. Filippov <michael@idisys.iae.nsk.su>
 //              (2003/09/30 - PluralForms support)
 // Created:     29/01/98
-// RCS-ID:      $Id: intl.cpp 49569 2007-10-31 23:05:53Z RD $
+// RCS-ID:      $Id: intl.cpp 53628 2008-05-17 22:49:30Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,17 +18,17 @@
 // headers
 // ----------------------------------------------------------------------------
 
-#ifdef __EMX__
-// The following define is needed by Innotek's libc to
-// make the definition of struct localeconv available.
-#define __INTERNAL_DEFS
-#endif
-
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
 #ifdef __BORLANDC__
     #pragma hdrstop
+#endif
+
+#ifdef __EMX__
+// The following define is needed by Innotek's libc to
+// make the definition of struct localeconv available.
+#define __INTERNAL_DEFS
 #endif
 
 #if wxUSE_INTL
@@ -72,6 +72,12 @@
 
 #if defined(__WXMAC__)
     #include  "wx/mac/private.h"  // includes mac headers
+#endif
+
+#if defined(__DARWIN__)
+    #include "wx/mac/corefoundation/cfref.h"
+    #include <CoreFoundation/CFLocale.h>
+    #include "wx/mac/corefoundation/cfstring.h"
 #endif
 
 // ----------------------------------------------------------------------------
@@ -232,7 +238,7 @@ wxPluralFormsScanner::wxPluralFormsScanner(const char* s) : m_s(s)
 bool wxPluralFormsScanner::nextToken()
 {
     wxPluralFormsToken::Type type = wxPluralFormsToken::T_ERROR;
-    while (isspace(*m_s))
+    while (isspace((unsigned char) *m_s))
     {
         ++m_s;
     }
@@ -240,20 +246,20 @@ bool wxPluralFormsScanner::nextToken()
     {
         type = wxPluralFormsToken::T_EOF;
     }
-    else if (isdigit(*m_s))
+    else if (isdigit((unsigned char) *m_s))
     {
         wxPluralFormsToken::Number number = *m_s++ - '0';
-        while (isdigit(*m_s))
+        while (isdigit((unsigned char) *m_s))
         {
             number = number * 10 + (*m_s++ - '0');
         }
         m_token.setNumber(number);
         type = wxPluralFormsToken::T_NUMBER;
     }
-    else if (isalpha(*m_s))
+    else if (isalpha((unsigned char) *m_s))
     {
         const char* begin = m_s++;
-        while (isalnum(*m_s))
+        while (isalnum((unsigned char) *m_s))
         {
             ++m_s;
         }
@@ -958,8 +964,10 @@ private:
 class wxMsgCatalog
 {
 public:
+#if !wxUSE_UNICODE
     wxMsgCatalog() { m_conv = NULL; }
     ~wxMsgCatalog();
+#endif
 
     // load the catalog from disk (szDirPrefix corresponds to language)
     bool Load(const wxChar *szDirPrefix, const wxChar *szName,
@@ -978,9 +986,11 @@ private:
     wxMessagesHash  m_messages; // all messages in the catalog
     wxString        m_name;     // name of the domain
 
+#if !wxUSE_UNICODE
     // the conversion corresponding to this catalog charset if we installed it
     // as the global one
     wxCSConv *m_conv;
+#endif
 
     wxPluralFormsCalculatorPtr  m_pluralFormsCalculator;
 };
@@ -1407,6 +1417,7 @@ void wxMsgCatalogFile::FillHash(wxMessagesHash& hash,
 // wxMsgCatalog class
 // ----------------------------------------------------------------------------
 
+#if !wxUSE_UNICODE
 wxMsgCatalog::~wxMsgCatalog()
 {
     if ( m_conv )
@@ -1421,6 +1432,7 @@ wxMsgCatalog::~wxMsgCatalog()
         delete m_conv;
     }
 }
+#endif // !wxUSE_UNICODE
 
 bool wxMsgCatalog::Load(const wxChar *szDirPrefix, const wxChar *szName,
                         const wxChar *msgIdCharset, bool bConvertEncoding)
@@ -1434,7 +1446,7 @@ bool wxMsgCatalog::Load(const wxChar *szDirPrefix, const wxChar *szName,
 
     file.FillHash(m_messages, msgIdCharset, bConvertEncoding);
 
-#if wxUSE_WCHAR_T
+#if !wxUSE_UNICODE && wxUSE_WCHAR_T
     // we should use a conversion compatible with the message catalog encoding
     // in the GUI if we don't convert the strings to the current conversion but
     // as the encoding is global, only change it once, otherwise we could get
@@ -1450,7 +1462,7 @@ bool wxMsgCatalog::Load(const wxChar *szDirPrefix, const wxChar *szName,
         wxConvUI =
         m_conv = new wxCSConv(file.GetCharset());
     }
-#endif // wxUSE_WCHAR_T
+#endif // !wxUSE_UNICODE && wxUSE_WCHAR_T
 
     return true;
 }
@@ -1934,8 +1946,13 @@ void wxLocale::AddCatalogLookupPathPrefix(const wxString& prefix)
     // for now we don't use the encoding, although we probably should (doing
     // translations of the msg catalogs on the fly as required) (TODO)
     //
-    // we don't use the modifiers neither but we probably should translate
-    // "euro" into iso885915
+    // we need the modified for languages like Valencian: ca_ES@valencia
+    // though, remember it
+    wxString modifier;
+    size_t posModifier = langFull.find_first_of(_T("@"));
+    if ( posModifier != wxString::npos )
+        modifier = langFull.Mid(posModifier);
+
     size_t posEndLang = langFull.find_first_of(_T("@."));
     if ( posEndLang != wxString::npos )
     {
@@ -1981,11 +1998,24 @@ void wxLocale::AddCatalogLookupPathPrefix(const wxString& prefix)
         }
 
         // 1. Try to find the language either as is:
-        for ( i = 0; i < count; i++ )
+        // a) With modifier if set
+        if ( !modifier.empty() )
         {
-            if ( ms_languagesDB->Item(i).CanonicalName == langFull )
+            wxString langFullWithModifier = langFull + modifier;
+            for ( i = 0; i < count; i++ )
             {
-                break;
+                if ( ms_languagesDB->Item(i).CanonicalName == langFullWithModifier )
+                    break;
+            }
+        }
+
+        // b) Without modifier
+        if ( modifier.empty() || i == count )
+        {
+            for ( i = 0; i < count; i++ )
+            {
+                if ( ms_languagesDB->Item(i).CanonicalName == langFull )
+                    break;
             }
         }
 
@@ -2151,7 +2181,7 @@ void wxLocale::AddCatalogLookupPathPrefix(const wxString& prefix)
         lc = wxT("lv_LV") ;
         break ;
       case verSami:
-        // not known
+        lc = wxT("se_NO") ;
         break ;
       case verFaroeIsl:
         lc = wxT("fo_FO") ;
@@ -2302,14 +2332,16 @@ void wxLocale::AddCatalogLookupPathPrefix(const wxString& prefix)
         break ;
       default :
         break ;
-   }
-  for ( i = 0; i < count; i++ )
-  {
-      if ( ms_languagesDB->Item(i).CanonicalName == lc )
-      {
-          break;
-      }
-  }
+    }
+    if ( !lc )
+        return wxLANGUAGE_UNKNOWN;
+    for ( i = 0; i < count; i++ )
+    {
+        if ( ms_languagesDB->Item(i).CanonicalName == lc )
+        {
+            break;
+        }
+    }
 
 #elif defined(__WIN32__)
     LCID lcid = GetUserDefaultLCID();
@@ -2739,8 +2771,8 @@ bool wxLocale::IsAvailable(int lang)
         return false;
 
 #elif defined(__UNIX__)
-    
-    // Test if setting the locale works, then set it back. 
+
+    // Test if setting the locale works, then set it back.
     wxMB2WXbuf oldLocale = wxSetlocale(LC_ALL, wxEmptyString);
     wxMB2WXbuf tmp = wxSetlocaleTryUTF(LC_ALL, info->CanonicalName);
     if ( !tmp )
@@ -2751,8 +2783,8 @@ bool wxLocale::IsAvailable(int lang)
             return false;
     }
     // restore the original locale
-    wxSetlocale(LC_ALL, oldLocale);    
-#endif 
+    wxSetlocale(LC_ALL, oldLocale);
+#endif
 
     return true;
 }
@@ -2818,6 +2850,18 @@ bool wxLocale::AddCatalog(const wxChar *szDomain,
 /* static */
 wxString wxLocale::GetInfo(wxLocaleInfo index, wxLocaleCategory WXUNUSED(cat))
 {
+    wxUint32 lcid = LOCALE_USER_DEFAULT;
+
+    if (wxGetLocale())
+    {
+        const wxLanguageInfo *info = GetLanguageInfo(wxGetLocale()->GetLanguage());
+        if (info)
+        {                         ;
+            lcid = MAKELCID(MAKELANGID(info->WinLang, info->WinSublang),
+                                     SORT_DEFAULT);
+        }
+    }
+
     wxString str;
     wxChar buffer[256];
     size_t count;
@@ -2825,7 +2869,7 @@ wxString wxLocale::GetInfo(wxLocaleInfo index, wxLocaleCategory WXUNUSED(cat))
     switch (index)
     {
         case wxLOCALE_DECIMAL_POINT:
-            count = ::GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SDECIMAL, buffer, 256);
+            count = ::GetLocaleInfo(lcid, LOCALE_SDECIMAL, buffer, 256);
             if (!count)
                 str << wxT(".");
             else
@@ -2833,14 +2877,14 @@ wxString wxLocale::GetInfo(wxLocaleInfo index, wxLocaleCategory WXUNUSED(cat))
             break;
 #if 0
         case wxSYS_LIST_SEPARATOR:
-            count = ::GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SLIST, buffer, 256);
+            count = ::GetLocaleInfo(lcid, LOCALE_SLIST, buffer, 256);
             if (!count)
                 str << wxT(",");
             else
                 str << buffer;
             break;
         case wxSYS_LEADING_ZERO: // 0 means no leading zero, 1 means leading zero
-            count = ::GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ILZERO, buffer, 256);
+            count = ::GetLocaleInfo(lcid, LOCALE_ILZERO, buffer, 256);
             if (!count)
                 str << wxT("0");
             else
@@ -2853,7 +2897,48 @@ wxString wxLocale::GetInfo(wxLocaleInfo index, wxLocaleCategory WXUNUSED(cat))
     return str;
 }
 
-#else // !__WXMSW__
+#elif defined(__DARWIN__)
+
+/* static */
+wxString wxLocale::GetInfo(wxLocaleInfo index, wxLocaleCategory WXUNUSED(cat))
+{
+    CFLocaleRef userLocaleRefRaw;
+    if ( wxGetLocale() )
+    {
+        userLocaleRefRaw = CFLocaleCreate
+                           (
+                                kCFAllocatorDefault,
+                                wxMacCFStringHolder(wxGetLocale()->GetCanonicalName())
+                           );
+    }
+    else // no current locale, use the default one
+    {
+        userLocaleRefRaw = CFLocaleCopyCurrent();
+    }
+
+    wxCFRef<CFLocaleRef> userLocaleRef(userLocaleRefRaw);
+
+    CFTypeRef cfstr;
+    switch ( index )
+    {
+        case wxLOCALE_THOUSANDS_SEP:
+            cfstr = CFLocaleGetValue(userLocaleRef, kCFLocaleGroupingSeparator);
+            break;
+
+        case wxLOCALE_DECIMAL_POINT:
+            cfstr = CFLocaleGetValue(userLocaleRef, kCFLocaleDecimalSeparator);
+            break;
+
+        default:
+            wxFAIL_MSG( _T("Unknown locale info") );
+    }
+
+    wxMacCFStringHolder
+        str(CFStringCreateCopy(NULL, static_cast<CFStringRef>(cfstr)));
+    return str.AsString();
+}
+
+#else // !__WXMSW__ && !__DARWIN__
 
 /* static */
 wxString wxLocale::GetInfo(wxLocaleInfo index, wxLocaleCategory cat)
@@ -3112,6 +3197,9 @@ IMPLEMENT_DYNAMIC_CLASS(wxLocaleModule, wxModule)
 #ifndef LANG_RUSSIAN
 #define LANG_RUSSIAN (0)
 #endif
+#ifndef LANG_SAMI
+#define LANG_SAMI (0)
+#endif
 #ifndef LANG_SANSKRIT
 #define LANG_SANSKRIT (0)
 #endif
@@ -3159,6 +3247,9 @@ IMPLEMENT_DYNAMIC_CLASS(wxLocaleModule, wxModule)
 #endif
 #ifndef LANG_UZBEK
 #define LANG_UZBEK (0)
+#endif
+#ifndef LANG_VALENCIAN
+#define LANG_VALENCIAN (0)
 #endif
 #ifndef LANG_VIETNAMESE
 #define LANG_VIETNAMESE (0)
@@ -3531,7 +3622,7 @@ void wxLocale::InitLanguagesDB()
    LNG(wxLANGUAGE_FRENCH_SWISS,               "fr_CH", LANG_FRENCH    , SUBLANG_FRENCH_SWISS              , wxLayout_LeftToRight, "French (Swiss)")
    LNG(wxLANGUAGE_FRISIAN,                    "fy"   , 0              , 0                                 , wxLayout_LeftToRight, "Frisian")
    LNG(wxLANGUAGE_GALICIAN,                   "gl_ES", 0              , 0                                 , wxLayout_LeftToRight, "Galician")
-   LNG(wxLANGUAGE_GEORGIAN,                   "ka"   , LANG_GEORGIAN  , SUBLANG_DEFAULT                   , wxLayout_LeftToRight, "Georgian")
+   LNG(wxLANGUAGE_GEORGIAN,                   "ka_GE", LANG_GEORGIAN  , SUBLANG_DEFAULT                   , wxLayout_LeftToRight, "Georgian")
    LNG(wxLANGUAGE_GERMAN,                     "de_DE", LANG_GERMAN    , SUBLANG_GERMAN                    , wxLayout_LeftToRight, "German")
    LNG(wxLANGUAGE_GERMAN_AUSTRIAN,            "de_AT", LANG_GERMAN    , SUBLANG_GERMAN_AUSTRIAN           , wxLayout_LeftToRight, "German (Austrian)")
    LNG(wxLANGUAGE_GERMAN_BELGIUM,             "de_BE", 0              , 0                                 , wxLayout_LeftToRight, "German (Belgium)")
@@ -3567,7 +3658,7 @@ void wxLocale::InitLanguagesDB()
    LNG(wxLANGUAGE_KIRUNDI,                    "rn"   , 0              , 0                                 , wxLayout_LeftToRight, "Kirundi")
    LNG(wxLANGUAGE_KONKANI,                    ""     , LANG_KONKANI   , SUBLANG_DEFAULT                   , wxLayout_LeftToRight, "Konkani")
    LNG(wxLANGUAGE_KOREAN,                     "ko_KR", LANG_KOREAN    , SUBLANG_KOREAN                    , wxLayout_LeftToRight, "Korean")
-   LNG(wxLANGUAGE_KURDISH,                    "ku"   , 0              , 0                                 , wxLayout_LeftToRight, "Kurdish")
+   LNG(wxLANGUAGE_KURDISH,                    "ku_TR", 0              , 0                                 , wxLayout_LeftToRight, "Kurdish")
    LNG(wxLANGUAGE_LAOTHIAN,                   "lo"   , 0              , 0                                 , wxLayout_LeftToRight, "Laothian")
    LNG(wxLANGUAGE_LATIN,                      "la"   , 0              , 0                                 , wxLayout_LeftToRight, "Latin")
    LNG(wxLANGUAGE_LATVIAN,                    "lv_LV", LANG_LATVIAN   , SUBLANG_DEFAULT                   , wxLayout_LeftToRight, "Latvian")
@@ -3586,7 +3677,7 @@ void wxLocale::InitLanguagesDB()
    LNG(wxLANGUAGE_MOLDAVIAN,                  "mo"   , 0              , 0                                 , wxLayout_LeftToRight, "Moldavian")
    LNG(wxLANGUAGE_MONGOLIAN,                  "mn"   , 0              , 0                                 , wxLayout_LeftToRight, "Mongolian")
    LNG(wxLANGUAGE_NAURU,                      "na"   , 0              , 0                                 , wxLayout_LeftToRight, "Nauru")
-   LNG(wxLANGUAGE_NEPALI,                     "ne"   , LANG_NEPALI    , SUBLANG_DEFAULT                   , wxLayout_LeftToRight, "Nepali")
+   LNG(wxLANGUAGE_NEPALI,                     "ne_NP", LANG_NEPALI    , SUBLANG_DEFAULT                   , wxLayout_LeftToRight, "Nepali")
    LNG(wxLANGUAGE_NEPALI_INDIA,               "ne_IN", LANG_NEPALI    , SUBLANG_NEPALI_INDIA              , wxLayout_LeftToRight, "Nepali (India)")
    LNG(wxLANGUAGE_NORWEGIAN_BOKMAL,           "nb_NO", LANG_NORWEGIAN , SUBLANG_NORWEGIAN_BOKMAL          , wxLayout_LeftToRight, "Norwegian (Bokmal)")
    LNG(wxLANGUAGE_NORWEGIAN_NYNORSK,          "nn_NO", LANG_NORWEGIAN , SUBLANG_NORWEGIAN_NYNORSK         , wxLayout_LeftToRight, "Norwegian (Nynorsk)")
@@ -3607,8 +3698,12 @@ void wxLocale::InitLanguagesDB()
    LNG(wxLANGUAGE_SANGHO,                     "sg"   , 0              , 0                                 , wxLayout_LeftToRight, "Sangho")
    LNG(wxLANGUAGE_SANSKRIT,                   "sa"   , LANG_SANSKRIT  , SUBLANG_DEFAULT                   , wxLayout_LeftToRight, "Sanskrit")
    LNG(wxLANGUAGE_SCOTS_GAELIC,               "gd"   , 0              , 0                                 , wxLayout_LeftToRight, "Scots Gaelic")
+   LNG(wxLANGUAGE_SAMI,                       "se_NO", LANG_SAMI      , SUBLANG_DEFAULT                   , wxLayout_LeftToRight, "Northern Sami")
+   LNG(wxLANGUAGE_SERBIAN,                    "sr_SR", LANG_SERBIAN   , SUBLANG_DEFAULT                   , wxLayout_LeftToRight, "Serbian")
+   LNG(wxLANGUAGE_SERBIAN_CYRILLIC,           "sr_SR", LANG_SERBIAN   , SUBLANG_SERBIAN_CYRILLIC          , wxLayout_LeftToRight, "Serbian (Cyrillic)")
+   LNG(wxLANGUAGE_SERBIAN_LATIN,              "sr_SR@latin", LANG_SERBIAN   , SUBLANG_SERBIAN_LATIN             , wxLayout_LeftToRight, "Serbian (Latin)")
    LNG(wxLANGUAGE_SERBIAN_CYRILLIC,           "sr_YU", LANG_SERBIAN   , SUBLANG_SERBIAN_CYRILLIC          , wxLayout_LeftToRight, "Serbian (Cyrillic)")
-   LNG(wxLANGUAGE_SERBIAN_LATIN,              "sr_YU", LANG_SERBIAN   , SUBLANG_SERBIAN_LATIN             , wxLayout_LeftToRight, "Serbian (Latin)")
+   LNG(wxLANGUAGE_SERBIAN_LATIN,              "sr_YU@latin", LANG_SERBIAN   , SUBLANG_SERBIAN_LATIN             , wxLayout_LeftToRight, "Serbian (Latin)")
    LNG(wxLANGUAGE_SERBO_CROATIAN,             "sh"   , 0              , 0                                 , wxLayout_LeftToRight, "Serbo-Croatian")
    LNG(wxLANGUAGE_SESOTHO,                    "st"   , 0              , 0                                 , wxLayout_LeftToRight, "Sesotho")
    LNG(wxLANGUAGE_SETSWANA,                   "tn"   , 0              , 0                                 , wxLayout_LeftToRight, "Setswana")
@@ -3665,6 +3760,7 @@ void wxLocale::InitLanguagesDB()
    LNG(wxLANGUAGE_UZBEK,                      "uz"   , LANG_UZBEK     , SUBLANG_DEFAULT                   , wxLayout_LeftToRight, "Uzbek")
    LNG(wxLANGUAGE_UZBEK_CYRILLIC,             "uz"   , LANG_UZBEK     , SUBLANG_UZBEK_CYRILLIC            , wxLayout_LeftToRight, "Uzbek (Cyrillic)")
    LNG(wxLANGUAGE_UZBEK_LATIN,                "uz"   , LANG_UZBEK     , SUBLANG_UZBEK_LATIN               , wxLayout_LeftToRight, "Uzbek (Latin)")
+   LNG(wxLANGUAGE_VALENCIAN,                  "ca_ES@valencia", LANG_VALENCIAN , SUBLANG_DEFAULT                   , wxLayout_LeftToRight, "Valencian")
    LNG(wxLANGUAGE_VIETNAMESE,                 "vi_VN", LANG_VIETNAMESE, SUBLANG_DEFAULT                   , wxLayout_LeftToRight, "Vietnamese")
    LNG(wxLANGUAGE_VOLAPUK,                    "vo"   , 0              , 0                                 , wxLayout_LeftToRight, "Volapuk")
    LNG(wxLANGUAGE_WELSH,                      "cy"   , 0              , 0                                 , wxLayout_LeftToRight, "Welsh")

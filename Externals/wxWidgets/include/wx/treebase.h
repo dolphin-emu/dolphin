@@ -4,7 +4,7 @@
 // Author:      Julian Smart et al
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: treebase.h 39857 2006-06-27 21:21:36Z RD $
+// RCS-ID:      $Id: treebase.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 1997,1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -107,8 +107,8 @@ inline bool operator!=(const wxTreeItemId& i1, const wxTreeItemId& i2)
 
 class WXDLLEXPORT wxTreeItemData: public wxClientData
 {
-friend class WXDLLEXPORT wxTreeCtrl;
-friend class WXDLLEXPORT wxGenericTreeCtrl;
+friend class WXDLLIMPEXP_FWD_CORE wxTreeCtrl;
+friend class WXDLLIMPEXP_FWD_CORE wxGenericTreeCtrl;
 public:
     // creation/destruction
     // --------------------
@@ -265,7 +265,7 @@ private:
 //     descriptions below
 // ----------------------------------------------------------------------------
 
-class WXDLLEXPORT  wxTreeCtrlBase;
+class WXDLLIMPEXP_FWD_CORE wxTreeCtrlBase;
 
 class WXDLLEXPORT wxTreeEvent : public wxNotifyEvent
 {
@@ -320,8 +320,8 @@ private:
     wxString      m_label;
     bool          m_editCancelled;
 
-    friend class WXDLLEXPORT wxTreeCtrl;
-    friend class WXDLLEXPORT wxGenericTreeCtrl;
+    friend class WXDLLIMPEXP_FWD_CORE wxTreeCtrl;
+    friend class WXDLLIMPEXP_FWD_CORE wxGenericTreeCtrl;
 
     DECLARE_DYNAMIC_CLASS(wxTreeEvent)
 };

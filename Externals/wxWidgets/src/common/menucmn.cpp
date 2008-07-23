@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     26.10.99
-// RCS-ID:      $Id: menucmn.cpp 48053 2007-08-13 17:07:01Z JS $
+// RCS-ID:      $Id: menucmn.cpp 51361 2008-01-24 18:12:55Z PC $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -470,8 +470,6 @@ void wxMenuBase::Init(long style)
 wxMenuBase::~wxMenuBase()
 {
     WX_CLEAR_LIST(wxMenuItemList, m_items);
-
-    // Actually, in GTK, the submenus have to get deleted first.
 }
 
 // ----------------------------------------------------------------------------

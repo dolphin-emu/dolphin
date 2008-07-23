@@ -1,5 +1,5 @@
 /* XPM */
-static char * htmoptns_xpm[] = {
+static const char * htmoptns_xpm[] = {
 "16 15 2 1",
 " 	c None",
 ".	c #000000",

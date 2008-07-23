@@ -3,7 +3,7 @@
 // Purpose:     XML resource handler for wxToolBar
 // Author:      Vaclav Slavik
 // Created:     2000/08/11
-// RCS-ID:      $Id: xh_toolb.h 41590 2006-10-03 14:53:40Z VZ $
+// RCS-ID:      $Id: xh_toolb.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,7 +15,7 @@
 
 #if wxUSE_XRC && wxUSE_TOOLBAR
 
-class WXDLLEXPORT wxToolBar;
+class WXDLLIMPEXP_FWD_CORE wxToolBar;
 
 class WXDLLIMPEXP_XRC wxToolBarXmlHandler : public wxXmlResourceHandler
 {

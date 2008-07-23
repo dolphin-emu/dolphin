@@ -16,7 +16,7 @@
 //                -Set ODBC option to only read committed writes to the DB so all
 //                   databases operate the same in that respect
 // Created:     9.96
-// RCS-ID:      $Id: db.cpp 48685 2007-09-14 19:02:28Z VZ $
+// RCS-ID:      $Id: db.cpp 52489 2008-03-14 14:14:57Z JS $
 // Copyright:   (c) 1996 Remstar International, Inc.
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -1912,7 +1912,7 @@ void wxDb::logError(const wxString &errMsg, const wxString &SQLState)
     }
 
     wxStrncpy(errorList[pLast], errMsg, DB_MAX_ERROR_MSG_LEN);
-    errorList[pLast][DB_MAX_ERROR_MSG_LEN] = 0;
+    errorList[pLast][DB_MAX_ERROR_MSG_LEN-1] = 0;
 
     if (SQLState.length())
         if ((dbStatus = TranslateSqlState(SQLState)) != DB_ERR_FUNCTION_SEQUENCE_ERROR)

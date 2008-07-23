@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     10/5/2006 3:11:58 PM
-// RCS-ID:      $Id: richtextsymboldlg.h 49960 2007-11-15 08:03:59Z JS $
+// RCS-ID:      $Id: richtextsymboldlg.h 50950 2007-12-30 16:11:12Z JS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,13 +18,14 @@
 
 #include "wx/dialog.h"
 #include "wx/vscroll.h"
-#include "wx/combobox.h"
-#include "wx/stattext.h"
-#include "wx/textctrl.h"
 
 /*!
  * Forward declarations
  */
+
+class WXDLLIMPEXP_FWD_CORE wxStaticText;
+class WXDLLIMPEXP_FWD_CORE wxComboBox;
+class WXDLLIMPEXP_FWD_CORE wxTextCtrl;
 
 ////@begin forward declarations
 class wxSymbolListCtrl;

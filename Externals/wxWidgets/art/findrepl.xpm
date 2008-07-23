@@ -1,5 +1,5 @@
 /* XPM */
-static char *findrepl_xpm[] = {
+static const char * findrepl_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "16 15 42 1",
 "y c #A06959",

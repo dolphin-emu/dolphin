@@ -4,7 +4,7 @@
 // Author:      Jethro Grassie / Kevin Ollivier
 // Modified by:
 // Created:     2004-4-16
-// RCS-ID:      $Id: webkit.h 42107 2006-10-19 00:40:23Z KO $
+// RCS-ID:      $Id: webkit.h 53798 2008-05-28 06:12:34Z RD $
 // Copyright:   (c) Jethro Grassie / Kevin Ollivier
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -172,12 +172,34 @@ protected:
     wxString m_url;
 };
 
+
+#if wxABI_VERSION >= 20808
+class wxWebKitNewWindowEvent : public wxCommandEvent
+{
+    DECLARE_DYNAMIC_CLASS( wxWebViewNewWindowEvent )
+public:
+    wxString GetURL() const { return m_url; }
+    void SetURL(const wxString& url) { m_url = url; }
+    wxString GetTargetName() const { return m_targetName; }
+    void SetTargetName(const wxString& name) { m_targetName = name; }
+
+    wxWebKitNewWindowEvent( wxWindow* win = (wxWindow*)(NULL));
+    wxEvent *Clone(void) const { return new wxWebKitNewWindowEvent(*this); }
+
+private:
+    wxString m_url;
+    wxString m_targetName;
+};
+#endif
+
 typedef void (wxEvtHandler::*wxWebKitStateChangedEventFunction)(wxWebKitStateChangedEvent&);
 typedef void (wxEvtHandler::*wxWebKitBeforeLoadEventFunction)(wxWebKitBeforeLoadEvent&);
+typedef void (wxEvtHandler::*wxWebKitNewWindowEventFunction)(wxWebKitNewWindowEvent&);
 
 BEGIN_DECLARE_EVENT_TYPES()
     DECLARE_LOCAL_EVENT_TYPE(wxEVT_WEBKIT_BEFORE_LOAD, wxID_ANY)
     DECLARE_LOCAL_EVENT_TYPE(wxEVT_WEBKIT_STATE_CHANGED, wxID_ANY)
+    DECLARE_LOCAL_EVENT_TYPE(wxEVT_WEBKIT_NEW_WINDOW, wxID_ANY)
 END_DECLARE_EVENT_TYPES()
 
 #define EVT_WEBKIT_STATE_CHANGED(func) \
@@ -196,6 +218,13 @@ END_DECLARE_EVENT_TYPES()
                             (wxWebKitBeforeLoadEventFunction) & func, \
                             (wxObject *) NULL ),
 
+#define EVT_WEBKIT_NEW_WINDOW(func)                              \
+            DECLARE_EVENT_TABLE_ENTRY( wxEVT_WEBKIT_NEW_WINDOW, \
+                            wxID_ANY, \
+                            wxID_ANY, \
+                            (wxObjectEventFunction)   \
+                            (wxWebKitNewWindowEventFunction) & func, \
+                            (wxObject *) NULL ),
 #endif // wxUSE_WEBKIT
 
 #endif

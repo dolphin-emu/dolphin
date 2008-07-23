@@ -2,7 +2,7 @@
 // Name:        htmlwin.h
 // Purpose:     wxHtmlWindow class for parsing & displaying HTML
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlwin.h 43854 2006-12-07 08:56:57Z PC $
+// RCS-ID:      $Id: htmlwin.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 1999 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -28,9 +28,9 @@ class wxHtmlProcessor;
 class wxHtmlWinModule;
 class wxHtmlHistoryArray;
 class wxHtmlProcessorList;
-class WXDLLIMPEXP_HTML wxHtmlWinAutoScrollTimer;
-class WXDLLIMPEXP_HTML wxHtmlCellEvent;
-class WXDLLIMPEXP_HTML wxHtmlLinkEvent;
+class WXDLLIMPEXP_FWD_HTML wxHtmlWinAutoScrollTimer;
+class WXDLLIMPEXP_FWD_HTML wxHtmlCellEvent;
+class WXDLLIMPEXP_FWD_HTML wxHtmlLinkEvent;
 
 
 // wxHtmlWindow flags:

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: setup.h 43908 2006-12-11 06:19:27Z RD $
+// RCS-ID:      $Id: setup.h 51451 2008-01-29 23:11:55Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1042,7 +1042,7 @@
 // ----------------------------------------------------------------------------
 
 // wxSingleInstanceChecker class allows to verify at startup if another program
-// instance is running (it is only available under Win32)
+// instance is running.
 //
 // Default is 1
 //

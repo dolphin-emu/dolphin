@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by: Ron Lee
 // Created:     01/02/97
-// RCS-ID:      $Id: window.h 49563 2007-10-31 20:46:21Z VZ $
+// RCS-ID:      $Id: window.h 52330 2008-03-05 14:19:38Z VS $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -326,6 +326,12 @@ public:
         return wxRect(GetClientAreaOrigin(), GetClientSize());
     }
 
+#if wxABI_VERSION >= 20808
+    // client<->window size conversion
+    wxSize ClientToWindowSize(const wxSize& size) const;
+    wxSize WindowToClientSize(const wxSize& size) const;
+#endif
+
         // get the size best suited for the window (in fact, minimal
         // acceptable size using which it will still look "nice" in
         // most situations)
@@ -572,6 +578,13 @@ public:
 
     // needed just for extended runtime
     const wxWindowList& GetWindowChildren() const { return GetChildren() ; }
+
+#if wxABI_VERSION >= 20808
+        // get the window before/after this one in the parents children list,
+        // returns NULL if this is the first/last window
+    wxWindow *GetPrevSibling() const { return DoGetSibling(MoveBefore); }
+    wxWindow *GetNextSibling() const { return DoGetSibling(MoveAfter); }
+#endif // wx 2.8.8+
 
         // get the parent or the parent of the parent
     wxWindow *GetParent() const { return m_parent; }
@@ -1141,12 +1154,18 @@ protected:
     virtual bool TryValidator(wxEvent& event);
     virtual bool TryParent(wxEvent& event);
 
-    // common part of MoveBefore/AfterInTabOrder()
     enum MoveKind
     {
         MoveBefore,     // insert before the given window
         MoveAfter       // insert after the given window
     };
+
+#if wxABI_VERSION >= 20808
+    // common part of GetPrev/NextSibling()
+    wxWindow *DoGetSibling(MoveKind order) const;
+#endif // wx 2.8.8+
+
+    // common part of MoveBefore/AfterInTabOrder()
     virtual void DoMoveInTabOrder(wxWindow *win, MoveKind move);
 
 #if wxUSE_CONSTRAINTS

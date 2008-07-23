@@ -1,11 +1,11 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        src/generic/progdlgg.cpp
 // Purpose:     wxProgressDialog class
-// Author:      Karsten Ballüder
+// Author:      Karsten Ballueder
 // Modified by:
 // Created:     09.05.1999
-// RCS-ID:      $Id: progdlgg.cpp 49601 2007-11-02 16:11:08Z VZ $
-// Copyright:   (c) Karsten Ballüder
+// RCS-ID:      $Id: progdlgg.cpp 50711 2007-12-15 02:57:58Z VZ $
+// Copyright:   (c) Karsten Ballueder
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 

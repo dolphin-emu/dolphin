@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.07.99
-// RCS-ID:      $Id: dialup.cpp 49804 2007-11-10 01:09:42Z VZ $
+// RCS-ID:      $Id: dialup.cpp 52495 2008-03-14 14:18:24Z JS $
 // Copyright:   (c) Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -711,7 +711,13 @@ size_t wxDialUpManagerMSW::GetISPNames(wxArrayString& names) const
         if ( dwRet == ERROR_BUFFER_TOO_SMALL )
         {
             // reallocate the buffer
-            rasEntries = (RASENTRYNAME *)realloc(rasEntries, size);
+            void *n  = realloc(rasEntries, size);
+            if (n == NULL)
+            {
+                free(rasEntries);
+                return 0;
+            }
+            rasEntries = (RASENTRYNAME *)n;
         }
         else if ( dwRet != 0 )
         {

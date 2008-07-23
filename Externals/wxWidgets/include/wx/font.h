@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.09.99
-// RCS-ID:      $Id: font.h 49563 2007-10-31 20:46:21Z VZ $
+// RCS-ID:      $Id: font.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -105,7 +105,7 @@ enum
 // wxFontBase represents a font object
 // ----------------------------------------------------------------------------
 
-class WXDLLEXPORT wxNativeFontInfo;
+class WXDLLIMPEXP_FWD_CORE wxNativeFontInfo;
 
 class WXDLLEXPORT wxFontBase : public wxGDIObject
 {

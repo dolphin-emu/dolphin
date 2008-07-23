@@ -4,7 +4,7 @@
 // Author:      Robert Roebling
 // Created:     01/02/97
 // Modified:    22/10/98 - almost total rewrite, simpler interface (VZ)
-// Id:          $Id: treectlg.cpp 47614 2007-07-21 11:41:34Z VZ $
+// Id:          $Id: treectlg.cpp 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -49,7 +49,7 @@
 // array types
 // -----------------------------------------------------------------------------
 
-class WXDLLEXPORT wxGenericTreeItem;
+class WXDLLIMPEXP_FWD_CORE wxGenericTreeItem;
 
 WX_DEFINE_EXPORTED_ARRAY_PTR(wxGenericTreeItem *, wxArrayGenericTreeItems);
 

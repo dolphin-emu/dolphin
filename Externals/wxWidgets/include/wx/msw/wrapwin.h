@@ -3,7 +3,7 @@
 // Purpose:     Wrapper around <windows.h>, to be included instead of it
 // Author:      Vaclav Slavik
 // Created:     2003/07/22
-// RCS-ID:      $Id: wrapwin.h 42462 2006-10-26 19:06:51Z VZ $
+// RCS-ID:      $Id: wrapwin.h 53877 2008-05-31 12:43:44Z SN $
 // Copyright:   (c) 2003 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -62,7 +62,7 @@
 // pointer) on MSVC 7 and later. However, they are not available in older 
 // Platform SDKs, and since they are typedefs and not #defines we simply 
 // overwrite them if there is a chance that they're not defined
-#if !defined(_MSC_VER) || (_MSC_VER < 1300)
+#if (!defined(_MSC_VER) || (_MSC_VER < 1300)) && !defined(__WIN64__)
     #define UINT_PTR unsigned int
     #define LONG_PTR long
     #define ULONG_PTR unsigned long

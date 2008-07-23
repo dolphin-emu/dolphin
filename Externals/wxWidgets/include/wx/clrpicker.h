@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     14/4/2006
 // Copyright:   (c) Vadim Zeitlin, Francesco Montorsi
-// RCS-ID:      $Id: clrpicker.h 41022 2006-09-05 21:02:27Z VZ $
+// RCS-ID:      $Id: clrpicker.h 53135 2008-04-12 02:31:04Z VZ $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -20,7 +20,7 @@
 #include "wx/pickerbase.h"
 
 
-class WXDLLIMPEXP_CORE wxColourPickerEvent;
+class WXDLLIMPEXP_FWD_CORE wxColourPickerEvent;
 
 extern WXDLLEXPORT_DATA(const wxChar) wxColourPickerWidgetNameStr[];
 extern WXDLLEXPORT_DATA(const wxChar) wxColourPickerCtrlNameStr[];

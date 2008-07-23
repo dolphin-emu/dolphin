@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: palette.h 42752 2006-10-30 19:26:48Z VZ $
+// RCS-ID:      $Id: palette.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,11 +14,11 @@
 
 #include "wx/gdiobj.h"
 
-class WXDLLEXPORT wxPalette;
+class WXDLLIMPEXP_FWD_CORE wxPalette;
 
 class WXDLLEXPORT wxPaletteRefData: public wxGDIRefData
 {
-    friend class WXDLLEXPORT wxPalette;
+    friend class WXDLLIMPEXP_FWD_CORE wxPalette;
 public:
     wxPaletteRefData(void);
     virtual ~wxPaletteRefData(void);

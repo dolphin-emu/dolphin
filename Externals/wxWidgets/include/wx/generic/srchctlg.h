@@ -3,7 +3,7 @@
 // Purpose:     generic wxSearchCtrl class
 // Author:      Vince Harron
 // Created:     2006-02-19
-// RCS-ID:      $Id: srchctlg.h 45828 2007-05-05 14:51:51Z VZ $
+// RCS-ID:      $Id: srchctlg.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   Vince Harron
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,8 +15,8 @@
 
 #include "wx/bitmap.h"
 
-class WXDLLEXPORT wxSearchButton;
-class WXDLLEXPORT wxSearchTextCtrl;
+class WXDLLIMPEXP_FWD_CORE wxSearchButton;
+class WXDLLIMPEXP_FWD_CORE wxSearchTextCtrl;
 
 // ----------------------------------------------------------------------------
 // wxSearchCtrl is a combination of wxTextCtrl and wxSearchButton

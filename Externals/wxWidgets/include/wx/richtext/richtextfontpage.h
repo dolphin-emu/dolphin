@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2006-10-02
-// RCS-ID:      $Id: richtextfontpage.h 43197 2006-11-08 14:05:50Z JS $
+// RCS-ID:      $Id: richtextfontpage.h 53105 2008-04-10 14:05:25Z JS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -103,6 +103,12 @@ public:
     /// wxEVT_COMMAND_CHECKBOX_CLICKED event handler for ID_RICHTEXTFONTPAGE_CAPSCTRL
     void OnCapsctrlClick( wxCommandEvent& event );
 
+    /// wxEVT_COMMAND_CHECKBOX_CLICKED event handler for ID_RICHTEXTFONTPAGE_SUPERSCRIPT
+    void OnRichtextfontpageSuperscriptClick( wxCommandEvent& event );
+
+    /// wxEVT_COMMAND_CHECKBOX_CLICKED event handler for ID_RICHTEXTFONTPAGE_SUBSCRIPT
+    void OnRichtextfontpageSubscriptClick( wxCommandEvent& event );
+
 ////@end wxRichTextFontPage event handler declarations
 
 ////@begin wxRichTextFontPage member function declarations
@@ -128,6 +134,8 @@ public:
     wxRichTextColourSwatchCtrl* m_colourCtrl;
     wxCheckBox* m_strikethroughCtrl;
     wxCheckBox* m_capitalsCtrl;
+    wxCheckBox* m_superscriptCtrl;
+    wxCheckBox* m_subscriptCtrl;
     wxRichTextFontPreviewCtrl* m_previewCtrl;
     /// Control identifiers
     enum {
@@ -142,6 +150,8 @@ public:
         ID_RICHTEXTFONTPAGE_COLOURCTRL = 10009,
         ID_RICHTEXTFONTPAGE_STRIKETHROUGHCTRL = 10010,
         ID_RICHTEXTFONTPAGE_CAPSCTRL = 10011,
+        ID_RICHTEXTFONTPAGE_SUPERSCRIPT = 10012,
+        ID_RICHTEXTFONTPAGE_SUBSCRIPT = 10013,
         ID_RICHTEXTFONTPAGE_PREVIEWCTRL = 10003
     };
 ////@end wxRichTextFontPage member variables

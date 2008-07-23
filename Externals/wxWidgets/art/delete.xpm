@@ -1,5 +1,5 @@
 /* XPM */
-static char *delete_xpm[] = {
+static const char * delete_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "16 15 21 1",
 "2 c #A5AEBD",

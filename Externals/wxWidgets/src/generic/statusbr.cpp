@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: statusbr.cpp 42157 2006-10-20 11:01:50Z SC $
+// RCS-ID:      $Id: statusbr.cpp 51615 2008-02-09 15:10:13Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -81,14 +81,14 @@ bool wxStatusBarGeneric::Create(wxWindow *parent,
     SetFont(*wxSMALL_FONT);
 #endif
 
-	wxCoord y;
-	{
-		// Set the height according to the font and the border size
-		wxClientDC dc(this);
-		dc.SetFont(GetFont());
+    wxCoord y;
+    {
+        // Set the height according to the font and the border size
+        wxClientDC dc(this);
+        dc.SetFont(GetFont());
 
-		dc.GetTextExtent(_T("X"), NULL, &y );
-	}
+        dc.GetTextExtent(_T("X"), NULL, &y );
+    }
     int height = (int)( (11*y)/10 + 2*GetBorderY());
 
     SetSize(wxDefaultCoord, wxDefaultCoord, wxDefaultCoord, height);
@@ -200,7 +200,7 @@ void wxStatusBarGeneric::OnPaint(wxPaintEvent& WXUNUSED(event) )
     {
         int width, height;
         GetClientSize(&width, &height);
-        
+
         if (GetLayoutDirection() == wxLayout_RightToLeft)
         {
             gtk_paint_resize_grip( m_widget->style,
@@ -368,23 +368,16 @@ bool wxStatusBarGeneric::GetFieldRect(int n, wxRect& rect) const
 // Initialize colours
 void wxStatusBarGeneric::InitColours()
 {
-    // Shadow colours
-#if defined(__WXMSW__) || defined(__WXMAC__)
-    wxColour mediumShadowColour(wxSystemSettings::GetColour(wxSYS_COLOUR_3DSHADOW));
-    m_mediumShadowPen = wxPen(mediumShadowColour, 1, wxSOLID);
-
-    wxColour hilightColour(wxSystemSettings::GetColour(wxSYS_COLOUR_3DHILIGHT));
-    m_hilightPen = wxPen(hilightColour, 1, wxSOLID);
-#elif defined(__WXPM__)
+#if defined(__WXPM__)
     m_mediumShadowPen = wxPen(wxColour(127, 127, 127), 1, wxSOLID);
     m_hilightPen = *wxWHITE_PEN;
 
     SetBackgroundColour(*wxLIGHT_GREY);
     SetForegroundColour(*wxBLACK);
-#else
-    m_mediumShadowPen = *wxGREY_PEN;
-    m_hilightPen = *wxWHITE_PEN;
-#endif
+#else // !__WXPM__
+    m_mediumShadowPen = wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_3DSHADOW));
+    m_hilightPen = wxPen(wxSystemSettings::GetColour(wxSYS_COLOUR_3DHILIGHT));
+#endif // __WXPM__/!__WXPM__
 }
 
 // Responds to colour changes, and passes event on to children.

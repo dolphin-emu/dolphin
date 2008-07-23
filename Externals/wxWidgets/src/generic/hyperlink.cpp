@@ -4,7 +4,7 @@
 // Author:      David Norris <danorris@gmail.com>, Otto Wyss
 // Modified by: Ryan Norton, Francesco Montorsi
 // Created:     04/02/2005
-// RCS-ID:      $Id: hyperlink.cpp 42816 2006-10-31 08:50:17Z RD $
+// RCS-ID:      $Id: hyperlink.cpp 52131 2008-02-27 02:18:42Z VZ $
 // Copyright:   (c) 2005 David Norris
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -157,7 +157,7 @@ void wxHyperlinkCtrl::SetVisitedColour(const wxColour &colour)
 void wxHyperlinkCtrl::DoContextMenu(const wxPoint &pos)
 {
     wxMenu *menuPopUp = new wxMenu(wxEmptyString, wxMENU_TEAROFF);
-    menuPopUp->Append(wxHYPERLINKCTRL_POPUP_COPY_ID, wxT("Copy URL"));
+    menuPopUp->Append(wxHYPERLINKCTRL_POPUP_COPY_ID, _("&Copy URL"));
     PopupMenu( menuPopUp, pos );
     delete menuPopUp;
 }

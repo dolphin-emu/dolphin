@@ -2,7 +2,7 @@
 // Name:        src/common/imagxpm.cpp
 // Purpose:     wxXPMHandler
 // Author:      Vaclav Slavik, Robert Roebling
-// RCS-ID:      $Id: imagxpm.cpp 47105 2007-07-03 17:17:20Z PC $
+// RCS-ID:      $Id: imagxpm.cpp 53477 2008-05-07 07:28:57Z JS $
 // Copyright:   (c) 2001 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -129,9 +129,9 @@ bool wxXPMHandler::SaveFile(wxImage * image,
     }
 
     if ( !sName.empty() )
-        sName = wxString(wxT("/* XPM */\nstatic char *")) + sName;
+        sName = wxString(wxT("/* XPM */\nstatic const char *")) + sName;
     else
-        sName = wxT("/* XPM */\nstatic char *xpm_data");
+        sName = wxT("/* XPM */\nstatic const char *xpm_data");
     stream.Write( (const char*) sName.ToAscii(), sName.Len() );
 
     char tmpbuf[200];

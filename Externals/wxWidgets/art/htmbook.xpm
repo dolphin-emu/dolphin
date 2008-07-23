@@ -1,5 +1,5 @@
 /* XPM */
-static char * htmbook_xpm[] = {
+static const char * htmbook_xpm[] = {
 "16 16 6 1",
 " 	c None",
 ".	c Black",

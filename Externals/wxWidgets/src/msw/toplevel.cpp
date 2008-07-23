@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     24.09.01
-// RCS-ID:      $Id: toplevel.cpp 48517 2007-09-02 20:24:14Z JS $
+// RCS-ID:      $Id: toplevel.cpp 53701 2008-05-22 16:46:08Z PC $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -521,9 +521,6 @@ bool wxTopLevelWindowMSW::Create(wxWindow *parent,
 {
     bool ret wxDUMMY_INITIALIZE(false);
 
-    // init our fields
-    Init();
-
     wxSize sizeReal = size;
     if ( !sizeReal.IsFullySpecified() )
     {
@@ -674,10 +671,14 @@ bool wxTopLevelWindowMSW::Show(bool show)
         }
         else // just show
         {
-           if ( GetWindowStyle() & wxFRAME_TOOL_WINDOW )
-               nShowCmd = SW_SHOWNA;
-           else
-               nShowCmd = SW_SHOW;
+            // we shouldn't use SW_SHOW which also activates the window for
+            // tool frames (as they shouldn't steal focus from the main window)
+            // nor for the currently disabled windows as they would be enabled
+            // as a side effect
+            if ( HasFlag(wxFRAME_TOOL_WINDOW) || !IsEnabled() )
+                nShowCmd = SW_SHOWNA;
+            else
+                nShowCmd = SW_SHOW;
         }
     }
     else // hide
@@ -910,25 +911,26 @@ void wxTopLevelWindowMSW::SetIcon(const wxIcon& icon)
     SetIcons( wxIconBundle( icon ) );
 }
 
+void wxTopLevelWindowMSW::DoSelectAndSetIcon(const wxIconBundle& icons,
+                                             int smX,
+                                             int smY,
+                                             int i)
+{
+    const wxSize size(::GetSystemMetrics(smX), ::GetSystemMetrics(smY));
+
+    const wxIcon icon = icons.GetIcon(size);
+    if ( icon.Ok() && icon.GetWidth() == size.x && icon.GetHeight() == size.y )
+    {
+        ::SendMessage(GetHwnd(), WM_SETICON, i, (LPARAM)GetHiconOf(icon));
+    }
+}
+
 void wxTopLevelWindowMSW::SetIcons(const wxIconBundle& icons)
 {
     wxTopLevelWindowBase::SetIcons(icons);
 
-#if !defined(__WXMICROWIN__)
-    const wxIcon& sml = icons.GetIcon( wxSize( 16, 16 ) );
-    if( sml.Ok() && sml.GetWidth() == 16 && sml.GetHeight() == 16 )
-    {
-        ::SendMessage( GetHwndOf( this ), WM_SETICON, ICON_SMALL,
-                       (LPARAM)GetHiconOf(sml) );
-    }
-
-    const wxIcon& big = icons.GetIcon( wxSize( 32, 32 ) );
-    if( big.Ok() && big.GetWidth() == 32 && big.GetHeight() == 32 )
-    {
-        ::SendMessage( GetHwndOf( this ), WM_SETICON, ICON_BIG,
-                       (LPARAM)GetHiconOf(big) );
-    }
-#endif // !__WXMICROWIN__
+    DoSelectAndSetIcon(icons, SM_CXSMICON, SM_CYSMICON, ICON_SMALL);
+    DoSelectAndSetIcon(icons, SM_CXICON, SM_CYICON, ICON_BIG);
 }
 
 bool wxTopLevelWindowMSW::EnableCloseButton(bool enable)
@@ -1023,7 +1025,7 @@ void wxTopLevelWindowMSW::RequestUserAttention(int flags)
 #if defined(FLASHW_STOP) && defined(VK_XBUTTON1)
     // available in the headers, check if it is supported by the system
     typedef BOOL (WINAPI *FlashWindowEx_t)(FLASHWINFO *pfwi);
-    FlashWindowEx_t s_pfnFlashWindowEx = NULL;
+    static FlashWindowEx_t s_pfnFlashWindowEx = NULL;
     if ( !s_pfnFlashWindowEx )
     {
         wxDynamicLibrary dllUser32(_T("user32.dll"));
@@ -1143,7 +1145,9 @@ void wxTopLevelWindowMSW::OnActivate(wxActivateEvent& event)
         if ( m_winLastFocused )
         {
             // let it know that it doesn't have focus any more
-            m_winLastFocused->HandleKillFocus((WXHWND)NULL);
+            // But this will already be done via WM_KILLFOCUS, so we'll get two kill
+            // focus events if we call it explicitly.
+            // m_winLastFocused->HandleKillFocus((WXHWND)NULL);
 
             // and don't remember it if it's a child from some other frame
             if ( wxGetTopLevelParent(m_winLastFocused) != this )

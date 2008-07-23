@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     2004-10-19
-// RCS-ID:      $Id: stdpaths.cpp 43340 2006-11-12 12:58:10Z RR $
+// RCS-ID:      $Id: stdpaths.cpp 51807 2008-02-15 13:14:49Z VZ $
 // Copyright:   (c) 2004 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,7 @@ typedef HRESULT (WINAPI *SHGetSpecialFolderPath_t)(HWND, LPTSTR, int, BOOL);
 // ----------------------------------------------------------------------------
 
 // used in our wxLogTrace messages
-static const wxChar *TRACE_MASK = _T("stdpaths");
+#define TRACE_MASK _T("stdpaths")
 
 #ifndef CSIDL_APPDATA
     #define CSIDL_APPDATA         0x001a

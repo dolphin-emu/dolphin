@@ -1,5 +1,5 @@
 /* XPM */
-static char *exefile_xpm[] = {
+static const char * exefile_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "16 16 51 1",
 "% c #E8E8EC",

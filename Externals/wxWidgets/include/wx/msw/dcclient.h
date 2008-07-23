@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcclient.h 35650 2005-09-23 12:56:45Z MR $
+// RCS-ID:      $Id: dcclient.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,7 +24,7 @@
 // ----------------------------------------------------------------------------
 
 // this one if used by wxPaintDC only
-struct WXDLLEXPORT wxPaintDCInfo;
+struct WXDLLIMPEXP_FWD_CORE wxPaintDCInfo;
 
 WX_DECLARE_EXPORTED_OBJARRAY(wxPaintDCInfo, wxArrayDCInfo);
 

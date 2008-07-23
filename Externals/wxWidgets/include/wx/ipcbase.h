@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     4/1/98
-// RCS-ID:      $Id: ipcbase.h 45498 2007-04-16 13:03:05Z VZ $
+// RCS-ID:      $Id: ipcbase.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,8 +38,8 @@ enum wxIPCFormat
   wxIPC_PRIVATE =          20
 };
 
-class WXDLLIMPEXP_BASE wxServerBase;
-class WXDLLIMPEXP_BASE wxClientBase;
+class WXDLLIMPEXP_FWD_BASE wxServerBase;
+class WXDLLIMPEXP_FWD_BASE wxClientBase;
 
 class WXDLLIMPEXP_BASE wxConnectionBase: public wxObject
 {

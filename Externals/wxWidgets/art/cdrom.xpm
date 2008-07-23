@@ -1,5 +1,5 @@
 /* XPM */
-static char *cdrom_xpm[] = {
+static const char * cdrom_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "16 15 36 1",
 "= c #9BACC2",

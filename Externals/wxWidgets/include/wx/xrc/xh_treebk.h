@@ -14,7 +14,7 @@
 
 #if wxUSE_XRC && wxUSE_TREEBOOK
 
-class  WXDLLEXPORT wxTreebook;
+class WXDLLIMPEXP_FWD_CORE wxTreebook;
 #include "wx/dynarray.h"
 
 WX_DEFINE_USER_EXPORTED_ARRAY_SIZE_T(size_t, wxArrayTbkPageIndexes,

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     14/4/2006
 // Copyright:   (c) Francesco Montorsi
-// RCS-ID:      $Id: fontpicker.h 42999 2006-11-03 21:54:13Z VZ $
+// RCS-ID:      $Id: fontpicker.h 53135 2008-04-12 02:31:04Z VZ $
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -20,7 +20,7 @@
 #include "wx/pickerbase.h"
 
 
-class WXDLLIMPEXP_CORE wxFontPickerEvent;
+class WXDLLIMPEXP_FWD_CORE wxFontPickerEvent;
 
 extern WXDLLEXPORT_DATA(const wxChar) wxFontPickerWidgetNameStr[];
 extern WXDLLEXPORT_DATA(const wxChar) wxFontPickerCtrlNameStr[];

@@ -3,7 +3,7 @@
 // Purpose:     XML resource handler for wxBitmapComboBox
 // Author:      Jaakko Salli
 // Created:     Sep-10-2006
-// RCS-ID:      $Id: xh_bmpcbox.h 42046 2006-10-16 09:30:01Z ABX $
+// RCS-ID:      $Id: xh_bmpcbox.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 2006 Jaakko Salli
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,7 +15,7 @@
 
 #if wxUSE_XRC && wxUSE_BITMAPCOMBOBOX
 
-class WXDLLIMPEXP_ADV wxBitmapComboBox;
+class WXDLLIMPEXP_FWD_ADV wxBitmapComboBox;
 
 class WXDLLIMPEXP_XRC wxBitmapComboBoxXmlHandler : public wxXmlResourceHandler
 {

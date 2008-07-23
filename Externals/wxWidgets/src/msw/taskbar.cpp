@@ -5,7 +5,7 @@
 // Author:      Julian Smart
 // Modified by: Vaclav Slavik
 // Created:     24/3/98
-// RCS-ID:      $Id: taskbar.cpp 47475 2007-07-14 20:27:01Z VZ $
+// RCS-ID:      $Id: taskbar.cpp 50294 2007-11-28 01:59:59Z VZ $
 // Copyright:   (c)
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////
@@ -276,6 +276,7 @@ long wxTaskBarIcon::WindowProc(unsigned int msg,
     {
         m_iconAdded = false;
         SetIcon(m_icon, m_strTooltip);
+        return 0;
     }
 
     // this function should only be called for gs_msg(Restart)Taskbar messages

@@ -5,12 +5,14 @@
 // Modified by:
 // Created:
 // Copyright:   (c) Stefan Csomor
-// RCS-ID:      $Id: graphics.h 49402 2007-10-24 14:48:10Z VZ $
+// RCS-ID:      $Id: graphics.h 50671 2007-12-12 20:19:36Z MR $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef _WX_GRAPHICS_H_
 #define _WX_GRAPHICS_H_
+
+#include "wx/defs.h"
 
 #if wxUSE_GRAPHICS_CONTEXT
 

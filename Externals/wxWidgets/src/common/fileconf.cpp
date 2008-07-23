@@ -4,8 +4,8 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     07.04.98 (adapted from appconf.cpp)
-// RCS-ID:      $Id: fileconf.cpp 49525 2007-10-29 19:00:07Z VZ $
-// Copyright:   (c) 1997 Karsten Ballüder   &  Vadim Zeitlin
+// RCS-ID:      $Id: fileconf.cpp 50711 2007-12-15 02:57:58Z VZ $
+// Copyright:   (c) 1997 Karsten Ballueder   &  Vadim Zeitlin
 //                       Ballueder@usa.net     <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////

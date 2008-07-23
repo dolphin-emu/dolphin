@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: radiobox.h 43881 2006-12-09 19:48:21Z PC $
+// RCS-ID:      $Id: radiobox.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@
 
 #include "wx/statbox.h"
 
-class WXDLLEXPORT wxSubwindows;
+class WXDLLIMPEXP_FWD_CORE wxSubwindows;
 
 // ----------------------------------------------------------------------------
 // wxRadioBox
@@ -110,6 +110,8 @@ public:
         return wxRadioBoxBase::DoGetHelpTextAtPoint( this, pt, origin );
     }
 #endif // wxUSE_HELP
+
+    virtual bool Reparent(wxWindowBase *newParent);
 
     // we inherit a version always returning false from wxStaticBox, override
     // it to behave normally

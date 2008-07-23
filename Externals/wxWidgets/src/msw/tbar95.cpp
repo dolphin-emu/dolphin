@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: tbar95.cpp 48849 2007-09-21 10:33:26Z JS $
+// RCS-ID:      $Id: tbar95.cpp 53487 2008-05-08 13:25:00Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -363,8 +363,25 @@ wxSize wxToolBar::DoGetBestSize() const
             sizeBest.y = t;
         }
     }
-    else
+    else // TB_GETMAXSIZE succeeded
     {
+        // but it could still return an incorrect result due to what appears to
+        // be a bug in old comctl32.dll versions which don't handle controls in
+        // the toolbar correctly, so work around it (see SF patch 1902358)
+        if ( !IsVertical() && wxApp::GetComCtl32Version() < 600 )
+        {
+            // calculate the toolbar width in alternative way
+            RECT rcFirst, rcLast;
+            if ( ::SendMessage(GetHwnd(), TB_GETITEMRECT, 0, (LPARAM)&rcFirst)
+                    && ::SendMessage(GetHwnd(), TB_GETITEMRECT,
+                                     GetToolsCount() - 1, (LPARAM)&rcLast) )
+            {
+                const int widthAlt = rcLast.right - rcFirst.left;
+                if ( widthAlt > size.cx )
+                    size.cx = widthAlt;
+            }
+        }
+
         sizeBest.x = size.cx;
         sizeBest.y = size.cy;
     }

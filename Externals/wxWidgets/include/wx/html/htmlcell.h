@@ -3,7 +3,7 @@
 // Purpose:     wxHtmlCell class is used by wxHtmlWindow/wxHtmlWinParser
 //              as a basic visual element of HTML page
 // Author:      Vaclav Slavik
-// RCS-ID:      $Id: htmlcell.h 41020 2006-09-05 20:47:48Z VZ $
+// RCS-ID:      $Id: htmlcell.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 1999-2003 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,10 +20,10 @@
 #include "wx/window.h"
 
 
-class WXDLLIMPEXP_HTML wxHtmlWindowInterface;
-class WXDLLIMPEXP_HTML wxHtmlLinkInfo;
-class WXDLLIMPEXP_HTML wxHtmlCell;
-class WXDLLIMPEXP_HTML wxHtmlContainerCell;
+class WXDLLIMPEXP_FWD_HTML wxHtmlWindowInterface;
+class WXDLLIMPEXP_FWD_HTML wxHtmlLinkInfo;
+class WXDLLIMPEXP_FWD_HTML wxHtmlCell;
+class WXDLLIMPEXP_FWD_HTML wxHtmlContainerCell;
 
 
 // wxHtmlSelection is data holder with information about text selection.

@@ -1,5 +1,5 @@
 /* XPM */
-static char *harddisk_xpm[] = {
+static const char * harddisk_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "16 15 39 1",
 "7 c #E3E4E6",

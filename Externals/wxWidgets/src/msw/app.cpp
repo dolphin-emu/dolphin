@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: app.cpp 41054 2006-09-07 19:01:45Z ABX $
+// RCS-ID:      $Id: app.cpp 53607 2008-05-16 15:21:40Z SN $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -539,13 +539,28 @@ void wxApp::WakeUpIdle()
     // start up again.  Doing it this way ensures that the idle handler
     // wakes up in the right thread (see also wxWakeUpMainThread() which does
     // the same for the main app thread only)
-    wxWindow *topWindow = wxTheApp->GetTopWindow();
+    wxWindow * const topWindow = wxTheApp->GetTopWindow();
     if ( topWindow )
     {
-        if ( !::PostMessage(GetHwndOf(topWindow), WM_NULL, 0, 0) )
+        HWND hwndTop = GetHwndOf(topWindow);
+
+        // Do not post WM_NULL if there's already a pending WM_NULL to avoid
+        // overflowing the message queue.
+        //
+        // Notice that due to a limitation of PeekMessage() API (which handles
+        // 0,0 range specially), we have to check the range from 0-1 instead.
+        // This still makes it possible to overflow the queue with WM_NULLs by
+        // interspersing the calles to WakeUpIdle() with windows creation but
+        // it should be rather hard to do it accidentally.
+        MSG msg;
+        if ( !::PeekMessage(&msg, hwndTop, 0, 1, PM_NOREMOVE) ||
+              ::PeekMessage(&msg, hwndTop, 1, 1, PM_NOREMOVE) )
         {
-            // should never happen
-            wxLogLastError(wxT("PostMessage(WM_NULL)"));
+            if ( !::PostMessage(hwndTop, WM_NULL, 0, 0) )
+            {
+                // should never happen
+                wxLogLastError(wxT("PostMessage(WM_NULL)"));
+            }
         }
     }
 }
@@ -687,6 +702,7 @@ bool wxApp::Yield(bool onlyIfNeeded)
 
     // we don't want to process WM_QUIT from here - it should be processed in
     // the main event loop in order to stop it
+    wxEventLoopGuarantor dummyLoopIfNeeded;
     MSG msg;
     while ( PeekMessage(&msg, (HWND)0, 0, 0, PM_NOREMOVE) &&
             msg.message != WM_QUIT )

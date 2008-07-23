@@ -4,7 +4,7 @@
 // Author:      Michael Bedward (based on code by Julian Smart, Robin Dunn)
 // Modified by: Santiago Palacios
 // Created:     1/08/1999
-// RCS-ID:      $Id: grid.h 49804 2007-11-10 01:09:42Z VZ $
+// RCS-ID:      $Id: grid.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Michael Bedward
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -50,6 +50,12 @@ extern WXDLLIMPEXP_DATA_ADV(const wxChar) wxGridNameStr[];
 
 #define wxGRID_VALUE_TEXT wxGRID_VALUE_STRING
 #define wxGRID_VALUE_LONG wxGRID_VALUE_NUMBER
+
+#if wxABI_VERSION >= 20808
+    // magic constant which tells (to some functions) to automatically
+    // calculate the appropriate size
+    #define wxGRID_AUTOSIZE (-1)
+#endif // wxABI_VERSION >= 20808
 
 // ----------------------------------------------------------------------------
 // forward declarations
@@ -1996,7 +2002,11 @@ protected:
     bool GetModelValues();
     bool SetModelValues();
 
-    friend class WXDLLIMPEXP_ADV wxGridSelection;
+private:
+    // Calculate the minimum acceptable size for labels area
+    wxCoord CalcColOrRowLabelAreaMinSize(bool column /* or row? */);
+
+    friend class WXDLLIMPEXP_FWD_ADV wxGridSelection;
 
     DECLARE_DYNAMIC_CLASS( wxGrid )
     DECLARE_EVENT_TABLE()

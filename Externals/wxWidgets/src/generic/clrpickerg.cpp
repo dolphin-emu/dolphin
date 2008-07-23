@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi (readapted code written by Vadim Zeitlin)
 // Modified by:
 // Created:     15/04/2006
-// RCS-ID:      $Id: clrpickerg.cpp 40322 2006-07-25 11:41:53Z ABX $
+// RCS-ID:      $Id: clrpickerg.cpp 52835 2008-03-26 15:49:08Z JS $
 // Copyright:   (c) Vadim Zeitlin, Francesco Montorsi
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -56,7 +56,7 @@ bool wxGenericColourButton::Create( wxWindow *parent, wxWindowID id,
     }
 
     // and handle user clicks on it
-    Connect(wxEVT_COMMAND_BUTTON_CLICKED,
+    Connect(GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             wxCommandEventHandler(wxGenericColourButton::OnButtonClick),
             NULL, this);
 

@@ -4,7 +4,7 @@
 // Author:      Benjamin I. Williams
 // Modified by:
 // Created:     2005-05-17
-// RCS-ID:      $Id: framemanager.h 49465 2007-10-26 19:06:57Z RD $
+// RCS-ID:      $Id: framemanager.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (C) Copyright 2005, Kirix Corporation, All Rights Reserved.
 // Licence:     wxWindows Library Licence, Version 3.1
 ///////////////////////////////////////////////////////////////////////////////
@@ -421,7 +421,7 @@ public:
 
 
 
-class WXDLLIMPEXP_AUI wxAuiFloatingFrame;
+class WXDLLIMPEXP_FWD_AUI wxAuiFloatingFrame;
 
 class WXDLLIMPEXP_AUI wxAuiManager : public wxEvtHandler
 {

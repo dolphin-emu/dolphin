@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Francesco Montorsi
 // Created:
-// RCS-ID:      $Id: colour.h 45981 2007-05-11 22:41:50Z VZ $
+// RCS-ID:      $Id: colour.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,7 +16,7 @@
 #include "wx/gdiobj.h"
 
 
-class WXDLLEXPORT wxColour;
+class WXDLLIMPEXP_FWD_CORE wxColour;
 
 // the standard wxColour constructors;
 // this macro avoids to repeat these lines across all colour.h files, since

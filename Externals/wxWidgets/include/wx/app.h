@@ -5,7 +5,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: app.h 49804 2007-11-10 01:09:42Z VZ $
+// RCS-ID:      $Id: app.h 51592 2008-02-08 08:17:41Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -609,8 +609,15 @@ protected:
 // Force an exit from main loop
 extern void WXDLLIMPEXP_BASE wxExit();
 
+// avoid redeclaring this function here if it had been already declated by
+// wx/utils.h, this results in warnings from g++ with -Wredundant-decls
+#ifndef wx_YIELD_DECLARED
+#define wx_YIELD_DECLARED
+
 // Yield to other apps/messages
 extern bool WXDLLIMPEXP_BASE wxYield();
+
+#endif // wx_YIELD_DECLARED
 
 // Yield to other apps/messages
 extern void WXDLLIMPEXP_BASE wxWakeUpIdle();

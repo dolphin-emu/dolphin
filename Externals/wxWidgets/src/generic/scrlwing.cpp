@@ -5,7 +5,7 @@
 // Modified by: Vadim Zeitlin on 31.08.00: wxScrollHelper allows to implement.
 //              Ron Lee on 10.4.02:  virtual size / auto scrollbars et al.
 // Created:     01/02/97
-// RCS-ID:      $Id: scrlwing.cpp 47783 2007-07-28 16:55:01Z RD $
+// RCS-ID:      $Id: scrlwing.cpp 50982 2008-01-01 20:38:33Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,10 +17,6 @@
 // ----------------------------------------------------------------------------
 // headers
 // ----------------------------------------------------------------------------
-
-#ifdef __VMS
-#define XtDisplay XTDISPLAY
-#endif
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
@@ -39,6 +35,7 @@
         #include "wx/timer.h"
     #endif
     #include "wx/sizer.h"
+    #include "wx/settings.h"
 #endif
 
 #ifdef __WXMAC__
@@ -242,6 +239,12 @@ bool wxScrollHelperEvtHandler::ProcessEvent(wxEvent& event)
     if ( evType == wxEVT_PAINT )
     {
         m_scrollHelper->HandleOnPaint((wxPaintEvent &)event);
+        return true;
+    }
+
+    if ( evType == wxEVT_CHILD_FOCUS )
+    {
+        m_scrollHelper->HandleOnChildFocus((wxChildFocusEvent &)event);
         return true;
     }
 
@@ -1058,14 +1061,12 @@ wxScrollHelper::ScrollGetWindowSizeForVirtualSize(const wxSize& size) const
     GetScrollPixelsPerUnit(&ppuX, &ppuY);
 
     wxSize minSize = m_win->GetMinSize();
-    if ( !minSize.IsFullySpecified() )
-        minSize = m_win->GetSize();
 
     wxSize best(size);
     if (ppuX > 0)
-        best.x = minSize.x;
+        best.x = minSize.x + wxSystemSettings::GetMetric(wxSYS_VSCROLL_X);
     if (ppuY > 0)
-        best.y = minSize.y;
+        best.y = minSize.y + wxSystemSettings::GetMetric(wxSYS_HSCROLL_Y);
 
     return best;
 }
@@ -1338,6 +1339,80 @@ void wxScrollHelper::HandleOnMouseWheel(wxMouseEvent& event)
 }
 
 #endif // wxUSE_MOUSEWHEEL
+
+void wxScrollHelper::HandleOnChildFocus(wxChildFocusEvent& event)
+{
+    // this event should be processed by all windows in parenthood chain,
+    // e.g. so that nested wxScrolledWindows work correctly
+    event.Skip();
+
+    // find the immediate child under which the window receiving focus is:
+    wxWindow *win = event.GetWindow();
+
+    if ( win == m_targetWindow )
+        return; // nothing to do
+
+    while ( win->GetParent() != m_targetWindow )
+    {
+        win = win->GetParent();
+        if ( !win )
+            return; // event is not from a child of the target window
+    }
+
+    // if the child is not fully visible, try to scroll it into view:
+    int stepx, stepy;
+    GetScrollPixelsPerUnit(&stepx, &stepy);
+
+    // NB: we don't call CalcScrolledPosition() on win->GetPosition() here,
+    //     because children' positions are already scrolled
+    wxRect winrect(win->GetPosition(), win->GetSize());
+    wxSize view(m_targetWindow->GetClientSize());
+
+    int startx, starty;
+    GetViewStart(&startx, &starty);
+
+    // first in vertical direction:
+    if ( stepy > 0 )
+    {
+        int diff = 0;
+
+        if ( winrect.GetTop() < 0 )
+        {
+            diff = winrect.GetTop();
+        }
+        else if ( winrect.GetBottom() > view.y )
+        {
+            diff = winrect.GetBottom() - view.y + 1;
+            // round up to next scroll step if we can't get exact position,
+            // so that the window is fully visible:
+            diff += stepy - 1;
+        }
+
+        starty = (starty * stepy + diff) / stepy;
+    }
+
+    // then horizontal:
+    if ( stepx > 0 )
+    {
+        int diff = 0;
+
+        if ( winrect.GetLeft() < 0 )
+        {
+            diff = winrect.GetLeft();
+        }
+        else if ( winrect.GetRight() > view.x )
+        {
+            diff = winrect.GetRight() - view.x + 1;
+            // round up to next scroll step if we can't get exact position,
+            // so that the window is fully visible:
+            diff += stepx - 1;
+        }
+
+        startx = (startx * stepx + diff) / stepx;
+    }
+
+    Scroll(startx, starty);
+}
 
 // ----------------------------------------------------------------------------
 // wxScrolledWindow implementation

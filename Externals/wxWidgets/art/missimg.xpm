@@ -1,5 +1,5 @@
 /* XPM */
-static char *missimg_xpm[] = {
+static const char * missimg_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "32 32 5 1",
 "X c Black",

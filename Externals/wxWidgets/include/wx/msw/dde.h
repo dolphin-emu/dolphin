@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dde.h 41020 2006-09-05 20:47:48Z VZ $
+// RCS-ID:      $Id: dde.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -38,8 +38,8 @@
  *
  */
 
-class WXDLLIMPEXP_BASE wxDDEServer;
-class WXDLLIMPEXP_BASE wxDDEClient;
+class WXDLLIMPEXP_FWD_BASE wxDDEServer;
+class WXDLLIMPEXP_FWD_BASE wxDDEClient;
 
 class WXDLLIMPEXP_BASE wxDDEConnection: public wxConnectionBase
 {

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2005-09-30
-// RCS-ID:      $Id: richtextxml.h 42431 2006-10-26 06:32:47Z JS $
+// RCS-ID:      $Id: richtextxml.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@
  * wxRichTextXMLHandler
  */
 
-class WXDLLIMPEXP_XML wxXmlNode;
+class WXDLLIMPEXP_FWD_XML wxXmlNode;
 
 class WXDLLIMPEXP_RICHTEXT wxRichTextXMLHandler: public wxRichTextFileHandler
 {

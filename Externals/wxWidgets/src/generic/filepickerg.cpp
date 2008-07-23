@@ -4,7 +4,7 @@
 // Author:      Francesco Montorsi
 // Modified by:
 // Created:     15/04/2006
-// RCS-ID:      $Id: filepickerg.cpp 39538 2006-06-03 19:20:23Z PC $
+// RCS-ID:      $Id: filepickerg.cpp 52835 2008-03-26 15:49:08Z JS $
 // Copyright:   (c) Francesco Montorsi
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,7 +55,7 @@ bool wxGenericFileDirButton::Create( wxWindow *parent, wxWindowID id,
     }
 
     // and handle user clicks on it
-    Connect(wxEVT_COMMAND_BUTTON_CLICKED,
+    Connect(GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             wxCommandEventHandler(wxGenericFileDirButton::OnButtonClick),
             NULL, this);
 

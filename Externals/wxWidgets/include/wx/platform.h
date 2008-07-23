@@ -4,7 +4,7 @@
 * Author:      Vadim Zeitlin
 * Modified by:
 * Created:     29.10.01 (extracted from wx/defs.h)
-* RCS-ID:      $Id: platform.h 49409 2007-10-24 21:43:36Z DE $
+* RCS-ID:      $Id: platform.h 53877 2008-05-31 12:43:44Z SN $
 * Copyright:   (c) 1997-2001 Vadim Zeitlin
 * Licence:     wxWindows licence
 */
@@ -256,6 +256,20 @@
 #undef UNICODE
 #endif
 
+/*
+   Notice that Turbo Explorer (BCC 5.82) is available for free at
+   http://www.turboexplorer.com/downloads, you can get it if you have trouble
+   compiling wxWidgets with your current Borland compiler.
+*/
+#if defined(__BORLANDC__) && (__BORLANDC__ < 0x540)
+#   error "wxWidgets requires a newer version of Borland, we recommend upgrading to 5.82 (Turbo Explorer). You may at your own risk remove this line and try building but be prepared to get build errors."
+#endif /* __BORLANDC__ */
+
+#if defined(__BORLANDC__) && (__BORLANDC__ < 0x582) && (__BORLANDC__ > 0x559)
+#   ifndef _USE_OLD_RW_STL
+#       error "wxWidgets is incompatible with default Borland C++ 5.6 STL library, please add -D_USE_OLD_RW_STL to your bcc32.cfg to use RogueWave STL implementation."
+#   endif
+#endif /* __BORLANDC__ */
 
 /*
    This macro can be used to test the Open Watcom version.
@@ -482,7 +496,7 @@
 
     /* size_t is the same as unsigned int for all Windows compilers we know, */
     /* so define it if it hadn't been done by configure yet */
-#    if !defined(wxSIZE_T_IS_UINT) && !defined(wxSIZE_T_IS_ULONG)
+#    if !defined(wxSIZE_T_IS_UINT) && !defined(wxSIZE_T_IS_ULONG) && !defined(__WIN64__)
 #        define wxSIZE_T_IS_UINT
 #    endif
 #endif  /* OS */
@@ -571,6 +585,9 @@
 #        define wxHAVE_RAW_BITMAP
 #    endif
 #endif
+#if defined(__WXGTK20__) || defined(__WXMAC__)
+#    define wxHAVE_RAW_BITMAP
+#endif
 
 /*
     Handle Darwin gcc universal compilation.  Don't do this in an Apple-
@@ -588,6 +605,15 @@
 #elif defined(__WXMAC__) && !defined(WORDS_BIGENDIAN)
 /*  According to Stefan even ancient Mac compilers defined __BIG_ENDIAN__ */
 #    warning "Compiling wxMac with probably wrong endianness"
+#endif
+
+#ifdef __VMS
+#define XtDisplay XTDISPLAY
+#ifdef __WXMOTIF__
+#define XtParent XTPARENT
+#define XtScreen XTSCREEN
+#define XtWindow XTWINDOW
+#endif
 #endif
 
 /* Choose which method we will use for updating menus

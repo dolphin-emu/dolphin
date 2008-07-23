@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     31.05.03
-// RCS-ID:      $Id: vlbox.cpp 41810 2006-10-09 16:39:34Z VZ $
+// RCS-ID:      $Id: vlbox.cpp 53998 2008-06-06 22:55:23Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwindows.org>
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
@@ -98,6 +98,10 @@ wxVListBox::~wxVListBox()
 
 void wxVListBox::SetItemCount(size_t count)
 {
+    // don't leave the current index invalid
+    if ( m_current != wxNOT_FOUND && (size_t)m_current >= count )
+        m_current = count - 1; // also ok when count == 0 as wxNOT_FOUND == -1
+
     if ( m_selStore )
     {
         // tell the selection store that our number of items has changed

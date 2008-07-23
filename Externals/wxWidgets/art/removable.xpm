@@ -1,5 +1,5 @@
 /* XPM */
-static char *removable_xpm[] = {
+static const char * removable_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "16 15 23 1",
 "@ c #C3C3C4",

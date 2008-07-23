@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to derive from wxChoiceBase
 // Created:     01/02/97
-// RCS-ID:      $Id: choice.h 38319 2006-03-23 22:05:23Z VZ $
+// RCS-ID:      $Id: choice.h 51616 2008-02-09 15:22:15Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -65,6 +65,8 @@ public:
                 long style = 0,
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxChoiceNameStr);
+
+    virtual void SetLabel(const wxString& label);
 
     virtual void Delete(unsigned int n);
     virtual void Clear();

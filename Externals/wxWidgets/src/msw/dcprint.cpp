@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dcprint.cpp 42755 2006-10-30 19:41:46Z VZ $
+// RCS-ID:      $Id: dcprint.cpp 51771 2008-02-13 22:42:45Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -193,15 +193,13 @@ bool wxPrinterDC::StartDoc(const wxString& message)
     if (!m_hDC)
         return false;
 
-    int ret = ::StartDoc(GetHdc(), &docinfo);
-
-    if (ret <= 0)
+    if ( ::StartDoc(GetHdc(), &docinfo) <= 0 )
     {
-        DWORD lastError = GetLastError();
-        wxLogDebug(wxT("wxDC::StartDoc failed with error: %ld\n"), lastError);
+        wxLogLastError(wxT("StartDoc"));
+        return false;
     }
 
-    return (ret > 0);
+    return true;
 }
 
 void wxPrinterDC::EndDoc()

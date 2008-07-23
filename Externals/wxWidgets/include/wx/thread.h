@@ -5,7 +5,7 @@
 // Modified by: Vadim Zeitlin (modifications partly inspired by omnithreads
 //              package from Olivetti & Oracle Research Laboratory)
 // Created:     04/13/98
-// RCS-ID:      $Id: thread.h 38717 2006-04-14 17:01:16Z ABX $
+// RCS-ID:      $Id: thread.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -109,11 +109,11 @@ enum wxMutexType
 };
 
 // forward declarations
-class WXDLLIMPEXP_BASE wxThreadHelper;
-class WXDLLIMPEXP_BASE wxConditionInternal;
-class WXDLLIMPEXP_BASE wxMutexInternal;
-class WXDLLIMPEXP_BASE wxSemaphoreInternal;
-class WXDLLIMPEXP_BASE wxThreadInternal;
+class WXDLLIMPEXP_FWD_BASE wxThreadHelper;
+class WXDLLIMPEXP_FWD_BASE wxConditionInternal;
+class WXDLLIMPEXP_FWD_BASE wxMutexInternal;
+class WXDLLIMPEXP_FWD_BASE wxSemaphoreInternal;
+class WXDLLIMPEXP_FWD_BASE wxThreadInternal;
 
 // ----------------------------------------------------------------------------
 // A mutex object is a synchronization object whose state is set to signaled
@@ -693,11 +693,12 @@ inline void WXDLLIMPEXP_BASE wxMutexGuiLeave() { }
 
 // macros for entering/leaving critical sections which may be used without
 // having to take them inside "#if wxUSE_THREADS"
-#define wxENTER_CRIT_SECT(cs)
-#define wxLEAVE_CRIT_SECT(cs)
-#define wxCRIT_SECT_DECLARE(cs)
-#define wxCRIT_SECT_DECLARE_MEMBER(cs)
-#define wxCRIT_SECT_LOCKER(name, cs)
+// (the implementation uses dummy structs to force semicolon after the macro)
+#define wxENTER_CRIT_SECT(cs)            do {} while (0)
+#define wxLEAVE_CRIT_SECT(cs)            do {} while (0)
+#define wxCRIT_SECT_DECLARE(cs)          struct wxDummyCS##cs
+#define wxCRIT_SECT_DECLARE_MEMBER(cs)   struct wxDummyCSMember##cs
+#define wxCRIT_SECT_LOCKER(name, cs)     struct wxDummyCSLocker##name
 
 // if there is only one thread, it is always the main one
 inline bool wxIsMainThread() { return true; }

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     28/6/2000
-// RCS-ID:      $Id: splash.h 41020 2006-09-05 20:47:48Z VZ $
+// RCS-ID:      $Id: splash.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -27,7 +27,7 @@
 #define wxSPLASH_TIMEOUT            0x04
 #define wxSPLASH_NO_TIMEOUT         0x00
 
-class WXDLLIMPEXP_ADV wxSplashScreenWindow;
+class WXDLLIMPEXP_FWD_ADV wxSplashScreenWindow;
 
 /*
  * wxSplashScreen

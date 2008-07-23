@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Modified by:
 // Created:     18/03/2002
-// RCS-ID:      $Id: artprov.h 42713 2006-10-30 11:56:12Z ABX $
+// RCS-ID:      $Id: artprov.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,8 +16,8 @@
 #include "wx/bitmap.h"
 #include "wx/icon.h"
 
-class WXDLLEXPORT wxArtProvidersList;
-class WXDLLEXPORT wxArtProviderCache;
+class WXDLLIMPEXP_FWD_CORE wxArtProvidersList;
+class WXDLLIMPEXP_FWD_CORE wxArtProviderCache;
 class wxArtProviderModule;
 
 // ----------------------------------------------------------------------------

@@ -3,7 +3,7 @@
 // Purpose:     generic implementation of wxListCtrl
 // Author:      Robert Roebling
 //              Vadim Zeitlin (virtual list control support)
-// Id:          $Id: listctrl.cpp 49590 2007-11-01 20:41:30Z VZ $
+// Id:          $Id: listctrl.cpp 54201 2008-06-13 22:38:33Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -578,6 +578,8 @@ public:
 
     // bring the selected item into view, scrolling to it if necessary
     void MoveToItem(size_t item);
+
+    bool ScrollList( int WXUNUSED(dx), int dy );
 
     // bring the current item into view
     void MoveToFocus() { MoveToItem(m_current); }
@@ -3312,11 +3314,49 @@ void wxListMainWindow::MoveToItem(size_t item)
     }
     else // !report
     {
+        int sx = -1,
+            sy = -1;
+
         if (rect.x-view_x < 5)
-            Scroll( (rect.x - 5) / SCROLL_UNIT_X, -1 );
+            sx = (rect.x - 5) / SCROLL_UNIT_X;
         if (rect.x + rect.width - 5 > view_x + client_w)
-            Scroll( (rect.x + rect.width - client_w + SCROLL_UNIT_X) / SCROLL_UNIT_X, -1 );
+            sx = (rect.x + rect.width - client_w + SCROLL_UNIT_X) / SCROLL_UNIT_X;
+
+        if (rect.y-view_y < 5)
+            sy = (rect.y - 5) / hLine;
+        if (rect.y + rect.height - 5 > view_y + client_h)
+            sy = (rect.y + rect.height - client_h + hLine) / hLine;
+
+        Scroll(sx, sy);
     }
+}
+
+bool wxListMainWindow::ScrollList(int WXUNUSED(dx), int dy)
+{
+    if ( !InReportView() )
+    {
+        // TODO: this should work in all views but is not implemented now
+        return false;
+    }
+
+    size_t top, bottom;
+    GetVisibleLinesRange(&top, &bottom);
+
+    if ( bottom == (size_t)-1 )
+        return 0;
+
+    ResetVisibleLinesRange();
+
+    int hLine = GetLineHeight();
+
+    Scroll(-1, top + dy / hLine);
+
+#ifdef __WXMAC__
+    // see comment in MoveToItem() for why we do this
+    ResetVisibleLinesRange();
+#endif
+
+    return true;
 }
 
 // ----------------------------------------------------------------------------
@@ -5083,7 +5123,17 @@ void wxGenericListCtrl::SetSingleStyle( long style, bool add )
     else
         flag &= ~style;
 
-    SetWindowStyleFlag( flag );
+    // some styles can be set without recreating everything (as happens in
+    // SetWindowStyleFlag() which calls wxListMainWindow::DeleteEverything())
+    if ( !(style & ~(wxLC_HRULES | wxLC_VRULES)) )
+    {
+        Refresh();
+        wxWindow::SetWindowStyleFlag(flag);
+    }
+    else
+    {
+        SetWindowStyleFlag( flag );
+    }
 }
 
 void wxGenericListCtrl::SetWindowStyleFlag( long flag )
@@ -5581,9 +5631,9 @@ long wxGenericListCtrl::InsertColumn( long col, const wxString &heading,
     return InsertColumn( col, item );
 }
 
-bool wxGenericListCtrl::ScrollList( int WXUNUSED(dx), int WXUNUSED(dy) )
+bool wxGenericListCtrl::ScrollList( int dx, int dy )
 {
-    return 0;
+    return m_mainWin->ScrollList(dx, dy);
 }
 
 // Sort items.

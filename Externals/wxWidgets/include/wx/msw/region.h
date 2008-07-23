@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: region.h 41429 2006-09-25 11:47:23Z VZ $
+// RCS-ID:      $Id: region.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 1997-2002 wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -52,7 +52,7 @@ protected:
     virtual bool DoOffset(wxCoord x, wxCoord y);
     virtual bool DoCombine(const wxRegion& region, wxRegionOp op);
 
-    friend class WXDLLEXPORT wxRegionIterator;
+    friend class WXDLLIMPEXP_FWD_CORE wxRegionIterator;
 
     DECLARE_DYNAMIC_CLASS(wxRegion)
 };

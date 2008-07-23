@@ -3,7 +3,7 @@
 // Purpose:     class for opening files - virtual file system
 // Author:      Vaclav Slavik
 // Copyright:   (c) 1999 Vaclav Slavik
-// RCS-ID:      $Id: filesys.h 43263 2006-11-10 09:00:06Z MW $
+// RCS-ID:      $Id: filesys.h 53135 2008-04-12 02:31:04Z VZ $
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -27,9 +27,9 @@
 #include "wx/filename.h"
 #include "wx/hashmap.h"
 
-class WXDLLIMPEXP_BASE wxFSFile;
-class WXDLLIMPEXP_BASE wxFileSystemHandler;
-class WXDLLIMPEXP_BASE wxFileSystem;
+class WXDLLIMPEXP_FWD_BASE wxFSFile;
+class WXDLLIMPEXP_FWD_BASE wxFileSystemHandler;
+class WXDLLIMPEXP_FWD_BASE wxFileSystem;
 
 //--------------------------------------------------------------------------------
 // wxFSFile

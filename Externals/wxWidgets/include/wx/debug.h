@@ -4,7 +4,7 @@
 *  Author:      Vadim Zeitlin
 *  Modified by: Ryan Norton (Converted to C)
 *  Created:     29/01/98
-*  RCS-ID:      $Id: debug.h 39943 2006-07-02 21:40:38Z SN $
+*  RCS-ID:      $Id: debug.h 53711 2008-05-22 22:58:28Z SN $
 *  Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 *  Licence:     wxWindows licence
 */
@@ -210,7 +210,10 @@
             wxFAIL_COND_MSG(#cond, msg);                                      \
             op;                                                               \
         }                                                                     \
-        struct wxDummyCheckStruct /* just to force a semicolon */
+        typedef int wxDummyCheckInt /* just to force a semicolon */
+        /* NB: old gcc versions (e.g. 2.8) give an internal compiler error */
+        /*     on a simple forward declaration, when used in a template    */
+        /*     function, so rather use a dummy typedef which does work...  */
 #endif
 
 /*  special form of wxCHECK2: as wxCHECK, but for use in void functions */

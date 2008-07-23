@@ -1,5 +1,5 @@
 /* XPM */
-static char * down_xpm[] = {
+static const char * down_xpm[] = {
 "16 15 3 1",
 " 	c None",
 ".	c Black",

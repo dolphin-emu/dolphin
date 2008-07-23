@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: VZ on 13.05.99: no more Default(), MSWOnXXX() reorganisation
 // Created:     04/01/98
-// RCS-ID:      $Id: window.cpp 49475 2007-10-26 22:35:54Z RD $
+// RCS-ID:      $Id: window.cpp 53929 2008-06-02 18:27:16Z RD $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -275,6 +275,22 @@ bool GetCursorPosWinCE(POINT* pt)
     return true;
 }
 #endif
+
+static wxBorder TranslateBorder(wxBorder border)
+{
+    if ( border == wxBORDER_THEME )
+    {
+#if defined(__POCKETPC__) || defined(__SMARTPHONE__)
+        return wxBORDER_SIMPLE;
+#elif wxUSE_UXTHEME
+        if (wxUxThemeEngine::GetIfActive())
+            return wxBORDER_THEME;
+#endif
+        return wxBORDER_SUNKEN;
+    }
+
+    return border;
+}
 
 // ---------------------------------------------------------------------------
 // event tables
@@ -1365,7 +1381,7 @@ WXDWORD wxWindowMSW::MSWGetStyle(long flags, WXDWORD *exstyle) const
     if ( flags & wxHSCROLL )
         style |= WS_HSCROLL;
 
-    const wxBorder border = GetBorder(flags);
+    const wxBorder border = TranslateBorder(GetBorder(flags));
 
     // WS_BORDER is only required for wxBORDER_SIMPLE
     if ( border == wxBORDER_SIMPLE )
@@ -1429,13 +1445,7 @@ WXDWORD wxWindowMSW::MSWGetStyle(long flags, WXDWORD *exstyle) const
 // 2.9 and above.
 wxBorder wxWindowMSW::GetThemedBorderStyle() const
 {
-#if defined(__POCKETPC__) || defined(__SMARTPHONE__)
-    return wxBORDER_SIMPLE;
-#elif wxUSE_UXTHEME
-    if (wxUxThemeEngine::GetIfActive())
-        return wxBORDER_THEME;
-#endif
-    return wxBORDER_SUNKEN;
+    return TranslateBorder(wxBORDER_THEME);
 }
 
 // Setup background and foreground colours correctly
@@ -1479,7 +1489,7 @@ void wxWindowMSW::OnInternalIdle()
     }
 #endif // !HAVE_TRACKMOUSEEVENT
 
-    if (wxUpdateUIEvent::CanUpdate(this) && IsShown())
+    if (wxUpdateUIEvent::CanUpdate(this) && IsShownOnScreen())
         UpdateWindowUI(wxUPDATE_UI_FROMIDLE);
 }
 
@@ -1562,14 +1572,19 @@ void wxWindowMSW::Thaw()
                     if ( child->IsTopLevel() )
                         continue;
                     else
-                        child->Thaw();
+                    {
+                        // in case the child was added while the TLW was
+                        // frozen, it won't be frozen now so avoid the Thaw.
+                        if ( child->IsFrozen() )
+                            child->Thaw();
+                    }
                 }
             }
             else // This is not a TLW, so just thaw it.
             {
                 SendSetRedraw(GetHwnd(), true);
             }
-            
+
             // we need to refresh everything or otherwise the invalidated area
             // is not going to be repainted
             Refresh();
@@ -3306,7 +3321,7 @@ WXLRESULT wxWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM l
         case WM_NCCALCSIZE:
             {
                 wxUxThemeEngine* theme = wxUxThemeEngine::GetIfActive();
-                if (theme && GetBorder() == wxBORDER_THEME)
+                if (theme && TranslateBorder(GetBorder()) == wxBORDER_THEME)
                 {
                     // first ask the widget to calculate the border size
                     rc.result = MSWDefWindowProc(message, wParam, lParam);
@@ -3324,9 +3339,9 @@ WXLRESULT wxWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM l
                     {
                         rect = *((RECT*)lParam);
                     }
-                    wxUxThemeHandle hTheme(this, L"EDIT");
+                    wxUxThemeHandle hTheme((const wxWindow*) this, L"EDIT");
                     RECT rcClient = { 0, 0, 0, 0 };
-                    wxClientDC dc(this);
+                    wxClientDC dc((wxWindow*) this);
 
                     if (theme->GetThemeBackgroundContentRect(
                             hTheme, GetHdcOf(dc), EP_EDITTEXT, ETS_NORMAL,
@@ -3346,14 +3361,14 @@ WXLRESULT wxWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM l
         case WM_NCPAINT:
             {
                 wxUxThemeEngine* theme = wxUxThemeEngine::GetIfActive();
-                if (theme && GetBorder() == wxBORDER_THEME)
+                if (theme && TranslateBorder(GetBorder()) == wxBORDER_THEME)
                 {
                     // first ask the widget to paint its non-client area, such as scrollbars, etc.
                     rc.result = MSWDefWindowProc(message, wParam, lParam);
                     processed = true;
 
-                    wxUxThemeHandle hTheme(this, L"EDIT");
-                    wxWindowDC dc(this);
+                    wxUxThemeHandle hTheme((const wxWindow*) this, L"EDIT");
+                    wxWindowDC dc((wxWindow*) this);
 
                     // Clip the DC so that you only draw on the non-client area
                     RECT rcBorder;
@@ -3791,7 +3806,7 @@ bool wxWindowMSW::HandleEndSession(bool endSession, long logOff)
     wxCloseEvent event(wxEVT_END_SESSION, wxID_ANY);
     event.SetEventObject(wxTheApp);
     event.SetCanVeto(false);
-    event.SetLoggingOff( (logOff == (long)ENDSESSION_LOGOFF) );
+    event.SetLoggingOff((logOff & ENDSESSION_LOGOFF) != 0);
 
     return wxTheApp->ProcessEvent(event);
 #else
@@ -4161,15 +4176,30 @@ bool wxWindowMSW::HandlePower(WXWPARAM WXUNUSED_IN_WINCE(wParam),
 
 bool wxWindowMSW::IsDoubleBuffered() const
 {
-    for ( const wxWindowMSW *wnd = this;
-          wnd && !wnd->IsTopLevel(); wnd =
-          wnd->GetParent() )
-    {
-        if ( ::GetWindowLong(GetHwndOf(wnd), GWL_EXSTYLE) & WS_EX_COMPOSITED )
+    const wxWindowMSW *wnd = this;
+    do {
+        long style = ::GetWindowLong(GetHwndOf(wnd), GWL_EXSTYLE);
+        if ( (style & WS_EX_COMPOSITED) != 0 )
             return true;
-    }
-
+        wnd = wnd->GetParent();
+    } while ( wnd && !wnd->IsTopLevel() );
+        
     return false;
+}
+
+void wxWindowMSW::SetDoubleBuffered(bool on)
+{
+    // Get the current extended style bits
+    long exstyle = ::GetWindowLong(GetHwnd(), GWL_EXSTYLE);
+
+    // Twiddle the bit as needed
+    if ( on )
+        exstyle |= WS_EX_COMPOSITED;
+    else
+        exstyle &= ~WS_EX_COMPOSITED;
+
+    // put it back
+    ::SetWindowLong(GetHwnd(), GWL_EXSTYLE, exstyle);
 }
 
 // ---------------------------------------------------------------------------
@@ -4269,18 +4299,8 @@ wxWindowMSW::MSWOnMeasureItem(int id, WXMEASUREITEMSTRUCT *itemStruct)
         wxCHECK_MSG( wxDynamicCast(pMenuItem, wxMenuItem),
                         false, _T("MSWOnMeasureItem: bad wxMenuItem pointer") );
 
-
-        size_t w = 0, h = 0;
-        bool rc = true;
-        if (pMenuItem->GetKind() != wxITEM_SEPARATOR)
-        {
-            rc = pMenuItem->OnMeasureItem(&w, &h);
-        }         
-        else
-        {
-            w = 8;
-            h = 8;
-        }
+        size_t w, h;
+        bool rc = pMenuItem->OnMeasureItem(&w, &h);
 
         pMeasureStruct->itemWidth = w;
         pMeasureStruct->itemHeight = h;
@@ -5941,10 +5961,18 @@ WXWORD wxCharCodeWXToMSW(int wxk, bool *isVirtual)
             break;
 
         default:
-            if ( isVirtual )
-                *isVirtual = false;
-            vk = (WXWORD)wxk;
-            break;
+            // check to see if its one of the OEM key codes.
+            BYTE vks = LOBYTE(VkKeyScan(wxk));
+            if ( vks != 0xff )
+            {
+                vk = vks;
+            }
+            else
+            {
+                if ( isVirtual )
+                    *isVirtual = false;
+                vk = (WXWORD)wxk;
+            }
     }
 
     return vk;

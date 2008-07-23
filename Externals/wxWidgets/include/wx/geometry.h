@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     08/05/99
-// RCS-ID:      $Id: geometry.h 49294 2007-10-21 17:59:09Z SC $
+// RCS-ID:      $Id: geometry.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 1999 Stefan Csomor
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -20,8 +20,8 @@
 #include "wx/gdicmn.h"
 #include "wx/math.h"
 
-class WXDLLIMPEXP_BASE wxDataInputStream;
-class WXDLLIMPEXP_BASE wxDataOutputStream;
+class WXDLLIMPEXP_FWD_BASE wxDataInputStream;
+class WXDLLIMPEXP_FWD_BASE wxDataOutputStream;
 
 // clipping from Cohen-Sutherland
 

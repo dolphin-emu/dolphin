@@ -5,7 +5,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.02.99
-// RCS-ID:      $Id: datetime.h 48283 2007-08-21 12:14:26Z JS $
+// RCS-ID:      $Id: datetime.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -27,9 +27,9 @@
 
 #include "wx/longlong.h"
 
-class WXDLLIMPEXP_BASE wxDateTime;
-class WXDLLIMPEXP_BASE wxTimeSpan;
-class WXDLLIMPEXP_BASE wxDateSpan;
+class WXDLLIMPEXP_FWD_BASE wxDateTime;
+class WXDLLIMPEXP_FWD_BASE wxTimeSpan;
+class WXDLLIMPEXP_FWD_BASE wxDateSpan;
 
 #include "wx/dynarray.h"
 
@@ -125,7 +125,7 @@ WXDLLIMPEXP_BASE struct tm *wxGmtime_r(const time_t*, struct tm*);
 // argument for arguments of type wxDateTime; it is also returned by all
 // functions returning wxDateTime on failure (this is why it is also called
 // wxInvalidDateTime)
-class WXDLLIMPEXP_BASE wxDateTime;
+class WXDLLIMPEXP_FWD_BASE wxDateTime;
 
 extern WXDLLIMPEXP_DATA_BASE(const wxChar*) wxDefaultDateTimeFormat;
 extern WXDLLIMPEXP_DATA_BASE(const wxChar*) wxDefaultTimeSpanFormat;
@@ -421,7 +421,20 @@ public:
     {
     public:
         TimeZone(TZ tz);
+
+        // don't use this ctor, it doesn't work for negative offsets (but can't
+        // be removed or changed to avoid breaking ABI in 2.8)
         TimeZone(wxDateTime_t offset = 0) { m_offset = offset; }
+
+#if wxABI_VERSION >= 20808
+        // create time zone object with the given offset
+        static TimeZone Make(long offset)
+        {
+            TimeZone tz;
+            tz.m_offset = offset;
+            return tz;
+        }
+#endif // wxABI 2.8.8+
 
         long GetOffset() const { return m_offset; }
 
@@ -1494,7 +1507,7 @@ WX_DECLARE_USER_EXPORTED_OBJARRAY(wxDateTime, wxDateTimeArray, WXDLLIMPEXP_BASE)
 //     virtual methods to work with the holidays they correspond to.
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_BASE wxDateTimeHolidayAuthority;
+class WXDLLIMPEXP_FWD_BASE wxDateTimeHolidayAuthority;
 WX_DEFINE_USER_EXPORTED_ARRAY_PTR(wxDateTimeHolidayAuthority *,
                               wxHolidayAuthoritiesArray,
                               class WXDLLIMPEXP_BASE);

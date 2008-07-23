@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     11/07/98
-// RCS-ID:      $Id: mstream.h 38717 2006-04-14 17:01:16Z ABX $
+// RCS-ID:      $Id: mstream.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,7 +18,7 @@
 
 #include "wx/stream.h"
 
-class WXDLLIMPEXP_BASE wxMemoryOutputStream;
+class WXDLLIMPEXP_FWD_BASE wxMemoryOutputStream;
 
 class WXDLLIMPEXP_BASE wxMemoryInputStream : public wxInputStream
 {

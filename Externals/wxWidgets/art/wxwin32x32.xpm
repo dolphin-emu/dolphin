@@ -1,5 +1,5 @@
 /* XPM */
-static char *wxwin32x32_xpm[] = {
+static const char * wxwin32x32_xpm[] = {
 "32 32 6 1",
 " 	c None",
 ".	c #000000",

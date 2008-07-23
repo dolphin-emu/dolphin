@@ -3,7 +3,7 @@
 // Purpose:     wxXmlDocument - XML parser & data holder class
 // Author:      Vaclav Slavik
 // Created:     2000/03/05
-// RCS-ID:      $Id: xml.h 49563 2007-10-31 20:46:21Z VZ $
+// RCS-ID:      $Id: xml.h 52976 2008-04-02 10:06:54Z VS $
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -115,7 +115,10 @@ public:
     wxXmlNode(wxXmlNodeType type, const wxString& name,
               const wxString& content = wxEmptyString);
     virtual void AddChild(wxXmlNode *child);
-    virtual bool InsertChild(wxXmlNode *child, wxXmlNode *before_node);
+    virtual bool InsertChild(wxXmlNode *child, wxXmlNode *followingNode);
+#if wxABI_VERSION >= 20808
+    bool InsertChildAfter(wxXmlNode *child, wxXmlNode *precedingNode);
+#endif
     virtual bool RemoveChild(wxXmlNode *child);
     virtual void AddProperty(const wxString& name, const wxString& value);
     virtual bool DeleteProperty(const wxString& name);

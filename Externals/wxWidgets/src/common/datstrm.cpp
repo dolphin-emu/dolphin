@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by: Mickael Gilabert
 // Created:     28/06/98
-// RCS-ID:      $Id: datstrm.cpp 39745 2006-06-15 17:58:49Z ABX $
+// RCS-ID:      $Id: datstrm.cpp 53028 2008-04-05 17:28:32Z VZ $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -100,25 +100,27 @@ double wxDataInputStream::ReadDouble()
 
 wxString wxDataInputStream::ReadString()
 {
-  size_t len;
-
-  len = Read32();
-
-  if (len > 0)
-  {
-#if wxUSE_UNICODE
-    wxCharBuffer tmp(len + 1);
-    m_input->Read(tmp.data(), len);
-    tmp.data()[len] = '\0';
-    wxString ret(m_conv->cMB2WX(tmp.data()));
-#else
     wxString ret;
-    m_input->Read( wxStringBuffer(ret, len), len);
+
+    const size_t len = Read32();
+    if ( len > 0 )
+    {
+#if wxUSE_UNICODE
+        wxCharBuffer tmp(len + 1);
+        if ( tmp )
+        {
+            m_input->Read(tmp.data(), len);
+            tmp.data()[len] = '\0';
+            ret = m_conv->cMB2WX(tmp.data());
+        }
+#else
+        wxStringBuffer buf(ret, len);
+        if ( buf )
+            m_input->Read(buf, len);
 #endif
+    }
+
     return ret;
-  }
-  else
-    return wxEmptyString;
 }
 
 #if wxUSE_LONGLONG

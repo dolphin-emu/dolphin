@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Robert Roebling, Markus Holzhem
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: dcpsg.cpp 48979 2007-09-28 06:58:48Z RR $
+// RCS-ID:      $Id: dcpsg.cpp 50711 2007-12-15 02:57:58Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2123,13 +2123,13 @@ void wxPostScriptDC::DoGetTextExtent(const wxString& string,
            /  these values from AFM files, too. Maybe later ... */
 
         // NB: casts to int are needed to suppress gcc 3.3 warnings
-        lastWidths[196] = lastWidths[(int)'A'];  // Ä
-        lastWidths[228] = lastWidths[(int)'a'];  // ä
-        lastWidths[214] = lastWidths[(int)'O'];  // Ö
-        lastWidths[246] = lastWidths[(int)'o'];  // ö
-        lastWidths[220] = lastWidths[(int)'U'];  // Ü
-        lastWidths[252] = lastWidths[(int)'u'];  // ü
-        lastWidths[223] = lastWidths[(int)251];  // ß
+        lastWidths[196] = lastWidths[(int)'A'];  // U+00C4 A Umlaute
+        lastWidths[228] = lastWidths[(int)'a'];  // U+00E4 a Umlaute
+        lastWidths[214] = lastWidths[(int)'O'];  // U+00D6 O Umlaute
+        lastWidths[246] = lastWidths[(int)'o'];  // U+00F6 o Umlaute
+        lastWidths[220] = lastWidths[(int)'U'];  // U+00DC U Umlaute
+        lastWidths[252] = lastWidths[(int)'u'];  // U+00FC u Umlaute
+        lastWidths[223] = lastWidths[(int)251];  // U+00DF eszett (scharfes s)
 
         /* JC: calculate UnderlineThickness/UnderlinePosition */
 

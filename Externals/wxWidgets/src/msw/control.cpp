@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: control.cpp 43466 2006-11-17 12:29:21Z VZ $
+// RCS-ID:      $Id: control.cpp 54331 2008-06-22 15:49:12Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -161,6 +161,20 @@ bool wxControl::MSWCreateControl(const wxChar *classname,
 
         return false;
     }
+
+#if !wxUSE_UNICODE
+    // Text labels starting with the character 0xff (which is a valid character
+    // in many code pages) don't appear correctly as CreateWindowEx() has some
+    // special treatment for this case, apparently the strings starting with -1
+    // are not really strings but something called "ordinals". There is no
+    // documentation about it but the fact is that the label gets mangled or
+    // not displayed at all if we don't do this, see #9572.
+    //
+    // Notice that 0xffff is not a valid Unicode character so the problem
+    // doesn't arise in Unicode build.
+    if ( !label.empty() && label[0] == -1 )
+        ::SetWindowText(GetHwnd(), label);
+#endif // !wxUSE_UNICODE
 
     // install wxWidgets window proc for this window
     SubclassWin(m_hWnd);

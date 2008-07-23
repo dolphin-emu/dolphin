@@ -1,5 +1,5 @@
 /* XPM */
-static char *tipicon_xpm[] = {
+static const char * tipicon_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "32 32 9 1",
 "$ c Black",

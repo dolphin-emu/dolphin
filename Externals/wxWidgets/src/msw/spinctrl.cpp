@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     22.07.99
-// RCS-ID:      $Id: spinctrl.cpp 45120 2007-03-29 18:02:11Z VZ $
+// RCS-ID:      $Id: spinctrl.cpp 53397 2008-04-28 11:33:47Z VZ $
 // Copyright:   (c) 1999-2005 Vadim Zeitlin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -147,8 +147,7 @@ LRESULT APIENTRY _EXPORT wxBuddyTextWndProc(HWND hwnd,
 {
     wxSpinCtrl *spin = (wxSpinCtrl *)wxGetWindowUserData(hwnd);
 
-    // forward some messages (the key and focus ones only so far) to
-    // the spin ctrl
+    // forward some messages (mostly the key and focus ones) to the spin ctrl
     switch ( message )
     {
         case WM_SETFOCUS:
@@ -163,6 +162,12 @@ LRESULT APIENTRY _EXPORT wxBuddyTextWndProc(HWND hwnd,
         case WM_DEADCHAR:
         case WM_KEYUP:
         case WM_KEYDOWN:
+#ifdef WM_HELP
+        // we need to forward WM_HELP too to ensure that the context help
+        // associated with wxSpinCtrl is shown when the text control part of it
+        // is clicked with the "?" cursor
+        case WM_HELP:
+#endif
             spin->MSWWindowProc(message, wParam, lParam);
 
             // The control may have been deleted at this point, so check.
@@ -172,7 +177,7 @@ LRESULT APIENTRY _EXPORT wxBuddyTextWndProc(HWND hwnd,
 
         case WM_GETDLGCODE:
             // we want to get WXK_RETURN in order to generate the event for it
-            return DLGC_WANTCHARS;
+            return DLGC_WANTARROWS;
     }
 
     return ::CallWindowProc(CASTWNDPROC spin->GetBuddyWndProc(),
@@ -525,6 +530,46 @@ bool wxSpinCtrl::Show(bool show)
     return true;
 }
 
+bool wxSpinCtrl::Reparent(wxWindowBase *newParent)
+{
+    // Reparenting both the updown control and its buddy does not seem to work:
+    // they continue to be connected somehow, but visually there is no feedback
+    // on the buddy edit control. To avoid this problem, we reparent the buddy
+    // window normally, but we recreate the updown control and reassign its
+    // buddy.
+
+    if ( !wxWindowBase::Reparent(newParent) )
+        return false;
+
+    newParent->GetChildren().DeleteObject(this);
+
+    // preserve the old values
+    const wxSize size = GetSize();
+    int value = GetValue();
+    const wxRect btnRect = wxRectFromRECT(wxGetWindowRect(GetHwnd()));
+
+    // destroy the old spin button
+    UnsubclassWin();
+    if ( !::DestroyWindow(GetHwnd()) )
+        wxLogLastError(wxT("DestroyWindow"));
+
+    // create and initialize the new one
+    if ( !wxSpinButton::Create(GetParent(), GetId(),
+                               btnRect.GetPosition(), btnRect.GetSize(),
+                               GetWindowStyle(), GetName()) )
+        return false;
+
+    SetValue(value);
+    SetRange(m_min, m_max);
+    SetInitialSize(size);
+
+    // associate it with the buddy control again
+    ::SetParent(GetBuddyHwnd(), GetHwndOf(GetParent()));
+    (void)::SendMessage(GetHwnd(), UDM_SETBUDDY, (WPARAM)GetBuddyHwnd(), 0);
+
+    return true;
+}
+
 bool wxSpinCtrl::Enable(bool enable)
 {
     if ( !wxControl::Enable(enable) )
@@ -628,6 +673,19 @@ void wxSpinCtrl::DoGetSize(int *x, int *y) const
     RECT spinrect, textrect, ctrlrect;
     GetWindowRect(GetHwnd(), &spinrect);
     GetWindowRect(GetBuddyHwnd(), &textrect);
+    UnionRect(&ctrlrect,&textrect, &spinrect);
+
+    if ( x )
+        *x = ctrlrect.right - ctrlrect.left;
+    if ( y )
+        *y = ctrlrect.bottom - ctrlrect.top;
+}
+
+void wxSpinCtrl::DoGetClientSize(int *x, int *y) const
+{
+    RECT spinrect = wxGetClientRect(GetHwnd());
+    RECT textrect = wxGetClientRect(GetBuddyHwnd());
+    RECT ctrlrect;
     UnionRect(&ctrlrect,&textrect, &spinrect);
 
     if ( x )

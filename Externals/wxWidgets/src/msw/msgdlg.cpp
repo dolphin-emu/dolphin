@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: msgdlg.cpp 44062 2006-12-25 14:39:11Z VZ $
+// RCS-ID:      $Id: msgdlg.cpp 50855 2007-12-20 10:51:33Z JS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -93,6 +93,14 @@ int wxMessageDialog::ShowModal()
         msStyle |= MB_ICONINFORMATION;
     else if (wxStyle & wxICON_QUESTION)
         msStyle |= MB_ICONQUESTION;
+    else
+    {
+        int majorVersion, minorVersion;
+        wxGetOsVersion(& majorVersion, & minorVersion);
+
+        if ( majorVersion >= 6 )
+            msStyle |= MB_ICONINFORMATION;
+    }
 
     if ( wxStyle & wxSTAY_ON_TOP )
         msStyle |= MB_TOPMOST;

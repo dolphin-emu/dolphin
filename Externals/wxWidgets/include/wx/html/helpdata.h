@@ -4,7 +4,7 @@
 // Notes:       Based on htmlhelp.cpp, implementing a monolithic
 //              HTML Help controller class,  by Vaclav Slavik
 // Author:      Harm van der Heijden and Vaclav Slavik
-// RCS-ID:      $Id: helpdata.h 41020 2006-09-05 20:47:48Z VZ $
+// RCS-ID:      $Id: helpdata.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Harm van der Heijden and Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -22,7 +22,7 @@
 #include "wx/dynarray.h"
 #include "wx/font.h"
 
-class WXDLLIMPEXP_HTML wxHtmlHelpData;
+class WXDLLIMPEXP_FWD_HTML wxHtmlHelpData;
 
 //--------------------------------------------------------------------------------
 // helper classes & structs

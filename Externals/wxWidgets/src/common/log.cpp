@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: log.cpp 49589 2007-11-01 20:35:45Z VZ $
+// RCS-ID:      $Id: log.cpp 50994 2008-01-02 21:27:31Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -287,13 +287,18 @@ wxCRIT_SECT_DECLARE(gs_prevCS);
 unsigned wxLog::DoLogNumberOfRepeats()
 {
     wxLog * const pLogger = GetActiveTarget();
-    return pLogger ? pLogger->LogLastRepetitionCountIfNeeded() : 0u;
+    return pLogger ? pLogger->LogLastRepeatIfNeeded() : 0u;
 }
 
-unsigned wxLog::LogLastRepetitionCountIfNeeded()
+unsigned wxLog::LogLastRepeatIfNeeded()
 {
     wxCRIT_SECT_LOCKER(lock, gs_prevCS);
 
+    return LogLastRepeatIfNeededUnlocked();
+}
+
+unsigned wxLog::LogLastRepeatIfNeededUnlocked()
+{
     long retval = ms_prevCounter;
     if ( ms_prevCounter > 0 )
     {
@@ -315,7 +320,6 @@ unsigned wxLog::LogLastRepetitionCountIfNeeded()
 
 wxLog::~wxLog()
 {
-    LogLastRepetitionCountIfNeeded();
 }
 
 /* static */
@@ -339,7 +343,7 @@ void wxLog::OnLog(wxLogLevel level, const wxChar *szString, time_t t)
                     return;
                 }
 
-                pLogger->LogLastRepetitionCountIfNeeded();
+                pLogger->LogLastRepeatIfNeededUnlocked();
 
                 // reset repetition counter for a new message
                 ms_prevString = szString;
@@ -497,7 +501,7 @@ void wxLog::DoLogString(const wxChar *WXUNUSED(szString), time_t WXUNUSED(t))
 
 void wxLog::Flush()
 {
-    // nothing to do here
+    LogLastRepeatIfNeeded();
 }
 
 /*static*/ bool wxLog::IsAllowedTraceMask(const wxChar *mask)

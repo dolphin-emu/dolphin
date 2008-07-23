@@ -3,7 +3,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     29/01/98
-// RCS-ID:      $Id: utilscmn.cpp 48211 2007-08-20 01:41:09Z KO $
+// RCS-ID:      $Id: utilscmn.cpp 51328 2008-01-22 10:19:39Z VS $
 // Copyright:   (c) 1998 Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -863,6 +863,20 @@ static bool wxLaunchDefaultBrowserBaseImpl(const wxString& url, int flags)
     // (non-Mac, non-MSW)
 
 #ifdef __UNIX__
+
+    // Our best best is to use xdg-open from freedesktop.org cross-desktop
+    // compatibility suite xdg-utils
+    // (see http://portland.freedesktop.org/wiki/) -- this is installed on
+    // most modern distributions and may be tweaked by them to handle
+    // distribution specifics. Only if that fails, try to find the right
+    // browser ourselves.
+    wxString path, xdg_open;
+    if ( wxGetEnv(_T("PATH"), &path) &&
+         wxFindFileInPath(&xdg_open, path, _T("xdg-open")) )
+    {
+        if ( wxExecute(xdg_open + _T(" ") + url) )
+            return true;
+    }
 
     wxString desktop = wxTheApp->GetTraits()->GetDesktopEnvironment();
 

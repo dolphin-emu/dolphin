@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: dialog.h 40687 2006-08-19 22:56:11Z VZ $
+// RCS-ID:      $Id: dialog.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,10 +16,10 @@
 
 extern WXDLLEXPORT_DATA(const wxChar) wxDialogNameStr[];
 
-class WXDLLEXPORT wxDialogModalData;
+class WXDLLIMPEXP_FWD_CORE wxDialogModalData;
 
 #if wxUSE_TOOLBAR && (defined(__SMARTPHONE__) || defined(__POCKETPC__))
-class WXDLLEXPORT wxToolBar;
+class WXDLLIMPEXP_FWD_CORE wxToolBar;
 extern WXDLLEXPORT_DATA(const wxChar) wxToolBarNameStr[];
 #endif
 

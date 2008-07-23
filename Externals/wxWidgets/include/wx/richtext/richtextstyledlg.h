@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     10/5/2006 12:05:31 PM
-// RCS-ID:      $Id: richtextstyledlg.h 49398 2007-10-24 14:20:43Z JS $
+// RCS-ID:      $Id: richtextstyledlg.h 52117 2008-02-26 15:04:54Z JS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,6 +32,9 @@ class wxBoxSizer;
 class wxRichTextStyleListCtrl;
 class wxRichTextCtrl;
 ////@end forward declarations
+
+class WXDLLIMPEXP_FWD_CORE wxButton;
+class WXDLLIMPEXP_FWD_CORE wxCheckBox;
 
 /*!
  * Control identifiers

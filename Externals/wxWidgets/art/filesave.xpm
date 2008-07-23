@@ -1,5 +1,5 @@
 /* XPM */
-static char *filesave_xpm[] = {
+static const char * filesave_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "16 15 21 1",
 "O c #FFFFFF",

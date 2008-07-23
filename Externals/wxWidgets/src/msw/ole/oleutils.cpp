@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     19.02.98
-// RCS-ID:      $Id: oleutils.cpp 50027 2007-11-17 15:16:33Z VZ $
+// RCS-ID:      $Id: oleutils.cpp 51557 2008-02-05 07:24:59Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -89,15 +89,21 @@ WXDLLEXPORT wxString wxConvertStringFromOle(BSTR bStr)
     if ( !bStr )
         return wxString();
 
+    const int len = SysStringLen(bStr);
+
 #if wxUSE_UNICODE
-    wxString str(bStr);
+    wxString str(bStr, len);
 #else
-    int len = SysStringLen(bStr) + 1;
-    char    *buf = new char[len];
-    (void)wcstombs( buf, bStr, len);
-    wxString str(buf);
-    delete[] buf;
+    wxString str;
+    if ( !::WideCharToMultiByte(CP_ACP, 0 /* no flags */,
+                                bStr, len /* not necessary NUL-terminated */,
+                                wxStringBuffer(str, len + 1), len + 1,
+                                NULL, NULL /* no default char */) )
+    {
+        str.clear();
+    }
 #endif
+
     return str;
 }
 

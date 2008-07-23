@@ -4,7 +4,7 @@
 // Author:      Ron Lee, Jaakko Salli
 // Modified by:
 // Created:     Sep-20-2006
-// RCS-ID:      $Id: dcbufcmn.cpp 42885 2006-11-01 02:10:47Z RD $
+// RCS-ID:      $Id: dcbufcmn.cpp 52152 2008-02-27 18:03:12Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -53,6 +53,14 @@ public:
                     h > ms_buffer->GetHeight() )
         {
             delete ms_buffer;
+
+            // we must always return a valid bitmap but creating a bitmap of
+            // size 0 would fail, so create a 1*1 bitmap in this case
+            if ( !w )
+                w = 1;
+            if ( !h )
+                h = 1;
+
             ms_buffer = new wxBitmap(w, h);
         }
         return ms_buffer;

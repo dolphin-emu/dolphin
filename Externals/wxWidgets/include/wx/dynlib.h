@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux, Vadim Zeitlin, Vaclav Slavik
 // Modified by:
 // Created:     20/07/98
-// RCS-ID:      $Id: dynlib.h 36214 2005-11-20 21:23:53Z VZ $
+// RCS-ID:      $Id: dynlib.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 1998 Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@
     #define wxHAVE_DYNLIB_ERROR
 #endif
 
-class WXDLLIMPEXP_BASE wxDynamicLibraryDetailsCreator;
+class WXDLLIMPEXP_FWD_BASE wxDynamicLibraryDetailsCreator;
 
 // ----------------------------------------------------------------------------
 // conditional compilation
@@ -42,14 +42,15 @@ class WXDLLIMPEXP_BASE wxDynamicLibraryDetailsCreator;
 // native version, even if configure detected presence of DLOPEN.
 #if defined(__OS2__) || defined(__EMX__) || defined(__WINDOWS__)
     typedef HMODULE             wxDllType;
+#elif defined(__DARWIN__)
+    // Don't include dlfcn.h on Darwin, we may be using our own replacements.
+    typedef void               *wxDllType;
 #elif defined(HAVE_DLOPEN)
     #include <dlfcn.h>
     typedef void               *wxDllType;
 #elif defined(HAVE_SHL_LOAD)
     #include <dl.h>
     typedef shl_t               wxDllType;
-#elif defined(__DARWIN__)
-    typedef void               *wxDllType;
 #elif defined(__WXMAC__)
     #include <CodeFragments.h>
     typedef CFragConnectionID   wxDllType;

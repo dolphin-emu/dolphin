@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin: fixed operator=(), ==(), !=()
 // Created:     01/02/97
-// RCS-ID:      $Id: pen.h 45498 2007-04-16 13:03:05Z VZ $
+// RCS-ID:      $Id: pen.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -18,7 +18,7 @@
 
 typedef WXDWORD wxMSWDash;
 
-class WXDLLEXPORT wxPen;
+class WXDLLIMPEXP_FWD_CORE wxPen;
 
 // VZ: this class should be made private
 class WXDLLEXPORT wxPenRefData : public wxGDIRefData
@@ -54,7 +54,7 @@ protected:
     WXHPEN        m_hPen;
 
 private:
-    friend class WXDLLEXPORT wxPen;
+    friend class WXDLLIMPEXP_FWD_CORE wxPen;
 
     // Cannot use
     //  DECLARE_NO_COPY_CLASS(wxPenRefData)

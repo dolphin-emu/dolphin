@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: textctrl.cpp 48627 2007-09-10 11:16:04Z VZ $
+// RCS-ID:      $Id: textctrl.cpp 52547 2008-03-15 12:33:04Z VS $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -238,6 +238,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxTextCtrl, wxTextCtrlBase)
 
 BEGIN_EVENT_TABLE(wxTextCtrl, wxTextCtrlBase)
     EVT_CHAR(wxTextCtrl::OnChar)
+    EVT_KEY_DOWN(wxTextCtrl::OnKeyDown)
     EVT_DROP_FILES(wxTextCtrl::OnDropFiles)
 
 #if wxUSE_RICHEDIT
@@ -750,10 +751,12 @@ wxString wxTextCtrl::GetRange(long from, long to) const
                    encoding = font.GetEncoding();
                 }
 
+#if wxUSE_INTL
                 if ( encoding == wxFONTENCODING_SYSTEM )
                 {
                     encoding = wxLocale::GetSystemEncoding();
                 }
+#endif // wxUSE_INTL
 
                 if ( encoding == wxFONTENCODING_SYSTEM )
                 {
@@ -940,6 +943,9 @@ wxTextCtrl::StreamIn(const wxString& value,
 
     const size_t len = conv.MB2WC(NULL, value, value.length());
 
+    if (len == wxCONV_FAILED)
+        return false;
+
 #if wxUSE_WCHAR_T
     wxWCharBuffer wchBuf(len);
     wchar_t *wpc = wchBuf.data();
@@ -1032,7 +1038,8 @@ wxTextCtrl::StreamOut(wxFontEncoding encoding, bool selectionOnly) const
         // conversion but what else can we do)
         wxCSConv conv(encoding);
         size_t lenNeeded = conv.WC2MB(NULL, wchBuf, 0);
-        if ( lenNeeded++ )
+
+        if ( lenNeeded != wxCONV_FAILED && lenNeeded++ )
         {
             conv.WC2MB(wxStringBuffer(out, lenNeeded), wchBuf, lenNeeded);
         }
@@ -1962,8 +1969,50 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
     event.Skip();
 }
 
+void wxTextCtrl::OnKeyDown(wxKeyEvent& event)
+{
+    // richedit control doesn't send WM_PASTE, WM_CUT and WM_COPY messages
+    // when Ctrl-V, X or C is pressed and this prevents wxClipboardTextEvent
+    // from working. So we work around it by intercepting these shortcuts
+    // ourselves and emitting clipboard events (which richedit will handle,
+    // so everything works as before, including pasting of rich text):
+    if ( event.GetModifiers() == wxMOD_CONTROL && IsRich() )
+    {
+        switch ( event.GetKeyCode() )
+        {
+            case 'C':
+                Copy();
+                return;
+            case 'X':
+                Cut();
+                return;
+            case 'V':
+                Paste();
+                return;
+            default:
+                break;
+        }
+    }
+
+    // no, we didn't process it
+    event.Skip();
+}
+
 WXLRESULT wxTextCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
+    // we must handle clipboard events before calling MSWWindowProc, otherwise
+    // the event would be handled twice if there's a handler for it in user
+    // code:
+    switch ( nMsg )
+    {
+        case WM_CUT:
+        case WM_COPY:
+        case WM_PASTE:
+            if ( HandleClipboardEvent(nMsg) )
+                return 0;
+            break;
+    }
+
     WXLRESULT lRc = wxTextCtrlBase::MSWWindowProc(nMsg, wParam, lParam);
 
     switch ( nMsg )
@@ -2005,13 +2054,6 @@ WXLRESULT wxTextCtrl::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPara
                     lRc = lDlgCode;
                 }
             }
-            break;
-
-        case WM_CUT:
-        case WM_COPY:
-        case WM_PASTE:
-            if ( HandleClipboardEvent(nMsg) )
-                lRc = 0;
             break;
     }
 
@@ -2273,13 +2315,15 @@ void wxTextCtrl::OnContextMenu(wxContextMenuEvent& event)
     event.Skip();
 }
 
-void wxTextCtrl::OnSetFocus(wxFocusEvent& WXUNUSED(event))
+void wxTextCtrl::OnSetFocus(wxFocusEvent& event)
 {
     // be sure the caret remains invisible if the user had hidden it
     if ( !m_isNativeCaretShown )
     {
         ::HideCaret(GetHwnd());
     }
+
+    event.Skip();
 }
 
 // ----------------------------------------------------------------------------

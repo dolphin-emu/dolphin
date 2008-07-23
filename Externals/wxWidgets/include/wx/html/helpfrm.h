@@ -4,7 +4,7 @@
 // Notes:       Based on htmlhelp.cpp, implementing a monolithic
 //              HTML Help controller class,  by Vaclav Slavik
 // Author:      Harm van der Heijden and Vaclav Slavik
-// RCS-ID:      $Id: helpfrm.h 49563 2007-10-31 20:46:21Z VZ $
+// RCS-ID:      $Id: helpfrm.h 50202 2007-11-23 21:29:29Z VZ $
 // Copyright:   (c) Harm van der Heijden and Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -64,7 +64,7 @@ class wxHtmlHelpMergedIndex;
 
 class WXDLLIMPEXP_FWD_CORE wxHelpControllerBase;
 class WXDLLIMPEXP_FWD_HTML wxHtmlHelpController;
-class WXDLLIMPEXP_FWD_CORE wxHtmlHelpWindow;
+class WXDLLIMPEXP_FWD_HTML wxHtmlHelpWindow;
 
 class WXDLLIMPEXP_HTML wxHtmlHelpFrame : public wxFrame
 {

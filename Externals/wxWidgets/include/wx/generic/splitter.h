@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: splitter.h 49563 2007-10-31 20:46:21Z VZ $
+// RCS-ID:      $Id: splitter.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -15,7 +15,7 @@
 #include "wx/window.h"                      // base class declaration
 #include "wx/containr.h"                    // wxControlContainer
 
-class WXDLLEXPORT wxSplitterEvent;
+class WXDLLIMPEXP_FWD_CORE wxSplitterEvent;
 
 // ---------------------------------------------------------------------------
 // splitter constants

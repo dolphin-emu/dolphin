@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: colour.h 45498 2007-04-16 13:03:05Z VZ $
+// RCS-ID:      $Id: colour.h 51769 2008-02-13 22:36:43Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -24,9 +24,13 @@ public:
     // constructors
     // ------------
 
-    // default
     wxColour() { Init(); }
-    DEFINE_STD_WXCOLOUR_CONSTRUCTORS
+    wxColour( ChannelType red, ChannelType green, ChannelType blue,
+              ChannelType alpha = wxALPHA_OPAQUE )
+        { Set(red, green, blue, alpha); }
+    wxColour( unsigned long colRGB ) { Set(colRGB); }
+    wxColour(const wxString& colourName) { Init(); Set(colourName); }
+    wxColour(const wxChar *colourName) { Init(); Set(colourName); }
 
 
     // dtor

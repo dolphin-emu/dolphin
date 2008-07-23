@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     29.12.99
-// RCS-ID:      $Id: calctrl.h 35530 2005-09-17 20:56:29Z VZ $
+// RCS-ID:      $Id: calctrl.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 1999 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -159,7 +159,7 @@ private:
 // wxCalendarCtrl events
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_ADV wxCalendarCtrl;
+class WXDLLIMPEXP_FWD_ADV wxCalendarCtrl;
 
 class WXDLLIMPEXP_ADV wxCalendarEvent : public wxDateEvent
 {

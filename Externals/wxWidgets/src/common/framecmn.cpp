@@ -3,7 +3,7 @@
 // Purpose:     common (for all platforms) wxFrame functions
 // Author:      Julian Smart, Vadim Zeitlin
 // Created:     01/02/97
-// Id:          $Id: framecmn.cpp 49740 2007-11-09 11:08:13Z JS $
+// Id:          $Id: framecmn.cpp 51463 2008-01-30 21:31:03Z VZ $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -171,7 +171,8 @@ wxPoint wxFrameBase::GetClientAreaOrigin() const
 
 void wxFrameBase::SendSizeEvent()
 {
-    wxSizeEvent event( GetSize(), GetId() );
+    const wxSize size = GetSize();
+    wxSizeEvent event( size, GetId() );
     event.SetEventObject( this );
     GetEventHandler()->AddPendingEvent( event );
 
@@ -179,8 +180,12 @@ void wxFrameBase::SendSizeEvent()
     // SendSizeEvent is typically called when a toolbar is shown
     // or hidden, but sending the size event alone is not enough
     // to trigger a full layout.
-    ((wxFrame*)this)->GtkOnSize();
-#endif
+    ((wxFrame*)this)->GtkOnSize(
+#ifndef __WXGTK20__
+        0, 0, size.x, size.y
+#endif // __WXGTK20__
+    );
+#endif // __WXGTK__
 }
 
 
@@ -216,8 +221,7 @@ bool wxFrameBase::ProcessCommand(int id)
         }
     }
 
-    GetEventHandler()->ProcessEvent(commandEvent);
-    return true;
+    return GetEventHandler()->ProcessEvent(commandEvent);
 #else // !wxUSE_MENUS
     return false;
 #endif // wxUSE_MENUS/!wxUSE_MENUS

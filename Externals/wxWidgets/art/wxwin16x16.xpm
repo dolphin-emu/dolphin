@@ -1,5 +1,5 @@
 /* XPM */
-static char *wxwin16x16_xpm[] = {
+static const char * wxwin16x16_xpm[] = {
 "16 16 6 1",
 " 	c None",
 ".	c #000000",

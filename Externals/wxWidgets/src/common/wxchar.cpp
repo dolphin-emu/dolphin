@@ -4,7 +4,7 @@
 // Author:      Ove Kaven
 // Modified by: Ron Lee, Francesco Montorsi
 // Created:     09/04/99
-// RCS-ID:      $Id: wxchar.cpp 49328 2007-10-22 11:32:59Z VZ $
+// RCS-ID:      $Id: wxchar.cpp 54071 2008-06-10 18:22:32Z VZ $
 // Copyright:   (c) wxWidgets copyright
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -2023,13 +2023,19 @@ WXDLLEXPORT const wxChar *wxStrstr(const wxChar *haystack, const wxChar *needle)
 
 WXDLLEXPORT double wxStrtod(const wxChar *nptr, wxChar **endptr)
 {
+  const wxChar decSep(
+#if wxUSE_INTL
+      wxLocale::GetInfo(wxLOCALE_DECIMAL_POINT, wxLOCALE_CAT_NUMBER)[0]
+#else
+      _T('.')
+#endif
+      );
   const wxChar *start = nptr;
 
-  // FIXME: only correct for C locale
   while (wxIsspace(*nptr)) nptr++;
   if (*nptr == wxT('+') || *nptr == wxT('-')) nptr++;
   while (wxIsdigit(*nptr)) nptr++;
-  if (*nptr == wxT('.')) {
+  if (*nptr == decSep) {
     nptr++;
     while (wxIsdigit(*nptr)) nptr++;
   }
@@ -2040,7 +2046,7 @@ WXDLLEXPORT double wxStrtod(const wxChar *nptr, wxChar **endptr)
   }
 
   wxString data(start, nptr-start);
-  wxWX2MBbuf dat = data.mb_str(wxConvLibc);
+  const wxWX2MBbuf dat = data.mb_str(wxConvLibc);
   char *rdat = wxMBSTRINGCAST dat;
   double ret = strtod(dat, &rdat);
 
@@ -2053,7 +2059,6 @@ WXDLLEXPORT long int wxStrtol(const wxChar *nptr, wxChar **endptr, int base)
 {
   const wxChar *start = nptr;
 
-  // FIXME: only correct for C locale
   while (wxIsspace(*nptr)) nptr++;
   if (*nptr == wxT('+') || *nptr == wxT('-')) nptr++;
   if (((base == 0) || (base == 16)) &&

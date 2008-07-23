@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     13.11.97
-// RCS-ID:      $Id: ownerdrw.cpp 44228 2007-01-15 10:54:40Z VZ $
+// RCS-ID:      $Id: ownerdrw.cpp 51379 2008-01-26 01:38:06Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -50,12 +50,24 @@ public:
 #if defined(__WXMSW__) && defined(__WIN32__) && defined(SM_CXMENUCHECK)
         NONCLIENTMETRICS nm;
         nm.cbSize = sizeof(NONCLIENTMETRICS);
-        SystemParametersInfo(SPI_GETNONCLIENTMETRICS,0,&nm,0);
+        if ( !::SystemParametersInfo(SPI_GETNONCLIENTMETRICS,0,&nm,0) )
+        {
+#if WINVER >= 0x0600
+            // a new field has been added to NONCLIENTMETRICS under Vista, so
+            // the call to SystemParametersInfo() fails if we use the struct
+            // size incorporating this new value on an older system -- retry
+            // without it
+            nm.cbSize -= sizeof(int);
+            if ( !::SystemParametersInfo(SPI_GETNONCLIENTMETRICS, 0, &nm, 0) )
+#endif // WINVER >= 0x0600
+            {
+                // maybe we should initialize the struct with some defaults?
+                wxLogLastError(_T("SystemParametersInfo(SPI_GETNONCLIENTMETRICS)"));
+            }
+        }
 
         ms_systemMenuButtonWidth = nm.iMenuHeight;
         ms_systemMenuHeight = nm.iMenuHeight;
-
-        ms_systemMenuHeight = 25;
 
         // create menu font
         wxNativeFontInfo info;
@@ -235,14 +247,14 @@ bool wxOwnerDrawn::OnMeasureItem(size_t *pwidth, size_t *pheight)
     }
 
     // add a 4-pixel separator, otherwise menus look cluttered
-    *pwidth += 8;
+    *pwidth += 4;
 
     // make sure that this item is at least as tall as the system menu height
     if ( *pheight < m_nMinHeight )
-        *pheight = m_nMinHeight;
+      *pheight = m_nMinHeight;
 
     // remember height for use in OnDrawItem
-        m_nHeight = *pheight;
+    m_nHeight = *pheight;
 
     return true;
 }

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     2003-02-12
-// RCS-ID:      $Id: access.cpp 43019 2006-11-04 11:14:57Z VZ $
+// RCS-ID:      $Id: access.cpp 51833 2008-02-16 11:15:07Z JS $
 // Copyright:   (c) 2003 Julian Smart
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -41,7 +41,6 @@
 
 #include <oleauto.h>
 #include <oleacc.h>
-#include <winable.h>
 
 #include "wx/msw/ole/oleutils.h"
 

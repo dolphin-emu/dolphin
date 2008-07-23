@@ -4,7 +4,7 @@
 // Author:      Stefan Csomor
 // Modified by:
 // Created:     2006-10-20
-// RCS-ID:      $Id: overlay.h 49804 2007-11-10 01:09:42Z VZ $
+// RCS-ID:      $Id: overlay.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ public:
     wxOverlayImpl *GetImpl() { return m_impl; }
 
 private:
-    friend class WXDLLEXPORT wxDCOverlay;
+    friend class WXDLLIMPEXP_FWD_CORE wxDCOverlay;
 
     // returns true if it has been setup
     bool IsOk();

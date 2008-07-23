@@ -4,7 +4,7 @@
 // Author:      Julian Smart, Vadim Zeitlin
 // Modified by:
 // Created:     13/07/98
-// RCS-ID:      $Id: wincmn.cpp 46272 2007-06-02 13:25:43Z VZ $
+// RCS-ID:      $Id: wincmn.cpp 52330 2008-03-05 14:19:38Z VS $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -392,6 +392,14 @@ wxWindowBase::~wxWindowBase()
 #if wxUSE_ACCESSIBILITY
     delete m_accessible;
 #endif
+
+#if wxUSE_HELP
+    // NB: this has to be called unconditionally, because we don't
+    //     know whether this window has associated help text or not
+    wxHelpProvider *helpProvider = wxHelpProvider::Get();
+    if ( helpProvider )
+        helpProvider->RemoveHelp(this);
+#endif
 }
 
 void wxWindowBase::SendDestroyEvent()
@@ -747,6 +755,22 @@ wxPoint wxWindowBase::GetClientAreaOrigin() const
     return wxPoint(0,0);
 }
 
+wxSize wxWindowBase::ClientToWindowSize(const wxSize& size) const
+{
+    const wxSize diff(GetSize() - GetClientSize());
+
+    return wxSize(size.x == -1 ? -1 : size.x + diff.x,
+                  size.y == -1 ? -1 : size.y + diff.y);
+}
+
+wxSize wxWindowBase::WindowToClientSize(const wxSize& size) const
+{
+    const wxSize diff(GetSize() - GetClientSize());
+
+    return wxSize(size.x == -1 ? -1 : size.x - diff.x,
+                  size.y == -1 ? -1 : size.y - diff.y);
+}
+
 void wxWindowBase::SetWindowVariant( wxWindowVariant variant )
 {
     if ( m_windowVariant != variant )
@@ -891,8 +915,11 @@ bool wxWindowBase::Enable(bool enable)
 
 bool wxWindowBase::IsShownOnScreen() const
 {
+    // A window is shown on screen if it itself is shown and so are all its
+    // parents. But if a window is toplevel one, then its always visible on
+    // screen if IsShown() returns true, even if it has a hidden parent.
     return IsShown() &&
-           (GetParent() == NULL || GetParent()->IsShownOnScreen());
+           (IsTopLevel() || !GetParent() || GetParent()->IsShownOnScreen());
 }
 
 // ----------------------------------------------------------------------------
@@ -1635,7 +1662,29 @@ void wxWindowBase::OnHelp(wxHelpEvent& event)
     wxHelpProvider *helpProvider = wxHelpProvider::Get();
     if ( helpProvider )
     {
-        if ( helpProvider->ShowHelpAtPoint(this, event.GetPosition(), event.GetOrigin()) )
+        wxPoint pos = event.GetPosition();
+        const wxHelpEvent::Origin origin = event.GetOrigin();
+        if ( origin == wxHelpEvent::Origin_Keyboard )
+        {
+            // if the help event was generated from keyboard it shouldn't
+            // appear at the mouse position (which is still the only position
+            // associated with help event) if the mouse is far away, although
+            // we still do use the mouse position if it's over the window
+            // because we suppose the user looks approximately at the mouse
+            // already and so it would be more convenient than showing tooltip
+            // at some arbitrary position which can be quite far from it
+            const wxRect rectClient = GetClientRect();
+            if ( !rectClient.Contains(ScreenToClient(pos)) )
+            {
+                // position help slightly under and to the right of this window
+                pos = ClientToScreen(wxPoint(
+                        2*GetCharWidth(),
+                        rectClient.height + GetCharHeight()
+                      ));
+            }
+        }
+
+        if ( helpProvider->ShowHelpAtPoint(this, pos, origin) )
         {
             // skip the event.Skip() below
             return;
@@ -2615,6 +2664,27 @@ bool wxWindowBase::TryParent(wxEvent& event)
     }
 
     return wxEvtHandler::TryParent(event);
+}
+
+// ----------------------------------------------------------------------------
+// window relationships
+// ----------------------------------------------------------------------------
+
+wxWindow *wxWindowBase::DoGetSibling(MoveKind order) const
+{
+    wxCHECK_MSG( GetParent(), NULL,
+                    _T("GetPrev/NextSibling() don't work for TLWs!") );
+
+    wxWindowList& siblings = GetParent()->GetChildren();
+    wxWindowList::compatibility_iterator i = siblings.Find((wxWindow *)this);
+    wxCHECK_MSG( i, NULL, _T("window not a child of its parent?") );
+
+    if ( order == MoveBefore )
+        i = i->GetPrevious();
+    else // MoveAfter
+        i = i->GetNext();
+
+    return i ? i->GetData() : NULL;
 }
 
 // ----------------------------------------------------------------------------

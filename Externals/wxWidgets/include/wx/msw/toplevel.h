@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     20.09.01
-// RCS-ID:      $Id: toplevel.h 42541 2006-10-27 20:05:47Z RR $
+// RCS-ID:      $Id: toplevel.h 50999 2008-01-03 01:13:44Z VZ $
 // Copyright:   (c) 2001 SciTech Software, Inc. (www.scitechsoft.com)
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -180,6 +180,11 @@ protected:
 #endif // __SMARTPHONE__ && __WXWINCE__
 
 private:
+    // helper of SetIcons(): calls gets the icon with the size specified by the
+    // given system metrics (SM_C{X|Y}[SM]ICON) from the bundle and sets it
+    // using WM_SETICON with the specified wParam (ICOM_SMALL or ICON_BIG)
+    void DoSelectAndSetIcon(const wxIconBundle& icons, int smX, int smY, int i);
+
 
 #if defined(__SMARTPHONE__) || defined(__POCKETPC__)
     void* m_activateInfo;

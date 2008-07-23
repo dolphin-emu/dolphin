@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     11/6/98
-// RCS-ID:      $Id: automtn.cpp 44961 2007-03-19 20:00:59Z VZ $
+// RCS-ID:      $Id: automtn.cpp 53817 2008-05-29 13:35:52Z VZ $
 // Copyright:   (c) 1998, Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -728,7 +728,8 @@ WXDLLEXPORT bool wxConvertOleToVariant(const VARIANTARG& oleVariant, wxVariant& 
             variant = oleVariant.dblVal;
             break;
         }
-    case VT_ARRAY:
+    case VT_VARIANT:
+    // case VT_ARRAY: // This is masked out by VT_TYPEMASK
         {
             variant.ClearList();
 
@@ -861,6 +862,7 @@ static void ReleaseVariant(VARIANTARG *pvarg)
             case VT_R8:
             case VT_ERROR:        // to avoid erroring on an error return from Excel
             case VT_EMPTY:
+            case VT_DATE:
                 // no work for these types
                 break;
 

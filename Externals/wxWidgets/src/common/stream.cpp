@@ -5,7 +5,7 @@
 // Modified by: VZ (23.11.00) to fix realloc()ing new[]ed memory,
 //                            general code review
 // Created:     11/07/98
-// RCS-ID:      $Id: stream.cpp 44485 2007-02-12 19:11:12Z VZ $
+// RCS-ID:      $Id: stream.cpp 51662 2008-02-11 20:23:29Z VZ $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1221,12 +1221,15 @@ wxInputStream& wxBufferedInputStream::Read(void *buf, size_t size)
         size -= m_lastcount;
         buf = (char *)buf + m_lastcount;
 
-        // the call to wxStreamBuffer::Read() below will reset our m_lastcount,
-        // so save it
+        // the call to wxStreamBuffer::Read() below may reset our m_lastcount
+        // (but it also may not do it if the buffer is associated to another
+        // existing stream and wasn't created by us), so save it
         size_t countOld = m_lastcount;
 
-        m_i_streambuf->Read(buf, size);
+        // the new count of the bytes read is the count of bytes read this time
+        m_lastcount = m_i_streambuf->Read(buf, size);
 
+        // plus those we had read before
         m_lastcount += countOld;
     }
 

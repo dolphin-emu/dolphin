@@ -1,5 +1,5 @@
 /* XPM */
-static char *cross_xpm[] = {
+static const char * cross_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "10 10 2 1",
 "  c Gray0",

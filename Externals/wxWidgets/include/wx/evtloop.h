@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     01.06.01
-// RCS-ID:      $Id: evtloop.h 40865 2006-08-27 09:42:42Z VS $
+// RCS-ID:      $Id: evtloop.h 53607 2008-05-16 15:21:40Z SN $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -14,7 +14,7 @@
 
 #include "wx/utils.h"
 
-class WXDLLEXPORT wxEventLoop;
+class WXDLLIMPEXP_FWD_CORE wxEventLoop;
 
 // ----------------------------------------------------------------------------
 // wxEventLoop: a GUI event loop
@@ -197,5 +197,33 @@ public:
 private:
     wxEventLoop *m_evtLoopOld;
 };
+
+#if wxABI_VERSION >= 20808
+class wxEventLoopGuarantor
+{
+public:
+    wxEventLoopGuarantor()
+    {
+        m_evtLoopNew = NULL;
+        if (!wxEventLoop::GetActive())
+        {
+            m_evtLoopNew = new wxEventLoop;
+            wxEventLoop::SetActive(m_evtLoopNew);
+        }
+    }
+
+    ~wxEventLoopGuarantor()
+    {
+        if (m_evtLoopNew)
+        {
+            wxEventLoop::SetActive(NULL);
+            delete m_evtLoopNew;
+        }
+    }
+
+private:
+    wxEventLoop *m_evtLoopNew;
+};
+#endif // wxABI_VERSION >= 20805
 
 #endif // _WX_EVTLOOP_H_

@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Vadim Zeitlin to derive from wxChoiceBase
 // Created:     04/01/98
-// RCS-ID:      $Id: choice.cpp 45011 2007-03-22 02:46:21Z VZ $
+// RCS-ID:      $Id: choice.cpp 51616 2008-02-09 15:22:15Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -170,6 +170,21 @@ bool wxChoice::Create(wxWindow *parent,
     wxCArrayString chs(choices);
     return Create(parent, id, pos, size, chs.GetCount(), chs.GetStrings(),
                   style, validator, name);
+}
+
+void wxChoice::SetLabel(const wxString& label)
+{
+    if ( FindString(label) == wxNOT_FOUND )
+    {
+        // unless we explicitly do this here, CB_GETCURSEL will continue to
+        // return the index of the previously selected item which will result
+        // in wrongly replacing the value being set now with the previously
+        // value if the user simply opens and closes (without selecting
+        // anything) the combobox popup
+        SetSelection(-1);
+    }
+
+    wxChoiceBase::SetLabel(label);
 }
 
 bool wxChoice::MSWShouldPreProcessMessage(WXMSG *pMsg)

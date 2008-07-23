@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Created:     01/02/97
 // Modified:
-// Id:          $Id: treebase.cpp 44116 2007-01-07 15:02:57Z VZ $
+// Id:          $Id: treebase.cpp 51356 2008-01-24 11:23:30Z VZ $
 // Copyright:   (c) 1998 Robert Roebling, Julian Smart et al
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -193,7 +193,9 @@ void wxTreeCtrlBase::ExpandAllChildren(const wxTreeItemId& item)
 {
     // expand this item first, this might result in its children being added on
     // the fly
-    Expand(item);
+    if ( item != GetRootItem() || !HasFlag(wxTR_HIDE_ROOT) )
+        Expand(item);
+    //else: expanding hidden root item is unsupported and unnecessary
 
     // then (recursively) expand all the children
     wxTreeItemIdValue cookie;

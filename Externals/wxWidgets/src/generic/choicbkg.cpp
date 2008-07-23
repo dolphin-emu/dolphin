@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by: Wlodzimierz ABX Skiba from generic/listbkg.cpp
 // Created:     15.09.04
-// RCS-ID:      $Id: choicbkg.cpp 49720 2007-11-07 18:16:37Z JS $
+// RCS-ID:      $Id: choicbkg.cpp 53045 2008-04-06 15:14:25Z VZ $
 // Copyright:   (c) Vadim Zeitlin, Wlodzimierz Skiba
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -291,6 +291,7 @@ wxWindow *wxChoicebook::DoRemovePage(size_t page)
 
 bool wxChoicebook::DeleteAllPages()
 {
+    m_selection = wxNOT_FOUND;
     GetChoiceCtrl()->Clear();
     return wxBookCtrlBase::DeleteAllPages();
 }

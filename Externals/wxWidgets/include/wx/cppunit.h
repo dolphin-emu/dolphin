@@ -3,7 +3,7 @@
 // Purpose:     wrapper header for CppUnit headers
 // Author:      Vadim Zeitlin
 // Created:     15.02.04
-// RCS-ID:      $Id: cppunit.h 49019 2007-10-02 14:56:53Z MW $
+// RCS-ID:      $Id: cppunit.h 53917 2008-06-01 20:32:26Z VZ $
 // Copyright:   (c) 2004 Vadim Zeitlin
 // Licence:     wxWindows Licence
 /////////////////////////////////////////////////////////////////////////////
@@ -86,6 +86,10 @@
 
 // Use this macro to compare a size_t with a literal integer
 #define WX_ASSERT_SIZET_EQUAL(n, m) CPPUNIT_ASSERT_EQUAL(((size_t)n), m)
+
+// Use this macro to compare the expected time_t value with the result of not
+// necessarily time_t type
+#define WX_ASSERT_TIME_T_EQUAL(t, n) CPPUNIT_ASSERT_EQUAL((t), (time_t)(n))
 
 
 ///////////////////////////////////////////////////////////////////////////////

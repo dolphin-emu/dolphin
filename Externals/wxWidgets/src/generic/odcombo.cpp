@@ -4,7 +4,7 @@
 // Author:      Jaakko Salli
 // Modified by:
 // Created:     Apr-30-2006
-// RCS-ID:      $Id: odcombo.cpp 46186 2007-05-24 00:03:26Z VZ $
+// RCS-ID:      $Id: odcombo.cpp 52747 2008-03-23 20:20:46Z VZ $
 // Copyright:   (c) 2005 Jaakko Salli
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -246,8 +246,14 @@ void wxVListBoxComboPopup::SendComboBoxEvent( int selection )
 // returns true if key was consumed
 bool wxVListBoxComboPopup::HandleKey( int keycode, bool saturate, wxChar unicode )
 {
+    const int itemCount = GetCount();
+
+    // keys do nothing in the empty control and returning immediately avoids
+    // using invalid indices below
+    if ( !itemCount )
+        return false;
+
     int value = m_value;
-    int itemCount = GetCount();
     int comboStyle = m_combo->GetWindowStyle();
 
     // this is the character equivalent of the code
@@ -632,10 +638,11 @@ void wxVListBoxComboPopup::SetStringValue( const wxString& value )
 {
     int index = m_strings.Index(value);
 
-    m_value = index;
-
-    if ( index >= -1 && index < (int)wxVListBox::GetItemCount() )
+    if ( index >= 0 && index < (int)wxVListBox::GetItemCount() )
+    {
+        m_value = index;
         wxVListBox::SetSelection(index);
+    }
 }
 
 void wxVListBoxComboPopup::CalcWidths()

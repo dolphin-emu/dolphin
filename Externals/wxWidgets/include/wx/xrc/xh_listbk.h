@@ -13,7 +13,7 @@
 
 #if wxUSE_XRC && wxUSE_LISTBOOK
 
-class WXDLLEXPORT wxListbook;
+class WXDLLIMPEXP_FWD_CORE wxListbook;
 
 class WXDLLIMPEXP_XRC wxListbookXmlHandler : public wxXmlResourceHandler
 {

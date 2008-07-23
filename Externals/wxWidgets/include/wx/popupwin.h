@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     06.01.01
-// RCS-ID:      $Id: popupwin.h 49642 2007-11-05 16:54:48Z SC $
+// RCS-ID:      $Id: popupwin.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 2001 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -77,8 +77,8 @@ public:
 // when the user clicks mouse outside it or if it loses focus in any other way
 // ----------------------------------------------------------------------------
 
-class WXDLLEXPORT wxPopupWindowHandler;
-class WXDLLEXPORT wxPopupFocusHandler;
+class WXDLLIMPEXP_FWD_CORE wxPopupWindowHandler;
+class WXDLLIMPEXP_FWD_CORE wxPopupFocusHandler;
 
 class WXDLLEXPORT wxPopupTransientWindow : public wxPopupWindow
 {

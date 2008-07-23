@@ -1,5 +1,5 @@
 /* XPM */
-static char *error_xpm[] = {
+static const char * error_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "48 48 4 1",
 "  c None",

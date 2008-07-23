@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux
 // Modified by:
 // Created:     28/06/1998
-// RCS-ID:      $Id: txtstrm.h 38717 2006-04-14 17:01:16Z ABX $
+// RCS-ID:      $Id: txtstrm.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -17,8 +17,8 @@
 
 #if wxUSE_STREAMS
 
-class WXDLLIMPEXP_BASE wxTextInputStream;
-class WXDLLIMPEXP_BASE wxTextOutputStream;
+class WXDLLIMPEXP_FWD_BASE wxTextInputStream;
+class WXDLLIMPEXP_FWD_BASE wxTextOutputStream;
 
 typedef wxTextInputStream& (*__wxTextInputManip)(wxTextInputStream&);
 typedef wxTextOutputStream& (*__wxTextOutputManip)(wxTextOutputStream&);

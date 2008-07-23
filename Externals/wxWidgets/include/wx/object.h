@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by: Ron Lee
 // Created:     01/02/97
-// RCS-ID:      $Id: object.h 42776 2006-10-30 22:03:53Z VZ $
+// RCS-ID:      $Id: object.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 1997 Julian Smart
 //              (c) 2001 Ron Lee <ron@debian.org>
 // Licence:     wxWindows licence
@@ -19,7 +19,7 @@
 
 #include "wx/memory.h"
 
-class WXDLLIMPEXP_BASE wxObject;
+class WXDLLIMPEXP_FWD_BASE wxObject;
 
 #ifndef wxUSE_EXTENDED_RTTI
 #define wxUSE_EXTENDED_RTTI 0
@@ -33,9 +33,9 @@ class WXDLLIMPEXP_BASE wxObject;
 // conditional compilation
 // ----------------------------------------------------------------------------
 
-class WXDLLIMPEXP_BASE wxClassInfo;
-class WXDLLIMPEXP_BASE wxHashTable;
-class WXDLLIMPEXP_BASE wxObjectRefData;
+class WXDLLIMPEXP_FWD_BASE wxClassInfo;
+class WXDLLIMPEXP_FWD_BASE wxHashTable;
+class WXDLLIMPEXP_FWD_BASE wxObjectRefData;
 
 // ----------------------------------------------------------------------------
 // wxClassInfo
@@ -388,7 +388,7 @@ inline void* wxCheckCast(void *ptr)
 
 class WXDLLIMPEXP_BASE wxObjectRefData
 {
-    friend class WXDLLIMPEXP_BASE wxObject;
+    friend class WXDLLIMPEXP_FWD_BASE wxObject;
 
 public:
     wxObjectRefData() : m_count(1) { }

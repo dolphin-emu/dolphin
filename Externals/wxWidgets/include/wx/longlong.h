@@ -5,7 +5,7 @@
 // Author:      Jeffrey C. Ollie <jeff@ollie.clive.ia.us>, Vadim Zeitlin
 // Modified by:
 // Created:     10.02.99
-// RCS-ID:      $Id: longlong.h 40658 2006-08-18 15:27:30Z JS $
+// RCS-ID:      $Id: longlong.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -86,8 +86,8 @@
 
 #ifndef wxUSE_LONGLONG_WX
     #define wxUSE_LONGLONG_WX 0
-    class WXDLLIMPEXP_BASE wxLongLongNative;
-    class WXDLLIMPEXP_BASE wxULongLongNative;
+    class WXDLLIMPEXP_FWD_BASE wxLongLongNative;
+    class WXDLLIMPEXP_FWD_BASE wxULongLongNative;
     typedef wxLongLongNative wxLongLong;
     typedef wxULongLongNative wxULongLong;
 #endif

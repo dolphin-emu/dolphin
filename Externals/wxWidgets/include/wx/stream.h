@@ -4,7 +4,7 @@
 // Author:      Guilhem Lavaux, Guillermo Rodriguez Garcia, Vadim Zeitlin
 // Modified by:
 // Created:     11/07/98
-// RCS-ID:      $Id: stream.h 42623 2006-10-29 17:00:07Z MW $
+// RCS-ID:      $Id: stream.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Guilhem Lavaux
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,9 +21,9 @@
 #include "wx/string.h"
 #include "wx/filefn.h"  // for wxFileOffset, wxInvalidOffset and wxSeekMode
 
-class WXDLLIMPEXP_BASE wxStreamBase;
-class WXDLLIMPEXP_BASE wxInputStream;
-class WXDLLIMPEXP_BASE wxOutputStream;
+class WXDLLIMPEXP_FWD_BASE wxStreamBase;
+class WXDLLIMPEXP_FWD_BASE wxInputStream;
+class WXDLLIMPEXP_FWD_BASE wxOutputStream;
 
 typedef wxInputStream& (*__wxInputManip)(wxInputStream&);
 typedef wxOutputStream& (*__wxOutputManip)(wxOutputStream&);

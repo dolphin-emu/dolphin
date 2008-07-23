@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     11.06.98
-// RCS-ID:      $Id: notebook.cpp 46270 2007-06-02 13:22:20Z VZ $
+// RCS-ID:      $Id: notebook.cpp 50855 2007-12-20 10:51:33Z JS $
 // Copyright:   (c) 1998 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -175,7 +175,7 @@ wxBEGIN_FLAGS( wxNotebookStyle )
 
 wxEND_FLAGS( wxNotebookStyle )
 
-IMPLEMENT_DYNAMIC_CLASS_XTI(wxNotebook, wxControl,"wx/notebook.h")
+IMPLEMENT_DYNAMIC_CLASS_XTI(wxNotebook, wxBookCtrlBase,"wx/notebook.h")
 IMPLEMENT_DYNAMIC_CLASS_XTI(wxNotebookPageInfo, wxObject , "wx/notebook.h" )
 
 wxCOLLECTION_TYPE_INFO( wxNotebookPageInfo * , wxNotebookPageInfoList ) ;
@@ -212,7 +212,7 @@ wxEND_HANDLERS_TABLE()
 wxCONSTRUCTOR_4( wxNotebookPageInfo , wxNotebookPage* , Page , wxString , Text , bool , Selected , int , ImageId )
 
 #else
-IMPLEMENT_DYNAMIC_CLASS(wxNotebook, wxControl)
+IMPLEMENT_DYNAMIC_CLASS(wxNotebook, wxBookCtrlBase)
 IMPLEMENT_DYNAMIC_CLASS(wxNotebookPageInfo, wxObject )
 #endif
 IMPLEMENT_DYNAMIC_CLASS(wxNotebookEvent, wxNotifyEvent)
@@ -383,7 +383,7 @@ bool wxNotebook::Create(wxWindow *parent,
             wxUxThemeEngine::GetIfActive()->SetWindowTheme(GetHwnd(), L"", L"");
 
             // correct the background color for the new non-themed control
-            SetBackgroundColour(GetThemeBackgroundColour()); 
+            SetBackgroundColour(GetThemeBackgroundColour());
         }
     }
 #endif // wxUSE_UXTHEME

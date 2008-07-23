@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: mdi.h 45498 2007-04-16 13:03:05Z VZ $
+// RCS-ID:      $Id: mdi.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -16,8 +16,8 @@
 
 extern WXDLLEXPORT_DATA(const wxChar) wxStatusLineNameStr[];
 
-class WXDLLEXPORT wxMDIClientWindow;
-class WXDLLEXPORT wxMDIChildFrame;
+class WXDLLIMPEXP_FWD_CORE wxMDIClientWindow;
+class WXDLLIMPEXP_FWD_CORE wxMDIChildFrame;
 
 // ---------------------------------------------------------------------------
 // wxMDIParentFrame
@@ -111,7 +111,7 @@ protected:
     bool m_parentFrameActive;
 
 private:
-    friend class WXDLLEXPORT wxMDIChildFrame;
+    friend class WXDLLIMPEXP_FWD_CORE wxMDIChildFrame;
 
     DECLARE_EVENT_TABLE()
     DECLARE_DYNAMIC_CLASS(wxMDIParentFrame)

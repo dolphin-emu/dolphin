@@ -6,7 +6,7 @@
 //
 // Author:      Robin Dunn
 // Created:     03-Nov-2003
-// RCS-ID:      $Id: gbsizer.h 35650 2005-09-23 12:56:45Z MR $
+// RCS-ID:      $Id: gbsizer.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) Robin Dunn
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -79,7 +79,7 @@ extern WXDLLEXPORT_DATA(const wxGBSpan) wxDefaultSpan;
 // wxGBSizerItem
 //---------------------------------------------------------------------------
 
-class WXDLLEXPORT wxGridBagSizer;
+class WXDLLIMPEXP_FWD_CORE wxGridBagSizer;
 
 
 class WXDLLEXPORT wxGBSizerItem : public wxSizerItem
@@ -286,6 +286,9 @@ public:
 
 protected:
     wxGBPosition FindEmptyCell();
+#if wxABI_VERSION >= 20808
+    void AdjustForOverflow();
+#endif
 
     wxSize m_emptyCellSize;
 

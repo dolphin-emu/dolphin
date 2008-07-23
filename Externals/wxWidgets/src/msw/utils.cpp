@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     04/01/98
-// RCS-ID:      $Id: utils.cpp 43347 2006-11-12 15:39:12Z JS $
+// RCS-ID:      $Id: utils.cpp 53784 2008-05-27 15:48:23Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -1121,24 +1121,37 @@ wxString wxGetOsDescription()
                 break;
 
             case VER_PLATFORM_WIN32_NT:
-                if ( info.dwMajorVersion == 5 )
+                switch ( info.dwMajorVersion )
                 {
-                    switch ( info.dwMinorVersion )
-                    {
-                        case 0:
-                            str.Printf(_("Windows 2000 (build %lu"),
+                    case 5:
+                        switch ( info.dwMinorVersion )
+                        {
+                            case 0:
+                                str.Printf(_("Windows 2000 (build %lu"),
+                                           info.dwBuildNumber);
+                                break;
+
+                            case 1:
+                                str.Printf(_("Windows XP (build %lu"),
+                                           info.dwBuildNumber);
+                                break;
+
+                            case 2:
+                                str.Printf(_("Windows Server 2003 (build %lu"),
+                                           info.dwBuildNumber);
+                                break;
+                        }
+                        break;
+
+                    case 6:
+                        if ( info.dwMinorVersion == 0 )
+                        {
+                            str.Printf(_("Windows Vista (build %lu"),
                                        info.dwBuildNumber);
-                            break;
-                        case 1:
-                            str.Printf(_("Windows XP (build %lu"),
-                                       info.dwBuildNumber);
-                            break;
-                        case 2:
-                            str.Printf(_("Windows Server 2003 (build %lu"),
-                                       info.dwBuildNumber);
-                            break;
-                    }
+                        }
+                        break;
                 }
+
                 if ( str.empty() )
                 {
                     str.Printf(_("Windows NT %lu.%lu (build %lu"),
@@ -1146,6 +1159,7 @@ wxString wxGetOsDescription()
                            info.dwMinorVersion,
                            info.dwBuildNumber);
                 }
+
                 if ( !wxIsEmpty(info.szCSDVersion) )
                 {
                     str << _T(", ") << info.szCSDVersion;

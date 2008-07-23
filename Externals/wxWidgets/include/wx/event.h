@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: event.h 49563 2007-10-31 20:46:21Z VZ $
+// RCS-ID:      $Id: event.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -39,7 +39,7 @@ class WXDLLIMPEXP_FWD_BASE wxList;
     class WXDLLIMPEXP_FWD_CORE wxWindowBase;
 #endif // wxUSE_GUI
 
-class WXDLLIMPEXP_BASE wxEvtHandler;
+class WXDLLIMPEXP_FWD_BASE wxEvtHandler;
 
 // ----------------------------------------------------------------------------
 // Event types
@@ -414,7 +414,7 @@ protected:
 
 private:
     // it needs to access our m_propagationLevel
-    friend class WXDLLIMPEXP_BASE wxPropagateOnce;
+    friend class WXDLLIMPEXP_FWD_BASE wxPropagateOnce;
 
     DECLARE_ABSTRACT_CLASS(wxEvent)
 };

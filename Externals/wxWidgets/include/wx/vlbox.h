@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     31.05.03
-// RCS-ID:      $Id: vlbox.h 41810 2006-10-09 16:39:34Z VZ $
+// RCS-ID:      $Id: vlbox.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 2003 Vadim Zeitlin <vadim@wxwidgets.org>
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
@@ -15,7 +15,7 @@
 #include "wx/vscroll.h"         // base class
 #include "wx/bitmap.h"
 
-class WXDLLEXPORT wxSelectionStore;
+class WXDLLIMPEXP_FWD_CORE wxSelectionStore;
 
 #define wxVListBoxNameStr _T("wxVListBox")
 

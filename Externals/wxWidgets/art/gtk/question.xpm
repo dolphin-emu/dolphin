@@ -1,5 +1,5 @@
 /* XPM */
-static char *question_xpm[] = {
+static const char * question_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "48 48 21 1",
 ". c Black",

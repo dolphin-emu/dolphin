@@ -3,7 +3,7 @@
 // Purpose:     common (for all platforms) wxTopLevelWindow functions
 // Author:      Julian Smart, Vadim Zeitlin
 // Created:     01/02/97
-// Id:          $Id: toplvcmn.cpp 49029 2007-10-04 07:25:26Z SC $
+// Id:          $Id: toplvcmn.cpp 53617 2008-05-17 12:56:18Z VZ $
 // Copyright:   (c) 1998 Robert Roebling and Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -82,22 +82,33 @@ bool wxTopLevelWindowBase::Destroy()
         wxPendingDelete.Append(this);
 
 #ifdef __WXMAC__
-	// on mac we know that objects will always be deleted after this event
-	// has been handled, using Hide we avoid erratic redraws during window
-	// tear down
-	Hide();
-#else
-    if (wxTopLevelWindows.GetCount() > 1)
+    // on mac we know that objects will always be deleted after this event
+    // has been handled, using Hide we avoid erratic redraws during window
+    // tear down
+    Hide();
+#else // !__WXMAC__
+    // normally we want to hide the window immediately so that it doesn't get
+    // stuck on the screen while it's being destroyed, however we shouldn't
+    // hide the last visible window as then we might not get any idle events
+    // any more as no events will be sent to the hidden window and without idle
+    // events we won't prune wxPendingDelete list and the application won't
+    // terminate
+    for ( wxWindowList::const_iterator i = wxTopLevelWindows.begin(),
+                                     end = wxTopLevelWindows.end();
+          i != end;
+          ++i )
     {
-        // Hide it immediately. This should
-        // not be done if this TLW is the
-        // only one left since we then would
-        // risk not to get any idle events
-        // at all anymore during which we
-        // could delete any pending events.
-        Hide();
+        wxTopLevelWindow * const win = wx_static_cast(wxTopLevelWindow *, *i);
+        if ( win != this && win->IsShown() )
+        {
+            // there remains at least one other visible TLW, we can hide this
+            // one
+            Hide();
+
+            break;
+        }
     }
-#endif
+#endif // __WXMAC__/!__WXMAC__
 
     return true;
 }
@@ -249,8 +260,11 @@ void wxTopLevelWindowBase::DoCentre(int dir)
     if((rectParent == rectDisplay) && IsMaximized())
         return;
 
+    if ( !(dir & wxBOTH) )
+        dir |= wxBOTH; // if neither is specified, center in both directions
+
     // the new window rect candidate
-    wxRect rect = GetRect().CentreIn(rectParent, dir);
+    wxRect rect = GetRect().CentreIn(rectParent, dir & ~wxCENTRE_ON_SCREEN);
 
     // we don't want to place the window off screen if Centre() is called as
     // this is (almost?) never wanted and it would be very difficult to prevent

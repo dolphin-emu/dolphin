@@ -2,7 +2,7 @@
 // Name:        wx/generic/dataview.h
 // Purpose:     wxDataViewCtrl generic implementation header
 // Author:      Robert Roebling
-// Id:          $Id: dataview.h 41659 2006-10-06 09:50:45Z RR $
+// Id:          $Id: dataview.h 53135 2008-04-12 02:31:04Z VZ $
 // Copyright:   (c) 1998 Robert Roebling
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -21,9 +21,9 @@
 // classes
 // ---------------------------------------------------------
 
-class WXDLLIMPEXP_ADV wxDataViewCtrl;
-class WXDLLIMPEXP_ADV wxDataViewMainWindow;
-class WXDLLIMPEXP_ADV wxDataViewHeaderWindow;
+class WXDLLIMPEXP_FWD_ADV wxDataViewCtrl;
+class WXDLLIMPEXP_FWD_ADV wxDataViewMainWindow;
+class WXDLLIMPEXP_FWD_ADV wxDataViewHeaderWindow;
 
 // ---------------------------------------------------------
 // wxDataViewRenderer

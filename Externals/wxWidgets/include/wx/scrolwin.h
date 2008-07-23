@@ -4,7 +4,7 @@
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     30.08.00
-// RCS-ID:      $Id: scrolwin.h 49563 2007-10-31 20:46:21Z VZ $
+// RCS-ID:      $Id: scrolwin.h 50864 2007-12-20 18:36:19Z VS $
 // Copyright:   (c) 2000 Vadim Zeitlin <zeitlin@dptmaths.ens-cachan.fr>
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -162,6 +162,10 @@ public:
 #if wxUSE_MOUSEWHEEL
     void HandleOnMouseWheel(wxMouseEvent& event);
 #endif // wxUSE_MOUSEWHEEL
+
+#if wxABI_VERSION >= 20808
+    void HandleOnChildFocus(wxChildFocusEvent& event);
+#endif
 
     // FIXME: this is needed for now for wxPlot compilation, should be removed
     //        once it is fixed!

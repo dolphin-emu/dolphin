@@ -4,7 +4,7 @@
 // Author:      Julian Smart
 // Modified by:
 // Created:     01/02/97
-// RCS-ID:      $Id: docview.cpp 49483 2007-10-27 09:25:04Z JS $
+// RCS-ID:      $Id: docview.cpp 51392 2008-01-26 23:23:09Z VZ $
 // Copyright:   (c) Julian Smart
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
@@ -296,8 +296,12 @@ bool wxDocument::SaveAs()
 #else
     wxString filter = docTemplate->GetFileFilter() ;
 #endif
+    wxString defaultDir = docTemplate->GetDirectory();
+    if (defaultDir.IsEmpty())
+        defaultDir = wxPathOnly(GetFilename());
+
     wxString tmp = wxFileSelector(_("Save as"),
-            docTemplate->GetDirectory(),
+            defaultDir,
             wxFileNameFromPath(GetFilename()),
             docTemplate->GetDefaultExtension(),
             filter,
@@ -2456,15 +2460,22 @@ bool wxTransferStreamToFile(wxInputStream& stream, const wxString& filename)
         return false;
 
     char buf[4096];
-    do
+    for ( ;; )
     {
         stream.Read(buf, WXSIZEOF(buf));
 
         const size_t nRead = stream.LastRead();
-        if ( !nRead || !file.Write(buf, nRead) )
+        if ( !nRead )
+        {
+            if ( stream.Eof() )
+                break;
+
+            return false;
+        }
+
+        if ( !file.Write(buf, nRead) )
             return false;
     }
-    while ( !stream.Eof() );
 
     return true;
 }
