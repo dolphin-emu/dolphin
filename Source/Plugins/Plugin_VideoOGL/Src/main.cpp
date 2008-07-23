@@ -90,8 +90,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 }
 #endif
 void SysMessage(const char *fmt, ...) {
-    GtkWidget *Ok,*Txt;
-    GtkWidget *Box,*Box1;
     va_list list;
     char msg[512];
 
