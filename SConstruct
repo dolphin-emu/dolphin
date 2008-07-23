@@ -1,6 +1,6 @@
 import os
 
-ccflags = '-g -O3 -fno-strict-aliasing -fPIC -m64 -msse2 -Wall -DLOGGING -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE'
+ccflags = '-g -O3 -fno-strict-aliasing -fPIC -msse2 -Wall -DLOGGING -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE'
 
 if False:
 	ccflags += ' -fomit-frame-pointer'
@@ -32,8 +32,8 @@ dirs = ["Source/Core/Common/Src",
 
 lib_paths = include_paths
 
-env = Environment(CC="gcc-4.3", 
-                  CXX="g++-4.3",
+env = Environment(CC="gcc", 
+                  CXX="g++",
                   CCFLAGS=ccflags, 
                   CXXFLAGS=ccflags,
                   CPPPATH=include_paths, 

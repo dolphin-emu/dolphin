@@ -21,6 +21,7 @@ files = ["Common.cpp",
 		 "x64Emitter.cpp", 
 		 "x64Analyzer.cpp",
 		 ]
-
-env_common = env.Copy(CXXFLAGS = " -fPIC ")
+		 
+env_common = env.Copy()
+env_common.Append(CXXFLAGS = " -fPIC ")
 env_common.StaticLibrary("common", files)

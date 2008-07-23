@@ -14,6 +14,11 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+#include <wx/wx.h>
+#include <wx/filepicker.h>
+#include <wx/notebook.h>
+#include <wx/dialog.h>
+#include <wx/aboutdlg.h>
 
 #include <stdarg.h>
 #include "Globals.h"
@@ -28,6 +33,8 @@
 #include "DlgSettings.h"
 #include "Misc.h"
 #include "EmuWindow.h"
+#else
+#include "Linux/Linux.h"
 #endif
 #include "VertexLoader.h"
 #include "PixelShaderManager.h"
@@ -38,15 +45,12 @@ HINSTANCE g_hInstance = NULL;
 SVideoInitialize g_VideoInitialize;
 #define VERSION_STRING "0.1"
 
-#include "wx/wx.h"
-#include "wx/aboutdlg.h"
-
 class wxDLLApp : public wxApp
 {
-	bool OnInit()
-	{
-		return true;
-	}
+        bool OnInit()
+        {
+                return true;
+        }
 };
 IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
 
@@ -110,6 +114,8 @@ void DllConfig(HWND _hParent)
 {
 #ifdef _WIN32
     DlgSettings_Show(g_hInstance,_hParent);
+#else
+    Show_OGLSettings();
 #endif
 }
 

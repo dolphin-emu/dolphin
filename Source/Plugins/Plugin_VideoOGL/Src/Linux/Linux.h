@@ -18,6 +18,5 @@
 
 #ifndef __LINUX_H__
 #define __LINUX_H__
+void Show_OGLSettings();
 #endif
-
-void OnToggle_advopts(GtkCellRendererToggle *cell, gchar *path, gpointer user_data);

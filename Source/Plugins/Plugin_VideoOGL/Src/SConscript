@@ -23,6 +23,6 @@ files = ["BPStructs.cpp",
 		 "Linux/Linux.cpp",
 		 ]
 
-gfxenv=env.Copy(CXXFLAGS = " `pkg-config --cflags gtk+-2.0 xxf86vm`", LINKFLAGS = " `pkg-config --libs gtk+-2.0 xxf86vm`")
+gfxenv=env.Copy(CXXFLAGS = " `wx-config --cppflags --debug` `pkg-config --cflags gtk+-2.0 xxf86vm` ", LINKFLAGS = "`wx-config --libs --debug` `pkg-config --libs gtk+-2.0 xxf86vm` ")
 
 gfxenv.SharedLibrary("../../../../Binary/linux/Plugins/zeroogl.so", files, LIBS=["videocommon", "common", "cairo", "GL", "GLEW", "CgGL", "Cg", "X11"])

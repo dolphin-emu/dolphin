@@ -15,7 +15,10 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
+#include <wx/wx.h>
+#include <wx/filepicker.h>
+#include <wx/notebook.h>
+#include <wx/dialog.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,13 +34,13 @@ extern "C" {
 #include "callbacks.h"
 }*/
 
-#include "Linux.h"
+
 #include "Common.h"
 
 #define CALLBACK
 
 #include <map>
-
+#include "Linux.h"
 static int prevbilinearfilter;
 //static map<string, int> mapConfOpts;
 struct confOptsStruct{
@@ -99,7 +102,190 @@ void CALLBACK GSkeyEvent(keyEvent *ev)
     }
 }
 */
+class OGLConfigDialog : public wxDialog 
+{
+	private:
+	
+	protected:
+		wxNotebook* m_notebook1;
+		wxPanel* VideoPanel;
+		wxCheckBox* FullscreenCheck;
+		wxCheckBox* RenderMainCheck;
+		wxStaticText* m_staticText1;
+		wxChoice* FullResoChoice;
+		wxStaticText* m_staticText2;
+		wxChoice* WindowResoChoice;
+		wxStaticText* m_staticText3;
+		wxChoice* AliasChoice;
+		wxPanel* EnhancePanel;
+		wxCheckBox* BilinChoice;
+		wxCheckBox* m_checkBox4;
+		wxCheckBox* m_checkBox6;
+		wxChoice* m_choice6;
+		wxPanel* AdvancedPanel;
+		wxCheckBox* Wireframecheck;
+		wxCheckBox* Statscheck;
+		wxCheckBox* ShaderissuesCheck;
+		wxCheckBox* TextureDumpChoice;
+		wxDirPickerCtrl* m_dirPicker2;
+		wxButton* m_button1;
+		
+		// event handlers
+		void OkayClick( wxMouseEvent& event );
+		
+	
+	public:
+		OGLConfigDialog( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxEmptyString, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 256,277 ), long style = wxDEFAULT_DIALOG_STYLE );
+		~OGLConfigDialog();
+	
+};
 
+OGLConfigDialog::OGLConfigDialog( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxDialog( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	
+	wxBoxSizer* bSizer2;
+	bSizer2 = new wxBoxSizer( wxVERTICAL );
+	
+	wxBoxSizer* bSizer1;
+	bSizer1 = new wxBoxSizer( wxVERTICAL );
+	
+	m_notebook1 = new wxNotebook( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0|wxALWAYS_SHOW_SB, wxT("Video Settings\nEnhancements\nAdvanced") );
+	VideoPanel = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxGridSizer* gSizer1;
+	gSizer1 = new wxGridSizer( 2, 2, 0, 0 );
+	
+	FullscreenCheck = new wxCheckBox( VideoPanel, wxID_ANY, wxT("Fullscreen"), wxDefaultPosition, wxDefaultSize, 0 );
+	
+	gSizer1->Add( FullscreenCheck, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+	
+	RenderMainCheck = new wxCheckBox( VideoPanel, wxID_ANY, wxT("Render to Main Window"), wxDefaultPosition, wxDefaultSize, 0 );
+	
+	gSizer1->Add( RenderMainCheck, 0, wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+	
+	m_staticText1 = new wxStaticText( VideoPanel, wxID_ANY, wxT("FullScreen Video Mode"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText1->Wrap( -1 );
+	gSizer1->Add( m_staticText1, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxALL, 5 );
+	
+	wxString FullResoChoiceChoices[] = { wxT("640x480") };
+	int FullResoChoiceNChoices = sizeof( FullResoChoiceChoices ) / sizeof( wxString );
+	FullResoChoice = new wxChoice( VideoPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, FullResoChoiceNChoices, FullResoChoiceChoices, 0 );
+	FullResoChoice->SetSelection( 0 );
+	gSizer1->Add( FullResoChoice, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	
+	m_staticText2 = new wxStaticText( VideoPanel, wxID_ANY, wxT("Windowed Resolution"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText2->Wrap( -1 );
+	gSizer1->Add( m_staticText2, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxALL, 5 );
+	
+	wxString WindowResoChoiceChoices[] = { wxT("640x480") };
+	int WindowResoChoiceNChoices = sizeof( WindowResoChoiceChoices ) / sizeof( wxString );
+	WindowResoChoice = new wxChoice( VideoPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, WindowResoChoiceNChoices, WindowResoChoiceChoices, 0 );
+	WindowResoChoice->SetSelection( 0 );
+	gSizer1->Add( WindowResoChoice, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	
+	m_staticText3 = new wxStaticText( VideoPanel, wxID_ANY, wxT("Alias Mode"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText3->Wrap( -1 );
+	gSizer1->Add( m_staticText3, 0, wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxALL, 5 );
+	
+	wxString AliasChoiceChoices[] = { wxT("1x"), wxT("2x"), wxT("4x"), wxT("8x"), wxT("16x") };
+	int AliasChoiceNChoices = sizeof( AliasChoiceChoices ) / sizeof( wxString );
+	AliasChoice = new wxChoice( VideoPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, AliasChoiceNChoices, AliasChoiceChoices, 0 );
+	AliasChoice->SetSelection( 0 );
+	gSizer1->Add( AliasChoice, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+	
+	VideoPanel->SetSizer( gSizer1 );
+	VideoPanel->Layout();
+	gSizer1->Fit( VideoPanel );
+	m_notebook1->AddPage( VideoPanel, wxT("Video"), true );
+	EnhancePanel = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxGridSizer* gSizer3;
+	gSizer3 = new wxGridSizer( 3, 1, 0, 0 );
+	
+	BilinChoice = new wxCheckBox( EnhancePanel, wxID_ANY, wxT("Force bi/trilinear (May cause very small glitches)"), wxDefaultPosition, wxDefaultSize, 0 );
+	
+	gSizer3->Add( BilinChoice, 0, wxALL, 5 );
+	
+	m_checkBox4 = new wxCheckBox( EnhancePanel, wxID_ANY, wxT("Force maximum anisotropy filtering"), wxDefaultPosition, wxDefaultSize, 0 );
+	
+	gSizer3->Add( m_checkBox4, 0, wxALL, 5 );
+	
+	wxGridSizer* gSizer4;
+	gSizer4 = new wxGridSizer( 1, 2, 0, 0 );
+	
+	m_checkBox6 = new wxCheckBox( EnhancePanel, wxID_ANY, wxT("Pre-Upscale:"), wxDefaultPosition, wxDefaultSize, 0 );
+	
+	m_checkBox6->Enable( false );
+	
+	gSizer4->Add( m_checkBox6, 0, wxALL, 5 );
+	
+	wxArrayString m_choice6Choices;
+	m_choice6 = new wxChoice( EnhancePanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_choice6Choices, 0 );
+	m_choice6->SetSelection( 0 );
+	m_choice6->Enable( false );
+	
+	gSizer4->Add( m_choice6, 0, wxALL, 5 );
+	
+	gSizer3->Add( gSizer4, 1, wxEXPAND, 5 );
+	
+	EnhancePanel->SetSizer( gSizer3 );
+	EnhancePanel->Layout();
+	gSizer3->Fit( EnhancePanel );
+	m_notebook1->AddPage( EnhancePanel, wxT("Enhancements"), false );
+	AdvancedPanel = new wxPanel( m_notebook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
+	wxGridSizer* gSizer5;
+	gSizer5 = new wxGridSizer( 6, 0, 0, 0 );
+	
+	Wireframecheck = new wxCheckBox( AdvancedPanel, wxID_ANY, wxT("Wireframe"), wxDefaultPosition, wxDefaultSize, 0 );
+	
+	gSizer5->Add( Wireframecheck, 0, wxALL, 5 );
+	
+	Statscheck = new wxCheckBox( AdvancedPanel, wxID_ANY, wxT("Overlay some statistics"), wxDefaultPosition, wxDefaultSize, 0 );
+	
+	gSizer5->Add( Statscheck, 0, wxALL, 5 );
+	
+	ShaderissuesCheck = new wxCheckBox( AdvancedPanel, wxID_ANY, wxT("Show shader compilation issues"), wxDefaultPosition, wxDefaultSize, 0 );
+	
+	gSizer5->Add( ShaderissuesCheck, 0, wxALL, 5 );
+	
+	TextureDumpChoice = new wxCheckBox( AdvancedPanel, wxID_ANY, wxT("Dump Textures To:"), wxDefaultPosition, wxDefaultSize, 0 );
+	
+	gSizer5->Add( TextureDumpChoice, 0, wxALL, 5 );
+	
+	m_dirPicker2 = new wxDirPickerCtrl( AdvancedPanel, wxID_ANY, wxEmptyString, wxT("Select a folder"), wxDefaultPosition, wxDefaultSize, wxDIRP_DEFAULT_STYLE );
+	gSizer5->Add( m_dirPicker2, 0, wxALIGN_CENTER|wxALL, 5 );
+	
+	AdvancedPanel->SetSizer( gSizer5 );
+	AdvancedPanel->Layout();
+	gSizer5->Fit( AdvancedPanel );
+	m_notebook1->AddPage( AdvancedPanel, wxT("Advanced"), false );
+	
+	bSizer1->Add( m_notebook1, 1, wxALL|wxEXPAND, 5 );
+	
+	m_button1 = new wxButton( this, wxID_ANY, wxT("Okay"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer1->Add( m_button1, 0, wxALL, 5 );
+	
+	bSizer2->Add( bSizer1, 1, wxEXPAND, 5 );
+	
+	this->SetSizer( bSizer2 );
+	this->Layout();
+	
+	// Connect Events
+	m_button1->Connect( wxEVT_LEFT_UP, wxMouseEventHandler( OGLConfigDialog::OkayClick ), NULL, this );
+}
+
+OGLConfigDialog::~OGLConfigDialog()
+{
+	// Disconnect Events
+	m_button1->Disconnect( wxEVT_LEFT_UP, wxMouseEventHandler( OGLConfigDialog::OkayClick ), NULL, this );
+}
+void OGLConfigDialog::OkayClick(wxMouseEvent& event) {
+   Close(true);
+}
+void Show_OGLSettings()
+{
+	OGLConfigDialog frame(NULL);
+	frame.ShowModal();
+} 
 GtkWidget *Conf;
 GtkWidget *Logging;
 GList *fresl;

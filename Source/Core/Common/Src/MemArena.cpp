@@ -64,8 +64,11 @@ void* MemArena::CreateView(s64 offset, size_t size, bool ensure_low_mem)
 #else
 	void* ptr = mmap(0, size,
 			PROT_READ | PROT_WRITE,
-			MAP_SHARED | (ensure_low_mem ? MAP_32BIT : 0),
-			fd, offset);
+			MAP_SHARED
+#ifdef __x86_64__
+			| (ensure_low_mem ? MAP_32BIT : 0)
+#endif
+			, fd, offset);
 
 	if (!ptr)
 	{
