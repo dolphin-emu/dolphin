@@ -29,21 +29,27 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
+#ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS
 
 #define WIN32_LEAN_AND_MEAN
 #include <tchar.h>
+#endif
+
 #include <vector>
 #include <stdio.h>
 #include <time.h>
 #include <SDL.h>		// includes SDL
 
+#include "Common.h"	// only linux?
+
 #include "pluginspecs_pad.h"
 #include "config.h"
 #include "IniFile.h"
 
+#ifdef _WIN32
 #pragma comment(lib, "SDL.lib")
-// #pragma comment(lib, "SDLmain.lib")
+#endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Define

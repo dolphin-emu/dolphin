@@ -26,7 +26,7 @@ dirs = ["Source/Core/Common/Src",
 		"Source/Plugins/Plugin_DSP_NULL/Src",
 		"Source/Plugins/Plugin_DSP_LLE/Src",
 		"Source/Plugins/Plugin_PadSimple/Src",
-		"Source/Plugins/Plugin_nJoy_SDL/Plugin_nJoy_SDL",
+		"Source/Plugins/Plugin_nJoy_SDL/Src",
         "Source/Core/DolphinWX/src",
        ]
 

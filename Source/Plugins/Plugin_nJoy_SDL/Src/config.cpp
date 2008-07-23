@@ -29,6 +29,9 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
+// whole file... until we fix the GUI
+#ifdef _WIN32	
+
 #include "nJoy.h"
 
 extern CONTROLLER_INFO	*joyinfo;
@@ -613,3 +616,4 @@ BOOL CALLBACK AboutDlg(HWND abouthWnd, UINT message, WPARAM wParam, LPARAM lPara
 
     return FALSE;
 }
+#endif

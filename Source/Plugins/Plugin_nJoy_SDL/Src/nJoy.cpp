@@ -45,6 +45,7 @@ bool emulator_running = FALSE;
 //////////////////////////////////////////////////////////////////////////////////////////
 // DllMain 
 // ¯¯¯¯¯¯¯
+#ifdef _WIN32
 BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 						DWORD dwReason,		// reason called
 						LPVOID lpvReserved)	// reserved
@@ -54,6 +55,7 @@ BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 	nJoy_hInst = hinstDLL;	
 	return TRUE;
 }
+#endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Input Plugin Functions (from spec's)
@@ -77,13 +79,16 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllAbout(HWND _hParent)
 {
+	#ifdef _WIN32
 	OpenAbout(nJoy_hInst, _hParent);
+	#endif
 }
 
 // Call config dialog
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllConfig(HWND _hParent)
 {
+	#ifdef _WIN32
 	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
 	{
 		MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
@@ -96,6 +101,7 @@ void DllConfig(HWND _hParent)
 		SaveConfig();
 	}
 	LoadConfig();	// reload settings
+	#endif
 }
 
 // Init PAD (start emulation)
@@ -109,7 +115,11 @@ void PAD_Initialize(SPADInitialize _PADInitialize)
 	
 	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
 	{
+		#ifdef _WIN32
 		MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
+		#else	
+		printf("Could not initialize SDL! (%s)\n", SDL_GetError());	
+		#endif
 		return;
 	}
 	
@@ -346,8 +356,12 @@ int Search_Devices()
 	int numjoy = SDL_NumJoysticks();
 
 	if(numjoy == 0)
-	{
+	{		
+		#ifdef _WIN32
 		MessageBox(NULL, "No Joystick detected!", NULL,  MB_ICONWARNING);
+		#else	
+		printf("No Joystick detected!\n");	
+		#endif
 		return 0;
 	}
 
@@ -400,14 +414,18 @@ void DEBUG_INIT()
 	if(pFile)
 		return;
 
+	#ifdef _WIN32
 	char dateStr [9]; 
 	_strdate( dateStr);
 	char timeStr [9]; 
 	_strtime( timeStr );
+	#endif
 
 	pFile = fopen ("nJoy-debug.txt","wt");
 	fprintf(pFile, "nJoy v"INPUT_VERSION" Debug\n");
+	#ifdef _WIN32
 	fprintf(pFile, "Date: %s\nTime: %s\n", dateStr, timeStr);
+	#endif
 	fprintf(pFile, "¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯\n");
 }
 
@@ -418,11 +436,13 @@ void DEBUG_QUIT()
 	if(!pFile)
 		return;
 
+	#ifdef _WIN32
 	char timeStr [9]; 
 	_strtime(timeStr);
 
 	fprintf(pFile, "_______________\n");
 	fprintf(pFile, "Time: %s", timeStr);
+	#endif
 	fclose(pFile);
 }
 

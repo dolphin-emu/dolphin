@@ -1,0 +1,6 @@
+Import('env')
+output = "../../../../Binary/linux/Plugins/Plugin_nJoy_SDL.so"
+files = ["nJoy.cpp"
+		 ]
+padenv=env.Copy(CXXFLAGS = " `pkg-config --cflags sdl`", LINKFLAGS = " `pkg-config --libs sdl`")
+padenv.SharedLibrary(output, files, LIBS=["common"])

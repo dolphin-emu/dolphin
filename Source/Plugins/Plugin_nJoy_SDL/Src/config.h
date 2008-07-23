@@ -29,6 +29,9 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
+// whole file... until we fix the GUI
+#ifdef _WIN32
+
 #include <windows.h>    // includes basic windows functionality
 #include <Windowsx.h>
 #include <stdio.h>
@@ -67,3 +70,5 @@ void SetButton(HWND hDlg, int item, int value);
 
 void OpenAbout(HINSTANCE hInst, HWND _hParent);
 BOOL CALLBACK AboutDlg(HWND abouthWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+#endif
