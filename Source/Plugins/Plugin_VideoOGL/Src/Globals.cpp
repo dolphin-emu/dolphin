@@ -77,8 +77,6 @@ void Config::Load()
     
     iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
     iniFile.Get("Enhancements", "ForceMaxAniso", &bForceMaxAniso, 0);
-
-	bFullscreen = true;
 }
 
 void Config::Save()
@@ -579,18 +577,6 @@ void DVProfClear()
 
 #ifdef _WIN32
 // The one for Linux is in Linux/Linux.cpp
-void SysMessage(const char* _fmt, ...)
-{
-    char* Msg = (char*)alloca(strlen(_fmt)+512);
-    va_list ap;
-
-    va_start( ap, _fmt );
-    vsnprintf( Msg, strlen(_fmt)+512, _fmt, ap );
-    va_end( ap );
-
-    g_VideoInitialize.pLog(Msg, FALSE);
-	PanicAlert(Msg);
-}
 HANDLE hConsole = NULL;
 void OpenConsole() {
 	COORD csize;
@@ -661,3 +647,15 @@ void __Log(int type, const char *fmt, ...)
 #endif
 }
 
+void SysMessage(const char *fmt, ...) 
+{
+	va_list list;
+	char msg[512];
+
+	va_start(list, fmt);
+	vsprintf(msg, fmt, list);
+	va_end(list);
+
+	if (msg[strlen(msg)-1] == '\n') msg[strlen(msg)-1] = 0;
+	wxMessageBox(wxString::FromAscii(msg));
+}

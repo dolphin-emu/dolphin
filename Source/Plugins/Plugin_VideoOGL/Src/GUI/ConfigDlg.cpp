@@ -15,9 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifdef _Win32
-#include "Globals.h" //Is this even needed in here?
-#endif
+
 #include "ConfigDlg.h"
 
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
@@ -64,7 +62,6 @@ void ConfigDialog::CreateGUIControls()
 	m_WindowResolutionCB = new wxComboBox(m_PageVideo, ID_WINDOWRESOLUTIONCB, wxT("WxComboBox1"), wxPoint(132,104), wxSize(121,21), arrayStringFor_WindowResolutionCB, 0, wxDefaultValidator, wxT("WindowResolutionCB"));
 
 	wxStaticText *WxStaticText1 = new wxStaticText(m_PageVideo, ID_WXSTATICTEXT1, wxT("Windowed Resolution:"), wxPoint(12,104), wxDefaultSize, 0, wxT("WxStaticText1"));
-
 	wxStaticText *WxStaticText2 = new wxStaticText(m_PageVideo, ID_WXSTATICTEXT2, wxT("Fullscreen Video Mode:"), wxPoint(12,72), wxDefaultSize, 0, wxT("WxStaticText2"));
 
 	wxArrayString arrayStringFor_AliasModeCB;

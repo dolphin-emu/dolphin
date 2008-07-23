@@ -162,6 +162,36 @@ bool FifoCommandRunnable(void)
 				"Dolphin will now likely crash or hang. Enjoy.", Cmd);
 			MessageBox(NULL, szTemp, "Video-Plugin", MB_OK);			
 			g_VideoInitialize.pLog(szTemp, TRUE);
+
+			{
+				SCPFifoStruct &fifo = *g_VideoInitialize.pCPFifo;
+
+				char szTmp[256];
+				// sprintf(szTmp, "Illegal command %02x (at %08x)",Cmd,g_pDataReader->GetPtr());
+				sprintf(szTmp, "Illegal command %02x\n"
+					"CPBase: 0x%08x\n"
+					"CPEnd: 0x%08x\n"
+					"CPHiWatermark: 0x%08x\n"
+					"CPLoWatermark: 0x%08x\n"
+					"CPReadWriteDistance: 0x%08x\n"
+					"CPWritePointer: 0x%08x\n"
+					"CPReadPointer: 0x%08x\n"
+					"CPBreakpoint: 0x%08x\n"
+					"bFF_GPReadEnable: %s\n"
+					"bFF_BPEnable: %s\n"
+					"bFF_GPLinkEnable: %s\n"
+					"bFF_Breakpoint: %s\n"
+					"bPauseRead: %s\n"				
+					,Cmd, fifo.CPBase, fifo.CPEnd, fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance
+					,fifo.CPWritePointer, fifo.CPReadPointer, fifo.CPBreakpoint, fifo.bFF_GPReadEnable ? "true" : "false"
+					,fifo.bFF_BPEnable ? "true" : "false" ,fifo.bFF_GPLinkEnable ? "true" : "false"
+					,fifo.bFF_Breakpoint ? "true" : "false", fifo.bPauseRead ? "true" : "false");
+
+				g_VideoInitialize.pLog(szTmp, TRUE);
+				MessageBox(0,szTmp,"GFX ERROR",0);
+				// _assert_msg_(0,szTmp,"");
+			
+			}
 		}
 		break;
 	}
@@ -274,9 +304,29 @@ void Decode(void)
 		}
 		else
 		{
+			SCPFifoStruct &fifo = *g_VideoInitialize.pCPFifo;
+
 			char szTmp[256];
 			// sprintf(szTmp, "Illegal command %02x (at %08x)",Cmd,g_pDataReader->GetPtr());
-            sprintf(szTmp, "Illegal command %02x",Cmd);
+            sprintf(szTmp, "Illegal command %02x\n"
+				"CPBase: 0x%08x\n"
+				"CPEnd: 0x%08x\n"
+				"CPHiWatermark: 0x%08x\n"
+				"CPLoWatermark: 0x%08x\n"
+				"CPReadWriteDistance: 0x%08x\n"
+				"CPWritePointer: 0x%08x\n"
+				"CPReadPointer: 0x%08x\n"
+				"CPBreakpoint: 0x%08x\n"
+				"bFF_GPReadEnable: %s\n"
+				"bFF_BPEnable: %s\n"
+				"bFF_GPLinkEnable: %s\n"
+				"bFF_Breakpoint: %s\n"
+				"bPauseRead: %s\n"				
+				,Cmd, fifo.CPBase, fifo.CPEnd, fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance
+				,fifo.CPWritePointer, fifo.CPReadPointer, fifo.CPBreakpoint, fifo.bFF_GPReadEnable ? "true" : "false"
+				,fifo.bFF_BPEnable ? "true" : "false" ,fifo.bFF_GPLinkEnable ? "true" : "false"
+				,fifo.bFF_Breakpoint ? "true" : "false", fifo.bPauseRead ? "true" : "false");
+
 			g_VideoInitialize.pLog(szTmp, TRUE);
 			MessageBox(0,szTmp,"GFX ERROR",0);
 			// _assert_msg_(0,szTmp,"");

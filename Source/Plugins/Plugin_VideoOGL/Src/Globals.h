@@ -19,6 +19,12 @@
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
+#include <wx/wx.h>
+#include <wx/filepicker.h>
+#include <wx/notebook.h>
+#include <wx/dialog.h>
+#include <wx/aboutdlg.h>
+
 #define LOGGING
 
 #include "Common.h"

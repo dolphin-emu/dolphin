@@ -15,12 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <wx/wx.h>
-#include <wx/filepicker.h>
-#include <wx/notebook.h>
-#include <wx/dialog.h>
-#include <wx/aboutdlg.h>
-
 #include "Globals.h"
 
 #include "GUI/ConfigDlg.h"
@@ -89,17 +83,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
     return TRUE;
 }
 #endif
-void SysMessage(const char *fmt, ...) {
-    va_list list;
-    char msg[512];
-
-    va_start(list, fmt);
-    vsprintf(msg, fmt, list);
-    va_end(list);
-
-    if (msg[strlen(msg)-1] == '\n') msg[strlen(msg)-1] = 0;
-    wxMessageBox(wxString::FromAscii(msg));
-}
 
 void GetDllInfo (PLUGIN_INFO* _PluginInfo) 
 {

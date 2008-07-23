@@ -30,5 +30,3 @@ namespace EmuWindow
     void Close();
     void SetSize(int displayWidth, int displayHeight);
 }
-
-void SysMessage(char *fmt, ...);

@@ -35,7 +35,7 @@ void HLE_OSPanic()
     GetStringVA(Error);
 
     PanicAlert("PanicAlert: %s", Error.c_str());
-    LOG(HLE,"(PC=%08x), PanicAlert: %s", LR, Error.c_str());
+    LOG(OSREPORT,"(PC=%08x), PanicAlert: %s", LR, Error.c_str());
 
     NPC = LR;
 }
@@ -45,7 +45,10 @@ void HLE_OSReport()
     std::string ReportMessage;
     GetStringVA(ReportMessage);
 
-	LOG(HLE,"(PC=%08x) OSReport: %s", LR, ReportMessage.c_str());
+
+//	PanicAlert("(PC=%08x) OSReport: %s", LR, ReportMessage.c_str());
+
+	LOG(OSREPORT,"(PC=%08x) OSReport: %s", LR, ReportMessage.c_str());
 	NPC = LR;
 }
 
@@ -54,7 +57,7 @@ void HLE_vprintf()
     std::string ReportMessage;
     GetStringVA(ReportMessage);
 
-    LOG(HLE,"(PC=%08x) VPrintf: %s", LR, ReportMessage.c_str());
+    LOG(OSREPORT,"(PC=%08x) VPrintf: %s", LR, ReportMessage.c_str());
     NPC = LR;
 
 }
@@ -64,7 +67,7 @@ void HLE_printf()
     std::string ReportMessage;
     GetStringVA(ReportMessage);
 
-    LOG(HLE,"(PC=%08x) Printf: %s ", LR, ReportMessage.c_str());
+    LOG(OSREPORT,"(PC=%08x) Printf: %s ", LR, ReportMessage.c_str());
     NPC = LR;
 }
 
