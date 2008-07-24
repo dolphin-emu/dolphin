@@ -35,14 +35,14 @@ enum
 
 
 BEGIN_EVENT_TABLE(CCodeView, wxControl)
-EVT_ERASE_BACKGROUND(CCodeView::OnErase)
-EVT_PAINT(CCodeView::OnPaint)
-EVT_LEFT_DOWN(CCodeView::OnMouseDown)
-EVT_LEFT_UP(CCodeView::OnMouseUpL)
-EVT_MOTION(CCodeView::OnMouseMove)
-EVT_RIGHT_DOWN(CCodeView::OnMouseDown)
-EVT_RIGHT_UP(CCodeView::OnMouseUpR)
-EVT_MENU(-1, CCodeView::OnPopupMenu)
+	EVT_ERASE_BACKGROUND(CCodeView::OnErase)
+	EVT_PAINT(CCodeView::OnPaint)
+	EVT_LEFT_DOWN(CCodeView::OnMouseDown)
+	EVT_LEFT_UP(CCodeView::OnMouseUpL)
+	EVT_MOTION(CCodeView::OnMouseMove)
+	EVT_RIGHT_DOWN(CCodeView::OnMouseDown)
+	EVT_RIGHT_UP(CCodeView::OnMouseUpR)
+	EVT_MENU(-1, CCodeView::OnPopupMenu)
 END_EVENT_TABLE()
 
 CCodeView::CCodeView(DebugInterface* debuginterface, wxWindow* parent, wxWindowID Id, const wxSize& Size)

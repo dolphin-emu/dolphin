@@ -28,11 +28,14 @@
 #include "wx/listctrl.h"
 #include "wx/thread.h"
 #include "wx/listctrl.h"
+#include "wx/mstream.h"
+
 #include "CodeWindow.h"
 #include "CodeView.h"
 #include "HW/CPU.h"
 #include "PowerPC/PowerPC.h"
 #include "Host.h"
+
 
 #include "Debugger/PPCDebugInterface.h"
 #include "Debugger/Debugger_SymbolMap.h"
@@ -43,42 +46,15 @@
 // ugly that this lib included code from the main
 #include "../../DolphinWX/src/Globals.h"
 
-class SymbolList
-	: public wxListCtrl
-{
-	wxString OnGetItemText(long item, long column)
-	{
-		return(_T("hello"));
-	}
-};
+extern "C" {
+#include "../resources/toolbar_add_breakpoint.c"
+#include "../resources/toolbar_add_memorycheck.c"
+#include "../resources/toolbar_delete.c"
+}
 
-enum
-{
-	IDM_DEBUG_GO = 350,
-	IDM_STEP,
-	IDM_STEPOVER,
-	IDM_SKIP,
-	IDM_SETPC,
-	IDM_GOTOPC,
-	IDM_ADDRBOX,
-	IDM_CALLSTACKLIST,
-	IDM_SYMBOLLIST,
-	IDM_INTERPRETER,
-	IDM_DUALCORE,
-	IDM_LOGWINDOW,
-	IDM_REGISTERWINDOW,
-	IDM_BREAKPOINTWINDOW,
-	IDM_MEMORYWINDOW,
-};
+static const long TOOLBAR_STYLE = wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
 
-BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
-    EVT_BUTTON(IDM_DEBUG_GO,        CCodeWindow::OnCodeStep)
-    EVT_BUTTON(IDM_STEP,            CCodeWindow::OnCodeStep)
-    EVT_BUTTON(IDM_STEPOVER,        CCodeWindow::OnCodeStep)
-    EVT_BUTTON(IDM_SKIP,            CCodeWindow::OnCodeStep)
-    EVT_BUTTON(IDM_SETPC,           CCodeWindow::OnCodeStep)
-    EVT_BUTTON(IDM_GOTOPC,          CCodeWindow::OnCodeStep)
-    EVT_TEXT(IDM_ADDRBOX,           CCodeWindow::OnAddrBoxChange)
+BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)   
     EVT_LISTBOX(IDM_SYMBOLLIST,     CCodeWindow::OnSymbolListChange)
     EVT_LISTBOX(IDM_CALLSTACKLIST,  CCodeWindow::OnCallstackListChange)
     EVT_HOST_COMMAND(wxID_ANY,      CCodeWindow::OnHostMessage)
@@ -86,7 +62,22 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
     EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleRegisterWindow)
     EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleBreakPointWindow)
     EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleMemoryWindow)
+	// toolbar
+	EVT_MENU(IDM_DEBUG_GO,			CCodeWindow::OnCodeStep)
+	EVT_MENU(IDM_STEP,				CCodeWindow::OnCodeStep)
+	EVT_MENU(IDM_STEPOVER,			CCodeWindow::OnCodeStep)
+	EVT_MENU(IDM_SKIP,				CCodeWindow::OnCodeStep)
+	EVT_MENU(IDM_SETPC,				CCodeWindow::OnCodeStep)
+	EVT_MENU(IDM_GOTOPC,			CCodeWindow::OnCodeStep)
+	EVT_TEXT(IDM_ADDRBOX,           CCodeWindow::OnAddrBoxChange)
 END_EVENT_TABLE()
+
+#define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
+inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
+{
+	wxMemoryInputStream is(data, length);
+	return(wxBitmap(wxImage(is, wxBITMAP_TYPE_ANY, -1), -1));
+}
 
 
 CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent, wxWindowID id,
@@ -95,67 +86,26 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	, m_RegisterWindow(NULL)
 	, m_logwindow(NULL)
 {    
-	CreateMenu(_LocalCoreStartupParameter);
+	InitBitmaps();
 
-	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
-	wxBoxSizer* sizerRight = new wxBoxSizer(wxVERTICAL);
-	wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
+	CreateGUIControls(_LocalCoreStartupParameter);
 
-	DebugInterface* di = new PPCDebugInterface();
-
-	sizerLeft->Add(callstack = new wxListBox(this, IDM_CALLSTACKLIST, wxDefaultPosition, wxSize(90, 100)), 0, wxEXPAND);
-	sizerLeft->Add(symbols = new wxListBox(this, IDM_SYMBOLLIST, wxDefaultPosition, wxSize(90, 100), 0, NULL, wxLB_SORT), 1, wxEXPAND);
-	codeview = new CCodeView(di, this, wxID_ANY);
-	sizerBig->Add(sizerLeft, 2, wxEXPAND);
-	sizerBig->Add(codeview, 5, wxEXPAND);
-	sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
-	sizerRight->Add(buttonGo = new wxButton(this, IDM_DEBUG_GO, _T("&Go")));
-	sizerRight->Add(buttonStep = new wxButton(this, IDM_STEP, _T("&Step")));
-	sizerRight->Add(buttonStepOver = new wxButton(this, IDM_STEPOVER, _T("Step &Over")));
-	sizerRight->Add(buttonSkip = new wxButton(this, IDM_SKIP, _T("Ski&p")));
-	sizerRight->Add(buttonGotoPC = new wxButton(this, IDM_GOTOPC, _T("G&oto PC")));
-	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_ADDRBOX, _T("")));
-	sizerRight->Add(new wxButton(this, IDM_SETPC, _T("S&et PC")));
-
-	SetSizer(sizerBig);
-
-	sizerLeft->SetSizeHints(this);
-	sizerLeft->Fit(this);
-	sizerRight->SetSizeHints(this);
-	sizerRight->Fit(this);
-	sizerBig->SetSizeHints(this);
-	sizerBig->Fit(this);
-
-	sync_event.Init();
-
-	// additional dialogs
-	if (IsLoggingActivated())
-	{
-		m_logwindow = new CLogWindow(this);
-		m_logwindow->Show(true);
-	}
-
-	m_RegisterWindow = new CRegisterWindow(this);
-	m_RegisterWindow->Show(true);
-
-	m_BreakpointWindow = new CBreakPointWindow(this, this);
-	m_BreakpointWindow->Show(true);
-
-	m_MemoryWindow = new CMemoryWindow(this);
-	m_MemoryWindow->Show(true);
+	// Create the toolbar
+	RecreateToolbar();
 
 	UpdateButtonStates();
 
-    int x,y,w,h;
+	// load ini...
+	int x,y,w,h;
 
-    IniFile file;
-    file.Load("Debugger.ini");
+	IniFile file;
+	file.Load("Debugger.ini");
 
-    file.Get("Code", "x", &x, GetPosition().x);
-    file.Get("Code", "y", &y, GetPosition().y);
-    file.Get("Code", "w", &w, GetSize().GetWidth());
-    file.Get("Code", "h", &h, GetSize().GetHeight());
-    this->SetSize(x, y, w, h);
+	file.Get("Code", "x", &x, GetPosition().x);
+	file.Get("Code", "y", &y, GetPosition().y);
+	file.Get("Code", "w", &w, GetSize().GetWidth());
+	file.Get("Code", "h", &h, GetSize().GetHeight());
+	this->SetSize(x, y, w, h);
 
 	// These really should be in the respective constructors.
 	if (m_BreakpointWindow) {
@@ -189,6 +139,48 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 		file.Get("MemoryWindow", "h", &h, m_MemoryWindow->GetSize().GetHeight());
 		m_RegisterWindow->SetSize(x, y, w, h);
 	}
+}
+
+
+void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter)
+{
+	CreateMenu(_LocalCoreStartupParameter);
+
+	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
+
+	DebugInterface* di = new PPCDebugInterface();
+
+	sizerLeft->Add(callstack = new wxListBox(this, IDM_CALLSTACKLIST, wxDefaultPosition, wxSize(90, 100)), 0, wxEXPAND);
+	sizerLeft->Add(symbols = new wxListBox(this, IDM_SYMBOLLIST, wxDefaultPosition, wxSize(90, 100), 0, NULL, wxLB_SORT), 1, wxEXPAND);
+	codeview = new CCodeView(di, this, wxID_ANY);
+	sizerBig->Add(sizerLeft, 2, wxEXPAND);
+	sizerBig->Add(codeview, 5, wxEXPAND);
+
+	SetSizer(sizerBig);
+
+	sizerLeft->SetSizeHints(this);
+	sizerLeft->Fit(this);
+	sizerBig->SetSizeHints(this);
+	sizerBig->Fit(this);
+
+	sync_event.Init();
+
+	// additional dialogs
+	if (IsLoggingActivated())
+	{
+		m_logwindow = new CLogWindow(this);
+		m_logwindow->Show(true);
+	}
+
+	m_RegisterWindow = new CRegisterWindow(this);
+	m_RegisterWindow->Show(true);
+
+	m_BreakpointWindow = new CBreakPointWindow(this, this);
+	m_BreakpointWindow->Show(true);
+
+	m_MemoryWindow = new CMemoryWindow(this);
+	m_MemoryWindow->Show(true);
 }
 
 
@@ -352,7 +344,8 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 
 void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
 {
-	wxString txt = addrbox->GetValue();
+	wxTextCtrl* pAddrCtrl = (wxTextCtrl*)GetToolBar()->FindControl(IDM_ADDRBOX);
+	wxString txt = pAddrCtrl->GetValue();
 
 	if (txt.size() == 8)
 	{
@@ -417,30 +410,31 @@ void CCodeWindow::NotifyMapLoaded()
 
 void CCodeWindow::UpdateButtonStates()
 {
+	wxToolBarBase* toolBar = GetToolBar();
 	if (Core::GetState() == Core::CORE_UNINITIALIZED)
 	{
-		buttonGo->Enable(false);
-		buttonStep->Enable(false);
-		buttonStepOver->Enable(false);
-		buttonSkip->Enable(false);
+		toolBar->EnableTool(IDM_DEBUG_GO, false);
+		toolBar->EnableTool(IDM_STEP, false);
+		toolBar->EnableTool(IDM_STEPOVER, false);
+		toolBar->EnableTool(IDM_SKIP, false);
 	}
 	else
 	{
 		if (!CCPU::IsStepping())
 		{
-			buttonGo->SetLabel(_T("&Pause"));
-			buttonGo->Enable(true);
-			buttonStep->Enable(false);
-			buttonStepOver->Enable(false);
-			buttonSkip->Enable(false);
+			toolBar->SetToolShortHelp(IDM_DEBUG_GO, _T("&Pause"));
+			toolBar->EnableTool(IDM_DEBUG_GO, true);
+			toolBar->EnableTool(IDM_STEP, false);
+			toolBar->EnableTool(IDM_STEPOVER, false);
+			toolBar->EnableTool(IDM_SKIP, false);
 		}
 		else
 		{
-			buttonGo->SetLabel(_T("&Go"));
-			buttonGo->Enable(true);
-			buttonStep->Enable(true);
-			buttonStepOver->Enable(true);
-			buttonSkip->Enable(true);
+			toolBar->SetToolShortHelp(IDM_DEBUG_GO, _T("&Go"));
+			toolBar->EnableTool(IDM_DEBUG_GO, true);
+			toolBar->EnableTool(IDM_STEP, true);
+			toolBar->EnableTool(IDM_STEPOVER, true);
+			toolBar->EnableTool(IDM_SKIP, true);
 		}
 	}
 }
@@ -624,4 +618,58 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 	}
 }
 
+void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)
+{
+	int w = m_Bitmaps[Toolbar_DebugGo].GetWidth(),
+		h = m_Bitmaps[Toolbar_DebugGo].GetHeight();
 
+	toolBar->SetToolBitmapSize(wxSize(w, h));
+	toolBar->AddTool(IDM_DEBUG_GO,	_T("Go"),			m_Bitmaps[Toolbar_DebugGo], _T("Delete the selected BreakPoint or MemoryCheck"));
+	toolBar->AddTool(IDM_STEP,		_T("Step"),			m_Bitmaps[Toolbar_Step], _T("Add BreakPoint..."));
+	toolBar->AddTool(IDM_STEPOVER,	_T("Step Over"),    m_Bitmaps[Toolbar_StepOver], _T("Add BreakPoint..."));
+	toolBar->AddTool(IDM_SKIP,		_T("Skip"),			m_Bitmaps[Toolbar_Skip], _T("Add BreakPoint..."));
+	toolBar->AddSeparator();
+	toolBar->AddTool(IDM_GOTOPC,    _T("Goto PC"),		m_Bitmaps[Toolbar_GotoPC], _T("Add BreakPoint..."));
+	toolBar->AddTool(IDM_SETPC,		_T("Set PC"),		m_Bitmaps[Toolbar_SetPC], _T("Add BreakPoint..."));
+	toolBar->AddSeparator();
+	toolBar->AddControl(new wxTextCtrl(toolBar, IDM_ADDRBOX, _T("")));
+
+	// after adding the buttons to the toolbar, must call Realize() to reflect
+	// the changes
+	toolBar->Realize();
+}
+
+
+void CCodeWindow::RecreateToolbar()
+{
+	// delete and recreate the toolbar
+	wxToolBarBase* toolBar = GetToolBar();
+	delete toolBar;
+	SetToolBar(NULL);
+
+	long style = TOOLBAR_STYLE;
+	style &= ~(wxTB_HORIZONTAL | wxTB_VERTICAL | wxTB_BOTTOM | wxTB_RIGHT | wxTB_HORZ_LAYOUT | wxTB_TOP);
+	wxToolBar* theToolBar = CreateToolBar(style, ID_TOOLBAR);
+
+	PopulateToolbar(theToolBar);
+	SetToolBar(theToolBar);
+}
+
+
+void CCodeWindow::InitBitmaps()
+{
+	// load original size 48x48
+	m_Bitmaps[Toolbar_DebugGo] = wxGetBitmapFromMemory(toolbar_delete_png);
+	m_Bitmaps[Toolbar_Step] = wxGetBitmapFromMemory(toolbar_add_breakpoint_png);
+	m_Bitmaps[Toolbar_StepOver] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
+	m_Bitmaps[Toolbar_Skip] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
+	m_Bitmaps[Toolbar_GotoPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
+	m_Bitmaps[Toolbar_SetPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
+
+
+	// scale to 16x16 for toolbar
+	for (size_t n = Toolbar_DebugGo; n < Bitmaps_max; n++)
+	{
+		m_Bitmaps[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(16, 16));
+	}
+}

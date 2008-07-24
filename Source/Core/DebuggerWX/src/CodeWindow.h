@@ -56,6 +56,37 @@ class CCodeWindow
 
 	private:
 
+		enum
+		{
+			ID_TOOLBAR = 500,
+			IDM_DEBUG_GO,
+			IDM_STEP,
+			IDM_STEPOVER,
+			IDM_SKIP,
+			IDM_SETPC,
+			IDM_GOTOPC,
+			IDM_ADDRBOX,
+			IDM_CALLSTACKLIST,
+			IDM_SYMBOLLIST,
+			IDM_INTERPRETER,
+			IDM_DUALCORE,
+			IDM_LOGWINDOW,
+			IDM_REGISTERWINDOW,
+			IDM_BREAKPOINTWINDOW,
+			IDM_MEMORYWINDOW,
+		};
+
+		enum
+		{
+			Toolbar_DebugGo,
+			Toolbar_Step,
+			Toolbar_StepOver,
+			Toolbar_Skip,
+			Toolbar_GotoPC,
+			Toolbar_SetPC,
+			Bitmaps_max
+		};
+
 		// sub dialogs
 		CLogWindow* m_logwindow;
 		CRegisterWindow* m_RegisterWindow;
@@ -67,13 +98,8 @@ class CCodeWindow
 		wxListBox* symbols;
 		Common::Event sync_event;
 
-		wxButton* buttonGo;
-		wxButton* buttonStep;
-		wxButton* buttonStepOver;
-		wxButton* buttonSkip;
-		wxButton* buttonGotoPC;
+		wxBitmap m_Bitmaps[Bitmaps_max];
 
-		wxTextCtrl* addrbox;
 		DECLARE_EVENT_TABLE()
 
 		void OnSymbolListChange(wxCommandEvent& event);
@@ -90,6 +116,11 @@ class CCodeWindow
 		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter);
 
 		void UpdateButtonStates();
+
+		void RecreateToolbar();
+		void PopulateToolbar(wxToolBar* toolBar);
+		void InitBitmaps();
+		void CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter);
 };
 
 #endif /*CODEWINDOW_*/

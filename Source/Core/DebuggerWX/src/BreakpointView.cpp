@@ -24,7 +24,6 @@
 
 BEGIN_EVENT_TABLE(CBreakPointView, wxListCtrl)
 
-
 END_EVENT_TABLE()
 
 CBreakPointView::CBreakPointView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)

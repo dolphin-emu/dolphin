@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="DebuggerWX"
 	ProjectGUID="{4D3CD4C5-412B-4B49-9B1B-A68A2A129C77}"
 	RootNamespace="DebuggerWX"
@@ -443,6 +443,22 @@
 			</File>
 			<File
 				RelativePath=".\src\RegisterView.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Resources"
+			>
+			<File
+				RelativePath=".\resources\toolbar_add_breakpoint.c"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\toolbar_add_memorycheck.c"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\toolbar_delete.c"
 				>
 			</File>
 		</Filter>
