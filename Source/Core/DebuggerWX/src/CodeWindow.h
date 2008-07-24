@@ -32,6 +32,7 @@ class CLogWindow;
 class CBreakPointWindow;
 class CMemoryWindow;
 class CCodeView;
+class IniFile;
 
 class CCodeWindow
 	: public wxFrame
@@ -45,7 +46,10 @@ class CCodeWindow
 		const wxSize& size = wxSize(400, 500),
 		long style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE);
 
-        ~CCodeWindow();
+		~CCodeWindow();
+
+		void Load(IniFile &file);
+		void Save(IniFile &file) const;
 
 		void Update();
 		void NotifyMapLoaded();
@@ -79,6 +83,7 @@ class CCodeWindow
 		enum
 		{
 			Toolbar_DebugGo,
+			Toolbar_Pause,
 			Toolbar_Step,
 			Toolbar_StepOver,
 			Toolbar_Skip,
@@ -88,7 +93,7 @@ class CCodeWindow
 		};
 
 		// sub dialogs
-		CLogWindow* m_logwindow;
+		CLogWindow* m_LogWindow;
 		CRegisterWindow* m_RegisterWindow;
 		CBreakPointWindow* m_BreakpointWindow;
 		CMemoryWindow* m_MemoryWindow;
@@ -105,6 +110,9 @@ class CCodeWindow
 		void OnSymbolListChange(wxCommandEvent& event);
 		void OnCallstackListChange(wxCommandEvent& event);
 		void OnCodeStep(wxCommandEvent& event);
+
+		void SingleCPUStep();
+
 		void OnAddrBoxChange(wxCommandEvent& event);
 
 		void OnToggleRegisterWindow(wxCommandEvent& event);
@@ -121,6 +129,7 @@ class CCodeWindow
 		void PopulateToolbar(wxToolBar* toolBar);
 		void InitBitmaps();
 		void CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter);
+		void OnKeyDown(wxKeyEvent& event);
 };
 
 #endif /*CODEWINDOW_*/

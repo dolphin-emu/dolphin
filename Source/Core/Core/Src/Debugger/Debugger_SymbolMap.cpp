@@ -14,9 +14,11 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #include "Common.h"
 #include "StringUtil.h"
 #include "Debugger_SymbolMap.h"
+#include "../Core.h"
 #include "../HW/Memmap.h"
 #include "../PowerPC/PowerPC.h"
 #include "../PowerPC/PPCAnalyst.h"
@@ -357,7 +359,7 @@ void AnalyzeBackwards()
 
 bool GetCallstack(std::vector<SCallstackEntry> &output) 
 {
-	if (!Memory::IsInitialized())
+	if (Core::GetState() == Core::CORE_UNINITIALIZED)
 		return false;
 
     if (!Memory::IsRAMAddress(PowerPC::ppcState.gpr[1]))

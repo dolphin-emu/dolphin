@@ -461,6 +461,14 @@
 				RelativePath=".\resources\toolbar_delete.c"
 				>
 			</File>
+			<File
+				RelativePath=".\resources\toolbar_pause.c"
+				>
+			</File>
+			<File
+				RelativePath=".\resources\toolbar_play.c"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\src\BreakPointDlg.cpp"

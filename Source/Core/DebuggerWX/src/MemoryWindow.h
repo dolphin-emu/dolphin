@@ -45,6 +45,9 @@ class CMemoryWindow
 
         ~CMemoryWindow();
 
+		void Save(IniFile& _IniFile) const;
+		void Load(IniFile& _IniFile);
+
 		void Update();
 		void NotifyMapLoaded();
 

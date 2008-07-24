@@ -19,6 +19,7 @@
 #define __REGISTERWINDOW_h__
 
 class CRegisterView;
+class IniFile;
 
 #undef RegisterWindow_STYLE
 #define RegisterWindow_STYLE wxCAPTION | wxSYSTEM_MENU | wxCLOSE_BOX
@@ -34,6 +35,9 @@ class CRegisterWindow
 
 		CRegisterWindow(wxWindow* parent, wxWindowID id = 1, const wxString& title = wxT("Registers"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = RegisterWindow_STYLE);
 		virtual ~CRegisterWindow();
+
+		void Save(IniFile& _IniFile) const;
+		void Load(IniFile& _IniFile);
 
 		void NotifyUpdate();
 

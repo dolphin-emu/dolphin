@@ -21,6 +21,7 @@
 class CBreakPointView;
 class CCodeWindow;
 class wxListEvent;
+class IniFile;
 
 #undef BREAKPOINT_WINDOW_STYLE
 #define BREAKPOINT_WINDOW_STYLE wxCAPTION | wxSYSTEM_MENU | wxCLOSE_BOX | wxRESIZE_BORDER
@@ -41,6 +42,9 @@ class CBreakPointWindow
 		virtual ~CBreakPointWindow();
 
 		void NotifyUpdate();
+		
+		void Save(IniFile& _IniFile) const;
+		void Load(IniFile& _IniFile);
 
 
 	private:

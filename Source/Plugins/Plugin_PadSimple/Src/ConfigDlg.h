@@ -28,6 +28,7 @@ class CConfigDlg
 		MESSAGE_HANDLER(WM_INITDIALOG,  OnInitDialog)
 		MESSAGE_HANDLER(WM_COMMAND,     OnCommand)
 		MESSAGE_HANDLER(WM_TIMER,       OnTimer)
+		MESSAGE_HANDLER(WM_CLOSE,       OnClose)
 		COMMAND_ID_HANDLER(IDOK,        OnCloseCmd)
 		END_MSG_MAP()
 
@@ -45,6 +46,7 @@ class CConfigDlg
 		LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL & /*bHandled*/);
 		LRESULT OnCommand(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL & /*bHandled*/);
 		LRESULT OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL & /*bHandled*/);
+		LRESULT OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL & /*bHandled*/);
 		LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL & /*bHandled*/);
 		void SetButtonText(CButton& _rButton, int _key);
 };

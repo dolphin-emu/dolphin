@@ -47,9 +47,11 @@
 #include "../../DolphinWX/src/Globals.h"
 
 extern "C" {
-#include "../resources/toolbar_add_breakpoint.c"
-#include "../resources/toolbar_add_memorycheck.c"
-#include "../resources/toolbar_delete.c"
+	#include "../resources/toolbar_play.c"
+	#include "../resources/toolbar_pause.c"
+	#include "../resources/toolbar_add_memorycheck.c"
+	#include "../resources/toolbar_delete.c"
+	#include "../resources/toolbar_add_breakpoint.c"
 }
 
 static const long TOOLBAR_STYLE = wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
@@ -84,7 +86,7 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 		const wxString& title, const wxPoint& pos, const wxSize& size, long style)
 	: wxFrame(parent, id, title, pos, size, style)
 	, m_RegisterWindow(NULL)
-	, m_logwindow(NULL)
+	, m_LogWindow(NULL)
 {    
 	InitBitmaps();
 
@@ -95,50 +97,54 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 
 	UpdateButtonStates();
 
-	// load ini...
-	int x,y,w,h;
+	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN,
+		wxKeyEventHandler(CCodeWindow::OnKeyDown),
+		(wxObject*)0, this);
 
+	// load ini...
 	IniFile file;
 	file.Load("Debugger.ini");
 
+	this->Load(file);
+	m_BreakpointWindow->Load(file);
+	m_LogWindow->Load(file);
+	m_RegisterWindow->Load(file);
+	m_MemoryWindow->Load(file);
+}
+
+
+CCodeWindow::~CCodeWindow()
+{
+	IniFile file;
+	file.Load("Debugger.ini");
+
+	this->Save(file);
+	m_BreakpointWindow->Save(file);
+	m_LogWindow->Save(file);
+	m_RegisterWindow->Save(file);
+	m_MemoryWindow->Save(file);
+
+	file.Save("Debugger.ini");
+}
+
+
+void CCodeWindow::Load( IniFile &file )
+{
+	int x,y,w,h;
 	file.Get("Code", "x", &x, GetPosition().x);
 	file.Get("Code", "y", &y, GetPosition().y);
 	file.Get("Code", "w", &w, GetSize().GetWidth());
 	file.Get("Code", "h", &h, GetSize().GetHeight());
 	this->SetSize(x, y, w, h);
+}
 
-	// These really should be in the respective constructors.
-	if (m_BreakpointWindow) {
-		file.Get("BreakPoint", "x", &x, m_BreakpointWindow->GetPosition().x);
-		file.Get("BreakPoint", "y", &y, m_BreakpointWindow->GetPosition().y);
-		file.Get("BreakPoint", "w", &w, m_BreakpointWindow->GetSize().GetWidth());
-		file.Get("BreakPoint", "h", &h, m_BreakpointWindow->GetSize().GetHeight());
-		m_BreakpointWindow->SetSize(x, y, w, h);
-	}
 
-	if (m_logwindow) {
-		file.Get("LogWindow", "x", &x, m_logwindow->GetPosition().x);
-		file.Get("LogWindow", "y", &y, m_logwindow->GetPosition().y);
-		file.Get("LogWindow", "w", &w, m_logwindow->GetSize().GetWidth());
-		file.Get("LogWindow", "h", &h, m_logwindow->GetSize().GetHeight());
-		m_logwindow->SetSize(x, y, w, h);
-	}
-
-	if (m_RegisterWindow) {
-		file.Get("RegisterWindow", "x", &x, m_RegisterWindow->GetPosition().x);
-		file.Get("RegisterWindow", "y", &y, m_RegisterWindow->GetPosition().y);
-		//file.Get("RegisterWindow", "w", &w, m_RegisterWindow->GetSize().GetWidth());
-		//file.Get("RegisterWindow", "h", &h, m_RegisterWindow->GetSize().GetHeight());
-		m_RegisterWindow->SetSize(x, y, w, h);
-	}
-
-	if (m_MemoryWindow) {
-		file.Get("MemoryWindow", "x", &x, m_MemoryWindow->GetPosition().x);
-		file.Get("MemoryWindow", "y", &y, m_MemoryWindow->GetPosition().y);
-		file.Get("MemoryWindow", "w", &w, m_MemoryWindow->GetSize().GetWidth());
-		file.Get("MemoryWindow", "h", &h, m_MemoryWindow->GetSize().GetHeight());
-		m_RegisterWindow->SetSize(x, y, w, h);
-	}
+void CCodeWindow::Save(IniFile &file) const
+{
+	file.Set("Code", "x", GetPosition().x);
+	file.Set("Code", "y", GetPosition().y);
+	file.Set("Code", "w", GetSize().GetWidth());
+	file.Set("Code", "h", GetSize().GetHeight());
 }
 
 
@@ -169,8 +175,8 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 	// additional dialogs
 	if (IsLoggingActivated())
 	{
-		m_logwindow = new CLogWindow(this);
-		m_logwindow->Show(true);
+		m_LogWindow = new CLogWindow(this);
+		m_LogWindow->Show(true);
 	}
 
 	m_RegisterWindow = new CRegisterWindow(this);
@@ -181,48 +187,6 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 	m_MemoryWindow = new CMemoryWindow(this);
 	m_MemoryWindow->Show(true);
-}
-
-
-CCodeWindow::~CCodeWindow()
-{
-    IniFile file;
-    file.Load("Debugger.ini");
-
-    file.Set("Code", "x", GetPosition().x);
-    file.Set("Code", "y", GetPosition().y);
-    file.Set("Code", "w", GetSize().GetWidth());
-    file.Set("Code", "h", GetSize().GetHeight());
-
-	// These really should be in the respective destructors.
-	if (m_BreakpointWindow) {
-		file.Set("BreakPoint", "x", m_BreakpointWindow->GetPosition().x);
-		file.Set("BreakPoint", "y", m_BreakpointWindow->GetPosition().y);
-		file.Set("BreakPoint", "w", m_BreakpointWindow->GetSize().GetWidth());
-		file.Set("BreakPoint", "h", m_BreakpointWindow->GetSize().GetHeight());
-	}
-
-	if (m_logwindow) {
-		file.Set("LogWindow", "x", m_logwindow->GetPosition().x);
-		file.Set("LogWindow", "y", m_logwindow->GetPosition().y);
-		file.Set("LogWindow", "w", m_logwindow->GetSize().GetWidth());
-		file.Set("LogWindow", "h", m_logwindow->GetSize().GetHeight());
-	}
-
-	if (m_RegisterWindow) {
-		file.Set("RegisterWindow", "x", m_RegisterWindow->GetPosition().x);
-		file.Set("RegisterWindow", "y", m_RegisterWindow->GetPosition().y);
-		file.Set("RegisterWindow", "w", m_RegisterWindow->GetSize().GetWidth());
-		file.Set("RegisterWindow", "h", m_RegisterWindow->GetSize().GetHeight());
-	}
-
-	if (m_MemoryWindow) {
-		file.Set("MemoryWindow", "x", m_MemoryWindow->GetPosition().x);
-		file.Set("MemoryWindow", "y", m_MemoryWindow->GetPosition().y);
-		file.Set("MemoryWindow", "w", m_MemoryWindow->GetSize().GetWidth());
-		file.Set("MemoryWindow", "h", m_MemoryWindow->GetSize().GetHeight());
-	}
-	file.Save("Debugger.ini");
 }
 
 
@@ -307,16 +271,8 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 		    break;
 
 	    case IDM_STEP:
-	    {
-		    CCPU::StepOpcode(&sync_event);
-//            if (CCPU::IsStepping())
-//	            sync_event.Wait();
-		    wxThread::Sleep(20);
-		    // need a short wait here
-		    codeview->Center(PC);
-		    Update();
-		    Host_UpdateLogDisplay();
-	    }
+			SingleCPUStep();
+
 		    break;
 
 	    case IDM_STEPOVER:
@@ -410,7 +366,7 @@ void CCodeWindow::NotifyMapLoaded()
 
 void CCodeWindow::UpdateButtonStates()
 {
-	wxToolBarBase* toolBar = GetToolBar();
+	wxToolBar* toolBar = GetToolBar();
 	if (Core::GetState() == Core::CORE_UNINITIALIZED)
 	{
 		toolBar->EnableTool(IDM_DEBUG_GO, false);
@@ -423,6 +379,7 @@ void CCodeWindow::UpdateButtonStates()
 		if (!CCPU::IsStepping())
 		{
 			toolBar->SetToolShortHelp(IDM_DEBUG_GO, _T("&Pause"));
+			toolBar->SetToolNormalBitmap(IDM_DEBUG_GO, m_Bitmaps[Toolbar_Pause]);
 			toolBar->EnableTool(IDM_DEBUG_GO, true);
 			toolBar->EnableTool(IDM_STEP, false);
 			toolBar->EnableTool(IDM_STEPOVER, false);
@@ -430,7 +387,8 @@ void CCodeWindow::UpdateButtonStates()
 		}
 		else
 		{
-			toolBar->SetToolShortHelp(IDM_DEBUG_GO, _T("&Go"));
+			toolBar->SetToolShortHelp(IDM_DEBUG_GO, _T("&Play"));
+			toolBar->SetToolNormalBitmap(IDM_DEBUG_GO, m_Bitmaps[Toolbar_DebugGo]);
 			toolBar->EnableTool(IDM_DEBUG_GO, true);
 			toolBar->EnableTool(IDM_STEP, true);
 			toolBar->EnableTool(IDM_STEPOVER, true);
@@ -472,12 +430,12 @@ void CCodeWindow::OnToggleLogWindow(wxCommandEvent& event)
 
 		if (show)
 		{
-			if (!m_logwindow)
+			if (!m_LogWindow)
 			{
-				m_logwindow = new CLogWindow(this);
+				m_LogWindow = new CLogWindow(this);
 			}
 
-			m_logwindow->Show(true);
+			m_LogWindow->Show(true);
 		}
 		else // hide
 		{
@@ -485,11 +443,11 @@ void CCodeWindow::OnToggleLogWindow(wxCommandEvent& event)
 			// didn't report the checked menu item status correctly.
 			// It should be true just after the menu item was selected,
 			// if there was no modeless dialog yet.
-			wxASSERT(m_logwindow != NULL);
+			wxASSERT(m_LogWindow != NULL);
 
-			if (m_logwindow)
+			if (m_LogWindow)
 			{
-				m_logwindow->Hide();
+				m_LogWindow->Hide();
 			}
 		}
 	}
@@ -589,9 +547,9 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 
 	    case IDM_UPDATELOGDISPLAY:
 
-		    if (m_logwindow)
+		    if (m_LogWindow)
 		    {
-			    m_logwindow->NotifyUpdate();
+			    m_LogWindow->NotifyUpdate();
 		    }
 
 		    break;
@@ -624,7 +582,7 @@ void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)
 		h = m_Bitmaps[Toolbar_DebugGo].GetHeight();
 
 	toolBar->SetToolBitmapSize(wxSize(w, h));
-	toolBar->AddTool(IDM_DEBUG_GO,	_T("Go"),			m_Bitmaps[Toolbar_DebugGo], _T("Delete the selected BreakPoint or MemoryCheck"));
+	toolBar->AddTool(IDM_DEBUG_GO,	_T("Play"),			m_Bitmaps[Toolbar_DebugGo], _T("Delete the selected BreakPoint or MemoryCheck"));
 	toolBar->AddTool(IDM_STEP,		_T("Step"),			m_Bitmaps[Toolbar_Step], _T("Add BreakPoint..."));
 	toolBar->AddTool(IDM_STEPOVER,	_T("Step Over"),    m_Bitmaps[Toolbar_StepOver], _T("Add BreakPoint..."));
 	toolBar->AddTool(IDM_SKIP,		_T("Skip"),			m_Bitmaps[Toolbar_Skip], _T("Add BreakPoint..."));
@@ -659,12 +617,13 @@ void CCodeWindow::RecreateToolbar()
 void CCodeWindow::InitBitmaps()
 {
 	// load original size 48x48
-	m_Bitmaps[Toolbar_DebugGo] = wxGetBitmapFromMemory(toolbar_delete_png);
+	m_Bitmaps[Toolbar_DebugGo] = wxGetBitmapFromMemory(toolbar_play_png);
 	m_Bitmaps[Toolbar_Step] = wxGetBitmapFromMemory(toolbar_add_breakpoint_png);
 	m_Bitmaps[Toolbar_StepOver] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 	m_Bitmaps[Toolbar_Skip] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 	m_Bitmaps[Toolbar_GotoPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
 	m_Bitmaps[Toolbar_SetPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
+	m_Bitmaps[Toolbar_Pause] = wxGetBitmapFromMemory(toolbar_pause_png);
 
 
 	// scale to 16x16 for toolbar
@@ -672,4 +631,30 @@ void CCodeWindow::InitBitmaps()
 	{
 		m_Bitmaps[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(16, 16));
 	}
+}
+
+
+void CCodeWindow::OnKeyDown(wxKeyEvent& event)
+{
+	if (event.GetKeyCode() == WXK_SPACE)
+	{
+		SingleCPUStep();	
+	}
+	else
+	{
+		event.Skip();
+	}
+}
+
+
+void CCodeWindow::SingleCPUStep()
+{
+	CCPU::StepOpcode(&sync_event);
+	//            if (CCPU::IsStepping())
+	//	            sync_event.Wait();
+	wxThread::Sleep(20);
+	// need a short wait here
+	codeview->Center(PC);
+	Update();
+	Host_UpdateLogDisplay();
 }

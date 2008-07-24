@@ -22,6 +22,7 @@
 #include "HW/Memmap.h"
 #include "BreakPointDlg.h"
 #include "MemoryCheckDlg.h"
+#include "IniFile.h"
 
 #include "wx/mstream.h"
 
@@ -67,6 +68,28 @@ CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent
 
 CBreakPointWindow::~CBreakPointWindow()
 {}
+
+
+void 
+CBreakPointWindow::Save(IniFile& _IniFile) const
+{
+	_IniFile.Set("BreakPoint", "x", GetPosition().x);
+	_IniFile.Set("BreakPoint", "y", GetPosition().y);
+	_IniFile.Set("BreakPoint", "w", GetSize().GetWidth());
+	_IniFile.Set("BreakPoint", "h", GetSize().GetHeight());
+}
+
+
+void 
+CBreakPointWindow::Load(IniFile& _IniFile)
+{
+	int x,y,w,h;
+	_IniFile.Get("BreakPoint", "x", &x, GetPosition().x);
+	_IniFile.Get("BreakPoint", "y", &y, GetPosition().y);
+	_IniFile.Get("BreakPoint", "w", &w, GetSize().GetWidth());
+	_IniFile.Get("BreakPoint", "h", &h, GetSize().GetHeight());
+	SetSize(x, y, w, h);
+}
 
 
 void 

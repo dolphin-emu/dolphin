@@ -18,10 +18,9 @@
 #ifndef LOGWINDOW_H_
 #define LOGWINDOW_H_
 
-#include "wx/dialog.h"
-#include "wx/textctrl.h"
-#include "wx/checklst.h"
-#include "Debugger.h"
+class wxTextCtrl;
+class wxCheckListBox;
+class IniFile;
 
 class CLogWindow
 	: public wxDialog
@@ -31,6 +30,8 @@ class CLogWindow
 		CLogWindow(wxWindow* parent);
 		void NotifyUpdate();
 
+		void Save(IniFile& _IniFile) const;
+		void Load(IniFile& _IniFile);
 
 	private:
 

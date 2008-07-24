@@ -97,6 +97,15 @@ LRESULT CConfigDlg::OnCommand(UINT /*uMsg*/, WPARAM _wParam, LPARAM _lParam, BOO
 }
 
 
+LRESULT CConfigDlg::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
+{
+	m_dinput.Free();
+
+	EndDialog(0);
+	return(0);
+}
+
+
 LRESULT CConfigDlg::OnTimer(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
 	if (m_hWaitForKeyButton != NULL)

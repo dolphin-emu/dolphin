@@ -19,12 +19,12 @@
 #include "RegisterWindow.h"
 #include "PowerPC/PowerPC.h"
 #include "RegisterView.h"
+#include "IniFile.h"
 
 extern const char* GetGRPName(unsigned int index);
 
-
 BEGIN_EVENT_TABLE(CRegisterWindow, wxDialog)
-EVT_CLOSE(CRegisterWindow::OnClose)
+	EVT_CLOSE(CRegisterWindow::OnClose)
 END_EVENT_TABLE()
 
 CRegisterWindow::CRegisterWindow(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
@@ -37,6 +37,26 @@ CRegisterWindow::CRegisterWindow(wxWindow* parent, wxWindowID id, const wxString
 
 CRegisterWindow::~CRegisterWindow()
 {}
+
+
+void CRegisterWindow::Save(IniFile& _IniFile) const
+{
+	_IniFile.Set("RegisterWindow", "x", GetPosition().x);
+	_IniFile.Set("RegisterWindow", "y", GetPosition().y);
+	_IniFile.Set("RegisterWindow", "w", GetSize().GetWidth());
+	_IniFile.Set("RegisterWindow", "h", GetSize().GetHeight());
+}
+
+
+void CRegisterWindow::Load(IniFile& _IniFile)
+{
+	int x,y,w,h;
+	_IniFile.Get("RegisterWindow", "x", &x, GetPosition().x);
+	_IniFile.Get("RegisterWindow", "y", &y, GetPosition().y);
+	_IniFile.Get("RegisterWindow", "w", &w, GetSize().GetWidth());
+	_IniFile.Get("RegisterWindow", "h", &h, GetSize().GetHeight());
+	SetSize(x, y, w, h);
+}
 
 
 void CRegisterWindow::CreateGUIControls()

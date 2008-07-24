@@ -17,6 +17,7 @@
 
 
 #include "ConfigDlg.h"
+#include "../Globals.h"
 
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
@@ -31,6 +32,8 @@ END_EVENT_TABLE()
 ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
+	g_Config.Load();
+
 	CreateGUIControls();
 }
 
@@ -40,8 +43,13 @@ ConfigDialog::~ConfigDialog()
 
 void ConfigDialog::CreateGUIControls()
 {
-	m_Notebook = new wxNotebook(this, ID_PAGEENHANCEMENTS, wxPoint(0,0),wxSize(484,198));
+	// buttons
+	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(404,208), wxSize(73,25), 0, wxDefaultValidator, wxT("OK"));
+	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"), wxPoint(324,208), wxSize(73,25), 0, wxDefaultValidator, wxT("Apply"));
+	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"), wxPoint(244,208), wxSize(73,25), 0, wxDefaultValidator, wxT("Close"));
 
+	// notebook
+	m_Notebook = new wxNotebook(this, ID_PAGEENHANCEMENTS, wxPoint(0,0),wxSize(484,198));
 	m_PageVideo = new wxPanel(m_Notebook, ID_PAGEVIDEO, wxPoint(4,24), wxSize(476,170));
 	m_Notebook->AddPage(m_PageVideo, wxT("Video"));
 
@@ -52,45 +60,53 @@ void ConfigDialog::CreateGUIControls()
 	m_Notebook->AddPage(m_PageAdvanced, wxT("Advanced"));
 
 	m_Fullscreen = new wxCheckBox(m_PageVideo, ID_FULLSCREEN, wxT("Fullscreen"), wxPoint(12,16), wxSize(137,25), 0, wxDefaultValidator, wxT("Fullscreen"));
+	m_Fullscreen->SetValue(g_Config.bFullscreen);
 
+	// page1
 	m_RenderToMainWindow = new wxCheckBox(m_PageVideo, ID_RENDERTOMAINWINDOW, wxT("Render to Main Window"), wxPoint(12,40), wxSize(137,25), 0, wxDefaultValidator, wxT("RenderToMainWindow"));
+	m_RenderToMainWindow->SetValue(g_Config.renderToMainframe);
 
+	// all other options doesnt to anything so lets disable them
 	wxArrayString arrayStringFor_FullscreenCB;
 	m_FullscreenCB = new wxComboBox(m_PageVideo, ID_FULLSCREENCB, wxT("FullscreenCB"), wxPoint(132,72), wxSize(121,21), arrayStringFor_FullscreenCB, 0, wxDefaultValidator, wxT("FullscreenCB"));
+	m_FullscreenCB->Enable(false);
 
 	wxArrayString arrayStringFor_WindowResolutionCB;
 	m_WindowResolutionCB = new wxComboBox(m_PageVideo, ID_WINDOWRESOLUTIONCB, wxT("WxComboBox1"), wxPoint(132,104), wxSize(121,21), arrayStringFor_WindowResolutionCB, 0, wxDefaultValidator, wxT("WindowResolutionCB"));
+	m_WindowResolutionCB->Enable(false);
 
 	wxStaticText *WxStaticText1 = new wxStaticText(m_PageVideo, ID_WXSTATICTEXT1, wxT("Windowed Resolution:"), wxPoint(12,104), wxDefaultSize, 0, wxT("WxStaticText1"));
 	wxStaticText *WxStaticText2 = new wxStaticText(m_PageVideo, ID_WXSTATICTEXT2, wxT("Fullscreen Video Mode:"), wxPoint(12,72), wxDefaultSize, 0, wxT("WxStaticText2"));
 
 	wxArrayString arrayStringFor_AliasModeCB;
 	m_AliasModeCB = new wxComboBox(m_PageVideo, ID_ALIASMODECB, wxT("WxComboBox1"), wxPoint(132,136), wxSize(121,21), arrayStringFor_AliasModeCB, 0, wxDefaultValidator, wxT("AliasModeCB"));
+	m_AliasModeCB->Enable(false);
 
 	wxStaticText *WxStaticText3 = new wxStaticText(m_PageVideo, ID_WXSTATICTEXT3, wxT("Alias Mode:"), wxPoint(12,136), wxDefaultSize, 0, wxT("WxStaticText3"));
 
 	m_ForceFiltering = new wxCheckBox(m_PageEnhancements, ID_FORCEFILTERING, wxT("Force bi/trlinear (May cause small glitches)"), wxPoint(12,16), wxSize(233,25), 0, wxDefaultValidator, wxT("ForceFiltering"));
+	m_ForceFiltering->Enable(false);
 
 	m_ForceAnsitropy = new wxCheckBox(m_PageEnhancements, ID_FORCEANSITROPY, wxT("Force maximum ansitropy filtering"), wxPoint(12,48), wxSize(233,25), 0, wxDefaultValidator, wxT("ForceAnsitropy"));
+	m_ForceAnsitropy->Enable(false);
 
 	m_Wireframe = new wxCheckBox(m_PageAdvanced, ID_WIREFRAME, wxT("Wireframe"), wxPoint(12,16), wxSize(233,25), 0, wxDefaultValidator, wxT("Wireframe"));
+	m_Wireframe->Enable(false);
 
 	m_DumpTextures = new wxCheckBox(m_PageAdvanced, ID_DUMPTEXTURES, wxT("Dump texture to:"), wxPoint(12,88), wxSize(233,25), 0, wxDefaultValidator, wxT("DumpTextures"));
+	m_DumpTextures->Enable(false);
 
 	m_Statistics = new wxCheckBox(m_PageAdvanced, ID_STATISTICS, wxT("Overlay some statistics"), wxPoint(12,40), wxSize(233,25), 0, wxDefaultValidator, wxT("Statistics"));
+	m_Statistics->Enable(false);
 
 	m_ShaderErrors = new wxCheckBox(m_PageAdvanced, ID_SHADERERRORS, wxT("Show shader compilation issues"), wxPoint(12,64), wxSize(233,25), 0, wxDefaultValidator, wxT("ShaderErrors"));
+	m_ShaderErrors->Enable(false);
 
 	m_Browse = new wxButton(m_PageAdvanced, ID_BROWSE, wxT("Browse"), wxPoint(156,136), wxSize(65,25), 0, wxDefaultValidator, wxT("Browse"));
+	m_Browse->Enable(false);
 
 	m_TexturePath = new wxTextCtrl(m_PageAdvanced, ID_TEXTUREPATH, wxT("TexturePath"), wxPoint(20,136), wxSize(129,25), 0, wxDefaultValidator, wxT("TexturePath"));
 	m_TexturePath->Enable(false);
-
-	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(404,208), wxSize(73,25), 0, wxDefaultValidator, wxT("OK"));
-
-	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"), wxPoint(324,208), wxSize(73,25), 0, wxDefaultValidator, wxT("Apply"));
-
-	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"), wxPoint(244,208), wxSize(73,25), 0, wxDefaultValidator, wxT("Close"));
 
 	SetTitle(wxT("Opengl Plugin Configuration"));
 	SetIcon(wxNullIcon);
@@ -118,12 +134,14 @@ void ConfigDialog::OKClick(wxCommandEvent& event)
 	if ((event.GetId() == ID_APPLY) ||
 		(event.GetId() == ID_OK))
 	{
-		// update config from dialog
+		g_Config.renderToMainframe = m_RenderToMainWindow->GetValue();
+		g_Config.bFullscreen = m_Fullscreen->GetValue();
+		g_Config.Save();
 	}
 
 	if ((event.GetId() == ID_CLOSE) ||
 		(event.GetId() == ID_OK))
 	{
-		EndModal(0);
+		Close(); 
 	}
 }

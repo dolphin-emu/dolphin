@@ -38,14 +38,6 @@
 // ugly that this lib included code from the main
 #include "../../DolphinWX/src/Globals.h"
 
-class SymbolList
-	: public wxListCtrl
-{
-	wxString OnGetItemText(long item, long column)
-	{
-		return(_T("hello"));
-	}
-};
 
 enum
 {
@@ -106,6 +98,25 @@ CMemoryWindow::~CMemoryWindow()
 {
 }
 
+
+void CMemoryWindow::Save(IniFile& _IniFile) const
+{
+	_IniFile.Set("MemoryWindow", "x", GetPosition().x);
+	_IniFile.Set("MemoryWindow", "y", GetPosition().y);
+	_IniFile.Set("MemoryWindow", "w", GetSize().GetWidth());
+	_IniFile.Set("MemoryWindow", "h", GetSize().GetHeight());
+}
+
+
+void CMemoryWindow::Load(IniFile& _IniFile)
+{
+	int x,y,w,h;
+	_IniFile.Get("MemoryWindow", "x", &x, GetPosition().x);
+	_IniFile.Get("MemoryWindow", "y", &y, GetPosition().y);
+	_IniFile.Get("MemoryWindow", "w", &w, GetSize().GetWidth());
+	_IniFile.Get("MemoryWindow", "h", &h, GetSize().GetHeight());
+	SetSize(x, y, w, h);
+}
 
 
 void CMemoryWindow::JumpToAddress(u32 _Address)

@@ -28,10 +28,10 @@
 #include "IniFile.h"
 
 BEGIN_EVENT_TABLE(CLogWindow, wxDialog)
-EVT_BUTTON(IDM_SUBMITCMD, CLogWindow::OnSubmit)
-EVT_BUTTON(IDM_UPDATELOG, CLogWindow::OnUpdateLog)
-EVT_BUTTON(IDM_CLEARLOG,  CLogWindow::OnClear)
-EVT_CHECKLISTBOX(IDM_LOGCHECKS, CLogWindow::OnLogCheck)
+	EVT_BUTTON(IDM_SUBMITCMD, CLogWindow::OnSubmit)
+	EVT_BUTTON(IDM_UPDATELOG, CLogWindow::OnUpdateLog)
+	EVT_BUTTON(IDM_CLEARLOG,  CLogWindow::OnClear)
+	EVT_CHECKLISTBOX(IDM_LOGCHECKS, CLogWindow::OnLogCheck)
 END_EVENT_TABLE()
 
 
@@ -71,6 +71,25 @@ CLogWindow::CLogWindow(wxWindow* parent)
 	m_bCheckDirty = false;
 }
 
+
+void CLogWindow::Save(IniFile& _IniFile) const
+{
+	_IniFile.Set("LogWindow", "x", GetPosition().x);
+	_IniFile.Set("LogWindow", "y", GetPosition().y);
+	_IniFile.Set("LogWindow", "w", GetSize().GetWidth());
+	_IniFile.Set("LogWindow", "h", GetSize().GetHeight());
+}
+
+
+void CLogWindow::Load(IniFile& _IniFile)
+{
+	int x,y,w,h;
+	_IniFile.Get("LogWindow", "x", &x, GetPosition().x);
+	_IniFile.Get("LogWindow", "y", &y, GetPosition().y);
+	_IniFile.Get("LogWindow", "w", &w, GetSize().GetWidth());
+	_IniFile.Get("LogWindow", "h", &h, GetSize().GetHeight());
+	SetSize(x, y, w, h);
+}
 
 void CLogWindow::OnSubmit(wxCommandEvent& event)
 {
