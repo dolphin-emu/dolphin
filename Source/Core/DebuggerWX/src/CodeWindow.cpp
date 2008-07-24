@@ -106,10 +106,10 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	file.Load("Debugger.ini");
 
 	this->Load(file);
-	m_BreakpointWindow->Load(file);
-	m_LogWindow->Load(file);
-	m_RegisterWindow->Load(file);
-	m_MemoryWindow->Load(file);
+	if (m_BreakpointWindow) m_BreakpointWindow->Load(file);
+	if (m_LogWindow) m_LogWindow->Load(file);
+	if (m_RegisterWindow) m_RegisterWindow->Load(file);
+	if (m_MemoryWindow) m_MemoryWindow->Load(file);
 }
 
 
@@ -119,10 +119,10 @@ CCodeWindow::~CCodeWindow()
 	file.Load("Debugger.ini");
 
 	this->Save(file);
-	m_BreakpointWindow->Save(file);
-	m_LogWindow->Save(file);
-	m_RegisterWindow->Save(file);
-	m_MemoryWindow->Save(file);
+	if (m_BreakpointWindow) m_BreakpointWindow->Save(file);
+	if (m_LogWindow) m_LogWindow->Save(file);
+	if (m_RegisterWindow) m_RegisterWindow->Save(file);
+	if (m_MemoryWindow) m_MemoryWindow->Save(file);
 
 	file.Save("Debugger.ini");
 }
@@ -636,7 +636,7 @@ void CCodeWindow::InitBitmaps()
 
 void CCodeWindow::OnKeyDown(wxKeyEvent& event)
 {
-	if (event.GetKeyCode() == WXK_SPACE)
+	if ((event.GetKeyCode() == WXK_SPACE) && IsActive())
 	{
 		SingleCPUStep();	
 	}
