@@ -360,6 +360,7 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
 	if (_pExtension)
 	{
 		*_pExtension = full_path.substr(last_dot + 1);
+		_pExtension->insert(0, ".");
 	}
 	else if (_pFilename)
 	{
