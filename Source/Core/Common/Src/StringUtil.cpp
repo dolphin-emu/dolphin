@@ -22,7 +22,7 @@
 #include "TestFramework.h"
 
 // faster than sscanf
-u32 AsciiToHex(const char* _szValue)
+bool AsciiToHex(const char* _szValue, u32& result)
 {
 	u32 value = 0;
 	size_t finish = strlen(_szValue);
@@ -126,12 +126,13 @@ u32 AsciiToHex(const char* _szValue)
 			    break;
 
 		    default:
-			    value >>= 4;
+			    return false;
 			    break;
 		}
 	}
 
-	return(value);
+	result = value;
+	return (true);
 }
 
 

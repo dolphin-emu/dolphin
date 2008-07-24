@@ -16,10 +16,16 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "BreakPointDlg.h"
+#include "Common.h"
+#include "Debugger.h"
+#include "StringUtil.h"
+#include "Debugger/Debugger_BreakPoints.h"
 
 
 BEGIN_EVENT_TABLE(BreakPointDlg,wxDialog)
 	EVT_CLOSE(BreakPointDlg::OnClose)
+	EVT_BUTTON(ID_OK, BreakPointDlg::OnOK)
+	EVT_BUTTON(ID_CANCEL, BreakPointDlg::OnCancel)
 END_EVENT_TABLE()
 
 
@@ -51,7 +57,7 @@ void BreakPointDlg::CreateGUIControls()
 	m_pButtonCancel = new wxButton(this, ID_CANCEL, wxT("Cancel"), wxPoint(112,64), wxSize(73,25), 0, wxDefaultValidator, wxT("Cancel"));
 	m_pButtonCancel->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
-	m_pEditAddress = new wxTextCtrl(this, ID_ADDRESS, wxT("WxEdit1"), wxPoint(56,24), wxSize(197,20), 0, wxDefaultValidator, wxT("WxEdit1"));
+	m_pEditAddress = new wxTextCtrl(this, ID_ADDRESS, wxT("80000000"), wxPoint(56,24), wxSize(197,20), 0, wxDefaultValidator, wxT("WxEdit1"));
 	m_pEditAddress->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	wxStaticBox* WxStaticBox1 = new wxStaticBox(this, ID_WXSTATICBOX1, wxT("Address"), wxPoint(0,0), wxSize(265,57));
@@ -62,4 +68,20 @@ void BreakPointDlg::CreateGUIControls()
 void BreakPointDlg::OnClose(wxCloseEvent& /*event*/)
 {
 	Destroy();
+}
+
+void BreakPointDlg::OnOK(wxCommandEvent& /*event*/)
+{
+	wxString AddressString = m_pEditAddress->GetLineText(0);
+	u32 Address = 0;
+	if (AsciiToHex(AddressString.GetData(), Address))
+	{
+		CBreakPoints::AddBreakPoint(Address);
+		Close();
+	}
+}
+
+void BreakPointDlg::OnCancel(wxCommandEvent& /*event*/)
+{
+	Close();
 }

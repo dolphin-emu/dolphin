@@ -357,6 +357,9 @@ void AnalyzeBackwards()
 
 bool GetCallstack(std::vector<SCallstackEntry> &output) 
 {
+	if (!Memory::IsInitialized())
+		return false;
+
     if (!Memory::IsRAMAddress(PowerPC::ppcState.gpr[1]))
         return false;
 

@@ -27,7 +27,7 @@
 #include <wx/statbox.h>
 
 #undef BreakPointDlg_STYLE
-#define BreakPointDlg_STYLE wxCAPTION | wxSYSTEM_MENU | wxSTAY_ON_TOP | wxDIALOG_NO_PARENT | wxCLOSE_BOX
+#define BreakPointDlg_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX
 
 
 class BreakPointDlg : public wxDialog
@@ -57,8 +57,11 @@ class BreakPointDlg : public wxDialog
 		};
 	
 	private:
-		void OnClose(wxCloseEvent& event);
+
 		void CreateGUIControls();
+		void OnClose(wxCloseEvent& event);
+		void OnCancel(wxCommandEvent& event);
+		void OnOK(wxCommandEvent& event);
 };
 
 #endif

@@ -45,14 +45,14 @@ TMemCheck::TMemCheck()
 
 void TMemCheck::Action(u32 iValue, u32 addr, bool write, int size, u32 pc)
 {
-	if ((write && bOnWrite) || (!write && bOnRead))
+	if ((write && OnWrite) || (!write && OnRead))
 	{
-		if (bLog)
+		if (Log)
 		{
             const char *copy = Debugger::GetDescription(addr);
 			LOG(MEMMAP,"CHK %08x %s%i at %08x (%s)", iValue, write ? "Write" : "Read", size*8, addr, copy);
 		}
-		if (bBreak)
+		if (Break)
 			CCPU::Break();
 	}
 }
@@ -86,12 +86,12 @@ TMemCheck *CBreakPoints::GetMemCheck(u32 address)
 	{
 		if ((*iter).bRange)
 		{
-			if (address >= (*iter).iStartAddress && address <= (*iter).iEndAddress)
+			if (address >= (*iter).StartAddress && address <= (*iter).EndAddress)
 				return &(*iter);
 		}
 		else
 		{
-			if ((*iter).iStartAddress==address)
+			if ((*iter).StartAddress==address)
 				return &(*iter);
 		}
 	}
@@ -186,7 +186,7 @@ void CBreakPoints::DeleteElementByAddress(u32 _Address)
     std::vector<TMemCheck>::iterator iter;
     for (iter = m_MemChecks.begin(); iter != m_MemChecks.end(); ++iter)
     {
-        if ((*iter).iStartAddress == _Address)
+        if ((*iter).StartAddress == _Address)
         {
             m_MemChecks.erase(iter);
             Host_UpdateBreakPointView();

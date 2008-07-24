@@ -65,6 +65,8 @@ class MemoryCheckDlg : public wxDialog
 	
 	private:
 		void OnClose(wxCloseEvent& event);
+		void OnOK(wxCommandEvent& event);
+		void OnCancel(wxCommandEvent& event);
 		void CreateGUIControls();
 };
 

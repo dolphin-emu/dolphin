@@ -16,10 +16,15 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "MemoryCheckDlg.h"
-
+#include "Common.h"
+#include "Debugger.h"
+#include "StringUtil.h"
+#include "Debugger/Debugger_BreakPoints.h"
 
 BEGIN_EVENT_TABLE(MemoryCheckDlg,wxDialog)
 	EVT_CLOSE(MemoryCheckDlg::OnClose)
+	EVT_BUTTON(ID_OK, MemoryCheckDlg::OnOK)
+	EVT_BUTTON(ID_CANCEL, MemoryCheckDlg::OnCancel)
 END_EVENT_TABLE()
 
 
@@ -54,17 +59,17 @@ void MemoryCheckDlg::CreateGUIControls()
 	wxStaticBox* WxStaticBox2 = new wxStaticBox(this, ID_WXSTATICBOX2, wxT("Break On"), wxPoint(328,0), wxSize(73,57));
 	WxStaticBox2->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
-	m_pEditEndAddress = new wxTextCtrl(this, ID_EDIT_END_ADDRESS, wxT("EndAddr"), wxPoint(200,24), wxSize(109,20), 0, wxDefaultValidator, wxT("WxEdit2"));
-	m_pEditEndAddress->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
-
 	wxStaticText* WxStaticText2 = new wxStaticText(this, ID_WXSTATICTEXT2, wxT("End"), wxPoint(168,24), wxDefaultSize, 0, wxT("WxStaticText2"));
 	WxStaticText2->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	wxStaticText* WxStaticText1 = new wxStaticText(this, ID_WXSTATICTEXT1, wxT("Start"), wxPoint(8,24), wxDefaultSize, 0, wxT("WxStaticText1"));
 	WxStaticText1->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
-	m_pEditStartAddress = new wxTextCtrl(this, ID_EDIT_START_ADDR, wxT("StartAddr"), wxPoint(40,24), wxSize(109,20), 0, wxDefaultValidator, wxT("WxEdit1"));
+	m_pEditStartAddress = new wxTextCtrl(this, ID_EDIT_START_ADDR, wxT("80000000"), wxPoint(40,24), wxSize(109,20), 0, wxDefaultValidator, wxT("WxEdit1"));
 	m_pEditStartAddress->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
+
+	m_pEditEndAddress = new wxTextCtrl(this, ID_EDIT_END_ADDRESS, wxT("80000000"), wxPoint(200,24), wxSize(109,20), 0, wxDefaultValidator, wxT("WxEdit2"));
+	m_pEditEndAddress->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	wxStaticBox* WxStaticBox1 = new wxStaticBox(this, ID_WXSTATICBOX1, wxT("Address Range"), wxPoint(0,0), wxSize(321,57));
 	WxStaticBox1->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
@@ -73,4 +78,34 @@ void MemoryCheckDlg::CreateGUIControls()
 void MemoryCheckDlg::OnClose(wxCloseEvent& /*event*/)
 {
 	Destroy();
+}
+
+void MemoryCheckDlg::OnOK(wxCommandEvent& /*event*/)
+{
+	wxString StartAddressString = m_pEditStartAddress->GetLineText(0);
+	wxString EndAddressString = m_pEditEndAddress->GetLineText(0);
+	bool OnRead = m_pReadFlag->GetValue();
+	bool OnWrite = m_pWriteFlag->GetValue();
+
+	u32 StartAddress, EndAddress;
+	if (AsciiToHex(StartAddressString.GetData(), StartAddress) &&
+		AsciiToHex(EndAddressString.GetData(), EndAddress))
+	{
+		TMemCheck MemCheck;
+		MemCheck.StartAddress = StartAddress;
+		MemCheck.EndAddress = EndAddress;
+		MemCheck.OnRead = OnRead;
+		MemCheck.OnWrite = OnWrite;
+
+		MemCheck.Log = true;
+		MemCheck.Break = true;
+
+		CBreakPoints::AddMemoryCheck(MemCheck);
+		Close();
+	}
+}
+
+void MemoryCheckDlg::OnCancel(wxCommandEvent& /*event*/)
+{
+	Close();
 }

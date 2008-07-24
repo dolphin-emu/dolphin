@@ -44,10 +44,10 @@ CBreakPointView::Update()
 	InsertColumn(0, wxT("Active"), wxLIST_FORMAT_LEFT, 50);
 	InsertColumn(1, wxT("Type"), wxLIST_FORMAT_LEFT, 50);
 	InsertColumn(2, wxT("Function"), wxLIST_FORMAT_CENTER, 200);
-    InsertColumn(3, wxT("Address"), wxLIST_FORMAT_CENTER, 100);
+    InsertColumn(3, wxT("Address"), wxLIST_FORMAT_LEFT, 100);
     InsertColumn(4, wxT("Flags"), wxLIST_FORMAT_CENTER, 100);
 
-    char szBuffer[32];
+    char szBuffer[64];
 	const CBreakPoints::TBreakPoints& rBreakPoints = CBreakPoints::GetBreakPoints();
 	for (size_t i=0; i<rBreakPoints.size(); i++)
 	{
@@ -73,6 +73,38 @@ CBreakPointView::Update()
 
             SetItemData(Item, rBP.iAddress);
 		}
+	}
+
+	const CBreakPoints::TMemChecks& rMemChecks = CBreakPoints::GetMemChecks();
+	for (size_t i=0; i<rMemChecks.size(); i++)
+	{
+		const TMemCheck& rMemCheck = rMemChecks[i];
+
+		wxString temp;
+		temp = wxString::FromAscii(rMemCheck.Break ? "on" : " ");
+		int Item = InsertItem(0, temp);
+		temp = wxString::FromAscii("MC");
+		SetItem(Item, 1, temp);
+
+		Debugger::XSymbolIndex index = Debugger::FindSymbol(rMemCheck.StartAddress);
+		if (index > 0)
+		{
+			temp = wxString::FromAscii(Debugger::GetDescription(rMemCheck.StartAddress));
+			SetItem(Item, 2, temp);
+		}
+
+		sprintf(szBuffer, "0x%08x to 0%08x", rMemCheck.StartAddress, rMemCheck.EndAddress);
+		temp = wxString::FromAscii(szBuffer);
+		SetItem(Item, 3, temp);
+
+		size_t c = 0;
+		if (rMemCheck.OnRead) szBuffer[c++] = 'r';
+		if (rMemCheck.OnWrite) szBuffer[c++] = 'w';
+		szBuffer[c] = 0x00;
+		temp = wxString::FromAscii(szBuffer);
+		SetItem(Item, 4, temp);
+
+		SetItemData(Item, rMemCheck.StartAddress);
 	}
 
 

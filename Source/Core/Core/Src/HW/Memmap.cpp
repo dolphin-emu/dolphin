@@ -65,6 +65,7 @@ u8*	m_pFakeVMEM = NULL;
 u8*	m_pEXRAM = NULL; //wii
 u8*	m_pEFB = NULL;
 u8*	m_pL1Cache = NULL;
+bool m_IsInitialized = false;
 
 MemArena g_arena;
 
@@ -407,6 +408,12 @@ writeFn32 GetHWWriteFun32(const u32 _Address)
 }
 
 
+bool IsInitialized()
+{
+	return m_IsInitialized;
+}
+
+
 bool Init()
 {
 	bool wii = Core::GetStartupParameter().bWii;
@@ -509,12 +516,16 @@ bool Init()
 		InitHWMemFuncsWii();
 	else
 		InitHWMemFuncs();
+
+	m_IsInitialized = true;
 	return true;
 }
 
 
 bool Shutdown()
 {
+	m_IsInitialized = false;
+
 	bool wii = Core::GetStartupParameter().bWii;
 
 	g_arena.ReleaseView(m_pRAM, RAM_SIZE);

@@ -60,7 +60,7 @@ bool TryParseUInt(const std::string& str, u32* output);
 
 
 // TODO: kill this
-u32 AsciiToHex(const char* ascii);
+bool AsciiToHex(const char* _szValue, u32& result);
 
 void SplitString(const std::string& str, const std::string& delim, std::vector<std::string>& output);
 int ChooseStringFrom(const char* str, const char* * items);

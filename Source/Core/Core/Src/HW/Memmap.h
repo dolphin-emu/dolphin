@@ -60,6 +60,7 @@ namespace Memory
 #endif
 	};	
 
+	bool IsInitialized();
 	bool Init();
 	bool Shutdown();
 	void Clear();
