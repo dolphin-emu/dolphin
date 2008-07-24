@@ -74,7 +74,7 @@ void BreakPointDlg::OnOK(wxCommandEvent& /*event*/)
 {
 	wxString AddressString = m_pEditAddress->GetLineText(0);
 	u32 Address = 0;
-	if (AsciiToHex(AddressString.GetData(), Address))
+	if (AsciiToHex(AddressString.mb_str(), Address))
 	{
 		CBreakPoints::AddBreakPoint(Address);
 		Close();

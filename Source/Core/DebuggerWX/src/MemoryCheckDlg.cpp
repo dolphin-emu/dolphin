@@ -88,8 +88,8 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& /*event*/)
 	bool OnWrite = m_pWriteFlag->GetValue();
 
 	u32 StartAddress, EndAddress;
-	if (AsciiToHex(StartAddressString.GetData(), StartAddress) &&
-		AsciiToHex(EndAddressString.GetData(), EndAddress))
+	if (AsciiToHex(StartAddressString.mb_str(), StartAddress) &&
+		AsciiToHex(EndAddressString.mb_str(), EndAddress))
 	{
 		TMemCheck MemCheck;
 		MemCheck.StartAddress = StartAddress;
