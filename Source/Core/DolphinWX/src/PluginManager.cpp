@@ -84,9 +84,9 @@ CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 			}
 
 			wxString msg;
-			wxString temp;
-			temp = wxString::FromAscii("Scanning %s");
-			msg.Printf(temp, FileName.c_str());
+			char temp[128];
+			sprintf(temp,"Scanning %s", FileName.c_str());
+			msg = wxString::FromAscii(temp);
 			bool Cont = dialog.Update((int)i, msg);
 
 			if (!Cont)

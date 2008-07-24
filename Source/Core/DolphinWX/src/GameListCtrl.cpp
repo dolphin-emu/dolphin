@@ -286,9 +286,9 @@ CGameListCtrl::ScanForISOs()
 			SplitPath(rFilenames[i], NULL, &FileName, NULL);
 
 			wxString msg;
-			wxString tempstring;
-			tempstring = wxString::FromAscii("Scanning %s");
-			msg.Printf(tempstring, FileName.c_str());
+			char tempstring[128];
+			sprintf(tempstring,"Scanning %s", FileName.c_str());
+			msg = wxString::FromAscii(tempstring);
 
 			bool Cont = dialog.Update(i, msg);
 
