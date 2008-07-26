@@ -54,9 +54,16 @@ void AboutBox::CreateGUIControls()
 {
 	SetTitle(wxT("About: nJoy Input Plugin"));
 	SetIcon(wxNullIcon);
-	SetSize(8,8,200,399);
+	//SetSize(8,8,200,399);
+	SetClientSize(200,376);
 	Center();
-	
+
+#ifndef _WIN32
+	// Force a 8pt font so that it looks more or less "correct" regardless of the default font setting
+	wxFont f(8,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
+	SetFont(f);
+#endif
+
 	m_thankyoutext = new wxStaticText(this, ID_THANKYOU, wxT(THANKYOU), wxPoint(18,196), wxDefaultSize, 0, wxT(THANKYOU));
 	m_thankyoutext->Wrap(167);
 	
@@ -64,7 +71,7 @@ void AboutBox::CreateGUIControls()
 
 	m_pluginversion = new wxStaticText(this, ID_PLUGINVERSION, wxT("nJoy v"INPUT_VERSION" by Falcon4ever\n" "Release: "RELDAY"/"RELMONTH"/"RELYEAR"\n" "www.multigesture.net"), wxPoint(18,80), wxDefaultSize, 0, wxT("nJoy v"INPUT_VERSION" by Falcon4ever\n" "Release: "RELDAY"/"RELMONTH"/"RELYEAR"\n" "www.multigesture.net"));
 
-	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(108,343), wxSize(75,25), 0, wxDefaultValidator, wxT("OK"));
+	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(116,343), wxSize(75,25), 0, wxDefaultValidator, wxT("OK"));
 
 	m_version = new wxStaticText(this, ID_STATUSV, wxT("PUBLIC RELEASE"), wxPoint(14,349), wxDefaultSize, 0, wxT("PUBLIC RELEASE"));
 
