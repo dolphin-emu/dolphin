@@ -29,11 +29,19 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
+// Set this if you want to use the new wxWidgets GUI
+#define USE_WXWIDGETS
+
+
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS
 
 #define WIN32_LEAN_AND_MEAN
 #include <tchar.h>
+#endif
+
+#ifdef USE_WXWIDGETS
+#include "GUI/AboutBox.h"
 #endif
 
 #include <vector>

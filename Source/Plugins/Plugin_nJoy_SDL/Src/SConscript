@@ -1,6 +1,7 @@
 Import('env')
 output = "../../../../Binary/linux/Plugins/Plugin_nJoy_SDL.so"
-files = ["nJoy.cpp"
-		 ]
-padenv=env.Copy(CXXFLAGS = " `pkg-config --cflags sdl`", LINKFLAGS = " `pkg-config --libs sdl`")
+files = [	"nJoy.cpp",
+			"GUI/AboutDlg.cpp",
+	 ]
+padenv=env.Copy(CXXFLAGS = " `wx-config --cppflags` `pkg-config --cflags sdl`", LINKFLAGS = "`wx-config --libs` `pkg-config --libs sdl` ")
 padenv.SharedLibrary(output, files, LIBS=["common"])

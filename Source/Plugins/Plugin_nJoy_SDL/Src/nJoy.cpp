@@ -43,6 +43,22 @@ CONTROLLER_MAPPING joysticks[4];
 bool emulator_running = FALSE;
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// wxWidgets
+// ¯¯¯¯¯¯¯¯¯
+#ifdef USE_WXWIDGETS
+class wxDLLApp : public wxApp
+{
+	bool OnInit()
+	{
+		return true;
+	}
+};
+
+IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+#endif
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // DllMain 
 // ¯¯¯¯¯¯¯
 #ifdef _WIN32
@@ -51,6 +67,31 @@ BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 						LPVOID lpvReserved)	// reserved
 {
 	InitCommonControls();
+
+	#ifdef USE_WXWIDGETS
+	switch (dwReason)
+	{
+		case DLL_PROCESS_ATTACH:
+		{       
+			//use wxInitialize() if you don't want GUI instead of the following 12 lines
+			wxSetInstance((HINSTANCE)hinstDLL);
+			int argc = 0;
+			char **argv = NULL;
+			wxEntryStart(argc, argv);
+
+			if ( !wxTheApp || !wxTheApp->CallOnInit() )
+				return FALSE;
+		}
+		break; 
+
+		case DLL_PROCESS_DETACH:		
+			wxEntryCleanup(); //use wxUninitialize() if you don't want GUI 
+		break;
+
+		default:
+			break;
+	}
+	#endif
 
 	nJoy_hInst = hinstDLL;	
 	return TRUE;
@@ -79,9 +120,27 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllAbout(HWND _hParent)
 {
-	#ifdef _WIN32
-	OpenAbout(nJoy_hInst, _hParent);
-	#endif
+	#ifdef USE_WXWIDGETS
+		#ifdef _WIN32
+		wxWindow win;
+		win.SetHWND((WXHWND)_hParent);
+		win.Enable(false);  
+		
+		AboutBox frame(&win);
+		frame.ShowModal();
+
+		win.Enable(true);
+		win.SetHWND(0); 
+
+		#else
+			AboutBox frame(NULL);
+			frame.ShowModal();
+		#endif
+	#else
+		#ifdef _WIN32
+			OpenAbout(nJoy_hInst, _hParent);
+		#endif
+	#endif	
 }
 
 // Call config dialog
