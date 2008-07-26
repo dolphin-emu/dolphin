@@ -54,38 +54,30 @@ void AboutBox::CreateGUIControls()
 {
 	SetTitle(wxT("About: nJoy Input Plugin"));
 	SetIcon(wxNullIcon);
-	SetSize(8,8,206,399);
+	SetSize(8,8,200,399);
 	Center();
 	
 	m_thankyoutext = new wxStaticText(this, ID_THANKYOU, wxT(THANKYOU), wxPoint(18,196), wxDefaultSize, 0, wxT(THANKYOU));
-	m_thankyoutext->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 	m_thankyoutext->Wrap(167);
 	
 	m_specialthanks = new wxStaticText(this, ID_SPECIALTHANKS, wxT("F|RES and ector."), wxPoint(18,153), wxDefaultSize, 0, wxT("F|RES and ector."));
-	m_specialthanks->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	m_pluginversion = new wxStaticText(this, ID_PLUGINVERSION, wxT("nJoy v"INPUT_VERSION" by Falcon4ever\n" "Release: "RELDAY"/"RELMONTH"/"RELYEAR"\n" "www.multigesture.net"), wxPoint(18,80), wxDefaultSize, 0, wxT("nJoy v"INPUT_VERSION" by Falcon4ever\n" "Release: "RELDAY"/"RELMONTH"/"RELYEAR"\n" "www.multigesture.net"));
-	m_pluginversion->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
-	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(108,337), wxSize(75,25), 0, wxDefaultValidator, wxT("OK"));
-	m_OK->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
+	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(108,343), wxSize(75,25), 0, wxDefaultValidator, wxT("OK"));
 
-	m_version = new wxStaticText(this, ID_STATUSV, wxT("PUBLIC RELEASE"), wxPoint(14,343), wxDefaultSize, 0, wxT("PUBLIC RELEASE"));
-	m_version->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
+	m_version = new wxStaticText(this, ID_STATUSV, wxT("PUBLIC RELEASE"), wxPoint(14,349), wxDefaultSize, 0, wxT("PUBLIC RELEASE"));
 
-	m_thankyougroup = new wxStaticBox(this, IDG_THANKYOU, wxT("Greetings to:"), wxPoint(10,180), wxSize(180,154));
-	m_thankyougroup->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
+	m_thankyougroup = new wxStaticBox(this, IDG_THANKYOU, wxT("Greetings to:"), wxPoint(10,180), wxSize(180,160));
 
 	m_specialthanksgroup = new wxStaticBox(this, IDG_SPECIALTHANKS, wxT("Special thanks to:"), wxPoint(10,135), wxSize(180,39));
-	m_specialthanksgroup->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
+
 
 	m_pluginversiongroup = new wxStaticBox(this, IDG_PLUGINVERSION, wxT("Plugin info:"), wxPoint(10,61), wxSize(180,68));
-	m_pluginversiongroup->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 
 	wxBitmap WxStaticBitmap1_BITMAP(AboutBox_WxStaticBitmap1_XPM);
 	m_njoylogo = new wxStaticBitmap(this, ID_AWESOMEPICTURE, WxStaticBitmap1_BITMAP, wxPoint(-1,-2), wxSize(200,60));
 	m_njoylogo->Enable(false);
-	m_njoylogo->SetFont(wxFont(8, wxSWISS, wxNORMAL,wxNORMAL, false, wxT("Tahoma")));
 }
 
 void AboutBox::OnClose(wxCloseEvent& /*event*/)
