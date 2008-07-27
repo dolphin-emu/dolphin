@@ -5,6 +5,7 @@ files = ["DSPHandler.cpp",
          "main.cpp",
 		 "Config.cpp",
 		 "Globals.cpp",
+		 "PCHW/AOSoundStream.cpp",
 		 "PCHW/Mixer.cpp",
          "UCodes/UCode_AX.cpp",
          "UCodes/UCode_CARD.cpp",
@@ -14,4 +15,5 @@ files = ["DSPHandler.cpp",
          "UCodes/UCodes.cpp",
          "UCodes/UCode_Zelda.cpp",
 		 ]
-env.SharedLibrary("../../../../Binary/linux/Plugins/dsphle.so", files, LIBS = ["common"])
+dspenv=env.Copy(LINKFLAGS = "`pkg-config --libs ao` ")
+dspenv.SharedLibrary("../../../../Binary/linux/Plugins/dsphle.so", files, LIBS = ["common"])

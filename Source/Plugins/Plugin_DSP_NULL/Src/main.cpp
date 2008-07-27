@@ -24,7 +24,7 @@
 #include "AboutDlg.h"
 #include "ConfigDlg.h"
 #else
-// TODO
+#include "PCHW/AOSoundStream.h"
 #endif
 
 #include "PCHW/Mixer.h"
@@ -110,6 +110,8 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 
 #ifdef _WIN32
 	DSound::DSound_StartSound((HWND)g_dspInitialize.hWnd, g_Config.m_SampleRate, Mixer);
+#else
+	AOSound::AOSound_StartSound(g_Config.m_SampleRate, Mixer);
 #endif
 }
 
@@ -119,6 +121,8 @@ void DSP_Shutdown()
 	// delete the UCodes
 #ifdef _WIN32
 	DSound::DSound_StopSound();
+#else
+	AOSound::AOSound_StopSound();
 #endif
 	CDSPHandler::Destroy();
 }
