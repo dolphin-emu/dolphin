@@ -94,8 +94,10 @@ Common::Event emuThreadGoing;
 // Called from GUI thread
 bool Init(const SCoreStartupParameter _CoreParameter)
 {
-	if (g_pThread != NULL)
+	if (g_pThread != NULL) {
+		PanicAlert("ERROR: Emu Thread already running. Report this bug.");
 		return false;
+	}
 
 	LogManager::Init();	
 	Host_SetWaitCursor(true);
@@ -330,7 +332,7 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	HW::Shutdown();
 
-	LOG(MASTER_LOG,"EmuThread exited");
+	LOG(MASTER_LOG, "EmuThread exited");
 	//The CPU should return when a game is stopped and cleanup should be done here, 
 	//so we can restart the plugins (or load new ones) for the next game
 

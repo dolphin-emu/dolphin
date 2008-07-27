@@ -74,20 +74,20 @@ namespace Gen
 	inline void Write16(u16 value)
 	{
 		*(u16*)code = value;
-		code+=2;
+		code += 2;
 	}
 
 	inline void Write32(u32 value)
 	{
 		*(u32*)code = value;
-		code+=4;
+		code += 4;
 	}
 
 	inline void Write64(u64 value)
 	{
 		_dbg_assert_msg_(DYNA_REC,!mode32,"!mode32");
 		*(u64*)code = value;
-		code+=8;
+		code += 8;
 	}
 
 	void WriteModRM( int mod, int rm, int reg )
@@ -99,7 +99,6 @@ namespace Gen
 	{
 		Write8((u8)((scale << 6) | ((index & 7) << 3) | (base & 7)));
 	}
-	
 
 	void OpArg::WriteRex(bool op64, int customOp) const
 	{
@@ -1198,7 +1197,6 @@ namespace Gen
 
 	void PMOVMSKB(X64Reg dest, OpArg arg)    {WriteSSEOp(64, 0xD7, true, dest, arg); }
 
-	
 	// Prefixes
 
 	void LOCK() { Write8(0xF0); }

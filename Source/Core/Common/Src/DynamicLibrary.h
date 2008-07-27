@@ -21,6 +21,8 @@
 #include <windows.h>
 #endif
 
+#include <string>
+
 class DynamicLibrary
 {
 	public:
@@ -35,7 +37,7 @@ class DynamicLibrary
 
 
 	private:
-
+		std::string library_file;
 #ifdef _WIN32
 		HINSTANCE library;
 #else

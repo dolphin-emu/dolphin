@@ -2,6 +2,8 @@
 #include "FileUtil.h"
 #ifdef _WIN32
 #include <shellapi.h>
+#else
+#include <sys/stat.h>
 #endif
 
 bool File::Exists(const std::string &filename)
@@ -9,7 +11,9 @@ bool File::Exists(const std::string &filename)
 #ifdef _WIN32
 	return GetFileAttributes(filename.c_str()) != INVALID_FILE_ATTRIBUTES;
 #else
-	return true; //TODO
+	struct stat file_info;
+	int result = stat(filename.c_str(), &file_info);
+	return result == 0;
 #endif
 }
 
@@ -17,14 +21,16 @@ bool File::IsDirectory(const std::string &filename) {
 #ifdef _WIN32
 	return (GetFileAttributes(filename.c_str()) & FILE_ATTRIBUTE_DIRECTORY) != 0;
 #else
-	return false; //TODO
+	// TODO: Insert POSIX code here.
+	return false;
 #endif
 }
 
 std::string SanitizePath(const std::string &filename) {
 	std::string copy = filename;
 	for (int i = 0; i < copy.size(); i++)
-		if (copy[i] == '/') copy[i] = '\\';
+		if (copy[i] == '/')
+			copy[i] = '\\';
 	return copy;
 }
 
@@ -38,6 +44,8 @@ void File::Launch(const std::string &filename)
 	shex.lpFile = win_filename.c_str();
 	shex.nShow = SW_SHOWNORMAL;
 	ShellExecuteEx(&shex);
+#else
+	// TODO: Insert GNOME/KDE code here.
 #endif
 }
 
@@ -51,6 +59,8 @@ void File::Explore(const std::string &path)
 	shex.lpFile = win_path.c_str();
 	shex.nShow = SW_SHOWNORMAL;
 	ShellExecuteEx(&shex);
+#else
+	// TODO: Insert GNOME/KDE code here.
 #endif
 }
 
@@ -59,19 +69,16 @@ bool File::CreateDir(const std::string &path)
 {
 #ifdef _WIN32
 	if (::CreateDirectory(path.c_str(), NULL))
+		return true;
+	DWORD error = GetLastError();
+	if (error == ERROR_ALREADY_EXISTS)
 	{
+		PanicAlert("%s already exists", path.c_str());
 		return true;
 	}
-	else
-	{
-		DWORD error = GetLastError();
-		if (error == ERROR_ALREADY_EXISTS)
-		{
-			PanicAlert("%s already exists", path.c_str());
-			return true;
-		}
-		PanicAlert("Error creating directory: %i", error);
-		return false;
-	}
+	PanicAlert("Error creating directory: %i", error);
+	return false;
+#else
+	// TODO: Insert POSIX code here.
 #endif
 }

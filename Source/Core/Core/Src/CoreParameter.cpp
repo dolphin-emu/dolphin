@@ -17,6 +17,7 @@
 
 #include "Common.h"
 #include "Boot/Boot.h"
+#include "FileUtil.h"
 #include "StringUtil.h"
 #include "CoreParameter.h"
 #include "VolumeCreator.h"
@@ -142,6 +143,10 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
     m_strMemoryCardA = BaseDataPath + "/MemoryCardA.raw";
     m_strMemoryCardB = BaseDataPath + "/MemoryCardB.raw";
     m_strSRAM = BaseDataPath + "/SRAM.raw";
+	if (!File::Exists(m_strBios)) {
+		LOG(BOOT, "BIOS file %s not found - using HLE.", m_strBios.c_str());
+		bHLEBios = true;
+	}
 
 	return true;
 }

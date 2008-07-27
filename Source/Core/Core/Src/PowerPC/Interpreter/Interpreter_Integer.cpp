@@ -512,8 +512,7 @@ void CInterpreter::mulhwux(UGeckoInstruction _inst)
 {
 	u32 a = m_GPR[_inst.RA];
 	u32 b = m_GPR[_inst.RB];
-	u32 d;
-	d = (u32)(((u64)a * (u64)b) >> 32);
+	u32 d = (u32)(((u64)a * (u64)b) >> 32);
 	m_GPR[_inst.RD] = d;
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 }
@@ -522,8 +521,7 @@ void CInterpreter::mullwx(UGeckoInstruction _inst)
 {
 	u32 a = m_GPR[_inst.RA];
 	u32 b = m_GPR[_inst.RB];
-	u32 d;
-	d = (u32)((s32)a * (s32)b);
+	u32 d = (u32)((s32)a * (s32)b);
 	m_GPR[_inst.RD] = d;
 
 	if (_inst.OE) PanicAlert("OE: mullwx");

@@ -394,15 +394,6 @@ void CInterpreter::lswx(UGeckoInstruction _inst)
 	bFirst = false;
 }
 
-void CInterpreter::lwarx(UGeckoInstruction _inst)
-{
-	m_GPR[_inst.RD] = Memory::Read_U32(Helper_Get_EA_X(_inst));
-	//static bool bFirst = true;
-	//if (bFirst)
-	//	MessageBox(NULL, "lwarx", "Instruction unimplemented", MB_OK);
-	//bFirst = false;
-}
-
 void CInterpreter::lwbrx(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RD] = Common::swap32(Memory::Read_U32(Helper_Get_EA_X(_inst)));
@@ -594,12 +585,28 @@ void CInterpreter::stwbrx(UGeckoInstruction _inst)
 	Memory::Write_U32(Common::swap32(m_GPR[_inst.RS]), uAddress);
 }
 
+
+// The following two instructions are for inter-cpu communications. On a single CPU, they cannot
+// fail unless an interrupt happens in between, which usually won't happen with the JIT, so we just pretend 
+// they are regular loads and stores for now. If this proves to be a problem, we could add a reservation flag.
+void CInterpreter::lwarx(UGeckoInstruction _inst)
+{
+	m_GPR[_inst.RD] = Memory::Read_U32(Helper_Get_EA_X(_inst));
+	//static bool bFirst = true;
+	//if (bFirst)
+	//	MessageBox(NULL, "lwarx", "Instruction unimplemented", MB_OK);
+	//bFirst = false;
+}
+
 void CInterpreter::stwcxd(UGeckoInstruction _inst)
 {
+	// This instruction, to
 	static bool bFirst = true;
 	if (bFirst)
-		PanicAlert("stwcxd - Instruction unimplemented");
+		PanicAlert("stwcxd - suspicious instruction");
 	bFirst = false;
+	u32 uAddress = Helper_Get_EA_X(_inst);
+	Memory::Write_U32(m_GPR[_inst.RS], uAddress);
 }
 
 void CInterpreter::stwux(UGeckoInstruction _inst)

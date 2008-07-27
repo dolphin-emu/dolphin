@@ -24,6 +24,7 @@
 #endif
 
 #include "Common.h"
+#include "StringUtil.h"
 #include "DynamicLibrary.h"
 
 DynamicLibrary::DynamicLibrary()
@@ -31,6 +32,29 @@ DynamicLibrary::DynamicLibrary()
 	library = 0;
 }
 
+#ifdef _WIN32
+std::string GetLastErrorAsString()
+{
+	LPVOID lpMsgBuf = 0;
+	DWORD error = GetLastError();
+	FormatMessage( 
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+		NULL,
+		error,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+		(LPTSTR) &lpMsgBuf,
+		0, NULL);
+	std::string s;
+	if (lpMsgBuf)
+	{
+		s = ((char *)lpMsgBuf);
+		LocalFree(lpMsgBuf);
+	} else {
+		s = StringFromFormat("(unknown error %08x)", error);
+	}
+	return s;
+}
+#endif
 
 bool DynamicLibrary::Load(const char* filename)
 {
@@ -48,6 +72,9 @@ bool DynamicLibrary::Load(const char* filename)
 
 #ifdef _WIN32
 	library = LoadLibrary(filename);
+	if (!library) {
+		//PanicAlert("Error loading DLL %s: %s", filename, GetLastErrorAsString().c_str());
+	}
 #else
 	library = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
 
@@ -55,12 +82,10 @@ bool DynamicLibrary::Load(const char* filename)
 	{
 		PanicAlert(dlerror());
 	}
-	else
-	{
-		printf("Successfully loaded %s", filename);
-	}
 #endif
-
+	if (library) {
+		library_file = filename;
+	}
 	return(library != 0);
 }
 
@@ -86,11 +111,14 @@ void* DynamicLibrary::Get(const char* funcname) const
 {
 	void* retval;
 #ifdef _WIN32
+	if (!library)
+	{
+		PanicAlert("Can't find function %s - Library not loaded.");
+	}
 	retval = GetProcAddress(library, funcname);
-
 	if (!retval)
 	{
-		// PanicAlert("Did not find function %s in DLL", funcname);
+		PanicAlert("Did not find function %s in library %s.", funcname, library_file.c_str());
 	}
 
 	return(retval);
@@ -103,7 +131,6 @@ void* DynamicLibrary::Get(const char* funcname) const
 		printf("%s\n", dlerror());
 	}
 #endif
-
 }
 
 
