@@ -30,6 +30,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // whole file... until we fix the GUI
+#ifndef USE_WXWIDGETS
 #ifdef _WIN32
 
 #include <windows.h>    // includes basic windows functionality
@@ -38,8 +39,6 @@
 #include <commctrl.h>   // includes the common control header
 
 #include "../Res/resource.h"	// includes GUI IDs
-
-#pragma comment(lib, "comctl32.lib")
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Config dialog functions
@@ -71,4 +70,5 @@ void SetButton(HWND hDlg, int item, int value);
 void OpenAbout(HINSTANCE hInst, HWND _hParent);
 BOOL CALLBACK AboutDlg(HWND abouthWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
+#endif
 #endif

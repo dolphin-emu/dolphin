@@ -64,6 +64,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="rpcrt4.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\$(ProjectName)d.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32"
@@ -221,6 +222,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="rpcrt4.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\$(ProjectName).dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32"
@@ -380,6 +382,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="rpcrt4.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\$(ProjectName)df.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32"
@@ -558,6 +561,14 @@
 			</File>
 			<File
 				RelativePath=".\Src\GUI\AboutBox.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\GUI\ConfigBox.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\GUI\ConfigBox.h"
 				>
 			</File>
 		</Filter>

@@ -30,9 +30,12 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // whole file... until we fix the GUI
-#ifdef _WIN32	
+	
 
 #include "nJoy.h"
+
+#ifndef USE_WXWIDGETS
+#ifdef _WIN32
 
 extern CONTROLLER_INFO	*joyinfo;
 extern CONTROLLER_MAPPING joysticks[4];
@@ -616,4 +619,5 @@ BOOL CALLBACK AboutDlg(HWND abouthWnd, UINT message, WPARAM wParam, LPARAM lPara
 
     return FALSE;
 }
+#endif
 #endif

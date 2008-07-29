@@ -66,7 +66,7 @@ BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 						DWORD dwReason,		// reason called
 						LPVOID lpvReserved)	// reserved
 {
-	InitCommonControls();
+	
 
 	#ifdef USE_WXWIDGETS
 	switch (dwReason)
@@ -91,6 +91,8 @@ BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 		default:
 			break;
 	}
+	#else
+	InitCommonControls();
 	#endif
 
 	nJoy_hInst = hinstDLL;	
@@ -147,20 +149,55 @@ void DllAbout(HWND _hParent)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllConfig(HWND _hParent)
 {
-	#ifdef _WIN32
-	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
-	{
-		MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
-		return;
-	}
 
-	LoadConfig();	// load settings
-	if(OpenConfig(nJoy_hInst, _hParent))
-	{
-		SaveConfig();
-	}
-	LoadConfig();	// reload settings
-	#endif
+	#ifdef USE_WXWIDGETS		
+		#ifdef _WIN32
+		if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
+		{
+			MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
+			return;
+		}
+
+		LoadConfig();	// load settings
+
+		wxWindow win;
+		win.SetHWND((WXHWND)_hParent);
+		win.Enable(false);  
+		
+		ConfigBox frame(&win);
+		frame.ShowModal();
+
+		win.Enable(true);
+		win.SetHWND(0); 
+
+		#else
+		if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
+		{
+			printf("Could not initialize SDL! (%s)\n", SDL_GetError());
+			return;
+		}
+
+		LoadConfig();	// load settings
+
+		ConfigBox frame(NULL);
+		frame.ShowModal();
+		#endif		
+	#else
+		#ifdef _WIN32
+		if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
+		{
+			MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
+			return;
+		}
+
+		LoadConfig();	// load settings
+		if(OpenConfig(nJoy_hInst, _hParent))
+		{
+			SaveConfig();
+		}
+		LoadConfig();	// reload settings
+		#endif
+	#endif	
 }
 
 // Init PAD (start emulation)

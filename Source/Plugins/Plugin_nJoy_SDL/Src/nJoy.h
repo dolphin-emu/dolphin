@@ -32,7 +32,6 @@
 // Set this if you want to use the new wxWidgets GUI
 #define USE_WXWIDGETS
 
-
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS
 
@@ -40,23 +39,32 @@
 #include <tchar.h>
 #endif
 
-#ifdef USE_WXWIDGETS
-#include "GUI/AboutBox.h"
-#endif
-
 #include <vector>
 #include <stdio.h>
 #include <time.h>
 #include <SDL.h>		// includes SDL
 
-#include "Common.h"
+#ifdef _WIN32
+#define SLEEP(x) Sleep(x)
+#else
+#include <unistd.h>
+#define SLEEP(x) usleep(x*1000)
+#endif
 
-#include "pluginspecs_pad.h"
+#ifdef USE_WXWIDGETS
+#include "GUI/AboutBox.h"
+#include "GUI/ConfigBox.h"
+#else
 #include "config.h"
+#endif
+
+#include "Common.h"
+#include "pluginspecs_pad.h"
 #include "IniFile.h"
 
 #ifdef _WIN32
 #pragma comment(lib, "SDL.lib")
+#pragma comment(lib, "comctl32.lib")
 #endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
