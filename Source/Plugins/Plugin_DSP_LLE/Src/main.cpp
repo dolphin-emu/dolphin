@@ -29,6 +29,16 @@ HINSTANCE g_hInstance = NULL;
 HANDLE g_hDSPThread = NULL;
 CRITICAL_SECTION g_CriticalSection;
 CDisAsmDlg g_Dialog;
+#else
+#define WINAPI
+#define LPVOID void*
+#define __int16 short;
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <pthread.h>
+#include "AOSoundStream.h"
+pthread_t g_hDSPThread = NULL;
 #endif
 
 DSPInitialize g_dspInitialize;
@@ -39,7 +49,7 @@ DSPInitialize g_dspInitialize;
 
 uint32 g_LastDMAAddress = 0;
 uint32 g_LastDMASize = 0;
-
+#ifdef _WIN32
 BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
 		DWORD dwReason,             // reason called
 		LPVOID lpvReserved)         // reserved
@@ -59,7 +69,7 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
 	g_hInstance = hinstDLL;
 	return(TRUE);
 }
-
+#endif
 
 void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
@@ -95,8 +105,11 @@ void DllDebugger(HWND _hParent)
 
 }
 
-
+#ifdef _WIN32
 DWORD WINAPI dsp_thread(LPVOID lpParameter)
+#else
+void* dsp_thread(void* lpParameter)
+#endif
 {
 	while (1)
 	{
@@ -112,6 +125,7 @@ DWORD WINAPI dsp_thread(LPVOID lpParameter)
 
 DWORD WINAPI dsp_thread_debug(LPVOID lpParameter)
 {
+#ifdef _WIN32
 	while (1)
 	{
 		if (g_Dialog.CanDoStep())
@@ -123,6 +137,7 @@ DWORD WINAPI dsp_thread_debug(LPVOID lpParameter)
 			Sleep(100);
 		}
 	}
+#endif
 }
 
 
@@ -175,19 +190,23 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
    	fclose(t);  */
 	}
 
-
+#ifdef _WIN32
 #if _DEBUG
 	g_hDSPThread = CreateThread(NULL, 0, dsp_thread_debug, 0, 0, NULL);
-
 #else
 	g_hDSPThread = CreateThread(NULL, 0, dsp_thread, 0, 0, NULL);
 #endif
+#else
+	pthread_create(&g_hDSPThread, NULL, dsp_thread, (void *)NULL);
+#endif
 
 
-
-	InitializeCriticalSection(&g_CriticalSection);
-
-	DSound::DSound_StartSound((HWND)g_dspInitialize.hWnd, 32000, Mixer);
+	#ifdef _WIN32
+		InitializeCriticalSection(&g_CriticalSection);
+		DSound::DSound_StartSound((HWND)g_dspInitialize.hWnd, 32000, Mixer);
+	#else
+		AOSound::AOSound_StartSound(32000, Mixer);
+	#endif
 }
 
 
@@ -195,25 +214,38 @@ void DSP_Shutdown(void)
 {
 	if (g_hDSPThread != NULL)
 	{
+		#ifdef _WIN32
 		TerminateThread(g_hDSPThread, 0);
+		#else
+			pthread_cancel(g_hDSPThread);
+		#endif
 	}
 }
 
-
+#ifdef _WIN32
 unsigned __int16 DSP_WriteControlRegister(unsigned __int16 _uFlag)
+#else
+short unsigned int DSP_WriteControlRegister(short _uFlag)
+#endif 
 {
 	gdsp_write_cr(_uFlag);
 	return(gdsp_read_cr());
 }
 
-
+#ifdef _WIN32
 unsigned __int16 DSP_ReadControlRegister()
+#else
+short unsigned int DSP_ReadControlRegister()
+#endif
 {
 	return(gdsp_read_cr());
 }
 
-
+#ifdef _WIN32
 unsigned __int16 DSP_ReadMailboxHigh(bool _CPUMailbox)
+#else
+short unsigned int DSP_ReadMailboxHigh(bool _CPUMailbox)
+#endif
 {
 	if (_CPUMailbox)
 	{
@@ -225,8 +257,11 @@ unsigned __int16 DSP_ReadMailboxHigh(bool _CPUMailbox)
 	}
 }
 
-
+#ifdef _WIN32
 unsigned __int16 DSP_ReadMailboxLow(bool _CPUMailbox)
+#else
+short unsigned int DSP_ReadMailboxLow(bool _CPUMailbox)
+#endif
 {
 	if (_CPUMailbox)
 	{
@@ -238,8 +273,11 @@ unsigned __int16 DSP_ReadMailboxLow(bool _CPUMailbox)
 	}
 }
 
-
+#ifdef _WIN32
 void DSP_WriteMailboxHigh(bool _CPUMailbox, unsigned __int16 _uHighMail)
+#else
+void DSP_WriteMailboxHigh(bool _CPUMailbox, short unsigned int _uHighMail)
+#endif
 {
 	if (_CPUMailbox)
 	{
@@ -256,8 +294,11 @@ void DSP_WriteMailboxHigh(bool _CPUMailbox, unsigned __int16 _uHighMail)
 	}
 }
 
-
+#ifdef _WIN32
 void DSP_WriteMailboxLow(bool _CPUMailbox, unsigned __int16 _uLowMail)
+#else
+void DSP_WriteMailboxLow(bool _CPUMailbox, short unsigned int _uLowMail)
+#endif
 {
 	if (_CPUMailbox)
 	{
@@ -278,15 +319,19 @@ void DSP_Update()
 	{
 		return;
 	}
-
+	#ifdef _WIN32
 	if (g_Dialog.CanDoStep())
 	{
 		gdsp_runx(100);
 	}
+	#endif
 }
 
-
+#ifdef _WIN32
 void DSP_SendAIBuffer(unsigned __int32 _Address, unsigned __int32 _Size)
+#else
+void DSP_SendAIBuffer(unsigned int _Address, unsigned int _Size)
+#endif
 {
 	uint32 Size = _Size * 16 * 2; // 16bit per sample, two channels
 

@@ -1,6 +1,7 @@
 Import('env')
 output = "../../../../Binary/linux/Plugins/dsplle.so"
-files = ["disassemble.cpp",
+files = ["AOSoundStream.cpp",
+		 "disassemble.cpp",
 		 "gdsp_aram.cpp",
 		 "gdsp_ext_op.cpp",
          "gdsp_interface.cpp",
@@ -11,6 +12,7 @@ files = ["disassemble.cpp",
          "Globals.cpp",
          "opcodes.cpp",
          "Tools.cpp",
+         "main.cpp",
 		 ]
-#env.Append(LINKFLAGS = "-symbolic")
+env.Append(LINKFLAGS = " `pkg-config --libs ao`")
 env.SharedLibrary(output, files, LIBS = ["common"])

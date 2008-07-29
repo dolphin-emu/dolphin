@@ -139,12 +139,12 @@ CGameListCtrl::Update()
 	Show();
 }
 
-
+#ifdef _WIN32
 wxColour blend50(const wxColour& c1, const wxColour& c2)
 {
 	return(((c1.GetPixel() & 0xFEFEFE) >> 1) + ((c2.GetPixel() & 0xFEFEFE) >> 1) + 0x010101);
 }
-
+#endif
 
 wxString NiceSizeFormat(s64 _size)
 {
