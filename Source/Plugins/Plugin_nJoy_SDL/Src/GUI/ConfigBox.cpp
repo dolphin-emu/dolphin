@@ -130,23 +130,23 @@ void ConfigBox::CreateGUIControls()
 	{
 		for(int x = 0; x < SDL_NumJoysticks(); x++)
 		{
-			arrayStringFor_Joyname.Add(joyinfo[x].Name);
+			arrayStringFor_Joyname.Add(wxString::FromAscii(joyinfo[x].Name));
 		}
 	}
 	else
 	{
-		arrayStringFor_Joyname.Add("No Joystick detected!");
+		arrayStringFor_Joyname.Add(wxString::FromAscii("No Joystick detected!"));
 	}
 
-	arrayStringFor_Controltype.Add(ControllerType[CTL_TYPE_JOYSTICK]);
-	arrayStringFor_Controltype.Add(ControllerType[CTL_TYPE_JOYSTICK_NO_HAT]);
-	arrayStringFor_Controltype.Add(ControllerType[CTL_TYPE_KEYBOARD]);
+	arrayStringFor_Controltype.Add(wxString::FromAscii(ControllerType[CTL_TYPE_JOYSTICK]));
+	arrayStringFor_Controltype.Add(wxString::FromAscii(ControllerType[CTL_TYPE_JOYSTICK_NO_HAT]));
+	arrayStringFor_Controltype.Add(wxString::FromAscii(ControllerType[CTL_TYPE_KEYBOARD]));
 
 	char buffer [8];
 	for(int x = 1; x <= 100; x++)
 	{		
 		sprintf (buffer, "%d %%", x);
-		arrayStringFor_Deadzone.Add(buffer);
+		arrayStringFor_Deadzone.Add(wxString::FromAscii(buffer));
 	}
 
 	for(int i=0; i<4 ;i++)
@@ -452,103 +452,103 @@ void ConfigBox::SetButtonText(int id, char text[128])
 	{
 		case IDB_SHOULDER_L:
 		{
-			m_JoyShoulderL[controller]->SetValue(wxT(text));
+			m_JoyShoulderL[controller]->SetValue(wxString::FromAscii(text));
 		}
 		break;
 
 		case IDB_SHOULDER_R:
 		{
-			m_JoyShoulderR[controller]->SetValue(wxT(text));
+			m_JoyShoulderR[controller]->SetValue(wxString::FromAscii(text));
 		}
 		break;
 		
 		case IDB_BUTTON_A:
 		{
-			m_JoyButtonA[controller]->SetValue(wxT(text));
+			m_JoyButtonA[controller]->SetValue(wxString::FromAscii(text));
 		}
 		break;
 		
 		case IDB_BUTTON_B:
 		{
-			m_JoyButtonB[controller]->SetValue(wxT(text));
+			m_JoyButtonB[controller]->SetValue(wxString::FromAscii(text));
 		}
 		break;
 
 		case IDB_BUTTON_X:
 		{
-			m_JoyButtonX[controller]->SetValue(wxT(text));
+			m_JoyButtonX[controller]->SetValue(wxString::FromAscii(text));
 		}
 		break;
 
 		case IDB_BUTTON_Y:
 		{
-			m_JoyButtonY[controller]->SetValue(wxT(text));
+			m_JoyButtonY[controller]->SetValue(wxString::FromAscii(text));
 		}
 		break;
 
 		case IDB_BUTTON_Z:
 		{
-			m_JoyButtonZ[controller]->SetValue(wxT(text));
+			m_JoyButtonZ[controller]->SetValue(wxString::FromAscii(text));
 		}
 		break;
 
 		case IDB_BUTTONSTART:
 		{
-			m_JoyButtonStart[controller]->SetValue(wxT(text));
+			m_JoyButtonStart[controller]->SetValue(wxString::FromAscii(text));
 		}
 		break;
 
 		case IDB_BUTTONHALFPRESS:
 		{
-			m_JoyButtonHalfpress[controller]->SetValue(wxT(text));
+			m_JoyButtonHalfpress[controller]->SetValue(wxString::FromAscii(text));
 		}
 		break;
 
 		case IDB_DPAD_UP:
 		{
-			m_JoyDpadUp[controller]->SetValue(wxT(text));
+			m_JoyDpadUp[controller]->SetValue(wxString::FromAscii(text));
 		}
 		break;
 
 		case IDB_DPAD_DOWN:
 		{
-			m_JoyDpadDown[controller]->SetValue(wxT(text));
+			m_JoyDpadDown[controller]->SetValue(wxString::FromAscii(text));
 		}
 		break;
 
 		case IDB_DPAD_LEFT:
 		{
-			m_JoyDpadLeft[controller]->SetValue(wxT(text));
+			m_JoyDpadLeft[controller]->SetValue(wxString::FromAscii(text));
 		}
 		break;
 
 		case IDB_DPAD_RIGHT:
 		{
-			m_JoyDpadRight[controller]->SetValue(wxT(text));
+			m_JoyDpadRight[controller]->SetValue(wxString::FromAscii(text));
 		}
 		break;
 
 		case IDB_ANALOG_MAIN_X:
 		{
-			m_JoyAnalogMainX[controller]->SetValue(wxT(text));
+			m_JoyAnalogMainX[controller]->SetValue(wxString::FromAscii(text));
 		}
 		break;
 
 		case IDB_ANALOG_MAIN_Y:
 		{
-			m_JoyAnalogMainY[controller]->SetValue(wxT(text));
+			m_JoyAnalogMainY[controller]->SetValue(wxString::FromAscii(text));
 		}
 		break;
 
 		case IDB_ANALOG_SUB_X:
 		{
-			m_JoyAnalogSubX[controller]->SetValue(wxT(text));
+			m_JoyAnalogSubX[controller]->SetValue(wxString::FromAscii(text));
 		}
 		break;
 
 		case IDB_ANALOG_SUB_Y:
 		{
-			m_JoyAnalogSubY[controller]->SetValue(wxT(text));
+			m_JoyAnalogSubY[controller]->SetValue(wxString::FromAscii(text));
 		}
 		break;
 
