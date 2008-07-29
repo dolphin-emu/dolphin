@@ -79,12 +79,14 @@ struct SCoreStartupParameter
 	std::string m_strMemoryCardB;
     std::string m_strSRAM;
 	std::string m_strDefaultGCM;
+	std::string m_strUniqueID;
 
 	// 
 	SCoreStartupParameter();
 
 	void LoadDefaults();
 	bool AutoSetup(EBootBios _BootBios);
+	const std::string &GetUniqueID() const { return m_strUniqueID; }
 };
 
 #endif

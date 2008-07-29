@@ -20,6 +20,7 @@
 
 #include "Globals.h"
 #include "Common.h"
+#include "IniFile.h"
 #include "BootManager.h"
 #include "ISOFile.h"
 #include "Volume.h"
@@ -57,11 +58,10 @@ bool BootCore(const std::string& _rFilename)
 		StartUp.bUseDynarec = true;
 	}
 	#ifndef _WIN32
-		StartUp.bUseDynarec = false;//Never use Dynarec in Linux, crashes
+	StartUp.bUseDynarec = false;//Never use Dynarec in Linux, crashes
 	#endif
 	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
 	StartUp.m_strFilename = _rFilename;
-	StartUp.bHLEBios = true;
 	StartUp.bRunCompareClient = false;
 	StartUp.bRunCompareServer = false;
 	StartUp.bEnableDebugging = g_pCodeWindow ? true : false; // RUNNING_DEBUG
@@ -70,8 +70,17 @@ bool BootCore(const std::string& _rFilename)
 	StartUp.hInstance = wxGetInstance();
     #endif
 
-	//
 	StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT);
+
+	// Load overrides
+	IniFile ini;
+	std::string unique_id = StartUp.GetUniqueID();
+	if (unique_id.size() == 6 && ini.Load(("Patches/" + unique_id + ".ini").c_str()))
+	{
+		ini.Get("Core", "UseDualCore", &StartUp.bUseDualCore, StartUp.bUseDualCore);
+		ini.Get("Core", "OptimizeQuantizers", &StartUp.bOptimizeQuantizers, StartUp.bOptimizeQuantizers);
+	}
+
 	StartUp.hMainWindow = main_frame->GetRenderHandle();
 
 	// init the core

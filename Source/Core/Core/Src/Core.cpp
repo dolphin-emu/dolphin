@@ -103,7 +103,6 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 	Host_SetWaitCursor(true);
 
 	g_CoreStartupParameter = _CoreParameter;
-	// Init the Hardware
 
 	// start the thread again
 	_dbg_assert_(HLE, g_pThread == NULL);
