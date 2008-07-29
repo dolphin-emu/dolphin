@@ -116,10 +116,10 @@ void* DynamicLibrary::Get(const char* funcname) const
 		PanicAlert("Can't find function %s - Library not loaded.");
 	}
 	retval = GetProcAddress(library, funcname);
-	if (!retval)
-	{
-		PanicAlert("Did not find function %s in library %s.", funcname, library_file.c_str());
-	}
+	//if (!retval)
+	//{
+		//PanicAlert("Did not find function %s in library %s.", funcname, library_file.c_str());
+	//}
 
 	return(retval);
 
