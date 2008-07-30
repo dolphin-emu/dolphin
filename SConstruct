@@ -30,7 +30,7 @@ if sys.platform == 'darwin':
 #       "Source/Plugins/Plugin_VideoOGL/Src",
 		"Source/Plugins/Plugin_DSP_NULL/Src",
 #		"Source/Plugins/Plugin_DSP_LLE/Src",
-#		"Source/Plugins/Plugin_PadSimple/Src",
+		"Source/Plugins/Plugin_PadSimple/Src",
 		"Source/Plugins/Plugin_nJoy_SDL/Src",
         "Source/Core/DolphinWX/src",
        ]
