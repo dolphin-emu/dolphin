@@ -26,6 +26,10 @@
 #include <stdio.h>
 #endif
 
+#if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
+#define MAP_ANONYMOUS MAP_ANON
+#endif 
+
 // MacOSX does not support MAP_VARIABLE
 #ifndef MAP_VARIABLE
 #define MAP_VARIABLE 0

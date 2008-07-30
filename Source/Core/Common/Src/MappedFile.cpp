@@ -17,7 +17,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#elif __linux__
+#else
 #include <unistd.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
