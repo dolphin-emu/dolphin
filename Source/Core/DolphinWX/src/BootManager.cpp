@@ -57,9 +57,6 @@ bool BootCore(const std::string& _rFilename)
 //		StartUp.bUseDualCore = false;
 		StartUp.bUseDynarec = true;
 	}
-	#ifndef _WIN32
-	StartUp.bUseDynarec = false;//Never use Dynarec in Linux, crashes
-	#endif
 	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
 	StartUp.m_strFilename = _rFilename;
 	StartUp.bRunCompareClient = false;
@@ -68,8 +65,9 @@ bool BootCore(const std::string& _rFilename)
 	std::string BaseDataPath;
     #ifdef _WIN32
 	StartUp.hInstance = wxGetInstance();
-    #endif
-
+    #else
+	StartUp.bUseDynarec = false;
+	#endif
 	StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT);
 
 	// Load overrides

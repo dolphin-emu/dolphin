@@ -25,6 +25,16 @@
 #include "../PPCAnalyst.h"
 #include "JitCache.h"
 
+#ifdef _WIN32
+#define XR_PARAM1 ECX
+#define XR_PARAM2 EDX
+#else
+#define XR_PARAM1 RDI
+#define XR_PARAM2 RSI
+#define XR_PARAM3 RDX
+#define XR_PARAM4 RCX
+#endif
+
 namespace Jit64
 {
 	struct JitStats

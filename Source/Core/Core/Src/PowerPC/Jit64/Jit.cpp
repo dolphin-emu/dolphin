@@ -233,18 +233,18 @@ namespace Jit64
 		if (js.isLastInstruction)
 		{
 			MOV(32, M(&PC), Imm32(js.compilerPC));
-			MOV(32, M(&NPC), Imm32(js.compilerPC+4));
+			MOV(32, M(&NPC), Imm32(js.compilerPC + 4));
 		}
 #ifdef _M_X64
-		MOV(32,R(RCX), Imm32(_inst.hex));
+		MOV(32, R(XR_PARAM1), Imm32(_inst.hex));
 		CInterpreter::_interpreterInstruction instr = GetInterpreterOp(_inst);
 		CALL((void*)instr);
 #elif _M_IX86
-		MOV(32,R(ECX), Imm32(_inst.hex));
+		MOV(32, R(ECX), Imm32(_inst.hex));
 		PUSH(ECX);
 		CInterpreter::_interpreterInstruction instr = GetInterpreterOp(_inst);
 		CALL((void*)instr);
-		ADD(32,R(ESP), Imm8(4));
+		ADD(32, R(ESP), Imm8(4));
 #endif
 	}
 
@@ -257,8 +257,8 @@ namespace Jit64
 	{
 		FlushRegCaches();
 #ifdef _M_X64
-		MOV(32, R(ECX), Imm32(js.compilerPC));
-		MOV(32, R(EDX), Imm32(_inst.hex));
+		MOV(32, R(XR_PARAM1), Imm32(js.compilerPC));
+		MOV(32, R(XR_PARAM2), Imm32(_inst.hex));
 #elif _M_IX86
 		PUSH(32, Imm32(_inst.hex));
 		PUSH(32, Imm32(js.compilerPC));
@@ -361,13 +361,14 @@ namespace Jit64
 		SetJumpTarget(skip);
 
 		const u8 *normalEntry = GetCodePtr();
-		if (ImHereDebug) CALL((void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
+		if (ImHereDebug)
+			CALL((void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
 		
 		if (js.fpa.any)
 		{
 			//This block uses FPU - needs to add FP exception bailout
 			// TODO(ector): change to large J_CC(CC_Z) when verified that it still works
-			TEST(32, M(&PowerPC::ppcState.msr), Imm32(1<<13)); //Test FP bit
+			TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); //Test FP bit
 			FixupBranch b1 = J_CC(CC_NZ);
 			MOV(32, M(&PC), Imm32(js.blockStart));
 			JMP(Asm::fpException, true);
@@ -391,7 +392,8 @@ namespace Jit64
 			js.compilerPC = ops[i].address;
 			js.op = &ops[i];
 			js.instructionNumber = i;
-			if (i == (int)size - 1) js.isLastInstruction = true;
+			if (i == (int)size - 1)
+				js.isLastInstruction = true;
 			PPCTables::CompileInstruction(ops[i].inst);
 			gpr.SanityCheck();
 			fpr.SanityCheck();
