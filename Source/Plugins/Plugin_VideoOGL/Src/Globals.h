@@ -134,9 +134,6 @@ struct RECT
 
 extern int frameCount;
 
-#define NUMWNDRES 6
-extern int g_Res[NUMWNDRES][2];
-
 #define CONF_LOG 1
 #define CONF_PRIMLOG 2
 #define CONF_SAVETEXTURES 4
@@ -149,7 +146,7 @@ struct Config
     void Save();
 
     int iAdapter;
-    int iFSResolution;
+    char iFSResolution[16];
     int iMultisampleMode;
 
     int iPostprocessEffect;
@@ -173,7 +170,7 @@ struct Config
     bool bTruform;
     int iTruformLevel;
 
-    int iWindowedRes;
+    char iWindowedRes[16];
     int aa; // anti-aliasing level
 
     char psProfile[16];

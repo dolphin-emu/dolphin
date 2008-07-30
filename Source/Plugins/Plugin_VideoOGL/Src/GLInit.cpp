@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Globals.h"
+#include "IniFile.h"
 #ifdef _WIN32
 #include "svnrev.h"
 #include "OS\Win32.h"
@@ -93,14 +94,40 @@ void UpdateFPSDisplay(const char *text)
 }
 
 
-bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _width, int _height) 
+bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight) 
 {
+    int _twidth,  _theight;
+    if(g_Config.bFullscreen)
+    {
+        if(strlen(g_Config.iFSResolution) > 1)
+        {
+            sscanf(g_Config.iFSResolution, "%dx%d", &_twidth, &_theight);
+        }
+        else // No full screen reso set, fall back to default reso
+        {
+            _twidth = _iwidth;
+            _theight = _iheight;
+        }
+        
+    }
+    else // Going Windowed
+    {
+        if(strlen(g_Config.iWindowedRes) > 1)
+        {
+            sscanf(g_Config.iWindowedRes, "%dx%d", &_twidth, &_theight);
+        }
+        else // No Window reso set, fall back to default
+        {
+            _twidth = _iwidth;
+            _theight = _iheight;
+        }
+    }
 #ifdef _WIN32
-    EmuWindow::SetSize(_width, _height);
+    EmuWindow::SetSize(_twidth, _theight);
 #endif
 
-    nBackbufferWidth = _width;
-    nBackbufferHeight = _height;
+    nBackbufferWidth = _twidth;
+    nBackbufferHeight = _theight;
 
     // change later
     s_nTargetWidth = 640<<g_AAx;
@@ -247,7 +274,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _width, int _height)
 	g_VideoInitialize.pWindowHandle = (HWND)GLWin.dpy;
     GLWin.screen = DefaultScreen(GLWin.dpy);
 
-    GLWin.fs = false; // !!(conf.options & GSOPTION_FULLSCREEN);
+    GLWin.fs = g_Config.bFullscreen; //Set to setting in Options
     
     /* get an appropriate visual */
     vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListDbl);
@@ -290,7 +317,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _width, int _height)
             GLWin.deskMode = *modes[0];
             /* look for mode with requested resolution */
             for (int i = 0; i < modeNum; i++) {
-                if ((modes[i]->hdisplay == _width) && (modes[i]->vdisplay == _height)) {
+                if ((modes[i]->hdisplay == _twidth) && (modes[i]->vdisplay == _theight)) {
                     bestMode = i;
                 }
             }    
@@ -337,7 +364,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _width, int _height)
         GLWin.attr.event_mask = ExposureMask | KeyPressMask | ButtonPressMask |
             StructureNotifyMask;
         GLWin.win = XCreateWindow(GLWin.dpy, RootWindow(GLWin.dpy, vi->screen),
-                                  0, 0, _width, _height, 0, vi->depth, InputOutput, vi->visual,
+                                  0, 0, _twidth, _theight, 0, vi->depth, InputOutput, vi->visual,
                                   CWBorderPixel | CWColormap | CWEventMask, &GLWin.attr);
         // only set window title and handle wm_delete_events if in windowed mode
         wmDelete = XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", True);

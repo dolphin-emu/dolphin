@@ -25,16 +25,6 @@
 
 int frameCount;
 
-int g_Res[NUMWNDRES][2] = 
-{
-	{640,480},
-	{800,600},
-	{1024,768},
-	{1280,960},
-	{1280,1024},
-	{1600,1200},
-};
-
 Config g_Config;
 Statistics stats;
 
@@ -50,11 +40,14 @@ Config::Config()
 
 void Config::Load()
 {
+    std::string temp;
     IniFile iniFile;
     iniFile.Load("gfx_opengl.ini");
     iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
-    iniFile.Get("Hardware", "WindowedRes", &iWindowedRes, 0);
-    iniFile.Get("Hardware", "FullscreenRes", &iFSResolution, 0);
+    iniFile.Get("Hardware", "WindowedRes", &temp, 0);
+    strcpy(iWindowedRes, temp.c_str());
+    iniFile.Get("Hardware", "FullscreenRes", &temp, 0);
+    strcpy(iFSResolution, temp.c_str());
     iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0);
 	iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, 0);
     if (iAdapter == -1) 

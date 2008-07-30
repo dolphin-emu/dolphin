@@ -44,6 +44,13 @@ class ConfigDialog : public wxDialog
 		void ConfigDialogActivate(wxActivateEvent& event);
 		void BrowseClick(wxCommandEvent& event);
 		void OKClick(wxCommandEvent& event);
+		void AddFSReso(char *reso);
+		void AddWindowReso(char *reso);
+		void FullScreenCheck(wxCommandEvent& event);
+		void FSCB(wxCommandEvent& event);
+		void WMCB(wxCommandEvent& event);
+		void RenderMainCheck(wxCommandEvent& event);
+		void OverlayCheck(wxCommandEvent& event);
 	
 	private:
 

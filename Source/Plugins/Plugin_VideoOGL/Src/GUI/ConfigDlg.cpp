@@ -68,12 +68,12 @@ void ConfigDialog::CreateGUIControls()
 
 	// all other options doesnt to anything so lets disable them
 	wxArrayString arrayStringFor_FullscreenCB;
-	m_FullscreenCB = new wxComboBox(m_PageVideo, ID_FULLSCREENCB, wxT("FullscreenCB"), wxPoint(132,72), wxSize(121,21), arrayStringFor_FullscreenCB, 0, wxDefaultValidator, wxT("FullscreenCB"));
-	m_FullscreenCB->Enable(false);
+	m_FullscreenCB = new wxComboBox(m_PageVideo, ID_FULLSCREENCB, wxT(""), wxPoint(132,72), wxSize(121,21), arrayStringFor_FullscreenCB, 0, wxDefaultValidator, wxT("FullscreenCB"));
+	m_FullscreenCB->Enable(true);
 
 	wxArrayString arrayStringFor_WindowResolutionCB;
-	m_WindowResolutionCB = new wxComboBox(m_PageVideo, ID_WINDOWRESOLUTIONCB, wxT("WxComboBox1"), wxPoint(132,104), wxSize(121,21), arrayStringFor_WindowResolutionCB, 0, wxDefaultValidator, wxT("WindowResolutionCB"));
-	m_WindowResolutionCB->Enable(false);
+	m_WindowResolutionCB = new wxComboBox(m_PageVideo, ID_WINDOWRESOLUTIONCB, wxT(""), wxPoint(132,104), wxSize(121,21), arrayStringFor_WindowResolutionCB, 0, wxDefaultValidator, wxT("WindowResolutionCB"));
+	m_WindowResolutionCB->Enable(true);
 
 	wxStaticText *WxStaticText1 = new wxStaticText(m_PageVideo, ID_WXSTATICTEXT1, wxT("Windowed Resolution:"), wxPoint(12,104), wxDefaultSize, 0, wxT("WxStaticText1"));
 	wxStaticText *WxStaticText2 = new wxStaticText(m_PageVideo, ID_WXSTATICTEXT2, wxT("Fullscreen Video Mode:"), wxPoint(12,72), wxDefaultSize, 0, wxT("WxStaticText2"));
@@ -97,7 +97,8 @@ void ConfigDialog::CreateGUIControls()
 	m_DumpTextures->Enable(false);
 
 	m_Statistics = new wxCheckBox(m_PageAdvanced, ID_STATISTICS, wxT("Overlay some statistics"), wxPoint(12,40), wxSize(233,25), 0, wxDefaultValidator, wxT("Statistics"));
-	m_Statistics->Enable(false);
+	m_Statistics->SetValue(g_Config.bOverlayStats);
+	m_Statistics->Enable(true);
 
 	m_ShaderErrors = new wxCheckBox(m_PageAdvanced, ID_SHADERERRORS, wxT("Show shader compilation issues"), wxPoint(12,64), wxSize(233,25), 0, wxDefaultValidator, wxT("ShaderErrors"));
 	m_ShaderErrors->Enable(false);
@@ -112,10 +113,16 @@ void ConfigDialog::CreateGUIControls()
 	SetIcon(wxNullIcon);
 	SetSize(8,8,492,273);
 	Center();
+	m_Fullscreen->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( ConfigDialog::FullScreenCheck ), NULL, this );
+	m_RenderToMainWindow->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( ConfigDialog::RenderMainCheck ), NULL, this );
+	m_Statistics->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( ConfigDialog::OverlayCheck ), NULL, this );
+	m_FullscreenCB->Connect( wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler( ConfigDialog::FSCB ), NULL, this );
+	m_WindowResolutionCB->Connect( wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler( ConfigDialog::WMCB ), NULL, this );
 }
 
 void ConfigDialog::OnClose(wxCloseEvent& /*event*/)
 {
+	g_Config.Save();
 	EndModal(0);
 }
 
@@ -144,4 +151,32 @@ void ConfigDialog::OKClick(wxCommandEvent& event)
 	{
 		Close(); 
 	}
+}
+void ConfigDialog::AddFSReso(char *reso)
+{
+	m_FullscreenCB->Append(wxString::FromAscii(reso));
+}
+void ConfigDialog::AddWindowReso(char *reso)
+{
+	m_WindowResolutionCB->Append(wxString::FromAscii(reso));
+}
+void ConfigDialog::FullScreenCheck(wxCommandEvent& event)
+{
+	g_Config.bFullscreen = m_Fullscreen->IsChecked();
+}
+void ConfigDialog::FSCB(wxCommandEvent& event)
+{
+	strcpy(g_Config.iFSResolution, m_FullscreenCB->GetValue().mb_str() );
+}
+void ConfigDialog::WMCB(wxCommandEvent& event)
+{
+	strcpy(g_Config.iWindowedRes, m_WindowResolutionCB->GetValue().mb_str() );
+}
+void ConfigDialog::RenderMainCheck(wxCommandEvent& event)
+{
+	g_Config.renderToMainframe = m_RenderToMainWindow->IsChecked();
+}
+void ConfigDialog::OverlayCheck(wxCommandEvent& event)
+{
+	g_Config.bOverlayStats = m_Statistics->IsChecked();
 }

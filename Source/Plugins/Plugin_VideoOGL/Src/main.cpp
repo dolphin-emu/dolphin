@@ -61,7 +61,6 @@ void DllAbout(HWND _hParent)
 	wxAboutBox(info);
 }
 
-
 void DllConfig(HWND _hParent)
 {
 #ifdef _WIN32
@@ -77,6 +76,40 @@ void DllConfig(HWND _hParent)
 
 #else
 	ConfigDialog frame(NULL);
+	g_Config.Load();
+	printf("Window res: %s, size of: %d strlen %d\n", g_Config.iWindowedRes, sizeof(g_Config.iWindowedRes), strlen(g_Config.iWindowedRes));
+    XVisualInfo *vi;
+    Colormap cmap;
+    int dpyWidth, dpyHeight;
+    int glxMajorVersion, glxMinorVersion;
+    int vidModeMajorVersion, vidModeMinorVersion;
+    GLWin.dpy = XOpenDisplay(0);
+    glXQueryVersion(GLWin.dpy, &glxMajorVersion, &glxMinorVersion);
+    XF86VidModeQueryVersion(GLWin.dpy, &vidModeMajorVersion, &vidModeMinorVersion);
+	//Get all full screen resos for the config dialog
+	 XF86VidModeModeInfo **modes = NULL;
+        int modeNum = 0;
+        int bestMode = 0;
+
+        // set best mode to current
+        bestMode = 0;
+        XF86VidModeGetAllModeLines(GLWin.dpy, GLWin.screen, &modeNum, &modes);
+        int px = 0, py = 0;
+        if (modeNum > 0 && modes != NULL) 
+        {
+            for (int i = 0; i < modeNum; i++) 
+            {
+                if(px != modes[i]->hdisplay && py != modes[i]->vdisplay)
+                {
+                    char temp[32];
+                    sprintf(temp,"%dx%d", modes[i]->hdisplay, modes[i]->vdisplay);
+                    frame.AddFSReso(temp);
+                    frame.AddWindowReso(temp); //Add same to Window ones, since they should be nearly all that's needed
+                    px = modes[i]->hdisplay;//Used to remove repeating from different screen depths
+                    py = modes[i]->vdisplay;
+                }
+            }
+        }    
 	frame.ShowModal();
 #endif
 }
@@ -95,8 +128,8 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
     g_VideoInitialize = *_pVideoInitialize;
     InitLUTs();
     g_Config.Load();
-
-    if (!OpenGL_Create(g_VideoInitialize, g_Res[g_Config.iWindowedRes][0], g_Res[g_Config.iWindowedRes][1])) {
+    
+    if (!OpenGL_Create(g_VideoInitialize, 640, 480)) { //640x480 will be the default if all else fails//
         g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
         return;
     }
