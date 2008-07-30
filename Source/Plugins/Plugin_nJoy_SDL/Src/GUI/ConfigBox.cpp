@@ -153,17 +153,26 @@ void ConfigBox::CreateGUIControls()
 
 	for(int i=0; i<4 ;i++)
 	{	
+
 		// Groups
 		m_gJoyname[i] = new wxStaticBox(m_Controller[i], IDG_JOYSTICK, wxT("Controller:"), wxPoint(5, 11), wxSize(608, 46));
+		
+		#ifdef _WIN32
 		m_Joyattach[i] = new wxCheckBox(m_Controller[i], IDC_JOYATTACH, wxT("Controller attached"), wxPoint(495, 26), wxSize(109, 25), 0, wxDefaultValidator, wxT("Controller attached"));
 		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, wxT(""), wxPoint(12, 29), wxSize(476, 21), arrayStringFor_Joyname, 0, wxDefaultValidator, wxT("m_Joyname"));
-
 		m_gExtrasettings[i] = new wxStaticBox(m_Controller[i], IDG_EXTRASETTINGS, wxT("Extra settings:"), wxPoint(104, 385), wxSize(155, 69));
 		m_Deadzone[i] = new wxComboBox(m_Controller[i], IDC_DEADZONE, wxT(""), wxPoint(167, 400), wxSize(59, 21), arrayStringFor_Deadzone, 0, wxDefaultValidator, wxT("m_Deadzone"));
-
 		m_gControllertype[i] = new wxStaticBox(m_Controller[i], IDG_CONTROLLERTYPE, wxT("Controller type:"), wxPoint(359, 383), wxSize(143, 44));
 		m_Controltype[i] = new wxComboBox(m_Controller[i], IDC_CONTROLTYPE, wxT(""), wxPoint(366, 401), wxSize(131, 21), arrayStringFor_Controltype, 0, wxDefaultValidator, wxT("m_Controltype"));
-						
+		#else
+		m_Joyattach[i] = new wxCheckBox(m_Controller[i], IDC_JOYATTACH, wxT("Controller attached"), wxPoint(470, 26), wxSize(140, 25), 0, wxDefaultValidator, wxT("Controller attached"));
+		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, wxT(""), wxPoint(10, 25), wxSize(450, 25), arrayStringFor_Joyname, 0, wxDefaultValidator, wxT("m_Joyname"));
+		m_gExtrasettings[i] = new wxStaticBox(m_Controller[i], IDG_EXTRASETTINGS, wxT("Extra settings:"), wxPoint(100, 385), wxSize(155, 65));
+		m_Deadzone[i] = new wxComboBox(m_Controller[i], IDC_DEADZONE, wxT(""), wxPoint(167, 398), wxSize(80, 25), arrayStringFor_Deadzone, 0, wxDefaultValidator, wxT("m_Deadzone"));
+		m_gControllertype[i] = new wxStaticBox(m_Controller[i], IDG_CONTROLLERTYPE, wxT("Controller type:"), wxPoint(359, 383), wxSize(160, 44));
+		m_Controltype[i] = new wxComboBox(m_Controller[i], IDC_CONTROLTYPE, wxT(""), wxPoint(364, 396), wxSize(150, 25), arrayStringFor_Controltype, 0, wxDefaultValidator, wxT("m_Controltype"));
+		#endif
+					
 		// GUI left side buttons
 		m_JoyShoulderL[i] = new wxTextCtrl(m_Controller[i], ID_SHOULDER_L, wxT("0"), wxPoint(6, 80), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
 		m_JoyShoulderL[i]->Enable(false);
@@ -179,7 +188,6 @@ void ConfigBox::CreateGUIControls()
 		m_JoyDpadLeft[i]->Enable(false);
 		m_JoyDpadRight[i] = new wxTextCtrl(m_Controller[i], ID_DPAD_RIGHT, wxT("0"), wxPoint(6, 406), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
 		m_JoyDpadRight[i]->Enable(false);
-
 		m_bJoyShoulderL[i] = new wxButton(m_Controller[i], IDB_SHOULDER_L, wxT(""), wxPoint(70, 82), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
 		m_bJoyAnalogMainX[i] = new wxButton(m_Controller[i], IDB_ANALOG_MAIN_X, wxT(""), wxPoint(70, 220), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
 		m_bJoyAnalogMainY[i] = new wxButton(m_Controller[i], IDB_ANALOG_MAIN_Y, wxT(""), wxPoint(70, 257), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
@@ -187,15 +195,14 @@ void ConfigBox::CreateGUIControls()
 		m_bJoyDpadDown[i] = new wxButton(m_Controller[i], IDB_DPAD_DOWN, wxT(""), wxPoint(70, 335), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
 		m_bJoyDpadLeft[i] = new wxButton(m_Controller[i], IDB_DPAD_LEFT, wxT(""), wxPoint(70, 371), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
 		m_bJoyDpadRight[i] = new wxButton(m_Controller[i], IDB_DPAD_RIGHT, wxT(""), wxPoint(70, 408), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
-
+		
 		m_textMainX[i] = new wxStaticText(m_Controller[i], IDT_ANALOG_MAIN_X, wxT("X-axis"), wxPoint(6, 204), wxDefaultSize, 0, wxT("X-axis"));
 		m_textMainY[i] = new wxStaticText(m_Controller[i], IDT_ANALOG_MAIN_Y, wxT("Y-axis"), wxPoint(6, 241), wxDefaultSize, 0, wxT("Y-axis"));
-
 		m_textDpadUp[i] = new wxStaticText(m_Controller[i], IDT_DPAD_UP, wxT("Up"), wxPoint(6, 282), wxDefaultSize, 0, wxT("Up"));
 		m_textDpadDown[i] = new wxStaticText(m_Controller[i], IDT_DPAD_DOWN, wxT("Down"), wxPoint(6, 319), wxDefaultSize, 0, wxT("Down"));
 		m_textDpadLeft[i] = new wxStaticText(m_Controller[i], IDT_DPAD_LEFT, wxT("Left"), wxPoint(6, 354), wxDefaultSize, 0, wxT("Left"));
 		m_textDpadRight[i] = new wxStaticText(m_Controller[i], IDT_DPAD_RIGHT, wxT("Right"), wxPoint(6, 391), wxDefaultSize, 0, wxT("Right"));
-
+		
 		// GUI right side buttons
 		m_JoyShoulderR[i] = new wxTextCtrl(m_Controller[i], ID_SHOULDER_R, wxT("0"), wxPoint(552, 106), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
 		m_JoyShoulderR[i]->Enable(false);
@@ -213,7 +220,6 @@ void ConfigBox::CreateGUIControls()
 		m_JoyAnalogSubX[i]->Enable(false);
 		m_JoyAnalogSubY[i] = new wxTextCtrl(m_Controller[i], ID_ANALOG_SUB_Y, wxT("0"), wxPoint(552, 388), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
 		m_JoyAnalogSubY[i]->Enable(false);
-
 		m_bJoyShoulderR[i] = new wxButton(m_Controller[i], IDB_SHOULDER_R, wxT(""), wxPoint(526, 108), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
 		m_bJoyButtonA[i] = new wxButton(m_Controller[i], IDB_BUTTON_A, wxT(""), wxPoint(526, 282), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
 		m_bJoyButtonB[i] = new wxButton(m_Controller[i], IDB_BUTTON_B, wxT(""), wxPoint(526, 82), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
@@ -222,40 +228,45 @@ void ConfigBox::CreateGUIControls()
 		m_bJoyButtonZ[i] = new wxButton(m_Controller[i], IDB_BUTTON_Z, wxT(""), wxPoint(526, 147), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
 		m_bJoyAnalogSubX[i] = new wxButton(m_Controller[i], IDB_ANALOG_SUB_X, wxT(""), wxPoint(526, 353), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
 		m_bJoyAnalogSubY[i] = new wxButton(m_Controller[i], IDB_ANALOG_SUB_Y, wxT(""), wxPoint(526, 390), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
-
+		
 		m_textSubX[i] = new wxStaticText(m_Controller[i], IDT_ANALOG_SUB_X, wxT("X-axis"), wxPoint(552, 336), wxDefaultSize, 0, wxT("X-axis"));
 		m_textSubY[i] = new wxStaticText(m_Controller[i], IDT_ANALOG_SUB_Y, wxT("Y-axis"), wxPoint(552, 373), wxDefaultSize, 0, wxT("Y-axis"));
-
+		
 		// GUI center button
 		m_JoyButtonStart[i] = new wxTextCtrl(m_Controller[i], ID_BUTTONSTART, wxT("0"), wxPoint(278, 403), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
 		m_JoyButtonStart[i]->Enable(false);
 		m_JoyButtonHalfpress[i] = new wxTextCtrl(m_Controller[i], ID_BUTTONHALFPRESS, wxT("0"), wxPoint(167, 424), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
 		m_JoyButtonHalfpress[i]->Enable(false);
-
 		m_bJoyButtonStart[i] = new wxButton(m_Controller[i], IDB_BUTTONSTART, wxT(""), wxPoint(297, 385), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
 		m_bJoyButtonHalfpress[i] = new wxButton(m_Controller[i], IDB_BUTTONHALFPRESS, wxT(""), wxPoint(231, 426), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
-
+		
+		#ifdef _WIN32
 		m_textDeadzone[i] = new wxStaticText(m_Controller[i], IDT_DEADZONE, wxT("Deadzone"), wxPoint(116, 404), wxDefaultSize, 0, wxT("Deadzone"));		
 		m_textHalfpress[i] = new wxStaticText(m_Controller[i], IDT_BUTTONHALFPRESS, wxT("Half press"), wxPoint(116, 428), wxDefaultSize, 0, wxT("Half press"));
 		m_textWebsite[i] = new wxStaticText(m_Controller[i], IDT_WEBSITE, wxT("www.multigesture.net"), wxPoint(500, 438), wxDefaultSize, 0, wxT("www.multigesture.net"));
+		#else
+		m_textDeadzone[i] = new wxStaticText(m_Controller[i], IDT_DEADZONE, wxT("Deadzone"), wxPoint(105, 404), wxDefaultSize, 0, wxT("Deadzone"));		
+		m_textHalfpress[i] = new wxStaticText(m_Controller[i], IDT_BUTTONHALFPRESS, wxT("Half press"), wxPoint(105, 428), wxDefaultSize, 0, wxT("Half press"));
+		m_textWebsite[i] = new wxStaticText(m_Controller[i], IDT_WEBSITE, wxT("www.multigesture.net"), wxPoint(480, 438), wxDefaultSize, 0, wxT("www.multigesture.net"));
+		#endif		
 		
 		// TODO: Controller image
 		// Placeholder instead of bitmap
 		// m_PlaceholderBMP[i] = new wxTextCtrl(m_Controller[i], ID_CONTROLLERPICTURE, wxT("BITMAP HERE PLZ KTHX!"), wxPoint(98, 75), wxSize(423, 306), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("BITMAP HERE PLZ KTHX!"));
 		// m_PlaceholderBMP[i]->Enable(false);
-
+		
 		// You can enable the bitmap here:
-		// But it loads überslow on init...
+		// But it loads überslow on init... (only in windows, linux seems to load it fast!)
 		// AAaaand the XPM file (256 colours) looks crappier than the real bitmap... so maybe we can find a way to use a bitmap?	
 		m_controllerimage[i] = new wxStaticBitmap(m_Controller[i], ID_CONTROLLERPICTURE, WxStaticBitmap1_BITMAP, wxPoint(98, 75), wxSize(421,304));		
-
+		
 		if(emulator_running)
 		{
 			m_Joyname[i]->Enable(false);
 			m_Joyattach[i]->Enable(false);
 			m_Controltype[i]->Enable(false);			
 		}
-
+		
 		SetControllerAll(i);
 	}
 }
@@ -578,7 +589,7 @@ void ConfigBox::GetButtons(wxCommandEvent& event)
 		
 	sprintf(format, "[%d]", counter2);
 	SetButtonText(ID, format);
-	wxWindow::Update();
+	wxWindow::Update();	// win only? doesnt seem to work in linux...
 
 	while(waiting)
 	{			
@@ -602,7 +613,7 @@ void ConfigBox::GetButtons(wxCommandEvent& event)
 			
 			sprintf(format, "[%d]", counter2);
 			SetButtonText(ID, format);
-			wxWindow::Update();
+			wxWindow::Update();	// win only? doesnt seem to work in linux...
 			
 			if(counter2<0)
 				waiting = false;
@@ -641,6 +652,7 @@ void ConfigBox::GetHats(int ID)
 	
 	sprintf(format, "[%d]", counter2);
 	SetButtonText(ID, format);
+	wxWindow::Update();	// win only? doesnt seem to work in linux...
 
 	while(waiting)
 	{			
@@ -663,7 +675,8 @@ void ConfigBox::GetHats(int ID)
 			counter2--;
 			
 			sprintf(format, "[%d]", counter2);
-			SetButtonText(ID, format);	// not updated? ;_;
+			SetButtonText(ID, format);
+			wxWindow::Update();	// win only? doesnt seem to work in linux...
 
 			if(counter2<0)
 				waiting = false;
@@ -703,6 +716,7 @@ void ConfigBox::GetAxis(wxCommandEvent& event)
 	
 	sprintf(format, "[%d]", counter2);
 	SetButtonText(ID, format);
+	wxWindow::Update();	// win only? doesnt seem to work in linux...
 
 	while(waiting)
 	{		
@@ -726,7 +740,8 @@ void ConfigBox::GetAxis(wxCommandEvent& event)
 			counter2--;
 			
 			sprintf(format, "[%d]", counter2);
-			SetButtonText(ID, format);	// not updated? ;_;
+			SetButtonText(ID, format);
+			wxWindow::Update();	// win only? doesnt seem to work in linux...
 
 			if(counter2<0)
 				waiting = false;
