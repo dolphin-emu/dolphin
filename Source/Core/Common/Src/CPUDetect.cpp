@@ -17,13 +17,11 @@
 
 #ifdef _WIN32
 #include <intrin.h>
-#endif
+#else
 
-#ifdef __linux__
 //#include <config/i386/cpuid.h>
 #include <xmmintrin.h>
 void __cpuid(int info[4], int x) {}
-
 
 #endif
 

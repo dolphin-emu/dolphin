@@ -160,8 +160,8 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     GetWindowRect(GetDesktopWindow(), &rcdesktop);
         
     if (g_Config.bFullscreen) {
-        nBackbufferWidth = rcdesktop.right - rcdesktop.left;
-        nBackbufferHeight = rcdesktop.bottom - rcdesktop.top;
+        //nBackbufferWidth = rcdesktop.right - rcdesktop.left;
+        //nBackbufferHeight = rcdesktop.bottom - rcdesktop.top;
 
         DEVMODE dmScreenSettings;
         memset(&dmScreenSettings,0,sizeof(dmScreenSettings));
