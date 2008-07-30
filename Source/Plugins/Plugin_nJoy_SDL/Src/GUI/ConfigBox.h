@@ -117,21 +117,21 @@ class ConfigBox : public wxDialog
 		wxButton *m_bJoyDpadLeft[4];
 		wxButton *m_bJoyDpadRight[4];
 
-		wxStaticText *m_textMainX;
-		wxStaticText *m_textMainY;
-		wxStaticText *m_textDpadUp;
-		wxStaticText *m_textDpadDown;
-		wxStaticText *m_textDpadLeft;
-		wxStaticText *m_textDpadRight;
-		wxStaticText *m_textDeadzone;
-		wxStaticText *m_textHalfpress;
-		wxStaticText *m_textSubX;
-		wxStaticText *m_textSubY;
-		wxStaticText *m_textWebsite;
+		wxStaticText *m_textMainX[4];
+		wxStaticText *m_textMainY[4];
+		wxStaticText *m_textDpadUp[4];
+		wxStaticText *m_textDpadDown[4];
+		wxStaticText *m_textDpadLeft[4];
+		wxStaticText *m_textDpadRight[4];
+		wxStaticText *m_textDeadzone[4];
+		wxStaticText *m_textHalfpress[4];
+		wxStaticText *m_textSubX[4];
+		wxStaticText *m_textSubY[4];
+		wxStaticText *m_textWebsite[4];
 		
 		wxTextCtrl *m_PlaceholderBMP[4];
 		wxStaticBitmap *m_controllerimage[4];
-
+		
 		int notebookpage;		
 	private:
 		enum

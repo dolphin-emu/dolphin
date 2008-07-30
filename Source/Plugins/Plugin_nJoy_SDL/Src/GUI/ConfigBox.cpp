@@ -149,6 +149,8 @@ void ConfigBox::CreateGUIControls()
 		arrayStringFor_Deadzone.Add(wxString::FromAscii(buffer));
 	}
 
+	wxBitmap WxStaticBitmap1_BITMAP(ConfigBox_WxStaticBitmap1_XPM);
+
 	for(int i=0; i<4 ;i++)
 	{	
 		// Groups
@@ -186,13 +188,13 @@ void ConfigBox::CreateGUIControls()
 		m_bJoyDpadLeft[i] = new wxButton(m_Controller[i], IDB_DPAD_LEFT, wxT(""), wxPoint(70, 371), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
 		m_bJoyDpadRight[i] = new wxButton(m_Controller[i], IDB_DPAD_RIGHT, wxT(""), wxPoint(70, 408), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
 
-		m_textMainX = new wxStaticText(m_Controller[i], IDT_ANALOG_MAIN_X, wxT("X-axis"), wxPoint(6, 204), wxDefaultSize, 0, wxT("X-axis"));
-		m_textMainY = new wxStaticText(m_Controller[i], IDT_ANALOG_MAIN_Y, wxT("Y-axis"), wxPoint(6, 241), wxDefaultSize, 0, wxT("Y-axis"));
+		m_textMainX[i] = new wxStaticText(m_Controller[i], IDT_ANALOG_MAIN_X, wxT("X-axis"), wxPoint(6, 204), wxDefaultSize, 0, wxT("X-axis"));
+		m_textMainY[i] = new wxStaticText(m_Controller[i], IDT_ANALOG_MAIN_Y, wxT("Y-axis"), wxPoint(6, 241), wxDefaultSize, 0, wxT("Y-axis"));
 
-		m_textDpadUp = new wxStaticText(m_Controller[i], IDT_DPAD_UP, wxT("Up"), wxPoint(6, 282), wxDefaultSize, 0, wxT("Up"));
-		m_textDpadDown = new wxStaticText(m_Controller[i], IDT_DPAD_DOWN, wxT("Down"), wxPoint(6, 319), wxDefaultSize, 0, wxT("Down"));
-		m_textDpadLeft = new wxStaticText(m_Controller[i], IDT_DPAD_LEFT, wxT("Left"), wxPoint(6, 354), wxDefaultSize, 0, wxT("Left"));
-		m_textDpadRight = new wxStaticText(m_Controller[i], IDT_DPAD_RIGHT, wxT("Right"), wxPoint(6, 391), wxDefaultSize, 0, wxT("Right"));
+		m_textDpadUp[i] = new wxStaticText(m_Controller[i], IDT_DPAD_UP, wxT("Up"), wxPoint(6, 282), wxDefaultSize, 0, wxT("Up"));
+		m_textDpadDown[i] = new wxStaticText(m_Controller[i], IDT_DPAD_DOWN, wxT("Down"), wxPoint(6, 319), wxDefaultSize, 0, wxT("Down"));
+		m_textDpadLeft[i] = new wxStaticText(m_Controller[i], IDT_DPAD_LEFT, wxT("Left"), wxPoint(6, 354), wxDefaultSize, 0, wxT("Left"));
+		m_textDpadRight[i] = new wxStaticText(m_Controller[i], IDT_DPAD_RIGHT, wxT("Right"), wxPoint(6, 391), wxDefaultSize, 0, wxT("Right"));
 
 		// GUI right side buttons
 		m_JoyShoulderR[i] = new wxTextCtrl(m_Controller[i], ID_SHOULDER_R, wxT("0"), wxPoint(552, 106), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
@@ -221,8 +223,8 @@ void ConfigBox::CreateGUIControls()
 		m_bJoyAnalogSubX[i] = new wxButton(m_Controller[i], IDB_ANALOG_SUB_X, wxT(""), wxPoint(526, 353), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
 		m_bJoyAnalogSubY[i] = new wxButton(m_Controller[i], IDB_ANALOG_SUB_Y, wxT(""), wxPoint(526, 390), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
 
-		m_textSubX = new wxStaticText(m_Controller[i], IDT_ANALOG_SUB_X, wxT("X-axis"), wxPoint(552, 336), wxDefaultSize, 0, wxT("X-axis"));
-		m_textSubY = new wxStaticText(m_Controller[i], IDT_ANALOG_SUB_Y, wxT("Y-axis"), wxPoint(552, 373), wxDefaultSize, 0, wxT("Y-axis"));
+		m_textSubX[i] = new wxStaticText(m_Controller[i], IDT_ANALOG_SUB_X, wxT("X-axis"), wxPoint(552, 336), wxDefaultSize, 0, wxT("X-axis"));
+		m_textSubY[i] = new wxStaticText(m_Controller[i], IDT_ANALOG_SUB_Y, wxT("Y-axis"), wxPoint(552, 373), wxDefaultSize, 0, wxT("Y-axis"));
 
 		// GUI center button
 		m_JoyButtonStart[i] = new wxTextCtrl(m_Controller[i], ID_BUTTONSTART, wxT("0"), wxPoint(278, 403), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
@@ -233,9 +235,9 @@ void ConfigBox::CreateGUIControls()
 		m_bJoyButtonStart[i] = new wxButton(m_Controller[i], IDB_BUTTONSTART, wxT(""), wxPoint(297, 385), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
 		m_bJoyButtonHalfpress[i] = new wxButton(m_Controller[i], IDB_BUTTONHALFPRESS, wxT(""), wxPoint(231, 426), wxSize(21, 14), 0, wxDefaultValidator, wxT(""));
 
-		m_textDeadzone = new wxStaticText(m_Controller[i], IDT_DEADZONE, wxT("Deadzone"), wxPoint(116, 404), wxDefaultSize, 0, wxT("Deadzone"));		
-		m_textHalfpress = new wxStaticText(m_Controller[i], IDT_BUTTONHALFPRESS, wxT("Half press"), wxPoint(116, 428), wxDefaultSize, 0, wxT("Half press"));
-		m_textWebsite = new wxStaticText(m_Controller[i], IDT_WEBSITE, wxT("www.multigesture.net"), wxPoint(500, 438), wxDefaultSize, 0, wxT("www.multigesture.net"));
+		m_textDeadzone[i] = new wxStaticText(m_Controller[i], IDT_DEADZONE, wxT("Deadzone"), wxPoint(116, 404), wxDefaultSize, 0, wxT("Deadzone"));		
+		m_textHalfpress[i] = new wxStaticText(m_Controller[i], IDT_BUTTONHALFPRESS, wxT("Half press"), wxPoint(116, 428), wxDefaultSize, 0, wxT("Half press"));
+		m_textWebsite[i] = new wxStaticText(m_Controller[i], IDT_WEBSITE, wxT("www.multigesture.net"), wxPoint(500, 438), wxDefaultSize, 0, wxT("www.multigesture.net"));
 		
 		// TODO: Controller image
 		// Placeholder instead of bitmap
@@ -244,8 +246,7 @@ void ConfigBox::CreateGUIControls()
 
 		// You can enable the bitmap here:
 		// But it loads überslow on init...
-		// AAaaand the XPM file (256 colours) looks crappier than the real bitmap... so maybe we can find a way to use a bitmap?
-		wxBitmap WxStaticBitmap1_BITMAP(ConfigBox_WxStaticBitmap1_XPM);
+		// AAaaand the XPM file (256 colours) looks crappier than the real bitmap... so maybe we can find a way to use a bitmap?	
 		m_controllerimage[i] = new wxStaticBitmap(m_Controller[i], ID_CONTROLLERPICTURE, WxStaticBitmap1_BITMAP, wxPoint(98, 75), wxSize(421,304));		
 
 		if(emulator_running)
@@ -390,14 +391,10 @@ void ConfigBox::UpdateVisibleItems(int controller)
 		m_bJoyDpadLeft[controller]->Show(TRUE);
 		m_bJoyDpadRight[controller]->Show(TRUE);
 		
-		/*
-		// not working? wtf?
-		// TODO: Fix
 		m_textDpadUp[controller]->Show(TRUE);
 		m_textDpadDown[controller]->Show(TRUE);
 		m_textDpadLeft[controller]->Show(TRUE);
 		m_textDpadRight[controller]->Show(TRUE);		
-		*/		
 	}
 	else
 	{	
@@ -409,14 +406,10 @@ void ConfigBox::UpdateVisibleItems(int controller)
 		m_bJoyDpadLeft[controller]->Show(FALSE);
 		m_bJoyDpadRight[controller]->Show(FALSE);
 				
-		/*
-		// not working? wtf?
-		// TODO: Fix
 		m_textDpadUp[controller]->Show(FALSE);
 		m_textDpadDown[controller]->Show(FALSE);
 		m_textDpadLeft[controller]->Show(FALSE);
 		m_textDpadRight[controller]->Show(FALSE);		
-		*/		
 	}	
 }
 
@@ -555,8 +548,6 @@ void ConfigBox::SetButtonText(int id, char text[128])
 		default:
 			break;
 	}
-
-	// TODO: Hmm why doesnt it updates the GUI immediately?
 }
 
 // Wait for button press
@@ -586,8 +577,9 @@ void ConfigBox::GetButtons(wxCommandEvent& event)
 	int counter2 = 10;
 		
 	sprintf(format, "[%d]", counter2);
-	SetButtonText(ID, format);	// not updated?
-		
+	SetButtonText(ID, format);
+	wxWindow::Update();
+
 	while(waiting)
 	{			
 		SDL_JoystickUpdate();
@@ -609,7 +601,8 @@ void ConfigBox::GetButtons(wxCommandEvent& event)
 			counter2--;
 			
 			sprintf(format, "[%d]", counter2);
-			SetButtonText(ID, format);	// not updated? ;_;
+			SetButtonText(ID, format);
+			wxWindow::Update();
 			
 			if(counter2<0)
 				waiting = false;
