@@ -29,6 +29,14 @@ void ABI_CallFunctionR(void *func, X64Reg reg1) {
 	ADD(32, R(ESP), Imm8(4));
 }
 
+void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2)
+{
+	PUSH(32, arg1);
+	PUSH(32, Imm32(param2));
+	CALL(func);
+	ADD(32, R(ESP), Imm8(8));
+}
+
 void ABI_PushAllCalleeSavedRegsAndAdjustStack() {
 	PUSH(EBP);
 	PUSH(EBX);
@@ -66,6 +74,14 @@ void ABI_CallFunctionR(void *func, X64Reg reg1) {
 	CALL(func);
 }
 
+void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2)
+{
+	if (arg1.IsSimpleReg(ABI_PARAM1))
+		MOV(32, R(ABI_PARAM1), arg1);
+	MOV(32, R(ABI_PARAM2), Imm32(param2));
+	CALL(func);
+}
+
 #ifdef _WIN32
 // Win64 Specific Code
 // ====================================
@@ -74,7 +90,7 @@ void ABI_PushAllCalleeSavedRegsAndAdjustStack() {
 	PUSH(RBX); 
 	PUSH(RSI); 
 	PUSH(RDI);
-	PUSH(RBP);
+	//PUSH(RBP);
 	PUSH(R12); 
 	PUSH(R13); 
 	PUSH(R14); 
@@ -89,7 +105,7 @@ void ABI_PopAllCalleeSavedRegsAndAdjustStack() {
 	POP(R14); 
 	POP(R13); 
 	POP(R12);
-	POP(RBP);
+	//POP(RBP);
 	POP(RDI);
 	POP(RSI); 
 	POP(RBX); 
@@ -99,11 +115,21 @@ void ABI_PopAllCalleeSavedRegsAndAdjustStack() {
 // Unix64 Specific Code
 // ====================================
 void ABI_PushAllCalleeSavedRegsAndAdjustStack() {
-
+	PUSH(RBX); 
+	PUSH(RBP);
+	PUSH(R12); 
+	PUSH(R13); 
+	PUSH(R14); 
+	PUSH(R15);
 }
 
 void ABI_PopAllCalleeSavedRegsAndAdjustStack() {
-
+	POP(R15);
+	POP(R14); 
+	POP(R13); 
+	POP(R12);
+	POP(RBP);
+	POP(RBX); 
 }
 
 #endif

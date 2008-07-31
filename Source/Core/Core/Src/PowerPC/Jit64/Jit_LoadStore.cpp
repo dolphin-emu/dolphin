@@ -356,7 +356,7 @@ namespace Jit64
 			case 36: accessSize = 32; break; //stw
 			case 44: accessSize = 16; break; //sth
 			case 38: accessSize = 8; break;  //stb
-			default: _assert_msg_(DYNA_REC,0,"AWETKLJASDLKF"); return;
+			default: _assert_msg_(DYNA_REC, 0, "AWETKLJASDLKF"); return;
 			}
 
 			if (gpr.R(a).IsImm() && !update)

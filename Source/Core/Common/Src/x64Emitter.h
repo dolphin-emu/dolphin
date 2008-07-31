@@ -132,7 +132,11 @@ namespace Gen
 		void WriteNormalOp(bool toRM, NormalOp op, const OpArg &operand, int bits) const;
 		bool IsImm() const {return scale == SCALE_IMM8 || scale == SCALE_IMM16 || scale == SCALE_IMM32 || scale == SCALE_IMM64;}
 		bool IsSimpleReg() const {return scale == SCALE_NONE;}
-
+		bool IsSimpleReg(X64Reg reg) const {
+			if (!IsSimpleReg())
+				return false;
+			return GetSimpleReg() == reg;
+		}
 		bool CanDoOpWith(OpArg &other) const
 		{
 			if (IsSimpleReg()) return true;

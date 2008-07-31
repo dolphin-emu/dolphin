@@ -83,6 +83,7 @@
 // These will destroy the 1 or 2 first "parameter regs".
 void ABI_CallFunctionC(void *func, u32 param1);
 void ABI_CallFunctionCC(void *func, u32 param1, u32 param2);
+void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2);
 
 // Pass a register as a paremeter.
 void ABI_CallFunctionR(void *func, Gen::X64Reg reg1);
