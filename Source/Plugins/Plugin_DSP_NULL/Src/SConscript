@@ -1,4 +1,5 @@
 Import('env')
+import sys
 
 files = ["DSPHandler.cpp",
 		 "MailHandler.cpp",
@@ -16,4 +17,8 @@ files = ["DSPHandler.cpp",
          "UCodes/UCode_Zelda.cpp",
 		 ]
 dspenv=env.Copy(LINKFLAGS = "`pkg-config --libs ao` ")
-dspenv.SharedLibrary("../../../../Binary/linux/Plugins/dsphle.so", files, LIBS = ["common"])
+
+if sys.platform == 'darwin':
+	dspenv.SharedLibrary("../../../../Binary/mac/Plugins/dsphle.so", files, LIBS = ["common"])
+else:
+	dspenv.SharedLibrary("../../../../Binary/linux/Plugins/dsphle.so", files, LIBS = ["common"])

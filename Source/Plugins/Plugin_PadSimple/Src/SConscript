@@ -1,5 +1,11 @@
 Import('env')
-output = "../../../../Binary/linux/Plugins/padsimple.so"
+import sys
+
+if sys.platform == 'darwin':
+	output = "../../../../Binary/mac/Plugins/padsimple.so"
+else:
+	output = "../../../../Binary/linux/Plugins/padsimple.so"
+
 files = ["main.cpp",
 		 ]
 padenv=env.Copy(CXXFLAGS = " `pkg-config --cflags sdl`", LINKFLAGS = " `pkg-config --libs sdl`")

@@ -1,5 +1,11 @@
 Import('env')
-output = "../../../../Binary/linux/Plugins/Plugin_nJoy_SDL.so"
+import sys
+
+if sys.platform == 'darwin':
+	output = "../../../../Binary/mac/Plugins/Plugin_nJoy_SDL.so"
+else:
+	output = "../../../../Binary/linux/Plugins/Plugin_nJoy_SDL.so"
+
 files = [	"nJoy.cpp",
 			"GUI/AboutBox.cpp",
 			"GUI/ConfigBox.cpp",
