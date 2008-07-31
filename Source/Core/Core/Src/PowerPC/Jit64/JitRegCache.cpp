@@ -104,7 +104,8 @@ namespace Jit64
 	{
 		int aCount;
 		const int *aOrder = GetAllocationOrder(aCount);
-		for (int i = 0; i < aCount; i++)
+		int i;
+		for (i = 0; i < aCount; i++)
 		{
 			X64Reg xr = (X64Reg)aOrder[i];
 			if (!xlocks[xr] && xregs[xr].free)
@@ -200,16 +201,11 @@ namespace Jit64
 	{
 		switch (reg)
 		{
-#ifdef _WIN32
 		case RAX: case RCX: case RDX: case R8: case R9: case R10: case R11:
 #ifdef _M_IX86
 		case RBX:
 #endif
-#else
-		// linux64
-		case RAX: case RCX: case RDX: case RSI: case RDI: case R9: case R10: case R11:
 			return true;
-#endif
 		default:
 			return false;
 		}
@@ -254,14 +250,10 @@ namespace Jit64
 	{
 		static const int allocationOrder[] = 
 		{
-#ifdef _WIN32
 #ifdef _M_X64
 			RSI, RDI, R12, R13, R14, R8, R9, RDX, R10, R11 //, RCX
 #elif _M_IX86
 			ESI, EDI, EBX, EBP, EDX //, RCX
-#endif
-#else
-			R12, R13, R14, R15, RDX,
 #endif
 		};
 		count = sizeof(allocationOrder) / sizeof(const int);
@@ -274,14 +266,10 @@ namespace Jit64
 	{
 		static const int allocationOrder[] = 
 		{
-#ifdef _WIN32
 #ifdef _M_X64
 			XMM6, XMM7, XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15, XMM2, XMM3, XMM4, XMM5
 #elif _M_IX86
 			XMM2, XMM3, XMM4, XMM5, XMM6, XMM7,
-#endif
-#else
-			XMM2, XMM3, XMM4, XMM5, XMM6, XMM7, XMM8, XMM9, XMM10, XMM11, XMM12, XMM13, XMM14, XMM15,
 #endif
 		};
 		count = sizeof(allocationOrder) / sizeof(int);

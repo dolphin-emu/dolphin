@@ -112,12 +112,12 @@ u64 MemArena::Find4GBBase()
 	VirtualFree(base, 0, MEM_RELEASE);
 	return((u64)base);
 #else
-	// TODO(ector): Do correctly (yeah i know how to do it now :P)
+	// Very precarious - mmap cannot return an error when trying to map already used pages.
+	// This makes the Windows approach above unusable on Linux, so we will simply pray...
 	return(0x2300000000ULL);
 #endif
 
 #else
-	// This is the one that will be tricky on Unix, if I want to be nice.
 	// 32 bit
 	// The highest thing in any 1GB section of memory space is the locked cache. We only need to fit it.
 	u8* base = (u8*)VirtualAlloc(0, 0x31000000, MEM_RESERVE, PAGE_READWRITE);

@@ -188,7 +188,6 @@ void Generate()
 {
 	enterCode = AlignCode16();
 	//we only want to do this once
-#ifdef _WIN32
 	PUSH(RBX); 
 	PUSH(RSI); 
 	PUSH(RDI); 
@@ -198,14 +197,7 @@ void Generate()
 	PUSH(R15);
 	//TODO: Also preserve XMM0-3?
 	SUB(64, R(RSP), Imm8(0x20));
-#else
-	PUSH(RBP);
-	PUSH(RBX);
-	PUSH(R12);
-	PUSH(R13);
-	PUSH(R14);
-	PUSH(R15);
-#endif
+	//INT3();
 
 	MOV(64, R(RBX), Imm64((u64)Memory::base));
 	if ((u64)GetCodePointers() > 0x80000000ULL) {
@@ -241,11 +233,11 @@ void Generate()
 					ADD(32, M(&PowerPC::ppcState.DebugCount), Imm8(1));
 				}
 				//grab from list and jump to it
-				JMPptr(MComplex(R15, RAX, 8, 0));
+				JMPptr(MComplex(R15,RAX,8,0));
 			SetJumpTarget(notfound);
 
 			//Ok, no block, let's jit
-			MOV(32, R(XR_PARAM1), M(&PowerPC::ppcState.pc));
+			MOV(32, R(ECX), M(&PowerPC::ppcState.pc));
 			CALL((void *)&Jit);
 			JMP(dispatcherNoCheck); // no point in special casing this, not the "fast path"
 
@@ -268,7 +260,7 @@ void Generate()
 		CALL((void *)&CoreTiming::Advance);
 		
 		testExceptions = GetCodePtr();
-		TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(0xFFFFFFFF));
+		TEST(32,M(&PowerPC::ppcState.Exceptions), Imm32(0xFFFFFFFF));
 		FixupBranch skipExceptions = J_CC(CC_Z);
 			MOV(32, R(EAX), M(&PC));
 			MOV(32, M(&NPC), R(EAX));
@@ -279,7 +271,7 @@ void Generate()
 		
 		TEST(32, M((void*)&PowerPC::state), Imm32(0xFFFFFFFF));
 		J_CC(CC_Z, outerLoop, true);
-#ifdef _WIN32	
+	
 	//Landing pad for drec space
 	ADD(64, R(RSP), Imm8(0x20));
 	POP(R15);
@@ -288,15 +280,7 @@ void Generate()
 	POP(R12); 
 	POP(RDI); 
 	POP(RSI); 
-	POP(RBX);
-#else
-	PUSH(R15);
-	PUSH(R14);
-	PUSH(R13);
-	PUSH(R12);
-	PUSH(RBX);
-	PUSH(RBP);
-#endif
+	POP(RBX); 
 	RET();
 
 	computeRc = AlignCode16();
@@ -337,6 +321,43 @@ void Generate()
 	}
 	MessageBox(0,(char*)xDis,"yo",0);
 	delete [] xDis; */
+
+	/*
+	RUNTIME_FUNCTION func;
+	func.BeginAddress = 0;
+	func.EndAddress = (u32)(GetCodePtr() - enterCode);
+	func.UnwindData = 0;
+
+	RtlAddFunctionTable(&func, 1, (ULONGLONG)enterCode);*/
+	/*
+	//we only want to do this once
+	PUSH(RBX); 
+	PUSH(RSI); 
+	PUSH(RDI); 
+	PUSH(R12); 
+	PUSH(R13); 
+	PUSH(R14); 
+	PUSH(R15);
+	//TODO: Also preserve XMM0-3?
+	SUB(64, R(RSP), Imm8(0x20));
+
+	MOV(32, R(R15), M(&Memory::base));
+
+
+
+
+	MOV(32, M(&PowerPC::ppcState.pc), R(R14));
+
+	//Landing pad for drec space
+	ADD(64, R(RSP), Imm8(0x20));
+	POP(R15);
+	POP(R14); 
+	POP(R13); 
+	POP(R12); 
+	POP(RDI); 
+	POP(RSI); 
+	POP(RBX); 
+	RET();*/
 }
 #endif
 }
