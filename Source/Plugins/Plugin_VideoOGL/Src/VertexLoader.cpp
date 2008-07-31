@@ -539,7 +539,10 @@ void VertexLoader::ProcessFormat()
 #else
             PUSH(32, Imm32(id));
             CALL((void *)glClientActiveTexture);
-            // don't inc stack
+			// don't inc stack on windows, stdcall
+#ifndef _WIN32
+			ADD(32, R(ESP), Imm8(4));
+#endif
 #endif
             if( m_components&(VB_HAS_TEXMTXIDX0<<i) ) {
                 if( tc[i] != NOT_PRESENT ) {

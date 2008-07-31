@@ -76,7 +76,7 @@ void ABI_CallFunctionR(void *func, X64Reg reg1) {
 
 void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2)
 {
-	if (arg1.IsSimpleReg(ABI_PARAM1))
+	if (!arg1.IsSimpleReg(ABI_PARAM1))
 		MOV(32, R(ABI_PARAM1), arg1);
 	MOV(32, R(ABI_PARAM2), Imm32(param2));
 	CALL(func);
