@@ -22,6 +22,7 @@
 #include "../../CoreTiming.h"
 #include "MemoryUtil.h"
 
+#include "ABI.h"
 #include "Jit.h"
 #include "JitCache.h"
 
@@ -187,16 +188,9 @@ void Generate()
 void Generate()
 {
 	enterCode = AlignCode16();
-	//we only want to do this once
-	PUSH(RBX); 
-	PUSH(RSI); 
-	PUSH(RDI); 
-	PUSH(R12); 
-	PUSH(R13); 
-	PUSH(R14); 
-	PUSH(R15);
-	//TODO: Also preserve XMM0-3?
-	SUB(64, R(RSP), Imm8(0x20));
+
+	ABI_PushAllCalleeSavedRegsAndAdjustStack();
+	
 	//INT3();
 
 	MOV(64, R(RBX), Imm64((u64)Memory::base));
@@ -237,7 +231,7 @@ void Generate()
 			SetJumpTarget(notfound);
 
 			//Ok, no block, let's jit
-			MOV(32, R(ECX), M(&PowerPC::ppcState.pc));
+			MOV(32, R(ABI_PARAM1), M(&PowerPC::ppcState.pc));
 			CALL((void *)&Jit);
 			JMP(dispatcherNoCheck); // no point in special casing this, not the "fast path"
 
@@ -273,14 +267,7 @@ void Generate()
 		J_CC(CC_Z, outerLoop, true);
 	
 	//Landing pad for drec space
-	ADD(64, R(RSP), Imm8(0x20));
-	POP(R15);
-	POP(R14); 
-	POP(R13); 
-	POP(R12); 
-	POP(RDI); 
-	POP(RSI); 
-	POP(RBX); 
+	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();
 
 	computeRc = AlignCode16();

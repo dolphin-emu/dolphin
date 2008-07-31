@@ -1,11 +1,7 @@
 import os
 import sys
 
-warnings = ' -Wall -Wwrite-strings -Wfloat-equal -Wshadow -Wpointer-arith -Wcast-qual -Wpacked'
-
-nonactive_warnings = '-Wunreachable-code'
-
-ccflags = '-g -O3 -fno-strict-aliasing -fPIC -msse2  -DLOGGING -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE' + warnings
+ccflags = '-g -O3 -fno-strict-aliasing -fPIC -msse2 -Wall -DLOGGING -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE'
 
 if sys.platform == 'darwin':         
 	ccflags += ' -I/opt/local/include'
@@ -29,15 +25,15 @@ if sys.platform == 'darwin':
         	"Externals/Bochs_disasm",
 	        "Source/Core/Core/Src",
        	 	"Source/Core/DiscIO/Src",
-            "Source/Core/DebuggerWX/src",
-            "Source/Core/VideoCommon/Src",
-#           "Source/Plugins/Plugin_VideoOGL/Src",
-            "Source/Plugins/Plugin_DSP_NULL/Src",
-#           "Source/Plugins/Plugin_DSP_LLE/Src",
-            "Source/Plugins/Plugin_PadSimple/Src",
-            "Source/Plugins/Plugin_nJoy_SDL/Src",
-            "Source/Core/DolphinWX/src",
-           ]
+        "Source/Core/DebuggerWX/src",
+        "Source/Core/VideoCommon/Src",
+#       "Source/Plugins/Plugin_VideoOGL/Src",
+		"Source/Plugins/Plugin_DSP_NULL/Src",
+#		"Source/Plugins/Plugin_DSP_LLE/Src",
+		"Source/Plugins/Plugin_PadSimple/Src",
+		"Source/Plugins/Plugin_nJoy_SDL/Src",
+        "Source/Core/DolphinWX/src",
+       ]
 else:
 	dirs = ["Source/Core/Common/Src",
         "Externals/Bochs_disasm",

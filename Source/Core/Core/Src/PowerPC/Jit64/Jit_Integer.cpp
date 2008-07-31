@@ -30,7 +30,7 @@ namespace Jit64
 {
 	typedef u32 (*Operation)(u32 a, u32 b);
 	u32 Add(u32 a, u32 b) {return a+b;}
-	u32 Or(u32 a, u32 b)  {return a|b;}
+	u32 Or (u32 a, u32 b) {return a|b;}
 	u32 And(u32 a, u32 b) {return a&b;}
 	u32 Xor(u32 a, u32 b) {return a^b;}
 

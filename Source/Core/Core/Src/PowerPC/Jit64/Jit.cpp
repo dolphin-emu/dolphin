@@ -14,18 +14,18 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+#include "Common.h"
+#include "x64Emitter.h"
+#include "ABI.h"
 #include "../../HLE/HLE.h"
-#include "../PowerPC.h"
 #include "../../CoreTiming.h"
+#include "../PowerPC.h"
 #include "../PPCTables.h"
 #include "../PPCAnalyst.h"
-#include "x64Emitter.h"
 #include "../../HW/Memmap.h"
-#include "JitCache.h"
-
-#include "JitAsm.h"
 #include "Jit.h"
-
+#include "JitAsm.h"
+#include "JitCache.h"
 #include "JitRegCache.h"
 
 using namespace Gen;
@@ -235,17 +235,8 @@ namespace Jit64
 			MOV(32, M(&PC), Imm32(js.compilerPC));
 			MOV(32, M(&NPC), Imm32(js.compilerPC+4));
 		}
-#ifdef _M_X64
-		MOV(32,R(RCX), Imm32(_inst.hex));
 		CInterpreter::_interpreterInstruction instr = GetInterpreterOp(_inst);
-		CALL((void*)instr);
-#elif _M_IX86
-		MOV(32,R(ECX), Imm32(_inst.hex));
-		PUSH(ECX);
-		CInterpreter::_interpreterInstruction instr = GetInterpreterOp(_inst);
-		CALL((void*)instr);
-		ADD(32,R(ESP), Imm8(4));
-#endif
+		ABI_CallFunctionC((void*)instr, _inst.hex);
 	}
 
 	void Default(UGeckoInstruction _inst)
@@ -256,24 +247,14 @@ namespace Jit64
 	void HLEFunction(UGeckoInstruction _inst)
 	{
 		FlushRegCaches();
-#ifdef _M_X64
-		MOV(32, R(ECX), Imm32(js.compilerPC));
-		MOV(32, R(EDX), Imm32(_inst.hex));
-#elif _M_IX86
-		PUSH(32, Imm32(_inst.hex));
-		PUSH(32, Imm32(js.compilerPC));
-#endif
-		CALL((void *)&HLE::Execute);
-#ifdef _M_IX86
-		ADD(32, R(ESP), Imm8(8));
-#endif
+		ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
 		MOV(32, R(EAX), M(&NPC));
 		WriteExitDestInEAX(0);
 	}
 
 	void DoNothing(UGeckoInstruction _inst)
 	{
-
+		// Yup, just don't do anything.
 	}
 
 	bool ImHereDebug = false;

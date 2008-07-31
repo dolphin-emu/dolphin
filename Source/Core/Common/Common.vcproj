@@ -448,6 +448,14 @@
 	</References>
 	<Files>
 		<File
+			RelativePath=".\Src\ABI.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\ABI.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\Common.cpp"
 			>
 		</File>
@@ -557,6 +565,10 @@
 		</File>
 		<File
 			RelativePath=".\Src\PortableSockets.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SConscript"
 			>
 		</File>
 		<File

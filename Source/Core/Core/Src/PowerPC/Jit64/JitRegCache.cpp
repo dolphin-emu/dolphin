@@ -30,7 +30,6 @@ namespace Jit64
 {
 	GPRRegCache gpr;
 	FPURegCache fpr;
-
 	
 	void RegCache::Start(PPCAnalyst::BlockRegStats &stats)
 	{
@@ -245,13 +244,16 @@ namespace Jit64
 		RegCache::Start(stats);
 	}
 
-
 	const int *GPRRegCache::GetAllocationOrder(int &count)
 	{
 		static const int allocationOrder[] = 
 		{
 #ifdef _M_X64
+#ifdef _WIN32
 			RSI, RDI, R12, R13, R14, R8, R9, RDX, R10, R11 //, RCX
+#else
+			R12, R13, R14, R8, R9, RDX, R10, R11, RSI, RDI //, RCX
+#endif
 #elif _M_IX86
 			ESI, EDI, EBX, EBP, EDX //, RCX
 #endif
@@ -259,8 +261,6 @@ namespace Jit64
 		count = sizeof(allocationOrder) / sizeof(const int);
 		return allocationOrder;
 	}
-
-
 
 	const int *FPURegCache::GetAllocationOrder(int &count)
 	{

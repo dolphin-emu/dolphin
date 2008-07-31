@@ -1,0 +1,93 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
+#ifndef _JIT_ABI_H
+#define _JIT_ABI_H
+
+#include "x64Emitter.h"
+
+// x86/x64 ABI:s, and helpers to help follow them when JIT-ing code.
+// All convensions return values in EAX (+ possibly EDX).
+
+// Linux 32-bit, Windows 32-bit (cdecl, System V):
+// * Caller pushes left to right
+// * Caller fixes stack after call
+// * function subtract from stack for local storage only.
+// Scratch:      EAX ECX EDX
+// Callee-save:  EBX ESI EDI EBP 
+// Parameters:   -
+
+// Windows 64-bit
+// * 4-reg "fastcall" variant, very new-skool stack handling
+// * Callee moves stack pointer, to make room for shadow regs for the biggest function _it itself calls_
+// * Parameters passed in RCX, RDX, ... further parameters are MOVed into the allocated stack space.
+// Scratch:      RAX RCX RDX R8 R9 R10 R11
+// Callee-save:  RBX RSI RDI RBP R12 R13 R14 R15
+// Parameters:   RCX RDX R8 R9, further MOV-ed
+
+// Linux 64-bit
+// * 6-reg "fastcall" variant, old skool stack handling (parameters are pushed)
+// Scratch:      RAX RCX RDX RSI RDI R8 R9 R10 R11
+// Callee-save:  RBX RBP R12 R13 R14 R15
+// Parameters:   RDI RSI RDX RCX R8 R9
+
+#ifdef _M_IX86
+// 32 bit calling convention, shared by all
+
+// There are no ABI_PARAM* here, since args are pushed.
+
+// === 32-bit bog standard cdecl, shared between linux and windows ============================
+// MacOSX 32-bit is same as System V with a few exceptions that we probably don't care much about.
+
+#else
+// 64 bit calling convention
+
+#ifdef _WIN32
+// === 64-bit Windows - the really exotic calling convention ==================================
+
+#define ABI_PARAM1 RCX
+#define ABI_PARAM2 RDX
+#define ABI_PARAM3 R8
+#define ABI_PARAM4 R9
+
+#else
+// === 64-bit Unix (hopefully MacOSX too) =====================================================
+
+#define ABI_PARAM1 RDI
+#define ABI_PARAM2 RSI
+#define ABI_PARAM3 RDX
+#define ABI_PARAM4 RCX
+#define ABI_PARAM5 R8
+#define ABI_PARAM6 R9
+
+#endif
+
+#endif
+
+// Utility functions
+// These only support u32 parameters, but that's enough for a lot of uses.
+// These will destroy the 1 or 2 first "parameter regs".
+void ABI_CallFunctionC(void *func, u32 param1);
+void ABI_CallFunctionCC(void *func, u32 param1, u32 param2);
+
+// Pass a register as a paremeter.
+void ABI_CallFunctionR(void *func, Gen::X64Reg reg1);
+
+void ABI_PushAllCalleeSavedRegsAndAdjustStack();
+void ABI_PopAllCalleeSavedRegsAndAdjustStack();
+
+#endif  // _JIT_ABI_H

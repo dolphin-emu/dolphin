@@ -253,6 +253,4 @@ namespace Jit64
 			break;
 		}
 	}
-
-
 }

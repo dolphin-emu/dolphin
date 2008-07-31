@@ -305,7 +305,7 @@ namespace Gen
 
 	void XCHG_AHAL();
 	void BSWAP(int bits, X64Reg reg);
-	void MOVSX(int dbits, int sbits, X64Reg dest, OpArg src); //auto uses MOVSXD if necessary
+	void MOVSX(int dbits, int sbits, X64Reg dest, OpArg src); //automatically uses MOVSXD if necessary
 	void MOVZX(int dbits, int sbits, X64Reg dest, OpArg src); 
 
 	enum SSECompare
@@ -320,13 +320,11 @@ namespace Gen
 		ORD,
 	};
 
-
-	//SSE2
 	// WARNING - These two take 11-13 cycles and are VectorPath! (AMD64)
 	void STMXCSR(OpArg memloc);
 	void LDMXCSR(OpArg memloc);
 
-	//Regular SSE instructions
+	// Regular SSE/SSE2 instructions
 	void ADDSS(X64Reg regOp, OpArg arg);  
 	void ADDSD(X64Reg regOp, OpArg arg);  
 	void SUBSS(X64Reg regOp, OpArg arg);  
@@ -491,7 +489,6 @@ namespace Gen
 	void PMINUB(X64Reg dest, OpArg arg);  
 
 	void PMOVMSKB(X64Reg dest, OpArg arg);
-
 
 	namespace Util
 	{

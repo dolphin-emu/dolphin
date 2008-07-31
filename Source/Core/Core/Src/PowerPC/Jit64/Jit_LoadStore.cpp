@@ -26,6 +26,7 @@
 #include "../../HW/Memmap.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
+#include "ABI.h"
 
 #include "Jit.h"
 #include "JitCache.h"
@@ -46,47 +47,22 @@ namespace Jit64
 	static u64 GC_ALIGNED16(temp64);
 	static u32 GC_ALIGNED16(temp32);
 
-#ifdef _M_X64
-	void SafeLoadECXtoEAX(int accessSize, s32 offset)
+	void SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset)
 	{
 		if (offset)
-			ADD(32, R(ECX), Imm32((u32)offset));
-		TEST(32, R(ECX), Imm32(0x0C000000));
+			ADD(32, R(reg), Imm32((u32)offset));
+		TEST(32, R(reg), Imm32(0x0C000000));
 		FixupBranch argh = J_CC(CC_NZ);
 		if (accessSize != 32)
 			XOR(32, R(EAX), R(EAX));
-		MOV(accessSize, R(EAX), MComplex(RBX, ECX, SCALE_1, 0));
-		if (accessSize == 32)
-			BSWAP(32, EAX);
-		else if (accessSize == 16)
-		{
-			BSWAP(32, EAX);
-			SHR(32, R(EAX), Imm8(16));
-		}
-		FixupBranch arg2 = J();
-		SetJumpTarget(argh);
-		switch (accessSize)
-		{
-		case 32: CALL((void *)&Memory::Read_U32); break;
-		case 16: CALL((void *)&Memory::Read_U16);break;
-		case 8:  CALL((void *)&Memory::Read_U8);break;
-		}
-		SetJumpTarget(arg2);
-	}
-#elif _M_IX86
-	void SafeLoadECXtoEAX(int accessSize, s32 offset)
-	{
-		if (offset)
-			ADD(32, R(ECX), Imm32((u32)offset));
-		TEST(32, R(ECX), Imm32(0x0C000000));
-		FixupBranch argh = J_CC(CC_NZ);
-		if (accessSize != 32)
-			XOR(32, R(EAX), R(EAX));
+#ifdef _M_IX86
 		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-
 		MOV(accessSize, R(EAX), MDisp(ECX, (u32)Memory::base));
+#else
+		MOV(accessSize, R(EAX), MComplex(RBX, reg, SCALE_1, 0));
+#endif
 		if (accessSize == 32)
-			BSWAP(32,EAX);
+			BSWAP(32, EAX);
 		else if (accessSize == 16)
 		{
 			BSWAP(32, EAX);
@@ -94,17 +70,14 @@ namespace Jit64
 		}
 		FixupBranch arg2 = J();
 		SetJumpTarget(argh);
-		PUSH(ECX);
 		switch (accessSize)
 		{
-		case 32: CALL(&Memory::Read_U32); break;
-		case 16: CALL(&Memory::Read_U16); break;
-		case 8:  CALL(&Memory::Read_U8);  break;
+		case 32: ABI_CallFunctionR((void *)&Memory::Read_U32, ECX); break;
+		case 16: ABI_CallFunctionR((void *)&Memory::Read_U16, ECX); break;
+		case 8:  ABI_CallFunctionR((void *)&Memory::Read_U8, ECX);  break;
 		}
-		ADD(32, R(ESP), Imm8(4));
 		SetJumpTarget(arg2);
 	}
-#endif
 
 	void lbzx(UGeckoInstruction inst)
 	{
@@ -117,7 +90,7 @@ namespace Jit64
 		MOV(32, R(ECX), gpr.R(b));
 		if (a)
 			ADD(32, R(ECX), gpr.R(a));
-		SafeLoadECXtoEAX(8, 0);
+		SafeLoadRegToEAX(ECX, 8, 0);
 		MOV(32, gpr.R(d), R(EAX));
 		gpr.UnlockAll();
 	}
@@ -133,26 +106,15 @@ namespace Jit64
 
 		if (!Core::GetStartupParameter().bUseDualCore && 
 			inst.OPCD == 32 && 
-			(inst.hex & 0xFFFF0000)==0x800D0000 &&
-			Memory::ReadUnchecked_U32(js.compilerPC+4)==0x28000000 &&
-			Memory::ReadUnchecked_U32(js.compilerPC+8)==0x4182fff8)
+			(inst.hex & 0xFFFF0000) == 0x800D0000 &&
+			Memory::ReadUnchecked_U32(js.compilerPC+4) == 0x28000000 &&
+			Memory::ReadUnchecked_U32(js.compilerPC+8) == 0x4182fff8)
 		{
-			//PowerPC::downcount -= PowerPC::OnIdle(uAddress);
 			gpr.Flush(FLUSH_ALL);
 			fpr.Flush(FLUSH_ALL);
-#ifdef _M_IX86
-			MOV(32, R(ECX), Imm32(PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16));
-			PUSH(ECX);
-			CALL((void *)&PowerPC::OnIdle);
-			ADD(32, R(ESP), Imm32(4));
-#elif defined(_M_X64)
-			//INT3();
-			MOV(32, R(ECX), Imm32(PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16));
-			CALL((void *)&PowerPC::OnIdle);
-#endif
-			MOV(32,M(&PowerPC::ppcState.pc), Imm32(js.compilerPC+12));
+			ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
+			MOV(32, M(&PowerPC::ppcState.pc), Imm32(js.compilerPC + 12));
 			JMP(Asm::testExceptions, true);
-
 			js.compilerPC += 8;
 			return;
 		}
@@ -182,7 +144,7 @@ namespace Jit64
 			gpr.Flush(FLUSH_VOLATILE);
 			gpr.Lock(d, a);
 			MOV(32, R(ECX), gpr.R(a));
-			SafeLoadECXtoEAX(accessSize, offset);
+			SafeLoadRegToEAX(ECX, accessSize, offset);
 			gpr.LoadToX64(d, false, true);
 			MOV(32, gpr.R(d), R(EAX));
 			gpr.UnlockAll();
@@ -235,7 +197,7 @@ namespace Jit64
 		else
 #endif
 		{
-			SafeLoadECXtoEAX(32, offset);
+			SafeLoadRegToEAX(ECX, 32, offset);
 		}
 
 		MOV(32, M(&temp32), R(EAX));

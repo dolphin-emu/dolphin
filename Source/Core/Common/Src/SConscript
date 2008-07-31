@@ -1,6 +1,7 @@
 Import('env')
 
-files = ["Common.cpp",
+files = ["ABI.cpp",
+         "Common.cpp",
 		 "CPUDetect.cpp",
 		 "DynamicLibrary.cpp",
          "Hash.cpp",
