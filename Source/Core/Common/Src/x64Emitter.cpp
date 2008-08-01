@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 #include "Common.h"
 #include "x64Emitter.h"
+#include "ABI.h"
 #include "CPUDetect.h"
 
 namespace Gen

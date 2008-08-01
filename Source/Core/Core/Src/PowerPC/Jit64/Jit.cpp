@@ -259,10 +259,16 @@ namespace Jit64
 	}
 
 	bool ImHereDebug = false;
-
+	bool ImHereLog = false;
 	std::map<u32, int> been_here;
 	void ImHere()
 	{
+		static FILE *f = 0;
+		if (ImHereLog) {
+			if (!f)
+				f = fopen("log.txt", "w");
+			fprintf(f, "%08x\n", PC);
+		}
 		if (been_here.find(PC) != been_here.end()) {
 			been_here.find(PC)->second++;
 			if ((been_here.find(PC)->second) & 1023)
