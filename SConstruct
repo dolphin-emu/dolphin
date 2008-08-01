@@ -1,11 +1,12 @@
 import os
 import sys
 
-warnings = ' -Wall -Wwrite-strings -Wfloat-equal -Wshadow -Wpointer-arith -Wcast-qual -Wpacked'
+warnings = ' -Wall -Wwrite-strings -Wfloat-equal -Wshadow -Wpointer-arith -Wcast-qual -Wpacked -Wno-conversion'
 
 nonactive_warnings = '-Wunreachable-code'
 
-ccflags = '-g -O3 -fno-strict-aliasing -fPIC -msse2  -DLOGGING -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE' + warnings
+ccflags = '-g -O3 -fno-strict-aliasing -fPIC -msse2 -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE' + warnings
+#ccflags += ' -DLOGGING'
 
 if sys.platform == 'darwin':         
 	ccflags += ' -I/opt/local/include'
@@ -47,7 +48,7 @@ else:
         "Source/Core/VideoCommon/Src",
         "Source/Plugins/Plugin_VideoOGL/Src",
 		"Source/Plugins/Plugin_DSP_NULL/Src",
-		"Source/Plugins/Plugin_DSP_LLE/Src",
+#		"Source/Plugins/Plugin_DSP_LLE/Src",
 		"Source/Plugins/Plugin_PadSimple/Src",
 		"Source/Plugins/Plugin_nJoy_SDL/Src",
         "Source/Core/DolphinWX/src",

@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 #include "Common.h"
+#include <map>
 #include "x64Emitter.h"
 #include "ABI.h"
 #include "../../HLE/HLE.h"
@@ -259,9 +260,13 @@ namespace Jit64
 
 	bool ImHereDebug = false;
 
+	std::map<u32, bool> been_here;
 	void ImHere()
 	{
+		if (been_here.find(PC) != been_here.end())
+			return;
 		LOG(DYNA_REC, "I'm here - PC = %08x , LR = %08x", PC, LR);
+		been_here[PC] = true;
 	}
 
 	void FlushRegCaches()

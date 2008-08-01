@@ -191,12 +191,13 @@ void Generate()
 
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
 	
-	//INT3();
+	// INT3();
 
 	MOV(64, R(RBX), Imm64((u64)Memory::base));
-	if ((u64)GetCodePointers() > 0x80000000ULL) {
-		PanicAlert("Code Pointers are above the limit!");
-	}
+	// if ((u64)GetCodePointers() > 0x80000000ULL) {
+	//	PanicAlert("Code Pointers are above the limit! %p",
+    //               GetCodePointers());
+	//}
 	MOV(64, R(R15), Imm64((u64)GetCodePointers())); //It's below 2GB so 32 bits are good enough
 	const u8 *outerLoop = GetCodePtr();
 

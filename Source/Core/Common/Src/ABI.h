@@ -52,7 +52,6 @@
 
 // === 32-bit bog standard cdecl, shared between linux and windows ============================
 // MacOSX 32-bit is same as System V with a few exceptions that we probably don't care much about.
-
 #else
 // 64 bit calling convention
 
@@ -63,7 +62,6 @@
 #define ABI_PARAM2 RDX
 #define ABI_PARAM3 R8
 #define ABI_PARAM4 R9
-
 #else
 // === 64-bit Unix (hopefully MacOSX too) =====================================================
 
@@ -92,3 +90,4 @@ void ABI_PushAllCalleeSavedRegsAndAdjustStack();
 void ABI_PopAllCalleeSavedRegsAndAdjustStack();
 
 #endif  // _JIT_ABI_H
+

@@ -1050,9 +1050,10 @@ void SDRUpdated()
 
 u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag)
 {
-	PanicAlert("TLB: Read from unknown memory (0x%08x)\n"
-				"Several games uses the TLB to map memory. This\n"
-				"function is not support in dolphin. Cheers!", _Address);
+	PanicAlert("TLB: %s unknown memory (0x%08x)\n"
+			   "Several games uses the TLB to map memory. This\n"
+			   "function is not support in dolphin. Cheers!",
+			   _Flag == FLAG_WRITE ? "Write to" : "Read from", _Address);
 
 	u32 sr = PowerPC::ppcState.sr[EA_SR(_Address)]; 
 

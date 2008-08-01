@@ -40,7 +40,6 @@ void MemArena::GrabLowMemSpace(size_t size)
 	ftruncate(fd, size);
 	return;
 #endif
-
 }
 
 

@@ -52,6 +52,7 @@ void PanicAlert(const char* format, ...)
 		//#error Do a messagebox!
 		vprintf(format, args);
 		printf("\n");
+        asm ("int $3") ;
 #endif
 	}
 

@@ -56,8 +56,8 @@ namespace Jit64
 		if (accessSize != 32)
 			XOR(32, R(EAX), R(EAX));
 #ifdef _M_IX86
-		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-		MOV(accessSize, R(EAX), MDisp(ECX, (u32)Memory::base));
+		AND(32, R(reg), Imm32(Memory::MEMVIEW32_MASK));
+		MOV(accessSize, R(EAX), MDisp(reg, (u32)Memory::base));
 #else
 		MOV(accessSize, R(EAX), MComplex(RBX, reg, SCALE_1, 0));
 #endif
@@ -72,9 +72,9 @@ namespace Jit64
 		SetJumpTarget(argh);
 		switch (accessSize)
 		{
-		case 32: ABI_CallFunctionR((void *)&Memory::Read_U32, ECX); break;
-		case 16: ABI_CallFunctionR((void *)&Memory::Read_U16, ECX); break;
-		case 8:  ABI_CallFunctionR((void *)&Memory::Read_U8, ECX);  break;
+		case 32: ABI_CallFunctionR((void *)&Memory::Read_U32, reg); break;
+		case 16: ABI_CallFunctionR((void *)&Memory::Read_U16, reg); break;
+		case 8:  ABI_CallFunctionR((void *)&Memory::Read_U8, reg);  break;
 		}
 		SetJumpTarget(arg2);
 	}
@@ -135,10 +135,10 @@ namespace Jit64
 		}
 
 		//Still here? Do regular path.
-#ifdef _M_IX86
-		if (true) {
-#elif defined(_M_X64)
+#if defined(_M_X64) && defined(_WIN32)
 		if (accessSize == 8 || accessSize == 16 || !jo.enableFastMem) {
+#else
+		if (true) {
 #endif
 			// Safe and boring
 			gpr.Flush(FLUSH_VOLATILE);
@@ -259,6 +259,8 @@ namespace Jit64
 
 	void stfs(UGeckoInstruction inst)
 	{
+		Default(inst);
+		return; // LINUXTODO
 		BIT32OLD;
 		OLD;
 		bool update = inst.OPCD & 1;
@@ -336,6 +338,8 @@ namespace Jit64
 
 	void stX(UGeckoInstruction inst)
 	{
+		Default(inst);
+		return;
 		int s = inst.RS;
 		int a = inst.RA;
 

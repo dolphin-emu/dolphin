@@ -53,7 +53,11 @@ void* AllocateExecutableMemory(int size)
 
 #else
 	void* retval = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC,
-			MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);  // | MAP_FIXED
+		MAP_ANONYMOUS | MAP_PRIVATE
+#ifdef __x86_64__
+		 | MAP_32BIT 	
+#endif
+         , -1, 0);  // | MAP_FIXED
 	printf("mappah exe %p %i\n", retval, size);
 
 	if (!retval)
