@@ -34,9 +34,11 @@
 
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS
-
+#define DIRECTINPUT_VERSION 0x0800
 #define WIN32_LEAN_AND_MEAN
 #include <tchar.h>
+#include <math.h>
+#include <dinput.h>		// used for rumble
 #endif
 
 #include <vector>
@@ -65,6 +67,11 @@
 #ifdef _WIN32
 #pragma comment(lib, "SDL.lib")
 #pragma comment(lib, "comctl32.lib")
+
+// Required for the rumble part
+#pragma comment(lib, "dxguid.lib")
+#pragma comment(lib, "dinput8.lib")
+#pragma comment(lib, "winmm.lib")
 #endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -77,6 +84,14 @@
 #define RELMONTH		"07"
 #define RELYEAR			"2008"
 #define THANKYOU		"`plot`, Absolute0, Aprentice, Bositman, Brice, ChaosCode, CKemu, CoDeX, Dave2001, dn, drk||Raziel, Florin, Gent, Gigaherz, Hacktarux, JegHegy, Linker, Linuzappz, Martin64, Muad, Knuckles, Raziel, Refraction, Rudy_x, Shadowprince, Snake785, Saqib, vEX, yaz0r, Zilmar, Zenogais and ZeZu."
+
+#ifdef _WIN32
+// Rumble stuff :D!
+#endif
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Structures
+// ¯¯¯¯¯¯¯¯¯¯
 
 struct CONTROLLER_STATE{	// GC PAD INFO/STATE
 	int buttons[8];			// Amount of buttons (A B X Y Z, L-Trigger R-Trigger Start) might need to change the triggers buttons
@@ -143,6 +158,7 @@ enum
 	CTL_D_PAD_LEFT,
 	CTL_D_PAD_RIGHT
 };
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Custom Functions
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
