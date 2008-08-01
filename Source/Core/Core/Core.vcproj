@@ -892,14 +892,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\Src\PowerPC\Jit64\JitABI.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\PowerPC\Jit64\JitABI.h"
-					>
-				</File>
-				<File
 					RelativePath=".\Src\PowerPC\Jit64\JitAsm.cpp"
 					>
 				</File>

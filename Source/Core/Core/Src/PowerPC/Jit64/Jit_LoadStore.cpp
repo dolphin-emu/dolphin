@@ -259,8 +259,6 @@ namespace Jit64
 
 	void stfs(UGeckoInstruction inst)
 	{
-		Default(inst);
-		return; // LINUXTODO
 		BIT32OLD;
 		OLD;
 		bool update = inst.OPCD & 1;
@@ -338,8 +336,6 @@ namespace Jit64
 
 	void stX(UGeckoInstruction inst)
 	{
-		Default(inst);
-		return;
 		int s = inst.RS;
 		int a = inst.RA;
 
