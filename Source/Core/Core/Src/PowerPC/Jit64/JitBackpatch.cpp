@@ -6,6 +6,7 @@
 #include "../../HW/Memmap.h"
 
 #include "x64Emitter.h"
+#include "ABI.h"
 #include "x64Analyzer.h"
 
 #include "StringUtil.h"

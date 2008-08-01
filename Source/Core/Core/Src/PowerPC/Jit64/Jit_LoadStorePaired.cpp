@@ -204,6 +204,7 @@ void psq_st(UGeckoInstruction inst)
 		MOV(32, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
 #else
 		BSWAP(32, ABI_PARAM1);
+		PUSH(32, R(ABI_PARAM1));
 		CALL(&Memory::Write_U32);
 #endif
 		if (update)
