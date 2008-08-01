@@ -87,10 +87,10 @@ namespace Jit64
 			gpr.LoadToX64(d, true, true);
 		else 
 			gpr.LoadToX64(d, false, true);
-		MOV(32, R(ECX), gpr.R(b));
+		MOV(32, R(ABI_PARAM1), gpr.R(b));
 		if (a)
-			ADD(32, R(ECX), gpr.R(a));
-		SafeLoadRegToEAX(ECX, 8, 0);
+			ADD(32, R(ABI_PARAM1), gpr.R(a));
+		SafeLoadRegToEAX(ABI_PARAM1, 8, 0);
 		MOV(32, gpr.R(d), R(EAX));
 		gpr.UnlockAll();
 	}
@@ -143,8 +143,8 @@ namespace Jit64
 			// Safe and boring
 			gpr.Flush(FLUSH_VOLATILE);
 			gpr.Lock(d, a);
-			MOV(32, R(ECX), gpr.R(a));
-			SafeLoadRegToEAX(ECX, accessSize, offset);
+			MOV(32, R(ABI_PARAM1), gpr.R(a));
+			SafeLoadRegToEAX(ABI_PARAM1, accessSize, offset);
 			gpr.LoadToX64(d, false, true);
 			MOV(32, gpr.R(d), R(EAX));
 			gpr.UnlockAll();
@@ -184,7 +184,7 @@ namespace Jit64
 		gpr.Flush(FLUSH_VOLATILE);
 		gpr.Lock(d, a);
 		
-		MOV(32,R(ECX), gpr.R(a));
+		MOV(32, R(ABI_PARAM1), gpr.R(a));
 #ifdef _M_X64
 		if (!jo.noAssumeFPLoadFromMem)
 		{
@@ -197,7 +197,7 @@ namespace Jit64
 		else
 #endif
 		{
-			SafeLoadRegToEAX(ECX, 32, offset);
+			SafeLoadRegToEAX(ABI_PARAM1, 32, offset);
 		}
 
 		MOV(32, M(&temp32), R(EAX));
@@ -271,21 +271,21 @@ namespace Jit64
 			gpr.Flush(FLUSH_VOLATILE);
 			gpr.Lock(a);
 			fpr.Lock(s);
-			MOV(32,R(EDX),gpr.R(a));
+			MOV(32, R(ABI_PARAM2), gpr.R(a));
 			if (offset)
-				ADD(32,R(EDX),Imm32((u32)offset));
+				ADD(32, R(ABI_PARAM2), Imm32((u32)offset));
 			if (update && offset)
 			{
-				MOV(32,gpr.R(a),R(EDX));
+				MOV(32, gpr.R(a), R(ABI_PARAM2));
 			}
-			CVTSD2SS(XMM0,fpr.R(s));
-			MOVSS(M(&temp32),XMM0);
-			MOV(32,R(ECX),M(&temp32));
+			CVTSD2SS(XMM0, fpr.R(s));
+			MOVSS(M(&temp32), XMM0);
+			MOV(32, R(ABI_PARAM1), M(&temp32));
 
-			TEST(32,R(EDX),Imm32(0x0C000000));
+			TEST(32, R(ABI_PARAM2), Imm32(0x0C000000));
 			FixupBranch argh = J_CC(CC_NZ);
-			BSWAP(32,ECX);
-			MOV(32, MComplex(RBX, EDX, SCALE_1, 0), R(ECX));
+			BSWAP(32, ABI_PARAM1);
+			MOV(32, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
 			FixupBranch arg2 = J();
 			SetJumpTarget(argh);
 			CALL((void *)&Memory::Write_U32); 
@@ -358,7 +358,7 @@ namespace Jit64
 			case 38: accessSize = 8; break;  //stb
 			default: _assert_msg_(DYNA_REC, 0, "AWETKLJASDLKF"); return;
 			}
-
+/*
 			if (gpr.R(a).IsImm() && !update)
 			{
 				u32 addr = (u32)gpr.R(a).offset;
@@ -424,48 +424,41 @@ namespace Jit64
 					ADD(32, gpr.R(a), Imm32(offset));
 				return;
 			}
-
+*/
 			//Still here? Do regular path.
 			gpr.Lock(s, a);
-			MOV(32, R(EDX), gpr.R(a));
-			MOV(32, R(ECX), gpr.R(s));
+			MOV(32, R(ABI_PARAM2), gpr.R(a));
+			MOV(32, R(ABI_PARAM1), gpr.R(s));
 			if (offset)
-				ADD(32, R(EDX), Imm32((u32)offset));
+				ADD(32, R(ABI_PARAM2), Imm32((u32)offset));
 			if (update && offset)
 			{
-				MOV(32, gpr.R(a), R(EDX));
+				MOV(32, gpr.R(a), R(ABI_PARAM2));
 			}
-			TEST(32, R(EDX), Imm32(0x0C000000));
+			TEST(32, R(ABI_PARAM2), Imm32(0x0C000000));
 			FixupBranch argh = J_CC(CC_NZ);
 			if (accessSize == 32)
-				BSWAP(32, ECX);
+				BSWAP(32, ABI_PARAM1);
 			else if (accessSize == 16)
 			{
 				// TODO(ector): xchg ch, cl?
-				BSWAP(32, ECX);
-				SHR(32, R(ECX), Imm8(16));
+				BSWAP(32, ABI_PARAM1);
+				SHR(32, R(ABI_PARAM1), Imm8(16));
 			}
 #ifdef _M_X64
-			MOV(accessSize, MComplex(RBX, EDX, SCALE_1, 0), R(ECX));
+			MOV(accessSize, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
 #else
-			AND(32, R(EDX), Imm32(Memory::MEMVIEW32_MASK));
-			MOV(accessSize, MDisp(EDX, (u32)Memory::base), R(ECX));
+			AND(32, R(ABI_PARAM2), Imm32(Memory::MEMVIEW32_MASK));
+			MOV(accessSize, MDisp(ABI_PARAM2, (u32)Memory::base), R(ABI_PARAM1));
 #endif
 			FixupBranch arg2 = J();
 			SetJumpTarget(argh);
-#ifdef _M_IX86
-			PUSH(EDX);
-			PUSH(ECX);
-#endif
 			switch (accessSize)
 			{
-			case 32: CALL((void *)&Memory::Write_U32); break;
-			case 16: CALL((void *)&Memory::Write_U16); break;
-			case 8:  CALL((void *)&Memory::Write_U8); break;
+			case 32: ABI_CallFunctionRR((void *)&Memory::Write_U32, ABI_PARAM1, ABI_PARAM2); break;
+			case 16: ABI_CallFunctionRR((void *)&Memory::Write_U16, ABI_PARAM1, ABI_PARAM2); break;
+			case 8:  ABI_CallFunctionRR((void *)&Memory::Write_U8, ABI_PARAM1, ABI_PARAM2); break;
 			}
-#ifdef _M_IX86
-			ADD(32, R(ESP), Imm8(8));
-#endif
 			SetJumpTarget(arg2);
 			gpr.UnlockAll();
 		}

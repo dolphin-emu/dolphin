@@ -48,6 +48,11 @@
 #ifdef _M_IX86
 // 32 bit calling convention, shared by all
 
+// 32-bit don't pass parameters in regs, but these are convenient to have anyway when we have to
+// choose regs to put stuff in.
+#define ABI_PARAM1 RCX
+#define ABI_PARAM2 RDX
+
 // There are no ABI_PARAM* here, since args are pushed.
 
 // === 32-bit bog standard cdecl, shared between linux and windows ============================
@@ -85,6 +90,7 @@ void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2);
 
 // Pass a register as a paremeter.
 void ABI_CallFunctionR(void *func, Gen::X64Reg reg1);
+void ABI_CallFunctionRR(void *func, Gen::X64Reg reg1, Gen::X64Reg reg2);
 
 void ABI_PushAllCalleeSavedRegsAndAdjustStack();
 void ABI_PopAllCalleeSavedRegsAndAdjustStack();

@@ -26,6 +26,7 @@
 #include "../../HW/Memmap.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
+#include "ABI.h"
 
 #include "Jit.h"
 #include "JitCache.h"
@@ -111,7 +112,7 @@ void psq_st(UGeckoInstruction inst)
 	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
 	int stScale = gqr.ST_SCALE;
 	bool update = inst.OPCD == 61;
-	if (!inst.RA || inst.W)
+	if (update || !inst.RA || inst.W)
 	{
 	//	PanicAlert(inst.RA ? "W" : "inst");
 		Default(inst);
@@ -129,25 +130,25 @@ void psq_st(UGeckoInstruction inst)
 		fpr.Lock(s);
 		if (update)
 			gpr.LoadToX64(a, true, true);
-		MOV(32, R(EDX), gpr.R(a));
+		MOV(32, R(ABI_PARAM2), gpr.R(a));
 		if (offset)
-			ADD(32, R(EDX), Imm32((u32)offset));
-		TEST(32, R(EDX), Imm32(0x0C000000));
+			ADD(32, R(ABI_PARAM2), Imm32((u32)offset));
+		TEST(32, R(ABI_PARAM2), Imm32(0x0C000000));
 		if (update && offset)
-			MOV(32, gpr.R(a), R(EDX));
+			MOV(32, gpr.R(a), R(ABI_PARAM2));
 		CVTPD2PS(XMM0, fpr.R(s));
 		SHUFPS(XMM0, R(XMM0), 1);
 		MOVAPS(M(&temp64), XMM0);
-		MOV(64, R(ECX), M(&temp64));
+		MOV(64, R(ABI_PARAM1), M(&temp64));
 		FixupBranch argh = J_CC(CC_NZ);
-		BSWAP(64, ECX);
-		MOV(64, MComplex(RBX, EDX, SCALE_1, 0), R(ECX));
+		BSWAP(64, ABI_PARAM1);
+		MOV(64, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
 		FixupBranch arg2 = J();
 		SetJumpTarget(argh);
 		CALL((void *)&WriteDual32); 
 		SetJumpTarget(arg2);
 		if (update)
-			MOV(32, gpr.R(a), R(EDX));
+			MOV(32, gpr.R(a), R(ABI_PARAM2));
 		gpr.UnlockAll();
 		fpr.UnlockAll();
 	}
@@ -158,9 +159,9 @@ void psq_st(UGeckoInstruction inst)
 		fpr.Lock(s);
 		if (update)
 			gpr.LoadToX64(a, true, update);
-		MOV(32, R(EDX), gpr.R(a));
+		MOV(32, R(ABI_PARAM2), gpr.R(a));
 		if (offset)
-			ADD(32,R(EDX),Imm32((u32)offset));
+			ADD(32, R(ABI_PARAM2), Imm32((u32)offset));
 		MOVAPS(XMM0, fpr.R(s));
 		MOVDDUP(XMM1, M((void*)&m_quantizeTableD[stScale]));
 		MULPD(XMM0, R(XMM1));
@@ -168,16 +169,16 @@ void psq_st(UGeckoInstruction inst)
 		PACKSSDW(XMM0, R(XMM0));
 		PACKUSWB(XMM0, R(XMM0));
 		MOVAPS(M(&temp64), XMM0);
-		MOV(16, R(ECX), M(&temp64));
+		MOV(16, R(ABI_PARAM1), M(&temp64));
 #ifdef _M_X64
-		MOV(16, MComplex(RBX, RDX, SCALE_1, 0), R(ECX));
+		MOV(16, MComplex(RBX, RDX, SCALE_1, 0), R(ABI_PARAM1));
 #else
-		BSWAP(32, ECX);
-		SHR(32, R(ECX), Imm8(16));
+		BSWAP(32, ABI_PARAM1);
+		SHR(32, R(ABI_PARAM1), Imm8(16));
 		CALL(&Memory::Write_U16);
 #endif
 		if (update)
-			MOV(32, gpr.R(a), R(EDX));
+			MOV(32, gpr.R(a), R(ABI_PARAM2));
 		gpr.UnlockAll();
 		fpr.UnlockAll();
 	} 
@@ -187,9 +188,9 @@ void psq_st(UGeckoInstruction inst)
 		fpr.Lock(s);
 		if (update)
 			gpr.LoadToX64(a, true, update);
-		MOV(32, R(EDX), gpr.R(a));
+		MOV(32, R(ABI_PARAM2), gpr.R(a));
 		if (offset)
-			ADD(32,R(EDX),Imm32((u32)offset));
+			ADD(32, R(ABI_PARAM2), Imm32((u32)offset));
 		MOVAPS(XMM0, fpr.R(s));
 		MOVDDUP(XMM1, M((void*)&m_quantizeTableD[stScale]));
 		MULPD(XMM0, R(XMM1));
@@ -197,16 +198,16 @@ void psq_st(UGeckoInstruction inst)
 		CVTPD2DQ(XMM0, R(XMM0));
 		PACKSSDW(XMM0, R(XMM0));
 		MOVD_xmm(M(&temp64), XMM0);
-		MOV(32, R(ECX), M(&temp64));
+		MOV(32, R(ABI_PARAM1), M(&temp64));
 #ifdef _M_X64
-		BSWAP(32, ECX);
-		MOV(32, MComplex(RBX, RDX, SCALE_1, 0), R(ECX));
+		BSWAP(32, ABI_PARAM1);
+		MOV(32, MComplex(RBX, RDX, SCALE_1, 0), R(ABI_PARAM1));
 #else
-		BSWAP(32, ECX);
+		BSWAP(32, ABI_PARAM1);
 		CALL(&Memory::Write_U32);
 #endif
 		if (update)
-			MOV(32, gpr.R(a), R(EDX));
+			MOV(32, gpr.R(a), R(ABI_PARAM2));
 		gpr.UnlockAll();
 		fpr.UnlockAll();
 	}
@@ -231,14 +232,14 @@ void psq_l(UGeckoInstruction inst)
 	const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
 	const EQuantizeType ldType = static_cast<EQuantizeType>(gqr.LD_TYPE);
 	int ldScale = gqr.LD_SCALE;
-	if (!inst.RA || inst.W)
+	bool update = inst.OPCD == 57;
+	if (update || !inst.RA || inst.W)
 	{
 		// 0 1 during load
 		//PanicAlert("ld:%i %i", ldType, (int)inst.W);
 		Default(inst);
 		return;
 	}
-	bool update = inst.OPCD == 57;
 	int offset = inst.SIMM_12;
 	//INT3();
 	switch (ldType) {
@@ -248,7 +249,7 @@ void psq_l(UGeckoInstruction inst)
 			gpr.LoadToX64(inst.RA);
 			MOV(64, R(RAX), MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
 			BSWAP(64, RAX);
-			MOV(64, M(&psTemp[0]),R(RAX));
+			MOV(64, M(&psTemp[0]), R(RAX));
 			fpr.LoadToX64(inst.RS, false);
 			X64Reg r = fpr.R(inst.RS).GetSimpleReg();
 			CVTPS2PD(r, M(&psTemp[0]));

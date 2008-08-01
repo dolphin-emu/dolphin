@@ -29,6 +29,14 @@ void ABI_CallFunctionR(void *func, X64Reg reg1) {
 	ADD(32, R(ESP), Imm8(4));
 }
 
+void ABI_CallFunctionRR(void *func, Gen::X64Reg reg1, Gen::X64Reg reg2)
+{
+	PUSH(32, R(reg2));
+	PUSH(32, R(reg1));
+	CALL(func);
+	ADD(32, R(ESP), Imm8(8));
+}
+
 void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2)
 {
 	PUSH(32, arg1);
@@ -71,6 +79,15 @@ void ABI_CallFunctionCC(void *func, u32 param1, u32 param2) {
 void ABI_CallFunctionR(void *func, X64Reg reg1) {
 	if (reg1 != ABI_PARAM1)
 		MOV(32, R(ABI_PARAM1), R(reg1));
+	CALL(func);
+}
+
+// Pass a register as a paremeter.
+void ABI_CallFunctionRR(void *func, X64Reg reg1, X64Reg reg2) {
+	if (reg1 != ABI_PARAM1)
+		MOV(32, R(ABI_PARAM1), R(reg1));
+	if (reg2 != ABI_PARAM2)
+		MOV(32, R(ABI_PARAM2), R(reg2));
 	CALL(func);
 }
 
