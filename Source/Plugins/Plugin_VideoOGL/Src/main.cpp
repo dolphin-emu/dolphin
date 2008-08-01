@@ -77,7 +77,6 @@ void DllConfig(HWND _hParent)
 #else
 	ConfigDialog frame(NULL);
 	g_Config.Load();
-	printf("Window res: %s, size of: %d strlen %d\n", g_Config.iWindowedRes, sizeof(g_Config.iWindowedRes), strlen(g_Config.iWindowedRes));
     XVisualInfo *vi;
     Colormap cmap;
     int dpyWidth, dpyHeight;

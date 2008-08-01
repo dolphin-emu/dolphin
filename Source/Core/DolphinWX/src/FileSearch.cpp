@@ -97,8 +97,7 @@ void CFileSearch::FindFiles(const std::string& _searchString, const std::string&
 		strcpy(temp, dp->d_name);
 		std::string s(temp);
 
-		// TODO - case insensitive comparison
-		if ((s.size() > ext.size()) && (s.substr(s.size() - ext.size()) == ext))
+		if ( (s.size() > ext.size()) && (!strcasecmp(s.substr(s.size() - ext.size()).c_str(), ext.c_str())) )
 		{
 			std::string full_name = _strPath + "/" + s;
 			m_FileNames.push_back(full_name);
