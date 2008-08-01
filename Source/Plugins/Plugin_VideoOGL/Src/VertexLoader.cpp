@@ -145,7 +145,7 @@ VertexLoader::VertexLoader()
     m_AttrDirty = 2;
     VertexLoader_Normal::Init();
 
-    m_compiledCode = (u8 *)AllocateExecutableMemory(COMPILED_CODE_SIZE);
+    m_compiledCode = (u8 *)AllocateExecutableMemory(COMPILED_CODE_SIZE, false);
 	if (m_compiledCode) {
 	    memset(m_compiledCode, 0, COMPILED_CODE_SIZE);
 	}

@@ -260,13 +260,17 @@ namespace Jit64
 
 	bool ImHereDebug = false;
 
-	std::map<u32, bool> been_here;
+	std::map<u32, int> been_here;
 	void ImHere()
 	{
-		if (been_here.find(PC) != been_here.end())
-			return;
+		if (been_here.find(PC) != been_here.end()) {
+			been_here.find(PC)->second++;
+			if ((been_here.find(PC)->second) & 1023)
+				return;
+		}
 		LOG(DYNA_REC, "I'm here - PC = %08x , LR = %08x", PC, LR);
-		been_here[PC] = true;
+		printf("I'm here - PC = %08x , LR = %08x", PC, LR);
+		been_here[PC] = 1;
 	}
 
 	void FlushRegCaches()

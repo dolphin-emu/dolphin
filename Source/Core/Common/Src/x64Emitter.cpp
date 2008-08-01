@@ -313,7 +313,7 @@ namespace Gen
 		s64 fn = (s64)fnptr;
 		s64 c = (s64)code;
 		if (myabs(fn - c) >= 0x80000000ULL) {
-			PanicAlert("CALL out of range, %p, %p", fn, c);
+			PanicAlert("CALL out of range (%p calls %p)", c, fn);
 		}
 		s32 distance = (s32)(fn - ((u64)code + 5));
 		Write8(0xE8); 
@@ -325,7 +325,8 @@ namespace Gen
 		//TODO fix
 		u64 jump = (code - (u8*)j8) - 1;
 
-		if (jump > 0x7f) _assert_msg_(DYNA_REC, 0, "j8 greater than 0x7f!!");
+		if (jump > 0x7f)
+			_assert_msg_(DYNA_REC, 0, "j8 greater than 0x7f!!");
 		*j8 = (u8)jump;
 	}
 
@@ -1107,7 +1108,8 @@ namespace Gen
 		else
 		{
 			// Simulate this instruction with SSE2 instructions
-			MOVAPD(regOp, arg);
+			if (!arg.IsSimpleReg(regOp))
+				MOVAPD(regOp, arg);
 			UNPCKLPD(regOp, R(regOp));
 		}
 	}

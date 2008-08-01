@@ -198,6 +198,7 @@ namespace Jit64
 
 	bool GPRRegCache::IsXRegVolatile(X64Reg reg) const
 	{
+#ifdef _WIN32
 		switch (reg)
 		{
 		case RAX: case RCX: case RDX: case R8: case R9: case R10: case R11:
@@ -208,6 +209,9 @@ namespace Jit64
 		default:
 			return false;
 		}
+#else
+		return true;
+#endif
 	}
 
 	void RegCache::DiscardRegContentsIfCached(int preg)
@@ -252,7 +256,7 @@ namespace Jit64
 #ifdef _WIN32
 			RSI, RDI, R12, R13, R14, R8, R9, RDX, R10, R11 //, RCX
 #else
-			R12, R13, R14, R8, R9, RDX, R10, R11, RSI, RDI //, RCX
+			R12, R13, R14, R8, R9, R10, R11, RSI, RDI //, RCX
 #endif
 #elif _M_IX86
 			ESI, EDI, EBX, EBP, EDX //, RCX

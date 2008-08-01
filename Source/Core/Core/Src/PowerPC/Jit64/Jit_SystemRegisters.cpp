@@ -58,7 +58,7 @@ namespace Jit64
 
 		// OK, this is easy.
 		gpr.Lock(d);
-		gpr.LoadToX64(d,true);
+		gpr.LoadToX64(d, true);
 		MOV(32, M(&PowerPC::ppcState.spr[iIndex]), gpr.R(d));
 		gpr.UnlockAll();
 	}

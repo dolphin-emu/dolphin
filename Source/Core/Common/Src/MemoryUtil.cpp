@@ -38,7 +38,7 @@
 // This is purposedely not a full wrapper for virtualalloc/mmap, but it
 // provides exactly the primitive operations that Dolphin needs.
 
-void* AllocateExecutableMemory(int size)
+void* AllocateExecutableMemory(int size, bool low)
 {
 #ifdef _WIN32
 	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
@@ -55,7 +55,7 @@ void* AllocateExecutableMemory(int size)
 	void* retval = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC,
 		MAP_ANONYMOUS | MAP_PRIVATE
 #ifdef __x86_64__
-		 | MAP_32BIT 	
+		 | (low ? MAP_32BIT : 0)
 #endif
          , -1, 0);  // | MAP_FIXED
 	printf("mappah exe %p %i\n", retval, size);

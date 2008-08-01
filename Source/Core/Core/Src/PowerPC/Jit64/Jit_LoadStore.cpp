@@ -188,9 +188,9 @@ namespace Jit64
 #ifdef _M_X64
 		if (!jo.noAssumeFPLoadFromMem)
 		{
-			MOV(32, R(EAX), MComplex(RBX, ECX, SCALE_1, offset));
+			MOV(32, R(EAX), MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
 //#else
-//			MOV(32, R(EAX), MDisp(ECX, (u32)Memory::GetMainRAMPtr() + (u32)offset));
+//			MOV(32, R(EAX), MDisp(ABI_PARAM1, (u32)Memory::GetMainRAMPtr() + (u32)offset));
 //#endif
 			BSWAP(32, EAX);
 		}
@@ -221,8 +221,8 @@ namespace Jit64
 		}
 		s32 offset = (s32)(s16)inst.SIMM_16;
 		gpr.Lock(a);
-		MOV(32, R(ECX), gpr.R(a));
-		MOV(64, R(EAX), MComplex(RBX, ECX, SCALE_1, offset));
+		MOV(32, R(ABI_PARAM1), gpr.R(a));
+		MOV(64, R(EAX), MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
 		BSWAP(64,EAX);
 		MOV(64, M(&temp64), R(EAX));
 		fpr.Lock(d);
@@ -249,10 +249,10 @@ namespace Jit64
 		fpr.Lock(s);
 		fpr.LoadToX64(s, true, false);
 		MOVSD(M(&temp64), fpr.RX(s));
-		MOV(32, R(ECX), gpr.R(a));
+		MOV(32, R(ABI_PARAM1), gpr.R(a));
 		MOV(64, R(EAX), M(&temp64));
 		BSWAP(64, EAX);
-		MOV(64, MComplex(RBX, ECX, SCALE_1, offset), R(EAX));
+		MOV(64, MComplex(RBX, ABI_PARAM1, SCALE_1, offset), R(EAX));
 		gpr.UnlockAll();
 		fpr.UnlockAll();
 	}

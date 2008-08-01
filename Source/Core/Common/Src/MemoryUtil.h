@@ -18,7 +18,7 @@
 #ifndef _MEMORYUTIL_H
 #define _MEMORYUTIL_H
 
-void* AllocateExecutableMemory(int size);
+void* AllocateExecutableMemory(int size, bool low = true);
 void* AllocateMemoryPages(int size);
 void FreeMemoryPages(void* ptr, int size);
 void WriteProtectMemory(void* ptr, int size, bool executable = false);

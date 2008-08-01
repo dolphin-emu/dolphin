@@ -23,11 +23,11 @@ void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) {
 	char disbuf[256];
 	memset(disbuf, 0, 256);
 #ifdef _M_IX86
-	disasm.disasm32(
+	disasm.disasm32
 #else
-	disasm.disasm64(
+	disasm.disasm64
 #endif
-		0, code_addr, codePtr, disbuf);
+		(0, code_addr, codePtr, disbuf);
 	PanicAlert("%s\n\n"
        "Error encountered accessing emulated address %08x.\n"
 	   "Culprit instruction: \n%s\nat %08x%08x",
@@ -82,9 +82,9 @@ void BackPatch(u8 *codePtr, int accessType, u32 emAddress)
 	// * Set up stack frame.
 	// * Call ReadMemory32
 	//LEA(32, ECX, MDisp((X64Reg)addrReg, info.displacement));
-	MOV(32, R(ECX), R((X64Reg)addrReg));
+	MOV(32, R(ABI_PARAM1), R((X64Reg)addrReg));
 	if (info.displacement) {
-		ADD(32, R(ECX), Imm32(info.displacement));
+		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
 	}
 	switch (info.operandSize) {
 	//case 1: 

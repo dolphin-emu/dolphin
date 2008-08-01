@@ -52,8 +52,8 @@ static u32 GC_ALIGNED16(temp32);
 // TODO(ector): Improve 64-bit version
 void WriteDual32(u64 value, u32 address)
 {
-	Memory::Write_U32((u32)(value>>32), address);
-	Memory::Write_U32((u32)value, address+4);
+	Memory::Write_U32((u32)(value >> 32), address);
+	Memory::Write_U32((u32)value, address + 4);
 }
 
 const double m_quantizeTableD[] =
@@ -171,7 +171,7 @@ void psq_st(UGeckoInstruction inst)
 		MOVAPS(M(&temp64), XMM0);
 		MOV(16, R(ABI_PARAM1), M(&temp64));
 #ifdef _M_X64
-		MOV(16, MComplex(RBX, RDX, SCALE_1, 0), R(ABI_PARAM1));
+		MOV(16, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
 #else
 		BSWAP(32, ABI_PARAM1);
 		SHR(32, R(ABI_PARAM1), Imm8(16));
@@ -201,7 +201,7 @@ void psq_st(UGeckoInstruction inst)
 		MOV(32, R(ABI_PARAM1), M(&temp64));
 #ifdef _M_X64
 		BSWAP(32, ABI_PARAM1);
-		MOV(32, MComplex(RBX, RDX, SCALE_1, 0), R(ABI_PARAM1));
+		MOV(32, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
 #else
 		BSWAP(32, ABI_PARAM1);
 		CALL(&Memory::Write_U32);
