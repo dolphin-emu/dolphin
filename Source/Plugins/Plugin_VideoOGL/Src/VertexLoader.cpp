@@ -470,6 +470,7 @@ void VertexLoader::ProcessFormat()
     }
 
     // compile the pointer set function
+    u8 *old_code_ptr = GetWritableCodePtr();
     SetCodePtr(m_compiledCode);
     Util::EmitPrologue(6);
 	//INT3();
@@ -575,7 +576,7 @@ void VertexLoader::ProcessFormat()
         Crash();
     }
 
-    SetCodePtr(0);
+    SetCodePtr(old_code_ptr);
 }
 
 void VertexLoader::PrepareRun()

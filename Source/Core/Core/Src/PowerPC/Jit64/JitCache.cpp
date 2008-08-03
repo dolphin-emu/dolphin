@@ -259,6 +259,10 @@ namespace Jit64
 		return (CompiledCode)blockCodePointers[blockNumber];
 	}
 
+	int GetCodeSize() {
+		return GetCodePtr() - codeCache;
+	}
+
 	//Block linker
 	//Make sure to have as many blocks as possible compiled before calling this
 	//It's O(N), so it's fast :)

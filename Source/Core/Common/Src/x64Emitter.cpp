@@ -26,6 +26,8 @@ namespace Gen
 
 	void SetCodePtr(u8 *ptr)
 	{
+		if (!ptr)
+			PanicAlert("SetCodePtr: wtf, ptr=%p", ptr);
 		code = ptr;
 	}
 	const u8 *GetCodePtr()

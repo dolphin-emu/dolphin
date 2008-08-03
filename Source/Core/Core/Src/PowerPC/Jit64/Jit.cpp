@@ -258,6 +258,12 @@ namespace Jit64
 		// Yup, just don't do anything.
 	}
 
+	// RESULTS (running kururin with optimizations on)
+	// at block 13968 they diverge.
+	// linux goes to 8010fe54
+	// windoze goes to 8010feb0
+	// after they they are completely out of sync.
+    // branches from the cmp result of r0, which comes from an lbz (loaded from stack)
 	bool ImHereDebug = false;
 	bool ImHereLog = false;
 	std::map<u32, int> been_here;
@@ -335,7 +341,6 @@ namespace Jit64
 	const u8* DoJit(u32 emaddress, JitBlock &b)
 	{
 		_assert_msg_(DYNA_REC, emaddress != 0, "ERROR - Trying to compile at 0. LR=%08x",LR);
-		//Step 1: Start from the "flattened" representation and assign/preload registers/locations
 
 		u32 size;
 		js.isLastInstruction = false;
@@ -347,9 +352,7 @@ namespace Jit64
 		//Analyze the block, collect all instructions it is made of (including inlining,
 		//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
 		PPCAnalyst::CodeOp *ops = PPCAnalyst::Flatten(emaddress, size, js.st, js.gpa, js.fpa);
-		// This is where we would write the block number if my evil plan comes to fruition
 		const u8 *start = AlignCode4(); //TODO: Test if this or AlignCode16 make a difference from GetCodePtr
-		
 		b.checkedEntry = start;
 		FixupBranch skip = J_CC(CC_NBE);
 		MOV(32, M(&PC), Imm32(js.blockStart));
@@ -388,7 +391,13 @@ namespace Jit64
 			js.op = &ops[i];
 			js.instructionNumber = i;
 			if (i == (int)size - 1) js.isLastInstruction = true;
-			PPCTables::CompileInstruction(ops[i].inst);
+			//PPCTables::CompileInstruction(ops[i].inst);
+#ifndef _WIN32
+			if (!js.isLastInstruction)
+				Default(ops[i].inst);
+			else
+#endif
+				PPCTables::CompileInstruction(ops[i].inst);
 			gpr.SanityCheck();
 			fpr.SanityCheck();
 		}

@@ -138,9 +138,11 @@ void ABI_PushAllCalleeSavedRegsAndAdjustStack() {
 	PUSH(R13); 
 	PUSH(R14); 
 	PUSH(R15);
+	PUSH(RAX); //just to align stack. we don't care about it's value.
 }
 
 void ABI_PopAllCalleeSavedRegsAndAdjustStack() {
+	POP(RAX);
 	POP(R15);
 	POP(R14); 
 	POP(R13); 

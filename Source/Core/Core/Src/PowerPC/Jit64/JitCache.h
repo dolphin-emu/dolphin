@@ -55,6 +55,7 @@ namespace Jit64
 	CompiledCode GetCompiledCode(u32 address);
 	CompiledCode GetCompiledCodeFromBlock(int blockNumber);
 
+	int GetCodeSize();
 	int GetNumBlocks();
 
 	u8 **GetCodePointers();
