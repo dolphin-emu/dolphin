@@ -44,6 +44,7 @@ bool emulator_running = FALSE;
 
 // Handle to window
 HWND m_hWnd;
+bool g_rumbleEnable = FALSE;
 
 // Rumble in windows
 #ifdef _WIN32
@@ -55,7 +56,6 @@ DWORD                   g_dwNumForceFeedbackAxis = 0;
 INT                     g_nXForce = 0;
 INT                     g_nYForce = 0;
 
-bool g_rumbleEnable = FALSE;
 #define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=NULL; } }
 
 HRESULT InitDirectInput(HWND hDlg);
@@ -410,7 +410,6 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 	}
 	else
 		g_rumbleEnable = TRUE;
-	#endif
 
 	if (g_rumbleEnable)
 	{
@@ -419,6 +418,7 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 		if(g_pEffect)
 			g_pEffect->Start(1, 0);
 	}
+	#endif
 }
 
 // Set PAD rumble

@@ -1,7 +1,7 @@
 import os
 import sys
 
-warnings = ' -Wall -Wwrite-strings -Wfloat-equal -Wshadow -Wpointer-arith -Wcast-qual -Wpacked -Wno-conversion'
+warnings = ' -Wall -Wwrite-strings -Wfloat-equal -Wshadow -Wpointer-arith -Wpacked -Wno-conversion'
 
 nonactive_warnings = '-Wunreachable-code'
 
