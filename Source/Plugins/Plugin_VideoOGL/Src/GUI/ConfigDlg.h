@@ -27,9 +27,6 @@
 #include <wx/checkbox.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
-#include <wx/dirctrl.h>
-#include <wx/filepicker.h>
-#include <wx/gdicmn.h>
 
 
 #undef ConfigDialog_STYLE
@@ -45,7 +42,7 @@ class ConfigDialog : public wxDialog
 		ConfigDialog(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("Opengl Plugin Configuration"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = ConfigDialog_STYLE);
 		virtual ~ConfigDialog();
 		void ConfigDialogActivate(wxActivateEvent& event);
-		void BrowseChange( wxFileDirPickerEvent& event );
+		void BrowseClick(wxCommandEvent& event);
 		void OKClick(wxCommandEvent& event);
 		void AddFSReso(char *reso);
 		void AddWindowReso(char *reso);
@@ -61,7 +58,7 @@ class ConfigDialog : public wxDialog
 		wxButton *m_Apply;
 		wxButton *m_OK;
 		wxTextCtrl *m_TexturePath;
-		wxDirPickerCtrl *m_Browse;
+		wxButton *m_Browse;
 		wxCheckBox *m_ShaderErrors;
 		wxCheckBox *m_Statistics;
 		wxCheckBox *m_DumpTextures;

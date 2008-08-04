@@ -25,6 +25,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_BUTTON(ID_CLOSE,ConfigDialog::OKClick)
 	EVT_BUTTON(ID_APPLY,ConfigDialog::OKClick)
 	EVT_BUTTON(ID_OK,ConfigDialog::OKClick)
+	EVT_BUTTON(ID_BROWSE,ConfigDialog::BrowseClick)
 END_EVENT_TABLE()
 
 
@@ -94,6 +95,10 @@ void ConfigDialog::CreateGUIControls()
 
 	m_DumpTextures = new wxCheckBox(m_PageAdvanced, ID_DUMPTEXTURES, wxT("Dump texture to:"), wxPoint(12,88), wxSize(233,25), 0, wxDefaultValidator, wxT("DumpTextures"));
 	m_DumpTextures->SetValue(g_Config.bDumpTextures);
+	m_TexturePath = new wxTextCtrl(m_PageAdvanced, ID_TEXTUREPATH, wxT("TexturePath"), wxPoint(20,136), wxSize(129,25), 0, wxDefaultValidator, wxT("TexturePath"));
+	m_TexturePath->SetValue(wxString::FromAscii(g_Config.texDumpPath));
+	m_TexturePath->Enable(false);
+
 
 	m_Statistics = new wxCheckBox(m_PageAdvanced, ID_STATISTICS, wxT("Overlay some statistics"), wxPoint(12,40), wxSize(233,25), 0, wxDefaultValidator, wxT("Statistics"));
 	m_Statistics->SetValue(g_Config.bOverlayStats);
@@ -102,8 +107,7 @@ void ConfigDialog::CreateGUIControls()
 	m_ShaderErrors = new wxCheckBox(m_PageAdvanced, ID_SHADERERRORS, wxT("Show shader compilation issues"), wxPoint(12,64), wxSize(233,25), 0, wxDefaultValidator, wxT("ShaderErrors"));
 	m_ShaderErrors->Enable(false);
 	
-	m_Browse = new wxDirPickerCtrl( m_PageAdvanced, wxID_ANY, wxT("path"), wxT("Select a folder"), wxPoint(12,136), wxSize(233,25), wxDIRP_DEFAULT_STYLE );
-	//m_Browse->SetPath(wxString::FromAscii(g_Config.texDumpPath));
+	m_Browse = new wxButton(m_PageAdvanced, ID_BROWSE, wxT("Browse"), wxPoint(156,136), wxSize(65,25), 0, wxDefaultValidator, wxT("Browse"));
 	m_Browse->Enable(false);
 
 	SetTitle(wxT("Opengl Plugin Configuration"));
@@ -115,7 +119,6 @@ void ConfigDialog::CreateGUIControls()
 	m_Statistics->Connect( wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( ConfigDialog::OverlayCheck ), NULL, this );
 	m_FullscreenCB->Connect( wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler( ConfigDialog::FSCB ), NULL, this );
 	m_WindowResolutionCB->Connect( wxEVT_COMMAND_COMBOBOX_SELECTED, wxCommandEventHandler( ConfigDialog::WMCB ), NULL, this );
-	m_Browse->Connect( wxEVT_COMMAND_DIRPICKER_CHANGED, wxFileDirPickerEventHandler( ConfigDialog::BrowseChange ), NULL, this );
 }
 
 void ConfigDialog::OnClose(wxCloseEvent& /*event*/)
@@ -129,9 +132,9 @@ void ConfigDialog::ConfigDialogActivate(wxActivateEvent& event)
 	// init dialog elements from config
 }
 
-void ConfigDialog::BrowseChange( wxFileDirPickerEvent& event )
+void ConfigDialog::BrowseClick(wxCommandEvent& event)
 {
-	// Doesn't trigger an Event...Oh well //
+	// Changed Back //
 }
 
 void ConfigDialog::OKClick(wxCommandEvent& event)
