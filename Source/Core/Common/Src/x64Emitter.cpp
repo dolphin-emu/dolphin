@@ -21,13 +21,11 @@
 
 namespace Gen
 {
-	u8 *code;
-	bool mode32 = false;
+	static u8 *code;
+	static bool mode32 = false;
 
 	void SetCodePtr(u8 *ptr)
 	{
-		if (!ptr)
-			PanicAlert("SetCodePtr: wtf, ptr=%p", ptr);
 		code = ptr;
 	}
 	const u8 *GetCodePtr()
