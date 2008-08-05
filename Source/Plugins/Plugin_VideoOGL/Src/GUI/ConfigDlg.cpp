@@ -203,5 +203,5 @@ void ConfigDialog::DumpTexturesChange(wxCommandEvent& event)
 void ConfigDialog::TexturePathChange(wxFileDirPickerEvent& event)
 {
 	//note: if a user inputs an incorrect path, this event wil not be fired.
-	strcpy(g_Config.texDumpPath,event.GetPath().c_str());
+	strcpy(g_Config.texDumpPath,event.GetPath().mb_str());
 }
