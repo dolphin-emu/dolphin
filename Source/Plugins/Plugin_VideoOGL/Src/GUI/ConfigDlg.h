@@ -28,6 +28,7 @@
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/filepicker.h>
+#include <wx/gbsizer.h>
 
 
 #undef ConfigDialog_STYLE
@@ -96,10 +97,10 @@ class ConfigDialog : public wxDialog
 			ID_WIREFRAME = 1021,
 			ID_FORCEANISOTROPY = 1020,
 			ID_FORCEFILTERING = 1019,
-			ID_WXSTATICTEXT3 = 1015,
+			ID_AATEXT = 1015,
 			ID_ALIASMODECB = 1014,
-			ID_WXSTATICTEXT2 = 1013,
-			ID_WXSTATICTEXT1 = 1012,
+			ID_FSTEXT = 1013,
+			ID_WMTEXT = 1012,
 			ID_WINDOWRESOLUTIONCB = 1011,
 			ID_FULLSCREENCB = 1010,
 			ID_RENDERTOMAINWINDOW = 1009,
