@@ -27,6 +27,7 @@
 #include <wx/checkbox.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
+#include <wx/filepicker.h>
 
 
 #undef ConfigDialog_STYLE
@@ -39,31 +40,35 @@ class ConfigDialog : public wxDialog
 		DECLARE_EVENT_TABLE();
 		
 	public:
-		ConfigDialog(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("Opengl Plugin Configuration"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = ConfigDialog_STYLE);
+		ConfigDialog(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("OpenGL Plugin Configuration"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = ConfigDialog_STYLE);
 		virtual ~ConfigDialog();
 		void ConfigDialogActivate(wxActivateEvent& event);
-		void BrowseClick(wxCommandEvent& event);
 		void OKClick(wxCommandEvent& event);
-		void AddFSReso(char *reso);
-		void AddWindowReso(char *reso);
 		void FullScreenCheck(wxCommandEvent& event);
-		void FSCB(wxCommandEvent& event);
-		void WMCB(wxCommandEvent& event);
 		void RenderMainCheck(wxCommandEvent& event);
+		void AddFSReso(char *reso);
+		void FSCB(wxCommandEvent& event);
+		void AddWindowReso(char *reso);
+		void WMCB(wxCommandEvent& event);
+		void ForceFilteringCheck(wxCommandEvent& event);
+		void ForceAnisotropyCheck(wxCommandEvent& event);
+		void WireframeCheck(wxCommandEvent& event);
 		void OverlayCheck(wxCommandEvent& event);
-	
+		void ShowShaderErrorsCheck(wxCommandEvent& event);
+		void DumpTexturesChange(wxCommandEvent& event);
+		void TexturePathChange(wxFileDirPickerEvent& event);
+
 	private:
 
 		wxButton *m_Close;
 		wxButton *m_Apply;
 		wxButton *m_OK;
-		wxTextCtrl *m_TexturePath;
-		wxButton *m_Browse;
+		wxDirPickerCtrl *m_TexturePath;
 		wxCheckBox *m_ShaderErrors;
 		wxCheckBox *m_Statistics;
 		wxCheckBox *m_DumpTextures;
 		wxCheckBox *m_Wireframe;
-		wxCheckBox *m_ForceAnsitropy;
+		wxCheckBox *m_ForceAnisotropy;
 		wxCheckBox *m_ForceFiltering;
 		wxComboBox *m_AliasModeCB;
 		wxComboBox *m_WindowResolutionCB;
@@ -89,7 +94,7 @@ class ConfigDialog : public wxDialog
 			ID_STATISTICS = 1023,
 			ID_DUMPTEXTURES = 1022,
 			ID_WIREFRAME = 1021,
-			ID_FORCEANSITROPY = 1020,
+			ID_FORCEANISOTROPY = 1020,
 			ID_FORCEFILTERING = 1019,
 			ID_WXSTATICTEXT3 = 1015,
 			ID_ALIASMODECB = 1014,

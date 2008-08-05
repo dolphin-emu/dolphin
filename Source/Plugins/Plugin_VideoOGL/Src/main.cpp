@@ -65,14 +65,14 @@ void DllConfig(HWND _hParent)
 {
 #ifdef _WIN32
 	wxWindow win;
-	win.SetHWND((WXHWND)_hParent);
-	win.Enable(false);  
+	win.SetHWND(_hParent);
+
+	//TODO get available resolutions
 
 	ConfigDialog frame(&win);
 	frame.ShowModal();
 
-	win.Enable(true);
-	win.SetHWND(0); 
+	win.SetHWND(0);
 
 #else
 	ConfigDialog frame(NULL);
@@ -156,7 +156,7 @@ void Video_Prepare(void)
     PixelShaderMngr::Init();
     GL_REPORT_ERRORD();
 }
- 
+
 
 void Video_Shutdown(void) 
 {
