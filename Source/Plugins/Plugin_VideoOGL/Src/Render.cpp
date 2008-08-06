@@ -141,7 +141,7 @@ bool Renderer::Create2()
     glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, s_uFramebuffer );
 
     // create the framebuffer targets
-    glGenTextures(ARRAYSIZE((GLuint *)s_RenderTargets), (GLuint *)s_RenderTargets);
+    glGenTextures(ARRAYSIZE(s_RenderTargets), (GLuint *)s_RenderTargets);
     for(int i = 0; i < ARRAYSIZE(s_RenderTargets); ++i) {
         glBindTexture(GL_TEXTURE_RECTANGLE_NV, s_RenderTargets[i]);
         // initialize to default
@@ -281,7 +281,7 @@ void Renderer::Shutdown(void)
     }
 
     if( s_RenderTargets[0] ) {
-        glDeleteTextures(ARRAYSIZE((GLuint *)s_RenderTargets), (GLuint *)s_RenderTargets);
+        glDeleteTextures(ARRAYSIZE(s_RenderTargets), (GLuint *)s_RenderTargets);
         memset(s_RenderTargets, 0, sizeof(s_RenderTargets));
     }
     if( s_DepthTarget ) {
