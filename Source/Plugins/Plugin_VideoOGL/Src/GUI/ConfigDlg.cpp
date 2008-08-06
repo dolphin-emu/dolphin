@@ -93,12 +93,20 @@ void ConfigDialog::CreateGUIControls()
 	wxStaticText *FSText = new wxStaticText(m_PageVideo, ID_FSTEXT, wxT("Fullscreen video mode:"), wxDefaultPosition, wxDefaultSize, 0);
 	wxArrayString arrayStringFor_FullscreenCB;
 	m_FullscreenCB = new wxComboBox(m_PageVideo, ID_FULLSCREENCB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, 0, wxDefaultValidator);
+#ifdef MACOSX
+	m_FullscreenCB->SetValue(wxString::FromAscii(g_Config.iFSResolution));
+#else
 	m_FullscreenCB->SetValue(g_Config.iFSResolution);
-
+#endif
 	wxStaticText *WMText = new wxStaticText(m_PageVideo, ID_WMTEXT, wxT("Windowed resolution:"), wxDefaultPosition, wxDefaultSize, 0);
 	wxArrayString arrayStringFor_WindowResolutionCB;
 	m_WindowResolutionCB = new wxComboBox(m_PageVideo, ID_WINDOWRESOLUTIONCB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, 0, wxDefaultValidator);
+
+#ifdef MACOSX
+	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.iWindowedRes));
+#else
 	m_WindowResolutionCB->SetValue(g_Config.iWindowedRes);
+#endif
 
 	//page2
 	m_ForceFiltering = new wxCheckBox(m_PageEnhancements, ID_FORCEFILTERING, wxT("Force bi/trilinear filtering (May cause small glitches)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);

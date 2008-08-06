@@ -67,11 +67,11 @@ void PixelShaderMngr::Init()
     maptocoord_mask = 0;
     memset(lastRGBAfull, 0, sizeof(lastRGBAfull));
 
-    glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ALU_INSTRUCTIONS_ARB, &s_nMaxPixelInstructions);
+    glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ALU_INSTRUCTIONS_ARB, (GLint *)&s_nMaxPixelInstructions);
     
     int maxinst, maxattribs;
-    glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, &maxinst);
-    glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ATTRIBS_ARB, &maxattribs);
+    glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&maxinst);
+    glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ATTRIBS_ARB, (GLint *)&maxattribs);
     ERROR_LOG("pixel max_alu=%d, max_inst=%d, max_attrib=%d\n", s_nMaxPixelInstructions, maxinst, maxattribs);
     
     char pmatrixprog[1024];

@@ -52,7 +52,16 @@ void CloseConsole();
 #define I_NEED_OS2_H // HAXXOR
 //#include <GL/glew.h>
 #include <GL/glxew.h>
+
+#ifdef MACOSX
+
+#include <OpenGL/gl.h>
+
+#else
+
 #include <GL/gl.h>
+
+#endif
 //#include <GL/glx.h>
 #define __inline inline
 

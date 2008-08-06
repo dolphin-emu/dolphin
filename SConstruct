@@ -32,7 +32,7 @@ if sys.platform == 'darwin':
        	 	"Source/Core/DiscIO/Src",
             "Source/Core/DebuggerWX/src",
             "Source/Core/VideoCommon/Src",
-#           "Source/Plugins/Plugin_VideoOGL/Src",
+           "Source/Plugins/Plugin_VideoOGL/Src",
             "Source/Plugins/Plugin_DSP_NULL/Src",
 #           "Source/Plugins/Plugin_DSP_LLE/Src",
             "Source/Plugins/Plugin_PadSimple/Src",

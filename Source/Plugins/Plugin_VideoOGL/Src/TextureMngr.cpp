@@ -80,14 +80,13 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0& newmode)
 
 void TextureMngr::TCacheEntry::Destroy()
 {
-    SAFE_RELEASE_TEX(texture);
+    SAFE_RELEASE_TEX((GLuint)texture);
 }
 
 void TextureMngr::Init()
 {
     temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
     nTex2DEnabled = nTexRECTEnabled = 0;
-	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable,g_Config.bTexFmtOverlayCenter);
 }
 
 void TextureMngr::Invalidate()
@@ -96,7 +95,6 @@ void TextureMngr::Invalidate()
     for (;iter!=textures.end();iter++)
         iter->second.Destroy();
     textures.clear();
-	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable,g_Config.bTexFmtOverlayCenter);
 }
 
 void TextureMngr::Shutdown()
@@ -109,7 +107,7 @@ void TextureMngr::Shutdown()
     mapDepthTargets.clear();
 
     if( s_TempFramebuffer ) {
-        glDeleteFramebuffersEXT(1, &s_TempFramebuffer);
+        glDeleteFramebuffersEXT(1, (GLuint *)&s_TempFramebuffer);
         s_TempFramebuffer = 0;
     }
 
@@ -242,7 +240,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     
     entry.isNonPow2 = ((width&(width-1)) || (height&(height-1)));
     
-    glGenTextures(1, &entry.texture);
+    glGenTextures(1, (GLuint *)&entry.texture);
     GLenum target = entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_NV : GL_TEXTURE_2D;
     glBindTexture(target, entry.texture);
 
@@ -278,7 +276,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     if (g_Config.bDumpTextures) { // dump texture to file
         static int counter = 0;
         char szTemp[MAX_PATH];
-        sprintf(szTemp, "%s/txt_%04i_%i.tga", g_Config.texDumpPath, counter++, format);
+	sprintf(szTemp, "%s/txt_%04i_%i.tga", g_Config.texDumpPath, counter++, format);
         
         SaveTexture(szTemp,target, entry.texture, width, height);
     }
@@ -323,7 +321,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     GL_REPORT_ERRORD();
 
     if( !bIsInit ) {
-        glGenTextures(1, &entry.texture);
+        glGenTextures(1, (GLuint *)&entry.texture);
         glBindTexture(GL_TEXTURE_RECTANGLE_NV, entry.texture);
         glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
         GL_REPORT_ERRORD();
@@ -343,8 +341,8 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
         if( bReInit ) {
             // necessary, for some reason opengl gives errors when texture isn't deleted
-            glDeleteTextures(1,&entry.texture);
-            glGenTextures(1, &entry.texture);
+            glDeleteTextures(1,(GLuint *)&entry.texture);
+            glGenTextures(1, (GLuint *)&entry.texture);
             glBindTexture(GL_TEXTURE_RECTANGLE_NV, entry.texture);
             glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
             GL_REPORT_ERRORD();
@@ -489,7 +487,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     Renderer::ResetGLState(); // reset any game specific settings
 
     if( s_TempFramebuffer == 0 )
-        glGenFramebuffersEXT( 1, &s_TempFramebuffer);
+        glGenFramebuffersEXT( 1, (GLuint *)&s_TempFramebuffer);
 
     Renderer::SetFramebuffer(s_TempFramebuffer);
     Renderer::SetRenderTarget(entry.texture);

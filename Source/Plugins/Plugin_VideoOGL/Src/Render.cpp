@@ -28,7 +28,6 @@
 #include "PixelShaderManager.h"
 #include "VertexLoader.h"
 
-
 #ifdef _WIN32
 #include "OS\Win32.h"
 #else
@@ -101,7 +100,7 @@ bool Renderer::Create2()
     }
 
     int numvertexattribs=0;
-    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, (GLint *)&numvertexattribs);
 
     if (numvertexattribs < 11) {
         ERROR_LOG("*********\nGPU: OGL ERROR: Number of attributes %d not enough\nGPU: *********\n", numvertexattribs);
@@ -118,13 +117,13 @@ bool Renderer::Create2()
         ERROR_LOG("no support for SwapInterval (framerate clamped to monitor refresh rate)\n");
 #else
     if (glXSwapIntervalSGI)
-        glXSwapIntervalSGI(0);
+       glXSwapIntervalSGI(0);
     else
         ERROR_LOG("no support for SwapInterval (framerate clamped to monitor refresh rate)\n");
 #endif
 
     // check the max texture width and height
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &g_MaxTexWidth);
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&g_MaxTexWidth);
     g_MaxTexHeight = g_MaxTexWidth;
 
     GL_REPORT_ERROR();
@@ -133,7 +132,7 @@ bool Renderer::Create2()
     if (glDrawBuffers == NULL && !GLEW_ARB_draw_buffers)
         glDrawBuffers = glDrawBuffersARB;
 
-    glGenFramebuffersEXT( 1, &s_uFramebuffer);
+    glGenFramebuffersEXT( 1, (GLuint *)&s_uFramebuffer);
     if (s_uFramebuffer == 0) {
         ERROR_LOG("failed to create the renderbuffer\n");
     }
@@ -142,7 +141,7 @@ bool Renderer::Create2()
     glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, s_uFramebuffer );
 
     // create the framebuffer targets
-    glGenTextures(ARRAYSIZE(s_RenderTargets), s_RenderTargets);
+    glGenTextures(ARRAYSIZE((GLuint *)s_RenderTargets), (GLuint *)s_RenderTargets);
     for(int i = 0; i < ARRAYSIZE(s_RenderTargets); ++i) {
         glBindTexture(GL_TEXTURE_RECTANGLE_NV, s_RenderTargets[i]);
         // initialize to default
@@ -162,11 +161,11 @@ bool Renderer::Create2()
     GL_REPORT_ERROR();
 
     int nMaxMRT = 0;
-    glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, &nMaxMRT);
+    glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, (GLint *)&nMaxMRT);
 
     if( nMaxMRT > 1 ) {
         // create zbuffer target
-        glGenTextures(1, &s_ZBufferTarget);
+        glGenTextures(1, (GLuint *)&s_ZBufferTarget);
         glBindTexture(GL_TEXTURE_RECTANGLE_NV, s_ZBufferTarget);
         glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, 4, s_nTargetWidth, s_nTargetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
@@ -182,7 +181,7 @@ bool Renderer::Create2()
     }
 
     // create the depth buffer
-    glGenRenderbuffersEXT( 1, &s_DepthTarget);
+    glGenRenderbuffersEXT( 1, (GLuint *)&s_DepthTarget);
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_DepthTarget);
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8_EXT, s_nTargetWidth, s_nTargetHeight);
     if( glGetError() != GL_NO_ERROR ) {
@@ -205,7 +204,7 @@ bool Renderer::Create2()
         glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_NV, 0, 0);
             
         if( bFailed ) {
-            glDeleteTextures(1, &s_ZBufferTarget);
+            glDeleteTextures(1, (GLuint *)&s_ZBufferTarget);
             s_ZBufferTarget = 0;
         }
     }
@@ -243,10 +242,10 @@ bool Renderer::Create2()
 
     //ERROR_LOG("max buffer sizes: %d %d\n", cgGetProgramBufferMaxSize(g_cgvProf), cgGetProgramBufferMaxSize(g_cgfProf));
     int nenvvertparams, nenvfragparams, naddrregisters[2];
-    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB, &nenvvertparams);
-    glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB, &nenvfragparams);
-    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, &naddrregisters[0]);
-    glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, &naddrregisters[1]);
+    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB, (GLint *)&nenvvertparams);
+    glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB, (GLint *)&nenvfragparams);
+    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[0]);
+    glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[1]);
     __Log("max program env parameters: vert=%d, frag=%d\n", nenvvertparams, nenvfragparams);
     __Log("max program address register parameters: vert=%d, frag=%d\n", naddrregisters[0], naddrregisters[1]);
 
@@ -282,15 +281,15 @@ void Renderer::Shutdown(void)
     }
 
     if( s_RenderTargets[0] ) {
-        glDeleteTextures(ARRAYSIZE(s_RenderTargets), s_RenderTargets);
+        glDeleteTextures(ARRAYSIZE((GLuint *)s_RenderTargets), (GLuint *)s_RenderTargets);
         memset(s_RenderTargets, 0, sizeof(s_RenderTargets));
     }
     if( s_DepthTarget ) {
-        glDeleteRenderbuffersEXT(1, &s_DepthTarget); s_DepthTarget = 0;
+        glDeleteRenderbuffersEXT(1, (GLuint *)&s_DepthTarget); s_DepthTarget = 0;
     }
 
     if (s_uFramebuffer != 0) {
-        glDeleteFramebuffersEXT( 1, &s_uFramebuffer);
+        glDeleteFramebuffersEXT( 1, (GLuint *)&s_uFramebuffer);
         s_uFramebuffer = 0;
     }
 }
@@ -786,8 +785,8 @@ void HandleGLError()
         int w, h;
         GLint fmt;
         glGetRenderbufferParameterivEXT(GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_INTERNAL_FORMAT_EXT, &fmt);
-        glGetRenderbufferParameterivEXT(GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_WIDTH_EXT, &w);
-        glGetRenderbufferParameterivEXT(GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_HEIGHT_EXT, &h);
+        glGetRenderbufferParameterivEXT(GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_WIDTH_EXT, (GLint *)&w);
+        glGetRenderbufferParameterivEXT(GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_HEIGHT_EXT, (GLint *)&h);
 
         switch(error)
         {

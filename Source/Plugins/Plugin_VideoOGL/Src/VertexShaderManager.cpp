@@ -68,7 +68,7 @@ void VertexShaderMngr::Init()
     memset(&xfregs, 0, sizeof(xfregs));
     memset(xfmem, 0, sizeof(xfmem));
 
-    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, &s_nMaxVertexInstructions);
+    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);
 }
 
 void VertexShaderMngr::Shutdown()
