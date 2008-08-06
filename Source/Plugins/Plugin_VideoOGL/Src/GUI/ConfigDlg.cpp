@@ -19,7 +19,7 @@
 #include "ConfigDlg.h"
 #include "../Globals.h"
 
-#include "TextureMngr.h"
+#include "../TextureMngr.h"
 
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
@@ -92,11 +92,13 @@ void ConfigDialog::CreateGUIControls()
 
 	wxStaticText *FSText = new wxStaticText(m_PageVideo, ID_FSTEXT, wxT("Fullscreen video mode:"), wxDefaultPosition, wxDefaultSize, 0);
 	wxArrayString arrayStringFor_FullscreenCB;
-	m_FullscreenCB = new wxComboBox(m_PageVideo, ID_FULLSCREENCB, wxT(""), wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, 0, wxDefaultValidator);
+	m_FullscreenCB = new wxComboBox(m_PageVideo, ID_FULLSCREENCB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, 0, wxDefaultValidator);
+	m_FullscreenCB->SetValue(g_Config.iFSResolution);
 
 	wxStaticText *WMText = new wxStaticText(m_PageVideo, ID_WMTEXT, wxT("Windowed resolution:"), wxDefaultPosition, wxDefaultSize, 0);
 	wxArrayString arrayStringFor_WindowResolutionCB;
-	m_WindowResolutionCB = new wxComboBox(m_PageVideo, ID_WINDOWRESOLUTIONCB, wxT(""), wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, 0, wxDefaultValidator);
+	m_WindowResolutionCB = new wxComboBox(m_PageVideo, ID_WINDOWRESOLUTIONCB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, 0, wxDefaultValidator);
+	m_WindowResolutionCB->SetValue(g_Config.iWindowedRes);
 
 	//page2
 	m_ForceFiltering = new wxCheckBox(m_PageEnhancements, ID_FORCEFILTERING, wxT("Force bi/trilinear filtering (May cause small glitches)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -124,7 +126,7 @@ void ConfigDialog::CreateGUIControls()
 	m_AliasModeCB = new wxComboBox(m_PageVideo, ID_ALIASMODECB, wxT(""), wxDefaultPosition, wxDefaultSize, arrayStringFor_AliasModeCB, 0, wxDefaultValidator);
 	m_AliasModeCB->Enable(false);
 
-	m_ForceAnisotropy = new wxCheckBox(m_PageEnhancements, ID_FORCEANISOTROPY, wxT("Force maximum ansitropy filtering"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ForceAnisotropy = new wxCheckBox(m_PageEnhancements, ID_FORCEANISOTROPY, wxT("Force maximum anisotropy filtering"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	//m_ForceAnisotropy->SetValue(g_Config.bForceMaxAniso);
 	m_ForceAnisotropy->Enable(false);
 
@@ -168,8 +170,8 @@ void ConfigDialog::CreateGUIControls()
 	sPage3->Add(m_Statistics, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
 	sPage3->Add(m_TexFmtOverlay, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
 	sPage3->Add(m_TexFmtCenter, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
-	sPage3->Add(m_DumpTextures, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sPage3->Add(m_TexturePath, wxGBPosition(4, 1), wxGBSpan(2, 1), wxALL, 5);
+	sPage3->Add(m_DumpTextures, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
+	sPage3->Add(m_TexturePath, wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
 	m_PageAdvanced->SetSizer(sPage3);
 	sPage3->Layout();
 
@@ -210,7 +212,6 @@ void ConfigDialog::AddFSReso(char *reso)
 {
 	m_FullscreenCB->Append(wxString::FromAscii(reso));
 }
-
 
 void ConfigDialog::FSCB(wxCommandEvent& event)
 {
@@ -255,14 +256,17 @@ void ConfigDialog::TexFmtOverlayChange(wxCommandEvent& event)
 	switch(event.GetId())
 	{
 	case ID_TEXFMTOVERLAY:
-		
 		g_Config.bTexFmtOverlayEnable = m_TexFmtOverlay->IsChecked();
 		m_TexFmtCenter->Enable(m_TexFmtOverlay->IsChecked());
 		TextureMngr::Invalidate();
 		if(!g_Config.bTexFmtOverlayEnable)
+		{
 			m_TexFmtCenter->SetValue(false);
-		else
+			g_Config.bTexFmtOverlayCenter = false;
+		}
+		else{
 			return;
+		}
 		break;
 	case ID_TEXFMTCENTER:
 		g_Config.bTexFmtOverlayCenter = m_TexFmtCenter->IsChecked();

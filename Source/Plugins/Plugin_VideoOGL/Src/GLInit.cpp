@@ -188,7 +188,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     if (g_Config.bFullscreen) {
         dwExStyle=WS_EX_APPWINDOW;
         dwStyle=WS_POPUP;
-        ShowCursor(FALSE);
+        //ShowCursor(FALSE);
     }
     else {
         dwExStyle=WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
@@ -202,7 +202,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
     int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
 
-    // SetWindowPos(EmuWindow::GetWnd(), NULL, X, Y, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION|SWP_NOZORDER);
+    SetWindowPos(EmuWindow::GetWnd(), NULL, X, Y, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION|SWP_NOZORDER);
 
     PIXELFORMATDESCRIPTOR pfd=              // pfd Tells Windows How We Want Things To Be
     {

@@ -66,12 +66,32 @@ void DllConfig(HWND _hParent)
 #ifdef _WIN32
 	wxWindow win;
 	win.SetHWND(_hParent);
-
-	//TODO get available resolutions
-
 	ConfigDialog frame(&win);
-	frame.ShowModal();
 
+	DWORD iModeNum = 0;
+	DEVMODE dmi;
+
+	ZeroMemory(&dmi, sizeof(dmi));
+	dmi.dmSize = sizeof(dmi);
+
+	int x = 0, y = 0;
+	
+	while(EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
+	{	
+		//TODO check against all older resolutions, not just the previous
+		if(x != dmi.dmPelsWidth && y != dmi.dmPelsHeight && dmi.dmBitsPerPel == 32)
+		{
+			char szBuffer[100];
+			sprintf(szBuffer,"%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
+			frame.AddFSReso(szBuffer);
+			frame.AddWindowReso(szBuffer);
+			x = dmi.dmPelsWidth;
+			y = dmi.dmPelsHeight;
+		}
+        ZeroMemory(&dmi, sizeof(dmi));
+	}
+
+	frame.ShowModal();
 	win.SetHWND(0);
 
 #else
@@ -90,7 +110,7 @@ void DllConfig(HWND _hParent)
         int modeNum = 0;
         int bestMode = 0;
 
-        // set best mode to current
+        //set best mode to current
         bestMode = 0;
         XF86VidModeGetAllModeLines(GLWin.dpy, GLWin.screen, &modeNum, &modes);
         int px = 0, py = 0;
@@ -103,7 +123,7 @@ void DllConfig(HWND _hParent)
                     char temp[32];
                     sprintf(temp,"%dx%d", modes[i]->hdisplay, modes[i]->vdisplay);
                     frame.AddFSReso(temp);
-                    frame.AddWindowReso(temp); //Add same to Window ones, since they should be nearly all that's needed
+                    frame.AddWindowReso(temp);//Add same to Window ones, since they should be nearly all that's needed
                     px = modes[i]->hdisplay;//Used to remove repeating from different screen depths
                     py = modes[i]->vdisplay;
                 }
