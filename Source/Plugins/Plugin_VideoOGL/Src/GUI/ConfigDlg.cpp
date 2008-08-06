@@ -19,10 +19,11 @@
 #include "ConfigDlg.h"
 #include "../Globals.h"
 
+#include "TextureMngr.h"
+
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
-	EVT_BUTTON(ID_CLOSE,ConfigDialog::OKClick)
-	EVT_BUTTON(ID_APPLY,ConfigDialog::OKClick)
+	EVT_BUTTON(ID_CANCEL,ConfigDialog::OKClick)
 	EVT_BUTTON(ID_OK,ConfigDialog::OKClick)
 	EVT_CHECKBOX(ID_FULLSCREEN,ConfigDialog::FullScreenCheck)
 	EVT_CHECKBOX(ID_RENDERTOMAINWINDOW,ConfigDialog::RenderMainCheck)
@@ -33,6 +34,8 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_WIREFRAME,ConfigDialog::WireframeCheck)
 	EVT_CHECKBOX(ID_STATISTICS,ConfigDialog::OverlayCheck)
 	EVT_CHECKBOX(ID_SHADERERRORS,ConfigDialog::ShowShaderErrorsCheck)
+	EVT_CHECKBOX(ID_TEXFMTOVERLAY,ConfigDialog::TexFmtOverlayChange)
+	EVT_CHECKBOX(ID_TEXFMTCENTER,ConfigDialog::TexFmtOverlayChange)
 	EVT_CHECKBOX(ID_DUMPTEXTURES,ConfigDialog::DumpTexturesChange)
 	EVT_DIRPICKER_CHANGED(ID_TEXTUREPATH,ConfigDialog::TexturePathChange)
 END_EVENT_TABLE()
@@ -41,7 +44,6 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 : wxDialog(parent, id, title, position, size, style)
 {
 	g_Config.Load();
-
 	CreateGUIControls();
 }
 
@@ -63,17 +65,15 @@ void ConfigDialog::CreateGUIControls()
 	m_Notebook->AddPage(m_PageAdvanced, wxT("Advanced"));
 	
 	//buttons
-	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);	
+	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Cancel = new wxButton(this, ID_CANCEL, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);	
 	
 	//put notebook and buttons in sizers
 	wxBoxSizer* sButtons;
 	sButtons = new wxBoxSizer(wxHORIZONTAL);
 	sButtons->Add(0, 0, 1, wxEXPAND, 5);
-	sButtons->Add(m_Close, 0, wxALL, 5);
-	sButtons->Add(m_Apply, 0, wxALL, 5);
 	sButtons->Add(m_OK, 0, wxALL, 5);
+	sButtons->Add(m_Cancel, 0, wxALL, 5);
 	
 	wxBoxSizer* sMain;
 	sMain = new wxBoxSizer(wxVERTICAL);
@@ -106,6 +106,12 @@ void ConfigDialog::CreateGUIControls()
 	m_Statistics = new wxCheckBox(m_PageAdvanced, ID_STATISTICS, wxT("Overlay some statistics"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Statistics->SetValue(g_Config.bOverlayStats);
 
+	m_TexFmtOverlay = new wxCheckBox(m_PageAdvanced, ID_TEXFMTOVERLAY, wxT("Overlay texture format"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_TexFmtOverlay->SetValue(g_Config.bTexFmtOverlayEnable);
+	m_TexFmtCenter = new wxCheckBox(m_PageAdvanced, ID_TEXFMTCENTER, wxT("centered"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_TexFmtCenter->SetValue(g_Config.bTexFmtOverlayCenter);
+	m_TexFmtCenter->Enable(m_TexFmtOverlay->IsChecked());
+
 	m_DumpTextures = new wxCheckBox(m_PageAdvanced, ID_DUMPTEXTURES, wxT("Dump textures to:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_DumpTextures->SetValue(g_Config.bDumpTextures);
 	m_TexturePath = new wxDirPickerCtrl(m_PageAdvanced, ID_TEXTUREPATH, wxEmptyString, wxT("Choose a directory to store texture dumps:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
@@ -130,7 +136,7 @@ void ConfigDialog::CreateGUIControls()
 	//m_ShaderErrors->SetValue(g_Config.bShowShaderErrors);
 	m_ShaderErrors->Enable(false);
 
-	//Put options in sizers in the notebook
+	//Put options in sizers within the notebook
 	wxGridBagSizer* sPage1;
 	sPage1 = new wxGridBagSizer(0, 0);
 	sPage1->SetFlexibleDirection(wxBOTH);
@@ -153,13 +159,17 @@ void ConfigDialog::CreateGUIControls()
 	m_PageEnhancements->SetSizer(sPage2);
 	sPage2->Layout();
 
-	wxBoxSizer* sPage3;
-	sPage3 = new wxBoxSizer(wxVERTICAL);
-	sPage3->Add(m_Wireframe, 0, wxALL, 5);
-	sPage3->Add(m_Statistics, 0, wxALL, 5);
-	sPage3->Add(m_ShaderErrors, 0, wxALL, 5);
-	sPage3->Add(m_DumpTextures, 0, wxALL, 5);
-	sPage3->Add(m_TexturePath, 0, wxALL, 5);
+	wxGridBagSizer* sPage3;
+	sPage3 = new wxGridBagSizer(0, 0);
+	sPage3->SetFlexibleDirection(wxBOTH);
+	sPage3->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+	sPage3->Add(m_Wireframe, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
+	sPage3->Add(m_ShaderErrors, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
+	sPage3->Add(m_Statistics, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
+	sPage3->Add(m_TexFmtOverlay, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
+	sPage3->Add(m_TexFmtCenter, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
+	sPage3->Add(m_DumpTextures, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sPage3->Add(m_TexturePath, wxGBPosition(4, 1), wxGBSpan(2, 1), wxALL, 5);
 	m_PageAdvanced->SetSizer(sPage3);
 	sPage3->Layout();
 
@@ -169,23 +179,20 @@ void ConfigDialog::CreateGUIControls()
 
 void ConfigDialog::OnClose(wxCloseEvent& event)
 {
-	g_Config.Save();
 	EndModal(0);
-
 }
 
 void ConfigDialog::OKClick(wxCommandEvent& event)
 {
-	if ((event.GetId() == ID_APPLY) ||
-		(event.GetId() == ID_OK))
+	switch(event.GetId())
 	{
+	case ID_CANCEL:
+		Close();
+		break;
+	case ID_OK:
 		g_Config.Save();
-	}
-
-	if ((event.GetId() == ID_CLOSE) ||
-		(event.GetId() == ID_OK))
-	{
-		Close(); 
+		Close();
+		break;
 	}
 }
 
@@ -232,18 +239,40 @@ void ConfigDialog::WireframeCheck(wxCommandEvent& event)
 {
 	g_Config.bWireFrame = m_Wireframe->IsChecked();
 }
-void ConfigDialog::OverlayCheck(wxCommandEvent& event)
-{
-	g_Config.bOverlayStats = m_Statistics->IsChecked();
-}
 
 void ConfigDialog::ShowShaderErrorsCheck(wxCommandEvent& event)
 {
 	g_Config.bShowShaderErrors = m_ShaderErrors->IsChecked();
 }
 
-void ConfigDialog::DumpTexturesChange(wxCommandEvent& event)
+void ConfigDialog::OverlayCheck(wxCommandEvent& event)
 {
+	g_Config.bOverlayStats = m_Statistics->IsChecked();
+}
+
+void ConfigDialog::TexFmtOverlayChange(wxCommandEvent& event)
+{
+	switch(event.GetId())
+	{
+	case ID_TEXFMTOVERLAY:
+		
+		g_Config.bTexFmtOverlayEnable = m_TexFmtOverlay->IsChecked();
+		m_TexFmtCenter->Enable(m_TexFmtOverlay->IsChecked());
+		TextureMngr::Invalidate();
+		if(!g_Config.bTexFmtOverlayEnable)
+			m_TexFmtCenter->SetValue(false);
+		else
+			return;
+		break;
+	case ID_TEXFMTCENTER:
+		g_Config.bTexFmtOverlayCenter = m_TexFmtCenter->IsChecked();
+		TextureMngr::Invalidate();
+		break;
+	}
+}
+
+void ConfigDialog::DumpTexturesChange(wxCommandEvent& event)
+{	
 	m_TexturePath->Enable(m_DumpTextures->IsChecked());
 	g_Config.bDumpTextures = m_DumpTextures->IsChecked();
 }

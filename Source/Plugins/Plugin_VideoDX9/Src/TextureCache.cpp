@@ -29,6 +29,7 @@ void TextureCache::TCacheEntry::Destroy()
 void TextureCache::Init()
 {
 	temp = (u8*)VirtualAlloc(0,TEMP_SIZE,MEM_COMMIT,PAGE_READWRITE);  	
+	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable,g_Config.bTexFmtOverlayCenter);
 }
 
 void TextureCache::Invalidate()
@@ -37,6 +38,7 @@ void TextureCache::Invalidate()
 	for (;iter!=textures.end();iter++)
 		iter->second.Destroy();
 	textures.clear();
+	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable,g_Config.bTexFmtOverlayCenter);
 }
 
 void TextureCache::Shutdown()

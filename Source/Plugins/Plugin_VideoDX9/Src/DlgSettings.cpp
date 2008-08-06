@@ -9,6 +9,8 @@
 
 #include "Globals.h"
 
+#include "TextureCache.h"
+
 #define NUMWNDRES 6
 int g_Res[NUMWNDRES][2] = 
 {
@@ -104,7 +106,10 @@ struct TabAdvanced : public W32Util::Tab
 		Button_SetCheck(GetDlgItem(hDlg,IDC_WIREFRAME), g_Config.bWireFrame);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_TEXDUMP), g_Config.bDumpTextures);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_SHOWSHADERERRORS), g_Config.bShowShaderErrors);
-		
+
+		Button_SetCheck(GetDlgItem(hDlg,IDC_TEXFMT_OVERLAY), g_Config.bTexFmtOverlayEnable);
+		Button_SetCheck(GetDlgItem(hDlg,IDC_TEXFMT_CENTER),  g_Config.bTexFmtOverlayCenter);
+
 		SetWindowText(GetDlgItem(hDlg,IDC_TEXDUMPPATH),g_Config.texDumpPath.c_str());
 		Edit_LimitText(GetDlgItem(hDlg,IDC_TEXDUMPPATH),255);
 	}
@@ -124,6 +129,9 @@ struct TabAdvanced : public W32Util::Tab
 	}
 	void Apply(HWND hDlg)
 	{
+		g_Config.bTexFmtOverlayEnable = Button_GetCheck(GetDlgItem(hDlg,IDC_TEXFMT_OVERLAY)) ? true : false;
+		g_Config.bTexFmtOverlayCenter = Button_GetCheck(GetDlgItem(hDlg,IDC_TEXFMT_CENTER)) ? true : false;
+
 		g_Config.bOverlayStats = Button_GetCheck(GetDlgItem(hDlg,IDC_OVERLAYSTATS)) ? true : false;
 		g_Config.bWireFrame    = Button_GetCheck(GetDlgItem(hDlg,IDC_WIREFRAME)) ? true : false;
 		g_Config.bDumpTextures = Button_GetCheck(GetDlgItem(hDlg,IDC_TEXDUMP)) ? true : false;
@@ -195,6 +203,9 @@ struct TabEnhancements : public W32Util::Tab
 
 void DlgSettings_Show(HINSTANCE hInstance, HWND _hParent)
 {
+	bool tfoe = g_Config.bTexFmtOverlayEnable;
+	bool tfoc = g_Config.bTexFmtOverlayCenter;
+
 	g_Config.Load();
 	W32Util::PropSheet sheet;
 	sheet.Add(new TabDirect3D,(LPCTSTR)IDD_SETTINGS,"Direct3D");
@@ -203,4 +214,10 @@ void DlgSettings_Show(HINSTANCE hInstance, HWND _hParent)
 	//sheet.Add(new TabDebug,(LPCTSTR)IDD_DEBUGGER,"Debugger");
 	sheet.Show(hInstance,_hParent,"Graphics Plugin");
 	g_Config.Save();
+
+	if(( tfoe != g_Config.bTexFmtOverlayEnable) ||
+		((g_Config.bTexFmtOverlayEnable) && ( tfoc != g_Config.bTexFmtOverlayCenter)))
+	{
+		TextureCache::Invalidate();
+	}
 }

@@ -56,18 +56,20 @@ class ConfigDialog : public wxDialog
 		void WireframeCheck(wxCommandEvent& event);
 		void OverlayCheck(wxCommandEvent& event);
 		void ShowShaderErrorsCheck(wxCommandEvent& event);
+		void TexFmtOverlayChange(wxCommandEvent& event);
 		void DumpTexturesChange(wxCommandEvent& event);
 		void TexturePathChange(wxFileDirPickerEvent& event);
 
 	private:
 
-		wxButton *m_Close;
-		wxButton *m_Apply;
+		wxButton *m_Cancel;
 		wxButton *m_OK;
 		wxDirPickerCtrl *m_TexturePath;
-		wxCheckBox *m_ShaderErrors;
-		wxCheckBox *m_Statistics;
 		wxCheckBox *m_DumpTextures;
+		wxCheckBox *m_TexFmtCenter;
+		wxCheckBox *m_TexFmtOverlay;
+		wxCheckBox *m_Statistics;
+		wxCheckBox *m_ShaderErrors;
 		wxCheckBox *m_Wireframe;
 		wxCheckBox *m_ForceAnisotropy;
 		wxCheckBox *m_ForceFiltering;
@@ -86,12 +88,12 @@ class ConfigDialog : public wxDialog
 		enum
 		{
 			////GUI Enum Control ID Start
-			ID_CLOSE = 1030,
-			ID_APPLY = 1029,
+			ID_CANCEL = 1030,
 			ID_OK = 1028,
-			ID_TEXTUREPATH = 1026,
-			ID_BROWSE = 1025,
-			ID_SHADERERRORS = 1024,
+			ID_TEXTUREPATH = 1027,
+			ID_SHADERERRORS = 1026,
+			ID_TEXFMTCENTER = 1025,
+			ID_TEXFMTOVERLAY = 1024,
 			ID_STATISTICS = 1023,
 			ID_DUMPTEXTURES = 1022,
 			ID_WIREFRAME = 1021,

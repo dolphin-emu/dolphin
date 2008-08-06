@@ -176,6 +176,9 @@ struct Config
     char psProfile[16];
     char vsProfile[16];
 
+	bool bTexFmtOverlayEnable;
+	bool bTexFmtOverlayCenter;
+
     int iSaveTargetId;
 
     char texDumpPath[280];

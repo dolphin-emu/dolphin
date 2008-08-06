@@ -39,6 +39,9 @@ struct Config
 	char psProfile[16];
 	char vsProfile[16];
 
+	bool bTexFmtOverlayEnable;
+	bool bTexFmtOverlayCenter;
+
 	std::string texDumpPath;
 };
 

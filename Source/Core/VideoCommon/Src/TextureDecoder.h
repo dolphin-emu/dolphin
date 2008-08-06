@@ -76,4 +76,6 @@ enum PC_TexFormat
 
 PC_TexFormat TexDecoder_Decode(u8 *dst, u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt);
 
+void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
+
 #endif
