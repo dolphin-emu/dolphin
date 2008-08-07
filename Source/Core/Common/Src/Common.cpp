@@ -22,7 +22,7 @@
 
 namespace
 {
-PanicAlertHandler panic_handler = 0;
+	static PanicAlertHandler panic_handler = 0;
 }
 
 void RegisterPanicAlertHandler(PanicAlertHandler handler)

@@ -23,6 +23,8 @@ namespace Gen
 {
 	static u8 *code;
 	static bool mode32 = false;
+    static bool enableBranchHints = false;
+
 
 	void SetCodePtr(u8 *ptr)
 	{
@@ -349,8 +351,6 @@ namespace Gen
 		}
 		return branch;
 	}
-
-    static bool enableBranchHints = false;
 
     // These are to be used with Jcc only.
 	// Found in intel manual 2A 
@@ -1221,10 +1221,12 @@ namespace Gen
 #ifdef _M_IX86
 		// Don't really need to do anything
 #elif defined(_M_X64)
+#if _WIN32
 		int stacksize = ((maxCallParams+1)&~1)*8 + 8;
 		// Set up a stack frame so that we can call functions
 		// TODO: use maxCallParams
 	    SUB(64, R(RSP), Imm8(stacksize));
+#endif
 #else
 #error Arch not supported
 #endif
@@ -1234,15 +1236,17 @@ namespace Gen
 #ifdef _M_IX86
 		RET();
 #elif defined(_M_X64)
+#ifdef _WIN32
 		int stacksize = ((maxCallParams+1)&~1)*8 + 8;
 		ADD(64, R(RSP), Imm8(stacksize));
+#endif
 		RET();
 #else
 #error Arch not supported
 #endif
 	}
 
-	}
+	}  // namespace
 
 	
 // helper routines for setting pointers

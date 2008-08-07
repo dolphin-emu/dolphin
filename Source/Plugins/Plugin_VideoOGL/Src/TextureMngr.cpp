@@ -80,7 +80,7 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0& newmode)
 
 void TextureMngr::TCacheEntry::Destroy()
 {
-    SAFE_RELEASE_TEX((GLuint)texture);
+    SAFE_RELEASE_TEX(texture);
 }
 
 void TextureMngr::Init()

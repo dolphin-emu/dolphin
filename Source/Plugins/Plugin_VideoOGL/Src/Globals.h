@@ -99,13 +99,14 @@ struct RECT
 #endif
 
 // several macros
+// PLEASE DO NOT USE THE FOLLOWING SAFE*
+// They only encourage sloppy coding, and hides bugs. 
 #ifndef SAFE_DELETE_ARRAY
 #define SAFE_DELETE_ARRAY(x)	if( (x) != NULL ) { delete[] (x); (x) = NULL; }
 #endif
 #ifndef SAFE_RELEASE
 #define SAFE_RELEASE(x)		if( (x) != NULL ) { (x)->Release(); (x) = NULL; }
 #endif
-
 #define SAFE_RELEASE_CGPROG(x) { if( (x) != NULL ) { cgDestroyProgram(x); x = NULL; } }
 #define SAFE_RELEASE_PROG(x) { if( (x) != 0 ) { glDeleteProgramsARB(1, &(x)); x = 0; } }
 #define SAFE_RELEASE_TEX(x) { if( (x) != 0 ) { glDeleteTextures(1, &(x)); x = 0; } }

@@ -162,7 +162,7 @@ void StringFromFormatV(std::string* out, const char* format, va_list args)
 
 	while (writtenCount < 0)
 	{
-		delete[] buf;
+		delete [] buf;
 		buf = new char[newSize + 1];
 		writtenCount = vsnprintf(buf, newSize, format, args);
 		newSize *= 2;
