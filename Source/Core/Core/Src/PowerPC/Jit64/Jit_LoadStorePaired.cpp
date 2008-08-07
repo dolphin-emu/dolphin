@@ -18,6 +18,8 @@
 // TODO(ector): Tons of pshufb optimization of the loads/stores, for SSSE3+, possibly SSE4, only.
 // Should give a very noticable speed boost to paired single heavy code.
 
+#include "Common.h"
+
 #include "../PowerPC.h"
 #include "../../Core.h"
 #include "../../HW/GPFifo.h"
@@ -33,13 +35,13 @@
 #include "JitAsm.h"
 #include "JitRegCache.h"
 
-#define OLD
-//#define OLD Default(inst); return;
+// #define INSTRUCTION_START Default(inst); return;
+#define INSTRUCTION_START
 
 #ifdef _M_IX86
-#define BIT32OLD Default(inst); return;
+#define DISABLE_32BIT Default(inst); return;
 #else
-#define BIT32OLD ;
+#define DISABLE_32BIT ;
 #endif
 
 namespace Jit64 {
@@ -47,7 +49,7 @@ namespace Jit64 {
 static double GC_ALIGNED16(psTemp[2]) = {1.0, 1.0};
 static u64 GC_ALIGNED16(temp64);
 static u32 GC_ALIGNED16(temp32);
-	
+static u32 temp;
 
 // TODO(ector): Improve 64-bit version
 void WriteDual32(u64 value, u32 address)
@@ -56,7 +58,7 @@ void WriteDual32(u64 value, u32 address)
 	Memory::Write_U32((u32)value, address + 4);
 }
 
-const double m_quantizeTableD[] =
+static const double m_quantizeTableD[] =
 {
 	(1 <<  0),	(1 <<  1),	(1 <<  2),	(1 <<  3),
 	(1 <<  4),	(1 <<  5),	(1 <<  6),	(1 <<  7),
@@ -76,7 +78,7 @@ const double m_quantizeTableD[] =
 	1.0 / (1 <<  4),	1.0 / (1 <<  3),	1.0 / (1 <<  2),	1.0 / (1 <<  1),
 }; 
 
-const double m_dequantizeTableD[] =
+static const double m_dequantizeTableD[] =
 {
 	1.0 / (1 <<  0),	1.0 / (1 <<  1),	1.0 / (1 <<  2),	1.0 / (1 <<  3),
 	1.0 / (1 <<  4),	1.0 / (1 <<  5),	1.0 / (1 <<  6),	1.0 / (1 <<  7),
@@ -98,11 +100,10 @@ const double m_dequantizeTableD[] =
 
 // The big problem is likely instructions that set the quantizers in the same block.
 // We will have to break block after quantizers are written to.
-u32 temp;
 void psq_st(UGeckoInstruction inst)
 {
-	BIT32OLD;
-	OLD;
+	INSTRUCTION_START;
+	DISABLE_32BIT;
 	if (js.blockSetsQuantizers || !Core::GetStartupParameter().bOptimizeQuantizers)
 	{
 		Default(inst);
@@ -112,7 +113,7 @@ void psq_st(UGeckoInstruction inst)
 	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
 	int stScale = gqr.ST_SCALE;
 	bool update = inst.OPCD == 61;
-	if (update || !inst.RA || inst.W)
+	if (!inst.RA || inst.W)
 	{
 	//	PanicAlert(inst.RA ? "W" : "inst");
 		Default(inst);
@@ -223,8 +224,8 @@ void psq_st(UGeckoInstruction inst)
 
 void psq_l(UGeckoInstruction inst)
 {
-	BIT32OLD;
-	OLD;
+	INSTRUCTION_START;
+	DISABLE_32BIT;
 	if (js.blockSetsQuantizers || !Core::GetStartupParameter().bOptimizeQuantizers)
 	{
 		Default(inst);
@@ -234,7 +235,7 @@ void psq_l(UGeckoInstruction inst)
 	const EQuantizeType ldType = static_cast<EQuantizeType>(gqr.LD_TYPE);
 	int ldScale = gqr.LD_SCALE;
 	bool update = inst.OPCD == 57;
-	if (update || !inst.RA || inst.W)
+	if (!inst.RA || inst.W)
 	{
 		// 0 1 during load
 		//PanicAlert("ld:%i %i", ldType, (int)inst.W);

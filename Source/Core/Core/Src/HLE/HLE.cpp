@@ -45,7 +45,7 @@ struct SPatch
 	int returnType;
 };
 
-SPatch OSPatches[] = 
+static const SPatch OSPatches[] = 
 {	
 	{ "FAKE_TO_SKIP_0",		        HLE_Misc::UnimplementedFunction },
 
@@ -69,7 +69,7 @@ SPatch OSPatches[] =
 //	{ "GXPeekARGB",					HLE_Misc::GXPeekARGB},  
 };
 
-SPatch OSBreakPoints[] =
+static const SPatch OSBreakPoints[] =
 {
 	{ "FAKE_TO_SKIP_0",									HLE_Misc::UnimplementedFunction },
 };

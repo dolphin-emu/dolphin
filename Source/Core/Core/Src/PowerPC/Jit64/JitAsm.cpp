@@ -45,17 +45,17 @@ const u8 *dispatcherNoCheck;
 const u8 *dispatcherPcInEAX;
 const u8 *computeRc;
 
-bool blockMode = false; //doesn't work as true!
+static bool blockMode = false; //doesn't work as true!
 bool compareEnabled = false;
 
 //TODO - make an option
 //#if _DEBUG
-bool enableDebug = false; 
+static bool enableDebug = false; 
 //#else
 //		bool enableDebug = false; 
 //#endif
 
-bool enableStatistics = false;
+static bool enableStatistics = false;
 
 //GLOBAL STATIC ALLOCATIONS x86
 //EAX - ubiquitous scratch register - EVERYBODY scratches this

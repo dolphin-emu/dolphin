@@ -32,7 +32,7 @@ u32 s_nTargetWidth = 0, s_nTargetHeight = 0;
 u32 g_AAx = 0, g_AAy = 0;
 
 #ifndef _WIN32
-GLWindow GLWin;
+static GLWindow GLWin;
 #endif
 
 #ifdef _WIN32

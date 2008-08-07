@@ -41,7 +41,7 @@ bool WriteAlphaTest(char *&p);
 
 const float epsilon = 1.0f/255.0f;
 
-const char *tevKSelTableC[] = // KCSEL
+static const char *tevKSelTableC[] = // KCSEL
 {
     "1.0f,1.0f,1.0f",            //1   = 0x00
     "0.875,0.875,0.875",//7_8 = 0x01
@@ -77,7 +77,7 @@ const char *tevKSelTableC[] = // KCSEL
     I_KCOLORS"[3].aaa",//K3_A = 0x1F
 };
 
-const char *tevKSelTableA[] = // KASEL
+static const char *tevKSelTableA[] = // KASEL
 {
     "1.0f",    //1   = 0x00
     "0.875f",//7_8 = 0x01
@@ -113,7 +113,7 @@ const char *tevKSelTableA[] = // KASEL
     I_KCOLORS"[3].a",//K3_A = 0x1F
 };
 
-const char *tevScaleTable[] = // CS
+static const char *tevScaleTable[] = // CS
 {
     "1.0f",   //SCALE_1
     "2.0f", //SCALE_2
@@ -121,7 +121,7 @@ const char *tevScaleTable[] = // CS
     "0.5f",//DIVIDE_2
 };
 
-const char *tevBiasTable[] = // TB
+static const char *tevBiasTable[] = // TB
 {
     "",      //ZERO,
     "+0.5f",  //ADDHALF,
@@ -129,19 +129,19 @@ const char *tevBiasTable[] = // TB
     "",
 };
 
-const char *tevOpTable[] = { // TEV
+static const char *tevOpTable[] = { // TEV
     "+",      //TEVOP_ADD = 0,
     "-",      //TEVOP_SUB = 1,
 };
 
-const char *tevCompOpTable[] = { ">", "==" };
+static const char *tevCompOpTable[] = { ">", "==" };
 
 #define TEVCMP_R8    0
 #define TEVCMP_GR16  1
 #define TEVCMP_BGR24 2
 #define TEVCMP_RGB8  3
 
-const char *tevCInputTable[] = // CC
+static const char *tevCInputTable[] = // CC
 {
     "prev.rgb",         //CPREV,
     "prev.aaa",           //APREV,
@@ -165,7 +165,8 @@ const char *tevCInputTable[] = // CC
     "PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
     "PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
 };
-const char *tevCInputTable2[] = // CC
+
+static const char *tevCInputTable2[] = // CC
 {
     "prev",         //CPREV,
     "(prev.aaa)",           //APREV,
@@ -190,7 +191,7 @@ const char *tevCInputTable2[] = // CC
     "PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
 };
 
-const char *tevAInputTable[] = // CA
+static const char *tevAInputTable[] = // CA
 {
     "prev.a",           //APREV,
     "c0.a",             //A0,
@@ -206,7 +207,7 @@ const char *tevAInputTable[] = // CA
     "PADERROR", "PADERROR", "PADERROR",
 };	
 
-const char *tevAInputTable2[] = // CA
+static const char *tevAInputTable2[] = // CA
 {
     "prev",           //APREV,
     "c0",             //A0,
@@ -222,7 +223,7 @@ const char *tevAInputTable2[] = // CA
     "PADERROR", "PADERROR", "PADERROR", "PADERROR",
 };	
 
-const char *tevRasTable[] =
+static const char *tevRasTable[] =
 {
     "colors[0]",
     "colors[1]",
@@ -234,27 +235,28 @@ const char *tevRasTable[] =
     "float4(0,0,0,0)", // zero
 };
 
-const char *alphaRef[2] = 
+static const char *alphaRef[2] = 
 {
     I_ALPHA"[0].x",
     I_ALPHA"[0].y"
 };
 
-const char *tevTexFunc[] = { "tex2D", "texRECT" };
+static const char *tevTexFunc[] = { "tex2D", "texRECT" };
 
-const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
-const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
-const char* tevIndAlphaSel[]   = {"", "x", "y", "z"};
-const char* tevIndAlphaScale[] = {"", "*32","*16","*8"};
-const char* tevIndBiasField[]  = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
-const char* tevIndBiasAdd[]    = {"-128.0f", "1.0f", "1.0f", "1.0f" }; // indexed by fmt
-const char* tevIndWrapStart[]  = {"0", "256", "128", "64", "32", "16", "0.001" };
-const char* tevIndFmtScale[]   = {"255.0f", "31.0f", "15.0f", "8.0f" };
+static const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
+static const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
+static const char* tevIndAlphaSel[]   = {"", "x", "y", "z"};
+static const char* tevIndAlphaScale[] = {"", "*32","*16","*8"};
+static const char* tevIndBiasField[]  = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
+static const char* tevIndBiasAdd[]    = {"-128.0f", "1.0f", "1.0f", "1.0f" }; // indexed by fmt
+static const char* tevIndWrapStart[]  = {"0", "256", "128", "64", "32", "16", "0.001" };
+static const char* tevIndFmtScale[]   = {"255.0f", "31.0f", "15.0f", "8.0f" };
 
 #define WRITE p+=sprintf
 
-const char *swapColors = "rgba";
-char swapModeTable[4][5];
+static const char *swapColors = "rgba";
+static char swapModeTable[4][5];
+static char text[16384];
 
 void BuildSwapModeTable()
 {
@@ -269,7 +271,6 @@ void BuildSwapModeTable()
     }
 }
 
-static char text[16384];
 char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRenderZToCol0)
 {
     DVSTARTPROFILE();

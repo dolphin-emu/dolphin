@@ -264,9 +264,9 @@ namespace Jit64
 	// windoze goes to 8010feb0
 	// after they they are completely out of sync.
     // branches from the cmp result of r0, which comes from an lbz (loaded from stack)
-	bool ImHereDebug = false;
-	bool ImHereLog = false;
-	std::map<u32, int> been_here;
+	static const bool ImHereDebug = false;
+	static const bool ImHereLog = false;
+	static std::map<u32, int> been_here;
 	void ImHere()
 	{
 		static FILE *f = 0;

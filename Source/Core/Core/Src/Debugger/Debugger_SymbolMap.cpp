@@ -27,7 +27,7 @@
 namespace Debugger
 {
 
-XVectorSymbol m_VectorSymbols;
+static XVectorSymbol m_VectorSymbols;
 
 CSymbol::CSymbol(u32 _Address, u32 _Size, ESymbolType _Type, const char *_rName) :
     vaddress(_Address),

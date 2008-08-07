@@ -29,11 +29,12 @@
 #include "PowerPC/Jit64/JitCache.h"
 #include "PowerPCDisasm.h"
 
-#define CASE(x) else if (memcmp(cmd, x,4*sizeof(TCHAR))==0)
-#define CASE1(x) if (memcmp(cmd, x,2*sizeof(TCHAR))==0)
+#define CASE(x) else if (memcmp(cmd, x, 4*sizeof(TCHAR))==0)
+#define CASE1(x) if (memcmp(cmd, x, 2*sizeof(TCHAR))==0)
 
-Common::Thread *cons_thread;
 /*
+static Common::Thread *cons_thread;
+
 THREAD_RETURN ConsoleThreadFunc(void *) {
 	printf("Welcome to the console thread!\n\n");
 	while (true) {

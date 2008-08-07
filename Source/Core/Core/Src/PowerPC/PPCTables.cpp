@@ -14,8 +14,10 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #include <algorithm>
 
+#include "Common.h"
 #include "PPCTables.h"
 #include "Interpreter/Interpreter.h"
 
@@ -38,20 +40,21 @@ struct GekkoOPTemplate
 	int runCount;
 };
 
+// The eventual goal is to be able to constify as much as possible in this file.
+// Currently, the main obstacle is runCount above.
+static GekkoOPInfo *m_infoTable[64];
+static GekkoOPInfo *m_infoTable4[1024];
+static GekkoOPInfo *m_infoTable19[1024];
+static GekkoOPInfo *m_infoTable31[1024];
+static GekkoOPInfo *m_infoTable59[32];
+static GekkoOPInfo *m_infoTable63[1024];
 
-GekkoOPInfo *m_infoTable[64];
-GekkoOPInfo *m_infoTable4[1024];
-GekkoOPInfo *m_infoTable19[1024];
-GekkoOPInfo *m_infoTable31[1024];
-GekkoOPInfo *m_infoTable59[32];
-GekkoOPInfo *m_infoTable63[1024];
-
-_recompilerInstruction dynaOpTable[64];
-_recompilerInstruction dynaOpTable4[1024];
-_recompilerInstruction dynaOpTable19[1024];
-_recompilerInstruction dynaOpTable31[1024];
-_recompilerInstruction dynaOpTable59[32];
-_recompilerInstruction dynaOpTable63[1024];
+static _recompilerInstruction dynaOpTable[64];
+static _recompilerInstruction dynaOpTable4[1024];
+static _recompilerInstruction dynaOpTable19[1024];
+static _recompilerInstruction dynaOpTable31[1024];
+static _recompilerInstruction dynaOpTable59[32];
+static _recompilerInstruction dynaOpTable63[1024];
 
 void DynaRunTable4(UGeckoInstruction _inst)  {dynaOpTable4 [_inst.SUBOP10](_inst);}
 void DynaRunTable19(UGeckoInstruction _inst) {dynaOpTable19[_inst.SUBOP10](_inst);}
@@ -59,9 +62,8 @@ void DynaRunTable31(UGeckoInstruction _inst) {dynaOpTable31[_inst.SUBOP10](_inst
 void DynaRunTable59(UGeckoInstruction _inst) {dynaOpTable59[_inst.SUBOP5 ](_inst);}
 void DynaRunTable63(UGeckoInstruction _inst) {dynaOpTable63[_inst.SUBOP10](_inst);}
 
-GekkoOPInfo *m_allInstructions[2048];
-int m_numInstructions;
-
+static GekkoOPInfo *m_allInstructions[2048];
+static int m_numInstructions;
 
 GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 {

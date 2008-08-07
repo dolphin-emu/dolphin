@@ -28,9 +28,9 @@
 
 using namespace PowerPC;
 namespace {
-	bool g_Branch;
-	Common::Event m_StepEvent;
-	Common::Event *m_SyncEvent;
+	static bool g_Branch;
+	static Common::Event m_StepEvent;
+	static Common::Event *m_SyncEvent;
 }
 
 void CCPU::Init()

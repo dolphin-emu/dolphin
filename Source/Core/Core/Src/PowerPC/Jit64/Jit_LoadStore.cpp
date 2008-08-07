@@ -18,6 +18,8 @@
 // TODO(ector): Tons of pshufb optimization of the loads/stores, for SSSE3+, possibly SSE4, only.
 // Should give a very noticable speed boost to paired single heavy code.
 
+#include "Common.h"
+
 #include "../PowerPC.h"
 #include "../../Core.h"
 #include "../../HW/GPFifo.h"
@@ -33,13 +35,13 @@
 #include "JitAsm.h"
 #include "JitRegCache.h"
 
-#define OLD
-//#define OLD Default(inst); return;
+// #define INSTRUCTION_START Default(inst); return;
+#define INSTRUCTION_START
 
 #ifdef _M_IX86
-#define BIT32OLD Default(inst); return;
+#define DISABLE_32BIT Default(inst); return;
 #else
-#define BIT32OLD ;
+#define DISABLE_32BIT ;
 #endif
 
 namespace Jit64
@@ -81,6 +83,7 @@ namespace Jit64
 
 	void lbzx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		gpr.Lock(a, b, d);
 		if (b == d || a == d)
@@ -97,6 +100,7 @@ namespace Jit64
 
 	void lXz(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int d = inst.RD;
 		int a = inst.RA;
 
@@ -171,7 +175,7 @@ namespace Jit64
 
 	void lfs(UGeckoInstruction inst)
 	{
-//		BIT32OLD;
+		INSTRUCTION_START;
 		int d = inst.RD;
 		int a = inst.RA;
 		if (!a) 
@@ -211,7 +215,8 @@ namespace Jit64
 
 	void lfd(UGeckoInstruction inst)
 	{
-		BIT32OLD;
+		INSTRUCTION_START;
+		DISABLE_32BIT;
 		int d = inst.RD;
 		int a = inst.RA;
 		if (!a) 
@@ -235,8 +240,8 @@ namespace Jit64
 
 	void stfd(UGeckoInstruction inst)
 	{
-		BIT32OLD;
-		OLD;
+		INSTRUCTION_START;
+		DISABLE_32BIT;
 		int s = inst.RS;
 		int a = inst.RA;
 		if (!a)
@@ -259,8 +264,8 @@ namespace Jit64
 
 	void stfs(UGeckoInstruction inst)
 	{
-		BIT32OLD;
-		OLD;
+		INSTRUCTION_START;
+		DISABLE_32BIT;
 		bool update = inst.OPCD & 1;
 		int s = inst.RS;
 		int a = inst.RA;
@@ -301,10 +306,8 @@ namespace Jit64
 
 	void lfsx(UGeckoInstruction inst)
 	{
-#ifdef _M_IX86
-		Default(inst);
-		return;
-#endif
+		INSTRUCTION_START;
+		DISABLE_32BIT;
 		fpr.Lock(inst.RS);
 		fpr.LoadToX64(inst.RS, false, true);
 		MOV(32, R(EAX), gpr.R(inst.RB));
@@ -321,10 +324,8 @@ namespace Jit64
 	// Zero cache line.
 	void dcbz(UGeckoInstruction inst)
 	{
-#ifdef _M_IX86
-		Default(inst);
-		return;
-#endif
+		INSTRUCTION_START;
+		DISABLE_32BIT;
 		MOV(32, R(EAX), gpr.R(inst.RB));
 		if (inst.RA)
 			ADD(32, R(EAX), gpr.R(inst.RA));
@@ -336,6 +337,7 @@ namespace Jit64
 
 	void stX(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int s = inst.RS;
 		int a = inst.RA;
 
@@ -471,6 +473,7 @@ namespace Jit64
 	// A few games use these heavily.
 	void lmw(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		Default(inst);
 		return;
 		/// BUGGY
@@ -496,6 +499,7 @@ namespace Jit64
 
 	void stmw(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		Default(inst);
 		return;
 		/*

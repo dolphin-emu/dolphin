@@ -39,9 +39,9 @@ using namespace Gen;
 
 namespace Jit64
 {
-	u8 *codeCache;
-	u8 *genFunctions;
-	u8 *trampolineCache;
+	static u8 *codeCache;
+	static u8 *genFunctions;
+	static u8 *trampolineCache;
 	u8 *trampolineCodePtr;
 #define INVALID_EXIT 0xFFFFFFFF
 	void LinkBlockExits(int i);
@@ -55,15 +55,14 @@ namespace Jit64
 		MAX_NUM_BLOCKS = 65536,
 	};
 
-	u8 **blockCodePointers; // cut these in half and force below 2GB?
+	static u8 **blockCodePointers; // cut these in half and force below 2GB?
 
-	std::multimap<u32, int> links_to;
+	static std::multimap<u32, int> links_to;
 
-	JitBlock *blocks;
-	int numBlocks;
-
+	static JitBlock *blocks;
+	static int numBlocks;
 	//stats	
-	int numFlushes;
+	static int numFlushes;
 
 	void PrintStats()
 	{

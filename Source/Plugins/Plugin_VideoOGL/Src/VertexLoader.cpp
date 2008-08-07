@@ -47,13 +47,13 @@ static vector< pair<int, int> > s_vStoredPrimitives; // every element, mode and 
 static void (*fnSetupVertexPointers)() = NULL;
 
 //these don't need to be saved
-float posScale;
-float tcScale[8];
-int colElements[2];
-float tcScaleU[8];
-float tcScaleV[8];
-int tcIndex;
-int colIndex;
+static float posScale;
+static float tcScale[8];
+static int colElements[2];
+static float tcScaleU[8];
+static float tcScaleV[8];
+static int tcIndex;
+static int colIndex;
 #ifndef _WIN32
     #undef inline
     #define inline
@@ -473,7 +473,6 @@ void VertexLoader::ProcessFormat()
     u8 *old_code_ptr = GetWritableCodePtr();
     SetCodePtr(m_compiledCode);
     Util::EmitPrologue(6);
-	//INT3();
     int offset = 0;
     
     // Position

@@ -14,6 +14,8 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+#include "Common.h"
+
 #include "../PowerPC.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
@@ -22,6 +24,9 @@
 #include "JitRegCache.h"
 #include "JitCache.h"
 #include "JitAsm.h"
+
+// The branches are known good, or at least reasonably good.
+// No need for a disable-mechanism.
 
 using namespace Gen;
 namespace Jit64

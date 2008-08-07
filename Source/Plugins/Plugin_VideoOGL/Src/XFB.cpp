@@ -32,6 +32,7 @@ int bound(int i)
 {
 	return (i>255)?255:((i<0)?0:i);
 }
+
 void yuv2rgb(int y, int u, int v, int &r, int &g, int &b)
 {
 	b = bound((76283*(y - 16) + 132252*(u - 128))>>16);

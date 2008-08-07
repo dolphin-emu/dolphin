@@ -27,10 +27,8 @@
 #include "../../HW/SerialInterface.h"	
 #include "../../Core.h"
 
-
 namespace Jit64
 {
-
 	void Jit64Core::Init()
 	{
 		InitCache();

@@ -28,8 +28,8 @@
 FifoReader fifo;
 static u8 *videoBuffer;
 
-int size = 0;
-int readptr = 0;
+static int size = 0;
+static int readptr = 0;
 
 void Fifo_Init()
 {

@@ -576,7 +576,7 @@ void DVProfClear()
 
 #ifdef _WIN32
 // The one for Linux is in Linux/Linux.cpp
-HANDLE hConsole = NULL;
+static HANDLE hConsole = NULL;
 void OpenConsole() {
 	COORD csize;
 	CONSOLE_SCREEN_BUFFER_INFO csbiInfo; 
@@ -605,7 +605,7 @@ void CloseConsole() {
 #endif
 
 
-FILE* pfLog = NULL;
+static FILE* pfLog = NULL;
 void __Log(const char *fmt, ...)
 {
     char* Msg = (char*)alloca(strlen(fmt)+512);

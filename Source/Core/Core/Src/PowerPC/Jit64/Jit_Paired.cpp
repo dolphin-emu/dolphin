@@ -14,6 +14,9 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
+#include "Common.h"
+
 #include "../PowerPC.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
@@ -29,18 +32,24 @@
 // ps_madds1
 
 
-//#define OLD Default(inst); return;
-#define OLD
+// #define INSTRUCTION_START Default(inst); return;
+#define INSTRUCTION_START
+
+#ifdef _M_IX86
+#define DISABLE_32BIT Default(inst); return;
+#else
+#define DISABLE_32BIT ;
+#endif
 
 namespace Jit64
 {
-	const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
-	const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
-	const double GC_ALIGNED16(psOneOne[2])  = {1.0, 1.0};
+	static const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
+	static const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
+	static const double GC_ALIGNED16(psOneOne[2])  = {1.0, 1.0};
 
 	void ps_sign(UGeckoInstruction inst)
 	{
-		OLD;
+		INSTRUCTION_START;
 		int d = inst.FD;
 		int b = inst.FB;
 
@@ -73,6 +82,7 @@ namespace Jit64
 
 	void ps_rsqrte(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int d = inst.FD;
 		int b = inst.FB;
 		fpr.Lock(d, b);
@@ -143,7 +153,7 @@ namespace Jit64
 
 	void ps_arith(UGeckoInstruction inst)
 	{	
-		OLD;
+		INSTRUCTION_START;
 		switch (inst.SUBOP5)
 		{
 		case 18: tri_op(inst.FD, inst.FA, inst.FB, false, &DIVPD); break; //div
@@ -164,7 +174,7 @@ namespace Jit64
 	//TODO: find easy cases and optimize them, do a breakout like ps_arith
 	void ps_mergeXX(UGeckoInstruction inst)
 	{
-		OLD;
+		INSTRUCTION_START;
 		int d = inst.FD;
 		int a = inst.FA;
 		int b = inst.FB;
@@ -202,7 +212,7 @@ namespace Jit64
 	//TODO: add optimized cases
 	void ps_maddXX(UGeckoInstruction inst)
 	{
-		OLD;
+		INSTRUCTION_START;
 		int a = inst.FA;
 		int b = inst.FB;
 		int c = inst.FC;
@@ -243,6 +253,7 @@ namespace Jit64
 
 	void ps_mulsX(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		Default(inst);
 		return;
 

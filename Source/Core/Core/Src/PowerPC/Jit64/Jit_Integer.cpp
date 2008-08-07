@@ -14,6 +14,7 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #include "../PowerPC.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
@@ -23,16 +24,16 @@
 #include "JitRegCache.h"
 #include "JitAsm.h"
 
-#define OLD
-//#define OLD Default(inst); return;
+// #define INSTRUCTION_START Default(inst); return;
+#define INSTRUCTION_START
 
 namespace Jit64
 {
 	typedef u32 (*Operation)(u32 a, u32 b);
-	u32 Add(u32 a, u32 b) {return a+b;}
-	u32 Or (u32 a, u32 b) {return a|b;}
-	u32 And(u32 a, u32 b) {return a&b;}
-	u32 Xor(u32 a, u32 b) {return a^b;}
+	u32 Add(u32 a, u32 b) {return a + b;}
+	u32 Or (u32 a, u32 b) {return a | b;}
+	u32 And(u32 a, u32 b) {return a & b;}
+	u32 Xor(u32 a, u32 b) {return a ^ b;}
 
 	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void(*op)(int, const OpArg&, const OpArg&), bool Rc = false)
 	{
@@ -78,19 +79,20 @@ namespace Jit64
 
 	void reg_imm(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int d = inst.RD, a = inst.RA, s = inst.RS;
 		switch (inst.OPCD)
 		{
-		case 14: regimmop(d,a,false,(u32)(s32)inst.SIMM_16,Add,ADD); break; //addi
-		case 15: regimmop(d,a,false,(u32)inst.SIMM_16<<16,Add,ADD);  break; //addis
+		case 14: regimmop(d, a, false, (u32)(s32)inst.SIMM_16,  Add, ADD); break; //addi
+		case 15: regimmop(d, a, false, (u32)inst.SIMM_16 << 16, Add, ADD); break; //addis
 		case 24: 
 			if (a == 0 && s == 0 && inst.UIMM == 0)  //check for nop
-				{NOP();return;} //make the nop visible.. or turn to int3? we shouldn't get nops
-			regimmop(a,s,true,inst.UIMM,Or,OR); 
+				{NOP(); return;} //make the nop visible.. or turn to int3? we shouldn't get nops
+			regimmop(a, s, true, inst.UIMM, Or, OR); 
 			break;//ori
-		case 25: regimmop(a,s,true,inst.UIMM<<16,Or,OR); break;//oris
-		case 28: regimmop(a,s,true,inst.UIMM,And,AND,true); break;
-		case 29: regimmop(a,s,true,inst.UIMM<<16,And,AND,true); break;
+		case 25: regimmop(a, s, true, inst.UIMM << 16, Or,  OR, false); break;//oris
+		case 28: regimmop(a, s, true, inst.UIMM,       And, AND, true); break;
+		case 29: regimmop(a, s, true, inst.UIMM << 16, And, AND, true); break;
 		case 12: //addic
 		case 13: //addic_rc
 		case 26: //xori
@@ -104,6 +106,7 @@ namespace Jit64
 	// unsigned
 	void cmpli(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA;
 		u32 uimm = inst.UIMM;
 		int crf = inst.CRFD;
@@ -152,7 +155,7 @@ namespace Jit64
 	// signed
 	void cmpi(UGeckoInstruction inst)
 	{
-		OLD;
+		INSTRUCTION_START;
 		int a = inst.RA;
 		s32 simm = (s32)(s16)inst.UIMM;
 		int crf = inst.CRFD;
@@ -180,6 +183,7 @@ namespace Jit64
 	// signed
 	void cmp(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA;
 		int b = inst.RB;
 		int crf = inst.CRFD;
@@ -209,6 +213,7 @@ namespace Jit64
 	// unsigned
 	void cmpl(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA;
 		int b = inst.RB;
 		int crf = inst.CRFD;
@@ -237,6 +242,7 @@ namespace Jit64
 	
 	void orx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA;
 		int s = inst.RS;
 		int b = inst.RB;
@@ -271,6 +277,7 @@ namespace Jit64
 
 	void andx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA, s = inst.RS, b = inst.RB;
 		if (a != s && a != b) {
 			gpr.LoadToX64(a, false, true);
@@ -291,6 +298,7 @@ namespace Jit64
 
 	void extsbx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA, s = inst.RS;
 		gpr.LoadToX64(a, a == s, true);
 		gpr.KillImmediate(s);
@@ -304,6 +312,7 @@ namespace Jit64
 
 	void extshx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA, s = inst.RS;
 		gpr.LoadToX64(a, a == s, true);
 		gpr.KillImmediate(s);
@@ -316,6 +325,7 @@ namespace Jit64
 
 	void subfic(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA, d = inst.RD;
 		gpr.FlushR(ECX);
 		gpr.LockX(ECX);
@@ -341,6 +351,7 @@ namespace Jit64
 
 	void subfx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		gpr.Lock(a, b, d);
 		if (d != a && d != b) {
@@ -361,6 +372,7 @@ namespace Jit64
 
 	void mulli(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA, d = inst.RD;
 		gpr.FlushR(EDX);
 		gpr.LockX(EDX);
@@ -380,6 +392,7 @@ namespace Jit64
 
 	void mullwx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		gpr.FlushR(EDX);
 		gpr.LockX(EDX);
@@ -403,6 +416,7 @@ namespace Jit64
 
 	void mulhwux(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		gpr.FlushR(EDX);
 		gpr.LockX(EDX);
@@ -469,6 +483,7 @@ namespace Jit64
 
 	void addx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		_assert_msg_(DYNA_REC, !inst.OE, "Add - OE enabled :(");
 		
@@ -519,6 +534,7 @@ namespace Jit64
 	// This can be optimized
 	void addex(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		gpr.FlushR(ECX);
 		gpr.LockX(ECX);
@@ -546,6 +562,7 @@ namespace Jit64
 
 	void rlwinmx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA;
 		int s = inst.RS;
 		if (gpr.R(a).IsImm() || gpr.R(s).IsImm())
@@ -596,7 +613,7 @@ namespace Jit64
 
 	void rlwimix(UGeckoInstruction inst)
 	{
-		OLD;
+		INSTRUCTION_START;
 		int a = inst.RA;
 		int s = inst.RS;
 		if (gpr.R(a).IsImm() || gpr.R(s).IsImm())
@@ -628,6 +645,7 @@ namespace Jit64
 
 	void rlwnmx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, s = inst.RS;
 		if (gpr.R(a).IsImm())
 		{
@@ -657,6 +675,7 @@ namespace Jit64
 
 	void srwx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		// BUGGY?
 		Default(inst); return;
 		int a = inst.RA;
@@ -690,6 +709,7 @@ namespace Jit64
 	// another crazy instruction :(
 	void srawix(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA;
 		int s = inst.RS;
 		int amount = inst.SH;
@@ -731,6 +751,7 @@ namespace Jit64
 
 	void cntlzwx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		int a = inst.RA;
 		int s = inst.RS;
 		if (gpr.R(a).IsImm() || gpr.R(s).IsImm() || s == a)

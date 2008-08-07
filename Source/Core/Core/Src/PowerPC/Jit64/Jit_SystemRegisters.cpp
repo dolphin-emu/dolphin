@@ -14,6 +14,9 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
+#include "Common.h"
+
 #include "../../CoreTiming.h"
 #include "../../HW/SystemTimers.h"
 #include "../PowerPC.h"
@@ -24,10 +27,20 @@
 #include "JitCache.h"
 #include "JitRegCache.h"
 
+// #define INSTRUCTION_START Default(inst); return;
+#define INSTRUCTION_START
+
+#ifdef _M_IX86
+#define DISABLE_32BIT Default(inst); return;
+#else
+#define DISABLE_32BIT ;
+#endif
+
 namespace Jit64
 {
 	void mtspr(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 		int d = inst.RD;
 
@@ -65,6 +78,7 @@ namespace Jit64
 
 	void mfspr(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 		int d = inst.RD;
 		switch (iIndex)
@@ -87,12 +101,14 @@ namespace Jit64
 
 	void mtmsr(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		gpr.LoadToX64(inst.RS);
 		MOV(32, M(&MSR), gpr.R(inst.RS));
 	}
 
 	void mfmsr(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		//Privileged?
 		gpr.LoadToX64(inst.RD, false);
 		MOV(32, gpr.R(inst.RD), M(&MSR));
@@ -100,6 +116,7 @@ namespace Jit64
 
 	void mftb(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		mfspr(inst);
 	}
 }

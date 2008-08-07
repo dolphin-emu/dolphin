@@ -24,6 +24,9 @@
 #include "JitCache.h"
 #include "JitRegCache.h"
 
+// #define INSTRUCTION_START Default(inst); return;
+#define INSTRUCTION_START
+
 namespace Jit64
 {
 	const u64 GC_ALIGNED16(psSignBits2[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
@@ -46,7 +49,7 @@ namespace Jit64
 		}
 		else if (a != d && b != d) 
 		{
-			//sources different from d, can use rather quick solution
+			// Sources different from d, can use rather quick solution
 			fpr.LoadToX64(d, !dupe);
 			MOVSD(fpr.RX(d), fpr.R(a));
 			fpr.GetReadyForOp(d, b);
@@ -59,7 +62,7 @@ namespace Jit64
 			MOVSD(fpr.RX(d), fpr.R(a));
 			op(fpr.RX(d), Gen::R(XMM0));
 		}
-		else //Other combo, must use two temps :(
+		else // Other combo, must use two temps :(
 		{
 			MOVSD(XMM0, fpr.R(a));
 			MOVSD(XMM1, fpr.R(b));
@@ -76,6 +79,7 @@ namespace Jit64
 
 	void fp_arith_s(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		bool dupe = inst.OPCD == 59;
 		switch (inst.SUBOP5)
 		{
@@ -94,11 +98,9 @@ namespace Jit64
 		}
 	}
 
-
-
 	void fmaddXX(UGeckoInstruction inst)
 	{
-		LOG(DYNA_REC, "Got one %08x", js.compilerPC);
+		INSTRUCTION_START;
 		int a = inst.FA;
 		int b = inst.FB;
 		int c = inst.FC;
@@ -128,14 +130,15 @@ namespace Jit64
 			break;
 		}
 		fpr.LoadToX64(d, false);
-		//YES it is necessary to dupe :(
-		//TODO : analysis - does the top reg get used?
-		MOVDDUP(fpr.RX(d), Gen::R(XMM0)); //can also be done with SHUF
+		//YES it is necessary to dupe the result :(
+		//TODO : analysis - does the top reg get used? If so, dupe, if not, don't.
+		MOVDDUP(fpr.RX(d), Gen::R(XMM0));
 		fpr.UnlockAll();
 	}
 	
 	void fcmpx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START;
 		if (jo.fpAccurateFlags)
 		{
 			Default(inst);

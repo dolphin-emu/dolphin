@@ -28,7 +28,7 @@
 #include "PixelShaderManager.h"
 
 // State translation lookup tables
-const GLenum glSrcFactors[8] =
+static const GLenum glSrcFactors[8] =
 {
     GL_ZERO,
     GL_ONE,
@@ -40,13 +40,13 @@ const GLenum glSrcFactors[8] =
     GL_ONE_MINUS_DST_ALPHA
 };
 
-const GLenum glDestFactors[8] = {
+static const GLenum glDestFactors[8] = {
     GL_ZERO, GL_ONE, GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR,
     GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,  GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA };
 
-const GLenum glCmpFuncs[8] =  { GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL, GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS };
+static const GLenum glCmpFuncs[8] =  { GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL, GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS };
 
-const GLenum glLogicOpCodes[16] = {
+static const GLenum glLogicOpCodes[16] = {
     GL_CLEAR, GL_SET, GL_COPY, GL_COPY_INVERTED, GL_NOOP, GL_INVERT, GL_AND, GL_NAND,
     GL_OR, GL_NOR, GL_XOR, GL_EQUIV, GL_AND_REVERSE, GL_AND_INVERTED, GL_OR_REVERSE, GL_OR_INVERTED };
 
