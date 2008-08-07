@@ -70,16 +70,13 @@ void DllConfig(HWND _hParent)
 
 	DWORD iModeNum = 0;
 	DEVMODE dmi;
-
+	int x = 0, y = 0;
 	ZeroMemory(&dmi, sizeof(dmi));
 	dmi.dmSize = sizeof(dmi);
-
-	int x = 0, y = 0;
 	
 	while(EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
 	{	
-		//TODO check against all older resolutions, not just the previous
-		if(x != dmi.dmPelsWidth && y != dmi.dmPelsHeight && dmi.dmBitsPerPel == 32)
+		if((x != dmi.dmPelsWidth && y != dmi.dmPelsHeight) && (dmi.dmPelsWidth > x))
 		{
 			char szBuffer[100];
 			sprintf(szBuffer,"%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
@@ -90,7 +87,6 @@ void DllConfig(HWND _hParent)
 		}
         ZeroMemory(&dmi, sizeof(dmi));
 	}
-
 	frame.ShowModal();
 	win.SetHWND(0);
 

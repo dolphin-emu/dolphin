@@ -87,6 +87,7 @@ void TextureMngr::Init()
 {
     temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
     nTex2DEnabled = nTexRECTEnabled = 0;
+	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable,g_Config.bTexFmtOverlayCenter);
 }
 
 void TextureMngr::Invalidate()
@@ -95,6 +96,7 @@ void TextureMngr::Invalidate()
     for (;iter!=textures.end();iter++)
         iter->second.Destroy();
     textures.clear();
+	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable,g_Config.bTexFmtOverlayCenter);
 }
 
 void TextureMngr::Shutdown()

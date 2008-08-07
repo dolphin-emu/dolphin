@@ -154,43 +154,39 @@ struct Config
     void Load();
     void Save();
 
-    int iAdapter;
-    char iFSResolution[16];
-    int iMultisampleMode;
-
-    int iPostprocessEffect;
-    int iCompileDLsLevel;
-
+    //video
+	bool bFullscreen;
 	bool renderToMainframe;
-    int iLog; // CONF_ bits
-    bool bFullscreen;
-    bool bWireFrame;
-    bool bOverlayStats;
-    bool bDumpTextures;
-    bool bOldCard;
-    bool bShowShaderErrors;
-    //enhancements
+	char iFSResolution[16];
+	char iWindowedRes[16];
+
     bool bForceFiltering;
     bool bForceMaxAniso;
 
-    bool bPreUpscale;
-    int iPreUpscaleFilter;
-
-    bool bTruform;
-    int iTruformLevel;
-
-    char iWindowedRes[16];
-    int aa; // anti-aliasing level
-
-    char psProfile[16];
-    char vsProfile[16];
-
-	bool bTexFmtOverlayEnable;
+    bool bTexFmtOverlayEnable;
 	bool bTexFmtOverlayCenter;
+	bool bOverlayStats;
+    bool bDumpTextures;
+	char texDumpPath[280];
 
     int iSaveTargetId;
 
-    char texDumpPath[280];
+	//currently unused:
+	int aa; // anti-aliasing level
+	int iLog; // CONF_ bits
+	int iAdapter;
+	int iMultisampleMode;
+	char psProfile[16];
+    char vsProfile[16];
+	int iPostprocessEffect;
+    int iCompileDLsLevel;
+	bool bPreUpscale;
+    int iPreUpscaleFilter;
+	bool bTruform;
+    int iTruformLevel;
+	bool bOldCard;
+	bool bWireFrame;
+    bool bShowShaderErrors;
 };
 
 extern Config g_Config;
