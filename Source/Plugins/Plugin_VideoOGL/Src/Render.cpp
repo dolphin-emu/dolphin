@@ -353,7 +353,8 @@ void Renderer::ProcessMessages()
         int left = 25, top = 15;
         list<MESSAGE>::iterator it = s_listMsgs.begin();
         
-        while( it != s_listMsgs.end() ) {
+        while( it != s_listMsgs.end() ) 
+		{
             DrawText(it->str, left+1, top+1, 0xff000000);
             DrawText(it->str, left, top, 0xffffff30);
             top += 15;
@@ -368,7 +369,7 @@ void Renderer::ProcessMessages()
 void Renderer::DrawText(const char* pstr, int left, int top, u32 color)
 {
     glColor3f(((color>>16) & 0xff)/255.0f, ((color>>8) & 0xff)/255.0f, (color & 0xff)/255.0f);
-    s_pfont->printString(pstr, left * 2.0f / (float)nBackbufferWidth - 1, 1 - top * 2.0f / (float)nBackbufferHeight,0);
+    s_pfont->printStuff(pstr, left * 2.0f / (float)nBackbufferWidth - 1, 1 - top * 2.0f / (float)nBackbufferHeight,0,nBackbufferHeight);
 }
 
 void Renderer::SetAA(int aa)

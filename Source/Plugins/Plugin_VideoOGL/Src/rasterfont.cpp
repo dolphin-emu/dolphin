@@ -172,3 +172,40 @@ void RasterFont::printCenteredString(const char *s, double y, int screen_width, 
     printString(s, x, y, z);
 }
 
+void RasterFont::printStuff(const char *text, double x, double start_y, double z, int bbHeight)
+{
+	double y=start_y;
+
+	static char temp[1024];
+	char* t = temp;
+
+	while(*text)
+	{
+		if(*text=='\n')
+		{
+			*t=0;
+			printString(temp,x,y,z);
+			y-=char_height * 2.0f / bbHeight;
+			t=temp;
+		}
+		else if(*text=='\r')
+		{
+			t=temp;
+		}
+		else if(*text=='\t')
+		{
+			//todo: add tabs every something like 4*char_width
+			*(t++)=' ';
+		}
+		else
+		{
+			*(t++)=*text;
+		}
+		text++;
+	}
+	if(t!=text)
+	{
+		*t=0;
+		printString(temp,x,y,z);
+	}
+}
