@@ -43,6 +43,14 @@ extern int FAKE_GetFifoSize();
 
 CDataReader_Fifo g_fifoReader;
 
+template <class T>
+void Xchg(T& a, T&b)
+{
+	T c = a;
+	a = b;
+	b = c;
+}
+
 void ExecuteDisplayList(u32 address, u32 size)
 {
     IDataReader* pOldReader = g_pDataReader;
@@ -51,11 +59,18 @@ void ExecuteDisplayList(u32 address, u32 size)
     CDataReader_Memory memoryReader(address);
     g_pDataReader = &memoryReader;
 
+	// temporarily swap dl and non-dl(small "hack" for the stats)
+	Xchg(stats.thisFrame.numDLPrims,stats.thisFrame.numPrims);
+
     while((memoryReader.GetReadAddress() - address) < size)
     {
         Decode();
     }
-    INCSTAT(stats.numDListsAlive);
+    INCSTAT(stats.numDListsCalled);
+
+	// un-swap
+	Xchg(stats.thisFrame.numDLPrims,stats.thisFrame.numPrims);
+
     // reset to the old reader
     g_pDataReader = pOldReader;
 }

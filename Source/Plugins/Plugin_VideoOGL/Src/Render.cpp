@@ -671,21 +671,23 @@ void Renderer::Swap(const TRectangle& rc)
         p+=sprintf(p,"Num pshaders alive:   %i\n",stats.numPixelShadersAlive);
         p+=sprintf(p,"Num vshaders created: %i\n",stats.numVertexShadersCreated);
         p+=sprintf(p,"Num vshaders alive:   %i\n",stats.numVertexShadersAlive);
-        p+=sprintf(p,"Num dlists called:   %i\n",stats.numDListsCalled);
-        p+=sprintf(p,"Num dlists created:  %i\n",stats.numDListsCreated);
-        p+=sprintf(p,"Num dlists alive:    %i\n",stats.numDListsAlive);
-        p+=sprintf(p,"Num strip joins:     %i\n",stats.numJoins);
-        p+=sprintf(p,"Num primitives:      %i\n",stats.thisFrame.numPrims);
-        p+=sprintf(p,"Num primitives (DL): %i\n",stats.thisFrame.numDLPrims);
-        p+=sprintf(p,"Num bad commands:  %i%s\n",stats.thisFrame.numBadCommands,stats.thisFrame.numBadCommands?"!!!":"");
-        p+=sprintf(p,"Num XF loads:      %i\n",stats.thisFrame.numXFLoads);
-        p+=sprintf(p,"Num XF loads (DL): %i\n",stats.thisFrame.numXFLoadsInDL);
-        p+=sprintf(p,"Num CP loads:      %i\n",stats.thisFrame.numCPLoads);
-        p+=sprintf(p,"Num CP loads (DL): %i\n",stats.thisFrame.numCPLoadsInDL);
-        p+=sprintf(p,"Num BP loads:      %i\n",stats.thisFrame.numBPLoads);
-        p+=sprintf(p,"Num BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
+        p+=sprintf(p,"Num dlists called:    %i\n",stats.numDListsCalled);
+		// not used.
+        //p+=sprintf(p,"Num dlists created:  %i\n",stats.numDListsCreated);
+        //p+=sprintf(p,"Num dlists alive:    %i\n",stats.numDListsAlive);
+        //p+=sprintf(p,"Num strip joins:     %i\n",stats.numJoins);
+        p+=sprintf(p,"Num primitives:       %i\n",stats.thisFrame.numPrims);
+        p+=sprintf(p,"Num primitives (DL):  %i\n",stats.thisFrame.numDLPrims);
+        p+=sprintf(p,"Num bad commands:     %i%s\n",stats.thisFrame.numBadCommands,stats.thisFrame.numBadCommands?"!!!":"");
+		// not used.
+        //p+=sprintf(p,"Num XF loads:      %i\n",stats.thisFrame.numXFLoads);
+        //p+=sprintf(p,"Num XF loads (DL): %i\n",stats.thisFrame.numXFLoadsInDL);
+        //p+=sprintf(p,"Num CP loads:      %i\n",stats.thisFrame.numCPLoads);
+        //p+=sprintf(p,"Num CP loads (DL): %i\n",stats.thisFrame.numCPLoadsInDL);
+        //p+=sprintf(p,"Num BP loads:      %i\n",stats.thisFrame.numBPLoads);
+        //p+=sprintf(p,"Num BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
 
-        Renderer::DrawText(st, 20, 20, 0xFF00FFFF);
+		Renderer::DrawText(st, 20, 20, 0xFF00FFFF);
     }
 
 #if defined(DVPROFILE)
