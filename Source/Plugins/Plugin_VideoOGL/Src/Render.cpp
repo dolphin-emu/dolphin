@@ -679,13 +679,12 @@ void Renderer::Swap(const TRectangle& rc)
         p+=sprintf(p,"Num primitives:       %i\n",stats.thisFrame.numPrims);
         p+=sprintf(p,"Num primitives (DL):  %i\n",stats.thisFrame.numDLPrims);
         p+=sprintf(p,"Num bad commands:     %i%s\n",stats.thisFrame.numBadCommands,stats.thisFrame.numBadCommands?"!!!":"");
-		// not used.
-        //p+=sprintf(p,"Num XF loads:      %i\n",stats.thisFrame.numXFLoads);
-        //p+=sprintf(p,"Num XF loads (DL): %i\n",stats.thisFrame.numXFLoadsInDL);
-        //p+=sprintf(p,"Num CP loads:      %i\n",stats.thisFrame.numCPLoads);
-        //p+=sprintf(p,"Num CP loads (DL): %i\n",stats.thisFrame.numCPLoadsInDL);
-        //p+=sprintf(p,"Num BP loads:      %i\n",stats.thisFrame.numBPLoads);
-        //p+=sprintf(p,"Num BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
+        p+=sprintf(p,"Num XF loads:      %i\n",stats.thisFrame.numXFLoads);
+        p+=sprintf(p,"Num XF loads (DL): %i\n",stats.thisFrame.numXFLoadsInDL);
+        p+=sprintf(p,"Num CP loads:      %i\n",stats.thisFrame.numCPLoads);
+        p+=sprintf(p,"Num CP loads (DL): %i\n",stats.thisFrame.numCPLoadsInDL);
+        p+=sprintf(p,"Num BP loads:      %i\n",stats.thisFrame.numBPLoads);
+        p+=sprintf(p,"Num BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
 
 		Renderer::DrawText(st, 20, 20, 0xFF00FFFF);
     }

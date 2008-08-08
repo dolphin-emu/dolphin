@@ -61,6 +61,9 @@ void ExecuteDisplayList(u32 address, u32 size)
 
 	// temporarily swap dl and non-dl(small "hack" for the stats)
 	Xchg(stats.thisFrame.numDLPrims,stats.thisFrame.numPrims);
+	Xchg(stats.thisFrame.numXFLoadsInDL,stats.thisFrame.numXFLoads);
+	Xchg(stats.thisFrame.numCPLoadsInDL,stats.thisFrame.numCPLoads);
+	Xchg(stats.thisFrame.numBPLoadsInDL,stats.thisFrame.numBPLoads);
 
     while((memoryReader.GetReadAddress() - address) < size)
     {
@@ -70,6 +73,9 @@ void ExecuteDisplayList(u32 address, u32 size)
 
 	// un-swap
 	Xchg(stats.thisFrame.numDLPrims,stats.thisFrame.numPrims);
+	Xchg(stats.thisFrame.numXFLoadsInDL,stats.thisFrame.numXFLoads);
+	Xchg(stats.thisFrame.numCPLoadsInDL,stats.thisFrame.numCPLoads);
+	Xchg(stats.thisFrame.numBPLoadsInDL,stats.thisFrame.numBPLoads);
 
     // reset to the old reader
     g_pDataReader = pOldReader;
@@ -200,6 +206,7 @@ void Decode(void)
             u32 SubCmd = g_pDataReader->Read8();
             u32 Value = g_pDataReader->Read32();
             VertexManager::LoadCPReg(SubCmd,Value);
+			INCSTAT(stats.thisFrame.numCPLoads);
         }
         break;
 
@@ -213,6 +220,7 @@ void Decode(void)
             for (int i=0; i<dwTransferSize; i++)
                 pData[i] = g_pDataReader->Read32();
             VertexShaderMngr::LoadXFReg(dwTransferSize,dwAddress,pData);
+			INCSTAT(stats.thisFrame.numXFLoads);
         }
         break;
 
@@ -249,6 +257,7 @@ void Decode(void)
         {
             u32 cmd = g_pDataReader->Read32();
             LoadBPReg(cmd);
+			INCSTAT(stats.thisFrame.numBPLoads);
         }
         break;
 
