@@ -227,6 +227,8 @@ struct Statistics
         int numPrims;
         int numShaderChanges;
         int numBadCommands; //hope this always is zero ;)
+
+		int numDListsCalled;
     };
     ThisFrame thisFrame;
     void ResetFrame();

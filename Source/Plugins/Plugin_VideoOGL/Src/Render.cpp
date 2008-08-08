@@ -671,7 +671,8 @@ void Renderer::Swap(const TRectangle& rc)
         p+=sprintf(p,"Num pshaders alive:   %i\n",stats.numPixelShadersAlive);
         p+=sprintf(p,"Num vshaders created: %i\n",stats.numVertexShadersCreated);
         p+=sprintf(p,"Num vshaders alive:   %i\n",stats.numVertexShadersAlive);
-        p+=sprintf(p,"Num dlists called:    %i\n",stats.numDListsCalled);
+        p+=sprintf(p,"Num dlists called:         %i\n",stats.numDListsCalled);
+        p+=sprintf(p,"Num dlists called (frame): %i\n",stats.thisFrame.numDListsCalled);
 		// not used.
         //p+=sprintf(p,"Num dlists created:  %i\n",stats.numDListsCreated);
         //p+=sprintf(p,"Num dlists alive:    %i\n",stats.numDListsAlive);
