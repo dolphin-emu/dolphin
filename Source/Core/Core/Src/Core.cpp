@@ -304,7 +304,11 @@ THREAD_RETURN EmuThread(void *pArg)
 			if (Callback_PeekMessages) {
 				Callback_PeekMessages();
 			}
+#ifdef _WIN32
+			Common::SleepCurrentThread(20);
+#else
 			Common::SleepCurrentThread(200);
+#endif
 		}
 	}
 	else
