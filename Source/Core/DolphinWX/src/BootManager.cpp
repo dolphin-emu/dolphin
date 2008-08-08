@@ -77,8 +77,8 @@ bool BootCore(const std::string& _rFilename)
 		ini.Get("Core", "UseDualCore", &StartUp.bUseDualCore, StartUp.bUseDualCore);
 		ini.Get("Core", "OptimizeQuantizers", &StartUp.bOptimizeQuantizers, StartUp.bOptimizeQuantizers);
 	}
-
-	StartUp.hMainWindow = main_frame->GetRenderHandle();
+	if(main_frame)
+		StartUp.hMainWindow = main_frame->GetRenderHandle();
 
 	// init the core
 	if (!Core::Init(StartUp))

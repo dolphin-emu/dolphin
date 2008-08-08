@@ -55,7 +55,11 @@ void OpenGL_SetWindowText(const char *text)
 #ifdef _WIN32
     SetWindowText(EmuWindow::GetWnd(), text);
 #else
-	// TODO
+    /**
+    * Tell X to ask the window manager to set the window title. (X
+    * itself doesn't provide window title functionality.)
+    */
+    XStoreName(GLWin.dpy, GLWin.win, text); 
 #endif
 }
 
@@ -89,7 +93,9 @@ void UpdateFPSDisplay(const char *text)
     SetWindowText(EmuWindow::GetWnd(), temp);
     OpenGL_SetWindowText(temp);
 #else
-    //TODO
+    char temp[512];
+    sprintf(temp, "SVN %s: %s", "Linux", text); //TODO: Set to svn rev //
+    OpenGL_SetWindowText(temp);
 #endif
 }
 
