@@ -335,6 +335,10 @@ namespace Jit64
 		MOVAPS(MComplex(EBX, EAX, SCALE_1, 16), XMM0);
 	}
 
+#ifndef _WIN32
+#define INSTRUCTION_START Default(inst); return;
+#endif
+
 	void stX(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;

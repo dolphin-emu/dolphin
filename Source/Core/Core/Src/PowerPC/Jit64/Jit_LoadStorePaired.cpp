@@ -35,8 +35,11 @@
 #include "JitAsm.h"
 #include "JitRegCache.h"
 
-// #define INSTRUCTION_START Default(inst); return;
+#ifdef _WIN32
 #define INSTRUCTION_START
+#else
+#define INSTRUCTION_START Default(inst); return;
+#endif
 
 #ifdef _M_IX86
 #define DISABLE_32BIT Default(inst); return;
@@ -48,8 +51,6 @@ namespace Jit64 {
 
 static double GC_ALIGNED16(psTemp[2]) = {1.0, 1.0};
 static u64 GC_ALIGNED16(temp64);
-static u32 GC_ALIGNED16(temp32);
-static u32 temp;
 
 // TODO(ector): Improve 64-bit version
 void WriteDual32(u64 value, u32 address)

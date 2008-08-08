@@ -337,7 +337,6 @@ namespace Jit64
 		JMP(Asm::testExceptions, true);
 	}
 
-
 	const u8* DoJit(u32 emaddress, JitBlock &b)
 	{
 		_assert_msg_(DYNA_REC, emaddress != 0, "ERROR - Trying to compile at 0. LR=%08x",LR);
@@ -391,13 +390,7 @@ namespace Jit64
 			js.op = &ops[i];
 			js.instructionNumber = i;
 			if (i == (int)size - 1) js.isLastInstruction = true;
-			//PPCTables::CompileInstruction(ops[i].inst);
-#ifndef _WIN32
-			if (!js.isLastInstruction)
-				Default(ops[i].inst);
-			else
-#endif
-				PPCTables::CompileInstruction(ops[i].inst);
+			PPCTables::CompileInstruction(ops[i].inst);
 			gpr.SanityCheck();
 			fpr.SanityCheck();
 		}

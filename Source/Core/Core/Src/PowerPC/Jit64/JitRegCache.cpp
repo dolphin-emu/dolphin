@@ -382,7 +382,7 @@ namespace Jit64
 			_assert_msg_(DYNA_REC, xr >= 0 && xr < NUMXREGS, "WTF - store - invalid reg");
 			xregs[xr].free = true;
 			xregs[xr].dirty = false;
-			xregs[xr].ppcReg=-1;
+			xregs[xr].ppcReg = -1;
 			OpArg newLoc = GetDefaultLocation(i);
 			MOVAPD(newLoc, xr);
 			regs[i].location = newLoc;

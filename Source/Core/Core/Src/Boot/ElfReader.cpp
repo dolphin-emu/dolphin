@@ -131,7 +131,7 @@ bool ElfReader::LoadInto(u32 vaddr)
 	u32 segmentVAddr[32];
 
 	u32 baseAddress = bRelocate?vaddr:0;
-	for (int i=0; i<header->e_phnum; i++)
+	for (int i = 0; i < header->e_phnum; i++)
 	{
 		Elf32_Phdr *p = segments + i;
 
@@ -146,22 +146,16 @@ bool ElfReader::LoadInto(u32 vaddr)
 			u8 *dst = Memory::GetPointer(writeAddr);
 			u32 srcSize = p->p_filesz;
 			u32 dstSize = p->p_memsz;
-			//PSPHLE::userMemory.AllocAt(writeAddr, dstSize);
-			//memcpy(dst, src, srcSize);
 			u32 *s = (u32*)src;
 			u32 *d = (u32*)dst;
-
-			//TODO : remove byteswapping 
-			for (int i=0; i<(int)srcSize/4+1; i++)
+			for (int j = 0; j < (int)(srcSize + 3) / 4; j++)
 			{
 				*d++ = /*_byteswap_ulong*/(*s++);
 			}
-
 			if (srcSize < dstSize)
 			{
 				//memset(dst + srcSize, 0, dstSize-srcSize); //zero out bss
 			}
-
 			LOG(MASTER_LOG,"Loadable Segment Copied to %08x, size %08x", writeAddr, p->p_memsz);
 		}
 	}
