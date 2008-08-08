@@ -258,21 +258,12 @@ void ConfigDialog::TexFmtOverlayChange(wxCommandEvent& event)
 	case ID_TEXFMTOVERLAY:
 		g_Config.bTexFmtOverlayEnable = m_TexFmtOverlay->IsChecked();
 		m_TexFmtCenter->Enable(m_TexFmtOverlay->IsChecked());
-		TextureMngr::Invalidate();
-		if(!g_Config.bTexFmtOverlayEnable)
-		{
-			m_TexFmtCenter->SetValue(false);
-			g_Config.bTexFmtOverlayCenter = false;
-		}
-		else{
-			return;
-		}
 		break;
 	case ID_TEXFMTCENTER:
 		g_Config.bTexFmtOverlayCenter = m_TexFmtCenter->IsChecked();
-		TextureMngr::Invalidate();
 		break;
 	}
+	TextureMngr::Invalidate();
 }
 
 void ConfigDialog::DumpTexturesChange(wxCommandEvent& event)

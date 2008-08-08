@@ -109,6 +109,7 @@ struct TabAdvanced : public W32Util::Tab
 
 		Button_SetCheck(GetDlgItem(hDlg,IDC_TEXFMT_OVERLAY), g_Config.bTexFmtOverlayEnable);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_TEXFMT_CENTER),  g_Config.bTexFmtOverlayCenter);
+		Button_GetCheck(GetDlgItem(hDlg,IDC_TEXFMT_OVERLAY)) ? Button_Enable(GetDlgItem(hDlg,IDC_TEXFMT_CENTER), true) : Button_Enable(GetDlgItem(hDlg,IDC_TEXFMT_CENTER), false);
 
 		SetWindowText(GetDlgItem(hDlg,IDC_TEXDUMPPATH),g_Config.texDumpPath.c_str());
 		Edit_LimitText(GetDlgItem(hDlg,IDC_TEXDUMPPATH),255);
@@ -121,6 +122,11 @@ struct TabAdvanced : public W32Util::Tab
 			{
 				std::string path = W32Util::BrowseForFolder(hDlg,"Choose texture dump path:");
 				SetWindowText(GetDlgItem(hDlg,IDC_TEXDUMPPATH),path.c_str());
+			}
+			break;
+		case IDC_TEXFMT_OVERLAY:
+			{
+				Button_GetCheck(GetDlgItem(hDlg,IDC_TEXFMT_OVERLAY)) ? Button_Enable(GetDlgItem(hDlg,IDC_TEXFMT_CENTER), true) : Button_Enable(GetDlgItem(hDlg,IDC_TEXFMT_CENTER), false);
 			}
 			break;
 		default:

@@ -70,7 +70,7 @@ void DllConfig(HWND _hParent)
 
 	DWORD iModeNum = 0;
 	DEVMODE dmi;
-	int x = 0, y = 0;
+	unsigned int x = 0, y = 0;
 	ZeroMemory(&dmi, sizeof(dmi));
 	dmi.dmSize = sizeof(dmi);
 	

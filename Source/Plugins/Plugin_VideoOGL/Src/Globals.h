@@ -170,11 +170,10 @@ struct Config
     bool bDumpTextures;
 	char texDumpPath[280];
 
-    int iSaveTargetId;
-
 	//currently unused:
 	int aa; // anti-aliasing level
 	int iLog; // CONF_ bits
+	int iSaveTargetId;
 	int iAdapter;
 	int iMultisampleMode;
 	char psProfile[16];
