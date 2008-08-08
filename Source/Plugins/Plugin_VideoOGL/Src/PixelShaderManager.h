@@ -99,7 +99,7 @@ class PixelShaderMngr
         PSCacheEntry() : frameCount(0) {}
 		~PSCacheEntry() {}
         void Destroy() {
-			printf("Destroying ps %i\n", shader.glprogid);
+			// printf("Destroying ps %i\n", shader.glprogid);
             glDeleteProgramsARB(1, &shader.glprogid);
 			shader.glprogid = 0;
         }

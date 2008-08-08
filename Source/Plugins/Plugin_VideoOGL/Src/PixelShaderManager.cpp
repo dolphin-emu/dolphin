@@ -211,7 +211,7 @@ bool PixelShaderMngr::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpro
     }
 
     cgDestroyProgram(tempprog);
-	printf("Compiled pixel shader %i\n", ps.glprogid);
+	// printf("Compiled pixel shader %i\n", ps.glprogid);
 
 #ifdef _DEBUG
     ps.strprog = pstrprogram;

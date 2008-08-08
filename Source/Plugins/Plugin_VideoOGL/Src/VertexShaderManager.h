@@ -41,7 +41,7 @@ class VertexShaderMngr
         int frameCount;
         VSCacheEntry() : frameCount(0) {}
         void Destroy() {
-			printf("Destroying vs %i\n", shader.glprogid);
+			// printf("Destroying vs %i\n", shader.glprogid);
             glDeleteProgramsARB(1, &shader.glprogid);
 			shader.glprogid = 0;
         }

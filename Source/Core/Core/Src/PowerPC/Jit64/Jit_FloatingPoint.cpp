@@ -40,7 +40,6 @@ namespace Jit64
 	void fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (*op)(X64Reg, OpArg))
 	{
 		fpr.Lock(d, a, b);
-
 		if (d == a)
 		{
 			fpr.GetReadyForOp(d, b);
@@ -176,7 +175,10 @@ namespace Jit64
 		}
 
 		AND(32, M(&CR), Imm32(~(0xF0000000 >> shift)));
-		(ordered ? COMISD : UCOMISD)(fpr.R(a).GetSimpleReg(), fpr.R(b));
+		if (ordered)
+			COMISD(fpr.R(a).GetSimpleReg(), fpr.R(b));
+		else
+			UCOMISD(fpr.R(a).GetSimpleReg(), fpr.R(b));
 		FixupBranch pLesser  = J_CC(CC_B);
 		FixupBranch pGreater = J_CC(CC_A);
 		// _x86Reg == 0

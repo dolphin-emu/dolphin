@@ -233,10 +233,14 @@ namespace Jit64
 
 	bool FPURegCache::IsXRegVolatile(X64Reg reg) const
 	{
+#ifdef _WIN32
 		if (reg < 6) 
 			return true;
 		else
 			return false;
+#else
+		return true;
+#endif
 	}
 
 	void GPRRegCache::Start(PPCAnalyst::BlockRegStats &stats)
