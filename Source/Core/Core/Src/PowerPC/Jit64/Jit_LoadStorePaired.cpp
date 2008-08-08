@@ -35,11 +35,8 @@
 #include "JitAsm.h"
 #include "JitRegCache.h"
 
-#ifdef _WIN32
-#define INSTRUCTION_START
-#else
+// #define INSTRUCTION_START
 #define INSTRUCTION_START Default(inst); return;
-#endif
 
 #ifdef _M_IX86
 #define DISABLE_32BIT Default(inst); return;
@@ -59,7 +56,7 @@ void WriteDual32(u64 value, u32 address)
 	Memory::Write_U32((u32)value, address + 4);
 }
 
-static const double m_quantizeTableD[] =
+static const double GC_ALIGNED16(m_quantizeTableD[]) =
 {
 	(1 <<  0),	(1 <<  1),	(1 <<  2),	(1 <<  3),
 	(1 <<  4),	(1 <<  5),	(1 <<  6),	(1 <<  7),
@@ -79,7 +76,7 @@ static const double m_quantizeTableD[] =
 	1.0 / (1 <<  4),	1.0 / (1 <<  3),	1.0 / (1 <<  2),	1.0 / (1 <<  1),
 }; 
 
-static const double m_dequantizeTableD[] =
+static const double GC_ALIGNED16(m_dequantizeTableD[]) =
 {
 	1.0 / (1 <<  0),	1.0 / (1 <<  1),	1.0 / (1 <<  2),	1.0 / (1 <<  3),
 	1.0 / (1 <<  4),	1.0 / (1 <<  5),	1.0 / (1 <<  6),	1.0 / (1 <<  7),
@@ -149,8 +146,6 @@ void psq_st(UGeckoInstruction inst)
 		SetJumpTarget(argh);
 		CALL((void *)&WriteDual32); 
 		SetJumpTarget(arg2);
-		if (update)
-			MOV(32, gpr.R(a), R(ABI_PARAM2));
 		gpr.UnlockAll();
 		fpr.UnlockAll();
 	}
@@ -164,6 +159,8 @@ void psq_st(UGeckoInstruction inst)
 		MOV(32, R(ABI_PARAM2), gpr.R(a));
 		if (offset)
 			ADD(32, R(ABI_PARAM2), Imm32((u32)offset));
+		if (update && offset)
+			MOV(32, gpr.R(a), R(ABI_PARAM2));
 		MOVAPS(XMM0, fpr.R(s));
 		MOVDDUP(XMM1, M((void*)&m_quantizeTableD[stScale]));
 		MULPD(XMM0, R(XMM1));
@@ -193,6 +190,8 @@ void psq_st(UGeckoInstruction inst)
 		MOV(32, R(ABI_PARAM2), gpr.R(a));
 		if (offset)
 			ADD(32, R(ABI_PARAM2), Imm32((u32)offset));
+		if (update)
+			MOV(32, gpr.R(a), R(ABI_PARAM2));
 		MOVAPS(XMM0, fpr.R(s));
 		MOVDDUP(XMM1, M((void*)&m_quantizeTableD[stScale]));
 		MULPD(XMM0, R(XMM1));
@@ -209,8 +208,6 @@ void psq_st(UGeckoInstruction inst)
 		PUSH(32, R(ABI_PARAM1));
 		CALL(&Memory::Write_U32);
 #endif
-		if (update)
-			MOV(32, gpr.R(a), R(ABI_PARAM2));
 		gpr.UnlockAll();
 		fpr.UnlockAll();
 	}

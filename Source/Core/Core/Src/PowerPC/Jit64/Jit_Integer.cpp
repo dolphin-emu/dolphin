@@ -129,27 +129,6 @@ namespace Jit64
 		SetJumpTarget(continue1);
 		SetJumpTarget(continue2);
 		OR(32, M(&CR), R(EAX));
-		/*
-		alternative		
-		MOV(32, R(EAX), M(&CR));
-		AND(32, R(EAX), Imm32(~(0xF0000000 >> (crf*4))));
-		CMP(32, gpr.R(a), Imm32(uimm));
-		FixupBranch pLesser  = J_CC(CC_B);
-		FixupBranch pGreater = J_CC(CC_A);
-		
-		OR(32, R(EAX), Imm32(0x20000000 >> shift)); // _x86Reg == 0
-		FixupBranch continue1 = J();
-		
-		SetJumpTarget(pGreater);
-		OR(32, R(EAX), Imm32(0x40000000 >> shift)); // _x86Reg > 0
-		FixupBranch continue2 = J();
-		
-		SetJumpTarget(pLesser);
-		OR(32, R(EAX), Imm32(0x80000000 >> shift)); // _x86Reg < 0
-		SetJumpTarget(continue1);
-		SetJumpTarget(continue2);
-		MOV(32, M(&CR), R(EAX));
-		*/
 	}
 
 	// signed

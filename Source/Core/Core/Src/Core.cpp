@@ -304,7 +304,7 @@ THREAD_RETURN EmuThread(void *pArg)
 			if (Callback_PeekMessages) {
 				Callback_PeekMessages();
 			}
-			Common::SleepCurrentThread(20);
+			Common::SleepCurrentThread(200);
 		}
 	}
 	else

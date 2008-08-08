@@ -14,6 +14,7 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #include "Common.h"
 
 #include "../PowerPC.h"
@@ -24,8 +25,11 @@
 #include "JitCache.h"
 #include "JitRegCache.h"
 
-// #define INSTRUCTION_START Default(inst); return;
+#ifdef _WIN32
 #define INSTRUCTION_START
+#else
+#define INSTRUCTION_START Default(inst); return;
+#endif
 
 namespace Jit64
 {

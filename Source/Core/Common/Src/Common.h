@@ -100,15 +100,10 @@ typedef union _LARGE_INTEGER
 } LARGE_INTEGER;
 #endif
 
-#if defined (__MINGW32__) || defined (_WIN32)
-#define GC_ALIGNED16(x) __declspec(align(16)) x
-#define GC_ALIGNED16_DECL(x) x
-#else
-#define GC_ALIGNED16(x)  x
-#define GC_ALIGNED64(x)  x
-#define GC_ALIGNED16_DECL(x) x __attribute((aligned(16)))
-#define GC_ALIGNED64_DECL(x) x
-#endif
+#define GC_ALIGNED16(x)  __attribute((aligned(16))) x
+#define GC_ALIGNED64(x)  __attribute((aligned(64))) x
+#define GC_ALIGNED16_DECL(x) __attribute((aligned(16))) x
+#define GC_ALIGNED64_DECL(x) __attribute((aligned(64))) x
 
 #ifndef __forceinline
 #define __forceinline inline

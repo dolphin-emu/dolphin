@@ -41,14 +41,18 @@ class VertexShaderMngr
         int frameCount;
         VSCacheEntry() : frameCount(0) {}
         void Destroy() {
-            SAFE_RELEASE_PROG(shader.glprogid);
+			printf("Destroying vs %i\n", shader.glprogid);
+            glDeleteProgramsARB(1, &shader.glprogid);
+			shader.glprogid = 0;
         }
     };
 
     class VERTEXSHADERUID
     {
     public:
-        VERTEXSHADERUID() {}
+        VERTEXSHADERUID() {
+			memset(values, 0, sizeof(values));		
+		}
         VERTEXSHADERUID(const VERTEXSHADERUID& r) {
 			for(size_t i = 0; i < sizeof(values) / sizeof(u32); ++i) 
 				values[i] = r.values[i]; 

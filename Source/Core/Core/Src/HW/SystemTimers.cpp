@@ -153,6 +153,10 @@ int timeHistory[HISTORYLENGTH] = {0,0,0,0,0};
 
 void Throttle(u64 userdata, int cyclesLate)
 {
+#ifndef _WIN32
+	// had some weird problem in linux. will investigate.
+	return;
+#endif
 	static Common::Timer timer;
 
 	for (int i=0; i<HISTORYLENGTH-1; i++)

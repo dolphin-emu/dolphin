@@ -58,7 +58,7 @@ void* AllocateExecutableMemory(int size, bool low)
 		 | (low ? MAP_32BIT : 0)
 #endif
          , -1, 0);  // | MAP_FIXED
-	printf("mappah exe %p %i\n", retval, size);
+	// printf("Mapped executable memory at %p (size %i)\n", retval, size);
 
 	if (!retval)
 	{
@@ -86,7 +86,7 @@ void* AllocateMemoryPages(int size)
 #else
 	void* retval = mmap(0, size, PROT_READ | PROT_WRITE,
 			MAP_ANONYMOUS | MAP_PRIVATE, -1, 0); // | MAP_FIXED
-	printf("mappah %p %i\n", retval, size);
+	// printf("Mapped memory at %p (size %i)\n", retval, size);
 
 	if (!retval)
 	{

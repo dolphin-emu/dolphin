@@ -74,7 +74,6 @@ CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 		for (size_t i = 0; i < rFilenames.size(); i++)
 		{
 			std::string orig_name = rFilenames[i];
-			printf("Scanning %s\n", rFilenames[i].c_str());
 			std::string FileName;
 
 			if (!SplitPath(rFilenames[i], NULL, &FileName, NULL))
@@ -94,17 +93,11 @@ CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 				break;
 			}
 
-			printf("Examining %s\n", FileName.c_str());
-
 			CPluginInfo PluginInfo(orig_name);
-			printf("%s\n", orig_name.c_str());
-
 			if (PluginInfo.IsValid())
 			{
 				m_PluginInfos.push_back(PluginInfo);
 			}
-
-			printf("Valid plugin\n");
 		}
 	}
 }
@@ -136,12 +129,8 @@ CPluginInfo::CPluginInfo(const std::string& _rFileName)
 	: m_FileName(_rFileName)
 	, m_Valid(false)
 {
-	printf("Loading!\n");
-
 	if (Common::CPlugin::Load(_rFileName.c_str()))
 	{
-		printf("Loaded!\n");
-
 		if (Common::CPlugin::GetInfo(m_PluginInfo))
 		{
 			m_Valid = true;
@@ -152,7 +141,6 @@ CPluginInfo::CPluginInfo(const std::string& _rFileName)
 		}
 
 		Common::CPlugin::Release();
-		printf("Unloaded!\n");
 	}
 	else
 	{

@@ -28,17 +28,21 @@ struct FRAGMENTSHADER
 {
     FRAGMENTSHADER() : glprogid(0) { }
     GLuint glprogid; // opengl program id
-
 #ifdef _DEBUG
 	std::string strprog;
 #endif
 };
+
 class PixelShaderMngr
 {
     class PIXELSHADERUID
     {
     public:
-        PIXELSHADERUID() { values = new u32[3+32+6+11]; tevstages = indstages = 0; }
+        PIXELSHADERUID() {
+			values = new u32[4+32+6+11];
+			memset(values, 0, (4+32+6+11) * 4);
+            tevstages = indstages = 0;
+		}
         ~PIXELSHADERUID() { delete[] values; }
         PIXELSHADERUID(const PIXELSHADERUID& r)
         {
@@ -57,16 +61,8 @@ class PixelShaderMngr
             else if( values[0] > _Right.values[0] )
                 return false;
 
-            int N = tevstages + 3; // numTevStages*3/2+1
+            int N = tevstages + indstages + 3; // numTevStages*3/2+1
             int i = 1;
-            for(; i < N; ++i) {
-                if( values[i] < _Right.values[i] )
-                    return true;
-                else if( values[i] > _Right.values[i] )
-                    return false;
-            }
-
-            N += indstages;
             for(; i < N; ++i) {
                 if( values[i] < _Right.values[i] )
                     return true;
@@ -82,14 +78,8 @@ class PixelShaderMngr
             if( values[0] != _Right.values[0] )
                 return false;
 
-            int N = tevstages + 3; // numTevStages*3/2+1
+            int N = tevstages + indstages + 3; // numTevStages*3/2+1
             int i = 1;
-            for(; i < N; ++i) {
-                if( values[i] != _Right.values[i] )
-                    return false;
-            }
-
-            N += indstages;
             for(; i < N; ++i) {
                 if( values[i] != _Right.values[i] )
                     return false;
@@ -109,7 +99,9 @@ class PixelShaderMngr
         PSCacheEntry() : frameCount(0) {}
 		~PSCacheEntry() {}
         void Destroy() {
+			printf("Destroying ps %i\n", shader.glprogid);
             glDeleteProgramsARB(1, &shader.glprogid);
+			shader.glprogid = 0;
         }
     };
 

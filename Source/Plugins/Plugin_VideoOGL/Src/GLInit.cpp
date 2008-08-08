@@ -81,6 +81,7 @@ BOOL Callback_PeekMessages()
     while (XPending(GLWin.dpy) > 0) {
         XNextEvent(GLWin.dpy, &event);
 	}
+	return TRUE;
 #endif
 }
 

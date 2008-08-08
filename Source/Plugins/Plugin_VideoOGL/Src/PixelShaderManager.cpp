@@ -117,7 +117,7 @@ FRAGMENTSHADER* PixelShaderMngr::GetShader()
     PSCache::iterator iter = pshaders.find(uid);
 
     if (iter != pshaders.end()) {
-        iter->second.frameCount=frameCount;
+        iter->second.frameCount = frameCount;
         PSCacheEntry &entry = iter->second;
         if (&entry.shader != pShaderLast)
         {
@@ -131,13 +131,14 @@ FRAGMENTSHADER* PixelShaderMngr::GetShader()
 	char *code = GeneratePixelShader(s_texturemask,
 		                             Renderer::GetZBufferTarget() != 0,
 									 Renderer::GetRenderMode() != Renderer::RM_Normal);
+//	printf("Compiling pixel shader. size = %i\n", strlen(code));
     if (!code || !CompilePixelShader(newentry.shader, code)) {
         ERROR_LOG("failed to create pixel shader\n");
         return NULL;
     }
     
     //Make an entry in the table
-    newentry.frameCount=frameCount;
+    newentry.frameCount = frameCount;
     
     pShaderLast = &newentry.shader;
     INCSTAT(stats.numPixelShadersCreated);
@@ -150,7 +151,7 @@ void PixelShaderMngr::Cleanup()
     PSCache::iterator iter = pshaders.begin();
     while(iter != pshaders.end()) {
         PSCacheEntry &entry = iter->second;
-        if (entry.frameCount<frameCount-200) {
+        if (entry.frameCount < frameCount - 200) {
             entry.Destroy();
 #ifdef _WIN32
             iter = pshaders.erase(iter);
@@ -170,11 +171,7 @@ bool PixelShaderMngr::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpro
 
     char stropt[64];
     sprintf(stropt, "MaxLocalParams=32,NumInstructionSlots=%d", s_nMaxPixelInstructions);
-#ifdef _WIN32
     const char* opts[] = {"-profileopts",stropt,"-O2","-q",NULL};
-#else
-    const char* opts[] = {"-profileopts",stropt,"-q",NULL};
-#endif
     CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgfProf, "main", opts);
     if (!cgIsProgram(tempprog) || cgGetError() != CG_NO_ERROR) {
         ERROR_LOG("Failed to create ps %s:\n", cgGetLastListing(g_cgcontext));
@@ -202,7 +199,6 @@ bool PixelShaderMngr::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpro
 
     //ERROR_LOG(pcompiledprog);
     //ERROR_LOG(pstrprogram);
-
     glGenProgramsARB( 1, &ps.glprogid );
     glBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, ps.glprogid );
     glProgramStringARB( GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
@@ -215,6 +211,7 @@ bool PixelShaderMngr::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpro
     }
 
     cgDestroyProgram(tempprog);
+	printf("Compiled pixel shader %i\n", ps.glprogid);
 
 #ifdef _DEBUG
     ps.strprog = pstrprogram;

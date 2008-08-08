@@ -86,7 +86,7 @@ bool DynamicLibrary::Load(const char* filename)
 	if (library) {
 		library_file = filename;
 	}
-	return(library != 0);
+	return library != 0;
 }
 
 
@@ -121,14 +121,14 @@ void* DynamicLibrary::Get(const char* funcname) const
 		//PanicAlert("Did not find function %s in library %s.", funcname, library_file.c_str());
 	//}
 
-	return(retval);
+	return retval;
 
 #else
 	retval = dlsym(library, funcname);
 
 	if (!retval)
 	{
-		printf("%s\n", dlerror());
+		printf("Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), dlerror());
 	}
 #endif
 }

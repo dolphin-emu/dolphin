@@ -183,6 +183,7 @@ bool VertexShaderMngr::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpro
     }
 
     cgDestroyProgram(tempprog);
+	printf("Compiled vertex shader %i\n", vs.glprogid);
 
 #ifdef _DEBUG
     vs.strprog = pstrprogram;
