@@ -92,8 +92,17 @@ void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2);
 void ABI_CallFunctionR(void *func, Gen::X64Reg reg1);
 void ABI_CallFunctionRR(void *func, Gen::X64Reg reg1, Gen::X64Reg reg2);
 
+// A function that doesn't have any control over what it will do to regs,
+// such as the dispatcher, should be surrounded by these.
 void ABI_PushAllCalleeSavedRegsAndAdjustStack();
 void ABI_PopAllCalleeSavedRegsAndAdjustStack();
+
+// A function that doesn't know anything about it's surroundings, should
+// be surrounded by these to establish a safe environment, where it can roam free.
+// An example is a backpatch injected function.
+void ABI_PushAllCallerSavedRegsAndAdjustStack();
+void ABI_PopAllCallerSavedRegsAndAdjustStack();
+
 
 #endif  // _JIT_ABI_H
 

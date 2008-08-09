@@ -66,6 +66,7 @@ class CFrame
 		void OnBrowse(wxCommandEvent& event);
 		void OnToggleFullscreen(wxCommandEvent& event);
 		void OnToggleDualCore(wxCommandEvent& event);
+		void OnToggleThrottle(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event);
 		void OnHostMessage(wxCommandEvent& event);
 

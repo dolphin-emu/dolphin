@@ -27,7 +27,9 @@ struct InstructionInfo
 	int otherReg;
 	int scaledReg;
 	bool zeroExtend;
+	bool signExtend;
 	bool hasImmediate;
+	bool isMemoryWrite;
 	u64 immediate;
 	s32 displacement;
 };

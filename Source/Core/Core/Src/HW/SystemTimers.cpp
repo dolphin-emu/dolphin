@@ -153,10 +153,8 @@ int timeHistory[HISTORYLENGTH] = {0,0,0,0,0};
 
 void Throttle(u64 userdata, int cyclesLate)
 {
-#ifndef _WIN32
-	// had some weird problem in linux. will investigate.
-	return;
-#endif
+	if (!Core::GetStartupParameter().bThrottle)
+		return;
 	static Common::Timer timer;
 
 	for (int i=0; i<HISTORYLENGTH-1; i++)
@@ -208,9 +206,9 @@ void Init()
 	Common::Timer::IncreaseResolution();
 	memset(timeHistory, 0, sizeof(timeHistory));
 	CoreTiming::Clear();
-	if (Core::GetStartupParameter().bThrottle) {
-		CoreTiming::ScheduleEvent((int)(GetTicksPerSecond()/ThrottleFrequency), &Throttle, "Throttle");
-	}
+
+	CoreTiming::ScheduleEvent((int)(GetTicksPerSecond() / ThrottleFrequency), &Throttle, "Throttle");
+
 	CoreTiming::ScheduleEvent(AI_PERIOD, &AICallback, "AICallback");
 	CoreTiming::ScheduleEvent(VI_PERIOD, &VICallback, "VICallback");
 	CoreTiming::ScheduleEvent(DSP_PERIOD, &DSPCallback, "DSPCallback");

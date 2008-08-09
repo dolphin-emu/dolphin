@@ -100,6 +100,7 @@ void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2)
 }
 
 #ifdef _WIN32
+
 // Win64 Specific Code
 // ====================================
 void ABI_PushAllCalleeSavedRegsAndAdjustStack() {
@@ -107,25 +108,52 @@ void ABI_PushAllCalleeSavedRegsAndAdjustStack() {
 	PUSH(RBX); 
 	PUSH(RSI); 
 	PUSH(RDI);
-	//PUSH(RBP);
+	PUSH(RBP);
 	PUSH(R12); 
 	PUSH(R13); 
 	PUSH(R14); 
 	PUSH(R15);
 	//TODO: Also preserve XMM0-3?
-	SUB(64, R(RSP), Imm8(0x20));
+	SUB(64, R(RSP), Imm8(0x28));
 }
 
 void ABI_PopAllCalleeSavedRegsAndAdjustStack() {
-	ADD(64, R(RSP), Imm8(0x20));
+	ADD(64, R(RSP), Imm8(0x28));
 	POP(R15);
 	POP(R14); 
 	POP(R13); 
 	POP(R12);
-	//POP(RBP);
+	POP(RBP);
 	POP(RDI);
 	POP(RSI); 
 	POP(RBX); 
+}
+
+// Win64 Specific Code
+// ====================================
+void ABI_PushAllCallerSavedRegsAndAdjustStack() {
+	PUSH(RCX);
+	PUSH(RDX);
+	PUSH(RSI); 
+	PUSH(RDI);
+	PUSH(R8);
+	PUSH(R9);
+	PUSH(R10);
+	PUSH(R11);
+	//TODO: Also preserve XMM0-15?
+	SUB(64, R(RSP), Imm8(0x28));
+}
+
+void ABI_PopAllCallerSavedRegsAndAdjustStack() {
+	ADD(64, R(RSP), Imm8(0x28));
+	POP(R11);
+	POP(R10);
+	POP(R9);
+	POP(R8);
+	POP(RDI); 
+	POP(RSI); 
+	POP(RDX);
+	POP(RCX);
 }
 
 #else
@@ -149,6 +177,16 @@ void ABI_PopAllCalleeSavedRegsAndAdjustStack() {
 	POP(R12);
 	POP(RBP);
 	POP(RBX); 
+}
+
+void ABI_PushAllCallerSavedRegsAndAdjustStack() {
+	INT3();
+	//not yet supported
+}
+
+void ABI_PopAllCallerSavedRegsAndAdjustStack() {
+	INT3();
+	//not yet supported
 }
 
 #endif

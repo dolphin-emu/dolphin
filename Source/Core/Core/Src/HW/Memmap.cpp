@@ -144,7 +144,7 @@ template <class T, u8* P> void HWCALL HW_Write_Memory(T _Data, const u32 _Addres
 
 void InitHWMemFuncs()
 {
-	for (int i=0; i<NUMHWMEMFUN; i++)
+	for (int i = 0; i < NUMHWMEMFUN; i++)
 	{
 		hwWrite8 [i] = HW_Default_Write<u8>;
 		hwWrite16[i] = HW_Default_Write<u16>;
@@ -156,7 +156,7 @@ void InitHWMemFuncs()
 		hwRead64 [i] = HW_Default_Read<u64&>;
 	}
 
-	for (int i=0; i<BLOCKSIZE; i++)
+	for (int i = 0; i < BLOCKSIZE; i++)
 	{
 		hwRead16 [i] = CommandProcessor::Read16;
 		hwWrite16[i] = CommandProcessor::Write16;
@@ -322,13 +322,13 @@ writeFn32 GetHWWriteFun32(const u32 _Address)
 		PanicAlert("READ: Invalid address: %08x", _Address);							\
 	else																				\
 	{																					\
-		if ((_Address & 0xFE000000) == 0x7e000000)										\
+		if (bFakeVMEM && (_Address & 0xFE000000) == 0x7e000000)							\
 		{                                                                               \
 			_var = bswap((*(u##_type*)&m_pFakeVMEM[_Address & FAKEVMEM_MASK]));			\
 		}                                                                               \
 		else {/* LOG(MEMMAP,"READ (unknown): %08x (PC: %08x)",_Address,PC);*/			\
 			/*CCPU::EnableStepping(TRUE);*/												\
-		/*PanicAlert("READ: Unknown Address", "1", MB_OK);*/						\
+		/*PanicAlert("READ: Unknown Address", "1", MB_OK);*/							\
 		u32 tmpAddress = CheckDTLB(EffictiveAddress, flag);								\
 		tmpAddress =(tmpAddress & 0xFFFFFFF0) | (_Address & 0xF);						\
 		if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))							\
@@ -393,7 +393,7 @@ writeFn32 GetHWWriteFun32(const u32 _Address)
 	}																					\
 	else																				\
 	{																					\
-		if ((_Address & 0xFE000000) == 0x7e000000)										\
+		if (bFakeVMEM && (_Address & 0xFE000000) == 0x7e000000)							\
 		{                                                                               \
 			*(u##_type*)&m_pFakeVMEM[_Address & FAKEVMEM_MASK] = bswap(_Data);			\
 			return;                                                                     \
@@ -1100,7 +1100,7 @@ u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag)
 	// hash function no 2 "not" .360
 	hash1 = ~hash1;
 	pteg_addr = ((hash1 & pagetable_hashmask)<<6) | pagetable_base;
-	for (int i=0; i<8; i++) 
+	for (int i = 0; i < 8; i++) 
 	{ 
 		u32 pte = bswap(*(u32*)&pRAM[pteg_addr]);
 		if ((pte & PTE1_V) && (pte & PTE1_H)) 

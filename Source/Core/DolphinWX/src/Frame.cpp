@@ -90,6 +90,7 @@ EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnPluginPAD)
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
 EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
+EVT_MENU(IDM_TOGGLE_THROTTLE, CFrame::OnToggleThrottle)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 END_EVENT_TABLE()
 
@@ -229,6 +230,12 @@ CFrame::CreateMenu()
 			wxMenuItem* pItem = new wxMenuItem(pEmulationMenu, IDM_TOGGLE_DUALCORE, _T("&Dual Core (instable!)"), wxEmptyString, wxITEM_CHECK);
 			pEmulationMenu->Append(pItem);
 			pItem->Check(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);			
+		}
+		{
+			// throttling
+			wxMenuItem* pItem = new wxMenuItem(pEmulationMenu, IDM_TOGGLE_THROTTLE, _T("&Speed throttle"), wxEmptyString, wxITEM_CHECK);
+			pEmulationMenu->Append(pItem);
+			pItem->Check(SConfig::GetInstance().m_LocalCoreStartupParameter.bThrottle);
 		}
 		m_pMenuBar->Append(pEmulationMenu, _T("&Emulation"));
 	}
@@ -518,7 +525,6 @@ CFrame::OnHostMessage(wxCommandEvent& event)
 		    break;
 
 	    case IDM_BOOTING_STARTED:
-
 		    if (m_pBootProcessDialog == NULL)
 		    {
 			    /*		m_pBootProcessDialog = new wxProgressDialog
@@ -537,7 +543,6 @@ CFrame::OnHostMessage(wxCommandEvent& event)
 		    break;
 
 	    case IDM_BOOTING_ENDED:
-
 		    if (m_pBootProcessDialog != NULL)
 		    {
 			    // m_pBootProcessDialog->Destroy();
@@ -547,7 +552,6 @@ CFrame::OnHostMessage(wxCommandEvent& event)
 		    break;
 
 		case IDM_UPDATESTATUSBAR:
-
 			if (m_pStatusBar != NULL)
 			{
 				m_pStatusBar->SetStatusText(event.GetString());
@@ -557,24 +561,26 @@ CFrame::OnHostMessage(wxCommandEvent& event)
 }
 
 
-void
-CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
 {
 	ShowFullScreen(true);
 	UpdateGUI();
 }
 
 
-void 
-CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED (event))
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore = !SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore;
 	SConfig::GetInstance().SaveSettings();
 }
 
+void CFrame::OnToggleThrottle(wxCommandEvent& WXUNUSED (event))
+{
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bThrottle = !SConfig::GetInstance().m_LocalCoreStartupParameter.bThrottle;
+	SConfig::GetInstance().SaveSettings();
+}
 
-void
-CFrame::OnKeyDown(wxKeyEvent& event)
+void CFrame::OnKeyDown(wxKeyEvent& event)
 {
 	if (((event.GetKeyCode() == WXK_RETURN) && (event.GetModifiers() == wxMOD_ALT)) ||
 	    (event.GetKeyCode() == WXK_ESCAPE))
@@ -589,8 +595,7 @@ CFrame::OnKeyDown(wxKeyEvent& event)
 }
 
 
-void
-CFrame::UpdateGUI()
+void CFrame::UpdateGUI()
 {
 	// buttons
 	{

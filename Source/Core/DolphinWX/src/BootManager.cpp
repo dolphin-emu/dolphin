@@ -63,9 +63,12 @@ bool BootCore(const std::string& _rFilename)
 	StartUp.bRunCompareServer = false;
 	StartUp.bEnableDebugging = g_pCodeWindow ? true : false; // RUNNING_DEBUG
 	std::string BaseDataPath;
-    #ifdef _WIN32
+#ifdef _WIN32
 	StartUp.hInstance = wxGetInstance();
-    #endif
+#ifdef _M_X64
+	StartUp.bUseFastMem = true;
+#endif
+#endif
 
 	StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT);
 

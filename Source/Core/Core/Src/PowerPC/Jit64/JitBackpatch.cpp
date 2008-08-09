@@ -1,3 +1,20 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
 #include <string>
 
 #include "Common.h"
@@ -36,6 +53,10 @@ void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) {
 	return;
 }
 
+// This generates some fairly heavy trampolines, but:
+// 1) It's really necessary. We don't know anything about the context.
+// 2) It doesn't really hurt. Only instructions that access I/O will get these, and there won't be 
+//    that many of them in a typical program/game.
 void BackPatch(u8 *codePtr, int accessType, u32 emAddress)
 {
 	if (!IsInJitCode(codePtr))
@@ -47,6 +68,10 @@ void BackPatch(u8 *codePtr, int accessType, u32 emAddress)
 	InstructionInfo info;
 	if (!DisassembleMov(codePtr, info, accessType)) {
 		BackPatchError("BackPatch - failed to disassemble MOV instruction", codePtr, emAddress);
+	}
+	if (info.isMemoryWrite) {
+		BackPatchError("BackPatch - determined that MOV is write, not yet supported and should have been caught before",
+					   codePtr, emAddress);
 	}
 	if (info.operandSize != 4) {
 		BackPatchError(StringFromFormat("BackPatch - no support for operand size %i", info.operandSize), codePtr, emAddress);
@@ -70,19 +95,10 @@ void BackPatch(u8 *codePtr, int accessType, u32 emAddress)
 	u8 *trampoline = trampolineCodePtr;
 	SetCodePtr(trampolineCodePtr);
 	// * Save all volatile regs
-	PUSH(RCX);
-	PUSH(RDX);
-	PUSH(RSI); 
-	PUSH(RDI); 
-	PUSH(R8);
-	PUSH(R9);
-	PUSH(R10);
-	PUSH(R11);
-	//TODO: Also preserve XMM0-3?
-	SUB(64, R(RSP), Imm8(0x20));
+	ABI_PushAllCallerSavedRegsAndAdjustStack();
 	// * Set up stack frame.
 	// * Call ReadMemory32
-	//LEA(32, ECX, MDisp((X64Reg)addrReg, info.displacement));
+	//LEA(32, ABI_PARAM1, MDisp((X64Reg)addrReg, info.displacement));
 	MOV(32, R(ABI_PARAM1), R((X64Reg)addrReg));
 	if (info.displacement) {
 		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
@@ -91,7 +107,8 @@ void BackPatch(u8 *codePtr, int accessType, u32 emAddress)
 	//case 1: 
 	//	CALL((void *)&Memory::Read_U8);
 	//	break;
-	case 4: 
+	case 4:
+		// THIS FUNCTION CANNOT TOUCH FLOATING POINT REGISTERS.
 		CALL((void *)&Memory::Read_U32);
 		break;
 	default:
@@ -99,15 +116,7 @@ void BackPatch(u8 *codePtr, int accessType, u32 emAddress)
 		break;
 	}
 	// * Tear down stack frame.
-	ADD(64, R(RSP), Imm8(0x20));
-	POP(R11);
-	POP(R10);
-	POP(R9);
-	POP(R8);
-	POP(RDI); 
-	POP(RSI); 
-	POP(RDX);
-	POP(RCX);
+	ABI_PopAllCallerSavedRegsAndAdjustStack();
 	MOV(32, R(dataReg), R(EAX));
 	RET();
 	trampolineCodePtr = GetWritableCodePtr();

@@ -78,6 +78,7 @@ class CCodeWindow
 			IDM_REGISTERWINDOW,
 			IDM_BREAKPOINTWINDOW,
 			IDM_MEMORYWINDOW,
+			IDM_SCANFUNCTIONS,
 		};
 
 		enum
@@ -120,6 +121,7 @@ class CCodeWindow
 		void OnToggleLogWindow(wxCommandEvent& event);
 		void OnToggleMemoryWindow(wxCommandEvent& event);
 		void OnHostMessage(wxCommandEvent& event);
+		void OnSymbolsMenu(wxCommandEvent& event);
 
 		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter);
 

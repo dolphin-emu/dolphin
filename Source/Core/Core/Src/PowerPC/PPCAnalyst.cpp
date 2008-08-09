@@ -292,8 +292,10 @@ PPCAnalyst::CodeOp *PPCAnalyst::Flatten(u32 address, u32 &realsize, BlockStats &
 	{
 		st.isFirstBlockOfFunction = true;
 	}
+
 	gpa.any = true;
 	fpa.any = false;
+
 	enum Todo
 	{
 		JustCopy = 0, Flatten = 1, Nothing = 2
@@ -307,7 +309,6 @@ PPCAnalyst::CodeOp *PPCAnalyst::Flatten(u32 address, u32 &realsize, BlockStats &
 	if (iter != functions.end())
 	{
 		SFunction &f = iter->second;
-
 		if (f.flags & FFLAG_LEAF)
 		{
 			//no reason to flatten
@@ -394,12 +395,14 @@ PPCAnalyst::CodeOp *PPCAnalyst::Flatten(u32 address, u32 &realsize, BlockStats &
 		return 0;
 	}
 	else
+	{
 		return 0;
+	}
 
 	// Do analysis of the code, look for dependencies etc
 	int numSystemInstructions = 0;
 
-	for (int i=0; i<32; i++)
+	for (int i = 0; i < 32; i++)
 	{
 		gpa.firstRead[i]  = -1;
 		gpa.firstWrite[i] = -1;
@@ -408,7 +411,7 @@ PPCAnalyst::CodeOp *PPCAnalyst::Flatten(u32 address, u32 &realsize, BlockStats &
 	}
 
 	gpa.any = true;
-	for (size_t i=0; i<realsize; i++)
+	for (size_t i = 0; i < realsize; i++)
 	{
 		UGeckoInstruction inst = code[i].inst;
 		if (PPCTables::UsesFPU(inst))
@@ -416,7 +419,7 @@ PPCAnalyst::CodeOp *PPCAnalyst::Flatten(u32 address, u32 &realsize, BlockStats &
 			fpa.any = true;
 		}
 		GekkoOPInfo *opinfo = GetOpInfo(code[i].inst);
-		_assert_msg_(GEKKO,opinfo!=0,"Invalid Op - Error scanning %08x op %08x",address+i*4,inst);
+		_assert_msg_(GEKKO, opinfo != 0, "Invalid Op - Error scanning %08x op %08x",address+i*4,inst);
 		int flags = opinfo->flags;
 
 		if (flags & FL_TIMER)
@@ -424,7 +427,7 @@ PPCAnalyst::CodeOp *PPCAnalyst::Flatten(u32 address, u32 &realsize, BlockStats &
 
 		// Does the instruction output CR0?
 		if (flags & FL_RC_BIT)
-			code[i].outputCR0 = inst.hex&1; //todo fix
+			code[i].outputCR0 = inst.hex & 1; //todo fix
 		else if ((flags & FL_SET_CRn) && inst.CRFD == 0)
 			code[i].outputCR0 = true;
 		else
@@ -432,18 +435,18 @@ PPCAnalyst::CodeOp *PPCAnalyst::Flatten(u32 address, u32 &realsize, BlockStats &
 
 		// Does the instruction output CR1?
 		if (flags & FL_RC_BIT_F)
-			code[i].outputCR1 = inst.hex&1; //todo fix
+			code[i].outputCR1 = inst.hex & 1; //todo fix
 		else if ((flags & FL_SET_CRn) && inst.CRFD == 1)
 			code[i].outputCR1 = true;
 		else
 			code[i].outputCR1 = (flags & FL_SET_CR1) ? true : false;
 
-		for (int j=0; j<3; j++)
+		for (int j = 0; j < 3; j++)
 		{
 			code[i].fregsIn[j] = -1;
 			code[i].regsIn[j] = -1;
 		}
-		for (int j=0; j<2; j++)
+		for (int j = 0; j < 2; j++)
 			code[i].regsOut[j] = -1;
 
 		code[i].fregOut=-1;
@@ -485,14 +488,21 @@ PPCAnalyst::CodeOp *PPCAnalyst::Flatten(u32 address, u32 &realsize, BlockStats &
 			break;
 		case OPTYPE_LOADFP:
 			break;
-
+		case OPTYPE_BRANCH:
+			if (code[i].inst.hex == 0x4e800020)
+			{
+				// For analysis purposes, we can assume that blr eats flags.
+				code[i].outputCR0 = true;
+				code[i].outputCR1 = true;
+			}
+			break;
 		case OPTYPE_SYSTEM:
 		case OPTYPE_SYSTEMFP:
 			numSystemInstructions++;
 			break;
 		}
 
-		for (int j=0; j<numIn; j++)
+		for (int j = 0; j < numIn; j++)
 		{
 			int r = code[i].regsIn[j];
 			if (gpa.firstRead[r] == -1)
@@ -501,7 +511,7 @@ PPCAnalyst::CodeOp *PPCAnalyst::Flatten(u32 address, u32 &realsize, BlockStats &
 			gpa.numReads[r]++;
 		}
 
-		for (int j=0; j<numOut; j++)
+		for (int j = 0; j < numOut; j++)
 		{
 			int r = code[i].regsOut[j];
 			if (gpa.firstWrite[r] == -1)
@@ -516,7 +526,7 @@ PPCAnalyst::CodeOp *PPCAnalyst::Flatten(u32 address, u32 &realsize, BlockStats &
 	bool wantsCR0 = true;
 	bool wantsCR1 = true;
 	bool wantsPS1 = true;
-	for (int i=realsize-1; i; i--)
+	for (int i = realsize - 1; i; i--)
 	{
 		if (code[i].outputCR0)
 			wantsCR0 = false;
@@ -527,12 +537,13 @@ PPCAnalyst::CodeOp *PPCAnalyst::Flatten(u32 address, u32 &realsize, BlockStats &
 		wantsCR0 |= code[i].wantsCR0;
 		wantsCR1 |= code[i].wantsCR1;
 		wantsPS1 |= code[i].wantsPS1;
-
 		code[i].wantsCR0 = wantsCR0;
 		code[i].wantsCR1 = wantsCR1;
 		code[i].wantsPS1 = wantsPS1;
 	}
 
+	// Time for code shuffling, taking into account the above dependency analysis.
+	bool successful_shuffle = false;
 	//Move compares 
 	// Try to push compares as close as possible to the following branch
 	// this way we can do neat stuff like combining compare and branch
@@ -557,8 +568,10 @@ PPCAnalyst::CodeOp *PPCAnalyst::Flatten(u32 address, u32 &realsize, BlockStats &
 		else merge!
         }
 
-		*/
-
+	*/
+	if (successful_shuffle) {
+		// Disasm before and after, display side by side
+	}
 	// Decide what regs to potentially regcache
 	return code;
 }
@@ -566,7 +579,7 @@ PPCAnalyst::CodeOp *PPCAnalyst::Flatten(u32 address, u32 &realsize, BlockStats &
 // Adds the function to the list, unless it's already there
 PPCAnalyst::SFunction *PPCAnalyst::AddFunction(u32 startAddr)
 {
-	if (startAddr<0x80000010)
+	if (startAddr < 0x80000010)
 		return 0;
 	XFuncMap::iterator iter = functions.find(startAddr);
 	if (iter != functions.end())
@@ -643,9 +656,7 @@ void PPCAnalyst::FindFunctionsAfterBLR()
 				if (!f)
 					break;
 				else
-				{
 					location += f->size * 4;
-				}
 			}
 			else
 				break;
@@ -656,7 +667,7 @@ void PPCAnalyst::FindFunctionsAfterBLR()
 void PPCAnalyst::FindFunctions(u32 startAddr, u32 endAddr)
 {
 	//Step 1: Find all functions
-	FindFunctionsFromBranches(startAddr,endAddr);
+	FindFunctionsFromBranches(startAddr, endAddr);
 	
 	
 	LOG(HLE,"Memory scan done. Found %i functions.",functions.size());
@@ -861,30 +872,29 @@ bool PPCAnalyst::SaveFuncDB(const TCHAR *filename)
 
 bool PPCAnalyst::LoadFuncDB(const TCHAR *filename)
 {
-	FILE *f = fopen(filename,"rb");
+	FILE *f = fopen(filename, "rb");
 	if (!f)
 	{
-		LOG(HLE,"Database load failed");
+		LOG(HLE, "Database load failed");
 		return false;
 	}
-	u32 fcount=0;
-	fread(&fcount,4,1,f);
-	for (size_t i=0; i<fcount; i++)
+	u32 fcount = 0;
+	fread(&fcount, 4, 1, f);
+	for (size_t i = 0; i < fcount; i++)
 	{
 		FuncDesc temp;
         memset(&temp, 0, sizeof(temp));
 
-        fread(&temp,sizeof(temp),1,f);
+        fread(&temp, sizeof(temp), 1, f);
 		SDBFunc f;
 		f.name = temp.name;
 		f.size = temp.size;
-
 	    database[temp.checkSum] = f;
 	}
 	fclose(f);
 
 	UseFuncDB();
-	LOG(HLE,"Database load successful");
+	LOG(HLE, "Database load successful");
 	return true;
 }
 
@@ -966,7 +976,7 @@ void PPCAnalyst::PrintCallers(u32 funcAddr)
 void PPCAnalyst::GetAllFuncs(functionGetterCallback callback)
 {
     XFuncMap::iterator iter = functions.begin();
-    while(iter!=functions.end())
+    while (iter != functions.end())
     {
         callback(&(iter->second));
         iter++;

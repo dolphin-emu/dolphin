@@ -186,9 +186,16 @@ THREAD_RETURN CpuThread(void *pArg)
 	if (_CoreParameter.bLockThreads)
 		Common::Thread::SetCurrentThreadAffinity(1); //Force to first core
 
-	// Let's run under memory watch
-	EMM::InstallExceptionHandler();
-	// StartConsoleThread();
+	if (_CoreParameter.bUseFastMem)
+	{
+#ifdef _M_X64
+		// Let's run under memory watch
+		EMM::InstallExceptionHandler();
+#else
+		PanicAlert("32-bit platforms do not support fastmem yet. Report this bug.");
+#endif
+	}
+
 	CCPU::Run();
 
 	if (_CoreParameter.bRunCompareServer || _CoreParameter.bRunCompareClient)

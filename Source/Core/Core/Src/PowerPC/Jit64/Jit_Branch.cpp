@@ -28,6 +28,14 @@
 // The branches are known good, or at least reasonably good.
 // No need for a disable-mechanism.
 
+// If defined, clears CR0 at blr and bl-s. If the assumption that
+// flags never carry over between functions holds, then the task for 
+// an optimizer becomes much easier.
+
+// #define ACID_TEST
+
+// Zelda and many more games seem to pass the Acid Test. 
+
 using namespace Gen;
 namespace Jit64
 {
@@ -70,11 +78,16 @@ namespace Jit64
 				destination = SignExt26(inst.LI << 2);
 			else
 				destination = js.compilerPC + SignExt26(inst.LI << 2);
+#ifdef ACID_TEST
+			if (inst.LK)
+				AND(32, M(&CR), Imm32(~(0xFF000000)));
+#endif
 
 			WriteExit(destination, 0);
-		} //else we were merged with the next block, we only need the link above, if that
+		}
 		else {
-			PanicAlert("bx not last instruction of block"); // this should not happen atm
+			// TODO: investigate the good old method of merging blocks here.
+			PanicAlert("bx not last instruction of block"); // this should not happen
 		}
 	}
 
@@ -171,18 +184,21 @@ namespace Jit64
 
 		if((inst.BO & 16) == 0)				
 		{
+			PanicAlert("Bizarro bcctrx %08x, not supported.", inst.hex);
 			_assert_msg_(DYNA_REC, 0, "Bizarro bcctrx");
+			/*
 			fastway = false;
 			MOV(32, M(&PC), Imm32(js.compilerPC+4));
 			MOV(32, R(EAX), M(&CR));
 			XOR(32, R(ECX), R(ECX));
-			AND(32, R(EAX), Imm32(0x80000000>>inst.BI));
+			AND(32, R(EAX), Imm32(0x80000000 >> inst.BI));
 
 			CCFlags branch;
 			if(inst.BO & 8)
 				branch = CC_NZ;
 			else
 				branch = CC_Z;
+				*/
 			// TODO(ector): Why is this commented out?
 			//SETcc(branch, R(ECX));
 			// check for EBX
@@ -205,11 +221,17 @@ namespace Jit64
 		if (inst.hex == 0x4e800020)
 		{
 			//CDynaRegCache::Flush();
+			// This below line can be used to prove that blr "eats flags" in practice.
+			// This observation will let us do a lot of fun observations.
+#ifdef ACID_TEST
+			AND(32, M(&CR), Imm32(~(0xFF000000)));
+#endif
 			MOV(32, R(EAX), M(&LR));
 			MOV(32, M(&PC), R(EAX));
 			WriteExitDestInEAX(0);
 			return;
 		}
+		// Call interpreter
 		Default(inst);
 		MOV(32, R(EAX), M(&NPC));
 		WriteExitDestInEAX(0);

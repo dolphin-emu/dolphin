@@ -185,10 +185,7 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	// return
 	PC = PowerPC::ppcState.gpr[3];
 
-    //
     // --- preinit some stuff from bios ---
-    //
-
 
     // Bus Clock Speed
     Memory::Write_U32(0x09a7ec80, 0x800000F8);

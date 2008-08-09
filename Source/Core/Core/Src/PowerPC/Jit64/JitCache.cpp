@@ -17,6 +17,7 @@
 #include <map>
 
 #include "Common.h"
+#include "../../Core.h"
 #include "MemoryUtil.h"
 
 #include "../../HW/Memmap.h"
@@ -78,7 +79,7 @@ namespace Jit64
 		jo.optimizeStack = true;
 		jo.enableBlocklink = true;  // Speed boost, but not 100% safe
 #ifdef _M_X64
-		jo.enableFastMem = true;
+		jo.enableFastMem = Core::GetStartupParameter().bUseFastMem;
 #else
 		jo.enableFastMem = false;
 #endif

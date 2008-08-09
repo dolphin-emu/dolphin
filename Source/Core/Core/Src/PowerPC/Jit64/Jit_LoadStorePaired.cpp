@@ -35,8 +35,8 @@
 #include "JitAsm.h"
 #include "JitRegCache.h"
 
-// #define INSTRUCTION_START
-#define INSTRUCTION_START Default(inst); return;
+// #define INSTRUCTION_START Default(inst); return;
+#define INSTRUCTION_START
 
 #ifdef _M_IX86
 #define DISABLE_32BIT Default(inst); return;
@@ -56,7 +56,7 @@ void WriteDual32(u64 value, u32 address)
 	Memory::Write_U32((u32)value, address + 4);
 }
 
-static const double GC_ALIGNED16(m_quantizeTableD[]) =
+const double GC_ALIGNED16(m_quantizeTableD[]) =
 {
 	(1 <<  0),	(1 <<  1),	(1 <<  2),	(1 <<  3),
 	(1 <<  4),	(1 <<  5),	(1 <<  6),	(1 <<  7),
@@ -76,7 +76,7 @@ static const double GC_ALIGNED16(m_quantizeTableD[]) =
 	1.0 / (1 <<  4),	1.0 / (1 <<  3),	1.0 / (1 <<  2),	1.0 / (1 <<  1),
 }; 
 
-static const double GC_ALIGNED16(m_dequantizeTableD[]) =
+const double GC_ALIGNED16(m_dequantizeTableD[]) =
 {
 	1.0 / (1 <<  0),	1.0 / (1 <<  1),	1.0 / (1 <<  2),	1.0 / (1 <<  3),
 	1.0 / (1 <<  4),	1.0 / (1 <<  5),	1.0 / (1 <<  6),	1.0 / (1 <<  7),
@@ -101,7 +101,6 @@ static const double GC_ALIGNED16(m_dequantizeTableD[]) =
 void psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	DISABLE_32BIT;
 	if (js.blockSetsQuantizers || !Core::GetStartupParameter().bOptimizeQuantizers)
 	{
 		Default(inst);
@@ -124,6 +123,7 @@ void psq_st(UGeckoInstruction inst)
 
 	if (stType == QUANTIZE_FLOAT)
 	{
+		DISABLE_32BIT;
 		gpr.Flush(FLUSH_VOLATILE);
 		gpr.Lock(a);
 		fpr.Lock(s);
@@ -151,7 +151,10 @@ void psq_st(UGeckoInstruction inst)
 	}
 	else if (stType == QUANTIZE_U8)
 	{
-		gpr.Flush(FLUSH_VOLATILE);
+		gpr.FlushR(ABI_PARAM1);
+		gpr.FlushR(ABI_PARAM2);
+		gpr.LockX(ABI_PARAM1);
+		gpr.LockX(ABI_PARAM2);
 		gpr.Lock(a);
 		fpr.Lock(s);
 		if (update)
@@ -172,17 +175,22 @@ void psq_st(UGeckoInstruction inst)
 #ifdef _M_X64
 		MOV(16, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
 #else
-		BSWAP(32, ABI_PARAM1);
-		SHR(32, R(ABI_PARAM1), Imm8(16));
-		CALL(&Memory::Write_U16);
+		MOV(32, R(EAX), R(ABI_PARAM2));
+		AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
+		MOV(16, MDisp(EAX, (u32)Memory::base), R(ABI_PARAM1));
 #endif
 		if (update)
 			MOV(32, gpr.R(a), R(ABI_PARAM2));
 		gpr.UnlockAll();
+		gpr.UnlockAllX();
 		fpr.UnlockAll();
 	} 
 	else if (stType == QUANTIZE_S16)
 	{
+		gpr.FlushR(ABI_PARAM1);
+		gpr.FlushR(ABI_PARAM2);
+		gpr.LockX(ABI_PARAM1);
+		gpr.LockX(ABI_PARAM2);
 		gpr.Lock(a);
 		fpr.Lock(s);
 		if (update)
@@ -200,15 +208,16 @@ void psq_st(UGeckoInstruction inst)
 		PACKSSDW(XMM0, R(XMM0));
 		MOVD_xmm(M(&temp64), XMM0);
 		MOV(32, R(ABI_PARAM1), M(&temp64));
-#ifdef _M_X64
 		BSWAP(32, ABI_PARAM1);
+#ifdef _M_X64
 		MOV(32, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
 #else
-		BSWAP(32, ABI_PARAM1);
-		PUSH(32, R(ABI_PARAM1));
-		CALL(&Memory::Write_U32);
+		MOV(32, R(EAX), R(ABI_PARAM2));
+		AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
+		MOV(32, MDisp(EAX, (u32)Memory::base), R(ABI_PARAM1));
 #endif
 		gpr.UnlockAll();
+		gpr.UnlockAllX();
 		fpr.UnlockAll();
 	}
 	else {
@@ -223,7 +232,6 @@ void psq_st(UGeckoInstruction inst)
 void psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	DISABLE_32BIT;
 	if (js.blockSetsQuantizers || !Core::GetStartupParameter().bOptimizeQuantizers)
 	{
 		Default(inst);
@@ -241,11 +249,10 @@ void psq_l(UGeckoInstruction inst)
 		return;
 	}
 	int offset = inst.SIMM_12;
-	//INT3();
 	switch (ldType) {
-#ifdef _M_X64
 		case QUANTIZE_FLOAT:
 			{
+#ifdef _M_X64
 			gpr.LoadToX64(inst.RA);
 			MOV(64, R(RAX), MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
 			BSWAP(64, RAX);
@@ -253,17 +260,42 @@ void psq_l(UGeckoInstruction inst)
 			fpr.LoadToX64(inst.RS, false);
 			X64Reg r = fpr.R(inst.RS).GetSimpleReg();
 			CVTPS2PD(r, M(&psTemp[0]));
-			SHUFPD(r, R(r),1);
+			SHUFPD(r, R(r), 1);
 			if (update)
 				ADD(32, gpr.R(inst.RA), Imm32(offset));
 			break;
+#else
+			gpr.FlushR(ECX);
+			gpr.LockX(ECX);
+			gpr.LoadToX64(inst.RA);
+			// This can probably be optimized somewhat.
+			LEA(32, ECX, MDisp(gpr.R(inst.RA).GetSimpleReg(), offset));
+			AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
+			MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base));
+			BSWAP(32, RAX);
+			MOV(32, M(&psTemp[0]), R(RAX));
+			MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base + 4));
+			BSWAP(32, RAX);
+			MOV(32, M(((float *)&psTemp[0]) + 1), R(RAX));
+			fpr.LoadToX64(inst.RS, false);
+			X64Reg r = fpr.R(inst.RS).GetSimpleReg();
+			CVTPS2PD(r, M(&psTemp[0]));
+			if (update)
+				ADD(32, gpr.R(inst.RA), Imm32(offset));
+			gpr.UnlockAllX();
+			break;
+#endif
 			}
-
 		case QUANTIZE_U8:
 			{
 			gpr.LoadToX64(inst.RA);
-			XOR(32, R(EAX), R(EAX));
-			MOV(16, R(EAX), MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
+#ifdef _M_X64
+			MOVZX(32, 16, EAX, MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
+#else
+			LEA(32, EAX, MDisp(gpr.R(inst.RA).GetSimpleReg(), offset));
+			AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
+			MOVZX(32, 16, EAX, MDisp(EAX, (u32)Memory::base));
+#endif
 			MOV(32, M(&temp64), R(EAX));
 			MOVD_xmm(XMM0, M(&temp64));
 			// SSE4 optimization opportunity here.
@@ -279,11 +311,16 @@ void psq_l(UGeckoInstruction inst)
 				ADD(32, gpr.R(inst.RA), Imm32(offset));
 			}
 			break;
-
 		case QUANTIZE_S16:
 			{
 			gpr.LoadToX64(inst.RA);
+#ifdef _M_X64
 			MOV(32, R(EAX), MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
+#else
+			LEA(32, EAX, MDisp(gpr.R(inst.RA).GetSimpleReg(), offset));
+			AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
+			MOV(32, R(EAX), MDisp(EAX, (u32)Memory::base));
+#endif
 			BSWAP(32, EAX);
 			MOV(32, M(&temp64), R(EAX));
 			//INT3();
@@ -308,12 +345,11 @@ void psq_l(UGeckoInstruction inst)
 			MOV(32, R(ECX), Imm32((u32)&m_dequantizeTableD));
 			MOVDDUP(r, MComplex(RCX, EAX, 8, 0));
 			*/
-#endif	
 		default:
 			// 4 0
 			// 6 0 //power tennis
 			// 5 0 
-			//PanicAlert("ld:%i %i", ldType, (int)inst.W);
+			// PanicAlert("ld:%i %i", ldType, (int)inst.W);
 			Default(inst);
 			return;
 	}

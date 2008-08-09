@@ -24,6 +24,7 @@
 
 #include "../PPCAnalyst.h"
 #include "JitCache.h"
+#include "x64Emitter.h"
 
 namespace Jit64
 {
@@ -85,6 +86,7 @@ namespace Jit64
 
 	void FlushRegCaches();
 
+	void SafeLoadRegToEAX(Gen::X64Reg reg, int accessSize, s32 offset);
 
 	void addx(UGeckoInstruction inst);
 	void orx(UGeckoInstruction inst);

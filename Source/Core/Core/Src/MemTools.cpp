@@ -20,7 +20,6 @@
 #ifdef _WIN32
 
 #include <windows.h>
-
 #include <vector>
 
 #include "Common.h"
@@ -32,179 +31,6 @@
 
 namespace EMM
 {
-/* DESIGN
-
-THIS IS NOT THE CURRENT STATE OF THIS FILE - IT'S UNFINISHED
-
-We grab 4GB of virtual address space, and locate memories in there. The memories are either
-VirtualAlloc or mapped swapfile.
-
-I/O areas are mapped into the virtual memspace, and VirtualProtected where necessary.
-
-Every chunk is mapped twice into memory, once into the virtual memspace, and once elsewhere.
-This second mapping is used when a "read+writable" pointer is requested for a region. This 
-would generally be for internal use by IO functions, and for actually performing the writes 
-and reads after detecting them.
-
-There is individual read and write protection for each chunk of memory.
-
-Every region has a default read-write handler. If an exception is caught, this is executed.
-
-The default read-write handlers use the "writable" pointers. 
-
-There should be a method to mark a region for "write notification". Dynarecs can use this
-to flush their code caches if a region is written to.
-
-At this moment, there can only be one wrapped memspace at a time.
-*/
-
-DWORD_PTR memspaceBottom = 0;
-DWORD_PTR memspaceTop = 0;
-
-enum MSFlags
-{
-	MEMSPACE_MIRROR_FIRST_PART  = 1,
-	MEMSPACE_MIRROR_OF_PREVIOUS = 2,
-	MEMSPACE_MAPPED_HARDWARE = 4,
-};
-
-struct MemSpaceEntry
-{
-	u64 emulatedBase;
-	u64 emulatedSize;
-	u32 flags;
-};
-
-#define MEGABYTE 1024*1024
-
-const MemSpaceEntry GCMemSpace[] =
-{
-	{0x80000000, 24*MEGABYTE, MEMSPACE_MIRROR_FIRST_PART},
-	{0xC0000000, 24*MEGABYTE, MEMSPACE_MIRROR_OF_PREVIOUS},
-	{0xCC000000,     0x10000, MEMSPACE_MAPPED_HARDWARE},
-	{0xE0000000,      0x4000, 0}, //cache
-};
-
-struct Watch
-{
-	int ID;
-	EAddr startAddr;
-	EAddr endAddr;
-	WR watchFor;
-	WatchCallback callback;
-	WatchType type;
-	u64 userData;
-};
-
-std::vector<Watch> watches;
-
-void UpdateProtection(EAddr startAddr, EAddr endAddr)
-{
-	
-}
-
-int AddWatchRegion(EAddr startAddr, EAddr endAddr, WR watchFor, WatchType type, WatchCallback callback, u64 userData)
-{
-	static int watchIDGen = 0;
-
-	Watch watch;
-	watch.ID = watchIDGen++;
-	watch.startAddr = startAddr;
-	watch.endAddr = endAddr;
-	watch.watchFor = watchFor;
-	watch.callback = callback;
-	watch.userData = userData;
-	watch.type = type;
-	watches.push_back(watch);
-	UpdateProtection(startAddr, endAddr);
-
-	return watch.ID;
-}
-
-void Notify(EAddr address, WR action)
-{
-	for (std::vector<Watch>::iterator iter = watches.begin(); iter != watches.end(); ++iter)
-	{
-		if (action & iter->type)
-		{
-			if (address >= iter->startAddr && address < iter->endAddr)
-			{
-				//Alright!
-				iter->callback(address, Access32 /*TODO*/, action, iter->ID);
-			}
-		}
-	}
-}
-
-
-class MemSpace
-{
-	MemSpaceEntry *entries;
-
-	u64 emulatedBottom;
-	u64 emulatedTop;
-	u64 emulatedSize;
-
-	void *virtualBase;
-
-public:
-
-	void Init(const MemSpaceEntry *e, int count)
-	{
-		/*
-		//first pass: figure out minimum address, and total amount of allocated memory
-		emulatedBase = 0xFFFFFFFFFFFFFFFFL;
-		emulatedTop = 0;
-
-		u64 mappedTotal = 0;
-		for (int i=0; i<count; i++)
-		{
-			if (e[i].emulatedBase < emulatedBase)
-				emulatedBase = e[i].emulatedBase;
-			if (e[i].emulatedBase+e[i].emulatedSize > emulatedTop)
-				emulatedTop = e[i].emulatedBase+e[i].emulatedSize;
-			if (e[i].flags & MEMSPACE_MIRROR_FIRST_PART)
-			{
-				mappedTotal += e[i].emulatedSize;
-			}
-		}
-		emulatedSize = emulatedTop - emulatedBase;
-
-		// The above stuff is not used atm - we just grab 4G
-		
-		//second pass: grab 4G of virtual address space
-		virtualBase = VirtualAlloc(0, 0x100000000L, MEM_RESERVE, PAGE_READWRITE);
-
-		//also grab a bunch of virtual memory while we're at it
-
-
-		//Release the 4G space! 
-		//Let's hope no weirdo thread klomps in here and grabs it
-		VirtualFree(base, 0, MEM_RELEASE);
-
-		for (int i=0; i<count; i++)
-		{
-			if (e[i].flags & MEMSPACE_MIRROR_FIRST_PART)
-			{
-				
-			}
-		}
-
-		//TODO: fill all empty parts of the address space with no-access virtualalloc space
-*/
-	}
-
-	u64   GetVirtualBaseAddr() {return (u64)virtualBase;}
-	void *GetVirtualBase()     {return virtualBase;}
-
-	void Shutdown()
-	{
-
-	}
-};
-
-// ======
-// From here on is the code in this file that actually works and is active.
 
 LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 {
@@ -299,9 +125,79 @@ void InstallExceptionHandler()
 
 namespace EMM {
 
+#if 0
+//
+// backtrace useful function
+//
+void print_trace(const char * msg)
+{
+	void *array[100];
+	size_t size;
+	char **strings;
+	size_t i;
+
+	size = backtrace(array, 100);
+	strings = backtrace_symbols(array, size);
+	printf("%s Obtained %zd stack frames.\n", msg, size);
+	for (i = 0; i < size; i++)
+		printf("--> %s\n", strings[i]);
+	free(strings);
+}
+
+void sigsegv_handler(int signal, int siginfo_t *info, void *raw_context)
+{
+	if (signal != SIGSEGV)
+	{
+		// We are not interested in other signals - handle it as usual.
+		return;
+	}
+	ucontext_t *context = (ucontext_t)raw_context;
+	int si_code = info->si_code;
+	if (si_code != SEGV_MAPERR)
+	{
+		// Huh? Return.
+		return;
+	}
+	mcontext_t *ctx = &context->uc_mcontext;
+	void *fault_memory_ptr = (void *)info->si_addr;
+	void *fault_instruction_ptr = (void *)ctx->mc_rip;
+
+	if (!Jit64::IsInJitCode(fault_instruction_ptr)) {
+		// Let's not prevent debugging.
+		return;
+	}
+
+	u64 memspaceBottom = (u64)Memory::base;
+	if (badAddress < memspaceBottom) {
+		PanicAlert("Exception handler - access below memory space. %08x%08x",
+			badAddress >> 32, badAddress);
+	}
+	u32 emAddress = (u32)(badAddress - memspaceBottom);
+
+	// Backpatch time.
+	Jit64::BackPatch(fault_instruction_ptr, accessType, emAddress);
+}
+
+#endif
+
 void InstallExceptionHandler()
 {
-/*
+#ifdef _M_IX86
+	PanicAlert("InstallExceptionHandler called, but this platform does not yet support it.");
+	return;
+#endif
+
+#if 0
+	sighandler_t old_signal_handler = signal(SIGSEGV , sigsegv_handler);
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = sigsegv_handler;
+	sa.sa_flags = SA_SIGINFO;
+	sigemptyset(&sa.sa_mask);
+	sigaction(SIGSEGV, &sa, NULL);
+#endif
+
+	/*
  * signal(xyz);
  */
 }

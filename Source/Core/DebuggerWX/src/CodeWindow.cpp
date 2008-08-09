@@ -39,6 +39,7 @@
 
 #include "Debugger/PPCDebugInterface.h"
 #include "Debugger/Debugger_SymbolMap.h"
+#include "PowerPC/PPCAnalyst.h"
 
 #include "Core.h"
 #include "LogManager.h"
@@ -64,6 +65,8 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
     EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleRegisterWindow)
     EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleBreakPointWindow)
     EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleMemoryWindow)
+
+	EVT_MENU(IDM_SCANFUNCTIONS,     CCodeWindow::OnSymbolsMenu)
 	// toolbar
 	EVT_MENU(IDM_DEBUG_GO,			CCodeWindow::OnCodeStep)
 	EVT_MENU(IDM_STEP,				CCodeWindow::OnCodeStep)
@@ -195,14 +198,14 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	wxMenuBar* pMenuBar = new wxMenuBar(wxMB_DOCKABLE);
 
 	{
-		wxMenu* pDebugMenu = new wxMenu;
-		wxMenuItem* interpreter = pDebugMenu->Append(IDM_INTERPRETER, _T("&Interpreter"), wxEmptyString, wxITEM_CHECK);
+		wxMenu* pCoreMenu = new wxMenu;
+		wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _T("&Interpreter"), wxEmptyString, wxITEM_CHECK);
 		interpreter->Check(!_LocalCoreStartupParameter.bUseDynarec);
 
 //		wxMenuItem* dualcore = pDebugMenu->Append(IDM_DUALCORE, _T("&DualCore"), wxEmptyString, wxITEM_CHECK);
 //		dualcore->Check(_LocalCoreStartupParameter.bUseDualCore);
 
-		pMenuBar->Append(pDebugMenu, _T("&Core Startup"));
+		pMenuBar->Append(pCoreMenu, _T("&Core Startup"));
 	}
 
 	{
@@ -225,6 +228,11 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		pMenuBar->Append(pDebugDialogs, _T("&Views"));
 	}
 
+	{
+		wxMenu *pSymbolsMenu = new wxMenu;
+		pSymbolsMenu->Append(IDM_SCANFUNCTIONS, _T("&Scan for functions"));
+		pMenuBar->Append(pSymbolsMenu, _T("&Symbols"));
+	}
 	SetMenuBar(pMenuBar);
 }
 
@@ -246,6 +254,23 @@ void CCodeWindow::JumpToAddress(u32 _Address)
     codeview->Center(_Address);
 }
 
+void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event) 
+{
+	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+	{
+		// TODO: disable menu items instead :P
+		return;
+	}
+	switch (event.GetId())
+	{
+	case IDM_SCANFUNCTIONS:
+		PPCAnalyst::FindFunctions(0x80003100, 0x80400000);
+		PPCAnalyst::LoadFuncDB("data/totaldb.dsy");
+		Debugger::GetFromAnalyzer();
+		NotifyMapLoaded();
+		break;
+	}
+}
 
 void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 {
@@ -537,6 +562,7 @@ void CCodeWindow::OnToggleMemoryWindow(wxCommandEvent& event)
 		}
 	}
 }
+
 void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -582,13 +608,13 @@ void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)
 		h = m_Bitmaps[Toolbar_DebugGo].GetHeight();
 
 	toolBar->SetToolBitmapSize(wxSize(w, h));
-	toolBar->AddTool(IDM_DEBUG_GO,	_T("Play"),			m_Bitmaps[Toolbar_DebugGo], _T("Delete the selected BreakPoint or MemoryCheck"));
-	toolBar->AddTool(IDM_STEP,		_T("Step"),			m_Bitmaps[Toolbar_Step], _T("Add BreakPoint..."));
-	toolBar->AddTool(IDM_STEPOVER,	_T("Step Over"),    m_Bitmaps[Toolbar_StepOver], _T("Add BreakPoint..."));
-	toolBar->AddTool(IDM_SKIP,		_T("Skip"),			m_Bitmaps[Toolbar_Skip], _T("Add BreakPoint..."));
+	toolBar->AddTool(IDM_DEBUG_GO,	_T("Play"),			m_Bitmaps[Toolbar_DebugGo]);
+	toolBar->AddTool(IDM_STEP,		_T("Step"),			m_Bitmaps[Toolbar_Step]);
+	toolBar->AddTool(IDM_STEPOVER,	_T("Step Over"),    m_Bitmaps[Toolbar_StepOver]);
+	toolBar->AddTool(IDM_SKIP,		_T("Skip"),			m_Bitmaps[Toolbar_Skip]);
 	toolBar->AddSeparator();
-	toolBar->AddTool(IDM_GOTOPC,    _T("Goto PC"),		m_Bitmaps[Toolbar_GotoPC], _T("Add BreakPoint..."));
-	toolBar->AddTool(IDM_SETPC,		_T("Set PC"),		m_Bitmaps[Toolbar_SetPC], _T("Add BreakPoint..."));
+	toolBar->AddTool(IDM_GOTOPC,    _T("Goto PC"),		m_Bitmaps[Toolbar_GotoPC]);
+	toolBar->AddTool(IDM_SETPC,		_T("Set PC"),		m_Bitmaps[Toolbar_SetPC]);
 	toolBar->AddSeparator();
 	toolBar->AddControl(new wxTextCtrl(toolBar, IDM_ADDRBOX, _T("")));
 

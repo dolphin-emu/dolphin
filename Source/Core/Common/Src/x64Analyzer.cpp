@@ -26,6 +26,9 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 	//Check for regular prefix
 	info.operandSize = 4;
 	info.zeroExtend = false;
+	info.signExtend = false;
+	info.hasImmediate = false;
+	info.isMemoryWrite = false;
 
 	int addressSize = 8;
 	u8 modRMbyte = 0;
@@ -33,7 +36,6 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
     bool hasModRM = false;
 	bool hasSIBbyte = false;
 	bool hasDisplacement = false;
-	info.hasImmediate = false;
 
 	int displacementSize = 0;
 
@@ -136,6 +138,7 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 	
 	if (accessType == 1)
 	{
+		info.isMemoryWrite = true;
 		//Write access
 		switch (codeByte)
 		{
@@ -179,7 +182,9 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 	}
 	else
 	{
-		//mov         eax,dword ptr [rax]   == 8b 00
+		// Memory read
+
+		//mov eax, dword ptr [rax]   == 8b 00
 		switch (codeByte)
 		{
 		case 0x0F:
@@ -191,6 +196,14 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 				break;
 			case 0xB7: //movzx on short
 				info.zeroExtend = true;
+				info.operandSize = 2;
+				break;
+			case 0xBE: //movsx on byte
+				info.signExtend = true;
+				info.operandSize = 1;
+				break;
+			case 0xBF:
+				info.signExtend = true;
 				info.operandSize = 2;
 				break;
 			default:
