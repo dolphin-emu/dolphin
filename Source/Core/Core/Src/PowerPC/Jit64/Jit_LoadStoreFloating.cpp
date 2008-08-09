@@ -57,6 +57,7 @@ static u32 GC_ALIGNED16(temp32);
 void lfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
+	DISABLE_32BIT;
 	int d = inst.RD;
 	int a = inst.RA;
 	if (!a) 
@@ -139,6 +140,7 @@ void stfd(UGeckoInstruction inst)
 void stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
+	DISABLE_32BIT;
 	bool update = inst.OPCD & 1;
 	int s = inst.RS;
 	int a = inst.RA;
@@ -147,6 +149,7 @@ void stfs(UGeckoInstruction inst)
 	if (a && !update)
 	{
 		gpr.Flush(FLUSH_VOLATILE);
+//		fpr.Flush(FLUSH_VOLATILE);
 		gpr.Lock(a);
 		fpr.Lock(s);
 		gpr.LockX(ABI_PARAM1, ABI_PARAM2);
@@ -173,6 +176,7 @@ void stfs(UGeckoInstruction inst)
 void lfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
+	DISABLE_32BIT;
 	fpr.Lock(inst.RS);
 	fpr.LoadToX64(inst.RS, false, true);
 	MOV(32, R(EAX), gpr.R(inst.RB));
