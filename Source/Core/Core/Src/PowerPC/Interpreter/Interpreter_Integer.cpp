@@ -391,7 +391,7 @@ void CInterpreter::srawix(UGeckoInstruction _inst)
 void CInterpreter::srwx(UGeckoInstruction _inst)
 {
 	u32 amount = m_GPR[_inst.RB];
-	m_GPR[_inst.RA] = (amount&0x20) ? 0 : m_GPR[_inst.RS] >> amount;
+	m_GPR[_inst.RA] = (amount & 0x20) ? 0 : (m_GPR[_inst.RS] >> amount);
 
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }

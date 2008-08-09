@@ -67,7 +67,7 @@ namespace Jit64
 		}
 		else
 		{
-			_assert_msg_(DYNA_REC,0,"WTF");
+			_assert_msg_(DYNA_REC, 0, "WTF");
 		}
 		if (Rc)
 		{
@@ -93,10 +93,10 @@ namespace Jit64
 		case 25: regimmop(a, s, true, inst.UIMM << 16, Or,  OR, false); break;//oris
 		case 28: regimmop(a, s, true, inst.UIMM,       And, AND, true); break;
 		case 29: regimmop(a, s, true, inst.UIMM << 16, And, AND, true); break;
+		case 26: regimmop(a, s, true, inst.UIMM,       Xor, XOR, false); break; //xori
+		case 27: regimmop(a, s, true, inst.UIMM << 16, Xor, XOR, false); break; //xoris
 		case 12: //addic
 		case 13: //addic_rc
-		case 26: //xori
-		case 27: //xoris
 		default:
 			Default(inst);
 			break;
@@ -633,7 +633,6 @@ namespace Jit64
 		}
 
 		u32 mask = Helper_Mask(inst.MB, inst.ME);
-		
 		gpr.FlushR(ECX);
 		gpr.LockX(ECX);
 		gpr.Lock(a, b, s);
@@ -652,21 +651,34 @@ namespace Jit64
 		}
 	}
 
+	void negx(UGeckoInstruction inst)
+	{
+		INSTRUCTION_START;
+		int a = inst.RA;
+		int d = inst.RD;
+		gpr.Lock(a, d);
+		gpr.LoadToX64(d, a == d, true);
+		if (a != d)
+			MOV(32, gpr.R(d), gpr.R(a));
+		NEG(32, gpr.R(d));
+		gpr.UnlockAll();
+		if (inst.Rc)
+		{
+			MOV(32, R(EAX), gpr.R(a));
+			CALL((u8*)Asm::computeRc);
+		}
+	}
+
 	void srwx(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
-		// BUGGY?
-		Default(inst); return;
 		int a = inst.RA;
 		int b = inst.RB;
 		int s = inst.RS;
 		gpr.FlushR(ECX);
 		gpr.LockX(ECX);
 		gpr.Lock(a, b, s);
-		if (a == s)
-			gpr.LoadToX64(a, true, true);
-		else
-			gpr.LoadToX64(a, false, true);
+		gpr.LoadToX64(a, a == s || a == b || s == b, true);
 		MOV(32, R(ECX), gpr.R(b));
 		AND(32, R(ECX), Imm8(63));
 		XOR(32, R(EAX), R(EAX));
@@ -674,6 +686,34 @@ namespace Jit64
 		FixupBranch branch = J_CC(CC_NZ);
 		MOV(32, R(EAX), gpr.R(s));
 		SHR(32, R(EAX), R(ECX));
+		SetJumpTarget(branch);
+		MOV(32, gpr.R(a), R(EAX));
+		gpr.UnlockAll();
+		gpr.UnlockAllX();
+		if (inst.Rc) 
+		{
+			MOV(32, R(EAX), gpr.R(a));
+			CALL((u8*)Asm::computeRc);
+		}
+	}
+
+	void slwx(UGeckoInstruction inst)
+	{
+		INSTRUCTION_START;
+		int a = inst.RA;
+		int b = inst.RB;
+		int s = inst.RS;
+		gpr.FlushR(ECX);
+		gpr.LockX(ECX);
+		gpr.Lock(a, b, s);
+		gpr.LoadToX64(a, a == s || a == b || s == b, true);
+		MOV(32, R(ECX), gpr.R(b));
+		AND(32, R(ECX), Imm8(63));
+		XOR(32, R(EAX), R(EAX));
+		TEST(32, R(ECX), Imm32(32));
+		FixupBranch branch = J_CC(CC_NZ);
+		MOV(32, R(EAX), gpr.R(s));
+		SHL(32, R(EAX), R(ECX));
 		SetJumpTarget(branch);
 		MOV(32, gpr.R(a), R(EAX));
 		gpr.UnlockAll();

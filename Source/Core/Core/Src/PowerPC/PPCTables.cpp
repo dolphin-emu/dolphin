@@ -155,8 +155,8 @@ GekkoOPTemplate primarytable[] =
 
 	{24, CInterpreter::ori,       Jit64::reg_imm,      {"ori",      OPTYPE_INTEGER, 0}},
 	{25, CInterpreter::oris,      Jit64::reg_imm,      {"oris",     OPTYPE_INTEGER, 0}},
-	{26, CInterpreter::xori,      Jit64::Default,      {"xori",     OPTYPE_INTEGER, 0}},
-	{27, CInterpreter::xoris,     Jit64::Default,      {"xoris",    OPTYPE_INTEGER, 0}},
+	{26, CInterpreter::xori,      Jit64::reg_imm,      {"xori",     OPTYPE_INTEGER, 0}},
+	{27, CInterpreter::xoris,     Jit64::reg_imm,      {"xoris",    OPTYPE_INTEGER, 0}},
 	{28, CInterpreter::andi_rc,   Jit64::reg_imm,      {"andi_rc",  OPTYPE_INTEGER, FL_SET_CR0}},
 	{29, CInterpreter::andis_rc,  Jit64::reg_imm,      {"andis_rc", OPTYPE_INTEGER, FL_SET_CR0}},
 
@@ -291,7 +291,7 @@ GekkoOPTemplate table31[] =
 	{536, CInterpreter::srwx,    Jit64::srwx,     {"srwx",   OPTYPE_INTEGER, FL_RC_BIT}},
 	{792, CInterpreter::srawx,   Jit64::Default,  {"srawx",  OPTYPE_INTEGER, FL_RC_BIT}},
 	{824, CInterpreter::srawix,  Jit64::srawix,   {"srawix", OPTYPE_INTEGER, FL_RC_BIT}},
-	{24,  CInterpreter::slwx,    Jit64::Default,  {"slwx",   OPTYPE_INTEGER, FL_RC_BIT}},
+	{24,  CInterpreter::slwx,    Jit64::slwx,     {"slwx",   OPTYPE_INTEGER, FL_RC_BIT}},
 
 	{54,   CInterpreter::dcbst,  Jit64::Default,  {"dcbst",  OPTYPE_DCACHE, 0, 4}},
 	{86,   CInterpreter::dcbf,   Jit64::Default,  {"dcbf",   OPTYPE_DCACHE, 0, 4}},
@@ -396,7 +396,7 @@ GekkoOPTemplate table31_2[] =
 	{75,  CInterpreter::mulhwx,  Jit64::Default,      {"mulhwx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_IN_B | FL_RC_BIT, 4}},
 	{11,  CInterpreter::mulhwux, Jit64::mulhwux,      {"mulhwux", OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_IN_B | FL_RC_BIT, 4}},
 	{235, CInterpreter::mullwx,  Jit64::mullwx,       {"mullwx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_IN_B | FL_RC_BIT, 4}},
-	{104, CInterpreter::negx,    Jit64::Default,      {"negx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_IN_B | FL_RC_BIT}},
+	{104, CInterpreter::negx,    Jit64::negx,         {"negx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_IN_B | FL_RC_BIT}},
 	{40,  CInterpreter::subfx,   Jit64::subfx,        {"subfx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_IN_B | FL_RC_BIT}},
 	{8,   CInterpreter::subfcx,  Jit64::Default,      {"subfcx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_IN_B | FL_SET_CA | FL_RC_BIT}},
 	{136, CInterpreter::subfex,  Jit64::Default,      {"subfex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_A | FL_IN_B | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},

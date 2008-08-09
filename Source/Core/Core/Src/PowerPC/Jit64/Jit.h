@@ -147,6 +147,8 @@ namespace Jit64
 	void rlwinmx(UGeckoInstruction inst);
 	void rlwimix(UGeckoInstruction inst);
 	void rlwnmx(UGeckoInstruction inst);
+	void negx(UGeckoInstruction inst);
+	void slwx(UGeckoInstruction inst);
 	void srwx(UGeckoInstruction inst);
 	void dcbz(UGeckoInstruction inst);
 	void lfsx(UGeckoInstruction inst);

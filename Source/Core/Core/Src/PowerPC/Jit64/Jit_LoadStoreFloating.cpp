@@ -93,6 +93,7 @@ void lfs(UGeckoInstruction inst)
 	gpr.UnlockAll();
 	fpr.UnlockAll();
 }
+
 void lfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
@@ -112,8 +113,7 @@ void lfd(UGeckoInstruction inst)
 	MOV(64, M(&temp64), R(EAX));
 	fpr.Lock(d);
 	fpr.LoadToX64(d, false);
-	MOVSD(fpr.RX(d), M(&temp64));
-	MOVDDUP(fpr.RX(d), fpr.R(d));
+	MOVDDUP(fpr.RX(d), M(&temp64));
 	gpr.UnlockAll();
 	fpr.UnlockAll();
 }
