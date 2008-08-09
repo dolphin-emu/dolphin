@@ -172,7 +172,7 @@ void RasterFont::printCenteredString(const char *s, double y, int screen_width, 
     printString(s, x, y, z);
 }
 
-void RasterFont::printStuff(const char *text, double start_x, double start_y, double z, int bbWidth, int bbHeight)
+void RasterFont::printMultilineText(const char *text, double start_x, double start_y, double z, int bbWidth, int bbHeight)
 {
 	double x=start_x;
 	double y=start_y;

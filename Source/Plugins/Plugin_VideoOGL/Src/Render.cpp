@@ -369,7 +369,7 @@ void Renderer::ProcessMessages()
 void Renderer::DrawText(const char* pstr, int left, int top, u32 color)
 {
     glColor3f(((color>>16) & 0xff)/255.0f, ((color>>8) & 0xff)/255.0f, (color & 0xff)/255.0f);
-    s_pfont->printStuff(pstr, left * 2.0f / (float)nBackbufferWidth - 1, 1 - top * 2.0f / (float)nBackbufferHeight,0,nBackbufferWidth,nBackbufferHeight);
+    s_pfont->printMultilineText(pstr, left * 2.0f / (float)nBackbufferWidth - 1, 1 - top * 2.0f / (float)nBackbufferHeight,0,nBackbufferWidth,nBackbufferHeight);
 }
 
 void Renderer::SetAA(int aa)
