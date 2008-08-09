@@ -49,27 +49,35 @@ namespace Jit64
 	static u64 GC_ALIGNED16(temp64);
 	static u32 GC_ALIGNED16(temp32);
 
-	void SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset)
+	void UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
 	{
-		if (offset)
-			ADD(32, R(reg), Imm32((u32)offset));
-		TEST(32, R(reg), Imm32(0x0C000000));
-		FixupBranch argh = J_CC(CC_NZ);
-		if (accessSize != 32)
-			XOR(32, R(EAX), R(EAX));
 #ifdef _M_IX86
-		AND(32, R(reg), Imm32(Memory::MEMVIEW32_MASK));
-		MOV(accessSize, R(EAX), MDisp(reg, (u32)Memory::base));
+		AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
+		MOVZX(32, accessSize, reg_value, MDisp(reg_addr, (u32)Memory::base + offset));
 #else
-		MOV(accessSize, R(EAX), MComplex(RBX, reg, SCALE_1, 0));
+		MOVZX(32, accessSize, reg_value, MComplex(RBX, reg_addr, SCALE_1, offset));
 #endif
 		if (accessSize == 32)
+		{
 			BSWAP(32, EAX);
+		}
 		else if (accessSize == 16)
 		{
 			BSWAP(32, EAX);
 			SHR(32, R(EAX), Imm8(16));
 		}
+		if (signExtend && accessSize < 32) {
+			MOVSX(32, accessSize, EAX, R(EAX));
+		}
+	}
+
+	void SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset, bool signExtend)
+	{
+		if (offset)
+			ADD(32, R(reg), Imm32((u32)offset));
+		TEST(32, R(reg), Imm32(0x0C000000));
+		FixupBranch argh = J_CC(CC_NZ);
+		UnsafeLoadRegToReg(reg, EAX, accessSize, 0, signExtend);
 		FixupBranch arg2 = J();
 		SetJumpTarget(argh);
 		switch (accessSize)
@@ -78,6 +86,34 @@ namespace Jit64
 		case 16: ABI_CallFunctionR((void *)&Memory::Read_U16, reg); break;
 		case 8:  ABI_CallFunctionR((void *)&Memory::Read_U8, reg);  break;
 		}
+		SetJumpTarget(arg2);
+	}
+
+	void UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset)
+	{
+		if (accessSize != 32) {
+			PanicAlert("UnsafeWriteRegToReg can't handle %i byte accesses", accessSize);
+		}
+		BSWAP(32, reg_value);
+#ifdef _M_IX86
+		AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
+		MOV(accessSize, MDisp(reg_addr, (u32)Memory::base), R(reg_value));
+#else
+		MOV(accessSize, MComplex(RBX, reg_addr, SCALE_1, 0), R(reg_value));
+#endif
+	}
+
+	// Destroys both arg registers
+	void SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset)
+	{
+		if (offset)
+			ADD(32, R(reg_addr), Imm32(offset));
+		TEST(32, R(reg_addr), Imm32(0x0C000000));
+		FixupBranch argh = J_CC(CC_NZ);	
+		UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0);
+		FixupBranch arg2 = J();
+		SetJumpTarget(argh);
+		ABI_CallFunctionRR((void *)&Memory::Write_U32, ABI_PARAM1, ABI_PARAM2); 
 		SetJumpTarget(arg2);
 	}
 
@@ -146,6 +182,7 @@ namespace Jit64
 #endif
 			// Safe and boring
 			gpr.Flush(FLUSH_VOLATILE);
+			fpr.Flush(FLUSH_VOLATILE);
 			gpr.Lock(d, a);
 			MOV(32, R(ABI_PARAM1), gpr.R(a));
 			SafeLoadRegToEAX(ABI_PARAM1, accessSize, offset);
@@ -171,6 +208,24 @@ namespace Jit64
 //			break;
 		}
 		gpr.UnlockAll();
+	}
+
+	void lha(UGeckoInstruction inst)
+	{
+		INSTRUCTION_START;
+		int d = inst.RD;
+		int a = inst.RA;
+		s32 offset = (s32)(s16)inst.SIMM_16;
+		// Safe and boring
+		gpr.Flush(FLUSH_VOLATILE);
+		fpr.Flush(FLUSH_VOLATILE);
+		gpr.Lock(d, a);
+		MOV(32, R(ABI_PARAM1), gpr.R(a));
+		SafeLoadRegToEAX(ABI_PARAM1, 16, offset, true);
+		gpr.LoadToX64(d, false, true);
+		MOV(32, gpr.R(d), R(EAX));
+		gpr.UnlockAll();
+		return;
 	}
 
 	// Zero cache line.

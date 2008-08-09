@@ -188,6 +188,7 @@ detect immediates in stb stw sth
 
 TODO
 lha
+srawx
 addic_rc
 addex
 subfcx

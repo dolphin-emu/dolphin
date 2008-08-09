@@ -70,17 +70,11 @@ void lfs(UGeckoInstruction inst)
 	gpr.Lock(d, a);
 	
 	MOV(32, R(ABI_PARAM1), gpr.R(a));
-#ifdef _M_X64
 	if (!jo.noAssumeFPLoadFromMem)
 	{
-		MOV(32, R(EAX), MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
-//#else
-//			MOV(32, R(EAX), MDisp(ABI_PARAM1, (u32)Memory::GetMainRAMPtr() + (u32)offset));
-//#endif
-		BSWAP(32, EAX);
+		UnsafeLoadRegToReg(ABI_PARAM1, EAX, 32, offset, false);
 	}
 	else
-#endif
 	{
 		SafeLoadRegToEAX(ABI_PARAM1, 32, offset);
 	}
@@ -145,7 +139,6 @@ void stfd(UGeckoInstruction inst)
 void stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	DISABLE_32BIT;
 	bool update = inst.OPCD & 1;
 	int s = inst.RS;
 	int a = inst.RA;
@@ -156,9 +149,8 @@ void stfs(UGeckoInstruction inst)
 		gpr.Flush(FLUSH_VOLATILE);
 		gpr.Lock(a);
 		fpr.Lock(s);
+		gpr.LockX(ABI_PARAM1, ABI_PARAM2);
 		MOV(32, R(ABI_PARAM2), gpr.R(a));
-		if (offset)
-			ADD(32, R(ABI_PARAM2), Imm32((u32)offset));
 		if (update && offset)
 		{
 			MOV(32, gpr.R(a), R(ABI_PARAM2));
@@ -167,15 +159,9 @@ void stfs(UGeckoInstruction inst)
 		MOVSS(M(&temp32), XMM0);
 		MOV(32, R(ABI_PARAM1), M(&temp32));
 
-		TEST(32, R(ABI_PARAM2), Imm32(0x0C000000));
-		FixupBranch argh = J_CC(CC_NZ);
-		BSWAP(32, ABI_PARAM1);
-		MOV(32, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
-		FixupBranch arg2 = J();
-		SetJumpTarget(argh);
-		CALL((void *)&Memory::Write_U32); 
-		SetJumpTarget(arg2);
+		SafeWriteRegToReg(ABI_PARAM1, ABI_PARAM2, 32, offset);
 		gpr.UnlockAll();
+		gpr.UnlockAllX();
 		fpr.UnlockAll();
 	}
 	else
@@ -187,14 +173,12 @@ void stfs(UGeckoInstruction inst)
 void lfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	DISABLE_32BIT;
 	fpr.Lock(inst.RS);
 	fpr.LoadToX64(inst.RS, false, true);
 	MOV(32, R(EAX), gpr.R(inst.RB));
 	if (inst.RA)
 		ADD(32, R(EAX), gpr.R(inst.RA));
-	MOV(32, R(EAX), MComplex(RBX, EAX, SCALE_1, 0));
-	BSWAP(32, EAX);
+	UnsafeLoadRegToReg(EAX, EAX, 32, false);
 	MOV(32, M(&temp32), R(EAX));
 	CVTSS2SD(XMM0, M(&temp32));
 	MOVDDUP(fpr.R(inst.RS).GetSimpleReg(), R(XMM0));

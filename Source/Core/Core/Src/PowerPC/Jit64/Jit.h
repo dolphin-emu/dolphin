@@ -86,8 +86,11 @@ namespace Jit64
 
 	void FlushRegCaches();
 
-	void SafeLoadRegToEAX(Gen::X64Reg reg, int accessSize, s32 offset);
-
+	void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset = 0, bool signExtend = false);
+	void UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0);
+	void SafeLoadRegToEAX(Gen::X64Reg reg, int accessSize, s32 offset, bool signExtend = false);
+	void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset);
+	
 	void addx(UGeckoInstruction inst);
 	void orx(UGeckoInstruction inst);
 	void andx(UGeckoInstruction inst);
@@ -144,6 +147,7 @@ namespace Jit64
 	void fmaddXX(UGeckoInstruction inst);
 	void stX(UGeckoInstruction inst); //stw sth stb
 	void lXz(UGeckoInstruction inst);
+	void lha(UGeckoInstruction inst);
 	void rlwinmx(UGeckoInstruction inst);
 	void rlwimix(UGeckoInstruction inst);
 	void rlwnmx(UGeckoInstruction inst);
@@ -153,6 +157,7 @@ namespace Jit64
 	void dcbz(UGeckoInstruction inst);
 	void lfsx(UGeckoInstruction inst);
 	void subfic(UGeckoInstruction inst);
+	void subfcx(UGeckoInstruction inst);
 	void subfx(UGeckoInstruction inst);
 	void lbzx(UGeckoInstruction inst);
 

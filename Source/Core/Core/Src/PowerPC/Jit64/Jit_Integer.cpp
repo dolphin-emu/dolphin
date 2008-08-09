@@ -29,45 +29,56 @@
 
 namespace Jit64
 {
+	// Assumes that the flags were just set through an addition.
+	void GenerateCarry(X64Reg temp_reg) {
+		SETcc(CC_C, R(temp_reg));
+		AND(32, M(&XER), Imm32(~(1 << 29)));
+		SHL(32, R(temp_reg), Imm8(29));
+		OR(32, M(&XER), R(temp_reg));
+	}
+
 	typedef u32 (*Operation)(u32 a, u32 b);
 	u32 Add(u32 a, u32 b) {return a + b;}
 	u32 Or (u32 a, u32 b) {return a | b;}
 	u32 And(u32 a, u32 b) {return a & b;}
 	u32 Xor(u32 a, u32 b) {return a ^ b;}
 
-	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void(*op)(int, const OpArg&, const OpArg&), bool Rc = false)
+	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void(*op)(int, const OpArg&, const OpArg&), bool Rc = false, bool carry = false)
 	{
 		gpr.Lock(d,a);
-		if (a || binary)
+		if (a || binary || carry)  // yeh nasty special case addic
 		{
 			if (a == d)
 			{
-				if (gpr.R(d).IsImm())
+				if (gpr.R(d).IsImm() && !carry)
 				{
 					gpr.SetImmediate32(d, doop((u32)gpr.R(d).offset, value));
 				}
 				else
 				{
 					if (gpr.R(d).IsImm())
-						gpr.LoadToX64(d,false);
-
+						gpr.LoadToX64(d, false);
 					op(32, gpr.R(d), Imm32(value)); //m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
+					if (carry)
+						GenerateCarry(EAX);
 				}
 			}
 			else
 			{
-				gpr.LoadToX64(d,false);
+				gpr.LoadToX64(d, false);
 				MOV(32, gpr.R(d), gpr.R(a));
 				op(32, gpr.R(d), Imm32(value)); //m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
+				if (carry)
+					GenerateCarry(EAX);
 			}
 		}
-		else if (doop == Add)
+		else if (doop == Add && !carry)
 		{
 			gpr.SetImmediate32(d, value);
 		}
 		else
 		{
-			_assert_msg_(DYNA_REC, 0, "WTF");
+			_assert_msg_(DYNA_REC, 0, "WTF regimmop");
 		}
 		if (Rc)
 		{
@@ -95,8 +106,8 @@ namespace Jit64
 		case 29: regimmop(a, s, true, inst.UIMM << 16, And, AND, true); break;
 		case 26: regimmop(a, s, true, inst.UIMM,       Xor, XOR, false); break; //xori
 		case 27: regimmop(a, s, true, inst.UIMM << 16, Xor, XOR, false); break; //xoris
-		case 12: //addic
-		case 13: //addic_rc
+		case 12: //regimmop(d, a, false, (u32)(s32)inst.SIMM_16, Add, ADD, false, true); //addic
+		case 13: //regimmop(d, a, true, (u32)(s32)inst.SIMM_16, Add, ADD, true, true); //addic_rc
 		default:
 			Default(inst);
 			break;
@@ -314,18 +325,30 @@ namespace Jit64
 		else
 			gpr.LoadToX64(a, true, true);
 		int imm = inst.SIMM_16;
-		// XOR(32, R(ECX), R(ECX));
 		MOV(32, R(EAX), gpr.R(a));
 		NOT(32, R(EAX));
 		ADD(32, R(EAX), Imm32(imm+1));
 		MOV(32, gpr.R(d), R(EAX));
-		SETcc(CC_C, R(ECX));
-		AND(32, M(&XER), Imm32(~(1 << 29)));
-		SHL(32, R(ECX), Imm8(29));
-		OR(32, M(&XER), R(ECX));
+		GenerateCarry(ECX);
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
 		// This instruction has no RC flag
+	}
+
+	void subfcx(UGeckoInstruction inst) 
+	{
+		INSTRUCTION_START;
+		Default(inst);
+		return;
+		/*
+		u32 a = m_GPR[_inst.RA];
+		u32 b = m_GPR[_inst.RB];
+		m_GPR[_inst.RD] = b - a;
+		SetCarry(a == 0 || Helper_Carry(b, 0-a));
+
+		if (_inst.OE) PanicAlert("OE: subfcx");
+		if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
+		*/
 	}
 
 	void subfx(UGeckoInstruction inst)
@@ -447,9 +470,6 @@ namespace Jit64
 		}
 	}
 
-	// __________________________________________________________________________________________________
-	// Helper_Mask
-	// 
 	u32 Helper_Mask(u8 mb, u8 me)
 	{
 		return (((mb > me) ?
@@ -458,7 +478,6 @@ namespace Jit64
 			(((u32)-1 >> mb) ^ ((me >= 31) ? 0 : (u32) -1 >> (me + 1))))
 			);
 	}
-
 
 	void addx(UGeckoInstruction inst)
 	{
@@ -527,10 +546,7 @@ namespace Jit64
 		MOV(32, R(EAX), gpr.R(a));
 		ADC(32, R(EAX), gpr.R(b));
 		MOV(32, gpr.R(d), R(EAX));
-		SETcc(CC_C, R(ECX)); // store away the resulting carry flag
-		AND(32, M(&XER), Imm32(~(1 << 29)));
-		SHL(32, R(ECX), Imm8(29));
-		OR(32, M(&XER), R(ECX));
+		GenerateCarry(ECX);
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
 		if (inst.Rc)

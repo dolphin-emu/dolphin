@@ -115,13 +115,13 @@ void CInterpreter::lfsx(UGeckoInstruction _inst)
 
 void CInterpreter::lha(UGeckoInstruction _inst)
 {
-	m_GPR[_inst.RD] = (u32)(s16)Memory::Read_U16(Helper_Get_EA(_inst));
+	m_GPR[_inst.RD] = (u32)(s32)(s16)Memory::Read_U16(Helper_Get_EA(_inst));
 }
 
 void CInterpreter::lhau(UGeckoInstruction _inst)
 {
 	u32 uAddress = Helper_Get_EA_U(_inst);
-	m_GPR[_inst.RD] = (u32)(s16)Memory::Read_U16(uAddress);
+	m_GPR[_inst.RD] = (u32)(s32)(s16)Memory::Read_U16(uAddress);
 	m_GPR[_inst.RA] = uAddress;
 }
 

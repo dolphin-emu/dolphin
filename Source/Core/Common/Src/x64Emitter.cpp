@@ -669,6 +669,10 @@ namespace Gen
 	void MOVSX(int dbits, int sbits, X64Reg dest, OpArg src)
 	{
 		if (src.IsImm()) _assert_msg_(DYNA_REC, 0, "MOVSX - Imm argument");
+		if (dbits == sbits) {
+			MOV(dbits, R(dest), src);
+			return;
+		}
 		src.operandReg = (u8)dest;
 		if (dbits == 16) Write8(0x66);
 		src.WriteRex(dbits == 64);
@@ -696,6 +700,10 @@ namespace Gen
 	void MOVZX(int dbits, int sbits, X64Reg dest, OpArg src)
 	{
 		if (src.IsImm()) _assert_msg_(DYNA_REC, 0, "MOVZX - Imm argument");
+		if (dbits == sbits) {
+			MOV(dbits, R(dest), src);
+			return;
+		}
 		src.operandReg = (u8)dest;
 		if (dbits == 16) Write8(0x66);
 		src.WriteRex(dbits == 64);

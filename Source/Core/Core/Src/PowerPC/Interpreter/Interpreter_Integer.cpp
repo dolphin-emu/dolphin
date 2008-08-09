@@ -346,7 +346,7 @@ void CInterpreter::srawx(UGeckoInstruction _inst)
 	}
 	else
 	{
-		int amount = rb&0x1f;
+		int amount = rb & 0x1f;
 		if (amount == 0)
 		{
 			m_GPR[_inst.RA] = m_GPR[_inst.RS];
