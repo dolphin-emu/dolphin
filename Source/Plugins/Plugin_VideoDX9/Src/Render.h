@@ -27,4 +27,10 @@ public:
 	static void SetScissorBox(RECT &rc);
 	static void SetViewport(float* _Viewport);
 	static void SetProjection(float* _pProjection, int constantIndex = -1);
+
+
+	static void AddMessage(const char* pstr, unsigned int ms);
+	static void ProcessMessages();
+	static void RenderText(const char* pstr, int left, int top, unsigned int color);
+
 };

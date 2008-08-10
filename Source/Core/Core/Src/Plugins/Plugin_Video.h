@@ -40,6 +40,7 @@ void Video_EnterLoop();
 void Video_SendFifoData(BYTE *_uData);
 void Video_UpdateXFB(BYTE* _pXFB, DWORD _dwHeight, DWORD _dwWidth);
 bool Video_Screenshot(TCHAR* _szFilename);
+void Video_AddMessage(const char* pstr, unsigned int milliseconds);
 
 } // end of namespace PluginVideo
 

@@ -162,12 +162,20 @@ EXPORT BOOL CALL Video_Screenshot(TCHAR* _szFilename);
 
 
 // __________________________________________________________________________________________________
-// Function: Video_Screenshot
-// Purpose:  This fucntion is called when you want to do a screenshot
-// input:    Filename
-// output:   TRUE if all was okay
+// Function: Video_EnterLoop
+// Purpose:  FIXME!
+// input:    none
+// output:   none
 //
 EXPORT void CALL Video_EnterLoop(void);
+
+// __________________________________________________________________________________________________
+// Function: Video_AddMessage
+// Purpose:  Adds a message to the display queue, to be shown forthe specified time
+// input:    pointer to the null-terminated string, time in milliseconds
+// output:   none
+//
+EXPORT void CALL Video_AddMessage(const char* pstr, unsigned int milliseconds);
 
 #undef CALL
 

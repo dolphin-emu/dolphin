@@ -18,10 +18,22 @@
 #include "Utils.h"
 #include "EmuWindow.h"
 
+#include <list>
+using namespace std;
+
 float Renderer::m_x,Renderer::m_y,Renderer::m_width, Renderer::m_height, Renderer::xScale,Renderer::yScale;
 
 #define NUMWNDRES 6
 extern int g_Res[NUMWNDRES][2];
+
+struct MESSAGE
+{
+    MESSAGE() {}
+    MESSAGE(const char* p, u32 dw) { strcpy(str, p); dwTimeStamp = dw; }
+    char str[255];
+    u32 dwTimeStamp;
+};	
+static std::list<MESSAGE> s_listMsgs;
 
 void Renderer::Init(SVideoInitialize &_VideoInitialize) 
 {
@@ -69,6 +81,45 @@ void Renderer::Initialize(void)
 	CVertexHandler::BeginFrame();
 }
 
+void Renderer::AddMessage(const char* pstr, u32 ms)
+{
+    s_listMsgs.push_back(MESSAGE(pstr, timeGetTime()+ms));
+}
+
+void Renderer::ProcessMessages()
+{
+	if (s_listMsgs.size() > 0) {
+        int left = 25, top = 15;
+        list<MESSAGE>::iterator it = s_listMsgs.begin();
+        
+        while( it != s_listMsgs.end() ) 
+		{
+			int time_left = (int)(it->dwTimeStamp - timeGetTime());
+			int alpha = 255;
+
+			if(time_left<1024)
+			{
+				alpha=time_left>>2;
+				if(time_left<0) alpha=0;
+			}
+
+			alpha<<=24;
+
+            RenderText(it->str, left+1, top+1, 0x000000|alpha);
+            RenderText(it->str, left, top, 0xffff30|alpha);
+            top += 15;
+
+            if (time_left <= 0)
+                it = s_listMsgs.erase(it);
+            else ++it;
+        }
+    }
+}
+
+void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
+{
+	D3D::font.DrawTextScaled(left,top,20,20,0.0f,color,pstr,false);
+}
 
 void dumpMatrix(D3DXMATRIX &mtx)
 {
@@ -144,6 +195,8 @@ void Renderer::SwapBuffers(void)
 
 		//end frame
 	}
+
+	ProcessMessages();
 
 #if defined(DVPROFILE)
     if( g_bWriteProfile ) {

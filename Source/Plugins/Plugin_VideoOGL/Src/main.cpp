@@ -239,3 +239,8 @@ BOOL Video_Screenshot(TCHAR* _szFilename)
 void Video_UpdateXFB(BYTE* _pXFB, DWORD _dwWidth, DWORD _dwHeight)
 {
 }
+
+void Video_AddMessage(const char* pstr, u32 milliseconds)
+{
+	Renderer::AddMessage(pstr,milliseconds);
+}

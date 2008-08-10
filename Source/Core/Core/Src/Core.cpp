@@ -133,6 +133,9 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 	emuThreadGoing.Shutdown();
 	// all right ... here we go
 	Host_SetWaitCursor(false);
+
+	PluginVideo::Video_AddMessage("Emulation started.",3000);
+
 	return true;
 }
 
