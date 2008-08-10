@@ -83,7 +83,7 @@ void CInterpreter::lfdx(UGeckoInstruction _inst)
 
 void CInterpreter::lfs(UGeckoInstruction _inst)
 {
-	u32 uTemp  = Memory::Read_U32(Helper_Get_EA(_inst));
+	u32 uTemp = Memory::Read_U32(Helper_Get_EA(_inst));
 	rPS0(_inst.FD) = *(float*)&uTemp;
 	rPS1(_inst.FD) = rPS0(_inst.FD);
 }
@@ -629,6 +629,8 @@ void CInterpreter::sync(UGeckoInstruction _inst)
 
 void CInterpreter::tlbia(UGeckoInstruction _inst)
 {
+	// Gekko does not support this instructions.
+	PanicAlert("The GC CPU does not support tlbia");
 	// invalid the whole TLB 
 	//MessageBox(0,"TLBIA","TLBIA",0);
 }

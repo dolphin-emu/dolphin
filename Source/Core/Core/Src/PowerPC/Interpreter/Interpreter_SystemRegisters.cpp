@@ -221,10 +221,18 @@ void CInterpreter::mtsrin(UGeckoInstruction _inst)
 	PowerPC::ppcState.sr[index] = m_GPR[_inst.RS];
 }
 
+void CInterpreter::mftb(UGeckoInstruction _inst)
+{
+	int iIndex = (_inst.TBR >> 5) | ((_inst.TBR&0x1F) << 5);
+	if (iIndex == 268)		m_GPR[_inst.RD] = TL;
+	else if (iIndex == 269)	m_GPR[_inst.RD] = TU;
+	else					_dbg_assert_(GEKKO,0);
+}
+
+
 void CInterpreter::mfspr(UGeckoInstruction _inst)
 {
 	u32 iIndex = ((_inst.SPR & 0x1F) << 5) + ((_inst.SPR >> 5)&0x1F);
-	m_GPR[_inst.RD] = rSPR(iIndex);
 
 	//TODO - check processor privilege level - many of these require privilege
 	//XER LR CTR are the only ones available in user mode, time base can be read too.
@@ -241,19 +249,16 @@ void CInterpreter::mfspr(UGeckoInstruction _inst)
 			//(or if it's full, not sure)
 			//MessageBox(NULL, "Read from SPR_WPAR", "????", MB_OK);
 			//Paper Mario reads here, this should be investigated ... TODO(ector)
+			bool wpar_empty = false;
+			if (!wpar_empty)
+				rSPR(iIndex) |= 1;  // BNE = buffer not empty
+			else
+				rSPR(iIndex) &= ~1;
 		}		
 		break;
 	}
+	m_GPR[_inst.RD] = rSPR(iIndex);
 }
-
-void CInterpreter::mftb(UGeckoInstruction _inst)
-{
-	int iIndex = (_inst.TBR >> 5) | ((_inst.TBR&0x1F) << 5);
-	if (iIndex == 268)		m_GPR[_inst.RD] = TL;
-	else if (iIndex == 269)	m_GPR[_inst.RD] = TU;
-	else					_dbg_assert_(GEKKO,0);
-}
-
 
 void CInterpreter::mtspr(UGeckoInstruction _inst)
 {
@@ -285,14 +290,20 @@ void CInterpreter::mtspr(UGeckoInstruction _inst)
 
 	case SPR_HID2: // HID2
 		{
+			UReg_HID2 old_hid2;
+			old_hid2.Hex = oldValue;
+
 			if (HID2.PSE == 0)
 				PanicAlert("WARNING: PSE in HID2 isnt set");
 
 			bool WriteGatherPipeEnable = (bool)HID2.WPE; //TODO?
 			bool LockedCacheEnable = (bool)HID2.LCE;
 			int DMAQueueLength = HID2.DMAQL; // Ignore - our DMA:s are instantaneous
+			bool PairedSingleEnable = HID2.PSE;
+			bool QuantizeEnable = HID2.LSQE;
 			//TODO(ector): Protect LC memory if LCE is false.
 			//TODO(ector): Honor PSE.
+
 			//
 			//_assert_msg_(GEKKO, WriteGatherPipeEnable, "Write gather pipe not enabled!");
 			//if ((HID2.PSE == 0))
@@ -301,11 +312,13 @@ void CInterpreter::mtspr(UGeckoInstruction _inst)
 		break;
 
 	case SPR_WPAR:
-		_assert_msg_(GEKKO, m_GPR[_inst.RD] == 0x0C008000,"Gather pipe @ %08x", );
+		_assert_msg_(GEKKO, m_GPR[_inst.RD] == 0x0C008000, "Gather pipe @ %08x");
 		GPFifo::ResetGatherPipe();
 		break;
 
-	case SPR_DMAL: //locked cache DMA
+	case SPR_DMAL:
+		// Locked cache<->Memory DMA
+		// Total fake, we ignore that DMAs take time.
 		if (DMAL.DMA_T) 
 		{
 			u32 dwMemAddress = DMAU.MEM_ADDR << 5;

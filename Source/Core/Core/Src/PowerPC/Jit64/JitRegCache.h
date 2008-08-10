@@ -78,6 +78,14 @@ namespace Jit64
 		virtual void Start(PPCAnalyst::BlockRegStats &stats) = 0;
 		void FlushR(X64Reg reg); 
 		void FlushR(X64Reg reg, X64Reg reg2) {FlushR(reg); FlushR(reg2);}
+		void FlushLockX(X64Reg reg) {
+			FlushR(reg);
+			LockX(reg);
+		}
+		void FlushLockX(X64Reg reg1, X64Reg reg2) {
+			FlushR(reg1); FlushR(reg2);
+			LockX(reg1); LockX(reg2);
+		}
 		virtual void Flush(FlushMode mode);
 		virtual void Flush(PPCAnalyst::CodeOp *op) {Flush(FLUSH_ALL);}
 		void End() {Flush(FLUSH_ALL);}

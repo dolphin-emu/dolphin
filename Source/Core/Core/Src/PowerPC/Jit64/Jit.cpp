@@ -14,8 +14,10 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-#include "Common.h"
+
 #include <map>
+
+#include "Common.h"
 #include "x64Emitter.h"
 #include "ABI.h"
 #include "../../HLE/HLE.h"
@@ -235,7 +237,7 @@ namespace Jit64
 		if (js.isLastInstruction)
 		{
 			MOV(32, M(&PC), Imm32(js.compilerPC));
-			MOV(32, M(&NPC), Imm32(js.compilerPC+4));
+			MOV(32, M(&NPC), Imm32(js.compilerPC + 4));
 		}
 		CInterpreter::_interpreterInstruction instr = GetInterpreterOp(_inst);
 		ABI_CallFunctionC((void*)instr, _inst.hex);

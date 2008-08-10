@@ -234,6 +234,7 @@ namespace Jit64
 	bool FPURegCache::IsXRegVolatile(X64Reg reg) const
 	{
 #ifdef _WIN32
+		// return true;
 		if (reg < 6) 
 			return true;
 		else
@@ -263,7 +264,7 @@ namespace Jit64
 			R12, R13, R14, R8, R9, R10, R11, RSI, RDI //, RCX
 #endif
 #elif _M_IX86
-			ESI, EDI, EBX, EBP, EDX //, RCX
+			ESI, EDI, EBX, EBP, EDX
 #endif
 		};
 		count = sizeof(allocationOrder) / sizeof(const int);

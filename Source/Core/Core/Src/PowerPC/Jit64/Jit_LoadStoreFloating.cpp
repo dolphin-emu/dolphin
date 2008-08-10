@@ -47,6 +47,12 @@
 namespace Jit64
 {
 
+// pshufb todo: MOVQ
+const u8 GC_ALIGNED16(bswapShuffle1x4[16]) = {3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+const u8 GC_ALIGNED16(bswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
+const u8 GC_ALIGNED16(bswapShuffle1x8[16]) = {7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 11, 12, 13, 14, 15};
+const u8 GC_ALIGNED16(bswapShuffle2x8[16]) = {7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8};
+
 static u64 GC_ALIGNED16(temp64);
 static u32 GC_ALIGNED16(temp32);
 
@@ -67,7 +73,12 @@ void lfs(UGeckoInstruction inst)
 	}
 	s32 offset = (s32)(s16)inst.SIMM_16;
 
-	gpr.Flush(FLUSH_VOLATILE);
+	if (jo.noAssumeFPLoadFromMem) {
+		// We might call a function.
+		gpr.Flush(FLUSH_VOLATILE);
+		fpr.Flush(FLUSH_VOLATILE);
+		gpr.FlushLockX(ABI_PARAM1);
+	}
 	gpr.Lock(d, a);
 	
 	MOV(32, R(ABI_PARAM1), gpr.R(a));
@@ -86,6 +97,7 @@ void lfs(UGeckoInstruction inst)
 	CVTSS2SD(fpr.RX(d), M(&temp32));
 	MOVDDUP(fpr.RX(d), fpr.R(d));
 	gpr.UnlockAll();
+	gpr.UnlockAllX();
 	fpr.UnlockAll();
 }
 
@@ -127,6 +139,7 @@ void stfd(UGeckoInstruction inst)
 	s32 offset = (s32)(s16)inst.SIMM_16;
 	gpr.Lock(a);
 	fpr.Lock(s);
+	gpr.FlushLockX(ABI_PARAM1);
 	fpr.LoadToX64(s, true, false);
 	MOVSD(M(&temp64), fpr.RX(s));
 	MOV(32, R(ABI_PARAM1), gpr.R(a));
@@ -134,25 +147,24 @@ void stfd(UGeckoInstruction inst)
 	BSWAP(64, EAX);
 	MOV(64, MComplex(RBX, ABI_PARAM1, SCALE_1, offset), R(EAX));
 	gpr.UnlockAll();
+	gpr.UnlockAllX();
 	fpr.UnlockAll();
 }
 
 void stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	DISABLE_32BIT;
 	bool update = inst.OPCD & 1;
 	int s = inst.RS;
 	int a = inst.RA;
 	s32 offset = (s32)(s16)inst.SIMM_16;
-
 	if (a && !update)
 	{
 		gpr.Flush(FLUSH_VOLATILE);
-//		fpr.Flush(FLUSH_VOLATILE);
+		fpr.Flush(FLUSH_VOLATILE);
 		gpr.Lock(a);
 		fpr.Lock(s);
-		gpr.LockX(ABI_PARAM1, ABI_PARAM2);
+		gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
 		MOV(32, R(ABI_PARAM2), gpr.R(a));
 		if (update && offset)
 		{
@@ -161,7 +173,6 @@ void stfs(UGeckoInstruction inst)
 		CVTSD2SS(XMM0, fpr.R(s));
 		MOVSS(M(&temp32), XMM0);
 		MOV(32, R(ABI_PARAM1), M(&temp32));
-
 		SafeWriteRegToReg(ABI_PARAM1, ABI_PARAM2, 32, offset);
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
@@ -176,7 +187,6 @@ void stfs(UGeckoInstruction inst)
 void lfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	DISABLE_32BIT;
 	fpr.Lock(inst.RS);
 	fpr.LoadToX64(inst.RS, false, true);
 	MOV(32, R(EAX), gpr.R(inst.RB));

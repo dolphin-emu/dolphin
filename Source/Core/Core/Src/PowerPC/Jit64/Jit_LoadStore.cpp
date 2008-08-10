@@ -120,6 +120,8 @@ namespace Jit64
 	void lbzx(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
+		gpr.Flush(FLUSH_VOLATILE);
+		fpr.Flush(FLUSH_VOLATILE);
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		gpr.Lock(a, b, d);
 		if (b == d || a == d)
@@ -183,12 +185,14 @@ namespace Jit64
 			// Safe and boring
 			gpr.Flush(FLUSH_VOLATILE);
 			fpr.Flush(FLUSH_VOLATILE);
+			gpr.FlushLockX(ABI_PARAM1);
 			gpr.Lock(d, a);
 			MOV(32, R(ABI_PARAM1), gpr.R(a));
 			SafeLoadRegToEAX(ABI_PARAM1, accessSize, offset);
 			gpr.LoadToX64(d, false, true);
 			MOV(32, gpr.R(d), R(EAX));
 			gpr.UnlockAll();
+			gpr.UnlockAllX();
 			return;
 		}
 
@@ -219,12 +223,14 @@ namespace Jit64
 		// Safe and boring
 		gpr.Flush(FLUSH_VOLATILE);
 		fpr.Flush(FLUSH_VOLATILE);
+		gpr.FlushLockX(ABI_PARAM1);
 		gpr.Lock(d, a);
 		MOV(32, R(ABI_PARAM1), gpr.R(a));
 		SafeLoadRegToEAX(ABI_PARAM1, 16, offset, true);
-		gpr.LoadToX64(d, false, true);
+		gpr.LoadToX64(d, d == a, true);
 		MOV(32, gpr.R(d), R(EAX));
 		gpr.UnlockAll();
+		gpr.UnlockAllX();
 		return;
 	}
 
@@ -232,14 +238,19 @@ namespace Jit64
 	void dcbz(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
-		DISABLE_32BIT;
 		MOV(32, R(EAX), gpr.R(inst.RB));
 		if (inst.RA)
 			ADD(32, R(EAX), gpr.R(inst.RA));
 		AND(32, R(EAX), Imm32(~31));
 		XORPD(XMM0, R(XMM0));
+#ifdef _M_X64
 		MOVAPS(MComplex(EBX, EAX, SCALE_1, 0), XMM0);
 		MOVAPS(MComplex(EBX, EAX, SCALE_1, 16), XMM0);
+#else
+		AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
+		MOVAPS(MDisp(EAX, (u32)Memory::base), XMM0);
+		MOVAPS(MDisp(EAX, (u32)Memory::base + 16), XMM0);
+#endif
 	}
 
 #ifndef _WIN32
@@ -262,7 +273,7 @@ namespace Jit64
 		if (a || update) 
 		{
 			gpr.Flush(FLUSH_VOLATILE);
-
+			fpr.Flush(FLUSH_VOLATILE);
 			int accessSize;
 			switch (inst.OPCD & ~1)
 			{
@@ -340,6 +351,7 @@ namespace Jit64
 */
 			//Still here? Do regular path.
 			gpr.Lock(s, a);
+			gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
 			MOV(32, R(ABI_PARAM2), gpr.R(a));
 			MOV(32, R(ABI_PARAM1), gpr.R(s));
 			if (offset)
@@ -370,10 +382,11 @@ namespace Jit64
 			{
 			case 32: ABI_CallFunctionRR((void *)&Memory::Write_U32, ABI_PARAM1, ABI_PARAM2); break;
 			case 16: ABI_CallFunctionRR((void *)&Memory::Write_U16, ABI_PARAM1, ABI_PARAM2); break;
-			case 8:  ABI_CallFunctionRR((void *)&Memory::Write_U8, ABI_PARAM1, ABI_PARAM2); break;
+			case 8:  ABI_CallFunctionRR((void *)&Memory::Write_U8,  ABI_PARAM1, ABI_PARAM2); break;
 			}
 			SetJumpTarget(arg2);
 			gpr.UnlockAll();
+			gpr.UnlockAllX();
 		}
 		else
 		{

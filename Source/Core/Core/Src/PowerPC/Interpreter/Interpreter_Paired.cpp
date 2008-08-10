@@ -642,6 +642,8 @@ void CInterpreter::ps_merge11(UGeckoInstruction _inst)
 void 
 CInterpreter::dcbz_l(UGeckoInstruction _inst)
 {
+	// This is supposed to allocate a cache line in the locked cache. Not entirely sure how
+	// this is visible to the rest of the world. For now, we ignore it.
 	/*
 	addr_t ea = Helper_Get_EA(_inst);
 

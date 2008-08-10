@@ -125,6 +125,8 @@ void psq_st(UGeckoInstruction inst)
 	{
 		DISABLE_32BIT;
 		gpr.Flush(FLUSH_VOLATILE);
+		fpr.Flush(FLUSH_VOLATILE);
+		gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
 		gpr.Lock(a);
 		fpr.Lock(s);
 		if (update)
@@ -147,14 +149,12 @@ void psq_st(UGeckoInstruction inst)
 		CALL((void *)&WriteDual32); 
 		SetJumpTarget(arg2);
 		gpr.UnlockAll();
+		gpr.UnlockAllX();
 		fpr.UnlockAll();
 	}
 	else if (stType == QUANTIZE_U8)
 	{
-		gpr.FlushR(ABI_PARAM1);
-		gpr.FlushR(ABI_PARAM2);
-		gpr.LockX(ABI_PARAM1);
-		gpr.LockX(ABI_PARAM2);
+		gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
 		gpr.Lock(a);
 		fpr.Lock(s);
 		if (update)
@@ -187,10 +187,7 @@ void psq_st(UGeckoInstruction inst)
 	} 
 	else if (stType == QUANTIZE_S16)
 	{
-		gpr.FlushR(ABI_PARAM1);
-		gpr.FlushR(ABI_PARAM2);
-		gpr.LockX(ABI_PARAM1);
-		gpr.LockX(ABI_PARAM2);
+		gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
 		gpr.Lock(a);
 		fpr.Lock(s);
 		if (update)
