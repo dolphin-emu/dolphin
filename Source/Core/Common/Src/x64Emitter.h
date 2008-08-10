@@ -414,9 +414,9 @@ namespace Gen
 	void MOVMSKPD(X64Reg dest, OpArg arg);
 
 	void MOVD_xmm(X64Reg dest, const OpArg &arg);
-	void MOVQ_xmm(X64Reg dest, const OpArg &arg);
+	void MOVQ_xmm(X64Reg dest, OpArg arg);
 	void MOVD_xmm(const OpArg &arg, X64Reg src);
-	void MOVQ_xmm(const OpArg &arg, X64Reg src);
+	void MOVQ_xmm(OpArg arg, X64Reg src);
 
 	void MASKMOVDQU(X64Reg dest, X64Reg src);
 	void LDDQU(X64Reg dest, OpArg src);

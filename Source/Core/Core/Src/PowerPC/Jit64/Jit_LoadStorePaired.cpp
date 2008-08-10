@@ -46,8 +46,8 @@
 
 namespace Jit64 {
 
-static double GC_ALIGNED16(psTemp[2]) = {1.0, 1.0};
-static u64 GC_ALIGNED16(temp64);
+double GC_ALIGNED16(psTemp[2]) = {1.0, 1.0};
+u64 GC_ALIGNED16(temp64);
 
 // TODO(ector): Improve 64-bit version
 void WriteDual32(u64 value, u32 address)
@@ -139,7 +139,7 @@ void psq_st(UGeckoInstruction inst)
 			MOV(32, gpr.R(a), R(ABI_PARAM2));
 		CVTPD2PS(XMM0, fpr.R(s));
 		SHUFPS(XMM0, R(XMM0), 1);
-		MOVAPS(M(&temp64), XMM0);
+		MOVQ_xmm(M(&temp64), XMM0);
 		MOV(64, R(ABI_PARAM1), M(&temp64));
 		FixupBranch argh = J_CC(CC_NZ);
 		BSWAP(64, ABI_PARAM1);
@@ -170,7 +170,7 @@ void psq_st(UGeckoInstruction inst)
 		CVTPD2DQ(XMM0, R(XMM0));
 		PACKSSDW(XMM0, R(XMM0));
 		PACKUSWB(XMM0, R(XMM0));
-		MOVAPS(M(&temp64), XMM0);
+		MOVD_xmm(M(&temp64), XMM0);
 		MOV(16, R(ABI_PARAM1), M(&temp64));
 #ifdef _M_X64
 		MOV(16, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));

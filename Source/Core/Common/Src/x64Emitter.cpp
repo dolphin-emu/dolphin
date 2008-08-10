@@ -25,15 +25,16 @@ namespace Gen
 	static bool mode32 = false;
     static bool enableBranchHints = false;
 
-
 	void SetCodePtr(u8 *ptr)
 	{
 		code = ptr;
 	}
+
 	const u8 *GetCodePtr()
 	{
 		return code;
 	}
+
 	u8 *GetWritableCodePtr()
 	{
 		return code;
@@ -107,18 +108,18 @@ namespace Gen
 	{
 #ifdef _M_X64
 		u8 op = 0x40;
-		if (customOp == -1) customOp = operandReg;
+		if (customOp == -1)       customOp = operandReg;
 		if (op64)                 op |= 8;
-		if (customOp >> 3)      op |= 4;
+		if (customOp >> 3)        op |= 4;
 		if (indexReg >> 3)        op |= 2;
 		if (offsetOrBaseReg >> 3) op |= 1; //TODO investigate if this is dangerous
-		_dbg_assert_msg_(DYNA_REC,!mode32 || op == 0x40,"!mode32");
+		_dbg_assert_msg_(DYNA_REC, !mode32 || op == 0x40, "!mode32");
 		if (op != 0x40)
 			Write8(op);
 #else
-		_dbg_assert_(DYNA_REC,(operandReg >> 3) == 0);
-		_dbg_assert_(DYNA_REC,(indexReg >> 3) == 0);
-		_dbg_assert_(DYNA_REC,(offsetOrBaseReg >> 3) == 0);
+		_dbg_assert_(DYNA_REC, (operandReg >> 3) == 0);
+		_dbg_assert_(DYNA_REC, (indexReg >> 3) == 0);
+		_dbg_assert_(DYNA_REC, (offsetOrBaseReg >> 3) == 0);
 #endif
 	}
 
@@ -970,6 +971,53 @@ namespace Gen
 		arg.WriteRest(extrabytes);
 	}
 
+	void MOVD_xmm(X64Reg dest, const OpArg &arg) {WriteSSEOp(64, 0x6E, true, dest, arg, 0);}
+
+	void MOVQ_xmm(X64Reg dest, OpArg arg) {
+		if (dest > 7)
+		{
+			// Alternate encoding
+			// This does not display correctly in MSVC's debugger, it thinks it's a MOVD
+			arg.operandReg = dest;
+			Write8(0x66);
+			arg.WriteRex(true);
+			Write8(0x0f);
+			Write8(0x6E);
+			arg.WriteRest(0);
+		} else {
+			arg.operandReg = dest;
+			arg.WriteRex(false);
+			Write8(0xF3);
+			Write8(0x0f);
+			Write8(0x7E);
+			arg.WriteRest(0);
+		}
+	}
+
+	void MOVD_xmm(const OpArg &arg, X64Reg src) {WriteSSEOp(64, 0x7E, true, src, arg, 0);}
+	void MOVQ_xmm(OpArg arg, X64Reg src) {
+		if (src > 7)
+		{
+			// Alternate encoding
+			// This does not display correctly in MSVC's debugger, it thinks it's a MOVD
+			arg.operandReg = src;
+			Write8(0x66);
+			arg.WriteRex(true);
+			Write8(0x0f);
+			Write8(0x7E);
+			arg.WriteRest(0);
+		} else {
+			// INT3();
+			arg.operandReg = src;
+			arg.WriteRex(false);
+			Write8(0x66);
+			Write8(0x0f);
+			Write8(0xD6);
+			arg.WriteRest(0);
+		}
+	}
+
+
 
 	void WriteMXCSR(OpArg arg, int ext)
 	{
@@ -1123,12 +1171,6 @@ namespace Gen
 		}
 	}
 
-	void MOVD_xmm(X64Reg dest, const OpArg &arg){WriteSSEOp(64, 0x6E, true, dest, arg, 0);}
-	void MOVQ_xmm(X64Reg dest, const OpArg &arg){WriteSSEOp(64, 0x6E, false, dest, arg, 0);}
-	void MOVD_xmm(const OpArg &arg, X64Reg src) {WriteSSEOp(64, 0x7E, true, src, arg, 0);}
-	void MOVQ_xmm(const OpArg &arg, X64Reg src) {WriteSSEOp(64, 0x7E, false, src, arg, 0);}
-
-
 	//There are a few more left
 
 	// Also some integer instrucitons are missing
@@ -1165,8 +1207,11 @@ namespace Gen
 	}
 
 	void PSHUFB(X64Reg dest, OpArg arg) {
-		INT3();  //still untested
+		if (!cpu_info.bSSE3NewInstructions) {
+			PanicAlert("Trying to use PSHUFB on a system that doesn't support it. Bad programmer.");
+		}
 		Write8(0x66);
+		arg.operandReg = dest;
 		arg.WriteRex(false);
 		Write8(0x0f);
 		Write8(0x38);
