@@ -186,8 +186,8 @@ GekkoOPTemplate primarytable[] =
 	{54, CInterpreter::stfd,      Jit64::stfd,     {"stfd",  OPTYPE_STOREFP, 0}},
 	{55, CInterpreter::stfdu,     Jit64::Default,  {"stfdu", OPTYPE_STOREFP, 0}},
 
-	{46, CInterpreter::lmw,       Jit64::lmw,      {"lmw",   OPTYPE_SYSTEM, 0}},
-	{47, CInterpreter::stmw,      Jit64::stmw,     {"stmw",  OPTYPE_SYSTEM, 0}},
+	{46, CInterpreter::lmw,       Jit64::lmw,      {"lmw",   OPTYPE_SYSTEM, 0, 10}},
+	{47, CInterpreter::stmw,      Jit64::stmw,     {"stmw",  OPTYPE_SYSTEM, 0, 10}},
 
 	{56, CInterpreter::psq_l,     Jit64::psq_l,    {"psq_l",   OPTYPE_PS, 0}},
 	{57, CInterpreter::psq_lu,    Jit64::psq_l,    {"psq_lu",  OPTYPE_PS, 0}},

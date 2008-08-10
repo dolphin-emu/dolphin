@@ -1144,6 +1144,8 @@ namespace Gen
 
 	// WARNING not REX compatible
 	void PSRAW(X64Reg reg, int shift) {
+		if (reg > 7)
+			PanicAlert("The PSRAW-emitter does not support regs above 7");
 		Write8(0x66);
 		Write8(0x0f);
 		Write8(0x71);
@@ -1153,12 +1155,25 @@ namespace Gen
 	
 	// WARNING not REX compatible
 	void PSRAD(X64Reg reg, int shift) {
+		if (reg > 7)
+			PanicAlert("The PSRAD-emitter does not support regs above 7");
 		Write8(0x66);
 		Write8(0x0f);
 		Write8(0x72);
 		Write8(0xE0 | reg);
 		Write8(shift);
 	}
+
+	void PSHUFB(X64Reg dest, OpArg arg) {
+		INT3();  //still untested
+		Write8(0x66);
+		arg.WriteRex(false);
+		Write8(0x0f);
+		Write8(0x38);
+		Write8(0x00);
+		arg.WriteRest(0);
+	}
+
 	void PAND(X64Reg dest, OpArg arg)     {WriteSSEOp(64, 0xDB, true, dest, arg);}
 	void PANDN(X64Reg dest, OpArg arg)    {WriteSSEOp(64, 0xDF, true, dest, arg);}
 	void PXOR(X64Reg dest, OpArg arg)     {WriteSSEOp(64, 0xEF, true, dest, arg);}
@@ -1230,7 +1245,7 @@ namespace Gen
 		// Don't really need to do anything
 #elif defined(_M_X64)
 #if _WIN32
-		int stacksize = ((maxCallParams+1)&~1)*8 + 8;
+		int stacksize = ((maxCallParams + 1) & ~1)*8 + 8;
 		// Set up a stack frame so that we can call functions
 		// TODO: use maxCallParams
 	    SUB(64, R(RSP), Imm8(stacksize));

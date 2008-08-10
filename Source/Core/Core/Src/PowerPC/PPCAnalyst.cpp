@@ -623,10 +623,13 @@ void PPCAnalyst::FindFunctionsFromBranches(u32 startAddr, u32 endAddr)
 				{
 					if (instr.LK) //bl
 					{
-						u32 target = SignExt26(instr.LI<<2);
+						u32 target = SignExt26(instr.LI << 2);
 						if (!instr.AA)
 							target += addr;
-						PPCAnalyst::AddFunction(target);
+						if (Memory::IsRAMAddress(target))
+						{
+							PPCAnalyst::AddFunction(target);
+						}
 					}
 				}
 				break;

@@ -493,6 +493,7 @@ namespace Gen
 	void PMINUB(X64Reg dest, OpArg arg);  
 
 	void PMOVMSKB(X64Reg dest, OpArg arg);
+	void PSHUFB(X64Reg dest, OpArg arg);
 
 	namespace Util
 	{

@@ -67,6 +67,8 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
     EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleMemoryWindow)
 
 	EVT_MENU(IDM_SCANFUNCTIONS,     CCodeWindow::OnSymbolsMenu)
+	EVT_MENU(IDM_LOADMAPFILE,       CCodeWindow::OnSymbolsMenu)
+	EVT_MENU(IDM_SAVEMAPFILE,       CCodeWindow::OnSymbolsMenu)
 	// toolbar
 	EVT_MENU(IDM_DEBUG_GO,			CCodeWindow::OnCodeStep)
 	EVT_MENU(IDM_STEP,				CCodeWindow::OnCodeStep)
@@ -261,13 +263,50 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		// TODO: disable menu items instead :P
 		return;
 	}
+	wxString path;
 	switch (event.GetId())
 	{
 	case IDM_SCANFUNCTIONS:
 		PPCAnalyst::FindFunctions(0x80003100, 0x80400000);
-		PPCAnalyst::LoadFuncDB("data/totaldb.dsy");
+		PPCAnalyst::LoadFuncDB("Data/totaldb.dsy");
 		Debugger::GetFromAnalyzer();
 		NotifyMapLoaded();
+		break;
+	case IDM_LOADMAPFILE:
+		path = wxFileSelector(
+				_T("Select the mapfile to load"),
+				wxEmptyString, wxEmptyString, wxEmptyString,
+				wxString::Format
+				(
+						_T("Map files (*.map)|*.map|All files (%s)|%s"),
+						wxFileSelectorDefaultWildcardStr,
+						wxFileSelectorDefaultWildcardStr
+				),
+				wxFD_OPEN | wxFD_FILE_MUST_EXIST,
+				this);
+		if (!path)
+		{
+			return;
+		}
+		Debugger::LoadSymbolMap(path.c_str());
+		break;
+	case IDM_SAVEMAPFILE:
+		path = wxFileSelector(
+				_T("Name your mapfile"),
+				wxEmptyString, wxEmptyString, wxEmptyString,
+				wxString::Format
+				(
+						_T("Map files (*.map)|*.map|All files (%s)|%s"),
+						wxFileSelectorDefaultWildcardStr,
+						wxFileSelectorDefaultWildcardStr
+				),
+				wxFD_SAVE,
+				this);
+		if (!path)
+		{
+			return;
+		}
+		Debugger::SaveSymbolMap(path.c_str());
 		break;
 	}
 }
@@ -432,6 +471,11 @@ void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
 	{
 		codeview->Center(pSymbol->vaddress);
 	}
+}
+
+void CCodeWindow::OnSymbolListContextMenu(wxContextMenuEvent& event)
+{
+	int index = symbols->GetSelection();
 }
 
 

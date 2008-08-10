@@ -70,7 +70,12 @@ void PPCDebugInterface::clearAllBreakpoints() {}
 
 void PPCDebugInterface::toggleBreakpoint(unsigned int address)
 {
-	CBreakPoints::IsAddressBreakPoint(address)?CBreakPoints::RemoveBreakPoint(address):CBreakPoints::AddBreakPoint(address);
+	CBreakPoints::IsAddressBreakPoint(address) ? CBreakPoints::RemoveBreakPoint(address) : CBreakPoints::AddBreakPoint(address);
+}
+
+void PPCDebugInterface::insertBLR(unsigned int address) 
+{
+	Memory::Write_U32(0x4e800020, address);
 }
 
 int PPCDebugInterface::getColor(unsigned int address)

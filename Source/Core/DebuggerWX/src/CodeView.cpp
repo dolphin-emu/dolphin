@@ -29,6 +29,7 @@ enum
 	IDM_COPYADDRESS,
 	IDM_COPYHEX,
 	IDM_COPYCODE,
+	IDM_INSERTBLR,
 	IDM_RUNTOHERE,
 	IDM_DYNARECRESULTS,
 };
@@ -183,6 +184,13 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 	    }
 		    break;
 
+		case IDM_INSERTBLR:
+		{
+			debugger->insertBLR(selection);
+		    redraw();
+			break;
+		}
+
 	    case IDM_DYNARECRESULTS:
 	    {
 //			CDynaViewDlg::ViewAddr(selection);
@@ -210,6 +218,7 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
 	menu.Append(IDM_COPYHEX, wxString::FromAscii("Copy &hex"));
 #endif
 	menu.Append(IDM_RUNTOHERE, _T("&Run To Here"));
+	menu.Append(IDM_INSERTBLR, wxString::FromAscii("Insert &blr"));
 	//menu.Append(IDM_DYNARECRESULTS, "Copy &address");
 	PopupMenu(&menu);
 	event.Skip(true);

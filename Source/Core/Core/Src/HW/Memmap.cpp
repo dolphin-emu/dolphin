@@ -884,11 +884,14 @@ bool IsRAMAddress(const u32 addr)
 	case 0x00:
 	case 0x80:
 	case 0xC0:
-		return true;
+		if ((addr & 0x1FFFFFFF) < RAM_SIZE)
+			return true;
+		else
+			return false;
 	case 0x10:
 	case 0x90:
 	case 0xD0:
-		if (Core::g_CoreStartupParameter.bWii) 
+		if (Core::g_CoreStartupParameter.bWii && (addr & 0x1FFFFFFF) < EXRAM_SIZE)
 			return true;
 		else
 			return false;

@@ -379,7 +379,6 @@ CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 			),
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
-
 	if (!path)
 	{
 		return;

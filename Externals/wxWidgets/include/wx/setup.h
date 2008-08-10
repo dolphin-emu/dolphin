@@ -1010,7 +1010,7 @@
 // Default is 1.
 //
 // Recommended setting: 1
-#define wxUSE_CLIPBOARD     0
+#define wxUSE_CLIPBOARD     1
 
 // Use wxDataObject and related classes. Needed for clipboard and OLE drag and
 // drop

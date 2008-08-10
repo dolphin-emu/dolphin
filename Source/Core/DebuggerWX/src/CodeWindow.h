@@ -79,6 +79,8 @@ class CCodeWindow
 			IDM_BREAKPOINTWINDOW,
 			IDM_MEMORYWINDOW,
 			IDM_SCANFUNCTIONS,
+			IDM_LOADMAPFILE,
+			IDM_SAVEMAPFILE,
 		};
 
 		enum
@@ -109,6 +111,7 @@ class CCodeWindow
 		DECLARE_EVENT_TABLE()
 
 		void OnSymbolListChange(wxCommandEvent& event);
+		void OnSymbolListContextMenu(wxContextMenuEvent& event);
 		void OnCallstackListChange(wxCommandEvent& event);
 		void OnCodeStep(wxCommandEvent& event);
 
