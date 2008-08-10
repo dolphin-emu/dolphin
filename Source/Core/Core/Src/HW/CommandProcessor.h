@@ -87,6 +87,7 @@ void HWCALL Read32(u32& _rReturnValue, const u32 _Address);
 void HWCALL Write32(const u32 _Data, const u32 _Address);
 
 // for CGPFIFO
+void CatchUpGPU();
 void GatherPipeBursted();
 void UpdateInterrupts();
 void UpdateInterruptsFromVideoPlugin();

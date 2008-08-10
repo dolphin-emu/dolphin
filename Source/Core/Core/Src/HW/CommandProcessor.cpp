@@ -15,6 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+// TODO
+// * Kick GPU from dispatcher, not from writes
+// * Thunking framework
+// * Cleanup of messy now unnecessary safety code in jit
+
 #include "Common.h"
 #include "../Plugins/Plugin_Video.h"
 #include "../PowerPC/PowerPC.h"
@@ -218,11 +224,11 @@ void Write16(const u16 _Value, const u32 _Address)
 				;
 			fifo.bPauseRead = true;
 		}
+	#ifdef _WIN32
+		EnterCriticalSection(&fifo.sync);
+	#endif
 	}
 
-#ifdef _WIN32
-	EnterCriticalSection(&fifo.sync);
-#endif
 	switch (_Address & 0xFFF)
 	{
 	case STATUS_REGISTER:
@@ -304,7 +310,8 @@ void Write16(const u16 _Value, const u32 _Address)
 	// This will recursively enter fifo.sync, TODO(ector): is this good?
 	UpdateFifoRegister();	
 #ifdef _WIN32
-	LeaveCriticalSection(&fifo.sync);
+	if (Core::g_CoreStartupParameter.bUseDualCore)
+		LeaveCriticalSection(&fifo.sync);
 #endif
 	fifo.bPauseRead = false; // pauseread is not actually used anywhere! TOOD(ector): huh!
 }
@@ -366,6 +373,53 @@ void GatherPipeBursted()
 	}
 }
 
+
+
+void CatchUpGPU()
+{
+	// check if we are able to run this buffer
+	if ((fifo.bFF_GPReadEnable) && !(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
+	{
+		while (fifo.CPReadWriteDistance > 0)
+		{
+			// check if we are on a breakpoint
+			if (fifo.bFF_BPEnable)
+			{
+				//MessageBox(0,"Breakpoint enabled",0,0);
+				if ((fifo.CPReadPointer & ~0x1F) == (fifo.CPBreakpoint & ~0x1F))
+				{
+					//_assert_msg_(GEKKO,0,"BP: %08x",fifo.CPBreakpoint);
+					fifo.bFF_Breakpoint = 1; 
+					m_CPStatusReg.Breakpoint = 1;
+					//g_VideoInitialize.pUpdateInterrupts(); 
+					UpdateInterrupts();
+					break;
+				}
+			}
+
+			// read the data and send it to the VideoPlugin
+
+			u8 *ptr = Memory::GetPointer(fifo.CPReadPointer);
+			fifo.CPReadPointer += 32;
+			// We are going to do FP math on the main thread so have to save the current state
+			SaveSSEState();
+			LoadDefaultSSEState();
+			PluginVideo::Video_SendFifoData(ptr);
+			LoadSSEState();
+
+			fifo.CPReadWriteDistance -= 32;
+
+			// increase the ReadPtr
+			if (fifo.CPReadPointer >= fifo.CPEnd)
+			{
+				fifo.CPReadPointer = fifo.CPBase;				
+				LOG(COMMANDPROCESSOR, "BUFFER LOOP");
+				// PanicAlert("loop now");
+			}
+		}
+	}
+}
+
 // __________________________________________________________________________________________________
 // UpdateFifoRegister
 // It's no problem if the gfx falls behind a little bit. Better make sure to stop the cpu thread
@@ -395,50 +449,7 @@ void UpdateFifoRegister()
 #ifdef _WIN32
 	if (Core::g_CoreStartupParameter.bUseDualCore) LeaveCriticalSection(&fifo.sync);
 #endif
-	if (!Core::g_CoreStartupParameter.bUseDualCore)
-	{
-		// check if we are able to run this buffer
-		if ((fifo.bFF_GPReadEnable) && !(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
-		{
-			while(fifo.CPReadWriteDistance > 0)
-			{
-				// check if we are on a breakpoint
-				if (fifo.bFF_BPEnable)
-				{
-					//MessageBox(0,"Breakpoint enabled",0,0);
-					if ((fifo.CPReadPointer & ~0x1F) == (fifo.CPBreakpoint & ~0x1F))
-					{
-						//_assert_msg_(GEKKO,0,"BP: %08x",fifo.CPBreakpoint);
-						fifo.bFF_Breakpoint = 1; 
-						m_CPStatusReg.Breakpoint = 1;
-						//g_VideoInitialize.pUpdateInterrupts(); 
-						UpdateInterrupts();
-						break;
-					}
-				}
-
-				// read the data and send it to the VideoPlugin
-
-				u8 *ptr = Memory::GetPointer(fifo.CPReadPointer);
-				fifo.CPReadPointer += 32;
-				// We are going to do FP math on the main thread so have to save the current state
-				SaveSSEState();
-				LoadDefaultSSEState();
-				PluginVideo::Video_SendFifoData(ptr);
-				LoadSSEState();
-
-				fifo.CPReadWriteDistance -= 32;
-
-				// increase the ReadPtr
-				if (fifo.CPReadPointer >= fifo.CPEnd)
-				{
-					fifo.CPReadPointer = fifo.CPBase;				
-					LOG(COMMANDPROCESSOR, "BUFFER LOOP");
-					// MessageBox(NULL, "loop", "now", MB_OK);
-				}
-			}
-		}
-	}
+//	if (!Core::g_CoreStartupParameter.bUseDualCore) CatchUpGPU();
 }
 
 void UpdateInterrupts()

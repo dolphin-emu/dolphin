@@ -23,6 +23,7 @@
 #include "../HW/DSP.h"
 #include "../HW/AudioInterface.h"
 #include "../HW/VideoInterface.h"
+#include "../HW/CommandProcessor.h"
 #include "../HW/SerialInterface.h"
 #include "../PowerPC/PowerPC.h"
 #include "../CoreTiming.h"
@@ -59,8 +60,8 @@ int
 	AI_PERIOD = GetTicksPerSecond() / 80,
 	DSP_PERIOD = GetTicksPerSecond() / 250,
 	DSPINT_PERIOD = GetTicksPerSecond() / 230,
-    HLE_IPC_PERIOD = GetTicksPerSecond() / 250;
-
+    HLE_IPC_PERIOD = GetTicksPerSecond() / 250,
+	GPU_PERIOD = 10000;
 
 u32 GetTicksPerSecond()
 {
@@ -83,7 +84,6 @@ void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
     WII_IPC_HLE_Interface::Update();
     CoreTiming::ScheduleEvent(HLE_IPC_PERIOD-cyclesLate, &IPC_HLE_UpdateCallback, "IPC_HLE_UpdateCallback");
 }
-
 
 void VICallback(u64 userdata, int cyclesLate)
 {
@@ -112,7 +112,6 @@ void DSPInterruptCallback(u64 userdata, int cyclesLate)
 	CoreTiming::ScheduleEvent(DSPINT_PERIOD-cyclesLate, &DSPInterruptCallback, "DSPInterruptCallback");
 }
 
-
 void DecrementerCallback(u64 userdata, int cyclesLate)
 {
 	//Why is fakeDec too big here?
@@ -120,7 +119,6 @@ void DecrementerCallback(u64 userdata, int cyclesLate)
 	PowerPC::ppcState.spr[SPR_DEC] = 0xFFFFFFFF;
 	PowerPC::ppcState.Exceptions |= EXCEPTION_DECREMENTER;
 }
-
 
 void DecrementerSet()
 {
@@ -143,6 +141,11 @@ void AdvanceCallback(int cyclesExecuted)
 		PowerPC::ppcState.spr[SPR_DEC] = (u32)fakeDec / TIMER_RATIO;
 }
 
+void RunGPUCallback(u64 userdata, int cyclesLate)
+{
+	CommandProcessor::CatchUpGPU();
+	CoreTiming::ScheduleEvent(GPU_PERIOD-cyclesLate, &RunGPUCallback, "RunGPUCallback");
+}
 
 // TODO(ector): improve, by using a more accurate timer
 // calculate the timing over the past 7 frames
@@ -214,6 +217,9 @@ void Init()
 	CoreTiming::ScheduleEvent(DSP_PERIOD, &DSPCallback, "DSPCallback");
 	CoreTiming::ScheduleEvent(SI_PERIOD, &SICallback, "SICallback");
 	CoreTiming::ScheduleEvent(DSPINT_PERIOD, &DSPInterruptCallback, "DSPInterruptCallback");
+
+	if (!Core::GetStartupParameter().bUseDualCore)
+		CoreTiming::ScheduleEvent(GPU_PERIOD, &RunGPUCallback, "RunGPUCallback");
 
     if (Core::GetStartupParameter().bWii)
     {
