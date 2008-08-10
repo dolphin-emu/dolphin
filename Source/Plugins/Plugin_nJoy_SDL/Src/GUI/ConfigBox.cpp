@@ -41,6 +41,7 @@ static const char* ControllerType[] =
 {
 	"Joystick (default)",
 	"Joystick (no hat)",
+//	"Joytstick (xbox360)",	// Shoulder buttons -> axis
 //	"Keyboard"				// Not supported yet, sorry F|RES ;( ...
 };
 
@@ -140,6 +141,7 @@ void ConfigBox::CreateGUIControls()
 
 	arrayStringFor_Controltype.Add(wxString::FromAscii(ControllerType[CTL_TYPE_JOYSTICK]));
 	arrayStringFor_Controltype.Add(wxString::FromAscii(ControllerType[CTL_TYPE_JOYSTICK_NO_HAT]));
+	// arrayStringFor_Controltype.Add(wxString::FromAscii(ControllerType[CTL_TYPE_JOYSTICK_XBOX360]));
 	// arrayStringFor_Controltype.Add(wxString::FromAscii(ControllerType[CTL_TYPE_KEYBOARD]));
 
 	char buffer [8];
@@ -310,7 +312,7 @@ void ConfigBox::SetControllerAll(int controller)
 	tmp << joysticks[controller].buttons[CTL_R_SHOULDER]; m_JoyShoulderR[controller]->SetValue(tmp); tmp.clear();
 
 	tmp << joysticks[controller].buttons[CTL_A_BUTTON]; m_JoyButtonA[controller]->SetValue(tmp); tmp.clear();
-	tmp << joysticks[controller].buttons[CTL_A_BUTTON]; m_JoyButtonB[controller]->SetValue(tmp); tmp.clear();
+	tmp << joysticks[controller].buttons[CTL_B_BUTTON]; m_JoyButtonB[controller]->SetValue(tmp); tmp.clear();
 	tmp << joysticks[controller].buttons[CTL_X_BUTTON]; m_JoyButtonX[controller]->SetValue(tmp); tmp.clear();
 	tmp << joysticks[controller].buttons[CTL_Y_BUTTON]; m_JoyButtonY[controller]->SetValue(tmp); tmp.clear();
 	tmp << joysticks[controller].buttons[CTL_Z_TRIGGER]; m_JoyButtonZ[controller]->SetValue(tmp); tmp.clear();

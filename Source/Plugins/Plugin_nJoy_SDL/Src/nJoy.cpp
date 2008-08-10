@@ -44,10 +44,15 @@ bool emulator_running = FALSE;
 
 // Handle to window
 HWND m_hWnd;
+
+#ifdef USE_RUMBLE_DINPUT_HACK
 bool g_rumbleEnable = FALSE;
+#endif
 
 // Rumble in windows
 #ifdef _WIN32
+
+#ifdef USE_RUMBLE_DINPUT_HACK
 LPDIRECTINPUT8          g_pDI = NULL;
 LPDIRECTINPUTDEVICE8    g_pDevice = NULL;
 LPDIRECTINPUTEFFECT     g_pEffect = NULL;
@@ -63,6 +68,8 @@ VOID FreeDirectInput();
 BOOL CALLBACK EnumFFDevicesCallback(const DIDEVICEINSTANCE* pInst, VOID* pContext);
 BOOL CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pContext);
 HRESULT SetDeviceForcesXY();
+#endif
+
 #endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -282,7 +289,9 @@ void PAD_Shutdown()
 	emulator_running = FALSE;
 	
 	#ifdef _WIN32
+	#ifdef USE_RUMBLE_DINPUT_HACK
 	FreeDirectInput();
+	#endif
 	#endif
 }
 
@@ -400,6 +409,7 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 
 
 	#ifdef _WIN32
+	#ifdef USE_RUMBLE_DINPUT_HACK
 	if(joystate[_numPAD].halfpress)
 	if(!g_pDI)
 	if(FAILED(InitDirectInput(m_hWnd)))
@@ -419,6 +429,7 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 			g_pEffect->Start(1, 0);
 	}
 	#endif
+	#endif
 }
 
 // Set PAD rumble
@@ -426,12 +437,13 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 // (Stop=0, Rumble=1)
 void PAD_Rumble(BYTE _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
-	if(_numPAD > 0)
-		return;
+	//if(_numPAD > 0)
+	//	return;
 
 	// not supported by SDL
 	// So we need to use platform specific stuff
 	#ifdef _WIN32
+	#ifdef USE_RUMBLE_DINPUT_HACK
 	static int a = 0;
 
 	if ((_uType == 0) || (_uType == 2))
@@ -454,7 +466,7 @@ void PAD_Rumble(BYTE _numPAD, unsigned int _uType, unsigned int _uStrength)
 		g_nYForce = a;
 		SetDeviceForcesXY();
 	}
-
+	#endif
 	#endif
 }
 
@@ -707,7 +719,7 @@ void LoadConfig()
 // Rumble stuff :D!
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 //
-
+#ifdef USE_RUMBLE_DINPUT_HACK
 HRESULT InitDirectInput( HWND hDlg )
 {
     DIPROPDWORD dipdw;
@@ -883,5 +895,5 @@ HRESULT SetDeviceForcesXY()
     // Now set the new parameters and start the effect immediately.
     return g_pEffect->SetParameters(&eff, DIEP_DIRECTION | DIEP_TYPESPECIFICPARAMS | DIEP_START);
 }
-
+#endif
 #endif

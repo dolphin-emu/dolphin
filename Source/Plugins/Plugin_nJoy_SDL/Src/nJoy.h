@@ -32,13 +32,20 @@
 // Set this if you want to use the new wxWidgets GUI
 #define USE_WXWIDGETS
 
+// Set this if you want to use the rumble 'hack' for controller one
+//#define USE_RUMBLE_DINPUT_HACK
+
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS
 #define DIRECTINPUT_VERSION 0x0800
 #define WIN32_LEAN_AND_MEAN
 #include <tchar.h>
 #include <math.h>
+
+#ifdef USE_RUMBLE_DINPUT_HACK
 #include <dinput.h>		// used for rumble
+#endif
+
 #endif
 
 #include <vector>
@@ -69,9 +76,11 @@
 #pragma comment(lib, "comctl32.lib")
 
 // Required for the rumble part
+#ifdef USE_RUMBLE_DINPUT_HACK
 #pragma comment(lib, "dxguid.lib")
 #pragma comment(lib, "dinput8.lib")
 #pragma comment(lib, "winmm.lib")
+#endif
 #endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -84,10 +93,6 @@
 #define RELMONTH		"07"
 #define RELYEAR			"2008"
 #define THANKYOU		"`plot`, Absolute0, Aprentice, Bositman, Brice, ChaosCode, CKemu, CoDeX, Dave2001, dn, drk||Raziel, Florin, Gent, Gigaherz, Hacktarux, JegHegy, Linker, Linuzappz, Martin64, Muad, Knuckles, Raziel, Refraction, Rudy_x, Shadowprince, Snake785, Saqib, vEX, yaz0r, Zilmar, Zenogais and ZeZu."
-
-#ifdef _WIN32
-// Rumble stuff :D!
-#endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Structures
@@ -148,6 +153,7 @@ enum
 {
 	CTL_TYPE_JOYSTICK = 0,
 	CTL_TYPE_JOYSTICK_NO_HAT,
+	CTL_TYPE_JOYSTICK_XBOX360,
 	CTL_TYPE_KEYBOARD
 };
 
