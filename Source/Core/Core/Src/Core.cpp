@@ -91,6 +91,12 @@ SCoreStartupParameter g_CoreStartupParameter; //uck
 
 Common::Event emuThreadGoing;
 
+bool PanicAlertToVideo(const char* text, bool yes_no)
+{
+	PluginVideo::Video_AddMessage(text,3000);
+	return true;
+}
+
 // Called from GUI thread
 bool Init(const SCoreStartupParameter _CoreParameter)
 {
@@ -135,6 +141,8 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 	Host_SetWaitCursor(false);
 
 	PluginVideo::Video_AddMessage("Emulation started.",3000);
+
+	//RegisterPanicAlertHandler(PanicAlertToVideo);
 
 	return true;
 }
