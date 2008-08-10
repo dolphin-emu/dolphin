@@ -151,6 +151,9 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
     _pVideoInitialize->pPeekMessages = g_VideoInitialize.pPeekMessages;
     _pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
     _pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
+
+	Renderer::AddMessage("Dolphin OpenGL Video Plugin v" VERSION_STRING ,5000);
+
 }
 
 
@@ -210,8 +213,8 @@ bool ScreenShot(TCHAR *File)
     sprintf(str, "Dolphin OGL " VERSION_STRING);
 
     Renderer::ResetGLState();
-    Renderer::DrawText(str, left+1, top+1, 0xff000000);
-    Renderer::DrawText(str, left, top, 0xffc0ffff);
+    Renderer::RenderText(str, left+1, top+1, 0xff000000);
+    Renderer::RenderText(str, left, top, 0xffc0ffff);
     Renderer::RestoreGLState();
 
     if (Renderer::SaveRenderTarget(File, 0)) {

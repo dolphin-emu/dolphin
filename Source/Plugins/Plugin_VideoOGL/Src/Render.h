@@ -45,7 +45,7 @@ public:
 
     static void AddMessage(const char* str, u32 ms);
     static void ProcessMessages(); // draw the current messages on the screen
-    static void DrawText(const char* pstr, int left, int top, u32 color);
+    static void RenderText(const char* pstr, int left, int top, u32 color);
     static void SetAA(int aa); // sets the anti-aliasing level
 
     static void ReinitView(int nNewWidth, int nNewHeight);

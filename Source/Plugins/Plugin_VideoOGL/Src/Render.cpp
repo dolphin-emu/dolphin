@@ -339,6 +339,7 @@ bool Renderer::Initialize()
 
     GLenum err = GL_NO_ERROR;
     GL_REPORT_ERROR();
+
     return err == GL_NO_ERROR;
 }
 
@@ -349,26 +350,48 @@ void Renderer::AddMessage(const char* pstr, u32 ms)
 
 void Renderer::ProcessMessages()
 {
-    if (s_listMsgs.size() > 0) {
+	GLboolean wasEnabled = glIsEnabled(GL_BLEND);
+
+	if(!wasEnabled) glEnable(GL_BLEND);
+    
+	if (s_listMsgs.size() > 0) {
         int left = 25, top = 15;
         list<MESSAGE>::iterator it = s_listMsgs.begin();
         
         while( it != s_listMsgs.end() ) 
 		{
-            DrawText(it->str, left+1, top+1, 0xff000000);
-            DrawText(it->str, left, top, 0xffffff30);
+			int time_left = (int)(it->dwTimeStamp - timeGetTime());
+			int alpha = 255;
+
+			if(time_left<1024)
+			{
+				alpha=time_left>>2;
+				if(time_left<0) alpha=0;
+			}
+
+			alpha<<=24;
+
+            RenderText(it->str, left+1, top+1, 0x000000|alpha);
+            RenderText(it->str, left, top, 0xffff30|alpha);
             top += 15;
 
-            if ((int)(it->dwTimeStamp - timeGetTime()) < 0)
+            if (time_left <= 0)
                 it = s_listMsgs.erase(it);
             else ++it;
         }
     }
+
+	if(!wasEnabled) glDisable(GL_BLEND);
 }
 
-void Renderer::DrawText(const char* pstr, int left, int top, u32 color)
+void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
 {
-    glColor3f(((color>>16) & 0xff)/255.0f, ((color>>8) & 0xff)/255.0f, (color & 0xff)/255.0f);
+    glColor4f(
+		((color>>16) & 0xff)/255.0f,
+		((color>> 8) & 0xff)/255.0f,
+		((color>> 0) & 0xff)/255.0f,
+		((color>>24) & 0xFF)/255.0f
+		);
     s_pfont->printMultilineText(pstr, left * 2.0f / (float)nBackbufferWidth - 1, 1 - top * 2.0f / (float)nBackbufferHeight,0,nBackbufferWidth,nBackbufferHeight);
 }
 
@@ -660,7 +683,7 @@ void Renderer::Swap(const TRectangle& rc)
 //
 //    char strfps[25];
 //    sprintf(strfps, "fps: %2.1f\n", s_fps);
-//    Renderer::DrawText(strfps, 20, 20, 0xFF00FFFF);
+//    Renderer::RenderText(strfps, 20, 20, 0xFF00FFFF);
 
     if (g_Config.bOverlayStats) {
         char st[2048];
@@ -687,8 +710,10 @@ void Renderer::Swap(const TRectangle& rc)
         p+=sprintf(p,"Num BP loads:      %i\n",stats.thisFrame.numBPLoads);
         p+=sprintf(p,"Num BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
 
-		Renderer::DrawText(st, 20, 20, 0xFF00FFFF);
+		Renderer::RenderText(st, 20, 20, 0xFF00FFFF);
     }
+
+	Renderer::ProcessMessages();
 
 #if defined(DVPROFILE)
     if (g_bWriteProfile) {
@@ -705,6 +730,9 @@ void Renderer::Swap(const TRectangle& rc)
 
     // copy the rendered from to the real window
 	OpenGL_SwapBuffers();
+
+	glClearColor(0,0,0,0);
+	glClear(GL_COLOR_BUFFER_BIT);
 
     GL_REPORT_ERRORD();
 
