@@ -288,7 +288,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		{
 			return;
 		}
-		Debugger::LoadSymbolMap(path.c_str());
+		Debugger::LoadSymbolMap(path.ToAscii());
 		break;
 	case IDM_SAVEMAPFILE:
 		path = wxFileSelector(
@@ -306,7 +306,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		{
 			return;
 		}
-		Debugger::SaveSymbolMap(path.c_str());
+		Debugger::SaveSymbolMap(path.ToAscii());
 		break;
 	}
 }

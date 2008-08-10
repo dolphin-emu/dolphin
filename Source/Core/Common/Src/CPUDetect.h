@@ -80,6 +80,7 @@ struct CPUInfoStruct
 	bool bSSEExtensions;
 	bool bSSE2Extensions;
 	bool bSSE3NewInstructions;
+	bool bSSSE3NewInstructions;
 	bool bSelfSnoop;
 	bool bHyper_threadingTechnology;
 	bool bThermalMonitor;

@@ -90,6 +90,7 @@ void CPUInfoStruct::Detect()
 			nCLFLUSHcachelinesize = ((CPUInfo[1] >> 8) & 0xff) * 8;
 			nAPICPhysicalID = (CPUInfo[1] >> 24) & 0xff;
 			bSSE3NewInstructions = (CPUInfo[2] & 0x1) || false;
+			bSSSE3NewInstructions = (CPUInfo[2] & 0x200) || false;
 			bMONITOR_MWAIT = (CPUInfo[2] & 0x8) || false;
 			bCPLQualifiedDebugStore = (CPUInfo[2] & 0x10) || false;
 			bThermalMonitor2 = (CPUInfo[2] & 0x100) || false;
