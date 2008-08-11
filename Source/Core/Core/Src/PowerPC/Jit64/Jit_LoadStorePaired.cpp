@@ -27,6 +27,7 @@
 #include "../../HW/PixelEngine.h"
 #include "../../HW/Memmap.h"
 #include "../PPCTables.h"
+#include "CPUDetect.h"
 #include "x64Emitter.h"
 #include "ABI.h"
 
@@ -225,6 +226,8 @@ void psq_st(UGeckoInstruction inst)
 	}
 }
 
+const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
+const u8 GC_ALIGNED16(pbswapShuffleNoop[16]) = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
 void psq_l(UGeckoInstruction inst)
 {
@@ -247,39 +250,57 @@ void psq_l(UGeckoInstruction inst)
 	}
 	int offset = inst.SIMM_12;
 	switch (ldType) {
-		case QUANTIZE_FLOAT:
+		case QUANTIZE_FLOAT:  // We know this is from RAM, so we don't need to check the address.
 			{
 #ifdef _M_X64
-			gpr.LoadToX64(inst.RA);
-			MOV(64, R(RAX), MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
-			BSWAP(64, RAX);
-			MOV(64, M(&psTemp[0]), R(RAX));
+			gpr.LoadToX64(inst.RA, true, update);
 			fpr.LoadToX64(inst.RS, false);
-			X64Reg r = fpr.R(inst.RS).GetSimpleReg();
-			CVTPS2PD(r, M(&psTemp[0]));
-			SHUFPD(r, R(r), 1);
+			if (cpu_info.bSSSE3NewInstructions) {
+				X64Reg xd = fpr.R(inst.RS).GetSimpleReg();
+				MOVQ_xmm(xd, MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
+				PSHUFB(xd, M((void *)pbswapShuffle2x4));
+				CVTPS2PD(xd, R(xd));
+			} else {
+				MOV(64, R(RAX), MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
+				BSWAP(64, RAX);
+				MOV(64, M(&psTemp[0]), R(RAX));
+				X64Reg r = fpr.R(inst.RS).GetSimpleReg();
+				CVTPS2PD(r, M(&psTemp[0]));
+				SHUFPD(r, R(r), 1);
+			}
 			if (update)
 				ADD(32, gpr.R(inst.RA), Imm32(offset));
 			break;
 #else
-			gpr.FlushR(ECX);
-			gpr.LockX(ECX);
-			gpr.LoadToX64(inst.RA);
-			// This can probably be optimized somewhat.
-			LEA(32, ECX, MDisp(gpr.R(inst.RA).GetSimpleReg(), offset));
-			AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-			MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base));
-			BSWAP(32, RAX);
-			MOV(32, M(&psTemp[0]), R(RAX));
-			MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base + 4));
-			BSWAP(32, RAX);
-			MOV(32, M(((float *)&psTemp[0]) + 1), R(RAX));
-			fpr.LoadToX64(inst.RS, false);
-			X64Reg r = fpr.R(inst.RS).GetSimpleReg();
-			CVTPS2PD(r, M(&psTemp[0]));
+			if (cpu_info.bSSSE3NewInstructions) {
+				gpr.LoadToX64(inst.RA, true, update);
+				fpr.LoadToX64(inst.RS, false);
+				X64Reg xd = fpr.R(inst.RS).GetSimpleReg();
+				MOV(32, R(EAX), gpr.R(inst.RA));
+				AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
+				MOVQ_xmm(xd, MDisp(EAX, (u32)Memory::base + offset));
+				PSHUFB(xd, M((void *)pbswapShuffle2x4));
+				CVTPS2PD(xd, R(xd));
+			} else {
+				gpr.FlushR(ECX);
+				gpr.LockX(ECX);
+				gpr.LoadToX64(inst.RA);
+				// This can probably be optimized somewhat.
+				LEA(32, ECX, MDisp(gpr.R(inst.RA).GetSimpleReg(), offset));
+				AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
+				MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base));
+				BSWAP(32, RAX);
+				MOV(32, M(&psTemp[0]), R(RAX));
+				MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base + 4));
+				BSWAP(32, RAX);
+				MOV(32, M(((float *)&psTemp[0]) + 1), R(RAX));
+				fpr.LoadToX64(inst.RS, false);
+				X64Reg r = fpr.R(inst.RS).GetSimpleReg();
+				CVTPS2PD(r, M(&psTemp[0]));
+				gpr.UnlockAllX();
+			}
 			if (update)
 				ADD(32, gpr.R(inst.RA), Imm32(offset));
-			gpr.UnlockAllX();
 			break;
 #endif
 			}

@@ -32,7 +32,7 @@ CEXIChannel::CEXIChannel() :
 
 	m_Status.CHIP_SELECT = 1;
 
-	for (int i=0; i<NUM_DEVICES; i++)
+	for (int i = 0; i < NUM_DEVICES; i++)
 	{
 		m_pDevices[i] = EXIDevice_Create(EXIDEVICE_DUMMY);
 		_dbg_assert_(EXPANSIONINTERFACE, m_pDevices[i] != NULL);

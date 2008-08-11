@@ -93,7 +93,7 @@ Common::Event emuThreadGoing;
 
 bool PanicAlertToVideo(const char* text, bool yes_no)
 {
-	PluginVideo::Video_AddMessage(text,3000);
+	DisplayMessage(text, 3000);
 	return true;
 }
 
@@ -140,12 +140,23 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 	// all right ... here we go
 	Host_SetWaitCursor(false);
 
-	PluginVideo::Video_AddMessage("Emulation started.",3000);
+	DisplayMessage("Emulation started.", 3000);
 
 	//RegisterPanicAlertHandler(PanicAlertToVideo);
 
 	return true;
 }
+
+void DisplayMessage(const std::string &message, int time_in_ms)
+{
+	PluginVideo::Video_AddMessage(message.c_str(), time_in_ms);
+}
+
+void DisplayMessage(const char *message, int time_in_ms)
+{
+	PluginVideo::Video_AddMessage(message, time_in_ms);
+}
+
 
 // Called from GUI thread or VI thread
 void Stop() // - Hammertime!

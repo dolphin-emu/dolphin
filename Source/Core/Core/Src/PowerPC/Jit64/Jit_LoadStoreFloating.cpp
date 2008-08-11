@@ -27,6 +27,7 @@
 #include "../../HW/PixelEngine.h"
 #include "../../HW/Memmap.h"
 #include "../PPCTables.h"
+#include "CPUDetect.h"
 #include "x64Emitter.h"
 #include "ABI.h"
 
@@ -51,6 +52,7 @@ namespace Jit64
 const u8 GC_ALIGNED16(bswapShuffle1x4[16]) = {3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 const u8 GC_ALIGNED16(bswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
 const u8 GC_ALIGNED16(bswapShuffle1x8[16]) = {7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 11, 12, 13, 14, 15};
+const u8 GC_ALIGNED16(bswapShuffle1x8Dupe[16]) = {7, 6, 5, 4, 3, 2, 1, 0, 7, 6, 5, 4, 3, 2, 1, 0};
 const u8 GC_ALIGNED16(bswapShuffle2x8[16]) = {7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8};
 
 static u64 GC_ALIGNED16(temp64);
@@ -115,12 +117,18 @@ void lfd(UGeckoInstruction inst)
 	s32 offset = (s32)(s16)inst.SIMM_16;
 	gpr.Lock(a);
 	MOV(32, R(ABI_PARAM1), gpr.R(a));
-	MOV(64, R(EAX), MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
-	BSWAP(64, EAX);
-	MOV(64, M(&temp64), R(EAX));
-	fpr.Lock(d);
 	fpr.LoadToX64(d, false);
-	MOVDDUP(fpr.RX(d), M(&temp64));
+	fpr.Lock(d);
+	if (cpu_info.bSSE3NewInstructions) {
+		X64Reg xd = fpr.RX(d);
+		MOVQ_xmm(xd, MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
+		PSHUFB(xd, M((void *)bswapShuffle1x8Dupe));
+	} else {
+		MOV(64, R(EAX), MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
+		BSWAP(64, EAX);
+		MOV(64, M(&temp64), R(EAX));
+		MOVDDUP(fpr.RX(d), M(&temp64));
+	}
 	gpr.UnlockAll();
 	fpr.UnlockAll();
 }
@@ -128,7 +136,10 @@ void lfd(UGeckoInstruction inst)
 void stfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	DISABLE_32BIT;
+	if (!cpu_info.bSSSE3NewInstructions)
+	{
+		DISABLE_32BIT;
+	}
 	int s = inst.RS;
 	int a = inst.RA;
 	if (!a)
@@ -140,12 +151,25 @@ void stfd(UGeckoInstruction inst)
 	gpr.Lock(a);
 	fpr.Lock(s);
 	gpr.FlushLockX(ABI_PARAM1);
-	fpr.LoadToX64(s, true, false);
-	MOVSD(M(&temp64), fpr.RX(s));
 	MOV(32, R(ABI_PARAM1), gpr.R(a));
-	MOV(64, R(EAX), M(&temp64));
-	BSWAP(64, EAX);
-	MOV(64, MComplex(RBX, ABI_PARAM1, SCALE_1, offset), R(EAX));
+#ifdef _M_IX86
+	AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
+#endif
+	if (cpu_info.bSSSE3NewInstructions) {
+		MOVAPS(XMM0, fpr.R(s));
+		PSHUFB(XMM0, M((void *)bswapShuffle1x8));
+#ifdef _M_X64
+		MOVQ_xmm(MComplex(RBX, ABI_PARAM1, SCALE_1, offset), XMM0);
+#else
+		MOVQ_xmm(MDisp(ABI_PARAM1, (u32)Memory::base + offset), XMM0);
+#endif
+	} else {
+		fpr.LoadToX64(s, true, false);
+		MOVSD(M(&temp64), fpr.RX(s));
+		MOV(64, R(EAX), M(&temp64));
+		BSWAP(64, EAX);
+		MOV(64, MComplex(RBX, ABI_PARAM1, SCALE_1, offset), R(EAX));
+	}
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 	fpr.UnlockAll();
@@ -154,6 +178,7 @@ void stfd(UGeckoInstruction inst)
 void stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
+	DISABLE_32BIT;
 	bool update = inst.OPCD & 1;
 	int s = inst.RS;
 	int a = inst.RA;
@@ -192,10 +217,24 @@ void lfsx(UGeckoInstruction inst)
 	MOV(32, R(EAX), gpr.R(inst.RB));
 	if (inst.RA)
 		ADD(32, R(EAX), gpr.R(inst.RA));
-	UnsafeLoadRegToReg(EAX, EAX, 32, false);
-	MOV(32, M(&temp32), R(EAX));
-	CVTSS2SD(XMM0, M(&temp32));
-	MOVDDUP(fpr.R(inst.RS).GetSimpleReg(), R(XMM0));
+	if (cpu_info.bSSSE3NewInstructions) {
+		// PanicAlert("SSE3 supported!");
+		X64Reg r = fpr.R(inst.RS).GetSimpleReg();
+#ifdef _M_IX86
+		AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
+		MOVD_xmm(r, MDisp(EAX, (u32)Memory::base));
+#else
+		MOVD_xmm(r, MComplex(RBX, EAX, SCALE_1, 0));
+#endif
+		PSHUFB(r, M((void *)bswapShuffle1x4));
+		CVTSS2SD(r, R(r));
+		MOVDDUP(r, R(r));
+	} else {
+		UnsafeLoadRegToReg(EAX, EAX, 32, false);
+		MOV(32, M(&temp32), R(EAX));
+		CVTSS2SD(XMM0, M(&temp32));
+		MOVDDUP(fpr.R(inst.RS).GetSimpleReg(), R(XMM0));
+	}
 	fpr.UnlockAll();
 }
 

@@ -54,6 +54,8 @@ namespace Core
 	extern bool bWriteTrace;
 
 	void StartTrace(bool write);
+	void DisplayMessage(const std::string &message, int time_in_ms); // This displays messages in a user-visible way.
+	void DisplayMessage(const char *message, int time_in_ms); // This displays messages in a user-visible way.
 
 	int SyncTrace();
 	void SetBlockStart(u32 addr);

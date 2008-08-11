@@ -183,6 +183,20 @@ void Generate()
 	SetJumpTarget(pLesser);
 	OR(32, M(&CR), Imm32(0x80000000));	// _x86Reg < 0
 	RET();
+
+	// Fast write routines - special case the most common hardware write
+	// TODO: use this.
+	// Even in x86, the param values will be in the right registers.
+	/*
+	const u8 *fastMemWrite8 = AlignCode16();
+	CMP(32, R(ABI_PARAM2), Imm32(0xCC008000));
+	FixupBranch skip_fast_write = J_CC(CC_NE, false);
+	MOV(32, EAX, M(&m_gatherPipeCount));
+	MOV(8, MDisp(EAX, (u32)&m_gatherPipe), ABI_PARAM1);
+	ADD(32, 1, M(&m_gatherPipeCount));
+	RET();
+	SetJumpTarget(skip_fast_write);
+	CALL((void *)&Memory::Write_U8);*/
 }
 
 #elif defined(_M_X64)

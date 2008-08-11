@@ -28,6 +28,11 @@ enum
 	GATHER_PIPE_SIZE = 32
 };
 
+extern u8 m_gatherPipe[GATHER_PIPE_SIZE*16]; //more room, for the fastmodes
+
+// pipe counter
+extern u32 m_gatherPipeCount;
+
 // Init
 void Init();
 

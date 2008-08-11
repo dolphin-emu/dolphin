@@ -974,8 +974,7 @@ namespace Gen
 	void MOVD_xmm(X64Reg dest, const OpArg &arg) {WriteSSEOp(64, 0x6E, true, dest, arg, 0);}
 
 	void MOVQ_xmm(X64Reg dest, OpArg arg) {
-		if (dest > 7)
-		{
+#ifdef _M_X64
 			// Alternate encoding
 			// This does not display correctly in MSVC's debugger, it thinks it's a MOVD
 			arg.operandReg = dest;
@@ -984,14 +983,13 @@ namespace Gen
 			Write8(0x0f);
 			Write8(0x6E);
 			arg.WriteRest(0);
-		} else {
+#else
 			arg.operandReg = dest;
-			arg.WriteRex(false);
 			Write8(0xF3);
 			Write8(0x0f);
 			Write8(0x7E);
 			arg.WriteRest(0);
-		}
+#endif
 	}
 
 	void MOVD_xmm(const OpArg &arg, X64Reg src) {WriteSSEOp(64, 0x7E, true, src, arg, 0);}

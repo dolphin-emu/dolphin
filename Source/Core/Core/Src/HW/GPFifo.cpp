@@ -37,7 +37,7 @@ namespace GPFifo
 // Both of these should actually work! Only problem is that we have to decide at run time, 
 // the same function could use both methods. Compile 2 different versions of each such block?
 
-u8 m_gatherPipe[GATHER_PIPE_SIZE*16]; //more room, for the fastmodes
+u8 GC_ALIGNED32(m_gatherPipe[GATHER_PIPE_SIZE*16]); //more room, for the fastmodes
 
 // pipe counter
 u32 m_gatherPipeCount = 0;				
@@ -73,7 +73,7 @@ void CheckGatherPipe()
 		// increase the CPUWritePointer
 		CPeripheralInterface::Fifo_CPUWritePointer += GATHER_PIPE_SIZE; 
 		if (CPeripheralInterface::Fifo_CPUWritePointer > CPeripheralInterface::Fifo_CPUEnd)
-			_assert_msg_(DYNA_REC,0,"ARGH");
+			_assert_msg_(DYNA_REC, 0, "ARGH");
 
 		if (CPeripheralInterface::Fifo_CPUWritePointer >= CPeripheralInterface::Fifo_CPUEnd)
 			CPeripheralInterface::Fifo_CPUWritePointer = CPeripheralInterface::Fifo_CPUBase;		

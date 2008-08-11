@@ -33,7 +33,7 @@ public:
     {
         TCacheEntry() : texture(0), addr(0), hash(0), w(0), h(0), isRenderTarget(false), isUpsideDown(false), isNonPow2(true), bHaveMipMaps(false) { mode.hex = 0xFCFCFCFC; }
 
-        u32 texture;
+        GLuint texture;
         u32 addr;
         u32 hash;
         u32 paletteHash;

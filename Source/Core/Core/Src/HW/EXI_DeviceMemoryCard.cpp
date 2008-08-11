@@ -84,6 +84,8 @@ void CEXIMemoryCard::Flush()
 	}
 	fwrite(memory_card_content, memory_card_size, 1, pFile);
 	fclose(pFile);
+
+	Core::DisplayMessage(StringFromFormat("Wrote memory card contents to %s", m_strFilename.c_str()), 4000);
 }
 
 void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
