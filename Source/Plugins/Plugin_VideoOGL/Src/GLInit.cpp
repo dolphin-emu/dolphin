@@ -392,15 +392,23 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     }       
 #else
 	//SDL fo other OS (osx, bsd, ...)
-	int videoFlags;
+	int videoFlags = SDL_OPENGL;
 	SDL_Surface *screen;
 	const SDL_VideoInfo *videoInfo;
 
 	//init sdl video
-	SDL_Init(SDL_INIT_VIDEO);
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		//TODO : Display an error message
+		SDL_Quit();
+		return false;
+	}
 	//fetch video info
 	videoInfo = SDL_GetVideoInfo();
-	
+	if (!videoInfo) {
+		//TODO : Display an error message
+		SDL_Quit();
+		return false;
+	}
 	//hw o sw ogl ?
     	if (videoInfo->hw_available)
         	videoFlags |= SDL_HWSURFACE;
@@ -416,6 +424,13 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	
 	screen = SDL_SetVideoMode(_twidth, _theight, 24, SDL_OPENGL|SDL_RESIZABLE);
+	if (!screen) {
+		//TODO : Display an error message
+		SDL_Quit();
+		return false;
+	}
+
+
 #endif
 	return true;
 }
