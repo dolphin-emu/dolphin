@@ -24,6 +24,7 @@
 
 #include "x64Emitter.h"
 #include "ABI.h"
+#include "Thunk.h"
 #include "x64Analyzer.h"
 
 #include "StringUtil.h"
@@ -109,7 +110,7 @@ void BackPatch(u8 *codePtr, int accessType, u32 emAddress)
 	//	break;
 	case 4:
 		// THIS FUNCTION CANNOT TOUCH FLOATING POINT REGISTERS.
-		CALL((void *)&Memory::Read_U32);
+		CALL(ProtectFunction((void *)&Memory::Read_U32, 1));
 		break;
 	default:
 		BackPatchError(StringFromFormat("We don't handle the size %i yet in backpatch", info.operandSize), codePtr, emAddress);

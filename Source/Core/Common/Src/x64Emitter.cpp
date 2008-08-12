@@ -1156,7 +1156,7 @@ namespace Gen
 	void MOVDDUP(X64Reg regOp, OpArg arg) 
 	{
 		// TODO(ector): check SSE3 flag
-		if (cpu_info.bSSE3NewInstructions)
+		if (cpu_info.bSSE3)
 		{
 			WriteSSEOp(64, 0x12, false, regOp, arg); //SSE3
 		}
@@ -1205,7 +1205,7 @@ namespace Gen
 	}
 
 	void PSHUFB(X64Reg dest, OpArg arg) {
-		if (!cpu_info.bSSE3NewInstructions) {
+		if (!cpu_info.bSSSE3) {
 			PanicAlert("Trying to use PSHUFB on a system that doesn't support it. Bad programmer.");
 		}
 		Write8(0x66);

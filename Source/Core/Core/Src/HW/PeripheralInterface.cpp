@@ -132,7 +132,7 @@ void CPeripheralInterface::Write32(const u32 _uValue, const u32 _iAddress)
             if ((_uValue != 0x80000001) && (_uValue != 0x80000005)) // DVDLowReset 
             {
                 TCHAR szTemp[256];
-                sprintf(szTemp, "Unknown write to PI_RESET_CODE (%08x)", _uValue);
+				sprintf(szTemp, "Game wants to reset the machine. PI_RESET_CODE: (%08x)", _uValue);
                 PanicAlert(szTemp);
             }
         }

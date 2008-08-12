@@ -28,7 +28,7 @@
 // * Caller fixes stack after call
 // * function subtract from stack for local storage only.
 // Scratch:      EAX ECX EDX
-// Callee-save:  EBX ESI EDI EBP 
+// Callee-save:  EBX ESI EDI EBP
 // Parameters:   -
 
 // Windows 64-bit
@@ -103,6 +103,11 @@ void ABI_PopAllCalleeSavedRegsAndAdjustStack();
 void ABI_PushAllCallerSavedRegsAndAdjustStack();
 void ABI_PopAllCallerSavedRegsAndAdjustStack();
 
+#ifdef _M_IX86
+inline int ABI_GetNumXMMRegs() { return 8; }
+#else
+inline int ABI_GetNumXMMRegs() { return 16; }
+#endif
 
 #endif  // _JIT_ABI_H
 

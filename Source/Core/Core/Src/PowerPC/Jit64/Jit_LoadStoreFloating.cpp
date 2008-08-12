@@ -65,7 +65,6 @@ static u32 GC_ALIGNED16(temp32);
 void lfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	DISABLE_32BIT;
 	int d = inst.RD;
 	int a = inst.RA;
 	if (!a) 
@@ -74,15 +73,8 @@ void lfs(UGeckoInstruction inst)
 		return;
 	}
 	s32 offset = (s32)(s16)inst.SIMM_16;
-
-	if (jo.noAssumeFPLoadFromMem) {
-		// We might call a function.
-		gpr.Flush(FLUSH_VOLATILE);
-		fpr.Flush(FLUSH_VOLATILE);
-		gpr.FlushLockX(ABI_PARAM1);
-	}
-	gpr.Lock(d, a);
-	
+	gpr.FlushLockX(ABI_PARAM1);
+	gpr.Lock(a);
 	MOV(32, R(ABI_PARAM1), gpr.R(a));
 	if (!jo.noAssumeFPLoadFromMem)
 	{
@@ -103,6 +95,7 @@ void lfs(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
+
 void lfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
@@ -115,11 +108,12 @@ void lfd(UGeckoInstruction inst)
 		return;
 	}
 	s32 offset = (s32)(s16)inst.SIMM_16;
+	gpr.FlushLockX(ABI_PARAM1);
 	gpr.Lock(a);
 	MOV(32, R(ABI_PARAM1), gpr.R(a));
 	fpr.LoadToX64(d, false);
 	fpr.Lock(d);
-	if (cpu_info.bSSE3NewInstructions) {
+	if (cpu_info.bSSSE3) {
 		X64Reg xd = fpr.RX(d);
 		MOVQ_xmm(xd, MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
 		PSHUFB(xd, M((void *)bswapShuffle1x8Dupe));
@@ -130,13 +124,14 @@ void lfd(UGeckoInstruction inst)
 		MOVDDUP(fpr.RX(d), M(&temp64));
 	}
 	gpr.UnlockAll();
+	gpr.UnlockAllX();
 	fpr.UnlockAll();
 }
 
 void stfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	if (!cpu_info.bSSSE3NewInstructions)
+	if (!cpu_info.bSSSE3)
 	{
 		DISABLE_32BIT;
 	}
@@ -148,14 +143,14 @@ void stfd(UGeckoInstruction inst)
 		return;
 	}
 	s32 offset = (s32)(s16)inst.SIMM_16;
+	gpr.FlushLockX(ABI_PARAM1);
 	gpr.Lock(a);
 	fpr.Lock(s);
-	gpr.FlushLockX(ABI_PARAM1);
 	MOV(32, R(ABI_PARAM1), gpr.R(a));
 #ifdef _M_IX86
 	AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
 #endif
-	if (cpu_info.bSSSE3NewInstructions) {
+	if (cpu_info.bSSSE3) {
 		MOVAPS(XMM0, fpr.R(s));
 		PSHUFB(XMM0, M((void *)bswapShuffle1x8));
 #ifdef _M_X64
@@ -175,6 +170,7 @@ void stfd(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
+
 void stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
@@ -185,12 +181,11 @@ void stfs(UGeckoInstruction inst)
 	s32 offset = (s32)(s16)inst.SIMM_16;
 	if (a && !update)
 	{
-		gpr.Flush(FLUSH_VOLATILE);
-		fpr.Flush(FLUSH_VOLATILE);
+		gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
 		gpr.Lock(a);
 		fpr.Lock(s);
-		gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
 		MOV(32, R(ABI_PARAM2), gpr.R(a));
+		ADD(32, R(ABI_PARAM2), Imm32(offset));
 		if (update && offset)
 		{
 			MOV(32, gpr.R(a), R(ABI_PARAM2));
@@ -198,7 +193,7 @@ void stfs(UGeckoInstruction inst)
 		CVTSD2SS(XMM0, fpr.R(s));
 		MOVSS(M(&temp32), XMM0);
 		MOV(32, R(ABI_PARAM1), M(&temp32));
-		SafeWriteRegToReg(ABI_PARAM1, ABI_PARAM2, 32, offset);
+		SafeWriteRegToReg(ABI_PARAM1, ABI_PARAM2, 32, 0);
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
 		fpr.UnlockAll();
@@ -209,6 +204,7 @@ void stfs(UGeckoInstruction inst)
 	}
 }
 
+
 void lfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
@@ -217,8 +213,7 @@ void lfsx(UGeckoInstruction inst)
 	MOV(32, R(EAX), gpr.R(inst.RB));
 	if (inst.RA)
 		ADD(32, R(EAX), gpr.R(inst.RA));
-	if (cpu_info.bSSSE3NewInstructions) {
-		// PanicAlert("SSE3 supported!");
+	if (cpu_info.bSSSE3) {
 		X64Reg r = fpr.R(inst.RS).GetSimpleReg();
 #ifdef _M_IX86
 		AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));

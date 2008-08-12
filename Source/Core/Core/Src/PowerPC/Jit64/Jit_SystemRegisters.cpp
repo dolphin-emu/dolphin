@@ -59,7 +59,7 @@ namespace Jit64
 		case SPR_GQR0 + 5:
 		case SPR_GQR0 + 6:
 		case SPR_GQR0 + 7:
-			js.blockSetsQuantizers = false;
+			js.blockSetsQuantizers = true;
 			// Prevent recompiler from compiling in old quantizer values.
 			// TODO - actually save the set state and use it in following quantizer ops.
 			break;

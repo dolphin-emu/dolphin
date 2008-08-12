@@ -26,6 +26,7 @@
 
 #include "Console.h"
 #include "Core.h"
+#include "CPUDetect.h"
 #include "CoreTiming.h"
 #include "Boot/Boot.h"
 #include "PatchEngine.h"
@@ -140,7 +141,9 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 	// all right ... here we go
 	Host_SetWaitCursor(false);
 
-	DisplayMessage("Emulation started.", 3000);
+	DisplayMessage(cpu_info.CPUBrandString, 3000);
+	DisplayMessage(_CoreParameter.m_strFilename, 3000);
+
 
 	//RegisterPanicAlertHandler(PanicAlertToVideo);
 

@@ -20,6 +20,7 @@
 
 #include "Common.h"
 
+#include "Thunk.h"
 #include "../PowerPC.h"
 #include "../../Core.h"
 #include "../../HW/GPFifo.h"
@@ -36,7 +37,7 @@
 #include "JitAsm.h"
 #include "JitRegCache.h"
 
-// #define INSTRUCTION_START Default(inst); return;
+//#define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
 
 #ifdef _M_IX86
@@ -125,8 +126,6 @@ void psq_st(UGeckoInstruction inst)
 	if (stType == QUANTIZE_FLOAT)
 	{
 		DISABLE_32BIT;
-		gpr.Flush(FLUSH_VOLATILE);
-		fpr.Flush(FLUSH_VOLATILE);
 		gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
 		gpr.Lock(a);
 		fpr.Lock(s);
@@ -147,7 +146,7 @@ void psq_st(UGeckoInstruction inst)
 		MOV(64, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
 		FixupBranch arg2 = J();
 		SetJumpTarget(argh);
-		CALL((void *)&WriteDual32); 
+		CALL(ProtectFunction((void *)&WriteDual32, 0));
 		SetJumpTarget(arg2);
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
@@ -255,7 +254,7 @@ void psq_l(UGeckoInstruction inst)
 #ifdef _M_X64
 			gpr.LoadToX64(inst.RA, true, update);
 			fpr.LoadToX64(inst.RS, false);
-			if (cpu_info.bSSSE3NewInstructions) {
+			if (cpu_info.bSSSE3) {
 				X64Reg xd = fpr.R(inst.RS).GetSimpleReg();
 				MOVQ_xmm(xd, MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
 				PSHUFB(xd, M((void *)pbswapShuffle2x4));
@@ -272,7 +271,7 @@ void psq_l(UGeckoInstruction inst)
 				ADD(32, gpr.R(inst.RA), Imm32(offset));
 			break;
 #else
-			if (cpu_info.bSSSE3NewInstructions) {
+			if (cpu_info.bSSSE3) {
 				gpr.LoadToX64(inst.RA, true, update);
 				fpr.LoadToX64(inst.RS, false);
 				X64Reg xd = fpr.R(inst.RS).GetSimpleReg();
@@ -282,8 +281,7 @@ void psq_l(UGeckoInstruction inst)
 				PSHUFB(xd, M((void *)pbswapShuffle2x4));
 				CVTPS2PD(xd, R(xd));
 			} else {
-				gpr.FlushR(ECX);
-				gpr.LockX(ECX);
+				gpr.FlushLockX(ECX);
 				gpr.LoadToX64(inst.RA);
 				// This can probably be optimized somewhat.
 				LEA(32, ECX, MDisp(gpr.R(inst.RA).GetSimpleReg(), offset));

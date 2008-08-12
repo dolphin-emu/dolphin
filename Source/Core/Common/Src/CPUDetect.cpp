@@ -21,7 +21,7 @@
 
 //#include <config/i386/cpuid.h>
 #include <xmmintrin.h>
-void __cpuid(int info[4], int x) {}
+void __cpuid(int info[4], int x) {memset(info, 0, sizeof(info));}
 
 #endif
 
@@ -72,94 +72,94 @@ void CPUInfoStruct::Detect()
 		isAMD = true;
 	}
 
-	// Get the information associated with each valid Id
-	for (unsigned int i = 0; i <= nIds; ++i)
+	if (nIds >= 2)
 	{
-		__cpuid(CPUInfo, i);
+		// Get the information associated with each valid Id
+		__cpuid(CPUInfo, 1);
+		
+		nSteppingID = CPUInfo[0] & 0xf;
+		nModel  = (CPUInfo[0] >> 4) & 0xf;
+		nFamily = (CPUInfo[0] >> 8) & 0xf;
+		nProcessorType  = (CPUInfo[0] >> 12) & 0x3;
+		nExtendedmodel  = (CPUInfo[0] >> 16) & 0xf;
+		nExtendedfamily = (CPUInfo[0] >> 20) & 0xff;
+		nBrandIndex = CPUInfo[1] & 0xff;
+		nCLFLUSHcachelinesize = ((CPUInfo[1] >> 8) & 0xff) * 8;
+		nAPICPhysicalID = (CPUInfo[1] >> 24) & 0xff;
+		bSSE3 = (CPUInfo[2] & 0x1) || false;
+		bSSSE3 = (CPUInfo[2] & 0x200) || false;
+		bMONITOR_MWAIT = (CPUInfo[2] & 0x8) || false;
+		bCPLQualifiedDebugStore = (CPUInfo[2] & 0x10) || false;
+		bThermalMonitor2 = (CPUInfo[2] & 0x100) || false;
+		nFeatureInfo = CPUInfo[3];
 
-		// Interpret CPU feature information.
-		if  (i == 1)
+		if (CPUInfo[2] & (1 << 23))
 		{
-			nSteppingID = CPUInfo[0] & 0xf;
-			nModel  = (CPUInfo[0] >> 4) & 0xf;
-			nFamily = (CPUInfo[0] >> 8) & 0xf;
-			nProcessorType  = (CPUInfo[0] >> 12) & 0x3;
-			nExtendedmodel  = (CPUInfo[0] >> 16) & 0xf;
-			nExtendedfamily = (CPUInfo[0] >> 20) & 0xff;
-			nBrandIndex = CPUInfo[1] & 0xff;
-			nCLFLUSHcachelinesize = ((CPUInfo[1] >> 8) & 0xff) * 8;
-			nAPICPhysicalID = (CPUInfo[1] >> 24) & 0xff;
-			bSSE3NewInstructions = (CPUInfo[2] & 0x1) || false;
-			bSSSE3NewInstructions = (CPUInfo[2] & 0x200) || false;
-			bMONITOR_MWAIT = (CPUInfo[2] & 0x8) || false;
-			bCPLQualifiedDebugStore = (CPUInfo[2] & 0x10) || false;
-			bThermalMonitor2 = (CPUInfo[2] & 0x100) || false;
-			nFeatureInfo = CPUInfo[3];
+			bPOPCNT = true;
+		}
 
-			if (CPUInfo[2] & (1 << 23))
-			{
-				bPOPCNT = true;
-			}
+		if (CPUInfo[2] & (1 << 19))
+		{
+			bSSE4_1 = true;
+		}
 
-			if (CPUInfo[2] & (1 << 19))
-			{
-				bSSE4_1 = true;
-			}
-
-			if (CPUInfo[2] & (1 << 20))
-			{
-				bSSE4_2 = true;
-			}
+		if (CPUInfo[2] & (1 << 20))
+		{
+			bSSE4_2 = true;
 		}
 	}
 
-	// Calling __cpuid with 0x80000000 as the InfoType argument
-	// gets the number of valid extended IDs.
-	__cpuid(CPUInfo, 0x80000000);
-	nExIds = CPUInfo[0];
-	memset(CPUBrandString, 0, sizeof(CPUBrandString));
-
-	// Get the information associated with each extended ID.
-	for (unsigned int i = 0x80000000; i <= nExIds; ++i)
+	if (bSSE3)
 	{
-		__cpuid(CPUInfo, i);
+		// Only SSE3 CPU-s support extended infotypes
+		// Calling __cpuid with 0x80000000 as the InfoType argument
+		// gets the number of valid extended IDs.
+		__cpuid(CPUInfo, 0x80000000);
+		nExIds = CPUInfo[0];
+		memset(CPUBrandString, 0, sizeof(CPUBrandString));
 
-		// Interpret CPU brand string and cache information.
-		if (i == 0x80000001)
+		// Get the information associated with each extended ID.
+		for (unsigned int i = 0x80000000; i <= nExIds; ++i)
 		{
-			// This block seems bugged.
-			nFeatureInfo2 = CPUInfo[1]; // ECX
-			bSSE5  = (nFeatureInfo2 & (1 << 11)) ? true : false;
-			bLZCNT = (nFeatureInfo2 & (1 << 5)) ? true : false;
-			bSSE4A = (nFeatureInfo2 & (1 << 6)) ? true : false;
-			bLAHFSAHF64 = (nFeatureInfo2 & (1 << 0)) ? true : false;
+			__cpuid(CPUInfo, i);
 
-			CPU64bit = (CPUInfo[2] & (1 << 29)) ? true : false;
-		}
-		else if  (i == 0x80000002)
-		{
-			memcpy(CPUBrandString, CPUInfo, sizeof(CPUInfo));
-		}
-		else if  (i == 0x80000003)
-		{
-			memcpy(CPUBrandString + 16, CPUInfo, sizeof(CPUInfo));
-		}
-		else if  (i == 0x80000004)
-		{
-			memcpy(CPUBrandString + 32, CPUInfo, sizeof(CPUInfo));
-		}
-		else if  (i == 0x80000006)
-		{
-			nCacheLineSize   = CPUInfo[2] & 0xff;
-			nL2Associativity = (CPUInfo[2] >> 12) & 0xf;
-			nCacheSizeK = (CPUInfo[2] >> 16) & 0xffff;
-		}
-		else if (i == 0x80000008)
-		{
-			int numLSB = (CPUInfo[2] >> 12) & 0xF;
-			numCores = 1 << numLSB;
-			//int coresPerDie = CPUInfo[2] & 0xFF;
-			// numCores = coresPerDie;
+			// Interpret CPU brand string and cache information.
+			if (i == 0x80000001)
+			{
+				// This block seems bugged.
+				nFeatureInfo2 = CPUInfo[1]; // ECX
+				bSSE5  = (nFeatureInfo2 & (1 << 11)) ? true : false;
+				bLZCNT = (nFeatureInfo2 & (1 << 5)) ? true : false;
+				bSSE4A = (nFeatureInfo2 & (1 << 6)) ? true : false;
+				bLAHFSAHF64 = (nFeatureInfo2 & (1 << 0)) ? true : false;
+
+				CPU64bit = (CPUInfo[2] & (1 << 29)) ? true : false;
+			}
+			else if  (i == 0x80000002)
+			{
+				memcpy(CPUBrandString, CPUInfo, sizeof(CPUInfo));
+			}
+			else if  (i == 0x80000003)
+			{
+				memcpy(CPUBrandString + 16, CPUInfo, sizeof(CPUInfo));
+			}
+			else if  (i == 0x80000004)
+			{
+				memcpy(CPUBrandString + 32, CPUInfo, sizeof(CPUInfo));
+			}
+			else if  (i == 0x80000006)
+			{
+				nCacheLineSize   = CPUInfo[2] & 0xff;
+				nL2Associativity = (CPUInfo[2] >> 12) & 0xf;
+				nCacheSizeK = (CPUInfo[2] >> 16) & 0xffff;
+			}
+			else if (i == 0x80000008)
+			{
+				int numLSB = (CPUInfo[2] >> 12) & 0xF;
+				numCores = 1 << numLSB;
+				//int coresPerDie = CPUInfo[2] & 0xFF;
+				// numCores = coresPerDie;
+			}
 		}
 	}
 
@@ -222,9 +222,9 @@ void CPUInfoStruct::Detect()
 	nIds <<= 1;
 	bFXSAVE_FXRSTOR = (nFeatureInfo & nIds) ? true : false;
 	nIds <<= 1;
-	bSSEExtensions = (nFeatureInfo & nIds) ? true : false;
+	bSSE = (nFeatureInfo & nIds) ? true : false;
 	nIds <<= 1;
-	bSSE2Extensions = (nFeatureInfo & nIds) ? true : false;
+	bSSE2 = (nFeatureInfo & nIds) ? true : false;
 	nIds <<= 1;
 	bSelfSnoop = (nFeatureInfo & nIds) ? true : false;
 	nIds <<= 1;

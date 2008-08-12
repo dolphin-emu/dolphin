@@ -145,7 +145,7 @@ void CInterpreter::lmw(UGeckoInstruction _inst)
 		u32 TempReg = Memory::Read_U32(uAddress);		
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
-			PanicAlert("DSI exception in lmv. This is very bad.");
+			PanicAlert("DSI exception in lmv.");
 			return;
 		}
 
@@ -500,9 +500,9 @@ void CInterpreter::lswi(UGeckoInstruction _inst)
 
 	u32 n;
 	if (_inst.NB == 0)
-		n=32;
+		n = 32;
 	else
-		n=_inst.NB;
+		n = _inst.NB;
 
 	int r = _inst.RD - 1;
 	int i = 0;
@@ -511,22 +511,22 @@ void CInterpreter::lswi(UGeckoInstruction _inst)
 		if (i==0)
 		{
 			r++;
-			r&=31;
+			r &= 31;
 			m_GPR[r] = 0;
 		}
 
-		u32 TempValue = Memory::Read_U8(EA) << (24-i);		
+		u32 TempValue = Memory::Read_U8(EA) << (24 - i);		
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 		{
-			PanicAlert("DSI exception in lsw. This is very bad.");
+			PanicAlert("DSI exception in lsw.");
 			return;
 		}
 
 		m_GPR[r] |= TempValue;
 
-		i+=8;
-		if (i==32)
-			i=0;
+		i += 8;
+		if (i == 32)
+			i = 0;
 		EA++;
 		n--;
 	}
@@ -546,26 +546,26 @@ void CInterpreter::stswi(UGeckoInstruction _inst)
     
 	u32 n;
 	if (_inst.NB == 0)
-		n=32;
+		n = 32;
 	else
-		n=_inst.NB;
+		n = _inst.NB;
 
 	int r = _inst.RS - 1;
 	int i = 0;
-	while (n>0)
+	while (n > 0)
 	{
-		if (i==0)
+		if (i == 0)
 		{
 			r++;
-			r&=31;
+			r &= 31;
 		}
-		Memory::Write_U8((m_GPR[r] >> (24-i)) & 0xFF, EA);
+		Memory::Write_U8((m_GPR[r] >> (24 - i)) & 0xFF, EA);
 		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
 			return;
 
-		i+=8;
-		if (i==32)
-			i=0;
+		i += 8;
+		if (i == 32)
+			i = 0;
 		EA++;
 		n--;
 	}

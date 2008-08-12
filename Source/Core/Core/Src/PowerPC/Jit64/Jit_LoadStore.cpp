@@ -19,6 +19,7 @@
 // Should give a very noticable speed boost to paired single heavy code.
 
 #include "Common.h"
+#include "Thunk.h"
 
 #include "../PowerPC.h"
 #include "../../Core.h"
@@ -82,9 +83,9 @@ namespace Jit64
 		SetJumpTarget(argh);
 		switch (accessSize)
 		{
-		case 32: ABI_CallFunctionR((void *)&Memory::Read_U32, reg); break;
-		case 16: ABI_CallFunctionR((void *)&Memory::Read_U16, reg); break;
-		case 8:  ABI_CallFunctionR((void *)&Memory::Read_U8, reg);  break;
+		case 32: ABI_CallFunctionR(ProtectFunction((void *)&Memory::Read_U32, 1), reg); break;
+		case 16: ABI_CallFunctionR(ProtectFunction((void *)&Memory::Read_U16, 1), reg); break;
+		case 8:  ABI_CallFunctionR(ProtectFunction((void *)&Memory::Read_U8, 1), reg);  break;
 		}
 		SetJumpTarget(arg2);
 	}
@@ -97,9 +98,9 @@ namespace Jit64
 		BSWAP(32, reg_value);
 #ifdef _M_IX86
 		AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
-		MOV(accessSize, MDisp(reg_addr, (u32)Memory::base), R(reg_value));
+		MOV(accessSize, MDisp(reg_addr, (u32)Memory::base + offset), R(reg_value));
 #else
-		MOV(accessSize, MComplex(RBX, reg_addr, SCALE_1, 0), R(reg_value));
+		MOV(accessSize, MComplex(RBX, reg_addr, SCALE_1, offset), R(reg_value));
 #endif
 	}
 
@@ -113,17 +114,16 @@ namespace Jit64
 		UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0);
 		FixupBranch arg2 = J();
 		SetJumpTarget(argh);
-		ABI_CallFunctionRR((void *)&Memory::Write_U32, ABI_PARAM1, ABI_PARAM2); 
+		ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
 		SetJumpTarget(arg2);
 	}
 
 	void lbzx(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
-		gpr.Flush(FLUSH_VOLATILE);
-		fpr.Flush(FLUSH_VOLATILE);
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		gpr.Lock(a, b, d);
+		gpr.FlushLockX(ABI_PARAM1);
 		if (b == d || a == d)
 			gpr.LoadToX64(d, true, true);
 		else 
@@ -134,6 +134,7 @@ namespace Jit64
 		SafeLoadRegToEAX(ABI_PARAM1, 8, 0);
 		MOV(32, gpr.R(d), R(EAX));
 		gpr.UnlockAll();
+		gpr.UnlockAllX();
 	}
 
 	void lXz(UGeckoInstruction inst)
@@ -145,7 +146,6 @@ namespace Jit64
 		// TODO(ector): Make it dynamically enable/disable idle skipping where appropriate
 		// Will give nice boost to dual core mode
 		// if (CommandProcessor::AllowIdleSkipping() && PixelEngine::AllowIdleSkipping())
-
 		if (!Core::GetStartupParameter().bUseDualCore && 
 			inst.OPCD == 32 && 
 			(inst.hex & 0xFFFF0000) == 0x800D0000 &&
@@ -172,7 +172,7 @@ namespace Jit64
 		{
 		case 32: accessSize = 32; break; //lwz
 		case 40: accessSize = 16; break; //lhz
-		case 34: accessSize = 8; break;  //lbz
+		case 34: accessSize = 8;  break; //lbz
 		default: _assert_msg_(DYNA_REC, 0, "lXz: invalid access size"); return;
 		}
 
@@ -183,8 +183,6 @@ namespace Jit64
 		if (true) {
 #endif
 			// Safe and boring
-			gpr.Flush(FLUSH_VOLATILE);
-			fpr.Flush(FLUSH_VOLATILE);
 			gpr.FlushLockX(ABI_PARAM1);
 			gpr.Lock(d, a);
 			MOV(32, R(ABI_PARAM1), gpr.R(a));
@@ -221,8 +219,6 @@ namespace Jit64
 		int a = inst.RA;
 		s32 offset = (s32)(s16)inst.SIMM_16;
 		// Safe and boring
-		gpr.Flush(FLUSH_VOLATILE);
-		fpr.Flush(FLUSH_VOLATILE);
 		gpr.FlushLockX(ABI_PARAM1);
 		gpr.Lock(d, a);
 		MOV(32, R(ABI_PARAM1), gpr.R(a));
@@ -272,8 +268,6 @@ namespace Jit64
 		s32 offset = (s32)(s16)inst.SIMM_16;
 		if (a || update) 
 		{
-			gpr.Flush(FLUSH_VOLATILE);
-			fpr.Flush(FLUSH_VOLATILE);
 			int accessSize;
 			switch (inst.OPCD & ~1)
 			{
@@ -358,6 +352,7 @@ namespace Jit64
 				ADD(32, R(ABI_PARAM2), Imm32((u32)offset));
 			if (update && offset)
 			{
+				gpr.LoadToX64(a, true, true);
 				MOV(32, gpr.R(a), R(ABI_PARAM2));
 			}
 			TEST(32, R(ABI_PARAM2), Imm32(0x0C000000));
@@ -380,9 +375,9 @@ namespace Jit64
 			SetJumpTarget(argh);
 			switch (accessSize)
 			{
-			case 32: ABI_CallFunctionRR((void *)&Memory::Write_U32, ABI_PARAM1, ABI_PARAM2); break;
-			case 16: ABI_CallFunctionRR((void *)&Memory::Write_U16, ABI_PARAM1, ABI_PARAM2); break;
-			case 8:  ABI_CallFunctionRR((void *)&Memory::Write_U8,  ABI_PARAM1, ABI_PARAM2); break;
+			case 32: ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); break;
+			case 16: ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U16, 2), ABI_PARAM1, ABI_PARAM2); break;
+			case 8:  ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U8,  2), ABI_PARAM1, ABI_PARAM2); break;
 			}
 			SetJumpTarget(arg2);
 			gpr.UnlockAll();

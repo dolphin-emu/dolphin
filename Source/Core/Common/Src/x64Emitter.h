@@ -14,6 +14,9 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
+// WARNING - THIS LIBRARY IS NOT THREAD SAFE!!!
+
 #ifndef _DOLPHIN_INTEL_CODEGEN
 #define _DOLPHIN_INTEL_CODEGEN
 
@@ -91,6 +94,26 @@ namespace Gen
 	const u8 *AlignCodePage();
 	const u8 *GetCodePtr();
 	u8 *GetWritableCodePtr();
+
+
+	// Safe way to temporarily redirect the code generator.
+	class GenContext 
+	{
+		u8 **code_ptr_ptr;
+		u8 *saved_ptr;
+	public:
+		GenContext(u8 **code_ptr_ptr_)
+		{
+			saved_ptr = GetWritableCodePtr();
+			code_ptr_ptr = code_ptr_ptr_;
+			SetCodePtr(*code_ptr_ptr);
+		}
+		~GenContext()
+		{
+			*code_ptr_ptr = GetWritableCodePtr();
+			SetCodePtr(saved_ptr);
+		}
+	};
 
 	enum NormalOp {
 		nrmADD,

@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "Thunk.h"
 #include "../Core.h"
 #include "HW.h"
 #include "../PowerPC/PowerPC.h"
@@ -42,6 +43,7 @@ namespace HW
 {
 	void Init()
 	{
+		Thunk_Init(); // not really hw, but this way we know it's inited first :P
 		// Init the whole Hardware
 		PixelEngine::Init();
 		CommandProcessor::Init();
@@ -72,5 +74,6 @@ namespace HW
 
         WII_IPC_HLE_Interface::Shutdown();
         WII_IPCInterface::Shutdown();
+		Thunk_Shutdown();
 	}
 }

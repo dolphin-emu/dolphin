@@ -27,6 +27,7 @@
 
 #ifdef _WIN32
 #define INSTRUCTION_START
+//#define INSTRUCTION_START Default(inst); return;
 #else
 #define INSTRUCTION_START Default(inst); return;
 #endif

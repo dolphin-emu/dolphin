@@ -48,7 +48,7 @@ namespace Jit64
 	void rfi(UGeckoInstruction _inst)
 	{
 		FlushRegCaches();
-		//Bits SRR1[0,5-9,16�23, 25�27, 30�31] are placed into the corresponding bits of the MSR.
+		//Bits SRR1[0, 5-9, 16-23, 25-27, 30-31] are placed into the corresponding bits of the MSR.
 		//MSR[13] is set to 0.
 		const int mask = 0x87C0FF73;
 		// MSR = (MSR & ~mask) | (SRR1 & mask);
@@ -105,7 +105,7 @@ namespace Jit64
 		const bool only_counter_check = ((inst.BO >> 4) & 1);
 		const bool only_condition_check = ((inst.BO >> 2) & 1);
 		if (only_condition_check && only_counter_check)
-			PanicAlert("Stupid bcx encountered. Likely bad or corrupt code.");
+			PanicAlert("Bizarre bcx encountered. Likely bad or corrupt code.");
 		bool doFullTest = (inst.BO & 16) == 0 && (inst.BO & 4) == 0;
 		bool ctrDecremented = false;
 
@@ -182,7 +182,7 @@ namespace Jit64
 
 		bool fastway = true;
 
-		if((inst.BO & 16) == 0)				
+		if ((inst.BO & 16) == 0)				
 		{
 			PanicAlert("Bizarro bcctrx %08x, not supported.", inst.hex);
 			_assert_msg_(DYNA_REC, 0, "Bizarro bcctrx");

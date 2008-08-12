@@ -660,6 +660,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\Thunk.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\Thunk.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\Timer.cpp"
 			>
 			<FileConfiguration

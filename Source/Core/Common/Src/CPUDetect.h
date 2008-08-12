@@ -77,16 +77,16 @@ struct CPUInfoStruct
 	bool bThermalMonitorandClockCtrl;
 	bool bMMXTechnology;
 	bool bFXSAVE_FXRSTOR;
-	bool bSSEExtensions;
-	bool bSSE2Extensions;
-	bool bSSE3NewInstructions;
-	bool bSSSE3NewInstructions;
 	bool bSelfSnoop;
 	bool bHyper_threadingTechnology;
 	bool bThermalMonitor;
 	bool bUnknown4;
 	bool bPendBrkEN;
 
+	bool bSSE;
+	bool bSSE2;
+	bool bSSE3;
+	bool bSSSE3;
 	bool bPOPCNT;
 	bool bSSE4_1;
 	bool bSSE4_2;

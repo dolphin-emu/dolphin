@@ -25,7 +25,6 @@ namespace Jit64
 	using namespace Gen;
 	enum FlushMode
 	{
-		FLUSH_VOLATILE,
 		//		FLUSH_ALLNONSTATIC,
 		FLUSH_ALL
 	};

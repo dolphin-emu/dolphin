@@ -93,8 +93,6 @@ namespace Jit64
 		fpr.UnlockAll();
 	}
 
-
-
 	//add a, b, c
 	
 	//mov a, b

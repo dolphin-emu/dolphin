@@ -220,7 +220,7 @@ subfex
 // Evil
 namespace CPUCompare
 {
-	extern  u32    m_BlockStart;
+	extern u32 m_BlockStart;
 }
 
 
@@ -231,9 +231,8 @@ namespace Jit64
 
 	void WriteCallInterpreter(UGeckoInstruction _inst)
 	{
-		gpr.Flush(js.op);
-		if (PPCTables::UsesFPU(_inst))
-			fpr.Flush(js.op);
+		gpr.Flush(FLUSH_ALL);
+		fpr.Flush(FLUSH_ALL);
 		if (js.isLastInstruction)
 		{
 			MOV(32, M(&PC), Imm32(js.compilerPC));
@@ -250,7 +249,8 @@ namespace Jit64
 
 	void HLEFunction(UGeckoInstruction _inst)
 	{
-		FlushRegCaches();
+		gpr.Flush(FLUSH_ALL);
+		fpr.Flush(FLUSH_ALL);
 		ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
 		MOV(32, R(EAX), M(&NPC));
 		WriteExitDestInEAX(0);

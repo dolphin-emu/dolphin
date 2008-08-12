@@ -1054,10 +1054,14 @@ void SDRUpdated()
 u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag)
 {
 	PanicAlert("TLB: %s unknown memory (0x%08x)\n"
+		       "This is either the game crashing randomly, or a TLB write."
 			   "Several games uses the TLB to map memory. This\n"
-			   "function is not support in dolphin. Cheers!",
+			   "function is not supported in Dolphin. "
+			   "Also, unfortunately there is no way to recover from this error,"
+			   "so Dolphin will now exit abruptly. Sorry!",
 			   _Flag == FLAG_WRITE ? "Write to" : "Read from", _Address);
 
+	exit(0);
 	u32 sr = PowerPC::ppcState.sr[EA_SR(_Address)]; 
 
 	u32 offset = EA_Offset(_Address);			// 12 bit 

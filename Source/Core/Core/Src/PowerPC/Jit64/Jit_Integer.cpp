@@ -317,8 +317,7 @@ namespace Jit64
 	{
 		INSTRUCTION_START;
 		int a = inst.RA, d = inst.RD;
-		gpr.FlushR(ECX);
-		gpr.LockX(ECX);
+		gpr.FlushLockX(ECX);
 		gpr.Lock(a, d);
 		if (a != d)
 			gpr.LoadToX64(d, false, true);
@@ -376,8 +375,7 @@ namespace Jit64
 	{
 		INSTRUCTION_START;
 		int a = inst.RA, d = inst.RD;
-		gpr.FlushR(EDX);
-		gpr.LockX(EDX);
+		gpr.FlushLockX(EDX);
 		gpr.Lock(a, d);
 		if (d != a) {
 			gpr.LoadToX64(d, false, true);
@@ -396,8 +394,7 @@ namespace Jit64
 	{
 		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
-		gpr.FlushR(EDX);
-		gpr.LockX(EDX);
+		gpr.FlushLockX(EDX);
 		gpr.Lock(a, b, d);
 		if (d != a && d != b) {
 			gpr.LoadToX64(d, false, true);
@@ -420,8 +417,7 @@ namespace Jit64
 	{
 		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
-		gpr.FlushR(EDX);
-		gpr.LockX(EDX);
+		gpr.FlushLockX(EDX);
 		gpr.Lock(a, b, d);
 		if (d != a && d != b) {
 			gpr.LoadToX64(d, false, true);
@@ -450,8 +446,7 @@ namespace Jit64
 		Default(inst); return;
 
 		int a = inst.RA, b = inst.RB, d = inst.RD;
-		gpr.FlushR(EDX);
-		gpr.LockX(EDX);
+		gpr.FlushLockX(EDX);
 		gpr.Lock(a, b, d);
 		if (d != a && d != b) {
 			gpr.LoadToX64(d, false, true);
@@ -534,8 +529,7 @@ namespace Jit64
 	{
 		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
-		gpr.FlushR(ECX);
-		gpr.LockX(ECX);
+		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, d);
 		if (d != a && d != b)
 			gpr.LoadToX64(d, false);
@@ -649,8 +643,7 @@ namespace Jit64
 		}
 
 		u32 mask = Helper_Mask(inst.MB, inst.ME);
-		gpr.FlushR(ECX);
-		gpr.LockX(ECX);
+		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, s);
 		MOV(32, R(EAX), gpr.R(s));
 		MOV(32, R(ECX), gpr.R(b));
@@ -691,8 +684,7 @@ namespace Jit64
 		int a = inst.RA;
 		int b = inst.RB;
 		int s = inst.RS;
-		gpr.FlushR(ECX);
-		gpr.LockX(ECX);
+		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, s);
 		gpr.LoadToX64(a, a == s || a == b || s == b, true);
 		MOV(32, R(ECX), gpr.R(b));
@@ -719,8 +711,7 @@ namespace Jit64
 		int a = inst.RA;
 		int b = inst.RB;
 		int s = inst.RS;
-		gpr.FlushR(ECX);
-		gpr.LockX(ECX);
+		gpr.FlushLockX(ECX);
 		gpr.Lock(a, b, s);
 		gpr.LoadToX64(a, a == s || a == b || s == b, true);
 		MOV(32, R(ECX), gpr.R(b));

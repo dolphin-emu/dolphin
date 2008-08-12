@@ -259,12 +259,12 @@ namespace Jit64
 		{
 #ifdef _M_X64
 #ifdef _WIN32
-			RSI, RDI, R12, R13, R14, R8, R9, RDX, R10, R11 //, RCX
+			RSI, RDI, R12, R13, R14, R8, R9, R10, R11 //, RCX
 #else
 			R12, R13, R14, R8, R9, R10, R11, RSI, RDI //, RCX
 #endif
 #elif _M_IX86
-			ESI, EDI, EBX, EBP, EDX
+			ESI, EDI, EBX, EBP, EDX, ECX,
 #endif
 		};
 		count = sizeof(allocationOrder) / sizeof(const int);
@@ -412,10 +412,7 @@ namespace Jit64
 				if (regs[i].location.IsSimpleReg())
 				{
 					X64Reg xr = RX(i);
-					if (mode != FLUSH_VOLATILE || IsXRegVolatile(xr))
-					{
-						StoreFromX64(i);
-					}
+					StoreFromX64(i);
 					xregs[xr].dirty = false;
 				}
 				else if (regs[i].location.IsImm())
