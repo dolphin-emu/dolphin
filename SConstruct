@@ -1,6 +1,10 @@
 import os
 import sys
 
+# TODO: What is the current Dolphin version?
+dolphin_version = '1.04'
+Export('dolphin_version')
+
 warnings = ' -Wall -Wwrite-strings -Wfloat-equal -Wshadow -Wpointer-arith -Wpacked -Wno-conversion'
 
 nonactive_warnings = '-Wunreachable-code'
@@ -25,7 +29,17 @@ include_paths = ["../../../Core/Common/Src",
 #                 "../../../Plugins/Plugin_VideoOGL/Src/Windows",
                  ]
 
+builders = {}
 if sys.platform == 'darwin':         
+	from plistlib import writePlist
+	def create_plist(target, source, env):
+		properties = {}
+		for src_node in source:
+			properties.update(src_node.value)
+		for dst_node in target:
+			writePlist(properties, str(dst_node))
+	builders['Plist'] = Builder(action = create_plist)
+
 	dirs = ["Source/Core/Common/Src",
         	"Externals/Bochs_disasm",
 	        "Source/Core/Core/Src",
@@ -64,7 +78,9 @@ env = Environment(CC="gcc",
                   CPPPATH=include_paths, 
                   LIBPATH=lib_paths,
                   ENV={'PATH' : os.environ['PATH'],
-                       'HOME' : os.environ['HOME']})
+                       'HOME' : os.environ['HOME']},
+                  BUILDERS = builders,
+                  )
 
 Export('env')
 

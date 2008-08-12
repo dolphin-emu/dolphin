@@ -115,11 +115,15 @@ bool Renderer::Create2()
         wglSwapIntervalEXT(0);
     else
         ERROR_LOG("no support for SwapInterval (framerate clamped to monitor refresh rate)\n");
-#else
+#elifdef __linux__
     if (glXSwapIntervalSGI)
        glXSwapIntervalSGI(0);
     else
         ERROR_LOG("no support for SwapInterval (framerate clamped to monitor refresh rate)\n");
+#else
+
+	//TODO
+
 #endif
 
     // check the max texture width and height

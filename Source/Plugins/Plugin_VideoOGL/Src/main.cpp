@@ -21,6 +21,10 @@
 #include "OS\Win32.h"
 #endif
 
+#ifdef MACOSX
+#include "SDL/SDL.h"
+#endif
+
 #include "GUI/ConfigDlg.h"
 
 #include "Render.h"
@@ -90,7 +94,7 @@ void DllConfig(HWND _hParent)
 	frame.ShowModal();
 	win.SetHWND(0);
 
-#else
+#elifdef __linux__
 	ConfigDialog frame(NULL);
 	g_Config.Load();
     XVisualInfo *vi;
@@ -126,6 +130,10 @@ void DllConfig(HWND _hParent)
             }
         }    
 	frame.ShowModal();
+#else
+
+	//TODO
+
 #endif
 }
 

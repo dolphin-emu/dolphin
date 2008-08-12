@@ -19,7 +19,25 @@ files = ["BootManager.cpp",
 wxenv = env.Copy(CXXFLAGS = "`wx-config --cppflags` -DUSE_XPM_BITMAPS -DwxNEEDS_CHARPP",
                  LINKFLAGS = "-L/usr/local/lib -pthread `wx-config --libs`")
 
-if sys.platform == 'darwin':         
+if sys.platform == 'darwin':
+	icon = 'Dolphin'
+	version = "svn"
 	wxenv.Program("../../../../Binary/mac/Dolphin.app/Contents/MacOS/Dolphin", files, LIBS = ["debwx", "discio", "core", "bdisasm", "videocommon", "common" , "z"])
+	wxenv.Command("../../../../Binary/mac/Dolphin.app/Contents/Resources/" + icon + ".icns", "../resources/" + icon + ".icns", Copy("$TARGET", "$SOURCE"))
+	wxenv.Plist("../../../../Binary/mac/Dolphin.app/Contents/Info.plist", Value(dict(
+		CFAppleHelpAnchor = 'index',
+		CFBundleExecutable = 'Dolphin',
+		CFBundleGetInfoHTML = 'Dolphin ' + version,
+		CFBundleIconFile = icon,
+		CFBundleIdentifier = 'com.dolphin-emu.dolphin',
+		CFBundleName = 'Dolphin',
+		CFBundlePackageType = 'APPL',
+		CFBundleShortVersionString = version,
+		CFBundleSignature = 'dlfn',
+		CFBundleVersion = version,
+		LSRequiresCarbon = True,
+		NSPrefPaneIconFile = icon,
+		NSPrefPaneIconLabel = 'Dolphin',
+		)))
 else:
 	wxenv.Program("../../../../Binary/linux/Dolphin", files, LIBS = ["debwx", "discio", "core", "bdisasm", "videocommon", "common"])

@@ -23,6 +23,10 @@
 #endif
 #include "GLInit.h"
 
+#ifdef MACOSX
+#include "SDL/SDL.h"
+#endif
+
 // Handles OpenGL and the window
 
 
@@ -45,8 +49,10 @@ void OpenGL_SwapBuffers()
 {
 #ifdef _WIN32
     SwapBuffers(hDC);
-#else
+#elifdef __linux__
     glXSwapBuffers(GLWin.dpy, GLWin.win);
+#else //others
+    SDL_GL_SwapBuffers();
 #endif
 }
 
@@ -54,12 +60,14 @@ void OpenGL_SetWindowText(const char *text)
 {
 #ifdef _WIN32
     SetWindowText(EmuWindow::GetWnd(), text);
-#else
+#elifdef __linux__
     /**
     * Tell X to ask the window manager to set the window title. (X
     * itself doesn't provide window title functionality.)
     */
     XStoreName(GLWin.dpy, GLWin.win, text); 
+#else
+    SDL_WM_SetCaption(text, NULL);
 #endif
 }
 
@@ -76,12 +84,14 @@ BOOL Callback_PeekMessages()
         DispatchMessage(&msg);
     }
     return TRUE;
-#else
+#elifdef __linux__
 	XEvent event;
     while (XPending(GLWin.dpy) > 0) {
         XNextEvent(GLWin.dpy, &event);
 	}
 	return TRUE;
+#else
+	//TODO
 #endif
 }
 
@@ -253,7 +263,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         return false;
     }
 
-#else
+#elifdef __linux__
     XVisualInfo *vi;
     Colormap cmap;
     int dpyWidth, dpyHeight;
@@ -380,6 +390,32 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
                                    "GPU", None, NULL, 0, NULL);
         XMapRaised(GLWin.dpy, GLWin.win);
     }       
+#else
+	//SDL fo other OS (osx, bsd, ...)
+	int videoFlags;
+	SDL_Surface *screen;
+	const SDL_VideoInfo *videoInfo;
+
+	//init sdl video
+	SDL_Init(SDL_INIT_VIDEO);
+	//fetch video info
+	videoInfo = SDL_GetVideoInfo();
+	
+	//hw o sw ogl ?
+    	if (videoInfo->hw_available)
+        	videoFlags |= SDL_HWSURFACE;
+    	else
+        	videoFlags |= SDL_SWSURFACE;
+
+
+	//fullscreen or not
+	if(g_Config.bFullscreen)
+		videoFlags |= SDL_FULLSCREEN;
+	
+	//setup ogl to use double buffering
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	
+	screen = SDL_SetVideoMode(_twidth, _theight, 24, SDL_OPENGL|SDL_RESIZABLE);
 #endif
 	return true;
 }
@@ -391,7 +427,7 @@ bool OpenGL_MakeCurrent()
         MessageBox(NULL,"(5) Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
         return false;
     }
-#else
+#elifdef __linux__
     Window winDummy;
     unsigned int borderDummy;
     // connect the glx-context to the window
@@ -408,6 +444,10 @@ bool OpenGL_MakeCurrent()
     XSelectInput(GLWin.dpy, GLWin.win, ExposureMask | KeyPressMask | KeyReleaseMask | 
                  ButtonPressMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask |
                  FocusChangeMask );
+#else
+
+	//TODO
+
 #endif
 	return true;
 }
@@ -466,7 +506,7 @@ void OpenGL_Shutdown()
         MessageBox(NULL,"Release Device Context Failed.", "SHUTDOWN ERROR", MB_OK | MB_ICONINFORMATION);
         hDC = NULL;                                       // Set DC To NULL
     }
-#else // linux
+#elifdef __linux__
     if (GLWin.ctx)
     {
         if (!glXMakeCurrent(GLWin.dpy, None, NULL))
@@ -483,5 +523,7 @@ void OpenGL_Shutdown()
                 XF86VidModeSetViewPort(GLWin.dpy, GLWin.screen, 0, 0);
         }
     }
+#else
+	SDL_Quit();
 #endif
 }
