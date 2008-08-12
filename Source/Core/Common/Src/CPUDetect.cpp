@@ -14,6 +14,7 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+#include <memory.h>
 
 #ifdef _WIN32
 #include <intrin.h>
@@ -25,7 +26,6 @@ void __cpuid(int info[4], int x) {memset(info, 0, sizeof(info));}
 
 #endif
 
-#include <memory.h>
 
 #include "Common.h"
 #include "CPUDetect.h"
