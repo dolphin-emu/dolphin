@@ -425,7 +425,7 @@ GekkoOPTemplate table63[] =
 	{0,   CInterpreter::fcmpu,   Jit64::fcmpx,      {"fcmpu",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{14,  CInterpreter::fctiwx,  Jit64::Default,    {"fctiwx",  OPTYPE_FPU, FL_RC_BIT_F}},
 	{15,  CInterpreter::fctiwzx, Jit64::Default,    {"fctiwzx", OPTYPE_FPU, FL_RC_BIT_F}},
-	{72,  CInterpreter::fmrx,    Jit64::Default,    {"fmrx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{72,  CInterpreter::fmrx,    Jit64::fmrx,       {"fmrx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{136, CInterpreter::fnabsx,  Jit64::Default,    {"fnabsx",  OPTYPE_FPU, FL_RC_BIT_F}},
 	{40,  CInterpreter::fnegx,   Jit64::Default,    {"fnegx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{12,  CInterpreter::frspx,   Jit64::Default,    {"frspx",   OPTYPE_FPU, FL_RC_BIT_F}},

@@ -65,7 +65,7 @@ namespace Jit64
 	struct JitOptions
 	{
 		bool optimizeStack;
-		bool noAssumeFPLoadFromMem;
+		bool assumeFPLoadFromMem;
 		bool enableBlocklink;
 		bool fpAccurateFlags;
 		bool enableFastMem;
@@ -83,8 +83,6 @@ namespace Jit64
 	void WriteRfiExitDestInEAX();
 
 	void HLEFunction(UGeckoInstruction _inst);
-
-	void FlushRegCaches();
 
 	void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset = 0, bool signExtend = false);
 	void UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0);
@@ -129,6 +127,7 @@ namespace Jit64
 	void fp_arith_s(UGeckoInstruction inst);
 
 	void fcmpx(UGeckoInstruction inst);
+	void fmrx(UGeckoInstruction inst);
 
 	void cmpli(UGeckoInstruction inst);
 	void cmpi(UGeckoInstruction inst);

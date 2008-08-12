@@ -83,7 +83,7 @@ namespace Jit64
 #else
 		jo.enableFastMem = false;
 #endif
-		jo.noAssumeFPLoadFromMem = false;
+		jo.assumeFPLoadFromMem = true;
 		jo.fpAccurateFlags = true;
 
 		codeCache    = (u8*)AllocateExecutableMemory(CODE_SIZE);
@@ -216,7 +216,7 @@ namespace Jit64
 		if (!blocks)
 			return -1;
 		u32 code = Memory::ReadFast32(addr);
-		if ((code>>26) == JIT_OPCODE)
+		if ((code >> 26) == JIT_OPCODE)
 		{
 			//jitted code
 			unsigned int blockNum = code & 0x03FFFFFF;

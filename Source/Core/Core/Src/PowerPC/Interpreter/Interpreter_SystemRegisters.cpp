@@ -54,8 +54,10 @@ void UpdateSSEState(int round, bool daz)
 
 	// Also handle denormals as zero (FZ + DAZ)
 	csr &= ~0x8020;
-	if (daz)
-		csr |= 0x8020;
+
+	// SETTING DAZ KILLS BEYOND GOOD AND EVIL
+	// if (daz)
+	//	csr |= 0x8020;
 	
 	_mm_setcsr(csr);
 }
@@ -249,7 +251,7 @@ void CInterpreter::mfspr(UGeckoInstruction _inst)
 			//(or if it's full, not sure)
 			//MessageBox(NULL, "Read from SPR_WPAR", "????", MB_OK);
 			//Paper Mario reads here, this should be investigated ... TODO(ector)
-			bool wpar_empty = false;
+			bool wpar_empty = true;
 			if (!wpar_empty)
 				rSPR(iIndex) |= 1;  // BNE = buffer not empty
 			else

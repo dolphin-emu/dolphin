@@ -173,29 +173,6 @@ namespace Jit64
 		}
 	}
 
-	void GPRRegCache::GetReadyForOp(int dest, int source)
-	{
-		if (regs[dest].location.CanDoOpWith(regs[source].location))
-			return;
-		LoadToX64(dest);
-		if (!regs[dest].location.CanDoOpWith(regs[source].location))
-		{
-			_assert_msg_(DYNA_REC, 0, "GetReadyForOp failed");
-		}
-	}
-
-	void FPURegCache::GetReadyForOp(int dest, int source)
-	{
-		if (regs[dest].location.IsSimpleReg())
-			return;
-		LoadToX64(dest); //all fp ops have reg as destination
-		if (!regs[dest].location.CanDoOpWith(regs[source].location))
-		{
-			_assert_msg_(DYNA_REC, 0, "GetReadyForOp failed");
-		}
-	}
-
-
 	bool GPRRegCache::IsXRegVolatile(X64Reg reg) const
 	{
 #ifdef _WIN32

@@ -275,7 +275,13 @@ namespace Jit64
 		static FILE *f = 0;
 		if (ImHereLog) {
 			if (!f)
-				f = fopen("log.txt", "w");
+			{
+#ifdef _M_X64
+				f = fopen("log64.txt", "w");
+#else
+				f = fopen("log32.txt", "w");
+#endif
+			}
 			fprintf(f, "%08x\n", PC);
 		}
 		if (been_here.find(PC) != been_here.end()) {
@@ -286,13 +292,6 @@ namespace Jit64
 		LOG(DYNA_REC, "I'm here - PC = %08x , LR = %08x", PC, LR);
 		printf("I'm here - PC = %08x , LR = %08x", PC, LR);
 		been_here[PC] = 1;
-	}
-
-	void FlushRegCaches()
-	{
-		//Flush allocators
-		gpr.End();
-		fpr.End();
 	}
 
 	void WriteExit(u32 destination, int exit_num)
@@ -367,8 +366,7 @@ namespace Jit64
 		if (js.fpa.any)
 		{
 			//This block uses FPU - needs to add FP exception bailout
-			// TODO(ector): change to large J_CC(CC_Z) when verified that it still works
-			TEST(32, M(&PowerPC::ppcState.msr), Imm32(1<<13)); //Test FP bit
+			TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); //Test FP enabled bit
 			FixupBranch b1 = J_CC(CC_NZ);
 			MOV(32, M(&PC), Imm32(js.blockStart));
 			JMP(Asm::fpException, true);
@@ -382,18 +380,20 @@ namespace Jit64
 
 		js.downcountAmount = js.st.numCycles;
 		js.blockSize = size;
-		//Okay, let's emit instructions
-		//Version 1 - Don't do intra branch analysis
+		// Translate instructions
 		for (int i = 0; i < (int)size; i++)
 		{
-			//gpr.Flush(js.op);
-			//if (PPCTables::UsesFPU(_inst))
-			//fpr.Flush(js.op);
+			// gpr.Flush(FLUSH_ALL);
+			// if (PPCTables::UsesFPU(_inst))
+			// fpr.Flush(FLUSH_ALL);
 			js.compilerPC = ops[i].address;
 			js.op = &ops[i];
 			js.instructionNumber = i;
 			if (i == (int)size - 1) js.isLastInstruction = true;
-			PPCTables::CompileInstruction(ops[i].inst);
+			// if (js.isLastInstruction)
+				PPCTables::CompileInstruction(ops[i].inst);
+			// else
+			// 	Default(ops[i].inst);
 			gpr.SanityCheck();
 			fpr.SanityCheck();
 		}

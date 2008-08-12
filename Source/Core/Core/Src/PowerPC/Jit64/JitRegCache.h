@@ -87,7 +87,6 @@ namespace Jit64
 		}
 		virtual void Flush(FlushMode mode);
 		virtual void Flush(PPCAnalyst::CodeOp *op) {Flush(FLUSH_ALL);}
-		void End() {Flush(FLUSH_ALL);}
 		void SanityCheck() const;
 		void KillImmediate(int preg);
 
@@ -97,8 +96,6 @@ namespace Jit64
 		//read only will not set dirty flag
 		virtual void LoadToX64(int preg, bool doLoad = true, bool makeDirty = true) = 0;
 		virtual void StoreFromX64(int preg) = 0;
-
-		virtual void GetReadyForOp(int dest, int source) = 0;
 
 		const OpArg &R(int preg) const {return regs[preg].location;}
 		X64Reg RX(int preg) const
@@ -132,7 +129,6 @@ namespace Jit64
 		void Start(PPCAnalyst::BlockRegStats &stats);
 		void LoadToX64(int preg, bool doLoad = true, bool makeDirty = true);
 		void StoreFromX64(int preg);
-		void GetReadyForOp(int dest, int source);
 		OpArg GetDefaultLocation(int reg) const;
 		const int *GetAllocationOrder(int &count);
 		bool IsXRegVolatile(X64Reg reg) const;
@@ -148,7 +144,6 @@ namespace Jit64
 		void StoreFromX64(int preg);
 		const int *GetAllocationOrder(int &count);
 		bool IsXRegVolatile(X64Reg reg) const;
-		void GetReadyForOp(int dest, int source);
 		OpArg GetDefaultLocation(int reg) const;
 	};
 

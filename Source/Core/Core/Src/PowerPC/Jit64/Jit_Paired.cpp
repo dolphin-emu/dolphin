@@ -114,12 +114,12 @@ namespace Jit64
 		
 		if (d == a)
 		{
-			fpr.GetReadyForOp(d, b);
+			fpr.LoadToX64(d, true);
 			op(fpr.RX(d), fpr.R(b));
 		}
 		else if (d == b && reversible)
 		{
-			fpr.GetReadyForOp(d, a);
+			fpr.LoadToX64(d, true);
 			op(fpr.RX(d), fpr.R(a));
 		}
 		else if (a != d && b != d) 
@@ -127,7 +127,6 @@ namespace Jit64
 			//sources different from d, can use rather quick solution
 			fpr.LoadToX64(d, false);
 			MOVAPD(fpr.RX(d), fpr.R(a));
-			fpr.GetReadyForOp(d, b);
 			op(fpr.RX(d), fpr.R(b));
 		}
 		else if (b != d)

@@ -110,12 +110,12 @@ namespace Jit64
 		if (offset)
 			ADD(32, R(reg_addr), Imm32(offset));
 		TEST(32, R(reg_addr), Imm32(0x0C000000));
-		FixupBranch argh = J_CC(CC_NZ);	
+		FixupBranch unsafe_addr = J_CC(CC_NZ);	
 		UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0);
-		FixupBranch arg2 = J();
-		SetJumpTarget(argh);
+		FixupBranch skip_call = J();
+		SetJumpTarget(unsafe_addr);
 		ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
-		SetJumpTarget(arg2);
+		SetJumpTarget(skip_call);
 	}
 
 	void lbzx(UGeckoInstruction inst)
@@ -259,11 +259,7 @@ namespace Jit64
 		int s = inst.RS;
 		int a = inst.RA;
 
-		bool update = false;
-		if (inst.OPCD & 1)
-		{
-			update = true;
-		}
+		bool update = inst.OPCD & 1;
 
 		s32 offset = (s32)(s16)inst.SIMM_16;
 		if (a || update) 
@@ -356,7 +352,7 @@ namespace Jit64
 				MOV(32, gpr.R(a), R(ABI_PARAM2));
 			}
 			TEST(32, R(ABI_PARAM2), Imm32(0x0C000000));
-			FixupBranch argh = J_CC(CC_NZ);
+			FixupBranch unsafe_addr = J_CC(CC_NZ);
 			if (accessSize == 32)
 				BSWAP(32, ABI_PARAM1);
 			else if (accessSize == 16)
@@ -371,15 +367,15 @@ namespace Jit64
 			AND(32, R(ABI_PARAM2), Imm32(Memory::MEMVIEW32_MASK));
 			MOV(accessSize, MDisp(ABI_PARAM2, (u32)Memory::base), R(ABI_PARAM1));
 #endif
-			FixupBranch arg2 = J();
-			SetJumpTarget(argh);
+			FixupBranch skip_call = J();
+			SetJumpTarget(unsafe_addr);
 			switch (accessSize)
 			{
 			case 32: ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); break;
 			case 16: ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U16, 2), ABI_PARAM1, ABI_PARAM2); break;
 			case 8:  ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U8,  2), ABI_PARAM1, ABI_PARAM2); break;
 			}
-			SetJumpTarget(arg2);
+			SetJumpTarget(skip_call);
 			gpr.UnlockAll();
 			gpr.UnlockAllX();
 		}
@@ -389,12 +385,13 @@ namespace Jit64
 		}
 	}
 
-	// A few games use these heavily.
+	// A few games use these heavily in video codecs.
 	void lmw(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
 		Default(inst);
 		return;
+		/*
 		/// BUGGY
 		//return _inst.RA ? (m_GPR[_inst.RA] + _inst.SIMM_16) : _inst.SIMM_16;
 		gpr.Flush(FLUSH_ALL);
@@ -413,7 +410,7 @@ namespace Jit64
 		ADD(32, R(ECX), Imm8(1));
 		CMP(32, R(ECX), Imm8(32));
 		J_CC(CC_NE, loopPtr, false);
-		gpr.UnlockAllX();
+		gpr.UnlockAllX();*/
 	}
 
 	void stmw(UGeckoInstruction inst)

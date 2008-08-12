@@ -59,6 +59,7 @@ void Thunk_Init()
 	MOV(64, M(saved_gpr_state + 48), R(RSI));
 	MOV(64, M(saved_gpr_state + 56), R(RDI));
 #endif
+	MOV(64, M(saved_gpr_state + 64), R(RBX));
 #else
 	MOV(32, M(saved_gpr_state + 0 ), R(RCX));
 	MOV(32, M(saved_gpr_state + 4 ), R(RDX));
@@ -78,6 +79,7 @@ void Thunk_Init()
 	MOV(64, R(RSI), M(saved_gpr_state + 48));
 	MOV(64, R(RDI), M(saved_gpr_state + 56));
 #endif
+	MOV(64, R(RBX), M(saved_gpr_state + 64));
 #else
 	MOV(32, R(RCX), M(saved_gpr_state + 0 ));
 	MOV(32, R(RDX), M(saved_gpr_state + 4 ));
@@ -128,7 +130,6 @@ void *ProtectFunction(void *function, int num_params)
 #endif
 	RET();
 #else
-	//INT3();
 	CALL((void*)save_regs);
 	// Re-push parameters from previous stack frame
 	for (int i = 0; i < num_params; i++) {

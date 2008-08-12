@@ -27,7 +27,7 @@
 
 #ifdef _WIN32
 #define INSTRUCTION_START
-//#define INSTRUCTION_START Default(inst); return;
+// #define INSTRUCTION_START Default(inst); return;
 #else
 #define INSTRUCTION_START Default(inst); return;
 #endif
@@ -43,12 +43,12 @@ namespace Jit64
 		fpr.Lock(d, a, b);
 		if (d == a)
 		{
-			fpr.GetReadyForOp(d, b);
+			fpr.LoadToX64(d, true);
 			op(fpr.RX(d), fpr.R(b));
 		}
 		else if (d == b && reversible)
 		{
-			fpr.GetReadyForOp(d, a);
+			fpr.LoadToX64(d, true);
 			op(fpr.RX(d), fpr.R(a));
 		}
 		else if (a != d && b != d) 
@@ -56,7 +56,6 @@ namespace Jit64
 			// Sources different from d, can use rather quick solution
 			fpr.LoadToX64(d, !dupe);
 			MOVSD(fpr.RX(d), fpr.R(a));
-			fpr.GetReadyForOp(d, b);
 			op(fpr.RX(d), fpr.R(b));
 		}
 		else if (b != d)
@@ -90,10 +89,10 @@ namespace Jit64
 		case 18: fp_tri_op(inst.FD, inst.FA, inst.FB, false, dupe, &DIVSD); break; //div
 		case 20: fp_tri_op(inst.FD, inst.FA, inst.FB, false, dupe, &SUBSD); break; //sub
 		case 21: fp_tri_op(inst.FD, inst.FA, inst.FB, true,  dupe, &ADDSD); break; //add
-		case 23://sel
+		case 23: //sel
 			Default(inst);
 			break;
-		case 24://res
+		case 24: //res
 			Default(inst);
 			break;
 		case 25: fp_tri_op(inst.FD, inst.FA, inst.FC, true, dupe, &MULSD); break; //mul
@@ -110,7 +109,7 @@ namespace Jit64
 		int c = inst.FC;
 		int d = inst.FD;
 
-		fpr.Lock(a,b,c,d);
+		fpr.Lock(a, b, c, d);
 		MOVSD(XMM0, fpr.R(a));
 		switch (inst.SUBOP5)
 		{
@@ -144,9 +143,10 @@ namespace Jit64
 	void fmrx(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
-		Default(inst); return;
-
-
+		int d = inst.FD;
+		int b = inst.FB;
+		fpr.LoadToX64(d, true);  // we don't want to destroy the high bit
+		MOVSD(fpr.RX(d), fpr.R(b));
 	}
 
 	void fcmpx(UGeckoInstruction inst)

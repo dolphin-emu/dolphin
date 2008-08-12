@@ -41,13 +41,15 @@ namespace Jit64
 {
 	void sc(UGeckoInstruction _inst)
 	{
-		FlushRegCaches();
+		gpr.Flush(FLUSH_ALL);
+		fpr.Flush(FLUSH_ALL);
 		WriteExceptionExit(EXCEPTION_SYSCALL);
 	}
 
 	void rfi(UGeckoInstruction _inst)
 	{
-		FlushRegCaches();
+		gpr.Flush(FLUSH_ALL);
+		fpr.Flush(FLUSH_ALL);
 		//Bits SRR1[0, 5-9, 16-23, 25-27, 30-31] are placed into the corresponding bits of the MSR.
 		//MSR[13] is set to 0.
 		const int mask = 0x87C0FF73;
@@ -69,7 +71,8 @@ namespace Jit64
 	{
 		if (inst.LK)
 			MOV(32, M(&LR), Imm32(js.compilerPC + 4));
-		FlushRegCaches();
+		gpr.Flush(FLUSH_ALL);
+		fpr.Flush(FLUSH_ALL);
 
 		if (js.isLastInstruction)
 		{
@@ -98,7 +101,8 @@ namespace Jit64
 	{
 		_assert_msg_(DYNA_REC, js.isLastInstruction, "bcx not last instruction of block");
 
-		FlushRegCaches();
+		gpr.Flush(FLUSH_ALL);
+		fpr.Flush(FLUSH_ALL);
 
 		CCFlags branch;
 
@@ -178,7 +182,8 @@ namespace Jit64
 
 	void bcctrx(UGeckoInstruction inst)
 	{
-		FlushRegCaches();
+		gpr.Flush(FLUSH_ALL);
+		fpr.Flush(FLUSH_ALL);
 
 		bool fastway = true;
 
@@ -216,7 +221,8 @@ namespace Jit64
 
 	void bclrx(UGeckoInstruction inst)
 	{
-		FlushRegCaches();
+		gpr.Flush(FLUSH_ALL);
+		fpr.Flush(FLUSH_ALL);
 		//Special case BLR
 		if (inst.hex == 0x4e800020)
 		{

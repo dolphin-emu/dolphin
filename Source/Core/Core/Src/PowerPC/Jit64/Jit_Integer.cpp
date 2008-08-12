@@ -45,7 +45,7 @@ namespace Jit64
 
 	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void(*op)(int, const OpArg&, const OpArg&), bool Rc = false, bool carry = false)
 	{
-		gpr.Lock(d,a);
+		gpr.Lock(d, a);
 		if (a || binary || carry)  // yeh nasty special case addic
 		{
 			if (a == d)
@@ -72,8 +72,9 @@ namespace Jit64
 					GenerateCarry(EAX);
 			}
 		}
-		else if (doop == Add && !carry)
+		else if (doop == Add)
 		{
+			// a == 0, which for these instructions imply value = 0
 			gpr.SetImmediate32(d, value);
 		}
 		else
@@ -82,6 +83,7 @@ namespace Jit64
 		}
 		if (Rc)
 		{
+			// Todo - special case immediates.
 			MOV(32, R(EAX), gpr.R(d));
 			CALL((u8*)Asm::computeRc);
 		}
@@ -97,10 +99,10 @@ namespace Jit64
 		case 14: regimmop(d, a, false, (u32)(s32)inst.SIMM_16,  Add, ADD); break; //addi
 		case 15: regimmop(d, a, false, (u32)inst.SIMM_16 << 16, Add, ADD); break; //addis
 		case 24: 
-			if (a == 0 && s == 0 && inst.UIMM == 0)  //check for nop
-				{NOP(); return;} //make the nop visible.. or turn to int3? we shouldn't get nops
+			if (a == 0 && s == 0 && inst.UIMM == 0 && !inst.Rc)  //check for nop
+				{NOP(); return;} //make the nop visible in the generated code. not much use but interesting if we see one.
 			regimmop(a, s, true, inst.UIMM, Or, OR); 
-			break;//ori
+			break; //ori
 		case 25: regimmop(a, s, true, inst.UIMM << 16, Or,  OR, false); break;//oris
 		case 28: regimmop(a, s, true, inst.UIMM,       And, AND, true); break;
 		case 29: regimmop(a, s, true, inst.UIMM << 16, And, AND, true); break;
@@ -289,7 +291,8 @@ namespace Jit64
 	void extsbx(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
-		int a = inst.RA, s = inst.RS;
+		int a = inst.RA,
+			s = inst.RS;
 		gpr.LoadToX64(a, a == s, true);
 		gpr.KillImmediate(s);
 		MOV(32, R(EAX), gpr.R(s));
@@ -319,14 +322,11 @@ namespace Jit64
 		int a = inst.RA, d = inst.RD;
 		gpr.FlushLockX(ECX);
 		gpr.Lock(a, d);
-		if (a != d)
-			gpr.LoadToX64(d, false, true);
-		else
-			gpr.LoadToX64(a, true, true);
+		gpr.LoadToX64(d, a == d, true);
 		int imm = inst.SIMM_16;
 		MOV(32, R(EAX), gpr.R(a));
 		NOT(32, R(EAX));
-		ADD(32, R(EAX), Imm32(imm+1));
+		ADD(32, R(EAX), Imm32(imm + 1));
 		MOV(32, gpr.R(d), R(EAX));
 		GenerateCarry(ECX);
 		gpr.UnlockAll();
@@ -571,7 +571,7 @@ namespace Jit64
 		{
 			SHL(32, gpr.R(a), Imm8(inst.SH));
 		}
-		else if (inst.ME==31 && inst.MB==32-inst.SH)
+		else if (inst.ME == 31 && inst.MB == 32 - inst.SH)
 		{
 			SHR(32, gpr.R(a), Imm8(inst.MB));
 		}
@@ -732,7 +732,6 @@ namespace Jit64
 		}
 	}
 
-	// another crazy instruction :(
 	void srawix(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
@@ -775,6 +774,7 @@ namespace Jit64
 		}
 	}
 
+	// count leading zeroes
 	void cntlzwx(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
@@ -791,14 +791,14 @@ namespace Jit64
 		FixupBranch gotone = J_CC(CC_NZ);
 		MOV(32, gpr.R(a), Imm32(63));
 		SetJumpTarget(gotone);
-		XOR(32, gpr.R(a), Imm8(0x1f)); //flip order
+		XOR(32, gpr.R(a), Imm8(0x1f));  // flip order
 		gpr.UnlockAll();
 
 		if (inst.Rc)
 		{
 			MOV(32, R(EAX), gpr.R(a));
 			CALL((u8*)Asm::computeRc);
-			//Check PPC manual too
+			// TODO: Check PPC manual too
 		}
 	}
 

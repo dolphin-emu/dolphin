@@ -76,7 +76,7 @@ void lfs(UGeckoInstruction inst)
 	gpr.FlushLockX(ABI_PARAM1);
 	gpr.Lock(a);
 	MOV(32, R(ABI_PARAM1), gpr.R(a));
-	if (!jo.noAssumeFPLoadFromMem)
+	if (jo.assumeFPLoadFromMem)
 	{
 		UnsafeLoadRegToReg(ABI_PARAM1, EAX, 32, offset, false);
 	}
@@ -174,7 +174,6 @@ void stfd(UGeckoInstruction inst)
 void stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	DISABLE_32BIT;
 	bool update = inst.OPCD & 1;
 	int s = inst.RS;
 	int a = inst.RA;

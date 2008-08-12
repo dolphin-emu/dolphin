@@ -27,14 +27,8 @@
 #include "JitCache.h"
 #include "JitRegCache.h"
 
-// #define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
-
-#ifdef _M_IX86
-#define DISABLE_32BIT Default(inst); return;
-#else
-#define DISABLE_32BIT ;
-#endif
+// #define INSTRUCTION_START Default(inst); return;
 
 namespace Jit64
 {
@@ -83,6 +77,7 @@ namespace Jit64
 		int d = inst.RD;
 		switch (iIndex)
 		{
+
 //		case SPR_DEC:
 			//MessageBox(NULL, "Read from DEC", "????", MB_OK);
 			//break;

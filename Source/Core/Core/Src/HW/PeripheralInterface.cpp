@@ -131,9 +131,19 @@ void CPeripheralInterface::Write32(const u32 _uValue, const u32 _iAddress)
 
             if ((_uValue != 0x80000001) && (_uValue != 0x80000005)) // DVDLowReset 
             {
-                TCHAR szTemp[256];
-				sprintf(szTemp, "Game wants to reset the machine. PI_RESET_CODE: (%08x)", _uValue);
-                PanicAlert(szTemp);
+				switch (_uValue) {
+				case 3:
+					PanicAlert("Game wants to go to memory card manager. Since BIOS is being HLE:d - can't do that.\n"
+						       "We might pop up a fake memcard manager here and then reset the game in the future :)\n");
+					break;
+				default:
+					{
+					TCHAR szTemp[256];
+					sprintf(szTemp, "Game wants to reset the machine. PI_RESET_CODE: (%08x)", _uValue);
+					PanicAlert(szTemp);
+					}
+					break;
+				}
             }
         }
 		break;
