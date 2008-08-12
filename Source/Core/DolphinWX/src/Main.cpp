@@ -45,13 +45,14 @@ bool DolphinApp::OnInit()
 
 #ifdef _WIN32
 	// TODO: if First Boot
+	/*
 	if (!cpu_info.bSSE2) 
 	{
 		MessageBox(0, _T("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
 			             "Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
 						 "Sayonara!\n"), "Dolphin", MB_ICONINFORMATION);
 		return false;
-	}
+	}*/
 	/*
 #ifdef _M_IX86
 	if (cpu_info.CPU64bit && cpu_info.OS64bit)
