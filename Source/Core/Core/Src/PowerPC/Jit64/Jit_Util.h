@@ -14,35 +14,20 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-#ifndef _JITASM_H
-#define _JITASM_H
 
+
+#include "x64Emitter.h"
 
 namespace Jit64
 {
-	namespace Asm
-	{
-		extern const u8 *enterCode;
 
-		extern const u8 *dispatcher;
-		extern const u8 *dispatcherNoCheck;
-		extern const u8 *dispatcherPcInEAX;
+// Memory Load/Store
+void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset = 0, bool signExtend = false);
+void UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0);
+void SafeLoadRegToEAX(Gen::X64Reg reg, int accessSize, s32 offset, bool signExtend = false);
+void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset);
 
-		extern const u8 *fpException;
-		extern const u8 *computeRc;
-		extern const u8 *testExceptions;
-		extern const u8 *dispatchPcInEAX;
-		extern const u8 *doTiming;
+void WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address);
+void WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address);
 
-		extern const u8 *fifoDirectWrite8;
-		extern const u8 *fifoDirectWrite16;
-		extern const u8 *fifoDirectWrite32;
-		extern const u8 *fifoDirectWriteFloat;
-
-		extern bool compareEnabled;
-		void Generate();
-	}
-}
-
-#endif
-
+}  // namespace

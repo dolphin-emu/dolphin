@@ -40,6 +40,8 @@
 #include "Debugger/PPCDebugInterface.h"
 #include "Debugger/Debugger_SymbolMap.h"
 #include "PowerPC/PPCAnalyst.h"
+#include "PowerPC/Jit64/Jit.h"
+#include "PowerPC/Jit64/JitCache.h"
 
 #include "Core.h"
 #include "LogManager.h"
@@ -235,6 +237,13 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		pSymbolsMenu->Append(IDM_SCANFUNCTIONS, _T("&Scan for functions"));
 		pMenuBar->Append(pSymbolsMenu, _T("&Symbols"));
 	}
+
+	{
+		wxMenu *pJitMenu = new wxMenu;
+		pJitMenu->Append(IDM_CLEARCODECACHE, _T("&Clear code cache"));
+		pMenuBar->Append(pJitMenu, _T("&JIT"));
+	}
+
 	SetMenuBar(pMenuBar);
 }
 
@@ -254,6 +263,16 @@ bool CCodeWindow::UseDualCore()
 void CCodeWindow::JumpToAddress(u32 _Address)
 {
     codeview->Center(_Address);
+}
+
+void CCodeWindow::OnJitMenu(wxCommandEvent& event)
+{
+	switch (event.GetId())
+	{
+	case IDM_CLEARCODECACHE:
+		Jit64::ClearCache();
+		break;
+	}
 }
 
 void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event) 

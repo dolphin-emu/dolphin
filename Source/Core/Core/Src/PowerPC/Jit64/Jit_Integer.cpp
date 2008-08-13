@@ -556,13 +556,23 @@ namespace Jit64
 		int s = inst.RS;
 		if (gpr.R(a).IsImm() || gpr.R(s).IsImm())
 		{
+			if (gpr.R(s).IsImm())
+			{
+				if (gpr.R(s).offset == 0 && !inst.Rc) {
+					// This is pretty common for some reason
+					gpr.LoadToX64(a, false);
+					XOR(32, gpr.R(a), gpr.R(a));
+					return;
+				}
+				// This might also be worth doing.
+			}
 			Default(inst);
 			return;
 		}
 
 		if (a != s)
 		{
-			gpr.Lock(a,s);
+			gpr.Lock(a, s);
 			gpr.LoadToX64(a, false);
 			MOV(32, gpr.R(a), gpr.R(s));
 		}

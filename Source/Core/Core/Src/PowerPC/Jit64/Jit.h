@@ -69,6 +69,7 @@ namespace Jit64
 		bool enableBlocklink;
 		bool fpAccurateFlags;
 		bool enableFastMem;
+		bool optimizeGatherPipe;
 	};
 
 	extern JitState js;
@@ -84,11 +85,6 @@ namespace Jit64
 
 	void HLEFunction(UGeckoInstruction _inst);
 
-	void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset = 0, bool signExtend = false);
-	void UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0);
-	void SafeLoadRegToEAX(Gen::X64Reg reg, int accessSize, s32 offset, bool signExtend = false);
-	void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset);
-	
 	void addx(UGeckoInstruction inst);
 	void orx(UGeckoInstruction inst);
 	void andx(UGeckoInstruction inst);

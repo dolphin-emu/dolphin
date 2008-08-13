@@ -81,6 +81,7 @@ class CCodeWindow
 			IDM_SCANFUNCTIONS,
 			IDM_LOADMAPFILE,
 			IDM_SAVEMAPFILE,
+			IDM_CLEARCODECACHE,
 		};
 
 		enum
@@ -125,6 +126,7 @@ class CCodeWindow
 		void OnToggleMemoryWindow(wxCommandEvent& event);
 		void OnHostMessage(wxCommandEvent& event);
 		void OnSymbolsMenu(wxCommandEvent& event);
+		void OnJitMenu(wxCommandEvent& event);
 
 		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter);
 

@@ -108,20 +108,66 @@ void psq_st(UGeckoInstruction inst)
 		Default(inst);
 		return;
 	}
+	if (!inst.RA)
+	{
+		// This really should never happen. Unless we change this to also support stwux
+		Default(inst);
+		return;
+	}
 	const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
 	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
 	int stScale = gqr.ST_SCALE;
 	bool update = inst.OPCD == 61;
-	if (!inst.RA || inst.W)
-	{
-	//	PanicAlert(inst.RA ? "W" : "inst");
-		Default(inst);
-		return;
-	}
 
 	int offset = inst.SIMM_12;
 	int a = inst.RA;
 	int s = inst.RS; // Fp numbers
+
+	if (inst.W) {
+		// PanicAlert("W=1: stType %i stScale %i update %i", (int)stType, (int)stScale, (int)update); 
+		// It's fairly common that games write stuff to the pipe using this. Then, it's pretty much only
+		// floats so that's what we'll work on.
+		switch (stType)
+		{
+		case QUANTIZE_FLOAT:
+			{
+			if (gpr.R(a).IsImm())
+			{
+				PanicAlert("Imm: %08x", gpr.R(a).offset);
+			}
+			DISABLE_32BIT;
+			gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
+			gpr.Lock(a);
+			fpr.Lock(s);
+			if (update)
+				gpr.LoadToX64(a, true, true);
+			MOV(32, R(ABI_PARAM2), gpr.R(a));
+			if (offset)
+				ADD(32, R(ABI_PARAM2), Imm32((u32)offset));
+			TEST(32, R(ABI_PARAM2), Imm32(0x0C000000));
+			if (update && offset)
+				MOV(32, gpr.R(a), R(ABI_PARAM2));
+			CVTSD2SS(XMM0, fpr.R(s));
+			MOVD_xmm(M(&temp64), XMM0);
+			MOV(32, R(ABI_PARAM1), M(&temp64));
+			FixupBranch argh = J_CC(CC_NZ);
+			BSWAP(32, ABI_PARAM1);
+			MOV(32, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
+			FixupBranch skip_call = J();
+			SetJumpTarget(argh);
+			CALL(ProtectFunction((void *)&Memory::Write_U32, 2));
+			SetJumpTarget(skip_call);
+			gpr.UnlockAll();
+			gpr.UnlockAllX();
+			fpr.UnlockAll();
+			return;
+			}
+		default:
+			Default(inst);
+			return;
+		}
+		return;
+	}
 
 	if (stType == QUANTIZE_FLOAT)
 	{

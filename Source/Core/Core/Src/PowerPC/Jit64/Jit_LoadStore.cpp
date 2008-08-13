@@ -35,6 +35,7 @@
 #include "JitCache.h"
 #include "JitAsm.h"
 #include "JitRegCache.h"
+#include "Jit_Util.h"
 
 // #define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
@@ -47,77 +48,10 @@
 
 namespace Jit64
 {
-	static u64 GC_ALIGNED16(temp64);
-	static u32 GC_ALIGNED16(temp32);
-
-	void UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
-	{
-#ifdef _M_IX86
-		AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
-		MOVZX(32, accessSize, reg_value, MDisp(reg_addr, (u32)Memory::base + offset));
-#else
-		MOVZX(32, accessSize, reg_value, MComplex(RBX, reg_addr, SCALE_1, offset));
-#endif
-		if (accessSize == 32)
-		{
-			BSWAP(32, EAX);
-		}
-		else if (accessSize == 16)
-		{
-			BSWAP(32, EAX);
-			SHR(32, R(EAX), Imm8(16));
-		}
-		if (signExtend && accessSize < 32) {
-			MOVSX(32, accessSize, EAX, R(EAX));
-		}
+	namespace {
+	u64 GC_ALIGNED16(temp64);
+	u32 GC_ALIGNED16(temp32);
 	}
-
-	void SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset, bool signExtend)
-	{
-		if (offset)
-			ADD(32, R(reg), Imm32((u32)offset));
-		TEST(32, R(reg), Imm32(0x0C000000));
-		FixupBranch argh = J_CC(CC_NZ);
-		UnsafeLoadRegToReg(reg, EAX, accessSize, 0, signExtend);
-		FixupBranch arg2 = J();
-		SetJumpTarget(argh);
-		switch (accessSize)
-		{
-		case 32: ABI_CallFunctionR(ProtectFunction((void *)&Memory::Read_U32, 1), reg); break;
-		case 16: ABI_CallFunctionR(ProtectFunction((void *)&Memory::Read_U16, 1), reg); break;
-		case 8:  ABI_CallFunctionR(ProtectFunction((void *)&Memory::Read_U8, 1), reg);  break;
-		}
-		SetJumpTarget(arg2);
-	}
-
-	void UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset)
-	{
-		if (accessSize != 32) {
-			PanicAlert("UnsafeWriteRegToReg can't handle %i byte accesses", accessSize);
-		}
-		BSWAP(32, reg_value);
-#ifdef _M_IX86
-		AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
-		MOV(accessSize, MDisp(reg_addr, (u32)Memory::base + offset), R(reg_value));
-#else
-		MOV(accessSize, MComplex(RBX, reg_addr, SCALE_1, offset), R(reg_value));
-#endif
-	}
-
-	// Destroys both arg registers
-	void SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset)
-	{
-		if (offset)
-			ADD(32, R(reg_addr), Imm32(offset));
-		TEST(32, R(reg_addr), Imm32(0x0C000000));
-		FixupBranch unsafe_addr = J_CC(CC_NZ);	
-		UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0);
-		FixupBranch skip_call = J();
-		SetJumpTarget(unsafe_addr);
-		ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
-		SetJumpTarget(skip_call);
-	}
-
 	void lbzx(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
@@ -272,73 +206,58 @@ namespace Jit64
 			case 38: accessSize = 8; break;  //stb
 			default: _assert_msg_(DYNA_REC, 0, "AWETKLJASDLKF"); return;
 			}
-/*
+
 			if (gpr.R(a).IsImm() && !update)
 			{
 				u32 addr = (u32)gpr.R(a).offset;
 				addr += offset;
-				//YAY!
-				//Now do something smart
-				if ((addr & 0xFFFFF000) == 0xCC008000)
+				if ((addr & 0xFFFFF000) == 0xCC008000 && jo.optimizeGatherPipe)
 				{
-					//MessageBox(0,"FIFO",0,0);
-					//Do a direct I/O write
-#ifdef _M_X64
-					MOV(32, R(EDX), Imm32((u32)gpr.R(a).offset));
-					MOV(32, R(ECX), gpr.R(s));
-#elif _M_IX86
-					PUSH(32, Imm32((u32)gpr.R(a).offset));
-					PUSH(32, gpr.R(s));
-#endif
+					gpr.FlushLockX(ABI_PARAM1);
+					MOV(32, R(ABI_PARAM1), gpr.R(s));
+					// INT3();
 					switch (accessSize)
 					{	
-					case 8:  CALL((void *)&GPFifo::FastWrite8); break;
-					case 16: CALL((void *)&GPFifo::FastWrite16); break;
-					case 32: CALL((void *)&GPFifo::FastWrite32); break;
+					// No need to protect these, they don't touch any state
+					case 8:  CALL((void *)Asm::fifoDirectWrite8);  break;
+					case 16: CALL((void *)Asm::fifoDirectWrite16); break;
+					case 32: CALL((void *)Asm::fifoDirectWrite32); break;
 					}
 					js.fifoBytesThisBlock += accessSize >> 3;
-					if (js.fifoBytesThisBlock > 32)
-					{
-						js.fifoBytesThisBlock -= 32;
-						CALL((void *)&GPFifo::CheckGatherPipe);
-					}
-#ifdef _M_IX86
-					ADD(32, R(ESP), Imm8(8));
-#endif
+					gpr.UnlockAllX();
 					return;
 				}
-				else if ((addr>>24) == 0xCC && accessSize == 32) //Other I/O
+				else if (Memory::IsRAMAddress(addr) && accessSize == 32)
 				{
-#ifdef _M_X64
-					MOV(32, R(EDX), Imm32((u32)gpr.R(a).offset));
-					MOV(32, R(ECX), gpr.R(s));
-#elif _M_IX86
-					PUSH(32, Imm32((u32)gpr.R(a).offset));
-					PUSH(32, gpr.R(s));
-#endif
-					CALL((void *)Memory::GetHWWriteFun32(addr));
-#ifdef _M_IX86
-					ADD(32, R(ESP), Imm8(8));
-#endif
+					MOV(accessSize, R(EAX), gpr.R(s));
+					BSWAP(accessSize, EAX);
+					WriteToConstRamAddress(accessSize, R(EAX), addr); 
+					return;
+					// PanicAlert("yum yum");
+					// This may be quite beneficial.
 				}
+				// Other IO not worth the trouble.
 			}
+
+			// Optimized stack access?
 			if (accessSize == 32 && !gpr.R(a).IsImm() && a == 1 && js.st.isFirstBlockOfFunction && jo.optimizeStack) //Zelda does not like this
 			{
-				//Stack access
-				MOV(32, R(ECX), gpr.R(a));
+				gpr.FlushLockX(ABI_PARAM1);
+				MOV(32, R(ABI_PARAM1), gpr.R(a));
 				MOV(32, R(EAX), gpr.R(s));
 				BSWAP(32, EAX);
 #ifdef _M_X64	
-				MOV(accessSize, MComplex(RBX, ECX, SCALE_1, (u32)offset), R(EAX));
+				MOV(accessSize, MComplex(RBX, ABI_PARAM1, SCALE_1, (u32)offset), R(EAX));
 #elif _M_IX86
 				AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-				MOV(accessSize, MDisp(ECX, (u32)Memory::base + (u32)offset), R(EAX));
+				MOV(accessSize, MDisp(ABI_PARAM1, (u32)Memory::base + (u32)offset), R(EAX));
 #endif
 				if (update)
 					ADD(32, gpr.R(a), Imm32(offset));
+				gpr.UnlockAllX();
 				return;
 			}
-*/
+
 			//Still here? Do regular path.
 			gpr.Lock(s, a);
 			gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
@@ -394,8 +313,8 @@ namespace Jit64
 		/*
 		/// BUGGY
 		//return _inst.RA ? (m_GPR[_inst.RA] + _inst.SIMM_16) : _inst.SIMM_16;
-		gpr.Flush(FLUSH_ALL);
-		gpr.LockX(ECX, EDX, ESI);
+		gpr.FlushLockX(ECX, EDX);
+		gpr.FlushLockX(ESI);
 		//INT3();
 		MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
 		if (inst.RA)

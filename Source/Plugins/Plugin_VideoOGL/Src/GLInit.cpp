@@ -147,8 +147,8 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     nBackbufferHeight = _theight;
 
     // change later
-    s_nTargetWidth = 640<<g_AAx;
-    s_nTargetHeight = 480<<g_AAy;
+    s_nTargetWidth = 640 << g_AAx;
+    s_nTargetHeight = 480 << g_AAy;
 
     g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
     g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;

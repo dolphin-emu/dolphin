@@ -329,7 +329,7 @@ void Write32(const u32 _Data, const u32 _Address)
 
 void GatherPipeBursted()
 {
-	// we arn't linked, so we don't care about gather pipe data
+	// if we aren't linked, we don't care about gather pipe data
 	if (!fifo.bFF_GPLinkEnable)
 		return;
 

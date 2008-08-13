@@ -73,7 +73,7 @@ void CheckGatherPipe()
 		// increase the CPUWritePointer
 		CPeripheralInterface::Fifo_CPUWritePointer += GATHER_PIPE_SIZE; 
 		if (CPeripheralInterface::Fifo_CPUWritePointer > CPeripheralInterface::Fifo_CPUEnd)
-			_assert_msg_(DYNA_REC, 0, "ARGH");
+			_assert_msg_(DYNA_REC, 0, "Fifo_CPUWritePointer out of bounds");
 
 		if (CPeripheralInterface::Fifo_CPUWritePointer >= CPeripheralInterface::Fifo_CPUEnd)
 			CPeripheralInterface::Fifo_CPUWritePointer = CPeripheralInterface::Fifo_CPUBase;		
@@ -94,7 +94,7 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 {
 //	LOG(GPFIFO, "GPFIFO #%x: 0x%04x",CPeripheralInterface::Fifo_CPUWritePointer+m_gatherPipeCount, _iValue);
 	*(u16*)(&m_gatherPipe[m_gatherPipeCount]) = Common::swap16(_iValue);
-	m_gatherPipeCount+=2;
+	m_gatherPipeCount += 2;
 	CheckGatherPipe();
 }
 
@@ -105,7 +105,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 //	LOG(GPFIFO, "GPFIFO #%x: 0x%08x / %f",CPeripheralInterface::Fifo_CPUWritePointer+m_gatherPipeCount, _iValue, floatvalue);
 #endif
 	*(u32*)(&m_gatherPipe[m_gatherPipeCount]) = Common::swap32(_iValue);
-	m_gatherPipeCount+=4;
+	m_gatherPipeCount += 4;
 	CheckGatherPipe();
 }
 

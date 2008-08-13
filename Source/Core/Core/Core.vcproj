@@ -897,6 +897,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Src\PowerPC\Jit64\Jit_Util.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\PowerPC\Jit64\Jit_Util.h"
+					>
+				</File>
+				<File
 					RelativePath=".\Src\PowerPC\Jit64\JitAsm.cpp"
 					>
 				</File>
@@ -1160,6 +1168,10 @@
 		</File>
 		<File
 			RelativePath=".\Src\PatchEngine.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SConscript"
 			>
 		</File>
 		<File

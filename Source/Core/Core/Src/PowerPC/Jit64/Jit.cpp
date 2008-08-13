@@ -20,12 +20,14 @@
 #include "Common.h"
 #include "x64Emitter.h"
 #include "ABI.h"
+#include "Thunk.h"
 #include "../../HLE/HLE.h"
 #include "../../CoreTiming.h"
 #include "../PowerPC.h"
 #include "../PPCTables.h"
 #include "../PPCAnalyst.h"
 #include "../../HW/Memmap.h"
+#include "../../HW/GPFifo.h"
 #include "Jit.h"
 #include "JitAsm.h"
 #include "JitCache.h"
@@ -294,8 +296,15 @@ namespace Jit64
 		been_here[PC] = 1;
 	}
 
+	void Cleanup()
+	{
+		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
+			CALL((void *)&GPFifo::CheckGatherPipe);
+	}
+
 	void WriteExit(u32 destination, int exit_num)
 	{
+		Cleanup();
 		SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 
 		//If nobody has taken care of this yet (this can be removed when all branches are done)
@@ -321,6 +330,7 @@ namespace Jit64
 	void WriteExitDestInEAX(int exit_num) 
 	{
 		MOV(32, M(&PC), R(EAX));
+		Cleanup();
 		SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 		JMP(Asm::dispatcher, true);
 	}
@@ -328,12 +338,14 @@ namespace Jit64
 	void WriteRfiExitDestInEAX() 
 	{
 		MOV(32, M(&PC), R(EAX));
+		Cleanup();
 		SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 		JMP(Asm::testExceptions, true);
 	}
 
 	void WriteExceptionExit(u32 exception)
 	{
+		Cleanup();
 		OR(32, M(&PowerPC::ppcState.Exceptions), Imm32(exception));
 		MOV(32, M(&PC), Imm32(js.compilerPC + 4));
 		JMP(Asm::testExceptions, true);
@@ -396,6 +408,11 @@ namespace Jit64
 			// 	Default(ops[i].inst);
 			gpr.SanityCheck();
 			fpr.SanityCheck();
+			if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
+			{
+				js.fifoBytesThisBlock -= 32;
+				CALL(ProtectFunction((void *)&GPFifo::CheckGatherPipe, 0));
+			}
 		}
 		js.compilerPC += 4;
 

@@ -85,6 +85,7 @@ namespace Jit64
 #endif
 		jo.assumeFPLoadFromMem = true;
 		jo.fpAccurateFlags = true;
+		jo.optimizeGatherPipe = true;
 
 		codeCache    = (u8*)AllocateExecutableMemory(CODE_SIZE);
 		genFunctions = (u8*)AllocateExecutableMemory(GEN_SIZE);
@@ -260,7 +261,7 @@ namespace Jit64
 	}
 
 	int GetCodeSize() {
-		return GetCodePtr() - codeCache;
+		return (int)(GetCodePtr() - codeCache);
 	}
 
 	//Block linker
@@ -369,6 +370,7 @@ namespace Jit64
 
 	void ClearCache()
 	{
+		Core::DisplayMessage("Cleared code cache.", 3000);
 		// Is destroying the blocks really necessary?
 		for (int i = 0; i < numBlocks; i++) {
 			DestroyBlock(i, false);

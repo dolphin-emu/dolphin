@@ -77,7 +77,7 @@ namespace Memory
 	void InitHWMemFuncsWii();
 
 	u32 Read_Instruction(const u32 _Address);
-	bool IsRAMAddress(const u32 addr);
+	bool IsRAMAddress(const u32 addr, bool allow_locked_cache = false);
 	writeFn32 GetHWWriteFun32(const u32 _Address);
 
 	inline u8* GetCachePtr() {return m_pL1Cache;}

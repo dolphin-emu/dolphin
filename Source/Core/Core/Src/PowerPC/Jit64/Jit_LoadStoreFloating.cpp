@@ -35,6 +35,7 @@
 #include "JitCache.h"
 #include "JitAsm.h"
 #include "JitRegCache.h"
+#include "Jit_Util.h"
 
 // #define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
@@ -55,9 +56,10 @@ const u8 GC_ALIGNED16(bswapShuffle1x8[16]) = {7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 
 const u8 GC_ALIGNED16(bswapShuffle1x8Dupe[16]) = {7, 6, 5, 4, 3, 2, 1, 0, 7, 6, 5, 4, 3, 2, 1, 0};
 const u8 GC_ALIGNED16(bswapShuffle2x8[16]) = {7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8};
 
-static u64 GC_ALIGNED16(temp64);
-static u32 GC_ALIGNED16(temp32);
-
+namespace {
+u64 GC_ALIGNED16(temp64);
+u32 GC_ALIGNED16(temp32);
+}
 // TODO: Add peephole optimizations for multiple consecutive lfd/lfs/stfd/stfs since they are so common,
 // and pshufb could help a lot.
 // Also add hacks for things like lfs/stfs the same reg consecutively, that is, simple memory moves.
@@ -178,29 +180,50 @@ void stfs(UGeckoInstruction inst)
 	int s = inst.RS;
 	int a = inst.RA;
 	s32 offset = (s32)(s16)inst.SIMM_16;
-	if (a && !update)
-	{
-		gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
-		gpr.Lock(a);
-		fpr.Lock(s);
-		MOV(32, R(ABI_PARAM2), gpr.R(a));
-		ADD(32, R(ABI_PARAM2), Imm32(offset));
-		if (update && offset)
-		{
-			MOV(32, gpr.R(a), R(ABI_PARAM2));
-		}
-		CVTSD2SS(XMM0, fpr.R(s));
-		MOVSS(M(&temp32), XMM0);
-		MOV(32, R(ABI_PARAM1), M(&temp32));
-		SafeWriteRegToReg(ABI_PARAM1, ABI_PARAM2, 32, 0);
-		gpr.UnlockAll();
-		gpr.UnlockAllX();
-		fpr.UnlockAll();
-	}
-	else
-	{
+	if (!a || update) {
 		Default(inst);
+		return;
 	}
+
+	if (gpr.R(a).IsImm())
+	{
+		u32 addr = gpr.R(a).offset + offset;
+		if (Memory::IsRAMAddress(addr))
+		{
+			if (cpu_info.bSSSE3) {
+				CVTSD2SS(XMM0, fpr.R(s));
+				PSHUFB(XMM0, M((void *)bswapShuffle1x4));
+				WriteFloatToConstRamAddress(XMM0, addr);
+				return;
+			}
+		}
+		else if (addr == 0xCC008000)
+		{
+			// Float directly to write gather pipe! Fun!
+			CVTSD2SS(XMM0, fpr.R(s));
+			CALL((void*)Asm::fifoDirectWriteFloat);
+			// TODO
+			js.fifoBytesThisBlock += 4;
+			return;
+		}
+	}
+
+	gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
+	gpr.Lock(a);
+	fpr.Lock(s);
+	MOV(32, R(ABI_PARAM2), gpr.R(a));
+	ADD(32, R(ABI_PARAM2), Imm32(offset));
+	if (update && offset)
+	{
+		MOV(32, gpr.R(a), R(ABI_PARAM2));
+	}
+	CVTSD2SS(XMM0, fpr.R(s));
+	MOVSS(M(&temp32), XMM0);
+	MOV(32, R(ABI_PARAM1), M(&temp32));
+	SafeWriteRegToReg(ABI_PARAM1, ABI_PARAM2, 32, 0);
+	gpr.UnlockAll();
+	gpr.UnlockAllX();
+	fpr.UnlockAll();
 }
 
 

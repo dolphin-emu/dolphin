@@ -29,6 +29,7 @@
 #include "JitCache.h"
 
 #include "../../HW/CPUCompare.h"
+#include "../../HW/GPFifo.h"
 #include "../../Core.h"
 
 using namespace Gen;
@@ -36,6 +37,7 @@ int blocksExecuted;
 
 namespace Jit64
 {
+
 namespace Asm
 {
 const u8 *enterCode;
@@ -46,6 +48,11 @@ const u8 *dispatcher;
 const u8 *dispatcherNoCheck;
 const u8 *dispatcherPcInEAX;
 const u8 *computeRc;
+
+const u8 *fifoDirectWrite8;
+const u8 *fifoDirectWrite16;
+const u8 *fifoDirectWrite32;
+const u8 *fifoDirectWriteFloat;
 
 static bool blockMode = false; //doesn't work as true!
 bool compareEnabled = false;
@@ -72,6 +79,8 @@ static bool enableStatistics = false;
 // dynarec buffer
 // At this offset - 4, there is an int specifying the block number.
 
+
+void GenerateCommon();
 
 #ifdef _M_IX86
 void Generate()
@@ -167,36 +176,7 @@ void Generate()
 	POP(EBP);
 	RET(); 
 
-	computeRc = AlignCode16();
-	AND(32, M(&CR), Imm32(0x0FFFFFFF));
-	CMP(32, R(EAX), Imm8(0));	
-	FixupBranch pLesser  = J_CC(CC_L);
-	FixupBranch pGreater = J_CC(CC_G);
-	
-	OR(32, M(&CR), Imm32(0x20000000)); // _x86Reg == 0
-	RET();
-
-	SetJumpTarget(pGreater);
-	OR(32, M(&CR), Imm32(0x40000000));	// _x86Reg > 0
-	RET();
-
-	SetJumpTarget(pLesser);
-	OR(32, M(&CR), Imm32(0x80000000));	// _x86Reg < 0
-	RET();
-
-	// Fast write routines - special case the most common hardware write
-	// TODO: use this.
-	// Even in x86, the param values will be in the right registers.
-	/*
-	const u8 *fastMemWrite8 = AlignCode16();
-	CMP(32, R(ABI_PARAM2), Imm32(0xCC008000));
-	FixupBranch skip_fast_write = J_CC(CC_NE, false);
-	MOV(32, EAX, M(&m_gatherPipeCount));
-	MOV(8, MDisp(EAX, (u32)&m_gatherPipe), ABI_PARAM1);
-	ADD(32, 1, M(&m_gatherPipeCount));
-	RET();
-	SetJumpTarget(skip_fast_write);
-	CALL((void *)&Memory::Write_U8);*/
+	GenerateCommon();
 }
 
 #elif defined(_M_X64)
@@ -271,7 +251,7 @@ void Generate()
 		CALL((void *)&CoreTiming::Advance);
 		
 		testExceptions = GetCodePtr();
-		TEST(32,M(&PowerPC::ppcState.Exceptions), Imm32(0xFFFFFFFF));
+		TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(0xFFFFFFFF));
 		FixupBranch skipExceptions = J_CC(CC_Z);
 			MOV(32, R(EAX), M(&PC));
 			MOV(32, M(&NPC), R(EAX));
@@ -287,12 +267,59 @@ void Generate()
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();
 
+	GenerateCommon();
+}
+#endif
+
+void GenFifoWrite(int size) 
+{
+	// Assume value in ABI_PARAM1
+	PUSH(ESI);
+	if (size != 32)
+		PUSH(EDX);
+	BSWAP(size, ABI_PARAM1);
+	MOV(32, R(EAX), Imm32((u32)GPFifo::m_gatherPipe));
+	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
+	if (size != 32) {
+		MOV(32, R(EDX), R(ABI_PARAM1));
+		MOV(size, MComplex(RAX, RSI, 1, 0), R(EDX));
+	} else {
+		MOV(size, MComplex(RAX, RSI, 1, 0), R(ABI_PARAM1));
+	}
+	ADD(32, R(ESI), Imm8(size >> 3));
+	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
+	if (size != 32)
+		POP(EDX);
+	POP(ESI);
+	RET();
+}
+
+static int temp32;
+void GenFifoFloatWrite() 
+{
+	// Assume value in XMM0
+	PUSH(ESI);
+	PUSH(EDX);
+	MOVSS(M(&temp32), XMM0);
+	MOV(32, R(EDX), M(&temp32));
+	BSWAP(32, EDX);
+	MOV(32, R(EAX), Imm32((u32)GPFifo::m_gatherPipe));
+	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
+	MOV(32, MComplex(RAX, RSI, 1, 0), R(EDX));
+	ADD(32, R(ESI), Imm8(4));
+	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
+	POP(EDX);
+	POP(ESI);
+	RET();
+}
+
+void GenerateCommon()
+{
 	computeRc = AlignCode16();
 	AND(32, M(&CR), Imm32(0x0FFFFFFF));
 	CMP(32, R(EAX), Imm8(0));
 	FixupBranch pLesser  = J_CC(CC_L);
 	FixupBranch pGreater = J_CC(CC_G);
-	
 	OR(32, M(&CR), Imm32(0x20000000)); // _x86Reg == 0
 	RET();
 	SetJumpTarget(pGreater);
@@ -302,68 +329,30 @@ void Generate()
 	OR(32, M(&CR), Imm32(0x80000000));	// _x86Reg < 0
 	RET();
 
-/*
-	const u8 *end = GetCodePtr();
-
-
-	u8 *xDis = new u8[65536];
-	memset(xDis,0,65536);
-
-	disassembler x64disasm;
-
-	x64disasm.set_syntax_intel();
-	u64 disasmPtr = (u64)enterCode;
-	int size = end-enterCode;
-	char *sptr = (char*)xDis;
-
-	while ((u8*)disasmPtr < end)
-	{
-		disasmPtr += x64disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
-		sptr += strlen(sptr);
-		*sptr++ = 13;
-		*sptr++ = 10;
-	}
-	MessageBox(0,(char*)xDis,"yo",0);
-	delete [] xDis; */
-
+	fifoDirectWrite8 = AlignCode4();
+	GenFifoWrite(8);
+	fifoDirectWrite16 = AlignCode4();
+	GenFifoWrite(16);
+	fifoDirectWrite32 = AlignCode4();
+	GenFifoWrite(32);
+	fifoDirectWriteFloat = AlignCode4();
+	GenFifoFloatWrite();
+	// Fast write routines - special case the most common hardware write
+	// TODO: use this.
+	// Even in x86, the param values will be in the right registers.
 	/*
-	RUNTIME_FUNCTION func;
-	func.BeginAddress = 0;
-	func.EndAddress = (u32)(GetCodePtr() - enterCode);
-	func.UnwindData = 0;
-
-	RtlAddFunctionTable(&func, 1, (ULONGLONG)enterCode);*/
-	/*
-	//we only want to do this once
-	PUSH(RBX); 
-	PUSH(RSI); 
-	PUSH(RDI); 
-	PUSH(R12); 
-	PUSH(R13); 
-	PUSH(R14); 
-	PUSH(R15);
-	//TODO: Also preserve XMM0-3?
-	SUB(64, R(RSP), Imm8(0x20));
-
-	MOV(32, R(R15), M(&Memory::base));
-
-
-
-
-	MOV(32, M(&PowerPC::ppcState.pc), R(R14));
-
-	//Landing pad for drec space
-	ADD(64, R(RSP), Imm8(0x20));
-	POP(R15);
-	POP(R14); 
-	POP(R13); 
-	POP(R12); 
-	POP(RDI); 
-	POP(RSI); 
-	POP(RBX); 
-	RET();*/
+	const u8 *fastMemWrite8 = AlignCode16();
+	CMP(32, R(ABI_PARAM2), Imm32(0xCC008000));
+	FixupBranch skip_fast_write = J_CC(CC_NE, false);
+	MOV(32, EAX, M(&m_gatherPipeCount));
+	MOV(8, MDisp(EAX, (u32)&m_gatherPipe), ABI_PARAM1);
+	ADD(32, 1, M(&m_gatherPipeCount));
+	RET();
+	SetJumpTarget(skip_fast_write);
+	CALL((void *)&Memory::Write_U8);*/
 }
-#endif
-}
-}
+
+}  // namespace Asm
+
+}  // namespace Jit64
 
