@@ -17,7 +17,7 @@
 
 #include "Globals.h"
 #include "IniFile.h"
-#ifdef _WIN32
+#if defined(_WIN32)
 #include "svnrev.h"
 #include "OS\Win32.h"
 #endif
@@ -39,7 +39,7 @@ u32 g_AAx = 0, g_AAy = 0;
 GLWindow GLWin;
 #endif
 
-#ifdef _WIN32
+#if defined(_WIN32)
 static HDC         hDC = NULL;       // Private GDI Device Context
 static HGLRC       hRC = NULL;       // Permanent Rendering Context
 extern HINSTANCE g_hInstance;
@@ -47,9 +47,9 @@ extern HINSTANCE g_hInstance;
 
 void OpenGL_SwapBuffers()
 {
-#ifdef _WIN32
+#if defined(_WIN32)
     SwapBuffers(hDC);
-#elifdef __linux__
+#elif defined(__linux__)
     glXSwapBuffers(GLWin.dpy, GLWin.win);
 #else //others
     SDL_GL_SwapBuffers();
@@ -58,9 +58,9 @@ void OpenGL_SwapBuffers()
 
 void OpenGL_SetWindowText(const char *text) 
 {
-#ifdef _WIN32
+#if defined(_WIN32)
     SetWindowText(EmuWindow::GetWnd(), text);
-#elifdef __linux__
+#elif defined(__linux__)
     /**
     * Tell X to ask the window manager to set the window title. (X
     * itself doesn't provide window title functionality.)
@@ -73,7 +73,7 @@ void OpenGL_SetWindowText(const char *text)
 
 BOOL Callback_PeekMessages()
 {
-#ifdef _WIN32
+#if defined(_WIN32)
     //TODO: peekmessage
     MSG msg;
     while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
@@ -84,7 +84,7 @@ BOOL Callback_PeekMessages()
         DispatchMessage(&msg);
     }
     return TRUE;
-#elifdef __linux__
+#elif defined(__linux__)
 	XEvent event;
     while (XPending(GLWin.dpy) > 0) {
         XNextEvent(GLWin.dpy, &event);
@@ -98,7 +98,7 @@ BOOL Callback_PeekMessages()
 
 void UpdateFPSDisplay(const char *text)
 {
-#ifdef _WIN32
+#if defined(_WIN32)
  	char temp[512];
 	sprintf(temp, "SVN R%i: %s", SVN_REV, text);
     SetWindowText(EmuWindow::GetWnd(), temp);
@@ -139,7 +139,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
             _theight = _iheight;
         }
     }
-#ifdef _WIN32
+#if defined(_WIN32)
     EmuWindow::SetSize(_twidth, _theight);
 #endif
 
@@ -153,7 +153,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
     g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
 
-#ifdef _WIN32
+#if defined(_WIN32)
     // create the window
     if (!g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL) {
         // create the window
@@ -263,7 +263,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         return false;
     }
 
-#elifdef __linux__
+#elif defined(__linux__)
     XVisualInfo *vi;
     Colormap cmap;
     int dpyWidth, dpyHeight;
@@ -437,12 +437,12 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 
 bool OpenGL_MakeCurrent()
 {
-#ifdef _WIN32
+#if defined(_WIN32)
     if (!wglMakeCurrent(hDC,hRC)) {
         MessageBox(NULL,"(5) Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
         return false;
     }
-#elifdef __linux__
+#elif defined(__linux__)
     Window winDummy;
     unsigned int borderDummy;
     // connect the glx-context to the window
@@ -469,7 +469,7 @@ bool OpenGL_MakeCurrent()
 
 void OpenGL_Update()
 {
-#ifdef _WIN32
+#if defined(_WIN32)
     
     if (EmuWindow::GetParentWnd())
     {
@@ -501,7 +501,7 @@ void OpenGL_Update()
 
 void OpenGL_Shutdown()
 {
-#ifdef _WIN32
+#if defined(_WIN32)
     if (hRC)                                            // Do We Have A Rendering Context?
     {
         if (!wglMakeCurrent(NULL,NULL))                 // Are We Able To Release The DC And RC Contexts?
@@ -521,7 +521,7 @@ void OpenGL_Shutdown()
         MessageBox(NULL,"Release Device Context Failed.", "SHUTDOWN ERROR", MB_OK | MB_ICONINFORMATION);
         hDC = NULL;                                       // Set DC To NULL
     }
-#elifdef __linux__
+#elif defined(__linux__)
     if (GLWin.ctx)
     {
         if (!glXMakeCurrent(GLWin.dpy, None, NULL))

@@ -115,7 +115,8 @@ bool Renderer::Create2()
         wglSwapIntervalEXT(0);
     else
         ERROR_LOG("no support for SwapInterval (framerate clamped to monitor refresh rate)\n");
-#elifdef __linux__
+#else
+#ifdef __linux__
     if (glXSwapIntervalSGI)
        glXSwapIntervalSGI(0);
     else
@@ -125,7 +126,7 @@ bool Renderer::Create2()
 	//TODO
 
 #endif
-
+#endif
     // check the max texture width and height
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&g_MaxTexWidth);
     g_MaxTexHeight = g_MaxTexWidth;

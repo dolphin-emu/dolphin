@@ -67,7 +67,7 @@ void DllAbout(HWND _hParent)
 
 void DllConfig(HWND _hParent)
 {
-#ifdef _WIN32
+#if defined(_WIN32)
 	wxWindow win;
 	win.SetHWND(_hParent);
 	ConfigDialog frame(&win);
@@ -94,7 +94,7 @@ void DllConfig(HWND _hParent)
 	frame.ShowModal();
 	win.SetHWND(0);
 
-#elifdef __linux__
+#elif defined(__linux__)
 	ConfigDialog frame(NULL);
 	g_Config.Load();
     XVisualInfo *vi;
