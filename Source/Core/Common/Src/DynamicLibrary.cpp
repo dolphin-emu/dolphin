@@ -58,35 +58,35 @@ std::string GetLastErrorAsString()
 
 bool DynamicLibrary::Load(const char* filename)
 {
-	if (strlen(filename) == 0)
+	if (!filename || strlen(filename) == 0)
 	{
-		PanicAlert("DynamicLibrary : Missing filename");
-		return(false);
+		LOG(MASTER_LOG, "Missing filename of dynamic library to load");
+		return false;
 	}
+	LOG(MASTER_LOG, "Trying to load library %s", filename);
 
 	if (IsLoaded())
 	{
-		PanicAlert("Trying to load already loaded library %s", filename);
-		return(false);
+		LOG(MASTER_LOG, "Trying to load already loaded library %s", filename);
+		return false;
 	}
 
 #ifdef _WIN32
 	library = LoadLibrary(filename);
 	if (!library) {
-		//PanicAlert("Error loading DLL %s: %s", filename, GetLastErrorAsString().c_str());
+		LOG(MASTER_LOG, "Error loading DLL %s: %s", filename, GetLastErrorAsString().c_str());
+		return false;
 	}
 #else
 	library = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
-
 	if (!library)
 	{
-		PanicAlert(dlerror());
+		LOG(MASTER_LOG, "Error loading DLL %s: %s", filename, dlerror());
+		return false;
 	}
 #endif
-	if (library) {
-		library_file = filename;
-	}
-	return library != 0;
+	library_file = filename;
+	return true;
 }
 
 
@@ -120,9 +120,6 @@ void* DynamicLibrary::Get(const char* funcname) const
 	//{
 		//PanicAlert("Did not find function %s in library %s.", funcname, library_file.c_str());
 	//}
-
-	return retval;
-
 #else
 	retval = dlsym(library, funcname);
 
@@ -131,6 +128,7 @@ void* DynamicLibrary::Get(const char* funcname) const
 		printf("Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), dlerror());
 	}
 #endif
+	return retval;
 }
 
 
