@@ -423,7 +423,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	//setup ogl to use double buffering
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 	
-	screen = SDL_SetVideoMode(_twidth, _theight, 24, SDL_OPENGL|SDL_RESIZABLE);
+	screen = SDL_SetVideoMode(_twidth, _theight, 0, videoFlags);
 	if (!screen) {
 		//TODO : Display an error message
 		SDL_Quit();
