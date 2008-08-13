@@ -360,7 +360,7 @@ GekkoOPTemplate table31[] =
 	{19,  CInterpreter::mfcr,   Jit64::Default,    {"mfcr",   OPTYPE_SYSTEM, 0}},
 	{83,  CInterpreter::mfmsr,  Jit64::mfmsr,      {"mfmsr",  OPTYPE_SYSTEM, 0}},
 	{144, CInterpreter::mtcrf,  Jit64::Default,    {"mtcrf",  OPTYPE_SYSTEM, 0}},
-	{146, CInterpreter::mtmsr,  Jit64::mtmsr,      {"mtmsr",  OPTYPE_SYSTEM, 0}},
+	{146, CInterpreter::mtmsr,  Jit64::mtmsr,      {"mtmsr",  OPTYPE_SYSTEM, FL_ENDBLOCK}},
 	{210, CInterpreter::mtsr,   Jit64::Default,    {"mtsr",   OPTYPE_SYSTEM, 0}},
 	{242, CInterpreter::mtsrin, Jit64::Default,    {"mtsrin", OPTYPE_SYSTEM, 0}},
 	{339, CInterpreter::mfspr,  Jit64::mfspr,      {"mfspr",  OPTYPE_SYSTEM, 0}},

@@ -282,9 +282,9 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		Memory::Write_U16(0x0000, 0x000030e0);			// PADInit
 
 		// clear exception handler
-		for (int i=0x3000; i<=0x3038; i+=4)
+		for (int i = 0x3000; i <= 0x3038; i += 4)
 		{
-			Memory::Write_U32(0x00000000, i);
+			Memory::Write_U32(0x00000000, 0x80000000 + i);
 		}	
 
 		// app

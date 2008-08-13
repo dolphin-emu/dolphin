@@ -87,7 +87,7 @@ namespace Jit64
 			// fall through
 		default:
 			gpr.Lock(d);
-			gpr.LoadToX64(d,false);
+			gpr.LoadToX64(d, false);
 			MOV(32, gpr.R(d), M(&PowerPC::ppcState.spr[iIndex]));
 			gpr.UnlockAll();
 			break;
@@ -97,8 +97,11 @@ namespace Jit64
 	void mtmsr(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
-		gpr.LoadToX64(inst.RS);
+		gpr.LoadToX64(inst.RS, true, false);
 		MOV(32, M(&MSR), gpr.R(inst.RS));
+		gpr.Flush(FLUSH_ALL);
+		fpr.Flush(FLUSH_ALL);
+		WriteExit(js.compilerPC + 4, 0);
 	}
 
 	void mfmsr(UGeckoInstruction inst)
