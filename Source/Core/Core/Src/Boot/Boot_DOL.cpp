@@ -33,7 +33,7 @@ CDolLoader::CDolLoader(const char* _szFilename) : m_bInit(false)
 			p[i] = Common::swap32(p[i]);
 
 		// load all text (code) sections
-		for(int i=0; i<DOL_NUM_TEXT; i++)
+		for(int i = 0; i < DOL_NUM_TEXT; i++)
 		{
 			if(m_dolheader.textOffset[i] != 0)
 			{
@@ -50,7 +50,7 @@ CDolLoader::CDolLoader(const char* _szFilename) : m_bInit(false)
 		}
 
 		// load all data sections
-		for(int i=0; i<DOL_NUM_DATA; i++)
+		for(int i = 0; i < DOL_NUM_DATA; i++)
 		{
 			if(m_dolheader.dataOffset[i] != 0)
 			{

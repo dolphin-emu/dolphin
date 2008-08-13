@@ -15,8 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 #include "Common.h"
+#include "Thunk.h"
 
 #include "../PowerPC.h"
+#include "../../CoreTiming.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
 
@@ -85,7 +87,12 @@ namespace Jit64
 			if (inst.LK)
 				AND(32, M(&CR), Imm32(~(0xFF000000)));
 #endif
-
+			//if (destination == js.compilerPC)
+			//{
+				//PanicAlert("Idle loop detected at %08x", destination);
+			//	CALL(ProtectFunction(&CoreTiming::Idle, 0));
+			//	JMP(Asm::testExceptions, true);
+			//}
 			WriteExit(destination, 0);
 		}
 		else {
@@ -106,10 +113,10 @@ namespace Jit64
 
 		CCFlags branch;
 
-		const bool only_counter_check = ((inst.BO >> 4) & 1);
-		const bool only_condition_check = ((inst.BO >> 2) & 1);
-		if (only_condition_check && only_counter_check)
-			PanicAlert("Bizarre bcx encountered. Likely bad or corrupt code.");
+		const bool only_counter_check = (inst.BO & 16) ? true : false;
+		const bool only_condition_check = (inst.BO & 4) ? true : false;
+		//if (only_condition_check && only_counter_check)
+		//	PanicAlert("Bizarre bcx encountered. Likely bad or corrupt code.");
 		bool doFullTest = (inst.BO & 16) == 0 && (inst.BO & 4) == 0;
 		bool ctrDecremented = false;
 

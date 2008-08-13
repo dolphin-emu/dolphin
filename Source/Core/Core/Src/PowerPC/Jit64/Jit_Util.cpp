@@ -74,6 +74,9 @@ void SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset, bool signExtend)
 	case 16: ABI_CallFunctionR(ProtectFunction((void *)&Memory::Read_U16, 1), reg); break;
 	case 8:  ABI_CallFunctionR(ProtectFunction((void *)&Memory::Read_U8, 1), reg);  break;
 	}
+	if (signExtend && accessSize < 32) {
+		MOVSX(32, accessSize, EAX, R(EAX));
+	}
 	SetJumpTarget(arg2);
 }
 
