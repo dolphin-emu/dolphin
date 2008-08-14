@@ -5,6 +5,8 @@
 
 class DebugInterface
 {
+protected:
+	virtual ~DebugInterface() {}
 public:
 	virtual const char *disasm(unsigned int /*address*/) {return "NODEBUGGER";}
 	virtual int getInstructionSize(int /*instruction*/) {return 1;}
