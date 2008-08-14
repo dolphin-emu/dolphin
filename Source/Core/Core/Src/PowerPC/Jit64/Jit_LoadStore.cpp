@@ -83,8 +83,8 @@ namespace Jit64
 		if (!Core::GetStartupParameter().bUseDualCore && 
 			inst.OPCD == 32 && 
 			(inst.hex & 0xFFFF0000) == 0x800D0000 &&
-			Memory::ReadUnchecked_U32(js.compilerPC+4) == 0x28000000 &&
-			Memory::ReadUnchecked_U32(js.compilerPC+8) == 0x4182fff8)
+			Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 &&
+			Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
 		{
 			gpr.Flush(FLUSH_ALL);
 			fpr.Flush(FLUSH_ALL);
@@ -209,6 +209,8 @@ namespace Jit64
 
 			if (gpr.R(a).IsImm() && !update)
 			{
+				// If we already know the address through constant folding, we can do some
+				// fun tricks...
 				u32 addr = (u32)gpr.R(a).offset;
 				addr += offset;
 				if ((addr & 0xFFFFF000) == 0xCC008000 && jo.optimizeGatherPipe)
@@ -219,6 +221,7 @@ namespace Jit64
 					switch (accessSize)
 					{	
 					// No need to protect these, they don't touch any state
+					// question - should we inline them instead? Pro: Lose a CALL   Con: Code bloat
 					case 8:  CALL((void *)Asm::fifoDirectWrite8);  break;
 					case 16: CALL((void *)Asm::fifoDirectWrite16); break;
 					case 32: CALL((void *)Asm::fifoDirectWrite32); break;
@@ -240,7 +243,7 @@ namespace Jit64
 			}
 
 			// Optimized stack access?
-			if (accessSize == 32 && !gpr.R(a).IsImm() && a == 1 && js.st.isFirstBlockOfFunction && jo.optimizeStack) //Zelda does not like this
+			if (accessSize == 32 && !gpr.R(a).IsImm() && a == 1 && js.st.isFirstBlockOfFunction && jo.optimizeStack)
 			{
 				gpr.FlushLockX(ABI_PARAM1);
 				MOV(32, R(ABI_PARAM1), gpr.R(a));
@@ -272,14 +275,7 @@ namespace Jit64
 			}
 			TEST(32, R(ABI_PARAM2), Imm32(0x0C000000));
 			FixupBranch unsafe_addr = J_CC(CC_NZ);
-			if (accessSize == 32)
-				BSWAP(32, ABI_PARAM1);
-			else if (accessSize == 16)
-			{
-				// TODO(ector): xchg ch, cl?
-				BSWAP(32, ABI_PARAM1);
-				SHR(32, R(ABI_PARAM1), Imm8(16));
-			}
+			BSWAP(accessSize, ABI_PARAM1);
 #ifdef _M_X64
 			MOV(accessSize, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
 #else

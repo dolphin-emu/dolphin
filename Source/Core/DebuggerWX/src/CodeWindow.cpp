@@ -420,8 +420,6 @@ void CCodeWindow::Update()
 
 	UpdateButtonStates();
 
-	codeview->Center(PC);
-
 	Host_UpdateLogDisplay();
 }
 
@@ -676,7 +674,7 @@ void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)
 	toolBar->AddTool(IDM_STEPOVER,	_T("Step Over"),    m_Bitmaps[Toolbar_StepOver]);
 	toolBar->AddTool(IDM_SKIP,		_T("Skip"),			m_Bitmaps[Toolbar_Skip]);
 	toolBar->AddSeparator();
-	toolBar->AddTool(IDM_GOTOPC,    _T("Goto PC"),		m_Bitmaps[Toolbar_GotoPC]);
+	toolBar->AddTool(IDM_GOTOPC,    _T("Show PC"),		m_Bitmaps[Toolbar_GotoPC]);
 	toolBar->AddTool(IDM_SETPC,		_T("Set PC"),		m_Bitmaps[Toolbar_SetPC]);
 	toolBar->AddSeparator();
 	toolBar->AddControl(new wxTextCtrl(toolBar, IDM_ADDRBOX, _T("")));

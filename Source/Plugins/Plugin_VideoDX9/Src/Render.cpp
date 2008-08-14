@@ -103,7 +103,7 @@ void Renderer::ProcessMessages()
 				if(time_left<0) alpha=0;
 			}
 
-			alpha<<=24;
+			alpha <<= 24;
 
             RenderText(it->str, left+1, top+1, 0x000000|alpha);
             RenderText(it->str, left, top, 0xffff30|alpha);

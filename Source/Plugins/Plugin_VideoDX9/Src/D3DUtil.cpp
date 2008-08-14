@@ -29,27 +29,7 @@ namespace D3D
 		m_pTexture             = NULL;
 		m_pVB                  = NULL;
 	}
-
-	const int RS[6][2] =
-	{
-		{ D3DRS_ALPHABLENDENABLE,         TRUE },
-		{ D3DRS_SRCBLEND,                 D3DBLEND_SRCALPHA },
-		{ D3DRS_DESTBLEND,                D3DBLEND_INVSRCALPHA },
-		{ D3DRS_CULLMODE,                 D3DCULL_NONE },
-		{ D3DRS_ZENABLE,                  FALSE },
-		{ D3DRS_FOGENABLE,                FALSE },
-	};
-	const int TS[6][2] = 
-	{
-		{D3DTSS_COLOROP,   D3DTOP_MODULATE},
-		{D3DTSS_COLORARG1, D3DTA_TEXTURE},
-		{D3DTSS_COLORARG2, D3DTA_DIFFUSE },
-		{D3DTSS_ALPHAOP,   D3DTOP_MODULATE },
-		{D3DTSS_ALPHAARG1, D3DTA_TEXTURE },
-		{D3DTSS_ALPHAARG2, D3DTA_DIFFUSE },
-	};
-
-	enum {m_dwTexWidth=512, m_dwTexHeight = 512};
+	enum {m_dwTexWidth = 512, m_dwTexHeight = 512};
 
 	int CD3DFont::Init()
 	{
@@ -171,22 +151,77 @@ namespace D3D
 		return S_OK;
 	}
 
+
+	const int RS[6][2] =
+	{
+		{ D3DRS_ALPHABLENDENABLE,         TRUE },
+		{ D3DRS_SRCBLEND,                 D3DBLEND_SRCALPHA },
+		{ D3DRS_DESTBLEND,                D3DBLEND_INVSRCALPHA },
+		{ D3DRS_CULLMODE,                 D3DCULL_NONE },
+		{ D3DRS_ZENABLE,                  FALSE },
+		{ D3DRS_FOGENABLE,                FALSE },
+	};
+	const int TS[6][2] = 
+	{
+		{D3DTSS_COLOROP,   D3DTOP_MODULATE},
+		{D3DTSS_COLORARG1, D3DTA_TEXTURE},
+		{D3DTSS_COLORARG2, D3DTA_DIFFUSE },
+		{D3DTSS_ALPHAOP,   D3DTOP_MODULATE },
+		{D3DTSS_ALPHAARG1, D3DTA_TEXTURE },
+		{D3DTSS_ALPHAARG2, D3DTA_DIFFUSE },
+	};
+
+	static DWORD RS_old[6];
+	static DWORD TS_old[6];
+	static LPDIRECT3DBASETEXTURE9 texture_old;
+	static DWORD FVF_old;
+	static LPDIRECT3DVERTEXDECLARATION9 decl_old;
+	static LPDIRECT3DPIXELSHADER9 ps_old;
+	static LPDIRECT3DVERTEXSHADER9 vs_old;
+
+	void SaveRenderStates()
+	{
+		for (int i = 0; i < 6; i++) {
+			dev->GetRenderState((_D3DRENDERSTATETYPE)RS[i][0], &(RS_old[i]));
+			dev->GetTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), &(TS_old[i]));
+		}
+		dev->GetTexture(0, &texture_old);
+		dev->GetPixelShader(&ps_old);
+		dev->GetVertexShader(&vs_old);
+		dev->GetVertexDeclaration(&decl_old);
+		dev->GetFVF(&FVF_old);
+	}
+
 	void CD3DFont::SetRenderStates()
 	{
-		for (int i=0; i<6; i++)
+		dev->SetTexture(0, m_pTexture);
+		dev->SetPixelShader(0);
+		dev->SetVertexShader(0);
+		dev->SetVertexDeclaration(0);
+		dev->SetFVF(D3DFVF_FONT2DVERTEX);
+		for (int i = 0; i < 6; i++) {
 			dev->SetRenderState((_D3DRENDERSTATETYPE)RS[i][0],RS[i][1]);
-		for (int i=0; i<6; i++)
-			dev->SetTextureStageState(0,(_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]),TS[i][1]);
+			dev->SetTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), TS[i][1]);
+		}
+	}
+
+	void RestoreRenderStates()
+	{
+		dev->SetTexture(0, texture_old);
+		dev->SetPixelShader(ps_old);
+		dev->SetVertexShader(vs_old);
+		dev->SetVertexDeclaration(decl_old);
+		dev->SetFVF(FVF_old);
+		for (int i = 0; i < 6; i++) {
+			dev->SetRenderState((_D3DRENDERSTATETYPE)RS[i][0], RS_old[i]);
+			dev->SetTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), TS_old[i]);
+		}
 	}
 
 	int CD3DFont::DrawTextScaled( float x, float y, float fXScale, float fYScale, float spacing, int dwColor, const char* strText, bool center )
 	{
+		SaveRenderStates();
 		SetRenderStates();
-		dev->SetTexture( 0, m_pTexture );
-		dev->SetPixelShader(0);
-		dev->SetVertexShader(0);
-		dev->SetVertexDeclaration(0);
-		dev->SetFVF( D3DFVF_FONT2DVERTEX );
 		dev->SetStreamSource( 0, m_pVB, 0, sizeof(FONT2DVERTEX) );
 
 		float vpWidth = 1;
@@ -228,7 +263,7 @@ namespace D3D
 		}
 
 		float offset=-maxx/2;
-		strText=oldstrText;
+		strText = oldstrText;
 		//Then let's draw it
 		if (center)
 		{
@@ -293,13 +328,13 @@ namespace D3D
 		m_pVB->Unlock();
 		if( dwNumTriangles > 0 )
 			dev->DrawPrimitive( D3DPT_TRIANGLELIST, 0, dwNumTriangles );
-
-		dev->SetRenderState(D3DRS_ZENABLE,TRUE);
+		RestoreRenderStates();
 		return S_OK;
 	}
 
 	void quad2d(float x1, float y1, float x2, float y2, DWORD color, float u1, float v1, float u2, float v2)
 	{
+		SaveRenderStates();	
 		struct Q2DVertex { float x,y,z,rhw; int color; float u, v; } coords[4] = {
 			{x1-0.5f, y1-0.5f, 0, 1, color, u1, v1},
 			{x2-0.5f, y1-0.5f, 0, 1, color, u2, v1},
@@ -311,6 +346,7 @@ namespace D3D
 		dev->SetVertexDeclaration(0);
 		dev->SetFVF(D3DFVF_XYZRHW|D3DFVF_DIFFUSE|D3DFVF_TEX1);
 		dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN,2,coords,sizeof(Q2DVertex));
+		RestoreRenderStates();
 	}
 
 }

@@ -368,6 +368,8 @@ CFrame::InitBitmaps()
 void
 CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 {
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+		return;
 	wxString path = wxFileSelector(
 			_T("Select the file to load"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
