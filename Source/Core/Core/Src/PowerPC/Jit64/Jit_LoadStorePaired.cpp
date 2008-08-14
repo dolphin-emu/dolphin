@@ -37,8 +37,12 @@
 #include "JitAsm.h"
 #include "JitRegCache.h"
 
-// #define INSTRUCTION_START Default(inst); return;
+#ifndef _WIN32
+// GCC won't obey alignment requirement :(
+#define INSTRUCTION_START Default(inst); return;
+#else
 #define INSTRUCTION_START
+#endif
 
 #ifdef _M_IX86
 #define DISABLE_32BIT Default(inst); return;

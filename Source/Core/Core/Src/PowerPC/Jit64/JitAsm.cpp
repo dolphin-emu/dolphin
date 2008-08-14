@@ -54,7 +54,6 @@ const u8 *fifoDirectWrite16;
 const u8 *fifoDirectWrite32;
 const u8 *fifoDirectWriteFloat;
 
-static bool blockMode = false; //doesn't work as true!
 bool compareEnabled = false;
 
 //TODO - make an option
@@ -278,7 +277,7 @@ void GenFifoWrite(int size)
 	if (size != 32)
 		PUSH(EDX);
 	BSWAP(size, ABI_PARAM1);
-	MOV(32, R(EAX), Imm32((u32)GPFifo::m_gatherPipe));
+	MOV(32, R(EAX), Imm32((u32)(u64)GPFifo::m_gatherPipe));
 	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
 	if (size != 32) {
 		MOV(32, R(EDX), R(ABI_PARAM1));
@@ -303,7 +302,7 @@ void GenFifoFloatWrite()
 	MOVSS(M(&temp32), XMM0);
 	MOV(32, R(EDX), M(&temp32));
 	BSWAP(32, EDX);
-	MOV(32, R(EAX), Imm32((u32)GPFifo::m_gatherPipe));
+	MOV(32, R(EAX), Imm32((u32)(u64)GPFifo::m_gatherPipe));
 	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
 	MOV(32, MComplex(RAX, RSI, 1, 0), R(EDX));
 	ADD(32, R(ESI), Imm8(4));

@@ -249,7 +249,7 @@ namespace Jit64
 #ifdef _M_X64	
 				MOV(accessSize, MComplex(RBX, ABI_PARAM1, SCALE_1, (u32)offset), R(EAX));
 #elif _M_IX86
-				AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
+				AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
 				MOV(accessSize, MDisp(ABI_PARAM1, (u32)Memory::base + (u32)offset), R(EAX));
 #endif
 				if (update)

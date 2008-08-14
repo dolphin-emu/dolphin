@@ -103,8 +103,7 @@ namespace Jit64
 	{
 		int aCount;
 		const int *aOrder = GetAllocationOrder(aCount);
-		int i;
-		for (i = 0; i < aCount; i++)
+		for (int i = 0; i < aCount; i++)
 		{
 			X64Reg xr = (X64Reg)aOrder[i];
 			if (!xlocks[xr] && xregs[xr].free)
@@ -238,7 +237,7 @@ namespace Jit64
 #ifdef _WIN32
 			RSI, RDI, R12, R13, R14, R8, R9, R10, R11 //, RCX
 #else
-			R12, R13, R14, R8, R9, R10, R11, RSI, RDI //, RCX
+			RBP, R12, R13, R14, R8, R9, R10, R11, //, RCX
 #endif
 #elif _M_IX86
 			ESI, EDI, EBX, EBP, EDX, ECX,

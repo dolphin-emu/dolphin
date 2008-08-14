@@ -111,10 +111,10 @@ namespace Jit64
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
 
-		CCFlags branch;
+		CCFlags branch = CC_Z;
 
-		const bool only_counter_check = (inst.BO & 16) ? true : false;
-		const bool only_condition_check = (inst.BO & 4) ? true : false;
+		//const bool only_counter_check = (inst.BO & 16) ? true : false;
+		//const bool only_condition_check = (inst.BO & 4) ? true : false;
 		//if (only_condition_check && only_counter_check)
 		//	PanicAlert("Bizarre bcx encountered. Likely bad or corrupt code.");
 		bool doFullTest = (inst.BO & 16) == 0 && (inst.BO & 4) == 0;
@@ -192,7 +192,7 @@ namespace Jit64
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
 
-		bool fastway = true;
+		// bool fastway = true;
 
 		if ((inst.BO & 16) == 0)				
 		{
