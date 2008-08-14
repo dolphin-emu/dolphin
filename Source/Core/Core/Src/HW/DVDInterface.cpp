@@ -416,8 +416,10 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	//=========================================================================================================
 	case 0x12:
 		{			
+#ifdef LOGGING
 			u32 offset = dvdMem.Command[1];
 			// u32 sourcelength = dvdMem.Command[2];
+#endif
 			u32 destbuffer	= dvdMem.DMAAddress.Address;
 			u32 destlength	= dvdMem.DMALength.Length;
 			dvdMem.DMALength.Length = 0;
@@ -445,6 +447,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 			{
 				u32 iDVDOffset = dvdMem.Command[1] << 2;
 				u32 iSrcLength = dvdMem.Command[2];
+				if (false) { iSrcLength++; } // avoid warning
 				LOG(DVDINTERFACE, "DVD: Read ISO: DVDOffset=%08x, DMABuffer=%08x, SrcLength=%08x, DMALength=%08x",iDVDOffset,dvdMem.DMAAddress.Address,iSrcLength,dvdMem.DMALength.Length);
 				_dbg_assert_(DVDINTERFACE, iSrcLength == dvdMem.DMALength.Length);
 
@@ -470,7 +473,9 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 	//=========================================================================================================
 	case 0xAB:
 		{
+#ifdef LOGGING
 			u32 offset = dvdMem.Command[1] << 2;
+#endif
 			LOG(DVDINTERFACE, "DVD: Trying to seek: offset=%08x", offset);
 		}		
 		break;
@@ -501,7 +506,9 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 			// ugly hack to catch the disable command
 			if (dvdMem.Command[1]!=0)
 			{
+#ifdef LOGGING
 				u8 subCommand = (dvdMem.Command[0] & 0x00FF0000) >> 16;
+#endif
 
 				dvdMem.AudioPos = dvdMem.Command[1] << 2;
 				dvdMem.AudioStart = dvdMem.AudioPos;
