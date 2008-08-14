@@ -79,8 +79,8 @@ void Console_Submit(const char *cmd)
 		
 		if (addr!=0)
 		{
-			u32 EA = Memory::CheckDTLB(addr, Memory::FLAG_NO_EXCEPTION);
-			LOG(CONSOLE, "EA 0x%08x to 0x%08x", addr, EA);			
+			LOG(CONSOLE, "EA 0x%08x to 0x%08x",
+				addr, Memory::CheckDTLB(addr, Memory::FLAG_NO_EXCEPTION));
 		}
 		else
 		{
