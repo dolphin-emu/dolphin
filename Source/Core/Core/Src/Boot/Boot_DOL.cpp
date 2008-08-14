@@ -29,7 +29,7 @@ CDolLoader::CDolLoader(const char* _szFilename) : m_bInit(false)
 
 		// swap memory
 		u32* p = (u32*)&m_dolheader;
-		for (int i=0; i<(sizeof(SDolHeader)>>2); i++)	
+		for (size_t i=0; i<(sizeof(SDolHeader)>>2); i++)	
 			p[i] = Common::swap32(p[i]);
 
 		// load all text (code) sections
