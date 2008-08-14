@@ -528,7 +528,9 @@ void RunSIBuffer()
 	else 
 		outLength++;
 
+#ifdef LOGGING
 	int numOutput = g_Channel[g_ComCSR.CHANNEL].m_pDevice->RunBuffer(g_SIBuffer, inLength);
+#endif
 
 	LOG(SERIALINTERFACE, "RunSIBuffer     (intLen: %i    outLen: %i) (processed: %i)", inLength, outLength, numOutput);
 
