@@ -144,8 +144,8 @@ CARCFile::ParseBuffer()
 
 	// read header
 	u32 FSTOffset  = Common::swap32(*(u32*)(m_pBuffer + 0x4));
-	u32 FSTSize    = Common::swap32(*(u32*)(m_pBuffer + 0x8));
-	u32 FileOffset = Common::swap32(*(u32*)(m_pBuffer + 0xC));
+	//u32 FSTSize    = Common::swap32(*(u32*)(m_pBuffer + 0x8));
+	//u32 FileOffset = Common::swap32(*(u32*)(m_pBuffer + 0xC));
 
 	// read all file infos
 	SFileInfo Root;
