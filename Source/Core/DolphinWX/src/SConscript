@@ -23,7 +23,6 @@ if sys.platform == 'darwin':
 	icon = 'Dolphin'
 	version = "svn"
 	wxenv.Program("../../../../Binary/mac/Dolphin.app/Contents/MacOS/Dolphin", files, LIBS = ["debwx", "discio", "core", "bdisasm", "videocommon", "common" , "z"])
-	wxenv.Command("../../../../Binary/mac/Dolphin.app/Contents/Resources/" + icon + ".icns", "../resources/" + icon + ".icns", Copy("$TARGET", "$SOURCE"))
 	wxenv.Plist("../../../../Binary/mac/Dolphin.app/Contents/Info.plist", Value(dict(
 		CFAppleHelpAnchor = 'index',
 		CFBundleExecutable = 'Dolphin',
