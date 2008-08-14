@@ -70,7 +70,12 @@ void BackPatch(u8 *codePtr, int accessType, u32 emAddress)
 	if (!DisassembleMov(codePtr, info, accessType)) {
 		BackPatchError("BackPatch - failed to disassemble MOV instruction", codePtr, emAddress);
 	}
+
 	if (info.isMemoryWrite) {
+		if (!Memory::IsRAMAddress(emAddress, true)) {
+			PanicAlert("Write to invalid address %08x", emAddress);
+			return;
+		}
 		BackPatchError("BackPatch - determined that MOV is write, not yet supported and should have been caught before",
 					   codePtr, emAddress);
 	}
@@ -86,8 +91,7 @@ void BackPatch(u8 *codePtr, int accessType, u32 emAddress)
 	if (accessType == OP_ACCESS_WRITE)
 		PanicAlert("BackPatch : Currently only supporting reads."
 		           "\n\nAttempted to write to %08x.", emAddress);
-	//if (info.instructionSize < 5) 
-	//	PanicAlert("Instruction at %08x Too Small : %i", (u32)codePtr, info.instructionSize);
+
 	// OK, let's write a trampoline, and a jump to it.
 	// Later, let's share trampolines.
 
@@ -109,7 +113,6 @@ void BackPatch(u8 *codePtr, int accessType, u32 emAddress)
 	//	CALL((void *)&Memory::Read_U8);
 	//	break;
 	case 4:
-		// THIS FUNCTION CANNOT TOUCH FLOATING POINT REGISTERS.
 		CALL(ProtectFunction((void *)&Memory::Read_U32, 1));
 		break;
 	default:

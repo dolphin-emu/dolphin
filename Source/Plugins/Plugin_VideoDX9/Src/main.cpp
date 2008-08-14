@@ -22,7 +22,6 @@
 #include "EmuWindow.h"
 
 #include "Utils.h"
-#include "XFB.h"
 
 HINSTANCE g_hInstance = NULL;
 SVideoInitialize g_VideoInitialize;
