@@ -49,7 +49,7 @@ CWII_IPC_HLE_Device_FileIO::~CWII_IPC_HLE_Device_FileIO()
 bool 
 CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress)  
 { 
-    std::string Filename("wii");
+    std::string Filename("WII");
     Filename += GetDeviceName();
 
     m_pFileHandle = fopen(Filename.c_str(), "r+b");

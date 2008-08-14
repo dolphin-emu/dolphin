@@ -541,7 +541,7 @@ bool SetScissorRect()
     PRIM_LOG("scissor: lt=(%d,%d),rb=(%d,%d),off=(%d,%d)\n", rc.left, rc.top, rc.right, rc.bottom, xoff, yoff);
 
     if( rc.right>=rc.left && rc.bottom>=rc.top ) {
-        glScissor(rc.left<<g_AAx, Renderer::GetTargetHeight()-(rc.bottom<<g_AAy), (rc.right-rc.left)<<g_AAx, (rc.bottom-rc.top)<<g_AAy);
+        glScissor(rc.left, Renderer::GetTargetHeight()-(rc.bottom), (rc.right-rc.left), (rc.bottom-rc.top));
         return true;
     }
 
@@ -626,10 +626,10 @@ void LoadBPReg(u32 value0)
 
                 u32 nRestoreZBufferTarget = Renderer::GetZBufferTarget();
                 
-                glViewport(0, 0, Renderer::GetTargetWidth()<<g_AAx, Renderer::GetTargetHeight()<<g_AAy);
+                glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
                 // if copied to texture, set the dimensions to the source copy dims, otherwise, clear the entire buffer
                 if( PE_copy.copy_to_xfb == 0 )
-                    glScissor(rc.left<<g_AAx, (Renderer::GetTargetHeight()-rc.bottom)<<g_AAy, (rc.right-rc.left)<<g_AAx, (rc.bottom-rc.top)<<g_AAy);   
+                    glScissor(rc.left, (Renderer::GetTargetHeight()-rc.bottom), (rc.right-rc.left), (rc.bottom-rc.top));   
                 VertexShaderMngr::SetViewportChanged();
 
                 // since clear operations use the source rectangle, have to do regular renders (glClear clears the entire buffer)

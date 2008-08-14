@@ -152,7 +152,7 @@ bool Renderer::Create2()
     for(int i = 0; i < ARRAYSIZE(s_RenderTargets); ++i) {
         glBindTexture(GL_TEXTURE_RECTANGLE_NV, s_RenderTargets[i]);
         // initialize to default
-        glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, 4, s_nTargetWidth, s_nTargetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, 4, nBackbufferWidth, nBackbufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
         glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         if( glGetError() != GL_NO_ERROR) {
@@ -174,7 +174,7 @@ bool Renderer::Create2()
         // create zbuffer target
         glGenTextures(1, (GLuint *)&s_ZBufferTarget);
         glBindTexture(GL_TEXTURE_RECTANGLE_NV, s_ZBufferTarget);
-        glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, 4, s_nTargetWidth, s_nTargetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, 4, nBackbufferWidth, nBackbufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
         glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -190,9 +190,9 @@ bool Renderer::Create2()
     // create the depth buffer
     glGenRenderbuffersEXT( 1, (GLuint *)&s_DepthTarget);
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_DepthTarget);
-    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8_EXT, s_nTargetWidth, s_nTargetHeight);
+    glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8_EXT, nBackbufferWidth, nBackbufferHeight);
     if( glGetError() != GL_NO_ERROR ) {
-        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, s_nTargetWidth, s_nTargetHeight);
+        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, nBackbufferWidth, nBackbufferHeight);
         s_bHaveStencilBuffer = false;
     }
     else s_bHaveStencilBuffer = true;
@@ -310,7 +310,7 @@ bool Renderer::Initialize()
     glStencilFunc(GL_ALWAYS, 0, 0);
     glBlendFunc(GL_ONE, GL_ONE);
 
-    glViewport(0,0,s_nTargetWidth,s_nTargetWidth);                     // Reset The Current Viewport
+    glViewport(0,0,GetTargetWidth(),GetTargetHeight());                     // Reset The Current Viewport
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -448,20 +448,22 @@ void Renderer::ReinitView(int nNewWidth, int nNewHeight)
     nBackbufferWidth = nNewWidth > 16 ? nNewWidth : 16;
     nBackbufferHeight = nNewHeight > 16 ? nNewHeight : 16;
 }
-
+//TODO: Return correct Values
 int Renderer::GetTargetWidth()
 {
-    return s_nTargetWidth;
+    return 640;
+    //return nBackbufferWidth;
+}
+
+int Renderer::GetTargetHeight()
+{
+    return 480;
+    //return nBackbufferHeight;
 }
 
 bool Renderer::CanBlendLogicOp()
 {
     return g_bBlendLogicOp;
-}
-
-int Renderer::GetTargetHeight()
-{
-    return s_nTargetHeight;
 }
 
 void Renderer::SetRenderTarget(u32 targ)
@@ -538,7 +540,7 @@ void Renderer::FlushZBufferAlphaToTarget()
     glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
 
-    glViewport(0, 0, GetTargetWidth()<<g_AAx, GetTargetHeight()<<g_AAy);
+    glViewport(0, 0, GetTargetWidth(), GetTargetHeight());
 
     // texture map s_RenderTargets[s_curtarget] onto the main buffer
     glActiveTexture(GL_TEXTURE0);
@@ -554,9 +556,9 @@ void Renderer::FlushZBufferAlphaToTarget()
 
     glBegin(GL_QUADS);
     glTexCoord2f(0, 0); glVertex2f(-1,-1);
-    glTexCoord2f(0, (float)(GetTargetHeight()<<g_AAy)); glVertex2f(-1,1);
-    glTexCoord2f((float)(GetTargetWidth()<<g_AAx), (float)(GetTargetHeight()<<g_AAy)); glVertex2f(1,1);
-    glTexCoord2f((float)(GetTargetWidth()<<g_AAx), 0); glVertex2f(1,-1);
+    glTexCoord2f(0, (float)(GetTargetHeight())); glVertex2f(-1,1);
+    glTexCoord2f((float)(GetTargetWidth()), (float)(GetTargetHeight())); glVertex2f(1,1);
+    glTexCoord2f((float)(GetTargetWidth()), 0); glVertex2f(1,-1);
     glEnd();
     
     GL_REPORT_ERRORD();
@@ -661,9 +663,9 @@ void Renderer::Swap(const TRectangle& rc)
     for(int i = 1; i < 8; ++i) TextureMngr::DisableStage(i);
     GL_REPORT_ERRORD();
 
-    
-    float FactorW  = (float)s_nTargetWidth / (float)nBackbufferWidth;
-    float FactorH  = (float)s_nTargetHeight / (float)nBackbufferHeight;
+    //TODO: Do Correctly in a bit
+    float FactorW  = (float)640 / (float)nBackbufferWidth;
+    float FactorH  = (float)480 / (float)nBackbufferHeight;
 
     float Max = (FactorW < FactorH) ? FactorH : FactorW;
     float Temp = 1 / Max;
@@ -673,9 +675,9 @@ void Renderer::Swap(const TRectangle& rc)
 
     glBegin(GL_QUADS);
     glTexCoord2f(0, 0);                                             glVertex2f(-FactorW,-FactorH);
-    glTexCoord2f(0, (float)s_nTargetHeight);                        glVertex2f(-FactorW,FactorH);
-    glTexCoord2f((float)s_nTargetWidth, (float)s_nTargetHeight);    glVertex2f(FactorW,FactorH);
-    glTexCoord2f((float)s_nTargetWidth, 0);                         glVertex2f(FactorW,-FactorH);
+    glTexCoord2f(0, (float)GetTargetHeight());                        glVertex2f(-FactorW,FactorH);
+    glTexCoord2f((float)GetTargetWidth(), (float)GetTargetHeight());    glVertex2f(FactorW,FactorH);
+    glTexCoord2f((float)GetTargetWidth(), 0);                         glVertex2f(FactorW,-FactorH);
     glEnd();
 
     glBindTexture(GL_TEXTURE_RECTANGLE_NV, 0);
@@ -782,24 +784,24 @@ void Renderer::Swap(const TRectangle& rc)
 bool Renderer::SaveRenderTarget(const char* filename, int jpeg)
 {
     bool bflip = true;
-    vector<u32> data(s_nTargetWidth*s_nTargetHeight);
-    glReadPixels(0, 0, s_nTargetWidth, s_nTargetHeight, GL_BGRA, GL_UNSIGNED_BYTE, &data[0]);
+    vector<u32> data(nBackbufferWidth*nBackbufferHeight);
+    glReadPixels(0, 0, nBackbufferWidth, nBackbufferHeight, GL_BGRA, GL_UNSIGNED_BYTE, &data[0]);
     if (glGetError() != GL_NO_ERROR)
         return false;
 
     if (bflip) {
         // swap scanlines
-        vector<u32> scanline(s_nTargetWidth);
-        for(u32 i = 0; i < s_nTargetHeight/2; ++i) {
-            memcpy(&scanline[0], &data[i*s_nTargetWidth], s_nTargetWidth*4);
-            memcpy(&data[i*s_nTargetWidth], &data[(s_nTargetHeight-i-1)*s_nTargetWidth], s_nTargetWidth*4);
-            memcpy(&data[(s_nTargetHeight-i-1)*s_nTargetWidth], &scanline[0], s_nTargetWidth*4);
+        vector<u32> scanline(nBackbufferWidth);
+        for(u32 i = 0; i < nBackbufferHeight/2; ++i) {
+            memcpy(&scanline[0], &data[i*nBackbufferWidth], nBackbufferWidth*4);
+            memcpy(&data[i*nBackbufferWidth], &data[(nBackbufferHeight-i-1)*nBackbufferWidth], nBackbufferWidth*4);
+            memcpy(&data[(nBackbufferHeight-i-1)*nBackbufferWidth], &scanline[0], nBackbufferWidth*4);
         }
     }
 
-    if (jpeg) return SaveJPEG(filename, s_nTargetWidth, s_nTargetHeight, &data[0], 70);
+    if (jpeg) return SaveJPEG(filename, nBackbufferWidth, nBackbufferHeight, &data[0], 70);
     
-    return SaveTGA(filename, s_nTargetWidth, s_nTargetHeight, &data[0]);
+    return SaveTGA(filename, nBackbufferWidth, nBackbufferHeight, &data[0]);
 }
 
 void Renderer::SetCgErrorOutput(bool bOutput)

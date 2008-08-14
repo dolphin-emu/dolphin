@@ -211,26 +211,26 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 
 	// load settings.txt
 	{
-		std::string filename("wii/setting-eur.txt");
+		std::string filename("WII/setting-eur.txt");
 		if (VolumeHandler::IsValid())
 		{
 			switch(VolumeHandler::GetVolume()->GetCountry())
 			{
 			case DiscIO::IVolume::COUNTRY_JAP:
-				filename = "wii/setting-jpn.txt";
+				filename = "WII/setting-jpn.txt";
 				break;
 
 			case DiscIO::IVolume::COUNTRY_USA:
-				filename = "wii/setting-usa.txt";
+				filename = "WII/setting-usa.txt";
 				break;
 
 			case DiscIO::IVolume::COUNTRY_EUROPE:
-				filename = "wii/setting-eur.txt";
+				filename = "WII/setting-eur.txt";
 				break;
 
 			default:
 				PanicAlert("Unknown country. Wii boot process will be switched to European settings.");
-				filename = "wii/setting-eur.txt";
+				filename = "WII/setting-eur.txt";
 				break;
 			}
 		}

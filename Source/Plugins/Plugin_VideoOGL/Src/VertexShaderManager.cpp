@@ -322,7 +322,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
         // [5] = 16777215 * farz
         INFO_LOG("view: topleft=(%f,%f), wh=(%f,%f), z=(%f,%f)\n",rawViewport[3]-rawViewport[0]-342,rawViewport[4]+rawViewport[1]-342,
             2 * rawViewport[0], 2 * rawViewport[1], (rawViewport[5]-rawViewport[2])/16777215.0f, rawViewport[5]/16777215.0f);
-        glViewport((int)(rawViewport[3]-rawViewport[0]-342)<<g_AAx,Renderer::GetTargetHeight()-((int)(rawViewport[4]-rawViewport[1]-342)<<g_AAy), abs((int)(2 * rawViewport[0])), abs((int)(2 * rawViewport[1])));
+        glViewport((int)(rawViewport[3]-rawViewport[0]-342),Renderer::GetTargetHeight()-((int)(rawViewport[4]-rawViewport[1]-342)), abs((int)(2 * rawViewport[0])), abs((int)(2 * rawViewport[1])));
         glDepthRange((rawViewport[5]-rawViewport[2])/16777215.0f, rawViewport[5]/16777215.0f);
     }
 

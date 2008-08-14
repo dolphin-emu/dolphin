@@ -18,7 +18,6 @@
 
 // Preliminary non-working code.
 
-#include "Common.h"
 #include "Globals.h"
 #include "Render.h"
 #include "TextureMngr.h"

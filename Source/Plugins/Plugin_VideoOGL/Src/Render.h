@@ -22,7 +22,6 @@
 
 extern CGcontext g_cgcontext;
 extern CGprofile g_cgvProf, g_cgfProf;
-extern u32 g_AAx, g_AAy; // anti-aliasing 
 
 class Renderer
 {
