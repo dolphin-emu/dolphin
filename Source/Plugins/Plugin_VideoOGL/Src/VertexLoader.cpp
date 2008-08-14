@@ -879,7 +879,7 @@ bool VertexManager::Init()
     s_prevcomponents = 0;
     s_prevvbstride = 12; // just pos
     s_prevprimitive = 0;
-    s_pBaseBufferPointer = (u8*)_aligned_malloc(MAX_BUFFER_SIZE, 256);
+	s_pBaseBufferPointer = (u8*)AllocateMemoryPages(MAX_BUFFER_SIZE);
     s_pCurBufferPointer = s_pBaseBufferPointer;
 
     for (int i = 0; i < ARRAYSIZE(shiftLookup); i++)
@@ -901,7 +901,7 @@ bool VertexManager::Init()
 
 void VertexManager::Destroy()
 {
-    _aligned_free(s_pBaseBufferPointer); s_pBaseBufferPointer = s_pCurBufferPointer = NULL;
+    FreeMemoryPages(s_pBaseBufferPointer, MAX_BUFFER_SIZE); s_pBaseBufferPointer = s_pCurBufferPointer = NULL;
     glDeleteBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
     memset(s_vboBuffers, 0, sizeof(s_vboBuffers));
 
