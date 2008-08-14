@@ -43,10 +43,10 @@ void __Log(int log, const char *format, ...)
 }
 
 CDebugger_Log::CDebugger_Log(const char* _szShortName, const char* _szName) :
-	m_pFile(NULL),
 	m_bLogToFile(true),
 	m_bShowInLog(true),
-	m_bEnable(true)
+	m_bEnable(true),
+	m_pFile(NULL)
 {
 	strcpy((char*)m_szName, _szName);
 	strcpy((char*)m_szShortName, _szShortName);
