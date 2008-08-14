@@ -69,7 +69,7 @@ class CBlobBigEndianReader
 unsigned char g_MasterKey[16];
 bool g_MasterKeyInit = false;
 
-IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, int _VolumeType);
+IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType);
 EDiscType GetDiscType(IBlobReader& _rReader);
 
 
@@ -126,7 +126,7 @@ bool IsVolumeWiiDisc(const IVolume& _rVolume)
 }
 
 
-IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, int _VolumeType)
+IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType)
 {
 	if (!g_MasterKeyInit)
 	{
