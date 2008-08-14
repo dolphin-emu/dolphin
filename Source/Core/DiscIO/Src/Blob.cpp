@@ -141,10 +141,10 @@ class PlainFileReader
 		}
 
 
-		bool Read(u64 offset, u64 size, u8* out_ptr)
+		bool Read(u64 offset, u64 nbytes, u8* out_ptr)
 		{
 			fseek(file_, offset, SEEK_SET);
-			fread(out_ptr, size, 1, file_);
+			fread(out_ptr, nbytes, 1, file_);
 			return(true);
 		}
 };
@@ -296,7 +296,7 @@ class CompressedBlobReader
 					z.avail_out = header.block_size;
 					inflateInit(&z);
 					int status = inflate(&z, Z_FULL_FLUSH);
-					int uncomp_size = header.block_size - z.avail_out;
+					u32 uncomp_size = header.block_size - z.avail_out;
 
 					if (status != Z_STREAM_END)
 					{
@@ -338,7 +338,7 @@ class CompressedBlobReader
 					return(false);
 				}
 
-				int toCopy = header.block_size - positionInBlock;
+				u32 toCopy = header.block_size - positionInBlock;
 
 				if (toCopy >= remain)
 				{
