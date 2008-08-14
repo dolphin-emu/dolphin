@@ -49,8 +49,9 @@ void TMemCheck::Action(u32 iValue, u32 addr, bool write, int size, u32 pc)
 	{
 		if (Log)
 		{
-            const char *copy = Debugger::GetDescription(addr);
-			LOG(MEMMAP,"CHK %08x %s%i at %08x (%s)", iValue, write ? "Write" : "Read", size*8, addr, copy);
+			LOG(MEMMAP,"CHK %08x %s%i at %08x (%s)",
+				iValue, write ? "Write" : "Read", size*8, addr,
+				Debugger::GetDescription(addr));
 		}
 		if (Break)
 			CCPU::Break();
