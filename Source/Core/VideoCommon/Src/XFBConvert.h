@@ -15,11 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _XFB_H
-#define _XFB_H
+#ifndef _XFB_CONVERT
+#define _XFB_CONVERT
 
-void XFB_Init();
-void XFB_Draw(u8 *xfb_in_ram);
-void XFB_Shutdown();
+#include "Common.h"
+
+void ConvertXFB(u32 *dst, const u8* _pXFB, int width, int height);
 
 #endif

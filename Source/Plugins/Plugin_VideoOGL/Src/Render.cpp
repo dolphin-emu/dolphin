@@ -27,6 +27,7 @@
 #include "VertexShader.h"
 #include "PixelShaderManager.h"
 #include "VertexLoader.h"
+#include "XFB.h"
 
 #ifdef _WIN32
 #include "OS\Win32.h"
@@ -52,6 +53,7 @@ static bool s_bOutputCgErrors = true;
 static int nZBufferRender = 0; // if > 0, then using zbuffer render
 static u32 s_uFramebuffer = 0;
 static u32 s_RenderTargets[1] = {0}, s_DepthTarget = 0, s_ZBufferTarget = 0;
+
 static bool s_bATIDrawBuffers = false, s_bHaveStencilBuffer = false;
 static Renderer::RenderMode s_RenderMode = Renderer::RM_Normal;
 static int s_nCurTarget = 0;
@@ -273,26 +275,29 @@ bool Renderer::Create2()
     if (!Initialize())
         return false;
 
+	XFB_Init();
     return glGetError() == GL_NO_ERROR && bSuccess;
 }
 
 void Renderer::Shutdown(void)
 {    
-    SAFE_DELETE(s_pfont);
+    delete s_pfont;
+	s_pfont = 0;
 
-    if( g_cgcontext != 0 ) {
+	XFB_Shutdown();
+
+    if (g_cgcontext != 0) {
         cgDestroyContext(g_cgcontext);
         g_cgcontext = 0;
     }
 
-    if( s_RenderTargets[0] ) {
+    if (s_RenderTargets[0]) {
         glDeleteTextures(ARRAYSIZE(s_RenderTargets), (GLuint *)s_RenderTargets);
         memset(s_RenderTargets, 0, sizeof(s_RenderTargets));
     }
-    if( s_DepthTarget ) {
+    if (s_DepthTarget) {
         glDeleteRenderbuffersEXT(1, (GLuint *)&s_DepthTarget); s_DepthTarget = 0;
     }
-
     if (s_uFramebuffer != 0) {
         glDeleteFramebuffersEXT( 1, (GLuint *)&s_uFramebuffer);
         s_uFramebuffer = 0;
@@ -550,7 +555,7 @@ void Renderer::FlushZBufferAlphaToTarget()
     glBegin(GL_QUADS);
     glTexCoord2f(0, 0); glVertex2f(-1,-1);
     glTexCoord2f(0, (float)(GetTargetHeight()<<g_AAy)); glVertex2f(-1,1);
-    glTexCoord2f((float)(GetTargetWidth()<<g_AAx), (float)(GetTargetWidth()<<g_AAy)); glVertex2f(1,1);
+    glTexCoord2f((float)(GetTargetWidth()<<g_AAx), (float)(GetTargetHeight()<<g_AAy)); glVertex2f(1,1);
     glTexCoord2f((float)(GetTargetWidth()<<g_AAx), 0); glVertex2f(1,-1);
     glEnd();
     

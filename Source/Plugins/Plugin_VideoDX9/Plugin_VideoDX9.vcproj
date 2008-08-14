@@ -1565,14 +1565,6 @@
 			RelativePath=".\Src\Vec3.h"
 			>
 		</File>
-		<File
-			RelativePath=".\Src\XFB.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\XFB.h"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>

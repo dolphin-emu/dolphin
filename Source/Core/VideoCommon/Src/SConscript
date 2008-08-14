@@ -5,6 +5,7 @@ files = ["BPMemory.cpp",
 		 "LookUpTables.cpp",
 		 "TextureDecoder.cpp",
 		 "XFMemory.cpp",
+		 "XFBConvert.cpp",
 		 ]
 
 env_common = env.Copy(CXXFLAGS = " -fPIC ")

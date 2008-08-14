@@ -117,62 +117,21 @@ typedef union _LARGE_INTEGER
 
 #endif
 
-#if !defined (_MSC_VER) && !defined (HAVE_ALIGNED_MALLOC)
-
-// declare linux equivalents
-extern __forceinline void* gc_aligned_malloc(size_t size, size_t align)
-{
-	char* p = (char*)malloc(size + align);
-	int off = 2 + align - ((s64)(p + 2) % align);
-
-	p += off;
-	*(u16*)(p - 2) = off;
-
-	return(p);
-}
-
-
-extern __forceinline void gc_aligned_free(void* pmem)
-{
-	if (pmem != NULL)
-	{
-		char* p = (char*)pmem;
-		free(p - (int)*(u16*)(p - 2));
-	}
-}
-
-
-#define _aligned_malloc gc_aligned_malloc
-#define _aligned_free gc_aligned_free
-
-#endif
-
 #if defined (_M_IX86) && defined (_WIN32)
 #define HWCALL __cdecl
 #else
 #define HWCALL
 #endif
 
-
-// Hacks
-#ifndef SAFE_DELETE
-#define SAFE_DELETE(ptr) if (ptr){delete ptr; ptr = 0;}
-#endif
-
-// Common defines
-// TODO(ector,fires): turn into inline function?
 #undef min
 #undef max
 
 template<class T>
-T min(const T& a, const T& b) {return(a > b ? b : a);}
+inline T min(const T& a, const T& b) {return(a > b ? b : a);}
 
 
 template<class T>
-T max(const T& a, const T& b) {return(a > b ? a : b);}
-
-
-
+inline T max(const T& a, const T& b) {return(a > b ? a : b);}
 
 // Byte ordering
 
@@ -183,13 +142,8 @@ inline u8 swap8(u8 _data) {return(_data);}
 
 #ifdef _WIN32
 inline u16 swap16(u16 _data) {return(_byteswap_ushort(_data));}
-
-
 inline u32 swap32(u32 _data) {return(_byteswap_ulong(_data));}
-
-
 inline u64 swap64(u64 _data) {return(_byteswap_uint64(_data));}
-
 
 #elif __linux__
 }
@@ -197,24 +151,15 @@ inline u64 swap64(u64 _data) {return(_byteswap_uint64(_data));}
 namespace Common
 {
 inline u16 swap16(u16 _data) {return(bswap_16(_data));}
-
-
 inline u32 swap32(u32 _data) {return(bswap_32(_data));}
-
-
 inline u64 swap64(u64 _data) {return(bswap_64(_data));}
 
 
 #else
 inline u16 swap16(u16 data) {return((data >> 8) | (data << 8));}
-
-
 inline u32 swap32(u32 data) {return((swap16(data) << 16) | swap16(data >> 16));}
-
-
 inline u64 swap64(u64 data) {return(((u64)swap32(data) << 32) | swap32(data >> 32));}
 #endif
-
 
 } // end of namespace Common
 
@@ -231,43 +176,41 @@ extern void __Log(int logNumber, const char* text, ...);
 class LogTypes
 {
 	public:
-
-		enum LOG_TYPE
-		{
-			MASTER_LOG,
-			BOOT,
-			PIXELENGINE,
-			COMMANDPROCESSOR,
-			VIDEOINTERFACE,
-			SERIALINTERFACE,
-			PERIPHERALINTERFACE,
-			MEMMAP,
-			DSPINTERFACE,
-			STREAMINGINTERFACE,
-			DVDINTERFACE,
-			GPFIFO,
-			EXPANSIONINTERFACE,
-			AUDIO_INTERFACE,
-			GEKKO,
-			HLE,
-			DSPHLE,
-			VIDEO,
-			AUDIO,
-			DYNA_REC,
-			OSREPORT,
-			CONSOLE,
-			WII_IOB,
-			WII_IPC,
-			WII_IPC_HLE,
-			NUMBER_OF_LOGS
-		};
+	enum LOG_TYPE
+	{
+		MASTER_LOG,
+		BOOT,
+		PIXELENGINE,
+		COMMANDPROCESSOR,
+		VIDEOINTERFACE,
+		SERIALINTERFACE,
+		PERIPHERALINTERFACE,
+		MEMMAP,
+		DSPINTERFACE,
+		STREAMINGINTERFACE,
+		DVDINTERFACE,
+		GPFIFO,
+		EXPANSIONINTERFACE,
+		AUDIO_INTERFACE,
+		GEKKO,
+		HLE,
+		DSPHLE,
+		VIDEO,
+		AUDIO,
+		DYNA_REC,
+		OSREPORT,
+		CONSOLE,
+		WII_IOB,
+		WII_IPC,
+		WII_IPC_HLE,
+		NUMBER_OF_LOGS
+	};
 };
 
 typedef bool (*PanicAlertHandler)(const char* text, bool yes_no);
 void RegisterPanicAlertHandler(PanicAlertHandler handler);
 
 void Host_UpdateLogDisplay();
-
 
 // Logging macros
 #ifdef LOGGING
@@ -296,7 +239,6 @@ void Host_UpdateLogDisplay();
 #define _dbg_update_() ;
 
 #endif
-
 
 #ifdef _WIN32
 #define _assert_(_a_) _dbg_assert_(MASTER_LOG, _a_)

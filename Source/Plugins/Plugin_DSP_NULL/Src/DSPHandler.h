@@ -33,21 +33,17 @@ class CDSPHandler
 		IUCode* GetUCode();
 		void SetUCode(u32 _crc);
 
-
 		CMailHandler& AccessMailHandler() {return(m_MailHandler);}
-
 
 		static CDSPHandler& GetInstance()
 		{
 			return(*m_pInstance);
 		}
 
-
 		static void Destroy()
 		{
-			SAFE_DELETE(m_pInstance);
+			delete m_pInstance;
 		}
-
 
 		static CDSPHandler& CreateInstance()
 		{
@@ -58,7 +54,6 @@ class CDSPHandler
 
 			return(*m_pInstance);
 		}
-
 
 	private:
 

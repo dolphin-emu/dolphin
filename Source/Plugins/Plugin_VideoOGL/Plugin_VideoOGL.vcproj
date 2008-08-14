@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="Plugin_VideoOGL"
 	ProjectGUID="{CFDCEE0E-FA45-4F72-9FCC-0B88F5A75160}"
 	RootNamespace="Plugin_VideoOGL"
@@ -822,6 +822,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\TextureMngr.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\TextureMngr.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\VertexShader.cpp"
 				>
 			</File>
@@ -1038,14 +1046,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\Render.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\TextureMngr.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\TextureMngr.h"
 			>
 		</File>
 		<File

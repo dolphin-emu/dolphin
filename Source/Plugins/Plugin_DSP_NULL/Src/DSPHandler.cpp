@@ -36,7 +36,7 @@ CDSPHandler::CDSPHandler()
 
 CDSPHandler::~CDSPHandler()
 {
-	SAFE_DELETE(m_pUCode);
+	delete m_pUCode;
 }
 
 
@@ -90,13 +90,13 @@ void CDSPHandler::SendMailToDSP(u32 _uMail)
 
 IUCode* CDSPHandler::GetUCode()
 {
-	return(m_pUCode);
+	return m_pUCode;
 }
 
 
 void CDSPHandler::SetUCode(u32 _crc)
 {
-	SAFE_DELETE(m_pUCode);
+	delete m_pUCode;
 
 	m_MailHandler.Clear();
 	m_pUCode = UCodeFactory(_crc, m_MailHandler);

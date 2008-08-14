@@ -414,11 +414,23 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\SConscript"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\TextureDecoder.cpp"
 			>
 		</File>
 		<File
 			RelativePath=".\Src\TextureDecoder.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\XFBConvert.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\XFBConvert.h"
 			>
 		</File>
 		<File

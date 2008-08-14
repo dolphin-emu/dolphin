@@ -100,13 +100,7 @@ struct RECT
 
 // several macros
 // PLEASE DO NOT USE THE FOLLOWING SAFE*
-// They only encourage sloppy coding, and hides bugs. 
-#ifndef SAFE_DELETE_ARRAY
-#define SAFE_DELETE_ARRAY(x)	if( (x) != NULL ) { delete[] (x); (x) = NULL; }
-#endif
-#ifndef SAFE_RELEASE
-#define SAFE_RELEASE(x)		if( (x) != NULL ) { (x)->Release(); (x) = NULL; }
-#endif
+// They only encourage sloppy coding, and hide bugs. 
 #define SAFE_RELEASE_CGPROG(x) { if( (x) != NULL ) { cgDestroyProgram(x); x = NULL; } }
 #define SAFE_RELEASE_PROG(x) { if( (x) != 0 ) { glDeleteProgramsARB(1, &(x)); x = 0; } }
 #define SAFE_RELEASE_TEX(x) { if( (x) != 0 ) { glDeleteTextures(1, &(x)); x = 0; } }
@@ -268,8 +262,6 @@ unsigned char memcmp_mmx(const void* src1, const void* src2, int cmpsize);
 #define memcpy_gc memcpy
 #define memcmp_gc memcmp
 #endif
-
-//#define RAM_MASK 0x1FFFFFF
 
 #include "main.h"
 

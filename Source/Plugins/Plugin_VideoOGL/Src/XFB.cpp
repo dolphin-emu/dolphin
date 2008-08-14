@@ -15,48 +15,56 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+// Preliminary non-working code.
+
 #include "Common.h"
 #include "Globals.h"
+#include "Render.h"
+#include "TextureMngr.h"
+#include "XFBConvert.h"
 
-// __________________________________________________________________________________________________
-// Video_UpdateXFB
-//
+enum {
+	XFB_WIDTH = 640,
+	XFB_HEIGHT = 480,
+};
 
-// TODO(ector): Write protect XFB. As soon as something pokes there, 
-// switch to a mode where we actually display the XFB on top of the 3D. 
-// If no writes have happened within 5 frames, revert to normal mode.
+static GLuint xfb_texture;
+static u8 *xfb_buffer;
 
-// Also, write a crazy SSE2 optimized version of this :P
-
-int bound(int i)
+void XFB_Init()
 {
-	return (i>255)?255:((i<0)?0:i);
+	xfb_buffer = new u8[XFB_WIDTH * XFB_HEIGHT * 4];
+	memset(xfb_buffer, 0, XFB_WIDTH * XFB_HEIGHT * 4);
+    glGenTextures(1, &xfb_texture);
+	glBindTexture(GL_TEXTURE_RECTANGLE_NV, xfb_texture);
+    glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, 4, XFB_WIDTH, XFB_HEIGHT, 0, GL_BGRA, GL_UNSIGNED_BYTE, xfb_buffer);
 }
 
-void yuv2rgb(int y, int u, int v, int &r, int &g, int &b)
+void XFB_Draw(u8 *xfb_in_ram)
 {
-	b = bound((76283*(y - 16) + 132252*(u - 128))>>16);
-	g = bound((76283*(y - 16) - 53281 *(v - 128) - 25624*(u - 128))>>16); //last one u?
-	r = bound((76283*(y - 16) + 104595*(v - 128))>>16);
+	Renderer::ResetGLState();
+	ConvertXFB((u32 *)xfb_buffer, xfb_in_ram, XFB_WIDTH, XFB_HEIGHT);
+	glBindTexture(GL_TEXTURE_RECTANGLE_NV, xfb_texture);
+    glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, 4, XFB_WIDTH, XFB_HEIGHT, 0, GL_BGRA, GL_UNSIGNED_BYTE, xfb_buffer);
+    TextureMngr::EnableTexRECT(0);
+    for (int i = 1; i < 8; ++i)
+		TextureMngr::DisableStage(i);
+
+    glBegin(GL_QUADS);
+    glTexCoord2f(0, 0); glVertex2f(-1,-1);
+	glTexCoord2f(0, XFB_WIDTH); glVertex2f(-1,1);
+    glTexCoord2f(XFB_WIDTH, XFB_HEIGHT); glVertex2f(1,1);
+    glTexCoord2f(XFB_WIDTH, 0); glVertex2f(1,-1);
+    glEnd();
+
+	Renderer::RestoreGLState();
 }
 
-void ConvertXFB(int *dst, const u8* _pXFB, int width, int height)
+void XFB_Shutdown()
 {
-	const unsigned char *src = _pXFB;
-	for (int y = 0; y < height; y++)
-	{
-		for (int x = 0; x < width; x++)
-		{
-			int Y1 = *src++;
-			int U = *src++;
-			int Y2 = *src++;
-			int V = *src++;
-
-			int r,g,b;
-			yuv2rgb(Y1, U, V, r, g, b);
-			*dst++ = 0xFF000000 | (r<<16) | (g<<8) | (b);
-			yuv2rgb(Y2, U, V, r, g, b);
-			*dst++ = 0xFF000000 | (r<<16) | (g<<8) | (b);
-		}
-	}
+	glDeleteTextures(1, &xfb_texture);
+	xfb_texture = 0;
+	delete [] xfb_buffer;
+	xfb_buffer = 0;
 }
