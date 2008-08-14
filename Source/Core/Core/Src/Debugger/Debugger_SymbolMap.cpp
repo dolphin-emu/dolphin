@@ -54,7 +54,7 @@ void Reset()
     m_VectorSymbols.clear();
 
     // 0 is an invalid entry
-    CSymbol Invalid(-1, 0, ST_FUNCTION, "Invalid");
+    CSymbol Invalid(static_cast<u32>(-1), 0, ST_FUNCTION, "Invalid");
     m_VectorSymbols.push_back(Invalid);
 }
 
