@@ -93,8 +93,6 @@ CBannerLoaderGC::GetName(std::string& _rName, int language)
 
 	DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
 
-	int lang = 0;
-
 	if (!CopyToStringAndCheck(_rName, language != 0 ? pBanner->comment[0].shortTitle : pBanner->comment[0].longTitle))
 	{
 		return(false);
