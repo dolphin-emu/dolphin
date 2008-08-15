@@ -22,8 +22,27 @@
 
 //#include <config/i386/cpuid.h>
 #include <xmmintrin.h>
-// fake cpuid for linux. todo: make a real one. EAX EBX ECX EDX is the right order.
-void __cpuid(int info[4], int x) {memset(info, 0, sizeof(info));}
+
+// if you are on linux and this doesn't build, plz fix :)
+static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
+						    unsigned int *ecx, unsigned int *edx)
+{
+ 	__asm__("cpuid"
+ 		: "=a" (*eax),
+ 		  "=b" (*ebx),
+ 		  "=c" (*ecx),
+ 		  "=d" (*edx));
+}
+
+void __cpuid(int info[4], int x)
+{
+	int eax = x, ebx = 0, ecx = 0, edx = 0;
+	do_cpuid(&eax, &ebx, &ecx, &edx);
+	info[0] = eax;
+	info[1] = ebx;
+	info[2] = ecx;
+	info[3] = edx;
+}
 
 #endif
 
