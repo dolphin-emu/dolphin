@@ -18,70 +18,25 @@
 #ifndef _CPUDETECT_H
 #define _CPUDETECT_H
 
-struct CPUInfoStruct
+enum CPUVendor
 {
-	bool isAMD;
+	VENDOR_INTEL = 0,
+	VENDOR_AMD = 1,
+	VENDOR_OTHER = 2,
+};
 
+struct CPUInfo
+{
+	CPUVendor vendor;
+
+	char cpu_string[0x21];
+	char brand_string[0x41];
 	bool OS64bit;
 	bool CPU64bit;
 	bool Mode64bit;
-	int numCores;
 
-	char CPUString[0x20];
-	char CPUBrandString[0x40];
-	int CPUInfo[4];
-	int nSteppingID;
-	int nModel;
-	int nFamily;
-	int nProcessorType;
-	int nExtendedmodel;
-	int nExtendedfamily;
-	int nBrandIndex;
-	int nCLFLUSHcachelinesize;
-	int nAPICPhysicalID;
-	int nFeatureInfo;
-	int nFeatureInfo2;
-	int nCacheLineSize;
-	int nL2Associativity;
-	int nCacheSizeK;
-	int nRet;
-	unsigned int nIds, nExIds;
-
-	bool bMONITOR_MWAIT;
-	bool bCPLQualifiedDebugStore;
-	bool bThermalMonitor2;
-
-	bool bOldCPU;
-	bool bx87FPUOnChip;
-	bool bVirtual_8086ModeEnhancement;
-	bool bDebuggingExtensions;
-	bool bPageSizeExtensions;
-	bool bTimeStampCounter;
-	bool bRDMSRandWRMSRSupport;
-	bool bPhysicalAddressExtensions;
-	bool bMachineCheckException;
-	bool bCMPXCHG8BInstruction;
-	bool bAPICOnChip;
-	bool bUnknown1;
-	bool bSYSENTERandSYSEXIT;
-	bool bMemoryTypeRangeRegisters;
-	bool bPTEGlobalBit;
-	bool bMachineCheckArchitecture;
-	bool bConditionalMove_CompareInstruction;
-	bool bPageAttributeTable;
-	bool bPageSizeExtension;
-	bool bProcessorSerialNumber;
-	bool bCFLUSHExtension;
-	bool bUnknown2;
-	bool bDebugStore;
-	bool bThermalMonitorandClockCtrl;
-	bool bMMXTechnology;
-	bool bFXSAVE_FXRSTOR;
-	bool bSelfSnoop;
-	bool bHyper_threadingTechnology;
-	bool bThermalMonitor;
-	bool bUnknown4;
-	bool bPendBrkEN;
+	bool hyper_threaded;
+	int num_cores;
 
 	bool bSSE;
 	bool bSSE2;
@@ -90,16 +45,17 @@ struct CPUInfoStruct
 	bool bPOPCNT;
 	bool bSSE4_1;
 	bool bSSE4_2;
-	bool bSSE5;
 	bool bLZCNT;
 	bool bSSE4A;
 	bool bLAHFSAHF64;
+	bool bLongMode;
 
 	void Detect();
+	std::string Summarize();
 };
 
 
-extern CPUInfoStruct cpu_info;
+extern CPUInfo cpu_info;
 
 inline void DetectCPU() {cpu_info.Detect();}
 

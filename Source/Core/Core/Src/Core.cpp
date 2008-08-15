@@ -141,7 +141,7 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 	// all right ... here we go
 	Host_SetWaitCursor(false);
 
-	DisplayMessage(cpu_info.CPUBrandString, 3000);
+	DisplayMessage("CPU: " + cpu_info.Summarize(), 8000);
 	DisplayMessage(_CoreParameter.m_strFilename, 3000);
 
 

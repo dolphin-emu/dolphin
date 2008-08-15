@@ -22,26 +22,27 @@
 
 //#include <config/i386/cpuid.h>
 #include <xmmintrin.h>
+// fake cpuid for linux. todo: make a real one. EAX EBX ECX EDX is the right order.
 void __cpuid(int info[4], int x) {memset(info, 0, sizeof(info));}
 
 #endif
 
-
 #include "Common.h"
 #include "CPUDetect.h"
+#include "StringUtil.h"
 
-// This code was adapted from an example in MSDN:
-CPUInfoStruct cpu_info;
+CPUInfo cpu_info;
 
-void CPUInfoStruct::Detect()
+void CPUInfo::Detect()
 {
+	memset(this, 0, sizeof(*this));
 #ifdef _M_IX86
 	Mode64bit = false;
 #elif defined (_M_X64)
 	Mode64bit = true;
 	OS64bit = true;
 #endif
-	numCores = 1;
+	num_cores = 1;
 
 #ifdef _WIN32
 #ifdef _M_IX86
@@ -50,197 +51,102 @@ void CPUInfoStruct::Detect()
 #endif
 #endif
 
-	// __cpuid with an InfoType argument of 0 returns the number of
-	// valid Ids in CPUInfo[0] and the CPU identification string in
-	// the other three array elements. The CPU identification string is
-	// not in linear order. The code below arranges the information
-	// in a human readable form.
-	__cpuid(CPUInfo, 0);
-	nIds = CPUInfo[0];
-	memset(CPUString, 0, sizeof(CPUString));
-	*((int*)CPUString) = CPUInfo[1];
-	*((int*)(CPUString + 4)) = CPUInfo[3];
-	*((int*)(CPUString + 8)) = CPUInfo[2];
-
-	// Assume that everything non-intel is AMD
-	if (memcmp(CPUString, "GenuineIntel", 12) == 0)
+	// Set obvious defaults, for extra safety
+	if (Mode64bit)
 	{
-		isAMD = false;
+		bSSE = true;
+		bSSE2 = true;
+		bLongMode = true;
 	}
+
+	// Assume CPU supports the CPUID instruction. Those that don't can barely boot modern OS:es anyway.
+	int cpu_id[4];
+	memset(cpu_string, 0, sizeof(cpu_string));
+
+	// Detect CPU's CPUID capabilities, and grab cpu string
+	__cpuid(cpu_id, 0x00000000);
+	u32 max_std_fn = cpu_id[0];  // EAX
+	*((int *)cpu_string) = cpu_id[1];
+	*((int *)(cpu_string + 4)) = cpu_id[3];
+	*((int *)(cpu_string + 8)) = cpu_id[2];
+	__cpuid(cpu_id, 0x80000000);
+	u32 max_ex_fn = cpu_id[0];
+	if (!strcmp(cpu_string, "GenuineIntel"))
+		vendor = VENDOR_INTEL;
+	else if (!strcmp(cpu_string, "AuthenticAMD"))
+		vendor = VENDOR_AMD;
 	else
-	{
-		isAMD = true;
-	}
+		vendor = VENDOR_OTHER;
 
-	if (nIds >= 2)
-	{
-		// Get the information associated with each valid Id
-		__cpuid(CPUInfo, 1);
-		
-		nSteppingID = CPUInfo[0] & 0xf;
-		nModel  = (CPUInfo[0] >> 4) & 0xf;
-		nFamily = (CPUInfo[0] >> 8) & 0xf;
-		nProcessorType  = (CPUInfo[0] >> 12) & 0x3;
-		nExtendedmodel  = (CPUInfo[0] >> 16) & 0xf;
-		nExtendedfamily = (CPUInfo[0] >> 20) & 0xff;
-		nBrandIndex = CPUInfo[1] & 0xff;
-		nCLFLUSHcachelinesize = ((CPUInfo[1] >> 8) & 0xff) * 8;
-		nAPICPhysicalID = (CPUInfo[1] >> 24) & 0xff;
-		bSSE3 = (CPUInfo[2] & 0x1) || false;
-		bSSSE3 = (CPUInfo[2] & 0x200) || false;
-		bMONITOR_MWAIT = (CPUInfo[2] & 0x8) || false;
-		bCPLQualifiedDebugStore = (CPUInfo[2] & 0x10) || false;
-		bThermalMonitor2 = (CPUInfo[2] & 0x100) || false;
-		nFeatureInfo = CPUInfo[3];
+	// Set reasonable default brand string even if brand string not available.
+	strcpy(brand_string, cpu_string);
 
-		if (CPUInfo[2] & (1 << 23))
-		{
-			bPOPCNT = true;
+	// Detect family and other misc stuff.
+	bool HTT = false;
+	int logical_cpu_count = 1;
+	if (max_std_fn >= 1) {
+		__cpuid(cpu_id, 0x00000001);
+		logical_cpu_count = (cpu_id[1] >> 16) & 0xFF;
+		if ((cpu_id[3] >> 28) & 1) {
+			// wtf, we get here on my core 2
+			HTT = true;
 		}
-
-		if (CPUInfo[2] & (1 << 19))
-		{
-			bSSE4_1 = true;
-		}
-
-		if (CPUInfo[2] & (1 << 20))
-		{
-			bSSE4_2 = true;
-		}
+		if ((cpu_id[3] >> 25) & 1) bSSE = true;
+		if ((cpu_id[3] >> 26) & 1) bSSE2 = true;
+		if (cpu_id[2] & 1) bSSE3 = true;
+		if ((cpu_id[2] >> 9) & 1) bSSSE3 = true;
+		if ((cpu_id[2] >> 19) & 1) bSSE4_1 = true;
+		if ((cpu_id[2] >> 20) & 1) bSSE4_2 = true;
 	}
-
-	if (bSSE3)
-	{
-		// Only SSE3 CPU-s support extended infotypes
-		// Calling __cpuid with 0x80000000 as the InfoType argument
-		// gets the number of valid extended IDs.
-		__cpuid(CPUInfo, 0x80000000);
-		nExIds = CPUInfo[0];
-		memset(CPUBrandString, 0, sizeof(CPUBrandString));
-
-		// Get the information associated with each extended ID.
-		for (unsigned int i = 0x80000000; i <= nExIds; ++i)
-		{
-			__cpuid(CPUInfo, i);
-
-			// Interpret CPU brand string and cache information.
-			if (i == 0x80000001)
-			{
-				// This block seems bugged.
-				nFeatureInfo2 = CPUInfo[1]; // ECX
-				bSSE5  = (nFeatureInfo2 & (1 << 11)) ? true : false;
-				bLZCNT = (nFeatureInfo2 & (1 << 5)) ? true : false;
-				bSSE4A = (nFeatureInfo2 & (1 << 6)) ? true : false;
-				bLAHFSAHF64 = (nFeatureInfo2 & (1 << 0)) ? true : false;
-
-				CPU64bit = (CPUInfo[2] & (1 << 29)) ? true : false;
+	if (max_std_fn >= 4) {
+		// Extract brand string
+		__cpuid(cpu_id, 0x80000002);
+		memcpy(brand_string, cpu_id, sizeof(cpu_id));
+		__cpuid(cpu_id, 0x80000003);
+		memcpy(brand_string + 16, cpu_id, sizeof(cpu_id));
+		__cpuid(cpu_id, 0x80000004);
+		memcpy(brand_string + 32, cpu_id, sizeof(cpu_id));
+	}
+	if (max_ex_fn >= 0x80000001) {
+		// Check for more features.
+		__cpuid(cpu_id, 0x80000001);
+		bool cmp_legacy = false;
+		if (cpu_id[2] & 1) bLAHFSAHF64 = true;
+		if (cpu_id[2] & 2) cmp_legacy = true; //wtf is this?
+		if ((cpu_id[3] >> 29) & 1) bLongMode = true;
+	}
+	if (max_ex_fn >= 0x80000008) {
+		// Get number of cores. This is a bit complicated. Following AMD manual here.
+		__cpuid(cpu_id, 0x80000008);
+		int apic_id_core_id_size = (cpu_id[2] >> 12) & 0xF;
+		if (apic_id_core_id_size == 0) {
+			// Use what AMD calls the "legacy method" to determine # of cores.
+			if (HTT) {
+				num_cores = logical_cpu_count;
+			} else {
+				num_cores = 1;
 			}
-			else if  (i == 0x80000002)
-			{
-				memcpy(CPUBrandString, CPUInfo, sizeof(CPUInfo));
-			}
-			else if  (i == 0x80000003)
-			{
-				memcpy(CPUBrandString + 16, CPUInfo, sizeof(CPUInfo));
-			}
-			else if  (i == 0x80000004)
-			{
-				memcpy(CPUBrandString + 32, CPUInfo, sizeof(CPUInfo));
-			}
-			else if  (i == 0x80000006)
-			{
-				nCacheLineSize   = CPUInfo[2] & 0xff;
-				nL2Associativity = (CPUInfo[2] >> 12) & 0xf;
-				nCacheSizeK = (CPUInfo[2] >> 16) & 0xffff;
-			}
-			else if (i == 0x80000008)
-			{
-				int numLSB = (CPUInfo[2] >> 12) & 0xF;
-				numCores = 1 << numLSB;
-				//int coresPerDie = CPUInfo[2] & 0xFF;
-				// numCores = coresPerDie;
-			}
+		} else {
+			// Use AMD's new method.
+			num_cores = (cpu_id[2] & 0xFF) + 1;
 		}
-	}
-
-	// Display all the information in user-friendly format.
-	// printf_s("\n\nCPU String: %s\n", CPUString);
-
-	if (nIds < 1)
-	{
-		bOldCPU = true;
-	}
-
-	nIds = 1;
-	bx87FPUOnChip = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bVirtual_8086ModeEnhancement = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bDebuggingExtensions = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bPageSizeExtensions = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bTimeStampCounter = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bRDMSRandWRMSRSupport = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bPhysicalAddressExtensions = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bMachineCheckException = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bCMPXCHG8BInstruction = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bAPICOnChip = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bUnknown1 = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bSYSENTERandSYSEXIT = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bMemoryTypeRangeRegisters = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bPTEGlobalBit = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bMachineCheckArchitecture = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bConditionalMove_CompareInstruction = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bPageAttributeTable = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bPageSizeExtension = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bProcessorSerialNumber = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bCFLUSHExtension = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bUnknown2 = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bDebugStore = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bThermalMonitorandClockCtrl = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bMMXTechnology = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bFXSAVE_FXRSTOR = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bSSE = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bSSE2 = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bSelfSnoop = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bHyper_threadingTechnology = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bThermalMonitor = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bUnknown4 = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-	bPendBrkEN = (nFeatureInfo & nIds) ? true : false;
-	nIds <<= 1;
-
-	if  (nExIds < 0x80000004)
-	{
-		strcpy(CPUBrandString, "(unknown)");
+	} else {
+		// Wild guess
+		if (logical_cpu_count)
+			num_cores = logical_cpu_count;
 	}
 }
 
-
+std::string CPUInfo::Summarize()
+{
+	std::string sum = StringFromFormat("%s : %i cores. ", cpu_string, num_cores);
+	if (bSSE) sum += "SSE";
+	if (bSSE2) sum += ", SSE2";
+	if (bSSE3) sum += ", SSE3";
+	if (bSSSE3) sum += ", SSSE3";
+	if (bSSE4_1) sum += ", SSE4.1";
+	if (bSSE4_2) sum += ", SSE4.2";
+	if (bLongMode) sum += ", 64-bit support";
+	sum += "  (wrong? report)";
+	return sum;
+}
