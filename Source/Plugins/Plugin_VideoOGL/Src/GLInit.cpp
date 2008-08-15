@@ -270,7 +270,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     int glxMajorVersion, glxMinorVersion;
     int vidModeMajorVersion, vidModeMinorVersion;
     Atom wmDelete;
-    
+
     // attributes for a single buffered visual in RGBA format with at least
     // 8 bits per color and a 24 bit depth buffer
     int attrListSgl[] = {GLX_RGBA, GLX_RED_SIZE, 8, 
@@ -286,7 +286,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
                           GLX_GREEN_SIZE, 8, 
                           GLX_BLUE_SIZE, 8, 
                           GLX_DEPTH_SIZE, 24,
-                          None };
+                          GLX_SAMPLE_BUFFERS_ARB, 1, GLX_SAMPLES_ARB, 1, None };
     GLWin.dpy = XOpenDisplay(0);
 	g_VideoInitialize.pWindowHandle = (HWND)GLWin.dpy;
     GLWin.screen = DefaultScreen(GLWin.dpy);
@@ -533,7 +533,9 @@ void OpenGL_Shutdown()
         {
             ERROR_LOG("Could not release drawing context.\n");
         }
+        XUnmapWindow(GLWin.dpy, GLWin.win);
         glXDestroyContext(GLWin.dpy, GLWin.ctx);
+        XCloseDisplay(GLWin.dpy);
         GLWin.ctx = NULL;
     }
     /* switch back to original desktop resolution if we were in fs */

@@ -527,10 +527,10 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     GL_REPORT_ERRORD();
     
     glBegin(GL_QUADS);
-    glTexCoord2f((float)source->left, Renderer::GetTargetHeight()-(float)source->bottom); glVertex2f(-1,1);
-    glTexCoord2f((float)source->left, Renderer::GetTargetHeight()-(float)source->top); glVertex2f(-1,-1);
-    glTexCoord2f((float)source->right, Renderer::GetTargetHeight()-(float)source->top); glVertex2f(1,-1);
-    glTexCoord2f((float)source->right, Renderer::GetTargetHeight()-(float)source->bottom); glVertex2f(1,1);
+    glTexCoord2f((float)source->left * MValue, Renderer::GetTargetHeight()-(float)source->bottom * MValue); glVertex2f(-1,1);
+    glTexCoord2f((float)source->left * MValue, Renderer::GetTargetHeight()-(float)source->top * MValue); glVertex2f(-1,-1);
+    glTexCoord2f((float)source->right * MValue, Renderer::GetTargetHeight()-(float)source->top * MValue); glVertex2f(1,-1);
+    glTexCoord2f((float)source->right * MValue, Renderer::GetTargetHeight()-(float)source->bottom * MValue); glVertex2f(1,1);
     glEnd();
 
     GL_REPORT_ERRORD();
