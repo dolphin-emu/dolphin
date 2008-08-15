@@ -482,6 +482,11 @@ void OpenGL_Update()
         ::MoveWindow(EmuWindow::GetWnd(), 0,0,width,height, FALSE);
         nBackbufferWidth = width;
         nBackbufferHeight = height;
+        float FactorW  = (float)640 / (float)nBackbufferWidth;
+        float FactorH  = (float)480 / (float)nBackbufferHeight;
+
+        float Max = (FactorW < FactorH) ? FactorH : FactorW;
+        MValue = 1 / Max;
 
         /*
         u32 TmpAAx = (width / 640) - 1;
