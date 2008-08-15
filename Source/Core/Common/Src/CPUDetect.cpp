@@ -117,7 +117,7 @@ void CPUInfo::Detect()
 		if ((cpu_id[2] >> 19) & 1) bSSE4_1 = true;
 		if ((cpu_id[2] >> 20) & 1) bSSE4_2 = true;
 	}
-	if (max_std_fn >= 4) {
+	if (max_ex_fn >= 0x80000004) {
 		// Extract brand string
 		__cpuid(cpu_id, 0x80000002);
 		memcpy(brand_string, cpu_id, sizeof(cpu_id));
