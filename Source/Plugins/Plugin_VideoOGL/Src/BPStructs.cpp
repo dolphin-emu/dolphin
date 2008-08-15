@@ -526,19 +526,23 @@ bool SetScissorRect()
 {
     int xoff = bpmem.scissorOffset.x*2-342;
     int yoff = bpmem.scissorOffset.y*2-342;
-    
+    //printf("xoff: %d yoff: %d\n", xoff, yoff);
     RECT rc;
-    rc.left=bpmem.scissorTL.x + xoff - 342;
-    if (rc.left<0) rc.left=0;
-    rc.top=bpmem.scissorTL.y + yoff - 342;
-    if (rc.top<0) rc.top=0;
+    rc.left = bpmem.scissorTL.x + xoff - 342;
+    rc.left *= MValue;
+    if (rc.left < 0) rc.left = 0;
+    rc.top = bpmem.scissorTL.y + yoff - 342;
+    rc.top *= MValue;
+    if (rc.top < 0) rc.top = 0;
     
-    rc.right=bpmem.scissorBR.x + xoff - 342 +1;
-    if (rc.right>640) rc.right=640;
-    rc.bottom=bpmem.scissorBR.y + yoff - 342 +1;
-    if (rc.bottom>480) rc.bottom=480;
+    rc.right = bpmem.scissorBR.x + xoff - 342 +1;
+    rc.right *= MValue;
+    if (rc.right > 640 * MValue) rc.right = 640 * MValue;
+    rc.bottom = bpmem.scissorBR.y + yoff - 342 +1;
+    rc.bottom *= MValue;
+    if (rc.bottom > 480 * MValue) rc.bottom = 480 * MValue;
 
-    PRIM_LOG("scissor: lt=(%d,%d),rb=(%d,%d),off=(%d,%d)\n", rc.left, rc.top, rc.right, rc.bottom, xoff, yoff);
+    //printf("scissor: lt=(%d,%d),rb=(%d,%d),off=(%d,%d)\n", rc.left, rc.top, rc.right, rc.bottom, xoff, yoff);
 
     if( rc.right>=rc.left && rc.bottom>=rc.top ) {
         glScissor(rc.left, Renderer::GetTargetHeight()-(rc.bottom), (rc.right-rc.left), (rc.bottom-rc.top));

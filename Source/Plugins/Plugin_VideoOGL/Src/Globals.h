@@ -97,7 +97,7 @@ struct RECT
 #define GL_DEPTH24_STENCIL8_EXT 0x88F0
 #define GL_TEXTURE_STENCIL_SIZE_EXT 0x88F1
 #endif
-
+extern float MValue;
 // several macros
 // PLEASE DO NOT USE THE FOLLOWING SAFE*
 // They only encourage sloppy coding, and hide bugs. 

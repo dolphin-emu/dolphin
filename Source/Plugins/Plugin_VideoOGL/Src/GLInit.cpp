@@ -32,8 +32,6 @@
 
 // screen offset
 int nBackbufferWidth, nBackbufferHeight;
-u32 s_nTargetWidth = 0, s_nTargetHeight = 0;
-u32 g_AAx = 0, g_AAy = 0;
 
 #ifndef _WIN32
 GLWindow GLWin;
@@ -146,9 +144,11 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     nBackbufferWidth = _twidth;
     nBackbufferHeight = _theight;
 
-    // change later
-    s_nTargetWidth = 640 << g_AAx;
-    s_nTargetHeight = 480 << g_AAy;
+    float FactorW  = (float)640 / (float)nBackbufferWidth;
+    float FactorH  = (float)480 / (float)nBackbufferHeight;
+
+    float Max = (FactorW < FactorH) ? FactorH : FactorW;
+    MValue = 1 / Max;
 
     g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
     g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;

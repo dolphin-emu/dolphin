@@ -451,14 +451,14 @@ void Renderer::ReinitView(int nNewWidth, int nNewHeight)
 //TODO: Return correct Values
 int Renderer::GetTargetWidth()
 {
-    return 640;
-    //return nBackbufferWidth;
+    //return 640;
+    return nBackbufferWidth;
 }
 
 int Renderer::GetTargetHeight()
 {
-    return 480;
-    //return nBackbufferHeight;
+    //return 480;
+    return nBackbufferHeight;
 }
 
 bool Renderer::CanBlendLogicOp()
@@ -663,21 +663,11 @@ void Renderer::Swap(const TRectangle& rc)
     for(int i = 1; i < 8; ++i) TextureMngr::DisableStage(i);
     GL_REPORT_ERRORD();
 
-    //TODO: Do Correctly in a bit
-    float FactorW  = (float)640 / (float)nBackbufferWidth;
-    float FactorH  = (float)480 / (float)nBackbufferHeight;
-
-    float Max = (FactorW < FactorH) ? FactorH : FactorW;
-    float Temp = 1 / Max;
-    FactorW *= Temp;
-    FactorH *= Temp;
-
-
     glBegin(GL_QUADS);
-    glTexCoord2f(0, 0);                                             glVertex2f(-FactorW,-FactorH);
-    glTexCoord2f(0, (float)GetTargetHeight());                        glVertex2f(-FactorW,FactorH);
-    glTexCoord2f((float)GetTargetWidth(), (float)GetTargetHeight());    glVertex2f(FactorW,FactorH);
-    glTexCoord2f((float)GetTargetWidth(), 0);                         glVertex2f(FactorW,-FactorH);
+    glTexCoord2f(0, 0);                                             glVertex2f(-1,-1);
+    glTexCoord2f(0, (float)GetTargetHeight());                        glVertex2f(-1,1);
+    glTexCoord2f((float)GetTargetWidth(), (float)GetTargetHeight());    glVertex2f(1,1);
+    glTexCoord2f((float)GetTargetWidth(), 0);                         glVertex2f(1,-1);
     glEnd();
 
     glBindTexture(GL_TEXTURE_RECTANGLE_NV, 0);

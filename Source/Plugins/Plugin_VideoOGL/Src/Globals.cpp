@@ -22,7 +22,7 @@
 
 #include "IniFile.h"
 #include <assert.h>
-
+float MValue;
 int frameCount;
 
 Config g_Config;
