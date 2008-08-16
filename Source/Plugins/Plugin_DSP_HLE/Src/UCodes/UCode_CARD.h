@@ -15,37 +15,31 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// See CPP file for comments.
+#ifndef _UCODE_CARD_H
+#define _UCODE_CARD_H
 
-#ifndef _AUDIOINTERFACE_H
-#define _AUDIOINTERFACE_H
+#include "UCodes.h"
 
-namespace AudioInterface
+class CUCode_CARD : public IUCode
 {
+private:
+	enum EDSP_Codes
+	{
+		DSP_INIT   = 0xDCD10000,
+		DSP_RESUME = 0xDCD10001,
+		DSP_YIELD  = 0xDCD10002,
+		DSP_DONE   = 0xDCD10003,
+		DSP_SYNC   = 0xDCD10004,
+		DSP_UNKN   = 0xDCD10005,
+	};
 
-// Init
-void Init();
+public:
+	CUCode_CARD(CMailHandler& _rMailHandler);
+	virtual ~CUCode_CARD();
 
-// Shutdown
-void Shutdown();	
-
-// Update
-void Update();
-
-// Calls by DSP plugin
-unsigned __int32 Callback_GetStreaming(short* _pDestBuffer, unsigned __int32 _numSamples);
-
-// Read32
-void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);
-
-// Write32
-void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
-
-// Get the Audio Rate (48000 or 32000)
-u32 GetAISampleRate();
-u32 GetDSPSampleRate();
-
-} // end of namespace AudioInterface
+	void HandleMail(u32 _uMail);
+	void Update();
+};
 
 #endif
 

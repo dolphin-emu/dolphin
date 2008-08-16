@@ -53,14 +53,14 @@ union AICR
 	AICR(u32 _hex) { hex = _hex;}
 	struct 
 	{
-		unsigned PSTAT		: 1; // sample counter/playback enable
-		unsigned AFR		: 1; // 0=32khz 1=48khz
-		unsigned AIINTMSK	: 1; // 0=interrupt masked 1=interrupt enabled
-		unsigned AIINT		: 1; // audio interrupt status
-		unsigned AIINTVLD	: 1; // This bit controls whether AIINT is affected by the AIIT register 
-                                 // matching AISLRCNT. Once set, AIINT will hold
-		unsigned SCRESET	: 1; // write to reset counter
-        unsigned DSPFR  	: 1; // DSP Frequency (0=32khz 1=48khz)
+		unsigned PSTAT		: 1;  // sample counter/playback enable
+		unsigned AFR		: 1;  // 0=32khz 1=48khz
+		unsigned AIINTMSK	: 1;  // 0=interrupt masked 1=interrupt enabled
+		unsigned AIINT		: 1;  // audio interrupt status
+		unsigned AIINTVLD	: 1;  // This bit controls whether AIINT is affected by the AIIT register 
+                                  // matching AISLRCNT. Once set, AIINT will hold
+		unsigned SCRESET	: 1;  // write to reset counter
+        unsigned DSPFR  	: 1;  // DSP Frequency (0=32khz 1=48khz)
 		unsigned			:25;
 	};
 	u32 hex;
@@ -96,6 +96,7 @@ void ReadStreamBlock(short* _pPCM);
 
 static u64 g_LastCPUTime = 0;
 static int g_SampleRate = 32000;
+static int g_DSPSampleRate = 32000;
 static u64 g_CPUCyclesPerSample = 0xFFFFFFFFFFFULL;
 
 void Init()
@@ -116,6 +117,7 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 	case AI_CONTROL_REGISTER:		//0x6C00		
         LOG(AUDIO_INTERFACE, "AudioInterface(R) 0x%08x", _Address);
 		_rReturnValue = g_AudioRegister.m_Control.hex;
+
 		return;
 
 		// Sample Rate (AIGetDSPSampleRate)
@@ -164,7 +166,10 @@ void Write32(const u32 _Value, const u32 _Address)
                 g_AudioRegister.m_Control.AFR = tmpAICtrl.AFR;
             }
 
-			g_SampleRate = g_AudioRegister.m_Control.AFR ? 48000 : 32000;
+			g_SampleRate = tmpAICtrl.AFR ? 32000 : 48000;
+			g_DSPSampleRate = tmpAICtrl.DSPFR ? 32000 : 48000;
+//			PanicAlert("Sample rate %i %i", g_Aui, g_SampleRate);
+
 			g_CPUCyclesPerSample = SystemTimers::GetTicksPerSecond() / g_SampleRate;
 
             // Streaming counter
@@ -194,6 +199,8 @@ void Write32(const u32 _Value, const u32 _Address)
 
                 g_LastCPUTime = CoreTiming::GetTicks();
             }
+
+			g_AudioRegister.m_Control = tmpAICtrl;
 
             UpdateInterrupts();
 		}
@@ -316,9 +323,14 @@ void IncreaseSampleCount(const u32 _iAmount)
 	}
 }
 
-u32 GetRate()
+u32 GetAISampleRate()
 {
 	return g_SampleRate;
+}
+
+u32 GetDSPSampleRate()
+{
+	return g_DSPSampleRate;
 }
 
 void Update()

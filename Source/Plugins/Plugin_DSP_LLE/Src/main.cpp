@@ -163,32 +163,29 @@ void Mixer(short* buffer, int numSamples, int bits, int rate, int channels)
 
 void DSP_Initialize(DSPInitialize _dspInitialize)
 {
+	g_dspInitialize = _dspInitialize;
+
+	gdsp_init();
+	g_dsp.step_counter = 0;
+	g_dsp.cpu_ram = g_dspInitialize.pGetMemoryPointer(0);
+	g_dsp.irq_request = dspi_req_dsp_irq;
+	gdsp_reset();
+
+	if (!gdsp_load_rom("data\\dsp_rom.bin"))
 	{
-		g_dspInitialize = _dspInitialize;
+		ErrorLog("Cannot load DSP ROM\n");
+	}
 
-		gdsp_init();
-		g_dsp.step_counter = 0;
-		g_dsp.cpu_ram = g_dspInitialize.pGetMemoryPointer(0);
-		g_dsp.irq_request = dspi_req_dsp_irq;
-		gdsp_reset();
-
-		if (!gdsp_load_rom("data\\dsp_rom.bin"))
-		{
-			ErrorLog("Cannot load DSP ROM\n");
-		}
-
-		if (!gdsp_load_coef("data\\dsp_coef.bin"))
-		{
-			ErrorLog("Cannot load DSP COEF\n");
-		}
-
+	if (!gdsp_load_coef("data\\dsp_coef.bin"))
+	{
+		ErrorLog("Cannot load DSP COEF\n");
+	}
 
 /*		Dump UCode to file...
    	FILE* t = fopen("e:\\hmm.txt", "wb");
    	gd_globals_t gdg;
    	gd_dis_file(&gdg, "D:\\DSP_UCode.bin", t);
    	fclose(t);  */
-	}
 
 #ifdef _WIN32
 #if _DEBUG
@@ -200,13 +197,12 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 	pthread_create(&g_hDSPThread, NULL, dsp_thread, (void *)NULL);
 #endif
 
-
-	#ifdef _WIN32
-		InitializeCriticalSection(&g_CriticalSection);
-		DSound::DSound_StartSound((HWND)g_dspInitialize.hWnd, 32000, Mixer);
-	#else
-		AOSound::AOSound_StartSound(32000, Mixer);
-	#endif
+#ifdef _WIN32
+	InitializeCriticalSection(&g_CriticalSection);
+	DSound::DSound_StartSound((HWND)g_dspInitialize.hWnd, 48000, Mixer);
+#else
+	AOSound::AOSound_StartSound(48000, Mixer);
+#endif
 }
 
 
@@ -313,7 +309,7 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, short unsigned int _uLowMail)
 }
 
 
-void DSP_Update()
+void DSP_Update(int cycles)
 {
 	if (g_hDSPThread)
 	{
@@ -322,19 +318,19 @@ void DSP_Update()
 	#ifdef _WIN32
 	if (g_Dialog.CanDoStep())
 	{
-		gdsp_runx(100);
+		gdsp_runx(100); // cycles
 	}
 	#endif
 }
 
 #ifdef _WIN32
-void DSP_SendAIBuffer(unsigned __int32 _Address, unsigned __int32 _Size)
+void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 #else
-void DSP_SendAIBuffer(unsigned int _Address, unsigned int _Size)
+void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 #endif
 {
-	uint32 Size = _Size * 16 * 2; // 16bit per sample, two channels
+	// uint32 Size = _Size * 16 * 2; // 16bit per sample, two channels
 
-	g_LastDMAAddress = _Address;
-	g_LastDMASize = Size;
+	g_LastDMAAddress = address;
+	g_LastDMASize = 32;
 }

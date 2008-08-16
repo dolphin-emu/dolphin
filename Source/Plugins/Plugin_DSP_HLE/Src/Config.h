@@ -15,37 +15,32 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// See CPP file for comments.
+#ifndef _CONFIG_H
+#define _CONFIG_H
 
-#ifndef _AUDIOINTERFACE_H
-#define _AUDIOINTERFACE_H
+#include <string>
 
-namespace AudioInterface
+struct CConfig
 {
+	bool m_AntiGap;
+	bool m_EnableHLEAudio;
+	bool m_EnableDTKMusic;
+	bool m_Interpolation;
+	bool m_DumpSamples;
+	std::string m_szSamplePath;
+	int m_SampleRate;
+	bool m_DumpSampleMinLength;
 
-// Init
-void Init();
+	CConfig();
 
-// Shutdown
-void Shutdown();	
+	void LoadDefaults();
 
-// Update
-void Update();
+	void Load();
 
-// Calls by DSP plugin
-unsigned __int32 Callback_GetStreaming(short* _pDestBuffer, unsigned __int32 _numSamples);
+	void Save();
+};
 
-// Read32
-void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);
-
-// Write32
-void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
-
-// Get the Audio Rate (48000 or 32000)
-u32 GetAISampleRate();
-u32 GetDSPSampleRate();
-
-} // end of namespace AudioInterface
+extern CConfig g_Config;
 
 #endif
 

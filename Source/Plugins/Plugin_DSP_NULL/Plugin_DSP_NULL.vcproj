@@ -742,6 +742,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\SConscript"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\stdafx.cpp"
 			>
 			<FileConfiguration

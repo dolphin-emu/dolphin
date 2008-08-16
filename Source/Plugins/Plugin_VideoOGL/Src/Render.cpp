@@ -18,6 +18,8 @@
 #include "Globals.h"
 #include <list>
 
+#include <mmsystem.h>
+
 #include "GLInit.h"
 #include "Render.h"
 #include "OpcodeDecoding.h"
@@ -355,7 +357,7 @@ bool Renderer::Initialize()
 
 void Renderer::AddMessage(const char* pstr, u32 ms)
 {
-    s_listMsgs.push_back(MESSAGE(pstr, timeGetTime()+ms));
+    s_listMsgs.push_back(MESSAGE(pstr, timeGetTime() + ms));
 }
 
 void Renderer::ProcessMessages()

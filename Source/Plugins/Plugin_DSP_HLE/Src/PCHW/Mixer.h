@@ -15,37 +15,16 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// See CPP file for comments.
+#ifndef _MIXER_H
+#define _MIXER_H
 
-#ifndef _AUDIOINTERFACE_H
-#define _AUDIOINTERFACE_H
+extern volatile bool mixer_HLEready;
 
-namespace AudioInterface
-{
+// Called from audio threads
+void Mixer(short* buffer, int numSamples, int bits, int rate, int channels);
 
-// Init
-void Init();
-
-// Shutdown
-void Shutdown();	
-
-// Update
-void Update();
-
-// Calls by DSP plugin
-unsigned __int32 Callback_GetStreaming(short* _pDestBuffer, unsigned __int32 _numSamples);
-
-// Read32
-void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);
-
-// Write32
-void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
-
-// Get the Audio Rate (48000 or 32000)
-u32 GetAISampleRate();
-u32 GetDSPSampleRate();
-
-} // end of namespace AudioInterface
+// Called from main thread
+void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate);
 
 #endif
 

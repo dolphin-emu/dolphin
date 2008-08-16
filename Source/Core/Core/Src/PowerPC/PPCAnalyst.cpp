@@ -99,9 +99,6 @@ u32 PPCAnalyst::EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 
 u32 PPCAnalyst::AnalyzeFunction(u32 startAddr, SFunction &func)
 {
-	//if (startAddr <0x80000008 || startAddr>0x80000000+Memory::RAM_MASK)
-	//	return 0;
-
 	func.name = StringFromFormat("zzz_%08x ??", startAddr);
 	func.calls.clear();
 	func.callers.clear();

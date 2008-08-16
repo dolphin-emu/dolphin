@@ -50,7 +50,6 @@ u8 ReadARAM(const u32 _uAddress);
 u8* GetARAMPtr();
 
 void UpdateAudioDMA();
-int GetDSPSampleRate();
 
 }// end of namespace DSP
 

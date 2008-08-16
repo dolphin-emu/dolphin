@@ -15,37 +15,40 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// See CPP file for comments.
+#include "Common.h"
+#include "../Globals.h"
+#include "../DSPHandler.h"
+#include "UCodes.h"
+#include "UCode_InitAudioSystem.h"
 
-#ifndef _AUDIOINTERFACE_H
-#define _AUDIOINTERFACE_H
-
-namespace AudioInterface
+CUCode_InitAudioSystem::CUCode_InitAudioSystem(CMailHandler& _rMailHandler)
+	: IUCode(_rMailHandler)
+	, m_BootTask_numSteps(0)
+	, m_NextParameter(0)
+	, IsInitialized(false)
 {
+	DebugLog("CUCode_InitAudioSystem - initialized");
+}
 
-// Init
-void Init();
 
-// Shutdown
-void Shutdown();	
+CUCode_InitAudioSystem::~CUCode_InitAudioSystem()
+{}
 
-// Update
-void Update();
 
-// Calls by DSP plugin
-unsigned __int32 Callback_GetStreaming(short* _pDestBuffer, unsigned __int32 _numSamples);
+void CUCode_InitAudioSystem::Init()
+{}
 
-// Read32
-void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);
 
-// Write32
-void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
+void CUCode_InitAudioSystem::Update()
+{
+	if (m_rMailHandler.IsEmpty())
+	{
+		m_rMailHandler.PushMail(0x80544348);
+		// HALT
+	}
+}
 
-// Get the Audio Rate (48000 or 32000)
-u32 GetAISampleRate();
-u32 GetDSPSampleRate();
+void CUCode_InitAudioSystem::HandleMail(u32 _uMail)
+{}
 
-} // end of namespace AudioInterface
-
-#endif
 

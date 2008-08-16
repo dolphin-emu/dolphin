@@ -15,37 +15,21 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// See CPP file for comments.
+#ifndef __SOUNDSTREAM_H__
+#define __SOUNDSTREAM_H__
 
-#ifndef _AUDIOINTERFACE_H
-#define _AUDIOINTERFACE_H
-
-namespace AudioInterface
+namespace DSound
 {
+typedef void (*StreamCallback)(short* buffer, int numSamples, int bits, int rate, int channels);
 
-// Init
-void Init();
+bool DSound_StartSound(HWND window, int sampleRate, StreamCallback _callback);
+void DSound_UpdateSound();
+void DSound_StopSound();
 
-// Shutdown
-void Shutdown();	
+float DSound_GetTimer();
+int DSound_GetCurSample();
+int DSound_GetSampleRate();
+}
 
-// Update
-void Update();
 
-// Calls by DSP plugin
-unsigned __int32 Callback_GetStreaming(short* _pDestBuffer, unsigned __int32 _numSamples);
-
-// Read32
-void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);
-
-// Write32
-void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
-
-// Get the Audio Rate (48000 or 32000)
-u32 GetAISampleRate();
-u32 GetDSPSampleRate();
-
-} // end of namespace AudioInterface
-
-#endif
-
+#endif //__SOUNDSTREAM_H__

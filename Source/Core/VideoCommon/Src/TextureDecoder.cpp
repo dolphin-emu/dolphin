@@ -262,9 +262,8 @@ inline void decodebytesARGB8pass1(u32 *dst, u16 *src, int numpixels)
     for (int x = 0; x < numpixels; x++)
     {
         int val = Common::swap16(src[x]);
-        int a=val&0xFF;
-        val>>=8;
-
+        int a = val & 0xFF;
+        val >>= 8;
         *dst++ = (a<<16) | (val<<24);
     }
 }
@@ -274,9 +273,8 @@ inline void decodebytesARGB8pass2(u32 *dst, u16 *src, int numpixels)
     for (int x = 0; x < numpixels; x++)
     {
         int val = Common::swap16(src[x]);
-        int a=val&0xFF;
-        val>>=8;
-
+        int a = val & 0xFF;
+        val >>= 8;
         *dst++ |= (val<<8) | (a<<0);
     }
 }
@@ -419,9 +417,9 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, u8 *src, int width, int height, int texf
                 for (int x = 0; x < width; x += 4)
                 {
                     for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesARGB8pass1((u32*)dst+(y+iy)*width+x, (u16*)src, 4);
+                        decodebytesARGB8pass1((u32*)dst + (y+iy)*width + x, (u16*)src, 4);
                     for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesARGB8pass2((u32*)dst+(y+iy)*width+x, (u16*)src, 4);
+                        decodebytesARGB8pass2((u32*)dst + (y+iy)*width + x, (u16*)src, 4);
                 }
         }
         return PC_TEX_FMT_BGRA32;

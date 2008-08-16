@@ -15,37 +15,33 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// See CPP file for comments.
+#ifndef _UCODES_H
+#define _UCODES_H
 
-#ifndef _AUDIOINTERFACE_H
-#define _AUDIOINTERFACE_H
+#include "Common.h"
 
-namespace AudioInterface
+#define UCODE_ROM                   0x0000000
+#define UCODE_INIT_AUDIO_SYSTEM     0x0000001
+
+class CMailHandler;
+class IUCode
 {
+public:
+	IUCode(CMailHandler& _rMailHandler)
+		: m_rMailHandler(_rMailHandler)
+	{}
 
-// Init
-void Init();
+	virtual ~IUCode()
+	{}
 
-// Shutdown
-void Shutdown();	
+	virtual void HandleMail(u32 _uMail) = 0;
+	virtual void Update(void) = 0;
+	virtual void MixAdd(short* buffer, int size) {}
 
-// Update
-void Update();
+protected:
+	CMailHandler& m_rMailHandler;
+};
 
-// Calls by DSP plugin
-unsigned __int32 Callback_GetStreaming(short* _pDestBuffer, unsigned __int32 _numSamples);
-
-// Read32
-void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);
-
-// Write32
-void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
-
-// Get the Audio Rate (48000 or 32000)
-u32 GetAISampleRate();
-u32 GetDSPSampleRate();
-
-} // end of namespace AudioInterface
+extern IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler);
 
 #endif
-

@@ -15,37 +15,20 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// See CPP file for comments.
+#include "resource.h"
 
-#ifndef _AUDIOINTERFACE_H
-#define _AUDIOINTERFACE_H
+#include "AboutDlg.h"
 
-namespace AudioInterface
+LRESULT
+CAboutDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
 {
+	CenterWindow(GetParent());
+	return(TRUE);
+}
 
-// Init
-void Init();
-
-// Shutdown
-void Shutdown();	
-
-// Update
-void Update();
-
-// Calls by DSP plugin
-unsigned __int32 Callback_GetStreaming(short* _pDestBuffer, unsigned __int32 _numSamples);
-
-// Read32
-void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);
-
-// Write32
-void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
-
-// Get the Audio Rate (48000 or 32000)
-u32 GetAISampleRate();
-u32 GetDSPSampleRate();
-
-} // end of namespace AudioInterface
-
-#endif
-
+LRESULT
+CAboutDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
+{
+	EndDialog(wID);
+	return(0);
+}

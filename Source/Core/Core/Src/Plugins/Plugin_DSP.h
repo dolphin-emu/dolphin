@@ -42,8 +42,8 @@ void DSP_WriteMailboxHigh(bool _CPUMailbox, unsigned short _Value);
 void DSP_WriteMailboxLow(bool _CPUMailbox, unsigned short _Value);
 unsigned short DSP_WriteControlRegister(unsigned short _Flags);
 unsigned short DSP_ReadControlRegister();
-void DSP_Update();
-void DSP_SendAIBuffer(unsigned int _Address, unsigned int _Size);
+void DSP_Update(int cycles);
+void DSP_SendAIBuffer(unsigned int address, int sample_rate);
 
 }  // end of namespace PluginDSP
 

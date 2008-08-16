@@ -151,18 +151,18 @@ EXPORT unsigned short CALL DSP_ReadControlRegister(void);
 // __________________________________________________________________________________________________
 // Function: DSP_Update
 // Purpose:  This function is called from time to time from the core. 
-// input:    flag (DSP_FLAG_RESET, DSP_FLAG_ASSERT_INT, ...)
+// input:    cycles - run this number of DSP clock cycles.
 // output:   TRUE if the flag is set, else FALSE
 // 
-EXPORT void CALL DSP_Update(void);
+EXPORT void CALL DSP_Update(int cycles);
 
 // __________________________________________________________________________________________________
 // Function: DSP_SendAIBuffer
 // Purpose:  This function sends the current AI Buffer to the DSP plugin
 // input:    _Address : Memory-Address
-// input:    _Size : Size of the Buffer
+// input:    _Size : Size of the Buffer (always 32)
 // 
-EXPORT void CALL DSP_SendAIBuffer(unsigned int _Address, unsigned int _Size);
+EXPORT void CALL DSP_SendAIBuffer(unsigned int address, int sample_rate);
  #undef CALL
 #if defined(__cplusplus)
 }

@@ -353,7 +353,8 @@ namespace Jit64
 
 	const u8* DoJit(u32 emaddress, JitBlock &b)
 	{
-		_assert_msg_(DYNA_REC, emaddress != 0, "ERROR - Trying to compile at 0. LR=%08x",LR);
+		if (emaddress == 0)
+			PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
 
 		u32 size;
 		js.isLastInstruction = false;

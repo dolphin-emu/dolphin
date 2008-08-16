@@ -87,12 +87,14 @@ namespace Jit64
 			if (inst.LK)
 				AND(32, M(&CR), Imm32(~(0xFF000000)));
 #endif
-			//if (destination == js.compilerPC)
-			//{
+			if (destination == js.compilerPC)
+			{
 				//PanicAlert("Idle loop detected at %08x", destination);
 			//	CALL(ProtectFunction(&CoreTiming::Idle, 0));
 			//	JMP(Asm::testExceptions, true);
-			//}
+				// make idle loops go faster
+				js.downcountAmount += 8;
+			}
 			WriteExit(destination, 0);
 		}
 		else {

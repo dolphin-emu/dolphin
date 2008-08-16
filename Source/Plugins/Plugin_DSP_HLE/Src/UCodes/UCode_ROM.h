@@ -15,37 +15,37 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// See CPP file for comments.
+#ifndef _UCODE_ROM
+#define _UCODE_ROM
 
-#ifndef _AUDIOINTERFACE_H
-#define _AUDIOINTERFACE_H
+#include "UCodes.h"
 
-namespace AudioInterface
+class CUCode_Rom : public IUCode
 {
+public:
+	CUCode_Rom(CMailHandler& _rMailHandler);
+	virtual ~CUCode_Rom();
 
-// Init
-void Init();
+	void HandleMail(u32 _uMail);
+	void Update();
 
-// Shutdown
-void Shutdown();	
+private:
+	struct SUCode
+	{
+		u32 m_RAMAddress;
+		u32 m_Length;
+		u32 m_IMEMAddress;
+		u32 m_Unk;
+		u32 m_StartPC;
+	};
 
-// Update
-void Update();
+	SUCode m_CurrentUCode;
+	int m_BootTask_numSteps;
 
-// Calls by DSP plugin
-unsigned __int32 Callback_GetStreaming(short* _pDestBuffer, unsigned __int32 _numSamples);
+	u32 m_NextParameter;
 
-// Read32
-void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);
-
-// Write32
-void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
-
-// Get the Audio Rate (48000 or 32000)
-u32 GetAISampleRate();
-u32 GetDSPSampleRate();
-
-} // end of namespace AudioInterface
+	void BootUCode();
+};
 
 #endif
 

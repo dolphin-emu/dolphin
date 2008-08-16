@@ -179,11 +179,6 @@ void WriteARAM(u8 _iValue, u32 _iAddress);
 bool Update_DSP_ReadRegister();
 void Update_DSP_WriteRegister();
 
-int GetDSPSampleRate()
-{
-	return 32000;  // TODO - can also be 48000
-}
-
 void Init()
 {
 	g_ARAM = (u8 *)AllocateMemoryPages(ARAM_SIZE);
@@ -414,7 +409,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
 			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
 			GenerateDSPInterrupt(DSP::INT_AID);
-			LOG(DSP, "AID DMA started - source address %08x, length %i blocks", g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks);
+			LOG(DSPINTERFACE, "AID DMA started - source address %08x, length %i blocks", g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks);
 		}
 		break;
 		}
@@ -432,8 +427,12 @@ void Write16(const u16 _Value, const u32 _Address)
 void UpdateAudioDMA()
 {
 	if (g_audioDMA.AudioDMAControl.Enabled && g_audioDMA.BlocksLeft) {
-		// TODO : Read audio at g_audioDMA.ReadAddress in RAM and push onto an external audio fifo in the emulator,
-		// to be mixed with the disc streaming output. If that audio queue fills up, we have to delay the emulator.
+		// Read audio at g_audioDMA.ReadAddress in RAM and push onto an external audio fifo in the emulator,
+		// to be mixed with the disc streaming output. If that audio queue fills up, we delay the emulator.
+
+		// TO RESTORE OLD BEHAVIOUR, COMMENT OUT THIS LINE
+		PluginDSP::DSP_SendAIBuffer(g_audioDMA.ReadAddress, AudioInterface::GetDSPSampleRate());
+
 		g_audioDMA.ReadAddress += 32;
 		g_audioDMA.BlocksLeft--;
 		if (!g_audioDMA.BlocksLeft) {
@@ -444,6 +443,10 @@ void UpdateAudioDMA()
 			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
 			GenerateDSPInterrupt(DSP::INT_AID);
 		}
+	} else {
+		// Send silence. Yeah, it's a bit of a waste to sample rate convert silence.
+		// or hm. Maybe we shouldn't do this :)
+		// PluginDSP::DSP_SendAIBuffer(0, AudioInterface::GetDSPSampleRate());
 	}
 }
 

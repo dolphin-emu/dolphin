@@ -31,8 +31,8 @@ typedef void (__cdecl* TDSP_WriteMailBox)(BOOL _CPUMailbox, unsigned short);
 typedef unsigned short (__cdecl* TDSP_ReadMailBox)(BOOL _CPUMailbox);
 typedef unsigned short (__cdecl* TDSP_ReadControlRegister)();
 typedef unsigned short (__cdecl* TDSP_WriteControlRegister)(unsigned short);
-typedef void (__cdecl* TDSP_Update)();
-typedef void (__cdecl* TDSP_SendAIBuffer)(unsigned int _Address, unsigned int _Size);
+typedef void (__cdecl* TDSP_Update)(int cycles);
+typedef void (__cdecl* TDSP_SendAIBuffer)(unsigned int address, int sample_rate);
 
 //! Function Pointer
 TGetDllInfo					g_GetDllInfo				= 0;
@@ -217,16 +217,16 @@ unsigned short DSP_ReadControlRegister()
 
 // __________________________________________________________________________________________________
 //
-void DSP_Update()
+void DSP_Update(int cycles)
 {
-	g_DSP_Update();
+	g_DSP_Update(cycles);
 }
 
 // __________________________________________________________________________________________________
 //
-void DSP_SendAIBuffer(unsigned int _Address, unsigned int _Size)
+void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 {
-	g_DSP_SendAIBuffer(_Address, _Size);
+	g_DSP_SendAIBuffer(address, sample_rate);
 }
 
 }

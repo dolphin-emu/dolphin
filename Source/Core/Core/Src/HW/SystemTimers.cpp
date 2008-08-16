@@ -92,15 +92,14 @@ void AICallback(u64 userdata, int cyclesLate)
 
 void DSPCallback(u64 userdata, int cyclesLate)
 {
-	// Poke the DSP, make it do stuff. This should eventually be replaced with dsp->RunCycles(1000) or whatever,
 	// ~1/6th as many cycles as the period PPC-side.
-	PluginDSP::DSP_Update();
+	PluginDSP::DSP_Update(DSP_PERIOD / 6);
 	CoreTiming::ScheduleEvent(DSP_PERIOD-cyclesLate, &DSPCallback, "DSPCallback");
 }
 
 void AudioFifoCallback(u64 userdata, int cyclesLate)
 {	
-	int period = CPU_CORE_CLOCK / (DSP::GetDSPSampleRate() * 4 / 32);
+	int period = CPU_CORE_CLOCK / (AudioInterface::GetDSPSampleRate() * 4 / 32);
 	DSP::UpdateAudioDMA();  // Push audio to speakers.
 
 	CoreTiming::ScheduleEvent(period - cyclesLate, &AudioFifoCallback, "AudioFifoCallback");
@@ -140,7 +139,7 @@ void DecrementerSet()
 	u32 decValue = PowerPC::ppcState.spr[SPR_DEC];
 	fakeDec = decValue*TIMER_RATIO;
 	CoreTiming::RemoveEvent(DecrementerCallback);
-	CoreTiming::ScheduleEvent(decValue*TIMER_RATIO, DecrementerCallback, "DecCallback");
+	CoreTiming::ScheduleEvent(decValue * TIMER_RATIO, DecrementerCallback, "DecCallback");
 }
 
 void AdvanceCallback(int cyclesExecuted)
