@@ -18,6 +18,8 @@
 #ifndef _CPUDETECT_H
 #define _CPUDETECT_H
 
+#include <string>
+
 enum CPUVendor
 {
 	VENDOR_INTEL = 0,
