@@ -137,7 +137,7 @@ inline int expand8888(const int j)
     return i|(i<<16);
 }
 
-inline void decodebytesI4(u32 *dst, u8 *src, int numbytes)
+inline void decodebytesI4(u32 *dst, const u8 *src, int numbytes)
 {
     for (int x = 0; x < numbytes; x++)
     {
@@ -147,13 +147,13 @@ inline void decodebytesI4(u32 *dst, u8 *src, int numbytes)
     }
 }
 
-inline void decodebytesI8(u32 *dst, u8 *src, int numbytes)
+inline void decodebytesI8(u32 *dst, const u8 *src, int numbytes)
 {
     for (int x = 0; x < numbytes; x++)
         *dst++ = expand8888(src[x]);
 }
 
-inline void decodebytesC4(u32 *dst, u8 *src, int numbytes, int tlutaddr, int tlutfmt)
+inline void decodebytesC4(u32 *dst, const u8 *src, int numbytes, int tlutaddr, int tlutfmt)
 {
     u16 *tlut = (u16*)(texMem + tlutaddr);
     for (int x = 0; x < numbytes; x++)
@@ -180,7 +180,7 @@ inline void decodebytesC4(u32 *dst, u8 *src, int numbytes, int tlutaddr, int tlu
     }
 }
 
-inline void decodebytesC8(u32 *dst, u8 *src, int numbytes, int tlutaddr, int tlutfmt)
+inline void decodebytesC8(u32 *dst, const u8 *src, int numbytes, int tlutaddr, int tlutfmt)
 { 
     u16 *tlut = (u16*)(texMem+tlutaddr);
     for (int x = 0; x < numbytes; x++)
@@ -204,7 +204,7 @@ inline void decodebytesC8(u32 *dst, u8 *src, int numbytes, int tlutaddr, int tlu
 }
 
 
-inline void decodebytesC14X2(u32 *dst, u16 *src, int numpixels, int tlutaddr, int tlutfmt)
+inline void decodebytesC14X2(u32 *dst, const u16 *src, int numpixels, int tlutaddr, int tlutfmt)
 {
     u16 *tlut = (u16*)(texMem+tlutaddr);
     for (int x = 0; x < numpixels; x++)
@@ -227,48 +227,44 @@ inline void decodebytesC14X2(u32 *dst, u16 *src, int numpixels, int tlutaddr, in
     }
 }
 
-inline void decodebytesRGB565(u32 *dst, u16 *src, int numpixels)
+inline void decodebytesRGB565(u32 *dst, const u16 *src, int numpixels)
 {
     for (int x = 0; x < numpixels; x++)
         *dst++ = decode565(Common::swap16(src[x]));
 }
 
-inline void decodebytesIA4(u32 *dst, u8 *src, int numbytes)
+inline void decodebytesIA4(u32 *dst, const u8 *src, int numbytes)
 {
     for (int x = 0; x < numbytes; x++)
     {
         int val = src[x];
-
         int a = lut4to8[val>>4];
         int r = lut4to8[val&15];
-        *dst++ = (a<<24) | (r<<16) | (r<<8) | r;
+        dst[x] = (a<<24) | (r<<16) | (r<<8) | r;
     }
 }
 
-inline void decodebytesIA8(u32 *dst, u16 *src, int numpixels)
+inline void decodebytesIA8(u32 *dst, const u16 *src, int numpixels)
 {
     for (int x = 0; x < numpixels; x++)
-        *dst++ = decodeIA8(Common::swap16(src[x]));
+        dst[x] = decodeIA8(Common::swap16(src[x]));
 }
 
-inline void decodebytesRGB5A3(u32 *dst, u16 *src, int numpixels)
+inline void decodebytesRGB5A3(u32 *dst, const u16 *src, int numpixels)
 {
     for (int x = 0; x < numpixels; x++)
-        *dst++ = decode5A3(Common::swap16(src[x]));
+        dst[x] = decode5A3(Common::swap16(src[x]));
 }
 
-inline void decodebytesARGB8pass1(u32 *dst, u16 *src, int numpixels)
+inline void decodebytesARGB8pass1(u32 *dst, const u16 *src, const u16 *src2, int numpixels)
 {
-    for (int x = 0; x < numpixels; x++)
-    {
-        int val = Common::swap16(src[x]);
-        int a = val & 0xFF;
-        val >>= 8;
-        *dst++ = (a<<16) | (val<<24);
+	// This can probably be done in a few SSE pack/unpack instructions.
+    for (int x = 0; x < numpixels; x++) {
+        dst[x] = Common::swap32((src2[x] << 16) | src[x]);
     }
 }
 
-inline void decodebytesARGB8pass2(u32 *dst, u16 *src, int numpixels)
+inline void decodebytesARGB8pass2(u32 *dst, const u16 *src, int numpixels)
 {
     for (int x = 0; x < numpixels; x++)
     {
@@ -284,9 +280,7 @@ inline u32 makecol(int r, int g, int b, int a)
     return ((a&255)<<24)|((r&255)<<16)|((g&255)<<8)|((b&255));
 }
 
-//this needs to be FAST, used by some games realtime video
-//TODO: port to ASM or intrinsics
-void decodeDXTBlock(u32 *dst, DXTBlock *src, int pitch)
+void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 {
     u16 c1 = Common::swap16(src->color1);
     u16 c2 = Common::swap16(src->color2);
@@ -332,9 +326,9 @@ void decodeDXTBlock(u32 *dst, DXTBlock *src, int pitch)
 //also ARGB order needs to be swapped later, to accommodate modern hardware better
 //need to add DXT support too
 #ifdef OVERLAY_TEXFMT
-PC_TexFormat TexDecoder_Decode_real(u8 *dst, u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
+PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 #else
-PC_TexFormat TexDecoder_Decode(u8 *dst, u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
+PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 #endif
 {
     switch (texformat)
@@ -413,14 +407,15 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, u8 *src, int width, int height, int texf
         return PC_TEX_FMT_BGRA32;
     case GX_TF_RGBA8:
         {
-            for (int y = 0; y < height; y += 4)
+			for (int y = 0; y < height; y += 4) {
                 for (int x = 0; x < width; x += 4)
                 {
-                    for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesARGB8pass1((u32*)dst + (y+iy)*width + x, (u16*)src, 4);
-                    for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesARGB8pass2((u32*)dst + (y+iy)*width + x, (u16*)src, 4);
+					for (int iy = 0; iy < 4; iy++) {
+                        decodebytesARGB8pass1((u32*)dst + (y+iy)*width + x, (u16*)src + 4 * iy, (u16*)src + 4 * iy + 16, 4);
+					}
+					src += 64;
                 }
+			}
         }
         return PC_TEX_FMT_BGRA32;
     case GX_TF_CMPR:
@@ -460,7 +455,7 @@ extern const char* texfmt[];
 extern const unsigned char sfont_map[];
 extern const unsigned char sfont_raw[][9*10];
 
-PC_TexFormat TexDecoder_Decode(u8 *dst, u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
+PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
 	PC_TexFormat  retval = TexDecoder_Decode_real(dst,src,width,height,texformat,tlutaddr,tlutfmt);
 

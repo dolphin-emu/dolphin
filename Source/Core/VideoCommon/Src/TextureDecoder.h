@@ -74,7 +74,7 @@ enum PC_TexFormat
 	PC_TEX_FMT_BGRA32 = 1,
 };
 
-PC_TexFormat TexDecoder_Decode(u8 *dst, u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt);
+PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt);
 
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
 

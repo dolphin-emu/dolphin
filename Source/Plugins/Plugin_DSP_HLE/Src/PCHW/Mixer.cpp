@@ -115,12 +115,12 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate) {
 		s32 DataL = PV1l;
 		s32 DataR = PV1r;
 
- 		if (mode==1) //linear
+ 		if (mode == 1) //linear
  		{
 			DataL = PV1l + ((PV2l - PV1l)*acc)/48000;
 			DataR = PV1r + ((PV2r - PV1r)*acc)/48000;
 		}
- 		else if (mode==2) //cubic
+ 		else if (mode == 2) //cubic
  		{
  			s32 a0l = PV1l - PV2l - PV4l + PV3l;
  			s32 a0r = PV1r - PV2r - PV4r + PV3r;
@@ -145,7 +145,7 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate) {
 		}
 		sample_queue.push(DataL);
 		sample_queue.push(DataR);
-		queue_size++;
+		queue_size += 2;
  	}
 	push_sync.Leave();
 }
