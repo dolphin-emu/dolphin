@@ -1049,6 +1049,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\SConscript"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\XFB.cpp"
 			>
 		</File>

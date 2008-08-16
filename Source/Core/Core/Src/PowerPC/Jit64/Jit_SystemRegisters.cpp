@@ -77,7 +77,9 @@ namespace Jit64
 		int d = inst.RD;
 		switch (iIndex)
 		{
-
+		case SPR_WPAR:
+			Default(inst);
+			return;
 //		case SPR_DEC:
 			//MessageBox(NULL, "Read from DEC", "????", MB_OK);
 			//break;

@@ -47,6 +47,10 @@ void Init()
 	ResetGatherPipe();
 }
 
+bool IsEmpty() {
+	return m_gatherPipeCount == 0;
+}
+
 void ResetGatherPipe()
 {
 	m_gatherPipeCount = 0;

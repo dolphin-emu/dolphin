@@ -1087,7 +1087,7 @@ void VertexManager::Flush()
 
     int offset = 0;
     vector< pair<int, int> >::iterator it;
-    FORIT (it, s_vStoredPrimitives) {
+    for (it = s_vStoredPrimitives.begin(); it != s_vStoredPrimitives.end(); ++it) {
         glDrawArrays(it->first, offset, it->second);
         offset += it->second;
     }

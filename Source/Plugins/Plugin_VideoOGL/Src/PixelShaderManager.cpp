@@ -94,16 +94,17 @@ void PixelShaderMngr::Init()
     GL_REPORT_ERROR();
     if( err != GL_NO_ERROR ) {
         ERROR_LOG("Failed to create color matrix fragment program\n");
-        
-        SAFE_RELEASE_PROG(s_ColorMatrixProgram);
+        glDeleteProgramsARB(1, &s_ColorMatrixProgram);
+		s_ColorMatrixProgram = 0;
     }
 }
 
 void PixelShaderMngr::Shutdown()
 {
-    SAFE_RELEASE_PROG(s_ColorMatrixProgram);
+    glDeleteProgramsARB(1, &s_ColorMatrixProgram);
+	s_ColorMatrixProgram = 0;
     PSCache::iterator iter = pshaders.begin();
-    for (;iter!=pshaders.end();iter++)
+    for (; iter != pshaders.end(); iter++)
         iter->second.Destroy();
     pshaders.clear();
 }

@@ -40,6 +40,8 @@ void Init();
 void ResetGatherPipe();
 void CheckGatherPipe();
 
+bool IsEmpty();
+
 // Write
 void HWCALL Write8(const u8 _iValue, const u32 _iAddress);
 void HWCALL Write16(const u16 _iValue, const u32 _iAddress);

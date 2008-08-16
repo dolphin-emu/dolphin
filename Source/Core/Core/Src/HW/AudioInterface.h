@@ -14,6 +14,9 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
+// See CPP file for comments.
+
 #ifndef _AUDIOINTERFACE_H
 #define _AUDIOINTERFACE_H
 

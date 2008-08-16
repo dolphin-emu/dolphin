@@ -27,7 +27,7 @@ enum DSPInterruptType
 {
 	INT_DSP		= 0,
 	INT_ARAM	= 1,
-	INT_AI		= 2
+	INT_AID		= 2
 };
 
 void Init();
@@ -49,8 +49,8 @@ u8 ReadARAM(const u32 _uAddress);
 // Debugger Helper
 u8* GetARAMPtr();
 
-
 void UpdateAudioDMA();
+int GetDSPSampleRate();
 
 }// end of namespace DSP
 

@@ -234,11 +234,11 @@ void CInterpreter::mftb(UGeckoInstruction _inst)
 
 void CInterpreter::mfspr(UGeckoInstruction _inst)
 {
-	u32 iIndex = ((_inst.SPR & 0x1F) << 5) + ((_inst.SPR >> 5)&0x1F);
+	u32 iIndex = ((_inst.SPR & 0x1F) << 5) + ((_inst.SPR >> 5) & 0x1F);
 
 	//TODO - check processor privilege level - many of these require privilege
 	//XER LR CTR are the only ones available in user mode, time base can be read too.
-	//Not that gamecube games usually run user mode, but hey....
+	//Gamecube games always run in superuser mode, but hey....
 
 	switch (iIndex) 
 	{
@@ -247,11 +247,8 @@ void CInterpreter::mfspr(UGeckoInstruction _inst)
 	//	break;
 	case SPR_WPAR:
 		{
-			//There's supposed to be a bit here that indicates whether there is any data in the wp
-			//(or if it's full, not sure)
-			//MessageBox(NULL, "Read from SPR_WPAR", "????", MB_OK);
-			//Paper Mario reads here, this should be investigated ... TODO(ector)
-			bool wpar_empty = true;
+			// If wpar_empty ever is false, Paper Mario hangs. Strange.			
+			bool wpar_empty = true; //GPFifo::IsEmpty();
 			if (!wpar_empty)
 				rSPR(iIndex) |= 1;  // BNE = buffer not empty
 			else
@@ -268,9 +265,9 @@ void CInterpreter::mtspr(UGeckoInstruction _inst)
 	u32 oldValue = rSPR(iIndex);
 	rSPR(iIndex) = m_GPR[_inst.RD];
 
-	//TODO(ector) - check processor privilege level - many of these require privilege
-	//XER LR CTR are the only ones available in user mode
-	//Not that gamecube games usually run user mode, but hey....
+	//TODO - check processor privilege level - many of these require privilege
+	//XER LR CTR are the only ones available in user mode, time base can be read too.
+	//Gamecube games always run in superuser mode, but hey....
 
 	//Our DMA emulation is highly inaccurate - instead of properly emulating the queue
 	//and so on, we simply make all DMA:s complete instantaneously.
@@ -306,7 +303,6 @@ void CInterpreter::mtspr(UGeckoInstruction _inst)
 			//TODO(ector): Protect LC memory if LCE is false.
 			//TODO(ector): Honor PSE.
 
-			//
 			//_assert_msg_(GEKKO, WriteGatherPipeEnable, "Write gather pipe not enabled!");
 			//if ((HID2.PSE == 0))
 			//	MessageBox(NULL, "PSE in HID2 is set", "Warning", MB_OK);

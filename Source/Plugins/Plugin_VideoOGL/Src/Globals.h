@@ -19,25 +19,12 @@
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
-#include <wx/wx.h>
-#include <wx/filepicker.h>
-#include <wx/notebook.h>
-#include <wx/dialog.h>
-#include <wx/aboutdlg.h>
-
 #define LOGGING
 
 #include "Common.h"
 #include "x64Emitter.h"
 
 #ifdef _WIN32
-
-#include <windows.h>
-#include <windowsx.h>
-#include <mmsystem.h>
-
-void OpenConsole();
-void CloseConsole();
 
 #define GLEW_STATIC
 
@@ -97,16 +84,8 @@ struct RECT
 #define GL_DEPTH24_STENCIL8_EXT 0x88F0
 #define GL_TEXTURE_STENCIL_SIZE_EXT 0x88F1
 #endif
-extern float MValue;
-// several macros
-// PLEASE DO NOT USE THE FOLLOWING SAFE*
-// They only encourage sloppy coding, and hide bugs. 
-#define SAFE_RELEASE_CGPROG(x) { if( (x) != NULL ) { cgDestroyProgram(x); x = NULL; } }
-#define SAFE_RELEASE_PROG(x) { if( (x) != 0 ) { glDeleteProgramsARB(1, &(x)); x = 0; } }
-#define SAFE_RELEASE_TEX(x) { if( (x) != 0 ) { glDeleteTextures(1, &(x)); x = 0; } }
-#define SAFE_RELEASE_BUF(x) { if( (x) != 0 ) { glDeleteBuffers(1, &(x)); x = 0; } }
 
-#define FORIT(it, v) for(it = (v).begin(); it != (v).end(); ++(it))
+extern float MValue;
 
 #define ERROR_LOG __Log
 

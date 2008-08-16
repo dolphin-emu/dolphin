@@ -15,6 +15,13 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+// This file is ONLY about disc streaming. It's a bit unfortunately named.
+// For the rest of the audio stuff, including the "real" AI, see DSP.cpp/h.
+
+// AI disc streaming is handled completely separately from the rest of the
+// audio processing. In short, it simply streams audio directly from disc
+// out through the speakers.
+
 #include "Common.h"
 
 #include "StreamADPCM.H"
@@ -125,13 +132,15 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 		return;
 
 	case AI_INTERRUPT_TIMING:
+		// When sample counter reaches the value of this register, the interrupt AIINT should
+		// fire.
         LOG(AUDIO_INTERFACE, "AudioInterface(R) 0x%08x", _Address);
 		_rReturnValue = g_AudioRegister.m_InterruptTiming;
 		return;
 
 	default:
         LOG(AUDIO_INTERFACE, "AudioInterface(R) 0x%08x", _Address);
-		_dbg_assert_msg_(AUDIO_INTERFACE,0,"AudioInterface - Read from ???");
+		_dbg_assert_msg_(AUDIO_INTERFACE, 0, "AudioInterface - Read from ???");
 		_rReturnValue = 0;
 		return;
 	}
@@ -196,7 +205,8 @@ void Write32(const u32 _Value, const u32 _Address)
 		break;
 
 	case AI_SAMPLE_COUNTER:
-		_dbg_assert_msg_(AUDIO_INTERFACE,0,"AudioInterface - m_SampleCounter is Read only");
+		// _dbg_assert_msg_(AUDIO_INTERFACE, 0, "AudioInterface - m_SampleCounter is Read only");
+		g_AudioRegister.m_SampleCounter = _Value;
 		break;
 
 	case AI_INTERRUPT_TIMING:		
@@ -229,7 +239,7 @@ void GenerateAudioInterrupt()
 	UpdateInterrupts();
 }
 
-// Callback for the DSP streaming
+// Callback for the disc streaming
 // WARNING - called from audio thread
 unsigned __int32 Callback_GetStreaming(short* _pDestBuffer, unsigned __int32 _numSamples)
 {
@@ -240,9 +250,9 @@ unsigned __int32 Callback_GetStreaming(short* _pDestBuffer, unsigned __int32 _nu
 		const int lvolume = g_AudioRegister.m_Volume.leftVolume;
 		const int rvolume = g_AudioRegister.m_Volume.rightVolume;
 
-		for (unsigned int i=0; i<_numSamples; i++)
+		for (unsigned int i = 0; i < _numSamples; i++)
 		{
-			if (pos==0)
+			if (pos == 0)
 			{
 				ReadStreamBlock(pcm);
 			}
@@ -253,13 +263,13 @@ unsigned __int32 Callback_GetStreaming(short* _pDestBuffer, unsigned __int32 _nu
 			pos++;
 			if (pos == 28) 
 			{
-				pos=0;
+				pos = 0;
 			}
 		}
 	}
 	else
 	{
-		for (unsigned int i=0; i<_numSamples*2; i++)
+		for (unsigned int i = 0; i < _numSamples * 2; i++)
 		{
 			_pDestBuffer[i] = 0; //silence!
 		}
@@ -269,7 +279,7 @@ unsigned __int32 Callback_GetStreaming(short* _pDestBuffer, unsigned __int32 _nu
 }
 
 // WARNING - called from audio thread
-void ReadStreamBlock(short* _pPCM)
+void ReadStreamBlock(short *_pPCM)
 {
 	char tempADPCM[32];
 	if (DVDInterface::DVDReadADPCM((u8*)tempADPCM, 32))
@@ -289,6 +299,7 @@ void ReadStreamBlock(short* _pPCM)
     // our whole streaming code is "faked" ... so it shouldn't increase the sample counter
     // streaming will never work correctly this way, but at least the program will think all is alright.
 
+	// This call must not be done wihout going through CoreTiming's threadsafe option.
 	// IncreaseSampleCount(28); 
 }
 
@@ -298,7 +309,7 @@ void IncreaseSampleCount(const u32 _iAmount)
 	{
 		g_AudioRegister.m_SampleCounter += _iAmount;
 		if (g_AudioRegister.m_Control.AIINTVLD && 
-            (g_AudioRegister.m_SampleCounter > g_AudioRegister.m_InterruptTiming))
+            (g_AudioRegister.m_SampleCounter >= g_AudioRegister.m_InterruptTiming))
 		{			
 			GenerateAudioInterrupt();
 		}

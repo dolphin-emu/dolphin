@@ -54,13 +54,22 @@ int
 	// VideoInterface::Update is stupid!
 	VI_PERIOD = GetTicksPerSecond() / (60*120), 
 
+	// TODO: The SI interfact actually has a register that determines the polling frequency.
+	// We should obey that instead of arbitrarly checking at 60fps.
 	SI_PERIOD = GetTicksPerSecond() / 60, //once a frame is good for controllers
 	
 	// These are the big question marks IMHO :)
+	// This one should simply be determined by the increasing counter in AI.
 	AI_PERIOD = GetTicksPerSecond() / 80,
+
+	// These shouldn't be period controlled either, most likely.
 	DSP_PERIOD = GetTicksPerSecond() / 250,
-	DSPINT_PERIOD = GetTicksPerSecond() / 230,
+
+	// This is completely arbitrary. If we find that we need lower latency, we can just
+	// increase this number.
     HLE_IPC_PERIOD = GetTicksPerSecond() / 250,
+
+	// This one is also fairly arbitrary. Every N cycles, run the GPU until it starves (in single core mode only).
 	GPU_PERIOD = 10000;
 
 u32 GetTicksPerSecond()
@@ -75,8 +84,26 @@ u32 ConvertMillisecondsToTicks(u32 _Milliseconds)
 
 void AICallback(u64 userdata, int cyclesLate)
 {
+	// Update disk streaming. All that code really needs a revamp, including replacing the codec with the one
+	// from in_cube.
 	AudioInterface::Update();
 	CoreTiming::ScheduleEvent(AI_PERIOD-cyclesLate, &AICallback, "AICallback");
+}
+
+void DSPCallback(u64 userdata, int cyclesLate)
+{
+	// Poke the DSP, make it do stuff. This should eventually be replaced with dsp->RunCycles(1000) or whatever,
+	// ~1/6th as many cycles as the period PPC-side.
+	PluginDSP::DSP_Update();
+	CoreTiming::ScheduleEvent(DSP_PERIOD-cyclesLate, &DSPCallback, "DSPCallback");
+}
+
+void AudioFifoCallback(u64 userdata, int cyclesLate)
+{	
+	int period = CPU_CORE_CLOCK / (DSP::GetDSPSampleRate() * 4 / 32);
+	DSP::UpdateAudioDMA();  // Push audio to speakers.
+
+	CoreTiming::ScheduleEvent(period - cyclesLate, &AudioFifoCallback, "AudioFifoCallback");
 }
 
 void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
@@ -100,18 +127,6 @@ void SICallback(u64 userdata, int cyclesLate)
 	CoreTiming::ScheduleEvent(SI_PERIOD-cyclesLate, &SICallback, "SICallback");
 }
 
-void DSPCallback(u64 userdata, int cyclesLate)
-{
-	PluginDSP::DSP_Update();
-	CoreTiming::ScheduleEvent(DSP_PERIOD-cyclesLate, &DSPCallback, "DSPCallback");
-}
-
-void DSPInterruptCallback(u64 userdata, int cyclesLate)
-{	
-	DSP::GenerateDSPInterrupt(DSP::INT_AI); 
-	CoreTiming::ScheduleEvent(DSPINT_PERIOD-cyclesLate, &DSPInterruptCallback, "DSPInterruptCallback");
-}
-
 void DecrementerCallback(u64 userdata, int cyclesLate)
 {
 	//Why is fakeDec too big here?
@@ -122,7 +137,6 @@ void DecrementerCallback(u64 userdata, int cyclesLate)
 
 void DecrementerSet()
 {
-	// MessageBox(0, "dec set",0,0);
 	u32 decValue = PowerPC::ppcState.spr[SPR_DEC];
 	fakeDec = decValue*TIMER_RATIO;
 	CoreTiming::RemoveEvent(DecrementerCallback);
@@ -131,10 +145,7 @@ void DecrementerSet()
 
 void AdvanceCallback(int cyclesExecuted)
 {
-	//int oldFakeDec = fakeDec;
 	fakeDec -= cyclesExecuted;
-	//if (fakeDec < 0 && oldFakeDec > 0)
-	//	fakeDec = TIMER_RATIO;
 	u64 timebase_ticks = CoreTiming::GetTicks() / TIMER_RATIO; //works since we are little endian and TL comes first :)
 	*(u64*)&TL = timebase_ticks;
  	if (fakeDec >= 0)
@@ -185,26 +196,24 @@ void Init()
 	if (Core::GetStartupParameter().bWii)
 	{
 		CPU_CORE_CLOCK = 721000000;
-		VI_PERIOD = GetTicksPerSecond() / (60*120), 
-		SI_PERIOD = GetTicksPerSecond() / 60, //once a frame is good for controllers
+		VI_PERIOD = GetTicksPerSecond() / (60*120); 
+		SI_PERIOD = GetTicksPerSecond() / 60; // once a frame is good for controllers
 		
 		// These are the big question marks IMHO :)
-		AI_PERIOD = GetTicksPerSecond() / 80,
-		DSP_PERIOD = (int)(GetTicksPerSecond() * 0.003f),
-		DSPINT_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
+		AI_PERIOD = GetTicksPerSecond() / 80;
+		DSP_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
 
         HLE_IPC_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
 	}
 	else
 	{
 		CPU_CORE_CLOCK = 486000000;
-		VI_PERIOD = GetTicksPerSecond() / (60*120), 
-		SI_PERIOD = GetTicksPerSecond() / 60, //once a frame is good for controllers
+		VI_PERIOD = GetTicksPerSecond() / (60*120);
+		SI_PERIOD = GetTicksPerSecond() / 60; // once a frame is good for controllers
 		
 		// These are the big question marks IMHO :)
-		AI_PERIOD = GetTicksPerSecond() / 80,
-		DSP_PERIOD = (int)(GetTicksPerSecond() * 0.005f),
-		DSPINT_PERIOD = (int)(GetTicksPerSecond() *0.005f);
+		AI_PERIOD = GetTicksPerSecond() / 80;
+		DSP_PERIOD = (int)(GetTicksPerSecond() * 0.005f);
 	}
 	Common::Timer::IncreaseResolution();
 	memset(timeHistory, 0, sizeof(timeHistory));
@@ -216,7 +225,7 @@ void Init()
 	CoreTiming::ScheduleEvent(VI_PERIOD, &VICallback, "VICallback");
 	CoreTiming::ScheduleEvent(DSP_PERIOD, &DSPCallback, "DSPCallback");
 	CoreTiming::ScheduleEvent(SI_PERIOD, &SICallback, "SICallback");
-	CoreTiming::ScheduleEvent(DSPINT_PERIOD, &DSPInterruptCallback, "DSPInterruptCallback");
+	CoreTiming::ScheduleEvent(CPU_CORE_CLOCK / (32000 * 4 / 32), &AudioFifoCallback, "AudioFifoCallback");
 
 	if (!Core::GetStartupParameter().bUseDualCore)
 		CoreTiming::ScheduleEvent(GPU_PERIOD, &RunGPUCallback, "RunGPUCallback");

@@ -18,10 +18,19 @@
 
 #include <windows.h>
 
+#include <wx/wx.h>
+#include <wx/filepicker.h>
+#include <wx/notebook.h>
+#include <wx/dialog.h>
+#include <wx/aboutdlg.h>
+
 #include "../Globals.h"
 
 #include "../../Core/Src/Core.h"
 #include "Win32.h"
+
+void OpenConsole();
+void CloseConsole();
 
 HINSTANCE g_hInstance;
 

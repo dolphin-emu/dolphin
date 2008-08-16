@@ -80,14 +80,15 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0& newmode)
 
 void TextureMngr::TCacheEntry::Destroy()
 {
-    SAFE_RELEASE_TEX(texture);
+    glDeleteTextures(1, &texture);
+	texture = 0;
 }
 
 void TextureMngr::Init()
 {
     temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
     nTex2DEnabled = nTexRECTEnabled = 0;
-	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable,g_Config.bTexFmtOverlayCenter);
+	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable, g_Config.bTexFmtOverlayCenter);
 }
 
 void TextureMngr::Invalidate()
@@ -96,7 +97,7 @@ void TextureMngr::Invalidate()
     for (;iter!=textures.end();iter++)
         iter->second.Destroy();
     textures.clear();
-	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable,g_Config.bTexFmtOverlayCenter);
+	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable, g_Config.bTexFmtOverlayCenter);
 }
 
 void TextureMngr::Shutdown()
