@@ -27,16 +27,22 @@
 static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 						    unsigned int *ecx, unsigned int *edx)
 {
- 	__asm__("cpuid"
- 		: "=a" (*eax),
- 		  "=b" (*ebx),
- 		  "=c" (*ecx),
- 		  "=d" (*edx));
+	// Note: EBX is reserved on Mac OS X, so it has to be restored at the end
+	//       of the asm block.
+	__asm__(
+		"pushl  %%ebx;"
+		"cpuid;"
+		"movl   %%ebx,%1;"
+		"popl   %%ebx;"
+		: "=a" (*eax),
+		  "=r" (*ebx),
+		  "=c" (*ecx),
+		  "=d" (*edx));
 }
 
 void __cpuid(int info[4], int x)
 {
-	int eax = x, ebx = 0, ecx = 0, edx = 0;
+	unsigned int eax = x, ebx = 0, ecx = 0, edx = 0;
 	do_cpuid(&eax, &ebx, &ecx, &edx);
 	info[0] = eax;
 	info[1] = ebx;
