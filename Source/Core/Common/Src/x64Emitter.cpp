@@ -1155,16 +1155,15 @@ namespace Gen
 	
 	void MOVDDUP(X64Reg regOp, OpArg arg) 
 	{
-		// TODO(ector): check SSE3 flag
 		if (cpu_info.bSSE3)
 		{
-			WriteSSEOp(64, 0x12, false, regOp, arg); //SSE3
+			WriteSSEOp(64, 0x12, false, regOp, arg); //SSE3 movddup
 		}
 		else
 		{
 			// Simulate this instruction with SSE2 instructions
 			if (!arg.IsSimpleReg(regOp))
-				MOVAPD(regOp, arg);
+				MOVQ_xmm(regOp, arg);
 			UNPCKLPD(regOp, R(regOp));
 		}
 	}
