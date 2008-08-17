@@ -18,6 +18,8 @@
 #ifndef __PLUGIN_OPTIONS_h__
 #define __PLUGIN_OPTIONS_h__
 
+#include <wx/gbsizer.h>
+
 #undef PLUGIN_OPTIONS_STYLE
 #define PLUGIN_OPTIONS_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxMINIMIZE_BOX | wxCLOSE_BOX
 
@@ -30,7 +32,7 @@ class CPluginOptions
 
 	public:
 
-		CPluginOptions(wxWindow* parent, wxWindowID id = 1, const wxString& title = wxT("Untitled1"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = PLUGIN_OPTIONS_STYLE);
+		CPluginOptions(wxWindow* parent, wxWindowID id = 1, const wxString& title = wxT("Plugin Selection"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = PLUGIN_OPTIONS_STYLE);
 		virtual ~CPluginOptions();
 		void OKClick(wxCommandEvent& event);
 		void OnSelectionChanged(wxCommandEvent& event);
@@ -47,17 +49,17 @@ class CPluginOptions
 		wxButton* OK;
 		wxButton* Cancel;
 		wxButton* Apply;
-		wxStaticText* WxStaticText3;
+		wxStaticText* PADText;
 		wxButton* PADAbout;
 		wxButton* PADConfig;
 		wxChoice* PADSelection;
 		wxButton* DSPAbout;
 		wxButton* DSPConfig;
-		wxStaticText* WxStaticText2;
+		wxStaticText* DSPText;
 		wxChoice* DSPSelection;
 		wxButton* GraphicAbout;
 		wxButton* GraphicConfig;
-		wxStaticText* WxStaticText1;
+		wxStaticText* GraphicText;
 		wxChoice* GraphicSelection;
 		////GUI Control Declaration End
 
@@ -73,17 +75,17 @@ class CPluginOptions
 			ID_CANCEL = 1034,
 			ID_APPLY = 1033,
 			ID_OK = 1032,
-			ID_WXSTATICTEXT3 = 1031,
+			ID_PAD_TEXT = 1031,
 			ID_PAD_ABOUT  = 1030,
 			ID_PAD_CONFIG = 1029,
 			ID_PAD_CB = 1028,
 			ID_DSP_ABOUT  = 1027,
 			ID_DSP_CONFIG = 1026,
-			ID_WXSTATICTEXT2 = 1025,
+			ID_DSP_TEXT = 1025,
 			ID_DSP_CB = 1024,
 			ID_GRAPHIC_ABOUT  = 1007,
 			ID_GRAPHIC_CONFIG = 1006,
-			ID_WXSTATICTEXT1 = 1005,
+			ID_GRAPHIC_TEXT = 1005,
 			ID_GRAPHIC_CB = 1003,
 			////GUI Enum Control ID End
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values

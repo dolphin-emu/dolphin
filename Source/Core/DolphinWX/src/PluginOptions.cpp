@@ -57,100 +57,77 @@ CPluginOptions::~CPluginOptions()
 
 void CPluginOptions::CreateGUIControls()
 {
-	SetTitle(wxT("Plugin Selection"));
-	SetIcon(wxNullIcon);
-	SetSize(0, 8, 440, 295);
-	Center();
-	const wxChar* font_name = 0;
-	int font_size = 8;
-#ifdef _WIN32
-	OSVERSIONINFOEX os;
-	os.dwOSVersionInfoSize = sizeof(os);
-	GetVersionEx((OSVERSIONINFO*)&os);
-
-	if (os.dwMajorVersion >= 6)
-	{
-		font_name = wxT("Segoe UI");
-		font_size = 9;
-	}
-	else
-	{
-		font_name = wxT("Tahoma");
-	}
-
-	//
-#endif
-
-	wxFont font(font_size, wxSWISS, wxNORMAL, wxNORMAL, false, font_name);
-	OK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(188, 240), wxSize(73, 25), 0, wxDefaultValidator, wxT("OK"));
-	OK->SetFont(font);
-
-	Cancel = new wxButton(this, ID_CANCEL, wxT("Cancel"), wxPoint(268, 240), wxSize(73, 25), 0, wxDefaultValidator, wxT("Cancel"));
-	Cancel->SetFont(font);
-
-	Apply = new wxButton(this, ID_APPLY, wxT("Apply"), wxPoint(348, 240), wxSize(73, 25), 0, wxDefaultValidator, wxT("Apply"));
-	Apply->SetFont(font);
+	OK = new wxButton(this, ID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	Cancel = new wxButton(this, ID_CANCEL, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	Apply = new wxButton(this, ID_APPLY, wxT("Apply"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	Apply->Disable();
 
-	{
-		GraphicSelection = new wxChoice(this, ID_GRAPHIC_CB, wxPoint(88, 16), wxSize(333, 23), NULL, 0, wxDefaultValidator, wxT("GraphicSelection"));
-		GraphicSelection->SetFont(font);
+	GraphicSelection = new wxChoice(this, ID_GRAPHIC_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
+	GraphicAbout = new wxButton(this, ID_GRAPHIC_ABOUT, wxT("About..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	GraphicConfig = new wxButton(this, ID_GRAPHIC_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	GraphicText = new wxStaticText(this, ID_GRAPHIC_TEXT, wxT("GFX:"), wxDefaultPosition, wxDefaultSize);
 
-		GraphicAbout = new wxButton(this, ID_GRAPHIC_ABOUT, wxT("About..."), wxPoint(168, 48), wxSize(73, 25), 0, wxDefaultValidator, wxT("GraphicAbout"));
-		GraphicAbout->SetFont(font);
+	FillChoiceBox(GraphicSelection, PLUGIN_TYPE_VIDEO, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
 
-		GraphicConfig = new wxButton(this, ID_GRAPHIC_CONFIG, wxT("Config..."), wxPoint(88, 48), wxSize(73, 25), 0, wxDefaultValidator, wxT("GraphicConfig"));
-		GraphicConfig->SetFont(font);
+	DSPSelection = new wxChoice(this, ID_DSP_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
+	DSPAbout = new wxButton(this, ID_DSP_ABOUT, wxT("About..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	DSPConfig = new wxButton(this, ID_DSP_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	DSPText = new wxStaticText(this, ID_DSP_TEXT, wxT("DSP:"), wxDefaultPosition, wxDefaultSize);
 
-		WxStaticText1 = new wxStaticText(this, ID_WXSTATICTEXT1, wxT("Graphic"), wxPoint(16, 21), wxDefaultSize, 0, wxT("WxStaticText1"));
-		WxStaticText1->SetFont(font);
+	FillChoiceBox(DSPSelection, PLUGIN_TYPE_DSP, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin);
 
-		FillChoiceBox(GraphicSelection, PLUGIN_TYPE_VIDEO, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
-	}
+	PADSelection = new wxChoice(this, ID_PAD_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
+	PADAbout = new wxButton(this, ID_PAD_ABOUT, wxT("About..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	PADConfig = new wxButton(this, ID_PAD_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	PADText = new wxStaticText(this, ID_PAD_TEXT, wxT("PAD:"), wxDefaultPosition, wxDefaultSize);
 
-	{
-		DSPSelection = new wxChoice(this, ID_DSP_CB, wxPoint(88, 88), wxSize(333, 23), NULL, 0, wxDefaultValidator, wxT("DSPSelection"));
-		DSPSelection->SetFont(font);
+	FillChoiceBox(PADSelection, PLUGIN_TYPE_PAD, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin);
+	
+	wxGridBagSizer* sConfig;
+	sConfig = new wxGridBagSizer(0, 0);
+	sConfig->SetFlexibleDirection(wxBOTH);
+	sConfig->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+	sConfig->Add(GraphicText, wxGBPosition(0, 0), wxGBSpan(2, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sConfig->Add(GraphicSelection, wxGBPosition(0, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
+	sConfig->Add(GraphicConfig, wxGBPosition(0, 3), wxGBSpan(1, 1), wxALL, 5);
+	sConfig->Add(GraphicAbout, wxGBPosition(0, 4), wxGBSpan(1, 1), wxALL, 5);
 
-		DSPAbout = new wxButton(this, ID_DSP_ABOUT, wxT("About..."), wxPoint(168, 120), wxSize(73, 25), 0, wxDefaultValidator, wxT("DSPAbout"));
-		DSPAbout->SetFont(font);
+	sConfig->Add(DSPText, wxGBPosition(2, 0), wxGBSpan(2, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sConfig->Add(DSPSelection, wxGBPosition(2, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
+	sConfig->Add(DSPConfig, wxGBPosition(2, 3), wxGBSpan(1, 1), wxALL, 5);
+	sConfig->Add(DSPAbout, wxGBPosition(2, 4), wxGBSpan(1, 1), wxALL, 5);
 
-		DSPConfig = new wxButton(this, ID_DSP_CONFIG, wxT("Config..."), wxPoint(88, 120), wxSize(73, 25), 0, wxDefaultValidator, wxT("DSPConfig"));
-		DSPConfig->SetFont(font);
+	sConfig->Add(PADText, wxGBPosition(4, 0), wxGBSpan(2, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sConfig->Add(PADSelection, wxGBPosition(4, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
+	sConfig->Add(PADConfig, wxGBPosition(4, 3), wxGBSpan(1, 1), wxALL, 5);
+	sConfig->Add(PADAbout, wxGBPosition(4, 4), wxGBSpan(1, 1), wxALL, 5);
+	sConfig->Layout();
 
-		WxStaticText2 = new wxStaticText(this, ID_WXSTATICTEXT2, wxT("DSP"), wxPoint(16, 93), wxDefaultSize, 0, wxT("WxStaticText2"));
-		WxStaticText2->SetFont(font);
-
-		FillChoiceBox(DSPSelection, PLUGIN_TYPE_DSP, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin);
-	}
-
-	{
-		PADSelection = new wxChoice(this, ID_PAD_CB, wxPoint(88, 160), wxSize(333, 23), NULL, 0, wxDefaultValidator, wxT("PADSelection"));
-		PADSelection->SetFont(font);
-
-		PADAbout = new wxButton(this, ID_PAD_ABOUT, wxT("About..."), wxPoint(168, 192), wxSize(73, 25), 0, wxDefaultValidator, wxT("PADAbout"));
-		PADAbout->SetFont(font);
-
-		PADConfig = new wxButton(this, ID_PAD_CONFIG, wxT("Config..."), wxPoint(88, 192), wxSize(73, 25), 0, wxDefaultValidator, wxT("PADConfig"));
-		PADConfig->SetFont(font);
-
-		WxStaticText3 = new wxStaticText(this, ID_WXSTATICTEXT3, wxT("Pad"), wxPoint(16, 165), wxDefaultSize, 0, wxT("WxStaticText3"));
-		WxStaticText3->SetFont(font);
-
-		FillChoiceBox(PADSelection, PLUGIN_TYPE_PAD, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin);
-	}
+	wxBoxSizer* sButtons;
+	sButtons = new wxBoxSizer(wxHORIZONTAL);
+	sButtons->Add(0, 0, 1, wxEXPAND, 5);
+	sButtons->Add(OK, 0, wxALL, 5);
+	sButtons->Add(Cancel, 0, wxALL, 5);
+	sButtons->Add(Apply, 0, wxALL, 5);
+	
+	wxBoxSizer* sMain;
+	sMain = new wxBoxSizer(wxVERTICAL);
+	sMain->Add(sConfig, 1, wxEXPAND|wxALL, 5);
+	sMain->Add(sButtons, 0, wxEXPAND, 5);
+	
+	Center();
+	this->SetSizer(sMain);
+	sMain->SetSizeHints(this);
 }
 
 
-void
-CPluginOptions::OnClose(wxCloseEvent& WXUNUSED (event))
+void CPluginOptions::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	Destroy();
 }
 
 
-void
-CPluginOptions::OKClick(wxCommandEvent& event)
+void CPluginOptions::OKClick(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
@@ -170,15 +147,13 @@ CPluginOptions::OKClick(wxCommandEvent& event)
 }
 
 
-void
-CPluginOptions::OnSelectionChanged(wxCommandEvent& WXUNUSED (event))
+void CPluginOptions::OnSelectionChanged(wxCommandEvent& WXUNUSED (event))
 {
 	Apply->Enable();
 }
 
 
-void
-CPluginOptions::OnAbout(wxCommandEvent& event)
+void CPluginOptions::OnAbout(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
@@ -197,8 +172,7 @@ CPluginOptions::OnAbout(wxCommandEvent& event)
 }
 
 
-void
-CPluginOptions::OnConfig(wxCommandEvent& event)
+void CPluginOptions::OnConfig(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
@@ -217,8 +191,7 @@ CPluginOptions::OnConfig(wxCommandEvent& event)
 }
 
 
-void
-CPluginOptions::FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::string& _SelectFilename)
+void CPluginOptions::FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::string& _SelectFilename)
 {
 	_pChoice->Clear();
 
@@ -246,8 +219,7 @@ CPluginOptions::FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::st
 }
 
 
-void
-CPluginOptions::CallConfig(wxChoice* _pChoice)
+void CPluginOptions::CallConfig(wxChoice* _pChoice)
 {
 	int Index = _pChoice->GetSelection();
 
@@ -263,8 +235,7 @@ CPluginOptions::CallConfig(wxChoice* _pChoice)
 }
 
 
-void
-CPluginOptions::CallAbout(wxChoice* _pChoice)
+void CPluginOptions::CallAbout(wxChoice* _pChoice)
 {
 	int Index = _pChoice->GetSelection();
 
@@ -280,8 +251,7 @@ CPluginOptions::CallAbout(wxChoice* _pChoice)
 }
 
 
-void
-CPluginOptions::DoApply()
+void CPluginOptions::DoApply()
 {
 	Apply->Disable();
 
@@ -293,8 +263,7 @@ CPluginOptions::DoApply()
 }
 
 
-bool
-CPluginOptions::GetFilename(wxChoice* _pChoice, std::string& _rFilename)
+bool CPluginOptions::GetFilename(wxChoice* _pChoice, std::string& _rFilename)
 {
 	_rFilename.clear();
 
@@ -311,5 +280,4 @@ CPluginOptions::GetFilename(wxChoice* _pChoice, std::string& _rFilename)
 
 	return(false);
 }
-
 

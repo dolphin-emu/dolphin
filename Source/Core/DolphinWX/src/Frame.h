@@ -64,9 +64,11 @@ class CFrame
 		void OnPlay(wxCommandEvent& event);
 		void OnStop(wxCommandEvent& event);
 		void OnBrowse(wxCommandEvent& event);
+		void OnMemcard(wxCommandEvent& event);
 		void OnToggleFullscreen(wxCommandEvent& event);
 		void OnToggleDualCore(wxCommandEvent& event);
 		void OnToggleThrottle(wxCommandEvent& event);
+		void OnToggleToolbar(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event);
 		void OnHostMessage(wxCommandEvent& event);
 
@@ -89,5 +91,4 @@ class CFrame
 };
 
 #endif  // __FRAME_H_
-
 

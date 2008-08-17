@@ -26,6 +26,7 @@
 #include "Core.h"
 #include "PluginOptions.h"
 #include "PluginManager.h"
+#include "MemcardManager.h"
 
 #include "wx/mstream.h"
 
@@ -88,9 +89,11 @@ EVT_MENU(IDM_CONFIG_GFX_PLUGIN, CFrame::OnPluginGFX)
 EVT_MENU(IDM_CONFIG_DSP_PLUGIN, CFrame::OnPluginDSP)
 EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnPluginPAD)
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
+EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
 EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
 EVT_MENU(IDM_TOGGLE_THROTTLE, CFrame::OnToggleThrottle)
+EVT_MENU(IDM_TOGGLE_TOOLBAR, CFrame::OnToggleToolbar)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 END_EVENT_TABLE()
 
@@ -154,136 +157,68 @@ CFrame::CFrame(wxFrame* parent,
 }
 
 
-void
-CFrame::CreateMenu()
+void CFrame::CreateMenu()
 {
 	delete m_pMenuBar;
 	m_pMenuBar = new wxMenuBar(wxMB_DOCKABLE);
 
 	// file menu
-	{
-		wxMenu* fileMenu = new wxMenu;
-		{
-			wxMenuItem* pItem = fileMenu->Append(wxID_OPEN, _T("&Open..."));
-			pItem->SetBitmap(m_BitmapsMenu[Toolbar_FileOpen]);
-		}
-		{
-			wxMenuItem* pItem = fileMenu->Append(wxID_REFRESH, _T("&Refresh"));
-			pItem->SetBitmap(m_BitmapsMenu[Toolbar_Refresh]);
-		}
+	wxMenu* fileMenu = new wxMenu;
+	fileMenu->Append(wxID_OPEN, _T("&Open..."));
+	fileMenu->Append(wxID_REFRESH, _T("&Refresh"));
+	fileMenu->Append(IDM_BROWSE, _T("&Browse for ISOs..."));
+	fileMenu->AppendSeparator();
+	m_pMenuItemPlay = new wxMenuItem(fileMenu, IDM_PLAY, _T("&Play"));
+	fileMenu->Append(m_pMenuItemPlay);
+	m_pMenuItemStop = new wxMenuItem(fileMenu, IDM_STOP, _T("&Stop"));
+	fileMenu->Append(m_pMenuItemStop);
 
-		{
-			wxMenuItem* pItem = fileMenu->Append(IDM_BROWSE, _T("&Browse for ISOs..."));
-			pItem->SetBitmap(m_BitmapsMenu[Toolbar_Browse]);
-		}
-/*
-		fileMenu->AppendSeparator();
-		wxMenuItem* LoadState = fileMenu->Append(IDM_LOADSTATE, _T("&Load State..."));
-		LoadState->Enable(false);
-		wxMenuItem* SaveState = fileMenu->Append(IDM_SAVESTATE, _T("&Save State..."));
-		SaveState->Enable(false);
-*/
-		fileMenu->AppendSeparator();
-		fileMenu->Append(wxID_EXIT, _T("E&xit"), _T(""));
-		m_pMenuBar->Append(fileMenu, _T("&File"));
-	}
+	/*fileMenu->AppendSeparator();
+	wxMenuItem* LoadState = fileMenu->Append(IDM_LOADSTATE, _T("&Load State..."));
+	LoadState->Enable(false);
+	wxMenuItem* SaveState = fileMenu->Append(IDM_SAVESTATE, _T("&Save State..."));
+	SaveState->Enable(false);*/
 
-	// Game menu
-	{
-		wxMenu* pGameMenu = new wxMenu;
-		{
-			wxMenuItem *pItem = new wxMenuItem(pGameMenu, IDM_EDITPATCHFILE, wxString::FromAscii("Edit patch file"));
-			pGameMenu->Append(pItem);
-		}
-	}
+	fileMenu->AppendSeparator();
+	fileMenu->Append(wxID_EXIT, _T("E&xit"), _T(""));
+	m_pMenuBar->Append(fileMenu, _T("&File"));
 
-	// emulation menu
-	{
-		wxMenu* pEmulationMenu = new wxMenu;
-		// play
-		{
-			m_pMenuItemPlay = new wxMenuItem(pEmulationMenu, IDM_PLAY, _T("&Play"));
-			m_pMenuItemPlay->SetBitmap(m_BitmapsMenu[Toolbar_Play]);
-			#ifdef WIN32
-				m_pMenuItemPlay->SetDisabledBitmap(m_BitmapsMenu[Toolbar_Play_Dis]); //Linux Doesn't have
-			#endif
-			pEmulationMenu->Append(m_pMenuItemPlay);
-		}
-		// stop
-		{
-			m_pMenuItemStop = new wxMenuItem(pEmulationMenu, IDM_STOP, _T("&Stop"));
-			m_pMenuItemStop->SetBitmap(m_BitmapsMenu[Toolbar_Stop]);
-			#ifdef WIN32
-				m_pMenuItemStop->SetDisabledBitmap(m_BitmapsMenu[Toolbar_Stop_Dis]); //Linux doesn't have
-			#endif
-			pEmulationMenu->Append(m_pMenuItemStop);
-		}
-		pEmulationMenu->AppendSeparator();		
-		{
-			// full screen
-			wxMenuItem* pItem = new wxMenuItem(pEmulationMenu, IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen"));
-			pItem->SetBitmap(m_BitmapsMenu[Toolbar_FullScreen]);
-			pEmulationMenu->Append(pItem);
-		}
-		{
-			// dual core
-			wxMenuItem* pItem = new wxMenuItem(pEmulationMenu, IDM_TOGGLE_DUALCORE, _T("&Dual Core (instable!)"), wxEmptyString, wxITEM_CHECK);
-			pEmulationMenu->Append(pItem);
-			pItem->Check(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);			
-		}
-		{
-			// throttling
-			wxMenuItem* pItem = new wxMenuItem(pEmulationMenu, IDM_TOGGLE_THROTTLE, _T("&Speed throttle"), wxEmptyString, wxITEM_CHECK);
-			pEmulationMenu->Append(pItem);
-			pItem->Check(SConfig::GetInstance().m_LocalCoreStartupParameter.bThrottle);
-		}
-		m_pMenuBar->Append(pEmulationMenu, _T("&Emulation"));
-	}
+	// options menu
+	wxMenu* pOptionsMenu = new wxMenu;
+	m_pPluginOptions = new wxMenuItem(pOptionsMenu, IDM_PLUGIN_OPTIONS, _T("&Select plugins"));
+	pOptionsMenu->Append(m_pPluginOptions);
+	pOptionsMenu->AppendSeparator();
+	pOptionsMenu->Append(IDM_CONFIG_GFX_PLUGIN, _T("&GFX settings"));
+	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _T("&DSP settings"));
+	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _T("&PAD settings"));
+	pOptionsMenu->AppendSeparator();
+	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen"));
+	pOptionsMenu->AppendCheckItem(IDM_TOGGLE_DUALCORE, _T("&Dual-core (instable!)"));
+	pOptionsMenu->Check(IDM_TOGGLE_DUALCORE, SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);			
+	pOptionsMenu->AppendCheckItem(IDM_TOGGLE_THROTTLE, _T("&Enable throttle"));
+	pOptionsMenu->Check(IDM_TOGGLE_THROTTLE, SConfig::GetInstance().m_LocalCoreStartupParameter.bThrottle);
+	m_pMenuBar->Append(pOptionsMenu, _T("&Options"));
 
-	// plugin menu
-	{
-		wxMenu* pPluginMenu = new wxMenu;
-		{
-			m_pPluginOptions = pPluginMenu->Append(IDM_PLUGIN_OPTIONS, _T("&Choose Plugins..."));
-			m_pPluginOptions->SetBitmap(m_BitmapsMenu[Toolbar_PluginOptions]);
-			#ifdef WIN32
-				m_pPluginOptions->SetDisabledBitmap(m_BitmapsMenu[Toolbar_PluginOptions_Dis]); //Linux doesn't have
-			#endif
-		}
-		pPluginMenu->AppendSeparator();
-		{
-			wxMenuItem* pItem = pPluginMenu->Append(IDM_CONFIG_GFX_PLUGIN, _T("&GFX plugin settings..."));
-			pItem->SetBitmap(m_BitmapsMenu[Toolbar_PluginGFX]);
-		}
-		{
-			wxMenuItem* pItem = pPluginMenu->Append(IDM_CONFIG_DSP_PLUGIN, _T("&DSP plugin settings..."));
-			pItem->SetBitmap(m_BitmapsMenu[Toolbar_PluginDSP]);
-		}
-		{
-			wxMenuItem* pItem = pPluginMenu->Append(IDM_CONFIG_PAD_PLUGIN, _T("&PAD plugin settings..."));
-			pItem->SetBitmap(m_BitmapsMenu[Toolbar_PluginPAD]);
-		}
-		m_pMenuBar->Append(pPluginMenu, _T("&Plugins"));
-	}
+	// misc menu
+	wxMenu* miscMenu = new wxMenu;
+	miscMenu->Append(IDM_MEMCARD, _T("&Memory card manager"));
+	miscMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _T("&Enable toolbar"));
+	miscMenu->Check(IDM_TOGGLE_TOOLBAR, true);
+	m_pMenuBar->Append(miscMenu, _T("&Misc"));
 
 	// help menu
-	{
-		wxMenu* helpMenu = new wxMenu;
-		{
-			wxMenuItem* pItem = helpMenu->Append(wxID_HELP, _T("&Help"));
-			pItem->SetBitmap(m_BitmapsMenu[Toolbar_Help]);
-		}
-		helpMenu->Append(wxID_HELP, _T("&About..."));
-		m_pMenuBar->Append(helpMenu, _T("&Help"));
-	}
+	wxMenu* helpMenu = new wxMenu;
+	/*helpMenu->Append(wxID_HELP, _T("&Help"));
+	re-enable when there's something useful to display*/
+	helpMenu->Append(wxID_HELP, _T("&About..."));
+	m_pMenuBar->Append(helpMenu, _T("&Help"));
 
 	// Associate the menu bar with the frame
 	SetMenuBar(m_pMenuBar);
 }
 
 
-void
-CFrame::PopulateToolbar(wxToolBar* toolBar)
+void CFrame::PopulateToolbar(wxToolBar* toolBar)
 {
 	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
 	    h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
@@ -299,11 +234,11 @@ CFrame::PopulateToolbar(wxToolBar* toolBar)
 	toolBar->SetToolDisabledBitmap(IDM_STOP, m_Bitmaps[Toolbar_Stop_Dis]);
 	toolBar->AddTool(IDM_TOGGLE_FULLSCREEN, _T("Fullscr."),  m_Bitmaps[Toolbar_FullScreen], _T("Toggle Fullscreen"));
 	toolBar->AddSeparator();
-	toolBar->AddTool(IDM_PLUGIN_OPTIONS, _T("Plugins"), m_Bitmaps[Toolbar_PluginOptions], _T("Plugin Selection..."));
+	toolBar->AddTool(IDM_PLUGIN_OPTIONS, _T("Plugins"), m_Bitmaps[Toolbar_PluginOptions], _T("Select plugins"));
 	toolBar->SetToolDisabledBitmap(IDM_PLUGIN_OPTIONS, m_Bitmaps[Toolbar_PluginOptions_Dis]);
-	toolBar->AddTool(IDM_CONFIG_GFX_PLUGIN, _T("GFX"),  m_Bitmaps[Toolbar_PluginGFX], _T("GFX Plugin..."));
-	toolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _T("DSP"),  m_Bitmaps[Toolbar_PluginDSP], _T("DSP Plugin..."));
-	toolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("PAD"),  m_Bitmaps[Toolbar_PluginPAD], _T("PAD Plugin..."));
+	toolBar->AddTool(IDM_CONFIG_GFX_PLUGIN, _T("GFX"),  m_Bitmaps[Toolbar_PluginGFX], _T("GFX settings"));
+	toolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _T("DSP"),  m_Bitmaps[Toolbar_PluginDSP], _T("DSP settings"));
+	toolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("PAD"),  m_Bitmaps[Toolbar_PluginPAD], _T("PAD settings"));
 	toolBar->AddSeparator();
 	toolBar->AddTool(wxID_HELP, _T("About"), m_Bitmaps[Toolbar_Help], _T("About Dolphin"));
 
@@ -313,8 +248,7 @@ CFrame::PopulateToolbar(wxToolBar* toolBar)
 }
 
 
-void
-CFrame::RecreateToolbar()
+void CFrame::RecreateToolbar()
 {
 	// delete and recreate the toolbar
 	wxToolBarBase* toolBar = GetToolBar();
@@ -331,8 +265,7 @@ CFrame::RecreateToolbar()
 }
 
 
-void
-CFrame::InitBitmaps()
+void CFrame::InitBitmaps()
 {
 	// load orignal size 48x48
 	m_Bitmaps[Toolbar_FileOpen] = wxGetBitmapFromMemory(toolbar_file_open_png);
@@ -356,17 +289,10 @@ CFrame::InitBitmaps()
 	{
 		m_Bitmaps[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(24, 24));
 	}
-
-	// scale to 15x15 for menu
-	for (size_t n = Toolbar_FileOpen; n < WXSIZEOF(m_Bitmaps); n++)
-	{
-		m_BitmapsMenu[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(15, 15));
-	}
 }
 
 
-void
-CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		return;
@@ -391,8 +317,7 @@ CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 }
 
 
-void
-CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
@@ -404,8 +329,7 @@ CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
 }
 
 
-void
-CFrame::OnAbout(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnAbout(wxCommandEvent& WXUNUSED (event))
 {
 	wxAboutDialogInfo info;
 	info.AddDeveloper(_T("ector"));
@@ -424,15 +348,13 @@ CFrame::OnAbout(wxCommandEvent& WXUNUSED (event))
 }
 
 
-void
-CFrame::OnHelp(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnHelp(wxCommandEvent& WXUNUSED (event))
 {
 	wxMessageBox(wxString::FromAscii("missing OnHelp()"));
 }
 
 
-void
-CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
@@ -450,8 +372,7 @@ CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 }
 
 
-void
-CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
@@ -461,8 +382,7 @@ CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 }
 
 
-void
-CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
 {
 	if (m_GameListCtrl)
 	{
@@ -471,16 +391,14 @@ CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
 }
 
 
-void
-CFrame::OnPluginOptions(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnPluginOptions(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginOptions PluginOptions(this);
 	PluginOptions.ShowModal();
 }
 
 
-void
-CFrame::OnPluginGFX(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnPluginGFX(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
 			GetHandle(),
@@ -489,8 +407,7 @@ CFrame::OnPluginGFX(wxCommandEvent& WXUNUSED (event))
 }
 
 
-void
-CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
 			GetHandle(),
@@ -499,8 +416,7 @@ CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))
 }
 
 
-void
-CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
 			GetHandle(),
@@ -508,16 +424,18 @@ CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 			);
 }
 
-
-void
-CFrame::OnBrowse(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnBrowse(wxCommandEvent& WXUNUSED (event))
 {
 	m_GameListCtrl->BrowseForDirectory();
 }
 
+void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))
+{
+	CMemcardManager MemcardManager(this);
+	MemcardManager.ShowModal();
+}
 
-void
-CFrame::OnHostMessage(wxCommandEvent& event)
+void CFrame::OnHostMessage(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
@@ -561,13 +479,11 @@ CFrame::OnHostMessage(wxCommandEvent& event)
 	}
 }
 
-
 void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
 {
 	ShowFullScreen(true);
 	UpdateGUI();
 }
-
 
 void CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED (event))
 {
@@ -579,6 +495,21 @@ void CFrame::OnToggleThrottle(wxCommandEvent& WXUNUSED (event))
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.bThrottle = !SConfig::GetInstance().m_LocalCoreStartupParameter.bThrottle;
 	SConfig::GetInstance().SaveSettings();
+}
+
+void CFrame::OnToggleToolbar(wxCommandEvent& event)
+{
+	wxToolBarBase* toolBar = GetToolBar();
+	
+	if (event.IsChecked())
+	{
+		CFrame::RecreateToolbar();
+	}
+	else
+	{
+		delete toolBar;
+		SetToolBar(NULL);
+	}
 }
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
@@ -594,7 +525,6 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		event.Skip();
 	}
 }
-
 
 void CFrame::UpdateGUI()
 {
@@ -627,7 +557,6 @@ void CFrame::UpdateGUI()
 				GetToolBar()->SetToolNormalBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Pause]);
 				GetToolBar()->SetToolShortHelp(IDM_PLAY, _T("Pause"));
 
-				m_pMenuItemPlay->SetBitmap(m_BitmapsMenu[Toolbar_Pause]);
 				m_pMenuItemPlay->SetText(_T("Pause"));
 			}
 			else
@@ -635,7 +564,6 @@ void CFrame::UpdateGUI()
 				GetToolBar()->SetToolNormalBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Play]);
 				GetToolBar()->SetToolShortHelp(IDM_PLAY, _T("Play"));
 
-				m_pMenuItemPlay->SetBitmap(m_BitmapsMenu[Toolbar_Play]);
 				m_pMenuItemPlay->SetText(_T("Play"));
 			}
 		}
@@ -661,5 +589,3 @@ void CFrame::UpdateGUI()
 		}
 	}
 }
-
-
