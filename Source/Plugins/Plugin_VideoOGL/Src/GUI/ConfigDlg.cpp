@@ -234,7 +234,7 @@ void ConfigDialog::AddAAMode(int mode)
 {
 	wxString tmp;
 	tmp<<mode;
-	m_AliasModeCB->wxControlWithItems::Append(tmp);
+	m_AliasModeCB->Append(tmp);
 }
 
 void ConfigDialog::AACB(wxCommandEvent& event)
