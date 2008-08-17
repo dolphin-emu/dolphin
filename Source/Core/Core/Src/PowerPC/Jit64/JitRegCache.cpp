@@ -149,6 +149,8 @@ namespace Jit64
 	
 	void RegCache::FlushR(X64Reg reg)
 	{
+		if (reg >= NUMXREGS)
+			PanicAlert("Flushing non existent reg");
 		if (!xregs[reg].free)
 		{
 			StoreFromX64(xregs[reg].ppcReg);

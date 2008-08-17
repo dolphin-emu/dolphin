@@ -30,7 +30,9 @@
 // ps_madds0
 // ps_muls0
 // ps_madds1
-
+// ps_sel
+//   cmppd, andpd, andnpd, or
+//   lfsx, ps_merge01 etc
 
 // #define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
@@ -46,6 +48,46 @@ namespace Jit64
 	const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
 	const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
 	const double GC_ALIGNED16(psOneOne[2])  = {1.0, 1.0};
+	const double GC_ALIGNED16(psZeroZero[2]) = {0.0, 0.0};
+
+	void ps_mr(UGeckoInstruction inst)
+	{
+		INSTRUCTION_START;
+		int d = inst.FD;
+		int b = inst.FB;
+		if (d == b)
+			return;
+		fpr.LoadToX64(d, false);
+		MOVAPD(fpr.RX(d), fpr.R(b));
+	}
+
+	void ps_sel(UGeckoInstruction inst)
+	{
+		INSTRUCTION_START;
+		Default(inst);
+		return;
+		
+		// GRR can't get this to work 100%. Getting artifacts in D.O.N. intro.
+		int d = inst.FD;
+		int a = inst.FA;
+		int b = inst.FB;
+		int c = inst.FC;
+		fpr.FlushLockX(XMM7);
+		fpr.FlushLockX(XMM6);
+		fpr.Lock(a, b, c, d);
+		fpr.LoadToX64(a, true, false);
+		fpr.LoadToX64(d, false, true);
+		// BLENDPD would have been nice...
+		MOVAPD(XMM7, fpr.R(a));
+		CMPPD(XMM7, M((void*)psZeroZero), 1); //less-than = 111111
+		MOVAPD(XMM6, R(XMM7));
+		ANDPD(XMM7, fpr.R(d));
+		ANDNPD(XMM6, fpr.R(c));
+		MOVAPD(fpr.RX(d), R(XMM7));
+		ORPD(fpr.RX(d), R(XMM6));
+		fpr.UnlockAll();
+		fpr.UnlockAllX();
+	}
 
 	void ps_sign(UGeckoInstruction inst)
 	{

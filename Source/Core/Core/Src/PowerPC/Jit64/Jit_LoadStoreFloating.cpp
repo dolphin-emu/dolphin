@@ -101,7 +101,9 @@ void lfs(UGeckoInstruction inst)
 void lfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
-	DISABLE_32BIT;
+	if (!cpu_info.bSSSE3) {
+		DISABLE_32BIT;
+	}
 	int d = inst.RD;
 	int a = inst.RA;
 	if (!a) 
@@ -117,9 +119,18 @@ void lfd(UGeckoInstruction inst)
 	fpr.Lock(d);
 	if (cpu_info.bSSSE3) {
 		X64Reg xd = fpr.RX(d);
+#ifdef _M_X64
 		MOVQ_xmm(xd, MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
+#else
+		MOV(32, R(EAX), R(ABI_PARAM1));
+		AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
+		MOVQ_xmm(xd, MDisp(EAX, (u32)Memory::base + offset));
+#endif
 		PSHUFB(xd, M((void *)bswapShuffle1x8Dupe));
 	} else {
+#ifndef _M_X64
+		PanicAlert("lfd - wtf");
+#endif
 		MOV(64, R(EAX), MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
 		BSWAP(64, EAX);
 		MOV(64, M(&temp64), R(EAX));
@@ -153,7 +164,7 @@ void stfd(UGeckoInstruction inst)
 	AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
 #endif
 	if (cpu_info.bSSSE3) {
-		MOVAPS(XMM0, fpr.R(s));
+		MOVAPD(XMM0, fpr.R(s));
 		PSHUFB(XMM0, M((void *)bswapShuffle1x8));
 #ifdef _M_X64
 		MOVQ_xmm(MComplex(RBX, ABI_PARAM1, SCALE_1, offset), XMM0);
@@ -224,6 +235,15 @@ void stfs(UGeckoInstruction inst)
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 	fpr.UnlockAll();
+}
+
+
+void stfsx(UGeckoInstruction inst)
+{
+	// We can take a shortcut here - it's not likely that a hardware access would use this instruction.
+	INSTRUCTION_START;
+	// TODO
+	Default(inst); return;
 }
 
 

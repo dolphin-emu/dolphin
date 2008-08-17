@@ -29,14 +29,17 @@
 
 namespace PowerPC
 {
-	// align to cache line
-	GC_ALIGNED64_DECL(PowerPCState ppcState);
+	PowerPCState GC_ALIGNED16(ppcState);
 	ICPUCore* m_pCore = NULL;
 
 	volatile CPUState state = CPU_STEPPING;
 
 	void ResetRegisters()
 	{
+		if (((u64)&ppcState & 0xf) != 0) {
+			PanicAlert("The compiler misaligned ppcState in memory. Likely to cause crashes.");
+		}
+
 		for (int i = 0; i < 32; i++)
 		{
 			ppcState.gpr[i] = 0;

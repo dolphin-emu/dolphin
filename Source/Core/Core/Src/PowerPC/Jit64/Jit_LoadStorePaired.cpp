@@ -214,7 +214,7 @@ void psq_st(UGeckoInstruction inst)
 			ADD(32, R(ABI_PARAM2), Imm32((u32)offset));
 		if (update && offset)
 			MOV(32, gpr.R(a), R(ABI_PARAM2));
-		MOVAPS(XMM0, fpr.R(s));
+		MOVAPD(XMM0, fpr.R(s));
 		MOVDDUP(XMM1, M((void*)&m_quantizeTableD[stScale]));
 		MULPD(XMM0, R(XMM1));
 		CVTPD2DQ(XMM0, R(XMM0));
@@ -247,7 +247,7 @@ void psq_st(UGeckoInstruction inst)
 			ADD(32, R(ABI_PARAM2), Imm32((u32)offset));
 		if (update)
 			MOV(32, gpr.R(a), R(ABI_PARAM2));
-		MOVAPS(XMM0, fpr.R(s));
+		MOVAPD(XMM0, fpr.R(s));
 		MOVDDUP(XMM1, M((void*)&m_quantizeTableD[stScale]));
 		MULPD(XMM0, R(XMM1));
 		SHUFPD(XMM0, R(XMM0), 1);
@@ -317,7 +317,7 @@ void psq_l(UGeckoInstruction inst)
 				CVTPS2PD(r, M(&psTemp[0]));
 				SHUFPD(r, R(r), 1);
 			}
-			if (update)
+			if (update && offset != 0)
 				ADD(32, gpr.R(inst.RA), Imm32(offset));
 			break;
 #else
@@ -347,7 +347,7 @@ void psq_l(UGeckoInstruction inst)
 				CVTPS2PD(r, M(&psTemp[0]));
 				gpr.UnlockAllX();
 			}
-			if (update)
+			if (update && offset != 0)
 				ADD(32, gpr.R(inst.RA), Imm32(offset));
 			break;
 #endif
@@ -373,7 +373,7 @@ void psq_l(UGeckoInstruction inst)
 			X64Reg r = fpr.R(inst.RS).GetSimpleReg();
 			MOVDDUP(r, M((void *)&m_dequantizeTableD[ldScale]));
 			MULPD(r, R(XMM0));
-			if (update)
+			if (update && offset != 0)
 				ADD(32, gpr.R(inst.RA), Imm32(offset));
 			}
 			break;
@@ -399,7 +399,7 @@ void psq_l(UGeckoInstruction inst)
 			MOVDDUP(r, M((void*)&m_dequantizeTableD[ldScale]));
 			MULPD(r, R(XMM0));
 			SHUFPD(r, R(r), 1);
-			if (update)
+			if (update && offset != 0)
 				ADD(32, gpr.R(inst.RA), Imm32(offset));
 			}
 			break;
