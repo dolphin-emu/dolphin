@@ -1,8 +1,11 @@
 // gcmc.cpp: define el punto de entrada de la aplicación de consola.
 //
-
+#ifdef _WIN32
 #include "stdafx.h"
+#endif
 #include <assert.h>
+#include <memory.h>
+#include <stdio.h>
 
 #include "GCMemcard.h"
 

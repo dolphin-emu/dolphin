@@ -101,10 +101,10 @@ void CMemcardManager::OnPathChange(wxFileDirPickerEvent& event)
 	switch(event.GetId())
 	{
 		case ID_MEMCARD1PATH:
-			LoadMemcard1(event.GetPath());
+			LoadMemcard1(event.GetPath().mb_str());
 			break;
 		case ID_MEMCARD2PATH:
-			LoadMemcard2(event.GetPath());
+			LoadMemcard2(event.GetPath().mb_str());
 			break;
 		default:
 			break;
@@ -175,10 +175,10 @@ void CMemcardManager::LoadMemcard1(const char *card1)
 			if(!memoryCard1->GetComment2(i,comment2)) comment2[0]=0;
 
 			// Add to list control			
-			int index = m_Memcard1List->InsertItem(i, "row");
-			m_Memcard1List->SetItem(index, 0, fileName);
-			m_Memcard1List->SetItem(index, 1, comment1);
-			m_Memcard1List->SetItem(index, 2, comment2);
+			int index = m_Memcard1List->InsertItem(i, wxString::FromAscii("row"));
+			m_Memcard1List->SetItem(index, 0, wxString::FromAscii(fileName));
+			m_Memcard1List->SetItem(index, 1, wxString::FromAscii(comment1));
+			m_Memcard1List->SetItem(index, 2, wxString::FromAscii(comment2));
 		}
 		m_Memcard1List->Show();
 	}
@@ -188,7 +188,7 @@ void CMemcardManager::LoadMemcard1(const char *card1)
 
 		char tmp[128];
 		sprintf(tmp, "Unable to load %s", card1);
-		long item = m_Memcard1List->InsertItem(0, tmp);
+		long item = m_Memcard1List->InsertItem(0, wxString::FromAscii(tmp));
 
 		m_Memcard1List->SetItemFont(item, *wxITALIC_FONT);
 		m_Memcard1List->SetColumnWidth(item, wxLIST_AUTOSIZE);
@@ -227,10 +227,10 @@ void CMemcardManager::LoadMemcard2(const char *card2)
 			if(!memoryCard2->GetComment1(i,comment1)) comment1[0]=0;
 			if(!memoryCard2->GetComment2(i,comment2)) comment2[0]=0;
 
-			int index = m_Memcard2List->InsertItem(i, "row");
-			m_Memcard2List->SetItem(index, 0, fileName);
-			m_Memcard2List->SetItem(index, 1, comment1);
-			m_Memcard2List->SetItem(index, 2, comment2);
+			int index = m_Memcard2List->InsertItem(i, wxString::FromAscii("row"));
+			m_Memcard2List->SetItem(index, 0, wxString::FromAscii(fileName));
+			m_Memcard2List->SetItem(index, 1, wxString::FromAscii(comment1));
+			m_Memcard2List->SetItem(index, 2, wxString::FromAscii(comment2));
 		}
 		m_Memcard2List->Show();
 	}
@@ -240,7 +240,7 @@ void CMemcardManager::LoadMemcard2(const char *card2)
 
 		char tmp[128];
 		sprintf(tmp, "Unable to load %s", card2);
-		long item = m_Memcard2List->InsertItem(0, tmp);
+		long item = m_Memcard2List->InsertItem(0, wxString::FromAscii(tmp));
 
 		m_Memcard2List->SetItemFont(item, *wxITALIC_FONT);
 		m_Memcard2List->SetColumnWidth(item, wxLIST_AUTOSIZE);
