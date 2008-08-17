@@ -602,10 +602,10 @@ void LoadBPReg(u32 value0)
 
             ((u32*)&bpmem)[opcode] = newval;
 			TRectangle rc = {
-                (int)(bpmem.copyTexSrcXY.x),
-                (int)(bpmem.copyTexSrcXY.y),
-                (int)((bpmem.copyTexSrcXY.x+bpmem.copyTexSrcWH.x)),
-                (int)((bpmem.copyTexSrcXY.y+bpmem.copyTexSrcWH.y))
+                (int)(bpmem.copyTexSrcXY.x * MValue),
+                (int)(bpmem.copyTexSrcXY.y * MValue),
+                (int)((bpmem.copyTexSrcXY.x * MValue + bpmem.copyTexSrcWH.x * MValue)),
+                (int)((bpmem.copyTexSrcXY.y * MValue + bpmem.copyTexSrcWH. * MValuey))
             };
 
             UPE_Copy PE_copy;
@@ -633,7 +633,8 @@ void LoadBPReg(u32 value0)
                 glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
                 // if copied to texture, set the dimensions to the source copy dims, otherwise, clear the entire buffer
                 if( PE_copy.copy_to_xfb == 0 )
-                    glScissor(rc.left, (Renderer::GetTargetHeight()-rc.bottom), (rc.right-rc.left), (rc.bottom-rc.top));   
+                    glScissor(rc.left * MValue, (Renderer::GetTargetHeight()-rc.bottom * MValue), 
+                    (rc.right * MValue - rc.left * MValue), (rc.bottom * MValue-rc.top * MValue));   
                 VertexShaderMngr::SetViewportChanged();
 
                 // since clear operations use the source rectangle, have to do regular renders (glClear clears the entire buffer)

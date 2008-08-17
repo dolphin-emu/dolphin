@@ -54,7 +54,7 @@ namespace AOSound
 		}
 
 		return(false);*/
-		if(soundData[0] != 0)
+		//if(soundData[0] != 0)
 			ao_play(device, soundData, dwSoundBytes);
 		return true;
 		

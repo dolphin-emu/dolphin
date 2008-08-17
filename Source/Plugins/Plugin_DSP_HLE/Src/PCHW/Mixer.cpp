@@ -86,8 +86,10 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate) {
 	while (queue_size > queue_maxlength / 2) {
 #ifdef _WIN32
 		DSound::DSound_UpdateSound();
-#endif
 		Sleep(0);
+#else
+		sleep(0);
+#endif
 	}
 
 	//convert into config option?

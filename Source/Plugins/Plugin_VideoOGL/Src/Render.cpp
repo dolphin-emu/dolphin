@@ -18,7 +18,9 @@
 #include "Globals.h"
 #include <list>
 
+#ifdef _WIN32
 #include <mmsystem.h>
+#endif
 
 #include "GLInit.h"
 #include "Render.h"
@@ -450,16 +452,13 @@ void Renderer::ReinitView(int nNewWidth, int nNewHeight)
     nBackbufferWidth = nNewWidth > 16 ? nNewWidth : 16;
     nBackbufferHeight = nNewHeight > 16 ? nNewHeight : 16;
 }
-//TODO: Return correct Values
 int Renderer::GetTargetWidth()
 {
-    //return 640;
     return nBackbufferWidth;
 }
 
 int Renderer::GetTargetHeight()
 {
-    //return 480;
     return nBackbufferHeight;
 }
 

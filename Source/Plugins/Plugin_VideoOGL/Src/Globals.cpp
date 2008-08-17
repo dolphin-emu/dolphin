@@ -66,6 +66,8 @@ void Config::Load()
     iniFile.Get("Settings", "DumpTextures", &bDumpTextures, 0);
     iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
     iniFile.Get("Settings", "Multisample", &iMultisampleMode, 0);
+    if(iMultisampleMode == 0)
+        iMultisampleMode = 1;
 	std::string s;
     iniFile.Get("Settings", "TexDumpPath", &s, 0);
     if( s.size() < sizeof(texDumpPath) )

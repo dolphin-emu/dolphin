@@ -27,6 +27,13 @@
 static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 						    unsigned int *ecx, unsigned int *edx)
 {
+	#ifdef __linux__
+	__asm__("cpuid"
+		: "=a" (*eax),
+		  "=b" (*ebx),
+		  "=c" (*ecx),
+		  "=d" (*edx));
+	#else
 	// Note: EBX is reserved on Mac OS X, so it has to be restored at the end
 	//       of the asm block.
 	__asm__(
@@ -38,6 +45,7 @@ static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 		  "=r" (*ebx),
 		  "=c" (*ecx),
 		  "=d" (*edx));
+	#endif
 }
 
 void __cpuid(int info[4], int x)
