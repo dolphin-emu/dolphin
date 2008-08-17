@@ -605,7 +605,7 @@ void LoadBPReg(u32 value0)
                 (int)(bpmem.copyTexSrcXY.x * MValue),
                 (int)(bpmem.copyTexSrcXY.y * MValue),
                 (int)((bpmem.copyTexSrcXY.x * MValue + bpmem.copyTexSrcWH.x * MValue)),
-                (int)((bpmem.copyTexSrcXY.y * MValue + bpmem.copyTexSrcWH. * MValuey))
+                (int)((bpmem.copyTexSrcXY.y * MValue + bpmem.copyTexSrcWH.y * MValuey))
             };
 
             UPE_Copy PE_copy;
