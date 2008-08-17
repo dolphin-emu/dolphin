@@ -49,7 +49,7 @@ inline float Memory_Read_Float(u32 _uAddress)
 
 extern int g_bWriteProfile; // global variable to enable/disable profiling (if DVPROFILE is defined)
 
-// IMPORTANT: For every Reigster there must be an End
+// IMPORTANT: For every Register there must be an End
 void DVProfRegister(char* pname);			// first checks if this profiler exists in g_listProfilers
 void DVProfEnd(u32 dwUserData);
 void DVProfWrite(char* pfilename, u32 frames = 0);

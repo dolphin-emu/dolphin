@@ -2,8 +2,6 @@
 
 #include "Common.h"
 
-#include "D3DBase.h"
-
 #include "Globals.h"
 #include "main.h"
 #include "VertexHandler.h"
@@ -19,21 +17,29 @@
 #include "EmuWindow.h"
 
 #include <list>
-using namespace std;
 
 float Renderer::m_x,Renderer::m_y,Renderer::m_width, Renderer::m_height, Renderer::xScale,Renderer::yScale;
+std::vector<LPDIRECT3DBASETEXTURE9> Renderer::m_Textures;
+DWORD Renderer::m_RenderStates[MaxRenderStates];
+DWORD Renderer::m_TextureStageStates[MaxTextureStages][MaxTextureTypes];
+DWORD Renderer::m_SamplerStates[MaxSamplerSize][MaxSamplerTypes];
+DWORD Renderer::m_FVF;
 
 #define NUMWNDRES 6
 extern int g_Res[NUMWNDRES][2];
 
-struct MESSAGE
+
+struct Message
 {
-    MESSAGE() {}
-    MESSAGE(const char* p, u32 dw) { strcpy(str, p); dwTimeStamp = dw; }
-    char str[255];
+	Message(const std::string &msg, u32 dw) : message( msg ), dwTimeStamp( dw )
+	{
+	}
+
+	std::string message;
     u32 dwTimeStamp;
-};	
-static std::list<MESSAGE> s_listMsgs;
+};
+static std::list<Message> s_listMsgs;
+
 
 void Renderer::Init(SVideoInitialize &_VideoInitialize) 
 {
@@ -64,11 +70,14 @@ void Renderer::Shutdown(void)
 
 void Renderer::Initialize(void)
 {
-	D3D::dev->SetRenderState(D3DRS_LIGHTING,FALSE);
-	D3D::dev->SetRenderState(D3DRS_SHADEMODE, D3DSHADE_GOURAUD);
-	D3D::dev->SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-	D3D::dev->SetRenderState(D3DRS_FOGENABLE, FALSE);
-	D3D::dev->SetRenderState(D3DRS_FILLMODE, g_Config.bWireFrame?D3DFILL_WIREFRAME:D3DFILL_SOLID);
+	m_FVF = 0;
+
+	m_Textures.reserve( MaxTextureStages );
+	for ( int i = 0; i < MaxTextureStages; i++ )
+	{
+		m_Textures.push_back( NULL );
+	}
+
 	for (int i=0; i<8; i++)
 	{
 		D3D::dev->SetSamplerState(i, D3DSAMP_MAXANISOTROPY, 16);
@@ -81,16 +90,16 @@ void Renderer::Initialize(void)
 	CVertexHandler::BeginFrame();
 }
 
-void Renderer::AddMessage(const char* pstr, u32 ms)
+void Renderer::AddMessage(const std::string &message, u32 ms)
 {
-    s_listMsgs.push_back(MESSAGE(pstr, timeGetTime()+ms));
+    s_listMsgs.push_back(Message(message, timeGetTime()+ms));
 }
 
 void Renderer::ProcessMessages()
 {
 	if (s_listMsgs.size() > 0) {
         int left = 25, top = 15;
-        list<MESSAGE>::iterator it = s_listMsgs.begin();
+		std::list<Message>::iterator it = s_listMsgs.begin();
         
         while( it != s_listMsgs.end() ) 
 		{
@@ -105,8 +114,8 @@ void Renderer::ProcessMessages()
 
 			alpha <<= 24;
 
-            RenderText(it->str, left+1, top+1, 0x000000|alpha);
-            RenderText(it->str, left, top, 0xffff30|alpha);
+            RenderText(it->message, left+1, top+1, 0x000000|alpha);
+            RenderText(it->message, left, top, 0xffff30|alpha);
             top += 15;
 
             if (time_left <= 0)
@@ -116,9 +125,9 @@ void Renderer::ProcessMessages()
     }
 }
 
-void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
+void Renderer::RenderText(const std::string &text, int left, int top, u32 color)
 {
-	D3D::font.DrawTextScaled(left,top,20,20,0.0f,color,pstr,false);
+	D3D::font.DrawTextScaled((float)left, (float)top, 20, 20, 0.0f, color, text.c_str(), false);
 }
 
 void dumpMatrix(D3DXMATRIX &mtx)
@@ -250,7 +259,7 @@ void Renderer::SwapBuffers(void)
 	CVertexHandler::BeginFrame();
 
 	if (g_Config.bOldCard)
-		D3D::font.SetRenderStates(); //compatibility with lowend cards
+		D3D::font.SetRenderStates(); //compatibility with low end cards
 }
 
 void Renderer::Flush(void)
@@ -359,4 +368,66 @@ void Renderer::SetProjection(float* pMatrix, int constantIndex)
 		mtx.m[3][3] = 1.0f;
 	}
 	D3D::dev->SetVertexShaderConstantF(constantIndex, mtx, 4);
+}
+
+
+void Renderer::SetTexture( DWORD Stage, LPDIRECT3DBASETEXTURE9 pTexture )
+{
+	if ( m_Textures[Stage] != pTexture )
+	{
+		m_Textures[Stage] = pTexture;
+		D3D::dev->SetTexture( Stage, pTexture );
+	}
+}
+
+
+void Renderer::SetFVF( DWORD FVF )
+{
+	if ( m_FVF != FVF )
+	{
+		m_FVF = FVF;
+		D3D::dev->SetFVF( FVF );
+	}
+}
+
+
+void Renderer::SetRenderState( D3DRENDERSTATETYPE State, DWORD Value )
+{
+	if ( m_RenderStates[State] != Value )
+	{
+		m_RenderStates[State] = Value;
+		D3D::dev->SetRenderState( State, Value );
+	}
+}
+
+
+void Renderer::SetTextureStageState( DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value )
+{
+	if ( m_TextureStageStates[Stage][Type] != Value )
+	{
+		m_TextureStageStates[Stage][Type] = Value;
+		D3D::dev->SetTextureStageState( Stage, Type, Value );
+	}
+}
+
+
+void Renderer::SetSamplerState( DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value )
+{
+	if ( m_SamplerStates[Sampler][Type] != Value )
+	{
+		m_SamplerStates[Sampler][Type] = Value;
+		D3D::dev->SetSamplerState( Sampler, Type, Value );
+	}
+}
+
+
+void Renderer::DrawPrimitiveUP( D3DPRIMITIVETYPE PrimitiveType, UINT PrimitiveCount, const void* pVertexStreamZeroData, UINT VertexStreamZeroStride )
+{
+	D3D::dev->DrawPrimitiveUP( PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride );
+}
+
+
+void Renderer::DrawPrimitive( D3DPRIMITIVETYPE PrimitiveType, UINT StartVertex, UINT PrimitiveCount )
+{
+	D3D::dev->DrawPrimitive( PrimitiveType, StartVertex, PrimitiveCount );
 }

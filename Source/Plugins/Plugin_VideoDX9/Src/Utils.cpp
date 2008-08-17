@@ -33,7 +33,7 @@ void InitLUTs()
 }
 
 // Message handler for about box.
-LRESULT CALLBACK AboutProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK AboutProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM /*lParam*/)
 {
 	switch (message)
 	{

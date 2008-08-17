@@ -47,7 +47,7 @@ BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 
 BOOL Callback_PeekMessages()
 {
-	//TODO: peekmessage
+	//TODO: peek message
 	MSG msg;
 	while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
 	{
@@ -59,31 +59,34 @@ BOOL Callback_PeekMessages()
 	return TRUE;
 }
 
+
 void UpdateFPSDisplay(const char *text)
 {
 	char temp[512];
-	sprintf(temp, "SVN R%i: %s", SVN_REV, text);
-    SetWindowText(EmuWindow::GetWnd(), temp);
+	sprintf_s(temp, 512, "SVN R%i: %s", SVN_REV, text);
+    SetWindowText( EmuWindow::GetWnd(), temp);
 }
+
 
 bool Init()
 {
 	g_Config.Load();
 
-	if (initCount==0)
+	if (initCount == 0)
 	{
         // create the window
-        if( !g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL ) // ignore parent for this plugin
+        if ( !g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL ) // ignore parent for this plugin
         {
-            g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, "Please wait...");
+            g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, "Loading - Please wait.");
         }
 		else
 		{
-			g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, "Please wait...");
+			g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, "Loading - Please wait.");
 		}
 
-		if( g_VideoInitialize.pWindowHandle == NULL ) {
-			MessageBox(GetActiveWindow(), "failed to create window", "Fatal Error", MB_OK);
+		if ( g_VideoInitialize.pWindowHandle == NULL )
+		{
+			MessageBox(GetActiveWindow(), "An error has occurred while trying to create the window.", "Fatal Error", MB_OK);
 			return false;
 		}
 
@@ -93,7 +96,7 @@ bool Init()
 
 		if (FAILED(D3D::Init()))
 		{
-			MessageBox(GetActiveWindow(), "Cant Init D3d.\nYou probably havn't installed\nthe last version(9.0c)", "Fatal Error", MB_OK);
+			MessageBox(GetActiveWindow(), "Unable to initialize Direct3D. Please make sure that you have DirectX 9.0c correctly installed.", "Fatal Error", MB_OK);
 			return false;
 		}
 		InitLUTs();
@@ -184,7 +187,7 @@ void Video_Shutdown(void)
 	DeInit();
 }
 
-void Video_UpdateXFB(BYTE* _pXFB, DWORD _dwWidth, DWORD _dwHeight)
+void Video_UpdateXFB(BYTE* /*_pXFB*/, DWORD /*_dwWidth*/, DWORD /*_dwHeight*/)
 {
 	/*
 	ConvertXFB(tempBuffer, _pXFB, _dwWidth, _dwHeight);

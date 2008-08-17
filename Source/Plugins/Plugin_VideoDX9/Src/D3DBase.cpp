@@ -1,4 +1,6 @@
 #include "D3DBase.h"
+#include "Render.h"
+
 
 namespace D3D
 {
@@ -10,16 +12,14 @@ namespace D3D
 	int multisample;
 	int resolution;
 
-#define VENDOR_NVIDIA 4318 
+#define VENDOR_NVIDIA 4318
 
 	RECT client;
 	HWND hWnd;
 	int xres, yres;
 	int cur_adapter;
-	int psMajor;
-	int psMinor;
-	int vsMajor;
-	int vsMinor;
+	Shader Ps;
+	Shader Vs;
 
 	bool bFrameInProgress = false;
 
@@ -56,7 +56,8 @@ namespace D3D
 
 	void EnableAlphaToCoverage()
 	{
-		dev->SetRenderState(D3DRS_ADAPTIVETESS_Y, (D3DFORMAT)MAKEFOURCC('A', 'T', 'O', 'C'));
+		// dev->SetRenderState(D3DRS_ADAPTIVETESS_Y, (D3DFORMAT)MAKEFOURCC('A', 'T', 'O', 'C'));
+		Renderer::SetRenderState( D3DRS_ADAPTIVETESS_Y, (D3DFORMAT)MAKEFOURCC('A', 'T', 'O', 'C') );
 	}
 
 	void InitPP(int adapter, int resolution, int aa_mode, D3DPRESENT_PARAMETERS *pp)
@@ -234,10 +235,10 @@ namespace D3D
 		dev->GetDeviceCaps(&caps);
 		dev->GetRenderTarget(0,&backBuffer);
 
-		psMajor = (D3D::caps.PixelShaderVersion >> 8) & 0xFF;
-		psMinor = (D3D::caps.PixelShaderVersion) & 0xFF;
-		vsMajor = (D3D::caps.VertexShaderVersion >>8) & 0xFF;
-		vsMinor = (D3D::caps.VertexShaderVersion) & 0xFF;
+		Ps.Major = (D3D::caps.PixelShaderVersion >> 8) & 0xFF;
+		Ps.Minor = (D3D::caps.PixelShaderVersion) & 0xFF;
+		Vs.Major = (D3D::caps.VertexShaderVersion >>8) & 0xFF;
+		Vs.Minor = (D3D::caps.VertexShaderVersion) & 0xFF;
 
 		// Device state would normally be set here
 		return S_OK;
@@ -245,12 +246,14 @@ namespace D3D
 
 	ShaderVersion GetShaderVersion()
 	{
-		if (psMajor < 2)
+		if (Ps.Major < 2)
+		{
 			return PSNONE;
-		else
-			//good enough estimate - we really only 
-			//care about zero shader vs ps20
-			return (ShaderVersion)psMajor;
+		}
+		
+		//good enough estimate - we really only 
+		//care about zero shader vs ps20
+		return (ShaderVersion)Ps.Major;
 	}
 
 	void Close()
@@ -328,8 +331,10 @@ namespace D3D
 
 	bool BeginFrame(bool clear, u32 color, float z)
 	{
-		if (bFrameInProgress) 
+		if (bFrameInProgress)
+		{
 			return false;
+		}
 
 		bFrameInProgress = true;
 

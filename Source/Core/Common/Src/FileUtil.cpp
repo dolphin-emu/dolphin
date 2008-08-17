@@ -28,7 +28,7 @@ bool File::IsDirectory(const std::string &filename) {
 
 std::string SanitizePath(const std::string &filename) {
 	std::string copy = filename;
-	for (int i = 0; i < copy.size(); i++)
+	for (size_t i = 0; i < copy.size(); i++)
 		if (copy[i] == '/')
 			copy[i] = '\\';
 	return copy;

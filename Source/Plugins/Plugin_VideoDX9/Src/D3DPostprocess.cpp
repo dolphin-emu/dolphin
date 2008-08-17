@@ -6,6 +6,8 @@
 
 #include "Globals.h"
 
+#include "Render.h"
+
 using namespace D3D;
 
 namespace Postprocess
@@ -97,7 +99,10 @@ namespace Postprocess
 				CreateStuff();
 			dev->SetRenderTarget(0,mainColorBuffer);
 			dev->SetDepthStencilSurface(mainZStencilBuffer);
-			dev->SetRenderState(D3DRS_ZENABLE,TRUE);
+			
+			// dev->SetRenderState(D3DRS_ZENABLE,TRUE);
+			Renderer::SetRenderState( D3DRS_ZENABLE, TRUE );
+			
 			dev->Clear(0,0,D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER,0,1,0);
 		}
 		else
@@ -108,26 +113,33 @@ namespace Postprocess
 				dev->SetDepthStencilSurface(displayZStencilBuffer);
 				DestroyStuff();
 			}
-			dev->SetRenderState(D3DRS_ZENABLE,TRUE);
+			
+			// dev->SetRenderState(D3DRS_ZENABLE,TRUE);
+			Renderer::SetRenderState( D3DRS_ZENABLE, TRUE );
 		}
 	}
 
 
-	int filterKernel[8] = {0x40,0x80,0xc0,0xFF,0xFF,0xc0,0x80,0x40}; //goodlooking almostgaussian
+	int filterKernel[8] = {0x40,0x80,0xc0,0xFF,0xFF,0xc0,0x80,0x40}; //good looking almost Gaussian
 	
 	//int filterKernel[8] = {0xFF,0xc0,0x80,0x40,0x40,0x80,0xc0,0xFF,}; //crazy filter
 
 	void NightGlow(bool intense, bool original)
 	{
-		dev->SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_SUBTRACT);
-
-		dev->SetRenderState(D3DRS_ALPHABLENDENABLE,TRUE);
-		dev->SetRenderState(D3DRS_SRCBLEND,D3DBLEND_ONE);
-		dev->SetRenderState(D3DRS_DESTBLEND,D3DBLEND_ONE);
+		// dev->SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_SUBTRACT);
+		// dev->SetRenderState(D3DRS_ALPHABLENDENABLE,TRUE);
+		// dev->SetRenderState(D3DRS_SRCBLEND,D3DBLEND_ONE);
+		// dev->SetRenderState(D3DRS_DESTBLEND,D3DBLEND_ONE);
+		Renderer::SetTextureStageState( 0, D3DTSS_COLOROP, D3DTOP_SUBTRACT );
+		Renderer::SetRenderState( D3DRS_ALPHABLENDENABLE, TRUE );
+		Renderer::SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE );
+		Renderer::SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
 
 		dev->SetDepthStencilSurface(0);
 
-		dev->SetTexture(0,mainColorBufferTexture);
+		//dev->SetTexture(0,mainColorBufferTexture);
+		Renderer::SetTexture( 0, mainColorBufferTexture );
+
 		dev->SetRenderTarget(0,scratchSurface[0]);
 		dev->SetSamplerState(0,D3DSAMP_ADDRESSU,D3DTADDRESS_CLAMP);
 		dev->SetSamplerState(0,D3DSAMP_ADDRESSV,D3DTADDRESS_CLAMP);
@@ -144,9 +156,11 @@ namespace Postprocess
 		float f=0.008f;
 		QOFF(0,0,0xa0a0a0a0);
 
-		dev->SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_MODULATE);
+		// dev->SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_MODULATE);
+		//dev->SetTexture(0,scratch[0]);
+		Renderer::SetTextureStageState( 0, D3DTSS_COLOROP, D3DTOP_MODULATE );
+		Renderer::SetTexture( 0, scratch[0] );
 
-		dev->SetTexture(0,scratch[0]);
 		dev->SetRenderTarget(0,scratchSurface[1]);
 		dev->Clear(0,0,D3DCLEAR_TARGET,0,0,0);
 
@@ -159,7 +173,9 @@ namespace Postprocess
 			QOFF(0,(i-3.5f) * f * yMul,c);
 		}
 
-		dev->SetTexture(0,scratch[1]);
+		//dev->SetTexture(0,scratch[1]);
+		Renderer::SetTexture( 0, scratch[1] );
+
 		dev->SetRenderTarget(0,scratchSurface[0]);
 		dev->Clear(0,0,D3DCLEAR_TARGET,0,0,0);
 		for (int i=0; i<8; i++)
@@ -170,23 +186,33 @@ namespace Postprocess
 			QOFF((i-3.5f) * f,0,c);
 		}
 
-		dev->SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_MODULATE);
+		// dev->SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_MODULATE);
+		Renderer::SetTextureStageState( 0, D3DTSS_COLOROP, D3DTOP_MODULATE );
 
 		if (intense)
 		{
-			dev->SetRenderState(D3DRS_SRCBLEND,D3DBLEND_ONE);
-			dev->SetRenderState(D3DRS_DESTBLEND,D3DBLEND_SRCALPHA);
+			// dev->SetRenderState(D3DRS_SRCBLEND,D3DBLEND_ONE);
+			// dev->SetRenderState(D3DRS_DESTBLEND,D3DBLEND_SRCALPHA);
+			Renderer::SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE );
+			Renderer::SetRenderState( D3DRS_DESTBLEND, D3DBLEND_SRCALPHA );
 		}
 		else
 		{
-			dev->SetRenderState(D3DRS_SRCBLEND,D3DBLEND_INVDESTCOLOR);
-			dev->SetRenderState(D3DRS_DESTBLEND,D3DBLEND_ONE);
+			// dev->SetRenderState(D3DRS_SRCBLEND,D3DBLEND_INVDESTCOLOR);
+			// dev->SetRenderState(D3DRS_DESTBLEND,D3DBLEND_ONE);
+			Renderer::SetRenderState( D3DRS_SRCBLEND, D3DBLEND_INVDESTCOLOR );
+			Renderer::SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
 		}
 
-		dev->SetTexture(0,scratch[0]);
+		// dev->SetTexture(0,scratch[0]);
+		Renderer::SetTexture( 0, scratch[0] );
+
 		dev->SetRenderTarget(0,mainColorBuffer);
 		quad2d(0,0,(float)mainWidth,(float)mainHeight,original?0xCFFFFFFF:0xFFFFFFFF,0,0,1,1);
-		dev->SetRenderState(D3DRS_ALPHABLENDENABLE,FALSE);
+		
+		// dev->SetRenderState(D3DRS_ALPHABLENDENABLE,FALSE);
+		Renderer::SetRenderState( D3DRS_ALPHABLENDENABLE, FALSE );
+
 		dev->SetSamplerState(0,D3DSAMP_ADDRESSU,D3DTADDRESS_WRAP);
 		dev->SetSamplerState(0,D3DSAMP_ADDRESSV,D3DTADDRESS_WRAP);
 		//dev->SetSamplerState(0,D3DSAMP_MIPMAPLODBIAS,0);
@@ -208,15 +234,25 @@ namespace Postprocess
 	{	
 		if (initialized)
 		{
-			dev->SetRenderState(D3DRS_CULLMODE,D3DCULL_NONE);
-			dev->SetRenderState(D3DRS_ZENABLE,FALSE);
-			dev->SetRenderState(D3DRS_FOGENABLE,FALSE);
-			dev->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
-			dev->SetTextureStageState(0,D3DTSS_COLORARG2,D3DTA_DIFFUSE);
-			dev->SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_MODULATE);
-			dev->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
-			dev->SetTextureStageState(0,D3DTSS_ALPHAARG2,D3DTA_DIFFUSE);
-			dev->SetTextureStageState(0,D3DTSS_ALPHAOP,D3DTOP_SELECTARG2);
+			// dev->SetRenderState(D3DRS_CULLMODE,D3DCULL_NONE);
+			// dev->SetRenderState(D3DRS_ZENABLE,FALSE);
+			// dev->SetRenderState(D3DRS_FOGENABLE,FALSE);
+			// dev->SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
+			// dev->SetTextureStageState(0,D3DTSS_COLORARG2,D3DTA_DIFFUSE);
+			// dev->SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_MODULATE);
+			// dev->SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
+			// dev->SetTextureStageState(0,D3DTSS_ALPHAARG2,D3DTA_DIFFUSE);
+			// dev->SetTextureStageState(0,D3DTSS_ALPHAOP,D3DTOP_SELECTARG2);
+
+			Renderer::SetRenderState( D3DRS_CULLMODE, D3DCULL_NONE );
+			Renderer::SetRenderState( D3DRS_ZENABLE, FALSE );
+			Renderer::SetRenderState( D3DRS_FOGENABLE, FALSE );
+			Renderer::SetTextureStageState(0,D3DTSS_COLORARG1,D3DTA_TEXTURE);
+			Renderer::SetTextureStageState(0,D3DTSS_COLORARG2,D3DTA_DIFFUSE);
+			Renderer::SetTextureStageState(0,D3DTSS_COLOROP,D3DTOP_MODULATE);
+			Renderer::SetTextureStageState(0,D3DTSS_ALPHAARG1,D3DTA_TEXTURE);
+			Renderer::SetTextureStageState(0,D3DTSS_ALPHAARG2,D3DTA_DIFFUSE);
+			Renderer::SetTextureStageState(0,D3DTSS_ALPHAOP,D3DTOP_SELECTARG2);
 
 			switch(g_Config.iPostprocessEffect) {
 			case 1:
@@ -231,7 +267,10 @@ namespace Postprocess
 
 			dev->SetRenderTarget(0,displayColorBuffer);
 			dev->SetDepthStencilSurface(displayZStencilBuffer);
-			dev->SetTexture(0,mainColorBufferTexture);
+			
+			// dev->SetTexture(0,mainColorBufferTexture);
+			Renderer::SetTexture( 0, mainColorBufferTexture );
+
 			quad2d(0, 0, (float)displayWidth, (float)displayHeight, 0xFFFFFFFF);
 		}
 	}

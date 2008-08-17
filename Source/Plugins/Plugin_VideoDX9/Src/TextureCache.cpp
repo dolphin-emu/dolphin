@@ -117,7 +117,10 @@ void TextureCache::Load(int stage, DWORD address, int width, int height, int for
 				return;
 			}
 			lastTexture[stage] = iter->second.texture;
-			D3D::dev->SetTexture(stage,iter->second.texture);
+			
+			// D3D::dev->SetTexture(stage,iter->second.texture);
+			Renderer::SetTexture( stage, iter->second.texture );
+
 			return;
 		}
 		else
@@ -182,7 +185,9 @@ void TextureCache::Load(int stage, DWORD address, int width, int height, int for
 	SETSTAT(stats.numTexturesAlive, (int)textures.size());
 
 	//Set the texture!
-	D3D::dev->SetTexture(stage,entry.texture);
+	// D3D::dev->SetTexture(stage,entry.texture);
+	Renderer::SetTexture( stage, entry.texture );
+
 	lastTexture[stage] = entry.texture;
 }
  

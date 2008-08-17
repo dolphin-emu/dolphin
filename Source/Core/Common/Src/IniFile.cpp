@@ -323,7 +323,7 @@ bool IniFile::Load(const char* filename)
 		{
 			if (line[0] == '[')
 			{
-				int endpos = (int)line.find("]");
+				size_t endpos = line.find("]");
 
 				if (endpos != std::string::npos)
 				{

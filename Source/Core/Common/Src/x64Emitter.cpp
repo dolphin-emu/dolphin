@@ -555,7 +555,7 @@ namespace Gen
 		}
 	}
 
-	void POP(int bits, const OpArg &reg)
+	void POP(int /*bits*/, const OpArg &reg)
 	{ 
 		if (reg.IsSimpleReg())
 			POP(reg.GetSimpleReg());

@@ -2,6 +2,7 @@
 
 #include "D3DBase.h"
 #include "D3DUtil.h"
+#include "Render.h"
 
 namespace D3D
 {
@@ -194,27 +195,44 @@ namespace D3D
 
 	void CD3DFont::SetRenderStates()
 	{
-		dev->SetTexture(0, m_pTexture);
+		// dev->SetTexture(0, m_pTexture);
+		Renderer::SetTexture( 0, m_pTexture );
+
 		dev->SetPixelShader(0);
 		dev->SetVertexShader(0);
 		dev->SetVertexDeclaration(0);
-		dev->SetFVF(D3DFVF_FONT2DVERTEX);
+		
+		// dev->SetFVF(D3DFVF_FONT2DVERTEX);
+		Renderer::SetFVF(D3DFVF_FONT2DVERTEX);
+
 		for (int i = 0; i < 6; i++) {
-			dev->SetRenderState((_D3DRENDERSTATETYPE)RS[i][0],RS[i][1]);
-			dev->SetTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), TS[i][1]);
+			// dev->SetRenderState((_D3DRENDERSTATETYPE)RS[i][0],RS[i][1]);
+			// dev->SetTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), TS[i][1]);
+			
+			Renderer::SetRenderState( (_D3DRENDERSTATETYPE)RS[i][0], RS[i][1] );
+			Renderer::SetTextureStageState( 0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), TS[i][1] );
 		}
 	}
 
 	void RestoreRenderStates()
 	{
-		dev->SetTexture(0, texture_old);
+		// dev->SetTexture(0, texture_old);
+		Renderer::SetTexture( 0, texture_old );
+
 		dev->SetPixelShader(ps_old);
 		dev->SetVertexShader(vs_old);
 		dev->SetVertexDeclaration(decl_old);
-		dev->SetFVF(FVF_old);
-		for (int i = 0; i < 6; i++) {
-			dev->SetRenderState((_D3DRENDERSTATETYPE)RS[i][0], RS_old[i]);
-			dev->SetTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), TS_old[i]);
+
+		// dev->SetFVF(FVF_old);
+		Renderer::SetFVF(FVF_old);
+		
+		for (int i = 0; i < 6; i++)
+		{
+			// dev->SetRenderState((_D3DRENDERSTATETYPE)RS[i][0], RS_old[i]);
+			// dev->SetTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), TS_old[i]);
+			
+			Renderer::SetRenderState( (_D3DRENDERSTATETYPE)RS[i][0], RS_old[i] );
+			Renderer::SetTextureStageState( 0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), TS_old[i] );
 		}
 	}
 
@@ -312,11 +330,14 @@ namespace D3D
 			pVertices+=6;
 			dwNumTriangles += 2;
 
-			if( dwNumTriangles*3 > (MAX_NUM_VERTICES-6) )
+			if( dwNumTriangles * 3 > (MAX_NUM_VERTICES-6) )
 			{
 				// Unlock, render, and relock the vertex buffer
 				m_pVB->Unlock();
-				dev->DrawPrimitive( D3DPT_TRIANGLELIST, 0, dwNumTriangles );
+				
+				// dev->DrawPrimitive( D3DPT_TRIANGLELIST, 0, dwNumTriangles );
+				Renderer::DrawPrimitive( D3DPT_TRIANGLELIST, 0, dwNumTriangles );
+
 				m_pVB->Lock( 0, 0, (void**)&pVertices, D3DLOCK_DISCARD );
 				dwNumTriangles = 0;
 			}
@@ -327,7 +348,10 @@ namespace D3D
 		// Unlock and render the vertex buffer
 		m_pVB->Unlock();
 		if( dwNumTriangles > 0 )
-			dev->DrawPrimitive( D3DPT_TRIANGLELIST, 0, dwNumTriangles );
+		{
+			// dev->DrawPrimitive( D3DPT_TRIANGLELIST, 0, dwNumTriangles );
+			Renderer::DrawPrimitive( D3DPT_TRIANGLELIST, 0, dwNumTriangles );
+		}
 		RestoreRenderStates();
 		return S_OK;
 	}
@@ -344,8 +368,12 @@ namespace D3D
 		dev->SetPixelShader(0);
 		dev->SetVertexShader(0);
 		dev->SetVertexDeclaration(0);
-		dev->SetFVF(D3DFVF_XYZRHW|D3DFVF_DIFFUSE|D3DFVF_TEX1);
-		dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN,2,coords,sizeof(Q2DVertex));
+		
+		// dev->SetFVF(D3DFVF_XYZRHW|D3DFVF_DIFFUSE|D3DFVF_TEX1);
+		// dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN,2,coords,sizeof(Q2DVertex));
+		Renderer::SetFVF(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1);
+		Renderer::DrawPrimitiveUP(D3DPT_TRIANGLEFAN,2,coords,sizeof(Q2DVertex));
+		
 		RestoreRenderStates();
 	}
 

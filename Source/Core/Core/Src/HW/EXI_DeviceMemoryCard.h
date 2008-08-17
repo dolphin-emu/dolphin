@@ -36,6 +36,8 @@ public:
 	//! Is device present?
 	bool IsPresent();
 
+	inline const std::string &GetFileName() const { return m_strFilename; };
+
 private:
 	// This is scheduled whenever a page write is issued. The this pointer is passed
 	// through the userdata parameter, so that it can then call Flush on the right card.

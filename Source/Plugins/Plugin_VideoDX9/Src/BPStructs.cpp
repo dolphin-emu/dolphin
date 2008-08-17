@@ -94,9 +94,15 @@ void BPWritten(int addr, int changes, int newval)
 		{
 			CVertexHandler::Flush();
 			((u32*)&bpmem)[addr] = newval;
-			dev->SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]); 
+			
+			// dev->SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
+			Renderer::SetRenderState( D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode] );
+
 			if (bpmem.genMode.cullmode == 3)
-				dev->SetRenderState(D3DRS_COLORWRITEENABLE, 0);
+			{
+				// dev->SetRenderState(D3DRS_COLORWRITEENABLE, 0);
+				Renderer::SetRenderState( D3DRS_COLORWRITEENABLE, 0 );
+			}
 			else
 			{
 				DWORD write = 0;
@@ -104,7 +110,9 @@ void BPWritten(int addr, int changes, int newval)
 					write = D3DCOLORWRITEENABLE_ALPHA;
 				if (bpmem.blendmode.colorupdate) 
 					write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
-				dev->SetRenderState(D3DRS_COLORWRITEENABLE, write);
+				
+				// dev->SetRenderState(D3DRS_COLORWRITEENABLE, write);
+				Renderer::SetRenderState( D3DRS_COLORWRITEENABLE, write );
 			}
 		}
 		break;
@@ -139,15 +147,22 @@ void BPWritten(int addr, int changes, int newval)
 			((u32*)&bpmem)[addr] = newval;
 			if (bpmem.zmode.testenable)
 			{
-				dev->SetRenderState(D3DRS_ZENABLE, TRUE);
-				dev->SetRenderState(D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable);
-				dev->SetRenderState(D3DRS_ZFUNC,d3dCmpFuncs[bpmem.zmode.func]);
+				// dev->SetRenderState(D3DRS_ZENABLE, TRUE);
+				// dev->SetRenderState(D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable);
+				// dev->SetRenderState(D3DRS_ZFUNC,d3dCmpFuncs[bpmem.zmode.func]);
+
+				Renderer::SetRenderState( D3DRS_ZENABLE, TRUE );
+				Renderer::SetRenderState( D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable );
+				Renderer::SetRenderState( D3DRS_ZFUNC, d3dCmpFuncs[bpmem.zmode.func] );
 			}
 			else
 			{
 				// if the test is disabled write is disabled too
-				dev->SetRenderState(D3DRS_ZENABLE,		FALSE);
-				dev->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+				// dev->SetRenderState(D3DRS_ZENABLE,		FALSE);
+				// dev->SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+
+				Renderer::SetRenderState( D3DRS_ZENABLE, FALSE );
+				Renderer::SetRenderState( D3DRS_ZWRITEENABLE, FALSE );
 			}			
 		}
 		break;
@@ -167,9 +182,13 @@ void BPWritten(int addr, int changes, int newval)
 
 			if (D3D::GetShaderVersion() == PSNONE)
 			{
-				dev->SetRenderState(D3DRS_ALPHATESTENABLE, (Compare)bpmem.alphaFunc.comp0 != COMPARE_ALWAYS);
-				dev->SetRenderState(D3DRS_ALPHAREF, bpmem.alphaFunc.ref0*4);
-				dev->SetRenderState(D3DRS_ALPHAFUNC, d3dCmpFuncs[bpmem.alphaFunc.comp0]);
+				// dev->SetRenderState(D3DRS_ALPHATESTENABLE, (Compare)bpmem.alphaFunc.comp0 != COMPARE_ALWAYS);
+				// dev->SetRenderState(D3DRS_ALPHAREF, bpmem.alphaFunc.ref0*4);
+				// dev->SetRenderState(D3DRS_ALPHAFUNC, d3dCmpFuncs[bpmem.alphaFunc.comp0]);
+
+				Renderer::SetRenderState( D3DRS_ALPHATESTENABLE, (Compare)bpmem.alphaFunc.comp0 != COMPARE_ALWAYS );
+				Renderer::SetRenderState( D3DRS_ALPHAREF, bpmem.alphaFunc.ref0 * 4 );
+				Renderer::SetRenderState( D3DRS_ALPHAFUNC, d3dCmpFuncs[bpmem.alphaFunc.comp0] );
 			}
 			// Normally, use texkill in pixel shader to emulate alpha test
 		}
@@ -205,7 +224,11 @@ void BPWritten(int addr, int changes, int newval)
 		{
 			CVertexHandler::Flush();
 			((u32*)&bpmem)[addr] = newval;
-			if (changes & 1) dev->SetRenderState(D3DRS_ALPHABLENDENABLE,bpmem.blendmode.blendenable);
+			if (changes & 1)
+			{
+				// dev->SetRenderState(D3DRS_ALPHABLENDENABLE,bpmem.blendmode.blendenable);
+				Renderer::SetRenderState( D3DRS_ALPHABLENDENABLE, bpmem.blendmode.blendenable );
+			}
 			if (changes & 2) {} // Logic op blending. D3D can't do this but can fake some modes.
 			if (changes & 4) {
 				// Dithering is pointless. Will make things uglier and will be different from GC.
@@ -214,24 +237,42 @@ void BPWritten(int addr, int changes, int newval)
 			D3DBLEND src = d3dSrcFactors[bpmem.blendmode.srcfactor];
 			D3DBLEND dst = d3dDestFactors[bpmem.blendmode.dstfactor];
 
-			if (changes & 0x700) {
-				dev->SetRenderState(D3DRS_SRCBLEND, src);
+			if (changes & 0x700)
+			{
+				// dev->SetRenderState(D3DRS_SRCBLEND, src);
+				Renderer::SetRenderState( D3DRS_SRCBLEND, src );
 			}
 			if (changes & 0xE0) {
 				if (!bpmem.blendmode.subtract)
-					dev->SetRenderState(D3DRS_DESTBLEND, dst);
+				{
+					// dev->SetRenderState(D3DRS_DESTBLEND, dst);
+					Renderer::SetRenderState( D3DRS_DESTBLEND, dst );
+				}
 				else
-					dev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+				{
+					// dev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+					Renderer::SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
+				}
 			}
 			if (changes & 0x800) {
-				if (bpmem.blendmode.subtract) {
-					dev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
-					dev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
-				} else {
-					dev->SetRenderState(D3DRS_SRCBLEND, src);
-					dev->SetRenderState(D3DRS_DESTBLEND, dst);
+				if (bpmem.blendmode.subtract)
+				{
+					// dev->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
+					// dev->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
+					Renderer::SetRenderState( D3DRS_SRCBLEND, D3DBLEND_ONE );
+					Renderer::SetRenderState( D3DRS_DESTBLEND, D3DBLEND_ONE );
 				}
-				dev->SetRenderState(D3DRS_BLENDOP,bpmem.blendmode.subtract?D3DBLENDOP_SUBTRACT:D3DBLENDOP_ADD);
+				else
+				{
+					// dev->SetRenderState(D3DRS_SRCBLEND, src);
+					// dev->SetRenderState(D3DRS_DESTBLEND, dst);
+					
+					Renderer::SetRenderState( D3DRS_SRCBLEND, src );
+					Renderer::SetRenderState( D3DRS_DESTBLEND, dst );
+				}
+				
+				// dev->SetRenderState(D3DRS_BLENDOP,bpmem.blendmode.subtract?D3DBLENDOP_SUBTRACT:D3DBLENDOP_ADD);
+				Renderer::SetRenderState( D3DRS_BLENDOP, bpmem.blendmode.subtract ? D3DBLENDOP_SUBTRACT : D3DBLENDOP_ADD );
 			}
 			//if (bpmem.blendmode.logicopenable) // && bpmem.blendmode.logicmode == 4)
 			//	MessageBox(0,"LOGIC",0,0);
@@ -244,7 +285,9 @@ void BPWritten(int addr, int changes, int newval)
 					write = D3DCOLORWRITEENABLE_ALPHA;
 				if (bpmem.blendmode.colorupdate) 
 					write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
-				dev->SetRenderState(D3DRS_COLORWRITEENABLE, write);
+				
+				// dev->SetRenderState(D3DRS_COLORWRITEENABLE, write);
+				Renderer::SetRenderState( D3DRS_COLORWRITEENABLE, write );
 			}
 		}
 		break;
@@ -281,7 +324,9 @@ void BPWritten(int addr, int changes, int newval)
 		{
 			CVertexHandler::Flush();
 			((u32*)&bpmem)[addr] = newval;
-			dev->SetRenderState(D3DRS_FOGCOLOR,bpmem.fog.color);
+			
+			// dev->SetRenderState(D3DRS_FOGCOLOR,bpmem.fog.color);
+			Renderer::SetRenderState( D3DRS_FOGCOLOR, bpmem.fog.color );
 		}
 		break;
 
@@ -315,7 +360,10 @@ void BPWritten(int addr, int changes, int newval)
 			char temp[256];
 			sprintf(temp,"ScissorRect: %i %i %i %i",rc.left,rc.top,rc.right,rc.bottom);
 			g_VideoInitialize.pLog(temp, FALSE);
-			dev->SetRenderState(D3DRS_SCISSORTESTENABLE,TRUE);
+			
+			// dev->SetRenderState(D3DRS_SCISSORTESTENABLE,TRUE);
+			Renderer::SetRenderState( D3DRS_SCISSORTESTENABLE, TRUE );
+
 			Renderer::SetScissorBox(rc);
 		}
 		break;

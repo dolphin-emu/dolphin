@@ -16,10 +16,10 @@ namespace D3D
 {
 	enum ShaderVersion
 	{
-		PSNONE=0,
-		PS20=2,
-		PS30,
-		PS40,
+		PSNONE = 0,
+		PS20 = 2,
+		PS30 = 3,
+		PS40 = 4,
 	};
 
 	HRESULT Init();
@@ -40,11 +40,6 @@ namespace D3D
 	extern IDirect3DDevice9 *dev;
 	void ShowD3DError(HRESULT err);
 	void EnableAlphaToCoverage();
-
-	extern int psMajor;
-	extern int psMinor;
-	extern int vsMajor;
-	extern int vsMinor;
 
 	struct Resolution
 	{
@@ -69,6 +64,12 @@ namespace D3D
 		std::vector<Resolution> resolutions;
 		std::vector<AALevel> aa_levels;
 		bool supports_alpha_to_coverage;
+	};
+
+	struct Shader
+	{
+		int Minor;
+		int Major;
 	};
 	
 	const Adapter &GetAdapter(int i);

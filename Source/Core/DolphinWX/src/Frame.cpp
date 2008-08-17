@@ -195,7 +195,7 @@ void CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _T("&PAD settings"));
 	pOptionsMenu->AppendSeparator();
 	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen"));
-	pOptionsMenu->AppendCheckItem(IDM_TOGGLE_DUALCORE, _T("&Dual-core (instable!)"));
+	pOptionsMenu->AppendCheckItem(IDM_TOGGLE_DUALCORE, _T("&Dual-core (unstable!)"));
 	pOptionsMenu->Check(IDM_TOGGLE_DUALCORE, SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);			
 	pOptionsMenu->AppendCheckItem(IDM_TOGGLE_THROTTLE, _T("&Enable throttle"));
 	pOptionsMenu->Check(IDM_TOGGLE_THROTTLE, SConfig::GetInstance().m_LocalCoreStartupParameter.bThrottle);
