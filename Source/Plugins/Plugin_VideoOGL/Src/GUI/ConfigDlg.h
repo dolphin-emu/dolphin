@@ -51,6 +51,8 @@ class ConfigDialog : public wxDialog
 		void FSCB(wxCommandEvent& event);
 		void AddWindowReso(char *reso);
 		void WMCB(wxCommandEvent& event);
+		void AddAAMode(int mode);
+		void AACB(wxCommandEvent& event);
 		void ForceFilteringCheck(wxCommandEvent& event);
 		void ForceAnisotropyCheck(wxCommandEvent& event);
 		void WireframeCheck(wxCommandEvent& event);
@@ -88,30 +90,29 @@ class ConfigDialog : public wxDialog
 		enum
 		{
 			////GUI Enum Control ID Start
-			ID_CANCEL = 1030,
-			ID_OK = 1028,
-			ID_TEXTUREPATH = 1027,
-			ID_SHADERERRORS = 1026,
-			ID_TEXFMTCENTER = 1025,
-			ID_TEXFMTOVERLAY = 1024,
-			ID_STATISTICS = 1023,
-			ID_DUMPTEXTURES = 1022,
-			ID_WIREFRAME = 1021,
-			ID_FORCEANISOTROPY = 1020,
-			ID_FORCEFILTERING = 1019,
-			ID_AATEXT = 1015,
-			ID_ALIASMODECB = 1014,
-			ID_FSTEXT = 1013,
-			ID_WMTEXT = 1012,
-			ID_WINDOWRESOLUTIONCB = 1011,
-			ID_FULLSCREENCB = 1010,
-			ID_RENDERTOMAINWINDOW = 1009,
-			ID_FULLSCREEN = 1008,
-			ID_PAGEADVANCED = 1007,
-			ID_WXNOTEBOOKPAGE3 = 1006,
-			ID_PAGEVIDEO = 1005,
-			ID_PAGEENHANCEMENTS = 1004,
-			ID_WXNOTEBOOKPAGE1 = 1003,
+			ID_CANCEL = 1000,
+			ID_OK,
+			ID_TEXTUREPATH,
+			ID_SHADERERRORS,
+			ID_TEXFMTCENTER,
+			ID_TEXFMTOVERLAY,
+			ID_STATISTICS,
+			ID_DUMPTEXTURES,
+			ID_WIREFRAME,
+			ID_FORCEANISOTROPY,
+			ID_FORCEFILTERING,
+			ID_ALIASMODECB,
+			ID_AATEXT,
+			ID_WINDOWRESOLUTIONCB,
+			ID_WMTEXT,
+			ID_FULLSCREENCB,
+			ID_FSTEXT,
+			ID_RENDERTOMAINWINDOW,
+			ID_FULLSCREEN,
+			ID_PAGEADVANCED,
+			ID_NOTEBOOK,
+			ID_PAGEVIDEO,
+			ID_PAGEENHANCEMENTS,
 			////GUI Enum Control ID End
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
 		};

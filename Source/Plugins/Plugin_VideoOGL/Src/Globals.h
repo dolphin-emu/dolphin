@@ -133,6 +133,7 @@ struct Config
 	bool renderToMainframe;
 	char iFSResolution[16];
 	char iWindowedRes[16];
+	int iMultisampleMode;
 
     bool bForceFiltering;
     bool bForceMaxAniso;
@@ -148,7 +149,6 @@ struct Config
 	int iLog; // CONF_ bits
 	int iSaveTargetId;
 	int iAdapter;
-	int iMultisampleMode;
 	char psProfile[16];
     char vsProfile[16];
 	int iPostprocessEffect;

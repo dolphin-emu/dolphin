@@ -29,6 +29,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_RENDERTOMAINWINDOW,ConfigDialog::RenderMainCheck)
 	EVT_COMBOBOX(ID_FULLSCREENCB,ConfigDialog::FSCB)
 	EVT_COMBOBOX(ID_WINDOWRESOLUTIONCB,ConfigDialog::WMCB)
+	EVT_COMBOBOX(ID_ALIASMODECB,ConfigDialog::AACB)
 	EVT_CHECKBOX(ID_FORCEFILTERING,ConfigDialog::ForceFilteringCheck)
 	EVT_CHECKBOX(ID_FORCEANISOTROPY,ConfigDialog::ForceAnisotropyCheck)
 	EVT_CHECKBOX(ID_WIREFRAME,ConfigDialog::WireframeCheck)
@@ -54,11 +55,11 @@ ConfigDialog::~ConfigDialog()
 void ConfigDialog::CreateGUIControls()
 {	
 	//notebook
-	m_Notebook = new wxNotebook(this, ID_PAGEENHANCEMENTS, wxDefaultPosition, wxDefaultSize);
+	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 	m_PageVideo = new wxPanel(m_Notebook, ID_PAGEVIDEO, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_PageVideo, wxT("Video"));
 
-	m_PageEnhancements = new wxPanel(m_Notebook, ID_WXNOTEBOOKPAGE3, wxDefaultPosition, wxDefaultSize);
+	m_PageEnhancements = new wxPanel(m_Notebook, ID_PAGEENHANCEMENTS, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_PageEnhancements, wxT("Enhancements"));
 
 	m_PageAdvanced = new wxPanel(m_Notebook, ID_PAGEADVANCED, wxDefaultPosition, wxDefaultSize);
@@ -100,6 +101,14 @@ void ConfigDialog::CreateGUIControls()
 	m_WindowResolutionCB = new wxComboBox(m_PageVideo, ID_WINDOWRESOLUTIONCB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, 0, wxDefaultValidator);
 	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.iWindowedRes));
 
+	wxStaticText *AAText = new wxStaticText(m_PageVideo, ID_AATEXT, wxT("Anti-alias mode:"),  wxDefaultPosition, wxDefaultSize, 0);
+	wxArrayString arrayStringFor_AliasModeCB;
+	m_AliasModeCB = new wxComboBox(m_PageVideo, ID_ALIASMODECB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_AliasModeCB, wxCB_READONLY, wxDefaultValidator);
+	wxString tmp;
+	tmp<<g_Config.iMultisampleMode;
+	// since wxCB_READONLY is being used, SetValue will only succeed if tmp is in the list.
+	m_AliasModeCB->SetValue(tmp);
+
 	//page2
 	m_ForceFiltering = new wxCheckBox(m_PageEnhancements, ID_FORCEFILTERING, wxT("Force bi/trilinear filtering (May cause small glitches)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ForceFiltering->SetValue(g_Config.bForceFiltering);
@@ -121,11 +130,6 @@ void ConfigDialog::CreateGUIControls()
 	m_TexturePath->Enable(m_DumpTextures->IsChecked());
 
 	//TODO: make the following work ^^
-	wxStaticText *AAText = new wxStaticText(m_PageVideo, ID_AATEXT, wxT("Anti-alias mode:"),  wxDefaultPosition, wxDefaultSize, 0);
-	wxArrayString arrayStringFor_AliasModeCB;
-	m_AliasModeCB = new wxComboBox(m_PageVideo, ID_ALIASMODECB, wxT(""), wxDefaultPosition, wxDefaultSize, arrayStringFor_AliasModeCB, 0, wxDefaultValidator);
-	m_AliasModeCB->Enable(false);
-
 	m_ForceAnisotropy = new wxCheckBox(m_PageEnhancements, ID_FORCEANISOTROPY, wxT("Force maximum anisotropy filtering"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	//m_ForceAnisotropy->SetValue(g_Config.bForceMaxAniso);
 	m_ForceAnisotropy->Enable(false);
@@ -224,6 +228,18 @@ void ConfigDialog::AddWindowReso(char *reso)
 void ConfigDialog::WMCB(wxCommandEvent& event)
 {
 	strcpy(g_Config.iWindowedRes, m_WindowResolutionCB->GetValue().mb_str() );
+}
+
+void ConfigDialog::AddAAMode(int mode)
+{
+	wxString tmp;
+	tmp<<mode;
+	m_AliasModeCB->wxControlWithItems::Append(tmp);
+}
+
+void ConfigDialog::AACB(wxCommandEvent& event)
+{
+	g_Config.iMultisampleMode = atoi(m_AliasModeCB->GetValue().mb_str());
 }
 
 void ConfigDialog::ForceFilteringCheck(wxCommandEvent& event)

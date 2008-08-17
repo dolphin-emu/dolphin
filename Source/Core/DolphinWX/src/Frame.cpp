@@ -245,7 +245,7 @@ void CFrame::PopulateToolbar(wxToolBar* toolBar)
 	toolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _T("DSP"),  m_Bitmaps[Toolbar_PluginDSP], _T("DSP settings"));
 	toolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("PAD"),  m_Bitmaps[Toolbar_PluginPAD], _T("PAD settings"));
 	toolBar->AddSeparator();
-	toolBar->AddTool(wxID_HELP, _T("About"), m_Bitmaps[Toolbar_Help], _T("About Dolphin"));
+	toolBar->AddTool(IDM_HELPABOUT, _T("About"), m_Bitmaps[Toolbar_Help], _T("About Dolphin"));
 
 	// after adding the buttons to the toolbar, must call Realize() to reflect
 	// the changes
