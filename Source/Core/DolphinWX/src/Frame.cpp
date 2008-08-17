@@ -17,6 +17,7 @@
 
 #include "Globals.h"
 #include "Frame.h"
+#include "FileUtil.h"
 
 #include "GameListCtrl.h"
 #include "BootManager.h"
@@ -79,8 +80,9 @@ const wxEventType wxEVT_HOST_COMMAND = wxNewEventType();
 BEGIN_EVENT_TABLE(CFrame, wxFrame)
 EVT_MENU(wxID_OPEN, CFrame::OnOpen)
 EVT_MENU(wxID_EXIT, CFrame::OnQuit)
-EVT_MENU(wxID_HELP, CFrame::OnAbout)
-EVT_MENU(IDM_ABOUT, CFrame::OnAbout)
+EVT_MENU(IDM_HELPWEBSITE, CFrame::OnHelp)
+EVT_MENU(IDM_HELPGOOGLECODE, CFrame::OnHelp)
+EVT_MENU(IDM_HELPABOUT, CFrame::OnHelp)
 EVT_MENU(wxID_REFRESH, CFrame::OnRefresh)
 EVT_MENU(IDM_PLAY, CFrame::OnPlay)
 EVT_MENU(IDM_STOP, CFrame::OnStop)
@@ -210,7 +212,10 @@ void CFrame::CreateMenu()
 	wxMenu* helpMenu = new wxMenu;
 	/*helpMenu->Append(wxID_HELP, _T("&Help"));
 	re-enable when there's something useful to display*/
-	helpMenu->Append(wxID_HELP, _T("&About..."));
+	helpMenu->Append(IDM_HELPWEBSITE, _T("&Dolphin web site"));
+	helpMenu->Append(IDM_HELPGOOGLECODE, _T("&Dolphin at Google Code"));
+	helpMenu->AppendSeparator();
+	helpMenu->Append(IDM_HELPABOUT, _T("&About..."));
 	m_pMenuBar->Append(helpMenu, _T("&Help"));
 
 	// Associate the menu bar with the frame
@@ -329,28 +334,33 @@ void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
 }
 
 
-void CFrame::OnAbout(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnHelp(wxCommandEvent& event)
 {
-	wxAboutDialogInfo info;
-	info.AddDeveloper(_T("ector"));
-	info.AddDeveloper(_T("F|RES"));
-	info.AddDeveloper(_T("yaz0r"));
-	info.AddDeveloper(_T("zerofrog"));
+	switch (event.GetId()) {
+	case IDM_HELPABOUT:
+		{
+		wxAboutDialogInfo info;
+		info.AddDeveloper(_T("ector"));
+		info.AddDeveloper(_T("F|RES"));
+		info.AddDeveloper(_T("yaz0r"));
+		info.AddDeveloper(_T("zerofrog"));
+	/*	info.SetLicence(wxString::FromAscii(
+		"Dolphin Licence 1.0"
+		"#include GPL.TXT"));
+	 */
 
-/*	info.SetLicence(wxString::FromAscii(
-    "Dolphin Licence 1.0"
-    "#include GPL.TXT"));
- */
+		info.AddArtist(_T("miloszwl@miloszwl.com (miloszwl.deviantart.com)"));
 
-	info.AddArtist(_T("miloszwl@miloszwl.com (miloszwl.deviantart.com)"));
-
-	wxAboutBox(info);
-}
-
-
-void CFrame::OnHelp(wxCommandEvent& WXUNUSED (event))
-{
-	wxMessageBox(wxString::FromAscii("missing OnHelp()"));
+		wxAboutBox(info);
+		break;
+		}
+	case IDM_HELPWEBSITE:
+		File::Launch("http://www.dolphin-emu.com/");
+		break;
+	case IDM_HELPGOOGLECODE:
+		File::Launch("http://code.google.com/p/dolphin-emu/");
+		break;
+	}
 }
 
 

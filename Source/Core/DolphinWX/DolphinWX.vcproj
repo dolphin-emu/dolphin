@@ -752,11 +752,27 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\MemoryCards\GCMemcard.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\MemoryCards\GCMemcard.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\Globals.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\src\Globals.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\MemcardManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\MemcardManager.h"
 				>
 			</File>
 			<File

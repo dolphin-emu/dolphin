@@ -50,10 +50,8 @@ class CFrame
 		void RecreateToolbar();
 		void CreateMenu();
 
-
 		// event handler
 		void OnQuit(wxCommandEvent& event);
-		void OnAbout(wxCommandEvent& event);
 		void OnHelp(wxCommandEvent& event);
 		void OnRefresh(wxCommandEvent& event);
 		void OnPluginOptions(wxCommandEvent& event);
