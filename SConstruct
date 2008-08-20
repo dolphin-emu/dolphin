@@ -29,6 +29,21 @@ include_paths = ["../../../Core/Common/Src",
 #                 "../../../Plugins/Plugin_VideoOGL/Src/Windows",
                  ]
 
+dirs = [
+	"Source/Core/Common/Src",
+	"Externals/Bochs_disasm",
+	"Source/Core/Core/Src",
+	"Source/Core/DiscIO/Src",
+	"Source/Core/DebuggerWX/src",
+	"Source/Core/VideoCommon/Src",
+	"Source/Plugins/Plugin_VideoOGL/Src",
+	"Source/Plugins/Plugin_DSP_HLE/Src",
+#	"Source/Plugins/Plugin_DSP_LLE/Src",
+	"Source/Plugins/Plugin_PadSimple/Src",
+	"Source/Plugins/Plugin_nJoy_SDL/Src",
+	"Source/Core/DolphinWX/src",
+	]
+
 builders = {}
 if sys.platform == 'darwin':         
 	from plistlib import writePlist
@@ -39,34 +54,6 @@ if sys.platform == 'darwin':
 		for dst_node in target:
 			writePlist(properties, str(dst_node))
 	builders['Plist'] = Builder(action = create_plist)
-
-	dirs = ["Source/Core/Common/Src",
-        	"Externals/Bochs_disasm",
-	        "Source/Core/Core/Src",
-       	 	"Source/Core/DiscIO/Src",
-            "Source/Core/DebuggerWX/src",
-            "Source/Core/VideoCommon/Src",
-           "Source/Plugins/Plugin_VideoOGL/Src",
-#           "Source/Plugins/Plugin_DSP_LLE/Src",
-            "Source/Plugins/Plugin_PadSimple/Src",
-            "Source/Plugins/Plugin_nJoy_SDL/Src",
-            "Source/Core/DolphinWX/src",
-           ]
-else:
-	dirs = ["Source/Core/Common/Src",
-        "Externals/Bochs_disasm",
-        "Source/Core/Core/Src",
-        "Source/Core/DiscIO/Src",
-        "Source/Core/DebuggerWX/src",
-        "Source/Core/VideoCommon/Src",
-        "Source/Plugins/Plugin_VideoOGL/Src",
-		"Source/Plugins/Plugin_DSP_HLE/Src",
-#		"Source/Plugins/Plugin_DSP_LLE/Src",
-		"Source/Plugins/Plugin_PadSimple/Src",
-		"Source/Plugins/Plugin_nJoy_SDL/Src",
-        "Source/Core/DolphinWX/src",
-       ]
-
 
 lib_paths = include_paths
 
