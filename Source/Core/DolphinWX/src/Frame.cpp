@@ -316,9 +316,7 @@ void CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 	{
 		return;
 	}
-	std::string temp;
-	temp.insert(0, path.ToAscii()); //Need to convert to C++ style string first
-	BootManager::BootCore(temp);
+	BootManager::BootCore(std::string(path.ToAscii()));
 }
 
 
