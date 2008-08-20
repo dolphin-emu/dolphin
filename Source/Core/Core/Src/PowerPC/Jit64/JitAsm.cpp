@@ -48,6 +48,7 @@ const u8 *dispatcher;
 const u8 *dispatcherNoCheck;
 const u8 *dispatcherPcInEAX;
 const u8 *computeRc;
+const u8 *computeRcFp;
 
 const u8 *fifoDirectWrite8;
 const u8 *fifoDirectWrite16;
@@ -336,6 +337,11 @@ void GenerateCommon()
 	GenFifoWrite(32);
 	fifoDirectWriteFloat = AlignCode4();
 	GenFifoFloatWrite();
+
+	computeRcFp = AlignCode16();
+	//CMPSD(R(XMM0), M(&zero), 
+	// TODO
+
 	// Fast write routines - special case the most common hardware write
 	// TODO: use this.
 	// Even in x86, the param values will be in the right registers.

@@ -30,6 +30,7 @@ namespace Jit64
 
 		extern const u8 *fpException;
 		extern const u8 *computeRc;
+		extern const u8 *computeRcFp;
 		extern const u8 *testExceptions;
 		extern const u8 *dispatchPcInEAX;
 		extern const u8 *doTiming;

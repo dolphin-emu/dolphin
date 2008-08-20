@@ -349,8 +349,12 @@ namespace Jit64
 			xregs[xr].free = false;
 			xregs[xr].dirty = makeDirty;
 			OpArg newloc = ::Gen::R(xr);
-			if (doLoad)
+			if (doLoad) {
+				if (!regs[i].location.IsImm() && (regs[i].location.offset & 0xF)) {
+					PanicAlert("WARNING - misaligned fp register location %i", i);
+				}
 				MOVAPD(xr, regs[i].location);
+			}
 			regs[i].location = newloc;
 			regs[i].away = true;
 		}

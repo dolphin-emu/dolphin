@@ -79,6 +79,9 @@ namespace Jit64
 	void fp_arith_s(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
+		if (inst.Rc) {
+			Default(inst); return;
+		}
 		bool dupe = inst.OPCD == 59;
 		switch (inst.SUBOP5)
 		{
@@ -100,6 +103,9 @@ namespace Jit64
 	void fmaddXX(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
+		if (inst.Rc) {
+			Default(inst); return;
+		}
 		int a = inst.FA;
 		int b = inst.FB;
 		int c = inst.FC;
@@ -139,6 +145,9 @@ namespace Jit64
 	void fmrx(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
+		if (inst.Rc) {
+			Default(inst); return;
+		}
 		int d = inst.FD;
 		int b = inst.FB;
 		fpr.LoadToX64(d, true);  // we don't want to destroy the high bit

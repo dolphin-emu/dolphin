@@ -53,6 +53,9 @@ namespace Jit64
 	void ps_mr(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
+		if (inst.Rc) {
+			Default(inst); return;
+		}
 		int d = inst.FD;
 		int b = inst.FB;
 		if (d == b)
@@ -67,6 +70,9 @@ namespace Jit64
 		Default(inst);
 		return;
 		
+		if (inst.Rc) {
+			Default(inst); return;
+		}
 		// GRR can't get this to work 100%. Getting artifacts in D.O.N. intro.
 		int d = inst.FD;
 		int a = inst.FA;
@@ -92,6 +98,9 @@ namespace Jit64
 	void ps_sign(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
+		if (inst.Rc) {
+			Default(inst); return;
+		}
 		int d = inst.FD;
 		int b = inst.FB;
 
@@ -125,6 +134,9 @@ namespace Jit64
 	void ps_rsqrte(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
+		if (inst.Rc) {
+			Default(inst); return;
+		}
 		int d = inst.FD;
 		int b = inst.FB;
 		fpr.Lock(d, b);
@@ -193,6 +205,9 @@ namespace Jit64
 	void ps_arith(UGeckoInstruction inst)
 	{	
 		INSTRUCTION_START;
+		if (inst.Rc) {
+			Default(inst); return;
+		}
 		switch (inst.SUBOP5)
 		{
 		case 18: tri_op(inst.FD, inst.FA, inst.FB, false, &DIVPD); break; //div
@@ -214,6 +229,9 @@ namespace Jit64
 	void ps_mergeXX(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
+		if (inst.Rc) {
+			Default(inst); return;
+		}
 		int d = inst.FD;
 		int a = inst.FA;
 		int b = inst.FB;
@@ -252,6 +270,9 @@ namespace Jit64
 	void ps_maddXX(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
+		if (inst.Rc) {
+			Default(inst); return;
+		}
 		int a = inst.FA;
 		int b = inst.FB;
 		int c = inst.FC;
@@ -295,6 +316,9 @@ namespace Jit64
 		INSTRUCTION_START;
 		Default(inst);
 		return;
+		if (inst.Rc) {
+			Default(inst); return;
+		}
 
 		switch (inst.SUBOP5)
 		{
