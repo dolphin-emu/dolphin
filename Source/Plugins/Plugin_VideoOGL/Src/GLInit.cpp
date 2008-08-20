@@ -155,20 +155,22 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 
 #if defined(_WIN32)
     // create the window
-    if (!g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL) {
-        // create the window
-        g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, "Please wait...");
-        if (g_VideoInitialize.pWindowHandle == NULL) {
-            SysMessage("failed to create window");
-            return false;
-        }
-        EmuWindow::Show();
+    if (!g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL)
+	{
+		g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, "Please wait...");
     }
     else
     {
         g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, "Please wait...");
     }
+	EmuWindow::Show();
 
+	if (g_VideoInitialize.pWindowHandle == NULL)
+	{
+		SysMessage("failed to create window");
+		return false;
+	}
+	
     GLuint      PixelFormat;            // Holds The Results After Searching For A Match
     DWORD       dwExStyle;              // Window Extended Style
     DWORD       dwStyle;                // Window Style
@@ -197,17 +199,18 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
                 return false;
         }
     }
-    else {
+    else
+	{
         // change to default resolution
         ChangeDisplaySettings(NULL, 0);
     }
 
-    if (g_Config.bFullscreen) {
-        dwExStyle=WS_EX_APPWINDOW;
-        dwStyle=WS_POPUP;
-        //ShowCursor(FALSE);
+    if (g_Config.bFullscreen && !g_Config.renderToMainframe)
+	{
+        ShowCursor(FALSE);
     }
-    else {
+    else
+	{
         dwExStyle=WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
         dwStyle=WS_OVERLAPPEDWINDOW;
     }
@@ -391,7 +394,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         XMapRaised(GLWin.dpy, GLWin.win);
     }       
 #else
-	//SDL fo other OS (osx, bsd, ...)
+	//SDL for other OS (osx, bsd, ...)
 	int videoFlags = SDL_OPENGL;
 	SDL_Surface *screen;
 	const SDL_VideoInfo *videoInfo;
@@ -409,7 +412,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 		SDL_Quit();
 		return false;
 	}
-	//hw o sw ogl ?
+	//hw or sw ogl ?
     	if (videoInfo->hw_available)
         	videoFlags |= SDL_HWSURFACE;
     	else

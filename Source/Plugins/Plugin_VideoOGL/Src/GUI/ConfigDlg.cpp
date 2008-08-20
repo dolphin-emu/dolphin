@@ -103,10 +103,9 @@ void ConfigDialog::CreateGUIControls()
 
 	wxStaticText *AAText = new wxStaticText(m_PageVideo, ID_AATEXT, wxT("Anti-alias mode:"),  wxDefaultPosition, wxDefaultSize, 0);
 	wxArrayString arrayStringFor_AliasModeCB;
-	m_AliasModeCB = new wxComboBox(m_PageVideo, ID_ALIASMODECB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_AliasModeCB, wxCB_READONLY, wxDefaultValidator);
+	m_AliasModeCB = new wxComboBox(m_PageVideo, ID_ALIASMODECB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_AliasModeCB, 0, wxDefaultValidator);
 	wxString tmp;
 	tmp<<g_Config.iMultisampleMode;
-	// since wxCB_READONLY is being used, SetValue will only succeed if tmp is in the list.
 	m_AliasModeCB->SetValue(tmp);
 
 	//page2

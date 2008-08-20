@@ -145,7 +145,6 @@ struct Config
 	char texDumpPath[280];
 
 	//currently unused:
-	int aa; // anti-aliasing level
 	int iLog; // CONF_ bits
 	int iSaveTargetId;
 	int iAdapter;

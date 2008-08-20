@@ -2,6 +2,7 @@
 #include <windows.h>
 
 #include "../../Core/Src/Core.h"
+#include "Globals.h"
 #include "EmuWindow.h"
 
 namespace EmuWindow
@@ -68,7 +69,7 @@ namespace EmuWindow
 	}
 
 
-	HWND OpenWindow(HWND parent, HINSTANCE hInstance, bool windowed, int width, int height, const TCHAR *title)
+	HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const TCHAR *title)
 	{
 		wndClass.cbSize = sizeof( wndClass );
 		wndClass.style  = CS_HREDRAW | CS_VREDRAW;
@@ -86,7 +87,7 @@ namespace EmuWindow
 		m_hInstance = hInstance;
 		RegisterClassEx( &wndClass );
 
-		if (parent && windowed)
+		if (parent)
 		{
 			m_hWnd = CreateWindow(m_szClassName, title,
 				WS_CHILD,
@@ -99,7 +100,7 @@ namespace EmuWindow
 		}
 		else
 		{
-			DWORD style = windowed ? WS_OVERLAPPEDWINDOW : WS_POPUP;
+			DWORD style = g_Config.bFullscreen ? WS_POPUP : WS_OVERLAPPEDWINDOW;
 
 			RECT rc = {0, 0, width, height};
 			AdjustWindowRect(&rc, style, false);
@@ -135,7 +136,7 @@ namespace EmuWindow
 
 	HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title)
 	{
-		return OpenWindow(hParent, hInstance, true, 640, 480, title);
+		return OpenWindow(hParent, hInstance, 640, 480, title);
 	}
 
 	void Close()

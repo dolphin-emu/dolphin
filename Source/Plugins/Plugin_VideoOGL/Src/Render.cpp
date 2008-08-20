@@ -233,7 +233,7 @@ bool Renderer::Create2()
 
     s_pfont = new RasterFont();
 
-    SetAA(g_Config.aa);
+	SetAA(g_Config.iMultisampleMode);
     GL_REPORT_ERROR();
 
     // load the effect, find the best profiles (if any)

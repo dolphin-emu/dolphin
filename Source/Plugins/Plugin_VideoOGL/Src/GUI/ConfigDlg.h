@@ -43,7 +43,6 @@ class ConfigDialog : public wxDialog
 	public:
 		ConfigDialog(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("OpenGL Plugin Configuration"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = ConfigDialog_STYLE);
 		virtual ~ConfigDialog();
-		void ConfigDialogActivate(wxActivateEvent& event);
 		void OKClick(wxCommandEvent& event);
 		void FullScreenCheck(wxCommandEvent& event);
 		void RenderMainCheck(wxCommandEvent& event);
