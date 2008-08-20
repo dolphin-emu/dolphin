@@ -31,13 +31,13 @@ namespace {
 static std::map<void *, const u8 *> thunks;
 u8 GC_ALIGNED32(saved_fp_state[16 * 4 * 4]);
 u8 GC_ALIGNED32(saved_gpr_state[16 * 8]);
-}
 
 static u8 *thunk_memory;
 static u8 *thunk_code;
 static const u8 *save_regs;
 static const u8 *load_regs;
-u32 saved_return;
+static u16 saved_mxcsr;
+}
 
 void Thunk_Init()
 {
@@ -48,6 +48,7 @@ void Thunk_Init()
 	save_regs = GetCodePtr();
 	for (int i = 2; i < ABI_GetNumXMMRegs(); i++)
 		MOVAPS(M(saved_fp_state + i * 16), (X64Reg)(XMM0 + i));
+	STMXCSR(M(&saved_mxcsr));
 #ifdef _M_X64
 	MOV(64, M(saved_gpr_state + 0 ), R(RCX));
 	MOV(64, M(saved_gpr_state + 8 ), R(RDX));
@@ -66,6 +67,7 @@ void Thunk_Init()
 #endif
 	RET();
 	load_regs = GetCodePtr();
+	LDMXCSR(M(&saved_mxcsr));
 	for (int i = 2; i < ABI_GetNumXMMRegs(); i++)
 		MOVAPS((X64Reg)(XMM0 + i), M(saved_fp_state + i * 16));
 #ifdef _M_X64
@@ -131,7 +133,9 @@ void *ProtectFunction(void *function, int num_params)
 	RET();
 #else
 	CALL((void*)save_regs);
-	// Re-push parameters from previous stack frame
+	// Since parameters are in the previous stack frame, not in registers, this takes some
+	// trickery : we simply re-push the parameters. might not be optimal, but that doesn't really
+	// matter.
 	for (int i = 0; i < num_params; i++) {
 		// ESP is changing, so we do not need i
 		PUSH(32, MDisp(ESP, (num_params) * 4));
