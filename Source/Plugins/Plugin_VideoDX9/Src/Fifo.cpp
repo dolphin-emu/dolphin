@@ -46,11 +46,11 @@ void Fifo_Shutdown()
 
 int FAKE_GetFifoSize()
 {
-	if (size < readptr)
-	{
-        PanicAlert("GFX Fifo underrun encountered.");
-	}
-	return (size - readptr);
+    if (size < readptr)
+    {
+        PanicAlert("GFX Fifo underrun encountered (size = %i, readptr = %i)", size, readptr);
+    }
+    return (size - readptr);
 }
 
 u8 FAKE_PeekFifo8(u32 _uOffset)

@@ -256,23 +256,20 @@ inline void decodebytesRGB5A3(u32 *dst, const u16 *src, int numpixels)
         dst[x] = decode5A3(Common::swap16(src[x]));
 }
 
-inline void decodebytesARGB8pass1(u32 *dst, const u16 *src, const u16 *src2, int numpixels)
+// This one is used by many video formats. It'd therefore be good if it was fast.
+inline void decodebytesARGB8_4(u32 *dst, const u16 *src, const u16 *src2)
 {
-	// This can probably be done in a few SSE pack/unpack instructions.
-    for (int x = 0; x < numpixels; x++) {
+    for (int x = 0; x < 4; x++) {
         dst[x] = Common::swap32((src2[x] << 16) | src[x]);
     }
-}
 
-inline void decodebytesARGB8pass2(u32 *dst, const u16 *src, int numpixels)
-{
-    for (int x = 0; x < numpixels; x++)
-    {
-        int val = Common::swap16(src[x]);
-        int a = val & 0xFF;
-        val >>= 8;
-        *dst++ |= (val<<8) | (a<<0);
-    }
+	// This can probably be done in a few SSE pack/unpack instructions + pshufb
+	// some unpack instruction x2:
+	// ABABABABABABABAB 1212121212121212 ->
+	// AB12AB12AB12AB12 AB12AB12AB12AB12
+	// 2x pshufb-> 
+	// 21BA21BA21BA21BA 21BA21BA21BA21BA
+	// and we are done.
 }
 
 inline u32 makecol(int r, int g, int b, int a)
@@ -411,7 +408,7 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
                 for (int x = 0; x < width; x += 4)
                 {
 					for (int iy = 0; iy < 4; iy++) {
-                        decodebytesARGB8pass1((u32*)dst + (y+iy)*width + x, (u16*)src + 4 * iy, (u16*)src + 4 * iy + 16, 4);
+                        decodebytesARGB8_4((u32*)dst + (y+iy)*width + x, (u16*)src + 4 * iy, (u16*)src + 4 * iy + 16);
 					}
 					src += 64;
                 }

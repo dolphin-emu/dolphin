@@ -46,7 +46,7 @@ int FAKE_GetFifoSize()
 {
     if (size < readptr)
     {
-        PanicAlert("GFX Fifo underrun encountered.");
+        PanicAlert("GFX Fifo underrun encountered (size = %i, readptr = %i)", size, readptr);
     }
     return (size - readptr);
 }
