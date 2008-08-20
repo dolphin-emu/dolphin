@@ -127,4 +127,13 @@ void WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address)
 #endif
 }
 
+void ForceSinglePrecisionS(X64Reg xmm) {
+	CVTSD2SS(xmm, R(xmm));
+	CVTSS2SD(xmm, R(xmm));
+}
+void ForceSinglePrecisionP(X64Reg xmm) {
+	CVTPD2PS(xmm, R(xmm));
+	CVTPS2PD(xmm, R(xmm));
+}
+
 }  // namespace

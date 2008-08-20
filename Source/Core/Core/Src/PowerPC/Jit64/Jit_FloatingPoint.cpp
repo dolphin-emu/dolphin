@@ -24,6 +24,7 @@
 #include "Jit.h"
 #include "JitCache.h"
 #include "JitRegCache.h"
+#include "Jit_Util.h"
 
 #define INSTRUCTION_START
 // #define INSTRUCTION_START Default(inst); return;
@@ -70,9 +71,9 @@ namespace Jit64
 			MOVSD(fpr.RX(d), Gen::R(XMM0));
 		}
 		if (dupe) {
+			ForceSinglePrecisionS(fpr.RX(d));
 			MOVDDUP(fpr.RX(d), fpr.R(d));
 		}
-		//fpr.SetDirty(fpr.RX(d));
 		fpr.UnlockAll();
 	}
 
@@ -106,6 +107,9 @@ namespace Jit64
 		if (inst.Rc) {
 			Default(inst); return;
 		}
+
+		bool single_precision = inst.OPCD == 59;
+
 		int a = inst.FA;
 		int b = inst.FB;
 		int c = inst.FC;
@@ -137,7 +141,12 @@ namespace Jit64
 		fpr.LoadToX64(d, false);
 		//YES it is necessary to dupe the result :(
 		//TODO : analysis - does the top reg get used? If so, dupe, if not, don't.
-		MOVDDUP(fpr.RX(d), Gen::R(XMM0));
+		if (single_precision) {
+			ForceSinglePrecisionS(XMM0);
+			MOVDDUP(fpr.RX(d), R(XMM0));
+		} else {
+			MOVSD(fpr.RX(d), R(XMM0));
+		}
 		fpr.UnlockAll();
 	}
 	

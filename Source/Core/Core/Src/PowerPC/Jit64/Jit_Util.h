@@ -30,4 +30,7 @@ void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSi
 void WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address);
 void WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address);
 
+void ForceSinglePrecisionS(X64Reg xmm);
+void ForceSinglePrecisionP(X64Reg xmm);
+
 }  // namespace
