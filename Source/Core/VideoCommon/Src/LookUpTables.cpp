@@ -37,7 +37,7 @@ void InitLUTs()
         lut6to8[i] = (i*255) / 63;
     for (int i = 0; i < 256; i++)
     {
-        lutu8tosfloat[i] = (float)(i-128) / 127.0f;
+        lutu8tosfloat[i] = (float)(i - 128) / 127.0f;
         lutu8toufloat[i] = (float)(i) / 255.0f;
         luts8tosfloat[i] = ((float)(signed char)(char)i) / 127.0f;
     }

@@ -22,16 +22,9 @@
 namespace ExpansionInterface
 {
 
-// init
 void Init();
-
-// shutdown
 void Shutdown();
-
-// update
 void Update();
-
-// updateInterrupts
 void UpdateInterrupts();
 
 void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);

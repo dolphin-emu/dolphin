@@ -70,6 +70,7 @@ private:
 		};
 	};
 
+	// STATE_TO_SAVE
 	UEXI_STATUS		m_Status;
 	UEXI_CONTROL	m_Control;
 	u32			m_DMAMemoryAddress;
@@ -89,34 +90,22 @@ private:
 
 public:
 
-	// channeId for debugging
+	// channelId for debugging
 	u32 m_ChannelId;
 
-	// constructor
 	CEXIChannel();
-
-	// destructor
 	~CEXIChannel();
 
-	// Add a Device
 	void AddDevice(const TEXIDevices _device, const unsigned int _iSlot);
 
 	// Remove all devices
 	void RemoveDevices();
 
-	// update
-	void Update();
-
-	// Read32
 	void Read32(u32& _uReturnValue, const u32 _iRegister);
-
-	// isCausingInterrupt
-	bool isCausingInterrupt();
-
-	// Write32
 	void Write32(const u32 _iValue, const u32 _iRegister);
 
-	// update interrupts 
+	void Update();
+	bool IsCausingInterrupt();
 	void UpdateInterrupts();
 };
 

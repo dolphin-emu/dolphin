@@ -82,6 +82,7 @@ union UVIInterruptRegister
 	};
 };
 
+// STATE_TO_SAVE
 UVIDisplayControlRegister m_VIDisplayControlRegister;
 
 // Framebuffers

@@ -20,4 +20,5 @@
 #include "BPMemory.h"
 
 //BP state
+// STATE_TO_SAVE
 BPMemory bpmem;

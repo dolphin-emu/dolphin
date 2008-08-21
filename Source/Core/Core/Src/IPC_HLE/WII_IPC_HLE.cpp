@@ -51,6 +51,8 @@ enum ECommandType
 
 typedef std::map<u32, IWII_IPC_HLE_Device*> TDeviceMap;
 TDeviceMap g_DeviceMap;
+
+// STATE_TO_SAVE
 u32 g_LastDeviceID = 0x13370000;
 
 

@@ -20,7 +20,7 @@
 #include "TextureDecoder.h"
 #include "LookUpTables.h"
 
-//Uncomment this to enable Texure Format ID overlays
+//Uncomment this to enable Texture Format ID overlays
 #define OVERLAY_TEXFMT
 
 #ifdef OVERLAY_TEXFMT
@@ -29,6 +29,7 @@ bool TexFmt_Overlay_Center=false;
 #endif
 
 // TRAM
+// STATE_TO_SAVE
 u8 texMem[TMEM_SIZE];
 
 //////////////////////////////////////////////////////////////////////////

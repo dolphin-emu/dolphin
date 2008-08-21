@@ -207,12 +207,13 @@ union USIEXIClockCount
 	};
 };
 
-SSIChannel			g_Channel[NUMBER_OF_CHANNELS];
-USIPoll				g_Poll;
-USIComCSR			g_ComCSR;
-USIStatusReg		g_StatusReg;
-USIEXIClockCount	g_EXIClockCount;
-u8					g_SIBuffer[128];
+// STATE_TO_SAVE
+static SSIChannel         g_Channel[NUMBER_OF_CHANNELS];
+static USIPoll            g_Poll;
+static USIComCSR          g_ComCSR;
+static USIStatusReg       g_StatusReg;
+static USIEXIClockCount   g_EXIClockCount;
+static u8                 g_SIBuffer[128];
 
 static void GenerateSIInterrupt(SIInterruptType _SIInterrupt);	
 void RunSIBuffer();

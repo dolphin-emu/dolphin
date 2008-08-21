@@ -44,6 +44,7 @@ public:
 
 private:
 
+	// STATE_TO_SAVE
 	bdaddr_t m_BD;
 
 	u16 m_ControllerConnectionHandle;

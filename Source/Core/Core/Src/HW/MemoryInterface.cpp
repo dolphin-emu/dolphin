@@ -44,7 +44,8 @@ struct MIMemStruct
 	u32 Channel_Ctrl;
 };
 
-MIMemStruct miMem;
+// STATE_TO_SAVE
+static MIMemStruct miMem;
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)
 {

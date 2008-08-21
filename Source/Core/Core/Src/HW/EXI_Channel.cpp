@@ -48,7 +48,7 @@ CEXIChannel::~CEXIChannel()
 
 void CEXIChannel::RemoveDevices()
 {
-	for (int i=0; i<NUM_DEVICES; i++)
+	for (int i = 0; i < NUM_DEVICES; i++)
 	{
 		if (m_pDevices[i] != NULL)
 		{
@@ -79,14 +79,16 @@ void CEXIChannel::UpdateInterrupts()
 	ExpansionInterface::UpdateInterrupts();
 }
 
-bool CEXIChannel::isCausingInterrupt()
+bool CEXIChannel::IsCausingInterrupt()
 {
 	if (m_ChannelId != 2) /* Channels 0 and 1: Memcard slot (device 0) produces interrupt */
 	{
-		if(m_pDevices[0]->IsInterruptSet())
+		if (m_pDevices[0]->IsInterruptSet())
 			m_Status.EXIINT = 1;
-	} else /* Channel 2: In fact, Channel 0, Device 2 (Serial A) produces interrupt */
+	}
+	else /* Channel 2: In fact, Channel 0, Device 2 (Serial A) produces interrupt */
 	{
+		// WTF? this[-2]??? EVIL HACK
 		if (this[-2].m_pDevices[2]->IsInterruptSet())
 			m_Status.EXIINT = 1;
 	}
@@ -117,7 +119,7 @@ IEXIDevice* CEXIChannel::GetDevice(u8 _CHIP_SELECT)
 void CEXIChannel::Update()
 {
 	// start the transfer
-	for(int i=0; i<NUM_DEVICES; i++)
+	for (int i = 0; i < NUM_DEVICES; i++)
 	{
 		m_pDevices[i]->Update();
 	}
@@ -132,9 +134,9 @@ void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 	case EXI_STATUS:
 		{
 			// check if a device is present
-			for(int i=0; i<NUM_DEVICES; i++)
+			for (int i = 0; i < NUM_DEVICES; i++)
 			{
-				if(m_pDevices[i]->IsPresent())
+				if (m_pDevices[i]->IsPresent())
 				{
 					m_Status.EXT = 1;
 					break;
@@ -184,7 +186,7 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 			// Device
 			if (m_Status.CHIP_SELECT != newStatus.CHIP_SELECT)
 			{
-				for (int i=0; i<NUM_DEVICES; i++)
+				for (int i = 0; i < NUM_DEVICES; i++)
 				{
 					u8 dwDeviceMask = 1 << i;
 					IEXIDevice* pDevice = GetDevice(dwDeviceMask);

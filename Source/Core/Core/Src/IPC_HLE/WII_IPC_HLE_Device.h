@@ -54,11 +54,11 @@ protected:
         SIOCtlVBuffer(u32 _Address)
             : m_Address(_Address)
         {
-            Parameter = Memory::Read_U32(m_Address +0x0C);
-            NumberInBuffer = Memory::Read_U32(m_Address +0x10);
-            NumberPayloadBuffer = Memory::Read_U32(m_Address +0x14);
-            BufferVector = Memory::Read_U32(m_Address +0x18);
-            BufferSize = Memory::Read_U32(m_Address +0x1C);
+            Parameter = Memory::Read_U32(m_Address + 0x0C);
+            NumberInBuffer = Memory::Read_U32(m_Address + 0x10);
+            NumberPayloadBuffer = Memory::Read_U32(m_Address + 0x14);
+            BufferVector = Memory::Read_U32(m_Address + 0x18);
+            BufferSize = Memory::Read_U32(m_Address + 0x1C);
 
             u32 BufferVectorOffset = BufferVector;
             for (u32 i=0; i<NumberInBuffer; i++)
@@ -77,6 +77,7 @@ protected:
             }            
         }
 
+ 		// STATE_TO_SAVE
         const u32 m_Address;
 
         u32 Parameter;
@@ -141,6 +142,7 @@ protected:
 
 private:
 
+	// STATE_TO_SAVE
 	std::string m_Name;
     u32 m_DeviceID;
 

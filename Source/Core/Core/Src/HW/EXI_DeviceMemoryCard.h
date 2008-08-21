@@ -23,17 +23,9 @@ class CEXIMemoryCard : public IEXIDevice
 public:
 	CEXIMemoryCard(const std::string& _rName, const std::string& _rFilename);
 	virtual ~CEXIMemoryCard();
-
-	//! SetCS
 	void SetCS(int cs);
-
-	// update
 	void Update();
-
-	// is generating interrupt ?
 	bool IsInterruptSet();
-
-	//! Is device present?
 	bool IsPresent();
 
 	inline const std::string &GetFileName() const { return m_strFilename; };
@@ -67,7 +59,9 @@ private:
 
 	std::string m_strFilename;
 
-	//! memory card state 	
+	//! memory card state
+
+	// STATE_TO_SAVE
 	int interruptSwitch;
 	bool m_bInterruptSet;
 	int command;

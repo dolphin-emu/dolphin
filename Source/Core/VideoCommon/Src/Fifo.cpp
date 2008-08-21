@@ -26,9 +26,9 @@
 
 #define FIFO_SIZE (1024*1024)
 
+// STATE_TO_SAVE
 FifoReader fifo;
 static u8 *videoBuffer;
-
 static int size = 0;
 static int readptr = 0;
 

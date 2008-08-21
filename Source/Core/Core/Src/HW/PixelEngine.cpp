@@ -50,11 +50,12 @@ union UPECtrlReg
 	UPECtrlReg(u16 _hex) {Hex = _hex; }
 };
 
-UPECtrlReg	g_ctrlReg;
-u16		g_token = 0;		
+// STATE_TO_SAVE
+static UPECtrlReg g_ctrlReg;
+static u16        g_token = 0;		
 
-bool		g_bSignalTokenInterrupt;
-bool		g_bSignalFinishInterrupt;
+static bool       g_bSignalTokenInterrupt;
+static bool       g_bSignalFinishInterrupt;
 
 void UpdateInterrupts();
 

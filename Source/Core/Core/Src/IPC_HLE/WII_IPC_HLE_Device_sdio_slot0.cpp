@@ -135,7 +135,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
     req.blocks  = Memory::Read_U32(_BufferIn + 16);
     req.bsize   = Memory::Read_U32(_BufferIn + 20);
     req.addr    = Memory::Read_U32(_BufferIn + 24);
-	switch (req.command)
+	//switch (req.command)
 	{
 	}
     return 1;

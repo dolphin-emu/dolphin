@@ -163,6 +163,7 @@ public:
         return false;
 	}
 
+	// STATE_TO_SAVE
 	u32 m_EventHookAddress;
 };
 

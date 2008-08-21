@@ -91,7 +91,7 @@ void UpdateInterrupts()
 {
 	for(int i=0; i<NUM_CHANNELS; i++)
 	{
-		if(g_Channels[i].isCausingInterrupt())
+		if(g_Channels[i].IsCausingInterrupt())
 		{
 			CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_EXI, true);
 			return;

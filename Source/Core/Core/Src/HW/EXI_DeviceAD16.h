@@ -22,9 +22,7 @@ class CEXIAD16 : public IEXIDevice
 {
 public:
 	CEXIAD16();
-	//! SetCS
 	virtual void SetCS(int _iCS);
-	//! Is device present?
 	virtual bool IsPresent();
 
 private:
@@ -41,6 +39,7 @@ private:
 		u32 U8[4];
 	};
 
+	// STATE_TO_SAVE
 	u32 m_uPosition;
 	u32 m_uCommand;
 	UAD16Reg m_uAD16Register;

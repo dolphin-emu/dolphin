@@ -25,14 +25,8 @@ class CEXIIPL : public IEXIDevice
 public:
 	CEXIIPL();
 	virtual ~CEXIIPL();
-
-	//! SetCS
 	virtual void SetCS(int _iCS);
-
-	//! Is device present?
 	bool IsPresent();
-
-    //! Get the GC Time
     static u32 GetGCTime();
 
 private:
@@ -46,6 +40,7 @@ private:
 	//! IPL
 	u8* m_pIPL;
 
+	// STATE_TO_SAVE
 	//! RealTimeClock
 	u8 m_RTC[4];
 
@@ -60,8 +55,7 @@ private:
 	char m_szBuffer[256];
 	int m_count;
 
-
-	virtual void TransferByte(u8& _uByte);
+	virtual void TransferByte(u8 &_uByte);
 };
 
 #endif

@@ -22,6 +22,7 @@
 #include "PeripheralInterface.h"
 #include "GPFifo.h"
 
+// STATE_TO_SAVE
 u32 volatile CPeripheralInterface::m_InterruptMask;
 u32 volatile CPeripheralInterface::m_InterruptCause;
 

@@ -14,6 +14,7 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #ifndef _EXIDEVICE_H
 #define _EXIDEVICE_H
 
@@ -22,11 +23,11 @@
 class IEXIDevice
 {
 private:
-	// transfer function for this function
+	// byte transfer function for this device
 	virtual void TransferByte(u8& _byte) {};
 
 public:
-	// immdeiate copy functions
+	// immediate copy functions
 	virtual void ImmWrite(u32 _uData,  u32 _uSize);
 	virtual u32 ImmRead(u32 _uSize);
 
@@ -34,7 +35,6 @@ public:
 	virtual void DMAWrite(u32 _uAddr, u32 _uSize);
 	virtual void DMARead (u32 _uAddr, u32 _uSize);
 
-	// is the Device insert ??
 	virtual bool IsPresent();
 	virtual void SetCS(int _iCS);
 

@@ -83,6 +83,7 @@ union UIPC_Config
     }
 };
 
+// STATE_TO_SAVE
 UIPC_Status g_IPC_Status;
 UIPC_Config g_IPC_Config;
 UIPC_Control g_IPC_Control;
@@ -90,6 +91,7 @@ UIPC_Control g_IPC_Control;
 u32 g_Address = 0;
 u32 g_Reply = 0;
 u32 g_SensorBarPower = 0;
+
 
 void UpdateInterrupts();
 

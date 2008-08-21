@@ -23,12 +23,12 @@ namespace WII_IOBridge
 
 void HWCALL Read8(u8& _rReturnValue, const u32 _Address)
 {
-	_dbg_assert_(WII_IOB,0);
+	_dbg_assert_(WII_IOB, 0);
 }
 
 void HWCALL Read16(u16& _rReturnValue, const u32 _Address)
 {
-	_dbg_assert_(WII_IOB,0);
+	_dbg_assert_(WII_IOB, 0);
 }
 
 void HWCALL Read32(u32& _rReturnValue, const u32 _Address)
@@ -73,17 +73,17 @@ void HWCALL Read32(u32& _rReturnValue, const u32 _Address)
 
 void HWCALL Read64(u64& _rReturnValue, const u32 _Address)
 {
-	_dbg_assert_(WII_IOB,0);
+	_dbg_assert_(WII_IOB, 0);
 }
 
 void HWCALL Write8(const u8 _Value, const u32 _Address)
 {
-	_dbg_assert_(WII_IOB,0);
+	_dbg_assert_(WII_IOB, 0);
 }
 
 void HWCALL Write16(const u16 _Value, const u32 _Address)
 {
-	_dbg_assert_(WII_IOB,0);
+	_dbg_assert_(WII_IOB, 0);
 }
 
 void HWCALL Write32(const u32 _Value, const u32 _Address)

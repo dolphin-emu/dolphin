@@ -44,7 +44,7 @@
 namespace Memory
 {
 
-// GLOABL DEFINES
+// GLOBAL DEFINES
 
 // #define NOCHECK
 
@@ -54,10 +54,12 @@ static const bool bFakeVMEM = false;
 	#define NOCHECK
 #endif
 
+// END: GLOBAL DEFINES
 
-// END: GLOABL DEFINES
 
 u8*	base = NULL;
+
+// STATE_TO_SAVE (applies to a lot of things in this file)
 
 // Pointers to low memory
 u8*	m_pRAM = NULL;

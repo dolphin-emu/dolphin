@@ -17,5 +17,6 @@
 
 #include "XFMemory.h"
 
+// STATE_TO_SAVE
 XFRegisters xfregs;
 u32 xfmem[XFMEM_SIZE];

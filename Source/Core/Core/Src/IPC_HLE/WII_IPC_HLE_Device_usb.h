@@ -92,6 +92,7 @@ private:
     };
 
  
+	// STATE_TO_SAVE
     std::queue<SHCICommandMessage> m_HCICommandMessageQueue;
 
     bool m_ACLAnswer;
