@@ -17,11 +17,12 @@
 
 #include <string.h>
 
-#include "Globals.h"
 #include "MemoryUtil.h"
-#include "Fifo.h"
 #include "Thread.h"
 #include "OpcodeDecoding.h"
+#include "pluginspecs_video.h"
+
+#include "Fifo.h"
 
 #define FIFO_SIZE (1024*1024)
 
@@ -98,11 +99,9 @@ void Video_SendFifoData(BYTE *_uData)
     {
         if (FAKE_GetFifoSize() > readptr)
         {
-            SysMessage("out of bounds");
-            exit(1);
+            PanicAlert("FIFO out of bounds (sz = %i, at %08x)", FAKE_GetFifoSize(), readptr);
         }
-
-        DebugLog("FAKE BUFFER LOOPS");
+//        DebugLog("FAKE BUFFER LOOPS");
         memmove(&videoBuffer[0], &videoBuffer[readptr], FAKE_GetFifoSize());
         //		memset(&videoBuffer[FAKE_GetFifoSize()], 0, FIFO_SIZE - FAKE_GetFifoSize());
         size = FAKE_GetFifoSize();
@@ -114,12 +113,12 @@ void Video_SendFifoData(BYTE *_uData)
 
 //TODO - turn inside out, have the "reader" ask for bytes instead
 // See Core.cpp for threading idea
-void Video_EnterLoop()
+void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 {
-    SCPFifoStruct &fifo = *g_VideoInitialize.pCPFifo;
+    SCPFifoStruct &fifo = *video_initialize.pCPFifo;
 
     // TODO(ector): Don't peek so often!
-    while (g_VideoInitialize.pPeekMessages())
+    while (video_initialize.pPeekMessages())
     {
         if (fifo.CPReadWriteDistance < 1) //fifo.CPLoWatermark)
             Common::SleepCurrentThread(1);
@@ -137,14 +136,13 @@ void Video_EnterLoop()
                     if (fifo.CPReadPointer == fifo.CPBreakpoint)
                     {
                         fifo.bFF_Breakpoint = 1; 
-                        g_VideoInitialize.pUpdateInterrupts(); 
+                        video_initialize.pUpdateInterrupts(); 
                         break;
                     }
                 }
 
                 // read the data and send it to the VideoPlugin
-
-                u8 *uData = Memory_GetPtr(fifo.CPReadPointer);
+				u8 *uData = video_initialize.pGetMemoryPointer(fifo.CPReadPointer);
 #ifdef _WIN32
                 EnterCriticalSection(&fifo.sync);
 #endif

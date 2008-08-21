@@ -15,7 +15,7 @@ void Config::Load()
 	iniFile.Get("Hardware", "WindowedRes", &iWindowedRes, 0);
 	iniFile.Get("Hardware", "FullscreenRes", &iFSResolution, 0);
 	iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0);
-	iniFile.Get("Hardware", "RenderInMainframe", &renderToMainframe, true);
+	iniFile.Get("Hardware", "RenderInMainframe", &renderToMainframe, false);
 	iniFile.Get("Hardware", "VSync", &bVsync, 0);
 	if (iAdapter == -1) 
 		iAdapter = 0;

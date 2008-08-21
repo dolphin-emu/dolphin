@@ -165,6 +165,11 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 
 }
 
+void Video_EnterLoop()
+{
+	Fifo_EnterLoop(g_VideoInitialize);
+}
+
 void Video_Prepare(void)
 {
 	Renderer::Init(g_VideoInitialize);

@@ -3,7 +3,6 @@ import sys
 
 files = ["BPStructs.cpp",
 		 "DataReader.cpp",
-		 "Fifo.cpp",
          "Globals.cpp",
          "GLInit.cpp",
 		 "main.cpp",

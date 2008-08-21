@@ -198,6 +198,12 @@ void Video_Shutdown(void)
 }
 
 
+void Video_EnterLoop()
+{
+	Fifo_EnterLoop(g_VideoInitialize);
+}
+
+
 void DebugLog(const char* _fmt, ...)
 {
 #ifdef _DEBUG

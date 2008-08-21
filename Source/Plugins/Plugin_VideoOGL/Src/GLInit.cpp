@@ -144,11 +144,11 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     nBackbufferWidth = _twidth;
     nBackbufferHeight = _theight;
 
-    float FactorW  = (float)640 / (float)nBackbufferWidth;
-    float FactorH  = (float)480 / (float)nBackbufferHeight;
+    float FactorW  = 640.0f / (float)nBackbufferWidth;
+    float FactorH  = 480.0f / (float)nBackbufferHeight;
 
     float Max = (FactorW < FactorH) ? FactorH : FactorW;
-    MValue = 1 / Max;
+    MValue = 1.0f / Max;
 
     g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
     g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
@@ -211,8 +211,8 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     }
     else
 	{
-        dwExStyle=WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-        dwStyle=WS_OVERLAPPEDWINDOW;
+        dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+        dwStyle = WS_OVERLAPPEDWINDOW;
     }
 
     RECT rc;

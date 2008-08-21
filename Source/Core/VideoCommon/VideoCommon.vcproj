@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Core/Common/Src;"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -106,7 +106,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Core/Common/Src;"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -168,7 +168,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../../Core/Common/Src;"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -229,7 +229,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../../Core/Common/Src;"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -289,7 +289,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../../Core/Common/Src;"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -350,7 +350,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../../Core/Common/Src;"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -406,11 +406,23 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\Fifo.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\Fifo.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\LookUpTables.cpp"
 			>
 		</File>
 		<File
 			RelativePath=".\Src\LookUpTables.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\OpcodeDecoding.h"
 			>
 		</File>
 		<File

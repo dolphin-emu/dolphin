@@ -542,6 +542,10 @@
 			RelativePath=".\src\RegisterWindow.h"
 			>
 		</File>
+		<File
+			RelativePath=".\src\SConscript"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

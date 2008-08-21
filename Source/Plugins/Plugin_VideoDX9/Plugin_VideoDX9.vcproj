@@ -1271,10 +1271,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\OpcodeDecoding.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\VertexHandler.cpp"
 				>
 			</File>
@@ -1451,14 +1447,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\Src\Fifo.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\Fifo.h"
-			>
-		</File>
 		<File
 			RelativePath=".\Src\Globals.cpp"
 			>

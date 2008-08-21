@@ -13,6 +13,7 @@ files = ["LogWindow.cpp",
          "MemoryWindow.cpp",
          "RegisterWindow.cpp",
          "RegisterView.cpp",
+         "JitWindow.cpp",
         ]
 wxenv = env.Copy(CXXFLAGS = "`wx-config --cppflags` -DUSE_XPM_BITMAPS -DwxNEEDS_CHARPP",
                  LINKFLAGS = "-L/usr/local/lib -pthread `wx-config --libs --debug`")
