@@ -72,8 +72,8 @@ CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id,
 	the_jit_window = this;
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* sizerSplit = new wxBoxSizer(wxHORIZONTAL);
-	sizerSplit->Add(ppc_box = new wxTextCtrl(this, IDM_PPC_BOX, "(ppc)", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE), 1, wxEXPAND);
-	sizerSplit->Add(x86_box = new wxTextCtrl(this, IDM_X86_BOX, "(x86)", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE), 1, wxEXPAND);
+	sizerSplit->Add(ppc_box = new wxTextCtrl(this, IDM_PPC_BOX, _T("(ppc)"), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE), 1, wxEXPAND);
+	sizerSplit->Add(x86_box = new wxTextCtrl(this, IDM_X86_BOX, _T("(x86)"), wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE), 1, wxEXPAND);
 	sizerBig->Add(block_list = new JitBlockList(this, IDM_BLOCKLIST,
 				wxDefaultPosition, wxSize(100, 140),
 				wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING), 0, wxEXPAND);
@@ -137,8 +137,8 @@ void CJitWindow::Compare(u32 em_address)
 	int block_num = Jit64::GetBlockNumberFromAddress(em_address);
 	if (block_num < 0)
 	{
-		ppc_box->SetValue(wxString(StringFromFormat("(non-code address: %08x)", em_address).c_str()));
-		x86_box->SetValue(wxString(StringFromFormat("(no translation)").c_str()));
+		ppc_box->SetValue(wxString::FromAscii(StringFromFormat("(non-code address: %08x)", em_address).c_str()));
+		x86_box->SetValue(wxString::FromAscii(StringFromFormat("(no translation)").c_str()));
 		return;
 	}
 	Jit64::JitBlock *block = Jit64::GetBlock(block_num);
@@ -155,7 +155,7 @@ void CJitWindow::Compare(u32 em_address)
 		*sptr++ = 13;
 		*sptr++ = 10;
 	}
-	x86_box->SetValue(wxString((char*)xDis));
+	x86_box->SetValue(wxString::FromAscii((char*)xDis));
 	delete [] xDis;
 }
 
@@ -197,13 +197,13 @@ JitBlockList::JitBlockList(wxWindow* parent, const wxWindowID id, const wxPoint&
 
 void JitBlockList::Init()
 {
-	InsertColumn(COLUMN_ADDRESS, "Address");
-	InsertColumn(COLUMN_PPCSIZE, "PPC Size");
-	InsertColumn(COLUMN_X86SIZE, "x86 Size");
-	InsertColumn(COLUMN_NAME, "Symbol");
-	InsertColumn(COLUMN_FLAGS, "Flags");
-	InsertColumn(COLUMN_NUMEXEC, "NumExec");
-	InsertColumn(COLUMN_COST, "Cost");
+	InsertColumn(COLUMN_ADDRESS, _T("Address"));
+	InsertColumn(COLUMN_PPCSIZE, _T("PPC Size"));
+	InsertColumn(COLUMN_X86SIZE, _T("x86 Size"));
+	InsertColumn(COLUMN_NAME, _T("Symbol"));
+	InsertColumn(COLUMN_FLAGS, _T("Flags"));
+	InsertColumn(COLUMN_NUMEXEC, _T("NumExec"));
+	InsertColumn(COLUMN_COST, _T("Cost"));
 }
 
 void JitBlockList::Update()
