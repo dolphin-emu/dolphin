@@ -175,6 +175,19 @@ u16 g_AR_MODE = 0x43;		// 0x23 -> Zelda standard mode (standard ARAM access ??)
 							// 0x43 -> written by OSAudioInit at the UCode upload (upload UCode)
 							// 0x63 -> ARCheckSize Mode (access AR-registers ??) or no exception ??
 
+void DoState(ChunkFile &f)
+{
+	f.Descend("DSP ");
+	f.Do(g_ARAM, ARAM_SIZE);
+	f.Do(g_dspState);
+	f.Do(g_audioDMA);
+	f.Do(g_arDMA);
+	f.Do(g_AR_READY_FLAG);
+	f.Do(g_AR_MODE);
+	f.Ascend();
+}
+
+
 void UpdateInterrupts();
 void Update_ARAM_DMA();	
 void WriteARAM(u8 _iValue, u32 _iAddress);

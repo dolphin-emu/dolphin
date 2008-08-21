@@ -18,6 +18,9 @@
 #ifndef _COMMANDPROCESSOR_H
 #define _COMMANDPROCESSOR_H
 
+#include "Common.h"
+class ChunkFile;
+
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -79,6 +82,7 @@ extern CPFifo fifo;
 // Init
 void Init();
 void Shutdown();
+void DoState(ChunkFile &f);
 
 // Read
 void HWCALL Read16(u16& _rReturnValue, const u32 _Address);

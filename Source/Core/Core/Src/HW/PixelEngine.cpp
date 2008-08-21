@@ -15,6 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "Common.h"
+#include "ChunkFile.h"
+
 #include "PixelEngine.h"
 
 #include "../CoreTiming.h"
@@ -59,6 +62,16 @@ static bool       g_bSignalFinishInterrupt;
 
 int et_SetTokenOnMainThread;
 int et_SetFinishOnMainThread;
+
+void DoState(ChunkFile &f)
+{
+	f.Descend("PE  ");
+	f.Do(g_ctrlReg);
+	f.Do(g_token);
+	f.Do(g_bSignalTokenInterrupt);
+	f.Do(g_bSignalFinishInterrupt);
+	f.Ascend();
+}
 
 void UpdateInterrupts();
 

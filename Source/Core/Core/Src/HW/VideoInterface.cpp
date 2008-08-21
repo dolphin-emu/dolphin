@@ -15,6 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "Common.h"
+#include "ChunkFile.h"
+
 #include "../PowerPC/PowerPC.h"
 
 #include "PeripheralInterface.h"
@@ -83,30 +86,44 @@ union UVIInterruptRegister
 };
 
 // STATE_TO_SAVE
-UVIDisplayControlRegister m_VIDisplayControlRegister;
+static UVIDisplayControlRegister m_VIDisplayControlRegister;
 
 // Framebuffers
-u32 m_FrameBuffer1;		// normal framebuffer address
-u32 m_FrameBuffer2;		// framebuffer for 3d buffer address
+static u32 m_FrameBuffer1;		// normal framebuffer address
+static u32 m_FrameBuffer2;		// framebuffer for 3d buffer address
 
 // VI Interrupt Registers
-UVIInterruptRegister m_VIInterruptRegister[4];
+static UVIInterruptRegister m_VIInterruptRegister[4];
 
-u8	m_UVIUnknownRegs[0x1000];
+u8 m_UVIUnknownRegs[0x1000];
 
-u16 HorizontalBeamPos = 0;
-u16 VerticalBeamPos = 0;
+static u16 HorizontalBeamPos = 0;
+static u16 VerticalBeamPos = 0;
 
-u32 TicksPerFrame = 0;
-u32 LineCount = 0;
-u64 LastTime = 0;
+static u32 TicksPerFrame = 0;
+static u32 LineCount = 0;
+static u64 LastTime = 0;
+
+void DoState(ChunkFile &f)
+{
+	f.Descend("VI  ");
+	f.Do(m_VIDisplayControlRegister);
+	f.Do(m_FrameBuffer1);
+	f.Do(m_FrameBuffer2);
+	f.Do(m_VIInterruptRegister);
+	f.Do(m_UVIUnknownRegs, 0x1000);
+	f.Do(HorizontalBeamPos);
+	f.Do(VerticalBeamPos);
+	f.Do(TicksPerFrame);
+	f.Do(LineCount);
+	f.Do(LastTime);
+	f.Ascend();
+}
 
 void Init()
 {
-	for (int i=0; i<4; i++)
-	{
+	for (int i = 0; i < 4; i++)
 		m_VIInterruptRegister[i].Hex = 0x00;
-	}
 
 	m_VIDisplayControlRegister.Hex = 0x0000;
 	m_VIDisplayControlRegister.ENB = 0;

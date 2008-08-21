@@ -15,6 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "Common.h"
+#include "ChunkFile.h"
+
 #include "StreamADPCM.H"
 #include "DVDInterface.h"
 
@@ -44,7 +47,7 @@ namespace DVDInterface
 	20993: 00000000 DVD (zzz_80146e44 ??, 0x80146fcc) : DVD(r): 0xcc006018
 
 	After this, Cubivore infinitely calls DVDGetDriveStatus, which does not even
-	bother to check any DVD regs
+	bother to check any DVD regs. Waiting for interrupt?
 	*/
 
 // internal hardware addresses
@@ -69,7 +72,7 @@ enum DVDInterruptType
 	INT_DEINT		= 0,
 	INT_TCINT		= 1,
 	INT_BRKINT		= 2,
-	INT_CVRINT
+	INT_CVRINT      = 3,
 };
 
 // DI Status Register
@@ -78,14 +81,14 @@ union UDISR
 	u32 Hex;
 	struct  
 	{		
-		unsigned BREAK			:	1;		// Stop the Device + Interrupt
-		unsigned DEINITMASK		:	1;		// Access Device Error Int Mask
-		unsigned DEINT			:	1;		// Access Device Error Int
-		unsigned TCINTMASK		:	1;		// Transfer Complete Int Mask
-		unsigned TCINT			:	1;		// Transfer Complete Int
-		unsigned BRKINTMASK		:	1;
-		unsigned BRKINT			:	1;		// w 1: clear brkint
-		unsigned 				:  25;
+		unsigned BREAK          :  1;		// Stop the Device + Interrupt
+		unsigned DEINITMASK     :  1;		// Access Device Error Int Mask
+		unsigned DEINT          :  1;		// Access Device Error Int
+		unsigned TCINTMASK      :  1;		// Transfer Complete Int Mask
+		unsigned TCINT          :  1;		// Transfer Complete Int
+		unsigned BRKINTMASK     :  1;
+		unsigned BRKINT         :  1;		// w 1: clear brkint
+		unsigned                : 25;
 	};
 	UDISR() {Hex = 0;}
 	UDISR(u32 _hex) {Hex = _hex;}
@@ -97,10 +100,10 @@ union UDICVR
 	u32 Hex;
 	struct  
 	{		
-		unsigned CVR            :	1;		// 0: Cover closed	1: Cover open
-		unsigned CVRINTMASK		:	1;		// 1: Interrupt enabled;
-		unsigned CVRINT			:	1;		// 1: Interrupt clear
-		unsigned 				:  29;
+		unsigned CVR            :  1;		// 0: Cover closed	1: Cover open
+		unsigned CVRINTMASK	    :  1;		// 1: Interrupt enabled;
+		unsigned CVRINT         :  1;		// 1: Interrupt clear
+		unsigned                : 29;
 	};
 	UDICVR() {Hex = 0;}
 	UDICVR(u32 _hex) {Hex = _hex;}
@@ -170,11 +173,19 @@ struct DVDMemStruct
 	u32					AudioLength;
 };
 
+// STATE_TO_SAVE
 DVDMemStruct dvdMem;
+u32	 g_ErrorCode = 0x00;
+bool g_bDiscInside = true;
 
-// helper
-u32					g_ErrorCode = 0x00;
-bool					g_bDiscInside = true;
+void DoState(ChunkFile &f)
+{
+	f.Descend("DI  ");
+	f.Do(dvdMem);
+	f.Do(g_ErrorCode);
+	f.Do(g_bDiscInside);
+	f.Ascend();
+}
 
 void UpdateInterrupts();
 void GenerateDVDInterrupt(DVDInterruptType _DVDInterrupt);

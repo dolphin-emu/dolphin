@@ -19,6 +19,7 @@
 #define _DSPINTERFACE_H
 
 #include "Common.h"
+class ChunkFile;
 
 namespace DSP
 {
@@ -32,6 +33,8 @@ enum DSPInterruptType
 
 void Init();
 void Shutdown();
+void DoState(ChunkFile &f);
+
 void GenerateDSPInterrupt(DSPInterruptType _DSPInterruptType, bool _bSet = true);
 void GenerateDSPInterruptFromPlugin(DSPInterruptType _DSPInterruptType, bool _bSet = true);
 

@@ -15,6 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "Common.h"
+#include "ChunkFile.h"
+
 #include "../HW/Memmap.h"
 #include "../HW/CPU.h"
 #include "../Core.h"
@@ -29,10 +32,19 @@
 
 namespace PowerPC
 {
+	// STATE_TO_SAVE
 	PowerPCState GC_ALIGNED16(ppcState);
+	volatile CPUState state = CPU_STEPPING;
+
 	ICPUCore* m_pCore = NULL;
 
-	volatile CPUState state = CPU_STEPPING;
+	void DoState(ChunkFile &f)
+	{
+		f.Descend("PPC ");
+		f.Do(ppcState);
+		f.Do(state);
+		f.Ascend();
+	}
 
 	void ResetRegisters()
 	{

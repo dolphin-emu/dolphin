@@ -19,6 +19,7 @@
 #define _SERIALINTERFACE_DEVICES_H
 
 #include "Common.h"
+class ChunkFile;
 
 class ISIDevice
 {

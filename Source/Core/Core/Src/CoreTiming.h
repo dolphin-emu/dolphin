@@ -25,6 +25,7 @@
 // callback. You then schedule events using the type id you get back.
 
 #include "Common.h"
+#include "ChunkFile.h"
 
 namespace CoreTiming
 {
@@ -34,6 +35,7 @@ typedef void (*TimedCallback)(u64 userdata, int cyclesLate);
 u64 GetTicks();
 u64 GetIdleTicks();
 
+void DoState(ChunkFile &f);
 // The int that the callbacks get is how many cycles late it was.
 // So to schedule a new event on a regular basis:
 // inside callback:

@@ -37,6 +37,7 @@
 #include "../CoreTiming.h"
 #include "SystemTimers.h"
 #include "../IPC_HLE/WII_IPC_HLE.h"
+#include "../State.h"
 
 #define CURVERSION 0x0001
 
@@ -45,7 +46,10 @@ namespace HW
 	void Init()
 	{
 		Thunk_Init(); // not really hw, but this way we know it's inited first :P
+		State_Init();
+
 		// Init the whole Hardware
+		AudioInterface::Init();
 		PixelEngine::Init();
 		CommandProcessor::Init();
 		VideoInterface::Init();
@@ -72,11 +76,32 @@ namespace HW
 		DSP::Shutdown();
 		Memory::Shutdown();
 		SerialInterface::Shutdown();
+		AudioInterface::Shutdown();
 
         WII_IPC_HLE_Interface::Shutdown();
         WII_IPCInterface::Shutdown();
+		
+		State_Shutdown();
 		Thunk_Shutdown();
-
+		
 		CoreTiming::UnregisterAllEvents();
+	}
+
+	void DoState(ChunkFile &f)
+	{
+		f.Descend("HWst");
+		PixelEngine::DoState(f);
+		CommandProcessor::DoState(f);
+		VideoInterface::DoState(f);
+		SerialInterface::DoState(f);
+		CPeripheralInterface::DoState(f);
+		DSP::DoState(f);
+		DVDInterface::DoState(f);
+		GPFifo::DoState(f);
+		ExpansionInterface::DoState(f);
+		AudioInterface::DoState(f);
+		CoreTiming::DoState(f);
+        WII_IPCInterface::DoState(f);
+		f.Ascend();
 	}
 }

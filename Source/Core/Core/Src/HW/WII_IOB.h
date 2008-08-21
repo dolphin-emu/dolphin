@@ -17,16 +17,16 @@
 #ifndef _WII_IOBRIDGE_H_
 #define _WII_IOBRIDGE_H_
 
+#include "Common.h"
+class ChunkFile;
+
 namespace WII_IOBridge
 {
 
-// Init
 void Init();
-
-// Shutdown
 void Shutdown();	
+void DoState(ChunkFile &f);
 
-// Update
 void Update();
 
 void HWCALL Read8(u8& _rReturnValue, const u32 _Address);

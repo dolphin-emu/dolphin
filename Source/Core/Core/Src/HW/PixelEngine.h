@@ -18,10 +18,12 @@
 #define _PIXELENGINE_H
 
 #include "Common.h"
+class ChunkFile;
 
 namespace PixelEngine
 {
 void Init();
+void DoState(ChunkFile &f);
 
 // Read
 void HWCALL Read16(u16& _uReturnValue, const u32 _iAddress);

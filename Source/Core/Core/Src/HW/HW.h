@@ -19,15 +19,13 @@
 #define _HW_H
 
 #include "Common.h"
+#include "ChunkFile.h"
 
 namespace HW
 {
 	void Init();
 	void Shutdown();
-	/*
-	void LoadState(const char* _szFilename);
-	void SaveState(const char* _szFilename);
-	*/
+	void DoState(ChunkFile &f);
 }
 
 #endif

@@ -19,22 +19,18 @@
 #define _SERIALINTERFACE_H
 
 #include "Common.h"
+class ChunkFile;
 
 namespace SerialInterface
 {
 
-// Init
 void Init();
-
-// Shutdown
 void Shutdown();
+void DoState(ChunkFile &f);
 
 void UpdateDevices();
 
-// Read32	
 void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);
-
-// Write32
 void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
 
 }; // end of namespace SerialInterface

@@ -15,12 +15,14 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "GPFifo.h"
-
+#include "Common.h"
+#include "ChunkFile.h"
 #include "PeripheralInterface.h"
 #include "CommandProcessor.h"
 #include "Memmap.h"
 #include "../PowerPC/PowerPC.h"
+
+#include "GPFifo.h"
 
 namespace GPFifo
 {
@@ -41,6 +43,14 @@ u8 GC_ALIGNED32(m_gatherPipe[GATHER_PIPE_SIZE*16]); //more room, for the fastmod
 
 // pipe counter
 u32 m_gatherPipeCount = 0;				
+
+void DoState(ChunkFile &f)
+{
+	f.Descend("FIFO");
+	f.Do(m_gatherPipe);
+	f.Do(m_gatherPipeCount);
+	f.Ascend();
+}
 
 void Init()
 {

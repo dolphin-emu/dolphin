@@ -7,7 +7,9 @@
 
 #include "StreamADPCM.H"
 
-float NGCADPCM::iir1[STEREO], NGCADPCM::iir2[STEREO];
+// STATE_TO_SAVE
+float NGCADPCM::iir1[STEREO],
+	  NGCADPCM::iir2[STEREO];
 
 void NGCADPCM::InitFilter()
 {

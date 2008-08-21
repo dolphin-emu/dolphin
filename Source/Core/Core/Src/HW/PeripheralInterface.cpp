@@ -16,6 +16,8 @@
 // http://code.google.com/p/dolphin-emu/
 #include <stdio.h>
 
+#include "Common.h"
+#include "ChunkFile.h"
 #include "../PowerPC/PowerPC.h"
 
 #include "../HW/CPU.h"
@@ -30,6 +32,17 @@ u32 volatile CPeripheralInterface::m_InterruptCause;
 u32 CPeripheralInterface::Fifo_CPUBase;
 u32 CPeripheralInterface::Fifo_CPUEnd;
 u32 CPeripheralInterface::Fifo_CPUWritePointer;
+
+void CPeripheralInterface::DoState(ChunkFile &f)
+{
+	f.Descend("PI  ");
+	f.Do(m_InterruptMask);
+	f.Do(m_InterruptCause);
+	f.Do(Fifo_CPUBase);
+	f.Do(Fifo_CPUEnd);
+	f.Do(Fifo_CPUWritePointer);
+	f.Ascend();
+}
 
 void CPeripheralInterface::Init()
 {

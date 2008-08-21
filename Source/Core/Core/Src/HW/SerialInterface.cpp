@@ -17,6 +17,9 @@
 
 #include <string.h>
 
+#include "Common.h"
+#include "ChunkFile.h"
+
 #include "SerialInterface.h"
 #include "SerialInterface_Devices.h"
 
@@ -215,6 +218,18 @@ static USIStatusReg       g_StatusReg;
 static USIEXIClockCount   g_EXIClockCount;
 static u8                 g_SIBuffer[128];
 
+void DoState(ChunkFile &f)
+{
+	f.Descend("SI  ");
+	f.Do(g_Channel);
+	f.Do(g_Poll);
+	f.Do(g_ComCSR);
+	f.Do(g_StatusReg);
+	f.Do(g_EXIClockCount);
+	f.Do(g_SIBuffer);
+	f.Ascend();
+}
+
 static void GenerateSIInterrupt(SIInterruptType _SIInterrupt);	
 void RunSIBuffer();
 void UpdateInterrupts();		
@@ -228,10 +243,10 @@ void Init()
 		g_Channel[i].m_InLo.Hex = 0;		
 	}	
 
-	unsigned int AttachedPasMask = PluginPAD::PAD_GetAttachedPads();
-	for (int i=0; i<4; i++)
+	unsigned int AttachedPadMask = PluginPAD::PAD_GetAttachedPads();
+	for (int i = 0; i < 4; i++)
 	{
-		if (AttachedPasMask & (1 << i))
+		if (AttachedPadMask & (1 << i))
 			g_Channel[i].m_pDevice = new CSIDevice_GCController(i);
 		else
 			g_Channel[i].m_pDevice = new CSIDevice_Dummy(i);
@@ -246,7 +261,7 @@ void Init()
 
 void Shutdown()
 {
-	for (int i=0; i<NUMBER_OF_CHANNELS; i++)
+	for (int i = 0; i < NUMBER_OF_CHANNELS; i++)
 	{
 		delete g_Channel[i].m_pDevice;
 		g_Channel[i].m_pDevice = NULL;

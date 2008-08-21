@@ -18,13 +18,14 @@
 #include <map>
 
 #include "Common.h"
-#include "WII_IPC.h"
+#include "ChunkFile.h"
 
 #include "CPU.h"
 #include "Memmap.h"
 #include "PeripheralInterface.h"
 
 #include "../IPC_HLE/WII_IPC_HLE.h"
+#include "WII_IPC.h"
 
 namespace WII_IPCInterface
 {
@@ -92,6 +93,17 @@ u32 g_Address = 0;
 u32 g_Reply = 0;
 u32 g_SensorBarPower = 0;
 
+void DoState(ChunkFile &f)
+{
+	f.Descend("WIPC");
+	f.Do(g_IPC_Status);
+	f.Do(g_IPC_Config);
+	f.Do(g_IPC_Control);
+	f.Do(g_Address);
+	f.Do(g_Reply);
+	f.Do(g_SensorBarPower);
+	f.Ascend();
+}
 
 void UpdateInterrupts();
 

@@ -17,8 +17,13 @@
 #ifndef _MEMORYINTERFACE_H
 #define _MEMORYINTERFACE_H
 
+#include "Common.h"
+class ChunkFile;
+
 namespace MemoryInterface
 {
+void DoState(ChunkFile &f);
+
 void HWCALL Read16(u16& _uReturnValue, const u32 _iAddress);
 void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);	
 void HWCALL Write32(const u32 _iValue, const u32 _iAddress);

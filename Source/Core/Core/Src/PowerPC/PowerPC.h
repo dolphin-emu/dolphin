@@ -29,6 +29,8 @@
 #include "Gekko.h"
 #include "ICPUCore.h"
 
+class ChunkFile;
+
 namespace PowerPC
 {
 	enum ECoreType
@@ -85,6 +87,8 @@ namespace PowerPC
 
 	void Init();
 	void Shutdown();
+	void DoState(ChunkFile &f);
+
 	void SetCore(ECoreType _coreType);
 
 	ICPUCore& GetCore();

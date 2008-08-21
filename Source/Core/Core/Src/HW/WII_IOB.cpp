@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "ChunkFile.h"
 #include "WII_IOB.h"
 
 namespace WII_IOBridge

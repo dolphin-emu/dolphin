@@ -15,6 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "Common.h"
+#include "ChunkFile.h"
+
 #include "../PowerPC/PowerPC.h"
 #include "MemoryInterface.h"
 
@@ -46,6 +49,13 @@ struct MIMemStruct
 
 // STATE_TO_SAVE
 static MIMemStruct miMem;
+
+void DoState(ChunkFile &f)
+{
+	f.Descend("MI  ");
+	f.Do(miMem);
+	f.Ascend();
+}
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)
 {

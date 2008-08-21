@@ -87,17 +87,28 @@ struct SAudioRegister
 	u32 m_InterruptTiming;
 };
 
-SAudioRegister g_AudioRegister;	
+// STATE_TO_SAVE
+static SAudioRegister g_AudioRegister;	
+static u64 g_LastCPUTime = 0;
+static int g_SampleRate = 32000;
+static int g_DSPSampleRate = 32000;
+static u64 g_CPUCyclesPerSample = 0xFFFFFFFFFFFULL;
+
+void DoState(ChunkFile &f)
+{
+	f.Descend("AI  ");
+	f.Do(g_AudioRegister);
+	f.Do(g_LastCPUTime);
+	f.Do(g_SampleRate);
+	f.Do(g_DSPSampleRate);
+	f.Do(g_CPUCyclesPerSample);
+	f.Ascend();
+}
 
 void GenerateAudioInterrupt();
 void UpdateInterrupts();
 void IncreaseSampleCount(const u32 _uAmount);
 void ReadStreamBlock(short* _pPCM);	
-
-static u64 g_LastCPUTime = 0;
-static int g_SampleRate = 32000;
-static int g_DSPSampleRate = 32000;
-static u64 g_CPUCyclesPerSample = 0xFFFFFFFFFFFULL;
 
 void Init()
 {

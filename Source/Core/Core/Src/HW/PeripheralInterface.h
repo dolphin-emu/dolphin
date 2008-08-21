@@ -19,6 +19,8 @@
 #define _PERIPHERALINTERFACE_H
 
 #include "Common.h"
+class ChunkFile;
+
 //
 // PERIPHERALINTERFACE
 // Handles communication with cpu services like the write gatherer used for fifos, and interrupts
@@ -96,6 +98,7 @@ public:
     static u32 Fifo_CPUWritePointer;
 
     static void Init();
+	static void DoState(ChunkFile &f);
     
     static void SetInterrupt(InterruptCause _causemask, bool _bSet=true);
     

@@ -289,7 +289,7 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 			break;
 
 		case cmdSetInterrupt:
-			if (m_uPosition==1)
+			if (m_uPosition == 1)
 			{
 				interruptSwitch = byte;
 			}

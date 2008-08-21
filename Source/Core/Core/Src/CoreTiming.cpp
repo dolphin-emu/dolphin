@@ -61,7 +61,7 @@ int RegisterEvent(const char *name, TimedCallback callback)
 	type.name = name;
 	type.callback = callback;
 	event_types.push_back(type);
-	return event_types.size() - 1;
+	return (int)event_types.size() - 1;
 }
 
 void UnregisterAllEvents()
@@ -71,6 +71,18 @@ void UnregisterAllEvents()
 	event_types.clear();
 }
 
+void DoState(ChunkFile &f)
+{
+	externalEventSection.Enter();
+	f.Descend("TIME");
+	f.Do(downcount);
+	f.Do(slicelength);
+	f.Do(maxSliceLength);
+	f.Do(globalTimer);
+	f.Do(idledCycles);
+	f.Ascend();
+	externalEventSection.Leave();
+}
 
 u64 GetTicks()
 {

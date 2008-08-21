@@ -1175,6 +1175,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\State.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\State.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\stdafx.cpp"
 			>
 			<FileConfiguration

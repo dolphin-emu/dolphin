@@ -456,6 +456,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\ChunkFile.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\ChunkFile.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\Common.cpp"
 			>
 		</File>

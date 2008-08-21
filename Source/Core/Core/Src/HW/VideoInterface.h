@@ -18,6 +18,7 @@
 #define _VIDEOINTERFACE_H
 
 #include "Common.h"
+class ChunkFile;
 
 namespace VideoInterface
 {
@@ -29,20 +30,18 @@ namespace VideoInterface
 		INT_REG_3,
 	};
 
-	// Init
 	void Init();	
+	void DoState(ChunkFile &f);
 
-	// Read
 	void HWCALL Read16(u16& _uReturnValue, const u32 _uAddress);
 	void HWCALL Read32(u32& _uReturnValue, const u32 _uAddress);
 				
-	// Write
 	void HWCALL Write16(const u16 _uValue, const u32 _uAddress);
 	void HWCALL Write32(const u32 _uValue, const u32 _uAddress);	
 				
 	void GenerateVIInterrupt(VIInterruptType _VIInterrupt);	
 
-	// returns a pointer to the framebuffer
+	// returns a pointer to the current visible framebuffer
 	u8* GetFrameBufferPointer();
 
 	// pre init
@@ -51,14 +50,12 @@ namespace VideoInterface
 	// VI Unknown Regs
 	extern u8 m_UVIUnknownRegs[0x1000];
 
-
     // ??????
     void Update();
 
 
 	// UpdateInterrupts: check if we have to generate a new VI Interrupt
 	void UpdateInterrupts();	
-
 
     // ??????
     void UpdateTiming();

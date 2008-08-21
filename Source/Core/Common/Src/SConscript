@@ -2,6 +2,7 @@ Import('env')
 
 files = ["ABI.cpp",
          "Common.cpp",
+		 "ChunkFile.cpp",
 		 "CPUDetect.cpp",
 		 "DynamicLibrary.cpp",
          "Hash.cpp",

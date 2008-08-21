@@ -17,18 +17,17 @@
 #ifndef _WII_IPC_H_
 #define _WII_IPC_H_
 
+#include "Common.h"
+class ChunkFile;
+
 namespace WII_IPCInterface
 {
 
-// Init
 void Init();
-
-// Shutdown
 void Shutdown();	
+void DoState(ChunkFile &f);
 
-// Update
 void Update();
-
 bool IsReady();
 void GenerateReply(u32 _AnswerAddress);
 void GenerateAck(u32 _AnswerAddress);
