@@ -277,7 +277,7 @@ void LogPendingEvents()
 	Event *ptr = first;
 	while (ptr)
 	{
-		LOG(GEKKO, "PENDING: Now: %lld Pending: %lld %s", globalTimer, ptr->time, ptr->name);
+		LOG(GEKKO, "PENDING: Now: %lld Pending: %lld Type: %d", globalTimer, ptr->time, ptr->type);
 		ptr = ptr->next;
 	}
 }
