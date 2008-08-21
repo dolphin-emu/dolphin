@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="DebuggerWX"
 	ProjectGUID="{4D3CD4C5-412B-4B49-9B1B-A68A2A129C77}"
 	RootNamespace="DebuggerWX"
@@ -45,7 +45,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\Core\Src;;..\Common\Src"
+				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\Core\Src;;..\Common\Src;..\..\..\Externals\Bochs_disasm"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;__WXMSW__"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -111,7 +111,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\Core\Src;;..\Common\Src"
+				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\Core\Src;;..\Common\Src;..\..\..\Externals\Bochs_disasm"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;__WXMSW__"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -175,7 +175,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\Core\Src;;..\Common\Src"
+				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\Core\Src;;..\Common\Src;..\..\..\Externals\Bochs_disasm"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;__WXMSW__"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -238,7 +238,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\Core\Src;;..\Common\Src"
+				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\Core\Src;;..\Common\Src;..\..\..\Externals\Bochs_disasm"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;__WXMSW__"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -302,7 +302,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\Core\Src;;..\Common\Src"
+				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\Core\Src;;..\Common\Src;..\..\..\Externals\Bochs_disasm"
 				PreprocessorDefinitions="WIN32;__WXMSW__;_WINDOWS;NOPCH;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="0"
@@ -368,7 +368,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\Core\Src;;..\Common\Src"
+				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\Core\Src;;..\Common\Src;..\..\..\Externals\Bochs_disasm"
 				PreprocessorDefinitions="WIN32;__WXMSW__;_WINDOWS;NOPCH;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -500,6 +500,14 @@
 		</File>
 		<File
 			RelativePath=".\src\Debugger.h"
+			>
+		</File>
+		<File
+			RelativePath=".\src\JitWindow.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\src\JitWindow.h"
 			>
 		</File>
 		<File

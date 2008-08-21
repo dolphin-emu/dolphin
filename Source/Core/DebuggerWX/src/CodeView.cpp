@@ -19,6 +19,8 @@
 #include "Common.h"
 
 #include "CodeView.h"
+#include "JitWindow.h"
+
 #include <wx/event.h>
 #include <wx/clipbrd.h>
 
@@ -31,7 +33,7 @@ enum
 	IDM_COPYCODE,
 	IDM_INSERTBLR,
 	IDM_RUNTOHERE,
-	IDM_DYNARECRESULTS,
+	IDM_JITRESULTS,
 };
 
 
@@ -158,9 +160,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
 #if wxUSE_CLIPBOARD
 	    case IDM_COPYADDRESS:
-	    {
 		    wxTheClipboard->SetData(new wxTextDataObject(wxString::Format(_T("%08x"), selection)));
-	    }
 		    break;
 
 	    case IDM_COPYCODE:
@@ -168,35 +168,27 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 		    break;
 
 	    case IDM_COPYHEX:
-	    {
+		    {
 		    char temp[24];
 		    sprintf(temp, "%08x", debugger->readMemory(selection));
 		    wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(temp)));
-	    }
+		    }
 		    break;
 #endif
 
 	    case IDM_RUNTOHERE:
-	    {
 		    debugger->setBreakpoint(selection);
 		    debugger->runToBreakpoint();
 		    redraw();
-	    }
 		    break;
 
 		case IDM_INSERTBLR:
-		{
 			debugger->insertBLR(selection);
 		    redraw();
 			break;
-		}
 
-	    case IDM_DYNARECRESULTS:
-	    {
-//			CDynaViewDlg::ViewAddr(selection);
-//			CDynaViewDlg::Show(TRUE);
-//				MessageBox(NULL, "not impl", "CtrlDisAsmView", MB_OK);
-	    }
+	    case IDM_JITRESULTS:
+			CJitWindow::ViewAddr(selection);
 		    break;
 	}
 
@@ -219,7 +211,7 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
 #endif
 	menu.Append(IDM_RUNTOHERE, _T("&Run To Here"));
 	menu.Append(IDM_INSERTBLR, wxString::FromAscii("Insert &blr"));
-	//menu.Append(IDM_DYNARECRESULTS, "Copy &address");
+	menu.Append(IDM_JITRESULTS, wxString::FromAscii("PPC vs X86"));
 	PopupMenu(&menu);
 	event.Skip(true);
 }

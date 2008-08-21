@@ -31,6 +31,7 @@ class CRegisterWindow;
 class CLogWindow;
 class CBreakPointWindow;
 class CMemoryWindow;
+class CJitWindow;
 class CCodeView;
 class IniFile;
 
@@ -101,6 +102,7 @@ class CCodeWindow
 		CRegisterWindow* m_RegisterWindow;
 		CBreakPointWindow* m_BreakpointWindow;
 		CMemoryWindow* m_MemoryWindow;
+		CJitWindow* m_JitWindow;
 
 		CCodeView* codeview;
 		wxListBox* callstack;

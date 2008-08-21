@@ -15,13 +15,16 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "IniFile.h"
+#include "Host.h"
+
 #include "Debugger.h"
 
 #include "RegisterWindow.h"
 #include "LogWindow.h"
 #include "BreakpointWindow.h"
 #include "MemoryWindow.h"
-#include "IniFile.h"
+#include "JitWindow.h"
 
 #include "wx/button.h"
 #include "wx/textctrl.h"
@@ -32,19 +35,16 @@
 
 #include "CodeWindow.h"
 #include "CodeView.h"
+
+#include "Core.h"
+#include "LogManager.h"
 #include "HW/CPU.h"
 #include "PowerPC/PowerPC.h"
-#include "Host.h"
-
-
 #include "Debugger/PPCDebugInterface.h"
 #include "Debugger/Debugger_SymbolMap.h"
 #include "PowerPC/PPCAnalyst.h"
 #include "PowerPC/Jit64/Jit.h"
 #include "PowerPC/Jit64/JitCache.h"
-
-#include "Core.h"
-#include "LogManager.h"
 
 // ugly that this lib included code from the main
 #include "../../DolphinWX/src/Globals.h"
@@ -194,6 +194,9 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 	m_MemoryWindow = new CMemoryWindow(this);
 	m_MemoryWindow->Show(true);
+
+	m_JitWindow = new CJitWindow(this);
+	m_JitWindow->Show(true);
 }
 
 

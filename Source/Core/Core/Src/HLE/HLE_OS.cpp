@@ -34,8 +34,8 @@ void HLE_OSPanic()
     std::string Error;
     GetStringVA(Error);
 
-    PanicAlert("PanicAlert: %s", Error.c_str());
-    LOG(OSREPORT,"(PC=%08x), PanicAlert: %s", LR, Error.c_str());
+    PanicAlert("OSPanic: %s", Error.c_str());
+    LOG(OSREPORT,"(PC=%08x), OSPanic: %s", LR, Error.c_str());
 
     NPC = LR;
 }

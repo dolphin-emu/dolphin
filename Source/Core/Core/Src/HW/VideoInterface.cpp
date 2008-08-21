@@ -365,8 +365,6 @@ void UpdateTiming()
 
 void Update()
 {
-	// This stuff is not right - what if more than TicksPerLine ticks occur between
-	// calls to this function, say if we run with fairly inaccurate timing?
     while ((CoreTiming::GetTicks() - LastTime) > (TicksPerFrame / LineCount))
     {
         LastTime += (TicksPerFrame / LineCount);
