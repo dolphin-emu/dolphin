@@ -78,9 +78,9 @@ void DllConfig(HWND _hParent)
 	ZeroMemory(&dmi, sizeof(dmi));
 	dmi.dmSize = sizeof(dmi);
 	
-	while(EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
+	while (EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
 	{	
-		if((x != dmi.dmPelsWidth && y != dmi.dmPelsHeight) && (dmi.dmPelsWidth > x))
+		if((x != dmi.dmPelsWidth || y != dmi.dmPelsHeight) && (dmi.dmPelsWidth >= x))
 		{
 			char szBuffer[100];
 			sprintf(szBuffer,"%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
