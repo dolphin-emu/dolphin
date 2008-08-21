@@ -35,6 +35,15 @@
 #define GX_PRIMITIVE_SHIFT          3
 #define GX_VAT_MASK                 0x07
 
+//these are defined 1/8th of their real values and without their top bit
+#define GX_DRAW_QUADS               0x0   //0x80
+#define GX_DRAW_TRIANGLES           0x2   //0x90
+#define GX_DRAW_TRIANGLE_STRIP      0x3   //0x98
+#define GX_DRAW_TRIANGLE_FAN        0x4   //0xA0
+#define GX_DRAW_LINES               0x5   //0xA8
+#define GX_DRAW_LINE_STRIP          0x6   //0xB0
+#define GX_DRAW_POINTS              0x7   //0xB8
+
 void OpcodeDecoder_Init();
 void OpcodeDecoder_Shutdown();
 void OpcodeDecoder_Run();
