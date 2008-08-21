@@ -34,6 +34,7 @@
 #include "VideoInterface.h"
 #include "WII_IPC.h"
 #include "../Plugins/Plugin_Video.h"
+#include "../CoreTiming.h"
 #include "SystemTimers.h"
 #include "../IPC_HLE/WII_IPC_HLE.h"
 
@@ -75,5 +76,7 @@ namespace HW
         WII_IPC_HLE_Interface::Shutdown();
         WII_IPCInterface::Shutdown();
 		Thunk_Shutdown();
+
+		CoreTiming::UnregisterAllEvents();
 	}
 }

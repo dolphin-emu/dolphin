@@ -94,7 +94,6 @@ EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
 EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
-EVT_MENU(IDM_TOGGLE_THROTTLE, CFrame::OnToggleThrottle)
 EVT_MENU(IDM_TOGGLE_TOOLBAR, CFrame::OnToggleToolbar)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 END_EVENT_TABLE()
@@ -197,8 +196,6 @@ void CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen"));
 	pOptionsMenu->AppendCheckItem(IDM_TOGGLE_DUALCORE, _T("&Dual-core (unstable!)"));
 	pOptionsMenu->Check(IDM_TOGGLE_DUALCORE, SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);			
-	pOptionsMenu->AppendCheckItem(IDM_TOGGLE_THROTTLE, _T("&Enable throttle"));
-	pOptionsMenu->Check(IDM_TOGGLE_THROTTLE, SConfig::GetInstance().m_LocalCoreStartupParameter.bThrottle);
 	m_pMenuBar->Append(pOptionsMenu, _T("&Options"));
 
 	// misc menu
@@ -496,12 +493,6 @@ void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED (event))
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore = !SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore;
-	SConfig::GetInstance().SaveSettings();
-}
-
-void CFrame::OnToggleThrottle(wxCommandEvent& WXUNUSED (event))
-{
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bThrottle = !SConfig::GetInstance().m_LocalCoreStartupParameter.bThrottle;
 	SConfig::GetInstance().SaveSettings();
 }
 

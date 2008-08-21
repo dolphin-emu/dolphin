@@ -66,7 +66,6 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "HLEBios",        m_LocalCoreStartupParameter.bHLEBios);
 		ini.Set("Core", "UseDynarec",     m_LocalCoreStartupParameter.bUseDynarec);
 		ini.Set("Core", "UseDualCore",    m_LocalCoreStartupParameter.bUseDualCore);
-		ini.Set("Core", "Throttle",       m_LocalCoreStartupParameter.bThrottle);
 		ini.Set("Core", "LockThreads",    m_LocalCoreStartupParameter.bLockThreads);
 		ini.Set("Core", "DefaultGCM",     m_LocalCoreStartupParameter.m_strDefaultGCM);
 		ini.Set("Core", "OptimizeQuantizers", m_LocalCoreStartupParameter.bOptimizeQuantizers);
@@ -117,7 +116,6 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "HLEBios",     &m_LocalCoreStartupParameter.bHLEBios,      true);
 		ini.Get("Core", "UseDynarec",  &m_LocalCoreStartupParameter.bUseDynarec,   true);
 		ini.Get("Core", "UseDualCore", &m_LocalCoreStartupParameter.bUseDualCore,  false);
-		ini.Get("Core", "Throttle",    &m_LocalCoreStartupParameter.bThrottle,     true);
 		ini.Get("Core", "LockThreads", &m_LocalCoreStartupParameter.bLockThreads,  true);
 		ini.Get("Core", "OptimizeQuantizers", &m_LocalCoreStartupParameter.bOptimizeQuantizers, true);
 	}

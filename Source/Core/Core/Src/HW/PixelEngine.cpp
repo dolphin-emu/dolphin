@@ -57,12 +57,21 @@ static u16        g_token = 0;
 static bool       g_bSignalTokenInterrupt;
 static bool       g_bSignalFinishInterrupt;
 
+int et_SetTokenOnMainThread;
+int et_SetFinishOnMainThread;
+
 void UpdateInterrupts();
+
+void SetToken_OnMainThread(u64 userdata, int cyclesLate);
+void SetFinish_OnMainThread(u64 userdata, int cyclesLate);
 
 void Init()
 {
 	g_token = 0;
 	g_ctrlReg.Hex = 0;
+
+	et_SetTokenOnMainThread = CoreTiming::RegisterEvent("SetToken", SetToken_OnMainThread);
+	et_SetFinishOnMainThread = CoreTiming::RegisterEvent("SetFinish", SetFinish_OnMainThread);
 }
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)
@@ -164,7 +173,7 @@ void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 void SetToken(const unsigned __int16 _token, const int _bSetTokenAcknowledge)
 {
 	CoreTiming::ScheduleEvent_Threadsafe(
-		0, SetToken_OnMainThread, "SetToken", _token | (_bSetTokenAcknowledge << 16));
+		0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
 }
 
 // SetFinish
@@ -172,7 +181,7 @@ void SetToken(const unsigned __int16 _token, const int _bSetTokenAcknowledge)
 void SetFinish()
 {
 	CoreTiming::ScheduleEvent_Threadsafe(
-		0, SetFinish_OnMainThread, "SetFinish");
+		0, et_SetFinishOnMainThread);
 	LOG(PIXELENGINE, "VIDEO Set Finish");
 }
 

@@ -22,7 +22,7 @@ public:
 	virtual void setPC(unsigned int /*address*/) {}
 	virtual void step() {}
 	virtual void runToBreakpoint() {}
-	virtual void insertBLR(unsigned int address) {}
+	virtual void insertBLR(unsigned int /*address*/) {}
 	virtual int getColor(unsigned int /*address*/){return 0xFFFFFFFF;}
 	virtual std::string getDescription(unsigned int /*address*/) = 0;
 };

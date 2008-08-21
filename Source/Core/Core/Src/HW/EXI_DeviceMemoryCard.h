@@ -21,7 +21,7 @@
 class CEXIMemoryCard : public IEXIDevice
 {
 public:
-	CEXIMemoryCard(const std::string& _rName, const std::string& _rFilename);
+	CEXIMemoryCard(const std::string& _rName, const std::string& _rFilename, int card_index);
 	virtual ~CEXIMemoryCard();
 	void SetCS(int cs);
 	void Update();
@@ -58,7 +58,8 @@ private:
 	};
 
 	std::string m_strFilename;
-
+	int card_index;
+	int et_this_card;
 	//! memory card state
 
 	// STATE_TO_SAVE

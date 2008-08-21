@@ -39,7 +39,6 @@ struct SCoreStartupParameter
 	bool bUseDualCore;
     bool bNTSC;
     bool bHLEBios;
-	bool bThrottle;
 	bool bUseFastMem;
 	bool bLockThreads;
 	bool bOptimizeQuantizers;

@@ -31,9 +31,21 @@
 #define MC_STATUS_PROGRAMEERROR			0x08
 #define MC_STATUS_READY					0x01
 
-CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rFilename) :
+static CEXIMemoryCard *cards[2];
+
+void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
+{
+	CEXIMemoryCard *ptr = cards[userdata];
+	ptr->Flush();
+}
+
+CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rFilename, int card_index) :
 	m_strFilename(_rFilename)
 {
+	this->card_index = card_index;
+	cards[card_index] = this;
+	et_this_card = CoreTiming::RegisterEvent(_rName.c_str(), FlushCallback);
+
 	nintendo_card_id = 0x00000010; // 16MBit nintendo card
 	card_id = 0xc221;
 /*  nintendo_card_id = 0x00000510; // 16MBit "bigben" card
@@ -85,13 +97,7 @@ void CEXIMemoryCard::Flush()
 	}
 	fwrite(memory_card_content, memory_card_size, 1, pFile);
 	fclose(pFile);
-}
-
-void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
-{
-	CEXIMemoryCard *ptr = reinterpret_cast<CEXIMemoryCard*>(userdata);
-	ptr->Flush();
-	Core::DisplayMessage(StringFromFormat("Wrote memory card contents to %s", ptr->GetFileName().c_str()), 4000);
+	Core::DisplayMessage(StringFromFormat("Wrote memory card contents to %s", GetFileName().c_str()), 4000);
 }
 
 
@@ -161,8 +167,8 @@ void CEXIMemoryCard::SetCS(int cs)
 			
 			// Page written to memory card, not just to buffer - let's schedule a flush 0.5b cycles into the future (1 sec)
 			// But first we unschedule already scheduled flushes - no point in flushing once per page for a large write.
-			CoreTiming::RemoveEvent(&CEXIMemoryCard::FlushCallback);
-			CoreTiming::ScheduleEvent(500000000, &CEXIMemoryCard::FlushCallback, "Memory Card Flush", reinterpret_cast<u64>(this));
+			CoreTiming::RemoveEvent(et_this_card);
+			CoreTiming::ScheduleEvent(500000000, et_this_card, card_index);
 			break;
 		}
 	}

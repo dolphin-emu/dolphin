@@ -129,11 +129,11 @@ IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
 		break;
 
 	case EXIDEVICE_MEMORYCARD_A:
-        return new CEXIMemoryCard("MemoryCardA", Core::GetStartupParameter().m_strMemoryCardA);
+        return new CEXIMemoryCard("MemoryCardA", Core::GetStartupParameter().m_strMemoryCardA, 0);
 		break;
 
 	case EXIDEVICE_MEMORYCARD_B:
-		return new CEXIMemoryCard("MemoryCardB", Core::GetStartupParameter().m_strMemoryCardB);
+		return new CEXIMemoryCard("MemoryCardB", Core::GetStartupParameter().m_strMemoryCardB, 1);
 		break;
 
 	case EXIDEVICE_IPL:

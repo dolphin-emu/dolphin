@@ -37,7 +37,6 @@ namespace SystemTimers
 
 u32 CPU_CORE_CLOCK  = 486000000u;             // 486 mhz (its not 485, stop bugging me!)
 
-const int ThrottleFrequency = 60;
 s64 fakeDec;
 
 //ratio of TB and Decrementer to clock cycles
@@ -45,6 +44,15 @@ s64 fakeDec;
 enum {
 	TIMER_RATIO = 8
 };
+
+int et_Dec;
+int et_VI;
+int et_SI;
+int et_AI;
+int et_AudioFifo;
+int et_DSP;
+int et_IPC_HLE;
+int et_GPU;
 
 // These are badly educated guesses
 // Feel free to experiment
@@ -58,7 +66,6 @@ int
 	// We should obey that instead of arbitrarly checking at 60fps.
 	SI_PERIOD = GetTicksPerSecond() / 60, //once a frame is good for controllers
 	
-	// These are the big question marks IMHO :)
 	// This one should simply be determined by the increasing counter in AI.
 	AI_PERIOD = GetTicksPerSecond() / 80,
 
@@ -67,7 +74,7 @@ int
 
 	// This is completely arbitrary. If we find that we need lower latency, we can just
 	// increase this number.
-    HLE_IPC_PERIOD = GetTicksPerSecond() / 250,
+    IPC_HLE_PERIOD = GetTicksPerSecond() / 250,
 
 	// This one is also fairly arbitrary. Every N cycles, run the GPU until it starves (in single core mode only).
 	GPU_PERIOD = 10000;
@@ -87,14 +94,14 @@ void AICallback(u64 userdata, int cyclesLate)
 	// Update disk streaming. All that code really needs a revamp, including replacing the codec with the one
 	// from in_cube.
 	AudioInterface::Update();
-	CoreTiming::ScheduleEvent(AI_PERIOD-cyclesLate, &AICallback, "AICallback");
+	CoreTiming::ScheduleEvent(AI_PERIOD-cyclesLate, et_AI);
 }
 
 void DSPCallback(u64 userdata, int cyclesLate)
 {
 	// ~1/6th as many cycles as the period PPC-side.
 	PluginDSP::DSP_Update(DSP_PERIOD / 6);
-	CoreTiming::ScheduleEvent(DSP_PERIOD-cyclesLate, &DSPCallback, "DSPCallback");
+	CoreTiming::ScheduleEvent(DSP_PERIOD-cyclesLate, et_DSP);
 }
 
 void AudioFifoCallback(u64 userdata, int cyclesLate)
@@ -102,19 +109,19 @@ void AudioFifoCallback(u64 userdata, int cyclesLate)
 	int period = CPU_CORE_CLOCK / (AudioInterface::GetDSPSampleRate() * 4 / 32);
 	DSP::UpdateAudioDMA();  // Push audio to speakers.
 
-	CoreTiming::ScheduleEvent(period - cyclesLate, &AudioFifoCallback, "AudioFifoCallback");
+	CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioFifo);
 }
 
 void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
 {	
     WII_IPC_HLE_Interface::Update();
-    CoreTiming::ScheduleEvent(HLE_IPC_PERIOD-cyclesLate, &IPC_HLE_UpdateCallback, "IPC_HLE_UpdateCallback");
+    CoreTiming::ScheduleEvent(IPC_HLE_PERIOD-cyclesLate, et_IPC_HLE);
 }
 
 void VICallback(u64 userdata, int cyclesLate)
 {
 	VideoInterface::Update();
-	CoreTiming::ScheduleEvent(VI_PERIOD-cyclesLate, &VICallback, "VICallback");
+	CoreTiming::ScheduleEvent(VI_PERIOD-cyclesLate, et_VI);
 }
 
 void SICallback(u64 userdata, int cyclesLate)
@@ -123,7 +130,7 @@ void SICallback(u64 userdata, int cyclesLate)
 	PatchEngine_ApplyFramePatches();
 	// OK, do what we are here to do.
 	SerialInterface::UpdateDevices();
-	CoreTiming::ScheduleEvent(SI_PERIOD-cyclesLate, &SICallback, "SICallback");
+	CoreTiming::ScheduleEvent(SI_PERIOD-cyclesLate, et_SI);
 }
 
 void DecrementerCallback(u64 userdata, int cyclesLate)
@@ -138,8 +145,8 @@ void DecrementerSet()
 {
 	u32 decValue = PowerPC::ppcState.spr[SPR_DEC];
 	fakeDec = decValue*TIMER_RATIO;
-	CoreTiming::RemoveEvent(DecrementerCallback);
-	CoreTiming::ScheduleEvent(decValue * TIMER_RATIO, DecrementerCallback, "DecCallback");
+	CoreTiming::RemoveEvent(et_Dec);
+	CoreTiming::ScheduleEvent(decValue * TIMER_RATIO, et_Dec);
 }
 
 void AdvanceCallback(int cyclesExecuted)
@@ -151,43 +158,10 @@ void AdvanceCallback(int cyclesExecuted)
 		PowerPC::ppcState.spr[SPR_DEC] = (u32)fakeDec / TIMER_RATIO;
 }
 
-void RunGPUCallback(u64 userdata, int cyclesLate)
+void GPUCallback(u64 userdata, int cyclesLate)
 {
 	CommandProcessor::CatchUpGPU();
-	CoreTiming::ScheduleEvent(GPU_PERIOD-cyclesLate, &RunGPUCallback, "RunGPUCallback");
-}
-
-// TODO(ector): improve, by using a more accurate timer
-// calculate the timing over the past 7 frames
-// calculating over all time doesn't work : if it's slow for a while, will run like crazy after that
-// calculating over just 1 frame is too shaky
-#define HISTORYLENGTH 7
-int timeHistory[HISTORYLENGTH] = {0,0,0,0,0};
-
-void Throttle(u64 userdata, int cyclesLate)
-{
-	if (!Core::GetStartupParameter().bThrottle)
-		return;
-	static Common::Timer timer;
-
-	for (int i=0; i<HISTORYLENGTH-1; i++)
-		timeHistory[i] = timeHistory[i+1];
-
-	int t = (int)timer.GetTimeDifference();
-	//timer.Update();
-
-	if (timeHistory[0] != 0)
-	{
-		const int delta = (int)(1000*(HISTORYLENGTH-1)/ThrottleFrequency);
-		while (t - timeHistory[0] < delta)
-		{
-			// ugh, busy wait
-			Common::SleepCurrentThread(0);
-			t = (int)timer.GetTimeDifference();
-		}
-	}
-	timeHistory[HISTORYLENGTH-1] = t;
-	CoreTiming::ScheduleEvent((int)(GetTicksPerSecond()/ThrottleFrequency)-cyclesLate, &Throttle, "Throttle");
+	CoreTiming::ScheduleEvent(GPU_PERIOD-cyclesLate, et_GPU);
 }
 
 void Init()
@@ -202,7 +176,7 @@ void Init()
 		AI_PERIOD = GetTicksPerSecond() / 80;
 		DSP_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
 
-        HLE_IPC_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
+        IPC_HLE_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
 	}
 	else
 	{
@@ -215,25 +189,28 @@ void Init()
 		DSP_PERIOD = (int)(GetTicksPerSecond() * 0.005f);
 	}
 	Common::Timer::IncreaseResolution();
-	memset(timeHistory, 0, sizeof(timeHistory));
-	CoreTiming::Clear();
 
-	CoreTiming::ScheduleEvent((int)(GetTicksPerSecond() / ThrottleFrequency), &Throttle, "Throttle");
+	et_Dec = CoreTiming::RegisterEvent("DecCallback", DecrementerCallback);
+	et_AI = CoreTiming::RegisterEvent("AICallback", AICallback);
+	et_VI = CoreTiming::RegisterEvent("VICallback", VICallback);
+	et_SI = CoreTiming::RegisterEvent("SICallback", SICallback);
+	et_DSP = CoreTiming::RegisterEvent("DSPCallback", DSPCallback);
+	et_GPU = CoreTiming::RegisterEvent("GPUCallback", GPUCallback);
+	et_AudioFifo = CoreTiming::RegisterEvent("AudioFifoCallback", AudioFifoCallback);
+	et_IPC_HLE = CoreTiming::RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
 
-	CoreTiming::ScheduleEvent(AI_PERIOD, &AICallback, "AICallback");
-	CoreTiming::ScheduleEvent(VI_PERIOD, &VICallback, "VICallback");
-	CoreTiming::ScheduleEvent(DSP_PERIOD, &DSPCallback, "DSPCallback");
-	CoreTiming::ScheduleEvent(SI_PERIOD, &SICallback, "SICallback");
-	CoreTiming::ScheduleEvent(CPU_CORE_CLOCK / (32000 * 4 / 32), &AudioFifoCallback, "AudioFifoCallback");
+	CoreTiming::ScheduleEvent(AI_PERIOD, et_AI);
+	CoreTiming::ScheduleEvent(VI_PERIOD, et_VI);
+	CoreTiming::ScheduleEvent(DSP_PERIOD, et_DSP);
+	CoreTiming::ScheduleEvent(SI_PERIOD, et_SI);
+	CoreTiming::ScheduleEvent(CPU_CORE_CLOCK / (32000 * 4 / 32), et_AudioFifo);
 
 	if (!Core::GetStartupParameter().bUseDualCore)
-		CoreTiming::ScheduleEvent(GPU_PERIOD, &RunGPUCallback, "RunGPUCallback");
+		CoreTiming::ScheduleEvent(GPU_PERIOD, et_GPU);
 
     if (Core::GetStartupParameter().bWii)
-    {
-        CoreTiming::ScheduleEvent(HLE_IPC_PERIOD, &IPC_HLE_UpdateCallback, "IPC_HLE_UpdateCallback");
-    }
-
+        CoreTiming::ScheduleEvent(IPC_HLE_PERIOD, et_IPC_HLE);
+  
 	CoreTiming::RegisterAdvanceCallback(&AdvanceCallback);
 }
 
@@ -243,4 +220,4 @@ void Shutdown()
 	CoreTiming::Clear();
 }
 
-}
+}  // namespace

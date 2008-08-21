@@ -164,6 +164,8 @@ struct ARDMA
 	}
 };
 
+
+// STATE_TO_SAVE
 u8 *g_ARAM = NULL;
 DSPState g_dspState;
 AudioDMA g_audioDMA;
@@ -179,11 +181,19 @@ void WriteARAM(u8 _iValue, u32 _iAddress);
 bool Update_DSP_ReadRegister();
 void Update_DSP_WriteRegister();
 
+int et_GenerateDSPInterrupt;
+
+void GenerateDSPInterrupt_Wrapper(u64 userdata, int cyclesLate)
+{
+	GenerateDSPInterrupt((DSPInterruptType)(userdata&0xFFFF), (bool)((userdata>>16) & 1));
+}
+
 void Init()
 {
 	g_ARAM = (u8 *)AllocateMemoryPages(ARAM_SIZE);
 	g_dspState.DSPControl.Hex = 0;
     g_dspState.DSPControl.DSPHalt = 1;
+	et_GenerateDSPInterrupt = CoreTiming::RegisterEvent("DSPint", GenerateDSPInterrupt_Wrapper);
 }
 
 void Shutdown()
@@ -525,16 +535,11 @@ void GenerateDSPInterrupt(DSPInterruptType type, bool _bSet)
 	UpdateInterrupts();
 }
 
-void GenerateDSPInterrupt_Wrapper(u64 userdata, int cyclesLate)
-{
-	GenerateDSPInterrupt((DSPInterruptType)(userdata&0xFFFF), (bool)((userdata>>16) & 1));
-}
-
 // CALLED FROM DSP PLUGIN, POSSIBLY THREADED
 void GenerateDSPInterruptFromPlugin(DSPInterruptType type, bool _bSet)
 {
 	CoreTiming::ScheduleEvent_Threadsafe(
-		0, GenerateDSPInterrupt_Wrapper, "DSPInt", type | (_bSet<<16));
+		0, et_GenerateDSPInterrupt, type | (_bSet<<16));
 }
 
 void Update_ARAM_DMA()

@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <vector>
+
 #include "Thread.h"
 #include "PowerPC/PowerPC.h"
 #include "CoreTiming.h"
@@ -24,11 +26,51 @@
 
 namespace CoreTiming
 {
+
+struct EventType
+{
+	TimedCallback callback;
+	const char *name;
+};
+
+std::vector<EventType> event_types;
+
+struct Event
+{
+	s64 time;
+	u64 userdata;
+	Event *next;
+	int type;
+};
+
+// STATE_TO_SAVE (how?)
+Event *first;
+Event *tsFirst;
+
 int downcount, slicelength;
 int maxSliceLength = 20000;
 
 s64 globalTimer;
 s64 idledCycles;
+
+Common::CriticalSection externalEventSection;
+
+int RegisterEvent(const char *name, TimedCallback callback)
+{
+	EventType type;
+	type.name = name;
+	type.callback = callback;
+	event_types.push_back(type);
+	return event_types.size() - 1;
+}
+
+void UnregisterAllEvents()
+{
+	if (first)
+		PanicAlert("Cannot unregister events with events pending");
+	event_types.clear();
+}
+
 
 u64 GetTicks()
 {
@@ -40,29 +82,14 @@ u64 GetIdleTicks()
 	return (u64)idledCycles;
 }
 
-struct Event
-{
-	TimedCallback callback;
-	Event *next;
-	s64 time;
-	u64 userdata;
-	const char *name;
-};
-
-Event *first;
-Event *tsFirst;
-
-Common::CriticalSection externalEventSection;
-
 // This is to be called when outside threads, such as the graphics thread, wants to
 // schedule things to be executed on the main thread.
-void ScheduleEvent_Threadsafe(int cyclesIntoFuture, TimedCallback callback, const char *name, u64 userdata)
+void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata)
 {
 	externalEventSection.Enter();
 	Event *ne = new Event;
 	ne->time = globalTimer + cyclesIntoFuture;
-	ne->name = name;
-	ne->callback = callback;
+	ne->type = event_type;
 	ne->next = tsFirst;
 	ne->userdata = userdata;
 	tsFirst = ne;
@@ -125,12 +152,11 @@ void AddEventToQueue(Event *ne)
 // This must be run ONLY from within the cpu thread
 // cyclesIntoFuture may be VERY inaccurate if called from anything else
 // than Advance 
-void ScheduleEvent(int cyclesIntoFuture, TimedCallback callback, const char *name, u64 userdata)
+void ScheduleEvent(int cyclesIntoFuture, int event_type, u64 userdata)
 {
 	Event *ne = new Event;
-	ne->callback = callback;
 	ne->userdata = userdata;
-	ne->name = name;
+	ne->type = event_type;
 	ne->time = globalTimer + cyclesIntoFuture;
 
 	AddEventToQueue(ne);
@@ -144,24 +170,24 @@ void RegisterAdvanceCallback(void (*callback)(int cyclesExecuted))
 	advanceCallback = callback;
 }
 
-bool IsScheduled(TimedCallback callback) 
+bool IsScheduled(int event_type) 
 {
 	if (!first)
 		return false;
 	Event *e = first;
 	while (e) {
-		if (e->callback == callback)
+		if (e->type == event_type)
 			return true;
 		e = e->next;
 	}
 	return false;
 }
 
-void RemoveEvent(TimedCallback callback)
+void RemoveEvent(int event_type)
 {
 	if (!first)
 		return;
-	if (first->callback == callback)
+	if (first->type == event_type)
 	{
 		Event *next = first->next;
 		delete first;
@@ -173,7 +199,7 @@ void RemoveEvent(TimedCallback callback)
 	Event *ptr = prev->next;
 	while (ptr)
 	{
-		if (ptr->callback == callback)
+		if (ptr->type == event_type)
 		{
 			prev->next = ptr->next;
 			delete ptr;
@@ -219,8 +245,7 @@ void Advance()
 //			LOG(GEKKO, "[Scheduler] %s     (%lld, %lld) ", 
 //				first->name ? first->name : "?", (u64)globalTimer, (u64)first->time);
 			
-			first->callback(first->userdata, (int)(globalTimer - first->time));
-
+			event_types[first->type].callback(first->userdata, (int)(globalTimer - first->time));
 			Event *next = first->next;
 			delete first;
 			first = next;

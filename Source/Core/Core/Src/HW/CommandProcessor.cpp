@@ -91,6 +91,7 @@ union UCPClearReg
 	UCPClearReg(u16 _hex) {Hex = _hex; }
 };
 
+// STATE_TO_SAVE
 // variables
 UCPStatusReg m_CPStatusReg;
 UCPCtrlReg	m_CPCtrlReg;
@@ -114,6 +115,13 @@ inline void WriteHigh(u32& _reg, u16 highbits) {_reg = (_reg & 0x0000FFFF) | ((u
 inline u16 ReadLow  (u32 _reg)  {return (u16)(_reg & 0xFFFF);}
 inline u16 ReadHigh (u32 _reg)  {return (u16)(_reg >> 16);}
 
+int et_UpdateInterrupts;
+
+void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
+{
+	UpdateInterrupts();
+}
+
 void Init()
 {
 	m_CPStatusReg.Hex = 0;
@@ -132,6 +140,9 @@ void Init()
 	fifo.bFF_GPReadEnable = false;
 	fifo.bFF_GPLinkEnable = false;
 	fifo.bFF_BPEnable = false;
+
+	et_UpdateInterrupts = CoreTiming::RegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
+
 #ifdef _WIN32
 	InitializeCriticalSection(&fifo.sync);
 #endif
@@ -464,14 +475,9 @@ void UpdateInterrupts()
 	}
 }
 
-void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
-{
-	UpdateInterrupts();
-}
-
 void UpdateInterruptsFromVideoPlugin()
 {
-	CoreTiming::ScheduleEvent_Threadsafe(0, &UpdateInterrupts_Wrapper, "CP:UI");
+	CoreTiming::ScheduleEvent_Threadsafe(0, et_UpdateInterrupts);
 }
 
 } // end of namespace CommandProcessor
