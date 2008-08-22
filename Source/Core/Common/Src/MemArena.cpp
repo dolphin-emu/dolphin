@@ -15,6 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "Common.h"
+#include "MemArena.h"
+
 #ifdef _WIN32
 #include <windows.h>
 #else
@@ -24,8 +27,9 @@
 #include <unistd.h>
 #endif
 
-#include "Common.h"
-#include "MemArena.h"
+#if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
+#define MAP_ANONYMOUS MAP_ANON
+#endif 
 
 
 const char* ram_temp_file = "/tmp/gc_mem.tmp";
@@ -118,12 +122,17 @@ u64 MemArena::Find4GBBase()
 
 #else
 	// 32 bit
+#ifdef _WIN32
 	// The highest thing in any 1GB section of memory space is the locked cache. We only need to fit it.
 	u8* base = (u8*)VirtualAlloc(0, 0x31000000, MEM_RESERVE, PAGE_READWRITE);
 	if (base) {
 		VirtualFree(base, 0, MEM_RELEASE);
 	}
 	return((u64)base);
+#else
+	void* base = mmap(0, 0x31000000, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, 0, 0);
+	munmap(base, 0x31000000);
+	return reinterpret_cast<u64>(base);
 #endif
-
+#endif
 }
