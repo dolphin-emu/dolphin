@@ -51,7 +51,7 @@
 #include <vector>
 #include <stdio.h>
 #include <time.h>
-#include <SDL.h>		// includes SDL
+#include "SDL.h"
 
 #ifdef _WIN32
 #define SLEEP(x) Sleep(x)

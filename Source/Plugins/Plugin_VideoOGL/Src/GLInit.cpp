@@ -24,7 +24,7 @@
 #include "GLInit.h"
 
 #ifdef MACOSX
-#include "SDL/SDL.h"
+#include "SDL.h"
 #endif
 
 // Handles OpenGL and the window

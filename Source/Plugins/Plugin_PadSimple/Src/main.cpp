@@ -43,7 +43,7 @@ DInput dinput;
 
 #else
 
-#include <SDL.h>
+#include "SDL.h"
 SDL_Joystick *joy;
 int numaxes = 0;
 int numbuttons = 0;

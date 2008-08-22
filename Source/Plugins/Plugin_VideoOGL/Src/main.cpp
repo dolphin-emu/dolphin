@@ -22,7 +22,7 @@
 #endif
 
 #ifdef MACOSX
-#include "SDL/SDL.h"
+#include "SDL.h"
 #endif
 
 #include "GUI/ConfigDlg.h"
