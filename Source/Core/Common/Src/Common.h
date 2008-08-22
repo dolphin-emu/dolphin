@@ -47,11 +47,11 @@ extern "C" {
 #define WEAK_SYMBOL __attribute__((weak))
 #define stricmp strcasecmp
 #define Crash() {asm ("int $3");}
-// #ifdef 64bit
-// #define _M_IX86
-// #else
-#define _M_X64
-// #endf
+#ifdef _LP64
+#define _M_X64 1
+#else
+#define _M_IX86 1
+#endif
 #endif
 
 // Types
