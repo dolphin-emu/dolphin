@@ -19,10 +19,11 @@
 #ifdef _WIN32
 #include <intrin.h>
 #else
-#define _RC_NEAR (0<<10)
-#define _RC_DOWN (1<<10)
-#define _RC_UP   (2<<10)
-#define _RC_CHOP (3<<10)
+static const unsigned short FPU_ROUND_NEAR = 0 << 10;
+static const unsigned short FPU_ROUND_DOWN = 1 << 10;
+static const unsigned short FPU_ROUND_UP   = 2 << 10;
+static const unsigned short FPU_ROUND_CHOP = 3 << 10;
+static const unsigned short FPU_ROUND_MASK = 3 << 10;
 #include <xmmintrin.h>
 #endif
 
@@ -73,6 +74,8 @@ void UpdateFPSCR(UReg_FPSCR fp)
 	// Set FPU rounding mode to mimic the PowerPC's
 	int round = fp.RN;
 #ifdef _M_IX86
+	// This shouldn't really be needed anymore since we use SSE
+#ifdef _WIN32
 	const int table[4] = 
 	{
 		_RC_NEAR,
@@ -80,8 +83,20 @@ void UpdateFPSCR(UReg_FPSCR fp)
 		_RC_UP,
 		_RC_DOWN
 	};
-	// This shouldn't really be needed anymore since we use SSE
 	_set_controlfp(_MCW_RC, table[round]);
+#else
+	const unsigned short table[4] = 
+	{
+		FPU_ROUND_NEAR,
+		FPU_ROUND_CHOP,
+		FPU_ROUND_UP,
+		FPU_ROUND_DOWN
+	};
+	unsigned short mode;
+	asm ("fstcw %0" : : "m" (mode));
+	mode = (mode & ~FPU_ROUND_MASK) | table[round];
+	asm ("fldcw %0" : : "m" (mode));
+#endif
 #endif
 	// Also corresponding SSE rounding mode setting
 	UpdateSSEState(round, fp.NI ? true : false);
