@@ -5,6 +5,8 @@
 #include "HW/HW.h"
 #include "PowerPC/PowerPC.h"
 
+#include <string>
+
 static int ev_Save;
 static int ev_Load;
 
