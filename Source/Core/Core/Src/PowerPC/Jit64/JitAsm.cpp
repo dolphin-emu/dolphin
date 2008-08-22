@@ -93,7 +93,7 @@ void Generate()
 
 	//MOV(32, R(EBX), Imm32((u32)&Memory::base));
 	const u8 *outerLoop = GetCodePtr();
-		CALL(&CoreTiming::Advance);
+		CALL(reinterpret_cast<void *>(&CoreTiming::Advance));
 		FixupBranch skipToRealDispatch = J(); //skip the sync and compare first time
 	
 		dispatcher = GetCodePtr();
@@ -104,7 +104,7 @@ void Generate()
 			FixupBranch bail = J_CC(CC_BE);
 			if (Core::bReadTrace || Core::bWriteTrace)
 			{
-				CALL(&Core::SyncTrace);
+				CALL(reinterpret_cast<void *>(&Core::SyncTrace));
 				//			CMP(32, R(EAX),Imm32(0));
 				//			bail2 = J_CC();
 			}
@@ -138,7 +138,7 @@ void Generate()
 
 			//Ok, no block, let's jit
 			PUSH(32, M(&PowerPC::ppcState.pc));
-			CALL(&Jit);
+			CALL(reinterpret_cast<void *>(&Jit));
 			ADD(32, R(ESP), Imm8(4));
 			JMP(dispatcherNoCheck); // no point in special casing this
 
@@ -147,7 +147,7 @@ void Generate()
 			MOV(32, R(EAX), M(&PC));
 			MOV(32, M(&NPC), R(EAX));
 			OR(32, M(&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
-			CALL(&PowerPC::CheckExceptions);
+			CALL(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 			MOV(32, R(EAX), M(&NPC));
 			MOV(32, M(&PC), R(EAX));
 			JMP(dispatcher);
@@ -155,14 +155,14 @@ void Generate()
 		SetJumpTarget(bail);
 		doTiming = GetCodePtr();
 
-		CALL(&CoreTiming::Advance);
+		CALL(reinterpret_cast<void *>(&CoreTiming::Advance));
 		
 		testExceptions = GetCodePtr();
 		TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(0xFFFFFFFF));
 		FixupBranch skipExceptions = J_CC(CC_Z);
 			MOV(32, R(EAX), M(&PC));
 			MOV(32, M(&NPC), R(EAX));
-			CALL(&PowerPC::CheckExceptions);
+			CALL(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 			MOV(32, R(EAX), M(&NPC));
 			MOV(32, M(&PC), R(EAX));
 		SetJumpTarget(skipExceptions);
