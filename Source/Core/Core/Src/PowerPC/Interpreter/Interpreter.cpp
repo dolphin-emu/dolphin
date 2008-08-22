@@ -27,6 +27,11 @@
 #include "PowerPCDisasm.h"
 #include "../../IPC_HLE/WII_IPC_HLE.h"
 
+static const unsigned short FPU_PREC_24 = 0 << 8;
+static const unsigned short FPU_PREC_53 = 2 << 8;
+static const unsigned short FPU_PREC_64 = 3 << 8;
+static const unsigned short FPU_PREC_MASK = 3 << 8;
+
 // cpu register to keep the code readable
 u32*	CInterpreter::m_GPR		= PowerPC::ppcState.gpr;
 bool    CInterpreter::m_EndBlock = false;
@@ -50,11 +55,18 @@ void CInterpreter::RunTable63(UGeckoInstruction _inst) {m_opTable63[_inst.SUBOP1
 void CInterpreter::sInit()
 {
 	// Crash();
+#ifdef _M_IX86
 	// sets the floating-point lib to 53-bit
 	// PowerPC has a 53bit floating pipeline only
 	// eg: sscanf is very sensitive
-#ifdef _M_IX86
+#ifdef _WIN32
 	_control87(_PC_53, MCW_PC);
+#else
+	unsigned short mode;
+	asm ("fstcw %0" : : "m" (mode));
+	mode = (mode & ~FPU_PREC_MASK) | FPU_PREC_53;
+	asm ("fldcw %0" : : "m" (mode));
+#endif
 #else
 	//x64 doesn't need this - fpu is done with SSE
 	//but still - set any useful sse options here
