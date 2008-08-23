@@ -103,7 +103,7 @@ void UpdateFPSDisplay(const char *text)
     OpenGL_SetWindowText(temp);
 #else
     char temp[512];
-    sprintf(temp, "SVN %s: %s", "Linux", text); //TODO: Set to svn rev //
+    sprintf(temp, "SVN %s: GL: %s", "Linux", text); //TODO: Set to svn rev //
     OpenGL_SetWindowText(temp);
 #endif
 }

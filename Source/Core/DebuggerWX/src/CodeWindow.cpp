@@ -15,6 +15,16 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "wx/button.h"
+#include "wx/textctrl.h"
+#include "wx/listctrl.h"
+#include "wx/thread.h"
+#include "wx/listctrl.h"
+#include "wx/mstream.h"
+
+// ugly that this lib included code from the main
+#include "../../DolphinWX/src/Globals.h"
+
 #include "IniFile.h"
 #include "Host.h"
 
@@ -25,13 +35,6 @@
 #include "BreakpointWindow.h"
 #include "MemoryWindow.h"
 #include "JitWindow.h"
-
-#include "wx/button.h"
-#include "wx/textctrl.h"
-#include "wx/listctrl.h"
-#include "wx/thread.h"
-#include "wx/listctrl.h"
-#include "wx/mstream.h"
 
 #include "CodeWindow.h"
 #include "CodeView.h"
@@ -45,9 +48,6 @@
 #include "PowerPC/PPCAnalyst.h"
 #include "PowerPC/Jit64/Jit.h"
 #include "PowerPC/Jit64/JitCache.h"
-
-// ugly that this lib included code from the main
-#include "../../DolphinWX/src/Globals.h"
 
 extern "C" {
 	#include "../resources/toolbar_play.c"
