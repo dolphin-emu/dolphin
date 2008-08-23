@@ -101,7 +101,7 @@ void SMB_EvilNormalize()
 	float x = F(r3);
 	float y = F(r3 + 4);
 	float z = F(r3 + 8);
-	float inv_len = 1.0 / sqrt(x*x + y*y + z*z);
+	float inv_len = 1.0f / sqrtf(x*x + y*y + z*z);
 	x *= inv_len;
 	y *= inv_len;
 	z *= inv_len;
@@ -174,7 +174,7 @@ void SMB_atan2()
 	// in: f1 = x, f2 = y
 	// out: r3 = angle
 	double angle = atan2(rPS0(1), rPS0(2));
-	int angle_fixpt = angle / 3.14159 * 32767;
+	int angle_fixpt = (int)(angle / 3.14159 * 32767);
 	if (angle_fixpt < -32767) angle_fixpt = -32767;
 	if (angle_fixpt > 32767) angle_fixpt = 32767;
 	GPR(3) = angle_fixpt;

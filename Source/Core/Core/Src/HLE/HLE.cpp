@@ -103,7 +103,7 @@ void PatchFunctions()
 		{
             const Debugger::CSymbol& rSymbol = Debugger::GetSymbol(SymbolIndex);
 			u32 HLEPatchValue = (1 & 0x3f) << 26;
-			for (int addr = rSymbol.vaddress; addr < rSymbol.vaddress + rSymbol.size; addr+=4) {
+			for (size_t addr = rSymbol.vaddress; addr < rSymbol.vaddress + rSymbol.size; addr+=4) {
 				Memory::Write_U32(HLEPatchValue | i, addr);
 			}
 			//PanicAlert("patched %s", OSPatches[i].m_szPatchName);
