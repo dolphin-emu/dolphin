@@ -318,8 +318,8 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 
 	// Set analog controllers
 	// Set Deadzones perhaps out of function
-	int deadzone = ((float)(128.00/100.00)) * (float)(joysticks[_numPAD].deadzone+1);
-	int deadzone2 = ((float)(-128.00/100.00)) * (float)(joysticks[_numPAD].deadzone+1);
+	int deadzone = (int)(((float)(128.00/100.00)) * (float)(joysticks[_numPAD].deadzone+1));
+	int deadzone2 = (int)(((float)(-128.00/100.00)) * (float)(joysticks[_numPAD].deadzone+1));
 
 	// Adjust range
 	// The value returned by SDL_JoystickGetAxis is a signed integer (-32768 to 32768)

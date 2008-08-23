@@ -722,7 +722,7 @@ void PPCTables::LogCompiledInstructions()
 	}
 	fclose(f);
 	f = fopen(StringFromFormat("mcrfs_at.txt", time).c_str(), "w");
-	for (int i = 0; i < rsplocations.size(); i++) {
+	for (size_t i = 0; i < rsplocations.size(); i++) {
 		fprintf(f, "mcrfs: %08x\n", rsplocations[i]);
 	}
 	fclose(f);

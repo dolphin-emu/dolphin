@@ -542,6 +542,7 @@ THREAD_RETVAL THREAD_CALLCONV wxThreadInternal::WinThreadStart(void *param)
     wxThread * const thread = (wxThread *)param;
 
     // each thread has its own SEH translator so install our own a.s.a.p.
+#pragma warning(disable:4535)	//probably not a good idea, but it won't compile otherwise.
     DisableAutomaticSETranslator();
 
     // first of all, check whether we hadn't been cancelled already and don't

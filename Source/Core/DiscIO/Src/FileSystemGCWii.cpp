@@ -164,7 +164,7 @@ CFileSystemGCWii::FindFileInfo(const char* _rFullPath) const
 {
 	for (size_t i = 0; i < m_FileInfoVector.size(); i++)
 	{
-		if (!stricmp(m_FileInfoVector[i].m_FullPath, _rFullPath))
+		if (!_stricmp(m_FileInfoVector[i].m_FullPath, _rFullPath))
 		{
 			return(&m_FileInfoVector[i]);
 		}

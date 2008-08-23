@@ -134,6 +134,7 @@ IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType)
 
 		if (pT == NULL)
 		{
+			PanicAlert("Can't open WII/masterkey.bin");
 			return(NULL);
 		}
 

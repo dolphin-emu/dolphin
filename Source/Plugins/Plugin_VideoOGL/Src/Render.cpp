@@ -783,7 +783,7 @@ bool Renderer::SaveRenderTarget(const char* filename, int jpeg)
     if (bflip) {
         // swap scanlines
         vector<u32> scanline(nBackbufferWidth);
-        for(u32 i = 0; i < nBackbufferHeight/2; ++i) {
+        for(int i = 0; i < nBackbufferHeight/2; ++i) {
             memcpy(&scanline[0], &data[i*nBackbufferWidth], nBackbufferWidth*4);
             memcpy(&data[i*nBackbufferWidth], &data[(nBackbufferHeight-i-1)*nBackbufferWidth], nBackbufferWidth*4);
             memcpy(&data[(nBackbufferHeight-i-1)*nBackbufferWidth], &scanline[0], nBackbufferWidth*4);

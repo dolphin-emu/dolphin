@@ -29,8 +29,11 @@ void ErrorLog(const char* _fmt, ...);
 void DSP_DebugBreak();
 
 
+#ifndef _dbg_assert_
 #ifdef _DEBUG
 
+#undef _dbg_assert_
+#undef _dbg_assert_msg_
 #define _dbg_assert_(_a_)                   if (!(_a_)){DebugBreak();}
 #define _dbg_assert_msg_(_a_, _desc_, ...)\
 	if (!(_a_)){\
@@ -41,6 +44,7 @@ void DSP_DebugBreak();
 #define _dbg_assert_(_a_);
 #define _dbg_assert_msg_(_a_, _desc_, ...);
 
+#endif
 #endif
 
 typedef unsigned char uint8;

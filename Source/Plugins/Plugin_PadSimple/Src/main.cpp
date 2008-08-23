@@ -25,7 +25,7 @@
 #include "Common.h"
 
 #ifdef XINPUT_ENABLE
-#include "XInput.h"
+#include <XInput.h>
 #endif
 
 #include "pluginspecs_pad.h"

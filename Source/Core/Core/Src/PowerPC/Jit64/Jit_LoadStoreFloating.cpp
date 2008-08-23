@@ -198,7 +198,7 @@ void stfs(UGeckoInstruction inst)
 
 	if (gpr.R(a).IsImm())
 	{
-		u32 addr = gpr.R(a).offset + offset;
+		u32 addr = (u32)(gpr.R(a).offset + offset);
 		if (Memory::IsRAMAddress(addr))
 		{
 			if (cpu_info.bSSSE3) {

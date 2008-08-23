@@ -81,8 +81,8 @@ void UpdateFPRF(double value)
 		FPSCR.FPRF = 0x9;
 	} else {
 		// OK let's dissect this thing.
-		int sign = ivalue >> 63;
-		int exp = (ivalue >> 52) & 0x7FF;
+		int sign = (int)(ivalue >> 63);
+		int exp = (int)((ivalue >> 52) & 0x7FF);
 		if (exp >= 1 && exp <= 2046) {
 			// Nice normalized number.
 			if (sign) {
@@ -93,7 +93,7 @@ void UpdateFPRF(double value)
 			return;
 		}
 		u64 mantissa = ivalue & 0x000FFFFFFFFFFFFFULL;
-		int mantissa_top = mantissa >> 51;
+		int mantissa_top = (int)(mantissa >> 51);
 		if (exp == 0 && mantissa) {
 			// Denormalized number.
 			if (sign) {
@@ -303,8 +303,8 @@ void CInterpreter::frspx(UGeckoInstruction _inst)  // round to single
 	} in, out;
 	in.d = rPS0(_inst.FB);
 	out = in;
-	int sign = in.i >> 63;
-	int exp = (in.i >> 52) & 0x7FF;
+	int sign = (int)(in.i >> 63);
+	int exp = (int)((in.i >> 52) & 0x7FF);
 	u64 mantissa = in.i & 0x000FFFFFFFFFFFFFULL;
 	u64 mantissa_single = mantissa & 0x000FFFFFE0000000ULL;
 	u64 leftover_single = mantissa & 0x000000001FFFFFFFULL;
@@ -508,7 +508,7 @@ void CInterpreter::fsubsx(UGeckoInstruction _inst)
 
 void CInterpreter::frsqrtex(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = 1.0f / (sqrtf(rPS0(_inst.FB)));
+	rPS0(_inst.FD) = 1.0f / (sqrt(rPS0(_inst.FB)));
 //	FPSCR.FI = 0;
 //	FPSCR.FR = 0;
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));

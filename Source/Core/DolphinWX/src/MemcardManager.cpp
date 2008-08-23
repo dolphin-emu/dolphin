@@ -111,7 +111,7 @@ void CMemcardManager::OnPathChange(wxFileDirPickerEvent& event)
 	}
 }
 
-void CMemcardManager::OnRightClick(wxMouseEvent& event)
+void CMemcardManager::OnRightClick(wxMouseEvent& /*event*/)
 {
 	// Focus the clicked item.
 	//int flags;

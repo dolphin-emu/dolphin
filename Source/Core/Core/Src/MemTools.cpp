@@ -55,7 +55,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			}
 
 			//Figure out what address was hit
-			DWORD_PTR badAddress = (DWORD_PTR)pPtrs->ExceptionRecord->ExceptionInformation[1];
+			u64 badAddress = (u64)pPtrs->ExceptionRecord->ExceptionInformation[1];
 			//TODO: First examine the address, make sure it's within the emulated memory space
 			u64 memspaceBottom = (u64)Memory::base;
 			if (badAddress < memspaceBottom) {

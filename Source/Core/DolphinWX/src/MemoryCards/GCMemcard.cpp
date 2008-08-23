@@ -14,7 +14,7 @@ void GCMemcard::calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2)
     *c1 = 0;*c2 = 0;
     for (u32 i = 0; i < num; ++i)
     {
-
+				//weird warnings here
         *c1 += bswap16(buf[i]);
         *c2 += bswap16((u16)(buf[i] ^ 0xffff));
     }

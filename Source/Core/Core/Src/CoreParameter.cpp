@@ -53,9 +53,9 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
             std::string Extension;
             SplitPath(m_strFilename, NULL, NULL, &Extension);
 
-            if (!stricmp(Extension.c_str(), ".gcm") || 
-				!stricmp(Extension.c_str(), ".iso") ||
-				!stricmp(Extension.c_str(), ".gcz") )
+            if (!_stricmp(Extension.c_str(), ".gcm") || 
+				!_stricmp(Extension.c_str(), ".iso") ||
+				!_stricmp(Extension.c_str(), ".gcz") )
             {
                 m_BootType = BOOT_ISO;
                 DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename.c_str());
@@ -92,20 +92,20 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 
                 delete pVolume;
             }
-            else if (!stricmp(Extension.c_str(), ".elf"))
+            else if (!_stricmp(Extension.c_str(), ".elf"))
             {
 				bWii = CBoot::IsElfWii(m_strFilename.c_str());
                 BaseDataPath = s_DataBasePath_USA; 
                 m_BootType = BOOT_ELF;
                 bNTSC = true;
             }
-            else if (!stricmp(Extension.c_str(), ".bin"))
+            else if (!_stricmp(Extension.c_str(), ".bin"))
             {
                 BaseDataPath = s_DataBasePath_USA; 
                 m_BootType = BOOT_BIN;
                 bNTSC = true;
             }
-            else if (!stricmp(Extension.c_str(), ".dol"))
+            else if (!_stricmp(Extension.c_str(), ".dol"))
             {
                 BaseDataPath = s_DataBasePath_USA; 
                 m_BootType = BOOT_DOL;

@@ -52,7 +52,7 @@ CDebugger_Log::CDebugger_Log(const char* _szShortName, const char* _szName) :
 	strcpy((char*)m_szShortName, _szShortName);
 	sprintf((char*)m_szFilename, "Logs/%s.txt", _szName);
 	
-	unlink(m_szFilename);
+	_unlink(m_szFilename);
 }
 
 CDebugger_Log::~CDebugger_Log(void)

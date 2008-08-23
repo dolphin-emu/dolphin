@@ -123,12 +123,12 @@ void HWCALL Write32(const u32 _Value, const u32 _Address)
 
 void HWCALL Write64(const u64 _Value, const u32 _Address)
 {
-	switch(_Address)
-	{
-	default:
+	//switch(_Address)
+	//{
+	//default:
 		_dbg_assert_msg_(WII_IOB, 0, "IOP: Write32 to 0x%08x", _Address);
-		break;
-	}	
+		//break;
+	//}
 }
 
 } // end of namespace AudioInterfac

@@ -163,48 +163,48 @@ void CInterpreter::ps_sum0(UGeckoInstruction _inst)
 
 void CInterpreter::ps_sum1(UGeckoInstruction _inst)
 {
-	float p0 = rPS0(_inst.FC);
-	float p1 = rPS0(_inst.FA) + rPS1(_inst.FB);
+	double p0 = rPS0(_inst.FC);
+	double p1 = rPS0(_inst.FA) + rPS1(_inst.FB);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
 }
 
 void CInterpreter::ps_muls0(UGeckoInstruction _inst)
 {
-	float p0 = rPS0(_inst.FA) * rPS0(_inst.FC);
-	float p1 = rPS1(_inst.FA) * rPS0(_inst.FC);
+	double p0 = rPS0(_inst.FA) * rPS0(_inst.FC);
+	double p1 = rPS1(_inst.FA) * rPS0(_inst.FC);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
 }
 
 void CInterpreter::ps_muls1(UGeckoInstruction _inst)
 {
-	float p0 = rPS0(_inst.FA) * rPS1(_inst.FC);
-	float p1 = rPS1(_inst.FA) * rPS1(_inst.FC);
+	double p0 = rPS0(_inst.FA) * rPS1(_inst.FC);
+	double p1 = rPS1(_inst.FA) * rPS1(_inst.FC);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
 }
 
 void CInterpreter::ps_madds0(UGeckoInstruction _inst)
 {
-	float p0 = (rPS0(_inst.FA) * rPS0(_inst.FC)) + rPS0(_inst.FB);
-	float p1 = (rPS1(_inst.FA) * rPS0(_inst.FC)) + rPS1(_inst.FB);
+	double p0 = (rPS0(_inst.FA) * rPS0(_inst.FC)) + rPS0(_inst.FB);
+	double p1 = (rPS1(_inst.FA) * rPS0(_inst.FC)) + rPS1(_inst.FB);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
 }
 
 void CInterpreter::ps_madds1(UGeckoInstruction _inst)
 {
-	float p0 = (rPS0(_inst.FA) * rPS1(_inst.FC)) + rPS0(_inst.FB);
-	float p1 = (rPS1(_inst.FA) * rPS1(_inst.FC)) + rPS1(_inst.FB);
+	double p0 = (rPS0(_inst.FA) * rPS1(_inst.FC)) + rPS0(_inst.FB);
+	double p1 = (rPS1(_inst.FA) * rPS1(_inst.FC)) + rPS1(_inst.FB);
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
 }
 
 void CInterpreter::ps_cmpu0(UGeckoInstruction _inst)
 {
-	float fa = rPS0(_inst.FA);
-	float fb = rPS0(_inst.FB);
+	double fa = rPS0(_inst.FA);
+	double fb = rPS0(_inst.FB);
 	int compareResult;
 	if (fa < fb)		compareResult = 8; 
 	else if (fa > fb) 	compareResult = 4; 
@@ -220,8 +220,8 @@ void CInterpreter::ps_cmpo0(UGeckoInstruction _inst)
 
 void CInterpreter::ps_cmpu1(UGeckoInstruction _inst)
 {
-	float fa = rPS1(_inst.FA);
-	float fb = rPS1(_inst.FB);
+	double fa = rPS1(_inst.FA);
+	double fb = rPS1(_inst.FB);
 	int compareResult;
 	if (fa < fb)		compareResult = 8; 
 	else if (fa > fb)	compareResult = 4; 
