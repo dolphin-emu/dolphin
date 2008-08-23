@@ -219,9 +219,9 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			{
 			int sel = Debugger::FindSymbol(selection);
 			if (sel > 0) {
-				wxTextEntryDialog input_symbol(this, "Rename symbol:", wxGetTextFromUserPromptStr, Debugger::GetSymbol(sel).GetName().c_str());
+				wxTextEntryDialog input_symbol(this, wxString::FromAscii("Rename symbol:"), wxGetTextFromUserPromptStr, wxString::FromAscii(Debugger::GetSymbol(sel).GetName().c_str()));
 				if (input_symbol.ShowModal() == wxID_OK) {
-					Debugger::AccessSymbol(sel).SetName(input_symbol.GetValue().c_str());
+					Debugger::AccessSymbol(sel).SetName(input_symbol.GetValue().mb_str());
 				}
 //			    redraw();
 				Host_NotifyMapLoaded();

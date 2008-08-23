@@ -52,10 +52,15 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
         {
             std::string Extension;
             SplitPath(m_strFilename, NULL, NULL, &Extension);
-
+            #ifdef _WIN32
             if (!_stricmp(Extension.c_str(), ".gcm") || 
 				!_stricmp(Extension.c_str(), ".iso") ||
 				!_stricmp(Extension.c_str(), ".gcz") )
+            #else
+            if (!strcasecmp(Extension.c_str(), ".gcm") ||  //TODO(Sonic): Shouldn't these work on all platforms?
+				!strcasecmp(Extension.c_str(), ".iso") ||
+				!strcasecmp(Extension.c_str(), ".gcz") )
+            #endif
             {
                 m_BootType = BOOT_ISO;
                 DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(m_strFilename.c_str());
@@ -92,20 +97,32 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 
                 delete pVolume;
             }
+            #ifdef _WIN32
             else if (!_stricmp(Extension.c_str(), ".elf"))
+            #else
+            else if (!strcasecmp(Extension.c_str(), ".elf"))
+            #endif
             {
 				bWii = CBoot::IsElfWii(m_strFilename.c_str());
                 BaseDataPath = s_DataBasePath_USA; 
                 m_BootType = BOOT_ELF;
                 bNTSC = true;
             }
+            #ifdef _WIN32
             else if (!_stricmp(Extension.c_str(), ".bin"))
+            #else
+            else if (!strcasecmp(Extension.c_str(), ".bin"))
+            #endif
             {
                 BaseDataPath = s_DataBasePath_USA; 
                 m_BootType = BOOT_BIN;
                 bNTSC = true;
             }
+            #ifdef _WIN32
             else if (!_stricmp(Extension.c_str(), ".dol"))
+            #else
+            else if (!strcasecmp(Extension.c_str(), ".dol"))
+            #endif
             {
                 BaseDataPath = s_DataBasePath_USA; 
                 m_BootType = BOOT_DOL;

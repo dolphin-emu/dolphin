@@ -110,7 +110,11 @@ XSymbolIndex FindSymbol(const char *name)
     for (int i = 0; i < (int)m_VectorSymbols.size(); i++)
     {        
         const CSymbol& rSymbol = m_VectorSymbols[i];
-        if (_stricmp(rSymbol.GetName().c_str(), name) == 0)
+        #ifdef _WIN32
+        if (!_stricmp(rSymbol.GetName().c_str(), name))
+        #else
+        if (!strcasecmp(rSymbol.GetName().c_str(), name))
+        #endif
         {
             return (XSymbolIndex)i;
         }
