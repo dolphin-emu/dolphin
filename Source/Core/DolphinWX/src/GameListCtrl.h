@@ -68,7 +68,7 @@ class CGameListCtrl : public wxListCtrl
 		void OnEditPatchFile(wxCommandEvent& event);
 		void OnOpenContainingFolder(wxCommandEvent& event);
 
-		virtual bool MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem);
+		virtual bool MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem);
 
 		void AutomaticColumnWidth();
 };

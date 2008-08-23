@@ -122,9 +122,9 @@ namespace Jit64
 		bool doFullTest = (inst.BO & 16) == 0 && (inst.BO & 4) == 0;
 		bool ctrDecremented = false;
 
-		if ((inst.BO & 16) == 0)  // Test CR with a combination of bits
+		if ((inst.BO & 16) == 0)  // Test a CR bit
 		{
-			TEST(32, M(&CR), Imm32(0x80000000>>inst.BI));
+			TEST(32, M(&CR), Imm32(0x80000000 >> inst.BI));
 			if (inst.BO & 8)  // Conditional branch 
 				branch = CC_NZ;
 			else

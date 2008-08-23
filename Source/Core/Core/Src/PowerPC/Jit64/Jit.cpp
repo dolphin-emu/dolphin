@@ -231,6 +231,21 @@ namespace Jit64
 	JitState js;
 	JitOptions jo;
 
+	void Init()
+	{
+		jo.optimizeStack = true;
+		jo.enableBlocklink = true;  // Speed boost, but not 100% safe
+#ifdef _M_X64
+		jo.enableFastMem = Core::GetStartupParameter().bUseFastMem;
+#else
+		jo.enableFastMem = false;
+#endif
+		jo.assumeFPLoadFromMem = true;
+		jo.fpAccurateFlags = true;
+		jo.optimizeGatherPipe = true;
+		jo.interpretFPU = false;
+	}
+
 	void WriteCallInterpreter(UGeckoInstruction _inst)
 	{
 		gpr.Flush(FLUSH_ALL);
@@ -263,12 +278,6 @@ namespace Jit64
 		// Yup, just don't do anything.
 	}
 
-	// RESULTS (running kururin with optimizations on)
-	// at block 13968 they diverge.
-	// linux goes to 8010fe54
-	// windoze goes to 8010feb0
-	// after they they are completely out of sync.
-    // branches from the cmp result of r0, which comes from an lbz (loaded from stack)
 	static const bool ImHereDebug = false;
 	static const bool ImHereLog = false;
 	static std::map<u32, int> been_here;
@@ -403,7 +412,12 @@ namespace Jit64
 			js.op = &ops[i];
 			js.instructionNumber = i;
 			if (i == (int)size - 1) js.isLastInstruction = true;
+			
+			// const GekkoOpInfo *info = GetOpInfo();
 			// if (js.isLastInstruction)
+			if (jo.interpretFPU && PPCTables::UsesFPU(ops[i].inst))
+				Default(ops[i].inst);
+			else
 				PPCTables::CompileInstruction(ops[i].inst);
 			// else
 			// 	Default(ops[i].inst);

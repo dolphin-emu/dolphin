@@ -2075,7 +2075,7 @@ namespace PPCDisasm
 			break;
 
 		case 20:
-			fdabc(dp,in,"sqrte",2,0);
+			fdabc(dp,in,"rsqrte",2,0);
 			break;
 
 		case 24:

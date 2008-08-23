@@ -150,7 +150,6 @@ namespace Jit64
 		fpr.UnlockAll();
 	}
 	
-
 	void fmrx(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;

@@ -72,13 +72,13 @@ void CInterpreter::lfdu(UGeckoInstruction _inst)
 void CInterpreter::lfdux(UGeckoInstruction _inst)
 {
 	u32 uAddress = Helper_Get_EA_UX(_inst);
-	riPS0(_inst.FS) = Memory::Read_U64(uAddress);
+	riPS0(_inst.FD) = Memory::Read_U64(uAddress);
 	m_GPR[_inst.RA] = uAddress;
 }
 
 void CInterpreter::lfdx(UGeckoInstruction _inst)
 {
-	riPS0(_inst.FS) = Memory::Read_U64(Helper_Get_EA_X(_inst));
+	riPS0(_inst.FD) = Memory::Read_U64(Helper_Get_EA_X(_inst));
 }
 
 void CInterpreter::lfs(UGeckoInstruction _inst)
@@ -149,7 +149,7 @@ void CInterpreter::lmw(UGeckoInstruction _inst)
 			return;
 		}
 
-		m_GPR[iReg] =  TempReg;
+		m_GPR[iReg] = TempReg;
 	}
 }
 

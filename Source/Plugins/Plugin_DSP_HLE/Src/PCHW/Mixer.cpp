@@ -74,7 +74,7 @@ void Mixer(short *buffer, int numSamples, int bits, int rate, int channels)
 }
 
 void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate) {
-//	static FILE *f;
+//	static FILE *f; 
 //	if (!f)
 //		f = fopen("d:\\hello.raw", "wb");
 //	fwrite(buffer, num_stereo_samples * 4, 1, f);
@@ -83,6 +83,7 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate) {
 	static int PV1r=0,PV2r=0,PV3r=0,PV4r=0;
 	static int acc=0;
 
+	if (!GetAsyncKeyState(VK_TAB)) {
 	while (queue_size > queue_maxlength / 2) {
 #ifdef _WIN32
 		DSound::DSound_UpdateSound();
@@ -91,7 +92,9 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate) {
 		sleep(0);
 #endif
 	}
-
+	} else {
+		return;
+	}
 	//convert into config option?
 	const int mode = 2;
 

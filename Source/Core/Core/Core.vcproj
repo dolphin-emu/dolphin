@@ -50,6 +50,7 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				BufferSecurityCheck="true"
+				FloatingPointModel="0"
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
@@ -118,6 +119,7 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				BufferSecurityCheck="true"
+				FloatingPointModel="0"
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
@@ -190,7 +192,7 @@
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				EnableEnhancedInstructionSet="2"
-				FloatingPointModel="2"
+				FloatingPointModel="0"
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
@@ -265,7 +267,7 @@
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				EnableEnhancedInstructionSet="0"
-				FloatingPointModel="2"
+				FloatingPointModel="0"
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
@@ -336,6 +338,7 @@
 				PreprocessorDefinitions="NDEBUG;_LIB;LOGGING;DEBUGFAST;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
+				FloatingPointModel="0"
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
@@ -407,6 +410,7 @@
 				PreprocessorDefinitions="NDEBUG;_LIB;LOGGING;DEBUGFAST;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
+				FloatingPointModel="0"
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
@@ -835,6 +839,14 @@
 				<File
 					RelativePath=".\Src\PowerPC\Interpreter\Interpreter_FloatingPoint.cpp"
 					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AssemblerOutput="4"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\Src\PowerPC\Interpreter\Interpreter_Integer.cpp"
@@ -845,12 +857,24 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Src\PowerPC\Interpreter\Interpreter_LoadStorePaired.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\Src\PowerPC\Interpreter\Interpreter_Paired.cpp"
 					>
 				</File>
 				<File
 					RelativePath=".\Src\PowerPC\Interpreter\Interpreter_SystemRegisters.cpp"
 					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AssemblerOutput="4"
+						/>
+					</FileConfiguration>
 				</File>
 			</Filter>
 			<Filter
@@ -947,46 +971,6 @@
 			</Filter>
 		</Filter>
 		<Filter
-			Name="Boot"
-			>
-			<File
-				RelativePath=".\Src\Boot\Boot.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Boot\Boot.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Boot\Boot_DOL.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Boot\Boot_DOL.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Boot\Boot_ELF.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Boot\Boot_ELF.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Boot\ElfReader.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Boot\ElfReader.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Boot\ElfTypes.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="Debugger"
 			>
 			<File
@@ -1025,6 +1009,46 @@
 				RelativePath=".\Src\Debugger\PPCDebugInterface.h"
 				>
 			</File>
+			<Filter
+				Name="Boot"
+				>
+				<File
+					RelativePath=".\Src\Boot\Boot.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\Boot\Boot.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\Boot\Boot_DOL.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\Boot\Boot_DOL.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\Boot\Boot_ELF.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\Boot\Boot_ELF.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\Boot\ElfReader.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\Boot\ElfReader.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\Boot\ElfTypes.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="IPC HLE"

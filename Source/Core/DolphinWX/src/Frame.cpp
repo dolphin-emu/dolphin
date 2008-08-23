@@ -303,7 +303,7 @@ void CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 			wxEmptyString, wxEmptyString, wxEmptyString,
 			wxString::Format
 			(
-					_T("Elf files (*.elf)|*.elf|DOL files (*.dol)|*.dol|Gamecube/Wii ISO (*.iso;*.gcm)|*.iso;*.gcm|All files (%s)|%s"),
+					_T("All GC/Wii files (elf, dol, gcm, iso)|*.elf;*.dol;*.gcm;*.iso|All files (%s)|%s"),
 					wxFileSelectorDefaultWildcardStr,
 					wxFileSelectorDefaultWildcardStr
 			),

@@ -145,23 +145,26 @@ bool FifoCommandRunnable(void)
     case GX_LOAD_XF_REG:
         {
             // check if we can read the header
-            if (iBufferSize >= 5) {				
+            if (iBufferSize >= 5)
+			{				
                 iCommandSize = 1 + 4;
                 u32 Cmd2 = PeekFifo32(1);
-                int dwTransferSize = ((Cmd2>>16)&15) + 1;
+                int dwTransferSize = ((Cmd2 >> 16) & 15) + 1;
                 iCommandSize += dwTransferSize * 4;				
             }
-            else {
+            else
+			{
                 return false;
             }			
         }
         break;
 
     default:
-        if (Cmd&0x80)
+        if (Cmd & 0x80)
         {				
             // check if we can read the header
-            if (iBufferSize >= 3) {
+            if (iBufferSize >= 3)
+			{
                 iCommandSize = 1 + 2;
                 u16 numVertices = PeekFifo16(1);
                 VertexLoader& vtxLoader = g_VertexLoaders[Cmd & GX_VAT_MASK];
@@ -189,7 +192,7 @@ bool FifoCommandRunnable(void)
     if (iCommandSize > iBufferSize)
         return false;
 
-    INFO_LOG("OP detected: Cmd 0x%x  size %i  buffer %i",Cmd, iCommandSize, iBufferSize);
+    // INFO_LOG("OP detected: Cmd 0x%x  size %i  buffer %i",Cmd, iCommandSize, iBufferSize);
 
     return true;
 }
@@ -268,7 +271,7 @@ void Decode(void)
         {			
             // load vertices
             u16 numVertices = g_pDataReader->Read16();		
-            if( numVertices > 0 ) {
+            if (numVertices > 0) {
                 g_VertexLoaders[Cmd & GX_VAT_MASK].RunVertices((Cmd & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, numVertices);
             }
         }

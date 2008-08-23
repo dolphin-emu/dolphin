@@ -17,6 +17,7 @@
 #include "JitCore.h"
 #include "JitCache.h"
 #include "JitAsm.h"
+#include "Jit.h"
 
 #include "../../HW/Memmap.h"
 #include "../../HW/CPU.h"
@@ -31,6 +32,7 @@ namespace Jit64
 {
 	void Jit64Core::Init()
 	{
+		::Jit64::Init();
 		InitCache();
 		Asm::compareEnabled = Core::g_CoreStartupParameter.bRunCompareClient;
 	}

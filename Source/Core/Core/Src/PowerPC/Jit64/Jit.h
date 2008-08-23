@@ -70,10 +70,13 @@ namespace Jit64
 		bool fpAccurateFlags;
 		bool enableFastMem;
 		bool optimizeGatherPipe;
+		bool interpretFPU;
 	};
 
 	extern JitState js;
 	extern JitOptions jo;
+
+	void Init();
 
 	void Default(UGeckoInstruction _inst);
 	void DoNothing(UGeckoInstruction _inst);

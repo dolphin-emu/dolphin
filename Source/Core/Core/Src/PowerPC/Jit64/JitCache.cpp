@@ -76,17 +76,6 @@ namespace Jit64
 
 	void InitCache()
 	{
-		jo.optimizeStack = true;
-		jo.enableBlocklink = true;  // Speed boost, but not 100% safe
-#ifdef _M_X64
-		jo.enableFastMem = Core::GetStartupParameter().bUseFastMem;
-#else
-		jo.enableFastMem = false;
-#endif
-		jo.assumeFPLoadFromMem = true;
-		jo.fpAccurateFlags = true;
-		jo.optimizeGatherPipe = true;
-
 		codeCache    = (u8*)AllocateExecutableMemory(CODE_SIZE);
 		genFunctions = (u8*)AllocateExecutableMemory(GEN_SIZE);
 		trampolineCache = (u8*)AllocateExecutableMemory(TRAMPOLINE_SIZE);

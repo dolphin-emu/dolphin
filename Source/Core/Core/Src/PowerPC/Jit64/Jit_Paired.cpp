@@ -25,6 +25,7 @@
 #include "Jit.h"
 #include "JitCache.h"
 #include "JitRegCache.h"
+#include "Jit_Util.h"
 
 // TODO
 // ps_madds0
@@ -198,7 +199,7 @@ namespace Jit64
 			op(XMM0, Gen::R(XMM1));
 			MOVAPD(fpr.RX(d), Gen::R(XMM0));
 		}
-		//fpr.SetDirty(fpr.RX(d));
+		ForceSinglePrecisionP(fpr.RX(d));
 		fpr.UnlockAll();
 	}
 
@@ -308,6 +309,7 @@ namespace Jit64
 		}
 		fpr.LoadToX64(d, false);
 		MOVAPD(fpr.RX(d), Gen::R(XMM0));
+		ForceSinglePrecisionP(fpr.RX(d));
 		fpr.UnlockAll();
 	}
 

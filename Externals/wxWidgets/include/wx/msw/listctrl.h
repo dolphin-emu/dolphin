@@ -12,6 +12,7 @@
 #ifndef _WX_LISTCTRL_H_
 #define _WX_LISTCTRL_H_
 
+#include "wx/dcbuffer.h"
 #include "wx/textctrl.h"
 
 class WXDLLIMPEXP_FWD_CORE wxImageList;

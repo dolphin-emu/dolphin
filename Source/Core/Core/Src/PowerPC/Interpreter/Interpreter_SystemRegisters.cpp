@@ -34,12 +34,22 @@ static const unsigned short FPU_ROUND_MASK = 3 << 10;
 #include "../../Core.h"
 #include "Interpreter.h"
 
+/*
 
+Most of these are together with fctiwx
+mffsx: 800c3624
+mffsx: 80043c98
+mffsx: 8003dd48
+mffsx: 8003dd9c
+mffsx: 80036608
+mffsx: 80036650 (huh?)
+
+*/
 // TODO(ector): More proper handling of SSE state.
 // That is, set rounding mode etc when entering jit code or the interpreter loop
 // Restore rounding mode when calling anything external
 
-void UpdateSSEState(int round, bool daz)
+void UpdateSSEState()
 {
 	u32 csr = _mm_getcsr();
 	
@@ -51,14 +61,14 @@ void UpdateSSEState(int round, bool daz)
 		1,
 	};
 	csr = csr & 0x9FFF;
-	csr |= ssetable[round] << 13;
+	csr |= ssetable[FPSCR.RN] << 13;
 
 	// Also handle denormals as zero (FZ + DAZ)
 	csr &= ~0x8020;
 
-	// SETTING DAZ KILLS BEYOND GOOD AND EVIL
-	// if (daz)
-	//	csr |= 0x8020;
+	// SETTING FTZ+DAZ KILLS BEYOND GOOD AND EVIL
+	//if (daz)
+	//	csr |= 0x20; // Only set DAZ  //0x8020;
 	
 	_mm_setcsr(csr);
 }
@@ -72,7 +82,6 @@ void RestoreSSEState()
 void UpdateFPSCR(UReg_FPSCR fp)
 {
 	// Set FPU rounding mode to mimic the PowerPC's
-	int round = fp.RN;
 #ifdef _M_IX86
 	// This shouldn't really be needed anymore since we use SSE
 #ifdef _WIN32
@@ -83,7 +92,7 @@ void UpdateFPSCR(UReg_FPSCR fp)
 		_RC_UP,
 		_RC_DOWN
 	};
-	_set_controlfp(_MCW_RC, table[round]);
+	_set_controlfp(_MCW_RC, table[fp.RN]);
 #else
 	const unsigned short table[4] = 
 	{
@@ -94,19 +103,48 @@ void UpdateFPSCR(UReg_FPSCR fp)
 	};
 	unsigned short mode;
 	asm ("fstcw %0" : : "m" (mode));
-	mode = (mode & ~FPU_ROUND_MASK) | table[round];
+	mode = (mode & ~FPU_ROUND_MASK) | table[fp.RN];
 	asm ("fldcw %0" : : "m" (mode));
 #endif
 #endif
+	if (fp.VE || fp.OE || fp.UE || fp.ZE || fp.XE)
+	{
+		PanicAlert("FPSCR - exceptions enabled. Please report.");
+	}
+
 	// Also corresponding SSE rounding mode setting
-	UpdateSSEState(round, fp.NI ? true : false);
+	UpdateSSEState();
 }
 
 void CInterpreter::mcrfs(UGeckoInstruction _inst)
 {
-	// TODO(ector): check a ppc manual for this one
 	u32 fpflags = ((FPSCR.Hex >> (4*(_inst.CRFS))) & 0xF);
-	FPSCR.Hex &= ~(0xF0000000 >> (_inst.CRFS*4));
+	switch (_inst.CRFS) {
+	case 0:
+		FPSCR.FX = 0;
+		FPSCR.OX = 0;
+		break;
+	case 1:
+		FPSCR.UX = 0;
+		FPSCR.ZX = 0;
+		FPSCR.XX = 0;
+		FPSCR.VXSNAN = 0;
+		break;
+	case 2:
+		FPSCR.VXISI = 0;
+		FPSCR.VXIDI = 0;
+		FPSCR.VXZDZ = 0;
+		FPSCR.VXIMZ = 0;
+		break;
+	case 3:
+		FPSCR.VXVC = 0;
+		break;
+	case 5:
+		FPSCR.VXSOFT = 0;
+		FPSCR.VXSQRT = 0;
+		FPSCR.VXCVI = 0;
+		break;
+	}
 	SetCRField(_inst.CRFD, fpflags);
 	UpdateFPSCR(FPSCR);
 }
@@ -127,8 +165,6 @@ void CInterpreter::mcrfs(UGeckoInstruction _inst)
 #define MXCSR_ROUND (16384|8192)
 #define MXCSR_FLUSH 32768
 
-
-
 void CInterpreter::mffsx(UGeckoInstruction _inst)
 {
 	// load from FPSCR
@@ -136,31 +172,35 @@ void CInterpreter::mffsx(UGeckoInstruction _inst)
 	// TODO(ector): grab all overflow flags etc and set them in FPSCR
 
 	riPS0(_inst.FD)	= (u64)FPSCR.Hex;
+	if (_inst.Rc) PanicAlert("mffsx: inst_.Rc");
 }
 
 void CInterpreter::mtfsb0x(UGeckoInstruction _inst)
 {
 	FPSCR.Hex &= (~(0x80000000 >> _inst.CRBD));
 	UpdateFPSCR(FPSCR);
+	if (_inst.Rc) PanicAlert("mtfsb0x: inst_.Rc");
 }
 
 void CInterpreter::mtfsb1x(UGeckoInstruction _inst)
 {
 	FPSCR.Hex |= 0x80000000 >> _inst.CRBD;
 	UpdateFPSCR(FPSCR);
+	if (_inst.Rc) PanicAlert("mtfsb1x: inst_.Rc");
 }
 
 void CInterpreter::mtfsfix(UGeckoInstruction _inst)
 {
-	u32 mask = (0xF0000000 >> (4*_inst.CRFD));
+	u32 mask = (0xF0000000 >> (4 * _inst.CRFD));
 	u32 imm = (_inst.hex << 16) & 0xF0000000;
-	FPSCR.Hex = (FPSCR.Hex & ~mask) | (imm >> (4*_inst.CRFD));
+	FPSCR.Hex = (FPSCR.Hex & ~mask) | (imm >> (4 * _inst.CRFD));
 	UpdateFPSCR(FPSCR);
+	if (_inst.Rc) PanicAlert("mtfsfix: inst_.Rc");
 }
 
 void CInterpreter::mtfsfx(UGeckoInstruction _inst)
 {
-	u32 fm	= _inst.FM;
+	u32 fm = _inst.FM;
 	u32 m = 0;
 	for (int i = 0; i < 8; i++) {  //7?? todo check
 		if (fm & (1 << i))
@@ -169,6 +209,7 @@ void CInterpreter::mtfsfx(UGeckoInstruction _inst)
 
 	FPSCR.Hex = (FPSCR.Hex & ~m) | ((u32)(riPS0(_inst.FB)) & m);
 	UpdateFPSCR(FPSCR);
+	if (_inst.Rc) PanicAlert("mtfsfx: inst_.Rc");
 }
 
 void CInterpreter::mcrxr(UGeckoInstruction _inst)
@@ -240,7 +281,7 @@ void CInterpreter::mtsrin(UGeckoInstruction _inst)
 
 void CInterpreter::mftb(UGeckoInstruction _inst)
 {
-	int iIndex = (_inst.TBR >> 5) | ((_inst.TBR&0x1F) << 5);
+	int iIndex = (_inst.TBR >> 5) | ((_inst.TBR & 0x1F) << 5);
 	if (iIndex == 268)		m_GPR[_inst.RD] = TL;
 	else if (iIndex == 269)	m_GPR[_inst.RD] = TU;
 	else					_dbg_assert_(GEKKO,0);
@@ -449,4 +490,3 @@ void CInterpreter::isync(UGeckoInstruction _inst)
 {
 	//shouldnt do anything
 }
-

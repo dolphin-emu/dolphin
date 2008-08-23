@@ -46,6 +46,7 @@
 #include "Debugger/PPCDebugInterface.h"
 #include "Debugger/Debugger_SymbolMap.h"
 #include "PowerPC/PPCAnalyst.h"
+#include "PowerPC/PPCTables.h"
 #include "PowerPC/Jit64/Jit.h"
 #include "PowerPC/Jit64/JitCache.h"
 
@@ -71,6 +72,9 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	EVT_MENU(IDM_SCANFUNCTIONS,     CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_LOADMAPFILE,       CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_SAVEMAPFILE,       CCodeWindow::OnSymbolsMenu)
+
+	EVT_MENU(IDM_CLEARCODECACHE,    CCodeWindow::OnJitMenu)
+	EVT_MENU(IDM_LOGINSTRUCTIONS,   CCodeWindow::OnJitMenu)
 	// toolbar
 	EVT_MENU(IDM_DEBUG_GO,			CCodeWindow::OnCodeStep)
 	EVT_MENU(IDM_STEP,				CCodeWindow::OnCodeStep)
@@ -244,6 +248,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	{
 		wxMenu *pJitMenu = new wxMenu;
 		pJitMenu->Append(IDM_CLEARCODECACHE, _T("&Clear code cache"));
+		pJitMenu->Append(IDM_LOGINSTRUCTIONS, _T("&Log JIT instruction coverage"));
 		pMenuBar->Append(pJitMenu, _T("&JIT"));
 	}
 
@@ -274,6 +279,9 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 	{
 	case IDM_CLEARCODECACHE:
 		Jit64::ClearCache();
+		break;
+	case IDM_LOGINSTRUCTIONS:
+		PPCTables::LogCompiledInstructions();
 		break;
 	}
 }

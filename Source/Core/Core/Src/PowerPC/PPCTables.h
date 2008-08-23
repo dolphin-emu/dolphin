@@ -73,6 +73,8 @@ struct GekkoOPInfo
 	int flags;
 	int numCyclesMinusOne;
 	int runCount;
+	int compileCount;
+	u32 lastUse;
 };
 
 
@@ -92,6 +94,7 @@ public:
 
 	static void CountInstruction(UGeckoInstruction _inst);
 	static void PrintInstructionRunCounts();
+	static void LogCompiledInstructions();
 
 	static void CompileInstruction(UGeckoInstruction _inst);
 };

@@ -19,6 +19,7 @@
 
 #include "Common.h"
 #include "PPCTables.h"
+#include "StringUtil.h"
 #include "Interpreter/Interpreter.h"
 
 #if defined(_M_IX86) || defined(_M_X64)
@@ -409,7 +410,7 @@ GekkoOPTemplate table59[] =
 	{18, CInterpreter::fdivsx,   Jit64::fp_arith_s,    {"fdivsx",   OPTYPE_FPU, FL_RC_BIT_F, 16}}, 
 	{20, CInterpreter::fsubsx,   Jit64::fp_arith_s,    {"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
 	{21, CInterpreter::faddsx,   Jit64::fp_arith_s,    {"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{22, CInterpreter::fsqrtsx,  Jit64::Default,       {"frsqrtex", OPTYPE_FPU, FL_RC_BIT_F}}, 
+//	{22, CInterpreter::fsqrtsx,  Jit64::Default,       {"fsqrtsx",  OPTYPE_FPU, FL_RC_BIT_F}}, // Not implemented on gekko
 	{24, CInterpreter::fresx,    Jit64::Default,       {"fresx",    OPTYPE_FPU, FL_RC_BIT_F}}, 
 	{25, CInterpreter::fmulsx,   Jit64::fp_arith_s,    {"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
 	{28, CInterpreter::fmsubsx,  Jit64::fmaddXX,       {"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F}}, 
@@ -637,11 +638,26 @@ void PPCTables::InitTables()
 		m_allInstructions[m_numInstructions++] = &table63[i].opinfo;
 	for (int i = 0; i < (int)(sizeof(table63_2) / sizeof(GekkoOPTemplate)); i++)
 		m_allInstructions[m_numInstructions++] = &table63_2[i].opinfo;
+	if (m_numInstructions >= 2048) {
+		PanicAlert("m_allInstructions underdimensioned");
+	}
+}
+
+namespace {
+	std::vector<u32> rsplocations;
 }
 
 void PPCTables::CompileInstruction(UGeckoInstruction _inst)
 {
 	dynaOpTable[_inst.OPCD](_inst);	
+	GekkoOPInfo *info = GetOpInfo(_inst);
+	if (info) {
+		if (!strcmp(info->opname, "mffsx")) {
+			rsplocations.push_back(Jit64::js.compilerPC);
+		}
+		info->compileCount++;
+		info->lastUse = Jit64::js.compilerPC;
+	}
 }
 
 bool PPCTables::IsValidInstruction(UGeckoInstruction _instCode)
@@ -684,4 +700,31 @@ void PPCTables::PrintInstructionRunCounts()
 	{
         LOG(GEKKO, "%s : %i", temp[i].name,temp[i].count);
 	}
+}
+
+void PPCTables::LogCompiledInstructions()
+{
+	static int time = 0;
+	FILE *f = fopen(StringFromFormat("inst_log%i.txt", time).c_str(), "w");
+	for (int i = 0; i < m_numInstructions; i++)
+	{
+		if (m_allInstructions[i]->compileCount > 0) {
+			fprintf(f, "%s\t%i\t%i\t%08x\n", m_allInstructions[i]->opname, m_allInstructions[i]->compileCount, m_allInstructions[i]->runCount, m_allInstructions[i]->lastUse);
+		}
+	}
+	fclose(f);
+	f = fopen(StringFromFormat("inst_not%i.txt", time).c_str(), "w");
+	for (int i = 0; i < m_numInstructions; i++)
+	{
+		if (m_allInstructions[i]->compileCount == 0) {
+			fprintf(f, "%s\t%i\t%i\n", m_allInstructions[i]->opname, m_allInstructions[i]->compileCount, m_allInstructions[i]->runCount);
+		}
+	}
+	fclose(f);
+	f = fopen(StringFromFormat("rsp_at.txt", time).c_str(), "w");
+	for (int i = 0; i < rsplocations.size(); i++) {
+		fprintf(f, "mffsx: %08x\n", rsplocations[i]);
+	}
+	fclose(f);
+	time++;
 }

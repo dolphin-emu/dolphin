@@ -210,16 +210,6 @@ bool FifoCommandRunnable(void)
 
 void Decode(void)
 {
-    static int DecoderCount = 0;
-    DecoderCount++;
-
-    if (DecoderCount == 0x0019c601)
-    {
-        int i = 0;
-    }
-
-    // 0x0019c603  <- error 
-
     int Cmd = g_pDataReader->Read8();
 	switch(Cmd)
 	{
@@ -236,7 +226,6 @@ void Decode(void)
 
 	case GX_LOAD_XF_REG:
 		{
-			u32 test = PeekFifo32(0);
 			u32 Cmd2 = g_pDataReader->Read32();
 			
 			int dwTransferSize = ((Cmd2>>16)&15) + 1;
