@@ -29,4 +29,4 @@ if sys.platform == 'darwin':
 	gfxenv.SharedLibrary("../../../../Binary/mac/Plugins/zeroogl.so", files, LIBS=["videocommon", "common", "GLEW", "jpeg"])
 else:
 	gfxenv=env.Copy(CXXFLAGS = " `wx-config --cppflags` `pkg-config --cflags xxf86vm` ", LINKFLAGS = "`wx-config --libs` `pkg-config --libs xxf86vm` ")
-	gfxenv.SharedLibrary("../../../../Binary/linux/Plugins/zeroogl.so", files, LIBS=["videocommon", "common", "cairo", "GL", "GLU", "GLEW", "CgGL", "Cg", "X11", "jpeg"])
+	gfxenv.SharedLibrary("../../../../Binary/linux/Plugins/zeroogl.so", files, LIBS=["videocommon", "common", "cairo", "GL", "GLU", "GLEW", "CgGL", "Cg", "X11"])
