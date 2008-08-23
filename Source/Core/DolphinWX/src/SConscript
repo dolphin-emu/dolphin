@@ -18,8 +18,8 @@ files = ["BootManager.cpp",
         ]
 
 
-wxenv = env.Copy(CXXFLAGS = "`wx-config --cppflags` -DUSE_XPM_BITMAPS -DwxNEEDS_CHARPP",
-                 LINKFLAGS = "-L/usr/local/lib -pthread `wx-config --libs`")
+wxenv = env.Copy(CXXFLAGS = "`wx-config --cppflags` -DUSE_XPM_BITMAPS -DwxNEEDS_CHARPP `sdl-config --cflags`",
+                 LINKFLAGS = "-L/usr/local/lib -pthread `wx-config --libs`  `sdl-config --libs`")
 
 if sys.platform == 'darwin':
 	icon = 'Dolphin'
