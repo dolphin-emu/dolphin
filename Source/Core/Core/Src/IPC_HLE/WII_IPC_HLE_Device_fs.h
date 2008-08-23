@@ -35,6 +35,15 @@ public:
           Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
           return true;
       }
+
+#if 0
+    virtual bool Close(u32 _CommandAddress)  { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Close()", m_Name.c_str()); return true; }
+    virtual bool Seek(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Seek()", m_Name.c_str()); return true; }
+	virtual bool Read(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Read()", m_Name.c_str()); return true; }
+	virtual bool Write(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Write()", m_Name.c_str()); return true; }
+#endif
+	virtual bool IOCtl(u32 _CommandAddress) { return true; }
+	virtual bool IOCtlV(u32 _CommandAddress) { return true; }
 };
 
 #endif

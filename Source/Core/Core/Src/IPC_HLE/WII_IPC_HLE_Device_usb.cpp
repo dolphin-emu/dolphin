@@ -48,6 +48,11 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Open(u32 _CommandAddress)
     return true;
 }
 
+bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtl(u32 _CommandAddress)
+{
+	return IOCtlV(_CommandAddress);	//hack
+}
+
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress) 
 {	
     // wpadsampled.elf - patch so the USB_LOG will print somehting 

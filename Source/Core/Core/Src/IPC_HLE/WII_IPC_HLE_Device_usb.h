@@ -52,6 +52,7 @@ public:
     virtual bool Open(u32 _CommandAddress);
 
     virtual bool IOCtlV(u32 _CommandAddress);
+    virtual bool IOCtl(u32 _CommandAddress);
 
 	virtual u32 Update();
 

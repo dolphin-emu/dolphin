@@ -62,7 +62,7 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress)
     }
     else
     {
-        PanicAlert("CWII_IPC_HLE_Device_FileIO: cant open %s", Filename.c_str());
+        //PanicAlert("CWII_IPC_HLE_Device_FileIO: cant open %s", Filename.c_str());
     }
 
     Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
@@ -97,7 +97,7 @@ CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
     if (m_pFileHandle != NULL)
     {
         fread(Memory::GetPointer(Address), Size, 1, m_pFileHandle);
-        ReturnValue = 1;
+        ReturnValue = Size;
         LOG(WII_IPC_HLE, "FileIO reads from %s (Addr=0x%08x Size=0x%x)", GetDeviceName().c_str(), Address, Size);	
     }
     else
@@ -118,7 +118,7 @@ CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
     LOG(WII_IPC_HLE, "FileIO: Write (Device=%s)", GetDeviceName().c_str());	
     DumpCommands(_CommandAddress);
 
-    PanicAlert("CWII_IPC_HLE_Device_FileIO: Write (Device=%s)", GetDeviceName().c_str());
+    //PanicAlert("CWII_IPC_HLE_Device_FileIO: Write (Device=%s)", GetDeviceName().c_str());
 
     u32 ReturnValue = 1;
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);

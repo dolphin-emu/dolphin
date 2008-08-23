@@ -209,7 +209,7 @@ void ExecuteCommand(u32 _Address)
             // HLE - Create a new HLE device
             std::string DeviceName;
             Memory::GetString(DeviceName, Memory::Read_U32(_Address + 0xC));
-            u32 Mode = (DeviceName, Memory::Read_U32(_Address+0x10));
+            u32 Mode = Memory::Read_U32(_Address+0x10);
            
             u32 DeviceID = GetDeviceIDByName(DeviceName);
             if (DeviceID == 0)
