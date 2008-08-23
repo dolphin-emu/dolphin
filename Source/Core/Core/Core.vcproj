@@ -1009,46 +1009,6 @@
 				RelativePath=".\Src\Debugger\PPCDebugInterface.h"
 				>
 			</File>
-			<Filter
-				Name="Boot"
-				>
-				<File
-					RelativePath=".\Src\Boot\Boot.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\Boot\Boot.h"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\Boot\Boot_DOL.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\Boot\Boot_DOL.h"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\Boot\Boot_ELF.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\Boot\Boot_ELF.h"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\Boot\ElfReader.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\Boot\ElfReader.h"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\Boot\ElfTypes.h"
-					>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="IPC HLE"
@@ -1131,6 +1091,46 @@
 			</File>
 			<File
 				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_WiiMote.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Boot"
+			>
+			<File
+				RelativePath=".\Src\Boot\Boot.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\Boot.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\Boot_DOL.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\Boot_DOL.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\Boot_ELF.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\Boot_ELF.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\ElfReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\ElfReader.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\ElfTypes.h"
 				>
 			</File>
 		</Filter>

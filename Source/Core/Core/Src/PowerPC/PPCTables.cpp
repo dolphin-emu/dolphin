@@ -652,7 +652,7 @@ void PPCTables::CompileInstruction(UGeckoInstruction _inst)
 	dynaOpTable[_inst.OPCD](_inst);	
 	GekkoOPInfo *info = GetOpInfo(_inst);
 	if (info) {
-		if (!strcmp(info->opname, "mffsx")) {
+		if (!strcmp(info->opname, "mcrfs")) {
 			rsplocations.push_back(Jit64::js.compilerPC);
 		}
 		info->compileCount++;
@@ -721,9 +721,9 @@ void PPCTables::LogCompiledInstructions()
 		}
 	}
 	fclose(f);
-	f = fopen(StringFromFormat("rsp_at.txt", time).c_str(), "w");
+	f = fopen(StringFromFormat("mcrfs_at.txt", time).c_str(), "w");
 	for (int i = 0; i < rsplocations.size(); i++) {
-		fprintf(f, "mffsx: %08x\n", rsplocations[i]);
+		fprintf(f, "mcrfs: %08x\n", rsplocations[i]);
 	}
 	fclose(f);
 	time++;

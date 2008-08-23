@@ -72,7 +72,7 @@ public:
 	static void fnmaddsx(UGeckoInstruction _inst);
 	static void fnmsubsx(UGeckoInstruction _inst);
 	static void fresx(UGeckoInstruction _inst);
-	static void fsqrtsx(UGeckoInstruction _inst);
+//	static void fsqrtsx(UGeckoInstruction _inst);
 	static void fsubsx(UGeckoInstruction _inst);
 	static void fabsx(UGeckoInstruction _inst);
 	static void fcmpo(UGeckoInstruction _inst);

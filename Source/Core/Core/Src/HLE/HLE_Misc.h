@@ -21,12 +21,17 @@
 namespace HLE_Misc
 {
     void Pass();
+    void PanicAlert();
     void UnimplementedFunction();
     void UnimplementedFunctionTrue();
     void UnimplementedFunctionFalse();
-	void THPPlayerGetState();
 	void GXPeekZ();
 	void GXPeekARGB();
+	void SMB_EvilVecCosine();
+	void SMB_EvilNormalize();
+	void SMB_sqrt_internal();
+	void SMB_rsqrt_internal();
+	void SMB_atan2();
 }
 
 #endif

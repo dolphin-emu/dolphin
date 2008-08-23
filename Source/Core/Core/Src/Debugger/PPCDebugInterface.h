@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "DebugInterface.h"
+
 //wrapper between disasm control and Dolphin debugger
 
 class PPCDebugInterface : public DebugInterface

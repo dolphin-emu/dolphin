@@ -63,6 +63,14 @@ static const SPatch OSPatches[] =
 	// wii only
 	{ "SCCheckStatus",				HLE_Misc::UnimplementedFunctionFalse },	
 	{ "__OSInitAudioSystem",        HLE_Misc::UnimplementedFunction },			
+	
+	// Super Monkey Ball
+	{ ".evil_vec_cosine",           HLE_Misc::SMB_EvilVecCosine },
+	{ ".evil_normalize",            HLE_Misc::SMB_EvilNormalize },
+	{ "PanicAlert",			        HLE_Misc::PanicAlert },
+	{ ".sqrt_internal_needs_cr1",   HLE_Misc::SMB_sqrt_internal },
+	{ ".rsqrt_internal_needs_cr1",  HLE_Misc::SMB_rsqrt_internal },
+	{ ".atan2",						HLE_Misc::SMB_atan2},
 
     // special
 //	{ "GXPeekZ",					HLE_Misc::GXPeekZ},
@@ -74,22 +82,36 @@ static const SPatch OSBreakPoints[] =
 	{ "FAKE_TO_SKIP_0",									HLE_Misc::UnimplementedFunction },
 };
 
-void PatchFunctions(const char* _gameID)
+void Patch(u32 address, const char *hle_func_name)
+{
+	for (u32 i = 0; i < sizeof(OSPatches) / sizeof(SPatch); i++)
+	{
+		if (!strcmp(OSPatches[i].m_szPatchName, hle_func_name)) {
+			u32 HLEPatchValue = (1 & 0x3f) << 26;
+			Memory::Write_U32(HLEPatchValue | i, address);
+			return;
+		}
+	}
+}
+
+void PatchFunctions()
 {	
-	for (u32 i=0; i < sizeof(OSPatches) / sizeof(SPatch); i++)
+	for (u32 i = 0; i < sizeof(OSPatches) / sizeof(SPatch); i++)
 	{
 		int SymbolIndex = Debugger::FindSymbol(OSPatches[i].m_szPatchName);
 		if (SymbolIndex > 0)
 		{
             const Debugger::CSymbol& rSymbol = Debugger::GetSymbol(SymbolIndex);
 			u32 HLEPatchValue = (1 & 0x3f) << 26;
-			Memory::Write_U32(HLEPatchValue | i, rSymbol.vaddress);
-
+			for (int addr = rSymbol.vaddress; addr < rSymbol.vaddress + rSymbol.size; addr+=4) {
+				Memory::Write_U32(HLEPatchValue | i, addr);
+			}
+			//PanicAlert("patched %s", OSPatches[i].m_szPatchName);
             LOG(HLE,"Patching %s %08x", OSPatches[i].m_szPatchName, rSymbol.vaddress);
 		}
 	}
 
-	for (size_t i=1; i < sizeof(OSBreakPoints) / sizeof(SPatch); i++)
+	for (size_t i = 1; i < sizeof(OSBreakPoints) / sizeof(SPatch); i++)
 	{
 		int SymbolIndex = Debugger::FindSymbol(OSBreakPoints[i].m_szPatchName);
 		if (SymbolIndex != -1)

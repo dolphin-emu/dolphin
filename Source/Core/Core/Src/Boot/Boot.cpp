@@ -353,7 +353,6 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 
 			LOG(BOOT, "DVDRead: offset: %08x   memOffse: %08x   length: %i", iDVDOffset, iRamAddress, iLength);
 			DVDInterface::DVDRead(iDVDOffset, iRamAddress, iLength);
-
 		} while(PowerPC::ppcState.gpr[3] != 0x00);
 
 		// iAppLoaderClose
@@ -376,10 +375,23 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 
 void CBoot::UpdateDebugger_MapLoaded(const char *_gameID)
 {
-	HLE::PatchFunctions(_gameID);
+	HLE::PatchFunctions();
     Debugger::AnalyzeBackwards();
 	Host_NotifyMapLoaded();
 	Host_UpdateMemoryView();
+}
+
+std::string CBoot::GenerateMapFilename()
+{
+	/*
+	std::string strDriveDirectory, strFilename;
+	SplitPath(booted_file, &strDriveDirectory, &strFilename, NULL);
+	
+	std::string strFullfilename(strFilename + _T(".map"));
+	std::string strMapFilename;
+	BuildCompleteFilename(strMapFilename, strDriveDirectory, strFullfilename);
+	*/
+	return "Maps/" + Core::GetStartupParameter().GetUniqueID() + ".map";
 }
 
 bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_gameID)
@@ -387,12 +399,7 @@ bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_game
 	if (_rFilename.size() == 0)
 		return false;
 
-	std::string strDriveDirectory, strFilename;
-	SplitPath(_rFilename, &strDriveDirectory, &strFilename, NULL);
-	
-	std::string strFullfilename(strFilename + _T(".map"));
-	std::string strMapFilename;
-	BuildCompleteFilename(strMapFilename, strDriveDirectory, strFullfilename);
+	std::string strMapFilename = GenerateMapFilename();
 
 	bool success = false;
     if (!Debugger::LoadSymbolMap(strMapFilename.c_str()))
@@ -493,7 +500,7 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
             }
             if (LoadMapFromFilename(_StartupPara.m_strFilename, gameID))
             {
-                HLE::PatchFunctions(gameID);
+                HLE::PatchFunctions();
             }
             else
             {

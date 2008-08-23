@@ -17,9 +17,9 @@
 
 #include "wx/button.h"
 #include "wx/textctrl.h"
+#include "wx/textdlg.h"
 #include "wx/listctrl.h"
 #include "wx/thread.h"
-#include "wx/listctrl.h"
 #include "wx/mstream.h"
 
 // ugly that this lib included code from the main
@@ -39,7 +39,9 @@
 #include "CodeWindow.h"
 #include "CodeView.h"
 
+#include "FileUtil.h"
 #include "Core.h"
+#include "Boot/Boot.h"
 #include "LogManager.h"
 #include "HW/CPU.h"
 #include "PowerPC/PowerPC.h"
@@ -241,7 +243,9 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 
 	{
 		wxMenu *pSymbolsMenu = new wxMenu;
-		pSymbolsMenu->Append(IDM_SCANFUNCTIONS, _T("&Scan for functions"));
+		pSymbolsMenu->Append(IDM_SCANFUNCTIONS, _T("&Load symbol map"));
+		pSymbolsMenu->Append(IDM_SAVEMAPFILE, _T("&Save symbol map"));
+		pSymbolsMenu->Append(IDM_RENAMEFUNCTION, _T("&Rename function..."));
 		pMenuBar->Append(pSymbolsMenu, _T("&Symbols"));
 	}
 
@@ -293,50 +297,27 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		// TODO: disable menu items instead :P
 		return;
 	}
-	wxString path;
+	std::string mapfile = CBoot::GenerateMapFilename();
 	switch (event.GetId())
 	{
 	case IDM_SCANFUNCTIONS:
-		PPCAnalyst::FindFunctions(0x80003100, 0x80400000);
-		PPCAnalyst::LoadFuncDB("Data/totaldb.dsy");
-		Debugger::GetFromAnalyzer();
-		NotifyMapLoaded();
-		break;
-	case IDM_LOADMAPFILE:
-		path = wxFileSelector(
-				_T("Select the mapfile to load"),
-				wxEmptyString, wxEmptyString, wxEmptyString,
-				wxString::Format
-				(
-						_T("Map files (*.map)|*.map|All files (%s)|%s"),
-						wxFileSelectorDefaultWildcardStr,
-						wxFileSelectorDefaultWildcardStr
-				),
-				wxFD_OPEN | wxFD_FILE_MUST_EXIST,
-				this);
-		if (!path)
+		if (!File::Exists(mapfile))
 		{
-			return;
+			PPCAnalyst::FindFunctions(0x80003100, 0x80400000);
+			if (PPCAnalyst::LoadFuncDB("Data/totaldb.dsy"))
+			{
+				Debugger::GetFromAnalyzer();
+				NotifyMapLoaded();
+			}
+		} else {
+			Debugger::LoadSymbolMap(mapfile.c_str());
 		}
-		Debugger::LoadSymbolMap(path.ToAscii());
 		break;
+//	case IDM_LOADMAPFILE:
+//		Debugger::LoadSymbolMap(mapfile.c_str());
+//		break;
 	case IDM_SAVEMAPFILE:
-		path = wxFileSelector(
-				_T("Name your mapfile"),
-				wxEmptyString, wxEmptyString, wxEmptyString,
-				wxString::Format
-				(
-						_T("Map files (*.map)|*.map|All files (%s)|%s"),
-						wxFileSelectorDefaultWildcardStr,
-						wxFileSelectorDefaultWildcardStr
-				),
-				wxFD_SAVE,
-				this);
-		if (!path)
-		{
-			return;
-		}
-		Debugger::SaveSymbolMap(path.ToAscii());
+		Debugger::SaveSymbolMap(mapfile.c_str());
 		break;
 	}
 }
@@ -362,7 +343,7 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 
 		    Update();
 	    }
-		    break;
+		break;
 
 	    case IDM_STEP:
 			SingleCPUStep();

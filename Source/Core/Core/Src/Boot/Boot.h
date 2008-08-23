@@ -40,6 +40,8 @@ public:
 	static bool BootUp(const SCoreStartupParameter& _StartupPara);
 	static bool IsElfWii(const char *filename);
 
+	static std::string GenerateMapFilename();
+
 private:
 	enum { BIOS_SIZE = 2*1024*1024 };
 

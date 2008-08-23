@@ -22,7 +22,8 @@
 
 namespace HLE
 {
-	void PatchFunctions(const char* _gameID = 0);
+	void PatchFunctions();
+	void Patch(u32 pc, const char *func_name);
 	void Execute(u32 _CurrentPC, u32 _Instruction);
 }
 

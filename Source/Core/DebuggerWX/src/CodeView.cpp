@@ -16,13 +16,18 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Debugger.h"
+#include "Debugger/PPCDebugInterface.h"
+#include "Debugger/Debugger_SymbolMap.h"
 #include "Common.h"
+#include "StringUtil.h"
 
+#include "Host.h"
 #include "CodeView.h"
 #include "JitWindow.h"
 
 #include <wx/event.h>
 #include <wx/clipbrd.h>
+#include <wx/textdlg.h>
 
 
 enum
@@ -34,6 +39,9 @@ enum
 	IDM_INSERTBLR,
 	IDM_RUNTOHERE,
 	IDM_JITRESULTS,
+	IDM_RENAMESYMBOL,
+	IDM_PATCHALERT,
+	IDM_COPYFUNCTION,
 };
 
 
@@ -174,6 +182,22 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 		    wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(temp)));
 		    }
 		    break;
+		case IDM_COPYFUNCTION:
+			{
+			int sel = Debugger::FindSymbol(selection);
+			if (sel > 0) {
+				std::string text;
+				text = text + Debugger::GetSymbol(sel).GetName() + "\r\n";
+				// we got a function
+				u32 start = Debugger::GetSymbol(sel).vaddress;
+				u32 end = start + Debugger::GetSymbol(sel).size;
+				for (u32 addr = start; addr != end; addr += 4) {
+					text = text + StringFromFormat("%08x: ", addr) + debugger->disasm(addr) + "\r\n";
+				}
+				wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(text.c_str())));
+			}
+			}
+			break;
 #endif
 
 	    case IDM_RUNTOHERE:
@@ -190,6 +214,26 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 	    case IDM_JITRESULTS:
 			CJitWindow::ViewAddr(selection);
 		    break;
+	
+		case IDM_RENAMESYMBOL:
+			{
+			int sel = Debugger::FindSymbol(selection);
+			if (sel > 0) {
+				wxTextEntryDialog input_symbol(this, "Rename symbol:", wxGetTextFromUserPromptStr, Debugger::GetSymbol(sel).GetName().c_str());
+				if (input_symbol.ShowModal() == wxID_OK) {
+					Debugger::AccessSymbol(sel).SetName(input_symbol.GetValue().c_str());
+				}
+//			    redraw();
+				Host_NotifyMapLoaded();
+			}
+			}
+			break;
+
+		case IDM_PATCHALERT:
+			{
+
+			}
+			break;
 	}
 
 #if wxUSE_CLIPBOARD
@@ -206,12 +250,17 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
 	//menu.Append(IDM_GOTOINMEMVIEW, "&Goto in mem view");
 #if wxUSE_CLIPBOARD
 	menu.Append(IDM_COPYADDRESS, wxString::FromAscii("Copy &address"));
-	menu.Append(IDM_COPYCODE, wxString::FromAscii("Copy &code"));
+	menu.Append(IDM_COPYFUNCTION, wxString::FromAscii("Copy &function"));
+	menu.Append(IDM_COPYCODE, wxString::FromAscii("Copy &code line"));
 	menu.Append(IDM_COPYHEX, wxString::FromAscii("Copy &hex"));
+	menu.AppendSeparator();
 #endif
+	menu.Append(IDM_RENAMESYMBOL, wxString::FromAscii("Rename &symbol"));
+	menu.AppendSeparator();
 	menu.Append(IDM_RUNTOHERE, _T("&Run To Here"));
-	menu.Append(IDM_INSERTBLR, wxString::FromAscii("Insert &blr"));
 	menu.Append(IDM_JITRESULTS, wxString::FromAscii("PPC vs X86"));
+	menu.Append(IDM_INSERTBLR, wxString::FromAscii("Insert &blr"));
+	menu.Append(IDM_PATCHALERT, wxString::FromAscii("Patch alert"));
 	PopupMenu(&menu);
 	event.Skip(true);
 }
