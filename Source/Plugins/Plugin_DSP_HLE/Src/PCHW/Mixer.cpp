@@ -83,18 +83,20 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate) {
 	static int PV1r=0,PV2r=0,PV3r=0,PV4r=0;
 	static int acc=0;
 
+#ifdef _WIN32
 	if (!GetAsyncKeyState(VK_TAB)) {
 	while (queue_size > queue_maxlength / 2) {
-#ifdef _WIN32
 		DSound::DSound_UpdateSound();
 		Sleep(0);
-#else
-		sleep(0);
-#endif
 	}
 	} else {
 		return;
 	}
+#else
+	while (queue_size > queue_maxlength / 2) {
+		sleep(0);
+	}
+#endif
 	//convert into config option?
 	const int mode = 2;
 

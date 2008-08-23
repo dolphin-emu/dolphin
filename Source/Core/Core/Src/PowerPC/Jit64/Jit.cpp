@@ -22,6 +22,7 @@
 #include "ABI.h"
 #include "Thunk.h"
 #include "../../HLE/HLE.h"
+#include "../../Core.h"
 #include "../../CoreTiming.h"
 #include "../PowerPC.h"
 #include "../PPCTables.h"
