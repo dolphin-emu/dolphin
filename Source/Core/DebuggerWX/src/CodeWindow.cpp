@@ -348,9 +348,9 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		break;
 	case IDM_CREATESIGNATUREFILE:
 		{
-		wxTextEntryDialog input_prefix(this, wxString::FromAscii("Only export symbols with prefix:"), wxGetTextFromUserPromptStr, ".");
+		wxTextEntryDialog input_prefix(this, wxString::FromAscii("Only export symbols with prefix:"), wxGetTextFromUserPromptStr, _T("."));
 		if (input_prefix.ShowModal() == wxID_OK) {
-			std::string prefix = input_prefix.GetValue().mb_str();
+			std::string prefix(input_prefix.GetValue().mb_str());
 
 			wxString path = wxFileSelector(
 					_T("Save signature as"), wxEmptyString, wxEmptyString, wxEmptyString,
