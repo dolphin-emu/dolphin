@@ -184,6 +184,22 @@ const char *tevAInputTable[] =
 	"PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
 	"PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
 	"PADERROR",	"PADERROR",	"PADERROR", "PADERROR",
+};
+
+const char *tevAInputTable1[] = 
+{
+	"prev.r",           //APREV,
+	"c0.r",             //A0,
+	"c1.r",             //A1,
+	"c2.r",             //A2,
+	"textemp.r",        //TEXA,
+	"rastemp.r",        //RASA,
+	"konsttemp.r",      //KONST,  (hw1 had quarter)
+	"0.0",				//ZERO
+	"PADERROR", "PADERROR",	"PADERROR",	"PADERROR",
+	"PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
+	"PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
+	"PADERROR",	"PADERROR",	"PADERROR", "PADERROR",
 };	
 
 const char *tevAInputTable2[] = 
@@ -390,17 +406,19 @@ void WriteStage(char *&p, int n)
 	else
 	{
         int cmp = (ac.shift<<1)|ac.op|8; // comparemode stored here
+		const char **inputTable = NULL;
+		inputTable = (cmp == TEVCMP_R8_GT || cmp == TEVCMP_R8_EQ) ? tevAInputTable1 : tevAInputTable;
 		//compare alpha combiner goes here
         switch(cmp) {
         case TEVCMP_R8_GT:
         case TEVCMP_A8_GT:
-            WRITE(p,"   %s + ((%s.%s > %s.%s) ? %s : 0)\n",
-                tevAInputTable[ac.d],tevAInputTable2[ac.a], cmp==TEVCMP_R8_GT?"r":"a", tevAInputTable2[ac.b], cmp==TEVCMP_R8_GT?"r":"a", tevAInputTable[ac.c]);
+			WRITE(p,"   %s + ((%s > %s) ? %s : 0)\n",
+				tevAInputTable[ac.d], inputTable[ac.a], inputTable[ac.b], tevAInputTable[ac.c]);
             break;
         case TEVCMP_R8_EQ:
         case TEVCMP_A8_EQ:
-            WRITE(p,"   %s + (abs(%s.r - %s.r)<%f ? %s : 0)\n",
-                tevAInputTable[ac.d],tevAInputTable2[ac.a], tevAInputTable2[ac.b],epsilon,tevAInputTable[ac.c]);
+            WRITE(p,"   %s + (abs(%s - %s)<%f ? %s : 0)\n",
+                tevAInputTable[ac.d], inputTable[ac.a], inputTable[ac.b],epsilon,tevAInputTable[ac.c]);
             break;
         
         case TEVCMP_GR16_GT: // 16 bit compares: 255*g+r (probably used for ztextures, so make sure in ztextures, g is the most significant byte)
