@@ -348,15 +348,20 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		break;
 	case IDM_CREATESIGNATUREFILE:
 		{
-		wxString path = wxFileSelector(
-				_T("Save signature as"), wxEmptyString, wxEmptyString, wxEmptyString,
-				_T("Dolphin Signature File (*.dsy)|*.dsy;"), wxFD_SAVE,
-				this);
-		if (path) {
-			SignatureDB db;
-			db.Initialize(&g_symbolDB);
-			std::string filename(path.ToAscii());		// PPCAnalyst::SaveSignatureDB(
-			db.Save(path.ToAscii());
+		wxTextEntryDialog input_prefix(this, wxString::FromAscii("Only export symbols with prefix:"), wxGetTextFromUserPromptStr, ".");
+		if (input_prefix.ShowModal() == wxID_OK) {
+			std::string prefix = input_prefix.GetValue().mb_str();
+
+			wxString path = wxFileSelector(
+					_T("Save signature as"), wxEmptyString, wxEmptyString, wxEmptyString,
+					_T("Dolphin Signature File (*.dsy)|*.dsy;"), wxFD_SAVE,
+					this);
+			if (path) {
+				SignatureDB db;
+				db.Initialize(&g_symbolDB, prefix.c_str());
+				std::string filename(path.ToAscii());		// PPCAnalyst::SaveSignatureDB(
+				db.Save(path.ToAscii());
+			}
 		}
 		}
 		break;

@@ -62,7 +62,7 @@ void CBreakPointView::Update()
 			Symbol *symbol = g_symbolDB.GetSymbolFromAddr(rBP.iAddress);
 			if (symbol)
 			{
-				temp = wxString::FromAscii("halloj"); //Debugger::GetDescription(rBP.iAddress));
+				temp = wxString::FromAscii(g_symbolDB.GetDescription(rBP.iAddress));
 				SetItem(Item, 2, temp);
 			}
 			
@@ -88,7 +88,7 @@ void CBreakPointView::Update()
 		Symbol *symbol = g_symbolDB.GetSymbolFromAddr(rMemCheck.StartAddress);
 		if (symbol)
 		{
-			temp = wxString::FromAscii("bjorn"); //Debugger::GetDescription(rMemCheck.StartAddress));
+			temp = wxString::FromAscii(g_symbolDB.GetDescription(rMemCheck.StartAddress));
 			SetItem(Item, 2, temp);
 		}
 

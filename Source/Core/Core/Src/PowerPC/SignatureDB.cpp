@@ -133,14 +133,18 @@ void SignatureDB::Apply(SymbolDB *symbol_db)
 	symbol_db->Index();
 }
 
-void SignatureDB::Initialize(SymbolDB *symbol_db)
+void SignatureDB::Initialize(SymbolDB *symbol_db, const char *prefix)
 {
+	std::string prefix_str(prefix);
 	for (SymbolDB::XFuncMap::const_iterator iter = symbol_db->GetConstIterator(); iter != symbol_db->End(); iter++)
 	{
-		DBFunc temp_dbfunc;
-		temp_dbfunc.name = iter->second.name;
-		temp_dbfunc.size = iter->second.size;
-		database[iter->second.hash] = temp_dbfunc;
+		if (iter->second.name.substr(0, prefix_str.size()) == prefix_str)
+		{
+			DBFunc temp_dbfunc;
+			temp_dbfunc.name = iter->second.name;
+			temp_dbfunc.size = iter->second.size;
+			database[iter->second.hash] = temp_dbfunc;
+		}
 	}
 }
 

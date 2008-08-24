@@ -50,7 +50,7 @@ public:
 	void Clear();
 	void List();
 	
-	void Initialize(SymbolDB *func_db);
+	void Initialize(SymbolDB *func_db, const char *prefix = "");
 	void Apply(SymbolDB *func_db);
 
 	static u32 ComputeCodeChecksum(u32 offsetStart, u32 offsetEnd);
