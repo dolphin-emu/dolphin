@@ -318,7 +318,7 @@ void CInterpreter::frspx(UGeckoInstruction _inst)  // round to single
 			//PanicAlert("rounding up");
 			FPSCR.FR = 1;
 			mantissa_single += 0x20000000;
-			if (mantissa_single & 0x0010000000000000) {
+			if (mantissa_single & 0x0010000000000000ULL) {
 				// PanicAlert("renormalizing");
 				mantissa_single >>= 1;
 				exp += 1;
