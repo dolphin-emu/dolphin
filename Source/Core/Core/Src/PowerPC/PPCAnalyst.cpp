@@ -246,7 +246,7 @@ void FixUpInternalBranches(CodeOp *code, int begin, int end)
 	}
 }
 
-void PPCAnalyst::ShuffleUp(CodeOp *code, int first, int last)
+void ShuffleUp(CodeOp *code, int first, int last)
 {
 	CodeOp temp = code[first];
 	for (int i = first; i < last; i++)
@@ -608,7 +608,7 @@ void FindFunctionsAfterBLR(SymbolDB *func_db)
 	}
 }
 
-void PPCAnalyst::FindFunctions(u32 startAddr, u32 endAddr, SymbolDB *func_db)
+void FindFunctions(u32 startAddr, u32 endAddr, SymbolDB *func_db)
 {
 	//Step 1: Find all functions
 	FindFunctionsFromBranches(startAddr, endAddr, func_db);
