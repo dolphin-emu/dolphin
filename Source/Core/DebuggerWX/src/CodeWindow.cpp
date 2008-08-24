@@ -470,7 +470,7 @@ void CCodeWindow::NotifyMapLoaded()
 	
 	for (SymbolDB::XFuncMap::iterator iter = g_symbolDB.GetIterator(); iter != g_symbolDB.End(); iter++)
 	{
-		int idx = symbols->Append(iter->second.name.c_str());
+		int idx = symbols->Append(wxString::FromAscii(iter->second.name.c_str()));
 		symbols->SetClientData(idx, (void*)&iter->second);
 	}
 	symbols->Show(true);
