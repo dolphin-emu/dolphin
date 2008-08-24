@@ -23,19 +23,18 @@
 //#include <config/i386/cpuid.h>
 #include <xmmintrin.h>
 
-// if you are on linux and this doesn't build, plz fix :)
 static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 						    unsigned int *ecx, unsigned int *edx)
 {
-	#ifdef __linux__
+	#ifdef _LP64
 	__asm__("cpuid"
 		: "=a" (*eax),
 		  "=b" (*ebx),
 		  "=c" (*ecx),
 		  "=d" (*edx));
 	#else
-	// Note: EBX is reserved on Mac OS X, so it has to be restored at the end
-	//       of the asm block.
+	// Note: EBX is reserved on Mac OS X and in PIC on Linux, so it has to be
+	//       restored at the end of the asm block.
 	__asm__(
 		"pushl  %%ebx;"
 		"cpuid;"
