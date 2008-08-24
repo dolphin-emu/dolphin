@@ -442,23 +442,23 @@ void CCodeWindow::UpdateLists()
 	Symbol *symbol = g_symbolDB.GetSymbolFromAddr(addr);
 	if (!symbol)
 		return;
-	for (int i = 0; i < symbol->callers.size(); i++)
+	for (int i = 0; i < (int)symbol->callers.size(); i++)
 	{
 		u32 caller_addr = symbol->callers[i].callAddress;
 		Symbol *caller_symbol = g_symbolDB.GetSymbolFromAddr(caller_addr);
 		if (caller_symbol) {
-			int idx = callers->Append(wxString::Format( "< %s (%08x)", caller_symbol->name.c_str(), caller_addr));
+			int idx = callers->Append(wxString::Format( _T("< %s (%08x)"), caller_symbol->name.c_str(), caller_addr));
 			callers->SetClientData(idx, (void*)caller_addr);
 		}
 	}
 
 	calls->Clear();
-	for (int i = 0; i < symbol->calls.size(); i++)
+	for (int i = 0; i < (int)symbol->calls.size(); i++)
 	{
 		u32 call_addr = symbol->calls[i].function;
 		Symbol *call_symbol = g_symbolDB.GetSymbolFromAddr(call_addr);
 		if (call_symbol) {
-			int idx = calls->Append(wxString::Format("> %s (%08x)", call_symbol->name.c_str(), call_addr).c_str());
+			int idx = calls->Append(wxString::Format(_T("> %s (%08x)"), call_symbol->name.c_str(), call_addr));
 			calls->SetClientData(idx, (void*)call_addr);
 		}
 	}
