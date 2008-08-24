@@ -18,6 +18,7 @@
 #include "HLE.h"
 
 #include "../PowerPC/PowerPC.h"
+#include "../PowerPC/SymbolDB.h"
 #include "../HW/Memmap.h"
 #include "../Debugger/Debugger_SymbolMap.h"
 #include "../Debugger/Debugger_BreakPoints.h"
@@ -99,28 +100,23 @@ void PatchFunctions()
 {	
 	for (u32 i = 0; i < sizeof(OSPatches) / sizeof(SPatch); i++)
 	{
-		int SymbolIndex = Debugger::FindSymbol(OSPatches[i].m_szPatchName);
-		if (SymbolIndex > 0)
+		Symbol *symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
+		if (symbol > 0)
 		{
-            const Debugger::Symbol& symbol = Debugger::GetSymbol(SymbolIndex);
 			u32 HLEPatchValue = (1 & 0x3f) << 26;
-			for (size_t addr = symbol.vaddress; addr < symbol.vaddress + symbol.size; addr += 4) {
+			for (size_t addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
 				Memory::Write_U32(HLEPatchValue | i, addr);
-			}
-			//PanicAlert("patched %s", OSPatches[i].m_szPatchName);
-            LOG(HLE,"Patching %s %08x", OSPatches[i].m_szPatchName, symbol.vaddress);
+            LOG(HLE,"Patching %s %08x", OSPatches[i].m_szPatchName, symbol->address);
 		}
 	}
 
 	for (size_t i = 1; i < sizeof(OSBreakPoints) / sizeof(SPatch); i++)
 	{
-		int SymbolIndex = Debugger::FindSymbol(OSBreakPoints[i].m_szPatchName);
-		if (SymbolIndex != -1)
+		Symbol *symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
+		if (symbol > 0)
 		{
-		    const Debugger::Symbol& symbol = Debugger::GetSymbol(SymbolIndex);			
-		    CBreakPoints::AddBreakPoint(symbol.vaddress, false);
-
-            LOG(HLE,"Adding BP to %s %08x", OSBreakPoints[i].m_szPatchName, symbol.vaddress);
+		    CBreakPoints::AddBreakPoint(symbol->address, false);
+            LOG(HLE,"Adding BP to %s %08x", OSBreakPoints[i].m_szPatchName, symbol->address);
 		}
 	}
 

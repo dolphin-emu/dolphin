@@ -499,6 +499,54 @@
 		<File
 			RelativePath=".\src\CodeWindow.cpp"
 			>
+			<FileConfiguration
+				Name="Debug|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Debug|x64"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|x64"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="DebugFast|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="DebugFast|x64"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					Optimization="0"
+				/>
+			</FileConfiguration>
 		</File>
 		<File
 			RelativePath=".\src\CodeWindow.h"

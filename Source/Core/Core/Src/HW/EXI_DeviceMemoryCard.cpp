@@ -78,7 +78,7 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 	status = MC_STATUS_BUSY | MC_STATUS_UNLOCKED | MC_STATUS_READY;
 }
 
-void CEXIMemoryCard::Flush()
+void CEXIMemoryCard::Flush(bool exiting)
 {
 	FILE* pFile = NULL;
 	pFile = fopen(m_strFilename.c_str(), "wb");
@@ -97,13 +97,14 @@ void CEXIMemoryCard::Flush()
 	}
 	fwrite(memory_card_content, memory_card_size, 1, pFile);
 	fclose(pFile);
-	Core::DisplayMessage(StringFromFormat("Wrote memory card contents to %s", GetFileName().c_str()), 4000);
+	if (!exiting)
+		Core::DisplayMessage(StringFromFormat("Wrote memory card contents to %s", GetFileName().c_str()), 4000);
 }
 
 
 CEXIMemoryCard::~CEXIMemoryCard()
 {
-	Flush();
+	Flush(true);
 	delete [] memory_card_content;
 }
 

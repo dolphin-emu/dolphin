@@ -26,8 +26,8 @@
 #include "Common.h"
 #include "Gekko.h"
 
-class FunctionDB;
-struct SFunction;
+class SymbolDB;
+struct Symbol;
 
 namespace PPCAnalyst
 {
@@ -82,8 +82,8 @@ namespace PPCAnalyst
 
 	void LogFunctionCall(u32 addr);
 
-	void FindFunctions(u32 startAddr, u32 endAddr, FunctionDB *func_db);
-	bool AnalyzeFunction(u32 startAddr, SFunction &func);
+	void FindFunctions(u32 startAddr, u32 endAddr, SymbolDB *func_db);
+	bool AnalyzeFunction(u32 startAddr, Symbol &func);
 }  // namespace
 
 #endif

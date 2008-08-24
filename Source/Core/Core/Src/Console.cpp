@@ -27,7 +27,7 @@
 #include "CoreTiming.h"
 #include "Core.h"
 #include "PowerPC/Jit64/JitCache.h"
-#include "PowerPC/FunctionDB.h"
+#include "PowerPC/SymbolDB.h"
 #include "PowerPCDisasm.h"
 
 #define CASE(x) else if (memcmp(cmd, x, 4*sizeof(TCHAR))==0)
@@ -93,7 +93,7 @@ void Console_Submit(const char *cmd)
 		sscanf(cmd, "%s %08x", temp, &addr);
 		if (addr!=0)
 		{
-			g_funcDB.PrintCalls(addr);
+			g_symbolDB.PrintCalls(addr);
 		}
 		else
 		{
@@ -107,7 +107,7 @@ void Console_Submit(const char *cmd)
 		sscanf(cmd, "%s %08x", temp, &addr);
 		if (addr!=0)
 		{
-			g_funcDB.PrintCallers(addr);
+			g_symbolDB.PrintCallers(addr);
 		}
 		else
 		{
@@ -167,7 +167,7 @@ void Console_Submit(const char *cmd)
 	}
 	CASE("lisf")
 	{
-		g_funcDB.List();
+		g_symbolDB.List();
 	}
 	else {
 		printf("blach\n");

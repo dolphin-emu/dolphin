@@ -20,7 +20,7 @@
 #include "../HW/Memmap.h"
 
 #include "SignatureDB.h"
-#include "FunctionDB.h"
+#include "SymbolDB.h"
 
 namespace {
 
@@ -109,31 +109,33 @@ void SignatureDB::Clear()
 	database.clear();
 }
 
-void SignatureDB::Apply(FunctionDB *func_db)
+void SignatureDB::Apply(SymbolDB *symbol_db)
 {
 	for (FuncDB::const_iterator iter = database.begin(); iter != database.end(); iter++)
 	{
-		u32 checkSum = iter->first;
-		SFunction *function = func_db->GetFunction(checkSum);
+		u32 hash = iter->first;
+		Symbol *function = symbol_db->GetSymbolFromHash(hash);
 		if (function)
 		{
 			// Found the function. Let's rename it according to the symbol file.
-			if (iter->second.size == (unsigned int)function->size * 4)
+			if (iter->second.size == (unsigned int)function->size)
 			{
 				function->name = iter->second.name;
-				LOG(HLE,"Found %s at %08x (size: %08x)!", iter->second.name.c_str(), function->address, function->size);
-			} else 
+				LOG(HLE, "Found %s at %08x (size: %08x)!", iter->second.name.c_str(), function->address, function->size);
+			}
+			else 
 			{
 				function->name = iter->second.name;
-				LOG(HLE,"Wrong sizzze! Found %s at %08x (size: %08x instead of %08x)!", iter->second.name.c_str(), function->address, function->size, iter->second.size);
+				LOG(HLE, "Wrong sizzze! Found %s at %08x (size: %08x instead of %08x)!", iter->second.name.c_str(), function->address, function->size, iter->second.size);
 			}
 		}
 	}
+	symbol_db->Index();
 }
 
-void SignatureDB::Initialize(FunctionDB *func_db)
+void SignatureDB::Initialize(SymbolDB *symbol_db)
 {
-	for (FunctionDB::XFuncMap::const_iterator iter = func_db->GetConstIterator(); iter != func_db->End(); iter++)
+	for (SymbolDB::XFuncMap::const_iterator iter = symbol_db->GetConstIterator(); iter != symbol_db->End(); iter++)
 	{
 		DBFunc temp_dbfunc;
 		temp_dbfunc.name = iter->second.name;

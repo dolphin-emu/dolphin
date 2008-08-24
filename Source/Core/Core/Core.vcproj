@@ -797,14 +797,6 @@
 			Name="PowerPC"
 			>
 			<File
-				RelativePath=".\Src\PowerPC\FunctionDB.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\PowerPC\FunctionDB.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\PowerPC\Gekko.h"
 				>
 			</File>
@@ -842,6 +834,14 @@
 			</File>
 			<File
 				RelativePath=".\Src\PowerPC\SignatureDB.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PowerPC\SymbolDB.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PowerPC\SymbolDB.h"
 				>
 			</File>
 			<Filter

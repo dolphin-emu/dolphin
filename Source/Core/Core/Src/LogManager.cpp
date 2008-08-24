@@ -167,7 +167,7 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 
     char* Msg2 = (char*)alloca(strlen(_fmt)+512);
 
-	Debugger::XSymbolIndex Index = 0; //Debugger::FindSymbol(PC);
+	int Index = 0; //Debugger::FindSymbol(PC);
 #ifdef _WIN32
 	const char *eol = "\x0D\x0A";
 #else
@@ -175,12 +175,12 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 #endif
     if (Index > 0)
     { 
-        const Debugger::Symbol& symbol = Debugger::GetSymbol(Index);
+        // const Debugger::Symbol& symbol = Debugger::GetSymbol(Index);
 		sprintf(Msg2, "%i: %x %s (%s, %08x ) : %s%s", 
 			          ++count, 
 					  PowerPC::ppcState.DebugCount, 
 					  m_Log[_type]->m_szShortName, 
-					  symbol.GetName().c_str(), 
+					  "", //symbol.GetName().c_str(), 
 					  PC, 
 					  Msg, eol);
     }

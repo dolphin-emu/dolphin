@@ -21,7 +21,7 @@
 #include "Interpreter/Interpreter.h"
 #include "../HW/Memmap.h"
 #include "PPCTables.h"
-#include "FunctionDB.h"
+#include "SymbolDB.h"
 #include "SignatureDB.h"
 #include "PPCAnalyst.h"
 
@@ -40,7 +40,7 @@ using namespace std;
 // VERY ugly. TODO: remove.
 PPCAnalyst::CodeOp codebuffer[20000];
 
-void AnalyzeFunction2(SFunction &func);
+void AnalyzeFunction2(Symbol &func);
 u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc);
 
 // void FixUpInternalBranches(CodeOp *code, int begin, int end);
@@ -73,7 +73,7 @@ u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 //If any one goes farther than the blr, assume that there is more than
 //one blr, and keep scanning.
 
-bool AnalyzeFunction(u32 startAddr, SFunction &func)
+bool AnalyzeFunction(u32 startAddr, Symbol &func)
 {
 	if (!func.name.size())
 		func.name = StringFromFormat("zzz_%08x ??", startAddr);
@@ -110,7 +110,9 @@ bool AnalyzeFunction(u32 startAddr, SFunction &func)
 					//a final blr!
 					//We're done! Looks like we have a neat valid function. Perfect.
 					//Let's calc the checksum and get outta here
+					func.size *= 4; // into bytes
 					func.address = startAddr;
+					func.analyzed = 1;
 					func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);
 					if (numInternalBranches == 0)
 						func.flags |= FFLAG_STRAIGHT;
@@ -165,7 +167,7 @@ bool AnalyzeFunction(u32 startAddr, SFunction &func)
 
 // Second pass analysis, done after the first pass is done for all functions
 // so we have more information to work with
-void AnalyzeFunction2(SFunction &func)
+void AnalyzeFunction2(Symbol &func)
 {
 	// u32 addr = func.address; 
 	u32 flags = func.flags;
@@ -193,7 +195,7 @@ void AnalyzeFunction2(SFunction &func)
 	for (size_t i = 0; i < func.calls.size(); i++)
 	{
 		SCall c = func.calls[i];
-		SFunction *called_func = g_funcDB.GetFunction(c.function);
+		Symbol *called_func = g_symbolDB.GetSymbolFromAddr(c.function);
 		if (called_func && (called_func->flags & FFLAG_LEAF) == 0)
 		{
 			nonleafcall = true;
@@ -272,7 +274,7 @@ CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, 
 	};
 	Todo todo = Nothing;
 
-	SFunction *f = g_funcDB.GetFunction(address);
+	Symbol *f = g_symbolDB.GetSymbolFromAddr(address);
 	int maxsize = 20000;
 	//for now, all will return JustCopy :P
 	if (f)
@@ -548,8 +550,7 @@ CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, 
 // called by another function. Therefore, let's scan the 
 // entire space for bl operations and find what functions
 // get called. 
-
-void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, FunctionDB *func_db)
+void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB *func_db)
 {
 	for (u32 addr = startAddr; addr < endAddr; addr+=4)
 	{
@@ -580,12 +581,12 @@ void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, FunctionDB *func_db)
 	}
 }
 
-void FindFunctionsAfterBLR(FunctionDB *func_db)
+void FindFunctionsAfterBLR(SymbolDB *func_db)
 {
 	vector<u32> funcAddrs;
 
-	for (FunctionDB::XFuncMap::iterator iter = func_db->GetIterator(); iter != func_db->End(); iter++)
-		funcAddrs.push_back(iter->second.address + iter->second.size*4);
+	for (SymbolDB::XFuncMap::iterator iter = func_db->GetIterator(); iter != func_db->End(); iter++)
+		funcAddrs.push_back(iter->second.address + iter->second.size);
 
 	for (vector<u32>::iterator iter = funcAddrs.begin(); iter != funcAddrs.end(); iter++)
 	{
@@ -595,11 +596,11 @@ void FindFunctionsAfterBLR(FunctionDB *func_db)
 			if (PPCTables::IsValidInstruction(Memory::Read_Instruction(location)))
 			{
 				//check if this function is already mapped	
-				SFunction *f = func_db->AddFunction(location);
+				Symbol *f = func_db->AddFunction(location);
 				if (!f)
 					break;
 				else
-					location += f->size * 4;
+					location += f->size;
 			}
 			else
 				break;
@@ -607,7 +608,7 @@ void FindFunctionsAfterBLR(FunctionDB *func_db)
 	}
 }
 
-void PPCAnalyst::FindFunctions(u32 startAddr, u32 endAddr, FunctionDB *func_db)
+void PPCAnalyst::FindFunctions(u32 startAddr, u32 endAddr, SymbolDB *func_db)
 {
 	//Step 1: Find all functions
 	FindFunctionsFromBranches(startAddr, endAddr, func_db);
@@ -618,7 +619,7 @@ void PPCAnalyst::FindFunctions(u32 startAddr, u32 endAddr, FunctionDB *func_db)
 
 	int numLeafs = 0, numNice = 0, numUnNice = 0, numTimer=0, numRFI=0, numStraightLeaf=0;
 	int leafSize = 0, niceSize = 0, unniceSize = 0;
-	for (FunctionDB::XFuncMap::iterator iter = func_db->GetIterator(); iter != func_db->End(); iter++)
+	for (SymbolDB::XFuncMap::iterator iter = func_db->GetIterator(); iter != func_db->End(); iter++)
 	{
 		if (iter->second.address == 4)
 		{
@@ -626,7 +627,7 @@ void PPCAnalyst::FindFunctions(u32 startAddr, u32 endAddr, FunctionDB *func_db)
 			continue;
 		}
 		AnalyzeFunction2(iter->second);
-		SFunction &f = iter->second;
+		Symbol &f = iter->second;
 		if (f.flags & FFLAG_LEAF)
 		{
 			numLeafs++;

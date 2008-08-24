@@ -29,10 +29,8 @@
 #include "../HW/CPU.h"
 #include "../Host.h"
 
-#include "Debugger_SymbolMap.h"
+#include "../PowerPC/SymbolDB.h"
 #include "Debugger_BreakPoints.h"
-
-using namespace Debugger;
 
 CBreakPoints::TBreakPoints CBreakPoints::m_BreakPoints;
 CBreakPoints::TMemChecks CBreakPoints::m_MemChecks;
@@ -51,7 +49,7 @@ void TMemCheck::Action(u32 iValue, u32 addr, bool write, int size, u32 pc)
 		{
 			LOG(MEMMAP,"CHK %08x %s%i at %08x (%s)",
 				iValue, write ? "Write" : "Read", size*8, addr,
-				Debugger::GetDescription(addr));
+				g_symbolDB.GetDescription(addr));
 		}
 		if (Break)
 			CCPU::Break();
@@ -154,14 +152,10 @@ void CBreakPoints::AddAutoBreakpoints()
 
 	for (int i = 0; i < sizeof(bps) / sizeof(const char *); i++)
 	{
-		XSymbolIndex idx = FindSymbol(bps[i]);
-		if (idx != 0)
-		{
-			const Symbol &symbol = GetSymbol(idx);
-			AddBreakPoint(symbol.vaddress, false);
-		}
+		Symbol *symbol = g_symbolDB.GetSymbolFromName(bps[i]);
+		if (symbol)
+			AddBreakPoint(symbol->address, false);
 	}
-
     Host_UpdateBreakPointView();
 #endif
 #endif

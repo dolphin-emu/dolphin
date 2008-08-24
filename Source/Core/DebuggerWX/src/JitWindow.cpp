@@ -49,7 +49,7 @@ CJitWindow *the_jit_window;
 
 enum
 {
-	IDM_REFRESH_LIST = 33350,
+	IDM_REFRESH_LIST = 23350,
 	IDM_PPC_BOX,
 	IDM_X86_BOX,
 	IDM_NEXT,

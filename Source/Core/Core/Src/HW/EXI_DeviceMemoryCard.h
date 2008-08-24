@@ -36,7 +36,7 @@ private:
 	static void FlushCallback(u64 userdata, int cyclesLate);
 
 	// Flushes the memory card contents to disk.
-	void Flush();
+	void Flush(bool exiting = false);
 
 	enum 
 	{

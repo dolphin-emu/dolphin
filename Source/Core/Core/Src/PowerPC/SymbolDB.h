@@ -31,18 +31,24 @@ struct SCall
 	u32 callAddress;
 };
 
-struct SFunction
+struct Symbol
 {
-    SFunction() :            
+	enum {
+		SYMBOL_FUNCTION = 0,
+		SYMBOL_DATA = 1,
+	};
+
+    Symbol() :            
         hash(0),
         address(0),
         flags(0),
         size(0),
         numCalls(0),
-		analyzed(0)
+		analyzed(0),
+		type(SYMBOL_FUNCTION)
     {}
 
-    ~SFunction()
+    ~Symbol()
     {
         callers.clear();
         calls.clear();
@@ -56,6 +62,8 @@ struct SFunction
 	u32 flags;
 	int size;
 	int numCalls;
+	int type;
+	int index; // only used for coloring the disasm view
 
 	int analyzed;
 };
@@ -72,42 +80,55 @@ enum
 
 
 // This has functionality overlapping Debugger_Symbolmap. Should merge that stuff in here later.
-class FunctionDB
+class SymbolDB
 {
 public:
-	typedef std::map<u32, SFunction>  XFuncMap;
-	typedef std::map<u32, SFunction*> XFuncPtrMap;
+	typedef std::map<u32, Symbol>  XFuncMap;
+	typedef std::map<u32, Symbol*> XFuncPtrMap;
 
 private:
 	XFuncMap    functions;
 	XFuncPtrMap checksumToFunction;
 
 public:
-
-	typedef void (*functionGetterCallback)(SFunction *f);
+	typedef void (*functionGetterCallback)(Symbol *f);
 	
-	FunctionDB() {}
+	SymbolDB() {}
 
-	SFunction *AddFunction(u32 startAddr);
-	void AddKnownFunction(u32 startAddr, u32 size, const char *name);
+	Symbol *AddFunction(u32 startAddr);
+	void AddKnownSymbol(u32 startAddr, u32 size, const char *name, int type = Symbol::SYMBOL_FUNCTION);
 
-	void GetAllFuncs(functionGetterCallback callback);
-	SFunction *GetFunction(u32 hash) {
-		// TODO: sanity check
-		return checksumToFunction[hash];
+	Symbol *GetSymbolFromAddr(u32 addr);
+	Symbol *GetSymbolFromName(const char *name);
+	Symbol *GetSymbolFromHash(u32 hash) {
+		XFuncPtrMap::iterator iter = checksumToFunction.find(hash);
+		if (iter != checksumToFunction.end())
+			return iter->second;
+		else
+			return 0;
 	}
 
+	const XFuncMap &Symbols() const {return functions;}
+	XFuncMap &AccessSymbols() {return functions;}
+
+	// deprecated
 	XFuncMap::iterator GetIterator() { return functions.begin(); }
 	XFuncMap::const_iterator GetConstIterator() { return functions.begin(); }
 	XFuncMap::iterator End() { return functions.end(); }
 
+	const char *GetDescription(u32 addr);
+
 	void Clear();
 	void List();
+	void Index();
 	void FillInCallers();
+
+	bool LoadMap(const char *filename);
+	bool SaveMap(const char *filename);
 
 	void PrintCalls(u32 funcAddr);
 	void PrintCallers(u32 funcAddr);
 	void LogFunctionCall(u32 addr);
 };
 
-extern FunctionDB g_funcDB;
+extern SymbolDB g_symbolDB;

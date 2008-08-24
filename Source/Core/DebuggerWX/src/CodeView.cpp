@@ -17,7 +17,7 @@
 
 #include "Debugger.h"
 #include "Debugger/PPCDebugInterface.h"
-#include "Debugger/Debugger_SymbolMap.h"
+#include "PowerPC/SymbolDB.h"
 #include "Common.h"
 #include "StringUtil.h"
 
@@ -184,13 +184,13 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 		    break;
 		case IDM_COPYFUNCTION:
 			{
-			int sel = Debugger::FindSymbol(selection);
-			if (sel > 0) {
+			Symbol *symbol = g_symbolDB.GetSymbolFromAddr(selection);
+			if (symbol) {
 				std::string text;
-				text = text + Debugger::GetSymbol(sel).GetName() + "\r\n";
+				text = text + symbol->name + "\r\n";
 				// we got a function
-				u32 start = Debugger::GetSymbol(sel).vaddress;
-				u32 end = start + Debugger::GetSymbol(sel).size;
+				u32 start = symbol->address;
+				u32 end = start + symbol->size;
 				for (u32 addr = start; addr != end; addr += 4) {
 					text = text + StringFromFormat("%08x: ", addr) + debugger->disasm(addr) + "\r\n";
 				}
@@ -217,11 +217,12 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 	
 		case IDM_RENAMESYMBOL:
 			{
-			int sel = Debugger::FindSymbol(selection);
-			if (sel > 0) {
-				wxTextEntryDialog input_symbol(this, wxString::FromAscii("Rename symbol:"), wxGetTextFromUserPromptStr, wxString::FromAscii(Debugger::GetSymbol(sel).GetName().c_str()));
+			Symbol *symbol = g_symbolDB.GetSymbolFromAddr(selection);
+			if (symbol) {
+				wxTextEntryDialog input_symbol(this, wxString::FromAscii("Rename symbol:"), wxGetTextFromUserPromptStr,
+					wxString::FromAscii(symbol->name.c_str()));
 				if (input_symbol.ShowModal() == wxID_OK) {
-					Debugger::AccessSymbol(sel).SetName(input_symbol.GetValue().mb_str());
+					symbol->name = input_symbol.GetValue().mb_str();
 				}
 //			    redraw();
 				Host_NotifyMapLoaded();

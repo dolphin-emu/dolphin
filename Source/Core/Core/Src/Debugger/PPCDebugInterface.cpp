@@ -23,6 +23,7 @@
 #include "../Core.h"
 #include "../HW/Memmap.h"
 #include "../PowerPC/PowerPC.h"
+#include "../PowerPC/SymbolDB.h"
 
 // Not thread safe.
 const char *PPCDebugInterface::disasm(unsigned int address) 
@@ -82,15 +83,17 @@ int PPCDebugInterface::getColor(unsigned int address)
 {
 	if (!Memory::IsRAMAddress(address))
 		return 0xeeeeee;
-	int colors[6] = {0xe0FFFF,0xFFe0e0,0xe8e8FF,0xFFe0FF,0xe0FFe0,0xFFFFe0};
-    int n = Debugger::FindSymbol(address);
-	if (n == -1) return 0xFFFFFF;
-	return colors[n%6];
+	int colors[6] = {0xe0FFFF, 0xFFe0e0, 0xe8e8FF, 0xFFe0FF, 0xe0FFe0, 0xFFFFe0};
+	Symbol *symbol = g_symbolDB.GetSymbolFromAddr(address);
+	if (!symbol) return 0xFFFFFF;
+	if (symbol->type != Symbol::SYMBOL_FUNCTION)
+		return 0xEEEEFF;
+	return colors[symbol->index % 6];
 }
 
 std::string PPCDebugInterface::getDescription(unsigned int address) 
 {
-	return Debugger::GetDescription(address);
+	return g_symbolDB.GetDescription(address);
 }
 
 unsigned int PPCDebugInterface::getPC() 

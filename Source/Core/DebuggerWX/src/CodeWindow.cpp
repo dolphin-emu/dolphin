@@ -48,7 +48,7 @@
 #include "Debugger/PPCDebugInterface.h"
 #include "Debugger/Debugger_SymbolMap.h"
 #include "PowerPC/PPCAnalyst.h"
-#include "PowerPC/FunctionDB.h"
+#include "PowerPC/SymbolDB.h"
 #include "PowerPC/SignatureDB.h"
 #include "PowerPC/PPCTables.h"
 #include "PowerPC/Jit64/Jit.h"
@@ -73,6 +73,8 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
     EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleBreakPointWindow)
     EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleMemoryWindow)
 
+	EVT_MENU(IDM_CLEARSYMBOLS,      CCodeWindow::OnSymbolsMenu)
+	EVT_MENU(IDM_LOADMAPFILE,       CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_SCANFUNCTIONS,     CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_SAVEMAPFILE,       CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_CREATESIGNATUREFILE, CCodeWindow::OnSymbolsMenu)
@@ -173,11 +175,12 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 	DebugInterface* di = new PPCDebugInterface();
 
-	sizerLeft->Add(callstack = new wxListBox(this, IDM_CALLSTACKLIST, wxDefaultPosition, wxSize(90, 100)), 0, wxEXPAND);
-	sizerLeft->Add(symbols = new wxListBox(this, IDM_SYMBOLLIST, wxDefaultPosition, wxSize(90, 100), 0, NULL, wxLB_SORT), 1, wxEXPAND);
 	codeview = new CCodeView(di, this, wxID_ANY);
 	sizerBig->Add(sizerLeft, 2, wxEXPAND);
 	sizerBig->Add(codeview, 5, wxEXPAND);
+
+	sizerLeft->Add(callstack = new wxListBox(this, IDM_CALLSTACKLIST, wxDefaultPosition, wxSize(90, 100)), 0, wxEXPAND);
+	sizerLeft->Add(symbols = new wxListBox(this, IDM_SYMBOLLIST, wxDefaultPosition, wxSize(90, 100), 0, NULL, wxLB_SORT), 1, wxEXPAND);
 
 	SetSizer(sizerBig);
 
@@ -246,7 +249,10 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 
 	{
 		wxMenu *pSymbolsMenu = new wxMenu;
-		pSymbolsMenu->Append(IDM_SCANFUNCTIONS, _T("&Load/generate symbol map"));
+		pSymbolsMenu->Append(IDM_CLEARSYMBOLS, _T("&Clear symbols"));
+		pSymbolsMenu->Append(IDM_SCANFUNCTIONS, _T("&Generate symbol map"));
+		pSymbolsMenu->AppendSeparator();
+		pSymbolsMenu->Append(IDM_LOADMAPFILE, _T("&Load symbol map"));
 		pSymbolsMenu->Append(IDM_SAVEMAPFILE, _T("&Save symbol map"));
 		pSymbolsMenu->AppendSeparator();
 		pSymbolsMenu->Append(IDM_CREATESIGNATUREFILE, _T("&Create signature file..."));
@@ -305,23 +311,34 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	std::string mapfile = CBoot::GenerateMapFilename();
 	switch (event.GetId())
 	{
+	case IDM_CLEARSYMBOLS:
+		g_symbolDB.Clear();
+		Host_NotifyMapLoaded();
+		break;
 	case IDM_SCANFUNCTIONS:
+		{
+		PPCAnalyst::FindFunctions(0x80000000, 0x80400000, &g_symbolDB);
+		SignatureDB db;
+		if (db.Load("data/totaldb.dsy"))
+			db.Apply(&g_symbolDB);
+		Host_NotifyMapLoaded();
+		break;
+		}
+	case IDM_LOADMAPFILE:
 		if (!File::Exists(mapfile))
 		{
-			g_funcDB.Clear();
-			PPCAnalyst::FindFunctions(0x80000000, 0x80400000, &g_funcDB);
+			g_symbolDB.Clear();
+			PPCAnalyst::FindFunctions(0x80000000, 0x80400000, &g_symbolDB);
 			SignatureDB db;
 			if (db.Load("data/totaldb.dsy"))
-				db.Apply(&g_funcDB);
-            Debugger::GetFromAnalyzer();
+				db.Apply(&g_symbolDB);
 		} else {
-			Debugger::LoadSymbolMap(mapfile.c_str());
-			Debugger::PushMapToFunctionDB(&g_funcDB);
+			g_symbolDB.LoadMap(mapfile.c_str());
 		}
 		Host_NotifyMapLoaded();
 		break;
 	case IDM_SAVEMAPFILE:
-		Debugger::SaveSymbolMap(mapfile.c_str());
+		g_symbolDB.SaveMap(mapfile.c_str());
 		break;
 	case IDM_CREATESIGNATUREFILE:
 		{
@@ -331,7 +348,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 				this);
 		if (path) {
 			SignatureDB db;
-			db.Initialize(&g_funcDB);
+			db.Initialize(&g_symbolDB);
 			std::string filename(path.ToAscii());		// PPCAnalyst::SaveSignatureDB(
 			db.Save(path.ToAscii());
 		}
@@ -346,9 +363,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		if (path) {
 			SignatureDB db;
 			db.Load(path.ToAscii());
-			db.Apply(&g_funcDB);
-			Debugger::Reset();
-            Debugger::GetFromAnalyzer();
+			db.Apply(&g_symbolDB);
 		}
 		}
 		Host_NotifyMapLoaded();
@@ -426,7 +441,6 @@ void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
 void CCodeWindow::Update()
 {
 	codeview->Refresh();
-
 	callstack->Clear();
 
 	std::vector<Debugger::CallstackEntry> stack;
@@ -445,7 +459,6 @@ void CCodeWindow::Update()
 	}
 
 	UpdateButtonStates();
-
 	Host_UpdateLogDisplay();
 }
 
@@ -454,18 +467,12 @@ void CCodeWindow::NotifyMapLoaded()
 {
 	symbols->Show(false); // hide it for faster filling
 	symbols->Clear();
-#ifdef _WIN32
-	const Debugger::XVectorSymbol& syms = Debugger::AccessSymbols();
-
-	for (int i = 0; i < (int)syms.size(); i++)
+	
+	for (SymbolDB::XFuncMap::iterator iter = g_symbolDB.GetIterator(); iter != g_symbolDB.End(); iter++)
 	{
-		int idx = symbols->Append(syms[i].GetName().c_str());
-		symbols->SetClientData(idx, (void*)&syms[i]);
+		int idx = symbols->Append(iter->second.name.c_str());
+		symbols->SetClientData(idx, (void*)&iter->second);
 	}
-
-	//
-#endif
-
 	symbols->Show(true);
 	Update();
 }
@@ -508,11 +515,11 @@ void CCodeWindow::UpdateButtonStates()
 void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
 {
 	int index = symbols->GetSelection();
-	Debugger::Symbol* pSymbol = static_cast<Debugger::Symbol *>(symbols->GetClientData(index));
+	Symbol* pSymbol = static_cast<Symbol *>(symbols->GetClientData(index));
 
 	if (pSymbol != NULL)
 	{
-		codeview->Center(pSymbol->vaddress);
+		codeview->Center(pSymbol->address);
 	}
 }
 

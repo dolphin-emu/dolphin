@@ -40,7 +40,7 @@
 #include "../VolumeHandler.h"
 #include "../PatchEngine.h"
 #include "../PowerPC/SignatureDB.h"
-#include "../PowerPC/FunctionDB.h"
+#include "../PowerPC/SymbolDB.h"
 
 #include "../MemTools.h"
 #include "MappedFile.h"
@@ -401,17 +401,16 @@ bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_game
 	std::string strMapFilename = GenerateMapFilename();
 
 	bool success = false;
-    if (!Debugger::LoadSymbolMap(strMapFilename.c_str()))
+    if (!g_symbolDB.LoadMap(strMapFilename.c_str()))
 	{
 		if (_gameID != NULL)
 		{
 			BuildCompleteFilename(strMapFilename, _T("maps"), std::string(_gameID) + _T(".map"));
-            success = Debugger::LoadSymbolMap(strMapFilename.c_str());
+            success = g_symbolDB.LoadMap(strMapFilename.c_str());
 		}
 	}
 	else
 	{
-		Debugger::PushMapToFunctionDB(&g_funcDB);
 		success = true;
 	}
 

@@ -22,7 +22,7 @@
 
 // You're not meant to keep around SignatureDB objects persistently. Use 'em, throw them away.
 
-class FunctionDB;
+class SymbolDB;
 
 class SignatureDB
 {
@@ -50,8 +50,8 @@ public:
 	void Clear();
 	void List();
 	
-	void Initialize(FunctionDB *func_db);
-	void Apply(FunctionDB *func_db);
+	void Initialize(SymbolDB *func_db);
+	void Apply(SymbolDB *func_db);
 
 	static u32 ComputeCodeChecksum(u32 offsetStart, u32 offsetEnd);
 };

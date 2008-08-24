@@ -30,7 +30,7 @@
 #include "Host.h"
 
 #include "Debugger/PPCDebugInterface.h"
-#include "Debugger/Debugger_SymbolMap.h"
+#include "PowerPC/SymbolDB.h"
 
 #include "Core.h"
 #include "LogManager.h"
@@ -148,18 +148,18 @@ void CMemoryWindow::NotifyMapLoaded()
 {
 	symbols->Show(false); // hide it for faster filling
 	symbols->Clear();
+	/*
 #ifdef _WIN32
-	const Debugger::XVectorSymbol& syms = Debugger::AccessSymbols();
-
-	for (int i = 0; i < (int)syms.size(); i++)
+	const FunctionDB::XFuncMap &syms = g_symbolDB.Symbols();
+	for (FuntionDB::XFuncMap::iterator iter = syms.begin(); iter != syms.end(); ++iter)
 	{
-		int idx = symbols->Append(syms[i].GetName().c_str());
-		symbols->SetClientData(idx, (void*)&syms[i]);
+		int idx = symbols->Append(iter->second.name.c_str());
+		symbols->SetClientData(idx, (void*)&iter->second);
 	}
 
 	//
 #endif
-
+*/
 	symbols->Show(true);
 	Update();
 }
@@ -167,11 +167,11 @@ void CMemoryWindow::NotifyMapLoaded()
 void CMemoryWindow::OnSymbolListChange(wxCommandEvent& event)
 {
 	int index = symbols->GetSelection();
-	Debugger::Symbol* pSymbol = static_cast<Debugger::Symbol*>(symbols->GetClientData(index));
+	Symbol* pSymbol = static_cast<Symbol *>(symbols->GetClientData(index));
 
 	if (pSymbol != NULL)
 	{
-		memview->Center(pSymbol->vaddress);
+		memview->Center(pSymbol->address);
 	}
 }
 

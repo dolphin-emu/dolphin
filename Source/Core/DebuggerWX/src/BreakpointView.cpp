@@ -21,6 +21,7 @@
 #include "BreakpointView.h"
 #include "Debugger/Debugger_BreakPoints.h"
 #include "Debugger/Debugger_SymbolMap.h"
+#include "PowerPC/SymbolDB.h"
 
 BEGIN_EVENT_TABLE(CBreakPointView, wxListCtrl)
 
@@ -35,8 +36,7 @@ CBreakPointView::CBreakPointView(wxWindow* parent, const wxWindowID id, const wx
 }
 
 
-void
-CBreakPointView::Update()
+void CBreakPointView::Update()
 {
 	ClearAll();
 
@@ -48,7 +48,7 @@ CBreakPointView::Update()
 
     char szBuffer[64];
 	const CBreakPoints::TBreakPoints& rBreakPoints = CBreakPoints::GetBreakPoints();
-	for (size_t i=0; i<rBreakPoints.size(); i++)
+	for (size_t i = 0; i < rBreakPoints.size(); i++)
 	{
 		const TBreakPoint& rBP = rBreakPoints[i];
 		if (!rBP.bTemporary)
@@ -59,10 +59,10 @@ CBreakPointView::Update()
 			temp = wxString::FromAscii("BP");
 			SetItem(Item, 1, temp);
 			
-			Debugger::XSymbolIndex index = Debugger::FindSymbol(rBP.iAddress);
-			if (index > 0)
+			Symbol *symbol = g_symbolDB.GetSymbolFromAddr(rBP.iAddress);
+			if (symbol)
 			{
-				temp = wxString::FromAscii(Debugger::GetDescription(rBP.iAddress));
+				temp = wxString::FromAscii("halloj"); //Debugger::GetDescription(rBP.iAddress));
 				SetItem(Item, 2, temp);
 			}
 			
@@ -75,7 +75,7 @@ CBreakPointView::Update()
 	}
 
 	const CBreakPoints::TMemChecks& rMemChecks = CBreakPoints::GetMemChecks();
-	for (size_t i=0; i<rMemChecks.size(); i++)
+	for (size_t i = 0; i < rMemChecks.size(); i++)
 	{
 		const TMemCheck& rMemCheck = rMemChecks[i];
 
@@ -85,10 +85,10 @@ CBreakPointView::Update()
 		temp = wxString::FromAscii("MC");
 		SetItem(Item, 1, temp);
 
-		Debugger::XSymbolIndex index = Debugger::FindSymbol(rMemCheck.StartAddress);
-		if (index > 0)
+		Symbol *symbol = g_symbolDB.GetSymbolFromAddr(rMemCheck.StartAddress);
+		if (symbol)
 		{
-			temp = wxString::FromAscii(Debugger::GetDescription(rMemCheck.StartAddress));
+			temp = wxString::FromAscii("bjorn"); //Debugger::GetDescription(rMemCheck.StartAddress));
 			SetItem(Item, 2, temp);
 		}
 

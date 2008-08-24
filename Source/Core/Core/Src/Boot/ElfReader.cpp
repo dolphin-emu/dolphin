@@ -3,6 +3,7 @@
 #include "Common.h"
 #include "../Debugger/Debugger_SymbolMap.h"
 #include "../HW/Memmap.h"
+#include "../PowerPC/SymbolDB.h"
 #include "ElfReader.h"
 
 void bswap(Elf32_Word &w) {w = Common::swap32(w);}
@@ -232,22 +233,20 @@ bool ElfReader::LoadSymbols()
 			if (bRelocate)
 				value += sectionAddrs[sectionIndex];
 
-			Debugger::ESymbolType symtype = Debugger::ST_DATA;
+			int symtype = Symbol::SYMBOL_DATA;
 			
 			switch (type)
 			{
 			case STT_OBJECT:
-				symtype = Debugger::ST_DATA; break;
+				symtype = Symbol::SYMBOL_DATA; break;
 			case STT_FUNC:
-				symtype =Debugger:: ST_FUNCTION; break;
+				symtype = Symbol::SYMBOL_FUNCTION; break;
 			default:
 				continue;
 			}
-			//host->AddSymbol(name, value, size, symtype);
-			Debugger::AddSymbol(Debugger::Symbol(value, size, symtype, name));
+			g_symbolDB.AddKnownSymbol(value, size, name, symtype);
 
 			hasSymbols = true;
-			//...
 		}
 	}
 	return hasSymbols;
