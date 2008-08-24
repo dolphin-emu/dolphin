@@ -408,9 +408,6 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     }       
 #else
 	//SDL for other OS (osx, bsd, ...)
-	int videoFlags = SDL_OPENGL;
-	SDL_Surface *screen;
-	const SDL_VideoInfo *videoInfo;
 
 	//init sdl video
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -418,34 +415,9 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 		SDL_Quit();
 		return false;
 	}
-	//fetch video info
-	videoInfo = SDL_GetVideoInfo();
-	if (!videoInfo) {
-		//TODO : Display an error message
-		SDL_Quit();
-		return false;
-	}
-	//hw or sw ogl ?
-    	if (videoInfo->hw_available)
-        	videoFlags |= SDL_HWSURFACE;
-    	else
-        	videoFlags |= SDL_SWSURFACE;
 
-
-	//fullscreen or not
-	if(g_Config.bFullscreen)
-		videoFlags |= SDL_FULLSCREEN;
-	
 	//setup ogl to use double buffering
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	
-	screen = SDL_SetVideoMode(_twidth, _theight, 0, videoFlags);
-	if (!screen) {
-		//TODO : Display an error message
-		SDL_Quit();
-		return false;
-	}
-
 
 #endif
 	return true;
@@ -476,9 +448,35 @@ bool OpenGL_MakeCurrent()
                  ButtonPressMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask |
                  FocusChangeMask );
 #else
+	// Note: The reason for having the call to SDL_SetVideoMode in here instead
+	//       of in OpenGL_Create() is that "make current" is part of the video
+	//       mode setting and is not available as a separate call in SDL. We
+	//       have to do "make current" here because this method runs in the CPU
+	//       thread while OpenGL_Create() runs in a diferent thread and "make
+	//       current" has to be done in the same thread that will be making
+	//       calls to OpenGL.
 
-	//TODO
-
+	// Fetch video info.
+	const SDL_VideoInfo *videoInfo = SDL_GetVideoInfo();
+	if (!videoInfo) {
+		// TODO: Display an error message.
+		SDL_Quit();
+		return false;
+	}
+	// Compute video mode flags.
+	const int videoFlags = SDL_OPENGL
+		| ( videoInfo->hw_available ? SDL_HWSURFACE : SDL_SWSURFACE )
+		| ( g_Config.bFullscreen ? SDL_FULLSCREEN : 0);
+	// Set vide mode.
+	// TODO: Can we use this field or is a separate field needed?
+	int _twidth = nBackbufferWidth;
+	int _theight = nBackbufferHeight;
+	SDL_Surface *screen = SDL_SetVideoMode(_twidth, _theight, 0, videoFlags);
+	if (!screen) {
+		//TODO : Display an error message
+		SDL_Quit();
+		return false;
+	}
 #endif
 	return true;
 }
