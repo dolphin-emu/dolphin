@@ -517,18 +517,36 @@ void OpenGL_Update()
             nXoff = (nBackbufferWidth - (640 * MValueX)) / 2;
             nYoff = (nBackbufferHeight - (480 * MValueY)) / 2;
         }
-        /*
-        u32 TmpAAx = (width / 640) - 1;
-        u32 TmpAAy = (height / 480) - 1;
-        u32 FinalAA = TmpAAx < TmpAAy ? TmpAAx : TmpAAy;
-
-        g_AAx = FinalAA;
-        g_AAy = FinalAA;
-        
-        s_nTargetWidth = 640<<g_AAx;
-        s_nTargetHeight = 480<<g_AAy; */
     }
 
+#elif defined(__linux__)
+    Window winDummy;
+    unsigned int borderDummy;
+    XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
+                &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
+    nBackbufferWidth = GLWin.width;
+    nBackbufferHeight = GLWin.height;
+    float FactorW  = 640.0f / (float)nBackbufferWidth;
+    float FactorH  = 480.0f / (float)nBackbufferHeight;
+
+    float Max = (FactorW < FactorH) ? FactorH : FactorW;
+
+    if(g_Config.bStretchToFit)
+    {
+        MValueX = 1.0f / FactorW;
+        MValueY = 1.0f / FactorH;
+        nXoff = 0;
+        nYoff = 0;
+    }
+    else
+    {
+        MValueX = 1.0f / Max;
+        MValueY = 1.0f / Max;
+        nXoff = (nBackbufferWidth - (640 * MValueX)) / 2;
+        nYoff = (nBackbufferHeight - (480 * MValueY)) / 2;
+    }
+#else
+    //SDL stuff
 #endif
 }
 
