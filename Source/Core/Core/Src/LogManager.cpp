@@ -51,11 +51,8 @@ CDebugger_Log::CDebugger_Log(const char* _szShortName, const char* _szName) :
 	strcpy((char*)m_szName, _szName);
 	strcpy((char*)m_szShortName, _szShortName);
 	sprintf((char*)m_szFilename, "Logs/%s.txt", _szName);
-	#ifdef _WIN32
-	_unlink(m_szFilename);
-	#else
+
 	unlink(m_szFilename);
-	#endif
 }
 
 CDebugger_Log::~CDebugger_Log(void)

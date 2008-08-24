@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "stdafx.h"
+#include "Common.h"
 
 #include "FileHandlerARC.h"
 #include "StringUtil.h"
@@ -225,11 +226,7 @@ CARCFile::FindFileInfo(std::string _rFullPath) const
 {
 	for (size_t i = 0; i < m_FileInfoVector.size(); i++)
 	{
-		#ifdef _WIN32
-		if (!_stricmp(m_FileInfoVector[i].m_FullPath.c_str(), _rFullPath.c_str()))
-		#else
-		if (!strcasecmp(m_FileInfoVector[i].m_FullPath.c_str(), _rFullPath.c_str())) //TODO(Sonic): Shouldn't this work in all platforms?
-		#endif
+		if (!strcasecmp(m_FileInfoVector[i].m_FullPath.c_str(), _rFullPath.c_str()))
 		{
 			return(&m_FileInfoVector[i]);
 		}

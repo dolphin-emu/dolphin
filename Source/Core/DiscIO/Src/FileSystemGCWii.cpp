@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "stdafx.h"
+#include "Common.h"
 
 #include <string>
 
@@ -164,11 +165,7 @@ CFileSystemGCWii::FindFileInfo(const char* _rFullPath) const
 {
 	for (size_t i = 0; i < m_FileInfoVector.size(); i++)
 	{
-		#ifdef _WIN32
-		if (!_stricmp(m_FileInfoVector[i].m_FullPath, _rFullPath))
-		#else
-		if (!strcasecmp(m_FileInfoVector[i].m_FullPath, _rFullPath)) //TODO(Sonic): Shouldn't this work in all platforms?
-		#endif
+		if (!strcasecmp(m_FileInfoVector[i].m_FullPath, _rFullPath))
 		{
 			return(&m_FileInfoVector[i]);
 		}

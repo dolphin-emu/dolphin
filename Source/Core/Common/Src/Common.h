@@ -22,6 +22,15 @@
 #include <stdio.h>
 #include <string.h>
 
+// Function Cross-Compatibility
+#ifdef _WIN32
+#define strcasecmp _stricmp
+#define unlink _unlink
+#else
+#define _stricmp strcasecmp
+#define _unlink unlink
+#endif
+
 #ifdef _WIN32
 #define POSIX 0
 #define NOMINMAX
