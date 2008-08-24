@@ -327,6 +327,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	wxPen currentPen(_T("#000000"));
 	wxPen selPen(_T("#808080"));
 	nullPen.SetStyle(wxTRANSPARENT);
+	currentPen.SetStyle(wxSOLID);
 
 	wxBrush currentBrush(_T("#FFEfE8"));
 	wxBrush pcBrush(_T("#70FF70"));
@@ -420,7 +421,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 					sscanf(mojs + 2, "%08x", &offs);
 					branches[numBranches].src = rowY1 + rowHeight / 2;
 					branches[numBranches].srcAddr = address / align;
-					branches[numBranches++].dst = (int)(rowY1 + ((s64)offs - (s64)address) * rowHeight / align + rowHeight / 2);
+					branches[numBranches++].dst = (int)(rowY1 + ((s64)(u32)offs - (s64)(u32)address) * rowHeight / align + rowHeight / 2);
 					sprintf(desc, "-->%s", debugger->getDescription(offs).c_str());
 					dc.SetTextForeground(_T("#600060"));
 				}
@@ -467,25 +468,25 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	}
 
 	dc.SetPen(currentPen);
-	/*
-	   for (i = 0; i < numBranches; i++)
-	   {
-	    int x = 250 + (branches[i].srcAddr % 9) * 8;
-	    MoveToEx(hdc, x-2, branches[i].src, 0);
+	
+	for (i = 0; i < numBranches; i++)
+	{
+	    int x = 300 + (branches[i].srcAddr % 9) * 8;
+	    _MoveTo(x-2, branches[i].src);
 
-	    if (branches[i].dst < rect.bottom + 200 && branches[i].dst > -200)
+		if (branches[i].dst < rc.height + 400 && branches[i].dst > -400)
 	    {
-	    LineTo(hdc, x+2, branches[i].src);
-	    LineTo(hdc, x+2, branches[i].dst);
-	    LineTo(hdc, x-4, branches[i].dst);
+			_LineTo(dc, x+2, branches[i].src);
+			_LineTo(dc, x+2, branches[i].dst);
+			_LineTo(dc, x-4, branches[i].dst);
 
-	    MoveToEx(hdc, x, branches[i].dst - 4,0);
-	    LineTo(hdc, x-4, branches[i].dst);
-	    LineTo(hdc, x+1, branches[i].dst+5);
+			_MoveTo(x, branches[i].dst - 4);
+			_LineTo(dc, x-4, branches[i].dst);
+			_LineTo(dc, x+1, branches[i].dst+5);
 	    }
 	    else
 	    {
-	    LineTo(hdc, x+4, branches[i].src);
+			_LineTo(dc, x+4, branches[i].src);
 	    //MoveToEx(hdc,x+2,branches[i].dst-4,0);
 	    //LineTo(hdc,x+6,branches[i].dst);
 	    //LineTo(hdc,x+1,branches[i].dst+5);
@@ -493,7 +494,14 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	    //LineTo(hdc,x,branches[i].dst+4);
 
 	    //LineTo(hdc,x-2,branches[i].dst);
-	   }*/
+	}
 }
 
+
+void CCodeView::_LineTo(wxPaintDC &dc, int x, int y)
+{
+	dc.DrawLine(lx, ly, x, y);
+	lx = x;
+	ly = y;
+}
 
