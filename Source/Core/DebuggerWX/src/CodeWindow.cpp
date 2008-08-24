@@ -441,7 +441,7 @@ void CCodeWindow::UpdateLists()
 	{
 		u32 caller_addr = symbol->callers[i].callAddress;
 		Symbol *caller_symbol = g_symbolDB.GetSymbolFromAddr(caller_addr);
-		int idx = callers->Append(StringFromFormat("< %s (%08x)", caller_symbol->name.c_str(), caller_addr).c_str());
+		int idx = callers->Append(wxString::Format( _T("< %s (%08x)"), caller_symbol->name.c_str(), caller_addr));
 		callers->SetClientData(idx, (void*)caller_addr);
 	}
 
@@ -450,7 +450,7 @@ void CCodeWindow::UpdateLists()
 	{
 		u32 call_addr = symbol->calls[i].function;
 		Symbol *call_symbol = g_symbolDB.GetSymbolFromAddr(call_addr);
-		int idx = calls->Append(StringFromFormat("> %s (%08x)", call_symbol->name.c_str(), call_addr).c_str());
+		int idx = calls->Append(wxString::Format( _T("> %s (%08x)"), call_symbol->name.c_str(), call_addr));
 		calls->SetClientData(idx, (void*)call_addr);
 	}
 }
@@ -467,7 +467,7 @@ void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
 	wxTextCtrl* pAddrCtrl = (wxTextCtrl*)GetToolBar()->FindControl(IDM_ADDRBOX);
 	wxString txt = pAddrCtrl->GetValue();
 
-	std::string text(txt.c_str());
+	std::string text(txt.mb_str());
 	text = StripSpaces(text);
 	if (text.size() == 8)
 	{
