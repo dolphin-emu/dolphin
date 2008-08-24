@@ -85,7 +85,7 @@ struct RECT
 #define GL_TEXTURE_STENCIL_SIZE_EXT 0x88F1
 #endif
 
-extern float MValue;
+extern float MValueX, MValueY;
 
 #define ERROR_LOG __Log
 
@@ -137,6 +137,8 @@ struct Config
 
     bool bForceFiltering;
     bool bForceMaxAniso;
+    bool bStretchToFit;
+    bool bShowFPS;
 
     bool bTexFmtOverlayEnable;
 	bool bTexFmtOverlayCenter;

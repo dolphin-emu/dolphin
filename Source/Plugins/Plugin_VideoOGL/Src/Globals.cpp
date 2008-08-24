@@ -29,7 +29,7 @@
 
 #include "IniFile.h"
 #include <assert.h>
-float MValue;
+float MValueX, MValueY; // Since it can Stretch to fit Window, we need two different multiplication values//
 int frameCount;
 
 Config g_Config;
@@ -82,6 +82,8 @@ void Config::Load()
     
     iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
     iniFile.Get("Enhancements", "ForceMaxAniso", &bForceMaxAniso, 0);
+    iniFile.Get("Enhancements", "StretchToFit", &bStretchToFit, false);
+    iniFile.Get("Enhancements", "ShowFPS", &bShowFPS, false);
 }
 
 void Config::Save()
@@ -107,6 +109,8 @@ void Config::Save()
 
     iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
     iniFile.Set("Enhancements", "ForceMaxAniso", bForceMaxAniso);
+    iniFile.Set("Enhancements", "StretchToFit", bStretchToFit);
+    iniFile.Set("Enhancements", "ShowFPS", bShowFPS);
     iniFile.Save("gfx_opengl.ini");
 }
 

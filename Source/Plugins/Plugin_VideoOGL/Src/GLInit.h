@@ -51,6 +51,7 @@ extern GLWindow GLWin;
 
 // yeah yeah, these should be hidden
 extern int nBackbufferWidth, nBackbufferHeight;
+extern int nXoff, nYoff;
 
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _width, int _height);
 bool OpenGL_MakeCurrent();

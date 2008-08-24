@@ -641,7 +641,6 @@ u32 Renderer::GetZBufferTarget()
 {
     return nZBufferRender > 0 ? s_ZBufferTarget : 0;
 }
-
 void Renderer::Swap(const TRectangle& rc)
 {
     OpenGL_Update(); // just updates the render window position and the backbuffer size
@@ -652,7 +651,7 @@ void Renderer::Swap(const TRectangle& rc)
 
     // render to the real buffer now 
     glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 ); // switch to the backbuffer
-    glViewport(0, 0, nBackbufferWidth, nBackbufferHeight);
+    glViewport(nXoff, nYoff, nBackbufferWidth, nBackbufferHeight);
 
     ResetGLState();
 
@@ -674,23 +673,22 @@ void Renderer::Swap(const TRectangle& rc)
     glBindTexture(GL_TEXTURE_RECTANGLE_NV, 0);
     TextureMngr::DisableStage(0);
 
-//    static int fpscount = 0;
-//    static float s_fps = 0;
-//    static u32 lasttime = timeGetTime();
-//    
-//    if( ++fpscount >= 16 ) {
-//        s_fps = 16*1000.0f/(float)(timeGetTime() - lasttime);
-//        lasttime = timeGetTime();
-//        fpscount = 0;
-//    }
-//
-//    char strfps[25];
-//    sprintf(strfps, "fps: %2.1f\n", s_fps);
-//    Renderer::RenderText(strfps, 20, 20, 0xFF00FFFF);
+    static int fpscount;
+    static int s_fps;
+    static unsigned long lasttime;
+    ++fpscount;
+    if( timeGetTime() - lasttime > 1000 ) 
+    {
+        lasttime = timeGetTime();
+        s_fps = fpscount;
+        fpscount = 0;
+    }
 
     if (g_Config.bOverlayStats) {
         char st[2048];
         char *p = st;
+        if(g_Config.bShowFPS)
+            p+=sprintf(p, "FPS: %d\n", s_fps); // So it shows up before the stats and doesn't make anyting ugly
         p+=sprintf(p,"Num textures created: %i\n",stats.numTexturesCreated);
         p+=sprintf(p,"Num textures alive:   %i\n",stats.numTexturesAlive);
         p+=sprintf(p,"Num pshaders created: %i\n",stats.numPixelShadersCreated);
@@ -714,6 +712,15 @@ void Renderer::Swap(const TRectangle& rc)
         p+=sprintf(p,"Num BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
 
 		Renderer::RenderText(st, 20, 20, 0xFF00FFFF);
+    }
+    else
+    {
+        if(g_Config.bShowFPS)
+        {
+            char strfps[25];
+            sprintf(strfps, "%d\n", s_fps);
+            Renderer::RenderText(strfps, 20, 20, 0xFF00FFFF);
+        }
     }
 
 	Renderer::ProcessMessages();

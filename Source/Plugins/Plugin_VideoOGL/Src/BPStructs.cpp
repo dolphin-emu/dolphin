@@ -529,18 +529,18 @@ bool SetScissorRect()
     //printf("xoff: %d yoff: %d\n", xoff, yoff);
     RECT rc;
     rc.left = bpmem.scissorTL.x + xoff - 342;
-    rc.left *= MValue;
+    rc.left *= MValueX;
     if (rc.left < 0) rc.left = 0;
     rc.top = bpmem.scissorTL.y + yoff - 342;
-    rc.top *= MValue;
+    rc.top *= MValueY;
     if (rc.top < 0) rc.top = 0;
     
     rc.right = bpmem.scissorBR.x + xoff - 342 +1;
-    rc.right *= MValue;
-    if (rc.right > 640 * MValue) rc.right = 640 * MValue;
+    rc.right *= MValueX;
+    if (rc.right > 640 * MValueX) rc.right = 640 * MValueX;
     rc.bottom = bpmem.scissorBR.y + yoff - 342 +1;
-    rc.bottom *= MValue;
-    if (rc.bottom > 480 * MValue) rc.bottom = 480 * MValue;
+    rc.bottom *= MValueY;
+    if (rc.bottom > 480 * MValueY) rc.bottom = 480 * MValueY;
 
     //printf("scissor: lt=(%d,%d),rb=(%d,%d),off=(%d,%d)\n", rc.left, rc.top, rc.right, rc.bottom, xoff, yoff);
 
@@ -609,10 +609,10 @@ void LoadBPReg(u32 value0)
             };
             //Need another rc here to get it to scale.
             TRectangle multirc = {
-                (int)(bpmem.copyTexSrcXY.x * MValue),
-                (int)(bpmem.copyTexSrcXY.y * MValue),
-                (int)((bpmem.copyTexSrcXY.x * MValue + bpmem.copyTexSrcWH.x * MValue)),
-                (int)((bpmem.copyTexSrcXY.y * MValue + bpmem.copyTexSrcWH.y * MValue))
+                (int)(bpmem.copyTexSrcXY.x * MValueX),
+                (int)(bpmem.copyTexSrcXY.y * MValueY),
+                (int)((bpmem.copyTexSrcXY.x * MValueX + bpmem.copyTexSrcWH.x * MValueX)),
+                (int)((bpmem.copyTexSrcXY.y * MValueY + bpmem.copyTexSrcWH.y * MValueY))
             };
 
             UPE_Copy PE_copy;

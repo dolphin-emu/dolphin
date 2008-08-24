@@ -32,6 +32,7 @@
 
 // screen offset
 int nBackbufferWidth, nBackbufferHeight;
+int nXoff, nYoff;
 
 #ifndef _WIN32
 GLWindow GLWin;
@@ -148,8 +149,20 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     float FactorH  = 480.0f / (float)nBackbufferHeight;
 
     float Max = (FactorW < FactorH) ? FactorH : FactorW;
-    MValue = 1.0f / Max;
-
+    if(g_Config.bStretchToFit)
+    {
+        MValueX = 1.0f / FactorW;
+        MValueY = 1.0f / FactorH;
+        nXoff = 0;
+        nYoff = 0;
+    }
+    else
+    {
+        MValueX = 1.0f / Max;
+        MValueY = 1.0f / Max;
+        nXoff = (nBackbufferWidth - (640 * MValueX)) / 2;
+        nYoff = (nBackbufferHeight - (480 * MValueY)) / 2;
+    }
     g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
     g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
 
@@ -485,12 +498,26 @@ void OpenGL_Update()
         ::MoveWindow(EmuWindow::GetWnd(), 0,0,width,height, FALSE);
         nBackbufferWidth = width;
         nBackbufferHeight = height;
-        float FactorW  = (float)640 / (float)nBackbufferWidth;
-        float FactorH  = (float)480 / (float)nBackbufferHeight;
+        float FactorW  = 640.0f / (float)nBackbufferWidth;
+        float FactorH  = 480.0f / (float)nBackbufferHeight;
 
         float Max = (FactorW < FactorH) ? FactorH : FactorW;
-        MValue = 1 / Max;
 
+        float Max = (FactorW < FactorH) ? FactorH : FactorW;
+        if(g_Config.bStretchToFit)
+        {
+            MValueX = 1.0f / FactorW;
+            MValueY = 1.0f / FactorH;
+            nXoff = 0;
+            nYoff = 0;
+        }
+        else
+        {
+            MValueX = 1.0f / Max;
+            MValueY = 1.0f / Max;
+            nXoff = (nBackbufferWidth - (640 * MValueX)) / 2;
+            nYoff = (nBackbufferHeight - (480 * MValueY)) / 2;
+        }
         /*
         u32 TmpAAx = (width / 640) - 1;
         u32 TmpAAy = (height / 480) - 1;
