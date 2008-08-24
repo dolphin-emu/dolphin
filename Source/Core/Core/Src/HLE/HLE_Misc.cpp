@@ -111,61 +111,39 @@ void SMB_EvilNormalize()
 	NPC = LR;
 }
 
+void SMB_evil_vec_setlength()
+{
+	u32 r3 = GPR(3);
+	u32 r4 = GPR(4);
+	float x = F(r3);
+	float y = F(r3 + 4);
+	float z = F(r3 + 8);
+	float inv_len = (float)(rPS0(1) / sqrt(x*x + y*y + z*z));
+	x *= inv_len;
+	y *= inv_len;
+	z *= inv_len;
+	FW(r4, x);
+	FW(r4 + 4, y);
+	FW(r4 + 8, z);
+	NPC = LR;
+}
+
+
 void SMB_sqrt_internal()
 {
-/*
-.sqrt_internal_needs_cr1
-800070ec: bgt+	cr1,0x80007090
-800070f0: blt+	cr1,0x80007088
-800070f4: b	0x80007080
-800070f8: frsp	f0,f1
-800070fc: lis	r4, 0xE000
-80007100: mcrfs	cr1, cr4
-80007104: mcrfs	cr0, cr3
-80007108: lfs	f2, 0x01A0 (r4)
-8000710c: bso+	cr1,0x800070EC
-80007110: bso+	0x80007088
-80007114: ble+	cr1,0x80007088
-80007118: mflr	r3
-8000711c: bl	0x800070B0
-80007120: mtlr	r3
-80007124: fmuls	f1,f1,f0
-80007128: blr	
-*/
 	double f = sqrt(rPS0(1));
+	rPS0(0) = rPS0(1);
+	rPS1(0) = rPS0(1);
 	rPS0(1) = f;
 	rPS1(1) = f;
-	rPS0(0) = f;
-	rPS1(0) = f;
 	NPC = LR;
 }
 
 void SMB_rsqrt_internal()
 {
-	/*
-.rsqrt_internal_needs_cr1
-8000712c: bgt+	cr1,0x80007088
-80007130: blt+	cr1,0x80007090
-80007134: b	0x80007080
-80007138: frsp	f1,f1
-8000713c: lis	r4, 0xE000
-80007140: mcrfs	cr1, cr4
-80007144: mcrfs	cr0, cr3
-80007148: lfs	f2, 0x01A0 (r4)
-8000714c: bso+	cr1,0x8000712C
-80007150: bso+	0x80007090
-80007154: ble+	cr1,0x80007090
-80007158: mflr	r3
-8000715c: bl	0x800070B0
-80007160: mtlr	r3
-80007164: frsp	f1,f1
-80007168: blr	
-*/
 	double f = 1.0 / sqrt(rPS0(1));
 	rPS0(1) = f;
 	rPS1(1) = f;
-	rPS0(0) = f;
-	rPS1(0) = f;
 	NPC = LR;
 }
 

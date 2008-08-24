@@ -167,7 +167,7 @@ void CMemoryWindow::NotifyMapLoaded()
 void CMemoryWindow::OnSymbolListChange(wxCommandEvent& event)
 {
 	int index = symbols->GetSelection();
-	Debugger::CSymbol* pSymbol = static_cast<Debugger::CSymbol*>(symbols->GetClientData(index));
+	Debugger::Symbol* pSymbol = static_cast<Debugger::Symbol*>(symbols->GetClientData(index));
 
 	if (pSymbol != NULL)
 	{

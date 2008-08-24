@@ -27,6 +27,7 @@
 #include "CoreTiming.h"
 #include "Core.h"
 #include "PowerPC/Jit64/JitCache.h"
+#include "PowerPC/FunctionDB.h"
 #include "PowerPCDisasm.h"
 
 #define CASE(x) else if (memcmp(cmd, x, 4*sizeof(TCHAR))==0)
@@ -66,11 +67,6 @@ void Console_Submit(const char *cmd)
 		Core::StartTrace(true);
 		LOG(CONSOLE, "write tracing started.");			
 	}
-	CASE("scan")
-	{
-		//LOG(CONSOLE,"test1");
-		PPCAnalyst::FindFunctions(0x80003100, 0x80400000);
-	}
 	CASE("trans")
 	{
 		TCHAR temp[256];
@@ -97,7 +93,7 @@ void Console_Submit(const char *cmd)
 		sscanf(cmd, "%s %08x", temp, &addr);
 		if (addr!=0)
 		{
-			PPCAnalyst::PrintCalls(addr);
+			g_funcDB.PrintCalls(addr);
 		}
 		else
 		{
@@ -111,7 +107,7 @@ void Console_Submit(const char *cmd)
 		sscanf(cmd, "%s %08x", temp, &addr);
 		if (addr!=0)
 		{
-			PPCAnalyst::PrintCallers(addr);
+			g_funcDB.PrintCallers(addr);
 		}
 		else
 		{
@@ -163,7 +159,7 @@ void Console_Submit(const char *cmd)
 	}
 	CASE("lisd")
 	{
-		PPCAnalyst::ListDB();
+		// PPCAnalyst::ListDB();
 	}
 	CASE("ipro")
 	{
@@ -171,7 +167,7 @@ void Console_Submit(const char *cmd)
 	}
 	CASE("lisf")
 	{
-		PPCAnalyst::ListFunctions();
+		g_funcDB.List();
 	}
 	else {
 		printf("blach\n");

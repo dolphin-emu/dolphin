@@ -23,6 +23,8 @@
 
 #include "Common.h"
 
+class FunctionDB;
+
 namespace Debugger
 {
 
@@ -32,7 +34,7 @@ enum ESymbolType
 	ST_DATA = 2
 };
 
-class CSymbol
+class Symbol
 {
 public:
     u32 vaddress;
@@ -41,8 +43,8 @@ public:
 
     ESymbolType type;
 
-    CSymbol(u32 _Address, u32 _Size, ESymbolType _Type, const char *_rName);
-    ~CSymbol();    
+    Symbol(u32 _Address, u32 _Size, ESymbolType _Type, const char *_rName);
+    ~Symbol();    
 
 	const std::string &GetName() const { return m_strName; }
     void SetName(const char *_rName) { m_strName = _rName; }
@@ -53,14 +55,14 @@ private:
 };
 
 typedef int XSymbolIndex;
-typedef std::vector<CSymbol> XVectorSymbol;
+typedef std::vector<Symbol> XVectorSymbol;
 
 void Reset();
 
-XSymbolIndex AddSymbol(const CSymbol& _rSymbolMapEntry);
+XSymbolIndex AddSymbol(const Symbol& _rSymbolMapEntry);
 
-const CSymbol& GetSymbol(XSymbolIndex _Index);
-CSymbol& AccessSymbol(XSymbolIndex _Index);
+const Symbol& GetSymbol(XSymbolIndex _Index);
+Symbol& AccessSymbol(XSymbolIndex _Index);
 
 const XVectorSymbol& AccessSymbols();
 
@@ -69,22 +71,23 @@ XSymbolIndex FindSymbol(const char *name);
 
 bool LoadSymbolMap(const char *_rFilename);
 void SaveSymbolMap(const char *_rFilename);
-void PrintCallstack();
 	
 const char *GetDescription(u32 _Address);
 
 bool RenameSymbol(XSymbolIndex _Index, const char *_Name);
-void AnalyzeBackwards();
-void GetFromAnalyzer();
-void MergeMapWithDB(const char *beginning);
 
-struct SCallstackEntry 
+void GetFromAnalyzer();
+void PushMapToFunctionDB(FunctionDB *func_db);
+
+struct CallstackEntry 
 {
     std::string Name;
     u32 vAddress;
 };
 
-bool GetCallstack(std::vector<SCallstackEntry> &output);
+bool GetCallstack(std::vector<CallstackEntry> &output);
+void PrintCallstack();
+
 // TODO: move outta here
 #ifdef _WIN32
 }

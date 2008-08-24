@@ -14,12 +14,15 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #include <string>
 
 #include "StringUtil.h"
 #include "Interpreter/Interpreter.h"
 #include "../HW/Memmap.h"
 #include "PPCTables.h"
+#include "FunctionDB.h"
+#include "SignatureDB.h"
 #include "PPCAnalyst.h"
 
 // Analyzes PowerPC code in memory to find functions
@@ -30,49 +33,22 @@
 // The results of this analysis are currently not really used for anything, other than
 // finding function boundaries so that we can find, fingerprint and detect library functions.
 
+namespace PPCAnalyst {
+
 using namespace std;
 
-PPCAnalyst::XFuncMap PPCAnalyst::functions;
-PPCAnalyst::XFuncPtrMap PPCAnalyst::checksumToFunction;
-PPCAnalyst::XFuncDB PPCAnalyst::database;
+// VERY ugly. TODO: remove.
+PPCAnalyst::CodeOp codebuffer[20000];
+
+void AnalyzeFunction2(SFunction &func);
+u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc);
+
+// void FixUpInternalBranches(CodeOp *code, int begin, int end);
+
 
 #define INVALID_TARGET ((u32)-1)
 
-//Adds a known function to the hash database
-void PPCAnalyst::AddToFuncDB(u32 startAddr, u32 size, const TCHAR *name)
-{
-	if (startAddr < 0x80000000 || startAddr>0x80000000+Memory::RAM_SIZE)
-		return;
-
-	SFunction tf;
-	SFunction *tempfunc=&tf;
-	
-	XFuncMap::iterator iter = functions.find(startAddr);
-	if (iter != functions.end())
-	{
-		tempfunc = &iter->second;
-	}
-	else
-	{
-		AnalyzeFunction(startAddr,tf);
-		functions[startAddr] = *tempfunc;
-		checksumToFunction[tempfunc->hash] = &(functions[startAddr]);
-	}
-
-	tempfunc->name = name;
-
-	SDBFunc temp;
-	temp.size = size;
-	temp.name = name;
-
-
-	XFuncDB::iterator iter2 = database.find(tempfunc->hash);
-	if (iter2 == database.end())
-		database[tempfunc->hash] = temp;
-}
-
-
-u32 PPCAnalyst::EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
+u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 {
 	switch (instr.OPCD)
 	{
@@ -97,9 +73,13 @@ u32 PPCAnalyst::EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 //If any one goes farther than the blr, assume that there is more than
 //one blr, and keep scanning.
 
-u32 PPCAnalyst::AnalyzeFunction(u32 startAddr, SFunction &func)
+bool AnalyzeFunction(u32 startAddr, SFunction &func)
 {
-	func.name = StringFromFormat("zzz_%08x ??", startAddr);
+	if (!func.name.size())
+		func.name = StringFromFormat("zzz_%08x ??", startAddr);
+	if (func.analyzed >= 1)
+		return true;  // No error, just already did it.
+
 	func.calls.clear();
 	func.callers.clear();
 	func.size = 0;
@@ -112,7 +92,7 @@ u32 PPCAnalyst::AnalyzeFunction(u32 startAddr, SFunction &func)
 	{
 		func.size++;
 		if (func.size > 1024*16) //weird
-			return 0;
+			return false;
 
 		UGeckoInstruction instr = (UGeckoInstruction)Memory::ReadUnchecked_U32(addr);
 
@@ -131,10 +111,10 @@ u32 PPCAnalyst::AnalyzeFunction(u32 startAddr, SFunction &func)
 					//We're done! Looks like we have a neat valid function. Perfect.
 					//Let's calc the checksum and get outta here
 					func.address = startAddr;
-					func.hash = PPCAnalyst::FuncChecksum(startAddr, addr);
+					func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);
 					if (numInternalBranches == 0)
 						func.flags |= FFLAG_STRAIGHT;
-					return addr;
+					return true;
 				}
 			}
 			else if (instr.hex == 0x4e800021 || instr.hex == 0x4e800420 || instr.hex == 0x4e800421)
@@ -176,16 +156,16 @@ u32 PPCAnalyst::AnalyzeFunction(u32 startAddr, SFunction &func)
 		}
 		else
 		{
-			return 0;
+			return false;
 		}
-		addr+=4;
+		addr += 4;
 	}
 }
 
 
 // Second pass analysis, done after the first pass is done for all functions
 // so we have more information to work with
-void PPCAnalyst::AnalyzeFunction2(SFunction &func)
+void AnalyzeFunction2(SFunction &func)
 {
 	// u32 addr = func.address; 
 	u32 flags = func.flags;
@@ -210,17 +190,14 @@ void PPCAnalyst::AnalyzeFunction2(SFunction &func)
 	}*/
 
 	bool nonleafcall = false;
-	for (size_t i = 0; i<func.calls.size(); i++)
+	for (size_t i = 0; i < func.calls.size(); i++)
 	{
 		SCall c = func.calls[i];
-		XFuncMap::iterator iter = functions.find(c.function);
-		if (iter != functions.end())
+		SFunction *called_func = g_funcDB.GetFunction(c.function);
+		if (called_func && (called_func->flags & FFLAG_LEAF) == 0)
 		{
-			if (((*iter).second.flags & FFLAG_LEAF) == 0)
-			{
-				nonleafcall = true;
-				break;
-			}
+			nonleafcall = true;
+			break;
 		}
 	}
 
@@ -231,7 +208,7 @@ void PPCAnalyst::AnalyzeFunction2(SFunction &func)
 }
 
 // Currently not used
-void PPCAnalyst::FixUpInternalBranches(CodeOp *code, int begin, int end)
+void FixUpInternalBranches(CodeOp *code, int begin, int end)
 {
 	for (int i = begin; i < end; i++)
 	{
@@ -267,19 +244,15 @@ void PPCAnalyst::FixUpInternalBranches(CodeOp *code, int begin, int end)
 	}
 }
 
-//yaya ugly
-PPCAnalyst::CodeOp codebuffer[20000];
-
 void PPCAnalyst::ShuffleUp(CodeOp *code, int first, int last)
 {
 	CodeOp temp = code[first];
-	for (int i=first; i<last; i++)
-		code[i] = code[i+1];
+	for (int i = first; i < last; i++)
+		code[i] = code[i + 1];
 	code[last] = temp;
 }
 
-
-PPCAnalyst::CodeOp *PPCAnalyst::Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, BlockRegStats &fpa)
+CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, BlockRegStats &fpa)
 {
 	int numCycles = 0;
 	u32 blockstart = address;
@@ -299,19 +272,17 @@ PPCAnalyst::CodeOp *PPCAnalyst::Flatten(u32 address, u32 &realsize, BlockStats &
 	};
 	Todo todo = Nothing;
 
-	XFuncMap::iterator iter = functions.find(address);
+	SFunction *f = g_funcDB.GetFunction(address);
 	int maxsize = 20000;
-
 	//for now, all will return JustCopy :P
-	if (iter != functions.end())
+	if (f)
 	{
-		SFunction &f = iter->second;
-		if (f.flags & FFLAG_LEAF)
+		if (f->flags & FFLAG_LEAF)
 		{
 			//no reason to flatten
 			todo = JustCopy;
 		}
-		else if (f.flags & FFLAG_ONLYCALLSNICELEAFS)
+		else if (f->flags & FFLAG_ONLYCALLSNICELEAFS)
 		{
 			//inline calls if possible
 			//todo = Flatten;
@@ -323,7 +294,7 @@ PPCAnalyst::CodeOp *PPCAnalyst::Flatten(u32 address, u32 &realsize, BlockStats &
 		}
 		todo = JustCopy;
 
-		maxsize = f.size;
+		maxsize = f->size;
 	}
 	else
 		todo = JustCopy;
@@ -573,42 +544,14 @@ PPCAnalyst::CodeOp *PPCAnalyst::Flatten(u32 address, u32 &realsize, BlockStats &
 	return code;
 }
 
-// Adds the function to the list, unless it's already there
-PPCAnalyst::SFunction *PPCAnalyst::AddFunction(u32 startAddr)
+// Most functions that are relevant to analyze should be
+// called by another function. Therefore, let's scan the 
+// entire space for bl operations and find what functions
+// get called. 
+
+void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, FunctionDB *func_db)
 {
-	if (startAddr < 0x80000010)
-		return 0;
-	XFuncMap::iterator iter = functions.find(startAddr);
-	if (iter != functions.end())
-	{
-		// it's already in the list
-		return 0;
-	}
-	else
-	{
-		SFunction tempFunc; //the current one we're working on
-		u32 targetEnd = AnalyzeFunction(startAddr, tempFunc);
-		if (targetEnd == 0)
-			return 0; //found a dud :(
-
-		//LOG(HLE,"SFunction found at %08x",startAddr);
-		functions[startAddr] = tempFunc;
-		checksumToFunction[tempFunc.hash] = &(functions[startAddr]);
-		return &functions[startAddr];
-	}
-}
-
-//Most functions that are relevant to analyze should be
-//called by another function. Therefore, let's scan the 
-//entire space for bl operations and find what functions
-//get called. 
-
-void PPCAnalyst::FindFunctionsFromBranches(u32 startAddr, u32 endAddr)
-{
-	functions.clear();
-	checksumToFunction.clear();
-
-	for (u32 addr = startAddr; addr<endAddr; addr+=4)
+	for (u32 addr = startAddr; addr < endAddr; addr+=4)
 	{
 		UGeckoInstruction instr = (UGeckoInstruction)Memory::ReadUnchecked_U32(addr);
 
@@ -625,7 +568,7 @@ void PPCAnalyst::FindFunctionsFromBranches(u32 startAddr, u32 endAddr)
 							target += addr;
 						if (Memory::IsRAMAddress(target))
 						{
-							PPCAnalyst::AddFunction(target);
+							func_db->AddFunction(target);
 						}
 					}
 				}
@@ -637,14 +580,14 @@ void PPCAnalyst::FindFunctionsFromBranches(u32 startAddr, u32 endAddr)
 	}
 }
 
-void PPCAnalyst::FindFunctionsAfterBLR()
+void FindFunctionsAfterBLR(FunctionDB *func_db)
 {
 	vector<u32> funcAddrs;
 
-	for (XFuncMap::iterator iter = functions.begin(); iter!=functions.end(); iter++)
+	for (FunctionDB::XFuncMap::iterator iter = func_db->GetIterator(); iter != func_db->End(); iter++)
 		funcAddrs.push_back(iter->second.address + iter->second.size*4);
 
-	for (vector<u32>::iterator iter = funcAddrs.begin(); iter!=funcAddrs.end(); iter++)
+	for (vector<u32>::iterator iter = funcAddrs.begin(); iter != funcAddrs.end(); iter++)
 	{
 		u32 location = *iter;
 		while (true)
@@ -652,7 +595,7 @@ void PPCAnalyst::FindFunctionsAfterBLR()
 			if (PPCTables::IsValidInstruction(Memory::Read_Instruction(location)))
 			{
 				//check if this function is already mapped	
-				SFunction *f = AddFunction(location);
+				SFunction *f = func_db->AddFunction(location);
 				if (!f)
 					break;
 				else
@@ -664,30 +607,26 @@ void PPCAnalyst::FindFunctionsAfterBLR()
 	}
 }
 
-void PPCAnalyst::FindFunctions(u32 startAddr, u32 endAddr)
+void PPCAnalyst::FindFunctions(u32 startAddr, u32 endAddr, FunctionDB *func_db)
 {
 	//Step 1: Find all functions
-	FindFunctionsFromBranches(startAddr, endAddr);
-	
-	
-	LOG(HLE,"Memory scan done. Found %i functions.",functions.size());
-	FindFunctionsAfterBLR();
+	FindFunctionsFromBranches(startAddr, endAddr, func_db);
+	FindFunctionsAfterBLR(func_db);
 
-	LOG(HLE,"Scanning after every function. Found %i new functions.",functions.size());
 	//Step 2: 
-	FillInCallers();
+	func_db->FillInCallers();
 
-	int numLeafs = 0, numNice = 0, numUnNice=0, numTimer=0, numRFI=0, numStraightLeaf=0;
+	int numLeafs = 0, numNice = 0, numUnNice = 0, numTimer=0, numRFI=0, numStraightLeaf=0;
 	int leafSize = 0, niceSize = 0, unniceSize = 0;
-	for (XFuncMap::iterator iter = functions.begin(); iter!=functions.end(); iter++)
+	for (FunctionDB::XFuncMap::iterator iter = func_db->GetIterator(); iter != func_db->End(); iter++)
 	{
 		if (iter->second.address == 4)
 		{
-			LOG(HLE,"weird function");
+			LOG(HLE, "weird function");
 			continue;
 		}
 		AnalyzeFunction2(iter->second);
-		SFunction &f=iter->second;
+		SFunction &f = iter->second;
 		if (f.flags & FFLAG_LEAF)
 		{
 			numLeafs++;
@@ -726,270 +665,50 @@ void PPCAnalyst::FindFunctions(u32 startAddr, u32 endAddr)
 	else
 		unniceSize /= numUnNice;
 
-	LOG(HLE,"Functions analyzed. %i leafs, %i nice, %i unnice. %i timer, %i rfi. %i are branchless leafs.",numLeafs,numNice,numUnNice,numTimer,numRFI,numStraightLeaf);
-	LOG(HLE,"Average size: %i (leaf), %i (nice), %i(unnice)",leafSize,niceSize,unniceSize);
-//	PPCAnalyst::LoadDolwinFuncDB();
+	LOG(HLE, "Functions analyzed. %i leafs, %i nice, %i unnice. %i timer, %i rfi. %i are branchless leafs.",numLeafs,numNice,numUnNice,numTimer,numRFI,numStraightLeaf);
+	LOG(HLE, "Average size: %i (leaf), %i (nice), %i(unnice)", leafSize, niceSize, unniceSize);
 }
 
-void PPCAnalyst::ListFunctions()
+/*
+void AnalyzeBackwards()
 {
-	for (XFuncMap::iterator iter = functions.begin(); iter!=functions.end(); iter++)
-	{
-		LOG(HLE,"%s @ %08x: %i bytes (hash %08x) : %i calls",iter->second.name.c_str(),iter->second.address,iter->second.size,iter->second.hash,iter->second.numCalls);
-	}
-	LOG(HLE,"%i functions known in this program above.",functions.size());
-}
-
-void PPCAnalyst::ListDB()
-{
-	for (XFuncDB::iterator iter = database.begin(); iter != database.end(); iter++)
-	{
-		LOG(HLE,"%s : %i bytes, hash = %08x",iter->second.name.c_str(), iter->second.size, iter->first);
-	}
-	LOG(HLE,"%i functions known in current database above.",database.size());
-}
-
-void PPCAnalyst::FillInCallers()
-{
-	// TODO(ector): I HAVE NO IDEA WHY, but this function overwrites the some 
-	// data of "PPCAnalyst::XFuncMap PPCAnalyst::functions"
-	for (XFuncMap::iterator iter = functions.begin(); iter!=functions.end(); iter++)
-	{
-		SFunction &f = iter->second;
-		for (size_t i=0; i<f.calls.size(); i++)
+#ifndef BWLINKS
+    return;
+#else
+    for (int i=0; i<numEntries; i++)
+    {
+        u32 ptr = entries[i].vaddress;
+        if (ptr && entries[i].type == ST_FUNCTION)
         {
-            SCall NewCall(iter->first, f.calls[i].callAddress);
-            u32 FunctioAddress = f.calls[i].function;
-            XFuncMap::iterator FuncIterator = functions.find(FunctioAddress);
-            if (FuncIterator != functions.end())
+            for (int a = 0; a<entries[i].size/4; a++)
             {
-                SFunction& rCalledFunction = FuncIterator->second;
-                rCalledFunction.callers.push_back(NewCall);
-            }
-            else
-            {
-                LOG(HLE,"FillInCallers tries to fill data in an unknown fuction 0x%08x.", FunctioAddress);
+                u32 inst = Memory::ReadUnchecked_U32(ptr);
+                switch (inst >> 26)
+                {
+                case 18:
+                    if (LK) //LK
+                    {
+                        u32 addr;
+                        if(AA)
+                            addr = SignExt26(LI << 2);
+                        else
+                            addr = ptr + SignExt26(LI << 2);
+
+                        int funNum = GetSymbolNum(addr);
+                        if (funNum>=0) 
+                            entries[funNum].backwardLinks.push_back(ptr);
+                    }
+                    break;
+                default:
+                    ;
+                }
+                ptr+=4;
             }
         }
-	}
-
-}
-
-
-
-u32 PPCAnalyst::FuncChecksum (u32 offsetStart, u32 offsetEnd)
-{
-	u32 sum = 0, offset;
-	u32 opcode, auxop, op, op2, op3;
-
-	for (offset = offsetStart; offset <= offsetEnd; offset+=4) 
-	{
-		opcode = Memory::Read_Instruction(offset);
-		op = opcode & 0xFC000000; 
-		op2 = 0;
-		op3 = 0;
-		auxop = op >> 26;
-		switch (auxop) 
-		{
-		case 4: //PS instructions
-			op2 = opcode & 0x0000003F;
-			switch ( op2 ) 
-			{
-			case 0:
-			case 8:
-			case 16:
-			case 21:
-			case 22:
-				op3 = opcode & 0x000007C0;
-			}
-			break;
-
-		case 7: //addi muli etc
-		case 8:
-		case 10:
-		case 11:
-		case 12:
-		case 13:
-		case 14:
-		case 15:
-			op2 = opcode & 0x03FF0000;
-			break;
-		
-		case 19: // MCRF??
-		case 31: //integer
-		case 63: //fpu
-			op2 = opcode & 0x000007FF;
-			//why not bring in the RA RB RD/S too?
-			break;
-		case 59: //fpu
-			op2 = opcode & 0x0000003F;
-			if ( op2 < 16 ) 
-				op3 = opcode & 0x000007C0;
-			break;
-		default:
-			if (auxop >= 32  && auxop < 56)
-				op2 = opcode & 0x03FF0000;
-			break;
-		}
-		// Checksum only uses opcode, not opcode data, because opcode data changes 
-		// in all compilations, but opcodes dont!
-		sum = ( ( (sum << 17 ) & 0xFFFE0000 ) | ( (sum >> 15) & 0x0001FFFF ) );
-		sum = sum ^ (op | op2 | op3);
-	}
-	return sum;
-}
-
-struct FuncDesc
-{
-	u32 checkSum;
-	u32 size;
-	char name[128];
-};
-
-bool PPCAnalyst::SaveFuncDB(const TCHAR *filename)
-{
-	FILE *f = fopen(filename,"wb");
-	if (!f)
-	{
-		LOG(HLE,"Database save failed");
-		return false;
-	}
-	int fcount = (int)database.size();
-	fwrite(&fcount,4,1,f);
-	for (XFuncDB::iterator iter = database.begin(); iter!=database.end(); iter++)
-	{
-		FuncDesc temp;
-		memset(&temp,0,sizeof(temp));
-		temp.checkSum = iter->first;
-		temp.size = iter->second.size;
-		strncpy(temp.name, iter->second.name.c_str(), 127);
-		fwrite(&temp,sizeof(temp),1,f);
-	}
-	fclose(f);
-	LOG(HLE,"Database save successful");
-	return true;
-}
-
-bool PPCAnalyst::LoadFuncDB(const TCHAR *filename)
-{
-	FILE *f = fopen(filename, "rb");
-	if (!f)
-	{
-		LOG(HLE, "Database load failed");
-		return false;
-	}
-	u32 fcount = 0;
-	fread(&fcount, 4, 1, f);
-	for (size_t i = 0; i < fcount; i++)
-	{
-		FuncDesc temp;
-        memset(&temp, 0, sizeof(temp));
-
-        fread(&temp, sizeof(temp), 1, f);
-		SDBFunc f;
-		f.name = temp.name;
-		f.size = temp.size;
-	    database[temp.checkSum] = f;
-	}
-	fclose(f);
-
-	UseFuncDB();
-	LOG(HLE, "Database load successful");
-	return true;
-}
-
-
-void PPCAnalyst::ClearDB()
-{
-	database.clear();
-}
-
-void PPCAnalyst::UseFuncDB()
-{
-	for (XFuncDB::iterator iter = database.begin(); iter!=database.end(); iter++)
-	{
-		u32 checkSum = iter->first;
-		XFuncPtrMap::iterator i = checksumToFunction.find(checkSum);
-		if (i != checksumToFunction.end())
-		{
-			SFunction *f = (i->second);
-			if (iter->second.size == (unsigned int)f->size*4)
-			{
-				f->name = iter->second.name;
-			}
-			else
-			{
-				// This message is really useless.
-				//LOG(HLE,"%s, Right hash, wrong size! %08x %i %i",iter->second.name.c_str(),f->address,f->size,iter->second.size);
-			}
-			//LOG(HLE,"Found %s at %08x (size: %08x)!",iter->second.name.c_str(),f->address,f->size);
-			//found a function!
-		}
-		else
-		{
-			//function with this checksum not found
-			//			LOG(HLE,"Did not find %s!",name);
-		}
-	}
-}
-
-void PPCAnalyst::PrintCalls(u32 funcAddr)
-{
-	XFuncMap::iterator iter = functions.find(funcAddr);
-	if (iter != functions.end())
-	{
-		SFunction &f = iter->second;
-		LOG(HLE,"The function %s at %08x calls:",f.name.c_str(), f.address);
-		for (vector<SCall>::iterator fiter = f.calls.begin(); fiter!=f.calls.end(); fiter++)
-		{
-			XFuncMap::iterator n = functions.find(fiter->function);
-			if (n != functions.end())
-			{
-				LOG(CONSOLE,"* %08x : %s", fiter->callAddress, n->second.name.c_str());
-			}
-		}
-	}
-	else
-	{
-		LOG(CONSOLE,"SFunction does not exist");
-	}
-}
-
-void PPCAnalyst::PrintCallers(u32 funcAddr)
-{
-	XFuncMap::iterator iter = functions.find(funcAddr);
-	if (iter != functions.end())
-	{
-		SFunction &f = iter->second;
-		LOG(CONSOLE,"The function %s at %08x is called by:",f.name.c_str(),f.address);
-		for (vector<SCall>::iterator fiter = f.callers.begin(); fiter!=f.callers.end(); fiter++)
-		{
-			XFuncMap::iterator n = functions.find(fiter->function);
-			if (n != functions.end())
-			{
-				LOG(CONSOLE,"* %08x : %s", fiter->callAddress, n->second.name.c_str());
-			}
-		}
-	}
-}
-
-void PPCAnalyst::GetAllFuncs(functionGetterCallback callback)
-{
-    XFuncMap::iterator iter = functions.begin();
-    while (iter != functions.end())
-    {
-        callback(&(iter->second));
-        iter++;
     }
+#endif
 }
 
-void PPCAnalyst::LogFunctionCall(u32 addr)
-{
-	//u32 from = PC;
-	XFuncMap::iterator iter = functions.find(addr);
-	if (iter != functions.end())
-	{
-		SFunction &f = iter->second;
-		f.numCalls++;
-	}
-}
+*/
+
+}  // namespace

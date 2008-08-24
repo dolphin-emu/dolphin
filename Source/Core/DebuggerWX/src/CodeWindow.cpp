@@ -48,6 +48,8 @@
 #include "Debugger/PPCDebugInterface.h"
 #include "Debugger/Debugger_SymbolMap.h"
 #include "PowerPC/PPCAnalyst.h"
+#include "PowerPC/FunctionDB.h"
+#include "PowerPC/SignatureDB.h"
 #include "PowerPC/PPCTables.h"
 #include "PowerPC/Jit64/Jit.h"
 #include "PowerPC/Jit64/JitCache.h"
@@ -72,8 +74,9 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
     EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleMemoryWindow)
 
 	EVT_MENU(IDM_SCANFUNCTIONS,     CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_LOADMAPFILE,       CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_SAVEMAPFILE,       CCodeWindow::OnSymbolsMenu)
+	EVT_MENU(IDM_CREATESIGNATUREFILE, CCodeWindow::OnSymbolsMenu)
+	EVT_MENU(IDM_USESIGNATUREFILE,  CCodeWindow::OnSymbolsMenu)
 
 	EVT_MENU(IDM_CLEARCODECACHE,    CCodeWindow::OnJitMenu)
 	EVT_MENU(IDM_LOGINSTRUCTIONS,   CCodeWindow::OnJitMenu)
@@ -243,9 +246,11 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 
 	{
 		wxMenu *pSymbolsMenu = new wxMenu;
-		pSymbolsMenu->Append(IDM_SCANFUNCTIONS, _T("&Load symbol map"));
+		pSymbolsMenu->Append(IDM_SCANFUNCTIONS, _T("&Load/generate symbol map"));
 		pSymbolsMenu->Append(IDM_SAVEMAPFILE, _T("&Save symbol map"));
-		pSymbolsMenu->Append(IDM_RENAMEFUNCTION, _T("&Rename function..."));
+		pSymbolsMenu->AppendSeparator();
+		pSymbolsMenu->Append(IDM_CREATESIGNATUREFILE, _T("&Create signature file..."));
+		pSymbolsMenu->Append(IDM_USESIGNATUREFILE, _T("&Use signature file..."));
 		pMenuBar->Append(pSymbolsMenu, _T("&Symbols"));
 	}
 
@@ -303,21 +308,50 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	case IDM_SCANFUNCTIONS:
 		if (!File::Exists(mapfile))
 		{
-			PPCAnalyst::FindFunctions(0x80003100, 0x80400000);
-			if (PPCAnalyst::LoadFuncDB("Data/totaldb.dsy"))
-			{
-				Debugger::GetFromAnalyzer();
-				NotifyMapLoaded();
-			}
+			g_funcDB.Clear();
+			PPCAnalyst::FindFunctions(0x80000000, 0x80400000, &g_funcDB);
+			SignatureDB db;
+			if (db.Load("data/totaldb.dsy"))
+				db.Apply(&g_funcDB);
+            Debugger::GetFromAnalyzer();
 		} else {
 			Debugger::LoadSymbolMap(mapfile.c_str());
+			Debugger::PushMapToFunctionDB(&g_funcDB);
 		}
+		Host_NotifyMapLoaded();
 		break;
-//	case IDM_LOADMAPFILE:
-//		Debugger::LoadSymbolMap(mapfile.c_str());
-//		break;
 	case IDM_SAVEMAPFILE:
 		Debugger::SaveSymbolMap(mapfile.c_str());
+		break;
+	case IDM_CREATESIGNATUREFILE:
+		{
+		wxString path = wxFileSelector(
+				_T("Save signature as"), wxEmptyString, wxEmptyString, wxEmptyString,
+				_T("Dolphin Signature File (*.dsy)|*.dsy;"), wxFD_SAVE,
+				this);
+		if (path) {
+			SignatureDB db;
+			db.Initialize(&g_funcDB);
+			std::string filename(path.ToAscii());		// PPCAnalyst::SaveSignatureDB(
+			db.Save(path.ToAscii());
+		}
+		}
+		break;
+	case IDM_USESIGNATUREFILE:
+		{
+		wxString path = wxFileSelector(
+				_T("Apply signature file"), wxEmptyString, wxEmptyString, wxEmptyString,
+				_T("Dolphin Signature File (*.dsy)|*.dsy;"), wxFD_OPEN | wxFD_FILE_MUST_EXIST,
+				this);
+		if (path) {
+			SignatureDB db;
+			db.Load(path.ToAscii());
+			db.Apply(&g_funcDB);
+			Debugger::Reset();
+            Debugger::GetFromAnalyzer();
+		}
+		}
+		Host_NotifyMapLoaded();
 		break;
 	}
 }
@@ -395,7 +429,7 @@ void CCodeWindow::Update()
 
 	callstack->Clear();
 
-	std::vector<Debugger::SCallstackEntry>stack;
+	std::vector<Debugger::CallstackEntry> stack;
 
 	if (Debugger::GetCallstack(stack))
 	{
@@ -474,7 +508,7 @@ void CCodeWindow::UpdateButtonStates()
 void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
 {
 	int index = symbols->GetSelection();
-	Debugger::CSymbol* pSymbol = static_cast<Debugger::CSymbol*>(symbols->GetClientData(index));
+	Debugger::Symbol* pSymbol = static_cast<Debugger::Symbol *>(symbols->GetClientData(index));
 
 	if (pSymbol != NULL)
 	{

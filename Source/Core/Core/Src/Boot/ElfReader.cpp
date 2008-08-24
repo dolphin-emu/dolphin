@@ -244,8 +244,7 @@ bool ElfReader::LoadSymbols()
 				continue;
 			}
 			//host->AddSymbol(name, value, size, symtype);
-			Debugger::AddSymbol(
-				Debugger::CSymbol(value, size, symtype, name));
+			Debugger::AddSymbol(Debugger::Symbol(value, size, symtype, name));
 
 			hasSymbols = true;
 			//...

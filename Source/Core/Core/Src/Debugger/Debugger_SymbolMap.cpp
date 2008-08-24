@@ -22,14 +22,15 @@
 #include "../HW/Memmap.h"
 #include "../PowerPC/PowerPC.h"
 #include "../PowerPC/PPCAnalyst.h"
+#include "../PowerPC/FunctionDB.h"
 #include "../../../../Externals/Bochs_disasm/PowerPCDisasm.h"
 
 namespace Debugger
 {
 
-static XVectorSymbol m_VectorSymbols;
+static XVectorSymbol g_Symbols;
 
-CSymbol::CSymbol(u32 _Address, u32 _Size, ESymbolType _Type, const char *_rName) :
+Symbol::Symbol(u32 _Address, u32 _Size, ESymbolType _Type, const char *_rName) :
     vaddress(_Address),
     size(_Size),
     runCount(0),
@@ -44,57 +45,57 @@ CSymbol::CSymbol(u32 _Address, u32 _Size, ESymbolType _Type, const char *_rName)
     }
 }
 
-CSymbol::~CSymbol()
+Symbol::~Symbol()
 {
     m_vecBackwardLinks.clear();
 }
 
 void Reset()
 {
-    m_VectorSymbols.clear();
+    g_Symbols.clear();
 
     // 0 is an invalid entry
-    CSymbol Invalid(static_cast<u32>(-1), 0, ST_FUNCTION, "Invalid");
-    m_VectorSymbols.push_back(Invalid);
+    Symbol Invalid(static_cast<u32>(-1), 0, ST_FUNCTION, "Invalid");
+    g_Symbols.push_back(Invalid);
 }
 
-XSymbolIndex AddSymbol(const CSymbol& _rSymbolMapEntry)
+XSymbolIndex AddSymbol(const Symbol& symbol)
 {
-	XSymbolIndex old = 0;
-	if ((old = FindSymbol(_rSymbolMapEntry.GetName().c_str())) != 0)
+	XSymbolIndex old = FindSymbol(symbol.GetName().c_str());
+	if (old != 0)
 		return old;
-    m_VectorSymbols.push_back(_rSymbolMapEntry);
-    return (XSymbolIndex)(m_VectorSymbols.size()-1);
+    g_Symbols.push_back(symbol);
+    return (XSymbolIndex)(g_Symbols.size() - 1);
 }
 
-const CSymbol& GetSymbol(XSymbolIndex _Index)
+const Symbol& GetSymbol(XSymbolIndex _Index)
 {
-    if (_Index < (XSymbolIndex)m_VectorSymbols.size())
-        return m_VectorSymbols[_Index];
+    if (_Index < (XSymbolIndex)g_Symbols.size())
+        return g_Symbols[_Index];
 
     PanicAlert("GetSymbol is called with an invalid index %i", _Index);
-    return m_VectorSymbols[0];
+    return g_Symbols[0];
 }
 
 const XVectorSymbol& AccessSymbols() 
 {
-    return m_VectorSymbols;
+    return g_Symbols;
 }
 
-CSymbol& AccessSymbol(XSymbolIndex _Index)
+Symbol& AccessSymbol(XSymbolIndex _Index)
 {
-    if (_Index < (XSymbolIndex)m_VectorSymbols.size())
-        return m_VectorSymbols[_Index];
+    if (_Index < (XSymbolIndex)g_Symbols.size())
+        return g_Symbols[_Index];
 
     PanicAlert("AccessSymbol is called with an invalid index %i", _Index);
-    return m_VectorSymbols[0];
+    return g_Symbols[0];
 }
 
 XSymbolIndex FindSymbol(u32 _Address)
 {
-    for (int i = 0; i < (int)m_VectorSymbols.size(); i++)
+    for (int i = 0; i < (int)g_Symbols.size(); i++)
     {        
-        const CSymbol& rSymbol = m_VectorSymbols[i];
+        const Symbol& rSymbol = g_Symbols[i];
         if ((_Address >= rSymbol.vaddress) && (_Address < rSymbol.vaddress + rSymbol.size))
         {
             return (XSymbolIndex)i;
@@ -107,9 +108,9 @@ XSymbolIndex FindSymbol(u32 _Address)
 
 XSymbolIndex FindSymbol(const char *name)
 {
-    for (int i = 0; i < (int)m_VectorSymbols.size(); i++)
+    for (int i = 0; i < (int)g_Symbols.size(); i++)
     {        
-        const CSymbol& rSymbol = m_VectorSymbols[i];
+        const Symbol& rSymbol = g_Symbols[i];
         #ifdef _WIN32
         if (!_stricmp(rSymbol.GetName().c_str(), name))
         #else
@@ -124,29 +125,21 @@ XSymbolIndex FindSymbol(const char *name)
     return 0;
 }
 
-// __________________________________________________________________________________________________
-// LoadSymbolMap
-//
+// This one can load both leftover map files on game discs (like Zelda), and mapfiles
+// produced by SaveSymbolMap below.
 bool LoadSymbolMap(const char *_szFilename)
 {
 	Reset();
-
 	FILE *f = fopen(_szFilename, "r");
 	if (!f)
 		return false;
-	//char temp[256];
-	//fgets(temp,255,f); //.text section layout
-	//fgets(temp,255,f); //  Starting        Virtual
-	//fgets(temp,255,f); //  address  Size   address
-	//fgets(temp,255,f); //  -----------------------
 
-	bool started=false;
-
+	bool started = false;
 	while (!feof(f))
 	{
 		char line[512],temp[256];
-		fgets(line,511,f);
-		if (strlen(line)<4)
+		fgets(line, 511, f);
+		if (strlen(line) < 4)
 			continue;
 
 		sscanf(line,"%s",temp);
@@ -169,43 +162,33 @@ bool LoadSymbolMap(const char *_szFilename)
 
 		if (!started) continue;
 
-        // read out the entry
         u32 address, vaddress, size, unknown;
         char name[512];
-        sscanf(line,"%08x %08x %08x %i %s",&address, &size, &vaddress, &unknown, name);
+        sscanf(line, "%08x %08x %08x %i %s", &address, &size, &vaddress, &unknown, name);
 
-        char *namepos = strstr(line, name);
+        const char *namepos = strstr(line, name);
         if (namepos != 0) //would be odd if not :P
             strcpy(name, namepos);
-        name[strlen(name)-1] = 0;
+        name[strlen(name) - 1] = 0;
         
-        // we want the function names only ....
-        for (size_t i=0; i<strlen(name); i++)
+        // we want the function names only .... TODO: or do we really? aren't we wasting information here?
+        for (size_t i = 0; i < strlen(name); i++)
         {
             if (name[i] == ' ') name[i] = 0x00;
             if (name[i] == '(') name[i] = 0x00;
         }
-        
 
-
-        // check if this is a valid entry
-        if (strcmp(name,".text")!=0 || 
-            strcmp(name,".init")!=0 || 
-            strlen(name) > 0)
+        // Check if this is a valid entry.
+        if (strcmp(name, ".text") != 0 || strcmp(name, ".init") != 0 || strlen(name) > 0)
         {            
-            AddSymbol(CSymbol(vaddress | 0x80000000, size, ST_FUNCTION, name));
+            AddSymbol(Symbol(vaddress | 0x80000000, size, ST_FUNCTION, name));
         }
 	}
 
 	fclose(f);
-
-//	AnalyzeBackwards();
 	return true;
 }
 
-// __________________________________________________________________________________________________
-// SaveSymbolMap
-//
 void SaveSymbolMap(const char *_rFilename)
 {
 	FILE *f = fopen(_rFilename,"w");
@@ -213,50 +196,41 @@ void SaveSymbolMap(const char *_rFilename)
 		return;
 
 	fprintf(f,".text\n");
-    XVectorSymbol::const_iterator itr = m_VectorSymbols.begin();
-    while(itr != m_VectorSymbols.end())
+    XVectorSymbol::const_iterator itr = g_Symbols.begin();
+    while (itr != g_Symbols.end())
     {
-        const CSymbol& rSymbol = *itr;
+        const Symbol& rSymbol = *itr;
         fprintf(f,"%08x %08x %08x %i %s\n",rSymbol.vaddress,rSymbol.size,rSymbol.vaddress,0,rSymbol.GetName().c_str());
         itr++;
     }
 	fclose(f);
 }
 
-
-// =========================================================================================================
-
-
-void MergeMapWithDB(const char *beginning)
+void PushMapToFunctionDB(FunctionDB *func_db)
 {
-    XVectorSymbol::const_iterator itr = m_VectorSymbols.begin();
-    while(itr != m_VectorSymbols.end())
+    XVectorSymbol::const_iterator itr = g_Symbols.begin();
+    while (itr != g_Symbols.end())
     {
-        const CSymbol& rSymbol = *itr;
+        const Symbol& rSymbol = *itr;
 
         if (rSymbol.type == ST_FUNCTION && rSymbol.size>=12)
         {
+			func_db->AddKnownFunction(rSymbol.vaddress, rSymbol.size / 4, rSymbol.GetName().c_str());
 //            if (!beginning || !strlen(beginning) || !(memcmp(beginning,rSymbol.name,strlen(beginning))))
-            PPCAnalyst::AddToFuncDB(rSymbol.vaddress, rSymbol.size, rSymbol.GetName().c_str());
+//            PPCAnalyst::AddToSignatureDB(rSymbol.vaddress, rSymbol.size, rSymbol.GetName().c_str());
         }
 
         itr++;
     }
-
-	PPCAnalyst::UseFuncDB();
-
-    PPCAnalyst::SaveFuncDB("e:\\test.db");
-
-	// PanicAlert("MergeMapWiintthDB : %s", beginning);
 }
 
 void GetFromAnalyzer()
 {
-	struct local {static void AddSymb(PPCAnalyst::SFunction *f)
+	struct local {static void AddSymb(SFunction *f)
 	{
-		Debugger::AddSymbol(CSymbol(f->address, f->size*4, ST_FUNCTION, f->name.c_str()));
+		Debugger::AddSymbol(Symbol(f->address, f->size * 4, ST_FUNCTION, f->name.c_str()));
 	}};
-	PPCAnalyst::GetAllFuncs(local::AddSymb);
+	g_funcDB.GetAllFuncs(local::AddSymb);
 }
 
 const char *GetDescription(u32 _Address)
@@ -268,100 +242,8 @@ const char *GetDescription(u32 _Address)
 		return "(unk.)";
 }
 
-//
-// --- shouldn't be here ---
-// 
 
-#ifdef _WIN32
-
-
-void FillSymbolListBox(HWND listbox, ESymbolType symmask)
-{
-    ShowWindow(listbox,SW_HIDE);
-    ListBox_ResetContent(listbox);
-
-    int style = GetWindowLong(listbox,GWL_STYLE);
-
-    ListBox_SetItemData(listbox,ListBox_AddString(listbox,"_(0x80000000)"),0x80000000);
-    ListBox_SetItemData(listbox,ListBox_AddString(listbox,"_(0x81FFFFFF)"),0x81FFFFFF);
-    ListBox_SetItemData(listbox,ListBox_AddString(listbox,"_(0x80003100)"),0x80003100);
-    ListBox_SetItemData(listbox,ListBox_AddString(listbox,"_(0x90000000)"),0x90000000);
-    ListBox_SetItemData(listbox,ListBox_AddString(listbox,"_(0x93FFFFFF)"),0x93FFFFFF);
-
-    XVectorSymbol::const_iterator itr = m_VectorSymbols.begin();
-    while (itr != m_VectorSymbols.end())
-    {
-        const CSymbol& rSymbol = *itr;
-        if (rSymbol.type & symmask)
-        {
-            int index = ListBox_AddString(listbox,rSymbol.GetName().c_str());
-            ListBox_SetItemData(listbox,index,rSymbol.vaddress);
-        }
-        itr++;
-    }
-
-    ShowWindow(listbox,SW_SHOW);
-}
-
-void FillListBoxBLinks(HWND listbox, XSymbolIndex _Index)
-{	
-/*    ListBox_ResetContent(listbox);
-
-    int style = GetWindowLong(listbox,GWL_STYLE);
-
-    CSymbol &e = entries[num];*/
-#ifdef BWLINKS
-    for (int i=0; i<e.backwardLinks.size(); i++)
-    {
-        u32 addr = e.backwardLinks[i];
-        int index = ListBox_AddString(listbox,GetSymbolName(GetSymbolNum(addr)));
-        ListBox_SetItemData(listbox,index,addr);
-    }
-#endif
-}
-#endif
-
-
-void AnalyzeBackwards()
-{
-#ifndef BWLINKS
-    return;
-#else
-    for (int i=0; i<numEntries; i++)
-    {
-        u32 ptr = entries[i].vaddress;
-        if (ptr && entries[i].type == ST_FUNCTION)
-        {
-            for (int a = 0; a<entries[i].size/4; a++)
-            {
-                u32 inst = Memory::ReadUnchecked_U32(ptr);
-                switch (inst>>26)
-                {
-                case 18:
-                    if (LK) //LK
-                    {
-                        u32 addr;
-                        if(AA)
-                            addr = SignExt26(LI << 2);
-                        else
-                            addr = ptr + SignExt26(LI << 2);
-
-                        int funNum = GetSymbolNum(addr);
-                        if (funNum>=0) 
-                            entries[funNum].backwardLinks.push_back(ptr);
-                    }
-                    break;
-                default:
-                    ;
-                }
-                ptr+=4;
-            }
-        }
-    }
-#endif
-}
-
-bool GetCallstack(std::vector<SCallstackEntry> &output) 
+bool GetCallstack(std::vector<CallstackEntry> &output) 
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED)
 		return false;
@@ -371,7 +253,7 @@ bool GetCallstack(std::vector<SCallstackEntry> &output)
 
 	u32 addr = Memory::ReadUnchecked_U32(PowerPC::ppcState.gpr[1]);  // SP
 	if (LR == 0) {
-        SCallstackEntry entry;
+        CallstackEntry entry;
         entry.Name = "(error: LR=0)";
         entry.vAddress = 0x0;
 		output.push_back(entry);
@@ -380,7 +262,7 @@ bool GetCallstack(std::vector<SCallstackEntry> &output)
 	int count = 1;
 	if (GetDescription(PowerPC::ppcState.pc) != GetDescription(LR))
 	{
-        SCallstackEntry entry;
+        CallstackEntry entry;
         entry.Name = StringFromFormat(" * %s [ LR = %08x ]\n", Debugger::GetDescription(LR), LR);
         entry.vAddress = 0x0;
 		count++;
@@ -397,7 +279,7 @@ bool GetCallstack(std::vector<SCallstackEntry> &output)
 		if (!str || strlen(str) == 0 || !strcmp(str, "Invalid"))
 			str = "(unknown)";
 
-        SCallstackEntry entry;
+        CallstackEntry entry;
         entry.Name = StringFromFormat(" * %s [ addr = %08x ]\n", str, func);
         entry.vAddress = func;
 		output.push_back(entry);
@@ -438,5 +320,4 @@ void PrintCallstack() {
 	}
 }
 
-} // end of namespace Debugger
-
+}  // end of namespace Debugger

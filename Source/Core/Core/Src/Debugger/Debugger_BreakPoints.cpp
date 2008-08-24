@@ -157,7 +157,7 @@ void CBreakPoints::AddAutoBreakpoints()
 		XSymbolIndex idx = FindSymbol(bps[i]);
 		if (idx != 0)
 		{
-			const CSymbol &symbol = GetSymbol(idx);
+			const Symbol &symbol = GetSymbol(idx);
 			AddBreakPoint(symbol.vaddress, false);
 		}
 	}

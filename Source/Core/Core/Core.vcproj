@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="Core"
 	ProjectGUID="{F0B874CB-4476-4199-9315-8343D05AE684}"
 	RootNamespace="Core"
@@ -54,8 +54,78 @@
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
-				WarnAsError="true"
+				WarnAsError="false"
 				DebugInformationFormat="4"
+				ForcedIncludeFiles="stdafx.h"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="$(OutDir)/Core.lib"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug|x64"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="4"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TargetEnvironment="3"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\Common\Src;..\DiscIO\Src;..\..\PluginSpecs;..\Debugger\Src;..\..\..\Externals\Bochs_disasm"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;LOGGING;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
+				MinimalRebuild="true"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				BufferSecurityCheck="true"
+				FloatingPointModel="0"
+				UsePrecompiledHeader="2"
+				AssemblerListingLocation="$(IntDir)\"
+				WarningLevel="3"
+				WarnAsError="false"
+				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
@@ -128,148 +198,7 @@
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
-				WarnAsError="true"
-				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/Core.lib"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="DebugFast|Win32"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="4"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			CharacterSet="2"
-			WholeProgramOptimization="0"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="3"
-				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				OmitFramePointers="true"
-				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories="..\Common\Src;..\DiscIO\Src;..\..\PluginSpecs;..\Debugger\Src;..\..\..\Externals\Bochs_disasm"
-				PreprocessorDefinitions="NDEBUG;_LIB;LOGGING;DEBUGFAST;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
-				RuntimeLibrary="0"
-				BufferSecurityCheck="false"
-				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
-				AssemblerListingLocation="$(IntDir)\"
-				WarningLevel="3"
-				WarnAsError="true"
-				DebugInformationFormat="3"
-				ForcedIncludeFiles="stdafx.h"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/Core.lib"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Debug|x64"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="4"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
-			CharacterSet="2"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-				TargetEnvironment="3"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="..\Common\Src;..\DiscIO\Src;..\..\PluginSpecs;..\Debugger\Src;..\..\..\Externals\Bochs_disasm"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;LOGGING;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
-				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
-				BufferSecurityCheck="true"
-				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
-				AssemblerListingLocation="$(IntDir)\"
-				WarningLevel="3"
+				WarnAsError="false"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
@@ -345,7 +274,81 @@
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
+				WarnAsError="false"
 				DebugInformationFormat="0"
+				ForcedIncludeFiles="stdafx.h"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="$(OutDir)/Core.lib"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="DebugFast|Win32"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="4"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
+			CharacterSet="2"
+			WholeProgramOptimization="0"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="3"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="true"
+				EnableFiberSafeOptimizations="false"
+				AdditionalIncludeDirectories="..\Common\Src;..\DiscIO\Src;..\..\PluginSpecs;..\Debugger\Src;..\..\..\Externals\Bochs_disasm"
+				PreprocessorDefinitions="NDEBUG;_LIB;LOGGING;DEBUGFAST;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="false"
+				EnableEnhancedInstructionSet="2"
+				FloatingPointModel="0"
+				UsePrecompiledHeader="2"
+				AssemblerListingLocation="$(IntDir)\"
+				WarningLevel="3"
+				WarnAsError="false"
+				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
@@ -417,6 +420,7 @@
 				UsePrecompiledHeader="2"
 				AssemblerListingLocation="$(IntDir)\"
 				WarningLevel="3"
+				WarnAsError="false"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
@@ -793,6 +797,14 @@
 			Name="PowerPC"
 			>
 			<File
+				RelativePath=".\Src\PowerPC\FunctionDB.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PowerPC\FunctionDB.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\PowerPC\Gekko.h"
 				>
 			</File>
@@ -822,6 +834,14 @@
 			</File>
 			<File
 				RelativePath=".\Src\PowerPC\PPCTables.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PowerPC\SignatureDB.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PowerPC\SignatureDB.h"
 				>
 			</File>
 			<Filter
@@ -1221,22 +1241,6 @@
 				/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="DebugFast|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
 				Name="Debug|x64"
 				>
 				<Tool
@@ -1245,7 +1249,23 @@
 				/>
 			</FileConfiguration>
 			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
 				Name="Release|x64"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="DebugFast|Win32"
 				>
 				<Tool
 					Name="VCCLCompilerTool"

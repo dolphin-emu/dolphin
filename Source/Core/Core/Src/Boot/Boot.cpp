@@ -39,8 +39,8 @@
 #include "../Host.h"
 #include "../VolumeHandler.h"
 #include "../PatchEngine.h"
-
-#include "../Host.h"
+#include "../PowerPC/SignatureDB.h"
+#include "../PowerPC/FunctionDB.h"
 
 #include "../MemTools.h"
 #include "MappedFile.h"
@@ -376,7 +376,6 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 void CBoot::UpdateDebugger_MapLoaded(const char *_gameID)
 {
 	HLE::PatchFunctions();
-    Debugger::AnalyzeBackwards();
 	Host_NotifyMapLoaded();
 	Host_UpdateMemoryView();
 }
@@ -412,6 +411,7 @@ bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_game
 	}
 	else
 	{
+		Debugger::PushMapToFunctionDB(&g_funcDB);
 		success = true;
 	}
 
@@ -502,19 +502,6 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
             {
                 HLE::PatchFunctions();
             }
-            else
-            {
-#if defined(_DEBUG) || defined(DEBUGFAST)
-                //PPCAnalyst::FindFunctions(0x81300000,0x81400000);
-#if 0
-                PPCAnalyst::FindFunctions(0x80003100,0x80200000);
-                PPCAnalyst::LoadFuncDB("data/totaldb.dsy");
-                PPCAnalyst::UseFuncDB();
-#endif 
-#endif
-                Debugger::GetFromAnalyzer();
-                UpdateDebugger_MapLoaded();
-            }
         }
         break;
 
@@ -525,14 +512,7 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
             CDolLoader dolLoader(_StartupPara.m_strFilename.c_str());
             PC = dolLoader.GetEntryPoint();
 #ifdef _DEBUG
-            if (!LoadMapFromFilename(_StartupPara.m_strFilename))
-            {
-                PPCAnalyst::FindFunctions(0x80003100,0x80400000);
-                PPCAnalyst::LoadFuncDB("data/totaldb.dsy");
-                PPCAnalyst::UseFuncDB();
-                Debugger::GetFromAnalyzer();
-                UpdateDebugger_MapLoaded();
-            }
+            LoadMapFromFilename(_StartupPara.m_strFilename);
 #endif
         }
         break;
@@ -592,14 +572,7 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
             DVDInterface::SetDiscInside(false);
             if (Load_BIOS(_StartupPara.m_strBios))
             {
-                if (!LoadMapFromFilename(_StartupPara.m_strFilename))
-                {
-                    PPCAnalyst::FindFunctions(0x81300000,0x81400000);
-                    PPCAnalyst::LoadFuncDB("data/totaldb.dsy");
-                    PPCAnalyst::UseFuncDB();
-                    Debugger::GetFromAnalyzer();
-                    UpdateDebugger_MapLoaded();
-                }
+                LoadMapFromFilename(_StartupPara.m_strFilename);
             }
             else
             {

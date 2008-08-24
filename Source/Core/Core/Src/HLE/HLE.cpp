@@ -67,6 +67,7 @@ static const SPatch OSPatches[] =
 	// Super Monkey Ball
 	{ ".evil_vec_cosine",           HLE_Misc::SMB_EvilVecCosine },
 	{ ".evil_normalize",            HLE_Misc::SMB_EvilNormalize },
+	{ ".evil_vec_setlength",        HLE_Misc::SMB_evil_vec_setlength },
 	{ "PanicAlert",			        HLE_Misc::PanicAlert },
 	{ ".sqrt_internal_needs_cr1",   HLE_Misc::SMB_sqrt_internal },
 	{ ".rsqrt_internal_needs_cr1",  HLE_Misc::SMB_rsqrt_internal },
@@ -101,13 +102,13 @@ void PatchFunctions()
 		int SymbolIndex = Debugger::FindSymbol(OSPatches[i].m_szPatchName);
 		if (SymbolIndex > 0)
 		{
-            const Debugger::CSymbol& rSymbol = Debugger::GetSymbol(SymbolIndex);
+            const Debugger::Symbol& symbol = Debugger::GetSymbol(SymbolIndex);
 			u32 HLEPatchValue = (1 & 0x3f) << 26;
-			for (size_t addr = rSymbol.vaddress; addr < rSymbol.vaddress + rSymbol.size; addr+=4) {
+			for (size_t addr = symbol.vaddress; addr < symbol.vaddress + symbol.size; addr += 4) {
 				Memory::Write_U32(HLEPatchValue | i, addr);
 			}
 			//PanicAlert("patched %s", OSPatches[i].m_szPatchName);
-            LOG(HLE,"Patching %s %08x", OSPatches[i].m_szPatchName, rSymbol.vaddress);
+            LOG(HLE,"Patching %s %08x", OSPatches[i].m_szPatchName, symbol.vaddress);
 		}
 	}
 
@@ -116,12 +117,12 @@ void PatchFunctions()
 		int SymbolIndex = Debugger::FindSymbol(OSBreakPoints[i].m_szPatchName);
 		if (SymbolIndex != -1)
 		{
-		    const Debugger::CSymbol& rSymbol = Debugger::GetSymbol(SymbolIndex);			
-		    CBreakPoints::AddBreakPoint(rSymbol.vaddress, false);
+		    const Debugger::Symbol& symbol = Debugger::GetSymbol(SymbolIndex);			
+		    CBreakPoints::AddBreakPoint(symbol.vaddress, false);
 
-            LOG(HLE,"Adding BP to %s %08x", OSBreakPoints[i].m_szPatchName, rSymbol.vaddress);
+            LOG(HLE,"Adding BP to %s %08x", OSBreakPoints[i].m_szPatchName, symbol.vaddress);
 		}
-	}   
+	}
 
 //    CBreakPoints::AddBreakPoint(0x8000D3D0, false);
 }
