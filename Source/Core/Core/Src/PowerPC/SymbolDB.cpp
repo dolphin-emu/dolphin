@@ -36,8 +36,9 @@ void SymbolDB::List()
 	LOG(HLE,"%i functions known in this program above.", functions.size());
 }
 
-void SymbolDB::Clear()
+void SymbolDB::Clear(const char *prefix)
 {
+	// TODO: honor prefix
 	functions.clear();
 	checksumToFunction.clear();
 }
@@ -94,7 +95,7 @@ void SymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const char *name, int typ
 		tf.name = name;
 		tf.type = type;
 		if (tf.type == Symbol::SYMBOL_FUNCTION) {
-			PPCAnalyst::AnalyzeFunction(startAddr, tf);
+			PPCAnalyst::AnalyzeFunction(startAddr, tf, size);
 			checksumToFunction[tf.hash] = &(functions[startAddr]);
 		}
 		functions[startAddr] = tf;

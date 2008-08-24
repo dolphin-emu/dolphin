@@ -73,10 +73,10 @@ u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 //If any one goes farther than the blr, assume that there is more than
 //one blr, and keep scanning.
 
-bool AnalyzeFunction(u32 startAddr, Symbol &func)
+bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size)
 {
 	if (!func.name.size())
-		func.name = StringFromFormat("zzz_%08x ??", startAddr);
+		func.name = StringFromFormat("zz_%07x_", startAddr & 0x0FFFFFF);
 	if (func.analyzed >= 1)
 		return true;  // No error, just already did it.
 
@@ -93,9 +93,17 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func)
 		func.size++;
 		if (func.size > 1024*16) //weird
 			return false;
-
+		
 		UGeckoInstruction instr = (UGeckoInstruction)Memory::ReadUnchecked_U32(addr);
-
+		if (max_size && func.size > max_size)
+		{
+			func.address = startAddr;
+			func.analyzed = 1;
+			func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);
+			if (numInternalBranches == 0)
+				func.flags |= FFLAG_STRAIGHT;
+			return true;
+		}
 		if (PPCTables::IsValidInstruction(instr))
 		{
 			if (instr.hex == 0x4e800020) //4e800021 is blrl, not the end of a function
@@ -119,6 +127,21 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func)
 					return true;
 				}
 			}
+			/*
+			else if ((instr.hex & 0xFC000000) == (0x4b000000 & 0xFC000000) && !instr.LK) {
+				u32 target = addr + SignExt26(instr.LI << 2);
+				if (target < startAddr || (max_size && target > max_size+startAddr))
+				{
+					//block ends by branching away. We're done!
+					func.size *= 4; // into bytes
+					func.address = startAddr;
+					func.analyzed = 1;
+					func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);
+					if (numInternalBranches == 0)
+						func.flags |= FFLAG_STRAIGHT;
+					return true;
+				}
+			}*/
 			else if (instr.hex == 0x4e800021 || instr.hex == 0x4e800420 || instr.hex == 0x4e800421)
 			{
 				func.flags &= ~FFLAG_LEAF;
@@ -133,12 +156,12 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func)
 			{
 				if (instr.OPCD == 16)
 				{
-					u32 target = SignExt16(instr.BD<<2);
+					u32 target = SignExt16(instr.BD << 2);
 					
 					if (!instr.AA)
 						target += addr;
 
-					if (target > farthestInternalBranchTarget)
+					if (target > farthestInternalBranchTarget && !instr.LK)
 					{
 						farthestInternalBranchTarget = target;
 					}
@@ -628,6 +651,13 @@ void FindFunctions(u32 startAddr, u32 endAddr, SymbolDB *func_db)
 		}
 		AnalyzeFunction2(iter->second);
 		Symbol &f = iter->second;
+		if (f.name.substr(0,3) == "zzz")
+		{
+			if (f.flags & FFLAG_LEAF)
+				f.name += "_leaf";
+			if (f.flags & FFLAG_STRAIGHT)
+				f.name += "_straight";
+		}
 		if (f.flags & FFLAG_LEAF)
 		{
 			numLeafs++;

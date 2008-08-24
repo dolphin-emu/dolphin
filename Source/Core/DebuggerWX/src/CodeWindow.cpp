@@ -256,6 +256,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	{
 		wxMenu *pSymbolsMenu = new wxMenu;
 		pSymbolsMenu->Append(IDM_CLEARSYMBOLS, _T("&Clear symbols"));
+		// pSymbolsMenu->Append(IDM_CLEANSYMBOLS, _T("&Clean symbols (zz)"));
 		pSymbolsMenu->Append(IDM_SCANFUNCTIONS, _T("&Generate symbol map"));
 		pSymbolsMenu->AppendSeparator();
 		pSymbolsMenu->Append(IDM_LOADMAPFILE, _T("&Load symbol map"));
@@ -316,13 +317,17 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		g_symbolDB.Clear();
 		Host_NotifyMapLoaded();
 		break;
+	case IDM_CLEANSYMBOLS:
+		g_symbolDB.Clear("zz");
+		Host_NotifyMapLoaded();
+		break;
 	case IDM_SCANFUNCTIONS:
 		{
 		PPCAnalyst::FindFunctions(0x80000000, 0x80400000, &g_symbolDB);
 		SignatureDB db;
 		if (db.Load("data/totaldb.dsy"))
 			db.Apply(&g_symbolDB);
-		Host_NotifyMapLoaded();
+		NotifyMapLoaded();
 		break;
 		}
 	case IDM_LOADMAPFILE:
@@ -336,7 +341,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		} else {
 			g_symbolDB.LoadMap(mapfile.c_str());
 		}
-		Host_NotifyMapLoaded();
+		NotifyMapLoaded();
 		break;
 	case IDM_SAVEMAPFILE:
 		g_symbolDB.SaveMap(mapfile.c_str());
@@ -367,7 +372,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			db.Apply(&g_symbolDB);
 		}
 		}
-		Host_NotifyMapLoaded();
+		NotifyMapLoaded();
 		break;
 	}
 }
@@ -441,8 +446,10 @@ void CCodeWindow::UpdateLists()
 	{
 		u32 caller_addr = symbol->callers[i].callAddress;
 		Symbol *caller_symbol = g_symbolDB.GetSymbolFromAddr(caller_addr);
-		int idx = callers->Append(wxString::Format( _T("< %s (%08x)"), caller_symbol->name.c_str(), caller_addr));
-		callers->SetClientData(idx, (void*)caller_addr);
+		if (caller_symbol) {
+			int idx = callers->Append(wxString::Format( "< %s (%08x)", caller_symbol->name.c_str(), caller_addr));
+			callers->SetClientData(idx, (void*)caller_addr);
+		}
 	}
 
 	calls->Clear();
@@ -450,8 +457,10 @@ void CCodeWindow::UpdateLists()
 	{
 		u32 call_addr = symbol->calls[i].function;
 		Symbol *call_symbol = g_symbolDB.GetSymbolFromAddr(call_addr);
-		int idx = calls->Append(wxString::Format( _T("> %s (%08x)"), call_symbol->name.c_str(), call_addr));
-		calls->SetClientData(idx, (void*)call_addr);
+		if (call_symbol) {
+			int idx = calls->Append(wxString::Format("> %s (%08x)", call_symbol->name.c_str(), call_addr).c_str());
+			calls->SetClientData(idx, (void*)call_addr);
+		}
 	}
 }
 

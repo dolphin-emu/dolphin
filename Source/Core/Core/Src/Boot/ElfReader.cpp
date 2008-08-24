@@ -245,10 +245,10 @@ bool ElfReader::LoadSymbols()
 				continue;
 			}
 			g_symbolDB.AddKnownSymbol(value, size, name, symtype);
-
 			hasSymbols = true;
 		}
 	}
+	g_symbolDB.Index();
 	return hasSymbols;
 }
 

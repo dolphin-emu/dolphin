@@ -83,7 +83,7 @@ namespace PPCAnalyst
 	void LogFunctionCall(u32 addr);
 
 	void FindFunctions(u32 startAddr, u32 endAddr, SymbolDB *func_db);
-	bool AnalyzeFunction(u32 startAddr, Symbol &func);
+	bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size = 0);
 }  // namespace
 
 #endif

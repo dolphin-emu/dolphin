@@ -118,7 +118,7 @@ public:
 
 	const char *GetDescription(u32 addr);
 
-	void Clear();
+	void Clear(const char *prefix = "");
 	void List();
 	void Index();
 	void FillInCallers();
