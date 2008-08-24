@@ -503,7 +503,6 @@ void OpenGL_Update()
 
         float Max = (FactorW < FactorH) ? FactorH : FactorW;
 
-        float Max = (FactorW < FactorH) ? FactorH : FactorW;
         if(g_Config.bStretchToFit)
         {
             MValueX = 1.0f / FactorW;
