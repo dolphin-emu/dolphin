@@ -140,11 +140,17 @@ void SymbolDB::FillInCallers()
 {
 	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); iter++)
 	{
+		iter->second.callers.clear();
+	}
+
+	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); iter++)
+	{
 		Symbol &f = iter->second;
 		for (size_t i = 0; i < f.calls.size(); i++)
         {
             SCall NewCall(iter->first, f.calls[i].callAddress);
             u32 FunctionAddress = f.calls[i].function;
+
             XFuncMap::iterator FuncIterator = functions.find(FunctionAddress);
             if (FuncIterator != functions.end())
             {

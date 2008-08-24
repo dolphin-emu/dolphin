@@ -67,6 +67,8 @@ static const long TOOLBAR_STYLE = wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
 BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)   
     EVT_LISTBOX(IDM_SYMBOLLIST,     CCodeWindow::OnSymbolListChange)
     EVT_LISTBOX(IDM_CALLSTACKLIST,  CCodeWindow::OnCallstackListChange)
+    EVT_LISTBOX(IDM_CALLERSLIST,    CCodeWindow::OnCallersListChange)
+    EVT_LISTBOX(IDM_CALLSLIST,      CCodeWindow::OnCallsListChange)
     EVT_HOST_COMMAND(wxID_ANY,      CCodeWindow::OnHostMessage)
     EVT_MENU(IDM_LOGWINDOW,         CCodeWindow::OnToggleLogWindow)
     EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleRegisterWindow)
@@ -90,6 +92,8 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	EVT_MENU(IDM_SETPC,				CCodeWindow::OnCodeStep)
 	EVT_MENU(IDM_GOTOPC,			CCodeWindow::OnCodeStep)
 	EVT_TEXT(IDM_ADDRBOX,           CCodeWindow::OnAddrBoxChange)
+
+	EVT_COMMAND(IDM_CODEVIEW, wxEVT_CODEVIEW_CHANGE, CCodeWindow::OnCodeViewChange)
 END_EVENT_TABLE()
 
 #define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
@@ -175,12 +179,14 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 	DebugInterface* di = new PPCDebugInterface();
 
-	codeview = new CCodeView(di, this, wxID_ANY);
+	codeview = new CCodeView(di, this, IDM_CODEVIEW);
 	sizerBig->Add(sizerLeft, 2, wxEXPAND);
 	sizerBig->Add(codeview, 5, wxEXPAND);
 
 	sizerLeft->Add(callstack = new wxListBox(this, IDM_CALLSTACKLIST, wxDefaultPosition, wxSize(90, 100)), 0, wxEXPAND);
 	sizerLeft->Add(symbols = new wxListBox(this, IDM_SYMBOLLIST, wxDefaultPosition, wxSize(90, 100), 0, NULL, wxLB_SORT), 1, wxEXPAND);
+	sizerLeft->Add(calls = new wxListBox(this, IDM_CALLSLIST, wxDefaultPosition, wxSize(90, 100), 0, NULL, wxLB_SORT), 0, wxEXPAND);
+	sizerLeft->Add(callers = new wxListBox(this, IDM_CALLERSLIST, wxDefaultPosition, wxSize(90, 100), 0, NULL, wxLB_SORT), 0, wxEXPAND);
 
 	SetSizer(sizerBig);
 
@@ -283,11 +289,6 @@ bool CCodeWindow::UseDualCore()
 }
 
 
-void CCodeWindow::JumpToAddress(u32 _Address)
-{
-    codeview->Center(_Address);
-}
-
 void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -378,7 +379,7 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 	    case IDM_DEBUG_GO:
 	    {
 		    // [F|RES] prolly we should disable the other buttons in go mode too ...
-		    codeview->Center(PC);
+		    JumpToAddress(PC);
 
 		    if (CCPU::IsStepping())
 		    {
@@ -414,7 +415,7 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 		    break;
 
 	    case IDM_GOTOPC:
-		    codeview->Center(PC);
+		    JumpToAddress(PC);
 		    break;
 	}
 
@@ -422,21 +423,85 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 }
 
 
+void CCodeWindow::JumpToAddress(u32 _Address)
+{
+    codeview->Center(_Address);
+	UpdateLists();
+}
+
+
+void CCodeWindow::UpdateLists()
+{
+	callers->Clear();
+	u32 addr = codeview->GetSelection();
+	Symbol *symbol = g_symbolDB.GetSymbolFromAddr(addr);
+	if (!symbol)
+		return;
+	for (int i = 0; i < symbol->callers.size(); i++)
+	{
+		u32 caller_addr = symbol->callers[i].callAddress;
+		Symbol *caller_symbol = g_symbolDB.GetSymbolFromAddr(caller_addr);
+		int idx = callers->Append(StringFromFormat("< %s (%08x)", caller_symbol->name.c_str(), caller_addr).c_str());
+		callers->SetClientData(idx, (void*)caller_addr);
+	}
+
+	calls->Clear();
+	for (int i = 0; i < symbol->calls.size(); i++)
+	{
+		u32 call_addr = symbol->calls[i].function;
+		Symbol *call_symbol = g_symbolDB.GetSymbolFromAddr(call_addr);
+		int idx = calls->Append(StringFromFormat("> %s (%08x)", call_symbol->name.c_str(), call_addr).c_str());
+		calls->SetClientData(idx, (void*)call_addr);
+	}
+}
+
+
+void CCodeWindow::OnCodeViewChange(wxCommandEvent &event)
+{
+	//PanicAlert("boo");
+	UpdateLists();
+}
+
 void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
 {
 	wxTextCtrl* pAddrCtrl = (wxTextCtrl*)GetToolBar()->FindControl(IDM_ADDRBOX);
 	wxString txt = pAddrCtrl->GetValue();
 
-	if (txt.size() == 8)
+	std::string text(txt.c_str());
+	text = StripSpaces(text);
+	if (text.size() == 8)
 	{
 		u32 addr;
-		sscanf(txt.mb_str(), "%08x", &addr);
-		codeview->Center(addr);
+		sscanf(text.c_str(), "%08x", &addr);
+		JumpToAddress(addr);
 	}
 
 	event.Skip(1);
 }
 
+void CCodeWindow::OnCallstackListChange(wxCommandEvent& event)
+{
+	int index   = callstack->GetSelection();
+	u32 address = (u32)(u64)(callstack->GetClientData(index));
+	if (address)
+		JumpToAddress(address);
+}
+
+void CCodeWindow::OnCallersListChange(wxCommandEvent& event)
+{
+	int index = callers->GetSelection();
+	u32 address = (u32)(u64)(callers->GetClientData(index));
+	if (address)
+		JumpToAddress(address);
+}
+
+void CCodeWindow::OnCallsListChange(wxCommandEvent& event)
+{
+	int index = calls->GetSelection();
+	u32 address = (u32)(u64)(calls->GetClientData(index));
+	if (address)
+		JumpToAddress(address);
+}
 
 void CCodeWindow::Update()
 {
@@ -465,9 +530,9 @@ void CCodeWindow::Update()
 
 void CCodeWindow::NotifyMapLoaded()
 {
+	g_symbolDB.FillInCallers();
 	symbols->Show(false); // hide it for faster filling
 	symbols->Clear();
-	
 	for (SymbolDB::XFuncMap::iterator iter = g_symbolDB.GetIterator(); iter != g_symbolDB.End(); iter++)
 	{
 		int idx = symbols->Append(wxString::FromAscii(iter->second.name.c_str()));
@@ -519,25 +584,13 @@ void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
 
 	if (pSymbol != NULL)
 	{
-		codeview->Center(pSymbol->address);
+		JumpToAddress(pSymbol->address);
 	}
 }
 
 void CCodeWindow::OnSymbolListContextMenu(wxContextMenuEvent& event)
 {
 	int index = symbols->GetSelection();
-}
-
-
-void CCodeWindow::OnCallstackListChange(wxCommandEvent& event)
-{
-	int index   = callstack->GetSelection();
-	u32 address = (u32)(u64)(callstack->GetClientData(index));
-
-	if (address != 0x00)
-	{
-		codeview->Center(address);
-	}
 }
 
 
@@ -774,7 +827,7 @@ void CCodeWindow::SingleCPUStep()
 	//	            sync_event.Wait();
 	wxThread::Sleep(20);
 	// need a short wait here
-	codeview->Center(PC);
+	JumpToAddress(PC);
 	Update();
 	Host_UpdateLogDisplay();
 }

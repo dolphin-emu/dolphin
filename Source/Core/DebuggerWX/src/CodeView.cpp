@@ -29,6 +29,7 @@
 #include <wx/clipbrd.h>
 #include <wx/textdlg.h>
 
+DEFINE_EVENT_TYPE(wxEVT_CODEVIEW_CHANGE);
 
 enum
 {
@@ -39,6 +40,7 @@ enum
 	IDM_INSERTBLR,
 	IDM_RUNTOHERE,
 	IDM_JITRESULTS,
+	IDM_FOLLOWBRANCH,
 	IDM_RENAMESYMBOL,
 	IDM_PATCHALERT,
 	IDM_COPYFUNCTION,
@@ -139,6 +141,13 @@ void CCodeView::OnMouseMove(wxMouseEvent& event)
 	event.Skip(true);
 }
 
+void CCodeView::RaiseEvent()
+{
+	wxCommandEvent ev(wxEVT_CODEVIEW_CHANGE, GetId());
+	ev.SetEventObject(this);
+	ev.SetInt(selection);
+	GetEventHandler()->ProcessEvent(ev);
+}
 
 void CCodeView::OnMouseUpL(wxMouseEvent& event)
 {
@@ -149,10 +158,22 @@ void CCodeView::OnMouseUpL(wxMouseEvent& event)
 		//ReleaseCapture();
 		redraw();
 	}
-
+	RaiseEvent();
 	event.Skip(true);
 }
 
+u32 CCodeView::AddrToBranch(u32 addr)
+{
+	const char *temp = debugger->disasm(addr);
+	const char *mojs = strstr(temp, "->0x");
+	if (mojs)
+	{
+		u32 dest;
+		sscanf(mojs+4,"%08x", &dest);
+		return dest;
+	}
+	return 0;
+}
 
 void CCodeView::OnPopupMenu(wxCommandEvent& event)
 {
@@ -214,6 +235,15 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 	    case IDM_JITRESULTS:
 			CJitWindow::ViewAddr(selection);
 		    break;
+			
+		case IDM_FOLLOWBRANCH:
+			{
+			u32 dest = AddrToBranch(selection);
+			if (dest)
+				Center(dest);
+				RaiseEvent();
+			}
+			break;
 	
 		case IDM_RENAMESYMBOL:
 			{
@@ -246,17 +276,20 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
 void CCodeView::OnMouseUpR(wxMouseEvent& event)
 {
+	bool isSymbol = g_symbolDB.GetSymbolFromAddr(selection) != 0;
 	// popup menu
 	wxMenu menu;
 	//menu.Append(IDM_GOTOINMEMVIEW, "&Goto in mem view");
+	menu.Append(IDM_FOLLOWBRANCH, wxString::FromAscii("&Follow branch"))->Enable(AddrToBranch(selection) ? true : false);
+	menu.AppendSeparator();
 #if wxUSE_CLIPBOARD
 	menu.Append(IDM_COPYADDRESS, wxString::FromAscii("Copy &address"));
-	menu.Append(IDM_COPYFUNCTION, wxString::FromAscii("Copy &function"));
+	menu.Append(IDM_COPYFUNCTION, wxString::FromAscii("Copy &function"))->Enable(isSymbol);
 	menu.Append(IDM_COPYCODE, wxString::FromAscii("Copy &code line"));
 	menu.Append(IDM_COPYHEX, wxString::FromAscii("Copy &hex"));
 	menu.AppendSeparator();
 #endif
-	menu.Append(IDM_RENAMESYMBOL, wxString::FromAscii("Rename &symbol"));
+	menu.Append(IDM_RENAMESYMBOL, wxString::FromAscii("Rename &symbol"))->Enable(isSymbol);
 	menu.AppendSeparator();
 	menu.Append(IDM_RUNTOHERE, _T("&Run To Here"));
 	menu.Append(IDM_JITRESULTS, wxString::FromAscii("PPC vs X86"));
@@ -373,8 +406,6 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 								found = true;
 							}
 						}
-
-
 						if (!found)
 						{
 							mojs = 0;

@@ -491,9 +491,9 @@ namespace PPCDisasm
 			*oper++ = ',';
 		}
 		if (in & 2)  /* AA ? */
-			sprintf(dp->operands,"0x%.8X",(unsigned long)d);
+			sprintf(dp->operands,"->0x%.8X",(unsigned long)d);
 		else
-			sprintf(oper,"0x%.8X",(unsigned long)(*dp->iaddr) + d);
+			sprintf(oper,"->0x%.8X",(unsigned long)(*dp->iaddr) + d);
 		dp->type = PPCINSTR_BRANCH;
 		dp->displacement = (ppc_word)d;
 	}
@@ -507,9 +507,9 @@ namespace PPCDisasm
 
 		sprintf(dp->opcode,"b%s",b_ext[in&3]);
 		if (in & 2)  /* AA ? */
-			sprintf(dp->operands,"0x%.8X",(unsigned long)d);
+			sprintf(dp->operands,"->0x%.8X",(unsigned long)d);
 		else
-			sprintf(dp->operands,"0x%.8X",(unsigned long)(*dp->iaddr) + d);
+			sprintf(dp->operands,"->0x%.8X",(unsigned long)(*dp->iaddr) + d);
 		dp->type = PPCINSTR_BRANCH;
 		dp->displacement = (ppc_word)d;
 	}

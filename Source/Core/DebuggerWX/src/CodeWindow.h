@@ -55,6 +55,7 @@ class CCodeWindow
 		void Update();
 		void NotifyMapLoaded();
 
+
 		bool UseInterpreter();
 		bool UseDualCore();
         void JumpToAddress(u32 _Address);
@@ -64,6 +65,7 @@ class CCodeWindow
 		enum
 		{
 			ID_TOOLBAR = 500,
+			IDM_CODEVIEW,
 			IDM_DEBUG_GO,
 			IDM_STEP,
 			IDM_STEPOVER,
@@ -72,6 +74,8 @@ class CCodeWindow
 			IDM_GOTOPC,
 			IDM_ADDRBOX,
 			IDM_CALLSTACKLIST,
+			IDM_CALLERSLIST,
+			IDM_CALLSLIST,
 			IDM_SYMBOLLIST,
 			IDM_INTERPRETER,
 			IDM_DUALCORE,
@@ -112,6 +116,8 @@ class CCodeWindow
 		CCodeView* codeview;
 		wxListBox* callstack;
 		wxListBox* symbols;
+		wxListBox* callers;
+		wxListBox* calls;
 		Common::Event sync_event;
 
 		wxBitmap m_Bitmaps[Bitmaps_max];
@@ -121,7 +127,10 @@ class CCodeWindow
 		void OnSymbolListChange(wxCommandEvent& event);
 		void OnSymbolListContextMenu(wxContextMenuEvent& event);
 		void OnCallstackListChange(wxCommandEvent& event);
+		void OnCallersListChange(wxCommandEvent& event);
+		void OnCallsListChange(wxCommandEvent& event);
 		void OnCodeStep(wxCommandEvent& event);
+		void OnCodeViewChange(wxCommandEvent &event);
 
 		void SingleCPUStep();
 
@@ -138,6 +147,7 @@ class CCodeWindow
 		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter);
 
 		void UpdateButtonStates();
+		void UpdateLists();
 
 		void RecreateToolbar();
 		void PopulateToolbar(wxToolBar* toolBar);

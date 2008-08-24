@@ -24,11 +24,12 @@
 
 #include <wx/wx.h>
 
+DECLARE_EVENT_TYPE(wxEVT_CODEVIEW_CHANGE, -1);
+
 class CCodeView
 	: public wxControl
 {
 	public:
-
 		CCodeView(DebugInterface* debuginterface, wxWindow* parent, wxWindowID Id = -1, const wxSize& Size = wxDefaultSize);
 		wxSize DoGetBestSize() const;
 		void OnPaint(wxPaintEvent& event);
@@ -39,21 +40,21 @@ class CCodeView
 		void OnMouseUpR(wxMouseEvent& event);
 		void OnPopupMenu(wxCommandEvent& event);
 
-
 		u32 GetSelection() {return(selection);}
-
 
 		void Center(u32 addr)
 		{
 			curAddress = addr;
+			selection = addr;
 			redraw();
 		}
 
-
 	private:
 
+		void RaiseEvent();
 		int YToAddress(int y);
 
+		u32 AddrToBranch(u32 addr);
 
 		void redraw() {Refresh();}
 
