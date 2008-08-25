@@ -8,6 +8,7 @@
 #include "Globals.h"
 #include "Common.h"
 #include "ISOFile.h"
+#include "CPUDetect.h"
 
 #include "BootManager.h"
 void* g_pCodeWindow = NULL;
@@ -69,6 +70,7 @@ int main(int argc, char* argv[])
 	std::string temp;
 	temp.insert(0, argv[1]); //Need to convert to C++ style string first
 
+	DetectCPU();
 	BootManager::BootCore(temp);
 	usleep(2000 * 1000 * 1000);
 //	while (!getch()) {
