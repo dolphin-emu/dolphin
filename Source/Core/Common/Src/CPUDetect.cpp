@@ -31,7 +31,9 @@ static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 		: "=a" (*eax),
 		  "=b" (*ebx),
 		  "=c" (*ecx),
-		  "=d" (*edx));
+		  "=d" (*edx)
+		: "a"  (*eax)
+		);
 	#else
 	// Note: EBX is reserved on Mac OS X and in PIC on Linux, so it has to be
 	//       restored at the end of the asm block.
@@ -43,7 +45,9 @@ static inline void do_cpuid(unsigned int *eax, unsigned int *ebx,
 		: "=a" (*eax),
 		  "=r" (*ebx),
 		  "=c" (*ecx),
-		  "=d" (*edx));
+		  "=d" (*edx)
+		: "a"  (*eax)
+		);
 	#endif
 }
 
