@@ -45,26 +45,21 @@ bool DolphinApp::OnInit()
 
 #ifdef _WIN32
 	// TODO: if First Boot
-	/*
 	if (!cpu_info.bSSE2) 
 	{
 		MessageBox(0, _T("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
 			             "Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
 						 "Sayonara!\n"), "Dolphin", MB_ICONINFORMATION);
 		return false;
-	}*/
-	/*
-#ifdef _M_IX86
-	if (cpu_info.CPU64bit && cpu_info.OS64bit)
-	{
-		MessageBox(0, _T("This is the 32-bit version of Dolphin. This computer is running a 64-bit OS.\n"
-				 "Thus, this computer is capable of running Dolphin 64-bit, which is considerably "
-				 "faster than Dolphin 32-bit. So, why are you running Dolphin 32-bit? :-)"), "Dolphin", MB_ICONINFORMATION);
 	}
-
-	// missing check
-#endif
-	*/
+#else
+	if (!cpu_info.bSSE2)
+	{
+		printf("%s", "Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
+               "Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
+    		   "Sayonara!\n");
+		exit(0);
+	}
 #endif
 
 	bool UseDebugger = false;

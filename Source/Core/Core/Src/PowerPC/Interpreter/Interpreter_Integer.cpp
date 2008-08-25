@@ -438,7 +438,7 @@ void addex(UGeckoInstruction _inst)
 	int a = m_GPR[_inst.RA];
 	int b = m_GPR[_inst.RB];
 	m_GPR[_inst.RD] = a + b + carry;
-	SetCarry(Helper_Carry(a,b) || (carry != 0 && Helper_Carry(a + b, carry)));
+	SetCarry(Helper_Carry(a, b) || (carry != 0 && Helper_Carry(a + b, carry)));
 
 	if (_inst.OE) PanicAlert("OE: addex");
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
@@ -449,7 +449,7 @@ void addmex(UGeckoInstruction _inst)
 	int carry = GetCarry();
 	int a = m_GPR[_inst.RA];
 	m_GPR[_inst.RD] = a + carry - 1;
-	SetCarry(Helper_Carry(a, carry-1));
+	SetCarry(Helper_Carry(a, carry - 1));
 
 	if (_inst.OE) PanicAlert("OE: addmex");
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
@@ -505,7 +505,7 @@ void mulhwx(UGeckoInstruction _inst)
 {
 	u32 a = m_GPR[_inst.RA];
 	u32 b = m_GPR[_inst.RB];
-	u32 d = (u32)((u64)(((s64)(s32)a * (s64)(s32)b) ) >> 32); //wheeee
+	u32 d = (u32)((u64)(((s64)(s32)a * (s64)(s32)b) ) >> 32);  // This can be done better. Not in plain C/C++ though.
 	m_GPR[_inst.RD] = d;
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 }

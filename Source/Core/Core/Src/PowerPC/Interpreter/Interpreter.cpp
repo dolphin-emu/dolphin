@@ -15,8 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <float.h>
-
 #include "../../HW/Memmap.h"
 #include "../../HW/CPU.h"
 #include "../PPCTables.h"
@@ -97,11 +95,6 @@ void SingleStepInner(void)
 
 	NPC = PC + sizeof(UGeckoInstruction);
 	instCode.hex = Memory::ReadFast32(PC);  //  Memory::ReadUnchecked_U32(PC);
-
-    //Memory::Read_Instruction(PC);	// use the memory functions to read from the memory !!!!!!
-	//if (PowerPC::ppcState.DebugCount > 0x10f233a) { // 50721ef253a
-	//	printf("> %08x - %08x - %s\n", PC, instCode.hex, DisassembleGekko(instCode.hex, PC));
-	//}
 
 	UReg_MSR& msr = (UReg_MSR&)MSR;
 	if (msr.FP)  //If FPU is enabled, just execute
