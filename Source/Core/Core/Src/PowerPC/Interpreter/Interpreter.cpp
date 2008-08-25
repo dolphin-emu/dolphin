@@ -25,12 +25,6 @@
 #include "PowerPCDisasm.h"
 #include "../../IPC_HLE/WII_IPC_HLE.h"
 
-enum {
-	FPU_PREC_24 = 0 << 8,
-	FPU_PREC_53 = 2 << 8,
-	FPU_PREC_64 = 3 << 8,
-	FPU_PREC_MASK = 3 << 8,
-};
 
 namespace {
 	u32 last_pc;

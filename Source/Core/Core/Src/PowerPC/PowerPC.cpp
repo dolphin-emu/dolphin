@@ -75,6 +75,12 @@ namespace PowerPC
 
 	void Init()
 	{
+		enum {
+			FPU_PREC_24 = 0 << 8,
+			FPU_PREC_53 = 2 << 8,
+			FPU_PREC_64 = 3 << 8,
+			FPU_PREC_MASK = 3 << 8,
+		};
 		#ifdef _M_IX86
 		// sets the floating-point lib to 53-bit
 		// PowerPC has a 53bit floating pipeline only
