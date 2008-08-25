@@ -25,7 +25,7 @@ files = ["BPStructs.cpp",
 		 "GUI/ConfigDlg.cpp",
 		 ]
 if sys.platform == 'darwin':         
-	gfxenv=env.Copy(CXXFLAGS = " -DMACOSX=1 `sdl-config --cflags` `wx-config --cppflags` -I/opt/local/include ", LINKFLAGS = " -framework OpenGL -framework Cg `sdl-config --libs` `wx-config --libs` -L/opt/local/lib ")
+	gfxenv=env.Copy(CXXFLAGS = " `sdl-config --cflags` `wx-config --cppflags` -I/opt/local/include ", LINKFLAGS = " -framework OpenGL -framework Cg `sdl-config --libs` `wx-config --libs` -L/opt/local/lib ")
 	gfxenv.SharedLibrary("../../../../Binary/mac/Plugins/zeroogl.so", files, LIBS=["videocommon", "common", "GLEW", "jpeg"])
 else:
 	gfxenv=env.Copy(CXXFLAGS = " `wx-config --cppflags` `pkg-config --cflags xxf86vm` ", LINKFLAGS = "`wx-config --libs` `pkg-config --libs xxf86vm` ")

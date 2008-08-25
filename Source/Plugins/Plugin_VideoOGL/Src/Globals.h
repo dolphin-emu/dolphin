@@ -40,7 +40,7 @@
 //#include <GL/glew.h>
 #include <GL/glxew.h>
 
-#ifdef MACOSX
+#if defined(__APPLE__) 
 
 #include <OpenGL/gl.h>
 

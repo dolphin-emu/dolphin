@@ -21,7 +21,7 @@
 #include "OS\Win32.h"
 #endif
 
-#ifdef MACOSX
+#if defined(__APPLE__) 
 #include "SDL.h"
 #endif
 

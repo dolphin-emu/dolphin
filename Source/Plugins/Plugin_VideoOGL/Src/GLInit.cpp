@@ -23,7 +23,7 @@
 #endif
 #include "GLInit.h"
 
-#ifdef MACOSX
+#if defined(__APPLE__)
 #include "SDL.h"
 #endif
 

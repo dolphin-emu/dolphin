@@ -21,7 +21,7 @@
 #include <windows.h>
 #endif
 
-#ifdef MACOSX
+#if defined(__APPLE__)
 
 #include <OpenGL/gl.h>
 
