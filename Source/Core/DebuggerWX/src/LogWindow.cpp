@@ -31,6 +31,7 @@ BEGIN_EVENT_TABLE(CLogWindow, wxDialog)
 	EVT_BUTTON(IDM_SUBMITCMD, CLogWindow::OnSubmit)
 	EVT_BUTTON(IDM_UPDATELOG, CLogWindow::OnUpdateLog)
 	EVT_BUTTON(IDM_CLEARLOG,  CLogWindow::OnClear)
+	EVT_BUTTON(IDM_ENABLEALL,  CLogWindow::OnEnableAll)
 	EVT_CHECKLISTBOX(IDM_LOGCHECKS, CLogWindow::OnLogCheck)
 END_EVENT_TABLE()
 
@@ -50,6 +51,7 @@ CLogWindow::CLogWindow(wxWindow* parent)
 
 	sizerTop->Add(new wxButton(this, IDM_UPDATELOG, _T("Update")));
 	sizerTop->Add(new wxButton(this, IDM_CLEARLOG, _T("Clear")));
+	sizerTop->Add(new wxButton(this, IDM_ENABLEALL, _T("Enable all")));
 	m_checks = new wxCheckListBox(this, IDM_LOGCHECKS, wxDefaultPosition, wxSize(120, 280));
 	sizerBottom->Add(m_cmdline, 8, wxGROW | wxRIGHT, 5);
 	sizerBottom->Add(btn, 1, wxGROW, 0);
@@ -104,6 +106,22 @@ void CLogWindow::OnClear(wxCommandEvent& event)
 	LogManager::Clear();
 	LOG(MASTER_LOG, "(log cleared).");
 	NotifyUpdate();
+}
+
+void CLogWindow::OnEnableAll(wxCommandEvent& event)
+{
+	static bool enable = true;
+	IniFile ini;
+	ini.Load("Dolphin.ini");
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
+	{
+		m_checks->Check(i, enable);
+		LogManager::m_Log[i]->m_bEnable = enable;
+		LogManager::m_Log[i]->m_bShowInLog = enable;
+		ini.Set("LogManager", LogManager::m_Log[i]->m_szShortName, enable);
+	}
+	ini.Save("Dolphin.ini");
+	enable = !enable;
 }
 
 

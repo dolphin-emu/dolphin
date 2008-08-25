@@ -46,6 +46,7 @@ class CLogWindow
 		void OnUpdateLog(wxCommandEvent& event);
 		void OnLogCheck(wxCommandEvent& event);
 		void OnClear(wxCommandEvent& event);
+		void OnEnableAll(wxCommandEvent& event);
 
 		void UpdateChecks();
 		void UpdateLog();
