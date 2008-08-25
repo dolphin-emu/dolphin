@@ -341,9 +341,8 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	dc.DrawRectangle(0, 0, 16, rc.height);
 	dc.DrawRectangle(0, 0, rc.width, 5);
 	// TODO - clean up this freaking mess!!!!!
-	int i;
 
-	for (i = -numRows; i <= numRows; i++)
+	for (int i = -numRows; i <= numRows; i++)
 	{
 		unsigned int address = curAddress + i * align;
 
@@ -469,7 +468,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 
 	dc.SetPen(currentPen);
 	
-	for (i = 0; i < numBranches; i++)
+	for (int i = 0; i < numBranches; i++)
 	{
 	    int x = 300 + (branches[i].srcAddr % 9) * 8;
 	    _MoveTo(x-2, branches[i].src);

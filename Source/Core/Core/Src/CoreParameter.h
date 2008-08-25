@@ -35,7 +35,7 @@ struct SCoreStartupParameter
 
 	// flags
 	bool bEnableDebugging;
-	bool bUseDynarec;
+	bool bUseJIT;
 	bool bUseDualCore;
     bool bNTSC;
     bool bHLEBios;

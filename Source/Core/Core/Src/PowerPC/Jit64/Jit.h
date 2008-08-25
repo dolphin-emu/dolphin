@@ -39,7 +39,7 @@ namespace Jit64
 
 	struct JitBlock;
 	const u8* DoJit(u32 emaddress, JitBlock &b);
-	bool IsInJitCode(u8 *codePtr);
+	bool IsInJitCode(const u8 *codePtr);
 
 	struct JitState
 	{

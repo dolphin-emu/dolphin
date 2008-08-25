@@ -20,8 +20,10 @@
 #include "../../HLE/HLE.h"
 #include "../PPCAnalyst.h"
 
+namespace Interpreter
+{
 
-void CInterpreter::bx(UGeckoInstruction _inst)
+void bx(UGeckoInstruction _inst)
 {
 	if (_inst.LK)
 		LR = PC + 4;
@@ -41,7 +43,7 @@ void CInterpreter::bx(UGeckoInstruction _inst)
 }
 
 // bcx - ugly, straight from PPC manual equations :)
-void CInterpreter::bcx(UGeckoInstruction _inst)
+void bcx(UGeckoInstruction _inst)
 {
 	if ((_inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		CTR--;
@@ -65,7 +67,7 @@ void CInterpreter::bcx(UGeckoInstruction _inst)
 	m_EndBlock = true;
 }
 
-void CInterpreter::bcctrx(UGeckoInstruction _inst)
+void bcctrx(UGeckoInstruction _inst)
 {
 	if ((_inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		CTR--;
@@ -81,7 +83,7 @@ void CInterpreter::bcctrx(UGeckoInstruction _inst)
 	m_EndBlock = true;
 }
 
-void CInterpreter::bclrx(UGeckoInstruction _inst)
+void bclrx(UGeckoInstruction _inst)
 {
 	if ((_inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
 		CTR--;
@@ -98,18 +100,18 @@ void CInterpreter::bclrx(UGeckoInstruction _inst)
 	m_EndBlock = true;
 }
 
-void CInterpreter::HLEFunction(UGeckoInstruction _inst)
+void HLEFunction(UGeckoInstruction _inst)
 {
 	m_EndBlock = true;
 	HLE::Execute(PC, _inst.hex);
 }
 
-void CInterpreter::CompiledBlock(UGeckoInstruction _inst)
+void CompiledBlock(UGeckoInstruction _inst)
 {
-	_assert_msg_(GEKKO, 0, "CInterpreter::CompiledBlock - shouldn't be here!");
+	_assert_msg_(GEKKO, 0, "CompiledBlock - shouldn't be here!");
 }
 
-void CInterpreter::rfi(UGeckoInstruction _inst)
+void rfi(UGeckoInstruction _inst)
 {
 	//Bits SRR1[0,5-9,16�23, 25�27, 30�31] are placed into the corresponding bits of the MSR.
 	//MSR[13] is set to 0.
@@ -123,7 +125,7 @@ void CInterpreter::rfi(UGeckoInstruction _inst)
 	// PowerPC::CheckExceptions();
 }
 
-void CInterpreter::rfid(UGeckoInstruction _inst) 
+void rfid(UGeckoInstruction _inst) 
 {
 	_dbg_assert_msg_(GEKKO,0,"Instruction unimplemented (does this instruction even exist?)","rfid");
 	m_EndBlock = true;
@@ -131,10 +133,11 @@ void CInterpreter::rfid(UGeckoInstruction _inst)
 
 // sc isn't really used for anything important in gc games (just for a write barrier) so we really don't have to emulate it.
 // We do it anyway, though :P
-void CInterpreter::sc(UGeckoInstruction _inst)
+void sc(UGeckoInstruction _inst)
 {
 	PowerPC::ppcState.Exceptions |= EXCEPTION_SYSCALL;
 	PowerPC::CheckExceptions();
 	m_EndBlock = true;
 }
 
+}  // namespace

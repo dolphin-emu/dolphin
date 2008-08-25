@@ -57,6 +57,9 @@
 // Super Monkey Ball reads FPRF & friends after fmadds, fmuls, frspx
 // WHY do the FR & FI flags affect it so much?
 
+namespace Interpreter
+{
+
 void UpdateFPSCR(UReg_FPSCR fp);
 void UpdateSSEState();
 
@@ -110,7 +113,7 @@ void UpdateFPRF(double value)
 
 
 // extremely rare
-void CInterpreter::Helper_UpdateCR1(double _fValue)
+void Helper_UpdateCR1(double _fValue)
 {
 	FPSCR.FPRF = 0;
 	if (_fValue == 0.0 || _fValue == -0.0)
@@ -124,12 +127,12 @@ void CInterpreter::Helper_UpdateCR1(double _fValue)
 	PanicAlert("CR1");
 }
 
-bool CInterpreter::IsNAN(double _dValue) 
+bool IsNAN(double _dValue) 
 { 
 	return _dValue != _dValue; 
 }
 
-void CInterpreter::fcmpo(UGeckoInstruction _inst)
+void fcmpo(UGeckoInstruction _inst)
 {
 	double fa =	rPS0(_inst.FA);
 	double fb =	rPS0(_inst.FB);
@@ -151,7 +154,7 @@ void CInterpreter::fcmpo(UGeckoInstruction _inst)
 		then VXVC ¬ 1 */
 }
 
-void CInterpreter::fcmpu(UGeckoInstruction _inst)
+void fcmpu(UGeckoInstruction _inst)
 {
 	double fa =	rPS0(_inst.FA);
 	double fb =	rPS0(_inst.FB);
@@ -171,7 +174,7 @@ void CInterpreter::fcmpu(UGeckoInstruction _inst)
 }
 
 // Apply current rounding mode
-void CInterpreter::fctiwx(UGeckoInstruction _inst)
+void fctiwx(UGeckoInstruction _inst)
 {
 	UpdateSSEState();
 	const double b = rPS0(_inst.FB);
@@ -210,7 +213,7 @@ representable int result in 0x80000000 (a very negative number) rather than the
 largest representable int on PowerPC. */
 
 // Always round toward zero
-void CInterpreter::fctiwzx(UGeckoInstruction _inst)
+void fctiwzx(UGeckoInstruction _inst)
 {
 	//UpdateFPSCR(FPSCR);
 	const double b = rPS0(_inst.FB);
@@ -241,35 +244,35 @@ void CInterpreter::fctiwzx(UGeckoInstruction _inst)
 		Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
-void CInterpreter::fmrx(UGeckoInstruction _inst)
+void fmrx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS0(_inst.FB);
 	// This is a binary instruction. Does not alter FPSCR
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
 
-void CInterpreter::fabsx(UGeckoInstruction _inst)
+void fabsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = fabs(rPS0(_inst.FB));
 	// This is a binary instruction. Does not alter FPSCR
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
-void CInterpreter::fnabsx(UGeckoInstruction _inst)
+void fnabsx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS0(_inst.FB) | (1ULL << 63);
 	// This is a binary instruction. Does not alter FPSCR
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
-void CInterpreter::fnegx(UGeckoInstruction _inst)
+void fnegx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS0(_inst.FB) ^ (1ULL << 63);
 	// This is a binary instruction. Does not alter FPSCR
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
-void CInterpreter::fselx(UGeckoInstruction _inst)
+void fselx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = (rPS0(_inst.FA) >= -0.0) ? rPS0(_inst.FC) : rPS0(_inst.FB);
 	// This is a binary instruction. Does not alter FPSCR
@@ -281,7 +284,7 @@ void CInterpreter::fselx(UGeckoInstruction _inst)
 // PS1 must be set to the value of PS0 or DragonballZ will be f**ked up
 // PS1 is said to be undefined
 // Super Monkey Ball is using this to do wacky tricks so we need 100% correct emulation.
-void CInterpreter::frspx(UGeckoInstruction _inst)  // round to single
+void frspx(UGeckoInstruction _inst)  // round to single
 {
 	if (true || FPSCR.RN != 0)
 	{
@@ -352,14 +355,14 @@ void CInterpreter::frspx(UGeckoInstruction _inst)  // round to single
 }
 
 
-void CInterpreter::fmulx(UGeckoInstruction _inst)
+void fmulx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS0(_inst.FA) * rPS0(_inst.FC);
 	FPSCR.FI = 0;
 	FPSCR.FR = 1;
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
-void CInterpreter::fmulsx(UGeckoInstruction _inst)
+void fmulsx(UGeckoInstruction _inst)
 {
 	double d_value = rPS0(_inst.FA) * rPS0(_inst.FC);
 	rPS0(_inst.FD) = rPS1(_inst.FD) = static_cast<float>(d_value);
@@ -370,14 +373,14 @@ void CInterpreter::fmulsx(UGeckoInstruction _inst)
 }
 
 
-void CInterpreter::fmaddx(UGeckoInstruction _inst)
+void fmaddx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = (rPS0(_inst.FA) * rPS0(_inst.FC)) + rPS0(_inst.FB);
 	FPSCR.FI = 0;
 	FPSCR.FR = 0;
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
-void CInterpreter::fmaddsx(UGeckoInstruction _inst)
+void fmaddsx(UGeckoInstruction _inst)
 {
 	double d_value = (rPS0(_inst.FA) * rPS0(_inst.FC)) + rPS0(_inst.FB);
 	rPS0(_inst.FD) = rPS1(_inst.FD) = 
@@ -389,14 +392,14 @@ void CInterpreter::fmaddsx(UGeckoInstruction _inst)
 }
 
 
-void CInterpreter::faddx(UGeckoInstruction _inst)
+void faddx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS0(_inst.FA) + rPS0(_inst.FB);
 //	FPSCR.FI = 0;
 //	FPSCR.FR = 1;
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
-void CInterpreter::faddsx(UGeckoInstruction _inst)
+void faddsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = static_cast<float>(rPS0(_inst.FA) + rPS0(_inst.FB));
 //	FPSCR.FI = 0;
@@ -406,7 +409,7 @@ void CInterpreter::faddsx(UGeckoInstruction _inst)
 }
 
 
-void CInterpreter::fdivx(UGeckoInstruction _inst)
+void fdivx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS0(_inst.FA) / rPS0(_inst.FB);
 //	FPSCR.FI = 0;
@@ -416,7 +419,7 @@ void CInterpreter::fdivx(UGeckoInstruction _inst)
 	}
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
-void CInterpreter::fdivsx(UGeckoInstruction _inst)
+void fdivsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = static_cast<float>(rPS0(_inst.FA) / rPS0(_inst.FB));
 //	FPSCR.FI = 0;
@@ -426,7 +429,7 @@ void CInterpreter::fdivsx(UGeckoInstruction _inst)
 	}
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));  
 }
-void CInterpreter::fresx(UGeckoInstruction _inst)
+void fresx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = static_cast<float>(1.0f / rPS0(_inst.FB));
 //	FPSCR.FI = 0;
@@ -438,7 +441,7 @@ void CInterpreter::fresx(UGeckoInstruction _inst)
 }
 
 
-void CInterpreter::fmsubx(UGeckoInstruction _inst)
+void fmsubx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = (rPS0(_inst.FA) * rPS0(_inst.FC)) - rPS0(_inst.FB);
 //	FPSCR.FI = 0;
@@ -446,7 +449,7 @@ void CInterpreter::fmsubx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
 
-void CInterpreter::fmsubsx(UGeckoInstruction _inst)
+void fmsubsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) =
 		static_cast<float>((rPS0(_inst.FA) * rPS0(_inst.FC)) - rPS0(_inst.FB));
@@ -456,14 +459,14 @@ void CInterpreter::fmsubsx(UGeckoInstruction _inst)
 }
 
 
-void CInterpreter::fnmaddx(UGeckoInstruction _inst)
+void fnmaddx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = -((rPS0(_inst.FA) * rPS0(_inst.FC)) + rPS0(_inst.FB));
 //	FPSCR.FI = 0;
 //	FPSCR.FR = 0;
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
-void CInterpreter::fnmaddsx(UGeckoInstruction _inst)
+void fnmaddsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = 
 		static_cast<float>(-((rPS0(_inst.FA) * rPS0(_inst.FC)) + rPS0(_inst.FB)));
@@ -473,14 +476,14 @@ void CInterpreter::fnmaddsx(UGeckoInstruction _inst)
 }
 
 
-void CInterpreter::fnmsubx(UGeckoInstruction _inst)
+void fnmsubx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = -((rPS0(_inst.FA) * rPS0(_inst.FC)) - rPS0(_inst.FB));
 //	FPSCR.FI = 0;
 //	FPSCR.FR = 0;
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
-void CInterpreter::fnmsubsx(UGeckoInstruction _inst)
+void fnmsubsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = 
 		static_cast<float>(-((rPS0(_inst.FA) * rPS0(_inst.FC)) - rPS0(_inst.FB)));
@@ -490,14 +493,14 @@ void CInterpreter::fnmsubsx(UGeckoInstruction _inst)
 }
 
 
-void CInterpreter::fsubx(UGeckoInstruction _inst)
+void fsubx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS0(_inst.FA) - rPS0(_inst.FB);
 //	FPSCR.FI = 0;
 //	FPSCR.FR = 0;
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
-void CInterpreter::fsubsx(UGeckoInstruction _inst)
+void fsubsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = static_cast<float>(rPS0(_inst.FA) - rPS0(_inst.FB));
 //	FPSCR.FI = 0;
@@ -506,7 +509,7 @@ void CInterpreter::fsubsx(UGeckoInstruction _inst)
 }
 
 
-void CInterpreter::frsqrtex(UGeckoInstruction _inst)
+void frsqrtex(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = 1.0f / (sqrt(rPS0(_inst.FB)));
 //	FPSCR.FI = 0;
@@ -514,7 +517,7 @@ void CInterpreter::frsqrtex(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
-void CInterpreter::fsqrtx(UGeckoInstruction _inst)
+void fsqrtx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = sqrt(rPS0(_inst.FB));
 //	FPSCR.FI = 0;
@@ -522,3 +525,5 @@ void CInterpreter::fsqrtx(UGeckoInstruction _inst)
 
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
+
+}  // namespace

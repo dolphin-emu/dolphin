@@ -78,10 +78,8 @@ struct GekkoOPInfo
 	u32 lastUse;
 };
 
-
 GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst);
-CInterpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst);
-
+Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst);
 
 class PPCTables
 {

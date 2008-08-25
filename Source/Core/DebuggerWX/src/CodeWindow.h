@@ -144,6 +144,7 @@ class CCodeWindow
 		void OnHostMessage(wxCommandEvent& event);
 		void OnSymbolsMenu(wxCommandEvent& event);
 		void OnJitMenu(wxCommandEvent& event);
+		void OnInterpreter(wxCommandEvent& event);
 
 		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter);
 

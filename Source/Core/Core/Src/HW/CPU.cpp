@@ -81,7 +81,7 @@ void CCPU::Run()
 				break;                
 			}
 
-/*			if (!Core::g_CoreStartupParameter.bUseDynarec && CBreakPoints::GetBreakCount() == PowerPC::ppcState.DebugCount)
+/*			if (!Core::g_CoreStartupParameter.bUseJIT && CBreakPoints::GetBreakCount() == PowerPC::ppcState.DebugCount)
 			{
 				LOG(GEKKO, "Hit DebugCount breakpoint - %i", PowerPC::ppcState.DebugCount);
 				EnableStepping(true);
@@ -192,7 +192,7 @@ void CCPU::SingleStep()
 				break;
 			}
 
-			if (!Core::g_CoreStartupParameter.bUseDynarec && CBreakPoints::GetBreakCount() == PowerPC::ppcState.DebugCount)
+			if (!Core::g_CoreStartupParameter.bUseJIT && CBreakPoints::GetBreakCount() == PowerPC::ppcState.DebugCount)
 			{
 				LOG(GEKKO, "Hit DebugCount breakpoint - %i", PowerPC::ppcState.DebugCount);
 				EnableStepping(true);

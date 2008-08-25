@@ -801,10 +801,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\PowerPC\ICPUCore.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\PowerPC\PowerPC.cpp"
 				>
 			</File>

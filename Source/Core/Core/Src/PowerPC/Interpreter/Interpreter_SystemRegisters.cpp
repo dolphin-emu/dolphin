@@ -49,6 +49,9 @@ mffsx: 80036650 (huh?)
 // That is, set rounding mode etc when entering jit code or the interpreter loop
 // Restore rounding mode when calling anything external
 
+namespace Interpreter
+{
+
 void UpdateSSEState()
 {
 	u32 csr = _mm_getcsr();
@@ -116,7 +119,7 @@ void UpdateFPSCR(UReg_FPSCR fp)
 	UpdateSSEState();
 }
 
-void CInterpreter::mcrfs(UGeckoInstruction _inst)
+void mcrfs(UGeckoInstruction _inst)
 {
 	u32 fpflags = ((FPSCR.Hex >> (4*(_inst.CRFS))) & 0xF);
 	switch (_inst.CRFS) {
@@ -165,7 +168,7 @@ void CInterpreter::mcrfs(UGeckoInstruction _inst)
 #define MXCSR_ROUND (16384|8192)
 #define MXCSR_FLUSH 32768
 
-void CInterpreter::mffsx(UGeckoInstruction _inst)
+void mffsx(UGeckoInstruction _inst)
 {
 	// load from FPSCR
 	// This may or may not be accurate - but better than nothing, I guess
@@ -175,21 +178,21 @@ void CInterpreter::mffsx(UGeckoInstruction _inst)
 	if (_inst.Rc) PanicAlert("mffsx: inst_.Rc");
 }
 
-void CInterpreter::mtfsb0x(UGeckoInstruction _inst)
+void mtfsb0x(UGeckoInstruction _inst)
 {
 	FPSCR.Hex &= (~(0x80000000 >> _inst.CRBD));
 	UpdateFPSCR(FPSCR);
 	if (_inst.Rc) PanicAlert("mtfsb0x: inst_.Rc");
 }
 
-void CInterpreter::mtfsb1x(UGeckoInstruction _inst)
+void mtfsb1x(UGeckoInstruction _inst)
 {
 	FPSCR.Hex |= 0x80000000 >> _inst.CRBD;
 	UpdateFPSCR(FPSCR);
 	if (_inst.Rc) PanicAlert("mtfsb1x: inst_.Rc");
 }
 
-void CInterpreter::mtfsfix(UGeckoInstruction _inst)
+void mtfsfix(UGeckoInstruction _inst)
 {
 	u32 mask = (0xF0000000 >> (4 * _inst.CRFD));
 	u32 imm = (_inst.hex << 16) & 0xF0000000;
@@ -198,7 +201,7 @@ void CInterpreter::mtfsfix(UGeckoInstruction _inst)
 	if (_inst.Rc) PanicAlert("mtfsfix: inst_.Rc");
 }
 
-void CInterpreter::mtfsfx(UGeckoInstruction _inst)
+void mtfsfx(UGeckoInstruction _inst)
 {
 	u32 fm = _inst.FM;
 	u32 m = 0;
@@ -212,18 +215,18 @@ void CInterpreter::mtfsfx(UGeckoInstruction _inst)
 	if (_inst.Rc) PanicAlert("mtfsfx: inst_.Rc");
 }
 
-void CInterpreter::mcrxr(UGeckoInstruction _inst)
+void mcrxr(UGeckoInstruction _inst)
 {
 	SetCRField(_inst.CRFD, XER.Hex >> 28); 
 	XER.Hex &= ~0xF0000000; // clear 0-3
 }
 
-void CInterpreter::mfcr(UGeckoInstruction _inst)
+void mfcr(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RD] = GetCR();
 }
 
-void CInterpreter::mtcrf(UGeckoInstruction _inst)
+void mtcrf(UGeckoInstruction _inst)
 {
 	u32 mask = 0;
 	u32 crm = _inst.CRM;
@@ -240,7 +243,7 @@ void CInterpreter::mtcrf(UGeckoInstruction _inst)
 }
 
 
-void CInterpreter::mfmsr(UGeckoInstruction _inst)
+void mfmsr(UGeckoInstruction _inst)
 {
 	//Privileged?
 	m_GPR[_inst.RD] = MSR;
@@ -248,38 +251,38 @@ void CInterpreter::mfmsr(UGeckoInstruction _inst)
 
 // segment register
 // We can probably ignore all this junk
-void CInterpreter::mfsr(UGeckoInstruction _inst)
+void mfsr(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RD] = PowerPC::ppcState.sr[_inst.SR];
 }
 
 // segment register
-void CInterpreter::mfsrin(UGeckoInstruction _inst)
+void mfsrin(UGeckoInstruction _inst)
 {
 	int index = m_GPR[_inst.RB] & 0xF;
 	m_GPR[_inst.RD] = PowerPC::ppcState.sr[index];
 }
 
-void CInterpreter::mtmsr(UGeckoInstruction _inst)
+void mtmsr(UGeckoInstruction _inst)
 {
 	//Privileged?
 	MSR = m_GPR[_inst.RS];
 }
 
 // segment register
-void CInterpreter::mtsr(UGeckoInstruction _inst)
+void mtsr(UGeckoInstruction _inst)
 {
 	PowerPC::ppcState.sr[_inst.SR] = m_GPR[_inst.RS];
 }
 
 // segment register
-void CInterpreter::mtsrin(UGeckoInstruction _inst)
+void mtsrin(UGeckoInstruction _inst)
 {
 	int index = m_GPR[_inst.RB] & 0xF;
 	PowerPC::ppcState.sr[index] = m_GPR[_inst.RS];
 }
 
-void CInterpreter::mftb(UGeckoInstruction _inst)
+void mftb(UGeckoInstruction _inst)
 {
 	int iIndex = (_inst.TBR >> 5) | ((_inst.TBR & 0x1F) << 5);
 	if (iIndex == 268)		m_GPR[_inst.RD] = TL;
@@ -288,7 +291,7 @@ void CInterpreter::mftb(UGeckoInstruction _inst)
 }
 
 
-void CInterpreter::mfspr(UGeckoInstruction _inst)
+void mfspr(UGeckoInstruction _inst)
 {
 	u32 iIndex = ((_inst.SPR & 0x1F) << 5) + ((_inst.SPR >> 5) & 0x1F);
 
@@ -315,7 +318,7 @@ void CInterpreter::mfspr(UGeckoInstruction _inst)
 	m_GPR[_inst.RD] = rSPR(iIndex);
 }
 
-void CInterpreter::mtspr(UGeckoInstruction _inst)
+void mtspr(UGeckoInstruction _inst)
 {
 	u32 iIndex = (_inst.SPRU << 5) | (_inst.SPRL & 0x1F);
 	u32 oldValue = rSPR(iIndex);
@@ -405,7 +408,7 @@ void CInterpreter::mtspr(UGeckoInstruction _inst)
 	}
 }
 
-void CInterpreter::crand(UGeckoInstruction _inst)
+void crand(UGeckoInstruction _inst)
 {
 	u32 cr = GetCR();
 	u32 a = cr << _inst.CRBA;
@@ -414,7 +417,7 @@ void CInterpreter::crand(UGeckoInstruction _inst)
 	SetCR(d | (cr & ~(0x80000000 >> _inst.CRBD)));
 }
 
-void CInterpreter::crandc(UGeckoInstruction _inst)
+void crandc(UGeckoInstruction _inst)
 {
 	u32 cr = GetCR();
 	u32 a = cr << _inst.CRBA;
@@ -424,7 +427,7 @@ void CInterpreter::crandc(UGeckoInstruction _inst)
 }
 
 
-void CInterpreter::creqv(UGeckoInstruction _inst)
+void creqv(UGeckoInstruction _inst)
 {
 	u32 cr = GetCR();
 	u32 a = cr << _inst.CRBA;
@@ -433,7 +436,7 @@ void CInterpreter::creqv(UGeckoInstruction _inst)
 	SetCR(d | (cr & ~(0x80000000 >> _inst.CRBD)));
 }
 
-void CInterpreter::crnand(UGeckoInstruction _inst)
+void crnand(UGeckoInstruction _inst)
 {
 	u32 cr = GetCR();
 	u32 a = cr << _inst.CRBA;
@@ -442,7 +445,7 @@ void CInterpreter::crnand(UGeckoInstruction _inst)
 	SetCR(d | (cr & ~(0x80000000 >> _inst.CRBD)));
 }
 
-void CInterpreter::crnor(UGeckoInstruction _inst)
+void crnor(UGeckoInstruction _inst)
 {
 	u32 cr = GetCR();
 	u32 a = cr << _inst.CRBA;
@@ -451,7 +454,7 @@ void CInterpreter::crnor(UGeckoInstruction _inst)
 	SetCR(d | (cr & ~(0x80000000 >> _inst.CRBD)));
 }
 
-void CInterpreter::cror(UGeckoInstruction _inst)
+void cror(UGeckoInstruction _inst)
 {
 	u32 cr = GetCR();
 	u32 a = cr << _inst.CRBA;
@@ -460,7 +463,7 @@ void CInterpreter::cror(UGeckoInstruction _inst)
 	SetCR(d | (cr & ~(0x80000000 >> _inst.CRBD)));
 }
 
-void CInterpreter::crorc(UGeckoInstruction _inst)
+void crorc(UGeckoInstruction _inst)
 {
 	u32 cr = GetCR();
 	u32 a = cr << _inst.CRBA;
@@ -469,7 +472,7 @@ void CInterpreter::crorc(UGeckoInstruction _inst)
 	SetCR(d | (cr & ~(0x80000000 >> _inst.CRBD)));
 }
 
-void CInterpreter::crxor(UGeckoInstruction _inst)
+void crxor(UGeckoInstruction _inst)
 {
 	u32 cr = GetCR();
 	u32 a = cr << _inst.CRBA;
@@ -478,7 +481,7 @@ void CInterpreter::crxor(UGeckoInstruction _inst)
 	SetCR(d | (cr & ~(0x80000000 >> _inst.CRBD)));
 }
 
-void CInterpreter::mcrf(UGeckoInstruction _inst)
+void mcrf(UGeckoInstruction _inst)
 {
 	u32 cr = GetCR();
 	u32 crmask = ~(0xF0000000 >> (4*_inst.CRFD));
@@ -486,7 +489,9 @@ void CInterpreter::mcrf(UGeckoInstruction _inst)
 	SetCR((cr & crmask) | flags);
 }
 
-void CInterpreter::isync(UGeckoInstruction _inst)
+void isync(UGeckoInstruction _inst)
 {
 	//shouldnt do anything
 }
+
+}  // namespace

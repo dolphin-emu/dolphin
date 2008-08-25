@@ -15,6 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#ifdef _WIN32
+#include <float.h>
+#endif
+
 #include "Common.h"
 #include "ChunkFile.h"
 
@@ -25,6 +29,7 @@
 
 #include "Interpreter/Interpreter.h"
 #include "Jit64/JitCore.h"
+#include "Jit64/JitCache.h"
 #include "PowerPC.h"
 #include "PPCTables.h"
 
@@ -36,7 +41,7 @@ namespace PowerPC
 	PowerPCState GC_ALIGNED16(ppcState);
 	volatile CPUState state = CPU_STEPPING;
 
-	ICPUCore* m_pCore = NULL;
+	static CoreMode mode;
 
 	void DoState(ChunkFile &f)
 	{
@@ -48,10 +53,6 @@ namespace PowerPC
 
 	void ResetRegisters()
 	{
-		if (((u64)&ppcState & 0xf) != 0) {
-			PanicAlert("The compiler misaligned ppcState in memory. Likely to cause crashes.");
-		}
-
 		for (int i = 0; i < 32; i++)
 		{
 			ppcState.gpr[i] = 0;
@@ -70,73 +71,90 @@ namespace PowerPC
 		TL = 0;
 		TU = 0;
 
-		ppcState.DoPreRetrace = true;
 		ppcState.msr = 0;
 		rDEC = 0xFFFFFFFF;
 	}
 
 	void Init()
 	{
+		#ifdef _M_IX86
+		// sets the floating-point lib to 53-bit
+		// PowerPC has a 53bit floating pipeline only
+		// eg: sscanf is very sensitive
+	#ifdef _WIN32
+		_control87(_PC_53, MCW_PC);
+	#else
+		unsigned short mode;
+		asm ("fstcw %0" : : "m" (mode));
+		mode = (mode & ~FPU_PREC_MASK) | FPU_PREC_53;
+		asm ("fldcw %0" : : "m" (mode));
+	#endif
+	#else
+		//x64 doesn't need this - fpu is done with SSE
+		//but still - set any useful sse options here
+	#endif
+
 		ResetRegisters();
 		PPCTables::InitTables();
+
+		// Initialize both execution engines ... 
+		Interpreter::Init();
+		Jit64::Core::Init();
+		// ... but start as interpreter by default.
+		mode = MODE_INTERPRETER;
 		state = CPU_STEPPING;
-		SetCore(CORE_INTERPRETER);
 	}
 
 	void Shutdown()
 	{
-		if (m_pCore != NULL)
-		{
-			m_pCore->Shutdown();
-			delete m_pCore;
-			m_pCore = NULL;
-		}
+		// Shutdown both execution engines. Doesn't matter which one is active.
+		Jit64::Core::Shutdown();
+		Interpreter::Shutdown();
 	}
 
-	void Reset()
+	void SetMode(CoreMode new_mode)
 	{
-		ResetRegisters();
-		if (m_pCore!= NULL)
-			m_pCore->Reset();
-	}
+		if (new_mode == mode)
+			return;  // We don't need to do anything.
 
-	void SetCore(ECoreType _coreType)
-	{
-		// shutdown the old core
-		if (m_pCore != NULL)
+		mode = new_mode;
+		switch (mode)
 		{
-			m_pCore->Shutdown();
-			delete m_pCore;
-			m_pCore = NULL;
-		}
-
-		// create the new one
-		switch(_coreType)
-		{
-		case CORE_INTERPRETER:
-			m_pCore = new CInterpreter();
-			m_pCore->Init();
+		case MODE_INTERPRETER:  // Switching from JIT to interpreter
+			Jit64::ClearCache();  // Remove all those nasty JIT patches.
 			break;
 
-		case CORE_DYNAREC:
-			m_pCore = new Jit64::Jit64Core();
-			m_pCore->Init();
-			break;
-
-		default:
+		case MODE_JIT:  // Switching from interpreter to JIT.
+			// Don't really need to do much. It'll work, the cache will refill itself.
 			break;
 		}
 	}
 
 	void SingleStep() 
 	{
-		m_pCore->SingleStep();
+		switch (mode)
+		{
+		case MODE_INTERPRETER:
+			Interpreter::SingleStep();
+			break;
+		case MODE_JIT:
+			Jit64::Core::SingleStep();
+			break;
+		}
 	}
 
 	void RunLoop()
 	{
 		state = CPU_RUNNING;
-		m_pCore->Run();
+		switch (mode) 
+		{
+		case MODE_INTERPRETER:
+			Interpreter::Run();
+			break;
+		case MODE_JIT:
+			Jit64::Core::Run();
+			break;
+		}
         Host_UpdateDisasmDialog();
 	}
 
@@ -240,7 +258,7 @@ namespace PowerPC
 				LOG(GEKKO, "EXCEPTION_EXTERNAL_INT");
 
 				SRR1 |= 0x02; //set it to recoverable
-				_dbg_assert_msg_(GEKKO,(SRR1 & 0x02) != 0,"GEKKO","EXTERNAL_INT unrecoverable???");		// unrecoverable exception !?!
+				_dbg_assert_msg_(GEKKO, (SRR1 & 0x02) != 0, "GEKKO", "EXTERNAL_INT unrecoverable???");  // unrecoverable exception !?!
 			}
 			else if (ppcState.Exceptions & EXCEPTION_DECREMENTER)
 			{

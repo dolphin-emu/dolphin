@@ -27,46 +27,43 @@
 
 #include "Common.h"
 #include "Gekko.h"
-#include "ICPUCore.h"
 
 class ChunkFile;
 
 namespace PowerPC
 {
-	enum ECoreType
+	enum CoreMode
 	{
-		CORE_INTERPRETER,
-		CORE_DYNAREC,
+		MODE_INTERPRETER,
+		MODE_JIT,
 	};
+
 	struct GC_ALIGNED64(PowerPCState)
 	{
-		u32 mojs[128];
-		// sets of registers
-		u32 gpr[32];
-		// the paired singles are strange : PS0 is stored in the full 64 bits of each FPR
-		// but ps calculations are probably only 32-bit
+		u32 mojs[128];  // Try to isolate the regs from other variables in the cache.
+		u32 gpr[32];    // General purpose registers. r1 = stack pointer.
+
+		// The paired singles are strange : PS0 is stored in the full 64 bits of each FPR
+		// but ps calculations are only done in 32-bit precision, and PS1 is only 32 bits.
+		// Since we want to use SIMD, SSE2 is the only viable alternative - 2x double.
 		u64 ps[32][2];
 
-		// program counter
-		u32 pc;
+		u32 pc;     // program counter
 		u32 npc;
 
-		// flags
-		u32 cr;
-		u32 msr;
-		u32 fpscr;
+		u32 cr;     // flags
+		u32 msr;    // machine specific register
+		u32 fpscr;  // floating point flags/status bits
 
-		//exception management
+		// Exception management.
 		u32 Exceptions;
 
-		u32 sr[16];
-
-		// interrupts hack
-		u32 DoPreRetrace; 
+		u32 sr[16];  // Segment registers. Unused.
 
 		u32 DebugCount;
 		
-		// additional special purpose registers
+		// special purpose registers - controlls quantizers, DMA, and lots of other misc extensions.
+		// also for power management, but we don't care about that.
 		u32 spr[1024];
 	};
 
@@ -79,29 +76,21 @@ namespace PowerPC
 	};
 
 	extern PowerPCState ppcState;
-
-	extern volatile CPUState state; //cpu cores should poll this				
-
-	void ResetRegisters();
-	void Reset();
+	extern volatile CPUState state;  // Execution engines should poll this to know when to exit.
 
 	void Init();
 	void Shutdown();
 	void DoState(ChunkFile &f);
 
-	void SetCore(ECoreType _coreType);
+	void SetMode(CoreMode _coreType);
 
-	ICPUCore& GetCore();
-
-	void SingleStep();
-	
+	void SingleStep();	
 	void CheckExceptions();
 	void RunLoop();
 	void Start();
 	void Pause();
 	void Stop();
 
-	u32 ConvertMillisecondToTicks(u32 _Milliseconds);
 	void OnIdle(u32 _uThreadAddr);
 }
 

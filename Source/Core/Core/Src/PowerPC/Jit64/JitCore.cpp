@@ -30,38 +30,30 @@
 
 namespace Jit64
 {
-	void Jit64Core::Init()
-	{
-		::Jit64::Init();
-		InitCache();
-		Asm::compareEnabled = Core::g_CoreStartupParameter.bRunCompareClient;
-	}
+namespace Core
+{
 
-	void Jit64Core::Shutdown()
-	{
-		ShutdownCache();
-	}
-
-	void Jit64Core::Reset()
-	{
-		ResetCache();
-	}
-
-	void Jit64Core::SingleStep()
-	{
-		Run();
-		/*
-		CompiledCode pExecAddr = (CompiledCode)GetCompiledCode(PC);
-		if (pExecAddr == NULL)
-		{
-			pExecAddr = (CompiledCode)Jit(PC);
-		}
-		pExecAddr();
-		*/
-	}
-
-	void Jit64Core::Run()
-	{
-		EnterFastRun();		
-	}
+void Init()
+{
+	::Jit64::Init();
+	InitCache();
+	Asm::compareEnabled = ::Core::g_CoreStartupParameter.bRunCompareClient;
 }
+
+void Shutdown()
+{
+	ShutdownCache();
+}
+
+void SingleStep()
+{
+	Run();
+}
+
+void Run()
+{
+	EnterFastRun();		
+}
+
+}  // namespace
+}  // namespace

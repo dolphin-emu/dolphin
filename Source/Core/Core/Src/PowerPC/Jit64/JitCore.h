@@ -17,13 +17,10 @@
 #ifndef _JITCORE_H
 #define _JITCORE_H
 
-#include "../ICPUCore.h"
-
 namespace Jit64
 {	
-	class Jit64Core : public ICPUCore
+	namespace Core
 	{
-	public:
 		void Init();
 		void Shutdown();
 		void Reset();

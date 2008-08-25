@@ -30,7 +30,7 @@ SCoreStartupParameter::SCoreStartupParameter()
 void SCoreStartupParameter::LoadDefaults()
 {
 	bEnableDebugging = false;
-	bUseDynarec = false;
+	bUseJIT = false;
 	bUseDualCore = false;
 	bRunCompareServer = false;
 	bLockThreads = true;

@@ -446,7 +446,8 @@ bool CBoot::Load_BIOS(const std::string& _rBiosFilename)
 bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
 {
     const bool bDebugIsoBootup = false;
-  
+
+	g_symbolDB.Clear();
     VideoInterface::PreInit(_StartupPara.bNTSC);
     switch(_StartupPara.m_BootType)
     {

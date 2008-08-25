@@ -80,8 +80,8 @@ extern int blocksExecuted;
 //be allocated, it should just be a temporary to do non-destructive trinary ops.
 
 //However, for the above to work and be a win, we need to store away the non volatiles before  
-//entering "dynarec space". However, once we're there, it will be a win.
-//Also, dynarec space will need to be surrounded with stack adjusting, since functions will be called.
+//entering "JIT space". However, once we're there, it will be a win.
+//Also, JIT space will need to be surrounded with stack adjusting, since functions will be called.
 
 //Many instructions have shorter forms for EAX. However, I believe their performance boost
 //will be as small to be negligble, so I haven't dirtied up the code with that. AMD recommends it in their
@@ -118,35 +118,35 @@ extern int blocksExecuted;
 
 // Plan: 1. Byteswap Dolphin DONE!
 //       2. Fix timing WORKING
-//       3. Lay groundwork for x64 dynarec WORKING
+//       3. Lay groundwork for x64 JIT WORKING
 //       4. Get OneTri up to 60fps, and check compatibility from time to time (yea right)  ????
-//       5. Add block linking to dynarec << NOT SO IMPORTANT
+//       5. Add block linking to JIT << NOT SO IMPORTANT
 //		 6. Optimize GFX plugin to hell << IMPORTANT
 //       7. Watch Zelda do 20 fps.
-//       8. Watch Zelda TP do 30 fps.
+//       8. Watch Zelda TP do 30 fps. DONE :D
 
 //Optimizations -
 /*
   * Assume SP is in main RAM (in Wii mode too?)
-  * Assume all floating point loads and double precision stores are to/from main ram (single precision can be used in write gather)
+  * Assume all floating point loads and double precision loads+stores are to/from main ram
+    (single precision can be used in write gather)
     (this is valid on Wii too when using the VM emulator)
 
   * AMD only - use movaps instead of movapd when loading ps from memory?
-
   * HLE functions like floorf, sin, memcpy, etc - they can be much faster
-
   * Optimal sequence to store floats
   * TODO: find optimal sequence to store doubles as floats
 
+  cvtpd2ps xmm0, xmm0
   movss xmm0, f
   movss tempspace, xmm0
   mov eax, tempspace
   bswap eax
   mov [edi], eax
 
+  I think pshufb does it faster.
 
 BLOCK EXIT DESIGN
-
 
 TEST whatever
 JZ skip
@@ -161,9 +161,6 @@ JZ exit2
 JMP exit1
 
 The problem is, we still need to fit the downcount somewhere...
-
-
-
 
 Low hanging fruit:
 stfd -- guaranteed in memory
@@ -256,7 +253,7 @@ namespace Jit64
 			MOV(32, M(&PC), Imm32(js.compilerPC));
 			MOV(32, M(&NPC), Imm32(js.compilerPC + 4));
 		}
-		CInterpreter::_interpreterInstruction instr = GetInterpreterOp(_inst);
+		Interpreter::_interpreterInstruction instr = GetInterpreterOp(_inst);
 		ABI_CallFunctionC((void*)instr, _inst.hex);
 	}
 

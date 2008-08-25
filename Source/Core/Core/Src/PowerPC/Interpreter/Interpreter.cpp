@@ -27,111 +27,46 @@
 #include "PowerPCDisasm.h"
 #include "../../IPC_HLE/WII_IPC_HLE.h"
 
-static const unsigned short FPU_PREC_24 = 0 << 8;
-static const unsigned short FPU_PREC_53 = 2 << 8;
-static const unsigned short FPU_PREC_64 = 3 << 8;
-static const unsigned short FPU_PREC_MASK = 3 << 8;
+enum {
+	FPU_PREC_24 = 0 << 8,
+	FPU_PREC_53 = 2 << 8,
+	FPU_PREC_64 = 3 << 8,
+	FPU_PREC_MASK = 3 << 8,
+};
 
-// cpu register to keep the code readable
-u32*	CInterpreter::m_GPR		= PowerPC::ppcState.gpr;
-bool    CInterpreter::m_EndBlock = false;
 namespace {
 	u32 last_pc;
 }
+
 // function tables
-CInterpreter::_interpreterInstruction CInterpreter::m_opTable[64];
-CInterpreter::_interpreterInstruction CInterpreter::m_opTable4[1024];
-CInterpreter::_interpreterInstruction CInterpreter::m_opTable19[1024];
-CInterpreter::_interpreterInstruction CInterpreter::m_opTable31[1024];
-CInterpreter::_interpreterInstruction CInterpreter::m_opTable59[32];
-CInterpreter::_interpreterInstruction CInterpreter::m_opTable63[1024];
 
-void CInterpreter::RunTable4(UGeckoInstruction _inst)  {m_opTable4 [_inst.SUBOP10](_inst);}
-void CInterpreter::RunTable19(UGeckoInstruction _inst) {m_opTable19[_inst.SUBOP10](_inst);}
-void CInterpreter::RunTable31(UGeckoInstruction _inst) {m_opTable31[_inst.SUBOP10](_inst);}
-void CInterpreter::RunTable59(UGeckoInstruction _inst) {m_opTable59[_inst.SUBOP5 ](_inst);}
-void CInterpreter::RunTable63(UGeckoInstruction _inst) {m_opTable63[_inst.SUBOP10](_inst);}
-
-void CInterpreter::sInit()
+namespace Interpreter
 {
-	// Crash();
-#ifdef _M_IX86
-	// sets the floating-point lib to 53-bit
-	// PowerPC has a 53bit floating pipeline only
-	// eg: sscanf is very sensitive
-#ifdef _WIN32
-	_control87(_PC_53, MCW_PC);
-#else
-	unsigned short mode;
-	asm ("fstcw %0" : : "m" (mode));
-	mode = (mode & ~FPU_PREC_MASK) | FPU_PREC_53;
-	asm ("fldcw %0" : : "m" (mode));
-#endif
-#else
-	//x64 doesn't need this - fpu is done with SSE
-	//but still - set any useful sse options here
-#endif
-}
+// cpu register to keep the code readable
+u32 *m_GPR = PowerPC::ppcState.gpr;
+bool m_EndBlock = false;
 
-void CInterpreter::sShutdown()
+_interpreterInstruction m_opTable[64];
+_interpreterInstruction m_opTable4[1024];
+_interpreterInstruction m_opTable19[1024];
+_interpreterInstruction m_opTable31[1024];
+_interpreterInstruction m_opTable59[32];
+_interpreterInstruction m_opTable63[1024];
+
+void RunTable4(UGeckoInstruction _inst)  {m_opTable4 [_inst.SUBOP10](_inst);}
+void RunTable19(UGeckoInstruction _inst) {m_opTable19[_inst.SUBOP10](_inst);}
+void RunTable31(UGeckoInstruction _inst) {m_opTable31[_inst.SUBOP10](_inst);}
+void RunTable59(UGeckoInstruction _inst) {m_opTable59[_inst.SUBOP5 ](_inst);}
+void RunTable63(UGeckoInstruction _inst) {m_opTable63[_inst.SUBOP10](_inst);}
+
+void Init()
 {
 }
 
-void CInterpreter::sReset()
+void Shutdown()
 {
 }
 
-void CInterpreter::Log()
-{
-	static u32 startPC = 0x80003154;
-	const char *kLogFile = "D:\\dolphin.txt";
-	static bool bStart = false;
-	if ((PC == startPC) && (bStart == false))
-	{
-		FILE* pOut = fopen(kLogFile, "wt");
-		if (pOut)
-			fclose(pOut);
-
-		bStart = true;
-
-		// just for sync
-/*		m_FPR[8].u64 = 0x0000000080000000;
-		m_FPR[10].u64 = 0x00000000a0000000;
-		m_FPR[4].u64 = 0x0000000000000000;
-		m_FPR[5].u64 = 0x0000000000000000;
-		m_FPR[6].u64 = 0x0000000000000000;
-		m_FPR[12].u64 = 0x0000000040000000; */
-	}
-
-	if (bStart)
-	{
-		static int steps = 0;
-		steps ++;
-
-//		if (steps > 150000)
-		{
-			FILE* pOut = fopen(kLogFile, "at");
-			if (pOut != NULL)
-			{
-				fprintf(pOut, "0x%08x:    PC: 0x%08x (carry: %i)\n", steps, PC, GetCarry() ? 1:0);
-				for (int i=0; i<32;i++)
-				{
-					//fprintf(pOut, "GPR[%02i] 0x%08x\n", i, m_GPR[i]);
-				}
-				for (int i=0; i<32;i++)
-				{
-					// fprintf(pOut, "FPR[%02i] 0x%016x (%.4f)\n", i, m_FPR[i].u64, m_FPR[i].d);
-					// fprintf(pOut, "FPR[%02i] 0x%016x\n", i, m_FPR[i].u64);
-					// fprintf(pOut, "PS[%02i] %.4f  %.4f\n", i, m_PS0[i], m_PS0[i]);
-				}
-				fclose(pOut);
-			}
-
-			//if (steps >= 10000)
-				//exit(1);
-		}
-	}
-}
 
 //#include "../../Plugins/Plugin_DSP.h"
 void patches()
@@ -152,10 +87,8 @@ void patches()
 //    WII_IPC_HLE_Interface::Update();
 
 }
-void CInterpreter::sStepInner(void)
+void SingleStepInner(void)
 {
-	// Log();
-	
 /*	static int count = 0;
 	count++;
 	if ((count % 50) == 0)
@@ -163,8 +96,8 @@ void CInterpreter::sStepInner(void)
 	static UGeckoInstruction instCode;
 
 	NPC = PC + sizeof(UGeckoInstruction);
+	instCode.hex = Memory::ReadFast32(PC);  //  Memory::ReadUnchecked_U32(PC);
 
-	instCode.hex = Memory::ReadUnchecked_U32(PC);
     //Memory::Read_Instruction(PC);	// use the memory functions to read from the memory !!!!!!
 	//if (PowerPC::ppcState.DebugCount > 0x10f233a) { // 50721ef253a
 	//	printf("> %08x - %08x - %s\n", PC, instCode.hex, DisassembleGekko(instCode.hex, PC));
@@ -199,9 +132,9 @@ void CInterpreter::sStepInner(void)
     patches();
 }
 
-void CInterpreter::sStep()
+void SingleStep()
 {	
-	sStepInner();
+	SingleStepInner();
 	
 	CoreTiming::slicelength = 1;
 	CoreTiming::downcount = 0;
@@ -215,7 +148,7 @@ void CInterpreter::sStep()
 }
 
 // sFastRun - inspired by GCemu
-void CInterpreter::sFastRun()
+void Run()
 {
 	while (!PowerPC::state)
 	{
@@ -226,11 +159,8 @@ void CInterpreter::sFastRun()
 			int i;
 			for (i = 0; !m_EndBlock; i++)
 			{
-				sStepInner();
+				SingleStepInner();
 			}
-#if defined(DEBUGFAST) || defined(_DEBUG)
-//			Core::SyncTrace();
-#endif
 			CoreTiming::downcount -= i;
 		}
 
@@ -244,10 +174,12 @@ void CInterpreter::sFastRun()
 	}
 }
 
-void CInterpreter::unknown_instruction(UGeckoInstruction _inst)
+void unknown_instruction(UGeckoInstruction _inst)
 {
 	CCPU::Break();
 	printf("Last PC = %08x : %s\n", last_pc, DisassembleGekko(Memory::ReadUnchecked_U32(last_pc), last_pc));
 	Debugger::PrintCallstack();
 	_dbg_assert_msg_(GEKKO, 0, "\nIntCPU: Unknown instr %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
 }
+
+}  // namespace

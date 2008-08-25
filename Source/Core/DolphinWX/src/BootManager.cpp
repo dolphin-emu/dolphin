@@ -50,12 +50,12 @@ bool BootCore(const std::string& _rFilename)
 	if (g_pCodeWindow)
 	{
 //		StartUp.bUseDualCore = code_frame->UseDualCore();
-		StartUp.bUseDynarec = !g_pCodeWindow->UseInterpreter();
+		StartUp.bUseJIT = !g_pCodeWindow->UseInterpreter();
 	}
 	else
 	{
 //		StartUp.bUseDualCore = false;
-		StartUp.bUseDynarec = true;
+		StartUp.bUseJIT = true;
 	}
 	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
 	StartUp.m_strFilename = _rFilename;

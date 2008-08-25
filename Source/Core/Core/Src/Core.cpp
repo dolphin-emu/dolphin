@@ -296,17 +296,17 @@ THREAD_RETURN EmuThread(void *pArg)
 	g_bHwInit = true;
 
 	// Load GCM/DOL/ELF whatever ... we boot with the interpreter core
-	PowerPC::SetCore(PowerPC::CORE_INTERPRETER);
+	PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
 	CBoot::BootUp(_CoreParameter);
 
 	if( g_pUpdateFPSDisplay != NULL )
         g_pUpdateFPSDisplay("Loading...");
 
 	// setup our core, but can't use dynarec if we are compare server
-	if (_CoreParameter.bUseDynarec && !_CoreParameter.bRunCompareServer || _CoreParameter.bRunCompareClient)
-		PowerPC::SetCore(PowerPC::CORE_DYNAREC);
+	if (_CoreParameter.bUseJIT && !_CoreParameter.bRunCompareServer || _CoreParameter.bRunCompareClient)
+		PowerPC::SetMode(PowerPC::MODE_JIT);
 	else
-		PowerPC::SetCore(PowerPC::CORE_INTERPRETER);
+		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
 
     // update the window again because all stuff is initialized
     Host_UpdateDisasmDialog();
@@ -472,7 +472,7 @@ void Callback_VideoCopiedToXFB()
 		char temp[256];
 		sprintf(temp, "FPS: %8.2f - %s - %i MHz (%i real, %i idle skipped) out of %i MHz", 
 			(float)frames / t, 
-			g_CoreStartupParameter.bUseDynarec ? "JIT" : "Interpreter", 
+			g_CoreStartupParameter.bUseJIT ? "JIT" : "Interpreter", 
 			(int)(diff),
 			(int)(diff-idleDiff),
 			(int)(idleDiff),

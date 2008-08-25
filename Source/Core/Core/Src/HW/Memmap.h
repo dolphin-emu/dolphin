@@ -89,7 +89,7 @@ namespace Memory
 	inline u32 ReadFast32(const u32 _Address)
 	{
 #ifdef _M_IX86
-		return ReadUnchecked_U32(_Address);
+		return Common::swap32(*(u32 *)(base + (_Address & MEMVIEW32_MASK)));  //ReadUnchecked_U32(_Address);
 #elif defined(_M_X64)
 		return Common::swap32(*(u32 *)(base + _Address));
 #endif

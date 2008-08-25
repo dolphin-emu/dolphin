@@ -75,6 +75,8 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
     EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleBreakPointWindow)
     EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleMemoryWindow)
 
+	EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnInterpreter)
+
 	EVT_MENU(IDM_CLEARSYMBOLS,      CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_LOADMAPFILE,       CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_SCANFUNCTIONS,     CCodeWindow::OnSymbolsMenu)
@@ -102,7 +104,6 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
 	wxMemoryInputStream is(data, length);
 	return(wxBitmap(wxImage(is, wxBITMAP_TYPE_ANY, -1), -1));
 }
-
 
 CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent, wxWindowID id,
 		const wxString& title, const wxPoint& pos, const wxSize& size, long style)
@@ -225,12 +226,12 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	{
 		wxMenu* pCoreMenu = new wxMenu;
 		wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _T("&Interpreter"), wxEmptyString, wxITEM_CHECK);
-		interpreter->Check(!_LocalCoreStartupParameter.bUseDynarec);
+		interpreter->Check(!_LocalCoreStartupParameter.bUseJIT);
 
 //		wxMenuItem* dualcore = pDebugMenu->Append(IDM_DUALCORE, _T("&DualCore"), wxEmptyString, wxITEM_CHECK);
 //		dualcore->Check(_LocalCoreStartupParameter.bUseDualCore);
 
-		pMenuBar->Append(pCoreMenu, _T("&Core Startup"));
+		pMenuBar->Append(pCoreMenu, _T("&CPU Mode"));
 	}
 
 	{
@@ -289,6 +290,14 @@ bool CCodeWindow::UseDualCore()
 	return(GetMenuBar()->IsChecked(IDM_DUALCORE));
 }
 
+void CCodeWindow::OnInterpreter(wxCommandEvent& event)
+{
+	if (Core::GetState() != Core::CORE_RUN) {
+		PowerPC::SetMode(UseInterpreter() ? PowerPC::MODE_INTERPRETER : PowerPC::MODE_JIT);
+	} else {
+		wxMessageBox(_T("Please pause the emulator before changing mode."));
+	}
+}
 
 void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 {

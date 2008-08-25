@@ -120,7 +120,7 @@ int Sync()
 	if (!m_bEnabled) 
 		return 0;
 
-	if (m_bIsServer) //This should be interpreter
+	if (m_bIsServer)  // This should be interpreter
 	{
 		//write cpu state to m_hPipe
 		HRESULT result;
@@ -135,7 +135,7 @@ int Sync()
 		}
 	//	LogManager::Redraw();
 	}
-	else //This should be dynarec
+	else  // This should be JIT
 	{
 		u32 read;
 		memset(&state,0xcc,stateSize);

@@ -62,13 +62,12 @@ namespace Jit64
 
 	static JitBlock *blocks;
 	static int numBlocks;
-	//stats	
-	static int numFlushes;
+
+	void DestroyBlock(int blocknum, bool invalidate);
 
 	void PrintStats()
 	{
 		LOG(DYNA_REC, "JIT Statistics =======================");
-		LOG(DYNA_REC, "Number of full cache flushes: %i", numFlushes);
 		LOG(DYNA_REC, "Number of blocks currently: %i", numBlocks);
 		LOG(DYNA_REC, "Code cache size: %i b", GetCodePtr() - codeCache);
 		LOG(DYNA_REC, "======================================");
@@ -80,7 +79,6 @@ namespace Jit64
 		genFunctions = (u8*)AllocateExecutableMemory(GEN_SIZE);
 		trampolineCache = (u8*)AllocateExecutableMemory(TRAMPOLINE_SIZE);
 		trampolineCodePtr = trampolineCache;
-		numFlushes = 0;
 
 		blocks = new JitBlock[MAX_NUM_BLOCKS];
 		blockCodePointers = new u8*[MAX_NUM_BLOCKS];
@@ -88,8 +86,42 @@ namespace Jit64
 		SetCodePtr(genFunctions);
 		Asm::Generate();
 		// Protect the generated functions
-		WriteProtectMemory(genFunctions, 4096, true);
+		WriteProtectMemory(genFunctions, GEN_SIZE, true);
 		SetCodePtr(codeCache);
+	}
+
+	void ShutdownCache()
+	{
+		UnWriteProtectMemory(genFunctions, GEN_SIZE, true);
+		FreeMemoryPages(codeCache, CODE_SIZE);
+		FreeMemoryPages(genFunctions, GEN_SIZE);
+		FreeMemoryPages(trampolineCache, TRAMPOLINE_SIZE);
+		delete [] blocks;
+		delete [] blockCodePointers;
+		blocks = 0;
+		blockCodePointers = 0;
+		numBlocks = 0;
+	}
+	
+	void ClearCache()
+	{
+		Core::DisplayMessage("Cleared code cache.", 3000);
+		// Is destroying the blocks really necessary?
+		for (int i = 0; i < numBlocks; i++) {
+			DestroyBlock(i, false);
+		}
+		links_to.clear();
+		trampolineCodePtr = trampolineCache;
+		numBlocks = 0;
+		memset(blockCodePointers, 0, sizeof(u8*)*MAX_NUM_BLOCKS);
+		memset(codeCache, 0xCC, CODE_SIZE);
+		SetCodePtr(codeCache);
+	}
+
+	void ResetCache()
+	{
+		ShutdownCache();
+		InitCache();
 	}
 
 	JitBlock *CurBlock()
@@ -123,10 +155,10 @@ namespace Jit64
 	{
 		if (GetCodePtr() >= codeCache + CODE_SIZE - 0x10000 || numBlocks >= MAX_NUM_BLOCKS - 1)
 		{
-			// PanicAlert("Cleared cache");
-			LOG(DYNA_REC, "JIT code cache full - clearing cache and restoring memory")
+			LOG(DYNA_REC, "JIT cache full - clearing.")
 			ClearCache();
 		}
+
 		JitBlock &b = blocks[numBlocks];
 		b.invalid = false;
 		b.originalAddress = emAddress;
@@ -169,36 +201,15 @@ namespace Jit64
 		return blockCodePointers;
 	}
 
-
-	bool IsInJitCode(u8 *codePtr) {
+	bool IsInJitCode(const u8 *codePtr) {
 		return codePtr >= codeCache && codePtr <= GetCodePtr();
 	}
-
 
 	void EnterFastRun()
 	{
 		CompiledCode pExecAddr = (CompiledCode)Asm::enterCode;
 		pExecAddr();
 		//Will return when PowerPC::state changes
-	}
-
-	void ShutdownCache()
-	{
-		UnWriteProtectMemory(genFunctions, 4096, true);
-		FreeMemoryPages(codeCache, CODE_SIZE);
-		FreeMemoryPages(genFunctions, GEN_SIZE);
-		FreeMemoryPages(trampolineCache, TRAMPOLINE_SIZE);
-		delete [] blocks;
-		delete [] blockCodePointers;
-		blocks = 0;
-		blockCodePointers = 0;
-		numBlocks = 0;
-	}
-
-	void ResetCache()
-	{
-		ShutdownCache();
-		InitCache();
 	}
 
 	int GetBlockNumberFromAddress(u32 addr)
@@ -226,6 +237,7 @@ namespace Jit64
 			return -1;
 		}
 	}
+
 	u32 GetOriginalCode(u32 address)
 	{
 		int num = GetBlockNumberFromAddress(address);
@@ -357,21 +369,4 @@ namespace Jit64
 		}
 	}
 
-	void ClearCache()
-	{
-		Core::DisplayMessage("Cleared code cache.", 3000);
-		// Is destroying the blocks really necessary?
-		for (int i = 0; i < numBlocks; i++) {
-			DestroyBlock(i, false);
-		}
-		links_to.clear();
-		trampolineCodePtr = trampolineCache;
-		numBlocks = 0;
-		numFlushes++;
-		memset(blockCodePointers, 0, sizeof(u8*)*MAX_NUM_BLOCKS);
-		memset(codeCache, 0xCC, CODE_SIZE);
-		SetCodePtr(codeCache);
-	}
-
-}
-
+}  // namespace
