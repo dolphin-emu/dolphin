@@ -15,8 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 #include <iostream>
-
-#include "string.h"
+#include <cstring>
 
 #include "Common.h"
 #include "Thread.h"

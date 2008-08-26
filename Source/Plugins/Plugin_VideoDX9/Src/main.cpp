@@ -15,10 +15,10 @@
 #include "VertexHandler.h"
 #include "TransformEngine.h"
 #include "DlgSettings.h"
-#include "D3DPostProcess.h"
+#include "D3DPostprocess.h"
 #include "D3DTexture.h"
 #include "D3DUtil.h"
-#include "W32Util/misc.h"
+#include "W32Util/Misc.h"
 #include "EmuWindow.h"
 
 #include "Utils.h"

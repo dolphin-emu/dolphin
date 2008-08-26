@@ -20,7 +20,7 @@
 #include <mmsystem.h>
 #include <dsound.h>
 
-#include "dsoundstream.h"
+#include "DSoundStream.h"
 
 namespace DSound
 {

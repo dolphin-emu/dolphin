@@ -54,28 +54,28 @@ enum
 #define wxUSE_XPM_IN_MSW 1
 #define USE_XPM_BITMAPS 1
 
-// For compilers that support precompilation, includes "wx/wx.h".
-//#include "wx/wxprec.h"
+// For compilers that support precompilation, includes <wx/wx.h>.
+//#include <wx/wxprec.h>
 
 //#ifndef WX_PRECOMP
-#include "wx/wx.h"
+#include <wx/wx.h>
 //#endif
 
-#include "wx/toolbar.h"
-#include "wx/log.h"
-#include "wx/image.h"
-#include "wx/aboutdlg.h"
-#include "wx/filedlg.h"
-#include "wx/spinctrl.h"
-#include "wx/srchctrl.h"
-#include "wx/listctrl.h"
-#include "wx/progdlg.h"
-#include "wx/imagpng.h"
-#include "wx/button.h"
-#include "wx/stattext.h"
-#include "wx/choice.h"
-#include "wx/cmdline.h"
-#include "wx/busyinfo.h"
+#include <wx/toolbar.h>
+#include <wx/log.h>
+#include <wx/image.h>
+#include <wx/aboutdlg.h>
+#include <wx/filedlg.h>
+#include <wx/spinctrl.h>
+#include <wx/srchctrl.h>
+#include <wx/listctrl.h>
+#include <wx/progdlg.h>
+#include <wx/imagpng.h>
+#include <wx/button.h>
+#include <wx/stattext.h>
+#include <wx/choice.h>
+#include <wx/cmdline.h>
+#include <wx/busyinfo.h>
 
 // define this to use XPMs everywhere (by default, BMPs are used under Win)
 // BMPs use less space, but aren't compiled into the executable on other platforms

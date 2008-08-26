@@ -20,10 +20,10 @@
 
 #include <vector>
 
-#include "wx/dialog.h"
-#include "wx/textctrl.h"
-#include "wx/listctrl.h"
-#include "wx/listbox.h"
+#include <wx/dialog.h>
+#include <wx/textctrl.h>
+#include <wx/listctrl.h>
+#include <wx/listbox.h>
 #include "Debugger.h"
 #include "MemoryView.h"
 #include "Thread.h"

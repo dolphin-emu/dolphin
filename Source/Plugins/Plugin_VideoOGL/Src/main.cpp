@@ -18,11 +18,11 @@
 #include "Globals.h"
 
 #ifdef _WIN32
-#include "OS\Win32.h"
+#include "OS/Win32.h"
 #endif
 
 #if defined(__APPLE__) 
-#include "SDL.h"
+#include <SDL.h>
 #endif
 
 #include "GUI/ConfigDlg.h"
@@ -96,7 +96,12 @@ void DllConfig(HWND _hParent)
 			}
 			if(!resFound)
 			//and add the res
-			{				resos[i] = strBuffer;				i++;				frame.AddFSReso(szBuffer);							frame.AddWindowReso(szBuffer);			}
+			{
+				resos[i] = strBuffer;
+				i++;
+				frame.AddFSReso(szBuffer);			
+				frame.AddWindowReso(szBuffer);
+			}
         ZeroMemory(&dmi, sizeof(dmi));
 	}
 	frame.ShowModal();

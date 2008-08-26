@@ -28,10 +28,10 @@
 
 #define GLEW_STATIC
 
-#include "GLew/glew.h"
-#include "GLew/wglew.h"
-#include "GLew/gl.h"
-#include "GLew/glext.h"
+#include <GLew/glew.h>
+#include <GLew/wglew.h>
+#include <GLew/gl.h>
+#include <GLew/glext.h>
 
 #else // linux basic definitions
 

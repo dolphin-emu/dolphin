@@ -15,12 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "wx/button.h"
-#include "wx/textctrl.h"
-#include "wx/textdlg.h"
-#include "wx/listctrl.h"
-#include "wx/thread.h"
-#include "wx/mstream.h"
+#include <wx/button.h>
+#include <wx/textctrl.h>
+#include <wx/textdlg.h>
+#include <wx/listctrl.h>
+#include <wx/thread.h>
+#include <wx/mstream.h>
 
 // ugly that this lib included code from the main
 #include "../../DolphinWX/src/Globals.h"

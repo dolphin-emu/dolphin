@@ -2,7 +2,7 @@
 #define MAIN_H
 
 #include "PluginSpecs_Video.h"
-#include "render.h"
+#include "Render.h"
 
 extern SVideoInitialize g_VideoInitialize;
 

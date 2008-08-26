@@ -84,7 +84,7 @@ inline float ReadBuffer32F()
 #include "VertexLoader_Position.h"
 #include "VertexLoader_Normal.h"
 #include "VertexLoader_Color.h"
-#include "VertexLoader_textCoord.h"
+#include "VertexLoader_TextCoord.h"
 
 VertexLoader g_VertexLoaders[8];
 TVtxDesc VertexLoader::m_VtxDesc;

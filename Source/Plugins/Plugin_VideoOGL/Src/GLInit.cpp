@@ -19,7 +19,7 @@
 #include "IniFile.h"
 #if defined(_WIN32)
 #include "svnrev.h"
-#include "OS\Win32.h"
+#include "OS/Win32.h"
 #endif
 #include "GLInit.h"
 
@@ -27,7 +27,7 @@
 #define USE_SDL 0
 #endif
 #if USE_SDL
-#include "SDL.h"
+#include <SDL.h>
 #endif
 
 // Handles OpenGL and the window

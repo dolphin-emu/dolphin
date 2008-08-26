@@ -24,7 +24,7 @@
 #include "MemoryCheckDlg.h"
 #include "IniFile.h"
 
-#include "wx/mstream.h"
+#include <wx/mstream.h>
 
 extern "C" {
 #include "../resources/toolbar_add_breakpoint.c"

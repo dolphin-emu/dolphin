@@ -1,5 +1,4 @@
-#include "shlobj.h"
-
+#include <shlobj.h>
 #include <xstring>
 #include <string>
 #include "ShellUtil.h"

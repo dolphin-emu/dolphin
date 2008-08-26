@@ -3,7 +3,7 @@
 #include "Common.h"
 
 #include "D3DBase.h"
-#include "D3Dtexture.h"
+#include "D3DTexture.h"
 
 #include "Render.h"
 

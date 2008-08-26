@@ -29,7 +29,7 @@
 #include "PluginManager.h"
 #include "MemcardManager.h"
 
-#include "wx/mstream.h"
+#include <wx/mstream.h>
 
 // ----------------------------------------------------------------------------
 // resources

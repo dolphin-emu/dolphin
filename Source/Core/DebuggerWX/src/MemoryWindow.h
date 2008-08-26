@@ -18,9 +18,9 @@
 #ifndef MEMORYWINDOW_H_
 #define MEMORYWINDOW_H_
 
-#include "wx/dialog.h"
-#include "wx/textctrl.h"
-#include "wx/listbox.h"
+#include <wx/dialog.h>
+#include <wx/textctrl.h>
+#include <wx/listbox.h>
 #include "Debugger.h"
 #include "MemoryView.h"
 #include "Thread.h"

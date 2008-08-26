@@ -31,7 +31,7 @@ enum
 #define wxUSE_XPM_IN_MSW 1
 #define USE_XPM_BITMAPS 1
 
-#include "wx/wx.h"
+#include <wx/wx.h>
 
 // define this to use XPMs everywhere (by default, BMPs are used under Win)
 // BMPs use less space, but aren't compiled into the executable on other platforms

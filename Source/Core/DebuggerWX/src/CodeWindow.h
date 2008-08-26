@@ -18,9 +18,9 @@
 #ifndef CODEWINDOW_H_
 #define CODEWINDOW_H_
 
-#include "wx/dialog.h"
-#include "wx/textctrl.h"
-#include "wx/listbox.h"
+#include <wx/dialog.h>
+#include <wx/textctrl.h>
+#include <wx/listbox.h>
 #include "Debugger.h"
 #include "CodeView.h"
 #include "Thread.h"

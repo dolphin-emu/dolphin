@@ -19,11 +19,11 @@
 
 #include "IniFile.h"
 
-#include "wx/button.h"
-#include "wx/textctrl.h"
-#include "wx/listctrl.h"
-#include "wx/thread.h"
-#include "wx/listctrl.h"
+#include <wx/button.h>
+#include <wx/textctrl.h>
+#include <wx/listctrl.h>
+#include <wx/thread.h>
+#include <wx/listctrl.h>
 #include "MemoryWindow.h"
 #include "HW/CPU.h"
 #include "PowerPC/PowerPC.h"

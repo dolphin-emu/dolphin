@@ -58,7 +58,7 @@ void Host_CloseDisplay(){}
 void Host_UpdateStatusBar(const char* _pText){}
 
 // Include SDL header so it can hijack main().
-#include "SDL.h"
+#include <SDL.h>
 
 int main(int argc, char* argv[])
 {

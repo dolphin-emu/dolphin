@@ -18,10 +18,10 @@
 #include "Debugger.h"
 #include "LogManager.h"
 
-#include "wx/button.h"
-#include "wx/textctrl.h"
-#include "wx/listbox.h"
-#include "wx/checklst.h"
+#include <wx/button.h>
+#include <wx/textctrl.h>
+#include <wx/listbox.h>
+#include <wx/checklst.h>
 
 #include "LogWindow.h"
 #include "Console.h"

@@ -34,7 +34,7 @@
 #include "XFB.h"
 
 #ifdef _WIN32
-#include "OS\Win32.h"
+#include "OS/Win32.h"
 #else
 #endif
 
