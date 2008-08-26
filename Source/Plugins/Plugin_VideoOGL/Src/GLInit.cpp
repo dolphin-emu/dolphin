@@ -23,7 +23,10 @@
 #endif
 #include "GLInit.h"
 
-#if defined(__APPLE__)
+#ifndef USE_SDL
+#define USE_SDL 0
+#endif
+#if USE_SDL
 #include "SDL.h"
 #endif
 
@@ -46,33 +49,35 @@ extern HINSTANCE g_hInstance;
 
 void OpenGL_SwapBuffers()
 {
-#if defined(_WIN32)
-    SwapBuffers(hDC);
-#elif defined(__linux__)
-    glXSwapBuffers(GLWin.dpy, GLWin.win);
-#else //others
+#if USE_SDL
     SDL_GL_SwapBuffers();
+#elif defined(_WIN32)
+    SwapBuffers(hDC);
+#else // GLX
+    glXSwapBuffers(GLWin.dpy, GLWin.win);
 #endif
 }
 
 void OpenGL_SetWindowText(const char *text) 
 {
-#if defined(_WIN32)
+#if USE_SDL
+    SDL_WM_SetCaption(text, NULL);
+#elif defined(_WIN32)
     SetWindowText(EmuWindow::GetWnd(), text);
-#elif defined(__linux__)
+#else // GLX
     /**
     * Tell X to ask the window manager to set the window title. (X
     * itself doesn't provide window title functionality.)
     */
     XStoreName(GLWin.dpy, GLWin.win, text); 
-#else
-    SDL_WM_SetCaption(text, NULL);
 #endif
 }
 
 BOOL Callback_PeekMessages()
 {
-#if defined(_WIN32)
+#if USE_SDL
+	//TODO
+#elif defined(_WIN32)
     //TODO: peekmessage
     MSG msg;
     while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
@@ -83,14 +88,12 @@ BOOL Callback_PeekMessages()
         DispatchMessage(&msg);
     }
     return TRUE;
-#elif defined(__linux__)
+#else // GLX
 	XEvent event;
     while (XPending(GLWin.dpy) > 0) {
         XNextEvent(GLWin.dpy, &event);
 	}
 	return TRUE;
-#else
-	//TODO
 #endif
 }
 
@@ -124,7 +127,6 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
             _twidth = _iwidth;
             _theight = _iheight;
         }
-        
     }
     else // Going Windowed
     {
@@ -166,7 +168,18 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
     g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
 
-#if defined(_WIN32)
+#if USE_SDL
+	//init sdl video
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+		//TODO : Display an error message
+		SDL_Quit();
+		return false;
+	}
+
+	//setup ogl to use double buffering
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+#elif defined(_WIN32)
     // create the window
     if (!g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL)
 	{
@@ -279,7 +292,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         return false;
     }
 
-#elif defined(__linux__)
+#else // GLX
     XVisualInfo *vi;
     Colormap cmap;
     int dpyWidth, dpyHeight;
@@ -405,49 +418,14 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         XSetStandardProperties(GLWin.dpy, GLWin.win, "GPU",
                                    "GPU", None, NULL, 0, NULL);
         XMapRaised(GLWin.dpy, GLWin.win);
-    }       
-#else
-	//SDL for other OS (osx, bsd, ...)
-
-	//init sdl video
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		//TODO : Display an error message
-		SDL_Quit();
-		return false;
-	}
-
-	//setup ogl to use double buffering
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
+    }
 #endif
 	return true;
 }
 
 bool OpenGL_MakeCurrent()
 {
-#if defined(_WIN32)
-    if (!wglMakeCurrent(hDC,hRC)) {
-        MessageBox(NULL,"(5) Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
-        return false;
-    }
-#elif defined(__linux__)
-    Window winDummy;
-    unsigned int borderDummy;
-    // connect the glx-context to the window
-    glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
-    XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
-                 &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
-    ERROR_LOG("GLWin Depth %d", GLWin.depth);
-    if (glXIsDirect(GLWin.dpy, GLWin.ctx)) 
-        ERROR_LOG("you have Direct Rendering!");
-    else
-        ERROR_LOG("no Direct Rendering possible!");
-
-    // better for pad plugin key input (thc)
-    XSelectInput(GLWin.dpy, GLWin.win, ExposureMask | KeyPressMask | KeyReleaseMask | 
-                 ButtonPressMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask |
-                 FocusChangeMask );
-#else
+#if USE_SDL
 	// Note: The reason for having the call to SDL_SetVideoMode in here instead
 	//       of in OpenGL_Create() is that "make current" is part of the video
 	//       mode setting and is not available as a separate call in SDL. We
@@ -477,14 +455,38 @@ bool OpenGL_MakeCurrent()
 		SDL_Quit();
 		return false;
 	}
+#elif defined(_WIN32)
+    if (!wglMakeCurrent(hDC,hRC)) {
+        MessageBox(NULL,"(5) Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
+        return false;
+    }
+#else  // GLX
+    Window winDummy;
+    unsigned int borderDummy;
+    // connect the glx-context to the window
+    glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
+    XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
+                 &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
+    ERROR_LOG("GLWin Depth %d", GLWin.depth);
+    if (glXIsDirect(GLWin.dpy, GLWin.ctx)) 
+        ERROR_LOG("you have Direct Rendering!");
+    else
+        ERROR_LOG("no Direct Rendering possible!");
+
+    // better for pad plugin key input (thc)
+    XSelectInput(GLWin.dpy, GLWin.win, ExposureMask | KeyPressMask | KeyReleaseMask | 
+                 ButtonPressMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask |
+                 FocusChangeMask );
 #endif
 	return true;
 }
 
 void OpenGL_Update()
 {
-#if defined(_WIN32)
-    
+#if USE_SDL
+	//TODO
+
+#elif defined(_WIN32)
     if (EmuWindow::GetParentWnd())
     {
         RECT rcWindow;
@@ -517,7 +519,7 @@ void OpenGL_Update()
         }
     }
 
-#elif defined(__linux__)
+#else // GLX
     Window winDummy;
     unsigned int borderDummy;
     XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
@@ -543,15 +545,15 @@ void OpenGL_Update()
         nXoff = (nBackbufferWidth - (640 * MValueX)) / 2;
         nYoff = (nBackbufferHeight - (480 * MValueY)) / 2;
     }
-#else
-    //SDL stuff
 #endif
 }
 
 
 void OpenGL_Shutdown()
 {
-#if defined(_WIN32)
+#if USE_SDL
+	SDL_Quit();
+#elif defined(_WIN32)
     if (hRC)                                            // Do We Have A Rendering Context?
     {
         if (!wglMakeCurrent(NULL,NULL))                 // Are We Able To Release The DC And RC Contexts?
@@ -571,7 +573,7 @@ void OpenGL_Shutdown()
         MessageBox(NULL,"Release Device Context Failed.", "SHUTDOWN ERROR", MB_OK | MB_ICONINFORMATION);
         hDC = NULL;                                       // Set DC To NULL
     }
-#elif defined(__linux__)
+#else // GLX
     if (GLWin.ctx)
     {
         if (!glXMakeCurrent(GLWin.dpy, None, NULL))
@@ -590,7 +592,5 @@ void OpenGL_Shutdown()
                 XF86VidModeSetViewPort(GLWin.dpy, GLWin.screen, 0, 0);
         }
     }
-#else
-	SDL_Quit();
 #endif
 }
