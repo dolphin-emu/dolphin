@@ -484,7 +484,10 @@ bool OpenGL_MakeCurrent()
 void OpenGL_Update()
 {
 #if USE_SDL
-	//TODO
+    SDL_Surface *surface = SDL_GetVideoSurface();
+    if (!surface) return;
+    nBackbufferWidth = surface->w;
+    nBackbufferHeight = surface->h;
 
 #elif defined(_WIN32)
     if (!EmuWindow::GetParentWnd()) return;
