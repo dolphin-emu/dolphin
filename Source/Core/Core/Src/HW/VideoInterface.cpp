@@ -282,9 +282,10 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 		m_FrameBuffer2 = _iValue;
 		break;
 
-    default:
-        PanicAlert("VI unknown write32 %08x to %08x", _iValue, _iAddress);
-        break;
+	default:
+		Write16(_iValue >> 16, _iAddress);
+		Write16(_iValue & 0xFFFF, _iAddress + 2);
+		break;
 	}
 }
 
