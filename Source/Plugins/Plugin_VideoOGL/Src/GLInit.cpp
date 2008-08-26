@@ -487,37 +487,16 @@ void OpenGL_Update()
 	//TODO
 
 #elif defined(_WIN32)
-    if (EmuWindow::GetParentWnd())
-    {
-        RECT rcWindow;
-        GetWindowRect(EmuWindow::GetParentWnd(), &rcWindow);
+    if (!EmuWindow::GetParentWnd()) return;
+    RECT rcWindow;
+    GetWindowRect(EmuWindow::GetParentWnd(), &rcWindow);
 
-        int width = rcWindow.right - rcWindow.left;
-        int height = rcWindow.bottom - rcWindow.top;
+    int width = rcWindow.right - rcWindow.left;
+    int height = rcWindow.bottom - rcWindow.top;
 
-        ::MoveWindow(EmuWindow::GetWnd(), 0,0,width,height, FALSE);
-        nBackbufferWidth = width;
-        nBackbufferHeight = height;
-        float FactorW  = 640.0f / (float)nBackbufferWidth;
-        float FactorH  = 480.0f / (float)nBackbufferHeight;
-
-        float Max = (FactorW < FactorH) ? FactorH : FactorW;
-
-        if(g_Config.bStretchToFit)
-        {
-            MValueX = 1.0f / FactorW;
-            MValueY = 1.0f / FactorH;
-            nXoff = 0;
-            nYoff = 0;
-        }
-        else
-        {
-            MValueX = 1.0f / Max;
-            MValueY = 1.0f / Max;
-            nXoff = (nBackbufferWidth - (640 * MValueX)) / 2;
-            nYoff = (nBackbufferHeight - (480 * MValueY)) / 2;
-        }
-    }
+    ::MoveWindow(EmuWindow::GetWnd(), 0,0,width,height, FALSE);
+    nBackbufferWidth = width;
+    nBackbufferHeight = height;
 
 #else // GLX
     Window winDummy;
@@ -526,6 +505,9 @@ void OpenGL_Update()
                 &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
     nBackbufferWidth = GLWin.width;
     nBackbufferHeight = GLWin.height;
+
+#endif
+
     float FactorW  = 640.0f / (float)nBackbufferWidth;
     float FactorH  = 480.0f / (float)nBackbufferHeight;
 
@@ -545,7 +527,6 @@ void OpenGL_Update()
         nXoff = (nBackbufferWidth - (640 * MValueX)) / 2;
         nYoff = (nBackbufferHeight - (480 * MValueY)) / 2;
     }
-#endif
 }
 
 
