@@ -33,7 +33,6 @@ class IBlobReader
 		virtual u64 GetRawSize() const  = 0;
 		virtual u64 GetDataSize() const = 0;
 		virtual bool Read(u64 offset, u64 size, u8* out_ptr) = 0;
-		virtual bool IsValid() const = 0;
 
 
 	protected:

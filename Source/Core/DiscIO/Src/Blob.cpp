@@ -38,29 +38,34 @@ class PlainFileReader
 {
 	HANDLE hFile;
 	s64 size;
-	public:
-
-		PlainFileReader(const char* filename)
+	private:
+		PlainFileReader(HANDLE hFile_)
 		{
-			hFile = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING,
-					FILE_ATTRIBUTE_NORMAL | FILE_FLAG_RANDOM_ACCESS, NULL);
+			hFile = hFile_;
 			DWORD size_low, size_high;
 			size_low = GetFileSize(hFile, &size_high);
 			size = ((u64)size_low) | ((u64)size_high << 32);
 		}
 
-
-		~PlainFileReader()
+	public:
+		static PlainFileReader* Create(const char* filename)
 		{
-			if (hFile)
+			HANDLE hFile = CreateFile(
+				filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING,
+				FILE_ATTRIBUTE_NORMAL | FILE_FLAG_RANDOM_ACCESS, NULL
+				);
+			if (hFile != INVALID_HANDLE_VALUE)
 			{
-				CloseHandle(hFile);
-				hFile = INVALID_HANDLE_VALUE;
+				return new PlainFileReader(nFile);
 			}
+			return 0;
 		}
 
 
-		bool IsValid() const {return(hFile != INVALID_HANDLE_VALUE);}
+		~PlainFileReader()
+		{
+			CloseHandle(hFile);
+		}
 
 
 		u64 GetDataSize() const {return(size);}
@@ -99,11 +104,10 @@ class PlainFileReader
 {
 	FILE* file_;
 	s64 size;
-	public:
-
-		PlainFileReader(const char* filename)
+	private:
+		PlainFileReader(FILE* file__)
 		{
-			file_ = fopen(filename, "rb");
+			file_ = file__;
 			#if 0
 				fseek64(file_, 0, SEEK_END);
 			#else
@@ -114,18 +118,21 @@ class PlainFileReader
 		}
 
 
-		~PlainFileReader()
+	public:
+		static PlainFileReader* Create(const char* filename)
 		{
+			FILE* file_ = fopen(filename, "rb");
 			if (file_)
 			{
-				fclose(file_);
+				return new PlainFileReader(file_);
 			}
+			return 0;
 		}
 
 
-		bool IsValid() const
+		~PlainFileReader()
 		{
-			return(file_ != 0);
+			fclose(file_);
 		}
 
 
@@ -166,41 +173,45 @@ class CompressedBlobReader
 	u64 counter;
 	Common::IMappedFile* mapped_file;
 
-	public:
-
-		CompressedBlobReader(const char* filename)
+	private:
+		CompressedBlobReader(Common::IMappedFile* mapped_file_)
 		{
+			mapped_file = mapped_file_;
 			counter = 0;
-			mapped_file = Common::IMappedFile::CreateMappedFile();
 
-			if (mapped_file)
+			u8* start = mapped_file->Lock(0, sizeof(BlobHeader));
+			memcpy(&header, start, sizeof(BlobHeader));
+			mapped_file->Unlock(start);
+
+			block_pointers = (u64*)mapped_file->Lock(sizeof(BlobHeader), sizeof(u64) * header.num_blocks);
+			data_offset = sizeof(BlobHeader) + sizeof(u64) * header.num_blocks;
+
+			for (int i = 0; i < CACHE_SIZE; i++)
 			{
-				mapped_file->Open(filename);
-				u8* start = mapped_file->Lock(0, sizeof(BlobHeader));
-				memcpy(&header, start, sizeof(BlobHeader));
-				mapped_file->Unlock(start);
-
-				block_pointers = (u64*)mapped_file->Lock(sizeof(BlobHeader), sizeof(u64) * header.num_blocks);
-				data_offset = sizeof(BlobHeader) + sizeof(u64) * header.num_blocks;
-
-				for (int i = 0; i < CACHE_SIZE; i++)
-				{
-					cache[i] = new u8[header.block_size];
-					cache_tags[i] = (u64)(s64) - 1;
-				}
+				cache[i] = new u8[header.block_size];
+				cache_tags[i] = (u64)(s64) - 1;
 			}
 		}
 
 
-		const BlobHeader& GetHeader() const
+	public:
+		static CompressedBlobReader* Create(const char* filename)
 		{
-			return(header);
-		}
-
-
-		bool IsValid() const
-		{
-			return(mapped_file != 0);
+			Common::IMappedFile* mapped_file =
+				Common::IMappedFile::CreateMappedFile();
+			if (mapped_file)
+			{
+				bool ok = mapped_file->Open(filename);
+				if (ok)
+				{
+					return new CompressedBlobReader(mapped_file);
+				}
+				else
+				{
+					delete mapped_file;
+				}
+			}
+			return 0;
 		}
 
 
@@ -212,13 +223,14 @@ class CompressedBlobReader
 			}
 
 			mapped_file->Unlock((u8*)block_pointers);
+			mapped_file->Close();
+			delete mapped_file;
+		}
 
-			if (mapped_file)
-			{
-				mapped_file->Close();
-			}
 
-			mapped_file = 0;
+		const BlobHeader& GetHeader() const
+		{
+			return(header);
 		}
 
 
@@ -500,7 +512,8 @@ bool DecompressBlobToFile(const char* infile, const char* outfile,
 		return(false);
 	}
 
-	CompressedBlobReader* reader = new CompressedBlobReader(infile);
+	CompressedBlobReader* reader = CompressedBlobReader::Create(infile);
+	if (!reader) return false;
 
 	FILE* f = fopen(outfile, "wb");
 	const BlobHeader& header = reader->GetHeader();
@@ -517,6 +530,7 @@ bool DecompressBlobToFile(const char* infile, const char* outfile,
 		fwrite(buffer, header.block_size, 1, f);
 	}
 
+	delete reader;
 	delete[] buffer;
 #ifdef _WIN32
 	// TODO(ector): _chsize sucks, not 64-bit safe
@@ -548,25 +562,9 @@ bool IsCompressedBlob(const char* filename)
 
 IBlobReader* CreateBlobReader(const char* filename)
 {
-	IBlobReader* reader;
-
-	if (IsCompressedBlob(filename))
-	{
-		reader = new CompressedBlobReader(filename);
-	}
-	else
-	{
-		reader = new PlainFileReader(filename);
-	}
-
-	if (reader->IsValid())
-	{
-		return(reader);
-	}
-	else
-	{
-		delete reader;
-		return(0);
-	}
+	return IsCompressedBlob(filename)
+		? static_cast<IBlobReader*>(CompressedBlobReader::Create(filename))
+		: static_cast<IBlobReader*>(PlainFileReader::Create(filename));
 }
+
 } // namespace
