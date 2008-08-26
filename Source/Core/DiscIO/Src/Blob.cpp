@@ -56,7 +56,7 @@ class PlainFileReader
 				);
 			if (hFile != INVALID_HANDLE_VALUE)
 			{
-				return new PlainFileReader(nFile);
+				return new PlainFileReader(hFile);
 			}
 			return 0;
 		}
