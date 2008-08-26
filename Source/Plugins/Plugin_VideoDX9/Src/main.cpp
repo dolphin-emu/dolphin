@@ -20,6 +20,7 @@
 #include "D3DUtil.h"
 #include "W32Util/Misc.h"
 #include "EmuWindow.h"
+#include "VideoState.h"
 
 #include "Utils.h"
 
@@ -163,6 +164,20 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 
 	Renderer::AddMessage("Dolphin Direct3D9 Video Plugin.",5000);
 
+}
+
+void Video_SaveState() {
+	VideoCommon_SaveState();
+#ifdef WIN32
+	MessageBoxA(NULL, "SAVING STATE", "From DirectX", NULL);
+#endif
+}
+
+void Video_LoadState() {
+	VideoCommon_LoadState();
+#ifdef WIN32
+	MessageBoxA(NULL, "LOADING STATE", "From DirectX", NULL);
+#endif
 }
 
 void Video_EnterLoop()

@@ -410,6 +410,14 @@ EState GetState()
 	return CORE_UNINITIALIZED;
 }
 
+void SaveState() {
+	PluginVideo::Video_SaveState();
+}
+
+void LoadState() {
+	PluginVideo::Video_LoadState();
+}
+
 const SCoreStartupParameter& GetStartupParameter()
 {
 	return g_CoreStartupParameter;

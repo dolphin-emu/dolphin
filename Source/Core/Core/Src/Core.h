@@ -42,6 +42,10 @@ namespace Core
     // Get state
     EState GetState();
 
+	// Save/Load state
+	void SaveState();
+	void LoadState();
+
     // get core parameters
 	extern SCoreStartupParameter g_CoreStartupParameter; //uck
     const SCoreStartupParameter& GetStartupParameter();

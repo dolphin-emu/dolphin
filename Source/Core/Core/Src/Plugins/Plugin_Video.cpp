@@ -35,6 +35,8 @@ typedef void (__cdecl* TVideo_EnterLoop)();
 
 typedef void (__cdecl* TVideo_AddMessage)(const char* pstr, unsigned int milliseconds);
 
+typedef void (__cdecl* TVideo_SaveState)();
+typedef void (__cdecl* TVideo_LoadState)();
 
 //! Function Pointer
 TGetDllInfo         g_GetDllInfo            = 0;
@@ -48,6 +50,8 @@ TVideo_UpdateXFB    g_Video_UpdateXFB       = 0;
 TVideo_Screenshot   g_Video_Screenshot      = 0;
 TVideo_EnterLoop    g_Video_EnterLoop       = 0;
 TVideo_AddMessage   g_Video_AddMessage      = 0;
+TVideo_SaveState    g_Video_SaveState       = 0;
+TVideo_LoadState    g_Video_LoadState       = 0;
 
 //! Library Instance
 DynamicLibrary plugin;
@@ -69,6 +73,8 @@ void UnloadPlugin()
     g_Video_SendFifoData = 0;
     g_Video_UpdateXFB = 0;
 	g_Video_AddMessage = 0;
+	g_Video_SaveState = 0;
+	g_Video_LoadState = 0;
 
 	plugin.Unload();
 }
@@ -88,6 +94,8 @@ bool LoadPlugin(const char *_Filename)
 		g_Video_Screenshot		= reinterpret_cast<TVideo_Screenshot>   (plugin.Get("Video_Screenshot"));
 		g_Video_EnterLoop       = reinterpret_cast<TVideo_EnterLoop>    (plugin.Get("Video_EnterLoop"));
 		g_Video_AddMessage      = reinterpret_cast<TVideo_AddMessage>   (plugin.Get("Video_AddMessage"));
+		g_Video_SaveState       = reinterpret_cast<TVideo_SaveState>   (plugin.Get("Video_SaveState"));
+		g_Video_LoadState       = reinterpret_cast<TVideo_LoadState>   (plugin.Get("Video_LoadState"));
 
 		if ((g_GetDllInfo != 0) &&
 			(g_DllAbout != 0) &&
@@ -99,7 +107,9 @@ bool LoadPlugin(const char *_Filename)
 			(g_Video_UpdateXFB != 0) &&
 			(g_Video_EnterLoop != 0) &&
 			(g_Video_Screenshot != 0) &&
-			(g_Video_AddMessage != 0))
+			(g_Video_AddMessage != 0) &&
+			(g_Video_SaveState != 0) &&
+			(g_Video_LoadState != 0))
 		{
 			return true;
 		}
@@ -169,6 +179,14 @@ void Video_EnterLoop()
 void Video_AddMessage(const char* pstr, unsigned int milliseconds)
 {
 	g_Video_AddMessage(pstr,milliseconds);
+}
+
+void Video_SaveState() {
+	g_Video_SaveState();
+}
+
+void Video_LoadState() {
+	g_Video_SaveState();
 }
 
 } // end of namespace PluginVideo

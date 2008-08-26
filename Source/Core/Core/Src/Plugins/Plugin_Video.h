@@ -42,6 +42,9 @@ void Video_UpdateXFB(BYTE* _pXFB, DWORD _dwHeight, DWORD _dwWidth);
 bool Video_Screenshot(TCHAR* _szFilename);
 void Video_AddMessage(const char* pstr, unsigned int milliseconds);
 
+void Video_SaveState();
+void Video_LoadState();
+
 } // end of namespace PluginVideo
 
 #endif

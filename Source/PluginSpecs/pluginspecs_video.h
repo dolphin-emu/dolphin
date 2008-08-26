@@ -177,6 +177,22 @@ EXPORT void CALL Video_EnterLoop(void);
 //
 EXPORT void CALL Video_AddMessage(const char* pstr, unsigned int milliseconds);
 
+// __________________________________________________________________________________________________
+// Function: Video_SaveState
+// Purpose:  Saves the current video data state
+// input:    The chunkfile to write to? FIXME
+// output:   none
+//
+EXPORT void CALL Video_SaveState();
+
+// __________________________________________________________________________________________________
+// Function: Video_LoadState
+// Purpose:  Loads the current video data state
+// input:    The chunkfile to read from? FIXME
+// output:   none
+//
+EXPORT void CALL Video_LoadState();
+
 #undef CALL
 
 #if defined(__cplusplus)

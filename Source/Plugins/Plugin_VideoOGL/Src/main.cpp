@@ -37,6 +37,8 @@
 #include "PixelShaderManager.h"
 #include "VertexShaderManager.h"
 
+#include "VideoState.h"
+
 SVideoInitialize g_VideoInitialize;
 #define VERSION_STRING "0.1"
 
@@ -177,6 +179,19 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 
 }
 
+void Video_SaveState() {
+	VideoCommon_SaveState();
+#ifdef WIN32
+	MessageBoxA(NULL, "SAVING STATE", "From OpenGL", NULL);
+#endif
+}
+
+void Video_LoadState() {
+	VideoCommon_LoadState();
+#ifdef WIN32
+	MessageBoxA(NULL, "LOADING STATE", "From OpenGL", NULL);
+#endif
+}
 
 void Video_Prepare(void)
 {
