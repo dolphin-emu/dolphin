@@ -283,6 +283,9 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 		break;
 
 	default:
+		// Allow 32-bit writes to the VI: although this is officially not
+		// allowed, the hardware seems to accept it (for example, DesktopMan GC
+		// Tetris uses it).
 		Write16(_iValue >> 16, _iAddress);
 		Write16(_iValue & 0xFFFF, _iAddress + 2);
 		break;
