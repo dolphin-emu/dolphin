@@ -26,5 +26,5 @@ files = ["ABI.cpp",
 		 ]
 		 
 env_common = env.Copy()
-env_common.Append(CXXFLAGS = " -fPIC ")
+env_common.Append(CXXFLAGS = [ '-fPIC' ])
 env_common.StaticLibrary("common", files)
