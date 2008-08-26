@@ -2,6 +2,7 @@
 #include "Utils.h"
 #include "Globals.h"
 #include "ShaderManager.h"
+#include "VertexLoader.h"
 #include "BPMemory.h"
 #include "XFMemory.h"
 
@@ -40,7 +41,6 @@ VShaderCache::VSCache VShaderCache::vshaders;
 void PShaderCache::Init()
 {
 
-
 }
 
 
@@ -49,7 +49,7 @@ void PShaderCache::Shutdown()
 	PSCache::iterator iter = pshaders.begin();
 	for (;iter!=pshaders.end();iter++)
 		iter->second.Destroy();
-	pshaders.clear();
+	pshaders.clear(); 
 }
 
 
@@ -79,7 +79,7 @@ void PShaderCache::SetShader()
 	}
 
 	const char *code = GeneratePixelShader();
-	LPDIRECT3DPIXELSHADER9 shader = D3D::CompilePShader(code, strlen(code));
+	LPDIRECT3DPIXELSHADER9 shader = D3D::CompilePShader(code, int(strlen(code)));
 	if (shader)
 	{
 		//Make an entry in the table
@@ -135,8 +135,13 @@ void VShaderCache::Shutdown()
 
 void VShaderCache::SetShader()
 {
+	if (D3D::GetShaderVersion() < 2)
+		return; // we are screwed
+
 	static LPDIRECT3DVERTEXSHADER9 lastShader = 0;
-	xformhash currentHash = GetCurrentXForm();
+	DVSTARTPROFILE();
+
+	tevhash currentHash = GetCurrentTEV();
 
 	VSCache::iterator iter;
 	iter = vshaders.find(currentHash);
@@ -153,8 +158,8 @@ void VShaderCache::SetShader()
 		return;
 	}
 
-	LPDIRECT3DVERTEXSHADER9 shader = GenerateVertexShader();
-
+	const char *code = GenerateVertexShader();
+	LPDIRECT3DVERTEXSHADER9 shader = D3D::CompileVShader(code, int(strlen(code)));
 	if (shader)
 	{
 		//Make an entry in the table
@@ -180,5 +185,5 @@ void VShaderCache::Cleanup()
 			iter = vshaders.erase(iter);
 		}
 	}
-	SETSTAT(stats.numPixelShadersAlive, (int)vshaders.size());
+	SETSTAT(stats.numVertexShadersAlive, (int)vshaders.size());
 }

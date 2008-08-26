@@ -3,43 +3,12 @@
 #include "VertexShader.h"
 #include "BPStructs.h"
 
-
-
-
-
-//I hope we don't get too many hash collisions :p
-//all these magic numbers are primes, it should help a bit
-xformhash GetCurrentXForm()
-{
-	//return 0;
-	xformhash hash = bpmem.genMode.numtexgens*8*17;
-/*
-	for (int i=0; i<bpmem.genMode.numtevstages+1; i++)
-	{
-		hash = _rotl(hash,3) ^ (bpmem.combiners[i].colorC.hex*13);
-		hash = _rotl(hash,7) ^ ((bpmem.combiners[i].alphaC.hex&0xFFFFFFFC)*3);
-	}
-	for (int i=0; i<bpmem.genMode.numtevstages/2+1; i++)
-	{
-		hash = _rotl(hash,13) ^ (bpmem.tevorders[i].hex*7);
-	}
-	for (int i=0; i<8; i++)
-	{
-		hash = _rotl(hash,3) ^ bpmem.tevksel[i].swap1;
-		hash = _rotl(hash,3) ^ bpmem.tevksel[i].swap2;
-	}*/
-
-	// to hash: bpmem.tevorders[j/2].getTexCoord(j&1);
-	// also texcoords array
-	return hash;
-}
-
 char text2[65536];
 #define WRITE p+=sprintf
 
 void WriteTexgen(char *&p, int n);
 
-LPDIRECT3DVERTEXSHADER9 GenerateVertexShader()
+const char *GenerateVertexShader()
 {
 	int numColors = 2;
 	int numUV = 8;
@@ -97,7 +66,7 @@ LPDIRECT3DVERTEXSHADER9 GenerateVertexShader()
 	WRITE(p,"\0");
 
 //	MessageBox(0,text2,0,0);
-	return D3D::CompileVShader(text2,(int)(p-text2));
+	return text2;
 }
 
 

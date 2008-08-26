@@ -126,7 +126,7 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 
 		Vec3 OrigPos = varray->GetPos(i);
 
-		if (varray->GetComponents() & VB_HAS_POSMTXIDX)
+		if (varray->GetComponents() & VertexLoader::VB_HAS_POSMTXIDX)
 		{
 			int index = varray->GetPosMtxInd(i);
 			SetPosNormalMatrix(
@@ -136,7 +136,7 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 
 		for (int j = 0; j < 8; j++)
 		{
-			if (varray->GetComponents() & (VB_HAS_TEXMTXIDX0<<j))
+			if (varray->GetComponents() & (VertexLoader::VB_HAS_TEXMTXIDX0<<j))
 			{
 				float *flipmem = (float *)xfmem; 
 				int index = varray->GetTexMtxInd(j, i);
@@ -151,7 +151,7 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 
 		Vec3 TempNormal;
 		Vec3 OrigNormal;
-		if (varray->GetComponents() & VB_HAS_NRM0)
+		if (varray->GetComponents() & VertexLoader::VB_HAS_NRM0)
 		{
 			OrigNormal = varray->GetNormal(0, i);
 			VtxMulMtx33(TempNormal, OrigNormal, m_pNormalMatrix);
@@ -180,7 +180,7 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 			RGBAFloat material;
             RGBAFloat lightSum(0,0,0,0);
 
-			bool hasColorJ = (varray->GetComponents() & (VB_HAS_COL0 << j)) != 0;
+			bool hasColorJ = (varray->GetComponents() & (VertexLoader::VB_HAS_COL0 << j)) != 0;
 
 			//get basic material color from appropriate sources (this would compile nicely!:)
 			if (xfregs.colChans[j].color.matsource == GX_SRC_REG)
@@ -295,7 +295,7 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 			default:
 				{
 					int c = xfregs.texcoords[n].texmtxinfo.sourcerow - XF_SRCTEX0_INROW;
-					bool hasTCC = (varray->GetComponents() & (VB_HAS_UV0 << c)) != 0;
+					bool hasTCC = (varray->GetComponents() & (VertexLoader::VB_HAS_UV0 << c)) != 0;
 					if (c >= 0 && c <= 7 && hasTCC)
 					{
 						const DecUV &uv = varray->GetUV(c, i);

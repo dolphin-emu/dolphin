@@ -64,7 +64,7 @@ class VShaderCache
 		}
 	};
 
-	typedef std::map<xformhash,VSCacheEntry> VSCache;
+	typedef std::map<tevhash,VSCacheEntry> VSCache;
 
 	static VSCache vshaders;
 

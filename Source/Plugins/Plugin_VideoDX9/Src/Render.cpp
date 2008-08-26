@@ -227,6 +227,7 @@ void Renderer::SwapBuffers(void)
 	//clean out old stuff from caches
 	frameCount++;
 	PShaderCache::Cleanup();
+	VShaderCache::Cleanup();
 	TextureCache::Cleanup();
 	//DListCache::Cleanup();
 

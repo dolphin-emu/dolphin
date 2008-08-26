@@ -27,22 +27,22 @@ DecodedVArray *varray;
 int ComputeVertexSize(u32 comp)
 {
 	int size = 0;
-	if (comp & VB_HAS_POSMTXIDX)
+	if (comp & VertexLoader::VB_HAS_POSMTXIDX)
 		size += 4;
-	if (comp & (VB_HAS_TEXMTXIDX0 | VB_HAS_TEXMTXIDX1 | VB_HAS_TEXMTXIDX2 | VB_HAS_TEXMTXIDX3))
+	if (comp & (VertexLoader::VB_HAS_TEXMTXIDX0 | VertexLoader::VB_HAS_TEXMTXIDX1 | VertexLoader::VB_HAS_TEXMTXIDX2 | VertexLoader::VB_HAS_TEXMTXIDX3))
 		size += 4;
-	if (comp & (VB_HAS_TEXMTXIDX4 | VB_HAS_TEXMTXIDX5 | VB_HAS_TEXMTXIDX6 | VB_HAS_TEXMTXIDX7))
+	if (comp & (VertexLoader::VB_HAS_TEXMTXIDX4 | VertexLoader::VB_HAS_TEXMTXIDX5 | VertexLoader::VB_HAS_TEXMTXIDX6 | VertexLoader::VB_HAS_TEXMTXIDX7))
 		size += 4;
-	if (comp & VB_HAS_NRM0)
+	if (comp & VertexLoader::VB_HAS_NRM0)
 		size += 4;
-	if (comp & (VB_HAS_NRM1 | VB_HAS_NRM2)) //combine into single check for speed
+	if (comp & (VertexLoader::VB_HAS_NRM1 | VertexLoader::VB_HAS_NRM2)) //combine into single check for speed
 		size += 8;
-	if (comp & VB_HAS_COL0)
+	if (comp & VertexLoader::VB_HAS_COL0)
 		size += 4; 
-	if (comp & VB_HAS_COL1)
+	if (comp & VertexLoader::VB_HAS_COL1)
 		size += 4;
 	for (int i = 0; i < 8; i++)
-		if (comp & (VB_HAS_UV0 << i))
+		if (comp & (VertexLoader::VB_HAS_UV0 << i))
 			size += 8;
 	return size;
 }

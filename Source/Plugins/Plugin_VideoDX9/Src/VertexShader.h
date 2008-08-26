@@ -3,10 +3,7 @@
 
 #include "Common.h"
 
-typedef u32 xformhash;
-
-xformhash GetCurrentXForm();
-LPDIRECT3DVERTEXSHADER9 GenerateVertexShader();
+const char *GenerateVertexShader();
 
 #define PS_CONST_COLORS  0
 #define PS_CONST_KCOLORS 4
