@@ -160,8 +160,8 @@ void InitHWMemFuncs()
 
 	for (int i = 0; i < BLOCKSIZE; i++)
 	{
-		hwRead16 [i] = CommandProcessor::Read16;
-		hwWrite16[i] = CommandProcessor::Write16;
+		hwRead16 [CP_START+i] = CommandProcessor::Read16;
+		hwWrite16[CP_START+i] = CommandProcessor::Write16;
  
 		hwRead16 [PE_START+i] = PixelEngine::Read16;
 		hwWrite16[PE_START+i] = PixelEngine::Write16;
