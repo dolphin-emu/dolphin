@@ -108,7 +108,8 @@ bool CMappedFile::Open(const char* filename)
 	size = (u64)low | ((u64)high << 32);
 #elif POSIX
 	fd   = open(filename, O_RDONLY);
-	size = 0; //TODO
+	size = lseek(fd, 0, SEEK_END);
+	lseek(fd, 0, SEEK_SET);
 #endif
 
 	return(true);
@@ -167,7 +168,7 @@ u8* CMappedFile::Lock(u64 offset, u64 size)
 	{
 		u64 realOffset = offset & ~(granularity - 1);
 		s64 difference = offset - realOffset;
-		u64 fake_size = ((offset & 4095) + size + 4095) & 4095;
+		u64 fake_size = (difference + size + granularity - 1) & ~(granularity - 1);
 #ifdef _WIN32
 		u8* realPtr = (u8*)MapViewOfFile(hFileMapping, FILE_MAP_READ, (DWORD)(realOffset >> 32), (DWORD)realOffset, (SIZE_T)(size));
 
