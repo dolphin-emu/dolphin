@@ -17,14 +17,26 @@ files = ["BootManager.cpp",
         "stdafx.cpp",
         ]
 
-
-wxenv = env.Copy(CXXFLAGS = "`wx-config --cppflags` -DUSE_XPM_BITMAPS -DwxNEEDS_CHARPP `sdl-config --cflags`",
-                 LINKFLAGS = "-L/usr/local/lib -pthread `wx-config --libs`  `sdl-config --libs`")
+wxenv = env.Copy()
+wxenv.Append(
+	CXXFLAGS = ' ' + ' '.join([
+		'`wx-config --cppflags`',
+		'-DUSE_XPM_BITMAPS',
+		'-DwxNEEDS_CHARPP',
+		'`sdl-config --cflags`',
+		]),
+	LINKFLAGS = ' ' + ' '.join([
+		'-L/usr/local/lib',
+		'-pthread',
+		'`wx-config --libs`',
+		'`sdl-config --libs`'
+		])
+	)
 
 if sys.platform == 'darwin':
 	icon = 'Dolphin'
-	version = "svn"
-	wxenv.Program("../../../../Binary/mac/Dolphin.app/Contents/MacOS/Dolphin", files, LIBS = ["debwx", "discio", "core", "bdisasm", "videocommon", "common" , "z"])
+	version = 'svn'
+	wxenv.Program('../../../../Binary/mac/Dolphin.app/Contents/MacOS/Dolphin', files, LIBS = ["debwx", "discio", "core", "bdisasm", "videocommon", "common" , "z"])
 	wxenv.Plist("../../../../Binary/mac/Dolphin.app/Contents/Info.plist", Value(dict(
 		CFAppleHelpAnchor = 'index',
 		CFBundleExecutable = 'Dolphin',

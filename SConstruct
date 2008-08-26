@@ -19,7 +19,6 @@ compileFlags = [
 	'-g',
 	'-O3',
 	'-fno-strict-aliasing',
-	'-fPIC',
 	'-msse2',
 	'-D_FILE_OFFSET_BITS=64',
 	'-D_LARGEFILE_SOURCE',
@@ -72,8 +71,8 @@ lib_paths = include_paths
 env = Environment(
 	CC = "gcc",
 	CXX = "g++",
-	CCFLAGS = compileFlags,
-	CXXFLAGS = compileFlags,
+	CCFLAGS = ' '.join(compileFlags),
+	CXXFLAGS = ' '.join(compileFlags),
 	CPPPATH = include_paths,
 	LIBPATH = lib_paths,
 	ENV = {

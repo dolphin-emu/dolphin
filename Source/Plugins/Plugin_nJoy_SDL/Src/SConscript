@@ -6,9 +6,19 @@ if sys.platform == 'darwin':
 else:
 	output = "../../../../Binary/linux/Plugins/Plugin_nJoy_SDL.so"
 
-files = [	"nJoy.cpp",
-			"GUI/AboutBox.cpp",
-			"GUI/ConfigBox.cpp",
-	 ]
-padenv=env.Copy(CXXFLAGS = " `wx-config --cppflags` `pkg-config --cflags sdl`", LINKFLAGS = "`wx-config --libs` `pkg-config --libs sdl` ")
-padenv.SharedLibrary(output, files, LIBS=["common"])
+files = [
+	"nJoy.cpp",
+	"GUI/AboutBox.cpp",
+	"GUI/ConfigBox.cpp",
+	]
+
+padenv = env.Copy()
+padenv.Append(
+	CXXFLAGS = ' ' + ' '.join([
+		'-fPIC', '`wx-config --cppflags`', '`pkg-config --cflags sdl`'
+		]),
+	LINKFLAGS = ' ' + ' '.join([
+		'`wx-config --libs`', '`pkg-config --libs sdl`'
+		])
+	)
+padenv.SharedLibrary(output, files, LIBS = [ "common" ])

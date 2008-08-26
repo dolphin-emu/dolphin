@@ -23,6 +23,7 @@ files = [
 	'GUI/ConfigDlg.cpp',
 	]
 compileFlags = [
+	'-fPIC',
 	'`wx-config --cppflags`',
 	]
 linkFlags = [
@@ -58,9 +59,10 @@ if useSDL:
 	compileFlags += [ '`sdl-config --cflags`', '-DUSE_SDL=1' ]
 	linkFlags += [ '`sdl-config --libs`' ]
 
-gfxenv = env.Copy(
-	CXXFLAGS = ' '.join(compileFlags),
-	LINKFLAGS = ' '.join(linkFlags),
+gfxenv = env.Copy()
+gfxenv.Append(
+	CXXFLAGS = ' ' + ' '.join(compileFlags),
+	LINKFLAGS = ' ' + ' '.join(linkFlags)
 	)
 gfxenv.SharedLibrary(
 	'../../../../Binary/%s/Plugins/zeroogl.so' % platform,

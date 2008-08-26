@@ -1,11 +1,12 @@
 Import('env')
 
-files = ["dis_decode.cpp",
-         "dis_groups.cpp",
-         "resolve.cpp",
-         "syntax.cpp",
-         "PowerPCDisasm.cpp",
-        ]
+files = [
+	"dis_decode.cpp",
+	"dis_groups.cpp",
+	"resolve.cpp",
+	"syntax.cpp",
+	"PowerPCDisasm.cpp",
+	]
 
-env_bochs = env.Copy(CXXFLAGS = " -fPIC ")
+env_bochs = env.Copy()
 env_bochs.StaticLibrary("bdisasm", files)

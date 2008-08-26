@@ -1,13 +1,15 @@
 Import('env')
 
-files = ["BPMemory.cpp",
-		 "CPMemory.cpp",
-		 "LookUpTables.cpp",
-		 "TextureDecoder.cpp",
-		 "XFMemory.cpp",
-		 "XFBConvert.cpp",
-		 "Fifo.cpp",
-		 ]
+files = [
+	"BPMemory.cpp",
+	"CPMemory.cpp",
+	"LookUpTables.cpp",
+	"TextureDecoder.cpp",
+	"XFMemory.cpp",
+	"XFBConvert.cpp",
+	"Fifo.cpp",
+	]
 
-env_common = env.Copy(CXXFLAGS = " -fPIC ")
+env_common = env.Copy()
+env_common.Append(CXXFLAGS = ' ' + ' '.join([ '-fPIC' ]))
 env_common.StaticLibrary("videocommon", files)

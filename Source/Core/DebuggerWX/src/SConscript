@@ -15,7 +15,17 @@ files = ["LogWindow.cpp",
          "RegisterView.cpp",
          "JitWindow.cpp",
         ]
-wxenv = env.Copy(CXXFLAGS = "`wx-config --cppflags` -DUSE_XPM_BITMAPS -DwxNEEDS_CHARPP",
-                 LINKFLAGS = "-L/usr/local/lib -pthread `wx-config --libs --debug`")
-                 
-wxenv.StaticLibrary("debwx", files, LIBS = ["common"])
+wxenv = env.Copy()
+wxenv.Append(
+	CXXFLAGS = ' ' + ' '.join([
+		'`wx-config --cppflags`',
+		'-DUSE_XPM_BITMAPS',
+		'-DwxNEEDS_CHARPP'
+		]),
+	LINKFLAGS = ' ' + ' '.join([
+		'-L/usr/local/lib',
+		'-pthread',
+		'`wx-config --libs --debug`'
+		])
+	)
+wxenv.StaticLibrary("debwx", files, LIBS = [ "common" ])

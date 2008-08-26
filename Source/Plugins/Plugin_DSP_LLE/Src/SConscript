@@ -1,18 +1,25 @@
 Import('env')
 output = "../../../../Binary/linux/Plugins/dsplle.so"
-files = ["AOSoundStream.cpp",
-		 "disassemble.cpp",
-		 "gdsp_aram.cpp",
-		 "gdsp_ext_op.cpp",
-         "gdsp_interface.cpp",
-		 "gdsp_interpreter.cpp",
-         "gdsp_memory.cpp",
-         "gdsp_opcodes.cpp",
-         "gdsp_registers.cpp",
-         "Globals.cpp",
-         "opcodes.cpp",
-         "Tools.cpp",
-         "main.cpp",
-		 ]
-env.Append(LINKFLAGS = " `pkg-config --libs ao`")
-env.SharedLibrary(output, files, LIBS = ["common"])
+
+files = [
+	"AOSoundStream.cpp",
+	"disassemble.cpp",
+	"gdsp_aram.cpp",
+	"gdsp_ext_op.cpp",
+	"gdsp_interface.cpp",
+	"gdsp_interpreter.cpp",
+	"gdsp_memory.cpp",
+	"gdsp_opcodes.cpp",
+	"gdsp_registers.cpp",
+	"Globals.cpp",
+	"opcodes.cpp",
+	"Tools.cpp",
+	"main.cpp",
+	]
+
+dspenv = env.Copy()
+dspenv.Append(
+	CXXFLAGS = ' ' + ' '.join([ '-fPIC', '`pkg-config --cflags ao`' ]),
+	LINKFLAGS = ' ' + ' '.join([ '`pkg-config --libs ao`' ])
+	)
+dspenv.SharedLibrary(output, files, LIBS = ["common"])

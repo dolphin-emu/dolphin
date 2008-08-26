@@ -6,7 +6,13 @@ if sys.platform == 'darwin':
 else:
 	output = "../../../../Binary/linux/Plugins/padsimple.so"
 
-files = ["main.cpp",
-		 ]
-padenv=env.Copy(CXXFLAGS = " `pkg-config --cflags sdl`", LINKFLAGS = " `pkg-config --libs sdl`")
+files = [
+	"main.cpp",
+	]
+
+padenv = env.Copy()
+padenv.Append(
+	CXXFLAGS = ' ' + ' '.join([ '-fPIC', '`pkg-config --cflags sdl`' ]),
+	LINKFLAGS = ' ' + ' '.join([ '`pkg-config --libs sdl`' ])
+	)
 padenv.SharedLibrary(output, files, LIBS=["common"])

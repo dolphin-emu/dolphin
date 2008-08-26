@@ -1,30 +1,31 @@
 Import('env')
 
-files = ["ABI.cpp",
-         "Common.cpp",
-		 "ChunkFile.cpp",
-		 "CPUDetect.cpp",
-		 "DynamicLibrary.cpp",
-         "Hash.cpp",
-		 "HTTP.cpp",
-         "IniFile.cpp",
-		 "Logging.cpp",
-		 "FileUtil.cpp",
-		 "MappedFile.cpp",
-		 "MathUtil.cpp",
-         "MemArena.cpp",
-		 "MemoryUtil.cpp",
-         "Plugin.cpp",
-		 "PortableSockets.cpp",
-		 "StringUtil.cpp",
-		 "TestFramework.cpp",
-		 "Thunk.cpp",
-		 "Timer.cpp",
-		 "Thread.cpp",
-		 "x64Emitter.cpp", 
-		 "x64Analyzer.cpp",
-		 ]
-		 
+files = [
+	"ABI.cpp",
+	"Common.cpp",
+	"ChunkFile.cpp",
+	"CPUDetect.cpp",
+	"DynamicLibrary.cpp",
+	"Hash.cpp",
+	"HTTP.cpp",
+	"IniFile.cpp",
+	"Logging.cpp",
+	"FileUtil.cpp",
+	"MappedFile.cpp",
+	"MathUtil.cpp",
+	"MemArena.cpp",
+	"MemoryUtil.cpp",
+	"Plugin.cpp",
+	"PortableSockets.cpp",
+	"StringUtil.cpp",
+	"TestFramework.cpp",
+	"Thunk.cpp",
+	"Timer.cpp",
+	"Thread.cpp",
+	"x64Emitter.cpp",
+	"x64Analyzer.cpp",
+	]
+
 env_common = env.Copy()
-env_common.Append(CXXFLAGS = [ '-fPIC' ])
+env_common.Append(CXXFLAGS = ' ' + ' '.join([ '-fPIC' ]))
 env_common.StaticLibrary("common", files)

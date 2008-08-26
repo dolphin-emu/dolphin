@@ -1,22 +1,28 @@
 Import('env')
 import sys
 
-files = ["DSPHandler.cpp",
-		 "MailHandler.cpp",
-         "main.cpp",
-		 "Config.cpp",
-		 "Globals.cpp",
-		 "PCHW/AOSoundStream.cpp",
-		 "PCHW/Mixer.cpp",
-         "UCodes/UCode_AX.cpp",
-         "UCodes/UCode_CARD.cpp",
-         "UCodes/UCode_InitAudioSystem.cpp",
-         "UCodes/UCode_Jac.cpp",
-         "UCodes/UCode_ROM.cpp",
-         "UCodes/UCodes.cpp",
-         "UCodes/UCode_Zelda.cpp",
-		 ]
-dspenv=env.Copy(LINKFLAGS = "`pkg-config --libs ao` ")
+files = [
+	"DSPHandler.cpp",
+	"MailHandler.cpp",
+	"main.cpp",
+	"Config.cpp",
+	"Globals.cpp",
+	"PCHW/AOSoundStream.cpp",
+	"PCHW/Mixer.cpp",
+	"UCodes/UCode_AX.cpp",
+	"UCodes/UCode_CARD.cpp",
+	"UCodes/UCode_InitAudioSystem.cpp",
+	"UCodes/UCode_Jac.cpp",
+	"UCodes/UCode_ROM.cpp",
+	"UCodes/UCodes.cpp",
+	"UCodes/UCode_Zelda.cpp",
+	]
+
+dspenv = env.Copy()
+dspenv.Append(
+	CXXFLAGS = ' ' + ' '.join([ '-fPIC', '`pkg-config --cflags ao`' ]),
+	LINKFLAGS = ' ' + ' '.join([ '`pkg-config --libs ao`' ])
+	)
 
 if sys.platform == 'darwin':
 	dspenv.SharedLibrary("../../../../Binary/mac/Plugins/dsphle.so", files, LIBS = ["common"])
