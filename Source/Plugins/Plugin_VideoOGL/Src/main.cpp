@@ -74,21 +74,29 @@ void DllConfig(HWND _hParent)
 
 	DWORD iModeNum = 0;
 	DEVMODE dmi;
-	unsigned int x = 0, y = 0;
 	ZeroMemory(&dmi, sizeof(dmi));
 	dmi.dmSize = sizeof(dmi);
+	std::string resos[100];
+	int i = 0;
 	
-	while (EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
+	while(EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
 	{	
-		if((x != dmi.dmPelsWidth || y != dmi.dmPelsHeight) && (dmi.dmPelsWidth >= x))
-		{
 			char szBuffer[100];
 			sprintf(szBuffer,"%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
-			frame.AddFSReso(szBuffer);
-			frame.AddWindowReso(szBuffer);
-			x = dmi.dmPelsWidth;
-			y = dmi.dmPelsHeight;
-		}
+			//making a string cause char*[] to char was a baaad idea
+			std::string strBuffer(szBuffer);
+			//create a check loop to check every pointer of resos to see if the res is added or not
+			int b = 0;
+			bool resFound = false;
+			while(b < i && !resFound)
+			{
+				//is the res already added?
+				resFound = (resos[b] == strBuffer);
+				b++;
+			}
+			if(!resFound)
+			//and add the res
+			{				resos[i] = strBuffer;				i++;				frame.AddFSReso(szBuffer);							frame.AddWindowReso(szBuffer);			}
         ZeroMemory(&dmi, sizeof(dmi));
 	}
 	frame.ShowModal();
