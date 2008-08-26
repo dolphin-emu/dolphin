@@ -7,10 +7,12 @@
 bool CBoot::IsElfWii(const char *filename)
 {
 	Common::IMappedFile *mapfile = Common::IMappedFile::CreateMappedFile();
-	mapfile->Open(filename);
-	u8 *ptr = mapfile->Lock(0, mapfile->GetSize());
-	u8 *mem = new u8[(size_t)mapfile->GetSize()];
-	memcpy(mem, ptr, (size_t)mapfile->GetSize());
+	bool ok = mapfile->Open(filename);
+	if (!ok) return false;
+	size_t filesize = mapfile->GetSize();
+	u8 *ptr = mapfile->Lock(0, filesize);
+	u8 *mem = new u8[filesize];
+	memcpy(mem, ptr, filesize);
 	mapfile->Unlock(ptr);
 	mapfile->Close();
 	
