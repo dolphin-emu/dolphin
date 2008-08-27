@@ -125,15 +125,15 @@ void PatchFunctions()
 
 void Execute(u32 _CurrentPC, u32 _Instruction)
 {
-	int FunctionIndex = _Instruction & 0xFFFFF;
+	unsigned int FunctionIndex = _Instruction & 0xFFFFF;
 	if ((FunctionIndex > 0) && (FunctionIndex < (sizeof(OSPatches) / sizeof(SPatch))))
 	{
 		OSPatches[FunctionIndex].PatchFunction();
-	}			
+	}
 	else
 	{
 		PanicAlert("HLE system tried to call an undefined HLE function %i.", FunctionIndex);
-	}			
+	}
 
 //	_dbg_assert_msg_(HLE,NPC == LR, "Broken HLE function (doesn't set NPC)", OSPatches[pos].m_szPatchName);
 }

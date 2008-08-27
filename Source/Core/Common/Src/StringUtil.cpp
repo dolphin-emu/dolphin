@@ -334,14 +334,14 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
 #else
 bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension)
 {
-	int last_slash = full_path.rfind('/');
+	size_t last_slash = full_path.rfind('/');
 
 	if (last_slash == std::string::npos)
 	{
 		return(false);
 	}
 
-	int last_dot = full_path.rfind('.');
+	size_t last_dot = full_path.rfind('.');
 
 	if ((last_dot == std::string::npos) || (last_dot < last_slash))
 	{

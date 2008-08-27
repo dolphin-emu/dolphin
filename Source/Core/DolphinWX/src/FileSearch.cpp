@@ -67,7 +67,7 @@ void CFileSearch::FindFiles(const std::string& _searchString, const std::string&
 	}
 
 #else
-	int dot_pos = _searchString.rfind(".");
+	size_t dot_pos = _searchString.rfind(".");
 
 	if (dot_pos == std::string::npos)
 	{

@@ -89,7 +89,7 @@ bool ChunkFile::Do(void *ptr, int size)
 //let's get into the business
 bool ChunkFile::Descend(const char *cid)
 {
-	int id = *((int*)cid);
+	unsigned int id = *reinterpret_cast<const unsigned int*>(cid);
 	if (mode == MODE_READ)
 	{
 		bool found = false;
@@ -100,7 +100,7 @@ bool ChunkFile::Descend(const char *cid)
 		stack[stack_ptr].parentStartLocation = startPos;
 		stack[stack_ptr].parentEOF = eof;
 
-		int firstID = 0;
+		unsigned int firstID = 0;
 		//let's search through children..
 		while (ftell(f) < eof)
 		{

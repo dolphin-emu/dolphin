@@ -234,7 +234,7 @@ CGameListCtrl::InsertItemInReportView(size_t _Index)
 		item.SetBackgroundColour(color);
 		DiscIO::IVolume::ECountry Country = rISOFile.GetCountry();
 
-		if (Country < m_FlagImageIndex.size())
+		if (size_t(Country) < m_FlagImageIndex.size())
 		{
 			item.SetImage(m_FlagImageIndex[rISOFile.GetCountry()]);
 		}

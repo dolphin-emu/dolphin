@@ -256,7 +256,7 @@ void Thread::SetAffinity(int mask)
 	cpu_set_t cpu_set;
 	CPU_ZERO(&cpu_set);
 
-	for (int i = 0; i < sizeof(mask) * 8; i++)
+	for (unsigned int i = 0; i < sizeof(mask) * 8; i++)
 	{
 		if ((mask >> i) & 1){CPU_SET(i, &cpu_set);}
 	}
