@@ -19,7 +19,7 @@
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
-#define LOGGING
+//#define LOGGING
 
 #include "Common.h"
 #include "x64Emitter.h"
