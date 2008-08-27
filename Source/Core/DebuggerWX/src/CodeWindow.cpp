@@ -108,9 +108,9 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
 CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent, wxWindowID id,
 		const wxString& title, const wxPoint& pos, const wxSize& size, long style)
 	: wxFrame(parent, id, title, pos, size, style)
-	, m_RegisterWindow(NULL)
 	, m_LogWindow(NULL)
-{    
+	, m_RegisterWindow(NULL)
+{
 	InitBitmaps();
 
 	CreateGUIControls(_LocalCoreStartupParameter);
