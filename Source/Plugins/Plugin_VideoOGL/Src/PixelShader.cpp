@@ -449,7 +449,7 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
         }
     }
 
-    WRITE(p,"}\n\0");
+    WRITE(p,"}\n");
 
     return text;
 }

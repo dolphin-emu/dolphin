@@ -402,7 +402,7 @@ char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
 //        WRITE(p, "o.fog = o.pos.z/o.pos.w;\n");
 //    }
 
-    WRITE(p,"return o;\n}\n\0");
+    WRITE(p,"return o;\n}\n");
 
     return text;
 }
