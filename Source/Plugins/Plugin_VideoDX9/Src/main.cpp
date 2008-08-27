@@ -168,16 +168,12 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 
 void Video_SaveState() {
 	VideoCommon_SaveState();
-#ifdef WIN32
-	MessageBoxA(NULL, "SAVING STATE", "From DirectX", NULL);
-#endif
+	//PanicAlert("Saving state from DirectX9");
 }
 
 void Video_LoadState() {
 	VideoCommon_LoadState();
-#ifdef WIN32
-	MessageBoxA(NULL, "LOADING STATE", "From DirectX", NULL);
-#endif
+	//PanicAlert("Loading state from DirectX9");
 }
 
 void Video_EnterLoop()

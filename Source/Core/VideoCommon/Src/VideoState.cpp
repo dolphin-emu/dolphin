@@ -17,18 +17,13 @@
 
 #include "VideoState.h"
 #include "TextureDecoder.h"
-#ifdef WIN32
-#include <windows.h>
-#endif
 
 void VideoCommon_SaveState() {
-#ifdef WIN32
-	MessageBoxA(NULL, "SAVING STATE", "From Common Video Library", NULL);
-#endif
+	//PanicAlert("Saving state from Video Common Library");
+	//TODO: Save the video state
 }
 
 void VideoCommon_LoadState() {
-#ifdef WIN32
-	MessageBoxA(NULL, "LOADING STATE", "From Common Video Library", NULL);
-#endif
+	//PanicAlert("Loading state from Video Common Library");
+	//TODO: Load the video state
 }

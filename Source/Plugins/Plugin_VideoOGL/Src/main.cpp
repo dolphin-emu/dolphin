@@ -181,16 +181,12 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 
 void Video_SaveState() {
 	VideoCommon_SaveState();
-#ifdef WIN32
-	MessageBoxA(NULL, "SAVING STATE", "From OpenGL", NULL);
-#endif
+	//PanicAlert("Saving state from OpenGL");
 }
 
 void Video_LoadState() {
 	VideoCommon_LoadState();
-#ifdef WIN32
-	MessageBoxA(NULL, "LOADING STATE", "From OpenGL", NULL);
-#endif
+	//PanicAlert("Loading state from OpenGL");
 }
 
 void Video_Prepare(void)
