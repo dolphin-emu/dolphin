@@ -623,11 +623,7 @@ void ConfigBox::GetButtons(wxCommandEvent& event)
 		SLEEP(10);
 	}
 
-	if(succeed)
-		sprintf(format, "%d", pressed);
-	else
-		sprintf(format, "-1", pressed);
-	
+	sprintf(format, "%d", succeed ? pressed : -1);
 	SetButtonText(ID, format);
 	
 	if(SDL_JoystickOpened(joysticks[controller].ID))
@@ -686,10 +682,7 @@ void ConfigBox::GetHats(int ID)
 		SLEEP(10);
 	}
 
-	if(succeed)
-		sprintf(format, "%d", pressed);
-	else
-		sprintf(format, "-1", pressed);
+	sprintf(format, "%d", succeed ? pressed : -1);
 	SetButtonText(ID, format);
 
 	if(SDL_JoystickOpened(joysticks[controller].ID))
@@ -751,10 +744,7 @@ void ConfigBox::GetAxis(wxCommandEvent& event)
 		SLEEP(10);
 	}
 
-	if(succeed)
-		sprintf(format, "%d", pressed);
-	else
-		sprintf(format, "-1", pressed);
+	sprintf(format, "%d", succeed ? pressed : -1);
 	SetButtonText(ID, format);
 
 	if(SDL_JoystickOpened(joysticks[controller].ID))
