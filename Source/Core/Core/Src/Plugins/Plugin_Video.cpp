@@ -109,7 +109,7 @@ bool LoadPlugin(const char *_Filename)
 			(g_Video_Screenshot != 0) &&
 			(g_Video_AddMessage != 0) &&
 			(g_Video_SaveState != 0) &&
-			(g_Video_LoadState != 0))
+			(g_Video_LoadState != 0) )
 		{
 			return true;
 		}
@@ -186,7 +186,7 @@ void Video_SaveState() {
 }
 
 void Video_LoadState() {
-	g_Video_SaveState();
+	g_Video_LoadState();
 }
 
 } // end of namespace PluginVideo
