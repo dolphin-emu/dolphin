@@ -1,5 +1,5 @@
 /* XPM */
-static char *ConfigBox_WxStaticBitmap1_XPM[]={
+static const char *ConfigBox_WxStaticBitmap1_XPM[]={
 /* ConfigBox_WxStaticBitmap1 */
 "421 304 256 2",
 "   c black",

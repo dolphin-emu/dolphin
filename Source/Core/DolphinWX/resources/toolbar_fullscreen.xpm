@@ -1,5 +1,5 @@
 /* XPM */
-static char *toolbar_fullscreen_xpm[] = {
+static const char *toolbar_fullscreen_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "48 48 78 1",
 "  c #0EA437",

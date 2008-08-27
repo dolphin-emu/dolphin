@@ -1,5 +1,5 @@
 /* XPM */
-static char *toolbar_plugin_options_xpm[] = {
+static const char *toolbar_plugin_options_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "48 48 58 1",
 "  c #666463",

@@ -1,5 +1,5 @@
 /* XPM */
-static char *AboutBox_WxStaticBitmap1_XPM[]={
+static const char *AboutBox_WxStaticBitmap1_XPM[]={
 /* AboutBox_WxStaticBitmap1 */
 "200 60 3963 2",
 "      c None",

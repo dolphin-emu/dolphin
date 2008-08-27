@@ -1,5 +1,5 @@
 /* XPM */
-static char *toolbar_stop_dis_xpm[] = {
+static const char *toolbar_stop_dis_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "48 48 74 1",
 "  c #566167",
