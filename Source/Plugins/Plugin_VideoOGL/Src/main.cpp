@@ -83,27 +83,27 @@ void DllConfig(HWND _hParent)
 	
 	while(EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
 	{	
-			char szBuffer[100];
-			sprintf(szBuffer,"%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
-			//making a string cause char*[] to char was a baaad idea
-			std::string strBuffer(szBuffer);
-			//create a check loop to check every pointer of resos to see if the res is added or not
-			int b = 0;
-			bool resFound = false;
-			while(b < i && !resFound)
-			{
-				//is the res already added?
-				resFound = (resos[b] == strBuffer);
-				b++;
-			}
-			if(!resFound)
-			//and add the res
-			{
-				resos[i] = strBuffer;
-				i++;
-				frame.AddFSReso(szBuffer);			
-				frame.AddWindowReso(szBuffer);
-			}
+		char szBuffer[100];
+		sprintf(szBuffer,"%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
+		//making a string cause char*[] to char was a baaad idea
+		std::string strBuffer(szBuffer);
+		//create a check loop to check every pointer of resos to see if the res is added or not
+		int b = 0;
+		bool resFound = false;
+		while(b < i && !resFound)
+		{
+			//is the res already added?
+			resFound = (resos[b] == strBuffer);
+			b++;
+		}
+		if(!resFound)
+		//and add the res
+		{
+			resos[i] = strBuffer;
+			i++;
+			frame.AddFSReso(szBuffer);			
+			frame.AddWindowReso(szBuffer);
+		}
         ZeroMemory(&dmi, sizeof(dmi));
 	}
 	frame.ShowModal();
@@ -179,12 +179,12 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 
 }
 
-void Video_SaveState() {
+void Video_SaveState(void) {
 	VideoCommon_SaveState();
 	//PanicAlert("Saving state from OpenGL");
 }
 
-void Video_LoadState() {
+void Video_LoadState(void) {
 	VideoCommon_LoadState();
 	//PanicAlert("Loading state from OpenGL");
 }
