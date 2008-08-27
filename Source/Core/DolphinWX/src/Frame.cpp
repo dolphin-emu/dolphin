@@ -109,10 +109,10 @@ CFrame::CFrame(wxFrame* parent,
 		const wxSize& size,
 		long style)
 	: wxFrame(parent, id, title, pos, size, style)
-	, m_pMenuBar(NULL)
 	, m_Panel(NULL)
-	, m_pBootProcessDialog(NULL)
 	, m_pStatusBar(NULL)
+	, m_pMenuBar(NULL)
+	, m_pBootProcessDialog(NULL)
 {
 	InitBitmaps();
 
