@@ -183,11 +183,6 @@ namespace Jit64
 #endif
 	}
 
-#ifndef _WIN32
-#undef INSTRUCTION_START
-#define INSTRUCTION_START Default(inst); return;
-#endif
-
 	void stX(UGeckoInstruction inst)
 	{
 		INSTRUCTION_START;
@@ -263,6 +258,13 @@ namespace Jit64
 			}
 
 			//Still here? Do regular path.
+			#ifndef _WIN32
+			if(accessSize == 8)
+			{
+				Default(inst);
+				return;
+			}
+			#endif
 			gpr.Lock(s, a);
 			gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
 			MOV(32, R(ABI_PARAM2), gpr.R(a));
