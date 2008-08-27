@@ -8,7 +8,7 @@ Export('dolphin_version')
 warnings = [
 	'all',
 	'write-strings',
-	'float-equal',
+	#'float-equal',
 	'shadow',
 	'pointer-arith',
 	'packed',
