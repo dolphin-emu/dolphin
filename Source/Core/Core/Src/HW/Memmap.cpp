@@ -509,7 +509,7 @@ bool Init()
 
 	memset(m_pRAM, 0, RAM_SIZE);
 	if (wii) {
-		memset(m_pPhysicalEXRAM, 0, RAM_SIZE);
+		memset(m_pPhysicalEXRAM, 0, EXRAM_SIZE);
 	}
 	memset(m_pEFB, 0, EFB_SIZE);
 	memset(m_pL1Cache, 0, L1_CACHE_SIZE);
