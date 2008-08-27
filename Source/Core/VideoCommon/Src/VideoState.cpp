@@ -17,7 +17,9 @@
 
 #include "VideoState.h"
 #include "TextureDecoder.h"
+#ifdef WIN32
 #include <windows.h>
+#endif
 
 void VideoCommon_SaveState() {
 #ifdef WIN32
