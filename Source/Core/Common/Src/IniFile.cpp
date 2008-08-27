@@ -37,11 +37,11 @@ IniFile::~IniFile()
 
 
 Section::Section()
-	: name(""), comment(""), lines() {}
+	: lines(), name(""), comment("") {}
 
 
 Section::Section(const std::string& _name)
-	: name(_name), comment(""), lines() {}
+	: lines(), name(_name), comment("") {}
 
 
 Section::Section(const Section& other)

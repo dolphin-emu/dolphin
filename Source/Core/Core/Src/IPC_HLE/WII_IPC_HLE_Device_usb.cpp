@@ -26,8 +26,8 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
     , m_ACLAnswer(false)
     , m_pACLBuffer(NULL)
     , m_pHCIBuffer(NULL)
-    , scan_enable(0)
     , m_State(STATE_NONE)
+    , scan_enable(0)
 {
 	m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, 0));
 

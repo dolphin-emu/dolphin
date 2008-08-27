@@ -27,10 +27,9 @@
 CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std::string& _rDeviceName ) 
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
     , m_pFileHandle(NULL)
-    , m_Seek(0)
     , m_FileLength(0)
+    , m_Seek(0)
 {
-    m_FileLength = 0;
 }
 
 // __________________________________________________________________________________________________

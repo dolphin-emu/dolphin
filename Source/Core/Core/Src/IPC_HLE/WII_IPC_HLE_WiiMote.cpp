@@ -117,8 +117,8 @@ struct SL2CAP_CommandConfigurationResponse // 0x05
 #define USB_HLE_LOG DSPHLE
 
 CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pHost, int _Number)
-	: m_pHost(_pHost)
-	, m_Name("Nintendo RVL-CNT-01")
+	: m_Name("Nintendo RVL-CNT-01")
+	, m_pHost(_pHost)
 {
 	m_BD.b[0] = 0x11;
 	m_BD.b[1] = 0x02;
