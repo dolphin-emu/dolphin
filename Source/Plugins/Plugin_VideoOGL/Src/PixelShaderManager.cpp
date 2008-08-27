@@ -33,7 +33,7 @@ static int s_nMaxPixelInstructions;
 static int s_nColorsChanged[2]; // 0 - regular colors, 1 - k colors
 static int s_nTexDimsChanged[2], s_nIndTexMtxChanged = 0; //min, max
 static bool s_bAlphaChanged, s_bZBiasChanged, s_bIndTexScaleChanged;
-static float lastRGBAfull[2][4][4] = {0};
+static float lastRGBAfull[2][4][4];
 static u32 lastAlpha = 0;
 static u32 lastTexDims[8]={0};
 static u32 lastZBias = 0;

@@ -192,11 +192,10 @@ bool VertexShaderMngr::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpro
     return true;
 }
 
-// TODO: this array is misdeclared. Why teh f** does it go through the compilers?
-const u16 s_mtrltable[16][2] = {0, 0, 0, 1, 1, 1, 0, 2,
-                                2, 1, 0, 3, 1, 2, 0, 3,
-                                3, 1, 0, 4, 1, 3, 0, 4,
-                                2, 2, 0, 4, 1, 3, 0, 4};
+const u16 s_mtrltable[16][2] = {{0, 0}, {0, 1}, {1, 1}, {0, 2},
+                                {2, 1}, {0, 3}, {1, 2}, {0, 3},
+                                {3, 1}, {0, 4}, {1, 3}, {0, 4},
+                                {2, 2}, {0, 4}, {1, 3}, {0, 4}};
 
 /// syncs the shader constant buffers with xfmem
 void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
