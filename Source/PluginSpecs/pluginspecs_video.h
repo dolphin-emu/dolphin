@@ -173,7 +173,7 @@ EXPORT void CALL Video_AddMessage(const char* pstr, unsigned int milliseconds);
 // input:    The chunkfile to write to? FIXME
 // output:   none
 //
-EXPORT void CALL Video_SaveState();
+EXPORT void CALL Video_SaveState(void);
 
 // __________________________________________________________________________________________________
 // Function: Video_LoadState
@@ -181,7 +181,7 @@ EXPORT void CALL Video_SaveState();
 // input:    The chunkfile to read from? FIXME
 // output:   none
 //
-EXPORT void CALL Video_LoadState();
+EXPORT void CALL Video_LoadState(void);
 
 #include "ExportEpilog.h"
 #endif

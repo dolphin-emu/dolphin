@@ -60,7 +60,7 @@ const char *GenerateVertexShader()
 	}
 
 	WRITE(p,"  for (int i=0; i<2; i++)\n    output.colors[i] = input.colors[i];\n");
-//	WRITE(p,"  output.fog = 0.0f;");
+	//WRITE(p,"  output.fog = 0.0f;");
 	WRITE(p,"return output;\n");
 	WRITE(p,"}\n");
 	WRITE(p,"\0");

@@ -301,7 +301,7 @@ const char *GeneratePixelShader()
 
 	WRITE(p,"\n");
 
-	WRITE(p,"sampler samp[%i] : register(s0);\n",numSamplers,numSamplers);
+	WRITE(p,"sampler samp[%i] : register(s0);\n",numSamplers);
 
 	WRITE(p,"\n");
 
