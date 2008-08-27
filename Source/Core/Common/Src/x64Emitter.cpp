@@ -318,16 +318,6 @@ namespace Gen
 		Write32(u32(distance));
 	}
 
-	void x86SetJ8(u8 *j8) 
-	{
-		//TODO fix
-		u64 jump = (code - (u8*)j8) - 1;
-
-		if (jump > 0x7f)
-			_assert_msg_(DYNA_REC, 0, "j8 greater than 0x7f!!");
-		*j8 = (u8)jump;
-	}
-
 	FixupBranch J(bool force5bytes)
 	{
 		FixupBranch branch;
