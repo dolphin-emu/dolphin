@@ -23,10 +23,10 @@
 
 struct SCall
 {
-    SCall(u32 a, u32 b) :
-        function(a),
-        callAddress(b)
-    {}
+	SCall(u32 a, u32 b) :
+		function(a),
+		callAddress(b)
+	{}
 	u32 function;
 	u32 callAddress;
 };
@@ -38,21 +38,21 @@ struct Symbol
 		SYMBOL_DATA = 1,
 	};
 
-    Symbol() :            
-        hash(0),
-        address(0),
-        flags(0),
-        size(0),
-        numCalls(0),
-		analyzed(0),
-		type(SYMBOL_FUNCTION)
-    {}
+	Symbol() :
+		hash(0),
+		address(0),
+		flags(0),
+		size(0),
+		numCalls(0),
+		type(SYMBOL_FUNCTION),
+		analyzed(0)
+	{}
 
-    ~Symbol()
-    {
-        callers.clear();
-        calls.clear();
-    }
+	~Symbol()
+	{
+		callers.clear();
+		calls.clear();
+	}
 
 	std::string name;
 	std::vector<SCall> callers; //addresses of functions that call this function
@@ -76,7 +76,7 @@ enum
 	FFLAG_EVIL=(1<<3),
 	FFLAG_RFI=(1<<4),
 	FFLAG_STRAIGHT=(1<<5)
-};	
+};
 
 
 // This has functionality overlapping Debugger_Symbolmap. Should merge that stuff in here later.
