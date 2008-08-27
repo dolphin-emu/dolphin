@@ -388,8 +388,8 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
             // (and we have to match with the game's texscale calls)
             int texcoord = bpmem.tevindref.getTexCoord(i);
             if( texture_mask & (1<<bpmem.tevindref.getTexMap(i)) ) {
-                // TODO - Buggy? "Too many arguments for format"
-				WRITE(p, "float2 induv%d=uv%d.xy * "I_INDTEXSCALE"[%d].%s;\n", i, texcoord, i/2, (i&1)?"zw":"xy",bpmem.tevindref.getTexMap(i));
+                // TODO: I removed a superfluous argument, please check that the resulting expression is correct. (mthuurne 2008-08-27)
+                WRITE(p, "float2 induv%d=uv%d.xy * "I_INDTEXSCALE"[%d].%s;\n", i, texcoord, i/2, (i&1)?"zw":"xy"); //, bpmem.tevindref.getTexMap(i)
 
                 char str[16];
                 sprintf(str, "induv%d", i);
@@ -417,7 +417,7 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
     }
 
     //if( bpmem.genMode.numindstages ) WRITE(p, "prev.rg = indtex0.xy;\nprev.b = 0;\n");
-    
+
     if( !WriteAlphaTest(p) ) {
         // alpha test will always fail, so restart the shader and just make it an empty function
         p = pmainstart;
@@ -450,8 +450,8 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
     }
 
     WRITE(p,"}\n\0");
- 
-	return text;
+
+    return text;
 }
 
 void WriteStage(char *&p, int n, u32 texture_mask)
@@ -497,11 +497,13 @@ void WriteStage(char *&p, int n, u32 texture_mask)
                 WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
             }
             else {
-                WRITE(p, "float2 indtevtrans%d = 0;\n", n, n);
+                // TODO: I removed a superfluous argument, please check that the resulting expression is correct. (mthuurne 2008-08-27)
+                WRITE(p, "float2 indtevtrans%d = 0;\n", n); //, n
             }
         }
         else {
-            WRITE(p, "float2 indtevtrans%d = 0;\n", n, n);
+            // TODO: I removed a superfluous argument, please check that the resulting expression is correct. (mthuurne 2008-08-27)
+            WRITE(p, "float2 indtevtrans%d = 0;\n", n); //, n
         }
 
         // wrapping
