@@ -7,12 +7,7 @@
 
 #include "PluginSpecs.h"
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
-#define EXPORT						__declspec(dllexport)
-#define CALL						_cdecl
+#include "ExportProlog.h"
 
 typedef void (*TWriteBigEData)(const unsigned __int8* _pData, const unsigned __int32 _iAddress, const unsigned __int32 _iSize);
 typedef void (*TPatchFunction)(DWORD _uAddress, unsigned char* _pMachineCode);
@@ -99,7 +94,5 @@ EXPORT DWORD CALL CompileSourceCode(char* _szSourceCode, BYTE* _pMachineCode, DW
 // 
 EXPORT DWORD CALL InsertEventString(char* _szEventSourceCode);
 
-#if defined(__cplusplus)
-}
-#endif
+#include "ExportEpilog.h"
 #endif

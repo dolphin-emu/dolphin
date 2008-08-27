@@ -7,17 +7,7 @@
 
 #include "PluginSpecs.h"
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
-#ifdef _WIN32
-#define EXPORT				__declspec(dllexport)
-#define CALL				__cdecl
-#else
-#define EXPORT
-#define CALL
-#endif
+#include "ExportProlog.h"
 
 typedef unsigned char	(*TARAM_Read_U8)(const unsigned int _uAddress);
 typedef unsigned char*	(*TGetMemoryPointer)(const unsigned int  _uAddress);
@@ -163,8 +153,6 @@ EXPORT void CALL DSP_Update(int cycles);
 // input:    _Size : Size of the Buffer (always 32)
 // 
 EXPORT void CALL DSP_SendAIBuffer(unsigned int address, int sample_rate);
- #undef CALL
-#if defined(__cplusplus)
-}
-#endif
+
+#include "ExportEpilog.h"
 #endif

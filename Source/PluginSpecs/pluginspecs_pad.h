@@ -7,17 +7,7 @@
 
 #include "PluginSpecs.h"
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
-#ifdef _WIN32
-#define EXPORT				__declspec(dllexport)
-#define CALL				__cdecl
-#else
-#define CALL
-#define EXPORT
-#endif
+#include "ExportProlog.h"
 
 #define PAD_ERR_NONE            0
 #define PAD_ERR_NO_CONTROLLER   -1
@@ -142,8 +132,6 @@ EXPORT unsigned int CALL PAD_GetAttachedPads();
 //		     states don't become plugin dependent which would suck
 //
 EXPORT unsigned int CALL SaveLoadState(char *ptr, BOOL save);
-#undef CALL
-#if defined(__cplusplus)
-}
-#endif
+
+#include "ExportEpilog.h"
 #endif

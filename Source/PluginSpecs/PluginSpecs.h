@@ -2,6 +2,14 @@
 // Common plugin spec, version #1.0 maintained by F|RES
 //
 
+#ifdef _WIN32
+#define EXPORT	__declspec(dllexport)
+#define CALL	__cdecl
+#else
+#define EXPORT	__attribute__ ((visibility("default")))
+#define CALL
+#endif
+
 #ifndef _PLUGINS_H_INCLUDED__
 #define _PLUGINS_H_INCLUDED__
 
@@ -10,9 +18,6 @@
 #include <windows.h>
 
 #else
-
-#define EXPORT
-#define CALL
 
 #ifndef TRUE
 #define TRUE 1

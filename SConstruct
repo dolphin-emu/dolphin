@@ -22,6 +22,9 @@ compileFlags = [
 	'-msse2',
 	'-D_FILE_OFFSET_BITS=64',
 	'-D_LARGEFILE_SOURCE',
+	'-DGCC_HASCLASSVISIBILITY',
+	'-fvisibility=hidden',
+	'-fvisibility-inlines-hidden',
 	]
 compileFlags += [ '-W' + warning for warning in warnings ]
 #compileFlags += [ '-DLOGGING' ]

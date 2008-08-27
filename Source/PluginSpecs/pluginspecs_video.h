@@ -7,17 +7,7 @@
 
 #include "PluginSpecs.h"
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
-#ifdef _WIN32
-#define EXPORT				__declspec(dllexport)
-#define CALL				__cdecl
-#else
-#define EXPORT
-#define CALL
-#endif
+#include "ExportProlog.h"
 
 typedef void			(*TSetPEToken)(const unsigned short _token, const int _bSetTokenAcknowledge);
 typedef void			(*TSetPEFinish)(void);
@@ -193,9 +183,5 @@ EXPORT void CALL Video_SaveState();
 //
 EXPORT void CALL Video_LoadState();
 
-#undef CALL
-
-#if defined(__cplusplus)
-}
-#endif
+#include "ExportEpilog.h"
 #endif
