@@ -22,8 +22,8 @@ T __inline max(T a, T b)
 }
 #endif
 
-#define BE16(x) (((x)[0]<<8) | (x)[1])
-#define BE32(x) (((x)[0]<<24) | ((x)[1]<<16) | ((x)[2]<<8) | (x)[3])
+#define BE16(x) ((u16((x)[0])<<8) | u16((x)[1]))
+#define BE32(x) ((u32((x)[0])<<24) | (u32((x)[1])<<16) | (u32((x)[2])<<8) | u32((x)[3]))
 
 class GCMemcard 
 {
