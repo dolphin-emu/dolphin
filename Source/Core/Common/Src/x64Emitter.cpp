@@ -307,21 +307,15 @@ namespace Gen
 		arg.WriteRest();
 	}
 
-	inline s64 myabs(s64 a) {
-		if (a < 0) return -a;
-		return a;
-	}
-
 	void CALL(void *fnptr)
 	{
-		s64 fn = (s64)fnptr;
-		s64 c = (s64)code;
-		if (myabs(fn - c) >= 0x80000000ULL) {
-			PanicAlert("CALL out of range (%p calls %p)", c, fn);
+		u64 distance = u64(fnptr) - (u64(code) + 5);
+		if (distance >= 0x0000000080000000ULL
+		 && distance <  0xFFFFFFFF80000000ULL) {
+			PanicAlert("CALL out of range (%p calls %p)", code, fnptr);
 		}
-		s32 distance = (s32)(fn - ((u64)code + 5));
-		Write8(0xE8); 
-		Write32(distance); 
+		Write8(0xE8);
+		Write32(u32(distance));
 	}
 
 	void x86SetJ8(u8 *j8) 
