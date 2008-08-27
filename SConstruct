@@ -24,7 +24,6 @@ compileFlags = [
 	'-D_LARGEFILE_SOURCE',
 	'-DGCC_HASCLASSVISIBILITY',
 	'-fvisibility=hidden',
-	'-fvisibility-inlines-hidden',
 	]
 compileFlags += [ '-W' + warning for warning in warnings ]
 #compileFlags += [ '-DLOGGING' ]
@@ -75,7 +74,7 @@ env = Environment(
 	CC = "gcc",
 	CXX = "g++",
 	CCFLAGS = ' '.join(compileFlags),
-	CXXFLAGS = ' '.join(compileFlags),
+	CXXFLAGS = ' '.join(compileFlags + [ '-fvisibility-inlines-hidden' ]),
 	CPPPATH = include_paths,
 	LIBPATH = lib_paths,
 	ENV = {
