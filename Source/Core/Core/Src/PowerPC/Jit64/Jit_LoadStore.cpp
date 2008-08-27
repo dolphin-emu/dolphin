@@ -184,6 +184,7 @@ namespace Jit64
 	}
 
 #ifndef _WIN32
+#undef INSTRUCTION_START
 #define INSTRUCTION_START Default(inst); return;
 #endif
 
