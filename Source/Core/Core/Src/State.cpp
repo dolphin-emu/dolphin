@@ -5,6 +5,8 @@
 #include "HW/HW.h"
 #include "PowerPC/PowerPC.h"
 
+#include "Plugins/Plugin_Video.h"
+
 #include <string>
 
 static int ev_Save;
