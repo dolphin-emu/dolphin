@@ -16,7 +16,12 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "VideoState.h"
+
+#include "BPMemory.h"
+#include "CPMemory.h"
+#include "XFMemory.h"
 #include "TextureDecoder.h"
+#include "Fifo.h"
 
 static void DoState(ChunkFile &f) {
     // BP Memory
@@ -33,10 +38,7 @@ static void DoState(ChunkFile &f) {
     f.Do(texMem);
  
     // FIFO
-    f.Do(size);
-    f.DoArray(videoBuffer, sizeof(u8), size);
-    
-    f.Do(readptr);
+    Fifo_DoState(f);
 
     //TODO: Check for more pointers in the data structures and make them
     //      serializable

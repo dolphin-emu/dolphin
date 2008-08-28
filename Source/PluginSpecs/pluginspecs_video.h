@@ -7,6 +7,8 @@
 
 #include "PluginSpecs.h"
 
+#include "ChunkFile.h"
+
 #include "ExportProlog.h"
 
 typedef void			(*TSetPEToken)(const unsigned short _token, const int _bSetTokenAcknowledge);

@@ -36,8 +36,8 @@ ChunkFile::ChunkFile(const char *filename, ChunkFileMode _mode)
     }
 	
     fseek(f, 0, SEEK_END);
-    size = ftell(f);
-    eof = size;
+    fsize = ftell(f);
+    eof = fsize;
 
     stack_ptr = 0;
 }
@@ -87,7 +87,7 @@ bool ChunkFile::Do(void *ptr, int size)
 }
 
 // Do variable size array (probably heap-allocated)
-bool DoArray(void *ptr, int size, int arrSize) {
+bool ChunkFile::DoArray(void *ptr, int size, int arrSize) {
     int sz;
     
     if(ptr == NULL)
@@ -102,18 +102,19 @@ bool DoArray(void *ptr, int size, int arrSize) {
         if (sz != arrSize)
             return false;
                 
-        for(int i = 0; i < arrSize; i++) {
-            fread(ptr[i], size, 1, f);
-            fseek(f, ((size + 3) & ~3) - size, SEEK_CUR);
-        }
+        fread(ptr, arrSize * size, 1, f);
+        fseek(f, (((arrSize * size) + 3) & ~3) - (arrSize * size),
+              SEEK_CUR);
+
         break;
     case MODE_WRITE:
         WriteInt(size);
         WriteInt(arrSize);
-        for(int i = 0; i < arrSize; i++) {
-            fwrite(ptr[i], size, 1, f);
-            fseek(f, ((size + 3) & ~3) - size, SEEK_CUR);
-        }
+
+        fwrite(ptr, arrSize * size, 1, f);
+        fseek(f, (((arrSize * size) + 3) & ~3) - (arrSize * size),
+              SEEK_CUR);
+        
         break;
     case MODE_VERIFY:
         sz = ReadInt();

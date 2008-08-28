@@ -20,7 +20,6 @@
 #include "MemoryUtil.h"
 #include "Thread.h"
 #include "OpcodeDecoding.h"
-#include "pluginspecs_video.h"
 
 #include "Fifo.h"
 
@@ -32,6 +31,13 @@ FifoReader fifo;
 static u8 *videoBuffer;
 static int size = 0;
 static int readptr = 0;
+
+void Fifo_DoState(ChunkFile &f) {
+    f.Do(size);
+    f.DoArray(videoBuffer, size);
+
+    f.Do(readptr);
+}
 
 void Fifo_Init()
 {

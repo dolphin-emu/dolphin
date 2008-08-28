@@ -22,7 +22,6 @@
 // Grabbed from one of my older projects and modified heavily.
 // Works more like a RIFF file than a Google Protocol Buffer, for example.
 
-#include "Common.h"
 
 #include <stdio.h>
 #include <map>
@@ -57,7 +56,7 @@ private:
 	int stack_ptr;
 	
 	char *data;
-	int size;
+	int fsize;
 	int eof;
 
 	ChunkFileMode mode;
@@ -88,7 +87,7 @@ public:
 
 	// Store maps to file. Very useful.
 	template<class T>
-	bool Do(std::map<u32, T> &x) {
+	bool Do(std::map<unsigned int, T> &x) {
             return false;
 	}
            
@@ -101,8 +100,8 @@ public:
 
         // Disable size checks to save size for variable size array storing
         template<class T>
-        bool DoArray(T *x, int size, int arrSize) {
-            return DoArray((void *)x, size, arrSize);
+        bool DoArray(T *x, int arrSize) {
+            return DoArray((void *)x, sizeof(T), arrSize);
         }
             
 	// Handle everything else

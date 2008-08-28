@@ -18,7 +18,11 @@
 #ifndef _FIFO_H
 #define _FIFO_H
 
+#include "pluginspecs_video.h"
+
 #include "Common.h"
+#include "ChunkFile.h"
+
 // inline for speed!
 class FifoReader
 {
@@ -53,6 +57,7 @@ extern FifoReader fifo;
 void Fifo_Init();
 void Fifo_Shutdown();
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize);
+void Fifo_DoState(ChunkFile &f);
 
 #endif
 
