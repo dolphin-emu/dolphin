@@ -100,7 +100,7 @@ public:
 
 
         // Disable size checks to save size for variable size array storing
-        template<clsas T>
+        template<class T>
         bool DoArray(T *x, int size, int arrSize) {
             return DoArray((void *)x, size, arrSize);
         }
