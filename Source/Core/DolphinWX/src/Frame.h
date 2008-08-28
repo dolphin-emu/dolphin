@@ -69,6 +69,8 @@ class CFrame
 		void OnToggleToolbar(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event);
 		void OnHostMessage(wxCommandEvent& event);
+		void OnLoadState(wxCommandEvent& event);
+		void OnSaveState(wxCommandEvent& event);
 
 
 		wxStatusBar* m_pStatusBar;
@@ -77,6 +79,9 @@ class CFrame
 		wxMenuItem* m_pMenuItemPlay;
 		wxMenuItem* m_pMenuItemStop;
 		wxMenuItem* m_pPluginOptions;
+
+		wxMenuItem* m_pMenuItemLoad;
+		wxMenuItem* m_pMenuItemSave;
 
 		wxBusyInfo* m_pBootProcessDialog;
 

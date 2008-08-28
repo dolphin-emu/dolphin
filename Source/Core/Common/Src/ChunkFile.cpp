@@ -39,6 +39,8 @@ ChunkFile::ChunkFile(const char *filename, ChunkFileMode _mode)
     fsize = ftell(f);
     eof = fsize;
 
+	fseek(f, 0, SEEK_SET);
+
     stack_ptr = 0;
 }
 
@@ -69,18 +71,19 @@ bool ChunkFile::Do(void *ptr, int size)
         if (sz != size)
             return false;
         fread(ptr, size, 1, f);
-        fseek(f, ((size + 3) & ~3) - size, SEEK_CUR);
+        //fseek(f, ((size + 3) & ~3) - size, SEEK_CUR);
         break;
     case MODE_WRITE:
         WriteInt(size);
         fwrite(ptr, size, 1, f);
-        fseek(f, ((size + 3) & ~3) - size, SEEK_CUR);
+        //fseek(f, ((size + 3) & ~3) - size, SEEK_CUR);
         break;
     case MODE_VERIFY:
         sz = ReadInt();
         if (sz != size)
             return false;
-        fseek(f, (size + 3) & ~3, SEEK_CUR);
+        //fseek(f, (size + 3) & ~3, SEEK_CUR);
+		fseek(f, size, SEEK_CUR);
         break;
     }
     return true;
@@ -102,18 +105,18 @@ bool ChunkFile::DoArray(void *ptr, int size, int arrSize) {
         if (sz != arrSize)
             return false;
                 
-        fread(ptr, arrSize * size, 1, f);
-        fseek(f, (((arrSize * size) + 3) & ~3) - (arrSize * size),
-              SEEK_CUR);
+        fread(ptr, size, arrSize, f);
+        //fseek(f, (((arrSize * size) + 3) & ~3) - (arrSize * size),
+        //      SEEK_CUR);
 
         break;
     case MODE_WRITE:
         WriteInt(size);
         WriteInt(arrSize);
 
-        fwrite(ptr, arrSize * size, 1, f);
-        fseek(f, (((arrSize * size) + 3) & ~3) - (arrSize * size),
-              SEEK_CUR);
+        fwrite(ptr, size, arrSize, f);
+        //fseek(f, (((arrSize * size) + 3) & ~3) - (arrSize * size),
+        //      SEEK_CUR);
         
         break;
     case MODE_VERIFY:
@@ -124,8 +127,10 @@ bool ChunkFile::DoArray(void *ptr, int size, int arrSize) {
         if (sz != arrSize)
             return false;
                 
-        for(int i = 0; i < arrSize; i++)
-            fseek(f, (size + 3) & ~3, SEEK_CUR);
+        //for(int i = 0; i < arrSize; i++)
+            //fseek(f, (size + 3) & ~3, SEEK_CUR);
+
+		fseek(f, arrSize * size, SEEK_CUR);
         break;
     }
     return true;
@@ -134,6 +139,7 @@ bool ChunkFile::DoArray(void *ptr, int size, int arrSize) {
 //let's get into the business
 bool ChunkFile::Descend(const char *cid)
 {
+	return true;
     unsigned int id = *reinterpret_cast<const unsigned int*>(cid);
     if (mode == MODE_READ)
 	{
@@ -193,6 +199,7 @@ bool ChunkFile::Descend(const char *cid)
 //let's ascend out
 void ChunkFile::Ascend()
 {
+	return;
     if (mode == MODE_READ)
 	{
             //ascend, and restore information

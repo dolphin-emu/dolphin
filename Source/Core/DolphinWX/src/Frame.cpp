@@ -95,6 +95,8 @@ EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
 EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
 EVT_MENU(IDM_TOGGLE_TOOLBAR, CFrame::OnToggleToolbar)
+EVT_MENU(IDM_LOADSTATE, CFrame::OnLoadState)
+EVT_MENU(IDM_SAVESTATE, CFrame::OnSaveState)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 END_EVENT_TABLE()
 
@@ -174,11 +176,13 @@ void CFrame::CreateMenu()
 	m_pMenuItemStop = new wxMenuItem(fileMenu, IDM_STOP, _T("&Stop"));
 	fileMenu->Append(m_pMenuItemStop);
 
-	/*fileMenu->AppendSeparator();
-	wxMenuItem* LoadState = fileMenu->Append(IDM_LOADSTATE, _T("&Load State..."));
-	LoadState->Enable(false);
-	wxMenuItem* SaveState = fileMenu->Append(IDM_SAVESTATE, _T("&Save State..."));
-	SaveState->Enable(false);*/
+	fileMenu->AppendSeparator();
+	m_pMenuItemLoad = new wxMenuItem(fileMenu, IDM_LOADSTATE, _T("&Load State... (AKA Russian Roulette)"));
+	fileMenu->Append(m_pMenuItemLoad);
+	m_pMenuItemLoad->Enable(false);
+	m_pMenuItemSave = new wxMenuItem(fileMenu, IDM_SAVESTATE, _T("Sa&ve State... (Use at your own risk)"));
+	fileMenu->Append(m_pMenuItemSave);
+	m_pMenuItemSave->Enable(false);
 
 	fileMenu->AppendSeparator();
 	fileMenu->Append(wxID_EXIT, _T("E&xit"), _T(""));
@@ -496,6 +500,16 @@ void CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED (event))
 	SConfig::GetInstance().SaveSettings();
 }
 
+void CFrame::OnLoadState(wxCommandEvent& WXUNUSED (event))
+{
+	Core::LoadState();
+}
+
+void CFrame::OnSaveState(wxCommandEvent& WXUNUSED (event))
+{
+	Core::SaveState();
+}
+
 void CFrame::OnToggleToolbar(wxCommandEvent& event)
 {
 	wxToolBarBase* toolBar = GetToolBar();
@@ -539,6 +553,8 @@ void CFrame::UpdateGUI()
 
 			m_pMenuItemPlay->Enable(false);
 			m_pMenuItemStop->Enable(false);
+			m_pMenuItemLoad->Enable(false);
+			m_pMenuItemSave->Enable(false);
 		}
 		else
 		{
@@ -550,6 +566,8 @@ void CFrame::UpdateGUI()
 
 			m_pMenuItemPlay->Enable(true);
 			m_pMenuItemStop->Enable(true);
+			m_pMenuItemLoad->Enable(true);
+			m_pMenuItemSave->Enable(true);
 
 			if (Core::GetState() == Core::CORE_RUN)
 			{

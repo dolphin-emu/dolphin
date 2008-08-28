@@ -33,11 +33,14 @@ static void DoState(ChunkFile &f) {
     f.Do(MatrixIndexB);
     // XF Memory
     f.Do(xfregs);
+	PanicAlert("video: XFMem");
     f.Do(xfmem);
+	PanicAlert("video: Texture decoder");
     // Texture decoder
     f.Do(texMem);
  
     // FIFO
+	PanicAlert("video: FIFO");
     Fifo_DoState(f);
 
     //TODO: Check for more pointers in the data structures and make them
@@ -45,9 +48,10 @@ static void DoState(ChunkFile &f) {
 }
 
 void VideoCommon_DoState(ChunkFile &f) {
-    //PanicAlert("Saving state from Video Common Library");
+    PanicAlert("Saving state from Video Common Library");
     //TODO: Save the video state
     f.Descend("VID ");
     DoState(f);
     f.Ascend();
+	PanicAlert("END save video");
 }
