@@ -1,21 +1,23 @@
 Import('env')
 import sys
 
-files = ["BootManager.cpp",
-        "Config.cpp",
-        "FileSearch.cpp",
-        "Frame.cpp",
-        "GameListCtrl.cpp",
-        "Globals.cpp",
-        "ISOFile.cpp",
-        "Main.cpp",
-        "MemcardManager.cpp",
-        "MemoryCards/GCMemcard.cpp",
-#        "MainNoGUI.cpp",
-        "PluginManager.cpp",
-        "PluginOptions.cpp",
-        "stdafx.cpp",
-        ]
+files = [
+	'BootManager.cpp',
+	'Config.cpp',
+	'FileSearch.cpp',
+	'Frame.cpp',
+	'GameListCtrl.cpp',
+	'Globals.cpp',
+	'ISOFile.cpp',
+	'MemcardManager.cpp',
+	'MemoryCards/GCMemcard.cpp',
+	'PluginManager.cpp',
+	'PluginOptions.cpp',
+	'stdafx.cpp',
+	]
+libs = [
+	'debwx', 'core', 'discio', 'bdisasm', 'videocommon', 'common', 'z'
+	]
 
 wxenv = env.Copy()
 wxenv.Append(
@@ -34,23 +36,33 @@ wxenv.Append(
 	)
 
 if sys.platform == 'darwin':
+	exeGUI = '../../../../Binary/mac/Dolphin.app/Contents/MacOS/Dolphin'
+	exeNoGUI = '../../../../Binary/mac/DolphinNoGUI'
+
 	icon = 'Dolphin'
 	version = 'svn'
-	wxenv.Program('../../../../Binary/mac/Dolphin.app/Contents/MacOS/Dolphin', files, LIBS = ["debwx", "discio", "core", "bdisasm", "videocommon", "common" , "z"])
-	wxenv.Plist("../../../../Binary/mac/Dolphin.app/Contents/Info.plist", Value(dict(
-		CFAppleHelpAnchor = 'index',
-		CFBundleExecutable = 'Dolphin',
-		CFBundleGetInfoHTML = 'Dolphin ' + version,
-		CFBundleIconFile = icon,
-		CFBundleIdentifier = 'com.dolphin-emu.dolphin',
-		CFBundleName = 'Dolphin',
-		CFBundlePackageType = 'APPL',
-		CFBundleShortVersionString = version,
-		CFBundleSignature = 'dlfn',
-		CFBundleVersion = version,
-		LSRequiresCarbon = True,
-		NSPrefPaneIconFile = icon,
-		NSPrefPaneIconLabel = 'Dolphin',
-		)))
+	wxenv.Plist(
+		'../../../../Binary/mac/Dolphin.app/Contents/Info.plist',
+		Value(dict(
+			CFAppleHelpAnchor = 'index',
+			CFBundleExecutable = 'Dolphin',
+			CFBundleGetInfoHTML = 'Dolphin ' + version,
+			CFBundleIconFile = icon,
+			CFBundleIdentifier = 'com.dolphin-emu.dolphin',
+			CFBundleName = 'Dolphin',
+			CFBundlePackageType = 'APPL',
+			CFBundleShortVersionString = version,
+			CFBundleSignature = 'dlfn',
+			CFBundleVersion = version,
+			LSRequiresCarbon = True,
+			NSPrefPaneIconFile = icon,
+			NSPrefPaneIconLabel = 'Dolphin',
+			))
+		)
 else:
-	wxenv.Program("../../../../Binary/linux/Dolphin", files, LIBS = ["debwx", "discio", "core", "bdisasm", "videocommon", "common"])
+	exeGUI = '../../../../Binary/linux/Dolphin'
+	exeNoGUI = '../../../../Binary/linux/DolphinNoGUI'
+
+objects = [ wxenv.Object(srcFile) for srcFile in files ]
+wxenv.Program(exeGUI, objects + [ 'Main.cpp' ], LIBS = libs)
+wxenv.Program(exeNoGUI, objects + [ 'MainNoGUI.cpp' ], LIBS = libs)
