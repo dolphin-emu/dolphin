@@ -204,7 +204,7 @@ void CFrame::CreateMenu()
 
 	// misc menu
 	wxMenu* miscMenu = new wxMenu;
-	miscMenu->Append(IDM_MEMCARD, _T("&Memory card manager"));
+	miscMenu->Append(IDM_MEMCARD, _T("&Memcard manager"));
 	miscMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _T("&Enable toolbar"));
 	miscMenu->Check(IDM_TOGGLE_TOOLBAR, true);
 	m_pMenuBar->Append(miscMenu, _T("&Misc"));

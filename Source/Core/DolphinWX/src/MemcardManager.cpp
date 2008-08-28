@@ -21,11 +21,10 @@
 
 BEGIN_EVENT_TABLE(CMemcardManager, wxDialog)
 	EVT_CLOSE(CMemcardManager::OnClose)
-	EVT_RIGHT_DOWN(CMemcardManager::OnRightClick)
-	EVT_BUTTON(ID_COPYRIGHT,CMemcardManager::CopyClick)
-	EVT_BUTTON(ID_COPYLEFT,CMemcardManager::CopyClick)
-	EVT_BUTTON(ID_DELETERIGHT,CMemcardManager::DeleteClick)
-	EVT_BUTTON(ID_DELETELEFT,CMemcardManager::DeleteClick)
+	EVT_BUTTON(ID_COPYRIGHT,CMemcardManager::CopyDeleteClick)
+	EVT_BUTTON(ID_COPYLEFT,CMemcardManager::CopyDeleteClick)
+	EVT_BUTTON(ID_DELETERIGHT,CMemcardManager::CopyDeleteClick)
+	EVT_BUTTON(ID_DELETELEFT,CMemcardManager::CopyDeleteClick)
 	EVT_FILEPICKER_CHANGED(ID_MEMCARD1PATH,CMemcardManager::OnPathChange)
 	EVT_FILEPICKER_CHANGED(ID_MEMCARD2PATH,CMemcardManager::OnPathChange)
 END_EVENT_TABLE()
@@ -60,10 +59,10 @@ void CMemcardManager::CreateGUIControls()
 	m_Memcard2Path = new wxFilePickerCtrl(this, ID_MEMCARD2PATH, wxEmptyString, wxT("Choose a memory card:"),
 		wxT("Dolphin memcards (Mem*.raw)|Mem*.raw"), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_FILE_MUST_EXIST|wxFLP_OPEN);
 	
-	m_Memcard1List = new wxListCtrl(this, ID_MEMCARD1LIST, wxDefaultPosition, wxSize(500,400),
-		wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING);
-	m_Memcard2List = new wxListCtrl(this, ID_MEMCARD2LIST, wxDefaultPosition, wxSize(500,400),
-		wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING);
+	m_MemcardList[0] = new wxListCtrl(this, ID_MEMCARD1LIST, wxDefaultPosition, wxSize(350,400),
+		wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL);
+	m_MemcardList[1] = new wxListCtrl(this, ID_MEMCARD2LIST, wxDefaultPosition, wxSize(350,400),
+		wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL);
 	
 	// mmmm sizer goodness
 	wxBoxSizer* sButtons;
@@ -71,14 +70,15 @@ void CMemcardManager::CreateGUIControls()
 	sButtons->AddStretchSpacer(1);
 	sButtons->Add(m_CopyRight, 0, 0, 5);
 	sButtons->Add(m_CopyLeft, 0, 0, 5);
+	sButtons->AddStretchSpacer(2);
 	sButtons->Add(m_DeleteRight, 0, 0, 5);
 	sButtons->Add(m_DeleteLeft, 0, 0, 5);
 	sButtons->AddStretchSpacer(1);
 
 	sMemcard1->Add(m_Memcard1Path, 0, wxEXPAND|wxALL, 5);
-	sMemcard1->Add(m_Memcard1List, 1, wxEXPAND|wxALL, 5);	
+	sMemcard1->Add(m_MemcardList[0], 1, wxEXPAND|wxALL, 5);	
 	sMemcard2->Add(m_Memcard2Path, 0, wxEXPAND|wxALL, 5);
-	sMemcard2->Add(m_Memcard2List, 1, wxEXPAND|wxALL, 5);
+	sMemcard2->Add(m_MemcardList[1], 1, wxEXPAND|wxALL, 5);
 
 	//wxBoxSizer* sMain;
 	sMain = new wxBoxSizer(wxHORIZONTAL);
@@ -101,154 +101,84 @@ void CMemcardManager::OnPathChange(wxFileDirPickerEvent& event)
 	switch(event.GetId())
 	{
 		case ID_MEMCARD1PATH:
-			LoadMemcard1(event.GetPath().mb_str());
+			ReloadMemcard(event.GetPath().mb_str(), 0);
 			break;
 		case ID_MEMCARD2PATH:
-			LoadMemcard2(event.GetPath().mb_str());
-			break;
-		default:
+			ReloadMemcard(event.GetPath().mb_str(), 1);
 			break;
 	}
 }
 
-void CMemcardManager::OnRightClick(wxMouseEvent& /*event*/)
+void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 {
-	// Focus the clicked item.
-	//int flags;
-	//long item = HitTest(event.GetPosition(), flags);
-	//if (item != wxNOT_FOUND) {
-	//	SetItemState(item, wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED,
-	//		               wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED);
-	//}
+	int index0 = m_MemcardList[0]->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);;
+	int index1 = m_MemcardList[1]->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);;
 
-	//int item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); 
-	//if (item == -1)
-	//{
-	//	//not found
-	//}
-	//else
-	//{
-	//	//found
-	//}
+	switch(event.GetId())
+	{
+		case ID_COPYRIGHT:
+			if(index0 != -1 && m_MemcardList[1]->GetItemCount() > 0)
+			{
+				memoryCard[1]->CopyFrom(*memoryCard[0], index0);
+				memoryCard[1]->Save();
+				ReloadMemcard(m_Memcard2Path->GetPath().mb_str(), 1);
+			}
+			break;
+		case ID_COPYLEFT:
+			if(index1 != -1 && m_MemcardList[0]->GetItemCount() > 0)
+			{
+				memoryCard[0]->CopyFrom(*memoryCard[1], index1);
+				memoryCard[0]->Save();
+				ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0);
+			}
+			break;
+		case ID_DELETERIGHT:
+			if(index1 != -1)
+			{
+				memoryCard[1]->DeleteFile(index1);
+				memoryCard[1]->Save();
+				ReloadMemcard(m_Memcard2Path->GetPath().mb_str(), 1);
+			}
+			break;
+		case ID_DELETELEFT:
+			if(index0 != -1)
+			{
+				memoryCard[0]->DeleteFile(index0);
+				memoryCard[0]->Save();
+				ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0);
+			}
+			break;
+	}
 }
-void CMemcardManager::CopyClick(wxCommandEvent& WXUNUSED (event))
-{
 
-}
-
-void CMemcardManager::DeleteClick(wxCommandEvent& WXUNUSED (event))
-{
-
-}
-
-// These next two functions really need to be merged - yet 
-// retain ability to only (re)load one card at a time.
-void CMemcardManager::LoadMemcard1(const char *card1)
+void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 {	
-	//wtf do these lines crash the app?
-	//if(memoryCard1) delete memoryCard1;
-	//if(memoryCard2) delete memoryCard2;
+	// TODO: add error checking and banners/icons
+	memoryCard[card] = new GCMemcard(fileName);
 
-	// WARNING: the memcards don't have much error checking, yet!
-	if(card1 && strlen(card1))
+	m_MemcardList[card]->Hide();
+	m_MemcardList[card]->ClearAll();
+	m_MemcardList[card]->InsertColumn(COLUMN_TITLE, _T("Title"));
+	m_MemcardList[card]->InsertColumn(COLUMN_COMMENT, _T("Comment"));
+
+	int nFiles = memoryCard[card]->GetNumFiles();
+	for(int i=0;i<nFiles;i++)
 	{
-		memoryCard1 = new GCMemcard(card1);
+		char title[32];
+		char comment[32];
+
+		if(!memoryCard[card]->GetComment1(i,title)) title[0]=0;
+		if(!memoryCard[card]->GetComment2(i,comment)) comment[0]=0;
+
+		int index = m_MemcardList[card]->InsertItem(i, wxString::FromAscii("row"));
+		m_MemcardList[card]->SetItem(index, 0, wxString::FromAscii(title));
+		m_MemcardList[card]->SetItem(index, 1, wxString::FromAscii(comment));
 	}
+	m_MemcardList[card]->Show();
 
-	if(memoryCard1)
-	{
-		m_Memcard1List->Hide();
-		m_Memcard1List->ClearAll();
-		m_Memcard1List->InsertColumn(COLUMN_FILENAME, _T("filename"));
-		m_Memcard1List->InsertColumn(COLUMN_COMMENT1, _T("comment1"));
-		m_Memcard1List->InsertColumn(COLUMN_COMMENT2, _T("comment2"));
-
-		int nFiles = memoryCard1->GetNumFiles();
-		for(int i=0;i<nFiles;i++)
-		{
-			char fileName[32];
-			char comment1[32];
-			char comment2[32];
-
-			if(!memoryCard1->GetFileName(i,fileName)) fileName[0]=0;
-			if(!memoryCard1->GetComment1(i,comment1)) comment1[0]=0;
-			if(!memoryCard1->GetComment2(i,comment2)) comment2[0]=0;
-
-			// Add to list control			
-			int index = m_Memcard1List->InsertItem(i, wxString::FromAscii("row"));
-			m_Memcard1List->SetItem(index, 0, wxString::FromAscii(fileName));
-			m_Memcard1List->SetItem(index, 1, wxString::FromAscii(comment1));
-			m_Memcard1List->SetItem(index, 2, wxString::FromAscii(comment2));
-		}
-		m_Memcard1List->Show();
-	}
-	else
-	{
-		m_Memcard2List->InsertColumn(COLUMN_FILENAME, _T("Error"));
-
-		char tmp[128];
-		sprintf(tmp, "Unable to load %s", card1);
-		long item = m_Memcard1List->InsertItem(0, wxString::FromAscii(tmp));
-
-		m_Memcard1List->SetItemFont(item, *wxITALIC_FONT);
-		m_Memcard1List->SetColumnWidth(item, wxLIST_AUTOSIZE);
-		m_Memcard1List->SetItemState(0, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-	}
 	// automatic column width
-	for (int i = 0; i < m_Memcard1List->GetColumnCount(); i++)
+	for (int i = 0; i < m_MemcardList[card]->GetColumnCount(); i++)
 	{
-		m_Memcard1List->SetColumnWidth(i, wxLIST_AUTOSIZE);
-	}
-}
-
-void CMemcardManager::LoadMemcard2(const char *card2)
-{	
-	if(card2 && strlen(card2))
-	{
-		memoryCard2 = new GCMemcard(card2);
-	}
-
-	if(memoryCard2)
-	{
-		m_Memcard2List->Hide();
-		m_Memcard2List->ClearAll();
-		m_Memcard2List->InsertColumn(COLUMN_FILENAME, _T("filename"));
-		m_Memcard2List->InsertColumn(COLUMN_COMMENT1, _T("comment1"));
-		m_Memcard2List->InsertColumn(COLUMN_COMMENT2, _T("comment2"));
-
-		int nFiles = memoryCard2->GetNumFiles();
-		for(int i=0;i<nFiles;i++)
-		{
-			char fileName[32];
-			char comment1[32];
-			char comment2[32];
-
-			if(!memoryCard2->GetFileName(i,fileName)) fileName[0]=0;
-			if(!memoryCard2->GetComment1(i,comment1)) comment1[0]=0;
-			if(!memoryCard2->GetComment2(i,comment2)) comment2[0]=0;
-
-			int index = m_Memcard2List->InsertItem(i, wxString::FromAscii("row"));
-			m_Memcard2List->SetItem(index, 0, wxString::FromAscii(fileName));
-			m_Memcard2List->SetItem(index, 1, wxString::FromAscii(comment1));
-			m_Memcard2List->SetItem(index, 2, wxString::FromAscii(comment2));
-		}
-		m_Memcard2List->Show();
-	}
-	else
-	{
-		m_Memcard2List->InsertColumn(COLUMN_FILENAME, _T("Error"));
-
-		char tmp[128];
-		sprintf(tmp, "Unable to load %s", card2);
-		long item = m_Memcard2List->InsertItem(0, wxString::FromAscii(tmp));
-
-		m_Memcard2List->SetItemFont(item, *wxITALIC_FONT);
-		m_Memcard2List->SetColumnWidth(item, wxLIST_AUTOSIZE);
-		m_Memcard2List->SetItemState(0, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-	}
-	// automatic column width
-	for (int i = 0; i < m_Memcard2List->GetColumnCount(); i++)
-	{
-		m_Memcard2List->SetColumnWidth(i, wxLIST_AUTOSIZE);
+		m_MemcardList[card]->SetColumnWidth(i, wxLIST_AUTOSIZE);
 	}
 }

@@ -34,7 +34,7 @@ class CMemcardManager
 {
 	public:
 
-		CMemcardManager(wxWindow* parent, wxWindowID id = 1, const wxString& title = wxT("Memory Card Manager WARNING-In development, make backups first!"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = MEMCARD_MANAGER_STYLE);
+		CMemcardManager(wxWindow* parent, wxWindowID id = 1, const wxString& title = wxT("Memory Card Manager WARNING-Make backups before using, will probably mangle stuff!"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = MEMCARD_MANAGER_STYLE);
 		virtual ~CMemcardManager();
 
 	private:
@@ -50,42 +50,35 @@ class CMemcardManager
 		wxStaticBoxSizer* sMemcard2;
 		wxFilePickerCtrl* m_Memcard1Path;
 		wxFilePickerCtrl* m_Memcard2Path;
-		wxListCtrl* m_Memcard1List;
-		wxListCtrl* m_Memcard2List;
+		wxListCtrl* m_MemcardList[2];
 
 		enum
 		{
 			ID_COPYRIGHT = 1000,
-			ID_COPYLEFT = 1001,
-			ID_DELETERIGHT = 1002,
-			ID_DELETELEFT = 1003,
-			ID_MEMCARD1PATH = 1004,
-			ID_MEMCARD2PATH = 1005,
-			ID_MEMCARD1LIST = 1006,
-			ID_MEMCARD2LIST = 1007,
+			ID_COPYLEFT,
+			ID_DELETERIGHT,
+			ID_DELETELEFT,
+			ID_MEMCARD1PATH,
+			ID_MEMCARD2PATH,
+			ID_MEMCARD1LIST,
+			ID_MEMCARD2LIST,
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
 		};
 
 		enum
 		{
-			COLUMN_FILENAME = 0,
-			COLUMN_COMMENT1,
-			COLUMN_COMMENT2,
+			COLUMN_TITLE = 0,
+			COLUMN_COMMENT,
 			NUMBER_OF_COLUMN
 		};
-
-		GCMemcard *memoryCard1;
-		GCMemcard *memoryCard2;
-
-		void LoadMemcard1(const char *card1);
-		void LoadMemcard2(const char *card2);
-		void OnPathChange(wxFileDirPickerEvent& event);
+		
+		GCMemcard *memoryCard[2];
 
 		void CreateGUIControls();
-		void OnRightClick(wxMouseEvent& event);
 		void OnClose(wxCloseEvent& event);
-		void CopyClick(wxCommandEvent& event);
-		void DeleteClick(wxCommandEvent& event);
+		void CopyDeleteClick(wxCommandEvent& event);
+		void ReloadMemcard(const char *fileName, int card);
+		void OnPathChange(wxFileDirPickerEvent& event);
 };
 
 #endif
