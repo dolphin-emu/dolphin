@@ -17,6 +17,7 @@ void DoState(ChunkFile &f)
 	f.Descend("DOLP");
 	PowerPC::DoState(f);
 	HW::DoState(f);
+        PluginVideo::Video_DoState(f);
 	f.Ascend();
 }
 
@@ -43,13 +44,13 @@ void State_Shutdown()
 	// nothing to do, here for consistency.
 }
 
-void SaveState(const char *filename)
+void State_Save(const char *filename)
 {
 	cur_filename = filename;
 	CoreTiming::ScheduleEvent_Threadsafe(0, ev_Save);
 }
 
-void LoadState(const char *filename)
+void State_Load(const char *filename)
 {
 	cur_filename = filename;
 	CoreTiming::ScheduleEvent_Threadsafe(0, ev_Load);

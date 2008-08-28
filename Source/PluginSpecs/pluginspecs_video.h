@@ -168,20 +168,12 @@ EXPORT void CALL Video_EnterLoop(void);
 EXPORT void CALL Video_AddMessage(const char* pstr, unsigned int milliseconds);
 
 // __________________________________________________________________________________________________
-// Function: Video_SaveState
-// Purpose:  Saves the current video data state
+// Function: Video_DoState
+// Purpose:  Saves/Loads the current video data state(depends on parameter)
 // input:    The chunkfile to write to? FIXME
 // output:   none
 //
-EXPORT void CALL Video_SaveState(void);
-
-// __________________________________________________________________________________________________
-// Function: Video_LoadState
-// Purpose:  Loads the current video data state
-// input:    The chunkfile to read from? FIXME
-// output:   none
-//
-EXPORT void CALL Video_LoadState(void);
+EXPORT void CALL Video_DoState(ChunkFile &f);
 
 #include "ExportEpilog.h"
 #endif

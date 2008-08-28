@@ -20,6 +20,8 @@
 
 #include "pluginspecs_video.h"
 
+#include "ChunkFile.h"
+
 namespace PluginVideo
 {
 bool IsLoaded();
@@ -42,8 +44,7 @@ void Video_UpdateXFB(BYTE* _pXFB, DWORD _dwHeight, DWORD _dwWidth);
 bool Video_Screenshot(TCHAR* _szFilename);
 void Video_AddMessage(const char* pstr, unsigned int milliseconds);
 
-void Video_SaveState();
-void Video_LoadState();
+void Video_DoState(ChunkFile &f);
 
 } // end of namespace PluginVideo
 

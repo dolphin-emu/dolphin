@@ -18,12 +18,34 @@
 #include "VideoState.h"
 #include "TextureDecoder.h"
 
-void VideoCommon_SaveState() {
-	//PanicAlert("Saving state from Video Common Library");
-	//TODO: Save the video state
+void DoState(ChunkFile &f) {
+    // BP Memory
+    f.Do(bpmem);
+    // CP Memory
+    f.Do(arraybases);
+    f.Do(arraystrides);
+    f.Do(MatrixIndexA);
+    f.Do(MatrixIndexB);
+    // XF Memory
+    f.Do(xfregs);
+    f.Do(xfmem);
+    // Texture decoder
+    f.Do(texMem);
+ 
+    // FIFO
+    f.Do(size);
+    f.DoArray(videoBuffer, sizeof(u8), size);
+    
+    f.Do(readptr);
+
+    //TODO: Check for more pointers in the data structures and make them
+    //      serializable
 }
 
-void VideoCommon_LoadState() {
-	//PanicAlert("Loading state from Video Common Library");
-	//TODO: Load the video state
+void VideoCommon_DoState(ChunkFile &f) {
+    //PanicAlert("Saving state from Video Common Library");
+    //TODO: Save the video state
+    f.Descend("VID ");
+    f.DoState(f);
+    f.Ascend();
 }

@@ -19,8 +19,8 @@
 #define __VIDEOSTATE_H
 
 #include "Common.h"
+#include "ChunkFile.h"
 
-void VideoCommon_SaveState();
-void VideoCommon_LoadState();
+void VideoCommon_DoState(ChunkFile &f);
 
 #endif

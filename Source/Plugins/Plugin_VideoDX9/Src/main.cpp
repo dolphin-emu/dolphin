@@ -166,14 +166,9 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 
 }
 
-void Video_SaveState(void) {
-	VideoCommon_SaveState();
-	//PanicAlert("Saving state from DirectX9");
-}
-
-void Video_LoadState(void) {
-	VideoCommon_LoadState();
-	//PanicAlert("Loading state from DirectX9");
+void Video_DoState(ChunkFile &f) {
+	VideoCommon_DoState(f);
+	//PanicAlert("Saving/Loading state from DirectX9");
 }
 
 void Video_EnterLoop()

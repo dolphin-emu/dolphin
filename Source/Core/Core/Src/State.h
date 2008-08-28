@@ -6,7 +6,7 @@
 void State_Init();
 void State_Shutdown();
 
-void State_Save();
-void State_Load();
+void State_Save(const char *filename);
+void State_Load(const char *filename);
 
 #endif

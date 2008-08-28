@@ -55,6 +55,8 @@
 #include "Host.h"
 #include "LogManager.h"
 
+#include "State.h"
+
 #ifndef _WIN32
 #define WINAPI
 #endif
@@ -411,11 +413,11 @@ EState GetState()
 }
 
 void SaveState() {
-	PluginVideo::Video_SaveState();
+    State_Save("state.dlp");
 }
 
 void LoadState() {
-	PluginVideo::Video_LoadState();
+    State_Load("state.dlp");
 }
 
 const SCoreStartupParameter& GetStartupParameter()
