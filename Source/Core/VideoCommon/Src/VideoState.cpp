@@ -18,7 +18,7 @@
 #include "VideoState.h"
 #include "TextureDecoder.h"
 
-void DoState(ChunkFile &f) {
+static void DoState(ChunkFile &f) {
     // BP Memory
     f.Do(bpmem);
     // CP Memory
@@ -46,6 +46,6 @@ void VideoCommon_DoState(ChunkFile &f) {
     //PanicAlert("Saving state from Video Common Library");
     //TODO: Save the video state
     f.Descend("VID ");
-    f.DoState(f);
+    DoState(f);
     f.Ascend();
 }
