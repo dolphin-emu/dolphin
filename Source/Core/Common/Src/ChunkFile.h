@@ -81,25 +81,34 @@ public:
 	//bool Do(std::string &s);
 	bool Do(void *ptr, int size);
 
+        bool DoArray(void *ptr, int size, int arrSize);
+
 	// Future
 	// bool DoCompressed(void *ptr, int size)
 
 	// Store maps to file. Very useful.
 	template<class T>
-	void Do(std::map<u32, T> &x) {
-
+	bool Do(std::map<u32, T> &x) {
+            return false;
 	}
-
+           
 	// Store vectors.
 	template<class T>
-	void Do(std::vector<T> &x) {
-
+	bool Do(std::vector<T> &x) {
+            return false;
 	}
 
+
+        // Disable size checks to save size for variable size array storing
+        template<clsas T>
+        bool DoArray(T *x, int size, int arrSize) {
+            return DoArray((void *)x, size, arrSize);
+        }
+            
 	// Handle everything else
 	template<class T>
-	void Do(T &x) {
-		Do((void *)&x, sizeof(x));
+	bool Do(T &x) {
+		return Do((void *)&x, sizeof(x));
 	}
 
 	int GetCurrentChunkSize();
