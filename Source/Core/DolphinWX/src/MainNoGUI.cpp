@@ -67,11 +67,10 @@ int main(int argc, char* argv[])
 		puts("Please supply at least one argument - the ISO to boot.\n");
 		return(1);
 	}
-	std::string temp;
-	temp.insert(0, argv[1]); //Need to convert to C++ style string first
+	std::string bootFile(argv[1]);
 
 	DetectCPU();
-	BootManager::BootCore(temp);
+	BootManager::BootCore(bootFile);
 	usleep(2000 * 1000 * 1000);
 //	while (!getch()) {
 	//	usleep(20);

@@ -87,9 +87,9 @@ CGameListCtrl::BrowseForDirectory()
 
 	if (dialog.ShowModal() == wxID_OK)
 	{
-		std::string temp;
-		temp.insert(0, dialog.GetPath().ToAscii()); //Manual conversion to C++ string
-		SConfig::GetInstance().m_ISOFolder.push_back(temp);
+		SConfig::GetInstance().m_ISOFolder.push_back(
+			std::string(dialog.GetPath().ToAscii())
+			);
 		SConfig::GetInstance().SaveSettings();
 		Update();
 	}

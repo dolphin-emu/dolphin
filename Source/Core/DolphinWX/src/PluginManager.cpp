@@ -41,9 +41,7 @@ CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 	m_PluginInfos.clear();
 
 	CFileSearch::XStringVector Directories;
-	std::string temp;
-	temp.insert(0, "Plugins");
-	Directories.push_back(temp);
+	Directories.push_back(std::string("Plugins"));
 
 	CFileSearch::XStringVector Extensions;
 #ifdef _WIN32
