@@ -30,7 +30,7 @@ linkFlags = [
 	'`wx-config --libs`',
 	]
 libs = [
-	'videocommon', 'common', 'GLEW', 'jpeg',
+	'videocommon', 'common', 'GLEW',
 	]
 if sys.platform == 'darwin':
 	platform = 'mac'

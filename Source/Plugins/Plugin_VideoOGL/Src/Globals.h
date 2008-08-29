@@ -229,7 +229,6 @@ void SysMessage(const char *fmt, ...);
 void HandleGLError();
 
 void InitLUTs();
-bool SaveJPEG(const char* filename, int image_width, int image_height, const void* pdata, int quality);
 bool SaveTGA(const char* filename, int width, int height, void* pdata);
 bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height);
 

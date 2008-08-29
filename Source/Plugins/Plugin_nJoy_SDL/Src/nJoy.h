@@ -57,6 +57,8 @@
 #define SLEEP(x) Sleep(x)
 #else
 #include <unistd.h>
+#include <sys/ioctl.h>
+#include <linux/input.h>
 #define SLEEP(x) usleep(x*1000)
 #endif
 
@@ -117,6 +119,7 @@ struct CONTROLLER_MAPPING{	// GC PAD MAPPING
 	int halfpress;			// Halfpress... you know, like not fully pressed ;)...
 	int ID;					// SDL joystick device ID
 	int controllertype;		// Joystick, Joystick no hat or a keyboard (perhaps a mouse later)
+	int eventnum;			// Linux Event Number, Can't be found dynamically yet
 };
 
 struct CONTROLLER_INFO{		// CONNECTED WINDOWS DEVICES INFO

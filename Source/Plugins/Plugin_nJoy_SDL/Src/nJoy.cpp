@@ -70,6 +70,11 @@ BOOL CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pCont
 HRESULT SetDeviceForcesXY();
 #endif
 
+#else
+	int fd;
+	char device_file_name[64];
+	struct ff_effect effect;
+	bool CanRumble = false;
 #endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -292,6 +297,8 @@ void PAD_Shutdown()
 	#ifdef USE_RUMBLE_DINPUT_HACK
 	FreeDirectInput();
 	#endif
+	#else
+	close(fd);
 	#endif
 }
 
@@ -429,6 +436,38 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 			g_pEffect->Start(1, 0);
 	}
 	#endif
+	#else
+	if(!fd)
+	{
+		sprintf(device_file_name, "/dev/input/event%d", joysticks[_numPAD].eventnum); //TODO: Make dynamic //
+
+		/* Open device */
+		fd = open(device_file_name, O_RDWR);
+		if (fd == -1) {
+			perror("Open device file");
+			//Something wrong, probably permissions, just return now
+			return;
+		}
+		int n_effects = 0;
+		if (ioctl(fd, EVIOCGEFFECTS, &n_effects) == -1) {
+			perror("Ioctl number of effects");
+		}
+		if(n_effects > 0)
+			CanRumble = true;
+		else
+			return; // Return since we can't do any effects
+		/* a strong rumbling effect */
+		effect.type = FF_RUMBLE;
+		effect.id = -1;
+		effect.u.rumble.strong_magnitude = 0x8000;
+		effect.u.rumble.weak_magnitude = 0;
+		effect.replay.length = 5000; // Set to 5 seconds, if a Game needs more for a single rumble event, it is dumb and must be a demo
+		effect.replay.delay = 0;
+		if (ioctl(fd, EVIOCSFF, &effect) == -1) {
+			perror("Upload effect");
+			CanRumble = false; //We have effects but it doesn't support the rumble we are using. This is basic rumble, should work for most
+		}
+	}
 	#endif
 }
 
@@ -467,6 +506,31 @@ void PAD_Rumble(BYTE _numPAD, unsigned int _uType, unsigned int _uStrength)
 		SetDeviceForcesXY();
 	}
 	#endif
+	#else
+	struct input_event event;
+	if(CanRumble)
+	{
+		if (_uType == 1)
+		{
+			event.type = EV_FF;
+			event.code = effect.id;
+			event.value = 1;
+			if (write(fd, (const void*) &event, sizeof(event)) == -1) {
+				perror("Play effect");
+				exit(1);
+			}
+		}
+		if ((_uType == 0) || (_uType == 2))
+		{
+			event.type = EV_FF;
+			event.code =  effect.id;
+			event.value = 0;
+			if (write(fd, (const void*) &event, sizeof(event)) == -1) {
+				perror("Stop effect");
+				exit(1);
+			}
+		}
+	}
 	#endif
 }
 
@@ -671,6 +735,7 @@ void SaveConfig()
 		file.Set(SectionName, "halfpress", joysticks[i].halfpress);
 		file.Set(SectionName, "joy_id", joysticks[i].ID);
 		file.Set(SectionName, "controllertype", joysticks[i].controllertype);
+		file.Set(SectionName, "eventnum", joysticks[i].eventnum);
 	}
 
 	file.Save("nJoy.ini");
@@ -710,6 +775,7 @@ void LoadConfig()
 		file.Get(SectionName, "halfpress", &joysticks[i].halfpress, 6);	
 		file.Get(SectionName, "joy_id", &joysticks[i].ID, 0);
 		file.Get(SectionName, "controllertype", &joysticks[i].controllertype, 0);
+		file.Get(SectionName, "eventnum", &joysticks[i].eventnum, 0);
 	}
 }
 

@@ -796,8 +796,6 @@ bool Renderer::SaveRenderTarget(const char* filename, int jpeg)
             memcpy(&data[(nBackbufferHeight-i-1)*nBackbufferWidth], &scanline[0], nBackbufferWidth*4);
         }
     }
-
-    if (jpeg) return SaveJPEG(filename, nBackbufferWidth, nBackbufferHeight, &data[0], 70);
     
     return SaveTGA(filename, nBackbufferWidth, nBackbufferHeight, &data[0]);
 }
