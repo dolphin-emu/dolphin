@@ -170,23 +170,24 @@ void CFrame::CreateMenu()
 	fileMenu->Append(wxID_OPEN, _T("&Open..."));
 	fileMenu->Append(wxID_REFRESH, _T("&Refresh"));
 	fileMenu->Append(IDM_BROWSE, _T("&Browse for ISOs..."));
-	fileMenu->AppendSeparator();
-	m_pMenuItemPlay = new wxMenuItem(fileMenu, IDM_PLAY, _T("&Play"));
-	fileMenu->Append(m_pMenuItemPlay);
-	m_pMenuItemStop = new wxMenuItem(fileMenu, IDM_STOP, _T("&Stop"));
-	fileMenu->Append(m_pMenuItemStop);
-
-	fileMenu->AppendSeparator();
-	m_pMenuItemLoad = new wxMenuItem(fileMenu, IDM_LOADSTATE, _T("&Load State... (AKA Russian Roulette)"));
-	fileMenu->Append(m_pMenuItemLoad);
-	m_pMenuItemLoad->Enable(false);
-	m_pMenuItemSave = new wxMenuItem(fileMenu, IDM_SAVESTATE, _T("Sa&ve State... (Use at your own risk)"));
-	fileMenu->Append(m_pMenuItemSave);
-	m_pMenuItemSave->Enable(false);
 
 	fileMenu->AppendSeparator();
 	fileMenu->Append(wxID_EXIT, _T("E&xit"), _T(""));
 	m_pMenuBar->Append(fileMenu, _T("&File"));
+
+	// emulation menu
+	wxMenu* emulationMenu = new wxMenu;
+	m_pMenuItemPlay = new wxMenuItem(fileMenu, IDM_PLAY, _T("&Play"));
+	emulationMenu->Append(m_pMenuItemPlay);
+	m_pMenuItemStop = new wxMenuItem(fileMenu, IDM_STOP, _T("&Stop"));
+	emulationMenu->Append(m_pMenuItemStop);
+	emulationMenu->AppendSeparator();
+
+	m_pMenuItemLoad = new wxMenuItem(fileMenu, IDM_LOADSTATE, _T("&Load State"));
+	emulationMenu->Append(m_pMenuItemLoad);
+	m_pMenuItemSave = new wxMenuItem(fileMenu, IDM_SAVESTATE, _T("Sa&ve State"));
+	emulationMenu->Append(m_pMenuItemSave);
+	m_pMenuBar->Append(emulationMenu, _T("&Emulation"));
 
 	// options menu
 	wxMenu* pOptionsMenu = new wxMenu;

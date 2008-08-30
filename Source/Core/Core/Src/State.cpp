@@ -1,11 +1,30 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
 #include "Common.h"
 
 #include "State.h"
 #include "CoreTiming.h"
 #include "HW/HW.h"
 #include "PowerPC/PowerPC.h"
+#include "PowerPC/Jit64/JitCache.h"
 
 #include "Plugins/Plugin_Video.h"
+#include "Plugins/Plugin_DSP.h"
 
 #include <string>
 
@@ -18,11 +37,14 @@ void DoState(PointerWrap &p)
 {
 	PowerPC::DoState(p);
 	HW::DoState(p);
+	CoreTiming::DoState(p);
     PluginVideo::Video_DoState(p.GetPPtr(), p.GetMode());
 }
 
 void SaveStateCallback(u64 userdata, int cyclesLate)
 {
+	Jit64::ClearCache();
+
 	u8 *ptr = 0;
 	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 	DoState(p);
@@ -39,7 +61,8 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 
 void LoadStateCallback(u64 userdata, int cyclesLate)
 {
-	// ChunkFile f(cur_filename.c_str(), ChunkFile::MODE_READ);
+	Jit64::ClearCache();
+
 	FILE *f = fopen(cur_filename.c_str(), "r");
 	fseek(f, 0, SEEK_END);
 	int sz = ftell(f);

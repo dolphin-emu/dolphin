@@ -370,6 +370,7 @@ namespace Jit64
 		js.fifoBytesThisBlock = 0;
 		js.curBlock = &b;
 		js.blockSetsQuantizers = false;
+		js.block_flags = 0;
 
 		//Analyze the block, collect all instructions it is made of (including inlining,
 		//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
@@ -415,7 +416,8 @@ namespace Jit64
 			js.compilerPC = ops[i].address;
 			js.op = &ops[i];
 			js.instructionNumber = i;
-			if (i == (int)size - 1) js.isLastInstruction = true;
+			if (i == (int)size - 1)
+				js.isLastInstruction = true;
 			
 			// const GekkoOpInfo *info = GetOpInfo();
 			// if (js.isLastInstruction)
@@ -435,6 +437,7 @@ namespace Jit64
 		}
 		js.compilerPC += 4;
 
+		b.flags = js.block_flags;
 		b.codeSize = (u32)(GetCodePtr() - start);
 		b.originalSize = js.compilerPC - emaddress;
 		return normalEntry;

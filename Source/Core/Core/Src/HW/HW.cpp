@@ -89,6 +89,7 @@ namespace HW
 
 	void DoState(PointerWrap &p)
 	{
+		Memory::DoState(p);
 		PixelEngine::DoState(p);
 		CommandProcessor::DoState(p);
 		VideoInterface::DoState(p);

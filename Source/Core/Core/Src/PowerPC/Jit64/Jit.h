@@ -48,6 +48,7 @@ namespace Jit64
 		int blockSize;
 		int instructionNumber;
 		int downcountAmount;
+		int block_flags;
 
 		bool isLastInstruction;
 		bool blockSetsQuantizers;

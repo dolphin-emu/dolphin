@@ -28,6 +28,18 @@ namespace Jit64
 
 	//Code pointers are stored separately, they will be accessed much more frequently
 
+	enum BlockFlag
+	{
+		BLOCK_USE_GQR0 = 0x1,
+		BLOCK_USE_GQR1 = 0x2,
+		BLOCK_USE_GQR2 = 0x4,
+		BLOCK_USE_GQR3 = 0x8,
+		BLOCK_USE_GQR4 = 0x10,
+		BLOCK_USE_GQR5 = 0x20,
+		BLOCK_USE_GQR6 = 0x40,
+		BLOCK_USE_GQR7 = 0x80,
+	};
+
 	// TODO(ector) - optimize this struct for size
 	struct JitBlock
 	{
@@ -42,6 +54,7 @@ namespace Jit64
 		int runCount;  // for profiling.
 		const u8 *checkedEntry;
 		bool invalid;
+		int flags;
 	};
 
 	void PrintStats();
@@ -62,6 +75,9 @@ namespace Jit64
 	u8 **GetCodePointers();
 
 	u8 *Jit(u32 emaddress);
+
+	void DestroyBlocksWithFlag(BlockFlag death_flag);
+
 	void LinkBlocks();
 	void ClearCache();
 

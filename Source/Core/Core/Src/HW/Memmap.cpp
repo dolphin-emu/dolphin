@@ -18,6 +18,7 @@
 #include "Common.h"
 #include "MemoryUtil.h"
 #include "MemArena.h"
+#include "ChunkFile.h"
 
 #include "Memmap.h"
 #include "../Core.h"
@@ -142,7 +143,6 @@ template <class T, u8* P> void HWCALL HW_Write_Memory(T _Data, const u32 _Addres
 #define EI_START		0x1A
 #define AUDIO_START		0x1B 
 #define GP_START		0x20 
-
 
 void InitHWMemFuncs()
 {
@@ -523,6 +523,15 @@ bool Init()
 	return true;
 }
 
+void DoState(PointerWrap &p)
+{
+	bool wii = Core::GetStartupParameter().bWii;
+	p.DoArray(m_pRAM, RAM_SIZE);
+	p.DoArray(m_pEFB, EFB_SIZE);
+	p.DoArray(m_pL1Cache, L1_CACHE_SIZE);
+	if (wii)
+		p.DoArray(m_pEXRAM, EXRAM_SIZE);
+}
 
 bool Shutdown()
 {

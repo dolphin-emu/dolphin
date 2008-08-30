@@ -413,15 +413,11 @@ EState GetState()
 }
 
 void SaveState() {
-	CCPU::EnableStepping(true);
     State_Save("state.dlp");
-	CCPU::EnableStepping(false);
 }
 
 void LoadState() {
-	CCPU::EnableStepping(true);
     State_Load("state.dlp");
-	CCPU::EnableStepping(false);
 }
 
 const SCoreStartupParameter& GetStartupParameter()

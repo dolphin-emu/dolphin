@@ -107,6 +107,8 @@ const double GC_ALIGNED16(m_dequantizeTableD[]) =
 void psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
+	js.block_flags |= BLOCK_USE_GQR0 << inst.I;
+
 	if (js.blockSetsQuantizers || !Core::GetStartupParameter().bOptimizeQuantizers)
 	{
 		Default(inst);
@@ -118,6 +120,7 @@ void psq_st(UGeckoInstruction inst)
 		Default(inst);
 		return;
 	}
+
 	const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
 	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
 	int stScale = gqr.ST_SCALE;
@@ -281,11 +284,14 @@ const u8 GC_ALIGNED16(pbswapShuffleNoop[16]) = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 void psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
+	js.block_flags |= BLOCK_USE_GQR0 << inst.I;
+
 	if (js.blockSetsQuantizers || !Core::GetStartupParameter().bOptimizeQuantizers)
 	{
 		Default(inst);
 		return;
 	}
+
 	const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
 	const EQuantizeType ldType = static_cast<EQuantizeType>(gqr.LD_TYPE);
 	int ldScale = gqr.LD_SCALE;

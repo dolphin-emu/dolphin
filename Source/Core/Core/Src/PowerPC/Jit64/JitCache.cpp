@@ -118,6 +118,15 @@ namespace Jit64
 		SetCodePtr(codeCache);
 	}
 
+	void DestroyBlocksWithFlag(BlockFlag death_flag)
+	{
+		for (int i = 0; i < numBlocks; i++) {
+			if (blocks[i].flags & death_flag) {
+				DestroyBlock(i, false);
+			}
+		}
+	}
+
 	void ResetCache()
 	{
 		ShutdownCache();
@@ -338,8 +347,11 @@ namespace Jit64
 			//for something else, then it's fine.
 			LOG(MASTER_LOG, "WARNING - ClearCache detected code overwrite @ %08x", blocks[blocknum].originalAddress);
 		}
-		// TODO: Unlink block.
 
+		// We don't unlink blocks, we just send anyone who tries to run them back to the dispatcher.
+		// Not entirely ideal, but .. pretty good.
+
+		// TODO - make sure that the below stuff really is safe.
 		u8 *prev_code = GetWritableCodePtr();
 		// Spurious entrances from previously linked blocks can only come through checkedEntry
 		SetCodePtr((u8*)b.checkedEntry);
