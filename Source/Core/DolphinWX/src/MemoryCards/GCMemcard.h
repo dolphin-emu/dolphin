@@ -146,7 +146,7 @@ public:
 	bool GetFileData(u32 index, u8* buffer);
 
 	// delete a file from the directory
-	bool DeleteFile(u32 index);
+	bool RemoveFile(u32 index);
 	
 	// adds the file to the directory and copies its contents
 	u32  ImportFile(DEntry& direntry, u8* contents);

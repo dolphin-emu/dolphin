@@ -32,11 +32,15 @@ END_EVENT_TABLE()
 CMemcardManager::CMemcardManager(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
+	memoryCard[0]=NULL;
+	memoryCard[1]=NULL;
 	CreateGUIControls();
 }
 
 CMemcardManager::~CMemcardManager()
 {
+	if(memoryCard[0]) delete memoryCard[0];
+	if(memoryCard[1]) delete memoryCard[1];
 }
 
 void CMemcardManager::CreateGUIControls()
@@ -135,7 +139,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		case ID_DELETERIGHT:
 			if(index1 != -1)
 			{
-				memoryCard[1]->DeleteFile(index1);
+				memoryCard[1]->RemoveFile(index1);
 				memoryCard[1]->Save();
 				ReloadMemcard(m_Memcard2Path->GetPath().mb_str(), 1);
 			}
@@ -143,7 +147,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		case ID_DELETELEFT:
 			if(index0 != -1)
 			{
-				memoryCard[0]->DeleteFile(index0);
+				memoryCard[0]->RemoveFile(index0);
 				memoryCard[0]->Save();
 				ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0);
 			}
@@ -153,6 +157,8 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 
 void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 {	
+	if(memoryCard[card]) delete memoryCard[card];
+
 	// TODO: add error checking and banners/icons
 	memoryCard[card] = new GCMemcard(fileName);
 

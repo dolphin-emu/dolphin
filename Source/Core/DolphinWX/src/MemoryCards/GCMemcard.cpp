@@ -32,7 +32,7 @@ u32  GCMemcard::GetNumFiles()
 {
 	if(!mcdFile) return 0;
 
-	for(int i=0;i<127;i++)
+	for(int i=0;i<126;i++)
 	{
 		if(BE32(dir.Dir[i].Gamecode)==0xFFFFFFFF)
 			return i;
@@ -40,7 +40,7 @@ u32  GCMemcard::GetNumFiles()
 	return 127;
 }
 
-bool GCMemcard::DeleteFile(u32 index) //index in the directory array
+bool GCMemcard::RemoveFile(u32 index) //index in the directory array
 {
 	if(!mcdFile) return false;
 
@@ -71,17 +71,17 @@ bool GCMemcard::DeleteFile(u32 index) //index in the directory array
 	while((block!=0xffff)&&(blocks_left>0)); 
 
 	//delete directory entry
-	for(int i=index;i<126;i++)
+	for(int i=index;i<125;i++)
 	{
 		dir.Dir[i]=dir.Dir[i+1];
 	}
-	memset(&(dir.Dir[126]),0xFF,sizeof(DEntry));
+	memset(&(dir.Dir[125]),0xFF,sizeof(DEntry));
 
 	//pack blocks to remove free space partitioning, assume no fragmentation.
 	u8 *mc_data2 = new u8[mc_data_size];
 
 	int firstFree=0;
-	for(int i=0;i<127;i++)
+	for(int i=0;i<126;i++)
 	{
 		if(BE32(dir.Dir[i].Gamecode)==0xFFFFFFFF)
 		{
@@ -102,8 +102,8 @@ bool GCMemcard::DeleteFile(u32 index) //index in the directory array
 		}
 		bat.Map[firstFree+bc-1] = 0xFFFF;
 
-		dir.Dir[i].FirstBlock[0] = u8(firstFree>>8);
-		dir.Dir[i].FirstBlock[1] = u8(firstFree);
+		dir.Dir[i].FirstBlock[0] = u8((firstFree+5)>>8);
+		dir.Dir[i].FirstBlock[1] = u8((firstFree+5));
 
 		firstFree += bc;
 	}
@@ -126,6 +126,11 @@ bool GCMemcard::DeleteFile(u32 index) //index in the directory array
 	bat.FreeBlocks[0] = u8(freespace1>>8);
 	bat.FreeBlocks[1] = u8(freespace1);
 
+	// ... and update counter
+	int updateCtr = BE16(dir.UpdateCounter)+1;
+	dir.UpdateCounter[0] = u8(updateCtr>>8);
+	dir.UpdateCounter[1] = u8(updateCtr);
+	
 	//fix checksums
 	u16 csum1=0,csum2=0;
 	calc_checksumsBE((u16*)&dir,0xFFE,&csum1,&csum2);
@@ -138,6 +143,9 @@ bool GCMemcard::DeleteFile(u32 index) //index in the directory array
 	bat.CheckSum1[1]=u8(csum1);
 	bat.CheckSum2[0]=u8(csum2>>8);
 	bat.CheckSum2[1]=u8(csum2);
+
+	dir_backup=dir;
+	bat_backup=bat;
 
 	return true;
 }
@@ -167,7 +175,7 @@ u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents)
 	}
 
 	int firstFree3 = 0;
-	for(int i=0;i<127;i++)
+	for(int i=0;i<126;i++)
 	{
 		if(BE32(dir.Dir[i].Gamecode)==0xFFFFFFFF)
 		{
@@ -182,6 +190,12 @@ u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents)
 	if(firstFree2 > firstFree1) firstFree1 = firstFree2;
 	if(firstFree3 > firstFree1) firstFree1 = firstFree3;
 
+	if(firstFree1>=126)
+	{
+		// TODO: show messagebox about the error
+		return 0;
+	}
+
 	// find first free dir entry
 	int index=-1;
 	for(int i=0;i<127;i++)
@@ -192,6 +206,7 @@ u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents)
 			dir.Dir[i] = direntry;
 			dir.Dir[i].FirstBlock[0] = u8(firstFree1>>8);
 			dir.Dir[i].FirstBlock[1] = u8(firstFree1);
+			dir.Dir[i].CopyCounter   = dir.Dir[i].CopyCounter+1;
 			break;
 		}
 	}
@@ -208,6 +223,11 @@ u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents)
 	bat.FreeBlocks[0] = u8(freespace1>>8);
 	bat.FreeBlocks[1] = u8(freespace1);
 
+	// ... and update counter
+	int updateCtr = BE16(dir.UpdateCounter)+1;
+	dir.UpdateCounter[0] = u8(updateCtr>>8);
+	dir.UpdateCounter[1] = u8(updateCtr);
+	
 	//fix checksums
 	u16 csum1=0,csum2=0;
 	calc_checksumsBE((u16*)&dir,0xFFE,&csum1,&csum2);
@@ -309,25 +329,27 @@ u32  GCMemcard::TestChecksums()
 
 	u16 csum1=0,csum2=0;
 
+	u32 results = 0;
+
 	calc_checksumsBE((u16*)&hdr, 0xFE ,&csum1,&csum2);
-	if(BE16(hdr.CheckSum1)!=csum1) return 1;
-	if(BE16(hdr.CheckSum2)!=csum2) return 1;
+	if(BE16(hdr.CheckSum1)!=csum1) results |= 1;
+	if(BE16(hdr.CheckSum2)!=csum2) results |= 1;
 
 	calc_checksumsBE((u16*)&dir,0xFFE,&csum1,&csum2);
-	if(BE16(dir.CheckSum1)!=csum1) return 2;
-	if(BE16(dir.CheckSum2)!=csum2) return 2;
+	if(BE16(dir.CheckSum1)!=csum1) results |= 2;
+	if(BE16(dir.CheckSum2)!=csum2) results |= 2;
 
 	calc_checksumsBE((u16*)&dir_backup,0xFFE,&csum1,&csum2);
-	if(BE16(dir_backup.CheckSum1)!=csum1) return 3;
-	if(BE16(dir_backup.CheckSum2)!=csum2) return 3;
+	if(BE16(dir_backup.CheckSum1)!=csum1) results |= 4;
+	if(BE16(dir_backup.CheckSum2)!=csum2) results |= 4;
 
 	calc_checksumsBE((u16*)(((u8*)&bat)+4),0xFFE,&csum1,&csum2);
-	if(BE16(bat.CheckSum1)!=csum1) return 4;
-	if(BE16(bat.CheckSum2)!=csum2) return 4;
+	if(BE16(bat.CheckSum1)!=csum1) results |= 8;
+	if(BE16(bat.CheckSum2)!=csum2) results |= 8;
 
 	calc_checksumsBE((u16*)(((u8*)&bat_backup)+4),0xFFE,&csum1,&csum2);
-	if(BE16(bat_backup.CheckSum1)!=csum1) return 5;
-	if(BE16(bat_backup.CheckSum2)!=csum2) return 5;
+	if(BE16(bat_backup.CheckSum1)!=csum1) results |= 16;
+	if(BE16(bat_backup.CheckSum2)!=csum2) results |= 16;
 
 	return 0;
 }
@@ -381,6 +403,56 @@ GCMemcard::GCMemcard(const char *filename)
 	assert(fread(&dir_backup,1,0x2000,mcd)==0x2000);
 	assert(fread(&bat,       1,0x2000,mcd)==0x2000);
 	assert(fread(&bat_backup,1,0x2000,mcd)==0x2000);
+
+	u32 csums = TestChecksums();
+	
+	if(csums&1)
+	{
+		// header checksum error!
+		// TODO: fail to load
+	}
+
+	if(csums&2) // directory checksum error!
+	{
+		if(csums&4)
+		{
+			// backup is also wrong!
+			// TODO: fail to load
+		}
+		else
+		{
+			// backup is correct, restore
+			dir = dir_backup;
+			bat = bat_backup;
+
+			// update checksums
+			csums = TestChecksums();
+		}
+	}
+
+	if(csums&8) // BAT checksum error!
+	{
+		if(csums&16)
+		{
+			// backup is also wrong!
+			// TODO: fail to load
+		}
+		else
+		{
+			// backup is correct, restore
+			dir = dir_backup;
+			bat = bat_backup;
+
+			// update checksums
+			csums = TestChecksums();
+		}
+	}
+
+	if(BE16(dir_backup.UpdateCounter) > BE16(dir.UpdateCounter)) //check if the backup is newer
+	{
+		dir = dir_backup;
+		bat = bat_backup; // needed?
+	}
 
 	fseek(mcd,0xa000,SEEK_SET);
 
