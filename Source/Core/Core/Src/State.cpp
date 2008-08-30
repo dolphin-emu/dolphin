@@ -59,6 +59,15 @@ void DoState(PointerWrap &p)
 
 void SaveStateCallback(u64 userdata, int cyclesLate)
 {
+	static const int chunkSize = 16384;
+	z_stream strm;
+
+	FILE *f = fopen(cur_filename.c_str(), "wb");
+	if(f == NULL) {
+		Core::DisplayMessage("Could not save state", 2000);
+		return;
+	}
+
 	Jit64::ClearCache();
 	u8 *ptr = 0;
 	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
@@ -68,13 +77,13 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 	ptr = buffer;
 	p.SetMode(PointerWrap::MODE_WRITE);
 	DoState(p);
-	FILE *f = fopen(cur_filename.c_str(), "wb");
 	fwrite(buffer, sz, 1, f);
 	fclose(f);
 
 	delete [] buffer;
 
-	Core::DisplayMessage(StringFromFormat("Saved State to %s", cur_filename.c_str()).c_str(), 2000);
+	Core::DisplayMessage(StringFromFormat("Saved State to %s", 
+		                 cur_filename.c_str()).c_str(), 2000);
 }
 
 void LoadStateCallback(u64 userdata, int cyclesLate)
