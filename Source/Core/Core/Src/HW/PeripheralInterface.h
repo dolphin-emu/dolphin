@@ -19,7 +19,7 @@
 #define _PERIPHERALINTERFACE_H
 
 #include "Common.h"
-class ChunkFile;
+class PointerWrap;
 
 //
 // PERIPHERALINTERFACE
@@ -98,7 +98,7 @@ public:
     static u32 Fifo_CPUWritePointer;
 
     static void Init();
-	static void DoState(ChunkFile &f);
+	static void DoState(PointerWrap &p);
     
     static void SetInterrupt(InterruptCause _causemask, bool _bSet=true);
     

@@ -14,25 +14,43 @@ static int ev_Load;
 
 static std::string cur_filename;
 
-void DoState(ChunkFile &f)
+void DoState(PointerWrap &p)
 {
-	f.Descend("DOLP");
-	PowerPC::DoState(f);
-	HW::DoState(f);
-        PluginVideo::Video_DoState(f);
-	f.Ascend();
+	PowerPC::DoState(p);
+	HW::DoState(p);
+    PluginVideo::Video_DoState(p.GetPPtr(), p.GetMode());
 }
 
 void SaveStateCallback(u64 userdata, int cyclesLate)
 {
-	ChunkFile f(cur_filename.c_str(), ChunkFile::MODE_WRITE);
-	DoState(f);
+	u8 *ptr = 0;
+	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
+	DoState(p);
+	int sz = (int)(u64)ptr;
+	u8 *buffer = new u8[sz];
+	ptr = buffer;
+	p.SetMode(PointerWrap::MODE_WRITE);
+	DoState(p);
+	FILE *f = fopen(cur_filename.c_str(), "wb");
+	fwrite(buffer, sz, 1, f);
+	fclose(f);
+	delete [] buffer;
 }
 
 void LoadStateCallback(u64 userdata, int cyclesLate)
 {
-	ChunkFile f(cur_filename.c_str(), ChunkFile::MODE_READ);
-	DoState(f);
+	// ChunkFile f(cur_filename.c_str(), ChunkFile::MODE_READ);
+	FILE *f = fopen(cur_filename.c_str(), "r");
+	fseek(f, 0, SEEK_END);
+	int sz = ftell(f);
+	fseek(f, 0, SEEK_SET);
+	u8 *buffer = new u8[sz];
+	fread(buffer, sz, 1, f);
+	fclose(f);
+
+	u8 *ptr;
+	PointerWrap p(&ptr, PointerWrap::MODE_READ);
+	DoState(p);
 }
 
 void State_Init()

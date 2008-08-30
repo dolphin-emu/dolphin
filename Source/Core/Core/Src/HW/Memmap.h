@@ -21,7 +21,7 @@
 
 #include "Common.h"
 
-class ChunkFile;
+class PointerWrap;
 
 typedef void (HWCALL *writeFn8 )(const u8, const u32);
 typedef void (HWCALL *writeFn16)(const u16,const u32);
@@ -65,7 +65,7 @@ namespace Memory
 	bool IsInitialized();
 	bool Init();
 	bool Shutdown();
-	void DoState(ChunkFile &f);
+	void DoState(PointerWrap &p);
 
 	void Clear();
 	bool AreMemoryBreakpointsActivated();

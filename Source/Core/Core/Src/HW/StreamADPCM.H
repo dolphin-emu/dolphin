@@ -12,7 +12,7 @@
 #define _STREAMADPCM_H
 
 #include "Common.h"
-class ChunkFile;
+class PointerWrap;
 
 #define ONE_BLOCK_SIZE		32
 #define SAMPLES_PER_BLOCK	28

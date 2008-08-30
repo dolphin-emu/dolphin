@@ -50,11 +50,9 @@ struct MIMemStruct
 // STATE_TO_SAVE
 static MIMemStruct miMem;
 
-void DoState(ChunkFile &f)
+void DoState(PointerWrap &p)
 {
-	f.Descend("MI  ");
-	f.Do(miMem);
-	f.Ascend();
+	p.Do(miMem);
 }
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)

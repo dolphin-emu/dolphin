@@ -105,19 +105,17 @@ u16 m_tokenReg;
 
 CPFifo fifo; //This one is shared between gfx thread and emulator thread
 
-void DoState(ChunkFile &f)
+void DoState(PointerWrap &p)
 {
-	f.Descend("CP  ");
-	f.Do(m_CPStatusReg);
-	f.Do(m_CPCtrlReg);
-	f.Do(m_CPClearReg);
-	f.Do(m_bboxleft);
-	f.Do(m_bboxtop);
-	f.Do(m_bboxright);
-	f.Do(m_bboxbottom);
-	f.Do(m_tokenReg);
-	f.Do(fifo);
-	f.Ascend();
+	p.Do(m_CPStatusReg);
+	p.Do(m_CPCtrlReg);
+	p.Do(m_CPClearReg);
+	p.Do(m_bboxleft);
+	p.Do(m_bboxtop);
+	p.Do(m_bboxright);
+	p.Do(m_bboxbottom);
+	p.Do(m_tokenReg);
+	p.Do(fifo);
 }
 
 // function

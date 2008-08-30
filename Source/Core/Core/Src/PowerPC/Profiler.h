@@ -14,30 +14,17 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-#ifndef _PIXELENGINE_H
-#define _PIXELENGINE_H
 
-#include "Common.h"
-class PointerWrap;
 
-namespace PixelEngine
+#ifndef _PROFILER_H
+#define _PROFILER_H
+
+namespace Profiler
 {
-void Init();
-void DoState(PointerWrap &p);
+extern bool g_ProfileBlocks;
+extern bool g_ProfileInstructions;
 
-// Read
-void HWCALL Read16(u16& _uReturnValue, const u32 _iAddress);
+void WriteProfileResults(const char *filename);
+}
 
-// Write
-void HWCALL Write16(const u16 _iValue, const u32 _iAddress);
-void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
-
-// gfx plugin support
-void SetToken(const unsigned __int16 _token, const int _bSetTokenAcknowledge);
-void SetFinish(void);
-bool AllowIdleSkipping();
-
-} // end of namespace PixelEngine
-
-#endif
-
+#endif  // _PROFILER_H

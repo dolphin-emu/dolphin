@@ -154,5 +154,13 @@ EXPORT void CALL DSP_Update(int cycles);
 // 
 EXPORT void CALL DSP_SendAIBuffer(unsigned int address, int sample_rate);
 
+// __________________________________________________________________________________________________
+// Function: DSP_DoState
+// Purpose:  Saves/load state
+// input/output: ptr
+// input: mode
+//
+EXPORT void CALL PAD_DoState(void *ptr, int mode);
+
 #include "ExportEpilog.h"
 #endif

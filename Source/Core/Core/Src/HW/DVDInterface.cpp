@@ -178,13 +178,11 @@ DVDMemStruct dvdMem;
 u32	 g_ErrorCode = 0x00;
 bool g_bDiscInside = true;
 
-void DoState(ChunkFile &f)
+void DoState(PointerWrap &p)
 {
-	f.Descend("DI  ");
-	f.Do(dvdMem);
-	f.Do(g_ErrorCode);
-	f.Do(g_bDiscInside);
-	f.Ascend();
+	p.Do(dvdMem);
+	p.Do(g_ErrorCode);
+	p.Do(g_bDiscInside);
 }
 
 void UpdateInterrupts();

@@ -19,14 +19,14 @@
 #define _SERIALINTERFACE_H
 
 #include "Common.h"
-class ChunkFile;
+class PointerWrap;
 
 namespace SerialInterface
 {
 
 void Init();
 void Shutdown();
-void DoState(ChunkFile &f);
+void DoState(PointerWrap &p);
 
 void UpdateDevices();
 

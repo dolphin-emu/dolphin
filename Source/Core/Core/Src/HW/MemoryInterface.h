@@ -18,11 +18,11 @@
 #define _MEMORYINTERFACE_H
 
 #include "Common.h"
-class ChunkFile;
+class PointerWrap;
 
 namespace MemoryInterface
 {
-void DoState(ChunkFile &f);
+void DoState(PointerWrap &p);
 
 void HWCALL Read16(u16& _uReturnValue, const u32 _iAddress);
 void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);	

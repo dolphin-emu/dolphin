@@ -20,14 +20,14 @@
 #ifndef _AUDIOINTERFACE_H
 #define _AUDIOINTERFACE_H
 
-class ChunkFile;
+class PointerWrap;
 
 namespace AudioInterface
 {
 
 void Init();
 void Shutdown();	
-void DoState(ChunkFile &f);
+void DoState(PointerWrap &p);
 
 void Update();
 

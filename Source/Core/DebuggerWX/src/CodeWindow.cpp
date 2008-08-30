@@ -48,6 +48,7 @@
 #include "Debugger/PPCDebugInterface.h"
 #include "Debugger/Debugger_SymbolMap.h"
 #include "PowerPC/PPCAnalyst.h"
+#include "PowerPC/Profiler.h"
 #include "PowerPC/SymbolDB.h"
 #include "PowerPC/SignatureDB.h"
 #include "PowerPC/PPCTables.h"
@@ -86,6 +87,10 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 
 	EVT_MENU(IDM_CLEARCODECACHE,    CCodeWindow::OnJitMenu)
 	EVT_MENU(IDM_LOGINSTRUCTIONS,   CCodeWindow::OnJitMenu)
+
+	EVT_MENU(IDM_PROFILEBLOCKS,     CCodeWindow::OnProfilerMenu)
+	EVT_MENU(IDM_WRITEPROFILE,      CCodeWindow::OnProfilerMenu)
+
 	// toolbar
 	EVT_MENU(IDM_DEBUG_GO,			CCodeWindow::OnCodeStep)
 	EVT_MENU(IDM_STEP,				CCodeWindow::OnCodeStep)
@@ -275,6 +280,15 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		pMenuBar->Append(pJitMenu, _T("&JIT"));
 	}
 
+	{
+		wxMenu *pProfilerMenu = new wxMenu;
+		pProfilerMenu->Append(IDM_PROFILEBLOCKS, _T("&Profile blocks"), wxEmptyString, wxITEM_CHECK);
+		pProfilerMenu->AppendSeparator();
+		pProfilerMenu->Append(IDM_WRITEPROFILE, _T("&Write to profile.txt, show"));
+		pMenuBar->Append(pProfilerMenu, _T("&Profiler"));
+	}
+
+
 	SetMenuBar(pMenuBar);
 }
 
@@ -295,6 +309,7 @@ void CCodeWindow::OnInterpreter(wxCommandEvent& event)
 	if (Core::GetState() != Core::CORE_RUN) {
 		PowerPC::SetMode(UseInterpreter() ? PowerPC::MODE_INTERPRETER : PowerPC::MODE_JIT);
 	} else {
+		event.Skip();
 		wxMessageBox(_T("Please pause the emulator before changing mode."));
 	}
 }
@@ -308,6 +323,24 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 		break;
 	case IDM_LOGINSTRUCTIONS:
 		PPCTables::LogCompiledInstructions();
+		break;
+	}
+}
+
+void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
+{
+	if (Core::GetState() == Core::CORE_RUN) {
+		event.Skip();
+		return;
+	}
+	switch (event.GetId())
+	{
+	case IDM_PROFILEBLOCKS:
+		Jit64::ClearCache();
+		Profiler::g_ProfileBlocks = GetMenuBar()->IsChecked(IDM_PROFILEBLOCKS);
+		break;
+	case IDM_WRITEPROFILE:
+		Profiler::WriteProfileResults("profiler.txt");
 		break;
 	}
 }

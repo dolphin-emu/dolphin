@@ -32,11 +32,11 @@ static u8 *videoBuffer;
 static int size = 0;
 static int readptr = 0;
 
-void Fifo_DoState(ChunkFile &f) {
-    f.Do(size);
-    f.DoArray(videoBuffer, size);
+void Fifo_DoState(PointerWrap &p) {
+    p.Do(size);
+    p.DoArray(videoBuffer, size);
 
-    f.Do(readptr);
+    p.Do(readptr);
 }
 
 void Fifo_Init()

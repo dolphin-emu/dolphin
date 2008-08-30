@@ -37,8 +37,9 @@ namespace Jit64
 
 		u32 originalAddress;
 		u32 originalFirstOpcode; //to be able to restore
-		u32 codeSize;
+		u32 codeSize; 
 		u32 originalSize;
+		int runCount;  // for profiling.
 		const u8 *checkedEntry;
 		bool invalid;
 	};

@@ -58,6 +58,11 @@ extern "C" {
 #define PLUGIN_TYPE_COMPILER        5
 #define PLUGIN_TYPE_DSP             6
 
+#define STATE_MODE_READ    1
+#define STATE_MODE_WRITE   2
+#define STATE_MODE_MEASURE 3
+
+
 typedef struct 
 {
 	WORD Version;        // Set to 0x0100

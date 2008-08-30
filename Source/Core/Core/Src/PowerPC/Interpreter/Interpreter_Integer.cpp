@@ -317,15 +317,8 @@ void orcx(UGeckoInstruction _inst)
 
 void slwx(UGeckoInstruction _inst)
 {
-	// TODO(ector): wtf is this code?
-/*	u32 amount = m_GPR[_inst.RB];
-	m_GPR[_inst.RA] = (amount&0x20) ? 0 : m_GPR[_inst.RS] << amount;
-
-	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
-*/
-
-	u32 nBits = m_GPR[_inst.RB];
-	m_GPR[_inst.RA] = (nBits < 32) ? m_GPR[_inst.RS] << nBits : 0;
+	u32 amount = m_GPR[_inst.RB];
+	m_GPR[_inst.RA] = (amount & 0x20) ? 0 : m_GPR[_inst.RS] << amount;
 
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }
@@ -393,7 +386,7 @@ void srawix(UGeckoInstruction _inst)
 void srwx(UGeckoInstruction _inst)
 {
 	u32 amount = m_GPR[_inst.RB];
-	m_GPR[_inst.RA] = (amount & 0x20) ? 0 : (m_GPR[_inst.RS] >> amount);
+	m_GPR[_inst.RA] = (amount & 0x20) ? 0 : (m_GPR[_inst.RS] >> (amount & 0x1f));
 
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RA]);
 }

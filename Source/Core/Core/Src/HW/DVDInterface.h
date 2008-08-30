@@ -19,14 +19,14 @@
 #define _DVDINTERFACE_H
 
 #include "Common.h"
-class ChunkFile;
+class PointerWrap;
 
 namespace DVDInterface
 {
 
 void Init();
 void Shutdown();
-void DoState(ChunkFile &f);
+void DoState(PointerWrap &p);
 
 void SetDiscInside(bool _DiscInside);
 

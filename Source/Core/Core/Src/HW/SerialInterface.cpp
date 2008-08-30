@@ -218,16 +218,14 @@ static USIStatusReg       g_StatusReg;
 static USIEXIClockCount   g_EXIClockCount;
 static u8                 g_SIBuffer[128];
 
-void DoState(ChunkFile &f)
+void DoState(PointerWrap &p)
 {
-	f.Descend("SI  ");
-	f.Do(g_Channel);
-	f.Do(g_Poll);
-	f.Do(g_ComCSR);
-	f.Do(g_StatusReg);
-	f.Do(g_EXIClockCount);
-	f.Do(g_SIBuffer);
-	f.Ascend();
+	p.Do(g_Channel);
+	p.Do(g_Poll);
+	p.Do(g_ComCSR);
+	p.Do(g_StatusReg);
+	p.Do(g_EXIClockCount);
+	p.Do(g_SIBuffer);
 }
 
 static void GenerateSIInterrupt(SIInterruptType _SIInterrupt);	

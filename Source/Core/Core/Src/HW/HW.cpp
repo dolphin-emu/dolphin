@@ -87,21 +87,19 @@ namespace HW
 		CoreTiming::UnregisterAllEvents();
 	}
 
-	void DoState(ChunkFile &f)
+	void DoState(PointerWrap &p)
 	{
-		f.Descend("HWst");
-		PixelEngine::DoState(f);
-		CommandProcessor::DoState(f);
-		VideoInterface::DoState(f);
-		SerialInterface::DoState(f);
-		CPeripheralInterface::DoState(f);
-		DSP::DoState(f);
-		DVDInterface::DoState(f);
-		GPFifo::DoState(f);
-		ExpansionInterface::DoState(f);
-		AudioInterface::DoState(f);
-		CoreTiming::DoState(f);
-        WII_IPCInterface::DoState(f);
-		f.Ascend();
+		PixelEngine::DoState(p);
+		CommandProcessor::DoState(p);
+		VideoInterface::DoState(p);
+		SerialInterface::DoState(p);
+		CPeripheralInterface::DoState(p);
+		DSP::DoState(p);
+		DVDInterface::DoState(p);
+		GPFifo::DoState(p);
+		ExpansionInterface::DoState(p);
+		AudioInterface::DoState(p);
+		CoreTiming::DoState(p);
+        WII_IPCInterface::DoState(p);
 	}
 }

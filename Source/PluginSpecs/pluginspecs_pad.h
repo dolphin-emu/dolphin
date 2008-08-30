@@ -124,14 +124,12 @@ EXPORT void CALL PAD_Rumble(BYTE _numPAD, unsigned int _uType, unsigned int _uSt
 EXPORT unsigned int CALL PAD_GetAttachedPads();
 
 // __________________________________________________________________________________________________
-// Function: SaveLoadState
+// Function: PAD_DoState
 // Purpose:  Saves/load state
-// input:    pointer to a 32k scratchpad/saved state
-// output:   writes or reads to the scratchpad, returning size of data
-// TODO:     save format should be standardized so that save 
-//		     states don't become plugin dependent which would suck
+// input/output: ptr
+// input: mode
 //
-EXPORT unsigned int CALL SaveLoadState(char *ptr, BOOL save);
+EXPORT void CALL PAD_DoState(void *ptr, int mode);
 
 #include "ExportEpilog.h"
 #endif

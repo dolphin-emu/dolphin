@@ -776,10 +776,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\PluginSpecs\pluginspecs_compiler.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\PluginSpecs\pluginspecs_dsp.h"
 					>
 				</File>
@@ -822,6 +818,14 @@
 			</File>
 			<File
 				RelativePath=".\Src\PowerPC\PPCTables.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PowerPC\Profiler.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PowerPC\Profiler.h"
 				>
 			</File>
 			<File

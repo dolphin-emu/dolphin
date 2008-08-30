@@ -186,14 +186,8 @@ void Generate()
 	enterCode = AlignCode16();
 
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
-	
-	// INT3();
 
 	MOV(64, R(RBX), Imm64((u64)Memory::base));
-	// if ((u64)GetCodePointers() > 0x80000000ULL) {
-	//	PanicAlert("Code Pointers are above the limit! %p",
-    //               GetCodePointers());
-	//}
 	MOV(64, R(R15), Imm64((u64)GetCodePointers())); //It's below 2GB so 32 bits are good enough
 	const u8 *outerLoop = GetCodePtr();
 
@@ -224,7 +218,7 @@ void Generate()
 					ADD(32, M(&PowerPC::ppcState.DebugCount), Imm8(1));
 				}
 				//grab from list and jump to it
-				JMPptr(MComplex(R15,RAX,8,0));
+				JMPptr(MComplex(R15, RAX, 8, 0));
 			SetJumpTarget(notfound);
 
 			//Ok, no block, let's jit

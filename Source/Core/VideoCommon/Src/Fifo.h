@@ -57,7 +57,7 @@ extern FifoReader fifo;
 void Fifo_Init();
 void Fifo_Shutdown();
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize);
-void Fifo_DoState(ChunkFile &f);
+void Fifo_DoState(PointerWrap &f);
 
 #endif
 

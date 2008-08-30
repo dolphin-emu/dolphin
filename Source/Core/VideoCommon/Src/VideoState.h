@@ -21,6 +21,6 @@
 #include "Common.h"
 #include "ChunkFile.h"
 
-void VideoCommon_DoState(ChunkFile &f);
+void VideoCommon_DoState(PointerWrap &p);
 
 #endif

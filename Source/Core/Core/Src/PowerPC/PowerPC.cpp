@@ -41,12 +41,10 @@ namespace PowerPC
 
 	static CoreMode mode;
 
-	void DoState(ChunkFile &f)
+	void DoState(PointerWrap &p)
 	{
-		f.Descend("PPC ");
-		f.Do(ppcState);
-		f.Do(state);
-		f.Ascend();
+		p.Do(ppcState);
+		p.Do(state);
 	}
 
 	void ResetRegisters()

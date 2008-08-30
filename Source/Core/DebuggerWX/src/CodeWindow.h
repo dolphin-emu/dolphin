@@ -93,6 +93,8 @@ class CCodeWindow
 			IDM_USESIGNATUREFILE,
 			IDM_USESYMBOLFILE,
 			IDM_CLEARCODECACHE,
+			IDM_PROFILEBLOCKS,
+			IDM_WRITEPROFILE,
 		};
 
 		enum
@@ -144,7 +146,9 @@ class CCodeWindow
 		void OnHostMessage(wxCommandEvent& event);
 		void OnSymbolsMenu(wxCommandEvent& event);
 		void OnJitMenu(wxCommandEvent& event);
+		void OnProfilerMenu(wxCommandEvent& event);
 		void OnInterpreter(wxCommandEvent& event);
+
 
 		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter);
 

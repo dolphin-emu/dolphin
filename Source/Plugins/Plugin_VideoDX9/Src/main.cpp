@@ -166,8 +166,9 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 
 }
 
-void Video_DoState(ChunkFile &f) {
-	VideoCommon_DoState(f);
+void Video_DoState(unsigned char **ptr, int mode) {
+	PointerWrap p(ptr, mode);
+	VideoCommon_DoState(p);
 	//PanicAlert("Saving/Loading state from DirectX9");
 }
 

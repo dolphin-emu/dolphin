@@ -93,16 +93,14 @@ u32 g_Address = 0;
 u32 g_Reply = 0;
 u32 g_SensorBarPower = 0;
 
-void DoState(ChunkFile &f)
+void DoState(PointerWrap &p)
 {
-	f.Descend("WIPC");
-	f.Do(g_IPC_Status);
-	f.Do(g_IPC_Config);
-	f.Do(g_IPC_Control);
-	f.Do(g_Address);
-	f.Do(g_Reply);
-	f.Do(g_SensorBarPower);
-	f.Ascend();
+	p.Do(g_IPC_Status);
+	p.Do(g_IPC_Config);
+	p.Do(g_IPC_Control);
+	p.Do(g_Address);
+	p.Do(g_Reply);
+	p.Do(g_SensorBarPower);
 }
 
 void UpdateInterrupts();

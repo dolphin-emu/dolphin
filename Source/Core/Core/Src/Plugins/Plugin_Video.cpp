@@ -32,10 +32,8 @@ typedef void (__cdecl* TVideo_SendFifoData)(BYTE*);
 typedef void (__cdecl* TVideo_UpdateXFB)(BYTE*, DWORD, DWORD);
 typedef BOOL (__cdecl* TVideo_Screenshot)(TCHAR*);
 typedef void (__cdecl* TVideo_EnterLoop)();
-
 typedef void (__cdecl* TVideo_AddMessage)(const char* pstr, unsigned int milliseconds);
-
-typedef void (__cdecl* TVideo_DoState)(ChunkFile &f);
+typedef void (__cdecl* TVideo_DoState)(unsigned char **ptr, int mode);
 
 //! Function Pointer
 TGetDllInfo         g_GetDllInfo            = 0;
@@ -49,7 +47,7 @@ TVideo_UpdateXFB    g_Video_UpdateXFB       = 0;
 TVideo_Screenshot   g_Video_Screenshot      = 0;
 TVideo_EnterLoop    g_Video_EnterLoop       = 0;
 TVideo_AddMessage   g_Video_AddMessage      = 0;
-TVideo_DoState    g_Video_DoState       = 0;
+TVideo_DoState      g_Video_DoState       = 0;
 
 //! Library Instance
 DynamicLibrary plugin;
@@ -91,7 +89,7 @@ bool LoadPlugin(const char *_Filename)
 		g_Video_Screenshot		= reinterpret_cast<TVideo_Screenshot>   (plugin.Get("Video_Screenshot"));
 		g_Video_EnterLoop       = reinterpret_cast<TVideo_EnterLoop>    (plugin.Get("Video_EnterLoop"));
 		g_Video_AddMessage      = reinterpret_cast<TVideo_AddMessage>   (plugin.Get("Video_AddMessage"));
-		g_Video_DoState       = reinterpret_cast<TVideo_DoState>   (plugin.Get("Video_DoState"));
+		g_Video_DoState         = reinterpret_cast<TVideo_DoState>      (plugin.Get("Video_DoState"));
 
 		if ((g_GetDllInfo != 0) &&
 			(g_DllAbout != 0) &&
@@ -176,8 +174,8 @@ void Video_AddMessage(const char* pstr, unsigned int milliseconds)
 	g_Video_AddMessage(pstr,milliseconds);
 }
 
-void Video_DoState(ChunkFile &f) {
-	g_Video_DoState(f);
+void Video_DoState(unsigned char **ptr, int mode) {
+	g_Video_DoState(ptr, mode);
 }
 
 } // end of namespace PluginVideo

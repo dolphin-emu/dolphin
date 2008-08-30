@@ -104,20 +104,18 @@ static u32 TicksPerFrame = 0;
 static u32 LineCount = 0;
 static u64 LastTime = 0;
 
-void DoState(ChunkFile &f)
+void DoState(PointerWrap &p)
 {
-	f.Descend("VI  ");
-	f.Do(m_VIDisplayControlRegister);
-	f.Do(m_FrameBuffer1);
-	f.Do(m_FrameBuffer2);
-	f.Do(m_VIInterruptRegister);
-	f.Do(m_UVIUnknownRegs, 0x1000);
-	f.Do(HorizontalBeamPos);
-	f.Do(VerticalBeamPos);
-	f.Do(TicksPerFrame);
-	f.Do(LineCount);
-	f.Do(LastTime);
-	f.Ascend();
+	p.Do(m_VIDisplayControlRegister);
+	p.Do(m_FrameBuffer1);
+	p.Do(m_FrameBuffer2);
+	p.Do(m_VIInterruptRegister);
+	p.DoArray(m_UVIUnknownRegs, 0x1000);
+	p.Do(HorizontalBeamPos);
+	p.Do(VerticalBeamPos);
+	p.Do(TicksPerFrame);
+	p.Do(LineCount);
+	p.Do(LastTime);
 }
 
 void Init()

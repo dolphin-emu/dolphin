@@ -3,7 +3,7 @@
 
 #include "Common.h"
 
-const char *GenerateVertexShader(u32 components);
+const char *GenerateVertexShader();
 
 // shader variables
 #define I_POSNORMALMATRIX "cpnmtx"

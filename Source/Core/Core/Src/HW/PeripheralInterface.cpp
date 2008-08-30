@@ -33,15 +33,13 @@ u32 CPeripheralInterface::Fifo_CPUBase;
 u32 CPeripheralInterface::Fifo_CPUEnd;
 u32 CPeripheralInterface::Fifo_CPUWritePointer;
 
-void CPeripheralInterface::DoState(ChunkFile &f)
+void CPeripheralInterface::DoState(PointerWrap &p)
 {
-	f.Descend("PI  ");
-	f.Do(m_InterruptMask);
-	f.Do(m_InterruptCause);
-	f.Do(Fifo_CPUBase);
-	f.Do(Fifo_CPUEnd);
-	f.Do(Fifo_CPUWritePointer);
-	f.Ascend();
+	p.Do(m_InterruptMask);
+	p.Do(m_InterruptCause);
+	p.Do(Fifo_CPUBase);
+	p.Do(Fifo_CPUEnd);
+	p.Do(Fifo_CPUWritePointer);
 }
 
 void CPeripheralInterface::Init()

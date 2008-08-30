@@ -7,8 +7,6 @@
 
 #include "PluginSpecs.h"
 
-#include "ChunkFile.h"
-
 #include "ExportProlog.h"
 
 typedef void			(*TSetPEToken)(const unsigned short _token, const int _bSetTokenAcknowledge);
@@ -152,7 +150,6 @@ EXPORT void CALL Video_UpdateXFB(BYTE* _pXFB, DWORD _dwWidth, DWORD _dwHeight);
 //
 EXPORT BOOL CALL Video_Screenshot(TCHAR* _szFilename);
 
-
 // __________________________________________________________________________________________________
 // Function: Video_EnterLoop
 // Purpose:  FIXME!
@@ -171,11 +168,11 @@ EXPORT void CALL Video_AddMessage(const char* pstr, unsigned int milliseconds);
 
 // __________________________________________________________________________________________________
 // Function: Video_DoState
-// Purpose:  Saves/Loads the current video data state(depends on parameter)
-// input:    The chunkfile to write to? FIXME
-// output:   none
+// Purpose:  Saves/Loads the current video data state (depends on mode parameter)
+// input/output: ptr
+// input: mode
 //
-EXPORT void CALL Video_DoState(ChunkFile &f);
+EXPORT void CALL Video_DoState(unsigned char **ptr, int mode);
 
 #include "ExportEpilog.h"
 #endif

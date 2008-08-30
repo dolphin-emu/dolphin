@@ -18,14 +18,14 @@
 #define _WII_IOBRIDGE_H_
 
 #include "Common.h"
-class ChunkFile;
+class PointerWrap;
 
 namespace WII_IOBridge
 {
 
 void Init();
 void Shutdown();	
-void DoState(ChunkFile &f);
+void DoState(PointerWrap &p);
 
 void Update();
 

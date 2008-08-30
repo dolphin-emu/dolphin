@@ -71,16 +71,14 @@ void UnregisterAllEvents()
 	event_types.clear();
 }
 
-void DoState(ChunkFile &f)
+void DoState(PointerWrap &p)
 {
 	externalEventSection.Enter();
-	f.Descend("TIME");
-	f.Do(downcount);
-	f.Do(slicelength);
-	f.Do(maxSliceLength);
-	f.Do(globalTimer);
-	f.Do(idledCycles);
-	f.Ascend();
+	p.Do(downcount);
+	p.Do(slicelength);
+	p.Do(maxSliceLength);
+	p.Do(globalTimer);
+	p.Do(idledCycles);
 	externalEventSection.Leave();
 }
 

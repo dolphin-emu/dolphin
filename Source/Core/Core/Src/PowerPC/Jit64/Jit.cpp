@@ -25,6 +25,7 @@
 #include "../../Core.h"
 #include "../../CoreTiming.h"
 #include "../PowerPC.h"
+#include "../Profiler.h"
 #include "../PPCTables.h"
 #include "../PPCAnalyst.h"
 #include "../../HW/Memmap.h"
@@ -375,6 +376,7 @@ namespace Jit64
 		PPCAnalyst::CodeOp *ops = PPCAnalyst::Flatten(emaddress, size, js.st, js.gpa, js.fpa);
 		const u8 *start = AlignCode4(); //TODO: Test if this or AlignCode16 make a difference from GetCodePtr
 		b.checkedEntry = start;
+		b.runCount = 0;
 		FixupBranch skip = J_CC(CC_NBE);
 		MOV(32, M(&PC), Imm32(js.blockStart));
 		JMP(Asm::doTiming, true);
@@ -391,6 +393,10 @@ namespace Jit64
 			MOV(32, M(&PC), Imm32(js.blockStart));
 			JMP(Asm::fpException, true);
 			SetJumpTarget(b1);
+		}
+
+		if (Profiler::g_ProfileBlocks) {
+			ADD(32, M(&b.runCount), Imm8(1));
 		}
 
 		//Start up the register allocators

@@ -15,103 +15,67 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _CHUNKFILE_H
-#define _CHUNKFILE_H
-
-// Class to read/write/verify hierarchical binary file formats.
-// Grabbed from one of my older projects and modified heavily.
-// Works more like a RIFF file than a Google Protocol Buffer, for example.
-
+#ifndef _POINTERWRAP_H
+#define _POINTERWRAP_H
 
 #include <stdio.h>
+
 #include <map>
 #include <vector>
 
-//TO REMEMBER WHEN USING:
+#include "Common.h"
 
-//EITHER a chunk contains ONLY data
-//OR it contains ONLY other chunks
-//otherwise the scheme breaks...
-
-class ChunkFile
+class PointerWrap
 {
 public:
-	enum ChunkFileMode
+	enum Mode  // also defined in pluginspecs.h. Didn't want to couple them.
 	{
-		MODE_READ,
-		MODE_WRITE,
-		MODE_VERIFY,
-	};
-private:
-	struct ChunkInfo
-	{
-		int startLocation;
-		int parentStartLocation;
-		int parentEOF;
-		unsigned int ID;
-		int length;
+		MODE_READ = 1,
+		MODE_WRITE = 2,
+		MODE_MEASURE = 3,
 	};
 
-	ChunkInfo stack[8];
-	int stack_ptr;
-	
-	char *data;
-	int fsize;
-	int eof;
-
-	ChunkFileMode mode;
-	FILE *f;
-	bool didFail;
-	
-	// Used for internal bookkeeping only.
-	int ReadInt();
-	void WriteInt(int x);
+	u8 **ptr;
+	Mode mode;
 
 public:
+	PointerWrap(u8 **ptr_, Mode mode_) : ptr(ptr_), mode(mode_) {}
+	PointerWrap(unsigned char **ptr_, int mode_) : ptr((u8**)ptr_), mode((Mode)mode_) {}
 
-	ChunkFile(const char *filename, ChunkFileMode mode);
-	~ChunkFile();
+	void SetMode(Mode mode_) {mode = mode_;}
+	Mode GetMode() const {return mode;}
+	u8 **GetPPtr() {return ptr;}
 
-	// Only pass 4-character IDs.
-	bool Descend(const char *id);
-	void Ascend();
-
-	//void Do(int &i);
-	//bool Do(std::string &s);
-	bool Do(void *ptr, int size);
-
-        bool DoArray(void *ptr, int size, int arrSize);
-
-	// Future
-	// bool DoCompressed(void *ptr, int size)
+	void DoVoid(void *data, int size)
+	{
+		switch (mode)
+		{
+		case MODE_READ:	memcpy(data, *ptr, size); break;
+		case MODE_WRITE: memcpy(*ptr, data, size); break;
+		case MODE_MEASURE: break;  // MODE_MEASURE - don't need to do anything
+		default: break;  // throw an error?
+		}
+		(*ptr) += size;
+	}
 
 	// Store maps to file. Very useful.
 	template<class T>
-	bool Do(std::map<unsigned int, T> &x) {
-            return false;
+	void Do(std::map<unsigned int, T> &x) {
 	}
-           
-	// Store vectors.
+	// Store vectors.
 	template<class T>
-	bool Do(std::vector<T> &x) {
-            return false;
+	void Do(std::vector<T> &x) {
 	}
-
-
-        // Disable size checks to save size for variable size array storing
-        template<class T>
-        bool DoArray(T *x, int arrSize) {
-            return DoArray((void *)x, sizeof(T), arrSize);
-        }
+ 
+    template<class T>
+    void DoArray(T *x, int count) {
+        DoVoid((void *)x, sizeof(T) * count);
+    }
             
-	// Handle everything else
 	template<class T>
-	bool Do(T &x) {
-		return Do((void *)&x, sizeof(x));
+	void Do(T &x) {
+		DoVoid((void *)&x, sizeof(x));
 	}
-
-	int GetCurrentChunkSize();
-	bool failed() {return didFail;}
 };
 
-#endif
+#endif  // _POINTERWRAP_H

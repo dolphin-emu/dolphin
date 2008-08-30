@@ -35,7 +35,7 @@ typedef void (*TimedCallback)(u64 userdata, int cyclesLate);
 u64 GetTicks();
 u64 GetIdleTicks();
 
-void DoState(ChunkFile &f);
+void DoState(PointerWrap &p);
 // The int that the callbacks get is how many cycles late it was.
 // So to schedule a new event on a regular basis:
 // inside callback:

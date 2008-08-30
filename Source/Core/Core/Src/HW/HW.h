@@ -25,7 +25,7 @@ namespace HW
 {
 	void Init();
 	void Shutdown();
-	void DoState(ChunkFile &f);
+	void DoState(PointerWrap &p);
 }
 
 #endif

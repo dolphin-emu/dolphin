@@ -90,8 +90,8 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size)
 	int numInternalBranches = 0;
 	while (true)
 	{
-		func.size++;
-		if (func.size > 1024*16) //weird
+		func.size += 4;
+		if (func.size > 1024*16*4) //weird
 			return false;
 		
 		UGeckoInstruction instr = (UGeckoInstruction)Memory::ReadUnchecked_U32(addr);
@@ -118,7 +118,6 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size)
 					//a final blr!
 					//We're done! Looks like we have a neat valid function. Perfect.
 					//Let's calc the checksum and get outta here
-					func.size *= 4; // into bytes
 					func.address = startAddr;
 					func.analyzed = 1;
 					func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);

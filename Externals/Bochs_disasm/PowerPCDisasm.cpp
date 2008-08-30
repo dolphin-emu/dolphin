@@ -863,7 +863,7 @@ namespace PPCDisasm
 
 	static void fdabc(struct DisasmPara_PPC *dp,ppc_word in, const char *name,
 		int mask,unsigned char dmode)
-		/* standard floating point instruction: xxxx fD,fA,fB,fC */
+		/* standard floating point instruction: xxxx fD,fA,fC,fB */
 	{
 		static const char *fmt = "f%d,";
 		char *s = dp->operands;
@@ -877,13 +877,13 @@ namespace PPCDisasm
 		else
 			err |= (int)PPCGETA(in);
 		if (mask & 2)
-			s += sprintf(s,fmt,(int)PPCGETB(in));
-		else if (PPCGETB(in))
-			err |= (int)PPCGETB(in);
-		if (mask & 1)
 			s += sprintf(s,fmt,(int)PPCGETC(in));
-		else if (!(mask&8))
+		else if (PPCGETC(in))
 			err |= (int)PPCGETC(in);
+		if (mask & 1)
+			s += sprintf(s,fmt,(int)PPCGETB(in));
+		else if (!(mask&8))
+			err |= (int)PPCGETB(in);
 		*(s-1) = '\0';
 		if (err)
 			ill(dp,in);

@@ -63,14 +63,12 @@ static bool       g_bSignalFinishInterrupt;
 int et_SetTokenOnMainThread;
 int et_SetFinishOnMainThread;
 
-void DoState(ChunkFile &f)
+void DoState(PointerWrap &p)
 {
-	f.Descend("PE  ");
-	f.Do(g_ctrlReg);
-	f.Do(g_token);
-	f.Do(g_bSignalTokenInterrupt);
-	f.Do(g_bSignalFinishInterrupt);
-	f.Ascend();
+	p.Do(g_ctrlReg);
+	p.Do(g_token);
+	p.Do(g_bSignalTokenInterrupt);
+	p.Do(g_bSignalFinishInterrupt);
 }
 
 void UpdateInterrupts();

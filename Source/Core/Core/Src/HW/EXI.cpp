@@ -53,11 +53,9 @@ void Shutdown()
 	g_Channels = 0;
 }
 
-void DoState(ChunkFile &f)
+void DoState(PointerWrap &p)
 {
-	f.Descend("EXI ");
 	// TODO: descend all the devices recursively.
-	f.Ascend();
 }
 
 void Update()

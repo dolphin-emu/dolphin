@@ -238,7 +238,7 @@ GekkoOPTemplate table4_2[] =
 	{23, Interpreter::ps_sel,    Jit64::ps_sel,    {"ps_sel",    OPTYPE_PS, 0}},
 	{24, Interpreter::ps_res,    Jit64::Default,   {"ps_res",    OPTYPE_PS, 0}},
 	{25, Interpreter::ps_mul,    Jit64::ps_arith,  {"ps_mul",    OPTYPE_PS, 0}},
-	{26, Interpreter::ps_rsqrte, Jit64::ps_rsqrte, {"ps_rsqrte", OPTYPE_PS, 0}},
+	{26, Interpreter::ps_rsqrte, Jit64::ps_rsqrte, {"ps_rsqrte", OPTYPE_PS, 0, 1}},
 	{28, Interpreter::ps_msub,   Jit64::ps_maddXX, {"ps_msub",   OPTYPE_PS, 0}},
 	{29, Interpreter::ps_madd,   Jit64::ps_maddXX, {"ps_madd",   OPTYPE_PS, 0}},
 	{30, Interpreter::ps_nmsub,  Jit64::ps_maddXX, {"ps_nmsub",  OPTYPE_PS, 0}},

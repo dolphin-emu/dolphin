@@ -28,7 +28,7 @@
 #include "Common.h"
 #include "Gekko.h"
 
-class ChunkFile;
+class PointerWrap;
 
 namespace PowerPC
 {
@@ -80,7 +80,7 @@ namespace PowerPC
 
 	void Init();
 	void Shutdown();
-	void DoState(ChunkFile &f);
+	void DoState(PointerWrap &p);
 
 	void SetMode(CoreMode _coreType);
 

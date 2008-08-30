@@ -19,7 +19,7 @@
 #define _GPFIFO_H
 
 #include "Common.h"
-class ChunkFile;
+class PointerWrap;
 
 namespace GPFifo
 {
@@ -36,7 +36,7 @@ extern u32 m_gatherPipeCount;
 
 // Init
 void Init();
-void DoState(ChunkFile &f);
+void DoState(PointerWrap &p);
 
 // ResetGatherPipe
 void ResetGatherPipe();

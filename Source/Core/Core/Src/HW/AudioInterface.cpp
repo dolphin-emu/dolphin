@@ -94,15 +94,13 @@ static int g_SampleRate = 32000;
 static int g_DSPSampleRate = 32000;
 static u64 g_CPUCyclesPerSample = 0xFFFFFFFFFFFULL;
 
-void DoState(ChunkFile &f)
+void DoState(PointerWrap &p)
 {
-	f.Descend("AI  ");
-	f.Do(g_AudioRegister);
-	f.Do(g_LastCPUTime);
-	f.Do(g_SampleRate);
-	f.Do(g_DSPSampleRate);
-	f.Do(g_CPUCyclesPerSample);
-	f.Ascend();
+	p.Do(g_AudioRegister);
+	p.Do(g_LastCPUTime);
+	p.Do(g_SampleRate);
+	p.Do(g_DSPSampleRate);
+	p.Do(g_CPUCyclesPerSample);
 }
 
 void GenerateAudioInterrupt();

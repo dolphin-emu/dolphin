@@ -18,14 +18,14 @@
 #define _EXIINTERFACE_H
 
 #include "Common.h"
-class ChunkFile;
+class PointerWrap;
 
 namespace ExpansionInterface
 {
 
 void Init();
 void Shutdown();
-void DoState(ChunkFile &f);
+void DoState(PointerWrap &p);
 
 void Update();
 void UpdateInterrupts();
