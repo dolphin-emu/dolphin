@@ -82,9 +82,11 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0& newmode)
 void TextureMngr::TCacheEntry::Destroy()
 {
     glDeleteTextures(1, &texture);
-    u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr + hashoffset*4);
-    if (*ptr == hash)
-        *ptr = oldpixel;
+	if (!isRenderTarget) {
+		u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr + hashoffset*4);
+		if (*ptr == hash)
+			*ptr = oldpixel;
+	}
 	texture = 0;
 }
 

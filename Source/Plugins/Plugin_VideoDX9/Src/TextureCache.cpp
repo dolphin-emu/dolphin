@@ -24,9 +24,12 @@ void TextureCache::TCacheEntry::Destroy()
 {
 	if (texture)
 		texture->Release();
-	u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr + hashoffset*4);
-	if (*ptr == hash)
-		*ptr = oldpixel;
+	texture = 0;
+	if (!isRenderTarget) {
+		u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr + hashoffset*4);
+		if (*ptr == hash)
+			*ptr = oldpixel;
+	}
 }
 
 void TextureCache::Init()
@@ -38,10 +41,10 @@ void TextureCache::Init()
 void TextureCache::Invalidate()
 {
 	TexCache::iterator iter = textures.begin();
-	for (;iter!=textures.end();iter++)
+	for (; iter != textures.end(); iter++)
 		iter->second.Destroy();
 	textures.clear();
-	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable,g_Config.bTexFmtOverlayCenter);
+	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable, g_Config.bTexFmtOverlayCenter);
 }
 
 void TextureCache::Shutdown()
@@ -54,9 +57,9 @@ void TextureCache::Shutdown()
 
 void TextureCache::Cleanup()
 {
-  TexCache::iterator iter=textures.begin();
+	TexCache::iterator iter=textures.begin();
 
-  while(iter!=textures.end())
+	while(iter != textures.end())
 	{
 		if (frameCount>20+iter->second.frameCount)
 		{
@@ -65,13 +68,13 @@ void TextureCache::Cleanup()
 				iter->second.Destroy();
 				iter = textures.erase(iter);
 			}
-            else
-            {
-                iter++;
-            }
+			else
+			{
+				iter++;
+			}
 		}
-        else
-        {
+		else
+		{
             iter++;
         }
 	}
