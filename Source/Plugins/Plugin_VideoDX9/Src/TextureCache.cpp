@@ -24,6 +24,9 @@ void TextureCache::TCacheEntry::Destroy()
 {
 	if (texture)
 		texture->Release();
+	u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr + hashoffset*4);
+	if (*ptr == hash)
+		*ptr = oldpixel;
 }
 
 void TextureCache::Init()
@@ -59,9 +62,6 @@ void TextureCache::Cleanup()
 		{
 			if (!iter->second.isRenderTarget)
 			{
-				u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(iter->second.addr + iter->second.hashoffset*4);
-				if (*ptr == iter->second.hash)
-					*ptr = iter->second.oldpixel;
 				iter->second.Destroy();
 				iter = textures.erase(iter);
 			}
