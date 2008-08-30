@@ -23,6 +23,7 @@
 #endif
 
 #include "GLInit.h"
+#include "Profiler.h"
 #include "Render.h"
 #include "OpcodeDecoding.h"
 #include "BPStructs.h"

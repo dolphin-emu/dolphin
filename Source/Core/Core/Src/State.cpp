@@ -37,8 +37,18 @@ static int ev_Load;
 
 static std::string cur_filename;
 
+enum {
+	version = 1
+};
+
 void DoState(PointerWrap &p)
 {
+	u32 cookie = 0xBAADBABE + version;
+	p.Do(cookie);
+	if (cookie != 0xBAADBABE + version) {
+		PanicAlert("Can't load states from other versions.");
+		return;
+	}
 	// Begin with video plugin, so that it gets a chance to clear it's caches and writeback modified things to RAM
     PluginVideo::Video_DoState(p.GetPPtr(), p.GetMode());
     PluginDSP::DSP_DoState(p.GetPPtr(), p.GetMode());
@@ -50,7 +60,6 @@ void DoState(PointerWrap &p)
 void SaveStateCallback(u64 userdata, int cyclesLate)
 {
 	Jit64::ClearCache();
-
 	u8 *ptr = 0;
 	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 	DoState(p);
@@ -65,14 +74,17 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 
 	delete [] buffer;
 
-	Core::DisplayMessage("Saved State", 2000);
+	Core::DisplayMessage(StringFromFormat("Saved State to %s", cur_filename.c_str()).c_str(), 2000);
 }
 
 void LoadStateCallback(u64 userdata, int cyclesLate)
 {
-	Jit64::ClearCache();
-
 	FILE *f = fopen(cur_filename.c_str(), "rb");
+	if (!f) {
+		Core::DisplayMessage("State not found", 2000);
+		return;
+	}
+	Jit64::ClearCache();
 	fseek(f, 0, SEEK_END);
 	int sz = ftell(f);
 	fseek(f, 0, SEEK_SET);
@@ -87,7 +99,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	DoState(p);
 	delete [] buffer;
 
-	Core::DisplayMessage("Loaded State", 2000);
+	Core::DisplayMessage(StringFromFormat("Loaded state from %s", cur_filename.c_str()).c_str(), 2000);
 }
 
 void State_Init()
@@ -101,18 +113,18 @@ void State_Shutdown()
 	// nothing to do, here for consistency.
 }
 
-std::string GetStateFilename(int state_number) {
+std::string MakeStateFilename(int state_number) {
 	return StringFromFormat("StateSaves/%s.s%02i", Core::GetStartupParameter().GetUniqueID().c_str(), state_number);
 }
 
-void State_Save(const char *filename)
+void State_Save(int slot)
 {
-	cur_filename = GetStateFilename(0);
+	cur_filename = MakeStateFilename(slot);
 	CoreTiming::ScheduleEvent_Threadsafe(0, ev_Save);
 }
 
-void State_Load(const char *filename)
+void State_Load(int slot)
 {
-	cur_filename = GetStateFilename(0);
+	cur_filename = MakeStateFilename(slot);
 	CoreTiming::ScheduleEvent_Threadsafe(0, ev_Load);
 }

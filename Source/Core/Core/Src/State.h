@@ -22,7 +22,8 @@ void State_Init();
 void State_Shutdown();
 
 // These don't happen instantly - they get scheduled as events.
-void State_Save(const char *filename);
-void State_Load(const char *filename);
+// Slots from 0-99.
+void State_Save(int slot);
+void State_Load(int slot);
 
 #endif

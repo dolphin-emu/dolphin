@@ -18,6 +18,8 @@
 
 
 #include "Globals.h"
+#include "Profiler.h"
+
 #include <math.h>
 #include "Render.h"
 #include "VertexShader.h"

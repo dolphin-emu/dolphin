@@ -25,6 +25,7 @@
 #include <wx/aboutdlg.h>
 
 #include "../Globals.h"
+#include "main.h"
 
 #include "../../Core/Src/Core.h"
 #include "Win32.h"
@@ -118,6 +119,7 @@ namespace EmuWindow
 				hypotheticalScene->sendMessage(KEYDOWN...);
 				*/
 			}
+			g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
 			break;
 
 		case WM_CLOSE:

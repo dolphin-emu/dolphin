@@ -25,6 +25,7 @@
 #include "Common.h"
 #include "Config.h"
 #include "Core.h"
+#include "State.h"
 #include "PluginOptions.h"
 #include "PluginManager.h"
 #include "MemcardManager.h"
@@ -95,8 +96,26 @@ EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
 EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
 EVT_MENU(IDM_TOGGLE_TOOLBAR, CFrame::OnToggleToolbar)
-EVT_MENU(IDM_LOADSTATE, CFrame::OnLoadState)
-EVT_MENU(IDM_SAVESTATE, CFrame::OnSaveState)
+EVT_MENU(IDM_LOADSLOT1, CFrame::OnLoadState)
+EVT_MENU(IDM_LOADSLOT2, CFrame::OnLoadState)
+EVT_MENU(IDM_LOADSLOT3, CFrame::OnLoadState)
+EVT_MENU(IDM_LOADSLOT4, CFrame::OnLoadState)
+EVT_MENU(IDM_LOADSLOT5, CFrame::OnLoadState)
+EVT_MENU(IDM_LOADSLOT6, CFrame::OnLoadState)
+EVT_MENU(IDM_LOADSLOT7, CFrame::OnLoadState)
+EVT_MENU(IDM_LOADSLOT8, CFrame::OnLoadState)
+EVT_MENU(IDM_LOADSLOT9, CFrame::OnLoadState)
+EVT_MENU(IDM_LOADSLOT10, CFrame::OnLoadState)
+EVT_MENU(IDM_SAVESLOT1, CFrame::OnSaveState)
+EVT_MENU(IDM_SAVESLOT2, CFrame::OnSaveState)
+EVT_MENU(IDM_SAVESLOT3, CFrame::OnSaveState)
+EVT_MENU(IDM_SAVESLOT4, CFrame::OnSaveState)
+EVT_MENU(IDM_SAVESLOT5, CFrame::OnSaveState)
+EVT_MENU(IDM_SAVESLOT6, CFrame::OnSaveState)
+EVT_MENU(IDM_SAVESLOT7, CFrame::OnSaveState)
+EVT_MENU(IDM_SAVESLOT8, CFrame::OnSaveState)
+EVT_MENU(IDM_SAVESLOT9, CFrame::OnSaveState)
+EVT_MENU(IDM_SAVESLOT10, CFrame::OnSaveState)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 END_EVENT_TABLE()
 
@@ -167,32 +186,32 @@ void CFrame::CreateMenu()
 
 	// file menu
 	wxMenu* fileMenu = new wxMenu;
-	fileMenu->Append(wxID_OPEN, _T("&Open..."));
+	fileMenu->Append(wxID_OPEN, _T("&Open...\tCtrl+O"));
 	fileMenu->Append(wxID_REFRESH, _T("&Refresh"));
 	fileMenu->Append(IDM_BROWSE, _T("&Browse for ISOs..."));
 
 	fileMenu->AppendSeparator();
-	fileMenu->Append(wxID_EXIT, _T("E&xit"), _T(""));
+	fileMenu->Append(wxID_EXIT, _T("E&xit"), _T("Alt+F4"));
 	m_pMenuBar->Append(fileMenu, _T("&File"));
 
 	// emulation menu
 	wxMenu* emulationMenu = new wxMenu;
-	m_pMenuItemPlay = new wxMenuItem(fileMenu, IDM_PLAY, _T("&Play"));
-	emulationMenu->Append(m_pMenuItemPlay);
-	m_pMenuItemStop = new wxMenuItem(fileMenu, IDM_STOP, _T("&Stop"));
-	emulationMenu->Append(m_pMenuItemStop);
+	m_pMenuItemPlay = emulationMenu->Append(IDM_PLAY, _T("&Play"));
+	m_pMenuItemStop = emulationMenu->Append(IDM_STOP, _T("&Stop"));
 	emulationMenu->AppendSeparator();
-
-	m_pMenuItemLoad = new wxMenuItem(fileMenu, IDM_LOADSTATE, _T("&Load State"));
-	emulationMenu->Append(m_pMenuItemLoad);
-	m_pMenuItemSave = new wxMenuItem(fileMenu, IDM_SAVESTATE, _T("Sa&ve State"));
-	emulationMenu->Append(m_pMenuItemSave);
+	wxMenu *saveMenu = new wxMenu;
+	wxMenu *loadMenu = new wxMenu;
+	m_pMenuItemLoad = emulationMenu->AppendSubMenu(saveMenu, _T("&Load State"));
+	m_pMenuItemSave = emulationMenu->AppendSubMenu(loadMenu, _T("Sa&ve State"));
+	for (int i = 1; i < 10; i++) {
+		saveMenu->Append(IDM_LOADSLOT1 + i - 1, wxString::Format(_T("Slot %i    F%i"), i, i));
+		loadMenu->Append(IDM_SAVESLOT1 + i - 1, wxString::Format(_T("Slot %i    Shift+F%i"), i, i));
+	}
 	m_pMenuBar->Append(emulationMenu, _T("&Emulation"));
 
 	// options menu
 	wxMenu* pOptionsMenu = new wxMenu;
-	m_pPluginOptions = new wxMenuItem(pOptionsMenu, IDM_PLUGIN_OPTIONS, _T("&Select plugins"));
-	pOptionsMenu->Append(m_pPluginOptions);
+	m_pPluginOptions = pOptionsMenu->Append(IDM_PLUGIN_OPTIONS, _T("&Select plugins"));
 	pOptionsMenu->AppendSeparator();
 	pOptionsMenu->Append(IDM_CONFIG_GFX_PLUGIN, _T("&GFX settings"));
 	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _T("&DSP settings"));
@@ -501,14 +520,18 @@ void CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED (event))
 	SConfig::GetInstance().SaveSettings();
 }
 
-void CFrame::OnLoadState(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnLoadState(wxCommandEvent& event)
 {
-	Core::LoadState();
+	int id = event.GetId();
+	int slot = id - IDM_LOADSLOT1 + 1;
+	State_Load(slot);
 }
 
-void CFrame::OnSaveState(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnSaveState(wxCommandEvent& event)
 {
-	Core::SaveState();
+	int id = event.GetId();
+	int slot = id - IDM_SAVESLOT1 + 1;
+	State_Save(slot);
 }
 
 void CFrame::OnToggleToolbar(wxCommandEvent& event)

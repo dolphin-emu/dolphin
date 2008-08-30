@@ -18,6 +18,7 @@ typedef void			(*TCopiedToXFB)(void);
 typedef BOOL			(*TPeekMessages)(void);
 typedef void			(*TUpdateInterrupts)(void);
 typedef void			(*TUpdateFPSDisplay)(const char* text); // sets the window title
+typedef void			(*TKeyPressed)(int keycode, BOOL shift, BOOL control); // sets the window title
 
 typedef struct
 {
@@ -54,8 +55,9 @@ typedef struct
 	TPeekMessages					pPeekMessages;
 	TUpdateInterrupts               pUpdateInterrupts;
     TUpdateFPSDisplay               pUpdateFPSDisplay;
-	SCPFifoStruct                   *pCPFifo;
+	TKeyPressed                     pKeyPress;
 
+	SCPFifoStruct                   *pCPFifo;
 	unsigned char                   *pVIRegs;
 	void *pMemoryBase;
 } SVideoInitialize;

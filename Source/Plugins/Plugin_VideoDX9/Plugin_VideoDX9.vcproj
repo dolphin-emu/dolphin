@@ -741,6 +741,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\EmuWindow.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\EmuWindow.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\W32Util\File.cpp"
 				>
 				<FileConfiguration
@@ -1364,14 +1372,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\D3DUtil.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\EmuWindow.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\EmuWindow.h"
 				>
 			</File>
 		</Filter>

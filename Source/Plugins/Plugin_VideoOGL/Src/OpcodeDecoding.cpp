@@ -25,6 +25,7 @@
 // called. The reason is that the vertex format affects the sizes of the vertices.
 
 #include "Globals.h"
+#include "Profiler.h"
 #include "OpcodeDecoding.h"
 #include "VertexLoader.h"
 #include "VertexShaderManager.h"

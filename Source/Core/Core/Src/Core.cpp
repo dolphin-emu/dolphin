@@ -73,9 +73,11 @@ void Callback_VideoLog(const TCHAR* _szMessage, BOOL _bDoBreak);
 void Callback_VideoCopiedToXFB();
 void Callback_DSPLog(const TCHAR* _szMessage);
 void Callback_DSPInterrupt();
-void Callback_DVDLog(const TCHAR* _szMessage);
-void Callback_DVDSetStatusbar(TCHAR* _szMessage);
 void Callback_PADLog(const TCHAR* _szMessage);
+
+// For keyboard shortcuts.
+void Callback_KeyPress(int key, BOOL shift, BOOL control);
+
 TPeekMessages Callback_PeekMessages = NULL;
 TUpdateFPSDisplay g_pUpdateFPSDisplay = NULL;
 
@@ -270,6 +272,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pCPFifo             = (SCPFifoStruct*)&CommandProcessor::fifo;
 	VideoInitialize.pUpdateInterrupts   = &(CommandProcessor::UpdateInterruptsFromVideoPlugin);
 	VideoInitialize.pMemoryBase         = Memory::base;
+	VideoInitialize.pKeyPress           = Callback_KeyPress;
 	PluginVideo::Video_Initialize(&VideoInitialize);
 
 	// Under linux, this is an X11 Display, not an HWND!
@@ -414,11 +417,11 @@ EState GetState()
 }
 
 void SaveState() {
-    State_Save("state.dlp");
+    State_Save(0);
 }
 
 void LoadState() {
-    State_Load("state.dlp");
+    State_Load(0);
 }
 
 const SCoreStartupParameter& GetStartupParameter()
@@ -518,30 +521,27 @@ void Callback_DSPInterrupt()
 }
 
 // __________________________________________________________________________________________________
-// Callback_DVDLog
-//
-void Callback_DVDLog(TCHAR* _szMessage)
-{
-	LOG(DVDINTERFACE, _szMessage);
-}
-
-// __________________________________________________________________________________________________
-// Callback_DVDSetStatusbar
-//
-void Callback_DVDSetStatusbar(TCHAR* _szMessage)
-{
-	//Todo: PostMessage to main window to set the string
-//	strDVDMessage = _szMessage;
-//	if (g_CoreStartupParameter.m_StatusUpdate != NULL) 
-//		g_CoreStartupParameter.m_StatusUpdate();
-}
-
-// __________________________________________________________________________________________________
 // Callback_PADLog
 //
 void Callback_PADLog(const TCHAR* _szMessage)
 {
 	LOG(SERIALINTERFACE, _szMessage);
+}
+
+
+// Called from ANY thread!
+void Callback_KeyPress(int key, BOOL shift, BOOL control)
+{
+	// 0x70 == VK_F1
+	if (key >= 0x70 && key < 0x79) {
+		// F-key
+		int slot_number = key - 0x70 + 1;
+		if (shift) {
+			State_Save(slot_number);
+		} else {
+			State_Load(slot_number);
+		}
+	}
 }
 
 } // end of namespace Core

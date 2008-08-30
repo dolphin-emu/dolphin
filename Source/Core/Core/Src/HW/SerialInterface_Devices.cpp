@@ -195,7 +195,8 @@ CSIDevice_GCController::SendCommand(u32 _Cmd)
 		{
 			unsigned int uType = command.Parameter1;  // 0 = stop, 1 = rumble, 2 = stop hard
 			unsigned int uStrength = command.Parameter2;
-			PluginPAD::PAD_Rumble(ISIDevice::m_iDeviceNumber, uType, uStrength);
+			if (PluginPAD::PAD_Rumble)
+				PluginPAD::PAD_Rumble(ISIDevice::m_iDeviceNumber, uType, uStrength);
 		}
 		break;
 

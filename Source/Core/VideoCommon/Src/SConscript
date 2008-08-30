@@ -9,6 +9,7 @@ files = [
 	"XFBConvert.cpp",
 	"Fifo.cpp",
 	"VideoState.cpp",
+	"Profiler.cpp",
 	]
 
 env_common = env.Copy()

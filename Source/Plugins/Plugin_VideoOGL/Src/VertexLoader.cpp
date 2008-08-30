@@ -20,6 +20,7 @@
 #include <assert.h>
 
 #include "x64Emitter.h"
+#include "Profiler.h"
 
 #include "Render.h"
 #include "VertexLoader.h"

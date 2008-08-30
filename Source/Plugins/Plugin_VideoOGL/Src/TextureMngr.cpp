@@ -20,6 +20,7 @@
 #endif
 
 #include "Globals.h"
+#include "Profiler.h"
 
 #include "Render.h"
 

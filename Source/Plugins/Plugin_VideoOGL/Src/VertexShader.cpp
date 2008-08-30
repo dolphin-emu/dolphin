@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Globals.h"
+#include "Profiler.h"
 #include <math.h>
 
 #include "BPStructs.h"

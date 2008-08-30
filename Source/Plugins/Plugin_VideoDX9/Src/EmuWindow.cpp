@@ -3,6 +3,7 @@
 
 #include "../../Core/Src/Core.h"
 #include "Globals.h"
+#include "main.h"
 #include "EmuWindow.h"
 
 namespace EmuWindow
@@ -47,6 +48,7 @@ namespace EmuWindow
 				hypotheticalScene->sendMessage(KEYDOWN...);
 				*/
 			}
+			g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
 			break;
 
 		case WM_CLOSE:
@@ -157,6 +159,6 @@ namespace EmuWindow
 		rc.right = rc.left + w;
 		rc.top = (1024 - h)/2;
 		rc.bottom = rc.top + h;
-		::MoveWindow(m_hWnd, rc.left,rc.top,rc.right-rc.left,rc.bottom-rc.top, TRUE);
+		::MoveWindow(m_hWnd, rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top, TRUE);
 	}
 }
