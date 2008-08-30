@@ -60,12 +60,13 @@ namespace Jit64
 			// If the value changed, destroy all blocks using this quantizer
 			// This will create a little bit of block churn, but hopefully not too bad.
 			{
+				/*
 			MOV(32, R(EAX), M(&PowerPC::ppcState.spr[iIndex]));  // Load old value
 			CMP(32, R(EAX), gpr.R(inst.RD));
 			FixupBranch skip_destroy = J_CC(CC_E, false);
 			int gqr = iIndex - SPR_GQR0;
 			ABI_CallFunctionC(ProtectFunction(&Jit64::DestroyBlocksWithFlag, 1), (u32)BLOCK_USE_GQR0 << gqr);
-			SetJumpTarget(skip_destroy);
+			SetJumpTarget(skip_destroy);*/
 			}
 			break;
 		// TODO - break block if quantizers are written to.
