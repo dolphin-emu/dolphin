@@ -82,6 +82,9 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0& newmode)
 void TextureMngr::TCacheEntry::Destroy()
 {
     glDeleteTextures(1, &texture);
+    u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr + hashoffset*4);
+    if (*ptr == hash)
+        *ptr = oldpixel;
 	texture = 0;
 }
 
@@ -123,12 +126,9 @@ void TextureMngr::Cleanup()
 {
     TexCache::iterator iter = textures.begin();
 
-    while(iter!=textures.end()) {
+    while(iter != textures.end()) {
         if (frameCount > 20 + iter->second.frameCount) {
             if (!iter->second.isRenderTarget) {
-                u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(iter->second.addr + iter->second.hashoffset*4);
-                if (*ptr == iter->second.hash)
-                    *ptr = iter->second.oldpixel;
                 iter->second.Destroy();
 #ifdef _WIN32
                 iter = textures.erase(iter);
