@@ -93,7 +93,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 	{	
 		// read the command
 		EBufferCommands command = static_cast<EBufferCommands>(_pBuffer[iPosition ^ 3]);
-		iPosition ++;
+		iPosition++;
 
 		// handle it
 		switch(command)

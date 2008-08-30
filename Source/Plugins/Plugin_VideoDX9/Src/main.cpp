@@ -152,7 +152,7 @@ void DllConfig(HWND _hParent)
 
 void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 {
-    if( _pVideoInitialize == NULL )
+    if (_pVideoInitialize == NULL)
         return;
 
 	frameCount = 0;
@@ -167,6 +167,9 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 }
 
 void Video_DoState(unsigned char **ptr, int mode) {
+	// Clear all caches
+	TextureCache::Invalidate();
+
 	PointerWrap p(ptr, mode);
 	VideoCommon_DoState(p);
 	//PanicAlert("Saving/Loading state from DirectX9");

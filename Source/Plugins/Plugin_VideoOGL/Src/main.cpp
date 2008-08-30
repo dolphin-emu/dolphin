@@ -180,6 +180,10 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 }
 
 void Video_DoState(unsigned char **ptr, int mode) {
+
+	// Clear all caches
+	TextureMngr::Invalidate();
+
 	PointerWrap p(ptr, mode);
 	VideoCommon_DoState(p);
 	//PanicAlert("Saving/Loading state from OpenGL");

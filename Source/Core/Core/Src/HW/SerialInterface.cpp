@@ -220,7 +220,7 @@ static u8                 g_SIBuffer[128];
 
 void DoState(PointerWrap &p)
 {
-	p.Do(g_Channel);
+	// p.DoArray(g_Channel);
 	p.Do(g_Poll);
 	p.Do(g_ComCSR);
 	p.Do(g_StatusReg);

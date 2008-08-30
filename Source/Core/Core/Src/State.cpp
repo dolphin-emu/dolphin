@@ -38,10 +38,11 @@ static std::string cur_filename;
 
 void DoState(PointerWrap &p)
 {
+	// Begin with video plugin, so that it gets a chance to clear it's caches and writeback modified things to RAM
+    PluginVideo::Video_DoState(p.GetPPtr(), p.GetMode());
 	PowerPC::DoState(p);
 	HW::DoState(p);
 	CoreTiming::DoState(p);
-    // PluginVideo::Video_DoState(p.GetPPtr(), p.GetMode());
 }
 
 void SaveStateCallback(u64 userdata, int cyclesLate)

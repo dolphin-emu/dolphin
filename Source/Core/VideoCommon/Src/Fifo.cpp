@@ -33,7 +33,7 @@ static int size = 0;
 static int readptr = 0;
 
 void Fifo_DoState(PointerWrap &p) {
-    p.DoArray(videoBuffer, size);
+    p.DoArray(videoBuffer, FIFO_SIZE);
     p.Do(size);
     p.Do(readptr);
 }
