@@ -217,7 +217,6 @@ void Init()
 void Shutdown()
 {
 	Common::Timer::RestoreResolution();
-	CoreTiming::Clear();
 }
 
 }  // namespace

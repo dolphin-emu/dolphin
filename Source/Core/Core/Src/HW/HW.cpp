@@ -45,6 +45,8 @@ namespace HW
 {
 	void Init()
 	{
+		CoreTiming::Init();
+
 		Thunk_Init(); // not really hw, but this way we know it's inited first :P
 		State_Init();
 
@@ -83,8 +85,7 @@ namespace HW
 		
 		State_Shutdown();
 		Thunk_Shutdown();
-		
-		CoreTiming::UnregisterAllEvents();
+		CoreTiming::Shutdown();
 	}
 
 	void DoState(PointerWrap &p)
@@ -100,7 +101,6 @@ namespace HW
 		GPFifo::DoState(p);
 		ExpansionInterface::DoState(p);
 		AudioInterface::DoState(p);
-		CoreTiming::DoState(p);
         WII_IPCInterface::DoState(p);
 	}
 }

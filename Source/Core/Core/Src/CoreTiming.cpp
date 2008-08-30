@@ -20,6 +20,7 @@
 #include "Thread.h"
 #include "PowerPC/PowerPC.h"
 #include "CoreTiming.h"
+#include "StringUtil.h"
 
 // TODO(ector): Replace new/delete in this file with a simple memory pool
 // Don't expect a massive speedup though.
@@ -35,13 +36,15 @@ struct EventType
 
 std::vector<EventType> event_types;
 
-struct Event
+struct BaseEvent
 {
 	s64 time;
 	u64 userdata;
-	Event *next;
 	int type;
+//	Event *next;
 };
+
+typedef LinkedListItem<BaseEvent> Event;
 
 // STATE_TO_SAVE (how?)
 Event *first;
@@ -54,6 +57,8 @@ s64 globalTimer;
 s64 idledCycles;
 
 Common::CriticalSection externalEventSection;
+
+void (*advanceCallback)(int cyclesExecuted);
 
 int RegisterEvent(const char *name, TimedCallback callback)
 {
@@ -71,14 +76,72 @@ void UnregisterAllEvents()
 	event_types.clear();
 }
 
+void Init()
+{
+	downcount = maxSliceLength;
+	slicelength = maxSliceLength;
+	globalTimer = 0;
+	idledCycles = 0;
+}
+
+void Shutdown()
+{
+	ClearPendingEvents();
+	UnregisterAllEvents();
+}
+
 void DoState(PointerWrap &p)
 {
 	externalEventSection.Enter();
 	p.Do(downcount);
 	p.Do(slicelength);
-	p.Do(maxSliceLength);
 	p.Do(globalTimer);
 	p.Do(idledCycles);
+	// OK, here we're gonna need to specialize depending on the mode.
+	// Should do something generic to serialize linked lists.
+	switch (p.GetMode()) {
+	case PointerWrap::MODE_READ:
+		{
+		ClearPendingEvents();
+		if (first)
+			PanicAlert("Clear failed.");
+		int more_events = 0;
+		Event *prev = 0;
+		while (true) {
+			p.Do(more_events);
+			if (!more_events)
+				break;
+			Event *ev = new Event;
+			if (!prev)
+				first = ev;
+			else
+				prev->next = ev;
+			p.Do(ev->time);
+			p.Do(ev->type);
+			p.Do(ev->userdata);
+			ev->next = 0;
+			prev = ev;
+			ev = ev->next;
+		}
+		}
+		break;
+	case PointerWrap::MODE_MEASURE:
+	case PointerWrap::MODE_WRITE:
+		{
+		Event *ev = first;
+		int more_events = 1;
+		while (ev) {
+			p.Do(more_events);
+			p.Do(ev->time);
+			p.Do(ev->type);
+			p.Do(ev->userdata);
+			ev = ev->next;
+		}
+		more_events = 0;
+		p.Do(more_events);
+		break;
+		}
+	}
 	externalEventSection.Leave();
 }
 
@@ -106,14 +169,12 @@ void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata
 	externalEventSection.Leave();
 }
 
-void Clear()
+void ClearPendingEvents()
 {
-	globalTimer = 0;
-	idledCycles = 0;
 	while (first)
 	{
 		Event *e = first->next;
-		delete [] first;
+		delete first;
 		first = e;
 	}
 }
@@ -171,9 +232,6 @@ void ScheduleEvent(int cyclesIntoFuture, int event_type, u64 userdata)
 
 	AddEventToQueue(ne);
 }
-
-void (*advanceCallback)(int cyclesExecuted);
-
 
 void RegisterAdvanceCallback(void (*callback)(int cyclesExecuted))
 {
@@ -302,5 +360,23 @@ void Idle()
 	Advance();
 }
 
+std::string GetScheduledEventsSummary()
+{
+	Event *ptr = first;
+	std::string text = "Scheduled events\n";
+	text.reserve(1000);
+	while (ptr)
+	{
+		int t = ptr->type;
+		if (t < 0 || t >= event_types.size())
+			PanicAlert("Invalid event type %i", t);
+		const char *name = event_types[ptr->type].name;
+		if (!name)
+			name = "[unknown]";
+		text += StringFromFormat("%s : %i %08x%08x\n", event_types[ptr->type].name, ptr->time, ptr->userdata >> 32, ptr->userdata);
+		ptr = ptr->next;
+	}
+	return text;
+}
 
 }; // end of namespace

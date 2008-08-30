@@ -25,10 +25,17 @@
 // callback. You then schedule events using the type id you get back.
 
 #include "Common.h"
+
+#include <string>
+
 #include "ChunkFile.h"
 
 namespace CoreTiming
 {
+
+
+void Init();
+void Shutdown();
 
 typedef void (*TimedCallback)(u64 userdata, int cyclesLate);
 
@@ -58,12 +65,15 @@ void Advance();
 // Pretend that the main CPU has executed enough cycles to reach the next event.
 void Idle();
 
-// Clear all pending events. This should ONLY be done on exit.
-void Clear();
+// Clear all pending events. This should ONLY be done on exit or state load.
+void ClearPendingEvents();
+
 void LogPendingEvents();
 void SetMaximumSlice(int maximumSliceLength);
 
 void RegisterAdvanceCallback(void (*callback)(int cyclesExecuted));
+
+std::string GetScheduledEventsSummary();
 
 extern int downcount;
 extern int slicelength;

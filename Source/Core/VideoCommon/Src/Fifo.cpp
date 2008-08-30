@@ -33,16 +33,15 @@ static int size = 0;
 static int readptr = 0;
 
 void Fifo_DoState(PointerWrap &p) {
-    p.Do(size);
     p.DoArray(videoBuffer, size);
-
+    p.Do(size);
     p.Do(readptr);
 }
 
 void Fifo_Init()
 {
     videoBuffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
-    fifo.Init(videoBuffer, videoBuffer); //zero length. there is no data yet.
+    fifo.Init(videoBuffer, videoBuffer);  //zero length. there is no data yet.
 }
 
 void Fifo_Shutdown()

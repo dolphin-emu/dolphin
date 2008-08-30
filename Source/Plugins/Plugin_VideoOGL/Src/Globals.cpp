@@ -29,15 +29,16 @@
 
 #include "IniFile.h"
 #include <assert.h>
+
 float MValueX, MValueY; // Since it can Stretch to fit Window, we need two different multiplication values//
 int frameCount;
-
 Config g_Config;
+
 Statistics stats;
 
 void Statistics::ResetFrame()
 {
-	memset(&thisFrame,0,sizeof(ThisFrame));
+	memset(&thisFrame, 0, sizeof(ThisFrame));
 }
 
 Config::Config()

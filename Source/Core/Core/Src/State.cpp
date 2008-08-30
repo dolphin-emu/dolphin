@@ -41,7 +41,7 @@ void DoState(PointerWrap &p)
 	PowerPC::DoState(p);
 	HW::DoState(p);
 	CoreTiming::DoState(p);
-    PluginVideo::Video_DoState(p.GetPPtr(), p.GetMode());
+    // PluginVideo::Video_DoState(p.GetPPtr(), p.GetMode());
 }
 
 void SaveStateCallback(u64 userdata, int cyclesLate)
@@ -59,6 +59,7 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 	FILE *f = fopen(cur_filename.c_str(), "wb");
 	fwrite(buffer, sz, 1, f);
 	fclose(f);
+
 	delete [] buffer;
 
 	Core::DisplayMessage("Saved State", 2000);
@@ -68,17 +69,20 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 {
 	Jit64::ClearCache();
 
-	FILE *f = fopen(cur_filename.c_str(), "r");
+	FILE *f = fopen(cur_filename.c_str(), "rb");
 	fseek(f, 0, SEEK_END);
 	int sz = ftell(f);
 	fseek(f, 0, SEEK_SET);
 	u8 *buffer = new u8[sz];
-	fread(buffer, sz, 1, f);
+	int x;
+	if (x=fread(buffer, 1, sz, f) != sz)
+		PanicAlert("wtf? %d %d", x, sz);
 	fclose(f);
 
 	u8 *ptr = buffer;
 	PointerWrap p(&ptr, PointerWrap::MODE_READ);
 	DoState(p);
+	delete [] buffer;
 
 	Core::DisplayMessage("Loaded State", 2000);
 }

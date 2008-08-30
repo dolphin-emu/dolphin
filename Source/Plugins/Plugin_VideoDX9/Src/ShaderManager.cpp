@@ -179,7 +179,7 @@ void VShaderCache::Cleanup()
 	for (VSCache::iterator iter=vshaders.begin(); iter!=vshaders.end();iter++)
 	{
 		VSCacheEntry &entry = iter->second;
-		if (entry.frameCount<frameCount-30)
+		if (entry.frameCount < frameCount - 30)
 		{
 			entry.Destroy();
 			iter = vshaders.erase(iter);

@@ -44,7 +44,6 @@ namespace PowerPC
 	void DoState(PointerWrap &p)
 	{
 		p.Do(ppcState);
-		p.Do(state);
 	}
 
 	void ResetRegisters()

@@ -18,12 +18,28 @@
 #ifndef _POINTERWRAP_H
 #define _POINTERWRAP_H
 
+// Extremely simple serialization framework.
+
+// (mis)-features:
+// + Super fast
+// + Very simple
+// + Same code is used for serialization and deserializaition (in most cases)
+// - Zero backwards/forwards compatibility
+// - Serialization code for anything complex has to be manually written.
+
 #include <stdio.h>
 
 #include <map>
 #include <vector>
 
 #include "Common.h"
+
+template <class T>
+struct LinkedListItem : public T
+{
+	LinkedListItem<T> *next;
+};
+
 
 class PointerWrap
 {
@@ -61,10 +77,14 @@ public:
 	// Store maps to file. Very useful.
 	template<class T>
 	void Do(std::map<unsigned int, T> &x) {
+		// TODO
+		PanicAlert("Do(map<>) does not yet work.");
 	}
 	// Store vectors.
 	template<class T>
 	void Do(std::vector<T> &x) {
+		// TODO
+		PanicAlert("Do(vector<>) does not yet work.");
 	}
  
     template<class T>
@@ -75,6 +95,12 @@ public:
 	template<class T>
 	void Do(T &x) {
 		DoVoid((void *)&x, sizeof(x));
+	}
+
+	template<class T>
+	void DoLinkedList(LinkedListItem<T> **list_start) {
+		// TODO
+		PanicAlert("Do(vector<>) does not yet work.");
 	}
 };
 
