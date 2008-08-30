@@ -58,8 +58,10 @@
 #else
 #include <unistd.h>
 #include <sys/ioctl.h>
-#include <linux/input.h>
 #define SLEEP(x) usleep(x*1000)
+#endif
+#ifdef __linux__
+#include <linux/input.h>
 #endif
 
 #ifdef USE_WXWIDGETS

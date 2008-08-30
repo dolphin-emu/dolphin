@@ -70,7 +70,7 @@ BOOL CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pCont
 HRESULT SetDeviceForcesXY();
 #endif
 
-#else
+#elif defined(__linux__)
 	int fd;
 	char device_file_name[64];
 	struct ff_effect effect;
@@ -297,7 +297,7 @@ void PAD_Shutdown()
 	#ifdef USE_RUMBLE_DINPUT_HACK
 	FreeDirectInput();
 	#endif
-	#else
+	#elif defined(__linux__)
 	close(fd);
 	#endif
 }
@@ -436,7 +436,7 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 			g_pEffect->Start(1, 0);
 	}
 	#endif
-	#else
+	#elif defined(__linux__)
 	if(!fd)
 	{
 		sprintf(device_file_name, "/dev/input/event%d", joysticks[_numPAD].eventnum); //TODO: Make dynamic //
@@ -506,7 +506,7 @@ void PAD_Rumble(BYTE _numPAD, unsigned int _uType, unsigned int _uStrength)
 		SetDeviceForcesXY();
 	}
 	#endif
-	#else
+	#elif defined(__linux__)
 	struct input_event event;
 	if(CanRumble)
 	{
