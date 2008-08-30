@@ -18,6 +18,8 @@
 #ifndef _PLUGIN_VIDEO_H
 #define _PLUGIN_VIDEO_H
 
+#include "Common.h"
+
 #include "pluginspecs_video.h"
 
 #include "ChunkFile.h"
