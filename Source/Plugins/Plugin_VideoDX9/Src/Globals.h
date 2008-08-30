@@ -51,42 +51,44 @@ extern Config g_Config;
 
 struct Statistics
 {
-	int numPrimitives;
+    int numPrimitives;
 
-	int numPixelShadersCreated;
-	int numPixelShadersAlive;
-	int numVertexShadersCreated;
-	int numVertexShadersAlive;
+    int numPixelShadersCreated;
+    int numPixelShadersAlive;
+    int numVertexShadersCreated;
+    int numVertexShadersAlive;
 
-	int numTexturesCreated;
-	int numTexturesAlive;
+    int numTexturesCreated;
+    int numTexturesAlive;
 
-	int numRenderTargetsCreated;
-	int numRenderTargetsAlive;
-	
-	int numDListsCalled;
-	int numDListsCreated;
-	int numDListsAlive;
+    int numRenderTargetsCreated;
+    int numRenderTargetsAlive;
+    
+    int numDListsCalled;
+    int numDListsCreated;
+    int numDListsAlive;
 
-	int numJoins;
+    int numJoins;
 
-	struct ThisFrame
-	{
-		int numBPLoads;
-		int numCPLoads;
-		int numXFLoads;
-		
-		int numBPLoadsInDL;
-		int numCPLoadsInDL;
-		int numXFLoadsInDL;
-		
-		int numDLs;
-		int numDLPrims;
-		int numPrims;
-		int numShaderChanges;
-		int numBadCommands; //hope this always is zero ;)
-	};
-	ThisFrame thisFrame;
+    struct ThisFrame
+    {
+        int numBPLoads;
+        int numCPLoads;
+        int numXFLoads;
+        
+        int numBPLoadsInDL;
+        int numCPLoadsInDL;
+        int numXFLoadsInDL;
+        
+        int numDLs;
+        int numDLPrims;
+        int numPrims;
+        int numShaderChanges;
+        int numBadCommands; //hope this always is zero ;)
+
+		int numDListsCalled;
+    };
+    ThisFrame thisFrame;
 	void ResetFrame() {memset(&thisFrame,0,sizeof(ThisFrame));}
 };
 

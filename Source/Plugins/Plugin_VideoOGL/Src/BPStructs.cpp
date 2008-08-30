@@ -719,16 +719,3 @@ void BPReload()
     for (int i=0; i<254; i++)
         BPWritten(i, 0xFFFFFF, ((u32*)&bpmem)[i]);
 }
-
-
-size_t BPSaveLoadState(char *ptr, BOOL save)
-{
-    BEGINSAVELOAD;
-    SAVELOAD(&bpmem,sizeof(BPMemory));
-    if (!save)
-        BPReload();
-    //char temp[256];
-    //sprintf(temp,"MOJS %08x",(bpmem.clearcolorAR<<16)|(bpmem.clearcolorGB));
-    //g_VideoInitialize.pLog(temp, FALSE);
-    ENDSAVELOAD;
-}

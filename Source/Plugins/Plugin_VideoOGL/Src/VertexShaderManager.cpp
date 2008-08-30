@@ -496,25 +496,6 @@ void VertexShaderMngr::SetProjection(float* _pProjection, int constantIndex)
     bProjectionChanged = true;
 }
 
-size_t VertexShaderMngr::SaveLoadState(char *ptr, BOOL save)
-{
-    BEGINSAVELOAD;
-    
-    SAVELOAD(&xfregs,sizeof(xfregs));
-    SAVELOAD(xfmem,XFMEM_SIZE*sizeof(u32));
-    SAVELOAD(rawViewport,sizeof(rawViewport));
-    SAVELOAD(rawProjection,sizeof(rawProjection));
-    SAVELOAD(&MatrixIndexA,sizeof(TMatrixIndexA));
-    SAVELOAD(&MatrixIndexB,sizeof(TMatrixIndexB));
-    
-    if (!save) {
-        // invalidate all
-        InvalidateXFRange(0,0x1000);
-    }
-
-    ENDSAVELOAD;
-}
-
 // LoadXFReg 0x10
 void VertexShaderMngr::LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 {	

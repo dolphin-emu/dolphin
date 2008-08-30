@@ -26,24 +26,37 @@ bool IsLoaded();
 bool LoadPlugin(const char *_Filename);
 void UnloadPlugin();
 
-//
-// --- Plugin Functions ---
-//
+// Function Types
+typedef void (__cdecl* TGetDllInfo)(PLUGIN_INFO*);
+typedef void (__cdecl* TDllAbout)(HWND);
+typedef void (__cdecl* TDllConfig)(HWND);
+typedef void (__cdecl* TDllDebugger)(HWND);
+typedef void (__cdecl* TDSP_Initialize)(DSPInitialize);
+typedef void (__cdecl* TDSP_Shutdown)();
+typedef void (__cdecl* TDSP_WriteMailBox)(BOOL _CPUMailbox, unsigned short);
+typedef unsigned short (__cdecl* TDSP_ReadMailBox)(BOOL _CPUMailbox);
+typedef unsigned short (__cdecl* TDSP_ReadControlRegister)();
+typedef unsigned short (__cdecl* TDSP_WriteControlRegister)(unsigned short);
+typedef void (__cdecl* TDSP_Update)(int cycles);
+typedef void (__cdecl* TDSP_SendAIBuffer)(unsigned int address, int sample_rate);
+typedef void (__cdecl* TDSP_DoState)(unsigned char **ptr, int mode);
 
-void GetDllInfo (PLUGIN_INFO* _PluginInfo) ;
-void DllAbout (HWND _hParent);
-void DllConfig (HWND _hParent);
-void DllDebugger(HWND _hParent);
-void DSP_Initialize(DSPInitialize _dspInitialize);
-void DSP_Shutdown();
-unsigned short DSP_ReadMailboxHigh(bool _CPUMailbox);
-unsigned short DSP_ReadMailboxLow(bool _CPUMailbox);
-void DSP_WriteMailboxHigh(bool _CPUMailbox, unsigned short _Value);
-void DSP_WriteMailboxLow(bool _CPUMailbox, unsigned short _Value);
-unsigned short DSP_WriteControlRegister(unsigned short _Flags);
-unsigned short DSP_ReadControlRegister();
-void DSP_Update(int cycles);
-void DSP_SendAIBuffer(unsigned int address, int sample_rate);
+// Function Pointers
+extern TGetDllInfo					GetDllInfo;
+extern TDllAbout					DllAbout;
+extern TDllConfig					DllConfig;
+extern TDllDebugger				    DllDebugger;
+extern TDSP_Initialize				DSP_Initialize;
+extern TDSP_Shutdown				DSP_Shutdown;
+extern TDSP_ReadMailBox			    DSP_ReadMailboxHigh;
+extern TDSP_ReadMailBox			    DSP_ReadMailboxLow;
+extern TDSP_WriteMailBox			DSP_WriteMailboxHigh;
+extern TDSP_WriteMailBox            DSP_WriteMailboxLow;
+extern TDSP_ReadControlRegister     DSP_ReadControlRegister;
+extern TDSP_WriteControlRegister    DSP_WriteControlRegister;
+extern TDSP_Update                  DSP_Update;
+extern TDSP_SendAIBuffer			DSP_SendAIBuffer;
+extern TDSP_DoState                 DSP_DoState;
 
 }  // end of namespace PluginDSP
 

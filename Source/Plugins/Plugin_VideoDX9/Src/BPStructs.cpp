@@ -526,13 +526,13 @@ void BPWritten(int addr, int changes, int newval)
 						CVertexHandler::Flush();
 						((u32*)&bpmem)[addr] = newval;
 						static int lastRGBA[2][4] = {
-							{0xEEEEEEEE,0xEEEEEEEE,0xEEEEEEEE,0xEEEEEEEE},
-							{0xEEEEEEEE,0xEEEEEEEE,0xEEEEEEEE,0xEEEEEEEE}
+							{0xEEEEEEEE, 0xEEEEEEEE, 0xEEEEEEEE, 0xEEEEEEEE},
+							{0xEEEEEEEE, 0xEEEEEEEE, 0xEEEEEEEE, 0xEEEEEEEE}
 						};
 						//Terrible hack
 						//The reason is that there are two sets of registers 
 						//overloaded here...
-						int num=(addr>>1)&0x3;
+						int num = (addr >> 1) & 0x3;
 						int type = bpmem.tevregs[num].high.type;
 						int colorbase = type ? PS_CONST_KCOLORS : PS_CONST_COLORS;
 						int r=bpmem.tevregs[num].low.a, a=bpmem.tevregs[num].low.b;
@@ -543,9 +543,9 @@ void BPWritten(int addr, int changes, int newval)
 							CVertexHandler::Flush();
 							lastRGBA[type][num] = rgba;
 							float temp[4] = {
-								r/255.0f,g/255.0f,b/255.0f,a/255.0f
+								r/255.0f, g/255.0f, b/255.0f, a/255.0f
 							};
-							D3D::dev->SetPixelShaderConstantF(colorbase+num,temp,1);
+							D3D::dev->SetPixelShaderConstantF(colorbase + num, temp, 1);
 						}
 					}
 				}
@@ -724,21 +724,6 @@ void BPReload()
 {
 	for (int i=0; i<254; i++)
 		BPWritten(i, 0xFFFFFF, ((u32*)&bpmem)[i]);
-}
-
-
-size_t BPSaveLoadState(char *ptr, BOOL save)
-{
-	/*
-	BEGINSAVELOAD;
-	SAVELOAD(&bpmem,sizeof(BPMemory));
-	if (!save)
-		BPReload();
-	char temp[256];
-	sprintf(temp,"MOJS %08x",(bpmem.clearcolorAR<<16)|(bpmem.clearcolorGB));
-	g_VideoInitialize.pLog(temp, FALSE);
-	ENDSAVELOAD;*/
-	return 0;
 }
 
 void ActivateTextures()

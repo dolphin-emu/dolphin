@@ -135,7 +135,7 @@ struct DXTBlock
 inline int expand8888(const int j)
 {
     int i = j | (j<<8);
-    return i|(i<<16);
+    return i | (i<<16);
 }
 
 inline void decodebytesI4(u32 *dst, const u8 *src, int numbytes)
@@ -150,7 +150,8 @@ inline void decodebytesI4(u32 *dst, const u8 *src, int numbytes)
 
 inline void decodebytesI8(u32 *dst, const u8 *src, int numbytes)
 {
-    for (int x = 0; x < numbytes; x++)
+	// TODO: SSSE3 variant (pshufb), possibly SSE2 variant (packuswb). THP videos use this format.
+	for (int x = 0; x < numbytes; x++)
         *dst++ = expand8888(src[x]);
 }
 

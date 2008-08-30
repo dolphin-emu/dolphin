@@ -8,13 +8,7 @@
 float rawViewPort[6];
 float rawProjection[7];
 
-#define BEGINSAVELOAD char *optr=ptr;
-#define SAVELOAD(what,size) memcpy((void*)((save)?(void*)(ptr):(void*)(what)),(void*)((save)?(void*)(what):(void*)(ptr)),(size)); ptr+=(size);
-#define ENDSAVELOAD return ptr-optr;
-
-// __________________________________________________________________________________________________
 // LoadXFReg 0x10
-//
 void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 {	
     DVSTARTPROFILE();
@@ -30,7 +24,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 			memcpy(p1, &pData[i], transferSize*4);
 			i += transferSize;
 		}
-		else if (address<0x2000)
+		else if (address < 0x2000)
 		{
 			u32 data = pData[i];	
 			switch (address)
@@ -120,25 +114,8 @@ void XFUpdateVP()
 {
 	Renderer::SetViewport(rawViewPort); 
 }
+
 void XFUpdatePJ()
 {
-	Renderer::SetProjection(rawProjection,0); 
-}
-
-size_t XFSaveLoadState(char *ptr, BOOL save)
-{
-	BEGINSAVELOAD;
-	SAVELOAD(xfregs.colChans,2*sizeof(ColorChannel));
-	SAVELOAD(xfregs.texcoords,16*sizeof(TexCoordInfo));
-	SAVELOAD(rawViewPort,sizeof(rawViewPort));
-	SAVELOAD(rawProjection,sizeof(rawProjection));
-	SAVELOAD(xfmem,XFMEM_SIZE*sizeof(u32));
-
-	if (!save)
-	{
-		XFUpdateVP();
-		XFUpdatePJ();
-	}
-
-	ENDSAVELOAD;
+	Renderer::SetProjection(rawProjection, 0); 
 }

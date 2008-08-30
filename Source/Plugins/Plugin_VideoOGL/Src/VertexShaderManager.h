@@ -119,7 +119,6 @@ public:
     static void SetTexMatrixChangedA(u32 Value);
     static void SetTexMatrixChangedB(u32 Value);
 
-    static  size_t SaveLoadState(char *ptr, BOOL save);
     static void LoadXFReg(u32 transferSize, u32 address, u32 *pData);
     static void LoadIndexedXF(u32 val, int array);
 

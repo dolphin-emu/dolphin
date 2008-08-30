@@ -53,23 +53,3 @@ void LoadCPReg(u32 SubCmd, u32 Value)
 	case 0xB0: arraystrides[SubCmd & 0xF] = Value & 0xFF;      break;
 	}				
 }
-
-
-#define BEGINSAVELOAD char *optr=ptr;
-#define SAVELOAD(what,size) memcpy((void*)((save)?(void*)(ptr):(void*)(what)),(void*)((save)?(void*)(what):(void*)(ptr)),(size)); ptr+=(size);
-#define ENDSAVELOAD return ptr-optr;
-
-size_t CPSaveLoadState(char *ptr, BOOL save)
-{
-	BEGINSAVELOAD;
-	SAVELOAD(arraybases, 16 * sizeof(u32));
-	SAVELOAD(arraystrides, 16 * sizeof(u32));
-	SAVELOAD(&MatrixIndexA, sizeof(TMatrixIndexA));
-	SAVELOAD(&MatrixIndexB, sizeof(TMatrixIndexB));
-	if (!save)
-	{
-		CPUpdateMatricesA();
-		CPUpdateMatricesB();
-	}
-	ENDSAVELOAD;
-}

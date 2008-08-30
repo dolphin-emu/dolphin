@@ -20,96 +20,86 @@
 
 namespace PluginDSP
 {
-//! Function Types
-typedef void (__cdecl* TGetDllInfo)(PLUGIN_INFO*);
-typedef void (__cdecl* TDllAbout)(HWND);
-typedef void (__cdecl* TDllConfig)(HWND);
-typedef void (__cdecl* TDllDebugger)(HWND);
-typedef void (__cdecl* TDSP_Initialize)(DSPInitialize);
-typedef void (__cdecl* TDSP_Shutdown)();
-typedef void (__cdecl* TDSP_WriteMailBox)(BOOL _CPUMailbox, unsigned short);
-typedef unsigned short (__cdecl* TDSP_ReadMailBox)(BOOL _CPUMailbox);
-typedef unsigned short (__cdecl* TDSP_ReadControlRegister)();
-typedef unsigned short (__cdecl* TDSP_WriteControlRegister)(unsigned short);
-typedef void (__cdecl* TDSP_Update)(int cycles);
-typedef void (__cdecl* TDSP_SendAIBuffer)(unsigned int address, int sample_rate);
 
-//! Function Pointer
-TGetDllInfo					g_GetDllInfo				= 0;
-TDllAbout					g_DllAbout					= 0;
-TDllConfig					g_DllConfig					= 0;
-TDllDebugger				g_DllDebugger				= 0;
-TDSP_Initialize				g_DSP_Initialize			= 0;
-TDSP_Shutdown				g_DSP_Shutdown				= 0;
-TDSP_ReadMailBox			g_DSP_ReadMailboxHigh		= 0;
-TDSP_ReadMailBox			g_DSP_ReadMailboxLow		= 0;
-TDSP_WriteMailBox			g_DSP_WriteMailboxHigh		= 0;
-TDSP_WriteMailBox           g_DSP_WriteMailboxLow		= 0;
-TDSP_ReadControlRegister    g_DSP_ReadControlRegister	= 0;
-TDSP_WriteControlRegister   g_DSP_WriteControlRegister	= 0;
-TDSP_Update					g_DSP_Update				= 0;
-TDSP_SendAIBuffer			g_DSP_SendAIBuffer			= 0;
+// Function Pointer
+TGetDllInfo                    GetDllInfo = 0;
+TDllAbout                    DllAbout = 0;
+TDllConfig                    DllConfig = 0;
+TDllDebugger                DllDebugger = 0;
+TDSP_Initialize                DSP_Initialize = 0;
+TDSP_Shutdown                DSP_Shutdown = 0;
+TDSP_ReadMailBox            DSP_ReadMailboxHigh = 0;
+TDSP_ReadMailBox            DSP_ReadMailboxLow = 0;
+TDSP_WriteMailBox            DSP_WriteMailboxHigh = 0;
+TDSP_WriteMailBox           DSP_WriteMailboxLow = 0;
+TDSP_ReadControlRegister    DSP_ReadControlRegister = 0;
+TDSP_WriteControlRegister   DSP_WriteControlRegister = 0;
+TDSP_Update                    DSP_Update = 0;
+TDSP_SendAIBuffer            DSP_SendAIBuffer = 0;
+TDSP_DoState                DSP_DoState = 0;
 
 //! Library Instance
 DynamicLibrary plugin;
 
 bool IsLoaded()
 {
-	return plugin.IsLoaded();
+    return plugin.IsLoaded();
 }
 
 void UnloadPlugin()
 {
-	plugin.Unload();
+    plugin.Unload();
 
     // Set Functions to NULL
-    g_GetDllInfo				= 0;
-    g_DllAbout					= 0;	
-	g_DllConfig					= 0;
-	g_DllDebugger				= 0;
-    g_DSP_Initialize			= 0;
-    g_DSP_Shutdown				= 0;
-	g_DSP_ReadMailboxHigh		= 0;
-	g_DSP_ReadMailboxLow		= 0;
-	g_DSP_WriteMailboxHigh		= 0;
-	g_DSP_WriteMailboxLow		= 0;
-	g_DSP_ReadControlRegister	= 0;
-	g_DSP_WriteControlRegister	= 0;
-	g_DSP_Update				= 0;
-	g_DSP_SendAIBuffer			= 0;
+    GetDllInfo = 0;
+    DllAbout = 0;
+    DllConfig = 0;
+    DllDebugger = 0;
+    DSP_Initialize = 0;
+    DSP_Shutdown = 0;
+    DSP_ReadMailboxHigh = 0;
+    DSP_ReadMailboxLow = 0;
+    DSP_WriteMailboxHigh = 0;
+    DSP_WriteMailboxLow = 0;
+    DSP_ReadControlRegister = 0;
+    DSP_WriteControlRegister = 0;
+    DSP_Update = 0;
+    DSP_SendAIBuffer = 0;
+    DSP_DoState = 0;
 }
 
 bool LoadPlugin(const char *_Filename)
 {
-	if (plugin.Load(_Filename)) 
-	{
-		g_GetDllInfo				= reinterpret_cast<TGetDllInfo>					(plugin.Get("GetDllInfo"));
-		g_DllAbout					= reinterpret_cast<TDllAbout>					(plugin.Get("DllAbout"));
-		g_DllConfig					= reinterpret_cast<TDllConfig>					(plugin.Get("DllConfig"));
-		g_DllDebugger				= reinterpret_cast<TDllDebugger>				(plugin.Get("DllDebugger"));		
-		g_DSP_Initialize			= reinterpret_cast<TDSP_Initialize>				(plugin.Get("DSP_Initialize"));
-		g_DSP_Shutdown				= reinterpret_cast<TDSP_Shutdown>				(plugin.Get("DSP_Shutdown"));
-		g_DSP_ReadMailboxHigh		= reinterpret_cast<TDSP_ReadMailBox>			(plugin.Get("DSP_ReadMailboxHigh"));
-		g_DSP_ReadMailboxLow		= reinterpret_cast<TDSP_ReadMailBox>            (plugin.Get("DSP_ReadMailboxLow"));
-		g_DSP_WriteMailboxHigh		= reinterpret_cast<TDSP_WriteMailBox>           (plugin.Get("DSP_WriteMailboxHigh"));
-		g_DSP_WriteMailboxLow		= reinterpret_cast<TDSP_WriteMailBox>           (plugin.Get("DSP_WriteMailboxLow"));
-		g_DSP_ReadControlRegister	= reinterpret_cast<TDSP_ReadControlRegister>	(plugin.Get("DSP_ReadControlRegister"));
-		g_DSP_WriteControlRegister	= reinterpret_cast<TDSP_WriteControlRegister>	(plugin.Get("DSP_WriteControlRegister"));
-		g_DSP_Update				= reinterpret_cast<TDSP_Update>					(plugin.Get("DSP_Update"));
-		g_DSP_SendAIBuffer			= reinterpret_cast<TDSP_SendAIBuffer>			(plugin.Get("DSP_SendAIBuffer"));
+    if (plugin.Load(_Filename)) 
+    {
+        GetDllInfo               = reinterpret_cast<TGetDllInfo>               (plugin.Get("GetDllInfo"));
+        DllAbout                 = reinterpret_cast<TDllAbout>                 (plugin.Get("DllAbout"));
+        DllConfig                = reinterpret_cast<TDllConfig>                (plugin.Get("DllConfig"));
+        DllDebugger              = reinterpret_cast<TDllDebugger>              (plugin.Get("DllDebugger"));        
+        DSP_Initialize           = reinterpret_cast<TDSP_Initialize>           (plugin.Get("DSP_Initialize"));
+        DSP_Shutdown             = reinterpret_cast<TDSP_Shutdown>             (plugin.Get("DSP_Shutdown"));
+        DSP_ReadMailboxHigh      = reinterpret_cast<TDSP_ReadMailBox>          (plugin.Get("DSP_ReadMailboxHigh"));
+        DSP_ReadMailboxLow       = reinterpret_cast<TDSP_ReadMailBox>          (plugin.Get("DSP_ReadMailboxLow"));
+        DSP_WriteMailboxHigh     = reinterpret_cast<TDSP_WriteMailBox>         (plugin.Get("DSP_WriteMailboxHigh"));
+        DSP_WriteMailboxLow      = reinterpret_cast<TDSP_WriteMailBox>         (plugin.Get("DSP_WriteMailboxLow"));
+        DSP_ReadControlRegister  = reinterpret_cast<TDSP_ReadControlRegister>  (plugin.Get("DSP_ReadControlRegister"));
+        DSP_WriteControlRegister = reinterpret_cast<TDSP_WriteControlRegister> (plugin.Get("DSP_WriteControlRegister"));
+        DSP_Update               = reinterpret_cast<TDSP_Update>               (plugin.Get("DSP_Update"));
+        DSP_SendAIBuffer         = reinterpret_cast<TDSP_SendAIBuffer>         (plugin.Get("DSP_SendAIBuffer"));
+        DSP_DoState              = reinterpret_cast<TDSP_DoState>              (plugin.Get("DSP_DoState"));
 
-        if ((g_GetDllInfo != 0) &&
-            (g_DSP_Initialize != 0) &&
-            (g_DSP_Shutdown != 0) &&
-            (g_DSP_ReadMailboxHigh != 0) &&
-			(g_DSP_ReadMailboxLow != 0) &&
-			(g_DSP_WriteMailboxHigh != 0) &&
-			(g_DSP_WriteMailboxLow != 0) &&
-			(g_DSP_ReadControlRegister != 0) &&
-			(g_DSP_WriteControlRegister != 0) &&
-			(g_DSP_Update != 0) &&
-			(g_DSP_SendAIBuffer != 0)
-			)
+        if ((GetDllInfo != 0) &&
+            (DSP_Initialize != 0) &&
+            (DSP_Shutdown != 0) &&
+            (DSP_ReadMailboxHigh != 0) &&
+            (DSP_ReadMailboxLow != 0) &&
+            (DSP_WriteMailboxHigh != 0) &&
+            (DSP_WriteMailboxLow != 0) &&
+            (DSP_ReadControlRegister != 0) &&
+            (DSP_WriteControlRegister != 0) &&
+            (DSP_Update != 0) &&
+            (DSP_SendAIBuffer != 0) &&
+			(DSP_DoState != 0))
         {
             return true;
         }
@@ -118,115 +108,9 @@ bool LoadPlugin(const char *_Filename)
             UnloadPlugin();
             return false;
         }
-	}
+    }
 
-	return false;
+    return false;
 }
 
-//
-// --- Plugin Functions ---
-//
-
-// __________________________________________________________________________________________________
-//
-void GetDllInfo(PLUGIN_INFO* _PluginInfo)
-{
-	g_GetDllInfo(_PluginInfo);
-}
-
-// __________________________________________________________________________________________________
-//
-void DllAbout(HWND _hParent)
-{
-	if (g_DllAbout)
-		g_DllAbout(_hParent);
-}
-
-// __________________________________________________________________________________________________
-//
-void DllConfig(HWND _hParent)
-{
-	if (g_DllConfig)
-		g_DllConfig(_hParent);
-}
-
-// __________________________________________________________________________________________________
-//
-//
-void DllDebugger(HWND _hParent)
-{
-	if (g_DllDebugger)
-		g_DllDebugger(_hParent);
-}
-
-// __________________________________________________________________________________________________
-//
-void DSP_Initialize(DSPInitialize _dspInitialize)
-{
-	g_DSP_Initialize(_dspInitialize);
-}
-
-// __________________________________________________________________________________________________
-//
-void DSP_Shutdown()
-{
-	g_DSP_Shutdown();
-}
-
-// __________________________________________________________________________________________________
-//
-unsigned short DSP_ReadMailboxHigh(bool _CPUMailbox)
-{
-	return g_DSP_ReadMailboxHigh(_CPUMailbox ? TRUE : FALSE);
-}
-
-// __________________________________________________________________________________________________
-//
-unsigned short DSP_ReadMailboxLow(bool _CPUMailbox)
-{
-	return g_DSP_ReadMailboxLow(_CPUMailbox ? TRUE : FALSE);
-}
-
-// __________________________________________________________________________________________________
-//
-void DSP_WriteMailboxHigh(bool _CPUMailbox, unsigned short _uHighMail)
-{
-	return g_DSP_WriteMailboxHigh(_CPUMailbox ? TRUE : FALSE, _uHighMail);
-}
-
-// __________________________________________________________________________________________________
-//
-void DSP_WriteMailboxLow(bool _CPUMailbox, unsigned short _uLowMail)
-{
-	return g_DSP_WriteMailboxLow(_CPUMailbox ? TRUE : FALSE, _uLowMail);
-}
-
-// __________________________________________________________________________________________________
-//
-unsigned short DSP_WriteControlRegister(unsigned short _Value)
-{
-	return g_DSP_WriteControlRegister(_Value);
-}
-
-// __________________________________________________________________________________________________
-//
-unsigned short DSP_ReadControlRegister()
-{
-	return g_DSP_ReadControlRegister();
-}
-
-// __________________________________________________________________________________________________
-//
-void DSP_Update(int cycles)
-{
-	g_DSP_Update(cycles);
-}
-
-// __________________________________________________________________________________________________
-//
-void DSP_SendAIBuffer(unsigned int address, int sample_rate)
-{
-	g_DSP_SendAIBuffer(address, sample_rate);
-}
-
-}
+}  // namespace

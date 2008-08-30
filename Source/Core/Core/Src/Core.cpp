@@ -131,7 +131,8 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 	}
 
 #ifdef _WIN32
-	PluginDSP::DllDebugger((HWND)_CoreParameter.hMainWindow);
+	if (PluginDSP::DllDebugger)
+		PluginDSP::DllDebugger((HWND)_CoreParameter.hMainWindow);
 #endif
 
 	emuThreadGoing.Init();
@@ -425,14 +426,14 @@ const SCoreStartupParameter& GetStartupParameter()
 	return g_CoreStartupParameter;
 }
 
-bool MakeScreenshot(const std::string& _rFilename)
+bool MakeScreenshot(const std::string &filename)
 {
 	bool bResult = false;
 	if (PluginVideo::IsLoaded())
 	{
 		TCHAR szTmpFilename[MAX_PATH];
-		strcpy(szTmpFilename, _rFilename.c_str());
-		bResult = PluginVideo::Video_Screenshot(szTmpFilename);
+		strcpy(szTmpFilename, filename.c_str());
+		bResult = PluginVideo::Video_Screenshot(szTmpFilename) ? true : false;
 	}
 	return bResult;
 }

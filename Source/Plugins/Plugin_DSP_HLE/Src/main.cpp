@@ -17,6 +17,7 @@
 
 #include "Common.h"
 #include "Globals.h"
+#include "ChunkFile.h"
 #include "resource.h"
 
 #ifdef _WIN32
@@ -34,6 +35,29 @@
 
 DSPInitialize g_dspInitialize;
 u8* g_pMemory;
+
+struct DSPState
+{
+	u32 CPUMailbox;
+	bool CPUMailbox_Written[2];
+
+	u32 DSPMailbox;
+	bool DSPMailbox_Read[2];
+
+	DSPState()
+	{
+		CPUMailbox = 0x00000000;
+		CPUMailbox_Written[0] = false;
+		CPUMailbox_Written[1] = false;
+
+		DSPMailbox = 0x00000000;
+		DSPMailbox_Read[0] = true;
+		DSPMailbox_Read[1] = true;
+	}
+};
+
+DSPState g_dspState;
+
 
 #ifdef _WIN32
 HINSTANCE g_hInstance = NULL;
@@ -116,26 +140,9 @@ void DSP_Shutdown()
 	CDSPHandler::Destroy();
 }
 
-struct DSPState
-{
-	u32 CPUMailbox;
-	bool CPUMailbox_Written[2];
-
-	u32 DSPMailbox;
-	bool DSPMailbox_Read[2];
-
-	DSPState()
-	{
-		CPUMailbox = 0x00000000;
-		CPUMailbox_Written[0] = false;
-		CPUMailbox_Written[1] = false;
-
-		DSPMailbox = 0x00000000;
-		DSPMailbox_Read[0] = true;
-		DSPMailbox_Read[1] = true;
-	}
-};
-DSPState g_dspState;
+void DSP_DoState(unsigned char **ptr, int mode) {
+	PointerWrap p(ptr, mode);
+}
 
 unsigned short DSP_ReadMailboxHigh(bool _CPUMailbox)
 {

@@ -16,15 +16,6 @@ float *CTransformEngine::m_pNormalMatrix;
 float *CTransformEngine::m_pTexMatrix[8];
 float *CTransformEngine::m_pTexPostMatrix[8];
 
-size_t CTransformEngine::SaveLoadState(char *ptr, bool save)
-{
-//	BEGINSAVELOAD;
-//	SAVELOAD(m_VtxAttribTable,sizeof(m_VtxAttribTable));
-//	SAVELOAD(&m_VtxDesc,sizeof(TVtxDesc));
-//	ENDSAVELOAD;
-	return 0;
-}
-
 const Light *GetLight(int i)
 {
 	return (const Light *)(xfmem + XFMEM_LIGHTS) + i;

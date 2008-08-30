@@ -21,35 +21,21 @@
 namespace PluginVideo
 {
 
-//! Function Types
-typedef void (__cdecl* TGetDllInfo)(PLUGIN_INFO*);
-typedef void (__cdecl* TDllAbout)(HWND);
-typedef void (__cdecl* TDllConfig)(HWND);
-typedef void (__cdecl* TVideo_Initialize)(SVideoInitialize*);
-typedef void (__cdecl* TVideo_Prepare)();
-typedef void (__cdecl* TVideo_Shutdown)();
-typedef void (__cdecl* TVideo_SendFifoData)(BYTE*);
-typedef void (__cdecl* TVideo_UpdateXFB)(BYTE*, DWORD, DWORD);
-typedef BOOL (__cdecl* TVideo_Screenshot)(TCHAR*);
-typedef void (__cdecl* TVideo_EnterLoop)();
-typedef void (__cdecl* TVideo_AddMessage)(const char* pstr, unsigned int milliseconds);
-typedef void (__cdecl* TVideo_DoState)(unsigned char **ptr, int mode);
+// Function Pointer
+TGetDllInfo         GetDllInfo            = 0;
+TDllAbout           DllAbout              = 0;
+TDllConfig          DllConfig             = 0;
+TVideo_Initialize   Video_Initialize      = 0;
+TVideo_Prepare      Video_Prepare         = 0;
+TVideo_Shutdown     Video_Shutdown        = 0;
+TVideo_SendFifoData Video_SendFifoData    = 0;
+TVideo_UpdateXFB    Video_UpdateXFB       = 0;
+TVideo_Screenshot   Video_Screenshot      = 0;
+TVideo_EnterLoop    Video_EnterLoop       = 0;
+TVideo_AddMessage   Video_AddMessage      = 0;
+TVideo_DoState      Video_DoState         = 0;
 
-//! Function Pointer
-TGetDllInfo         g_GetDllInfo            = 0;
-TDllAbout           g_DllAbout              = 0;
-TDllConfig          g_DllConfig             = 0;
-TVideo_Initialize   g_Video_Initialize      = 0;
-TVideo_Prepare      g_Video_Prepare         = 0;
-TVideo_Shutdown     g_Video_Shutdown        = 0;
-TVideo_SendFifoData g_Video_SendFifoData    = 0;
-TVideo_UpdateXFB    g_Video_UpdateXFB       = 0;
-TVideo_Screenshot   g_Video_Screenshot      = 0;
-TVideo_EnterLoop    g_Video_EnterLoop       = 0;
-TVideo_AddMessage   g_Video_AddMessage      = 0;
-TVideo_DoState      g_Video_DoState       = 0;
-
-//! Library Instance
+// Library Instance
 DynamicLibrary plugin;
 
 bool IsLoaded()
@@ -60,16 +46,16 @@ bool IsLoaded()
 void UnloadPlugin()
 {
     // set Functions to 0
-    g_GetDllInfo = 0;
-    g_DllAbout = 0;
-    g_DllConfig = 0;
-    g_Video_Initialize = 0;
-    g_Video_Prepare = 0;
-    g_Video_Shutdown = 0;
-    g_Video_SendFifoData = 0;
-    g_Video_UpdateXFB = 0;
-    g_Video_AddMessage = 0;
-    g_Video_DoState = 0;
+    GetDllInfo = 0;
+    DllAbout = 0;
+    DllConfig = 0;
+    Video_Initialize = 0;
+    Video_Prepare = 0;
+    Video_Shutdown = 0;
+    Video_SendFifoData = 0;
+    Video_UpdateXFB = 0;
+    Video_AddMessage = 0;
+    Video_DoState = 0;
 
     plugin.Unload();
 }
@@ -78,31 +64,30 @@ bool LoadPlugin(const char *_Filename)
 {
 	if (plugin.Load(_Filename))
 	{
-		g_GetDllInfo			= reinterpret_cast<TGetDllInfo>         (plugin.Get("GetDllInfo"));
-		g_DllAbout				= reinterpret_cast<TDllAbout>           (plugin.Get("DllAbout"));
-		g_DllConfig				= reinterpret_cast<TDllConfig>          (plugin.Get("DllConfig"));
-		g_Video_Initialize      = reinterpret_cast<TVideo_Initialize>   (plugin.Get("Video_Initialize"));
-		g_Video_Prepare			= reinterpret_cast<TVideo_Prepare>      (plugin.Get("Video_Prepare"));
-		g_Video_Shutdown        = reinterpret_cast<TVideo_Shutdown>     (plugin.Get("Video_Shutdown"));
-		g_Video_SendFifoData    = reinterpret_cast<TVideo_SendFifoData> (plugin.Get("Video_SendFifoData"));
-		g_Video_UpdateXFB		= reinterpret_cast<TVideo_UpdateXFB>    (plugin.Get("Video_UpdateXFB"));
-		g_Video_Screenshot		= reinterpret_cast<TVideo_Screenshot>   (plugin.Get("Video_Screenshot"));
-		g_Video_EnterLoop       = reinterpret_cast<TVideo_EnterLoop>    (plugin.Get("Video_EnterLoop"));
-		g_Video_AddMessage      = reinterpret_cast<TVideo_AddMessage>   (plugin.Get("Video_AddMessage"));
-		g_Video_DoState         = reinterpret_cast<TVideo_DoState>      (plugin.Get("Video_DoState"));
-
-		if ((g_GetDllInfo != 0) &&
-			(g_DllAbout != 0) &&
-			(g_DllConfig != 0) &&
-			(g_Video_Initialize != 0) &&
-			(g_Video_Prepare != 0) &&
-			(g_Video_Shutdown != 0) &&
-			(g_Video_SendFifoData != 0) &&
-			(g_Video_UpdateXFB != 0) &&
-			(g_Video_EnterLoop != 0) &&
-			(g_Video_Screenshot != 0) &&
-			(g_Video_AddMessage != 0) &&
-			(g_Video_DoState != 0) )
+		GetDllInfo         = reinterpret_cast<TGetDllInfo>         (plugin.Get("GetDllInfo"));
+		DllAbout           = reinterpret_cast<TDllAbout>           (plugin.Get("DllAbout"));
+		DllConfig          = reinterpret_cast<TDllConfig>          (plugin.Get("DllConfig"));
+		Video_Initialize   = reinterpret_cast<TVideo_Initialize>   (plugin.Get("Video_Initialize"));
+		Video_Prepare      = reinterpret_cast<TVideo_Prepare>      (plugin.Get("Video_Prepare"));
+		Video_Shutdown     = reinterpret_cast<TVideo_Shutdown>     (plugin.Get("Video_Shutdown"));
+		Video_SendFifoData = reinterpret_cast<TVideo_SendFifoData> (plugin.Get("Video_SendFifoData"));
+		Video_UpdateXFB    = reinterpret_cast<TVideo_UpdateXFB>    (plugin.Get("Video_UpdateXFB"));
+		Video_Screenshot   = reinterpret_cast<TVideo_Screenshot>   (plugin.Get("Video_Screenshot"));
+		Video_EnterLoop    = reinterpret_cast<TVideo_EnterLoop>    (plugin.Get("Video_EnterLoop"));
+		Video_AddMessage   = reinterpret_cast<TVideo_AddMessage>   (plugin.Get("Video_AddMessage"));
+		Video_DoState      = reinterpret_cast<TVideo_DoState>      (plugin.Get("Video_DoState"));
+		if ((GetDllInfo != 0) &&
+			(DllAbout != 0) &&
+			(DllConfig != 0) &&
+			(Video_Initialize != 0) &&
+			(Video_Prepare != 0) &&
+			(Video_Shutdown != 0) &&
+			(Video_SendFifoData != 0) &&
+			(Video_UpdateXFB != 0) &&
+			(Video_EnterLoop != 0) &&
+			(Video_Screenshot != 0) &&
+			(Video_AddMessage != 0) &&
+			(Video_DoState != 0) )
 		{
 			return true;
 		}
@@ -115,67 +100,5 @@ bool LoadPlugin(const char *_Filename)
 	return false;
 }
 
-//
-// --- Plugin Functions ---
-//
 
-void GetDllInfo (PLUGIN_INFO* _PluginInfo)
-{
-	g_GetDllInfo(_PluginInfo);
-}
-
-void DllAbout (HWND _hParent)
-{
-	g_DllAbout(_hParent);
-}
-
-void DllConfig (HWND _hParent)
-{
-	g_DllConfig(_hParent);
-}
-
-void Video_Initialize(SVideoInitialize* _pVideoInitialize)
-{
-	g_Video_Initialize(_pVideoInitialize);
-}
-
-void Video_Prepare()
-{
-	g_Video_Prepare();
-}
-
-void Video_Shutdown()
-{
-	g_Video_Shutdown();
-}
-
-void Video_SendFifoData(BYTE *_uData)
-{
-	g_Video_SendFifoData(_uData);
-}
-
-void Video_UpdateXFB(BYTE* _pXFB, DWORD _dwHeight, DWORD _dwWidth)
-{
-	g_Video_UpdateXFB(_pXFB, _dwHeight, _dwWidth);
-}
-
-bool Video_Screenshot(TCHAR* _szFilename)
-{
-	return ((g_Video_Screenshot(_szFilename) == TRUE) ? true : false);
-}
-
-void Video_EnterLoop()
-{
-	g_Video_EnterLoop();
-}
-
-void Video_AddMessage(const char* pstr, unsigned int milliseconds)
-{
-	g_Video_AddMessage(pstr,milliseconds);
-}
-
-void Video_DoState(unsigned char **ptr, int mode) {
-	g_Video_DoState(ptr, mode);
-}
-
-} // end of namespace PluginVideo
+}  // namespace

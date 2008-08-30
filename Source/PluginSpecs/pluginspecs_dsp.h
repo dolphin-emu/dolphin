@@ -160,7 +160,7 @@ EXPORT void CALL DSP_SendAIBuffer(unsigned int address, int sample_rate);
 // input/output: ptr
 // input: mode
 //
-EXPORT void CALL PAD_DoState(void *ptr, int mode);
+EXPORT void CALL DSP_DoState(unsigned char **ptr, int mode);
 
 #include "ExportEpilog.h"
 #endif

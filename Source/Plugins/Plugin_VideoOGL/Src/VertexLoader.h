@@ -213,7 +213,6 @@ public:
     static TVtxDesc &GetVtxDesc() {return s_GlobalVtxDesc; }
 
     static void LoadCPReg(u32 SubCmd, u32 Value);
-    static size_t SaveLoadState(char *ptr, BOOL save);
 
     static u8* s_pCurBufferPointer;
     static float shiftLookup[32];

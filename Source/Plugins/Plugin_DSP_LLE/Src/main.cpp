@@ -41,6 +41,8 @@ CDisAsmDlg g_Dialog;
 pthread_t g_hDSPThread = NULL;
 #endif
 
+#include "ChunkFile.h"
+
 DSPInitialize g_dspInitialize;
 
 #define GDSP_MBOX_CPU   0

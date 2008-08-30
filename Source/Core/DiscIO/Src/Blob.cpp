@@ -67,12 +67,8 @@ class PlainFileReader
 			CloseHandle(hFile);
 		}
 
-
 		u64 GetDataSize() const {return(size);}
-
-
 		u64 GetRawSize() const {return(size);}
-
 
 		bool Read(u64 offset, u64 size, u8* out_ptr)
 		{
@@ -99,8 +95,7 @@ class PlainFileReader
 
 #else // linux, 64-bit. We do not yet care about linux32
 // Not optimal - will keep recreating mappings.
-class PlainFileReader
-	: public IBlobReader
+class PlainFileReader : public IBlobReader
 {
 	FILE* file_;
 	s64 size;
@@ -156,8 +151,6 @@ class PlainFileReader
 		}
 };
 #endif
-
-
 
 class CompressedBlobReader
 	: public IBlobReader

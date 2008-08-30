@@ -27,19 +27,25 @@ bool IsLoaded();
 bool LoadPlugin(const char * _Filename);
 void UnloadPlugin();
 
-//
-// --- Plugin Functions ---
-//
+// Function Types
+typedef void (__cdecl* TGetDllInfo)(PLUGIN_INFO*);
+typedef void (__cdecl* TDllAbout)(HWND);
+typedef void (__cdecl* TDllConfig)(HWND);
+typedef void (__cdecl* TPAD_Initialize)(SPADInitialize);
+typedef void (__cdecl* TPAD_Shutdown)();
+typedef void (__cdecl* TPAD_GetStatus)(BYTE, SPADStatus*);
+typedef void (__cdecl* TPAD_Rumble)(BYTE, unsigned int, unsigned int);
+typedef unsigned int (__cdecl* TPAD_GetAttachedPads)();
 
-void GetDllInfo(PLUGIN_INFO* _pPluginInfo) ;
-void DllAbout(HWND _hParent);
-void DllConfig(HWND _hParent);
-void PAD_Initialize(SPADInitialize _PADInitialize);
-void PAD_Shutdown();
-void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus);
-void PAD_Rumble(BYTE _numPAD, unsigned int _uType, unsigned int _uStrength);
-unsigned int PAD_GetAttachedPads();
-unsigned int SaveLoadState(char* _ptr, BOOL save);
+// Function Pointers
+extern TGetDllInfo GetDllInfo;
+extern TPAD_Shutdown PAD_Shutdown;
+extern TDllAbout DllAbout;
+extern TDllConfig DllConfig;
+extern TPAD_Initialize PAD_Initialize;
+extern TPAD_GetStatus PAD_GetStatus;
+extern TPAD_Rumble PAD_Rumble;
+extern TPAD_GetAttachedPads PAD_GetAttachedPads;
 
 } // end of namespace PluginPAD
 

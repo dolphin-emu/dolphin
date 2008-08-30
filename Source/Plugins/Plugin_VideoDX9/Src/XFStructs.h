@@ -8,7 +8,6 @@
 extern float rawViewPort[6];
 extern float rawProjection[7];
 
-size_t XFSaveLoadState(char *ptr, BOOL save);
 void XFUpdateVP();
 void XFUpdatePJ();
 void LoadXFReg(u32 transferSize, u32 address, u32 *pData);

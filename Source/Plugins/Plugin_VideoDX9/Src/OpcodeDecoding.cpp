@@ -55,23 +55,24 @@ void ExecuteDisplayList(u32 address, u32 size)
 	g_pDataReader = &memoryReader;
 
 	// temporarily swap dl and non-dl(small "hack" for the stats)
-	Xchg(stats.thisFrame.numDLPrims,stats.thisFrame.numPrims);
-	Xchg(stats.thisFrame.numXFLoadsInDL,stats.thisFrame.numXFLoads);
-	Xchg(stats.thisFrame.numCPLoadsInDL,stats.thisFrame.numCPLoads);
-	Xchg(stats.thisFrame.numBPLoadsInDL,stats.thisFrame.numBPLoads);
+	Xchg(stats.thisFrame.numDLPrims, stats.thisFrame.numPrims);
+	Xchg(stats.thisFrame.numXFLoadsInDL, stats.thisFrame.numXFLoads);
+	Xchg(stats.thisFrame.numCPLoadsInDL, stats.thisFrame.numCPLoads);
+	Xchg(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
 
 	while((memoryReader.GetReadAddress() - address) < size)
 	{
 		Decode();
 	}
+    INCSTAT(stats.numDListsCalled);
+    INCSTAT(stats.thisFrame.numDListsCalled);
 
 	// un-swap
-	Xchg(stats.thisFrame.numDLPrims,stats.thisFrame.numPrims);
-	Xchg(stats.thisFrame.numXFLoadsInDL,stats.thisFrame.numXFLoads);
-	Xchg(stats.thisFrame.numCPLoadsInDL,stats.thisFrame.numCPLoads);
-	Xchg(stats.thisFrame.numBPLoadsInDL,stats.thisFrame.numBPLoads);
+	Xchg(stats.thisFrame.numDLPrims, stats.thisFrame.numPrims);
+	Xchg(stats.thisFrame.numXFLoadsInDL, stats.thisFrame.numXFLoads);
+	Xchg(stats.thisFrame.numCPLoadsInDL, stats.thisFrame.numCPLoads);
+	Xchg(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
 
-	INCSTAT(stats.numDListsCalled);
 	// reset to the old reader
 	g_pDataReader = pOldReader;
 }

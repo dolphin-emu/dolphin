@@ -19,6 +19,7 @@
 
 #include "State.h"
 #include "Core.h"
+#include "StringUtil.h"
 #include "CoreTiming.h"
 #include "HW/HW.h"
 #include "PowerPC/PowerPC.h"
@@ -40,6 +41,7 @@ void DoState(PointerWrap &p)
 {
 	// Begin with video plugin, so that it gets a chance to clear it's caches and writeback modified things to RAM
     PluginVideo::Video_DoState(p.GetPPtr(), p.GetMode());
+    PluginDSP::DSP_DoState(p.GetPPtr(), p.GetMode());
 	PowerPC::DoState(p);
 	HW::DoState(p);
 	CoreTiming::DoState(p);
@@ -99,14 +101,18 @@ void State_Shutdown()
 	// nothing to do, here for consistency.
 }
 
+std::string GetStateFilename(int state_number) {
+	return StringFromFormat("StateSaves/%s.s%02i", Core::GetStartupParameter().GetUniqueID().c_str(), state_number);
+}
+
 void State_Save(const char *filename)
 {
-	cur_filename = filename;
+	cur_filename = GetStateFilename(0);
 	CoreTiming::ScheduleEvent_Threadsafe(0, ev_Save);
 }
 
 void State_Load(const char *filename)
 {
-	cur_filename = filename;
+	cur_filename = GetStateFilename(0);
 	CoreTiming::ScheduleEvent_Threadsafe(0, ev_Load);
 }

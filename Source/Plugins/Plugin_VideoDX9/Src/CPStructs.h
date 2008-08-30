@@ -7,7 +7,6 @@
 
 void CPUpdateMatricesA();
 void CPUpdateMatricesB();
-size_t CPSaveLoadState(char *ptr, BOOL save);
 void LoadCPReg(u32 SubCmd, u32 Value);
 
 #endif

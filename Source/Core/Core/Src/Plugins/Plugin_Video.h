@@ -28,23 +28,33 @@ bool IsLoaded();
 bool LoadPlugin(const char *_Filename);
 void UnloadPlugin();
 
-//
-// --- Plugin Functions ---
-//
+// Function Types
+typedef void (__cdecl* TGetDllInfo)(PLUGIN_INFO*);
+typedef void (__cdecl* TDllAbout)(HWND);
+typedef void (__cdecl* TDllConfig)(HWND);
+typedef void (__cdecl* TVideo_Initialize)(SVideoInitialize*);
+typedef void (__cdecl* TVideo_Prepare)();
+typedef void (__cdecl* TVideo_Shutdown)();
+typedef void (__cdecl* TVideo_SendFifoData)(BYTE*);
+typedef void (__cdecl* TVideo_UpdateXFB)(BYTE*, DWORD, DWORD);
+typedef BOOL (__cdecl* TVideo_Screenshot)(TCHAR*);
+typedef void (__cdecl* TVideo_EnterLoop)();
+typedef void (__cdecl* TVideo_AddMessage)(const char* pstr, unsigned int milliseconds);
+typedef void (__cdecl* TVideo_DoState)(unsigned char **ptr, int mode);
 
-void GetDllInfo(PLUGIN_INFO* _pluginInfo);
-void DllAbout(HWND _hParent);
-void DllConfig(HWND _hParent);
-void Video_Initialize(SVideoInitialize* _pvideoInitialize);
-void Video_Prepare();
-void Video_Shutdown();
-void Video_EnterLoop();
-void Video_SendFifoData(BYTE *_uData);
-void Video_UpdateXFB(BYTE* _pXFB, DWORD _dwHeight, DWORD _dwWidth);
-bool Video_Screenshot(TCHAR* _szFilename);
-void Video_AddMessage(const char* pstr, unsigned int milliseconds);
-
-void Video_DoState(unsigned char **ptr, int mode);
+// Function Pointers
+extern TGetDllInfo         GetDllInfo;
+extern TDllAbout           DllAbout;
+extern TDllConfig          DllConfig;
+extern TVideo_Initialize   Video_Initialize;
+extern TVideo_Prepare      Video_Prepare;
+extern TVideo_Shutdown     Video_Shutdown;
+extern TVideo_SendFifoData Video_SendFifoData;
+extern TVideo_UpdateXFB    Video_UpdateXFB;
+extern TVideo_Screenshot   Video_Screenshot;
+extern TVideo_EnterLoop    Video_EnterLoop;
+extern TVideo_AddMessage   Video_AddMessage;
+extern TVideo_DoState      Video_DoState;
 
 } // end of namespace PluginVideo
 

@@ -16,7 +16,6 @@ class CTransformEngine
 	static float* m_pTexPostMatrix[8];
 
 public:
-	static size_t SaveLoadState(char *ptr, bool save);
 	static void TransformVertices(int _numVertices, 
 		                          const DecodedVArray *varray, 
 								  D3DVertex *vbuffer);

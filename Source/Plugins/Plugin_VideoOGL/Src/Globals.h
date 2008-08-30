@@ -111,10 +111,6 @@ extern float MValueX, MValueY;
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #endif
 
-#define BEGINSAVELOAD char *optr=ptr;
-#define SAVELOAD(what,size) memcpy((void*)((save)?(void*)(ptr):(void*)(what)),(void*)((save)?(void*)(what):(void*)(ptr)),(size)); ptr+=(size);
-#define ENDSAVELOAD return ptr-optr;
-
 extern int frameCount;
 
 #define CONF_LOG 1

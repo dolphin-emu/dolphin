@@ -1151,12 +1151,3 @@ void VertexManager::LoadCPReg(u32 SubCmd, u32 Value)
     case 0xB0: arraystrides[SubCmd & 0xF] = Value & 0xFF;      break;
     }
 }
-
-size_t VertexManager::SaveLoadState(char *ptr, BOOL save)
-{
-    BEGINSAVELOAD;
-    SAVELOAD(arraybases,16*sizeof(u32));
-    SAVELOAD(arraystrides,16*sizeof(u32));
-    ENDSAVELOAD;
-}
-

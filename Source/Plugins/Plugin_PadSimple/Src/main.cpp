@@ -598,13 +598,6 @@ void PAD_Rumble(BYTE _numPAD, unsigned int _uType, unsigned int _uStrength)
 #endif
 }
 
-
-unsigned int SaveLoadState(char* _ptr, BOOL _bSave)
-{
-	return(0);
-}
-
-
 void LoadConfig()
 {
 #ifdef _WIN32

@@ -190,11 +190,3 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 void PAD_Rumble(BYTE _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
 }
-
-// __________________________________________________________________________________________________
-// SaveLoadState
-//
-unsigned __int32 SaveLoadState(char* _ptr, BOOL _bSave)
-{
-	return 0;
-}
