@@ -23,33 +23,22 @@
 #include "TextureDecoder.h"
 #include "Fifo.h"
 
-static void DoState(PointerWrap &p) {
-    // BP Memory
-    p.Do(bpmem);
-    // CP Memory
-    p.Do(arraybases);
-    p.Do(arraystrides);
-    p.Do(MatrixIndexA);
-    p.Do(MatrixIndexB);
-    // XF Memory
-    p.Do(xfregs);
-	PanicAlert("video: XFMem");
-    p.Do(xfmem);
-	PanicAlert("video: Texture decoder");
-    // Texture decoder
-    p.Do(texMem);
- 
-    // FIFO
-	PanicAlert("video: FIFO");
-    Fifo_DoState(p);
-
-    //TODO: Check for more pointers in the data structures and make them
-    //      serializable
-}
-
 void VideoCommon_DoState(PointerWrap &p) {
-    PanicAlert("Saving state from Video Common Library");
-    //TODO: Save the video state
-    DoState(p);
-	PanicAlert("END save video");
+	// BP Memory
+	p.Do(bpmem);
+	// CP Memory
+	p.Do(arraybases);
+	p.Do(arraystrides);
+	p.Do(MatrixIndexA);
+	p.Do(MatrixIndexB);
+	// XF Memory
+	p.Do(xfregs);
+	p.Do(xfmem);
+	// Texture decoder
+	p.Do(texMem);
+
+	// FIFO
+	Fifo_DoState(p);
+
+	//TODO: search for more data that should be saved and add it here
 }

@@ -18,6 +18,7 @@
 #include "Common.h"
 
 #include "State.h"
+#include "Core.h"
 #include "CoreTiming.h"
 #include "HW/HW.h"
 #include "PowerPC/PowerPC.h"
@@ -27,6 +28,8 @@
 #include "Plugins/Plugin_DSP.h"
 
 #include <string>
+
+#include "zlib.h"
 
 static int ev_Save;
 static int ev_Load;
@@ -57,6 +60,8 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 	fwrite(buffer, sz, 1, f);
 	fclose(f);
 	delete [] buffer;
+
+	Core::DisplayMessage("Saved State", 2000);
 }
 
 void LoadStateCallback(u64 userdata, int cyclesLate)
@@ -71,9 +76,11 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	fread(buffer, sz, 1, f);
 	fclose(f);
 
-	u8 *ptr;
+	u8 *ptr = buffer;
 	PointerWrap p(&ptr, PointerWrap::MODE_READ);
 	DoState(p);
+
+	Core::DisplayMessage("Loaded State", 2000);
 }
 
 void State_Init()
