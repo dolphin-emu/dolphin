@@ -60,7 +60,6 @@ bool CBoot::Boot_BIN(const std::string& _rFilename)
 	}
 
 	delete pFile;
-
     return true;
 }
 

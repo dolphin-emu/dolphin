@@ -55,7 +55,8 @@ CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem)
 
 CBannerLoaderGC::~CBannerLoaderGC()
 {
-	delete[] m_pBannerFile;
+	delete [] m_pBannerFile;
+	m_pBannerFile = NULL;
 }
 
 

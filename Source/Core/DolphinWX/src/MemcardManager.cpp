@@ -39,8 +39,14 @@ CMemcardManager::CMemcardManager(wxWindow* parent, wxWindowID id, const wxString
 
 CMemcardManager::~CMemcardManager()
 {
-	if(memoryCard[0]) delete memoryCard[0];
-	if(memoryCard[1]) delete memoryCard[1];
+	if (memoryCard[0]) {
+		delete memoryCard[0];
+		memoryCard[0] = NULL;
+	}
+	if (memoryCard[1]) {
+		delete memoryCard[1];
+		memoryCard[1] = NULL;
+	}
 }
 
 void CMemcardManager::CreateGUIControls()

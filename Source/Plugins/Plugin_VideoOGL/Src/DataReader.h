@@ -29,9 +29,11 @@ protected:
 
 public:	
     virtual void Skip(u32) = 0;
-    virtual u8  Read8 (void) = 0;
-    virtual u16 Read16(void) = 0;
-    virtual u32 Read32(void) = 0;	
+    virtual u8  Read8 () = 0;
+    virtual u16 Read16() = 0;
+    virtual u32 Read32() = 0;
+
+	virtual int GetPosition() = 0; // return values can be anything, as long as relative distances are correct
 };
 
 // =================================================================================================
@@ -43,12 +45,13 @@ class CDataReader_Fifo : public IDataReader
 private:
 
 public:
-    CDataReader_Fifo(void);
+    CDataReader_Fifo();
         
     virtual void Skip(u32);
-    virtual u8 Read8(void);
-    virtual u16 Read16(void);
-    virtual u32 Read32(void);
+    virtual u8 Read8();
+    virtual u16 Read16();
+    virtual u32 Read32();
+	virtual int GetPosition();
 };
 
 // =================================================================================================
@@ -66,12 +69,13 @@ public:
 
     CDataReader_Memory(u32 _uAddress);
 
-    u32 GetReadAddress(void);
+    u32 GetReadAddress();
 
     virtual void Skip(u32);
-    virtual u8 Read8(void);
-    virtual u16 Read16(void);
-    virtual u32 Read32(void);
+    virtual u8 Read8();
+    virtual u16 Read16();
+    virtual u32 Read32();
+	virtual int GetPosition();
 };
 
 extern IDataReader* g_pDataReader;

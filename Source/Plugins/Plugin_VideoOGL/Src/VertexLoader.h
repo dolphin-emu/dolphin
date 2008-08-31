@@ -224,5 +224,6 @@ u8 ReadBuffer8();
 u16 ReadBuffer16();
 u32 ReadBuffer32();
 float ReadBuffer32F();
+int GetBufferPosition();
 
 #endif

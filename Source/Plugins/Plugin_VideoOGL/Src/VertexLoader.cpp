@@ -19,8 +19,10 @@
 #include <fstream>
 #include <assert.h>
 
+#include "Common.h"
 #include "x64Emitter.h"
 #include "Profiler.h"
+#include "StringUtil.h"
 
 #include "Render.h"
 #include "VertexLoader.h"
@@ -80,6 +82,12 @@ inline float ReadBuffer32F()
 {
     u32 temp = g_pDataReader->Read32();
     return *(float*)(&temp);
+}
+
+
+inline int GetBufferPosition()
+{
+    return g_pDataReader->GetPosition();
 }
 
 // ==============================================================================
@@ -143,7 +151,7 @@ VertexLoader::VertexLoader()
 {
     m_numPipelineStates = 0;
     m_VertexSize = 0;
-    m_AttrDirty = 2;
+    m_AttrDirty = 1;
     VertexLoader_Normal::Init();
 
     m_compiledCode = (u8 *)AllocateExecutableMemory(COMPILED_CODE_SIZE, false);
@@ -159,8 +167,7 @@ VertexLoader::~VertexLoader()
 
 int VertexLoader::ComputeVertexSize()
 {
-    if (m_AttrDirty < 2) {
-
+    if (!m_AttrDirty) {
         if (m_VtxDesc.Hex0 == VertexManager::GetVtxDesc().Hex0 && (m_VtxDesc.Hex1&1)==(VertexManager::GetVtxDesc().Hex1&1))
             return m_VertexSize;
 
@@ -212,6 +219,7 @@ int VertexLoader::ComputeVertexSize()
         break;
     }
 
+	VertexLoader_Normal::index3 = m_VtxAttr.NormalIndex3;
     if (m_VtxDesc.Normal != NOT_PRESENT)
         m_VertexSize += VertexLoader_Normal::GetSize(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements);
     
@@ -297,7 +305,7 @@ void VertexLoader::ProcessFormat()
 
     //_assert_( VertexManager::s_pCurBufferPointer == s_pBaseBufferPointer );
 
-    if (!m_AttrDirty ) {
+    if (!m_AttrDirty) {
 
         if (m_VtxDesc.Hex0 == VertexManager::GetVtxDesc().Hex0 && (m_VtxDesc.Hex1&1)==(VertexManager::GetVtxDesc().Hex1&1))
             // same
@@ -410,7 +418,7 @@ void VertexLoader::ProcessFormat()
     // Colors
     int col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
     for (int i = 0; i < 2; i++) {
-        SetupColor(i,col[i], m_VtxAttr.color[i].Comp, m_VtxAttr.color[i].Elements);
+        SetupColor(i, col[i], m_VtxAttr.color[i].Comp, m_VtxAttr.color[i].Elements);
 
         if (col[i] != NOT_PRESENT )
             m_VBVertexStride+=4;
@@ -504,8 +512,8 @@ void VertexLoader::ProcessFormat()
         case FORMAT_FLOAT:
             CallCdeclFunction3_I(glNormalPointer, GL_FLOAT, m_VBVertexStride, offset); offset += 12;
             if (m_VtxAttr.NormalElements) {
-                CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM1_ATTRIB,3,GL_FLOAT, GL_TRUE, m_VBVertexStride, offset); offset += 12;
-                CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM2_ATTRIB,3,GL_FLOAT, GL_TRUE, m_VBVertexStride, offset); offset += 12;
+                CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM1_ATTRIB, 3, GL_FLOAT, GL_TRUE, m_VBVertexStride, offset); offset += 12;
+                CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM2_ATTRIB, 3, GL_FLOAT, GL_TRUE, m_VBVertexStride, offset); offset += 12;
             }
             break;
         default: _assert_(0); break;
@@ -513,7 +521,7 @@ void VertexLoader::ProcessFormat()
     }
 
     for (int i = 0; i < 2; i++) {
-        if (col[i] != NOT_PRESENT ) {
+        if (col[i] != NOT_PRESENT) {
 			if (i)
 			    CallCdeclFunction4((void *)glSecondaryColorPointer, 4, GL_UNSIGNED_BYTE, m_VBVertexStride, offset); 
 			else
@@ -570,7 +578,7 @@ void VertexLoader::ProcessFormat()
     _assert_(offset+m_VBStridePad == m_VBVertexStride);
 
     Util::EmitEpilogue(6);
-    if (Gen::GetCodePtr()-(u8*)m_compiledCode > COMPILED_CODE_SIZE)
+    if (Gen::GetCodePtr() - (u8*)m_compiledCode > COMPILED_CODE_SIZE)
     {
         assert(0);
         Crash();
@@ -689,12 +697,14 @@ void VertexLoader::SetupTexCoord(int num, int mode, int format, int elements, in
 
 void VertexLoader::WriteCall(void  (LOADERDECL *func)(void *))
 {
-    m_PipelineStates[m_numPipelineStates++] = func;;
+    m_PipelineStates[m_numPipelineStates++] = func;
 }
 
 void VertexLoader::RunVertices(int primitive, int count)
 {
-    if( count <= 0 )
+	ComputeVertexSize();
+
+	if( count <= 0 )
         return;
 
     if( fnSetupVertexPointers != NULL && fnSetupVertexPointers != (void (*)())(void*)m_compiledCode )
@@ -833,6 +843,7 @@ void VertexLoader::RunVertices(int primitive, int count)
                         break;
                     default:
                         extraverts = 0;
+						break;
                 }
 
                 startv = v;
@@ -842,8 +853,22 @@ void VertexLoader::RunVertices(int primitive, int count)
         tcIndex = 0;
         colIndex = 0;
         s_texmtxwrite = s_texmtxread = 0;
+
+		int pred_size = m_VertexSize;
+
+		//int start = GetBufferPosition();
+		//if (!m_numPipelineStates)
+		//	PanicAlert("trying to draw with no pipeline");
         for (int i = 0; i < m_numPipelineStates; i++)
             m_PipelineStates[i](&m_VtxAttr);
+		//int end = GetBufferPosition();
+
+		//if (end - start != pred_size) {
+		//	std::string vtx_summary;
+		//	vtx_summary += StringFromFormat("Nrm d:%i f:%i e:%i 3:%i", m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
+		//	PanicAlert((vtx_summary + "\nWTF %i %i").c_str(), end - start, pred_size);
+		//}
+
         VertexManager::s_pCurBufferPointer += m_VBStridePad;
         PRIM_LOG("\n");
     }

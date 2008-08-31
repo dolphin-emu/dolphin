@@ -117,8 +117,8 @@ bool GCMemcard::RemoveFile(u32 index) //index in the directory array
 	bat.LastAllocated[0] = u8(firstFree>>8);
 	bat.LastAllocated[1] = u8(firstFree);
 
-	delete mc_data;
-	mc_data=mc_data2;
+	delete [] mc_data;
+	mc_data = mc_data2;
 	//--
 	
 	//update freespace counter
@@ -366,7 +366,7 @@ u32  GCMemcard::CopyFrom(GCMemcard& source, u32 index)
 	if(!source.GetFileData(index,t)) return 0;
 	u32 ret = ImportFile(d,t);
 
-	delete t;
+	delete[] t;
 
 	return ret;
 }

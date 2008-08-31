@@ -70,7 +70,8 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IFileSystem& _rFileSystem)
 
 CBannerLoaderWii::~CBannerLoaderWii()
 {
-	delete m_pBuffer;
+	delete [] m_pBuffer;
+	m_pBuffer = NULL;
 }
 
 

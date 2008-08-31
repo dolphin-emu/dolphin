@@ -186,9 +186,9 @@ void Stop() // - Hammertime!
 #endif
 
 	delete g_pThread; //Wait for emuthread to close
+	g_pThread = 0;
 	Core::StopTrace();
 	LogManager::Shutdown();
-	g_pThread = 0;
 	Host_SetWaitCursor(false);
 }
 
@@ -360,6 +360,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	if( g_pUpdateFPSDisplay != NULL )
         g_pUpdateFPSDisplay("Stopping...");
 	delete cpuThread;
+	cpuThread = NULL;
 	// Returns after game exited
 
 	g_bHwInit = false;

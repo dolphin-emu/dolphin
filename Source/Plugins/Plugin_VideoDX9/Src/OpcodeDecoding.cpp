@@ -97,9 +97,9 @@ bool FifoCommandRunnable(void)
 {
 	u32 iBufferSize = FAKE_GetFifoSize();
 	if (iBufferSize == 0)
-		return false;
+		return false;  // can't peek
 
-	u8 Cmd = PeekFifo8(0);	
+	u8 Cmd = PeekFifo8(0);
 	u32 iCommandSize = 0;
 
 	switch(Cmd)
@@ -362,12 +362,6 @@ void OpcodeDecoder_Shutdown()
 
 void OpcodeDecoder_Run()
 {
-	// just a small check
-	if (g_pDataReader != &g_fifoReader)
-	{
-		MessageBox(NULL, "very strange", "video-plugin", MB_OK);
-	}
-
     DVSTARTPROFILE();
 
 	while (FifoCommandRunnable())

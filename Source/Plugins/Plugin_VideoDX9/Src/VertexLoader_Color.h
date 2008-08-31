@@ -59,6 +59,7 @@ void _SetCol565(u16 val)
 	col     |= lut5to8[(val    )&0x1f] << BSHIFT;
 	_SetCol(col | (0xFF<<ASHIFT));
 }
+
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 inline u32 _Read24(u32 iAddress)
@@ -112,7 +113,7 @@ void LOADERDECL Color_ReadDirect_24b_6666(void* _p)
 	_SetCol6666(val);
 }
 
-// F|RES: i am not 100 percent show, but the colElements seems to be important for rendering only
+// F|RES: i am not 100 percent sure, but the colElements seems to be important for rendering only
 // at least it fixes mario party 4
 //
 //	if (colElements[colIndex])	
@@ -128,7 +129,7 @@ void LOADERDECL Color_ReadDirect_32b_8888(void* _p)
 
 	// "kill" the alpha
 	if (!colElements[colIndex])	
-		col |= 0xFF<<ASHIFT;
+		col |= 0xFF << ASHIFT;
 
 	_SetCol(col);
 }

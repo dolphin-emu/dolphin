@@ -36,7 +36,9 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset, c
 CVolumeWiiCrypted::~CVolumeWiiCrypted()
 {
 	delete m_pReader; // is this really our responsibility?
+	m_pReader = NULL;
 	delete[] m_pBuffer;
+	m_pBuffer = NULL;
 }
 
 

@@ -135,7 +135,7 @@ public:
 
 	void SetVAT_group0(u32 _group0) 
 	{
-		if (!m_AttrDirty && m_group0.Hex == _group0)
+		if (m_group0.Hex == _group0)
 			return;		
 		m_AttrDirty = true;
 		m_group0.Hex = _group0;

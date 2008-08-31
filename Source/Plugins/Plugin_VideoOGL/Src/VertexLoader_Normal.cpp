@@ -106,7 +106,10 @@ void VertexLoader_Normal::Init(void)
 
 unsigned int VertexLoader_Normal::GetSize(unsigned int _type, unsigned int _format, unsigned int _elements)
 {
-    return m_sizeTable[_type][_format][_elements];
+	if (!index3 && _elements == NRM_NBT3)
+		return m_sizeTable[_type][_format][_elements] / 3;
+	else 
+		return m_sizeTable[_type][_format][_elements];
 }
 
 TPipelineFunction VertexLoader_Normal::GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements)

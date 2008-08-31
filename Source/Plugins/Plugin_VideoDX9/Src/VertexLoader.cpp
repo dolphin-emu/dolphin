@@ -51,12 +51,7 @@ void VertexLoader::SetVArray(DecodedVArray *_varray)
 {
 	varray = _varray;
 }
-/*
-inline u8    ReadBuffer8()   { return fifo.Read8();   }
-inline u16   ReadBuffer16()  { return fifo.Read16();  }
-inline u32   ReadBuffer32()  { return fifo.Read32();  }
-inline float ReadBuffer32F() { return fifo.Read32F(); }
-*/
+
 inline u8 ReadBuffer8()
 {
 	return g_pDataReader->Read8();
@@ -120,7 +115,7 @@ void VertexLoader::Setup()
 	{
 		m_PipelineStates[m_numPipelineStates++] = PosMtx_ReadDirect_UByte;
 		m_VertexSize += 1;
-		m_components |= VB_HAS_POSMTXIDX;
+		m_components |= VB_HAS_POSMTXIDX;	
 	}
 
 	// Texture matrix indices
@@ -195,7 +190,7 @@ void VertexLoader::Setup()
 		}
 		WriteCall(pFunc);
 		m_VertexSize += uSize;
-		int m_numNormals = (m_VtxAttr.NormalElements==1) ? NRM_THREE : NRM_ONE;
+		int m_numNormals = (m_VtxAttr.NormalElements == 1) ? NRM_THREE : NRM_ONE;
 		m_components |= VB_HAS_NRM0;
 		if (m_numNormals == NRM_THREE)
 			m_components |= VB_HAS_NRM1 | VB_HAS_NRM2;

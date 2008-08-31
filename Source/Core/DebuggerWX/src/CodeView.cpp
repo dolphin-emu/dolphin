@@ -354,7 +354,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 		wxBrush rowBrush(wxColor(col >> 16, col >> 8, col));
 		dc.SetBrush(nullBrush);
 		dc.SetPen(nullPen);
-		dc.DrawRectangle(0, rowY1, 16, rowY2);
+		dc.DrawRectangle(0, rowY1, 16, rowY2 - rowY1 + 2);
 
 		if (selecting && (address == selection))
 		{
@@ -374,7 +374,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			dc.SetBrush(rowBrush);
 		}
 
-		dc.DrawRectangle(16, rowY1, width, rowY2 - 1);
+		dc.DrawRectangle(16, rowY1, width, rowY2 - rowY1 + 1);
 		dc.SetBrush(currentBrush);
 		dc.SetTextForeground(_T("#600000"));
 		dc.DrawText(temp, 17, rowY1);

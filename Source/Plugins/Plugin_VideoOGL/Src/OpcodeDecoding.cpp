@@ -269,8 +269,8 @@ void Decode(void)
     // draw primitives 
     default:
         if (Cmd&0x80)
-        {			
-            // load vertices
+        {
+            // load vertices (use computed vertex size from FifoCommandRunnable above)
             u16 numVertices = g_pDataReader->Read16();		
             if (numVertices > 0) {
                 g_VertexLoaders[Cmd & GX_VAT_MASK].RunVertices((Cmd & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, numVertices);
@@ -301,11 +301,6 @@ void OpcodeDecoder_Shutdown()
 
 void OpcodeDecoder_Run()
 {
-    // just a small check
-    if (g_pDataReader != &g_fifoReader) {
-        SysMessage("very strange");
-    }
-
     DVSTARTPROFILE();
 
     while (FifoCommandRunnable())

@@ -111,6 +111,7 @@ CReBarSettings::~CReBarSettings()
 	if (m_pBands != NULL)
 	{
 		delete[] m_pBands;
+		m_pBands = NULL;
 	}
 }
 
@@ -120,6 +121,7 @@ bool CReBarSettings::Load(LPCTSTR szRegKey, LPCTSTR szPrefix, HKEY hkRootKey /* 
 	if (m_pBands != NULL)
 	{
 		delete[] m_pBands;
+		m_pBands = NULL;
 	}
 
 	m_pBands = NULL;

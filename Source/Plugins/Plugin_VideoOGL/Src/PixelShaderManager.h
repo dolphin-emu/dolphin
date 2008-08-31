@@ -43,7 +43,7 @@ class PixelShaderMngr
 			memset(values, 0, (4+32+6+11) * 4);
             tevstages = indstages = 0;
 		}
-        ~PIXELSHADERUID() { delete[] values; }
+        ~PIXELSHADERUID() { delete[] values; values = NULL;}
         PIXELSHADERUID(const PIXELSHADERUID& r)
         {
             values = new u32[4+32+6+11];

@@ -43,7 +43,7 @@ void Mixer(short *buffer, int numSamples, int bits, int rate, int channels)
 	// silence
 	memset(buffer, 0, numSamples * 2 * sizeof(short));
 
-	// first get th DTK Music
+	// first get the DTK Music
 	if (g_Config.m_EnableDTKMusic)
 	{
 		g_dspInitialize.pGetAudioStreaming(buffer, numSamples);

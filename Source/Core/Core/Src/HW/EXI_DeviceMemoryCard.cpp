@@ -106,6 +106,7 @@ CEXIMemoryCard::~CEXIMemoryCard()
 {
 	Flush(true);
 	delete [] memory_card_content;
+	memory_card_content = NULL;
 }
 
 bool CEXIMemoryCard::IsPresent() 

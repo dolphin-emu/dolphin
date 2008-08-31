@@ -26,6 +26,7 @@ IDataReader* g_pDataReader = NULL;
 extern u8 FAKE_ReadFifo8();
 extern u16 FAKE_ReadFifo16();
 extern u32 FAKE_ReadFifo32();
+extern int FAKE_GetPosition();
 extern void FAKE_SkipFifo(u32 skip);
 
 CDataReader_Fifo::CDataReader_Fifo(void)
@@ -53,6 +54,12 @@ void CDataReader_Fifo::Skip(u32 skip)
     return FAKE_SkipFifo(skip);
 }
 
+int CDataReader_Fifo::GetPosition()
+{
+    return FAKE_GetPosition();
+}
+
+
 // =================================================================================================
 // CDataReader_Memory
 // =================================================================================================
@@ -64,26 +71,31 @@ CDataReader_Memory::CDataReader_Memory(u32 _uAddress) :
     m_szName = "CDataReader_Memory";
 }
 
-u32 CDataReader_Memory::GetReadAddress(void)
+u32 CDataReader_Memory::GetReadAddress()
 {
     return m_uReadAddress;
 }
 
-u8 CDataReader_Memory::Read8(void)
+int CDataReader_Memory::GetPosition()
+{
+    return m_uReadAddress;
+}
+
+u8 CDataReader_Memory::Read8()
 {
     u8 tmp = Memory_Read_U8(m_uReadAddress);//m_pMemory[m_uReadAddress];
     m_uReadAddress++;
     return tmp;
 }
 
-u16 CDataReader_Memory::Read16(void)
+u16 CDataReader_Memory::Read16()
 {
     u16 tmp = Memory_Read_U16(m_uReadAddress);//_byteswap_ushort(*(u16*)&m_pMemory[m_uReadAddress]);
     m_uReadAddress += 2;
     return tmp;
 }
 
-u32 CDataReader_Memory::Read32(void)
+u32 CDataReader_Memory::Read32()
 {
     u32 tmp = Memory_Read_U32(m_uReadAddress);//_byteswap_ulong(*(u32*)&m_pMemory[m_uReadAddress]);
     m_uReadAddress += 4;

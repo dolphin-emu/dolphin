@@ -42,7 +42,7 @@ CARCFile::CARCFile(const u8* _pBuffer, size_t _BufferSize)
 
 CARCFile::~CARCFile()
 {
-	delete m_pBuffer;
+	delete [] m_pBuffer;
 }
 
 

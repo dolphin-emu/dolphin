@@ -22,13 +22,13 @@ void DecodedVArray::Zero()
 	posMtxInds = 0;
 	for (int i=0; i<3; i++)
 		normals[i] = 0;
+	for (int i=0; i<2; i++)
+		colors[i] = 0;
 	for (int i=0; i<8; i++)
 	{
 		texMtxInds[i] = 0;
 		uvs[i] = 0;
 	}
-	for (int i=0; i<2; i++)
-		colors[i] = 0;
 }
 
 void DecodedVArray::Destroy()

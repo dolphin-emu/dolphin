@@ -78,6 +78,11 @@ u8 FAKE_ReadFifo8()
     return videoBuffer[readptr++];
 }
 
+int FAKE_GetPosition()
+{
+    return readptr;
+}
+
 u16 FAKE_ReadFifo16()
 {
     u16 val = Common::swap16(*(u16*)(videoBuffer+readptr));
