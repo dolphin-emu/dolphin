@@ -71,7 +71,6 @@ bool LoadPlugin(const char *_Filename)
 			(PAD_Initialize != 0) &&
 			(PAD_Shutdown != 0) &&
 			(PAD_GetStatus != 0))
-			//(PAD_Rumble != 0))
 		{
 			return true;
 		}

@@ -241,7 +241,7 @@ void Init()
 		g_Channel[i].m_InLo.Hex = 0;		
 	}	
 
-	unsigned int AttachedPadMask = PluginPAD::PAD_GetAttachedPads();
+	unsigned int AttachedPadMask = PluginPAD::PAD_GetAttachedPads ? PluginPAD::PAD_GetAttachedPads() : 1;
 	for (int i = 0; i < 4; i++)
 	{
 		if (AttachedPadMask & (1 << i))
