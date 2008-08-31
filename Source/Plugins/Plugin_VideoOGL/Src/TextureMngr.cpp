@@ -128,7 +128,7 @@ void TextureMngr::Cleanup()
 {
     TexCache::iterator iter = textures.begin();
 
-    while(iter != textures.end()) {
+    while (iter != textures.end()) {
         if (frameCount > 20 + iter->second.frameCount) {
             if (!iter->second.isRenderTarget) {
                 iter->second.Destroy();
@@ -171,7 +171,7 @@ inline u32 _rotl(u32 x, int shift) {
 #endif
 TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt)
 {
-    if (address == 0 )
+    if (address == 0)
         return NULL;
 
     TexCache::iterator iter = textures.find(address);
@@ -182,11 +182,11 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     u32 palhash = 0xc0debabe;
     
     if (palSize) {
-        if (palSize>16) 
-            palSize = 16; //let's not do excessive amount of checking
+        if (palSize > 32) 
+            palSize = 32; //let's not do excessive amount of checking
         u8 *pal = g_VideoInitialize.pGetMemoryPointer(tlutaddr);
         if (pal != 0) {
-            for (int i=0; i<palSize; i++) {
+            for (int i = 0; i < palSize; i++) {
                 palhash = _rotl(palhash,13);
                 palhash ^= pal[i];
                 palhash += 31;

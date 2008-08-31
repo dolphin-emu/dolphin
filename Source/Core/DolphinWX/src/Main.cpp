@@ -31,7 +31,7 @@
 
 IMPLEMENT_APP(DolphinApp)
 
-CFrame * main_frame = NULL;
+CFrame* main_frame = NULL;
 CCodeWindow* g_pCodeWindow = NULL;
 
 // The `main program' equivalent, creating the windows and returning the
@@ -65,10 +65,6 @@ bool DolphinApp::OnInit()
 	bool UseDebugger = false;
 
 #if wxUSE_CMDLINE_PARSER
-	//
-	//  What this does is get all the command line arguments
-	//  and treat each one as a file to put to the initial playlist
-	//
 	wxCmdLineEntryDesc cmdLineDesc[] =
 	{
 		{wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("Show this help message"), wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP},
@@ -82,7 +78,7 @@ bool DolphinApp::OnInit()
 	// get filenames from the command line
 	if (parser.Parse() != 0)
 	{
-		return(false);
+		return false;
 	} 
 
 	UseDebugger = parser.Found(_T("debugger"));
@@ -99,9 +95,9 @@ bool DolphinApp::OnInit()
 	#endif
 #else
 	#ifdef _DEBUG
-		const char *title = "Dolphin Debug SVN Linux Build"; // Do this for now
+		const char *title = "Dolphin Debug SVN Linux";
 	#else
-		const char *title = "Dolphin SVN Linux Build";
+		const char *title = "Dolphin SVN Linux";
 	#endif
 #endif
 	main_frame = new CFrame((wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
@@ -115,8 +111,7 @@ bool DolphinApp::OnInit()
 	}
 
 	SetTopWindow(main_frame);
-
-	return(true);
+	return true;
 }
 
 
@@ -239,14 +234,6 @@ void Host_SetWaitCursor(bool enable)
 #endif
 
 }
-
-
-void Host_CreateDisplay()
-{}
-
-
-void Host_CloseDisplay()
-{}
 
 void Host_UpdateStatusBar(const char* _pText)
 {

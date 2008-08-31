@@ -580,7 +580,6 @@ void CCodeWindow::Update()
 	}
 
 	UpdateButtonStates();
-	Host_UpdateLogDisplay();
 }
 
 

@@ -48,8 +48,6 @@ void Host_SetDebugMode(bool enable);
 
 void Host_SetWaitCursor(bool enable);
 
-void Host_CreateDisplay();
-void Host_CloseDisplay();
 void Host_UpdateStatusBar(const char* _pText);
 
 #endif

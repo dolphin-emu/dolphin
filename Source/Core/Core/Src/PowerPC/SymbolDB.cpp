@@ -160,7 +160,8 @@ void SymbolDB::FillInCallers()
             }
             else
             {
-                LOG(HLE,"FillInCallers tries to fill data in an unknown function 0x%08x.", FunctionAddress);
+                //LOG(HLE,"FillInCallers tries to fill data in an unknown function 0x%08x.", FunctionAddress);
+				// TODO - analyze the function instead.
             }
         }
 	}

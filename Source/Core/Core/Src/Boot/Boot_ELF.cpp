@@ -1,5 +1,6 @@
 #include "../PowerPC/PowerPC.h"
 #include "Boot.h"
+#include "../HLE/HLE.h"
 #include "Boot_ELF.h"
 #include "ElfReader.h"
 #include "MappedFile.h"
@@ -8,8 +9,9 @@ bool CBoot::IsElfWii(const char *filename)
 {
 	Common::IMappedFile *mapfile = Common::IMappedFile::CreateMappedFile();
 	bool ok = mapfile->Open(filename);
-	if (!ok) return false;
-	size_t filesize = mapfile->GetSize();
+	if (!ok)
+		return false;
+	size_t filesize = (size_t)mapfile->GetSize();
 	u8 *ptr = mapfile->Lock(0, filesize);
 	u8 *mem = new u8[filesize];
 	memcpy(mem, ptr, filesize);
@@ -39,7 +41,10 @@ bool CBoot::Boot_ELF(const char *filename)
 	reader.LoadInto(0x80000000);
 	if (!reader.LoadSymbols())
 	{
-		LoadMapFromFilename(filename);
+		if (LoadMapFromFilename(filename))
+			HLE::PatchFunctions();
+	} else {
+		HLE::PatchFunctions();
 	}
 	delete [] mem;
 	

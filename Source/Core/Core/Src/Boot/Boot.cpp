@@ -383,7 +383,6 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 
 void CBoot::UpdateDebugger_MapLoaded(const char *_gameID)
 {
-	HLE::PatchFunctions();
 	Host_NotifyMapLoaded();
 	Host_UpdateMemoryView();
 }
@@ -507,9 +506,7 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
                 }
             }
             if (LoadMapFromFilename(_StartupPara.m_strFilename, gameID))
-            {
                 HLE::PatchFunctions();
-            }
         }
         break;
 
@@ -520,7 +517,8 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
             CDolLoader dolLoader(_StartupPara.m_strFilename.c_str());
             PC = dolLoader.GetEntryPoint();
 #ifdef _DEBUG
-            LoadMapFromFilename(_StartupPara.m_strFilename);
+            if (LoadMapFromFilename(_StartupPara.m_strFilename))
+				HLE::PatchFunctions();
 #endif
         }
         break;
@@ -569,7 +567,8 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
 			}
 
             Boot_BIN(_StartupPara.m_strFilename); 
-            LoadMapFromFilename(_StartupPara.m_strFilename);
+            if (LoadMapFromFilename(_StartupPara.m_strFilename))
+				HLE::PatchFunctions();
         }
         break;
 
@@ -580,7 +579,8 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
             DVDInterface::SetDiscInside(false);
             if (Load_BIOS(_StartupPara.m_strBios))
             {
-                LoadMapFromFilename(_StartupPara.m_strFilename);
+                if (LoadMapFromFilename(_StartupPara.m_strFilename))
+					HLE::PatchFunctions();
             }
             else
             {
