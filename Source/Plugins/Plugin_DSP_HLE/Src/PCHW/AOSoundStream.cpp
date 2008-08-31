@@ -25,7 +25,7 @@ namespace AOSound
 	{
 		return sampleRate;
 	}
-	bool WriteDataToBuffer(int dwOffset,char* soundData, int dwSoundBytes) 
+	bool WriteDataToBuffer(int dwOffset, char* soundData, uint_32 numSoundBytes)
 	{
 		//void* ptr1, * ptr2;
 		//DWORD numBytes1, numBytes2;
@@ -55,7 +55,7 @@ namespace AOSound
 
 		return(false);*/
 		//if(soundData[0] != 0)
-			ao_play(device, soundData, dwSoundBytes);
+			ao_play(device, soundData, numSoundBytes);
 		return true;
 		
 	}
@@ -74,7 +74,7 @@ namespace AOSound
 		{
 			// No blocking inside the csection
 			//dsBuffer->GetCurrentPosition((DWORD*)&currentPos, 0);
-			int numBytesToRender = 256;
+			uint_32 numBytesToRender = 256;
 
 			if (numBytesToRender >= 256)
 			{
