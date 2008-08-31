@@ -296,9 +296,10 @@ CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, 
 	};
 	Todo todo = Nothing;
 
-	Symbol *f = g_symbolDB.GetSymbolFromAddr(address);
+	//Symbol *f = g_symbolDB.GetSymbolFromAddr(address);
 	int maxsize = 20000;
 	//for now, all will return JustCopy :P
+	/*
 	if (f)
 	{
 		if (f->flags & FFLAG_LEAF)
@@ -320,7 +321,7 @@ CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, 
 
 		maxsize = f->size;
 	}
-	else
+	else*/
 		todo = JustCopy;
 
 	CodeOp *code = codebuffer; //new CodeOp[size];
