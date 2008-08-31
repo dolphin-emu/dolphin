@@ -125,9 +125,9 @@ void* dsp_thread(void* lpParameter)
 }
 
 
+#ifdef _WIN32
 DWORD WINAPI dsp_thread_debug(LPVOID lpParameter)
 {
-#ifdef _WIN32
 	while (1)
 	{
 		if (g_Dialog.CanDoStep())
@@ -139,8 +139,8 @@ DWORD WINAPI dsp_thread_debug(LPVOID lpParameter)
 			Sleep(100);
 		}
 	}
-#endif
 }
+#endif
 
 
 void DSP_DebugBreak()
