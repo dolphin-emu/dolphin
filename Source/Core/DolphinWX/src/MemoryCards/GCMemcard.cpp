@@ -323,6 +323,109 @@ bool GCMemcard::GetComment2(u32 index, char *fn) //index in the directory array
 	return true;
 }
 
+u32 decode5A3(u16 val)
+{
+	const int lut5to8[] = { 0x00,0x08,0x10,0x18,0x20,0x29,0x31,0x39,
+	                        0x41,0x4A,0x52,0x5A,0x62,0x6A,0x73,0x7B,
+	                        0x83,0x8B,0x94,0x9C,0xA4,0xAC,0xB4,0xBD,
+	                        0xC5,0xCD,0xD5,0xDE,0xE6,0xEE,0xF6,0xFF};
+	const int lut4to8[] = { 0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,
+	                        0x88,0x99,0xAA,0xBB,0xCC,0xDD,0xEE,0xFF};
+	const int lut3to8[] = { 0x00,0x24,0x48,0x6D,0x91,0xB6,0xDA,0xFF};
+
+
+	int r,g,b,a;
+	if ((val&0x8000))
+	{
+		r=lut5to8[(val>>10) & 0x1f];
+		g=lut5to8[(val>>5 ) & 0x1f];
+		b=lut5to8[(val    ) & 0x1f];
+		a=0xFF;
+	}
+	else
+	{
+		a=lut3to8[(val>>12) & 0x7];
+		r=lut4to8[(val>>8 ) & 0xf];
+		g=lut4to8[(val>>4 ) & 0xf];
+		b=lut4to8[(val    ) & 0xf];
+	}
+	return (a<<24) | (r<<16) | (g<<8) | b;
+}
+
+void decode5A3image(u32* dst, u16* src, int width, int height)
+{
+	for (int y = 0; y < height; y += 4)
+	{
+		for (int x = 0; x < width; x += 4)
+		{
+			for (int iy = 0; iy < 4; iy++, src += 4)
+			{
+				for (int ix = 0; ix < 4; ix++)
+				{
+					u32 RGBA = decode5A3(bswap16(src[ix]));
+					dst[(y + iy) * width + (x + ix)] = RGBA;
+				}
+			}
+		}
+	}
+}
+
+void decodeCI8image(u32* dst, u8* src, u16* pal, int width, int height)
+{
+	for (int y = 0; y < height; y += 4)
+	{
+		for (int x = 0; x < width; x += 4)
+		{
+			for (int iy = 0; iy < 4; iy++, src += 4)
+			{
+				for (int ix = 0; ix < 4; ix++)
+				{
+					u32 RGBA = decode5A3(bswap16(pal[src[ix]]));
+					dst[(y + iy) * width + (x + ix)] = RGBA;
+				}
+			}
+		}
+	}
+}
+
+bool GCMemcard::ReadBannerRGBA8(u32 index, u32* buffer)
+{
+	if(!mcdFile) return false;
+
+	int flags = dir.Dir[index].BIFlags;
+
+	bool hasBanner = flags&2;
+	bool fmtIsCI8  = flags&1; // else RGB5A3 (if bit15 [ RGB5 A=0xFF ] else [ RGB4 A3 ] )
+
+	if(!hasBanner)
+		return false;
+
+	u32 DataOffset=BE32(dir.Dir[index].ImageOffset);
+	u32 DataBlock =BE16(dir.Dir[index].FirstBlock)-5;
+
+	if(DataOffset==0xFFFFFFFF)
+	{
+		return false;
+	}
+
+	const int pixels = 96*32;
+
+	if(fmtIsCI8)
+	{
+		u8  *pxdata  = (u8* )(mc_data +(DataBlock*0x2000) + DataOffset);
+		u16 *paldata = (u16*)(mc_data +(DataBlock*0x2000) + DataOffset + pixels);
+
+		decodeCI8image(buffer,pxdata,paldata,96,32);
+	}
+	else
+	{
+		u16 *pxdata = (u16*)(mc_data +(DataBlock*0x2000) + DataOffset);
+
+		decode5A3image(buffer,pxdata,96,32);
+	}
+	return true;
+}
+
 u32  GCMemcard::TestChecksums()
 {
 	if(!mcdFile) return 0xFFFFFFFF;

@@ -185,6 +185,35 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		int index = m_MemcardList[card]->InsertItem(i, wxString::FromAscii("row"));
 		m_MemcardList[card]->SetItem(index, 0, wxString::FromAscii(title));
 		m_MemcardList[card]->SetItem(index, 1, wxString::FromAscii(comment));
+
+		static u32 pxdata[96*32];
+		if(memoryCard[card]->ReadBannerRGBA8(i,pxdata))
+		{
+			// TODO: replace this debug stuff with actually showing the image data in the lists!
+
+#if FALSE
+			char t[257];
+			sprintf(t,"card%d_%d.bmp",card,index);
+			FILE*f=fopen(t,"wb");
+			if(f) {
+				const u8 hdr[] = {
+					0x42,0x4D,0x38,0x30,0x00,0x00,0x00,0x00,
+					0x00,0x00,0x36,0x00,0x00,0x00,0x28,0x00,
+					0x00,0x00,0x60,0x00,0x00,0x00,0x20,0x00,
+					0x00,0x00,0x01,0x00,0x20,0x00,0x00,0x00,
+					0x00,0x00,0x02,0x30,0x00,0x00,0x12,0x0B,
+					0x00,0x00,0x12,0x0B,0x00,0x00,0x00,0x00,
+					0x00,0x00,0x00,0x00,0x00,0x00
+				};
+				const u8 ftr[] = {0,0};
+
+				fwrite(hdr,1,sizeof(hdr),f);
+				fwrite(pxdata,4,96*32,f);		// note BMP "inverts" the image vertically, so it'll look upside-down when exported this way
+				fwrite(ftr,1,2,f);
+				fclose(f);
+			}
+#endif
+		}
 	}
 	m_MemcardList[card]->Show();
 

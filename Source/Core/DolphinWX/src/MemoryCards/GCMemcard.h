@@ -154,6 +154,9 @@ public:
 	// reads a save from another memcard, and imports the data into this memcard
 	u32  CopyFrom(GCMemcard& source, u32 index);
 
+	// reads the banner image
+	bool ReadBannerRGBA8(u32 index, u32* buffer);
+
 	bool Save();
 
 };

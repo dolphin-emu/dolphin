@@ -184,7 +184,7 @@ CBannerLoaderGC::decode5A3image(u32* dst, u16* src, int width, int height)
 				for (int ix = 0; ix < 4; ix++)
 				{
 					u32 RGBA = decode5A3(Common::swap16(src[ix]));
-					dst[(y + iy) * 96 + (x + ix)] = RGBA;
+					dst[(y + iy) * width + (x + ix)] = RGBA;
 				}
 			}
 		}
