@@ -67,7 +67,8 @@ class CMemcardManager
 
 		enum
 		{
-			COLUMN_TITLE = 0,
+			COLUMN_BANNER = 0,
+			COLUMN_TITLE,
 			COLUMN_COMMENT,
 			NUMBER_OF_COLUMN
 		};

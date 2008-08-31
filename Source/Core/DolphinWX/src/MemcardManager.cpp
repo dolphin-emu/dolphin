@@ -74,6 +74,9 @@ void CMemcardManager::CreateGUIControls()
 	m_MemcardList[1] = new wxListCtrl(this, ID_MEMCARD2LIST, wxDefaultPosition, wxSize(350,400),
 		wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL);
 	
+	m_MemcardList[0]->AssignImageList(new wxImageList(96,32),wxIMAGE_LIST_SMALL);
+	m_MemcardList[1]->AssignImageList(new wxImageList(96,32),wxIMAGE_LIST_SMALL);
+
 	// mmmm sizer goodness
 	wxBoxSizer* sButtons;
 	sButtons = new wxBoxSizer(wxVERTICAL);
@@ -170,10 +173,30 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 
 	m_MemcardList[card]->Hide();
 	m_MemcardList[card]->ClearAll();
+	m_MemcardList[card]->InsertColumn(COLUMN_BANNER, _T("Banner"));
 	m_MemcardList[card]->InsertColumn(COLUMN_TITLE, _T("Title"));
 	m_MemcardList[card]->InsertColumn(COLUMN_COMMENT, _T("Comment"));
 
+	wxImageList *list=m_MemcardList[card]->GetImageList(wxIMAGE_LIST_SMALL);
+	list->RemoveAll();
+
 	int nFiles = memoryCard[card]->GetNumFiles();
+
+	int *images = new int[nFiles];
+	for(int i=0;i<nFiles;i++)
+	{
+		static u32 pxdata[96*32];
+		if(memoryCard[card]->ReadBannerRGBA8(i,pxdata))
+		{
+			// TODO: replace this debug stuff with actually showing the image data in the lists!
+
+			wxBitmap map((char*)pxdata,96,32,32);
+
+			images[i] = list->Add(map);
+		}
+		else images[i]=-1;
+	}
+
 	for(int i=0;i<nFiles;i++)
 	{
 		char title[32];
@@ -183,38 +206,16 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		if(!memoryCard[card]->GetComment2(i,comment)) comment[0]=0;
 
 		int index = m_MemcardList[card]->InsertItem(i, wxString::FromAscii("row"));
-		m_MemcardList[card]->SetItem(index, 0, wxString::FromAscii(title));
-		m_MemcardList[card]->SetItem(index, 1, wxString::FromAscii(comment));
+		m_MemcardList[card]->SetItem(index, COLUMN_BANNER, wxString::FromAscii(""));
+		m_MemcardList[card]->SetItem(index, COLUMN_TITLE, wxString::FromAscii(title));
+		m_MemcardList[card]->SetItem(index, COLUMN_COMMENT, wxString::FromAscii(comment));
 
-		static u32 pxdata[96*32];
-		if(memoryCard[card]->ReadBannerRGBA8(i,pxdata))
+		if(images[i]>=0)
 		{
-			// TODO: replace this debug stuff with actually showing the image data in the lists!
-
-#if FALSE
-			char t[257];
-			sprintf(t,"card%d_%d.bmp",card,i);
-			FILE*f=fopen(t,"wb");
-			if(f) {
-				const u8 hdr[] = {
-					0x42,0x4D,0x38,0x30,0x00,0x00,0x00,0x00,
-					0x00,0x00,0x36,0x00,0x00,0x00,0x28,0x00,
-					0x00,0x00,0x60,0x00,0x00,0x00,0x20,0x00,
-					0x00,0x00,0x01,0x00,0x20,0x00,0x00,0x00,
-					0x00,0x00,0x02,0x30,0x00,0x00,0x12,0x0B,
-					0x00,0x00,0x12,0x0B,0x00,0x00,0x00,0x00,
-					0x00,0x00,0x00,0x00,0x00,0x00
-				};
-				const u8 ftr[] = {0,0};
-
-				fwrite(hdr,1,sizeof(hdr),f);
-				fwrite(pxdata,4,96*32,f);		// note BMP "inverts" the image vertically, so it'll look upside-down when exported this way
-				fwrite(ftr,1,2,f);
-				fclose(f);
-			}
-#endif
+			m_MemcardList[card]->SetItemImage(index, images[i]);
 		}
 
+#if FALSE
 		static u8  animDelay[8];
 		static u32 animData[32*32*8];
 		int numFrames = memoryCard[card]->ReadAnimRGBA8(i,animData,animDelay);
@@ -244,8 +245,11 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 			}
 #endif
 		}
+#endif
 	}
 	m_MemcardList[card]->Show();
+
+	delete[] images;
 
 	// automatic column width
 	for (int i = 0; i < m_MemcardList[card]->GetColumnCount(); i++)
