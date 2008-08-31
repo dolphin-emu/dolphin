@@ -37,6 +37,8 @@ static int ev_Load;
 
 static std::string cur_filename;
 
+static bool const bCompressed = false;
+
 enum {
 	version = 1
 };
@@ -61,6 +63,7 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 {
 	static const int chunkSize = 16384;
 	z_stream strm;
+	unsigned char outbuf[chunkSize] = {0}, inbuf[chunkSize] = {0};
 
 	FILE *f = fopen(cur_filename.c_str(), "wb");
 	if(f == NULL) {
@@ -77,7 +80,47 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 	ptr = buffer;
 	p.SetMode(PointerWrap::MODE_WRITE);
 	DoState(p);
-	fwrite(buffer, sz, 1, f);
+
+	if(bCompressed)
+		fwrite(&sz, sizeof(int), 1, f);
+	else {
+		int zero = 0;
+		fwrite(&zero, sizeof(int), 1, f);
+	}
+
+
+	if(bCompressed) {
+		int chunks = sz / chunkSize, leftovers = sz % chunkSize;
+
+		strm.zalloc = Z_NULL;
+		strm.zfree = Z_NULL;
+		strm.opaque = Z_NULL;
+		deflateInit(&strm, Z_BEST_SPEED);
+
+		for(int i = 0; i < chunks; i++) {
+			strm.avail_in = chunkSize;
+			memcpy(inbuf, buffer + i * chunkSize, chunkSize);
+			strm.next_in = inbuf;
+			memcpy(outbuf, buffer + i * chunkSize, chunkSize);
+			strm.avail_out = chunkSize;
+			strm.next_out = outbuf;
+			deflate(&strm, Z_NO_FLUSH);
+			fwrite(outbuf, 1, chunkSize - strm.avail_out, f);
+		}
+
+		strm.avail_in = leftovers;
+		memcpy(inbuf, buffer + chunks * chunkSize, leftovers);
+		strm.next_in = inbuf;
+		memcpy(outbuf, buffer + chunks * chunkSize, leftovers);
+		strm.avail_out = leftovers;
+		strm.next_out = outbuf;
+		deflate(&strm, Z_NO_FLUSH);
+		fwrite(outbuf, 1, leftovers - strm.avail_out, f);
+
+		(void)deflateEnd(&strm);
+	} else
+		fwrite(buffer, sz, 1, f);
+
 	fclose(f);
 
 	delete [] buffer;
@@ -88,20 +131,72 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 
 void LoadStateCallback(u64 userdata, int cyclesLate)
 {
+	static const int chunkSize = 16384;
+	z_stream strm;
+	unsigned char outbuf[chunkSize] = {0}, inbuf[chunkSize] = {0};
+
+	bool bCompressedState;
+
 	FILE *f = fopen(cur_filename.c_str(), "rb");
 	if (!f) {
 		Core::DisplayMessage("State not found", 2000);
 		return;
 	}
+	
 	Jit64::ClearCache();
-	fseek(f, 0, SEEK_END);
-	int sz = ftell(f);
-	fseek(f, 0, SEEK_SET);
-	u8 *buffer = new u8[sz];
-	int x;
-	if (x=fread(buffer, 1, sz, f) != sz)
-		PanicAlert("wtf? %d %d", x, sz);
+
+	u8 *buffer = NULL;
+
+	int sz;
+	fread(&sz, sizeof(int), 1, f);
+
+	bCompressedState = (sz != 0);
+
+	if(bCompressedState) {
+		buffer = new u8[sz];
+
+		int ret;
+		strm.zalloc = Z_NULL;
+		strm.zfree = Z_NULL;
+		strm.opaque = Z_NULL;
+		strm.avail_in = 0;
+		strm.next_in = Z_NULL;
+		ret = inflateInit(&strm);
+
+		int cnt = 0;
+		do {
+			strm.avail_in = uInt(fread(inbuf, 1, chunkSize, f));
+			if (strm.avail_in == 0)
+				break;
+			strm.next_in = inbuf;
+
+			do {
+				strm.avail_out = chunkSize;
+				strm.next_out = outbuf;
+				ret = inflate(&strm, Z_NO_FLUSH);
+
+				int have = chunkSize - strm.avail_out;
+				
+				memcpy(buffer + cnt, outbuf, have);
+				cnt += have;
+			} while (strm.avail_out == 0);
+		} while (ret != Z_STREAM_END);
+
+		(void)inflateEnd(&strm);
+	} else {
+		fseek(f, 0, SEEK_END);
+		sz = ftell(f) - sizeof(int);
+		fseek(f, sizeof(int), SEEK_SET);
+
+		buffer = new u8[sz];
+
+		int x;
+		if (x=fread(buffer, 1, sz, f) != sz)
+			PanicAlert("wtf? %d %d", x, sz);
+	}
+
 	fclose(f);
+
 
 	u8 *ptr = buffer;
 	PointerWrap p(&ptr, PointerWrap::MODE_READ);
