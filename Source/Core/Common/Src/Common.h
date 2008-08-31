@@ -18,6 +18,8 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
+#include "CommonTypes.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -49,7 +51,6 @@ extern "C" {
 #endif
 
 #elif __GNUC__
-#define TCHAR char
 #define POSIX 1
 #define MAX_PATH 260
 #define stricmp strcasecmp
@@ -61,21 +62,9 @@ extern "C" {
 #endif
 #endif
 
-// Types
+// Alignment
 
-#ifdef _WIN32
-
-#include <tchar.h>
-
-typedef unsigned __int64 u64;
-typedef unsigned __int32 u32;
-typedef unsigned __int16 u16;
-typedef unsigned __int8 u8;
-
-typedef signed __int64 s64;
-typedef signed __int32 s32;
-typedef signed __int16 s16;
-typedef signed __int8 s8;
+#if defined(_MSC_VER)
 
 #define GC_ALIGNED16(x) __declspec(align(16)) x
 #define GC_ALIGNED32(x) __declspec(align(32)) x
@@ -85,21 +74,17 @@ typedef signed __int8 s8;
 
 #else
 
-typedef char s8;
-typedef short s16;
-#define __int16 short
-typedef int s32;
-#define __int32 int
-typedef long long s64;
-#define __int64 long long
+#define GC_ALIGNED16(x)  __attribute((aligned(16))) x
+#define GC_ALIGNED32(x)  __attribute((aligned(16))) x
+#define GC_ALIGNED64(x)  __attribute((aligned(64))) x
+#define GC_ALIGNED16_DECL(x) __attribute((aligned(16))) x
+#define GC_ALIGNED64_DECL(x) __attribute((aligned(64))) x
 
-typedef unsigned char u8;
-typedef unsigned char BYTE;
-typedef unsigned short u16;
-typedef unsigned int u32;
-typedef unsigned int BOOL;
-typedef unsigned int DWORD;
-typedef unsigned long long u64;
+#endif
+
+// Various Windows compatibility
+
+#if !defined(_WIN32)
 
 #ifdef __LINUX__
 typedef union _LARGE_INTEGER
@@ -107,12 +92,6 @@ typedef union _LARGE_INTEGER
 	long long QuadPart;
 } LARGE_INTEGER;
 #endif
-
-#define GC_ALIGNED16(x)  __attribute((aligned(16))) x
-#define GC_ALIGNED32(x)  __attribute((aligned(16))) x
-#define GC_ALIGNED64(x)  __attribute((aligned(64))) x
-#define GC_ALIGNED16_DECL(x) __attribute((aligned(16))) x
-#define GC_ALIGNED64_DECL(x) __attribute((aligned(64))) x
 
 #ifndef __forceinline
 #define __forceinline inline
