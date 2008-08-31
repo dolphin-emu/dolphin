@@ -41,7 +41,6 @@ typedef signed __int64 s64;
 #else
 
 typedef unsigned char u8;
-typedef unsigned char BYTE;
 typedef unsigned short u16;
 typedef unsigned int u32;
 typedef unsigned int BOOL;

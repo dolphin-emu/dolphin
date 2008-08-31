@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include "Common.h"
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // C L A S S/////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -48,7 +50,7 @@ public:
 			{
 				if(m_dolheader.textOffset[i] != 0)
 				{
-					BYTE* pTemp = new BYTE[m_dolheader.textSize[i]];
+					u8* pTemp = new u8[m_dolheader.textSize[i]];
 
 					fseek(pStream, m_dolheader.textOffset[i], SEEK_SET);
 					fread(pTemp, 1, m_dolheader.textSize[i], pStream);
@@ -65,7 +67,7 @@ public:
 			{
 				if(m_dolheader.dataOffset[i] != 0)
 				{
-					BYTE* pTemp = new BYTE[m_dolheader.dataSize[i]];
+					u8* pTemp = new u8[m_dolheader.dataSize[i]];
 
 					fseek(pStream, m_dolheader.dataOffset[i], SEEK_SET);
 					fread(pTemp, 1, m_dolheader.dataSize[i], pStream);

@@ -33,8 +33,8 @@ typedef void (__cdecl* TDllAbout)(HWND);
 typedef void (__cdecl* TDllConfig)(HWND);
 typedef void (__cdecl* TPAD_Initialize)(SPADInitialize);
 typedef void (__cdecl* TPAD_Shutdown)();
-typedef void (__cdecl* TPAD_GetStatus)(BYTE, SPADStatus*);
-typedef void (__cdecl* TPAD_Rumble)(BYTE, unsigned int, unsigned int);
+typedef void (__cdecl* TPAD_GetStatus)(u8, SPADStatus*);
+typedef void (__cdecl* TPAD_Rumble)(u8, unsigned int, unsigned int);
 typedef unsigned int (__cdecl* TPAD_GetAttachedPads)();
 
 // Function Pointers

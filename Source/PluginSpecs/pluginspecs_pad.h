@@ -105,7 +105,7 @@ EXPORT void CALL PAD_Shutdown();
 // input:   
 // output:   
 //
-EXPORT void CALL PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus);
+EXPORT void CALL PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus);
 
 // __________________________________________________________________________________________________
 // Function: PAD_Rumble
@@ -113,7 +113,7 @@ EXPORT void CALL PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus);
 // input:	 PAD number, Command type (Stop=0, Rumble=1, Stop Hard=2) and strength of Rumble 
 // output:   none
 //
-EXPORT void CALL PAD_Rumble(BYTE _numPAD, unsigned int _uType, unsigned int _uStrength);
+EXPORT void CALL PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength);
 
 // __________________________________________________________________________________________________
 // Function: PAD_GetAttachedPads

@@ -132,7 +132,7 @@ EXPORT void CALL Video_Shutdown(void);
 // input:    a data-byte (i know we have to optimize this ;-))
 // output:   none
 //
-EXPORT void CALL Video_SendFifoData(BYTE *_uData);
+EXPORT void CALL Video_SendFifoData(u8* _uData);
 
 // __________________________________________________________________________________________________
 // Function: Video_UpdateXFB
@@ -142,7 +142,7 @@ EXPORT void CALL Video_SendFifoData(BYTE *_uData);
 // input:    pointer to the XFB, width and height of the XFB
 // output:   none
 //
-EXPORT void CALL Video_UpdateXFB(BYTE* _pXFB, DWORD _dwWidth, DWORD _dwHeight);
+EXPORT void CALL Video_UpdateXFB(u8* _pXFB, DWORD _dwWidth, DWORD _dwHeight);
 
 // __________________________________________________________________________________________________
 // Function: Video_Screenshot

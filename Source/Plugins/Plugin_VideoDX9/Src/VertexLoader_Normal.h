@@ -4,6 +4,8 @@
 
 #pragma	once
 
+#include "CommonTypes.h"
+
 class VertexLoader_Normal
 {
 public:
@@ -46,7 +48,7 @@ private:
 	};
 
 	// tables
-	static BYTE m_sizeTable[NUM_NRM_TYPE][NUM_NRM_FORMAT][NUM_NRM_ELEMENTS];
+	static u8 m_sizeTable[NUM_NRM_TYPE][NUM_NRM_FORMAT][NUM_NRM_ELEMENTS];
 	static TPipelineFunction m_funcTable[NUM_NRM_TYPE][NUM_NRM_FORMAT][NUM_NRM_ELEMENTS];
 
 	// direct

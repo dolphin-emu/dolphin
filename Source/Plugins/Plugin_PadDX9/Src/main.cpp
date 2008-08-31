@@ -124,7 +124,7 @@ void PAD_Shutdown(void)
 // __________________________________________________________________________________________________
 // PADGetStatus
 //
-void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
+void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
 	// check if all is okay
 	if ((_numPAD != 0) || // we support just pad 0
@@ -187,6 +187,6 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 // __________________________________________________________________________________________________
 // PAD_Rumble
 //
-void PAD_Rumble(BYTE _numPAD, unsigned int _uType, unsigned int _uStrength)
+void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
 }

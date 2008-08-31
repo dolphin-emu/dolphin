@@ -274,7 +274,7 @@ BOOL Video_Screenshot(TCHAR* _szFilename)
 }
 
 
-void Video_UpdateXFB(BYTE* _pXFB, DWORD _dwWidth, DWORD _dwHeight)
+void Video_UpdateXFB(u8* _pXFB, DWORD _dwWidth, DWORD _dwHeight)
 {
 }
 

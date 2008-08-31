@@ -102,7 +102,7 @@ void FAKE_SkipFifo(u32 skip)
     readptr += skip;
 }
 
-void Video_SendFifoData(BYTE *_uData)
+void Video_SendFifoData(u8* _uData)
 {
     memcpy(videoBuffer + size, _uData, 32);
     size += 32;

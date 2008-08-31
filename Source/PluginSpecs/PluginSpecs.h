@@ -5,6 +5,8 @@
 #ifndef _PLUGINS_H_INCLUDED__
 #define _PLUGINS_H_INCLUDED__
 
+#include "CommonTypes.h"
+
 #ifdef _WIN32
 #define EXPORT	__declspec(dllexport)
 #define CALL	__cdecl
@@ -29,14 +31,12 @@
 // simulate something that looks like win32
 // long term, kill these
 
-// glxew defines BOOL and BYTE. evil.
+// glxew defines BOOL. evil.
 #ifdef BOOL
 #undef BOOL
-#undef BYTE
 #endif
 
 #define BOOL unsigned int
-#define BYTE unsigned char
 #define WORD unsigned short
 #define DWORD unsigned int
 #define HWND  void*

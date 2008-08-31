@@ -521,7 +521,7 @@ unsigned int PAD_GetAttachedPads()
 	connected |= 1;	
 	return connected;
 }
-void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
+void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
 	// check if all is okay
 	if ((_pPADStatus == NULL))
@@ -568,7 +568,7 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 
 
 // Rough approximation of GC behaviour - needs improvement.
-void PAD_Rumble(BYTE _numPAD, unsigned int _uType, unsigned int _uStrength)
+void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
 #ifdef _WIN32
 	static int a = 0;

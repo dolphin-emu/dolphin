@@ -304,7 +304,7 @@ void PAD_Shutdown()
 
 // Set PAD status
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
+void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
 	if(!joysticks[_numPAD].enabled)
 		return;
@@ -474,7 +474,7 @@ void PAD_GetStatus(BYTE _numPAD, SPADStatus* _pPADStatus)
 // Set PAD rumble
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 // (Stop=0, Rumble=1)
-void PAD_Rumble(BYTE _numPAD, unsigned int _uType, unsigned int _uStrength)
+void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
 	//if(_numPAD > 0)
 	//	return;
