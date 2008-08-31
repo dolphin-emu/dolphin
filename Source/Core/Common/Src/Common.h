@@ -34,7 +34,6 @@
 #ifdef _WIN32
 #define POSIX 0
 #define NOMINMAX
-#define WEAK_SYMBOL __declspec(selectany)
 
 #if _M_IX86
 #define Crash() {__asm int 3}
@@ -53,7 +52,6 @@ extern "C" {
 #define TCHAR char
 #define POSIX 1
 #define MAX_PATH 260
-#define WEAK_SYMBOL __attribute__((weak))
 #define stricmp strcasecmp
 #define Crash() {asm ("int $3");}
 #ifdef _LP64
