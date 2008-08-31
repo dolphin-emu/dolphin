@@ -3,7 +3,7 @@
 
 namespace D3D
 {
-	LPDIRECT3DTEXTURE9 CreateTexture2D(const BYTE* buffer, const int width, const int height,const int pitch,  D3DFORMAT fmt)
+	LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int height,const int pitch,  D3DFORMAT fmt)
 	{
 		DWORD *pBuffer = (DWORD *)buffer;
 		LPDIRECT3DTEXTURE9 pTexture;
@@ -33,7 +33,7 @@ namespace D3D
 			{
 				for (int y = 0; y < height; y++)
 				{
-					DWORD* pBits = (DWORD*)((BYTE*)Lock.pBits + (y * Lock.Pitch));
+					DWORD* pBits = (DWORD*)((u8*)Lock.pBits + (y * Lock.Pitch));
 					memcpy(pBits,pIn, width * 4);
 					pIn += pitch;
 				}
@@ -47,7 +47,7 @@ namespace D3D
 		return pTexture;
 	}
 
-	void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const BYTE* buffer, const int width, const int height,const int pitch,  D3DFORMAT fmt)
+	void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int width, const int height,const int pitch,  D3DFORMAT fmt)
 	{
 		DWORD *pBuffer = (DWORD *)buffer;
 		int level=0;
@@ -60,7 +60,7 @@ namespace D3D
 			{
 				for (int y = 0; y < height; y++)
 				{
-					DWORD* pBits = (DWORD*)((BYTE*)Lock.pBits + (y * Lock.Pitch));
+					DWORD* pBits = (DWORD*)((u8*)Lock.pBits + (y * Lock.Pitch));
 					memcpy(pBits,pIn, width*4);
 					pIn += pitch;
 				}
