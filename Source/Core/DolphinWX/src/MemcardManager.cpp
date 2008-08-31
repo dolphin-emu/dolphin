@@ -193,7 +193,7 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 
 #if FALSE
 			char t[257];
-			sprintf(t,"card%d_%d.bmp",card,index);
+			sprintf(t,"card%d_%d.bmp",card,i);
 			FILE*f=fopen(t,"wb");
 			if(f) {
 				const u8 hdr[] = {
@@ -209,6 +209,36 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 
 				fwrite(hdr,1,sizeof(hdr),f);
 				fwrite(pxdata,4,96*32,f);		// note BMP "inverts" the image vertically, so it'll look upside-down when exported this way
+				fwrite(ftr,1,2,f);
+				fclose(f);
+			}
+#endif
+		}
+
+		static u8  animDelay[8];
+		static u32 animData[32*32*8];
+		int numFrames = memoryCard[card]->ReadAnimRGBA8(i,animData,animDelay);
+		for(int n=0;n<numFrames;n++)
+		{
+			// TODO: replace this debug stuff with actually showing the image data in the lists!
+#if FALSE
+			char t[257];
+			sprintf(t,"card%d_%d_anim%d.bmp",card,i,n);
+			FILE*f=fopen(t,"wb");
+			if(f) {
+				const u8 hdr[] = {
+					0x42,0x4D,0x38,0x30,0x00,0x00,0x00,0x00,
+					0x00,0x00,0x36,0x00,0x00,0x00,0x28,0x00,
+					0x00,0x00,0x20,0x00,0x00,0x00,0x20,0x00,
+					0x00,0x00,0x01,0x00,0x20,0x00,0x00,0x00,
+					0x00,0x00,0x02,0x30,0x00,0x00,0x12,0x0B,
+					0x00,0x00,0x12,0x0B,0x00,0x00,0x00,0x00,
+					0x00,0x00,0x00,0x00,0x00,0x00
+				};
+				const u8 ftr[] = {0,0};
+
+				fwrite(hdr,1,sizeof(hdr),f);
+				fwrite(animData+(n*32*32),4,32*32,f);	// note BMP "inverts" the image vertically, so it'll look upside-down when exported this way
 				fwrite(ftr,1,2,f);
 				fclose(f);
 			}

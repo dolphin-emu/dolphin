@@ -394,8 +394,8 @@ bool GCMemcard::ReadBannerRGBA8(u32 index, u32* buffer)
 
 	int flags = dir.Dir[index].BIFlags;
 
-	bool hasBanner = flags&2;
-	bool fmtIsCI8  = flags&1; // else RGB5A3 (if bit15 [ RGB5 A=0xFF ] else [ RGB4 A3 ] )
+	bool hasBanner = (flags&2)!=0;
+	bool fmtIsCI8  = (flags&1)!=0; // else RGB5A3 (if bit15 [ RGB5 A=0xFF ] else [ RGB4 A3 ] )
 
 	if(!hasBanner)
 		return false;
@@ -424,6 +424,86 @@ bool GCMemcard::ReadBannerRGBA8(u32 index, u32* buffer)
 		decode5A3image(buffer,pxdata,96,32);
 	}
 	return true;
+}
+
+u32  GCMemcard::ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays)
+{
+	if(!mcdFile) return 0;
+
+	int formats = BE16(dir.Dir[index].IconFmt);
+	int fdelays  = BE16(dir.Dir[index].AnimSpeed);
+
+	int flags = dir.Dir[index].BIFlags;
+
+	bool hasBanner = (flags&2)!=0;
+	bool fmtIsCI8  = (flags&1)!=0;
+
+	u32 DataOffset=BE32(dir.Dir[index].ImageOffset);
+	u32 DataBlock =BE16(dir.Dir[index].FirstBlock)-5;
+
+	if(DataOffset==0xFFFFFFFF)
+	{
+		return 0;
+	}
+
+	u8* animData=(u8* )(mc_data +(DataBlock*0x2000) + DataOffset);
+
+	if(hasBanner)
+	{
+		if(fmtIsCI8) animData+=96*32 + 2*256; // image+palette
+		else		 animData+=96*32*2;
+	}
+
+	int fmts[8];
+	u8* data[8];
+	int frames = 0;
+
+
+	for(int i=0;i<8;i++)
+	{
+		fmts[i] = formats>>(2*i);
+		delays[i] = (fdelays>>(2*i))<<2;
+		data[i] = animData;
+
+		switch(fmts[i])
+		{
+		case 1: // CI8 with shared palette
+			animData+=32*32;
+			frames++;
+			break;
+		case 2: // RGB5A3
+			animData+=32*32*2;
+			frames++;
+			break;
+		case 3: // CI8 with own palette
+			animData+=32*32 + 2*256;
+			frames++;
+			break;
+		}
+	}
+
+	u16* sharedPal = (u16*)(animData);
+
+	for(int i=0;i<8;i++)
+	{
+		switch(fmts[i])
+		{
+		case 1: // CI8 with shared palette
+			decodeCI8image(buffer,data[i],sharedPal,32,32);
+			buffer+=32*32;
+			break;
+		case 2: // RGB5A3
+			decode5A3image(buffer,(u16*)(data[i]),32,32);
+			break;
+		case 3: // CI8 with own palette
+			u16 *paldata = (u16*)(data[i]+32*32);
+			decodeCI8image(buffer,data[i],paldata,32,32);
+			buffer+=32*32;
+			break;
+		}
+	}
+
+	return frames;
 }
 
 u32  GCMemcard::TestChecksums()

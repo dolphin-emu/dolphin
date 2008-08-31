@@ -157,6 +157,9 @@ public:
 	// reads the banner image
 	bool ReadBannerRGBA8(u32 index, u32* buffer);
 
+	// reads the animation frames
+	u32  ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays);
+
 	bool Save();
 
 };
