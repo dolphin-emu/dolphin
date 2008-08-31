@@ -18,7 +18,11 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
+#ifdef _WIN32
+#include "../../../PluginSpecs/CommonTypes.h"
+#else
 #include "CommonTypes.h"
+#endif
 
 #include <stdlib.h>
 #include <stdio.h>
