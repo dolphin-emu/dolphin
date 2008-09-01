@@ -27,7 +27,7 @@ typedef struct
 	volatile DWORD CPEnd;
 	DWORD CPHiWatermark;
 	DWORD CPLoWatermark;
-	volatile INT CPReadWriteDistance;
+	volatile s32 CPReadWriteDistance;
 	volatile DWORD CPWritePointer;
 	volatile DWORD CPReadPointer;
 	volatile DWORD CPBreakpoint;

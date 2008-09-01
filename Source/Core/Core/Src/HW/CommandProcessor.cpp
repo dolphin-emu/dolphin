@@ -103,7 +103,7 @@ int m_bboxright;
 int m_bboxbottom;
 u16 m_tokenReg;
 
-CPFifo fifo; //This one is shared between gfx thread and emulator thread
+SCPFifoStruct fifo; //This one is shared between gfx thread and emulator thread
 
 void DoState(PointerWrap &p)
 {

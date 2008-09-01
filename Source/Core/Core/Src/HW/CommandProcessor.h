@@ -19,6 +19,7 @@
 #define _COMMANDPROCESSOR_H
 
 #include "Common.h"
+#include "pluginspecs_video.h"
 class PointerWrap;
 
 #ifdef _WIN32
@@ -56,29 +57,9 @@ enum
 	FIFO_BP_LO					= 0x3C,
 	FIFO_BP_HI					= 0x3E
 };
-struct CPFifo
-{
-	// fifo registers
-	volatile u32 CPBase;
-	volatile u32 CPEnd;
-	u32 CPHiWatermark;
-	u32 CPLoWatermark;
-	volatile s32 CPReadWriteDistance;
-	volatile u32 CPWritePointer;
-	volatile u32 CPReadPointer;
-	volatile u32 CPBreakpoint;
 
-	volatile bool bFF_GPReadEnable;
-	volatile bool bFF_BPEnable;
-	volatile bool bFF_GPLinkEnable;
-	volatile bool bFF_Breakpoint;
-	volatile bool bPauseRead;
-#ifdef _WIN32
-	CRITICAL_SECTION sync;
-#endif
-};
+extern SCPFifoStruct fifo;
 
-extern CPFifo fifo;
 // Init
 void Init();
 void Shutdown();
