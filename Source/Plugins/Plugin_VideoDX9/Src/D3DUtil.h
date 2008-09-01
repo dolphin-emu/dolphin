@@ -30,7 +30,7 @@ namespace D3D
 		int Shutdown();
 		int DrawTextScaled( float x, float y,
 							float fXScale, float fYScale, 
-							float spacing, int dwColor, 
+							float spacing, u32 dwColor,
 							const char* strText, bool center=true );
 		  
 		  
@@ -40,5 +40,5 @@ namespace D3D
 
 	extern CD3DFont font;
 
-	void quad2d(float x1, float y1, float x2, float y2, DWORD color, float u1=0, float v1=0, float u2=1, float v2=1);
+	void quad2d(float x1, float y1, float x2, float y2, u32 color, float u1=0, float v1=0, float u2=1, float v2=1);
 }

@@ -23,14 +23,14 @@ typedef void			(*TKeyPressed)(int keycode, BOOL shift, BOOL control); // sets th
 typedef struct
 {
 	// fifo registers
-	volatile DWORD CPBase;
-	volatile DWORD CPEnd;
-	DWORD CPHiWatermark;
-	DWORD CPLoWatermark;
+	volatile u32 CPBase;
+	volatile u32 CPEnd;
+	u32 CPHiWatermark;
+	u32 CPLoWatermark;
 	volatile s32 CPReadWriteDistance;
-	volatile DWORD CPWritePointer;
-	volatile DWORD CPReadPointer;
-	volatile DWORD CPBreakpoint;
+	volatile u32 CPWritePointer;
+	volatile u32 CPReadPointer;
+	volatile u32 CPBreakpoint;
 
 	volatile bool bFF_GPReadEnable;
 	volatile bool bFF_BPEnable;
@@ -142,7 +142,7 @@ EXPORT void CALL Video_SendFifoData(u8* _uData);
 // input:    pointer to the XFB, width and height of the XFB
 // output:   none
 //
-EXPORT void CALL Video_UpdateXFB(u8* _pXFB, DWORD _dwWidth, DWORD _dwHeight);
+EXPORT void CALL Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight);
 
 // __________________________________________________________________________________________________
 // Function: Video_Screenshot

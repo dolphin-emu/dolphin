@@ -5,7 +5,7 @@ namespace D3D
 {
 	LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int height,const int pitch,  D3DFORMAT fmt)
 	{
-		DWORD *pBuffer = (DWORD *)buffer;
+		u32* pBuffer = (u32*)buffer;
 		LPDIRECT3DTEXTURE9 pTexture;
 
 		// crazy bitmagic
@@ -26,15 +26,15 @@ namespace D3D
 		D3DLOCKED_RECT Lock;
 		pTexture->LockRect(level, &Lock, NULL, 0 );
 
-		DWORD* pIn = pBuffer;
+		u32* pIn = pBuffer;
 		switch(fmt) 
 		{
 		case D3DFMT_A8R8G8B8:
 			{
 				for (int y = 0; y < height; y++)
 				{
-					DWORD* pBits = (DWORD*)((u8*)Lock.pBits + (y * Lock.Pitch));
-					memcpy(pBits,pIn, width * 4);
+					u32* pBits = (u32*)((u8*)Lock.pBits + (y * Lock.Pitch));
+					memcpy(pBits, pIn, width * 4);
 					pIn += pitch;
 				}
 			}
@@ -49,18 +49,18 @@ namespace D3D
 
 	void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int width, const int height,const int pitch,  D3DFORMAT fmt)
 	{
-		DWORD *pBuffer = (DWORD *)buffer;
-		int level=0;
+		u32* pBuffer = (u32*)buffer;
+		int level = 0;
 		D3DLOCKED_RECT Lock;
 		pTexture->LockRect(level, &Lock, NULL, 0 );
-		DWORD* pIn = pBuffer;
+		u32* pIn = pBuffer;
 		switch(fmt) 
 		{
 		case D3DFMT_A8R8G8B8:
 			{
 				for (int y = 0; y < height; y++)
 				{
-					DWORD* pBits = (DWORD*)((u8*)Lock.pBits + (y * Lock.Pitch));
+					u32* pBits = (u32*)((u8*)Lock.pBits + (y * Lock.Pitch));
 					memcpy(pBits,pIn, width*4);
 					pIn += pitch;
 				}

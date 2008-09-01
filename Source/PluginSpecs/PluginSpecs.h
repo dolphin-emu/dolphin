@@ -38,12 +38,10 @@
 
 #define BOOL unsigned int
 #define WORD unsigned short
-#define DWORD unsigned int
 #define HWND  void*
 #define HINSTANCE void*
 #define INT int
 #define CHAR char
-#define TCHAR char
 #endif
 
 #if defined(__cplusplus)

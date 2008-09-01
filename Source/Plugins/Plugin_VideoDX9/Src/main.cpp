@@ -202,7 +202,7 @@ void Video_Shutdown(void)
 	DeInit();
 }
 
-void Video_UpdateXFB(u8* /*_pXFB*/, DWORD /*_dwWidth*/, DWORD /*_dwHeight*/)
+void Video_UpdateXFB(u8* /*_pXFB*/, u32 /*_dwWidth*/, u32 /*_dwHeight*/)
 {
 	/*
 	ConvertXFB(tempBuffer, _pXFB, _dwWidth, _dwHeight);

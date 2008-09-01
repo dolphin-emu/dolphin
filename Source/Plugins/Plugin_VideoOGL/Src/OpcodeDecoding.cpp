@@ -218,9 +218,9 @@ void Decode(void)
     case GX_LOAD_XF_REG:
         {
             u32 Cmd2 = g_pDataReader->Read32();
-            
+
             int dwTransferSize = ((Cmd2>>16)&15) + 1;
-            DWORD dwAddress = Cmd2 & 0xFFFF;
+            u32 dwAddress = Cmd2 & 0xFFFF;
             static u32 pData[16];
             for (int i=0; i<dwTransferSize; i++)
                 pData[i] = g_pDataReader->Read32();

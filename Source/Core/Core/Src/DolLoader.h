@@ -41,7 +41,7 @@ public:
 			fread(&m_dolheader, 1, sizeof(SDolHeader), pStream);
 
 			// swap memory
-			DWORD* p = (DWORD*)&m_dolheader;
+			u32* p = (u32*)&m_dolheader;
 			for (int i=0; i<(sizeof(SDolHeader)>>2); i++)	
 				p[i] = Common::swap32(p[i]);
 

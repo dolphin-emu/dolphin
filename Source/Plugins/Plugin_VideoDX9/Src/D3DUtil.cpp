@@ -9,17 +9,17 @@ namespace D3D
 	CD3DFont font;
 
 #define MAX_NUM_VERTICES 50*6
-	struct FONT2DVERTEX { 
-		float x,y,z; 
-		float rhw;  
-		int color; 
-		float tu, tv; 
+	struct FONT2DVERTEX {
+		float x,y,z;
+		float rhw;
+		u32 color;
+		float tu, tv;
 	};
 
 #define D3DFVF_FONT2DVERTEX (D3DFVF_XYZRHW|D3DFVF_DIFFUSE|D3DFVF_TEX1)
 #define D3DFVF_FONT3DVERTEX (D3DFVF_XYZ|D3DFVF_DIFFUSE|D3DFVF_NORMAL|D3DFVF_TEX1)
 
-	inline FONT2DVERTEX InitFont2DVertex( float x, float y, DWORD color, float tu, float tv )
+	inline FONT2DVERTEX InitFont2DVertex( float x, float y, u32 color, float tu, float tv )
 	{
 		FONT2DVERTEX v;   v.x=x; v.y=y; v.z=0; v.rhw=1.0f;  v.color = color;   v.tu = tu;   v.tv = tv;
 		return v;
@@ -236,7 +236,7 @@ namespace D3D
 		}
 	}
 
-	int CD3DFont::DrawTextScaled( float x, float y, float fXScale, float fYScale, float spacing, int dwColor, const char* strText, bool center )
+	int CD3DFont::DrawTextScaled( float x, float y, float fXScale, float fYScale, float spacing, u32 dwColor, const char* strText, bool center )
 	{
 		SaveRenderStates();
 		SetRenderStates();
@@ -356,10 +356,10 @@ namespace D3D
 		return S_OK;
 	}
 
-	void quad2d(float x1, float y1, float x2, float y2, DWORD color, float u1, float v1, float u2, float v2)
+	void quad2d(float x1, float y1, float x2, float y2, u32 color, float u1, float v1, float u2, float v2)
 	{
 		SaveRenderStates();	
-		struct Q2DVertex { float x,y,z,rhw; int color; float u, v; } coords[4] = {
+		struct Q2DVertex { float x,y,z,rhw; u32 color; float u, v; } coords[4] = {
 			{x1-0.5f, y1-0.5f, 0, 1, color, u1, v1},
 			{x2-0.5f, y1-0.5f, 0, 1, color, u2, v1},
 			{x2-0.5f, y2-0.5f, 0, 1, color, u2, v2},

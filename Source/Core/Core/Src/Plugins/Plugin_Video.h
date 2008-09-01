@@ -38,7 +38,7 @@ typedef void (__cdecl* TVideo_Initialize)(SVideoInitialize*);
 typedef void (__cdecl* TVideo_Prepare)();
 typedef void (__cdecl* TVideo_Shutdown)();
 typedef void (__cdecl* TVideo_SendFifoData)(u8*);
-typedef void (__cdecl* TVideo_UpdateXFB)(u8*, DWORD, DWORD);
+typedef void (__cdecl* TVideo_UpdateXFB)(u8*, u32, u32);
 typedef BOOL (__cdecl* TVideo_Screenshot)(TCHAR*);
 typedef void (__cdecl* TVideo_EnterLoop)();
 typedef void (__cdecl* TVideo_AddMessage)(const char* pstr, unsigned int milliseconds);

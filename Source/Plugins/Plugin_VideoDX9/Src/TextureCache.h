@@ -30,7 +30,7 @@ class TextureCache
 	};
 
 
-	typedef std::map<DWORD,TCacheEntry> TexCache;
+	typedef std::map<u32,TCacheEntry> TexCache;
 
 	static u8 *temp;
 	static TexCache textures;
@@ -40,8 +40,8 @@ public:
 	static void Cleanup();
 	static void Shutdown();
 	static void Invalidate();
-	static void Load(int stage, DWORD address, int width, int height, int format, int tlutaddr, int tlutfmt);
-	static void CopyEFBToRenderTarget(DWORD address, RECT *source);
+	static void Load(int stage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt);
+	static void CopyEFBToRenderTarget(u32 address, RECT *source);
 };
 
 #endif

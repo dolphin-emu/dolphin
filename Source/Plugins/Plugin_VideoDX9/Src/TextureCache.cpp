@@ -80,7 +80,7 @@ void TextureCache::Cleanup()
 	}
 }
 
-void TextureCache::Load(int stage, DWORD address, int width, int height, int format, int tlutaddr, int tlutfmt)
+void TextureCache::Load(int stage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt)
 {
 	if (address == 0)
 		return;
@@ -195,7 +195,7 @@ void TextureCache::Load(int stage, DWORD address, int width, int height, int for
 }
  
 
-void TextureCache::CopyEFBToRenderTarget(DWORD address, RECT *source)
+void TextureCache::CopyEFBToRenderTarget(u32 address, RECT *source)
 {
 	TexCache::iterator iter;
 	LPDIRECT3DTEXTURE9 tex;
