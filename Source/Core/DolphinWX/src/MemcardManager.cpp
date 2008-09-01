@@ -176,34 +176,29 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	m_MemcardList[card]->InsertColumn(COLUMN_BANNER, _T("Banner"));
 	m_MemcardList[card]->InsertColumn(COLUMN_TITLE, _T("Title"));
 	m_MemcardList[card]->InsertColumn(COLUMN_COMMENT, _T("Comment"));
+	m_MemcardList[card]->InsertColumn(COLUMN_ICON, _T("Icon"));
 
 	wxImageList *list=m_MemcardList[card]->GetImageList(wxIMAGE_LIST_SMALL);
 	list->RemoveAll();
 
 	int nFiles = memoryCard[card]->GetNumFiles();
 
-	int *images = new int[nFiles];
+	int *images = new int[nFiles*2];
 	for(int i=0;i<nFiles;i++)
 	{
 		static u32 pxdata[96*32];
 		static u8  animDelay[8];
 		static u32 animData[32*32*8];
 
-		if(memoryCard[card]->ReadBannerRGBA8(i,pxdata))
-		{
-			//// it looks better without alpha
-			//for(int i=0;i<96*32;i++)
-			//	pxdata[i]|=0xFF000000;
-		}
-		else
+		int numFrames = memoryCard[card]->ReadAnimRGBA8(i,animData,animDelay);
+
+		if(!memoryCard[card]->ReadBannerRGBA8(i,pxdata))
 		{
 			memset(pxdata,0,96*32*4);
 
-			int numFrames = memoryCard[card]->ReadAnimRGBA8(i,animData,animDelay);
 			if(numFrames>0) // just use the first one
 			{
-				int n = numFrames/2;
-				u32 *icdata = animData+n*32*32;
+				u32 *icdata = animData;
 
 				for(int y=0;y<32;y++)
 				{
@@ -216,7 +211,22 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		}
 
 		wxBitmap map((char*)pxdata,96,32,32);
-		images[i] = list->Add(map);
+		images[i*2] = list->Add(map);
+
+		if(numFrames>0)
+		{
+			memset(pxdata,0,96*32*4);
+			for(int y=0;y<32;y++)
+			{
+				for(int x=0;x<32;x++)
+				{
+					pxdata[y*96+x] = animData[y*32+x];
+				}
+			}
+
+			wxBitmap icon((char*)pxdata,96,32,32);
+			images[i*2+1] = list->Add(icon);
+		}
 	}
 
 	for(int i=0;i<nFiles;i++)
@@ -231,10 +241,12 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		m_MemcardList[card]->SetItem(index, COLUMN_BANNER, wxString::FromAscii(""));
 		m_MemcardList[card]->SetItem(index, COLUMN_TITLE, wxString::FromAscii(title));
 		m_MemcardList[card]->SetItem(index, COLUMN_COMMENT, wxString::FromAscii(comment));
+		m_MemcardList[card]->SetItem(index, COLUMN_ICON, wxString::FromAscii(""));
 
 		if(images[i]>=0)
 		{
-			m_MemcardList[card]->SetItemImage(index, images[i]);
+			m_MemcardList[card]->SetItemImage(index, images[i*2]);
+			m_MemcardList[card]->SetItemColumnImage(index, COLUMN_ICON, images[i*2+1]);
 		}
 	}
 	m_MemcardList[card]->Show();

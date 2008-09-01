@@ -27,7 +27,7 @@
 #include "MemoryCards/GCMemcard.h"
 
 #undef MEMCARD_MANAGER_STYLE
-#define MEMCARD_MANAGER_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX | wxRESIZE_BORDER
+#define MEMCARD_MANAGER_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX | wxRESIZE_BORDER | wxMAXIMIZE_BOX
 
 class CMemcardManager
 	: public wxDialog
@@ -51,6 +51,9 @@ class CMemcardManager
 		wxFilePickerCtrl* m_Memcard1Path;
 		wxFilePickerCtrl* m_Memcard2Path;
 		wxListCtrl* m_MemcardList[2];
+		wxTimer* m_Timer;
+
+		int nframe;
 
 		enum
 		{
@@ -70,6 +73,7 @@ class CMemcardManager
 			COLUMN_BANNER = 0,
 			COLUMN_TITLE,
 			COLUMN_COMMENT,
+			COLUMN_ICON,
 			NUMBER_OF_COLUMN
 		};
 		
@@ -80,6 +84,7 @@ class CMemcardManager
 		void CopyDeleteClick(wxCommandEvent& event);
 		void ReloadMemcard(const char *fileName, int card);
 		void OnPathChange(wxFileDirPickerEvent& event);
+		void OnTimer(wxTimerEvent& event);
 };
 
 #endif
