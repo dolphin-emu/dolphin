@@ -23,6 +23,7 @@
 #include <wx/statbmp.h>
 #include <wx/stattext.h>
 #include <wx/listctrl.h>
+#include <wx/imaglist.h>
 
 #include "MemoryCards/GCMemcard.h"
 

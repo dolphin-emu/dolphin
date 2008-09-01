@@ -338,6 +338,11 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     ERROR_LOG("glX-Version %d.%d\n", glxMajorVersion, glxMinorVersion);
     /* create a GLX context */
     GLWin.ctx = glXCreateContext(GLWin.dpy, vi, 0, GL_TRUE);
+    if(!GLWin.ctx)
+    {
+        ERROR_LOG("Couldn't Create GLX context.Quit");
+        exit(0); // TODO: Don't bring down entire Emu
+    }
     /* create a color map */
     cmap = XCreateColormap(GLWin.dpy, RootWindow(GLWin.dpy, vi->screen),
                            vi->visual, AllocNone);

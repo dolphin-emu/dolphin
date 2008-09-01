@@ -55,6 +55,7 @@ namespace AOSound
 
 		return(false);*/
 		//if(soundData[0] != 0)
+		if(!device)
 			ao_play(device, soundData, numSoundBytes);
 		return true;
 		
@@ -112,7 +113,7 @@ namespace AOSound
 		device = ao_open_live(default_driver, &format, NULL /* no options */);
 		if (device == NULL) {
 			fprintf(stderr, "Error opening device.\n");
-			return 1;
+			return false;
 		}   
 		buf_size = format.bits/8 * format.channels * format.rate;
 		buffer = (char*)calloc(buf_size, sizeof(char));
@@ -121,6 +122,7 @@ namespace AOSound
 	}
 	void AOSound_StopSound()
 	{
+		free(buffer);
 		ao_close(device);
 		ao_shutdown();
 	}
