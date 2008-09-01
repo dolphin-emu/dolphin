@@ -155,13 +155,13 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
                 // read the data and send it to the VideoPlugin
 				u8 *uData = video_initialize.pGetMemoryPointer(_fifo.CPReadPointer);
 #ifdef _WIN32
-                EnterCriticalSection(&fifo.sync);
+                EnterCriticalSection(&_fifo.sync);
 #endif
                 _fifo.CPReadPointer += 32;
                 Video_SendFifoData(uData);
 #ifdef _WIN32
                 InterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -32);
-                LeaveCriticalSection(&fifo.sync);
+                LeaveCriticalSection(&_fifo.sync);
 #endif
                 // increase the ReadPtr
                 if (_fifo.CPReadPointer >= _fifo.CPEnd)

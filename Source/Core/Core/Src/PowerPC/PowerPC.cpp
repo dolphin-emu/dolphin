@@ -102,7 +102,7 @@ namespace PowerPC
 		Interpreter::Init();
 		Jit64::Core::Init();
 		// ... but start as interpreter by default.
-		_mode = MODE_INTERPRETER;
+		mode = MODE_INTERPRETER;
 		state = CPU_STEPPING;
 	}
 

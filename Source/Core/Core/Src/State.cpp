@@ -92,6 +92,10 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 	if(bCompressed) {
 		int chunks = sz / chunkSize, leftovers = sz % chunkSize;
 
+		//SANITY CHECK
+		if(((chunks * chunkSize) + leftovers) != sz)
+			PanicAlert("WTF %d != %d", ((chunks * chunkSize) + leftovers), sz);
+
 		strm.zalloc = Z_NULL;
 		strm.zfree = Z_NULL;
 		strm.opaque = Z_NULL;
@@ -101,21 +105,23 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 			strm.avail_in = chunkSize;
 			memcpy(inbuf, buffer + i * chunkSize, chunkSize);
 			strm.next_in = inbuf;
-			memcpy(outbuf, buffer + i * chunkSize, chunkSize);
-			strm.avail_out = chunkSize;
-			strm.next_out = outbuf;
-			deflate(&strm, Z_NO_FLUSH);
-			fwrite(outbuf, 1, chunkSize - strm.avail_out, f);
+			do {
+				strm.avail_out = chunkSize;
+				strm.next_out = outbuf;
+				deflate(&strm, Z_NO_FLUSH);
+				fwrite(outbuf, 1, chunkSize - strm.avail_out, f);
+			} while(strm.avail_out == 0);
 		}
 
 		strm.avail_in = leftovers;
 		memcpy(inbuf, buffer + chunks * chunkSize, leftovers);
 		strm.next_in = inbuf;
-		memcpy(outbuf, buffer + chunks * chunkSize, leftovers);
-		strm.avail_out = leftovers;
-		strm.next_out = outbuf;
-		deflate(&strm, Z_NO_FLUSH);
-		fwrite(outbuf, 1, leftovers - strm.avail_out, f);
+		do {
+			strm.avail_out = leftovers;
+			strm.next_out = outbuf;
+			deflate(&strm, Z_NO_FLUSH);
+			fwrite(outbuf, 1, leftovers - strm.avail_out, f);
+		} while(strm.avail_out == 0);
 
 		(void)deflateEnd(&strm);
 	} else
@@ -162,10 +168,17 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 		strm.avail_in = 0;
 		strm.next_in = Z_NULL;
 		ret = inflateInit(&strm);
+		if (ret != Z_OK)
+			return;
+
 
 		int cnt = 0;
 		do {
-			strm.avail_in = uInt(fread(inbuf, 1, chunkSize, f));
+			strm.avail_in = fread(inbuf, 1, chunkSize, f);
+			if (ferror(f)) {
+				(void)inflateEnd(&strm);
+				return;
+			}
 			if (strm.avail_in == 0)
 				break;
 			strm.next_in = inbuf;
@@ -174,6 +187,14 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 				strm.avail_out = chunkSize;
 				strm.next_out = outbuf;
 				ret = inflate(&strm, Z_NO_FLUSH);
+				_assert_(ret != Z_STREAM_ERROR);  /* state not clobbered */
+				switch (ret) {
+				case Z_NEED_DICT:
+				case Z_DATA_ERROR:
+				case Z_MEM_ERROR:
+					(void)inflateEnd(&strm);
+					return;
+				}
 
 				int have = chunkSize - strm.avail_out;
 				
@@ -183,6 +204,8 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 		} while (ret != Z_STREAM_END);
 
 		(void)inflateEnd(&strm);
+
+		PanicAlert("Got here, %d/%d", cnt, sz);
 	} else {
 		fseek(f, 0, SEEK_END);
 		sz = ftell(f) - sizeof(int);
@@ -196,7 +219,6 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	}
 
 	fclose(f);
-
 
 	u8 *ptr = buffer;
 	PointerWrap p(&ptr, PointerWrap::MODE_READ);
