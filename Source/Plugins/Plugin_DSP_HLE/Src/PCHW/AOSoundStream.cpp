@@ -55,7 +55,7 @@ namespace AOSound
 
 		return(false);*/
 		//if(soundData[0] != 0)
-		if(!device)
+		if(device)
 			ao_play(device, soundData, numSoundBytes);
 		return true;
 		
@@ -122,8 +122,8 @@ namespace AOSound
 	}
 	void AOSound_StopSound()
 	{
-		free(buffer);
 		ao_close(device);
 		ao_shutdown();
+		free(buffer);
 	}
 }
