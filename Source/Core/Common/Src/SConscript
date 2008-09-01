@@ -16,7 +16,6 @@ files = [
 	"MemArena.cpp",
 	"MemoryUtil.cpp",
 	"Plugin.cpp",
-	"PortableSockets.cpp",
 	"StringUtil.cpp",
 	"TestFramework.cpp",
 	"Thunk.cpp",
