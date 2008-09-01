@@ -80,5 +80,6 @@ bool File::CreateDir(const std::string &path)
 	return false;
 #else
 	// TODO: Insert POSIX code here.
+        return true;
 #endif
 }

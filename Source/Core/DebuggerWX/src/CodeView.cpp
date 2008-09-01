@@ -395,13 +395,13 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 
 				if (mojs)
 				{
-					for (int i = 0; i < 8; i++)
+					for (int k = 0; k < 8; k++)
 					{
 						bool found = false;
 
 						for (int j = 0; j < 22; j++)
 						{
-							if (mojs[i + 2] == "0123456789ABCDEFabcdef"[j])
+							if (mojs[k + 2] == "0123456789ABCDEFabcdef"[j])
 							{
 								found = true;
 							}

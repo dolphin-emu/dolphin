@@ -49,8 +49,8 @@
 namespace Jit64
 {
 	namespace {
-	u64 GC_ALIGNED16(temp64);
-	u32 GC_ALIGNED16(temp32);
+          //	u64 GC_ALIGNED16(temp64);
+          //	u32 GC_ALIGNED16(temp32);
 	}
 	void lbzx(UGeckoInstruction inst)
 	{

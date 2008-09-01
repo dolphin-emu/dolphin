@@ -126,47 +126,47 @@ void Video_SendFifoData(u8* _uData)
 // See Core.cpp for threading idea
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 {
-    SCPFifoStruct &fifo = *video_initialize.pCPFifo;
+    SCPFifoStruct &_fifo = *video_initialize.pCPFifo;
 
     // TODO(ector): Don't peek so often!
     while (video_initialize.pPeekMessages())
     {
-        if (fifo.CPReadWriteDistance < 1) //fifo.CPLoWatermark)
+        if (_fifo.CPReadWriteDistance < 1) //fifo.CPLoWatermark)
             Common::SleepCurrentThread(1);
         //etc...
 
         // check if we are able to run this buffer
-        if ((fifo.bFF_GPReadEnable) && !(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
+        if ((_fifo.bFF_GPReadEnable) && !(_fifo.bFF_BPEnable && _fifo.bFF_Breakpoint))
         {
             int count = 200;
-            while(fifo.CPReadWriteDistance > 0 && count)
+            while(_fifo.CPReadWriteDistance > 0 && count)
             {
                 // check if we are on a breakpoint
-                if (fifo.bFF_BPEnable)
+                if (_fifo.bFF_BPEnable)
                 {
-                    if (fifo.CPReadPointer == fifo.CPBreakpoint)
+                    if (_fifo.CPReadPointer == _fifo.CPBreakpoint)
                     {
-                        fifo.bFF_Breakpoint = 1; 
+                        _fifo.bFF_Breakpoint = 1; 
                         video_initialize.pUpdateInterrupts(); 
                         break;
                     }
                 }
 
                 // read the data and send it to the VideoPlugin
-				u8 *uData = video_initialize.pGetMemoryPointer(fifo.CPReadPointer);
+				u8 *uData = video_initialize.pGetMemoryPointer(_fifo.CPReadPointer);
 #ifdef _WIN32
                 EnterCriticalSection(&fifo.sync);
 #endif
-                fifo.CPReadPointer += 32;
+                _fifo.CPReadPointer += 32;
                 Video_SendFifoData(uData);
 #ifdef _WIN32
-                InterlockedExchangeAdd((LONG*)&fifo.CPReadWriteDistance, -32);
+                InterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -32);
                 LeaveCriticalSection(&fifo.sync);
 #endif
                 // increase the ReadPtr
-                if (fifo.CPReadPointer >= fifo.CPEnd)
+                if (_fifo.CPReadPointer >= _fifo.CPEnd)
                 {
-                    fifo.CPReadPointer = fifo.CPBase;				
+                    _fifo.CPReadPointer = _fifo.CPBase;				
                     //LOG(COMMANDPROCESSOR, "BUFFER LOOP");
                 }
                 count--;

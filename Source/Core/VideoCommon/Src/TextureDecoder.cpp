@@ -480,7 +480,7 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 	while(*fmt)
 	{
 		int xcnt = 0;
-		int nchar = sfont_map[*fmt];
+		int nchar = sfont_map[(int)*fmt];
 		
 		const unsigned char *ptr = sfont_raw[nchar]; // each char is up to 9x10
 

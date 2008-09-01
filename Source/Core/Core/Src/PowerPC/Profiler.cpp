@@ -60,7 +60,7 @@ void WriteProfileResults(const char *filename) {
 		return;
 	}
 	fprintf(f, "Profile\n");
-	for (int i = 0; i < stats.size(); i++)
+	for (unsigned int i = 0; i < stats.size(); i++)
 	{
 		const Jit64::JitBlock *block = Jit64::GetBlock(stats[i].blockNum);
 		if (block) {

@@ -367,7 +367,7 @@ std::string GetScheduledEventsSummary()
 	text.reserve(1000);
 	while (ptr)
 	{
-		int t = ptr->type;
+		unsigned int t = ptr->type;
 		if (t < 0 || t >= event_types.size())
 			PanicAlert("Invalid event type %i", t);
 		const char *name = event_types[ptr->type].name;

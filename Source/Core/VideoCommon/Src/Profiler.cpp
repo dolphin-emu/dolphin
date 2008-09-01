@@ -247,15 +247,15 @@ void DVProfWrite(const char* pfilename, u32 frames)
     }
 
     {
-        map<string, DVTIMEINFO>::iterator it;
+        map<string, DVTIMEINFO>::iterator iter;
         fprintf(f, "\n\n-------------------------------------------------------------------\n\n");
 
         u64 uTotal[2] = {0};
         double fiTotalTime[2];
 
-        for(it = mapAggregateTimes.begin(); it != mapAggregateTimes.end(); ++it) {
-            uTotal[0] += it->second.uExclusive;
-            uTotal[1] += it->second.uInclusive;
+        for(iter = mapAggregateTimes.begin(); iter != mapAggregateTimes.end(); ++iter) {
+            uTotal[0] += iter->second.uExclusive;
+            uTotal[1] += iter->second.uInclusive;
         }
 
         fprintf(f, "total times (%d): ex: %Lu ", frames, 1000000*uTotal[0]/(luPerfFreq*(u64)frames));
@@ -265,9 +265,9 @@ void DVProfWrite(const char* pfilename, u32 frames)
         fiTotalTime[1] = 1.0 / (double)uTotal[1];
 
         // output the combined times
-        for(it = mapAggregateTimes.begin(); it != mapAggregateTimes.end(); ++it) {
-            fprintf(f, "%s - ex: %f inc: %f\n", it->first.c_str(), (float)((double)it->second.uExclusive * fiTotalTime[0]),
-                (float)((double)it->second.uInclusive * fiTotalTime[1]));
+        for(iter = mapAggregateTimes.begin(); iter != mapAggregateTimes.end(); ++iter) {
+            fprintf(f, "%s - ex: %f inc: %f\n", iter->first.c_str(), (float)((double)iter->second.uExclusive * fiTotalTime[0]),
+                (float)((double)iter->second.uInclusive * fiTotalTime[1]));
         }
     }
 

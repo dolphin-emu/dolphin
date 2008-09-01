@@ -96,7 +96,7 @@ void UpdateFPRF(double value)
 			return;
 		}
 		u64 mantissa = ivalue & 0x000FFFFFFFFFFFFFULL;
-		int mantissa_top = (int)(mantissa >> 51);
+                //		int mantissa_top = (int)(mantissa >> 51);
 		if (exp == 0 && mantissa) {
 			// Denormalized number.
 			if (sign) {
@@ -192,8 +192,8 @@ void fctiwx(UGeckoInstruction _inst)
 	else
 	{
 		value = (u32)(s32)_mm_cvtsd_si32(_mm_set_sd(b));  // obey current rounding mode
-		double d_value = (double)value;
-		bool inexact = (d_value != b);
+//		double d_value = (double)value;
+//		bool inexact = (d_value != b);
 //		FPSCR.FI = inexact ? 1 : 0;
 //		FPSCR.XX |= FPSCR.FI;
 //		FPSCR.FR = fabs(d_value) > fabs(b);
@@ -231,8 +231,8 @@ void fctiwzx(UGeckoInstruction _inst)
 	else
 	{
 		value = (u32)(s32)_mm_cvttsd_si32(_mm_set_sd(b)); // truncate
-		double d_value = (double)value;
-		bool inexact = (d_value != b);
+//		double d_value = (double)value;
+//		bool inexact = (d_value != b);
 //		FPSCR.FI = inexact ? 1 : 0;
 //		FPSCR.XX |= FPSCR.FI;
 //		FPSCR.FR = 1; //fabs(d_value) > fabs(b);

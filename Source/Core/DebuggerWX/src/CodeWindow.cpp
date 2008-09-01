@@ -645,7 +645,6 @@ void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
 
 void CCodeWindow::OnSymbolListContextMenu(wxContextMenuEvent& event)
 {
-	int index = symbols->GetSelection();
 }
 
 

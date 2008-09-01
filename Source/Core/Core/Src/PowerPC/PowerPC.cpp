@@ -85,10 +85,10 @@ namespace PowerPC
 	#ifdef _WIN32
 		_control87(_PC_53, MCW_PC);
 	#else
-		unsigned short mode;
-		asm ("fstcw %0" : : "m" (mode));
-		mode = (mode & ~FPU_PREC_MASK) | FPU_PREC_53;
-		asm ("fldcw %0" : : "m" (mode));
+		unsigned short _mode;
+		asm ("fstcw %0" : : "m" (_mode));
+		_mode = (_mode & ~FPU_PREC_MASK) | FPU_PREC_53;
+		asm ("fldcw %0" : : "m" (_mode));
 	#endif
 	#else
 		//x64 doesn't need this - fpu is done with SSE
@@ -102,7 +102,7 @@ namespace PowerPC
 		Interpreter::Init();
 		Jit64::Core::Init();
 		// ... but start as interpreter by default.
-		mode = MODE_INTERPRETER;
+		_mode = MODE_INTERPRETER;
 		state = CPU_STEPPING;
 	}
 

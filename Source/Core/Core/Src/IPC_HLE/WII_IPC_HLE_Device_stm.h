@@ -57,10 +57,10 @@ public:
     virtual bool IOCtl(u32 _CommandAddress) 
     {
         u32 Parameter = Memory::Read_U32(_CommandAddress +0x0C);
-        u32 Buffer1 = Memory::Read_U32(_CommandAddress +0x10);
-        u32 BufferSize1 = Memory::Read_U32(_CommandAddress +0x14);
-        u32 Buffer2 = Memory::Read_U32(_CommandAddress +0x18);
-        u32 BufferSize2 = Memory::Read_U32(_CommandAddress +0x1C);
+        //        u32 Buffer1 = Memory::Read_U32(_CommandAddress +0x10);
+        //        u32 BufferSize1 = Memory::Read_U32(_CommandAddress +0x14);
+        //        u32 Buffer2 = Memory::Read_U32(_CommandAddress +0x18);
+        //        u32 BufferSize2 = Memory::Read_U32(_CommandAddress +0x1C);
 
         // write return value
         Memory::Write_U32(1, _CommandAddress + 0x4);
@@ -121,8 +121,8 @@ public:
         u32 Parameter = Memory::Read_U32(_CommandAddress +0x0C);
         u32 Buffer1 = Memory::Read_U32(_CommandAddress +0x10);
         u32 BufferSize1 = Memory::Read_U32(_CommandAddress +0x14);
-        u32 Buffer2 = Memory::Read_U32(_CommandAddress +0x18);
-        u32 BufferSize2 = Memory::Read_U32(_CommandAddress +0x1C);
+        //        u32 Buffer2 = Memory::Read_U32(_CommandAddress +0x18);
+        //        u32 BufferSize2 = Memory::Read_U32(_CommandAddress +0x1C);
 
         // write return value
         switch (Parameter)

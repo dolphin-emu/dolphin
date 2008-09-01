@@ -129,8 +129,8 @@ protected:
 
         for (u32 i=0; i<NumberOutBuffer; i++)
         {            
-            u32 OutBuffer        = Memory::Read_U32(BufferOffset); BufferOffset += 4;
-            u32 OutBufferSize    = Memory::Read_U32(BufferOffset); BufferOffset += 4;
+          //            u32 OutBuffer        = Memory::Read_U32(BufferOffset); BufferOffset += 4;
+          //            u32 OutBufferSize    = Memory::Read_U32(BufferOffset); BufferOffset += 4;
 
             Memory::Write_U32(1, _CommandAddress + 0x4);
 

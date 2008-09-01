@@ -135,15 +135,16 @@ CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 
     u32 Parameter =  Memory::Read_U32(_CommandAddress + 0xC);
 
-    u32 BufferIn =  Memory::Read_U32(_CommandAddress + 0x10);
-    u32 BufferInSize =  Memory::Read_U32(_CommandAddress + 0x14);
-    u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-    u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
+    //    u32 BufferIn =  Memory::Read_U32(_CommandAddress + 0x10);
+    //    u32 BufferInSize =  Memory::Read_U32(_CommandAddress + 0x14);
+    //    u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
+    //    u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
 
     switch(Parameter)
     {
     case ISFS_IOCTL_GETFILESTATS:
         {
+            u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
             LOG(WII_IPC_HLE, "FileIO: ISFS_IOCTL_GETFILESTATS");
             LOG(WII_IPC_HLE, "Length: %i   Seek: %i", m_FileLength, m_Seek);
 

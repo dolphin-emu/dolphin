@@ -39,11 +39,11 @@ void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 	ptr->Flush();
 }
 
-CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rFilename, int card_index) :
+CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rFilename, int _card_index) :
 	m_strFilename(_rFilename)
 {
-	this->card_index = card_index;
-	cards[card_index] = this;
+	this->card_index = _card_index;
+	cards[_card_index] = this;
 	et_this_card = CoreTiming::RegisterEvent(_rName.c_str(), FlushCallback);
 
 	nintendo_card_id = 0x00000010; // 16MBit nintendo card

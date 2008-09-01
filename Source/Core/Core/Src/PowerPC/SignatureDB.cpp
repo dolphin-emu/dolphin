@@ -47,10 +47,10 @@ bool SignatureDB::Load(const char *filename)
         memset(&temp, 0, sizeof(temp));
 
         fread(&temp, sizeof(temp), 1, f);
-		DBFunc f;
-		f.name = temp.name;
-		f.size = temp.size;
-	    database[temp.checkSum] = f;
+		DBFunc dbf;
+		dbf.name = temp.name;
+		dbf.size = temp.size;
+	    database[temp.checkSum] = dbf;
 	}
 	fclose(f);
 	return true;

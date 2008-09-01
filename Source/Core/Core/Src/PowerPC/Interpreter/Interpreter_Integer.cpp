@@ -234,9 +234,10 @@ void cmp(UGeckoInstruction _inst)
 {
 	s32 a = (s32)m_GPR[_inst.RA];
 	s32 b = (s32)m_GPR[_inst.RB];
-	int fTemp;
-	if (a < b)  fTemp = 0x8;
-	else if (a > b)  fTemp = 0x4;
+	int fTemp = 0x8; // a < b 
+
+        //	if (a < b)  fTemp = 0x8; else 
+        if (a > b)  fTemp = 0x4;
 	else if (a == b) fTemp = 0x2;
 	if (XER.SO) PanicAlert("cmp getting overflow flag"); // fTemp |= 0x1
 	SetCRField(_inst.CRFD, fTemp);
@@ -246,9 +247,10 @@ void cmpl(UGeckoInstruction _inst)
 {
 	u32 a = m_GPR[_inst.RA];
 	u32 b = m_GPR[_inst.RB];
-	u32 fTemp;
-	if (a < b)  fTemp = 0x8;
-	else if (a > b)  fTemp = 0x4;
+	u32 fTemp = 0x8; // a < b
+
+        //	if (a < b)  fTemp = 0x8;else 
+        if (a > b)  fTemp = 0x4;
 	else if (a == b) fTemp = 0x2;
 	if (XER.SO) PanicAlert("cmpl getting overflow flag"); // fTemp |= 0x1;
 	SetCRField(_inst.CRFD, fTemp);

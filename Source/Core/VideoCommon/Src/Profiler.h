@@ -61,7 +61,7 @@ class DVProfileFunc
 public:
     u32 dwUserData;
     __forceinline DVProfileFunc(const char* pname) {}
-    __forceinline DVProfileFunc(const char* pname, u32 dwUserData) { }
+    __forceinline DVProfileFunc(const char* pname, u32 _dwUserData) { }
     ~DVProfileFunc() {}
 };
 

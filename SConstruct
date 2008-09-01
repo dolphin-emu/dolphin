@@ -13,6 +13,7 @@ warnings = [
 	'pointer-arith',
 	'packed',
 	'no-conversion',
+#	'error',
 	#'unreachable-code',
 	]
 compileFlags = [

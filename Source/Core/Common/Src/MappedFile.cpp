@@ -158,7 +158,7 @@ void CMappedFile::Close()
 }
 
 
-u8* CMappedFile::Lock(u64 offset, u64 size)
+u8* CMappedFile::Lock(u64 offset, u64 _size)
 {
 #ifdef _WIN32
 	if (hFile != INVALID_HANDLE_VALUE)
@@ -168,9 +168,9 @@ u8* CMappedFile::Lock(u64 offset, u64 size)
 	{
 		u64 realOffset = offset & ~(granularity - 1);
 		s64 difference = offset - realOffset;
-		u64 fake_size = (difference + size + granularity - 1) & ~(granularity - 1);
+		u64 fake_size = (difference + _size + granularity - 1) & ~(granularity - 1);
 #ifdef _WIN32
-		u8* realPtr = (u8*)MapViewOfFile(hFileMapping, FILE_MAP_READ, (DWORD)(realOffset >> 32), (DWORD)realOffset, (SIZE_T)(size));
+		u8* realPtr = (u8*)MapViewOfFile(hFileMapping, FILE_MAP_READ, (DWORD)(realOffset >> 32), (DWORD)realOffset, (SIZE_T)(_size));
 
 		if (realPtr == NULL)
 		{
@@ -192,7 +192,7 @@ u8* CMappedFile::Lock(u64 offset, u64 size)
 		//add to map
 		lockMap[fakePtr] = realPtr;
 #ifndef _WIN32
-		sizeMap[fakePtr] = size + difference;
+		sizeMap[fakePtr] = _size + difference;
 #endif
 		return(fakePtr);
 	}

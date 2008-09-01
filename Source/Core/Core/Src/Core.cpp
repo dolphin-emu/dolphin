@@ -309,7 +309,7 @@ THREAD_RETURN EmuThread(void *pArg)
         g_pUpdateFPSDisplay("Loading...");
 
 	// setup our core, but can't use dynarec if we are compare server
-	if (_CoreParameter.bUseJIT && !_CoreParameter.bRunCompareServer || _CoreParameter.bRunCompareClient)
+	if (_CoreParameter.bUseJIT && (!_CoreParameter.bRunCompareServer || _CoreParameter.bRunCompareClient))
 		PowerPC::SetMode(PowerPC::MODE_JIT);
 	else
 		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);

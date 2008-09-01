@@ -354,11 +354,11 @@ void mtspr(UGeckoInstruction _inst)
 			if (HID2.PSE == 0)
 				PanicAlert("WARNING: PSE in HID2 isnt set");
 
-			bool WriteGatherPipeEnable = (bool)HID2.WPE; //TODO?
-			bool LockedCacheEnable = (bool)HID2.LCE;
-			int DMAQueueLength = HID2.DMAQL; // Ignore - our DMA:s are instantaneous
-			bool PairedSingleEnable = HID2.PSE;
-			bool QuantizeEnable = HID2.LSQE;
+                        //			bool WriteGatherPipeEnable = (bool)HID2.WPE; //TODO?
+                        //			bool LockedCacheEnable = (bool)HID2.LCE;
+                        //			int DMAQueueLength = HID2.DMAQL; // Ignore - our DMA:s are instantaneous
+                        //			bool PairedSingleEnable = HID2.PSE;
+                        //			bool QuantizeEnable = HID2.LSQE;
 			//TODO(ector): Protect LC memory if LCE is false.
 			//TODO(ector): Honor PSE.
 

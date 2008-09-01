@@ -631,7 +631,7 @@ void tlbia(UGeckoInstruction _inst)
 void tlbie(UGeckoInstruction _inst)
 {
 	// invalid entry
-	int entry = _inst.RB;
+        // int entry = _inst.RB;
 
 	//MessageBox(0,"TLBIE","TLBIE",0);
 }

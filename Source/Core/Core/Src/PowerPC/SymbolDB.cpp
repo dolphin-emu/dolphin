@@ -104,9 +104,9 @@ void SymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const char *name, int typ
 
 Symbol *SymbolDB::GetSymbolFromAddr(u32 addr)
 {
-	XFuncMap::iterator iter = functions.find(addr);
-	if (iter != functions.end())
-		return &iter->second;
+	XFuncMap::iterator it = functions.find(addr);
+	if (it != functions.end())
+		return &it->second;
 	else
 	{
 		for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); iter++)
