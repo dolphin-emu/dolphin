@@ -57,7 +57,7 @@ public:
 
 	  virtual bool IOCtl(u32 _CommandAddress) 
 	  {
-#ifdef _DEBUG
+#ifdef LOGGING
 		  u32 Parameter = Memory::Read_U32(_CommandAddress +0x0C);
 		  u32 Buffer1 = Memory::Read_U32(_CommandAddress +0x10);
 		  u32 BufferSize1 = Memory::Read_U32(_CommandAddress +0x14);

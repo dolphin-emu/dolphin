@@ -209,7 +209,7 @@ void ExecuteCommand(u32 _Address)
             // HLE - Create a new HLE device
             std::string DeviceName;
             Memory::GetString(DeviceName, Memory::Read_U32(_Address + 0xC));
-#ifdef _DEBUG
+#ifdef LOGGING
             u32 Mode = Memory::Read_U32(_Address+0x10);
 #endif
            
@@ -229,7 +229,7 @@ void ExecuteCommand(u32 _Address)
             }
             else
             {
-#ifdef _DEBUG
+#ifdef LOGGING
                 IWII_IPC_HLE_Device* pDevice = AccessDeviceByID(DeviceID);
 #endif
 

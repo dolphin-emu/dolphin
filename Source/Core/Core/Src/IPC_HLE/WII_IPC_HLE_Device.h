@@ -128,10 +128,10 @@ protected:
 
 
         for (u32 i=0; i<NumberOutBuffer; i++)
-        {   
-#ifdef _DEBUG
-            u32 OutBuffer        = Memory::Read_U32(BufferOffset); BufferOffset += 4;
-            u32 OutBufferSize    = Memory::Read_U32(BufferOffset); BufferOffset += 4;
+        {            
+#ifdef LOGGING
+			u32 OutBuffer        = Memory::Read_U32(BufferOffset); BufferOffset += 4;
+			u32 OutBufferSize    = Memory::Read_U32(BufferOffset); BufferOffset += 4;
 #endif
 
             Memory::Write_U32(1, _CommandAddress + 0x4);

@@ -76,9 +76,10 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 			CtrlSetup.wValue = *(u16*)Memory::GetPointer(CommandBuffer.InBuffer[2].m_Address);
 			CtrlSetup.wIndex = *(u16*)Memory::GetPointer(CommandBuffer.InBuffer[3].m_Address);
 			CtrlSetup.wLength = *(u16*)Memory::GetPointer(CommandBuffer.InBuffer[4].m_Address);
-#ifdef _DEBUG
+#ifdef LOGGING
 			u8 Termination =*(u8*)Memory::GetPointer(CommandBuffer.InBuffer[5].m_Address);
 #endif
+
             CtrlSetup.m_PayLoadAddr = CommandBuffer.PayloadBuffer[0].m_Address;
             CtrlSetup.m_PayLoadSize = CommandBuffer.PayloadBuffer[0].m_Size;
 
@@ -715,7 +716,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
     //
     default:
 		{
-#ifdef _DEBUG
+#ifdef LOGGING
 			u16 ocf = HCI_OCF(pMsg->Opcode);
 			u16 ogf = HCI_OGF(pMsg->Opcode);
 #endif
@@ -824,9 +825,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadLocalFeatures(u8* _Input)
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadStoredLinkKey(u8* _Input)
 {
-#ifdef _DEBUG
+#ifdef LOGGING
 	// command parameters
-    hci_read_stored_link_key_cp* ReadStoredLinkKey = (hci_read_stored_link_key_cp*)_Input;    
+	hci_read_stored_link_key_cp* ReadStoredLinkKey = (hci_read_stored_link_key_cp*)_Input;
 #endif
 	// reply
     hci_read_stored_link_key_rp Reply;    
@@ -924,10 +925,11 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandHostBufferSize(u8* _Input)
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWritePageTimeOut(u8* _Input)
 {
-#ifdef _DEBUG
-    // command parameters
-    hci_write_page_timeout_cp* pWritePageTimeOut = (hci_write_page_timeout_cp*)_Input;
+#ifdef LOGGING
+	// command parameters
+	hci_write_page_timeout_cp* pWritePageTimeOut = (hci_write_page_timeout_cp*)_Input;
 #endif
+
     // reply
     hci_host_buffer_size_rp Reply;
     Reply.status = 0x00;
@@ -951,7 +953,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
 
 	SendEventCommandComplete(HCI_CMD_WRITE_SCAN_ENABLE, &Reply, sizeof(hci_write_scan_enable_rp));
 
-#ifdef _DEBUG
+#ifdef LOGGING
     static char Scanning[][128] =
     {
         { "HCI_NO_SCAN_ENABLE"},
@@ -960,6 +962,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
         { "HCI_INQUIRY_AND_PAGE_SCAN_ENABLE"},
     };
 #endif
+
     LOG(USB_HLE_LOG, "Command: HCI_CMD_WRITE_SCAN_ENABLE:");
     LOG(USB_HLE_LOG, "write:");
     LOG(USB_HLE_LOG, "  scan_enable: %s", Scanning[pWriteScanEnable->scan_enable]);
@@ -967,17 +970,18 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryMode(u8* _Input)
 {
-#ifdef _DEBUG
+#ifdef LOGGING
     // command parameters
-    hci_write_inquiry_mode_cp* pInquiryMode = (hci_write_inquiry_mode_cp*)_Input;
+	hci_write_inquiry_mode_cp* pInquiryMode = (hci_write_inquiry_mode_cp*)_Input;
 #endif
+
     // reply
     hci_write_inquiry_mode_rp Reply;
     Reply.status = 0x00;
 
 	SendEventCommandComplete(HCI_CMD_WRITE_INQUIRY_MODE, &Reply, sizeof(hci_write_inquiry_mode_rp));
 
-#ifdef _DEBUG
+#ifdef LOGGING
     static char InquiryMode[][128] =
     {
         { "Standard Inquiry Result event format (default)" },
@@ -992,17 +996,18 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryMode(u8* _Input)
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWritePageScanType(u8* _Input)
 {
-#ifdef _DEBUG
-    // command parameters
-    hci_write_page_scan_type_cp* pWritePageScanType = (hci_write_page_scan_type_cp*)_Input;
+#ifdef LOGGING
+	// command parameters
+	hci_write_page_scan_type_cp* pWritePageScanType = (hci_write_page_scan_type_cp*)_Input;
 #endif
+
     // reply
     hci_write_page_scan_type_rp Reply;
     Reply.status = 0x00;
 
 	SendEventCommandComplete(HCI_CMD_WRITE_PAGE_SCAN_TYPE, &Reply, sizeof(hci_write_page_scan_type_rp));
 
-#ifdef _DEBUG
+#ifdef LOGGING
     static char PageScanType[][128] =
     {
         { "Mandatory: Standard Scan (default)" },
@@ -1041,10 +1046,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandInquiry(u8* _Input)
     u8 lap[HCI_LAP_SIZE];
     
     memcpy(lap, pInquiry->lap, HCI_LAP_SIZE);
-#ifdef _DEBUG
-    u8 inquiry_length = pInquiry->inquiry_length;
-    u8 num_responses = pInquiry->num_responses;
-#endif
+
     _dbg_assert_msg_(USB_HLE_LOG, m_State == STATE_NONE, "m_State != NONE");
     m_State = STATE_INQUIRY_RESPONSE;
     SendEventCommandStatus(HCI_CMD_INQUIRY);
@@ -1060,9 +1062,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandInquiry(u8* _Input)
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryScanType(u8* _Input)
 {
-#ifdef _DEBUG
-    // command parameters
-    hci_write_inquiry_scan_type_cp* pSetEventFilter = (hci_write_inquiry_scan_type_cp*)_Input;
+#ifdef LOGGING
+	// command parameters
+	hci_write_inquiry_scan_type_cp* pSetEventFilter = (hci_write_inquiry_scan_type_cp*)_Input;
 #endif
     // reply
     hci_write_inquiry_scan_type_rp Reply;
@@ -1170,10 +1172,11 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandCreateCon(u8* _Input)
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandAcceptCon(u8* _Input)
 {
-#ifdef _DEBUG
+#ifdef LOGGING
 	// command parameters
 	hci_accept_con_cp* pAcceptCon = (hci_accept_con_cp*)_Input;
 #endif
+
 	LOG(USB_HLE_LOG, "Command: HCI_CMD_ACCEPT_CON");
 	LOG(USB_HLE_LOG, "Input:");
 	LOG(USB_HLE_LOG, "  bd: %02x:%02x:%02x:%02x:%02x:%02x", 

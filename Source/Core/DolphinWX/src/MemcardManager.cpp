@@ -128,7 +128,6 @@ void CMemcardManager::CreateGUIControls()
 	
 	m_MemcardList[0]->AssignImageList(new wxImageList(96,32),wxIMAGE_LIST_SMALL);
 	m_MemcardList[1]->AssignImageList(new wxImageList(96,32),wxIMAGE_LIST_SMALL);
-	m_MemcardList[0]->
 
 	// mmmm sizer goodness
 	wxBoxSizer* sButtons;
