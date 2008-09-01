@@ -63,8 +63,13 @@ public:
 		u8 BIFlags;			//0x07		0x01	banner gfx format and icon animation (Image Key)
 							//		bit(s)	description
 							//		2		Icon Animation 0: forward 1: ping-pong
-							//		1		0: No Banner 1: Banner present
-							//		0		Banner Color 0: RGB5A3 1: CI8
+							//		1		[--0: No Banner 1: Banner present--] WRONG! YAGCD LIES!
+							//		0		[--Banner Color 0: RGB5A3 1: CI8--]  WRONG! YAGCD LIES!
+							//      bits 0 and 1: image format
+							//		00 no banner
+							//		01 CI8 banner
+							//		01 RGB5A3 banner
+							//		11 ? maybe ==01? haven't seen it
 							// 	 	
 		u8 Filename[32];	//0x08		0x20	filename
 		u8 ModTime[4];		//0x28		0x04	Time of file's last modification in seconds since 12am, January 1st, 2000

@@ -372,16 +372,16 @@ void decode5A3image(u32* dst, u16* src, int width, int height)
 
 void decodeCI8image(u32* dst, u8* src, u16* pal, int width, int height)
 {
-	for (int y = 0; y < height; y += 4)
+    for (int y = 0; y < height; y += 4)
 	{
-		for (int x = 0; x < width; x += 4)
+        for (int x = 0; x < width; x += 8)
 		{
-			for (int iy = 0; iy < 4; iy++, src += 4)
+            for (int iy = 0; iy < 4; iy++, src += 8)
 			{
-				for (int ix = 0; ix < 4; ix++)
+				u32 *tdst = dst+(y+iy)*width+x;
+				for (int ix = 0; ix < 8; ix++)
 				{
-					u32 RGBA = decode5A3(bswap16(pal[src[ix]]));
-					dst[(y + iy) * width + (x + ix)] = RGBA;
+					tdst[ix] = decode5A3(bswap16(pal[src[ix]]));
 				}
 			}
 		}
@@ -394,10 +394,9 @@ bool GCMemcard::ReadBannerRGBA8(u32 index, u32* buffer)
 
 	int flags = dir.Dir[index].BIFlags;
 
-	bool hasBanner = (flags&2)!=0;
-	bool fmtIsCI8  = (flags&1)!=0; // else RGB5A3 (if bit15 [ RGB5 A=0xFF ] else [ RGB4 A3 ] )
+	int  bnrFormat = (flags&3);
 
-	if(!hasBanner)
+	if(bnrFormat==0)
 		return false;
 
 	u32 DataOffset=BE32(dir.Dir[index].ImageOffset);
@@ -410,7 +409,7 @@ bool GCMemcard::ReadBannerRGBA8(u32 index, u32* buffer)
 
 	const int pixels = 96*32;
 
-	if(fmtIsCI8)
+	if(bnrFormat&1)
 	{
 		u8  *pxdata  = (u8* )(mc_data +(DataBlock*0x2000) + DataOffset);
 		u16 *paldata = (u16*)(mc_data +(DataBlock*0x2000) + DataOffset + pixels);
@@ -435,8 +434,7 @@ u32  GCMemcard::ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays)
 
 	int flags = dir.Dir[index].BIFlags;
 
-	bool hasBanner = (flags&2)!=0;
-	bool fmtIsCI8  = (flags&1)!=0;
+	int  bnrFormat = (flags&3);
 
 	u32 DataOffset=BE32(dir.Dir[index].ImageOffset);
 	u32 DataBlock =BE16(dir.Dir[index].FirstBlock)-5;
@@ -446,12 +444,17 @@ u32  GCMemcard::ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays)
 		return 0;
 	}
 
-	u8* animData=(u8* )(mc_data +(DataBlock*0x2000) + DataOffset);
+	u8* animData=(u8*)(mc_data +(DataBlock*0x2000) + DataOffset);
 
-	if(hasBanner)
+	switch(bnrFormat)
 	{
-		if(fmtIsCI8) animData+=96*32 + 2*256; // image+palette
-		else		 animData+=96*32*2;
+	case 1:
+	case 3:
+		animData+=96*32 + 2*256; // image+palette
+		break;
+	case 2:
+		animData+=96*32*2;
+		break;
 	}
 
 	int fmts[8];
@@ -461,8 +464,8 @@ u32  GCMemcard::ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays)
 
 	for(int i=0;i<8;i++)
 	{
-		fmts[i] = formats>>(2*i);
-		delays[i] = (fdelays>>(2*i))<<2;
+		fmts[i] = (formats>>(2*i))&3;
+		delays[i] = ((fdelays>>(2*i))&3)<<2;
 		data[i] = animData;
 
 		switch(fmts[i])

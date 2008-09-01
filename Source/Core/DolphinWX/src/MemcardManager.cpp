@@ -186,15 +186,37 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	for(int i=0;i<nFiles;i++)
 	{
 		static u32 pxdata[96*32];
+		static u8  animDelay[8];
+		static u32 animData[32*32*8];
+
 		if(memoryCard[card]->ReadBannerRGBA8(i,pxdata))
 		{
-			// TODO: replace this debug stuff with actually showing the image data in the lists!
-
-			wxBitmap map((char*)pxdata,96,32,32);
-
-			images[i] = list->Add(map);
+			//// it looks better without alpha
+			//for(int i=0;i<96*32;i++)
+			//	pxdata[i]|=0xFF000000;
 		}
-		else images[i]=-1;
+		else
+		{
+			memset(pxdata,0,96*32*4);
+
+			int numFrames = memoryCard[card]->ReadAnimRGBA8(i,animData,animDelay);
+			if(numFrames>0) // just use the first one
+			{
+				int n = numFrames/2;
+				u32 *icdata = animData+n*32*32;
+
+				for(int y=0;y<32;y++)
+				{
+					for(int x=0;x<32;x++)
+					{
+						pxdata[y*96+x+32] = icdata[y*32+x] /* | 0xFF000000 */;
+					}
+				}
+			}
+		}
+
+		wxBitmap map((char*)pxdata,96,32,32);
+		images[i] = list->Add(map);
 	}
 
 	for(int i=0;i<nFiles;i++)
@@ -214,38 +236,6 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		{
 			m_MemcardList[card]->SetItemImage(index, images[i]);
 		}
-
-#if FALSE
-		static u8  animDelay[8];
-		static u32 animData[32*32*8];
-		int numFrames = memoryCard[card]->ReadAnimRGBA8(i,animData,animDelay);
-		for(int n=0;n<numFrames;n++)
-		{
-			// TODO: replace this debug stuff with actually showing the image data in the lists!
-#if FALSE
-			char t[257];
-			sprintf(t,"card%d_%d_anim%d.bmp",card,i,n);
-			FILE*f=fopen(t,"wb");
-			if(f) {
-				const u8 hdr[] = {
-					0x42,0x4D,0x38,0x30,0x00,0x00,0x00,0x00,
-					0x00,0x00,0x36,0x00,0x00,0x00,0x28,0x00,
-					0x00,0x00,0x20,0x00,0x00,0x00,0x20,0x00,
-					0x00,0x00,0x01,0x00,0x20,0x00,0x00,0x00,
-					0x00,0x00,0x02,0x30,0x00,0x00,0x12,0x0B,
-					0x00,0x00,0x12,0x0B,0x00,0x00,0x00,0x00,
-					0x00,0x00,0x00,0x00,0x00,0x00
-				};
-				const u8 ftr[] = {0,0};
-
-				fwrite(hdr,1,sizeof(hdr),f);
-				fwrite(animData+(n*32*32),4,32*32,f);	// note BMP "inverts" the image vertically, so it'll look upside-down when exported this way
-				fwrite(ftr,1,2,f);
-				fclose(f);
-			}
-#endif
-		}
-#endif
 	}
 	m_MemcardList[card]->Show();
 
