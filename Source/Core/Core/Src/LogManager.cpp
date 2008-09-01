@@ -87,15 +87,15 @@ void LogManager::Init()
 	m_Log[LogTypes::MASTER_LOG]			= new CDebugger_Log("*",   "Master Log");
 	m_Log[LogTypes::BOOT]				= new CDebugger_Log("BOOT", "Boot");
 	m_Log[LogTypes::PIXELENGINE]		= new CDebugger_Log("PE",  "PixelEngine");
-	m_Log[LogTypes::COMMANDPROCESSOR]	= new CDebugger_Log("CP",  "CommandProc");			
-	m_Log[LogTypes::VIDEOINTERFACE]		= new CDebugger_Log("VI",  "VideoInt");		
-	m_Log[LogTypes::SERIALINTERFACE]	= new CDebugger_Log("SI",  "SerialInt");		
-	m_Log[LogTypes::PERIPHERALINTERFACE]= new CDebugger_Log("PI",  "PeripheralInt");	
+	m_Log[LogTypes::COMMANDPROCESSOR]	= new CDebugger_Log("CP",  "CommandProc");
+	m_Log[LogTypes::VIDEOINTERFACE]		= new CDebugger_Log("VI",  "VideoInt");
+	m_Log[LogTypes::SERIALINTERFACE]	= new CDebugger_Log("SI",  "SerialInt");
+	m_Log[LogTypes::PERIPHERALINTERFACE]= new CDebugger_Log("PI",  "PeripheralInt");
 	m_Log[LogTypes::MEMMAP]				= new CDebugger_Log("MI",  "MI & memmap");
 	m_Log[LogTypes::STREAMINGINTERFACE] = new CDebugger_Log("Stream", "StreamingInt");
-	m_Log[LogTypes::DSPINTERFACE]		= new CDebugger_Log("DSP", "DSPInterface");			
-	m_Log[LogTypes::DVDINTERFACE]		= new CDebugger_Log("DVD", "DVDInterface");			
-	m_Log[LogTypes::GPFIFO]				= new CDebugger_Log("GP",  "GPFifo");				
+	m_Log[LogTypes::DSPINTERFACE]		= new CDebugger_Log("DSP", "DSPInterface");
+	m_Log[LogTypes::DVDINTERFACE]		= new CDebugger_Log("DVD", "DVDInterface");
+	m_Log[LogTypes::GPFIFO]				= new CDebugger_Log("GP",  "GPFifo");
 	m_Log[LogTypes::EXPANSIONINTERFACE]	= new CDebugger_Log("EXI", "ExpansionInt.");
 	m_Log[LogTypes::AUDIO_INTERFACE]	= new CDebugger_Log("AI", "AudioInt.");
 	m_Log[LogTypes::GEKKO]				= new CDebugger_Log("GEKKO", "IBM CPU");
@@ -109,8 +109,8 @@ void LogManager::Init()
 	m_Log[LogTypes::WII_IOB]			= new CDebugger_Log("WII_IOB", "WII IO Bridge");
 	m_Log[LogTypes::WII_IPC]			= new CDebugger_Log("WII_IPC", "WII IPC");
 	m_Log[LogTypes::WII_IPC_HLE]		= new CDebugger_Log("WII_IPC_HLE", "WII IPC HLE");
-	
-	
+	m_Log[LogTypes::WIIMOTE] = new CDebugger_Log("WIIMOTE", "WIIMOTE");
+
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 	{
 		m_Log[i]->Init();

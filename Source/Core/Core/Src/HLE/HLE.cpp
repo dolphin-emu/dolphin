@@ -50,21 +50,22 @@ static const SPatch OSPatches[] =
 {	
 	{ "FAKE_TO_SKIP_0",		        HLE_Misc::UnimplementedFunction },
 
-    // speedup
-    { "OSProtectRange",	            HLE_Misc::UnimplementedFunctionFalse },
-//	{ "THPPlayerGetState",			HLE_Misc:THPPlayerGetState },
+	// speedup
+	{ "OSProtectRange",	            HLE_Misc::UnimplementedFunctionFalse },
+	//	{ "THPPlayerGetState",			HLE_Misc:THPPlayerGetState },
 
 
-    // debug out is very nice ;)
-    { "OSReport",					HLE_OS::HLE_OSReport    },
-    { "OSPanic",					HLE_OS::HLE_OSPanic     },
-    { "vprintf",					HLE_OS::HLE_vprintf     },		
-    { "printf",						HLE_OS::HLE_printf      },
+	// debug out is very nice ;)
+	{ "OSReport",					HLE_OS::HLE_OSReport    },
+	{ "OSPanic",					HLE_OS::HLE_OSPanic     },
+	{ "vprintf",					HLE_OS::HLE_vprintf     },		
+	{ "printf",						HLE_OS::HLE_printf      },
+	{ "puts",							HLE_OS::HLE_printf      },	//gcc-optimized printf?
 
 	// wii only
 	{ "SCCheckStatus",				HLE_Misc::UnimplementedFunctionFalse },	
 	{ "__OSInitAudioSystem",        HLE_Misc::UnimplementedFunction },			
-	
+
 	// Super Monkey Ball
 	{ ".evil_vec_cosine",           HLE_Misc::SMB_EvilVecCosine },
 	{ ".evil_normalize",            HLE_Misc::SMB_EvilNormalize },
@@ -74,9 +75,9 @@ static const SPatch OSPatches[] =
 	{ ".rsqrt_internal_needs_cr1",  HLE_Misc::SMB_rsqrt_internal },
 	{ ".atan2",						HLE_Misc::SMB_atan2},
 
-    // special
-//	{ "GXPeekZ",					HLE_Misc::GXPeekZ},
-//	{ "GXPeekARGB",					HLE_Misc::GXPeekARGB},  
+	// special
+	//	{ "GXPeekZ",					HLE_Misc::GXPeekZ},
+	//	{ "GXPeekARGB",					HLE_Misc::GXPeekARGB},  
 };
 
 static const SPatch OSBreakPoints[] =
@@ -106,7 +107,7 @@ void PatchFunctions()
 			u32 HLEPatchValue = (1 & 0x3f) << 26;
 			for (size_t addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
 				Memory::Write_U32(HLEPatchValue | i, addr);
-            LOG(HLE,"Patching %s %08x", OSPatches[i].m_szPatchName, symbol->address);
+			LOG(HLE,"Patching %s %08x", OSPatches[i].m_szPatchName, symbol->address);
 		}
 	}
 
@@ -115,12 +116,12 @@ void PatchFunctions()
 		Symbol *symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
 		if (symbol > 0)
 		{
-		    CBreakPoints::AddBreakPoint(symbol->address, false);
-            LOG(HLE,"Adding BP to %s %08x", OSBreakPoints[i].m_szPatchName, symbol->address);
+			CBreakPoints::AddBreakPoint(symbol->address, false);
+			LOG(HLE,"Adding BP to %s %08x", OSBreakPoints[i].m_szPatchName, symbol->address);
 		}
 	}
 
-//    CBreakPoints::AddBreakPoint(0x8000D3D0, false);
+	//    CBreakPoints::AddBreakPoint(0x8000D3D0, false);
 }
 
 void Execute(u32 _CurrentPC, u32 _Instruction)
@@ -135,7 +136,7 @@ void Execute(u32 _CurrentPC, u32 _Instruction)
 		PanicAlert("HLE system tried to call an undefined HLE function %i.", FunctionIndex);
 	}
 
-//	_dbg_assert_msg_(HLE,NPC == LR, "Broken HLE function (doesn't set NPC)", OSPatches[pos].m_szPatchName);
+	//	_dbg_assert_msg_(HLE,NPC == LR, "Broken HLE function (doesn't set NPC)", OSPatches[pos].m_szPatchName);
 }
 
 }

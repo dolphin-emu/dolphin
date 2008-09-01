@@ -31,22 +31,22 @@ void GetStringVA(std::string& _rOutBuffer);
 
 void HLE_OSPanic()
 {
-    std::string Error;
-    GetStringVA(Error);
+	std::string Error;
+	GetStringVA(Error);
 
-    PanicAlert("OSPanic: %s", Error.c_str());
-    LOG(OSREPORT,"(PC=%08x), OSPanic: %s", LR, Error.c_str());
+	PanicAlert("OSPanic: %s", Error.c_str());
+	LOG(OSREPORT,"(PC=%08x), OSPanic: %s", LR, Error.c_str());
 
-    NPC = LR;
+	NPC = LR;
 }
 
 void HLE_OSReport()
 {
-    std::string ReportMessage;
-    GetStringVA(ReportMessage);
+	std::string ReportMessage;
+	GetStringVA(ReportMessage);
 
 
-//	PanicAlert("(PC=%08x) OSReport: %s", LR, ReportMessage.c_str());
+	//	PanicAlert("(PC=%08x) OSReport: %s", LR, ReportMessage.c_str());
 
 	LOG(OSREPORT,"(PC=%08x) OSReport: %s", LR, ReportMessage.c_str());
 	NPC = LR;
@@ -54,77 +54,79 @@ void HLE_OSReport()
 
 void HLE_vprintf()
 {
-    std::string ReportMessage;
-    GetStringVA(ReportMessage);
+	std::string ReportMessage;
+	GetStringVA(ReportMessage);
 
-    LOG(OSREPORT,"(PC=%08x) VPrintf: %s", LR, ReportMessage.c_str());
-    NPC = LR;
+	LOG(OSREPORT,"(PC=%08x) VPrintf: %s", LR, ReportMessage.c_str());
+	NPC = LR;
 
 }
 
 void HLE_printf()
 {
-    std::string ReportMessage;
-    GetStringVA(ReportMessage);
+	std::string ReportMessage;
+	GetStringVA(ReportMessage);
 
-    LOG(OSREPORT,"(PC=%08x) Printf: %s ", LR, ReportMessage.c_str());
-    NPC = LR;
+	LOG(OSREPORT,"(PC=%08x) Printf: %s ", LR, ReportMessage.c_str());
+	NPC = LR;
 }
 
 void GetStringVA(std::string& _rOutBuffer)
 {
-    char ArgumentBuffer[256];
-    u32 ParameterCounter = 4;    
-    char* pString = (char*)Memory::GetPointer(GPR(3));
+	char ArgumentBuffer[256];
+	u32 ParameterCounter = 4;    
+	char* pString = (char*)Memory::GetPointer(GPR(3));
 
-    while(*pString)
-    {
-        if (*pString == '%')
-        {
-            char* pArgument = ArgumentBuffer;
-            *pArgument++ = *pString++;
-            while(*pString < 'A' || *pString > 'z' || *pString == 'l' || *pString == '-')
-                *pArgument++ = *pString++;
+	while(*pString)
+	{
+		if (*pString == '%')
+		{
+			char* pArgument = ArgumentBuffer;
+			*pArgument++ = *pString++;
+			while(*pString < 'A' || *pString > 'z' || *pString == 'l' || *pString == '-')
+				*pArgument++ = *pString++;
 
-            *pArgument++ = *pString;
-            *pArgument = NULL;
+			*pArgument++ = *pString;
+			*pArgument = NULL;
 
-            u32 Parameter;
-            if (ParameterCounter > 10)
-            {
-                Parameter = Memory::Read_U32(GPR(1) + 0x8 + ((ParameterCounter - 11) * 4));
-            }
-            else
-            {
-                Parameter = GPR(ParameterCounter);
-            }
-            ParameterCounter++;
+			u32 Parameter;
+			if (ParameterCounter > 10)
+			{
+				Parameter = Memory::Read_U32(GPR(1) + 0x8 + ((ParameterCounter - 11) * 4));
+			}
+			else
+			{
+				Parameter = GPR(ParameterCounter);
+			}
+			ParameterCounter++;
 
-            switch(*pString)
-            {
-            case 's':
-                _rOutBuffer += StringFromFormat(ArgumentBuffer, (char*)Memory::GetPointer(Parameter));
-                break;
+			switch(*pString)
+			{
+			case 's':
+				_rOutBuffer += StringFromFormat(ArgumentBuffer, (char*)Memory::GetPointer(Parameter));
+				break;
 
-            case 'd':
-                {
-                    //u64 Double = Memory::Read_U64(Parameter);
-                    _rOutBuffer += StringFromFormat(ArgumentBuffer, Parameter);
-                }
-                break;
+			case 'd':
+				{
+					//u64 Double = Memory::Read_U64(Parameter);
+					_rOutBuffer += StringFromFormat(ArgumentBuffer, Parameter);
+				}
+				break;
 
-            default:
-                _rOutBuffer += StringFromFormat(ArgumentBuffer, Parameter);
-                break;
-            }
-            pString++;
-        }
-        else
-        {
-            _rOutBuffer += StringFromFormat("%c", *pString); 
-            pString++;
-        }
-    }
+			default:
+				_rOutBuffer += StringFromFormat(ArgumentBuffer, Parameter);
+				break;
+			}
+			pString++;
+		}
+		else
+		{
+			_rOutBuffer += StringFromFormat("%c", *pString); 
+			pString++;
+		}
+	}
+	if(_rOutBuffer[_rOutBuffer.length() - 1] == '\n')
+		_rOutBuffer.resize(_rOutBuffer.length() - 1);
 }
 
 }

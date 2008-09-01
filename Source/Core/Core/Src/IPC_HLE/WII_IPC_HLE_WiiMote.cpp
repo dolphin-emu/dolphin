@@ -113,12 +113,9 @@ struct SL2CAP_CommandConfigurationResponse // 0x05
 #endif
 
 
-
-#define USB_HLE_LOG DSPHLE
-
 CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pHost, int _Number)
-	: m_Name("Nintendo RVL-CNT-01")
-	, m_pHost(_pHost)
+: m_Name("Nintendo RVL-CNT-01")
+, m_pHost(_pHost)
 {
 	m_BD.b[0] = 0x11;
 	m_BD.b[1] = 0x02;
@@ -147,7 +144,7 @@ void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 {
 	// dump raw data
 	{
-		LOG(USB_HLE_LOG, "SendToDevice: 0x%x", GetConnectionHandle());
+		LOG(WIIMOTE, "SendToDevice: 0x%x", GetConnectionHandle());
 		std::string Temp;
 		for (u32 j=0; j<_Size; j++)
 		{
@@ -155,7 +152,7 @@ void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 			sprintf(Buffer, "%02x ", _pData[j]);
 			Temp.append(Buffer);
 		}
-		LOG(USB_HLE_LOG, "   Data: %s", Temp.c_str());
+		LOG(WIIMOTE, "   Data: %s", Temp.c_str());
 	}
 
 	// parse the command
@@ -166,7 +163,7 @@ void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 	switch (pHeader->CID) 
 	{
 	case 0x0001:
-		LOG(USB_HLE_LOG, "L2Cap-SendFrame: SignalChannel (0x%04x)", pHeader->CID);
+		LOG(WIIMOTE, "L2Cap-SendFrame: SignalChannel (0x%04x)", pHeader->CID);
 		SignalChannel(pData, DataSize);
 		break;
 
@@ -192,9 +189,9 @@ void CWII_IPC_HLE_WiiMote::SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLeng
 
 	memcpy(&DataFrame[Offset], _pCommandData, _CommandLength);
 
-	LOG(USB_HLE_LOG, "  SendCommandToACL (answer)");
-	LOG(USB_HLE_LOG, "    Ident: 0x%02x", _Ident);
-	LOG(USB_HLE_LOG, "    Code: 0x%02x", _Code);
+	LOG(WIIMOTE, "  SendCommandToACL (answer)");
+	LOG(WIIMOTE, "    Ident: 0x%02x", _Ident);
+	LOG(WIIMOTE, "    Code: 0x%02x", _Code);
 
 	// send ....
 	m_pHost->SendACLFrame(GetConnectionHandle(), DataFrame, pHeader->Length + sizeof(SL2CAP_Header));
@@ -227,7 +224,7 @@ void CWII_IPC_HLE_WiiMote::SignalChannel(u8* _pData, u32 _Size)
 
 		default:
 			PanicAlert("SignalChannel %x",pCommand->code);
-			LOG(USB_HLE_LOG, "  Unknown Command-Code (0x%02x)", pCommand->code);
+			LOG(WIIMOTE, "  Unknown Command-Code (0x%02x)", pCommand->code);
 			return;
 		}
 
@@ -245,11 +242,11 @@ void CWII_IPC_HLE_WiiMote::CommandConnectionReq(u8 _Ident, u8* _pData, u32 _Size
 	rChannel.SCID = pCommandConnectionReq->scid;
 	rChannel.DCID = pCommandConnectionReq->scid;
 
-	LOG(USB_HLE_LOG, "  CommandConnectionReq");
-	LOG(USB_HLE_LOG, "    Ident: 0x%02x", _Ident);
-	LOG(USB_HLE_LOG, "    PSM: 0x%04x", rChannel.PSM);
-	LOG(USB_HLE_LOG, "    SCID: 0x%04x", rChannel.SCID);
-	LOG(USB_HLE_LOG, "    DCID: 0x%04x", rChannel.DCID);
+	LOG(WIIMOTE, "  CommandConnectionReq");
+	LOG(WIIMOTE, "    Ident: 0x%02x", _Ident);
+	LOG(WIIMOTE, "    PSM: 0x%04x", rChannel.PSM);
+	LOG(WIIMOTE, "    SCID: 0x%04x", rChannel.SCID);
+	LOG(WIIMOTE, "    DCID: 0x%04x", rChannel.DCID);
 
 	// response
 	SL2CAP_ConnectionResponse Rsp;
@@ -266,16 +263,16 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 	u32 Offset = 0;
 	SL2CAP_CommandConfigurationReq* pCommandConfigReq = (SL2CAP_CommandConfigurationReq*)_pData;
 
-	_dbg_assert_(USB_HLE_LOG, pCommandConfigReq->flags == 0x00); // 1 means that the options are send in multi-packets
+	_dbg_assert_(WIIMOTE, pCommandConfigReq->flags == 0x00); // 1 means that the options are send in multi-packets
 
-	_dbg_assert_(USB_HLE_LOG, DoesChannelExist(pCommandConfigReq->dcid));
+	_dbg_assert_(WIIMOTE, DoesChannelExist(pCommandConfigReq->dcid));
 	SChannel& rChanel = m_Channel[pCommandConfigReq->dcid];
 
-	LOG(USB_HLE_LOG, "  CommandCofigurationReq");
-	LOG(USB_HLE_LOG, "    Ident: 0x%02x", _Ident);
-	LOG(USB_HLE_LOG, "    DCID: 0x%04x", pCommandConfigReq->dcid);
-	LOG(USB_HLE_LOG, "    Flags: 0x%04x", pCommandConfigReq->flags);
-	
+	LOG(WIIMOTE, "  CommandCofigurationReq");
+	LOG(WIIMOTE, "    Ident: 0x%02x", _Ident);
+	LOG(WIIMOTE, "    DCID: 0x%04x", pCommandConfigReq->dcid);
+	LOG(WIIMOTE, "    Flags: 0x%04x", pCommandConfigReq->flags);
+
 	Offset += sizeof(SL2CAP_CommandConfigurationReq);
 
 
@@ -301,24 +298,24 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 		{
 		case 0x01:
 			{
-				_dbg_assert_(USB_HLE_LOG, pOptions->length == 2);
+				_dbg_assert_(WIIMOTE, pOptions->length == 2);
 				SL2CAP_OptionsMTU* pMTU = (SL2CAP_OptionsMTU*)&_pData[Offset];
 				rChanel.MTU = pMTU->MTU;
-				LOG(USB_HLE_LOG, "    Config MTU: 0x%04x", pMTU->MTU);
+				LOG(WIIMOTE, "    Config MTU: 0x%04x", pMTU->MTU);
 			}
 			break;
 
 		case 0x02:
 			{
-				_dbg_assert_(USB_HLE_LOG, pOptions->length == 2);
+				_dbg_assert_(WIIMOTE, pOptions->length == 2);
 				SL2CAP_OptionsFlushTimeOut* pFlushTimeOut = (SL2CAP_OptionsFlushTimeOut*)&_pData[Offset];
 				rChanel.FlushTimeOut = pFlushTimeOut->TimeOut;
-				LOG(USB_HLE_LOG, "    Config FlushTimeOut: 0x%04x", pFlushTimeOut->TimeOut);
+				LOG(WIIMOTE, "    Config FlushTimeOut: 0x%04x", pFlushTimeOut->TimeOut);
 			}
 			break;
 
 		default:
-			_dbg_assert_msg_(USB_HLE_LOG, 0, "Unknown Option: 0x%02x", pOptions->type);
+			_dbg_assert_msg_(WIIMOTE, 0, "Unknown Option: 0x%02x", pOptions->type);
 			break;
 		}
 
@@ -328,7 +325,7 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 		memcpy(&TempBuffer[RespLen], pOptions, OptionSize);
 		RespLen += OptionSize;
 	}
-	
+
 
 	SendCommandToACL(_Ident, L2CAP_CONF_RSP, RespLen, TempBuffer);
 }

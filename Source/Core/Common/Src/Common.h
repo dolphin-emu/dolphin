@@ -193,6 +193,7 @@ class LogTypes
 		WII_IOB,
 		WII_IPC,
 		WII_IPC_HLE,
+		WIIMOTE,
 		NUMBER_OF_LOGS
 	};
 };
@@ -224,8 +225,10 @@ void Host_UpdateLogDisplay();
 
 #define LOG(_t_, ...)
 #define _dbg_clear_()
+#ifndef _dbg_assert_
 #define _dbg_assert_(_t_, _a_) ;
 #define _dbg_assert_msg_(_t_, _a_, _desc_, ...) ;
+#endif
 #define _dbg_update_() ;
 
 #endif
