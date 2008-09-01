@@ -19,6 +19,58 @@
 
 #include "MemcardManager.h"
 
+#include "wx/mstream.h"
+
+const u8 hdr[] = {
+0x42,0x4D,
+0x38,0x30,0x00,0x00,
+0x00,0x00,0x00,0x00,
+0x36,0x00,0x00,0x00,
+0x28,0x00,0x00,0x00,
+0x20,0x00,0x00,0x00, //W
+0x20,0x00,0x00,0x00, //H
+0x01,0x00,
+0x20,0x00,
+0x00,0x00,0x00,0x00,
+0x02,0x30,0x00,0x00, //data size
+0x12,0x0B,0x00,0x00,
+0x12,0x0B,0x00,0x00,
+0x00,0x00,0x00,0x00,
+0x00,0x00,0x00,0x00
+};
+
+wxBitmap wxBitmapFromMemoryRGBA(const unsigned char* data, int width, int height)
+{
+	int stride = (4*width);
+
+	int bytes = (stride*height) + sizeof(hdr);
+
+	bytes = (bytes+3)&(~3);
+
+	u8 *pdata = new u8[bytes];
+
+	memset(pdata,0,bytes);
+	memcpy(pdata,hdr,sizeof(hdr));
+
+	u8 *pixelData = pdata + sizeof(hdr);
+
+	for(int y=0;y<height;y++)
+	{
+		memcpy(pixelData+y*stride,data+(height-y-1)*stride,stride);
+	}
+
+	*(int*)(pdata+18) = width;
+	*(int*)(pdata+22) = height;
+	*(u32*)(pdata+34) = bytes-sizeof(hdr);
+
+	wxMemoryInputStream is(pdata, bytes);
+	wxBitmap map(wxImage(is, wxBITMAP_TYPE_BMP, -1), -1);
+
+	delete pdata;
+
+	return map;
+}
+
 BEGIN_EVENT_TABLE(CMemcardManager, wxDialog)
 	EVT_CLOSE(CMemcardManager::OnClose)
 	EVT_BUTTON(ID_COPYRIGHT,CMemcardManager::CopyDeleteClick)
@@ -76,6 +128,7 @@ void CMemcardManager::CreateGUIControls()
 	
 	m_MemcardList[0]->AssignImageList(new wxImageList(96,32),wxIMAGE_LIST_SMALL);
 	m_MemcardList[1]->AssignImageList(new wxImageList(96,32),wxIMAGE_LIST_SMALL);
+	m_MemcardList[0]->
 
 	// mmmm sizer goodness
 	wxBoxSizer* sButtons;
@@ -210,7 +263,7 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 			}
 		}
 
-		wxBitmap map((char*)pxdata,96,32,32);
+		wxBitmap map = wxBitmapFromMemoryRGBA((u8*)pxdata,96,32);
 		images[i*2] = list->Add(map);
 
 		if(numFrames>0)
@@ -224,8 +277,8 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 				}
 			}
 
-			wxBitmap icon((char*)pxdata,96,32,32);
-			images[i*2+1] = list->Add(icon);
+			wxBitmap map = wxBitmapFromMemoryRGBA((u8*)pxdata,96,32);
+			images[i*2+1] = list->Add(map);
 		}
 	}
 
