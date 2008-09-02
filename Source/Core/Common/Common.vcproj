@@ -578,10 +578,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\PortableSockets.cpp"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\PortableSockets.h"
 			>
 		</File>
