@@ -32,7 +32,7 @@ typedef void (__cdecl* TDVD_SetISOFile)	(const char*);
 typedef BOOL (__cdecl* TDVD_GetISOName)	(TCHAR*, int);
 typedef BOOL (__cdecl* TDVD_ReadToPtr)	(LPBYTE, unsigned __int64, unsigned __int64);
 typedef BOOL (__cdecl* TDVD_IsValid)	();
-typedef unsigned __int32 (__cdecl* TDVD_Read32) (unsigned __int64);
+typedef u32 (__cdecl* TDVD_Read32) (unsigned __int64);
 
 //! Function Pointer
 TGetDllInfo     g_GetDllInfo        = NULL;
@@ -155,7 +155,7 @@ bool DVD_IsValid()
     return (g_DVD_IsValid() == TRUE) ? true : false;
 }
 
-unsigned __int32 DVD_Read32(unsigned __int64 _dwOffset)
+u32 DVD_Read32(unsigned __int64 _dwOffset)
 {
 	return g_DVD_Read32(_dwOffset);
 }

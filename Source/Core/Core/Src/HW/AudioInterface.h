@@ -20,6 +20,8 @@
 #ifndef _AUDIOINTERFACE_H
 #define _AUDIOINTERFACE_H
 
+#include "CommonTypes.h"
+
 class PointerWrap;
 
 namespace AudioInterface
@@ -32,7 +34,7 @@ void DoState(PointerWrap &p);
 void Update();
 
 // Calls by DSP plugin
-unsigned __int32 Callback_GetStreaming(short* _pDestBuffer, unsigned __int32 _numSamples);
+u32 Callback_GetStreaming(short* _pDestBuffer, u32 _numSamples);
 
 void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);
 void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
@@ -44,4 +46,3 @@ u32 GetDSPSampleRate();
 }  // namespace
 
 #endif
-

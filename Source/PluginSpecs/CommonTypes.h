@@ -49,7 +49,6 @@ typedef unsigned long long u64;
 typedef char s8;
 typedef short s16;
 typedef int s32;
-#define __int32 int
 typedef long long s64;
 #define __int64 long long
 

@@ -257,7 +257,7 @@ void GenerateAudioInterrupt()
 
 // Callback for the disc streaming
 // WARNING - called from audio thread
-unsigned __int32 Callback_GetStreaming(short* _pDestBuffer, unsigned __int32 _numSamples)
+u32 Callback_GetStreaming(short* _pDestBuffer, u32 _numSamples)
 {
 	if (g_AudioRegister.m_Control.PSTAT && !CCPU::IsStepping())
 	{		

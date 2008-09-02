@@ -64,10 +64,10 @@ bool DVD_ReadToPtr(LPBYTE ptr, unsigned __int64 _dwOffset, unsigned __int64 _dwL
 bool DVD_IsValid();
 
 //! DVDRead32
-unsigned __int32 DVD_Read32(unsigned __int64 _dwOffset);
+u32 DVD_Read32(unsigned __int64 _dwOffset);
 
 //! SaveLoadState
-unsigned __int32 SaveLoadState(char *ptr, BOOL save);
+u32 SaveLoadState(char *ptr, BOOL save);
 
 } // end of namespace PluginDVD
 
