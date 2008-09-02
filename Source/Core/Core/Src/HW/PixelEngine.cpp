@@ -181,7 +181,7 @@ void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 
 // SetToken
 // THIS IS EXECUTED FROM VIDEO THREAD
-void SetToken(const unsigned __int16 _token, const int _bSetTokenAcknowledge)
+void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 {
 	CoreTiming::ScheduleEvent_Threadsafe(
 		0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));

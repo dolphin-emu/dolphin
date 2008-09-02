@@ -17,7 +17,7 @@
 #ifndef _PIXELENGINE_H
 #define _PIXELENGINE_H
 
-#include "Common.h"
+#include "CommonTypes.h"
 class PointerWrap;
 
 namespace PixelEngine
@@ -33,7 +33,7 @@ void HWCALL Write16(const u16 _iValue, const u32 _iAddress);
 void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
 
 // gfx plugin support
-void SetToken(const unsigned __int16 _token, const int _bSetTokenAcknowledge);
+void SetToken(const u16 _token, const int _bSetTokenAcknowledge);
 void SetFinish(void);
 bool AllowIdleSkipping();
 

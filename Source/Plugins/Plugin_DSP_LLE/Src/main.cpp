@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Globals.h"
+#include "CommonTypes.h"
 
 #include "gdsp_interpreter.h"
 #include "gdsp_interface.h"
@@ -32,7 +33,6 @@ CDisAsmDlg g_Dialog;
 #else
 #define WINAPI
 #define LPVOID void*
-#define __int16 short;
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -220,30 +220,18 @@ void DSP_Shutdown(void)
 	}
 }
 
-#ifdef _WIN32
-unsigned __int16 DSP_WriteControlRegister(unsigned __int16 _uFlag)
-#else
-short unsigned int DSP_WriteControlRegister(short _uFlag)
-#endif 
+u16 DSP_WriteControlRegister(u16 _uFlag)
 {
 	gdsp_write_cr(_uFlag);
 	return(gdsp_read_cr());
 }
 
-#ifdef _WIN32
-unsigned __int16 DSP_ReadControlRegister()
-#else
-short unsigned int DSP_ReadControlRegister()
-#endif
+u16 DSP_ReadControlRegister()
 {
 	return(gdsp_read_cr());
 }
 
-#ifdef _WIN32
-unsigned __int16 DSP_ReadMailboxHigh(bool _CPUMailbox)
-#else
-short unsigned int DSP_ReadMailboxHigh(bool _CPUMailbox)
-#endif
+u16 DSP_ReadMailboxHigh(bool _CPUMailbox)
 {
 	if (_CPUMailbox)
 	{
@@ -255,11 +243,7 @@ short unsigned int DSP_ReadMailboxHigh(bool _CPUMailbox)
 	}
 }
 
-#ifdef _WIN32
-unsigned __int16 DSP_ReadMailboxLow(bool _CPUMailbox)
-#else
-short unsigned int DSP_ReadMailboxLow(bool _CPUMailbox)
-#endif
+u16 DSP_ReadMailboxLow(bool _CPUMailbox)
 {
 	if (_CPUMailbox)
 	{
@@ -271,11 +255,7 @@ short unsigned int DSP_ReadMailboxLow(bool _CPUMailbox)
 	}
 }
 
-#ifdef _WIN32
-void DSP_WriteMailboxHigh(bool _CPUMailbox, unsigned __int16 _uHighMail)
-#else
-void DSP_WriteMailboxHigh(bool _CPUMailbox, short unsigned int _uHighMail)
-#endif
+void DSP_WriteMailboxHigh(bool _CPUMailbox, u16 _uHighMail)
 {
 	if (_CPUMailbox)
 	{
@@ -292,11 +272,7 @@ void DSP_WriteMailboxHigh(bool _CPUMailbox, short unsigned int _uHighMail)
 	}
 }
 
-#ifdef _WIN32
-void DSP_WriteMailboxLow(bool _CPUMailbox, unsigned __int16 _uLowMail)
-#else
-void DSP_WriteMailboxLow(bool _CPUMailbox, short unsigned int _uLowMail)
-#endif
+void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 {
 	if (_CPUMailbox)
 	{
@@ -325,11 +301,7 @@ void DSP_Update(int cycles)
 	#endif
 }
 
-#ifdef _WIN32
 void DSP_SendAIBuffer(unsigned int address, int sample_rate)
-#else
-void DSP_SendAIBuffer(unsigned int address, int sample_rate)
-#endif
 {
 	// uint32 Size = _Size * 16 * 2; // 16bit per sample, two channels
 
