@@ -956,17 +956,17 @@ HRESULT DXUtil_ConvertGUIDToStringCch( const GUID* pGuidSrc, TCHAR* strDest, int
 //-----------------------------------------------------------------------------
 // Name: DXUtil_ConvertWideStringToAnsi()
 // Desc: This is a UNICODE conversion utility to convert a WCHAR string into a
-//       CHAR string. 
-//       cchDestChar is the size in TCHARs of strDestination
+//       char string.
+//       cchDestChar is the size in bytes of strDestination
 //-----------------------------------------------------------------------------
-HRESULT DXUtil_ConvertWideStringToAnsiCch( CHAR* strDestination, const WCHAR* wstrSource, 
+HRESULT DXUtil_ConvertWideStringToAnsiCch( char* strDestination, const WCHAR* wstrSource,
 										  int cchDestChar )
 {
 	if( strDestination==NULL || wstrSource==NULL || cchDestChar < 1 )
 		return E_INVALIDARG;
 
 	int nResult = WideCharToMultiByte( CP_ACP, 0, wstrSource, -1, strDestination, 
-		cchDestChar*sizeof(CHAR), NULL, NULL );
+		cchDestChar, NULL, NULL );
 	strDestination[cchDestChar-1] = 0;
 
 	if( nResult == 0 )
