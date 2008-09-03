@@ -19,7 +19,7 @@
 #define _VOLUMEHANDLER_H
 
 #include <string>
-#include "Common.h"
+#include "CommonTypes.h"
 #include "Volume.h"
 
 
@@ -30,7 +30,7 @@ void SetVolumeName(const std::string& _rFullPath);
 
 u32 Read32(u64 _Offset);
 
-bool ReadToPtr(u8* ptr, unsigned __int64 _dwOffset, unsigned __int64 _dwLength);
+bool ReadToPtr(u8* ptr, u64 _dwOffset, u64 _dwLength);
 
 bool IsValid();
 

@@ -58,13 +58,13 @@ void DVD_SetISOFile(const char* _szFilename);
 BOOL DVD_GetISOName(TCHAR * _szFilename, int maxlen);
 
 //! DVDReadToPtr
-bool DVD_ReadToPtr(LPBYTE ptr, unsigned __int64 _dwOffset, unsigned __int64 _dwLength);
+bool DVD_ReadToPtr(LPBYTE ptr, u64 _dwOffset, u64 _dwLength);
 
 //! DVD_IsValid
 bool DVD_IsValid();
 
 //! DVDRead32
-u32 DVD_Read32(unsigned __int64 _dwOffset);
+u32 DVD_Read32(u64 _dwOffset);
 
 //! SaveLoadState
 u32 SaveLoadState(char *ptr, BOOL save);

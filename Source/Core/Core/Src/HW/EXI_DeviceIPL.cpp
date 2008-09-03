@@ -274,7 +274,7 @@ u32 CEXIIPL::GetGCTime()
 
     // get the time ... 
     const u32 cJanuary2000 = 0x386d35a1;  // seconds between 1.1.1970 and 1.1.2000
-    __int64 ltime = Common::Timer::GetTimeSinceJan1970();
+    u64 ltime = Common::Timer::GetTimeSinceJan1970();
     return ((u32)ltime - cJanuary2000 - Bias);
 }
 

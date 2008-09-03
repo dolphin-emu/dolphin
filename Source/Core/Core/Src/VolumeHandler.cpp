@@ -50,7 +50,7 @@ u32 Read32(u64 _Offset)
     return 0;
 }
 
-bool ReadToPtr(u8* ptr, unsigned __int64 _dwOffset, unsigned __int64 _dwLength)
+bool ReadToPtr(u8* ptr, u64 _dwOffset, u64 _dwLength)
 {
     if (g_pVolume != NULL)
     {
