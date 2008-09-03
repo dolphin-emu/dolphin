@@ -313,11 +313,18 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		return Addr;
 	}
 
-	if(scan_enable && m_pHCIBuffer) {
-		//by now, the emulatee should be listening for incoming L2CAP packets.
-		//let's send a few.
-		SendEventRequestConnection();
-		scan_enable = 0;
+	if(m_DelayedEvent != EVENT_NONE && m_pHCIBuffer) {
+		switch(m_DelayedEvent) {
+		case EVENT_REQUEST_CONNECTION:
+			SendEventRequestConnection();
+			break;
+		case EVENT_CONNECTION_COMPLETE:
+			SendEventConnectionComplete();
+			break;
+		default:
+			PanicAlert("Unknown Event in USBDev");
+		}
+		m_DelayedEvent = EVENT_NONE;
 
 		u32 Addr = m_pHCIBuffer->m_Address;
 		delete m_pHCIBuffer;
@@ -727,6 +734,10 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 	case HCI_CMD_READ_REMOTE_FEATURES:
 		CommandReadRemoteFeatures(pInput);
 		break;
+		
+	case HCI_CMD_WRITE_LINK_POLICY_SETTINGS:
+		CommandWriteLinkPolicy(pInput);
+		break;
 
 		// 
 		// --- default ---
@@ -984,6 +995,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
 	LOG(WIIMOTE, "write:");
 	LOG(WIIMOTE, "  scan_enable: %s", Scanning[pWriteScanEnable->scan_enable]);
 
+	SetDelayedEvent(EVENT_REQUEST_CONNECTION);
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryMode(u8* _Input)
@@ -1190,17 +1202,28 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandCreateCon(u8* _Input)
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandAcceptCon(u8* _Input)
 {
-#ifdef LOGGING
 	// command parameters
 	hci_accept_con_cp* pAcceptCon = (hci_accept_con_cp*)_Input;
-#endif
+
+	_dbg_assert_msg_(WIIMOTE, m_State == STATE_NONE, "m_State != NONE");
+	m_State = STATE_CONNECTION_COMPLETE_EVENT;
+	m_StateTempBD = pAcceptCon->bdaddr;
+	SendEventCommandStatus(HCI_CMD_ACCEPT_CON);
 
 	LOG(WIIMOTE, "Command: HCI_CMD_ACCEPT_CON");
 	LOG(WIIMOTE, "Input:");
-	LOG(WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x", 
+	LOG(WIIMOTE, " bd: %02x:%02x:%02x:%02x:%02x:%02x", 
 		pAcceptCon->bdaddr.b[0], pAcceptCon->bdaddr.b[1], pAcceptCon->bdaddr.b[2],
 		pAcceptCon->bdaddr.b[3], pAcceptCon->bdaddr.b[4], pAcceptCon->bdaddr.b[5]);
 	LOG(WIIMOTE, " role: %i", pAcceptCon->role);
+}
+
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::SetDelayedEvent(EDelayedEvent e)
+{
+	if(m_DelayedEvent != EVENT_NONE) {
+		PanicAlert("WIIMOTE: Double delayed events!");
+	}
+	m_DelayedEvent = e;
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadClockOffset(u8* _Input)
@@ -1245,8 +1268,22 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadRemoteFeatures(u8* _Input)
 
 	LOG(WIIMOTE, "Command: HCI_CMD_READ_REMOTE_FEATURES");
 	LOG(WIIMOTE, "Input:");
-	LOG(WIIMOTE, "  ConnectionHandle: 0x%02x", pReadRemoteFeatures->con_handle);
+	LOG(WIIMOTE, "  ConnectionHandle: 0x%04x", pReadRemoteFeatures->con_handle);
 }
+
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteLinkPolicy(u8* _Input)
+{
+	// command parameters
+	hci_write_link_policy_settings_cp* pLinkPolicy = (hci_write_link_policy_settings_cp*)_Input;
+
+	SendEventCommandStatus(HCI_CMD_WRITE_LINK_POLICY_SETTINGS);
+
+	LOG(WIIMOTE, "Command: HCI_CMD_WRITE_LINK_POLICY_SETTINGS");
+	LOG(WIIMOTE, "Input:");
+	LOG(WIIMOTE, "  ConnectionHandle: 0x%04x", pLinkPolicy->con_handle);
+	LOG(WIIMOTE, "  Policy: 0x%04x", pLinkPolicy->settings);
+}
+
 
 CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(const bdaddr_t& _rAddr)
 {
