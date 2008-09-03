@@ -39,7 +39,6 @@
 #define BOOL unsigned int
 #define HWND  void*
 #define HINSTANCE void*
-#define CHAR char
 #endif
 
 #if defined(__cplusplus)
