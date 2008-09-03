@@ -37,7 +37,6 @@
 #endif
 
 #define BOOL unsigned int
-#define WORD unsigned short
 #define HWND  void*
 #define HINSTANCE void*
 #define INT int
@@ -63,8 +62,8 @@ extern "C" {
 
 typedef struct 
 {
-	WORD Version;        // Set to 0x0100
-	WORD Type;           // Set to PLUGIN_TYPE_DVD
+	u16 Version;        // Set to 0x0100
+	u16 Type;           // Set to PLUGIN_TYPE_DVD
 	char Name[100];      // Name of the DLL
 } PLUGIN_INFO;
 

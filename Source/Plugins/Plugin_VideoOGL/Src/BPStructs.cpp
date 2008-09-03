@@ -584,12 +584,12 @@ void LoadBPReg(u32 value0)
         break;
 
     case BPMEM_PE_TOKEN_ID:
-        g_VideoInitialize.pSetPEToken(static_cast<WORD>(value0 & 0xFFFF), FALSE);
+        g_VideoInitialize.pSetPEToken(static_cast<u16>(value0 & 0xFFFF), FALSE);
         DebugLog("SetPEToken 0x%04x", (value0 & 0xFFFF));
         break;
 
     case BPMEM_PE_TOKEN_INT_ID:
-        g_VideoInitialize.pSetPEToken(static_cast<WORD>(value0 & 0xFFFF), TRUE);
+        g_VideoInitialize.pSetPEToken(static_cast<u16>(value0 & 0xFFFF), TRUE);
         DebugLog("SetPEToken + INT 0x%04x", (value0 & 0xFFFF));
         break;
 
