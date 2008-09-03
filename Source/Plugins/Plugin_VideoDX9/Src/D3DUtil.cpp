@@ -63,7 +63,7 @@ namespace D3D
 		// We definitely don't want to get it cleartype'd, anyway.
 		int m_dwFontHeight = 36;
 
-		INT nHeight = -MulDiv( m_dwFontHeight, (INT)(GetDeviceCaps(hDC, LOGPIXELSY) * m_fTextScale), 72 );
+		int nHeight = -MulDiv( m_dwFontHeight, int(GetDeviceCaps(hDC, LOGPIXELSY) * m_fTextScale), 72 );
 		int dwBold = FW_NORMAL; ///FW_BOLD
 		HFONT hFont = CreateFont( nHeight, 0, 0, 0, dwBold, 0,
 			FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,

@@ -39,7 +39,6 @@
 #define BOOL unsigned int
 #define HWND  void*
 #define HINSTANCE void*
-#define INT int
 #define CHAR char
 #endif
 

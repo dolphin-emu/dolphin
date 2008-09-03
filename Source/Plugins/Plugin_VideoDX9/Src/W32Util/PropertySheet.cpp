@@ -139,7 +139,7 @@ namespace W32Util
 			//StringCchCopy(TitleLogFont.lfFaceName, 32, TEXT("Verdana Bold"));
 
 			HDC hdc = GetDC(NULL); //gets the screen DC
-			INT FontSize = 12;
+			int FontSize = 12;
 			TitleLogFont.lfHeight = 0 - GetDeviceCaps(hdc, LOGPIXELSY) * FontSize / 72;
 			hTitleFont = CreateFontIndirect(&TitleLogFont);
 			ReleaseDC(NULL, hdc);

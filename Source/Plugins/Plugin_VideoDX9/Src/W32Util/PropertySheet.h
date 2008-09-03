@@ -22,9 +22,9 @@ namespace W32Util
 	
 	class WizExteriorPage : public Tab
 	{
-		INT captionID;
+		int captionID;
 	public:
-		WizExteriorPage(INT caption) {captionID = caption;}
+		WizExteriorPage(int caption) {captionID = caption;}
 		void Init(HWND hDlg);
 	};
 	
@@ -32,7 +32,7 @@ namespace W32Util
 	class WizFirstPage : public WizExteriorPage
 	{
 	public:
-		WizFirstPage(INT caption) : WizExteriorPage(caption) {}
+		WizFirstPage(int caption) : WizExteriorPage(caption) {}
 		bool HasPrev() {return false;}
 	};
 
@@ -40,7 +40,7 @@ namespace W32Util
 	class WizLastPage : public WizExteriorPage
 	{
 	public:
-		WizLastPage(INT caption) : WizExteriorPage(caption) {}
+		WizLastPage(int caption) : WizExteriorPage(caption) {}
 		bool HasNext() {return false;}
 		bool HasFinish() {return true;}
 	};
