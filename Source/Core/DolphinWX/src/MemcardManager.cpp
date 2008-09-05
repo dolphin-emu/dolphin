@@ -276,8 +276,8 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 				}
 			}
 
-			wxBitmap map = wxBitmapFromMemoryRGBA((u8*)pxdata,96,32);
-			images[i*2+1] = list->Add(map);
+                        wxBitmap icon = wxBitmapFromMemoryRGBA((u8*)pxdata,96,32);
+			images[i*2+1] = list->Add(icon);
 		}
 	}
 
