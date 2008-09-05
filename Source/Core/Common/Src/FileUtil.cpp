@@ -5,6 +5,7 @@
 #else
 #include <sys/stat.h>
 #include <errno.h>
+#include <stdlib.h>
 #endif
 
 bool File::Exists(const std::string &filename)
@@ -24,7 +25,10 @@ bool File::IsDirectory(const std::string &filename) {
 #else
         struct stat file_info;
 	int result = stat(filename.c_str(), &file_info);
-        return S_ISDIR(file_info.st_mode);
+        if (result == 0)
+          return S_ISDIR(file_info.st_mode);
+        else 
+          return false;
 #endif
 }
 
@@ -94,5 +98,17 @@ bool File::CreateDir(const std::string &path)
         PanicAlert("Error creating directory: %s", strerror(err));
 	return false;
           
+#endif
+}
+
+std::string GetUserDirectory() {
+#ifdef _WIN32 
+  //TODO #endif
+#else
+  char *dir = getenv("HOME");
+  if (!dir)
+    return std::string("");
+  
+  return dir; 
 #endif
 }
