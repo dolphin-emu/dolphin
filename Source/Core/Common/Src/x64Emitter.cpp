@@ -1317,6 +1317,7 @@ void CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2)
 #endif
 
 #else
+    ABI_AlignStack(3 * 4);
     PUSH(32, Imm32(arg2));
     PUSH(32, Imm32(arg1));
     PUSH(32, Imm32(arg0));
@@ -1324,7 +1325,7 @@ void CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2)
 #ifdef _WIN32
     // don't inc stack
 #else
-    ADD(32, R(ESP), Imm8(3 * 4));
+    ABI_RestoreStack(3 * 4);
 #endif
 #endif
 }
@@ -1349,6 +1350,7 @@ void CallCdeclFunction4(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3)
 #endif
 
 #else
+    ABI_AlignStack(4 * 4);
     PUSH(32, Imm32(arg3));
     PUSH(32, Imm32(arg2));
     PUSH(32, Imm32(arg1));
@@ -1357,7 +1359,7 @@ void CallCdeclFunction4(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3)
 #ifdef _WIN32
     // don't inc stack
 #else
-    ADD(32, R(ESP), Imm8(4 * 4));
+    ABI_RestoreStack(4 * 4);
 #endif
 #endif
 }
@@ -1384,6 +1386,7 @@ void CallCdeclFunction5(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32
 #endif
 
 #else
+    ABI_AlignStack(5 * 4);
     PUSH(32, Imm32(arg4));
     PUSH(32, Imm32(arg3));
     PUSH(32, Imm32(arg2));
@@ -1393,7 +1396,7 @@ void CallCdeclFunction5(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32
 #ifdef _WIN32
     // don't inc stack
 #else
-    ADD(32, R(ESP), Imm8(5 * 4));
+    ABI_RestoreStack(5 * 4);
 #endif
 #endif
 }
@@ -1422,6 +1425,7 @@ void CallCdeclFunction6(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32
 #endif
 
 #else
+    ABI_AlignStack(6 * 4);
     PUSH(32, Imm32(arg5));
     PUSH(32, Imm32(arg4));
     PUSH(32, Imm32(arg3));
@@ -1432,7 +1436,7 @@ void CallCdeclFunction6(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32
 #ifdef _WIN32
     // don't inc stack
 #else
-    ADD(32, R(ESP), Imm8(6 * 4));
+    ABI_RestoreStack(6 * 4);
 #endif
 #endif
 }

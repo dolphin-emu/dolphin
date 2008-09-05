@@ -137,9 +137,10 @@ void Generate()
 			SetJumpTarget(notfound);
 
 			//Ok, no block, let's jit
+			ABI_AlignStack(4);
 			PUSH(32, M(&PowerPC::ppcState.pc));
 			CALL(reinterpret_cast<void *>(&Jit));
-			ADD(32, R(ESP), Imm8(4));
+			ABI_RestoreStack(4);
 			JMP(dispatcherNoCheck); // no point in special casing this
 
 			//FP blocks test for FPU available, jump here if false

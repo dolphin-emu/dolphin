@@ -10,42 +10,48 @@ using namespace Gen;
 // ====================================
 
 void ABI_CallFunctionC(void *func, u32 param1) {
+	ABI_AlignStack(1 * 4);
 	PUSH(32, Imm32(param1));
 	CALL(func);
-	ADD(32, R(ESP), Imm8(4));
+	ABI_RestoreStack(1 * 4);
 }
 
 void ABI_CallFunctionCC(void *func, u32 param1, u32 param2) {
+	ABI_AlignStack(2 * 4);
 	PUSH(32, Imm32(param2));
 	PUSH(32, Imm32(param1));
 	CALL(func);
-	ADD(32, R(ESP), Imm8(8));
+	ABI_RestoreStack(2 * 4);
 }
 
 // Pass a register as a paremeter.
 void ABI_CallFunctionR(void *func, X64Reg reg1) {
+	ABI_AlignStack(1 * 4);
 	PUSH(32, R(reg1));
 	CALL(func);
-	ADD(32, R(ESP), Imm8(4));
+	ABI_RestoreStack(1 * 4);
 }
 
 void ABI_CallFunctionRR(void *func, Gen::X64Reg reg1, Gen::X64Reg reg2)
 {
+	ABI_AlignStack(2 * 4);
 	PUSH(32, R(reg2));
 	PUSH(32, R(reg1));
 	CALL(func);
-	ADD(32, R(ESP), Imm8(8));
+	ABI_RestoreStack(2 * 4);
 }
 
 void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2)
 {
+	ABI_AlignStack(2 * 4);
 	PUSH(32, arg1);
 	PUSH(32, Imm32(param2));
 	CALL(func);
-	ADD(32, R(ESP), Imm8(8));
+	ABI_RestoreStack(2 * 4);
 }
 
 void ABI_PushAllCalleeSavedRegsAndAdjustStack() {
+	// Note: 4 * 4 = 16 bytes, so alignment is preserved.
 	PUSH(EBP);
 	PUSH(EBX);
 	PUSH(ESI);
@@ -57,6 +63,38 @@ void ABI_PopAllCalleeSavedRegsAndAdjustStack() {
 	POP(ESI);
 	POP(EBX);
 	POP(EBP);
+}
+
+void ABI_AlignStack(unsigned int frameSize) {
+// Mac OS X requires the stack to be 16-byte aligned before every call.
+// Linux requires the stack to be 16-byte aligned before calls that put SSE
+// vectors on the stack, but since we do not keep track of which calls do that,
+// it is effectively every call as well.
+// Windows binaries compiled with MSVC do not have such a restriction, but I
+// expect that GCC on Windows acts the same as GCC on Linux in this respect.
+// It would be nice if someone could verify this.
+#ifdef __GNUC__
+	frameSize += 4; // reserve space for return address
+	unsigned int paddedSize = (frameSize + 15) & -16;
+	unsigned int fillSize = paddedSize - frameSize;
+	if (fillSize != 0) {
+		SUB(32, R(ESP), Imm8(fillSize));
+	}
+#endif
+}
+
+void ABI_RestoreStack(unsigned int frameSize) {
+	frameSize += 4; // reserve space for return address
+	unsigned int paddedSize =
+#ifdef __GNUC__
+		(frameSize + 15) & -16;
+#else
+		frameSize;
+#endif
+	paddedSize -= 4; // return address is already consumed
+	if (paddedSize != 0) {
+		ADD(32, R(ESP), Imm8(paddedSize));
+	}
 }
 
 #else
@@ -97,6 +135,12 @@ void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2)
 		MOV(32, R(ABI_PARAM1), arg1);
 	MOV(32, R(ABI_PARAM2), Imm32(param2));
 	CALL(func);
+}
+
+void ABI_AlignStack(unsigned int /*frameSize*/) {
+}
+
+void ABI_RestoreStack(unsigned int /*frameSize*/) {
 }
 
 #ifdef _WIN32

@@ -136,13 +136,13 @@ void *ProtectFunction(void *function, int num_params)
 	// Since parameters are in the previous stack frame, not in registers, this takes some
 	// trickery : we simply re-push the parameters. might not be optimal, but that doesn't really
 	// matter.
+	ABI_AlignStack(num_params * 4);
 	for (int i = 0; i < num_params; i++) {
 		// ESP is changing, so we do not need i
-		PUSH(32, MDisp(ESP, (num_params) * 4));
+		PUSH(32, MDisp(ESP, num_params * 4));
 	}
 	CALL(function);
-	if (num_params)
-		ADD(32, R(ESP), Imm8(num_params * 4));
+	ABI_RestoreStack(num_params * 4);
 	CALL((void*)load_regs);
 	RET();
 #endif

@@ -21,6 +21,7 @@
 
 #include "Common.h"
 #include "x64Emitter.h"
+#include "ABI.h"
 #include "Profiler.h"
 #include "StringUtil.h"
 
@@ -536,21 +537,21 @@ void VertexLoader::ProcessFormat()
 
             int id = GL_TEXTURE0+i;
 #ifdef _M_X64
-
 #ifdef _MSC_VER
             MOV(32, R(RCX), Imm32(id));
-            CALL((void *)glClientActiveTexture);
 #else
             MOV(32, R(RDI), Imm32(id));
-            CALL((void *)glClientActiveTexture);
 #endif
-
 #else
+            ABI_AlignStack(1 * 4);
             PUSH(32, Imm32(id));
+#endif
             CALL((void *)glClientActiveTexture);
-			// don't inc stack on windows, stdcall
-#ifndef _WIN32
-			ADD(32, R(ESP), Imm8(4));
+#ifndef _M_X64
+#ifdef _WIN32
+            // don't inc stack on windows, stdcall
+#else
+            ABI_RestoreStack(1 * 4);
 #endif
 #endif
             if( m_components&(VB_HAS_TEXMTXIDX0<<i) ) {

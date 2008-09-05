@@ -103,6 +103,9 @@ void ABI_PopAllCalleeSavedRegsAndAdjustStack();
 void ABI_PushAllCallerSavedRegsAndAdjustStack();
 void ABI_PopAllCallerSavedRegsAndAdjustStack();
 
+void ABI_AlignStack(unsigned int frameSize);
+void ABI_RestoreStack(unsigned int frameSize);
+
 #ifdef _M_IX86
 inline int ABI_GetNumXMMRegs() { return 8; }
 #else

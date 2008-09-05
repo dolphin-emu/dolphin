@@ -342,9 +342,10 @@ void VertexLoader::Compile()
 
 	for (int i = 0; i < m_numPipelineStates; i++)
 	{
+		ABI_AlignStack(1 * 4);
 		PUSH(32, Imm32((u32)&m_VtxAttr));
 		CALL(m_PipelineStates[i]);
-		ADD(32, R(ESP), Imm8(4));
+		ABI_RestoreStack(1 * 4);
 	}
 
 	ADD(32, M(&varray->count), Imm8(1));
