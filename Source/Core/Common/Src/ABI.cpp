@@ -65,6 +65,17 @@ void ABI_PopAllCalleeSavedRegsAndAdjustStack() {
 	POP(EBP);
 }
 
+unsigned int ABI_GetAlignedFrameSize(unsigned int frameSize) {
+	frameSize += 4; // reserve space for return address
+	unsigned int alignedSize =
+#ifdef __GNUC__
+		(frameSize + 15) & -16;
+#else
+		frameSize;
+#endif
+	return alignedSize;
+}
+
 void ABI_AlignStack(unsigned int frameSize) {
 // Mac OS X requires the stack to be 16-byte aligned before every call.
 // Linux requires the stack to be 16-byte aligned before calls that put SSE
@@ -74,9 +85,8 @@ void ABI_AlignStack(unsigned int frameSize) {
 // expect that GCC on Windows acts the same as GCC on Linux in this respect.
 // It would be nice if someone could verify this.
 #ifdef __GNUC__
-	frameSize += 4; // reserve space for return address
-	unsigned int paddedSize = (frameSize + 15) & -16;
-	unsigned int fillSize = paddedSize - frameSize;
+	unsigned int fillSize =
+		ABI_GetAlignedFrameSize(frameSize) - (frameSize + 4);
 	if (fillSize != 0) {
 		SUB(32, R(ESP), Imm8(fillSize));
 	}
@@ -84,16 +94,10 @@ void ABI_AlignStack(unsigned int frameSize) {
 }
 
 void ABI_RestoreStack(unsigned int frameSize) {
-	frameSize += 4; // reserve space for return address
-	unsigned int paddedSize =
-#ifdef __GNUC__
-		(frameSize + 15) & -16;
-#else
-		frameSize;
-#endif
-	paddedSize -= 4; // return address is already consumed
-	if (paddedSize != 0) {
-		ADD(32, R(ESP), Imm8(paddedSize));
+	unsigned int alignedSize = ABI_GetAlignedFrameSize(frameSize);
+	alignedSize -= 4; // return address is POPped at end of call
+	if (alignedSize != 0) {
+		ADD(32, R(ESP), Imm8(alignedSize));
 	}
 }
 
@@ -135,6 +139,10 @@ void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2)
 		MOV(32, R(ABI_PARAM1), arg1);
 	MOV(32, R(ABI_PARAM2), Imm32(param2));
 	CALL(func);
+}
+
+unsigned int ABI_GetAlignedFrameSize(unsigned int frameSize) {
+	return frameSize;
 }
 
 void ABI_AlignStack(unsigned int /*frameSize*/) {

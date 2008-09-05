@@ -103,6 +103,7 @@ void ABI_PopAllCalleeSavedRegsAndAdjustStack();
 void ABI_PushAllCallerSavedRegsAndAdjustStack();
 void ABI_PopAllCallerSavedRegsAndAdjustStack();
 
+unsigned int ABI_GetAlignedFrameSize(unsigned int frameSize);
 void ABI_AlignStack(unsigned int frameSize);
 void ABI_RestoreStack(unsigned int frameSize);
 

@@ -137,9 +137,10 @@ void *ProtectFunction(void *function, int num_params)
 	// trickery : we simply re-push the parameters. might not be optimal, but that doesn't really
 	// matter.
 	ABI_AlignStack(num_params * 4);
+	unsigned int alignedSize = ABI_GetAlignedFrameSize(num_params * 4);
 	for (int i = 0; i < num_params; i++) {
 		// ESP is changing, so we do not need i
-		PUSH(32, MDisp(ESP, num_params * 4));
+		PUSH(32, MDisp(ESP, alignedSize - 4));
 	}
 	CALL(function);
 	ABI_RestoreStack(num_params * 4);
