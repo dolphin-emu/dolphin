@@ -4,6 +4,7 @@
 #include <shellapi.h>
 #else
 #include <sys/stat.h>
+#include <errno.h>
 #endif
 
 bool File::Exists(const std::string &filename)
@@ -21,8 +22,9 @@ bool File::IsDirectory(const std::string &filename) {
 #ifdef _WIN32
 	return (GetFileAttributes(filename.c_str()) & FILE_ATTRIBUTE_DIRECTORY) != 0;
 #else
-	// TODO: Insert POSIX code here.
-	return false;
+        struct stat file_info;
+	int result = stat(filename.c_str(), &file_info);
+        return S_ISDIR(file_info.st_mode);
 #endif
 }
 
@@ -79,7 +81,18 @@ bool File::CreateDir(const std::string &path)
 	PanicAlert("Error creating directory: %i", error);
 	return false;
 #else
-	// TODO: Insert POSIX code here.
-        return true;
+        if (mkdir(path.c_str(), 0644) == 0)
+          return true;
+
+        int err = errno;
+
+        if (err == EEXIST) {
+          PanicAlert("%s already exists", path.c_str());
+          return true;
+        }
+
+        PanicAlert("Error creating directory: %s", strerror(err));
+	return false;
+          
 #endif
 }
