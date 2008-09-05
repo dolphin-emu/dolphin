@@ -25,7 +25,7 @@
 #include "Common.h"
 
 #ifdef XINPUT_ENABLE
-#include <XInput.h>
+#include "XInput.h"
 #endif
 
 #include "pluginspecs_pad.h"
@@ -43,12 +43,12 @@ DInput dinput;
 
 #else
 
-#include <SDL.h>
-SDL_Joystick *joy;
-int numaxes = 0;
-int numbuttons = 0;
-int numballs = 0;
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/keysym.h>
 
+Display* GXdsp;
+bool KeyStatus[23];
 #endif
 
 // controls
@@ -219,34 +219,6 @@ void DllAbout(HWND _hParent)
 #endif
 }
 
-#ifndef _WIN32
-void SDL_Inputinit()
-{
-	if ( SDL_Init(SDL_INIT_JOYSTICK) < 0 ) 
-	{
-		printf("Unable to init SDL: %s\n", SDL_GetError());
-		exit(1);
-	}
-	for(int a = 0; a < SDL_NumJoysticks();a ++)
-		printf("Name:%s\n",SDL_JoystickName(a));
-	// Open joystick
-	joy=SDL_JoystickOpen(0);
-  
-  if(joy)
-  {
-    printf("Opened Joystick 0\n");
-    printf("Name: %s\n", SDL_JoystickName(0));
-    printf("Number of Axes: %d\n", SDL_JoystickNumAxes(joy));
-    printf("Number of Buttons: %d\n", SDL_JoystickNumButtons(joy));
-    printf("Number of Balls: %d\n", SDL_JoystickNumBalls(joy));
-    numaxes = SDL_JoystickNumAxes(joy);
-    numbuttons = SDL_JoystickNumButtons(joy);
-    numballs = SDL_JoystickNumBalls(joy);
-  }
-  else
-    printf("Couldn't open Joystick 0\n");
-}
-#endif
 
 void DllConfig(HWND _hParent)
 {
@@ -257,8 +229,6 @@ void DllConfig(HWND _hParent)
 	configDlg.DoModal(_hParent);
 
 	SaveConfig();
-#else
-	SDL_Inputinit();
 #endif
 }
 
@@ -273,7 +243,7 @@ void PAD_Initialize(SPADInitialize _PADInitialize)
 #ifdef _WIN32
 	dinput.Init((HWND)g_PADInitialize.hWnd);
 #else
-	SDL_Inputinit();
+	GXdsp = (Display*)g_PADInitialize.hWnd;
 #endif
 
 	LoadConfig();
@@ -287,10 +257,6 @@ void PAD_Shutdown()
 #endif
 #ifdef _WIN32
 	dinput.Free();
-#else
-  // Close if opened
-  if(SDL_JoystickOpened(0))
-    SDL_JoystickClose(joy);
 #endif
 	SaveConfig();
 }
@@ -470,7 +436,7 @@ void XInput_Read(int _numPAD, SPADStatus* _pPADStatus)
 
 
 #endif
-int a = 0;
+
 #ifndef _WIN32
 // The graphics plugin in the PCSX2 design leaves a lot of the window processing to the pad plugin, weirdly enough.
 void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
@@ -480,47 +446,105 @@ void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
 	{
 		return;
 	}
-	SDL_JoystickUpdate();
-	for(int a = 0;a < numbuttons;a++)
+	int i;
+	// This code is from Zerofrog's pcsx2 pad plugin
+	XEvent E;
+	//int keyPress=0, keyRelease=0;
+	KeySym key;
+
+	// keyboard input
+	while (XPending(GXdsp) > 0)
 	{
-		if(SDL_JoystickGetButton(joy, a))
+		XNextEvent(GXdsp, &E);
+
+		switch (E.type)
 		{
-			switch(a)
-			{
-				case 0://A
-					_pPADStatus->button |= PAD_BUTTON_A;
-					_pPADStatus->analogA = 255;
-				break;
-				case 1://B
-					_pPADStatus->button |= PAD_BUTTON_B;
-					_pPADStatus->analogB = 255;
-				break;
-				case 2://X
-					_pPADStatus->button |= PAD_BUTTON_Y;
-				break;
-				case 3://Y
-					_pPADStatus->button |= PAD_BUTTON_X;
-				break;
-				case 5://RB
-					_pPADStatus->button |= PAD_TRIGGER_Z;
-				break;
-				case 6://Start
-					_pPADStatus->button |= PAD_BUTTON_START;
-				break;
-			}
+		    case KeyPress:
+			    //_KeyPress(pad, XLookupKeysym((XKeyEvent *)&E, 0)); break;
+			    key = XLookupKeysym((XKeyEvent*)&E, 0);
+			    
+			       for (i = 0; i < NUMCONTROLS; i++) {
+			       	if (key == keyForControl[i]) {
+			       		KeyStatus[i] = true;
+			       	    break;
+			       	}
+			       }
+			    break;
+
+		    case KeyRelease:
+			    key = XLookupKeysym((XKeyEvent*)&E, 0);
+			    
+			       //_KeyRelease(pad, XLookupKeysym((XKeyEvent *)&E, 0));
+			       for (i = 0; i < NUMCONTROLS; i++) {
+			       	if (key == keyForControl[i]) {
+			       		KeyStatus[i] = false;
+			       	    break;
+			       	}
+			       }
+			    break;
+
+		    case FocusIn:
+			    XAutoRepeatOff(GXdsp);
+			    break;
+
+		    case FocusOut:
+			    XAutoRepeatOn(GXdsp);
+			    break;
 		}
 	}
 
+	int mainvalue =    (KeyStatus[20]) ? 40 : 100;
+	int subvalue =     (KeyStatus[21]) ? 40 : 100;
+	int triggervalue = (KeyStatus[23]) ? 100 : 255;
+	
+	if (KeyStatus[0]){_pPADStatus->stickX -= mainvalue;}
+	if (KeyStatus[1]){_pPADStatus->stickY += mainvalue;}
+	if (KeyStatus[2]){_pPADStatus->stickX += mainvalue;}
+	if (KeyStatus[3]){_pPADStatus->stickY -= mainvalue;}
+	
+	if (KeyStatus[4]){_pPADStatus->substickX -= subvalue;}
+	if (KeyStatus[5]){_pPADStatus->substickY += subvalue;}
+	if (KeyStatus[6]){_pPADStatus->substickX += subvalue;}
+	if (KeyStatus[7]){_pPADStatus->substickY -= subvalue;}
+	
+	if (KeyStatus[8]){_pPADStatus->button |= PAD_BUTTON_LEFT;}
+	if (KeyStatus[9]){_pPADStatus->button |= PAD_BUTTON_UP;}
+	if (KeyStatus[10]){_pPADStatus->button |= PAD_BUTTON_RIGHT;}
+	if (KeyStatus[11]){_pPADStatus->button |= PAD_BUTTON_DOWN;}
+
+	if (KeyStatus[12])
+	{
+		_pPADStatus->button |= PAD_BUTTON_A;
+		_pPADStatus->analogA = 255;
+	}
+
+	if (KeyStatus[13])
+	{
+		_pPADStatus->button |= PAD_BUTTON_B;
+		_pPADStatus->analogB = 255;
+	}
+
+	if (KeyStatus[14]){_pPADStatus->button |= PAD_BUTTON_X;}
+	if (KeyStatus[15]){_pPADStatus->button |= PAD_BUTTON_Y;}
+	if (KeyStatus[16]){_pPADStatus->button |= PAD_TRIGGER_Z;}
+	
+	if (KeyStatus[17])
+	{
+		_pPADStatus->button |= PAD_TRIGGER_L;
+		_pPADStatus->triggerLeft = triggervalue;
+	}
+
+	if (KeyStatus[18])
+	{
+		_pPADStatus->button |= PAD_TRIGGER_R;
+		_pPADStatus->triggerRight = triggervalue;
+	}
+	if (KeyStatus[19]){_pPADStatus->button |= PAD_BUTTON_START;}
 }
 
 
 #endif
-unsigned int PAD_GetAttachedPads()
-{
-	unsigned int connected = 0;
-	connected |= 1;	
-	return connected;
-}
+
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
 	// check if all is okay
@@ -598,10 +622,22 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 #endif
 }
 
+unsigned int PAD_GetAttachedPads()
+{
+	return 1;
+}
+
+
+unsigned int SaveLoadState(char* _ptr, BOOL _bSave)
+{
+	return(0);
+}
+
+
 void LoadConfig()
 {
-#ifdef _WIN32
 	// Initialize pad 1 to standard controls
+#ifdef _WIN32
 	const int defaultKeyForControl[NUMCONTROLS] =
 	{
 		DIK_LEFT, //mainstick
@@ -628,15 +664,40 @@ void LoadConfig()
 		DIK_LSHIFT,
 		DIK_LCONTROL
 	};
+#else
+	const int defaultKeyForControl[NUMCONTROLS] =
+	{
+		XK_Left, //mainstick
+		XK_Up,
+		XK_Right,
+		XK_Down,
+		XK_j, //substick
+		XK_i,
+		XK_l,
+		XK_k,
+		XK_f, //dpad
+		XK_t,
+		XK_h,
+		XK_g,
+		XK_x, //buttons
+		XK_z,
+		XK_s,
+		XK_c,
+		XK_d,
+		XK_q,
+		XK_w,
+		XK_Return,
+		XK_Shift_L,
+		XK_Shift_L,
+		XK_Control_L
+	};
 #endif
 	IniFile file;
 	file.Load("pad.ini");
 
 	for (int i = 0; i < NUMCONTROLS; i++)
 	{
-#ifdef _WIN32
 		file.Get("Bindings", controlNames[i], &keyForControl[i], defaultKeyForControl[i]);
-#endif
 	}
 
 	file.Get("XPad1", "Rumble", &g_rumbleEnable, true);

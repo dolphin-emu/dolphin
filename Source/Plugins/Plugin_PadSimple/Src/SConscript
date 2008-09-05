@@ -11,8 +11,4 @@ files = [
 	]
 
 padenv = env.Copy()
-padenv.Append(
-	CXXFLAGS = ' ' + ' '.join([ '-fPIC', '`pkg-config --cflags sdl`' ]),
-	LINKFLAGS = ' ' + ' '.join([ '`pkg-config --libs sdl`' ])
-	)
 padenv.SharedLibrary(output, files, LIBS=["common"])

@@ -93,9 +93,7 @@ void CFileSearch::FindFiles(const std::string& _searchString, const std::string&
 			break;
 		}
 
-		char temp[612];
-		strcpy(temp, dp->d_name);
-		std::string s(temp);
+		std::string s(dp->d_name);
 
 		if ( (s.size() > ext.size()) && (!strcasecmp(s.substr(s.size() - ext.size()).c_str(), ext.c_str())) )
 		{

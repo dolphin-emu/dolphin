@@ -92,6 +92,8 @@ BOOL Callback_PeekMessages()
 	XEvent event;
     while (XPending(GLWin.dpy) > 0) {
         XNextEvent(GLWin.dpy, &event);
+        if(event.type == KeyPress || event.type == KeyRelease)
+            XPutBackEvent(GLWin.dpy, &event); // We Don't want to deal with these types, This is a video plugin!
 	}
 	return TRUE;
 #endif
@@ -390,8 +392,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
                                       &GLWin.attr);
             XWarpPointer(GLWin.dpy, None, GLWin.win, 0, 0, 0, 0, 0, 0);
             XMapRaised(GLWin.dpy, GLWin.win);
-            XGrabKeyboard(GLWin.dpy, GLWin.win, True, GrabModeAsync,
-                          GrabModeAsync, CurrentTime);
+            //XGrabKeyboard(GLWin.dpy, GLWin.win, True, GrabModeAsync, GrabModeAsync, CurrentTime);
             XGrabPointer(GLWin.dpy, GLWin.win, True, ButtonPressMask,
                          GrabModeAsync, GrabModeAsync, GLWin.win, None, CurrentTime);
         }
