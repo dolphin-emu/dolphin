@@ -103,7 +103,8 @@ bool File::CreateDir(const std::string &path)
 
 std::string GetUserDirectory() {
 #ifdef _WIN32 
-  //TODO #endif
+  //TODO 
+  return std::string("");
 #else
   char *dir = getenv("HOME");
   if (!dir)
