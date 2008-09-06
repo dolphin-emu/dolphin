@@ -17,8 +17,6 @@
 
 #include <stdio.h>
 
-#define LOGGING
-
 #include "Common.h"
 #include "StringUtil.h"
 
