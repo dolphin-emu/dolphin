@@ -28,7 +28,7 @@
 #include "Frame.h"
 #include "Config.h"
 #include "CodeWindow.h"
-#include "../../Common/src/ExtendedTrace.h"
+#include "ExtendedTrace.h"
 
 IMPLEMENT_APP(DolphinApp)
 
