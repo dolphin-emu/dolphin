@@ -157,22 +157,30 @@ private:
 		STATE_CONNECTION_COMPLETE_EVENT,
 		STATE_READ_CLOCK_OFFSET,
 		STATE_READ_REMOTE_VER_INFO,
-		STATE_READ_REMOTE_FEATURES
+		STATE_READ_REMOTE_FEATURES,
+		STATE_CONNECT_WIIMOTE
 	};
 
 	EState m_State;
 	bdaddr_t m_StateTempBD;
 	u16 m_StateTempConnectionHandle;
 
+	struct ACLFrame {
+		u16 ConnectionHandle;
+		u8* data;
+		u32 size;
+	};
+
+	std::queue<ACLFrame> m_AclFrameQue;
+
+	//TODO: get rid of these, integrate into EState.
 	enum EDelayedEvent
 	{
 		EVENT_NONE,
 		EVENT_REQUEST_CONNECTION,
 		EVENT_CONNECTION_COMPLETE
 	};
-
 	EDelayedEvent m_DelayedEvent;
-
 	void SetDelayedEvent(EDelayedEvent e);
 
 	bdaddr_t m_ControllerBD;

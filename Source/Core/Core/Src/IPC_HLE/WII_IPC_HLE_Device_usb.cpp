@@ -205,18 +205,30 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendToDevice(u16 _ConnectionHandle, u8
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLFrame(u16 _ConnectionHandle, u8* _pData, u32 _Size)
 {
-	UACLHeader* pHeader = (UACLHeader*)Memory::GetPointer(m_pACLBuffer->PayloadBuffer[0].m_Address);
-	pHeader->ConnectionHandle = _ConnectionHandle;
-	pHeader->BCFlag = 0;
-	pHeader->PBFlag = 2;
-	pHeader->Size = _Size;
+	if(m_State == STATE_NONE && m_HCICommandMessageQueue.empty() && !m_ACLAnswer && m_pACLBuffer) {
+		LOG(WIIMOTE, "Sending ACL frame.");
+		UACLHeader* pHeader = (UACLHeader*)Memory::GetPointer(m_pACLBuffer->PayloadBuffer[0].m_Address);
+		pHeader->ConnectionHandle = _ConnectionHandle;
+		pHeader->BCFlag = 0;
+		pHeader->PBFlag = 2;
+		pHeader->Size = _Size;
 
-	memcpy(Memory::GetPointer(m_pACLBuffer->PayloadBuffer[0].m_Address + sizeof(UACLHeader)), _pData, _Size);
+		memcpy(Memory::GetPointer(m_pACLBuffer->PayloadBuffer[0].m_Address + sizeof(UACLHeader)), _pData, _Size);
 
-	// return reply buffer size
-	Memory::Write_U32(sizeof(UACLHeader) + _Size, m_pACLBuffer->m_Address + 0x4);
+		// return reply buffer size
+		Memory::Write_U32(sizeof(UACLHeader) + _Size, m_pACLBuffer->m_Address + 0x4);
 
-	m_ACLAnswer = true;
+		m_ACLAnswer = true;
+	} else {
+		LOG(WIIMOTE, "Queing ACL frame.");
+		//queue the packet
+		ACLFrame frame;
+		frame.ConnectionHandle = _ConnectionHandle;
+		frame.data = new u8[_Size];
+		memcpy(frame.data, _pData, _Size);
+		frame.size = _Size;
+		m_AclFrameQue.push(frame);
+	}
 }
 
 u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
@@ -274,6 +286,12 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 			ReturnHCIBuffer = true;
 			break;
 
+		case STATE_CONNECT_WIIMOTE:
+			m_WiiMotes[0].Connect();
+			m_State = STATE_NONE;
+			ReturnHCIBuffer = true;
+			break;
+
 		default:
 			PanicAlert("Unknown State in USBDev");
 			break;
@@ -313,6 +331,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		return Addr;
 	}
 
+	//TODO: remove
 	if(m_DelayedEvent != EVENT_NONE && m_pHCIBuffer) {
 		switch(m_DelayedEvent) {
 		case EVENT_REQUEST_CONNECTION:
@@ -329,6 +348,20 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		u32 Addr = m_pHCIBuffer->m_Address;
 		delete m_pHCIBuffer;
 		m_pHCIBuffer = NULL;
+		return Addr;
+	}
+
+	if(!m_AclFrameQue.empty() && m_pACLBuffer) {
+		ACLFrame& frame = m_AclFrameQue.front();
+		SendACLFrame(frame.ConnectionHandle, frame.data,
+			frame.size);
+		delete frame.data;
+		m_AclFrameQue.pop();
+
+		m_ACLAnswer = false;
+		u32 Addr = m_pACLBuffer->m_Address;
+		delete m_pACLBuffer;
+		m_pACLBuffer = NULL;
 		return Addr;
 	}
 
@@ -1276,6 +1309,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteLinkPolicy(u8* _Input)
 	// command parameters
 	hci_write_link_policy_settings_cp* pLinkPolicy = (hci_write_link_policy_settings_cp*)_Input;
 
+	_dbg_assert_msg_(WIIMOTE, m_State == STATE_NONE, "m_State != NONE");
+	m_State = STATE_CONNECT_WIIMOTE;
+	m_StateTempConnectionHandle = pLinkPolicy->con_handle;
 	SendEventCommandStatus(HCI_CMD_WRITE_LINK_POLICY_SETTINGS);
 
 	LOG(WIIMOTE, "Command: HCI_CMD_WRITE_LINK_POLICY_SETTINGS");

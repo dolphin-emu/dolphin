@@ -17,6 +17,8 @@
 
 #include <stdio.h>
 
+#define LOGGING
+
 #include "Common.h"
 #include "StringUtil.h"
 
@@ -40,6 +42,7 @@ void PanicAlert(const char* format, ...)
 	{
 		std::string msg;
 		StringFromFormatV(&msg, format, args);
+		LOG(MASTER_LOG, "PANIC: %s", msg.c_str());
 		panic_handler(msg.c_str(), false);
 	}
 	else
@@ -47,6 +50,7 @@ void PanicAlert(const char* format, ...)
 #ifdef _WIN32
 		std::string msg;
 		StringFromFormatV(&msg, format, args);
+		LOG(MASTER_LOG, "PANIC: %s", msg.c_str());
 		MessageBox(0, msg.c_str(), "PANIC!", MB_ICONWARNING);
 #elif __GNUC__
 		//#error Do a messagebox!
@@ -68,6 +72,7 @@ bool PanicYesNo(const char* format, ...)
 #ifdef _WIN32
 	std::string msg;
 	StringFromFormatV(&msg, format, args);
+	LOG(MASTER_LOG, "PANIC: %s", msg.c_str());
 	retval = IDYES == MessageBox(0, msg.c_str(), "PANIC! Continue?", MB_ICONQUESTION | MB_YESNO);
 #elif __GNUC__
 	//vprintf(format, args);
@@ -87,6 +92,7 @@ bool AskYesNo(const char* format, ...)
 #ifdef _WIN32
 	std::string msg;
 	StringFromFormatV(&msg, format, args);
+	LOG(MASTER_LOG, "ASK: %s", msg.c_str());
 	retval = IDYES == MessageBox(0, msg.c_str(), "Dolphin", MB_ICONQUESTION | MB_YESNO);
 #elif __GNUC__
 	//vprintf(format, args);

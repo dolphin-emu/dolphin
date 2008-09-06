@@ -4,6 +4,11 @@
 #include "Common.h"
 #include "Globals.h"
 
+void __Log(int, const char *fmt, ...)
+{
+	DebugLog(fmt);
+}
+
 void DebugLog(const char* _fmt, ...)
 {
 #ifdef _DEBUG

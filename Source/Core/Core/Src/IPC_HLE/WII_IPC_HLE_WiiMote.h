@@ -42,6 +42,8 @@ public:
 
 	void SendACLFrame(u8* _pData, u32 _Size);
 
+	void Connect();
+
 private:
 
 	// STATE_TO_SAVE
@@ -79,7 +81,12 @@ private:
 
 	void SignalChannel(u8* _pData, u32 _Size);
 
+	void SendConnectionRequest(u16 scid, u16 psm);
+	void SendConfigurationRequest(u16 scid);
+
 	void CommandConnectionReq(u8 _Ident, u8* _pData, u32 _Size);
 	void CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Size);
+	void CommandConnectionResponse(u8 _Ident, u8* _pData, u32 _Size);
+	void CommandCofigurationResponse(u8 _Ident, u8* _pData, u32 _Size);
 };
 #endif

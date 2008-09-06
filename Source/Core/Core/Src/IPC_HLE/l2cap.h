@@ -25,6 +25,21 @@ SOFTWARE IS DISCLAIMED.
 #ifndef __L2CAP_H
 #define __L2CAP_H
 
+//Dolphin - define missing types
+typedef unsigned short __le16;
+typedef unsigned short __u16;
+typedef unsigned char __u8;
+typedef unsigned long __u32;
+
+#ifdef _MSC_VER
+#define __attribute__(a)
+#pragma pack(push)
+#pragma pack(1)
+#pragma warning(push)
+#pragma warning(disable:4200)
+#endif
+
+
 /* L2CAP defaults */
 #define L2CAP_DEFAULT_MTU	672
 #define L2CAP_DEFAULT_FLUSH_TO	0xFFFF
@@ -33,11 +48,13 @@ SOFTWARE IS DISCLAIMED.
 #define L2CAP_INFO_TIMEOUT	(4000)  /*  4 seconds */
 
 /* L2CAP socket address */
+#ifdef NOT_DOLPHIN
 struct sockaddr_l2 {
     sa_family_t	l2_family;
     __le16		l2_psm;
     bdaddr_t	l2_bdaddr;
 };
+#endif
 
 /* L2CAP socket options */
 #define L2CAP_OPTIONS	0x01
@@ -190,6 +207,13 @@ struct l2cap_info_rsp {
 #define L2CAP_IR_SUCCESS    0x0000
 #define L2CAP_IR_NOTSUPP    0x0001
 
+#ifdef _MSC_VER
+#pragma warning(pop)
+#pragma pack(pop)
+#endif
+
+#ifdef NOT_DOLPHIN
+
 /* ----- L2CAP connections ----- */
 struct l2cap_chan_list {
     struct sock	*head;
@@ -261,5 +285,7 @@ struct l2cap_pinfo {
 #define L2CAP_CONF_MAX_RETRIES	2
 
 void l2cap_load(void);
+
+#endif	//NOT_DOLPHIN
 
 #endif /* __L2CAP_H */ 

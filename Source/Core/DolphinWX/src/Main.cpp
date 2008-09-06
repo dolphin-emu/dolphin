@@ -28,11 +28,36 @@
 #include "Frame.h"
 #include "Config.h"
 #include "CodeWindow.h"
+#include "../../Common/src/ExtendedTrace.h"
 
 IMPLEMENT_APP(DolphinApp)
 
 CFrame* main_frame = NULL;
 CCodeWindow* g_pCodeWindow = NULL;
+
+#ifdef WIN32
+//Has no error handling.
+//I think that if an error occurs here there's no way to handle it anyway.
+LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
+	//EnterCriticalSection(&g_uefcs);
+
+	FILE* file=NULL;
+	fopen_s(&file, "exceptioninfo.txt", "a");
+	fseek(file, 0, SEEK_END);
+	etfprint(file, "\n");
+	//etfprint(file, g_buildtime);
+	//etfprint(file, "\n");
+	//dumpCurrentDate(file);
+	etfprintf(file, "Unhandled Exception\n  Code: 0x%08X\n",
+		e->ExceptionRecord->ExceptionCode);
+	STACKTRACE2(file, e->ContextRecord->Eip, e->ContextRecord->Esp, e->ContextRecord->Ebp);
+	fclose(file);
+	_flushall();
+
+	//LeaveCriticalSection(&g_uefcs);
+	return EXCEPTION_CONTINUE_SEARCH;
+}
+#endif
 
 // The `main program' equivalent, creating the windows and returning the
 // main frame
@@ -44,6 +69,9 @@ bool DolphinApp::OnInit()
 #endif
 
 #ifdef _WIN32
+	EXTENDEDTRACEINITIALIZE(".");
+	SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
+
 	// TODO: if First Boot
 	if (!cpu_info.bSSE2) 
 	{
