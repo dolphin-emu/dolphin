@@ -158,7 +158,7 @@ static BOOL GetFunctionInfoFromAddresses( ULONG fnAddress, ULONG stackAddress, L
 	_tcscpy( lpszSymbol, _T("?") );
 
 	// Get symbol info for IP
-#ifdef _M_IX86
+#ifndef _M_X64
 	if ( SymGetSymFromAddr( GetCurrentProcess(), (ULONG)fnAddress, &dwDisp, pSym ) )
 #else 
 	//makes it compile but hell im not sure if this works...
@@ -309,7 +309,7 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, FILE *file )
 		}
 
 		::ZeroMemory( &callStack, sizeof(callStack) );
-#ifdef _M_IX86
+#ifndef _M_X64
 		callStack.AddrPC.Offset    = context.Eip;
 		callStack.AddrStack.Offset = context.Esp;
 		callStack.AddrFrame.Offset = context.Ebp;
