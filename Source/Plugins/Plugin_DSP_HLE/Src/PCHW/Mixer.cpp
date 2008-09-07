@@ -61,7 +61,6 @@ void Mixer(short *buffer, int numSamples, int bits, int rate, int channels)
 	int count = 0;
 	while (sample_queue.size() && count < numSamples * 2) {
 		int x = buffer[count];
-		short sample = sample_queue.front();
 		x += sample_queue.front();
 		if (x > 32767) x = 32767;
 		if (x < -32767) x = -32767;
