@@ -25,6 +25,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 , m_pHCIBuffer(NULL)
 , m_State(STATE_NONE)
 , scan_enable(0)
+, m_DelayedEvent(EVENT_NONE)
 {
 	m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, 0));
 
@@ -341,7 +342,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 			SendEventConnectionComplete();
 			break;
 		default:
-			PanicAlert("Unknown Event in USBDev");
+			PanicAlert("Unknown Event in USBDev: %i", m_DelayedEvent);
 		}
 		m_DelayedEvent = EVENT_NONE;
 

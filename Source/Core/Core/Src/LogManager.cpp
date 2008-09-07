@@ -66,7 +66,7 @@ CDebugger_Log::~CDebugger_Log(void)
 
 void CDebugger_Log::Init()
 {
-	m_pFile = fopen(m_szFilename, "wt");
+	m_pFile = fopen(m_szFilename, "wtb");
 }
 
 void CDebugger_Log::Shutdown() 
@@ -163,39 +163,35 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	
 	SMessage& Message = m_Messages[m_nextMessages];
 
-    static u32 count = 0;
+	static u32 count = 0;
 
-    char* Msg2 = (char*)alloca(strlen(_fmt)+512);
+	char* Msg2 = (char*)alloca(strlen(_fmt)+512);
 
 	int Index = 0; //Debugger::FindSymbol(PC);
-#ifdef _WIN32
-	const char *eol = "\x0D\x0A";
-#else
 	const char *eol = "\n";
-#endif
-    if (Index > 0)
-    { 
-        // const Debugger::Symbol& symbol = Debugger::GetSymbol(Index);
+	if (Index > 0)
+	{ 
+		// const Debugger::Symbol& symbol = Debugger::GetSymbol(Index);
 		sprintf(Msg2, "%i: %x %s (%s, %08x ) : %s%s", 
-			          ++count, 
-					  PowerPC::ppcState.DebugCount, 
-					  m_Log[_type]->m_szShortName, 
-					  "", //symbol.GetName().c_str(), 
-					  PC, 
-					  Msg, eol);
-    }
-    else
-    {
+			++count, 
+			PowerPC::ppcState.DebugCount, 
+			m_Log[_type]->m_szShortName, 
+			"", //symbol.GetName().c_str(), 
+			PC, 
+			Msg, eol);
+	}
+	else
+	{
 		sprintf(Msg2, "%i: %x %s ( %08x ) : %s%s", ++count, PowerPC::ppcState.DebugCount, m_Log[_type]->m_szShortName, PC, Msg, eol);
-    }
+	}
 
 	Message.Set(_type, Msg2);
 
 	if (m_Log[_type]->m_pFile && m_Log[_type]->m_bLogToFile)
-		fprintf(m_Log[_type]->m_pFile, Msg2);
+		fprintf(m_Log[_type]->m_pFile, "%s", Msg2);
 	if (m_Log[LogTypes::MASTER_LOG] && m_Log[LogTypes::MASTER_LOG]->m_pFile && m_Log[_type]->m_bShowInLog)
-		fprintf(m_Log[LogTypes::MASTER_LOG]->m_pFile, Msg2);
-	
+		fprintf(m_Log[LogTypes::MASTER_LOG]->m_pFile, "%s", Msg2);
+
 	printf("%s", Msg2);
 
 	m_nextMessages++;
