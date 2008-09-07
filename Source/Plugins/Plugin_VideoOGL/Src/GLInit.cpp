@@ -92,8 +92,30 @@ BOOL Callback_PeekMessages()
 	XEvent event;
     while (XPending(GLWin.dpy) > 0) {
         XNextEvent(GLWin.dpy, &event);
-        if(event.type == KeyPress || event.type == KeyRelease)
-            XPutBackEvent(GLWin.dpy, &event); // We Don't want to deal with these types, This is a video plugin!
+        switch(event.type)
+        {
+            case KeyPress:
+            case KeyRelease:
+            case ButtonPress:
+            case ButtonRelease:
+                XPutBackEvent(GLWin.dpy, &event); // We Don't want to deal with these types, This is a video plugin!
+            break;
+            case ConfigureNotify:
+                Window winDummy;
+                unsigned int borderDummy;
+                XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
+                            &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
+                nBackbufferWidth = GLWin.width;
+                nBackbufferHeight = GLWin.height;
+            break;
+            case ClientMessage: //TODO: We aren't reading this correctly, It could be anything, highest change is that it's a close event though
+                Video_Shutdown(); // Calling from here since returning false does nothing
+                return false; 
+            break;
+            default:
+                //TODO: Should we put the event back if we don't handle it?
+            break;
+        }
 	}
 	return TRUE;
 #endif
@@ -385,7 +407,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
             /* create a fullscreen window */
             GLWin.attr.override_redirect = True;
             GLWin.attr.event_mask = ExposureMask | KeyPressMask | ButtonPressMask |
-                StructureNotifyMask;
+                StructureNotifyMask | ResizeRedirectMask;
             GLWin.win = XCreateWindow(GLWin.dpy, RootWindow(GLWin.dpy, vi->screen),
                                       0, 0, dpyWidth, dpyHeight, 0, vi->depth, InputOutput, vi->visual,
                                       CWBorderPixel | CWColormap | CWEventMask | CWOverrideRedirect,
@@ -508,13 +530,7 @@ void OpenGL_Update()
     nBackbufferHeight = height;
 
 #else // GLX
-    Window winDummy;
-    unsigned int borderDummy;
-    XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
-                &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
-    nBackbufferWidth = GLWin.width;
-    nBackbufferHeight = GLWin.height;
-
+    // We do our resizing inside of the Callback function
 #endif
 
     float FactorW  = 640.0f / (float)nBackbufferWidth;
