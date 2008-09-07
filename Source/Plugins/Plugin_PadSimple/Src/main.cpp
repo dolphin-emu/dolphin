@@ -108,7 +108,7 @@ static const char* controlNames[] =
 	"Soft_triggers_switch",
 };
 
-int keyForControl[NUMCONTROLS];
+unsigned int keyForControl[NUMCONTROLS];
 
 HINSTANCE g_hInstance = NULL;
 SPADInitialize g_PADInitialize;
