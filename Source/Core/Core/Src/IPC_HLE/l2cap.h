@@ -96,31 +96,31 @@ struct l2cap_conninfo {
 struct l2cap_hdr {
     __le16     len;
     __le16     cid;
-} __attribute__ ((packed));
+};
 #define L2CAP_HDR_SIZE		4
 
 struct l2cap_cmd_hdr {
     __u8       code;
     __u8       ident;
     __le16     len;
-} __attribute__ ((packed));
+};
 #define L2CAP_CMD_HDR_SIZE	4
 
 struct l2cap_cmd_rej {
     __le16     reason;
-} __attribute__ ((packed));
+};
 
 struct l2cap_conn_req {
     __le16     psm;
     __le16     scid;
-} __attribute__ ((packed));
+};
 
 struct l2cap_conn_rsp {
     __le16     dcid;
     __le16     scid;
     __le16     result;
     __le16     status;
-} __attribute__ ((packed));
+};
 
 /* connect result */
 #define L2CAP_CR_SUCCESS    0x0000
@@ -138,14 +138,14 @@ struct l2cap_conf_req {
     __le16     dcid;
     __le16     flags;
     __u8       data[0];
-} __attribute__ ((packed));
+};
 
 struct l2cap_conf_rsp {
     __le16     scid;
     __le16     flags;
     __le16     result;
     __u8       data[0];
-} __attribute__ ((packed));
+};
 
 #define L2CAP_CONF_SUCCESS	0x0000
 #define L2CAP_CONF_UNACCEPT	0x0001
@@ -156,7 +156,7 @@ struct l2cap_conf_opt {
     __u8       type;
     __u8       len;
     __u8       val[0];
-} __attribute__ ((packed));
+};
 #define L2CAP_CONF_OPT_SIZE	2
 
 #define L2CAP_CONF_MTU		0x01
@@ -182,22 +182,22 @@ struct l2cap_conf_rfc {
 struct l2cap_disconn_req {
     __le16     dcid;
     __le16     scid;
-} __attribute__ ((packed));
+};
 
 struct l2cap_disconn_rsp {
     __le16     dcid;
     __le16     scid;
-} __attribute__ ((packed));
+};
 
 struct l2cap_info_req {
     __le16      type;
-} __attribute__ ((packed));
+};
 
 struct l2cap_info_rsp {
     __le16      type;
     __le16      result;
     __u8        data[0];
-} __attribute__ ((packed));
+};
 
 /* info type */
 #define L2CAP_IT_CL_MTU     0x0001
