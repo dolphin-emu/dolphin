@@ -7,7 +7,6 @@ files = [
 	"CPUDetect.cpp",
 	"DynamicLibrary.cpp",
 	"Hash.cpp",
-	"HTTP.cpp",
 	"IniFile.cpp",
 	"Logging.cpp",
 	"FileUtil.cpp",
