@@ -14,6 +14,7 @@ files = [
 	'PluginManager.cpp',
 	'PluginOptions.cpp',
 	'stdafx.cpp',
+        'cmdline.c',
 	]
 libs = [
 	'debwx', 'core', 'discio', 'bdisasm', 'videocommon', 'common', 'z'

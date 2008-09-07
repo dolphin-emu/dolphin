@@ -1,0 +1,6 @@
+package "Dolphin"
+version "SVN"
+purpose "A multi platform gamecube/wii emulator"
+
+option "debug"  d  "enable debug"  flag  off  
+
