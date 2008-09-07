@@ -9,6 +9,9 @@
 #include "Common.h"
 #include "ISOFile.h"
 #include "CPUDetect.h"
+#include "cmdline.h"
+#include "Thread.h"
+#include "PowerPC/PowerPC.h"
 
 #include "BootManager.h"
 void* g_pCodeWindow = NULL;
@@ -36,7 +39,11 @@ void Host_UpdateLogDisplay(){}
 void Host_UpdateDisasmDialog(){}
 
 
-void Host_UpdateMainFrame(){}
+Common::Event updateMainFrameEvent;
+void Host_UpdateMainFrame()
+{
+	updateMainFrameEvent.Set();
+}
 
 void Host_UpdateBreakPointView(){}
 
@@ -59,7 +66,6 @@ void Host_UpdateStatusBar(const char* _pText){}
 
 // Include SDL header so it can hijack main().
 #include <SDL.h>
-#include "cmdline.h"
 
 int main(int argc, char* argv[])
 {
@@ -75,12 +81,13 @@ int main(int argc, char* argv[])
 	}
 	std::string bootFile(args_info.inputs[0]);
 
+	updateMainFrameEvent.Init();
 	DetectCPU();
 	BootManager::BootCore(bootFile);
-	usleep(2000 * 1000 * 1000);
-	//while (!getch()) {
-	//	usleep(20);
-	//}
+	while (PowerPC::state != PowerPC::CPU_POWERDOWN)
+	{
+		updateMainFrameEvent.Wait();
+	}
 
 	cmdline_parser_free (&args_info);
 	return(0);
