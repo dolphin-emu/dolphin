@@ -49,7 +49,7 @@ int m_buttonResources[NUMCONTROLS] =
 	//	NUMCONTROLS
 };
 
-extern int keyForControl[NUMCONTROLS];
+extern unsigned int keyForControl[NUMCONTROLS];
 extern bool g_rumbleEnable;
 
 LRESULT CConfigDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)

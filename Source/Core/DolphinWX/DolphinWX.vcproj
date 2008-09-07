@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="DolphinWX"
 	ProjectGUID="{A72606EF-C5C1-4954-90AD-F0F93A8D97D9}"
 	RootNamespace="DolphinWX"
@@ -28,7 +28,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(ProjectDir)..\Common\SubWCRev.exe $(SolutionDir) $(ProjectDir)..\Common\src\svnrev_template.h $(ProjectDir)..\Common\src\svnrev.h"
+				CommandLine="&quot;$(ProjectDir)..\Common\SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)..\Common\src\svnrev_template.h&quot; &quot;$(ProjectDir)..\Common\src\svnrev.h&quot;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -137,7 +137,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(ProjectDir)..\Common\SubWCRev.exe $(SolutionDir) $(ProjectDir)..\Common\src\svnrev_template.h $(ProjectDir)..\Common\src\svnrev.h"
+				CommandLine="&quot;$(ProjectDir)..\Common\SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)..\Common\src\svnrev_template.h&quot; &quot;$(ProjectDir)..\Common\src\svnrev.h&quot;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -247,7 +247,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(ProjectDir)..\Common\SubWCRev.exe $(SolutionDir) $(ProjectDir)..\Common\src\svnrev_template.h $(ProjectDir)..\Common\src\svnrev.h"
+				CommandLine="&quot;$(ProjectDir)..\Common\SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)..\Common\src\svnrev_template.h&quot; &quot;$(ProjectDir)..\Common\src\svnrev.h&quot;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -355,7 +355,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(ProjectDir)..\Common\SubWCRev.exe $(SolutionDir) $(ProjectDir)..\Common\src\svnrev_template.h $(ProjectDir)..\Common\src\svnrev.h"
+				CommandLine="&quot;$(ProjectDir)..\Common\SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)..\Common\src\svnrev_template.h&quot; &quot;$(ProjectDir)..\Common\src\svnrev.h&quot;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -463,7 +463,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(ProjectDir)..\Common\SubWCRev.exe $(SolutionDir) $(ProjectDir)..\Common\src\svnrev_template.h $(ProjectDir)..\Common\src\svnrev.h"
+				CommandLine="&quot;$(ProjectDir)..\Common\SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)..\Common\src\svnrev_template.h&quot; &quot;$(ProjectDir)..\Common\src\svnrev.h&quot;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -573,7 +573,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="$(ProjectDir)..\Common\SubWCRev.exe $(SolutionDir) $(ProjectDir)..\Common\src\svnrev_template.h $(ProjectDir)..\Common\src\svnrev.h"
+				CommandLine="&quot;$(ProjectDir)..\Common\SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)..\Common\src\svnrev_template.h&quot; &quot;$(ProjectDir)..\Common\src\svnrev.h&quot;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -863,6 +863,14 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath="..\..\..\Installer\Dolphin.ico"
+			>
+		</File>
+		<File
+			RelativePath=".\DolphinWX.rc"
+			>
+		</File>
+		<File
 			RelativePath=".\src\main.cpp"
 			>
 		</File>
@@ -872,6 +880,10 @@
 		</File>
 		<File
 			RelativePath="..\..\..\readme.txt"
+			>
+		</File>
+		<File
+			RelativePath=".\resource1.h"
 			>
 		</File>
 		<File
