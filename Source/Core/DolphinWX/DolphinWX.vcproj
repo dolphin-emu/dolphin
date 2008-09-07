@@ -863,14 +863,6 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath="..\..\..\Installer\Dolphin.ico"
-			>
-		</File>
-		<File
-			RelativePath=".\DolphinWX.rc"
-			>
-		</File>
-		<File
 			RelativePath=".\src\main.cpp"
 			>
 		</File>
