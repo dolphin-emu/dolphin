@@ -123,21 +123,21 @@ namespace Gen
 #endif
 	}
 
-	void OpArg::WriteRest(int extraBytes, X64Reg operandReg) const
+	void OpArg::WriteRest(int extraBytes, X64Reg _operandReg) const
 	{
-		if (operandReg == 0xff)
-			operandReg = (X64Reg)this->operandReg;
+		if (_operandReg == 0xff)
+			_operandReg = (X64Reg)this->operandReg;
 		int mod = 0;
 		int ireg = indexReg;
 		bool SIB = false;
-		int offsetOrBaseReg = this->offsetOrBaseReg;
+		int _offsetOrBaseReg = this->offsetOrBaseReg;
 
 		if (scale == SCALE_RIP) //Also, on 32-bit, just an immediate address
 		{
 			_dbg_assert_msg_(DYNA_REC,!mode32,"!mode32");
 			// Oh, RIP addressing. 
-			offsetOrBaseReg = 5;
-			WriteModRM(0, operandReg&7, 5);
+			_offsetOrBaseReg = 5;
+			WriteModRM(0, _operandReg&7, 5);
 			//TODO : add some checks
 #ifdef _M_X64
 			u64 ripAddr = (u64)code + 4 + extraBytes;
@@ -157,7 +157,7 @@ namespace Gen
 		else if (scale >= 1)
 		{
 			//Ah good, no scaling.
-			if (scale == SCALE_ATREG && !((offsetOrBaseReg&7) == 4 || (offsetOrBaseReg&7) == 5))
+			if (scale == SCALE_ATREG && !((_offsetOrBaseReg&7) == 4 || (_offsetOrBaseReg&7) == 5))
 			{
 				//Okay, we're good. No SIB necessary.
 				int ioff = (int)offset;
@@ -176,7 +176,7 @@ namespace Gen
 			}
 			else //if (scale != SCALE_ATREG)
 			{
-				if ((offsetOrBaseReg & 7) == 4) //this would occupy the SIB encoding :(
+				if ((_offsetOrBaseReg & 7) == 4) //this would occupy the SIB encoding :(
 				{
 					//So we have to fake it with SIB encoding :(
 					SIB = true;
@@ -187,7 +187,7 @@ namespace Gen
 					SIB = true;
 				}
 
-				if (scale == SCALE_ATREG && offsetOrBaseReg == 4) 
+				if (scale == SCALE_ATREG && _offsetOrBaseReg == 4) 
 				{
 					SIB = true;
 					ireg = 4;
@@ -209,7 +209,7 @@ namespace Gen
 
 		// Okay. Time to do the actual writing
 		// ModRM byte:
-		int oreg = offsetOrBaseReg;
+		int oreg = _offsetOrBaseReg;
 		if (SIB)
 			oreg = 4;
 		
@@ -217,7 +217,7 @@ namespace Gen
 		//if (RIP)
 		//    oreg = 5;
 
-		WriteModRM(mod, operandReg&7, oreg&7);
+		WriteModRM(mod, _operandReg&7, oreg&7);
 
 		if (SIB)
 		{
@@ -225,7 +225,7 @@ namespace Gen
 			int ss;
 			switch (scale)
 			{
-			case 0: offsetOrBaseReg = 4; ss = 0; break; //RSP 
+			case 0: _offsetOrBaseReg = 4; ss = 0; break; //RSP 
 			case 1: ss = 0; break;
 			case 2: ss = 1; break;
 			case 4: ss = 2; break;
@@ -233,7 +233,7 @@ namespace Gen
 			case SCALE_ATREG: ss = 0; break;
 			default: _assert_msg_(DYNA_REC, 0, "Invalid scale for SIB byte"); ss = 0; break;
 			}
-			Write8((u8)((ss << 6) | ((ireg&7)<<3) | (offsetOrBaseReg&7)));
+			Write8((u8)((ss << 6) | ((ireg&7)<<3) | (_offsetOrBaseReg&7)));
 		}
 
 		if (mod == 1) //8-bit disp
@@ -768,12 +768,12 @@ namespace Gen
 	void SHR(int bits, OpArg dest, OpArg shift) {WriteShift(bits, dest, shift, 5);}
 	void SAR(int bits, OpArg dest, OpArg shift) {WriteShift(bits, dest, shift, 7);}
 
-	void OpArg::WriteSingleByteOp(u8 op, X64Reg operandReg, int bits)
+	void OpArg::WriteSingleByteOp(u8 op, X64Reg _operandReg, int bits)
 	{
 		if (bits == 16)
 			Write8(0x66);
 
-		this->operandReg = (u8)operandReg;
+		this->operandReg = (u8)_operandReg;
 		WriteRex(bits == 64);
 		Write8(op);
 		WriteRest();
@@ -808,7 +808,7 @@ namespace Gen
 	//operand can either be immediate or register
 	void OpArg::WriteNormalOp(bool toRM, NormalOp op, const OpArg &operand, int bits) const
 	{
-		X64Reg operandReg = (X64Reg)this->operandReg;
+		X64Reg _operandReg = (X64Reg)this->operandReg;
 		if (IsImm())
 		{
 			_assert_msg_(DYNA_REC, 0, "WriteNormalOp - Imm argument, wrong order");
@@ -821,7 +821,7 @@ namespace Gen
 
 		if (operand.IsImm())
 		{
-			operandReg = (X64Reg)0;
+			_operandReg = (X64Reg)0;
 			WriteRex(bits == 64);
 
 			if (!toRM)
@@ -835,17 +835,17 @@ namespace Gen
 				_assert_msg_(DYNA_REC, code[-1] != 0xCC, "ARGH1");
 				immToWrite = 8;
 			}
-			else if (operand.scale == SCALE_IMM16 && bits == 16 ||
-				     operand.scale == SCALE_IMM32 && bits == 32 || 
-					 operand.scale == SCALE_IMM32 && bits == 64)
+			else if ((operand.scale == SCALE_IMM16 && bits == 16) ||
+                                 (operand.scale == SCALE_IMM32 && bits == 32) || 
+                                 (operand.scale == SCALE_IMM32 && bits == 64))
 			{
 				Write8(nops[op].imm32);
 				_assert_msg_(DYNA_REC, code[-1] != 0xCC, "ARGH2");
 				immToWrite = 32;
 			}
-			else if (operand.scale == SCALE_IMM8 && bits == 16 ||
-                     operand.scale == SCALE_IMM8 && bits == 32 ||
-					 operand.scale == SCALE_IMM8 && bits == 64)
+			else if ((operand.scale == SCALE_IMM8 && bits == 16) ||
+                                 (operand.scale == SCALE_IMM8 && bits == 32) ||
+                                 (operand.scale == SCALE_IMM8 && bits == 64))
 			{
 				Write8(nops[op].simm8);
 				_assert_msg_(DYNA_REC, code[-1] != 0xCC, "ARGH3");
@@ -865,12 +865,12 @@ namespace Gen
 			{
 				_assert_msg_(DYNA_REC, 0, "WriteNormalOp - Unhandled case");
 			}
-			operandReg = (X64Reg)nops[op].ext; //pass extension in REG of ModRM
+			_operandReg = (X64Reg)nops[op].ext; //pass extension in REG of ModRM
 		}
 		else
 		{
-			operandReg = (X64Reg)operand.offsetOrBaseReg;
-			WriteRex(bits == 64, operandReg);
+			_operandReg = (X64Reg)operand.offsetOrBaseReg;
+			WriteRex(bits == 64, _operandReg);
 			// mem/reg or reg/reg op
 			if (toRM)
 			{
@@ -883,7 +883,7 @@ namespace Gen
 				_assert_msg_(DYNA_REC, code[-1] != 0xCC, "ARGH5");
 			}
 		}
-		WriteRest(immToWrite>>3, operandReg);
+		WriteRest(immToWrite>>3, _operandReg);
 		switch (immToWrite)
 		{
 		case 0:
