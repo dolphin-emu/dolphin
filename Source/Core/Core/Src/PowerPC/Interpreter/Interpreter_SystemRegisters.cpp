@@ -17,7 +17,11 @@
 
 #include <float.h>
 #ifdef _WIN32
+#define _interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set
+#define _interlockedbittestandreset workaround_ms_header_bug_platform_sdk6_reset
 #include <intrin.h>
+#undef _interlockedbittestandset
+#undef _interlockedbittestandreset
 #else
 static const unsigned short FPU_ROUND_NEAR = 0 << 10;
 static const unsigned short FPU_ROUND_DOWN = 1 << 10;

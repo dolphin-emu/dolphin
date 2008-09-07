@@ -1,8 +1,29 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
 #include "Common.h"
 #include "FileUtil.h"
+
 #ifdef _WIN32
+#include <shlobj.h>    // for SHGetFolderPath
 #include <shellapi.h>
+#include <commdlg.h>   // for GetSaveFileName
 #else
+
 #include <sys/stat.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -85,17 +106,17 @@ bool File::CreateDir(const std::string &path)
 	PanicAlert("Error creating directory: %i", error);
 	return false;
 #else
-        if (mkdir(path.c_str(), 0644) == 0)
-          return true;
+    if (mkdir(path.c_str(), 0644) == 0)
+		return true;
 
-        int err = errno;
+    int err = errno;
 
-        if (err == EEXIST) {
-          PanicAlert("%s already exists", path.c_str());
-          return true;
-        }
+    if (err == EEXIST) {
+		PanicAlert("%s already exists", path.c_str());
+		return true;
+    }
 
-        PanicAlert("Error creating directory: %s", strerror(err));
+    PanicAlert("Error creating directory: %s", strerror(err));
 	return false;
           
 #endif
@@ -103,13 +124,16 @@ bool File::CreateDir(const std::string &path)
 
 std::string GetUserDirectory() {
 #ifdef _WIN32 
-  //TODO 
-  return std::string("");
+	char path[MAX_PATH];
+	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, path)))
+	{
+		return std::string(path);
+	}
+	return std::string("");
 #else
-  char *dir = getenv("HOME");
-  if (!dir)
-    return std::string("");
-  
-  return dir; 
+	char *dir = getenv("HOME");
+	if (!dir)
+		return std::string("");
+	return dir; 
 #endif
 }

@@ -65,8 +65,9 @@ namespace Jit64
 		MOV(32, R(ABI_PARAM1), gpr.R(b));
 		if (a)
 			ADD(32, R(ABI_PARAM1), gpr.R(a));
-		SafeLoadRegToEAX(ABI_PARAM1, 8, 0);
-		MOV(32, gpr.R(d), R(EAX));
+		//SafeLoadRegToEAX(ABI_PARAM1, 8, 0);
+		UnsafeLoadRegToReg(ABI_PARAM1, gpr.RX(d), 8, 0, false);
+		//MOV(32, gpr.R(d), R(EAX));
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
 	}

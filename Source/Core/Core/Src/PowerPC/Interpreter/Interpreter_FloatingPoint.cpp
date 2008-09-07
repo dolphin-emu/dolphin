@@ -19,7 +19,11 @@
 #include <limits>
 
 #ifdef _WIN32
+#define _interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set
+#define _interlockedbittestandreset workaround_ms_header_bug_platform_sdk6_reset
 #include <intrin.h>
+#undef _interlockedbittestandset
+#undef _interlockedbittestandreset
 #else
 #include <xmmintrin.h>
 #endif
@@ -32,7 +36,7 @@
 // POSSIBLE APPROACHES:
 // * Full SW FPU. Urgh.
 // * Partial SW FPU, emulate just as much as necessary for monkey ball. Feasible but a lot of work.
-// * HLE hacking. Figure out what all the evil functions really do and fake them.
+// * HLE hacking. Figure out what all the evil functions really do and fake them. DONE (well, works okay-ish)
 
 // Interesting places in Super Monkey Ball:
 // 80036654: fctwixz stuff

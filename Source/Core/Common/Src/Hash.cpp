@@ -120,8 +120,8 @@ u32 HashFNV1(const u8* ptr, int length)
 }
 
 
-// Terribly stupid hash - but can't go back now :)
-// Don't use for new things. At least it's fast.
+// Stupid hash - but can't go back now :)
+// Don't use for new things. At least it's reasonably fast.
 u32 HashEctor(const u8* ptr, int length)
 {
 	u32 crc = 0;
@@ -134,5 +134,3 @@ u32 HashEctor(const u8* ptr, int length)
 
 	return(crc);
 }
-
-

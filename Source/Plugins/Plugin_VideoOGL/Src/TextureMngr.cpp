@@ -16,7 +16,11 @@
 // http://code.google.com/p/dolphin-emu/
 
 #ifdef _WIN32
+#define _interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set
+#define _interlockedbittestandreset workaround_ms_header_bug_platform_sdk6_reset
 #include <intrin.h>
+#undef _interlockedbittestandset
+#undef _interlockedbittestandreset
 #endif
 
 #include "Globals.h"

@@ -20,9 +20,9 @@
 
 #include "Common.h"
 
-extern int lut3to8[8];
-extern int lut4to8[16];
-extern int lut5to8[32];
+extern const int lut3to8[8];
+extern const int lut4to8[16];
+extern const int lut5to8[32];
 extern int lut6to8[64];
 extern float lutu8tosfloat[256];
 extern float lutu8toufloat[256];

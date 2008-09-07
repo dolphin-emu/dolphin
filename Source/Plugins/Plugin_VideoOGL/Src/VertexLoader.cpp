@@ -703,7 +703,7 @@ void VertexLoader::WriteCall(void  (LOADERDECL *func)(void *))
 
 void VertexLoader::RunVertices(int primitive, int count)
 {
-	ComputeVertexSize();
+	ComputeVertexSize(); // HACK for underruns in Super Monkey Ball etc. !!!!
 
 	if( count <= 0 )
         return;

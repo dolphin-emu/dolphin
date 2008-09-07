@@ -148,11 +148,11 @@ inline void decodebytesI4(u32 *dst, const u8 *src, int numbytes)
     }
 }
 
-inline void decodebytesI8(u32 *dst, const u8 *src, int numbytes)
+inline void decodebytesI8_8(u32 *dst, const u8 *src)
 {
 	// TODO: SSSE3 variant (pshufb), possibly SSE2 variant (packuswb). THP videos use this format.
-	for (int x = 0; x < numbytes; x++)
-        *dst++ = expand8888(src[x]);
+	for (int x = 0; x < 8; x++)
+        dst[x] = src[x] * 0x01010101; //expand8888(src[x]);  *0x... may or may not be faster. not sure. Should be faster on P4 at least.
 }
 
 inline void decodebytesC4(u32 *dst, const u8 *src, int numbytes, int tlutaddr, int tlutfmt)
@@ -356,12 +356,12 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
                         decodebytesC8((u32*)dst+(y+iy)*width+x, src, 8, tlutaddr, tlutfmt);
         }
         return PC_TEX_FMT_BGRA32;
-    case GX_TF_I8:
+    case GX_TF_I8:  // speed critical
         {
             for (int y = 0; y < height; y += 4)
                 for (int x = 0; x < width; x += 8)
                     for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesI8((u32*)dst+(y+iy)*width+x, src, 8);
+                        decodebytesI8_8((u32*)dst+(y+iy)*width+x, src);
         }
         return PC_TEX_FMT_BGRA32;
     case GX_TF_IA4:
@@ -404,7 +404,7 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
                         decodebytesRGB5A3((u32*)dst+(y+iy)*width+x, (u16*)src, 4);
         }
         return PC_TEX_FMT_BGRA32;
-    case GX_TF_RGBA8:
+    case GX_TF_RGBA8:  // speed critical
         {
 			for (int y = 0; y < height; y += 4) {
                 for (int x = 0; x < width; x += 4)
@@ -419,6 +419,7 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
         return PC_TEX_FMT_BGRA32;
     case GX_TF_CMPR:
         {
+			// TODO: Shuffle to PC S3TC (DXTC) format instead of converting
             // 11111111 22222222 55555555 66666666
             // 33333333 44444444 77777777 88888888
             for (int y = 0; y < height; y += 8)
