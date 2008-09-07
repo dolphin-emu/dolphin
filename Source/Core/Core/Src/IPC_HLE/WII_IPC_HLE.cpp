@@ -151,7 +151,7 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
         else
         {
             PanicAlert("Unknown device: %s", _rDeviceName.c_str());
-            pDevice = new CWII_IPC_HLE_Device_Error(-1, _rDeviceName);
+            pDevice = new CWII_IPC_HLE_Device_Error(u32(-1), _rDeviceName);
         }
     }
     else
@@ -234,7 +234,7 @@ void ExecuteCommand(u32 _Address)
 #endif
 
                 // we have already opened this device
-                Memory::Write_U32(-6, _Address + 4);
+                Memory::Write_U32(u32(-6), _Address + 4);
                 GenerateReply = true;
 
                 LOG(WII_IPC_HLE, "IOP: ReOpen (Device=%s, Mode=%i)", pDevice->GetDeviceName().c_str(), Mode);
