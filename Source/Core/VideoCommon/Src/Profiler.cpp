@@ -35,9 +35,13 @@ int g_bWriteProfile=0;
 #if defined (_MSC_VER) && _MSC_VER >= 1400
 #define _interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set
 #define _interlockedbittestandreset workaround_ms_header_bug_platform_sdk6_reset
+#define _interlockedbittestandset64 workaround_ms_header_bug_platform_sdk6_set64
+#define _interlockedbittestandreset64 workaround_ms_header_bug_platform_sdk6_reset64
 #include <intrin.h>
 #undef _interlockedbittestandset
 #undef _interlockedbittestandreset
+#undef _interlockedbittestandset64
+#undef _interlockedbittestandreset64
 #pragma intrinsic(__rdtsc)
 #endif
 

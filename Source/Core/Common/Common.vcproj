@@ -522,14 +522,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\HTTP.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\HTTP.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\IniFile.cpp"
 			>
 			<FileConfiguration
