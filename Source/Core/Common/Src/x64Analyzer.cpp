@@ -74,7 +74,7 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 	if (!twoByte)
 	{
         if ((codeByte & 0xF0) == 0x80 || 
-            (codeByte & 0xF8) == 0xC0 && (codeByte & 0x0E) != 0x02)
+            ((codeByte & 0xF8) == 0xC0 && (codeByte & 0x0E) != 0x02))
 		{
 			modRMbyte = *codePtr++;
 			hasModRM = true;
@@ -82,12 +82,12 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo &info, int acc
 	}
 	else
 	{
-        if ((codeByte2 & 0xF0) == 0x00 && (codeByte2 & 0x0F) >= 0x04 && (codeByte2 & 0x0D) != 0x0D || 
-               (codeByte2 & 0xF0) == 0x30 || 
-               codeByte2 == 0x77 || 
-               (codeByte2 & 0xF0) == 0x80 || 
-               (codeByte2 & 0xF0) == 0xA0 && (codeByte2 & 0x07) <= 0x02 || 
-               (codeByte2 & 0xF8) == 0xC8) 
+        if (((codeByte2 & 0xF0) == 0x00 && (codeByte2 & 0x0F) >= 0x04 && (codeByte2 & 0x0D) != 0x0D) || 
+            (codeByte2 & 0xF0) == 0x30 || 
+            codeByte2 == 0x77 || 
+            (codeByte2 & 0xF0) == 0x80 || 
+            ((codeByte2 & 0xF0) == 0xA0 && (codeByte2 & 0x07) <= 0x02) || 
+            (codeByte2 & 0xF8) == 0xC8) 
         { 
             // No mod R/M byte 
         } 
