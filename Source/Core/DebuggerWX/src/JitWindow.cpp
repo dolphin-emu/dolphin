@@ -40,7 +40,7 @@
 #include "LogManager.h"
 
 // ugly that this lib included code from the main
-#include "../../DolphinWX/src/Globals.h"
+#include "../../DolphinWX/Src/Globals.h"
 
 // UGLY
 namespace {
