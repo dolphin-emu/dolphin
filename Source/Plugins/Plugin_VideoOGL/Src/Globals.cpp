@@ -138,11 +138,10 @@ struct TGA_HEADER
     
     // pixel data follows header
     
-#if defined(_MSC_VER)
+
 };
+#if defined(_MSC_VER)
 #pragma pack(pop)
-#else
-} __attribute__((packed));
 #endif
 
 bool SaveTGA(const char* filename, int width, int height, void* pdata)
