@@ -564,6 +564,14 @@ bool Shutdown()
 	if (bFakeVMEM) {
 		g_arena.ReleaseView(m_pPhysicalFakeVMEM, FAKEVMEM_SIZE);
 	}
+#else
+	g_arena.ReleaseView(m_pPhysicalRAM, RAM_SIZE);
+	g_arena.ReleaseView(m_pVirtualEFB, EFB_SIZE);
+	g_arena.ReleaseView(m_pVirtualL1Cache, L1_CACHE_SIZE);
+	if (wii)
+		g_arena.ReleaseView(m_pPhysicalEXRAM, EXRAM_SIZE);
+	if (bFakeVMEM)
+		g_arena.ReleaseView(m_pPhysicalFakeVMEM, FAKEVMEM_SIZE);
 #endif
 	g_arena.ReleaseSpace();
 	return true;
