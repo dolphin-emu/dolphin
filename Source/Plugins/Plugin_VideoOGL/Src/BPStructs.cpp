@@ -278,7 +278,7 @@ void BPWritten(int addr, int changes, int newval)
         {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            float fogcolor[4] = { ((bpmem.fog.color>>16)&0xff)/255.0f, ((bpmem.fog.color>>8)&0xff)/255.0f, (bpmem.fog.color&0xff)/255.0f, (bpmem.fog.color>>24)/255.0f };
+            //           float fogcolor[4] = { ((bpmem.fog.color>>16)&0xff)/255.0f, ((bpmem.fog.color>>8)&0xff)/255.0f, (bpmem.fog.color&0xff)/255.0f, (bpmem.fog.color>>24)/255.0f };
         }
         break;
 
