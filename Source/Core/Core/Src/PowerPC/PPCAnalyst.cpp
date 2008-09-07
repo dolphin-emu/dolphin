@@ -60,7 +60,6 @@ u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 
 			return target;
 		}
-		break;
 	default:
 		return INVALID_TARGET;
 	}
