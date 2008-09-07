@@ -179,7 +179,7 @@ void ConfigDialog::CreateGUIControls()
 	sPage3->Layout();
 
 	SetIcon(wxNullIcon);
-	Center();
+	Fit();
 }
 
 void ConfigDialog::OnClose(wxCloseEvent& event)
