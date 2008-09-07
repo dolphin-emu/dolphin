@@ -161,7 +161,7 @@ namespace Jit64
 
 		if (doFullTest)
 		{
-			TEST(32, R(EAX), R(ECX));		
+			TEST(32, R(EAX), R(ECX));
 			branch = CC_Z;
 		}
 		else
@@ -176,7 +176,11 @@ namespace Jit64
 		{
 			SUB(32, M(&CTR), Imm8(1));
 		}
-		FixupBranch skip = J_CC(branch);
+		FixupBranch skip;
+		if (inst.BO != 20)
+		{
+			skip = J_CC(branch);
+		}
 			u32 destination;
 			if (inst.LK)
 				MOV(32, M(&LR), Imm32(js.compilerPC + 4));
@@ -185,8 +189,11 @@ namespace Jit64
 			else
 				destination = js.compilerPC + SignExt16(inst.BD << 2);
 			WriteExit(destination, 0);
-		SetJumpTarget(skip);
-		WriteExit(js.compilerPC + 4, 1);
+		if (inst.BO != 20)
+		{
+			SetJumpTarget(skip);
+			WriteExit(js.compilerPC + 4, 1);
+		}
 	}
 
 	void bcctrx(UGeckoInstruction inst)
