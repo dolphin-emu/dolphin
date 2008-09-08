@@ -113,9 +113,6 @@ void DllConfig(HWND _hParent)
 #elif defined(__linux__)
 	ConfigDialog frame(NULL);
 	g_Config.Load();
-    XVisualInfo *vi;
-    Colormap cmap;
-    int dpyWidth, dpyHeight;
     int glxMajorVersion, glxMinorVersion;
     int vidModeMajorVersion, vidModeMinorVersion;
     GLWin.dpy = XOpenDisplay(0);
@@ -257,9 +254,9 @@ bool ScreenShot(TCHAR *File)
     Renderer::RestoreGLState();
 
     if (Renderer::SaveRenderTarget(File, 0)) {
-        char str[255];
-        sprintf(str, "saved %s\n", File);
-        Renderer::AddMessage(str, 500);
+        char msg[255];
+        sprintf(msg, "saved %s\n", File);
+        Renderer::AddMessage(msg, 500);
     	return true;
     }
 	return false;
