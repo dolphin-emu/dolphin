@@ -437,7 +437,7 @@ void XInput_Read(int _numPAD, SPADStatus* _pPADStatus)
 
 #endif
 
-#ifndef _WIN32
+#if defined(__linux__)
 // The graphics plugin in the PCSX2 design leaves a lot of the window processing to the pad plugin, weirdly enough.
 void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
 {
@@ -581,7 +581,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 #ifdef _WIN32
 	DInput_Read(_numPAD, _pPADStatus);
 	XInput_Read(_numPAD, _pPADStatus);
-#else
+#elif defined(__linux__)
 	X11_Read(_numPAD, _pPADStatus);
 #endif
 
