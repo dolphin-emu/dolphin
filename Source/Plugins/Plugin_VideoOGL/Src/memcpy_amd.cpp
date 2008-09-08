@@ -89,18 +89,18 @@ void * memcpy_amd(void *dest, const void *src, size_t n)
 	cmp		ecx, TINY_BLOCK_COPY
 	jb		$memcpy_ic_3	; tiny? skip mmx copy
 
-	cmp		ecx, 32*1024		; don't align between 32k-64k because
+	cmp		ecx, 32*1024		; do not align between 32k-64k because
 	jbe		$memcpy_do_align	;  it appears to be slower
 	cmp		ecx, 64*1024
 	jbe		$memcpy_align_done
 $memcpy_do_align:
-	mov		ecx, 8			; a trick that's faster than rep movsb...
+	mov		ecx, 8			; a trick that is faster than rep movsb...
 	sub		ecx, edi		; align destination to qword
 	and		ecx, 111b		; get the low bits
 	sub		ebx, ecx		; update copy count
 	neg		ecx				; set up to jump into the array
 	add		ecx, offset $memcpy_align_done
-	jmp		ecx				; jump to array of movsb's
+	jmp		ecx				; jump to array of movsb''s
 
 align 4
 	movsb
@@ -157,7 +157,7 @@ $memcpy_ic_3:
 	and		ecx, 1111b		; only look at the "remainder" bits
 	neg		ecx				; set up to jump into the array
 	add		ecx, offset $memcpy_last_few
-	jmp		ecx				; jump to array of movsd's
+	jmp		ecx				; jump to array of movsd''s
 
 $memcpy_uc_test:
 	cmp		ecx, UNCACHED_COPY/64	; big enough? use block prefetch copy
@@ -219,7 +219,7 @@ $memcpy_bp_2:
 	dec		eax					; count down the cache lines
 	jnz		$memcpy_bp_2		; keep grabbing more lines into cache
 
-	mov		eax, CACHEBLOCK		; now that it's in cache, do the copy
+	mov		eax, CACHEBLOCK		; now that it is in cache, do the copy
 align 16
 $memcpy_bp_3:
 	movq	mm0, [esi   ]		; read 64 bits
@@ -267,10 +267,10 @@ align 4
 	movsd
 	movsd
 
-$memcpy_last_few:		; dword aligned from before movsd's
+$memcpy_last_few:		; dword aligned from before movsd''s
 	mov		ecx, ebx	; has valid low 2 bits of the byte count
 	and		ecx, 11b	; the last few cows must come home
-	jz		$memcpy_final	; no more, let's leave
+	jz		$memcpy_final	; no more, lets leave
 	rep		movsb		; the last 1, 2, or 3 bytes
 
 $memcpy_final: 
