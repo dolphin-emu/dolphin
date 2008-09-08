@@ -173,6 +173,8 @@ private:
 
 	std::queue<ACLFrame> m_AclFrameQue;
 
+	u8 scan_enable;
+
 	//TODO: get rid of these, integrate into EState.
 	enum EDelayedEvent
 	{
@@ -189,7 +191,7 @@ private:
 	u8 m_PINType;
 	u8 filter_type;
 	u8 filter_condition_type;
-	u8 scan_enable;
+
 
 	u16 Host_max_acl_size; /* Max. size of ACL packet (bytes) */
 	u8 Host_max_sco_size; /* Max. size of SCO packet (bytes) */
