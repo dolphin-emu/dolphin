@@ -436,7 +436,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 
         // create a window in window mode
         GLWin.attr.event_mask = ExposureMask | KeyPressMask | ButtonPressMask |
-            StructureNotifyMask;
+            StructureNotifyMask  | ResizeRedirectMask;
         GLWin.win = XCreateWindow(GLWin.dpy, RootWindow(GLWin.dpy, vi->screen),
                                   0, 0, _twidth, _theight, 0, vi->depth, InputOutput, vi->visual,
                                   CWBorderPixel | CWColormap | CWEventMask, &GLWin.attr);

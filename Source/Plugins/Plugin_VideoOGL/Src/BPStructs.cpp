@@ -270,6 +270,31 @@ void BPWritten(int addr, int changes, int newval)
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
+           //printf("%f %f magnitude: %x\n", bpmem.fog.a.GetA(),bpmem.fog.c_proj_fsel.GetC(), bpmem.fog.b_magnitude);
+            switch(bpmem.fog.c_proj_fsel.fsel)
+            {
+                case 0: // Off
+                    glDisable(GL_FOG); // Should be what we do
+                break;
+                case 2: // Linear
+                    glFogi(GL_FOG_MODE, GL_LINEAR);
+                    glEnable(GL_FOG);
+                break;
+                case 4: // exp
+                    glFogi(GL_FOG_MODE, GL_EXP);
+                    glEnable(GL_FOG);
+                break;
+                case 5: // exp2
+                    glFogi(GL_FOG_MODE, GL_EXP2);
+                    glEnable(GL_FOG);
+                break;
+                case 6: // Backward exp
+                case 7: // Backward exp2
+                    // TODO: Figure out how to do these in GL
+                default:
+                    printf("Non-Emulated Fog selection %d\n", bpmem.fog.c_proj_fsel.fsel);
+                break;
+            }
         }
         break;
 
@@ -278,7 +303,9 @@ void BPWritten(int addr, int changes, int newval)
         {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            //           float fogcolor[4] = { ((bpmem.fog.color>>16)&0xff)/255.0f, ((bpmem.fog.color>>8)&0xff)/255.0f, (bpmem.fog.color&0xff)/255.0f, (bpmem.fog.color>>24)/255.0f };
+            float fogcolor[4] = { ((bpmem.fog.color>>16)&0xff)/255.0f, ((bpmem.fog.color>>8)&0xff)/255.0f, (bpmem.fog.color&0xff)/255.0f, (bpmem.fog.color>>24)/255.0f };
+            //printf("r: %f g: %f b: %f a: %f %x %x %x %f\n",fogcolor[0],fogcolor[1], fogcolor[2], fogcolor[3], bpmem.fogRangeAdj, bpmem.unknown15[0],bpmem.unknown15[1],bpmem.unknown15[2]);
+            glFogfv(GL_FOG_COLOR, fogcolor);
         }
         break;
 
