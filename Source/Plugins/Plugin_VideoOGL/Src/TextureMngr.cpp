@@ -205,7 +205,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     if (iter != textures.end()) {
         TCacheEntry &entry = iter->second;
 
-        if( entry.isRenderTarget || ((u32 *)ptr)[entry.hashoffset] == entry.hash && palhash == entry.paletteHash) { //stupid, improve
+        if((entry.isRenderTarget || ((u32 *)ptr)[entry.hashoffset] == entry.hash) && palhash == entry.paletteHash) { //stupid, improve
             entry.frameCount = frameCount;
             //glEnable(entry.isNonPow2?GL_TEXTURE_RECTANGLE_NV:GL_TEXTURE_2D);
             glBindTexture(entry.isNonPow2?GL_TEXTURE_RECTANGLE_NV:GL_TEXTURE_2D, entry.texture);

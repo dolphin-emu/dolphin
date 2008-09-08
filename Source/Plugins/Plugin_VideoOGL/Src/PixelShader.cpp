@@ -135,7 +135,7 @@ static const char *tevOpTable[] = { // TEV
     "-",      //TEVOP_SUB = 1,
 };
 
-static const char *tevCompOpTable[] = { ">", "==" };
+//static const char *tevCompOpTable[] = { ">", "==" };
 
 #define TEVCMP_R8    0
 #define TEVCMP_GR16  1
@@ -242,7 +242,7 @@ static const char *alphaRef[2] =
     I_ALPHA"[0].y"
 };
 
-static const char *tevTexFunc[] = { "tex2D", "texRECT" };
+//static const char *tevTexFunc[] = { "tex2D", "texRECT" };
 
 static const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
 static const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
@@ -460,7 +460,6 @@ void WriteStage(char *&p, int n, u32 texture_mask)
     char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
     char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 
-    int colchan = bpmem.tevorders[n/2].getColorChan(n&1);
 
     int texcoord = bpmem.tevorders[n/2].getTexCoord(n&1);
     int texfun = xfregs.texcoords[texcoord].texmtxinfo.projection;
@@ -804,7 +803,6 @@ bool WriteAlphaTest(char *&p)
         break;
     }
 
-    bool bFirst = false;
     WRITE(p, "discard( ");
     WriteAlphaCompare(p, 0, bpmem.alphaFunc.comp0);
     

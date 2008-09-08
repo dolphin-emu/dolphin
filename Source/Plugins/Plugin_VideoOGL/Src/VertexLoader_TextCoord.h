@@ -269,7 +269,6 @@ void LOADERDECL TexCoord_ReadIndex16_Byte2(void* _p)
 
 void LOADERDECL TexCoord_ReadIndex16_UShort1(void* _p)	
 {
-    TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
     u16 Index = ReadBuffer16(); 
     u32 iAddress = arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
 
@@ -280,7 +279,6 @@ void LOADERDECL TexCoord_ReadIndex16_UShort1(void* _p)
 }
 void LOADERDECL TexCoord_ReadIndex16_UShort2(void* _p)	
 {
-    TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
     u16 Index = ReadBuffer16(); 
     u32 iAddress = arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
 

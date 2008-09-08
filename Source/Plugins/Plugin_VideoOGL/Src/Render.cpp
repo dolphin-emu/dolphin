@@ -154,7 +154,7 @@ bool Renderer::Create2()
 
     // create the framebuffer targets
     glGenTextures(ARRAYSIZE(s_RenderTargets), (GLuint *)s_RenderTargets);
-    for(int i = 0; i < ARRAYSIZE(s_RenderTargets); ++i) {
+    for(u32 i = 0; i < ARRAYSIZE(s_RenderTargets); ++i) {
         glBindTexture(GL_TEXTURE_RECTANGLE_NV, s_RenderTargets[i]);
         // initialize to default
         glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, 4, nBackbufferWidth, nBackbufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);

@@ -52,7 +52,6 @@ static void (*fnSetupVertexPointers)() = NULL;
 
 //these don't need to be saved
 static float posScale;
-static float tcScale[8];
 static int colElements[2];
 static float tcScaleU[8];
 static float tcScaleV[8];
@@ -388,7 +387,6 @@ void VertexLoader::ProcessFormat()
     // Normals
     if (m_VtxDesc.Normal != NOT_PRESENT) {
         VertexLoader_Normal::index3 = m_VtxAttr.NormalIndex3 ? true : false;
-        unsigned int uSize = VertexLoader_Normal::GetSize(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements);
         TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements);
         if (pFunc == 0)
         {
@@ -855,7 +853,7 @@ void VertexLoader::RunVertices(int primitive, int count)
         colIndex = 0;
         s_texmtxwrite = s_texmtxread = 0;
 
-		int pred_size = m_VertexSize;
+                //        int pred_size = m_VertexSize;
 
 		//int start = GetBufferPosition();
 		//if (!m_numPipelineStates)
@@ -909,12 +907,12 @@ bool VertexManager::Init()
 	s_pBaseBufferPointer = (u8*)AllocateMemoryPages(MAX_BUFFER_SIZE);
     s_pCurBufferPointer = s_pBaseBufferPointer;
 
-    for (int i = 0; i < ARRAYSIZE(shiftLookup); i++)
+    for (u32 i = 0; i < ARRAYSIZE(shiftLookup); i++)
         shiftLookup[i] = 1.0f / float(1 << i);
 
     s_nCurVBOIndex = 0;
     glGenBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
-    for (int i = 0; i < ARRAYSIZE(s_vboBuffers); ++i) {
+    for (u32 i = 0; i < ARRAYSIZE(s_vboBuffers); ++i) {
         glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[i]);
         glBufferData(GL_ARRAY_BUFFER, MAX_BUFFER_SIZE, NULL, GL_STREAM_DRAW);
     }
@@ -970,8 +968,10 @@ void VertexManager::AddVertices(int primitive, int numvertices)
     ADDSTAT(stats.thisFrame.numPrims, numvertices);
     s_vStoredPrimitives.push_back(pair<int, int>(c_primitiveType[primitive], numvertices));
 
+#ifdef _DEBUG
     static const char *sprims[8] = {"quads", "nothing", "tris", "tstrip", "tfan", "lines", "lstrip", "points"};
     PRIM_LOG("prim: %s, c=%d\n", sprims[primitive], numvertices);
+#endif
 }
 
 void VertexManager::Flush()
@@ -1023,13 +1023,13 @@ void VertexManager::Flush()
         DVProfileFunc _pf("VertexManager::Flush:textures");
     
         u32 usedtextures = 0;
-        for (u32 i = 0; i < bpmem.genMode.numtevstages+1; ++i) {
+        for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages+1; ++i) {
             if( bpmem.tevorders[i/2].getEnable(i&1) )
                 usedtextures |= 1<<bpmem.tevorders[i/2].getTexMap(i&1);
         }
 
         if( bpmem.genMode.numindstages > 0 ) {
-            for(u32 i = 0; i < bpmem.genMode.numtevstages+1; ++i) {
+          for(u32 i = 0; i < (u32)bpmem.genMode.numtevstages+1; ++i) {
                 if( bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages ) {
                     usedtextures |= 1<<bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
                 }

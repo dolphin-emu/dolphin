@@ -169,7 +169,8 @@ void PixelShaderMngr::Cleanup()
 
 bool PixelShaderMngr::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
 {
-    CGerror cgerr = cgGetError();
+  //    todo: Should error be checked?
+  //    CGerror cgerr = cgGetError();
 
     char stropt[64];
     sprintf(stropt, "MaxLocalParams=32,NumInstructionSlots=%d", s_nMaxPixelInstructions);
@@ -237,7 +238,7 @@ void PixelShaderMngr::SetConstants(FRAGMENTSHADER& ps)
     }
 
     u32 newmask = 0;
-    for(u32 i = 0; i < bpmem.genMode.numtevstages+1; ++i) {
+    for(u32 i = 0; i < (u32)bpmem.genMode.numtevstages+1; ++i) {
         if( bpmem.tevorders[i/2].getEnable(i&1) ) {
             int texmap = bpmem.tevorders[i/2].getTexMap(i&1);
             maptocoord[texmap] = bpmem.tevorders[i/2].getTexCoord(i&1);
@@ -496,7 +497,7 @@ GLuint PixelShaderMngr::GetColorMatrixProgram()
 void PixelShaderMngr::GetPixelShaderId(PixelShaderMngr::PIXELSHADERUID& uid)
 {
     u32 projtexcoords = 0;
-    for (u32 i = 0; i < bpmem.genMode.numtevstages+1; i++) {
+    for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages+1; i++) {
         if( bpmem.tevorders[i/2].getEnable(i&1) ) {
             int texcoord = bpmem.tevorders[i/2].getTexCoord(i&1);
             if( xfregs.texcoords[texcoord].texmtxinfo.projection )
@@ -520,7 +521,7 @@ void PixelShaderMngr::GetPixelShaderId(PixelShaderMngr::PIXELSHADERUID& uid)
     int hdr = 3;
 
     u32* pcurvalue = &uid.values[hdr];
-    for(u32 i = 0; i < bpmem.genMode.numtevstages+1; ++i) {
+    for(u32 i = 0; i < (u32)bpmem.genMode.numtevstages+1; ++i) {
         TevStageCombiner::ColorCombiner &cc = bpmem.combiners[i].colorC;
         TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[i].alphaC;
 
@@ -534,7 +535,7 @@ void PixelShaderMngr::GetPixelShaderId(PixelShaderMngr::PIXELSHADERUID& uid)
         pcurvalue+=2;
     }
 
-    for(u32 i = 0; i < (bpmem.genMode.numtevstages+1)/2; ++i) {
+    for(u32 i = 0; i < ((u32)bpmem.genMode.numtevstages+1)/2; ++i) {
         u32 val0, val1;
         if( bpmem.tevorders[i].hex&0x40 ) val0 = bpmem.tevorders[i].hex&0x3ff;
         else val0 = bpmem.tevorders[i].hex&0x380;

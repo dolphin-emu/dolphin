@@ -201,7 +201,7 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 
 			int cpos = strlen(temp);
 
-			int newpos = cpos+4&(~3);
+                        int newpos = (cpos+4)&(~3);
 
 
 			printString(temp,x,y,z);
