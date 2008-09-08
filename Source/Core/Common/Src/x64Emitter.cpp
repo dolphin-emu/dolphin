@@ -22,8 +22,7 @@
 namespace Gen
 {
 	static u8 *code;
-	static bool mode32 = false;
-    static bool enableBranchHints = false;
+	static bool enableBranchHints = false;
 
 	void SetCodePtr(u8 *ptr)
 	{
@@ -89,7 +88,6 @@ namespace Gen
 
 	inline void Write64(u64 value)
 	{
-		_dbg_assert_msg_(DYNA_REC,!mode32,"!mode32");
 		*(u64*)code = value;
 		code += 8;
 	}
@@ -113,7 +111,6 @@ namespace Gen
 		if (customOp >> 3)        op |= 4;
 		if (indexReg >> 3)        op |= 2;
 		if (offsetOrBaseReg >> 3) op |= 1; //TODO investigate if this is dangerous
-		_dbg_assert_msg_(DYNA_REC, !mode32 || op == 0x40, "!mode32");
 		if (op != 0x40)
 			Write8(op);
 #else
@@ -134,7 +131,6 @@ namespace Gen
 
 		if (scale == SCALE_RIP) //Also, on 32-bit, just an immediate address
 		{
-			_dbg_assert_msg_(DYNA_REC,!mode32,"!mode32");
 			// Oh, RIP addressing. 
 			_offsetOrBaseReg = 5;
 			WriteModRM(0, _operandReg&7, 5);

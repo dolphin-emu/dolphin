@@ -572,7 +572,9 @@ void CWII_IPC_HLE_WiiMote::CommandConnectionResponse(u8 _Ident, u8* _pData, u32 
 }
 
 void CWII_IPC_HLE_WiiMote::CommandCofigurationResponse(u8 _Ident, u8* _pData, u32 _Size) {
+#ifdef LOGGING
 	l2cap_conf_rsp* rsp = (l2cap_conf_rsp*)_pData;
+#endif
 
 	_dbg_assert_(WIIMOTE, _Size == sizeof(l2cap_conf_rsp));
 
