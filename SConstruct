@@ -55,7 +55,7 @@ dirs = [
 	#"Source/Plugins/Plugin_DSP_LLE/Src",
 	"Source/Plugins/Plugin_PadSimple/Src",
 	"Source/Plugins/Plugin_nJoy_SDL/Src",
-	"Source/Core/DolphinWX/src",
+	"Source/Core/DolphinWX/Src",
 	]
 
 builders = {}
