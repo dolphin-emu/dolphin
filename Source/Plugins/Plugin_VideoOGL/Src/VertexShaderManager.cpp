@@ -383,22 +383,22 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 
 void VertexShaderMngr::InvalidateXFRange(int start, int end)
 {
-    if( ((u32)start >= MatrixIndexA.PosNormalMtxIdx*4 && (u32)start < MatrixIndexA.PosNormalMtxIdx*4+12) ||
-        ((u32)start >= XFMEM_NORMALMATRICES+(MatrixIndexA.PosNormalMtxIdx&31)*3 && (u32)start < XFMEM_NORMALMATRICES+(MatrixIndexA.PosNormalMtxIdx&31)*3+9) ) {
+    if( ((u32)start >= (u32)MatrixIndexA.PosNormalMtxIdx*4 && (u32)start < (u32)MatrixIndexA.PosNormalMtxIdx*4+12) ||
+        ((u32)start >= XFMEM_NORMALMATRICES+((u32)MatrixIndexA.PosNormalMtxIdx&31)*3 && (u32)start < XFMEM_NORMALMATRICES+((u32)MatrixIndexA.PosNormalMtxIdx&31)*3+9) ) {
         bPosNormalMatrixChanged = true;
     }
 
-    if (((u32)start >= MatrixIndexA.Tex0MtxIdx*4 && (u32)start < MatrixIndexA.Tex0MtxIdx*4+12) ||
-        ((u32)start >= MatrixIndexA.Tex1MtxIdx*4 && (u32)start < MatrixIndexA.Tex1MtxIdx*4+12) ||
-        ((u32)start >= MatrixIndexA.Tex2MtxIdx*4 && (u32)start < MatrixIndexA.Tex2MtxIdx*4+12) ||
-        ((u32)start >= MatrixIndexA.Tex3MtxIdx*4 && (u32)start < MatrixIndexA.Tex3MtxIdx*4+12)) {
+    if (((u32)start >= (u32)MatrixIndexA.Tex0MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex0MtxIdx*4+12) ||
+        ((u32)start >= (u32)MatrixIndexA.Tex1MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex1MtxIdx*4+12) ||
+        ((u32)start >= (u32)MatrixIndexA.Tex2MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex2MtxIdx*4+12) ||
+        ((u32)start >= (u32)MatrixIndexA.Tex3MtxIdx*4 && (u32)start < (u32)MatrixIndexA.Tex3MtxIdx*4+12)) {
         bTexMatricesChanged[0] = true;
     }
 
-    if (((u32)start >= MatrixIndexB.Tex4MtxIdx*4 && (u32)start < MatrixIndexB.Tex4MtxIdx*4+12) ||
-        ((u32)start >= MatrixIndexB.Tex5MtxIdx*4 && (u32)start < MatrixIndexB.Tex5MtxIdx*4+12) ||
-        ((u32)start >= MatrixIndexB.Tex6MtxIdx*4 && (u32)start < MatrixIndexB.Tex6MtxIdx*4+12) ||
-        ((u32)start >= MatrixIndexB.Tex7MtxIdx*4 && (u32)start < MatrixIndexB.Tex7MtxIdx*4+12)) {
+    if (((u32)start >= (u32)MatrixIndexB.Tex4MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex4MtxIdx*4+12) ||
+        ((u32)start >= (u32)MatrixIndexB.Tex5MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex5MtxIdx*4+12) ||
+        ((u32)start >= (u32)MatrixIndexB.Tex6MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex6MtxIdx*4+12) ||
+        ((u32)start >= (u32)MatrixIndexB.Tex7MtxIdx*4 && (u32)start < (u32)MatrixIndexB.Tex7MtxIdx*4+12)) {
         bTexMatricesChanged[1] = true;
     }
 
@@ -547,7 +547,7 @@ void VertexShaderMngr::LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
                 xfregs.hostinfo = *(INVTXSPEC*)&data;
                 break;
             case 0x1009: //GXSetNumChans (no)
-                if (xfregs.nNumChans != (data&3) ) {
+              if ((u32)xfregs.nNumChans != (data&3) ) {
                     VertexManager::Flush();
                     xfregs.nNumChans = data&3;
                 }
@@ -662,7 +662,7 @@ void VertexShaderMngr::LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
                 return;
 
             case 0x103f: // GXSetNumTexGens
-                if (xfregs.numTexGens != data) {
+                if ((u32)xfregs.numTexGens != data) {
                     VertexManager::Flush();
                     xfregs.numTexGens = data;
                 }
