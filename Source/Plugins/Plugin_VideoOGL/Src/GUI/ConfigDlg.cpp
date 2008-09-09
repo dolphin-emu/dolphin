@@ -33,6 +33,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_FORCEFILTERING,ConfigDialog::ForceFilteringCheck)
 	EVT_CHECKBOX(ID_FORCEANISOTROPY,ConfigDialog::ForceAnisotropyCheck)
 	EVT_CHECKBOX(ID_WIREFRAME,ConfigDialog::WireframeCheck)
+	EVT_CHECKBOX(ID_SHOWFPS,ConfigDialog::ShowFPSCheck)
 	EVT_CHECKBOX(ID_STATISTICS,ConfigDialog::OverlayCheck)
 	EVT_CHECKBOX(ID_SHADERERRORS,ConfigDialog::ShowShaderErrorsCheck)
 	EVT_CHECKBOX(ID_TEXFMTOVERLAY,ConfigDialog::TexFmtOverlayChange)
@@ -113,6 +114,9 @@ void ConfigDialog::CreateGUIControls()
 	m_ForceFiltering->SetValue(g_Config.bForceFiltering);
 
 	//page3
+	m_ShowFPS = new wxCheckBox(m_PageAdvanced, ID_SHOWFPS, wxT("Overlay FPS"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ShowFPS->SetValue(g_Config.bShowFPS);
+	
 	m_Statistics = new wxCheckBox(m_PageAdvanced, ID_STATISTICS, wxT("Overlay some statistics"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Statistics->SetValue(g_Config.bOverlayStats);
 
@@ -170,11 +174,12 @@ void ConfigDialog::CreateGUIControls()
 	sPage3->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 	sPage3->Add(m_Wireframe, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
 	sPage3->Add(m_ShaderErrors, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
-	sPage3->Add(m_Statistics, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
-	sPage3->Add(m_TexFmtOverlay, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
-	sPage3->Add(m_TexFmtCenter, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
-	sPage3->Add(m_DumpTextures, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
-	sPage3->Add(m_TexturePath, wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
+	sPage3->Add(m_ShowFPS, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
+	sPage3->Add(m_Statistics, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
+	sPage3->Add(m_TexFmtOverlay, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
+	sPage3->Add(m_TexFmtCenter, wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
+	sPage3->Add(m_DumpTextures, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 5);
+	sPage3->Add(m_TexturePath, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
 	m_PageAdvanced->SetSizer(sPage3);
 	sPage3->Layout();
 
@@ -259,6 +264,11 @@ void ConfigDialog::WireframeCheck(wxCommandEvent& event)
 void ConfigDialog::ShowShaderErrorsCheck(wxCommandEvent& event)
 {
 	g_Config.bShowShaderErrors = m_ShaderErrors->IsChecked();
+}
+
+void ConfigDialog::ShowFPSCheck(wxCommandEvent& event)
+{
+	g_Config.bShowFPS = m_ShowFPS->IsChecked();
 }
 
 void ConfigDialog::OverlayCheck(wxCommandEvent& event)

@@ -113,10 +113,11 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "DSPPlugin",  &m_LocalCoreStartupParameter.m_strDSPPlugin, m_DefaultDSPPlugin.c_str());
 		ini.Get("Core", "PadPlugin",  &m_LocalCoreStartupParameter.m_strPadPlugin, m_DefaultPADPlugin.c_str());
 
-		ini.Get("Core", "HLEBios",     &m_LocalCoreStartupParameter.bHLEBios,      true);
-		ini.Get("Core", "UseDynarec",  &m_LocalCoreStartupParameter.bUseJIT,   true);
-		ini.Get("Core", "UseDualCore", &m_LocalCoreStartupParameter.bUseDualCore,  false);
-		ini.Get("Core", "LockThreads", &m_LocalCoreStartupParameter.bLockThreads,  true);
+		ini.Get("Core", "HLEBios",     &m_LocalCoreStartupParameter.bHLEBios,		true);
+		ini.Get("Core", "UseDynarec",  &m_LocalCoreStartupParameter.bUseJIT,		true);
+		ini.Get("Core", "UseDualCore", &m_LocalCoreStartupParameter.bUseDualCore,	false);
+		ini.Get("Core", "LockThreads", &m_LocalCoreStartupParameter.bLockThreads,	true);
+		ini.Get("Core", "DefaultGCM",  &m_LocalCoreStartupParameter.m_strDefaultGCM);
 		ini.Get("Core", "OptimizeQuantizers", &m_LocalCoreStartupParameter.bOptimizeQuantizers, true);
 	}
 }

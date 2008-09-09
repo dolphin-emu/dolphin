@@ -86,6 +86,7 @@ EVT_MENU(IDM_HELPGOOGLECODE, CFrame::OnHelp)
 EVT_MENU(IDM_HELPABOUT, CFrame::OnHelp)
 EVT_MENU(wxID_REFRESH, CFrame::OnRefresh)
 EVT_MENU(IDM_PLAY, CFrame::OnPlay)
+EVT_MENU(IDM_PAUSE, CFrame::OnPlay)
 EVT_MENU(IDM_STOP, CFrame::OnStop)
 EVT_MENU(IDM_PLUGIN_OPTIONS, CFrame::OnPluginOptions)
 EVT_MENU(IDM_CONFIG_GFX_PLUGIN, CFrame::OnPluginGFX)
@@ -217,7 +218,7 @@ void CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _T("&DSP settings"));
 	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _T("&PAD settings"));
 	pOptionsMenu->AppendSeparator();
-	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen"));
+	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tEsc"));
 	pOptionsMenu->AppendCheckItem(IDM_TOGGLE_DUALCORE, _T("&Dual-core (unstable!)"));
 	pOptionsMenu->Check(IDM_TOGGLE_DUALCORE, SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);			
 	m_pMenuBar->Append(pOptionsMenu, _T("&Options"));
@@ -254,7 +255,7 @@ void CFrame::PopulateToolbar(wxToolBar* toolBar)
 	toolBar->AddTool(wxID_REFRESH, _T("Refresh"), m_Bitmaps[Toolbar_Refresh], _T("Refresh"));
 	toolBar->AddTool(IDM_BROWSE, _T("Browse"),   m_Bitmaps[Toolbar_Browse], _T("Browse for an ISO directory..."));
 	toolBar->AddSeparator();
-	toolBar->AddTool(IDM_PLAY, _T("Play"),   m_Bitmaps[Toolbar_Play], _T("Play"));
+	m_pToolPlay = toolBar->AddTool(IDM_PLAY, _T("Play"),   m_Bitmaps[Toolbar_Play], _T("Play")); 
 	toolBar->SetToolDisabledBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Play_Dis]);
 	toolBar->AddTool(IDM_STOP, _T("Stop"),   m_Bitmaps[Toolbar_Stop], _T("Stop"));
 	toolBar->SetToolDisabledBitmap(IDM_STOP, m_Bitmaps[Toolbar_Stop_Dis]);
@@ -575,6 +576,11 @@ void CFrame::UpdateGUI()
 			GetToolBar()->EnableTool(IDM_STOP, false);
 			GetToolBar()->EnableTool(IDM_PLAY, false);
 
+			m_pToolPlay->SetShortHelp(_T("Play"));
+			m_pToolPlay->SetLabel(_T("Play"));
+
+			m_pMenuItemPlay->SetText(_T("Play"));
+
 			m_pMenuItemPlay->Enable(false);
 			m_pMenuItemStop->Enable(false);
 			m_pMenuItemLoad->Enable(false);
@@ -595,21 +601,24 @@ void CFrame::UpdateGUI()
 
 			if (Core::GetState() == Core::CORE_RUN)
 			{
-				GetToolBar()->SetToolNormalBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Pause]);
-				GetToolBar()->SetToolShortHelp(IDM_PLAY, _T("Pause"));
+				m_pToolPlay->SetNormalBitmap(m_Bitmaps[Toolbar_Pause]);
+				m_pToolPlay->SetShortHelp(_T("Pause"));
+				m_pToolPlay->SetLabel(_T("Pause"));
 
 				m_pMenuItemPlay->SetText(_T("Pause"));
 			}
 			else
 			{
-				GetToolBar()->SetToolNormalBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Play]);
-				GetToolBar()->SetToolShortHelp(IDM_PLAY, _T("Play"));
+				m_pToolPlay->SetNormalBitmap(m_Bitmaps[Toolbar_Play]);
+				m_pToolPlay->SetShortHelp(_T("Play"));
+				m_pToolPlay->SetLabel(_T("Play"));
 
 				m_pMenuItemPlay->SetText(_T("Play"));
 			}
 		}
+		GetToolBar()->Realize();
 	}
-
+	
 	// gamelistctrl
 	{
 		if (Core::GetState() == Core::CORE_UNINITIALIZED)

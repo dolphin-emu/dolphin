@@ -67,6 +67,7 @@ class CGameListCtrl : public wxListCtrl
 		void OnSize(wxSizeEvent& event);
 		void OnEditPatchFile(wxCommandEvent& event);
 		void OnOpenContainingFolder(wxCommandEvent& event);
+		void OnSetDefaultGCM(wxCommandEvent& event);
 
 		virtual bool MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem);
 

@@ -83,6 +83,8 @@ class CFrame
 		wxMenuItem* m_pMenuItemLoad;
 		wxMenuItem* m_pMenuItemSave;
 
+		wxToolBarToolBase* m_pToolPlay;
+		
 		wxBusyInfo* m_pBootProcessDialog;
 
 		void UpdateGUI();

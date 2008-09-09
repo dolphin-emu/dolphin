@@ -55,6 +55,7 @@ class ConfigDialog : public wxDialog
 		void ForceFilteringCheck(wxCommandEvent& event);
 		void ForceAnisotropyCheck(wxCommandEvent& event);
 		void WireframeCheck(wxCommandEvent& event);
+		void ShowFPSCheck(wxCommandEvent& event);
 		void OverlayCheck(wxCommandEvent& event);
 		void ShowShaderErrorsCheck(wxCommandEvent& event);
 		void TexFmtOverlayChange(wxCommandEvent& event);
@@ -70,6 +71,7 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_TexFmtCenter;
 		wxCheckBox *m_TexFmtOverlay;
 		wxCheckBox *m_Statistics;
+		wxCheckBox *m_ShowFPS;
 		wxCheckBox *m_ShaderErrors;
 		wxCheckBox *m_Wireframe;
 		wxCheckBox *m_ForceAnisotropy;
@@ -95,6 +97,7 @@ class ConfigDialog : public wxDialog
 			ID_SHADERERRORS,
 			ID_TEXFMTCENTER,
 			ID_TEXFMTOVERLAY,
+			ID_SHOWFPS,
 			ID_STATISTICS,
 			ID_DUMPTEXTURES,
 			ID_WIREFRAME,

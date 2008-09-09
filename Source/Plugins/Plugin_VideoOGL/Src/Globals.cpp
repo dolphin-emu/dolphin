@@ -52,16 +52,17 @@ void Config::Load()
     IniFile iniFile;
     iniFile.Load("gfx_opengl.ini");
     iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
+	if (iAdapter == -1) 
+        iAdapter = 0;
     iniFile.Get("Hardware", "WindowedRes", &temp, 0);
     strcpy(iWindowedRes, temp.c_str());
     iniFile.Get("Hardware", "FullscreenRes", &temp, 0);
     strcpy(iFSResolution, temp.c_str());
     iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0);
 	iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, 0);
-    if (iAdapter == -1) 
-        iAdapter = 0;
 
-    iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
+    iniFile.Get("Settings", "ShowFPS", &bShowFPS, false);
+	iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
     iniFile.Get("Settings", "Postprocess", &iPostprocessEffect, 0);
     iniFile.Get("Settings", "DLOptimize", &iCompileDLsLevel, 0);
     iniFile.Get("Settings", "DumpTextures", &bDumpTextures, 0);
@@ -83,8 +84,7 @@ void Config::Load()
     
     iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
     iniFile.Get("Enhancements", "ForceMaxAniso", &bForceMaxAniso, 0);
-    iniFile.Get("Enhancements", "StretchToFit", &bStretchToFit, false);
-    iniFile.Get("Enhancements", "ShowFPS", &bShowFPS, false);
+	iniFile.Get("Enhancements", "StretchToFit", &bStretchToFit, false);
 }
 
 void Config::Save()
@@ -97,21 +97,21 @@ void Config::Save()
     iniFile.Set("Hardware", "Fullscreen", bFullscreen);
 	iniFile.Set("Hardware", "RenderToMainframe", renderToMainframe);
 
-    iniFile.Set("Settings", "OverlayStats", bOverlayStats);
+    iniFile.Set("Settings", "ShowFPS", bShowFPS);
+	iniFile.Set("Settings", "OverlayStats", bOverlayStats);
     iniFile.Set("Settings", "Postprocess", iPostprocessEffect);
     iniFile.Set("Settings", "DLOptimize", iCompileDLsLevel);
     iniFile.Set("Settings", "DumpTextures", bDumpTextures);
     iniFile.Set("Settings", "ShowShaderErrors", bShowShaderErrors);
     iniFile.Set("Settings", "Multisample", iMultisampleMode);
     iniFile.Set("Settings", "TexDumpPath", texDumpPath);
-
 	iniFile.Set("Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);
 	iniFile.Set("Settings", "TexFmtOverlayCenter", bTexFmtOverlayCenter);
 
     iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
     iniFile.Set("Enhancements", "ForceMaxAniso", bForceMaxAniso);
-    iniFile.Set("Enhancements", "StretchToFit", bStretchToFit);
-    iniFile.Set("Enhancements", "ShowFPS", bShowFPS);
+	iniFile.Set("Enhancements", "StretchToFit", bStretchToFit);
+
     iniFile.Save("gfx_opengl.ini");
 }
 

@@ -46,6 +46,7 @@ EVT_LIST_ITEM_ACTIVATED(LIST_CTRL, CGameListCtrl::OnActivated)
 EVT_LIST_COL_END_DRAG(LIST_CTRL, CGameListCtrl::OnColEndDrag)
 EVT_MENU(IDM_EDITPATCHFILE, CGameListCtrl::OnEditPatchFile)
 EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
+EVT_MENU(IDM_SETDEFAULTGCM, CGameListCtrl::OnSetDefaultGCM)
 END_EVENT_TABLE()
 
 
@@ -340,6 +341,7 @@ CGameListCtrl::OnRightClick(wxMouseEvent& event)
 		std::string menu_text = StringFromFormat("Edit &patch file: %s.ini", unique_id.c_str());
 		popupMenu.Append(IDM_EDITPATCHFILE, wxString::FromAscii(menu_text.c_str())); //Pretty much everything in wxwidgets is a wxString, try to convert to those first!
 		popupMenu.Append(IDM_OPENCONTAININGFOLDER, wxString::FromAscii("Open &containing folder"));
+		popupMenu.Append(IDM_SETDEFAULTGCM, wxString::FromAscii("Set as &default ISO"));
 		PopupMenu(&popupMenu);
 	}
 }
@@ -381,6 +383,15 @@ CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event)) {
 	std::string path;
 	SplitPath(iso->GetFileName(), &path, 0, 0);
 	File::Explore(path);
+}
+
+void
+CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& WXUNUSED (event)) {
+	const CISOFile *iso = GetSelectedISO();
+	if (!iso)
+		return;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = iso->GetFileName();
+	SConfig::GetInstance().SaveSettings();
 }
 
 void
