@@ -50,4 +50,6 @@ void Host_SetWaitCursor(bool enable);
 
 void Host_UpdateStatusBar(const char* _pText);
 
+void Host_SysMessage(const char *fmt, ...);
+
 #endif
