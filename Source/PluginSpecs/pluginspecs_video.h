@@ -13,6 +13,7 @@ typedef void			(*TSetPEToken)(const unsigned short _token, const int _bSetTokenA
 typedef void			(*TSetPEFinish)(void);
 typedef unsigned char*	(*TGetMemoryPointer)(const unsigned int  _iAddress);
 typedef void			(*TVideoLog)(const char* _pMessage, BOOL _bBreak);
+typedef void			(*TSysMessage)(const char *fmt, ...);
 typedef void			(*TRequestWindowSize)(int _iWidth, int _iHeight, BOOL _bFullscreen);
 typedef void			(*TCopiedToXFB)(void);
 typedef BOOL			(*TPeekMessages)(void);
@@ -50,6 +51,7 @@ typedef struct
 	TSetPEFinish					pSetPEFinish;
 	TGetMemoryPointer				pGetMemoryPointer;
 	TVideoLog						pLog;
+	TSysMessage						pSysMessage;
 	TRequestWindowSize              pRequestWindowSize;
 	TCopiedToXFB					pCopiedToXFB;
 	TPeekMessages					pPeekMessages;

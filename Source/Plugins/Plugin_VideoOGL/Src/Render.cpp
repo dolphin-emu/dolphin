@@ -424,7 +424,7 @@ void Renderer::ReinitView(int nNewWidth, int nNewHeight)
     if (!OpenGL_Create(g_VideoInitialize, nNewWidth, nNewHeight)) {//nNewWidth&~7, nNewHeight&~7) ) {
         ERROR_LOG("Failed to recreate, reverting to old settings\n");
         if (!OpenGL_Create(g_VideoInitialize, oldwidth, oldheight)) {
-            SysMessage("Failed to revert, exiting...\n");
+            g_VideoInitialize.pSysMessage("Failed to revert, exiting...\n");
 			// TODO - don't takedown the entire emu
             exit(0);
         }

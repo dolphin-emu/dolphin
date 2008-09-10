@@ -392,7 +392,7 @@ void VertexLoader::ProcessFormat()
         {
             char temp[256];
             sprintf(temp,"%i %i %i", m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements);
-            SysMessage("VertexLoader_Normal::GetFunction returned zero!");
+            g_VideoInitialize.pSysMessage("VertexLoader_Normal::GetFunction returned zero!");
         }
         WriteCall(pFunc);
 

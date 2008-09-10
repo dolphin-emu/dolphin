@@ -22,6 +22,7 @@
 #endif
 #include "CPUDetect.h"
 #include "Globals.h"
+#include "Host.h"
 #include "Common.h"
 #include "IniFile.h"
 #include "Main.h"
@@ -273,4 +274,17 @@ void Host_UpdateStatusBar(const char* _pText)
 	event.SetString(wxString::FromAscii(_pText));
 
 	wxPostEvent(main_frame, event);
+}
+
+void Host_SysMessage(const char *fmt, ...) 
+{
+	va_list list;
+	char msg[512];
+
+	va_start(list, fmt);
+	vsprintf(msg, fmt, list);
+	va_end(list);
+
+	if (msg[strlen(msg)-1] == '\n') msg[strlen(msg)-1] = 0;
+	wxMessageBox(wxString::FromAscii(msg));
 }

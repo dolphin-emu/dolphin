@@ -221,7 +221,6 @@ extern Statistics stats;
 void DebugLog(const char* _fmt, ...);
 void __Log(const char *format, ...);
 void __Log(int type, const char *format, ...);
-void SysMessage(const char *fmt, ...);
 void HandleGLError();
 
 void InitLUTs();

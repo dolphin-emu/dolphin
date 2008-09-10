@@ -6,6 +6,7 @@
 #endif
 
 #include "Globals.h"
+#include "Host.h"
 #include "Common.h"
 #include "ISOFile.h"
 #include "CPUDetect.h"
@@ -58,6 +59,23 @@ void Host_SetWaitCursor(bool enable){}
 
 
 void Host_UpdateStatusBar(const char* _pText){}
+
+void Host_SysMessage(const char *fmt, ...) 
+{
+	va_list list;
+	char msg[512];
+
+	va_start(list, fmt);
+	vsprintf(msg, fmt, list);
+	va_end(list);
+
+	size_t len = strlen(msg);
+	if (msg[len - 1] != '\n') {
+		msg[len - 1] = '\n';
+		msg[len] = '\0';
+	}
+	fprintf(stderr, msg);
+}
 
 // Include SDL header so it can hijack main().
 #include <SDL.h>

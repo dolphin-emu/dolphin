@@ -181,10 +181,10 @@ bool FifoCommandRunnable(void)
 				"This means one of the following:\n"
 				"* The emulated GPU got desynced, disabling dual core can help\n"
 				"* Command stream corrupted by some spurious memory bug\n"
-				"* This really is an unknown opcode (unlikely)\n\n"
+				"* This really is an unknown opcode (unlikely)\n"
 				"* Some other sort of bug\n\n"
 				"Dolphin will now likely crash or hang. Enjoy.", Cmd);
-            SysMessage(szTemp);
+            g_VideoInitialize.pSysMessage(szTemp);
             g_VideoInitialize.pLog(szTemp, TRUE);
         }
         break;

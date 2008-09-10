@@ -217,7 +217,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 
 	if (g_VideoInitialize.pWindowHandle == NULL)
 	{
-		SysMessage("failed to create window");
+		g_VideoInitialize.pSysMessage("failed to create window");
 		return false;
 	}
 	

@@ -252,16 +252,3 @@ void __Log(int type, const char *fmt, ...)
     WriteConsole(hConsole, Msg, (DWORD)strlen(Msg), &tmp, 0);
 #endif
 }
-
-void SysMessage(const char *fmt, ...) 
-{
-	va_list list;
-	char msg[512];
-
-	va_start(list, fmt);
-	vsprintf(msg, fmt, list);
-	va_end(list);
-
-	if (msg[strlen(msg)-1] == '\n') msg[strlen(msg)-1] = 0;
-	wxMessageBox(wxString::FromAscii(msg));
-}
