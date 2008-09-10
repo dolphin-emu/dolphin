@@ -17,7 +17,7 @@ warnings = [
 	#'unreachable-code',
 	]
 compileFlags = [
-	'-g',
+#	'-g',
 	'-O3',
 	'-fno-strict-aliasing',
 	'-msse2',
