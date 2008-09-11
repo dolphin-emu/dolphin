@@ -97,6 +97,7 @@ EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
 EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
 EVT_MENU(IDM_TOGGLE_TOOLBAR, CFrame::OnToggleToolbar)
+EVT_MENU(IDM_TOGGLE_STATUSBAR, CFrame::OnToggleStatusbar)
 EVT_MENU(IDM_LOADSLOT1, CFrame::OnLoadState)
 EVT_MENU(IDM_LOADSLOT2, CFrame::OnLoadState)
 EVT_MENU(IDM_LOADSLOT3, CFrame::OnLoadState)
@@ -205,8 +206,8 @@ void CFrame::CreateMenu()
 	m_pMenuItemLoad = emulationMenu->AppendSubMenu(saveMenu, _T("&Load State"));
 	m_pMenuItemSave = emulationMenu->AppendSubMenu(loadMenu, _T("Sa&ve State"));
 	for (int i = 1; i < 10; i++) {
-		saveMenu->Append(IDM_LOADSLOT1 + i - 1, wxString::Format(_T("Slot %i    F%i"), i, i));
-		loadMenu->Append(IDM_SAVESLOT1 + i - 1, wxString::Format(_T("Slot %i    Shift+F%i"), i, i));
+		saveMenu->Append(IDM_LOADSLOT1 + i - 1, wxString::Format(_T("Slot %i\tF%i"), i, i));
+		loadMenu->Append(IDM_SAVESLOT1 + i - 1, wxString::Format(_T("Slot %i\tShift+F%i"), i, i));
 	}
 	m_pMenuBar->Append(emulationMenu, _T("&Emulation"));
 
@@ -218,24 +219,27 @@ void CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _T("&DSP settings"));
 	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _T("&PAD settings"));
 	pOptionsMenu->AppendSeparator();
-	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tEsc"));
-	pOptionsMenu->AppendCheckItem(IDM_TOGGLE_DUALCORE, _T("&Dual-core (unstable!)"));
+	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tAlt+Enter"));
+	pOptionsMenu->AppendCheckItem(IDM_TOGGLE_DUALCORE, _T("Dual-&core (unstable!)"));
 	pOptionsMenu->Check(IDM_TOGGLE_DUALCORE, SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);			
 	m_pMenuBar->Append(pOptionsMenu, _T("&Options"));
 
 	// misc menu
 	wxMenu* miscMenu = new wxMenu;
-	miscMenu->Append(IDM_MEMCARD, _T("&Memcard manager"));
-	miscMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _T("&Enable toolbar"));
+	miscMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _T("View &toolbar"));
 	miscMenu->Check(IDM_TOGGLE_TOOLBAR, true);
+	miscMenu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _T("View &statusbar"));
+	miscMenu->Check(IDM_TOGGLE_STATUSBAR, true);
+	miscMenu->AppendSeparator();
+	miscMenu->Append(IDM_MEMCARD, _T("&Memcard manager"));
 	m_pMenuBar->Append(miscMenu, _T("&Misc"));
 
 	// help menu
 	wxMenu* helpMenu = new wxMenu;
 	/*helpMenu->Append(wxID_HELP, _T("&Help"));
 	re-enable when there's something useful to display*/
-	helpMenu->Append(IDM_HELPWEBSITE, _T("&Dolphin web site"));
-	helpMenu->Append(IDM_HELPGOOGLECODE, _T("&Dolphin at Google Code"));
+	helpMenu->Append(IDM_HELPWEBSITE, _T("Dolphin &web site"));
+	helpMenu->Append(IDM_HELPGOOGLECODE, _T("Dolphin at &Google Code"));
 	helpMenu->AppendSeparator();
 	helpMenu->Append(IDM_HELPABOUT, _T("&About..."));
 	m_pMenuBar->Append(helpMenu, _T("&Help"));
@@ -399,6 +403,25 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 
 		UpdateGUI();
 	}
+	else if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty())
+	{
+		if (wxFileExists(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.c_str()))
+		{
+			BootManager::BootCore(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM);
+		}
+		else
+		{
+			wxMessageBox("The default ISO you have set is invalid.\n"
+				"Please pick on new one by right clicking on a game\n"
+				"and selecting \"Set as default ISO\".", "Invalid Default ISO", wxOK, this);
+		}
+	}
+	else
+	{
+		wxMessageBox("You can set an ISO to load by default.\n"
+			"Choose one by right clicking on a game and selecting\n"
+			"\"Set as default ISO\".", "Set Default ISO", wxOK, this);
+	}
 }
 
 
@@ -550,6 +573,19 @@ void CFrame::OnToggleToolbar(wxCommandEvent& event)
 	}
 }
 
+void CFrame::OnToggleStatusbar(wxCommandEvent& event)
+{
+	if (event.IsChecked())
+	{
+		m_pStatusBar = CreateStatusBar();
+	}
+	else
+	{
+		delete m_pStatusBar;
+		m_pStatusBar = NULL;
+	}
+}
+
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
 	if (((event.GetKeyCode() == WXK_RETURN) && (event.GetModifiers() == wxMOD_ALT)) ||
@@ -574,14 +610,12 @@ void CFrame::UpdateGUI()
 			m_pPluginOptions->Enable(true);
 
 			GetToolBar()->EnableTool(IDM_STOP, false);
-			GetToolBar()->EnableTool(IDM_PLAY, false);
 
 			m_pToolPlay->SetShortHelp(_T("Play"));
 			m_pToolPlay->SetLabel(_T("Play"));
 
-			m_pMenuItemPlay->SetText(_T("Play"));
+			m_pMenuItemPlay->SetText(_T("&Play"));
 
-			m_pMenuItemPlay->Enable(false);
 			m_pMenuItemStop->Enable(false);
 			m_pMenuItemLoad->Enable(false);
 			m_pMenuItemSave->Enable(false);
@@ -592,9 +626,7 @@ void CFrame::UpdateGUI()
 			m_pPluginOptions->Enable(false);
 
 			GetToolBar()->EnableTool(IDM_STOP, true);
-			GetToolBar()->EnableTool(IDM_PLAY, true);
 
-			m_pMenuItemPlay->Enable(true);
 			m_pMenuItemStop->Enable(true);
 			m_pMenuItemLoad->Enable(true);
 			m_pMenuItemSave->Enable(true);
@@ -605,7 +637,7 @@ void CFrame::UpdateGUI()
 				m_pToolPlay->SetShortHelp(_T("Pause"));
 				m_pToolPlay->SetLabel(_T("Pause"));
 
-				m_pMenuItemPlay->SetText(_T("Pause"));
+				m_pMenuItemPlay->SetText(_T("&Pause"));
 			}
 			else
 			{
@@ -613,7 +645,7 @@ void CFrame::UpdateGUI()
 				m_pToolPlay->SetShortHelp(_T("Play"));
 				m_pToolPlay->SetLabel(_T("Play"));
 
-				m_pMenuItemPlay->SetText(_T("Play"));
+				m_pMenuItemPlay->SetText(_T("&Play"));
 			}
 		}
 		GetToolBar()->Realize();

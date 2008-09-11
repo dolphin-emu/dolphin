@@ -35,6 +35,8 @@ class CISOFile
 
 		const std::string& GetCompany() const {return(m_Company);}
 
+		const std::string& GetDescription() const {return(m_Description);}
+
 		const std::string& GetUniqueID() const {return(m_UniqueID);}
 
 		DiscIO::IVolume::ECountry GetCountry() const {return(m_Country);}
@@ -53,6 +55,7 @@ class CISOFile
 		std::string m_FileName;
 		std::string m_Name;
 		std::string m_Company;
+		std::string m_Description;
 		std::string m_UniqueID;
 
 		u64 m_FileSize;

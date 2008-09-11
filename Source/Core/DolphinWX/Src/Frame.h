@@ -67,6 +67,7 @@ class CFrame
 		void OnToggleDualCore(wxCommandEvent& event);
 		void OnToggleThrottle(wxCommandEvent& event);
 		void OnToggleToolbar(wxCommandEvent& event);
+		void OnToggleStatusbar(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event);
 		void OnHostMessage(wxCommandEvent& event);
 		void OnLoadState(wxCommandEvent& event);

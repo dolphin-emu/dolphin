@@ -40,6 +40,7 @@ class CGameListCtrl : public wxListCtrl
 			COLUMN_BANNER = 0,
 			COLUMN_TITLE,
 			COLUMN_COMPANY,
+			COLUMN_NOTES,
 			COLUMN_COUNTRY,
 			COLUMN_SIZE,
 			COLUMN_EMULATION_STATE,
@@ -52,7 +53,7 @@ class CGameListCtrl : public wxListCtrl
 		std::vector<CISOFile> m_ISOFiles;
 
 		void InitBitmaps();
-		void InsertItemInReportView(size_t _Index);
+		void InsertItemInReportView(long _Index);
 		void ScanForISOs();
 
 		DECLARE_EVENT_TABLE()

@@ -59,6 +59,7 @@ CISOFile::CISOFile(const std::string& _rFileName)
 				{
 					pBannerLoader->GetName(m_Name, 0); //m_Country == DiscIO::IVolume::COUNTRY_JAP ? 1 : 0);
 					pBannerLoader->GetCompany(m_Company);
+					pBannerLoader->GetDescription(m_Description);
 
 					if (pBannerLoader->GetBanner(g_ImageTemp))
 					{

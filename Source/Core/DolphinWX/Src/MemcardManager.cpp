@@ -220,7 +220,7 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 {	
 	if(memoryCard[card]) delete memoryCard[card];
 
-	// TODO: add error checking and banners/icons
+	// TODO: add error checking and animate icons
 	memoryCard[card] = new GCMemcard(fileName);
 
 	m_MemcardList[card]->Hide();

@@ -27,14 +27,12 @@
 #include "Config.h"
 #include "GameListCtrl.h"
 
-
 #if USE_XPM_BITMAPS
     #include "../resources/Flag_Europe.xpm"
     #include "../resources/Flag_France.xpm"
     #include "../resources/Flag_Japan.xpm"
     #include "../resources/Flag_USA.xpm"
 #endif // USE_XPM_BITMAPS
-
 
 BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 
@@ -49,16 +47,13 @@ EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
 EVT_MENU(IDM_SETDEFAULTGCM, CGameListCtrl::OnSetDefaultGCM)
 END_EVENT_TABLE()
 
-
 CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
 	: wxListCtrl(parent, id, pos, size, style)                                                                                                                 // | wxLC_VIRTUAL)
 {
 	InitBitmaps();
 }
 
-
-void
-CGameListCtrl::InitBitmaps()
+void CGameListCtrl::InitBitmaps()
 {
 	m_imageListSmall = new wxImageList(96, 32);
 	SetImageList(m_imageListSmall, wxIMAGE_LIST_SMALL);
@@ -76,9 +71,7 @@ CGameListCtrl::InitBitmaps()
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN] = m_imageListSmall->Add(iconTemp);
 }
 
-
-void
-CGameListCtrl::BrowseForDirectory()
+void CGameListCtrl::BrowseForDirectory()
 {
 	wxString dirHome;
 	wxGetHomeDir(&dirHome);
@@ -96,9 +89,7 @@ CGameListCtrl::BrowseForDirectory()
 	}
 }
 
-
-void
-CGameListCtrl::Update()
+void CGameListCtrl::Update()
 {
 	Hide();
 
@@ -112,16 +103,26 @@ CGameListCtrl::Update()
 		InsertColumn(COLUMN_BANNER, _T("Banner"));
 		InsertColumn(COLUMN_TITLE, _T("Title"));
 		InsertColumn(COLUMN_COMPANY, _T("Company"));
+		InsertColumn(COLUMN_NOTES, _T("Notes"));
 		InsertColumn(COLUMN_COUNTRY, _T(""));
 		InsertColumn(COLUMN_SIZE, _T("Size"));
-		InsertColumn(COLUMN_EMULATION_STATE, _T("Emulation"), wxLIST_FORMAT_LEFT);
+		InsertColumn(COLUMN_EMULATION_STATE, _T("Emulation"));
+
+		// set initial sizes for columns
+		SetColumnWidth(COLUMN_BANNER, 106);
+		SetColumnWidth(COLUMN_TITLE, 150);
+		SetColumnWidth(COLUMN_COMPANY, 100);
+		SetColumnWidth(COLUMN_NOTES, 200);
+		SetColumnWidth(COLUMN_COUNTRY, 32);
+		SetColumnWidth(COLUMN_EMULATION_STATE, 75);
 
 		// add all items
 		for (int i = 0; i < (int)m_ISOFiles.size(); i++)
 		{
 			InsertItemInReportView(i);
 		}
-		SetItemState(0, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+
+		SetColumnWidth(COLUMN_SIZE, wxLIST_AUTOSIZE);
 	}
 	else
 	{
@@ -132,7 +133,6 @@ CGameListCtrl::Update()
 		long item = InsertItem(0, buf, -1);
 		SetItemFont(item, *wxITALIC_FONT);
 		SetColumnWidth(item, wxLIST_AUTOSIZE);
-		SetItemState(0, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
 	}
 
 	AutomaticColumnWidth();
@@ -169,9 +169,7 @@ wxString NiceSizeFormat(s64 _size)
 	return(NiceString);
 }
 
-
-void
-CGameListCtrl::InsertItemInReportView(size_t _Index)
+void CGameListCtrl::InsertItemInReportView(long _Index)
 {
 	CISOFile& rISOFile = m_ISOFiles[_Index];
 
@@ -190,7 +188,7 @@ CGameListCtrl::InsertItemInReportView(size_t _Index)
 #else
 	wxColour color = (_Index & 1) ? 0xFFFFFF : 0xEEEEEE;
 #endif
-	// background color color
+	// background color
 	{
 		wxListItem item;
 		item.SetId(ItemIndex);
@@ -198,21 +196,32 @@ CGameListCtrl::InsertItemInReportView(size_t _Index)
 		SetItem(item);
 	}
 
-	// title color
+	// title
 	{
 		wxListItem item;
 		item.SetId(ItemIndex);
 		item.SetColumn(COLUMN_TITLE);
+		//SetItemTextColour(item, (wxColour(0xFF0000)));
 		item.SetText(wxString::FromAscii(rISOFile.GetName().c_str()));
 		SetItem(item);
 	}
 
-	// company color
+	// company
 	{
 		wxListItem item;
 		item.SetId(ItemIndex);
 		item.SetColumn(COLUMN_COMPANY);
+		//SetItemTextColour(item, (wxColour(0x007030)));
 		item.SetText(wxString::FromAscii(rISOFile.GetCompany().c_str()));
+		SetItem(item);
+	}
+
+	// description
+	{
+		wxListItem item;
+		item.SetId(ItemIndex);
+		item.SetColumn(COLUMN_NOTES);
+		item.SetText(wxString::FromAscii(rISOFile.GetDescription().c_str()));
 		SetItem(item);
 	}
 
@@ -248,9 +257,7 @@ CGameListCtrl::InsertItemInReportView(size_t _Index)
 	SetItemData(ItemIndex, _Index);
 }
 
-
-void
-CGameListCtrl::ScanForISOs()
+void CGameListCtrl::ScanForISOs()
 {
 	m_ISOFiles.clear();
 
@@ -281,7 +288,7 @@ CGameListCtrl::ScanForISOs()
 
 		dialog.CenterOnParent();
 
-		for (size_t i = 0; i < rFilenames.size(); i++)
+		for (int i = 0; i < rFilenames.size(); i++)
 		{
 			std::string FileName;
 			SplitPath(rFilenames[i], NULL, &FileName, NULL);
@@ -309,23 +316,18 @@ CGameListCtrl::ScanForISOs()
 	std::sort(m_ISOFiles.begin(), m_ISOFiles.end());
 }
 
-
-void
-CGameListCtrl::OnColBeginDrag(wxListEvent& event)
+void CGameListCtrl::OnColBeginDrag(wxListEvent& event)
 {
-	event.Veto();
+	if (event.GetColumn() != COLUMN_TITLE && event.GetColumn() != COLUMN_COMPANY
+		&& event.GetColumn() != COLUMN_NOTES)
+		event.Veto();
 }
 
-
-void
-CGameListCtrl::OnColEndDrag(wxListEvent& WXUNUSED (event))
+void CGameListCtrl::OnColEndDrag(wxListEvent& WXUNUSED (event))
 {
-	AutomaticColumnWidth();
 }
 
-
-void
-CGameListCtrl::OnRightClick(wxMouseEvent& event)
+void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 {
 	// Focus the clicked item.
 	int flags;
@@ -346,9 +348,7 @@ CGameListCtrl::OnRightClick(wxMouseEvent& event)
 	}
 }
 
-
-void
-CGameListCtrl::OnActivated(wxListEvent& event)
+void CGameListCtrl::OnActivated(wxListEvent& event)
 {
 	if (m_ISOFiles.size() == 0)
 	{
@@ -365,8 +365,7 @@ CGameListCtrl::OnActivated(wxListEvent& event)
 	}
 }
 
-const CISOFile *
-CGameListCtrl::GetSelectedISO() const
+const CISOFile * CGameListCtrl::GetSelectedISO() const
 {
 	int item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); 
 	if (item == -1)
@@ -375,8 +374,7 @@ CGameListCtrl::GetSelectedISO() const
 		return &m_ISOFiles[GetItemData(item)];
 }
 
-void
-CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event)) {
+void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event)) {
 	const CISOFile *iso = GetSelectedISO();
 	if (!iso)
 		return;
@@ -385,8 +383,7 @@ CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event)) {
 	File::Explore(path);
 }
 
-void
-CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& WXUNUSED (event)) {
+void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& WXUNUSED (event)) {
 	const CISOFile *iso = GetSelectedISO();
 	if (!iso)
 		return;
@@ -394,8 +391,7 @@ CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& WXUNUSED (event)) {
 	SConfig::GetInstance().SaveSettings();
 }
 
-void
-CGameListCtrl::OnEditPatchFile(wxCommandEvent& WXUNUSED (event))
+void CGameListCtrl::OnEditPatchFile(wxCommandEvent& WXUNUSED (event))
 {
 	const CISOFile *iso = GetSelectedISO();
 	if (!iso)
@@ -415,20 +411,18 @@ CGameListCtrl::OnEditPatchFile(wxCommandEvent& WXUNUSED (event))
 	File::Launch(filename);
 }
 
-
-void
-CGameListCtrl::OnSelected(wxListEvent& WXUNUSED (event))
-{}
-
-
-void CGameListCtrl::OnSize(wxSizeEvent& WXUNUSED (event))
+void CGameListCtrl::OnSelected(wxListEvent& WXUNUSED (event))
 {
-	AutomaticColumnWidth();
 }
 
+void CGameListCtrl::OnSize(wxSizeEvent& event)
+{
+	AutomaticColumnWidth();
 
-bool
-CGameListCtrl::MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem)
+	event.Skip();
+}
+
+bool CGameListCtrl::MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem)
 {
 	bool Result = false;
 #ifdef __WXMSW__
@@ -447,16 +441,12 @@ CGameListCtrl::MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem)
 		    }
 	    }
 	}
-
-	//
 #endif
 
 	return(Result);
 }
 
-
-void
-CGameListCtrl::AutomaticColumnWidth()
+void CGameListCtrl::AutomaticColumnWidth()
 {
 	wxRect rc(GetClientRect());
 
@@ -466,37 +456,10 @@ CGameListCtrl::AutomaticColumnWidth()
 	}
 	else if (GetColumnCount() > 4)
 	{
-		SetColumnWidth(COLUMN_COUNTRY, 32);
-		SetColumnWidth(COLUMN_BANNER, 106);
+		int resizable = rc.GetWidth() - (213 + GetColumnWidth(COLUMN_SIZE));
 
-		// width
-		for (int i = 0; i < GetColumnCount() - 1; i++)
-		{
-			if ((i != COLUMN_COUNTRY) && (i != COLUMN_BANNER))
-			{
-				SetColumnWidth(i, wxLIST_AUTOSIZE);
-			}
-		}
-
-
-		int size = 0;
-
-		for (int i = 0; i < GetColumnCount() - 1; i++)
-		{
-			size += GetColumnWidth(i);
-		}
-
-		int rest = rc.GetWidth() - size - 3;
-
-		if (rest > 0)
-		{
-			SetColumnWidth(GetColumnCount() - 1, rest);
-		}
-		else
-		{
-			SetColumnWidth(GetColumnCount() - 1, 0);
-		}
+		SetColumnWidth(COLUMN_TITLE, wxMax(0.3*resizable, 100));
+		SetColumnWidth(COLUMN_COMPANY, wxMax(0.2*resizable, 100));
+		SetColumnWidth(COLUMN_NOTES, wxMax(0.5*resizable, 100));
 	}
 }
-
-
