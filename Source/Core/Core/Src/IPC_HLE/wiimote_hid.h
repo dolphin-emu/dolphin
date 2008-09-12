@@ -107,6 +107,60 @@ struct wm_read_data_reply {
 #define WM_RDERR_WOREG 7
 #define WM_RDERR_NOMEM 8
 
+struct wm_core {
+	u8 left : 1;
+	u8 right : 1;
+	u8 down : 1;
+	u8 up : 1;
+	u8 plus : 1;
+	u8 : 3;
+	u8 two : 1;
+	u8 one : 1;
+	u8 b : 1;
+	u8 a : 1;
+	u8 minus : 1;
+	u8 : 2;
+	u8 home : 1;
+};
+
+struct wm_accel {
+	u8 x, y, z;
+};
+
+//filled with 0xFF if empty
+struct wm_ir_extended {
+	u8 x;
+	u8 y;
+	u8 size : 4;
+	u8 xHi : 2;
+	u8 yHi : 2;
+};
+
+#define WM_REPORT_CORE 0x30
+
+#define WM_REPORT_CORE_ACCEL 0x31
+struct wm_report_core_accel {
+	wm_core c;
+	wm_accel a;
+};
+
+#define WM_REPORT_CORE_EXT8 0x32
+
+#define WM_REPORT_CORE_ACCEL_IR12 0x33
+struct wm_report_core_accel_ir12 {
+	wm_core c;
+	wm_accel a;
+	wm_ir_extended ir[4];
+};
+
+#define WM_REPORT_CORE_EXT19 0x34
+#define WM_REPORT_CORE_ACCEL_EXT16 0x35
+#define WM_REPORT_CORE_IR10_EXT9 0x36
+#define WM_REPORT_CORE_ACCEL_IR10_EXT6 0x37
+#define WM_REPORT_EXT21 0x3d
+#define WM_REPORT_INTERLEAVE1 0x3e
+#define WM_REPORT_INTERLEAVE2 0x3f
+
 #if defined(_MSC_VER)
 #pragma pack(pop)
 #endif

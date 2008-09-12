@@ -403,6 +403,51 @@ void CWII_IPC_HLE_WiiMote::WmDataReporting(wm_data_reporting* dr) {
 	LOG(WIIMOTE, "  Continuous: %x", dr->continuous);
 	LOG(WIIMOTE, "  Rumble: %x", dr->rumble);
 	LOG(WIIMOTE, "  Mode: 0x%02x", dr->mode);
+
+	if(dr->mode == 0x33)
+		SendReportCoreAccelIr12();
+	else if(dr->mode == 0x31)
+		SendReportCoreAccel();
+}
+
+void CWII_IPC_HLE_WiiMote::SendReportCoreAccelIr12() {
+	u8 DataFrame[1024];
+	u32 Offset = WriteWmReport(DataFrame, WM_REPORT_CORE_ACCEL_IR12);
+
+	wm_report_core_accel_ir12* pReport = (wm_report_core_accel_ir12*)(DataFrame + Offset);
+	Offset += sizeof(wm_report_core_accel_ir12);
+	memset(pReport, 0, sizeof(wm_report_core_accel_ir12));
+	memset(pReport->ir, 0xFF, sizeof(pReport->ir));
+	pReport->c.b = 1;
+	pReport->a.x = 0x81;
+	pReport->a.y = 0x78;
+	pReport->a.z = 0xD9;
+	pReport->ir[0].x = 320 & 0xFF;
+	pReport->ir[0].y = 240;
+	pReport->ir[0].size = 10;
+	pReport->ir[0].xHi = 320 >> 8;
+	pReport->ir[0].yHi = 0;
+
+	LOG(WIIMOTE, "  SendReportCoreAccelIr12()");
+
+	SendL2capData(HID_INPUT_SCID, DataFrame, Offset);
+}
+
+void CWII_IPC_HLE_WiiMote::SendReportCoreAccel() {
+	u8 DataFrame[1024];
+	u32 Offset = WriteWmReport(DataFrame, WM_REPORT_CORE_ACCEL);
+
+	wm_report_core_accel* pReport = (wm_report_core_accel*)(DataFrame + Offset);
+	Offset += sizeof(wm_report_core_accel);
+	memset(pReport, 0, sizeof(wm_report_core_accel));
+	pReport->c.a = 1;
+	pReport->a.x = 0x82;
+	pReport->a.y = 0x75;
+	pReport->a.z = 0xD6;
+
+	LOG(WIIMOTE, "  SendReportCoreAccel()");
+
+	SendL2capData(HID_INPUT_SCID, DataFrame, Offset);
 }
 
 void CWII_IPC_HLE_WiiMote::WmReadData(wm_read_data* rd) {
@@ -505,6 +550,7 @@ void CWII_IPC_HLE_WiiMote::WmRequestStatus(wm_request_status* rs) {
 	Offset += sizeof(wm_status_report);
 	memset(pStatus, 0, sizeof(wm_status_report));
 	pStatus->leds = m_Leds;
+	pStatus->ir = 1;
 	pStatus->battery = 100;	//arbitrary number
 
 	LOG(WIIMOTE, "  SendStatusReport()");

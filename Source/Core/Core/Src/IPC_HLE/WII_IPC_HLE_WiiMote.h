@@ -116,6 +116,8 @@ private:
 	void SendConfigurationRequest(u16 scid);
 	void SendReadDataReply(void* _Base, u16 _Address, u8 _Size);
 	void SendWriteDataReply();
+	void SendReportCoreAccel();
+	void SendReportCoreAccelIr12();
 
 	int WriteWmReport(u8* dst, u8 channel);
 
