@@ -30,14 +30,32 @@
 
 #include <string>
 
-#include "zlib.h"
+#include "minilzo.h"
+
+
+#if defined(__LZO_STRICT_16BIT)
+#define IN_LEN      (8*1024u)
+#elif defined(LZO_ARCH_I086) && !defined(LZO_HAVE_MM_HUGE_ARRAY)
+#define IN_LEN      (60*1024u)
+#else
+#define IN_LEN      (128*1024ul)
+#endif
+#define OUT_LEN     (IN_LEN + IN_LEN / 16 + 64 + 3)
+
+static unsigned char __LZO_MMODEL out [ OUT_LEN ];
+
+#define HEAP_ALLOC(var,size) \
+	lzo_align_t __LZO_MMODEL var [ ((size) + (sizeof(lzo_align_t) - 1)) / sizeof(lzo_align_t) ]
+
+static HEAP_ALLOC(wrkmem,LZO1X_1_MEM_COMPRESS);
+
 
 static int ev_Save;
 static int ev_Load;
 
 static std::string cur_filename;
 
-static bool const bCompressed = false;
+static bool const bCompressed = true;
 
 enum {
 	version = 1
@@ -61,9 +79,7 @@ void DoState(PointerWrap &p)
 
 void SaveStateCallback(u64 userdata, int cyclesLate)
 {
-	static const int chunkSize = 16384;
-	z_stream strm;
-	unsigned char outbuf[chunkSize] = {0}, inbuf[chunkSize] = {0};
+	lzo_uint out_len = 0;
 
 	FILE *f = fopen(cur_filename.c_str(), "wb");
 	if(f == NULL) {
@@ -81,49 +97,39 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 	p.SetMode(PointerWrap::MODE_WRITE);
 	DoState(p);
 
-	if(bCompressed)
+	if(bCompressed) {
 		fwrite(&sz, sizeof(int), 1, f);
-	else {
+	} else {
 		int zero = 0;
 		fwrite(&zero, sizeof(int), 1, f);
 	}
 
 
 	if(bCompressed) {
-		int chunks = sz / chunkSize, leftovers = sz % chunkSize;
+		if (lzo_init() != LZO_E_OK)
+			PanicAlert("Internal LZO Error - lzo_init() failed");
+		else {
+			lzo_uint cur_len;
+			lzo_uint i = 0;
 
-		//SANITY CHECK
-		if(((chunks * chunkSize) + leftovers) != sz)
-			PanicAlert("WTF %d != %d", ((chunks * chunkSize) + leftovers), sz);
+			for(;;) {
+				if((i + IN_LEN) >= sz)
+					cur_len = sz - i;
+				else
+					cur_len = IN_LEN;
 
-		strm.zalloc = Z_NULL;
-		strm.zfree = Z_NULL;
-		strm.opaque = Z_NULL;
-		deflateInit(&strm, Z_BEST_SPEED);
+				if(lzo1x_1_compress((buffer + i), cur_len, out, &out_len, wrkmem) != LZO_E_OK)
+					PanicAlert("Internal LZO Error - compression failed");
 
-		for(int i = 0; i < chunks; i++) {
-			strm.avail_in = chunkSize;
-			memcpy(inbuf, buffer + i * chunkSize, chunkSize);
-			strm.next_in = inbuf;
-			do {
-				strm.avail_out = chunkSize;
-				strm.next_out = outbuf;
-				deflate(&strm, Z_NO_FLUSH);
-				fwrite(outbuf, 1, chunkSize - strm.avail_out, f);
-			} while(strm.avail_out == 0);
+				// The size of the data to write is 'out_len'
+				fwrite(&out_len, sizeof(int), 1, f);
+				fwrite(out, out_len, 1, f);
+
+				if(cur_len != IN_LEN)
+					break;
+				i += cur_len;
+			}
 		}
-
-		strm.avail_in = leftovers;
-		memcpy(inbuf, buffer + chunks * chunkSize, leftovers);
-		strm.next_in = inbuf;
-		do {
-			strm.avail_out = leftovers;
-			strm.next_out = outbuf;
-			deflate(&strm, Z_NO_FLUSH);
-			fwrite(outbuf, 1, leftovers - strm.avail_out, f);
-		} while(strm.avail_out == 0);
-
-		(void)deflateEnd(&strm);
 	} else
 		fwrite(buffer, sz, 1, f);
 
@@ -137,9 +143,8 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 
 void LoadStateCallback(u64 userdata, int cyclesLate)
 {
-	static const int chunkSize = 16384;
-	z_stream strm;
-	unsigned char outbuf[chunkSize] = {0}, inbuf[chunkSize] = {0};
+	lzo_uint cur_len;
+	lzo_uint new_len;
 
 	bool bCompressedState;
 
@@ -159,53 +164,25 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	bCompressedState = (sz != 0);
 
 	if(bCompressedState) {
-		buffer = new u8[sz];
+		if (lzo_init() != LZO_E_OK)
+			PanicAlert("Internal LZO Error - lzo_init() failed");
+		else {
+			lzo_uint i = 0;
+			buffer = new u8[sz];
+			
+			for(;;) {
+				if(fread(&cur_len, 1, sizeof(int), f) == 0)
+					break;
+				fread(out, 1, cur_len, f);
 
-		int ret;
-		strm.zalloc = Z_NULL;
-		strm.zfree = Z_NULL;
-		strm.opaque = Z_NULL;
-		strm.avail_in = 0;
-		strm.next_in = Z_NULL;
-		ret = inflateInit(&strm);
-		if (ret != Z_OK)
-			return;
-
-
-		int cnt = 0;
-		do {
-			strm.avail_in = fread(inbuf, 1, chunkSize, f);
-			if (ferror(f)) {
-				(void)inflateEnd(&strm);
-				return;
+				int res = lzo1x_decompress(out, cur_len, (buffer + i), &new_len, NULL);
+				if(res != LZO_E_OK)
+					PanicAlert("Internal LZO Error - decompression failed (%d)", res);
+		
+				// The size of the data to read to our buffer is 'new_len'
+				i += new_len;
 			}
-			if (strm.avail_in == 0)
-				break;
-			strm.next_in = inbuf;
-
-			do {
-				strm.avail_out = chunkSize;
-				strm.next_out = outbuf;
-				ret = inflate(&strm, Z_NO_FLUSH);
-				_assert_(ret != Z_STREAM_ERROR);  /* state not clobbered */
-				switch (ret) {
-				case Z_NEED_DICT:
-				case Z_DATA_ERROR:
-				case Z_MEM_ERROR:
-					(void)inflateEnd(&strm);
-					return;
-				}
-
-				int have = chunkSize - strm.avail_out;
-				
-				memcpy(buffer + cnt, outbuf, have);
-				cnt += have;
-			} while (strm.avail_out == 0);
-		} while (ret != Z_STREAM_END);
-
-		(void)inflateEnd(&strm);
-
-		PanicAlert("Got here, %d/%d", cnt, sz);
+		}
 	} else {
 		fseek(f, 0, SEEK_END);
 		sz = ftell(f) - sizeof(int);
@@ -214,7 +191,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 		buffer = new u8[sz];
 
 		int x;
-		if ((x = fread(buffer, 1, sz, f)) != sz)
+		if ((x = (int)fread(buffer, 1, sz, f)) != sz)
 			PanicAlert("wtf? %d %d", x, sz);
 	}
 
