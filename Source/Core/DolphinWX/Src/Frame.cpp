@@ -405,22 +405,26 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 	}
 	else if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty())
 	{
-		if (wxFileExists(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.c_str()))
+          if (wxFileExists(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.c_str(), wxConvUTF8)))
 		{
 			BootManager::BootCore(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM);
 		}
 		else
 		{
-			wxMessageBox("The default ISO you have set is invalid.\n"
-				"Please pick on new one by right clicking on a game\n"
-				"and selecting \"Set as default ISO\".", "Invalid Default ISO", wxOK, this);
+                  wxMessageBox(_("The default ISO you have set is invalid.\n" 
+                                 "Please pick on new one by right clicking on a game\n" 
+                                 "and selecting \"Set as default ISO\"."), 
+                               _("Invalid Default ISO"), 
+                               wxOK, this);
 		}
 	}
 	else
 	{
-		wxMessageBox("You can set an ISO to load by default.\n"
-			"Choose one by right clicking on a game and selecting\n"
-			"\"Set as default ISO\".", "Set Default ISO", wxOK, this);
+          wxMessageBox(_("You can set an ISO to load by default.\n"
+                         "Choose one by right clicking on a game and selecting\n"
+                         "\"Set as default ISO\"."), 
+                       _("Set Default ISO"), 
+                       wxOK, this);
 	}
 }
 

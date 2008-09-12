@@ -288,7 +288,7 @@ void CGameListCtrl::ScanForISOs()
 
 		dialog.CenterOnParent();
 
-		for (int i = 0; i < rFilenames.size(); i++)
+		for (u32 i = 0; i < rFilenames.size(); i++)
 		{
 			std::string FileName;
 			SplitPath(rFilenames[i], NULL, &FileName, NULL);
