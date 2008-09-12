@@ -91,7 +91,7 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 	u8 *ptr = 0;
 	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 	DoState(p);
-	int sz = (int)(u64)ptr;
+	u64 sz = (u64)ptr;
 	u8 *buffer = new u8[sz];
 	ptr = buffer;
 	p.SetMode(PointerWrap::MODE_WRITE);
