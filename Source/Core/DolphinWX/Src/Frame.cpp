@@ -293,6 +293,7 @@ void CFrame::RecreateToolbar()
 
 	PopulateToolbar(theToolBar);
 	SetToolBar(theToolBar);
+	UpdateGUI();
 }
 
 
@@ -405,26 +406,26 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 	}
 	else if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty())
 	{
-          if (wxFileExists(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.c_str(), wxConvUTF8)))
+		if (wxFileExists(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.c_str(), wxConvUTF8)))
 		{
 			BootManager::BootCore(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM);
 		}
 		else
 		{
-                  wxMessageBox(_("The default ISO you have set is invalid.\n" 
-                                 "Please pick on new one by right clicking on a game\n" 
-                                 "and selecting \"Set as default ISO\"."), 
-                               _("Invalid Default ISO"), 
-                               wxOK, this);
+			wxMessageBox(_("The default ISO you have set is invalid.\n" 
+						"Please pick on new one by right clicking on a game\n" 
+						"and selecting \"Set as default ISO\"."), 
+						_("Invalid Default ISO"), 
+						wxOK, this);
 		}
 	}
 	else
 	{
-          wxMessageBox(_("You can set an ISO to load by default.\n"
-                         "Choose one by right clicking on a game and selecting\n"
-                         "\"Set as default ISO\"."), 
-                       _("Set Default ISO"), 
-                       wxOK, this);
+		wxMessageBox(_("You can set an ISO to load by default.\n"
+					"Choose one by right clicking on a game and selecting\n"
+					"\"Set as default ISO\"."), 
+					_("Set Default ISO"), 
+					wxOK, this);
 	}
 }
 
@@ -615,6 +616,7 @@ void CFrame::UpdateGUI()
 
 			GetToolBar()->EnableTool(IDM_STOP, false);
 
+			m_pToolPlay->SetNormalBitmap(m_Bitmaps[Toolbar_Play]);
 			m_pToolPlay->SetShortHelp(_T("Play"));
 			m_pToolPlay->SetLabel(_T("Play"));
 
