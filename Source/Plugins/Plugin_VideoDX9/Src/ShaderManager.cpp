@@ -152,9 +152,15 @@ void VShaderCache::Shutdown()
 
 void VShaderCache::SetShader()
 {
+	static LPDIRECT3DVERTEXSHADER9 shader = NULL;
 	if (D3D::GetShaderVersion() < 2)
 		return; // we are screwed
 
+	if(shader) {
+		//D3D::dev->SetVertexShader(shader);
+		return;
+	}
+	
 	static LPDIRECT3DVERTEXSHADER9 lastShader = 0;
 	DVSTARTPROFILE();
 
@@ -176,7 +182,7 @@ void VShaderCache::SetShader()
 	}
 
 	const char *code = GenerateVertexShader();
-	LPDIRECT3DVERTEXSHADER9 shader = D3D::CompileVShader(code, int(strlen(code)));
+	shader = D3D::CompileVShader(code, int(strlen(code)));
 	if (shader)
 	{
 		//Make an entry in the table
@@ -185,6 +191,7 @@ void VShaderCache::SetShader()
 		entry.frameCount=frameCount;
 		vshaders[currentHash] = entry;
 	}
+
 	D3D::dev->SetVertexShader(shader);
 
 	INCSTAT(stats.numVertexShadersCreated);

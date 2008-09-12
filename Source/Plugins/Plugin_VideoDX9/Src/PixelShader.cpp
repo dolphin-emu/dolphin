@@ -302,35 +302,33 @@ const char *GeneratePixelShader()
 	int numSamplers = 8;
 
 	char *p = text;
-	WRITE(p,"//Pixel Shader for TEV stages\n");
-	WRITE(p,"//%i TEV stages, %i texgens, %i IND stages, %i COL channels\n",
+	WRITE(p,"//Pixel Shader for TEV stages\n\
+//%i TEV stages, %i texgens, %i IND stages, %i COL channels\n",
 		bpmem.genMode.numtevstages,bpmem.genMode.numtexgens,bpmem.genMode.numindstages,bpmem.genMode.numcolchans);
 
 	//write kcolor declarations
-	for (int i = 0; i < 4; i++)
-		WRITE(p,"float4 k%i : register(c%i);\n",i,PS_CONST_KCOLORS+i);
+	for (int i = 0; i < 4; i++) {
+		if(i < 3) {
+			WRITE(p,"float4 k%i : register(c%i);\n\
+                     float4 color%i : register(c%i);\n",i,PS_CONST_KCOLORS+i, i,PS_CONST_COLORS+i+1);
+		} else {
+			WRITE(p,"float4 k%i : register(c%i);\n",i,PS_CONST_KCOLORS+i);
+		}
+	}
 
-	for (int i = 0; i < 3; i++)
-		WRITE(p,"float4 color%i : register(c%i);\n",i,PS_CONST_COLORS+i+1);
+	WRITE(p,"float constalpha : register(c%i);\n\
+float2 alphaRef : register(c%i);\n\n\
+sampler samp[%i] : register(s0);\n\n\
+float4 main(in float4 colors[2] : COLOR0",PS_CONST_CONSTALPHA,PS_CONST_ALPHAREF,numSamplers);
 
-	WRITE(p,"float constalpha : register(c%i);\n",PS_CONST_CONSTALPHA);
-	WRITE(p,"float2 alphaRef : register(c%i);\n",PS_CONST_ALPHAREF);
-
-	WRITE(p,"\n");
-
-	WRITE(p,"sampler samp[%i] : register(s0);\n",numSamplers);
-
-	WRITE(p,"\n");
-
-	WRITE(p,"float4 main(in float4 colors[2] : COLOR0");
 	if (numTexgen)
 		WRITE(p,", float4 uv[%i] : TEXCOORD0",numTexgen);
 	else
 		WRITE(p,", float4 uv[1] : TEXCOORD0"); //HACK
-	WRITE(p,") : COLOR\n");
-	WRITE(p,"{\n");
-	WRITE(p,"float4 c0=color0,c1=color1,c2=color2,prev=float4(0.0f,0.0f,0.0f,0.0f),textemp,rastemp,konsttemp;\n");
-	WRITE(p,"\n");
+	WRITE(p,") : COLOR\n\
+{\n\
+float4 c0=color0,c1=color1,c2=color2,prev=float4(0.0f,0.0f,0.0f,0.0f),textemp,rastemp,konsttemp;\n\
+\n");
 
 	for (int i = 0; i < numStages; i++)
 		WriteStage(p,i); //build the equation for this stage
@@ -342,8 +340,7 @@ const char *GeneratePixelShader()
 	else
 		WRITE(p,"  return prev;\n");
 
-	WRITE(p,"}\n");
-	WRITE(p,"\0");
+	WRITE(p,"}\n\0");
 	
 	return text;
 }

@@ -20,6 +20,46 @@
 #include "VertexShader.h"
 #include "BPStructs.h"
 
+static const char *genericVS = "// Generic Vertex Shader\
+\n\
+struct VS_INPUT {\n\
+float4 pos : POSITION;\n\
+float3 normal : NORMAL;\n\
+float4 colors[2] : COLOR0;\n\
+float3 uv[8] : TEXCOORD0;\n\
+};\n\
+\n\
+struct VS_OUTPUT {\n\
+float4 pos : POSITION;\n\
+float4 colors[2] : COLOR0;\n\
+//numtexgen\n\
+float4 uv[5] : TEXCOORD0;\n\
+};\n\
+\n\
+uniform matrix matWorldViewProj : register(c0);\n\
+\n\
+VS_OUTPUT main(const VS_INPUT input)\n\
+{\n\
+VS_OUTPUT output;\n\
+\n\
+output.pos = mul(matWorldViewProj, input.pos);\n\
+// texgen\n\
+output.uv[0] = float4(input.uv[0].xy,0,input.uv[0].z);\n\
+output.uv[1] = float4(input.uv[1].xy,0,input.uv[1].z);\n\
+output.uv[2] = float4(input.uv[2].xy,0,input.uv[2].z);\n\
+output.uv[3] = float4(input.uv[3].xy,0,input.uv[3].z);\n\
+output.uv[4] = float4(input.uv[4].xy,0,input.uv[4].z);\n\
+\n\
+for (int i=0; i<2; i++)\n    output.colors[i] = input.colors[i];\n\
+return output;\n\
+}\0";
+
+const char *GenerateVertexShader() {
+	return genericVS;
+}
+
+/*
+
 char text2[65536];
 #define WRITE p+=sprintf
 
@@ -91,7 +131,7 @@ const char *GenerateVertexShader()
 /*
  *	xform->vertexshader ideas
 
-*/
+*//*
 
 void WriteTexgen(char *&p, int n)
 {
@@ -102,4 +142,4 @@ void WriteTexgen(char *&p, int n)
 void WriteLight(int color, int component)
 {
 
-}
+} */
