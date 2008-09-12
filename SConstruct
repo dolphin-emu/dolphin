@@ -40,12 +40,14 @@ include_paths = [
 	'../../../Core/Core/Src',
 	'../../../Core/DebuggerWX/src',
 	'../../../../Externals/Bochs_disasm',
+        '../../../../Externals/LZO',
 	'../../../Core/VideoCommon/Src',
 	]
 
 dirs = [
 	"Source/Core/Common/Src",
 	"Externals/Bochs_disasm",
+        "Externals/LZO",
 	"Source/Core/Core/Src",
 	"Source/Core/DiscIO/Src",
 	"Source/Core/DebuggerWX/src",

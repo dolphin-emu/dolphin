@@ -86,4 +86,8 @@ files = ["Console.cpp",
          "HLE/HLE_Misc.cpp",
          "HLE/HLE_OS.cpp",
         ]
-env.StaticLibrary("core", files, LIBS="bdisasm")
+libs = [
+	'lzo', 'bdisasm'
+	]
+
+env.StaticLibrary("core", files, LIBS=libs)
