@@ -264,7 +264,7 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\Common\Src;..\DiscIO\Src;..\..\PluginSpecs;..\Debugger\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib"
+				AdditionalIncludeDirectories="..\Common\Src;..\DiscIO\Src;..\..\PluginSpecs;..\Debugger\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\LZO"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -289,7 +289,9 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="$(SolutionDir)..\Externals\LZO\$(OutDir)\lzo.lib"
 				OutputFile="$(OutDir)/Core.lib"
+				AdditionalLibraryDirectories=""
 			/>
 			<Tool
 				Name="VCALinkTool"
