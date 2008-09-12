@@ -10,8 +10,8 @@ def filterWarnings(flags):
                 for flag in flags.split()
                 if not flag.startswith('-W')
                 )
-env_lzo = env.Copy(
+env_lzo = env.Clone(
         CCFLAGS = filterWarnings(env['CCFLAGS']),
         CXXFLAGS = filterWarnings(env['CXXFLAGS']),
         )
-env_lzo.StaticLibrary("lzo", files)
+env_lzo.StaticLibrary("minilzo", files)

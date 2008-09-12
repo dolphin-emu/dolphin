@@ -17,7 +17,7 @@ files = [
         'cmdline.c',
 	]
 libs = [
-	'debwx', 'core', 'lzo', 'discio', 'bdisasm', 'videocommon', 'common', 'z'
+	'debwx', 'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'common', 'z'
 	]
 
 wxenv = env.Copy()
