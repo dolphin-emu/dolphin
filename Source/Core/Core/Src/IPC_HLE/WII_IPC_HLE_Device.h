@@ -128,7 +128,7 @@ protected:
 
 
         for (u32 i=0; i<NumberOutBuffer; i++)
-        {            
+        {
 #ifdef LOGGING
 			u32 OutBuffer        = Memory::Read_U32(BufferOffset); BufferOffset += 4;
 			u32 OutBufferSize    = Memory::Read_U32(BufferOffset); BufferOffset += 4;
@@ -138,8 +138,10 @@ protected:
 
             LOG(WII_IPC_HLE, "%s - IOCtlV OutBuffer[%i]:", GetDeviceName().c_str(), i);
             LOG(WII_IPC_HLE, "    OutBuffer: 0x%08x (0x%x):", OutBuffer, OutBufferSize);
-            // DumpCommands(OutBuffer, OutBufferSize);
-        }
+#ifdef LOGGING
+            DumpCommands(OutBuffer, OutBufferSize);
+#endif
+       }
     }
 
 private:

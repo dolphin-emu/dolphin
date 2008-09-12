@@ -370,6 +370,19 @@ void CWII_IPC_HLE_WiiMote::HidOutputReport(wm_report* sr) {
 	case WM_READ_DATA:
 		WmReadData((wm_read_data*)sr->data);
 		break;
+	case WM_REQUEST_STATUS:
+		WmRequestStatus((wm_request_status*)sr->data);
+		break;
+	case WM_IR_PIXEL_CLOCK:
+	case WM_IR_LOGIC:
+		LOG(WIIMOTE, " IR Enable 0x%02x 0x%02x", sr->channel, sr->data[0]);
+		break;
+	case WM_WRITE_DATA:
+		WmWriteData((wm_write_data*)sr->data);
+		break;
+	case WM_DATA_REPORTING:
+		WmDataReporting((wm_data_reporting*)sr->data);
+		break;
 
 	default:
 		PanicAlert("HidOutputReport: Unknown channel 0x%02x", sr->channel);
@@ -381,6 +394,15 @@ void CWII_IPC_HLE_WiiMote::WmLeds(wm_leds* leds) {
 	LOG(WIIMOTE, " Set LEDs");
 	LOG(WIIMOTE, "  Leds: %x", leds->leds);
 	LOG(WIIMOTE, "  Rumble: %x", leds->rumble);
+
+	m_Leds = leds->leds;
+}
+
+void CWII_IPC_HLE_WiiMote::WmDataReporting(wm_data_reporting* dr) {
+	LOG(WIIMOTE, " Set Data reporting mode");
+	LOG(WIIMOTE, "  Continuous: %x", dr->continuous);
+	LOG(WIIMOTE, "  Rumble: %x", dr->rumble);
+	LOG(WIIMOTE, "  Mode: 0x%02x", dr->mode);
 }
 
 void CWII_IPC_HLE_WiiMote::WmReadData(wm_read_data* rd) {
@@ -395,24 +417,107 @@ void CWII_IPC_HLE_WiiMote::WmReadData(wm_read_data* rd) {
 	if(size <= 16 && rd->space == 0) {
 		SendReadDataReply(m_Eeprom, address, (u8)size);
 	} else {
-		//TODO: return input reports, fragmented and padded on 16 bytes of data.
 		PanicAlert("WmReadData: unimplemented parameters!");
 	}
+}
+
+void CWII_IPC_HLE_WiiMote::WmWriteData(wm_write_data* wd) {
+	u32 address = convert24bit(wd->address);
+	LOG(WIIMOTE, " Write data");
+	LOG(WIIMOTE, "  Address space: %x", wd->space);
+	LOG(WIIMOTE, "  Address: 0x%06x", address);
+	LOG(WIIMOTE, "  Size: 0x%02x", wd->size);
+	LOG(WIIMOTE, "  Rumble: %x", wd->rumble);
+
+	if(wd->size <= 16 && wd->space == WM_SPACE_EEPROM)
+	{
+		if(address + wd->size > WIIMOTE_EEPROM_SIZE) {
+			PanicAlert("WmWriteData: address + size out of bounds!");
+			return;
+		}
+		memcpy(m_Eeprom + address, wd->data, wd->size);
+		SendWriteDataReply();
+	}
+	else if(wd->size <= 16 && (wd->space == WM_SPACE_REGS1 || wd->space == WM_SPACE_REGS2))
+	{
+		u8* block;
+		u32 blockSize;
+		switch((address >> 16) & 0xFE) {
+		case 0xA2:
+			block = m_RegSpeaker;
+			blockSize = WIIMOTE_REG_SPEAKER_SIZE;
+			break;
+		case 0xA4:
+			block = m_RegExt;
+			blockSize = WIIMOTE_REG_EXT_SIZE;
+			break;
+		case 0xB0:
+			block = m_RegIr;
+			blockSize = WIIMOTE_REG_IR_SIZE;
+			break;
+		default:
+			PanicAlert("WmWriteData: bad register block!");
+			return;
+		}
+		address &= 0xFFFF;
+		if(address + wd->size > blockSize) {
+			PanicAlert("WmWriteData: address + size out of bounds!");
+			return;
+		}
+		memcpy(block + address, wd->data, wd->size);
+		SendWriteDataReply();
+	} else {
+		PanicAlert("WmWriteData: unimplemented parameters!");
+	}
+}
+
+void CWII_IPC_HLE_WiiMote::SendWriteDataReply() {
+	u8 DataFrame[1024];
+	u32 Offset = WriteWmReport(DataFrame, WM_WRITE_DATA_REPLY);
+
+	LOG(WIIMOTE, "  SendWriteDataReply()");
+
+	SendL2capData(HID_INPUT_SCID, DataFrame, Offset);
+}
+
+int CWII_IPC_HLE_WiiMote::WriteWmReport(u8* dst, u8 channel) {
+	u32 Offset = 0;
+	hid_packet* pHidHeader = (hid_packet*)(dst + Offset);
+	Offset += sizeof(hid_packet);
+	pHidHeader->type = HID_TYPE_DATA;
+	pHidHeader->param = HID_PARAM_INPUT;
+
+	wm_report* pReport = (wm_report*)(dst + Offset);
+	Offset += sizeof(wm_report);
+	pReport->channel = channel;
+	return Offset;
+}
+
+void CWII_IPC_HLE_WiiMote::WmRequestStatus(wm_request_status* rs) {
+	LOG(WIIMOTE, " Request Status");
+	LOG(WIIMOTE, "  Rumble: %x", rs->rumble);
+
+	//SendStatusReport();
+	u8 DataFrame[1024];
+	u32 Offset = WriteWmReport(DataFrame, WM_STATUS_REPORT);
+
+	wm_status_report* pStatus = (wm_status_report*)(DataFrame + Offset);
+	Offset += sizeof(wm_status_report);
+	memset(pStatus, 0, sizeof(wm_status_report));
+	pStatus->leds = m_Leds;
+	pStatus->battery = 100;	//arbitrary number
+
+	LOG(WIIMOTE, "  SendStatusReport()");
+	LOG(WIIMOTE, "    Flags: 0x%02x", pStatus->padding1[2]);
+	LOG(WIIMOTE, "    Battery: %d", pStatus->battery);
+
+	SendL2capData(HID_INPUT_SCID, DataFrame, Offset);
 }
 
 void CWII_IPC_HLE_WiiMote::SendReadDataReply(void* _Base, u16 _Address, u8 _Size)
 {
 	u8 DataFrame[1024];
-	u32 Offset = 0;
-
-	hid_packet* pHidHeader = (hid_packet*)(DataFrame + Offset);
-	Offset += sizeof(hid_packet);
-	pHidHeader->type = HID_TYPE_DATA;
-	pHidHeader->param = HID_PARAM_INPUT;
-
-	wm_report* pReport = (wm_report*)(DataFrame + Offset);
-	Offset += sizeof(wm_report);
-	pReport->channel = WM_READ_DATA_REPLY;
+	u32 Offset = WriteWmReport(DataFrame, WM_READ_DATA_REPLY);
 
 	_dbg_assert_(WIIMOTE, _Size <= 16);
 
@@ -420,12 +525,19 @@ void CWII_IPC_HLE_WiiMote::SendReadDataReply(void* _Base, u16 _Address, u8 _Size
 	Offset += sizeof(wm_read_data_reply);
 	pReply->buttons = 0;
 	pReply->error = 0;
-	pReply->size = _Size;
+	pReply->size = _Size - 1;
 	pReply->address = Common::swap16(_Address);
 	memcpy(pReply->data, _Base, _Size);
 	if(_Size < 16) {
 		memset(pReply->data + _Size, 0, 16 - _Size);
 	}
+
+	LOG(WIIMOTE, "  SendReadDataReply()");
+	LOG(WIIMOTE, "    Buttons: 0x%04x", pReply->buttons);
+	LOG(WIIMOTE, "    Error: 0x%x", pReply->error);
+	LOG(WIIMOTE, "    Size: 0x%x", pReply->size);
+	LOG(WIIMOTE, "    Address: 0x%04x", pReply->address);
+
 	SendL2capData(HID_INPUT_SCID, DataFrame, Offset);
 }
 

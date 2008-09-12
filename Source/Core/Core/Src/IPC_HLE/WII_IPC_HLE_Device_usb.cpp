@@ -234,8 +234,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLFrame(u16 _ConnectionHandle, u8
 
 u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 {
-	LOG(WIIMOTE, "Update() %i 0x%08x",
-		m_HCICommandMessageQueue.size(), m_pHCIBuffer);
+	//LOG(WIIMOTE, "Update() %i 0x%08x",
+		//m_HCICommandMessageQueue.size(), m_pHCIBuffer);
 	// check state machine
 	if (m_pHCIBuffer)
 	{
