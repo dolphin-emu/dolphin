@@ -110,7 +110,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 		break; 
 
 	case DLL_PROCESS_DETACH:
-		CloseConsole();
 		wxEntryCleanup(); //use wxUninitialize() if you don't want GUI 
 		break;
 	default:
@@ -265,6 +264,7 @@ void SendReportCoreAccelIr12() {
 	pReport->a.x = 0x81;
 	pReport->a.y = 0x78;
 	pReport->a.z = 0xD9;
+
 	pReport->ir[0].x = 320 & 0xFF;
 	pReport->ir[0].y = 240;
 	pReport->ir[0].size = 10;

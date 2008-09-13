@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include "../HW/Memmap.h"
 #include "SymbolDB.h"
 #include "SignatureDB.h"
 #include "PPCAnalyst.h"
@@ -104,6 +105,8 @@ void SymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const char *name, int typ
 
 Symbol *SymbolDB::GetSymbolFromAddr(u32 addr)
 {
+	if (!Memory::IsRAMAddress(addr))
+		return 0;
 	XFuncMap::iterator it = functions.find(addr);
 	if (it != functions.end())
 		return &it->second;

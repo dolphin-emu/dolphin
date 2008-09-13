@@ -73,10 +73,14 @@ void HLE_printf()
 
 void GetStringVA(std::string& _rOutBuffer)
 {
+	_rOutBuffer = "";
 	char ArgumentBuffer[256];
 	u32 ParameterCounter = 4;    
 	char* pString = (char*)Memory::GetPointer(GPR(3));
-
+	if (!pString) {
+		//PanicAlert("Invalid GetStringVA call");
+		return;
+	}
 	while(*pString)
 	{
 		if (*pString == '%')
