@@ -77,7 +77,50 @@ static u32 convert24bit(const u8* src) {
 static u16 convert16bit(const u8* src) {
 	return (src[0] << 8) | src[1];
 }
+#ifdef _WIN32
+HINSTANCE g_hInstance;
 
+class wxDLLApp : public wxApp
+{
+	bool OnInit()
+	{
+		return true;
+	}
+};
+IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+
+WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+
+
+BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
+					  DWORD dwReason,		// reason called
+					  LPVOID lpvReserved)	// reserved
+{
+	switch (dwReason)
+	{
+	case DLL_PROCESS_ATTACH:
+		{       //use wxInitialize() if you don't want GUI instead of the following 12 lines
+			wxSetInstance((HINSTANCE)hinstDLL);
+			int argc = 0;
+			char **argv = NULL;
+			wxEntryStart(argc, argv);
+			if ( !wxTheApp || !wxTheApp->CallOnInit() )
+				return FALSE;
+		}
+		break; 
+
+	case DLL_PROCESS_DETACH:
+		CloseConsole();
+		wxEntryCleanup(); //use wxUninitialize() if you don't want GUI 
+		break;
+	default:
+		break;
+	}
+
+	g_hInstance = hinstDLL;
+	return TRUE;
+}
+#endif
 //******************************************************************************
 // Exports
 //******************************************************************************
