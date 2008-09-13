@@ -61,6 +61,10 @@ class CPluginOptions
 		wxButton* GraphicConfig;
 		wxStaticText* GraphicText;
 		wxChoice* GraphicSelection;
+		wxButton* WiimoteAbout;
+		wxButton* WiimoteConfig;
+		wxStaticText* WiimoteText;
+		wxChoice* WiimoteSelection;
 		////GUI Control Declaration End
 
 	private:
@@ -72,6 +76,10 @@ class CPluginOptions
 		enum
 		{
 			////GUI Enum Control ID Start
+			ID_WIIMOTE_ABOUT  = 1038,
+			ID_WIIMOTE_CONFIG = 1037,
+			ID_WIIMOTE_TEXT = 1036,
+			ID_WIIMOTE_CB = 1035,
 			ID_CANCEL = 1034,
 			ID_APPLY = 1033,
 			ID_OK = 1032,

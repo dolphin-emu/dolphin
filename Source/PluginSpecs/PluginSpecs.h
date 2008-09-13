@@ -52,6 +52,7 @@ extern "C" {
 #define PLUGIN_TYPE_AUDIO           4
 #define PLUGIN_TYPE_COMPILER        5
 #define PLUGIN_TYPE_DSP             6
+#define PLUGIN_TYPE_WIIMOTE 7
 
 #define STATE_MODE_READ    1
 #define STATE_MODE_WRITE   2

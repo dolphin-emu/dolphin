@@ -1,0 +1,23 @@
+Import('env')
+import sys
+
+if sys.platform == 'darwin':
+	output = "../../../../Binary/mac/Plugins/Plugin_Wiimote_Test.so"
+else:
+	output = "../../../../Binary/linux/Plugins/Plugin_Wiimote_Test.so"
+
+files = [
+	"main.cpp",
+	]
+
+padenv = env.Copy()
+padenv.Append(
+	CXXFLAGS = ' ' + ' '.join([
+		'-fPIC', '`wx-config --cppflags`', '`pkg-config --cflags sdl`'
+		]),
+	LINKFLAGS = ' ' + ' '.join([
+		'`wx-config --libs`', '`pkg-config --libs sdl`'
+		])
+	)
+padenv.SharedLibrary(output, files, LIBS = [ "common" ])
+

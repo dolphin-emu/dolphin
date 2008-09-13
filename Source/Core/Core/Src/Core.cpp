@@ -50,6 +50,7 @@
 #include "Plugins/Plugin_Video.h"
 #include "Plugins/Plugin_PAD.h"
 #include "Plugins/Plugin_DSP.h"
+#include "Plugins/Plugin_Wiimote.h"
 
 #include "MemTools.h"
 #include "Host.h"
@@ -129,6 +130,10 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 	}
 	if (!PluginVideo::LoadPlugin(g_CoreStartupParameter.m_strVideoPlugin.c_str())) {
 		PanicAlert("Failed to load video plugin %s", g_CoreStartupParameter.m_strVideoPlugin.c_str());
+		return false;
+	}
+	if (!PluginWiimote::LoadPlugin(g_CoreStartupParameter.m_strWiimotePlugin.c_str())) {
+		PanicAlert("Failed to load Wiimote plugin %s", g_CoreStartupParameter.m_strWiimotePlugin.c_str());
 		return false;
 	}
 
@@ -368,6 +373,8 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	PluginPAD::PAD_Shutdown();
 	PluginPAD::UnloadPlugin();
+	PluginWiimote::Wiimote_Shutdown();
+	PluginWiimote::UnloadPlugin();
 	PluginDSP::DSP_Shutdown();
 	PluginDSP::UnloadPlugin();
 	PluginVideo::Video_Shutdown();

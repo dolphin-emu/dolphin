@@ -82,7 +82,14 @@ void CPluginOptions::CreateGUIControls()
 	PADText = new wxStaticText(this, ID_PAD_TEXT, wxT("PAD:"), wxDefaultPosition, wxDefaultSize);
 
 	FillChoiceBox(PADSelection, PLUGIN_TYPE_PAD, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin);
-	
+
+	WiimoteSelection = new wxChoice(this, ID_GRAPHIC_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
+	WiimoteAbout = new wxButton(this, ID_GRAPHIC_ABOUT, wxT("About..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	WiimoteConfig = new wxButton(this, ID_GRAPHIC_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	WiimoteText = new wxStaticText(this, ID_GRAPHIC_TEXT, wxT("Wiimote:"), wxDefaultPosition, wxDefaultSize);
+
+	FillChoiceBox(WiimoteSelection, PLUGIN_TYPE_WIIMOTE, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin);
+
 	wxGridBagSizer* sConfig;
 	sConfig = new wxGridBagSizer(0, 0);
 	sConfig->SetFlexibleDirection(wxBOTH);
@@ -101,6 +108,12 @@ void CPluginOptions::CreateGUIControls()
 	sConfig->Add(PADSelection, wxGBPosition(4, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
 	sConfig->Add(PADConfig, wxGBPosition(4, 3), wxGBSpan(1, 1), wxALL, 5);
 	sConfig->Add(PADAbout, wxGBPosition(4, 4), wxGBSpan(1, 1), wxALL, 5);
+
+	sConfig->Add(WiimoteText, wxGBPosition(6, 0), wxGBSpan(2, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sConfig->Add(WiimoteSelection, wxGBPosition(6, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
+	sConfig->Add(WiimoteConfig, wxGBPosition(6, 3), wxGBSpan(1, 1), wxALL, 5);
+	sConfig->Add(WiimoteAbout, wxGBPosition(6, 4), wxGBSpan(1, 1), wxALL, 5);
+
 	sConfig->Layout();
 
 	wxBoxSizer* sButtons;
@@ -258,6 +271,7 @@ void CPluginOptions::DoApply()
 	GetFilename(GraphicSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
 	GetFilename(DSPSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin);
 	GetFilename(PADSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin);
+	GetFilename(WiimoteSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin);
 
 	SConfig::GetInstance().SaveSettings();
 }

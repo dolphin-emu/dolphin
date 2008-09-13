@@ -30,15 +30,15 @@ struct SCoreStartupParameter
 	HINSTANCE hInstance;
 #endif
 
-    // windows/GUI related
-    void* hMainWindow;
+	// windows/GUI related
+	void* hMainWindow;
 
 	// flags
 	bool bEnableDebugging;
 	bool bUseJIT;
 	bool bUseDualCore;
-    bool bNTSC;
-    bool bHLEBios;
+	bool bNTSC;
+	bool bHLEBios;
 	bool bUseFastMem;
 	bool bLockThreads;
 	bool bOptimizeQuantizers;
@@ -56,27 +56,28 @@ struct SCoreStartupParameter
 		BOOT_BIOS_EUR,
 	};
 
-    enum EBootType
-    {
-        BOOT_ISO,
-        BOOT_ELF,
-        BOOT_BIN,
-        BOOT_DOL,
-        BOOT_BIOS
-    };
-    EBootType m_BootType;
+	enum EBootType
+	{
+		BOOT_ISO,
+		BOOT_ELF,
+		BOOT_BIN,
+		BOOT_DOL,
+		BOOT_BIOS
+	};
+	EBootType m_BootType;
 
 
 	// files
 	std::string m_strVideoPlugin;
 	std::string m_strPadPlugin;
 	std::string m_strDSPPlugin;
+	std::string m_strWiimotePlugin;
 
-    std::string m_strFilename;
+	std::string m_strFilename;
 	std::string m_strBios;	
 	std::string m_strMemoryCardA;
 	std::string m_strMemoryCardB;
-    std::string m_strSRAM;
+	std::string m_strSRAM;
 	std::string m_strDefaultGCM;
 	std::string m_strUniqueID;
 

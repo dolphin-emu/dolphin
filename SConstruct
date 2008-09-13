@@ -57,6 +57,7 @@ dirs = [
 	#"Source/Plugins/Plugin_DSP_LLE/Src",
 	"Source/Plugins/Plugin_PadSimple/Src",
 	"Source/Plugins/Plugin_nJoy_SDL/Src",
+	"Source/Plugins/Plugin_Wiimote_Test/Src",
 	"Source/Core/DolphinWX/Src",
 	]
 

@@ -771,6 +771,14 @@
 				RelativePath=".\Src\Plugins\Plugin_Video.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Src\Plugins\Plugin_Wiimote.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Plugins\Plugin_Wiimote.h"
+				>
+			</File>
 			<Filter
 				Name="Specs"
 				>
@@ -788,6 +796,10 @@
 				</File>
 				<File
 					RelativePath="..\..\PluginSpecs\pluginspecs_video.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\PluginSpecs\pluginspecs_wiimote.h"
 					>
 				</File>
 			</Filter>
