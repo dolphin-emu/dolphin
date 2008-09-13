@@ -31,15 +31,18 @@ EVT_CLOSE(CPluginOptions::OnClose)
 EVT_BUTTON(ID_OK, CPluginOptions::OKClick)
 EVT_BUTTON(ID_APPLY, CPluginOptions::OKClick)
 EVT_BUTTON(ID_CANCEL, CPluginOptions::OKClick)
-EVT_CHOICE(ID_PAD_CB, CPluginOptions::OnSelectionChanged)
-EVT_CHOICE(ID_DSP_CB, CPluginOptions::OnSelectionChanged)
 EVT_CHOICE(ID_GRAPHIC_CB, CPluginOptions::OnSelectionChanged)
-EVT_BUTTON(ID_PAD_ABOUT, CPluginOptions::OnAbout)
-EVT_BUTTON(ID_DSP_ABOUT, CPluginOptions::OnAbout)
 EVT_BUTTON(ID_GRAPHIC_ABOUT, CPluginOptions::OnAbout)
-EVT_BUTTON(ID_PAD_CONFIG, CPluginOptions::OnConfig)
-EVT_BUTTON(ID_DSP_CONFIG, CPluginOptions::OnConfig)
 EVT_BUTTON(ID_GRAPHIC_CONFIG, CPluginOptions::OnConfig)
+EVT_CHOICE(ID_DSP_CB, CPluginOptions::OnSelectionChanged)
+EVT_BUTTON(ID_DSP_ABOUT, CPluginOptions::OnAbout)
+EVT_BUTTON(ID_DSP_CONFIG, CPluginOptions::OnConfig)
+EVT_CHOICE(ID_PAD_CB, CPluginOptions::OnSelectionChanged)
+EVT_BUTTON(ID_PAD_ABOUT, CPluginOptions::OnAbout)
+EVT_BUTTON(ID_PAD_CONFIG, CPluginOptions::OnConfig)
+EVT_CHOICE(ID_WIIMOTE_CB, CPluginOptions::OnSelectionChanged)
+EVT_BUTTON(ID_WIIMOTE_ABOUT, CPluginOptions::OnAbout)
+EVT_BUTTON(ID_WIIMOTE_CONFIG, CPluginOptions::OnConfig)
 
 END_EVENT_TABLE()
 
@@ -83,10 +86,10 @@ void CPluginOptions::CreateGUIControls()
 
 	FillChoiceBox(PADSelection, PLUGIN_TYPE_PAD, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin);
 
-	WiimoteSelection = new wxChoice(this, ID_GRAPHIC_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
-	WiimoteAbout = new wxButton(this, ID_GRAPHIC_ABOUT, wxT("About..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	WiimoteConfig = new wxButton(this, ID_GRAPHIC_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	WiimoteText = new wxStaticText(this, ID_GRAPHIC_TEXT, wxT("Wiimote:"), wxDefaultPosition, wxDefaultSize);
+	WiimoteSelection = new wxChoice(this, ID_WIIMOTE_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
+	WiimoteAbout = new wxButton(this, ID_WIIMOTE_ABOUT, wxT("About..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	WiimoteConfig = new wxButton(this, ID_WIIMOTE_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	WiimoteText = new wxStaticText(this, ID_WIIMOTE_TEXT, wxT("Wiimote:"), wxDefaultPosition, wxDefaultSize);
 
 	FillChoiceBox(WiimoteSelection, PLUGIN_TYPE_WIIMOTE, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin);
 
@@ -94,25 +97,25 @@ void CPluginOptions::CreateGUIControls()
 	sConfig = new wxGridBagSizer(0, 0);
 	sConfig->SetFlexibleDirection(wxBOTH);
 	sConfig->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
-	sConfig->Add(GraphicText, wxGBPosition(0, 0), wxGBSpan(2, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sConfig->Add(GraphicText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sConfig->Add(GraphicSelection, wxGBPosition(0, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
 	sConfig->Add(GraphicConfig, wxGBPosition(0, 3), wxGBSpan(1, 1), wxALL, 5);
 	sConfig->Add(GraphicAbout, wxGBPosition(0, 4), wxGBSpan(1, 1), wxALL, 5);
 
-	sConfig->Add(DSPText, wxGBPosition(2, 0), wxGBSpan(2, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sConfig->Add(DSPSelection, wxGBPosition(2, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
-	sConfig->Add(DSPConfig, wxGBPosition(2, 3), wxGBSpan(1, 1), wxALL, 5);
-	sConfig->Add(DSPAbout, wxGBPosition(2, 4), wxGBSpan(1, 1), wxALL, 5);
+	sConfig->Add(DSPText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sConfig->Add(DSPSelection, wxGBPosition(1, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
+	sConfig->Add(DSPConfig, wxGBPosition(1, 3), wxGBSpan(1, 1), wxALL, 5);
+	sConfig->Add(DSPAbout, wxGBPosition(1, 4), wxGBSpan(1, 1), wxALL, 5);
 
-	sConfig->Add(PADText, wxGBPosition(4, 0), wxGBSpan(2, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sConfig->Add(PADSelection, wxGBPosition(4, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
-	sConfig->Add(PADConfig, wxGBPosition(4, 3), wxGBSpan(1, 1), wxALL, 5);
-	sConfig->Add(PADAbout, wxGBPosition(4, 4), wxGBSpan(1, 1), wxALL, 5);
+	sConfig->Add(PADText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sConfig->Add(PADSelection, wxGBPosition(2, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
+	sConfig->Add(PADConfig, wxGBPosition(2, 3), wxGBSpan(1, 1), wxALL, 5);
+	sConfig->Add(PADAbout, wxGBPosition(2, 4), wxGBSpan(1, 1), wxALL, 5);
 
-	sConfig->Add(WiimoteText, wxGBPosition(6, 0), wxGBSpan(2, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sConfig->Add(WiimoteSelection, wxGBPosition(6, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
-	sConfig->Add(WiimoteConfig, wxGBPosition(6, 3), wxGBSpan(1, 1), wxALL, 5);
-	sConfig->Add(WiimoteAbout, wxGBPosition(6, 4), wxGBSpan(1, 1), wxALL, 5);
+	sConfig->Add(WiimoteText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sConfig->Add(WiimoteSelection, wxGBPosition(3, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
+	sConfig->Add(WiimoteConfig, wxGBPosition(3, 3), wxGBSpan(1, 1), wxALL, 5);
+	sConfig->Add(WiimoteAbout, wxGBPosition(3, 4), wxGBSpan(1, 1), wxALL, 5);
 
 	sConfig->Layout();
 
@@ -170,16 +173,20 @@ void CPluginOptions::OnAbout(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	    case ID_PAD_ABOUT:
-		    CallAbout(PADSelection);
+	    case ID_GRAPHIC_ABOUT:
+		    CallAbout(GraphicSelection);
 		    break;
 
-	    case ID_DSP_ABOUT:
+		case ID_DSP_ABOUT:
 		    CallAbout(DSPSelection);
 		    break;
 
-	    case ID_GRAPHIC_ABOUT:
-		    CallAbout(GraphicSelection);
+		case ID_PAD_ABOUT:
+		    CallAbout(PADSelection);
+		    break;
+
+		case ID_WIIMOTE_ABOUT:
+		    CallAbout(WiimoteSelection);
 		    break;
 	}
 }
@@ -189,16 +196,20 @@ void CPluginOptions::OnConfig(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	    case ID_PAD_CONFIG:
-		    CallConfig(PADSelection);
+	    case ID_GRAPHIC_CONFIG:
+		    CallConfig(GraphicSelection);
 		    break;
 
-	    case ID_DSP_CONFIG:
+		case ID_DSP_CONFIG:
 		    CallConfig(DSPSelection);
 		    break;
 
-	    case ID_GRAPHIC_CONFIG:
-		    CallConfig(GraphicSelection);
+		case ID_PAD_CONFIG:
+		    CallConfig(PADSelection);
+		    break;
+
+		case ID_WIIMOTE_CONFIG:
+		    CallConfig(WiimoteSelection);
 		    break;
 	}
 }
