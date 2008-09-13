@@ -91,6 +91,7 @@ BOOL Callback_PeekMessages()
 #else // GLX
     // This is called from Outside of our video thread, from EmuThread
     // The calls are NOT thread safe, so it breaks everything
+    return FALSE;
 #endif
 }
 
@@ -379,7 +380,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
             
             /* create a fullscreen window */
             GLWin.attr.override_redirect = True;
-            GLWin.attr.event_mask = ExposureMask | StructureNotifyMask | ResizeRedirectMask;
+            GLWin.attr.event_mask = ExposureMask | StructureNotifyMask;
             GLWin.win = XCreateWindow(GLWin.dpy, RootWindow(GLWin.dpy, vi->screen),
                                       0, 0, dpyWidth, dpyHeight, 0, vi->depth, InputOutput, vi->visual,
                                       CWBorderPixel | CWColormap | CWEventMask | CWOverrideRedirect,

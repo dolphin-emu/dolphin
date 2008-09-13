@@ -86,7 +86,8 @@ bool Renderer::Create2()
 
     if( strstr(ptoken, "GL_EXT_blend_logic_op") != NULL )
         g_bBlendLogicOp = true;
-    if( strstr(ptoken, "ATI_draw_buffers") != NULL )
+    if( strstr(ptoken, "ATI_draw_buffers") != NULL  && strstr(ptoken, "ARB_draw_buffers") == NULL)
+        //Checks if it ONLY has the ATI_draw_buffers extension, some have both
         s_bATIDrawBuffers = true;
 
     s_bFullscreen = g_Config.bFullscreen;
