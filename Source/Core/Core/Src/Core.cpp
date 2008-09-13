@@ -75,6 +75,8 @@ void Callback_VideoCopiedToXFB();
 void Callback_DSPLog(const TCHAR* _szMessage);
 void Callback_DSPInterrupt();
 void Callback_PADLog(const TCHAR* _szMessage);
+void Callback_WiimoteLog(const TCHAR* _szMessage);
+void Callback_WiimoteInput(const void* _pData, u32 _Size);
 
 // For keyboard shortcuts.
 void Callback_KeyPress(int key, BOOL shift, BOOL control);
@@ -303,6 +305,13 @@ THREAD_RETURN EmuThread(void *pArg)
 	PADInitialize.hWnd = g_pWindowHandle;
 	PADInitialize.pLog = Callback_PADLog;
 	PluginPAD::PAD_Initialize(PADInitialize);
+
+	// Load and Init WiimotePlugin	
+	SWiimoteInitialize WiimoteInitialize;
+	WiimoteInitialize.hWnd = g_pWindowHandle;
+	WiimoteInitialize.pLog = Callback_WiimoteLog;
+	WiimoteInitialize.pWiimoteInput = Callback_WiimoteInput;
+	PluginWiimote::Wiimote_Initialize(WiimoteInitialize);
 
 	// The hardware is initialized.
 	g_bHwInit = true;
@@ -551,6 +560,14 @@ void Callback_KeyPress(int key, BOOL shift, BOOL control)
 			State_Load(slot_number);
 		}
 	}
+}
+
+// __________________________________________________________________________________________________
+// Callback_WiimoteLog
+//
+void Callback_WiimoteLog(const TCHAR* _szMessage)
+{
+	LOG(WIIMOTE, _szMessage);
 }
 
 } // end of namespace Core

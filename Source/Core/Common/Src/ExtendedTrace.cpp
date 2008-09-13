@@ -430,7 +430,7 @@ void etfprintf(FILE *file, const char *format, ...) {
 }
 
 void etfprint(FILE *file, const std::string &text) {
-	int len = text.length();
+	size_t len = text.length();
 	fwrite(text.data(), 1, len, file);
 }
 

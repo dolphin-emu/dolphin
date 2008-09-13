@@ -44,7 +44,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS"
+				PreprocessorDefinitions="LOGGING;WIN32;_DEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -375,7 +375,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
-				PreprocessorDefinitions="DEBUGFAST;WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS"
+				PreprocessorDefinitions="LOGGING;DEBUGFAST;WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS"
 				RuntimeLibrary="0"
 				WarningLevel="3"
 				WarnAsError="true"
@@ -513,7 +513,11 @@
 	</References>
 	<Files>
 		<File
-			RelativePath=".\Src\main.cpp"
+			RelativePath=".\Src\wiimote_hid.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\Wiimote_Test.cpp"
 			>
 		</File>
 	</Files>

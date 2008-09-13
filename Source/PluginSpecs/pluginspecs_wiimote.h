@@ -13,7 +13,7 @@
 typedef void (*TLog)(const char* _pMessage);
 
 // Called when the Wiimote sends input reports to the Core.
-// Payload: an HID packet.
+// Payload: an L2CAP packet.
 typedef void (*TWiimoteInput)(const void* _pData, u32 _Size);
 
 // This data is passed from the core on initialization.
@@ -75,7 +75,8 @@ EXPORT void CALL Wiimote_Shutdown();
 
 // __________________________________________________________________________________________________
 // Function: Wiimote_Output
-// Purpose:  An HID packed is passed from the Core to the Wiimote.
+// Purpose:  An L2CAP packet is passed from the Core to the Wiimote,
+//           on the HID OUTPUT channel.
 // input:    Da pakket.
 // output:   none
 //

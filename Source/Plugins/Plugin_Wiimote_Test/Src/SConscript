@@ -7,7 +7,7 @@ else:
 	output = "../../../../Binary/linux/Plugins/Plugin_Wiimote.so"
 
 files = [
-	"main.cpp",
+	"Wiimote_Test.cpp",
 	]
 
 padenv = env.Copy()

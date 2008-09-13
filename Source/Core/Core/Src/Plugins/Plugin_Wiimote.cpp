@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "Common.h"
 #include "DynamicLibrary.h"
 #include "Plugin_Wiimote.h"
 
@@ -58,6 +59,7 @@ namespace PluginWiimote
 	{
 		if (plugin.Load(_Filename)) 
 		{
+			LOG(MASTER_LOG, "getting Wiimote Plugin function pointers...");
 			GetDllInfo = reinterpret_cast<TGetDllInfo> (plugin.Get("GetDllInfo"));
 			DllAbout = reinterpret_cast<TDllAbout> (plugin.Get("DllAbout"));
 			DllConfig = reinterpret_cast<TDllConfig> (plugin.Get("DllConfig"));
@@ -67,6 +69,14 @@ namespace PluginWiimote
 			Wiimote_GetAttachedControllers = reinterpret_cast<TWiimote_GetAttachedControllers> (plugin.Get("Wiimote_GetAttachedControllers"));
 			Wiimote_DoState = reinterpret_cast<TWiimote_DoState> (plugin.Get("Wiimote_DoState"));
 
+			LOG(MASTER_LOG, "%s: 0x%p", "GetDllInfo", GetDllInfo);
+			LOG(MASTER_LOG, "%s: 0x%p", "DllAbout", DllAbout);
+			LOG(MASTER_LOG, "%s: 0x%p", "DllConfig", DllConfig);
+			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_Initialize", Wiimote_Initialize);
+			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_Shutdown", Wiimote_Shutdown);
+			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_Output", Wiimote_Output);
+			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_GetAttachedControllers", Wiimote_GetAttachedControllers);
+			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_DoState", Wiimote_DoState);
 			if ((GetDllInfo != 0) &&
 				(Wiimote_Initialize != 0) &&
 				(Wiimote_Shutdown != 0) &&

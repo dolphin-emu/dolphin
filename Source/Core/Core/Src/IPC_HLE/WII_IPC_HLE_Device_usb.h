@@ -198,7 +198,7 @@ private:
 	u16 Host_num_acl_pkts;  /* Max. number of ACL packets */
 	u16 Host_num_sco_pkts;  /* Max. number of SCO packets */
 
-
+public:	//hack for wiimote plugin
 	std::vector<CWII_IPC_HLE_WiiMote> m_WiiMotes;
 	CWII_IPC_HLE_WiiMote* AccessWiiMote(const bdaddr_t& _rAddr);
 	CWII_IPC_HLE_WiiMote* AccessWiiMote(u16 _ConnectionHandle);
