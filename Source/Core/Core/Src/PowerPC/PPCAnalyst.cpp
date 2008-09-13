@@ -38,7 +38,22 @@ namespace PPCAnalyst {
 using namespace std;
 
 // VERY ugly. TODO: remove.
-PPCAnalyst::CodeOp codebuffer[20000];
+PPCAnalyst::CodeOp *codebuffer;
+
+enum {
+	CODEBUFFER_SIZE = 32000,
+};
+
+void Init()
+{
+	codebuffer = new PPCAnalyst::CodeOp[CODEBUFFER_SIZE];
+}
+
+void Shutdown()
+{
+	delete [] codebuffer;
+}
+
 
 void AnalyzeFunction2(Symbol &func);
 u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc);
@@ -441,7 +456,7 @@ CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, 
 		for (int j = 0; j < 2; j++)
 			code[i].regsOut[j] = -1;
 
-		code[i].fregOut=-1;
+		code[i].fregOut = -1;
 
 		int numOut = 0;
 		int numIn = 0;

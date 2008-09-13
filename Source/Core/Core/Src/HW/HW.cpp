@@ -38,6 +38,7 @@
 #include "SystemTimers.h"
 #include "../IPC_HLE/WII_IPC_HLE.h"
 #include "../State.h"
+#include "../PowerPC/PPCAnalyst.h"
 
 #define CURVERSION 0x0001
 
@@ -46,6 +47,7 @@ namespace HW
 	void Init()
 	{
 		CoreTiming::Init();
+		PPCAnalyst::Init();
 
 		Thunk_Init(); // not really hw, but this way we know it's inited first :P
 		State_Init();
@@ -86,6 +88,7 @@ namespace HW
 		State_Shutdown();
 		Thunk_Shutdown();
 		CoreTiming::Shutdown();
+		PPCAnalyst::Shutdown();
 	}
 
 	void DoState(PointerWrap &p)

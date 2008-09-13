@@ -31,59 +31,64 @@ struct Symbol;
 
 namespace PPCAnalyst
 {
-	struct CodeOp //16B
-	{
-		UGeckoInstruction inst;
-		u32 address;
-		u32 branchTo; //if 0, not a branch
-		int branchToIndex; //index of target block
-		u8 regsOut[2];
-		u8 regsIn[3];
-		u8 fregOut;
-		u8 fregsIn[3];
-		bool isBranchTarget;
-		bool wantsCR0;
-		bool wantsCR1;
-		bool wantsPS1;
-		bool outputCR0;
-		bool outputCR1;
-		bool outputPS1;
-		const u8 *x86ptr;
-	};
 
-	struct BlockStats
-	{
-		bool isFirstBlockOfFunction;
-		bool isLastBlockOfFunction;
-		int numCycles;
-	};
+struct CodeOp //16B
+{
+	UGeckoInstruction inst;
+	u32 address;
+	u32 branchTo; //if 0, not a branch
+	int branchToIndex; //index of target block
+	u8 regsOut[2];
+	u8 regsIn[3];
+	u8 fregOut;
+	u8 fregsIn[3];
+	bool isBranchTarget;
+	bool wantsCR0;
+	bool wantsCR1;
+	bool wantsPS1;
+	bool outputCR0;
+	bool outputCR1;
+	bool outputPS1;
+	const u8 *x86ptr;
+};
 
-	struct BlockRegStats
-	{
-		short firstRead[32];
-		short firstWrite[32];
-		short lastRead[32];
-		short lastWrite[32];
-		short numReads[32];
-		short numWrites[32];
+struct BlockStats
+{
+	bool isFirstBlockOfFunction;
+	bool isLastBlockOfFunction;
+	int numCycles;
+};
 
-		bool any;
-		bool anyTimer;
+struct BlockRegStats
+{
+	short firstRead[32];
+	short firstWrite[32];
+	short lastRead[32];
+	short lastWrite[32];
+	short numReads[32];
+	short numWrites[32];
 
-		int GetTotalNumAccesses(int reg) {return numReads[reg] + numWrites[reg];}
-		int GetUseRange(int reg) {
-			return max(lastRead[reg], lastWrite[reg]) - 
-				   min(firstRead[reg], firstWrite[reg]);}
-	};
+	bool any;
+	bool anyTimer;
 
-	void ShuffleUp(CodeOp *code, int first, int last);
+	int GetTotalNumAccesses(int reg) {return numReads[reg] + numWrites[reg];}
+	int GetUseRange(int reg) {
+		return max(lastRead[reg], lastWrite[reg]) - 
+			   min(firstRead[reg], firstWrite[reg]);}
+};
 
-	CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, BlockRegStats &fpa);
+void Init();
+void Shutdown();
 
-	void LogFunctionCall(u32 addr);
+void ShuffleUp(CodeOp *code, int first, int last);
 
-	void FindFunctions(u32 startAddr, u32 endAddr, SymbolDB *func_db);
-	bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size = 0);
+CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, BlockRegStats &fpa);
+
+void LogFunctionCall(u32 addr);
+
+void FindFunctions(u32 startAddr, u32 endAddr, SymbolDB *func_db);
+bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size = 0);
+
 }  // namespace
 
 #endif

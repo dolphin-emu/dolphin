@@ -23,7 +23,7 @@
 #include "Debugger/Debugger_SymbolMap.h"
 
 
-LogManager::SMessage	LogManager::m_Messages[MAX_MESSAGES];
+LogManager::SMessage	*LogManager::m_Messages;
 int						LogManager::m_nextMessages = 0;
 
 CDebugger_Log*			LogManager::m_Log[LogTypes::NUMBER_OF_LOGS];
@@ -81,6 +81,7 @@ void CDebugger_Log::Shutdown()
 
 void LogManager::Init()
 {
+	m_Messages = new SMessage[MAX_MESSAGES];
 	m_bDirty = true;
 
 	// create Logs
@@ -109,7 +110,7 @@ void LogManager::Init()
 	m_Log[LogTypes::WII_IOB]			= new CDebugger_Log("WII_IOB", "WII IO Bridge");
 	m_Log[LogTypes::WII_IPC]			= new CDebugger_Log("WII_IPC", "WII IPC");
 	m_Log[LogTypes::WII_IPC_HLE]		= new CDebugger_Log("WII_IPC_HLE", "WII IPC HLE");
-	m_Log[LogTypes::WIIMOTE] = new CDebugger_Log("WIIMOTE", "WIIMOTE");
+	m_Log[LogTypes::WIIMOTE]            = new CDebugger_Log("WIIMOTE", "WIIMOTE");
 
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 	{
@@ -147,6 +148,8 @@ void LogManager::Shutdown()
 			m_Log[i] = NULL;
 		}
 	}
+
+	delete [] m_Messages;
 }
 
 

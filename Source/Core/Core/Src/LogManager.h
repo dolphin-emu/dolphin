@@ -84,7 +84,7 @@ public:
 private:
 	friend class CDebugger_LogWindow;
 	friend class CLogWindow;
-	static SMessage m_Messages[MAX_MESSAGES];
+	static SMessage *m_Messages;
 	static int m_nextMessages;
 	static int m_activeLog;
 	static bool m_bDirty;
