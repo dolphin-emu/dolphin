@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="DolphinWX"
 	ProjectGUID="{A72606EF-C5C1-4954-90AD-F0F93A8D97D9}"
 	RootNamespace="DolphinWX"
@@ -883,19 +883,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\resource1.h"
-			>
-		</File>
-		<File
-			RelativePath=".\resource2.h"
-			>
-		</File>
-		<File
-			RelativePath=".\resource3.h"
-			>
-		</File>
-		<File
-			RelativePath=".\resource4.h"
+			RelativePath=".\resource.h"
 			>
 		</File>
 		<File
