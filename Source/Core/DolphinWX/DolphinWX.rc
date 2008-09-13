@@ -66,7 +66,7 @@ LANGUAGE LANG_DUTCH, SUBLANG_DUTCH_BELGIAN
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON                    "C:\\Documents and Settings\\Daco\\My Documents\\Visual Studio 2005\\Projects\\dolphin-emu\\Installer\\Dolphin.ico"
+IDI_ICON1               ICON                    "..\\..\\..\\Installer\\Dolphin.ico"
 #endif    // Dutch (Belgium) resources
 /////////////////////////////////////////////////////////////////////////////
 
