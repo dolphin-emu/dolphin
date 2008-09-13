@@ -89,35 +89,8 @@ BOOL Callback_PeekMessages()
     }
     return TRUE;
 #else // GLX
-	XEvent event;
-    while (XPending(GLWin.dpy) > 0) {
-        XNextEvent(GLWin.dpy, &event);
-        switch(event.type)
-        {
-            case KeyPress:
-            case KeyRelease:
-            case ButtonPress:
-            case ButtonRelease:
-                XPutBackEvent(GLWin.dpy, &event); // We Don't want to deal with these types, This is a video plugin!
-            break;
-            case ConfigureNotify:
-                Window winDummy;
-                unsigned int borderDummy;
-                XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
-                            &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
-                nBackbufferWidth = GLWin.width;
-                nBackbufferHeight = GLWin.height;
-            break;
-            case ClientMessage: //TODO: We aren't reading this correctly, It could be anything, highest change is that it's a close event though
-                Video_Shutdown(); // Calling from here since returning false does nothing
-                return false; 
-            break;
-            default:
-                //TODO: Should we put the event back if we don't handle it?
-            break;
-        }
-	}
-	return TRUE;
+    // This is called from Outside of our video thread, from EmuThread
+    // The calls are NOT thread safe, so it breaks everything
 #endif
 }
 
@@ -406,8 +379,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
             
             /* create a fullscreen window */
             GLWin.attr.override_redirect = True;
-            GLWin.attr.event_mask = ExposureMask | KeyPressMask | ButtonPressMask |
-                StructureNotifyMask | ResizeRedirectMask;
+            GLWin.attr.event_mask = ExposureMask | StructureNotifyMask | ResizeRedirectMask;
             GLWin.win = XCreateWindow(GLWin.dpy, RootWindow(GLWin.dpy, vi->screen),
                                       0, 0, dpyWidth, dpyHeight, 0, vi->depth, InputOutput, vi->visual,
                                       CWBorderPixel | CWColormap | CWEventMask | CWOverrideRedirect,
@@ -435,7 +407,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         //int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
 
         // create a window in window mode
-        GLWin.attr.event_mask = ExposureMask | KeyPressMask | ButtonPressMask |
+        GLWin.attr.event_mask = ExposureMask |
             StructureNotifyMask  | ResizeRedirectMask;
         GLWin.win = XCreateWindow(GLWin.dpy, RootWindow(GLWin.dpy, vi->screen),
                                   0, 0, _twidth, _theight, 0, vi->depth, InputOutput, vi->visual,
@@ -502,8 +474,7 @@ bool OpenGL_MakeCurrent()
         ERROR_LOG("no Direct Rendering possible!");
 
     // better for pad plugin key input (thc)
-    XSelectInput(GLWin.dpy, GLWin.win, ExposureMask | KeyPressMask | KeyReleaseMask | 
-                 ButtonPressMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask |
+    XSelectInput(GLWin.dpy, GLWin.win, ExposureMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask |
                  FocusChangeMask );
 #endif
 	return true;
@@ -530,7 +501,38 @@ void OpenGL_Update()
     nBackbufferHeight = height;
 
 #else // GLX
-    // We do our resizing inside of the Callback function
+    // We just check all of our events here
+    XEvent event;
+    while (XPending(GLWin.dpy) > 0) {
+        XNextEvent(GLWin.dpy, &event);
+        switch(event.type)
+        {
+            case KeyPress:
+            case KeyRelease:
+            case ButtonPress:
+            case ButtonRelease:
+                printf("You have reached a section of code that you should never reach in a video plugin\n If you think that you are not in error, please contact the devs\n");
+                //XPutBackEvent(GLWin.dpy, &event); // We Don't want to deal with these types, This is a video plugin!
+            break;
+            case ConfigureNotify:
+                Window winDummy;
+                unsigned int borderDummy;
+                XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
+                            &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
+                nBackbufferWidth = GLWin.width;
+                nBackbufferHeight = GLWin.height;
+            break;
+            case ClientMessage: //TODO: We aren't reading this correctly, It could be anything, highest change is that it's a close event though
+                Video_Shutdown(); // Calling from here since returning false does nothing
+                return; 
+            break;
+            default:
+                //TODO: Should we put the event back if we don't handle it?
+                // I think we handle all the needed ones, the rest shouldn't matter
+            break;
+        }
+	}
+	return;
 #endif
 
     float FactorW  = 640.0f / (float)nBackbufferWidth;

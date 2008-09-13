@@ -119,29 +119,30 @@ void DllConfig(HWND _hParent)
     glXQueryVersion(GLWin.dpy, &glxMajorVersion, &glxMinorVersion);
     XF86VidModeQueryVersion(GLWin.dpy, &vidModeMajorVersion, &vidModeMinorVersion);
 	//Get all full screen resos for the config dialog
-	 XF86VidModeModeInfo **modes = NULL;
-        int modeNum = 0;
-        int bestMode = 0;
+	XF86VidModeModeInfo **modes = NULL;
+	int modeNum = 0;
+	int bestMode = 0;
 
-        //set best mode to current
-        bestMode = 0;
-        XF86VidModeGetAllModeLines(GLWin.dpy, GLWin.screen, &modeNum, &modes);
-        int px = 0, py = 0;
-        if (modeNum > 0 && modes != NULL) 
-        {
-            for (int i = 0; i < modeNum; i++) 
-            {
-                if(px != modes[i]->hdisplay && py != modes[i]->vdisplay)
-                {
-                    char temp[32];
-                    sprintf(temp,"%dx%d", modes[i]->hdisplay, modes[i]->vdisplay);
-                    frame.AddFSReso(temp);
-                    frame.AddWindowReso(temp);//Add same to Window ones, since they should be nearly all that's needed
-                    px = modes[i]->hdisplay;//Used to remove repeating from different screen depths
-                    py = modes[i]->vdisplay;
-                }
-            }
+	//set best mode to current
+	bestMode = 0;
+	XF86VidModeGetAllModeLines(GLWin.dpy, GLWin.screen, &modeNum, &modes);
+	int px = 0, py = 0;
+	if (modeNum > 0 && modes != NULL) 
+	{
+		for (int i = 0; i < modeNum; i++) 
+		{
+			if(px != modes[i]->hdisplay && py != modes[i]->vdisplay)
+			{
+				char temp[32];
+				sprintf(temp,"%dx%d", modes[i]->hdisplay, modes[i]->vdisplay);
+				frame.AddFSReso(temp);
+				frame.AddWindowReso(temp);//Add same to Window ones, since they should be nearly all that's needed
+				px = modes[i]->hdisplay;//Used to remove repeating from different screen depths
+				py = modes[i]->vdisplay;
+			}
+		}
         }    
+	XFree(modes);
 	frame.ShowModal();
 #else
 
