@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8,00"
-	Name="Plugin_Wiimote_Test"
+	Name="Plugin_Wiimote"
 	ProjectGUID="{8D612734-FAA5-4B8A-804F-4DEA2367D495}"
 	RootNamespace="Plugin_Wiimote_Test"
 	Keyword="Win32Proj"
@@ -232,7 +232,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="comctl32.lib winmm.lib rpcrt4.lib"
-				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_WiimoteTest.dll"
+				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_Wiimote.dll"
 				LinkIncremental="1"
 				GenerateManifest="false"
 				GenerateDebugInformation="false"
@@ -276,6 +276,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
+				CommandLine=""
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -314,7 +315,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="comctl32.lib winmm.lib rpcrt4.lib"
-				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_WiimoteTest.dll"
+				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_WiimoteTest.dll"
 				LinkIncremental="1"
 				GenerateManifest="false"
 				GenerateDebugInformation="false"

@@ -481,6 +481,13 @@ void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin
 			);
 }
+void CFrame::OnPluginWiiMote(wxCommandEvent& WXUNUSED (event))
+{
+	CPluginManager::GetInstance().OpenConfig(
+			GetHandle(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin
+			);
+}
 
 void CFrame::OnBrowse(wxCommandEvent& WXUNUSED (event))
 {

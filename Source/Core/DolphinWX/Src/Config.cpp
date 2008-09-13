@@ -62,6 +62,7 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "GFXPlugin",  m_LocalCoreStartupParameter.m_strVideoPlugin);
 		ini.Set("Core", "DSPPlugin",  m_LocalCoreStartupParameter.m_strDSPPlugin);
 		ini.Set("Core", "PadPlugin",  m_LocalCoreStartupParameter.m_strPadPlugin);
+		ini.Set("Core", "WiiMotePlugin",  m_LocalCoreStartupParameter.m_strWiimotePlugin);
 
 		ini.Set("Core", "HLEBios",        m_LocalCoreStartupParameter.bHLEBios);
 		ini.Set("Core", "UseDynarec",     m_LocalCoreStartupParameter.bUseJIT);
@@ -85,6 +86,7 @@ void SConfig::LoadSettings()
 		ini.Get("Default", "GFXPlugin", &m_DefaultGFXPlugin);
 		ini.Get("Default", "DSPPlugin", &m_DefaultDSPPlugin);
 		ini.Get("Default", "PadPlugin", &m_DefaultPADPlugin);
+		ini.Get("Default", "WiiMotePlugin", &m_DefaultWiiMotePlugin);
 	}
 
 	// misc
@@ -112,7 +114,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin, m_DefaultGFXPlugin.c_str());
 		ini.Get("Core", "DSPPlugin",  &m_LocalCoreStartupParameter.m_strDSPPlugin, m_DefaultDSPPlugin.c_str());
 		ini.Get("Core", "PadPlugin",  &m_LocalCoreStartupParameter.m_strPadPlugin, m_DefaultPADPlugin.c_str());
-
+		ini.Get("Core", "WiiMotePlugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin, m_DefaultWiiMotePlugin.c_str());
 		ini.Get("Core", "HLEBios",     &m_LocalCoreStartupParameter.bHLEBios,		true);
 		ini.Get("Core", "UseDynarec",  &m_LocalCoreStartupParameter.bUseJIT,		true);
 		ini.Get("Core", "UseDualCore", &m_LocalCoreStartupParameter.bUseDualCore,	false);

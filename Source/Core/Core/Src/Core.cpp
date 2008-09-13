@@ -132,10 +132,10 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 		PanicAlert("Failed to load video plugin %s", g_CoreStartupParameter.m_strVideoPlugin.c_str());
 		return false;
 	}
-	if (!PluginWiimote::LoadPlugin(g_CoreStartupParameter.m_strWiimotePlugin.c_str())) {
+	/*if (!PluginWiimote::LoadPlugin(g_CoreStartupParameter.m_strWiimotePlugin.c_str())) {
 		PanicAlert("Failed to load Wiimote plugin %s", g_CoreStartupParameter.m_strWiimotePlugin.c_str());
 		return false;
-	}
+	}*/
 
 #ifdef _WIN32
 	if (PluginDSP::DllDebugger)

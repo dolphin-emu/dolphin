@@ -2,9 +2,9 @@ Import('env')
 import sys
 
 if sys.platform == 'darwin':
-	output = "../../../../Binary/mac/Plugins/Plugin_Wiimote_Test.so"
+	output = "../../../../Binary/mac/Plugins/Plugin_Wiimote.so"
 else:
-	output = "../../../../Binary/linux/Plugins/Plugin_Wiimote_Test.so"
+	output = "../../../../Binary/linux/Plugins/Plugin_Wiimote.so"
 
 files = [
 	"main.cpp",
