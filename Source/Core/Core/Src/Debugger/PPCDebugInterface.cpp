@@ -42,6 +42,25 @@ const char *PPCDebugInterface::disasm(unsigned int address)
 	return tmp;
 }
 
+const char *PPCDebugInterface::getRawMemoryString(unsigned int address) 
+{
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		if (address < 0xE0000000)
+		{
+			static char str[256] ={0};
+			if (sprintf(str,"%08X",readMemory(address))!=8) {
+				PanicAlert("getRawMemoryString -> WTF! ( as read somewhere;) )");
+				return ":(";
+			}
+			return str;
+		}
+		return "No RAM";
+	}
+	static const char tmp[] = "<unknown>";
+	return tmp;
+}
+
 unsigned int PPCDebugInterface::readMemory(unsigned int address)
 {
 	return Memory::ReadUnchecked_U32(address);

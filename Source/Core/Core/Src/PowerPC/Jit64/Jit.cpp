@@ -398,6 +398,15 @@ namespace Jit64
 
 		if (Profiler::g_ProfileBlocks) {
 			ADD(32, M(&b.runCount), Imm8(1));
+#ifdef _WIN32
+			b.ticCounter.QuadPart = 0;
+			b.ticStart.QuadPart = 0;
+			b.ticStop.QuadPart = 0;
+#else
+//TODO
+#endif
+			// get start tic
+			PROFILER_QUERY_PERFORMACE_COUNTER(&b.ticStart);
 		}
 
 		//Start up the register allocators
@@ -416,8 +425,18 @@ namespace Jit64
 			js.compilerPC = ops[i].address;
 			js.op = &ops[i];
 			js.instructionNumber = i;
-			if (i == (int)size - 1)
+			if (i == (int)size - 1) {
 				js.isLastInstruction = true;
+				if (Profiler::g_ProfileBlocks) {
+					// CAUTION!!! push on stack regs you use, do your stuff, then pop
+					PROFILER_VPUSH;
+					// get end tic
+					PROFILER_QUERY_PERFORMACE_COUNTER(&b.ticStop);
+					// tic counter += (end tic - start tic)
+					PROFILER_ADD_DIFF_LARGE_INTEGER(&b.ticCounter, &b.ticStop, &b.ticStart);
+					PROFILER_VPOP;
+				}
+			}
 			
 			// const GekkoOpInfo *info = GetOpInfo();
 			// if (js.isLastInstruction)

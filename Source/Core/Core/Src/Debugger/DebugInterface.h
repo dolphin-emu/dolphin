@@ -9,6 +9,7 @@ protected:
 	virtual ~DebugInterface() {}
 public:
 	virtual const char *disasm(unsigned int /*address*/) {return "NODEBUGGER";}
+	virtual const char *getRawMemoryString(unsigned int /*address*/){return "NODEBUGGER";}
 	virtual int getInstructionSize(int /*instruction*/) {return 1;}
 
 	virtual bool isAlive() {return true;}

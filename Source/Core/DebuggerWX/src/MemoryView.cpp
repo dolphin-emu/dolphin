@@ -223,8 +223,9 @@ void CMemoryView::OnErase(wxEraseEvent& event)
 void CMemoryView::OnPaint(wxPaintEvent& event)
 {
 	wxPaintDC dc(this);
+	int fontSize = 8;
 	wxRect rc = GetClientRect();
-	wxFont font(7, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_LIGHT);
+	wxFont font(fontSize, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_LIGHT);
 	dc.SetFont(font);
 	struct branch
 	{
@@ -254,7 +255,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 	dc.SetPen(nullPen);
 	dc.SetBrush(bgBrush);
 	dc.DrawRectangle(0, 0, 16, rc.height);
-	dc.DrawRectangle(0, 0, rc.width, 5);
+	dc.DrawRectangle(0, 0, rc.width, 5+8);
 	// TODO - clean up this freaking mess!!!!!
 	int i;
 
@@ -294,6 +295,10 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 		dc.SetBrush(currentBrush);
 		dc.SetTextForeground(_T("#600000"));
 		dc.DrawText(temp, 17, rowY1);
+		char mem[256] = {0};
+		strcpy(mem, debugger->getRawMemoryString(address));
+		dc.SetTextForeground(_T("#000080"));
+		dc.DrawText(wxString::FromAscii(mem), 17+fontSize*(8), rowY1);
 		dc.SetTextForeground(_T("#000000"));
 
 		if (debugger->isAlive())
@@ -347,7 +352,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 					dc.SetTextForeground(_T("#000000"));
 				}
 
-				dc.DrawText(wxString::FromAscii(dis2), 126, rowY1);
+				dc.DrawText(wxString::FromAscii(dis2), 17+fontSize*(8+8+8), rowY1);
 			}
 
 			if (strcmp(dis, "blr"))
@@ -359,7 +364,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 				dc.SetTextForeground(_T("#8000FF"));
 			}
 
-			dc.DrawText(wxString::FromAscii(dis), 70, rowY1);
+			dc.DrawText(wxString::FromAscii(dis), 17+fontSize*(8+8), rowY1);
 
 			if (desc[0] == 0)
 			{
@@ -372,7 +377,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 			//UnDecorateSymbolName(desc,temp,255,UNDNAME_COMPLETE);
 			if (strlen(desc))
 			{
-				dc.DrawText(wxString::FromAscii(desc), 235, rowY1);
+				dc.DrawText(wxString::FromAscii(desc), 17+fontSize*(8+8+8+30), rowY1);
 			}
 
 			if (debugger->isBreakpoint(address))

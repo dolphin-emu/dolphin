@@ -18,6 +18,9 @@
 #define _JITCACHE_H
 
 #include "../Gekko.h"
+#ifdef _WIN32
+#include <windows.h> // -> LARGE_INTEGER
+#endif
 
 namespace Jit64
 {
@@ -52,6 +55,13 @@ namespace Jit64
 		u32 codeSize; 
 		u32 originalSize;
 		int runCount;  // for profiling.
+#ifdef _WIN32
+		// we don't really need to save start and stop
+		// TODO (mb2): ticStart and ticStop -> "local var" mean "in block" ... low priority ;)
+		LARGE_INTEGER ticStart;		// for profiling - time.
+		LARGE_INTEGER ticStop;		// for profiling - time.
+		LARGE_INTEGER ticCounter;	// for profiling - time.
+#endif
 		const u8 *checkedEntry;
 		bool invalid;
 		int flags;

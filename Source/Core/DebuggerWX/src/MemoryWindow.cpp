@@ -70,14 +70,15 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 {    
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* sizerRight = new wxBoxSizer(wxVERTICAL);
-	wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
+	// didn't see anything usefull in the left part
+	//wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
 
 	DebugInterface* di = new PPCDebugInterface();
 
-	sizerLeft->Add(symbols = new wxListBox(this, IDM_SYMBOLLIST, wxDefaultPosition, wxSize(90, 100), 0, NULL, wxLB_SORT), 1, wxEXPAND);
+	//sizerLeft->Add(symbols = new wxListBox(this, IDM_SYMBOLLIST, wxDefaultPosition, wxSize(20, 100), 0, NULL, wxLB_SORT), 1, wxEXPAND);
 	memview = new CMemoryView(di, this, wxID_ANY);
-	sizerBig->Add(sizerLeft, 2, wxEXPAND);
-	sizerBig->Add(memview, 5, wxEXPAND);
+	//sizerBig->Add(sizerLeft, 1, wxEXPAND);
+	sizerBig->Add(memview, 20, wxEXPAND);
 	sizerBig->Add(sizerRight, 0, wxEXPAND | wxALL, 3);
 	sizerRight->Add(buttonGo = new wxButton(this, IDM_DEBUG_GO, _T("&Go")));
 	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_ADDRBOX, _T("")));
@@ -85,8 +86,8 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 
 	SetSizer(sizerBig);
 
-	sizerLeft->SetSizeHints(this);
-	sizerLeft->Fit(this);
+	//sizerLeft->SetSizeHints(this);
+	//sizerLeft->Fit(this);
 	sizerRight->SetSizeHints(this);
 	sizerRight->Fit(this);
 	sizerBig->SetSizeHints(this);

@@ -19,6 +19,34 @@
 #ifndef _PROFILER_H
 #define _PROFILER_H
 
+#ifdef _WIN32
+#define PROFILER_QUERY_PERFORMACE_COUNTER(pt)		\
+					LEA(32, EAX, M(pt)); PUSH(EAX);	\
+					CALL(QueryPerformanceCounter)
+// TODO: r64 way
+// asm write : (u64) dt += t1-t0 
+#define PROFILER_ADD_DIFF_LARGE_INTEGER(pdt, pt1, pt0)	\
+					MOV(32, R(EAX), M(pt1.LowPart));	\
+					SUB(32, R(EAX), M(pt0.LowPart));	\
+					MOV(32, R(ECX), M(pt1.HighPart));	\
+					SBB(32, R(ECX), M(pt0.HighPart));	\
+					ADD(32, R(EAX), M(pdt.LowPart));	\
+					MOV(32, R(EDX), M(pdt.HighPart));	\
+					ADC(32, R(EDX), R(ECX));			\
+					MOV(32, M(pdt.LowPart), R(EAX));	\
+					MOV(32, M(pdt.HighPart), R(EDX))
+
+#define PROFILER_VPUSH	PUSH(EAX);PUSH(ECX);PUSH(EDX)
+#define PROFILER_VPOP	POP(EDX);POP(ECX);POP(EAX)
+#else
+// TODO
+#define PROFILER_QUERY_PERFORMACE_COUNTER(pt) 
+#define PROFILER_ADD_DIFF_LARGE_INTEGER(pdt, pt1, pt0) 
+#define PROFILER_VPUSH
+#define PROFILER_VPOP
+#endif
+
+
 namespace Profiler
 {
 extern bool g_ProfileBlocks;
