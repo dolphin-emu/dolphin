@@ -109,6 +109,8 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
 	m_MSR.FP = 1;
 
+	Memory::Clear();
+
 	//TODO: Game iso info to 0x80000000 according to yagcd - or does apploader do this?
 
 	Memory::Write_U32(0x4c000064,	0x80000300);	// write default DFI Handler:		rfi

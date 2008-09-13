@@ -581,11 +581,13 @@ bool Shutdown()
 void Clear()
 {
 	if (m_pRAM)
-		memset(m_pRAM,0,RAM_SIZE);
+		memset(m_pRAM, 0, RAM_SIZE);
 	if (m_pL1Cache)
-		memset(m_pL1Cache,0,L1_CACHE_SIZE);
+		memset(m_pL1Cache, 0, L1_CACHE_SIZE);
 	if (m_pEFB)
-		memset(m_pEFB,0,EFB_SIZE);
+		memset(m_pEFB, 0, EFB_SIZE);
+	if (Core::GetStartupParameter().bWii && m_pEXRAM)
+		memset(m_pEXRAM, 0, EXRAM_SIZE);
 }
 
 
