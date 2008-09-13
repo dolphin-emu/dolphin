@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="DolphinWX"
 	ProjectGUID="{A72606EF-C5C1-4954-90AD-F0F93A8D97D9}"
 	RootNamespace="DolphinWX"
@@ -600,7 +600,7 @@
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\DiscIO\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\DebuggerWX\src"
+				AdditionalIncludeDirectories="..\..\..\Externals\LZO;..\Common\Src;..\Core\Src;..\DiscIO\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\DebuggerWX\src"
 				PreprocessorDefinitions="WIN32;__WXMSW__;_WINDOWS;NOPCH;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -863,6 +863,14 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath="..\..\..\Installer\Dolphin.ico"
+			>
+		</File>
+		<File
+			RelativePath=".\DolphinWX.rc"
+			>
+		</File>
+		<File
 			RelativePath=".\src\main.cpp"
 			>
 		</File>
@@ -876,6 +884,18 @@
 		</File>
 		<File
 			RelativePath=".\resource1.h"
+			>
+		</File>
+		<File
+			RelativePath=".\resource2.h"
+			>
+		</File>
+		<File
+			RelativePath=".\resource3.h"
+			>
+		</File>
+		<File
+			RelativePath=".\resource4.h"
 			>
 		</File>
 		<File

@@ -1010,6 +1010,12 @@ void VertexManager::Flush()
 
     GL_REPORT_ERRORD();
 
+	s64 size = (s64)s_pCurBufferPointer-(s64)s_pBaseBufferPointer;
+	if (size < 0)
+	{
+		int t = 0;
+	}
+
     glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
     glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer-s_pBaseBufferPointer, s_pBaseBufferPointer, GL_STREAM_DRAW);
     GL_REPORT_ERRORD();
@@ -1114,6 +1120,7 @@ void VertexManager::Flush()
 
     int offset = 0;
     vector< pair<int, int> >::iterator it;
+	size_t vecSize = s_vStoredPrimitives.size();
     for (it = s_vStoredPrimitives.begin(); it != s_vStoredPrimitives.end(); ++it) {
         glDrawArrays(it->first, offset, it->second);
         offset += it->second;
