@@ -168,8 +168,8 @@ void StringFromFormatV(std::string* out, const char* format, va_list args)
 		// ARGH! vsnprintf does no longer return -1 on truncation in newer libc!
 		// WORKAROUND! let's fake the old behaviour (even though it's less efficient).
 		// TODO: figure out why the fix causes an invalid read in strlen called from vsnprintf :(
-		if (writtenCount >= (int)newSize)
-			writtenCount = -1;
+//		if (writtenCount >= (int)newSize)
+//			writtenCount = -1;
 		newSize *= 2;
 	}
 
