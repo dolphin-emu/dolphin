@@ -538,25 +538,31 @@ void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
 void CCodeWindow::OnCallstackListChange(wxCommandEvent& event)
 {
 	int index   = callstack->GetSelection();
-	u32 address = (u32)(u64)(callstack->GetClientData(index));
-	if (address)
-		JumpToAddress(address);
+	if (index >= 0) {
+		u32 address = (u32)(u64)(callstack->GetClientData(index));
+		if (address)
+			JumpToAddress(address);
+	}
 }
 
 void CCodeWindow::OnCallersListChange(wxCommandEvent& event)
 {
 	int index = callers->GetSelection();
-	u32 address = (u32)(u64)(callers->GetClientData(index));
-	if (address)
-		JumpToAddress(address);
+	if (index >= 0) {
+		u32 address = (u32)(u64)(callers->GetClientData(index));
+		if (address)
+			JumpToAddress(address);
+	}
 }
 
 void CCodeWindow::OnCallsListChange(wxCommandEvent& event)
 {
 	int index = calls->GetSelection();
-	u32 address = (u32)(u64)(calls->GetClientData(index));
-	if (address)
-		JumpToAddress(address);
+	if (index >= 0) {
+		u32 address = (u32)(u64)(calls->GetClientData(index));
+		if (address)
+			JumpToAddress(address);
+	}
 }
 
 void CCodeWindow::Update()
@@ -635,11 +641,12 @@ void CCodeWindow::UpdateButtonStates()
 void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
 {
 	int index = symbols->GetSelection();
-	Symbol* pSymbol = static_cast<Symbol *>(symbols->GetClientData(index));
-
-	if (pSymbol != NULL)
-	{
-		JumpToAddress(pSymbol->address);
+	if (index >= 0) {
+		Symbol* pSymbol = static_cast<Symbol *>(symbols->GetClientData(index));
+		if (pSymbol != NULL)
+		{
+			JumpToAddress(pSymbol->address);
+		}
 	}
 }
 

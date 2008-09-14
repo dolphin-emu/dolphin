@@ -168,11 +168,12 @@ void CMemoryWindow::NotifyMapLoaded()
 void CMemoryWindow::OnSymbolListChange(wxCommandEvent& event)
 {
 	int index = symbols->GetSelection();
-	Symbol* pSymbol = static_cast<Symbol *>(symbols->GetClientData(index));
-
-	if (pSymbol != NULL)
-	{
-		memview->Center(pSymbol->address);
+	if (index >= 0) {
+		Symbol* pSymbol = static_cast<Symbol *>(symbols->GetClientData(index));
+		if (pSymbol != NULL)
+		{
+			memview->Center(pSymbol->address);
+		}
 	}
 }
 
