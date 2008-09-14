@@ -154,7 +154,7 @@ CFrame::CFrame(wxFrame* parent,
 
 		m_GameListCtrl = new CGameListCtrl(m_Panel, LIST_CTRL,
 				wxDefaultPosition, wxDefaultSize,
-				wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING);
+				wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL);
 
 		wxBoxSizer* sizerPanel = new wxBoxSizer(wxHORIZONTAL);
 		sizerPanel->Add(m_GameListCtrl, 2, wxEXPAND | wxALL);

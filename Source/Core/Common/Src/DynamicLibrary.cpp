@@ -81,7 +81,11 @@ bool DynamicLibrary::Load(const char* filename)
 	library = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
 	if (!library)
 	{
+		#ifdef LOGGING
 		LOG(MASTER_LOG, "Error loading DLL %s: %s", filename, dlerror());
+		#else
+		printf("Error loading DLL %s: %s", filename, dlerror());
+		#endif
 		return false;
 	}
 #endif
