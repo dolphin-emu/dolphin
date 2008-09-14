@@ -46,6 +46,14 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 	cards[_card_index] = this;
 	et_this_card = CoreTiming::RegisterEvent(_rName.c_str(), FlushCallback);
 
+	interruptSwitch = 0;
+	m_bInterruptSet = 0;
+	command = 0;
+	status = MC_STATUS_BUSY | MC_STATUS_UNLOCKED | MC_STATUS_READY;
+	m_uPosition = 0;
+	memset(programming_buffer, 0, sizeof(programming_buffer));
+	formatDelay = 0;
+
 	nintendo_card_id = 0x00000010; // 16MBit nintendo card
 	card_id = 0xc221;
 /*  nintendo_card_id = 0x00000510; // 16MBit "bigben" card
@@ -71,11 +79,6 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 		Core::DisplayMessage(StringFromFormat("Wrote memory card contents to %s", m_strFilename.c_str()), 4000);
 	}
 
-	formatDelay = 0;
-	interruptSwitch = 0;
-	m_bInterruptSet = 0;
-
-	status = MC_STATUS_BUSY | MC_STATUS_UNLOCKED | MC_STATUS_READY;
 }
 
 void CEXIMemoryCard::Flush(bool exiting)

@@ -40,8 +40,6 @@
 #include "../State.h"
 #include "../PowerPC/PPCAnalyst.h"
 
-#define CURVERSION 0x0001
-
 namespace HW
 {
 	void Init()
@@ -49,7 +47,7 @@ namespace HW
 		CoreTiming::Init();
 		PPCAnalyst::Init();
 
-		Thunk_Init(); // not really hw, but this way we know it's inited first :P
+		Thunk_Init(); // not really hw, but this way we know it's inited early :P
 		State_Init();
 
 		// Init the whole Hardware

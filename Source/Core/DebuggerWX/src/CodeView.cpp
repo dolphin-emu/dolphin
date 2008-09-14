@@ -59,11 +59,22 @@ BEGIN_EVENT_TABLE(CCodeView, wxControl)
 END_EVENT_TABLE()
 
 CCodeView::CCodeView(DebugInterface* debuginterface, wxWindow* parent, wxWindowID Id, const wxSize& Size)
-	: wxControl(parent, Id, wxDefaultPosition, Size), debugger(debuginterface)
+	: wxControl(parent, Id, wxDefaultPosition, Size),
+      debugger(debuginterface),
+      rowHeight(13),
+      selection(0),
+      oldSelection(0),
+      selectionChanged(false),
+      selecting(false),
+      hasFocus(false),
+      showHex(false),
+      lx(-1),
+      ly(-1)
 {
 	rowHeight = 13;
 	align = debuginterface->getInstructionSize(0);
 	curAddress = debuginterface->getPC();
+	selection = 0;
 }
 
 
