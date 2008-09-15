@@ -110,13 +110,15 @@ void GetStringVA(std::string& _rOutBuffer)
 				_rOutBuffer += StringFromFormat(ArgumentBuffer, (char*)Memory::GetPointer(Parameter));
 				break;
 
+#if 0
 			case 'd':
 				{
 					//u64 Double = Memory::Read_U64(Parameter);
 					_rOutBuffer += StringFromFormat(ArgumentBuffer, Parameter);
 				}
 				break;
-
+#endif
+				//TODO: fix floating-point (%f)
 			default:
 				_rOutBuffer += StringFromFormat(ArgumentBuffer, Parameter);
 				break;

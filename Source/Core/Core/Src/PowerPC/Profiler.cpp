@@ -79,7 +79,7 @@ void WriteProfileResults(const char *filename) {
 			double percent = 100.0 * (double)stats[i].cost / (double)cost_sum;
 #ifdef _WIN32 
 			double timePercent = 100.0 * (double)block->ticCounter.QuadPart / (double)timecost_sum;
-			fprintf(f, "%08x\t%s\t%llu\t%llu\%.2lft\t%llf\t%lf\t%i\n", 
+			fprintf(f, "%08x\t%s\t%llu\t%llu\t%.2lf\t%llf\t%lf\t%i\n", 
 				block->originalAddress, name.c_str(), stats[i].cost, block->ticCounter.QuadPart, percent, timePercent, (double)block->ticCounter.QuadPart*1000.0/(double)countsPerSec.QuadPart, block->codeSize);
 #else
 			fprintf(f, "%08x\t%s\t%llu\t???\t%.2lf\t???\t???\t%i\n", 
