@@ -372,6 +372,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	}
 
 	// Wait for CPU thread to exit - it should have been signaled to do so by now
+	cpuThread->WaitForDeath();
 	if( g_pUpdateFPSDisplay != NULL )
         g_pUpdateFPSDisplay("Stopping...");
 	delete cpuThread;
