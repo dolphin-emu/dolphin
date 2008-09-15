@@ -341,7 +341,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	//CPU thread should in this case also create the emuwindow...
 
 	//Spawn the CPU thread
-    Common::Thread *cpuThread = new Common::Thread(CpuThread, pArg);
+    Common::Thread *cpuThread = NULL;
 
 	//////////////////////////////////////////////////////////////////////////
 	// ENTER THE VIDEO THREAD LOOP
@@ -349,7 +349,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	
 	if (!Core::GetStartupParameter().bUseDualCore)
 	{
-		Common::SetCurrentThreadName("Idle thread");
+		/*Common::SetCurrentThreadName("Idle thread");
 		//TODO(ector) : investigate using GetMessage instead .. although
 		//then we lose the powerdown check. ... unless powerdown sends a message :P
 		while (PowerPC::state != PowerPC::CPU_POWERDOWN)
@@ -362,21 +362,28 @@ THREAD_RETURN EmuThread(void *pArg)
 #else
 			Common::SleepCurrentThread(200);
 #endif
-		}
+		}*/
+
+		// In single-core mode, the Emulation main thread is also the CPU thread
+		CpuThread(pArg);
 	}
 	else
 	{
+		cpuThread = new Common::Thread(CpuThread, pArg);
         PluginVideo::Video_Prepare(); //wglMakeCurrent
 		Common::SetCurrentThreadName("Video thread");
 		PluginVideo::Video_EnterLoop();
 	}
 
 	// Wait for CPU thread to exit - it should have been signaled to do so by now
-	cpuThread->WaitForDeath();
+	if(cpuThread)
+		cpuThread->WaitForDeath();
 	if( g_pUpdateFPSDisplay != NULL )
         g_pUpdateFPSDisplay("Stopping...");
-	delete cpuThread;
-	cpuThread = NULL;
+	if(cpuThread) {
+		delete cpuThread;
+		cpuThread = NULL;
+	}
 	// Returns after game exited
 
 	g_bHwInit = false;
