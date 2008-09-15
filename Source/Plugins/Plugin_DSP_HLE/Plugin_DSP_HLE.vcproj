@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="Plugin_DSP_HLE"
 	ProjectGUID="{D6E56527-BBB9-4EAD-A6EC-49D4BF6AFCD8}"
 	RootNamespace="Plugin_DSP"
@@ -404,7 +404,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				AdditionalIncludeDirectories="../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;DEBUGFAST"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				EnableEnhancedInstructionSet="2"
@@ -429,7 +429,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dsound.lib"
-				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLE.dll"
+				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLE_DF.dll"
 				LinkIncremental="1"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
@@ -496,7 +496,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				AdditionalIncludeDirectories="../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;DEBUGFAST"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				FloatingPointModel="0"
@@ -520,7 +520,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dsound.lib"
-				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_HLE.dll"
+				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_HLE_DF.dll"
 				LinkIncremental="1"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
