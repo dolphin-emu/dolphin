@@ -41,6 +41,8 @@ class CISOFile
 
 		DiscIO::IVolume::ECountry GetCountry() const {return(m_Country);}
 
+		bool IsCompressed() const {return(m_BlobCompressed); }
+
 		u64 GetFileSize() const {return(m_FileSize);}
 
 		const wxImage& GetImage() const {return(m_Image);}
@@ -65,6 +67,8 @@ class CISOFile
 		wxImage m_Image;
 
 		bool m_Valid;
+
+		bool m_BlobCompressed;
 };
 
 

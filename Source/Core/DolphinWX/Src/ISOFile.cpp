@@ -25,6 +25,7 @@
 #include "Filesystem.h"
 #include "BannerLoader.h"
 #include "FileSearch.h"
+#include "Blob.h"
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -34,7 +35,8 @@ static u32 g_ImageTemp[DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT];
 CISOFile::CISOFile(const std::string& _rFileName)
 	: m_FileName(_rFileName),
 	m_FileSize(0),
-	m_Valid(false)
+	m_Valid(false),
+	m_BlobCompressed(false)
 {
 	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_rFileName);
 
@@ -45,6 +47,7 @@ CISOFile::CISOFile(const std::string& _rFileName)
 		m_FileSize = pVolume->GetSize();
 		m_Name = pVolume->GetName();
 		m_UniqueID = pVolume->GetUniqueID();
+		m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName.c_str());
 
 		// check if we can get some infos from the banner file too
 		DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(*pVolume);

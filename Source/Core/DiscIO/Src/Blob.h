@@ -42,7 +42,7 @@ class IBlobReader
 
 	private:
 
-		IBlobReader(const IBlobReader& other) {}
+		IBlobReader(const IBlobReader& /*other*/) {}
 };
 
 

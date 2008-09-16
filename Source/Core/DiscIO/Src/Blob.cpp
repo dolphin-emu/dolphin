@@ -278,7 +278,7 @@ class CompressedBlobReader
 					offset &= ~(1ULL << 63);
 				}
 
-				u8* source = mapped_file->Lock(offset, comp_block_size);
+				u8* source = mapped_file->Lock(offset, comp_block_size + 64*1024);
 				u8* dest = cache[0];
 
 				if (uncompressed)
@@ -421,10 +421,14 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type, i
 
 	for (u32 i = 0; i < header.num_blocks; i++)
 	{
-		if (i % (header.num_blocks / 100) == 0)
+		if (i % (header.num_blocks / 1000) == 0)
 		{
 			u64 inpos = ftell(inf);
-			int ratio = (int)(100 * position / inpos);
+			int ratio = 0;
+			if (inpos != 0)
+			{
+				ratio = (int)(100 * position / inpos);
+			}
 			char temp[512];
 			sprintf(temp, "%i of %i blocks. compression ratio %i%%", i, header.num_blocks, ratio);
 			callback(temp, (float)i / (float)header.num_blocks, arg);

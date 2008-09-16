@@ -26,6 +26,7 @@
 #include "BootManager.h"
 #include "Config.h"
 #include "GameListCtrl.h"
+#include "Blob.h"
 
 #if USE_XPM_BITMAPS
     #include "../resources/Flag_Europe.xpm"
@@ -45,6 +46,7 @@ EVT_LIST_COL_END_DRAG(LIST_CTRL, CGameListCtrl::OnColEndDrag)
 EVT_MENU(IDM_EDITPATCHFILE, CGameListCtrl::OnEditPatchFile)
 EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
 EVT_MENU(IDM_SETDEFAULTGCM, CGameListCtrl::OnSetDefaultGCM)
+EVT_MENU(IDM_COMPRESSGCM, CGameListCtrl::OnCompressGCM)
 END_EVENT_TABLE()
 
 CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -344,6 +346,14 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 		popupMenu.Append(IDM_EDITPATCHFILE, wxString::FromAscii(menu_text.c_str())); //Pretty much everything in wxwidgets is a wxString, try to convert to those first!
 		popupMenu.Append(IDM_OPENCONTAININGFOLDER, wxString::FromAscii("Open &containing folder"));
 		popupMenu.Append(IDM_SETDEFAULTGCM, wxString::FromAscii("Set as &default ISO"));
+
+		/* F|RES: compression doesn't work and will be rewritten ... if it is done reactivated this code the gui is ready :D
+		if (selected_iso->IsCompressed())
+			popupMenu.Append(IDM_COMPRESSGCM, wxString::FromAscii("Decompress ISO... (UNTESTED)"));
+		else
+			popupMenu.Append(IDM_COMPRESSGCM, wxString::FromAscii("Compress ISO... (UNTESTED)"));
+			*/
+
 		PopupMenu(&popupMenu);
 	}
 }
@@ -389,6 +399,79 @@ void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& WXUNUSED (event)) {
 		return;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = iso->GetFileName();
 	SConfig::GetInstance().SaveSettings();
+}
+
+void CGameListCtrl::CompressCB(const char* text, float percent, void* arg)
+{
+	wxProgressDialog* pDialog = (wxProgressDialog*)arg;
+	pDialog->Update((int)(percent*1000), wxString::FromAscii(text));
+}
+
+void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event)) {
+	const CISOFile *iso = GetSelectedISO();
+	if (!iso)
+		return;
+
+	wxString path;
+
+	if (iso->IsCompressed())
+	{
+		 path = wxFileSelector(
+			_T("Select the file to save"),
+			wxEmptyString, wxEmptyString, wxEmptyString,
+			wxString::Format
+			(
+			_T("All GC/Wii ISO files (gcz)|*.gcz|All files (%s)|%s"),
+			wxFileSelectorDefaultWildcardStr,
+			wxFileSelectorDefaultWildcardStr
+			),
+			wxFD_SAVE,
+			this);
+
+		if (!path)
+		{
+			return;
+		}
+	}
+	else
+	{
+		path = wxFileSelector(
+			_T("Select the file to save"),
+			wxEmptyString, wxEmptyString, wxEmptyString,
+			wxString::Format
+			(
+			_T("All compressed GC/Wii ISO files (gcz)|*.gcz|All files (%s)|%s"),
+			wxFileSelectorDefaultWildcardStr,
+			wxFileSelectorDefaultWildcardStr
+			),
+			wxFD_SAVE,
+			this);
+
+		if (!path)
+		{
+			return;
+		}
+	}
+
+	wxProgressDialog dialog(_T("Scanning for ISOs"),
+		_T("Scanning..."),
+		1000, // range
+		this, // parent
+		wxPD_APP_MODAL |
+		// wxPD_AUTO_HIDE | -- try this as well
+		wxPD_ELAPSED_TIME |
+		wxPD_ESTIMATED_TIME |
+		wxPD_REMAINING_TIME |
+		wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+		);
+
+	dialog.CenterOnParent();
+	dialog.SetSize(wxSize(280, 180));
+
+	if (iso->IsCompressed())
+		DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(), path.c_str(), &CompressCB, &dialog);	
+	else
+		DiscIO::CompressFileToBlob(iso->GetFileName().c_str(), path.c_str(), 0, 16384, &CompressCB, &dialog);
 }
 
 void CGameListCtrl::OnEditPatchFile(wxCommandEvent& WXUNUSED (event))

@@ -69,10 +69,13 @@ class CGameListCtrl : public wxListCtrl
 		void OnEditPatchFile(wxCommandEvent& event);
 		void OnOpenContainingFolder(wxCommandEvent& event);
 		void OnSetDefaultGCM(wxCommandEvent& event);
+		void OnCompressGCM(wxCommandEvent& event);
 
 		virtual bool MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem);
 
 		void AutomaticColumnWidth();
+
+		static void CompressCB(const char* text, float percent, void* arg);
 };
 
 
