@@ -24,6 +24,6 @@ files = [
 	"x64Analyzer.cpp",
 	]
 
-env_common = env.Copy()
+env_common = env.Clone()
 env_common.Append(CXXFLAGS = ' ' + ' '.join([ '-fPIC' ]))
 env_common.StaticLibrary("common", files)
