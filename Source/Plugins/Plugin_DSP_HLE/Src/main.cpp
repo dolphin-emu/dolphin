@@ -84,6 +84,15 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
 
 #endif
 
+void DllDebugger(HWND _hParent)
+{
+#if defined (_DEBUG) && defined (_WIN32)
+	g_Dialog.Create(NULL); //_hParent);
+	g_Dialog.ShowWindow(SW_SHOW);
+#endif
+
+}
+
 void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
