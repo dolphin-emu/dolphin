@@ -352,8 +352,8 @@ char* gd_dis_opcode(gd_globals_t* gdg)
 {
 	uint32 j;
 	uint32 op1, op2;
-	opc_t* opc;
-	opc_t* opc_ext;
+	opc_t* opc = NULL;
+	opc_t* opc_ext = NULL;
 	uint16 pc;
 	char* buf = gdg->buffer;
 	bool extended;

@@ -71,7 +71,7 @@ sint16 ADPCM_Step(uint32& _rSamplePos, uint32 _BaseAddress)
 
 uint16 dsp_read_aram()
 {
-	uint32 BaseAddress = (gdsp_ifx_regs[DSP_ACSAH] << 16) | gdsp_ifx_regs[DSP_ACSAL];
+  //	uint32 BaseAddress = (gdsp_ifx_regs[DSP_ACSAH] << 16) | gdsp_ifx_regs[DSP_ACSAL];
 	uint32 EndAddress = (gdsp_ifx_regs[DSP_ACEAH] << 16) | gdsp_ifx_regs[DSP_ACEAL];
 	uint32 Address = (gdsp_ifx_regs[DSP_ACCAH] << 16) | gdsp_ifx_regs[DSP_ACCAL];
 

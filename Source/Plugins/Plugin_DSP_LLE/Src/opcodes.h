@@ -25,7 +25,7 @@
 #ifndef _OPCODES_H
 #define _OPCODES_H
 
-typedef enum partype_t
+enum partype_t
 {
 	P_NONE = 0x0000,
 	P_VAL = 0x0001,

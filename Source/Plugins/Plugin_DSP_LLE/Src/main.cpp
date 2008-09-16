@@ -153,6 +153,7 @@ void* dsp_thread_debug(void* lpParameter)
 		}
 	}
 #endif 
+        return NULL;
 }
 
 
