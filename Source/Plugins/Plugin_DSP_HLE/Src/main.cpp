@@ -86,11 +86,7 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
 
 void DllDebugger(HWND _hParent)
 {
-#if defined (_DEBUG) && defined (_WIN32)
-	g_Dialog.Create(NULL); //_hParent);
-	g_Dialog.ShowWindow(SW_SHOW);
-#endif
-
+    // TODO: implement
 }
 
 void GetDllInfo(PLUGIN_INFO* _PluginInfo)
@@ -118,7 +114,10 @@ void DllAbout(HWND _hParent)
 
 void DllConfig(HWND _hParent)
 {
-   // TODO: implement
+#ifdef _WIN32
+	CConfigDlg configDlg;
+	configDlg.DoModal(_hParent);
+#endif
 }
 
 void DSP_Initialize(DSPInitialize _dspInitialize)
