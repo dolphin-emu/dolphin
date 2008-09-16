@@ -15,7 +15,7 @@ files = ["LogWindow.cpp",
          "RegisterView.cpp",
          "JitWindow.cpp",
         ]
-wxenv = env.Copy()
+wxenv = env.Clone()
 wxenv.Append(
 	CXXFLAGS = ' ' + ' '.join([
 		'`wx-config --cppflags`',

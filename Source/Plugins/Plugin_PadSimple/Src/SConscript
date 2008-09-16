@@ -10,5 +10,5 @@ files = [
 	"main.cpp",
 	]
 
-padenv = env.Copy()
+padenv = env.Clone()
 padenv.SharedLibrary(output, files, LIBS=["common"])

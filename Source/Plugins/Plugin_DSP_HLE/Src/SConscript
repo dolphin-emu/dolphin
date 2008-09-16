@@ -18,7 +18,7 @@ files = [
 	"UCodes/UCode_Zelda.cpp",
 	]
 
-dspenv = env.Copy()
+dspenv = env.Clone()
 dspenv.Append(
 	CXXFLAGS = ' ' + ' '.join([ '-fPIC', '`pkg-config --cflags ao`' ]),
 	LINKFLAGS = ' ' + ' '.join([ '`pkg-config --libs ao`' ])

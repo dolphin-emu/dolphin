@@ -14,7 +14,7 @@ def filterWarnings(flags):
 		for flag in flags.split()
 		if not flag.startswith('-W')
 		)
-env_bochs = env.Copy(
+env_bochs = env.Clone(
 	CCFLAGS = filterWarnings(env['CCFLAGS']),
 	CXXFLAGS = filterWarnings(env['CXXFLAGS']),
 	)

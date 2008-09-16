@@ -59,7 +59,7 @@ if useSDL:
 	compileFlags += [ '`sdl-config --cflags`', '-DUSE_SDL=1' ]
 	linkFlags += [ '`sdl-config --libs`' ]
 
-gfxenv = env.Copy()
+gfxenv = env.Clone()
 gfxenv.Append(
 	CXXFLAGS = ' ' + ' '.join(compileFlags),
 	LINKFLAGS = ' ' + ' '.join(linkFlags)

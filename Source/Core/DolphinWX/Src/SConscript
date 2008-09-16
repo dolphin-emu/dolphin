@@ -20,7 +20,7 @@ libs = [
 	'debwx', 'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'common', 'z'
 	]
 
-wxenv = env.Copy()
+wxenv = env.Clone()
 wxenv.Append(
 	CXXFLAGS = ' ' + ' '.join([
 		'`wx-config --cppflags`',
