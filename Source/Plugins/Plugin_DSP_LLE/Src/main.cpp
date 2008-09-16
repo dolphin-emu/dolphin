@@ -131,7 +131,16 @@ void* dsp_thread(void* lpParameter)
 
 #ifdef _WIN32
 DWORD WINAPI dsp_thread_debug(LPVOID lpParameter)
+#else
+void* dsp_thread_debug(void* lpParameter)
+#endif
 {
+    
+    if (g_hDSPThread)
+	{
+            return NULL;
+	}
+#ifdef _WIN32    
 	while (1)
 	{
 		if (g_Dialog.CanDoStep())
@@ -143,8 +152,9 @@ DWORD WINAPI dsp_thread_debug(LPVOID lpParameter)
 			Sleep(100);
 		}
 	}
+#endif 
 }
-#endif
+
 
 
 void DSP_DebugBreak()
@@ -178,14 +188,14 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 	g_dsp.irq_request = dspi_req_dsp_irq;
 	gdsp_reset();
 
-	if (!gdsp_load_rom("data\\dsp_rom.bin"))
+	if (!gdsp_load_rom((char *)"data\\dsp_rom.bin"))
 	{
                 bCanWork = false;
                 PanicAlert("No DSP ROM");
 		ErrorLog("Cannot load DSP ROM\n");
 	}
 
-	if (!gdsp_load_coef("data\\dsp_coef.bin"))
+	if (!gdsp_load_coef((char *)"data\\dsp_coef.bin"))
 	{
                 bCanWork = false;
                 PanicAlert("No DSP COEF");
@@ -206,11 +216,15 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 	g_hDSPThread = CreateThread(NULL, 0, dsp_thread_debug, 0, 0, NULL);
 #else
 	g_hDSPThread = CreateThread(NULL, 0, dsp_thread, 0, 0, NULL);
-#endif
+#endif // DEBUG
+#else
+#if _DEBUG
+        pthread_create(&g_hDSPThread, NULL, dsp_thread_debug, (void *)NULL);
 #else
 	pthread_create(&g_hDSPThread, NULL, dsp_thread, (void *)NULL);
-#endif
-
+#endif // DEBUG
+#endif // WIN32
+        
 #ifdef _WIN32
 	InitializeCriticalSection(&g_CriticalSection);
 	DSound::DSound_StartSound((HWND)g_dspInitialize.hWnd, 48000, Mixer);
@@ -222,14 +236,15 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 
 void DSP_Shutdown(void)
 {
+#ifdef _WIN32
 	if (g_hDSPThread != NULL)
 	{
-		#ifdef _WIN32
-		TerminateThread(g_hDSPThread, 0);
-		#else
-			pthread_cancel(g_hDSPThread);
-		#endif
-	}
+            TerminateThread(g_hDSPThread, 0);
+        }
+#else
+        pthread_cancel(g_hDSPThread);
+#endif
+
 }
 
 u16 DSP_WriteControlRegister(u16 _uFlag)
