@@ -32,6 +32,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bEnableDebugging = false;
 	bUseJIT = false;
 	bUseDualCore = false;
+	bSkipIdle = false;
 	bRunCompareServer = false;
 	bLockThreads = true;
 	bWii = false;

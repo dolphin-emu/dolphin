@@ -66,6 +66,7 @@ class CFrame
 		void OnMemcard(wxCommandEvent& event);
 		void OnToggleFullscreen(wxCommandEvent& event);
 		void OnToggleDualCore(wxCommandEvent& event);
+		void OnToggleSkipIdle(wxCommandEvent& event);
 		void OnToggleThrottle(wxCommandEvent& event);
 		void OnToggleToolbar(wxCommandEvent& event);
 		void OnToggleStatusbar(wxCommandEvent& event);

@@ -80,20 +80,27 @@ namespace Jit64
 
 		// TODO(ector): Make it dynamically enable/disable idle skipping where appropriate
 		// Will give nice boost to dual core mode
+		// (mb2): I agree, 
+		// IMHO those Idles should be always skipped and replaced by a more controlable "native" Idle methode
+		// ... maybe the throttle one already do that :p
 		// if (CommandProcessor::AllowIdleSkipping() && PixelEngine::AllowIdleSkipping())
-		if (!Core::GetStartupParameter().bUseDualCore && 
+		if (Core::GetStartupParameter().bSkipIdle &&
 			inst.OPCD == 32 && 
 			(inst.hex & 0xFFFF0000) == 0x800D0000 &&
 			Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 &&
 			Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
 		{
-			gpr.Flush(FLUSH_ALL);
-			fpr.Flush(FLUSH_ALL);
-			ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
-			MOV(32, M(&PowerPC::ppcState.pc), Imm32(js.compilerPC + 12));
-			JMP(Asm::testExceptions, true);
-			js.compilerPC += 8;
-			return;
+				
+				gpr.Flush(FLUSH_ALL);
+				fpr.Flush(FLUSH_ALL);
+				if (Core::GetStartupParameter().bUseDualCore) 
+					CALL(&PowerPC::OnIdleDC);
+				else 
+					ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
+				MOV(32, M(&PowerPC::ppcState.pc), Imm32(js.compilerPC + 12));
+				JMP(Asm::testExceptions, true);
+				js.compilerPC += 8;
+				return;
 		}
 
 		s32 offset = (s32)(s16)inst.SIMM_16;

@@ -37,6 +37,7 @@ struct SCoreStartupParameter
 	bool bEnableDebugging;
 	bool bUseJIT;
 	bool bUseDualCore;
+	bool bSkipIdle;
 	bool bNTSC;
 	bool bHLEBios;
 	bool bUseFastMem;

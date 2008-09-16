@@ -92,6 +92,7 @@ namespace PowerPC
 	void Stop();
 
 	void OnIdle(u32 _uThreadAddr);
+	void OnIdleDC(void);
 }
 
 // Special registers

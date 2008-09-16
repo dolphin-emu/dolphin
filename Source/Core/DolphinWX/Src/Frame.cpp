@@ -96,6 +96,7 @@ EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
 EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
+EVT_MENU(IDM_TOGGLE_SKIPIDLE, CFrame::OnToggleSkipIdle)
 EVT_MENU(IDM_TOGGLE_TOOLBAR, CFrame::OnToggleToolbar)
 EVT_MENU(IDM_TOGGLE_STATUSBAR, CFrame::OnToggleStatusbar)
 EVT_MENU(IDM_LOADSLOT1, CFrame::OnLoadState)
@@ -222,6 +223,8 @@ void CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tAlt+Enter"));
 	pOptionsMenu->AppendCheckItem(IDM_TOGGLE_DUALCORE, _T("Dual-&core (unstable!)"));
 	pOptionsMenu->Check(IDM_TOGGLE_DUALCORE, SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);			
+	pOptionsMenu->AppendCheckItem(IDM_TOGGLE_SKIPIDLE, _T("Idle s&kipping"));
+	pOptionsMenu->Check(IDM_TOGGLE_SKIPIDLE, SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);			
 	m_pMenuBar->Append(pOptionsMenu, _T("&Options"));
 
 	// misc menu
@@ -553,6 +556,11 @@ void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED (event))
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore = !SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore;
+	SConfig::GetInstance().SaveSettings();
+}
+void CFrame::OnToggleSkipIdle(wxCommandEvent& WXUNUSED (event))
+{
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = !SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle;
 	SConfig::GetInstance().SaveSettings();
 }
 

@@ -290,5 +290,10 @@ namespace PowerPC
 			CoreTiming::Idle();
 		}
 	}
+	//DualCore OnIdle
+	void OnIdleDC(void)
+	{
+		CoreTiming::Idle();
+	}
 }
 

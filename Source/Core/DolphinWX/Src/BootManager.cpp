@@ -81,6 +81,7 @@ bool BootCore(const std::string& _rFilename)
 	if (unique_id.size() == 6 && ini.Load(("Patches/" + unique_id + ".ini").c_str()))
 	{
 		ini.Get("Core", "UseDualCore", &StartUp.bUseDualCore, StartUp.bUseDualCore);
+		ini.Get("Core", "SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);
 		ini.Get("Core", "OptimizeQuantizers", &StartUp.bOptimizeQuantizers, StartUp.bOptimizeQuantizers);
 	}
 	if(main_frame)
