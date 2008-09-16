@@ -118,10 +118,7 @@ void DllAbout(HWND _hParent)
 
 void DllConfig(HWND _hParent)
 {
-#ifdef _WIN32
-	CConfigDlg configDlg;
-	configDlg.DoModal(_hParent);
-#endif
+   // TODO: implement
 }
 
 void DSP_Initialize(DSPInitialize _dspInitialize)
