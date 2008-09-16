@@ -25,11 +25,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "gdsp_opcodes.h"
-#include "gdsp_interpreter.h"
-#include "gdsp_memory.h"
-#include "gdsp_registers.h"
+
 #include "gdsp_interface.h"
+#include "gdsp_opcodes_helper.h"
 #include "Tools.h"
 
 //-------------------------------------------------------------------------------

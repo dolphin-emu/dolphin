@@ -98,6 +98,10 @@ void DllConfig(HWND _hParent)
 {}
 
 
+void DSP_DoState(unsigned char **ptr, int mode) {
+	PointerWrap p(ptr, mode);
+}
+
 void DllDebugger(HWND _hParent)
 {
 #if defined (_DEBUG) && defined (_WIN32)
@@ -165,6 +169,7 @@ void Mixer(short* buffer, int numSamples, int bits, int rate, int channels)
 
 void DSP_Initialize(DSPInitialize _dspInitialize)
 {
+        bool bCanWork = true;
 	g_dspInitialize = _dspInitialize;
 
 	gdsp_init();
@@ -175,13 +180,20 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 
 	if (!gdsp_load_rom("data\\dsp_rom.bin"))
 	{
+                bCanWork = false;
+                PanicAlert("No DSP ROM");
 		ErrorLog("Cannot load DSP ROM\n");
 	}
 
 	if (!gdsp_load_coef("data\\dsp_coef.bin"))
 	{
+                bCanWork = false;
+                PanicAlert("No DSP COEF");
 		ErrorLog("Cannot load DSP COEF\n");
 	}
+
+        if(!bCanWork)
+            return; // TODO: Don't let it work
 
 /*		Dump UCode to file...
    	FILE* t = fopen("e:\\hmm.txt", "wb");

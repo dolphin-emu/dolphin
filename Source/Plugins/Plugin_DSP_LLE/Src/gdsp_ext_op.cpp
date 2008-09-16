@@ -29,11 +29,7 @@
 //
 #include "Globals.h"
 
-#include "gdsp_ext_op.h"
-#include "gdsp_interpreter.h"
-#include "gdsp_memory.h"
-
-extern inline void dsp_op_write_reg(uint8 reg, uint16 val);
+#include "gdsp_opcodes_helper.h"
 
 
 //

@@ -47,7 +47,4 @@ void dsp_opf(uint16 opc);
 
 #define FLAG_ENABLE_INTERUPT    11
 
-extern inline bool dsp_SR_is_flag_set(uint8 flag);
-
-
 #endif

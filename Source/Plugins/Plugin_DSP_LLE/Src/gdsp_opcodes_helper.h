@@ -27,6 +27,13 @@
 #define _GDSP_OPCODES_HELPER_H
 
 #include "Globals.h"
+
+#include "gdsp_opcodes.h"
+#include "gdsp_memory.h"
+#include "gdsp_interpreter.h"
+#include "gdsp_registers.h"
+#include "gdsp_ext_op.h"
+
 // ---------------------------------------------------------------------------------------
 //
 // --- SR
@@ -185,7 +192,7 @@ inline sint16 dsp_get_acc_m(uint8 _reg)
 }
 
 
-sint16 dsp_get_acc_h(uint8 _reg)
+inline sint16 dsp_get_acc_h(uint8 _reg)
 {
 	_dbg_assert_(_reg < 2);
 	return(g_dsp.r[0x10 + _reg]);
