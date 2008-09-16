@@ -469,9 +469,9 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event)) {
 	dialog.SetSize(wxSize(280, 180));
 
 	if (iso->IsCompressed())
-		DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(), path.c_str(), &CompressCB, &dialog);	
+		DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(), path.char_str(), &CompressCB, &dialog);	
 	else
-		DiscIO::CompressFileToBlob(iso->GetFileName().c_str(), path.c_str(), 0, 16384, &CompressCB, &dialog);
+		DiscIO::CompressFileToBlob(iso->GetFileName().c_str(), path.char_str(), 0, 16384, &CompressCB, &dialog);
 }
 
 void CGameListCtrl::OnEditPatchFile(wxCommandEvent& WXUNUSED (event))
