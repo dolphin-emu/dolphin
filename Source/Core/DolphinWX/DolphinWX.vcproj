@@ -746,6 +746,14 @@
 			Name="GUI"
 			>
 			<File
+				RelativePath=".\Src\FilesystemViewer.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\FilesystemViewer.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\Frame.cpp"
 				>
 			</File>
