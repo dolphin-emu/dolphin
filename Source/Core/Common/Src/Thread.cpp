@@ -46,7 +46,7 @@ CriticalSection::CriticalSection(int spincount)
 
 CriticalSection::~CriticalSection()
 {
-	// No need to do anything
+	DeleteCriticalSection(&section);
 }
 
 
