@@ -74,6 +74,11 @@ CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoin
 	InitBitmaps();
 }
 
+CGameListCtrl::~CGameListCtrl()
+{
+	delete m_imageListSmall;
+}
+
 void CGameListCtrl::InitBitmaps()
 {
 	m_imageListSmall = new wxImageList(96, 32);
@@ -301,7 +306,7 @@ wxColour blend50(const wxColour& c1, const wxColour& c2)
 
 void CGameListCtrl::SetBackgroundColor()
 {
-	for(long i = 0; i <= GetItemCount(); i++)
+	for(long i = 0; i < GetItemCount(); i++)
 	{
 #ifdef _WIN32
 		wxColour color = (i & 1) ? blend50(GetSysColor(COLOR_3DLIGHT), GetSysColor(COLOR_WINDOW)) : GetSysColor(COLOR_WINDOW);
