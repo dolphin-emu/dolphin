@@ -66,7 +66,7 @@ wxBitmap wxBitmapFromMemoryRGBA(const unsigned char* data, int width, int height
 	wxMemoryInputStream is(pdata, bytes);
 	wxBitmap map(wxImage(is, wxBITMAP_TYPE_BMP, -1), -1);
 
-	delete pdata;
+	delete [] pdata;
 
 	return map;
 }
