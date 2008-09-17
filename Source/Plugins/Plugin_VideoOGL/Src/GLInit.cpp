@@ -504,16 +504,40 @@ void OpenGL_Update()
 #else // GLX
     // We just check all of our events here
     XEvent event;
+    KeySym key;
+    static bool ShiftPressed = false;
+    static bool ControlPressed = false;
+    static int FKeyPressed = -1;
     int num_events = XPending(GLWin.dpy);
     while (XPending(GLWin.dpy) > 0 && num_events != 0) {
         XNextEvent(GLWin.dpy, &event);
         switch(event.type)
         {
-            case KeyPress:
             case KeyRelease:
+                key = XLookupKeysym((XKeyEvent*)&event, 0);
+                if(key >= XK_F1 && key <= XK_F9)
+                {
+                    g_VideoInitialize.pKeyPress(FKeyPressed, ShiftPressed, ControlPressed);
+                    FKeyPressed = -1;
+                }
+                if(key == XK_Shift_L || key == XK_Shift_L)
+                    ShiftPressed = false;
+                if(key == XK_Control_L || key == XK_Control_L)
+                    ControlPressed = false;
+                XPutBackEvent(GLWin.dpy, &event);
+                break;
+            case KeyPress:
+                key = XLookupKeysym((XKeyEvent*)&event, 0);
+                if(key >= XK_F1 && key <= XK_F9)
+                    FKeyPressed = key - 0xff4e;
+                if(key == XK_Shift_L || key == XK_Shift_L)
+                    ShiftPressed = true;
+                if(key == XK_Control_L || key == XK_Control_L)
+                    ControlPressed = true;
+                XPutBackEvent(GLWin.dpy, &event);
+                break;
             case ButtonPress:
             case ButtonRelease:
-                //Quickly! Put it back in so padsimple can use it!
                 XPutBackEvent(GLWin.dpy, &event);
             break;
             case ConfigureNotify:
@@ -531,6 +555,8 @@ void OpenGL_Update()
             default:
                 //TODO: Should we put the event back if we don't handle it?
                 // I think we handle all the needed ones, the rest shouldn't matter
+                // But to be safe, let's but them back anyway
+                XPutBackEvent(GLWin.dpy, &event);
             break;
         }
 	    num_events--;
