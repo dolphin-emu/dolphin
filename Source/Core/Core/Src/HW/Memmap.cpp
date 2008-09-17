@@ -449,7 +449,7 @@ bool Init()
 #ifdef _M_X64
 	//Then, in x64 mode where we have space, grab a 4GB virtual address space
 	//TODO: grab 8GB and align, for easier debugging
-	base = (u8*)MemArena::Find4GBBase();
+	base = MemArena::Find4GBBase();
 	//OK, we know where to find free space. Now grab it!
 	
 	//Physical should be unmapped when not in "real mode"
@@ -478,7 +478,7 @@ bool Init()
 	}
 #else
 	// Do a poor mans version - just grab 1GB, possibly discontiguous, and use &0x3FFFFFFF as the mask whenever it is accessed.
-	base = (u8*)MemArena::Find4GBBase();
+	base = MemArena::Find4GBBase();
 	if (!base) {
 		PanicAlert("Failed to grab 1 GB of contiguous memory!\nDo you have an antivirus program or any other program\n"
 			       "that injects itself into every process, consuming address space?\nOr simply a bad graphics driver?\n\n"

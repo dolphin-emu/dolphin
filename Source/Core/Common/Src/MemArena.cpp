@@ -106,18 +106,18 @@ void MemArena::ReleaseView(void* view, size_t size)
 }
 
 
-u64 MemArena::Find4GBBase()
+u8* MemArena::Find4GBBase()
 {
 #ifdef _M_X64
 #ifdef _WIN32
 	// 64 bit
 	u8* base = (u8*)VirtualAlloc(0, 0xE1000000, MEM_RESERVE, PAGE_READWRITE);
 	VirtualFree(base, 0, MEM_RELEASE);
-	return((u64)base);
+	return base;
 #else
 	// Very precarious - mmap cannot return an error when trying to map already used pages.
 	// This makes the Windows approach above unusable on Linux, so we will simply pray...
-	return(0x2300000000ULL);
+	return reinterpret_cast<u8*>(0x2300000000ULL);
 #endif
 
 #else
@@ -128,11 +128,11 @@ u64 MemArena::Find4GBBase()
 	if (base) {
 		VirtualFree(base, 0, MEM_RELEASE);
 	}
-	return((u64)base);
+	return base;
 #else
 	void* base = mmap(0, 0x31000000, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, 0, 0);
 	munmap(base, 0x31000000);
-	return reinterpret_cast<u64>(base);
+	return static_cast<u8*>(base);
 #endif
 #endif
 }

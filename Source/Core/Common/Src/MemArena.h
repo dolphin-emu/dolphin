@@ -41,7 +41,7 @@ class MemArena
 
 
 		// This only finds 1 GB in 32-bit
-		static u64 Find4GBBase();
+		static u8* Find4GBBase();
 
 
 	private:
