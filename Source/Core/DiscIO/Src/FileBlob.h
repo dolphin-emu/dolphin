@@ -14,38 +14,35 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-// Handles giant memory mapped files
-// Through some trickery, allows lock on byte boundaries
-// instead of allocation granularity boundaries
-// for ease of use
-//
 
-#ifndef _MAPPED_FILE_H
-#define _MAPPED_FILE_H
+#ifndef _FILE_BLOB_H
+#define _FILE_BLOB_H
 
-// #pragma warning (disable: 4786)
+#include "Blob.h"
 
-#include <map>
-
-namespace Common
-{
-class IMappedFile
-{
-	public:
-
-		virtual ~IMappedFile() {}
-
-
-		virtual bool Open(const char* _szFilename) = 0;
-		virtual bool IsOpen(void) = 0;
-		virtual void Close(void)  = 0;
-		virtual u64 GetSize(void) = 0;
-		virtual u8* Lock(u64 _offset, u64 _size) = 0;
-		virtual void Unlock(u8* ptr) = 0;
-
-		static IMappedFile* CreateMappedFileDEPRECATED();
-};
-} // end of namespace DiscIO
-
+#ifdef _WIN32
+#include <windows.h>
 #endif
 
+namespace DiscIO
+{
+
+class PlainFileReader : public IBlobReader
+{
+#ifdef _WIN32
+	HANDLE hFile;
+	s64 size;
+	PlainFileReader(HANDLE hFile_);
+#endif
+
+public:
+	static PlainFileReader* Create(const char* filename);
+	~PlainFileReader();
+	u64 GetDataSize() const { return size; }
+	u64 GetRawSize() const { return size; }
+	bool Read(u64 offset, u64 size, u8* out_ptr);
+};
+
+}  // namespace
+
+#endif  // _FILE_BLOB_H

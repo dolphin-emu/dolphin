@@ -28,7 +28,7 @@ public:
 	static void Explore(const std::string &path);
 	static bool IsDirectory(const std::string &filename);
 	static bool CreateDir(const std::string &filename);
-        static std::string GetUserDirectory();
+	static std::string GetUserDirectory();
 };
 
 #endif

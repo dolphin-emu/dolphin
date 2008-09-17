@@ -27,7 +27,6 @@
 
 #include "Hash.h"
 
-
 namespace DiscIO
 {
 enum EDiscType
@@ -37,33 +36,29 @@ enum EDiscType
 	DISC_TYPE_WII_CONTAINER,
 	DISC_TYPE_GC
 };
+
 #ifndef _WIN32
-	struct SPartition
-	{
-		u64 Offset;
-		u32 Type;
-	}; //gcc 4.3 cries if it's local
+struct SPartition
+{
+	u64 Offset;
+	u32 Type;
+}; //gcc 4.3 cries if it's local
 #endif
+
 class CBlobBigEndianReader
 {
-	public:
+public:
+	CBlobBigEndianReader(IBlobReader& _rReader) : m_rReader(_rReader) {}
 
-		CBlobBigEndianReader(IBlobReader& _rReader)
-			: m_rReader(_rReader)
-		{}
+	u32 Read32(u64 _Offset)
+	{
+		u32 Temp;
+		m_rReader.Read(_Offset, 4, (u8*)&Temp);
+		return(Common::swap32(Temp));
+	}
 
-
-		u32 Read32(u64 _Offset)
-		{
-			u32 Temp;
-			m_rReader.Read(_Offset, 4, (u8*)&Temp);
-			return(Common::swap32(Temp));
-		}
-
-
-	private:
-
-		IBlobReader& m_rReader;
+private:
+	IBlobReader& m_rReader;
 };
 
 unsigned char g_MasterKey[16];
@@ -72,15 +67,12 @@ bool g_MasterKeyInit = false;
 IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType);
 EDiscType GetDiscType(IBlobReader& _rReader);
 
-
 IVolume* CreateVolumeFromFilename(const std::string& _rFilename)
 {
 	IBlobReader* pReader = CreateBlobReader(_rFilename.c_str());
 
 	if (pReader == NULL)
-	{
-		return(NULL);
-	}
+		return NULL;
 
 	switch (GetDiscType(*pReader))
 	{
@@ -104,53 +96,40 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename)
 	    case DISC_TYPE_UNK:
 	    default:
 		    delete pReader;
-		    return(NULL);
+		    return NULL;
 	}
 
 	// unreachable code
-	return(NULL);
+	return NULL;
 }
-
 
 bool IsVolumeWiiDisc(const IVolume& _rVolume)
 {
 	u32 MagicWord = 0;
 	_rVolume.Read(0x18, 4, (u8*)&MagicWord);
 
-	if (Common::swap32(MagicWord) == 0x5D1C9EA3)
-	{
-		return(true);
-	}
-
-	return(false);
+	return (Common::swap32(MagicWord) == 0x5D1C9EA3);
 }
-
 
 IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType)
 {
 	if (!g_MasterKeyInit)
 	{
 		FILE* pT = fopen("WII/masterkey.bin", "rb");
-
 		if (pT == NULL)
 		{
 			PanicAlert("Can't open WII/masterkey.bin");
-			return(NULL);
+			return NULL;
 		}
 
 		fread(g_MasterKey, 16, 1, pT);
 		fclose(pT);
 		const u32 keyhash = 0x4bc30936;
 		u32 hash = HashAdler32(g_MasterKey, 16);
-
 		if (hash != keyhash)
-		{
 			PanicAlert("Your Wii disc decryption key is bad.", keyhash, hash);
-		}
 		else
-		{
 			g_MasterKeyInit = true;
-		}
 	}
 
 	CBlobBigEndianReader Reader(_rReader);
@@ -164,7 +143,7 @@ IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType)
 		u32 Type;
 	};
 	#endif
-	std::vector<SPartition>PartitionsVec;
+	std::vector<SPartition> PartitionsVec;
 	
 	// read all partitions
 	for (u32 i = 0; i < numPartitions; i++)
@@ -195,13 +174,12 @@ IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType)
 			u8 VolumeKey[16];
 			AES_cbc_encrypt(SubKey, VolumeKey, 16, &AES_KEY, IV, AES_DECRYPT);
 
-			return(new CVolumeWiiCrypted(&_rReader, rPartition.Offset + 0x20000, VolumeKey));
+			return new CVolumeWiiCrypted(&_rReader, rPartition.Offset + 0x20000, VolumeKey);
 		}
 	}
 
-	return(NULL);
+	return NULL;
 }
-
 
 EDiscType GetDiscType(IBlobReader& _rReader)
 {
@@ -214,13 +192,9 @@ EDiscType GetDiscType(IBlobReader& _rReader)
 		if (MagicWord == 0x5D1C9EA3)
 		{
 			if (Reader.Read32(0x60) != 0)
-			{
 				return(DISC_TYPE_WII);
-			}
 			else
-			{
 				return(DISC_TYPE_WII_CONTAINER);
-			}
 		}
 	}
 
@@ -229,12 +203,10 @@ EDiscType GetDiscType(IBlobReader& _rReader)
 		u32 MagicWord = Reader.Read32(0x1C);
 
 		if (MagicWord == 0xC2339F3D)
-		{
 			return(DISC_TYPE_GC);
-		}
 	}
 
-	return(DISC_TYPE_UNK);
+	return DISC_TYPE_UNK;
 }
-} // namespace
 
+}  // namespace

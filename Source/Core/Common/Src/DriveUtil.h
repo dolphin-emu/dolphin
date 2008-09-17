@@ -14,38 +14,15 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-// Handles giant memory mapped files
-// Through some trickery, allows lock on byte boundaries
-// instead of allocation granularity boundaries
-// for ease of use
-//
 
-#ifndef _MAPPED_FILE_H
-#define _MAPPED_FILE_H
+#ifndef _DRIVEUTIL_H
+#define _DRIVEUTIL_H
 
-// #pragma warning (disable: 4786)
+#include <string>
+#include <vector>
 
-#include <map>
+// Tools to enumerate drives (HDD, DVD, CD) in a platform-independent manner.
 
-namespace Common
-{
-class IMappedFile
-{
-	public:
-
-		virtual ~IMappedFile() {}
-
-
-		virtual bool Open(const char* _szFilename) = 0;
-		virtual bool IsOpen(void) = 0;
-		virtual void Close(void)  = 0;
-		virtual u64 GetSize(void) = 0;
-		virtual u8* Lock(u64 _offset, u64 _size) = 0;
-		virtual void Unlock(u8* ptr) = 0;
-
-		static IMappedFile* CreateMappedFileDEPRECATED();
-};
-} // end of namespace DiscIO
+void GetAllRemovableDrives(std::vector<std::string> *drives);
 
 #endif
-

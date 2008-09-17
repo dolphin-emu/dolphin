@@ -368,9 +368,9 @@ void CGameListCtrl::ScanForISOs()
 			CISOFile ISOFile(rFilenames[i]);
 
 			if (ISOFile.IsValid())
-			{
 				m_ISOFiles.push_back(ISOFile);
-			}
+			else
+				PanicAlert("Invalid ISO file %s", rFilenames[i].c_str());
 		}
 	}
 	std::sort(m_ISOFiles.begin(), m_ISOFiles.end());
@@ -475,11 +475,10 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 		//popupMenu.Append(IDM_FILESYSTEMVIEWER, wxString::FromAscii("Open in ISO viewer/dumper"));
 
 		// F|RES: compression doesn't work and will be rewritten ... if it is fixed the gui is ready :D
-		/*if (selected_iso->IsCompressed())
+		if (selected_iso->IsCompressed())
 			popupMenu.Append(IDM_COMPRESSGCM, wxString::FromAscii("Decompress ISO... (UNTESTED)"));
 		else
 			popupMenu.Append(IDM_COMPRESSGCM, wxString::FromAscii("Compress ISO... (UNTESTED)"));
-			*/
 
 		PopupMenu(&popupMenu);
 	}
@@ -552,7 +551,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event)) {
 	if (iso->IsCompressed())
 	{
 		 path = wxFileSelector(
-			_T("Select the file to save"),
+			_T("Save decompressed ISO"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
 			wxString::Format
 			(
@@ -571,7 +570,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event)) {
 	else
 	{
 		path = wxFileSelector(
-			_T("Select the file to save"),
+			_T("Save compressed ISO"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
 			wxString::Format
 			(
@@ -588,8 +587,8 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event)) {
 		}
 	}
 
-	wxProgressDialog dialog(_T("Scanning for ISOs"),
-		_T("Scanning..."),
+	wxProgressDialog dialog(iso->IsCompressed() ? _T("Decompressing ISO") : _T("Compressing ISO"),
+		_T("Working..."),
 		1000, // range
 		this, // parent
 		wxPD_APP_MODAL |

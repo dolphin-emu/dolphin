@@ -337,3 +337,10 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 	g_LastDMAAddress = address;
 	g_LastDMASize = 32;
 }
+
+
+
+void __Log(int, const char *fmt, ...)
+{
+	//DebugLog(fmt);
+}

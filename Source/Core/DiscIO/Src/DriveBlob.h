@@ -14,38 +14,47 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-// Handles giant memory mapped files
-// Through some trickery, allows lock on byte boundaries
-// instead of allocation granularity boundaries
-// for ease of use
-//
 
-#ifndef _MAPPED_FILE_H
-#define _MAPPED_FILE_H
+#ifndef _DRIVE_BLOB_H
+#define _DRIVE_BLOB_H
 
-// #pragma warning (disable: 4786)
+#include "Blob.h"
 
-#include <map>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
-namespace Common
+namespace DiscIO
 {
-class IMappedFile
+
+#ifdef _WIN32
+class DriveReader : public SectorReader
 {
-	public:
+	HANDLE hDisc;
 
-		virtual ~IMappedFile() {}
+private:
+	DriveReader(const char *drive) {
+		/*
+		char path[MAX_PATH];
+		strncpy(path, drive, 3);
+		path[2] = 0;
+		sprintf(path, "\\\\.\\%s", drive);
+		hDisc = CreateFile(path, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+		SetSectorSize(2048);
+		*/
+	}
 
+public:
+	static DriveReader *Create(const char *drive) {
+		return NULL;// new DriveReader(drive);		
+	}
 
-		virtual bool Open(const char* _szFilename) = 0;
-		virtual bool IsOpen(void) = 0;
-		virtual void Close(void)  = 0;
-		virtual u64 GetSize(void) = 0;
-		virtual u8* Lock(u64 _offset, u64 _size) = 0;
-		virtual void Unlock(u8* ptr) = 0;
-
-		static IMappedFile* CreateMappedFileDEPRECATED();
 };
-} // end of namespace DiscIO
 
 #endif
 
+
+
+}  // namespace
+
+#endif  // _DRIVE_BLOB_H

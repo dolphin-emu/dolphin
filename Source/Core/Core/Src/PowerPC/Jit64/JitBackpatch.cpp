@@ -60,6 +60,7 @@ void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) {
 //    that many of them in a typical program/game.
 void BackPatch(u8 *codePtr, int accessType, u32 emAddress)
 {
+#ifdef _M_X64
 	if (!IsInJitCode(codePtr))
 		return;  // this will become a regular crash real soon after this
 	
@@ -135,6 +136,7 @@ void BackPatch(u8 *codePtr, int accessType, u32 emAddress)
 	CALL(trampoline);
 	NOP((int)info.instructionSize + bswapNopCount - 5);
 	SetCodePtr(oldCodePtr);
+#endif
 }
 
 }  // namespace

@@ -1,54 +1,73 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
 #ifndef _BLOB_H
 #define _BLOB_H
 
-/*
-   Code not big-endian safe.
+// BLOB
 
-   BLOB
+// Blobs in Dolphin are read only Binary Large OBjects. For example, a typical DVD image.
+// Often, you may want to store these things in a highly compressed format, but still
+// allow random access. Or you may store them on an odd device, like raw on a DVD.
 
-   Blobs are Binary Large OBjects. For example, a typical DVD image.
-   Often, you may want to store these things in a highly compressed format, but still
-   allow random access.
-
-   Always read your BLOBs using an interface returned by CreateBlobReader(). It will
-   detect whether the file is a compressed blob, or just a big hunk of data, and
-   automatically do the right thing.
-
-   To create new BLOBs, use CompressFileToBlob.
-
-   Right now caching of decompressed chunks doesn't work, so it's a bit slow.
-*/
+// Always read your BLOBs using an interface returned by CreateBlobReader(). It will
+// detect whether the file is a compressed blob, or just a big hunk of data, and
+// automatically do the right thing.
 
 #include "Common.h"
 
 namespace DiscIO
 {
+
 class IBlobReader
 {
-	public:
+public:
+	virtual ~IBlobReader() {}
 
-		virtual ~IBlobReader() {}
+	virtual u64 GetRawSize() const  = 0;
+	virtual u64 GetDataSize() const = 0;
+	virtual bool Read(u64 offset, u64 size, u8* out_ptr) = 0;
 
-
-		virtual u64 GetRawSize() const  = 0;
-		virtual u64 GetDataSize() const = 0;
-		virtual bool Read(u64 offset, u64 size, u8* out_ptr) = 0;
-
-
-	protected:
-
-		IBlobReader() {}
-
-
-	private:
-
-		IBlobReader(const IBlobReader& /*other*/) {}
+protected:
+	IBlobReader() {}
 };
 
 
-IBlobReader* CreateBlobReader(const char* filename);
-bool IsCompressedBlob(const char* filename);
+// Provides caching and split-operation-to-block-operations facilities.
+// Used for compressed blob reading and direct drive reading.
+class SectorReader : public IBlobReader
+{
+private:
+	virtual void GetBlock(u64 block_num, u8 *out) = 0;
+	enum { CACHE_SIZE = 32 };
+	int m_blocksize;
+	u8* cache[CACHE_SIZE];
+	u64 cache_tags[CACHE_SIZE];
+	int cache_age[CACHE_SIZE];
+protected:
+	void SetSectorSize(int blocksize);
+public:
+	~SectorReader();
+	const u8 *GetBlockData(u64 block_num);
+	bool Read(u64 offset, u64 size, u8* out_ptr);
+};
 
+// Factory function - examines the path to choose the right type of IBlobReader, and returns one.
+IBlobReader* CreateBlobReader(const char* filename);
 
 typedef void (*CompressCB)(const char* text, float percent, void* arg);
 
@@ -56,7 +75,8 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type = 
 		CompressCB callback = 0, void* arg = 0);
 bool DecompressBlobToFile(const char* infile, const char* outfile,
 		CompressCB callback = 0, void* arg = 0);
-}
+
+}  // namespace
 
 #endif
 

@@ -28,6 +28,14 @@
 
 SymbolDB g_symbolDB;
 
+SymbolDB::SymbolDB()
+{
+}
+
+SymbolDB::~SymbolDB()
+{
+}
+
 void SymbolDB::List()
 {
 	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); iter++)
@@ -232,27 +240,27 @@ bool SymbolDB::LoadMap(const char *filename)
 	bool started = false;
 	while (!feof(f))
 	{
-		char line[512],temp[256];
+		char line[512], temp[256];
 		fgets(line, 511, f);
 		if (strlen(line) < 4)
 			continue;
 
-		sscanf(line,"%s",temp);
-		if (strcmp(temp,"UNUSED")==0) continue;
-		if (strcmp(temp,".text")==0)  {started = true; continue;};
-		if (strcmp(temp,".init")==0)  {started = true; continue;};
-		if (strcmp(temp,"Starting")==0) continue;
-		if (strcmp(temp,"extab")==0) continue;
-		if (strcmp(temp,".ctors")==0) break; //uh?
-		if (strcmp(temp,".dtors")==0) break;
-		if (strcmp(temp,".rodata")==0) continue;
-		if (strcmp(temp,".data")==0) continue;
-		if (strcmp(temp,".sbss")==0) continue;
-		if (strcmp(temp,".sdata")==0) continue;
-		if (strcmp(temp,".sdata2")==0) continue;
-		if (strcmp(temp,"address")==0)  continue;
-		if (strcmp(temp,"-----------------------")==0)  continue;
-		if (strcmp(temp,".sbss2")==0) break;
+		sscanf(line, "%s", temp);
+		if (strcmp(temp, "UNUSED")==0) continue;
+		if (strcmp(temp, ".text")==0)  {started = true; continue;};
+		if (strcmp(temp, ".init")==0)  {started = true; continue;};
+		if (strcmp(temp, "Starting")==0) continue;
+		if (strcmp(temp, "extab")==0) continue;
+		if (strcmp(temp, ".ctors")==0) break; //uh?
+		if (strcmp(temp, ".dtors")==0) break;
+		if (strcmp(temp, ".rodata")==0) continue;
+		if (strcmp(temp, ".data")==0) continue;
+		if (strcmp(temp, ".sbss")==0) continue;
+		if (strcmp(temp, ".sdata")==0) continue;
+		if (strcmp(temp, ".sdata2")==0) continue;
+		if (strcmp(temp, "address")==0)  continue;
+		if (strcmp(temp, "-----------------------")==0)  continue;
+		if (strcmp(temp, ".sbss2")==0) break;
 		if (temp[1] == ']') continue;
 
 		if (!started) continue;

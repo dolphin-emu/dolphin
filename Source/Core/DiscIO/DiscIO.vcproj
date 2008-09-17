@@ -768,6 +768,30 @@
 					RelativePath=".\Src\Blob.h"
 					>
 				</File>
+				<File
+					RelativePath=".\Src\CompressedBlob.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\CompressedBlob.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\DriveBlob.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\DriveBlob.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\FileBlob.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\FileBlob.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -1114,6 +1138,10 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath=".\Src\SConscript"
+			>
+		</File>
 		<File
 			RelativePath=".\Src\stdafx.cpp"
 			>

@@ -7,7 +7,7 @@
 
 bool CBoot::IsElfWii(const char *filename)
 {
-	Common::IMappedFile *mapfile = Common::IMappedFile::CreateMappedFile();
+	Common::IMappedFile *mapfile = Common::IMappedFile::CreateMappedFileDEPRECATED();
 	bool ok = mapfile->Open(filename);
 	if (!ok)
 		return false;
@@ -29,7 +29,7 @@ bool CBoot::IsElfWii(const char *filename)
 
 bool CBoot::Boot_ELF(const char *filename)
 {
-	Common::IMappedFile *mapfile = Common::IMappedFile::CreateMappedFile();
+	Common::IMappedFile *mapfile = Common::IMappedFile::CreateMappedFileDEPRECATED();
 	mapfile->Open(filename);
 	u8 *ptr = mapfile->Lock(0, mapfile->GetSize());
 	u8 *mem = new u8[(size_t)mapfile->GetSize()];

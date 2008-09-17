@@ -226,7 +226,7 @@ void CMappedFile::Unlock(u8* ptr)
 }
 
 
-IMappedFile* IMappedFile::CreateMappedFile(void)
+IMappedFile* IMappedFile::CreateMappedFileDEPRECATED(void)
 {
 	return(new CMappedFile);
 }

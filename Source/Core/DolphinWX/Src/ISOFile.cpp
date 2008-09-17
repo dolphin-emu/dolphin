@@ -25,7 +25,7 @@
 #include "Filesystem.h"
 #include "BannerLoader.h"
 #include "FileSearch.h"
-#include "Blob.h"
+#include "CompressedBlob.h"
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32

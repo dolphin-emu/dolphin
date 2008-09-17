@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="DolphinWX"
 	ProjectGUID="{A72606EF-C5C1-4954-90AD-F0F93A8D97D9}"
 	RootNamespace="DolphinWX"
@@ -95,6 +95,8 @@
 				AdditionalLibraryDirectories="..\..\..\Externals\wxWidgets\lib;..\..\..\Externals\LZO\win32\$(ConfigurationName)"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				GenerateMapFile="true"
+				MapFileName="$(TargetDir)linkermap.map"
 				SubSystem="2"
 				BaseAddress="0x00400000"
 				TargetMachine="1"

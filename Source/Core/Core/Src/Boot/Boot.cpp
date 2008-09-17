@@ -49,7 +49,7 @@
 
 bool CBoot::Boot_BIN(const std::string& _rFilename)
 {
-	Common::IMappedFile* pFile = Common::IMappedFile::CreateMappedFile();
+	Common::IMappedFile* pFile = Common::IMappedFile::CreateMappedFileDEPRECATED();
 
 	if (pFile->Open(_rFilename.c_str()))
 	{
@@ -443,7 +443,7 @@ bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_game
 bool CBoot::Load_BIOS(const std::string& _rBiosFilename)
 {
     bool bResult = false;
-    Common::IMappedFile* pFile = Common::IMappedFile::CreateMappedFile();
+    Common::IMappedFile* pFile = Common::IMappedFile::CreateMappedFileDEPRECATED();
     if (pFile->Open(_rBiosFilename.c_str()))
     {
         if (pFile->GetSize() >= 1024*1024*2)

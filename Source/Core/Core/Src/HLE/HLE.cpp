@@ -60,7 +60,7 @@ static const SPatch OSPatches[] =
 	{ "OSPanic",					HLE_OS::HLE_OSPanic     },
 	{ "vprintf",					HLE_OS::HLE_vprintf     },		
 	{ "printf",						HLE_OS::HLE_printf      },
-	{ "puts",							HLE_OS::HLE_printf      },	//gcc-optimized printf?
+	{ "puts",						HLE_OS::HLE_printf      },	//gcc-optimized printf?
 
 	// wii only
 	{ "SCCheckStatus",				HLE_Misc::UnimplementedFunctionFalse },	

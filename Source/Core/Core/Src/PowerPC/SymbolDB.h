@@ -93,7 +93,8 @@ private:
 public:
 	typedef void (*functionGetterCallback)(Symbol *f);
 	
-	SymbolDB() {}
+	SymbolDB();
+	~SymbolDB();
 
 	Symbol *AddFunction(u32 startAddr);
 	void AddKnownSymbol(u32 startAddr, u32 size, const char *name, int type = Symbol::SYMBOL_FUNCTION);

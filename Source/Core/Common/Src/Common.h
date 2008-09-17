@@ -18,7 +18,14 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
+#define _CRTDBG_MAP_ALLOC
+#define _CRTDBG_MAP_ALLOC_NEW
+
 #ifdef _WIN32
+#ifdef _DEBUG
+#include <crtdbg.h>
+#endif
+
 #include "../../../PluginSpecs/CommonTypes.h"
 #else
 #include "CommonTypes.h"
