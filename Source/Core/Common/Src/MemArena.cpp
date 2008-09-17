@@ -25,6 +25,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <cerrno>
+#include <cstring>
 #endif
 
 #if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
@@ -131,6 +133,10 @@ u8* MemArena::Find4GBBase()
 	return base;
 #else
 	void* base = mmap(0, 0x31000000, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, 0, 0);
+	if (base == MAP_FAILED) {
+		PanicAlert("Failed to map 1 GB of memory space: %s", strerror(errno));
+		return 0;
+	}
 	munmap(base, 0x31000000);
 	return static_cast<u8*>(base);
 #endif
