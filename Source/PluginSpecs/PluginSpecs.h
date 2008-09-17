@@ -46,13 +46,13 @@ extern "C" {
 #endif
 
 // plugin types
-#define PLUGIN_TYPE_VIDEO			1
-#define PLUGIN_TYPE_DVD				2
-#define PLUGIN_TYPE_PAD             3
-#define PLUGIN_TYPE_AUDIO           4
-#define PLUGIN_TYPE_COMPILER        5
-#define PLUGIN_TYPE_DSP             6
-#define PLUGIN_TYPE_WIIMOTE 7
+#define PLUGIN_TYPE_VIDEO		1
+#define PLUGIN_TYPE_DVD			2
+#define PLUGIN_TYPE_PAD			3
+#define PLUGIN_TYPE_AUDIO		4
+#define PLUGIN_TYPE_COMPILER	5
+#define PLUGIN_TYPE_DSP			6
+#define PLUGIN_TYPE_WIIMOTE		7
 
 #define STATE_MODE_READ    1
 #define STATE_MODE_WRITE   2
@@ -61,9 +61,9 @@ extern "C" {
 
 typedef struct 
 {
-	u16 Version;        // Set to 0x0100
-	u16 Type;           // Set to PLUGIN_TYPE_DVD
-	char Name[100];      // Name of the DLL
+	u16 Version;		// Set to 0x0100
+	u16 Type;			// Set to PLUGIN_TYPE_DVD
+	char Name[100];		// Name of the DLL
 } PLUGIN_INFO;
 
 typedef struct

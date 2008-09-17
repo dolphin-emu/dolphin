@@ -32,8 +32,7 @@ class CGameListCtrl : public wxListCtrl
 		void Update();
 		void BrowseForDirectory();
 		const CISOFile *GetSelectedISO() const;
-
-	private:
+		const CISOFile *GetISO(int index) const;
 
 		enum
 		{
@@ -47,20 +46,24 @@ class CGameListCtrl : public wxListCtrl
 			NUMBER_OF_COLUMN
 		};
 
-		std::vector<int>m_FlagImageIndex;
+	private:
 
-		bool m_test;
+		std::vector<int>m_FlagImageIndex;
 		std::vector<CISOFile> m_ISOFiles;
+
+		int last_column;
+		int last_sort;
 
 		void InitBitmaps();
 		void InsertItemInReportView(long _Index);
+		void SetBackgroundColor();
 		void ScanForISOs();
 
 		DECLARE_EVENT_TABLE()
 
 		// events
 		void OnRightClick(wxMouseEvent& event);
-
+		void OnColumnClick(wxListEvent& event);
 		void OnColBeginDrag(wxListEvent& event);
 		void OnColEndDrag(wxListEvent& event);
 		void OnSelected(wxListEvent& event);
@@ -70,6 +73,7 @@ class CGameListCtrl : public wxListCtrl
 		void OnOpenContainingFolder(wxCommandEvent& event);
 		void OnSetDefaultGCM(wxCommandEvent& event);
 		void OnCompressGCM(wxCommandEvent& event);
+		void OnFilesystemViewer(wxCommandEvent& event);
 
 		virtual bool MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem);
 

@@ -27,6 +27,7 @@
 #include "Config.h"
 #include "GameListCtrl.h"
 #include "Blob.h"
+#include "FilesystemViewer.h"
 
 #if USE_XPM_BITMAPS
     #include "../resources/Flag_Europe.xpm"
@@ -35,6 +36,22 @@
     #include "../resources/Flag_USA.xpm"
 #endif // USE_XPM_BITMAPS
 
+/////////////////////////////////
+int currentColumn ;
+bool operator < (const CISOFile &one, const CISOFile &other)
+{
+	switch(currentColumn)
+	{
+	case CGameListCtrl::COLUMN_TITLE: return strcasecmp(one.GetName().c_str(), other.GetName().c_str()) < 0;
+	case CGameListCtrl::COLUMN_COMPANY: return strcasecmp(one.GetCompany().c_str(), other.GetCompany().c_str()) < 0;
+	case CGameListCtrl::COLUMN_NOTES: return strcasecmp(one.GetDescription().c_str(), other.GetDescription().c_str()) < 0;
+	case CGameListCtrl::COLUMN_COUNTRY: return (one.GetCountry() < other.GetCountry());
+	case CGameListCtrl::COLUMN_SIZE: return (one.GetFileSize() < other.GetFileSize());
+	default: return strcasecmp(one.GetName().c_str(), other.GetName().c_str()) < 0;
+	}
+}
+/////////////////////////////////
+
 BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 
 EVT_SIZE(CGameListCtrl::OnSize)
@@ -42,10 +59,12 @@ EVT_RIGHT_DOWN(CGameListCtrl::OnRightClick)
 EVT_LIST_COL_BEGIN_DRAG(LIST_CTRL, CGameListCtrl::OnColBeginDrag)
 EVT_LIST_ITEM_SELECTED(LIST_CTRL, CGameListCtrl::OnSelected)
 EVT_LIST_ITEM_ACTIVATED(LIST_CTRL, CGameListCtrl::OnActivated)
+EVT_LIST_COL_CLICK(LIST_CTRL, CGameListCtrl::OnColumnClick)
 EVT_LIST_COL_END_DRAG(LIST_CTRL, CGameListCtrl::OnColEndDrag)
 EVT_MENU(IDM_EDITPATCHFILE, CGameListCtrl::OnEditPatchFile)
 EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
 EVT_MENU(IDM_SETDEFAULTGCM, CGameListCtrl::OnSetDefaultGCM)
+EVT_MENU(IDM_FILESYSTEMVIEWER, CGameListCtrl::OnFilesystemViewer)
 EVT_MENU(IDM_COMPRESSGCM, CGameListCtrl::OnCompressGCM)
 END_EVENT_TABLE()
 
@@ -142,13 +161,6 @@ void CGameListCtrl::Update()
 	Show();
 }
 
-#ifdef _WIN32
-wxColour blend50(const wxColour& c1, const wxColour& c2)
-{
-	return(((c1.GetPixel() & 0xFEFEFE) >> 1) + ((c2.GetPixel() & 0xFEFEFE) >> 1) + 0x010101);
-}
-#endif
-
 wxString NiceSizeFormat(s64 _size)
 {
 	const char* sizes[] = {"b", "KB", "MB", "GB", "TB", "PB", "EB"};
@@ -185,18 +197,15 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// data
 	wxString buf;
 	long ItemIndex = InsertItem(_Index, buf, ImageIndex);
-#ifdef _WIN32
-	wxColour color = (_Index & 1) ? blend50(GetSysColor(COLOR_3DLIGHT), GetSysColor(COLOR_WINDOW)) : GetSysColor(COLOR_WINDOW);
-#else
-	wxColour color = (_Index & 1) ? 0xFFFFFF : 0xEEEEEE;
-#endif
+
 	// background color
-	{
+	SetBackgroundColor(); //temp fix so we can colorize background after sorting
+	/*{
 		wxListItem item;
 		item.SetId(ItemIndex);
 		item.SetBackgroundColour(color);
 		SetItem(item);
-	}
+	}*/
 
 	// title
 	{
@@ -257,6 +266,50 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 	// item data
 	SetItemData(ItemIndex, _Index);
+}
+
+bool CGameListCtrl::MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem)
+{
+	bool Result = false;
+#ifdef __WXMSW__
+	switch (subitem)
+	{
+	    case COLUMN_COUNTRY:
+	    {
+		    size_t Index = GetItemData(item);
+
+		    if (Index < m_ISOFiles.size())
+		    {
+			    const CISOFile& rISO = m_ISOFiles[Index];
+			    wxRect SubItemRect;
+			    this->GetSubItemRect(item, subitem, SubItemRect);
+			    m_imageListSmall->Draw(m_FlagImageIndex[rISO.GetCountry()], rPaintDC, SubItemRect.GetLeft(), SubItemRect.GetTop());
+		    }
+	    }
+	}
+#endif
+
+	return(Result);
+}
+
+#ifdef _WIN32
+wxColour blend50(const wxColour& c1, const wxColour& c2)
+{
+	return(((c1.GetPixel() & 0xFEFEFE) >> 1) + ((c2.GetPixel() & 0xFEFEFE) >> 1) + 0x010101);
+}
+#endif
+
+void CGameListCtrl::SetBackgroundColor()
+{
+	for(long i = 0; i <= GetItemCount(); i++)
+	{
+#ifdef _WIN32
+		wxColour color = (i & 1) ? blend50(GetSysColor(COLOR_3DLIGHT), GetSysColor(COLOR_WINDOW)) : GetSysColor(COLOR_WINDOW);
+#else
+		wxColour color = (i & 1) ? 0xFFFFFF : 0xEEEEEE;
+#endif
+		CGameListCtrl::SetItemBackgroundColour(i, color);
+	}
 }
 
 void CGameListCtrl::ScanForISOs()
@@ -325,6 +378,74 @@ void CGameListCtrl::OnColBeginDrag(wxListEvent& event)
 		event.Veto();
 }
 
+const CISOFile * CGameListCtrl::GetISO(int index) const
+{
+	return &m_ISOFiles[index];
+}
+ 
+CGameListCtrl *caller;
+int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
+{
+	//return 1 if item1 > item2
+	//return -1 if item1 < item2
+	//0 for identity
+	const CISOFile *iso1 = caller->GetISO(item1);
+	const CISOFile *iso2 = caller->GetISO(item2);
+ 
+	int t = 1;
+ 
+	if(sortData<0)
+	{
+		t=-1;
+		sortData = -sortData;
+	}
+
+	switch(sortData)
+	{
+	case CGameListCtrl::COLUMN_TITLE:
+		return strcasecmp(iso1->GetName().c_str(),iso2->GetName().c_str()) *t;
+	case CGameListCtrl::COLUMN_COMPANY:
+		return strcasecmp(iso1->GetCompany().c_str(),iso2->GetCompany().c_str()) *t;
+	case CGameListCtrl::COLUMN_NOTES:
+		return strcasecmp(iso1->GetDescription().c_str(),iso2->GetDescription().c_str()) *t;
+	case CGameListCtrl::COLUMN_COUNTRY:
+		if(iso1->GetCountry() > iso2->GetCountry()) return  1 *t;
+		if(iso1->GetCountry() < iso2->GetCountry()) return -1 *t;
+		return 0;
+	case CGameListCtrl::COLUMN_SIZE:
+		if (iso1->GetFileSize() > iso2->GetFileSize()) return  1 *t;
+		if (iso1->GetFileSize() < iso2->GetFileSize()) return -1 *t;
+		return 0;
+	}
+ 
+	return 0;
+}
+
+void CGameListCtrl::OnColumnClick(wxListEvent& event)
+{
+	if(event.GetColumn() != COLUMN_BANNER && event.GetColumn() != COLUMN_EMULATION_STATE)
+	{
+		int current_column = event.GetColumn();
+ 
+		if(last_column == current_column)
+		{
+			last_sort = -last_sort;
+		}
+		else
+		{
+			last_column = current_column;
+			last_sort = current_column;
+		}
+ 
+		caller = this;
+		SortItems(wxListCompare, last_sort);
+	}
+
+	SetBackgroundColor();
+
+	event.Skip();
+}
+
 void CGameListCtrl::OnColEndDrag(wxListEvent& WXUNUSED (event))
 {
 }
@@ -346,9 +467,10 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 		popupMenu.Append(IDM_EDITPATCHFILE, wxString::FromAscii(menu_text.c_str())); //Pretty much everything in wxwidgets is a wxString, try to convert to those first!
 		popupMenu.Append(IDM_OPENCONTAININGFOLDER, wxString::FromAscii("Open &containing folder"));
 		popupMenu.Append(IDM_SETDEFAULTGCM, wxString::FromAscii("Set as &default ISO"));
+		//popupMenu.Append(IDM_FILESYSTEMVIEWER, wxString::FromAscii("Open in ISO viewer/dumper"));
 
-		/* F|RES: compression doesn't work and will be rewritten ... if it is done reactivated this code the gui is ready :D
-		if (selected_iso->IsCompressed())
+		// F|RES: compression doesn't work and will be rewritten ... if it is fixed the gui is ready :D
+		/*if (selected_iso->IsCompressed())
 			popupMenu.Append(IDM_COMPRESSGCM, wxString::FromAscii("Decompress ISO... (UNTESTED)"));
 		else
 			popupMenu.Append(IDM_COMPRESSGCM, wxString::FromAscii("Compress ISO... (UNTESTED)"));
@@ -399,6 +521,14 @@ void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& WXUNUSED (event)) {
 		return;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = iso->GetFileName();
 	SConfig::GetInstance().SaveSettings();
+}
+
+void CGameListCtrl::OnFilesystemViewer(wxCommandEvent& WXUNUSED (event)) {
+	const CISOFile *iso = GetSelectedISO();
+	if (!iso)
+		return;
+	CFilesystemViewer FSViewer(iso->GetFileName(), this);
+	FSViewer.ShowModal();
 }
 
 void CGameListCtrl::CompressCB(const char* text, float percent, void* arg)
@@ -503,30 +633,6 @@ void CGameListCtrl::OnSize(wxSizeEvent& event)
 	AutomaticColumnWidth();
 
 	event.Skip();
-}
-
-bool CGameListCtrl::MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem)
-{
-	bool Result = false;
-#ifdef __WXMSW__
-	switch (subitem)
-	{
-	    case COLUMN_COUNTRY:
-	    {
-		    size_t Index = GetItemData(item);
-
-		    if (Index < m_ISOFiles.size())
-		    {
-			    const CISOFile& rISO = m_ISOFiles[Index];
-			    wxRect SubItemRect;
-			    this->GetSubItemRect(item, subitem, SubItemRect);
-			    m_imageListSmall->Draw(m_FlagImageIndex[rISO.GetCountry()], rPaintDC, SubItemRect.GetLeft(), SubItemRect.GetTop());
-		    }
-	    }
-	}
-#endif
-
-	return(Result);
 }
 
 void CGameListCtrl::AutomaticColumnWidth()

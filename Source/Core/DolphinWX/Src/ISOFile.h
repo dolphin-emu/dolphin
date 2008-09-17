@@ -47,11 +47,6 @@ class CISOFile
 
 		const wxImage& GetImage() const {return(m_Image);}
 
-		bool operator < (const CISOFile &other) const {
-			// HACK - they end up in reverse order in the list view
-			return strcasecmp(m_Name.c_str(), other.m_Name.c_str()) < 0;
-		}
-
 	private:
 
 		std::string m_FileName;
