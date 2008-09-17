@@ -5,6 +5,7 @@ files = [
 	'BootManager.cpp',
 	'Config.cpp',
 	'FileSearch.cpp',
+        'FilesystemViewer.cpp',
 	'Frame.cpp',
 	'GameListCtrl.cpp',
 	'Globals.cpp',
