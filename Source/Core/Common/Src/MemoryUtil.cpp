@@ -102,7 +102,11 @@ void* AllocateMemoryPages(int size)
 void FreeMemoryPages(void* ptr, int size)
 {
 #ifdef _WIN32
-	VirtualFree(ptr, 0, MEM_RELEASE);
+	if (ptr)
+	{
+		VirtualFree(ptr, 0, MEM_RELEASE);
+		ptr = NULL;
+	}
 #else
 	munmap(ptr, size);
 #endif

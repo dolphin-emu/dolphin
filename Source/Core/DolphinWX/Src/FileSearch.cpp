@@ -65,6 +65,8 @@ void CFileSearch::FindFiles(const std::string& _searchString, const std::string&
 			bkeepLooping = FindNextFile(FindFirst, &findData) ? true : false;
 		}
 	}
+	FindClose(FindFirst);
+
 
 #else
 	size_t dot_pos = _searchString.rfind(".");

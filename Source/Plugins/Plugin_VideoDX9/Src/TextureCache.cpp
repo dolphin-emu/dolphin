@@ -68,8 +68,11 @@ void TextureCache::Shutdown()
 {
 	Invalidate();
 
-	VirtualFree(temp, 0, MEM_RELEASE);	
-	temp = NULL;
+	if (temp != NULL)
+	{
+		VirtualFree(temp, 0, MEM_RELEASE);	
+		temp = NULL;
+	}
 }
 
 void TextureCache::Cleanup()

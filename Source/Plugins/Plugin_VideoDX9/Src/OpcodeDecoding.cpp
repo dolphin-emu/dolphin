@@ -373,7 +373,7 @@ void OpcodeDecoder_Init()
 
 void OpcodeDecoder_Shutdown()
 {
-	//VirtualFree((LPVOID)buffer,CMDBUFFER_SIZE,MEM_RELEASE);
+	//VirtualFree((LPVOID)buffer,0,MEM_RELEASE);
 	tempvarray.Destroy();
 }
 
