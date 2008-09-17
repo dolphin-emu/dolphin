@@ -257,7 +257,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		wxListItem item;
 		item.m_itemId = ItemIndex;
 		item.SetColumn(COLUMN_COUNTRY);
-		item.SetBackgroundColour(color);
+		//item.SetBackgroundColour(color);
 		DiscIO::IVolume::ECountry Country = rISOFile.GetCountry();
 
 		if (size_t(Country) < m_FlagImageIndex.size())
