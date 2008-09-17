@@ -24,6 +24,7 @@
 #include <wx/imaglist.h>
 #include <wx/treectrl.h>
 #include <wx/gbsizer.h>
+#include <string>
 
 #undef FILESYSTEM_VIEWER_STYLE
 #define FILESYSTEM_VIEWER_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX
