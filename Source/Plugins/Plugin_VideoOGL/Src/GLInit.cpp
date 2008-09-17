@@ -380,14 +380,14 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
             
             /* create a fullscreen window */
             GLWin.attr.override_redirect = True;
-            GLWin.attr.event_mask = ExposureMask | StructureNotifyMask;
+            GLWin.attr.event_mask = ExposureMask | KeyPressMask | ButtonPressMask | KeyReleaseMask | ButtonReleaseMask | StructureNotifyMask;
             GLWin.win = XCreateWindow(GLWin.dpy, RootWindow(GLWin.dpy, vi->screen),
                                       0, 0, dpyWidth, dpyHeight, 0, vi->depth, InputOutput, vi->visual,
                                       CWBorderPixel | CWColormap | CWEventMask | CWOverrideRedirect,
                                       &GLWin.attr);
             XWarpPointer(GLWin.dpy, None, GLWin.win, 0, 0, 0, 0, 0, 0);
             XMapRaised(GLWin.dpy, GLWin.win);
-            //XGrabKeyboard(GLWin.dpy, GLWin.win, True, GrabModeAsync, GrabModeAsync, CurrentTime);
+            XGrabKeyboard(GLWin.dpy, GLWin.win, True, GrabModeAsync, GrabModeAsync, CurrentTime);
             XGrabPointer(GLWin.dpy, GLWin.win, True, ButtonPressMask,
                          GrabModeAsync, GrabModeAsync, GLWin.win, None, CurrentTime);
         }
@@ -408,7 +408,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         //int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
 
         // create a window in window mode
-        GLWin.attr.event_mask = ExposureMask |
+        GLWin.attr.event_mask = ExposureMask | KeyPressMask | ButtonPressMask | KeyReleaseMask | ButtonReleaseMask |
             StructureNotifyMask  | ResizeRedirectMask;
         GLWin.win = XCreateWindow(GLWin.dpy, RootWindow(GLWin.dpy, vi->screen),
                                   0, 0, _twidth, _theight, 0, vi->depth, InputOutput, vi->visual,
@@ -475,7 +475,7 @@ bool OpenGL_MakeCurrent()
         ERROR_LOG("no Direct Rendering possible!");
 
     // better for pad plugin key input (thc)
-    XSelectInput(GLWin.dpy, GLWin.win, ExposureMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask |
+    XSelectInput(GLWin.dpy, GLWin.win, ExposureMask | KeyPressMask | ButtonPressMask | KeyReleaseMask | ButtonReleaseMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask |
                  FocusChangeMask );
 #endif
 	return true;
@@ -504,7 +504,8 @@ void OpenGL_Update()
 #else // GLX
     // We just check all of our events here
     XEvent event;
-    while (XPending(GLWin.dpy) > 0) {
+    int num_events = XPending(GLWin.dpy);
+    while (XPending(GLWin.dpy) > 0 && num_events != 0) {
         XNextEvent(GLWin.dpy, &event);
         switch(event.type)
         {
@@ -512,8 +513,8 @@ void OpenGL_Update()
             case KeyRelease:
             case ButtonPress:
             case ButtonRelease:
-                printf("You have reached a section of code that you should never reach in a video plugin\n If you think that you are not in error, please contact the devs\n");
-                //XPutBackEvent(GLWin.dpy, &event); // We Don't want to deal with these types, This is a video plugin!
+                //Quickly! Put it back in so padsimple can use it!
+                XPutBackEvent(GLWin.dpy, &event);
             break;
             case ConfigureNotify:
                 Window winDummy;
@@ -532,6 +533,7 @@ void OpenGL_Update()
                 // I think we handle all the needed ones, the rest shouldn't matter
             break;
         }
+	    num_events--;
 	}
 	return;
 #endif
