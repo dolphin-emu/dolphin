@@ -17,6 +17,7 @@ warnings = [
 	#'unreachable-code',
 	]
 compileFlags = [
+	'-fno-exceptions',
 	'-fno-strict-aliasing',
 	'-msse2',
 	'-D_FILE_OFFSET_BITS=64',
