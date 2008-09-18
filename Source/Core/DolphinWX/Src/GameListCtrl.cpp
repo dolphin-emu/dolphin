@@ -555,7 +555,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event)) {
 	{
 		 path = wxFileSelector(
 			_T("Save decompressed ISO"),
-			wxEmptyString, FileName.c_str(), wxEmptyString,
+			wxEmptyString, wxString::FromAscii(FileName.c_str()), wxEmptyString,
 			wxString::Format
 			(
 			_T("All GC/Wii ISO files (gcm)|*.gcm|All files (%s)|%s"),
@@ -574,7 +574,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event)) {
 	{
 		path = wxFileSelector(
 			_T("Save compressed ISO"),
-			wxEmptyString, FileName.c_str(), wxEmptyString,
+			wxEmptyString, wxString::FromAscii(FileName.c_str()), wxEmptyString,
 			wxString::Format
 			(
 			_T("All compressed GC/Wii ISO files (gcz)|*.gcz|All files (%s)|%s"),
