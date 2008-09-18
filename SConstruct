@@ -17,8 +17,6 @@ warnings = [
 	#'unreachable-code',
 	]
 compileFlags = [
-#	'-g',
-	'-O3',
 	'-fno-strict-aliasing',
 	'-msse2',
 	'-D_FILE_OFFSET_BITS=64',
@@ -73,6 +71,13 @@ if sys.platform == 'darwin':
 	builders['Plist'] = Builder(action = createPlist)
 
 lib_paths = include_paths
+
+debug = ARGUMENTS.get('debug', 0)
+if int(debug):
+        compileFlags.append('-g')
+        compileFlags.append('-DLOGGING')
+else:
+        compileFlags.append('-O3')
 
 env = Environment(
 	CC = "gcc",
