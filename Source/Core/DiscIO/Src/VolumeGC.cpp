@@ -67,21 +67,21 @@ CVolumeGC::GetName() const
 std::string
 CVolumeGC::GetUniqueID() const
 {
+	static const std::string NO_UID("NO_UID");
 	if (m_pReader == NULL)
 	{
-		return(false);
+		return NO_UID;
 	}
 
-	char ID[7];
+	char id[6];
 
-	if (!Read(0, 6, (u8*)ID))
+	if (!Read(0, sizeof(id), reinterpret_cast<u8*>(id)))
 	{
-		return(false);
+		PanicAlert("Failed to read unique ID from disc image");
+		return NO_UID;
 	}
 
-	ID[6] = 0;
-
-	return(ID);
+	return std::string(id, sizeof(id));
 }
 
 
