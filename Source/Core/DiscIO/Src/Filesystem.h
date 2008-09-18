@@ -33,7 +33,7 @@ class IFileSystem
 		virtual bool IsInitialized() = 0;
 
 
-//    virtual size_t GetFileList(std::vector<std::string&> _rFilenames) = 0;
+		virtual size_t GetFileList(std::vector<SFileInfo> *_rFilenames) = 0;
 
 		virtual size_t GetFileSize(const char* _rFullPath) = 0;
 

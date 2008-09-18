@@ -472,7 +472,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 		popupMenu.Append(IDM_EDITPATCHFILE, wxString::FromAscii(menu_text.c_str())); //Pretty much everything in wxwidgets is a wxString, try to convert to those first!
 		popupMenu.Append(IDM_OPENCONTAININGFOLDER, wxString::FromAscii("Open &containing folder"));
 		popupMenu.Append(IDM_SETDEFAULTGCM, wxString::FromAscii("Set as &default ISO"));
-		//popupMenu.Append(IDM_FILESYSTEMVIEWER, wxString::FromAscii("Open in ISO viewer/dumper"));
+		popupMenu.Append(IDM_FILESYSTEMVIEWER, wxString::FromAscii("Open in ISO viewer/dumper"));
 
 		// F|RES: compression doesn't work and will be rewritten ... if it is fixed the gui is ready :D
 		if (selected_iso->IsCompressed())

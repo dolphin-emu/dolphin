@@ -48,17 +48,6 @@ class CFileSystemGCWii
 
 	private:
 
-		// file info of an FST entry
-		struct SFileInfo
-		{
-			u32 m_NameOffset;
-			u64 m_Offset;
-			u32 m_FileSize;
-			char m_FullPath[512];
-
-			bool IsDirectory() {return((m_NameOffset& 0xFF000000) != 0 ? true : false);}
-		};
-
 		typedef std::vector<SFileInfo>CFileInfoVector;
 		CFileInfoVector m_FileInfoVector;
 
@@ -67,6 +56,8 @@ class CFileSystemGCWii
 		u32 m_OffsetShift; // WII offsets are all shifted
 
 		u32 Read32(u64 _Offset) const;
+
+		virtual size_t GetFileList(std::vector<SFileInfo> *_rFilenames);
 
 		void GetStringFromOffset(u64 _Offset, char* Filename) const;
 

@@ -76,6 +76,7 @@ class CFilesystemViewer : public wxDialog
 		wxTextCtrl *m_Maker;
 		wxTextCtrl *m_Comment;
 		wxTextCtrl *m_Banner;
+		wxTreeItemId RootId;
 
 		wxChoice *m_Lang;
 		wxButton *m_SaveBNR;

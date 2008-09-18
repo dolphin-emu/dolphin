@@ -17,8 +17,8 @@
 
 #include "Globals.h"
 
-//#include "VolumeCreator.h"
-//#include "Filesystem.h"
+#include "VolumeCreator.h"
+#include "Filesystem.h"
 //#include "BannerLoader.h"
 #include "FilesystemViewer.h"
 
@@ -33,18 +33,26 @@ BEGIN_EVENT_TABLE(CFilesystemViewer, wxDialog)
 	EVT_MENU(IDM_REPLACEFILE, CFilesystemViewer::OnReplaceFile)
 	EVT_MENU(IDM_RENAMEFILE, CFilesystemViewer::OnRenameFile)
 END_EVENT_TABLE()
+DiscIO::IVolume* OpenIso = NULL;
+DiscIO::IFileSystem* pFileSystem = NULL;
 
 CFilesystemViewer::CFilesystemViewer(const std::string fileName, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
-	/*DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(fileName);
-	DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(*pVolume);
-	pFileSystem->*/
+	OpenIso = DiscIO::CreateVolumeFromFilename(fileName);
+	pFileSystem = DiscIO::CreateFileSystem(*OpenIso);
+	std::vector<SFileInfo> Our_Files;
+	pFileSystem->GetFileList(&Our_Files);
 	CreateGUIControls();
+	
+	for(int a = 0;a < Our_Files.size();++a)
+		m_Treectrl->AppendItem(RootId, wxString::FromAscii(Our_Files[a].m_FullPath));//printf("%d dir? %s '%s'\n", a, Our_Files[a].IsDirectory() ? "True" : "False", Our_Files[a].m_FullPath);
 }
 
 CFilesystemViewer::~CFilesystemViewer()
 {
+	delete pFileSystem;
+	delete OpenIso;
 }
 
 void CFilesystemViewer::CreateGUIControls()
@@ -127,7 +135,7 @@ void CFilesystemViewer::CreateGUIControls()
 	m_Treectrl = new wxTreeCtrl(this, ID_TREECTRL, wxDefaultPosition, wxSize(350, 450)/*wxDefaultSize*/, wxTR_DEFAULT_STYLE, wxDefaultValidator);
 	sbTreectrl->Add(m_Treectrl, 1, wxEXPAND);
 
-	m_Treectrl->AddRoot(wxT("Root"), -1, -1, 0);
+	RootId = m_Treectrl->AddRoot(wxT("Root"), -1, -1, 0);
 	
 	/////////////
 	wxGridBagSizer* sMain;
@@ -188,7 +196,23 @@ void CFilesystemViewer::OnBannerImageSave(wxCommandEvent& WXUNUSED (event))
 
 void CFilesystemViewer::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 {
-
+	wxString Path;
+	wxString File;
+	Path = wxFileSelector(
+		_T("Export File"),
+		wxEmptyString, wxEmptyString, wxEmptyString,
+		wxString::Format
+		(
+		_T("All files (%s)|%s"),
+		wxFileSelectorDefaultWildcardStr
+		),
+		wxFD_SAVE,
+		this);
+		
+	File = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
+	if (!Path || !File)
+		return;
+	pFileSystem->ExportFile(File.mb_str(), Path.mb_str());
 }
 
 void CFilesystemViewer::OnReplaceFile(wxCommandEvent& WXUNUSED (event))
