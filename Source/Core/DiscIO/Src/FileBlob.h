@@ -22,6 +22,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#else
+#include <cstdio>
 #endif
 
 namespace DiscIO
@@ -33,8 +35,8 @@ class PlainFileReader : public IBlobReader
 	HANDLE hFile;
 	PlainFileReader(HANDLE hFile_);
 #else
-	FILE *file_;
-	PlainFileReader(FILE *file__);
+	FILE* file_;
+	PlainFileReader(FILE* file__);
 #endif
 	s64 size;
 
@@ -43,7 +45,7 @@ public:
 	~PlainFileReader();
 	u64 GetDataSize() const { return size; }
 	u64 GetRawSize() const { return size; }
-	bool Read(u64 offset, u64 size, u8* out_ptr);
+	bool Read(u64 offset, u64 nbytes, u8* out_ptr);
 };
 
 }  // namespace
