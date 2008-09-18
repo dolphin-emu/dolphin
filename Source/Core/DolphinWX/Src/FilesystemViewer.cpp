@@ -45,7 +45,7 @@ CFilesystemViewer::CFilesystemViewer(const std::string fileName, wxWindow* paren
 	pFileSystem->GetFileList(&Our_Files);
 	CreateGUIControls();
 	
-	for(int a = 0;a < Our_Files.size();++a)
+	for(u32 a = 0;a < Our_Files.size();++a)
 		m_Treectrl->AppendItem(RootId, wxString::FromAscii(Our_Files[a].m_FullPath));//printf("%d dir? %s '%s'\n", a, Our_Files[a].IsDirectory() ? "True" : "False", Our_Files[a].m_FullPath);
 }
 
