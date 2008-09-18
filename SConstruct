@@ -24,8 +24,7 @@ compileFlags = [
 	'-DGCC_HASCLASSVISIBILITY',
 	'-fvisibility=hidden',
 	]
-compileFlags += [ '-W' + warning for warning in warnings ]
-#compileFlags += [ '-DLOGGING' ]
+
 #compileFlags += [ '-fomit-frame-pointer' ]
 if sys.platform == 'darwin':
 	compileFlags += [ '-I/opt/local/include' ]
@@ -78,6 +77,12 @@ if int(debug):
         compileFlags.append('-DLOGGING')
 else:
         compileFlags.append('-O3')
+        
+lint = ARGUMENTS.get('lint', 0)
+if int(lint):
+        warnings.append('error')
+
+compileFlags += [ '-W' + warning for warning in warnings ]
 
 env = Environment(
 	CC = "gcc",
