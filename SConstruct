@@ -38,25 +38,25 @@ include_paths = [
 	'../../../Core/Core/Src',
 	'../../../Core/DebuggerWX/src',
 	'../../../../Externals/Bochs_disasm',
-        '../../../../Externals/LZO',
+	'../../../../Externals/LZO',
 	'../../../Core/VideoCommon/Src',
 	]
 
 dirs = [
-	"Source/Core/Common/Src",
-	"Externals/Bochs_disasm",
-        "Externals/LZO",
-	"Source/Core/Core/Src",
-	"Source/Core/DiscIO/Src",
-	"Source/Core/DebuggerWX/src",
-	"Source/Core/VideoCommon/Src",
-	"Source/Plugins/Plugin_VideoOGL/Src",
-	"Source/Plugins/Plugin_DSP_HLE/Src",
-        "Source/Plugins/Plugin_DSP_LLE/Src",
-	"Source/Plugins/Plugin_PadSimple/Src",
-	"Source/Plugins/Plugin_nJoy_SDL/Src",
-	"Source/Plugins/Plugin_Wiimote_Test/Src",
-	"Source/Core/DolphinWX/Src",
+	'Source/Core/Common/Src',
+	'Externals/Bochs_disasm',
+	'Externals/LZO',
+	'Source/Core/Core/Src',
+	'Source/Core/DiscIO/Src',
+	'Source/Core/DebuggerWX/src',
+	'Source/Core/VideoCommon/Src',
+	'Source/Plugins/Plugin_VideoOGL/Src',
+	'Source/Plugins/Plugin_DSP_HLE/Src',
+	'Source/Plugins/Plugin_DSP_LLE/Src',
+	'Source/Plugins/Plugin_PadSimple/Src',
+	'Source/Plugins/Plugin_nJoy_SDL/Src',
+	'Source/Plugins/Plugin_Wiimote_Test/Src',
+	'Source/Core/DolphinWX/Src',
 	]
 
 builders = {}
@@ -74,20 +74,20 @@ lib_paths = include_paths
 
 debug = ARGUMENTS.get('debug', 0)
 if int(debug):
-        compileFlags.append('-g')
-        compileFlags.append('-DLOGGING')
+	compileFlags.append('-g')
+	compileFlags.append('-DLOGGING')
 else:
-        compileFlags.append('-O3')
-        
+	compileFlags.append('-O3')
+
 lint = ARGUMENTS.get('lint', 0)
 if int(lint):
-        warnings.append('error')
+	warnings.append('error')
 
 compileFlags += [ '-W' + warning for warning in warnings ]
 
 env = Environment(
-	CC = "gcc",
-	CXX = "g++",
+	CC = 'gcc',
+	CXX = 'g++',
 	CCFLAGS = ' '.join(compileFlags),
 	CXXFLAGS = ' '.join(compileFlags + [ '-fvisibility-inlines-hidden' ]),
 	CPPPATH = include_paths,
