@@ -309,7 +309,6 @@ bool DecompressBlobToFile(const char* infile, const char* outfile, CompressCB ca
 		fwrite(buffer, header.block_size, 1, f);
 	}
 
-	delete reader;
 	delete[] buffer;
 
 #ifdef _WIN32
@@ -320,6 +319,9 @@ bool DecompressBlobToFile(const char* infile, const char* outfile, CompressCB ca
 	ftruncate(fileno(f), header.data_size);
 #endif
 	fclose(f);
+
+	delete reader;
+
 	return true;
 }
 
