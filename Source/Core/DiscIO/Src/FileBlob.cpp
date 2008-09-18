@@ -22,9 +22,12 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#endif
 
 namespace DiscIO
 {
+
+#ifdef _WIN32
 
 PlainFileReader::PlainFileReader(HANDLE hFile_)
 {
@@ -50,72 +53,58 @@ PlainFileReader::~PlainFileReader()
 	CloseHandle(hFile);
 }
 
-bool PlainFileReader::Read(u64 offset, u64 size, u8* out_ptr)
+bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 {
 	LONG offset_high = (LONG)(offset >> 32);
 	SetFilePointer(hFile, (DWORD)(offset & 0xFFFFFFFF), &offset_high, FILE_BEGIN);
 
-	if (size >= 0x100000000ULL)
+	if (nbytes >= 0x100000000ULL)
 		return false; // WTF, does windows really have this limitation?
 
 	DWORD unused;
-	if (!ReadFile(hFile, out_ptr, DWORD(size & 0xFFFFFFFF), &unused, NULL))
+	if (!ReadFile(hFile, out_ptr, DWORD(nbytes & 0xFFFFFFFF), &unused, NULL))
 		return false;
 	else
 		return true;
 }
 
-}  // namespace
+#else // POSIX
 
-#else // linux, 64-bit. We do not yet care about linux32
-
-namespace DiscIO
+PlainFileReader::PlainFileReader(FILE* file__)
 {
+	file_ = file__;
+	#if 0
+		fseek64(file_, 0, SEEK_END);
+	#else
+		fseek(file_, 0, SEEK_END); // I don't have fseek64 with gcc 4.3
+	#endif
+	size = ftell(file_);
+	fseek(file_, 0, SEEK_SET);
+}
 
-class PlainFileReader : public IBlobReader
+PlainFileReader* PlainFileReader::Create(const char* filename)
 {
-	FILE* file_;
-	s64 size;
-private:
-	PlainFileReader(FILE* file__)
-	{
-		file_ = file__;
-		#if 0
-			fseek64(file_, 0, SEEK_END);
-		#else
-			fseek(file_, 0, SEEK_END); // I don't have fseek64 with gcc 4.3
-		#endif
-		size = ftell(file_);
-		fseek(file_, 0, SEEK_SET);
-	}
-
-public:
-	static PlainFileReader* Create(const char* filename)
-	{
-		FILE* file_ = fopen(filename, "rb");
-		if (file_)
-		{
-			return new PlainFileReader(file_);
-		}
+	FILE* file_ = fopen(filename, "rb");
+	if (file_)
+		return new PlainFileReader(file_);
+	else
 		return 0;
-	}
+}
 
-	~PlainFileReader()
-	{
-		fclose(file_);
-	}
+PlainFileReader::~PlainFileReader()
+{
+	fclose(file_);
+}
 
-	u64 GetDataSize() const	{ return(size); }
-	u64 GetRawSize()  const { return(size); }
-
-	bool Read(u64 offset, u64 nbytes, u8* out_ptr)
-	{
-		fseek(file_, offset, SEEK_SET);
-		fread(out_ptr, nbytes, 1, file_);
-		return true;
-	}
-};
-
-}  // namespace
+bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
+{
+	int seekStatus = fseek(file_, offset, SEEK_SET);
+	if (seekStatus != 0)
+		return false;
+	size_t bytesRead = fread(out_ptr, nbytes, 1, file_);
+	return bytesRead == nbytes;
+}
 
 #endif
+
+}  // namespace
