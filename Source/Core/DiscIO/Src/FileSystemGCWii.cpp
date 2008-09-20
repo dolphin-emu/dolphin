@@ -161,6 +161,9 @@ void CFileSystemGCWii::GetStringFromOffset(u64 _Offset, char* Filename) const
 
 size_t CFileSystemGCWii::GetFileList(std::vector<SFileInfo> *_rFilenames)
 {
+	if(_rFilenames == NULL)
+		return m_FileInfoVector.size();
+	
 	(*_rFilenames).resize(m_FileInfoVector.size());	
 	for (size_t i = 0; i < m_FileInfoVector.size(); i++)
 	{

@@ -41,12 +41,12 @@ CFilesystemViewer::CFilesystemViewer(const std::string fileName, wxWindow* paren
 {
 	OpenIso = DiscIO::CreateVolumeFromFilename(fileName);
 	pFileSystem = DiscIO::CreateFileSystem(*OpenIso);
-	std::vector<DiscIO::SFileInfo> Our_Files;
-	pFileSystem->GetFileList(&Our_Files);
+	std::vector<DiscIO::SFileInfo> *Our_Files = new std::vector<DiscIO::SFileInfo>[pFileSystem->GetFileList(NULL)];
+	pFileSystem->GetFileList(Our_Files);
 	CreateGUIControls();
 	
-	for(u32 a = 0;a < Our_Files.size();++a)
-		m_Treectrl->AppendItem(RootId, wxString::FromAscii(Our_Files[a].m_FullPath));//printf("%d dir? %s '%s'\n", a, Our_Files[a].IsDirectory() ? "True" : "False", Our_Files[a].m_FullPath);
+	for(u32 a = 0;a < Our_Files->size();++a)
+		m_Treectrl->AppendItem(RootId, wxString::FromAscii((*Our_Files)[a].m_FullPath));//printf("%d dir? %s '%s'\n", a, Our_Files[a].IsDirectory() ? "True" : "False", Our_Files[a].m_FullPath);
 }
 
 CFilesystemViewer::~CFilesystemViewer()
