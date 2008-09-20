@@ -39,6 +39,7 @@
 #define BPMEM_CLEARBBOX2       0x56 //  TODO(ector): add something that watches bboxes
 #define BPMEM_TEXMODE0_1       0x80
 #define BPMEM_TEXMODE0_2       0xA0
+#define BPMEM_FOGRANGE         0xE8
 #define BPMEM_FOGPARAM0        0xEE
 #define BPMEM_FOGBMAGNITUDE    0xEF
 #define BPMEM_FOGBEXPONENT     0xF0

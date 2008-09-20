@@ -311,6 +311,14 @@ void BPWritten(int addr, int changes, int newval)
 		}
 		break;
 
+	case BPMEM_FOGRANGE:
+		if(changes) {
+			// TODO(XK): Fog range format
+			//Renderer::SetRenderState(D3DRS_FOGSTART, ...
+			//Renderer::SetRenderState(D3DRS_FOGEND, ...
+		}
+		break;
+
 	case BPMEM_FOGPARAM0:
 		{
 			// u32 fogATemp = bpmem.fog.a<<12;
@@ -341,11 +349,7 @@ void BPWritten(int addr, int changes, int newval)
 			/// u32 fogCTemp = bpmem.fog.c_proj_fsel.cShifted12 << 12;
 			// float fogC = *(float*)(&fogCTemp);
 
-			if(bpmem.fog.c_proj_fsel.fsel > 0 && !bFog) {
-				Renderer::SetRenderState(D3DRS_FOGENABLE, true);
-				bFog = true;
-			}
-
+			
 			//printf("%f %f magnitude: %x\n", bpmem.fog.a.GetA(),bpmem.fog.c_proj_fsel.GetC(), bpmem.fog.b_magnitude);
 			switch(bpmem.fog.c_proj_fsel.fsel)
 			{
@@ -373,6 +377,12 @@ void BPWritten(int addr, int changes, int newval)
 				PanicAlert("Non-Emulated Fog selection %d\n", bpmem.fog.c_proj_fsel.fsel);
 				break;
 			}
+
+			if(bpmem.fog.c_proj_fsel.fsel > 0 && !bFog) {
+				Renderer::SetRenderState(D3DRS_FOGENABLE, true);
+				bFog = true;
+			}
+
 		}
 		break;
 

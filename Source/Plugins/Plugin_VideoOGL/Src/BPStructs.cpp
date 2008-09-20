@@ -256,6 +256,14 @@ void BPWritten(int addr, int changes, int newval)
         }
         break;
 
+	case BPMEM_FOGRANGE:
+		if(changes) {
+			// TODO(XK): Fog range format
+			//glFogi(GL_FOG_START, ...
+			//glFogi(GL_FOG_END, ...
+		}
+		break;
+
     case BPMEM_FOGPARAM0:
     case BPMEM_FOGBEXPONENT: 
     case BPMEM_FOGBMAGNITUDE:
