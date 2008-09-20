@@ -1,4 +1,5 @@
 # -*- python -*- 
+
 import os
 import sys
 
@@ -82,6 +83,7 @@ vars.AddVariables(
         BoolVariable('verbose', 'Set for compilation line', False),
         BoolVariable('debug', 'Set for debug build', False),
         BoolVariable('lint', 'Set for lint build (extra warnings)', False),
+        BoolVariable('nowx', 'Set For Building with no WX libs', False),
         EnumVariable('flavor', 'Choose a build flavor', 'release',
                      allowed_values=('release', 'devel', 'debug'),
                      ignorecase=2)
@@ -104,6 +106,17 @@ if bool(lint):
         warnings.append('unreachable-code')
 	warnings.append('float-equal')
 
+nowx = ARGUMENTS.get('nowx', 0)
+if int(nowx):
+	WxCppFlags = ''
+	WxLibFlags = ''
+else:
+	WxCppFlags = os.popen('wx-config --cppflags').read()
+	if WxCppFlags[-1] == "\n":
+		WxCppFlags = WxCppFlags[:-1]
+	WxLibFlags = os.popen('wx-config --libs').read()
+	if WxLibFlags[-1] == "\n":
+		WxLibFlags = WxLibFlags[:-1]
 
 compileFlags += [ '-W' + warning for warning in warnings ]
 
@@ -115,7 +128,9 @@ env = Environment(
 	CPPDEFINES = cppDefines,
 	CPPPATH = include_paths,
 	LIBPATH = lib_paths,
-        variables = vars,
+	variables = vars,
+	WXCPPFLAGS = WxCppFlags,
+	WXLIBFLAGS = WxLibFlags,
 	ENV = {
 		'PATH' : os.environ['PATH'],
 		'HOME' : os.environ['HOME']

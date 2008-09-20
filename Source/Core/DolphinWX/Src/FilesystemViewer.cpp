@@ -41,7 +41,7 @@ CFilesystemViewer::CFilesystemViewer(const std::string fileName, wxWindow* paren
 {
 	OpenIso = DiscIO::CreateVolumeFromFilename(fileName);
 	pFileSystem = DiscIO::CreateFileSystem(*OpenIso);
-	std::vector<SFileInfo> Our_Files;
+	std::vector<DiscIO::SFileInfo> Our_Files;
 	pFileSystem->GetFileList(&Our_Files);
 	CreateGUIControls();
 	

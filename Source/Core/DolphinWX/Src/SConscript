@@ -24,7 +24,7 @@ libs = [
 wxenv = env.Clone()
 wxenv.Append(
 	CXXFLAGS = ' ' + ' '.join([
-		'`wx-config --cppflags`',
+		env['WXCPPFLAGS'],
 		'-DUSE_XPM_BITMAPS',
 		'-DwxNEEDS_CHARPP',
 		'`sdl-config --cflags`',
@@ -32,7 +32,7 @@ wxenv.Append(
 	LINKFLAGS = ' ' + ' '.join([
 		'-L/usr/local/lib',
 		'-pthread',
-		'`wx-config --libs`',
+		env['WXLIBFLAGS'],
 		'`sdl-config --libs`'
 		])
 	)

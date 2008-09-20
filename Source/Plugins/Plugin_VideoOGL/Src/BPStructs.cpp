@@ -561,9 +561,9 @@ void SetColorMask()
 
 bool SetScissorRect()
 {
-    int xoff = bpmem.scissorOffset.x*2-342;
-    int yoff = bpmem.scissorOffset.y*2-342;
-    //printf("xoff: %d yoff: %d\n", xoff, yoff);
+    int xoff = bpmem.scissorOffset.x * 2 - 342;
+    int yoff = bpmem.scissorOffset.y * 2 - 342;
+
     RECT rc;
     rc.left = bpmem.scissorTL.x + xoff - 342;
     rc.left *= MValueX;
@@ -572,10 +572,10 @@ bool SetScissorRect()
     rc.top *= MValueY;
     if (rc.top < 0) rc.top = 0;
     
-    rc.right = bpmem.scissorBR.x + xoff - 342 +1;
+    rc.right = bpmem.scissorBR.x + xoff - 342;
     rc.right *= MValueX;
     if (rc.right > 640 * MValueX) rc.right = 640 * MValueX;
-    rc.bottom = bpmem.scissorBR.y + yoff - 342 +1;
+    rc.bottom = bpmem.scissorBR.y + yoff - 342;
     rc.bottom *= MValueY;
     if (rc.bottom > 480 * MValueY) rc.bottom = 480 * MValueY;
 

@@ -22,6 +22,16 @@
 
 namespace DiscIO
 {
+// file info of an FST entry
+struct SFileInfo
+{
+	u32 m_NameOffset;
+	u64 m_Offset;
+	u32 m_FileSize;
+	char m_FullPath[512];
+
+	bool IsDirectory() {return((m_NameOffset& 0xFF000000) != 0 ? true : false);}
+};
 class IFileSystem
 {
 	public:

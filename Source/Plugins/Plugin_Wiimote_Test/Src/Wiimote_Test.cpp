@@ -144,7 +144,7 @@ extern "C" void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 extern "C" void DllAbout(HWND _hParent) 
 {
 	wxAboutDialogInfo info;
-	info.SetName("Wiimote test plugin");
+	info.SetName(_T("Wiimote test plugin"));
 	info.AddDeveloper(_T("masken (masken3@gmail.com)"));
 	info.SetDescription(_T("Wiimote test plugin"));
 	wxAboutBox(info);

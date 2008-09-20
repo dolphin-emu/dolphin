@@ -24,10 +24,10 @@ files = [
 	]
 compileFlags = [
 	'-fPIC',
-	'`wx-config --cppflags`',
+	env['WXCPPFLAGS'],
 	]
 linkFlags = [
-	'`wx-config --libs`',
+	env['WXLIBFLAGS'],
 	]
 libs = [
 	'videocommon', 'common', 'GLEW',

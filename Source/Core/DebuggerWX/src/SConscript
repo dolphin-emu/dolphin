@@ -18,14 +18,14 @@ files = ["LogWindow.cpp",
 wxenv = env.Clone()
 wxenv.Append(
 	CXXFLAGS = ' ' + ' '.join([
-		'`wx-config --cppflags`',
+		env['WXCPPFLAGS'],
 		'-DUSE_XPM_BITMAPS',
 		'-DwxNEEDS_CHARPP'
 		]),
 	LINKFLAGS = ' ' + ' '.join([
 		'-L/usr/local/lib',
 		'-pthread',
-		'`wx-config --libs --debug`'
+		env['WXLIBFLAGS'],
 		])
 	)
 wxenv.StaticLibrary("debwx", files, LIBS = [ "common" ])
