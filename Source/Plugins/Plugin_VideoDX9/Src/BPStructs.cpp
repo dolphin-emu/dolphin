@@ -31,6 +31,8 @@
 
 bool textureChanged[8];
 
+const bool renderFog = false;
+
 // State translation lookup tables
 const D3DBLEND d3dSrcFactors[8] =
 {
@@ -328,22 +330,64 @@ void BPWritten(int addr, int changes, int newval)
 
 	case BPMEM_FOGPARAM3:
 		//fog settings
-		{
+		if(changes) {
+			static bool bFog = false;
+			CVertexHandler::Flush();
+			((u32*)&bpmem)[addr] = newval;
+			
+			if(!renderFog)
+				break;
+
 			/// u32 fogCTemp = bpmem.fog.c_proj_fsel.cShifted12 << 12;
 			// float fogC = *(float*)(&fogCTemp);
-            CVertexHandler::Flush();
-            ((u32*)&bpmem)[addr] = newval;
+
+			if(bpmem.fog.c_proj_fsel.fsel > 0 && !bFog) {
+				Renderer::SetRenderState(D3DRS_FOGENABLE, true);
+				bFog = true;
+			}
+
+			//printf("%f %f magnitude: %x\n", bpmem.fog.a.GetA(),bpmem.fog.c_proj_fsel.GetC(), bpmem.fog.b_magnitude);
+			switch(bpmem.fog.c_proj_fsel.fsel)
+			{
+			case 0: // Off
+				if(bFog) {
+					Renderer::SetRenderState(D3DRS_FOGENABLE, false);
+					bFog = false;
+				}	
+				break;
+			case 2: // Linear
+				Renderer::SetRenderState(D3DRS_FOGVERTEXMODE, D3DFOG_LINEAR);
+				break;
+			case 4: // exp
+				Renderer::SetRenderState(D3DRS_FOGVERTEXMODE, D3DFOG_EXP);
+				break;
+			case 5: // exp2
+				Renderer::SetRenderState(D3DRS_FOGVERTEXMODE, D3DFOG_EXP2);
+				break;
+			case 6: // Backward exp
+			case 7: // Backward exp2
+				PanicAlert("Backward Exponential Fog Detected");
+				// TODO: Figure out how to do these in any rendering API
+				//TEV_FSEL_BX, TEV_FSEL_BX2?
+			default:
+				PanicAlert("Non-Emulated Fog selection %d\n", bpmem.fog.c_proj_fsel.fsel);
+				break;
+			}
 		}
 		break;
 
 	case BPMEM_FOGCOLOR:
-		if (changes)
-		{
+		 if(changes) {
 			CVertexHandler::Flush();
 			((u32*)&bpmem)[addr] = newval;
-			
+
+			if(!renderFog)
+				break;
+
 			// dev->SetRenderState(D3DRS_FOGCOLOR,bpmem.fog.color);
-			Renderer::SetRenderState( D3DRS_FOGCOLOR, bpmem.fog.color );
+			int fogcolor[3] = { ((bpmem.fog.color>>16)&0xff), ((bpmem.fog.color>>8)&0xff), (bpmem.fog.color&0xff)};
+			//D3DCOLOR_RGBA(fogcolor[0], fogcolor[1], fogcolor[2], 0)
+			Renderer::SetRenderState(D3DRS_FOGCOLOR, bpmem.fog.color);
 		}
 		break;
 

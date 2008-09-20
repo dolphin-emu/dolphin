@@ -291,6 +291,7 @@ void BPWritten(int addr, int changes, int newval)
                 case 6: // Backward exp
                 case 7: // Backward exp2
                     // TODO: Figure out how to do these in GL
+					//TEV_FSEL_BX, TEV_FSEL_BX2?
                 default:
                     printf("Non-Emulated Fog selection %d\n", bpmem.fog.c_proj_fsel.fsel);
                 break;
