@@ -162,6 +162,7 @@ private:
 	};
 
 	EState m_State;
+	u32 m_UpdateWaitCount;
 	bdaddr_t m_StateTempBD;
 	u16 m_StateTempConnectionHandle;
 

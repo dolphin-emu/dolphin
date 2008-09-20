@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "WII_IPC_HLE_Device_usb.h"
+#include "../Plugins/Plugin_Wiimote.h"
 #include <vector>
 
 CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _DeviceID, const std::string& _rDeviceName)
@@ -24,6 +25,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 , m_pACLBuffer(NULL)
 , m_pHCIBuffer(NULL)
 , m_State(STATE_NONE)
+, m_UpdateWaitCount(0)
 , scan_enable(0)
 , m_DelayedEvent(EVENT_NONE)
 {
@@ -190,8 +192,6 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 	return true;
 }
 
-extern void SendFrame(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pDevice, u16 _ConnectionHandle, u8* _pData, u32 _Size);
-
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendToDevice(u16 _ConnectionHandle, u8* _pData, u32 _Size)
 {
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_ConnectionHandle);
@@ -234,6 +234,15 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLFrame(u16 _ConnectionHandle, u8
 
 u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 {
+#if 0
+	if(m_UpdateWaitCount < 5) {
+		m_UpdateWaitCount++;
+		return 0;
+	} else {
+		m_UpdateWaitCount = 0;
+	}
+#endif
+
 	//LOG(WIIMOTE, "Update() %i 0x%08x",
 		//m_HCICommandMessageQueue.size(), m_pHCIBuffer);
 	// check state machine
@@ -365,6 +374,8 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		m_pACLBuffer = NULL;
 		return Addr;
 	}
+
+	PluginWiimote::Wiimote_Update();
 
 	return 0; 
 }

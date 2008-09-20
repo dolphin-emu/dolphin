@@ -83,6 +83,14 @@ EXPORT void CALL Wiimote_Shutdown();
 EXPORT void CALL Wiimote_Output(const void* _pData, u32 _Size);
 
 // __________________________________________________________________________________________________
+// Function: Wiimote_Update
+// Purpose:  This function is called periodically by the Core.
+// input:    none
+// output:   none
+//
+EXPORT void CALL Wiimote_Update();
+
+// __________________________________________________________________________________________________
 // Function: PAD_GetAttachedPads
 // Purpose:  Get mask of attached pads (eg: controller 1 & 4 -> 0x9)
 // input:	 none

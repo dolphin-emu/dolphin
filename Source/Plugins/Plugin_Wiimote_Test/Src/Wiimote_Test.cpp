@@ -26,6 +26,8 @@ u8 g_RegSpeaker[WIIMOTE_REG_SPEAKER_SIZE];
 u8 g_RegExt[WIIMOTE_REG_EXT_SIZE];
 u8 g_RegIr[WIIMOTE_REG_IR_SIZE];
 
+u8 g_ReportingMode;
+
 static const u8 EepromData_0[] = {
 	0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30,
 	0xA7, 0x74, 0xD3, 0xA1, 0xAA, 0x8B, 0x99, 0xAE,
@@ -142,6 +144,7 @@ extern "C" void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 extern "C" void DllAbout(HWND _hParent) 
 {
 	wxAboutDialogInfo info;
+	info.SetName("Wiimote test plugin");
 	info.AddDeveloper(_T("masken (masken3@gmail.com)"));
 	info.SetDescription(_T("Wiimote test plugin"));
 	wxAboutBox(info);
@@ -159,9 +162,12 @@ extern "C" void Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize)
 	memset(g_Eeprom, 0, WIIMOTE_EEPROM_SIZE);
 	memcpy(g_Eeprom, EepromData_0, sizeof(EepromData_0));
 	memcpy(g_Eeprom + 0x16D0, EepromData_16D0, sizeof(EepromData_16D0));
+
+	g_ReportingMode = 0;
 }
 
 extern "C" void Wiimote_DoState(void* ptr, int mode) {
+	//TODO: implement
 }
 
 extern "C" void Wiimote_Shutdown(void) 
@@ -192,6 +198,14 @@ extern "C" void Wiimote_Output(const void* _pData, u32 _Size) {
 	} else {
 		PanicAlert("HidOutput: Unknown type 0x%02x", data[0]);
 	}
+}
+
+extern "C" void Wiimote_Update() {
+	//LOG(WIIMOTE, "Wiimote_Update");
+	if(g_ReportingMode == 0x33)
+		SendReportCoreAccelIr12();
+	else if(g_ReportingMode == 0x31)
+		SendReportCoreAccel();
 }
 
 extern "C" unsigned int Wiimote_GetAttachedControllers() {
@@ -246,10 +260,7 @@ void WmDataReporting(wm_data_reporting* dr) {
 	LOG(WIIMOTE, "  Rumble: %x", dr->rumble);
 	LOG(WIIMOTE, "  Mode: 0x%02x", dr->mode);
 
-	if(dr->mode == 0x33)
-		SendReportCoreAccelIr12();
-	else if(dr->mode == 0x31)
-		SendReportCoreAccel();
+	g_ReportingMode = dr->mode;
 }
 
 void SendReportCoreAccelIr12() {
@@ -265,11 +276,25 @@ void SendReportCoreAccelIr12() {
 	pReport->a.y = 0x78;
 	pReport->a.z = 0xD9;
 
-	pReport->ir[0].x = 320 & 0xFF;
-	pReport->ir[0].y = 240;
+	int x = 600;
+	int y = 440;
+
+	x = 1023 - x;
+	pReport->ir[0].x = x & 0xFF;
+	pReport->ir[0].y = y & 0xFF;
 	pReport->ir[0].size = 10;
-	pReport->ir[0].xHi = 320 >> 8;
-	pReport->ir[0].yHi = 0;
+	pReport->ir[0].xHi = x >> 8;
+	pReport->ir[0].yHi = y >> 8;
+
+	x = 100;
+	y = 450;
+
+	x = 1023 - x;
+	pReport->ir[1].x = x;
+	pReport->ir[1].y = y & 0xFF;
+	pReport->ir[1].size = 5;
+	pReport->ir[1].xHi = x >> 8;
+	pReport->ir[1].yHi = y >> 8;
 
 	LOG(WIIMOTE, "  SendReportCoreAccelIr12()");
 

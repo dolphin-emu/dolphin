@@ -32,6 +32,7 @@ typedef void (__cdecl* TDllAbout)(HWND);
 typedef void (__cdecl* TDllConfig)(HWND);
 typedef void (__cdecl* TWiimote_Initialize)(SWiimoteInitialize);
 typedef void (__cdecl* TWiimote_Shutdown)();
+typedef void (__cdecl* TWiimote_Update)();
 typedef void (__cdecl* TWiimote_Output)(const void* _pData, u32 _Size);
 typedef unsigned int (__cdecl* TWiimote_GetAttachedControllers)();
 typedef void (__cdecl* TWiimote_DoState)(void *ptr, int mode);
@@ -43,6 +44,7 @@ extern TDllConfig					DllConfig;
 extern TWiimote_Initialize				Wiimote_Initialize;
 extern TWiimote_Shutdown				Wiimote_Shutdown;
 extern TWiimote_Output			    Wiimote_Output;
+extern TWiimote_Update			    Wiimote_Update;
 extern TWiimote_GetAttachedControllers			    Wiimote_GetAttachedControllers;
 extern TWiimote_DoState			Wiimote_DoState;
 

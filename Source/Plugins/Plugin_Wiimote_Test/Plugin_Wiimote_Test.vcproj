@@ -513,6 +513,10 @@
 	</References>
 	<Files>
 		<File
+			RelativePath="..\..\PluginSpecs\pluginspecs_wiimote.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\wiimote_hid.h"
 			>
 		</File>

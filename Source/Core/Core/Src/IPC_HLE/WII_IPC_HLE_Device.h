@@ -64,17 +64,24 @@ protected:
             for (u32 i=0; i<NumberInBuffer; i++)
             {
                 SBuffer Buffer;
-                Buffer.m_Address = Memory::Read_U32(BufferVectorOffset); BufferVectorOffset += 4;
+                Buffer.m_Address = Memory::Read_U32(BufferVectorOffset);
+								//restore cached address, mauled by emulatee's ioctl functions.
+								Memory::Write_U32(Buffer.m_Address | 0x80000000, BufferVectorOffset);
+								BufferVectorOffset += 4;
                 Buffer.m_Size = Memory::Read_U32(BufferVectorOffset); BufferVectorOffset += 4;
+								LOG(WII_IPC_HLE, "SIOCtlVBuffer in%i: 0x%08x, 0x%x", i, Buffer.m_Address, Buffer.m_Size);
                 InBuffer.push_back(Buffer);
             }
             for (u32 i=0; i<NumberPayloadBuffer; i++)
             {
                 SBuffer Buffer;
-                Buffer.m_Address = Memory::Read_U32(BufferVectorOffset); BufferVectorOffset += 4;
+                Buffer.m_Address = Memory::Read_U32(BufferVectorOffset);
+								Memory::Write_U32(Buffer.m_Address | 0x80000000, BufferVectorOffset);
+								BufferVectorOffset += 4;
                 Buffer.m_Size = Memory::Read_U32(BufferVectorOffset); BufferVectorOffset += 4;
+								LOG(WII_IPC_HLE, "SIOCtlVBuffer io%i: 0x%08x, 0x%x", i, Buffer.m_Address, Buffer.m_Size);
                 PayloadBuffer.push_back(Buffer);
-            }            
+            }
         }
 
  		// STATE_TO_SAVE

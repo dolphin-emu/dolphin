@@ -177,10 +177,13 @@ void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 	u8* pData = _pData + sizeof(SL2CAP_Header);
 	u32 DataSize = _Size - sizeof(SL2CAP_Header);
 
-	LOG(WIIMOTE, "L2Cap-SendFrame: Len 0x%x, Channel 0x%04x",
-		pHeader->Length, pHeader->CID);
+	LOG(WIIMOTE, "L2Cap-SendFrame: Channel 0x%04x, Len 0x%x, DataSize 0x%x",
+		pHeader->CID, pHeader->Length, DataSize);
 
-	_dbg_assert_(WIIMOTE, pHeader->Length == DataSize);
+	if(pHeader->Length != DataSize) {
+		LOG(WIIMOTE, "Faulty packet. It is dropped.");
+		return;
+	}
 
 	switch (pHeader->CID)
 	{
