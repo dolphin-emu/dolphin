@@ -121,17 +121,17 @@ env = Environment(
 		'HOME' : os.environ['HOME']
 		},
 	BUILDERS = builders,
-        DESCRIPTION = description,
-        SUMMARY=description,
-        LICENSE = license,
-        NAME = name,
-        VERSION = version,
+       DESCRIPTION = description,
+       SUMMARY = description,
+       LICENSE = license,
+       NAME = name,
+       VERSION = version,
 	)
 
 # verbose compile
 verbose = ARGUMENTS.get('verbose', False)
 
-if not verbose:
+if not bool(verbose):
         env['CCCOMSTR'] = "Compiling $TARGET"
         env['CXXCOMSTR'] = "Compiling $TARGET"
         env['ARCOMSTR'] = " ar $TARGER"
