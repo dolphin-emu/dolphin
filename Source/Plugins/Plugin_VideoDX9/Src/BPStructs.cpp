@@ -226,9 +226,13 @@ void BPWritten(int addr, int changes, int newval)
 		break;
 
 	case BPMEM_LINEPTWIDTH:
-		// We can't change line width in D3D. However, we can change point size. TODO
-		//bpmem.lineptwidth.pointsize);
-		//bpmem.lineptwidth.linesize);
+		{
+			// We can't change line width in D3D unless we use ID3DXLine
+			//bpmem.lineptwidth.linesize);
+			float psize = float(bpmem.lineptwidth.pointsize) * 6.0f;
+
+			Renderer::SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&psize));
+		}
 		break;
 	
 	case 0x43:
