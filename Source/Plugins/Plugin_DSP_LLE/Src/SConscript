@@ -17,9 +17,10 @@ files = [
 	"main.cpp",
 	]
 
-dspenv = env.Clone()
-dspenv.Append(
-	CXXFLAGS = ' ' + ' '.join([ '-fPIC', '`pkg-config --cflags ao`' ]),
-	LINKFLAGS = ' ' + ' '.join([ '`pkg-config --libs ao`' ])
-	)
-dspenv.SharedLibrary(output, files, LIBS = ["common"])
+lleenv = env.Clone()
+lleenv.Append(
+    CXXFLAGS = [ '-fPIC', ],
+    )
+
+
+lleenv.SharedLibrary(output, files, LIBS = ["common"])

@@ -14,11 +14,9 @@ files = [
 
 padenv = env.Clone()
 padenv.Append(
-	CXXFLAGS = ' ' + ' '.join([
-		'-fPIC', env['WXCPPFLAGS'], '`pkg-config --cflags sdl`'
-		]),
-	LINKFLAGS = ' ' + ' '.join([
-		env['WXLIBFLAGS'], '`pkg-config --libs sdl`'
-		])
+	CXXFLAGS = [
+		'-fPIC',
+		],
 	)
+
 padenv.SharedLibrary(output, files, LIBS = [ "common" ])

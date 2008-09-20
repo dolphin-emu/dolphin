@@ -24,14 +24,15 @@ files = [
 	]
 compileFlags = [
 	'-fPIC',
-	env['WXCPPFLAGS'],
 	]
 linkFlags = [
-	env['WXLIBFLAGS'],
 	]
 libs = [
 	'videocommon', 'common', 'GLEW',
 	]
+
+gfxenv = env.Clone()
+
 if sys.platform == 'darwin':
 	platform = 'mac'
 	# SDL is currently the only way to get video on Mac OS X.
@@ -49,23 +50,20 @@ else:
 	# By default, GLX is used on Linux to setup OpenGL, but you can select SDL
 	# instead if you like, by changing the line below.
 	useSDL = False
-	# Libraries with pkg-config support.
-	compileFlags.append('`pkg-config --cflags xxf86vm`')
-	linkFlags.append('`pkg-config --libs xxf86vm`')
+        gfxenv.ParseConfig("pkg-config --libs ao")
+
 	# Libraries without pkg-config support.
 	libs += [ 'GL', 'Cg', 'CgGL', 'X11' ]
 
-if useSDL:
-	compileFlags += [ '`sdl-config --cflags`', '-DUSE_SDL=1' ]
-	linkFlags += [ '`sdl-config --libs`' ]
+if useSDL:                    
+	compileFlags += [ '-DUSE_SDL=1' ]
 
-gfxenv = env.Clone()
 gfxenv.Append(
-	CXXFLAGS = ' ' + ' '.join(compileFlags),
-	LINKFLAGS = ' ' + ' '.join(linkFlags)
+	CXXFLAGS = compileFlags,
 	)
+
 gfxenv.SharedLibrary(
 	'../../../../Binary/%s/Plugins/zeroogl.so' % platform,
 	files,
-	LIBS = libs
+	LIBS = gfxenv['LIBS'] + libs
 	)

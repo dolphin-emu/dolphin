@@ -83,54 +83,22 @@ vars.AddVariables(
         BoolVariable('verbose', 'Set for compilation line', False),
         BoolVariable('debug', 'Set for debug build', False),
         BoolVariable('lint', 'Set for lint build (extra warnings)', False),
-        BoolVariable('nowx', 'Set For Building with no WX libs', False),
+        BoolVariable('nowx', 'Set For Building with no WX libs (WIP)', False),
         EnumVariable('flavor', 'Choose a build flavor', 'release',
                      allowed_values=('release', 'devel', 'debug'),
                      ignorecase=2)
 
 )
 
-# build falvuor
-flavour =  ARGUMENTS.get('flavor')
-if (flavour == 'debug'):
-	compileFlags.append('-g')
-        cppDefines.append('LOGGING')
-else:
-	compileFlags.append('-O3')
 
-
-# more warnings
-lint = ARGUMENTS.get('lint', False)
-if bool(lint):
-	warnings.append('error')
-        warnings.append('unreachable-code')
-	warnings.append('float-equal')
-
-nowx = ARGUMENTS.get('nowx', 0)
-if int(nowx):
-	WxCppFlags = ''
-	WxLibFlags = ''
-else:
-	WxCppFlags = os.popen('wx-config --cppflags').read()
-	if WxCppFlags[-1] == "\n":
-		WxCppFlags = WxCppFlags[:-1]
-	WxLibFlags = os.popen('wx-config --libs').read()
-	if WxLibFlags[-1] == "\n":
-		WxLibFlags = WxLibFlags[:-1]
-
-compileFlags += [ '-W' + warning for warning in warnings ]
+#compileFlags += [ '-W' + warning for warning in warnings ]
 
 env = Environment(
 	CC = 'gcc',
 	CXX = 'g++',
-	CCFLAGS = ' '.join(compileFlags),
-	CXXFLAGS = ' '.join(compileFlags + [ '-fvisibility-inlines-hidden' ]),
-	CPPDEFINES = cppDefines,
 	CPPPATH = include_paths,
 	LIBPATH = lib_paths,
 	variables = vars,
-	WXCPPFLAGS = WxCppFlags,
-	WXLIBFLAGS = WxLibFlags,
 	ENV = {
 		'PATH' : os.environ['PATH'],
 		'HOME' : os.environ['HOME']
@@ -144,17 +112,48 @@ env = Environment(
 	)
 
 # verbose compile
-verbose = ARGUMENTS.get('verbose', False)
-
-if not bool(verbose):
+if not env['verbose']:
         env['CCCOMSTR'] = "Compiling $TARGET"
         env['CXXCOMSTR'] = "Compiling $TARGET"
-        env['ARCOMSTR'] = " ar $TARGET"
+        env['ARCOMSTR'] = "AR $TARGET"
         env['LINKCOMSTR'] = "Linking $TARGET"
         
+# build falvuor
+flavour =  ARGUMENTS.get('flavor')
+if (flavour == 'debug'):
+	compileFlags.append('-g')
+        cppDefines.append('LOGGING')
+else:
+	compileFlags.append('-O3')
+
+
+# more warnings
+if env['lint']:
+	warnings.append('error')
+        warnings.append('unreachable-code')
+	warnings.append('float-equal')
+
+# add the warnings to the compile flags
+compileFlags += [ '-W' + warning for warning in warnings ]
+
+env['CCFLAGS'] = compileFlags
+env['CXXFLAGS'] = compileFlags + [ '-fvisibility-inlines-hidden' ]
+env['CPPDEFINES'] = cppDefines
+
+# handling wx flags CCFLAGS should be created before
+# TODO: add version check 
+if not env['nowx']:
+        env.ParseConfig('wx-config --cflags --libs')        
+
+#get sdl stuff
+env.ParseConfig("sdl-config --cflags --libs")
+
+# lib ao (needed for sound plugins)
+env.ParseConfig("pkg-config --cflags --libs ao")
 
 Export('env')
 
+# print a nice progress indication when not compiling
 Progress(['-\r', '\\\r', '|\r', '/\r'], interval=5)
 
 # die on unknown variables
@@ -163,7 +162,7 @@ if unknown:
         print "Unknown variables:", unknown.keys()
         Exit(1)
 
-#generate help
+# generate help
 Help(vars.GenerateHelpText(env))
 
 for subdir in dirs:

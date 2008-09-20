@@ -11,7 +11,7 @@ files = [
 def filterWarnings(flags):
 	return ' '.join(
 		flag
-		for flag in flags.split()
+		for flag in flags
 		if not flag.startswith('-W')
 		)
 env_bochs = env.Clone(

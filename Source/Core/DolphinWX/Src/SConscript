@@ -23,18 +23,14 @@ libs = [
 
 wxenv = env.Clone()
 wxenv.Append(
-	CXXFLAGS = ' ' + ' '.join([
-		env['WXCPPFLAGS'],
+	CXXFLAGS = [
 		'-DUSE_XPM_BITMAPS',
 		'-DwxNEEDS_CHARPP',
-		'`sdl-config --cflags`',
-		]),
-	LINKFLAGS = ' ' + ' '.join([
+		],
+	LINKFLAGS = [
 		'-L/usr/local/lib',
 		'-pthread',
-		env['WXLIBFLAGS'],
-		'`sdl-config --libs`'
-		])
+		]
 	)
 
 if sys.platform == 'darwin':
@@ -66,5 +62,5 @@ else:
 	exeNoGUI = '../../../../Binary/linux/DolphinNoGUI'
 
 objects = [ wxenv.Object(srcFile) for srcFile in files ]
-wxenv.Program(exeGUI, objects + [ 'Main.cpp' ], LIBS = libs)
-wxenv.Program(exeNoGUI, objects + [ 'MainNoGUI.cpp' ], LIBS = libs)
+wxenv.Program(exeGUI, objects + [ 'Main.cpp' ], LIBS=wxenv['LIBS']+libs)
+wxenv.Program(exeNoGUI, objects + [ 'MainNoGUI.cpp' ], LIBS=wxenv['LIBS']+libs)
