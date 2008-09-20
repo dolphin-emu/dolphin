@@ -112,7 +112,7 @@ env = Environment(
 	CXX = 'g++',
 	CCFLAGS = ' '.join(compileFlags),
 	CXXFLAGS = ' '.join(compileFlags + [ '-fvisibility-inlines-hidden' ]),
-        CPPDEFINES = cppDefines,
+	CPPDEFINES = cppDefines,
 	CPPPATH = include_paths,
 	LIBPATH = lib_paths,
         variables = vars,
@@ -121,11 +121,11 @@ env = Environment(
 		'HOME' : os.environ['HOME']
 		},
 	BUILDERS = builders,
-       DESCRIPTION = description,
-       SUMMARY = description,
-       LICENSE = license,
-       NAME = name,
-       VERSION = version,
+	DESCRIPTION = description,
+	SUMMARY = description,
+	LICENSE = license,
+	NAME = name,
+	VERSION = version,
 	)
 
 # verbose compile
@@ -134,7 +134,7 @@ verbose = ARGUMENTS.get('verbose', False)
 if not bool(verbose):
         env['CCCOMSTR'] = "Compiling $TARGET"
         env['CXXCOMSTR'] = "Compiling $TARGET"
-        env['ARCOMSTR'] = " ar $TARGER"
+        env['ARCOMSTR'] = " ar $TARGET"
         env['LINKCOMSTR'] = "Linking $TARGET"
         
 
