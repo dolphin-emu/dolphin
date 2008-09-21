@@ -7,6 +7,8 @@ import sys
 sys.path.append('SconsTests')
 import wxconfig 
 
+# Some features needs at least scons 0.98
+EnsureSConsVersion(0, 98)
 
 # TODO: how do we use it in help?
 name="Dolphin"
