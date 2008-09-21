@@ -48,8 +48,7 @@ class CFileSystemGCWii
 
 	private:
 
-		typedef std::vector<SFileInfo>CFileInfoVector;
-		CFileInfoVector m_FileInfoVector;
+		std::vector<SFileInfo *> m_FileInfoVector;
 
 		bool m_Initialized;
 
@@ -57,7 +56,7 @@ class CFileSystemGCWii
 
 		u32 Read32(u64 _Offset) const;
 
-		virtual size_t GetFileList(std::vector<SFileInfo> *_rFilenames);
+		virtual size_t GetFileList(std::vector<SFileInfo *> &_rFilenames);
 
 		void GetStringFromOffset(u64 _Offset, char* Filename) const;
 

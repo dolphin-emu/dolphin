@@ -32,6 +32,15 @@ struct SFileInfo
 	char m_FullPath[512];
 
 	bool IsDirectory() {return((m_NameOffset& 0xFF000000) != 0 ? true : false);}
+
+	SFileInfo() : m_NameOffset(0), m_Offset(0), m_FileSize(0) {
+		memset(m_FullPath, 0, 512);
+	}
+
+	SFileInfo(const SFileInfo &rhs) : m_NameOffset(rhs.m_NameOffset), 
+		m_Offset(rhs.m_Offset), m_FileSize(rhs.m_FileSize) {
+		strcpy(m_FullPath, rhs.m_FullPath);
+	}
 };
 class IFileSystem
 {
@@ -44,7 +53,7 @@ class IFileSystem
 		virtual bool IsInitialized() = 0;
 
 
-		virtual size_t GetFileList(std::vector<SFileInfo> *_rFilenames) = 0;
+		virtual size_t GetFileList(std::vector<SFileInfo *> &_rFilenames) = 0;
 
 		virtual size_t GetFileSize(const char* _rFullPath) = 0;
 

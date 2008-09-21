@@ -35,7 +35,13 @@ CFileSystemGCWii::CFileSystemGCWii(const IVolume& _rVolume)
 
 
 CFileSystemGCWii::~CFileSystemGCWii()
-{}
+{
+	while(m_FileInfoVector.size() > 0) {
+		SFileInfo *sfi = m_FileInfoVector.back();
+		m_FileInfoVector.pop_back();
+		delete sfi;
+	}
+}
 
 
 bool
@@ -69,10 +75,10 @@ CFileSystemGCWii::GetFileName(u64 _Address)
 {
 	for (size_t i = 0; i < m_FileInfoVector.size(); i++)
 	{
-		if ((m_FileInfoVector[i].m_Offset <= _Address) &&
-		    ((m_FileInfoVector[i].m_Offset + m_FileInfoVector[i].m_FileSize) > _Address))
+		if ((m_FileInfoVector[i]->m_Offset <= _Address) &&
+		    ((m_FileInfoVector[i]->m_Offset + m_FileInfoVector[i]->m_FileSize) > _Address))
 		{
-			return(m_FileInfoVector[i].m_FullPath);
+			return(m_FileInfoVector[i]->m_FullPath);
 		}
 	}
 
@@ -159,15 +165,12 @@ void CFileSystemGCWii::GetStringFromOffset(u64 _Offset, char* Filename) const
 	m_rVolume.Read(_Offset, 255, (u8*)Filename);
 }
 
-size_t CFileSystemGCWii::GetFileList(std::vector<SFileInfo> *_rFilenames)
-{
-	if(_rFilenames == NULL)
-		return m_FileInfoVector.size();
-	
-	(*_rFilenames).resize(m_FileInfoVector.size());	
+size_t CFileSystemGCWii::GetFileList(std::vector<SFileInfo *> &_rFilenames)
+{	
+	_rFilenames.clear();
 	for (size_t i = 0; i < m_FileInfoVector.size(); i++)
 	{
-		(*_rFilenames)[i] = m_FileInfoVector[i];
+		_rFilenames.push_back(new SFileInfo(*m_FileInfoVector[i]));
 	}
 	return m_FileInfoVector.size();
 }
@@ -177,9 +180,9 @@ CFileSystemGCWii::FindFileInfo(const char* _rFullPath) const
 {
 	for (size_t i = 0; i < m_FileInfoVector.size(); i++)
 	{
-		if (!strcasecmp(m_FileInfoVector[i].m_FullPath, _rFullPath))
+		if (!strcasecmp(m_FileInfoVector[i]->m_FullPath, _rFullPath))
 		{
-			return(&m_FileInfoVector[i]);
+			return(m_FileInfoVector[i]);
 		}
 	}
 
@@ -217,15 +220,19 @@ CFileSystemGCWii::InitFileSystem()
 
 	if (Root.IsDirectory())
 	{
-		m_FileInfoVector.resize(Root.m_FileSize);
+		m_FileInfoVector.clear();
 		u64 NameTableOffset = FSTOffset;
 
-		for (size_t i = 0; i < m_FileInfoVector.size(); i++)
+		for (u32 i = 0; i < Root.m_FileSize; i++)
 		{
+			SFileInfo *sfi = new SFileInfo();
 			u64 Offset = FSTOffset + (i * 0xC);
-			m_FileInfoVector[i].m_NameOffset = Read32(Offset + 0x0);
-			m_FileInfoVector[i].m_Offset     = (u64)Read32(Offset + 0x4) << m_OffsetShift;
-			m_FileInfoVector[i].m_FileSize   = Read32(Offset + 0x8);
+			sfi->m_NameOffset = Read32(Offset + 0x0);
+			sfi->m_Offset     = (u64)Read32(Offset + 0x4) << m_OffsetShift;
+			sfi->m_FileSize   = Read32(Offset + 0x8);
+
+			m_FileInfoVector.push_back(sfi);
+			
 			NameTableOffset += 0xC;
 		}
 
@@ -247,36 +254,36 @@ CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _LastInd
 
 	while (CurrentIndex < _LastIndex)
 	{
-		SFileInfo& rFileInfo = m_FileInfoVector[CurrentIndex];
-		u64 uOffset = _NameTableOffset + (rFileInfo.m_NameOffset & 0xFFFFFF);
+		SFileInfo *rFileInfo = m_FileInfoVector[CurrentIndex];
+		u64 uOffset = _NameTableOffset + (rFileInfo->m_NameOffset & 0xFFFFFF);
 		char filename[512];
 		GetStringFromOffset(uOffset, filename);
 
 		// check next index
-		if (rFileInfo.IsDirectory())
+		if (rFileInfo->IsDirectory())
 		{
 			// this is a directory, build up the new szDirectory
 			if (_szDirectory != NULL)
 			{
-				CharArrayFromFormat(rFileInfo.m_FullPath, "%s%s\\", _szDirectory, filename);
+				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s\\", _szDirectory, filename);
 			}
 			else
 			{
-				CharArrayFromFormat(rFileInfo.m_FullPath, "%s\\", filename);
+				CharArrayFromFormat(rFileInfo->m_FullPath, "%s\\", filename);
 			}
 
-			CurrentIndex = BuildFilenames(CurrentIndex + 1, rFileInfo.m_FileSize, rFileInfo.m_FullPath, _NameTableOffset);
+			CurrentIndex = BuildFilenames(CurrentIndex + 1, rFileInfo->m_FileSize, rFileInfo->m_FullPath, _NameTableOffset);
 		}
 		else
 		{
 			// this is a filename
 			if (_szDirectory != NULL)
 			{
-				CharArrayFromFormat(rFileInfo.m_FullPath, "%s%s", _szDirectory, filename);
+				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s", _szDirectory, filename);
 			}
 			else
 			{
-				CharArrayFromFormat(rFileInfo.m_FullPath, "%s", filename);
+				CharArrayFromFormat(rFileInfo->m_FullPath, "%s", filename);
 			}
 
 			CurrentIndex++;
