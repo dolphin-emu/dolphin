@@ -704,6 +704,7 @@ static wxString wxCreateTempImpl(
         WXFILEARGS(wxFile *fileTemp, wxFFile *ffileTemp),
         bool *deleteOnClose = NULL)
 {
+    static int pid = -1;
 #if wxUSE_FILE && wxUSE_FFILE
     wxASSERT(fileTemp == NULL || ffileTemp == NULL);
 #endif
@@ -822,7 +823,11 @@ static wxString wxCreateTempImpl(
 #else // !HAVE_MKTEMP (includes __DOS__)
     // generate the unique file name ourselves
     #if !defined(__DOS__) && !defined(__PALMOS__) && (!defined(__MWERKS__) || defined(__DARWIN__) )
-    path << (unsigned int)getpid();
+
+    if(pid < 0)
+        pid = getpid();
+    
+    path << (unsigned int)pid;
     #endif
 
     wxString pathTry;

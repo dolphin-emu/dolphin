@@ -3,6 +3,11 @@
 import os
 import sys
 
+# Home made tests
+sys.path.append('SconsTests')
+import wxconfig 
+
+
 # TODO: how do we use it in help?
 name="Dolphin"
 version="SVN"
@@ -140,16 +145,32 @@ env['CCFLAGS'] = compileFlags
 env['CXXFLAGS'] = compileFlags + [ '-fvisibility-inlines-hidden' ]
 env['CPPDEFINES'] = cppDefines
 
+
+# Configuration tests section
+tests = {'CheckWXConfig' : wxconfig.CheckWXConfig}
+          
+conf = env.Configure(custom_tests = tests)
+
 # handling wx flags CCFLAGS should be created before
-# TODO: add version check 
 if not env['nowx']:
-        env.ParseConfig('wx-config --cflags --libs')        
+        env['wxconfig']='wx-config'
+        env['build_platform']=env['PLATFORM']
+        env['target_platform']=env['PLATFORM']
+
+        if not conf.CheckWXConfig('2.8', ['gl', 'adv', 'core', 'base'], env['debug']):
+                print 'gui build requires wxwidgets >= 2.8'
+                Exit(1)
+        
+        wxconfig.ParseWXConfig(env)
 
 #get sdl stuff
 env.ParseConfig("sdl-config --cflags --libs")
 
 # lib ao (needed for sound plugins)
 env.ParseConfig("pkg-config --cflags --libs ao")
+
+# After all configuration tests are done
+env = conf.Finish()
 
 Export('env')
 
