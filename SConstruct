@@ -83,7 +83,7 @@ if sys.platform == 'darwin':
 lib_paths = include_paths
 
 # handle command line options
-vars = Variables('custom.py')
+vars = Variables('args.cache')
 vars.AddVariables(
         BoolVariable('verbose', 'Set for compilation line', False),
         BoolVariable('debug', 'Set for debug build', False),
@@ -94,9 +94,6 @@ vars.AddVariables(
                      ignorecase=2)
 
 )
-
-
-#compileFlags += [ '-W' + warning for warning in warnings ]
 
 env = Environment(
 	CC = 'gcc',
@@ -115,6 +112,8 @@ env = Environment(
 	NAME = name,
 	VERSION = version,
 	)
+
+vars.Save('args.cache', env)
 
 # verbose compile
 if not env['verbose']:
