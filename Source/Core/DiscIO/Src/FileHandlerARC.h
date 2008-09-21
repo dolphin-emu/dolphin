@@ -51,17 +51,6 @@ class CARCFile
 
 		bool m_Initialized;
 
-		struct SFileInfo
-		{
-			u32 m_NameOffset;
-			u32 m_Offset;
-			u32 m_FileSize;
-
-			std::string m_FullPath;
-
-			bool IsDirectory() {return((m_NameOffset& 0xFF000000) != 0 ? true : false);}
-		};
-
 		typedef std::vector<SFileInfo>CFileInfoVector;
 		CFileInfoVector m_FileInfoVector;
 

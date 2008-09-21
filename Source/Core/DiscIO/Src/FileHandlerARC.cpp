@@ -192,25 +192,25 @@ CARCFile::BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, cons
 			// this is a directory, build up the new szDirectory
 			if (_szDirectory != NULL)
 			{
-				rFileInfo.m_FullPath = StringFromFormat("%s%s\\", _szDirectory, &_szNameTable[uOffset]);
+				sprintf(rFileInfo.m_FullPath, "%s%s\\", _szDirectory, &_szNameTable[uOffset]);
 			}
 			else
 			{
-				rFileInfo.m_FullPath = StringFromFormat("%s\\", &_szNameTable[uOffset]);
+				sprintf(rFileInfo.m_FullPath, "%s\\", &_szNameTable[uOffset]);
 			}
 
-			CurrentIndex = BuildFilenames(CurrentIndex + 1, rFileInfo.m_FileSize, rFileInfo.m_FullPath.c_str(), _szNameTable);
+			CurrentIndex = BuildFilenames(CurrentIndex + 1, rFileInfo.m_FileSize, rFileInfo.m_FullPath, _szNameTable);
 		}
 		else
 		{
 			// this is a filename
 			if (_szDirectory != NULL)
 			{
-				rFileInfo.m_FullPath = StringFromFormat("%s%s", _szDirectory, &_szNameTable[uOffset]);
+				sprintf(rFileInfo.m_FullPath, "%s%s", _szDirectory, &_szNameTable[uOffset]);
 			}
 			else
 			{
-				rFileInfo.m_FullPath = StringFromFormat("%s", &_szNameTable[uOffset]);
+				sprintf(rFileInfo.m_FullPath, "%s", &_szNameTable[uOffset]);
 			}
 
 			CurrentIndex++;
@@ -221,12 +221,12 @@ CARCFile::BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, cons
 }
 
 
-const CARCFile::SFileInfo*
+const SFileInfo*
 CARCFile::FindFileInfo(std::string _rFullPath) const
 {
 	for (size_t i = 0; i < m_FileInfoVector.size(); i++)
 	{
-		if (!strcasecmp(m_FileInfoVector[i].m_FullPath.c_str(), _rFullPath.c_str()))
+		if (!strcasecmp(m_FileInfoVector[i].m_FullPath, _rFullPath.c_str()))
 		{
 			return(&m_FileInfoVector[i]);
 		}

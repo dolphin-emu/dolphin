@@ -22,6 +22,7 @@
 
 namespace DiscIO
 {
+
 // file info of an FST entry
 struct SFileInfo
 {
