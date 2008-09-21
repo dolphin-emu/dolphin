@@ -25,6 +25,7 @@
 #include "Common.h"
 #include "MemTools.h"
 #include "HW/Memmap.h"
+#include "PowerPC/PowerPC.h"
 #include "PowerPC/Jit64/Jit.h"
 #include "PowerPC/Jit64/JitBackpatch.h"
 #include "x64Analyzer.h"
@@ -41,6 +42,10 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			int accessType = (int)pPtrs->ExceptionRecord->ExceptionInformation[0];
 			if (accessType == 8) //Rule out DEP
 			{
+				if(PowerPC::state == PowerPC::CPU_POWERDOWN) // Access violation during
+															 // violent shutdown is fine
+					return EXCEPTION_CONTINUE_EXECUTION;
+
 				MessageBox(0, _T("Tried to execute code that's not marked executable. This is likely a JIT bug.\n"), 0, 0);
 				return EXCEPTION_CONTINUE_SEARCH;
 			}
