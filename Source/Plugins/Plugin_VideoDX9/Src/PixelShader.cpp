@@ -228,7 +228,7 @@ const char *tevAInputTable2[] =
     "textemp",        //TEXA,
     "rastemp",        //RASA,
     "konsttemp",      //KONST,  (hw1 had quarter)
-    "0.0",				//ZERO
+    "float4(0,0,0,0)",//ZERO
 	"PADERROR", "PADERROR",	"PADERROR",	"PADERROR",
 	"PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
 	"PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
@@ -328,6 +328,7 @@ float4 main(in float4 colors[2] : COLOR0",PS_CONST_CONSTALPHA,PS_CONST_ALPHAREF,
 	WRITE(p,") : COLOR\n\
 {\n\
 float4 c0=color0,c1=color1,c2=color2,prev=float4(0.0f,0.0f,0.0f,0.0f),textemp,rastemp,konsttemp;\n\
+float3 comp16 = float3(1,255,0), comp24 = float3(1,255,255*255);\n\
 \n");
 
 	for (int i = 0; i < numStages; i++)
