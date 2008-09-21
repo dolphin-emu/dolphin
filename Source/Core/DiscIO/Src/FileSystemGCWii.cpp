@@ -25,7 +25,7 @@
 
 namespace DiscIO
 {
-CFileSystemGCWii::CFileSystemGCWii(const IVolume& _rVolume)
+CFileSystemGCWii::CFileSystemGCWii(const IVolume *_rVolume)
 	: IFileSystem(_rVolume),
 	m_Initialized(false),
 	m_OffsetShift(0)
@@ -106,7 +106,7 @@ CFileSystemGCWii::ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBuff
 		return(0);
 	}
 
-	m_rVolume.Read(pFileInfo->m_Offset, pFileInfo->m_FileSize, _pBuffer);
+	m_rVolume->Read(pFileInfo->m_Offset, pFileInfo->m_FileSize, _pBuffer);
 	return(pFileInfo->m_FileSize);
 }
 
@@ -155,14 +155,14 @@ u32
 CFileSystemGCWii::Read32(u64 _Offset) const
 {
 	u32 Temp = 0;
-	m_rVolume.Read(_Offset, 4, (u8*)&Temp);
+	m_rVolume->Read(_Offset, 4, (u8*)&Temp);
 	return(Common::swap32(Temp));
 }
 
 
 void CFileSystemGCWii::GetStringFromOffset(u64 _Offset, char* Filename) const
 {
-	m_rVolume.Read(_Offset, 255, (u8*)Filename);
+	m_rVolume->Read(_Offset, 255, (u8*)Filename);
 }
 
 size_t CFileSystemGCWii::GetFileList(std::vector<SFileInfo *> &_rFilenames)

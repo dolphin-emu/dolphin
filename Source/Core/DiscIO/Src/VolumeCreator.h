@@ -23,7 +23,7 @@
 namespace DiscIO
 {
 IVolume* CreateVolumeFromFilename(const std::string& _rFilename);
-bool IsVolumeWiiDisc(const IVolume& _rVolume);
+bool IsVolumeWiiDisc(const IVolume *_rVolume);
 } // namespace
 
 #endif

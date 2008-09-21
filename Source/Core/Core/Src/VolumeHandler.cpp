@@ -69,7 +69,7 @@ bool IsValid()
 bool IsWii()
 {
 	if (g_pVolume)
-		return IsVolumeWiiDisc(*g_pVolume);
+		return IsVolumeWiiDisc(g_pVolume);
 
     return false;
 }

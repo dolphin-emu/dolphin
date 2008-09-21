@@ -65,7 +65,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
                     return false;                    
                 }
 				m_strUniqueID = pVolume->GetUniqueID();
-                bWii = DiscIO::IsVolumeWiiDisc(*pVolume);
+                bWii = DiscIO::IsVolumeWiiDisc(pVolume);
 
                 switch (pVolume->GetCountry())
                 {

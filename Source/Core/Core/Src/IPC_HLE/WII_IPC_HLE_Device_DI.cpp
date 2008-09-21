@@ -38,7 +38,7 @@ CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string&
     
     m_pVolume = DiscIO::CreateVolumeFromFilename(Core::GetStartupParameter().m_strFilename);
     if (m_pVolume)
-        m_pFileSystem = DiscIO::CreateFileSystem(*m_pVolume);
+        m_pFileSystem = DiscIO::CreateFileSystem(m_pVolume);
 }
 
 // __________________________________________________________________________________________________

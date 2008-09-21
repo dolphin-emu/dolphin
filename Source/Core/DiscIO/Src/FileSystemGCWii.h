@@ -29,7 +29,7 @@ class CFileSystemGCWii
 {
 	public:
 
-		CFileSystemGCWii(const IVolume& _rVolume);
+		CFileSystemGCWii(const IVolume *_rVolume);
 
 		virtual ~CFileSystemGCWii();
 

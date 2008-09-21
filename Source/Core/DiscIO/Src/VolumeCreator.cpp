@@ -103,10 +103,10 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename)
 	return NULL;
 }
 
-bool IsVolumeWiiDisc(const IVolume& _rVolume)
+bool IsVolumeWiiDisc(const IVolume *_rVolume)
 {
 	u32 MagicWord = 0;
-	_rVolume.Read(0x18, 4, (u8*)&MagicWord);
+	_rVolume->Read(0x18, 4, (u8*)&MagicWord);
 
 	return (Common::swap32(MagicWord) == 0x5D1C9EA3);
 }

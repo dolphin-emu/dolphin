@@ -64,7 +64,7 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IFileSystem& _rFileSystem)
 	}
 
 
-	m_Name = std::string("Wii: ") + _rFileSystem.GetVolume().GetName();
+	m_Name = std::string("Wii: ") + _rFileSystem.GetVolume()->GetName();
 }
 
 

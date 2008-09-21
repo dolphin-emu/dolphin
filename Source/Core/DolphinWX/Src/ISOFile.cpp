@@ -50,7 +50,7 @@ CISOFile::CISOFile(const std::string& _rFileName)
 		m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName.c_str());
 
 		// check if we can get some infos from the banner file too
-		DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(*pVolume);
+		DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
 
 		if (pFileSystem != NULL)
 		{

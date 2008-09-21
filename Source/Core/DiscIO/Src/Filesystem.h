@@ -46,7 +46,7 @@ class IFileSystem
 {
 	public:
 
-		IFileSystem(const IVolume& _rVolume);
+		IFileSystem(const IVolume *_rVolume);
 
 		virtual ~IFileSystem();
 
@@ -66,15 +66,15 @@ class IFileSystem
 		virtual const char* GetFileName(u64 _Address) = 0;
 
 
-		virtual const IVolume& GetVolume() {return(m_rVolume);}
+		virtual const IVolume *GetVolume() {return(m_rVolume);}
 
 
 	protected:
 
-		const IVolume& m_rVolume;
+		const IVolume *m_rVolume;
 };
 
-IFileSystem* CreateFileSystem(const IVolume& _rVolume);
+IFileSystem* CreateFileSystem(const IVolume *_rVolume);
 } // namespace
 
 #endif

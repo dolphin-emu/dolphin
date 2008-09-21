@@ -479,7 +479,7 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
             if (pVolume == NULL)
                 break;
 
-            bool isoWii = DiscIO::IsVolumeWiiDisc(*pVolume);           
+            bool isoWii = DiscIO::IsVolumeWiiDisc(pVolume);           
 			if (isoWii != Core::GetStartupParameter().bWii)
 			{
 				PanicAlert("Warning - starting ISO in wrong console mode!");
