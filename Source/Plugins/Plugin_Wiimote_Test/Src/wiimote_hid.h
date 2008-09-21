@@ -21,7 +21,6 @@ struct hid_packet {
 
 #define HID_TYPE_HANDSHAKE 0
 #define HID_HANDSHAKE_SUCCESS 0
-#define HID_HANDSHAKE_WIIMOTE 8	//custom, reserved in HID specs.
 
 #define HID_PARAM_INPUT 1
 #define HID_PARAM_OUTPUT 2

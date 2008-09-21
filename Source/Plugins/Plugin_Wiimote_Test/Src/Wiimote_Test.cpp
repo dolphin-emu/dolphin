@@ -202,10 +202,16 @@ extern "C" void Wiimote_Output(const void* _pData, u32 _Size) {
 
 extern "C" void Wiimote_Update() {
 	//LOG(WIIMOTE, "Wiimote_Update");
-	if(g_ReportingMode == 0x33)
-		SendReportCoreAccelIr12();
-	else if(g_ReportingMode == 0x31)
+	switch(g_ReportingMode) {
+	case 0:
+		break;
+	case 0x31:
 		SendReportCoreAccel();
+		break;
+	case 0x33:
+		SendReportCoreAccelIr12();
+		break;
+	}
 }
 
 extern "C" unsigned int Wiimote_GetAttachedControllers() {
@@ -261,6 +267,13 @@ void WmDataReporting(wm_data_reporting* dr) {
 	LOG(WIIMOTE, "  Mode: 0x%02x", dr->mode);
 
 	g_ReportingMode = dr->mode;
+	switch(g_ReportingMode) {	//see Wiimote_Update()
+	case 0x31:
+	case 0x33:
+		break;
+	default:
+		PanicAlert("Wiimote: Unknown reporting mode");
+	}
 }
 
 void SendReportCoreAccelIr12() {
@@ -271,30 +284,51 @@ void SendReportCoreAccelIr12() {
 	Offset += sizeof(wm_report_core_accel_ir12);
 	memset(pReport, 0, sizeof(wm_report_core_accel_ir12));
 	memset(pReport->ir, 0xFF, sizeof(pReport->ir));
-	pReport->c.b = 1;
+
 	pReport->a.x = 0x81;
 	pReport->a.y = 0x78;
 	pReport->a.z = 0xD9;
 
-	int x = 600;
-	int y = 440;
+	int x0, y0, x1, y1;
 
-	x = 1023 - x;
-	pReport->ir[0].x = x & 0xFF;
-	pReport->ir[0].y = y & 0xFF;
+#ifdef _WIN32
+	//libogc bounding box, in smoothed IR coordinates: 232,284 792,704
+	//we'll use it to scale our mouse coordinates
+#define LEFT 232
+#define TOP 284
+#define RIGHT 792
+#define BOTTOM 704
+
+#define SENSOR_BAR_RADIUS 200
+
+	RECT screenRect;
+	POINT point;
+	_dbg_assert_(WIIMOTE, GetClipCursor(&screenRect));
+	_dbg_assert_(WIIMOTE, GetCursorPos(&point));
+	y0 = y1 = (point.y * (screenRect.bottom - screenRect.top)) / (BOTTOM - TOP);
+	int x = (point.x * (screenRect.right - screenRect.left)) / (RIGHT - LEFT);
+	x0 = x - SENSOR_BAR_RADIUS;
+	x1 = x + SENSOR_BAR_RADIUS;
+#else
+	x0 = 600;
+	y0 = 440;
+	x1 = 100;
+	y1 = 450;
+#endif
+
+	x0 = 1023 - x0;
+	pReport->ir[0].x = x0 & 0xFF;
+	pReport->ir[0].y = y0 & 0xFF;
 	pReport->ir[0].size = 10;
-	pReport->ir[0].xHi = x >> 8;
-	pReport->ir[0].yHi = y >> 8;
+	pReport->ir[0].xHi = x0 >> 8;
+	pReport->ir[0].yHi = y0 >> 8;
 
-	x = 100;
-	y = 450;
-
-	x = 1023 - x;
-	pReport->ir[1].x = x;
-	pReport->ir[1].y = y & 0xFF;
-	pReport->ir[1].size = 5;
-	pReport->ir[1].xHi = x >> 8;
-	pReport->ir[1].yHi = y >> 8;
+	x1 = 1023 - x1;
+	pReport->ir[1].x = x1;
+	pReport->ir[1].y = y1 & 0xFF;
+	pReport->ir[1].size = 10;
+	pReport->ir[1].xHi = x1 >> 8;
+	pReport->ir[1].yHi = y1 >> 8;
 
 	LOG(WIIMOTE, "  SendReportCoreAccelIr12()");
 
