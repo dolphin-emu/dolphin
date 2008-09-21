@@ -1,3 +1,5 @@
+# -*- python -*- 
+
 Import('env')
 
 files = [

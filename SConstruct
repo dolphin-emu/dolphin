@@ -6,6 +6,7 @@ import sys
 # Home made tests
 sys.path.append('SconsTests')
 import wxconfig 
+import utils
 
 # Some features needs at least scons 0.98
 EnsureSConsVersion(0, 98)
@@ -115,15 +116,22 @@ env = Environment(
 	VERSION = version,
 	)
 
+# save the given command line options
 vars.Save('args.cache', env)
 
 # verbose compile
 if not env['verbose']:
         env['CCCOMSTR'] = "Compiling $TARGET"
         env['CXXCOMSTR'] = "Compiling $TARGET"
-        env['ARCOMSTR'] = "AR $TARGET"
+        env['ARCOMSTR'] = "Archiving $TARGET"
         env['LINKCOMSTR'] = "Linking $TARGET"
-        
+        env['ASCOMSTR'] = "Assembling $TARGET"
+        env['ASPPCOMSTR'] = "Assembling $TARGET"
+        env['SHCCCOMSTR'] = "Compiling shared $TARGET"
+        env['SHCXXCOMSTR'] = "Compiling shared $TARGET"
+        env['SHLINKCOMSTR'] = "Linking shared $TARGET"
+        env['RANLIBCOMSTR'] = "Indexing $TARGET"
+
 # build falvuor
 flavour =  ARGUMENTS.get('flavor')
 if (flavour == 'debug'):
@@ -172,6 +180,9 @@ env.ParseConfig("pkg-config --cflags --libs ao")
 
 # After all configuration tests are done
 env = conf.Finish()
+
+# add methods from utils to env
+env.AddMethod(utils.filterWarnings)
 
 Export('env')
 

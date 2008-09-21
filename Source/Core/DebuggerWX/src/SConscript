@@ -1,3 +1,5 @@
+# -*- python -*- 
+
 Import('env')
 
 files = ["LogWindow.cpp", 
@@ -17,14 +19,16 @@ files = ["LogWindow.cpp",
         ]
 wxenv = env.Clone()
 wxenv.Append(
-	CXXFLAGS = [
-		'-DUSE_XPM_BITMAPS',
-		'-DwxNEEDS_CHARPP'
+	CPPDEFINES = [
+		'USE_XPM_BITMAPS',
+		'wxNEEDS_CHARPP'
 		],
 	LINKFLAGS = [
-		'-L/usr/local/lib',
 		'-pthread',
 		]
 	)
+libs = [
+    'common'
+]
 
-wxenv.StaticLibrary("debwx", files, LIBS = [ "common" ])
+wxenv.StaticLibrary("debwx", files, LIBS = libs)

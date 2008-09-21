@@ -1,17 +1,13 @@
+# -*- python -*- 
+
 Import('env')
 
 files = [
 	"minilzo.c",
 	]
 
-def filterWarnings(flags):
-        return ' '.join(
-                flag
-                for flag in flags
-                if not flag.startswith('-W')
-                )
 env_lzo = env.Clone(
-        CCFLAGS = filterWarnings(env['CCFLAGS']),
-        CXXFLAGS = filterWarnings(env['CXXFLAGS']),
+        CCFLAGS = env.filterWarnings(env['CCFLAGS']),
+        CXXFLAGS = env.filterWarnings(env['CXXFLAGS']),
         )
 env_lzo.StaticLibrary("minilzo", files)

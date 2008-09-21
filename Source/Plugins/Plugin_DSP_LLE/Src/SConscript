@@ -1,3 +1,5 @@
+# -*- python -*- 
+
 Import('env')
 output = "../../../../Binary/linux/Plugins/dsplle.so"
 

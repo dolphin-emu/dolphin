@@ -1,3 +1,5 @@
+# -*- python -*- 
+
 Import('env')
 import sys
 
@@ -23,12 +25,11 @@ libs = [
 
 wxenv = env.Clone()
 wxenv.Append(
-	CXXFLAGS = [
-		'-DUSE_XPM_BITMAPS',
-		'-DwxNEEDS_CHARPP',
+        CPPDEFINES = [
+		'USE_XPM_BITMAPS',
+		'wxNEEDS_CHARPP',
 		],
 	LINKFLAGS = [
-		'-L/usr/local/lib',
 		'-pthread',
 		]
 	)
