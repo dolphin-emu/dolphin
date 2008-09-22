@@ -140,7 +140,7 @@ inline u32 GetCRField(int cr_field) {
 	return (PowerPC::ppcState.cr >> (4 * cr_field)) & 0xF;
 }
 
-inline int GetCRBit(int bit) {
+inline u32 GetCRBit(int bit) {
 	return (CR >> (31 - bit)) & 1;
 }
 
