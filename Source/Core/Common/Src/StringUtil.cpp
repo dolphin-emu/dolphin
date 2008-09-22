@@ -147,7 +147,6 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
 	else
 	{
 		out[outsize - 1] = '\0';
-		PanicAlert("DANGER WILL ROBINSON! CharArrayFromFormatV overflowed.");
 		return false;
 	}
 }
