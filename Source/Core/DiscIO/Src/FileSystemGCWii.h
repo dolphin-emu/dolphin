@@ -24,48 +24,33 @@
 
 namespace DiscIO
 {
-class CFileSystemGCWii
-	: public IFileSystem
+
+class CFileSystemGCWii : public IFileSystem
 {
-	public:
-
-		CFileSystemGCWii(const IVolume *_rVolume);
-
-		virtual ~CFileSystemGCWii();
-
-		virtual bool IsInitialized();
-
-		virtual size_t GetFileSize(const char* _rFullPath);
-
-		virtual const char* GetFileName(u64 _Address);
-
-		virtual size_t ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize);
-
-		virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename);
-
-		virtual bool ExportAllFiles(const char* _rFullPath);
+public:
+	CFileSystemGCWii(const IVolume *_rVolume);
+	virtual ~CFileSystemGCWii();
+	virtual bool IsInitialized() const;
+	virtual size_t GetFileSize(const char* _rFullPath) const;
+	virtual const char* GetFileName(u64 _Address) const;
+	virtual size_t ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) const;
+	virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename) const;
+	virtual bool ExportAllFiles(const char* _rFullPath) const;
 
 
-	private:
+private:
+	std::vector <SFileInfo> m_FileInfoVector;
 
-		std::vector<SFileInfo *> m_FileInfoVector;
-
-		bool m_Initialized;
-
-		u32 m_OffsetShift; // WII offsets are all shifted
-
-		u32 Read32(u64 _Offset) const;
-
-		virtual size_t GetFileList(std::vector<SFileInfo *> &_rFilenames);
-
-		void GetStringFromOffset(u64 _Offset, char* Filename) const;
-
-		const SFileInfo* FindFileInfo(const char* _rFullPath) const;
-
-		bool InitFileSystem();
-
-		size_t BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const char* _szDirectory, u64 _NameTableOffset);
+	bool m_Initialized;
+	u32 m_OffsetShift; // WII offsets are all shifted
+	u32 Read32(u64 _Offset) const;
+	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames) const;
+	void GetStringFromOffset(u64 _Offset, char* Filename) const;
+	const SFileInfo* FindFileInfo(const char* _rFullPath) const;
+	bool InitFileSystem();
+	size_t BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const char* _szDirectory, u64 _NameTableOffset);
 };
+
 } // namespace
 
 #endif

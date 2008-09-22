@@ -20,7 +20,7 @@
 
 #include <string>
 
-class CISOFile;
+class GameListItem;
 
 namespace BootManager
 {

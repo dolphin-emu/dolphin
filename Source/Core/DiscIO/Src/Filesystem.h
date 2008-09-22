@@ -31,10 +31,10 @@ struct SFileInfo
 	u32 m_FileSize;
 	char m_FullPath[512];
 
-	bool IsDirectory() {return((m_NameOffset& 0xFF000000) != 0 ? true : false);}
+	bool IsDirectory() const { return (m_NameOffset & 0xFF000000) != 0 ? true : false; }
 
 	SFileInfo() : m_NameOffset(0), m_Offset(0), m_FileSize(0) {
-		memset(m_FullPath, 0, 512);
+		memset(m_FullPath, 0, sizeof(m_FullPath));
 	}
 
 	SFileInfo(const SFileInfo &rhs) : m_NameOffset(rhs.m_NameOffset), 
@@ -42,39 +42,29 @@ struct SFileInfo
 		strcpy(m_FullPath, rhs.m_FullPath);
 	}
 };
+
 class IFileSystem
 {
-	public:
+public:
+	IFileSystem(const IVolume *_rVolume);
 
-		IFileSystem(const IVolume *_rVolume);
+	virtual ~IFileSystem();
+	virtual bool IsInitialized() const = 0;
+	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames) const = 0;
+	virtual size_t GetFileSize(const char* _rFullPath) const = 0;
 
-		virtual ~IFileSystem();
+	virtual size_t ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) const = 0;
+	virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename) const = 0;
+	virtual bool ExportAllFiles(const char* _rFullPath) const = 0;
+	virtual const char* GetFileName(u64 _Address) const = 0;
 
-		virtual bool IsInitialized() = 0;
-
-
-		virtual size_t GetFileList(std::vector<SFileInfo *> &_rFilenames) = 0;
-
-		virtual size_t GetFileSize(const char* _rFullPath) = 0;
-
-		virtual size_t ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) = 0;
-
-		virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename) = 0;
-
-		virtual bool ExportAllFiles(const char* _rFullPath) = 0;
-
-		virtual const char* GetFileName(u64 _Address) = 0;
-
-
-		virtual const IVolume *GetVolume() {return(m_rVolume);}
-
-
-	protected:
-
-		const IVolume *m_rVolume;
+	virtual const IVolume *GetVolume() const { return m_rVolume; }
+protected:
+	const IVolume *m_rVolume;
 };
 
 IFileSystem* CreateFileSystem(const IVolume *_rVolume);
+
 } // namespace
 
 #endif

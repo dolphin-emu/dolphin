@@ -33,8 +33,8 @@ class CGameListCtrl : public wxListCtrl
 
 		void Update();
 		void BrowseForDirectory();
-		const CISOFile *GetSelectedISO() const;
-		const CISOFile *GetISO(int index) const;
+		const GameListItem *GetSelectedISO() const;
+		const GameListItem *GetISO(int index) const;
 
 		enum
 		{
@@ -50,8 +50,8 @@ class CGameListCtrl : public wxListCtrl
 
 	private:
 
-		std::vector<int>m_FlagImageIndex;
-		std::vector<CISOFile> m_ISOFiles;
+		std::vector<int> m_FlagImageIndex;
+		std::vector<GameListItem> m_ISOFiles;
 
 		int last_column;
 		int last_sort;

@@ -135,20 +135,20 @@ bool AsciiToHex(const char* _szValue, u32& result)
 	return (true);
 }
 
-
 bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list args)
 {
 	int writtenCount = vsnprintf(out, outsize, format, args);
 
-	if (writtenCount > 0)
+	if (writtenCount > 0 && writtenCount < outsize)
 	{
 		out[writtenCount] = '\0';
-		return(true);
+		return true;
 	}
 	else
 	{
 		out[outsize - 1] = '\0';
-		return(false);
+		PanicAlert("DANGER WILL ROBINSON! CharArrayFromFormatV overflowed.");
+		return false;
 	}
 }
 
@@ -165,6 +165,8 @@ void StringFromFormatV(std::string* out, const char* format, va_list args)
 		delete [] buf;
 		buf = new char[newSize + 1];
 		writtenCount = vsnprintf(buf, newSize, format, args);
+		if (writtenCount > (int)newSize)
+			writtenCount = -1;
 		// ARGH! vsnprintf does no longer return -1 on truncation in newer libc!
 		// WORKAROUND! let's fake the old behaviour (even though it's less efficient).
 		// TODO: figure out why the fix causes an invalid read in strlen called from vsnprintf :(

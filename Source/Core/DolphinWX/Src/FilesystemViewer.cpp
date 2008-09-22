@@ -39,7 +39,7 @@ DiscIO::IFileSystem* pFileSystem = NULL;
 CFilesystemViewer::CFilesystemViewer(const std::string fileName, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
-	std::vector<DiscIO::SFileInfo *> Our_Files;
+	std::vector<const DiscIO::SFileInfo *> Our_Files;
 
 	OpenIso = DiscIO::CreateVolumeFromFilename(fileName);
 	pFileSystem = DiscIO::CreateFileSystem(OpenIso);

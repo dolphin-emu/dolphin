@@ -20,11 +20,11 @@
 
 #include "Volume.h"
 
-class CISOFile
+class GameListItem
 {
 public:
-	CISOFile(const std::string& _rFileName);
-	~CISOFile();
+	GameListItem(const std::string& _rFileName);
+	~GameListItem();
 
 	bool IsValid() const {return m_Valid;}
 	const std::string& GetFileName() const {return m_FileName;}

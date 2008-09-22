@@ -51,6 +51,11 @@ Display* GXdsp;
 bool KeyStatus[23];
 #endif
 
+void __Log(int, const char *fmt, ...)
+{
+	//DebugLog(fmt);
+}
+
 // controls
 enum
 {

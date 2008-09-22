@@ -36,15 +36,15 @@ IFileSystem* CreateFileSystem(const IVolume* _rVolume)
 {
 	IFileSystem* pFileSystem = new CFileSystemGCWii(_rVolume);
 
-	if (pFileSystem)
+	if (!pFileSystem)
+		return 0;
+
+	if (!pFileSystem->IsInitialized())
 	{
-		if (!pFileSystem->IsInitialized())
-		{
-			delete pFileSystem;
-			pFileSystem = NULL;
-		}
+		delete pFileSystem;
+		pFileSystem = NULL;
 	}
 
-	return(pFileSystem);
+	return pFileSystem;
 }
 } // namespace

@@ -36,8 +36,9 @@
     #include "../resources/Flag_USA.xpm"
 #endif // USE_XPM_BITMAPS
 
-int currentColumn ;
-bool operator < (const CISOFile &one, const CISOFile &other)
+static int currentColumn = 0;
+
+bool operator < (const GameListItem &one, const GameListItem &other)
 {
 	switch(currentColumn)
 	{
@@ -46,7 +47,7 @@ bool operator < (const CISOFile &one, const CISOFile &other)
 	case CGameListCtrl::COLUMN_NOTES:   return strcasecmp(one.GetDescription().c_str(), other.GetDescription().c_str()) < 0;
 	case CGameListCtrl::COLUMN_COUNTRY: return (one.GetCountry() < other.GetCountry());
 	case CGameListCtrl::COLUMN_SIZE:    return (one.GetFileSize() < other.GetFileSize());
-	default: return strcasecmp(one.GetName().c_str(), other.GetName().c_str()) < 0;
+	default:                            return strcasecmp(one.GetName().c_str(), other.GetName().c_str()) < 0;
 	}
 }
 
@@ -189,7 +190,7 @@ wxString NiceSizeFormat(s64 _size)
 
 void CGameListCtrl::InsertItemInReportView(long _Index)
 {
-	CISOFile& rISOFile = m_ISOFiles[_Index];
+	GameListItem& rISOFile = m_ISOFiles[_Index];
 
 	int ImageIndex = -1;
 
@@ -284,7 +285,7 @@ bool CGameListCtrl::MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem)
 
 		    if (Index < m_ISOFiles.size())
 		    {
-			    const CISOFile& rISO = m_ISOFiles[Index];
+			    const GameListItem& rISO = m_ISOFiles[Index];
 			    wxRect SubItemRect;
 			    this->GetSubItemRect(item, subitem, SubItemRect);
 			    m_imageListSmall->Draw(m_FlagImageIndex[rISO.GetCountry()], rPaintDC, SubItemRect.GetLeft(), SubItemRect.GetTop());
@@ -364,7 +365,7 @@ void CGameListCtrl::ScanForISOs()
 				break;
 			}
 
-			CISOFile ISOFile(rFilenames[i]);
+			GameListItem ISOFile(rFilenames[i]);
 
 			if (ISOFile.IsValid())
 				m_ISOFiles.push_back(ISOFile);
@@ -382,7 +383,7 @@ void CGameListCtrl::OnColBeginDrag(wxListEvent& event)
 		event.Veto();
 }
 
-const CISOFile * CGameListCtrl::GetISO(int index) const
+const GameListItem *CGameListCtrl::GetISO(int index) const
 {
 	return &m_ISOFiles[index];
 }
@@ -393,14 +394,14 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 	//return 1 if item1 > item2
 	//return -1 if item1 < item2
 	//0 for identity
-	const CISOFile *iso1 = caller->GetISO(item1);
-	const CISOFile *iso2 = caller->GetISO(item2);
+	const GameListItem *iso1 = caller->GetISO(item1);
+	const GameListItem *iso2 = caller->GetISO(item2);
  
 	int t = 1;
  
-	if(sortData<0)
+	if (sortData < 0)
 	{
-		t=-1;
+		t = -1;
 		sortData = -sortData;
 	}
 
@@ -463,7 +464,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 		SetItemState(item, wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED,
 			               wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED);
 	}
-	const CISOFile *selected_iso = GetSelectedISO();
+	const GameListItem *selected_iso = GetSelectedISO();
 	if (selected_iso)
 	{
 		std::string unique_id = selected_iso->GetUniqueID();
@@ -496,13 +497,13 @@ void CGameListCtrl::OnActivated(wxListEvent& event)
 		size_t Index = event.GetData();
 		if (Index < m_ISOFiles.size())
 		{
-			const CISOFile& rISOFile = m_ISOFiles[Index];
+			const GameListItem& rISOFile = m_ISOFiles[Index];
 			BootManager::BootCore(rISOFile.GetFileName());
 		}
 	}
 }
 
-const CISOFile * CGameListCtrl::GetSelectedISO() const
+const GameListItem * CGameListCtrl::GetSelectedISO() const
 {
 	int item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); 
 	if (item == -1)
@@ -512,7 +513,7 @@ const CISOFile * CGameListCtrl::GetSelectedISO() const
 }
 
 void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event)) {
-	const CISOFile *iso = GetSelectedISO();
+	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
 	std::string path;
@@ -521,7 +522,7 @@ void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event)) {
 }
 
 void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& WXUNUSED (event)) {
-	const CISOFile *iso = GetSelectedISO();
+	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = iso->GetFileName();
@@ -529,7 +530,7 @@ void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& WXUNUSED (event)) {
 }
 
 void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event)) {
-	const CISOFile *iso = GetSelectedISO();
+	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
 	if (wxMessageBox("Are you sure you want to delete this file?", wxMessageBoxCaptionStr, wxYES_NO) == wxYES)
@@ -539,7 +540,7 @@ void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event)) {
 }
 
 void CGameListCtrl::OnFilesystemViewer(wxCommandEvent& WXUNUSED (event)) {
-	const CISOFile *iso = GetSelectedISO();
+	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
 	CFilesystemViewer FSViewer(iso->GetFileName(), this);
@@ -553,7 +554,7 @@ void CGameListCtrl::CompressCB(const char* text, float percent, void* arg)
 }
 
 void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event)) {
-	const CISOFile *iso = GetSelectedISO();
+	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
 
@@ -624,7 +625,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event)) {
 
 void CGameListCtrl::OnEditPatchFile(wxCommandEvent& WXUNUSED (event))
 {
-	const CISOFile *iso = GetSelectedISO();
+	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
 	std::string filename = "Patches/" + iso->GetUniqueID() + ".ini";
@@ -644,6 +645,7 @@ void CGameListCtrl::OnEditPatchFile(wxCommandEvent& WXUNUSED (event))
 
 void CGameListCtrl::OnSelected(wxListEvent& WXUNUSED (event))
 {
+
 }
 
 void CGameListCtrl::OnSize(wxSizeEvent& event)

@@ -33,7 +33,7 @@
 
 static u32 g_ImageTemp[DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT];
 
-CISOFile::CISOFile(const std::string& _rFileName)
+GameListItem::GameListItem(const std::string& _rFileName)
 	: m_FileName(_rFileName),
 	m_FileSize(0),
 	m_Valid(false),
@@ -65,7 +65,6 @@ CISOFile::CISOFile(const std::string& _rFileName)
 					pBannerLoader->GetName(m_Name, 0); //m_Country == DiscIO::IVolume::COUNTRY_JAP ? 1 : 0);
 					pBannerLoader->GetCompany(m_Company);
 					pBannerLoader->GetDescription(m_Description);
-
 					if (pBannerLoader->GetBanner(g_ImageTemp))
 					{
 						unsigned char* pImage = (unsigned char*)malloc(DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT * 3);
@@ -83,6 +82,7 @@ CISOFile::CISOFile(const std::string& _rFileName)
 				else
 				{
 					// default banner
+					
 				}
 
 				delete pBannerLoader;
@@ -98,7 +98,7 @@ CISOFile::CISOFile(const std::string& _rFileName)
 }
 
 
-CISOFile::~CISOFile()
+GameListItem::~GameListItem()
 {}
 
 

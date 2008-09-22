@@ -36,97 +36,69 @@ CFileSystemGCWii::CFileSystemGCWii(const IVolume *_rVolume)
 
 CFileSystemGCWii::~CFileSystemGCWii()
 {
-	while(m_FileInfoVector.size() > 0) {
-		SFileInfo *sfi = m_FileInfoVector.back();
-		m_FileInfoVector.pop_back();
-		delete sfi;
-	}
 }
 
-
-bool
-CFileSystemGCWii::IsInitialized()
+bool CFileSystemGCWii::IsInitialized() const
 {
-	return(m_Initialized);
+	return m_Initialized;
 }
 
-
-size_t
-CFileSystemGCWii::GetFileSize(const char* _rFullPath)
+size_t CFileSystemGCWii::GetFileSize(const char* _rFullPath) const
 {
 	if (!m_Initialized)
-	{
-		return(0);
-	}
+		return 0;
 
 	const SFileInfo* pFileInfo = FindFileInfo(_rFullPath);
 
 	if (pFileInfo != NULL)
-	{
-		return(pFileInfo->m_FileSize);
-	}
+		return pFileInfo->m_FileSize;
 
-	return(0);
+	return 0;
 }
 
-
-const char*
-CFileSystemGCWii::GetFileName(u64 _Address)
+const char* CFileSystemGCWii::GetFileName(u64 _Address) const
 {
 	for (size_t i = 0; i < m_FileInfoVector.size(); i++)
 	{
-		if ((m_FileInfoVector[i]->m_Offset <= _Address) &&
-		    ((m_FileInfoVector[i]->m_Offset + m_FileInfoVector[i]->m_FileSize) > _Address))
+		if ((m_FileInfoVector[i].m_Offset <= _Address) &&
+		    ((m_FileInfoVector[i].m_Offset + m_FileInfoVector[i].m_FileSize) > _Address))
 		{
-			return(m_FileInfoVector[i]->m_FullPath);
+			return m_FileInfoVector[i].m_FullPath;
 		}
 	}
 
-	return(NULL);
+	return NULL;
 }
 
-
-size_t
-CFileSystemGCWii::ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize)
+size_t CFileSystemGCWii::ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) const
 {
 	if (!m_Initialized)
-	{
-		return(0);
-	}
+		return 0;
 
 	const SFileInfo* pFileInfo = FindFileInfo(_rFullPath);
-
 	if (pFileInfo == NULL)
-	{
-		return(0);
-	}
+		return 0;
 
 	if (pFileInfo->m_FileSize > _MaxBufferSize)
-	{
-		return(0);
-	}
+		return 0;
 
 	m_rVolume->Read(pFileInfo->m_Offset, pFileInfo->m_FileSize, _pBuffer);
-	return(pFileInfo->m_FileSize);
+	return pFileInfo->m_FileSize;
 }
 
-
-bool
-CFileSystemGCWii::ExportFile(const char* _rFullPath, const char* _rExportFilename)
+bool CFileSystemGCWii::ExportFile(const char* _rFullPath, const char* _rExportFilename) const
 {
 	size_t filesize = GetFileSize(_rFullPath);
 
 	if (filesize == 0)
-	{
-		return(false);
-	}
+		return false;
 
 	u8* buffer = new u8[filesize];
 
 	if (!ReadFile(_rFullPath, buffer, filesize))
 	{
 		delete[] buffer;
-		return(false);
+		return false;
 	}
 
 	FILE* f = fopen(_rExportFilename, "wb");
@@ -136,62 +108,52 @@ CFileSystemGCWii::ExportFile(const char* _rFullPath, const char* _rExportFilenam
 		fwrite(buffer, filesize, 1, f);
 		fclose(f);
 		delete[] buffer;
-		return(true);
+		return true;
 	}
 
 	delete[] buffer;
-	return(false);
+	return false;
 }
 
-
-bool
-CFileSystemGCWii::ExportAllFiles(const char* _rFullPath)
+bool CFileSystemGCWii::ExportAllFiles(const char* _rFullPath) const
 {
-	return(false);
+	return false;
 }
 
-
-u32
-CFileSystemGCWii::Read32(u64 _Offset) const
+u32 CFileSystemGCWii::Read32(u64 _Offset) const
 {
 	u32 Temp = 0;
 	m_rVolume->Read(_Offset, 4, (u8*)&Temp);
-	return(Common::swap32(Temp));
+	return Common::swap32(Temp);
 }
-
 
 void CFileSystemGCWii::GetStringFromOffset(u64 _Offset, char* Filename) const
 {
 	m_rVolume->Read(_Offset, 255, (u8*)Filename);
 }
 
-size_t CFileSystemGCWii::GetFileList(std::vector<SFileInfo *> &_rFilenames)
+size_t CFileSystemGCWii::GetFileList(std::vector<const SFileInfo *> &_rFilenames) const
 {	
+	if (_rFilenames.size())
+		PanicAlert("GetFileList : input list has contents?");
 	_rFilenames.clear();
 	for (size_t i = 0; i < m_FileInfoVector.size(); i++)
-	{
-		_rFilenames.push_back(new SFileInfo(*m_FileInfoVector[i]));
-	}
+		_rFilenames.push_back(&m_FileInfoVector[i]);
 	return m_FileInfoVector.size();
 }
 
-const SFileInfo*
-CFileSystemGCWii::FindFileInfo(const char* _rFullPath) const
+const SFileInfo* CFileSystemGCWii::FindFileInfo(const char* _rFullPath) const
 {
 	for (size_t i = 0; i < m_FileInfoVector.size(); i++)
 	{
-		if (!strcasecmp(m_FileInfoVector[i]->m_FullPath, _rFullPath))
-		{
-			return(m_FileInfoVector[i]);
-		}
+		if (!strcasecmp(m_FileInfoVector[i].m_FullPath, _rFullPath))
+			return &m_FileInfoVector[i];
 	}
 
-	return(NULL);
+	return NULL;
 }
 
-
-bool
-CFileSystemGCWii::InitFileSystem()
+bool CFileSystemGCWii::InitFileSystem()
 {
 	if (Read32(0x18) == 0x5D1C9EA3)
 	{
@@ -203,7 +165,7 @@ CFileSystemGCWii::InitFileSystem()
 	}
 	else
 	{
-		return(false);
+		return false;
 	}
 
 	// read the whole FST
@@ -225,11 +187,11 @@ CFileSystemGCWii::InitFileSystem()
 
 		for (u32 i = 0; i < Root.m_FileSize; i++)
 		{
-			SFileInfo *sfi = new SFileInfo();
+			SFileInfo sfi;
 			u64 Offset = FSTOffset + (i * 0xC);
-			sfi->m_NameOffset = Read32(Offset + 0x0);
-			sfi->m_Offset     = (u64)Read32(Offset + 0x4) << m_OffsetShift;
-			sfi->m_FileSize   = Read32(Offset + 0x8);
+			sfi.m_NameOffset = Read32(Offset + 0x0);
+			sfi.m_Offset     = (u64)Read32(Offset + 0x4) << m_OffsetShift;
+			sfi.m_FileSize   = Read32(Offset + 0x8);
 
 			m_FileInfoVector.push_back(sfi);
 			
@@ -239,24 +201,23 @@ CFileSystemGCWii::InitFileSystem()
 		BuildFilenames(1, m_FileInfoVector.size(), NULL, NameTableOffset);
 	}
 
-	return(true);
+	return true;
 }
-
 
 // __________________________________________________________________________________________________
 //
 // Changed this stuff from C++ string to C strings for speed in debug mode. Doesn't matter in release, but
 // std::string is SLOW in debug mode.
-size_t
-CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const char* _szDirectory, u64 _NameTableOffset)
+size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const char* _szDirectory, u64 _NameTableOffset)
 {
 	size_t CurrentIndex = _FirstIndex;
 
 	while (CurrentIndex < _LastIndex)
 	{
-		SFileInfo *rFileInfo = m_FileInfoVector[CurrentIndex];
+		SFileInfo *rFileInfo = &m_FileInfoVector[CurrentIndex];
 		u64 uOffset = _NameTableOffset + (rFileInfo->m_NameOffset & 0xFFFFFF);
 		char filename[512];
+		memset(filename, 0, sizeof(filename));
 		GetStringFromOffset(uOffset, filename);
 
 		// check next index
@@ -264,13 +225,9 @@ CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _LastInd
 		{
 			// this is a directory, build up the new szDirectory
 			if (_szDirectory != NULL)
-			{
 				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s\\", _szDirectory, filename);
-			}
 			else
-			{
 				CharArrayFromFormat(rFileInfo->m_FullPath, "%s\\", filename);
-			}
 
 			CurrentIndex = BuildFilenames(CurrentIndex + 1, rFileInfo->m_FileSize, rFileInfo->m_FullPath, _NameTableOffset);
 		}
@@ -278,19 +235,16 @@ CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _LastInd
 		{
 			// this is a filename
 			if (_szDirectory != NULL)
-			{
 				CharArrayFromFormat(rFileInfo->m_FullPath, "%s%s", _szDirectory, filename);
-			}
 			else
-			{
 				CharArrayFromFormat(rFileInfo->m_FullPath, "%s", filename);
-			}
 
 			CurrentIndex++;
 		}
 	}
 
-	return(CurrentIndex);
+	return CurrentIndex;
 }
+
 } // namespace
 
