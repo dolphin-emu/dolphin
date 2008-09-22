@@ -472,7 +472,7 @@ void UpdateFifoRegister()
 #ifdef _WIN32
 	if (Core::g_CoreStartupParameter.bUseDualCore) LeaveCriticalSection(&fifo.sync);
 #endif
-//	if (!Core::g_CoreStartupParameter.bUseDualCore) CatchUpGPU();
+	if (!Core::g_CoreStartupParameter.bUseDualCore) CatchUpGPU();
 }
 
 void UpdateInterrupts()

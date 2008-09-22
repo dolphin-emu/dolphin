@@ -23,7 +23,6 @@
 #include "../HW/DSP.h"
 #include "../HW/AudioInterface.h"
 #include "../HW/VideoInterface.h"
-#include "../HW/CommandProcessor.h"
 #include "../HW/SerialInterface.h"
 #include "../PowerPC/PowerPC.h"
 #include "../CoreTiming.h"
@@ -160,7 +159,6 @@ void AdvanceCallback(int cyclesExecuted)
 
 void GPUCallback(u64 userdata, int cyclesLate)
 {
-	CommandProcessor::CatchUpGPU();
 	CoreTiming::ScheduleEvent(GPU_PERIOD-cyclesLate, et_GPU);
 }
 
