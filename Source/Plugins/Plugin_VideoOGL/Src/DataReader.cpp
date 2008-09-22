@@ -29,9 +29,12 @@ extern u32 FAKE_ReadFifo32();
 extern int FAKE_GetPosition();
 extern void FAKE_SkipFifo(u32 skip);
 
+IDataReader::~IDataReader()
+{
+}
+
 CDataReader_Fifo::CDataReader_Fifo(void)
 {
-    m_szName = "CDataReader_Fifo";
 }
 
 u8 CDataReader_Fifo::Read8(void)
@@ -68,7 +71,6 @@ CDataReader_Memory::CDataReader_Memory(u32 _uAddress) :
     m_uReadAddress(_uAddress)
 {
     //m_pMemory = g_VideoInitialize.pGetMemoryPointer(0x00);
-    m_szName = "CDataReader_Memory";
 }
 
 u32 CDataReader_Memory::GetReadAddress()

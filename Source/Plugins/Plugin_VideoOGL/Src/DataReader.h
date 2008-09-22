@@ -25,7 +25,7 @@
 class IDataReader
 {
 protected:
-    const char *m_szName;
+	virtual ~IDataReader();
 
 public:	
     virtual void Skip(u32) = 0;
