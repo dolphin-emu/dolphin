@@ -89,7 +89,7 @@ void CEXIMemoryCard::Flush(bool exiting)
 	{
 		std::string dir;
 		SplitPath(m_strFilename, &dir, 0, 0);
-		File::CreateDir(dir);
+		File::CreateDir(dir.c_str());
 		pFile = fopen(m_strFilename.c_str(), "wb");
 	}
 	if (!pFile) //Note - pFile changed inside above if

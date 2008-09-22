@@ -36,21 +36,19 @@
     #include "../resources/Flag_USA.xpm"
 #endif // USE_XPM_BITMAPS
 
-/////////////////////////////////
 int currentColumn ;
 bool operator < (const CISOFile &one, const CISOFile &other)
 {
 	switch(currentColumn)
 	{
-	case CGameListCtrl::COLUMN_TITLE: return strcasecmp(one.GetName().c_str(), other.GetName().c_str()) < 0;
-	case CGameListCtrl::COLUMN_COMPANY: return strcasecmp(one.GetCompany().c_str(), other.GetCompany().c_str()) < 0;
-	case CGameListCtrl::COLUMN_NOTES: return strcasecmp(one.GetDescription().c_str(), other.GetDescription().c_str()) < 0;
+	case CGameListCtrl::COLUMN_TITLE:   return strcasecmp(one.GetName().c_str(),        other.GetName().c_str()) < 0;
+	case CGameListCtrl::COLUMN_COMPANY: return strcasecmp(one.GetCompany().c_str(),     other.GetCompany().c_str()) < 0;
+	case CGameListCtrl::COLUMN_NOTES:   return strcasecmp(one.GetDescription().c_str(), other.GetDescription().c_str()) < 0;
 	case CGameListCtrl::COLUMN_COUNTRY: return (one.GetCountry() < other.GetCountry());
-	case CGameListCtrl::COLUMN_SIZE: return (one.GetFileSize() < other.GetFileSize());
+	case CGameListCtrl::COLUMN_SIZE:    return (one.GetFileSize() < other.GetFileSize());
 	default: return strcasecmp(one.GetName().c_str(), other.GetName().c_str()) < 0;
 	}
 }
-/////////////////////////////////
 
 BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 
@@ -66,6 +64,7 @@ EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
 EVT_MENU(IDM_SETDEFAULTGCM, CGameListCtrl::OnSetDefaultGCM)
 EVT_MENU(IDM_FILESYSTEMVIEWER, CGameListCtrl::OnFilesystemViewer)
 EVT_MENU(IDM_COMPRESSGCM, CGameListCtrl::OnCompressGCM)
+EVT_MENU(IDM_DELETEGCM, CGameListCtrl::OnDeleteGCM)
 END_EVENT_TABLE()
 
 CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -465,16 +464,18 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			               wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED);
 	}
 	const CISOFile *selected_iso = GetSelectedISO();
-	if (selected_iso) {
+	if (selected_iso)
+	{
 		std::string unique_id = selected_iso->GetUniqueID();
 		wxMenu popupMenu;
 		std::string menu_text = StringFromFormat("Edit &patch file: %s.ini", unique_id.c_str());
 		popupMenu.Append(IDM_EDITPATCHFILE, wxString::FromAscii(menu_text.c_str())); //Pretty much everything in wxwidgets is a wxString, try to convert to those first!
 		popupMenu.Append(IDM_OPENCONTAININGFOLDER, wxString::FromAscii("Open &containing folder"));
-		popupMenu.Append(IDM_SETDEFAULTGCM, wxString::FromAscii("Set as &default ISO"));
 		popupMenu.Append(IDM_FILESYSTEMVIEWER, wxString::FromAscii("Open in ISO viewer/dumper"));
+		popupMenu.Append(IDM_SETDEFAULTGCM, wxString::FromAscii("Set as &default ISO"));
+		popupMenu.AppendSeparator();
+		popupMenu.Append(IDM_DELETEGCM, wxString::FromAscii("&Delete ISO..."));
 
-		// F|RES: compression doesn't work and will be rewritten ... if it is fixed the gui is ready :D
 		if (selected_iso->IsCompressed())
 			popupMenu.Append(IDM_COMPRESSGCM, wxString::FromAscii("Decompress ISO... (UNTESTED)"));
 		else
@@ -516,7 +517,7 @@ void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event)) {
 		return;
 	std::string path;
 	SplitPath(iso->GetFileName(), &path, 0, 0);
-	File::Explore(path);
+	File::Explore(path.c_str());
 }
 
 void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& WXUNUSED (event)) {
@@ -525,6 +526,16 @@ void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& WXUNUSED (event)) {
 		return;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = iso->GetFileName();
 	SConfig::GetInstance().SaveSettings();
+}
+
+void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event)) {
+	const CISOFile *iso = GetSelectedISO();
+	if (!iso)
+		return;
+	if (wxMessageBox("Are you sure you want to delete this file?", wxMessageBoxCaptionStr, wxYES_NO) == wxYES)
+	{
+		File::Delete(iso->GetFileName().c_str());
+	}
 }
 
 void CGameListCtrl::OnFilesystemViewer(wxCommandEvent& WXUNUSED (event)) {
@@ -617,7 +628,7 @@ void CGameListCtrl::OnEditPatchFile(wxCommandEvent& WXUNUSED (event))
 	if (!iso)
 		return;
 	std::string filename = "Patches/" + iso->GetUniqueID() + ".ini";
-	if (!File::Exists(filename)) {
+	if (!File::Exists(filename.c_str())) {
 		if (AskYesNo("%s.ini does not exist. Do you want to create it?", iso->GetUniqueID().c_str())) {
 			FILE *f = fopen(filename.c_str(), "w");
 			fprintf(f, "# %s - %s\r\n\r\n", iso->GetUniqueID().c_str(), iso->GetName().c_str());
@@ -628,7 +639,7 @@ void CGameListCtrl::OnEditPatchFile(wxCommandEvent& WXUNUSED (event))
 			return;
 		}
 	}
-	File::Launch(filename);
+	File::Launch(filename.c_str());
 }
 
 void CGameListCtrl::OnSelected(wxListEvent& WXUNUSED (event))

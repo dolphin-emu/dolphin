@@ -35,8 +35,7 @@ CPluginManager::~CPluginManager()
 {}
 
 
-void
-CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
+void CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 {
 	m_PluginInfos.clear();
 
@@ -91,7 +90,7 @@ CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 				break;
 			}
 
-			CPluginInfo PluginInfo(orig_name);
+			CPluginInfo PluginInfo(orig_name.c_str());
 			if (PluginInfo.IsValid())
 			{
 				m_PluginInfos.push_back(PluginInfo);
@@ -100,11 +99,9 @@ CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 	}
 }
 
-
-void
-CPluginManager::OpenAbout(void* _Parent, const std::string& _rFilename)
+void CPluginManager::OpenAbout(void* _Parent, const char *_rFilename)
 {
-	if (Common::CPlugin::Load(_rFilename.c_str()))
+	if (Common::CPlugin::Load(_rFilename))
 	{
 		Common::CPlugin::About((HWND)_Parent);
 		Common::CPlugin::Release();
@@ -112,40 +109,34 @@ CPluginManager::OpenAbout(void* _Parent, const std::string& _rFilename)
 }
 
 
-void
-CPluginManager::OpenConfig(void* _Parent, const std::string& _rFilename)
+void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename)
 {
-	if (Common::CPlugin::Load(_rFilename.c_str()))
+	if (Common::CPlugin::Load(_rFilename))
 	{
 		Common::CPlugin::Config((HWND)_Parent);
 		Common::CPlugin::Release();
 	}
 }
 
-
-CPluginInfo::CPluginInfo(const std::string& _rFileName)
+CPluginInfo::CPluginInfo(const char *_rFileName)
 	: m_FileName(_rFileName)
 	, m_Valid(false)
 {
-	if (Common::CPlugin::Load(_rFileName.c_str()))
+	if (Common::CPlugin::Load(_rFileName))
 	{
 		if (Common::CPlugin::GetInfo(m_PluginInfo))
-		{
 			m_Valid = true;
-		}
 		else
-		{
-			PanicAlert("Could not get info about plugin %s", _rFileName.c_str());
-		}
+			PanicAlert("Could not get info about plugin %s", _rFileName);
 
 		Common::CPlugin::Release();
 	}
 	else
 	{
 		if (!File::Exists(_rFileName)) {
-			PanicAlert("Could not load plugin %s - file does not exist", _rFileName.c_str());
+			PanicAlert("Could not load plugin %s - file does not exist", _rFileName);
 		} else {
-			PanicAlert("Failed to load plugin %s - unknown error.\n", _rFileName.c_str());
+			PanicAlert("Failed to load plugin %s - unknown error.\n", _rFileName);
 		}
 	}
 }

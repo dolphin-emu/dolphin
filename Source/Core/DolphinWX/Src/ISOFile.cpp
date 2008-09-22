@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "Globals.h"
+#include "FileUtil.h"
 #include "ISOFile.h"
 
 #include "VolumeCreator.h"
@@ -44,7 +45,8 @@ CISOFile::CISOFile(const std::string& _rFileName)
 	{
 		m_Name = _rFileName;
 		m_Country  = pVolume->GetCountry();
-		m_FileSize = pVolume->GetSize();
+		m_FileSize = File::GetSize(_rFileName.c_str());
+		m_VolumeSize = pVolume->GetSize();
 		m_Name = pVolume->GetName();
 		m_UniqueID = pVolume->GetUniqueID();
 		m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName.c_str());

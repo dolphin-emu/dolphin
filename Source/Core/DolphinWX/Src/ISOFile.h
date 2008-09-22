@@ -22,48 +22,39 @@
 
 class CISOFile
 {
-	public:
+public:
+	CISOFile(const std::string& _rFileName);
+	~CISOFile();
 
-		CISOFile(const std::string& _rFileName);
-		~CISOFile();
+	bool IsValid() const {return m_Valid;}
+	const std::string& GetFileName() const {return m_FileName;}
+	const std::string& GetName() const {return m_Name;}
+	const std::string& GetCompany() const {return m_Company;}
+	const std::string& GetDescription() const {return m_Description;}
+	const std::string& GetUniqueID() const {return m_UniqueID;}
+	DiscIO::IVolume::ECountry GetCountry() const {return m_Country;}
+	bool IsCompressed() const {return m_BlobCompressed;}
+	u64 GetFileSize() const {return m_FileSize;}
+	u64 GetVolumeSize() const {return m_VolumeSize;}
+	const wxImage& GetImage() const {return m_Image;}
 
-		bool IsValid() const {return(m_Valid);}
+private:
+	std::string m_FileName;
+	std::string m_Name;
+	std::string m_Company;
+	std::string m_Description;
+	std::string m_UniqueID;
 
-		const std::string& GetFileName() const {return(m_FileName);}
+	u64 m_FileSize;
+	u64 m_VolumeSize;
 
-		const std::string& GetName() const {return(m_Name);}
+	DiscIO::IVolume::ECountry m_Country;
 
-		const std::string& GetCompany() const {return(m_Company);}
+	wxImage m_Image;
 
-		const std::string& GetDescription() const {return(m_Description);}
+	bool m_Valid;
 
-		const std::string& GetUniqueID() const {return(m_UniqueID);}
-
-		DiscIO::IVolume::ECountry GetCountry() const {return(m_Country);}
-
-		bool IsCompressed() const {return(m_BlobCompressed); }
-
-		u64 GetFileSize() const {return(m_FileSize);}
-
-		const wxImage& GetImage() const {return(m_Image);}
-
-	private:
-
-		std::string m_FileName;
-		std::string m_Name;
-		std::string m_Company;
-		std::string m_Description;
-		std::string m_UniqueID;
-
-		u64 m_FileSize;
-
-		DiscIO::IVolume::ECountry m_Country;
-
-		wxImage m_Image;
-
-		bool m_Valid;
-
-		bool m_BlobCompressed;
+	bool m_BlobCompressed;
 };
 
 

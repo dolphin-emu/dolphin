@@ -19,6 +19,7 @@
 #include "FileUtil.h"
 
 #ifdef _WIN32
+#include <windows.h>
 #include <shlobj.h>    // for SHGetFolderPath
 #include <shellapi.h>
 #include <commdlg.h>   // for GetSaveFileName
@@ -29,23 +30,24 @@
 #include <stdlib.h>
 #endif
 
-bool File::Exists(const std::string &filename)
+bool File::Exists(const char *filename)
 {
 #ifdef _WIN32
-	return GetFileAttributes(filename.c_str()) != INVALID_FILE_ATTRIBUTES;
+	return GetFileAttributes(filename) != INVALID_FILE_ATTRIBUTES;
 #else
 	struct stat file_info;
-	int result = stat(filename.c_str(), &file_info);
+	int result = stat(filename, &file_info);
 	return result == 0;
 #endif
 }
 
-bool File::IsDirectory(const std::string &filename) {
+bool File::IsDirectory(const char *filename)
+{
 #ifdef _WIN32
-	return (GetFileAttributes(filename.c_str()) & FILE_ATTRIBUTE_DIRECTORY) != 0;
+	return (GetFileAttributes(filename) & FILE_ATTRIBUTE_DIRECTORY) != 0;
 #else
         struct stat file_info;
-	int result = stat(filename.c_str(), &file_info);
+	int result = stat(filename, &file_info);
         if (result == 0)
           return S_ISDIR(file_info.st_mode);
         else 
@@ -53,7 +55,22 @@ bool File::IsDirectory(const std::string &filename) {
 #endif
 }
 
-std::string SanitizePath(const std::string &filename) {
+bool File::Delete(const char *filename)
+{
+	if (!File::Exists(filename))
+		return false;
+	if (File::IsDirectory(filename))
+		return false;
+#ifdef _WIN32
+	DeleteFile(filename);
+#else
+	unlink(filename);
+#endif
+	return true;
+}
+
+std::string SanitizePath(const char *filename)
+{
 	std::string copy = filename;
 	for (size_t i = 0; i < copy.size(); i++)
 		if (copy[i] == '/')
@@ -61,7 +78,7 @@ std::string SanitizePath(const std::string &filename) {
 	return copy;
 }
 
-void File::Launch(const std::string &filename)
+void File::Launch(const char *filename)
 {
 #ifdef _WIN32
 	std::string win_filename = SanitizePath(filename);
@@ -76,7 +93,7 @@ void File::Launch(const std::string &filename)
 #endif
 }
 
-void File::Explore(const std::string &path)
+void File::Explore(const char *path)
 {
 #ifdef _WIN32
 	std::string win_path = SanitizePath(path);
@@ -92,27 +109,27 @@ void File::Explore(const std::string &path)
 }
 
 // Returns true if successful, or path already exists.
-bool File::CreateDir(const std::string &path)
+bool File::CreateDir(const char *path)
 {
 #ifdef _WIN32
-	if (::CreateDirectory(path.c_str(), NULL))
+	if (::CreateDirectory(path, NULL))
 		return true;
 	DWORD error = GetLastError();
 	if (error == ERROR_ALREADY_EXISTS)
 	{
-		PanicAlert("%s already exists", path.c_str());
+		PanicAlert("%s already exists", path);
 		return true;
 	}
 	PanicAlert("Error creating directory: %i", error);
 	return false;
 #else
-    if (mkdir(path.c_str(), 0644) == 0)
+    if (mkdir(path, 0644) == 0)
 		return true;
 
     int err = errno;
 
     if (err == EEXIST) {
-		PanicAlert("%s already exists", path.c_str());
+		PanicAlert("%s already exists", path);
 		return true;
     }
 
@@ -122,7 +139,7 @@ bool File::CreateDir(const std::string &path)
 #endif
 }
 
-std::string GetUserDirectory() {
+std::string File::GetUserDirectory() {
 #ifdef _WIN32 
 	char path[MAX_PATH];
 	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, path)))
@@ -136,4 +153,13 @@ std::string GetUserDirectory() {
 		return std::string("");
 	return dir; 
 #endif
+}
+
+u64 File::GetSize(const char *filename)
+{
+	FILE *f = fopen(filename, "rb");
+	fseek(f, 0, SEEK_END);
+	u64 pos = ftell(f);
+	fclose(f);
+	return pos;
 }

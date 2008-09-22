@@ -252,9 +252,7 @@ void CPluginOptions::CallConfig(wxChoice* _pChoice)
 		const CPluginInfo* pInfo = static_cast<CPluginInfo*>(_pChoice->GetClientData(Index));
 
 		if (pInfo != NULL)
-		{
-			CPluginManager::GetInstance().OpenConfig((HWND) this->GetHandle(), pInfo->GetFileName());
-		}
+			CPluginManager::GetInstance().OpenConfig((HWND) this->GetHandle(), pInfo->GetFileName().c_str());
 	}
 }
 
@@ -268,9 +266,7 @@ void CPluginOptions::CallAbout(wxChoice* _pChoice)
 		const CPluginInfo* pInfo = static_cast<CPluginInfo*>(_pChoice->GetClientData(Index));
 
 		if (pInfo != NULL)
-		{
-			CPluginManager::GetInstance().OpenAbout((HWND) this->GetHandle(), pInfo->GetFileName());
-		}
+			CPluginManager::GetInstance().OpenAbout((HWND) this->GetHandle(), pInfo->GetFileName().c_str());
 	}
 }
 
@@ -305,4 +301,3 @@ bool CPluginOptions::GetFilename(wxChoice* _pChoice, std::string& _rFilename)
 
 	return(false);
 }
-

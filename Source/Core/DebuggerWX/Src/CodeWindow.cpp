@@ -373,7 +373,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		break;
 		}
 	case IDM_LOADMAPFILE:
-		if (!File::Exists(mapfile))
+		if (!File::Exists(mapfile.c_str()))
 		{
 			g_symbolDB.Clear();
 			PPCAnalyst::FindFunctions(0x80000000, 0x80400000, &g_symbolDB);

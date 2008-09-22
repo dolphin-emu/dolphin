@@ -22,58 +22,37 @@
 
 class CPluginInfo
 {
-	public:
+public:
+	CPluginInfo(const char *_rFileName);
+	bool IsValid() const {return(m_Valid);}
+	const PLUGIN_INFO& GetPluginInfo() const {return(m_PluginInfo);}
+	const std::string& GetFileName() const {return(m_FileName);}
 
-		CPluginInfo(const std::string& _rFileName);
-
-		bool IsValid() const {return(m_Valid);}
-
-
-		const PLUGIN_INFO& GetPluginInfo() const {return(m_PluginInfo);}
-
-
-		const std::string& GetFileName() const {return(m_FileName);}
-
-
-	private:
-
-		PLUGIN_INFO m_PluginInfo;
-
-		std::string m_FileName;
-
-		bool m_Valid;
+private:
+	PLUGIN_INFO m_PluginInfo;
+	std::string m_FileName;
+	bool m_Valid;
 };
 
 typedef std::vector<CPluginInfo>CPluginInfos;
 
 class CPluginManager
 {
-	public:
+public:
+	static CPluginManager& GetInstance() {return(m_Instance);}
+	void ScanForPlugins(wxWindow* _wxWindow);
+	void OpenAbout(void* _Parent, const char *_rFilename);
+	void OpenConfig(void* _Parent, const char *_rFilename);
+	const CPluginInfos& GetPluginInfos() {return(m_PluginInfos);}
 
-		static CPluginManager& GetInstance() {return(m_Instance);}
+private:
+	static CPluginManager m_Instance;
+	bool m_Initialized;
 
+	CPluginInfos m_PluginInfos;
 
-		void ScanForPlugins(wxWindow* _wxWindow);
-
-		void OpenAbout(void* _Parent, const std::string& _rFilename);
-
-		void OpenConfig(void* _Parent, const std::string& _rFilename);
-
-
-		const CPluginInfos& GetPluginInfos() {return(m_PluginInfos);}
-
-
-	private:
-
-		static CPluginManager m_Instance;
-
-		bool m_Initialized;
-
-		CPluginInfos m_PluginInfos;
-
-		CPluginManager();
-
-		~CPluginManager();
+	CPluginManager();
+	~CPluginManager();
 };
 
 

@@ -20,14 +20,18 @@
 
 #include <string>
 
+#include "Common.h"
+
 class File
 {
 public:
-	static bool Exists(const std::string &filename);
-	static void Launch(const std::string &filename);
-	static void Explore(const std::string &path);
-	static bool IsDirectory(const std::string &filename);
-	static bool CreateDir(const std::string &filename);
+	static bool Exists(const char *filename);
+	static void Launch(const char *filename);
+	static void Explore(const char *path);
+	static bool IsDirectory(const char *filename);
+	static bool CreateDir(const char *filename);
+	static bool Delete(const char *filename);
+	static u64 GetSize(const char *filename);
 	static std::string GetUserDirectory();
 };
 

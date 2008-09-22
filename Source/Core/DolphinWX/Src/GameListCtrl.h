@@ -74,6 +74,7 @@ class CGameListCtrl : public wxListCtrl
 		void OnEditPatchFile(wxCommandEvent& event);
 		void OnOpenContainingFolder(wxCommandEvent& event);
 		void OnSetDefaultGCM(wxCommandEvent& event);
+		void OnDeleteGCM(wxCommandEvent& event);
 		void OnCompressGCM(wxCommandEvent& event);
 		void OnFilesystemViewer(wxCommandEvent& event);
 

@@ -143,7 +143,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
     m_strMemoryCardA = BaseDataPath + "/MemoryCardA.raw";
     m_strMemoryCardB = BaseDataPath + "/MemoryCardB.raw";
     m_strSRAM = BaseDataPath + "/SRAM.raw";
-	if (!File::Exists(m_strBios)) {
+	if (!File::Exists(m_strBios.c_str())) {
 		LOG(BOOT, "BIOS file %s not found - using HLE.", m_strBios.c_str());
 		bHLEBios = true;
 	}
