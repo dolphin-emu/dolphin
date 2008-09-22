@@ -21,7 +21,6 @@
 #include "UCodes.h"
 #include "UCode_ROM.h"
 
-
 CUCode_Rom::CUCode_Rom(CMailHandler& _rMailHandler)
 	: IUCode(_rMailHandler)
 	, m_BootTask_numSteps(0)
@@ -32,14 +31,11 @@ CUCode_Rom::CUCode_Rom(CMailHandler& _rMailHandler)
 	m_rMailHandler.PushMail(0x8071FEED);
 }
 
-
 CUCode_Rom::~CUCode_Rom()
 {}
 
-
 void CUCode_Rom::Update()
 {}
-
 
 void CUCode_Rom::HandleMail(u32 _uMail)
 {
@@ -80,17 +76,17 @@ void CUCode_Rom::HandleMail(u32 _uMail)
 		    {
 			    m_CurrentUCode.m_StartPC = _uMail;
 			    BootUCode();
+				return; // FIXES THE OVERWRITE
 		    }
-			    break;
+		    break;
 		}
 
+		// THE GODDAMN OVERWRITE WAS HERE. Without the return above, since BootUCode may delete "this", well ...
 		m_NextParameter = 0;
 	}
 }
 
-
-void
-CUCode_Rom::BootUCode()
+void CUCode_Rom::BootUCode()
 {
 	// simple non-scientific crc invented by ector :P
 	// too annoying to change now, and probably good enough anyway
