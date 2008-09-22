@@ -76,7 +76,10 @@ void OpenGL_SetWindowText(const char *text)
 BOOL Callback_PeekMessages()
 {
 #if USE_SDL
-	//TODO
+	// TODO: There is no documentation of this function and the calling code
+	//       ignores the return value, so I have no idea what would be the
+	//       proper value to return.
+    return FALSE;
 #elif defined(_WIN32)
     //TODO: peekmessage
     MSG msg;
