@@ -137,6 +137,9 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 		if (pb.running)
 		{
+			// =======================================================================================
+			// Set initial parameters
+			// ---------------------------------------------------------------------------------------
 			//constants
 			const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
 			const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
@@ -145,13 +148,74 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			//variables
 			u32 samplePos = (pb.audio_addr.cur_addr_hi << 16) | pb.audio_addr.cur_addr_lo;
 			u32 frac = pb.src.cur_addr_frac;
+			// =======================================================================================
 
+			
+
+			// =======================================================================================
+			// Handle no-src streams - No src streams have pb.src_type == 2 and have pb.src.ratio_hi = 0
+			// and pb.src.ratio_lo = 0. We handle that by setting the sampling ratio integer to 1. This
+			// makes samplePos update in the correct way.
+			// ---------------------------------------------------------------------------------------
+			// Stream settings
+				// src_type = 2 (most other games have src_type = 0)
+			// ---------------------------------------------------------------------------------------
+			// Affected games:
+				// Baten Kaitos - Eternal Wings (2003)
+				// Baten Kaitos - Origins (2006)?
+				// ?
+			// ---------------------------------------------------------------------------------------
+			if(pb.src_type == 2)
+			{
+				pb.src.ratio_hi = 1;
+			}
+			// =======================================================================================
+
+
+			// =======================================================================================
+			// Games that use looping to play non-looping music streams. SSBM has info in all pb.adpcm_loop_info
+			// parameters but has pb.audio_addr.looping = 0. If we treat these streams like any other looping
+			// streams the music works.
+			// ---------------------------------------------------------------------------------------
+			if(pb.adpcm_loop_info.pred_scale || pb.adpcm_loop_info.yn1 || pb.adpcm_loop_info.yn2)
+			{
+				pb.audio_addr.looping = 1;
+			}
+			// =======================================================================================
+
+
+			// =======================================================================================
+			// Streaming music and volume - A lot of music in Paper Mario use the exat same settings, namely
+			// these:	
+				// Base settings
+					// is_stream = 1
+					// src_type = 0
+					// coef (unknown1) = 1
+				// PBAudioAddr
+					// audio_addr.looping = 1 (adpcm_loop_info.pred_scale = value, .yn1 = 0, .yn2 = 0)			
+			// However. Some of the ingame music and seemingly randomly some other music incorrectly get
+			// volume = 0 for both left and right. There's also an issue of a hanging very similar to the Baten
+			// hanging. The Baten issue fixed itself when the music stream was allowed to play to the end and
+			// then stop. However, all five music streams that is playing when the gate locks up in Paper Mario
+			// is loooping streams... I don't know what may be wrong.
+			// ---------------------------------------------------------------------------------------
+			// A game that may be used as a comparison is Starfox Assault also has is_stream = 1, but it
+			// has src_type = 1, coef (unknown1) = 0 and its pb.src.ratio_lo (fraction) != 0
+			// =======================================================================================
+
+
+			// =======================================================================================
+			// Walk through _iSize
 			for (int s = 0; s < _iSize; s++)
 			{
 				int sample = 0;
 				frac += ratio;
 				u32 newSamplePos = samplePos + (frac >> 16); //whole number of frac
 
+
+				// =======================================================================================
+				// Process sample format
+				// ---------------------------------------------------------------------------------------
 				switch (pb.audio_addr.sample_format)
 				{
 				    case AUDIOFORMAT_PCM8:
@@ -188,7 +252,11 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 				    default:
 					    break;
 				}
+				// =======================================================================================
 
+
+				// =======================================================================================
+				// Volume control
 				frac &= 0xffff;
 
 				int vol = pb.vol_env.cur_volume >> 9;
@@ -205,6 +273,8 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 				int leftmix  = pb.mixer.volume_left >> 5;
 				int rightmix = pb.mixer.volume_right >> 5;
+				// =======================================================================================
+
 
 				int left  = sample * leftmix >> 8;
 				int right = sample * rightmix >> 8;
@@ -227,7 +297,9 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 						break;
 					}
 				}
-			}
+			} // end of the _iSize loop
+			// =======================================================================================
+
 
 			pb.src.cur_addr_frac = (u16)frac;
 			pb.audio_addr.cur_addr_hi = samplePos >> 16;
