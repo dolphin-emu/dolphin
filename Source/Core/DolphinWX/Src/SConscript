@@ -25,13 +25,14 @@ libs = [
 
 wxenv = env.Clone()
 wxenv.Append(
-        CPPDEFINES = [
+	CPPDEFINES = [
 		'USE_XPM_BITMAPS',
 		'wxNEEDS_CHARPP',
 		],
 	LINKFLAGS = [
 		'-pthread',
-		]
+		],
+	LIBS = libs
 	)
 
 if sys.platform == 'darwin':
@@ -63,5 +64,5 @@ else:
 	exeNoGUI = '../../../../Binary/linux/DolphinNoGUI'
 
 objects = [ wxenv.Object(srcFile) for srcFile in files ]
-wxenv.Program(exeGUI, objects + [ 'Main.cpp' ], LIBS=wxenv['LIBS']+libs)
-wxenv.Program(exeNoGUI, objects + [ 'MainNoGUI.cpp' ], LIBS=wxenv['LIBS']+libs)
+wxenv.Program(exeGUI, objects + [ 'Main.cpp' ])
+wxenv.Program(exeNoGUI, objects + [ 'MainNoGUI.cpp' ])
