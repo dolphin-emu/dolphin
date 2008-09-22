@@ -54,9 +54,10 @@ else:
 	# instead if you like, by changing the line below.
 	useSDL = False
         gfxenv.ParseConfig("pkg-config x11 --cflags --libs")
+        gfxenv.ParseConfig("pkg-config xxf86vm --cflags --libs")
 
 	# Libraries without pkg-config support.
-	libs += [ 'GL', 'Cg', 'CgGL', 'X11' ]
+	libs += [ 'GL', 'Cg', 'CgGL' ]
 
 if useSDL:                    
 	compileFlags += [ '-DUSE_SDL=1' ]
