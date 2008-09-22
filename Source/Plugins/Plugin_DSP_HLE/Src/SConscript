@@ -3,6 +3,11 @@
 Import('env')
 import sys
 
+if sys.platform == 'darwin':
+	output = "../../../../Binary/mac/Plugins/dsphle.so"
+else:
+	output = "../../../../Binary/linux/Plugins/dsphle.so"
+
 files = [
 	"DSPHandler.cpp",
 	"MailHandler.cpp",
@@ -22,10 +27,7 @@ files = [
 
 dspenv = env.Clone()
 dspenv.Append(
-	CXXFLAGS = [ '-fPIC', ],
+	CXXFLAGS = [ '-fPIC' ],
+	LIBS = [ 'common' ],
 	)
-
-if sys.platform == 'darwin':
-	dspenv.SharedLibrary("../../../../Binary/mac/Plugins/dsphle.so", files, LIBS = ["common"])
-else:
-	dspenv.SharedLibrary("../../../../Binary/linux/Plugins/dsphle.so", files, LIBS = ["common"])
+dspenv.SharedLibrary(output, files)

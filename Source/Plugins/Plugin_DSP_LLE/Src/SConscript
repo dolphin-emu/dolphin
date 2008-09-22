@@ -1,7 +1,12 @@
 # -*- python -*- 
 
 Import('env')
-output = "../../../../Binary/linux/Plugins/dsplle.so"
+import sys
+
+if sys.platform == 'darwin':
+	output = "../../../../Binary/mac/Plugins/dsplle.so"
+else:
+	output = "../../../../Binary/linux/Plugins/dsplle.so"
 
 files = [
 	"AOSoundStream.cpp",
@@ -21,8 +26,7 @@ files = [
 
 lleenv = env.Clone()
 lleenv.Append(
-    CXXFLAGS = [ '-fPIC', ],
-    )
-
-
-lleenv.SharedLibrary(output, files, LIBS = ["common"])
+	CXXFLAGS = [ '-fPIC' ],
+	LIBS = [ 'common' ],
+	)
+lleenv.SharedLibrary(output, files)
