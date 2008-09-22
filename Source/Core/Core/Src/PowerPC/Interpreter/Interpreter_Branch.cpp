@@ -53,7 +53,7 @@ void bcx(UGeckoInstruction _inst)
 	const bool only_condition_check = ((_inst.BO >> 2) & 1);
 	int ctr_check = ((CTR != 0) ^ (_inst.BO >> 1)) & 1;
 	bool counter = only_condition_check || ctr_check;
-	bool condition = only_counter_check || (GetCRBit(_inst.BI) == (int)true_false);
+	bool condition = only_counter_check || (GetCRBit(_inst.BI) == u32(true_false));
 
 	if (counter && condition)
 	{
