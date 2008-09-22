@@ -21,9 +21,13 @@
 #define _CRTDBG_MAP_ALLOC
 #define _CRTDBG_MAP_ALLOC_NEW
 
+#define CHECK_HEAP_INTEGRITY()
+
 #ifdef _WIN32
 #ifdef _DEBUG
 #include <crtdbg.h>
+#undef CHECK_HEAP_INTEGRITY
+#define CHECK_HEAP_INTEGRITY() {if (!_CrtCheckMemory()) PanicAlert("memory corruption detected. see log.");}
 #endif
 
 #include "../../../PluginSpecs/CommonTypes.h"
