@@ -190,11 +190,12 @@ void Video_DoState(unsigned char **ptr, int mode) {
 
 void Video_Prepare(void)
 {
-	OpenGL_MakeCurrent();
-	if (!Renderer::Create2()) {
+    OpenGL_MakeCurrent();
+    if (!Renderer::Create2()) {
         g_VideoInitialize.pLog("Renderer::Create2 failed\n", TRUE);
-        return;
-	}
+        PanicAlert("Can't create opengl renderer. You might be missing some required opengl extensions, check the logs for more info");
+        exit(1);
+    }
 
     TextureMngr::Init();
 
