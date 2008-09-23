@@ -434,7 +434,7 @@ void CVolumeDirectory::WriteEntry(const FSTEntry& entry, u32& fstOffset, u32& na
 }
 
 #ifdef _WIN32
-static bool ReadFoundFile(const WIN32_FIND_DATA& ffd, CVolumeDirectory::FSTEntry& entry)
+static bool ReadFoundFile(const WIN32_FIND_DATA& ffd, FSTEntry& entry)
 {
 	// ignore files starting with a .
 	if(strncmp(ffd.cFileName, ".", 1) == 0)
