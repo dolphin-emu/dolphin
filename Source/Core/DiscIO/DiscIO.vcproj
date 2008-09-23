@@ -598,6 +598,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\VolumeDirectory.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VolumeDirectory.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\VolumeGC.cpp"
 				>
 				<FileConfiguration

@@ -103,6 +103,7 @@ void SymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const char *name, int typ
 		Symbol tf;
 		tf.name = name;
 		tf.type = type;
+		tf.address = startAddr;
 		if (tf.type == Symbol::SYMBOL_FUNCTION) {
 			PPCAnalyst::AnalyzeFunction(startAddr, tf, size);
 			checksumToFunction[tf.hash] = &(functions[startAddr]);

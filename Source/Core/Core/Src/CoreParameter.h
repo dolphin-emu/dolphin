@@ -80,6 +80,7 @@ struct SCoreStartupParameter
 	std::string m_strMemoryCardB;
 	std::string m_strSRAM;
 	std::string m_strDefaultGCM;
+	std::string m_strDVDRoot;
 	std::string m_strUniqueID;
 
 	// 

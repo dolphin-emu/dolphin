@@ -22,6 +22,7 @@
 #include "VolumeCreator.h"
 
 #include "Volume.h"
+#include "VolumeDirectory.h"
 #include "VolumeGC.h"
 #include "VolumeWiiCrypted.h"
 
@@ -100,6 +101,14 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename)
 	}
 
 	// unreachable code
+	return NULL;
+}
+
+IVolume* CreateVolumeFromDirectory(const std::string& _rDirectory, bool _bIsWii)
+{
+	if(CVolumeDirectory::IsValidDirectory(_rDirectory))
+		return new CVolumeDirectory(_rDirectory, _bIsWii);
+	
 	return NULL;
 }
 

@@ -28,6 +28,7 @@
 #include "VolumeCreator.h"
 #include "Filesystem.h"
 
+
 // __________________________________________________________________________________________________
 //
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName )
@@ -36,7 +37,7 @@ CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string&
     , m_pFileSystem(NULL)
 {
     
-    m_pVolume = DiscIO::CreateVolumeFromFilename(Core::GetStartupParameter().m_strFilename);
+	m_pVolume = VolumeHandler::GetVolume();
     if (m_pVolume)
         m_pFileSystem = DiscIO::CreateFileSystem(m_pVolume);
 }
@@ -103,6 +104,9 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
     return true;
 }
 
+// Hack
+u8 coverByte = 0;
+
 // __________________________________________________________________________________________________
 //
 u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize)
@@ -114,13 +118,46 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	case 0x12:
 		{
 			Memory::Memset(_BufferOut, 0, _BufferOutSize);
-			LOG(WII_IPC_HLE, "%s executes DVDLowInquiry (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
 
+			u8* buffer = Memory::GetPointer(_BufferOut);
+			
+			// rev
+			buffer[0] = 0x01;
+			buffer[1] = 0x02;
+
+			// dev code
+			buffer[2] = 0x03;
+			buffer[3] = 0x04;
+
+			// firmware date
+			buffer[4] = 0x20;
+			buffer[5] = 0x08;
+			buffer[6] = 0x08;
+			buffer[7] = 0x29;			
+
+			LOG(WII_IPC_HLE, "%s executes DVDLowInquiry (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
+			
+            return 0x1;			
+		}
+		break;
+
+	// DVDLowReadDiskID
+	case 0x70:
+		{
+			// TODO - verify that this is correct
+			VolumeHandler::ReadToPtr(Memory::GetPointer(_BufferOut), 0, _BufferOutSize);
+
+			LOG(WII_IPC_HLE, "%s executes DVDLowReadDiskID (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
+			
             return 0x1;			
 		}
 		break;
 	
     // DVDLowRead
+	// TODO - find out if 80, 8d, or and d0 need to do something specific 
+	case 0x80:
+	case 0x8d:
+	case 0xd0:
     case 0x71:
         {                                 
             u32 Size = Memory::Read_U32(_BufferIn+0x04);
@@ -151,10 +188,30 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
         }
         break;
 
-    // DVDLowGetCoverReg - called by "Legend of Spyro"
-    case 0x7a:
+	// DVDLowWaitForCoverClose
+    case 0x79:
         {   
             Memory::Memset(_BufferOut, 0, _BufferOutSize);
+			LOG(WII_IPC_HLE, "%s executes DVDLowWaitForCoverClose (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
+			return 4;
+        }
+        break;
+
+    // DVDLowGetCoverReg - called by "Legend of Spyro"	
+    case 0x7a:
+        {   
+            // HACK - swiching the 4th byte between 0 and 1 gets through this check
+			Memory::Memset(_BufferOut, 0, _BufferOutSize);	
+
+			u8* buffer = Memory::GetPointer(_BufferOut);
+			buffer[3] = coverByte;
+
+			if(coverByte)
+				coverByte = 0;
+			else
+				coverByte = 0x01;
+			
+			return 1;
         }
         break;
 
@@ -166,6 +223,25 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		}
 		break;
 
+	// DVDLowGetCoverStatus
+	case 0x88:
+		{
+			Memory::Memset(_BufferOut, 0, _BufferOutSize);
+			LOG(WII_IPC_HLE, "%s executes DVDLowGetCoverStatus (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
+			return 1;
+		}
+		break;
+
+	// DVDLowReset
+	case 0x8a:
+		{
+			Memory::Memset(_BufferOut, 0, _BufferOutSize);
+			LOG(WII_IPC_HLE, "%s executes DVDLowReset (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
+			return 1;
+		}
+		break;
+
+
     // DVDLowSeek
     case 0xab:
         {}
@@ -175,8 +251,15 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	case 0xe3:
 		{
 			Memory::Memset(_BufferOut, 0, _BufferOutSize);
+			u32 eject = Memory::Read_U32(_BufferIn + 0x04);			
+
 			LOG(WII_IPC_HLE, "%s executes DVDLowStopMotor (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
-            PanicAlert("Weird. Nobody should call DVDLowStopMotor.");
+
+			if(eject)
+			{
+				LOG(WII_IPC_HLE, "Eject disc", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
+				// TODO: eject the disc
+			}
 		}
 		break;
 

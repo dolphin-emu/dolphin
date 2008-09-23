@@ -393,6 +393,33 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 	return true;
 }
 
+void CBoot::Load_FST(bool _bIsWii)
+{
+	if(VolumeHandler::IsValid())
+	{
+		// copy first 20 bytes of disc to start of Mem 1
+		VolumeHandler::ReadToPtr(Memory::GetPointer(0x80000000), 0, 0x20);		
+
+		// copy of game id
+		Memory::Write_U32(Memory::Read_U32(0x80000000), 0x80003180);
+		
+		u32 shift = 0;
+		if(_bIsWii)
+			shift = 2;
+
+		u32 fstOffset = VolumeHandler::Read32(0x0424) << shift;
+		u32 fstSize = VolumeHandler::Read32(0x0428) << shift;
+		u32 maxFstSize = VolumeHandler::Read32(0x042c) << shift;
+
+		u32 arenaHigh = 0x817FFFF4 - maxFstSize;
+		Memory::Write_U32(arenaHigh, 0x00000034);
+
+		// load FST
+		VolumeHandler::ReadToPtr(Memory::GetPointer(arenaHigh), fstOffset, fstSize);
+		Memory::Write_U32(arenaHigh, 0x00000038);
+		Memory::Write_U32(maxFstSize, 0x0000003c);		
+	}	
+}
 
 void CBoot::UpdateDebugger_MapLoaded(const char *_gameID)
 {
@@ -546,12 +573,11 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
 				PanicAlert("Warning - starting ELF in wrong console mode!");
 			}
 
-			VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM);			
+			// stop apploader from running when BIOS boots
+			VolumeHandler::SetVolumeName("");			
+
 			if (elfWii)
 			{                              
-                if (VolumeHandler::IsWii() && (!_StartupPara.m_strDefaultGCM.empty()))
-                    VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM.c_str());
-
 				EmulatedBIOS_Wii(false);
 			}
 			else
@@ -562,6 +588,24 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
 					EmulatedBIOS(false);
 				}
 			}
+
+			// load image or create virtual drive from directory
+			if(!_StartupPara.m_strDVDRoot.empty())
+			{
+				VolumeHandler::SetVolumeDirectory(_StartupPara.m_strDVDRoot, elfWii);
+			}
+			else if(!_StartupPara.m_strDefaultGCM.empty())
+			{
+				VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM);
+			}
+			else
+			{
+				VolumeHandler::SetVolumeDirectory(_StartupPara.m_strFilename, elfWii);
+			}
+
+			DVDInterface::SetDiscInside(VolumeHandler::IsValid());
+
+			Load_FST(elfWii);			
 			
             Boot_ELF(_StartupPara.m_strFilename.c_str()); 
             UpdateDebugger_MapLoaded();

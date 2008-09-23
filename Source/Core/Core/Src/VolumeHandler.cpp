@@ -38,6 +38,16 @@ void SetVolumeName(const std::string& _rFullPath)
     g_pVolume = DiscIO::CreateVolumeFromFilename(_rFullPath);
 }
 
+void SetVolumeDirectory(const std::string& _rFullPath, bool _bIsWii)
+{
+    if (g_pVolume)
+    {
+        delete g_pVolume;
+        g_pVolume = NULL;
+    }
+
+    g_pVolume = DiscIO::CreateVolumeFromDirectory(_rFullPath, _bIsWii);
+}
 
 u32 Read32(u64 _Offset)
 {
@@ -52,7 +62,7 @@ u32 Read32(u64 _Offset)
 
 bool ReadToPtr(u8* ptr, u64 _dwOffset, u64 _dwLength)
 {
-    if (g_pVolume != NULL)
+    if (g_pVolume != NULL && ptr)
     {
         g_pVolume->Read(_dwOffset, _dwLength, ptr);
         return true;

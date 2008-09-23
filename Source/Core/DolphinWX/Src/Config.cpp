@@ -70,6 +70,7 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "SkipIdle",	      m_LocalCoreStartupParameter.bSkipIdle);
 		ini.Set("Core", "LockThreads",    m_LocalCoreStartupParameter.bLockThreads);
 		ini.Set("Core", "DefaultGCM",     m_LocalCoreStartupParameter.m_strDefaultGCM);
+		ini.Set("Core", "DVDRoot",        m_LocalCoreStartupParameter.m_strDVDRoot);
 		ini.Set("Core", "OptimizeQuantizers", m_LocalCoreStartupParameter.bOptimizeQuantizers);
 	}
 
@@ -122,6 +123,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "SkipIdle",    &m_LocalCoreStartupParameter.bSkipIdle,		true);
 		ini.Get("Core", "LockThreads", &m_LocalCoreStartupParameter.bLockThreads,	true);
 		ini.Get("Core", "DefaultGCM",  &m_LocalCoreStartupParameter.m_strDefaultGCM);
+		ini.Get("Core", "DVDRoot",     &m_LocalCoreStartupParameter.m_strDVDRoot);
 		ini.Get("Core", "OptimizeQuantizers", &m_LocalCoreStartupParameter.bOptimizeQuantizers, true);
 	}
 }

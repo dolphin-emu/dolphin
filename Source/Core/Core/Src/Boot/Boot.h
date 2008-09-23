@@ -57,6 +57,8 @@ private:
 	static void EmulatedBIOS(bool _bDebug);
 	static bool EmulatedBIOS_Wii(bool _bDebug);
     static bool Load_BIOS(const std::string& _rBiosFilename);
+
+	static void Load_FST(bool _bIsWii);
 };
 
 #endif
