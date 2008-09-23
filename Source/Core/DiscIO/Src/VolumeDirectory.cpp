@@ -475,7 +475,7 @@ static u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntr
 				entry.physicalName = _Directory + "\\" + entry.virtualName;
 				if(entry.isDirectory)
 				{
-					u32 childEntries = AddDirectoryEntries(entry.physicalName, entry);
+					u32 childEntries = ScanDirectoryTree(entry.physicalName, entry);
 					entry.size = childEntries;
 					foundEntries += childEntries;
 				}
