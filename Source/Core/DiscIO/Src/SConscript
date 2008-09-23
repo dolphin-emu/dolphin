@@ -2,23 +2,25 @@
 
 Import('env')
 
-files = ["BannerLoader.cpp", 
-         "BannerLoaderGC.cpp", 
-         "BannerLoaderWii.cpp",
-         "Blob.cpp", 
-         "CompressedBlob.cpp", 
-         "DriveBlob.cpp", 
-         "FileBlob.cpp", 
-         "FileHandlerARC.cpp",
-         "Filesystem.cpp",
-         "FileSystemGCWii.cpp",
-         "VolumeCreator.cpp",
-         "VolumeGC.cpp",
-         "VolumeWiiCrypted.cpp",
-         "AES/aes_cbc.c",
-         "AES/aes_core.c",
-        ]
+files = [
+	'BannerLoader.cpp',
+	'BannerLoaderGC.cpp',
+	'BannerLoaderWii.cpp',
+	'Blob.cpp',
+	'CompressedBlob.cpp',
+	'DriveBlob.cpp',
+	'FileBlob.cpp',
+	'FileHandlerARC.cpp',
+	'Filesystem.cpp',
+	'FileSystemGCWii.cpp',
+	'VolumeCreator.cpp',
+	'VolumeDirectory.cpp',
+	'VolumeGC.cpp',
+	'VolumeWiiCrypted.cpp',
+	'AES/aes_cbc.c',
+	'AES/aes_core.c',
+	]
 libs = [
-    'common'
-]
-env.StaticLibrary("discio", files, LIBS = libs)
+	'common'
+	]
+env.StaticLibrary('discio', files, LIBS = libs)
