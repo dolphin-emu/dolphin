@@ -172,14 +172,14 @@ if not env['nowx']:
         
         wxconfig.ParseWXConfig(env)
 
+# After all configuration tests are done
+env = conf.Finish()
+
 #get sdl stuff
 env.ParseConfig("sdl-config --cflags --libs")
 
 # lib ao (needed for sound plugins)
 env.ParseConfig("pkg-config --cflags --libs ao")
-
-# After all configuration tests are done
-env = conf.Finish()
 
 # add methods from utils to env
 env.AddMethod(utils.filterWarnings)
