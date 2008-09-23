@@ -121,24 +121,28 @@ void ConfigDialog::CreateGUIControls()
 		sDevice[i]->Add(sDeviceBottom[i], 0, wxEXPAND|wxALL, 1);
 
 		sButtons[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Buttons:"));
-		m_ButtonA[i] = new wxButton(m_Controller[i], CTL_A, wxT("A: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+                hButtons[i][0] = new wxBoxSizer(wxHORIZONTAL);
+                hButtons[i][0]->Add(new wxStaticText(m_Controller[i], 0, wxT("A:"), wxDefaultPosition, wxDefaultSize), 0,
+                                    wxALIGN_CENTER_VERTICAL|wxALL);
+		m_ButtonA[i] = new wxButton(m_Controller[i], CTL_A, wxT(""), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 		m_ButtonB[i] = new wxButton(m_Controller[i], CTL_B, wxT("B: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 		m_ButtonX[i] = new wxButton(m_Controller[i], CTL_X, wxT("X: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 		m_ButtonY[i] = new wxButton(m_Controller[i], CTL_Y, wxT("Y: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 		m_ButtonZ[i] = new wxButton(m_Controller[i], CTL_Z, wxT("Z: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 		m_ButtonStart[i] = new wxButton(m_Controller[i], CTL_START, wxT("Start: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 
-		sButtons[i]->Add(m_ButtonA[i], 0, wxEXPAND|wxALL);
+		hButtons[i][0]->Add(m_ButtonA[i], 0, wxEXPAND|wxALL);
+                sButtons[i]->Add(hButtons[i][0]);
 		sButtons[i]->Add(m_ButtonB[i], 0, wxEXPAND|wxALL);
 		sButtons[i]->Add(m_ButtonX[i], 0, wxEXPAND|wxALL);
 		sButtons[i]->Add(m_ButtonY[i], 0, wxEXPAND|wxALL);
 		sButtons[i]->Add(m_ButtonZ[i], 0, wxEXPAND|wxALL);
 		sButtons[i]->Add(m_ButtonStart[i], 0, wxEXPAND|wxALL);
 
-		sTriggerL[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("L Trigger:"));
+		sTriggerL[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("L Trigger"));
 		m_TriggerL[i] = new wxButton(m_Controller[i], CTL_TRIGGER_L, wxT("Analog: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 		m_ButtonL[i] = new wxButton(m_Controller[i], CTL_L, wxT("Click: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-		sTriggerR[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("R Trigger:"));
+		sTriggerR[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("R Trigger"));
 		m_TriggerR[i] = new wxButton(m_Controller[i], CTL_TRIGGER_R, wxT("Analog: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 		m_ButtonR[i] = new wxButton(m_Controller[i], CTL_R, wxT("Click: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 
@@ -147,7 +151,7 @@ void ConfigDialog::CreateGUIControls()
 		sTriggerR[i]->Add(m_TriggerR[i], 0, wxEXPAND|wxALL);
 		sTriggerR[i]->Add(m_ButtonR[i], 0, wxEXPAND|wxALL);
 
-		sStick[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Main Stick:"));
+		sStick[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Main Stick"));
 		m_StickUp[i] = new wxButton(m_Controller[i], CTL_MAINUP, wxT("Up: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 		m_StickDown[i] = new wxButton(m_Controller[i], CTL_MAINDOWN, wxT("Down: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 		m_StickLeft[i] = new wxButton(m_Controller[i], CTL_MAINLEFT, wxT("Left: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
@@ -158,7 +162,7 @@ void ConfigDialog::CreateGUIControls()
 		sStick[i]->Add(m_StickLeft[i], 0, wxEXPAND|wxALL);
 		sStick[i]->Add(m_StickRight[i], 0, wxEXPAND|wxALL);
 
-		sDPad[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("D-Pad:"));
+		sDPad[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("D-Pad"));
 		m_DPadUp[i] = new wxButton(m_Controller[i], CTL_DPADUP, wxT("Up: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 		m_DPadDown[i] = new wxButton(m_Controller[i], CTL_DPADDOWN, wxT("Down: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 		m_DPadLeft[i] = new wxButton(m_Controller[i], CTL_DPADLEFT, wxT("Left: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
@@ -169,7 +173,7 @@ void ConfigDialog::CreateGUIControls()
 		sDPad[i]->Add(m_DPadLeft[i], 0, wxEXPAND|wxALL);
 		sDPad[i]->Add(m_DPadRight[i], 0, wxEXPAND|wxALL);
 
-		sCStick[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("C-Stick:"));
+		sCStick[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("C-Stick"));
 		m_CStickUp[i] = new wxButton(m_Controller[i], CTL_SUBUP, wxT("Up: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 		m_CStickDown[i] = new wxButton(m_Controller[i], CTL_SUBDOWN, wxT("Down: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 		m_CStickLeft[i] = new wxButton(m_Controller[i], CTL_SUBLEFT, wxT("Left: "), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
@@ -194,9 +198,6 @@ void ConfigDialog::CreateGUIControls()
 		sPage[i]->Layout();
 	}
 
-	//TODO get keyboard input after clicking a wxButton
-	//clickedButton->Connect(wxID_ANY, wxEVT_KEY_DOWN, wxKeyEventHandler(ConfigDialog::OnKeyDown), (wxObject*)NULL, this);
-
 	SetIcon(wxNullIcon);
 	Fit();
 }
@@ -211,11 +212,11 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 	{
 		int page = m_Notebook->GetSelection();
 		pad[page].keyForControl[clickedButton->GetId()] = event.GetKeyCode();
-		clickedButton->SetLabel(wxString::Format(wxT("%i"), event.GetKeyCode()));
+		clickedButton->SetLabel(wxString::Format(_T("%c"), event.GetKeyCode()));
+                clickedButton->Disconnect();
 	}
-	//this is here to see if the event gets processed at all...so far, it doesn't
-	m_ButtonA[0]->SetLabel(wxString::Format(wxT("%i"), event.GetKeyCode()));
-	//clickedButton = NULL;
+
+	clickedButton = NULL;
 	event.Skip();
 }
 void ConfigDialog::OnCloseClick(wxCommandEvent& event)
@@ -243,10 +244,18 @@ void ConfigDialog::RumbleCheck(wxCommandEvent& event)
 
 void ConfigDialog::OnButtonClick(wxCommandEvent& event)
 {
+        if(clickedButton) {
+            clickedButton->SetLabel(oldLabel);
+        }
 	clickedButton = (wxButton *)event.GetEventObject();
-	//wxString oldLabel = clickedButton->GetLabel();
+	oldLabel = clickedButton->GetLabel();
 	clickedButton->SetLabel(wxString::FromAscii("Press Key"));
 
+        
+        clickedButton->Connect(wxID_ANY, wxEVT_KEY_DOWN,
+                               wxKeyEventHandler(ConfigDialog::OnKeyDown),
+                               (wxObject*)NULL, this);
+        
 	//clickedButton->SetLabel(wxString::Format(wxT("%i"), keyPress));
 
 	//clickedButton->SetLabel(wxString::Format(wxT("%s  %i"), oldLabel, keyPress));

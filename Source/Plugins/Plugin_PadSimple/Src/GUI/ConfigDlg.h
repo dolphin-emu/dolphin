@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef __CONFIGDIALOG_h__
-#define __CONFIGDIALOG_h__
+#ifndef __CONFIGDLG_H__
+#define __CONFIGDLG_H__
 
 #include <wx/wx.h>
 #include <wx/dialog.h>
@@ -36,14 +36,14 @@
 
 class ConfigDialog : public wxDialog
 {
-	private:
-		DECLARE_EVENT_TABLE();
+
 		
 	public:
 		ConfigDialog(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("Pad Configuration"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = CONFIGDIALOG_STYLE);
 		virtual ~ConfigDialog();
 
-	private:
+        private:
+		DECLARE_EVENT_TABLE();
 		wxNotebook *m_Notebook;
 		wxPanel *m_Controller[4];
 		wxButton *m_Close;
@@ -53,6 +53,7 @@ class ConfigDialog : public wxDialog
 		wxBoxSizer *sDeviceBottom[4];
 		wxGridBagSizer* sPage[4];
 		wxStaticBoxSizer *sButtons[4];
+                wxBoxSizer *hButtons[4][2];
 		wxStaticBoxSizer *sTriggerL[4];
 		wxStaticBoxSizer *sTriggerR[4];
 		wxStaticBoxSizer *sStick[4];
@@ -87,8 +88,6 @@ class ConfigDialog : public wxDialog
 		wxButton *m_DPadLeft[4];
 		wxButton *m_DPadRight[4];
 		
-	private:
-
 		enum
 		{
 			////GUI Enum Control ID Start
@@ -107,7 +106,6 @@ class ConfigDialog : public wxDialog
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
 		};
 	
-	private:
 		void OnClose(wxCloseEvent& event);
 		void CreateGUIControls();
 		void OnCloseClick(wxCommandEvent& event);
@@ -119,6 +117,7 @@ class ConfigDialog : public wxDialog
 		
 		int keyPress;
 		wxButton *clickedButton;
+                wxString oldLabel;
 		/*DInput m_dinput;*/
 };
 

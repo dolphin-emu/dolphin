@@ -16,6 +16,8 @@
 // http://code.google.com/p/dolphin-emu/
 
 // controls
+#ifndef __PADSIMPLE_H__
+#define __PADSIMPLE_H__  
 enum
 {
 	CTL_A = 0,
@@ -74,6 +76,35 @@ static const char* controlNames[] =
 	"D-Pad_right",
 };
 
+// control human readable
+static const char* userControlNames[] =
+{
+	"A",
+	"B",
+	"X",
+	"Y",
+	"Z",
+	"Start",
+	"Analog", // Don't use
+	"L",
+	"Analog", // Don't use
+	"R",
+	"Up",
+	"Down",
+	"Left",
+	"Right",
+	"Soft_main_switch", // Don't use
+	"Up",
+	"Down",
+	"Left",
+	"Right",
+	"Soft_sub_switch", // Don't use
+	"Up",
+	"Down",
+	"Left",
+	"Right",
+};
+
 struct SPads {
 	bool type;		//keyboard = 0, xpad = 1
 	int XPad;		//player# of the xpad
@@ -87,3 +118,5 @@ extern SPads pad[];
 
 void LoadConfig();
 void SaveConfig();
+
+#endif
