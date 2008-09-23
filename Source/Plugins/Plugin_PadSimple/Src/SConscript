@@ -9,7 +9,8 @@ else:
 	output = "../../../../Binary/linux/Plugins/padsimple.so"
 
 files = [
-	"main.cpp",
+	"PadSimple.cpp",
+        "GUI/ConfigDlg.cpp",
 	]
 
 padenv = env.Clone()
