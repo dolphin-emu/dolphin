@@ -4,14 +4,14 @@ Import('env')
 import sys
 
 if sys.platform == 'darwin':
-	output = "../../../../Binary/mac/Plugins/Plugin_nJoy_SDL.so"
+	output = '../../../../Binary/mac/Plugins/Plugin_nJoy_SDL.so'
 else:
-	output = "../../../../Binary/linux/Plugins/Plugin_nJoy_SDL.so"
+	output = '../../../../Binary/linux/Plugins/Plugin_nJoy_SDL.so'
 
 files = [
-	"nJoy.cpp",
-	"GUI/AboutBox.cpp",
-	"GUI/ConfigBox.cpp",
+	'nJoy.cpp',
+	'GUI/AboutBox.cpp',
+	'GUI/ConfigBox.cpp',
 	]
 
 padenv = env.Clone()
