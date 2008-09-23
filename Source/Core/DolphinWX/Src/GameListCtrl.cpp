@@ -247,6 +247,8 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		item.SetId(ItemIndex);
 		item.SetColumn(COLUMN_SIZE);
 		item.SetText(NiceSizeFormat(rISOFile.GetFileSize()));
+		if (rISOFile.IsCompressed())
+			item.SetTextColour(wxColour(0xFF0000));
 		SetItem(item);
 	}
 

@@ -31,10 +31,4 @@
 #define DIRECTINPUT_VERSION 0x0800
 #include <dinput.h>
 
-// WTL
-#include <atlbase.h>
-#include <atlapp.h>
-#include <atldlgs.h>
-#include <atlctrls.h>
-
 
