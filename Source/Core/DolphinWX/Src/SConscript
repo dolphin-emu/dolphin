@@ -6,8 +6,9 @@ import sys
 files = [
 	'BootManager.cpp',
 	'Config.cpp',
+	'ConfigMain.cpp',
 	'FileSearch.cpp',
-        'FilesystemViewer.cpp',
+	'FilesystemViewer.cpp',
 	'Frame.cpp',
 	'GameListCtrl.cpp',
 	'Globals.cpp',
@@ -15,9 +16,8 @@ files = [
 	'MemcardManager.cpp',
 	'MemoryCards/GCMemcard.cpp',
 	'PluginManager.cpp',
-	'PluginOptions.cpp',
 	'stdafx.cpp',
-        'cmdline.c',
+	'cmdline.c',
 	]
 libs = [
 	'debwx', 'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'common', 'z'
