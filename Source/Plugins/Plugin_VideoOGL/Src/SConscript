@@ -39,13 +39,13 @@ if sys.platform == 'darwin':
 	platform = 'mac'
 	# SDL is currently the only way to get video on Mac OS X.
 	useSDL = True
-        # TODO: clean it up (use incpath and libpath)
+	# TODO: clean it up (use incpath and libpath)
 	# Use libraries from MacPorts.
 	compileFlags.append('-I/opt/local/include')
 	linkFlags.append('-L/opt/local/lib')
 	# Use frameworks instead of plain libs, when possible.
 	linkFlags += [
-		'-framework %s' % framework
+		'-Wl,-framework,%s' % framework
 		for framework in [ 'OpenGL', 'Cg' ]
 		]
 else:
@@ -53,8 +53,8 @@ else:
 	# By default, GLX is used on Linux to setup OpenGL, but you can select SDL
 	# instead if you like, by changing the line below.
 	useSDL = False
-        gfxenv.ParseConfig("pkg-config x11 --cflags --libs")
-        gfxenv.ParseConfig("pkg-config xxf86vm --cflags --libs")
+	gfxenv.ParseConfig("pkg-config x11 --cflags --libs")
+	gfxenv.ParseConfig("pkg-config xxf86vm --cflags --libs")
 
 	# Libraries without pkg-config support.
 	libs += [ 'GL', 'Cg', 'CgGL' ]
@@ -64,6 +64,7 @@ if useSDL:
 
 gfxenv.Append(
 	CXXFLAGS = compileFlags,
+	LINKFLAGS = linkFlags,
 	)
 
 gfxenv.SharedLibrary(
