@@ -22,17 +22,18 @@
 
 #include "Common.h"
 
-class File
+namespace File
 {
-public:
-	static bool Exists(const char *filename);
-	static void Launch(const char *filename);
-	static void Explore(const char *path);
-	static bool IsDirectory(const char *filename);
-	static bool CreateDir(const char *filename);
-	static bool Delete(const char *filename);
-	static u64 GetSize(const char *filename);
-	static std::string GetUserDirectory();
-};
+
+bool Exists(const char *filename);
+void Launch(const char *filename);
+void Explore(const char *path);
+bool IsDirectory(const char *filename);
+bool CreateDir(const char *filename);
+bool Delete(const char *filename);
+u64 GetSize(const char *filename);
+std::string GetUserDirectory();
+
+}  // namespace
 
 #endif
