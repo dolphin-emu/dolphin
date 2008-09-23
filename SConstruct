@@ -30,14 +30,14 @@ compileFlags = [
 	'-fno-strict-aliasing',
 	'-msse2',
 	'-fvisibility=hidden',
-#        '-fomit-frame-pointer'
+	#'-fomit-frame-pointer'
 	]
 
 cppDefines = [
 	( '_FILE_OFFSET_BITS', 64),
 	'_LARGEFILE_SOURCE',
 	'GCC_HASCLASSVISIBILITY',
-]
+	]
 
 
 if sys.platform == 'darwin':
@@ -88,15 +88,15 @@ lib_paths = include_paths
 # handle command line options
 vars = Variables('args.cache')
 vars.AddVariables(
-        BoolVariable('verbose', 'Set for compilation line', False),
-        BoolVariable('debug', 'Set for debug build', False),
-        BoolVariable('lint', 'Set for lint build (extra warnings)', False),
-        BoolVariable('nowx', 'Set For Building with no WX libs (WIP)', False),
-        EnumVariable('flavor', 'Choose a build flavor', 'release',
-                     allowed_values=('release', 'devel', 'debug'),
-                     ignorecase=2)
-
-)
+	BoolVariable('verbose', 'Set for compilation line', False),
+	BoolVariable('debug', 'Set for debug build', False),
+	BoolVariable('lint', 'Set for lint build (extra warnings)', False),
+	BoolVariable('nowx', 'Set For Building with no WX libs (WIP)', False),
+	EnumVariable('flavor', 'Choose a build flavor', 'release',
+		allowed_values = ('release', 'devel', 'debug'),
+		ignorecase = 2
+		)
+	)
 
 env = Environment(
 	CC = 'gcc',
@@ -121,22 +121,22 @@ vars.Save('args.cache', env)
 
 # verbose compile
 if not env['verbose']:
-        env['CCCOMSTR'] = "Compiling $TARGET"
-        env['CXXCOMSTR'] = "Compiling $TARGET"
-        env['ARCOMSTR'] = "Archiving $TARGET"
-        env['LINKCOMSTR'] = "Linking $TARGET"
-        env['ASCOMSTR'] = "Assembling $TARGET"
-        env['ASPPCOMSTR'] = "Assembling $TARGET"
-        env['SHCCCOMSTR'] = "Compiling shared $TARGET"
-        env['SHCXXCOMSTR'] = "Compiling shared $TARGET"
-        env['SHLINKCOMSTR'] = "Linking shared $TARGET"
-        env['RANLIBCOMSTR'] = "Indexing $TARGET"
+	env['CCCOMSTR'] = "Compiling $TARGET"
+	env['CXXCOMSTR'] = "Compiling $TARGET"
+	env['ARCOMSTR'] = "Archiving $TARGET"
+	env['LINKCOMSTR'] = "Linking $TARGET"
+	env['ASCOMSTR'] = "Assembling $TARGET"
+	env['ASPPCOMSTR'] = "Assembling $TARGET"
+	env['SHCCCOMSTR'] = "Compiling shared $TARGET"
+	env['SHCXXCOMSTR'] = "Compiling shared $TARGET"
+	env['SHLINKCOMSTR'] = "Linking shared $TARGET"
+	env['RANLIBCOMSTR'] = "Indexing $TARGET"
 
 # build falvuor
-flavour =  ARGUMENTS.get('flavor')
+flavour = ARGUMENTS.get('flavor')
 if (flavour == 'debug'):
 	compileFlags.append('-g')
-        cppDefines.append('LOGGING')
+	cppDefines.append('LOGGING')
 else:
 	compileFlags.append('-O3')
 
@@ -144,7 +144,7 @@ else:
 # more warnings
 if env['lint']:
 	warnings.append('error')
-        warnings.append('unreachable-code')
+	warnings.append('unreachable-code')
 	warnings.append('float-equal')
 
 # add the warnings to the compile flags
@@ -157,20 +157,22 @@ env['CPPDEFINES'] = cppDefines
 
 # Configuration tests section
 tests = {'CheckWXConfig' : wxconfig.CheckWXConfig}
-          
+
 conf = env.Configure(custom_tests = tests)
 
 # handling wx flags CCFLAGS should be created before
 if not env['nowx']:
-        env['wxconfig']='wx-config'
-        env['build_platform']=env['PLATFORM']
-        env['target_platform']=env['PLATFORM']
+	env['wxconfig'] = 'wx-config'
+	env['build_platform'] = env['PLATFORM']
+	env['target_platform'] = env['PLATFORM']
 
-        if not conf.CheckWXConfig('2.8', ['gl', 'adv', 'core', 'base'], env['debug']):
-                print 'gui build requires wxwidgets >= 2.8'
-                Exit(1)
-        
-        wxconfig.ParseWXConfig(env)
+	if not conf.CheckWXConfig(
+		'2.8', ['gl', 'adv', 'core', 'base'], env['debug']
+		):
+		print 'gui build requires wxwidgets >= 2.8'
+		Exit(1)
+
+	wxconfig.ParseWXConfig(env)
 
 # After all configuration tests are done
 env = conf.Finish()
@@ -187,13 +189,13 @@ env.AddMethod(utils.filterWarnings)
 Export('env')
 
 # print a nice progress indication when not compiling
-Progress(['-\r', '\\\r', '|\r', '/\r'], interval=5)
+Progress(['-\r', '\\\r', '|\r', '/\r'], interval = 5)
 
 # die on unknown variables
 unknown = vars.UnknownVariables()
 if unknown:
-        print "Unknown variables:", unknown.keys()
-        Exit(1)
+	print "Unknown variables:", unknown.keys()
+	Exit(1)
 
 # generate help
 Help(vars.GenerateHelpText(env))
