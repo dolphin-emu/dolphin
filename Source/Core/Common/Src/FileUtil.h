@@ -19,11 +19,21 @@
 #define _FILEUTIL_H
 
 #include <string>
+#include <vector>
 
 #include "Common.h"
 
 namespace File
 {
+
+struct FSTEntry
+{
+	bool isDirectory;
+	u32 size;						// file length or number of entries from children
+	std::string physicalName;		// name on disk
+	std::string virtualName;		// name in FST names table
+	std::vector<FSTEntry> children;
+};
 
 bool Exists(const char *filename);
 void Launch(const char *filename);
@@ -33,6 +43,8 @@ bool CreateDir(const char *filename);
 bool Delete(const char *filename);
 u64 GetSize(const char *filename);
 std::string GetUserDirectory();
+
+u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry);
 
 }  // namespace
 

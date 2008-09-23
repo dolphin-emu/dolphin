@@ -16,16 +16,8 @@
 // http://code.google.com/p/dolphin-emu/
 #include "stdafx.h"
 
-#ifdef _WIN32
-#include <io.h>
-#include <windows.h>
-#else
-#include <unistd.h>
-#endif
-
 #include "VolumeDirectory.h"
 #include "FileBlob.h"
-#include "FileUtil.h"
 
 namespace DiscIO
 {
@@ -300,7 +292,7 @@ void CVolumeDirectory::BuildFST()
 		delete m_FSTData;
 	}
 
-	FSTEntry rootEntry;
+	File::FSTEntry rootEntry;
 
 	// read data from physical disk to rootEntry
 	u32 totalEntries = AddDirectoryEntries(m_rootDirectory, rootEntry) + 1;
@@ -320,7 +312,7 @@ void CVolumeDirectory::BuildFST()
 	// write root entry
 	WriteEntryData(fstOffset, DIRECTORY_ENTRY, 0, 0, totalEntries);
 
-	for(std::vector<FSTEntry>::iterator iter = rootEntry.children.begin(); iter != rootEntry.children.end(); ++iter)
+	for(std::vector<File::FSTEntry>::iterator iter = rootEntry.children.begin(); iter != rootEntry.children.end(); ++iter)
 	{
 		WriteEntry(*iter, fstOffset, nameOffset, curDataAddress, rootOffset);
 	}
@@ -404,7 +396,7 @@ void CVolumeDirectory::WriteEntryName(u32& nameOffset, const std::string& name)
 	nameOffset += (name.length() + 1);
 }
 
-void CVolumeDirectory::WriteEntry(const FSTEntry& entry, u32& fstOffset, u32& nameOffset, u64& dataOffset, u32 parentEntryNum)
+void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u32& nameOffset, u64& dataOffset, u32 parentEntryNum)
 {	
 	if(entry.isDirectory)
 	{
@@ -413,7 +405,7 @@ void CVolumeDirectory::WriteEntry(const FSTEntry& entry, u32& fstOffset, u32& na
 		WriteEntryData(fstOffset, DIRECTORY_ENTRY, nameOffset, parentEntryNum, myEntryNum + entry.size + 1);
 		WriteEntryName(nameOffset, entry.virtualName);
 
-		for(std::vector<FSTEntry>::const_iterator iter = entry.children.begin(); iter != entry.children.end(); ++iter)
+		for(std::vector<File::FSTEntry>::const_iterator iter = entry.children.begin(); iter != entry.children.end(); ++iter)
 		{
 			WriteEntry(*iter, fstOffset, nameOffset, dataOffset, myEntryNum);
 		}
@@ -433,80 +425,14 @@ void CVolumeDirectory::WriteEntry(const FSTEntry& entry, u32& fstOffset, u32& na
 	}
 }
 
-#ifdef _WIN32
-static bool ReadFoundFile(const WIN32_FIND_DATA& ffd, FSTEntry& entry)
-{
-	// ignore files starting with a .
-	if(strncmp(ffd.cFileName, ".", 1) == 0)
-		return false;
-
-	entry.virtualName = ffd.cFileName;
-
-	if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-	{
-		entry.isDirectory = true;
-	}
-	else
-	{
-		entry.isDirectory = false;
-		entry.size = ffd.nFileSizeLow;
-	}
-
-	return true;
-}
-
-static u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry)
-{
-	// Find the first file in the directory.
-	WIN32_FIND_DATA ffd;
-	std::string searchName = _Directory + "\\*";
-	HANDLE hFind = FindFirstFile(searchName.c_str(), &ffd);
-
-	u32 foundEntries = 0;
-
-	if (hFind != INVALID_HANDLE_VALUE)
-	{
-		do
-		{
-			FSTEntry entry;
-
-			if(ReadFoundFile(ffd, entry))
-			{
-				entry.physicalName = _Directory + "\\" + entry.virtualName;
-				if(entry.isDirectory)
-				{
-					u32 childEntries = ScanDirectoryTree(entry.physicalName, entry);
-					entry.size = childEntries;
-					foundEntries += childEntries;
-				}
-
-				++foundEntries;
-
-				parentEntry.children.push_back(entry);
-			}
-		} while (FindNextFile(hFind, &ffd) != 0);
-	}
-
-	FindClose(hFind);
-
-	return foundEntries;
-}
-#else
-static u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry)
-{
-	// TODO - Insert linux stuff here
-	return 0;
-}
-#endif
-
-static u32 ComputeNameSize(const FSTEntry& parentEntry)
+static u32 ComputeNameSize(const File::FSTEntry& parentEntry)
 {
 	u32 nameSize = 0;
-	const std::vector<FSTEntry>& children = parentEntry.children;
-	for (std::vector<FSTEntry>::const_iterator it = children.begin();
+	const std::vector<File::FSTEntry>& children = parentEntry.children;
+	for (std::vector<File::FSTEntry>::const_iterator it = children.begin();
 		it != children.end(); ++it)
 	{
-		const FSTEntry& entry = *it;
+		const File::FSTEntry& entry = *it;
 		if (entry.isDirectory)
 		{
 			nameSize += ComputeNameSize(entry);
@@ -516,7 +442,7 @@ static u32 ComputeNameSize(const FSTEntry& parentEntry)
 	return nameSize;
 }
 
-u32 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory, FSTEntry& parentEntry)
+u32 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory, File::FSTEntry& parentEntry)
 {
 	u32 foundEntries = ScanDirectoryTree(_Directory, parentEntry);
 	m_totalNameSize += ComputeNameSize(parentEntry);

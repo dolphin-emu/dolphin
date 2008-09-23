@@ -23,6 +23,7 @@
 #include <shlobj.h>    // for SHGetFolderPath
 #include <shellapi.h>
 #include <commdlg.h>   // for GetSaveFileName
+#include <io.h>
 #else
 
 #include <sys/stat.h>
@@ -168,5 +169,71 @@ u64 GetSize(const char *filename)
 	fclose(f);
 	return pos;
 }
+
+#ifdef _WIN32
+static bool ReadFoundFile(const WIN32_FIND_DATA& ffd, FSTEntry& entry)
+{
+	// ignore files starting with a .
+	if(strncmp(ffd.cFileName, ".", 1) == 0)
+		return false;
+
+	entry.virtualName = ffd.cFileName;
+
+	if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+	{
+		entry.isDirectory = true;
+	}
+	else
+	{
+		entry.isDirectory = false;
+		entry.size = ffd.nFileSizeLow;
+	}
+
+	return true;
+}
+
+u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry)
+{
+	// Find the first file in the directory.
+	WIN32_FIND_DATA ffd;
+	std::string searchName = _Directory + "\\*";
+	HANDLE hFind = FindFirstFile(searchName.c_str(), &ffd);
+
+	u32 foundEntries = 0;
+
+	if (hFind != INVALID_HANDLE_VALUE)
+	{
+		do
+		{
+			FSTEntry entry;
+
+			if(ReadFoundFile(ffd, entry))
+			{
+				entry.physicalName = _Directory + "\\" + entry.virtualName;
+				if(entry.isDirectory)
+				{
+					u32 childEntries = ScanDirectoryTree(entry.physicalName, entry);
+					entry.size = childEntries;
+					foundEntries += childEntries;
+				}
+
+				++foundEntries;
+
+				parentEntry.children.push_back(entry);
+			}
+		} while (FindNextFile(hFind, &ffd) != 0);
+	}
+
+	FindClose(hFind);
+
+	return foundEntries;
+}
+#else
+u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry)
+{
+	// TODO - Insert linux stuff here
+	return 0;
+}
+#endif
 
 } // namespace
