@@ -108,6 +108,8 @@ CEXIIPL::CEXIIPL() :
     {
         memcpy(m_SRAM, sram_dump, sizeof(m_SRAM));
     }
+    // We Overwrite it here since it's possible on the GC to change the language as you please
+    m_SRAM[0x12] = Core::GetStartupParameter().SelectedLanguage;
 
 	WriteProtectMemory(m_pIPL, ROM_SIZE);
 	m_uAddress = 0;		

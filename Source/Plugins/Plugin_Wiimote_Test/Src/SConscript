@@ -15,7 +15,7 @@ files = [
 padenv = env.Clone()
 padenv.Append(
 	CXXFLAGS = [ '-fPIC' ],
-	LIBS = [ 'common' ],
+	LIBS = [ 'common', 'cwiid' ],
 	)
 padenv.SharedLibrary(output, files)
 

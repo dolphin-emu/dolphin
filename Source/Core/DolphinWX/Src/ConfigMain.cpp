@@ -118,6 +118,7 @@ void CConfigMain::CreateGUIControls()
 	arrayStringFor_ConsoleLang.Add(wxT("Dutch"));
 	ConsoleLangText = new wxStaticText(GeneralPage, ID_CONSOLELANG_TEXT, wxT("Console Language:"), wxDefaultPosition, wxDefaultSize);
 	ConsoleLang = new wxChoice(GeneralPage, ID_CONSOLELANG, wxDefaultPosition, wxDefaultSize, arrayStringFor_ConsoleLang, 0, wxDefaultValidator);
+	ConsoleLang->SetSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
 
 	sGeneral = new wxGridBagSizer(0, 0);
 	sGeneral->Add(AllwaysHLEBIOS, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
@@ -277,6 +278,7 @@ void CConfigMain::SkipIdleCheck(wxCommandEvent& WXUNUSED (event))
 
 void CConfigMain::ConsoleLangChanged(wxCommandEvent& WXUNUSED (event))
 {
+	SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage = ConsoleLang->GetSelection();
 }
 
 void CConfigMain::DefaultISOChanged(wxFileDirPickerEvent& WXUNUSED (event))

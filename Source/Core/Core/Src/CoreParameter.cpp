@@ -36,6 +36,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bRunCompareServer = false;
 	bLockThreads = true;
 	bWii = false;
+	SelectedLanguage = 0;
 }
 
 

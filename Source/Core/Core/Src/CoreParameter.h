@@ -46,6 +46,7 @@ struct SCoreStartupParameter
 
 	bool bRunCompareServer;
 	bool bRunCompareClient;
+	int  SelectedLanguage;
 
 	bool bWii;
 

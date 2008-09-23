@@ -6,6 +6,15 @@
 #include "pluginspecs_wiimote.h"
 
 #include "wiimote_hid.h"
+#ifndef _WIN32
+#include <cwiid.h>
+cwiid_wiimote_t *WiiMote;
+bdaddr_t BTAddress;
+cwiid_mesg_callback_t cwiid_callback;
+struct acc_cal wm_cal, nc_cal;
+uint8_t a_x, a_y, a_z;
+bool ButtonA = false;
+#endif
 
 SWiimoteInitialize g_WiimoteInitialize;
 #define VERSION_STRING "0.1"
@@ -153,7 +162,83 @@ extern "C" void DllAbout(HWND _hParent)
 extern "C" void DllConfig(HWND _hParent)
 {
 }
+#ifndef _WIN32
+#define LBLVAL_LEN 6
+void cwiid_acc(struct cwiid_acc_mesg *mesg)
+{
 
+	a_x = mesg->acc[CWIID_X];
+	a_y = mesg->acc[CWIID_Y];
+	a_z = mesg->acc[CWIID_Z];
+	//printf("%d %d %d %f\n", a_x,a_y,a_z,a);
+}
+void cwiid_btn(struct cwiid_btn_mesg *mesg)
+{
+	ButtonA = mesg->buttons & CWIID_BTN_A;
+	printf("Button A is %d\n",ButtonA);
+}
+#define BATTERY_STR_LEN	14	/* "Battery: 100%" + '\0' */
+void cwiid_callback(cwiid_wiimote_t *wiimote, int mesg_count,
+                    union cwiid_mesg mesg_array[], struct timespec *timestamp)
+{
+	int i;
+	char battery[BATTERY_STR_LEN];
+	char *ext_str;
+	static enum cwiid_ext_type ext_type = CWIID_EXT_NONE;
+
+	for (i=0; i < mesg_count; i++) {
+		switch (mesg_array[i].type) {
+		case CWIID_MESG_STATUS:
+			snprintf(battery, BATTERY_STR_LEN,"Battery:%d%%",
+			         (int) (100.0 * mesg_array[i].status_mesg.battery /
+			                CWIID_BATTERY_MAX));
+			switch (mesg_array[i].status_mesg.ext_type) {
+			case CWIID_EXT_NONE:
+				ext_str = "No extension";
+				break;
+			case CWIID_EXT_NUNCHUK:
+				ext_str = "Nunchuk";
+				if (ext_type != CWIID_EXT_NUNCHUK) {
+					if (cwiid_get_acc_cal(wiimote, CWIID_EXT_NUNCHUK,
+					                      &nc_cal)) {
+						LOG(WIIMOTE, "Unable to retrieve Nunchuk accelerometer calibration");
+					}
+				}
+				break;
+			case CWIID_EXT_CLASSIC:
+				ext_str = "Classic controller";
+				break;
+			case CWIID_EXT_UNKNOWN:
+				ext_str = "Unknown extension";
+				break;
+			}
+			ext_type = mesg_array[i].status_mesg.ext_type;
+			break;
+		case CWIID_MESG_BTN:
+			cwiid_btn(&mesg_array[i].btn_mesg);
+			break;
+		case CWIID_MESG_ACC:
+			cwiid_acc(&mesg_array[i].acc_mesg);
+			break;
+		/*case CWIID_MESG_IR:
+			cwiid_ir(&mesg_array[i].ir_mesg);
+			break;
+		case CWIID_MESG_NUNCHUK:
+			cwiid_nunchuk(&mesg_array[i].nunchuk_mesg);
+			break;
+		case CWIID_MESG_CLASSIC:
+			cwiid_classic(&mesg_array[i].classic_mesg);
+			break;*/
+		case CWIID_MESG_ERROR:
+			printf("Error, Disconnecting\n");
+			break;
+		default:
+			printf("Unknown Message %d\n", mesg_array[i].type);
+			break;
+		}
+	}
+}
+#endif
 
 extern "C" void Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize)
 {
@@ -162,6 +247,17 @@ extern "C" void Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize)
 	memset(g_Eeprom, 0, WIIMOTE_EEPROM_SIZE);
 	memcpy(g_Eeprom, EepromData_0, sizeof(EepromData_0));
 	memcpy(g_Eeprom + 0x16D0, EepromData_16D0, sizeof(EepromData_16D0));
+	#ifndef _WIN32
+	//Todo: More Error Checking
+		//WiiMote = cwiid_open(&BTAddress, CWIID_FLAG_MESG_IFC);
+		if(!WiiMote)
+			printf( "Couldn't Connect to WiiMote");
+		else{
+			cwiid_set_mesg_callback(WiiMote, &cwiid_callback);
+			cwiid_get_acc_cal(WiiMote, CWIID_EXT_NONE, &wm_cal);
+			cwiid_request_status(WiiMote);
+		}
+	#endif
 
 	g_ReportingMode = 0;
 }
@@ -172,6 +268,10 @@ extern "C" void Wiimote_DoState(void* ptr, int mode) {
 
 extern "C" void Wiimote_Shutdown(void) 
 {
+	#ifdef _WIN32
+		if(!cwiid_disconnect(WiiMote))
+			LOG(WIIMOTE,"Couldn't close WiiMote!\n");
+	#endif
 }
 
 extern "C" void Wiimote_Output(const void* _pData, u32 _Size) {
@@ -202,6 +302,15 @@ extern "C" void Wiimote_Output(const void* _pData, u32 _Size) {
 
 extern "C" void Wiimote_Update() {
 	//LOG(WIIMOTE, "Wiimote_Update");
+#ifndef _WIN32
+	uint8_t rpt_mode;
+	
+	rpt_mode = CWIID_RPT_STATUS | CWIID_RPT_BTN | CWIID_RPT_ACC;
+	if(g_ReportingMode == 0x33)
+		rpt_mode |= CWIID_RPT_IR;
+	if (cwiid_set_rpt_mode(WiiMote, rpt_mode))
+		printf("Error setting Mode\n");
+#endif
 	switch(g_ReportingMode) {
 	case 0:
 		break;
@@ -256,7 +365,22 @@ void WmLeds(wm_leds* leds) {
 	LOG(WIIMOTE, " Set LEDs");
 	LOG(WIIMOTE, "  Leds: %x", leds->leds);
 	LOG(WIIMOTE, "  Rumble: %x", leds->rumble);
-
+	#ifndef _WIN32
+	uint8_t LED_state;
+	printf("%d %d %d %d\n", leds->leds & 0x10, leds->leds & 0x20, leds->leds & 0x30, leds->leds & 0x40);
+	if (WiiMote) {
+		LED_state =
+			(leds->leds & 0x10
+		    ? CWIID_LED1_ON : 0) |
+		  (leds->leds & 0x20
+		    ? CWIID_LED2_ON : 0) |
+		  (leds->leds & 0x30
+		    ? CWIID_LED3_ON : 0) |
+		  (leds->leds & 0x40
+		    ? CWIID_LED4_ON : 0);
+		cwiid_set_led(WiiMote, LED_state);
+	}
+	#endif
 	g_Leds = leds->leds;
 }
 
@@ -284,10 +408,16 @@ void SendReportCoreAccelIr12() {
 	Offset += sizeof(wm_report_core_accel_ir12);
 	memset(pReport, 0, sizeof(wm_report_core_accel_ir12));
 	memset(pReport->ir, 0xFF, sizeof(pReport->ir));
-
+	#ifndef _WIN32
+	pReport->a.x = a_x;
+	pReport->a.y = a_y;
+	pReport->a.z = a_z;
+	pReport->c.a = ButtonA;
+	#else
 	pReport->a.x = 0x81;
 	pReport->a.y = 0x78;
 	pReport->a.z = 0xD9;
+	#endif
 
 	int x0, y0, x1, y1;
 
@@ -342,10 +472,17 @@ void SendReportCoreAccel() {
 	wm_report_core_accel* pReport = (wm_report_core_accel*)(DataFrame + Offset);
 	Offset += sizeof(wm_report_core_accel);
 	memset(pReport, 0, sizeof(wm_report_core_accel));
+	#ifndef _WIN32
+	pReport->a.x = a_x;
+	pReport->a.y = a_y;
+	pReport->a.z = a_z;
+	pReport->c.a = ButtonA;
+	#else
 	pReport->c.a = 1;
 	pReport->a.x = 0x82;
 	pReport->a.y = 0x75;
 	pReport->a.z = 0xD6;
+	#endif
 
 	LOG(WIIMOTE, "  SendReportCoreAccel()");
 
