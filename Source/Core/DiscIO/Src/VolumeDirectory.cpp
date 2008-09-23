@@ -29,15 +29,14 @@
 #include "VolumeDirectory.h"
 #include "FileBlob.h"
 
-const u8 ENTRY_SIZE = 0x0c;
-const u8 FILE_ENTRY = 0;
-const u8 DIRECTORY_ENTRY = 1;
-const u64 FST_ADDRESS = 0x440;
-const u32 MAX_NAME_LENGTH = 0x3df;
-
 namespace DiscIO
 {
 
+static const u8 ENTRY_SIZE = 0x0c;
+static const u8 FILE_ENTRY = 0;
+static const u8 DIRECTORY_ENTRY = 1;
+static const u64 FST_ADDRESS = 0x440;
+static const u32 MAX_NAME_LENGTH = 0x3df;
 
 CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii)
 	: m_totalNameSize(0)
@@ -452,7 +451,7 @@ void CVolumeDirectory::WriteEntry(const FSTEntry& entry, u32& fstOffset, u32& na
 }
 
 #ifdef _WIN32
-bool ReadFoundFile(const WIN32_FIND_DATA& ffd, CVolumeDirectory::FSTEntry& entry)	
+static bool ReadFoundFile(const WIN32_FIND_DATA& ffd, CVolumeDirectory::FSTEntry& entry)
 {
 	// ignore files starting with a .
 	if(strncmp(ffd.cFileName, ".", 1) == 0)
