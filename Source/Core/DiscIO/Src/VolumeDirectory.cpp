@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 #include "stdafx.h"
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <io.h>
 #include <windows.h>
 #else
@@ -36,9 +36,11 @@ namespace DiscIO
 {
 
 
-CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii) :
-	m_totalNameSize(0),
-	m_FSTData(NULL), m_dataStartAddress(-1), m_fstSize(0)
+CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii)
+	: m_totalNameSize(0)
+	, m_dataStartAddress(-1)
+	, m_fstSize(0)
+	, m_FSTData(NULL)
 {
 	m_rootDirectory = ExtractDirectoryName(_rDirectory);	
 
@@ -69,9 +71,9 @@ CVolumeDirectory::~CVolumeDirectory()
 	m_diskHeader = NULL;
 }
 
-#ifdef WIN32
 bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
 {
+#ifdef _WIN32
 	std::string directoryName = ExtractDirectoryName(_rDirectory);
 
 	WIN32_FIND_DATA ffd;
@@ -81,13 +83,11 @@ bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
 		return false;
 
 	return true;
-}
 #else
-bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
-{
 	// TODO - Insert linux stuff here
-}
+	return false;
 #endif
+}
 
 bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 {
@@ -204,7 +204,7 @@ IVolume::ECountry CVolumeDirectory::GetCountry() const
 	{
 	    case 'S':
 		    country = COUNTRY_EUROPE;
-		    break; // PAL // <- that is shitty :) zelda demo disc
+		    break; // PAL <- that is shitty :) zelda demo disc
 
 	    case 'P':
 		    country = COUNTRY_EUROPE;
@@ -247,23 +247,33 @@ u64 CVolumeDirectory::GetSize() const
 	return 0;
 }
 
+static const char DIR_SEPARATOR =
+#ifdef _WIN32
+	'\\';
+#else
+	'/';
+#endif
+
 std::string CVolumeDirectory::ExtractDirectoryName(const std::string& _rDirectory)
 {
 	std::string directoryName = _rDirectory;
 
-	size_t lastSlash = directoryName.find_last_of('\\');
+	size_t lastSep = directoryName.find_last_of(DIR_SEPARATOR);
 
-	if(lastSlash != directoryName.size() - 1)
+	if(lastSep != directoryName.size() - 1)
 	{
+		// TODO: This assumes that file names will always have a dot in them
+		//       and directory names never will; both assumptions are often
+		//       right but in general wrong.
 		size_t extensionStart = directoryName.find_last_of('.');
-		if(extensionStart != std::string::npos && extensionStart > lastSlash)
+		if(extensionStart != std::string::npos && extensionStart > lastSep)
 		{
-			directoryName.resize(lastSlash);
-		}	
+			directoryName.resize(lastSep);
+		}
 	}
 	else
 	{
-		directoryName.resize(directoryName.size() - 1);
+		directoryName.resize(lastSep);
 	}
 
 	return directoryName;
@@ -305,7 +315,7 @@ void CVolumeDirectory::BuildFST()
 	FSTEntry rootEntry;
 
 	// read data from physical disk to rootEntry
-	u32 totalEntries = AddDirectoryEntries(m_rootDirectory, rootEntry) + 1;	
+	u32 totalEntries = AddDirectoryEntries(m_rootDirectory, rootEntry) + 1;
 
 	m_fstNameOffset = totalEntries * ENTRY_SIZE;	// offset in FST nameTable
 	m_fstSize = m_fstNameOffset + m_totalNameSize;
@@ -435,7 +445,7 @@ void CVolumeDirectory::WriteEntry(const FSTEntry& entry, u32& fstOffset, u32& na
 	}
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 bool ReadFoundFile(const WIN32_FIND_DATA& ffd, CVolumeDirectory::FSTEntry& entry)	
 {
 	// ignore files starting with a .
@@ -446,12 +456,12 @@ bool ReadFoundFile(const WIN32_FIND_DATA& ffd, CVolumeDirectory::FSTEntry& entry
 
 	if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 	{
-		entry.isDirectory = true;			
+		entry.isDirectory = true;
 	}
 	else
 	{
 		entry.isDirectory = false;
-		entry.size = ffd.nFileSizeLow;		
+		entry.size = ffd.nFileSizeLow;
 	}
 
 	return true;
@@ -498,6 +508,7 @@ u32 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory, FSTEntr
 u32 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory, FSTEntry& parentEntry)
 {
 	// TODO - Insert linux stuff here
+	return 0;
 }
 #endif
 
