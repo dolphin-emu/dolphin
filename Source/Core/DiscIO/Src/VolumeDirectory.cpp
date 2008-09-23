@@ -20,14 +20,12 @@
 #include <io.h>
 #include <windows.h>
 #else
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include <unistd.h>
 #endif
 
 #include "VolumeDirectory.h"
 #include "FileBlob.h"
+#include "FileUtil.h"
 
 namespace DiscIO
 {
@@ -76,22 +74,7 @@ CVolumeDirectory::~CVolumeDirectory()
 bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
 {
 	std::string directoryName = ExtractDirectoryName(_rDirectory);
-
-#ifdef _WIN32
-	WIN32_FIND_DATA ffd;
-	HANDLE hFind = FindFirstFile(directoryName.c_str(), &ffd);
-
-	if (hFind == INVALID_HANDLE_VALUE)
-		return false;
-
-	return true;
-#else
-	struct stat info;
-	if (!stat(directoryName.c_str(), &info))
-		return false;
-
-	return S_ISDIR(info.st_mode);
-#endif
+	return File::IsDirectory(directoryName.c_str());
 }
 
 bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
