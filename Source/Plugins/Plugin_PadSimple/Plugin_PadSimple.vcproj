@@ -52,7 +52,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../../../Externals/WTL80;../../PluginSpecs;../../Core/Common/Src"
+				AdditionalIncludeDirectories="../../../Externals/WTL80;../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -155,8 +155,8 @@
 				Optimization="3"
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../../Externals/WTL80;../../PluginSpecs;../../Core/Common/Src"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="../../../Externals/WTL80;../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;__WXMSW__;NOPCH"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -255,7 +255,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../Externals/WTL80;../../PluginSpecs;../../Core/Common/Src"
+				AdditionalIncludeDirectories="../../../Externals/WTL80;../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -354,7 +354,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../Externals/WTL80;../../PluginSpecs;../../Core/Common/Src"
+				AdditionalIncludeDirectories="../../../Externals/WTL80;../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -454,7 +454,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../../../Externals/WTL80;../../PluginSpecs;../../Core/Common/Src"
+				AdditionalIncludeDirectories="../../../Externals/WTL80;../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;DEBUGFAST"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -557,7 +557,7 @@
 				Optimization="3"
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../../Externals/WTL80;../../PluginSpecs;../../Core/Common/Src"
+				AdditionalIncludeDirectories="../../../Externals/WTL80;../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;DEBUGFAST"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -628,26 +628,14 @@
 	</References>
 	<Files>
 		<Filter
-			Name="AboutDialog"
+			Name="GUI"
 			>
 			<File
-				RelativePath=".\Src\AboutDlg.cpp"
+				RelativePath=".\Src\GUI\ConfigDlg.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\AboutDlg.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="ConfigDialog"
-			>
-			<File
-				RelativePath=".\Src\ConfigDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ConfigDlg.h"
+				RelativePath=".\Src\GUI\ConfigDlg.h"
 				>
 			</File>
 		</Filter>
@@ -719,20 +707,8 @@
 				>
 			</File>
 		</Filter>
-		<Filter
-			Name="Resource Files"
-			>
-			<File
-				RelativePath=".\Src\resource.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\resource.rc"
-				>
-			</File>
-		</Filter>
 		<File
-			RelativePath=".\Src\main.cpp"
+			RelativePath=".\Src\PadSimple.cpp"
 			>
 			<FileConfiguration
 				Name="Release|Win32"
@@ -789,6 +765,10 @@
 					PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 				/>
 			</FileConfiguration>
+		</File>
+		<File
+			RelativePath=".\Src\PadSimple.h"
+			>
 		</File>
 		<File
 			RelativePath="..\..\PluginSpecs\pluginspecs_pad.h"
