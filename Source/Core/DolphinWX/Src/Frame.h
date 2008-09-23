@@ -54,7 +54,7 @@ class CFrame
 		void OnQuit(wxCommandEvent& event);
 		void OnHelp(wxCommandEvent& event);
 		void OnRefresh(wxCommandEvent& event);
-		void OnPluginOptions(wxCommandEvent& event);
+		void OnConfigMain(wxCommandEvent& event);
 		void OnPluginGFX(wxCommandEvent& event);
 		void OnPluginDSP(wxCommandEvent& event);
 		void OnPluginPAD(wxCommandEvent& event);

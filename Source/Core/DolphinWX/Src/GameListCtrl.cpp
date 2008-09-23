@@ -473,7 +473,10 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 		popupMenu.Append(IDM_EDITPATCHFILE, wxString::FromAscii(menu_text.c_str())); //Pretty much everything in wxwidgets is a wxString, try to convert to those first!
 		popupMenu.Append(IDM_OPENCONTAININGFOLDER, wxString::FromAscii("Open &containing folder"));
 		popupMenu.Append(IDM_FILESYSTEMVIEWER, wxString::FromAscii("Open in ISO viewer/dumper"));
-		popupMenu.Append(IDM_SETDEFAULTGCM, wxString::FromAscii("Set as &default ISO"));
+		popupMenu.AppendCheckItem(IDM_SETDEFAULTGCM, wxString::FromAscii("Set as &default ISO"));
+		if(selected_iso->GetFileName() == SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM)
+			popupMenu.FindItemByPosition(3)->Check();
+
 		popupMenu.AppendSeparator();
 		popupMenu.Append(IDM_DELETEGCM, wxString::FromAscii("&Delete ISO..."));
 

@@ -145,13 +145,11 @@ void CMemcardManager::CreateGUIControls()
 	sMemcard2->Add(m_Memcard2Path, 0, wxEXPAND|wxALL, 5);
 	sMemcard2->Add(m_MemcardList[1], 1, wxEXPAND|wxALL, 5);
 
-	//wxBoxSizer* sMain;
 	sMain = new wxBoxSizer(wxHORIZONTAL);
 	sMain->Add(sMemcard1, 1, wxEXPAND|wxALL, 5);
 	sMain->Add(sButtons, 0, wxEXPAND, 0);
 	sMain->Add(sMemcard2, 1, wxEXPAND|wxALL, 5);
 	
-	CenterOnParent();
 	this->SetSizer(sMain);
 	sMain->SetSizeHints(this);
 }
@@ -230,7 +228,7 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	m_MemcardList[card]->InsertColumn(COLUMN_COMMENT, _T("Comment"));
 	m_MemcardList[card]->InsertColumn(COLUMN_ICON, _T("Icon"));
 
-	wxImageList *list=m_MemcardList[card]->GetImageList(wxIMAGE_LIST_SMALL);
+	wxImageList *list = m_MemcardList[card]->GetImageList(wxIMAGE_LIST_SMALL);
 	list->RemoveAll();
 
 	int nFiles = memoryCard[card]->GetNumFiles();

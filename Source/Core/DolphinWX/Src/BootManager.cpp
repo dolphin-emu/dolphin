@@ -55,7 +55,7 @@ bool BootCore(const std::string& _rFilename)
 	else
 	{
 //		StartUp.bUseDualCore = false;
-		StartUp.bUseJIT = true;
+//		StartUp.bUseJIT = true;
 	}
 	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
 	StartUp.m_strFilename = _rFilename;

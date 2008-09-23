@@ -26,7 +26,7 @@
 #include "Config.h"
 #include "Core.h"
 #include "State.h"
-#include "PluginOptions.h"
+#include "ConfigMain.h"
 #include "PluginManager.h"
 #include "MemcardManager.h"
 
@@ -87,7 +87,7 @@ EVT_MENU(IDM_HELPABOUT, CFrame::OnHelp)
 EVT_MENU(wxID_REFRESH, CFrame::OnRefresh)
 EVT_MENU(IDM_PLAY, CFrame::OnPlay)
 EVT_MENU(IDM_STOP, CFrame::OnStop)
-EVT_MENU(IDM_PLUGIN_OPTIONS, CFrame::OnPluginOptions)
+EVT_MENU(IDM_CONFIG_MAIN, CFrame::OnConfigMain)
 EVT_MENU(IDM_CONFIG_GFX_PLUGIN, CFrame::OnPluginGFX)
 EVT_MENU(IDM_CONFIG_DSP_PLUGIN, CFrame::OnPluginDSP)
 EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnPluginPAD)
@@ -213,17 +213,13 @@ void CFrame::CreateMenu()
 
 	// options menu
 	wxMenu* pOptionsMenu = new wxMenu;
-	m_pPluginOptions = pOptionsMenu->Append(IDM_PLUGIN_OPTIONS, _T("&Select plugins"));
+	m_pPluginOptions = pOptionsMenu->Append(IDM_CONFIG_MAIN, _T("Co&nfigure..."));
 	pOptionsMenu->AppendSeparator();
 	pOptionsMenu->Append(IDM_CONFIG_GFX_PLUGIN, _T("&GFX settings"));
 	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _T("&DSP settings"));
 	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _T("&PAD settings"));
 	pOptionsMenu->AppendSeparator();
-	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tAlt+Enter"));
-	pOptionsMenu->AppendCheckItem(IDM_TOGGLE_DUALCORE, _T("Dual-&core (unstable!)"));
-	pOptionsMenu->Check(IDM_TOGGLE_DUALCORE, SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);			
-	pOptionsMenu->AppendCheckItem(IDM_TOGGLE_SKIPIDLE, _T("Idle s&kipping"));
-	pOptionsMenu->Check(IDM_TOGGLE_SKIPIDLE, SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);			
+	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tAlt+Enter"));			
 	m_pMenuBar->Append(pOptionsMenu, _T("&Options"));
 
 	// misc menu
@@ -267,8 +263,8 @@ void CFrame::PopulateToolbar(wxToolBar* toolBar)
 	toolBar->SetToolDisabledBitmap(IDM_STOP, m_Bitmaps[Toolbar_Stop_Dis]);
 	toolBar->AddTool(IDM_TOGGLE_FULLSCREEN, _T("Fullscr."),  m_Bitmaps[Toolbar_FullScreen], _T("Toggle Fullscreen"));
 	toolBar->AddSeparator();
-	toolBar->AddTool(IDM_PLUGIN_OPTIONS, _T("Plugins"), m_Bitmaps[Toolbar_PluginOptions], _T("Select plugins"));
-	toolBar->SetToolDisabledBitmap(IDM_PLUGIN_OPTIONS, m_Bitmaps[Toolbar_PluginOptions_Dis]);
+	toolBar->AddTool(IDM_CONFIG_MAIN, _T("Config"), m_Bitmaps[Toolbar_PluginOptions], _T("Configure..."));
+	toolBar->SetToolDisabledBitmap(IDM_CONFIG_MAIN, m_Bitmaps[Toolbar_PluginOptions_Dis]);
 	toolBar->AddTool(IDM_CONFIG_GFX_PLUGIN, _T("GFX"),  m_Bitmaps[Toolbar_PluginGFX], _T("GFX settings"));
 	toolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _T("DSP"),  m_Bitmaps[Toolbar_PluginDSP], _T("DSP settings"));
 	toolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("PAD"),  m_Bitmaps[Toolbar_PluginPAD], _T("PAD settings"));
@@ -451,10 +447,10 @@ void CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
 }
 
 
-void CFrame::OnPluginOptions(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 {
-	CPluginOptions PluginOptions(this);
-	PluginOptions.ShowModal();
+	CConfigMain ConfigMain(this);
+	ConfigMain.ShowModal();
 }
 
 
@@ -625,7 +621,7 @@ void CFrame::UpdateGUI()
 	{
 		if (Core::GetState() == Core::CORE_UNINITIALIZED)
 		{
-			GetToolBar()->EnableTool(IDM_PLUGIN_OPTIONS, true);
+			GetToolBar()->EnableTool(IDM_CONFIG_MAIN, true);
 			m_pPluginOptions->Enable(true);
 
 			GetToolBar()->EnableTool(IDM_STOP, false);
@@ -642,7 +638,7 @@ void CFrame::UpdateGUI()
 		}
 		else
 		{
-			GetToolBar()->EnableTool(IDM_PLUGIN_OPTIONS, false);
+			GetToolBar()->EnableTool(IDM_CONFIG_MAIN, false);
 			m_pPluginOptions->Enable(false);
 
 			GetToolBar()->EnableTool(IDM_STOP, true);

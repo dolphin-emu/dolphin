@@ -748,6 +748,14 @@
 			Name="GUI"
 			>
 			<File
+				RelativePath=".\src\ConfigMain.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\ConfigMain.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\FilesystemViewer.cpp"
 				>
 			</File>
@@ -817,14 +825,6 @@
 			</File>
 			<File
 				RelativePath=".\src\MemcardManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\PluginOptions.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\PluginOptions.h"
 				>
 			</File>
 		</Filter>
