@@ -203,10 +203,6 @@ def ParseWXConfig(env):
         env.AppendUnique(CPPFLAGS = cflags.strip().split(' '))
         libs = SystemWXConfig(env,'--libs')[1]
         env.AppendUnique(LINKFLAGS = libs.strip().split(' '))
-    elif target_platform == 'darwin':
-        # MacOSX doesn't handle '-framework foobar' correctly, do that separately.
-        env.ParseConfig(env['wxconfig']+' --cxxflags'+env['wxconfig_postargs'])
-        env.AppendUnique(LINKFLAGS=SystemWXConfig(env,'--libs'+env['wxconfig_postargs'])[1])
     else:
         # Here ParseConfig should really work
         env.ParseConfig(env['wxconfig']+' --cxxflags --libs'+env['wxconfig_postargs'])
