@@ -302,7 +302,7 @@ void CVolumeDirectory::BuildFST()
 	m_FSTData = new u8[(u32)m_fstSize];
 
 	// 4 byte aligned start of data on disk
-	m_dataStartAddress = (FST_ADDRESS + m_fstSize + 3) & 0xfffffffc;
+	m_dataStartAddress = (FST_ADDRESS + m_fstSize + 3) & ~3;
 	u64 curDataAddress = m_dataStartAddress;
 
 	u32 fstOffset = 0;		// offset within FST data
@@ -421,7 +421,7 @@ void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u
 		m_virtualDisk.insert(make_pair(dataOffset, entry.physicalName));
 
 		// 4 byte aligned
-		dataOffset = (dataOffset + entry.size + 3) & 0xfffffffc;
+		dataOffset = (dataOffset + entry.size + 3) & ~3;
 	}
 }
 
