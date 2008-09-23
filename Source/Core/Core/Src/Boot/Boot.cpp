@@ -298,8 +298,10 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		    Memory::Write_U8(0x80, 0x0000315c);				// OSInit
 		    Memory::Write_U8(0x00, 0x00000006);				// DVDInit
 		    Memory::Write_U8(0x00, 0x00000007);				// DVDInit
-		    Memory::Write_U32(0x00000005, 0x000000cc);		// VIInit
 		    Memory::Write_U16(0x0000, 0x000030e0);			// PADInit
+
+			// fake the VI Init of the BIOS 
+			Memory::Write_U32(Core::g_CoreStartupParameter.bNTSC ? 0 : 1, 0x000000CC);
 
 		    // clear exception handler
 		    for (int i = 0x3000; i <= 0x3038; i += 4)
