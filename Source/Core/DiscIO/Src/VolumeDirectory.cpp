@@ -495,7 +495,7 @@ u32 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory, FSTEntr
 	return foundEntries;
 }
 #else
-void CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory, const std::string& _FSTDirectory, FSTEntry& parentEntry)
+u32 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory, FSTEntry& parentEntry)
 {
 	// TODO - Insert linux stuff here
 }
