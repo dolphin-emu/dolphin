@@ -150,8 +150,8 @@ void ConfigDialog::CreateGUIControls()
 	sPage1 = new wxGridBagSizer(0, 0);
 	sPage1->SetFlexibleDirection(wxBOTH);
 	sPage1->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
-	sPage1->Add(m_Fullscreen, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
-	sPage1->Add(m_RenderToMainWindow, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
+	sPage1->Add(m_Fullscreen, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
+	sPage1->Add(m_RenderToMainWindow, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
 	sPage1->Add(FSText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sPage1->Add(m_FullscreenCB, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 5);
 	sPage1->Add(WMText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
@@ -172,10 +172,10 @@ void ConfigDialog::CreateGUIControls()
 	sPage3 = new wxGridBagSizer(0, 0);
 	sPage3->SetFlexibleDirection(wxBOTH);
 	sPage3->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
-	sPage3->Add(m_Wireframe, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
-	sPage3->Add(m_ShaderErrors, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
-	sPage3->Add(m_ShowFPS, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
-	sPage3->Add(m_Statistics, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
+	sPage3->Add(m_Wireframe, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
+	sPage3->Add(m_ShaderErrors, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
+	sPage3->Add(m_ShowFPS, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
+	sPage3->Add(m_Statistics, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
 	sPage3->Add(m_TexFmtOverlay, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
 	sPage3->Add(m_TexFmtCenter, wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
 	sPage3->Add(m_DumpTextures, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 5);

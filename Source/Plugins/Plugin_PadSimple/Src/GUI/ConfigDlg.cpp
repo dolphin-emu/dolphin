@@ -194,9 +194,9 @@ void ConfigDialog::CreateGUIControls()
 		sPage[i]->Layout();
 	}
 
-	clickedButton->Connect(wxID_ANY, wxEVT_KEY_DOWN,
-                               wxKeyEventHandler(ConfigDialog::OnKeyDown),
-                               (wxObject*)NULL, this);
+	//TODO get keyboard input after clicking a wxButton
+	//clickedButton->Connect(wxID_ANY, wxEVT_KEY_DOWN, wxKeyEventHandler(ConfigDialog::OnKeyDown), (wxObject*)NULL, this);
+
 	SetIcon(wxNullIcon);
 	Fit();
 }

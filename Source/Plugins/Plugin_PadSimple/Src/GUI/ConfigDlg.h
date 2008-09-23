@@ -43,7 +43,7 @@ class ConfigDialog : public wxDialog
 		ConfigDialog(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("Pad Configuration"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = CONFIGDIALOG_STYLE);
 		virtual ~ConfigDialog();
 
-	//private:
+	private:
 		wxNotebook *m_Notebook;
 		wxPanel *m_Controller[4];
 		wxButton *m_Close;
