@@ -10,8 +10,9 @@ else:
 
 files = [
 	"PadSimple.cpp",
-        "GUI/ConfigDlg.cpp",
+	"GUI/ConfigDlg.cpp",
 	]
 
 padenv = env.Clone()
-padenv.SharedLibrary(output, files, LIBS=["common"])
+padenv.Append(LIBS = [ 'common' ])
+padenv.SharedLibrary(output, files)
