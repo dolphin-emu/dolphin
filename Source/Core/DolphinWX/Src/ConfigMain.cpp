@@ -149,11 +149,11 @@ void CConfigMain::CreateGUIControls()
 	DefaultISO = new wxFilePickerCtrl(PathsPage, ID_DEFAULTISO, wxEmptyString, wxT("Choose a default ISO:"),
 		wxString::Format(wxT("All GC/Wii images (gcm, iso, gcz)|*.gcm;*.iso;*.gcz|All files (%s)|%s"), wxFileSelectorDefaultWildcardStr, wxFileSelectorDefaultWildcardStr),
 		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_FILE_MUST_EXIST|wxFLP_OPEN);
-	DefaultISO->SetPath(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM);
+	DefaultISO->SetPath(wxString::FromAscii(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.c_str()));
 
 	DVDRootText = new wxStaticText(PathsPage, ID_DVDROOT_TEXT, wxT("DVD Root:"), wxDefaultPosition, wxDefaultSize);
 	DVDRoot = new wxDirPickerCtrl(PathsPage, ID_DVDROOT, wxEmptyString, wxT("Choose a DVD root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
-	DVDRoot->SetPath(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot);
+	DVDRoot->SetPath(wxString::FromAscii(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot.c_str()));
 
 	sPaths = new wxGridBagSizer(0, 0);
 	sPaths->Add(sbISOPaths, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL|wxEXPAND, 5);
@@ -281,12 +281,12 @@ void CConfigMain::ConsoleLangChanged(wxCommandEvent& WXUNUSED (event))
 
 void CConfigMain::DefaultISOChanged(wxFileDirPickerEvent& WXUNUSED (event))
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = DefaultISO->GetPath();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = DefaultISO->GetPath().ToAscii();
 }
 
 void CConfigMain::DVDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot = DVDRoot->GetPath();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot = DVDRoot->GetPath().ToAscii();
 }
 
 void CConfigMain::OnSelectionChanged(wxCommandEvent& WXUNUSED (event))
