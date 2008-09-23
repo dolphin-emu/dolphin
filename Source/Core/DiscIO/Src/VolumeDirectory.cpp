@@ -20,6 +20,9 @@
 #include <io.h>
 #include <windows.h>
 #else
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 #endif
 
@@ -73,9 +76,9 @@ CVolumeDirectory::~CVolumeDirectory()
 
 bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
 {
-#ifdef _WIN32
 	std::string directoryName = ExtractDirectoryName(_rDirectory);
 
+#ifdef _WIN32
 	WIN32_FIND_DATA ffd;
 	HANDLE hFind = FindFirstFile(directoryName.c_str(), &ffd);
 
@@ -84,8 +87,11 @@ bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
 
 	return true;
 #else
-	// TODO - Insert linux stuff here
-	return false;
+	struct stat info;
+	if (!stat(directoryName.c_str(), &info))
+		return false;
+
+	return S_ISDIR(info.st_mode);
 #endif
 }
 
