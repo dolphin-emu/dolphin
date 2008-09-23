@@ -30,6 +30,15 @@
 namespace DiscIO
 {
 
+struct FSTEntry
+{
+	bool isDirectory;
+	u32 size;						// file length or number of entries from children
+	std::string physicalName;		// name on disk
+	std::string virtualName;		// name in FST names table
+	std::vector<FSTEntry> children;
+};
+
 class CVolumeDirectory
 	: public IVolume
 {
@@ -55,15 +64,6 @@ class CVolumeDirectory
 
 		void BuildFST();
 
-		struct FSTEntry
-		{
-			bool isDirectory;
-			u32 size;						// file length or number of entries from children
-			std::string physicalName;		// name on disk
-			std::string virtualName;		// name in FST names table
-			std::vector<FSTEntry> children;			
-		};
-
 	private:
 		static std::string ExtractDirectoryName(const std::string& _rDirectory);
 
@@ -84,7 +84,7 @@ class CVolumeDirectory
 		void WriteEntry(const FSTEntry& entry, u32& fstOffset, u32& nameOffset, u64& dataOffset, u32 parentEntryNum);
 
 		// returns number of entries found in _Directory
-		u32 AddDirectoryEntries(const std::string& _Directory, FSTEntry& parentEntry);		
+		u32 AddDirectoryEntries(const std::string& _Directory, FSTEntry& parentEntry);
 
 		std::string m_rootDirectory;
 

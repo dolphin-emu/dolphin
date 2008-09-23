@@ -455,7 +455,7 @@ static bool ReadFoundFile(const WIN32_FIND_DATA& ffd, CVolumeDirectory::FSTEntry
 	return true;
 }
 
-u32 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory, FSTEntry& parentEntry)
+static u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry)
 {
 	// Find the first file in the directory.
 	WIN32_FIND_DATA ffd;
@@ -483,7 +483,6 @@ u32 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory, FSTEntr
 				++foundEntries;
 
 				parentEntry.children.push_back(entry);
-				m_totalNameSize += entry.virtualName.length() + 1;
 			}
 		} while (FindNextFile(hFind, &ffd) != 0);
 	}
@@ -493,11 +492,35 @@ u32 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory, FSTEntr
 	return foundEntries;
 }
 #else
-u32 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory, FSTEntry& parentEntry)
+static u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry)
 {
 	// TODO - Insert linux stuff here
 	return 0;
 }
 #endif
+
+static u32 ComputeNameSize(const FSTEntry& parentEntry)
+{
+	u32 nameSize = 0;
+	const std::vector<FSTEntry>& children = parentEntry.children;
+	for (std::vector<FSTEntry>::const_iterator it = children.begin();
+		it != children.end(); ++it)
+	{
+		const FSTEntry& entry = *it;
+		if (entry.isDirectory)
+		{
+			nameSize += ComputeNameSize(entry);
+		}
+		nameSize += entry.virtualName.length() + 1;
+	}
+	return nameSize;
+}
+
+u32 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory, FSTEntry& parentEntry)
+{
+	u32 foundEntries = ScanDirectoryTree(_Directory, parentEntry);
+	m_totalNameSize += ComputeNameSize(parentEntry);
+	return foundEntries;
+}
 
 } // namespace
