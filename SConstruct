@@ -137,6 +137,8 @@ flavour = ARGUMENTS.get('flavor')
 if (flavour == 'debug'):
 	compileFlags.append('-g')
 	cppDefines.append('LOGGING')
+elif (flavour == 'devel'):
+	compileFlags.append('-g')
 else:
 	compileFlags.append('-O3')
 
@@ -156,32 +158,42 @@ env['CPPDEFINES'] = cppDefines
 
 
 # Configuration tests section
-tests = {'CheckWXConfig' : wxconfig.CheckWXConfig}
+tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
+         'CheckPKGConfig' : utils.CheckPKGConfig,
+         'CheckPKG' : utils.CheckPKG,
+         'CheckSDL' : utils.CheckSDL}
 
 conf = env.Configure(custom_tests = tests)
 
+if not conf.CheckPKGConfig('0.15.0'):
+        Exit(1)
+
+if not conf.CheckSDL('1.0.0'):
+        Exit(1)
+
+if not conf.CheckPKG('ao'):
+        Exit(1)
+
 # handling wx flags CCFLAGS should be created before
 if not env['nowx']:
-	env['wxconfig'] = 'wx-config'
-	env['build_platform'] = env['PLATFORM']
-	env['target_platform'] = env['PLATFORM']
-
 	if not conf.CheckWXConfig(
 		'2.8', ['gl', 'adv', 'core', 'base'], env['debug']
 		):
 		print 'gui build requires wxwidgets >= 2.8'
 		Exit(1)
 
-	wxconfig.ParseWXConfig(env)
-
 # After all configuration tests are done
 env = conf.Finish()
 
+#wx windows flags
+if not env['nowx']:
+        wxconfig.ParseWXConfig(env)
+
 #get sdl stuff
-env.ParseConfig("sdl-config --cflags --libs")
+env.ParseConfig('sdl-config --cflags --libs')
 
 # lib ao (needed for sound plugins)
-env.ParseConfig("pkg-config --cflags --libs ao")
+env.ParseConfig('pkg-config --cflags --libs ao')
 
 # add methods from utils to env
 env.AddMethod(utils.filterWarnings)

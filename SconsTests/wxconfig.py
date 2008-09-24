@@ -20,7 +20,7 @@ def SystemBacktick(program):
     return [retcode, output]
 
 def SystemWXConfig(env, args):
-    if sys.platform=='win32':
+    if env['PLATFORM'] == 'win32':
         return SystemBacktick(env['wxconfig']+' --wxcfg='+env['ENV']['WXCFG']+' '+args+env['wxconfig_postargs'])
     else:
         return SystemBacktick(env['wxconfig']+' '+args+env['wxconfig_postargs'])
@@ -56,15 +56,6 @@ def CheckWXConfigComponents(context, libraries):
 # but reverts to release or default when that fails.
 def CheckWXConfigWin(context, version, debug):
     context.Message('Checking for wxWidgets >= %s... '%version)
-
-    # Try to find it in path
-    wx_prog = context.env.WhereIs(context.env['wxconfig'])
-    if wx_prog == None:
-        # You could supply wx-config.exe as a fallback option.
-        #wx_prog = os.path.join('scons','wx-config')
-        context.Message('wx-config not found...')
-        return False
-    context.env['wxconfig'] = wx_prog
 
     # Some environment variables are required for wx-config to work, check them.
     if 'WXWIN' not in context.env['ENV']:
@@ -142,7 +133,7 @@ def CheckWXConfigPosixFind(context, debug):
 def CheckWXConfigPosix(context, version, debug):
     # TODO: try several wx-config names
     context.Message('Checking for wxWidgets >= %s... '%version)
-
+    
     # If supplied wx-config doesn't work, try to find another one
     if SystemWXConfig(context.env,'--libs')[0] != 0:
         wx_prog = CheckWXConfigPosixFind(context, debug)
@@ -174,11 +165,18 @@ def CheckWXConfigPosix(context, version, debug):
 
 def CheckWXConfig(context, version, components, debug = False):
     context.env['wxconfig_postargs']= ''
-    build_platform=context.env['build_platform']
-    target_platform=context.env['target_platform']
+
+    # Try to find it in path
+    wx_prog = context.env.WhereIs('wx-config')
+    if wx_prog == None:
+        # You could supply wx-config.exe as a fallback option.
+        #wx_prog = os.path.join('scons','wx-config')
+        context.Message('wx-config not found...')
+        return False
+    context.env['wxconfig'] = wx_prog
 
     # Get wx-config invocation and check version
-    if build_platform=='win32' and target_platform=='win32':
+    if context.env['PLATFORM'] == 'win32':
         res = CheckWXConfigWin(context, version, debug)
     else:
         res = CheckWXConfigPosix(context, version, debug)
@@ -193,10 +191,9 @@ def CheckWXConfig(context, version, components, debug = False):
     return res
 
 def ParseWXConfig(env):
-    build_platform=env['build_platform']
-    target_platform=env['target_platform']
+
     # Windows doesn't work with ParseConfig (yet) :(
-    if build_platform=='win32' and target_platform=='win32':
+    if env['PLATFORM'] == 'win32':
         # Use wx-config, yay!
         # ParseConfig() on windows is broken, so the following is done instead
         cflags = SystemWXConfig(env,'--cxxflags')[1]
