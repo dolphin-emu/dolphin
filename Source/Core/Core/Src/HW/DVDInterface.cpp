@@ -24,31 +24,32 @@
 #include "../PowerPC/PowerPC.h"
 #include "PeripheralInterface.h"
 #include "Memmap.h"
+#include "Thread.h"
 
 #include "../VolumeHandler.h"
 
 namespace DVDInterface
 {
 
-	/*
-	20975: 00000000 DVD (zzz_80146b84 ??, 0x80146bf8) : DVD(r): 0xcc006004
-	20976: 00000000 DVD (zzz_80146b84 ??, 0x80146c00) : DVD(w): 0x00000000 @ 0xcc006004
-	20977: 00000000 DVD (DVDLowRead, 0x801448a8) : DVD(w): 0x00000020 @ 0xcc006018
-	20978: 00000000 DVD (Read, 0x80144744) : DVD(w): 0xa8000000 @ 0xcc006008
-	20979: 00000000 DVD (Read, 0x80144750) : DVD(w): 0x01094227 @ 0xcc00600c
-	20980: 00000000 DVD (Read, 0x80144758) : DVD(w): 0x00000020 @ 0xcc006010
-	20981: 00000000 DVD (Read, 0x8014475c) : DVD(w): 0x8167cc80 @ 0xcc006014
-	20982: 00000000 DVD (Read, 0x80144760) : DVD(w): 0x00000020 @ 0xcc006018
-	20983: 00000000 DVD (Read, 0x80144768) : DVD(w): 0x00000003 @ 0xcc00601c
-	20984: 00000000 DVD: DVD: Read ISO: DVDOffset=0425089c, DMABuffer=0167cc80, SrcLength=00000020, DMALength=00000020
-	20989: 00000000 DVD (zzz_801442fc ??, 0x80144388) : DVD(r): 0xcc006000
-	20990: 00000000 DVD (zzz_801442fc ??, 0x801443d8) : DVD(w): 0x0000003a @ 0xcc006000
-	20992: 00000000 DVD (zzz_801442fc ??, 0x801444d0) : DVD(w): 0x00000000 @ 0xcc006004
-	20993: 00000000 DVD (zzz_80146e44 ??, 0x80146fcc) : DVD(r): 0xcc006018
+/*
+20975: 00000000 DVD (zzz_80146b84 ??, 0x80146bf8) : DVD(r): 0xcc006004
+20976: 00000000 DVD (zzz_80146b84 ??, 0x80146c00) : DVD(w): 0x00000000 @ 0xcc006004
+20977: 00000000 DVD (DVDLowRead, 0x801448a8) : DVD(w): 0x00000020 @ 0xcc006018
+20978: 00000000 DVD (Read, 0x80144744) : DVD(w): 0xa8000000 @ 0xcc006008
+20979: 00000000 DVD (Read, 0x80144750) : DVD(w): 0x01094227 @ 0xcc00600c
+20980: 00000000 DVD (Read, 0x80144758) : DVD(w): 0x00000020 @ 0xcc006010
+20981: 00000000 DVD (Read, 0x8014475c) : DVD(w): 0x8167cc80 @ 0xcc006014
+20982: 00000000 DVD (Read, 0x80144760) : DVD(w): 0x00000020 @ 0xcc006018
+20983: 00000000 DVD (Read, 0x80144768) : DVD(w): 0x00000003 @ 0xcc00601c
+20984: 00000000 DVD: DVD: Read ISO: DVDOffset=0425089c, DMABuffer=0167cc80, SrcLength=00000020, DMALength=00000020
+20989: 00000000 DVD (zzz_801442fc ??, 0x80144388) : DVD(r): 0xcc006000
+20990: 00000000 DVD (zzz_801442fc ??, 0x801443d8) : DVD(w): 0x0000003a @ 0xcc006000
+20992: 00000000 DVD (zzz_801442fc ??, 0x801444d0) : DVD(w): 0x00000000 @ 0xcc006004
+20993: 00000000 DVD (zzz_80146e44 ??, 0x80146fcc) : DVD(r): 0xcc006018
 
-	After this, Cubivore infinitely calls DVDGetDriveStatus, which does not even
-	bother to check any DVD regs. Waiting for interrupt?
-	*/
+After this, Cubivore infinitely calls DVDGetDriveStatus, which does not even
+bother to check any DVD regs. Waiting for interrupt?
+*/
 
 // internal hardware addresses
 enum
@@ -178,6 +179,8 @@ DVDMemStruct dvdMem;
 u32	 g_ErrorCode = 0x00;
 bool g_bDiscInside = true;
 
+Common::CriticalSection dvdread_section;
+
 void DoState(PointerWrap &p)
 {
 	p.Do(dvdMem);
@@ -238,7 +241,11 @@ bool IsLidOpen()
 
 bool DVDRead(u32 _iDVDOffset, u32 _iRamAddress, u32 _iLength)
 {
-	return VolumeHandler::ReadToPtr(Memory::GetPointer(_iRamAddress), _iDVDOffset, _iLength);
+	// We won't need the crit sec when DTK streaming has been rewritten correctly.
+	dvdread_section.Enter();
+	bool retval = VolumeHandler::ReadToPtr(Memory::GetPointer(_iRamAddress), _iDVDOffset, _iLength);
+	dvdread_section.Leave();
+	return retval;
 }
 
 bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples)
@@ -456,11 +463,11 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 			{
 				u32 iDVDOffset = dvdMem.Command[1] << 2;
 				u32 iSrcLength = dvdMem.Command[2];
-				if (false) { iSrcLength++; } // avoid warning
+				if (false) { iSrcLength++; } // avoid warning  << wtf is this?
 				LOG(DVDINTERFACE, "DVD: Read ISO: DVDOffset=%08x, DMABuffer=%08x, SrcLength=%08x, DMALength=%08x",iDVDOffset,dvdMem.DMAAddress.Address,iSrcLength,dvdMem.DMALength.Length);
 				_dbg_assert_(DVDINTERFACE, iSrcLength == dvdMem.DMALength.Length);
 
-				if (VolumeHandler::ReadToPtr(Memory::GetPointer(dvdMem.DMAAddress.Address), iDVDOffset, dvdMem.DMALength.Length) != true)
+				if (DVDRead(iDVDOffset, dvdMem.DMAAddress.Address, dvdMem.DMALength.Length) != true)
 				{
 					PanicAlert("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
 				}	

@@ -26,55 +26,37 @@ CVolumeGC::CVolumeGC(IBlobReader* _pReader)
 	: m_pReader(_pReader)
 {}
 
-
 CVolumeGC::~CVolumeGC()
 {
 	delete m_pReader;
 }
 
-
-bool
-CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
+bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 {
 	if (m_pReader == NULL)
-	{
-		return(false);
-	}
-
-	return(m_pReader->Read(_Offset, _Length, _pBuffer));
+		return false;
+	return m_pReader->Read(_Offset, _Length, _pBuffer);
 }
 
-
-std::string
-CVolumeGC::GetName() const
+std::string CVolumeGC::GetName() const
 {
 	if (m_pReader == NULL)
-	{
-		return(false);
-	}
+		return false;
 
 	char Name[128];
-
 	if (!Read(0x20, 0x60, (u8*)&Name))
-	{
-		return(false);
-	}
+		return false;
 
-	return(Name);
+	return Name;
 }
 
-
-std::string
-CVolumeGC::GetUniqueID() const
+std::string CVolumeGC::GetUniqueID() const
 {
 	static const std::string NO_UID("NO_UID");
 	if (m_pReader == NULL)
-	{
 		return NO_UID;
-	}
 
 	char id[6];
-
 	if (!Read(0, sizeof(id), reinterpret_cast<u8*>(id)))
 	{
 		PanicAlert("Failed to read unique ID from disc image");
@@ -84,14 +66,10 @@ CVolumeGC::GetUniqueID() const
 	return std::string(id, sizeof(id));
 }
 
-
-IVolume::ECountry
-CVolumeGC::GetCountry() const
+IVolume::ECountry CVolumeGC::GetCountry() const
 {
 	if (!m_pReader)
-	{
-		return(COUNTRY_UNKNOWN);
-	}
+		return COUNTRY_UNKNOWN;
 
 	u8 CountryCode;
 	m_pReader->Read(3, 1, &CountryCode);
@@ -141,17 +119,12 @@ CVolumeGC::GetCountry() const
 	return(country);
 }
 
-
-u64
-CVolumeGC::GetSize() const
+u64 CVolumeGC::GetSize() const
 {
 	if (m_pReader)
-	{
-		return((size_t)m_pReader->GetDataSize());
-	}
+		return (size_t)m_pReader->GetDataSize();
 	else
-	{
-		return(0);
-	}
+		return 0;
 }
+
 } // namespace

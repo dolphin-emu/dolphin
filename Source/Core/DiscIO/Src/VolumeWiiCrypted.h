@@ -22,43 +22,33 @@
 #include "Blob.h"
 #include "AES/aes.h"
 
-//
 // --- this volume type is used for encrypted Wii images ---
-//
+
 namespace DiscIO
 {
-class CVolumeWiiCrypted
-	: public IVolume
+class CVolumeWiiCrypted	: public IVolume
 {
-	public:
+public:
+	CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset, const unsigned char* _pVolumeKey);
+	~CVolumeWiiCrypted();
+	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const;
+	std::string GetName() const;
+	std::string GetUniqueID() const;
+	ECountry GetCountry() const;
+	u64 GetSize() const;
 
-		CVolumeWiiCrypted(IBlobReader* _pReader, u64 _VolumeOffset, const unsigned char* _pVolumeKey);
+private:
+	IBlobReader* m_pReader;
 
-		~CVolumeWiiCrypted();
+	u8* m_pBuffer;
+	AES_KEY m_AES_KEY;
 
-		bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const;
+	u64 m_VolumeOffset;
 
-		std::string GetName() const;
-
-		std::string GetUniqueID() const;
-
-		ECountry GetCountry() const;
-
-		u64 GetSize() const;
-
-
-	private:
-
-		IBlobReader* m_pReader;
-
-		u8* m_pBuffer;
-		AES_KEY m_AES_KEY;
-
-		u64 m_VolumeOffset;
-
-		mutable u64 m_LastDecryptedBlockOffset;
-		mutable unsigned char m_LastDecryptedBlock[0x8000];
+	mutable u64 m_LastDecryptedBlockOffset;
+	mutable unsigned char m_LastDecryptedBlock[0x8000];
 };
+
 } // namespace
 
 #endif

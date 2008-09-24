@@ -24,6 +24,7 @@
 
 namespace DSound
 {
+
 #define BUFSIZE 32768
 #define MAXWAIT 70   //ms
 
@@ -33,30 +34,32 @@ HANDLE hThread;
 
 StreamCallback callback;
 
-//lite mojs
 IDirectSound8* ds;
 IDirectSoundBuffer* dsBuffer;
 
-//tja.. behövs
 int bufferSize;     //i bytes
 int totalRenderedBytes;
 int sampleRate;
 
-//med den här synkar vi stängning..
-//0=vi spelar oväsen, 1=stäng tråden NU!
+// playback position
+int currentPos;
+int lastPos;
+short realtimeBuffer[1024 * 1024];
+
+// We set this to shut down the sound thread.
+// 0=keep playing, 1=stop playing NOW.
 volatile int threadData;
+
 
 inline int FIX128(int x)
 {
 	return(x & (~127));
 }
 
-
 int DSound_GetSampleRate()
 {
 	return(sampleRate);
 }
-
 
 bool CreateBuffer()
 {
@@ -92,7 +95,6 @@ bool CreateBuffer()
 	}
 }
 
-
 bool WriteDataToBuffer(DWORD dwOffset,                  // Our own write cursor.
 		char* soundData, // Start of our data.
 		DWORD dwSoundBytes) // Size of block to copy.
@@ -126,18 +128,12 @@ bool WriteDataToBuffer(DWORD dwOffset,                  // Our own write cursor.
 	return(false);
 }
 
-
 inline int ModBufferSize(int x)
 {
 	return((x + bufferSize) % bufferSize);
 }
 
-
-int currentPos;
-int lastPos;
-short realtimeBuffer[1024 * 1024];
-
-//Själva tråden
+// The audio thread.
 DWORD WINAPI soundThread(void*)
 {
 	currentPos = 0;
@@ -157,6 +153,8 @@ DWORD WINAPI soundThread(void*)
 
 		if (numBytesToRender >= 256)
 		{
+			if (numBytesToRender > sizeof(realtimeBuffer))
+				MessageBox(0,"soundThread: too big render call",0,0);
 			(*callback)(realtimeBuffer, numBytesToRender >> 2, 16, sampleRate, 2);
 
 			WriteDataToBuffer(lastPos, (char*)realtimeBuffer, numBytesToRender);
@@ -174,7 +172,6 @@ DWORD WINAPI soundThread(void*)
 	return(0); //hurra!
 }
 
-
 bool DSound_StartSound(HWND window, int _sampleRate, StreamCallback _callback)
 {
 	callback   = _callback;
@@ -189,15 +186,13 @@ bool DSound_StartSound(HWND window, int _sampleRate, StreamCallback _callback)
 
 	//vi vill ha access till DSOUND så...
 	if (FAILED(DirectSoundCreate8(0, &ds, 0)))
-	{
-		return(false);
-	}
+		return false;
 
 	ds->SetCooperativeLevel(window, DSSCL_NORMAL);
 
 	if (!CreateBuffer())
 	{
-		return(false);
+		return false;
 	}
 
 	DWORD num1;
@@ -209,21 +204,19 @@ bool DSound_StartSound(HWND window, int _sampleRate, StreamCallback _callback)
 	DWORD h;
 	hThread = CreateThread(0, 0, soundThread, 0, 0, &h);
 	SetThreadPriority(hThread, THREAD_PRIORITY_ABOVE_NORMAL);
-	return(true);
+	return true;
 }
-
 
 void DSound_UpdateSound()
 {
 	SetEvent(soundSyncEvent);
 }
 
-
 void DSound_StopSound()
 {
 	EnterCriticalSection(&soundCriticalSection);
 	threadData = 1;
-	//kick the thread if it's waiting
+	// kick the thread if it's waiting
 	SetEvent(soundSyncEvent);
 	LeaveCriticalSection(&soundCriticalSection);
 	WaitForSingleObject(hThread, INFINITE);
@@ -233,8 +226,9 @@ void DSound_StopSound()
 	ds->Release();
 
 	CloseHandle(soundSyncEvent);
+	soundSyncEvent = INVALID_HANDLE_VALUE;
+	hThread = INVALID_HANDLE_VALUE;
 }
-
 
 int DSound_GetCurSample()
 {
@@ -246,9 +240,9 @@ int DSound_GetCurSample()
 	return(playCursor);
 }
 
-
 float DSound_GetTimer()
 {
 	return((float)DSound_GetCurSample() * (1.0f / (4.0f * sampleRate)));
 }
-}
+
+}  // namespace

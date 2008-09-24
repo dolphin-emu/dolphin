@@ -49,13 +49,13 @@ class CriticalSection
 #elif __GNUC__
 	pthread_mutex_t mutex;
 #endif
-	public:
+public:
 
-		CriticalSection(int spincount = 1000);
-		~CriticalSection();
-		void Enter();
-		bool TryEnter();
-		void Leave();
+	CriticalSection(int spincount = 1000);
+	~CriticalSection();
+	void Enter();
+	bool TryEnter();
+	void Leave();
 };
 
 #ifdef _WIN32
@@ -66,23 +66,22 @@ typedef void* (*ThreadFunc)(void* arg);
 
 class Thread
 {
-	public:
+public:
+	Thread(ThreadFunc entry, void* arg);
+	~Thread();
 
-		Thread(ThreadFunc entry, void* arg);
-		~Thread();
-
-		void WaitForDeath();
-		void SetAffinity(int mask);
-		static void SetCurrentThreadAffinity(int mask);
+	void WaitForDeath();
+	void SetAffinity(int mask);
+	static void SetCurrentThreadAffinity(int mask);
 
 
-	private:
+private:
 
 #ifdef _WIN32
-		HANDLE m_hThread;
-		DWORD m_threadId;
+	HANDLE m_hThread;
+	DWORD m_threadId;
 #elif __GNUC__
-		pthread_t thread_id;
+	pthread_t thread_id;
 #endif
 };
 

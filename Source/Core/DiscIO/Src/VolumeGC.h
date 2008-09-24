@@ -20,35 +20,23 @@
 #include "Volume.h"
 #include "Blob.h"
 
-//
-// --- this volume type is used for GC and for decrypted Wii images ---
-//
+// --- this volume type is used for GC disc images ---
 
 namespace DiscIO
 {
-class CVolumeGC
-	: public IVolume
+class CVolumeGC	: public IVolume
 {
-	public:
+public:
+	CVolumeGC(IBlobReader* _pReader);
+	~CVolumeGC();
+	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const;
+	std::string GetName() const;
+	std::string GetUniqueID() const;
+	ECountry GetCountry() const;
+	u64 GetSize() const;
 
-		CVolumeGC(IBlobReader* _pReader);
-
-		~CVolumeGC();
-
-		bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const;
-
-		std::string GetName() const;
-
-		std::string GetUniqueID() const;
-
-		ECountry GetCountry() const;
-
-		u64 GetSize() const;
-
-
-	private:
-
-		IBlobReader* m_pReader;
+private:
+	IBlobReader* m_pReader;
 };
-} // namespace
 
+} // namespace
