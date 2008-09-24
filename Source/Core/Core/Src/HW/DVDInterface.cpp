@@ -257,7 +257,9 @@ bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples)
 		return false;
 	}
 	_iNumSamples &= ~31;
+	dvdread_section.Enter();
 	VolumeHandler::ReadToPtr(_pDestBuffer, dvdMem.AudioPos, _iNumSamples);
+	dvdread_section.Leave();
 
 	//
 	// FIX THIS
