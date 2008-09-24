@@ -266,14 +266,20 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		if(numFrames>0)
 		{
 			memset(pxdata,0,96*32*4);
-			for(int y=0;y<32;y++)
+
+			int frames=3;
+
+			if(numFrames<frames) frames=numFrames;
+			for(int f=0;f<frames;f++)
 			{
-				for(int x=0;x<32;x++)
+				for(int y=0;y<32;y++)
 				{
-					pxdata[y*96+x] = animData[y*32+x];
+					for(int x=0;x<32;x++)
+					{
+						pxdata[y*96 + x + 32*f] = animData[f*32*32 + y*32 + x];
+					}
 				}
 			}
-
                         wxBitmap icon = wxBitmapFromMemoryRGBA((u8*)pxdata,96,32);
 			images[i*2+1] = list->Add(icon);
 		}
