@@ -1,7 +1,10 @@
 # -*- python -*- 
 
 Import('env')
+# can we import path in one place?
 import sys
+sys.path.append('../../../SconsTests')
+import utils
 
 files = [
 	'BPStructs.cpp',
@@ -52,6 +55,18 @@ else:
 	platform = 'linux'
 	# By default, GLX is used on Linux to setup OpenGL, but you can select SDL
 	# instead if you like, by changing the line below.
+        tests = {'CheckPKG' : utils.CheckPKG}
+
+        conf = gfxenv.Configure(custom_tests = tests)
+
+        if not conf.CheckPKG('x11'):
+                Exit(1)
+                
+        if not conf.CheckPKG('xxf86vm'):
+                Exit(1)
+
+        gfxenv = conf.Finish()
+        
 	useSDL = False
 	gfxenv.ParseConfig("pkg-config x11 --cflags --libs")
 	gfxenv.ParseConfig("pkg-config xxf86vm --cflags --libs")
