@@ -33,7 +33,7 @@
 
 #include "../Host.h"
 
-#include "thread.h" // for g_hEventOnIdle
+#include "Thread.h" // for g_hEventOnIdle
 
 namespace PowerPC
 {
