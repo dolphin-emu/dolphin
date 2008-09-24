@@ -67,10 +67,10 @@ inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
 					   const char *name, int ctl) {
 	wxBoxSizer *hButton = new wxBoxSizer(wxHORIZONTAL);
 
-	hButton->Add(new wxStaticText(pan, 0, wxT(name), wxDefaultPosition, wxDefaultSize), 0,
+	hButton->Add(new wxStaticText(pan, 0, wxString::FromAscii(name), wxDefaultPosition, wxDefaultSize), 0,
 				 wxALIGN_CENTER_VERTICAL|wxALL);
 	
-	*button = new wxButton(pan, ctl, wxT(""), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+	*button = new wxButton(pan, ctl, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 
 	hButton->Add(*button, 0, wxEXPAND|wxALL);
 	
