@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9,00"
 	Name="Bochs_disasm"
 	ProjectGUID="{29C2ABC1-ADA5-42CD-A5FC-96022D52A510}"
 	RootNamespace="Bochs_disasm"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform

@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9,00"
 	Name="Plugin_Wiimote"
 	ProjectGUID="{8D612734-FAA5-4B8A-804F-4DEA2367D495}"
 	RootNamespace="Plugin_Wiimote_Test"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -74,6 +75,8 @@
 				SubSystem="0"
 				OptimizeReferences="0"
 				EnableCOMDATFolding="0"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -93,9 +96,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -158,6 +158,8 @@
 				SubSystem="0"
 				OptimizeReferences="0"
 				EnableCOMDATFolding="0"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -177,9 +179,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -239,6 +238,8 @@
 				SubSystem="0"
 				OptimizeReferences="0"
 				EnableCOMDATFolding="0"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -258,9 +259,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -322,6 +320,8 @@
 				SubSystem="0"
 				OptimizeReferences="0"
 				EnableCOMDATFolding="0"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -341,9 +341,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -401,6 +398,8 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -420,9 +419,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -481,6 +477,8 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -500,9 +498,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"

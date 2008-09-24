@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9,00"
 	Name="Plugin_VideoOGL"
 	ProjectGUID="{CFDCEE0E-FA45-4F72-9FCC-0B88F5A75160}"
 	RootNamespace="Plugin_VideoOGL"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -97,6 +98,8 @@
 				AdditionalLibraryDirectories="..\..\..\Externals\Cg;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg"
 				GenerateManifest="false"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
 			/>
@@ -117,9 +120,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -208,9 +208,11 @@
 				GenerateManifest="false"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				RandomizedBaseAddress="1"
+				FixedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="17"
-				FixedBaseAddress="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -229,9 +231,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -309,6 +308,8 @@
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
 			/>
@@ -329,9 +330,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -410,6 +408,8 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				LargeAddressAware="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="17"
 			/>
@@ -430,9 +430,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -520,6 +517,8 @@
 				IgnoreDefaultLibraryNames="LIBCMTD.lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="1"
 			/>
@@ -540,9 +539,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -630,6 +626,8 @@
 				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg"
 				GenerateManifest="false"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="$(TargetDir)$(TargetName).lib"
 				TargetMachine="17"
 			/>
@@ -650,9 +648,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"

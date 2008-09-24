@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9,00"
 	Name="Plugin_PadDX9"
 	ProjectGUID="{805B34AA-82A5-4875-8DC7-3C85BDC0BCEE}"
 	RootNamespace="Plugin_PadDX9"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -89,6 +90,8 @@
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
 				ProgramDatabaseFile=".\Release/Pad_DirectX9.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary=".\Release/Pad_DirectX9.lib"
 				TargetMachine="1"
 			/>
@@ -109,9 +112,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -188,6 +188,8 @@
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
 				ProgramDatabaseFile=".\Release/Pad_DirectX9.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary=".\Release/Pad_DirectX9.lib"
 				TargetMachine="17"
 			/>
@@ -208,9 +210,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -286,6 +285,8 @@
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/Pad_DirectX9.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary=".\Debug/Pad_DirectX9.lib"
 				TargetMachine="1"
 			/>
@@ -306,9 +307,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -384,6 +382,8 @@
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/Pad_DirectX9.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary=".\Debug/Pad_DirectX9.lib"
 				TargetMachine="17"
 			/>
@@ -404,9 +404,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -484,6 +481,8 @@
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
 				ProgramDatabaseFile=".\Release/Pad_DirectX9.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary=".\Release/Pad_DirectX9.lib"
 				TargetMachine="1"
 			/>
@@ -504,9 +503,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -583,6 +579,8 @@
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
 				ProgramDatabaseFile=".\Release/Pad_DirectX9.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary=".\Release/Pad_DirectX9.lib"
 				TargetMachine="17"
 			/>
@@ -603,9 +601,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"

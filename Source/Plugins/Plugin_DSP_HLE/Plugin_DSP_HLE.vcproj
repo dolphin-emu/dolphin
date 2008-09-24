@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="9,00"
 	Name="Plugin_DSP_HLE"
 	ProjectGUID="{D6E56527-BBB9-4EAD-A6EC-49D4BF6AFCD8}"
 	RootNamespace="Plugin_DSP"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -76,6 +77,8 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/DSP_HLE.pdb"
 				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="$(OutDir)/DSP_HLE.lib"
 				TargetMachine="1"
 			/>
@@ -96,9 +99,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -163,6 +163,8 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)/DSP_HLE.pdb"
 				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="$(OutDir)/DSP_HLE.lib"
 				TargetMachine="17"
 			/>
@@ -183,9 +185,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -254,6 +253,8 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="$(OutDir)/DSP_HLE.lib"
 				TargetMachine="1"
 			/>
@@ -274,9 +275,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -345,6 +343,8 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="$(OutDir)/DSP_HLE.lib"
 				TargetMachine="17"
 			/>
@@ -365,9 +365,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -436,6 +433,8 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="$(OutDir)/DSP_HLE.lib"
 				TargetMachine="1"
 			/>
@@ -456,9 +455,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -527,6 +523,8 @@
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary="$(OutDir)/DSP_HLE.lib"
 				TargetMachine="17"
 			/>
@@ -547,9 +545,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"

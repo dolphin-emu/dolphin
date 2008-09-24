@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9,00"
 	Name="DolphinWX"
 	ProjectGUID="{A72606EF-C5C1-4954-90AD-F0F93A8D97D9}"
 	RootNamespace="DolphinWX"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -99,6 +100,8 @@
 				MapFileName="$(TargetDir)linkermap.map"
 				SubSystem="2"
 				BaseAddress="0x00400000"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -120,9 +123,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -208,8 +208,10 @@
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				SubSystem="2"
 				BaseAddress="0x00400000"
-				TargetMachine="17"
+				RandomizedBaseAddress="1"
 				FixedBaseAddress="1"
+				DataExecutionPrevention="0"
+				TargetMachine="17"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -230,9 +232,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -317,6 +316,8 @@
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				SubSystem="2"
 				BaseAddress="0x00400000"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -338,9 +339,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -425,6 +423,8 @@
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				SubSystem="2"
 				BaseAddress="0x00400000"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -446,9 +446,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -535,6 +532,8 @@
 				SubSystem="2"
 				LargeAddressAware="1"
 				BaseAddress="0x00400000"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -556,9 +555,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -643,6 +639,8 @@
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				SubSystem="2"
 				BaseAddress="0x00400000"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -664,9 +662,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
