@@ -136,7 +136,7 @@ void CConfigMain::CreateGUIControls()
 
 	// Paths page
 	sbISOPaths = new wxStaticBoxSizer(wxVERTICAL, PathsPage, wxT("ISO Directories:"));
-	for(int i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); i++)
+	for(u32 i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); i++)
 	{
 		arrayStringFor_ISOPaths.Add(wxString(SConfig::GetInstance().m_ISOFolder[i].c_str(), wxConvUTF8));
 	}
