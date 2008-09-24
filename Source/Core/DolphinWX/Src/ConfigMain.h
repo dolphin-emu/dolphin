@@ -45,7 +45,7 @@ class CConfigMain
 		wxGridBagSizer* sGeneral;
 		wxGridBagSizer* sPaths;
 		wxStaticBoxSizer* sbISOPaths;
-		wxGridBagSizer* sISOPaths;
+		wxBoxSizer* sISOButtons;
 		wxGridBagSizer* sPlugins;
 
 		wxNotebook *Notebook;
@@ -66,6 +66,7 @@ class CConfigMain
 		wxStaticText* ConsoleLangText;
 		wxChoice* ConsoleLang;
 
+		wxArrayString arrayStringFor_ISOPaths;
 		wxListBox* ISOPaths;
 		wxButton* AddISOPath;
 		wxButton* RemoveISOPath;
@@ -144,6 +145,7 @@ class CConfigMain
 		void OptimizeQuantizersCheck(wxCommandEvent& event);
 		void SkipIdleCheck(wxCommandEvent& event);
 		void ConsoleLangChanged(wxCommandEvent& event);
+		void AddRemoveISOPaths(wxCommandEvent& event);
 		void DefaultISOChanged(wxFileDirPickerEvent& event);
 		void DVDRootChanged(wxFileDirPickerEvent& event);
 

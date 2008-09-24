@@ -675,7 +675,7 @@ void LoadConfig()
 			//keyboard settings
 			file.Get(SectionName, "Type", &pad[i].type);
 			file.Get(SectionName, "Attached", &pad[i].attached, false);
-			file.Get(SectionName, "Disable when window looses focus", &pad[i].disable, false);
+			file.Get(SectionName, "DisableOnBackground", &pad[i].disable, false);
 			
 			for (int x = 0; x < NUMCONTROLS; x++)
 			{
@@ -687,7 +687,7 @@ void LoadConfig()
 			//xpad settings
 			file.Get(SectionName, "Type", &pad[i].type);
 			file.Get(SectionName, "Attached", &pad[i].attached, false);
-			file.Get(SectionName, "Disable when window looses focus", &pad[i].disable, false);
+			file.Get(SectionName, "DisableOnBackground", &pad[i].disable, false);
 			file.Get(SectionName, "Rumble", &pad[i].rumble, true);
 			file.Get(SectionName, "XPad#", &pad[i].XPad);
 		}
@@ -710,7 +710,7 @@ void SaveConfig()
 			//keyboard settings
 			file.Set(SectionName, "Type", pad[i].type);
 			file.Set(SectionName, "Attached", pad[i].attached);
-			file.Set(SectionName, "Disable when window looses focus", pad[i].disable);
+			file.Set(SectionName, "DisableOnBackground", pad[i].disable);
 			
 			for (int x = 0; x < NUMCONTROLS; x++)
 			{
@@ -722,7 +722,7 @@ void SaveConfig()
 			//xpad settings
 			file.Set(SectionName, "Type", pad[i].type);
 			file.Set(SectionName, "Attached", pad[i].attached);
-			file.Set(SectionName, "Disable when window looses focus", pad[i].disable);
+			file.Set(SectionName, "DisableOnBackground", pad[i].disable);
 			file.Set(SectionName, "Rumble", pad[i].rumble);
 			file.Set(SectionName, "XPad#", pad[i].XPad);
 		}

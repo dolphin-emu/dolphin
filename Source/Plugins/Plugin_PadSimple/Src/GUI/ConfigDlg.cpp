@@ -104,7 +104,7 @@ void ConfigDialog::CreateGUIControls()
 		sDeviceBottom[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_DeviceName[i] = new wxChoice(m_Controller[i], ID_DEVICENAME, wxDefaultPosition, wxDefaultSize, arrayStringFor_DeviceName, 0, wxDefaultValidator);
 		m_Attached[i] = new wxCheckBox(m_Controller[i], ID_ATTACHED, wxT("Controller attached"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_Disable[i] = new wxCheckBox(m_Controller[i], ID_DISABLE, wxT("Disable when window looses focus"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_Disable[i] = new wxCheckBox(m_Controller[i], ID_DISABLE, wxT("Disable when dolphin isn't in foreground"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		m_Rumble[i] = new wxCheckBox(m_Controller[i], ID_RUMBLE, wxT("Enable rumble"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		m_Attached[i]->SetValue(pad[i].attached);
 		m_Disable[i]->SetValue(pad[i].disable);

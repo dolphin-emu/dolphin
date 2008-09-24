@@ -268,7 +268,7 @@ extern "C" void Wiimote_DoState(void* ptr, int mode) {
 
 extern "C" void Wiimote_Shutdown(void) 
 {
-	#ifdef _WIN32
+	#ifndef _WIN32
 		if(!cwiid_disconnect(WiiMote))
 			LOG(WIIMOTE,"Couldn't close WiiMote!\n");
 	#endif

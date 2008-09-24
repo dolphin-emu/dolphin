@@ -38,6 +38,8 @@ EVT_CHECKBOX(ID_LOCKTHREADS, CConfigMain::LockThreadsCheck)
 EVT_CHECKBOX(ID_OPTIMIZEQUANTIZERS, CConfigMain::OptimizeQuantizersCheck)
 EVT_CHECKBOX(ID_IDLESKIP, CConfigMain::SkipIdleCheck)
 EVT_CHOICE(ID_CONSOLELANG, CConfigMain::ConsoleLangChanged)
+EVT_BUTTON(ID_ADDISOPATH, CConfigMain::AddRemoveISOPaths)
+EVT_BUTTON(ID_REMOVEISOPATH, CConfigMain::AddRemoveISOPaths)
 EVT_FILEPICKER_CHANGED(ID_DEFAULTISO, CConfigMain::DefaultISOChanged)
 EVT_DIRPICKER_CHANGED(ID_DVDROOT, CConfigMain::DVDRootChanged)
 EVT_CHOICE(ID_GRAPHIC_CB, CConfigMain::OnSelectionChanged)
@@ -133,18 +135,21 @@ void CConfigMain::CreateGUIControls()
 	sGeneral->Layout();
 
 	// Paths page
-	// TODO add gcm paths - the whole point of the page
 	sbISOPaths = new wxStaticBoxSizer(wxVERTICAL, PathsPage, wxT("ISO Directories:"));
-	wxArrayString arrayStringFor_ISOPaths;
-	ISOPaths = new wxListBox(PathsPage, ID_ISOPATHS, wxDefaultPosition, wxDefaultSize, arrayStringFor_ISOPaths, wxLB_SINGLE, wxDefaultValidator);
+	for(int i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); i++)
+	{
+		arrayStringFor_ISOPaths.Add(wxString(SConfig::GetInstance().m_ISOFolder[i].c_str(), wxConvUTF8));
+	}
+	ISOPaths = new wxListBox(PathsPage, ID_ISOPATHS, wxDefaultPosition, wxSize(290,150), arrayStringFor_ISOPaths, wxLB_SINGLE, wxDefaultValidator);
 	AddISOPath = new wxButton(PathsPage, ID_ADDISOPATH, wxT("Add..."), wxDefaultPosition, wxDefaultSize, 0);
 	RemoveISOPath = new wxButton(PathsPage, ID_REMOVEISOPATH, wxT("Remove"), wxDefaultPosition, wxDefaultSize, 0);
 
-	sISOPaths = new wxGridBagSizer(0, 0);
-	sISOPaths->Add(ISOPaths, wxGBPosition(0, 0), wxGBSpan(1, 3), wxALL|wxEXPAND, 5);
-	sISOPaths->Add(AddISOPath, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL|wxALIGN_RIGHT, 5);
-	sISOPaths->Add(RemoveISOPath, wxGBPosition(1, 2), wxGBSpan(1, 1), wxALL|wxALIGN_RIGHT, 5);
-	sbISOPaths->Add(sISOPaths, 1, wxEXPAND|wxALL, 5);
+	sISOButtons = new wxBoxSizer(wxHORIZONTAL);
+	sISOButtons->AddStretchSpacer(1);
+	sISOButtons->Add(AddISOPath, 0, wxALL, 5);
+	sISOButtons->Add(RemoveISOPath, 0, wxALL, 5);
+	sbISOPaths->Add(ISOPaths, 1, wxEXPAND|wxALL, 5);
+	sbISOPaths->Add(sISOButtons, 0, wxEXPAND|wxALL, 5);
 
 	DefaultISOText = new wxStaticText(PathsPage, ID_DEFAULTISO_TEXT, wxT("Default ISO:"), wxDefaultPosition, wxDefaultSize);
 	DefaultISO = new wxFilePickerCtrl(PathsPage, ID_DEFAULTISO, wxEmptyString, wxT("Choose a default ISO:"),
@@ -279,6 +284,34 @@ void CConfigMain::SkipIdleCheck(wxCommandEvent& WXUNUSED (event))
 void CConfigMain::ConsoleLangChanged(wxCommandEvent& WXUNUSED (event))
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage = ConsoleLang->GetSelection();
+}
+
+void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
+{
+	if(event.GetId() == ID_ADDISOPATH)
+	{
+		wxString dirHome;
+		wxGetHomeDir(&dirHome);
+
+		wxDirDialog dialog(this, _T("Choose a directory to add"), dirHome, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+
+		if (dialog.ShowModal() == wxID_OK)
+		{
+			ISOPaths->Append(dialog.GetPath());
+		}
+	}
+	else
+	{
+		ISOPaths->Delete(ISOPaths->GetSelection());
+	}
+
+	//save changes right away
+	SConfig::GetInstance().m_ISOFolder.clear();
+
+	for(unsigned int i = 0; i < ISOPaths->GetCount(); i++)
+	{
+		SConfig::GetInstance().m_ISOFolder.push_back(std::string(ISOPaths->GetStrings()[i].ToAscii()));
+	}
 }
 
 void CConfigMain::DefaultISOChanged(wxFileDirPickerEvent& WXUNUSED (event))
