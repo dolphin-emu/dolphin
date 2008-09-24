@@ -62,12 +62,10 @@ struct SCoreStartupParameter
 	{
 		BOOT_ISO,
 		BOOT_ELF,
-		BOOT_BIN,
 		BOOT_DOL,
 		BOOT_BIOS
 	};
 	EBootType m_BootType;
-
 
 	// files
 	std::string m_strVideoPlugin;

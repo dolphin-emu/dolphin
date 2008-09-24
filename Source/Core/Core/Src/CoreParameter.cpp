@@ -100,12 +100,6 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
                 m_BootType = BOOT_ELF;
                 bNTSC = true;
             }
-            else if (!strcasecmp(Extension.c_str(), ".bin"))
-            {
-                BaseDataPath = s_DataBasePath_USA; 
-                m_BootType = BOOT_BIN;
-                bNTSC = true;
-            }
             else if (!strcasecmp(Extension.c_str(), ".dol"))
             {
                 BaseDataPath = s_DataBasePath_USA; 

@@ -32,7 +32,6 @@ public:
 		BOOT_ERROR,
 		BOOT_DOL,
 		BOOT_ELF,
-		BOOT_BIN,
 		BOOT_ISO,
 		BOOT_BIOS
 	};
@@ -50,14 +49,11 @@ private:
 	static void UpdateDebugger_MapLoaded(const char* _gameID = NULL);
 
 	static bool LoadMapFromFilename(const std::string& _rFilename, const char* _gameID = NULL);
-
 	static bool Boot_ELF(const char *filename);
-	static bool Boot_BIN(const std::string& _rFilename);
 
 	static void EmulatedBIOS(bool _bDebug);
 	static bool EmulatedBIOS_Wii(bool _bDebug);
     static bool Load_BIOS(const std::string& _rBiosFilename);
-
 	static void Load_FST(bool _bIsWii);
 };
 

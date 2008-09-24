@@ -1,3 +1,20 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
 #include <string>
 
 #include "Common.h"
@@ -12,17 +29,17 @@ void bswap(Elf32_Half &w) {w = Common::swap16(w);}
 void byteswapHeader(Elf32_Ehdr &ELF_H)
 {
 	bswap(ELF_H.e_type);
-	bswap(ELF_H.e_machine);// = _byteswap_ushort(ELF_H.e_machine);
-	bswap(ELF_H.e_ehsize);// = _byteswap_ushort(ELF_H.e_ehsize);
-	bswap(ELF_H.e_phentsize);// = _byteswap_ushort(ELF_H.e_phentsize);
-	bswap(ELF_H.e_phnum);// = _byteswap_ushort(ELF_H.e_phnum);
-	bswap(ELF_H.e_shentsize);// = _byteswap_ushort(ELF_H.e_shentsize);
-	bswap(ELF_H.e_shnum);// = _byteswap_ushort(ELF_H.e_shnum);
-	bswap(ELF_H.e_shstrndx);//= _byteswap_ushort(ELF_H.e_shstrndx);
-	bswap(ELF_H.e_version);// = _byteswap_ulong(ELF_H.e_version );
-	bswap(ELF_H.e_entry);//   = _byteswap_ulong(ELF_H.e_entry   );
-	bswap(ELF_H.e_phoff);//   = _byteswap_ulong(ELF_H.e_phoff   );
-	bswap(ELF_H.e_shoff);//   = _byteswap_ulong(ELF_H.e_shoff   );
+	bswap(ELF_H.e_machine);
+	bswap(ELF_H.e_ehsize);
+	bswap(ELF_H.e_phentsize);
+	bswap(ELF_H.e_phnum);
+	bswap(ELF_H.e_shentsize);
+	bswap(ELF_H.e_shnum);
+	bswap(ELF_H.e_shstrndx);
+	bswap(ELF_H.e_version);
+	bswap(ELF_H.e_entry);
+	bswap(ELF_H.e_phoff);
+	bswap(ELF_H.e_shoff);
 	bswap(ELF_H.e_flags);
 }
 
@@ -52,7 +69,6 @@ void byteswapSection(Elf32_Shdr &sec)
 	bswap(sec.sh_type);
 }
 
-
 ElfReader::ElfReader(void *ptr)
 {
 	base = (char*)ptr;
@@ -75,8 +91,7 @@ ElfReader::ElfReader(void *ptr)
 	entryPoint = header->e_entry;
 }
 
-
-const char *ElfReader::GetSectionName(int section)
+const char *ElfReader::GetSectionName(int section) const
 {
 	if (sections[section].sh_type == SHT_NULL)
 		return 0;
@@ -89,8 +104,6 @@ const char *ElfReader::GetSectionName(int section)
 	else
 		return 0;
 }
-
-
 
 void addrToHiLo(u32 addr, u16 &hi, s16 &lo)
 {
@@ -143,7 +156,7 @@ bool ElfReader::LoadInto(u32 vaddr)
 			segmentVAddr[i] = baseAddress + p->p_vaddr;
 			u32 writeAddr = segmentVAddr[i];
 
-			u8 *src = GetSegmentPtr(i);
+			const u8 *src = GetSegmentPtr(i);
 			u8 *dst = Memory::GetPointer(writeAddr);
 			u32 srcSize = p->p_filesz;
 			u32 dstSize = p->p_memsz;
@@ -188,17 +201,14 @@ bool ElfReader::LoadInto(u32 vaddr)
 	return true;
 }
 
-
-SectionID ElfReader::GetSectionByName(const char *name, int firstSection)
+SectionID ElfReader::GetSectionByName(const char *name, int firstSection) const
 {
 	for (int i = firstSection; i < header->e_shnum; i++)
 	{
 		const char *secname = GetSectionName(i);
 
 		if (secname != 0 && strcmp(name, secname) == 0)
-		{
 			return i;
-		}
 	}
 	return -1;
 }
@@ -210,15 +220,12 @@ bool ElfReader::LoadSymbols()
 	if (sec != -1)
 	{
 		int stringSection = sections[sec].sh_link;
-
-		const char *stringBase = (const char*)GetSectionDataPtr(stringSection);
+		const char *stringBase = (const char *)GetSectionDataPtr(stringSection);
 
 		//We have a symbol table!
 		Elf32_Sym *symtab = (Elf32_Sym *)(GetSectionDataPtr(sec));
-
 		int numSymbols = sections[sec].sh_size / sizeof(Elf32_Sym);
-		
-		for (int sym = 0; sym<numSymbols; sym++)
+		for (int sym = 0; sym < numSymbols; sym++)
 		{
 			int size = Common::swap32(symtab[sym].st_size);
 			if (size == 0)
@@ -229,12 +236,10 @@ bool ElfReader::LoadSymbols()
 			int sectionIndex = Common::swap16(symtab[sym].st_shndx);
 			int value = Common::swap32(symtab[sym].st_value);
 			const char *name = stringBase + Common::swap32(symtab[sym].st_name);
-
 			if (bRelocate)
 				value += sectionAddrs[sectionIndex];
 
 			int symtype = Symbol::SYMBOL_DATA;
-			
 			switch (type)
 			{
 			case STT_OBJECT:
@@ -251,4 +256,3 @@ bool ElfReader::LoadSymbols()
 	g_symbolDB.Index();
 	return hasSymbols;
 }
-

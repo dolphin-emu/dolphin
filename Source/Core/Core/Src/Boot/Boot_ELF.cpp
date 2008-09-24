@@ -1,3 +1,20 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
 #include "../PowerPC/PowerPC.h"
 #include "Boot.h"
 #include "../HLE/HLE.h"
@@ -7,16 +24,13 @@
 
 bool CBoot::IsElfWii(const char *filename)
 {
-	Common::IMappedFile *mapfile = Common::IMappedFile::CreateMappedFileDEPRECATED();
-	bool ok = mapfile->Open(filename);
-	if (!ok)
-		return false;
-	size_t filesize = (size_t)mapfile->GetSize();
-	u8 *ptr = mapfile->Lock(0, filesize);
-	u8 *mem = new u8[filesize];
-	memcpy(mem, ptr, filesize);
-	mapfile->Unlock(ptr);
-	mapfile->Close();
+	FILE *f = fopen(filename, "rb");
+	fseek(f, 0, SEEK_END);
+	u64 filesize = ftell(f);
+	fseek(f, 0, SEEK_SET);
+	u8 *mem = new u8[(size_t)filesize];
+	fread(mem, 1, filesize, f);
+	fclose(f);
 	
 	ElfReader reader(mem);
 	
@@ -29,13 +43,13 @@ bool CBoot::IsElfWii(const char *filename)
 
 bool CBoot::Boot_ELF(const char *filename)
 {
-	Common::IMappedFile *mapfile = Common::IMappedFile::CreateMappedFileDEPRECATED();
-	mapfile->Open(filename);
-	u8 *ptr = mapfile->Lock(0, mapfile->GetSize());
-	u8 *mem = new u8[(size_t)mapfile->GetSize()];
-	memcpy(mem, ptr, (size_t)mapfile->GetSize());
-	mapfile->Unlock(ptr);
-	mapfile->Close();
+	FILE *f = fopen(filename, "rb");
+	fseek(f, 0, SEEK_END);
+	u64 filesize = ftell(f);
+	fseek(f, 0, SEEK_SET);
+	u8 *mem = new u8[(size_t)filesize];
+	fread(mem, 1, filesize, f);
+	fclose(f);
 	
 	ElfReader reader(mem);
 	reader.LoadInto(0x80000000);
@@ -46,9 +60,9 @@ bool CBoot::Boot_ELF(const char *filename)
 	} else {
 		HLE::PatchFunctions();
 	}
-	delete [] mem;
 	
 	PC = reader.GetEntryPoint();
+	delete [] mem;
 
     return true;
 }

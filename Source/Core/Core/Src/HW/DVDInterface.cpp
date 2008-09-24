@@ -194,19 +194,19 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg);
 
 void Init()
 {
-	dvdMem.StatusReg.Hex		= 0;
-	dvdMem.CoverReg.Hex		= 0;
-	dvdMem.Command[0]		= 0;
-	dvdMem.Command[1]		= 0;
-	dvdMem.Command[2]		= 0;
-	dvdMem.DMAAddress.Hex	= 0;
-	dvdMem.DMALength.Hex		= 0;
-	dvdMem.DMAControlReg.Hex	= 0;
-	dvdMem.Immediate			= 0;
-	dvdMem.ConfigReg.Hex		= 0;
-	dvdMem.AudioStart	    = 0;
-	dvdMem.AudioPos          = 0;
-	dvdMem.AudioLength       = 0;
+	dvdMem.StatusReg.Hex	  = 0;
+	dvdMem.CoverReg.Hex		  = 0;
+	dvdMem.Command[0]		  = 0;
+	dvdMem.Command[1]		  = 0;
+	dvdMem.Command[2]		  = 0;
+	dvdMem.DMAAddress.Hex	  = 0;
+	dvdMem.DMALength.Hex	  = 0;
+	dvdMem.DMAControlReg.Hex  = 0;
+	dvdMem.Immediate		  = 0;
+	dvdMem.ConfigReg.Hex	  = 0;
+	dvdMem.AudioStart	      = 0;
+	dvdMem.AudioPos           = 0;
+	dvdMem.AudioLength        = 0;
 
 //	SetLidOpen(true);
 }

@@ -66,7 +66,7 @@ CEXIIPL::CEXIIPL() :
 	if (pStream != NULL)
 	{
 		fseek(pStream, 0, SEEK_END);
-		size_t filesize = ftell(pStream);
+		size_t filesize = (size_t)ftell(pStream);
 		rewind(pStream);
 
 		fread(m_pIPL + 0x001fcf00, 1, filesize, pStream);
@@ -81,7 +81,7 @@ CEXIIPL::CEXIIPL() :
 	if (pStream != NULL)
 	{
 		fseek(pStream, 0, SEEK_END);
-		size_t filesize = ftell(pStream);
+		size_t filesize = (size_t)ftell(pStream);
 		rewind(pStream);
 
 		fread(m_pIPL + 0x001aff00, 1, filesize, pStream);
