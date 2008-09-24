@@ -127,20 +127,36 @@ void Video_SendFifoData(u8* _uData)
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 {
     SCPFifoStruct &_fifo = *video_initialize.pCPFifo;
+#if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
+	HANDLE hEventOnIdle= OpenEventA(EVENT_ALL_ACCESS,FALSE,(LPCSTR)"EventOnIdle");
+	if (hEventOnIdle==NULL) PanicAlert("Fifo_EnterLoop() -> EventOnIdle NULL");
+#endif
 
     // TODO(ector): Don't peek so often!
     while (video_initialize.pPeekMessages())
     {
+#if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
+	if (MsgWaitForMultipleObjects(1, &hEventOnIdle, FALSE, 1L, QS_ALLEVENTS) == WAIT_ABANDONED)
+		break;
+#endif
         if (_fifo.CPReadWriteDistance < 1) //fifo.CPLoWatermark)
+#if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
+            continue;
+#else
             Common::SleepCurrentThread(1);
+#endif
         //etc...
 
         // check if we are able to run this buffer
         if ((_fifo.bFF_GPReadEnable) && !(_fifo.bFF_BPEnable && _fifo.bFF_Breakpoint))
         {
-            int count = 200;
+#if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
+            while(_fifo.CPReadWriteDistance > 0)
+#else
+           int count = 200;
             while(_fifo.CPReadWriteDistance > 0 && count)
-            {
+#endif
+			{
                 // check if we are on a breakpoint
                 if (_fifo.bFF_BPEnable)
                 {
@@ -169,10 +185,15 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
                     _fifo.CPReadPointer = _fifo.CPBase;				
                     //LOG(COMMANDPROCESSOR, "BUFFER LOOP");
                 }
+#ifndef THREAD_VIDEO_WAKEUP_ONIDLE
                 count--;
+#endif
             }
         }
 
     }
+#if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
+	CloseHandle(hEventOnIdle);
+#endif
 }
 

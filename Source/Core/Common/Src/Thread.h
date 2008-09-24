@@ -32,6 +32,14 @@
 
 #include "Common.h"
 
+
+// for testing purpose  
+//#define THREAD_VIDEO_WAKEUP_ONIDLE
+
+#if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
+extern HANDLE g_hEventOnIdle;
+#endif
+
 namespace Common
 {
 class CriticalSection

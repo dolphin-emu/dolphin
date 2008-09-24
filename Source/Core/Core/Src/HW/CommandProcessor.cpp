@@ -459,9 +459,10 @@ void CatchUpGPU()
 void UpdateFifoRegister()
 {
 	// update the distance
-#ifdef _WIN32
-	if (Core::g_CoreStartupParameter.bUseDualCore) EnterCriticalSection(&fifo.sync);
-#endif
+//#ifdef _WIN32
+// not needed since we are already in the critical section in DC mode -> see write16(...) (unique reference)
+//	if (Core::g_CoreStartupParameter.bUseDualCore) EnterCriticalSection(&fifo.sync);
+//#endif
 	int wp = fifo.CPWritePointer;
 	int rp = fifo.CPReadPointer;
 	if (wp >= rp)
@@ -469,9 +470,10 @@ void UpdateFifoRegister()
 	else
 		fifo.CPReadWriteDistance = (wp - fifo.CPBase) + 
 								   (fifo.CPEnd - rp);
-#ifdef _WIN32
-	if (Core::g_CoreStartupParameter.bUseDualCore) LeaveCriticalSection(&fifo.sync);
-#endif
+//#ifdef _WIN32
+// not needed since we are already in the critical section in DC mode (see write16)
+//	if (Core::g_CoreStartupParameter.bUseDualCore) LeaveCriticalSection(&fifo.sync);
+//#endif
 	if (!Core::g_CoreStartupParameter.bUseDualCore) CatchUpGPU();
 }
 

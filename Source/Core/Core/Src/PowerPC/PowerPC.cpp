@@ -33,6 +33,8 @@
 
 #include "../Host.h"
 
+#include "thread.h" // for g_hEventOnIdle
+
 namespace PowerPC
 {
 	// STATE_TO_SAVE
@@ -293,6 +295,10 @@ namespace PowerPC
 	//DualCore OnIdle
 	void OnIdleDC(void)
 	{
+#if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
+		if (g_hEventOnIdle==NULL) PanicAlert("Idle() -> EventOnIdle NULL");
+		if (! SetEvent(g_hEventOnIdle) ) { PanicAlert("Idle() -> SetEvent EventOnIdle failed");}
+#endif
 		CoreTiming::Idle();
 	}
 }

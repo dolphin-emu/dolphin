@@ -28,6 +28,10 @@
 
 #include "Thread.h"
 
+#if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
+HANDLE g_hEventOnIdle=NULL;
+#endif
+
 namespace Common
 {
 #ifdef _WIN32
