@@ -221,6 +221,8 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	// TODO: add error checking and animate icons
 	memoryCard[card] = new GCMemcard(fileName);
 
+	memoryCard[0]->Save(); // save the changes we made in TestChecksums
+
 	m_MemcardList[card]->Hide();
 	m_MemcardList[card]->ClearAll();
 	m_MemcardList[card]->InsertColumn(COLUMN_BANNER, _T("Banner"));
