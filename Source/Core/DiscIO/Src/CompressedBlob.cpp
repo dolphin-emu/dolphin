@@ -26,6 +26,7 @@
 
 #include "Common.h"
 #include "CompressedBlob.h"
+#include "FileUtil.h"
 #include "Hash.h"
 
 #ifdef _WIN32
@@ -34,11 +35,6 @@
 // TODO: Include generic zlib.h
 #include "../../../../Externals/zlib/zlib.h"
 #endif
-
-#ifdef _WIN32
-#define fseek _fseeki64
-#endif
-
 
 namespace DiscIO
 {
@@ -163,6 +159,11 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 						int block_size, CompressCB callback, void* arg)
 {
+	if (File::GetSize(infile) > 2000000000ULL) {
+		PanicAlert("Sorry - compressing Wii games not yet supported.");
+		return false;
+	}
+
 	if (IsCompressedBlob(infile))
 	{
 		PanicAlert("%s is already compressed! Cannot compress it further.", infile);

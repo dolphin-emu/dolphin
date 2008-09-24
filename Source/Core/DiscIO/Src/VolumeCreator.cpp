@@ -79,7 +79,7 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename)
 	{
 	    case DISC_TYPE_WII:
 	    case DISC_TYPE_GC:
-		    return(new CVolumeGC(pReader));
+		    return new CVolumeGC(pReader);
 
 	    case DISC_TYPE_WII_CONTAINER:
 	    {
@@ -106,7 +106,7 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename)
 
 IVolume* CreateVolumeFromDirectory(const std::string& _rDirectory, bool _bIsWii)
 {
-	if(CVolumeDirectory::IsValidDirectory(_rDirectory))
+	if (CVolumeDirectory::IsValidDirectory(_rDirectory))
 		return new CVolumeDirectory(_rDirectory, _bIsWii);
 	
 	return NULL;

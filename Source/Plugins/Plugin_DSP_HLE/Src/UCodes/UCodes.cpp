@@ -32,20 +32,20 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	switch (_CRC)
 	{
 	    case UCODE_ROM:
-		    return(new CUCode_Rom(_rMailHandler));
+		    return new CUCode_Rom(_rMailHandler);
 
 	    case UCODE_INIT_AUDIO_SYSTEM:
-		    return(new CUCode_InitAudioSystem(_rMailHandler));
+		    return new CUCode_InitAudioSystem(_rMailHandler);
 
 	    case 0x65d6cc6f: // CARD
-		    return(new CUCode_CARD(_rMailHandler));
+		    return new CUCode_CARD(_rMailHandler);
 
 	    case 0x088e38a5: // IPL - JAP
 	    case 0xd73338cf: // IPL
 	    case 0x42f64ac4: // Luigi       (after fix)
 	    case 0x4be6a5cb: // AC, Pikmin  (after fix)
 		    DebugLog("JAC ucode chosen");
-		    return(new CUCode_Jac(_rMailHandler));
+		    return new CUCode_Jac(_rMailHandler);
 
 	    case 0x3ad3b7ac: // Naruto3
 	    case 0x3daf59b9: // Alien Hominid
@@ -57,31 +57,31 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 		    // Zelda:OOT, Tony hawk, viewtiful joe
 	    case 0xe2136399: // billy hatcher, dragonballz, mario party 5, TMNT, ava1080
 		    DebugLog("AX ucode chosen, yay!");
-		    return(new CUCode_AX(_rMailHandler));
+		    return new CUCode_AX(_rMailHandler);
 
 	    case 0x6CA33A6D: // DK Jungle Beat
 	    case 0x86840740: // zelda
 	    case 0x56d36052: // mario
 	    case 0x2fcdf1ec: // mariokart, zelda 4 swords
 		    DebugLog("Zelda ucode chosen");
-		    return(new CUCode_Zelda(_rMailHandler));
+		    return new CUCode_Zelda(_rMailHandler);
 
 		    // WII CRCs
 	    case 0x6c3f6f94: // zelda - PAL
 	    case 0xd643001f: // mario galaxy - PAL
 		    DebugLog("Zelda Wii ucode chosen");
-		    return(new CUCode_Zelda(_rMailHandler));
+		    return new CUCode_Zelda(_rMailHandler);
 
 	    case 0x347112ba: // raving rabbits
 		    DebugLog("Wii - AX chosen");
-		    return(new CUCode_AX(_rMailHandler, true));
+		    return new CUCode_AX(_rMailHandler, true);
 
 	    default:
 		    PanicAlert("Unknown ucode (CRC = %08x) - forcing AX", _CRC);
-		    return(new CUCode_AX(_rMailHandler));
+		    return new CUCode_AX(_rMailHandler);
 	}
 
-	return(NULL);
+	return NULL;
 }
 
 

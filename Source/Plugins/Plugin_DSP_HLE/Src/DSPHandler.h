@@ -32,11 +32,11 @@ public:
 	IUCode* GetUCode();
 	void SetUCode(u32 _crc);
 
-	CMailHandler& AccessMailHandler() {return(m_MailHandler);}
+	CMailHandler& AccessMailHandler() { return m_MailHandler; }
 
 	static CDSPHandler& GetInstance()
 	{
-		return(*m_pInstance);
+		return *m_pInstance;
 	}
 
 	static void Destroy()
@@ -48,11 +48,9 @@ public:
 	static CDSPHandler& CreateInstance()
 	{
 		if (!m_pInstance)
-		{
 			m_pInstance = new CDSPHandler();
-		}
 
-		return(*m_pInstance);
+		return *m_pInstance;
 	}
 
 private:

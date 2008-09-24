@@ -110,6 +110,8 @@ void CLogWindow::OnClear(wxCommandEvent& event)
 
 void CLogWindow::OnEnableAll(wxCommandEvent& event)
 {
+	if (!LogManager::m_Log[0])
+		return;
 	static bool enable = true;
 	IniFile ini;
 	ini.Load("Dolphin.ini");

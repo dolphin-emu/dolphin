@@ -26,63 +26,63 @@
 
 class CGameListCtrl : public wxListCtrl
 {
-	public:
+public:
 
-		CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style);
-		~CGameListCtrl();
+	CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style);
+	~CGameListCtrl();
 
-		void Update();
-		void BrowseForDirectory();
-		const GameListItem *GetSelectedISO() const;
-		const GameListItem *GetISO(int index) const;
+	void Update();
+	void BrowseForDirectory();
+	const GameListItem *GetSelectedISO() const;
+	const GameListItem *GetISO(int index) const;
 
-		enum
-		{
-			COLUMN_BANNER = 0,
-			COLUMN_TITLE,
-			COLUMN_COMPANY,
-			COLUMN_NOTES,
-			COLUMN_COUNTRY,
-			COLUMN_SIZE,
-			COLUMN_EMULATION_STATE,
-			NUMBER_OF_COLUMN
-		};
+	enum
+	{
+		COLUMN_BANNER = 0,
+		COLUMN_TITLE,
+		COLUMN_COMPANY,
+		COLUMN_NOTES,
+		COLUMN_COUNTRY,
+		COLUMN_SIZE,
+		COLUMN_EMULATION_STATE,
+		NUMBER_OF_COLUMN
+	};
 
-	private:
+private:
 
-		std::vector<int> m_FlagImageIndex;
-		std::vector<GameListItem> m_ISOFiles;
+	std::vector<int> m_FlagImageIndex;
+	std::vector<GameListItem> m_ISOFiles;
 
-		int last_column;
-		int last_sort;
+	int last_column;
+	int last_sort;
 
-		void InitBitmaps();
-		void InsertItemInReportView(long _Index);
-		void SetBackgroundColor();
-		void ScanForISOs();
+	void InitBitmaps();
+	void InsertItemInReportView(long _Index);
+	void SetBackgroundColor();
+	void ScanForISOs();
 
-		DECLARE_EVENT_TABLE()
+	DECLARE_EVENT_TABLE()
 
-		// events
-		void OnRightClick(wxMouseEvent& event);
-		void OnColumnClick(wxListEvent& event);
-		void OnColBeginDrag(wxListEvent& event);
-		void OnColEndDrag(wxListEvent& event);
-		void OnSelected(wxListEvent& event);
-		void OnActivated(wxListEvent& event);
-		void OnSize(wxSizeEvent& event);
-		void OnEditPatchFile(wxCommandEvent& event);
-		void OnOpenContainingFolder(wxCommandEvent& event);
-		void OnSetDefaultGCM(wxCommandEvent& event);
-		void OnDeleteGCM(wxCommandEvent& event);
-		void OnCompressGCM(wxCommandEvent& event);
-		void OnFilesystemViewer(wxCommandEvent& event);
+	// events
+	void OnRightClick(wxMouseEvent& event);
+	void OnColumnClick(wxListEvent& event);
+	void OnColBeginDrag(wxListEvent& event);
+	void OnColEndDrag(wxListEvent& event);
+	void OnSelected(wxListEvent& event);
+	void OnActivated(wxListEvent& event);
+	void OnSize(wxSizeEvent& event);
+	void OnEditPatchFile(wxCommandEvent& event);
+	void OnOpenContainingFolder(wxCommandEvent& event);
+	void OnSetDefaultGCM(wxCommandEvent& event);
+	void OnDeleteGCM(wxCommandEvent& event);
+	void OnCompressGCM(wxCommandEvent& event);
+	void OnFilesystemViewer(wxCommandEvent& event);
 
-		virtual bool MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem);
+	virtual bool MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem);
 
-		void AutomaticColumnWidth();
+	void AutomaticColumnWidth();
 
-		static void CompressCB(const char* text, float percent, void* arg);
+	static void CompressCB(const char* text, float percent, void* arg);
 };
 
 

@@ -303,8 +303,8 @@ void SendReportCoreAccelIr12() {
 
 	RECT screenRect;
 	POINT point;
-	_dbg_assert_(WIIMOTE, GetClipCursor(&screenRect));
-	_dbg_assert_(WIIMOTE, GetCursorPos(&point));
+	GetClipCursor(&screenRect);
+	GetCursorPos(&point);
 	y0 = y1 = (point.y * (screenRect.bottom - screenRect.top)) / (BOTTOM - TOP);
 	int x = (point.x * (screenRect.right - screenRect.left)) / (RIGHT - LEFT);
 	x0 = x - SENSOR_BAR_RADIUS;

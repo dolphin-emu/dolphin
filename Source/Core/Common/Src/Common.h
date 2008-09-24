@@ -49,6 +49,11 @@
 #endif
 
 #ifdef _WIN32
+#ifdef _WIN32
+#define fseek _fseeki64
+#define ftell _ftelli64
+#endif
+
 #define POSIX 0
 #define NOMINMAX
 

@@ -24,6 +24,7 @@
 #define UCODE_INIT_AUDIO_SYSTEM     0x0000001
 
 class CMailHandler;
+
 class IUCode
 {
 public:

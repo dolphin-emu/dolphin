@@ -45,21 +45,21 @@ private:
 
 	u8 Read8()
 	{
-		return(m_Buffer[m_readOffset++]);
+		return m_Buffer[m_readOffset++];
 	}
 
 	u16 Read16()
 	{
 		u16 res = *(u16*)&m_Buffer[m_readOffset];
 		m_readOffset += 2;
-		return(res);
+		return res;
 	}
 
 	u32 Read32()
 	{
 		u32 res = *(u32*)&m_Buffer[m_readOffset];
 		m_readOffset += 4;
-		return(res);
+		return res;
 	}
 public:
 

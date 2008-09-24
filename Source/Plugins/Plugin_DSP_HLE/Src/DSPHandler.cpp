@@ -42,9 +42,7 @@ CDSPHandler::~CDSPHandler()
 void CDSPHandler::Update()
 {
 	if (m_pUCode != NULL)
-	{
 		m_pUCode->Update();
-	}
 }
 
 unsigned short CDSPHandler::WriteControlRegister(unsigned short _Value)
@@ -64,32 +62,29 @@ unsigned short CDSPHandler::WriteControlRegister(unsigned short _Value)
 	}
 
 	m_DSPControl.Hex = Temp.Hex;
-
-	return(m_DSPControl.Hex);
+	return m_DSPControl.Hex;
 }
 
 unsigned short CDSPHandler::ReadControlRegister()
 {
-	return(m_DSPControl.Hex);
+	return m_DSPControl.Hex;
 }
 
 void CDSPHandler::SendMailToDSP(u32 _uMail)
 {
 	if (m_pUCode != NULL)
-	{
 		m_pUCode->HandleMail(_uMail);
-	}
 }
 
 IUCode* CDSPHandler::GetUCode()
 {
-	return(m_pUCode);
+	return m_pUCode;
 }
 
 void CDSPHandler::SetUCode(u32 _crc)
 {
 	delete m_pUCode;
-
+	m_pUCode = NULL;
 	m_MailHandler.Clear();
 	m_pUCode = UCodeFactory(_crc, m_MailHandler);
 }

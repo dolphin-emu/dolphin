@@ -7,10 +7,9 @@
 //
 // Copyright (C) Microsoft Corporation. All Rights Reserved.
 //-----------------------------------------------------------------------------
-#define STRICT
-#define DIRECTINPUT_VERSION 0x0800
-
 #include "stdafx.h"
+
+#define DIRECTINPUT_VERSION 0x0800
 
 #include <basetsd.h>
 #include <tchar.h>
@@ -20,9 +19,6 @@
 #include <d3d9types.h>  // included to get the D3DCOLOR_RGBA macro.
 #include "MultiDI.h"
 #include <assert.h>
-
-
-
 
 //-----------------------------------------------------------------------------
 // Name: CMultiplayerInputDeviceManager

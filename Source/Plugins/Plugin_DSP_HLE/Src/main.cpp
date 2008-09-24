@@ -132,6 +132,12 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 	CDSPHandler::CreateInstance();
 
 #ifdef _WIN32
+#ifdef _DEBUG
+	int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+	tmpflag |= _CRTDBG_DELAY_FREE_MEM_DF;
+	_CrtSetDbgFlag(tmpflag);
+#endif
+
 	DSound::DSound_StartSound((HWND)g_dspInitialize.hWnd, 48000, Mixer);
 #else
 	AOSound::AOSound_StartSound(48000, Mixer);
@@ -157,11 +163,11 @@ unsigned short DSP_ReadMailboxHigh(bool _CPUMailbox)
 {
 	if (_CPUMailbox)
 	{
-		return((g_dspState.CPUMailbox >> 16) & 0xFFFF);
+		return (g_dspState.CPUMailbox >> 16) & 0xFFFF;
 	}
 	else
 	{
-		return(CDSPHandler::GetInstance().AccessMailHandler().ReadDSPMailboxHigh());
+		return CDSPHandler::GetInstance().AccessMailHandler().ReadDSPMailboxHigh();
 	}
 }
 
@@ -169,11 +175,11 @@ unsigned short DSP_ReadMailboxLow(bool _CPUMailbox)
 {
 	if (_CPUMailbox)
 	{
-		return(g_dspState.CPUMailbox & 0xFFFF);
+		return g_dspState.CPUMailbox & 0xFFFF;
 	}
 	else
 	{
-		return(CDSPHandler::GetInstance().AccessMailHandler().ReadDSPMailboxLow());
+		return CDSPHandler::GetInstance().AccessMailHandler().ReadDSPMailboxLow();
 	}
 }
 
@@ -249,5 +255,4 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 	if ((counter & 255) == 0)
 		DSound::DSound_UpdateSound();
 #endif
-
 }

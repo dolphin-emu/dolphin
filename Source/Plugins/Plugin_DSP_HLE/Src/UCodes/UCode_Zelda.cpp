@@ -29,10 +29,13 @@ CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler)
 	: IUCode(_rMailHandler)
 	, m_numSteps(0)
 	, m_bListInProgress(false)
+	, m_step(0)
+	, m_readOffset(0)
 {
 	DebugLog("UCode_Zelda - add boot mails for handshake");
 	m_rMailHandler.PushMail(DSP_INIT);
 	m_rMailHandler.PushMail(0x80000000); // handshake
+	memset(m_Buffer, 0, sizeof(m_Buffer));
 }
 
 
@@ -46,9 +49,7 @@ void CUCode_Zelda::Update()
 {
 	// check if we have to sent something
 	if (!m_rMailHandler.IsEmpty())
-	{
 		g_dspInitialize.pGenerateDSPInterrupt();
-	}
 }
 
 
@@ -62,6 +63,8 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 	}
 	else
 	{
+		if (m_step < 0 || m_step >= sizeof(m_Buffer)/4)
+			PanicAlert("m_step out of range");
 		((u32*)m_Buffer)[m_step] = _uMail;
 		m_step++;
 

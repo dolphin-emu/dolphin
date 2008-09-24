@@ -18,7 +18,8 @@
 #include <vector>
 #include <string>
 #ifdef WIN32
-	#include "svnrev.h"
+#include <crtdbg.h>
+#include "svnrev.h"
 #endif
 #include "CPUDetect.h"
 #include "Globals.h"
@@ -69,6 +70,13 @@ LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
 bool DolphinApp::OnInit()
 {
 	DetectCPU();
+
+#ifdef _DEBUG
+	int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+	tmpflag |= _CRTDBG_DELAY_FREE_MEM_DF;
+	_CrtSetDbgFlag(tmpflag);
+#endif
+
 #ifndef _WIN32
 //	RegisterPanicAlertHandler(&wxPanicAlert);
 #endif

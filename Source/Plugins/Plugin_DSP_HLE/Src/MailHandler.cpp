@@ -18,7 +18,9 @@
 #include "MailHandler.h"
 
 CMailHandler::CMailHandler()
-{}
+{
+
+}
 
 CMailHandler::~CMailHandler()
 {
@@ -38,13 +40,11 @@ u16 CMailHandler::ReadDSPMailboxHigh()
 	if (!m_Mails.empty())
 	{
 		u16 result = (m_Mails.front() >> 16) & 0xFFFF;
-
 		Update();
-
-		return(result);
+		return result;
 	}
 
-	return(0x00);
+	return 0x00;
 }
 
 u16 CMailHandler::ReadDSPMailboxLow()
@@ -60,20 +60,18 @@ u16 CMailHandler::ReadDSPMailboxLow()
 		return(result);
 	}
 
-	return(0x00);
+	return 0x00;
 }
 
 void CMailHandler::Clear()
 {
 	while (!m_Mails.empty())
-	{
 		m_Mails.pop();
-	}
 }
 
 bool CMailHandler::IsEmpty()
 {
-	return(m_Mails.empty());
+	return m_Mails.empty();
 }
 
 void CMailHandler::Halt(bool _Halt)

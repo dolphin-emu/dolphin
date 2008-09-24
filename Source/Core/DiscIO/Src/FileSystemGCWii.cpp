@@ -137,6 +137,7 @@ size_t CFileSystemGCWii::GetFileList(std::vector<const SFileInfo *> &_rFilenames
 	if (_rFilenames.size())
 		PanicAlert("GetFileList : input list has contents?");
 	_rFilenames.clear();
+	_rFilenames.reserve(m_FileInfoVector.size());
 	for (size_t i = 0; i < m_FileInfoVector.size(); i++)
 		_rFilenames.push_back(&m_FileInfoVector[i]);
 	return m_FileInfoVector.size();
@@ -182,9 +183,11 @@ bool CFileSystemGCWii::InitFileSystem()
 
 	if (Root.IsDirectory())
 	{
-		m_FileInfoVector.clear();
+		if (m_FileInfoVector.size())
+			PanicAlert("Wtf?");
 		u64 NameTableOffset = FSTOffset;
 
+		m_FileInfoVector.reserve(Root.m_FileSize);
 		for (u32 i = 0; i < Root.m_FileSize; i++)
 		{
 			SFileInfo sfi;
@@ -194,7 +197,6 @@ bool CFileSystemGCWii::InitFileSystem()
 			sfi.m_FileSize   = Read32(Offset + 0x8);
 
 			m_FileInfoVector.push_back(sfi);
-			
 			NameTableOffset += 0xC;
 		}
 
