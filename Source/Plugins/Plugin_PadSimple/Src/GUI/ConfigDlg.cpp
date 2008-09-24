@@ -18,7 +18,12 @@
 
 #include "ConfigDlg.h"
 #include "../PadSimple.h"
-//#include "../DirectInputBase.h"
+
+#ifdef _WIN32
+#include "../DirectInputBase.h"
+
+DInput m_dinput;
+#endif
 
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
@@ -55,6 +60,9 @@ END_EVENT_TABLE()
 ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
+#ifdef _WIN32
+	m_dinput.Init((HWND)parent);
+#endif
 	clickedButton = NULL;
 	CreateGUIControls();
 }
@@ -70,7 +78,7 @@ inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
 	hButton->Add(new wxStaticText(pan, 0, wxString::FromAscii(name), wxDefaultPosition, wxDefaultSize), 0,
 				 wxALIGN_CENTER_VERTICAL|wxALL);
 	
-	*button = new wxButton(pan, ctl, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+	*button = new wxButton(pan, ctl, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
 
 	hButton->Add(*button, 0, wxEXPAND|wxALL);
 	
@@ -193,6 +201,9 @@ void ConfigDialog::CreateGUIControls()
 
 void ConfigDialog::OnClose(wxCloseEvent& event)
 {
+#ifdef _WIN32
+	m_dinput.Free();
+#endif
 	EndModal(0);
 }
 void ConfigDialog::OnKeyDown(wxKeyEvent& event)
@@ -200,7 +211,19 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 	if(clickedButton != NULL)
 	{
 		int page = m_Notebook->GetSelection();
+
+#ifdef _WIN32
+		m_dinput.Read();
+		for(int i = 0; i < 255; i++)
+		{
+			if(m_dinput.diks[i])
+			{
+				pad[page].keyForControl[clickedButton->GetId()] = i;
+			}
+		}
+#else
 		pad[page].keyForControl[clickedButton->GetId()] = event.GetKeyCode();
+#endif
 		clickedButton->SetLabel(wxString::Format(_T("%c"), event.GetKeyCode()));
                 clickedButton->Disconnect();
 	}
@@ -233,20 +256,18 @@ void ConfigDialog::RumbleCheck(wxCommandEvent& event)
 
 void ConfigDialog::OnButtonClick(wxCommandEvent& event)
 {
-        if(clickedButton) {
-            clickedButton->SetLabel(oldLabel);
-        }
+	if(clickedButton)
+	{
+		clickedButton->SetLabel(oldLabel);
+	}
 	clickedButton = (wxButton *)event.GetEventObject();
 	oldLabel = clickedButton->GetLabel();
 	clickedButton->SetLabel(wxString::FromAscii("Press Key"));
-
         
-        clickedButton->Connect(wxID_ANY, wxEVT_KEY_DOWN,
-                               wxKeyEventHandler(ConfigDialog::OnKeyDown),
-                               (wxObject*)NULL, this);
+    clickedButton->Connect(wxID_ANY, wxEVT_KEY_DOWN,
+                           wxKeyEventHandler(ConfigDialog::OnKeyDown),
+                           (wxObject*)NULL, this);
         
 	//clickedButton->SetLabel(wxString::Format(wxT("%i"), keyPress));
-
 	//clickedButton->SetLabel(wxString::Format(wxT("%s  %i"), oldLabel, keyPress));
-
 }
