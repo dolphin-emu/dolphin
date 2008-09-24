@@ -111,7 +111,24 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 
 	Memory::Clear();
 
-	//TODO: Game iso info to 0x80000000 according to yagcd - or does apploader do this?
+	// =======================================================================================
+	// Write necessary values
+	// ---------------------------------------------------------------------------------------
+	/*
+	"TODO: Game iso info to 0x80000000 according to yagcd - or does apploader do this?" - Answer, no 
+	apparently it doesn't, at least not in some games (by Namco). In these cases we need to set these
+	manually. But I guess there's no reason that the Apploader couldn't do this by itself. So I guess we
+	could do this for only these Namco games that need this by detecting GetUniqueID, but that wouldn't
+	look pretty, and I think it's likely that this is actually how the GameCube works, it reads these values
+	by itself. So this is very unlikely to break anything. However, if somebody find a game that has an
+	apploader that automatically copies the first bytes of the disc to memory that could indicate that 
+	the apploader procedure to load the first bytes fails for some reason in some games... I hope I'm not
+	being long-winded here :). The yagcd page for this is http://hitmen.c02.at/files/yagcd/yagcd/chap4.ht
+	ml#sec4.2 by the way. I'm not sure what the bytes 8-10 does (version and streaming), but I include
+	those to.
+	*/
+	// ---------------------------------------------------------------------------------------
+	DVDInterface::DVDRead(0x00000000, 0x80000000, 10); // write boot info needed for multidisc games
 
 	Memory::Write_U32(0x4c000064,	0x80000300);	// write default DFI Handler:		rfi
 	Memory::Write_U32(0x4c000064,	0x80000800);	// write default FPU Handler:	rfi	
@@ -124,20 +141,25 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 //	Memory::Write_U32(0x00000003,	0x8000002C);	// Console type - retail
 	Memory::Write_U32(0x10000006,	0x8000002C);	// DevKit
 
-
 	Memory::Write_U32(((1 & 0x3f) << 26) | 2, 0x81300000);		// HLE OSReport for Apploader
+	// =======================================================================================
 
+
+	// =======================================================================================
+	// Load Apploader to Memory - The apploader is hardcoded to begin at 9 280 on the disc, but
+	// it seems like the size can be variable.
+	// ---------------------------------------------------------------------------------------
 	PowerPC::ppcState.gpr[1] = 0x816ffff0;			// StackPointer
-
-	u32 iAppLoaderOffset = 0x2440; // 0x1c40;
-
-	// Load Apploader to Memory
+	u32 iAppLoaderOffset = 0x2440; // 0x1c40 (old value perhaps?, I don't know why it's here)
+	// ---------------------------------------------------------------------------------------
 	u32 iAppLoaderEntry = VolumeHandler::Read32(iAppLoaderOffset + 0x10);
 	u32 iAppLoaderSize  = VolumeHandler::Read32(iAppLoaderOffset + 0x14);
 	if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1))
 		return;
 	VolumeHandler::ReadToPtr(Memory::GetPointer(0x81200000), iAppLoaderOffset + 0x20, iAppLoaderSize);
-	
+	// =======================================================================================
+
+
 	//call iAppLoaderEntry
 	LOG(MASTER_LOG, "Call iAppLoaderEntry");
 
@@ -154,8 +176,24 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	LOG(MASTER_LOG, "Call iAppLoaderInit");
 	PowerPC::ppcState.gpr[3] = 0x81300000; 
 	RunFunction(iAppLoaderInit, _bDebug);
+
 	
-	// iAppLoaderMain
+	// =======================================================================================
+	// iAppLoaderMain - This let's the apploader load the DOL (the exe) and the TOC (filesystem)
+	// and I guess anything else it wishes. To give you an idea about where the stuff is on the disc
+	// here's an example of the disc structure of these things from Baten Kaitos - Wings. The values
+	// are given as non hexadecimal (ie normal numbers with base 10 instead of base 16) and they
+	// are only approximately right. I don't know what's in the gaps or why there are gaps between
+	// the different things.
+	// Data			From		To			Size
+	// Header		0			1 072		1 072
+	// AppLoader	9 280		121 408		112 128
+	// DOL (exe)	128 768		2 204 416	2 075 648
+	// TOC			2 204 160	2 309 120	104 960
+	// For some reason this game loaded these things in 16 rounds in the loop below. The third and
+	// last of these were double reads of things it had already copied to memory. But hey, we're
+	// all human :)
+	// ---------------------------------------------------------------------------------------	
 	LOG(MASTER_LOG, "Call iAppLoaderMain");
 	do
 	{
@@ -173,6 +211,8 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 		DVDInterface::DVDRead(iDVDOffset, iRamAddress, iLength);
 
 	} while(PowerPC::ppcState.gpr[3] != 0x00);
+	// =======================================================================================
+
 
 	// iAppLoaderClose
 	LOG(MASTER_LOG, "call iAppLoaderClose");
