@@ -66,6 +66,7 @@ dirs = [
 	'Source/Plugins/Plugin_VideoOGL/Src',
 	'Source/Plugins/Plugin_DSP_HLE/Src',
 	'Source/Plugins/Plugin_DSP_LLE/Src',
+	'Source/Plugins/Plugin_DSP_NULL/Src',
 	'Source/Plugins/Plugin_PadSimple/Src',
 	'Source/Plugins/Plugin_nJoy_SDL/Src',
 	'Source/Plugins/Plugin_Wiimote_Test/Src',

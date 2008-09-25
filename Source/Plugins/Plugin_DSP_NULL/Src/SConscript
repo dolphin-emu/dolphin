@@ -1,0 +1,30 @@
+# -*- python -*- 
+
+Import('env')
+import sys
+
+if sys.platform == 'darwin':
+	output = "../../../../Binary/mac/Plugins/dspnull.so"
+else:
+	output = "../../../../Binary/linux/Plugins/dspnull.so"
+
+files = [
+        "DSPHandler.cpp",
+        "MailHandler.cpp",
+	"main.cpp",
+	"Globals.cpp",
+        "UCodes/UCode_AX.cpp",
+	"UCodes/UCode_CARD.cpp",
+	"UCodes/UCode_InitAudioSystem.cpp",
+	"UCodes/UCode_Jac.cpp",
+	"UCodes/UCode_ROM.cpp",
+	"UCodes/UCodes.cpp",
+	"UCodes/UCode_Zelda.cpp",
+	]
+
+dspenv = env.Clone()
+dspenv.Append(
+	CXXFLAGS = [ '-fPIC' ],
+        LIBS = [ 'common' ],
+	)
+dspenv.SharedLibrary(output, files)
