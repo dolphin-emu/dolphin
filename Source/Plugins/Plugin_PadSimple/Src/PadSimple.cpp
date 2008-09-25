@@ -681,7 +681,8 @@ void LoadConfig()
 			
 			for (int x = 0; x < NUMCONTROLS; x++) 
 			{
-				file.Get(SectionName, controlNames[x], &pad[i].keyForControl[x], defaultKeyForControl[x]);
+				file.Get(SectionName, controlNames[x], &pad[i].keyForControl[x], 
+                                         (i==0)?defaultKeyForControl[x]:0);
 #ifndef _WIN32
 				// In linux we have a problem assigning the upper case of the 
 				// keys because they're not being recognized
