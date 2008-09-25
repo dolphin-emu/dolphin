@@ -308,11 +308,11 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		if(!memoryCard[card]->GetComment1(i,title)) title[0]=0;
 		if(!memoryCard[card]->GetComment2(i,comment)) comment[0]=0;
 
-		int index = m_MemcardList[card]->InsertItem(i, wxString::FromAscii("row"));
-		m_MemcardList[card]->SetItem(index, COLUMN_BANNER, wxString::FromAscii(""));
+		int index = m_MemcardList[card]->InsertItem(i, wxT("row"));
+		m_MemcardList[card]->SetItem(index, COLUMN_BANNER, wxEmptyString);
 		m_MemcardList[card]->SetItem(index, COLUMN_TITLE, wxString::FromAscii(title));
 		m_MemcardList[card]->SetItem(index, COLUMN_COMMENT, wxString::FromAscii(comment));
-		m_MemcardList[card]->SetItem(index, COLUMN_ICON, wxString::FromAscii(""));
+		m_MemcardList[card]->SetItem(index, COLUMN_ICON, wxEmptyString);
 
 		if(images[i]>=0)
 		{
