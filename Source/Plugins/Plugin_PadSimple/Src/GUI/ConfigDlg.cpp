@@ -89,9 +89,9 @@ inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
 	*button = new wxButton(pan, ctl, wxString::FromAscii(keyStr), 
 		                   wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
 
-	hButton->Add(*button, 0, wxALL);
+	hButton->Add(*button, 0, wxALIGN_RIGHT|wxALL);
 
-	sizer->Add(hButton);
+	sizer->Add(hButton, 0, wxALIGN_RIGHT|wxALL);
 }
 
 void ConfigDialog::CreateGUIControls()
