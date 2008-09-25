@@ -87,7 +87,7 @@ inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
 #endif
 
 	*button = new wxButton(pan, ctl, wxString::FromAscii(keyStr), 
-		                   wxDefaultPosition, wxDefaultSize, 0);
+		                   wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
 
 	hButton->Add(*button, 0, wxALL);
 
