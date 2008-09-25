@@ -637,29 +637,30 @@ void LoadConfig()
 #else
 	const int defaultKeyForControl[NUMCONTROLS] =
 	{
-		XK_Left, //mainstick
-		XK_Up,
-		XK_Right,
-		XK_Down,
-		XK_j, //substick
-		XK_i,
-		XK_l,
-		XK_k,
-		XK_f, //dpad
-		XK_t,
-		XK_h,
-		XK_g,
-		XK_x, //buttons
-		XK_z,
-		XK_s,
-		XK_c,
-		XK_d,
-		XK_q,
-		XK_w,
-		XK_Return,
-		XK_Shift_L,
-		XK_Shift_L,
-		XK_Control_L
+          XK_x, //A
+          XK_z,
+          XK_s,
+          XK_c,
+          XK_d,
+          XK_Return,
+          XK_q,
+          XK_Control_L,
+          XK_w,
+          XK_Control_L,
+          XK_Up, //mainstick
+          XK_Down,
+          XK_Left, 
+          XK_Right,
+          XK_Shift_L,
+          XK_i, //substick
+          XK_K,
+          XK_j,
+          XK_l,
+          XK_Shift_L,
+          XK_t, //dpad
+          XK_g,
+          XK_f,
+          XK_h
 	};
 #endif
 	IniFile file;

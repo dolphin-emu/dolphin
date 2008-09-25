@@ -82,7 +82,7 @@ inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
 #ifdef _WIN32
 	DInput::DIKToString(pad[controller].keyForControl[ctl], keyStr);	
 #else
-	sprintf(keyStr, "%c", pad[controller].keyForControl[ctl]);
+        XKeyToString(pad[controller].keyForControl[ctl], keyStr);
 #endif
 
 	*button = new wxButton(pan, ctl, wxString::FromAscii(keyStr), 
@@ -230,7 +230,7 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 			}
 		}
 #else
-		pad[page].keyForControl[clickedButton->GetId()] = event.GetKeyCode();
+		pad[page].keyForControl[clickedButton->GetId()] = wxCharCodeWXToX(event.GetKeyCode());
 #endif
 		clickedButton->SetLabel(wxString::Format(_T("%c"), event.GetKeyCode()));
                 clickedButton->Disconnect();
@@ -270,7 +270,7 @@ void ConfigDialog::OnButtonClick(wxCommandEvent& event)
 	}
 	clickedButton = (wxButton *)event.GetEventObject();
 	oldLabel = clickedButton->GetLabel();
-	clickedButton->SetLabel(wxString::FromAscii("Press Key"));
+	clickedButton->SetLabel(_("Press Key"));
         
     clickedButton->Connect(wxID_ANY, wxEVT_KEY_DOWN,
                            wxKeyEventHandler(ConfigDialog::OnKeyDown),

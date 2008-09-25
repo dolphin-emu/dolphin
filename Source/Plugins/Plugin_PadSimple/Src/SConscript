@@ -10,6 +10,7 @@ else:
 
 files = [
 	"PadSimple.cpp",
+        "XInputBase.cpp",
 	"GUI/ConfigDlg.cpp",
 	]
 

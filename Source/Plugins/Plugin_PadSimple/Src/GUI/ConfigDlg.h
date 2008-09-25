@@ -29,7 +29,9 @@
 #include <wx/panel.h>
 #include <wx/gbsizer.h>
 
-
+#ifndef _WIN32
+#include "../XInputBase.h"
+#endif
 #undef CONFIGDIALOG_STYLE
 #define CONFIGDIALOG_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX
 
