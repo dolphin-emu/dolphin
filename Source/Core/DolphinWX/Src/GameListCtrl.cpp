@@ -542,6 +542,7 @@ void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event)) {
 	{
 		File::Delete(iso->GetFileName().c_str());
 	}
+	Update();
 }
 
 void CGameListCtrl::OnFilesystemViewer(wxCommandEvent& WXUNUSED (event)) {
@@ -626,6 +627,8 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event)) {
 		DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(), path.char_str(), &CompressCB, &dialog);	
 	else
 		DiscIO::CompressFileToBlob(iso->GetFileName().c_str(), path.char_str(), 0, 16384, &CompressCB, &dialog);
+
+	Update();
 }
 
 void CGameListCtrl::OnEditPatchFile(wxCommandEvent& WXUNUSED (event))
