@@ -284,7 +284,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib"
+				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib rpcrt4.lib"
 				OutputFile="..\..\..\Binary\Win32/plugins\Plugin_PadSimpleD.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -382,7 +382,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib"
+				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib rpcrt4.lib"
 				OutputFile="..\..\..\Binary\x64\plugins\Plugin_PadSimpleD.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -585,7 +585,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib"
+				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib "
 				OutputFile="..\..\..\Binary\x64\plugins\Plugin_PadSimpleDF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
