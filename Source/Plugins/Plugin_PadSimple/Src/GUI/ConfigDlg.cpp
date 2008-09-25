@@ -71,10 +71,11 @@ ConfigDialog::~ConfigDialog()
 {
 }
 
-inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer, 
-					   const char *name, int ctl, int controller) {
+inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
+					   const char *name, int ctl, int controller)
+{
 	wxBoxSizer *hButton = new wxBoxSizer(wxHORIZONTAL);
-	char keyStr[6] = {0};
+	char keyStr[10] = {0};
 
 	hButton->Add(new wxStaticText(pan, 0, wxString::FromAscii(name), 
 				 wxDefaultPosition, wxDefaultSize), 0,
@@ -82,14 +83,12 @@ inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
 #ifdef _WIN32
 	DInput::DIKToString(pad[controller].keyForControl[ctl], keyStr);	
 #else
-        XKeyToString(pad[controller].keyForControl[ctl], keyStr);
+	XKeyToString(pad[controller].keyForControl[ctl], keyStr);
 #endif
 
 	*button = new wxButton(pan, ctl, wxString::FromAscii(keyStr), 
 		                   wxDefaultPosition, wxDefaultSize, 0);
 
-	hButton->Add(*button, 0, wxEXPAND|wxALL);
-	
 	sizer->Add(hButton);
 }
 
@@ -226,14 +225,17 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 		{
 			if(m_dinput.diks[i])
 			{
+				char keyStr[10] = {0};
 				pad[page].keyForControl[clickedButton->GetId()] = i;
+				DInput::DIKToString(i, keyStr);
+				clickedButton->SetLabel(wxString::FromAscii(keyStr));
 			}
 		}
 #else
 		pad[page].keyForControl[clickedButton->GetId()] = wxCharCodeWXToX(event.GetKeyCode());
-#endif
 		clickedButton->SetLabel(wxString::Format(_T("%c"), event.GetKeyCode()));
-                clickedButton->Disconnect();
+#endif
+		clickedButton->Disconnect();
 	}
 
 	clickedButton = NULL;
@@ -271,11 +273,8 @@ void ConfigDialog::OnButtonClick(wxCommandEvent& event)
 	clickedButton = (wxButton *)event.GetEventObject();
 	oldLabel = clickedButton->GetLabel();
 	clickedButton->SetLabel(_("Press Key"));
-        
+
     clickedButton->Connect(wxID_ANY, wxEVT_KEY_DOWN,
                            wxKeyEventHandler(ConfigDialog::OnKeyDown),
                            (wxObject*)NULL, this);
-        
-	//clickedButton->SetLabel(wxString::Format(wxT("%i"), keyPress));
-	//clickedButton->SetLabel(wxString::Format(wxT("%s  %i"), oldLabel, keyPress));
 }
