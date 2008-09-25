@@ -29,32 +29,45 @@ DInput::~DInput()
 	Free();
 }
 
-void DInput::DIKToString(unsigned int keycode, char *keyStr) {
-	HKL layout = GetKeyboardLayout(0);
-	BYTE kbstate[256];
-
+void DInput::DIKToString(unsigned int keycode, char *keyStr)
+{
 	switch(keycode) {
 		case DIK_RETURN:
-			sprintf(keyStr, "ENTER");
+			sprintf(keyStr, "Enter");
 			break;
 		case DIK_UP:
-			sprintf(keyStr, "UP");
+			sprintf(keyStr, "Up");
 			break;
 		case DIK_DOWN:
-			sprintf(keyStr, "DOWN");
+			sprintf(keyStr, "Down");
 			break;
 		case DIK_LEFT:
-			sprintf(keyStr, "LEFT");
+			sprintf(keyStr, "Left");
 			break;
 		case DIK_RIGHT:
-			sprintf(keyStr, "RIGHT");
+			sprintf(keyStr, "Right");
 			break;
-		default:
-			GetKeyboardState(kbstate);
-			UINT vk = MapVirtualKeyEx(keycode, 1, layout);
-			ToAsciiEx(vk, keycode, kbstate, (LPWORD)keyStr, 0, layout);
-
-			keyStr[0] = toupper(keyStr[0]);
+		case DIK_HOME:		 
+			strcpy(keyStr, "Home");		 
+			break;		 
+		case DIK_END:		 
+			strcpy(keyStr, "End");		 
+			break;		 
+		case DIK_INSERT:		 
+			strcpy(keyStr, "Ins");		 
+			break;		 
+		case DIK_DELETE:		 
+			strcpy(keyStr, "Del");		 
+			break;		 
+		case DIK_PGUP:		 
+			strcpy(keyStr, "PgUp");		 
+			break;		 
+		case DIK_PGDN:		 
+			strcpy(keyStr, "PgDn");		 
+			break;		 
+		default:		 
+			GetKeyNameText(keycode << 16, keyStr, 64);		 
+			break;
 	}
 }
 
@@ -86,7 +99,6 @@ HRESULT DInput::Init(HWND hWnd)
 	return(S_OK);
 }
 
-
 void DInput::Free()
 {
 	if (g_pKeyboard)
@@ -102,7 +114,6 @@ void DInput::Free()
 		g_pDI = 0;
 	}
 }
-
 
 // Desc: Read the input device's state when in immediate mode and display it.
 HRESULT DInput::Read()
@@ -143,5 +154,3 @@ HRESULT DInput::Read()
 
 	return(S_OK);
 }
-
-
