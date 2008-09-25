@@ -55,8 +55,12 @@ void Config::Load()
 	if (iAdapter == -1) 
         iAdapter = 0;
     iniFile.Get("Hardware", "WindowedRes", &temp, 0);
+	if(temp.empty())
+		temp = "640x480";
     strcpy(iWindowedRes, temp.c_str());
     iniFile.Get("Hardware", "FullscreenRes", &temp, 0);
+	if(temp.empty())
+		temp = "640x480";
     strcpy(iFSResolution, temp.c_str());
     iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0);
 	iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, 0);

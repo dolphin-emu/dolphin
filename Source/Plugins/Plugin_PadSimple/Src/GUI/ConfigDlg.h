@@ -41,10 +41,12 @@ class ConfigDialog : public wxDialog
 
 		
 	public:
-		ConfigDialog(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("Pad Configuration"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = CONFIGDIALOG_STYLE);
+		ConfigDialog(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("Pad Configuration"),
+			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = CONFIGDIALOG_STYLE);
+		
 		virtual ~ConfigDialog();
 
-        private:
+	private:
 		DECLARE_EVENT_TABLE();
 		wxNotebook *m_Notebook;
 		wxPanel *m_Controller[4];
@@ -55,8 +57,8 @@ class ConfigDialog : public wxDialog
 		wxBoxSizer *sDeviceBottom[4];
 		wxGridBagSizer* sPage[4];
 		wxStaticBoxSizer *sButtons[4];
-		wxStaticBoxSizer *sTriggerL[4];
-		wxStaticBoxSizer *sTriggerR[4];
+		wxStaticBoxSizer *sTriggers[4];
+		wxStaticBoxSizer *sModifiers[4];
 		wxStaticBoxSizer *sStick[4];
 		wxStaticBoxSizer *sCStick[4];
 		wxStaticBoxSizer *sDPad[4];
@@ -72,10 +74,9 @@ class ConfigDialog : public wxDialog
 		wxButton *m_ButtonY[4];
 		wxButton *m_ButtonZ[4];
 		wxButton *m_ButtonStart[4];
-		wxButton *m_TriggerL[4];
 		wxButton *m_ButtonL[4];
-		wxButton *m_TriggerR[4];
 		wxButton *m_ButtonR[4];
+		wxButton *m_HalfPress[4];
 		wxButton *m_StickUp[4];
 		wxButton *m_StickDown[4];
 		wxButton *m_StickLeft[4];
@@ -111,6 +112,7 @@ class ConfigDialog : public wxDialog
 		void CreateGUIControls();
 		void OnCloseClick(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event);
+		void DeviceChanged(wxCommandEvent& event);
 		void AttachedCheck(wxCommandEvent& event);
 		void DisableCheck(wxCommandEvent& event);
 		void RumbleCheck(wxCommandEvent& event);
@@ -118,8 +120,7 @@ class ConfigDialog : public wxDialog
 		
 		int keyPress;
 		wxButton *clickedButton;
-                wxString oldLabel;
-		/*DInput m_dinput;*/
+		wxString oldLabel;
 };
 
 #endif

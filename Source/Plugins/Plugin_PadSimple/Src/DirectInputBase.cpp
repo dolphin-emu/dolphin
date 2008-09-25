@@ -47,24 +47,24 @@ void DInput::DIKToString(unsigned int keycode, char *keyStr)
 		case DIK_RIGHT:
 			sprintf(keyStr, "Right");
 			break;
-		case DIK_HOME:		 
-			strcpy(keyStr, "Home");		 
-			break;		 
-		case DIK_END:		 
-			strcpy(keyStr, "End");		 
-			break;		 
-		case DIK_INSERT:		 
-			strcpy(keyStr, "Ins");		 
-			break;		 
-		case DIK_DELETE:		 
-			strcpy(keyStr, "Del");		 
-			break;		 
-		case DIK_PGUP:		 
-			strcpy(keyStr, "PgUp");		 
-			break;		 
-		case DIK_PGDN:		 
-			strcpy(keyStr, "PgDn");		 
-			break;		
+		case DIK_HOME:
+			strcpy(keyStr, "Home");
+			break;
+		case DIK_END:
+			strcpy(keyStr, "End");
+			break;
+		case DIK_INSERT:
+			strcpy(keyStr, "Ins");
+			break;
+		case DIK_DELETE:
+			strcpy(keyStr, "Del");
+			break;
+		case DIK_PGUP:
+			strcpy(keyStr, "PgUp");
+			break;
+		case DIK_PGDN:
+			strcpy(keyStr, "PgDn");
+			break;
 		case DIK_NUMPAD0:
 			strcpy(keyStr, "Num 0");
 			break;
@@ -98,8 +98,8 @@ void DInput::DIKToString(unsigned int keycode, char *keyStr)
 		case DIK_NUMPADSLASH:
 			strcpy(keyStr, "Num /");
 			break;
-		default:		 
-			GetKeyNameText(keycode << 16, keyStr, 64);		 
+		default:
+			GetKeyNameText(keycode << 16, keyStr, 64);
 			break;
 	}
 }

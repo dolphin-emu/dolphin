@@ -28,6 +28,7 @@ DInput m_dinput;
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
 	EVT_BUTTON(ID_CLOSE,ConfigDialog::OnCloseClick)
+	EVT_CHOICE(ID_DEVICENAME,ConfigDialog::DeviceChanged)
 	EVT_CHECKBOX(ID_ATTACHED,ConfigDialog::AttachedCheck)
 	EVT_CHECKBOX(ID_DISABLE,ConfigDialog::DisableCheck)
 	EVT_CHECKBOX(ID_RUMBLE,ConfigDialog::RumbleCheck)
@@ -160,14 +161,14 @@ void ConfigDialog::CreateGUIControls()
 		AddControl(m_Controller[i], &(m_ButtonZ[i]), sButtons[i], "Z: ", CTL_Z, i);
 		AddControl(m_Controller[i], &(m_ButtonStart[i]), sButtons[i], "Start: ", CTL_START, i);
 
-		sTriggerL[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("L Trigger"));
-		sTriggerR[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("R Trigger"));
+		sTriggers[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Triggers"));
 
-		AddControl(m_Controller[i], &(m_TriggerL[i]), sTriggerL[i], "Analog: ", CTL_TRIGGER_L, i);
-		AddControl(m_Controller[i], &(m_ButtonL[i]), sTriggerL[i], "Click: ", CTL_L, i);
+		AddControl(m_Controller[i], &(m_ButtonL[i]), sTriggers[i], "        L: ", CTL_L, i);
+		AddControl(m_Controller[i], &(m_ButtonR[i]), sTriggers[i], "        R: ", CTL_R, i);
 
-		AddControl(m_Controller[i], &(m_TriggerR[i]), sTriggerR[i], "Analog: ", CTL_TRIGGER_R, i);
-		AddControl(m_Controller[i], &(m_ButtonR[i]), sTriggerR[i], "Click: ", CTL_R, i);
+		sModifiers[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Modifiers"));
+
+		AddControl(m_Controller[i], &(m_HalfPress[i]), sModifiers[i], "1/2 Press: ", CTL_L, i);
 
 		sStick[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Main Stick"));
 
@@ -194,9 +195,9 @@ void ConfigDialog::CreateGUIControls()
 		sPage[i]->SetFlexibleDirection(wxBOTH);
 		sPage[i]->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 		sPage[i]->Add(sDevice[i], wxGBPosition(0, 0), wxGBSpan(1, 5), wxEXPAND|wxALL, 1);
-		sPage[i]->Add(sButtons[i], wxGBPosition(1, 0), wxGBSpan(3, 1), wxALL, 1);
-		sPage[i]->Add(sTriggerL[i], wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL, 1);
-		sPage[i]->Add(sTriggerR[i], wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 1);
+		sPage[i]->Add(sButtons[i], wxGBPosition(1, 0), wxGBSpan(2, 1), wxALL, 1);
+		sPage[i]->Add(sTriggers[i], wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 1);
+		sPage[i]->Add(sModifiers[i], wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 1);
 		sPage[i]->Add(sStick[i], wxGBPosition(1, 2), wxGBSpan(2, 1), wxALL, 1);
 		sPage[i]->Add(sDPad[i], wxGBPosition(1, 3), wxGBSpan(2, 1), wxALL, 1);
 		sPage[i]->Add(sCStick[i], wxGBPosition(1, 4), wxGBSpan(2, 1), wxALL, 1);
@@ -215,6 +216,7 @@ void ConfigDialog::OnClose(wxCloseEvent& event)
 #endif
 	EndModal(0);
 }
+
 void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 {
 	if(clickedButton != NULL)
@@ -244,9 +246,27 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 	clickedButton = NULL;
 	event.Skip();
 }
+
 void ConfigDialog::OnCloseClick(wxCommandEvent& event)
 {
 	Close();
+}
+
+void ConfigDialog::DeviceChanged(wxCommandEvent& event)
+{
+	int page = m_Notebook->GetSelection();
+
+	if(event.GetSelection() == 0)
+	{
+		// Keyboard
+		pad[page].type = 0;
+	}
+	else
+	{
+		// XPad, so also set xpad number
+		pad[page].type = 1;
+		pad[page].XPad = event.GetSelection() + 1;
+	}
 }
 
 void ConfigDialog::AttachedCheck(wxCommandEvent& event)
