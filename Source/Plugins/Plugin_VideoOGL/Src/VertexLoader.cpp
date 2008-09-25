@@ -305,20 +305,15 @@ void VertexLoader::ProcessFormat()
 
     //_assert_( VertexManager::s_pCurBufferPointer == s_pBaseBufferPointer );
 
-    if (!m_AttrDirty) {
-
+    if (!m_AttrDirty)
+    {
         if (m_VtxDesc.Hex0 == VertexManager::GetVtxDesc().Hex0 && (m_VtxDesc.Hex1&1)==(VertexManager::GetVtxDesc().Hex1&1))
-            // same
-            return;
-
-        m_VtxDesc.Hex = VertexManager::GetVtxDesc().Hex;
+            return; // same
     }
-    else {
-        // set anyway
-        m_VtxDesc.Hex = VertexManager::GetVtxDesc().Hex;
+    else 
         m_AttrDirty = 0;
-    }
-
+        
+    m_VtxDesc.Hex = VertexManager::GetVtxDesc().Hex;
     DVSTARTPROFILE();
 
     // Reset pipeline
@@ -1054,12 +1049,14 @@ void VertexManager::Flush()
                         nonpow2tex |= 1<<i;
                         if( tentry->mode.wrap_s > 0 ) nonpow2tex |= 1<<(8+i);
                         if( tentry->mode.wrap_t > 0 ) nonpow2tex |= 1<<(16+i);
+                        TextureMngr::EnableTexRECT(i);
                     }
                     // if texture is power of two, set to ones (since don't need scaling)
-                    else PixelShaderMngr::SetTexDims(i, tentry->w, tentry->h, 0, 0);
-
-                    if( tentry->isNonPow2 ) TextureMngr::EnableTexRECT(i);
-                    else TextureMngr::EnableTex2D(i);
+                    else 
+                    {
+                        PixelShaderMngr::SetTexDims(i, tentry->w, tentry->h, 0, 0);
+                        TextureMngr::EnableTex2D(i);
+                    }
 
                     if( g_Config.iLog & CONF_PRIMLOG ) {
                         // save the textures
