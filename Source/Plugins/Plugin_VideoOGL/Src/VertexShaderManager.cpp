@@ -343,7 +343,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
                         
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
-            g_fProjectionMatrix[10] = -(1-rawProjection[4]);
+            g_fProjectionMatrix[10] = rawProjection[4];
             g_fProjectionMatrix[11] = rawProjection[5]; 
                         
             g_fProjectionMatrix[12] = 0.0f;
@@ -365,7 +365,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = rawProjection[4];
-            g_fProjectionMatrix[11] = -(-1 - rawProjection[5]);
+            g_fProjectionMatrix[11] = rawProjection[5];
 
             g_fProjectionMatrix[12] = 0;
             g_fProjectionMatrix[13] = 0;
