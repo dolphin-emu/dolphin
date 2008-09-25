@@ -69,16 +69,24 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 
 ConfigDialog::~ConfigDialog()
 {
-} 
+}
 
 inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer, 
-					   const char *name, int ctl) {
+					   const char *name, int ctl, int controller) {
 	wxBoxSizer *hButton = new wxBoxSizer(wxHORIZONTAL);
+	char keyStr[6] = {0};
 
-	hButton->Add(new wxStaticText(pan, 0, wxString::FromAscii(name), wxDefaultPosition, wxDefaultSize), 0,
+	hButton->Add(new wxStaticText(pan, 0, wxString::FromAscii(name), 
+				 wxDefaultPosition, wxDefaultSize), 0,
 				 wxALIGN_CENTER_VERTICAL|wxALL);
-	
-	*button = new wxButton(pan, ctl, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+#ifdef _WIN32
+	DInput::DIKToString(pad[controller].keyForControl[ctl], keyStr);	
+#else
+	sprintf(keyStr, "%c", pad[controller].keyForControl[ctl]);
+#endif
+
+	*button = new wxButton(pan, ctl, wxString::FromAscii(keyStr), 
+		                   wxDefaultPosition, wxDefaultSize, 0);
 
 	hButton->Add(*button, 0, wxEXPAND|wxALL);
 	
@@ -143,43 +151,43 @@ void ConfigDialog::CreateGUIControls()
 		sDevice[i]->Add(sDeviceBottom[i], 0, wxEXPAND|wxALL, 1);
 
 		sButtons[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Buttons:"));
-        
-		AddControl(m_Controller[i], &(m_ButtonA[i]), sButtons[i], "A: ", CTL_A);
-		AddControl(m_Controller[i], &(m_ButtonB[i]), sButtons[i], "B: ", CTL_B);
-		AddControl(m_Controller[i], &(m_ButtonX[i]), sButtons[i], "X: ", CTL_X);
-		AddControl(m_Controller[i], &(m_ButtonY[i]), sButtons[i], "Y: ", CTL_Y);
-		AddControl(m_Controller[i], &(m_ButtonZ[i]), sButtons[i], "Z: ", CTL_Z);
-		AddControl(m_Controller[i], &(m_ButtonStart[i]), sButtons[i], "Start: ", CTL_START);
+
+		AddControl(m_Controller[i], &(m_ButtonA[i]), sButtons[i], "A: ", CTL_A, i);
+		AddControl(m_Controller[i], &(m_ButtonB[i]), sButtons[i], "B: ", CTL_B, i);
+		AddControl(m_Controller[i], &(m_ButtonX[i]), sButtons[i], "X: ", CTL_X, i);
+		AddControl(m_Controller[i], &(m_ButtonY[i]), sButtons[i], "Y: ", CTL_Y, i);
+		AddControl(m_Controller[i], &(m_ButtonZ[i]), sButtons[i], "Z: ", CTL_Z, i);
+		AddControl(m_Controller[i], &(m_ButtonStart[i]), sButtons[i], "Start: ", CTL_START, i);
 
 		sTriggerL[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("L Trigger"));
 		sTriggerR[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("R Trigger"));
 
-		AddControl(m_Controller[i], &(m_TriggerL[i]), sTriggerL[i], "Analog: ", CTL_TRIGGER_L);
-		AddControl(m_Controller[i], &(m_ButtonL[i]), sTriggerL[i], "Click: ", CTL_L);
+		AddControl(m_Controller[i], &(m_TriggerL[i]), sTriggerL[i], "Analog: ", CTL_TRIGGER_L, i);
+		AddControl(m_Controller[i], &(m_ButtonL[i]), sTriggerL[i], "Click: ", CTL_L, i);
 
-		AddControl(m_Controller[i], &(m_TriggerR[i]), sTriggerR[i], "Analog: ", CTL_TRIGGER_R);
-		AddControl(m_Controller[i], &(m_ButtonR[i]), sTriggerR[i], "Click: ", CTL_R);
+		AddControl(m_Controller[i], &(m_TriggerR[i]), sTriggerR[i], "Analog: ", CTL_TRIGGER_R, i);
+		AddControl(m_Controller[i], &(m_ButtonR[i]), sTriggerR[i], "Click: ", CTL_R, i);
 
 		sStick[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Main Stick"));
 
-		AddControl(m_Controller[i], &(m_StickUp[i]), sStick[i], "Up: ", CTL_MAINUP);
-		AddControl(m_Controller[i], &(m_StickDown[i]), sStick[i], "Down: ", CTL_MAINDOWN);
-		AddControl(m_Controller[i], &(m_StickLeft[i]), sStick[i], "Left: ", CTL_MAINLEFT);
-		AddControl(m_Controller[i], &(m_StickRight[i]), sStick[i], "Right: ", CTL_MAINRIGHT);
+		AddControl(m_Controller[i], &(m_StickUp[i]), sStick[i], "Up: ", CTL_MAINUP, i);
+		AddControl(m_Controller[i], &(m_StickDown[i]), sStick[i], "Down: ", CTL_MAINDOWN, i);
+		AddControl(m_Controller[i], &(m_StickLeft[i]), sStick[i], "Left: ", CTL_MAINLEFT, i);
+		AddControl(m_Controller[i], &(m_StickRight[i]), sStick[i], "Right: ", CTL_MAINRIGHT, i);
 
 		sDPad[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("D-Pad"));
 
-		AddControl(m_Controller[i], &(m_DPadUp[i]), sDPad[i], "Up: ", CTL_DPADUP);
-		AddControl(m_Controller[i], &(m_DPadDown[i]), sDPad[i], "Down: ", CTL_DPADDOWN);
-		AddControl(m_Controller[i], &(m_DPadLeft[i]), sDPad[i], "Left: ", CTL_DPADLEFT);
-		AddControl(m_Controller[i], &(m_DPadRight[i]), sDPad[i], "Right: ", CTL_DPADRIGHT);
+		AddControl(m_Controller[i], &(m_DPadUp[i]), sDPad[i], "Up: ", CTL_DPADUP, i);
+		AddControl(m_Controller[i], &(m_DPadDown[i]), sDPad[i], "Down: ", CTL_DPADDOWN, i);
+		AddControl(m_Controller[i], &(m_DPadLeft[i]), sDPad[i], "Left: ", CTL_DPADLEFT, i);
+		AddControl(m_Controller[i], &(m_DPadRight[i]), sDPad[i], "Right: ", CTL_DPADRIGHT, i);
 
 		sCStick[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("C-Stick"));
 
-		AddControl(m_Controller[i], &(m_CStickUp[i]), sCStick[i], "Up: ", CTL_SUBUP);
-		AddControl(m_Controller[i], &(m_CStickDown[i]), sCStick[i], "Down: ", CTL_SUBDOWN);
-		AddControl(m_Controller[i], &(m_CStickLeft[i]), sCStick[i], "Left: ", CTL_SUBLEFT);
-		AddControl(m_Controller[i], &(m_CStickRight[i]), sCStick[i], "Right: ", CTL_SUBRIGHT);
+		AddControl(m_Controller[i], &(m_CStickUp[i]), sCStick[i], "Up: ", CTL_SUBUP, i);
+		AddControl(m_Controller[i], &(m_CStickDown[i]), sCStick[i], "Down: ", CTL_SUBDOWN, i);
+		AddControl(m_Controller[i], &(m_CStickLeft[i]), sCStick[i], "Left: ", CTL_SUBLEFT, i);
+		AddControl(m_Controller[i], &(m_CStickRight[i]), sCStick[i], "Right: ", CTL_SUBRIGHT, i);
 
 		sPage[i] = new wxGridBagSizer(0, 0);
 		sPage[i]->SetFlexibleDirection(wxBOTH);

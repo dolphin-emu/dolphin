@@ -25,6 +25,8 @@ class DInput
 		DInput();
 		~DInput();
 
+		static void DInput::DIKToString(unsigned int keycode, char *keyStr);
+
 		HRESULT Init(HWND hWnd);
 		void Free();
 		HRESULT Read();

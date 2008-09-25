@@ -53,7 +53,6 @@ class ConfigDialog : public wxDialog
 		wxBoxSizer *sDeviceBottom[4];
 		wxGridBagSizer* sPage[4];
 		wxStaticBoxSizer *sButtons[4];
-		wxBoxSizer *hButtons[4][2];
 		wxStaticBoxSizer *sTriggerL[4];
 		wxStaticBoxSizer *sTriggerR[4];
 		wxStaticBoxSizer *sStick[4];

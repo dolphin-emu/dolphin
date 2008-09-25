@@ -29,6 +29,34 @@ DInput::~DInput()
 	Free();
 }
 
+void DInput::DIKToString(unsigned int keycode, char *keyStr) {
+	HKL layout = GetKeyboardLayout(0);
+	BYTE kbstate[256];
+
+	switch(keycode) {
+		case DIK_RETURN:
+			sprintf(keyStr, "ENTER");
+			break;
+		case DIK_UP:
+			sprintf(keyStr, "UP");
+			break;
+		case DIK_DOWN:
+			sprintf(keyStr, "DOWN");
+			break;
+		case DIK_LEFT:
+			sprintf(keyStr, "LEFT");
+			break;
+		case DIK_RIGHT:
+			sprintf(keyStr, "RIGHT");
+			break;
+		default:
+			GetKeyboardState(kbstate);
+			UINT vk = MapVirtualKeyEx(keycode, 1, layout);
+			ToAsciiEx(vk, keycode, kbstate, (LPWORD)keyStr, 0, layout);
+
+			keyStr[0] = toupper(keyStr[0]);
+	}
+}
 
 HRESULT DInput::Init(HWND hWnd)
 {
