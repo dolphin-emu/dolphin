@@ -203,12 +203,11 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		case ID_FIXCHECKSUM:
 			if(m_MemcardList[0]->GetItemCount() > 0)
 			{
-				// ---------------------------------------------------------------------------------------
 				// Fix checksums and save the changes
 				memoryCard[0]->FixChecksums();
 				memoryCard[0]->Save();
-				MessageBox(0, "The checksum was successfully fixed", "Message", 0);
-				// ---------------------------------------------------------------------------------------				
+				wxMessageBox(wxT("The checksum was successfully fixed"), 
+                                             wxT("Message"), wxOK);
 			}
 			break;
 		case ID_DELETERIGHT:
