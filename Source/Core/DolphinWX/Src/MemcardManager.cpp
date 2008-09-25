@@ -75,6 +75,7 @@ BEGIN_EVENT_TABLE(CMemcardManager, wxDialog)
 	EVT_CLOSE(CMemcardManager::OnClose)
 	EVT_BUTTON(ID_COPYRIGHT,CMemcardManager::CopyDeleteClick)
 	EVT_BUTTON(ID_COPYLEFT,CMemcardManager::CopyDeleteClick)
+	EVT_BUTTON(ID_FIXCHECKSUM,CMemcardManager::CopyDeleteClick)
 	EVT_BUTTON(ID_DELETERIGHT,CMemcardManager::CopyDeleteClick)
 	EVT_BUTTON(ID_DELETELEFT,CMemcardManager::CopyDeleteClick)
 	EVT_FILEPICKER_CHANGED(ID_MEMCARD1PATH,CMemcardManager::OnPathChange)
@@ -107,6 +108,8 @@ void CMemcardManager::CreateGUIControls()
 	m_CopyRight = new wxButton(this, ID_COPYRIGHT, wxT("->Copy->"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_CopyLeft = new wxButton(this, ID_COPYLEFT, wxT("<-Copy<-"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
+	m_FixChecksum = new wxButton(this, ID_FIXCHECKSUM, wxT("Fix\nchecksum"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
 	m_DeleteRight = new wxButton(this, ID_DELETERIGHT, wxT("Delete->"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_DeleteLeft = new wxButton(this, ID_DELETELEFT, wxT("<-Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
@@ -135,6 +138,8 @@ void CMemcardManager::CreateGUIControls()
 	sButtons->AddStretchSpacer(1);
 	sButtons->Add(m_CopyRight, 0, 0, 5);
 	sButtons->Add(m_CopyLeft, 0, 0, 5);
+	sButtons->AddStretchSpacer(2);
+	sButtons->Add(m_FixChecksum, 0, 0, 5);
 	sButtons->AddStretchSpacer(2);
 	sButtons->Add(m_DeleteRight, 0, 0, 5);
 	sButtons->Add(m_DeleteLeft, 0, 0, 5);
@@ -195,6 +200,17 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0);
 			}
 			break;
+		case ID_FIXCHECKSUM:
+			if(m_MemcardList[0]->GetItemCount() > 0)
+			{
+				// ---------------------------------------------------------------------------------------
+				// Fix checksums and save the changes
+				memoryCard[0]->FixChecksums();
+				memoryCard[0]->Save();
+				MessageBox(0, "The checksum was successfully fixed", "Message", 0);
+				// ---------------------------------------------------------------------------------------				
+			}
+			break;
 		case ID_DELETERIGHT:
 			if(index1 != -1)
 			{
@@ -220,8 +236,6 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 
 	// TODO: add error checking and animate icons
 	memoryCard[card] = new GCMemcard(fileName);
-
-	memoryCard[0]->Save(); // save the changes we made in TestChecksums
 
 	m_MemcardList[card]->Hide();
 	m_MemcardList[card]->ClearAll();

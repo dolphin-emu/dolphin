@@ -45,6 +45,7 @@ class CMemcardManager
 		wxBoxSizer* sMain;
 		wxButton* m_CopyRight;
 		wxButton* m_CopyLeft;
+		wxButton* m_FixChecksum;
 		wxButton* m_DeleteRight;
 		wxButton* m_DeleteLeft;
 		wxStaticBoxSizer* sMemcard1;
@@ -60,6 +61,7 @@ class CMemcardManager
 		{
 			ID_COPYRIGHT = 1000,
 			ID_COPYLEFT,
+			ID_FIXCHECKSUM,
 			ID_DELETERIGHT,
 			ID_DELETELEFT,
 			ID_MEMCARD1PATH,

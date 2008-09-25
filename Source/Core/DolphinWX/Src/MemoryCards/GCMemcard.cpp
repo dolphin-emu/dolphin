@@ -525,25 +525,9 @@ u32  GCMemcard::TestChecksums()
 	if(BE16(dir.CheckSum1)!=csum1) results |= 2;
 	if(BE16(dir.CheckSum2)!=csum2) results |= 2;
 
-	// ------------------------------------------------------------------------------------------
-	// Save the checksums we just calculated
-	dir.CheckSum1[0]=u8(csum1>>8);
-	dir.CheckSum1[1]=u8(csum1);
-	dir.CheckSum2[0]=u8(csum2>>8);
-	dir.CheckSum2[1]=u8(csum2);
-	// ------------------------------------------------------------------------------------------
-
 	calc_checksumsBE((u16*)&dir_backup,0xFFE,&csum1,&csum2);
 	if(BE16(dir_backup.CheckSum1)!=csum1) results |= 4;
 	if(BE16(dir_backup.CheckSum2)!=csum2) results |= 4;
-
-	// ------------------------------------------------------------------------------------------
-	// Save the checksums we just calculated
-	dir_backup.CheckSum1[0]=u8(csum1>>8);
-	dir_backup.CheckSum1[1]=u8(csum1);
-	dir_backup.CheckSum2[0]=u8(csum2>>8);
-	dir_backup.CheckSum2[1]=u8(csum2);
-	// ------------------------------------------------------------------------------------------
 
 	calc_checksumsBE((u16*)(((u8*)&bat)+4),0xFFE,&csum1,&csum2);
 	if(BE16(bat.CheckSum1)!=csum1) results |= 8;
@@ -555,6 +539,47 @@ u32  GCMemcard::TestChecksums()
 
 	return 0;
 }
+
+
+// ==========================================================================================
+// Fix checksums - I'll begin with fixing Directory and Directory backup. Feel free to add the 
+// other blocks.
+// ------------------------------------------------------------------------------------------
+u32  GCMemcard::FixChecksums()
+{
+	if(!mcdFile) return 0xFFFFFFFF;
+
+	u16 csum1=0,csum2=0;
+
+	u32 results = 0;
+
+	calc_checksumsBE((u16*)&dir,0xFFE,&csum1,&csum2);
+	if(BE16(dir.CheckSum1) != csum1) results |= 2;
+	if(BE16(dir.CheckSum2) != csum2) results |= 2;
+
+	// ------------------------------------------------------------------------------------------
+	// Save the values we just read
+	dir.CheckSum1[0]=u8(csum1>>8);
+	dir.CheckSum1[1]=u8(csum1);
+	dir.CheckSum2[0]=u8(csum2>>8);
+	dir.CheckSum2[1]=u8(csum2);
+	// ------------------------------------------------------------------------------------------
+
+	calc_checksumsBE((u16*)&dir_backup,0xFFE,&csum1,&csum2);
+	if(BE16(dir_backup.CheckSum1) != csum1) results |= 4;
+	if(BE16(dir_backup.CheckSum2) != csum2) results |= 4;
+
+	// ------------------------------------------------------------------------------------------
+	// Save the values we just read
+	dir_backup.CheckSum1[0]=u8(csum1>>8);
+	dir_backup.CheckSum1[1]=u8(csum1);
+	dir_backup.CheckSum2[0]=u8(csum2>>8);
+	dir_backup.CheckSum2[1]=u8(csum2);
+	// ------------------------------------------------------------------------------------------
+	return 0;
+}
+// ==========================================================================================
+
 
 u32  GCMemcard::CopyFrom(GCMemcard& source, u32 index)
 {

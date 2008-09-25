@@ -128,6 +128,7 @@ public:
 	bool IsOpen();
 
 	u32  TestChecksums();
+	u32  FixChecksums();
 
 	// get number of file entries in the directory
 	u32  GetNumFiles();
