@@ -72,7 +72,7 @@ namespace AOSound
 		//dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
 
 		while (!threadData)
-		{
+		{                    
 			// No blocking inside the csection
 			//dsBuffer->GetCurrentPosition((DWORD*)&currentPos, 0);
 			uint_32 numBytesToRender = 256;
@@ -122,6 +122,7 @@ namespace AOSound
 	}
 	void AOSound_StopSound()
 	{
+                threadData = 1;
 		ao_close(device);
 		ao_shutdown();
 		free(buffer);
