@@ -47,7 +47,7 @@ DInput dinput;
 #include <X11/keysym.h>
 
 Display* GXdsp;
-bool KeyStatus[23];
+bool KeyStatus[NUMCONTROLS];
 #endif
 
 SPads pad[4];
@@ -452,50 +452,51 @@ void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
         }
     }
     
-    int mainvalue =    (KeyStatus[20]) ? 40 : 100;
-    int subvalue =     (KeyStatus[21]) ? 40 : 100;
-    int triggervalue = (KeyStatus[23]) ? 100 : 255;
+    int mainvalue =    (KeyStatus[CTL_HALFMAIN]) ? 40 : 100;
+    int subvalue =     (KeyStatus[CTL_HALFSUB]) ? 40 : 100;
+    int triggervalueL = (KeyStatus[CTL_TRIGGER_L]) ? 100 : 255;
+    int triggervalueR = (KeyStatus[CTL_TRIGGER_R]) ? 100 : 255;
+    
+    if (KeyStatus[CTL_MAINLEFT]){_pPADStatus->stickX -= mainvalue;}
+    if (KeyStatus[CTL_MAINUP]){_pPADStatus->stickY += mainvalue;}
+    if (KeyStatus[CTL_MAINRIGHT]){_pPADStatus->stickX += mainvalue;}
+    if (KeyStatus[CTL_MAINDOWN]){_pPADStatus->stickY -= mainvalue;}
 	
-    if (KeyStatus[0]){_pPADStatus->stickX -= mainvalue;}
-    if (KeyStatus[1]){_pPADStatus->stickY += mainvalue;}
-    if (KeyStatus[2]){_pPADStatus->stickX += mainvalue;}
-    if (KeyStatus[3]){_pPADStatus->stickY -= mainvalue;}
+    if (KeyStatus[CTL_SUBLEFT]){_pPADStatus->substickX -= subvalue;}
+    if (KeyStatus[CTL_SUBUP]){_pPADStatus->substickY += subvalue;}
+    if (KeyStatus[CTL_SUBRIGHT]){_pPADStatus->substickX += subvalue;}
+    if (KeyStatus[CTL_SUBDOWN]){_pPADStatus->substickY -= subvalue;}
 	
-    if (KeyStatus[4]){_pPADStatus->substickX -= subvalue;}
-    if (KeyStatus[5]){_pPADStatus->substickY += subvalue;}
-    if (KeyStatus[6]){_pPADStatus->substickX += subvalue;}
-    if (KeyStatus[7]){_pPADStatus->substickY -= subvalue;}
-	
-    if (KeyStatus[8]){_pPADStatus->button |= PAD_BUTTON_LEFT;}
-    if (KeyStatus[9]){_pPADStatus->button |= PAD_BUTTON_UP;}
-    if (KeyStatus[10]){_pPADStatus->button |= PAD_BUTTON_RIGHT;}
-    if (KeyStatus[11]){_pPADStatus->button |= PAD_BUTTON_DOWN;}
+    if (KeyStatus[CTL_DPADLEFT]){_pPADStatus->button |= PAD_BUTTON_LEFT;}
+    if (KeyStatus[CTL_DPADUP]){_pPADStatus->button |= PAD_BUTTON_UP;}
+    if (KeyStatus[CTL_DPADRIGHT]){_pPADStatus->button |= PAD_BUTTON_RIGHT;}
+    if (KeyStatus[CTL_DPADDOWN]){_pPADStatus->button |= PAD_BUTTON_DOWN;}
 
-    if (KeyStatus[12]) {
+    if (KeyStatus[CTL_A]) {
         _pPADStatus->button |= PAD_BUTTON_A;
         _pPADStatus->analogA = 255;
     }
     
-    if (KeyStatus[13]) {
+    if (KeyStatus[CTL_B]) {
         _pPADStatus->button |= PAD_BUTTON_B;
         _pPADStatus->analogB = 255;
     }
 
-    if (KeyStatus[14]){_pPADStatus->button |= PAD_BUTTON_X;}
-    if (KeyStatus[15]){_pPADStatus->button |= PAD_BUTTON_Y;}
-    if (KeyStatus[16]){_pPADStatus->button |= PAD_TRIGGER_Z;}
+    if (KeyStatus[CTL_X]){_pPADStatus->button |= PAD_BUTTON_X;}
+    if (KeyStatus[CTL_Y]){_pPADStatus->button |= PAD_BUTTON_Y;}
+    if (KeyStatus[CTL_Z]){_pPADStatus->button |= PAD_TRIGGER_Z;}
 	
-    if (KeyStatus[17]) {
+    if (KeyStatus[CTL_L]) {
         _pPADStatus->button |= PAD_TRIGGER_L;
-        _pPADStatus->triggerLeft = triggervalue;
+        _pPADStatus->triggerLeft = triggervalueL;
     }
 
-    if (KeyStatus[18]) {
+    if (KeyStatus[CTL_R]) {
         _pPADStatus->button |= PAD_TRIGGER_R;
-        _pPADStatus->triggerRight = triggervalue;
+        _pPADStatus->triggerRight = triggervalueR;
     }
 
-    if (KeyStatus[19]){_pPADStatus->button |= PAD_BUTTON_START;}
+    if (KeyStatus[CTL_START]){_pPADStatus->button |= PAD_BUTTON_START;}
 }
 
 
@@ -675,12 +676,13 @@ void LoadConfig()
 		{
 			//keyboard settings
 			file.Get(SectionName, "Type", &pad[i].type);
-			file.Get(SectionName, "Attached", &pad[i].attached, false);
+			file.Get(SectionName, "Attached", &pad[i].attached, i==0);
 			file.Get(SectionName, "DisableOnBackground", &pad[i].disable, false);
 			
 			for (int x = 0; x < NUMCONTROLS; x++)
 			{
 				file.Get(SectionName, controlNames[x], &pad[i].keyForControl[x], defaultKeyForControl[x]);
+                                pad[i].keyForControl[x] = tolower(pad[i].keyForControl[x]);
 			}
 		}
 		else

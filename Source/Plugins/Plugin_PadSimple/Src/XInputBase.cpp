@@ -123,6 +123,6 @@ void XKeyToString(unsigned int keycode, char *keyStr) {
     sprintf(keyStr, "LControl");
     break;
   default:
-    sprintf(keyStr, "%c", keycode);
+    sprintf(keyStr, "%c", toupper(keycode));
   }
 }
