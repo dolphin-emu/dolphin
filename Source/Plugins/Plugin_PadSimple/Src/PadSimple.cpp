@@ -679,10 +679,14 @@ void LoadConfig()
 			file.Get(SectionName, "Attached", &pad[i].attached, i==0);
 			file.Get(SectionName, "DisableOnBackground", &pad[i].disable, false);
 			
-			for (int x = 0; x < NUMCONTROLS; x++)
+			for (int x = 0; x < NUMCONTROLS; x++) 
 			{
 				file.Get(SectionName, controlNames[x], &pad[i].keyForControl[x], defaultKeyForControl[x]);
-                                pad[i].keyForControl[x] = tolower(pad[i].keyForControl[x]);
+#ifndef _WIN32
+				// In linux we have a problem assigning the upper case of the 
+				// keys because they're not being recognized
+				pad[i].keyForControl[x] = tolower(pad[i].keyForControl[x]);
+#endif
 			}
 		}
 		else

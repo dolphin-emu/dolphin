@@ -64,7 +64,40 @@ void DInput::DIKToString(unsigned int keycode, char *keyStr)
 			break;		 
 		case DIK_PGDN:		 
 			strcpy(keyStr, "PgDn");		 
-			break;		 
+			break;		
+		case DIK_NUMPAD0:
+			strcpy(keyStr, "Num 0");
+			break;
+		case DIK_NUMPAD1:
+			strcpy(keyStr, "Num 1");
+			break;
+		case DIK_NUMPAD2:
+			strcpy(keyStr, "Num 2");
+			break;
+		case DIK_NUMPAD3:
+			strcpy(keyStr, "Num 3");
+			break;
+		case DIK_NUMPAD4:
+			strcpy(keyStr, "Num 4");
+			break;
+		case DIK_NUMPAD5:
+			strcpy(keyStr, "Num 5");
+			break;
+		case DIK_NUMPAD6:
+			strcpy(keyStr, "Num 6");
+			break;
+		case DIK_NUMPAD7:
+			strcpy(keyStr, "Num 7");
+			break;
+		case DIK_NUMPAD8:
+			strcpy(keyStr, "Num 8");
+			break;
+		case DIK_NUMPAD9:
+			strcpy(keyStr, "Num 9");
+			break;
+		case DIK_NUMPADSLASH:
+			strcpy(keyStr, "Num /");
+			break;
 		default:		 
 			GetKeyNameText(keycode << 16, keyStr, 64);		 
 			break;
