@@ -55,9 +55,8 @@ static const char* controlNames[] =
 	"Y_button",
 	"Z_trigger",
 	"Start",
-	"Soft_triggerL_switch",
+	"Soft_trigger_switch",
 	"L_button",
-	"Soft_triggerR_switch",
 	"R_button",
 	"Main_stick_up",
 	"Main_stick_down",
@@ -86,7 +85,6 @@ static const char* userControlNames[] =
 	"Start",
 	"Analog", // Don't use
 	"L",
-	"Analog", // Don't use
 	"R",
 	"Up",
 	"Down",
