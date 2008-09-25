@@ -38,10 +38,9 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_BUTTON(CTL_Y,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_Z,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_START,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_TRIGGER_L,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_L,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_TRIGGER_R,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_R,ConfigDialog::OnButtonClick)
+	EVT_BUTTON(CTL_HALFTRIGGER,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_MAINUP,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_MAINDOWN,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_MAINLEFT,ConfigDialog::OnButtonClick)
@@ -168,7 +167,7 @@ void ConfigDialog::CreateGUIControls()
 
 		sModifiers[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Modifiers"));
 
-		AddControl(m_Controller[i], &(m_HalfPress[i]), sModifiers[i], "1/2 Press: ", CTL_L, i);
+		AddControl(m_Controller[i], &(m_HalfPress[i]), sModifiers[i], "1/2 Press: ", CTL_HALFTRIGGER, i);
 
 		sStick[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Main Stick"));
 

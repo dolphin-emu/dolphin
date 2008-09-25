@@ -267,9 +267,8 @@ void DInput_Read(int _numPad, SPADStatus* _pPADStatus)
 
 	int mainvalue =    (dinput.diks[pad[_numPad].keyForControl[CTL_HALFMAIN]]   & 0xFF) ? 40 : 100;
 	int subvalue =     (dinput.diks[pad[_numPad].keyForControl[CTL_HALFSUB]]    & 0xFF) ? 40 : 100;
-	int triggervalueL = (dinput.diks[pad[_numPad].keyForControl[CTL_TRIGGER_L]] & 0xFF) ? 100 : 255;
-	int triggervalueR = (dinput.diks[pad[_numPad].keyForControl[CTL_TRIGGER_R]] & 0xFF) ? 100 : 255;
-
+	int triggervalue = (dinput.diks[pad[_numPad].keyForControl[CTL_HALFTRIGGER]] & 0xFF) ? 100 : 255;
+	
 	// get the new keys
 	if (dinput.diks[pad[_numPad].keyForControl[CTL_MAINLEFT]] & 0xFF){_pPADStatus->stickX -= mainvalue;}
 
@@ -290,13 +289,13 @@ void DInput_Read(int _numPad, SPADStatus* _pPADStatus)
 	if (dinput.diks[pad[_numPad].keyForControl[CTL_L]] & 0xFF)
 	{
 		_pPADStatus->button |= PAD_TRIGGER_L;
-		_pPADStatus->triggerLeft = triggervalueL;
+		_pPADStatus->triggerLeft = triggervalue;
 	}
 
 	if (dinput.diks[pad[_numPad].keyForControl[CTL_R]] & 0xFF)
 	{
 		_pPADStatus->button |= PAD_TRIGGER_R;
-		_pPADStatus->triggerRight = triggervalueR;
+		_pPADStatus->triggerRight = triggervalue;
 	}
 
 	if (dinput.diks[pad[_numPad].keyForControl[CTL_A]] & 0xFF)
@@ -616,10 +615,9 @@ void LoadConfig()
 		DIK_C,
 		DIK_D,
 		DIK_RETURN,
+		DIK_LCONTROL,
 		DIK_Q,
-		DIK_LCONTROL,
 		DIK_W,
-		DIK_LCONTROL,
 		DIK_UP,	//mainstick
 		DIK_DOWN,
 		DIK_LEFT,
@@ -644,10 +642,9 @@ void LoadConfig()
           XK_c,
           XK_d,
           XK_Return,
+		  XK_Control_L,
           XK_q,
-          XK_Control_L,
           XK_w,
-          XK_Control_L,
           XK_Up, //mainstick
           XK_Down,
           XK_Left, 
