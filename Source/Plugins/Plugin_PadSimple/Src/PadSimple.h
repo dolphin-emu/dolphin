@@ -74,34 +74,6 @@ static const char* controlNames[] =
 	"D-Pad_right",
 };
 
-// control human readable
-static const char* userControlNames[] =
-{
-	"A",
-	"B",
-	"X",
-	"Y",
-	"Z",
-	"Start",
-	"Analog", // Don't use
-	"L",
-	"R",
-	"Up",
-	"Down",
-	"Left",
-	"Right",
-	"Soft_main_switch", // Don't use
-	"Up",
-	"Down",
-	"Left",
-	"Right",
-	"Soft_sub_switch", // Don't use
-	"Up",
-	"Down",
-	"Left",
-	"Right",
-};
-
 struct SPads {
 	bool type;		//keyboard = 0, xpad = 1
 	int XPad;		//player# of the xpad

@@ -453,8 +453,7 @@ void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
     
     int mainvalue =    (KeyStatus[CTL_HALFMAIN]) ? 40 : 100;
     int subvalue =     (KeyStatus[CTL_HALFSUB]) ? 40 : 100;
-    int triggervalueL = (KeyStatus[CTL_TRIGGER_L]) ? 100 : 255;
-    int triggervalueR = (KeyStatus[CTL_TRIGGER_R]) ? 100 : 255;
+    int triggervalue = (KeyStatus[CTL_HALFTRIGGER]) ? 100 : 255;
     
     if (KeyStatus[CTL_MAINLEFT]){_pPADStatus->stickX -= mainvalue;}
     if (KeyStatus[CTL_MAINUP]){_pPADStatus->stickY += mainvalue;}
@@ -487,12 +486,12 @@ void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
 	
     if (KeyStatus[CTL_L]) {
         _pPADStatus->button |= PAD_TRIGGER_L;
-        _pPADStatus->triggerLeft = triggervalueL;
+        _pPADStatus->triggerLeft = triggervalue;
     }
 
     if (KeyStatus[CTL_R]) {
         _pPADStatus->button |= PAD_TRIGGER_R;
-        _pPADStatus->triggerRight = triggervalueR;
+        _pPADStatus->triggerRight = triggervalue;
     }
 
     if (KeyStatus[CTL_START]){_pPADStatus->button |= PAD_BUTTON_START;}
@@ -642,7 +641,7 @@ void LoadConfig()
           XK_c,
           XK_d,
           XK_Return,
-		  XK_Control_L,
+          XK_Control_L,
           XK_q,
           XK_w,
           XK_Up, //mainstick
