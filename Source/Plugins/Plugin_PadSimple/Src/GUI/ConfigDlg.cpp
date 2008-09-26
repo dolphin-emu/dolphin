@@ -143,7 +143,7 @@ void ConfigDialog::CreateGUIControls()
 		m_DeviceName[i]->SetSelection(pad[i].XPad);
 		for(int x = 0; x < 5; x++)
 		{
-                  m_DeviceName[i]->Append(wxString::Format(wxString::FromAscii("%i"), x));
+                    m_DeviceName[i]->Append(wxString::Format(wxT("%i"), x));
 		}
 		
 		sDeviceTop[i]->Add(m_DeviceName[i], 1, wxEXPAND|wxALL, 1);
