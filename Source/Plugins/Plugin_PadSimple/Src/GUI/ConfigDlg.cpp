@@ -40,21 +40,19 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_BUTTON(CTL_START,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_L,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_R,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_HALFTRIGGER,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_MAINUP,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_MAINDOWN,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_MAINLEFT,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_MAINRIGHT,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_HALFMAIN,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_SUBUP,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_SUBDOWN,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_SUBLEFT,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_SUBRIGHT,ConfigDialog::OnButtonClick)
-	EVT_BUTTON(CTL_HALFSUB,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_DPADUP,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_DPADDOWN,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_DPADLEFT,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_DPADRIGHT,ConfigDialog::OnButtonClick)
+	EVT_BUTTON(CTL_HALFPRESS,ConfigDialog::OnButtonClick)
 END_EVENT_TABLE()
 
 ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
@@ -140,7 +138,13 @@ void ConfigDialog::CreateGUIControls()
 		m_Attached[i]->SetValue(pad[i].attached);
 		m_Disable[i]->SetValue(pad[i].disable);
 		m_Rumble[i]->SetValue(pad[i].rumble);
-		m_Rumble[i]->Show(pad[i].type);
+		m_Rumble[i]->Enable(pad[i].type);
+		//TEMP
+		m_DeviceName[i]->SetSelection(pad[i].XPad);
+		for(int x = 0; x < 5; x++)
+		{
+			m_DeviceName[i]->Append(wxString::Format("%i", x));
+		}
 		
 		sDeviceTop[i]->Add(m_DeviceName[i], 1, wxEXPAND|wxALL, 1);
 		sDeviceTop[i]->Add(m_Attached[i], 0, wxEXPAND|wxALL, 1);
@@ -167,7 +171,7 @@ void ConfigDialog::CreateGUIControls()
 
 		sModifiers[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Modifiers"));
 
-		AddControl(m_Controller[i], &(m_HalfPress[i]), sModifiers[i], "1/2 Press: ", CTL_HALFTRIGGER, i);
+		AddControl(m_Controller[i], &(m_HalfPress[i]), sModifiers[i], "1/2 Press: ", CTL_HALFPRESS, i);
 
 		sStick[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Main Stick"));
 
@@ -259,12 +263,14 @@ void ConfigDialog::DeviceChanged(wxCommandEvent& event)
 	{
 		// Keyboard
 		pad[page].type = 0;
+		m_Rumble[page]->Disable();
 	}
 	else
 	{
 		// XPad, so also set xpad number
 		pad[page].type = 1;
-		pad[page].XPad = event.GetSelection() + 1;
+		pad[page].XPad = event.GetSelection() - 1;
+		m_Rumble[page]->Enable();
 	}
 }
 
