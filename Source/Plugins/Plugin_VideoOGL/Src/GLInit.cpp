@@ -440,7 +440,7 @@ bool OpenGL_MakeCurrent()
 
 	// Fetch video info.
 	const SDL_VideoInfo *videoInfo = SDL_GetVideoInfo();
-	if (!videoInfo) {
+        if (!videoInfo) {
 		// TODO: Display an error message.
 		SDL_Quit();
 		return false;
@@ -511,58 +511,60 @@ void OpenGL_Update()
     static bool ShiftPressed = false;
     static bool ControlPressed = false;
     static int FKeyPressed = -1;
-    int num_events = XPending(GLWin.dpy);
-    while (XPending(GLWin.dpy) > 0 && num_events != 0) {
+    int num_events;
+    for (num_events = XPending(GLWin.dpy);num_events > 0;num_events--) {
         XNextEvent(GLWin.dpy, &event);
-        switch(event.type)
-        {
+        switch(event.type) {
             case KeyRelease:
                 key = XLookupKeysym((XKeyEvent*)&event, 0);
-                if(key >= XK_F1 && key <= XK_F9)
-                {
-                    g_VideoInitialize.pKeyPress(FKeyPressed, ShiftPressed, ControlPressed);
-                    FKeyPressed = -1;
+                if(key >= XK_F1 && key <= XK_F9) {
+                        g_VideoInitialize.pKeyPress(FKeyPressed, ShiftPressed, ControlPressed);
+                        FKeyPressed = -1;
+                } else {
+                    if(key == XK_Shift_L || key == XK_Shift_R)
+                        ShiftPressed = false;
+                    else if(key == XK_Control_L || key == XK_Control_R)
+                        ControlPressed = false;
+                    else
+                        XPutBackEvent(GLWin.dpy, &event);
                 }
-                if(key == XK_Shift_L || key == XK_Shift_L)
-                    ShiftPressed = false;
-                if(key == XK_Control_L || key == XK_Control_L)
-                    ControlPressed = false;
-                XPutBackEvent(GLWin.dpy, &event);
                 break;
             case KeyPress:
                 key = XLookupKeysym((XKeyEvent*)&event, 0);
-                if(key >= XK_F1 && key <= XK_F9)
+                if(key >= XK_F1 && key <= XK_F9) 
                     FKeyPressed = key - 0xff4e;
-                if(key == XK_Shift_L || key == XK_Shift_L)
-                    ShiftPressed = true;
-                if(key == XK_Control_L || key == XK_Control_L)
-                    ControlPressed = true;
-                XPutBackEvent(GLWin.dpy, &event);
+                else {
+                    if(key == XK_Shift_L || key == XK_Shift_R) 
+                        ShiftPressed = true;
+                    else if(key == XK_Control_L || key == XK_Control_R)
+                        ControlPressed = true;
+                    else
+                        XPutBackEvent(GLWin.dpy, &event);
+                }
                 break;
             case ButtonPress:
             case ButtonRelease:
                 XPutBackEvent(GLWin.dpy, &event);
-            break;
+                break;
             case ConfigureNotify:
                 Window winDummy;
                 unsigned int borderDummy;
                 XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
-                            &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
+                             &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
                 nBackbufferWidth = GLWin.width;
                 nBackbufferHeight = GLWin.height;
-            break;
+                break;
             case ClientMessage: //TODO: We aren't reading this correctly, It could be anything, highest change is that it's a close event though
                 Video_Shutdown(); // Calling from here since returning false does nothing
                 return; 
-            break;
+                break;
             default:
                 //TODO: Should we put the event back if we don't handle it?
                 // I think we handle all the needed ones, the rest shouldn't matter
                 // But to be safe, let's but them back anyway
-                XPutBackEvent(GLWin.dpy, &event);
-            break;
-        }
-	    num_events--;
+                //XPutBackEvent(GLWin.dpy, &event);
+                break;
+            }
 	}
 	return;
 #endif

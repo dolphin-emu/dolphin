@@ -401,53 +401,74 @@ void XInput_Read(int _numPAD, SPADStatus* _pPADStatus)
 void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
 {
     // Do all the stuff we need to do once per frame here
-    if (_numPAD != 0)
-	{
-            return;
-	}
-    int i;
+    if (_numPAD != 0) {
+        return;
+    }
     // This code is from Zerofrog's pcsx2 pad plugin
     XEvent E;
     //int keyPress=0, keyRelease=0;
     KeySym key;
-
+    
     // keyboard input
-    while (XPending(GXdsp) > 0) {
-
+    int num_events;
+    for (num_events = XPending(GXdsp);num_events > 0;num_events--) {
         XNextEvent(GXdsp, &E);
-
         switch (E.type) {
-          case KeyPress:
-              //_KeyPress(pad, XLookupKeysym((XKeyEvent *)&E, 0)); break;
-              key = XLookupKeysym((XKeyEvent*)&E, 0);
-              
-              for (i = 0; i < NUMCONTROLS; i++) {
-                  if (key == pad[_numPAD].keyForControl[i]) {
-                      KeyStatus[i] = true;
-                      break;
-                  }
-              }
-              break;
-              
-          case KeyRelease:
-              key = XLookupKeysym((XKeyEvent*)&E, 0);
-              
-              //_KeyRelease(pad, XLookupKeysym((XKeyEvent *)&E, 0));
-              for (i = 0; i < NUMCONTROLS; i++) {
-                  if (key == pad[_numPAD].keyForControl[i]) {
-                      KeyStatus[i] = false;
-                      break;
-                  }
-              }
-              break;
-              
-          case FocusIn:
-              XAutoRepeatOff(GXdsp);
-              break;
-              
-          case FocusOut:
-              XAutoRepeatOn(GXdsp);
-              break;
+        case KeyPress:
+            //_KeyPress(pad, XLookupKeysym((XKeyEvent *)&E, 0)); break;
+
+            key = XLookupKeysym((XKeyEvent*)&E, 0);
+            
+            if((key >= XK_F1 && key <= XK_F9) || 
+               key == XK_Shift_L || key == XK_Shift_R ||
+               key == XK_Control_L || key == XK_Control_R) {
+                XPutBackEvent(GXdsp, &E);
+                break;
+            }
+
+            int i;
+            for (i = 0; i < NUMCONTROLS; i++) {
+                if (key == pad[_numPAD].keyForControl[i]) {
+                    KeyStatus[i] = true;
+                    break;
+                }
+            }
+            
+            
+            break;
+            
+        case KeyRelease:
+
+            key = XLookupKeysym((XKeyEvent*)&E, 0);
+            
+            if((key >= XK_F1 && key <= XK_F9) || 
+               key == XK_Shift_L || key == XK_Shift_R ||
+               key == XK_Control_L || key == XK_Control_R) {
+                XPutBackEvent(GXdsp, &E);
+                break;
+            }
+          
+            //_KeyRelease(pad, XLookupKeysym((XKeyEvent *)&E, 0));
+            for (i = 0; i < NUMCONTROLS; i++) {
+                if (key == pad[_numPAD].keyForControl[i]) {
+                    KeyStatus[i] = false;
+                    break;
+                }
+            }
+  
+            break;
+            
+            
+        case FocusIn:
+            XAutoRepeatOff(GXdsp);
+            break;
+          
+        case FocusOut:
+            XAutoRepeatOn(GXdsp);
+            break;
+            
+        default:
+            break;
         }
     }
     
@@ -479,7 +500,7 @@ void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
         _pPADStatus->button |= PAD_BUTTON_B;
         _pPADStatus->analogB = 255;
     }
-
+    
     if (KeyStatus[CTL_X]){_pPADStatus->button |= PAD_BUTTON_X;}
     if (KeyStatus[CTL_Y]){_pPADStatus->button |= PAD_BUTTON_Y;}
     if (KeyStatus[CTL_Z]){_pPADStatus->button |= PAD_TRIGGER_Z;}
@@ -488,12 +509,12 @@ void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
         _pPADStatus->button |= PAD_TRIGGER_L;
         _pPADStatus->triggerLeft = triggervalue;
     }
-
+    
     if (KeyStatus[CTL_R]) {
         _pPADStatus->button |= PAD_TRIGGER_R;
         _pPADStatus->triggerRight = triggervalue;
     }
-
+    
     if (KeyStatus[CTL_START]){_pPADStatus->button |= PAD_BUTTON_START;}
 }
 
