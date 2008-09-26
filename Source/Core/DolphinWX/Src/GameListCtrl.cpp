@@ -274,27 +274,27 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		else
 		{
 			if(EmuState == "5")
-				item.SetText("Perfect");
+                            item.SetText(_("Perfect"));
 			else if(EmuState == "4")
-				item.SetText("In Game");
+                            item.SetText(_("In Game"));
 			else if(EmuState == "3")
-				item.SetText("Intro");
+                            item.SetText(_("Intro"));
 			else if(EmuState == "2")
 			{
-				item.SetText("Problems: Other");
+                            item.SetText(_("Problems: Other"));
 				//NOTE (Daco): IMO under 2 i see problems like music and games that only work 
 				//with GL or only with DX9
 				//TODO (Daco): maybe 2 should get a function to present more info... o.o
 			}
 			else if(EmuState == "1")
-				item.SetText("Broken");
+                            item.SetText(_("Broken"));
 			else if(EmuState == "0")
-				item.SetText("Not Set");
+                            item.SetText(_("Not Set"));
 			else 
 			{
 				//if the EmuState isn't a number between 0 & 5 we dont know the state 
 				//hence why it should say unknown
-				item.SetText("unknown emu ID");
+                            item.SetText(_("unknown emu ID"));
 			}
 		}
 		SetItem(item);
