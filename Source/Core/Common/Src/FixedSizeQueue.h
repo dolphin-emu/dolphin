@@ -46,7 +46,7 @@ public:
 
 	~FixedSizeQueue()
 	{
-		delete storage;
+		delete [] storage;
 	}
 
 	void push(T t) {
