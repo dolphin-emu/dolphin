@@ -38,10 +38,10 @@ struct CodeOp //16B
 	u32 address;
 	u32 branchTo; //if 0, not a branch
 	int branchToIndex; //index of target block
-	u8 regsOut[2];
-	u8 regsIn[3];
-	u8 fregOut;
-	u8 fregsIn[3];
+	s8 regsOut[2];
+	s8 regsIn[3];
+	s8 fregOut;
+	s8 fregsIn[3];
 	bool isBranchTarget;
 	bool wantsCR0;
 	bool wantsCR1;

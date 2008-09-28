@@ -31,9 +31,9 @@ public:
 	CFileSystemGCWii(const IVolume *_rVolume);
 	virtual ~CFileSystemGCWii();
 	virtual bool IsInitialized() const;
-	virtual size_t GetFileSize(const char* _rFullPath) const;
+	virtual u64 GetFileSize(const char* _rFullPath) const;
 	virtual const char* GetFileName(u64 _Address) const;
-	virtual size_t ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) const;
+	virtual u64 ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) const;
 	virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename) const;
 	virtual bool ExportAllFiles(const char* _rFullPath) const;
 

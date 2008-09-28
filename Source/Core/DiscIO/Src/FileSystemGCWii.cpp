@@ -43,7 +43,7 @@ bool CFileSystemGCWii::IsInitialized() const
 	return m_Initialized;
 }
 
-size_t CFileSystemGCWii::GetFileSize(const char* _rFullPath) const
+u64 CFileSystemGCWii::GetFileSize(const char* _rFullPath) const
 {
 	if (!m_Initialized)
 		return 0;
@@ -70,7 +70,7 @@ const char* CFileSystemGCWii::GetFileName(u64 _Address) const
 	return NULL;
 }
 
-size_t CFileSystemGCWii::ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) const
+u64 CFileSystemGCWii::ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) const
 {
 	if (!m_Initialized)
 		return 0;
@@ -170,7 +170,7 @@ bool CFileSystemGCWii::InitFileSystem()
 	}
 
 	// read the whole FST
-	u32 FSTOffset = Read32(0x424) << m_OffsetShift;
+	u64 FSTOffset = (u64)Read32(0x424) << m_OffsetShift;
 	// u32 FSTSize     = Read32(0x428);
 	// u32 FSTMaxSize  = Read32(0x42C);
 

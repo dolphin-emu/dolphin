@@ -28,39 +28,32 @@
 #include "VolumeCreator.h"
 #include "Filesystem.h"
 
+// Hack
+u8 coverByte = 0;
 
-// __________________________________________________________________________________________________
-//
+
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName )
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
     , m_pVolume(NULL)
     , m_pFileSystem(NULL)
 {
-    
 	m_pVolume = VolumeHandler::GetVolume();
     if (m_pVolume)
         m_pFileSystem = DiscIO::CreateFileSystem(m_pVolume);
 }
 
-// __________________________________________________________________________________________________
-//
 CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
 {
     delete m_pFileSystem;
     delete m_pVolume;
 }
 
-// __________________________________________________________________________________________________
-//
-bool 
-CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress)
 {
     Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
     return true;
 }
 
-// __________________________________________________________________________________________________
-//
 bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress) 
 {
     LOG(WII_IPC_HLE, "*******************************");
@@ -93,8 +86,6 @@ bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
     return true;
 }
 
-// __________________________________________________________________________________________________
-//
 bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress) 
 {  
     PanicAlert("CWII_IPC_HLE_Device_di::IOCtlV() unknown");
@@ -104,11 +95,6 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
     return true;
 }
 
-// Hack
-u8 coverByte = 0;
-
-// __________________________________________________________________________________________________
-//
 u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize)
 {    
     u32 Command = Memory::Read_U32(_BufferIn) >> 24;
@@ -160,8 +146,8 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	case 0xd0:
     case 0x71:
         {                                 
-            u32 Size = Memory::Read_U32(_BufferIn+0x04);
-            u64 DVDAddress = (u64)Memory::Read_U32(_BufferIn+0x08) << 2;
+            u32 Size = Memory::Read_U32(_BufferIn + 0x04);
+            u64 DVDAddress = (u64)Memory::Read_U32(_BufferIn + 0x08) << 2;
 
             const char* pFilename = m_pFileSystem->GetFileName(DVDAddress);
             if (pFilename != NULL)
@@ -175,7 +161,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
             if (Size > _BufferOutSize)
             {
-                PanicAlert("You try to read more data from the DVD than fit inside the out buffer. Clamp.");
+                PanicAlert("Detected attempt to read more data from the DVD than fit inside the out buffer. Clamp.");
                 Size = _BufferOutSize;
             }
 
@@ -244,7 +230,9 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
     // DVDLowSeek
     case 0xab:
-        {}
+        {
+			// PanicAlert("DVDLowSeek");
+		}
         break;
 
 	// DVDLowStopMotor

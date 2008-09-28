@@ -47,6 +47,8 @@ bool SignatureDB::Load(const char *filename)
         memset(&temp, 0, sizeof(temp));
 
         fread(&temp, sizeof(temp), 1, f);
+		temp.name[sizeof(temp.name)-1] = 0;
+
 		DBFunc dbf;
 		dbf.name = temp.name;
 		dbf.size = temp.size;
@@ -61,7 +63,7 @@ bool SignatureDB::Save(const char *filename)
 	FILE *f = fopen(filename,"wb");
 	if (!f)
 	{
-		LOG(HLE,"Database save failed");
+		LOG(HLE, "Database save failed");
 		return false;
 	}
 	int fcount = (int)database.size();

@@ -61,7 +61,7 @@ bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 	if (nbytes >= 0x100000000ULL)
 		return false; // WTF, does windows really have this limitation?
 
-	DWORD unused;
+	DWORD unused = 0;
 	if (!ReadFile(hFile, out_ptr, DWORD(nbytes & 0xFFFFFFFF), &unused, NULL))
 		return false;
 	else

@@ -120,7 +120,8 @@ void UpdateFPSCR(UReg_FPSCR fp)
 #endif
 	if (fp.VE || fp.OE || fp.UE || fp.ZE || fp.XE)
 	{
-		PanicAlert("FPSCR - exceptions enabled. Please report.");
+		// PanicAlert("FPSCR - exceptions enabled. Please report.");
+		// Pokemon Colosseum does this. Gah.
 	}
 
 	// Also corresponding SSE rounding mode setting

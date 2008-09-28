@@ -179,16 +179,16 @@ void SymbolDB::FillInCallers()
 	}
 }
 
-void SymbolDB::PrintCalls(u32 funcAddr)
+void SymbolDB::PrintCalls(u32 funcAddr) const
 {
-	XFuncMap::iterator iter = functions.find(funcAddr);
+	XFuncMap::const_iterator iter = functions.find(funcAddr);
 	if (iter != functions.end())
 	{
-		Symbol &f = iter->second;
+		const Symbol &f = iter->second;
 		LOG(HLE, "The function %s at %08x calls:", f.name.c_str(), f.address);
-		for (std::vector<SCall>::iterator fiter = f.calls.begin(); fiter!=f.calls.end(); fiter++)
+		for (std::vector<SCall>::const_iterator fiter = f.calls.begin(); fiter!=f.calls.end(); fiter++)
 		{
-			XFuncMap::iterator n = functions.find(fiter->function);
+			XFuncMap::const_iterator n = functions.find(fiter->function);
 			if (n != functions.end())
 			{
 				LOG(CONSOLE,"* %08x : %s", fiter->callAddress, n->second.name.c_str());
@@ -201,16 +201,16 @@ void SymbolDB::PrintCalls(u32 funcAddr)
 	}
 }
 
-void SymbolDB::PrintCallers(u32 funcAddr)
+void SymbolDB::PrintCallers(u32 funcAddr) const
 {
-	XFuncMap::iterator iter = functions.find(funcAddr);
+	XFuncMap::const_iterator iter = functions.find(funcAddr);
 	if (iter != functions.end())
 	{
-		Symbol &f = iter->second;
+		const Symbol &f = iter->second;
 		LOG(CONSOLE,"The function %s at %08x is called by:",f.name.c_str(),f.address);
-		for (std::vector<SCall>::iterator fiter = f.callers.begin(); fiter != f.callers.end(); fiter++)
+		for (std::vector<SCall>::const_iterator fiter = f.callers.begin(); fiter != f.callers.end(); fiter++)
 		{
-			XFuncMap::iterator n = functions.find(fiter->function);
+			XFuncMap::const_iterator n = functions.find(fiter->function);
 			if (n != functions.end())
 			{
 				LOG(CONSOLE,"* %08x : %s", fiter->callAddress, n->second.name.c_str());
@@ -294,7 +294,7 @@ bool SymbolDB::LoadMap(const char *filename)
 	return true;
 }
 
-bool SymbolDB::SaveMap(const char *filename)
+bool SymbolDB::SaveMap(const char *filename) const
 {
 	FILE *f = fopen(filename, "w");
 	if (!f)

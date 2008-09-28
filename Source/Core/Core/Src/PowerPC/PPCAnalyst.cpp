@@ -105,7 +105,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size)
 	while (true)
 	{
 		func.size += 4;
-		if (func.size > 1024*16*4) //weird
+		if (func.size >= CODEBUFFER_SIZE * 4) //weird
 			return false;
 		
 		UGeckoInstruction instr = (UGeckoInstruction)Memory::ReadUnchecked_U32(addr);
@@ -311,7 +311,7 @@ CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, 
 	Todo todo = Nothing;
 
 	//Symbol *f = g_symbolDB.GetSymbolFromAddr(address);
-	int maxsize = 20000;
+	int maxsize = CODEBUFFER_SIZE;
 	//for now, all will return JustCopy :P
 	/*
 	if (f)
@@ -408,7 +408,6 @@ CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, 
 
 	// Do analysis of the code, look for dependencies etc
 	int numSystemInstructions = 0;
-
 	for (int i = 0; i < 32; i++)
 	{
 		gpa.firstRead[i]  = -1;
@@ -422,10 +421,9 @@ CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, 
 	{
 		UGeckoInstruction inst = code[i].inst;
 		if (PPCTables::UsesFPU(inst))
-		{
 			fpa.any = true;
-		}
-		GekkoOPInfo *opinfo = GetOpInfo(code[i].inst);
+
+		const GekkoOPInfo *opinfo = GetOpInfo(code[i].inst);
 		_assert_msg_(GEKKO, opinfo != 0, "Invalid Op - Error scanning %08x op %08x",address+i*4,inst);
 		int flags = opinfo->flags;
 
@@ -512,6 +510,8 @@ CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, 
 		for (int j = 0; j < numIn; j++)
 		{
 			int r = code[i].regsIn[j];
+			if (r < 0 || r > 31)
+				PanicAlert("wtf");
 			if (gpa.firstRead[r] == -1)
 				gpa.firstRead[r] = (short)(i);
 			gpa.lastRead[r] = (short)(i);
@@ -521,6 +521,8 @@ CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, 
 		for (int j = 0; j < numOut; j++)
 		{
 			int r = code[i].regsOut[j];
+			if (r < 0 || r > 31)
+				PanicAlert("wtf");
 			if (gpa.firstWrite[r] == -1)
 				gpa.firstWrite[r] = (short)(i);
 			gpa.lastWrite[r] = (short)(i);

@@ -39,7 +39,6 @@ void SCoreStartupParameter::LoadDefaults()
 	SelectedLanguage = 0;
 }
 
-
 bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios) 
 {
 	static const char *s_DataBasePath_EUR = "Data_EUR";

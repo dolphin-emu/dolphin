@@ -48,12 +48,6 @@ struct Symbol
 		analyzed(0)
 	{}
 
-	~Symbol()
-	{
-		callers.clear();
-		calls.clear();
-	}
-
 	std::string name;
 	std::vector<SCall> callers; //addresses of functions that call this function
 	std::vector<SCall> calls;   //addresses of functions that are called by this function
@@ -64,7 +58,6 @@ struct Symbol
 	int numCalls;
 	int type;
 	int index; // only used for coloring the disasm view
-
 	int analyzed;
 };
 
@@ -125,10 +118,10 @@ public:
 	void FillInCallers();
 
 	bool LoadMap(const char *filename);
-	bool SaveMap(const char *filename);
+	bool SaveMap(const char *filename) const;
 
-	void PrintCalls(u32 funcAddr);
-	void PrintCallers(u32 funcAddr);
+	void PrintCalls(u32 funcAddr) const;
+	void PrintCallers(u32 funcAddr) const;
 	void LogFunctionCall(u32 addr);
 };
 

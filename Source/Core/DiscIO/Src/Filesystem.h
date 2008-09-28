@@ -26,9 +26,9 @@ namespace DiscIO
 // file info of an FST entry
 struct SFileInfo
 {
-	u32 m_NameOffset;
+	u64 m_NameOffset;
 	u64 m_Offset;
-	u32 m_FileSize;
+	u64 m_FileSize;
 	char m_FullPath[512];
 
 	bool IsDirectory() const { return (m_NameOffset & 0xFF000000) != 0 ? true : false; }
@@ -51,9 +51,8 @@ public:
 	virtual ~IFileSystem();
 	virtual bool IsInitialized() const = 0;
 	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames) const = 0;
-	virtual size_t GetFileSize(const char* _rFullPath) const = 0;
-
-	virtual size_t ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) const = 0;
+	virtual u64 GetFileSize(const char* _rFullPath) const = 0;
+	virtual u64 ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) const = 0;
 	virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename) const = 0;
 	virtual bool ExportAllFiles(const char* _rFullPath) const = 0;
 	virtual const char* GetFileName(u64 _Address) const = 0;

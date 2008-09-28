@@ -49,7 +49,7 @@
 
 void CBoot::Load_FST(bool _bIsWii)
 {
-	if(VolumeHandler::IsValid())
+	if (VolumeHandler::IsValid())
 	{
 		// copy first 20 bytes of disc to start of Mem 1
 		VolumeHandler::ReadToPtr(Memory::GetPointer(0x80000000), 0, 0x20);		
@@ -58,11 +58,11 @@ void CBoot::Load_FST(bool _bIsWii)
 		Memory::Write_U32(Memory::Read_U32(0x80000000), 0x80003180);
 		
 		u32 shift = 0;
-		if(_bIsWii)
+		if (_bIsWii)
 			shift = 2;
 
-		u32 fstOffset = VolumeHandler::Read32(0x0424) << shift;
-		u32 fstSize = VolumeHandler::Read32(0x0428) << shift;
+		u32 fstOffset  = VolumeHandler::Read32(0x0424) << shift;
+		u32 fstSize    = VolumeHandler::Read32(0x0428) << shift;
 		u32 maxFstSize = VolumeHandler::Read32(0x042c) << shift;
 
 		u32 arenaHigh = 0x817FFFF4 - maxFstSize;
@@ -150,7 +150,7 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
 
 	g_symbolDB.Clear();
     VideoInterface::PreInit(_StartupPara.bNTSC);
-    switch(_StartupPara.m_BootType)
+    switch (_StartupPara.m_BootType)
     {
     // GCM
     // ===================================================================================
@@ -244,18 +244,12 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
 			}
 
 			// load image or create virtual drive from directory
-			if(!_StartupPara.m_strDVDRoot.empty())
-			{
+			if (!_StartupPara.m_strDVDRoot.empty())
 				VolumeHandler::SetVolumeDirectory(_StartupPara.m_strDVDRoot, elfWii);
-			}
-			else if(!_StartupPara.m_strDefaultGCM.empty())
-			{
+			else if (!_StartupPara.m_strDefaultGCM.empty())
 				VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM);
-			}
 			else
-			{
 				VolumeHandler::SetVolumeDirectory(_StartupPara.m_strFilename, elfWii);
-			}
 
 			DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 
