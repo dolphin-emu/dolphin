@@ -64,6 +64,15 @@ namespace EmuWindow
 			// Reset the D3D Device here
 			// Also make damn sure that this is not called from inside rendering a frame :P
 			break;
+
+		case WM_SYSCOMMAND:
+			switch (wParam) 
+			{
+			case SC_SCREENSAVE:
+			case SC_MONITORPOWER:
+				return 0;
+			}
+			break;
 		}
 
 		return DefWindowProc(hWnd, iMsg, wParam, lParam);

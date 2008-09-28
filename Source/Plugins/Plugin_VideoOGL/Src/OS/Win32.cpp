@@ -130,6 +130,15 @@ namespace EmuWindow
 			//Shutdown();
 			//PostQuitMessage( 0 );
 			break;
+
+		case WM_SYSCOMMAND:
+			switch (wParam) 
+			{
+			case SC_SCREENSAVE:
+			case SC_MONITORPOWER:
+				return 0;
+			}
+			break;
 		}
 
 		return DefWindowProc(hWnd, iMsg, wParam, lParam);
