@@ -50,6 +50,10 @@ class CFrame
 		void RecreateToolbar();
 		void CreateMenu();
 
+#ifdef _WIN32
+		// Override window proc for tricks like screensaver disabling
+		WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
+#endif
 		// event handler
 		void OnQuit(wxCommandEvent& event);
 		void OnHelp(wxCommandEvent& event);

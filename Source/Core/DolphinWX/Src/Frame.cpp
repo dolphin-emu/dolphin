@@ -180,6 +180,25 @@ CFrame::CFrame(wxFrame* parent,
 	UpdateGUI();
 }
 
+#ifdef _WIN32
+
+WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
+{
+	switch (nMsg)
+	{
+	case WM_SYSCOMMAND:
+		switch (wParam) 
+		{
+		case SC_SCREENSAVE:
+		case SC_MONITORPOWER:
+			return 0;
+		}
+	default:
+		return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
+	}
+}
+
+#endif
 
 void CFrame::CreateMenu()
 {
