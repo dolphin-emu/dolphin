@@ -23,6 +23,8 @@
 #include "../DSPHandler.h"
 #include "Thread.h"
 #include "Mixer.h"
+#include "FixedSizeQueue.h"
+
 #ifdef _WIN32
 #include "../PCHW/DSoundStream.h"
 #endif
@@ -31,8 +33,11 @@ namespace {
 Common::CriticalSection push_sync;
 
 // On real hardware, this fifo is much, much smaller. But timing is also tighter than under Windows, so...
-int queue_maxlength = 1024 * 8;
-std::queue<s16> sample_queue;
+const int queue_minlength = 1024 * 4;
+const int queue_maxlength = 1024 * 28;
+
+FixedSizeQueue<s16, queue_maxlength> sample_queue;
+
 }  // namespace
 
 volatile bool mixer_HLEready = false;
@@ -59,15 +64,20 @@ void Mixer(short *buffer, int numSamples, int bits, int rate, int channels)
 
 	push_sync.Enter();
 	int count = 0;
-	while (sample_queue.size() && count < numSamples * 2) {
+	while (queue_size > queue_minlength && count < numSamples * 2) {
 		int x = buffer[count];
 		x += sample_queue.front();
 		if (x > 32767) x = 32767;
 		if (x < -32767) x = -32767;
-		buffer[count] = x;
-		count++;
+		buffer[count++] = x;
 		sample_queue.pop();
-		queue_size--;
+		x = buffer[count];
+		x += sample_queue.front();
+		if (x > 32767) x = 32767;
+		if (x < -32767) x = -32767;
+		buffer[count++] = x;
+		sample_queue.pop();
+		queue_size-=2;
 	}
 	push_sync.Leave();
 }
@@ -77,6 +87,12 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate) {
 //	if (!f)
 //		f = fopen("d:\\hello.raw", "wb");
 //	fwrite(buffer, num_stereo_samples * 4, 1, f);
+	if (queue_size == 0)
+	{
+		queue_size = queue_minlength;
+		for (int i = 0; i < queue_minlength; i++)
+			sample_queue.push((s16)0);
+	}
 
 	static int PV1l=0,PV2l=0,PV3l=0,PV4l=0;
 	static int PV1r=0,PV2r=0,PV3r=0,PV4r=0;
@@ -84,15 +100,15 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate) {
 
 #ifdef _WIN32
 	if (!GetAsyncKeyState(VK_TAB)) {
-	while (queue_size > queue_maxlength / 2) {
-		DSound::DSound_UpdateSound();
-		Sleep(0);
-	}
+		while (queue_size > queue_maxlength / 2) {
+			DSound::DSound_UpdateSound();
+			Sleep(0);
+		}
 	} else {
 		return;
 	}
 #else
-	while (queue_size > queue_maxlength / 2) {
+	while (queue_size > queue_maxlength) {
 		sleep(0);
 	}
 #endif
@@ -103,7 +119,7 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate) {
 	while (num_stereo_samples) 
 	{
 		acc += sample_rate;
- 		while (num_stereo_samples && (acc>=48000))
+ 		while (num_stereo_samples && (acc >= 48000))
  		{
  			PV4l=PV3l;
  			PV3l=PV2l;
