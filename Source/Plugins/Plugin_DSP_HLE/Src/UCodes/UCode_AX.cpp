@@ -135,14 +135,63 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 	{
 		AXParamBlock& pb = PBs[i];
 
+
+
+		// =======================================================================================
+		// Sequenced music fix - This seems to work allright. I'm not sure which detection method cause
+		// the least side effects, but pred_scale seems to be nice and simple. Please report any side
+		// effects.
+		// ---------------------------------------------------------------------------------------
+		if (!pb.running && pb.adpcm_loop_info.pred_scale)	
+		/*
+		if (!pb.running && 
+			(pb.updates.num_updates[0] || pb.updates.num_updates[1] || pb.updates.num_updates[2]
+			|| pb.updates.num_updates[3] || pb.updates.num_updates[4])
+			)	
+		*/
+		{
+			pb.running = true;
+		}
+		// =======================================================================================
+
+
+
+		// =======================================================================================
+		/*
+		Fix a problem introduced with the SSBM fix - Sometimes when a music stream ended sampleEnd
+		would become extremely high and the game would play random sound data from ARAM resulting in
+		a strange noise. This should take care of that. However, when you leave the Continue menu there's
+		some kind of buzing or interference noise in the music. But it goes away, so I guess it's not a
+		big issue. Please report any side effects.
+		*/
+		// ---------------------------------------------------------------------------------------
+		const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
+		if (sampleEnd > 0x80000000)
+		{
+			pb.running = 0;
+
+			// also reset all values if it makes any difference
+			pb.audio_addr.cur_addr_hi = 0;
+			pb.audio_addr.cur_addr_lo = 0;
+			pb.audio_addr.end_addr_hi = 0;
+			pb.audio_addr.end_addr_lo = 0;
+			pb.audio_addr.loop_addr_hi = 0;
+			pb.audio_addr.loop_addr_lo = 0;
+
+			pb.audio_addr.looping = 0;
+			pb.adpcm_loop_info.pred_scale = 0;
+			pb.adpcm_loop_info.yn1 = 0;
+			pb.adpcm_loop_info.yn2 = 0;
+		}
+		// =======================================================================================
+
 		if (pb.running)
 		{
 			// =======================================================================================
 			// Set initial parameters
 			// ---------------------------------------------------------------------------------------
 			//constants
-			const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
-			const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
+			const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;			
 			const u32 ratio     = (u32)(((pb.src.ratio_hi << 16) + pb.src.ratio_lo) * ratioFactor);
 
 			//variables
@@ -185,7 +234,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 
 			// =======================================================================================
-			// Streaming music and volume - A lot of music in Paper Mario use the exat same settings, namely
+			// Streaming music and volume - A lot of music in Paper Mario use the exact same settings, namely
 			// these:	
 				// Base settings
 					// is_stream = 1
