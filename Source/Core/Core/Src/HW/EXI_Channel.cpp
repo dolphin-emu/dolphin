@@ -48,7 +48,7 @@ CEXIChannel::~CEXIChannel()
 
 void CEXIChannel::RemoveDevices()
 {
-	for (int i = 0; i < NUM_DEVICES; i++)
+	for (int i = 0; i < NUM_DEVICES; i++) 
 	{
 		if (m_pDevices[i] != NULL)
 		{
@@ -125,16 +125,8 @@ void CEXIChannel::Update()
 	}
 }
 
-bool bDirty = true;
-u32 lastReg = -1, lastChan, lastVal;
-
 void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 {
-	if(lastReg == _iRegister && m_ChannelId == lastChan && !bDirty) {
-		_uReturnValue = lastVal;
-		return;
-	}
-
 	LOG(EXPANSIONINTERFACE, "ExtensionInterface(R): channel: %i  reg: %i", m_ChannelId, _iRegister);
 
 	switch (_iRegister)
@@ -175,15 +167,10 @@ void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 		_uReturnValue = 0xDEADBEEF;
 	}
 	
-	lastReg = _iRegister;
-	lastChan = m_ChannelId;
-	lastVal = _uReturnValue;
-	bDirty = false;
 }
 
 void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 {
-	bDirty = true;
 	LOG(EXPANSIONINTERFACE, "ExtensionInterface(W): 0x%08x channel: %i  reg: %i", _iValue, m_ChannelId, _iRegister);
 
 	switch (_iRegister)
@@ -221,7 +208,7 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 				}		
 				m_Status.CHIP_SELECT = newStatus.CHIP_SELECT;								
 			}
-			
+
 			// External Status
 			IEXIDevice* pDevice = GetDevice(newStatus.CHIP_SELECT);
 			if (pDevice != NULL)
@@ -277,7 +264,7 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 					case 1: pDevice->DMAWrite(m_DMAMemoryAddress, m_DMALength); break;
 					default: _dbg_assert_msg_(EXPANSIONINTERFACE,0,"EXI DMA: Unknown transfer type %i", m_Control.RW);
 				}
-  				m_Control.TSTART = 0;
+				m_Control.TSTART = 0;
 			}
 
 			if(!m_Control.TSTART) // completed !
