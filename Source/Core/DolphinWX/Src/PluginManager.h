@@ -43,6 +43,7 @@ public:
 	void ScanForPlugins(wxWindow* _wxWindow);
 	void OpenAbout(void* _Parent, const char *_rFilename);
 	void OpenConfig(void* _Parent, const char *_rFilename);
+	void OpenDebug(void* _Parent, const char *_rFilename);
 	const CPluginInfos& GetPluginInfos() {return(m_PluginInfos);}
 
 private:

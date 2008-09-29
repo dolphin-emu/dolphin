@@ -118,6 +118,15 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename)
 	}
 }
 
+void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename)
+{
+	if (Common::CPlugin::Load(_rFilename))
+	{
+		Common::CPlugin::Debug((HWND)_Parent);
+		Common::CPlugin::Release();
+	}
+}
+
 CPluginInfo::CPluginInfo(const char *_rFileName)
 	: m_FileName(_rFileName)
 	, m_Valid(false)

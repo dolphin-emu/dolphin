@@ -55,6 +55,14 @@
 #include "PowerPC/Jit64/Jit.h"
 #include "PowerPC/Jit64/JitCache.h"
 
+#include "Plugins/Plugin_DSP.h" // new stuff, to let us open the DLLDebugger
+#include "../../DolphinWX/src/PluginManager.h"
+#include "../../DolphinWX/src/Config.h"
+
+// and here are the classes
+class CPluginInfo;
+class CPluginManager;
+
 extern "C" {
 	#include "../resources/toolbar_play.c"
 	#include "../resources/toolbar_pause.c"
@@ -75,6 +83,8 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
     EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleRegisterWindow)
     EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleBreakPointWindow)
     EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleMemoryWindow)
+	EVT_MENU(IDM_JITWINDOW,			CCodeWindow::OnToggleJitWindow)
+	EVT_MENU(IDM_SOUNDWINDOW,		CCodeWindow::OnToggleSoundWindow)
 
 	EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnInterpreter)
 
@@ -110,11 +120,18 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
 	return(wxBitmap(wxImage(is, wxBITMAP_TYPE_ANY, -1), -1));
 }
 
+// =======================================================================================
+// WARNING: If you create a new dialog window you must add m_dialog(NULL) below otherwise
+// m_dialog = true and things will crash.
+// ----------------
 CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent, wxWindowID id,
 		const wxString& title, const wxPoint& pos, const wxSize& size, long style)
 	: wxFrame(parent, id, title, pos, size, style)
 	, m_LogWindow(NULL)
 	, m_RegisterWindow(NULL)
+	, m_BreakpointWindow(NULL)
+	, m_MemoryWindow(NULL)
+	, m_JitWindow(NULL)
 {
 	InitBitmaps();
 
@@ -138,7 +155,9 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	if (m_LogWindow) m_LogWindow->Load(file);
 	if (m_RegisterWindow) m_RegisterWindow->Load(file);
 	if (m_MemoryWindow) m_MemoryWindow->Load(file);
+	if (m_JitWindow) m_JitWindow->Load(file);
 }
+// ===============
 
 
 CCodeWindow::~CCodeWindow()
@@ -151,6 +170,7 @@ CCodeWindow::~CCodeWindow()
 	if (m_LogWindow) m_LogWindow->Save(file);
 	if (m_RegisterWindow) m_RegisterWindow->Save(file);
 	if (m_MemoryWindow) m_MemoryWindow->Save(file);
+	if (m_JitWindow) m_JitWindow->Save(file);
 
 	file.Save("Debugger.ini");
 }
@@ -175,11 +195,36 @@ void CCodeWindow::Save(IniFile &file) const
 	file.Set("Code", "h", GetSize().GetHeight());
 }
 
-
+// =======================================================================================
+// I don't know when you're supposed to be able to use pRegister->Check(true) so I had
+// to set these here. It kept crashing if I placed it after m_LogWindow->Show() below.
+bool bLogWindow = true;
+bool bRegisterWindow = true;
+bool bBreakpointWindow = true;
+bool bMemoryWindow = true;
+bool bJitWindow = true;
+bool bSoundWindow = false;
+// -------------------
 void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter)
 {
+	// =======================================================================================
+	// Decide what windows to use
+	// --------------
+	IniFile ini;
+	ini.Load("Debugger.ini");
+
+	ini.Get("ShowOnStart", "LogWindow", &bLogWindow, true);
+	ini.Get("ShowOnStart", "RegisterWindow", &bRegisterWindow, true);
+	ini.Get("ShowOnStart", "BreakpointWindow", &bBreakpointWindow, true);
+	ini.Get("ShowOnStart", "MemoryWindow", &bMemoryWindow, true);
+	ini.Get("ShowOnStart", "JitWindow", &bJitWindow, true);
+	ini.Get("ShowOnStart", "SoundWindow", &bSoundWindow, false);
+	// ===============
+
 	CreateMenu(_LocalCoreStartupParameter);
 
+	// =======================================================================================
+	// Configure the code window
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
 
@@ -202,30 +247,59 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 	sizerBig->Fit(this);
 
 	sync_event.Init();
+	// =================
+
 
 	// additional dialogs
-	if (IsLoggingActivated())
+	if (IsLoggingActivated() && bLogWindow)
 	{
 		m_LogWindow = new CLogWindow(this);
 		m_LogWindow->Show(true);
 	}
 
-	m_RegisterWindow = new CRegisterWindow(this);
-	m_RegisterWindow->Show(true);
+	if (bRegisterWindow)
+	{
+		m_RegisterWindow = new CRegisterWindow(this);
+		m_RegisterWindow->Show(true);
+	}
 
-	m_BreakpointWindow = new CBreakPointWindow(this, this);
-	m_BreakpointWindow->Show(true);
+	if(bBreakpointWindow)
+	{
+		m_BreakpointWindow = new CBreakPointWindow(this, this);
+		m_BreakpointWindow->Show(true);
+	}
 
-	m_MemoryWindow = new CMemoryWindow(this);
-	m_MemoryWindow->Show(true);
+	if(bMemoryWindow)
+	{
+		m_MemoryWindow = new CMemoryWindow(this);
+		m_MemoryWindow->Show(true);
+	}
 
-	m_JitWindow = new CJitWindow(this);
-	m_JitWindow->Show(true);
+	if(bJitWindow)
+	{
+		m_JitWindow = new CJitWindow(this);
+		m_JitWindow->Show(true);
+	}
+
+	if(IsLoggingActivated() && bSoundWindow)
+	{
+		// no if() check here?
+		CPluginManager::GetInstance().OpenDebug(
+		GetHandle(),
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
+		);
+		
+		
+	}
 }
 
 
 void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter)
 {
+
+	// =======================================================================================
+	// Windowses
+	// ---------------
 	wxMenuBar* pMenuBar = new wxMenuBar(wxMB_DOCKABLE);
 
 	{
@@ -245,19 +319,29 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		if (IsLoggingActivated())
 		{
 			wxMenuItem* pLogWindow = pDebugDialogs->Append(IDM_LOGWINDOW, _T("&LogManager"), wxEmptyString, wxITEM_CHECK);
-			pLogWindow->Check(true);
+			pLogWindow->Check(bLogWindow);
 		}
 
 		wxMenuItem* pRegister = pDebugDialogs->Append(IDM_REGISTERWINDOW, _T("&Registers"), wxEmptyString, wxITEM_CHECK);
-		pRegister->Check(true);
+		pRegister->Check(bRegisterWindow);
 
 		wxMenuItem* pBreakPoints = pDebugDialogs->Append(IDM_BREAKPOINTWINDOW, _T("&BreakPoints"), wxEmptyString, wxITEM_CHECK);
-		pBreakPoints->Check(true);
+		pBreakPoints->Check(bBreakpointWindow);
 
 		wxMenuItem* pMemory = pDebugDialogs->Append(IDM_MEMORYWINDOW, _T("&Memory"), wxEmptyString, wxITEM_CHECK);
-		pMemory->Check(true);
+		pMemory->Check(bMemoryWindow);
+
+		wxMenuItem* pJit = pDebugDialogs->Append(IDM_JITWINDOW, _T("&Jit"), wxEmptyString, wxITEM_CHECK);
+		pJit->Check(bJitWindow);
+
+		if (IsLoggingActivated()) {
+		wxMenuItem* pSound = pDebugDialogs->Append(IDM_SOUNDWINDOW, _T("&Sound"), wxEmptyString, wxITEM_CHECK);
+		pSound->Check(bSoundWindow);}
+
 		pMenuBar->Append(pDebugDialogs, _T("&Views"));
 	}
+	// ===============
+
 
 	{
 		wxMenu *pSymbolsMenu = new wxMenu;
@@ -665,9 +749,17 @@ void CCodeWindow::OnSymbolListContextMenu(wxContextMenuEvent& event)
 
 void CCodeWindow::OnToggleLogWindow(wxCommandEvent& event)
 {
+
 	if (IsLoggingActivated())
 	{
 		bool show = GetMenuBar()->IsChecked(event.GetId());
+
+		// this may be a little ugly to have these here - you're more than welcome to
+		// turn this into the same fancy class stuff like the load windows positions
+		IniFile ini;
+		ini.Load("Debugger.ini");
+		ini.Set("ShowOnStart", "LogWindow", show);
+		ini.Save("Debugger.ini");
 
 		if (show)
 		{
@@ -699,6 +791,11 @@ void CCodeWindow::OnToggleRegisterWindow(wxCommandEvent& event)
 {
 	bool show = GetMenuBar()->IsChecked(event.GetId());
 
+	IniFile ini;
+	ini.Load("Debugger.ini");
+	ini.Set("ShowOnStart", "RegisterWindow", show);
+	ini.Save("Debugger.ini");
+
 	if (show)
 	{
 		if (!m_RegisterWindow)
@@ -723,9 +820,78 @@ void CCodeWindow::OnToggleRegisterWindow(wxCommandEvent& event)
 	}
 }
 
+
+// =======================================================================================
+// Toggle Sound Debugging Window
+// ------------
+void CCodeWindow::OnToggleSoundWindow(wxCommandEvent& event)
+{
+	bool show = GetMenuBar()->IsChecked(event.GetId());
+
+	IniFile ini;
+	ini.Load("Debugger.ini");
+	ini.Set("ShowOnStart", "SoundWindow", show);
+	ini.Save("Debugger.ini");
+
+
+	if (IsLoggingActivated() && show)
+	{
+		// TODO: add some kind of if?
+		CPluginManager::GetInstance().OpenDebug(
+		GetHandle(),
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
+		);
+	}
+	else // hide
+	{
+		 // can we close the dll window from here?
+	}
+}
+// ===========
+
+
+void CCodeWindow::OnToggleJitWindow(wxCommandEvent& event)
+{
+	bool show = GetMenuBar()->IsChecked(event.GetId());
+
+	IniFile ini;
+	ini.Load("Debugger.ini");
+	ini.Set("ShowOnStart", "JitWindow", show);
+	ini.Save("Debugger.ini");
+
+	if (show)
+	{
+		if (!m_JitWindow)
+		{
+			m_JitWindow = new CJitWindow(this);
+		}
+
+		m_JitWindow->Show(true);
+	}
+	else // hide
+	{
+		// If m_dialog is NULL, then possibly the system
+		// didn't report the checked menu item status correctly.
+		// It should be true just after the menu item was selected,
+		// if there was no modeless dialog yet.
+		wxASSERT(m_JitWindow != NULL);
+
+		if (m_JitWindow)
+		{
+			m_JitWindow->Hide();
+		}
+	}
+}
+
+
 void CCodeWindow::OnToggleBreakPointWindow(wxCommandEvent& event)
 {
 	bool show = GetMenuBar()->IsChecked(event.GetId());
+
+	IniFile ini;
+	ini.Load("Debugger.ini");
+	ini.Set("ShowOnStart", "BreakpointWindow", show);
+	ini.Save("Debugger.ini");
 
 	if (show)
 	{
@@ -754,6 +920,11 @@ void CCodeWindow::OnToggleBreakPointWindow(wxCommandEvent& event)
 void CCodeWindow::OnToggleMemoryWindow(wxCommandEvent& event)
 {
 	bool show = GetMenuBar()->IsChecked(event.GetId());
+	
+	IniFile ini;
+	ini.Load("Debugger.ini");
+	ini.Set("ShowOnStart", "MemoryWindow", show);
+	ini.Save("Debugger.ini");
 
 	if (show)
 	{
@@ -803,7 +974,6 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 		    {
 			    m_RegisterWindow->NotifyUpdate();
 		    }
-
 		    break;
 
 		case IDM_UPDATEBREAKPOINTS:

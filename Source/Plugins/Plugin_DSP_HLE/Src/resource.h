@@ -9,10 +9,10 @@
 #define IDC_SAMPLERATE                  1001
 #define IDC_EDIT1                       1002
 #define IDC_SAMPLEDUMPPATH              1002
-#define IDC_CHECK1                      1003
+//#define IDC_CHECK1                      1003 // these conflicted with CDebugger
 #define IDC_ENABLE_AUDIO                1003
 #define IDC_ENABLE_HLE_AUDIO            1003
-#define IDC_CHECK2                      1004
+//#define IDC_CHECK2                      1004
 #define IDC_ENABLE_DTK_MUSIC            1004
 #define IDC_DUMPSAMPLES                 1005
 #define IDC_SAMPLEMINLENGTH             1006

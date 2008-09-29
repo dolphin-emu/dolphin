@@ -131,7 +131,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
+				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include; ..\..\..\Externals\wxWidgets\Include\msvc;../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -220,7 +220,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
+				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -311,7 +311,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -400,7 +400,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
+				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
 				PreprocessorDefinitions="DEBUGFAST;WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -491,7 +491,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
+				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;DEBUGFAST"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -709,6 +709,34 @@
 			</File>
 			<File
 				RelativePath=".\Src\ConfigDlg.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Debugger"
+			>
+			<File
+				RelativePath=".\Src\Debugger\Debugger.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Debugger\Debugger.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Debugger\PBView.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Debugger\PBView.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Logging"
+			>
+			<File
+				RelativePath=".\Src\Logging\Logging.cpp"
 				>
 			</File>
 		</Filter>

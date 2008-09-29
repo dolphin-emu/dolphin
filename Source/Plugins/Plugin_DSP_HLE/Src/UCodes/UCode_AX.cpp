@@ -28,6 +28,14 @@
 #include "UCode_AXStructs.h"
 #include "UCode_AX.h"
 
+#include "../Debugger/Debugger.h"
+// ---------------------------------------------------------------------------------------
+// Externals
+// -----------
+extern float ratioFactor;
+extern CDebugger* m_frame;
+// -----------
+
 CUCode_AX::CUCode_AX(CMailHandler& _rMailHandler, bool wii)
 	: IUCode(_rMailHandler)
 	, m_addressPBs(0xFFFFFFFF)
@@ -126,10 +134,17 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 	// read out pbs
 	int numberOfPBs = ReadOutPBs(PBs, NUMBER_OF_PBS);
 #ifdef _WIN32
-	float ratioFactor = 32000.0f / (float)DSound::DSound_GetSampleRate();
+	ratioFactor = 32000.0f / (float)DSound::DSound_GetSampleRate();
 #else
 	float ratioFactor = 32000.0f / 44100.0f;
 #endif
+
+	// write logging data to debugger
+	if(m_frame)
+	{
+		CUCode_AX::Logging(_pBuffer, _iSize, 0);
+	}
+
 
 	for (int i = 0; i < numberOfPBs; i++)
 	{
@@ -141,7 +156,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		// Sequenced music fix - This seems to work allright. I'm not sure which detection method cause
 		// the least side effects, but pred_scale seems to be nice and simple. Please report any side
 		// effects.
-		// ---------------------------------------------------------------------------------------
+		// ------------
 		if (!pb.running && pb.adpcm_loop_info.pred_scale)	
 		/*
 		if (!pb.running && 
@@ -152,7 +167,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		{
 			pb.running = true;
 		}
-		// =======================================================================================
+		// =============
 
 
 
@@ -164,9 +179,9 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		some kind of buzing or interference noise in the music. But it goes away, so I guess it's not a
 		big issue. Please report any side effects.
 		*/
-		// ---------------------------------------------------------------------------------------
+		// ------------
 		const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
-		if (sampleEnd > 0x80000000)
+		if (sampleEnd > 0x10000000)
 		{
 			pb.running = 0;
 
@@ -183,13 +198,13 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			pb.adpcm_loop_info.yn1 = 0;
 			pb.adpcm_loop_info.yn2 = 0;
 		}
-		// =======================================================================================
+		// =============
 
 		if (pb.running)
 		{
 			// =======================================================================================
 			// Set initial parameters
-			// ---------------------------------------------------------------------------------------
+			// ------------
 			//constants
 			const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;			
 			const u32 ratio     = (u32)(((pb.src.ratio_hi << 16) + pb.src.ratio_lo) * ratioFactor);
@@ -197,7 +212,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			//variables
 			u32 samplePos = (pb.audio_addr.cur_addr_hi << 16) | pb.audio_addr.cur_addr_lo;
 			u32 frac = pb.src.cur_addr_frac;
-			// =======================================================================================
+			// =============
 
 			
 
@@ -208,17 +223,17 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			// ---------------------------------------------------------------------------------------
 			// Stream settings
 				// src_type = 2 (most other games have src_type = 0)
-			// ---------------------------------------------------------------------------------------
+			// ------------
 			// Affected games:
 				// Baten Kaitos - Eternal Wings (2003)
 				// Baten Kaitos - Origins (2006)?
 				// ?
-			// ---------------------------------------------------------------------------------------
+			// ------------
 			if(pb.src_type == 2)
 			{
 				pb.src.ratio_hi = 1;
 			}
-			// =======================================================================================
+			// =============
 
 
 			// =======================================================================================

@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
 #ifndef CODEWINDOW_H_
 #define CODEWINDOW_H_
 
@@ -83,6 +84,8 @@ class CCodeWindow
 			IDM_REGISTERWINDOW,
 			IDM_BREAKPOINTWINDOW,
 			IDM_MEMORYWINDOW,
+			IDM_SOUNDWINDOW, // sound
+			IDM_JITWINDOW, // jit
 			IDM_SCANFUNCTIONS,
 			IDM_LOGINSTRUCTIONS,
 			IDM_LOADMAPFILE,
@@ -143,6 +146,9 @@ class CCodeWindow
 		void OnToggleBreakPointWindow(wxCommandEvent& event);
 		void OnToggleLogWindow(wxCommandEvent& event);
 		void OnToggleMemoryWindow(wxCommandEvent& event);
+		void OnToggleJitWindow(wxCommandEvent& event);
+		void OnToggleSoundWindow(wxCommandEvent& event);
+
 		void OnHostMessage(wxCommandEvent& event);
 		void OnSymbolsMenu(wxCommandEvent& event);
 		void OnJitMenu(wxCommandEvent& event);

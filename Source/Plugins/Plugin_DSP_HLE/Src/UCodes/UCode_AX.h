@@ -30,6 +30,9 @@ public:
 	void MixAdd(short* _pBuffer, int _iSize);
 	void Update();
 
+	// this is a little ugly perhaps, feel free to move it out of here
+	void Logging(short* _pBuffer, int _iSize, int a);
+
 private:
 
 	enum

@@ -15,6 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+// =======================================================================================
+// Includes
+// ------------------
 #include "Common.h"
 #include "Globals.h"
 #include "ChunkFile.h"
@@ -33,6 +36,13 @@
 #include "DSPHandler.h"
 #include "Config.h"
 
+#include "Debugger/Debugger.h" // for the CDebugger class
+// ===================
+
+
+// =======================================================================================
+// DSP struct
+// -------------------
 DSPInitialize g_dspInitialize;
 u8* g_pMemory;
 
@@ -57,6 +67,23 @@ struct DSPState
 };
 
 DSPState g_dspState;
+// ====================
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// wxWidgets - Some kind of stuff wx needs
+// ¯¯¯¯¯¯¯¯¯
+class wxDLLApp : public wxApp
+{
+	bool OnInit()
+	{
+		return true;
+	}
+};
+
+IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+///////////////////
 
 
 #ifdef _WIN32
@@ -69,9 +96,22 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
 	switch (dwReason)
 	{
 	    case DLL_PROCESS_ATTACH:
+			{
+
+			// more stuff wx needs
+			wxSetInstance((HINSTANCE)hinstDLL);
+			int argc = 0;
+			char **argv = NULL;
+			wxEntryStart(argc, argv);
+
+			// This is for ?
+			if ( !wxTheApp || !wxTheApp->CallOnInit() )
+				return FALSE;
+			}
 		    break;
 
 	    case DLL_PROCESS_DETACH:
+				wxEntryCleanup(); // use this or get a crash
 		    break;
 
 	    default:
@@ -84,10 +124,19 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
 
 #endif
 
+// =======================================================================================
+// Create debugging window - We could use use wxWindow win; new CDebugger(win) like nJoy but I don't
+// know why it would be better. - There's a lockup problem with ShowModal(), but Show() doesn't work
+// because then DLL_PROCESS_DETACH is called immediately after DLL_PROCESS_ATTACH.
+// -------------------
+CDebugger* m_frame;
 void DllDebugger(HWND _hParent)
 {
-    // TODO: implement
+	m_frame = new CDebugger(NULL);
+	m_frame->ShowModal();
 }
+// ===================
+
 
 void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {

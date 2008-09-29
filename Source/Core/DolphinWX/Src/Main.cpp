@@ -103,12 +103,15 @@ bool DolphinApp::OnInit()
 	}
 #endif
 
+	// ============
+	// Check for debugger
 	bool UseDebugger = false;
 
 #if wxUSE_CMDLINE_PARSER
 	wxCmdLineEntryDesc cmdLineDesc[] =
 	{
-		{wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("Show this help message"), wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP},
+		{wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("Show this help message"), wxCMD_LINE_VAL_NONE,
+		wxCMD_LINE_OPTION_HELP},
 		{wxCMD_LINE_SWITCH, _T("d"), _T("debugger"), _T("Opens the debugger")},
 		{wxCMD_LINE_NONE}
 	};
@@ -123,6 +126,7 @@ bool DolphinApp::OnInit()
 	} 
 
 	UseDebugger = parser.Found(_T("debugger"));
+	// ============
 #endif
 
 	SConfig::GetInstance().LoadSettings();
@@ -141,8 +145,32 @@ bool DolphinApp::OnInit()
 		const char *title = "Dolphin SVN Linux";
 	#endif
 #endif
-	main_frame = new CFrame((wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
-			wxPoint(100, 100), wxSize(800, 600));
+
+	// ---------------------------------------------------------------------------------------
+	// If we are debugging let use save the main window position and size
+	// TODO: Save position and size on exit
+	// ---------
+	IniFile ini;
+	ini.Load("Debugger.ini");
+
+	int x, y, w, h;
+
+	ini.Get("MainWindow", "x", &x, 100);
+	ini.Get("MainWindow", "y", &y, 100);
+	ini.Get("MainWindow", "w", &w, 600);
+	ini.Get("MainWindow", "h", &h, 800);
+	// ---------
+	if(UseDebugger)
+	{
+		main_frame = new CFrame((wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
+				wxPoint(x, y), wxSize(h, w));
+	}
+	else
+	{
+		main_frame = new CFrame((wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
+				wxPoint(100, 100), wxSize(800, 600));
+	}
+	// ---------
 
 	// create debugger
 	if (UseDebugger)

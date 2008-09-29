@@ -139,11 +139,6 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 		return false;
 	}
 
-#ifdef _WIN32
-	if (PluginDSP::DllDebugger)
-		PluginDSP::DllDebugger((HWND)_CoreParameter.hMainWindow);
-#endif
-
 	emuThreadGoing.Init();
 
 	g_pThread = new Common::Thread(EmuThread, (void*)&g_CoreStartupParameter);

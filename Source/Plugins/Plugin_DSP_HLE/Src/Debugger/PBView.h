@@ -15,38 +15,32 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _PLUGIN_H
-#define _PLUGIN_H
+#ifndef __PBView_h__
+#define __PBView_h__
+
+#include <wx/listctrl.h>
 
 #include "Common.h"
-#include "../../../PluginSpecs/PluginSpecs.h"
-#include "DynamicLibrary.h"
 
-namespace Common
-{
-class CPlugin
+class CPBView
+	: public wxListCtrl
 {
 	public:
 
-		static void Release(void);
-		static bool Load(const char* _szName);
+		CPBView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style);
 
-		static bool GetInfo(PLUGIN_INFO& _pluginInfo);
+		void Update();
 
-		static void Config(HWND _hwnd);
-		static void About(HWND _hwnd);
-		static void Debug(HWND _hwnd);
-
+		u32 m_CachedRegs[64][92];		
+	
 
 	private:
 
-		static DynamicLibrary m_hInstLib;
+		DECLARE_EVENT_TABLE()
+		
+		bool m_CachedRegHasChanged[64];
 
-		static void (__cdecl * m_GetDllInfo)(PLUGIN_INFO* _PluginInfo);
-		static void (__cdecl * m_DllAbout)(HWND _hParent);
-		static void (__cdecl * m_DllConfig)(HWND _hParent);
-		static void (__cdecl * m_DllDebugger)(HWND _hParent);
+		virtual bool MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem);
 };
-} // end of namespace Common
 
 #endif
