@@ -61,34 +61,6 @@ static int colIndex;
     #undef inline
     #define inline
 #endif
-inline u8 ReadBuffer8()
-{
-    return g_pDataReader->Read8();
-}
-
-inline u16 ReadBuffer16()
-{
-    //PowerPC byte ordering :(
-    return g_pDataReader->Read16();
-}
-
-inline u32 ReadBuffer32()
-{
-    //PowerPC byte ordering :(
-    return g_pDataReader->Read32();
-}
-
-inline float ReadBuffer32F()
-{
-    u32 temp = g_pDataReader->Read32();
-    return *(float*)(&temp);
-}
-
-
-inline int GetBufferPosition()
-{
-    return g_pDataReader->GetPosition();
-}
 
 // ==============================================================================
 // Direct
@@ -98,7 +70,7 @@ static int s_texmtxwrite = 0, s_texmtxread = 0;
 
 void LOADERDECL PosMtx_ReadDirect_UByte(void* _p)
 {
-    s_curposmtx = ReadBuffer8()&0x3f;
+    s_curposmtx = DataReadU8()&0x3f;
     PRIM_LOG("posmtx: %d, ", s_curposmtx);
 }
 
@@ -112,7 +84,7 @@ void LOADERDECL PosMtx_Write(void* _p)
 
 void LOADERDECL TexMtx_ReadDirect_UByte(void* _p)
 {
-    s_curtexmtx[s_texmtxread] = ReadBuffer8()&0x3f;
+    s_curtexmtx[s_texmtxread] = DataReadU8()&0x3f;
     PRIM_LOG("texmtx%d: %d, ", s_texmtxread, s_curtexmtx[s_texmtxread]);
     s_texmtxread++;
 }
@@ -704,9 +676,10 @@ void VertexLoader::RunVertices(int primitive, int count)
     if( fnSetupVertexPointers != NULL && fnSetupVertexPointers != (void (*)())(void*)m_compiledCode )
         VertexManager::Flush();
 
-    if( bpmem.genMode.cullmode == 3 && primitive < 5) {
+    if( bpmem.genMode.cullmode == 3 && primitive < 5)
+	{
         // if cull mode is none, ignore triangles and quads
-        g_pDataReader->Skip(count*m_VertexSize);
+		DataSkip(count*m_VertexSize);
         return;
     }
 

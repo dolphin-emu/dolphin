@@ -18,6 +18,7 @@
 #include "Globals.h"
 #include "DataReader.h"
 
+#if !defined(DATAREADER_INLINE) || defined(DATAREADER_DEBUG)
 // =================================================================================================
 // CDataReader_Fifo
 // =================================================================================================
@@ -27,6 +28,7 @@ extern u8 FAKE_ReadFifo8();
 extern u16 FAKE_ReadFifo16();
 extern u32 FAKE_ReadFifo32();
 extern int FAKE_GetPosition();
+extern int FAKE_GetRealPtr();
 extern void FAKE_SkipFifo(u32 skip);
 
 IDataReader::~IDataReader()
@@ -60,6 +62,10 @@ void CDataReader_Fifo::Skip(u32 skip)
 int CDataReader_Fifo::GetPosition()
 {
     return FAKE_GetPosition();
+}
+int CDataReader_Fifo::GetRealPtr()
+{
+	return FAKE_GetRealPtr();
 }
 
 
@@ -108,3 +114,9 @@ void CDataReader_Memory::Skip(u32 skip)
 {
     m_uReadAddress += skip;
 }
+
+int CDataReader_Memory::GetRealPtr()
+{
+	return (int)Memory_GetPtr(m_uReadAddress);
+}
+#endif

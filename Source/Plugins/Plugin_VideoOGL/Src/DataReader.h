@@ -18,6 +18,10 @@
 #ifndef _DATAREADER_H
 #define _DATAREADER_H
 
+#include "Fifo.h"
+
+
+#if !defined(DATAREADER_INLINE) || defined(DATAREADER_DEBUG)
 // =================================================================================================
 // IDataReader
 // =================================================================================================
@@ -34,6 +38,7 @@ public:
     virtual u32 Read32() = 0;
 
 	virtual int GetPosition() = 0; // return values can be anything, as long as relative distances are correct
+	virtual int GetRealPtr() = 0;
 };
 
 // =================================================================================================
@@ -52,6 +57,7 @@ public:
     virtual u16 Read16();
     virtual u32 Read32();
 	virtual int GetPosition();
+	virtual int GetRealPtr();
 };
 
 // =================================================================================================
@@ -76,8 +82,137 @@ public:
     virtual u16 Read16();
     virtual u32 Read32();
 	virtual int GetPosition();
+	virtual int GetRealPtr();
 };
 
 extern IDataReader* g_pDataReader;
+#endif
 
+
+
+
+
+#ifdef DATAREADER_INLINE
+extern u32 g_pVideoData;
+#endif
+
+#ifdef DATAREADER_DEBUG
+extern u32 g_pDataReaderRealPtr;
+#define DATAREADER_DEBUG_CHECK_PTR 		g_pDataReaderRealPtr = g_pDataReader->GetRealPtr(); \
+										if (g_pDataReaderRealPtr!=g_pVideoData) _asm int 3
+#define DATAREADER_DEBUG_CHECK_PTR_VAL	g_pDataReaderRealPtr = g_pDataReader->GetRealPtr(); \
+										if ((g_pDataReaderRealPtr != g_pVideoData) || (tmp != tmpdb)) _asm int 3
+//#define DATAREADER_DEBUG_CHECK_PTR_VAL	DATAREADER_DEBUG_CHECK_PTR
+#else
+#define DATAREADER_DEBUG_CHECK_PTR 		
+#define DATAREADER_DEBUG_CHECK_PTR_VAL	
+#endif
+
+#ifdef DATAREADER_INLINE
+inline u8 DataPeek8(u32 _uOffset)
+{
+	u8 tmp = *(u8*)(g_pVideoData + _uOffset);
+	return  tmp;
+}
+inline u16 DataPeek16(u32 _uOffset)
+{
+    u16 tmp = Common::swap16(*(u16*)(g_pVideoData + _uOffset));
+	return  tmp;
+}
+inline u32 DataPeek32(u32 _uOffset)	{
+    u32 tmp = Common::swap32(*(u32*)(g_pVideoData + _uOffset));
+	return  tmp;
+}
+
+inline u8 DataReadU8()
+{
+	u8 tmp = *(u8*)g_pVideoData;
+	g_pVideoData++;
+#ifdef DATAREADER_DEBUG
+	u8 tmpdb = g_pDataReader->Read8();
+	DATAREADER_DEBUG_CHECK_PTR_VAL;
+#endif
+	return tmp;
+}
+
+inline u16 DataReadU16()
+{
+    u16 tmp = Common::swap16(*(u16*)g_pVideoData);
+	g_pVideoData+=2;
+#ifdef DATAREADER_DEBUG
+	u16 tmpdb = g_pDataReader->Read16();
+	DATAREADER_DEBUG_CHECK_PTR_VAL;
+#endif
+	return tmp;
+}
+
+inline u32 DataReadU32()
+{
+	u32 tmp = Common::swap32(*(u32*)g_pVideoData);
+	g_pVideoData+=4;
+#ifdef DATAREADER_DEBUG
+	u32 tmpdb = g_pDataReader->Read32();
+	DATAREADER_DEBUG_CHECK_PTR_VAL;
+#endif
+	return tmp;
+}
+
+inline float DataReadF32()
+{
+    union {u32 i; float f;} temp;
+	temp.i = Common::swap32(*(u32*)g_pVideoData);
+	g_pVideoData+=4;
+	float tmp = temp.f;
+#ifdef DATAREADER_DEBUG
+	//TODO clean up
+	u32 tmp3 = g_pDataReader->Read32();
+	float tmpdb = *(float*)(&tmp3);
+	DATAREADER_DEBUG_CHECK_PTR_VAL;
+#endif
+	return tmp;
+}
+
+inline u32 DataGetPosition()
+{
+#ifdef DATAREADER_DEBUG
+	DATAREADER_DEBUG_CHECK_PTR;
+#endif
+	return g_pVideoData;
+}
+
+inline void DataSkip(u32 skip)
+{
+	g_pVideoData += skip;
+#ifdef DATAREADER_DEBUG
+	g_pDataReader->Skip(skip);
+	DATAREADER_DEBUG_CHECK_PTR;
+#endif
+}
+#else
+inline u8 DataReadU8()
+{
+	u8 tmp = g_pDataReader->Read8();
+	return tmp;
+}
+inline u16 DataReadU16()
+{
+	u16 tmp = g_pDataReader->Read16();
+	return tmp;
+}
+inline u32 DataReadU32()
+{
+	u32 tmp = g_pDataReader->Read32();
+	return tmp;
+}
+inline float DataReadF32()
+{
+	u32 tmp2 = g_pDataReader->Read32();
+	float tmp = *(float*)(&tmp2);
+	return tmp;
+}
+inline void DataSkip(u32 skip)
+{
+	g_pDataReader->Skip(skip);
+}
+#endif
 #endif

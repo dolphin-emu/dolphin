@@ -23,6 +23,18 @@
 #include "Common.h"
 #include "ChunkFile.h"
 
+// TODO (mb2) clean this if ok
+#define DATAREADER_INLINE // uncomment to use the previous IDataReader way
+//#define DATAREADER_DEBUG // simple compare with the previous IDataReader way
+
+#if defined(DATAREADER_DEBUG) && !defined(DATAREADER_INLINE)
+#define DATAREADER_INLINE
+#endif
+
+
+#define FIFO_SIZE (1024*1024)
+
+#ifndef DATAREADER_INLINE
 // inline for speed!
 class FifoReader
 {
@@ -54,6 +66,7 @@ public:
 
 extern FifoReader fifo;
 
+#endif
 void Fifo_Init();
 void Fifo_Shutdown();
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize);

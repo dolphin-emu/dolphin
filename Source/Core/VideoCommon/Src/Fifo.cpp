@@ -23,9 +23,11 @@
 
 #include "Fifo.h"
 
-#define FIFO_SIZE (1024*1024)
-
+#if defined(DATAREADER_INLINE)
+extern u32 g_pVideoData;
+#else
 FifoReader fifo;
+#endif
 
 // STATE_TO_SAVE
 static u8 *videoBuffer;
@@ -41,12 +43,19 @@ void Fifo_DoState(PointerWrap &p) {
 void Fifo_Init()
 {
     videoBuffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
+#ifndef DATAREADER_INLINE
     fifo.Init(videoBuffer, videoBuffer);  //zero length. there is no data yet.
+#endif
 }
 
 void Fifo_Shutdown()
 {
     FreeMemoryPages(videoBuffer, FIFO_SIZE);
+}
+
+u32 FAKE_GetFifoStartPtr()
+{
+    return (int)videoBuffer;
 }
 
 int FAKE_GetFifoSize()
@@ -56,6 +65,10 @@ int FAKE_GetFifoSize()
         PanicAlert("GFX Fifo underrun encountered (size = %i, readptr = %i)", size, readptr);
     }
     return (size - readptr);
+}
+int FAKE_GetFifoEndAddr()
+{
+    return (int)(videoBuffer+size);
 }
 
 u8 FAKE_PeekFifo8(u32 _uOffset)
@@ -83,6 +96,11 @@ int FAKE_GetPosition()
     return readptr;
 }
 
+int FAKE_GetRealPtr()
+{
+	return (int)(videoBuffer+readptr);
+}
+
 u16 FAKE_ReadFifo16()
 {
     u16 val = Common::swap16(*(u16*)(videoBuffer+readptr));
@@ -104,10 +122,16 @@ void FAKE_SkipFifo(u32 skip)
 
 void Video_SendFifoData(u8* _uData)
 {
+	// TODO (mb2): unrolled loop faster than memcpy here?
     memcpy(videoBuffer + size, _uData, 32);
     size += 32;
     if (size + 32 >= FIFO_SIZE)
     {
+		// TODO (mb2): Better and DataReader inline for DX9 
+#ifdef DATAREADER_INLINE
+		if (g_pVideoData) // for DX9 plugin "compatibility"
+			readptr = g_pVideoData-(u32)videoBuffer;
+#endif
         if (FAKE_GetFifoSize() > readptr)
         {
             PanicAlert("FIFO out of bounds (sz = %i, at %08x)", FAKE_GetFifoSize(), readptr);
@@ -117,6 +141,10 @@ void Video_SendFifoData(u8* _uData)
         //		memset(&videoBuffer[FAKE_GetFifoSize()], 0, FIFO_SIZE - FAKE_GetFifoSize());
         size = FAKE_GetFifoSize();
         readptr = 0;
+#ifdef DATAREADER_INLINE
+		if (g_pVideoData) // for DX9 plugin "compatibility"
+			g_pVideoData = FAKE_GetFifoStartPtr();
+#endif
     }
     OpcodeDecoder_Run();
 }

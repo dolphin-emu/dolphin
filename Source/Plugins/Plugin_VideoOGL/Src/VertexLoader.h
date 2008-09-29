@@ -27,6 +27,7 @@
 using namespace std;
 
 #include "CPMemory.h"
+#include "DataReader.h"
 
 #define LOADERDECL __cdecl
 typedef void (LOADERDECL *TPipelineFunction)(void*);
@@ -219,11 +220,4 @@ public:
 };
 
 extern VertexLoader g_VertexLoaders[8];
-
-u8 ReadBuffer8();
-u16 ReadBuffer16();
-u32 ReadBuffer32();
-float ReadBuffer32F();
-int GetBufferPosition();
-
 #endif

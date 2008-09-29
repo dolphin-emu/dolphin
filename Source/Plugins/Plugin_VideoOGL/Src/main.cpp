@@ -201,8 +201,8 @@ void Video_Prepare(void)
 
     BPInit();
     VertexManager::Init();
+    Fifo_Init(); // must be done before OpcodeDecoder_Init()
     OpcodeDecoder_Init();
-    Fifo_Init();
     VertexShaderMngr::Init();
     PixelShaderMngr::Init();
     GL_REPORT_ERRORD();

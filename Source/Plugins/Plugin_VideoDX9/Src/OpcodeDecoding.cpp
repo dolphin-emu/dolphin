@@ -40,12 +40,17 @@
 #include "XFStructs.h"
 #include "Utils.h"
 #include "main.h"
+#include "Fifo.h"
 #include "DataReader.h"
 
 #include "DLCompiler.h"
 
 #define CMDBUFFER_SIZE 1024*1024
 DecodedVArray tempvarray;
+// TODO (mb2): all! DataReader inline for DX9
+#ifdef DATAREADER_INLINE
+u32 g_pVideoData=0;
+#endif
 void Decode();
 
 extern u8 FAKE_PeekFifo8(u32 _uOffset);
