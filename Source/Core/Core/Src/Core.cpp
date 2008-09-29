@@ -402,8 +402,8 @@ THREAD_RETURN EmuThread(void *pArg)
 	LOG(MASTER_LOG, "EmuThread exited");
 	//The CPU should return when a game is stopped and cleanup should be done here, 
 	//so we can restart the plugins (or load new ones) for the next game
-
-    Host_UpdateMainFrame();
+	if (_CoreParameter.hMainWindow == g_pWindowHandle)
+		Host_UpdateMainFrame();
 	return 0;
 }
 
