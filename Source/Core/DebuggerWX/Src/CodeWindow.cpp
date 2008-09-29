@@ -283,13 +283,25 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 	if(IsLoggingActivated() && bSoundWindow)
 	{
-		// no if() check here?
-		CPluginManager::GetInstance().OpenDebug(
-		GetHandle(),
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
-		);
-		
-		
+		if(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.find("LLE") != -1)
+			// no match = -1, in that case this is ignored
+		{
+			if (Core::GetState() != Core::CORE_UNINITIALIZED)
+			{
+				// possible todo: add some kind of if here to? can it fail?
+				CPluginManager::GetInstance().OpenDebug(
+				GetHandle(),
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
+				);	
+			} // don't have any else, just ignore it
+		}
+		else
+		{
+			CPluginManager::GetInstance().OpenDebug(
+			GetHandle(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
+			);	
+		}		
 	}
 }
 
@@ -836,11 +848,30 @@ void CCodeWindow::OnToggleSoundWindow(wxCommandEvent& event)
 
 	if (IsLoggingActivated() && show)
 	{
-		// TODO: add some kind of if?
-		CPluginManager::GetInstance().OpenDebug(
-		GetHandle(),
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
-		);
+		// we only need to prevent this with the LLE, therefore this check
+		if(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.find("LLE") != -1)
+			// no match = -1, in that case this is ignored
+		{
+			if (Core::GetState() != Core::CORE_UNINITIALIZED)
+			{
+				// TODO: add some kind of if here to?
+				CPluginManager::GetInstance().OpenDebug(
+				GetHandle(),
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
+				);
+			} else {
+				event.Skip();
+				wxMessageBox(_T("Please start the emulator before doing this."));
+			}
+		}
+		else
+		{
+			CPluginManager::GetInstance().OpenDebug(
+			GetHandle(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
+			);
+		}
+
 	}
 	else // hide
 	{
