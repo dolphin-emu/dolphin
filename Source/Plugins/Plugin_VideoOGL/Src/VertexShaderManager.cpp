@@ -324,7 +324,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
         INFO_LOG("view: topleft=(%f,%f), wh=(%f,%f), z=(%f,%f)\n",rawViewport[3]-rawViewport[0]-342,rawViewport[4]+rawViewport[1]-342,
             2 * rawViewport[0], 2 * rawViewport[1], (rawViewport[5]-rawViewport[2])/16777215.0f, rawViewport[5]/16777215.0f);
         glViewport((int)(rawViewport[3]-rawViewport[0]-342) * MValueX,Renderer::GetTargetHeight()-((int)(rawViewport[4]-rawViewport[1]-342))  * MValueY, abs((int)(2 * rawViewport[0])) * MValueX, abs((int)(2 * rawViewport[1])) * MValueY);
-        glDepthRange((rawViewport[5]-rawViewport[2])/-16777215.0f, rawViewport[5]/16777215.0f);
+        glDepthRange(-(0.0f - (rawViewport[5]-rawViewport[2])/-16777215.0f), rawViewport[5]/16777215.0f);
     }
 
     if (bProjectionChanged) {
@@ -344,7 +344,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = rawProjection[4];
-            g_fProjectionMatrix[11] = rawProjection[5]; 
+            g_fProjectionMatrix[11] = -(0.0f-rawProjection[5]); 
                         
             g_fProjectionMatrix[12] = 0.0f;
             g_fProjectionMatrix[13] = 0.0f;
@@ -365,7 +365,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = rawProjection[4];
-            g_fProjectionMatrix[11] = rawProjection[5];
+            g_fProjectionMatrix[11] = -(0.0f-rawProjection[5]);
 
             g_fProjectionMatrix[12] = 0;
             g_fProjectionMatrix[13] = 0;

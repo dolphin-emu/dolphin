@@ -20,6 +20,9 @@
 
 #include <iostream>
 #include <string>
+#include <stdio.h>
+#include <stdlib.h>
+
 
 
 
@@ -75,9 +78,8 @@ CPBView::CPBView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, cons
 
 		// Print values from 0 to 63
 		char buffer [33];
-		itoa(i, buffer, 10);
 		sprintf(buffer, "%02i", i);
-		int Item = InsertItem(0, buffer);
+		int Item = InsertItem(0, wxString::FromAscii(buffer));
 
 
 		wxListItem item;
@@ -109,9 +111,7 @@ CPBView::MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem)
 	// don't change 0, it has the block values
 	if(subitem > 0)
 	{
-//#ifdef __WXMSW__ // what's this? should I use that?
-
-		// =======================================================================================
+	#ifdef __WXMSW__ // what's this? should I use that?
 	    const wxChar* bgColor = _T("#ffffff");
 	    wxBrush bgBrush(bgColor);
 	    wxPen bgPen(bgColor);
@@ -121,13 +121,10 @@ CPBView::MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem)
 	    rPainDC.SetBrush(bgBrush);
 	    rPainDC.SetPen(bgPen);
 	    rPainDC.DrawRectangle(SubItemRect);
-		// =======================================================================================
-
-		// =======================================================================================
+	#endif
 		// A somewhat primitive attempt to show the playing history for a certain block.
-		// ---------------------------------------------------------------------------------------
+
 	    wxString text;
-		// ---------------------------------------------------------------------------------------
 		if(subitem == 1)
 		{
 			char cbuff [33];
@@ -152,9 +149,12 @@ CPBView::MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem)
 		{
 			text.Printf(wxT("0x%08x"), m_CachedRegs[subitem][item]);
 		}
+		#ifdef __WXMSW__
 	    rPainDC.DrawText(text, SubItemRect.GetLeft() + 10, SubItemRect.GetTop() + 4);
-		// =======================================================================================
-
+	    #else
+	    // May not show up pretty in !Win32
+	    rPainDC.DrawText(text, 10, 4);
+	    #endif
 
 	    return(true);
 	}

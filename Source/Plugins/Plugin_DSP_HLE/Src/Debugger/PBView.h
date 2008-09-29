@@ -19,6 +19,7 @@
 #define __PBView_h__
 
 #include <wx/listctrl.h>
+#include <wx/dcclient.h>
 
 #include "Common.h"
 

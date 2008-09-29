@@ -1,7 +1,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "Common.h"
 #include "Globals.h"
 
 void __Log(int, const char *fmt, ...)

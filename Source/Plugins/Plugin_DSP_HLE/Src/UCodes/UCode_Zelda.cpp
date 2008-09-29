@@ -18,7 +18,6 @@
 // Games that uses this UCode:
 // Zelda: The Windwaker, Mario Sunshine, Mario Kart
 
-#include "Common.h"
 #include "../Globals.h"
 #include "UCodes.h"
 #include "UCode_Zelda.h"

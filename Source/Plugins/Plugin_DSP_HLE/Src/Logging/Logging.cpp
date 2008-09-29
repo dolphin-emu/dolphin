@@ -20,15 +20,16 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
-// =======================================================================================
+
 // Includes
-// ---------------------------------------------------------------------------------------
+
+#include "../Globals.h"
 #include <iostream>
 #include <vector>
 #include <string> // so that we can test std::string == abc
+#ifdef _WIN32
 #include <windows.h>
-
-#include "Common.h"
+#endif
 
 #include "../UCodes/UCodes.h"
 #include "../UCodes/UCode_AXStructs.h"
@@ -36,27 +37,12 @@
 
 #include "../Debugger/PBView.h"
 #include "../Debugger/Debugger.h"
-// =======================================================================================
 
-
-// =======================================================================================
-// Declarations
-// ---------------------------------------------------------------------------------------
-
-
-// ---------------------------------------------------------------------------------------
 // Externals
-// ---------------------------------------------------------------------------------------
 float ratioFactor; // a global to get the ratio factor from MixAdd
-// ---------------------------------------------------------------------------------------
 
-
-// =======================================================================================
-
-
-// ---------------------------------------------------------------------------------------
 // Parameter blocks
-// ---------------------------------------------------------------------------------------
+
 std::vector<u32> gloopPos(64);
 std::vector<u32> gsampleEnd(64);
 std::vector<u32> gsamplePos(64);
@@ -90,33 +76,33 @@ std::vector<u16> gis_stream(64);
 	std::vector<u16> gupdates4(64);
 	std::vector<u16> gupdates5(64);
 	std::vector<u32> gupdates_addr(64);
-// ---------------------------------------------------------------------------------------
 
 
-// ---------------------------------------------------------------------------------------
+
+
 // Counters
-// ---------------------------------------------------------------------------------------
+
 int j = 0;
 int k = 0;
-__int64 l = 0;
-// ---------------------------------------------------------------------------------------
+long int l = 0;
 
 
-// ---------------------------------------------------------------------------------------
+
+
 // More stuff
-// ---------------------------------------------------------------------------------------
+
 std::vector< std::vector<int> > vector1(64, std::vector<int>(100,0)); 
 int vectorLength = 8;
 std::vector<u16> vector62(vectorLength);
 std::vector<u16> vector63(vectorLength);
-// ---------------------------------------------------------------------------------------
 
 
-// ---------------------------------------------------------------------------------------
+
+
 // Classes
-// ---------------------------------------------------------------------------------------
+
 extern CDebugger* m_frame;
-// ---------------------------------------------------------------------------------------		
+		
 
 
 // I placed this in CUCode_AX because there was some kind of problem to call it otherwise,
@@ -128,16 +114,16 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 	int numberOfPBs = ReadOutPBs(PBs, NUMBER_OF_PBS);
 
 
-	// ---------------------------------------------------------------------------------------
+	
 	// Control how often the screen is updated
 	j++;
 	l++;
 	if (j>20)
 	{
 
-		// =======================================================================================
+		
 		// Move all items back - vector1 is a vector1[64][100] vector, I think
-		// ---------------------------------------------------------------------------------------
+		
 		/*
 		1  to  2
 		2      3
@@ -150,20 +136,20 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 				vector1.at(i).at(j-1) = vector1.at(i).at(j);
 			}
 		}
-		// =======================================================================================
+		
 
 
-		// ---------------------------------------------------------------------------------------
+		
 		// Save the latest value
-		// ---------------------------------------------------------------------------------------
+		
 		for (int i = 0; i < numberOfPBs; i++)
 		{
 			vector1.at(i).at(vectorLength-1) = PBs[i].running;
 		}
-		// ---------------------------------------------------------------------------------------
+		
 		
 
-		// =======================================================================================
+		
 		// go through all blocks, or only some
 		for (int i = 0; i < numberOfPBs; i++)
 		{
@@ -172,9 +158,9 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		if(true)
 		{
 
-			// =======================================================================================
+			
 			// Playback history for the GUI debugger
-			// ---------------------------------------------------------------------------------------
+			
 			std::string sbuff;
 
 			for (int j = 0; j < vectorLength; j++)
@@ -192,14 +178,13 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 			u32 run = atoi( sbuff.c_str());
 			m_frame->m_GPRListView->m_CachedRegs[1][i] = run;
 			sbuff.clear();
-			// ================================================================================================
 
 			// We could chose to update these only if a block is currently running - Later I'll add options
 			// to see both the current and the lastets active value.
 			//if (PBs[i].running)
 			if (true)			
 			{
-				// ---------------------------------------------------------------------------------------
+				
 				// AXPB base
 					gcoef[i] = PBs[i].unknown1;
 
@@ -242,7 +227,6 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 					gvolume_right[i] = PBs[i].mixer.volume_right;
 			}
 
-			// ================================================================================================
 				// hopefully this is false if we don't have a debugging window and so it doesn't cause a crash
 				if(m_frame)
 				{
@@ -284,7 +268,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 
 
 
-		// =======================================================================================
+		
 		// New values are written so update - DISABLED - It flickered a lot, even worse than a
 		// console window. I'll add a console window later to show the current status.
 		//if(m_frame)
@@ -292,14 +276,13 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		{
 			//m_frame->NotifyUpdate();
 		}
-		// =======================================================================================		
+			
 
 		k=0;
 		j=0;
 
 	} // end of if (j>20)
 	
-	// ---------------------------------------------------------------------------------------
+	
 
 } // end of function
-// =======================================================================================
