@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
+				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -70,7 +70,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib Rpcrt4.lib"
 				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLED.dll"
 				LinkIncremental="2"
 				GenerateManifest="false"
@@ -156,7 +156,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib Rpcrt4.lib"
 				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_HLED.dll"
 				LinkIncremental="2"
 				GenerateManifest="false"
