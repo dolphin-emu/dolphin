@@ -125,8 +125,16 @@ void CEXIChannel::Update()
 	}
 }
 
+bool bDirty = true;
+u32 lastReg = -1, lastChan, lastVal;
+
 void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 {
+	if(lastReg == _iRegister && m_ChannelId == lastChan && !bDirty) {
+		_uReturnValue = lastVal;
+		return;
+	}
+
 	LOG(EXPANSIONINTERFACE, "ExtensionInterface(R): channel: %i  reg: %i", m_ChannelId, _iRegister);
 
 	switch (_iRegister)
@@ -143,31 +151,39 @@ void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 				}
 			}
 			_uReturnValue = m_Status.hex;
-			return;
+			break;
 		}
 
 	case EXI_DMAADDR:
 		_uReturnValue = m_DMAMemoryAddress;
-		return;
+		break;
 
 	case EXI_DMALENGTH:
 		_uReturnValue = m_DMALength;
-		return;
+		break;
 
 	case EXI_DMACONTROL:
 		_uReturnValue = m_Control.hex;
-		return;
+		break;
 
 	case EXI_IMMDATA:		
 		_uReturnValue = m_ImmData;
-		return;
+		break;
+
+	default:
+		_dbg_assert_(EXPANSIONINTERFACE, 0);
+		_uReturnValue = 0xDEADBEEF;
 	}
-	_dbg_assert_(EXPANSIONINTERFACE, 0);
-	_uReturnValue = 0xDEADBEEF;
+	
+	lastReg = _iRegister;
+	lastChan = m_ChannelId;
+	lastVal = _uReturnValue;
+	bDirty = false;
 }
 
 void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 {
+	bDirty = true;
 	LOG(EXPANSIONINTERFACE, "ExtensionInterface(W): 0x%08x channel: %i  reg: %i", _iValue, m_ChannelId, _iRegister);
 
 	switch (_iRegister)
