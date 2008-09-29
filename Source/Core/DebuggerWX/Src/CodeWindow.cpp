@@ -56,8 +56,8 @@
 #include "PowerPC/Jit64/JitCache.h"
 
 #include "Plugins/Plugin_DSP.h" // new stuff, to let us open the DLLDebugger
-#include "../../DolphinWX/src/PluginManager.h"
-#include "../../DolphinWX/src/Config.h"
+#include "../../DolphinWX/Src/PluginManager.h"
+#include "../../DolphinWX/Src/Config.h"
 
 // and here are the classes
 class CPluginInfo;
