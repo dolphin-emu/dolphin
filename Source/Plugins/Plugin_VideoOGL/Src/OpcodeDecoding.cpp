@@ -62,7 +62,6 @@ extern u32 FAKE_GetFifoStartPtr();
 extern int FAKE_GetRealPtr();
 extern void FAKE_SkipFifo(u32 skip);
 
-
 template <class T>
 void Xchg(T& a, T&b)
 {
@@ -83,8 +82,8 @@ void ExecuteDisplayList(u32 address, u32 size)
 #ifdef DATAREADER_INLINE
 	u32 old_pVideoData = g_pVideoData;
 
-	const u8* startAddress = Memory_GetPtr(address);
-	g_pVideoData = *startAddress;
+	const u32 startAddress = (u32)Memory_GetPtr(address);
+	g_pVideoData = startAddress;
 #endif
 	// temporarily swap dl and non-dl(small "hack" for the stats)
 	Xchg(stats.thisFrame.numDLPrims, stats.thisFrame.numPrims);
@@ -93,7 +92,7 @@ void ExecuteDisplayList(u32 address, u32 size)
 	Xchg(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
 
 #ifdef DATAREADER_INLINE
-    while((g_pVideoData - *startAddress) < size)
+    while((g_pVideoData - startAddress) < size)
 #else
     while((memoryReader.GetReadAddress() - address) < size)
 #endif
