@@ -383,7 +383,7 @@ void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
     int num_events;
     for (num_events = XPending(GXdsp);num_events > 0;num_events--) {
         XNextEvent(GXdsp, &E);
-        switch (E.keyboard) {
+        switch (E.type) {
         case KeyPress:
             //_KeyPress(pad, XLookupKeysym((XKeyEvent *)&E, 0)); break;
 
