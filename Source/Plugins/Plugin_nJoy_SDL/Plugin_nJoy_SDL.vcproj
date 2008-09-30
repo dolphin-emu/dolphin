@@ -67,7 +67,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="rpcrt4.lib"
-				OutputFile="..\..\..\Binary\Win32\Plugins\$(ProjectName)d.dll"
+				OutputFile="..\..\..\Binary\Win32\Plugins\$(ProjectName)D.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32"
 				GenerateManifest="false"
@@ -147,7 +147,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="Rpcrt4.lib"
-				OutputFile="..\..\..\Binary\x64\Plugins\$(ProjectName)d.dll"
+				OutputFile="..\..\..\Binary\x64\Plugins\$(ProjectName)D.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64"
 				GenerateManifest="false"
@@ -384,7 +384,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="rpcrt4.lib"
-				OutputFile="..\..\..\Binary\Win32\Plugins\$(ProjectName)df.dll"
+				OutputFile="..\..\..\Binary\Win32\Plugins\$(ProjectName)DF.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32"
 				GenerateManifest="false"

@@ -146,11 +146,15 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_PAD;
 
-	#ifndef _DEBUG
-		sprintf(_PluginInfo->Name, "nJoy v"INPUT_VERSION " by Falcon4ever");
-	#else
-		sprintf(_PluginInfo->Name, "nJoy v"INPUT_VERSION" (Debug) by Falcon4ever");
-	#endif
+#ifdef DEBUGFAST 
+	sprintf(_PluginInfo->Name, "nJoy v"INPUT_VERSION" (DebugFast) by Falcon4ever");
+#else
+#ifndef _DEBUG
+	sprintf(_PluginInfo->Name, "nJoy v"INPUT_VERSION " by Falcon4ever");
+#else
+	sprintf(_PluginInfo->Name, "nJoy v"INPUT_VERSION" (Debug) by Falcon4ever");
+#endif
+#endif
 }
 
 // Call about dialog

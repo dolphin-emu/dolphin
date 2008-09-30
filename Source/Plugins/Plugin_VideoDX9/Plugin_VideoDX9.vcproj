@@ -94,7 +94,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="&quot;..\..\core\common\win32\release\common.lib&quot;"
 				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib"
-				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_VideoDX9.dll"
+				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_VideoDX9.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
@@ -506,7 +506,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dsound.lib odbc32.lib odbccp32.lib comctl32.lib d3d9.lib d3dx9.lib winmm.lib"
-				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_VideoDX9DF.dll"
+				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_VideoDX9DF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"

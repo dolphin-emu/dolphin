@@ -421,7 +421,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_NULL_DF.dll"
+				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_NULLDF.dll"
 				LinkIncremental="1"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
@@ -510,7 +510,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_NULL_DF.dll"
+				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_NULLDF.dll"
 				LinkIncremental="1"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"

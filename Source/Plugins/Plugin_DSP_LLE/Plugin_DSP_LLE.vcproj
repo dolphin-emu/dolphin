@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Plugin_DSP_LLE"
 	ProjectGUID="{C60D0E7A-ED05-4C67-9EE7-3A6C0D7801C8}"
 	RootNamespace="Plugin_DSP_LLE"
@@ -507,7 +507,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dsound.lib"
-				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_LEEDF.dll"
+				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_LLEDF.dll"
 				LinkIncremental="1"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"

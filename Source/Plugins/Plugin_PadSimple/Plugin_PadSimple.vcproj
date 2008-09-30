@@ -87,7 +87,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib"
-				OutputFile="..\..\..\Binary\Win32/plugins\Plugin_PadSimple.dll"
+				OutputFile="..\..\..\Binary\Win32\plugins\Plugin_PadSimple.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
@@ -485,7 +485,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib"
-				OutputFile="..\..\..\Binary\Win32/plugins\Plugin_PadSimpleDF.dll"
+				OutputFile="..\..\..\Binary\Win32\plugins\Plugin_PadSimpleDF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"

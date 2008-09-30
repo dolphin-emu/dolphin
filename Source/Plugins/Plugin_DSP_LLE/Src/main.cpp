@@ -137,10 +137,10 @@ void* dsp_thread_debug(void* lpParameter)
 #endif
 {
     
-    if (g_hDSPThread)
-	{
-            return NULL;
-	}
+	//if (g_hDSPThread)
+	//{
+	//	return NULL;
+	//}
 #ifdef _WIN32    
 	while (1)
 	{
