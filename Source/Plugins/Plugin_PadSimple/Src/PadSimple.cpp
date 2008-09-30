@@ -181,6 +181,7 @@ void DllConfig(HWND _hParent)
 	wxWindow win;
 	win.SetHWND(_hParent);
 	ConfigDialog frame(&win);
+	// TODO add devices
 	frame.ShowModal();
 	win.SetHWND(0);
 #else
@@ -255,89 +256,75 @@ void ScaleStickValues(unsigned char* outx,
 
 
 #ifdef _WIN32
-void DInput_Read(int _numPad, SPADStatus* _pPADStatus)
+void DInput_Read(int _numPAD, SPADStatus* _pPADStatus)
 {
 	dinput.Read();
 
-	int stickvalue =    (dinput.diks[pad[_numPad].keyForControl[CTL_HALFPRESS]] & 0xFF) ? 40 : 100;
-	int triggervalue = (dinput.diks[pad[_numPad].keyForControl[CTL_HALFPRESS]] & 0xFF) ? 100 : 255;
+	int stickvalue =    (dinput.diks[pad[_numPAD].keyForControl[CTL_HALFPRESS]] & 0xFF) ? 40 : 100;
+	int triggervalue = (dinput.diks[pad[_numPAD].keyForControl[CTL_HALFPRESS]] & 0xFF) ? 100 : 255;
 	
 	// get the new keys
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_MAINLEFT]] & 0xFF){_pPADStatus->stickX -= stickvalue;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINLEFT]] & 0xFF){_pPADStatus->stickX -= stickvalue;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINRIGHT]] & 0xFF){_pPADStatus->stickX += stickvalue;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINDOWN]] & 0xFF){_pPADStatus->stickY -= stickvalue;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINUP]]   & 0xFF){_pPADStatus->stickY += stickvalue;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_SUBLEFT]]  & 0xFF){_pPADStatus->substickX -= stickvalue;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_SUBRIGHT]] & 0xFF){_pPADStatus->substickX += stickvalue;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_SUBDOWN]]  & 0xFF){_pPADStatus->substickY -= stickvalue;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_SUBUP]]    & 0xFF){_pPADStatus->substickY += stickvalue;}
 
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_MAINRIGHT]] & 0xFF){_pPADStatus->stickX += stickvalue;}
-
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_MAINDOWN]] & 0xFF){_pPADStatus->stickY -= stickvalue;}
-
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_MAINUP]]   & 0xFF){_pPADStatus->stickY += stickvalue;}
-
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_SUBLEFT]]  & 0xFF){_pPADStatus->substickX -= stickvalue;}
-
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_SUBRIGHT]] & 0xFF){_pPADStatus->substickX += stickvalue;}
-
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_SUBDOWN]]  & 0xFF){_pPADStatus->substickY -= stickvalue;}
-
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_SUBUP]]    & 0xFF){_pPADStatus->substickY += stickvalue;}
-
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_L]] & 0xFF)
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_L]] & 0xFF)
 	{
 		_pPADStatus->button |= PAD_TRIGGER_L;
 		_pPADStatus->triggerLeft = triggervalue;
 	}
 
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_R]] & 0xFF)
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_R]] & 0xFF)
 	{
 		_pPADStatus->button |= PAD_TRIGGER_R;
 		_pPADStatus->triggerRight = triggervalue;
 	}
 
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_A]] & 0xFF)
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_A]] & 0xFF)
 	{
 		_pPADStatus->button |= PAD_BUTTON_A;
 		_pPADStatus->analogA = 255;
 	}
 
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_B]] & 0xFF)
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_B]] & 0xFF)
 	{
 		_pPADStatus->button |= PAD_BUTTON_B;
 		_pPADStatus->analogB = 255;
 	}
 
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_X]] & 0xFF){_pPADStatus->button |= PAD_BUTTON_X;}
-
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_Y]] & 0xFF){_pPADStatus->button |= PAD_BUTTON_Y;}
-
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_Z]] & 0xFF){_pPADStatus->button |= PAD_TRIGGER_Z;}
-
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_DPADUP]]   & 0xFF){_pPADStatus->button |= PAD_BUTTON_UP;}
-
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_DPADDOWN]] & 0xFF){_pPADStatus->button |= PAD_BUTTON_DOWN;}
-
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_DPADLEFT]] & 0xFF){_pPADStatus->button |= PAD_BUTTON_LEFT;}
-
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_DPADRIGHT]] & 0xFF){_pPADStatus->button |= PAD_BUTTON_RIGHT;}
-
-	if (dinput.diks[pad[_numPad].keyForControl[CTL_START]]    & 0xFF){_pPADStatus->button |= PAD_BUTTON_START;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_X]] & 0xFF){_pPADStatus->button |= PAD_BUTTON_X;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_Y]] & 0xFF){_pPADStatus->button |= PAD_BUTTON_Y;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_Z]] & 0xFF){_pPADStatus->button |= PAD_TRIGGER_Z;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_DPADUP]]   & 0xFF){_pPADStatus->button |= PAD_BUTTON_UP;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_DPADDOWN]] & 0xFF){_pPADStatus->button |= PAD_BUTTON_DOWN;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_DPADLEFT]] & 0xFF){_pPADStatus->button |= PAD_BUTTON_LEFT;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_DPADRIGHT]]& 0xFF){_pPADStatus->button |= PAD_BUTTON_RIGHT;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_START]]    & 0xFF){_pPADStatus->button |= PAD_BUTTON_START;}
 }
 
-void XInput_Read(int _numPAD, SPADStatus* _pPADStatus)
+bool XInput_Read(int xpadplayer, SPADStatus* _pPADStatus)
 {
 #ifdef XINPUT_ENABLE
 	const int base = 0x80;
 	XINPUT_STATE xstate;
-	DWORD xresult = XInputGetState(_numPAD, &xstate);
+	DWORD xresult = XInputGetState(xpadplayer, &xstate);
 
-	if(xresult != ERROR_SUCCESS)
+	if (xresult != ERROR_SUCCESS)
 	{
-		return;
+		return false;
 	}
 
 	// In addition, let's .. yes, let's use XINPUT!
-	if(xresult == ERROR_SUCCESS)
+	if (xresult == ERROR_SUCCESS)
 	{
 		const XINPUT_GAMEPAD& xpad = xstate.Gamepad;
 
-		if((_pPADStatus->stickX == base) && (_pPADStatus->stickY == base))
+		if ((_pPADStatus->stickX == base) && (_pPADStatus->stickY == base))
 		{
 			ScaleStickValues(
 					&_pPADStatus->stickX,
@@ -346,7 +333,7 @@ void XInput_Read(int _numPAD, SPADStatus* _pPADStatus)
 					xpad.sThumbLY);
 		}
 
-		if((_pPADStatus->substickX == base) && (_pPADStatus->substickY == base))
+		if ((_pPADStatus->substickX == base) && (_pPADStatus->substickY == base))
 		{
 			ScaleStickValues(
 					&_pPADStatus->substickX,
@@ -358,34 +345,25 @@ void XInput_Read(int _numPAD, SPADStatus* _pPADStatus)
 		_pPADStatus->triggerLeft  = xpad.bLeftTrigger;
 		_pPADStatus->triggerRight = xpad.bRightTrigger;
 
-		if (xpad.bLeftTrigger > 20){_pPADStatus->button |= PAD_TRIGGER_L;}
-
-		if (xpad.bRightTrigger > 20){_pPADStatus->button |= PAD_TRIGGER_R;}
-
-		if (xpad.wButtons & XINPUT_GAMEPAD_A){_pPADStatus->button |= PAD_BUTTON_A;}
-
-		if (xpad.wButtons & XINPUT_GAMEPAD_X){_pPADStatus->button |= PAD_BUTTON_B;}
-
-		if (xpad.wButtons & XINPUT_GAMEPAD_B){_pPADStatus->button |= PAD_BUTTON_X;}
-
-		if (xpad.wButtons & XINPUT_GAMEPAD_Y){_pPADStatus->button |= PAD_BUTTON_Y;}
-
+		if (xpad.bLeftTrigger > 20)						{_pPADStatus->button |= PAD_TRIGGER_L;}
+		if (xpad.bRightTrigger > 20)					{_pPADStatus->button |= PAD_TRIGGER_R;}
+		if (xpad.wButtons & XINPUT_GAMEPAD_A)			{_pPADStatus->button |= PAD_BUTTON_A;}
+		if (xpad.wButtons & XINPUT_GAMEPAD_X)			{_pPADStatus->button |= PAD_BUTTON_B;}
+		if (xpad.wButtons & XINPUT_GAMEPAD_B)			{_pPADStatus->button |= PAD_BUTTON_X;}
+		if (xpad.wButtons & XINPUT_GAMEPAD_Y)			{_pPADStatus->button |= PAD_BUTTON_Y;}
 		if (xpad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER){_pPADStatus->button |= PAD_TRIGGER_Z;}
+		if (xpad.wButtons & XINPUT_GAMEPAD_START)		{_pPADStatus->button |= PAD_BUTTON_START;}
+		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)	{_pPADStatus->button |= PAD_BUTTON_LEFT;}
+		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)	{_pPADStatus->button |= PAD_BUTTON_RIGHT;}
+		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_UP)		{_pPADStatus->button |= PAD_BUTTON_UP;}
+		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)	{_pPADStatus->button |= PAD_BUTTON_DOWN;}
 
-		if (xpad.wButtons & XINPUT_GAMEPAD_START){_pPADStatus->button |= PAD_BUTTON_START;}
-
-		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT){_pPADStatus->button |= PAD_BUTTON_LEFT;}
-
-		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT){_pPADStatus->button |= PAD_BUTTON_RIGHT;}
-
-		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_UP){_pPADStatus->button |= PAD_BUTTON_UP;}
-
-		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN){_pPADStatus->button |= PAD_BUTTON_DOWN;}
+		return true;
 	}
+#else
+	return false;
 #endif
-
 }
-
 #endif
 
 #if defined(__linux__)
@@ -405,7 +383,7 @@ void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
     int num_events;
     for (num_events = XPending(GXdsp);num_events > 0;num_events--) {
         XNextEvent(GXdsp, &E);
-        switch (E.type) {
+        switch (E.keyboard) {
         case KeyPress:
             //_KeyPress(pad, XLookupKeysym((XKeyEvent *)&E, 0)); break;
 
@@ -537,24 +515,30 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 #ifdef _WIN32
 	// Just update pad on focus
 	// TODO fix g_PADInitialize.hWnd != DolphinWX frame
-	if(pad[_numPAD].disable)
+	if (pad[_numPAD].disable)
 	{
-		if(g_PADInitialize.hWnd != GetForegroundWindow())
+		if (g_PADInitialize.hWnd != GetForegroundWindow())
 			return;
 	}
-#endif
-	_pPADStatus->err = PAD_ERR_NONE;
 
-#ifdef _WIN32
-	if(pad[_numPAD].type == 0)
+	if (pad[_numPAD].keyboard)
 	{
+		// Keyboard, so we assume it's ok
+		_pPADStatus->err = PAD_ERR_NONE;
 		DInput_Read(_numPAD, _pPADStatus);
 	}
 	else
 	{
-		XInput_Read(_numPAD, _pPADStatus);
+		// It's an xpad, so error if it's not connected
+		// shuffle2: pretty sure this does nothing for now, dolphin
+		// seems to ignore changes to the connected mask after init...
+		if (XInput_Read(pad[_numPAD].xpadplayer, _pPADStatus))
+			_pPADStatus->err = PAD_ERR_NONE;
+		else
+			_pPADStatus->err = PAD_ERR_NO_CONTROLLER;
 	}		
 #elif defined(__linux__)
+	_pPADStatus->err = PAD_ERR_NONE;
 	X11_Read(_numPAD, _pPADStatus);
 #endif
 
@@ -568,30 +552,33 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
 #ifdef _WIN32
-	static int a = 0;
-
-	if ((_uType == 0) || (_uType == 2))
+	if (!pad[_numPAD].keyboard)
 	{
-		a = 0;
-	}
-	else if (_uType == 1)
-	{
-		a = _uStrength > 2 ? 8000 : 0;
-	}
+		static int a = 0;
 
-	a = int ((float)a * 0.96f);
+		if ((_uType == 0) || (_uType == 2))
+		{
+			a = 0;
+		}
+		else if (_uType == 1)
+		{
+			a = _uStrength > 2 ? 8000 : 0;
+		}
 
-	if (!pad[_numPAD].rumble)
-	{
-		a = 0;
-	}
+		a = int ((float)a * 0.96f);
+
+		if (!pad[_numPAD].rumble)
+		{
+			a = 0;
+		}
 
 #ifdef XINPUT_ENABLE
-	XINPUT_VIBRATION vib;
-	vib.wLeftMotorSpeed  = a; //_uStrength*100;
-	vib.wRightMotorSpeed = a; //_uStrength*100;
-	XInputSetState(_numPAD, &vib);
+		XINPUT_VIBRATION vib;
+		vib.wLeftMotorSpeed  = a; //_uStrength*100;
+		vib.wRightMotorSpeed = a; //_uStrength*100;
+		XInputSetState(pad[_numPAD].xpadplayer, &vib);
 #endif
+	}
 #endif
 }
 
@@ -682,11 +669,11 @@ void LoadConfig()
 		char SectionName[32];
 		sprintf(SectionName, "PAD%i", i+1);
 
-		file.Get(SectionName, "Type", &pad[i].type);
+		file.Get(SectionName, "Keyboard", &pad[i].keyboard, i==0);
 		file.Get(SectionName, "Attached", &pad[i].attached, i==0);
 		file.Get(SectionName, "DisableOnBackground", &pad[i].disable, false);
 		file.Get(SectionName, "Rumble", &pad[i].rumble, true);
-		file.Get(SectionName, "XPad#", &pad[i].XPad);
+		file.Get(SectionName, "XPad#", &pad[i].xpadplayer);
 		
 		for (int x = 0; x < NUMCONTROLS; x++) 
 		{
@@ -712,11 +699,11 @@ void SaveConfig()
 		char SectionName[32];
 		sprintf(SectionName, "PAD%i", i+1);
 
-		file.Set(SectionName, "Type", pad[i].type);
+		file.Set(SectionName, "Keyboard", pad[i].keyboard);
 		file.Set(SectionName, "Attached", pad[i].attached);
 		file.Set(SectionName, "DisableOnBackground", pad[i].disable);
 		file.Set(SectionName, "Rumble", pad[i].rumble);
-		file.Set(SectionName, "XPad#", pad[i].XPad);
+		file.Set(SectionName, "XPad#", pad[i].xpadplayer);
 		
 		for (int x = 0; x < NUMCONTROLS; x++)
 		{

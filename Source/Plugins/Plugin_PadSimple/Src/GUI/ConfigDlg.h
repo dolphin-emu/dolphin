@@ -113,6 +113,7 @@ class ConfigDialog : public wxDialog
 		void OnCloseClick(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event);
 		void DeviceChanged(wxCommandEvent& event);
+		void EnableKeyboardConfig(int page, bool a);
 		void AttachedCheck(wxCommandEvent& event);
 		void DisableCheck(wxCommandEvent& event);
 		void RumbleCheck(wxCommandEvent& event);

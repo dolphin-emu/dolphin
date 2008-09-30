@@ -138,14 +138,15 @@ void ConfigDialog::CreateGUIControls()
 		m_Attached[i]->SetValue(pad[i].attached);
 		m_Disable[i]->SetValue(pad[i].disable);
 		m_Rumble[i]->SetValue(pad[i].rumble);
-		m_Rumble[i]->Enable(pad[i].type);
-		//TEMP
-		m_DeviceName[i]->SetSelection(pad[i].XPad);
-		for(int x = 0; x < 5; x++)
-		{
-                    m_DeviceName[i]->Append(wxString::Format(wxT("%i"), x));
-		}
+		m_Rumble[i]->Enable(!pad[i].keyboard);
 		
+		// This should be considered TEMPORARY until polling x360 pads is implemented
+		m_DeviceName[i]->Append(_("Keyboard"));
+		m_DeviceName[i]->Append(_("XPAD1"));
+		m_DeviceName[i]->Append(_("XPAD2"));
+		m_DeviceName[i]->Append(_("XPAD3"));
+		m_DeviceName[i]->Append(_("XPAD4"));
+
 		sDeviceTop[i]->Add(m_DeviceName[i], 1, wxEXPAND|wxALL, 1);
 		sDeviceTop[i]->Add(m_Attached[i], 0, wxEXPAND|wxALL, 1);
 		sDeviceBottom[i]->AddStretchSpacer(1);
@@ -206,6 +207,17 @@ void ConfigDialog::CreateGUIControls()
 		sPage[i]->Add(sCStick[i], wxGBPosition(1, 4), wxGBSpan(2, 1), wxALL, 1);
 		m_Controller[i]->SetSizer(sPage[i]);
 		sPage[i]->Layout();
+
+		if (pad[i].keyboard)
+		{
+			m_DeviceName[i]->SetSelection(0);
+			EnableKeyboardConfig(i, true);
+		}
+		else
+		{
+			m_DeviceName[i]->SetSelection(pad[i].xpadplayer + 1);
+			EnableKeyboardConfig(i, false);
+		}
 	}
 
 	SetIcon(wxNullIcon);
@@ -262,16 +274,43 @@ void ConfigDialog::DeviceChanged(wxCommandEvent& event)
 	if(event.GetSelection() == 0)
 	{
 		// Keyboard
-		pad[page].type = 0;
+		pad[page].keyboard = true;
 		m_Rumble[page]->Disable();
+		EnableKeyboardConfig(page, true);
 	}
 	else
 	{
-		// XPad, so also set xpad number
-		pad[page].type = 1;
-		pad[page].XPad = event.GetSelection() - 1;
+		// XPad, so also set xpadplayer
+		pad[page].keyboard = false;
+		pad[page].xpadplayer = event.GetSelection() - 1;
 		m_Rumble[page]->Enable();
+		EnableKeyboardConfig(page, false);
 	}
+}
+
+void ConfigDialog::EnableKeyboardConfig(int page, bool a)
+{
+	m_ButtonA[page]->Enable(a);
+	m_ButtonB[page]->Enable(a);
+	m_ButtonX[page]->Enable(a);
+	m_ButtonY[page]->Enable(a);
+	m_ButtonZ[page]->Enable(a);
+	m_ButtonStart[page]->Enable(a);
+	m_ButtonL[page]->Enable(a);
+	m_ButtonR[page]->Enable(a);
+	m_HalfPress[page]->Enable(a);
+	m_StickUp[page]->Enable(a);
+	m_StickDown[page]->Enable(a);
+	m_StickLeft[page]->Enable(a);
+	m_StickRight[page]->Enable(a);
+	m_CStickUp[page]->Enable(a);
+	m_CStickDown[page]->Enable(a);
+	m_CStickLeft[page]->Enable(a);
+	m_CStickRight[page]->Enable(a);
+	m_DPadUp[page]->Enable(a);
+	m_DPadDown[page]->Enable(a);
+	m_DPadLeft[page]->Enable(a);
+	m_DPadRight[page]->Enable(a);
 }
 
 void ConfigDialog::AttachedCheck(wxCommandEvent& event)

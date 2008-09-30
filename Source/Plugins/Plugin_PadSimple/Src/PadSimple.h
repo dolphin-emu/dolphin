@@ -15,9 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// controls
 #ifndef __PADSIMPLE_H__
 #define __PADSIMPLE_H__  
+
+// Controls
 enum
 {
 	CTL_A = 0,
@@ -44,7 +45,7 @@ enum
 	NUMCONTROLS
 };
 
-// control names
+// Control names
 static const char* controlNames[] =
 {
 	"A_button",
@@ -71,12 +72,12 @@ static const char* controlNames[] =
 };
 
 struct SPads {
-	bool type;		//keyboard = 0, xpad = 1
-	int XPad;		//player# of the xpad
-	bool attached;	//pad is "attached" to the gamecube/wii
-	bool disable;	//disabled when dolphin isn't in focus
-	bool rumble;	//rumble for xpad
-	unsigned int keyForControl[NUMCONTROLS];//keyboard mapping
+	bool keyboard;		// Is it a keyboard?
+	bool attached;		// Pad is "attached" to the gamecube/wii
+	bool disable;		// Disabled when dolphin isn't in focus
+	bool rumble;		// Rumble for xpad
+	int xpadplayer;		// Player# of the xpad
+	unsigned int keyForControl[NUMCONTROLS];// Keyboard mapping
 };
 
 extern SPads pad[];
