@@ -35,9 +35,9 @@ private:
 	};
 
 	// List in progress
-	int m_numSteps;
+	u32 m_numSteps;
 	bool m_bListInProgress;
-	int m_step;
+	u32 m_step;
 	u8 m_Buffer[1024];
 	void ExecuteList();
 

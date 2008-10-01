@@ -93,14 +93,10 @@ SetTitle(wxT("Sound Debugging"));
 
 		wxStaticBoxSizer* sLeft;
 	
-		wxListCtrl* m_MemcardList[2];
-		wxTimer* m_Timer;
-
 
 	// declarations
 	wxCheckBox *m_Check[2];
 	wxRadioButton *m_Radio[6];
-	wxPanel *m_Controller;
 
 	// checkboxes
 	m_Check[0] = new wxCheckBox(this, IDC_CHECK0, wxT("Save to file"),

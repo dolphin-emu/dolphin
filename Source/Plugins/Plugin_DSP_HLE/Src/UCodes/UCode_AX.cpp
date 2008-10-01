@@ -135,7 +135,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 #ifdef _WIN32
 	ratioFactor = 32000.0f / (float)DSound::DSound_GetSampleRate();
 #else
-	float ratioFactor = 32000.0f / 44100.0f;
+	ratioFactor = 32000.0f / 44100.0f;
 #endif
 
 	// write logging data to debugger
