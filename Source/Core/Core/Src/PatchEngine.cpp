@@ -115,7 +115,7 @@ void LoadActionReplayCodes(IniFile &ini);
 void PatchEngine_LoadPatches(const char *gameID)
 {
 	IniFile ini;
-	std::string filename = std::string("Patches/") + gameID + ".ini";
+	std::string filename = std::string("GameIni/") + gameID + ".ini";
 	if (ini.Load(filename.c_str())) {
 		LoadPatchSection("OnLoad",  onLoad, ini);
 		LoadPatchSection("OnFrame", onFrame, ini);

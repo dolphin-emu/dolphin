@@ -261,40 +261,40 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		std::string GameIni;
 		item.SetColumn(COLUMN_EMULATION_STATE);
 		//NOTE (Daco): i dont like the fact of having so much ini's just to have 
-		//the game emulation state of every game you have.
+		//the game emulation state of every game you have. but 1 huge ini is no option
 		GameIni = "GameIni/" + (rISOFile.GetUniqueID()) + ".ini";
 		ini.Load(GameIni.c_str());
 		ini.Get("EmuState","EmulationStateId",&EmuState);
 		if (EmuState.empty())
 		{	
 			//srry, its empty
-			//item.SetText("unknown");
+			//item.SetText(_("unknown"));
 			//without unknown it looks more pretty :P
 		}
 		else
 		{
 			if(EmuState == "5")
-                            item.SetText(_("Perfect"));
+				item.SetText(_("Perfect"));
 			else if(EmuState == "4")
-                            item.SetText(_("In Game"));
+				item.SetText(_("In Game"));
 			else if(EmuState == "3")
-                            item.SetText(_("Intro"));
+				item.SetText(_("Intro"));
 			else if(EmuState == "2")
 			{
-                            item.SetText(_("Problems: Other"));
+				item.SetText(_("Problems: Other"));
 				//NOTE (Daco): IMO under 2 i see problems like music and games that only work 
 				//with GL or only with DX9
 				//TODO (Daco): maybe 2 should get a function to present more info... o.o
 			}
 			else if(EmuState == "1")
-                            item.SetText(_("Broken"));
+				item.SetText(_("Broken"));
 			else if(EmuState == "0")
-                            item.SetText(_("Not Set"));
+				item.SetText(_("Not Set"));
 			else 
 			{
 				//if the EmuState isn't a number between 0 & 5 we dont know the state 
 				//hence why it should say unknown
-                            item.SetText(_("unknown emu ID"));
+				item.SetText(_("unknown emu ID"));
 			}
 		}
 		SetItem(item);
