@@ -330,7 +330,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dsound.lib"
-				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_LEE.dll"
+				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_LLE.dll"
 				LinkIncremental="1"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
@@ -700,6 +700,34 @@
 			</File>
 			<File
 				RelativePath=".\Src\gdsp_registers.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Logging"
+			>
+			<File
+				RelativePath=".\Src\Logging\Console.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Logging\Console.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Logging\Logging.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Logging\Logging.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Logging\ReadPBs.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Logging\UCode_AXStructs.h"
 				>
 			</File>
 		</Filter>

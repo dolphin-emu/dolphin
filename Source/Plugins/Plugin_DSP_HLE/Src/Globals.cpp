@@ -10,7 +10,7 @@ void __Log(int, const char *fmt, ...)
 
 void DebugLog(const char* _fmt, ...)
 {
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	char Msg[512];
 	va_list ap;
 

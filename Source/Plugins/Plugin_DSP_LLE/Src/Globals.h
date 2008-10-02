@@ -31,21 +31,21 @@ void DSP_DebugBreak();
 
 
 #ifndef _dbg_assert_
-#ifdef _DEBUG
+	#if defined(_DEBUG) || defined(DEBUGFAST)
 
-#undef _dbg_assert_
-#undef _dbg_assert_msg_
-#define _dbg_assert_(_a_)                   if (!(_a_)){DebugBreak();}
-#define _dbg_assert_msg_(_a_, _desc_, ...)\
-	if (!(_a_)){\
-		if (MessageBox(NULL, _desc_, "*** Fatal Error ***", MB_YESNO | MB_ICONERROR) == IDNO){DebugBreak();}}
+		#undef _dbg_assert_
+		#undef _dbg_assert_msg_
+		#define _dbg_assert_(_a_)                   if (!(_a_)){DebugBreak();}
+		#define _dbg_assert_msg_(_a_, _desc_, ...)\
+			if (!(_a_)){\
+				if (MessageBox(NULL, _desc_, "*** Fatal Error ***", MB_YESNO | MB_ICONERROR) == IDNO){DebugBreak();}}
 
-#else
+	#else
 
-#define _dbg_assert_(_a_);
-#define _dbg_assert_msg_(_a_, _desc_, ...);
+	#define _dbg_assert_(_a_);
+	#define _dbg_assert_msg_(_a_, _desc_, ...);
 
-#endif
+	#endif
 #endif
 
 typedef unsigned char uint8;

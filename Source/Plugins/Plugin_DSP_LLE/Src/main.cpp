@@ -24,22 +24,24 @@
 #include "disassemble.h"
 
 #ifdef _WIN32
-#include "DisAsmDlg.h"
-#include "DSoundStream.h"
+	#include "DisAsmDlg.h"
+	#include "DSoundStream.h"
+	#include "Logging/Console.h" // For wprintf, ClearScreen
+	#include "Logging/Logging.h" // For Logging
 
-HINSTANCE g_hInstance = NULL;
-HANDLE g_hDSPThread = NULL;
-CRITICAL_SECTION g_CriticalSection;
-CDisAsmDlg g_Dialog;
+	HINSTANCE g_hInstance = NULL;
+	HANDLE g_hDSPThread = NULL;
+	CRITICAL_SECTION g_CriticalSection;
+	CDisAsmDlg g_Dialog;
 #else
-#define WINAPI
-#define LPVOID void*
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <pthread.h>
-#include "AOSoundStream.h"
-pthread_t g_hDSPThread = NULL;
+	#define WINAPI
+	#define LPVOID void*
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <string.h>
+	#include <pthread.h>
+	#include "AOSoundStream.h"
+	pthread_t g_hDSPThread = NULL;
 #endif
 
 #include "ChunkFile.h"
@@ -105,13 +107,23 @@ void DSP_DoState(unsigned char **ptr, int mode) {
 
 void DllDebugger(HWND _hParent)
 {
-#if defined (_DEBUG) && defined (_WIN32)
+#if (defined (_DEBUG) || defined (DEBUGFAST)) && defined (_WIN32)
 	g_Dialog.Create(NULL); //_hParent);
 	g_Dialog.ShowWindow(SW_SHOW);
-#endif
 
+	// Open the console window
+	startConsoleWin(155, 10000, "Sound Debugging"); // give room for 2000 rows
+	wprintf("DllDebugger > Console opened\n");
+	// TODO: Make this adjustable from the Debugging window
+	MoveWindow(GetConsoleHwnd(), 0,400, 1280,500, true);
+
+#endif
 }
 
+
+// =======================================================================================
+// Regular thread
+// --------------
 #ifdef _WIN32
 DWORD WINAPI dsp_thread(LPVOID lpParameter)
 #else
@@ -128,8 +140,12 @@ void* dsp_thread(void* lpParameter)
 		}
 	}
 }
+// ==============
 
 
+// =======================================================================================
+// Debug thread
+// --------------
 #ifdef _WIN32
 DWORD WINAPI dsp_thread_debug(LPVOID lpParameter)
 #else
@@ -139,11 +155,14 @@ void* dsp_thread_debug(void* lpParameter)
     
 	//if (g_hDSPThread)
 	//{
-	//	return NULL;
+	//	return NULL; // enable this to disable the plugin
 	//}
-#ifdef _WIN32    
+#ifdef _WIN32
+
 	while (1)
 	{
+		Logging(); // logging
+
 		if (g_Dialog.CanDoStep())
 		{
 			gdsp_runx(1);
@@ -156,13 +175,13 @@ void* dsp_thread_debug(void* lpParameter)
 #endif 
         return NULL;
 }
-
+// ==============
 
 
 void DSP_DebugBreak()
 {
 #ifdef _WIN32
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	g_Dialog.DebugBreak();
 #endif
 #endif
@@ -207,14 +226,19 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
         if(!bCanWork)
             return; // TODO: Don't let it work
 
+// ---------------------------------------------------------------------------------------
+// First create DSP_UCode.bin by setting "#define DUMP_DSP_IMEM   1" in Globals.h. Then 
+// make the disassembled file here.
+// --------------
 /*		Dump UCode to file...
    	FILE* t = fopen("e:\\hmm.txt", "wb");
    	gd_globals_t gdg;
    	gd_dis_file(&gdg, "D:\\DSP_UCode.bin", t);
    	fclose(t);  */
+// --------------
 
 #ifdef _WIN32
-#if _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	g_hDSPThread = CreateThread(NULL, 0, dsp_thread_debug, 0, 0, NULL);
 #else
 	g_hDSPThread = CreateThread(NULL, 0, dsp_thread, 0, 0, NULL);

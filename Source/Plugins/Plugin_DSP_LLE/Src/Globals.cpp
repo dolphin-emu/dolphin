@@ -21,9 +21,12 @@
 #include "Globals.h"
 
 
+// =======================================================================================
+// This is to verbose, it has to be turned on manually for now
+// --------------
 void DebugLog(const char* _fmt, ...)
 {
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST)
 /*	char Msg[512];
     va_list ap;
 
@@ -37,6 +40,7 @@ void DebugLog(const char* _fmt, ...)
  */
 #endif
 }
+// =============
 
 
 void ErrorLog(const char* _fmt, ...)
@@ -53,7 +57,7 @@ void ErrorLog(const char* _fmt, ...)
 	::MessageBox(NULL, Msg, "Error", MB_OK);
 #endif
 
-	DSP_DebugBreak();
+	DSP_DebugBreak(); // NOTICE: we also break the emulation if this happens
 }
 
 
