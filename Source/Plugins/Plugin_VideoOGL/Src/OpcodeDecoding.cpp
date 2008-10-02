@@ -82,7 +82,7 @@ void ExecuteDisplayList(u32 address, u32 size)
 #ifdef DATAREADER_INLINE
 	u32 old_pVideoData = g_pVideoData;
 
-	const u64 startAddress = (u64)Memory_GetPtr(address);
+	const u32 startAddress = (u32)Memory_GetPtr(address);
 	g_pVideoData = startAddress;
 #endif
 	// temporarily swap dl and non-dl(small "hack" for the stats)

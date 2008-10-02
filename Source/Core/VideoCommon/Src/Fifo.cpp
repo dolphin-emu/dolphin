@@ -31,8 +31,8 @@ FifoReader fifo;
 
 // STATE_TO_SAVE
 static u8 *videoBuffer;
-static u32 size = 0;
-static u64 readptr = 0;
+static int size = 0;
+static int readptr = 0;
 
 void Fifo_DoState(PointerWrap &p) {
     p.DoArray(videoBuffer, FIFO_SIZE);
@@ -53,12 +53,12 @@ void Fifo_Shutdown()
     FreeMemoryPages(videoBuffer, FIFO_SIZE);
 }
 
-u64 FAKE_GetFifoStartPtr()
+u32 FAKE_GetFifoStartPtr()
 {
-    return (u64)videoBuffer;
+    return (int)videoBuffer;
 }
 
-u64 FAKE_GetFifoSize()
+int FAKE_GetFifoSize()
 {
     if (size < readptr)
     {
@@ -66,10 +66,9 @@ u64 FAKE_GetFifoSize()
     }
     return (size - readptr);
 }
-
-u64 FAKE_GetFifoEndAddr()
+int FAKE_GetFifoEndAddr()
 {
-    return (u64)(videoBuffer+size);
+    return (int)(videoBuffer+size);
 }
 
 u8 FAKE_PeekFifo8(u32 _uOffset)
@@ -97,9 +96,9 @@ int FAKE_GetPosition()
     return readptr;
 }
 
-u64 FAKE_GetRealPtr()
+int FAKE_GetRealPtr()
 {
-	return (u64)(videoBuffer+readptr);
+	return (int)(videoBuffer+readptr);
 }
 
 u16 FAKE_ReadFifo16()
@@ -131,7 +130,7 @@ void Video_SendFifoData(u8* _uData)
 		// TODO (mb2): Better and DataReader inline for DX9 
 #ifdef DATAREADER_INLINE
 		if (g_pVideoData) // for DX9 plugin "compatibility"
-                    readptr = g_pVideoData-(u64)videoBuffer;
+			readptr = g_pVideoData-(u32)videoBuffer;
 #endif
         if (FAKE_GetFifoSize() > readptr)
         {
