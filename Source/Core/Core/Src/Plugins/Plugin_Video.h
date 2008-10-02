@@ -43,7 +43,8 @@ typedef BOOL (__cdecl* TVideo_Screenshot)(TCHAR*);
 typedef void (__cdecl* TVideo_EnterLoop)();
 typedef void (__cdecl* TVideo_AddMessage)(const char* pstr, unsigned int milliseconds);
 typedef void (__cdecl* TVideo_DoState)(unsigned char **ptr, int mode);
-
+typedef void (__cdecl* TVideo_Stop)();
+ 
 // Function Pointers
 extern TGetDllInfo         GetDllInfo;
 extern TDllAbout           DllAbout;
@@ -57,6 +58,7 @@ extern TVideo_Screenshot   Video_Screenshot;
 extern TVideo_EnterLoop    Video_EnterLoop;
 extern TVideo_AddMessage   Video_AddMessage;
 extern TVideo_DoState      Video_DoState;
+extern TVideo_Stop         Video_Stop;
 
 } // end of namespace PluginVideo
 

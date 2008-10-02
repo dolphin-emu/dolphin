@@ -184,7 +184,7 @@ void Stop() // - Hammertime!
 #ifdef _WIN32
 	PostMessage((HWND)g_pWindowHandle, WM_QUIT, 0, 0);
 #else
-	// TODO(ector) : post message exit
+        PluginVideo::Video_Stop();
 #endif
 
 	delete g_pThread; //Wait for emuthread to close

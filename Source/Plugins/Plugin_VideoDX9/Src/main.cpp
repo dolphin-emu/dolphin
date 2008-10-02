@@ -192,6 +192,7 @@ void Video_DoState(unsigned char **ptr, int mode) {
 	//PanicAlert("Saving/Loading state from DirectX9");
 }
 
+
 void Video_EnterLoop()
 {
 	Fifo_EnterLoop(g_VideoInitialize);
@@ -217,6 +218,10 @@ void Video_Shutdown(void)
 	Renderer::Shutdown();
 	OpcodeDecoder_Shutdown();
 	DeInit();
+}
+
+void Video_Stop(void) 
+{
 }
 
 void Video_UpdateXFB(u8* /*_pXFB*/, u32 /*_dwWidth*/, u32 /*_dwHeight*/)

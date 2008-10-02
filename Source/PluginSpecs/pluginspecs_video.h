@@ -182,5 +182,13 @@ EXPORT void CALL Video_AddMessage(const char* pstr, unsigned int milliseconds);
 //
 EXPORT void CALL Video_DoState(unsigned char **ptr, int mode);
 
+// __________________________________________________________________________________________________
+// Function: Video_Stop
+// Purpose:  Stop the video plugin before shutdown
+// input/output: 
+// input: 
+//
+EXPORT void CALL Video_Stop();
+
 #include "ExportEpilog.h"
 #endif

@@ -218,9 +218,13 @@ void Video_Shutdown(void)
     TextureMngr::Shutdown();
     OpcodeDecoder_Shutdown();
     Renderer::Shutdown();
-	OpenGL_Shutdown();
+    OpenGL_Shutdown();
 }
 
+void Video_Stop(void) 
+{
+    Fifo_Stop();
+}
 
 void Video_EnterLoop()
 {

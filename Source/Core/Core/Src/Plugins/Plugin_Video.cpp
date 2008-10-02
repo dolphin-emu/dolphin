@@ -35,7 +35,8 @@ TVideo_Screenshot   Video_Screenshot      = 0;
 TVideo_EnterLoop    Video_EnterLoop       = 0;
 TVideo_AddMessage   Video_AddMessage      = 0;
 TVideo_DoState      Video_DoState         = 0;
-
+TVideo_Stop         Video_Stop            = 0;
+    
 // Library Instance
 DynamicLibrary plugin;
 
@@ -57,6 +58,7 @@ void UnloadPlugin()
     Video_UpdateXFB = 0;
     Video_AddMessage = 0;
     Video_DoState = 0;
+    Video_Stop = 0;
 
     plugin.Unload();
 }
@@ -77,6 +79,7 @@ bool LoadPlugin(const char *_Filename)
 		Video_EnterLoop    = reinterpret_cast<TVideo_EnterLoop>    (plugin.Get("Video_EnterLoop"));
 		Video_AddMessage   = reinterpret_cast<TVideo_AddMessage>   (plugin.Get("Video_AddMessage"));
 		Video_DoState      = reinterpret_cast<TVideo_DoState>      (plugin.Get("Video_DoState"));
+                Video_Stop         = reinterpret_cast<TVideo_Stop>         (plugin.Get("Video_Stop"));
 		if ((GetDllInfo != 0) &&
 			(DllAbout != 0) &&
 			(DllConfig != 0) &&
@@ -88,7 +91,8 @@ bool LoadPlugin(const char *_Filename)
 			(Video_EnterLoop != 0) &&
 			(Video_Screenshot != 0) &&
 			(Video_AddMessage != 0) &&
-			(Video_DoState != 0) )
+			(Video_DoState != 0) && 
+                        (Video_Stop != 0))
 		{
 			return true;
 		}

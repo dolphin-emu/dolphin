@@ -29,6 +29,8 @@ extern u32 g_pVideoData;
 FifoReader fifo;
 #endif
 
+bool fifoStateRun = true;
+
 // STATE_TO_SAVE
 static u8 *videoBuffer;
 static int size = 0;
@@ -46,11 +48,17 @@ void Fifo_Init()
 #ifndef DATAREADER_INLINE
     fifo.Init(videoBuffer, videoBuffer);  //zero length. there is no data yet.
 #endif
+    fifoStateRun = true;
 }
 
 void Fifo_Shutdown()
 {
     FreeMemoryPages(videoBuffer, FIFO_SIZE);
+    fifoStateRun = false;
+}
+
+void Fifo_Stop() {
+    fifoStateRun = false;
 }
 
 u32 FAKE_GetFifoStartPtr()
@@ -161,7 +169,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 #endif
 
     // TODO(ector): Don't peek so often!
-    while (video_initialize.pPeekMessages())
+    while (fifoStateRun || video_initialize.pPeekMessages())
     {
 #if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
 	if (MsgWaitForMultipleObjects(1, &hEventOnIdle, FALSE, 1L, QS_ALLEVENTS) == WAIT_ABANDONED)
