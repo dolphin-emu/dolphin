@@ -49,7 +49,7 @@
 DecodedVArray tempvarray;
 // TODO (mb2): all! DataReader inline for DX9
 #ifdef DATAREADER_INLINE
-u32 g_pVideoData=0;
+u8 *g_pVideoData=0;
 #endif
 void Decode();
 
