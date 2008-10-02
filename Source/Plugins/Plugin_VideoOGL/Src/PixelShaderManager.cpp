@@ -32,9 +32,10 @@ PixelShaderMngr::PIXELSHADERUID PixelShaderMngr::s_curuid;
 
 static int s_nMaxPixelInstructions;
 static int s_nColorsChanged[2]; // 0 - regular colors, 1 - k colors
-static int s_nTexDimsChanged[2], s_nIndTexMtxChanged = 0; //min, max
+static int s_nIndTexMtxChanged = 0;
 static bool s_bAlphaChanged, s_bZBiasChanged, s_bIndTexScaleChanged;
 static float lastRGBAfull[2][4][4];
+static u8 s_nTexDimsChanged;
 static u32 lastAlpha = 0;
 static u32 lastTexDims[8]={0};
 static u32 lastZBias = 0;
@@ -60,7 +61,7 @@ void PixelShaderMngr::SetPSConstant4fv(int const_number, const float *f) {
 void PixelShaderMngr::Init()
 {
     s_nColorsChanged[0] = s_nColorsChanged[1] = 0;
-    s_nTexDimsChanged[0] = s_nTexDimsChanged[1] = -1;
+    s_nTexDimsChanged = 0;
     s_nIndTexMtxChanged = 15;
     s_bAlphaChanged = s_bZBiasChanged = s_bIndTexScaleChanged = true;
     GL_REPORT_ERRORD();
@@ -133,12 +134,23 @@ FRAGMENTSHADER* PixelShaderMngr::GetShader()
 	char *code = GeneratePixelShader(s_texturemask,
 		                             Renderer::GetZBufferTarget() != 0,
 									 Renderer::GetRenderMode() != Renderer::RM_Normal);
-//	printf("Compiling pixel shader. size = %i\n", strlen(code));
+
+#ifdef _DEBUG
+    if( g_Config.iLog & CONF_SAVESHADERS && code ) {	
+        static int counter = 0;
+        char szTemp[MAX_PATH];
+		sprintf(szTemp, "%s/ps_%04i.txt", g_Config.texDumpPath, counter++);
+        
+        SaveData(szTemp, code);
+    }
+#endif
+
+	//	printf("Compiling pixel shader. size = %i\n", strlen(code));
     if (!code || !CompilePixelShader(newentry.shader, code)) {
         ERROR_LOG("failed to create pixel shader\n");
         return NULL;
     }
-    
+
     //Make an entry in the table
     newentry.frameCount = frameCount;
     
@@ -243,61 +255,30 @@ void PixelShaderMngr::SetConstants(FRAGMENTSHADER& ps)
             int texmap = bpmem.tevorders[i/2].getTexMap(i&1);
             maptocoord[texmap] = bpmem.tevorders[i/2].getTexCoord(i&1);
             newmask |= 1<<texmap;
-            SetTexDimsChanged(i);
+            SetTexDimsChanged(texmap);
         }
     }
     
     if( maptocoord_mask != newmask ) {
-        u32 changes = maptocoord_mask ^ newmask;
+        //u32 changes = maptocoord_mask ^ newmask;
         for(int i = 0; i < 8; ++i) {
-            if( changes&(1<<i) ) {
+            if( newmask&(1<<i) ) {
                 SetTexDimsChanged(i);
             }
-            if( !(newmask & (1<<i)) ) {
+			else {
                 maptocoord[i] = -1;
             }
         }
         maptocoord_mask = newmask;
     }
 
-    if( s_nTexDimsChanged[0] >= 0 ) {
-        float fdims[4];
-        for(int i = s_nTexDimsChanged[0]; i <= s_nTexDimsChanged[1]; ++i) {
-            if( s_texturemask & (1<<i) ) {
-                if( maptocoord[i] >= 0 ) {
-                    TCoordInfo& tc = bpmem.texcoords[maptocoord[i]];
-                    fdims[0] = (float)(lastTexDims[i]&0xffff);
-                    fdims[1] = (float)((lastTexDims[i]>>16)&0xfff);
-                    fdims[2] = (float)(tc.s.scale_minus_1+1)/(float)(lastTexDims[i]&0xffff);
-                    fdims[3] = (float)(tc.t.scale_minus_1+1)/(float)((lastTexDims[i]>>16)&0xfff);
-                }
-                else {
-                    fdims[0] = (float)(lastTexDims[i]&0xffff);
-                    fdims[1] = (float)((lastTexDims[i]>>16)&0xfff);
-                    fdims[2] = 1.0f;
-                    fdims[3] = 1.0f;
-                }
-            }
-            else {
-                if( maptocoord[i] >= 0 ) {
-                    TCoordInfo& tc = bpmem.texcoords[maptocoord[i]];
-                    fdims[0] = (float)(tc.s.scale_minus_1+1)/(float)(lastTexDims[i]&0xffff);
-                    fdims[1] = (float)(tc.t.scale_minus_1+1)/(float)((lastTexDims[i]>>16)&0xfff);
-                    fdims[2] = 1.0f/(float)(tc.s.scale_minus_1+1);
-                    fdims[3] = 1.0f/(float)(tc.t.scale_minus_1+1);
-                }
-                else {
-                    fdims[0] = 1.0f;
-                    fdims[1] = 1.0f;
-                    fdims[2] = 1.0f/(float)(lastTexDims[i]&0xffff);
-                    fdims[3] = 1.0f/(float)((lastTexDims[i]>>16)&0xfff);
-                }
-            }
-
-            PRIM_LOG("texdims%d: %f %f %f %f\n", i, fdims[0], fdims[1], fdims[2], fdims[3]);
-            SetPSConstant4fv(C_TEXDIMS + i, fdims);
+    if( s_nTexDimsChanged ) {
+        for(int i = 0; i < 8; ++i) {
+            if( s_nTexDimsChanged & (1<<i) ) {
+				SetPSTextureDims(i);				
+			}            
         }
-        s_nTexDimsChanged[0] = s_nTexDimsChanged[1] = -1;
+        s_nTexDimsChanged = 0;
     }
 
     if( s_bAlphaChanged ) {
@@ -372,6 +353,45 @@ void PixelShaderMngr::SetConstants(FRAGMENTSHADER& ps)
     }
 }
 
+void PixelShaderMngr::SetPSTextureDims(int texid)
+{
+	float fdims[4];
+
+	if( s_texturemask & (1<<texid) ) {
+		if( maptocoord[texid] >= 0 ) {
+			TCoordInfo& tc = bpmem.texcoords[maptocoord[texid]];
+			fdims[0] = (float)(lastTexDims[texid]&0xffff);
+			fdims[1] = (float)((lastTexDims[texid]>>16)&0xfff);
+			fdims[2] = (float)(tc.s.scale_minus_1+1)/(float)(lastTexDims[texid]&0xffff);
+			fdims[3] = (float)(tc.t.scale_minus_1+1)/(float)((lastTexDims[texid]>>16)&0xfff);
+		}
+		else {
+			fdims[0] = (float)(lastTexDims[texid]&0xffff);
+			fdims[1] = (float)((lastTexDims[texid]>>16)&0xfff);
+			fdims[2] = 1.0f;
+			fdims[3] = 1.0f;
+		}
+	}
+	else {
+		if( maptocoord[texid] >= 0 ) {
+			TCoordInfo& tc = bpmem.texcoords[maptocoord[texid]];
+			fdims[0] = (float)(tc.s.scale_minus_1+1)/(float)(lastTexDims[texid]&0xffff);
+			fdims[1] = (float)(tc.t.scale_minus_1+1)/(float)((lastTexDims[texid]>>16)&0xfff);
+			fdims[2] = 1.0f/(float)(tc.s.scale_minus_1+1);
+			fdims[3] = 1.0f/(float)(tc.t.scale_minus_1+1);
+		}
+		else {
+			fdims[0] = 1.0f;
+			fdims[1] = 1.0f;
+			fdims[2] = 1.0f/(float)(lastTexDims[texid]&0xffff);
+			fdims[3] = 1.0f/(float)((lastTexDims[texid]>>16)&0xfff);
+		}
+	}
+
+	PRIM_LOG("texdims%d: %f %f %f %f\n", texid, fdims[0], fdims[1], fdims[2], fdims[3]);
+	SetPSConstant4fv(C_TEXDIMS + texid, fdims);
+}
+
 void PixelShaderMngr::SetColorChanged(int type, int num)
 {
     int r=bpmem.tevregs[num].low.a, a=bpmem.tevregs[num].low.b;
@@ -406,13 +426,7 @@ void PixelShaderMngr::SetTexDims(int texmapid, u32 width, u32 height, u32 wraps,
     u32 wh = width|(height<<16)|(wraps<<28)|(wrapt<<30);
     if( lastTexDims[texmapid] != wh ) {
         lastTexDims[texmapid] = wh;
-        if( s_nTexDimsChanged[0] == -1 ) {
-            s_nTexDimsChanged[0] = s_nTexDimsChanged[1] = texmapid;
-        }
-        else {
-            if( s_nTexDimsChanged[0] > texmapid ) s_nTexDimsChanged[0] = texmapid;
-            else if( s_nTexDimsChanged[1] < texmapid ) s_nTexDimsChanged[1] = texmapid;
-        }
+		s_nTexDimsChanged |= 1<<texmapid;        
     }
 }
 
@@ -462,11 +476,11 @@ void PixelShaderMngr::SetZTetureOpChanged()
 void PixelShaderMngr::SetTexturesUsed(u32 nonpow2tex)
 {
     if( s_texturemask != nonpow2tex ) {
-        u32 mask = s_texturemask ^ nonpow2tex;
         for(int i = 0; i < 8; ++i) {
-            if( mask & (0x10101<<i) ) {
-                if( s_nTexDimsChanged[0] > i ) s_nTexDimsChanged[0] = i;
-                else if( s_nTexDimsChanged[1] < i ) s_nTexDimsChanged[1] = i;
+            if( nonpow2tex & (0x10101<<i) ) {
+				// this check was previously implicit, but should it be here?
+				if( s_nTexDimsChanged )
+					s_nTexDimsChanged |= 1<<i;				
             }
         }
         s_texturemask = nonpow2tex;
@@ -475,8 +489,10 @@ void PixelShaderMngr::SetTexturesUsed(u32 nonpow2tex)
 
 void PixelShaderMngr::SetTexDimsChanged(int texmapid)
 {
-    if( s_nTexDimsChanged[0] > texmapid ) s_nTexDimsChanged[0] = texmapid;
-    else if( s_nTexDimsChanged[1] < texmapid ) s_nTexDimsChanged[1] = texmapid;
+    // this check was previously implicit, but should it be here?
+	if( s_nTexDimsChanged )
+		s_nTexDimsChanged |= 1<<texmapid;	
+
     SetIndTexScaleChanged();
 }
 

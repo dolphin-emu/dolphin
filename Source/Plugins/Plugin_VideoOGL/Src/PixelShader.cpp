@@ -422,6 +422,7 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
     if( !WriteAlphaTest(p) ) {
         // alpha test will always fail, so restart the shader and just make it an empty function
         p = pmainstart;
+		WRITE(p, "discard;\n");
         WRITE(p, "ocol0 = 0;\n");
     }
     else {
@@ -449,7 +450,6 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
                 WRITE(p, "ocol1 = frac(float4(256.0f*256.0f, 256.0f, 1.0f, 0.0f) * uv%d.w);\n", ztexcoord);
         }
     }
-
     WRITE(p,"}\n");
 
     return text;
@@ -470,10 +470,25 @@ void WriteStage(char *&p, int n, u32 texture_mask)
         bHasIndStage = true;
         int texmap = bpmem.tevorders[n/2].getEnable(n&1) ? bpmem.tevorders[n/2].getTexMap(n&1) : bpmem.tevindref.getTexMap(bpmem.tevind[n].bt);
 
-        if( bpmem.tevind[n].bs != ITBA_OFF )
+		if( bpmem.tevind[n].bs != ITBA_OFF ) {
             // write the bump alpha
-            WRITE(p, "alphabump = %s (indtex%d.%s %s);\n", bpmem.tevind[n].fmt==ITF_8?"":"frac", bpmem.tevind[n].bt, 
-                tevIndAlphaSel[bpmem.tevind[n].bs], tevIndAlphaScale[bpmem.tevind[n].fmt]);
+
+			if( bpmem.tevind[n].fmt == ITF_8 ) {
+				WRITE(p, "alphabump = indtex%d.%s %s;\n", bpmem.tevind[n].bt, 
+					tevIndAlphaSel[bpmem.tevind[n].bs], tevIndAlphaScale[bpmem.tevind[n].fmt]);
+			}
+			else {			
+				// donkopunchstania: really bad way to do this
+				// cannot always use fract because fract(1.0) is 0.0 when it needs to be 1.0
+				// omitting fract seems to work as well
+				WRITE(p, "if( indtex%d.%s >= 1.0f )\n", bpmem.tevind[n].bt, 
+					tevIndAlphaSel[bpmem.tevind[n].bs]);
+				WRITE(p, "   alphabump = 1.0f;\n");
+				WRITE(p, "else\n");
+				WRITE(p, "   alphabump = fract ( indtex%d.%s %s );\n", bpmem.tevind[n].bt, 
+					tevIndAlphaSel[bpmem.tevind[n].bs], tevIndAlphaScale[bpmem.tevind[n].fmt]);
+			}
+		}
 
         // bias
         WRITE(p, "float3 indtevcrd%d = indtex%d;\n", n, bpmem.tevind[n].bt);
@@ -757,9 +772,9 @@ void WriteAlphaCompare(char *&p, int num, int comp)
     case ALPHACMP_ALWAYS:  WRITE(p,"(false)");	break;
     case ALPHACMP_NEVER:   WRITE(p,"(true)");	break;
     case ALPHACMP_LEQUAL:  WRITE(p,"(prev.a > %s)",alphaRef[num]);	break;
-    case ALPHACMP_LESS:    WRITE(p,"(prev.a >= %s+%f)",alphaRef[num],epsilon*0.5f);break;
+    case ALPHACMP_LESS:    WRITE(p,"(prev.a >= %s - %f)",alphaRef[num],epsilon*0.5f);break;
     case ALPHACMP_GEQUAL:  WRITE(p,"(prev.a < %s)",alphaRef[num]);	break;
-    case ALPHACMP_GREATER: WRITE(p,"(prev.a <= %s - %f)",alphaRef[num],epsilon*0.5f);break;
+    case ALPHACMP_GREATER: WRITE(p,"(prev.a <= %s + %f)",alphaRef[num],epsilon*0.5f);break;
     case ALPHACMP_EQUAL:   WRITE(p,"(abs(prev.a-%s)>%f)",alphaRef[num],epsilon*2); break;
     case ALPHACMP_NEQUAL:  WRITE(p,"(abs(prev.a-%s)<%f)",alphaRef[num],epsilon*2); break;
     }

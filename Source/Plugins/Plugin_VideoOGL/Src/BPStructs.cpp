@@ -675,10 +675,11 @@ void LoadBPReg(u32 value0)
                 u32 nRestoreZBufferTarget = Renderer::GetZBufferTarget();
                 
                 glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
-                // if copied to texture, set the dimensions to the source copy dims, otherwise, clear the entire buffer
-                if( PE_copy.copy_to_xfb == 0 )
-                    glScissor(multirc.left, (Renderer::GetTargetHeight() - multirc.bottom), 
-                    (multirc.right - multirc.left), (multirc.bottom - multirc.top));   
+
+                // Always set the scissor in case it was set by the game and has not been reset                
+                glScissor(multirc.left, (Renderer::GetTargetHeight() - multirc.bottom), 
+                    (multirc.right - multirc.left), (multirc.bottom - multirc.top)); 
+
                 VertexShaderMngr::SetViewportChanged();
 
                 // since clear operations use the source rectangle, have to do regular renders (glClear clears the entire buffer)
@@ -724,8 +725,7 @@ void LoadBPReg(u32 value0)
                     glDrawBuffers(2, s_drawbuffers);
                 }
                 
-                if( PE_copy.copy_to_xfb == 0 )
-                    SetScissorRect(); // reset the scissor rect
+                SetScissorRect(); // reset the scissor rect
             }
         }
         break;

@@ -100,6 +100,17 @@ VERTEXSHADER* VertexShaderMngr::GetShader(u32 components)
 
     VSCacheEntry& entry = vshaders[uid];
     char *code = GenerateVertexShader(components, Renderer::GetZBufferTarget() != 0);
+
+#ifdef _DEBUG
+    if( g_Config.iLog & CONF_SAVESHADERS && code ) {	
+        static int counter = 0;
+        char szTemp[MAX_PATH];
+		sprintf(szTemp, "%s/vs_%04i.txt", g_Config.texDumpPath, counter++);
+        
+        SaveData(szTemp, code);
+    }
+#endif
+
     if (!code || !VertexShaderMngr::CompileVertexShader(entry.shader, code)) {
         ERROR_LOG("failed to create vertex shader\n");
 		return NULL;

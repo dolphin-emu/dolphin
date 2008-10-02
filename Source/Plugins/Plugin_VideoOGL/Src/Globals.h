@@ -117,6 +117,7 @@ extern int frameCount;
 #define CONF_PRIMLOG 2
 #define CONF_SAVETEXTURES 4
 #define CONF_SAVETARGETS 8
+#define CONF_SAVESHADERS 16
 
 struct Config 
 {
@@ -226,6 +227,7 @@ void HandleGLError();
 void InitLUTs();
 bool SaveTGA(const char* filename, int width, int height, void* pdata);
 bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height);
+bool SaveData(const char* filename, const char* pdata);
 
 #if defined(_MSC_VER) && !defined(__x86_64__) && !defined(_M_X64)
 void * memcpy_amd(void *dest, const void *src, size_t n);

@@ -71,6 +71,7 @@ void Config::Load()
     iniFile.Get("Settings", "DLOptimize", &iCompileDLsLevel, 0);
     iniFile.Get("Settings", "DumpTextures", &bDumpTextures, 0);
     iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
+	iniFile.Get("Settings", "LogLevel", &iLog, 0);
     iniFile.Get("Settings", "Multisample", &iMultisampleMode, 0);
     if(iMultisampleMode == 0)
         iMultisampleMode = 1;
@@ -107,6 +108,7 @@ void Config::Save()
     iniFile.Set("Settings", "DLOptimize", iCompileDLsLevel);
     iniFile.Set("Settings", "DumpTextures", bDumpTextures);
     iniFile.Set("Settings", "ShowShaderErrors", bShowShaderErrors);
+	iniFile.Set("Settings", "LogLevel", iLog);
     iniFile.Set("Settings", "Multisample", iMultisampleMode);
     iniFile.Set("Settings", "TexDumpPath", texDumpPath);
 	iniFile.Set("Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);
@@ -183,6 +185,17 @@ bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int he
     }
 
     return SaveTGA(filename, width, height, &data[0]);
+}
+
+bool SaveData(const char* filename, const char* data)
+{
+    FILE* f = fopen(filename, "wb");
+    if (f == NULL)
+        return false;
+
+    fwrite(data, strlen(data), 1, f);
+    fclose(f);
+    return true;
 }
 
 #ifdef _WIN32
