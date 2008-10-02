@@ -344,6 +344,17 @@ void Event::Wait()
 	is_set_ = false;
 	pthread_mutex_unlock(&mutex_);
 }
+
+int InterlockedExchangeAdd( int* Addend, int Increment )
+{
+
+#if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))
+  return  __sync_add_and_fetch(Addend, Increment);
+#else
+  // TODO support old gcc
+#endif
+}
+
 #endif
 
 

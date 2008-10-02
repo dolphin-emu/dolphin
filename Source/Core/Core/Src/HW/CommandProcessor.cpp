@@ -378,10 +378,8 @@ void GatherPipeBursted()
 			Common::SleepCurrentThread(1);
 #ifdef _WIN32
 		InterlockedExchangeAdd((LONG*)&fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
-#else
-                fifo.sync->Enter();
-                fifo.CPReadWriteDistance +=  GPFifo::GATHER_PIPE_SIZE;
-                fifo.sync->Leave();
+#else 
+                Common::InterlockedExchangeAdd((int*)&fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
 #endif
 
 		// check if we are in sync

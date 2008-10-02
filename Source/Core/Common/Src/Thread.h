@@ -113,6 +113,9 @@ class Event
 void SleepCurrentThread(int ms);
 
 void SetCurrentThreadName(const char* name);
+
+int InterlockedExchangeAdd( int* Addend, int Increment );
 } // end of namespace Common
+
 
 #endif
