@@ -168,8 +168,12 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 	if (hEventOnIdle==NULL) PanicAlert("Fifo_EnterLoop() -> EventOnIdle NULL");
 #endif
 
+#ifdef _WIN32
     // TODO(ector): Don't peek so often!
-    while (fifoStateRun || video_initialize.pPeekMessages())
+    while (video_initialize.pPeekMessages())
+#else 
+    while (fifoStateRun)
+#endif
     {
 #if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
 	if (MsgWaitForMultipleObjects(1, &hEventOnIdle, FALSE, 1L, QS_ALLEVENTS) == WAIT_ABANDONED)

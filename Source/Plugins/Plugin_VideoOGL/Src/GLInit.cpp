@@ -94,7 +94,7 @@ BOOL Callback_PeekMessages()
 #else // GLX
     // This is called from Outside of our video thread, from EmuThread
     // The calls are NOT thread safe, so it breaks everything
-        return FALSE;
+    return FALSE;
 #endif
 }
 
