@@ -112,9 +112,12 @@ class Event
 
 void SleepCurrentThread(int ms);
 
-void SetCurrentThreadName(const char* name);
+void SetCurrentThreadName(const char *name);
 
-int InterlockedExchangeAdd( int* Addend, int Increment );
+#ifndef _WIN32
+int InterlockedExchangeAdd(int *Addend, int Increment);
+#endif
+
 } // end of namespace Common
 
 

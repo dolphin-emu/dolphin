@@ -345,17 +345,16 @@ void Event::Wait()
 	pthread_mutex_unlock(&mutex_);
 }
 
-int InterlockedExchangeAdd( int* Addend, int Increment )
+int InterlockedExchangeAdd(int *Addend, int Increment)
 {
-
 #if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))
   return  __sync_add_and_fetch(Addend, Increment);
 #else
+#error Sorry - GCC versions that don't support __sync_add_and_fetch are not supported.
   // TODO support old gcc
 #endif
 }
 
 #endif
-
 
 } // end of namespace Common
