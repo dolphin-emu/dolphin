@@ -5,9 +5,11 @@
 #ifndef _VIDEO_H_INCLUDED__
 #define _VIDEO_H_INCLUDED__
 
+#include "Thread.h"
 #include "PluginSpecs.h"
 
 #include "ExportProlog.h"
+
 
 typedef void			(*TSetPEToken)(const unsigned short _token, const int _bSetTokenAcknowledge);
 typedef void			(*TSetPEFinish)(void);
@@ -40,6 +42,8 @@ typedef struct
 	volatile bool bPauseRead;
 #ifdef _WIN32
 	CRITICAL_SECTION sync;
+#else 
+    Common::CriticalSection *sync;
 #endif
 } SCPFifoStruct;
 

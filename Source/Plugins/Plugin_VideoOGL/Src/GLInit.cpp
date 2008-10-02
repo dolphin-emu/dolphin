@@ -79,7 +79,7 @@ BOOL Callback_PeekMessages()
 	// TODO: There is no documentation of this function and the calling code
 	//       ignores the return value, so I have no idea what would be the
 	//       proper value to return.
-    return FALSE;
+    return TRUE;
 #elif defined(_WIN32)
     //TODO: peekmessage
     MSG msg;
@@ -94,7 +94,7 @@ BOOL Callback_PeekMessages()
 #else // GLX
     // This is called from Outside of our video thread, from EmuThread
     // The calls are NOT thread safe, so it breaks everything
-    return FALSE;
+    return TRUE;
 #endif
 }
 

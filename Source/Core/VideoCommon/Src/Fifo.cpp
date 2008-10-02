@@ -181,7 +181,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 #if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
             while(_fifo.CPReadWriteDistance > 0)
 #else
-           int count = 200;
+              int count = 200;
             while(_fifo.CPReadWriteDistance > 0 && count)
 #endif
 			{
@@ -200,12 +200,17 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 				u8 *uData = video_initialize.pGetMemoryPointer(_fifo.CPReadPointer);
 #ifdef _WIN32
                 EnterCriticalSection(&_fifo.sync);
+#else
+                _fifo.sync->Enter();
 #endif
                 _fifo.CPReadPointer += 32;
                 Video_SendFifoData(uData);
 #ifdef _WIN32
                 InterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -32);
                 LeaveCriticalSection(&_fifo.sync);
+#else 
+                  _fifo.CPReadWriteDistance -= 32;
+                  _fifo.sync->Leave();
 #endif
                 // increase the ReadPtr
                 if (_fifo.CPReadPointer >= _fifo.CPEnd)

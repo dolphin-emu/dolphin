@@ -157,11 +157,16 @@ void Init()
 
 #ifdef _WIN32
 	InitializeCriticalSection(&fifo.sync);
+#else
+        fifo.sync = new Common::CriticalSection(0);
 #endif
 }
 
 void Shutdown()
 {
+#ifndef _WIN32
+  delete fifo.sync;
+#endif
 }
 
 void Read16(u16& _rReturnValue, const u32 _Address)
@@ -249,6 +254,8 @@ void Write16(const u16 _Value, const u32 _Address)
 		}
 	#ifdef _WIN32
 		EnterCriticalSection(&fifo.sync);
+        #else
+                fifo.sync->Enter();
 	#endif
 	}
 
@@ -332,9 +339,11 @@ void Write16(const u16 _Value, const u32 _Address)
 	// update the registers and run the fifo
 	// This will recursively enter fifo.sync, TODO(ector): is this good?
 	UpdateFifoRegister();	
-#ifdef _WIN32
 	if (Core::g_CoreStartupParameter.bUseDualCore)
+#ifdef _WIN32
 		LeaveCriticalSection(&fifo.sync);
+#else
+        fifo.sync->Leave();
 #endif
 	fifo.bPauseRead = false; // pauseread is not actually used anywhere! TOOD(ector): huh!
 }
@@ -369,6 +378,10 @@ void GatherPipeBursted()
 			Common::SleepCurrentThread(1);
 #ifdef _WIN32
 		InterlockedExchangeAdd((LONG*)&fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
+#else
+                fifo.sync->Enter();
+                fifo.CPReadWriteDistance +=  GPFifo::GATHER_PIPE_SIZE;
+                fifo.sync->Leave();
 #endif
 
 		// check if we are in sync
