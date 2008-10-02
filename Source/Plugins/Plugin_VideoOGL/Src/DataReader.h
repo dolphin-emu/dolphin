@@ -38,7 +38,7 @@ public:
     virtual u32 Read32() = 0;
 
 	virtual int GetPosition() = 0; // return values can be anything, as long as relative distances are correct
-	virtual int GetRealPtr() = 0;
+	virtual u8* GetRealCurrentPtr() = 0;
 };
 
 // =================================================================================================
@@ -57,7 +57,7 @@ public:
     virtual u16 Read16();
     virtual u32 Read32();
 	virtual int GetPosition();
-	virtual int GetRealPtr();
+	virtual u8* GetRealCurrentPtr();
 };
 
 // =================================================================================================
@@ -82,7 +82,7 @@ public:
     virtual u16 Read16();
     virtual u32 Read32();
 	virtual int GetPosition();
-	virtual int GetRealPtr();
+	virtual u8* GetRealCurrentPtr();
 };
 
 extern IDataReader* g_pDataReader;
@@ -93,14 +93,14 @@ extern IDataReader* g_pDataReader;
 
 
 #ifdef DATAREADER_INLINE
-extern u32 g_pVideoData;
+extern u8* g_pVideoData;
 #endif
 
 #ifdef DATAREADER_DEBUG
-extern u32 g_pDataReaderRealPtr;
-#define DATAREADER_DEBUG_CHECK_PTR 		g_pDataReaderRealPtr = g_pDataReader->GetRealPtr(); \
+extern u8* g_pDataReaderRealPtr;
+#define DATAREADER_DEBUG_CHECK_PTR 		g_pDataReaderRealPtr = g_pDataReader->GetRealCurrentPtr(); \
 										if (g_pDataReaderRealPtr!=g_pVideoData) _asm int 3
-#define DATAREADER_DEBUG_CHECK_PTR_VAL	g_pDataReaderRealPtr = g_pDataReader->GetRealPtr(); \
+#define DATAREADER_DEBUG_CHECK_PTR_VAL	g_pDataReaderRealPtr = g_pDataReader->GetRealCurrentPtr(); \
 										if ((g_pDataReaderRealPtr != g_pVideoData) || (tmp != tmpdb)) _asm int 3
 //#define DATAREADER_DEBUG_CHECK_PTR_VAL	DATAREADER_DEBUG_CHECK_PTR
 #else
@@ -126,7 +126,7 @@ inline u32 DataPeek32(u32 _uOffset)	{
 
 inline u8 DataReadU8()
 {
-	u8 tmp = *(u8*)g_pVideoData;
+	u8 tmp = *g_pVideoData;
 	g_pVideoData++;
 #ifdef DATAREADER_DEBUG
 	u8 tmpdb = g_pDataReader->Read8();
@@ -172,7 +172,7 @@ inline float DataReadF32()
 	return tmp;
 }
 
-inline u32 DataGetPosition()
+inline u8* DataGetPosition()
 {
 #ifdef DATAREADER_DEBUG
 	DATAREADER_DEBUG_CHECK_PTR;

@@ -28,7 +28,7 @@ extern u8 FAKE_ReadFifo8();
 extern u16 FAKE_ReadFifo16();
 extern u32 FAKE_ReadFifo32();
 extern int FAKE_GetPosition();
-extern int FAKE_GetRealPtr();
+extern u8* FAKE_GetFifoCurrentPtr();
 extern void FAKE_SkipFifo(u32 skip);
 
 IDataReader::~IDataReader()
@@ -63,9 +63,9 @@ int CDataReader_Fifo::GetPosition()
 {
     return FAKE_GetPosition();
 }
-int CDataReader_Fifo::GetRealPtr()
+u8* CDataReader_Fifo::GetRealCurrentPtr()
 {
-	return FAKE_GetRealPtr();
+	return FAKE_GetFifoCurrentPtr();
 }
 
 
@@ -115,8 +115,8 @@ void CDataReader_Memory::Skip(u32 skip)
     m_uReadAddress += skip;
 }
 
-int CDataReader_Memory::GetRealPtr()
+u8* CDataReader_Memory::GetRealCurrentPtr()
 {
-	return (int)Memory_GetPtr(m_uReadAddress);
+	return Memory_GetPtr(m_uReadAddress);
 }
 #endif

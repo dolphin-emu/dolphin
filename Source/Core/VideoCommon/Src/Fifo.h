@@ -24,7 +24,7 @@
 #include "ChunkFile.h"
 
 // TODO (mb2) clean this if ok
-#define DATAREADER_INLINE // uncomment to use the previous IDataReader way
+#define DATAREADER_INLINE // comment to use the previous IDataReader way
 //#define DATAREADER_DEBUG // simple compare with the previous IDataReader way
 
 #if defined(DATAREADER_DEBUG) && !defined(DATAREADER_INLINE)

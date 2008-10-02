@@ -24,7 +24,7 @@
 #include "Fifo.h"
 
 #if defined(DATAREADER_INLINE)
-extern u32 g_pVideoData;
+extern u8* g_pVideoData;
 #else
 FifoReader fifo;
 #endif
@@ -61,9 +61,9 @@ void Fifo_Stop() {
     fifoStateRun = false;
 }
 
-u32 FAKE_GetFifoStartPtr()
+u8* FAKE_GetFifoStartPtr()
 {
-    return (int)videoBuffer;
+    return videoBuffer;
 }
 
 int FAKE_GetFifoSize()
@@ -74,9 +74,9 @@ int FAKE_GetFifoSize()
     }
     return (size - readptr);
 }
-int FAKE_GetFifoEndAddr()
+u8* FAKE_GetFifoEndPtr()
 {
-    return (int)(videoBuffer+size);
+	return &videoBuffer[size];
 }
 
 u8 FAKE_PeekFifo8(u32 _uOffset)
@@ -104,9 +104,9 @@ int FAKE_GetPosition()
     return readptr;
 }
 
-int FAKE_GetRealPtr()
+u8* FAKE_GetFifoCurrentPtr()
 {
-	return (int)(videoBuffer+readptr);
+	return &videoBuffer[readptr];
 }
 
 u16 FAKE_ReadFifo16()
@@ -138,7 +138,7 @@ void Video_SendFifoData(u8* _uData)
 		// TODO (mb2): Better and DataReader inline for DX9 
 #ifdef DATAREADER_INLINE
 		if (g_pVideoData) // for DX9 plugin "compatibility"
-			readptr = g_pVideoData-(u32)videoBuffer;
+			readptr = (int)(g_pVideoData-videoBuffer);
 #endif
         if (FAKE_GetFifoSize() > readptr)
         {

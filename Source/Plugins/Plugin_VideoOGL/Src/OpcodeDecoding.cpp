@@ -41,11 +41,11 @@
 CDataReader_Fifo g_fifoReader;
 #endif
 #ifdef DATAREADER_DEBUG
-u32 g_pDataReaderRealPtr=0;
+u8* g_pDataReaderRealPtr=0;
 #endif
 
 #ifdef DATAREADER_INLINE
-u32 g_pVideoData=0;
+u8* g_pVideoData=0;
 extern bool g_IsFifoRewinded;
 #endif
 
@@ -57,9 +57,9 @@ extern u16 FAKE_PeekFifo16(u32 _uOffset);
 extern u32 FAKE_PeekFifo32(u32 _uOffset);
 extern int FAKE_GetFifoSize();
 #endif
-extern int FAKE_GetFifoEndAddr();
-extern u32 FAKE_GetFifoStartPtr();
-extern int FAKE_GetRealPtr();
+extern u8* FAKE_GetFifoEndPtr();
+extern u8* FAKE_GetFifoStartPtr();
+extern u8* FAKE_GetFifoCurrentPtr();
 extern void FAKE_SkipFifo(u32 skip);
 
 template <class T>
@@ -80,9 +80,9 @@ void ExecuteDisplayList(u32 address, u32 size)
     g_pDataReader = &memoryReader;
 #endif
 #ifdef DATAREADER_INLINE
-	u32 old_pVideoData = g_pVideoData;
+	u8* old_pVideoData = g_pVideoData;
 
-	const u32 startAddress = (u32)Memory_GetPtr(address);
+	u8* startAddress = Memory_GetPtr(address);
 	g_pVideoData = startAddress;
 #endif
 	// temporarily swap dl and non-dl(small "hack" for the stats)
@@ -123,7 +123,7 @@ bool FifoCommandRunnable(void)
 #ifndef DATAREADER_INLINE
     u32 iBufferSize = FAKE_GetFifoSize();
 #else
-	u32 iBufferSize = FAKE_GetFifoEndAddr()-g_pVideoData;
+	u32 iBufferSize = (u32)(FAKE_GetFifoEndPtr()-g_pVideoData);
 #ifdef DATAREADER_DEBUG
     u32 iBufferSizedb = FAKE_GetFifoSize();
 	if( iBufferSize != iBufferSizedb)	_asm int 3
@@ -345,7 +345,7 @@ void OpcodeDecoder_Init()
 	g_pVideoData = FAKE_GetFifoStartPtr();
 #if defined(DATAREADER_DEBUG)
     g_pDataReader = &g_fifoReader;
-	g_pDataReaderRealPtr = g_pDataReader->GetRealPtr();
+	g_pDataReaderRealPtr = g_pDataReader->GetRealCurrentPtr();
 	DATAREADER_DEBUG_CHECK_PTR;
 #endif
 #endif
