@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+void startConsoleWin(int width, int height, char* fname);
 int wprintf(char *fmt, ...);
 void ClearScreen();
 void OpenConsole();

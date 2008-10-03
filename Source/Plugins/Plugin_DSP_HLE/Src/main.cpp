@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
 // =======================================================================================
 // Includes
 // ------------------
@@ -36,6 +37,7 @@
 #include "Config.h"
 
 #include "Debugger/Debugger.h" // for the CDebugger class
+#include "Logging/Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
 // ===================
 
 
@@ -125,11 +127,8 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
 
 
 // =======================================================================================
-// Open close console
-HWND GetConsoleHwnd(void);
-void startConsoleWin(int width, int height, char* fname);
-int wprintf(char *fmt, ...);
-// ---------------------------------------------------------------------------------------
+// Open and close console
+// -------------------
 void OpenConsole()
 {
 	#if defined (_WIN32)
@@ -146,7 +145,7 @@ void CloseConsole()
 		FreeConsole();
 	#endif
 }
-// =======================================================================================
+// ===================
 
 
 // =======================================================================================
