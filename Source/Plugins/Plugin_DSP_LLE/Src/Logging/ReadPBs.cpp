@@ -22,12 +22,9 @@
 
 
 // =======================================================================================
-// TODO: make this automatic
+// Externals
 // --------------
-//u32 m_addressPBs = 0x804a1a60; // SSBM (PAL)
-//u32 m_addressPBs = 0x802798c0; // Baten
-//u32 m_addressPBs = 0x80576d20; // Symphonia
-u32 m_addressPBs = 0x80671d00; // Paper Mario
+u32 m_addressPBs = 0;
 // --------------
 extern u32 gLastBlock;
 // ==============

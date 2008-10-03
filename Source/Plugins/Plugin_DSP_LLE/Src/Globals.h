@@ -61,5 +61,8 @@ typedef signed long long sint64;
 
 typedef const uint32 cuint32;
 
+u16 Memory_Read_U16(u32 _uAddress); // For PB address detection
+u32 Memory_Read_U32(u32 _uAddress);
+
 #endif
 

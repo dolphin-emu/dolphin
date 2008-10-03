@@ -76,7 +76,7 @@ void ClearScreen();
 int wprintf(char *fmt, ...)
 {
 #ifdef DEBUGG
-	char s[4000]; // WARNING: mind this value
+	char s[6000]; // WARNING: mind this value
 	va_list argptr;
 	int cnt;
 

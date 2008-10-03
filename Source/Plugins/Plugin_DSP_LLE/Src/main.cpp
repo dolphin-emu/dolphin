@@ -46,14 +46,23 @@
 
 #include "ChunkFile.h"
 
+
+// =======================================================================================
+// Globals
+// --------------
 DSPInitialize g_dspInitialize;
 
 #define GDSP_MBOX_CPU   0
 #define GDSP_MBOX_DSP   1
 
-
 uint32 g_LastDMAAddress = 0;
 uint32 g_LastDMASize = 0;
+
+extern u32 m_addressPBs;
+bool AXTask(u32& _uMail);
+// ==============
+
+
 #ifdef _WIN32
 BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
 		DWORD dwReason,             // reason called
@@ -331,7 +340,20 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 	{
 		gdsp_mbox_write_l(GDSP_MBOX_CPU, _uLowMail);
 
-		DebugLog("Write CPU Mail: 0x%08x (pc=0x%04x)\n", gdsp_mbox_peek(GDSP_MBOX_CPU), g_dsp.err_pc);
+		u32 uAddress = gdsp_mbox_peek(GDSP_MBOX_CPU);
+		u16 errpc = g_dsp.err_pc;
+
+		DebugLog("Write CPU Mail: 0x%08x (pc=0x%04x)\n", uAddress, errpc);
+
+		// ---------------------------------------------------------------------------------------
+		// I couldn't find any better way to detect the AX mails so this had to do. Please feel free
+		// to change it.
+		// --------------
+		if ((errpc == 0x0054 || errpc == 0x0055) && m_addressPBs == 0)
+		{
+			DebugLog("AXTask ======== 0x%08x (pc=0x%04x)", uAddress, errpc);
+			AXTask(uAddress);
+		}
 	}
 	else
 	{
