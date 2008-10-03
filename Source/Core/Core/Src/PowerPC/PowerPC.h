@@ -14,13 +14,6 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-// Things that are common between CPU cores
-// Plus an abstraction from the cores, to make it possible to switch between them
-//
-
-// CURRENT NASTY BUGS:
-// PC Genjin intro video is garbled and it crashes
-// Skies of Arcadia only works in DebugFast, not release! And it's glitch hell.
 
 #ifndef _POWERPC_H
 #define _POWERPC_H

@@ -191,7 +191,7 @@ int VertexLoader::ComputeVertexSize()
         break;
     }
 
-	VertexLoader_Normal::index3 = m_VtxAttr.NormalIndex3;
+	VertexLoader_Normal::index3 = m_VtxAttr.NormalIndex3 ? true : false;
     if (m_VtxDesc.Normal != NOT_PRESENT)
         m_VertexSize += VertexLoader_Normal::GetSize(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements);
     

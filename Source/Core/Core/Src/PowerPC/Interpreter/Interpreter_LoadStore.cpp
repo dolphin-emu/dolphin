@@ -308,7 +308,7 @@ void dcbz(UGeckoInstruction _inst)
 	// HACK but works... we think
 	Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
 }
-
+ 
 void eciwx(UGeckoInstruction _inst)
 {
 	_assert_msg_(GEKKO,0,"eciwx - Not implemented"); 

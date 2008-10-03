@@ -16,11 +16,11 @@
 // http://code.google.com/p/dolphin-emu/
 
 //DL facts:
-//	Ikaruga uses NO display lists!
+//	Ikaruga uses (nearly) NO display lists!
 //  Zelda WW uses TONS of display lists
 //  Zelda TP uses almost 100% display lists except menus (we like this!)
 
-// Note that it IS NOT POSSIBLE to precompile display lists! You can compile them as they are
+// Note that it IS NOT GENERALLY POSSIBLE to precompile display lists! You can compile them as they are
 // and hope that the vertex format doesn't change, though, if you do it just when they are 
 // called. The reason is that the vertex format affects the sizes of the vertices.
 
@@ -49,7 +49,7 @@
 DecodedVArray tempvarray;
 // TODO (mb2): all! DataReader inline for DX9
 #ifdef DATAREADER_INLINE
-u8 *g_pVideoData=0;
+u8 *g_pVideoData = 0;
 #endif
 void Decode();
 

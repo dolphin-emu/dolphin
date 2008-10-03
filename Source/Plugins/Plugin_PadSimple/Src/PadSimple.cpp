@@ -360,6 +360,7 @@ bool XInput_Read(int xpadplayer, SPADStatus* _pPADStatus)
 
 		return true;
 	}
+	return false;
 #else
 	return false;
 #endif

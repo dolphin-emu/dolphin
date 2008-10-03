@@ -382,6 +382,16 @@ void mtspr(UGeckoInstruction _inst)
 		GPFifo::ResetGatherPipe();
 		break;
 
+	case SPR_GQR0:
+	case SPR_GQR0 + 1:
+	case SPR_GQR0 + 2:
+	case SPR_GQR0 + 3:
+	case SPR_GQR0 + 4:
+	case SPR_GQR0 + 5:
+	case SPR_GQR0 + 6:
+	case SPR_GQR0 + 7:
+		break;
+
 	case SPR_DMAL:
 		// Locked cache<->Memory DMA
 		// Total fake, we ignore that DMAs take time.

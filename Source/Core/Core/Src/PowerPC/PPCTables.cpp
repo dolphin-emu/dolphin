@@ -170,11 +170,6 @@ GekkoOPTemplate primarytable[] =
 	{42, Interpreter::lha,       Jit64::lha,      {"lha",  OPTYPE_LOAD, 0}},
 	{43, Interpreter::lhau,      Jit64::Default,  {"lhau", OPTYPE_LOAD, 0}},
 
-	{48, Interpreter::lfs,       Jit64::lfs,      {"lfs",  OPTYPE_LOADFP, 0}},
-	{49, Interpreter::lfsu,      Jit64::Default,  {"lfsu", OPTYPE_LOADFP, 0}},
-	{50, Interpreter::lfd,       Jit64::lfd,      {"lfd",  OPTYPE_LOADFP, 0}},
-	{51, Interpreter::lfdu,      Jit64::Default,  {"lfdu", OPTYPE_LOADFP, 0}},
-
 	{44, Interpreter::sth,       Jit64::stX,      {"sth",  OPTYPE_STORE, 0}},
 	{45, Interpreter::sthu,      Jit64::stX,      {"sthu", OPTYPE_STORE, 0}},
 	{36, Interpreter::stw,       Jit64::stX,      {"stw",  OPTYPE_STORE, 0}},
@@ -182,13 +177,18 @@ GekkoOPTemplate primarytable[] =
 	{38, Interpreter::stb,	      Jit64::stX,      {"stb",  OPTYPE_STORE, 0}},
 	{39, Interpreter::stbu,      Jit64::stX,      {"stbu", OPTYPE_STORE, 0}},
 
+	{46, Interpreter::lmw,       Jit64::lmw,      {"lmw",   OPTYPE_SYSTEM, 0, 10}},
+	{47, Interpreter::stmw,      Jit64::stmw,     {"stmw",  OPTYPE_SYSTEM, 0, 10}},
+
+	{48, Interpreter::lfs,       Jit64::lfs,      {"lfs",  OPTYPE_LOADFP, 0}},
+	{49, Interpreter::lfsu,      Jit64::Default,  {"lfsu", OPTYPE_LOADFP, 0}},
+	{50, Interpreter::lfd,       Jit64::lfd,      {"lfd",  OPTYPE_LOADFP, 0}},
+	{51, Interpreter::lfdu,      Jit64::Default,  {"lfdu", OPTYPE_LOADFP, 0}},
+
 	{52, Interpreter::stfs,      Jit64::stfs,     {"stfs",  OPTYPE_STOREFP, 0}},
 	{53, Interpreter::stfsu,     Jit64::stfs,     {"stfsu", OPTYPE_STOREFP, 0}},
 	{54, Interpreter::stfd,      Jit64::stfd,     {"stfd",  OPTYPE_STOREFP, 0}},
 	{55, Interpreter::stfdu,     Jit64::Default,  {"stfdu", OPTYPE_STOREFP, 0}},
-
-	{46, Interpreter::lmw,       Jit64::lmw,      {"lmw",   OPTYPE_SYSTEM, 0, 10}},
-	{47, Interpreter::stmw,      Jit64::stmw,     {"stmw",  OPTYPE_SYSTEM, 0, 10}},
 
 	{56, Interpreter::psq_l,     Jit64::psq_l,    {"psq_l",   OPTYPE_PS, 0}},
 	{57, Interpreter::psq_lu,    Jit64::psq_l,    {"psq_lu",  OPTYPE_PS, 0}},
@@ -328,11 +328,6 @@ GekkoOPTemplate table31[] =
 	{533, Interpreter::lswx,  Jit64::Default,   {"lswx",  OPTYPE_LOAD, FL_IN_A | FL_OUT_D}},
 	{597, Interpreter::lswi,  Jit64::Default,   {"lswi",  OPTYPE_LOAD, FL_IN_AB | FL_OUT_D}},
 
-	{535, Interpreter::lfsx,  Jit64::lfsx,      {"lfsx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
-	{567, Interpreter::lfsux, Jit64::Default,   {"lfsux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
-	{599, Interpreter::lfdx,  Jit64::Default,   {"lfdx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
-	{631, Interpreter::lfdux, Jit64::Default,   {"lfdux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
-
 	//store word
 	{151, Interpreter::stwx,   Jit64::Default,    {"stwx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
 	{183, Interpreter::stwux,  Jit64::Default,    {"stwux",  OPTYPE_STORE, FL_IN_A | FL_IN_B}},
@@ -352,6 +347,12 @@ GekkoOPTemplate table31[] =
 	{661, Interpreter::stswx,  Jit64::Default,   {"stswx",  OPTYPE_STORE, 0}},
 	{725, Interpreter::stswi,  Jit64::Default,   {"stswi",  OPTYPE_STORE, 0}},
 
+	// fp load/store	
+	{535, Interpreter::lfsx,  Jit64::lfsx,      {"lfsx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
+	{567, Interpreter::lfsux, Jit64::Default,   {"lfsux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
+	{599, Interpreter::lfdx,  Jit64::Default,   {"lfdx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
+	{631, Interpreter::lfdux, Jit64::Default,   {"lfdux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
+
 	{663, Interpreter::stfsx,  Jit64::Default,   {"stfsx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
 	{695, Interpreter::stfsux, Jit64::Default,   {"stfsux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B}},
 	{727, Interpreter::stfdx,  Jit64::Default,   {"stfdx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
@@ -364,15 +365,15 @@ GekkoOPTemplate table31[] =
 	{146, Interpreter::mtmsr,  Jit64::mtmsr,      {"mtmsr",  OPTYPE_SYSTEM, FL_ENDBLOCK}},
 	{210, Interpreter::mtsr,   Jit64::Default,    {"mtsr",   OPTYPE_SYSTEM, 0}},
 	{242, Interpreter::mtsrin, Jit64::Default,    {"mtsrin", OPTYPE_SYSTEM, 0}},
-	{339, Interpreter::mfspr,  Jit64::mfspr,      {"mfspr",  OPTYPE_SYSTEM, 0}},
-	{467, Interpreter::mtspr,  Jit64::mtspr,      {"mtspr",  OPTYPE_SYSTEM, 0, 2}},
+	{339, Interpreter::mfspr,  Jit64::mfspr,      {"mfspr",  OPTYPE_SPR, 0}},
+	{467, Interpreter::mtspr,  Jit64::mtspr,      {"mtspr",  OPTYPE_SPR, 0, 2}},
 	{371, Interpreter::mftb,   Jit64::mftb,       {"mftb",   OPTYPE_SYSTEM, FL_TIMER}},
 	{512, Interpreter::mcrxr,  Jit64::Default,    {"mcrxr",  OPTYPE_SYSTEM, 0}},
 	{595, Interpreter::mfsr,   Jit64::Default,    {"mfsr",   OPTYPE_SYSTEM, 0, 2}},
 	{659, Interpreter::mfsrin, Jit64::Default,    {"mfsrin", OPTYPE_SYSTEM, 0, 2}},
 
 	{4,   Interpreter::tw,      Jit64::Default,     {"tw",     OPTYPE_SYSTEM, 0, 1}},
-	{598, Interpreter::sync,    Jit64::Default,     {"sync",   OPTYPE_SYSTEM, 0, 2}},
+	{598, Interpreter::sync,    Jit64::DoNothing,   {"sync",   OPTYPE_SYSTEM, 0, 2}},
 	{982, Interpreter::icbi,    Jit64::Default,     {"icbi",   OPTYPE_SYSTEM, 0, 3}},
 
 	//Unused instructions on GC
@@ -459,6 +460,8 @@ bool PPCTables::UsesFPU(UGeckoInstruction _inst)
 	switch (_inst.OPCD)
 	{
 	case 04:	// PS
+		return _inst.SUBOP10 != 1014;
+
 	case 48:	// lfs
 	case 49:	// lfsu
 	case 50:	// lfd
