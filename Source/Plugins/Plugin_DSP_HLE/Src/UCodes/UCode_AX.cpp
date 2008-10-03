@@ -523,6 +523,9 @@ bool CUCode_AX::AXTask(u32& _uMail)
 	    case 0x000e:
 		    Addr__AXOutSBuffer_1 = Memory_Read_U32(uAddress);
 		    uAddress += 4;
+
+			// Addr__AXOutSBuffer_2 is the address in RAM that we are supposed to mix to.
+			// Although we don't, currently.
 		    Addr__AXOutSBuffer_2 = Memory_Read_U32(uAddress);
 		    uAddress += 4;
 		    DebugLog("AXLIST sbuf2 addresses: %08x %08x", Addr__AXOutSBuffer_1, Addr__AXOutSBuffer_2);
