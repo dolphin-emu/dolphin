@@ -46,19 +46,14 @@
 #include "DLCompiler.h"
 
 #define CMDBUFFER_SIZE 1024*1024
+
 DecodedVArray tempvarray;
-// TODO (mb2): all! DataReader inline for DX9
-#ifdef DATAREADER_INLINE
 u8 *g_pVideoData = 0;
-#endif
+
+extern u8* FAKE_GetFifoStartPtr();
+extern u8* FAKE_GetFifoEndPtr();
+
 void Decode();
-
-extern u8 FAKE_PeekFifo8(u32 _uOffset);
-extern u16 FAKE_PeekFifo16(u32 _uOffset);
-extern u32 FAKE_PeekFifo32(u32 _uOffset);
-extern int FAKE_GetFifoSize();
-
-CDataReader_Fifo g_fifoReader;
 
 template <class T>
 void Xchg(T& a, T&b)
@@ -70,11 +65,10 @@ void Xchg(T& a, T&b)
 
 void ExecuteDisplayList(u32 address, u32 size)
 {
-    IDataReader* pOldReader = g_pDataReader;
+	u8* old_pVideoData = g_pVideoData;
 
-//	address &= 0x01FFFFFF; // phys address
-	CDataReader_Memory memoryReader(address);
-	g_pDataReader = &memoryReader;
+	u8* startAddress = Memory_GetPtr(address);
+	g_pVideoData = startAddress;
 
 	// temporarily swap dl and non-dl(small "hack" for the stats)
 	Xchg(stats.thisFrame.numDLPrims, stats.thisFrame.numPrims);
@@ -82,10 +76,10 @@ void ExecuteDisplayList(u32 address, u32 size)
 	Xchg(stats.thisFrame.numCPLoadsInDL, stats.thisFrame.numCPLoads);
 	Xchg(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
 
-	while((memoryReader.GetReadAddress() - address) < size)
-	{
-		Decode();
-	}
+    while((u32)(g_pVideoData - startAddress) < size)
+    {
+        Decode();
+    }
     INCSTAT(stats.numDListsCalled);
     INCSTAT(stats.thisFrame.numDListsCalled);
 
@@ -95,33 +89,17 @@ void ExecuteDisplayList(u32 address, u32 size)
 	Xchg(stats.thisFrame.numCPLoadsInDL, stats.thisFrame.numCPLoads);
 	Xchg(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
 
-	// reset to the old reader
-	g_pDataReader = pOldReader;
+    // reset to the old pointer
+	g_pVideoData = old_pVideoData;
 }
-
-inline u8 PeekFifo8(u32 _uOffset)
-{
-	return FAKE_PeekFifo8(_uOffset);
-}
-
-inline u16 PeekFifo16(u32 _uOffset)
-{
-	return FAKE_PeekFifo16(_uOffset);
-}
-
-inline u32 PeekFifo32(u32 _uOffset)
-{
-	return FAKE_PeekFifo32(_uOffset);
-}
-
 
 bool FifoCommandRunnable(void)
 {
-	u32 iBufferSize = FAKE_GetFifoSize();
+	u32 iBufferSize = (u32)(FAKE_GetFifoEndPtr()-g_pVideoData);
 	if (iBufferSize == 0)
 		return false;  // can't peek
 
-	u8 Cmd = PeekFifo8(0);
+	u8 Cmd = DataPeek8(0);
 	u32 iCommandSize = 0;
 
 	switch(Cmd)
@@ -165,7 +143,7 @@ bool FifoCommandRunnable(void)
 			if (iBufferSize >= 5)
 			{				
 				iCommandSize = 1 + 4;
-				u32 Cmd2 = PeekFifo32(1);
+				u32 Cmd2 = DataPeek32(1);
 				int dwTransferSize = ((Cmd2 >> 16) & 15) + 1;
 				iCommandSize += dwTransferSize * 4;				
 			}
@@ -183,7 +161,7 @@ bool FifoCommandRunnable(void)
 			if (iBufferSize >= 3)
 			{
 				iCommandSize = 1 + 2;
-				u16 numVertices = PeekFifo16(1);
+				u16 numVertices = DataPeek16(1);
 				VertexLoader& vtxLoader = g_VertexLoaders[Cmd & GX_VAT_MASK];
 				vtxLoader.Setup();
 				int vsize = vtxLoader.GetVertexSize();
@@ -254,7 +232,7 @@ bool FifoCommandRunnable(void)
 
 void Decode(void)
 {
-    int Cmd = g_pDataReader->Read8();
+    int Cmd = DataReadU8();
 	switch(Cmd)
 	{
 	case GX_NOP:
@@ -262,42 +240,42 @@ void Decode(void)
 
 	case GX_LOAD_CP_REG: //0x08
 		{
-			u32 SubCmd = g_pDataReader->Read8();
-			u32 Value = g_pDataReader->Read32();
+			u32 SubCmd = DataReadU8();
+			u32 Value = DataReadU32();
 			LoadCPReg(SubCmd,Value);
 		}
 		break;
 
 	case GX_LOAD_XF_REG:
 		{
-			u32 Cmd2 = g_pDataReader->Read32();
+			u32 Cmd2 = DataReadU32();
 			
 			int dwTransferSize = ((Cmd2>>16)&15) + 1;
 			u32 dwAddress = Cmd2 & 0xFFFF;
 			static u32 pData[16];
 			for (int i=0; i<dwTransferSize; i++)
-				pData[i] = g_pDataReader->Read32();
+				pData[i] = DataReadU32();
 			LoadXFReg(dwTransferSize,dwAddress,pData);
 		}
 		break;
 
 	case GX_LOAD_INDX_A: //used for position matrices
-		LoadIndexedXF(g_pDataReader->Read32(),0xC);
+		LoadIndexedXF(DataReadU32(),0xC);
 		break;
 	case GX_LOAD_INDX_B: //used for normal matrices
-		LoadIndexedXF(g_pDataReader->Read32(),0xD);
+		LoadIndexedXF(DataReadU32(),0xD);
 		break;
 	case GX_LOAD_INDX_C: //used for postmatrices
-		LoadIndexedXF(g_pDataReader->Read32(),0xE);
+		LoadIndexedXF(DataReadU32(),0xE);
 		break;
 	case GX_LOAD_INDX_D: //used for lights
-		LoadIndexedXF(g_pDataReader->Read32(),0xF);
+		LoadIndexedXF(DataReadU32(),0xF);
 		break;
 
 	case GX_CMD_CALL_DL:
 		{
-			u32 dwAddr  = g_pDataReader->Read32();
-			u32 dwCount = g_pDataReader->Read32();
+			u32 dwAddr  = DataReadU32();
+			u32 dwCount = DataReadU32();
 			ExecuteDisplayList(dwAddr, dwCount);
 		}			
 		break;
@@ -312,7 +290,7 @@ void Decode(void)
 
 	case GX_LOAD_BP_REG: //0x61
 		{
-			u32 cmd = g_pDataReader->Read32();
+			u32 cmd = DataReadU32();
 			LoadBPReg(cmd);
 		}
 		break;
@@ -322,7 +300,7 @@ void Decode(void)
 		if (Cmd&0x80)
 		{			
 			// load vertices
-			u16 numVertices = g_pDataReader->Read16();			
+			u16 numVertices = DataReadU16();			
 			tempvarray.Reset();
 			VertexLoader::SetVArray(&tempvarray);
 			VertexLoader& vtxLoader = g_VertexLoaders[Cmd & GX_VAT_MASK];
@@ -371,7 +349,7 @@ void Decode(void)
 
 void OpcodeDecoder_Init()
 {	
-	g_pDataReader = &g_fifoReader;
+	g_pVideoData = FAKE_GetFifoStartPtr();
 	tempvarray.Create(65536*3, 1, 8, 3, 2, 8);
 }
 

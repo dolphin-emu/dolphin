@@ -419,6 +419,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\DataReader.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\Fifo.cpp"
 			>
 		</File>

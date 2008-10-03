@@ -16,11 +16,11 @@
 // http://code.google.com/p/dolphin-emu/
 
 //DL facts:
-//	Ikaruga uses NO display lists!
+//	Ikaruga uses (nearly) NO display lists!
 //  Zelda WW uses TONS of display lists
 //  Zelda TP uses almost 100% display lists except menus (we like this!)
 
-// Note that it IS NOT POSSIBLE to precompile display lists! You can compile them as they are
+// Note that it IS NOT GENERALLY POSSIBLE to precompile display lists! You can compile them as they are
 // and hope that the vertex format doesn't change, though, if you do it just when they are 
 // called. The reason is that the vertex format affects the sizes of the vertices.
 
@@ -37,30 +37,12 @@
 
 #define CMDBUFFER_SIZE 1024*1024
 
-#if ! defined(DATAREADER_INLINE) || defined(DATAREADER_DEBUG)
-CDataReader_Fifo g_fifoReader;
-#endif
-#ifdef DATAREADER_DEBUG
-u8* g_pDataReaderRealPtr=0;
-#endif
+u8* g_pVideoData = 0;
 
-#ifdef DATAREADER_INLINE
-u8* g_pVideoData=0;
-extern bool g_IsFifoRewinded;
-#endif
+extern u8* FAKE_GetFifoStartPtr();
+extern u8* FAKE_GetFifoEndPtr();
 
 void Decode();
-
-#if !defined(DATAREADER_INLINE) || defined(DATAREADER_DEBUG)
-extern u8 FAKE_PeekFifo8(u32 _uOffset);
-extern u16 FAKE_PeekFifo16(u32 _uOffset);
-extern u32 FAKE_PeekFifo32(u32 _uOffset);
-extern int FAKE_GetFifoSize();
-#endif
-extern u8* FAKE_GetFifoEndPtr();
-extern u8* FAKE_GetFifoStartPtr();
-extern u8* FAKE_GetFifoCurrentPtr();
-extern void FAKE_SkipFifo(u32 skip);
 
 template <class T>
 void Xchg(T& a, T&b)
@@ -72,30 +54,18 @@ void Xchg(T& a, T&b)
 
 void ExecuteDisplayList(u32 address, u32 size)
 {
-#if ! defined(DATAREADER_INLINE) || defined(DATAREADER_DEBUG)
-    IDataReader* pOldReader = g_pDataReader;
-
-    //address &= 0x01FFFFFF; // phys address
-    CDataReader_Memory memoryReader(address);
-    g_pDataReader = &memoryReader;
-#endif
-#ifdef DATAREADER_INLINE
 	u8* old_pVideoData = g_pVideoData;
 
 	u8* startAddress = Memory_GetPtr(address);
 	g_pVideoData = startAddress;
-#endif
+
 	// temporarily swap dl and non-dl(small "hack" for the stats)
 	Xchg(stats.thisFrame.numDLPrims, stats.thisFrame.numPrims);
 	Xchg(stats.thisFrame.numXFLoadsInDL, stats.thisFrame.numXFLoads);
 	Xchg(stats.thisFrame.numCPLoadsInDL, stats.thisFrame.numCPLoads);
 	Xchg(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
 
-#ifdef DATAREADER_INLINE
-    while((g_pVideoData - startAddress) < size)
-#else
-    while((memoryReader.GetReadAddress() - address) < size)
-#endif
+    while((u32)(g_pVideoData - startAddress) < size)
     {
         Decode();
     }
@@ -108,38 +78,17 @@ void ExecuteDisplayList(u32 address, u32 size)
 	Xchg(stats.thisFrame.numCPLoadsInDL, stats.thisFrame.numCPLoads);
 	Xchg(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
 
-    // reset to the old reader
-#ifdef DATAREADER_INLINE
+    // reset to the old pointer
 	g_pVideoData = old_pVideoData;
-#endif
-#if defined(DATAREADER_DEBUG) || !defined(DATAREADER_INLINE)
-    g_pDataReader = pOldReader;
-#endif
-
 }
 
 bool FifoCommandRunnable(void)
 {
-#ifndef DATAREADER_INLINE
-    u32 iBufferSize = FAKE_GetFifoSize();
-#else
 	u32 iBufferSize = (u32)(FAKE_GetFifoEndPtr()-g_pVideoData);
-#ifdef DATAREADER_DEBUG
-    u32 iBufferSizedb = FAKE_GetFifoSize();
-	if( iBufferSize != iBufferSizedb)	_asm int 3
-#endif
-#endif
     if (iBufferSize == 0)
-        return false;
+		return false;  // can't peek
 
-#if !defined(DATAREADER_INLINE)
-	u8 Cmd = FAKE_PeekFifo8(0);	
-#else
 	u8 Cmd = DataPeek8(0);	
-#ifdef DATAREADER_DEBUG
-	if( Cmd != FAKE_PeekFifo8(0))	_asm int 3
-#endif
-#endif
     u32 iCommandSize = 0;
 
     switch(Cmd)
@@ -183,14 +132,7 @@ bool FifoCommandRunnable(void)
             if (iBufferSize >= 5)
 			{				
                 iCommandSize = 1 + 4;
-#if !defined(DATAREADER_INLINE) || defined(DATAREADER_DEBUG)
-                u32 Cmd2 = FAKE_PeekFifo32(1);
-#ifdef DATAREADER_DEBUG
-				if( Cmd2 != DataPeek32(1)) _asm int 3
-#endif
-#else
                 u32 Cmd2 = DataPeek32(1);
-#endif
                 int dwTransferSize = ((Cmd2 >> 16) & 15) + 1;
                 iCommandSize += dwTransferSize * 4;				
             }
@@ -208,22 +150,17 @@ bool FifoCommandRunnable(void)
             if (iBufferSize >= 3)
 			{
                 iCommandSize = 1 + 2;
-#if !defined(DATAREADER_INLINE) || defined(DATAREADER_DEBUG)
-                u16 numVertices = FAKE_PeekFifo16(1);
-#ifdef DATAREADER_DEBUG
-				if( numVertices != DataPeek16(1))	_asm int 3
-#endif
-#else
                 u16 numVertices = DataPeek16(1);
-#endif
                 VertexLoader& vtxLoader = g_VertexLoaders[Cmd & GX_VAT_MASK];
                 iCommandSize += numVertices * vtxLoader.ComputeVertexSize();
             }
-            else {				
+			else
+			{				
                 return false;
             }
         }
-        else {
+		else
+		{
             char szTemp[1024];
             sprintf(szTemp, "GFX: Unknown Opcode (0x%x).\n"
 				"This means one of the following:\n"
@@ -231,9 +168,38 @@ bool FifoCommandRunnable(void)
 				"* Command stream corrupted by some spurious memory bug\n"
 				"* This really is an unknown opcode (unlikely)\n"
 				"* Some other sort of bug\n\n"
-				"Dolphin will now likely crash or hang. Enjoy.", Cmd);
+				"Dolphin will now likely crash or hang. Enjoy." , Cmd);
             g_VideoInitialize.pSysMessage(szTemp);
             g_VideoInitialize.pLog(szTemp, TRUE);
+			{
+				SCPFifoStruct &fifo = *g_VideoInitialize.pCPFifo;
+
+				char szTmp[256];
+				// sprintf(szTmp, "Illegal command %02x (at %08x)",Cmd,g_pDataReader->GetPtr());
+				sprintf(szTmp, "Illegal command %02x\n"
+					"CPBase: 0x%08x\n"
+					"CPEnd: 0x%08x\n"
+					"CPHiWatermark: 0x%08x\n"
+					"CPLoWatermark: 0x%08x\n"
+					"CPReadWriteDistance: 0x%08x\n"
+					"CPWritePointer: 0x%08x\n"
+					"CPReadPointer: 0x%08x\n"
+					"CPBreakpoint: 0x%08x\n"
+					"bFF_GPReadEnable: %s\n"
+					"bFF_BPEnable: %s\n"
+					"bFF_GPLinkEnable: %s\n"
+					"bFF_Breakpoint: %s\n"
+					"bPauseRead: %s\n"				
+					,Cmd, fifo.CPBase, fifo.CPEnd, fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance
+					,fifo.CPWritePointer, fifo.CPReadPointer, fifo.CPBreakpoint, fifo.bFF_GPReadEnable ? "true" : "false"
+					,fifo.bFF_BPEnable ? "true" : "false" ,fifo.bFF_GPLinkEnable ? "true" : "false"
+					,fifo.bFF_Breakpoint ? "true" : "false", fifo.bPauseRead ? "true" : "false");
+
+				g_VideoInitialize.pLog(szTmp, TRUE);
+				g_VideoInitialize.pLog(szTemp, TRUE);
+				// _assert_msg_(0,szTmp,"");
+			
+			}
         }
         break;
     }
@@ -339,16 +305,7 @@ void Decode(void)
 
 void OpcodeDecoder_Init()
 {	
-#if !defined(DATAREADER_INLINE)
-    g_pDataReader = &g_fifoReader;
-#else
 	g_pVideoData = FAKE_GetFifoStartPtr();
-#if defined(DATAREADER_DEBUG)
-    g_pDataReader = &g_fifoReader;
-	g_pDataReaderRealPtr = g_pDataReader->GetRealCurrentPtr();
-	DATAREADER_DEBUG_CHECK_PTR;
-#endif
-#endif
 }
 
 
@@ -361,7 +318,6 @@ void OpcodeDecoder_Run()
     DVSTARTPROFILE();
     while (FifoCommandRunnable())
     {
-		DATAREADER_DEBUG_CHECK_PTR;
         Decode();
     }
 }

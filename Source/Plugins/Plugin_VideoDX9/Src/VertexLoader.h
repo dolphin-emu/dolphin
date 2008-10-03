@@ -45,6 +45,7 @@ int ComputeVertexSize(u32 components);
 
 #include "CPStructs.h"
 #include "DecodedVArray.h"
+#include "DataReader.h"
 
 #define LOADERDECL __cdecl
 typedef void (LOADERDECL *TPipelineFunction)(void*);
@@ -215,10 +216,6 @@ public:
 
 extern VertexLoader g_VertexLoaders[8];
 extern DecodedVArray* varray;
-extern inline u8 ReadBuffer8();
-extern inline u16 ReadBuffer16();
-extern inline u32 ReadBuffer32();
-extern inline float ReadBuffer32F();
 
 
 #endif

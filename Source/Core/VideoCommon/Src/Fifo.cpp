@@ -23,31 +23,23 @@
 
 #include "Fifo.h"
 
-#if defined(DATAREADER_INLINE)
 extern u8* g_pVideoData;
-#else
-FifoReader fifo;
-#endif
 
 bool fifoStateRun = true;
 
 // STATE_TO_SAVE
 static u8 *videoBuffer;
 static int size = 0;
-static int readptr = 0;
 
-void Fifo_DoState(PointerWrap &p) {
+void Fifo_DoState(PointerWrap &p) 
+{
     p.DoArray(videoBuffer, FIFO_SIZE);
     p.Do(size);
-    p.Do(readptr);
 }
 
 void Fifo_Init()
 {
     videoBuffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
-#ifndef DATAREADER_INLINE
-    fifo.Init(videoBuffer, videoBuffer);  //zero length. there is no data yet.
-#endif
     fifoStateRun = true;
 }
 
@@ -57,7 +49,8 @@ void Fifo_Shutdown()
     fifoStateRun = false;
 }
 
-void Fifo_Stop() {
+void Fifo_Stop() 
+{
     fifoStateRun = false;
 }
 
@@ -66,66 +59,9 @@ u8* FAKE_GetFifoStartPtr()
     return videoBuffer;
 }
 
-int FAKE_GetFifoSize()
-{
-    if (size < readptr)
-    {
-        PanicAlert("GFX Fifo underrun encountered (size = %i, readptr = %i)", size, readptr);
-    }
-    return (size - readptr);
-}
 u8* FAKE_GetFifoEndPtr()
 {
 	return &videoBuffer[size];
-}
-
-u8 FAKE_PeekFifo8(u32 _uOffset)
-{
-    return videoBuffer[readptr + _uOffset];
-}
-
-u16 FAKE_PeekFifo16(u32 _uOffset)
-{
-    return Common::swap16(*(u16*)&videoBuffer[readptr + _uOffset]);
-}
-
-u32 FAKE_PeekFifo32(u32 _uOffset)
-{
-    return Common::swap32(*(u32*)&videoBuffer[readptr + _uOffset]);
-}
-
-u8 FAKE_ReadFifo8()
-{
-    return videoBuffer[readptr++];
-}
-
-int FAKE_GetPosition()
-{
-    return readptr;
-}
-
-u8* FAKE_GetFifoCurrentPtr()
-{
-	return &videoBuffer[readptr];
-}
-
-u16 FAKE_ReadFifo16()
-{
-    u16 val = Common::swap16(*(u16*)(videoBuffer+readptr));
-    readptr += 2;
-    return val;
-}
-
-u32 FAKE_ReadFifo32()
-{
-    u32 val = Common::swap32(*(u32*)(videoBuffer+readptr));
-    readptr += 4;
-    return val;
-}
-
-void FAKE_SkipFifo(u32 skip)
-{
-    readptr += skip;
 }
 
 void Video_SendFifoData(u8* _uData)
@@ -135,24 +71,14 @@ void Video_SendFifoData(u8* _uData)
     size += 32;
     if (size + 32 >= FIFO_SIZE)
     {
-		// TODO (mb2): Better and DataReader inline for DX9 
-#ifdef DATAREADER_INLINE
-		if (g_pVideoData) // for DX9 plugin "compatibility"
-			readptr = (int)(g_pVideoData-videoBuffer);
-#endif
-        if (FAKE_GetFifoSize() > readptr)
-        {
-            PanicAlert("FIFO out of bounds (sz = %i, at %08x)", FAKE_GetFifoSize(), readptr);
-        }
-//        DebugLog("FAKE BUFFER LOOPS");
-        memmove(&videoBuffer[0], &videoBuffer[readptr], FAKE_GetFifoSize());
-        //		memset(&videoBuffer[FAKE_GetFifoSize()], 0, FIFO_SIZE - FAKE_GetFifoSize());
-        size = FAKE_GetFifoSize();
-        readptr = 0;
-#ifdef DATAREADER_INLINE
-		if (g_pVideoData) // for DX9 plugin "compatibility"
-			g_pVideoData = FAKE_GetFifoStartPtr();
-#endif
+		int pos = (int)(g_pVideoData-videoBuffer);
+        //if (size-pos > pos)
+        //{
+        //    PanicAlert("FIFO out of bounds (sz = %i, at %08x)", FAKE_GetFifoSize(), readptr);
+        //}
+        memmove(&videoBuffer[0], &videoBuffer[pos], size - pos );
+        size -= pos;
+		g_pVideoData = FAKE_GetFifoStartPtr();
     }
     OpcodeDecoder_Run();
 }

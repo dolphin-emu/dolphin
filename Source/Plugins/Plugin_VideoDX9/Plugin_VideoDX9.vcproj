@@ -1194,14 +1194,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\DataReader.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DataReader.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\DecodedVArray.cpp"
 				>
 			</File>

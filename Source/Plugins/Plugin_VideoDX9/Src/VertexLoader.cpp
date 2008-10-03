@@ -69,29 +69,6 @@ void VertexLoader::SetVArray(DecodedVArray *_varray)
 	varray = _varray;
 }
 
-inline u8 ReadBuffer8()
-{
-	return g_pDataReader->Read8();
-}
-
-inline u16 ReadBuffer16()
-{
-	//PowerPC byte ordering :(
-	return g_pDataReader->Read16();
-}
-
-inline u32 ReadBuffer32()
-{
-	//PowerPC byte ordering :(
-	return g_pDataReader->Read32();
-}
-
-inline float ReadBuffer32F()
-{
-	u32 temp = g_pDataReader->Read32();
-	return *(float*)(&temp);
-}
-
 #include "VertexLoader_MtxIndex.h"
 #include "VertexLoader_Position.h"
 #include "VertexLoader_Normal.h"

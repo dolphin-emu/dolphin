@@ -130,9 +130,9 @@ VertexLoader_Normal::GetFunction(unsigned int _type, unsigned int _format, unsig
 void LOADERDECL 
 VertexLoader_Normal::Normal_DirectByte(void* _p)
 {
-	varray->SetNormalX(0, ((float)(signed char)ReadBuffer8()+0.5f) / 127.5f);
-	varray->SetNormalY(0, ((float)(signed char)ReadBuffer8()+0.5f) / 127.5f);
-	varray->SetNormalZ(0, ((float)(signed char)ReadBuffer8()+0.5f) / 127.5f);
+	varray->SetNormalX(0, ((float)(signed char)DataReadU8()+0.5f) / 127.5f);
+	varray->SetNormalY(0, ((float)(signed char)DataReadU8()+0.5f) / 127.5f);
+	varray->SetNormalZ(0, ((float)(signed char)DataReadU8()+0.5f) / 127.5f);
 }
 
 // __________________________________________________________________________________________________
@@ -141,9 +141,9 @@ VertexLoader_Normal::Normal_DirectByte(void* _p)
 void LOADERDECL 
 VertexLoader_Normal::Normal_DirectShort(void* _p)
 {
-	varray->SetNormalX(0, ((float)(signed short)ReadBuffer16()+0.5f) / 32767.5f);
-	varray->SetNormalY(0, ((float)(signed short)ReadBuffer16()+0.5f) / 32767.5f);
-	varray->SetNormalZ(0, ((float)(signed short)ReadBuffer16()+0.5f) / 32767.5f);
+	varray->SetNormalX(0, ((float)(signed short)DataReadU16()+0.5f) / 32767.5f);
+	varray->SetNormalY(0, ((float)(signed short)DataReadU16()+0.5f) / 32767.5f);
+	varray->SetNormalZ(0, ((float)(signed short)DataReadU16()+0.5f) / 32767.5f);
 }
 
 // __________________________________________________________________________________________________
@@ -152,9 +152,9 @@ VertexLoader_Normal::Normal_DirectShort(void* _p)
 void LOADERDECL 
 VertexLoader_Normal::Normal_DirectFloat(void* _p)
 {
-	varray->SetNormalX(0, ReadBuffer32F());
-	varray->SetNormalY(0, ReadBuffer32F());
-	varray->SetNormalZ(0, ReadBuffer32F());
+	varray->SetNormalX(0, DataReadF32());
+	varray->SetNormalY(0, DataReadF32());
+	varray->SetNormalZ(0, DataReadF32());
 }
 
 // __________________________________________________________________________________________________
@@ -165,9 +165,9 @@ VertexLoader_Normal::Normal_DirectByte3(void* _p)
 {
 	for (int i=0; i<3; i++)
 	{
-		varray->SetNormalX(i, ((float)(signed char)ReadBuffer8()+0.5f) / 127.5f);
-		varray->SetNormalY(i, ((float)(signed char)ReadBuffer8()+0.5f) / 127.5f);
-		varray->SetNormalZ(i, ((float)(signed char)ReadBuffer8()+0.5f) / 127.5f);
+		varray->SetNormalX(i, ((float)(signed char)DataReadU8()+0.5f) / 127.5f);
+		varray->SetNormalY(i, ((float)(signed char)DataReadU8()+0.5f) / 127.5f);
+		varray->SetNormalZ(i, ((float)(signed char)DataReadU8()+0.5f) / 127.5f);
 	}
 }
 
@@ -179,9 +179,9 @@ VertexLoader_Normal::Normal_DirectShort3(void* _p)
 {
 	for (int i=0; i<3; i++)
 	{
-		varray->SetNormalX(i, ((float)(signed short)ReadBuffer16()+0.5f) / 32767.5f);
-		varray->SetNormalY(i, ((float)(signed short)ReadBuffer16()+0.5f) / 32767.5f);
-		varray->SetNormalZ(i, ((float)(signed short)ReadBuffer16()+0.5f) / 32767.5f);
+		varray->SetNormalX(i, ((float)(signed short)DataReadU16()+0.5f) / 32767.5f);
+		varray->SetNormalY(i, ((float)(signed short)DataReadU16()+0.5f) / 32767.5f);
+		varray->SetNormalZ(i, ((float)(signed short)DataReadU16()+0.5f) / 32767.5f);
 	}
 }
 
@@ -193,9 +193,9 @@ VertexLoader_Normal::Normal_DirectFloat3(void* _p)
 {
 	for (int i=0; i<3; i++)
 	{
-		varray->SetNormalX(i, ReadBuffer32F());
-		varray->SetNormalY(i, ReadBuffer32F());
-		varray->SetNormalZ(i, ReadBuffer32F());
+		varray->SetNormalX(i, DataReadF32());
+		varray->SetNormalY(i, DataReadF32());
+		varray->SetNormalZ(i, DataReadF32());
 	}
 }
 
@@ -211,7 +211,7 @@ VertexLoader_Normal::Normal_DirectFloat3(void* _p)
 void LOADERDECL 
 VertexLoader_Normal::Normal_Index8_Byte(void* _p)
 {
-	u8 Index = ReadBuffer8();
+	u8 Index = DataReadU8();
 	u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]);
 
 	varray->SetNormalX(0, ((float)(signed char)Memory_Read_U8(iAddress  )+0.5f) / 127.5f);
@@ -225,7 +225,7 @@ VertexLoader_Normal::Normal_Index8_Byte(void* _p)
 void LOADERDECL 
 VertexLoader_Normal::Normal_Index8_Short(void* _p)
 {
-	u8 Index = ReadBuffer8();
+	u8 Index = DataReadU8();
 	u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]);
 
 	varray->SetNormalX(0, ((float)(signed short)Memory_Read_U16(iAddress  )+0.5f) / 32767.5f);
@@ -239,7 +239,7 @@ VertexLoader_Normal::Normal_Index8_Short(void* _p)
 void LOADERDECL 
 VertexLoader_Normal::Normal_Index8_Float(void* _p)
 {
-	u8 Index = ReadBuffer8();
+	u8 Index = DataReadU8();
 	u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]);
 
 	varray->SetNormalX(0, Memory_Read_Float(iAddress));
@@ -257,7 +257,7 @@ VertexLoader_Normal::Normal_Index8_Byte3(void* _p)
 	{
 		for (int i=0; i<3; i++)
 		{
-			u8 Index = ReadBuffer8();
+			u8 Index = DataReadU8();
 			u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 1*3*i;
 
 			varray->SetNormalX(i, ((float)(signed char)Memory_Read_U8(iAddress  )+0.5f) / 127.5f);
@@ -267,7 +267,7 @@ VertexLoader_Normal::Normal_Index8_Byte3(void* _p)
 	}
 	else
 	{
-		u8 Index = ReadBuffer8();
+		u8 Index = DataReadU8();
 		for (int i=0; i<3; i++)
 		{
 			u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 1*3*i;
@@ -289,7 +289,7 @@ VertexLoader_Normal::Normal_Index8_Short3(void* _p)
 	{
 		for (int i=0; i<3; i++)
 		{
-			u8 Index = ReadBuffer8();
+			u8 Index = DataReadU8();
 			u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 2*3*i;
 
 			varray->SetNormalX(i, ((float)(signed short)Memory_Read_U16(iAddress  )+0.5f) / 32767.5f);
@@ -299,7 +299,7 @@ VertexLoader_Normal::Normal_Index8_Short3(void* _p)
 	}
 	else
 	{
-		u8 Index = ReadBuffer8();
+		u8 Index = DataReadU8();
 		for (int i=0; i<3; i++)
 		{
 			u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 2*3*i;
@@ -321,7 +321,7 @@ VertexLoader_Normal::Normal_Index8_Float3(void* _p)
 	{
 		for (int i=0; i<3; i++)
 		{
-			u8 Index = ReadBuffer8();
+			u8 Index = DataReadU8();
 			u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 4*3*i;
 
 			varray->SetNormalX(i, Memory_Read_Float(iAddress));
@@ -331,7 +331,7 @@ VertexLoader_Normal::Normal_Index8_Float3(void* _p)
 	}
 	else
 	{
-		u8 Index = ReadBuffer8();
+		u8 Index = DataReadU8();
 		for (int i=0; i<3; i++)
 		{
 			u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 4*3*i;
@@ -355,7 +355,7 @@ VertexLoader_Normal::Normal_Index8_Float3(void* _p)
 void LOADERDECL 
 VertexLoader_Normal::Normal_Index16_Byte(void* _p)
 {
-	u16 Index = ReadBuffer16();
+	u16 Index = DataReadU16();
 	u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]);
 
 	varray->SetNormalX(0, ((float)(signed char)Memory_Read_U8(iAddress  )+0.5f) / 127.5f);
@@ -369,7 +369,7 @@ VertexLoader_Normal::Normal_Index16_Byte(void* _p)
 void LOADERDECL 
 VertexLoader_Normal::Normal_Index16_Short(void* _p)
 {
-	u16 Index = ReadBuffer16();
+	u16 Index = DataReadU16();
 	u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]);
 
 	varray->SetNormalX(0, ((float)(signed short)Memory_Read_U16(iAddress  )+0.5f) / 32767.5f);
@@ -383,7 +383,7 @@ VertexLoader_Normal::Normal_Index16_Short(void* _p)
 void LOADERDECL 
 VertexLoader_Normal::Normal_Index16_Float(void* _p)
 {
-	u16 Index = ReadBuffer16();
+	u16 Index = DataReadU16();
 	u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]);
 
 	varray->SetNormalX(0, Memory_Read_Float(iAddress));
@@ -401,7 +401,7 @@ VertexLoader_Normal::Normal_Index16_Byte3(void* _p)
 	{
 		for (int i=0; i<3; i++)
 		{
-			u16 Index = ReadBuffer16();
+			u16 Index = DataReadU16();
 			u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 1*3*i;
 
 			varray->SetNormalX(i, ((float)(signed char)Memory_Read_U8(iAddress  )+0.5f) / 127.5f);
@@ -411,7 +411,7 @@ VertexLoader_Normal::Normal_Index16_Byte3(void* _p)
 	}
 	else
 	{
-		u16 Index = ReadBuffer16();
+		u16 Index = DataReadU16();
 		for (int i=0; i<3; i++)
 		{
 			u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 1*3*i;
@@ -433,7 +433,7 @@ VertexLoader_Normal::Normal_Index16_Short3(void* _p)
 	{
 		for (int i=0; i<3; i++)
 		{
-			u16 Index = ReadBuffer16();
+			u16 Index = DataReadU16();
 			u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 2*3*i;
 
 			varray->SetNormalX(i, ((float)(signed short)Memory_Read_U16(iAddress  )+0.5f) / 32767.5f);
@@ -443,7 +443,7 @@ VertexLoader_Normal::Normal_Index16_Short3(void* _p)
 	}
 	else
 	{
-		u16 Index = ReadBuffer16();
+		u16 Index = DataReadU16();
 		for (int i=0; i<3; i++)
 		{
 			u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 2*3*i;
@@ -465,7 +465,7 @@ VertexLoader_Normal::Normal_Index16_Float3(void* _p)
 	{
 		for (int i=0; i<3; i++)
 		{
-			u16 Index = ReadBuffer16();
+			u16 Index = DataReadU16();
 			u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 4*3*i;
 
 			varray->SetNormalX(i, Memory_Read_Float(iAddress  ));
@@ -475,7 +475,7 @@ VertexLoader_Normal::Normal_Index16_Float3(void* _p)
 	}
 	else
 	{
-		u16 Index = ReadBuffer16();
+		u16 Index = DataReadU16();
 		for (int i=0; i<3; i++)
 		{
 			u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 4*3*i;

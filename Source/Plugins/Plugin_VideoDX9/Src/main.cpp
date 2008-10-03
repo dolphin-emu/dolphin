@@ -206,8 +206,8 @@ void Video_Prepare(void)
 
 	BPInit();
 	CVertexHandler::Init();
-	OpcodeDecoder_Init();
 	Fifo_Init();
+	OpcodeDecoder_Init();
 }
 
 void Video_Shutdown(void) 

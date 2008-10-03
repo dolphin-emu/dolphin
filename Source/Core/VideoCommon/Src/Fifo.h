@@ -23,50 +23,8 @@
 #include "Common.h"
 #include "ChunkFile.h"
 
-// TODO (mb2) clean this if ok
-#define DATAREADER_INLINE // comment to use the previous IDataReader way
-//#define DATAREADER_DEBUG // simple compare with the previous IDataReader way
-
-#if defined(DATAREADER_DEBUG) && !defined(DATAREADER_INLINE)
-#define DATAREADER_INLINE
-#endif
-
-
 #define FIFO_SIZE (1024*1024)
 
-#ifndef DATAREADER_INLINE
-// inline for speed!
-class FifoReader
-{
-    u8 *ptr;
-    u8 *end;
-    u8 *tempPtr; //single element stack :P
-    u8 *tempEnd;
-    bool pushed;
-public:
-    void Init(u8 *_ptr, u8 *_end)
-    {
-        ptr = _ptr; end = _end; pushed = false;
-    }
-    bool IsPushed() {return pushed;}
-    void Push(u8 *_ptr, u8 *_end) {pushed = true; tempPtr = ptr; tempEnd = end; ptr = _ptr; end = _end;}
-    void Pop() {pushed = false; ptr = tempPtr; end = tempEnd;}
-    u8  Peek8 (int offset) const { return ptr[offset]; }
-    u16 Peek16(int offset) const { return Common::swap16(*(u16*)(ptr+offset)); }
-    u32 Peek32(int offset) const { return Common::swap32(*(u32*)(ptr+offset)); }
-    u8  Read8 () {return *ptr++;}
-    u16 Read16() {const u16 value = Common::swap16(*((u16*)ptr)); ptr+=2; return value;}
-    u32 Read32() {const u32 value = Common::swap32(*((u32*)ptr)); ptr+=4; return value;}
-    float Read32F() {const u32 value = Common::swap32(*((u32*)ptr)); ptr+=4; return *(float*)&value;}
-    int GetRemainSize() const { return (int)(end - ptr); }
-    u8 *GetPtr() const { return ptr; }
-    void MoveEndForward() { end += 32; }
-    u8 *GetEnd() const { return end; }
-};
-
-extern FifoReader fifo;
-
-#endif
 void Fifo_Init();
 void Fifo_Shutdown();
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize);
