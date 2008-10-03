@@ -123,6 +123,32 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
 
 #endif
 
+
+// =======================================================================================
+// Open close console
+HWND GetConsoleHwnd(void);
+void startConsoleWin(int width, int height, char* fname);
+int wprintf(char *fmt, ...);
+// ---------------------------------------------------------------------------------------
+void OpenConsole()
+{
+	#if defined (_WIN32)
+		startConsoleWin(155, 100, "Sound Debugging"); // give room for 100 rows
+		wprintf("OpenConsole > Console opened\n");
+		MoveWindow(GetConsoleHwnd(), 0,400, 1280,500, true); // move window, TODO: make this
+			// adjustable from the debugging window
+	#endif
+}
+
+void CloseConsole()
+{
+	#if defined (_WIN32)
+		FreeConsole();
+	#endif
+}
+// =======================================================================================
+
+
 // =======================================================================================
 // Create debugging window - We could use use wxWindow win; new CDebugger(win) like nJoy but I don't
 // know why it would be better. - There's a lockup problem with ShowModal(), but Show() doesn't work

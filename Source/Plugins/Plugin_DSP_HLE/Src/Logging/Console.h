@@ -16,11 +16,11 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-#ifdef _WIN32
-
-void startConsoleWin(int width, int height, char* fname);
 int wprintf(char *fmt, ...);
 void ClearScreen();
-HWND GetConsoleHwnd(void);
+void OpenConsole();
+void CloseConsole();
 
+#ifdef _WIN32
+	HWND GetConsoleHwnd(void);
 #endif

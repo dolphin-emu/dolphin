@@ -16,50 +16,52 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-#ifdef _WIN32
 
-
-
-// =======================================================================================
+// ---------------------------------------------------------------------------------------
 // Includes
-// --------------
+// --------------------
 #include <string>
 #include <stdio.h>
-#include <windows.h>
+#ifdef _WIN32
+	#include <windows.h>
+#endif
+// --------------------
 
 
 // ---------------------------------------------------------------------------------------
-// Defines and settings
-// --------------
+// On and off
+// --------------------
 bool g_consoleEnable = true;
 #define DEBUGG
 //#define DEBUGG_FILEONLY
 //#define DEBUGG_NOFILE
-// ---------------------------------------------------------------------------------------
+// --------------------
 
 
 // ---------------------------------------------------------------------------------------
-// Handles
-// --------------
+// Create handles
+// --------------------
 #ifdef DEBUGG
     FILE* __fStdOut = NULL;
 #endif
 #ifndef DEBUGG_FILEONLY
 	HANDLE __hStdOut = NULL;
 #endif
-// ==============
+// --------------------
 
 
 // =======================================================================================
-// Width and height is the size of console window, if you specify fname,
-// the output will also be writton to this file. The file pointer is automatically closed
-// when you close the app
-// --------------
+/* Start console window - width and height is the size of console window, if you specify
+fname, the output will also be writton to this file. The file pointer is automatically
+closed when you close the app */
+// ---------------------------------------------------------------------------------------
 void startConsoleWin(int width, int height, char* fname)
 {
-#ifdef DEBUGG
+
+#if defined(DEBUGG) && defined(_WIN32)
 
 #ifndef DEBUGG_FILEONLY
+
 	AllocConsole();
 
 	SetConsoleTitle(fname);
@@ -83,18 +85,19 @@ void startConsoleWin(int width, int height, char* fname)
 		std::string FullFilename = (FileName + FileEnding);
 		__fStdOut = fopen(FullFilename.c_str(), "w");
 	}
-	// -----------------
+	// ---------------------------------------------------------------------------------------
 #endif
 
 #endif
 }
 
 
-void ClearScreen();
+// ---------------------------------------------------------------------------------------
+// Printf function
 int wprintf(char *fmt, ...)
 {
-#ifdef DEBUGG
-	char s[6000]; // WARNING: mind this value
+#if defined(DEBUGG) && defined(_WIN32)
+	char s[3000]; // WARNING: Mind this value
 	va_list argptr;
 	int cnt;
 
@@ -126,11 +129,9 @@ int wprintf(char *fmt, ...)
 }
 
 
-// =======================================================================================
-// Clear screen
-// --------------
 void ClearScreen() 
 { 
+#if defined(DEBUGG) && defined(_WIN32)
 	if(g_consoleEnable)
 	{
 		COORD coordScreen = { 0, 0 }; 
@@ -139,7 +140,6 @@ void ClearScreen()
 		DWORD dwConSize; 
 
 		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE); 
-		//HANDLE hConsole = __hStdOut;
 	    
 		GetConsoleScreenBufferInfo(hConsole, &csbi); 
 		dwConSize = csbi.dwSize.X * csbi.dwSize.Y; 
@@ -150,14 +150,13 @@ void ClearScreen()
 			coordScreen, &cCharsWritten); 
 		SetConsoleCursorPosition(hConsole, coordScreen); 
 	}
+#endif
 }
 
-
-// =======================================================================================
-// Get console HWND to be able to use MoveWindow()
-// --------------
+#if defined(DEBUGG) && defined(_WIN32)
 HWND GetConsoleHwnd(void)
 {
+
    #define MY_BUFSIZE 1024 // Buffer size for console window titles.
    HWND hwndFound;         // This is what is returned to the caller.
    char pszNewWindowTitle[MY_BUFSIZE]; // Contains fabricated
@@ -192,6 +191,6 @@ HWND GetConsoleHwnd(void)
    SetConsoleTitle(pszOldWindowTitle);
 
    return(hwndFound);
-}
 
-#endif
+}
+#endif // win32

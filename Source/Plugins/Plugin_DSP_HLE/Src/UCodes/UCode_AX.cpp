@@ -32,6 +32,7 @@
 // Externals
 // -----------
 extern float ratioFactor;
+extern u32 gLastBlock;
 extern CDebugger* m_frame;
 // -----------
 
@@ -617,9 +618,12 @@ int CUCode_AX::ReadOutPBs(AXParamBlock* _pPBs, int _num)
 			for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
 			{
 				pDest[p] = Common::swap16(pSrc[p]);
+				#if defined(_DEBUG) || defined(DEBUGFAST)
+					gLastBlock = blockAddr + p*2 + 2;  // save last block location
+				#endif
 			}
 			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
-			count++;
+			count++;			
 		}
 		else
 			break;

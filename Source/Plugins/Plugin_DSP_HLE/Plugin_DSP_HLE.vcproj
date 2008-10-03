@@ -736,6 +736,14 @@
 			Name="Logging"
 			>
 			<File
+				RelativePath=".\Src\Logging\Console.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Logging\Console.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\Logging\Logging.cpp"
 				>
 			</File>

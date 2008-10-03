@@ -68,17 +68,9 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	// Write necessary values
 	// ---------------------------------------------------------------------------------------
 	/*
-	"TODO: Game iso info to 0x80000000 according to yagcd - or does apploader do this?" - Answer, no 
-	apparently it doesn't, at least not in some games (by Namco). In these cases we need to set these
-	manually. But I guess there's no reason that the Apploader couldn't do this by itself. So I guess we
-	could do this for only these Namco games that need this by detecting GetUniqueID, but that wouldn't
-	look pretty, and I think it's likely that this is actually how the GameCube works, it reads these values
-	by itself. So this is very unlikely to break anything. However, if somebody find a game that has an
-	apploader that automatically copies the first bytes of the disc to memory that could indicate that 
-	the apploader procedure to load the first bytes fails for some reason in some games... I hope I'm not
-	being long-winded here :). The yagcd page for this is http://hitmen.c02.at/files/yagcd/yagcd/chap4.ht
-	ml#sec4.2 by the way. I'm not sure what the bytes 8-10 does (version and streaming), but I include
-	those to.
+	Here we write values to memory that the apploader does not take care of. Game iso info goes
+	to 0x80000000 according to yagcd 4.2. I'm not sure what bytes 8-10 does (version and streaming),
+	but I include them anyway because it seems like they are supposed to be there.
 	*/
 	// ---------------------------------------------------------------------------------------
 	DVDInterface::DVDRead(0x00000000, 0x80000000, 10); // write boot info needed for multidisc games
@@ -99,11 +91,11 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 
 
 	// =======================================================================================
-	// Load Apploader to Memory - The apploader is hardcoded to begin at 9 280 on the disc, but
-	// it seems like the size can be variable.
+	// Load Apploader to Memory - The apploader is hardcoded to begin at byte 9 280 on the disc,
+	// but it seems like the size can be variable. Compare with yagcd chap 13.
 	// ---------------------------------------------------------------------------------------
 	PowerPC::ppcState.gpr[1] = 0x816ffff0;			// StackPointer
-	u32 iAppLoaderOffset = 0x2440; // 0x1c40 (old value perhaps?, I don't know why it's here)
+	u32 iAppLoaderOffset = 0x2440; // 0x1c40 (what is 0x1c40?)
 	// ---------------------------------------------------------------------------------------
 	u32 iAppLoaderEntry = VolumeHandler::Read32(iAppLoaderOffset + 0x10);
 	u32 iAppLoaderSize  = VolumeHandler::Read32(iAppLoaderOffset + 0x14);
@@ -132,20 +124,10 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 
 	
 	// =======================================================================================
-	// iAppLoaderMain - This let's the apploader load the DOL (the exe) and the TOC (filesystem)
-	// and I guess anything else it wishes. To give you an idea about where the stuff is on the disc
-	// here's an example of the disc structure of these things from Baten Kaitos - Wings. The values
-	// are given as non hexadecimal (ie normal numbers with base 10 instead of base 16) and they
-	// are only approximately right. I don't know what's in the gaps or why there are gaps between
-	// the different things.
-	// Data			From		To			Size
-	// Header		0			1 072		1 072
-	// AppLoader	9 280		121 408		112 128
-	// DOL (exe)	128 768		2 204 416	2 075 648
-	// TOC			2 204 160	2 309 120	104 960
-	// For some reason this game loaded these things in 16 rounds in the loop below. The third and
-	// last of these were double reads of things it had already copied to memory. But hey, we're
-	// all human :)
+	/*
+	iAppLoaderMain - Here we load the apploader, the DOL (the exe) and the FST (filesystem).
+	To give you an idea about where the stuff is located on the disc take a look at yagcd chap 13.
+	*/
 	// ---------------------------------------------------------------------------------------	
 	LOG(MASTER_LOG, "Call iAppLoaderMain");
 	do

@@ -52,22 +52,35 @@ class CDebugger : public wxDialog
 	
 		void NotifyUpdate();
 		void OnUpdate(wxCommandEvent& event);
+		void ShowHideConsole(wxCommandEvent& event);
+		void DoShowHideConsole();
+		void ChangeFrequency(wxCommandEvent& event);
+		void DoChangeFrequency();
 
 		CPBView* m_GPRListView;
 		
 
 	private:
+
+		// declarations
+		wxCheckBox *m_Check[3];
+		wxRadioButton *m_Radio[5];
+		wxRadioBox *m_RadioBox[2];
+		wxStaticBox *m_Label[1];
+		wxPanel *m_Controller;
+
 		// ---------------------------------------------------------------------------------------
 		// WARNING: Make sure these are not also elsewhere, for example in resource.h.
 		enum
 		{
 			IDC_CHECK0 = 2000,
 			IDC_CHECK1,
+			IDC_CHECK2,
 			IDC_RADIO0,
 			IDC_RADIO1,
 			IDC_RADIO2,
 			IDC_RADIO3,
-			IDC_RADIO4,
+			IDG_LABEL1,
 			ID_UPD,
 			ID_SELC,
 			ID_PRESETS,
