@@ -21,7 +21,6 @@ bool AXTask(u32& _uMail)
 	{
 		// ---------------------------------------------------------------------------------------
 		// SSBM: We get the addr 8049cf00, first we always get 0
-		static int last_valid_command = 0;
 		u16 iCommand = Memory_Read_U16(uAddress);
 		uAddress += 2;
 		// ---------------------------------------------------------------------------------------

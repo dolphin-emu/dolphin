@@ -22,6 +22,10 @@ files = [
 	"opcodes.cpp",
 	"Tools.cpp",
 	"main.cpp",
+        "Logging/ReadPBs.cpp",
+        "Logging/Console.cpp",
+        "Logging/Logging.cpp",
+        "Logging/AXTask.cpp",
 	]
 
 lleenv = env.Clone()
