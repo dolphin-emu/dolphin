@@ -37,8 +37,12 @@
     #include "../resources/Flag_USA.xpm"
 #endif // USE_XPM_BITMAPS
 
-static int currentColumn = 0;
+size_t CGameListCtrl::m_currentItem = 0;
+size_t CGameListCtrl::m_numberItem = 0;
+std::string CGameListCtrl::m_currentFilename;
 
+
+static int currentColumn = 0;
 bool operator < (const GameListItem &one, const GameListItem &other)
 {
 	switch(currentColumn)
@@ -66,6 +70,8 @@ EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
 EVT_MENU(IDM_SETDEFAULTGCM, CGameListCtrl::OnSetDefaultGCM)
 EVT_MENU(IDM_FILESYSTEMVIEWER, CGameListCtrl::OnFilesystemViewer)
 EVT_MENU(IDM_COMPRESSGCM, CGameListCtrl::OnCompressGCM)
+EVT_MENU(IDM_MULTICOMPRESSGCM, CGameListCtrl::OnMultiCompressGCM)
+EVT_MENU(IDM_MULTIDECOMPRESSGCM, CGameListCtrl::OnMultiDecompressGCM)
 EVT_MENU(IDM_DELETEGCM, CGameListCtrl::OnDeleteGCM)
 END_EVENT_TABLE()
 
@@ -388,7 +394,6 @@ void CGameListCtrl::ScanForISOs()
 					_T("Scanning..."),
 					rFilenames.size(), // range
 					this, // parent
-					wxPD_CAN_ABORT |
 					wxPD_APP_MODAL |
 					// wxPD_AUTO_HIDE | -- try this as well
 					wxPD_ELAPSED_TIME |
@@ -511,31 +516,47 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 	// Focus the clicked item.
 	int flags;
     long item = HitTest(event.GetPosition(), flags);
-	if (item != wxNOT_FOUND) {
-		SetItemState(item, wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED,
-			               wxLIST_STATE_SELECTED | wxLIST_STATE_FOCUSED);
-	}
-	const GameListItem *selected_iso = GetSelectedISO();
-	if (selected_iso)
+	if (item != wxNOT_FOUND) 
 	{
-		std::string unique_id = selected_iso->GetUniqueID();
+		if (GetItemState(item, wxLIST_STATE_SELECTED) != wxLIST_STATE_SELECTED)
+		{
+			UnselectAll();
+			SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED );
+		}
+		SetItemState(item, wxLIST_STATE_FOCUSED, wxLIST_STATE_FOCUSED);
+	}
+
+	if (GetSelectedItemCount() == 1)
+	{
+		const GameListItem *selected_iso = GetSelectedISO();
+		if (selected_iso)
+		{
+			std::string unique_id = selected_iso->GetUniqueID();
+			wxMenu popupMenu;
+			std::string menu_text = StringFromFormat("Edit &patch file: %s.ini", unique_id.c_str());
+			popupMenu.Append(IDM_EDITPATCHFILE, wxString::FromAscii(menu_text.c_str())); //Pretty much everything in wxwidgets is a wxString, try to convert to those first!
+			popupMenu.Append(IDM_OPENCONTAININGFOLDER, wxString::FromAscii("Open &containing folder"));
+			popupMenu.Append(IDM_FILESYSTEMVIEWER, wxString::FromAscii("Open in ISO viewer/dumper"));
+			popupMenu.AppendCheckItem(IDM_SETDEFAULTGCM, wxString::FromAscii("Set as &default ISO"));
+			if(selected_iso->GetFileName() == SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM)
+				popupMenu.FindItemByPosition(3)->Check();
+
+			popupMenu.AppendSeparator();
+			popupMenu.Append(IDM_DELETEGCM, wxString::FromAscii("&Delete ISO..."));
+
+			if (selected_iso->IsCompressed())
+				popupMenu.Append(IDM_COMPRESSGCM, wxString::FromAscii("Decompress ISO... (UNTESTED)"));
+			else
+				popupMenu.Append(IDM_COMPRESSGCM, wxString::FromAscii("Compress ISO... (UNTESTED)"));
+
+			PopupMenu(&popupMenu);
+		}
+	}
+	else if (GetSelectedItemCount() > 1)
+	{
 		wxMenu popupMenu;
-		std::string menu_text = StringFromFormat("Edit &patch file: %s.ini", unique_id.c_str());
-		popupMenu.Append(IDM_EDITPATCHFILE, wxString::FromAscii(menu_text.c_str())); //Pretty much everything in wxwidgets is a wxString, try to convert to those first!
-		popupMenu.Append(IDM_OPENCONTAININGFOLDER, wxString::FromAscii("Open &containing folder"));
-		popupMenu.Append(IDM_FILESYSTEMVIEWER, wxString::FromAscii("Open in ISO viewer/dumper"));
-		popupMenu.AppendCheckItem(IDM_SETDEFAULTGCM, wxString::FromAscii("Set as &default ISO"));
-		if(selected_iso->GetFileName() == SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM)
-			popupMenu.FindItemByPosition(3)->Check();
-
-		popupMenu.AppendSeparator();
-		popupMenu.Append(IDM_DELETEGCM, wxString::FromAscii("&Delete ISO..."));
-
-		if (selected_iso->IsCompressed())
-			popupMenu.Append(IDM_COMPRESSGCM, wxString::FromAscii("Decompress ISO... (UNTESTED)"));
-		else
-			popupMenu.Append(IDM_COMPRESSGCM, wxString::FromAscii("Compress ISO... (UNTESTED)"));
-
+		popupMenu.Append(IDM_MULTICOMPRESSGCM, wxString::FromAscii("Compress selected ISOs..."));
+		popupMenu.Append(IDM_MULTIDECOMPRESSGCM, wxString::FromAscii("Decompress selected ISOs..."));
 		PopupMenu(&popupMenu);
 	}
 }
@@ -566,7 +587,8 @@ const GameListItem * CGameListCtrl::GetSelectedISO() const
 		return &m_ISOFiles[GetItemData(item)];
 }
 
-void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event)) {
+void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event)) 
+{
 	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
@@ -575,7 +597,8 @@ void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event)) {
 	File::Explore(path.c_str());
 }
 
-void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& WXUNUSED (event)) {
+void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& WXUNUSED (event)) 
+{
 	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
@@ -583,7 +606,8 @@ void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& WXUNUSED (event)) {
 	SConfig::GetInstance().SaveSettings();
 }
 
-void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event)) {
+void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
+{
 	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
@@ -594,12 +618,94 @@ void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event)) {
 	Update();
 }
 
-void CGameListCtrl::OnFilesystemViewer(wxCommandEvent& WXUNUSED (event)) {
+void CGameListCtrl::OnFilesystemViewer(wxCommandEvent& WXUNUSED (event)) 
+{
 	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
 	CFilesystemViewer FSViewer(iso->GetFileName(), this);
 	FSViewer.ShowModal();
+}
+
+void CGameListCtrl::MultiCompressCB(const char* text, float percent, void* arg)
+{
+	wxString textString(wxString::Format("%s (%i/%i) - %s", m_currentFilename.c_str(), m_currentItem+1, m_numberItem, text));
+
+	percent = (((float)m_currentItem) + percent) / (float)m_numberItem;
+	wxProgressDialog* pDialog = (wxProgressDialog*)arg;
+	pDialog->Update((int)(percent*1000), textString);
+}
+
+void CGameListCtrl::OnMultiCompressGCM(wxCommandEvent& /*event*/)
+{
+	CompressSelection(true);
+}
+
+void CGameListCtrl::OnMultiDecompressGCM(wxCommandEvent& /*event*/)
+{
+	CompressSelection(false);
+}
+
+void CGameListCtrl::CompressSelection(bool _compress)
+{
+	wxString dirHome;
+	wxGetHomeDir(&dirHome);
+
+	wxDirDialog browseDialog(this, _T("Browse for output directory"), dirHome, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+	if (browseDialog.ShowModal() != wxID_OK)
+		return;
+
+	wxProgressDialog progressDialog(_compress ? _T("Compressing ISO") : _T("Decompressing ISO"),
+		_T("Working..."),
+		1000, // range
+		this, // parent
+		wxPD_APP_MODAL |
+		// wxPD_AUTO_HIDE | -- try this as well
+		wxPD_ELAPSED_TIME |
+		wxPD_ESTIMATED_TIME |
+		wxPD_REMAINING_TIME |
+		wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+		);
+	
+	progressDialog.SetSize(wxSize(600, 180));
+	progressDialog.CenterOnParent();
+
+	m_currentItem = 0;
+	m_numberItem = GetSelectedItemCount();
+	for (size_t i=0; i<GetItemCount(); i++)
+	{
+		const GameListItem& rISOFile = m_ISOFiles[i];
+		if (GetItemState(i, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED)
+		{						
+			if (!rISOFile.IsCompressed() && _compress)
+			{								
+				std::string FileName;
+				SplitPath(rISOFile.GetFileName(), NULL, &FileName, NULL);
+				m_currentFilename = FileName;
+				FileName.append(".gcz");
+
+				std::string OutputFileName;
+				BuildCompleteFilename(OutputFileName, browseDialog.GetPath().ToAscii(), FileName);
+
+				DiscIO::CompressFileToBlob(rISOFile.GetFileName().c_str(), OutputFileName.c_str(), 0, 16384, &MultiCompressCB, &progressDialog);					
+			}
+			else if (rISOFile.IsCompressed() && !_compress)
+			{
+				std::string FileName;
+				SplitPath(rISOFile.GetFileName(), NULL, &FileName, NULL);
+				m_currentFilename = FileName;
+				FileName.append(".gcm");
+
+				std::string OutputFileName;
+				BuildCompleteFilename(OutputFileName, browseDialog.GetPath().ToAscii(), FileName);
+
+				DiscIO::DecompressBlobToFile(rISOFile.GetFileName().c_str(), OutputFileName.c_str(), &MultiCompressCB, &progressDialog);
+			}
+			m_currentItem++;
+		}			
+	}
+
+	Update();
 }
 
 void CGameListCtrl::CompressCB(const char* text, float percent, void* arg)
@@ -608,7 +714,8 @@ void CGameListCtrl::CompressCB(const char* text, float percent, void* arg)
 	pDialog->Update((int)(percent*1000), wxString::FromAscii(text));
 }
 
-void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event)) {
+void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event)) 
+{
 	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
@@ -668,9 +775,9 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event)) {
 		wxPD_REMAINING_TIME |
 		wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 		);
-
-	dialog.CenterOnParent();
+	
 	dialog.SetSize(wxSize(280, 180));
+	dialog.CenterOnParent();
 
 	if (iso->IsCompressed())
 		DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(), path.char_str(), &CompressCB, &dialog);	
@@ -685,9 +792,12 @@ void CGameListCtrl::OnEditPatchFile(wxCommandEvent& WXUNUSED (event))
 	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
+
 	std::string filename = "GameIni/" + iso->GetUniqueID() + ".ini";
-	if (!File::Exists(filename.c_str())) {
-		if (AskYesNo("%s.ini does not exist. Do you want to create it?", iso->GetUniqueID().c_str())) {
+	if (!File::Exists(filename.c_str())) 
+	{
+		if (AskYesNo("%s.ini does not exist. Do you want to create it?", iso->GetUniqueID().c_str())) 
+		{
 			FILE *f = fopen(filename.c_str(), "w");
 			fprintf(f, "# %s - %s\r\n\r\n", iso->GetUniqueID().c_str(), iso->GetName().c_str());
 			fprintf(f, "[EmuState]\n#The Emulation State.\n");
@@ -695,7 +805,9 @@ void CGameListCtrl::OnEditPatchFile(wxCommandEvent& WXUNUSED (event))
 			fprintf(f, "[OnFrame]\r\n#Add memory patches here.\r\n\r\n");
 			fprintf(f, "[ActionReplay]\r\n#Add decrypted action replay cheats here.\r\n");
 			fclose(f);
-		} else {
+		} 
+		else 
+		{
 			return;
 		}
 	}
@@ -730,4 +842,14 @@ void CGameListCtrl::AutomaticColumnWidth()
 		SetColumnWidth(COLUMN_COMPANY, wxMax(0.2*resizable, 100));
 		SetColumnWidth(COLUMN_NOTES, wxMax(0.5*resizable, 100));
 	}
+}
+
+
+void CGameListCtrl::UnselectAll()
+{
+	for (size_t i=0; i<GetItemCount(); i++)
+	{
+		SetItemState(i, 0, wxLIST_STATE_SELECTED);
+	}
+
 }

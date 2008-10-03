@@ -76,13 +76,21 @@ private:
 	void OnSetDefaultGCM(wxCommandEvent& event);
 	void OnDeleteGCM(wxCommandEvent& event);
 	void OnCompressGCM(wxCommandEvent& event);
+	void OnMultiCompressGCM(wxCommandEvent& event);
+	void OnMultiDecompressGCM(wxCommandEvent& event);
 	void OnFilesystemViewer(wxCommandEvent& event);
 
 	virtual bool MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem);
 
+	void CompressSelection(bool _compress);
 	void AutomaticColumnWidth();
+	void UnselectAll();
 
+	static size_t m_currentItem;
+	static std::string m_currentFilename;
+	static size_t m_numberItem;
 	static void CompressCB(const char* text, float percent, void* arg);
+	static void MultiCompressCB(const char* text, float percent, void* arg);
 };
 
 
