@@ -1,4 +1,6 @@
+#ifdef USE_WX
 #include <wx/aboutdlg.h>
+#endif
 
 #include "Common.h"
 #include "StringUtil.h"
@@ -143,11 +145,13 @@ extern "C" void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 
 extern "C" void DllAbout(HWND _hParent) 
 {
+	#ifdef USE_WX
 	wxAboutDialogInfo info;
 	info.SetName(_T("Wiimote test plugin"));
 	info.AddDeveloper(_T("masken (masken3@gmail.com)"));
 	info.SetDescription(_T("Wiimote test plugin"));
 	wxAboutBox(info);
+	#endif
 }
 
 extern "C" void DllConfig(HWND _hParent)

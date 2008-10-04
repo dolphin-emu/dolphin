@@ -80,7 +80,7 @@ HRESULT SetDeviceForcesXY();
 //////////////////////////////////////////////////////////////////////////////////////////
 // wxWidgets
 // ¯¯¯¯¯¯¯¯¯
-#ifdef USE_WXWIDGETS
+#ifdef USE_WX
 class wxDLLApp : public wxApp
 {
 	bool OnInit()
@@ -161,7 +161,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllAbout(HWND _hParent)
 {
-	#ifdef USE_WXWIDGETS
+	#ifdef USE_WX
 		#ifdef _WIN32
 		wxWindow win;
 		win.SetHWND((WXHWND)_hParent);
@@ -189,7 +189,7 @@ void DllAbout(HWND _hParent)
 void DllConfig(HWND _hParent)
 {
 
-	#ifdef USE_WXWIDGETS		
+	#ifdef USE_WX		
 		#ifdef _WIN32
 		if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
 		{

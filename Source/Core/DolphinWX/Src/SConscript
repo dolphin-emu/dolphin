@@ -6,22 +6,19 @@ import sys
 files = [
 	'BootManager.cpp',
 	'Config.cpp',
-	'ConfigMain.cpp',
 	'FileSearch.cpp',
-	'FilesystemViewer.cpp',
-	'Frame.cpp',
-	'GameListCtrl.cpp',
 	'Globals.cpp',
 	'ISOFile.cpp',
-	'MemcardManager.cpp',
 	'MemoryCards/GCMemcard.cpp',
-	'PluginManager.cpp',
 	'stdafx.cpp',
 	'cmdline.c',
 	]
 libs = [
-	'debwx', 'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'common', 'z'
+	'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'common', 'z'
 	]
+if not env['nowx']:
+	files.Append['ConfigMain.cpp', 'FilesystemViewer.cpp', 'Frame.cpp', 'GameListCtrl.cpp', 'MemcardManager.cpp', 'PluginManager.cpp',]
+	libs.Append['debwx', ]
 
 wxenv = env.Clone()
 wxenv.Append(
@@ -30,7 +27,7 @@ wxenv.Append(
 		'wxNEEDS_CHARPP',
 		],
 	LINKFLAGS = [
-		'-pthread',
+		'-lpthread',
 		],
 	LIBS = libs
 	)
@@ -64,5 +61,6 @@ else:
 	exeNoGUI = '../../../../Binary/linux/DolphinNoGUI'
 
 objects = [ wxenv.Object(srcFile) for srcFile in files ]
-wxenv.Program(exeGUI, objects + [ 'Main.cpp' ])
+if not env['nowx']:
+	wxenv.Program(exeGUI, objects + [ 'Main.cpp' ])	
 wxenv.Program(exeNoGUI, objects + [ 'MainNoGUI.cpp' ])

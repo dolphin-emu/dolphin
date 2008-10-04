@@ -42,7 +42,7 @@
 
 // Externals
 
-float ratioFactor; // a global to get the ratio factor from MixAdd
+extern float ratioFactor; // a global to get the ratio factor from MixAdd
 int gUpdFreq = 5;
 u32 gLastBlock;
 

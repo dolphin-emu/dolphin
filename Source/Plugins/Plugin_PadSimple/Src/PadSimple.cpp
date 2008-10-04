@@ -21,14 +21,18 @@
 
 #include <stdio.h>
 #include <math.h>
+#ifdef USE_WX
 #include <wx/aboutdlg.h>
+#endif
 
 #include "Common.h"
 #include "pluginspecs_pad.h"
 #include "PadSimple.h"
 #include "IniFile.h"
 
+#ifdef USE_WX
 #include "GUI/ConfigDlg.h"
+#endif
 
 #ifdef XINPUT_ENABLE
 #include "XInput.h"
@@ -166,17 +170,20 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 
 void DllAbout(HWND _hParent)
 {
+	#ifdef USE_WX
 	wxAboutDialogInfo info;
 	info.AddDeveloper(_T("ector"));
 	info.AddDeveloper(_T("F|RES"));
 	info.SetDescription(_T("Simple keyboard and XInput plugin for dolphin"));
 	wxAboutBox(info);
+	#endif
 }
 
 
 void DllConfig(HWND _hParent)
 {
 	LoadConfig();
+#ifdef USE_WX
 #ifdef _WIN32
 	wxWindow win;
 	win.SetHWND(_hParent);
@@ -187,6 +194,7 @@ void DllConfig(HWND _hParent)
 #else
 	ConfigDialog frame(NULL);
 	frame.ShowModal();
+#endif
 #endif
 	SaveConfig();
 }

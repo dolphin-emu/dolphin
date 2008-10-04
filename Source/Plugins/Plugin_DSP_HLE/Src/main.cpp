@@ -15,10 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-// =======================================================================================
 // Includes
-// ------------------
 #include "Globals.h"
 #include "ChunkFile.h"
 #include "resource.h"
@@ -36,14 +33,12 @@
 #include "DSPHandler.h"
 #include "Config.h"
 
+#ifdef USE_WX
 #include "Debugger/Debugger.h" // for the CDebugger class
 #include "Logging/Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
-// ===================
+#endif
 
-
-// =======================================================================================
 // DSP struct
-// -------------------
 DSPInitialize g_dspInitialize;
 u8* g_pMemory;
 
@@ -68,12 +63,9 @@ struct DSPState
 };
 
 DSPState g_dspState;
-// ====================
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
+#ifdef USE_WX
 // wxWidgets - Some kind of stuff wx needs
-// ¯¯¯¯¯¯¯¯¯
 class wxDLLApp : public wxApp
 {
 	bool OnInit()
@@ -84,8 +76,7 @@ class wxDLLApp : public wxApp
 
 IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-///////////////////
-
+#endif
 
 #ifdef _WIN32
 HINSTANCE g_hInstance = NULL;
@@ -126,9 +117,7 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
 #endif
 
 
-// =======================================================================================
 // Open and close console
-// -------------------
 void OpenConsole()
 {
 	#if defined (_WIN32)
@@ -145,22 +134,21 @@ void CloseConsole()
 		FreeConsole();
 	#endif
 }
-// ===================
 
-
-// =======================================================================================
 // Create debugging window - We could use use wxWindow win; new CDebugger(win) like nJoy but I don't
 // know why it would be better. - There's a lockup problem with ShowModal(), but Show() doesn't work
 // because then DLL_PROCESS_DETACH is called immediately after DLL_PROCESS_ATTACH.
-// -------------------
+#ifdef USE_WX
 CDebugger* m_frame;
+#endif
+
 void DllDebugger(HWND _hParent)
 {
+	#ifdef USE_WX
 	m_frame = new CDebugger(NULL);
 	m_frame->ShowModal();
+	#endif
 }
-// ===================
-
 
 void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {

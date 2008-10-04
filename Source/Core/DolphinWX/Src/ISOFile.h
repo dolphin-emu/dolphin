@@ -36,7 +36,9 @@ public:
 	bool IsCompressed() const {return m_BlobCompressed;}
 	u64 GetFileSize() const {return m_FileSize;}
 	u64 GetVolumeSize() const {return m_VolumeSize;}
+	#ifdef USE_WX
 	const wxImage& GetImage() const {return m_Image;}
+	#endif
 
 private:
 	std::string m_FileName;
@@ -50,7 +52,9 @@ private:
 
 	DiscIO::IVolume::ECountry m_Country;
 
+	#ifdef USE_WX
 	wxImage m_Image;
+	#endif
 
 	bool m_Valid;
 

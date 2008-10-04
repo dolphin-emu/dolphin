@@ -61,7 +61,6 @@ dirs = [
 	'Externals/LZO',
 	'Source/Core/Core/Src',
 	'Source/Core/DiscIO/Src',
-	'Source/Core/DebuggerWX/Src',
 	'Source/Core/VideoCommon/Src',
 	'Source/Plugins/Plugin_VideoOGL/Src',
 	'Source/Plugins/Plugin_DSP_HLE/Src',
@@ -72,7 +71,7 @@ dirs = [
 	'Source/Plugins/Plugin_Wiimote_Test/Src',
 	'Source/Core/DolphinWX/Src',
 	]
-
+	
 builders = {}
 if sys.platform == 'darwin':
 	from plistlib import writePlist
@@ -182,6 +181,8 @@ if not env['nowx']:
 		):
 		print 'gui build requires wxwidgets >= 2.8'
 		Exit(1)
+if not env['nowx']:
+	dirs.Append['Source/Core/DebuggerWX/Src',]
 
 # After all configuration tests are done
 env = conf.Finish()
@@ -189,6 +190,7 @@ env = conf.Finish()
 #wx windows flags
 if not env['nowx']:
         wxconfig.ParseWXConfig(env)
+        compileFlags.append('-DUSE_WX')
 
 #get sdl stuff
 env.ParseConfig('sdl-config --cflags --libs')

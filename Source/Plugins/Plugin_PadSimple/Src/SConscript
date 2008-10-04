@@ -10,10 +10,9 @@ else:
 
 files = [
 	"PadSimple.cpp",
-        "XInputBase.cpp",
-	"GUI/ConfigDlg.cpp",
 	]
-
+if not env['nowx']:
+	files.Append["GUI/ConfigDlg.cpp", "XInputBase.cpp",]
 padenv = env.Clone()
-padenv.Append(LIBS = [ 'common' ])
+padenv.Append(LIBS = [ 'common', 'X11' ])
 padenv.SharedLibrary(output, files)
