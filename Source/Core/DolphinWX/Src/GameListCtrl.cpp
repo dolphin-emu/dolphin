@@ -110,7 +110,7 @@ void CGameListCtrl::BrowseForDirectory()
 	wxGetHomeDir(&dirHome);
 
 	// browse
-	wxDirDialog dialog(this, _T("Browse directory"), dirHome, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+	wxDirDialog dialog(this, _("Browse directory"), dirHome, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
 
 	if (dialog.ShowModal() == wxID_OK)
 	{
@@ -133,13 +133,13 @@ void CGameListCtrl::Update()
 	if (m_ISOFiles.size() != 0)
 	{
 		// add columns
-		InsertColumn(COLUMN_BANNER, _T("Banner"));
-		InsertColumn(COLUMN_TITLE, _T("Title"));
-		InsertColumn(COLUMN_COMPANY, _T("Company"));
-		InsertColumn(COLUMN_NOTES, _T("Notes"));
-		InsertColumn(COLUMN_COUNTRY, _T(""));
-		InsertColumn(COLUMN_SIZE, _T("Size"));
-		InsertColumn(COLUMN_EMULATION_STATE, _T("Emulation"));
+		InsertColumn(COLUMN_BANNER, _("Banner"));
+		InsertColumn(COLUMN_TITLE, _("Title"));
+		InsertColumn(COLUMN_COMPANY, _("Company"));
+		InsertColumn(COLUMN_NOTES, _("Notes"));
+		InsertColumn(COLUMN_COUNTRY, _(""));
+		InsertColumn(COLUMN_SIZE, _("Size"));
+		InsertColumn(COLUMN_EMULATION_STATE, _("Emulation"));
 
 		// set initial sizes for columns
 		SetColumnWidth(COLUMN_BANNER, 106);
@@ -159,10 +159,10 @@ void CGameListCtrl::Update()
 	}
 	else
 	{
-		InsertColumn(COLUMN_BANNER, _T("No ISOs found"));
+		InsertColumn(COLUMN_BANNER, _("No ISOs found"));
 
 		// data
-		wxString buf(_T("Dolphin could not find any GC/Wii ISOs. Doubleclick here to browse for files..."));
+		wxString buf(_("Dolphin could not find any GC/Wii ISOs. Doubleclick here to browse for files..."));
 		long item = InsertItem(0, buf, -1);
 		SetItemFont(item, *wxITALIC_FONT);
 		SetColumnWidth(item, wxLIST_AUTOSIZE);
@@ -629,11 +629,11 @@ void CGameListCtrl::OnFilesystemViewer(wxCommandEvent& WXUNUSED (event))
 
 void CGameListCtrl::MultiCompressCB(const char* text, float percent, void* arg)
 {
-	wxString textString(wxString::Format("%s (%i/%i) - %s", m_currentFilename.c_str(), m_currentItem+1, m_numberItem, text));
+    wxString textString(wxString::Format(wxT("%s (%i/%i) - %s"), m_currentFilename.c_str(), m_currentItem+1, m_numberItem, text));
 
-	percent = (((float)m_currentItem) + percent) / (float)m_numberItem;
-	wxProgressDialog* pDialog = (wxProgressDialog*)arg;
-	pDialog->Update((int)(percent*1000), textString);
+    percent = (((float)m_currentItem) + percent) / (float)m_numberItem;
+    wxProgressDialog* pDialog = (wxProgressDialog*)arg;
+    pDialog->Update((int)(percent*1000), textString);
 }
 
 void CGameListCtrl::OnMultiCompressGCM(wxCommandEvent& /*event*/)
@@ -651,12 +651,12 @@ void CGameListCtrl::CompressSelection(bool _compress)
 	wxString dirHome;
 	wxGetHomeDir(&dirHome);
 
-	wxDirDialog browseDialog(this, _T("Browse for output directory"), dirHome, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+	wxDirDialog browseDialog(this, _("Browse for output directory"), dirHome, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
 	if (browseDialog.ShowModal() != wxID_OK)
 		return;
 
-	wxProgressDialog progressDialog(_compress ? _T("Compressing ISO") : _T("Decompressing ISO"),
-		_T("Working..."),
+	wxProgressDialog progressDialog(_compress ? _("Compressing ISO") : _("Decompressing ISO"),
+		_("Working..."),
 		1000, // range
 		this, // parent
 		wxPD_APP_MODAL |
@@ -672,7 +672,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 	m_currentItem = 0;
 	m_numberItem = GetSelectedItemCount();
-	for (size_t i=0; i<GetItemCount(); i++)
+	for (int i=0; i<GetItemCount(); i++)
 	{
 		const GameListItem& rISOFile = m_ISOFiles[i];
 		if (GetItemState(i, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED)
@@ -685,7 +685,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 				FileName.append(".gcz");
 
 				std::string OutputFileName;
-				BuildCompleteFilename(OutputFileName, browseDialog.GetPath().ToAscii(), FileName);
+				BuildCompleteFilename(OutputFileName, (const char *)browseDialog.GetPath().mb_str(wxConvUTF8), FileName);
 
 				DiscIO::CompressFileToBlob(rISOFile.GetFileName().c_str(), OutputFileName.c_str(), 0, 16384, &MultiCompressCB, &progressDialog);					
 			}
@@ -697,7 +697,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 				FileName.append(".gcm");
 
 				std::string OutputFileName;
-				BuildCompleteFilename(OutputFileName, browseDialog.GetPath().ToAscii(), FileName);
+				BuildCompleteFilename(OutputFileName, (const char *)browseDialog.GetPath().mb_str(wxConvUTF8), FileName);
 
 				DiscIO::DecompressBlobToFile(rISOFile.GetFileName().c_str(), OutputFileName.c_str(), &MultiCompressCB, &progressDialog);
 			}
@@ -847,7 +847,7 @@ void CGameListCtrl::AutomaticColumnWidth()
 
 void CGameListCtrl::UnselectAll()
 {
-	for (size_t i=0; i<GetItemCount(); i++)
+	for (int i=0; i<GetItemCount(); i++)
 	{
 		SetItemState(i, 0, wxLIST_STATE_SELECTED);
 	}
