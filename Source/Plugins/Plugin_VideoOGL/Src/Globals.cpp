@@ -15,13 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifdef USE_WX
+
 #include <wx/wx.h>
 #include <wx/filepicker.h>
 #include <wx/notebook.h>
 #include <wx/dialog.h>
 #include <wx/aboutdlg.h>
-#endif
 
 #include "Globals.h"
 

@@ -10,9 +10,9 @@ else:
 
 files = [
 	'nJoy.cpp',
+	'GUI/AboutBox.cpp',
+	'GUI/ConfigBox.cpp',
 	]
-if not env['nowx']:
-	files += ['GUI/AboutBox.cpp', 'GUI/ConfigBox.cpp',]
 
 padenv = env.Clone()
 padenv.Append(

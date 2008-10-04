@@ -15,10 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifdef USE_WX
 #include <wx/aboutdlg.h>
-#endif
-
 #include "Globals.h"
 
 #ifdef _WIN32
@@ -29,9 +26,7 @@
 #include <SDL.h>
 #endif
 
-#ifdef USE_WX
 #include "GUI/ConfigDlg.h"
-#endif
 
 #include "Render.h"
 #include "GLInit.h"
@@ -67,17 +62,14 @@ void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 
 void DllAbout(HWND _hParent) 
 {
-	#ifdef USE_WX
 	wxAboutDialogInfo info;
 	info.AddDeveloper(_T("zerofrog(@gmail.com)"));
 	info.SetDescription(_T("Vertex/Pixel Shader 2.0 or higher, framebuffer objects, multiple render targets"));
 	wxAboutBox(info);
-	#endif
 }
 
 void DllConfig(HWND _hParent)
 {
-#ifdef USE_WX
 #if defined(_WIN32)
 	wxWindow win;
 	win.SetHWND(_hParent);
@@ -156,7 +148,6 @@ void DllConfig(HWND _hParent)
 
 	//TODO
 
-#endif
 #endif
 }
 

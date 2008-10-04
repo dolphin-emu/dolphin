@@ -8,11 +8,13 @@ import utils
 
 files = [
 	'BPStructs.cpp',
+	'DataReader.cpp',
 	'Globals.cpp',
 	'GLInit.cpp',
 	'main.cpp',
 	'memcpy_amd.cpp',
 	'OpcodeDecoding.cpp',
+#	'OpcodeReaders.cpp', # outdated
 	'PixelShader.cpp',
 	'PixelShaderManager.cpp',
 	'rasterfont.cpp',
@@ -23,9 +25,8 @@ files = [
 	'VertexShader.cpp',
 	'VertexShaderManager.cpp',
 	'XFB.cpp',
+	'GUI/ConfigDlg.cpp',
 	]
-if not env['nowx']:
-	files += ['GUI/ConfigDlg.cpp',]
 compileFlags = [
 	'-fPIC',
 	]

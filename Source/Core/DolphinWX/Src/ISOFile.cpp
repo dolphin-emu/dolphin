@@ -67,7 +67,6 @@ GameListItem::GameListItem(const std::string& _rFileName)
 					pBannerLoader->GetDescription(m_Description);
 					if (pBannerLoader->GetBanner(g_ImageTemp))
 					{
-						#ifdef USE_WX
 						unsigned char* pImage = (unsigned char*)malloc(DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT * 3);
 
 						for (size_t i = 0; i < DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT; i++)
@@ -78,7 +77,6 @@ GameListItem::GameListItem(const std::string& _rFileName)
 						}
 
 						m_Image.Create(DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT, pImage);
-						#endif
 					}
 				}
 				else

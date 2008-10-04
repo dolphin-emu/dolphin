@@ -78,7 +78,7 @@ enum
 	ID_TOOLBAR = 500,
 	LIST_CTRL = 1000
 };
-#ifdef USE_WX
+
 #define wxUSE_XPM_IN_MSW 1
 #define USE_XPM_BITMAPS 1
 
@@ -125,5 +125,5 @@ enum
 		),
 
 extern const wxEventType wxEVT_HOST_COMMAND;
-#endif
+
 #endif

@@ -62,10 +62,9 @@
 #endif
 #ifdef __linux__
 #include <linux/input.h>
-#include <fcntl.h>
 #endif
 
-#ifdef USE_WX
+#ifdef USE_WXWIDGETS
 #include "GUI/AboutBox.h"
 #include "GUI/ConfigBox.h"
 #else

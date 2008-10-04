@@ -1,7 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
-
 #ifndef _WIN32
 //#include <curses.h>
 #else

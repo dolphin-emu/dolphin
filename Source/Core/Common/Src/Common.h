@@ -24,16 +24,15 @@
 #define CHECK_HEAP_INTEGRITY()
 
 #ifdef _WIN32
-	#define USE_WX // Always define in Windows since it isn't tested.
-	#ifdef _DEBUG
-		#include <crtdbg.h>
-		#undef CHECK_HEAP_INTEGRITY
-		#define CHECK_HEAP_INTEGRITY() {if (!_CrtCheckMemory()) PanicAlert("memory corruption detected. see log.");}
-	#endif
+#ifdef _DEBUG
+#include <crtdbg.h>
+#undef CHECK_HEAP_INTEGRITY
+#define CHECK_HEAP_INTEGRITY() {if (!_CrtCheckMemory()) PanicAlert("memory corruption detected. see log.");}
+#endif
 
-	#include "../../../PluginSpecs/CommonTypes.h"
+#include "../../../PluginSpecs/CommonTypes.h"
 #else
-	#include "CommonTypes.h"
+#include "CommonTypes.h"
 #endif
 
 #include <stdlib.h>
@@ -42,45 +41,45 @@
 
 // Function Cross-Compatibility
 #ifdef _WIN32
-	#define strcasecmp _stricmp
-	#define unlink _unlink
+#define strcasecmp _stricmp
+#define unlink _unlink
 #else
-	#define _stricmp strcasecmp
-	#define _unlink unlink
+#define _stricmp strcasecmp
+#define _unlink unlink
 #endif
 
 #ifdef _WIN32
-	#ifdef _WIN32
-		#define fseek _fseeki64
-		#define ftell _ftelli64
-	#endif
+#ifdef _WIN32
+#define fseek _fseeki64
+#define ftell _ftelli64
+#endif
 
-	#define POSIX 0
-	#define NOMINMAX
+#define POSIX 0
+#define NOMINMAX
 
-	#if _M_IX86
-		#define Crash() {__asm int 3}
-	#else
-		#if _MSC_VER > 1000
-			extern "C" {
-				__declspec(dllimport) void __stdcall DebugBreak(void);
-			}
-			#define Crash() {DebugBreak();}
-		#else
-			#error fixme
-		#endif
-	#endif
+#if _M_IX86
+#define Crash() {__asm int 3}
+#else
+#if _MSC_VER > 1000
+extern "C" {
+	__declspec(dllimport) void __stdcall DebugBreak(void);
+}
+#define Crash() {DebugBreak();}
+#else
+#error fixme
+#endif
+#endif
 
 #elif __GNUC__
-	#define POSIX 1
-	#define MAX_PATH 260
-	#define stricmp strcasecmp
-	#define Crash() {asm ("int $3");}
-	#ifdef _LP64
-		#define _M_X64 1
-	#else
-		#define _M_IX86 1
-	#endif
+#define POSIX 1
+#define MAX_PATH 260
+#define stricmp strcasecmp
+#define Crash() {asm ("int $3");}
+#ifdef _LP64
+#define _M_X64 1
+#else
+#define _M_IX86 1
+#endif
 #endif
 
 // Alignment

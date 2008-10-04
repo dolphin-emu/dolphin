@@ -16,6 +16,9 @@ files = [
 	'Globals.cpp',
 	'PCHW/AOSoundStream.cpp',
 	'PCHW/Mixer.cpp',
+        'Debugger/Debugger.cpp',
+        'Debugger/PBView.cpp',
+        'Logging/Logging.cpp',
 	'UCodes/UCode_AX.cpp',
 	'UCodes/UCode_CARD.cpp',
 	'UCodes/UCode_InitAudioSystem.cpp',
@@ -24,8 +27,6 @@ files = [
 	'UCodes/UCodes.cpp',
 	'UCodes/UCode_Zelda.cpp',
 	]
-if not env['nowx']:
-	files += ['Debugger/Debugger.cpp', 'Debugger/PBView.cpp', 'Logging/Logging.cpp',]
 
 dspenv = env.Clone()
 dspenv.Append(

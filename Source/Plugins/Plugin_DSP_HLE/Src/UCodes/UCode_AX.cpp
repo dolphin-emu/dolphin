@@ -27,17 +27,14 @@
 #include "UCode_AXStructs.h"
 #include "UCode_AX.h"
 
-#ifdef USE_WX
 #include "../Debugger/Debugger.h"
-#endif
-
-float ratioFactor;
-
+// ---------------------------------------------------------------------------------------
 // Externals
+// -----------
+extern float ratioFactor;
 extern u32 gLastBlock;
-#ifdef USE_WX
 extern CDebugger* m_frame;
-#endif
+// -----------
 
 CUCode_AX::CUCode_AX(CMailHandler& _rMailHandler, bool wii)
 	: IUCode(_rMailHandler)
@@ -143,12 +140,10 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 #endif
 
 	// write logging data to debugger
-	#ifdef USE_WX
 	if(m_frame)
 	{
 		CUCode_AX::Logging(_pBuffer, _iSize, 0);
 	}
-	#endif
 
 
 	for (int i = 0; i < numberOfPBs; i++)
