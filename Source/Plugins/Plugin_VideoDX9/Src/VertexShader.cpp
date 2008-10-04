@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
 #include "stdafx.h"
 #include "D3DShader.h"
 #include "VertexShader.h"
@@ -44,11 +45,8 @@ VS_OUTPUT output;\n\
 \n\
 output.pos = mul(matWorldViewProj, input.pos);\n\
 // texgen\n\
-output.uv[0] = float4(input.uv[0].xy,0,input.uv[0].z);\n\
-output.uv[1] = float4(input.uv[1].xy,0,input.uv[1].z);\n\
-output.uv[2] = float4(input.uv[2].xy,0,input.uv[2].z);\n\
-output.uv[3] = float4(input.uv[3].xy,0,input.uv[3].z);\n\
-output.uv[4] = float4(input.uv[4].xy,0,input.uv[4].z);\n\
+for (int i=0; i<5; i++)\n\
+     output.uv[i] = float4(input.uv[i].xyz,1);\n\
 \n\
 for (int i=0; i<2; i++)\n    output.colors[i] = input.colors[i];\n\
 return output;\n\
@@ -57,7 +55,6 @@ return output;\n\
 const char *GenerateVertexShader() {
 	return genericVS;
 }
-
 /*
 
 char text2[65536];

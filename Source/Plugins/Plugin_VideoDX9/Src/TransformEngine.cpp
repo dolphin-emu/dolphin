@@ -307,11 +307,9 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 		Vec3 TempUVs[8];
 		for (int j = 0; j < xfregs.numTexGens; j++)
 		{
-			int n = bpmem.tevorders[j / 2].getTexCoord(j & 1); // <- yazor: dirty zelda patch ^^
-			n = j;
 			Vec3 t;
  
-			switch (xfregs.texcoords[n].texmtxinfo.sourcerow) {
+			switch (xfregs.texcoords[j].texmtxinfo.sourcerow) {
 			case XF_SRCGEOM_INROW:   t = OrigPos; break;   //HACK WTFF???
 			case XF_SRCNORMAL_INROW: t = OrigNormal; break;
 			case XF_SRCCOLORS_INROW: break; //set uvs to something? 
@@ -319,7 +317,7 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 			case XF_SRCBINORMAL_B_INROW: t=Vec3(0,0,0);break;
 			default:
 				{
-					int c = xfregs.texcoords[n].texmtxinfo.sourcerow - XF_SRCTEX0_INROW;
+					int c = xfregs.texcoords[j].texmtxinfo.sourcerow - XF_SRCTEX0_INROW;
 					bool hasTCC = (components & (VertexLoader::VB_HAS_UV0 << c)) != 0;
 					if (c >= 0 && c <= 7 && hasTCC)
 					{
@@ -330,7 +328,7 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 			}
 
 			Vec3 out,out2;
-			switch (xfregs.texcoords[n].texmtxinfo.texgentype) 
+			switch (xfregs.texcoords[j].texmtxinfo.texgentype) 
 			{
 			case XF_TEXGEN_COLOR_STRGBC0:
 				out = Vec3(chans[0].r*255, chans[0].g*255, 1)/255.0f;
@@ -339,17 +337,17 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 				out = Vec3(chans[1].r*255, chans[1].g*255, 1)/255.0f; //FIX: take color1 instead
 				break;
 			case XF_TEXGEN_REGULAR:
-				if (xfregs.texcoords[n].texmtxinfo.projection)
-					VtxMulMtx43(out, t, m_pTexMatrix[n]);
+				if (xfregs.texcoords[j].texmtxinfo.projection)
+					VtxMulMtx43(out, t, m_pTexMatrix[j]);
 				else
-					VtxMulMtx42(out, t, m_pTexMatrix[n]);
+					VtxMulMtx42(out, t, m_pTexMatrix[j]);
 				break;
 			}
 
-			if (xfregs.texcoords[n].postmtxinfo.normalize)
+			if (xfregs.texcoords[j].postmtxinfo.normalize)
 				out.normalize();
 
-			int postMatrix = xfregs.texcoords[n].postmtxinfo.index;
+			int postMatrix = xfregs.texcoords[j].postmtxinfo.index;
 			float *pmtx = ((float*)xfmem) + 0x500 + postMatrix * 4; //CHECK
 			//multiply with postmatrix
 			VtxMulMtx43(TempUVs[j], out, pmtx);
