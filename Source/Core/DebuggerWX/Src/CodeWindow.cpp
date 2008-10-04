@@ -281,7 +281,7 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 		m_JitWindow->Show(true);
 	}
 
-	if(IsLoggingActivated() && bSoundWindow)
+	if(bSoundWindow)
 	{
 		// possible todo: add some kind of if here to? can it fail?
 		CPluginManager::GetInstance().OpenDebug(
@@ -332,9 +332,8 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		wxMenuItem* pJit = pDebugDialogs->Append(IDM_JITWINDOW, _T("&Jit"), wxEmptyString, wxITEM_CHECK);
 		pJit->Check(bJitWindow);
 
-		if (IsLoggingActivated()) {
 		wxMenuItem* pSound = pDebugDialogs->Append(IDM_SOUNDWINDOW, _T("&Sound"), wxEmptyString, wxITEM_CHECK);
-		pSound->Check(bSoundWindow);}
+		pSound->Check(bSoundWindow);
 
 		pMenuBar->Append(pDebugDialogs, _T("&Views"));
 	}
@@ -831,7 +830,7 @@ void CCodeWindow::OnToggleSoundWindow(wxCommandEvent& event)
 	ini.Set("ShowOnStart", "SoundWindow", show);
 	ini.Save("Debugger.ini");
 
-	if (IsLoggingActivated() && show)
+	if (show)
 	{
 		// TODO: add some kind of if() check here to?
 		CPluginManager::GetInstance().OpenDebug(
