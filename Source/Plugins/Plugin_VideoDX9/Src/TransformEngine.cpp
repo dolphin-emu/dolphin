@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <fvec.h>
+
 #include "Common.h"
 #include "Globals.h"
 #include "Vec3.h"
@@ -82,18 +84,31 @@ float DoLighting(const Light *light, const LitChannel &chan, const Vec3 &pos, co
 	return val;
 }
 
-void VtxMulMtx43(Vec3 &out, const Vec3 &in, const float pMatrix[12])
+void VtxMulMtx43T(Vec3 &out, const Vec3 &in, const float pMatrix[12])
 {
 	out.x = in.x * pMatrix[0] + in.y * pMatrix[1] + in.z * pMatrix[2]  + 1 * pMatrix[3];
 	out.y = in.x * pMatrix[4] + in.y * pMatrix[5] + in.z * pMatrix[6]  + 1 * pMatrix[7];
 	out.z = in.x * pMatrix[8] + in.y * pMatrix[9] + in.z * pMatrix[10] + 1 * pMatrix[11];
 }
 
-void VtxMulMtx43T(Vec3 &out, const Vec3 &in, const float pMatrix[12])
+void VtxMulMtx43(Vec3 &out, const Vec3 &in, const float pMatrix[12])
 {
-	out.x = in.x * pMatrix[0] + in.y * pMatrix[1] + in.z * pMatrix[2]  + 1 * pMatrix[3];
-	out.y = in.x * pMatrix[4] + in.y * pMatrix[5] + in.z * pMatrix[6]  + 1 * pMatrix[7];
-	out.z = in.x * pMatrix[8] + in.y * pMatrix[9] + in.z * pMatrix[10] + 1 * pMatrix[11];
+	VtxMulMtx43T(out,in,pMatrix);
+	//TODO(XK): Turns out that SSE2 computations are slower... Can anyone do 
+	//          anything about it?
+	/*
+	F32vec4 a(in.x, in.y, in.z, 1), b(pMatrix[0], pMatrix[1], pMatrix[2], pMatrix[3]);
+	
+	out.x = add_horizontal(a * b);
+
+	b[0] = pMatrix[4]; b[1] = pMatrix[5]; b[2] = pMatrix[6]; b[3] = pMatrix[7];
+
+	out.y = add_horizontal(a * b);
+
+	b[0] = pMatrix[8]; b[1] = pMatrix[9]; b[2] = pMatrix[10]; b[3] = pMatrix[11];
+
+	out.z = add_horizontal(a * b);
+	*/
 }
 
 void VtxMulMtx42(Vec3 &out, const Vec3 &in, const float pMatrix[8])
@@ -122,6 +137,8 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 	RGBAFloat lightVals[8];
 	RGBAFloat chans[2];
 
+	u32 components = varray->GetComponents();
+
 	// TODO: only for active lights
 	for (int i=0; i<8; i++)
 		lightColors[i].convert_GC(GetLight(i)->color);		
@@ -134,7 +151,7 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 
 		Vec3 OrigPos = varray->GetPos(i);
 
-		if (varray->GetComponents() & VertexLoader::VB_HAS_POSMTXIDX)
+		if (varray->hasPosMatIdx)
 		{
 			int index = varray->GetPosMtxInd(i);
 			SetPosNormalMatrix(
@@ -144,7 +161,7 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 
 		for (int j = 0; j < 8; j++)
 		{
-			if (varray->GetComponents() & (VertexLoader::VB_HAS_TEXMTXIDX0<<j))
+			if (varray->hasTexMatIdx[j])
 			{
 				float *flipmem = (float *)xfmem; 
 				int index = varray->GetTexMtxInd(j, i);
@@ -159,7 +176,7 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 
 		Vec3 TempNormal;
 		Vec3 OrigNormal;
-		if (varray->GetComponents() & VertexLoader::VB_HAS_NRM0)
+		if (varray->hasNrm)
 		{
 			OrigNormal = varray->GetNormal(0, i);
 			VtxMulMtx33(TempNormal, OrigNormal, m_pNormalMatrix);
@@ -188,7 +205,7 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 			RGBAFloat material;
             RGBAFloat lightSum(0,0,0,0);
 
-			bool hasColorJ = (varray->GetComponents() & (VertexLoader::VB_HAS_COL0 << j)) != 0;
+			bool hasColorJ = (components & (VertexLoader::VB_HAS_COL0 << j)) != 0;
 
 			//get basic material color from appropriate sources (this would compile nicely!:)
 			if (xfregs.colChans[j].color.matsource == GX_SRC_REG)
@@ -303,7 +320,7 @@ void CTransformEngine::TransformVertices(int _numVertices, const DecodedVArray *
 			default:
 				{
 					int c = xfregs.texcoords[n].texmtxinfo.sourcerow - XF_SRCTEX0_INROW;
-					bool hasTCC = (varray->GetComponents() & (VertexLoader::VB_HAS_UV0 << c)) != 0;
+					bool hasTCC = (components & (VertexLoader::VB_HAS_UV0 << c)) != 0;
 					if (c >= 0 && c <= 7 && hasTCC)
 					{
 						const DecUV &uv = varray->GetUV(c, i);

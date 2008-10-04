@@ -46,7 +46,8 @@ public:
 	int count;
 	DecodedVArray();
 	~DecodedVArray();
-	void SetComponents(u32 comps) {components = comps; vertexSize = ComputeVertexSize(components);}
+	void SetComponents(u32 comps) {components = comps; vertexSize = ComputeVertexSize(components);
+	                               ComputeComponents(); }
 	u32  GetComponents() const {return components;}
 	void Create(int _size, int pmcount, int tmcount, int nrmcount, int colcount, int tccount);
 	void Zero();
@@ -84,6 +85,14 @@ public:
 		uvs[n][count].u=u;
 		uvs[n][count].v=v;
 	}
+	
+	void ComputeComponents() {
+		hasPosMatIdx = (components & (1 << 1)) != 0;
+		for(int i = 0; i < 8; i++) 
+			hasTexMatIdx[i] = (components & (1 << (i + 2))) != 0;
+		hasNrm = (components & (1 << 10)) != 0;
+	}
+
 	const DecPos &GetPos(int n) const { return positions[n]; }
 	const DecNormal &GetNormal(int i, int n) const { return normals[i][n]; }
 	const DecColor &GetColor(int i, int n) const { return colors[i][n]; }
@@ -97,6 +106,9 @@ public:
 	DecUV *uvs[8];
 	DecMtxInd *posMtxInds;
 	DecMtxInd *texMtxInds[8];
+
+	// Component data
+	bool hasPosMatIdx, hasTexMatIdx[8], hasNrm;
 };
 
 #endif

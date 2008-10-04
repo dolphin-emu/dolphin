@@ -366,7 +366,6 @@ void VertexLoader::PrepareRun()
 	for (int i = 0; i < 2; i++)
 		colElements[i] = m_VtxAttr.color[i].Elements;
 
-	varray->Reset();
 	varray->SetComponents(m_components);
 }
 
