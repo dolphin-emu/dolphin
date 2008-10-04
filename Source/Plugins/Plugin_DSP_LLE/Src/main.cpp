@@ -138,8 +138,9 @@ void DllDebugger(HWND _hParent)
 			// that currently occurs of you try to do that
 			MessageBox(0, "Can't open debugging window yet. Please start a game first", "DSP LLE", 0);
 		}
-	#endif
+	#else
 		MessageBox(0, "Can't open debugging window in Release build of this plugin.", "DSP LLE", 0);
+	#endif
 #endif
 }
 
