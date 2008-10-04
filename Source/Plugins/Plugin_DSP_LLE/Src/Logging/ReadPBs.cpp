@@ -16,40 +16,28 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-#ifdef _WIN32
 
-// =======================================================================================
+
 // Turn on and off logging modes
 // --------------
 //#define LOG1  // writes selected parameters only and with more readable formatting
 //#define LOG2 // writes all parameters
-// ==============
 
-
-
-// =======================================================================================
-// Includes
-// --------------
 #include "Common.h"
 #include "../Globals.h"
 #include "CommonTypes.h" // Pluginspecs
 
 #include "UCode_AXStructs.h" // For the AXParamBlock structure
 #include "Console.h" // For wprintf, ClearScreen
-// ==============
 
 
-// =======================================================================================
-// Externals
-// --------------
 u32 m_addressPBs = 0;
-// --------------
 extern u32 gLastBlock;
-// ==============
 
 
 
-// =======================================================================================
+#ifdef _WIN32
+
 int m = 0;
 int n = 0;
 #ifdef LOG2
