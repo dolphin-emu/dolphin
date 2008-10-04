@@ -25,7 +25,7 @@ files = [
 	'UCodes/UCode_Zelda.cpp',
 	]
 if not env['nowx']:
-	files.Append['Debugger/Debugger.cpp', 'Debugger/PBView.cpp', 'Logging/Logging.cpp',]
+	files += ['Debugger/Debugger.cpp', 'Debugger/PBView.cpp', 'Logging/Logging.cpp',]
 
 dspenv = env.Clone()
 dspenv.Append(

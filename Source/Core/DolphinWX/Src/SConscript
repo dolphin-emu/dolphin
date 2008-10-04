@@ -17,8 +17,8 @@ libs = [
 	'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'common', 'z'
 	]
 if not env['nowx']:
-	files.Append['ConfigMain.cpp', 'FilesystemViewer.cpp', 'Frame.cpp', 'GameListCtrl.cpp', 'MemcardManager.cpp', 'PluginManager.cpp',]
-	libs.Append['debwx', ]
+	files += ['ConfigMain.cpp', 'FilesystemViewer.cpp', 'Frame.cpp', 'GameListCtrl.cpp', 'MemcardManager.cpp', 'PluginManager.cpp',]
+	libs += ['debwx', ]
 
 wxenv = env.Clone()
 wxenv.Append(

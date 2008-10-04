@@ -182,7 +182,7 @@ if not env['nowx']:
 		print 'gui build requires wxwidgets >= 2.8'
 		Exit(1)
 if not env['nowx']:
-	dirs.Append['Source/Core/DebuggerWX/Src',]
+	dirs += ['Source/Core/DebuggerWX/Src',]
 
 # After all configuration tests are done
 env = conf.Finish()
@@ -190,7 +190,7 @@ env = conf.Finish()
 #wx windows flags
 if not env['nowx']:
         wxconfig.ParseWXConfig(env)
-        compileFlags.append('-DUSE_WX')
+        compileFlags += ['-DUSE_WX',]
 
 #get sdl stuff
 env.ParseConfig('sdl-config --cflags --libs')

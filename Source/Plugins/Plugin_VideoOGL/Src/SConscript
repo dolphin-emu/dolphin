@@ -25,7 +25,7 @@ files = [
 	'XFB.cpp',
 	]
 if not env['nowx']:
-	files.Append['GUI/ConfigDlg.cpp',]
+	files += ['GUI/ConfigDlg.cpp',]
 compileFlags = [
 	'-fPIC',
 	]
