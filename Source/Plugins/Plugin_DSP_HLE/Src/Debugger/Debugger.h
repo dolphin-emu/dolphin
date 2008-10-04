@@ -23,7 +23,6 @@
 #define __CDebugger_h__
 
 
-// ---------------------------------------------------------------------------------------
 // wx stuff, I'm not sure if we use all these
 #ifndef WX_PRECOMP
 	#include <wx/wx.h>
@@ -41,19 +40,16 @@
 #include <wx/filepicker.h>
 #include <wx/listctrl.h>
 #include <wx/imaglist.h>
-// ------------
 
 #include "../Globals.h"
 
 class CPBView;
 class IniFile;
 
-// =======================================================================================
 // Window settings - I'm not sure what these do. I just copied them gtom elsewhere basically.
 #undef CDebugger_STYLE
 
 #define CDebugger_STYLE wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE
-// =======================================================================================
 
 class CDebugger : public wxDialog
 {
@@ -61,7 +57,7 @@ class CDebugger : public wxDialog
 		DECLARE_EVENT_TABLE();
 		
 	public:
-		CDebugger(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("Sound Debugger"),
+		CDebugger(wxWindow *parent, wxWindowID id = 1, const wxString &title = _("Sound Debugger"),
 			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
 			long style = CDebugger_STYLE);
 
@@ -89,7 +85,6 @@ class CDebugger : public wxDialog
 		wxStaticBox *m_Label[1];
 		wxPanel *m_Controller;
 
-		// ---------------------------------------------------------------------------------------
 		// WARNING: Make sure these are not also elsewhere, for example in resource.h.
 		enum
 		{
@@ -108,8 +103,6 @@ class CDebugger : public wxDialog
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
 
 		};
-		// ---------------------------------------------------------------------------------------
-		
 		
 		void OnClose(wxCloseEvent& event);
 		void CreateGUIControls();		

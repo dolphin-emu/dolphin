@@ -23,7 +23,7 @@
 
 // Includes
 
-#include "../Globals.h"
+
 #include <iostream>
 #include <vector>
 #include <string> // so that we can test std::string == abc
@@ -31,14 +31,14 @@
 	#include <windows.h>
 #endif
 
+#include "../Debugger/Debugger.h"
+#include "../Debugger/PBView.h"
+#include "Console.h" // open and close console, clear console window
+
+#include "../Globals.h"
 #include "../UCodes/UCodes.h"
 #include "../UCodes/UCode_AXStructs.h"
 #include "../UCodes/UCode_AX.h"
-
-#include "../Debugger/PBView.h"
-#include "../Debugger/Debugger.h"
-#include "Console.h" // open and close console, clear console window
-
 
 // Externals
 

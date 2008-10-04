@@ -16,10 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-// =======================================================================================
-// Includes
-// ------------------
-#include "Globals.h"
+#include "Debugger/Debugger.h" // for the CDebugger class
 #include "ChunkFile.h"
 #include "resource.h"
 
@@ -36,7 +33,6 @@
 #include "DSPHandler.h"
 #include "Config.h"
 
-#include "Debugger/Debugger.h" // for the CDebugger class
 #include "Logging/Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
 // ===================
 

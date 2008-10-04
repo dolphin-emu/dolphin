@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "../Globals.h"
+#include "../Debugger/Debugger.h"
 
 #ifdef _WIN32
 #include "../PCHW/DSoundStream.h"
@@ -27,7 +27,6 @@
 #include "UCode_AXStructs.h"
 #include "UCode_AX.h"
 
-#include "../Debugger/Debugger.h"
 // ---------------------------------------------------------------------------------------
 // Externals
 // -----------

@@ -8,13 +8,11 @@ import utils
 
 files = [
 	'BPStructs.cpp',
-	'DataReader.cpp',
 	'Globals.cpp',
 	'GLInit.cpp',
 	'main.cpp',
 	'memcpy_amd.cpp',
 	'OpcodeDecoding.cpp',
-#	'OpcodeReaders.cpp', # outdated
 	'PixelShader.cpp',
 	'PixelShaderManager.cpp',
 	'rasterfont.cpp',
