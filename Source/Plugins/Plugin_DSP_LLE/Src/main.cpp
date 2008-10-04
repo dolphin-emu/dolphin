@@ -61,6 +61,8 @@ uint32 g_LastDMASize = 0;
 
 extern u32 m_addressPBs;
 bool AXTask(u32& _uMail);
+
+bool bCanWork = false;
 // ==============
 
 
@@ -117,16 +119,27 @@ void DSP_DoState(unsigned char **ptr, int mode) {
 
 void DllDebugger(HWND _hParent)
 {
-#if (defined (_DEBUG) || defined (DEBUGFAST)) && defined (_WIN32)
-	g_Dialog.Create(NULL); //_hParent);
-	g_Dialog.ShowWindow(SW_SHOW);
+#ifdef _WIN32
+	#if defined (_DEBUG) || defined (DEBUGFAST)
+		if(bCanWork)
+		{
+			g_Dialog.Create(NULL); //_hParent);
+			g_Dialog.ShowWindow(SW_SHOW);
 
-	// Open the console window
-	startConsoleWin(155, 10000, "Sound Debugging"); // give room for 2000 rows
-	wprintf("DllDebugger > Console opened\n");
-	// TODO: Make this adjustable from the Debugging window
-	MoveWindow(GetConsoleHwnd(), 0,400, 1280,500, true);
-
+			// Open the console window
+			startConsoleWin(155, 100, "Sound Debugging"); // give room for 100 rows
+			wprintf("DllDebugger > Console opened\n");
+			// TODO: Make this adjustable from the Debugging window
+			MoveWindow(GetConsoleHwnd(), 0,400, 1280,500, true);
+		}
+		else
+		{
+			// TODO: let us open the debugging window when we open the Dolphin-Debugger, fix the crash
+			// that currently occurs of you try to do that
+			MessageBox(0, "Can't open debugging window yet. Please start a game first", "DSP LLE", 0);
+		}
+	#endif
+		MessageBox(0, "Can't open debugging window in Release build of this plugin.", "DSP LLE", 0);
 #endif
 }
 
@@ -206,7 +219,7 @@ void dspi_req_dsp_irq()
 
 void DSP_Initialize(DSPInitialize _dspInitialize)
 {
-        bool bCanWork = true;
+    bCanWork = true;
 	g_dspInitialize = _dspInitialize;
 
 	gdsp_init();

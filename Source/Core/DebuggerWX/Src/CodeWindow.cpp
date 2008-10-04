@@ -283,26 +283,12 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 	if(IsLoggingActivated() && bSoundWindow)
 	{
-		if(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.find("LLE") != -1)
-			// no match = -1, in that case this is ignored
-		{
-			if (Core::GetState() != Core::CORE_UNINITIALIZED)
-			{
-				// possible todo: add some kind of if here to? can it fail?
-				CPluginManager::GetInstance().OpenDebug(
-				GetHandle(),
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
-				);	
-			} // don't have any else, just ignore it
-		}
-		else
-		{
-			CPluginManager::GetInstance().OpenDebug(
-			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
-			);	
-		}		
-	}
+		// possible todo: add some kind of if here to? can it fail?
+		CPluginManager::GetInstance().OpenDebug(
+		GetHandle(),
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
+		);	
+	} // don't have any else, just ignore it
 }
 
 
@@ -845,33 +831,13 @@ void CCodeWindow::OnToggleSoundWindow(wxCommandEvent& event)
 	ini.Set("ShowOnStart", "SoundWindow", show);
 	ini.Save("Debugger.ini");
 
-
 	if (IsLoggingActivated() && show)
 	{
-		// we only need to prevent this with the LLE, therefore this check
-		if(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.find("LLE") != -1)
-			// no match = -1, in that case this is ignored
-		{
-			if (Core::GetState() != Core::CORE_UNINITIALIZED)
-			{
-				// TODO: add some kind of if here to?
-				CPluginManager::GetInstance().OpenDebug(
-				GetHandle(),
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
-				);
-			} else {
-				event.Skip();
-				wxMessageBox(_T("Please start the emulator before doing this."));
-			}
-		}
-		else
-		{
-			CPluginManager::GetInstance().OpenDebug(
-			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
-			);
-		}
-
+		// TODO: add some kind of if() check here to?
+		CPluginManager::GetInstance().OpenDebug(
+		GetHandle(),
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
+		);
 	}
 	else // hide
 	{
