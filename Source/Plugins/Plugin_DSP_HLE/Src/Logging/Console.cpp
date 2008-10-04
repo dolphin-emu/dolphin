@@ -17,20 +17,15 @@
 
 
 
-// ---------------------------------------------------------------------------------------
-// Includes
-// --------------------
 #include <string>
 #include <stdio.h>
 #ifdef _WIN32
-	#include <windows.h>
+#include <windows.h>
 #endif
-// --------------------
 
 
-// ---------------------------------------------------------------------------------------
+
 // On and off
-// --------------------
 bool g_consoleEnable = true;
 #define DEBUGG
 //#define DEBUGG_FILEONLY
@@ -38,14 +33,15 @@ bool g_consoleEnable = true;
 // --------------------
 
 
-// ---------------------------------------------------------------------------------------
 // Create handles
-// --------------------
+
 #ifdef DEBUGG
-    FILE* __fStdOut = NULL;
+FILE* __fStdOut = NULL;
 #endif
 #ifndef DEBUGG_FILEONLY
-	HANDLE __hStdOut = NULL;
+#ifdef _WIN32
+HANDLE __hStdOut = NULL;
+#endif
 #endif
 // --------------------
 

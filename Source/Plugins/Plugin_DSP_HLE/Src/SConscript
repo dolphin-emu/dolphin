@@ -19,6 +19,7 @@ files = [
         'Debugger/Debugger.cpp',
         'Debugger/PBView.cpp',
         'Logging/Logging.cpp',
+        'Logging/Console.cpp',
 	'UCodes/UCode_AX.cpp',
 	'UCodes/UCode_CARD.cpp',
 	'UCodes/UCode_InitAudioSystem.cpp',
