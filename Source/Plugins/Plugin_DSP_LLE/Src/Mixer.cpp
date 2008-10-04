@@ -25,6 +25,8 @@
 
 #ifdef _WIN32
 #include "DSoundStream.h"
+#else
+#include <unistd.h>
 #endif
 
 namespace {
