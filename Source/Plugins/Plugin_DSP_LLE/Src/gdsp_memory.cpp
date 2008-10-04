@@ -82,8 +82,8 @@ uint16  dsp_dmem_read(uint16 addr)
 
 	switch (addr >> 12)
 	{
-	    case 0x1: // 1xxx COEF
-		    val = g_dsp.coef[addr & DSP_DROM_MASK];
+	    case 0x0: // 0xxx DRAM
+		    val = g_dsp.dram[addr & DSP_DRAM_MASK];
 		    val = dsp_swap16(val);
 		    break;
 
@@ -93,13 +93,13 @@ uint16  dsp_dmem_read(uint16 addr)
 		    val = dsp_swap16(val);
 		    break;
 
-	    case 0xf: // Fxxx HW regs
-		    val = gdsp_ifx_read(addr);
+		case 0x1: // 1xxx COEF
+		    val = g_dsp.coef[addr & DSP_DROM_MASK];
+		    val = dsp_swap16(val);
 		    break;
 
-	    case 0x0: // 0xxx DRAM
-		    val = g_dsp.dram[addr & DSP_DRAM_MASK];
-		    val = dsp_swap16(val);
+	    case 0xf: // Fxxx HW regs
+		    val = gdsp_ifx_read(addr);
 		    break;
 
 	    default: // error

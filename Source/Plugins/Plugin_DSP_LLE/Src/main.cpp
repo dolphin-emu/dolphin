@@ -18,6 +18,7 @@
 #include "Common.h"
 #include "Globals.h"
 #include "CommonTypes.h"
+#include "Mixer.h"
 
 #include "gdsp_interpreter.h"
 #include "gdsp_interface.h"
@@ -203,10 +204,6 @@ void dspi_req_dsp_irq()
 }
 
 
-void Mixer(short* buffer, int numSamples, int bits, int rate, int channels)
-{}
-
-
 void DSP_Initialize(DSPInitialize _dspInitialize)
 {
         bool bCanWork = true;
@@ -376,12 +373,23 @@ void DSP_Update(int cycles)
 	#endif
 }
 
+
 void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 {
-	// uint32 Size = _Size * 16 * 2; // 16bit per sample, two channels
+	short samples[16] = {0};  // interleaved stereo
+	if (address) {
+		for (int i = 0; i < 16; i++) {
+			samples[i] = Memory_Read_U16(address + i * 2);
+		}
+	}
+	Mixer_PushSamples(samples, 32 / 4, sample_rate);
 
-	g_LastDMAAddress = address;
-	g_LastDMASize = 32;
+	static int counter = 0;
+	counter++;
+#ifdef _WIN32
+	if ((counter & 255) == 0)
+		DSound::DSound_UpdateSound();
+#endif
 }
 
 

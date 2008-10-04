@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_DSP_LLE"
 	ProjectGUID="{C60D0E7A-ED05-4C67-9EE7-3A6C0D7801C8}"
 	RootNamespace="Plugin_DSP_LLE"
@@ -732,6 +732,18 @@
 			</File>
 			<File
 				RelativePath=".\Src\Logging\UCode_AXStructs.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="PCHW"
+			>
+			<File
+				RelativePath=".\Src\Mixer.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Mixer.h"
 				>
 			</File>
 		</Filter>

@@ -60,7 +60,7 @@ LRESULT CDisAsmDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	m_DisAsmListViewCtrl.AddColumn(_T("BP"),     ColumnBP);
 	m_DisAsmListViewCtrl.AddColumn(_T("Function"),  ColumnFunction);
 	m_DisAsmListViewCtrl.AddColumn(_T("Address"),    ColumnAddress);
-	m_DisAsmListViewCtrl.AddColumn(_T("Menmomic"),   ColumnMenmomic);
+	m_DisAsmListViewCtrl.AddColumn(_T("Mnenmomic"),   ColumnMenmomic);
 	m_DisAsmListViewCtrl.AddColumn(_T("Opcode"), ColumnOpcode);
 	m_DisAsmListViewCtrl.AddColumn(_T("Ext"),        ColumnExt);
 	m_DisAsmListViewCtrl.AddColumn(_T("Parameter"), ColumnParameter);
