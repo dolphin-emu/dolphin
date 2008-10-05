@@ -80,7 +80,6 @@ HRESULT SetDeviceForcesXY();
 //////////////////////////////////////////////////////////////////////////////////////////
 // wxWidgets
 // ¯¯¯¯¯¯¯¯¯
-#ifdef USE_WXWIDGETS
 class wxDLLApp : public wxApp
 {
 	bool OnInit()
@@ -91,7 +90,6 @@ class wxDLLApp : public wxApp
 
 IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-#endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // DllMain 
@@ -100,10 +98,7 @@ WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 						DWORD dwReason,		// reason called
 						LPVOID lpvReserved)	// reserved
-{
-	
-
-	#ifdef USE_WXWIDGETS
+{	
 	switch (dwReason)
 	{
 		case DLL_PROCESS_ATTACH:
@@ -126,10 +121,7 @@ BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 		default:
 			break;
 	}
-	#else
-	InitCommonControls();
-	#endif
-
+	
 	nJoy_hInst = hinstDLL;	
 	return TRUE;
 }
@@ -160,82 +152,58 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 // Call about dialog
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllAbout(HWND _hParent)
-{
-	#ifdef USE_WXWIDGETS
-		#ifdef _WIN32
-		wxWindow win;
-		win.SetHWND((WXHWND)_hParent);
-		win.Enable(false);  
-		
-		AboutBox frame(&win);
-		frame.ShowModal();
+{	
+	#ifdef _WIN32
+	wxWindow win;
+	win.SetHWND((WXHWND)_hParent);
+	win.Enable(false);  
+	
+	AboutBox frame(&win);
+	frame.ShowModal();
 
-		win.Enable(true);
-		win.SetHWND(0); 
+	win.Enable(true);
+	win.SetHWND(0); 
 
-		#else
-			AboutBox frame(NULL);
-			frame.ShowModal();
-		#endif
 	#else
-		#ifdef _WIN32
-			OpenAbout(nJoy_hInst, _hParent);
-		#endif
+		AboutBox frame(NULL);
+		frame.ShowModal();
 	#endif	
 }
 
 // Call config dialog
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllConfig(HWND _hParent)
-{
+{		
+	#ifdef _WIN32
+	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
+	{
+		MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
+		return;
+	}
 
-	#ifdef USE_WXWIDGETS		
-		#ifdef _WIN32
-		if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
-		{
-			MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
-			return;
-		}
+	LoadConfig();	// load settings
 
-		LoadConfig();	// load settings
+	wxWindow win;
+	win.SetHWND((WXHWND)_hParent);
+	win.Enable(false);  
+	
+	ConfigBox frame(&win);
+	frame.ShowModal();
 
-		wxWindow win;
-		win.SetHWND((WXHWND)_hParent);
-		win.Enable(false);  
-		
-		ConfigBox frame(&win);
-		frame.ShowModal();
+	win.Enable(true);
+	win.SetHWND(0); 
 
-		win.Enable(true);
-		win.SetHWND(0); 
-
-		#else
-		if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
-		{
-			printf("Could not initialize SDL! (%s)\n", SDL_GetError());
-			return;
-		}
-
-		LoadConfig();	// load settings
-
-		ConfigBox frame(NULL);
-		frame.ShowModal();
-		#endif		
 	#else
-		#ifdef _WIN32
-		if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
-		{
-			MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
-			return;
-		}
+	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
+	{
+		printf("Could not initialize SDL! (%s)\n", SDL_GetError());
+		return;
+	}
 
-		LoadConfig();	// load settings
-		if(OpenConfig(nJoy_hInst, _hParent))
-		{
-			SaveConfig();
-		}
-		LoadConfig();	// reload settings
-		#endif
+	LoadConfig();	// load settings
+
+	ConfigBox frame(NULL);
+	frame.ShowModal();
 	#endif	
 }
 

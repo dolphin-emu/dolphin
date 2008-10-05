@@ -29,9 +29,6 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
-// Set this if you want to use the new wxWidgets GUI
-#define USE_WXWIDGETS
-
 // Set this if you want to use the rumble 'hack' for controller one
 //#define USE_RUMBLE_DINPUT_HACK
 
@@ -64,12 +61,8 @@
 #include <linux/input.h>
 #endif
 
-#ifdef USE_WXWIDGETS
 #include "GUI/AboutBox.h"
 #include "GUI/ConfigBox.h"
-#else
-#include "config.h"
-#endif
 
 #include "Common.h"
 #include "pluginspecs_pad.h"
