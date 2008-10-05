@@ -156,18 +156,18 @@ bool Renderer::Create2()
     // create the framebuffer targets
     glGenTextures(ARRAYSIZE(s_RenderTargets), (GLuint *)s_RenderTargets);
     for(u32 i = 0; i < ARRAYSIZE(s_RenderTargets); ++i) {
-        glBindTexture(GL_TEXTURE_RECTANGLE_NV, s_RenderTargets[i]);
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTargets[i]);
         // initialize to default
-        glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, 4, nBackbufferWidth, nBackbufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, nBackbufferWidth, nBackbufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         if( glGetError() != GL_NO_ERROR) {
-            glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_WRAP_S, GL_CLAMP);
-            glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_WRAP_T, GL_CLAMP);
+            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
+            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
             GL_REPORT_ERROR();
         }
-        glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     }
     s_nCurTarget = 0;
 
@@ -179,18 +179,18 @@ bool Renderer::Create2()
     if( nMaxMRT > 1 ) {
         // create zbuffer target
         glGenTextures(1, (GLuint *)&s_ZBufferTarget);
-        glBindTexture(GL_TEXTURE_RECTANGLE_NV, s_ZBufferTarget);
-        glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, 4, nBackbufferWidth, nBackbufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget);
+        glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, nBackbufferWidth, nBackbufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
-        glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         if( glGetError() != GL_NO_ERROR) {
-            glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_WRAP_S, GL_CLAMP);
-            glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_WRAP_T, GL_CLAMP);
+            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
+            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
             GL_REPORT_ERROR();
         }
-        glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     }
 
     // create the depth buffer
@@ -206,15 +206,15 @@ bool Renderer::Create2()
     GL_REPORT_ERROR();
 
     // set as render targets
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_NV, s_RenderTargets[s_nCurTarget], 0 );
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, s_RenderTargets[s_nCurTarget], 0 );
     glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthTarget );
     GL_REPORT_ERROR();
 
     if( s_ZBufferTarget != 0 ) {
         // test to make sure it works
-        glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_NV, s_ZBufferTarget, 0);
+        glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget, 0);
         bool bFailed = glGetError() != GL_NO_ERROR || glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT;
-        glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_NV, 0, 0);
+        glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
             
         if( bFailed ) {
             glDeleteTextures(1, (GLuint *)&s_ZBufferTarget);
@@ -471,7 +471,7 @@ bool Renderer::CanBlendLogicOp()
 
 void Renderer::SetRenderTarget(u32 targ)
 {
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_NV, targ!=0?targ:s_RenderTargets[s_nCurTarget], 0 );
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, targ!=0?targ:s_RenderTargets[s_nCurTarget], 0 );
 }
 
 void Renderer::SetDepthTarget(u32 targ)
@@ -531,7 +531,7 @@ void Renderer::SetZBufferRender()
     nZBufferRender = 10; // give it 10 frames
     GLenum s_drawbuffers[2] = {GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT};
     glDrawBuffers(2, s_drawbuffers);
-    glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_NV, s_ZBufferTarget, 0);
+    glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget, 0);
     _assert_(glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT);
 }
 
@@ -547,7 +547,7 @@ void Renderer::FlushZBufferAlphaToTarget()
 
     // texture map s_RenderTargets[s_curtarget] onto the main buffer
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_RECTANGLE_NV, s_ZBufferTarget);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget);
     TextureMngr::EnableTexRECT(0);
     // disable all other stages
     for(int i = 1; i < 8; ++i) TextureMngr::DisableStage(i);
@@ -566,7 +566,7 @@ void Renderer::FlushZBufferAlphaToTarget()
     
     GL_REPORT_ERRORD();
 
-    glBindTexture(GL_TEXTURE_RECTANGLE_NV, 0);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
     RestoreGLState();
 }
 
@@ -659,7 +659,7 @@ void Renderer::Swap(const TRectangle& rc)
 
     // texture map s_RenderTargets[s_curtarget] onto the main buffer
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_RECTANGLE_NV, s_RenderTargets[s_nCurTarget]);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTargets[s_nCurTarget]);
     TextureMngr::EnableTexRECT(0);
     // disable all other stages
     for(int i = 1; i < 8; ++i) TextureMngr::DisableStage(i);
@@ -672,7 +672,7 @@ void Renderer::Swap(const TRectangle& rc)
     glTexCoord2f((float)GetTargetWidth(), 0);                         glVertex2f(1,-1);
     glEnd();
 
-    glBindTexture(GL_TEXTURE_RECTANGLE_NV, 0);
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
     TextureMngr::DisableStage(0);
 
     static int fpscount;
@@ -766,7 +766,7 @@ void Renderer::Swap(const TRectangle& rc)
             // turn off
             nZBufferRender = 0;
             glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-            glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_NV, 0, 0);
+            glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
             Renderer::SetRenderMode(RM_Normal); // turn off any zwrites
         }
     }
@@ -778,7 +778,7 @@ void Renderer::Swap(const TRectangle& rc)
 
     // for testing zbuffer targets
     //Renderer::SetZBufferRender();
-    //SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_NV, s_ZBufferTarget, GetTargetWidth(), GetTargetHeight());
+    //SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget, GetTargetWidth(), GetTargetHeight());
 }
 
 bool Renderer::SaveRenderTarget(const char* filename, int jpeg)

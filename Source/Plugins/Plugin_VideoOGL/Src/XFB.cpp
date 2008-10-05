@@ -36,16 +36,16 @@ void XFB_Init()
 	xfb_buffer = new u8[XFB_WIDTH * XFB_HEIGHT * 4];
 	memset(xfb_buffer, 0, XFB_WIDTH * XFB_HEIGHT * 4);
     glGenTextures(1, &xfb_texture);
-	glBindTexture(GL_TEXTURE_RECTANGLE_NV, xfb_texture);
-    glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, 4, XFB_WIDTH, XFB_HEIGHT, 0, GL_BGRA, GL_UNSIGNED_BYTE, xfb_buffer);
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfb_texture);
+    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, XFB_WIDTH, XFB_HEIGHT, 0, GL_BGRA, GL_UNSIGNED_BYTE, xfb_buffer);
 }
 
 void XFB_Draw(u8 *xfb_in_ram)
 {
 	Renderer::ResetGLState();
 	ConvertXFB((u32 *)xfb_buffer, xfb_in_ram, XFB_WIDTH, XFB_HEIGHT);
-	glBindTexture(GL_TEXTURE_RECTANGLE_NV, xfb_texture);
-    glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, 4, XFB_WIDTH, XFB_HEIGHT, 0, GL_BGRA, GL_UNSIGNED_BYTE, xfb_buffer);
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfb_texture);
+    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, XFB_WIDTH, XFB_HEIGHT, 0, GL_BGRA, GL_UNSIGNED_BYTE, xfb_buffer);
     TextureMngr::EnableTexRECT(0);
     for (int i = 1; i < 8; ++i)
 		TextureMngr::DisableStage(i);

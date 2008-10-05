@@ -59,8 +59,8 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0& newmode)
     mode = newmode;
     if( isNonPow2 ) {
         // very limited!
-        glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MAG_FILTER, (newmode.mag_filter||g_Config.bForceFiltering)?GL_LINEAR:GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MIN_FILTER, (g_Config.bForceFiltering||newmode.min_filter>=4)?GL_LINEAR:GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, (newmode.mag_filter||g_Config.bForceFiltering)?GL_LINEAR:GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, (g_Config.bForceFiltering||newmode.min_filter>=4)?GL_LINEAR:GL_NEAREST);
 		if( newmode.wrap_s == 2 || newmode.wrap_t == 2 ) {
             DEBUG_LOG("cannot support mirrorred repeat mode\n");
 		}
@@ -207,8 +207,8 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
         if(entry.isRenderTarget || (((u32 *)ptr)[entry.hashoffset] == entry.hash && palhash == entry.paletteHash)) { //stupid, improve
             entry.frameCount = frameCount;
-            //glEnable(entry.isNonPow2?GL_TEXTURE_RECTANGLE_NV:GL_TEXTURE_2D);
-            glBindTexture(entry.isNonPow2?GL_TEXTURE_RECTANGLE_NV:GL_TEXTURE_2D, entry.texture);
+            //glEnable(entry.isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D);
+            glBindTexture(entry.isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D, entry.texture);
             if (entry.mode.hex != tm0.hex)
                 entry.SetTextureParameters(tm0);
             return &entry;
@@ -255,7 +255,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     entry.isNonPow2 = ((width&(width-1)) || (height&(height-1)));
     
     glGenTextures(1, (GLuint *)&entry.texture);
-    GLenum target = entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_NV : GL_TEXTURE_2D;
+    GLenum target = entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D;
     glBindTexture(target, entry.texture);
 
     if (expandedWidth != width)
@@ -298,7 +298,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     INCSTAT(stats.numTexturesCreated);
     SETSTAT(stats.numTexturesAlive,textures.size());
 
-    //glEnable(entry.isNonPow2?GL_TEXTURE_RECTANGLE_NV:GL_TEXTURE_2D);
+    //glEnable(entry.isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D);
 
     //SaveTexture("tex.tga", target, entry.texture, entry.w, entry.h);
     return &entry;
@@ -336,8 +336,8 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     if( !bIsInit ) {
         glGenTextures(1, (GLuint *)&entry.texture);
-        glBindTexture(GL_TEXTURE_RECTANGLE_NV, entry.texture);
-        glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
+        glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
         GL_REPORT_ERRORD();
     }
     else {
@@ -345,7 +345,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
         bool bReInit = true;
 
         if( entry.w == w && entry.h == h ) {
-            glBindTexture(GL_TEXTURE_RECTANGLE_NV, entry.texture);
+            glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
             // for some reason mario sunshine errors here...
             GLenum err = GL_NO_ERROR;
             GL_REPORT_ERROR();
@@ -357,21 +357,21 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
             // necessary, for some reason opengl gives errors when texture isn't deleted
             glDeleteTextures(1,(GLuint *)&entry.texture);
             glGenTextures(1, (GLuint *)&entry.texture);
-            glBindTexture(GL_TEXTURE_RECTANGLE_NV, entry.texture);
-            glTexImage2D(GL_TEXTURE_RECTANGLE_NV, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+            glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
+            glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
             GL_REPORT_ERRORD();
         }
     }
 
     if( !bIsInit || !entry.isRenderTarget ) {
-        glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-        glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         if( glGetError() != GL_NO_ERROR) {
-            glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_WRAP_S, GL_CLAMP);
-            glTexParameteri(GL_TEXTURE_RECTANGLE_NV, GL_TEXTURE_WRAP_T, GL_CLAMP);
+            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
+            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
             GL_REPORT_ERRORD();
         }
     }
@@ -487,7 +487,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 //        _assert_( glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT );
 //        glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
 //        GL_REPORT_ERRORD();
-//        glCopyTexSubImage2D(GL_TEXTURE_RECTANGLE_NV, 0, 0, 0, source->left, source->top, source->right-source->left, source->bottom-source->top);
+//        glCopyTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, source->left, source->top, source->right-source->left, source->bottom-source->top);
 //        entry.isUpsideDown = true; // note that the copy is upside down!!
 //        GL_REPORT_ERRORD(); 
 //        return;
@@ -528,7 +528,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_RECTANGLE_NV, bFromZBuffer?Renderer::GetZBufferTarget():Renderer::GetRenderTarget());    
+    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, bFromZBuffer?Renderer::GetZBufferTarget():Renderer::GetRenderTarget());    
     TextureMngr::EnableTexRECT(0);
     
     glViewport(0, 0, w, h);
@@ -557,8 +557,8 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
         Renderer::SetZBufferRender(); // notify for future settings
 
     GL_REPORT_ERRORD();
-    //SaveTexture("frame.tga", GL_TEXTURE_RECTANGLE_NV, entry.texture, entry.w, entry.h);
-    //SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_NV, Renderer::GetZBufferTarget(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
+    //SaveTexture("frame.tga", GL_TEXTURE_RECTANGLE_ARB, entry.texture, entry.w, entry.h);
+    //SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, Renderer::GetZBufferTarget(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
 }
 
 void TextureMngr::EnableTex2D(int stage)
@@ -569,7 +569,7 @@ void TextureMngr::EnableTex2D(int stage)
     }
     if( nTexRECTEnabled & (1<<stage) ) {
         nTexRECTEnabled &= ~(1<<stage);
-        glDisable(GL_TEXTURE_RECTANGLE_NV);
+        glDisable(GL_TEXTURE_RECTANGLE_ARB);
     }
 }
 
@@ -581,7 +581,7 @@ void TextureMngr::EnableTexRECT(int stage)
     }
     if( !(nTexRECTEnabled & (1<<stage)) ) {
         nTexRECTEnabled |= (1<<stage);
-        glEnable(GL_TEXTURE_RECTANGLE_NV);
+        glEnable(GL_TEXTURE_RECTANGLE_ARB);
     }
 }
 
@@ -597,6 +597,6 @@ void TextureMngr::DisableStage(int stage)
     if( nTexRECTEnabled & (1<<stage) ) {
         nTexRECTEnabled &= ~(1<<stage);
         if( !bset ) glActiveTexture(GL_TEXTURE0+stage);
-        glDisable(GL_TEXTURE_RECTANGLE_NV);
+        glDisable(GL_TEXTURE_RECTANGLE_ARB);
     }
 }
