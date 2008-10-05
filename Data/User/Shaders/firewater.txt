@@ -1,0 +1,17 @@
+uniform samplerRECT samp0 : register(s0);
+
+void main(out float4 ocol0 : COLOR0, in float2 uv0 : TEXCOORD0)
+{
+  float4 c0 = texRECT(samp0, uv0).rgba;
+  float4 c1 = texRECT(samp0, uv0 + float2(1,1)).rgba;
+  float4 c2 = texRECT(samp0, uv0 + float2(-1,-1)).rgba;
+  float red   = c0.r;
+  float green = c0.g;
+  float blue  = c0.b;
+  float alpha = c0.a;
+  
+  red = c0.r - c1.b;
+  blue = c0.b - c2.r + (c0.g - c0.r);
+
+  ocol0 = float4(red, 0.0, blue, alpha);
+}
