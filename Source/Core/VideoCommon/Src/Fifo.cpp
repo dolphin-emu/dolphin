@@ -35,7 +35,9 @@ void Fifo_DoState(PointerWrap &p)
 {
     p.DoArray(videoBuffer, FIFO_SIZE);
     p.Do(size);
-    // TODO : savestate of the old readptr equivalent
+	int pos = (int)(g_pVideoData-videoBuffer); // get offset
+	p.Do(pos); // read or write offset (depends on the mode afaik)
+	g_pVideoData = &videoBuffer[pos]; // overwrite g_pVideoData -> expected no change when load ss and change when save ss
 }
 
 void Fifo_Init()
