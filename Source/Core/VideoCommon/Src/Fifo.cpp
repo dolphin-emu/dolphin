@@ -35,7 +35,7 @@ void Fifo_DoState(PointerWrap &p)
 {
     p.DoArray(videoBuffer, FIFO_SIZE);
     p.Do(size);
-    p.Do(g_pVideoData);
+    // TODO : savestate of the old readptr equivalent
 }
 
 void Fifo_Init()
