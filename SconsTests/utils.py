@@ -45,7 +45,6 @@ def GenerateRevFile(flavour, template, output):
         
     revstr = svnrev + "-" + flavour 
     tmpstr = open(template, "r").read().replace("$WCREV$",revstr)
-    template.close()
 
     outfile = open(output, 'w') 
     outfile.write(tmpstr +"\n")

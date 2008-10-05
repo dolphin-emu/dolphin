@@ -17,9 +17,10 @@
 
 #include <vector>
 #include <string>
+#include "svnrev.h"
+
 #ifdef WIN32
 #include <crtdbg.h>
-#include "svnrev.h"
 #endif
 #include "CPUDetect.h"
 #include "Globals.h"
@@ -132,18 +133,11 @@ bool DolphinApp::OnInit()
 	SConfig::GetInstance().LoadSettings();
 	wxInitAllImageHandlers();
 	// Create the main frame window
-#ifdef _WIN32
-	#ifdef _DEBUG
-		const char *title = "Dolphin Debug SVN R " SVN_REV_STR;
-	#else
-		const char *title = "Dolphin SVN R " SVN_REV_STR;
-	#endif
+
+#ifdef _DEBUG
+        const char *title = "Dolphin Debug SVN R " SVN_REV_STR;
 #else
-	#ifdef _DEBUG
-		const char *title = "Dolphin Debug SVN Linux";
-	#else
-		const char *title = "Dolphin SVN Linux";
-	#endif
+        const char *title = "Dolphin SVN R " SVN_REV_STR;
 #endif
 
 	// ---------------------------------------------------------------------------------------
