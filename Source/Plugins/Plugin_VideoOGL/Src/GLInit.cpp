@@ -17,8 +17,9 @@
 
 #include "Globals.h"
 #include "IniFile.h"
-#if defined(_WIN32)
 #include "svnrev.h"
+
+#if defined(_WIN32)
 #include "OS/Win32.h"
 #endif
 #include "GLInit.h"
@@ -101,16 +102,13 @@ BOOL Callback_PeekMessages()
 
 void UpdateFPSDisplay(const char *text)
 {
-#if defined(_WIN32)
- 	char temp[512];
-	sprintf(temp, "SVN R%i: GL: %s", SVN_REV, text);
-    SetWindowText(EmuWindow::GetWnd(), temp);
-    OpenGL_SetWindowText(temp);
-#else
     char temp[512];
-    sprintf(temp, "SVN %s: GL: %s", "Linux", text); //TODO: Set to svn rev //
-    OpenGL_SetWindowText(temp);
+    sprintf(temp, "SVN R%s: GL: %s", SVN_REV_STR, text);
+#if defined(_WIN32)
+    SetWindowText(EmuWindow::GetWnd(), temp);
 #endif
+    OpenGL_SetWindowText(temp);
+
 }
 
 
