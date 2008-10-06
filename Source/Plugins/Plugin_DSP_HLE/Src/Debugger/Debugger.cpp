@@ -26,6 +26,9 @@
 
 // externals
 extern int gUpdFreq;
+extern bool gSSBM;
+extern bool gSSBMremedy1;
+extern bool gSSBMremedy2;
 
 // =======================================================================================
 // Declare events
@@ -33,6 +36,9 @@ BEGIN_EVENT_TABLE(CDebugger,wxDialog)
 	EVT_CLOSE(CDebugger::OnClose)
 	EVT_BUTTON(ID_UPD,CDebugger::OnUpdate)
 	EVT_CHECKBOX(IDC_CHECK2,CDebugger::ShowHideConsole)
+	EVT_CHECKBOX(IDC_CHECK3,CDebugger::SSBM)
+	EVT_CHECKBOX(IDC_CHECK4,CDebugger::SSBMremedy1)
+	EVT_CHECKBOX(IDC_CHECK5,CDebugger::SSBMremedy2)
 	EVT_RADIOBOX(IDC_RADIO1,CDebugger::ChangeFrequency)
 END_EVENT_TABLE()
 // =======================================================================================
@@ -131,7 +137,30 @@ SetTitle(wxT("Sound Debugging"));
      m_checkSizer->Add(m_Check[1], 0, 0, 5);
 	 m_checkSizer->Add(m_Check[2], 0, 0, 5); 
 	// ------------------------
+
+	// settings checkboxes -----------------------------------------------------
+	m_Label[1] = new wxStaticBox(this, IDG_LABEL2, wxT("Settings"),
+		wxDefaultPosition, wxDefaultSize, 0);
+	wxStaticBoxSizer * m_checkSizer2 = new wxStaticBoxSizer (m_Label[1], wxVERTICAL);
+
+	// checkboxes
+	m_Check[3] = new wxCheckBox(this, IDC_CHECK3, wxT("SSBM fix"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_Check[3]->SetValue(gSSBM);
+	m_Check[4] = new wxCheckBox(this, IDC_CHECK4, wxT("SSBM remedy 1"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_Check[4]->SetValue(gSSBMremedy1);
+	m_Check[5] = new wxCheckBox(this, IDC_CHECK5, wxT("SSBM remedy 2"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_Check[5]->SetValue(gSSBMremedy2);
+		
 	
+     m_checkSizer2->Add(m_Check[3], 0, 0, 5);
+	 m_checkSizer2->Add(m_Check[4], 0, 0, 5);
+	 m_checkSizer2->Add(m_Check[5], 0, 0, 5);
+	// ------------------------
+
+
 	// radio boxes -----------------------------------------------------
 	int m_radioBoxNChoices[2];
 
@@ -154,11 +183,17 @@ SetTitle(wxT("Sound Debugging"));
 	m_Presets = new wxButton(this, ID_PRESETS, wxT("Presets"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	sLeft = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Current Status"));
+	// right buttons
+	wxBoxSizer* sButtons2;
+	sButtons2 = new wxBoxSizer(wxVERTICAL);
 
+	sButtons2->AddStretchSpacer(1);
+	sButtons2->Add(m_checkSizer2, 0, 2, 5);
+	sButtons2->AddStretchSpacer(1);
+
+	// left buttons
 	wxBoxSizer* sButtons;
 	sButtons = new wxBoxSizer(wxVERTICAL);
-
 
 	sButtons->AddStretchSpacer(1);
 
@@ -180,13 +215,16 @@ SetTitle(wxT("Sound Debugging"));
 
 	sButtons->AddStretchSpacer(1);
 
-
+	// blocks view
+	sLeft = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Current Status"));
 	sLeft->Add(m_GPRListView, 1, wxEXPAND|wxALL, 5);	
 
 
+	// add all stuff to the main container
 	sMain = new wxBoxSizer(wxHORIZONTAL);
 	sMain->Add(sLeft, 1, wxEXPAND|wxALL, 5);
 	sMain->Add(sButtons, 0, wxEXPAND, 0);
+	sMain->Add(sButtons2, 0, wxEXPAND, 0);
 
 	this->SetSizer(sMain);
 	sMain->SetSizeHints(this);
@@ -208,6 +246,38 @@ void CDebugger::OnUpdate(wxCommandEvent& /*event*/)
 	this->NotifyUpdate();
 }
 
+
+// =======================================================================================
+// Settings
+// --------------
+void CDebugger::SSBM(wxCommandEvent& event)
+{
+	if(m_Check[3]->IsChecked() == 1)
+		{gSSBM = true;}
+	else
+		{gSSBM = false;}
+}
+
+void CDebugger::SSBMremedy1(wxCommandEvent& event)
+{
+	if(m_Check[4]->IsChecked() == 1)
+		{gSSBMremedy1 = true;}
+	else
+		{gSSBMremedy1 = false;}
+}
+void CDebugger::SSBMremedy2(wxCommandEvent& event)
+{
+	if(m_Check[5]->IsChecked() == 1)
+		{gSSBMremedy2 = true;}
+	else
+		{gSSBMremedy2 = false;}
+}
+// =======================================================================================
+
+
+// =======================================================================================
+// Change update frequency
+// --------------
 void CDebugger::ChangeFrequency(wxCommandEvent& event)
 {
 	DoChangeFrequency();
@@ -228,7 +298,13 @@ void CDebugger::DoChangeFrequency()
 		gUpdFreq = 30;
 	}
 }
+// ==============
 
+
+
+// =======================================================================================
+// Show or hide console window
+// --------------
 void CDebugger::ShowHideConsole(wxCommandEvent& event)
 {
 	DoShowHideConsole();
@@ -247,6 +323,8 @@ void CDebugger::DoShowHideConsole()
 		CloseConsole();
 	}
 }
+// ==============
+
 
 void CDebugger::NotifyUpdate()
 {

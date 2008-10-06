@@ -27,13 +27,18 @@
 #include "UCode_AXStructs.h"
 #include "UCode_AX.h"
 
+
 // ---------------------------------------------------------------------------------------
 // Externals
 // -----------
 extern float ratioFactor;
 extern u32 gLastBlock;
+bool gSSBM = true; // used externally
+bool gSSBMremedy1 = true; // used externally
+bool gSSBMremedy2 = true; // used externally
 extern CDebugger* m_frame;
 // -----------
+
 
 CUCode_AX::CUCode_AX(CMailHandler& _rMailHandler, bool wii)
 	: IUCode(_rMailHandler)
@@ -150,52 +155,82 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		AXParamBlock& pb = PBs[i];
 
 
-
-		// =======================================================================================
-		// Sequenced music fix - This seems to work allright. I'm not sure which detection method cause
-		// the least side effects, but pred_scale seems to be nice and simple. Please report any side
-		// effects.
-		// ------------
-		if (!pb.running && pb.adpcm_loop_info.pred_scale)	
-		/*
-		if (!pb.running && 
-			(pb.updates.num_updates[0] || pb.updates.num_updates[1] || pb.updates.num_updates[2]
-			|| pb.updates.num_updates[3] || pb.updates.num_updates[4])
-			)	
-		*/
-		{
-			pb.running = true;
-		}
-		// =============
-
-
-
 		// =======================================================================================
 		/*
-		Fix a problem introduced with the SSBM fix - Sometimes when a music stream ended sampleEnd
+		Fix problems introduced with the SSBM fix - Sometimes when a music stream ended sampleEnd
 		would become extremely high and the game would play random sound data from ARAM resulting in
-		a strange noise. This should take care of that. However, when you leave the Continue menu there's
-		some kind of buzing or interference noise in the music. But it goes away, so I guess it's not a
-		big issue. Please report any side effects.
+		a strange noise. This should take care of that. - Some games (Monkey Ball 1 and Tales of
+		Symphonia) also had one odd block with a strange high loopPos and strange num_updates values,
+		the loopPos limit turns those off also. - Please report any side effects.Please report any
+		side effects.
 		*/
 		// ------------
 		const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
-		if (sampleEnd > 0x10000000)
+		const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
+		if (
+			sampleEnd > 0x10000000 || loopPos > 0x10000000
+			&& gSSBMremedy1
+			)
 		{
 			pb.running = 0;
 
 			// also reset all values if it makes any difference
-			pb.audio_addr.cur_addr_hi = 0;
-			pb.audio_addr.cur_addr_lo = 0;
-			pb.audio_addr.end_addr_hi = 0;
-			pb.audio_addr.end_addr_lo = 0;
-			pb.audio_addr.loop_addr_hi = 0;
-			pb.audio_addr.loop_addr_lo = 0;
+			pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
+			pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
+			pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
 
 			pb.audio_addr.looping = 0;
 			pb.adpcm_loop_info.pred_scale = 0;
-			pb.adpcm_loop_info.yn1 = 0;
-			pb.adpcm_loop_info.yn2 = 0;
+			pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
+		}
+
+		/*
+		// the fact that no settings are reset (except running) after a SSBM type music stream has ended
+		could cause loud garbled sound to be played from several blocks. It could be seen as five or six
+		simultaneous looping blocks that presumable produced garbled music. My guess is that it was sound
+		effects that were placed in previous music blocks and mutated into these looping noise machines.
+		*/
+		if (
+		// detect blocks that have recently been running that we should reset
+		pb.running == 0 && pb.audio_addr.looping == 1
+
+		// this prevents us from ruining sequenced music blocks
+		&& !(pb.updates.num_updates[0] || pb.updates.num_updates[1] || pb.updates.num_updates[2]
+			|| pb.updates.num_updates[3] || pb.updates.num_updates[4])
+
+		&& gSSBMremedy2 // let us turn this fix on and off
+		)
+		{
+			// reset all values, or mostly all
+			pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
+			pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
+			pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
+
+			pb.audio_addr.looping = 0;
+			pb.adpcm_loop_info.pred_scale = 0;
+			pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
+		}
+		
+		// =============
+
+
+		// =======================================================================================
+		/*
+		// Sequenced music fix - Because SSBM type music did no have its pred_scale (or any other parameter
+		except running) turned off after a song was stopped a pred_scale check here had the effect of
+		turning those blocks on immediately after the stopped. Because the pred_scale check caused these
+		effects I'm trying the num_updates check instead. Please report any side effects.
+		*/
+		// ------------
+		//if (!pb.running && pb.adpcm_loop_info.pred_scale)	
+		/**/
+		if (!pb.running && 
+			(pb.updates.num_updates[0] || pb.updates.num_updates[1] || pb.updates.num_updates[2]
+			|| pb.updates.num_updates[3] || pb.updates.num_updates[4])
+			)	
+		
+		{
+			pb.running = 1;
 		}
 		// =============
 
@@ -204,8 +239,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			// =======================================================================================
 			// Set initial parameters
 			// ------------
-			//constants
-			const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;			
+			//constants						
 			const u32 ratio     = (u32)(((pb.src.ratio_hi << 16) + pb.src.ratio_lo) * ratioFactor);
 
 			//variables
@@ -236,11 +270,14 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 
 			// =======================================================================================
-			// Games that use looping to play non-looping music streams. SSBM has info in all pb.adpcm_loop_info
-			// parameters but has pb.audio_addr.looping = 0. If we treat these streams like any other looping
-			// streams the music works.
+			// Games that use looping to play non-looping music streams - SSBM has info in all
+			// pb.adpcm_loop_info parameters but has pb.audio_addr.looping = 0. If we treat these streams
+			// like any other looping streams the music works.
 			// ---------------------------------------------------------------------------------------
-			if(pb.adpcm_loop_info.pred_scale || pb.adpcm_loop_info.yn1 || pb.adpcm_loop_info.yn2)
+			if(
+				pb.adpcm_loop_info.pred_scale || pb.adpcm_loop_info.yn1 || pb.adpcm_loop_info.yn2
+				&& gSSBM
+				)
 			{
 				pb.audio_addr.looping = 1;
 			}
@@ -248,22 +285,18 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 
 			// =======================================================================================
-			// Streaming music and volume - A lot of music in Paper Mario use the exact same settings, namely
-			// these:	
+			// Streaming music and volume - The streaming music in Paper Mario use these settings:
 				// Base settings
 					// is_stream = 1
 					// src_type = 0
-					// coef (unknown1) = 1
 				// PBAudioAddr
-					// audio_addr.looping = 1 (adpcm_loop_info.pred_scale = value, .yn1 = 0, .yn2 = 0)			
-			// However. Some of the ingame music and seemingly randomly some other music incorrectly get
-			// volume = 0 for both left and right. There's also an issue of a hanging very similar to the Baten
-			// hanging. The Baten issue fixed itself when the music stream was allowed to play to the end and
-			// then stop. However, all five music streams that is playing when the gate locks up in Paper Mario
-			// is loooping streams... I don't know what may be wrong.
-			// ---------------------------------------------------------------------------------------
-			// A game that may be used as a comparison is Starfox Assault also has is_stream = 1, but it
-			// has src_type = 1, coef (unknown1) = 0 and its pb.src.ratio_lo (fraction) != 0
+					// audio_addr.looping = 1 (adpcm_loop_info.pred_scale = value, .yn1 = 0, .yn2 = 0)	
+			/*
+			However. Some of the ingame music and seemingly randomly some other music incorrectly get
+			volume = 0 for both left and right. This also affects Fire Emblem. But Starfox Assault
+			that also use is_stream = 1 has no problem wuth the volume, but its settings are somewhat
+			different, it uses src_type = 1 and pb.src.ratio_lo (fraction) != 0
+			*/
 			// =======================================================================================
 
 
@@ -620,6 +653,9 @@ int CUCode_AX::ReadOutPBs(AXParamBlock* _pPBs, int _num)
 			for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
 			{
 				pDest[p] = Common::swap16(pSrc[p]);
+
+				// To avoid a performance drop in the Release build I place this in the debug
+				// build only
 				#if defined(_DEBUG) || defined(DEBUGFAST)
 					gLastBlock = blockAddr + p*2 + 2;  // save last block location
 				#endif

@@ -72,6 +72,9 @@ class CDebugger : public wxDialog
 		void DoShowHideConsole();
 		void ChangeFrequency(wxCommandEvent& event);
 		void DoChangeFrequency();
+		void SSBM(wxCommandEvent& event);
+		void SSBMremedy1(wxCommandEvent& event);
+		void SSBMremedy2(wxCommandEvent& event);
 
 		CPBView* m_GPRListView;
 		
@@ -91,11 +94,15 @@ class CDebugger : public wxDialog
 			IDC_CHECK0 = 2000,
 			IDC_CHECK1,
 			IDC_CHECK2,
+			IDC_CHECK3,
+			IDC_CHECK4,
+			IDC_CHECK5,
 			IDC_RADIO0,
 			IDC_RADIO1,
 			IDC_RADIO2,
 			IDC_RADIO3,
 			IDG_LABEL1,
+			IDG_LABEL2,
 			ID_UPD,
 			ID_SELC,
 			ID_PRESETS,

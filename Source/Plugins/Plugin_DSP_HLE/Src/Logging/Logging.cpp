@@ -45,7 +45,9 @@
 float ratioFactor; // a global to get the ratio factor from MixAdd
 int gUpdFreq = 5;
 u32 gLastBlock;
-
+extern bool gSSBM;
+extern bool gSSBMremedy1;
+extern bool gSSBMremedy2;
 
 // Parameter blocks
 
@@ -96,16 +98,16 @@ bool iupdonce = false;
 std::vector<u16> viupd(15); // the length of the update frequency bar
 int vectorLengthGUI = 8; // length of playback history bar for the GUI version
 int vectorLength = 15; // for console version
+int vectorLength2 = 100; // for console version
 
 
 // More stuff
 
-std::vector< std::vector<int> > vector1(64, std::vector<int>(100,0)); 
+// should we worry about the additonal memory these lists require? bool will allocate
+// very little memory
+std::vector< std::vector<bool> > vector1(64, std::vector<bool>(vectorLength,0)); 
+std::vector< std::vector<bool> > vector2(64, std::vector<bool>(vectorLength2,0));
 std::vector<int> numberRunning(64);
-std::vector<u16> vector62(vectorLength);
-std::vector<u16> vector63(vectorLength);
-
-
 
 
 // Classes
@@ -114,14 +116,12 @@ extern CDebugger* m_frame;
 		
 
 
-// I placed this in CUCode_AX because there was some kind of problem to call it otherwise,
-// I'm sure it's simple to fix but I couldn't.
+// I placed this in CUCode_AX because it needs access to private members of that class.
 void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 {
 
 	AXParamBlock PBs[NUMBER_OF_PBS];
 	int numberOfPBs = ReadOutPBs(PBs, NUMBER_OF_PBS);
-
 
 	
 	// Control how often the screen is updated
@@ -130,8 +130,9 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 	if (j > (200/gUpdFreq))
 	{
 
-		
-		// Move all items back - vector1 is a vector1[64][100] vector, I think
+		// =======================================================================================
+		// Move all items back - Vector1 is a vector1[64][100] vector
+		// --------------
 		/*
 		Move all items back like this:		
 		1  to  2
@@ -153,6 +154,35 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		{
 			vector1.at(i).at(vectorLength-1) = PBs[i].running;
 		}
+		// ==============
+
+
+		// =======================================================================================
+		// Have a separate set for which ones to show
+		// --------------
+		/*
+		Move all items back like this:		
+		1  to  2
+		2      3
+		3 ...
+		*/
+		for (int i = 0; i < 64; i++)
+		{
+			for (int j = 1; j < vectorLength2; j++)
+			{
+				vector2.at(i).at(j-1) = vector2.at(i).at(j);
+			}
+		}
+		
+		
+		// Save the latest value
+		
+		for (int i = 0; i < numberOfPBs; i++)
+		{
+			vector2.at(i).at(vectorLength2-1) = PBs[i].running;
+		}
+		// ==============
+
 		
 		// =======================================================================================
 		// Count how many we have running now
@@ -160,9 +190,9 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		int jj = 0;
 		for (int i = 0; i < 64; i++)
 		{
-			for (int j = 0; j < vectorLength-1; j++)
+			for (int j = 0; j < vectorLength2-1; j++)
 			{
-				if (vector1.at(i).at(j) == 1)
+				if (vector2.at(i).at(j) == 1)
 				{
 					jj++;					
 				}
@@ -344,7 +374,6 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 
 
 
-
 		// =======================================================================================
 		// Write global values
 		// ---------------
@@ -352,6 +381,15 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		sbuff = sbuff + buffer; strcpy(buffer, "");
 		// ===============
 			
+			
+		// =======================================================================================
+		// Write settings
+		// ---------------
+		sprintf(buffer, "\nSettings: SSBM fix %i | SSBM remedy 1 %i | SSBM remedy 2 %i \n",
+			gSSBM, gSSBMremedy1, gSSBMremedy2);
+		sbuff = sbuff + buffer; strcpy(buffer, "");
+		// ===============
+
 
 		// =======================================================================================
 		// Show update frequency
