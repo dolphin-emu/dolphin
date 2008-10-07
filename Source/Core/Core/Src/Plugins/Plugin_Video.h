@@ -32,7 +32,7 @@ void UnloadPlugin();
 
 // Function Types
 typedef void (__cdecl* TGetDllInfo)(PLUGIN_INFO*);
-typedef void (__cdecl* TDllAbout)(HWND);
+//typedef void (__cdecl* TDllAbout)(HWND);
 typedef void (__cdecl* TDllConfig)(HWND);
 typedef void (__cdecl* TVideo_Initialize)(SVideoInitialize*);
 typedef void (__cdecl* TVideo_Prepare)();
@@ -47,7 +47,6 @@ typedef void (__cdecl* TVideo_Stop)();
  
 // Function Pointers
 extern TGetDllInfo         GetDllInfo;
-extern TDllAbout           DllAbout;
 extern TDllConfig          DllConfig;
 extern TVideo_Initialize   Video_Initialize;
 extern TVideo_Prepare      Video_Prepare;

@@ -43,7 +43,6 @@ class CPlugin
 		static DynamicLibrary m_hInstLib;
 
 		static void (__cdecl * m_GetDllInfo)(PLUGIN_INFO* _PluginInfo);
-		static void (__cdecl * m_DllAbout)(HWND _hParent);
 		static void (__cdecl * m_DllConfig)(HWND _hParent);
 		static void (__cdecl * m_DllDebugger)(HWND _hParent);
 };

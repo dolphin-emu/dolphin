@@ -18,6 +18,7 @@
 
 #include "ConfigDlg.h"
 #include "../PadSimple.h"
+#include <wx/aboutdlg.h>
 
 #ifdef _WIN32
 #include "../DirectInputBase.h"
@@ -28,6 +29,7 @@ DInput m_dinput;
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
 	EVT_BUTTON(ID_CLOSE,ConfigDialog::OnCloseClick)
+	EVT_BUTTON(ID_PAD_ABOUT,ConfigDialog::DllAbout)
 	EVT_CHOICE(ID_DEVICENAME,ConfigDialog::DeviceChanged)
 	EVT_CHECKBOX(ID_ATTACHED,ConfigDialog::AttachedCheck)
 	EVT_CHECKBOX(ID_DISABLE,ConfigDialog::DisableCheck)
@@ -94,6 +96,7 @@ inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
 
 void ConfigDialog::CreateGUIControls()
 {
+	wxButton* AboutButton;
 	// Notebook
 	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 	
@@ -109,11 +112,13 @@ void ConfigDialog::CreateGUIControls()
 	
 	// Standard buttons
 	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	AboutButton = new wxButton(this, ID_PAD_ABOUT, wxT("About"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	
 	// Put notebook and standard buttons in sizers
 	wxBoxSizer* sSButtons;
 	sSButtons = new wxBoxSizer(wxHORIZONTAL);
 	sSButtons->Add(0, 0, 1, wxEXPAND, 5);
+	sSButtons->Add(AboutButton,0,wxALL, 5);
 	sSButtons->Add(m_Close, 0, wxALL, 5);
 	
 	wxBoxSizer* sMain;
@@ -205,6 +210,7 @@ void ConfigDialog::CreateGUIControls()
 		sPage[i]->Add(sStick[i], wxGBPosition(1, 2), wxGBSpan(2, 1), wxALL, 1);
 		sPage[i]->Add(sDPad[i], wxGBPosition(1, 3), wxGBSpan(2, 1), wxALL, 1);
 		sPage[i]->Add(sCStick[i], wxGBPosition(1, 4), wxGBSpan(2, 1), wxALL, 1);
+		sPage[i]->Add(AboutButton,wxGBPosition(5,1),wxGBSpan(1, 1),wxALL,5);
 		m_Controller[i]->SetSizer(sPage[i]);
 		sPage[i]->Layout();
 
@@ -344,4 +350,12 @@ void ConfigDialog::OnButtonClick(wxCommandEvent& event)
     clickedButton->Connect(wxID_ANY, wxEVT_KEY_DOWN,
                            wxKeyEventHandler(ConfigDialog::OnKeyDown),
                            (wxObject*)NULL, this);
+}
+void ConfigDialog::DllAbout(wxCommandEvent& event)
+{
+	wxAboutDialogInfo info;
+	info.AddDeveloper(_T("ector"));
+	info.AddDeveloper(_T("F|RES"));
+	info.SetDescription(_T("Simple keyboard and XInput plugin for dolphin"));
+	wxAboutBox(info);
 }

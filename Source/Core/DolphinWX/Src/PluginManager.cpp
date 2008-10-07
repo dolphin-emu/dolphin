@@ -99,16 +99,6 @@ void CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 	}
 }
 
-void CPluginManager::OpenAbout(void* _Parent, const char *_rFilename)
-{
-	if (Common::CPlugin::Load(_rFilename))
-	{
-		Common::CPlugin::About((HWND)_Parent);
-		Common::CPlugin::Release();
-	}
-}
-
-
 void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename)
 {
 	if (Common::CPlugin::Load(_rFilename))

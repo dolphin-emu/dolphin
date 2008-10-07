@@ -24,7 +24,6 @@ namespace PluginWiimote
 
 	// Function Pointer
 	TGetDllInfo GetDllInfo = 0;
-	TDllAbout DllAbout = 0;
 	TDllConfig DllConfig = 0;
 	TWiimote_Initialize Wiimote_Initialize = 0;
 	TWiimote_Shutdown Wiimote_Shutdown = 0;
@@ -47,7 +46,6 @@ namespace PluginWiimote
 
 		// Set Functions to NULL
 		GetDllInfo = 0;
-		DllAbout = 0;
 		DllConfig = 0;
 		Wiimote_Initialize = 0;
 		Wiimote_Shutdown = 0;
@@ -63,7 +61,6 @@ namespace PluginWiimote
 		{
 			LOG(MASTER_LOG, "getting Wiimote Plugin function pointers...");
 			GetDllInfo = reinterpret_cast<TGetDllInfo> (plugin.Get("GetDllInfo"));
-			DllAbout = reinterpret_cast<TDllAbout> (plugin.Get("DllAbout"));
 			DllConfig = reinterpret_cast<TDllConfig> (plugin.Get("DllConfig"));
 			Wiimote_Initialize = reinterpret_cast<TWiimote_Initialize> (plugin.Get("Wiimote_Initialize"));
 			Wiimote_Shutdown = reinterpret_cast<TWiimote_Shutdown> (plugin.Get("Wiimote_Shutdown"));
@@ -73,7 +70,6 @@ namespace PluginWiimote
 			Wiimote_DoState = reinterpret_cast<TWiimote_DoState> (plugin.Get("Wiimote_DoState"));
 
 			LOG(MASTER_LOG, "%s: 0x%p", "GetDllInfo", GetDllInfo);
-			LOG(MASTER_LOG, "%s: 0x%p", "DllAbout", DllAbout);
 			LOG(MASTER_LOG, "%s: 0x%p", "DllConfig", DllConfig);
 			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_Initialize", Wiimote_Initialize);
 			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_Shutdown", Wiimote_Shutdown);

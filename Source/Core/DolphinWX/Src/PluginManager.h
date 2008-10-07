@@ -41,7 +41,6 @@ class CPluginManager
 public:
 	static CPluginManager& GetInstance() {return(m_Instance);}
 	void ScanForPlugins(wxWindow* _wxWindow);
-	void OpenAbout(void* _Parent, const char *_rFilename);
 	void OpenConfig(void* _Parent, const char *_rFilename);
 	void OpenDebug(void* _Parent, const char *_rFilename);
 	const CPluginInfos& GetPluginInfos() {return(m_PluginInfos);}

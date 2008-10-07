@@ -24,7 +24,6 @@ namespace PluginVideo
 
 // Function Pointer
 TGetDllInfo         GetDllInfo            = 0;
-TDllAbout           DllAbout              = 0;
 TDllConfig          DllConfig             = 0;
 TVideo_Initialize   Video_Initialize      = 0;
 TVideo_Prepare      Video_Prepare         = 0;
@@ -49,7 +48,6 @@ void UnloadPlugin()
 {
     // set Functions to 0
     GetDllInfo = 0;
-    DllAbout = 0;
     DllConfig = 0;
     Video_Initialize = 0;
     Video_Prepare = 0;
@@ -68,7 +66,6 @@ bool LoadPlugin(const char *_Filename)
 	if (plugin.Load(_Filename))
 	{
 		GetDllInfo         = reinterpret_cast<TGetDllInfo>         (plugin.Get("GetDllInfo"));
-		DllAbout           = reinterpret_cast<TDllAbout>           (plugin.Get("DllAbout"));
 		DllConfig          = reinterpret_cast<TDllConfig>          (plugin.Get("DllConfig"));
 		Video_Initialize   = reinterpret_cast<TVideo_Initialize>   (plugin.Get("Video_Initialize"));
 		Video_Prepare      = reinterpret_cast<TVideo_Prepare>      (plugin.Get("Video_Prepare"));
@@ -81,7 +78,7 @@ bool LoadPlugin(const char *_Filename)
 		Video_DoState      = reinterpret_cast<TVideo_DoState>      (plugin.Get("Video_DoState"));
                 Video_Stop         = reinterpret_cast<TVideo_Stop>         (plugin.Get("Video_Stop"));
 		if ((GetDllInfo != 0) &&
-			(DllAbout != 0) &&
+			//(DllAbout != 0) &&
 			(DllConfig != 0) &&
 			(Video_Initialize != 0) &&
 			(Video_Prepare != 0) &&

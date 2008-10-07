@@ -28,7 +28,7 @@ void UnloadPlugin();
 
 // Function Types
 typedef void (__cdecl* TGetDllInfo)(PLUGIN_INFO*);
-typedef void (__cdecl* TDllAbout)(HWND);
+//typedef void (__cdecl* TDllAbout)(HWND);
 typedef void (__cdecl* TDllConfig)(HWND);
 typedef void (__cdecl* TDllDebugger)(HWND);
 typedef void (__cdecl* TDSP_Initialize)(DSPInitialize);
@@ -43,7 +43,6 @@ typedef void (__cdecl* TDSP_DoState)(unsigned char **ptr, int mode);
 
 // Function Pointers
 extern TGetDllInfo					GetDllInfo;
-extern TDllAbout					DllAbout;
 extern TDllConfig					DllConfig;
 extern TDllDebugger				    DllDebugger;
 extern TDSP_Initialize				DSP_Initialize;

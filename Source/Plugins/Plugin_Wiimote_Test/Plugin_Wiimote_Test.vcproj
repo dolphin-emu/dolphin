@@ -512,11 +512,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\wiimote_hid.h"
+			RelativePath=".\Src\Wiimote.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\Wiimote_Test.cpp"
+			RelativePath=".\Src\wiimote_hid.h"
 			>
 		</File>
 	</Files>

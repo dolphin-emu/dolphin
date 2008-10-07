@@ -43,16 +43,12 @@ EVT_BUTTON(ID_REMOVEISOPATH, CConfigMain::AddRemoveISOPaths)
 EVT_FILEPICKER_CHANGED(ID_DEFAULTISO, CConfigMain::DefaultISOChanged)
 EVT_DIRPICKER_CHANGED(ID_DVDROOT, CConfigMain::DVDRootChanged)
 EVT_CHOICE(ID_GRAPHIC_CB, CConfigMain::OnSelectionChanged)
-EVT_BUTTON(ID_GRAPHIC_ABOUT, CConfigMain::OnAbout)
 EVT_BUTTON(ID_GRAPHIC_CONFIG, CConfigMain::OnConfig)
 EVT_CHOICE(ID_DSP_CB, CConfigMain::OnSelectionChanged)
-EVT_BUTTON(ID_DSP_ABOUT, CConfigMain::OnAbout)
 EVT_BUTTON(ID_DSP_CONFIG, CConfigMain::OnConfig)
 EVT_CHOICE(ID_PAD_CB, CConfigMain::OnSelectionChanged)
-EVT_BUTTON(ID_PAD_ABOUT, CConfigMain::OnAbout)
 EVT_BUTTON(ID_PAD_CONFIG, CConfigMain::OnConfig)
 EVT_CHOICE(ID_WIIMOTE_CB, CConfigMain::OnSelectionChanged)
-EVT_BUTTON(ID_WIIMOTE_ABOUT, CConfigMain::OnAbout)
 EVT_BUTTON(ID_WIIMOTE_CONFIG, CConfigMain::OnConfig)
 
 END_EVENT_TABLE()
@@ -171,29 +167,26 @@ void CConfigMain::CreateGUIControls()
 	sPaths->Layout();
 
 	// Plugin page
+	//TODO: reposition the config buttons.
 	GraphicSelection = new wxChoice(PluginPage, ID_GRAPHIC_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
-	GraphicAbout = new wxButton(PluginPage, ID_GRAPHIC_ABOUT, wxT("About..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	GraphicConfig = new wxButton(PluginPage, ID_GRAPHIC_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	GraphicText = new wxStaticText(PluginPage, ID_GRAPHIC_TEXT, wxT("GFX:"), wxDefaultPosition, wxDefaultSize);
 
 	FillChoiceBox(GraphicSelection, PLUGIN_TYPE_VIDEO, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
 
 	DSPSelection = new wxChoice(PluginPage, ID_DSP_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
-	DSPAbout = new wxButton(PluginPage, ID_DSP_ABOUT, wxT("About..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	DSPConfig = new wxButton(PluginPage, ID_DSP_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	DSPText = new wxStaticText(PluginPage, ID_DSP_TEXT, wxT("DSP:"), wxDefaultPosition, wxDefaultSize);
 
 	FillChoiceBox(DSPSelection, PLUGIN_TYPE_DSP, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin);
 
 	PADSelection = new wxChoice(PluginPage, ID_PAD_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
-	PADAbout = new wxButton(PluginPage, ID_PAD_ABOUT, wxT("About..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	PADConfig = new wxButton(PluginPage, ID_PAD_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	PADText = new wxStaticText(PluginPage, ID_PAD_TEXT, wxT("PAD:"), wxDefaultPosition, wxDefaultSize);
 
 	FillChoiceBox(PADSelection, PLUGIN_TYPE_PAD, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin);
 
 	WiimoteSelection = new wxChoice(PluginPage, ID_WIIMOTE_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
-	WiimoteAbout = new wxButton(PluginPage, ID_WIIMOTE_ABOUT, wxT("About..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	WiimoteConfig = new wxButton(PluginPage, ID_WIIMOTE_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	WiimoteText = new wxStaticText(PluginPage, ID_WIIMOTE_TEXT, wxT("Wiimote:"), wxDefaultPosition, wxDefaultSize);
 
@@ -203,22 +196,18 @@ void CConfigMain::CreateGUIControls()
 	sPlugins->Add(GraphicText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
 	sPlugins->Add(GraphicSelection, wxGBPosition(0, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
 	sPlugins->Add(GraphicConfig, wxGBPosition(1, 1), wxGBSpan(1, 1), wxLEFT|wxBOTTOM, 5);
-	sPlugins->Add(GraphicAbout, wxGBPosition(1, 2), wxGBSpan(1, 1), wxLEFT|wxBOTTOM, 5);
 
 	sPlugins->Add(DSPText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
 	sPlugins->Add(DSPSelection, wxGBPosition(2, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
 	sPlugins->Add(DSPConfig, wxGBPosition(3, 1), wxGBSpan(1, 1), wxLEFT|wxBOTTOM, 5);
-	sPlugins->Add(DSPAbout, wxGBPosition(3, 2), wxGBSpan(1, 1), wxLEFT|wxBOTTOM, 5);
 
 	sPlugins->Add(PADText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
 	sPlugins->Add(PADSelection, wxGBPosition(4, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
 	sPlugins->Add(PADConfig, wxGBPosition(5, 1), wxGBSpan(1, 1), wxLEFT|wxBOTTOM, 5);
-	sPlugins->Add(PADAbout, wxGBPosition(5, 2), wxGBSpan(1, 1), wxLEFT|wxBOTTOM, 5);
 
 	sPlugins->Add(WiimoteText, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
 	sPlugins->Add(WiimoteSelection, wxGBPosition(6, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
 	sPlugins->Add(WiimoteConfig, wxGBPosition(7, 1), wxGBSpan(1, 1), wxLEFT|wxBOTTOM, 5);
-	sPlugins->Add(WiimoteAbout, wxGBPosition(7, 2), wxGBSpan(1, 1), wxLEFT|wxBOTTOM, 5);
 
 	PluginPage->SetSizer(sPlugins);
 	sPlugins->Layout();
@@ -329,28 +318,6 @@ void CConfigMain::OnSelectionChanged(wxCommandEvent& WXUNUSED (event))
 	Apply->Enable();
 }
 
-void CConfigMain::OnAbout(wxCommandEvent& event)
-{
-	switch (event.GetId())
-	{
-	    case ID_GRAPHIC_ABOUT:
-		    CallAbout(GraphicSelection);
-		    break;
-
-		case ID_DSP_ABOUT:
-		    CallAbout(DSPSelection);
-		    break;
-
-		case ID_PAD_ABOUT:
-		    CallAbout(PADSelection);
-		    break;
-
-		case ID_WIIMOTE_ABOUT:
-		    CallAbout(WiimoteSelection);
-		    break;
-	}
-}
-
 void CConfigMain::OnConfig(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -410,19 +377,6 @@ void CConfigMain::CallConfig(wxChoice* _pChoice)
 
 		if (pInfo != NULL)
 			CPluginManager::GetInstance().OpenConfig((HWND) this->GetHandle(), pInfo->GetFileName().c_str());
-	}
-}
-
-void CConfigMain::CallAbout(wxChoice* _pChoice)
-{
-	int Index = _pChoice->GetSelection();
-
-	if (Index >= 0)
-	{
-		const CPluginInfo* pInfo = static_cast<CPluginInfo*>(_pChoice->GetClientData(Index));
-
-		if (pInfo != NULL)
-			CPluginManager::GetInstance().OpenAbout((HWND) this->GetHandle(), pInfo->GetFileName().c_str());
 	}
 }
 

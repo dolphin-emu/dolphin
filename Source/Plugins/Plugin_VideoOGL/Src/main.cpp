@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <wx/aboutdlg.h>
 #include "Globals.h"
 
 #ifdef _WIN32
@@ -57,15 +56,6 @@ void GetDllInfo (PLUGIN_INFO* _PluginInfo)
     sprintf(_PluginInfo->Name, "Dolphin OGL (Debug) " VERSION_STRING);
 #endif
 #endif
-}
-
-
-void DllAbout(HWND _hParent) 
-{
-	wxAboutDialogInfo info;
-	info.AddDeveloper(_T("zerofrog(@gmail.com)"));
-	info.SetDescription(_T("Vertex/Pixel Shader 2.0 or higher, framebuffer objects, multiple render targets"));
-	wxAboutBox(info);
 }
 
 void DllConfig(HWND _hParent)

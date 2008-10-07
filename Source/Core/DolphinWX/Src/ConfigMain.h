@@ -35,7 +35,6 @@ class CConfigMain
 		virtual ~CConfigMain();
 		void OKClick(wxCommandEvent& event);
 		void OnSelectionChanged(wxCommandEvent& event);
-		void OnAbout(wxCommandEvent& event);
 		void OnConfig(wxCommandEvent& event);
 
 	private:
@@ -76,18 +75,14 @@ class CConfigMain
 		wxDirPickerCtrl* DVDRoot;
 
 		wxStaticText* PADText;
-		wxButton* PADAbout;
 		wxButton* PADConfig;
 		wxChoice* PADSelection;
-		wxButton* DSPAbout;
 		wxButton* DSPConfig;
 		wxStaticText* DSPText;
 		wxChoice* DSPSelection;
-		wxButton* GraphicAbout;
 		wxButton* GraphicConfig;
 		wxStaticText* GraphicText;
 		wxChoice* GraphicSelection;
-		wxButton* WiimoteAbout;
 		wxButton* WiimoteConfig;
 		wxStaticText* WiimoteText;
 		wxChoice* WiimoteSelection;
@@ -152,7 +147,7 @@ class CConfigMain
 		void FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::string& _SelectFilename);
 
 		void CallConfig(wxChoice* _pChoice);
-		void CallAbout(wxChoice* _pChoice);
+		//void CallAbout(wxChoice* _pChoice);
 
 		void DoApply();
 

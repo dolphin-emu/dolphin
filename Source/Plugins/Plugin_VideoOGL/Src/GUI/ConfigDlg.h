@@ -61,6 +61,7 @@ class ConfigDialog : public wxDialog
 		void TexFmtOverlayChange(wxCommandEvent& event);
 		void DumpTexturesChange(wxCommandEvent& event);
 		void TexturePathChange(wxFileDirPickerEvent& event);
+		void DllAbout(wxCommandEvent& event);
 
 	private:
 
@@ -115,6 +116,7 @@ class ConfigDialog : public wxDialog
 			ID_NOTEBOOK,
 			ID_PAGEVIDEO,
 			ID_PAGEENHANCEMENTS,
+			ID_GRAPHIC_ABOUT,
 			////GUI Enum Control ID End
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
 		};

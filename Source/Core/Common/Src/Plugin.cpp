@@ -22,7 +22,7 @@ namespace Common
 DynamicLibrary CPlugin::m_hInstLib;
 
 void(__cdecl * CPlugin::m_GetDllInfo)   (PLUGIN_INFO * _PluginInfo) = 0;
-void(__cdecl * CPlugin::m_DllAbout)     (HWND _hParent) = 0;
+//void(__cdecl * CPlugin::m_DllAbout)     (HWND _hParent) = 0;
 void(__cdecl * CPlugin::m_DllConfig)    (HWND _hParent) = 0;
 void(__cdecl * CPlugin::m_DllDebugger)    (HWND _hParent) = 0; // phew, is this the last one? how many
 // of these can you have?
@@ -31,7 +31,7 @@ void
 CPlugin::Release(void)
 {
 	m_GetDllInfo = 0;
-	m_DllAbout  = 0;
+	//m_DllAbout  = 0;
 	m_DllConfig = 0;
 	m_DllDebugger = 0;
 
@@ -44,7 +44,6 @@ CPlugin::Load(const char* _szName)
 	if (m_hInstLib.Load(_szName))
 	{
 		m_GetDllInfo = (void (__cdecl*)(PLUGIN_INFO*))m_hInstLib.Get("GetDllInfo");
-		m_DllAbout = (void (__cdecl*)(HWND))m_hInstLib.Get("DllAbout");
 		m_DllConfig = (void (__cdecl*)(HWND))m_hInstLib.Get("DllConfig");
 		m_DllDebugger = (void (__cdecl*)(HWND))m_hInstLib.Get("DllDebugger");
 		return(true);
@@ -74,13 +73,13 @@ void CPlugin::Config(HWND _hwnd)
 	}
 }
 
-void CPlugin::About(HWND _hwnd)
-{
-	if (m_DllAbout != 0)
-	{
-		m_DllAbout(_hwnd);
-	}
-}
+//void CPlugin::About(HWND _hwnd)
+//{
+//	if (m_DllAbout != 0)
+//	{
+//		m_DllAbout(_hwnd);
+//	}
+//}
 
 void CPlugin::Debug(HWND _hwnd)
 {

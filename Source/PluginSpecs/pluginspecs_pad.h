@@ -65,15 +65,6 @@ typedef struct
 EXPORT void CALL GetDllInfo(PLUGIN_INFO* _pPluginInfo);
 
 // __________________________________________________________________________________________________
-// Function: DllAbout
-// Purpose:  This function is optional function that is provided
-//           to give further information about the DLL.
-// input:    a handle to the window that calls this function
-// output:   none
-//
-EXPORT void CALL DllAbout(HWND _hParent);
-
-// __________________________________________________________________________________________________
 // Function: DllConfig
 // Purpose:  This function is optional function that is provided
 //           to allow the user to configure the DLL

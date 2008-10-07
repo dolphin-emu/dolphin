@@ -24,7 +24,7 @@ namespace PluginPAD
 // Function Pointers
 TGetDllInfo		GetDllInfo = 0;
 TPAD_Shutdown	PAD_Shutdown = 0;
-TDllAbout		DllAbout = 0;
+//TDllAbout		DllAbout = 0;
 TDllConfig		DllConfig = 0;
 TPAD_Initialize PAD_Initialize = 0;
 TPAD_GetStatus	PAD_GetStatus = 0;
@@ -45,7 +45,7 @@ void UnloadPlugin()
 	// Set Functions to 0
 	GetDllInfo = 0;
 	PAD_Shutdown = 0;
-	DllAbout = 0;
+	//DllAbout = 0;
 	DllConfig = 0;
 	PAD_Initialize = 0;
 	PAD_GetStatus = 0;
@@ -57,7 +57,6 @@ bool LoadPlugin(const char *_Filename)
 	if (plugin.Load(_Filename))
 	{
 		GetDllInfo      = reinterpret_cast<TGetDllInfo>     (plugin.Get("GetDllInfo"));
-		DllAbout        = reinterpret_cast<TDllAbout>       (plugin.Get("DllAbout"));
 		DllConfig       = reinterpret_cast<TDllConfig>      (plugin.Get("DllConfig"));
 		PAD_Initialize  = reinterpret_cast<TPAD_Initialize> (plugin.Get("PAD_Initialize"));
 		PAD_Shutdown    = reinterpret_cast<TPAD_Shutdown>   (plugin.Get("PAD_Shutdown"));
@@ -66,7 +65,6 @@ bool LoadPlugin(const char *_Filename)
 		PAD_GetAttachedPads = reinterpret_cast<TPAD_GetAttachedPads>(plugin.Get("PAD_GetAttachedPads"));
 
 		if ((GetDllInfo != 0) &&
-			(DllAbout != 0) &&
 			(DllConfig != 0) &&
 			(PAD_Initialize != 0) &&
 			(PAD_Shutdown != 0) &&

@@ -23,7 +23,6 @@ namespace PluginDSP
 
 // Function Pointer
 TGetDllInfo                    GetDllInfo = 0;
-TDllAbout                    DllAbout = 0;
 TDllConfig                    DllConfig = 0;
 TDllDebugger                DllDebugger = 0;
 TDSP_Initialize                DSP_Initialize = 0;
@@ -52,7 +51,6 @@ void UnloadPlugin()
 
     // Set Functions to NULL
     GetDllInfo = 0;
-    DllAbout = 0;
     DllConfig = 0;
     DllDebugger = 0;
     DSP_Initialize = 0;
@@ -73,7 +71,6 @@ bool LoadPlugin(const char *_Filename)
     if (plugin.Load(_Filename)) 
     {
         GetDllInfo               = reinterpret_cast<TGetDllInfo>               (plugin.Get("GetDllInfo"));
-        DllAbout                 = reinterpret_cast<TDllAbout>                 (plugin.Get("DllAbout"));
         DllConfig                = reinterpret_cast<TDllConfig>                (plugin.Get("DllConfig"));
         DllDebugger              = reinterpret_cast<TDllDebugger>              (plugin.Get("DllDebugger"));        
         DSP_Initialize           = reinterpret_cast<TDSP_Initialize>           (plugin.Get("DSP_Initialize"));

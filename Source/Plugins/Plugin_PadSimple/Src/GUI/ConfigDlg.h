@@ -104,6 +104,7 @@ class ConfigDialog : public wxDialog
 			ID_ATTACHED,
 			ID_DISABLE,
 			ID_RUMBLE,
+			ID_PAD_ABOUT,
 
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
 		};
@@ -118,6 +119,7 @@ class ConfigDialog : public wxDialog
 		void DisableCheck(wxCommandEvent& event);
 		void RumbleCheck(wxCommandEvent& event);
 		void OnButtonClick(wxCommandEvent& event);
+		void DllAbout(wxCommandEvent& event);
 		
 		int keyPress;
 		wxButton *clickedButton;

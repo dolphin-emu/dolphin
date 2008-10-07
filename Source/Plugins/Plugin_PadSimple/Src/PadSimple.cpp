@@ -163,17 +163,6 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 
 }
 
-
-void DllAbout(HWND _hParent)
-{
-	wxAboutDialogInfo info;
-	info.AddDeveloper(_T("ector"));
-	info.AddDeveloper(_T("F|RES"));
-	info.SetDescription(_T("Simple keyboard and XInput plugin for dolphin"));
-	wxAboutBox(info);
-}
-
-
 void DllConfig(HWND _hParent)
 {
 	LoadConfig();
