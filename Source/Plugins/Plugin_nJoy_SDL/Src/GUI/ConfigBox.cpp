@@ -106,7 +106,7 @@ void ConfigBox::CreateGUIControls()
 #endif
 
 	// Buttons
-	m_About = new wxButton(this, ID_ABOUT, wxT("About"), wxPoint(0, 497), wxSize(75, 25), 0, wxDefaultValidator, wxT("About"));
+	m_About = new wxButton(this, ID_ABOUT, wxT("About"), wxPoint(5, 497), wxSize(75, 25), 0, wxDefaultValidator, wxT("About"));
 	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(475, 497), wxSize(75, 25), 0, wxDefaultValidator, wxT("OK"));
 	m_Cancel = new wxButton(this, ID_CANCEL, wxT("Cancel"), wxPoint(556, 497), wxSize(75, 25), 0, wxDefaultValidator, wxT("Cancel"));
 
