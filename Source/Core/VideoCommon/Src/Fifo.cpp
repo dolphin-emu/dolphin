@@ -122,17 +122,19 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 #if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
             while(_fifo.CPReadWriteDistance > 0)
 #else
-              int count = 200;
-            while(_fifo.CPReadWriteDistance > 0 && count)
+            //int count = 200;
+            //while(_fifo.CPReadWriteDistance > 0 && count)
+            while(_fifo.bFF_GPReadEnable && (_fifo.CPReadWriteDistance > 0) )// && count)
 #endif
 			{
                 // check if we are on a breakpoint
                 if (_fifo.bFF_BPEnable)
                 {
-                    if (_fifo.CPReadPointer == _fifo.CPBreakpoint)
+					if (_fifo.CPReadPointer == _fifo.CPBreakpoint)
                     {
-                        _fifo.bFF_Breakpoint = 1; 
-                        video_initialize.pUpdateInterrupts(); 
+                        //_fifo.bFF_Breakpoint = 1; 
+						InterlockedExchange((LONG*)&_fifo.bFF_Breakpoint, true);
+                        video_initialize.pUpdateInterrupts();
                         break;
                     }
                 }
@@ -140,29 +142,33 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
                 // read the data and send it to the VideoPlugin
                 u8 *uData = video_initialize.pGetMemoryPointer(_fifo.CPReadPointer);
 #ifdef _WIN32
-                EnterCriticalSection(&_fifo.sync);
+                //EnterCriticalSection(&_fifo.sync);
 #else
                 _fifo.sync->Enter();
 #endif
-                _fifo.CPReadPointer += 32;
+                //_fifo.CPReadPointer += 32;
                 Video_SendFifoData(uData);
-
+				u32 readPtr = _fifo.CPReadPointer+32;
+                if (readPtr >= _fifo.CPEnd)
+                    readPtr = _fifo.CPBase;				
+				InterlockedExchange((LONG*)&_fifo.CPReadPointer, readPtr);
 #ifdef _WIN32
                 InterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -32);
-                LeaveCriticalSection(&_fifo.sync);
+                //LeaveCriticalSection(&_fifo.sync);
 #else 
                 Common::InterlockedExchangeAdd((int*)&_fifo.CPReadWriteDistance, -32);
                 _fifo.sync->Leave();
 #endif
 
-                // increase the ReadPtr
-                if (_fifo.CPReadPointer >= _fifo.CPEnd)
+				// increase the ReadPtr
+                /*if (_fifo.CPReadPointer >= _fifo.CPEnd)
                 {
-                    _fifo.CPReadPointer = _fifo.CPBase;				
+                    //_fifo.CPReadPointer = _fifo.CPBase;				
+					InterlockedExchange((LONG*)&_fifo.CPReadPointer, _fifo.CPBase);
                     //LOG(COMMANDPROCESSOR, "BUFFER LOOP");
-                }
+                }/**/
 #ifndef THREAD_VIDEO_WAKEUP_ONIDLE
-                count--;
+                //count--;
 #endif
             }
         }

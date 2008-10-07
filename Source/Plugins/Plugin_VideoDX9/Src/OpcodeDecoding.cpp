@@ -207,7 +207,7 @@ bool FifoCommandRunnable(void)
 					,Cmd, fifo.CPBase, fifo.CPEnd, fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance
 					,fifo.CPWritePointer, fifo.CPReadPointer, fifo.CPBreakpoint, fifo.bFF_GPReadEnable ? "true" : "false"
 					,fifo.bFF_BPEnable ? "true" : "false" ,fifo.bFF_GPLinkEnable ? "true" : "false"
-					,fifo.bFF_Breakpoint ? "true" : "false", fifo.bPauseRead ? "true" : "false");
+					,fifo.bFF_Breakpoint ? "true" : "false");
 
 				g_VideoInitialize.pLog(szTmp, TRUE);
 				MessageBox(0,szTmp,"GFX ERROR",0);
@@ -336,7 +336,7 @@ void Decode(void)
 				,Cmd, fifo.CPBase, fifo.CPEnd, fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance
 				,fifo.CPWritePointer, fifo.CPReadPointer, fifo.CPBreakpoint, fifo.bFF_GPReadEnable ? "true" : "false"
 				,fifo.bFF_BPEnable ? "true" : "false" ,fifo.bFF_GPLinkEnable ? "true" : "false"
-				,fifo.bFF_Breakpoint ? "true" : "false", fifo.bPauseRead ? "true" : "false");
+				,fifo.bFF_Breakpoint ? "true" : "false");
 
 			g_VideoInitialize.pLog(szTmp, TRUE);
 			MessageBox(0,szTmp,"GFX ERROR",0);

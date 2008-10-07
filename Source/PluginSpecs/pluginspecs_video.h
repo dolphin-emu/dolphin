@@ -39,9 +39,8 @@ typedef struct
 	volatile bool bFF_BPEnable;
 	volatile bool bFF_GPLinkEnable;
 	volatile bool bFF_Breakpoint;
-	volatile bool bPauseRead;
 #ifdef _WIN32
-	CRITICAL_SECTION sync;
+//	CRITICAL_SECTION sync;
 #else 
     Common::CriticalSection *sync;
 #endif

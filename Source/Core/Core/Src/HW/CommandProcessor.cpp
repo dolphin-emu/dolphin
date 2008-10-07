@@ -156,7 +156,7 @@ void Init()
 	et_UpdateInterrupts = CoreTiming::RegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
 
 #ifdef _WIN32
-	InitializeCriticalSection(&fifo.sync);
+	//InitializeCriticalSection(&fifo.sync);
 #else
         fifo.sync = new Common::CriticalSection(0);
 #endif
@@ -174,12 +174,16 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 	LOG(COMMANDPROCESSOR, "(r): 0x%08x", _Address);
 	if (Core::g_CoreStartupParameter.bUseDualCore)
 	{
-		if ((_Address&0xFFF)>=0x20)
+		//if ((_Address&0xFFF)>=0x20)
 		{
-			while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance > 0 &&
-				!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
-				;
-			fifo.bPauseRead = true;
+			// Wait for GPU to catch up 
+			// TODO (mb2) fix the H/LWM thing with CPReadWriteDistance
+			// instead of stupidly waiting for a complete fifo flush
+			u32 ct=0;
+			while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance > 0 &&	!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
+			//while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance > fifo.CPHiWatermark &&	!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
+				ct++;
+			if (ct) {LOG(COMMANDPROCESSOR, "(Read16): %lu cycle for nothing :[ ", ct);}
 		}
 
 	}
@@ -203,12 +207,30 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 	case FIFO_HI_WATERMARK_HI:	_rReturnValue = ReadHigh(fifo.CPHiWatermark); return;
 	case FIFO_LO_WATERMARK_LO:	_rReturnValue = ReadLow (fifo.CPLoWatermark); return;
 	case FIFO_LO_WATERMARK_HI:	_rReturnValue = ReadHigh(fifo.CPLoWatermark); return;
-	case FIFO_RW_DISTANCE_LO:	_rReturnValue = ReadLow (fifo.CPReadWriteDistance); return;
-	case FIFO_RW_DISTANCE_HI:	_rReturnValue = ReadHigh(fifo.CPReadWriteDistance); return;
-	case FIFO_WRITE_POINTER_LO: _rReturnValue = ReadLow (fifo.CPWritePointer); return;
-	case FIFO_WRITE_POINTER_HI: _rReturnValue = ReadHigh(fifo.CPWritePointer); return;
-	case FIFO_READ_POINTER_LO:	_rReturnValue = ReadLow (fifo.CPReadPointer); return;
-	case FIFO_READ_POINTER_HI:	_rReturnValue = ReadHigh(fifo.CPReadPointer); return;
+	case FIFO_RW_DISTANCE_LO:	
+		_rReturnValue = ReadLow (fifo.CPReadWriteDistance); 
+		//LOG(COMMANDPROCESSOR,"read FIFO_RW_DISTANCE_LO : %04x", _rReturnValue);
+		return;
+	case FIFO_RW_DISTANCE_HI:	
+		_rReturnValue = ReadHigh(fifo.CPReadWriteDistance); 
+		//LOG(COMMANDPROCESSOR,"read FIFO_RW_DISTANCE_HI : %04x", _rReturnValue);
+		return;
+	case FIFO_WRITE_POINTER_LO: 
+		_rReturnValue = ReadLow (fifo.CPWritePointer); 
+		//LOG(COMMANDPROCESSOR,"read FIFO_WRITE_POINTER_LO : %04x", _rReturnValue);
+		return;
+	case FIFO_WRITE_POINTER_HI: 
+		_rReturnValue = ReadHigh(fifo.CPWritePointer); 
+		//LOG(COMMANDPROCESSOR,"read FIFO_WRITE_POINTER_HI : %04x", _rReturnValue);
+		return;
+	case FIFO_READ_POINTER_LO:	
+		_rReturnValue = ReadLow (fifo.CPReadPointer); 
+		//LOG(COMMANDPROCESSOR,"read FIFO_READ_POINTER_LO : %04x", _rReturnValue);
+		return;
+	case FIFO_READ_POINTER_HI:	
+		_rReturnValue = ReadHigh(fifo.CPReadPointer); 
+		//LOG(COMMANDPROCESSOR,"read FIFO_READ_POINTER_HI : %04x", _rReturnValue);
+		return;
 	case FIFO_BP_LO:			_rReturnValue = ReadLow (fifo.CPBreakpoint); return;
 	case FIFO_BP_HI:			_rReturnValue = ReadHigh(fifo.CPBreakpoint); return;
 
@@ -227,7 +249,6 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		 return;
 	}
 
-	fifo.bPauseRead = false;
 }
 
 bool AllowIdleSkipping()
@@ -245,17 +266,22 @@ void Write16(const u16 _Value, const u32 _Address)
 	if (Core::g_CoreStartupParameter.bUseDualCore)
 	{
 
-		if ((_Address&0xFFF) >= 0x20)
+		//if ((_Address&0xFFF) >= 0x20) // <- FIXME (mb2) it was a good idea 
 		{
-			while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance > 0 &&
-				!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
-				;
-			fifo.bPauseRead = true;
+			// Wait for GPU to catch up 
+			// TODO (mb2) fix the H/LWM thing with CPReadWriteDistance
+			// instead of stupidly waiting for complete fifo flush
+			u32 ct=0;
+			while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance > 0 &&	!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
+			//while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance > fifo.CPHiWatermark &&	!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
+				ct++;
+			if (ct) {LOG(COMMANDPROCESSOR, "(Write16): %lu cycles for nothing :[ ", ct);}
+			//fifo.bPauseRead = true;
 		}
 	#ifdef _WIN32
-		EnterCriticalSection(&fifo.sync);
-        #else
-                fifo.sync->Enter();
+		//EnterCriticalSection(&fifo.sync);
+    #else
+        fifo.sync->Enter();
 	#endif
 	}
 
@@ -276,7 +302,9 @@ void Write16(const u16 _Value, const u32 _Address)
 			{
 				m_CPStatusReg.Breakpoint = 0;
 			}
-			fifo.bFF_Breakpoint = m_CPStatusReg.Breakpoint;
+			//fifo.bFF_Breakpoint = m_CPStatusReg.Breakpoint;
+			fifo.bFF_Breakpoint = m_CPStatusReg.Breakpoint	? true : false;
+			//LOG(COMMANDPROCESSOR,"fifo.bFF_Breakpoint : %i",fifo.bFF_Breakpoint);
 
 			// update interrupts
 			UpdateInterrupts();
@@ -292,6 +320,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			fifo.bFF_GPReadEnable	= m_CPCtrlReg.GPReadEnable	? true : false;
 			fifo.bFF_GPLinkEnable	= m_CPCtrlReg.GPLinkEnable	? true : false;
 			fifo.bFF_BPEnable		= m_CPCtrlReg.BPEnable		? true : false;
+			//LOG(COMMANDPROCESSOR,"bFF_GPReadEnable: %i  bFF_GPLinkEnable: %i  bFF_BPEnable: %i", fifo.bFF_GPReadEnable, fifo.bFF_GPLinkEnable, fifo.bFF_BPEnable);
 
 			UpdateInterrupts();
 
@@ -317,35 +346,53 @@ void Write16(const u16 _Value, const u32 _Address)
 	case FIFO_END_HI:			WriteHigh((u32 &)fifo.CPEnd,  _Value); fifo.CPEnd &= 0xFFFFFFE0; break;
 
 	// Hm. Should we really & these with FFFFFFE0?
-	case FIFO_WRITE_POINTER_LO: WriteLow ((u32 &)fifo.CPWritePointer, _Value); fifo.CPWritePointer &= 0xFFFFFFE0; break;
-	case FIFO_WRITE_POINTER_HI: WriteHigh((u32 &)fifo.CPWritePointer, _Value); fifo.CPWritePointer &= 0xFFFFFFE0; break;
-	case FIFO_READ_POINTER_LO:	WriteLow ((u32 &)fifo.CPReadPointer, _Value); fifo.CPReadPointer &= 0xFFFFFFE0; break;
-	case FIFO_READ_POINTER_HI:	WriteHigh((u32 &)fifo.CPReadPointer, _Value); fifo.CPReadPointer &= 0xFFFFFFE0; break;
+	case FIFO_WRITE_POINTER_LO: 
+		WriteLow ((u32 &)fifo.CPWritePointer, _Value); fifo.CPWritePointer &= 0xFFFFFFE0; 
+		//LOG(COMMANDPROCESSOR,"write to FIFO_WRITE_POINTER_LO : %04x", _Value);
+		break;
+	case FIFO_WRITE_POINTER_HI: 
+		WriteHigh((u32 &)fifo.CPWritePointer, _Value); fifo.CPWritePointer &= 0xFFFFFFE0; 
+		//LOG(COMMANDPROCESSOR,"write to FIFO_WRITE_POINTER_HI : %04x", _Value);
+		break;
+	case FIFO_READ_POINTER_LO:	
+		WriteLow ((u32 &)fifo.CPReadPointer, _Value); fifo.CPReadPointer &= 0xFFFFFFE0; 
+		//LOG(COMMANDPROCESSOR,"write to FIFO_READ_POINTER_LO : %04x", _Value);
+		break;
+	case FIFO_READ_POINTER_HI:	
+		WriteHigh((u32 &)fifo.CPReadPointer, _Value); fifo.CPReadPointer &= 0xFFFFFFE0; 
+		//LOG(COMMANDPROCESSOR,"write to FIFO_READ_POINTER_HI : %04x", _Value);
+		break;
 
 	case FIFO_HI_WATERMARK_LO:	WriteLow ((u32 &)fifo.CPHiWatermark, _Value); break;
 	case FIFO_HI_WATERMARK_HI:	WriteHigh((u32 &)fifo.CPHiWatermark, _Value); break;
 	case FIFO_LO_WATERMARK_LO:	WriteLow ((u32 &)fifo.CPLoWatermark, _Value); break;
 	case FIFO_LO_WATERMARK_HI:	WriteHigh((u32 &)fifo.CPLoWatermark, _Value); break;
 
-	case FIFO_BP_LO:			WriteLow ((u32 &)fifo.CPBreakpoint,	_Value); break;
-	case FIFO_BP_HI:			WriteHigh((u32 &)fifo.CPBreakpoint,	_Value); break;
+	case FIFO_BP_LO:			
+		WriteLow ((u32 &)fifo.CPBreakpoint,	_Value); 
+		//LOG(COMMANDPROCESSOR,"write to FIFO_BP_LO : %04x", _Value);
+		break;
+	case FIFO_BP_HI:			
+		WriteHigh((u32 &)fifo.CPBreakpoint,	_Value); 
+		//LOG(COMMANDPROCESSOR,"write to FIFO_BP_LO : %04x", _Value);
+		break;
 
 	// ignored writes
 	case FIFO_RW_DISTANCE_HI:
 	case FIFO_RW_DISTANCE_LO:	
+		//LOG(COMMANDPROCESSOR,"try to write to %s : %04x",(_Address & FIFO_RW_DISTANCE_HI)	? "FIFO_RW_DISTANCE_HI" : "FIFO_RW_DISTANCE_LO", _Value);
 		break;
 	}
 
 	// update the registers and run the fifo
 	// This will recursively enter fifo.sync, TODO(ector): is this good?
 	UpdateFifoRegister();	
-	if (Core::g_CoreStartupParameter.bUseDualCore)
+	//if (Core::g_CoreStartupParameter.bUseDualCore)
 #ifdef _WIN32
-		LeaveCriticalSection(&fifo.sync);
+		//LeaveCriticalSection(&fifo.sync);
 #else
         fifo.sync->Leave();
 #endif
-	fifo.bPauseRead = false; // pauseread is not actually used anywhere! TOOD(ector): huh!
 }
 
 void Read32(u32& _rReturnValue, const u32 _Address)
@@ -373,13 +420,20 @@ void GatherPipeBursted()
 			fifo.CPWritePointer = fifo.CPBase;
 		
 		// Wait for GPU to catch up
-		while (!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint) && 
-			     fifo.CPReadWriteDistance > (s32)fifo.CPHiWatermark)
-			Common::SleepCurrentThread(1);
+		// TODO (mb2) fix the H/LWM thing with CPReadWriteDistance
+			// instead of stupidly waiting for a complete fifo flush
+		u32 ct=0;
+		//while (!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint) && fifo.CPReadWriteDistance > 0)
+		while (!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint) && fifo.CPReadWriteDistance > (s32)fifo.CPHiWatermark)
+			//Common::SleepCurrentThread(1000); // 1s for test. We shouldn't fall here ever
+			ct++;
+		if (ct) {LOG(COMMANDPROCESSOR, "(GatherPipeBursted): %lu cycle for nothing :[ ", ct);}
+
+			
 #ifdef _WIN32
 		InterlockedExchangeAdd((LONG*)&fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
 #else 
-                Common::InterlockedExchangeAdd((int*)&fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
+        Common::InterlockedExchangeAdd((int*)&fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
 #endif
 
 		// check if we are in sync
@@ -476,11 +530,12 @@ void UpdateFifoRegister()
 //#endif
 	int wp = fifo.CPWritePointer;
 	int rp = fifo.CPReadPointer;
+	int dist;
 	if (wp >= rp)
-		fifo.CPReadWriteDistance = wp - rp;
+		dist = wp - rp;
 	else
-		fifo.CPReadWriteDistance = (wp - fifo.CPBase) + 
-								   (fifo.CPEnd - rp);
+		dist = (wp - fifo.CPBase) + (fifo.CPEnd - rp);
+	InterlockedExchange((LONG*)&fifo.CPReadWriteDistance,dist);
 //#ifdef _WIN32
 // not needed since we are already in the critical section in DC mode (see write16)
 //	if (Core::g_CoreStartupParameter.bUseDualCore) LeaveCriticalSection(&fifo.sync);
@@ -502,6 +557,8 @@ void UpdateInterrupts()
 
 void UpdateInterruptsFromVideoPlugin()
 {
+	if (fifo.bFF_Breakpoint) // implicit since only BP trigger (see fifo.cpp) can call this
+		m_CPStatusReg.Breakpoint = 1;
 	CoreTiming::ScheduleEvent_Threadsafe(0, et_UpdateInterrupts);
 }
 
