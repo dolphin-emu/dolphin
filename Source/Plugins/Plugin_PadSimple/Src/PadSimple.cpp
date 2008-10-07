@@ -21,7 +21,6 @@
 
 #include <stdio.h>
 #include <math.h>
-#include <wx/aboutdlg.h>
 
 #include "Common.h"
 #include "pluginspecs_pad.h"
