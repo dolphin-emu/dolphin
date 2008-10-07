@@ -27,9 +27,9 @@
 
 // On and off
 bool g_consoleEnable = true;
+int gSaveFile = 0;
 #define DEBUGG
 //#define DEBUGG_FILEONLY
-//#define DEBUGG_NOFILE
 // --------------------
 
 
@@ -70,7 +70,6 @@ void startConsoleWin(int width, int height, char* fname)
 	SetConsoleWindowInfo(__hStdOut, TRUE, &coo);
 
 #endif
-#ifndef DEBUGG_NOFILE
 	// ---------------------------------------------------------------------------------------
 	// Write to a file
 	if(fname)
@@ -82,7 +81,6 @@ void startConsoleWin(int width, int height, char* fname)
 		__fStdOut = fopen(FullFilename.c_str(), "w");
 	}
 	// ---------------------------------------------------------------------------------------
-#endif
 
 #endif
 }
@@ -93,7 +91,7 @@ void startConsoleWin(int width, int height, char* fname)
 int wprintf(char *fmt, ...)
 {
 #if defined(DEBUGG) && defined(_WIN32)
-	char s[3000]; // WARNING: Mind this value
+	char s[7000]; // WARNING: Mind this value
 	va_list argptr;
 	int cnt;
 
@@ -110,13 +108,15 @@ int wprintf(char *fmt, ...)
 		WriteConsole(__hStdOut, s, strlen(s), &cCharsWritten, NULL);
 	}
 #endif
-#ifndef DEBUGG_NOFILE
+	// -------------
+
 	// ---------------------------------------------------------------------------------------
-	
-	if(__fStdOut)
-		fprintf(__fStdOut, s);
-	// ---------------------------------------------------------------------------------------
-#endif
+	if(gSaveFile)
+	{
+		if(__fStdOut)
+			fprintf(__fStdOut, s);
+	}
+	// -------------
 
 	return(cnt);
 #else

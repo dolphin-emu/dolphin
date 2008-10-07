@@ -36,6 +36,8 @@ extern u32 gLastBlock;
 bool gSSBM = true; // used externally
 bool gSSBMremedy1 = true; // used externally
 bool gSSBMremedy2 = true; // used externally
+bool gSequenced = true; // used externally
+bool gReset = false; // used externally
 extern CDebugger* m_frame;
 // -----------
 
@@ -161,14 +163,13 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		would become extremely high and the game would play random sound data from ARAM resulting in
 		a strange noise. This should take care of that. - Some games (Monkey Ball 1 and Tales of
 		Symphonia) also had one odd block with a strange high loopPos and strange num_updates values,
-		the loopPos limit turns those off also. - Please report any side effects.Please report any
-		side effects.
+		the loopPos limit turns those off also. - Please report any side effects.
 		*/
 		// ------------
 		const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
 		const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
 		if (
-			sampleEnd > 0x10000000 || loopPos > 0x10000000
+			(sampleEnd > 0x10000000 || loopPos > 0x10000000)
 			&& gSSBMremedy1
 			)
 		{
@@ -179,16 +180,24 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
 			pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
 
+			pb.src.cur_addr_frac = 0; PBs[i].src.ratio_hi = 0; PBs[i].src.ratio_lo = 0;
+			pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
+
 			pb.audio_addr.looping = 0;
 			pb.adpcm_loop_info.pred_scale = 0;
 			pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
 		}
 
 		/*
-		// the fact that no settings are reset (except running) after a SSBM type music stream has ended
-		could cause loud garbled sound to be played from several blocks. It could be seen as five or six
-		simultaneous looping blocks that presumable produced garbled music. My guess is that it was sound
-		effects that were placed in previous music blocks and mutated into these looping noise machines.
+		// the fact that no settings are reset (except running) after a SSBM type music stream or another
+		looping block (for example in Battle Stadium DON) has ended could cause loud garbled sound to be
+		played from one or more blocks. Battle Stadium DON would usually have as much as five short looping
+		sounds (for example for running water and other things), but one or more of those would turn in to
+		looping noise machines if the old SSBM fix (withouth the pb.mixer_control check) was applied. This
+		would fix that by resetting the values after a looping block had ended. But it would be at the price
+		of turing off all looping sounds except the music streams, it seemed. But hopefully with the improved
+		SSBM music fix this check is not needed. I'll save it for now but it may perhaps be deleted in the
+		future.
 		*/
 		if (
 		// detect blocks that have recently been running that we should reset
@@ -197,6 +206,8 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		// this prevents us from ruining sequenced music blocks
 		&& !(pb.updates.num_updates[0] || pb.updates.num_updates[1] || pb.updates.num_updates[2]
 			|| pb.updates.num_updates[3] || pb.updates.num_updates[4])
+	
+		&& pb.mixer_control == 0 // only use this in SSBM
 
 		&& gSSBMremedy2 // let us turn this fix on and off
 		)
@@ -205,6 +216,9 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
 			pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
 			pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
+
+			pb.src.cur_addr_frac = 0; PBs[i].src.ratio_hi = 0; PBs[i].src.ratio_lo = 0;
+			pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
 
 			pb.audio_addr.looping = 0;
 			pb.adpcm_loop_info.pred_scale = 0;
@@ -216,23 +230,48 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 		// =======================================================================================
 		/*
-		// Sequenced music fix - Because SSBM type music did no have its pred_scale (or any other parameter
-		except running) turned off after a song was stopped a pred_scale check here had the effect of
-		turning those blocks on immediately after the stopped. Because the pred_scale check caused these
-		effects I'm trying the num_updates check instead. Please report any side effects.
+		Sequenced music fix - Because SSBM type music and other (for example Battle Stadium DON) looping
+		blocks did no have its pred_scale (or any other parameter except running) turned off after a song
+		was stopped a pred_scale check here had the effect of turning those blocks on immediately after
+		the stopped. Because the pred_scale check caused these effects I'm trying the num_updates check
+		instead. Please report any side effects.
 		*/
 		// ------------
 		//if (!pb.running && pb.adpcm_loop_info.pred_scale)	
 		/**/
 		if (!pb.running && 
 			(pb.updates.num_updates[0] || pb.updates.num_updates[1] || pb.updates.num_updates[2]
-			|| pb.updates.num_updates[3] || pb.updates.num_updates[4])
-			)	
-		
+			|| pb.updates.num_updates[3] || pb.updates.num_updates[4])			
+			&& gSequenced
+			)		
 		{
 			pb.running = 1;
 		}
 		// =============
+
+
+		// =======================================================================================
+		// Reset all values
+		// ------------
+		if (gReset
+			&& (pb.running || pb.audio_addr.looping || pb.adpcm_loop_info.pred_scale)
+			)	
+		{
+			pb.running = 0;
+
+			pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
+			pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
+			pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
+
+			pb.src.cur_addr_frac = 0; PBs[i].src.ratio_hi = 0; PBs[i].src.ratio_lo = 0;
+			pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
+
+			pb.audio_addr.looping = 0;
+			pb.adpcm_loop_info.pred_scale = 0;
+			pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
+		}
+		// =============
+
 
 		if (pb.running)
 		{
@@ -272,16 +311,18 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			// =======================================================================================
 			// Games that use looping to play non-looping music streams - SSBM has info in all
 			// pb.adpcm_loop_info parameters but has pb.audio_addr.looping = 0. If we treat these streams
-			// like any other looping streams the music works.
-			// ---------------------------------------------------------------------------------------
+			// like any other looping streams the music works. It seems like pb.mixer_control == 0 may
+			// identify these types of blocks.
+			// --------------
 			if(
-				pb.adpcm_loop_info.pred_scale || pb.adpcm_loop_info.yn1 || pb.adpcm_loop_info.yn2
+				(pb.adpcm_loop_info.pred_scale || pb.adpcm_loop_info.yn1 || pb.adpcm_loop_info.yn2)
+				&& pb.mixer_control == 0
 				&& gSSBM
 				)
 			{
 				pb.audio_addr.looping = 1;
 			}
-			// =======================================================================================
+			// ==============
 
 
 			// =======================================================================================
@@ -297,7 +338,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			that also use is_stream = 1 has no problem wuth the volume, but its settings are somewhat
 			different, it uses src_type = 1 and pb.src.ratio_lo (fraction) != 0
 			*/
-			// =======================================================================================
+			// ==============
 
 
 			// =======================================================================================
@@ -311,7 +352,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 				// =======================================================================================
 				// Process sample format
-				// ---------------------------------------------------------------------------------------
+				// --------------
 				switch (pb.audio_addr.sample_format)
 				{
 				    case AUDIOFORMAT_PCM8:
@@ -348,7 +389,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 				    default:
 					    break;
 				}
-				// =======================================================================================
+				// ================
 
 
 				// =======================================================================================
@@ -369,7 +410,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 				int leftmix  = pb.mixer.volume_left >> 5;
 				int rightmix = pb.mixer.volume_right >> 5;
-				// =======================================================================================
+				// ===============
 
 
 				int left  = sample * leftmix >> 8;
@@ -394,7 +435,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 					}
 				}
 			} // end of the _iSize loop
-			// =======================================================================================
+			// ============
 
 
 			pb.src.cur_addr_frac = (u16)frac;

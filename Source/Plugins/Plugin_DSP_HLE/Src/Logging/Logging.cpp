@@ -40,29 +40,40 @@
 #include "../UCodes/UCode_AXStructs.h"
 #include "../UCodes/UCode_AX.h"
 
+
 // Externals
 
 float ratioFactor; // a global to get the ratio factor from MixAdd
 int gUpdFreq = 5;
+int gPreset = 0;
 u32 gLastBlock;
 extern bool gSSBM;
 extern bool gSSBMremedy1;
 extern bool gSSBMremedy2;
+extern bool gSequenced;
+extern bool gReset;
+bool gOnlyLooping = false;
+extern int gSaveFile;
 
 // Parameter blocks
 
 std::vector<u32> gloopPos(64);
 std::vector<u32> gsampleEnd(64);
 std::vector<u32> gsamplePos(64);
+
 // PBSampleRateConverter src
 	std::vector<u32> gratio(64);
 	std::vector<u32> gratiohi(64);
 	std::vector<u32> gratiolo(64);
 	std::vector<u32> gfrac(64);
 	std::vector<u32> gcoef(64);
+
 // PBSampleRateConverter mixer
 	std::vector<u16> gvolume_left(64);
 	std::vector<u16> gvolume_right(64);
+	std::vector<u16> gmixer_control(64);
+	std::vector<u16> gcur_volume(64);
+	std::vector<u16> gcur_volume_delta(64);
 
 std::vector<u16> gaudioFormat(64);
 std::vector<u16> glooping(64);
@@ -201,20 +212,53 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		}
 		// ==============
 
-		
+			
 		// =======================================================================================
 		// Write header
 		// --------------
 		char buffer [1000] = "";
 		std::string sbuff;
-		sbuff = sbuff + "                Nr    pos / end       lpos     | voll  volr  | isl[pre yn1   yn2] iss | frac  ratio[hi lo]     | 1 2 3 4 5\n";
+		if(gPreset == 0)
+		{			
+			sbuff = sbuff + "                                                                        adpcm           adpcm_loop\n";
+			sbuff = sbuff + "                Nr    pos / end      lpos     | voll  volr  | isl iss | pre yn1   yn2   pre yn1   yn2   | frac  ratio[hi lo]   | 1 2 3 4 5\n";
+		}
+		else if(gPreset == 1)
+		{
+			sbuff = sbuff + "                Nr    pos / end      lpos     | voll  volr  curv  vold  | src coef mixc\n";
+		}
+		else if(gPreset == 2)
+		{
+			sbuff = sbuff + "                Nr    pos / end      lpos     | voll  volr  | isl iss | e-l    e-s\n";
+		}
+		
+		
+		
 		// ==============
 
-		
+
+
+
+
 		// go through all running blocks
 		for (int i = 0; i < numberOfPBs; i++)
 		{
-		if (numberRunning.at(i) > 0)
+
+		// =======================================================================================
+		// Prepare conditions
+		// --------------
+		bool Conditions;
+		if (gOnlyLooping)
+		{
+			Conditions = PBs[i].audio_addr.looping;
+		}
+		else
+		{
+			Conditions = (numberRunning.at(i) > 0 || PBs[i].audio_addr.looping);
+		}
+		// ==============
+
+		if (Conditions)
 		{
 
 			
@@ -311,6 +355,11 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 			// mixer
 				gvolume_left[i] = PBs[i].mixer.volume_left;
 				gvolume_right[i] = PBs[i].mixer.volume_right;
+
+				gmixer_control[i] = PBs[i].mixer_control;
+				gcur_volume[i] = PBs[i].vol_env.cur_volume;
+				gcur_volume_delta[i] = PBs[i].vol_env.cur_volume_delta;
+
 			}
 
 			// hopefully this is false if we don't have a debugging window and so it doesn't cause a crash
@@ -352,16 +401,46 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 			// PRESETS
 			// ---------------------------------------------------------------------------------------
 			/*
-			/"                Nr    pos / end       lpos     | voll  volr | isl[pre yn1   yn2] iss | frac  ratio[hi lo]     | 1 2 3 4 5\n";
-			 "---------------|00 12341234/12341234  12341234 | 00000 00000 | 0[000 00000 00000] 0   | 00000 00000[0 00000]   | 
+			PRESET 0
+			"                Nr    pos / end      lpos     | voll  volr  | isl iss | pre yn1   yn2   pre yn1   yn2   | frac  ratio[hi lo]   | 1 2 3 4 5\n";
+			"---------------|00 12341234/12341234 12341234 | 00000 00000 | 0   0   | 000 00000 00000 000 00000 00000 | 00000 00000[0 00000] | 
+			
+			PRESET 1
+			"                Nr    pos / end      lpos     | voll  volr  curv  vold  | src coef mixc\n";
+			"---------------|00 12341234/12341234 12341234 | 00000 00000 00000 00000 | 0   0    0		
+
+			PRESET 2
+			"                Nr    pos / end      lpos     | voll  volr  | isl iss | e-l    e-s\n";
+			"---------------|00 12341234/12341234 12341234 | 00000 00000 | 0   0   | 000000 000000
 			*/
-			sprintf(buffer,"%c%i %08i/%08i  %08i | %05i %05i | %i[%03i %05i %05i] %i   | %05i %05i[%i %05i]   | %i %i %i %i %i",
+			if(gPreset == 0)
+			{
+			sprintf(buffer,"%c%i %08i/%08i %08i | %05i %05i | %i   %i   | %03i %05i %05i %03i %05i %05i | %05i %05i[%i %05i] | %i %i %i %i %i",
 				223, i, gsamplePos[i], gsampleEnd[i], gloopPos[i],
 				gvolume_left[i], gvolume_right[i],
-				glooping[i], gloop1[i], gloop2[i], gloop3[i], gis_stream[i],
+				glooping[i], gis_stream[i],
+				gadloop1[i], gadloop2[i], gadloop3[i], gloop1[i], gloop2[i], gloop3[i],
 				gfrac[i], gratio[i], gratiohi[i], gratiolo[i],
 				gupdates1[i], gupdates2[i], gupdates3[i], gupdates4[i], gupdates5[i]
 				);
+			}
+			else if(gPreset == 1)
+			{
+			sprintf(buffer,"%c%i %08i/%08i %08i | %05i %05i %05i %05i | %i   %i    %i",
+				223, i, gsamplePos[i], gsampleEnd[i], gloopPos[i],
+				gvolume_left[i], gvolume_right[i], gcur_volume[i], gcur_volume_delta[i],				
+				gsrc_type[i], gcoef[i], gmixer_control[i]
+				);
+			}
+			else if(gPreset == 2)
+			{
+			sprintf(buffer,"%c%i %08i/%08i %08i | %05i %05i | %i   %i   | %06i %06i",
+				223, i, gsamplePos[i], gsampleEnd[i], gloopPos[i],
+				gvolume_left[i], gvolume_right[i],
+				glooping[i], gis_stream[i],				
+				gsampleEnd[i] - gloopPos[i], gsampleEnd[i] - gsamplePos[i]
+				);
+			}
 			
 			// add new line
 			sbuff = sbuff + buffer; strcpy(buffer, "");
@@ -385,8 +464,8 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		// =======================================================================================
 		// Write settings
 		// ---------------
-		sprintf(buffer, "\nSettings: SSBM fix %i | SSBM remedy 1 %i | SSBM remedy 2 %i \n",
-			gSSBM, gSSBMremedy1, gSSBMremedy2);
+		sprintf(buffer, "\nSettings: SSBM fix %i | SSBM rem1 %i | SSBM rem2 %i | Sequenced %i | Reset %i | Only looping %i | Save file %i\n",
+			gSSBM, gSSBMremedy1, gSSBMremedy2, gSequenced, gReset, gOnlyLooping, gSaveFile);
 		sbuff = sbuff + buffer; strcpy(buffer, "");
 		// ===============
 

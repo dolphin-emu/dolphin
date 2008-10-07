@@ -68,13 +68,22 @@ class CDebugger : public wxDialog
 	
 		void NotifyUpdate();
 		void OnUpdate(wxCommandEvent& event);
+
+		void SaveFile(wxCommandEvent& event);
 		void ShowHideConsole(wxCommandEvent& event);
 		void DoShowHideConsole();
 		void ChangeFrequency(wxCommandEvent& event);
 		void DoChangeFrequency();
+		void ChangePreset(wxCommandEvent& event);
+		void DoChangePreset();
+
 		void SSBM(wxCommandEvent& event);
 		void SSBMremedy1(wxCommandEvent& event);
 		void SSBMremedy2(wxCommandEvent& event);
+		void BSDON(wxCommandEvent& event);		
+		void Sequenced(wxCommandEvent& event);		
+		void Reset(wxCommandEvent& event);	
+		void OnlyLooping(wxCommandEvent& event);		
 
 		CPBView* m_GPRListView;
 		
@@ -82,9 +91,9 @@ class CDebugger : public wxDialog
 	private:
 
 		// declarations
-		wxCheckBox *m_Check[3];
+		wxCheckBox *m_Check[6];
 		wxRadioButton *m_Radio[5];
-		wxRadioBox *m_RadioBox[2];
+		wxRadioBox *m_RadioBox[3];
 		wxStaticBox *m_Label[1];
 		wxPanel *m_Controller;
 
@@ -97,6 +106,9 @@ class CDebugger : public wxDialog
 			IDC_CHECK3,
 			IDC_CHECK4,
 			IDC_CHECK5,
+			IDC_CHECK6,
+			IDC_CHECK7,
+			IDC_CHECK8,
 			IDC_RADIO0,
 			IDC_RADIO1,
 			IDC_RADIO2,
