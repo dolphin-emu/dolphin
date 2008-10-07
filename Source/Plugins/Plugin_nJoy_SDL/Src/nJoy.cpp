@@ -149,27 +149,6 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 #endif
 }
 
-// Call about dialog
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void DllAbout(HWND _hParent)
-{	
-	#ifdef _WIN32
-	wxWindow win;
-	win.SetHWND((WXHWND)_hParent);
-	win.Enable(false);  
-	
-	AboutBox frame(&win);
-	frame.ShowModal();
-
-	win.Enable(true);
-	win.SetHWND(0); 
-
-	#else
-		AboutBox frame(NULL);
-		frame.ShowModal();
-	#endif	
-}
-
 // Call config dialog
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllConfig(HWND _hParent)

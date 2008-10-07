@@ -59,6 +59,7 @@ class ConfigBox : public wxDialog
 		virtual ~ConfigBox();
 		
 	private:
+		wxButton *m_About;
 		wxButton *m_OK;
 		wxButton *m_Cancel;
 				
@@ -136,7 +137,8 @@ class ConfigBox : public wxDialog
 	private:
 		enum
 		{
-			ID_OK = 1000,
+			ID_ABOUT = 1000,
+			ID_OK,
 			ID_CANCEL,
 			ID_NOTEBOOK,
 			ID_CONTROLLERPAGE1,
@@ -212,6 +214,7 @@ class ConfigBox : public wxDialog
 		};
 	
 	private:
+		void AboutClick(wxCommandEvent& event);
 		void OKClick(wxCommandEvent& event);
 		void CancelClick(wxCommandEvent& event);
 

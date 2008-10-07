@@ -47,6 +47,7 @@ static const char* ControllerType[] =
 
 BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
 	EVT_CLOSE(ConfigBox::OnClose)
+	EVT_BUTTON(ID_ABOUT, ConfigBox::AboutClick)
 	EVT_BUTTON(ID_OK, ConfigBox::OKClick)
 	EVT_BUTTON(ID_CANCEL, ConfigBox::CancelClick)
 	EVT_COMBOBOX(IDC_JOYNAME, ConfigBox::ChangeJoystick)
@@ -105,6 +106,7 @@ void ConfigBox::CreateGUIControls()
 #endif
 
 	// Buttons
+	m_About = new wxButton(this, ID_ABOUT, wxT("About"), wxPoint(0, 497), wxSize(75, 25), 0, wxDefaultValidator, wxT("About"));
 	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(475, 497), wxSize(75, 25), 0, wxDefaultValidator, wxT("OK"));
 	m_Cancel = new wxButton(this, ID_CANCEL, wxT("Cancel"), wxPoint(556, 497), wxSize(75, 25), 0, wxDefaultValidator, wxT("Cancel"));
 
@@ -276,6 +278,26 @@ void ConfigBox::CreateGUIControls()
 void ConfigBox::OnClose(wxCloseEvent& /*event*/)
 {
 	EndModal(0);
+}
+
+void ConfigBox::AboutClick(wxCommandEvent& event)
+{
+// Call about dialog
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+#ifdef _WIN32
+	wxWindow win;
+	win.SetHWND((WXHWND)this->GetHWND());
+	win.Enable(false);  
+
+	AboutBox frame(&win);
+	frame.ShowModal();
+
+	win.Enable(true);
+	win.SetHWND(0); 
+#else
+	AboutBox frame(NULL);
+	frame.ShowModal();
+#endif	
 }
 
 void ConfigBox::OKClick(wxCommandEvent& event)
