@@ -20,7 +20,6 @@
 #include "../Globals.h"
 
 #include "../TextureMngr.h"
-#include <wx/aboutdlg.h>
 
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
@@ -69,12 +68,14 @@ void ConfigDialog::CreateGUIControls()
 	m_Notebook->AddPage(m_PageAdvanced, wxT("Advanced"));
 	
 	//buttons
+	m_About = new wxButton(this, ID_GRAPHIC_ABOUT, wxT("About"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Cancel = new wxButton(this, ID_CANCEL, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);	
 
 	//put notebook and buttons in sizers
 	wxBoxSizer* sButtons;
 	sButtons = new wxBoxSizer(wxHORIZONTAL);
+	sButtons->Add(m_About, 0, wxALL, 5);
 	sButtons->Add(0, 0, 1, wxEXPAND, 5);
 	sButtons->Add(m_OK, 0, wxALL, 5);
 	sButtons->Add(m_Cancel, 0, wxALL, 5);
@@ -86,8 +87,6 @@ void ConfigDialog::CreateGUIControls()
 	
 	this->SetSizer(sMain);
 	this->Layout();
-	//other buttons & stuff
-	wxButton* AboutButton;
 
 	//page1
 	m_Fullscreen = new wxCheckBox(m_PageVideo, ID_FULLSCREEN, wxT("Fullscreen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -112,7 +111,6 @@ void ConfigDialog::CreateGUIControls()
 	wxString tmp;
 	tmp<<g_Config.iMultisampleMode;
 	m_AliasModeCB->SetValue(tmp);
-	AboutButton = new wxButton(m_PageVideo, ID_GRAPHIC_ABOUT, wxT("About"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	//page2
 	m_ForceFiltering = new wxCheckBox(m_PageEnhancements, ID_FORCEFILTERING, wxT("Force bi/trilinear filtering (May cause small glitches)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -163,7 +161,6 @@ void ConfigDialog::CreateGUIControls()
 	sPage1->Add(m_WindowResolutionCB, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
 	sPage1->Add(AAText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sPage1->Add(m_AliasModeCB, wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
-	sPage1->Add(AboutButton,wxGBPosition(5,1),wxGBSpan(1, 1),wxALL,5);
 	m_PageVideo->SetSizer(sPage1);
 	sPage1->Layout();
 

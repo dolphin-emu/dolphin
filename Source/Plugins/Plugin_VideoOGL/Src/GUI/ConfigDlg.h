@@ -19,6 +19,7 @@
 #define __CONFIGDIALOG_h__
 
 #include <wx/wx.h>
+#include <wx/aboutdlg.h>
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
 #include <wx/button.h>
@@ -65,6 +66,7 @@ class ConfigDialog : public wxDialog
 
 	private:
 
+		wxButton* m_About;
 		wxButton *m_Cancel;
 		wxButton *m_OK;
 		wxDirPickerCtrl *m_TexturePath;

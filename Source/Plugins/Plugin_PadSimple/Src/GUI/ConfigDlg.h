@@ -19,6 +19,7 @@
 #define __CONFIGDLG_H__
 
 #include <wx/wx.h>
+#include <wx/aboutdlg.h>
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
 #include <wx/button.h>
@@ -50,12 +51,13 @@ class ConfigDialog : public wxDialog
 		DECLARE_EVENT_TABLE();
 		wxNotebook *m_Notebook;
 		wxPanel *m_Controller[4];
+		wxButton *m_About;
 		wxButton *m_Close;
 
 		wxStaticBoxSizer *sDevice[4];
 		wxBoxSizer *sDeviceTop[4];
 		wxBoxSizer *sDeviceBottom[4];
-		wxGridBagSizer* sPage[4];
+		wxGridBagSizer *sPage[4];
 		wxStaticBoxSizer *sButtons[4];
 		wxStaticBoxSizer *sTriggers[4];
 		wxStaticBoxSizer *sModifiers[4];

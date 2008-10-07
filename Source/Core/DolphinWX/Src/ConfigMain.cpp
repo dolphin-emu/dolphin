@@ -167,7 +167,6 @@ void CConfigMain::CreateGUIControls()
 	sPaths->Layout();
 
 	// Plugin page
-	//TODO: reposition the config buttons.
 	GraphicSelection = new wxChoice(PluginPage, ID_GRAPHIC_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
 	GraphicConfig = new wxButton(PluginPage, ID_GRAPHIC_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	GraphicText = new wxStaticText(PluginPage, ID_GRAPHIC_TEXT, wxT("GFX:"), wxDefaultPosition, wxDefaultSize);
@@ -193,21 +192,21 @@ void CConfigMain::CreateGUIControls()
 	FillChoiceBox(WiimoteSelection, PLUGIN_TYPE_WIIMOTE, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin);
 
 	sPlugins = new wxGridBagSizer(0, 0);
-	sPlugins->Add(GraphicText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
+	sPlugins->Add(GraphicText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sPlugins->Add(GraphicSelection, wxGBPosition(0, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
-	sPlugins->Add(GraphicConfig, wxGBPosition(1, 1), wxGBSpan(1, 1), wxLEFT|wxBOTTOM, 5);
+	sPlugins->Add(GraphicConfig, wxGBPosition(0, 3), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
-	sPlugins->Add(DSPText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
-	sPlugins->Add(DSPSelection, wxGBPosition(2, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
-	sPlugins->Add(DSPConfig, wxGBPosition(3, 1), wxGBSpan(1, 1), wxLEFT|wxBOTTOM, 5);
+	sPlugins->Add(DSPText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sPlugins->Add(DSPSelection, wxGBPosition(1, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
+	sPlugins->Add(DSPConfig, wxGBPosition(1, 3), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
-	sPlugins->Add(PADText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
-	sPlugins->Add(PADSelection, wxGBPosition(4, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
-	sPlugins->Add(PADConfig, wxGBPosition(5, 1), wxGBSpan(1, 1), wxLEFT|wxBOTTOM, 5);
+	sPlugins->Add(PADText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sPlugins->Add(PADSelection, wxGBPosition(2, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
+	sPlugins->Add(PADConfig, wxGBPosition(2, 3), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
-	sPlugins->Add(WiimoteText, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
-	sPlugins->Add(WiimoteSelection, wxGBPosition(6, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
-	sPlugins->Add(WiimoteConfig, wxGBPosition(7, 1), wxGBSpan(1, 1), wxLEFT|wxBOTTOM, 5);
+	sPlugins->Add(WiimoteText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sPlugins->Add(WiimoteSelection, wxGBPosition(3, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
+	sPlugins->Add(WiimoteConfig, wxGBPosition(3, 3), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
 	PluginPage->SetSizer(sPlugins);
 	sPlugins->Layout();
