@@ -42,6 +42,10 @@
 0x0e19						TmpBuffer exceptions
 
 
+0x0e1c						TmpBuffer for Opcode3()
+
+
+0x0e42						something for the Decoder Functions
 
 
 
@@ -662,9 +666,10 @@ Main()
 02ee 8a00      M2	
 02ef 177f      CALLR	$3
 02f0 8100      CLR	$30
-02f1 00de 0b9b LR	$30, @0x0b9b
+02f1 00de 0b9b LR	$30, @0x0b9b		// check (PBInitialTimeDelay->firstStart == 0)
 02f3 b100      TST	$30
 02f4 0295 032a JEQ	0x032a
+
 02f6 00de 0e42 LR	$30, @0x0e42
 02f8 00fe 0e43 SR	@0x0e43, $30
 02fa 8100      CLR	$30
@@ -698,11 +703,13 @@ Main()
 0325 4c00      ADD	$30, $31
 0326 00fe 0e41 SR	@0x0e41, $30
 0328 029f 0332 JMP	0x0332
+
 032a 00de 0e42 LR	$30, @0x0e42
 032c 00fe 0e40 SR	@0x0e40, $30
 032e 00fe 0e41 SR	@0x0e41, $30
 0330 00fe 0e43 SR	@0x0e43, $30
 0332 8100      CLR	$30
+
 0333 8e00      S40	
 0334 8400      CLRP	
 0335 8900      CLR	$31
@@ -733,9 +740,11 @@ Main()
 0351 0294 0253 JNE	0x0253
 0353 8e00      S40	
 0354 8100      CLR	$30
-0355 00de 0b9b LR	$30, @0x0b9b
+0355 00de 0b9b LR	$30, @0x0b9b				// check (PBInitialTimeDelay->firstStart == 0) or write back to MEM?!
 0357 b100      TST	$30
 0358 0295 036a JEQ	0x036a
+
+
 035a 00de 0b9c LR	$30, @0x0b9c
 035c 00dc 0b9d LR	$28, @0x0b9d
 035e 2ece      SRS	@DSMAH, $30
@@ -746,6 +755,9 @@ Main()
 0364 16c9 0001 SI	@DSCR, #0x0001
 0366 16cb 0040 SI	@DSBL, #0x0040
 0368 02bf 055c CALL	0x055c     // Wait for DMA control reg
+
+
+// write back the PB
 036a 8100      CLR	$30
 036b 8900      CLR	$31
 036c 00de 0b82 LR	$30, @0x0b82
@@ -2524,8 +2536,12 @@ Main()
 0c9c 1c7f      MRR	$3, $31
 0c9d 176f      JMPR	$3
 0c9e 0021      HALT	
+
+// case 0x00:
 0c9f 029f 0030 JMP	0x0030
 0ca1 0021      HALT	
+
+// case 0x01:
 0ca2 8100      CLR	$30
 0ca3 8900      CLR	$31
 0ca4 02bf 0ce0 CALL	0x0ce0
@@ -2568,18 +2584,22 @@ Main()
 0cd5 029c 0cd2 JZR	0x0cd2
 0cd7 029f 80b5 JMP	0x80b5
 0cd9 0021      HALT	
+
+// case 0x03:
 0cda 029f 8000 JMP	0x8000
 0cdc 0021      HALT	
+
+// case 0x04:
 0cdd 029f 0045 JMP	0x0045
 0cdf 0021      HALT	
 
-// looks like valid code but who calls it??
+// wait for cpu mail
 0ce0 26fe      LRS	$30, @CMBH
 0ce1 02c0 8000 ANDF	$30, #0x8000
 0ce3 029c 0ce0 JZR	0x0ce0
 0ce5 02df      RET	
 
-// looks like valid code but who calls it??
+// wait for cpu mail
 0ce6 27fe      LRS	$31, @CMBH
 0ce7 03c0 8000 ANDF	$31, #0x8000
 0ce9 029c 0ce6 JZR	0x0ce6
