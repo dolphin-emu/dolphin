@@ -9,7 +9,7 @@
 
 0x0000
 0x0140
-0x0280
+0x0280						// outbuffer left and right... each channel is 0x140 samples long
 0x0400
 0x0540
 0x0680
@@ -23,7 +23,7 @@
 // addresses to buffers
 0x0E08
 0x0E09
-0x0E0A
+0x0E0A						// point to output buffer
 0x0E0B
 0x0E0C
 0x0E0D
@@ -358,7 +358,7 @@ Main()
 0161 02bf 0484 CALL	0x0484
 0163 029f 0068 JMP	0x0068     // Return to message loop.
 
-
+// DMA something back to RAM
 // Opcode_06()
 0165 8100      CLR	$30
 0166 8e00      S40	
@@ -544,7 +544,7 @@ Main()
 0267 00de 0e42 LR	$30, @0x0e42     //  we got here - yes, it's running
 0269 00fe 0e1c SR	@0x0e1c, $30
 026b 00c3 0e15 LR	$3, @0x0e15
-026d 177f      CALLR	$3
+026d 177f      CALLR	$3				// Call the Src Decoder
 026e 8e00      S40	
 026f 8a00      M2	
 0270 8100      CLR	$30
@@ -662,7 +662,7 @@ Main()
 02e7 9e00      MULMV	$25, $27, $30
 02e8 6f33      MOVPhS	$31 : @$3, $30
 02e9 1b7f      SRRI	@$3, $31
-02ea 00c3 0e14 LR	$3, @0x0e14
+02ea 00c3 0e14 LR	$3, @0x0e14						// call the mixer
 02ec 8f00      S16	
 02ed 8d00      SET15	
 02ee 8a00      M2	
@@ -712,7 +712,6 @@ Main()
 032e 00fe 0e41 SR	@0x0e41, $30
 0330 00fe 0e43 SR	@0x0e43, $30
 0332 8100      CLR	$30             // Jumps here when a PB isn't ->running.
-
 0333 8e00      S40	
 0334 8400      CLRP	
 0335 8900      CLR	$31
@@ -829,7 +828,7 @@ Main()
 03ca 0213      ILRR	$30, @$3
 03cb 00fe 0e16 SR	@0x0e16, $30
 03cd 00de 0b86 LR	$30, @0x0b86
-03cf 009f 0b11 LRI	$31, #0x0b11
+03cf 009f 0b11 LRI	$31, #0x0b11		// mixer control jmp table base addr
 03d1 4c00      ADD	$30, $31
 03d2 1c7e      MRR	$3, $30
 03d3 0213      ILRR	$30, @$3
@@ -885,7 +884,7 @@ Main()
 0423 02bf 0484 CALL	0x0484
 0425 029f 0068 JMP	0x0068     // Return to message loop.
 
-
+// DMA soemthing back to RAM
 // Opcode_05()  - do another DMA transfer
 0427 8e00      S40	
 0428 0086 07c0 LRI	$6, #0x07c0
@@ -902,8 +901,11 @@ Main()
 0437 02bf 0484 CALL	0x0484
 0439 029f 0068 JMP	0x0068     // Return to message loop.
 
-
+/////////////////////////////////////
+// DMA the sound buffer back to RAM
 // Opcode_14()
+// called by CT
+//
 043b 8c00      CLR15	
 043c 8a00      M2	
 043d 8100      CLR	$30
@@ -1273,7 +1275,7 @@ Main()
 05e0 8c00      CLR15	
 05e1 8a00      M2	
 05e2 8e00      S40	
-05e3 00d8 0e16 LR	$24, @0x0e16
+05e3 00d8 0e16 LR	$24, @0x0e16			// get COEF Table
 05e5 195b      LRRI	$27, @$2
 05e6 1959      LRRI	$25, @$2
 05e7 8100      CLR	$30
@@ -1633,14 +1635,17 @@ Main()
 ////////////////////////////////////////////////
 
 // fn0
-0768 00c0 0e40 LR	$0, @0x0e40
-076a 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
-076c 00c2 0e08 LR	$2, @0x0e08
-076e 1c62      MRR	$3, $2
-076f 00c4 0e41 LR	$4, @0x0e41
-0771 00c5 0e09 LR	$5, @0x0e09
+// this mixer is used by CrazyTaxi (at least at the beginning)
+// perhaps f�r mono sample??
+
+0768 00c0 0e40 LR	$0, @0x0e40		// outbuffer ??
+076a 0081 0b89 LRI	$1, #0x0b89		// PB->Mixer... struct offset
+076c 00c2 0e08 LR	$2, @0x0e08		// left-buffer?
+076e 1c62      MRR	$3, $2			// right-buffer?
+076f 00c4 0e41 LR	$4, @0x0e41		// delay offset ??
+0771 00c5 0e09 LR	$5, @0x0e09		// 0x140 all the time .... could be number of samples 
 0773 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
-0775 00f8 0ba9 SR	@0x0ba9, $24
+0775 00f8 0ba9 SR	@0x0ba9, $24	// mixer unknown stuff
 0777 00fb 0bac SR	@0x0bac, $27
 0779 02df      RET
 
@@ -2560,11 +2565,12 @@ Main()
 //////////////////////////////////////////////////////////////////////////////
 
 
-// Jmp table for function below (what ever it does :))
-0c8d 0c9f      LRIS	$28, #0x9f
-0c8e 0ca2      LRIS	$28, #0xa2
-0c8f 0cda      LRIS	$28, #0xda
-0c90 0cdd      LRIS	$28, #0xdd
+// Jmp table for function below 
+// i think case 0x03 is the standard case
+0c8d 0c9f      LRIS	$28, #0x9f			// some kind of soft-reset for the UCode
+0c8e 0ca2      LRIS	$28, #0xa2			// looks like code to dump the UCode memory for debugging
+0c8f 0cda      LRIS	$28, #0xda			// rest the UCode and jump to ROM
+0c90 0cdd      LRIS	$28, #0xdd			// normal case to return to the main-loop
 
 
 // Mix and write back to RAM??? It is called by AXLIST_END command only
