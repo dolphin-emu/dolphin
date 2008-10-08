@@ -1,0 +1,34 @@
+DSP startup sequence:
+
+DspBoot called with (JASystem::TAudioThread::syncDSP()) as a parameter.
+DSP lib initialized
+A Dsp task is created:
+	init callback = DspHandShake()
+	req callback = JASystem::TAudioThread::syncDSP()
+Task is pushed as first task and executed
+
+DSP send DSP_INIT command (0xDCD10003)
+__DSPHandler receive the command
+
+task's init callback (DspHandShake) is called
+1 mail is read from dsp (and discarded)
+DSP flag is set as running
+
+AIRegisterDMACallback(JASystem::TAudioThread::syncAudio((void))
+AIStartDMA() to initialize dma in AI module
+
+-----------------------------------
+
+DSP run sequence:
+
+__DSPHandler  receive command DSP_RESUME
+callback JASystem::TAudioThread::syncDSP called and pull 1 mail
+A message is send by OSSendMessage(1)
+
+JASystem::TAudioThread::audioproc receive OSMessage:
+	0=update dac
+	1=update dsp
+	2=nop ?
+	3=exit thread
+
+dsp is updated

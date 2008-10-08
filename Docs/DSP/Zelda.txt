@@ -1,0 +1,45 @@
+CPU:
+---------------------------------------------------------------------------------------
+
+void DSPSendCommands2(_pBuffer, _NumberOfMessages, _StartWork)
+{
+
+	while (!DSP_Running_Check());
+	
+	OldInterrupts = OSDisableInterrupts();
+
+	if (DSPCheckMailToDSP() != 0)
+	{
+		OSRestoreInterrupts();
+		return -1;
+	}
+
+	DSPSendMailToDSP(_NumberOfMessages)
+	
+	DSPAssertInt()
+
+	while (DSPCheckMailToDSP() != 0) {}
+
+	if (_NumberOfMessages == 0)
+		_NumberOfMessages = 1
+
+
+	if (_StartWork != 0)
+	{
+		r28 = DSPStartWork(*_pBuffer, _StartWork)				
+	}
+	_StartWork = 0
+
+
+	while(Count != _NumberOfMessages)
+	{
+		DSPSendMailToDSP(Buffer[Count])
+		while (DSPCheckMailToDSP() != 0) {}
+		Count++
+	}
+
+	OSRestoreInterrupts(OldInterrupts)
+
+	return r28;
+}
+
