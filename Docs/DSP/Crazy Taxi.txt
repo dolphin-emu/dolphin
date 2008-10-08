@@ -134,7 +134,7 @@ Main()
 0061 2ec9      SRS	@DSCR, $30
 0062 1ffb      MRR	$31, $27
 0063 2fcb      SRS	@DSBL, $31
-0064 02bf 055c CALL	0x055c
+0064 02bf 055c CALL	0x055c     // Wait for DMA control reg
 0066 0080 0c00 LRI	$0, #0x0c00
 
 
@@ -190,7 +190,7 @@ Main()
 0097 8100      CLR	$30
 0098 8900      CLR	$31
 0099 8f00      S16	
-009a 02bf 055c CALL	0x055c
+009a 02bf 055c CALL	0x055c     // Wait for DMA control reg
 009c 193e      LRRI	$30, @$1
 009d 193c      LRRI	$28, @$1
 009e b100      TST	$30
@@ -363,7 +363,7 @@ Main()
 016b 16cd 0000 SI	@DSPA, #0x0000
 016d 16c9 0001 SI	@DSCR, #0x0001
 016f 16cb 0780 SI	@DSBL, #0x0780
-0171 02bf 055c CALL	0x055c
+0171 02bf 055c CALL	0x055c     // Wait for DMA control reg
 0173 029f 0068 JMP	0x0068
 
 
@@ -419,7 +419,7 @@ Main()
 01b2 0503      ADDIS	$33, #0x03
 01b3 0340 fff0 ANDI	$33, #0xfff0
 01b5 2fcb      SRS	@DSBL, $31
-01b6 02bf 055c CALL	0x055c
+01b6 02bf 055c CALL	0x055c     // Wait for DMA control reg
 01b8 0080 0c00 LRI	$0, #0x0c00
 01ba 029f 0068 JMP	0x0068
 
@@ -452,7 +452,7 @@ Main()
 01e0 1b5f      SRRI	@$2, $31
 01e1 009f 0a40 LRI	$31, #0x0a40
 01e3 1b5f      SRRI	@$2, $31
-01e4 02bf 055c CALL	0x055c
+01e4 02bf 055c CALL	0x055c     // Wait for DMA control reg
 01e6 00de 0ba7 LR	$30, @0x0ba7		// current PB  PBInitialTimeDelay[o]
 01e8 00df 0ba8 LR	$31, @0x0ba8		// current PB  PBInitialTimeDelay[1]
 01ea 2ece      SRS	@DSMAH, $30
@@ -494,7 +494,7 @@ Main()
 0222 009f 0ce0 LRI	$31, #0x0ce0
 0224 00ff 0e42 SR	@0x0e42, $31
 0226 00ff 0e43 SR	@0x0e43, $31
-0228 02bf 055c CALL	0x055c
+0228 02bf 055c CALL	0x055c     // Wait for DMA control reg
 022a 00de 0b9c LR	$30, @0x0b9c
 022c 2ece      SRS	@DSMAH, $30
 022d 00de 0b9d LR	$30, @0x0b9d
@@ -502,14 +502,14 @@ Main()
 0230 16cd 0cc0 SI	@DSPA, #0x0cc0
 0232 16c9 0000 SI	@DSCR, #0x0000
 0234 16cb 0040 SI	@DSBL, #0x0040
-0236 02bf 055c CALL	0x055c
+0236 02bf 055c CALL	0x055c     // Wait for DMA control reg
 0238 029f 0068 JMP	0x0068				// return out of the function
 023a 009f 0ce0 LRI	$31, #0x0ce0
 023c 00ff 0e42 SR	@0x0e42, $31
 023e 00ff 0e40 SR	@0x0e40, $31
 0240 00ff 0e41 SR	@0x0e41, $31
 0242 00ff 0e43 SR	@0x0e43, $31
-0244 02bf 055c CALL	0x055c
+0244 02bf 055c CALL	0x055c     // Wait for DMA control reg
 0246 029f 0068 JMP	0x0068
 
 
@@ -745,7 +745,7 @@ Main()
 0363 2ecd      SRS	@DSPA, $30
 0364 16c9 0001 SI	@DSCR, #0x0001
 0366 16cb 0040 SI	@DSBL, #0x0040
-0368 02bf 055c CALL	0x055c
+0368 02bf 055c CALL	0x055c     // Wait for DMA control reg
 036a 8100      CLR	$30
 036b 8900      CLR	$31
 036c 00de 0b82 LR	$30, @0x0b82
@@ -755,7 +755,7 @@ Main()
 0372 16cd 0b80 SI	@DSPA, #0x0b80
 0374 16c9 0001 SI	@DSCR, #0x0001
 0376 16cb 00c0 SI	@DSBL, #0x00c0
-0378 02bf 055c CALL	0x055c
+0378 02bf 055c CALL	0x055c     // Wait for DMA control reg
 037a 8100      CLR	$30
 
 // check if there is a another PB linked, if yes copy and setup this one (like Opcode2())
@@ -791,7 +791,7 @@ Main()
 03a7 1b5f      SRRI	@$2, $31
 03a8 009f 0a40 LRI	$31, #0x0a40
 03aa 1b5f      SRRI	@$2, $31
-03ab 02bf 055c CALL	0x055c
+03ab 02bf 055c CALL	0x055c     // Wait for DMA control reg
 03ad 00de 0ba7 LR	$30, @0x0ba7
 03af 00df 0ba8 LR	$31, @0x0ba8
 03b1 2ece      SRS	@DSMAH, $30
@@ -833,7 +833,7 @@ Main()
 03e9 009f 0ce0 LRI	$31, #0x0ce0
 03eb 00ff 0e42 SR	@0x0e42, $31
 03ed 00ff 0e43 SR	@0x0e43, $31
-03ef 02bf 055c CALL	0x055c
+03ef 02bf 055c CALL	0x055c     // Wait for DMA control reg
 03f1 00de 0b9c LR	$30, @0x0b9c
 03f3 2ece      SRS	@DSMAH, $30
 03f4 00de 0b9d LR	$30, @0x0b9d
@@ -841,7 +841,7 @@ Main()
 03f7 16cd 0cc0 SI	@DSPA, #0x0cc0
 03f9 16c9 0000 SI	@DSCR, #0x0000
 03fb 16cb 0040 SI	@DSBL, #0x0040
-03fd 02bf 055c CALL	0x055c				// wait for DMA
+03fd 02bf 055c CALL	0x055c     // Wait for DMA control reg				// wait for DMA
 03ff 00c0 0e07 LR	$0, @0x0e07
 0401 029f 0248 JMP	0x0248				// Opcode3()  - "self calling"
 
@@ -850,7 +850,7 @@ Main()
 0407 00ff 0e40 SR	@0x0e40, $31
 0409 00ff 0e41 SR	@0x0e41, $31
 040b 00ff 0e43 SR	@0x0e43, $31
-040d 02bf 055c CALL	0x055c
+040d 02bf 055c CALL	0x055c     // Wait for DMA control reg
 040f 00c0 0e07 LR	$0, @0x0e07
 0411 029f 0248 JMP	0x0248				// Opcode3()  - "self calling"
 
@@ -867,7 +867,7 @@ Main()
 041c 2ecd      SRS	@DSPA, $30
 041d 16c9 0001 SI	@DSCR, #0x0001
 041f 16cb 0780 SI	@DSBL, #0x0780
-0421 02bf 055c CALL	0x055c
+0421 02bf 055c CALL	0x055c     // Wait for DMA control reg
 0423 02bf 0484 CALL	0x0484
 0425 029f 0068 JMP	0x0068
 
@@ -884,7 +884,7 @@ Main()
 0430 2ecd      SRS	@DSPA, $30
 0431 16c9 0001 SI	@DSCR, #0x0001
 0433 16cb 0780 SI	@DSBL, #0x0780
-0435 02bf 055c CALL	0x055c
+0435 02bf 055c CALL	0x055c     // Wait for DMA control reg
 0437 02bf 0484 CALL	0x0484
 0439 029f 0068 JMP	0x0068
 
@@ -906,7 +906,7 @@ Main()
 044c 0083 0000 LRI	$3, #0x0000
 044e 0082 0140 LRI	$2, #0x0140
 0450 0099 0080 LRI	$25, #0x0080
-0452 02bf 055c CALL	0x055c
+0452 02bf 055c CALL	0x055c     // Wait for DMA control reg
 0454 1105 046c BLOOPI	#0x05, 0x046c
 0456 1f61      MRR	$27, $1
 0457 1120 045e BLOOPI	#0x20, 0x045e
@@ -1055,21 +1055,23 @@ Main()
 04ee 1b5d      SRRI	@$2, $29
 04ef 1c05      MRR	$0, $5
 04f0 02df      RET	
+
+// Called by opcode1
 04f1 8e00      S40	
 04f2 009b 0e44 LRI	$27, #0x0e44
 04f4 009d 00c0 LRI	$29, #0x00c0
-04f6 02bf 0541 CALL	0x0541
+04f6 02bf 0541 CALL	0x0541      // Do DMA
 04f8 4900      ADDAX	$31, $24
 04f9 00ff 0e1d SR	@0x0e1d, $31
 04fb 00fd 0e1e SR	@0x0e1e, $29
 04fd 8900      CLR	$31
-04fe 02bf 055c CALL	0x055c
+04fe 02bf 055c CALL	0x055c     // Wait for DMA control reg
 0500 1104 052c BLOOPI	#0x04, 0x052c
 0502 00da 0e1d LR	$26, @0x0e1d
 0504 00d8 0e1e LR	$24, @0x0e1e
 0506 009b 0ea4 LRI	$27, #0x0ea4
 0508 009d 00c0 LRI	$29, #0x00c0
-050a 02bf 0541 CALL	0x0541
+050a 02bf 0541 CALL	0x0541      // Do DMA
 050c 4900      ADDAX	$31, $24
 050d 00ff 0e1d SR	@0x0e1d, $31
 050f 00fd 0e1e SR	@0x0e1e, $29
@@ -1080,7 +1082,7 @@ Main()
 0518 00d8 0e1e LR	$24, @0x0e1e
 051a 009b 0e44 LRI	$27, #0x0e44
 051c 009d 00c0 LRI	$29, #0x00c0
-051e 02bf 0541 CALL	0x0541
+051e 02bf 0541 CALL	0x0541      // Do DMA
 0520 4900      ADDAX	$31, $24
 0521 00ff 0e1d SR	@0x0e1d, $31
 0523 00fd 0e1e SR	@0x0e1e, $29
@@ -1094,7 +1096,7 @@ Main()
 052f 00d8 0e1e LR	$24, @0x0e1e
 0531 009b 0ea4 LRI	$27, #0x0ea4
 0533 009d 00c0 LRI	$29, #0x00c0
-0535 02bf 0541 CALL	0x0541
+0535 02bf 0541 CALL	0x0541      // Do DMA
 0537 4900      ADDAX	$31, $24
 0538 0083 0e44 LRI	$3, #0x0e44
 053a 02bf 054c CALL	0x054c
@@ -2284,7 +2286,7 @@ Main()
 0ba6 16cd 0e80 SI	@DSPA, #0x0e80
 0ba8 16c9 0001 SI	@DSCR, #0x0001
 0baa 16cb 0100 SI	@DSBL, #0x0100
-0bac 02bf 055c CALL	0x055c
+0bac 02bf 055c CALL	0x055c     // Wait for DMA control reg
 0bae 1c04      MRR	$0, $4
 0baf 029f 0068 JMP	0x0068
 
@@ -2302,7 +2304,7 @@ Main()
 0bb7 16cd 07c0 SI	@DSPA, #0x07c0
 0bb9 16c9 0001 SI	@DSCR, #0x0001
 0bbb 16cb 0500 SI	@DSBL, #0x0500
-0bbd 02bf 055c CALL	0x055c
+0bbd 02bf 055c CALL	0x055c     // Wait for DMA control reg
 0bbf 8100      CLR	$30
 0bc0 8970      CLRhL	$31 : $30, @$0
 0bc1 191c      LRRI	$28, @$0
@@ -2379,7 +2381,7 @@ Main()
 //
 //////////////////////////////////////////////////////////////////////////////
 
-// excpetion vector 0002
+// exception vector 0002
 0c10 8e00      S40	
 0c11 16fc ecc0 SI	@DMBH, #0xecc0
 0c13 1fcc      MRR	$30, $12
@@ -2393,7 +2395,7 @@ Main()
 0c1d 0000      NOP	
 0c1e 02ff      RTI	
 
-// excpetion vector 0004
+// exception vector 0004
 0c1f 8e00      S40	
 0c20 00f0 0e17 SR	@0x0e17, $16
 0c22 00fe 0e18 SR	@0x0e18, $30
@@ -2414,7 +2416,7 @@ Main()
 0c39 0000      NOP	
 0c3a 02ff      RTI	
 
-// excpetion vector 0006
+// exception vector 0006
 0c3b 8e00      S40	
 0c3c 1dbc      MRR	$13, $28
 0c3d 1dbe      MRR	$13, $30
@@ -2428,7 +2430,7 @@ Main()
 0c48 1f8d      MRR	$28, $13
 0c49 02ff      RTI	
 
-// excpetion vector 0008
+// exception vector 0008
 0c4a 0000      NOP	
 0c4b 0000      NOP	
 0c4c 0000      NOP	
@@ -2436,7 +2438,8 @@ Main()
 0c4e 0000      NOP	
 0c4f 02ff      RTI	
 
-// excpetion vector 000a
+// exception vector 000a
+// this may be what loads loop_yn1 etc. an 000a exception should be caused when decoding reaches the end.s
 0c50 8e00      S40	
 0c51 1dbc      MRR	$13, $28
 0c52 1dbe      MRR	$13, $30
@@ -2478,7 +2481,7 @@ Main()
 0c81 02ff      RTI	
 
 
-// excpetion vector 000c
+// exception vector 000c
 0c82 0000      NOP	
 0c83 0000      NOP	
 0c84 0000      NOP	
@@ -2487,7 +2490,7 @@ Main()
 0c87 02ff      RTI	
 
 
-// excpetion vector 000e
+// exception vector 000e
 0c88 0000      NOP	
 0c89 0000      NOP	
 0c8a 0000      NOP	
@@ -2581,5 +2584,4 @@ Main()
 0ce7 03c0 8000 ANDF	$31, #0x8000
 0ce9 029c 0ce6 JZR	0x0ce6
 0ceb 02df      RET	
-
 
