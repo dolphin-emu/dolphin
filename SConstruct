@@ -30,7 +30,6 @@ compileFlags = [
     '-fno-strict-aliasing',
     '-msse2',
     '-fvisibility=hidden',
-    '-static',
     #'-fomit-frame-pointer'
     ]
 
