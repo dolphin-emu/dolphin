@@ -352,7 +352,8 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
         return PC_TEX_FMT_BGRA32;
     case GX_TF_I4:
         {
-#ifdef _WIN32
+//Works in GCC 4.3 and above, possibly 4.2 and above
+#if (defined(_WIN32) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3))
 			__m128i Lmask = _mm_set1_epi8 (0x0F);
 			__m128i Hmask = _mm_set1_epi8 (0xF0);
 			__m128i* sseSrc  = (__m128i *)src;
