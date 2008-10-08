@@ -8,15 +8,24 @@
 
 // Memory USAGE
 
+
+
+0x0B80 to 0x0C40			CurrentPB
+
+0x0B87
+
+0x0E15						SrcSelectFunction      // perhaps CMD0 setups some kind of jmp table at this addresses
+0x0E16						CoefFunction
+0x0E14						MixCtrlFunction
+
+0x0e17						TmpBuffer exceptions
+0x0e18						TmpBuffer exceptions
+0x0e19						TmpBuffer exceptions
+
+// instrcution memory
 0x0B31 to 0x0B33			some kind of JMP-Table to handle srcSelect ???
 0x0B34 to 0x0B36			some kind of JMP-Table to handle coefSelect ???
 0x0B11 to 0x0B1F			some kind of JMP-Table to handle mixerCtrl ???
-0x0B80 to 0x0C40			CurrentPB
-
-0x0E15								SrcSelectFunction      // perhaps CMD0 setups some kind of jmp table at this addresses
-0x0E16								CoefFunction
-0x0E14								MixCtrlFunction
-
 
 void CMD2()
 {
@@ -92,7 +101,7 @@ void CMD0()
 }
 
 
-void CMD2()
+void CMD3()
 {
 
 	0x0E07 = R00

@@ -1,0 +1,2585 @@
+// documented UCode of Crazy Taxi
+//
+//
+
+////////////////////////////////////////////////////////////
+// MemMap
+//
+
+
+0x0000
+0x0140
+0x0280
+0x0400
+0x0540
+0x0680
+0x07C0
+0x0900
+0x0A40
+0x0B80 to 0x0C40			CurrentPB
+
+0x0B87
+
+// addresses to buffers
+0x0E08
+0x0E09
+0x0E0A
+0x0E0B
+0x0E0C
+0x0E0D
+0x0E0E
+0x0E0F
+0x0E10
+
+
+// callbacks
+0x0E15						SrcSelectFunction      // perhaps CMD0 setups some kind of jmp table at this addresses
+0x0E16						CoefFunction
+0x0E14						MixCtrlFunction
+
+0x0e17						TmpBuffer exceptions
+0x0e18						TmpBuffer exceptions
+0x0e19						TmpBuffer exceptions
+
+
+
+
+
+////////////////////////////////////////////////////////////
+// Code
+//
+
+
+
+0000 0000      NOP	
+0001 0000      NOP	
+0002 029f 0c10 JMP	0x0c10
+0004 029f 0c1f JMP	0x0c1f
+0006 029f 0c3b JMP	0x0c3b
+0008 029f 0c4a JMP	0x0c4a
+000a 029f 0c50 JMP	0x0c50
+000c 029f 0c82 JMP	0x0c82
+000e 029f 0c88 JMP	0x0c88
+
+
+Init-Code()
+
+0010 1302      SBSET	#0x02
+0011 1303      SBSET	#0x03
+0012 1204      SBCLR	#0x04
+0013 1305      SBSET	#0x05
+0014 1306      SBSET	#0x06
+0015 8e00      S40	
+0016 8c00      CLR15	
+0017 8b00      M0	
+0018 0092 00ff LRI	$18, #0x00ff
+001a 8100      CLR	$30
+001b 8900      CLR	$31
+001c 009e 0e80 LRI	$30, #0x0e80
+001e 00fe 0e1b SR	@0x0e1b, $30
+0020 8100      CLR	$30
+0021 00fe 0e31 SR	@0x0e31, $30
+0023 16fc dcd1 SI	@DMBH, #0xdcd1
+0025 16fd 0000 SI	@DMBL, #0x0000
+0027 16fb 0001 SI	@DIRQ, #0x0001
+
+// wait for mail
+0029 26fc      LRS	$30, @DMBH
+002a 02a0 8000 ANDCF	$30, #0x8000
+002c 029c 0029 JZR	0x0029
+
+002e 029f 0045 JMP	0x0045
+
+
+
+0030 1302      SBSET	#0x02
+0031 1303      SBSET	#0x03
+0032 1204      SBCLR	#0x04
+0033 1305      SBSET	#0x05
+0034 1306      SBSET	#0x06
+0035 8e00      S40	
+0036 8c00      CLR15	
+0037 8b00      M0	
+0038 0092 00ff LRI	$18, #0x00ff
+003a 16fc dcd1 SI	@DMBH, #0xdcd1
+003c 16fd 0001 SI	@DMBL, #0x0001
+003e 16fb 0001 SI	@DIRQ, #0x0001
+0040 26fc      LRS	$30, @DMBH
+0041 02a0 8000 ANDCF	$30, #0x8000
+0043 029c 0040 JZR	0x0040
+
+------------------------------------------------------------
+Main()
+
+0045 8e00      S40	
+0046 8100      CLR	$30
+0047 8900      CLR	$31
+0048 009f babe LRI	$31, #0xbabe
+004a 26fe      LRS	$30, @CMBH
+004b 02c0 8000 ANDF	$30, #0x8000
+004d 029c 004a JZR	0x004a
+004f 8200      CMP	
+0050 0294 004a JNE	0x004a
+0052 23ff      LRS	$27, @CMBL
+0053 8100      CLR	$30
+0054 26fe      LRS	$30, @CMBH
+0055 02c0 8000 ANDF	$30, #0x8000
+0057 029c 0054 JZR	0x0054
+0059 27ff      LRS	$31, @CMBL
+005a 0240 7fff ANDI	$32, #0x7fff
+005c 2ece      SRS	@DSMAH, $30
+005d 2fcf      SRS	@DSMAL, $31
+005e 16cd 0c00 SI	@DSPA, #0x0c00
+0060 8100      CLR	$30
+0061 2ec9      SRS	@DSCR, $30
+0062 1ffb      MRR	$31, $27
+0063 2fcb      SRS	@DSBL, $31
+0064 02bf 055c CALL	0x055c
+0066 0080 0c00 LRI	$0, #0x0c00
+
+
+0068 8e00      S40	
+0069 8100      CLR	$30
+006a 8970      CLRhL	$31 : $30, @$0
+006b b100      TST	$30
+006c 0291 007e JX1	0x007e
+
+
+// check if the code it out of Opcode is > 0x12 if so send a 0xBAAD and HALT
+006e 0a12      LRIS	$26, #0x12
+006f c100      CMPAXH	$30, $26
+0070 0292 007e JX2	0x007e
+
+0072 009f 0aff LRI	$31, #0x0aff   // load jump table base address
+0074 4c00      ADD	$30, $31
+0075 1c7e      MRR	$3, $30
+0076 0213      ILRR	$30, @$3
+0077 1c7e      MRR	$3, $30
+0078 176f      JMPR	$3				// jump to the opcode
+
+
+// HALT - but this one seems to be unreachable
+0079 16fc fbad SI	@DMBH, #0xfbad
+007b 16fd 8080 SI	@DMBL, #0x8080
+007d 0021      HALT	
+
+// we got a wrong opcode - HALT
+007e 16fc baad SI	@DMBH, #0xbaad
+0080 2efd      SRS	@DMBL, $30
+0081 0021      HALT
+
+
+////////
+// Opcode_00()
+	
+0082 8100      CLR	$30
+0083 8970      CLRhL	$31 : $30, @$0
+0084 8e78      S40hL	: $31, @$0
+0085 2ece      SRS	@DSMAH, $30
+0086 2fcf      SRS	@DSMAL, $31
+0087 009e 0e44 LRI	$30, #0x0e44
+0089 2ecd      SRS	@DSPA, $30
+008a 0e00      LRIS	$30, #0x00
+008b 2ec9      SRS	@DSCR, $30
+008c 009e 0040 LRI	$30, #0x0040
+008e 2ecb      SRS	@DSBL, $30
+008f 0081 0e44 LRI	$1, #0x0e44
+0091 0082 0000 LRI	$2, #0x0000
+0093 009b 009f LRI	$27, #0x009f
+0095 009a 0140 LRI	$26, #0x0140
+0097 8100      CLR	$30
+0098 8900      CLR	$31
+0099 8f00      S16	
+009a 02bf 055c CALL	0x055c
+009c 193e      LRRI	$30, @$1
+009d 193c      LRRI	$28, @$1
+009e b100      TST	$30
+009f 193f      LRRI	$31, @$1
+00a0 0294 00a6 JNE	0x00a6
+00a2 005a      LOOP	$26
+00a3 1b5e      SRRI	@$2, $30
+00a4 029f 00ae JMP	0x00ae
+00a6 9900      ASR16	$31
+00a7 1b5e      SRRI	@$2, $30
+00a8 1b5c      SRRI	@$2, $28
+00a9 007b 00ad BLOOP	$27, 0x00ad
+00ab 4c00      ADD	$30, $31
+00ac 1b5e      SRRI	@$2, $30
+00ad 1b5c      SRRI	@$2, $28
+00ae 193e      LRRI	$30, @$1
+00af 193c      LRRI	$28, @$1
+00b0 b100      TST	$30
+00b1 193f      LRRI	$31, @$1
+00b2 0294 00b8 JNE	0x00b8
+00b4 005a      LOOP	$26
+00b5 1b5e      SRRI	@$2, $30
+00b6 029f 00c0 JMP	0x00c0
+00b8 9900      ASR16	$31
+00b9 1b5e      SRRI	@$2, $30
+00ba 1b5c      SRRI	@$2, $28
+00bb 007b 00bf BLOOP	$27, 0x00bf
+00bd 4c00      ADD	$30, $31
+00be 1b5e      SRRI	@$2, $30
+00bf 1b5c      SRRI	@$2, $28
+00c0 193e      LRRI	$30, @$1
+00c1 193c      LRRI	$28, @$1
+00c2 b100      TST	$30
+00c3 193f      LRRI	$31, @$1
+00c4 0294 00ca JNE	0x00ca
+00c6 005a      LOOP	$26
+00c7 1b5e      SRRI	@$2, $30
+00c8 029f 00d2 JMP	0x00d2
+00ca 9900      ASR16	$31
+00cb 1b5e      SRRI	@$2, $30
+00cc 1b5c      SRRI	@$2, $28
+00cd 007b 00d1 BLOOP	$27, 0x00d1
+00cf 4c00      ADD	$30, $31
+00d0 1b5e      SRRI	@$2, $30
+00d1 1b5c      SRRI	@$2, $28
+00d2 0082 0400 LRI	$2, #0x0400
+00d4 193e      LRRI	$30, @$1
+00d5 193c      LRRI	$28, @$1
+00d6 b179      TSThL	$30 : $31, @$1
+00d7 0294 00dd JNE	0x00dd
+00d9 005a      LOOP	$26
+00da 1b5e      SRRI	@$2, $30
+00db 029f 00e5 JMP	0x00e5
+00dd 9900      ASR16	$31
+00de 1b5e      SRRI	@$2, $30
+00df 1b5c      SRRI	@$2, $28
+00e0 007b 00e4 BLOOP	$27, 0x00e4
+00e2 4c00      ADD	$30, $31
+00e3 1b5e      SRRI	@$2, $30
+00e4 1b5c      SRRI	@$2, $28
+00e5 193e      LRRI	$30, @$1
+00e6 193c      LRRI	$28, @$1
+00e7 b179      TSThL	$30 : $31, @$1
+00e8 0294 00ee JNE	0x00ee
+00ea 005a      LOOP	$26
+00eb 1b5e      SRRI	@$2, $30
+00ec 029f 00f6 JMP	0x00f6
+00ee 9900      ASR16	$31
+00ef 1b5e      SRRI	@$2, $30
+00f0 1b5c      SRRI	@$2, $28
+00f1 007b 00f5 BLOOP	$27, 0x00f5
+00f3 4c00      ADD	$30, $31
+00f4 1b5e      SRRI	@$2, $30
+00f5 1b5c      SRRI	@$2, $28
+00f6 193e      LRRI	$30, @$1
+00f7 193c      LRRI	$28, @$1
+00f8 b179      TSThL	$30 : $31, @$1
+00f9 0294 00ff JNE	0x00ff
+00fb 005a      LOOP	$26
+00fc 1b5e      SRRI	@$2, $30
+00fd 029f 0107 JMP	0x0107
+00ff 9900      ASR16	$31
+0100 1b5e      SRRI	@$2, $30
+0101 1b5c      SRRI	@$2, $28
+0102 007b 0106 BLOOP	$27, 0x0106
+0104 4c00      ADD	$30, $31
+0105 1b5e      SRRI	@$2, $30
+0106 1b5c      SRRI	@$2, $28
+0107 0082 07c0 LRI	$2, #0x07c0
+0109 193e      LRRI	$30, @$1
+010a 193c      LRRI	$28, @$1
+010b b179      TSThL	$30 : $31, @$1
+010c 0294 0112 JNE	0x0112
+010e 005a      LOOP	$26
+010f 1b5e      SRRI	@$2, $30
+0110 029f 011a JMP	0x011a
+0112 9900      ASR16	$31
+0113 1b5e      SRRI	@$2, $30
+0114 1b5c      SRRI	@$2, $28
+0115 007b 0119 BLOOP	$27, 0x0119
+0117 4c00      ADD	$30, $31
+0118 1b5e      SRRI	@$2, $30
+0119 1b5c      SRRI	@$2, $28
+011a 193e      LRRI	$30, @$1
+011b 193c      LRRI	$28, @$1
+011c b179      TSThL	$30 : $31, @$1
+011d 0294 0123 JNE	0x0123
+011f 005a      LOOP	$26
+0120 1b5e      SRRI	@$2, $30
+0121 029f 012b JMP	0x012b
+0123 9900      ASR16	$31
+0124 1b5e      SRRI	@$2, $30
+0125 1b5c      SRRI	@$2, $28
+0126 007b 012a BLOOP	$27, 0x012a
+0128 4c00      ADD	$30, $31
+0129 1b5e      SRRI	@$2, $30
+012a 1b5c      SRRI	@$2, $28
+012b 193e      LRRI	$30, @$1
+012c 193c      LRRI	$28, @$1
+012d b179      TSThL	$30 : $31, @$1
+012e 0294 0134 JNE	0x0134
+0130 005a      LOOP	$26
+0131 1b5e      SRRI	@$2, $30
+0132 029f 013c JMP	0x013c
+0134 9900      ASR16	$31
+0135 1b5e      SRRI	@$2, $30
+0136 1b5c      SRRI	@$2, $28
+0137 007b 013b BLOOP	$27, 0x013b
+0139 4c00      ADD	$30, $31
+013a 1b5e      SRRI	@$2, $30
+013b 1b5c      SRRI	@$2, $28
+013c 029f 0068 JMP	0x0068
+
+
+// Opcode_01()
+013e 0085 ffff LRI	$5, #0xffff
+0140 8150      CLRhL	$30 : $26, @$0
+0141 8940      CLRhL	$31 : $24, @$0
+0142 8e48      S40hL	: $25, @$0
+0143 00fa 0e17 SR	@0x0e17, $26
+0145 00f8 0e18 SR	@0x0e18, $24
+0147 0081 0000 LRI	$1, #0x0000
+0149 02bf 04f1 CALL	0x04f1
+014b 00da 0e17 LR	$26, @0x0e17
+014d 00d8 0e18 LR	$24, @0x0e18
+014f 8948      CLRhL	$31 : $25, @$0
+0150 0081 0400 LRI	$1, #0x0400
+0152 02bf 04f1 CALL	0x04f1
+0154 00da 0e17 LR	$26, @0x0e17
+0156 00d8 0e18 LR	$24, @0x0e18
+0158 8948      CLRhL	$31 : $25, @$0
+0159 0081 07c0 LRI	$1, #0x07c0
+015b 02bf 04f1 CALL	0x04f1
+015d 029f 0068 JMP	0x0068
+
+
+// Opcode_09()
+015f 0086 07c0 LRI	$6, #0x07c0
+0161 02bf 0484 CALL	0x0484
+0163 029f 0068 JMP	0x0068
+
+
+// Opcode_06()
+0165 8100      CLR	$30
+0166 8e00      S40	
+0167 191e      LRRI	$30, @$0
+0168 191c      LRRI	$28, @$0
+0169 2ece      SRS	@DSMAH, $30
+016a 2ccf      SRS	@DSMAL, $28
+016b 16cd 0000 SI	@DSPA, #0x0000
+016d 16c9 0001 SI	@DSCR, #0x0001
+016f 16cb 0780 SI	@DSBL, #0x0780
+0171 02bf 055c CALL	0x055c
+0173 029f 0068 JMP	0x0068
+
+
+// Opcode_17()
+0175 8100      CLR	$30
+0176 8970      CLRhL	$31 : $30, @$0
+0177 8e60      S40hL	: $28, @$0
+0178 2ece      SRS	@DSMAH, $30
+0179 2ccf      SRS	@DSMAL, $28
+017a 16cd 0e44 SI	@DSPA, #0x0e44
+017c 16c9 0000 SI	@DSCR, #0x0000
+017e 8900      CLR	$31
+017f 0d20      LRIS	$29, #0x20
+0180 2dcb      SRS	@DSBL, $29
+0181 4c00      ADD	$30, $31
+0182 1c80      MRR	$4, $0
+0183 0080 0280 LRI	$0, #0x0280
+0185 0081 0000 LRI	$1, #0x0000
+0187 0082 0140 LRI	$2, #0x0140
+0189 0083 0e44 LRI	$3, #0x0e44
+018b 0a00      LRIS	$26, #0x00
+018c 27c9      LRS	$31, @DSCR
+018d 03a0 0004 ANDCF	$31, #0x0004
+018f 029c 018c JZR	0x018c
+0191 2ece      SRS	@DSMAH, $30
+0192 2ccf      SRS	@DSMAL, $28
+0193 16cd 0e54 SI	@DSPA, #0x0e54
+0195 16c9 0000 SI	@DSCR, #0x0000
+0197 16cb 0260 SI	@DSBL, #0x0260
+0199 009f 00a0 LRI	$31, #0x00a0
+019b 8f00      S16	
+019c 007f 01a5 BLOOP	$31, 0x01a5
+019e 197e      LRRI	$30, @$3
+019f 1b1a      SRRI	@$0, $26
+01a0 197c      LRRI	$28, @$3
+01a1 1b1a      SRRI	@$0, $26
+01a2 1b5e      SRRI	@$2, $30
+01a3 7c22      NEGhS	$30 : @$2, $28
+01a4 1b3e      SRRI	@$1, $30
+01a5 1b3c      SRRI	@$1, $28
+01a6 1c04      MRR	$0, $4
+01a7 029f 0068 JMP	0x0068
+
+
+// Opcode_13()
+01a9 8e70      S40hL	: $30, @$0
+01aa 8960      CLRhL	$31 : $28, @$0
+01ab 191f      LRRI	$31, @$0
+01ac 2ece      SRS	@DSMAH, $30
+01ad 2ccf      SRS	@DSMAL, $28
+01ae 16cd 0c00 SI	@DSPA, #0x0c00
+01b0 16c9 0000 SI	@DSCR, #0x0000
+01b2 0503      ADDIS	$33, #0x03
+01b3 0340 fff0 ANDI	$33, #0xfff0
+01b5 2fcb      SRS	@DSBL, $31
+01b6 02bf 055c CALL	0x055c
+01b8 0080 0c00 LRI	$0, #0x0c00
+01ba 029f 0068 JMP	0x0068
+
+
+// Opcode_02()
+01bc 8100      CLR	$30
+01bd 8970      CLRhL	$31 : $30, @$0
+01be 8e78      S40hL	: $31, @$0
+01bf 2ece      SRS	@DSMAH, $30
+01c0 2fcf      SRS	@DSMAL, $31
+01c1 16cd 0b80 SI	@DSPA, #0x0b80
+01c3 16c9 0000 SI	@DSCR, #0x0000
+01c5 16cb 00c0 SI	@DSBL, #0x00c0
+01c7 0082 0e08 LRI	$2, #0x0e08
+01c9 009f 0000 LRI	$31, #0x0000
+01cb 1b5f      SRRI	@$2, $31
+01cc 009f 0140 LRI	$31, #0x0140
+01ce 1b5f      SRRI	@$2, $31
+01cf 009f 0280 LRI	$31, #0x0280
+01d1 1b5f      SRRI	@$2, $31
+01d2 009f 0400 LRI	$31, #0x0400
+01d4 1b5f      SRRI	@$2, $31
+01d5 009f 0540 LRI	$31, #0x0540
+01d7 1b5f      SRRI	@$2, $31
+01d8 009f 0680 LRI	$31, #0x0680
+01da 1b5f      SRRI	@$2, $31
+01db 009f 07c0 LRI	$31, #0x07c0
+01dd 1b5f      SRRI	@$2, $31
+01de 009f 0900 LRI	$31, #0x0900
+01e0 1b5f      SRRI	@$2, $31
+01e1 009f 0a40 LRI	$31, #0x0a40
+01e3 1b5f      SRRI	@$2, $31
+01e4 02bf 055c CALL	0x055c
+01e6 00de 0ba7 LR	$30, @0x0ba7		// current PB  PBInitialTimeDelay[o]
+01e8 00df 0ba8 LR	$31, @0x0ba8		// current PB  PBInitialTimeDelay[1]
+01ea 2ece      SRS	@DSMAH, $30
+01eb 2fcf      SRS	@DSMAL, $31
+01ec 16cd 03c0 SI	@DSPA, #0x03c0
+01ee 16c9 0000 SI	@DSCR, #0x0000
+01f0 16cb 0080 SI	@DSBL, #0x0080
+01f2 8100      CLR	$30
+01f3 8900      CLR	$31
+01f4 00de 0b84 LR	$30, @0x0b84		// current PB src_type
+01f6 009f 0b31 LRI	$31, #0x0b31		// src type jmp table base addr
+01f8 4c00      ADD	$30, $31
+01f9 1c7e      MRR	$3, $30
+01fa 0213      ILRR	$30, @$3
+01fb 00fe 0e15 SR	@0x0e15, $30
+01fd 00de 0b85 LR	$30, @0x0b85
+01ff 009f 0b34 LRI	$31, #0x0b34
+0201 4c00      ADD	$30, $31
+0202 1c7e      MRR	$3, $30
+0203 0213      ILRR	$30, @$3
+0204 00fe 0e16 SR	@0x0e16, $30
+0206 00de 0b86 LR	$30, @0x0b86		// current PB mixer_control
+0208 009f 0b11 LRI	$31, #0x0b11		// mixer control jmp table base addr
+020a 4c00      ADD	$30, $31
+020b 1c7e      MRR	$3, $30
+020c 0213      ILRR	$30, @$3
+020d 00fe 0e14 SR	@0x0e14, $30
+020f 8100      CLR	$30
+0210 00de 0b9b LR	$30, @0x0b9b
+0212 b100      TST	$30
+0213 0295 023a JEQ	0x023a
+0215 8900      CLR	$31
+0216 00df 0b9e LR	$31, @0x0b9e
+0218 0300 0cc0 ADDI	$33, #0x0cc0
+021a 00ff 0e40 SR	@0x0e40, $31
+021c 00df 0b9f LR	$31, @0x0b9f
+021e 0300 0cc0 ADDI	$33, #0x0cc0
+0220 00ff 0e41 SR	@0x0e41, $31
+0222 009f 0ce0 LRI	$31, #0x0ce0
+0224 00ff 0e42 SR	@0x0e42, $31
+0226 00ff 0e43 SR	@0x0e43, $31
+0228 02bf 055c CALL	0x055c
+022a 00de 0b9c LR	$30, @0x0b9c
+022c 2ece      SRS	@DSMAH, $30
+022d 00de 0b9d LR	$30, @0x0b9d
+022f 2ecf      SRS	@DSMAL, $30
+0230 16cd 0cc0 SI	@DSPA, #0x0cc0
+0232 16c9 0000 SI	@DSCR, #0x0000
+0234 16cb 0040 SI	@DSBL, #0x0040
+0236 02bf 055c CALL	0x055c
+0238 029f 0068 JMP	0x0068				// return out of the function
+023a 009f 0ce0 LRI	$31, #0x0ce0
+023c 00ff 0e42 SR	@0x0e42, $31
+023e 00ff 0e40 SR	@0x0e40, $31
+0240 00ff 0e41 SR	@0x0e41, $31
+0242 00ff 0e43 SR	@0x0e43, $31
+0244 02bf 055c CALL	0x055c
+0246 029f 0068 JMP	0x0068
+
+
+// Opcode_03()
+0248 8e00      S40	
+0249 00e0 0e07 SR	@0x0e07, $0
+024b 0080 0ba2 LRI	$0, #0x0ba2
+024d 0081 03c0 LRI	$1, #0x03c0
+024f 0e05      LRIS	$30, #0x05
+0250 00fe 0e04 SR	@0x0e04, $30
+0252 8900      CLR	$31
+0253 8150      CLRhL	$30 : $26, @$0
+0254 009f 0b80 LRI	$31, #0x0b80
+0256 007a 025b BLOOP	$26, 0x025b
+0258 193e      LRRI	$30, @$1
+0259 4c49      ADDhL	$30, $31 : $25, @$1
+025a 1c5e      MRR	$2, $30
+025b 1a59      SRR	@$2, $25
+025c 0083 0e05 LRI	$3, #0x0e05
+025e 1b61      SRRI	@$3, $1
+025f 1b60      SRRI	@$3, $0
+0260 00de 0b87 LR	$30, @0x0b87
+0262 0601      CMPIS	$32, #0x01
+0263 0295 0267 JEQ	0x0267
+0265 029f 0332 JMP	0x0332
+0267 00de 0e42 LR	$30, @0x0e42
+0269 00fe 0e1c SR	@0x0e1c, $30
+026b 00c3 0e15 LR	$3, @0x0e15
+026d 177f      CALLR	$3
+026e 8e00      S40	
+026f 8a00      M2	
+0270 8100      CLR	$30
+0271 8900      CLR	$31
+0272 00de 0bb3 LR	$30, @0x0bb3
+0274 00df 0bb2 LR	$31, @0x0bb2
+0276 1f1f      MRR	$24, $31
+0277 4d00      ADD	$31, $30
+0278 1481      ASL	$32, #0x01
+0279 8d1e      SET15hMV	: $27, $30
+027a 1fd8      MRR	$30, $24
+027b 0098 8000 LRI	$24, #0x8000
+027d 0080 0e44 LRI	$0, #0x0e44
+027f a830      MULXhS	$24, $27 : @$0, $30
+0280 ac38      MULXAChS	$24, $27, $30 : @$0, $31
+0281 ad30      MULXAChS	$24, $27, $31 : @$0, $30
+0282 ac38      MULXAChS	$24, $27, $30 : @$0, $31
+0283 ad30      MULXAChS	$24, $27, $31 : @$0, $30
+0284 ac38      MULXAChS	$24, $27, $30 : @$0, $31
+0285 ad30      MULXAChS	$24, $27, $31 : @$0, $30
+0286 ac38      MULXAChS	$24, $27, $30 : @$0, $31
+0287 ad30      MULXAChS	$24, $27, $31 : @$0, $30
+0288 ac38      MULXAChS	$24, $27, $30 : @$0, $31
+0289 ad30      MULXAChS	$24, $27, $31 : @$0, $30
+028a ac38      MULXAChS	$24, $27, $30 : @$0, $31
+028b ad30      MULXAChS	$24, $27, $31 : @$0, $30
+028c ac38      MULXAChS	$24, $27, $30 : @$0, $31
+028d ad30      MULXAChS	$24, $27, $31 : @$0, $30
+028e ac38      MULXAChS	$24, $27, $30 : @$0, $31
+028f ad30      MULXAChS	$24, $27, $31 : @$0, $30
+0290 ac38      MULXAChS	$24, $27, $30 : @$0, $31
+0291 ad30      MULXAChS	$24, $27, $31 : @$0, $30
+0292 ac38      MULXAChS	$24, $27, $30 : @$0, $31
+0293 ad30      MULXAChS	$24, $27, $31 : @$0, $30
+0294 ac38      MULXAChS	$24, $27, $30 : @$0, $31
+0295 ad30      MULXAChS	$24, $27, $31 : @$0, $30
+0296 ac38      MULXAChS	$24, $27, $30 : @$0, $31
+0297 ad30      MULXAChS	$24, $27, $31 : @$0, $30
+0298 ac38      MULXAChS	$24, $27, $30 : @$0, $31
+0299 ad30      MULXAChS	$24, $27, $31 : @$0, $30
+029a ac38      MULXAChS	$24, $27, $30 : @$0, $31
+029b ad30      MULXAChS	$24, $27, $31 : @$0, $30
+029c ac38      MULXAChS	$24, $27, $30 : @$0, $31
+029d ad30      MULXAChS	$24, $27, $31 : @$0, $30
+029e ac38      MULXAChS	$24, $27, $30 : @$0, $31
+029f 00fe 0bb2 SR	@0x0bb2, $30
+02a1 8f00      S16	
+02a2 0080 0e44 LRI	$0, #0x0e44
+02a4 00c1 0e43 LR	$1, @0x0e43
+02a6 1c61      MRR	$3, $1
+02a7 193a      LRRI	$26, @$1
+02a8 1918      LRRI	$24, @$0
+02a9 9059      MULhL	$24, $26 : $27, @$1
+02aa 1919      LRRI	$25, @$0
+02ab 9e51      MULMVhL	$25, $27, $30 : $26, @$1
+02ac 8080      NXhLS	: $24, $30
+02ad 9759      MULMVhL	$24, $26, $31 : $27, @$1
+02ae 8091      NXhLS	: $25, $31
+02af 9e51      MULMVhL	$25, $27, $30 : $26, @$1
+02b0 8080      NXhLS	: $24, $30
+02b1 9759      MULMVhL	$24, $26, $31 : $27, @$1
+02b2 8091      NXhLS	: $25, $31
+02b3 9e51      MULMVhL	$25, $27, $30 : $26, @$1
+02b4 8080      NXhLS	: $24, $30
+02b5 9759      MULMVhL	$24, $26, $31 : $27, @$1
+02b6 8091      NXhLS	: $25, $31
+02b7 9e51      MULMVhL	$25, $27, $30 : $26, @$1
+02b8 8080      NXhLS	: $24, $30
+02b9 9759      MULMVhL	$24, $26, $31 : $27, @$1
+02ba 8091      NXhLS	: $25, $31
+02bb 9e51      MULMVhL	$25, $27, $30 : $26, @$1
+02bc 8080      NXhLS	: $24, $30
+02bd 9759      MULMVhL	$24, $26, $31 : $27, @$1
+02be 8091      NXhLS	: $25, $31
+02bf 9e51      MULMVhL	$25, $27, $30 : $26, @$1
+02c0 8080      NXhLS	: $24, $30
+02c1 9759      MULMVhL	$24, $26, $31 : $27, @$1
+02c2 8091      NXhLS	: $25, $31
+02c3 9e51      MULMVhL	$25, $27, $30 : $26, @$1
+02c4 8080      NXhLS	: $24, $30
+02c5 9759      MULMVhL	$24, $26, $31 : $27, @$1
+02c6 8091      NXhLS	: $25, $31
+02c7 9e51      MULMVhL	$25, $27, $30 : $26, @$1
+02c8 8080      NXhLS	: $24, $30
+02c9 9759      MULMVhL	$24, $26, $31 : $27, @$1
+02ca 8091      NXhLS	: $25, $31
+02cb 9e51      MULMVhL	$25, $27, $30 : $26, @$1
+02cc 8080      NXhLS	: $24, $30
+02cd 9759      MULMVhL	$24, $26, $31 : $27, @$1
+02ce 8091      NXhLS	: $25, $31
+02cf 9e51      MULMVhL	$25, $27, $30 : $26, @$1
+02d0 8080      NXhLS	: $24, $30
+02d1 9759      MULMVhL	$24, $26, $31 : $27, @$1
+02d2 8091      NXhLS	: $25, $31
+02d3 9e51      MULMVhL	$25, $27, $30 : $26, @$1
+02d4 8080      NXhLS	: $24, $30
+02d5 9759      MULMVhL	$24, $26, $31 : $27, @$1
+02d6 8091      NXhLS	: $25, $31
+02d7 9e51      MULMVhL	$25, $27, $30 : $26, @$1
+02d8 8080      NXhLS	: $24, $30
+02d9 9759      MULMVhL	$24, $26, $31 : $27, @$1
+02da 8091      NXhLS	: $25, $31
+02db 9e51      MULMVhL	$25, $27, $30 : $26, @$1
+02dc 8080      NXhLS	: $24, $30
+02dd 9759      MULMVhL	$24, $26, $31 : $27, @$1
+02de 8091      NXhLS	: $25, $31
+02df 9e51      MULMVhL	$25, $27, $30 : $26, @$1
+02e0 8080      NXhLS	: $24, $30
+02e1 9759      MULMVhL	$24, $26, $31 : $27, @$1
+02e2 8091      NXhLS	: $25, $31
+02e3 9e51      MULMVhL	$25, $27, $30 : $26, @$1
+02e4 8080      NXhLS	: $24, $30
+02e5 9759      MULMVhL	$24, $26, $31 : $27, @$1
+02e6 8091      NXhLS	: $25, $31
+02e7 9e00      MULMV	$25, $27, $30
+02e8 6f33      MOVPhS	$31 : @$3, $30
+02e9 1b7f      SRRI	@$3, $31
+02ea 00c3 0e14 LR	$3, @0x0e14
+02ec 8f00      S16	
+02ed 8d00      SET15	
+02ee 8a00      M2	
+02ef 177f      CALLR	$3
+02f0 8100      CLR	$30
+02f1 00de 0b9b LR	$30, @0x0b9b
+02f3 b100      TST	$30
+02f4 0295 032a JEQ	0x032a
+02f6 00de 0e42 LR	$30, @0x0e42
+02f8 00fe 0e43 SR	@0x0e43, $30
+02fa 8100      CLR	$30
+02fb 8900      CLR	$31
+02fc 00de 0b9e LR	$30, @0x0b9e
+02fe 00df 0ba0 LR	$31, @0x0ba0
+0300 8200      CMP	
+0301 0293 0306 JX3	0x0306
+0303 7800      DECM	$30
+0304 029f 0309 JMP	0x0309
+0306 0295 0309 JEQ	0x0309
+0308 7400      INCM	$30
+0309 00fe 0b9e SR	@0x0b9e, $30
+030b 00df 0e43 LR	$31, @0x0e43
+030d 05e0      ADDIS	$33, #0xe0
+030e 4c00      ADD	$30, $31
+030f 00fe 0e40 SR	@0x0e40, $30
+0311 8100      CLR	$30
+0312 8900      CLR	$31
+0313 00de 0b9f LR	$30, @0x0b9f
+0315 00df 0ba1 LR	$31, @0x0ba1
+0317 8200      CMP	
+0318 0293 031d JX3	0x031d
+031a 7800      DECM	$30
+031b 029f 0320 JMP	0x0320
+031d 0295 0320 JEQ	0x0320
+031f 7400      INCM	$30
+0320 00fe 0b9f SR	@0x0b9f, $30
+0322 00df 0e43 LR	$31, @0x0e43
+0324 05e0      ADDIS	$33, #0xe0
+0325 4c00      ADD	$30, $31
+0326 00fe 0e41 SR	@0x0e41, $30
+0328 029f 0332 JMP	0x0332
+032a 00de 0e42 LR	$30, @0x0e42
+032c 00fe 0e40 SR	@0x0e40, $30
+032e 00fe 0e41 SR	@0x0e41, $30
+0330 00fe 0e43 SR	@0x0e43, $30
+0332 8100      CLR	$30
+0333 8e00      S40	
+0334 8400      CLRP	
+0335 8900      CLR	$31
+0336 1efe      MRR	$23, $30
+0337 0e40      LRIS	$30, #0x40
+0338 1ebe      MRR	$21, $30
+0339 0083 0e08 LRI	$3, #0x0e08
+033b 1c03      MRR	$0, $3
+033c 1ff5      MRR	$31, $21
+033d 191a      LRRI	$26, @$0
+033e f858      ADDPAXZhL	$30, $26 : $27, @$0
+033f fba0      ADDPAXZhLS	$31, $27 : $26, $30
+0340 f8b1      ADDPAXZhLS	$30, $26 : $27, $31
+0341 fba0      ADDPAXZhLS	$31, $27 : $26, $30
+0342 f8b1      ADDPAXZhLS	$30, $26 : $27, $31
+0343 fba0      ADDPAXZhLS	$31, $27 : $26, $30
+0344 f8b1      ADDPAXZhLS	$30, $26 : $27, $31
+0345 fba0      ADDPAXZhLS	$31, $27 : $26, $30
+0346 f83b      ADDPAXZhS	$30, $26 : @$3, $31
+0347 1b7e      SRRI	@$3, $30
+0348 0083 0e04 LRI	$3, #0x0e04
+034a 8100      CLR	$30
+034b 8973      CLRhL	$31 : $30, @$3
+034c 1961      LRRI	$1, @$3
+034d 1960      LRRI	$0, @$3
+034e 7800      DECM	$30
+034f 00fe 0e04 SR	@0x0e04, $30
+0351 0294 0253 JNE	0x0253
+0353 8e00      S40	
+0354 8100      CLR	$30
+0355 00de 0b9b LR	$30, @0x0b9b
+0357 b100      TST	$30
+0358 0295 036a JEQ	0x036a
+035a 00de 0b9c LR	$30, @0x0b9c
+035c 00dc 0b9d LR	$28, @0x0b9d
+035e 2ece      SRS	@DSMAH, $30
+035f 2ccf      SRS	@DSMAL, $28
+0360 8100      CLR	$30
+0361 00de 0e1c LR	$30, @0x0e1c
+0363 2ecd      SRS	@DSPA, $30
+0364 16c9 0001 SI	@DSCR, #0x0001
+0366 16cb 0040 SI	@DSBL, #0x0040
+0368 02bf 055c CALL	0x055c
+036a 8100      CLR	$30
+036b 8900      CLR	$31
+036c 00de 0b82 LR	$30, @0x0b82
+036e 00df 0b83 LR	$31, @0x0b83
+0370 2ece      SRS	@DSMAH, $30
+0371 2fcf      SRS	@DSMAL, $31
+0372 16cd 0b80 SI	@DSPA, #0x0b80
+0374 16c9 0001 SI	@DSCR, #0x0001
+0376 16cb 00c0 SI	@DSBL, #0x00c0
+0378 02bf 055c CALL	0x055c
+037a 8100      CLR	$30
+
+// check if there is a another PB linked, if yes copy and setup this one (like Opcode2())
+037b 00de 0b80 LR	$30, @0x0b80
+037d 00dc 0b81 LR	$28, @0x0b81
+037f b100      TST	$30
+0380 0294 0386 JNE	0x0386
+0382 00c0 0e07 LR	$0, @0x0e07
+0384 029f 0068 JMP	0x0068				--> return to next opcode
+
+// copy the next PB to memory
+0386 2ece      SRS	@DSMAH, $30
+0387 2ccf      SRS	@DSMAL, $28
+0388 16cd 0b80 SI	@DSPA, #0x0b80
+038a 16c9 0000 SI	@DSCR, #0x0000
+038c 16cb 00c0 SI	@DSBL, #0x00c0
+038e 0082 0e08 LRI	$2, #0x0e08
+0390 009f 0000 LRI	$31, #0x0000
+0392 1b5f      SRRI	@$2, $31
+0393 009f 0140 LRI	$31, #0x0140
+0395 1b5f      SRRI	@$2, $31
+0396 009f 0280 LRI	$31, #0x0280
+0398 1b5f      SRRI	@$2, $31
+0399 009f 0400 LRI	$31, #0x0400
+039b 1b5f      SRRI	@$2, $31
+039c 009f 0540 LRI	$31, #0x0540
+039e 1b5f      SRRI	@$2, $31
+039f 009f 0680 LRI	$31, #0x0680
+03a1 1b5f      SRRI	@$2, $31
+03a2 009f 07c0 LRI	$31, #0x07c0
+03a4 1b5f      SRRI	@$2, $31
+03a5 009f 0900 LRI	$31, #0x0900
+03a7 1b5f      SRRI	@$2, $31
+03a8 009f 0a40 LRI	$31, #0x0a40
+03aa 1b5f      SRRI	@$2, $31
+03ab 02bf 055c CALL	0x055c
+03ad 00de 0ba7 LR	$30, @0x0ba7
+03af 00df 0ba8 LR	$31, @0x0ba8
+03b1 2ece      SRS	@DSMAH, $30
+03b2 2fcf      SRS	@DSMAL, $31
+03b3 16cd 03c0 SI	@DSPA, #0x03c0
+03b5 16c9 0000 SI	@DSCR, #0x0000
+03b7 16cb 0080 SI	@DSBL, #0x0080
+03b9 8100      CLR	$30
+03ba 8900      CLR	$31
+03bb 00de 0b84 LR	$30, @0x0b84
+03bd 009f 0b31 LRI	$31, #0x0b31
+03bf 4c00      ADD	$30, $31
+03c0 1c7e      MRR	$3, $30
+03c1 0213      ILRR	$30, @$3
+03c2 00fe 0e15 SR	@0x0e15, $30
+03c4 00de 0b85 LR	$30, @0x0b85
+03c6 009f 0b34 LRI	$31, #0x0b34
+03c8 4c00      ADD	$30, $31
+03c9 1c7e      MRR	$3, $30
+03ca 0213      ILRR	$30, @$3
+03cb 00fe 0e16 SR	@0x0e16, $30
+03cd 00de 0b86 LR	$30, @0x0b86
+03cf 009f 0b11 LRI	$31, #0x0b11
+03d1 4c00      ADD	$30, $31
+03d2 1c7e      MRR	$3, $30
+03d3 0213      ILRR	$30, @$3
+03d4 00fe 0e14 SR	@0x0e14, $30
+03d6 8100      CLR	$30
+03d7 00de 0b9b LR	$30, @0x0b9b
+03d9 b100      TST	$30
+03da 0295 0403 JEQ	0x0403
+03dc 8900      CLR	$31
+03dd 00df 0b9e LR	$31, @0x0b9e
+03df 0300 0cc0 ADDI	$33, #0x0cc0
+03e1 00ff 0e40 SR	@0x0e40, $31
+03e3 00df 0b9f LR	$31, @0x0b9f
+03e5 0300 0cc0 ADDI	$33, #0x0cc0
+03e7 00ff 0e41 SR	@0x0e41, $31
+03e9 009f 0ce0 LRI	$31, #0x0ce0
+03eb 00ff 0e42 SR	@0x0e42, $31
+03ed 00ff 0e43 SR	@0x0e43, $31
+03ef 02bf 055c CALL	0x055c
+03f1 00de 0b9c LR	$30, @0x0b9c
+03f3 2ece      SRS	@DSMAH, $30
+03f4 00de 0b9d LR	$30, @0x0b9d
+03f6 2ecf      SRS	@DSMAL, $30
+03f7 16cd 0cc0 SI	@DSPA, #0x0cc0
+03f9 16c9 0000 SI	@DSCR, #0x0000
+03fb 16cb 0040 SI	@DSBL, #0x0040
+03fd 02bf 055c CALL	0x055c				// wait for DMA
+03ff 00c0 0e07 LR	$0, @0x0e07
+0401 029f 0248 JMP	0x0248				// Opcode3()  - "self calling"
+
+0403 009f 0ce0 LRI	$31, #0x0ce0
+0405 00ff 0e42 SR	@0x0e42, $31
+0407 00ff 0e40 SR	@0x0e40, $31
+0409 00ff 0e41 SR	@0x0e41, $31
+040b 00ff 0e43 SR	@0x0e43, $31
+040d 02bf 055c CALL	0x055c
+040f 00c0 0e07 LR	$0, @0x0e07
+0411 029f 0248 JMP	0x0248				// Opcode3()  - "self calling"
+
+
+// Opcode_04()
+0413 8e00      S40	
+0414 0086 0400 LRI	$6, #0x0400
+0416 8100      CLR	$30
+0417 8970      CLRhL	$31 : $30, @$0
+0418 191c      LRRI	$28, @$0
+0419 2ece      SRS	@DSMAH, $30
+041a 2ccf      SRS	@DSMAL, $28
+041b 1fc6      MRR	$30, $6
+041c 2ecd      SRS	@DSPA, $30
+041d 16c9 0001 SI	@DSCR, #0x0001
+041f 16cb 0780 SI	@DSBL, #0x0780
+0421 02bf 055c CALL	0x055c
+0423 02bf 0484 CALL	0x0484
+0425 029f 0068 JMP	0x0068
+
+
+// Opcode_05()
+0427 8e00      S40	
+0428 0086 07c0 LRI	$6, #0x07c0
+042a 8100      CLR	$30
+042b 8970      CLRhL	$31 : $30, @$0
+042c 191c      LRRI	$28, @$0
+042d 2ece      SRS	@DSMAH, $30
+042e 2ccf      SRS	@DSMAL, $28
+042f 1fc6      MRR	$30, $6
+0430 2ecd      SRS	@DSPA, $30
+0431 16c9 0001 SI	@DSCR, #0x0001
+0433 16cb 0780 SI	@DSBL, #0x0780
+0435 02bf 055c CALL	0x055c
+0437 02bf 0484 CALL	0x0484
+0439 029f 0068 JMP	0x0068
+
+
+// Opcode_14()
+043b 8c00      CLR15	
+043c 8a00      M2	
+043d 8100      CLR	$30
+043e 8970      CLRhL	$31 : $30, @$0
+043f 191f      LRRI	$31, @$0
+0440 2ece      SRS	@DSMAH, $30
+0441 2fcf      SRS	@DSMAL, $31
+0442 16cd 0280 SI	@DSPA, #0x0280
+0444 16c9 0001 SI	@DSCR, #0x0001
+0446 16cb 0280 SI	@DSBL, #0x0280
+0448 8f50      S16hL	: $26, @$0
+0449 8140      CLRhL	$30 : $24, @$0
+044a 0081 0400 LRI	$1, #0x0400
+044c 0083 0000 LRI	$3, #0x0000
+044e 0082 0140 LRI	$2, #0x0140
+0450 0099 0080 LRI	$25, #0x0080
+0452 02bf 055c CALL	0x055c
+0454 1105 046c BLOOPI	#0x05, 0x046c
+0456 1f61      MRR	$27, $1
+0457 1120 045e BLOOPI	#0x20, 0x045e
+0459 8972      CLRhL	$31 : $30, @$2
+045a 195c      LRRI	$28, @$2
+045b f07b      LSL16hL	$30 : $31, @$3
+045c 197d      LRRI	$29, @$3
+045d f131      LSL16hS	$31 : @$1, $30
+045e 8139      CLRhS	$30 : @$1, $31
+045f 8900      CLR	$31
+0460 6800      MOVAX	$30, $24
+0461 2ece      SRS	@DSMAH, $30
+0462 2ccf      SRS	@DSMAL, $28
+0463 1ffb      MRR	$31, $27
+0464 2fcd      SRS	@DSPA, $31
+0465 0f01      LRIS	$31, #0x01
+0466 2fc9      SRS	@DSCR, $31
+0467 1ff9      MRR	$31, $25
+0468 2fcb      SRS	@DSBL, $31
+0469 7200      ADDAXL	$30, $25
+046a 1f5e      MRR	$26, $30
+046b 1f1c      MRR	$24, $28
+046c 8100      CLR	$30
+046d 26c9      LRS	$30, @DSCR
+046e 02a0 0004 ANDCF	$30, #0x0004
+0470 029c 046d JZR	0x046d
+0472 029f 0068 JMP	0x0068
+
+// Opcode_11() // just return to the messages loop
+0474 029f 0068 JMP	0x0068
+
+// Opcode_12() // just return to the messages loop
+0476 029f 0068 JMP	0x0068
+
+// Opcode_10() // just return to the messages loop
+0478 029f 0068 JMP	0x0068
+
+
+// Opcode_15()  // end AX List command  (write the 0xDCD10002 that we have executed the shit)
+047a 16fc dcd1 SI	@DMBH, #0xdcd1
+047c 16fd 0002 SI	@DMBL, #0x0002
+047e 16fb 0001 SI	@DIRQ, #0x0001
+0480 029f 0c91 JMP	0x0c91
+
+
+
+// looks like unused code
+0482 029f 0045 JMP	0x0045
+
+
+// no idea... it usesd for several opcodes
+// Opcode_04(), Opcode_05() and Opcode_09() calls it
+// perhaps some kind of filter??
+0484 8e00      S40	
+0485 191f      LRRI	$31, @$0
+0486 191d      LRRI	$29, @$0
+0487 1f5f      MRR	$26, $31
+0488 1f1d      MRR	$24, $29
+0489 2fce      SRS	@DSMAH, $31
+048a 2dcf      SRS	@DSMAL, $29
+048b 8900      CLR	$31
+048c 1fa6      MRR	$29, $6
+048d 2dcd      SRS	@DSPA, $29
+048e 0e00      LRIS	$30, #0x00
+048f 2ec9      SRS	@DSCR, $30
+0490 8100      CLR	$30
+0491 009c 00c0 LRI	$28, #0x00c0
+0493 2ccb      SRS	@DSBL, $28
+0494 1ca0      MRR	$5, $0
+0495 0081 0e44 LRI	$1, #0x0e44
+0497 4800      ADDAX	$30, $24
+0498 1b3e      SRRI	@$1, $30
+0499 1b3c      SRRI	@$1, $28
+049a 0b00      LRIS	$27, #0x00
+049b 0099 0060 LRI	$25, #0x0060
+049d 4b00      ADDAX	$31, $25
+049e 1b3d      SRRI	@$1, $29
+049f 0081 0e44 LRI	$1, #0x0e44
+04a1 1c06      MRR	$0, $6
+04a2 0083 0000 LRI	$3, #0x0000
+04a4 1c43      MRR	$2, $3
+04a5 27c9      LRS	$31, @DSCR
+04a6 03a0 0004 ANDCF	$31, #0x0004
+04a8 029c 04a5 JZR	0x04a5
+04aa 1109 04da BLOOPI	#0x09, 0x04da
+04ac 8e00      S40	
+04ad 193a      LRRI	$26, @$1
+04ae 1938      LRRI	$24, @$1
+04af 6900      MOVAX	$31, $24
+04b0 2fce      SRS	@DSMAH, $31
+04b1 2dcf      SRS	@DSMAL, $29
+04b2 8900      CLR	$31
+04b3 193d      LRRI	$29, @$1
+04b4 2dcd      SRS	@DSPA, $29
+04b5 16c9 0000 SI	@DSCR, #0x0000
+04b7 8100      CLR	$30
+04b8 009c 00c0 LRI	$28, #0x00c0
+04ba 2ccb      SRS	@DSBL, $28
+04bb 0081 0e44 LRI	$1, #0x0e44
+04bd 4800      ADDAX	$30, $24
+04be 1b3e      SRRI	@$1, $30
+04bf 1b3c      SRRI	@$1, $28
+04c0 0b00      LRIS	$27, #0x00
+04c1 0960      LRIS	$25, #0x60
+04c2 4b00      ADDAX	$31, $25
+04c3 1b3d      SRRI	@$1, $29
+04c4 0081 0e44 LRI	$1, #0x0e44
+04c6 8f00      S16	
+04c7 80f0      NXhLDX	: $25, $27, @$1
+04c8 80c0      NXhLDX	: $24, $26, @$0
+04c9 6a00      MOVAX	$30, $25
+04ca 4800      ADDAX	$30, $24
+04cb 1117 04d4 BLOOPI	#0x17, 0x04d4
+04cd 80f0      NXhLDX	: $25, $27, @$1
+04ce 80c0      NXhLDX	: $24, $26, @$0
+04cf 6b32      MOVAXhS	$31, $25 : @$2, $30
+04d0 4922      ADDAXhS	$31, $24 : @$2, $28
+04d1 80f0      NXhLDX	: $25, $27, @$1
+04d2 80c0      NXhLDX	: $24, $26, @$0
+04d3 6a3a      MOVAXhS	$30, $25 : @$2, $31
+04d4 482a      ADDAXhS	$30, $24 : @$2, $29
+04d5 80f0      NXhLDX	: $25, $27, @$1
+04d6 80c0      NXhLDX	: $24, $26, @$0
+04d7 6b32      MOVAXhS	$31, $25 : @$2, $30
+04d8 4922      ADDAXhS	$31, $24 : @$2, $28
+04d9 1b5f      SRRI	@$2, $31
+04da 1b5d      SRRI	@$2, $29
+04db 80f0      NXhLDX	: $25, $27, @$1
+04dc 80c0      NXhLDX	: $24, $26, @$0
+04dd 6a00      MOVAX	$30, $25
+04de 4800      ADDAX	$30, $24
+04df 1117 04e8 BLOOPI	#0x17, 0x04e8
+04e1 80f0      NXhLDX	: $25, $27, @$1
+04e2 80c0      NXhLDX	: $24, $26, @$0
+04e3 6b32      MOVAXhS	$31, $25 : @$2, $30
+04e4 4922      ADDAXhS	$31, $24 : @$2, $28
+04e5 80f0      NXhLDX	: $25, $27, @$1
+04e6 80c0      NXhLDX	: $24, $26, @$0
+04e7 6a3a      MOVAXhS	$30, $25 : @$2, $31
+04e8 482a      ADDAXhS	$30, $24 : @$2, $29
+04e9 80f0      NXhLDX	: $25, $27, @$1
+04ea 80c0      NXhLDX	: $24, $26, @$0
+04eb 6b32      MOVAXhS	$31, $25 : @$2, $30
+04ec 4922      ADDAXhS	$31, $24 : @$2, $28
+04ed 1b5f      SRRI	@$2, $31
+04ee 1b5d      SRRI	@$2, $29
+04ef 1c05      MRR	$0, $5
+04f0 02df      RET	
+04f1 8e00      S40	
+04f2 009b 0e44 LRI	$27, #0x0e44
+04f4 009d 00c0 LRI	$29, #0x00c0
+04f6 02bf 0541 CALL	0x0541
+04f8 4900      ADDAX	$31, $24
+04f9 00ff 0e1d SR	@0x0e1d, $31
+04fb 00fd 0e1e SR	@0x0e1e, $29
+04fd 8900      CLR	$31
+04fe 02bf 055c CALL	0x055c
+0500 1104 052c BLOOPI	#0x04, 0x052c
+0502 00da 0e1d LR	$26, @0x0e1d
+0504 00d8 0e1e LR	$24, @0x0e1e
+0506 009b 0ea4 LRI	$27, #0x0ea4
+0508 009d 00c0 LRI	$29, #0x00c0
+050a 02bf 0541 CALL	0x0541
+050c 4900      ADDAX	$31, $24
+050d 00ff 0e1d SR	@0x0e1d, $31
+050f 00fd 0e1e SR	@0x0e1e, $29
+0511 0083 0e44 LRI	$3, #0x0e44
+0513 02bf 054c CALL	0x054c
+0515 8900      CLR	$31
+0516 00da 0e1d LR	$26, @0x0e1d
+0518 00d8 0e1e LR	$24, @0x0e1e
+051a 009b 0e44 LRI	$27, #0x0e44
+051c 009d 00c0 LRI	$29, #0x00c0
+051e 02bf 0541 CALL	0x0541
+0520 4900      ADDAX	$31, $24
+0521 00ff 0e1d SR	@0x0e1d, $31
+0523 00fd 0e1e SR	@0x0e1e, $29
+0525 0083 0ea4 LRI	$3, #0x0ea4
+0527 02bf 054c CALL	0x054c
+0529 0000      NOP	
+052a 0000      NOP	
+052b 8e00      S40	
+052c 8900      CLR	$31
+052d 00da 0e1d LR	$26, @0x0e1d
+052f 00d8 0e1e LR	$24, @0x0e1e
+0531 009b 0ea4 LRI	$27, #0x0ea4
+0533 009d 00c0 LRI	$29, #0x00c0
+0535 02bf 0541 CALL	0x0541
+0537 4900      ADDAX	$31, $24
+0538 0083 0e44 LRI	$3, #0x0e44
+053a 02bf 054c CALL	0x054c
+053c 0083 0ea4 LRI	$3, #0x0ea4
+053e 02bf 054c CALL	0x054c
+0540 02df      RET	
+
+
+
+// some code to DMA stuff... 
+0541 8e00      S40	
+0542 00fa ffce SR	@DSMAH, $26
+0544 00f8 ffcf SR	@DSMAL, $24
+0546 00fb ffcd SR	@DSPA, $27
+0548 16c9 0000 SI	@DSCR, #0x0000
+054a 2dcb      SRS	@DSBL, $29
+054b 02df      RET	
+
+
+// function / some kind of loop to modify a sample?
+054c 8f00      S16	
+054d 8d00      SET15	
+054e 8a00      M2	
+054f 197a      LRRI	$26, @$3
+0550 1978      LRRI	$24, @$3
+0551 a000      MULX	$24, $25
+0552 b600      MULXMV	$26, $25, $30
+0553 1130 055a BLOOPI	#0x30, 0x055a
+0555 9179      ASR16hL	$30 : $31, @$1
+0556 4e6d      ADDPhLN	$30 : $29, @$1
+0557 197a      LRRI	$26, @$3
+0558 4d43      ADDhL	$31, $30 : $24, @$3
+0559 a039      MULXhS	$24, $25 : @$1, $31
+055a b629      MULXMVhS	$26, $25, $30 : @$1, $29
+055b 02df      RET	
+
+// waits for DMA control reg
+055c 26c9      LRS	$30, @DSCR
+055d 02a0 0004 ANDCF	$30, #0x0004
+055f 029c 055c JZR	0x055c
+0561 02df      RET	
+
+// waits for empty CPU mailbox
+0562 26fe      LRS	$30, @CMBH
+0563 02c0 8000 ANDF	$30, #0x8000
+0565 029c 0562 JZR	0x0562
+0567 02df      RET	
+
+// waits for empty DSP mailbox
+0568 26fc      LRS	$30, @DMBH
+0569 02a0 8000 ANDCF	$30, #0x8000
+056b 029c 0568 JZR	0x0568
+056d 02df      RET	
+
+// same function two times... strange ^^
+// waits for empty DSP mailbox  
+056e 26fc      LRS	$30, @DMBH
+056f 02a0 8000 ANDCF	$30, #0x8000
+0571 029c 056e JZR	0x056e
+0573 02df      RET	
+
+
+// Opcode_07()
+0574 8100      CLR	$30
+0575 8970      CLRhL	$31 : $30, @$0
+0576 8e60      S40hL	: $28, @$0
+0577 2ece      SRS	@DSMAH, $30
+0578 2ccf      SRS	@DSMAL, $28
+0579 16cd 0e44 SI	@DSPA, #0x0e44
+057b 16c9 0000 SI	@DSCR, #0x0000
+057d 8900      CLR	$31
+057e 0d20      LRIS	$29, #0x20
+057f 2dcb      SRS	@DSBL, $29
+0580 4c00      ADD	$30, $31
+0581 1c80      MRR	$4, $0
+0582 0080 0280 LRI	$0, #0x0280
+0584 0081 0000 LRI	$1, #0x0000
+0586 0082 0140 LRI	$2, #0x0140
+0588 0083 0e44 LRI	$3, #0x0e44
+058a 0a00      LRIS	$26, #0x00
+058b 27c9      LRS	$31, @DSCR
+058c 03a0 0004 ANDCF	$31, #0x0004
+058e 029c 058b JZR	0x058b
+0590 2ece      SRS	@DSMAH, $30
+0591 2ccf      SRS	@DSMAL, $28
+0592 16cd 0e54 SI	@DSPA, #0x0e54
+0594 16c9 0000 SI	@DSCR, #0x0000
+0596 16cb 0260 SI	@DSBL, #0x0260
+0598 009f 00a0 LRI	$31, #0x00a0
+059a 8f00      S16	
+059b 007f 05a4 BLOOP	$31, 0x05a4
+059d 197e      LRRI	$30, @$3
+059e 1b1a      SRRI	@$0, $26
+059f 197c      LRRI	$28, @$3
+05a0 1b1a      SRRI	@$0, $26
+05a1 1b5e      SRRI	@$2, $30
+05a2 1b5c      SRRI	@$2, $28
+05a3 1b3e      SRRI	@$1, $30
+05a4 1b3c      SRRI	@$1, $28
+05a5 1c04      MRR	$0, $4
+05a6 029f 0068 JMP	0x0068
+
+
+// Decoder_ADPCM()
+05a8 0082 0bb8 LRI	$2, #0x0bb8
+05aa 195e      LRRI	$30, @$2
+05ab 2ed1      SRS	@SampleFormat, $30
+05ac 195e      LRRI	$30, @$2
+05ad 2ed4      SRS	@ACSAH, $30
+05ae 195e      LRRI	$30, @$2
+05af 2ed5      SRS	@ACSAL, $30
+05b0 195e      LRRI	$30, @$2
+05b1 2ed6      SRS	@ACEAH, $30
+05b2 195e      LRRI	$30, @$2
+05b3 2ed7      SRS	@ACEAL, $30
+05b4 195e      LRRI	$30, @$2
+05b5 2ed8      SRS	@ACCAH, $30
+05b6 195e      LRRI	$30, @$2
+05b7 2ed9      SRS	@ACCAL, $30
+05b8 195e      LRRI	$30, @$2
+05b9 2ea0      SRS	@COEF_A1_0, $30
+05ba 195e      LRRI	$30, @$2
+05bb 2ea1      SRS	@COEF_A2_0, $30
+05bc 195e      LRRI	$30, @$2
+05bd 2ea2      SRS	@COEF_A1_1, $30
+05be 195e      LRRI	$30, @$2
+05bf 2ea3      SRS	@COEF_A2_1, $30
+05c0 195e      LRRI	$30, @$2
+05c1 2ea4      SRS	@COEF_A1_2, $30
+05c2 195e      LRRI	$30, @$2
+05c3 2ea5      SRS	@COEF_A2_2, $30
+05c4 195e      LRRI	$30, @$2
+05c5 2ea6      SRS	@COEF_A1_3, $30
+05c6 195e      LRRI	$30, @$2
+05c7 2ea7      SRS	@COEF_A2_3, $30
+05c8 195e      LRRI	$30, @$2
+05c9 2ea8      SRS	@COEF_A1_4, $30
+05ca 195e      LRRI	$30, @$2
+05cb 2ea9      SRS	@COEF_A2_4, $30
+05cc 195e      LRRI	$30, @$2
+05cd 2eaa      SRS	@COEF_A1_5, $30
+05ce 195e      LRRI	$30, @$2
+05cf 2eab      SRS	@COEF_A2_5, $30
+05d0 195e      LRRI	$30, @$2
+05d1 2eac      SRS	@COEF_A1_6, $30
+05d2 195e      LRRI	$30, @$2
+05d3 2ead      SRS	@COEF_A2_6, $30
+05d4 195e      LRRI	$30, @$2
+05d5 2eae      SRS	@COEF_A1_7, $30
+05d6 195e      LRRI	$30, @$2
+05d7 2eaf      SRS	@COEF_A2_7, $30
+05d8 195e      LRRI	$30, @$2
+05d9 2ede      SRS	@GAIN, $30
+05da 195e      LRRI	$30, @$2
+05db 2eda      SRS	@pred_scale, $30
+05dc 195e      LRRI	$30, @$2
+05dd 2edb      SRS	@yn1, $30
+05de 195e      LRRI	$30, @$2
+05df 2edc      SRS	@yn2, $30
+05e0 8c00      CLR15	
+05e1 8a00      M2	
+05e2 8e00      S40	
+05e3 00d8 0e16 LR	$24, @0x0e16
+05e5 195b      LRRI	$27, @$2
+05e6 1959      LRRI	$25, @$2
+05e7 8100      CLR	$30
+05e8 195c      LRRI	$28, @$2
+05e9 0080 0e44 LRI	$0, #0x0e44
+05eb 195f      LRRI	$31, @$2
+05ec 1b1f      SRRI	@$0, $31
+05ed 195f      LRRI	$31, @$2
+05ee 1b1f      SRRI	@$0, $31
+05ef 195f      LRRI	$31, @$2
+05f0 1b1f      SRRI	@$0, $31
+05f1 185f      LRR	$31, @$2
+05f2 1b1f      SRRI	@$0, $31
+05f3 6b00      MOVAX	$31, $25
+05f4 1505      LSL	$33, #0x05
+05f5 4d00      ADD	$31, $30
+05f6 157e      LSR	$33, #0x3e
+05f7 1c9f      MRR	$4, $31
+05f8 1cbd      MRR	$5, $29
+05f9 05e0      ADDIS	$33, #0xe0
+05fa 9900      ASR16	$31
+05fb 7d00      NEG	$31
+05fc 1cdd      MRR	$6, $29
+05fd 8900      CLR	$31
+05fe 1fa5      MRR	$29, $5
+05ff 1502      LSL	$33, #0x02
+0600 1cbf      MRR	$5, $31
+0601 009a 01fc LRI	$26, #0x01fc
+0603 009e 0e44 LRI	$30, #0x0e44
+0605 0081 ffdd LRI	$1, #0xffdd
+0607 0083 0d80 LRI	$3, #0x0d80
+0609 0064 061a BLOOP	$4, 0x061a
+060b 1827      LRR	$7, @$1
+060c 1b07      SRRI	@$0, $7
+060d 4a00      ADDAX	$30, $25
+060e 1ffc      MRR	$31, $28
+060f 1827      LRR	$7, @$1
+0610 1b07      SRRI	@$0, $7
+0611 1579      LSR	$33, #0x39
+0612 3500      ANDR	$31, $26
+0613 1827      LRR	$7, @$1
+0614 1b07      SRRI	@$0, $7
+0615 4100      ADDR	$31, $24
+0616 1b7e      SRRI	@$3, $30
+0617 1827      LRR	$7, @$1
+0618 1b07      SRRI	@$0, $7
+0619 1b7f      SRRI	@$3, $31
+061a 0000      NOP	
+061b 0065 0620 BLOOP	$5, 0x0620
+061d 1827      LRR	$7, @$1
+061e 1b07      SRRI	@$0, $7
+061f 0000      NOP	
+0620 0000      NOP	
+0621 0007      DAR	$3
+0622 187f      LRR	$31, @$3
+0623 0066 0629 BLOOP	$6, 0x0629
+0625 4a3b      ADDAXhS	$30, $25 : @$3, $31
+0626 1ffc      MRR	$31, $28
+0627 1579      LSR	$33, #0x39
+0628 3533      ANDRhS	$31, $26 : @$3, $30
+0629 4100      ADDR	$31, $24
+062a 1b7f      SRRI	@$3, $31
+062b 0004      DAR	$0
+062c 189f      LRRD	$31, @$0
+062d 1adf      SRRD	@$2, $31
+062e 189f      LRRD	$31, @$0
+062f 1adf      SRRD	@$2, $31
+0630 189f      LRRD	$31, @$0
+0631 1adf      SRRD	@$2, $31
+0632 189f      LRRD	$31, @$0
+0633 1adf      SRRD	@$2, $31
+0634 1adc      SRRD	@$2, $28
+0635 0082 0bd2 LRI	$2, #0x0bd2
+0637 27dc      LRS	$31, @yn2
+0638 1adf      SRRD	@$2, $31
+0639 27db      LRS	$31, @yn1
+063a 1adf      SRRD	@$2, $31
+063b 27da      LRS	$31, @pred_scale
+063c 1adf      SRRD	@$2, $31
+063d 0082 0bbe LRI	$2, #0x0bbe
+063f 27d9      LRS	$31, @ACCAL
+0640 1adf      SRRD	@$2, $31
+0641 27d8      LRS	$31, @ACCAH
+0642 1adf      SRRD	@$2, $31
+0643 8f00      S16	
+0644 00c1 0e42 LR	$1, @0x0e42
+0646 0082 0d80 LRI	$2, #0x0d80
+0648 1940      LRRI	$0, @$2
+0649 1943      LRRI	$3, @$2
+064a 80f0      NXhLDX	: $25, $27, @$1
+064b b8c0      MULXhLDX	$26, $27 : $24, $26, @$0
+064c 111f 0654 BLOOPI	#0x1f, 0x0654
+064e a6f0      MULXMVhLDX	$24, $25, $30 : $25, $27, @$1
+064f bcf0      MULXAChLDX	$26, $27, $30 : $25, $27, @$1
+0650 1940      LRRI	$0, @$2
+0651 1943      LRRI	$3, @$2
+0652 bcf0      MULXAChLDX	$26, $27, $30 : $25, $27, @$1
+0653 4ec0      ADDPhLDX	$30 : $24, $26, @$0
+0654 b831      MULXhS	$26, $27 : @$1, $30
+0655 a6f0      MULXMVhLDX	$24, $25, $30 : $25, $27, @$1
+0656 bcf0      MULXAChLDX	$26, $27, $30 : $25, $27, @$1
+0657 bc00      MULXAC	$26, $27, $30
+0658 4e00      ADDP	$30
+0659 1b3e      SRRI	@$1, $30
+065a 00e1 0e42 SR	@0x0e42, $1
+065c 02df      RET
+
+// Decoder_PCM8()	
+065d 0082 0bb8 LRI	$2, #0x0bb8
+065f 195e      LRRI	$30, @$2
+0660 2ed1      SRS	@SampleFormat, $30
+0661 195e      LRRI	$30, @$2
+0662 2ed4      SRS	@ACSAH, $30
+0663 195e      LRRI	$30, @$2
+0664 2ed5      SRS	@ACSAL, $30
+0665 195e      LRRI	$30, @$2
+0666 2ed6      SRS	@ACEAH, $30
+0667 195e      LRRI	$30, @$2
+0668 2ed7      SRS	@ACEAL, $30
+0669 195e      LRRI	$30, @$2
+066a 2ed8      SRS	@ACCAH, $30
+066b 195e      LRRI	$30, @$2
+066c 2ed9      SRS	@ACCAL, $30
+066d 195e      LRRI	$30, @$2
+066e 2ea0      SRS	@COEF_A1_0, $30
+066f 195e      LRRI	$30, @$2
+0670 2ea1      SRS	@COEF_A2_0, $30
+0671 195e      LRRI	$30, @$2
+0672 2ea2      SRS	@COEF_A1_1, $30
+0673 195e      LRRI	$30, @$2
+0674 2ea3      SRS	@COEF_A2_1, $30
+0675 195e      LRRI	$30, @$2
+0676 2ea4      SRS	@COEF_A1_2, $30
+0677 195e      LRRI	$30, @$2
+0678 2ea5      SRS	@COEF_A2_2, $30
+0679 195e      LRRI	$30, @$2
+067a 2ea6      SRS	@COEF_A1_3, $30
+067b 195e      LRRI	$30, @$2
+067c 2ea7      SRS	@COEF_A2_3, $30
+067d 195e      LRRI	$30, @$2
+067e 2ea8      SRS	@COEF_A1_4, $30
+067f 195e      LRRI	$30, @$2
+0680 2ea9      SRS	@COEF_A2_4, $30
+0681 195e      LRRI	$30, @$2
+0682 2eaa      SRS	@COEF_A1_5, $30
+0683 195e      LRRI	$30, @$2
+0684 2eab      SRS	@COEF_A2_5, $30
+0685 195e      LRRI	$30, @$2
+0686 2eac      SRS	@COEF_A1_6, $30
+0687 195e      LRRI	$30, @$2
+0688 2ead      SRS	@COEF_A2_6, $30
+0689 195e      LRRI	$30, @$2
+068a 2eae      SRS	@COEF_A1_7, $30
+068b 195e      LRRI	$30, @$2
+068c 2eaf      SRS	@COEF_A2_7, $30
+068d 195e      LRRI	$30, @$2
+068e 2ede      SRS	@GAIN, $30
+068f 195e      LRRI	$30, @$2
+0690 2eda      SRS	@pred_scale, $30
+0691 195e      LRRI	$30, @$2
+0692 2edb      SRS	@yn1, $30
+0693 195e      LRRI	$30, @$2
+0694 2edc      SRS	@yn2, $30
+0695 8c00      CLR15	
+0696 8a00      M2	
+0697 8e00      S40	
+0698 195b      LRRI	$27, @$2
+0699 1959      LRRI	$25, @$2
+069a 8100      CLR	$30
+069b 195c      LRRI	$28, @$2
+069c 0080 0e44 LRI	$0, #0x0e44
+069e 195f      LRRI	$31, @$2
+069f 195f      LRRI	$31, @$2
+06a0 195f      LRRI	$31, @$2
+06a1 1b1f      SRRI	@$0, $31
+06a2 185f      LRR	$31, @$2
+06a3 1b1f      SRRI	@$0, $31
+06a4 6b00      MOVAX	$31, $25
+06a5 1505      LSL	$33, #0x05
+06a6 4d00      ADD	$31, $30
+06a7 157e      LSR	$33, #0x3e
+06a8 1c9f      MRR	$4, $31
+06a9 1cbd      MRR	$5, $29
+06aa 05e0      ADDIS	$33, #0xe0
+06ab 9900      ASR16	$31
+06ac 7d00      NEG	$31
+06ad 1cdd      MRR	$6, $29
+06ae 8900      CLR	$31
+06af 1fa5      MRR	$29, $5
+06b0 1502      LSL	$33, #0x02
+06b1 1cbf      MRR	$5, $31
+06b2 009a 01fc LRI	$26, #0x01fc
+06b4 009e 0e45 LRI	$30, #0x0e45
+06b6 0081 ffdd LRI	$1, #0xffdd
+06b8 0083 0d80 LRI	$3, #0x0d80
+06ba 0064 06cb BLOOP	$4, 0x06cb
+06bc 1827      LRR	$7, @$1
+06bd 1b07      SRRI	@$0, $7
+06be 4a00      ADDAX	$30, $25
+06bf 1b7e      SRRI	@$3, $30
+06c0 1827      LRR	$7, @$1
+06c1 1b07      SRRI	@$0, $7
+06c2 1b7c      SRRI	@$3, $28
+06c3 0000      NOP	
+06c4 1827      LRR	$7, @$1
+06c5 1b07      SRRI	@$0, $7
+06c6 0000      NOP	
+06c7 0000      NOP	
+06c8 1827      LRR	$7, @$1
+06c9 1b07      SRRI	@$0, $7
+06ca 0000      NOP	
+06cb 0000      NOP	
+06cc 0065 06d1 BLOOP	$5, 0x06d1
+06ce 1827      LRR	$7, @$1
+06cf 1b07      SRRI	@$0, $7
+06d0 0000      NOP	
+06d1 0000      NOP	
+06d2 0066 06d6 BLOOP	$6, 0x06d6
+06d4 4a00      ADDAX	$30, $25
+06d5 1b7e      SRRI	@$3, $30
+06d6 1b7c      SRRI	@$3, $28
+06d7 0004      DAR	$0
+06d8 189f      LRRD	$31, @$0
+06d9 1adf      SRRD	@$2, $31
+06da 189f      LRRD	$31, @$0
+06db 1adf      SRRD	@$2, $31
+06dc 189f      LRRD	$31, @$0
+06dd 1adf      SRRD	@$2, $31
+06de 189f      LRRD	$31, @$0
+06df 1adf      SRRD	@$2, $31
+06e0 1adc      SRRD	@$2, $28
+06e1 0082 0bd2 LRI	$2, #0x0bd2
+06e3 27dc      LRS	$31, @yn2
+06e4 1adf      SRRD	@$2, $31
+06e5 27db      LRS	$31, @yn1
+06e6 1adf      SRRD	@$2, $31
+06e7 27da      LRS	$31, @pred_scale
+06e8 1adf      SRRD	@$2, $31
+06e9 0082 0bbe LRI	$2, #0x0bbe
+06eb 27d9      LRS	$31, @ACCAL
+06ec 1adf      SRRD	@$2, $31
+06ed 27d8      LRS	$31, @ACCAH
+06ee 1adf      SRRD	@$2, $31
+06ef 8d00      SET15	
+06f0 8b00      M0	
+06f1 8f00      S16	
+06f2 00c1 0e42 LR	$1, @0x0e42
+06f4 0082 0d80 LRI	$2, #0x0d80
+06f6 8100      CLR	$30
+06f7 1120 0703 BLOOPI	#0x20, 0x0703
+06f9 8900      CLR	$31
+06fa 1940      LRRI	$0, @$2
+06fb 189e      LRRD	$30, @$0
+06fc 181b      LRR	$27, @$0
+06fd 199a      LRRN	$26, @$0
+06fe 5400      SUBR	$30, $26
+06ff 1f5e      MRR	$26, $30
+0700 1959      LRRI	$25, @$2
+0701 b000      MULX	$26, $25
+0702 fb00      ADDPAXZ	$31, $27
+0703 8139      CLRhS	$30 : @$1, $31
+0704 00e1 0e42 SR	@0x0e42, $1
+0706 02df      RET	
+
+// Decoder_PCM16()
+0707 0082 0bb8 LRI	$2, #0x0bb8
+0709 195e      LRRI	$30, @$2
+070a 2ed1      SRS	@SampleFormat, $30
+070b 195e      LRRI	$30, @$2
+070c 2ed4      SRS	@ACSAH, $30
+070d 195e      LRRI	$30, @$2
+070e 2ed5      SRS	@ACSAL, $30
+070f 195e      LRRI	$30, @$2
+0710 2ed6      SRS	@ACEAH, $30
+0711 195e      LRRI	$30, @$2
+0712 2ed7      SRS	@ACEAL, $30
+0713 195e      LRRI	$30, @$2
+0714 2ed8      SRS	@ACCAH, $30
+0715 195e      LRRI	$30, @$2
+0716 2ed9      SRS	@ACCAL, $30
+0717 195e      LRRI	$30, @$2
+0718 2ea0      SRS	@COEF_A1_0, $30
+0719 195e      LRRI	$30, @$2
+071a 2ea1      SRS	@COEF_A2_0, $30
+071b 195e      LRRI	$30, @$2
+071c 2ea2      SRS	@COEF_A1_1, $30
+071d 195e      LRRI	$30, @$2
+071e 2ea3      SRS	@COEF_A2_1, $30
+071f 195e      LRRI	$30, @$2
+0720 2ea4      SRS	@COEF_A1_2, $30
+0721 195e      LRRI	$30, @$2
+0722 2ea5      SRS	@COEF_A2_2, $30
+0723 195e      LRRI	$30, @$2
+0724 2ea6      SRS	@COEF_A1_3, $30
+0725 195e      LRRI	$30, @$2
+0726 2ea7      SRS	@COEF_A2_3, $30
+0727 195e      LRRI	$30, @$2
+0728 2ea8      SRS	@COEF_A1_4, $30
+0729 195e      LRRI	$30, @$2
+072a 2ea9      SRS	@COEF_A2_4, $30
+072b 195e      LRRI	$30, @$2
+072c 2eaa      SRS	@COEF_A1_5, $30
+072d 195e      LRRI	$30, @$2
+072e 2eab      SRS	@COEF_A2_5, $30
+072f 195e      LRRI	$30, @$2
+0730 2eac      SRS	@COEF_A1_6, $30
+0731 195e      LRRI	$30, @$2
+0732 2ead      SRS	@COEF_A2_6, $30
+0733 195e      LRRI	$30, @$2
+0734 2eae      SRS	@COEF_A1_7, $30
+0735 195e      LRRI	$30, @$2
+0736 2eaf      SRS	@COEF_A2_7, $30
+0737 195e      LRRI	$30, @$2
+0738 2ede      SRS	@GAIN, $30
+0739 195e      LRRI	$30, @$2
+073a 2eda      SRS	@pred_scale, $30
+073b 195e      LRRI	$30, @$2
+073c 2edb      SRS	@yn1, $30
+073d 195e      LRRI	$30, @$2
+073e 2edc      SRS	@yn2, $30
+073f 00c0 0e42 LR	$0, @0x0e42
+0741 0081 ffdd LRI	$1, #0xffdd
+0743 1120 0748 BLOOPI	#0x20, 0x0748
+0745 1824      LRR	$4, @$1
+0746 1b04      SRRI	@$0, $4
+0747 0000      NOP	
+0748 0000      NOP	
+0749 00e0 0e42 SR	@0x0e42, $0
+074b 0082 0bd9 LRI	$2, #0x0bd9
+074d 0004      DAR	$0
+074e 189f      LRRD	$31, @$0
+074f 1adf      SRRD	@$2, $31
+0750 189f      LRRD	$31, @$0
+0751 1adf      SRRD	@$2, $31
+0752 189f      LRRD	$31, @$0
+0753 1adf      SRRD	@$2, $31
+0754 189f      LRRD	$31, @$0
+0755 1adf      SRRD	@$2, $31
+0756 8900      CLR	$31
+0757 1adc      SRRD	@$2, $28
+0758 27dc      LRS	$31, @yn2
+0759 00ff 0bd2 SR	@0x0bd2, $31
+075b 27db      LRS	$31, @yn1
+075c 00ff 0bd1 SR	@0x0bd1, $31
+075e 27da      LRS	$31, @pred_scale
+075f 00ff 0bd0 SR	@0x0bd0, $31
+0761 27d9      LRS	$31, @ACCAL
+0762 00ff 0bbe SR	@0x0bbe, $31
+0764 27d8      LRS	$31, @ACCAH
+0765 00ff 0bbd SR	@0x0bbd, $31
+0767 02df      RET
+
+////////////////////////////////////////////////
+//
+// Mixer functions - calls ROM functions
+//
+////////////////////////////////////////////////
+
+// fn0
+0768 00c0 0e40 LR	$0, @0x0e40
+076a 0081 0b89 LRI	$1, #0x0b89
+076c 00c2 0e08 LR	$2, @0x0e08
+076e 1c62      MRR	$3, $2
+076f 00c4 0e41 LR	$4, @0x0e41
+0771 00c5 0e09 LR	$5, @0x0e09
+0773 02bf 80e7 CALL	0x80e7
+0775 00f8 0ba9 SR	@0x0ba9, $24
+0777 00fb 0bac SR	@0x0bac, $27
+0779 02df      RET
+
+// fn1
+077a 00c0 0e40 LR	$0, @0x0e40
+077c 0081 0b89 LRI	$1, #0x0b89
+077e 00c2 0e08 LR	$2, @0x0e08
+0780 1c62      MRR	$3, $2
+0781 00c4 0e41 LR	$4, @0x0e41
+0783 00c5 0e09 LR	$5, @0x0e09
+0785 02bf 80e7 CALL	0x80e7
+0787 00f8 0ba9 SR	@0x0ba9, $24
+0789 00fb 0bac SR	@0x0bac, $27
+078b 00c0 0e40 LR	$0, @0x0e40
+078d 0081 0b8d LRI	$1, #0x0b8d
+078f 00c2 0e0b LR	$2, @0x0e0b
+0791 1c62      MRR	$3, $2
+0792 00c4 0e41 LR	$4, @0x0e41
+0794 00c5 0e0c LR	$5, @0x0e0c
+0796 02bf 80e7 CALL	0x80e7
+0798 00f8 0baa SR	@0x0baa, $24
+079a 00fb 0bad SR	@0x0bad, $27
+079c 02df      RET	
+
+// fn2
+079d 00c0 0e40 LR	$0, @0x0e40
+079f 0081 0b89 LRI	$1, #0x0b89
+07a1 00c2 0e08 LR	$2, @0x0e08
+07a3 1c62      MRR	$3, $2
+07a4 00c4 0e41 LR	$4, @0x0e41
+07a6 00c5 0e09 LR	$5, @0x0e09
+07a8 02bf 80e7 CALL	0x80e7
+07aa 00f8 0ba9 SR	@0x0ba9, $24
+07ac 00fb 0bac SR	@0x0bac, $27
+07ae 00c0 0e40 LR	$0, @0x0e40
+07b0 0081 0b91 LRI	$1, #0x0b91
+07b2 00c2 0e0e LR	$2, @0x0e0e
+07b4 1c62      MRR	$3, $2
+07b5 00c4 0e41 LR	$4, @0x0e41
+07b7 00c5 0e0f LR	$5, @0x0e0f
+07b9 02bf 80e7 CALL	0x80e7
+07bb 00f8 0bab SR	@0x0bab, $24
+07bd 00fb 0bae SR	@0x0bae, $27
+07bf 02df      RET	
+
+// fn3
+07c0 00c0 0e40 LR	$0, @0x0e40
+07c2 0081 0b89 LRI	$1, #0x0b89
+07c4 00c2 0e08 LR	$2, @0x0e08
+07c6 1c62      MRR	$3, $2
+07c7 00c4 0e41 LR	$4, @0x0e41
+07c9 00c5 0e09 LR	$5, @0x0e09
+07cb 02bf 80e7 CALL	0x80e7
+07cd 00f8 0ba9 SR	@0x0ba9, $24
+07cf 00fb 0bac SR	@0x0bac, $27
+07d1 00c0 0e40 LR	$0, @0x0e40
+07d3 0081 0b8d LRI	$1, #0x0b8d
+07d5 00c2 0e0b LR	$2, @0x0e0b
+07d7 1c62      MRR	$3, $2
+07d8 00c4 0e41 LR	$4, @0x0e41
+07da 00c5 0e0c LR	$5, @0x0e0c
+07dc 02bf 80e7 CALL	0x80e7
+07de 00f8 0baa SR	@0x0baa, $24
+07e0 00fb 0bad SR	@0x0bad, $27
+07e2 00c0 0e40 LR	$0, @0x0e40
+07e4 0081 0b91 LRI	$1, #0x0b91
+07e6 00c2 0e0e LR	$2, @0x0e0e
+07e8 1c62      MRR	$3, $2
+07e9 00c4 0e41 LR	$4, @0x0e41
+07eb 00c5 0e0f LR	$5, @0x0e0f
+07ed 02bf 80e7 CALL	0x80e7
+07ef 00f8 0bab SR	@0x0bab, $24
+07f1 00fb 0bae SR	@0x0bae, $27
+07f3 02df      RET	
+
+// fn4
+07f4 00c0 0e40 LR	$0, @0x0e40
+07f6 0081 0b89 LRI	$1, #0x0b89
+07f8 00c2 0e08 LR	$2, @0x0e08
+07fa 1c62      MRR	$3, $2
+07fb 00c4 0e41 LR	$4, @0x0e41
+07fd 00c5 0e09 LR	$5, @0x0e09
+07ff 02bf 80e7 CALL	0x80e7
+0801 00f8 0ba9 SR	@0x0ba9, $24
+0803 00fb 0bac SR	@0x0bac, $27
+0805 00c0 0e43 LR	$0, @0x0e43
+0807 0081 0b97 LRI	$1, #0x0b97
+0809 00c2 0e0a LR	$2, @0x0e0a
+080b 1c62      MRR	$3, $2
+080c 02bf 81f9 CALL	0x81f9
+080e 00f8 0baf SR	@0x0baf, $24
+0810 02df      RET	
+
+// xxxx
+0811 00c0 0e40 LR	$0, @0x0e40
+0813 0081 0b89 LRI	$1, #0x0b89
+0815 00c2 0e08 LR	$2, @0x0e08
+0817 1c62      MRR	$3, $2
+0818 00c4 0e41 LR	$4, @0x0e41
+081a 00c5 0e09 LR	$5, @0x0e09
+081c 02bf 80e7 CALL	0x80e7
+081e 00f8 0ba9 SR	@0x0ba9, $24
+0820 00fb 0bac SR	@0x0bac, $27
+0822 00c0 0e40 LR	$0, @0x0e40
+0824 0081 0b8d LRI	$1, #0x0b8d
+0826 00c2 0e0b LR	$2, @0x0e0b
+0828 1c62      MRR	$3, $2
+0829 00c4 0e41 LR	$4, @0x0e41
+082b 00c5 0e0c LR	$5, @0x0e0c
+082d 02bf 80e7 CALL	0x80e7
+082f 00f8 0baa SR	@0x0baa, $24
+0831 00fb 0bad SR	@0x0bad, $27
+0833 00c0 0e43 LR	$0, @0x0e43
+0835 0081 0b97 LRI	$1, #0x0b97
+0837 00c2 0e0a LR	$2, @0x0e0a
+0839 1c62      MRR	$3, $2
+083a 1c80      MRR	$4, $0
+083b 00c5 0e0d LR	$5, @0x0e0d
+083d 02bf 80e7 CALL	0x80e7
+083f 00f8 0baf SR	@0x0baf, $24
+0841 00fb 0bb0 SR	@0x0bb0, $27
+0843 02df      RET	
+0844 00c0 0e40 LR	$0, @0x0e40
+0846 0081 0b89 LRI	$1, #0x0b89
+0848 00c2 0e08 LR	$2, @0x0e08
+084a 1c62      MRR	$3, $2
+084b 00c4 0e41 LR	$4, @0x0e41
+084d 00c5 0e09 LR	$5, @0x0e09
+084f 02bf 80e7 CALL	0x80e7
+0851 00f8 0ba9 SR	@0x0ba9, $24
+0853 00fb 0bac SR	@0x0bac, $27
+0855 00c0 0e40 LR	$0, @0x0e40
+0857 0081 0b91 LRI	$1, #0x0b91
+0859 00c2 0e0e LR	$2, @0x0e0e
+085b 1c62      MRR	$3, $2
+085c 00c4 0e41 LR	$4, @0x0e41
+085e 00c5 0e0f LR	$5, @0x0e0f
+0860 02bf 80e7 CALL	0x80e7
+0862 00f8 0bab SR	@0x0bab, $24
+0864 00fb 0bae SR	@0x0bae, $27
+0866 00c0 0e43 LR	$0, @0x0e43
+0868 0081 0b95 LRI	$1, #0x0b95
+086a 00c2 0e10 LR	$2, @0x0e10
+086c 1c62      MRR	$3, $2
+086d 1c80      MRR	$4, $0
+086e 00c5 0e0a LR	$5, @0x0e0a
+0870 02bf 80e7 CALL	0x80e7
+0872 00f8 0bb1 SR	@0x0bb1, $24
+0874 00fb 0baf SR	@0x0baf, $27
+0876 02df      RET	
+0877 00c0 0e40 LR	$0, @0x0e40
+0879 0081 0b89 LRI	$1, #0x0b89
+087b 00c2 0e08 LR	$2, @0x0e08
+087d 1c62      MRR	$3, $2
+087e 00c4 0e41 LR	$4, @0x0e41
+0880 00c5 0e09 LR	$5, @0x0e09
+0882 02bf 80e7 CALL	0x80e7
+0884 00f8 0ba9 SR	@0x0ba9, $24
+0886 00fb 0bac SR	@0x0bac, $27
+0888 00c0 0e40 LR	$0, @0x0e40
+088a 0081 0b8d LRI	$1, #0x0b8d
+088c 00c2 0e0b LR	$2, @0x0e0b
+088e 1c62      MRR	$3, $2
+088f 00c4 0e41 LR	$4, @0x0e41
+0891 00c5 0e0c LR	$5, @0x0e0c
+0893 02bf 80e7 CALL	0x80e7
+0895 00f8 0baa SR	@0x0baa, $24
+0897 00fb 0bad SR	@0x0bad, $27
+0899 00c0 0e40 LR	$0, @0x0e40
+089b 0081 0b91 LRI	$1, #0x0b91
+089d 00c2 0e0e LR	$2, @0x0e0e
+089f 1c62      MRR	$3, $2
+08a0 00c4 0e41 LR	$4, @0x0e41
+08a2 00c5 0e0f LR	$5, @0x0e0f
+08a4 02bf 80e7 CALL	0x80e7
+08a6 00f8 0bab SR	@0x0bab, $24
+08a8 00fb 0bae SR	@0x0bae, $27
+08aa 00c0 0e43 LR	$0, @0x0e43
+08ac 0081 0b97 LRI	$1, #0x0b97
+08ae 00c2 0e0a LR	$2, @0x0e0a
+08b0 1c62      MRR	$3, $2
+08b1 1c80      MRR	$4, $0
+08b2 00c5 0e0d LR	$5, @0x0e0d
+08b4 02bf 80e7 CALL	0x80e7
+08b6 00f8 0baf SR	@0x0baf, $24
+08b8 00fb 0bb0 SR	@0x0bb0, $27
+08ba 00c0 0e43 LR	$0, @0x0e43
+08bc 0081 0b95 LRI	$1, #0x0b95
+08be 00c2 0e10 LR	$2, @0x0e10
+08c0 1c62      MRR	$3, $2
+08c1 02bf 81f9 CALL	0x81f9
+08c3 00f8 0bb1 SR	@0x0bb1, $24
+08c5 02df      RET	
+08c6 00c0 0e40 LR	$0, @0x0e40
+08c8 0081 0b89 LRI	$1, #0x0b89
+08ca 00c2 0e08 LR	$2, @0x0e08
+08cc 0083 0e44 LRI	$3, #0x0e44
+08ce 00c4 0e41 LR	$4, @0x0e41
+08d0 00c5 0e09 LR	$5, @0x0e09
+08d2 02bf 8282 CALL	0x8282
+08d4 00f8 0ba9 SR	@0x0ba9, $24
+08d6 00fb 0bac SR	@0x0bac, $27
+08d8 02df      RET	
+08d9 00c0 0e40 LR	$0, @0x0e40
+08db 0081 0b89 LRI	$1, #0x0b89
+08dd 00c2 0e08 LR	$2, @0x0e08
+08df 0083 0e44 LRI	$3, #0x0e44
+08e1 00c4 0e41 LR	$4, @0x0e41
+08e3 00c5 0e09 LR	$5, @0x0e09
+08e5 02bf 8282 CALL	0x8282
+08e7 00f8 0ba9 SR	@0x0ba9, $24
+08e9 00fb 0bac SR	@0x0bac, $27
+08eb 00c0 0e40 LR	$0, @0x0e40
+08ed 0081 0b8d LRI	$1, #0x0b8d
+08ef 00c2 0e0b LR	$2, @0x0e0b
+08f1 0083 0e44 LRI	$3, #0x0e44
+08f3 00c4 0e41 LR	$4, @0x0e41
+08f5 00c5 0e0c LR	$5, @0x0e0c
+08f7 02bf 8282 CALL	0x8282
+08f9 00f8 0baa SR	@0x0baa, $24
+08fb 00fb 0bad SR	@0x0bad, $27
+08fd 02df      RET	
+08fe 00c0 0e40 LR	$0, @0x0e40
+0900 0081 0b89 LRI	$1, #0x0b89
+0902 00c2 0e08 LR	$2, @0x0e08
+0904 0083 0e44 LRI	$3, #0x0e44
+0906 00c4 0e41 LR	$4, @0x0e41
+0908 00c5 0e09 LR	$5, @0x0e09
+090a 02bf 8282 CALL	0x8282
+090c 00f8 0ba9 SR	@0x0ba9, $24
+090e 00fb 0bac SR	@0x0bac, $27
+0910 00c0 0e40 LR	$0, @0x0e40
+0912 0081 0b91 LRI	$1, #0x0b91
+0914 00c2 0e0e LR	$2, @0x0e0e
+0916 0083 0e44 LRI	$3, #0x0e44
+0918 00c4 0e41 LR	$4, @0x0e41
+091a 00c5 0e0f LR	$5, @0x0e0f
+091c 02bf 8282 CALL	0x8282
+091e 00f8 0bab SR	@0x0bab, $24
+0920 00fb 0bae SR	@0x0bae, $27
+0922 02df      RET	
+0923 00c0 0e40 LR	$0, @0x0e40
+0925 0081 0b89 LRI	$1, #0x0b89
+0927 00c2 0e08 LR	$2, @0x0e08
+0929 0083 0e44 LRI	$3, #0x0e44
+092b 00c4 0e41 LR	$4, @0x0e41
+092d 00c5 0e09 LR	$5, @0x0e09
+092f 02bf 8282 CALL	0x8282
+0931 00f8 0ba9 SR	@0x0ba9, $24
+0933 00fb 0bac SR	@0x0bac, $27
+0935 00c0 0e40 LR	$0, @0x0e40
+0937 0081 0b8d LRI	$1, #0x0b8d
+0939 00c2 0e0b LR	$2, @0x0e0b
+093b 0083 0e44 LRI	$3, #0x0e44
+093d 00c4 0e41 LR	$4, @0x0e41
+093f 00c5 0e0c LR	$5, @0x0e0c
+0941 02bf 8282 CALL	0x8282
+0943 00f8 0baa SR	@0x0baa, $24
+0945 00fb 0bad SR	@0x0bad, $27
+0947 00c0 0e40 LR	$0, @0x0e40
+0949 0081 0b91 LRI	$1, #0x0b91
+094b 00c2 0e0e LR	$2, @0x0e0e
+094d 0083 0e44 LRI	$3, #0x0e44
+094f 00c4 0e41 LR	$4, @0x0e41
+0951 00c5 0e0f LR	$5, @0x0e0f
+0953 02bf 8282 CALL	0x8282
+0955 00f8 0bab SR	@0x0bab, $24
+0957 00fb 0bae SR	@0x0bae, $27
+0959 02df      RET	
+095a 00c0 0e40 LR	$0, @0x0e40
+095c 0081 0b89 LRI	$1, #0x0b89
+095e 00c2 0e08 LR	$2, @0x0e08
+0960 0083 0e44 LRI	$3, #0x0e44
+0962 00c4 0e41 LR	$4, @0x0e41
+0964 00c5 0e09 LR	$5, @0x0e09
+0966 02bf 8282 CALL	0x8282
+0968 00f8 0ba9 SR	@0x0ba9, $24
+096a 00fb 0bac SR	@0x0bac, $27
+096c 00c0 0e43 LR	$0, @0x0e43
+096e 0081 0b97 LRI	$1, #0x0b97
+0970 00c2 0e0a LR	$2, @0x0e0a
+0972 0083 0e44 LRI	$3, #0x0e44
+0974 02bf 845d CALL	0x845d
+0976 00f8 0baf SR	@0x0baf, $24
+0978 02df      RET	
+0979 00c0 0e40 LR	$0, @0x0e40
+097b 0081 0b89 LRI	$1, #0x0b89
+097d 00c2 0e08 LR	$2, @0x0e08
+097f 0083 0e44 LRI	$3, #0x0e44
+0981 00c4 0e41 LR	$4, @0x0e41
+0983 00c5 0e09 LR	$5, @0x0e09
+0985 02bf 8282 CALL	0x8282
+0987 00f8 0ba9 SR	@0x0ba9, $24
+0989 00fb 0bac SR	@0x0bac, $27
+098b 00c0 0e40 LR	$0, @0x0e40
+098d 0081 0b8d LRI	$1, #0x0b8d
+098f 00c2 0e0b LR	$2, @0x0e0b
+0991 0083 0e44 LRI	$3, #0x0e44
+0993 00c4 0e41 LR	$4, @0x0e41
+0995 00c5 0e0c LR	$5, @0x0e0c
+0997 02bf 8282 CALL	0x8282
+0999 00f8 0baa SR	@0x0baa, $24
+099b 00fb 0bad SR	@0x0bad, $27
+099d 00c0 0e43 LR	$0, @0x0e43
+099f 0081 0b97 LRI	$1, #0x0b97
+09a1 00c2 0e0a LR	$2, @0x0e0a
+09a3 0083 0e44 LRI	$3, #0x0e44
+09a5 1c80      MRR	$4, $0
+09a6 00c5 0e0d LR	$5, @0x0e0d
+09a8 02bf 8282 CALL	0x8282
+09aa 00f8 0baf SR	@0x0baf, $24
+09ac 00fb 0bb0 SR	@0x0bb0, $27
+09ae 02df      RET	
+09af 00c0 0e40 LR	$0, @0x0e40
+09b1 0081 0b89 LRI	$1, #0x0b89
+09b3 00c2 0e08 LR	$2, @0x0e08
+09b5 0083 0e44 LRI	$3, #0x0e44
+09b7 00c4 0e41 LR	$4, @0x0e41
+09b9 00c5 0e09 LR	$5, @0x0e09
+09bb 02bf 8282 CALL	0x8282
+09bd 00f8 0ba9 SR	@0x0ba9, $24
+09bf 00fb 0bac SR	@0x0bac, $27
+09c1 00c0 0e40 LR	$0, @0x0e40
+09c3 0081 0b91 LRI	$1, #0x0b91
+09c5 00c2 0e0e LR	$2, @0x0e0e
+09c7 0083 0e44 LRI	$3, #0x0e44
+09c9 00c4 0e41 LR	$4, @0x0e41
+09cb 00c5 0e0f LR	$5, @0x0e0f
+09cd 02bf 8282 CALL	0x8282
+09cf 00f8 0bab SR	@0x0bab, $24
+09d1 00fb 0bae SR	@0x0bae, $27
+09d3 00c0 0e43 LR	$0, @0x0e43
+09d5 0081 0b95 LRI	$1, #0x0b95
+09d7 00c2 0e10 LR	$2, @0x0e10
+09d9 0083 0e44 LRI	$3, #0x0e44
+09db 1c80      MRR	$4, $0
+09dc 00c5 0e0a LR	$5, @0x0e0a
+09de 02bf 8282 CALL	0x8282
+09e0 00f8 0bb1 SR	@0x0bb1, $24
+09e2 00fb 0baf SR	@0x0baf, $27
+09e4 02df      RET	
+09e5 00c0 0e40 LR	$0, @0x0e40
+09e7 0081 0b89 LRI	$1, #0x0b89
+09e9 00c2 0e08 LR	$2, @0x0e08
+09eb 0083 0e44 LRI	$3, #0x0e44
+09ed 00c4 0e41 LR	$4, @0x0e41
+09ef 00c5 0e09 LR	$5, @0x0e09
+09f1 02bf 8282 CALL	0x8282
+09f3 00f8 0ba9 SR	@0x0ba9, $24
+09f5 00fb 0bac SR	@0x0bac, $27
+09f7 00c0 0e40 LR	$0, @0x0e40
+09f9 0081 0b8d LRI	$1, #0x0b8d
+09fb 00c2 0e0b LR	$2, @0x0e0b
+09fd 0083 0e44 LRI	$3, #0x0e44
+09ff 00c0 0e41 LR	$0, @0x0e41
+0a01 00c5 0e0c LR	$5, @0x0e0c
+0a03 02bf 8282 CALL	0x8282
+0a05 00f8 0baa SR	@0x0baa, $24
+0a07 00fb 0bad SR	@0x0bad, $27
+0a09 00c0 0e40 LR	$0, @0x0e40
+0a0b 0081 0b91 LRI	$1, #0x0b91
+0a0d 00c2 0e0e LR	$2, @0x0e0e
+0a0f 0083 0e44 LRI	$3, #0x0e44
+0a11 00c4 0e41 LR	$4, @0x0e41
+0a13 00c5 0e0f LR	$5, @0x0e0f
+0a15 02bf 8282 CALL	0x8282
+0a17 00f8 0bab SR	@0x0bab, $24
+0a19 00fb 0bae SR	@0x0bae, $27
+0a1b 00c0 0e43 LR	$0, @0x0e43
+0a1d 0081 0b97 LRI	$1, #0x0b97
+0a1f 00c2 0e0a LR	$2, @0x0e0a
+0a21 0083 0e44 LRI	$3, #0x0e44
+0a23 1c80      MRR	$4, $0
+0a24 00c5 0e0d LR	$5, @0x0e0d
+0a26 02bf 8282 CALL	0x8282
+0a28 00f8 0baf SR	@0x0baf, $24
+0a2a 00fb 0bb0 SR	@0x0bb0, $27
+0a2c 00c0 0e43 LR	$0, @0x0e43
+0a2e 0081 0b95 LRI	$1, #0x0b95
+0a30 00c2 0e10 LR	$2, @0x0e10
+0a32 0083 0e44 LRI	$3, #0x0e44
+0a34 02bf 845d CALL	0x845d
+0a36 00f8 0bb1 SR	@0x0bb1, $24
+0a38 02df      RET	
+0a39 00c0 0e40 LR	$0, @0x0e40
+0a3b 0081 0b89 LRI	$1, #0x0b89
+0a3d 00c2 0e08 LR	$2, @0x0e08
+0a3f 1c62      MRR	$3, $2
+0a40 00c4 0e41 LR	$4, @0x0e41
+0a42 00c5 0e09 LR	$5, @0x0e09
+0a44 02bf 80e7 CALL	0x80e7
+0a46 00f8 0ba9 SR	@0x0ba9, $24
+0a48 00fb 0bac SR	@0x0bac, $27
+0a4a 00c0 0e43 LR	$0, @0x0e43
+0a4c 0081 0b91 LRI	$1, #0x0b91
+0a4e 00c2 0e0e LR	$2, @0x0e0e
+0a50 1c62      MRR	$3, $2
+0a51 1c80      MRR	$4, $0
+0a52 00c5 0e0f LR	$5, @0x0e0f
+0a54 02bf 80e7 CALL	0x80e7
+0a56 00f8 0bab SR	@0x0bab, $24
+0a58 00fb 0bae SR	@0x0bae, $27
+0a5a 02df      RET	
+
+
+0a5b 00c0 0e40 LR	$0, @0x0e40
+0a5d 0081 0b89 LRI	$1, #0x0b89
+0a5f 00c2 0e08 LR	$2, @0x0e08
+0a61 1c62      MRR	$3, $2
+0a62 00c4 0e41 LR	$4, @0x0e41
+0a64 00c5 0e09 LR	$5, @0x0e09
+0a66 02bf 80e7 CALL	0x80e7
+0a68 00f8 0ba9 SR	@0x0ba9, $24
+0a6a 00fb 0bac SR	@0x0bac, $27
+0a6c 00c0 0e43 LR	$0, @0x0e43
+0a6e 0081 0b91 LRI	$1, #0x0b91
+0a70 00c2 0e0e LR	$2, @0x0e0e
+0a72 1c62      MRR	$3, $2
+0a73 1c80      MRR	$4, $0
+0a74 00c5 0e0f LR	$5, @0x0e0f
+0a76 02bf 80e7 CALL	0x80e7
+0a78 00f8 0bab SR	@0x0bab, $24
+0a7a 00fb 0bae SR	@0x0bae, $27
+0a7c 00c0 0e40 LR	$0, @0x0e40
+0a7e 0081 0b8d LRI	$1, #0x0b8d
+0a80 00c2 0e0b LR	$2, @0x0e0b
+0a82 1c62      MRR	$3, $2
+0a83 00c4 0e41 LR	$4, @0x0e41
+0a85 00c5 0e0c LR	$5, @0x0e0c
+0a87 02bf 80e7 CALL	0x80e7
+0a89 00f8 0baa SR	@0x0baa, $24
+0a8b 00fb 0bad SR	@0x0bad, $27
+0a8d 00c0 0e43 LR	$0, @0x0e43
+0a8f 0081 0b99 LRI	$1, #0x0b99
+0a91 00c2 0e0d LR	$2, @0x0e0d
+0a93 1c62      MRR	$3, $2
+0a94 02bf 81f9 CALL	0x81f9
+0a96 00f8 0bb0 SR	@0x0bb0, $24
+0a98 02df      RET	
+0a99 00c0 0e40 LR	$0, @0x0e40
+0a9b 0081 0b89 LRI	$1, #0x0b89
+0a9d 00c2 0e08 LR	$2, @0x0e08
+0a9f 0083 0e44 LRI	$3, #0x0e44
+0aa1 00c4 0e41 LR	$4, @0x0e41
+0aa3 00c5 0e09 LR	$5, @0x0e09
+0aa5 02bf 8282 CALL	0x8282
+0aa7 00f8 0ba9 SR	@0x0ba9, $24
+0aa9 00fb 0bac SR	@0x0bac, $27
+0aab 00c0 0e43 LR	$0, @0x0e43
+0aad 0081 0b91 LRI	$1, #0x0b91
+0aaf 00c2 0e0e LR	$2, @0x0e0e
+0ab1 0083 0e44 LRI	$3, #0x0e44
+0ab3 1c80      MRR	$4, $0
+0ab4 00c5 0e0f LR	$5, @0x0e0f
+0ab6 02bf 8282 CALL	0x8282
+0ab8 00f8 0bab SR	@0x0bab, $24
+0aba 00fb 0bae SR	@0x0bae, $27
+0abc 02df      RET	
+0abd 00c0 0e40 LR	$0, @0x0e40
+0abf 0081 0b89 LRI	$1, #0x0b89
+0ac1 00c2 0e08 LR	$2, @0x0e08
+0ac3 0083 0e44 LRI	$3, #0x0e44
+0ac5 00c4 0e41 LR	$4, @0x0e41
+0ac7 00c5 0e09 LR	$5, @0x0e09
+0ac9 02bf 8282 CALL	0x8282
+0acb 00f8 0ba9 SR	@0x0ba9, $24
+0acd 00fb 0bac SR	@0x0bac, $27
+0acf 00c0 0e43 LR	$0, @0x0e43
+0ad1 0081 0b91 LRI	$1, #0x0b91
+0ad3 00c2 0e0e LR	$2, @0x0e0e
+0ad5 0083 0e44 LRI	$3, #0x0e44
+0ad7 1c80      MRR	$4, $0
+0ad8 00c5 0e0f LR	$5, @0x0e0f
+0ada 02bf 8282 CALL	0x8282
+0adc 00f8 0bab SR	@0x0bab, $24
+0ade 00fb 0bae SR	@0x0bae, $27
+0ae0 00c0 0e40 LR	$0, @0x0e40
+0ae2 0081 0b8d LRI	$1, #0x0b8d
+0ae4 00c2 0e0b LR	$2, @0x0e0b
+0ae6 0083 0e44 LRI	$3, #0x0e44
+0ae8 00c4 0e41 LR	$4, @0x0e41
+0aea 00c5 0e0c LR	$5, @0x0e0c
+0aec 02bf 8282 CALL	0x8282
+0aee 00f8 0baa SR	@0x0baa, $24
+0af0 00fb 0bad SR	@0x0bad, $27
+0af2 00c0 0e43 LR	$0, @0x0e43
+0af4 0081 0b99 LRI	$1, #0x0b99
+0af6 00c2 0e0d LR	$2, @0x0e0d
+0af8 0083 0e44 LRI	$3, #0x0e44
+0afa 02bf 845d CALL	0x845d
+0afc 00f8 0bb0 SR	@0x0bb0, $24
+0afe 02df      RET	
+
+
+
+
+/// JMP Table for commands
+0aff 0082 
+0b00 013e
+0b01 01bc      CW	0x01bc		; *** UNKNOWN OPCODE ***
+0b02 0248      CW	0x0248		; *** UNKNOWN OPCODE ***
+0b03 0413      ADDIS	$32, #0x13
+0b04 0427      ADDIS	$32, #0x27
+0b05 0165      CW	0x0165		; *** UNKNOWN OPCODE ***
+0b06 0574      ADDIS	$33, #0x74
+0b07 0b37      LRIS	$27, #0x37
+0b08 015f      CW	0x015f		; *** UNKNOWN OPCODE ***
+0b09 0478      ADDIS	$32, #0x78
+0b0a 0474      ADDIS	$32, #0x74
+0b0b 0476      ADDIS	$32, #0x76
+0b0c 01a9      CW	0x01a9		; *** UNKNOWN OPCODE ***
+0b0d 043b      ADDIS	$32, #0x3b
+0b0e 047a      ADDIS	$32, #0x7a
+0b0f 0bb1      LRIS	$27, #0xb1
+0b10 0175      CW	0x0175		; *** UNKNOWN OPCODE ***
+
+
+
+// i think this are offsets for the mixerCtrl
+0b11 0768      CMPIS	$33, #0x68
+0b12 077a      CMPIS	$33, #0x7a
+0b13 079d      CMPIS	$33, #0x9d
+0b14 07c0      CMPIS	$33, #0xc0
+0b15 07f4      CMPIS	$33, #0xf4
+0b16 0811      LRIS	$24, #0x11
+0b17 0844      LRIS	$24, #0x44
+0b18 0877      LRIS	$24, #0x77
+0b19 08c6      LRIS	$24, #0xc6
+0b1a 08d9      LRIS	$24, #0xd9
+0b1b 08fe      LRIS	$24, #0xfe
+0b1c 0923      LRIS	$25, #0x23
+0b1d 095a      LRIS	$25, #0x5a
+0b1e 0979      LRIS	$25, #0x79
+0b1f 09af      LRIS	$25, #0xaf
+0b20 09e5      LRIS	$25, #0xe5
+0b21 0a39      LRIS	$26, #0x39
+0b22 0a5b      LRIS	$26, #0x5b
+0b23 0768      CMPIS	$33, #0x68
+0b24 0768      CMPIS	$33, #0x68
+0b25 0768      CMPIS	$33, #0x68
+0b26 0768      CMPIS	$33, #0x68
+0b27 0768      CMPIS	$33, #0x68
+0b28 0768      CMPIS	$33, #0x68
+0b29 0a99      LRIS	$26, #0x99
+0b2a 0abd      LRIS	$26, #0xbd
+0b2b 0768      CMPIS	$33, #0x68
+0b2c 0768      CMPIS	$33, #0x68
+0b2d 0768      CMPIS	$33, #0x68
+0b2e 0768      CMPIS	$33, #0x68
+0b2f 0768      CMPIS	$33, #0x68
+0b30 0768      CMPIS	$33, #0x68
+
+
+
+// jmp table for srcSelect
+0b31 05a8      ADDIS	$33, #0xa8
+0b32 065d      CMPIS	$32, #0x5d
+0b33 0707      CMPIS	$33, #0x07
+
+// the COEF Table addresses.. i think there are three tables each with ~200 bytes
+// we could check if it is setup by the GAME too
+0b34 1000      LOOPI	#0x00
+0b35 1200      SBCLR	#0x00
+0b36 1400      LSL	$32, #0x00
+
+
+//
+// Opcode_08() - Dolphin doesnt support this command on HLE so prolly no game has ever called it
+
+0b37 8e00      S40	
+0b38 8100      CLR	$30
+0b39 8970      CLRhL	$31 : $30, @$0
+0b3a 191c      LRRI	$28, @$0
+0b3b 2ece      SRS	@DSMAH, $30
+0b3c 2ccf      SRS	@DSMAL, $28
+0b3d 16cd 0e80 SI	@DSPA, #0x0e80
+0b3f 16c9 0000 SI	@DSCR, #0x0000
+0b41 16cb 0100 SI	@DSBL, #0x0100
+0b43 1f7e      MRR	$27, $30
+0b44 1f3c      MRR	$25, $28
+0b45 8100      CLR	$30
+0b46 26c9      LRS	$30, @DSCR
+0b47 02a0 0004 ANDCF	$30, #0x0004
+0b49 029c 0b46 JZR	0x0b46
+0b4b 191e      LRRI	$30, @$0
+0b4c 191c      LRRI	$28, @$0
+0b4d 2ece      SRS	@DSMAH, $30
+0b4e 2ccf      SRS	@DSMAL, $28
+0b4f 16cd 0280 SI	@DSPA, #0x0280
+0b51 16c9 0000 SI	@DSCR, #0x0000
+0b53 16cb 0280 SI	@DSBL, #0x0280
+0b55 1c80      MRR	$4, $0
+0b56 0080 0280 LRI	$0, #0x0280
+0b58 00c1 0e1b LR	$1, @0x0e1b
+0b5a 0085 0000 LRI	$5, #0x0000
+0b5c 0089 007f LRI	$9, #0x007f
+0b5e 0082 0f00 LRI	$2, #0x0f00
+0b60 0083 16b4 LRI	$3, #0x16b4
+0b62 1ce3      MRR	$7, $3
+0b63 8100      CLR	$30
+0b64 26c9      LRS	$30, @DSCR
+0b65 02a0 0004 ANDCF	$30, #0x0004
+0b67 029c 0b64 JZR	0x0b64
+0b69 8f00      S16	
+0b6a 8a78      M2hL	: $31, @$0
+0b6b 8c68      CLR15hL	: $29, @$0
+0b6c f100      LSL16	$31
+0b6d 1a3f      SRR	@$1, $31
+0b6e 84e3      CLRPhLD	: $26, $25, @$3
+0b6f 107e      LOOPI	#0x7e
+0b70 f2e3      MADDhLD	$24, $26 : $26, $25, @$3
+0b71 f2e7      MADDhLDN	$24, $26 : $26, $25, @$3
+0b72 f278      MADDhL	$24, $26 : $31, @$0
+0b73 6e68      MOVPhL	$30 : $29, @$0
+0b74 f132      LSL16hS	$31 : @$2, $30
+0b75 1a3f      SRR	@$1, $31
+0b76 119e 0b80 BLOOPI	#0x9e, 0x0b80
+0b78 1c67      MRR	$3, $7
+0b79 84e3      CLRPhLD	: $26, $25, @$3
+0b7a 107e      LOOPI	#0x7e
+0b7b f2e3      MADDhLD	$24, $26 : $26, $25, @$3
+0b7c f2e7      MADDhLDN	$24, $26 : $26, $25, @$3
+0b7d f278      MADDhL	$24, $26 : $31, @$0
+0b7e 6e68      MOVPhL	$30 : $29, @$0
+0b7f f132      LSL16hS	$31 : @$2, $30
+0b80 1a3f      SRR	@$1, $31
+0b81 1c67      MRR	$3, $7
+0b82 84e3      CLRPhLD	: $26, $25, @$3
+0b83 107e      LOOPI	#0x7e
+0b84 f2e3      MADDhLD	$24, $26 : $26, $25, @$3
+0b85 f2e7      MADDhLDN	$24, $26 : $26, $25, @$3
+0b86 f200      MADD	$24, $26
+0b87 6e00      MOVP	$30
+0b88 1b5e      SRRI	@$2, $30
+0b89 00e1 0e1b SR	@0x0e1b, $1
+0b8b 0080 0280 LRI	$0, #0x0280
+0b8d 0083 0f00 LRI	$3, #0x0f00
+0b8f 0081 0000 LRI	$1, #0x0000
+0b91 0082 0140 LRI	$2, #0x0140
+0b93 0089 ffff LRI	$9, #0xffff
+0b95 8900      CLR	$31
+0b96 8100      CLR	$30
+0b97 8f00      S16	
+0b98 11a0 0ba0 BLOOPI	#0xa0, 0x0ba0
+0b9a 197f      LRRI	$31, @$3
+0b9b 9930      ASR16hS	$31 : @$0, $30
+0b9c 1b1e      SRRI	@$0, $30
+0b9d 1b3f      SRRI	@$1, $31
+0b9e 7d29      NEGhS	$31 : @$1, $29
+0b9f 1b5f      SRRI	@$2, $31
+0ba0 1b5d      SRRI	@$2, $29
+0ba1 8e00      S40	
+0ba2 1fdb      MRR	$30, $27
+0ba3 1f99      MRR	$28, $25
+0ba4 2ece      SRS	@DSMAH, $30
+0ba5 2ccf      SRS	@DSMAL, $28
+0ba6 16cd 0e80 SI	@DSPA, #0x0e80
+0ba8 16c9 0001 SI	@DSCR, #0x0001
+0baa 16cb 0100 SI	@DSBL, #0x0100
+0bac 02bf 055c CALL	0x055c
+0bae 1c04      MRR	$0, $4
+0baf 029f 0068 JMP	0x0068
+
+
+// Looks like some "new command" that have been appended
+// i think i have seen it in monkey ball only... dunno
+
+// Opcode_16()
+0bb1 8e00      S40	
+0bb2 8100      CLR	$30
+0bb3 8970      CLRhL	$31 : $30, @$0
+0bb4 191c      LRRI	$28, @$0
+0bb5 2ece      SRS	@DSMAH, $30
+0bb6 2ccf      SRS	@DSMAL, $28
+0bb7 16cd 07c0 SI	@DSPA, #0x07c0
+0bb9 16c9 0001 SI	@DSCR, #0x0001
+0bbb 16cb 0500 SI	@DSBL, #0x0500
+0bbd 02bf 055c CALL	0x055c
+0bbf 8100      CLR	$30
+0bc0 8970      CLRhL	$31 : $30, @$0
+0bc1 191c      LRRI	$28, @$0
+0bc2 2ece      SRS	@DSMAH, $30
+0bc3 2ccf      SRS	@DSMAL, $28
+0bc4 16cd 07c0 SI	@DSPA, #0x07c0
+0bc6 16c9 0000 SI	@DSCR, #0x0000
+0bc8 8900      CLR	$31
+0bc9 0d20      LRIS	$29, #0x20
+0bca 2dcb      SRS	@DSBL, $29
+0bcb 4c00      ADD	$30, $31
+0bcc 1c80      MRR	$4, $0
+0bcd 0080 07c0 LRI	$0, #0x07c0
+0bcf 0083 0000 LRI	$3, #0x0000
+0bd1 1c43      MRR	$2, $3
+0bd2 0a00      LRIS	$26, #0x00
+0bd3 27c9      LRS	$31, @DSCR
+0bd4 03a0 0004 ANDCF	$31, #0x0004
+0bd6 029c 0bd3 JZR	0x0bd3
+0bd8 2ece      SRS	@DSMAH, $30
+0bd9 2ccf      SRS	@DSMAL, $28
+0bda 16cd 07d0 SI	@DSPA, #0x07d0
+0bdc 16c9 0000 SI	@DSCR, #0x0000
+0bde 16cb 04e0 SI	@DSBL, #0x04e0
+0be0 8f00      S16	
+0be1 80f0      NXhLDX	: $25, $27, @$1
+0be2 80c0      NXhLDX	: $24, $26, @$0
+0be3 6a00      MOVAX	$30, $25
+0be4 4800      ADDAX	$30, $24
+0be5 114f 0bee BLOOPI	#0x4f, 0x0bee
+0be7 80f0      NXhLDX	: $25, $27, @$1
+0be8 80c0      NXhLDX	: $24, $26, @$0
+0be9 6b32      MOVAXhS	$31, $25 : @$2, $30
+0bea 4922      ADDAXhS	$31, $24 : @$2, $28
+0beb 80f0      NXhLDX	: $25, $27, @$1
+0bec 80c0      NXhLDX	: $24, $26, @$0
+0bed 6a3a      MOVAXhS	$30, $25 : @$2, $31
+0bee 482a      ADDAXhS	$30, $24 : @$2, $29
+0bef 80f0      NXhLDX	: $25, $27, @$1
+0bf0 80c0      NXhLDX	: $24, $26, @$0
+0bf1 6b32      MOVAXhS	$31, $25 : @$2, $30
+0bf2 4922      ADDAXhS	$31, $24 : @$2, $28
+0bf3 1b5f      SRRI	@$2, $31
+0bf4 1b5d      SRRI	@$2, $29
+0bf5 80f0      NXhLDX	: $25, $27, @$1
+0bf6 80c0      NXhLDX	: $24, $26, @$0
+0bf7 6800      MOVAX	$30, $24
+0bf8 7c00      NEG	$30
+0bf9 4a00      ADDAX	$30, $25
+0bfa 114f 0c05 BLOOPI	#0x4f, 0x0c05
+0bfc 80f0      NXhLDX	: $25, $27, @$1
+0bfd 80c0      NXhLDX	: $24, $26, @$0
+0bfe 6932      MOVAXhS	$31, $24 : @$2, $30
+0bff 7d00      NEG	$31
+0c00 4b22      ADDAXhS	$31, $25 : @$2, $28
+0c01 80f0      NXhLDX	: $25, $27, @$1
+0c02 80c0      NXhLDX	: $24, $26, @$0
+0c03 683a      MOVAXhS	$30, $24 : @$2, $31
+0c04 7c00      NEG	$30
+0c05 4a2a      ADDAXhS	$30, $25 : @$2, $29
+0c06 80f0      NXhLDX	: $25, $27, @$1
+0c07 80c0      NXhLDX	: $24, $26, @$0
+0c08 6932      MOVAXhS	$31, $24 : @$2, $30
+0c09 7d00      NEG	$31
+0c0a 4b22      ADDAXhS	$31, $25 : @$2, $28
+0c0b 1b5f      SRRI	@$2, $31
+0c0c 1b5d      SRRI	@$2, $29
+0c0d 1c04      MRR	$0, $4
+0c0e 029f 0068 JMP	0x0068
+
+//////////////////////////////////////////////////////////////////////////////
+//
+// Exception Functions()
+//
+//////////////////////////////////////////////////////////////////////////////
+
+// excpetion vector 0002
+0c10 8e00      S40	
+0c11 16fc ecc0 SI	@DMBH, #0xecc0
+0c13 1fcc      MRR	$30, $12
+0c14 1d9e      MRR	$12, $30
+0c15 2efd      SRS	@DMBL, $30
+0c16 26fc      LRS	$30, @DMBH
+0c17 02a0 8000 ANDCF	$30, #0x8000
+0c19 029c 0c16 JZR	0x0c16
+0c1b 0000      NOP	
+0c1c 0000      NOP	
+0c1d 0000      NOP	
+0c1e 02ff      RTI	
+
+// excpetion vector 0004
+0c1f 8e00      S40	
+0c20 00f0 0e17 SR	@0x0e17, $16
+0c22 00fe 0e18 SR	@0x0e18, $30
+0c24 00fc 0e19 SR	@0x0e19, $28
+0c26 1fcc      MRR	$30, $12
+0c27 1d9e      MRR	$12, $30
+0c28 16fc feed SI	@DMBH, #0xfeed
+0c2a 2efd      SRS	@DMBL, $30
+0c2b 26fc      LRS	$30, @DMBH
+0c2c 02a0 8000 ANDCF	$30, #0x8000
+0c2e 029c 0c2b JZR	0x0c2b
+0c30 00d0 0e17 LR	$16, @0x0e17
+0c32 00de 0e18 LR	$30, @0x0e18
+0c34 00dc 0e19 LR	$28, @0x0e19
+0c36 0000      NOP	
+0c37 0000      NOP	
+0c38 0000      NOP	
+0c39 0000      NOP	
+0c3a 02ff      RTI	
+
+// excpetion vector 0006
+0c3b 8e00      S40	
+0c3c 1dbc      MRR	$13, $28
+0c3d 1dbe      MRR	$13, $30
+0c3e 8100      CLR	$30
+0c3f 00de 0bb7 LR	$30, @0x0bb7      	// 0BB7 should point to "looping" of the current PB... 
+0c41 0601      CMPIS	$32, #0x01
+0c42 0295 0c47 JEQ	0x0c47
+0c44 0e00      LRIS	$30, #0x00
+0c45 00fe 0b87 SR	@0x0b87, $30		// 0B87 should point to "running" of the current PB...  
+0c47 1fcd      MRR	$30, $13
+0c48 1f8d      MRR	$28, $13
+0c49 02ff      RTI	
+
+// excpetion vector 0008
+0c4a 0000      NOP	
+0c4b 0000      NOP	
+0c4c 0000      NOP	
+0c4d 0000      NOP	
+0c4e 0000      NOP	
+0c4f 02ff      RTI	
+
+// excpetion vector 000a
+0c50 8e00      S40	
+0c51 1dbc      MRR	$13, $28
+0c52 1dbe      MRR	$13, $30
+0c53 8100      CLR	$30
+0c54 00de 0bb7 LR	$30, @0x0bb7		// 0BB7 should point to "looping" of the current PB... 
+0c56 0601      CMPIS	$32, #0x01
+0c57 0295 0c5f JEQ	0x0c5f
+0c59 0e00      LRIS	$30, #0x00
+0c5a 00fe 0b87 SR	@0x0b87, $30
+0c5c 1fcd      MRR	$30, $13
+0c5d 1f8d      MRR	$28, $13
+0c5e 02ff      RTI	
+0c5f 8100      CLR	$30
+0c60 00de 0b88 LR	$30, @0x0b88		// 0B88 should point to "is_stream" of the current PB...  
+0c62 0601      CMPIS	$32, #0x01
+0c63 0295 0c71 JEQ	0x0c71
+0c65 00de 0bda LR	$30, @0x0bda		// out of normal PB space... 
+0c67 2eda      SRS	@pred_scale, $30
+0c68 00de 0bdb LR	$30, @0x0bdb
+0c6a 2edb      SRS	@yn1, $30
+0c6b 00de 0bdc LR	$30, @0x0bdc
+0c6d 2edc      SRS	@yn2, $30
+0c6e 1fcd      MRR	$30, $13
+0c6f 1f8d      MRR	$28, $13
+0c70 02ff      RTI	
+0c71 00de 0bda LR	$30, @0x0bda
+0c73 2eda      SRS	@pred_scale, $30
+0c74 26db      LRS	$30, @yn1
+0c75 2edb      SRS	@yn1, $30
+0c76 26dc      LRS	$30, @yn2
+0c77 2edc      SRS	@yn2, $30
+0c78 8100      CLR	$30
+0c79 00dc 0bdd LR	$28, @0x0bdd		// out of normal PB space... 
+0c7b 7600      INC	$30
+0c7c 00fc 0bdd SR	@0x0bdd, $28
+0c7e 8100      CLR	$30
+0c7f 1fcd      MRR	$30, $13
+0c80 1f8d      MRR	$28, $13
+0c81 02ff      RTI	
+
+
+// excpetion vector 000c
+0c82 0000      NOP	
+0c83 0000      NOP	
+0c84 0000      NOP	
+0c85 0000      NOP	
+0c86 0000      NOP	
+0c87 02ff      RTI	
+
+
+// excpetion vector 000e
+0c88 0000      NOP	
+0c89 0000      NOP	
+0c8a 0000      NOP	
+0c8b 0000      NOP	
+0c8c 02ff      RTI	
+
+//////////////////////////////////////////////////////////////////////////////
+//
+// End of exception functions
+//
+//////////////////////////////////////////////////////////////////////////////
+
+
+// Jmp table for function below (what ever it does :))
+0c8d 0c9f      LRIS	$28, #0x9f
+0c8e 0ca2      LRIS	$28, #0xa2
+0c8f 0cda      LRIS	$28, #0xda
+0c90 0cdd      LRIS	$28, #0xdd
+
+
+// Mix and write back to RAM??? It is called by AXLIST_END command only
+0c91 8e00      S40	
+0c92 8100      CLR	$30
+0c93 8900      CLR	$31
+0c94 02bf 0ce0 CALL	0x0ce0
+0c96 27ff      LRS	$31, @CMBL
+0c97 009e 0c8d LRI	$30, #0x0c8d
+0c99 4c00      ADD	$30, $31
+0c9a 1c7e      MRR	$3, $30
+0c9b 0313      ILRR	$31, @$3
+0c9c 1c7f      MRR	$3, $31
+0c9d 176f      JMPR	$3
+0c9e 0021      HALT	
+0c9f 029f 0030 JMP	0x0030
+0ca1 0021      HALT	
+0ca2 8100      CLR	$30
+0ca3 8900      CLR	$31
+0ca4 02bf 0ce0 CALL	0x0ce0
+0ca6 24ff      LRS	$28, @CMBL
+0ca7 02bf 0ce6 CALL	0x0ce6
+0ca9 25ff      LRS	$29, @CMBL
+0caa 02bf 0ce6 CALL	0x0ce6
+0cac 27ff      LRS	$31, @CMBL
+0cad 2ece      SRS	@DSMAH, $30
+0cae 2ccf      SRS	@DSMAL, $28
+0caf 16c9 0001 SI	@DSCR, #0x0001
+0cb1 2fcd      SRS	@DSPA, $31
+0cb2 2dcb      SRS	@DSBL, $29
+0cb3 8100      CLR	$30
+0cb4 8900      CLR	$31
+0cb5 02bf 0ce0 CALL	0x0ce0
+0cb7 24ff      LRS	$28, @CMBL
+0cb8 1c9e      MRR	$4, $30
+0cb9 1cbc      MRR	$5, $28
+0cba 02bf 0ce6 CALL	0x0ce6
+0cbc 25ff      LRS	$29, @CMBL
+0cbd 02bf 0ce6 CALL	0x0ce6
+0cbf 27ff      LRS	$31, @CMBL
+0cc0 1cdf      MRR	$6, $31
+0cc1 1cfd      MRR	$7, $29
+0cc2 8100      CLR	$30
+0cc3 02bf 0ce0 CALL	0x0ce0
+0cc5 26ff      LRS	$30, @CMBL
+0cc6 1c1e      MRR	$0, $30
+0cc7 8900      CLR	$31
+0cc8 02bf 0ce6 CALL	0x0ce6
+0cca 20ff      LRS	$24, @CMBL
+0ccb 1f5f      MRR	$26, $31
+0ccc 02bf 0ce0 CALL	0x0ce0
+0cce 21ff      LRS	$25, @CMBL
+0ccf 02bf 0ce0 CALL	0x0ce0
+0cd1 23ff      LRS	$27, @CMBL
+0cd2 26c9      LRS	$30, @DSCR
+0cd3 02a0 0004 ANDCF	$30, #0x0004
+0cd5 029c 0cd2 JZR	0x0cd2
+0cd7 029f 80b5 JMP	0x80b5
+0cd9 0021      HALT	
+0cda 029f 8000 JMP	0x8000
+0cdc 0021      HALT	
+0cdd 029f 0045 JMP	0x0045
+0cdf 0021      HALT	
+
+// looks like valid code but who calls it??
+0ce0 26fe      LRS	$30, @CMBH
+0ce1 02c0 8000 ANDF	$30, #0x8000
+0ce3 029c 0ce0 JZR	0x0ce0
+0ce5 02df      RET	
+
+// looks like valid code but who calls it??
+0ce6 27fe      LRS	$31, @CMBH
+0ce7 03c0 8000 ANDF	$31, #0x8000
+0ce9 029c 0ce6 JZR	0x0ce6
+0ceb 02df      RET	
+
+
