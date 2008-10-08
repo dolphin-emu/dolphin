@@ -205,15 +205,15 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 	tmpflag |= _CRTDBG_DELAY_FREE_MEM_DF;
 	_CrtSetDbgFlag(tmpflag);
 #endif
+	if (log_ai) {
+		g_wave_writer.Start("D:\\ai_log.wav");
+		g_wave_writer.SetSkipSilence(false);
+	}
 
 	DSound::DSound_StartSound((HWND)g_dspInitialize.hWnd, 48000, Mixer);
 #else
 	AOSound::AOSound_StartSound(48000, Mixer);
 #endif
-	if (log_ai) {
-		g_wave_writer.Start("D:\\ai_log.wav");
-		g_wave_writer.SetSkipSilence(false);
-	}
 }
 
 void DSP_Shutdown()

@@ -17,6 +17,7 @@
 
 #include "Common.h"
 #include "Globals.h"
+#include "WaveFile.h"
 #include "CommonTypes.h"
 #include "Mixer.h"
 
@@ -63,6 +64,11 @@ extern u32 m_addressPBs;
 bool AXTask(u32& _uMail);
 
 bool bCanWork = false;
+
+// Set this if you want to log audio. search for log_ai in this file to see the filename.
+static bool log_ai = false;
+static WaveFileWriter g_wave_writer;
+
 // ==============
 
 
@@ -271,6 +277,11 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 #endif // DEBUG
 #endif // WIN32
         
+	if (log_ai) {
+		g_wave_writer.Start("D:\\ai_log.wav");
+		g_wave_writer.SetSkipSilence(false);
+	}
+
 #ifdef _WIN32
 	InitializeCriticalSection(&g_CriticalSection);
 	DSound::DSound_StartSound((HWND)g_dspInitialize.hWnd, 48000, Mixer);
@@ -282,6 +293,8 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 
 void DSP_Shutdown(void)
 {
+	if (log_ai)
+		g_wave_writer.Stop();
 #ifdef _WIN32
 	if (g_hDSPThread != NULL)
 	{
@@ -395,6 +408,8 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 		for (int i = 0; i < 16; i++) {
 			samples[i] = Memory_Read_U16(address + i * 2);
 		}
+		if (log_ai)
+			g_wave_writer.AddStereoSamples(samples, 8);
 	}
 	Mixer_PushSamples(samples, 32 / 4, sample_rate);
 
