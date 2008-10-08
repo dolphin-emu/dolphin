@@ -45,6 +45,8 @@
 0x0e1c						TmpBuffer for Opcode3()
 
 
+0x0e40 ...                  mixer inputs
+
 0x0e42						something for the Decoder Functions
 
 
@@ -326,7 +328,7 @@ Main()
 0139 4c00      ADD	$30, $31
 013a 1b5e      SRRI	@$2, $30
 013b 1b5c      SRRI	@$2, $28
-013c 029f 0068 JMP	0x0068
+013c 029f 0068 JMP	0x0068     // Return to message loop.
 
 
 // Opcode_01()
@@ -348,13 +350,13 @@ Main()
 0158 8948      CLRhL	$31 : $25, @$0
 0159 0081 07c0 LRI	$1, #0x07c0
 015b 02bf 04f1 CALL	0x04f1
-015d 029f 0068 JMP	0x0068
+015d 029f 0068 JMP	0x0068     // Return to message loop.
 
 
 // Opcode_09()
 015f 0086 07c0 LRI	$6, #0x07c0
 0161 02bf 0484 CALL	0x0484
-0163 029f 0068 JMP	0x0068
+0163 029f 0068 JMP	0x0068     // Return to message loop.
 
 
 // Opcode_06()
@@ -368,7 +370,7 @@ Main()
 016d 16c9 0001 SI	@DSCR, #0x0001
 016f 16cb 0780 SI	@DSBL, #0x0780
 0171 02bf 055c CALL	0x055c     // Wait for DMA control reg
-0173 029f 0068 JMP	0x0068
+0173 029f 0068 JMP	0x0068     // Return to message loop.
 
 
 // Opcode_17()
@@ -391,7 +393,7 @@ Main()
 018b 0a00      LRIS	$26, #0x00
 018c 27c9      LRS	$31, @DSCR
 018d 03a0 0004 ANDCF	$31, #0x0004
-018f 029c 018c JZR	0x018c
+018f 029c 018c JZR	0x018c                // wait for dma loop
 0191 2ece      SRS	@DSMAH, $30
 0192 2ccf      SRS	@DSMAL, $28
 0193 16cd 0e54 SI	@DSPA, #0x0e54
@@ -409,7 +411,7 @@ Main()
 01a4 1b3e      SRRI	@$1, $30
 01a5 1b3c      SRRI	@$1, $28
 01a6 1c04      MRR	$0, $4
-01a7 029f 0068 JMP	0x0068
+01a7 029f 0068 JMP	0x0068     // Return to message loop.
 
 
 // Opcode_13()
@@ -425,7 +427,7 @@ Main()
 01b5 2fcb      SRS	@DSBL, $31
 01b6 02bf 055c CALL	0x055c     // Wait for DMA control reg
 01b8 0080 0c00 LRI	$0, #0x0c00
-01ba 029f 0068 JMP	0x0068
+01ba 029f 0068 JMP	0x0068     // Return to message loop.
 
 
 // Opcode_02()
@@ -472,7 +474,7 @@ Main()
 01f9 1c7e      MRR	$3, $30
 01fa 0213      ILRR	$30, @$3
 01fb 00fe 0e15 SR	@0x0e15, $30
-01fd 00de 0b85 LR	$30, @0x0b85
+01fd 00de 0b85 LR	$30, @0x0b85         // unknown
 01ff 009f 0b34 LRI	$31, #0x0b34
 0201 4c00      ADD	$30, $31
 0202 1c7e      MRR	$3, $30
@@ -489,7 +491,7 @@ Main()
 0212 b100      TST	$30
 0213 0295 023a JEQ	0x023a
 0215 8900      CLR	$31
-0216 00df 0b9e LR	$31, @0x0b9e
+0216 00df 0b9e LR	$31, @0x0b9e      // updates?
 0218 0300 0cc0 ADDI	$33, #0x0cc0
 021a 00ff 0e40 SR	@0x0e40, $31
 021c 00df 0b9f LR	$31, @0x0b9f
@@ -507,14 +509,14 @@ Main()
 0232 16c9 0000 SI	@DSCR, #0x0000
 0234 16cb 0040 SI	@DSBL, #0x0040
 0236 02bf 055c CALL	0x055c     // Wait for DMA control reg
-0238 029f 0068 JMP	0x0068				// return out of the function
+0238 029f 0068 JMP	0x0068     // Return to message loop.				// return out of the function
 023a 009f 0ce0 LRI	$31, #0x0ce0
 023c 00ff 0e42 SR	@0x0e42, $31
 023e 00ff 0e40 SR	@0x0e40, $31
 0240 00ff 0e41 SR	@0x0e41, $31
 0242 00ff 0e43 SR	@0x0e43, $31
 0244 02bf 055c CALL	0x055c     // Wait for DMA control reg
-0246 029f 0068 JMP	0x0068
+0246 029f 0068 JMP	0x0068     // Return to message loop.
 
 
 // Opcode_03()
@@ -535,11 +537,11 @@ Main()
 025c 0083 0e05 LRI	$3, #0x0e05
 025e 1b61      SRRI	@$3, $1
 025f 1b60      SRRI	@$3, $0
-0260 00de 0b87 LR	$30, @0x0b87
+0260 00de 0b87 LR	$30, @0x0b87    // is pb->running?
 0262 0601      CMPIS	$32, #0x01
 0263 0295 0267 JEQ	0x0267
 0265 029f 0332 JMP	0x0332
-0267 00de 0e42 LR	$30, @0x0e42
+0267 00de 0e42 LR	$30, @0x0e42     //  we got here - yes, it's running
 0269 00fe 0e1c SR	@0x0e1c, $30
 026b 00c3 0e15 LR	$3, @0x0e15
 026d 177f      CALLR	$3
@@ -670,6 +672,7 @@ Main()
 02f3 b100      TST	$30
 02f4 0295 032a JEQ	0x032a
 
+
 02f6 00de 0e42 LR	$30, @0x0e42
 02f8 00fe 0e43 SR	@0x0e43, $30
 02fa 8100      CLR	$30
@@ -708,7 +711,7 @@ Main()
 032c 00fe 0e40 SR	@0x0e40, $30
 032e 00fe 0e41 SR	@0x0e41, $30
 0330 00fe 0e43 SR	@0x0e43, $30
-0332 8100      CLR	$30
+0332 8100      CLR	$30             // Jumps here when a PB isn't ->running.
 
 0333 8e00      S40	
 0334 8400      CLRP	
@@ -776,12 +779,12 @@ Main()
 037f b100      TST	$30
 0380 0294 0386 JNE	0x0386
 0382 00c0 0e07 LR	$0, @0x0e07
-0384 029f 0068 JMP	0x0068				--> return to next opcode
+0384 029f 0068 JMP	0x0068     // Return to message loop.				--> return to next opcode
 
 // copy the next PB to memory
 0386 2ece      SRS	@DSMAH, $30
 0387 2ccf      SRS	@DSMAL, $28
-0388 16cd 0b80 SI	@DSPA, #0x0b80
+0388 16cd 0b80 SI	@DSPA, #0x0b80    // b80 - paramblock
 038a 16c9 0000 SI	@DSCR, #0x0000
 038c 16cb 00c0 SI	@DSBL, #0x00c0
 038e 0082 0e08 LRI	$2, #0x0e08
@@ -810,7 +813,7 @@ Main()
 03b2 2fcf      SRS	@DSMAL, $31
 03b3 16cd 03c0 SI	@DSPA, #0x03c0
 03b5 16c9 0000 SI	@DSCR, #0x0000
-03b7 16cb 0080 SI	@DSBL, #0x0080
+03b7 16cb 0080 SI	@DSBL, #0x0080    // Don't know what this dma xfer is
 03b9 8100      CLR	$30
 03ba 8900      CLR	$31
 03bb 00de 0b84 LR	$30, @0x0b84
@@ -834,7 +837,7 @@ Main()
 03d6 8100      CLR	$30
 03d7 00de 0b9b LR	$30, @0x0b9b
 03d9 b100      TST	$30
-03da 0295 0403 JEQ	0x0403
+03da 0295 0403 JEQ	0x0403  
 03dc 8900      CLR	$31
 03dd 00df 0b9e LR	$31, @0x0b9e
 03df 0300 0cc0 ADDI	$33, #0x0cc0
@@ -856,8 +859,7 @@ Main()
 03fd 02bf 055c CALL	0x055c     // Wait for DMA control reg				// wait for DMA
 03ff 00c0 0e07 LR	$0, @0x0e07
 0401 029f 0248 JMP	0x0248				// Opcode3()  - "self calling"
-
-0403 009f 0ce0 LRI	$31, #0x0ce0
+0403 009f 0ce0 LRI	$31, #0x0ce0     //  <<< branch from 03da
 0405 00ff 0e42 SR	@0x0e42, $31
 0407 00ff 0e40 SR	@0x0e40, $31
 0409 00ff 0e41 SR	@0x0e41, $31
@@ -867,7 +869,7 @@ Main()
 0411 029f 0248 JMP	0x0248				// Opcode3()  - "self calling"
 
 
-// Opcode_04()
+// Opcode_04() - do a DMA transfer
 0413 8e00      S40	
 0414 0086 0400 LRI	$6, #0x0400
 0416 8100      CLR	$30
@@ -881,10 +883,10 @@ Main()
 041f 16cb 0780 SI	@DSBL, #0x0780
 0421 02bf 055c CALL	0x055c     // Wait for DMA control reg
 0423 02bf 0484 CALL	0x0484
-0425 029f 0068 JMP	0x0068
+0425 029f 0068 JMP	0x0068     // Return to message loop.
 
 
-// Opcode_05()
+// Opcode_05()  - do another DMA transfer
 0427 8e00      S40	
 0428 0086 07c0 LRI	$6, #0x07c0
 042a 8100      CLR	$30
@@ -898,7 +900,7 @@ Main()
 0433 16cb 0780 SI	@DSBL, #0x0780
 0435 02bf 055c CALL	0x055c     // Wait for DMA control reg
 0437 02bf 0484 CALL	0x0484
-0439 029f 0068 JMP	0x0068
+0439 029f 0068 JMP	0x0068     // Return to message loop.
 
 
 // Opcode_14()
@@ -944,17 +946,17 @@ Main()
 046c 8100      CLR	$30
 046d 26c9      LRS	$30, @DSCR
 046e 02a0 0004 ANDCF	$30, #0x0004
-0470 029c 046d JZR	0x046d
-0472 029f 0068 JMP	0x0068
+0470 029c 046d JZR	0x046d     // wait for DMA loop
+0472 029f 0068 JMP	0x0068     // Return to message loop.
 
-// Opcode_11() // just return to the messages loop
-0474 029f 0068 JMP	0x0068
+// Opcode_11() - not implemented
+0474 029f 0068 JMP	0x0068     // Return to message loop.
 
-// Opcode_12() // just return to the messages loop
-0476 029f 0068 JMP	0x0068
+// Opcode_12() - not implemented
+0476 029f 0068 JMP	0x0068     // Return to message loop.
 
-// Opcode_10() // just return to the messages loop
-0478 029f 0068 JMP	0x0068
+// Opcode_10() - not implemented
+0478 029f 0068 JMP	0x0068     // Return to message loop.
 
 
 // Opcode_15()  // end AX List command  (write the 0xDCD10002 that we have executed the shit)
@@ -1002,7 +1004,7 @@ Main()
 04a4 1c43      MRR	$2, $3
 04a5 27c9      LRS	$31, @DSCR
 04a6 03a0 0004 ANDCF	$31, #0x0004
-04a8 029c 04a5 JZR	0x04a5
+04a8 029c 04a5 JZR	0x04a5       // wait for DMA loop
 04aa 1109 04da BLOOPI	#0x09, 0x04da
 04ac 8e00      S40	
 04ad 193a      LRRI	$26, @$1
@@ -1191,7 +1193,7 @@ Main()
 058a 0a00      LRIS	$26, #0x00
 058b 27c9      LRS	$31, @DSCR
 058c 03a0 0004 ANDCF	$31, #0x0004
-058e 029c 058b JZR	0x058b
+058e 029c 058b JZR	0x058b       // wait for DMA loop
 0590 2ece      SRS	@DSMAH, $30
 0591 2ccf      SRS	@DSMAL, $28
 0592 16cd 0e54 SI	@DSPA, #0x0e54
@@ -1209,7 +1211,7 @@ Main()
 05a3 1b3e      SRRI	@$1, $30
 05a4 1b3c      SRRI	@$1, $28
 05a5 1c04      MRR	$0, $4
-05a6 029f 0068 JMP	0x0068
+05a6 029f 0068 JMP	0x0068     // Return to message loop.
 
 
 // Decoder_ADPCM()
@@ -1319,12 +1321,12 @@ Main()
 0617 1827      LRR	$7, @$1
 0618 1b07      SRRI	@$0, $7
 0619 1b7f      SRRI	@$3, $31
-061a 0000      NOP	
+061a 0000      NOP	                 // bloop 0609
 061b 0065 0620 BLOOP	$5, 0x0620
 061d 1827      LRR	$7, @$1
 061e 1b07      SRRI	@$0, $7
 061f 0000      NOP	
-0620 0000      NOP	
+0620 0000      NOP                   // bloop 061b
 0621 0007      DAR	$3
 0622 187f      LRR	$31, @$3
 0623 0066 0629 BLOOP	$6, 0x0629
@@ -1332,7 +1334,7 @@ Main()
 0626 1ffc      MRR	$31, $28
 0627 1579      LSR	$33, #0x39
 0628 3533      ANDRhS	$31, $26 : @$3, $30
-0629 4100      ADDR	$31, $24
+0629 4100      ADDR	$31, $24        // bloop 0623
 062a 1b7f      SRRI	@$3, $31
 062b 0004      DAR	$0
 062c 189f      LRRD	$31, @$0
@@ -1632,7 +1634,7 @@ Main()
 
 // fn0
 0768 00c0 0e40 LR	$0, @0x0e40
-076a 0081 0b89 LRI	$1, #0x0b89
+076a 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
 076c 00c2 0e08 LR	$2, @0x0e08
 076e 1c62      MRR	$3, $2
 076f 00c4 0e41 LR	$4, @0x0e41
@@ -1644,7 +1646,7 @@ Main()
 
 // fn1
 077a 00c0 0e40 LR	$0, @0x0e40
-077c 0081 0b89 LRI	$1, #0x0b89
+077c 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings   // PB mixer settings
 077e 00c2 0e08 LR	$2, @0x0e08
 0780 1c62      MRR	$3, $2
 0781 00c4 0e41 LR	$4, @0x0e41
@@ -1665,7 +1667,7 @@ Main()
 
 // fn2
 079d 00c0 0e40 LR	$0, @0x0e40
-079f 0081 0b89 LRI	$1, #0x0b89
+079f 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings   // PB mixer settings
 07a1 00c2 0e08 LR	$2, @0x0e08
 07a3 1c62      MRR	$3, $2
 07a4 00c4 0e41 LR	$4, @0x0e41
@@ -1686,7 +1688,7 @@ Main()
 
 // fn3
 07c0 00c0 0e40 LR	$0, @0x0e40
-07c2 0081 0b89 LRI	$1, #0x0b89
+07c2 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings   // PB mixer settings
 07c4 00c2 0e08 LR	$2, @0x0e08
 07c6 1c62      MRR	$3, $2
 07c7 00c4 0e41 LR	$4, @0x0e41
@@ -1716,7 +1718,7 @@ Main()
 
 // fn4
 07f4 00c0 0e40 LR	$0, @0x0e40
-07f6 0081 0b89 LRI	$1, #0x0b89
+07f6 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
 07f8 00c2 0e08 LR	$2, @0x0e08
 07fa 1c62      MRR	$3, $2
 07fb 00c4 0e41 LR	$4, @0x0e41
@@ -1734,7 +1736,7 @@ Main()
 
 // xxxx
 0811 00c0 0e40 LR	$0, @0x0e40
-0813 0081 0b89 LRI	$1, #0x0b89
+0813 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
 0815 00c2 0e08 LR	$2, @0x0e08
 0817 1c62      MRR	$3, $2
 0818 00c4 0e41 LR	$4, @0x0e41
@@ -1765,7 +1767,7 @@ Main()
 
 	
 0844 00c0 0e40 LR	$0, @0x0e40
-0846 0081 0b89 LRI	$1, #0x0b89
+0846 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
 0848 00c2 0e08 LR	$2, @0x0e08
 084a 1c62      MRR	$3, $2
 084b 00c4 0e41 LR	$4, @0x0e41
@@ -1796,7 +1798,7 @@ Main()
 
 
 0877 00c0 0e40 LR	$0, @0x0e40
-0879 0081 0b89 LRI	$1, #0x0b89
+0879 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
 087b 00c2 0e08 LR	$2, @0x0e08
 087d 1c62      MRR	$3, $2
 087e 00c4 0e41 LR	$4, @0x0e41
@@ -1842,7 +1844,7 @@ Main()
 
 
 08c6 00c0 0e40 LR	$0, @0x0e40
-08c8 0081 0b89 LRI	$1, #0x0b89
+08c8 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
 08ca 00c2 0e08 LR	$2, @0x0e08
 08cc 0083 0e44 LRI	$3, #0x0e44
 08ce 00c4 0e41 LR	$4, @0x0e41
@@ -1855,7 +1857,7 @@ Main()
 
 
 08d9 00c0 0e40 LR	$0, @0x0e40
-08db 0081 0b89 LRI	$1, #0x0b89
+08db 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
 08dd 00c2 0e08 LR	$2, @0x0e08
 08df 0083 0e44 LRI	$3, #0x0e44
 08e1 00c4 0e41 LR	$4, @0x0e41
@@ -1864,7 +1866,7 @@ Main()
 08e7 00f8 0ba9 SR	@0x0ba9, $24
 08e9 00fb 0bac SR	@0x0bac, $27
 08eb 00c0 0e40 LR	$0, @0x0e40
-08ed 0081 0b8d LRI	$1, #0x0b8d
+08ed 0081 0b8d LRI	$1, #0x0b8d      // aux stuff
 08ef 00c2 0e0b LR	$2, @0x0e0b
 08f1 0083 0e44 LRI	$3, #0x0e44
 08f3 00c4 0e41 LR	$4, @0x0e41
@@ -1878,7 +1880,7 @@ Main()
 
 
 08fe 00c0 0e40 LR	$0, @0x0e40
-0900 0081 0b89 LRI	$1, #0x0b89
+0900 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
 0902 00c2 0e08 LR	$2, @0x0e08
 0904 0083 0e44 LRI	$3, #0x0e44
 0906 00c4 0e41 LR	$4, @0x0e41
@@ -1887,7 +1889,7 @@ Main()
 090c 00f8 0ba9 SR	@0x0ba9, $24
 090e 00fb 0bac SR	@0x0bac, $27
 0910 00c0 0e40 LR	$0, @0x0e40
-0912 0081 0b91 LRI	$1, #0x0b91
+0912 0081 0b91 LRI	$1, #0x0b91    // aux stuff
 0914 00c2 0e0e LR	$2, @0x0e0e
 0916 0083 0e44 LRI	$3, #0x0e44
 0918 00c4 0e41 LR	$4, @0x0e41
@@ -1900,7 +1902,7 @@ Main()
 
 
 0923 00c0 0e40 LR	$0, @0x0e40
-0925 0081 0b89 LRI	$1, #0x0b89
+0925 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
 0927 00c2 0e08 LR	$2, @0x0e08
 0929 0083 0e44 LRI	$3, #0x0e44
 092b 00c4 0e41 LR	$4, @0x0e41
@@ -1932,7 +1934,7 @@ Main()
 
 
 095a 00c0 0e40 LR	$0, @0x0e40
-095c 0081 0b89 LRI	$1, #0x0b89
+095c 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
 095e 00c2 0e08 LR	$2, @0x0e08
 0960 0083 0e44 LRI	$3, #0x0e44
 0962 00c4 0e41 LR	$4, @0x0e41
@@ -1951,7 +1953,7 @@ Main()
 
 
 0979 00c0 0e40 LR	$0, @0x0e40
-097b 0081 0b89 LRI	$1, #0x0b89
+097b 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
 097d 00c2 0e08 LR	$2, @0x0e08
 097f 0083 0e44 LRI	$3, #0x0e44
 0981 00c4 0e41 LR	$4, @0x0e41
@@ -1982,7 +1984,7 @@ Main()
 
 
 09af 00c0 0e40 LR	$0, @0x0e40
-09b1 0081 0b89 LRI	$1, #0x0b89
+09b1 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
 09b3 00c2 0e08 LR	$2, @0x0e08
 09b5 0083 0e44 LRI	$3, #0x0e44
 09b7 00c4 0e41 LR	$4, @0x0e41
@@ -2013,7 +2015,7 @@ Main()
 
 
 09e5 00c0 0e40 LR	$0, @0x0e40
-09e7 0081 0b89 LRI	$1, #0x0b89
+09e7 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
 09e9 00c2 0e08 LR	$2, @0x0e08
 09eb 0083 0e44 LRI	$3, #0x0e44
 09ed 00c4 0e41 LR	$4, @0x0e41
@@ -2060,7 +2062,7 @@ Main()
 
 
 0a39 00c0 0e40 LR	$0, @0x0e40
-0a3b 0081 0b89 LRI	$1, #0x0b89
+0a3b 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
 0a3d 00c2 0e08 LR	$2, @0x0e08
 0a3f 1c62      MRR	$3, $2
 0a40 00c4 0e41 LR	$4, @0x0e41
@@ -2081,7 +2083,7 @@ Main()
 
 
 0a5b 00c0 0e40 LR	$0, @0x0e40
-0a5d 0081 0b89 LRI	$1, #0x0b89
+0a5d 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
 0a5f 00c2 0e08 LR	$2, @0x0e08
 0a61 1c62      MRR	$3, $2
 0a62 00c4 0e41 LR	$4, @0x0e41
@@ -2118,7 +2120,7 @@ Main()
 
 
 0a99 00c0 0e40 LR	$0, @0x0e40
-0a9b 0081 0b89 LRI	$1, #0x0b89
+0a9b 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
 0a9d 00c2 0e08 LR	$2, @0x0e08
 0a9f 0083 0e44 LRI	$3, #0x0e44
 0aa1 00c4 0e41 LR	$4, @0x0e41
@@ -2140,7 +2142,7 @@ Main()
 
 
 0abd 00c0 0e40 LR	$0, @0x0e40
-0abf 0081 0b89 LRI	$1, #0x0b89
+0abf 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
 0ac1 00c2 0e08 LR	$2, @0x0e08
 0ac3 0083 0e44 LRI	$3, #0x0e44
 0ac5 00c4 0e41 LR	$4, @0x0e41
@@ -2264,7 +2266,7 @@ Main()
 0b45 8100      CLR	$30
 0b46 26c9      LRS	$30, @DSCR
 0b47 02a0 0004 ANDCF	$30, #0x0004
-0b49 029c 0b46 JZR	0x0b46
+0b49 029c 0b46 JZR	0x0b46       // wait for DMA loop
 0b4b 191e      LRRI	$30, @$0
 0b4c 191c      LRRI	$28, @$0
 0b4d 2ece      SRS	@DSMAH, $30
@@ -2283,7 +2285,7 @@ Main()
 0b63 8100      CLR	$30
 0b64 26c9      LRS	$30, @DSCR
 0b65 02a0 0004 ANDCF	$30, #0x0004
-0b67 029c 0b64 JZR	0x0b64
+0b67 029c 0b64 JZR	0x0b64       // wait for DMA loop
 0b69 8f00      S16	
 0b6a 8a78      M2hL	: $31, @$0
 0b6b 8c68      CLR15hL	: $29, @$0
@@ -2342,7 +2344,7 @@ Main()
 0baa 16cb 0100 SI	@DSBL, #0x0100
 0bac 02bf 055c CALL	0x055c     // Wait for DMA control reg
 0bae 1c04      MRR	$0, $4
-0baf 029f 0068 JMP	0x0068
+0baf 029f 0068 JMP	0x0068     // Return to message loop.
 
 
 // Looks like some "new command" that have been appended
@@ -2377,7 +2379,7 @@ Main()
 0bd2 0a00      LRIS	$26, #0x00
 0bd3 27c9      LRS	$31, @DSCR
 0bd4 03a0 0004 ANDCF	$31, #0x0004
-0bd6 029c 0bd3 JZR	0x0bd3
+0bd6 029c 0bd3 JZR	0x0bd3       // wait for DMA loop
 0bd8 2ece      SRS	@DSMAH, $30
 0bd9 2ccf      SRS	@DSMAL, $28
 0bda 16cd 07d0 SI	@DSPA, #0x07d0
@@ -2427,7 +2429,7 @@ Main()
 0c0b 1b5f      SRRI	@$2, $31
 0c0c 1b5d      SRRI	@$2, $29
 0c0d 1c04      MRR	$0, $4
-0c0e 029f 0068 JMP	0x0068
+0c0e 029f 0068 JMP	0x0068     // Return to message loop.
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -2443,7 +2445,7 @@ Main()
 0c15 2efd      SRS	@DMBL, $30
 0c16 26fc      LRS	$30, @DMBH
 0c17 02a0 8000 ANDCF	$30, #0x8000
-0c19 029c 0c16 JZR	0x0c16
+0c19 029c 0c16 JZR	0x0c16       // wait for dsp mailbox
 0c1b 0000      NOP	
 0c1c 0000      NOP	
 0c1d 0000      NOP	
@@ -2460,7 +2462,7 @@ Main()
 0c2a 2efd      SRS	@DMBL, $30
 0c2b 26fc      LRS	$30, @DMBH
 0c2c 02a0 8000 ANDCF	$30, #0x8000
-0c2e 029c 0c2b JZR	0x0c2b
+0c2e 029c 0c2b JZR	0x0c2b         // wait for dsp mailbox
 0c30 00d0 0e17 LR	$16, @0x0e17
 0c32 00de 0e18 LR	$30, @0x0e18
 0c34 00dc 0e19 LR	$28, @0x0e19
@@ -2484,7 +2486,7 @@ Main()
 0c48 1f8d      MRR	$28, $13
 0c49 02ff      RTI	
 
-// exception vector 0008
+// exception vector 0008 - do nothing
 0c4a 0000      NOP	
 0c4b 0000      NOP	
 0c4c 0000      NOP	
@@ -2493,7 +2495,7 @@ Main()
 0c4f 02ff      RTI	
 
 // exception vector 000a
-// this may be what loads loop_yn1 etc. an 000a exception should be caused when decoding reaches the end.s
+// this is what loads loop_yn1 etc. an 000a exception should be caused when decoding reaches the end.
 0c50 8e00      S40	
 0c51 1dbc      MRR	$13, $28
 0c52 1dbe      MRR	$13, $30
@@ -2502,7 +2504,7 @@ Main()
 0c56 0601      CMPIS	$32, #0x01
 0c57 0295 0c5f JEQ	0x0c5f
 0c59 0e00      LRIS	$30, #0x00
-0c5a 00fe 0b87 SR	@0x0b87, $30
+0c5a 00fe 0b87 SR	@0x0b87, $30        // 0B87 is "running" of the current PB...
 0c5c 1fcd      MRR	$30, $13
 0c5d 1f8d      MRR	$28, $13
 0c5e 02ff      RTI	
@@ -2519,7 +2521,7 @@ Main()
 0c6e 1fcd      MRR	$30, $13
 0c6f 1f8d      MRR	$28, $13
 0c70 02ff      RTI	
-0c71 00de 0bda LR	$30, @0x0bda
+0c71 00de 0bda LR	$30, @0x0bda        // nope, we wasn't a stream. don't do that kind of stuff. just read and write for no reason?
 0c73 2eda      SRS	@pred_scale, $30
 0c74 26db      LRS	$30, @yn1
 0c75 2edb      SRS	@yn1, $30
@@ -2532,7 +2534,7 @@ Main()
 0c7e 8100      CLR	$30
 0c7f 1fcd      MRR	$30, $13
 0c80 1f8d      MRR	$28, $13
-0c81 02ff      RTI	
+0c81 02ff      RTI
 
 
 // exception vector 000c
