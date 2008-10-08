@@ -163,7 +163,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		
 		for (int i = 0; i < numberOfPBs; i++)
 		{
-			vector1.at(i).at(vectorLength-1) = PBs[i].running;
+			vector1.at(i).at(vectorLength-1) = PBs[i].running ? true : false;
 		}
 		// ==============
 

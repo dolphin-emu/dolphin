@@ -14,6 +14,10 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-#pragma once
+
+#ifndef _GDSP_ARAM_H
+#define _GDSP_ARAM_H
 
 uint16 dsp_read_aram();
+
+#endif

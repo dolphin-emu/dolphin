@@ -15,9 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
 #include "Debugger/Debugger.h" // for the CDebugger class
 #include "ChunkFile.h"
+#include "WaveFile.h"
 #include "resource.h"
 
 #ifdef _WIN32
@@ -34,14 +34,13 @@
 #include "Config.h"
 
 #include "Logging/Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
-// ===================
 
-
-// =======================================================================================
-// DSP struct
-// -------------------
 DSPInitialize g_dspInitialize;
 u8* g_pMemory;
+
+// Set this if you want to log audio. search for log_ai in this file to see the filename.
+static bool log_ai = false;
+static WaveFileWriter g_wave_writer;
 
 struct DSPState
 {
@@ -168,7 +167,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 #ifndef _DEBUG
 	sprintf(_PluginInfo->Name, "Dolphin DSP-HLE Plugin ");
 #else
-	sprintf(_PluginInfo->Name, "Dolphin DSP-HLE Plugin (Debug) ");
+	sprintf(_PluginInfo	->Name, "Dolphin DSP-HLE Plugin (Debug) ");
 #endif
 #endif
 }
@@ -211,10 +210,16 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 #else
 	AOSound::AOSound_StartSound(48000, Mixer);
 #endif
+	if (log_ai) {
+		g_wave_writer.Start("D:\\ai_log.wav");
+		g_wave_writer.SetSkipSilence(false);
+	}
 }
 
 void DSP_Shutdown()
 {
+	if (log_ai)
+		g_wave_writer.Stop();
 	// delete the UCodes
 #ifdef _WIN32
 	DSound::DSound_StopSound();
@@ -315,6 +320,8 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 		for (int i = 0; i < 16; i++) {
 			samples[i] = Memory_Read_U16(address + i * 2);
 		}
+		if (log_ai)
+			g_wave_writer.AddStereoSamples(samples, 8);
 	}
 	Mixer_PushSamples(samples, 32 / 4, sample_rate);
 

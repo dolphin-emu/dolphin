@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 #include "Globals.h"
+#include "Thread.h"
 
 #include "gdsp_aram.h"
 #include "gdsp_interpreter.h"
@@ -66,9 +67,8 @@ const char* reg_names[] =
 
 void gdsp_dma();
 
-
-#ifdef _WIN32
-extern CRITICAL_SECTION g_CriticalSection;
+#ifdef WITH_DSP_ON_THREAD
+Common::CriticalSection g_CriticalSection;
 #endif
 
 static volatile uint16 gdsp_mbox[2][2];
@@ -93,20 +93,27 @@ void gdsp_ifx_init()
 
 uint32 gdsp_mbox_peek(uint8 mbx)
 {
-	return((gdsp_mbox[mbx][0] << 16) | gdsp_mbox[mbx][1]);
+#if WITH_DSP_ON_THREAD
+	g_CriticalSection.Enter();
+#endif
+	uint32 value = ((gdsp_mbox[mbx][0] << 16) | gdsp_mbox[mbx][1]);
+#if WITH_DSP_ON_THREAD
+	g_CriticalSection.Leave();
+#endif
+	return value;
 }
 
 
 void gdsp_mbox_write_h(uint8 mbx, uint16 val)
 {
 #if WITH_DSP_ON_THREAD
-	EnterCriticalSection(&g_CriticalSection);
+	g_CriticalSection.Enter();
 #endif
 
 	gdsp_mbox[mbx][0] = val & 0x7fff;
 
 #if WITH_DSP_ON_THREAD
-	LeaveCriticalSection(&g_CriticalSection);
+	g_CriticalSection.Leave();
 #endif
 }
 
@@ -114,14 +121,14 @@ void gdsp_mbox_write_h(uint8 mbx, uint16 val)
 void gdsp_mbox_write_l(uint8 mbx, uint16 val)
 {
 #if WITH_DSP_ON_THREAD
-	EnterCriticalSection(&g_CriticalSection);
+	g_CriticalSection.Enter();
 #endif
 
 	gdsp_mbox[mbx][1]  = val;
 	gdsp_mbox[mbx][0] |= 0x8000;
 
 #if WITH_DSP_ON_THREAD
-	LeaveCriticalSection(&g_CriticalSection);
+	g_CriticalSection.Leave();
 #endif
 
 	if (mbx == GDSP_MBOX_DSP)
@@ -133,7 +140,7 @@ void gdsp_mbox_write_l(uint8 mbx, uint16 val)
 
 uint16 gdsp_mbox_read_h(uint8 mbx)
 {
-	return(gdsp_mbox[mbx][0]);
+	return (gdsp_mbox[mbx][0]);
 }
 
 
@@ -141,14 +148,14 @@ uint16 gdsp_mbox_read_l(uint8 mbx)
 {
 	uint16 val;
 #if WITH_DSP_ON_THREAD
-	EnterCriticalSection(&g_CriticalSection);
+	g_CriticalSection.Enter();
 #endif
 
 	val = gdsp_mbox[mbx][1];
 	gdsp_mbox[mbx][0] &= ~0x8000;
 
 #if WITH_DSP_ON_THREAD
-	LeaveCriticalSection(&g_CriticalSection);
+	g_CriticalSection.Leave();
 #endif
 	return(val);
 }
