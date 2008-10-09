@@ -66,8 +66,8 @@ bool AXTask(u32& _uMail);
 bool bCanWork = false;
 
 // Set this if you want to log audio. search for log_ai in this file to see the filename.
-static bool log_ai = false;
-static WaveFileWriter g_wave_writer;
+static bool log_ai = true;
+WaveFileWriter g_wave_writer;
 
 // ==============
 
@@ -256,11 +256,12 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 // First create DSP_UCode.bin by setting "#define DUMP_DSP_IMEM   1" in Globals.h. Then 
 // make the disassembled file here.
 // --------------
-/*		Dump UCode to file...
-   	FILE* t = fopen("e:\\hmm.txt", "wb");
+//		Dump UCode to file...
+
+/*   	FILE* t = fopen("C:\\_\\ct.txt", "wb");
    	gd_globals_t gdg;
-   	gd_dis_file(&gdg, "D:\\DSP_UCode.bin", t);
-   	fclose(t);  */
+   	gd_dis_file(&gdg, "C:\\_\\DSP_UCode.bin", t);
+   	fclose(t);   */
 // --------------
 
 #ifdef _WIN32
@@ -278,7 +279,7 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 #endif // WIN32
         
 	if (log_ai) {
-		g_wave_writer.Start("D:\\ai_log.wav");
+		g_wave_writer.Start("C:\\_\\ai_log.wav");
 		g_wave_writer.SetSkipSilence(false);
 	}
 

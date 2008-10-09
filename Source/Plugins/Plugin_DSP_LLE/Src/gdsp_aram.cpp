@@ -63,7 +63,7 @@ sint16 ADPCM_Step(uint32& _rSamplePos, uint32 _BaseAddress)
 	return val;
 }
 
-
+extern void gdsp_generate_exception(uint8 level);
 uint16 dsp_read_aram()
 {
   //	uint32 BaseAddress = (gdsp_ifx_regs[DSP_ACSAH] << 16) | gdsp_ifx_regs[DSP_ACSAL];
@@ -99,8 +99,8 @@ uint16 dsp_read_aram()
 	if (Address > EndAddress)
 	{
 		Address = (gdsp_ifx_regs[DSP_ACSAH] << 16) | gdsp_ifx_regs[DSP_ACSAL];
-		// ErrorLog("Should we generate a lvl5 exception !??!");
-		// gdsp_exception(5);
+		gdsp_generate_exception(3);
+		gdsp_generate_exception(5);
 
 		// Somehow, YN1 and YN2 must be initialized with their "loop" values, so yeah,
 		// it seems likely that we should raise an exception to let the DSP program do that,

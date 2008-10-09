@@ -179,6 +179,9 @@ int CALLBACK CDisAsmDlg::CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lPar
 
 void CDisAsmDlg::RebuildDisAsmListView()
 {
+	if (!m_DisAsmListViewCtrl.IsWindow())
+		return;
+
 	m_DisAsmListViewCtrl.ShowWindow(SW_HIDE);
 	m_DisAsmListViewCtrl.DeleteAllItems();
 

@@ -138,37 +138,10 @@ void gdsp_reset()
 }
 
 
+uint8 gdsp_exceptions = 0;
 void gdsp_generate_exception(uint8 level)
 {
-	_dbg_assert_msg_(!g_dsp.exception_in_progress_hack, "assert while exception");
-
-	dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
-	dsp_reg_store_stack(DSP_STACK_D, g_dsp.r[R_SR]);
-
-	g_dsp.pc = level * 2;
-
-	g_dsp.exception_in_progress_hack = true;
-}
-
-
-uint32 gdsp_exception_ready = 0;
-
-void gdsp_exception(uint8 level)
-{
-	switch (level & 0x7)
-	{
-	    case 0x5: // ACCA > ACCH exception
-
-		    if (g_dsp.r[R_SR] & 0x200)
-		    {
-			    gdsp_exception_ready = level;
-		    }
-
-		    break;
-
-	    default:
-		    break;
-	}
+	gdsp_exceptions |= 1 << level;
 }
 
 
@@ -247,7 +220,7 @@ void gdsp_loop_step()
 	dsp_op[opc >> 12](opc);
 }
 
-
+void Hacks();
 void gdsp_step()
 {
 	g_dsp.step_counter++;
@@ -286,15 +259,33 @@ void gdsp_step()
 	{
 		if (dsp_SR_is_flag_set(FLAG_ENABLE_INTERUPT) && (g_dsp.exception_in_progress_hack == false))
 		{
+			// level 7 is the interrupt exception
 			gdsp_generate_exception(7);
 			g_dsp.cr &= ~0x0002;
 			UpdateCachedCR();
 		}
-
-		// level 7 is the interrupt exception
-		gdsp_exception_ready = 7;
 	}
 
+	// check exceptions
+	if ((gdsp_exceptions > 0) && (!g_dsp.exception_in_progress_hack))
+	{
+		for (uint8 i=0; i<8; i++)
+		{
+			if (gdsp_exceptions & (1<<i))
+			{
+				_dbg_assert_msg_(!g_dsp.exception_in_progress_hack, "assert while exception");
+
+				dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
+				dsp_reg_store_stack(DSP_STACK_D, g_dsp.r[R_SR]);
+
+				g_dsp.pc = i * 2;
+				gdsp_exceptions &= ~(1<<i);
+
+				g_dsp.exception_in_progress_hack = true;
+				break;
+			}
+		}
+	}
 }
 
 
@@ -340,3 +331,93 @@ void gdsp_stop()
 	gdsp_running = false;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// From fires for fires :)
+//
+//
+
+
+#include "disassemble.h"
+#include "WaveFile.h"
+#include "Mixer.h"
+
+uint16 r30 = 0, r31 = 0;
+void PanicAlert(const char* text, ...);
+extern WaveFileWriter g_wave_writer;
+
+extern uint16 dsp_swap16(uint16 x);
+void Hacks()
+{
+	// if (g_wave_writer.GetAudioSize() > 1024*1024*1)
+
+	/*	if (g_dsp.pc == 0x165)
+	{
+	PanicAlert("Opcode_06");
+
+	}
+	if (g_dsp.pc == 0x43b)
+	{
+	PanicAlert("Opcode_14");
+
+	}
+	if (g_dsp.pc == 0xb37)
+	{
+	PanicAlert("Opcode_08");
+
+	}*/
+	/*	if (g_dsp.pc == 0x1bc)
+	{
+	r30 = g_dsp.r[30];
+	r31 = g_dsp.r[31];
+	}
+	else if (g_dsp.pc == 0x384)
+	{
+	// if ((r30 == 0x1bc) && (r31 == 0xaff))
+	{
+	//PanicAlert("%x, %x", r30, r31);
+
+	const int numSamples = 0x280;
+	static short Buffer[numSamples];
+
+	uint16 bufferAddr = 0x280; //dsp_dmem_read(0xe44);
+	for (int i=0; i<numSamples; i++)
+	{
+	Buffer[i] = dsp_dmem_read(bufferAddr+i);
+	}
+
+	g_wave_writer.AddStereoSamples(Buffer, numSamples/2); // 2 channels
+
+	if (g_wave_writer.GetAudioSize() > 1024*1024*2)
+	{
+	//PanicAlert("%x", bufferAddr);
+	g_wave_writer.Stop();
+	exit(1);
+	}
+	}
+	} */
+
+	if (g_dsp.pc == 0x468)
+	{
+		int numSamples = g_dsp.r[25] / 2;
+		uint16 bufferAddr = g_dsp.r[27]; 
+
+		// PanicAlert("%x %x", bufferAddr, numSamples);
+
+		short samples[1024];
+		for (int i=0; i<numSamples; i++)
+		{
+			samples[i] = dsp_dmem_read(bufferAddr+i);
+		}
+		Mixer_PushSamples(samples, numSamples / 2, 32000); //sample_rate);
+
+		g_wave_writer.AddStereoSamples(samples, numSamples/2); // 2 channels
+
+		if (g_wave_writer.GetAudioSize() > 1024*1024*2)
+		{
+			//PanicAlert("%x", bufferAddr);
+			g_wave_writer.Stop();
+			exit(1);
+		}
+	}
+}
