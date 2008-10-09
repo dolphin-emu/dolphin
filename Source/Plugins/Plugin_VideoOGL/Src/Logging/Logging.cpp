@@ -19,6 +19,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
+#include "Globals.h"  // this is the precompiled header and must be the first ...
 
 // ---------------------------------------------------------------------------------------
 // Includes
@@ -31,12 +32,12 @@
 	#include <windows.h>
 #endif
 
-#include "Globals.h"
+
 #include "../Debugger/Debugger.h" // for the CDebugger class
 #include "../Debugger/PBView.h"
 #include "Console.h" // open and close console, clear console window
 #include "../Logging/Logging.h" // for global logging values
-#include "../Globals.h" // for __Log()
+
 
 
 // ---------------------------------------------------------------------------------------
