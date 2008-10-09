@@ -152,7 +152,6 @@ inline void decodebytesI4(u32 *dst, const u8 *src)
 
 inline void decodebytesI8_8(u32 *dst, const u8 *src)
 {
-	// TODO: SSSE3 variant (pshufb), possibly SSE2 variant (packuswb). THP videos use this format.
 	for (int x = 0; x < 8; x++)
         dst[x] = src[x] * 0x01010101; //expand8888(src[x]);  *0x... may or may not be faster. not sure. Should be faster on P4 at least.
 }
@@ -352,7 +351,8 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
         return PC_TEX_FMT_BGRA32;
     case GX_TF_I4:
         {
-//Works in GCC 4.3.2 and above, possibly 4.3.1 and above
+        	// TODO: SSSE3 variant (pshufb), THP videos use this format.
+        	// SSSE3 variant could bring even more speed
 #if (defined(_WIN32) || (defined (_M_X64) && !defined(_WIN32)))
 			__m128i Lmask = _mm_set1_epi8 (0x0F);
 			__m128i Hmask = _mm_set1_epi8 (0xF0);
