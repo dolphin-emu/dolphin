@@ -387,7 +387,7 @@ void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _P
 	// check for seperator
 	if (_CompleteFilename[_CompleteFilename.size() - 1] != '\\')
 	{
-		_CompleteFilename += _T("\\");
+		_CompleteFilename += "\\";
 	}
 
 	// add the filename

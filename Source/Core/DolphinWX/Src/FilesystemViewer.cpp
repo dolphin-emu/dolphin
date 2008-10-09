@@ -55,7 +55,7 @@ CFilesystemViewer::CFilesystemViewer(const std::string fileName, wxWindow* paren
 	wxTreeItemId dirId = NULL;
 	for(u32 a = 1; a < Our_Files.size(); ++a)
 	{
-		m_Treectrl->AppendItem(RootId, wxString::Format("%s", Our_Files[a]->m_FullPath));
+		m_Treectrl->AppendItem(RootId, wxString::Format(_T("%s"), Our_Files[a]->m_FullPath));
 
 		//if(Our_Files[a]->IsDirectory())
 	}
@@ -66,23 +66,23 @@ CFilesystemViewer::CFilesystemViewer(const std::string fileName, wxWindow* paren
 	m_Serial->SetValue(wxString(OpenISO->GetUniqueID().c_str(), wxConvUTF8));
 	switch (OpenISO->GetCountry())
 	{
-	case OpenISO->COUNTRY_EUROPE:
-	case OpenISO->COUNTRY_FRANCE:
+	case DiscIO::IVolume::COUNTRY_EUROPE:
+	case DiscIO::IVolume::COUNTRY_FRANCE:
 		m_Country->SetValue(wxString::FromAscii("EUR"));
 		break;
-	case OpenISO->COUNTRY_USA:
+	case DiscIO::IVolume::COUNTRY_USA:
 		m_Country->SetValue(wxString::FromAscii("USA"));
 		break;
-	case OpenISO->COUNTRY_JAP:
+	case DiscIO::IVolume::COUNTRY_JAP:
 		m_Country->SetValue(wxString::FromAscii("JAP"));
 		break;
 	default:
 		m_Country->SetValue(wxString::FromAscii("UNKNOWN"));
 		break;
 	}
-	m_MakerID->SetValue(wxString::Format("0x%s", OpenISO->GetMakerID().c_str()));
+	m_MakerID->SetValue(wxString::Format(_T("0x%s"), OpenISO->GetMakerID().c_str()));
 	m_Date->SetValue(wxString(OpenISO->GetApploaderDate().c_str(), wxConvUTF8));
-	m_TOC->SetValue(wxString::Format("%u", OpenISO->GetFSTSize()));
+	m_TOC->SetValue(wxString::Format(_T("%u"), OpenISO->GetFSTSize()));
 
 	// Banner
 	// ...all the BannerLoader functions are bool...gross

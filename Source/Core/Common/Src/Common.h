@@ -116,11 +116,6 @@ typedef union _LARGE_INTEGER
 #ifndef __forceinline
 #define __forceinline inline
 #endif
-
-#ifndef _T
-#define _T(a) a
-#endif
-
 #endif
 
 #if defined (_M_IX86) && defined (_WIN32)

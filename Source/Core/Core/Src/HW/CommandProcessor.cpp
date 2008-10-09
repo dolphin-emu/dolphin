@@ -535,7 +535,11 @@ void UpdateFifoRegister()
 		dist = wp - rp;
 	else
 		dist = (wp - fifo.CPBase) + (fifo.CPEnd - rp);
-	InterlockedExchange((LONG*)&fifo.CPReadWriteDistance,dist);
+	#ifdef _WIN32
+	InterlockedExchange((LONG*)&fifo.CPReadWriteDistance, dist);
+	#else
+	fifo.CPReadWriteDistance = dist;
+	#endif
 //#ifdef _WIN32
 // not needed since we are already in the critical section in DC mode (see write16)
 //	if (Core::g_CoreStartupParameter.bUseDualCore) LeaveCriticalSection(&fifo.sync);

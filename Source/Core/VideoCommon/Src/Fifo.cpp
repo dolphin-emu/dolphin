@@ -133,7 +133,11 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 					if (_fifo.CPReadPointer == _fifo.CPBreakpoint)
                     {
                         //_fifo.bFF_Breakpoint = 1; 
+                        #ifdef _WIN32
 						InterlockedExchange((LONG*)&_fifo.bFF_Breakpoint, true);
+						#else
+						_fifo.bFF_Breakpoint = true; 
+						#endif
                         video_initialize.pUpdateInterrupts();
                         break;
                     }
@@ -151,11 +155,12 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 				u32 readPtr = _fifo.CPReadPointer+32;
                 if (readPtr >= _fifo.CPEnd)
                     readPtr = _fifo.CPBase;				
-				InterlockedExchange((LONG*)&_fifo.CPReadPointer, readPtr);
 #ifdef _WIN32
+                InterlockedExchange((LONG*)&_fifo.CPReadPointer, readPtr);
                 InterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -32);
                 //LeaveCriticalSection(&_fifo.sync);
 #else 
+                _fifo.CPReadPointer = readPtr;
                 Common::InterlockedExchangeAdd((int*)&_fifo.CPReadWriteDistance, -32);
                 _fifo.sync->Leave();
 #endif

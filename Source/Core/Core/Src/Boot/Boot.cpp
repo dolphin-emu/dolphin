@@ -106,7 +106,7 @@ bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_game
 	{
 		if (_gameID != NULL)
 		{
-			BuildCompleteFilename(strMapFilename, _T("maps"), std::string(_gameID) + _T(".map"));
+			BuildCompleteFilename(strMapFilename, "maps", std::string(_gameID) + ".map");
             success = g_symbolDB.LoadMap(strMapFilename.c_str());
 		}
 	}
