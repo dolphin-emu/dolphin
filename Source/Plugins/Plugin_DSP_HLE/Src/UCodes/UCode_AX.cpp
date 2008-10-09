@@ -337,9 +337,10 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			// Affected games:
 				// Baten Kaitos - Eternal Wings (2003)
 				// Baten Kaitos - Origins (2006)?
-				// ?
+				// Soul Calibur 2: The movie music use src_type 2 but it needs no adjustment, perhaps
+				// the sound format plays in to, Baten use ADPCM SC2 use PCM16
 			// ------------
-			if(pb.src_type == 2)
+			if(pb.src_type == 2 && (pb.src.ratio_hi == 0 && pb.src.ratio_lo == 0))
 			{
 				pb.src.ratio_hi = 1;
 			}
