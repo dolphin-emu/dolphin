@@ -38,18 +38,6 @@ bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 	return m_pReader->Read(_Offset, _Length, _pBuffer);
 }
 
-std::string CVolumeGC::GetName() const
-{
-	if (m_pReader == NULL)
-		return false;
-
-	char Name[128];
-	if (!Read(0x20, 0x60, (u8*)&Name))
-		return false;
-
-	return Name;
-}
-
 std::string CVolumeGC::GetUniqueID() const
 {
 	static const std::string NO_UID("NO_UID");
@@ -96,7 +84,7 @@ IVolume::ECountry CVolumeGC::GetCountry() const
 
 	    case 'X':
 		    country = COUNTRY_EUROPE;
-		    break; // XIII <- uses X but is PAL rip
+		    break; // XIII <- uses X but is PAL
 
 	    case 'E':
 		    country = COUNTRY_USA;
@@ -117,6 +105,57 @@ IVolume::ECountry CVolumeGC::GetCountry() const
 	}
 
 	return(country);
+}
+
+std::string CVolumeGC::GetMakerID() const
+{
+	if (m_pReader == NULL)
+		return false;
+
+	char makerID[3];
+	if (!Read(0x4, 0x2, (u8*)&makerID))
+		return false;
+	makerID[2] = 0;
+
+	return makerID;
+}
+
+std::string CVolumeGC::GetName() const
+{
+	if (m_pReader == NULL)
+		return false;
+
+	char name[128];
+	if (!Read(0x20, 0x60, (u8*)&name))
+		return false;
+
+	return name;
+}
+
+u32 CVolumeGC::GetFSTSize() const
+{
+	if (m_pReader == NULL)
+		return false;
+
+	u32 size;
+	if (!Read(0x428, 0x4, (u8*)&size))
+		return false;
+
+	return Common::swap32(size);
+}
+
+std::string CVolumeGC::GetApploaderDate() const
+{
+	if (m_pReader == NULL)
+		return false;
+
+	char date[16];
+	if (!Read(0x2440, 0x10, (u8*)&date))
+		return false;
+	// Should be 0 already, but just in case
+	date[10] = 0;
+
+	return date;
 }
 
 u64 CVolumeGC::GetSize() const

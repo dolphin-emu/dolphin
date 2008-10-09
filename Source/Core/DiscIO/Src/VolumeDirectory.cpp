@@ -129,26 +129,6 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 	return true;
 }
 
-
-std::string CVolumeDirectory::GetName() const
-{
-	_dbg_assert_(DVDINTERFACE, m_diskHeader);
-	std::string name = (char*)(m_diskHeader + 0x20);
-	return name;
-}
-
-void CVolumeDirectory::SetName(std::string _Name)
-{
-	_dbg_assert_(DVDINTERFACE, m_diskHeader);
-
-	u32 length = _Name.length();
-	if(length > MAX_NAME_LENGTH)
-		length = MAX_NAME_LENGTH;
-
-	memcpy(m_diskHeader + 0x20, _Name.c_str(), length);
-	m_diskHeader[length + 0x20] = 0;
-}
-
 std::string CVolumeDirectory::GetUniqueID() const
 {
 	_dbg_assert_(DVDINTERFACE, m_diskHeader);
@@ -220,6 +200,40 @@ IVolume::ECountry CVolumeDirectory::GetCountry() const
 	}
 
 	return(country);
+}
+
+std::string CVolumeDirectory::GetMakerID() const
+{
+	return "VOID";
+}
+
+std::string CVolumeDirectory::GetName() const
+{
+	_dbg_assert_(DVDINTERFACE, m_diskHeader);
+	std::string name = (char*)(m_diskHeader + 0x20);
+	return name;
+}
+
+void CVolumeDirectory::SetName(std::string _Name)
+{
+	_dbg_assert_(DVDINTERFACE, m_diskHeader);
+
+	u32 length = _Name.length();
+	if(length > MAX_NAME_LENGTH)
+		length = MAX_NAME_LENGTH;
+
+	memcpy(m_diskHeader + 0x20, _Name.c_str(), length);
+	m_diskHeader[length + 0x20] = 0;
+}
+
+u32 CVolumeDirectory::GetFSTSize() const
+{
+	return 0;
+}
+
+std::string CVolumeDirectory::GetApploaderDate() const
+{
+	return "VOID";
 }
 
 u64 CVolumeDirectory::GetSize() const

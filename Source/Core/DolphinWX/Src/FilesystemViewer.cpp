@@ -17,9 +17,9 @@
 
 #include "Globals.h"
 
+#include "ISOFile.h"
 #include "VolumeCreator.h"
 #include "Filesystem.h"
-//#include "BannerLoader.h"
 #include "FilesystemViewer.h"
 
 BEGIN_EVENT_TABLE(CFilesystemViewer, wxDialog)
@@ -33,27 +33,70 @@ BEGIN_EVENT_TABLE(CFilesystemViewer, wxDialog)
 	EVT_MENU(IDM_REPLACEFILE, CFilesystemViewer::OnReplaceFile)
 	EVT_MENU(IDM_RENAMEFILE, CFilesystemViewer::OnRenameFile)
 END_EVENT_TABLE()
-DiscIO::IVolume* OpenIso = NULL;
-DiscIO::IFileSystem* pFileSystem = NULL;
+
+DiscIO::IVolume *OpenISO = NULL;
+DiscIO::IFileSystem *pFileSystem = NULL;
 
 CFilesystemViewer::CFilesystemViewer(const std::string fileName, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
 	std::vector<const DiscIO::SFileInfo *> Our_Files;
 
-	OpenIso = DiscIO::CreateVolumeFromFilename(fileName);
-	pFileSystem = DiscIO::CreateFileSystem(OpenIso);
+	OpenISO = DiscIO::CreateVolumeFromFilename(fileName);
+	pFileSystem = DiscIO::CreateFileSystem(OpenISO);
 	pFileSystem->GetFileList(Our_Files);
+
+	GameListItem OpenISO_(fileName);
+
 	CreateGUIControls();
-	
+
+	// shuffle2: things only appear in the tree for me when using debug build; why? :<
+	// TODO: make proper looking dirs
+	wxTreeItemId dirId = NULL;
 	for(u32 a = 1; a < Our_Files.size(); ++a)
-		m_Treectrl->AppendItem(RootId, wxString::FromAscii(Our_Files[a]->m_FullPath));//printf("%d dir? %s '%s'\n", a, Our_Files[a].IsDirectory() ? "True" : "False", Our_Files[a].m_FullPath);
+	{
+		m_Treectrl->AppendItem(RootId, wxString::Format("%s", Our_Files[a]->m_FullPath));
+
+		//if(Our_Files[a]->IsDirectory())
+	}
+	m_Treectrl->Expand(RootId);
+
+	// Disk header and apploader
+	m_Name->SetValue(wxString(OpenISO->GetName().c_str(), wxConvUTF8));
+	m_Serial->SetValue(wxString(OpenISO->GetUniqueID().c_str(), wxConvUTF8));
+	switch (OpenISO->GetCountry())
+	{
+	case OpenISO->COUNTRY_EUROPE:
+	case OpenISO->COUNTRY_FRANCE:
+		m_Country->SetValue(wxString::FromAscii("EUR"));
+		break;
+	case OpenISO->COUNTRY_USA:
+		m_Country->SetValue(wxString::FromAscii("USA"));
+		break;
+	case OpenISO->COUNTRY_JAP:
+		m_Country->SetValue(wxString::FromAscii("JAP"));
+		break;
+	default:
+		m_Country->SetValue(wxString::FromAscii("UNKNOWN"));
+		break;
+	}
+	m_MakerID->SetValue(wxString::Format("0x%s", OpenISO->GetMakerID().c_str()));
+	m_Date->SetValue(wxString(OpenISO->GetApploaderDate().c_str(), wxConvUTF8));
+	m_TOC->SetValue(wxString::Format("%u", OpenISO->GetFSTSize()));
+
+	// Banner
+	// ...all the BannerLoader functions are bool...gross
+	//m_Version;
+	m_ShortName->SetValue(wxString(OpenISO_.GetName().c_str(), wxConvUTF8));
+	//m_LongName->SetValue(wxString(OpenISO_.GetLongName().c_str(), wxConvUTF8));
+	m_Maker->SetValue(wxString(OpenISO_.GetCompany().c_str(), wxConvUTF8));//dev too
+	m_Comment->SetValue(wxString(OpenISO_.GetDescription().c_str(), wxConvUTF8));
 }
 
 CFilesystemViewer::~CFilesystemViewer()
 {
 	delete pFileSystem;
-	delete OpenIso;
+	delete OpenISO;
 }
 
 void CFilesystemViewer::CreateGUIControls()
@@ -76,17 +119,17 @@ void CFilesystemViewer::CreateGUIControls()
 	m_TOCText = new wxStaticText(this, ID_TOC_TEXT, wxT("TOC Size:"), wxDefaultPosition, wxDefaultSize);	
 	m_TOC = new wxTextCtrl(this, ID_TOC, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 
-	sISODetails->Add(m_NameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
+	sISODetails->Add(m_NameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_Name, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sISODetails->Add(m_SerialText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
+	sISODetails->Add(m_SerialText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_Serial, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sISODetails->Add(m_CountryText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
+	sISODetails->Add(m_CountryText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_Country, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sISODetails->Add(m_MakerIDText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
+	sISODetails->Add(m_MakerIDText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_MakerID, wxGBPosition(3, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sISODetails->Add(m_DateText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
+	sISODetails->Add(m_DateText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_Date, wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sISODetails->Add(m_TOCText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 5);
+	sISODetails->Add(m_TOCText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_TOC, wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 
 	sbISODetails->Add(sISODetails, 0, wxEXPAND, 5);
@@ -108,20 +151,20 @@ void CFilesystemViewer::CreateGUIControls()
 	m_CommentText = new wxStaticText(this, ID_COMMENT_TEXT, wxT("Comment:"), wxDefaultPosition, wxDefaultSize);
 	m_Comment = new wxTextCtrl(this, ID_COMMENT, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
 	m_BannerText = new wxStaticText(this, ID_BANNER_TEXT, wxT("Banner:"), wxDefaultPosition, wxDefaultSize);
-	//needs to be image:
+	// Needs to be image:
 	m_Banner = new wxTextCtrl(this, ID_BANNER, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
 	m_SaveBNR = new wxButton(this, ID_SAVEBNR, wxT("Save Changes to BNR"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_SaveBNR->Disable();
 
-	sBannerDetails->Add(m_VersionText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
+	sBannerDetails->Add(m_VersionText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sBannerDetails->Add(m_Version, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sBannerDetails->Add(m_LangText, wxGBPosition(0, 2), wxGBSpan(1, 1), wxALL, 5);
+	sBannerDetails->Add(m_LangText, wxGBPosition(0, 2), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sBannerDetails->Add(m_Lang, wxGBPosition(0, 3), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sBannerDetails->Add(m_ShortText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
+	sBannerDetails->Add(m_ShortText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sBannerDetails->Add(m_ShortName, wxGBPosition(1, 1), wxGBSpan(1, 3), wxEXPAND|wxALL, 5);
-	sBannerDetails->Add(m_LongText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
+	sBannerDetails->Add(m_LongText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sBannerDetails->Add(m_LongName, wxGBPosition(2, 1), wxGBSpan(1, 3), wxEXPAND|wxALL, 5);
-	sBannerDetails->Add(m_MakerText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
+	sBannerDetails->Add(m_MakerText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sBannerDetails->Add(m_Maker, wxGBPosition(3, 1), wxGBSpan(1, 3), wxEXPAND|wxALL, 5);
 	sBannerDetails->Add(m_CommentText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
 	sBannerDetails->Add(m_Comment, wxGBPosition(4, 1), wxGBSpan(1, 3), wxEXPAND|wxALL, 5);
@@ -137,15 +180,14 @@ void CFilesystemViewer::CreateGUIControls()
 	sbTreectrl->Add(m_Treectrl, 1, wxEXPAND);
 
 	RootId = m_Treectrl->AddRoot(wxT("Root"), -1, -1, 0);
-	
-	/////////////
+
 	wxGridBagSizer* sMain;
 	sMain = new wxGridBagSizer(0, 0);
 	sMain->Add(sbISODetails, wxGBPosition(0, 0), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sMain->Add(sbBannerDetails, wxGBPosition(1, 0), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sMain->Add(sbTreectrl, wxGBPosition(0, 1), wxGBSpan(2, 1), wxALL, 5);
 	sMain->Add(m_Close, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL|wxALIGN_RIGHT, 5);
-	
+
 	this->SetSizer(sMain);
 	this->Layout();
 	Fit();

@@ -46,7 +46,6 @@ class CFilesystemViewer : public wxDialog
 		wxGridBagSizer *sBannerDetails;
 		wxStaticBoxSizer *sbTreectrl;
 
-
 		wxTreeCtrl *m_Treectrl;
 		wxButton *m_Close;
 
