@@ -21,9 +21,9 @@
 0x0B87
 
 // addresses to buffers
-0x0E08
-0x0E09
-0x0E0A						// point to output buffer
+0x0E08						// initialized to 0x0000
+0x0E09						// initialized to 0x0140
+0x0E0A						// 
 0x0E0B
 0x0E0C
 0x0E0D
@@ -45,9 +45,10 @@
 0x0e1c						TmpBuffer for Opcode3()
 
 
-0x0e40 ...                  mixer inputs
+0x0e40 		                pb->PBInitialTimeDelay->offsetLeft
+0x0e41 		                pb->PBInitialTimeDelay->offsetRight
 
-0x0e42						something for the Decoder Functions
+0x0e42						// initialized to 0x0ce0 all the time; something for the Decoder Functions
 
 
 
@@ -146,7 +147,7 @@ Main()
 
 0068 8e00      S40	
 0069 8100      CLR	$30
-006a 8970      CLRhL	$31 : $30, @$0
+006a 8970      CLR.L	$31 : $30, @$0
 006b b100      TST	$30
 006c 0291 007e JX1	0x007e
 
@@ -179,8 +180,8 @@ Main()
 // Opcode_00()
 	
 0082 8100      CLR	$30
-0083 8970      CLRhL	$31 : $30, @$0
-0084 8e78      S40hL	: $31, @$0
+0083 8970      CLR.L	$31 : $30, @$0
+0084 8e78      S40.L	: $31, @$0
 0085 2ece      SRS	@DSMAH, $30
 0086 2fcf      SRS	@DSMAL, $31
 0087 009e 0e44 LRI	$30, #0x0e44
@@ -245,7 +246,7 @@ Main()
 00d2 0082 0400 LRI	$2, #0x0400
 00d4 193e      LRRI	$30, @$1
 00d5 193c      LRRI	$28, @$1
-00d6 b179      TSThL	$30 : $31, @$1
+00d6 b179      TST.L	$30 : $31, @$1
 00d7 0294 00dd JNE	0x00dd
 00d9 005a      LOOP	$26
 00da 1b5e      SRRI	@$2, $30
@@ -259,7 +260,7 @@ Main()
 00e4 1b5c      SRRI	@$2, $28
 00e5 193e      LRRI	$30, @$1
 00e6 193c      LRRI	$28, @$1
-00e7 b179      TSThL	$30 : $31, @$1
+00e7 b179      TST.L	$30 : $31, @$1
 00e8 0294 00ee JNE	0x00ee
 00ea 005a      LOOP	$26
 00eb 1b5e      SRRI	@$2, $30
@@ -273,7 +274,7 @@ Main()
 00f5 1b5c      SRRI	@$2, $28
 00f6 193e      LRRI	$30, @$1
 00f7 193c      LRRI	$28, @$1
-00f8 b179      TSThL	$30 : $31, @$1
+00f8 b179      TST.L	$30 : $31, @$1
 00f9 0294 00ff JNE	0x00ff
 00fb 005a      LOOP	$26
 00fc 1b5e      SRRI	@$2, $30
@@ -288,7 +289,7 @@ Main()
 0107 0082 07c0 LRI	$2, #0x07c0
 0109 193e      LRRI	$30, @$1
 010a 193c      LRRI	$28, @$1
-010b b179      TSThL	$30 : $31, @$1
+010b b179      TST.L	$30 : $31, @$1
 010c 0294 0112 JNE	0x0112
 010e 005a      LOOP	$26
 010f 1b5e      SRRI	@$2, $30
@@ -302,7 +303,7 @@ Main()
 0119 1b5c      SRRI	@$2, $28
 011a 193e      LRRI	$30, @$1
 011b 193c      LRRI	$28, @$1
-011c b179      TSThL	$30 : $31, @$1
+011c b179      TST.L	$30 : $31, @$1
 011d 0294 0123 JNE	0x0123
 011f 005a      LOOP	$26
 0120 1b5e      SRRI	@$2, $30
@@ -316,7 +317,7 @@ Main()
 012a 1b5c      SRRI	@$2, $28
 012b 193e      LRRI	$30, @$1
 012c 193c      LRRI	$28, @$1
-012d b179      TSThL	$30 : $31, @$1
+012d b179      TST.L	$30 : $31, @$1
 012e 0294 0134 JNE	0x0134
 0130 005a      LOOP	$26
 0131 1b5e      SRRI	@$2, $30
@@ -333,21 +334,21 @@ Main()
 
 // Opcode_01()
 013e 0085 ffff LRI	$5, #0xffff
-0140 8150      CLRhL	$30 : $26, @$0
-0141 8940      CLRhL	$31 : $24, @$0
-0142 8e48      S40hL	: $25, @$0
+0140 8150      CLR.L	$30 : $26, @$0
+0141 8940      CLR.L	$31 : $24, @$0
+0142 8e48      S40.L	: $25, @$0
 0143 00fa 0e17 SR	@0x0e17, $26
 0145 00f8 0e18 SR	@0x0e18, $24
 0147 0081 0000 LRI	$1, #0x0000
 0149 02bf 04f1 CALL	0x04f1
 014b 00da 0e17 LR	$26, @0x0e17
 014d 00d8 0e18 LR	$24, @0x0e18
-014f 8948      CLRhL	$31 : $25, @$0
+014f 8948      CLR.L	$31 : $25, @$0
 0150 0081 0400 LRI	$1, #0x0400
 0152 02bf 04f1 CALL	0x04f1
 0154 00da 0e17 LR	$26, @0x0e17
 0156 00d8 0e18 LR	$24, @0x0e18
-0158 8948      CLRhL	$31 : $25, @$0
+0158 8948      CLR.L	$31 : $25, @$0
 0159 0081 07c0 LRI	$1, #0x07c0
 015b 02bf 04f1 CALL	0x04f1
 015d 029f 0068 JMP	0x0068     // Return to message loop.
@@ -375,8 +376,8 @@ Main()
 
 // Opcode_17()
 0175 8100      CLR	$30
-0176 8970      CLRhL	$31 : $30, @$0
-0177 8e60      S40hL	: $28, @$0
+0176 8970      CLR.L	$31 : $30, @$0
+0177 8e60      S40.L	: $28, @$0
 0178 2ece      SRS	@DSMAH, $30
 0179 2ccf      SRS	@DSMAL, $28
 017a 16cd 0e44 SI	@DSPA, #0x0e44
@@ -407,7 +408,7 @@ Main()
 01a0 197c      LRRI	$28, @$3
 01a1 1b1a      SRRI	@$0, $26
 01a2 1b5e      SRRI	@$2, $30
-01a3 7c22      NEGhS	$30 : @$2, $28
+01a3 7c22      NEG.S	$30 : @$2, $28
 01a4 1b3e      SRRI	@$1, $30
 01a5 1b3c      SRRI	@$1, $28
 01a6 1c04      MRR	$0, $4
@@ -415,8 +416,8 @@ Main()
 
 
 // Opcode_13()
-01a9 8e70      S40hL	: $30, @$0
-01aa 8960      CLRhL	$31 : $28, @$0
+01a9 8e70      S40.L	: $30, @$0
+01aa 8960      CLR.L	$31 : $28, @$0
 01ab 191f      LRRI	$31, @$0
 01ac 2ece      SRS	@DSMAH, $30
 01ad 2ccf      SRS	@DSMAL, $28
@@ -432,8 +433,8 @@ Main()
 
 // Opcode_02()
 01bc 8100      CLR	$30
-01bd 8970      CLRhL	$31 : $30, @$0
-01be 8e78      S40hL	: $31, @$0
+01bd 8970      CLR.L	$31 : $30, @$0
+01be 8e78      S40.L	: $31, @$0
 01bf 2ece      SRS	@DSMAH, $30
 01c0 2fcf      SRS	@DSMAL, $31
 01c1 16cd 0b80 SI	@DSPA, #0x0b80
@@ -491,7 +492,7 @@ Main()
 0212 b100      TST	$30
 0213 0295 023a JEQ	0x023a
 0215 8900      CLR	$31
-0216 00df 0b9e LR	$31, @0x0b9e      // updates?
+0216 00df 0b9e LR	$31, @0x0b9e      // pb->PBInitialTimeDelay->offsetLeft
 0218 0300 0cc0 ADDI	$33, #0x0cc0
 021a 00ff 0e40 SR	@0x0e40, $31
 021c 00df 0b9f LR	$31, @0x0b9f
@@ -527,140 +528,145 @@ Main()
 024f 0e05      LRIS	$30, #0x05
 0250 00fe 0e04 SR	@0x0e04, $30
 0252 8900      CLR	$31
-0253 8150      CLRhL	$30 : $26, @$0
+0253 8150      CLR.L	$30 : $26, @$0
 0254 009f 0b80 LRI	$31, #0x0b80
 0256 007a 025b BLOOP	$26, 0x025b
 0258 193e      LRRI	$30, @$1
-0259 4c49      ADDhL	$30, $31 : $25, @$1
+0259 4c49      ADD.L	$30, $31 : $25, @$1
 025a 1c5e      MRR	$2, $30
 025b 1a59      SRR	@$2, $25
 025c 0083 0e05 LRI	$3, #0x0e05
 025e 1b61      SRRI	@$3, $1
 025f 1b60      SRRI	@$3, $0
-0260 00de 0b87 LR	$30, @0x0b87    // is pb->running?
+0260 00de 0b87 LR	$30, @0x0b87    				// is pb->running?
 0262 0601      CMPIS	$32, #0x01
 0263 0295 0267 JEQ	0x0267
 0265 029f 0332 JMP	0x0332
-0267 00de 0e42 LR	$30, @0x0e42     //  we got here - yes, it's running
+0267 00de 0e42 LR	$30, @0x0e42     				//  we got here - yes, it's running
 0269 00fe 0e1c SR	@0x0e1c, $30
 026b 00c3 0e15 LR	$3, @0x0e15
-026d 177f      CALLR	$3				// Call the Src Decoder
+026d 177f      CALLR	$3							// Call the Src Decoder
+
+
+// Volume Envelope
 026e 8e00      S40	
 026f 8a00      M2	
 0270 8100      CLR	$30
 0271 8900      CLR	$31
-0272 00de 0bb3 LR	$30, @0x0bb3
-0274 00df 0bb2 LR	$31, @0x0bb2
+0272 00de 0bb3 LR	$30, @0x0bb3					// PBVolumeEnvelope->cur_volume_delta
+0274 00df 0bb2 LR	$31, @0x0bb2					// PBVolumeEnvelope->cur_volume
 0276 1f1f      MRR	$24, $31
 0277 4d00      ADD	$31, $30
 0278 1481      ASL	$32, #0x01
-0279 8d1e      SET15hMV	: $27, $30
+0279 8d1e      SET15.MV	: $27, $30
 027a 1fd8      MRR	$30, $24
 027b 0098 8000 LRI	$24, #0x8000
 027d 0080 0e44 LRI	$0, #0x0e44
-027f a830      MULXhS	$24, $27 : @$0, $30
-0280 ac38      MULXAChS	$24, $27, $30 : @$0, $31
-0281 ad30      MULXAChS	$24, $27, $31 : @$0, $30
-0282 ac38      MULXAChS	$24, $27, $30 : @$0, $31
-0283 ad30      MULXAChS	$24, $27, $31 : @$0, $30
-0284 ac38      MULXAChS	$24, $27, $30 : @$0, $31
-0285 ad30      MULXAChS	$24, $27, $31 : @$0, $30
-0286 ac38      MULXAChS	$24, $27, $30 : @$0, $31
-0287 ad30      MULXAChS	$24, $27, $31 : @$0, $30
-0288 ac38      MULXAChS	$24, $27, $30 : @$0, $31
-0289 ad30      MULXAChS	$24, $27, $31 : @$0, $30
-028a ac38      MULXAChS	$24, $27, $30 : @$0, $31
-028b ad30      MULXAChS	$24, $27, $31 : @$0, $30
-028c ac38      MULXAChS	$24, $27, $30 : @$0, $31
-028d ad30      MULXAChS	$24, $27, $31 : @$0, $30
-028e ac38      MULXAChS	$24, $27, $30 : @$0, $31
-028f ad30      MULXAChS	$24, $27, $31 : @$0, $30
-0290 ac38      MULXAChS	$24, $27, $30 : @$0, $31
-0291 ad30      MULXAChS	$24, $27, $31 : @$0, $30
-0292 ac38      MULXAChS	$24, $27, $30 : @$0, $31
-0293 ad30      MULXAChS	$24, $27, $31 : @$0, $30
-0294 ac38      MULXAChS	$24, $27, $30 : @$0, $31
-0295 ad30      MULXAChS	$24, $27, $31 : @$0, $30
-0296 ac38      MULXAChS	$24, $27, $30 : @$0, $31
-0297 ad30      MULXAChS	$24, $27, $31 : @$0, $30
-0298 ac38      MULXAChS	$24, $27, $30 : @$0, $31
-0299 ad30      MULXAChS	$24, $27, $31 : @$0, $30
-029a ac38      MULXAChS	$24, $27, $30 : @$0, $31
-029b ad30      MULXAChS	$24, $27, $31 : @$0, $30
-029c ac38      MULXAChS	$24, $27, $30 : @$0, $31
-029d ad30      MULXAChS	$24, $27, $31 : @$0, $30
-029e ac38      MULXAChS	$24, $27, $30 : @$0, $31
-029f 00fe 0bb2 SR	@0x0bb2, $30
+027f a830      MULX.S	$24, $27 : @$0, $30
+0280 ac38      MULXAC.S	$24, $27, $30 : @$0, $31
+0281 ad30      MULXAC.S	$24, $27, $31 : @$0, $30
+0282 ac38      MULXAC.S	$24, $27, $30 : @$0, $31
+0283 ad30      MULXAC.S	$24, $27, $31 : @$0, $30
+0284 ac38      MULXAC.S	$24, $27, $30 : @$0, $31
+0285 ad30      MULXAC.S	$24, $27, $31 : @$0, $30
+0286 ac38      MULXAC.S	$24, $27, $30 : @$0, $31
+0287 ad30      MULXAC.S	$24, $27, $31 : @$0, $30
+0288 ac38      MULXAC.S	$24, $27, $30 : @$0, $31
+0289 ad30      MULXAC.S	$24, $27, $31 : @$0, $30
+028a ac38      MULXAC.S	$24, $27, $30 : @$0, $31
+028b ad30      MULXAC.S	$24, $27, $31 : @$0, $30
+028c ac38      MULXAC.S	$24, $27, $30 : @$0, $31
+028d ad30      MULXAC.S	$24, $27, $31 : @$0, $30
+028e ac38      MULXAC.S	$24, $27, $30 : @$0, $31
+028f ad30      MULXAC.S	$24, $27, $31 : @$0, $30
+0290 ac38      MULXAC.S	$24, $27, $30 : @$0, $31
+0291 ad30      MULXAC.S	$24, $27, $31 : @$0, $30
+0292 ac38      MULXAC.S	$24, $27, $30 : @$0, $31
+0293 ad30      MULXAC.S	$24, $27, $31 : @$0, $30
+0294 ac38      MULXAC.S	$24, $27, $30 : @$0, $31
+0295 ad30      MULXAC.S	$24, $27, $31 : @$0, $30
+0296 ac38      MULXAC.S	$24, $27, $30 : @$0, $31
+0297 ad30      MULXAC.S	$24, $27, $31 : @$0, $30
+0298 ac38      MULXAC.S	$24, $27, $30 : @$0, $31
+0299 ad30      MULXAC.S	$24, $27, $31 : @$0, $30
+029a ac38      MULXAC.S	$24, $27, $30 : @$0, $31
+029b ad30      MULXAC.S	$24, $27, $31 : @$0, $30
+029c ac38      MULXAC.S	$24, $27, $30 : @$0, $31
+029d ad30      MULXAC.S	$24, $27, $31 : @$0, $30
+029e ac38      MULXAC.S	$24, $27, $30 : @$0, $31
+029f 00fe 0bb2 SR	@0x0bb2, $30					// write back to PBVolumeEnvelope->cur_volume
+
+// Initial Time Delay + (IIR Filter?)
 02a1 8f00      S16	
 02a2 0080 0e44 LRI	$0, #0x0e44
 02a4 00c1 0e43 LR	$1, @0x0e43
 02a6 1c61      MRR	$3, $1
 02a7 193a      LRRI	$26, @$1
 02a8 1918      LRRI	$24, @$0
-02a9 9059      MULhL	$24, $26 : $27, @$1
+02a9 9059      MUL.L	$24, $26 : $27, @$1
 02aa 1919      LRRI	$25, @$0
-02ab 9e51      MULMVhL	$25, $27, $30 : $26, @$1
-02ac 8080      NXhLS	: $24, $30
-02ad 9759      MULMVhL	$24, $26, $31 : $27, @$1
-02ae 8091      NXhLS	: $25, $31
-02af 9e51      MULMVhL	$25, $27, $30 : $26, @$1
-02b0 8080      NXhLS	: $24, $30
-02b1 9759      MULMVhL	$24, $26, $31 : $27, @$1
-02b2 8091      NXhLS	: $25, $31
-02b3 9e51      MULMVhL	$25, $27, $30 : $26, @$1
-02b4 8080      NXhLS	: $24, $30
-02b5 9759      MULMVhL	$24, $26, $31 : $27, @$1
-02b6 8091      NXhLS	: $25, $31
-02b7 9e51      MULMVhL	$25, $27, $30 : $26, @$1
-02b8 8080      NXhLS	: $24, $30
-02b9 9759      MULMVhL	$24, $26, $31 : $27, @$1
-02ba 8091      NXhLS	: $25, $31
-02bb 9e51      MULMVhL	$25, $27, $30 : $26, @$1
-02bc 8080      NXhLS	: $24, $30
-02bd 9759      MULMVhL	$24, $26, $31 : $27, @$1
-02be 8091      NXhLS	: $25, $31
-02bf 9e51      MULMVhL	$25, $27, $30 : $26, @$1
-02c0 8080      NXhLS	: $24, $30
-02c1 9759      MULMVhL	$24, $26, $31 : $27, @$1
-02c2 8091      NXhLS	: $25, $31
-02c3 9e51      MULMVhL	$25, $27, $30 : $26, @$1
-02c4 8080      NXhLS	: $24, $30
-02c5 9759      MULMVhL	$24, $26, $31 : $27, @$1
-02c6 8091      NXhLS	: $25, $31
-02c7 9e51      MULMVhL	$25, $27, $30 : $26, @$1
-02c8 8080      NXhLS	: $24, $30
-02c9 9759      MULMVhL	$24, $26, $31 : $27, @$1
-02ca 8091      NXhLS	: $25, $31
-02cb 9e51      MULMVhL	$25, $27, $30 : $26, @$1
-02cc 8080      NXhLS	: $24, $30
-02cd 9759      MULMVhL	$24, $26, $31 : $27, @$1
-02ce 8091      NXhLS	: $25, $31
-02cf 9e51      MULMVhL	$25, $27, $30 : $26, @$1
-02d0 8080      NXhLS	: $24, $30
-02d1 9759      MULMVhL	$24, $26, $31 : $27, @$1
-02d2 8091      NXhLS	: $25, $31
-02d3 9e51      MULMVhL	$25, $27, $30 : $26, @$1
-02d4 8080      NXhLS	: $24, $30
-02d5 9759      MULMVhL	$24, $26, $31 : $27, @$1
-02d6 8091      NXhLS	: $25, $31
-02d7 9e51      MULMVhL	$25, $27, $30 : $26, @$1
-02d8 8080      NXhLS	: $24, $30
-02d9 9759      MULMVhL	$24, $26, $31 : $27, @$1
-02da 8091      NXhLS	: $25, $31
-02db 9e51      MULMVhL	$25, $27, $30 : $26, @$1
-02dc 8080      NXhLS	: $24, $30
-02dd 9759      MULMVhL	$24, $26, $31 : $27, @$1
-02de 8091      NXhLS	: $25, $31
-02df 9e51      MULMVhL	$25, $27, $30 : $26, @$1
-02e0 8080      NXhLS	: $24, $30
-02e1 9759      MULMVhL	$24, $26, $31 : $27, @$1
-02e2 8091      NXhLS	: $25, $31
-02e3 9e51      MULMVhL	$25, $27, $30 : $26, @$1
-02e4 8080      NXhLS	: $24, $30
-02e5 9759      MULMVhL	$24, $26, $31 : $27, @$1
-02e6 8091      NXhLS	: $25, $31
+02ab 9e51      MULMV.L	$25, $27, $30 : $26, @$1
+02ac 8080      NX.LS	: $24, $30
+02ad 9759      MULMV.L	$24, $26, $31 : $27, @$1
+02ae 8091      NX.LS	: $25, $31
+02af 9e51      MULMV.L	$25, $27, $30 : $26, @$1
+02b0 8080      NX.LS	: $24, $30
+02b1 9759      MULMV.L	$24, $26, $31 : $27, @$1
+02b2 8091      NX.LS	: $25, $31
+02b3 9e51      MULMV.L	$25, $27, $30 : $26, @$1
+02b4 8080      NX.LS	: $24, $30
+02b5 9759      MULMV.L	$24, $26, $31 : $27, @$1
+02b6 8091      NX.LS	: $25, $31
+02b7 9e51      MULMV.L	$25, $27, $30 : $26, @$1
+02b8 8080      NX.LS	: $24, $30
+02b9 9759      MULMV.L	$24, $26, $31 : $27, @$1
+02ba 8091      NX.LS	: $25, $31
+02bb 9e51      MULMV.L	$25, $27, $30 : $26, @$1
+02bc 8080      NX.LS	: $24, $30
+02bd 9759      MULMV.L	$24, $26, $31 : $27, @$1
+02be 8091      NX.LS	: $25, $31
+02bf 9e51      MULMV.L	$25, $27, $30 : $26, @$1
+02c0 8080      NX.LS	: $24, $30
+02c1 9759      MULMV.L	$24, $26, $31 : $27, @$1
+02c2 8091      NX.LS	: $25, $31
+02c3 9e51      MULMV.L	$25, $27, $30 : $26, @$1
+02c4 8080      NX.LS	: $24, $30
+02c5 9759      MULMV.L	$24, $26, $31 : $27, @$1
+02c6 8091      NX.LS	: $25, $31
+02c7 9e51      MULMV.L	$25, $27, $30 : $26, @$1
+02c8 8080      NX.LS	: $24, $30
+02c9 9759      MULMV.L	$24, $26, $31 : $27, @$1
+02ca 8091      NX.LS	: $25, $31
+02cb 9e51      MULMV.L	$25, $27, $30 : $26, @$1
+02cc 8080      NX.LS	: $24, $30
+02cd 9759      MULMV.L	$24, $26, $31 : $27, @$1
+02ce 8091      NX.LS	: $25, $31
+02cf 9e51      MULMV.L	$25, $27, $30 : $26, @$1
+02d0 8080      NX.LS	: $24, $30
+02d1 9759      MULMV.L	$24, $26, $31 : $27, @$1
+02d2 8091      NX.LS	: $25, $31
+02d3 9e51      MULMV.L	$25, $27, $30 : $26, @$1
+02d4 8080      NX.LS	: $24, $30
+02d5 9759      MULMV.L	$24, $26, $31 : $27, @$1
+02d6 8091      NX.LS	: $25, $31
+02d7 9e51      MULMV.L	$25, $27, $30 : $26, @$1
+02d8 8080      NX.LS	: $24, $30
+02d9 9759      MULMV.L	$24, $26, $31 : $27, @$1
+02da 8091      NX.LS	: $25, $31
+02db 9e51      MULMV.L	$25, $27, $30 : $26, @$1
+02dc 8080      NX.LS	: $24, $30
+02dd 9759      MULMV.L	$24, $26, $31 : $27, @$1
+02de 8091      NX.LS	: $25, $31
+02df 9e51      MULMV.L	$25, $27, $30 : $26, @$1
+02e0 8080      NX.LS	: $24, $30
+02e1 9759      MULMV.L	$24, $26, $31 : $27, @$1
+02e2 8091      NX.LS	: $25, $31
+02e3 9e51      MULMV.L	$25, $27, $30 : $26, @$1
+02e4 8080      NX.LS	: $24, $30
+02e5 9759      MULMV.L	$24, $26, $31 : $27, @$1
+02e6 8091      NX.LS	: $25, $31
 02e7 9e00      MULMV	$25, $27, $30
-02e8 6f33      MOVPhS	$31 : @$3, $30
+02e8 6f33      MOVP.S	$31 : @$3, $30
 02e9 1b7f      SRRI	@$3, $31
 02ea 00c3 0e14 LR	$3, @0x0e14						// call the mixer
 02ec 8f00      S16	
@@ -668,7 +674,7 @@ Main()
 02ee 8a00      M2	
 02ef 177f      CALLR	$3
 02f0 8100      CLR	$30
-02f1 00de 0b9b LR	$30, @0x0b9b		// check (PBInitialTimeDelay->firstStart == 0)
+02f1 00de 0b9b LR	$30, @0x0b9b					// check (PBInitialTimeDelay->firstStart == 0)
 02f3 b100      TST	$30
 02f4 0295 032a JEQ	0x032a
 
@@ -722,19 +728,19 @@ Main()
 033b 1c03      MRR	$0, $3
 033c 1ff5      MRR	$31, $21
 033d 191a      LRRI	$26, @$0
-033e f858      ADDPAXZhL	$30, $26 : $27, @$0
-033f fba0      ADDPAXZhLS	$31, $27 : $26, $30
-0340 f8b1      ADDPAXZhLS	$30, $26 : $27, $31
-0341 fba0      ADDPAXZhLS	$31, $27 : $26, $30
-0342 f8b1      ADDPAXZhLS	$30, $26 : $27, $31
-0343 fba0      ADDPAXZhLS	$31, $27 : $26, $30
-0344 f8b1      ADDPAXZhLS	$30, $26 : $27, $31
-0345 fba0      ADDPAXZhLS	$31, $27 : $26, $30
-0346 f83b      ADDPAXZhS	$30, $26 : @$3, $31
+033e f858      ADDPAXZ.L	$30, $26 : $27, @$0
+033f fba0      ADDPAXZ.LS	$31, $27 : $26, $30
+0340 f8b1      ADDPAXZ.LS	$30, $26 : $27, $31
+0341 fba0      ADDPAXZ.LS	$31, $27 : $26, $30
+0342 f8b1      ADDPAXZ.LS	$30, $26 : $27, $31
+0343 fba0      ADDPAXZ.LS	$31, $27 : $26, $30
+0344 f8b1      ADDPAXZ.LS	$30, $26 : $27, $31
+0345 fba0      ADDPAXZ.LS	$31, $27 : $26, $30
+0346 f83b      ADDPAXZ.S	$30, $26 : @$3, $31
 0347 1b7e      SRRI	@$3, $30
 0348 0083 0e04 LRI	$3, #0x0e04
 034a 8100      CLR	$30
-034b 8973      CLRhL	$31 : $30, @$3
+034b 8973      CLR.L	$31 : $30, @$3
 034c 1961      LRRI	$1, @$3
 034d 1960      LRRI	$0, @$3
 034e 7800      DECM	$30
@@ -812,7 +818,7 @@ Main()
 03b2 2fcf      SRS	@DSMAL, $31
 03b3 16cd 03c0 SI	@DSPA, #0x03c0
 03b5 16c9 0000 SI	@DSCR, #0x0000
-03b7 16cb 0080 SI	@DSBL, #0x0080    // Don't know what this dma xfer is
+03b7 16cb 0080 SI	@DSBL, #0x0080    // Don't know w.at this dma xfer is
 03b9 8100      CLR	$30
 03ba 8900      CLR	$31
 03bb 00de 0b84 LR	$30, @0x0b84
@@ -847,7 +853,7 @@ Main()
 03e9 009f 0ce0 LRI	$31, #0x0ce0
 03eb 00ff 0e42 SR	@0x0e42, $31
 03ed 00ff 0e43 SR	@0x0e43, $31
-03ef 02bf 055c CALL	0x055c     // Wait for DMA control reg
+03ef 02bf 055c CALL	0x055c     			// Wait for DMA control reg
 03f1 00de 0b9c LR	$30, @0x0b9c
 03f3 2ece      SRS	@DSMAH, $30
 03f4 00de 0b9d LR	$30, @0x0b9d
@@ -855,15 +861,15 @@ Main()
 03f7 16cd 0cc0 SI	@DSPA, #0x0cc0
 03f9 16c9 0000 SI	@DSCR, #0x0000
 03fb 16cb 0040 SI	@DSBL, #0x0040
-03fd 02bf 055c CALL	0x055c     // Wait for DMA control reg				// wait for DMA
+03fd 02bf 055c CALL	0x055c     			// Wait for DMA control reg				// wait for DMA
 03ff 00c0 0e07 LR	$0, @0x0e07
 0401 029f 0248 JMP	0x0248				// Opcode3()  - "self calling"
-0403 009f 0ce0 LRI	$31, #0x0ce0     //  <<< branch from 03da
+0403 009f 0ce0 LRI	$31, #0x0ce0     	//  <<< branch from 03da
 0405 00ff 0e42 SR	@0x0e42, $31
 0407 00ff 0e40 SR	@0x0e40, $31
 0409 00ff 0e41 SR	@0x0e41, $31
 040b 00ff 0e43 SR	@0x0e43, $31
-040d 02bf 055c CALL	0x055c     // Wait for DMA control reg
+040d 02bf 055c CALL	0x055c     			// Wait for DMA control reg
 040f 00c0 0e07 LR	$0, @0x0e07
 0411 029f 0248 JMP	0x0248				// Opcode3()  - "self calling"
 
@@ -872,7 +878,7 @@ Main()
 0413 8e00      S40	
 0414 0086 0400 LRI	$6, #0x0400
 0416 8100      CLR	$30
-0417 8970      CLRhL	$31 : $30, @$0
+0417 8970      CLR.L	$31 : $30, @$0
 0418 191c      LRRI	$28, @$0
 0419 2ece      SRS	@DSMAH, $30
 041a 2ccf      SRS	@DSMAL, $28
@@ -889,7 +895,7 @@ Main()
 0427 8e00      S40	
 0428 0086 07c0 LRI	$6, #0x07c0
 042a 8100      CLR	$30
-042b 8970      CLRhL	$31 : $30, @$0
+042b 8970      CLR.L	$31 : $30, @$0
 042c 191c      LRRI	$28, @$0
 042d 2ece      SRS	@DSMAH, $30
 042e 2ccf      SRS	@DSMAL, $28
@@ -909,15 +915,15 @@ Main()
 043b 8c00      CLR15	
 043c 8a00      M2	
 043d 8100      CLR	$30
-043e 8970      CLRhL	$31 : $30, @$0
+043e 8970      CLR.L	$31 : $30, @$0
 043f 191f      LRRI	$31, @$0
 0440 2ece      SRS	@DSMAH, $30
 0441 2fcf      SRS	@DSMAL, $31
 0442 16cd 0280 SI	@DSPA, #0x0280
 0444 16c9 0001 SI	@DSCR, #0x0001
 0446 16cb 0280 SI	@DSBL, #0x0280
-0448 8f50      S16hL	: $26, @$0
-0449 8140      CLRhL	$30 : $24, @$0
+0448 8f50      S16.L	: $26, @$0
+0449 8140      CLR.L	$30 : $24, @$0
 044a 0081 0400 LRI	$1, #0x0400
 044c 0083 0000 LRI	$3, #0x0000
 044e 0082 0140 LRI	$2, #0x0140
@@ -926,12 +932,12 @@ Main()
 0454 1105 046c BLOOPI	#0x05, 0x046c
 0456 1f61      MRR	$27, $1
 0457 1120 045e BLOOPI	#0x20, 0x045e
-0459 8972      CLRhL	$31 : $30, @$2
+0459 8972      CLR.L	$31 : $30, @$2
 045a 195c      LRRI	$28, @$2
-045b f07b      LSL16hL	$30 : $31, @$3
+045b f07b      LSL16.L	$30 : $31, @$3
 045c 197d      LRRI	$29, @$3
-045d f131      LSL16hS	$31 : @$1, $30
-045e 8139      CLRhS	$30 : @$1, $31
+045d f131      LSL16.S	$31 : @$1, $30
+045e 8139      CLR.S	$30 : @$1, $31
 045f 8900      CLR	$31
 0460 6800      MOVAX	$30, $24
 0461 2ece      SRS	@DSMAH, $30
@@ -961,7 +967,7 @@ Main()
 0478 029f 0068 JMP	0x0068     // Return to message loop.
 
 
-// Opcode_15()  // end AX List command  (write the 0xDCD10002 that we have executed the shit)
+// Opcode_15()  // end AX List command  (write the 0xDCD10002 that we .ave executed the s.it)
 047a 16fc dcd1 SI	@DMBH, #0xdcd1
 047c 16fd 0002 SI	@DMBL, #0x0002
 047e 16fb 0001 SI	@DIRQ, #0x0001
@@ -975,7 +981,7 @@ Main()
 
 // no idea... it usesd for several opcodes
 // Opcode_04(), Opcode_05() and Opcode_09() calls it
-// perhaps some kind of filter??
+// per.aps some kind of filter??
 0484 8e00      S40	
 0485 191f      LRRI	$31, @$0
 0486 191d      LRRI	$29, @$0
@@ -1031,42 +1037,42 @@ Main()
 04c3 1b3d      SRRI	@$1, $29
 04c4 0081 0e44 LRI	$1, #0x0e44
 04c6 8f00      S16	
-04c7 80f0      NXhLDX	: $25, $27, @$1
-04c8 80c0      NXhLDX	: $24, $26, @$0
+04c7 80f0      NX.LDX	: $25, $27, @$1
+04c8 80c0      NX.LDX	: $24, $26, @$0
 04c9 6a00      MOVAX	$30, $25
 04ca 4800      ADDAX	$30, $24
 04cb 1117 04d4 BLOOPI	#0x17, 0x04d4
-04cd 80f0      NXhLDX	: $25, $27, @$1
-04ce 80c0      NXhLDX	: $24, $26, @$0
-04cf 6b32      MOVAXhS	$31, $25 : @$2, $30
-04d0 4922      ADDAXhS	$31, $24 : @$2, $28
-04d1 80f0      NXhLDX	: $25, $27, @$1
-04d2 80c0      NXhLDX	: $24, $26, @$0
-04d3 6a3a      MOVAXhS	$30, $25 : @$2, $31
-04d4 482a      ADDAXhS	$30, $24 : @$2, $29
-04d5 80f0      NXhLDX	: $25, $27, @$1
-04d6 80c0      NXhLDX	: $24, $26, @$0
-04d7 6b32      MOVAXhS	$31, $25 : @$2, $30
-04d8 4922      ADDAXhS	$31, $24 : @$2, $28
+04cd 80f0      NX.LDX	: $25, $27, @$1
+04ce 80c0      NX.LDX	: $24, $26, @$0
+04cf 6b32      MOVAX.S	$31, $25 : @$2, $30
+04d0 4922      ADDAX.S	$31, $24 : @$2, $28
+04d1 80f0      NX.LDX	: $25, $27, @$1
+04d2 80c0      NX.LDX	: $24, $26, @$0
+04d3 6a3a      MOVAX.S	$30, $25 : @$2, $31
+04d4 482a      ADDAX.S	$30, $24 : @$2, $29
+04d5 80f0      NX.LDX	: $25, $27, @$1
+04d6 80c0      NX.LDX	: $24, $26, @$0
+04d7 6b32      MOVAX.S	$31, $25 : @$2, $30
+04d8 4922      ADDAX.S	$31, $24 : @$2, $28
 04d9 1b5f      SRRI	@$2, $31
 04da 1b5d      SRRI	@$2, $29
-04db 80f0      NXhLDX	: $25, $27, @$1
-04dc 80c0      NXhLDX	: $24, $26, @$0
+04db 80f0      NX.LDX	: $25, $27, @$1
+04dc 80c0      NX.LDX	: $24, $26, @$0
 04dd 6a00      MOVAX	$30, $25
 04de 4800      ADDAX	$30, $24
 04df 1117 04e8 BLOOPI	#0x17, 0x04e8
-04e1 80f0      NXhLDX	: $25, $27, @$1
-04e2 80c0      NXhLDX	: $24, $26, @$0
-04e3 6b32      MOVAXhS	$31, $25 : @$2, $30
-04e4 4922      ADDAXhS	$31, $24 : @$2, $28
-04e5 80f0      NXhLDX	: $25, $27, @$1
-04e6 80c0      NXhLDX	: $24, $26, @$0
-04e7 6a3a      MOVAXhS	$30, $25 : @$2, $31
-04e8 482a      ADDAXhS	$30, $24 : @$2, $29
-04e9 80f0      NXhLDX	: $25, $27, @$1
-04ea 80c0      NXhLDX	: $24, $26, @$0
-04eb 6b32      MOVAXhS	$31, $25 : @$2, $30
-04ec 4922      ADDAXhS	$31, $24 : @$2, $28
+04e1 80f0      NX.LDX	: $25, $27, @$1
+04e2 80c0      NX.LDX	: $24, $26, @$0
+04e3 6b32      MOVAX.S	$31, $25 : @$2, $30
+04e4 4922      ADDAX.S	$31, $24 : @$2, $28
+04e5 80f0      NX.LDX	: $25, $27, @$1
+04e6 80c0      NX.LDX	: $24, $26, @$0
+04e7 6a3a      MOVAX.S	$30, $25 : @$2, $31
+04e8 482a      ADDAX.S	$30, $24 : @$2, $29
+04e9 80f0      NX.LDX	: $25, $27, @$1
+04ea 80c0      NX.LDX	: $24, $26, @$0
+04eb 6b32      MOVAX.S	$31, $25 : @$2, $30
+04ec 4922      ADDAX.S	$31, $24 : @$2, $28
 04ed 1b5f      SRRI	@$2, $31
 04ee 1b5d      SRRI	@$2, $29
 04ef 1c05      MRR	$0, $5
@@ -1141,12 +1147,12 @@ Main()
 0551 a000      MULX	$24, $25
 0552 b600      MULXMV	$26, $25, $30
 0553 1130 055a BLOOPI	#0x30, 0x055a
-0555 9179      ASR16hL	$30 : $31, @$1
-0556 4e6d      ADDPhLN	$30 : $29, @$1
+0555 9179      ASR16.L	$30 : $31, @$1
+0556 4e6d      ADDP.LN	$30 : $29, @$1
 0557 197a      LRRI	$26, @$3
-0558 4d43      ADDhL	$31, $30 : $24, @$3
-0559 a039      MULXhS	$24, $25 : @$1, $31
-055a b629      MULXMVhS	$26, $25, $30 : @$1, $29
+0558 4d43      ADD.L	$31, $30 : $24, @$3
+0559 a039      MULX.S	$24, $25 : @$1, $31
+055a b629      MULXMV.S	$26, $25, $30 : @$1, $29
 055b 02df      RET	
 
 // waits for DMA control reg
@@ -1177,8 +1183,8 @@ Main()
 
 // Opcode_07()
 0574 8100      CLR	$30
-0575 8970      CLRhL	$31 : $30, @$0
-0576 8e60      S40hL	: $28, @$0
+0575 8970      CLR.L	$31 : $30, @$0
+0576 8e60      S40.L	: $28, @$0
 0577 2ece      SRS	@DSMAH, $30
 0578 2ccf      SRS	@DSMAL, $28
 0579 16cd 0e44 SI	@DSPA, #0x0e44
@@ -1202,7 +1208,8 @@ Main()
 0594 16c9 0000 SI	@DSCR, #0x0000
 0596 16cb 0260 SI	@DSBL, #0x0260
 0598 009f 00a0 LRI	$31, #0x00a0
-059a 8f00      S16	
+059a 8f00      S16
+	
 059b 007f 05a4 BLOOP	$31, 0x05a4
 059d 197e      LRRI	$30, @$3
 059e 1b1a      SRRI	@$0, $26
@@ -1212,6 +1219,7 @@ Main()
 05a2 1b5c      SRRI	@$2, $28
 05a3 1b3e      SRRI	@$1, $30
 05a4 1b3c      SRRI	@$1, $28
+
 05a5 1c04      MRR	$0, $4
 05a6 029f 0068 JMP	0x0068     // Return to message loop.
 
@@ -1332,10 +1340,10 @@ Main()
 0621 0007      DAR	$3
 0622 187f      LRR	$31, @$3
 0623 0066 0629 BLOOP	$6, 0x0629
-0625 4a3b      ADDAXhS	$30, $25 : @$3, $31
+0625 4a3b      ADDAX.S	$30, $25 : @$3, $31
 0626 1ffc      MRR	$31, $28
 0627 1579      LSR	$33, #0x39
-0628 3533      ANDRhS	$31, $26 : @$3, $30
+0628 3533      ANDR.S	$31, $26 : @$3, $30
 0629 4100      ADDR	$31, $24        // bloop 0623
 062a 1b7f      SRRI	@$3, $31
 062b 0004      DAR	$0
@@ -1365,18 +1373,18 @@ Main()
 0646 0082 0d80 LRI	$2, #0x0d80
 0648 1940      LRRI	$0, @$2
 0649 1943      LRRI	$3, @$2
-064a 80f0      NXhLDX	: $25, $27, @$1
-064b b8c0      MULXhLDX	$26, $27 : $24, $26, @$0
+064a 80f0      NX.LDX	: $25, $27, @$1
+064b b8c0      MULX.LDX	$26, $27 : $24, $26, @$0
 064c 111f 0654 BLOOPI	#0x1f, 0x0654
-064e a6f0      MULXMVhLDX	$24, $25, $30 : $25, $27, @$1
-064f bcf0      MULXAChLDX	$26, $27, $30 : $25, $27, @$1
+064e a6f0      MULXMV.LDX	$24, $25, $30 : $25, $27, @$1
+064f bcf0      MULXAC.LDX	$26, $27, $30 : $25, $27, @$1
 0650 1940      LRRI	$0, @$2
 0651 1943      LRRI	$3, @$2
-0652 bcf0      MULXAChLDX	$26, $27, $30 : $25, $27, @$1
-0653 4ec0      ADDPhLDX	$30 : $24, $26, @$0
-0654 b831      MULXhS	$26, $27 : @$1, $30
-0655 a6f0      MULXMVhLDX	$24, $25, $30 : $25, $27, @$1
-0656 bcf0      MULXAChLDX	$26, $27, $30 : $25, $27, @$1
+0652 bcf0      MULXAC.LDX	$26, $27, $30 : $25, $27, @$1
+0653 4ec0      ADDP.LDX	$30 : $24, $26, @$0
+0654 b831      MULX.S	$26, $27 : @$1, $30
+0655 a6f0      MULXMV.LDX	$24, $25, $30 : $25, $27, @$1
+0656 bcf0      MULXAC.LDX	$26, $27, $30 : $25, $27, @$1
 0657 bc00      MULXAC	$26, $27, $30
 0658 4e00      ADDP	$30
 0659 1b3e      SRRI	@$1, $30
@@ -1536,7 +1544,7 @@ Main()
 0700 1959      LRRI	$25, @$2
 0701 b000      MULX	$26, $25
 0702 fb00      ADDPAXZ	$31, $27
-0703 8139      CLRhS	$30 : @$1, $31
+0703 8139      CLR.S	$30 : @$1, $31
 0704 00e1 0e42 SR	@0x0e42, $1
 0706 02df      RET	
 
@@ -1636,17 +1644,17 @@ Main()
 
 // fn0
 // this mixer is used by CrazyTaxi (at least at the beginning)
-// perhaps f�r mono sample??
+// per.aps for mono sample??
 
-0768 00c0 0e40 LR	$0, @0x0e40		// outbuffer ??
+0768 00c0 0e40 LR	$0, @0x0e40		// PB->PBInitialTimeDelay->offsetLeft
 076a 0081 0b89 LRI	$1, #0x0b89		// PB->Mixer... struct offset
-076c 00c2 0e08 LR	$2, @0x0e08		// left-buffer?
-076e 1c62      MRR	$3, $2			// right-buffer?
-076f 00c4 0e41 LR	$4, @0x0e41		// delay offset ??
-0771 00c5 0e09 LR	$5, @0x0e09		// 0x140 all the time .... could be number of samples 
-0773 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
-0775 00f8 0ba9 SR	@0x0ba9, $24	// mixer unknown stuff
-0777 00fb 0bac SR	@0x0bac, $27
+076c 00c2 0e08 LR	$2, @0x0e08		// Buffer1   (0x0000 all the time)
+076e 1c62      MRR	$3, $2			// Buffer2
+076f 00c4 0e41 LR	$4, @0x0e41		// PB->PBInitialTimeDelay->offsetRight
+0771 00c5 0e09 LR	$5, @0x0e09		// Buffer3   (0x0140 all the time)
+0773 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
+0775 00f8 0ba9 SR	@0x0ba9, $24	// mixer return value1
+0777 00fb 0bac SR	@0x0bac, $27	// mixer return value2
 0779 02df      RET
 
 // fn1
@@ -1842,7 +1850,7 @@ Main()
 08bc 0081 0b95 LRI	$1, #0x0b95
 08be 00c2 0e10 LR	$2, @0x0e10
 08c0 1c62      MRR	$3, $2
-08c1 02bf 81f9 CALL	0x81f9     // Call second ROM mixer function
+08c1 02bf 81f9 CALL	0x81f9     		// Call second ROM mixer function
 08c3 00f8 0bb1 SR	@0x0bb1, $24
 08c5 02df      RET	
 
@@ -1854,7 +1862,7 @@ Main()
 08cc 0083 0e44 LRI	$3, #0x0e44
 08ce 00c4 0e41 LR	$4, @0x0e41
 08d0 00c5 0e09 LR	$5, @0x0e09
-08d2 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+08d2 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 08d4 00f8 0ba9 SR	@0x0ba9, $24
 08d6 00fb 0bac SR	@0x0bac, $27
 08d8 02df      RET	
@@ -1867,16 +1875,16 @@ Main()
 08df 0083 0e44 LRI	$3, #0x0e44
 08e1 00c4 0e41 LR	$4, @0x0e41
 08e3 00c5 0e09 LR	$5, @0x0e09
-08e5 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+08e5 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 08e7 00f8 0ba9 SR	@0x0ba9, $24
 08e9 00fb 0bac SR	@0x0bac, $27
 08eb 00c0 0e40 LR	$0, @0x0e40
-08ed 0081 0b8d LRI	$1, #0x0b8d      // aux stuff
+08ed 0081 0b8d LRI	$1, #0x0b8d   	// aux stuff
 08ef 00c2 0e0b LR	$2, @0x0e0b
 08f1 0083 0e44 LRI	$3, #0x0e44
 08f3 00c4 0e41 LR	$4, @0x0e41
 08f5 00c5 0e0c LR	$5, @0x0e0c
-08f7 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+08f7 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 08f9 00f8 0baa SR	@0x0baa, $24
 08fb 00fb 0bad SR	@0x0bad, $27
 08fd 02df      RET	
@@ -1885,21 +1893,21 @@ Main()
 
 
 08fe 00c0 0e40 LR	$0, @0x0e40
-0900 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings
+0900 0081 0b89 LRI	$1, #0x0b89    	// PB mixer settings
 0902 00c2 0e08 LR	$2, @0x0e08
 0904 0083 0e44 LRI	$3, #0x0e44
 0906 00c4 0e41 LR	$4, @0x0e41
 0908 00c5 0e09 LR	$5, @0x0e09
-090a 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+090a 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 090c 00f8 0ba9 SR	@0x0ba9, $24
 090e 00fb 0bac SR	@0x0bac, $27
 0910 00c0 0e40 LR	$0, @0x0e40
-0912 0081 0b91 LRI	$1, #0x0b91    // aux stuff
+0912 0081 0b91 LRI	$1, #0x0b91    	// aux stuff
 0914 00c2 0e0e LR	$2, @0x0e0e
 0916 0083 0e44 LRI	$3, #0x0e44
 0918 00c4 0e41 LR	$4, @0x0e41
 091a 00c5 0e0f LR	$5, @0x0e0f
-091c 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+091c 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 091e 00f8 0bab SR	@0x0bab, $24
 0920 00fb 0bae SR	@0x0bae, $27
 0922 02df      RET	
@@ -1912,7 +1920,7 @@ Main()
 0929 0083 0e44 LRI	$3, #0x0e44
 092b 00c4 0e41 LR	$4, @0x0e41
 092d 00c5 0e09 LR	$5, @0x0e09
-092f 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+092f 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 0931 00f8 0ba9 SR	@0x0ba9, $24
 0933 00fb 0bac SR	@0x0bac, $27
 0935 00c0 0e40 LR	$0, @0x0e40
@@ -1921,7 +1929,7 @@ Main()
 093b 0083 0e44 LRI	$3, #0x0e44
 093d 00c4 0e41 LR	$4, @0x0e41
 093f 00c5 0e0c LR	$5, @0x0e0c
-0941 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+0941 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 0943 00f8 0baa SR	@0x0baa, $24
 0945 00fb 0bad SR	@0x0bad, $27
 0947 00c0 0e40 LR	$0, @0x0e40
@@ -1930,7 +1938,7 @@ Main()
 094d 0083 0e44 LRI	$3, #0x0e44
 094f 00c4 0e41 LR	$4, @0x0e41
 0951 00c5 0e0f LR	$5, @0x0e0f
-0953 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+0953 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 0955 00f8 0bab SR	@0x0bab, $24
 0957 00fb 0bae SR	@0x0bae, $27
 0959 02df      RET	
@@ -1944,7 +1952,7 @@ Main()
 0960 0083 0e44 LRI	$3, #0x0e44
 0962 00c4 0e41 LR	$4, @0x0e41
 0964 00c5 0e09 LR	$5, @0x0e09
-0966 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+0966 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 0968 00f8 0ba9 SR	@0x0ba9, $24
 096a 00fb 0bac SR	@0x0bac, $27
 096c 00c0 0e43 LR	$0, @0x0e43
@@ -1963,7 +1971,7 @@ Main()
 097f 0083 0e44 LRI	$3, #0x0e44
 0981 00c4 0e41 LR	$4, @0x0e41
 0983 00c5 0e09 LR	$5, @0x0e09
-0985 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+0985 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 0987 00f8 0ba9 SR	@0x0ba9, $24
 0989 00fb 0bac SR	@0x0bac, $27
 098b 00c0 0e40 LR	$0, @0x0e40
@@ -1972,7 +1980,7 @@ Main()
 0991 0083 0e44 LRI	$3, #0x0e44
 0993 00c4 0e41 LR	$4, @0x0e41
 0995 00c5 0e0c LR	$5, @0x0e0c
-0997 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+0997 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 0999 00f8 0baa SR	@0x0baa, $24
 099b 00fb 0bad SR	@0x0bad, $27
 099d 00c0 0e43 LR	$0, @0x0e43
@@ -1981,7 +1989,7 @@ Main()
 09a3 0083 0e44 LRI	$3, #0x0e44
 09a5 1c80      MRR	$4, $0
 09a6 00c5 0e0d LR	$5, @0x0e0d
-09a8 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+09a8 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 09aa 00f8 0baf SR	@0x0baf, $24
 09ac 00fb 0bb0 SR	@0x0bb0, $27
 09ae 02df      RET	
@@ -1994,7 +2002,7 @@ Main()
 09b5 0083 0e44 LRI	$3, #0x0e44
 09b7 00c4 0e41 LR	$4, @0x0e41
 09b9 00c5 0e09 LR	$5, @0x0e09
-09bb 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+09bb 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 09bd 00f8 0ba9 SR	@0x0ba9, $24
 09bf 00fb 0bac SR	@0x0bac, $27
 09c1 00c0 0e40 LR	$0, @0x0e40
@@ -2003,7 +2011,7 @@ Main()
 09c7 0083 0e44 LRI	$3, #0x0e44
 09c9 00c4 0e41 LR	$4, @0x0e41
 09cb 00c5 0e0f LR	$5, @0x0e0f
-09cd 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+09cd 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 09cf 00f8 0bab SR	@0x0bab, $24
 09d1 00fb 0bae SR	@0x0bae, $27
 09d3 00c0 0e43 LR	$0, @0x0e43
@@ -2012,7 +2020,7 @@ Main()
 09d9 0083 0e44 LRI	$3, #0x0e44
 09db 1c80      MRR	$4, $0
 09dc 00c5 0e0a LR	$5, @0x0e0a
-09de 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+09de 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 09e0 00f8 0bb1 SR	@0x0bb1, $24
 09e2 00fb 0baf SR	@0x0baf, $27
 09e4 02df      RET	
@@ -2025,7 +2033,7 @@ Main()
 09eb 0083 0e44 LRI	$3, #0x0e44
 09ed 00c4 0e41 LR	$4, @0x0e41
 09ef 00c5 0e09 LR	$5, @0x0e09
-09f1 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+09f1 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 09f3 00f8 0ba9 SR	@0x0ba9, $24
 09f5 00fb 0bac SR	@0x0bac, $27
 09f7 00c0 0e40 LR	$0, @0x0e40
@@ -2034,7 +2042,7 @@ Main()
 09fd 0083 0e44 LRI	$3, #0x0e44
 09ff 00c0 0e41 LR	$0, @0x0e41
 0a01 00c5 0e0c LR	$5, @0x0e0c
-0a03 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+0a03 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 0a05 00f8 0baa SR	@0x0baa, $24
 0a07 00fb 0bad SR	@0x0bad, $27
 0a09 00c0 0e40 LR	$0, @0x0e40
@@ -2043,7 +2051,7 @@ Main()
 0a0f 0083 0e44 LRI	$3, #0x0e44
 0a11 00c4 0e41 LR	$4, @0x0e41
 0a13 00c5 0e0f LR	$5, @0x0e0f
-0a15 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+0a15 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 0a17 00f8 0bab SR	@0x0bab, $24
 0a19 00fb 0bae SR	@0x0bae, $27
 0a1b 00c0 0e43 LR	$0, @0x0e43
@@ -2052,7 +2060,7 @@ Main()
 0a21 0083 0e44 LRI	$3, #0x0e44
 0a23 1c80      MRR	$4, $0
 0a24 00c5 0e0d LR	$5, @0x0e0d
-0a26 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+0a26 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 0a28 00f8 0baf SR	@0x0baf, $24
 0a2a 00fb 0bb0 SR	@0x0bb0, $27
 0a2c 00c0 0e43 LR	$0, @0x0e43
@@ -2072,7 +2080,7 @@ Main()
 0a3f 1c62      MRR	$3, $2
 0a40 00c4 0e41 LR	$4, @0x0e41
 0a42 00c5 0e09 LR	$5, @0x0e09
-0a44 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+0a44 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 0a46 00f8 0ba9 SR	@0x0ba9, $24
 0a48 00fb 0bac SR	@0x0bac, $27
 0a4a 00c0 0e43 LR	$0, @0x0e43
@@ -2081,7 +2089,7 @@ Main()
 0a50 1c62      MRR	$3, $2
 0a51 1c80      MRR	$4, $0
 0a52 00c5 0e0f LR	$5, @0x0e0f
-0a54 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+0a54 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 0a56 00f8 0bab SR	@0x0bab, $24
 0a58 00fb 0bae SR	@0x0bae, $27
 0a5a 02df      RET	
@@ -2093,7 +2101,7 @@ Main()
 0a61 1c62      MRR	$3, $2
 0a62 00c4 0e41 LR	$4, @0x0e41
 0a64 00c5 0e09 LR	$5, @0x0e09
-0a66 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+0a66 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 0a68 00f8 0ba9 SR	@0x0ba9, $24
 0a6a 00fb 0bac SR	@0x0bac, $27
 0a6c 00c0 0e43 LR	$0, @0x0e43
@@ -2102,7 +2110,7 @@ Main()
 0a72 1c62      MRR	$3, $2
 0a73 1c80      MRR	$4, $0
 0a74 00c5 0e0f LR	$5, @0x0e0f
-0a76 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+0a76 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 0a78 00f8 0bab SR	@0x0bab, $24
 0a7a 00fb 0bae SR	@0x0bae, $27
 0a7c 00c0 0e40 LR	$0, @0x0e40
@@ -2111,14 +2119,14 @@ Main()
 0a82 1c62      MRR	$3, $2
 0a83 00c4 0e41 LR	$4, @0x0e41
 0a85 00c5 0e0c LR	$5, @0x0e0c
-0a87 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+0a87 02bf 80e7 CALL	0x80e7    		// Call ROM mixer function
 0a89 00f8 0baa SR	@0x0baa, $24
 0a8b 00fb 0bad SR	@0x0bad, $27
 0a8d 00c0 0e43 LR	$0, @0x0e43
 0a8f 0081 0b99 LRI	$1, #0x0b99
 0a91 00c2 0e0d LR	$2, @0x0e0d
 0a93 1c62      MRR	$3, $2
-0a94 02bf 81f9 CALL	0x81f9     // Call second ROM mixer function
+0a94 02bf 81f9 CALL	0x81f9     		// Call second ROM mixer function
 0a96 00f8 0bb0 SR	@0x0bb0, $24
 0a98 02df      RET	
 
@@ -2130,7 +2138,7 @@ Main()
 0a9f 0083 0e44 LRI	$3, #0x0e44
 0aa1 00c4 0e41 LR	$4, @0x0e41
 0aa3 00c5 0e09 LR	$5, @0x0e09
-0aa5 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+0aa5 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 0aa7 00f8 0ba9 SR	@0x0ba9, $24
 0aa9 00fb 0bac SR	@0x0bac, $27
 0aab 00c0 0e43 LR	$0, @0x0e43
@@ -2139,7 +2147,7 @@ Main()
 0ab1 0083 0e44 LRI	$3, #0x0e44
 0ab3 1c80      MRR	$4, $0
 0ab4 00c5 0e0f LR	$5, @0x0e0f
-0ab6 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+0ab6 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 0ab8 00f8 0bab SR	@0x0bab, $24
 0aba 00fb 0bae SR	@0x0bae, $27
 0abc 02df      RET	
@@ -2152,7 +2160,7 @@ Main()
 0ac3 0083 0e44 LRI	$3, #0x0e44
 0ac5 00c4 0e41 LR	$4, @0x0e41
 0ac7 00c5 0e09 LR	$5, @0x0e09
-0ac9 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+0ac9 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 0acb 00f8 0ba9 SR	@0x0ba9, $24
 0acd 00fb 0bac SR	@0x0bac, $27
 0acf 00c0 0e43 LR	$0, @0x0e43
@@ -2161,7 +2169,7 @@ Main()
 0ad5 0083 0e44 LRI	$3, #0x0e44
 0ad7 1c80      MRR	$4, $0
 0ad8 00c5 0e0f LR	$5, @0x0e0f
-0ada 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+0ada 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 0adc 00f8 0bab SR	@0x0bab, $24
 0ade 00fb 0bae SR	@0x0bae, $27
 0ae0 00c0 0e40 LR	$0, @0x0e40
@@ -2170,7 +2178,7 @@ Main()
 0ae6 0083 0e44 LRI	$3, #0x0e44
 0ae8 00c4 0e41 LR	$4, @0x0e41
 0aea 00c5 0e0c LR	$5, @0x0e0c
-0aec 02bf 8282 CALL	0x8282     // Call third ROM mixer function
+0aec 02bf 8282 CALL	0x8282     		// Call third ROM mixer function
 0aee 00f8 0baa SR	@0x0baa, $24
 0af0 00fb 0bad SR	@0x0bad, $27
 0af2 00c0 0e43 LR	$0, @0x0e43
@@ -2182,84 +2190,78 @@ Main()
 0afe 02df      RET	
 
 
-
-
-/// JMP Table for commands
+// JMP Table for commands
 0aff 0082 
 0b00 013e
-0b01 01bc      CW	0x01bc		; *** UNKNOWN OPCODE ***
-0b02 0248      CW	0x0248		; *** UNKNOWN OPCODE ***
-0b03 0413      ADDIS	$32, #0x13
-0b04 0427      ADDIS	$32, #0x27
-0b05 0165      CW	0x0165		; *** UNKNOWN OPCODE ***
-0b06 0574      ADDIS	$33, #0x74
-0b07 0b37      LRIS	$27, #0x37
-0b08 015f      CW	0x015f		; *** UNKNOWN OPCODE ***
-0b09 0478      ADDIS	$32, #0x78
-0b0a 0474      ADDIS	$32, #0x74
-0b0b 0476      ADDIS	$32, #0x76
-0b0c 01a9      CW	0x01a9		; *** UNKNOWN OPCODE ***
-0b0d 043b      ADDIS	$32, #0x3b
-0b0e 047a      ADDIS	$32, #0x7a
-0b0f 0bb1      LRIS	$27, #0xb1
-0b10 0175      CW	0x0175		; *** UNKNOWN OPCODE ***
+0b01 01bc      
+0b02 0248     
+0b03 0413      
+0b04 0427      
+0b05 0165      
+0b06 0574      
+0b07 0b37     
+0b08 015f    
+0b09 0478     
+0b0a 0474     
+0b0b 0476      
+0b0c 01a9      
+0b0d 043b     
+0b0e 047a     
+0b0f 0bb1      
+0b10 0175      
 
+// JMP Table for mixerCtrl
+0b11 0768
+0b12 077a  
+0b13 079d    
+0b14 07c0      
+0b15 07f4      
+0b16 0811    
+0b17 0844   
+0b18 0877     
+0b19 08c6    
+0b1a 08d9   
+0b1b 08fe   
+0b1c 0923   
+0b1d 095a    
+0b1e 0979   
+0b1f 09af   
+0b20 09e5   
+0b21 0a39     
+0b22 0a5b    
+0b23 0768     
+0b24 0768     
+0b25 0768      
+0b26 0768     
+0b27 0768     
+0b28 0768      
+0b29 0a99     
+0b2a 0abd     
+0b2b 0768    
+0b2c 0768     
+0b2d 0768     
+0b2e 0768     
+0b2f 0768      
+0b30 0768      
 
+// JMP Table for srcSelect
+0b31 05a8    
+0b32 065d     
+0b33 0707    
 
-// i think this are offsets for the mixerCtrl
-0b11 0768      CMPIS	$33, #0x68
-0b12 077a      CMPIS	$33, #0x7a
-0b13 079d      CMPIS	$33, #0x9d
-0b14 07c0      CMPIS	$33, #0xc0
-0b15 07f4      CMPIS	$33, #0xf4
-0b16 0811      LRIS	$24, #0x11
-0b17 0844      LRIS	$24, #0x44
-0b18 0877      LRIS	$24, #0x77
-0b19 08c6      LRIS	$24, #0xc6
-0b1a 08d9      LRIS	$24, #0xd9
-0b1b 08fe      LRIS	$24, #0xfe
-0b1c 0923      LRIS	$25, #0x23
-0b1d 095a      LRIS	$25, #0x5a
-0b1e 0979      LRIS	$25, #0x79
-0b1f 09af      LRIS	$25, #0xaf
-0b20 09e5      LRIS	$25, #0xe5
-0b21 0a39      LRIS	$26, #0x39
-0b22 0a5b      LRIS	$26, #0x5b
-0b23 0768      CMPIS	$33, #0x68
-0b24 0768      CMPIS	$33, #0x68
-0b25 0768      CMPIS	$33, #0x68
-0b26 0768      CMPIS	$33, #0x68
-0b27 0768      CMPIS	$33, #0x68
-0b28 0768      CMPIS	$33, #0x68
-0b29 0a99      LRIS	$26, #0x99
-0b2a 0abd      LRIS	$26, #0xbd
-0b2b 0768      CMPIS	$33, #0x68
-0b2c 0768      CMPIS	$33, #0x68
-0b2d 0768      CMPIS	$33, #0x68
-0b2e 0768      CMPIS	$33, #0x68
-0b2f 0768      CMPIS	$33, #0x68
-0b30 0768      CMPIS	$33, #0x68
-
-
-
-// jmp table for srcSelect
-0b31 05a8      ADDIS	$33, #0xa8
-0b32 065d      CMPIS	$32, #0x5d
-0b33 0707      CMPIS	$33, #0x07
-
-// the COEF Table addresses.. i think there are three tables each with ~200 bytes
+// the COEF Table addresses.. i think there are t.ree tables eac. wit. ~200 bytes
 // we could check if it is setup by the GAME too
-0b34 1000      LOOPI	#0x00
-0b35 1200      SBCLR	#0x00
-0b36 1400      LSL	$32, #0x00
+0b34 1000 
+0b35 1200    
+0b36 1400   
 
 
 //
-// Opcode_08() - Dolphin doesnt support this command on HLE so prolly no game has ever called it
+// Opcode_08() - Dolphin HLE Plugin doesn't support this command on HLE so prolly no game has ever called it
 
 0b37 8e00      S40	
 0b38 8100      CLR	$30
-0b39 8970      CLRhL	$31 : $30, @$0
+0b39 8970      CLR.L	$31 : $30, @$0
 0b3a 191c      LRRI	$28, @$0
 0b3b 2ece      SRS	@DSMAH, $30
 0b3c 2ccf      SRS	@DSMAL, $28
@@ -2292,33 +2294,33 @@ Main()
 0b65 02a0 0004 ANDCF	$30, #0x0004
 0b67 029c 0b64 JZR	0x0b64       // wait for DMA loop
 0b69 8f00      S16	
-0b6a 8a78      M2hL	: $31, @$0
-0b6b 8c68      CLR15hL	: $29, @$0
+0b6a 8a78      M2.L	: $31, @$0
+0b6b 8c68      CLR15.L	: $29, @$0
 0b6c f100      LSL16	$31
 0b6d 1a3f      SRR	@$1, $31
-0b6e 84e3      CLRPhLD	: $26, $25, @$3
+0b6e 84e3      CLRP.LD	: $26, $25, @$3
 0b6f 107e      LOOPI	#0x7e
-0b70 f2e3      MADDhLD	$24, $26 : $26, $25, @$3
-0b71 f2e7      MADDhLDN	$24, $26 : $26, $25, @$3
-0b72 f278      MADDhL	$24, $26 : $31, @$0
-0b73 6e68      MOVPhL	$30 : $29, @$0
-0b74 f132      LSL16hS	$31 : @$2, $30
+0b70 f2e3      MADD.LD	$24, $26 : $26, $25, @$3
+0b71 f2e7      MADD.LDN	$24, $26 : $26, $25, @$3
+0b72 f278      MADD.L	$24, $26 : $31, @$0
+0b73 6e68      MOVP.L	$30 : $29, @$0
+0b74 f132      LSL16.S	$31 : @$2, $30
 0b75 1a3f      SRR	@$1, $31
 0b76 119e 0b80 BLOOPI	#0x9e, 0x0b80
 0b78 1c67      MRR	$3, $7
-0b79 84e3      CLRPhLD	: $26, $25, @$3
+0b79 84e3      CLRP.LD	: $26, $25, @$3
 0b7a 107e      LOOPI	#0x7e
-0b7b f2e3      MADDhLD	$24, $26 : $26, $25, @$3
-0b7c f2e7      MADDhLDN	$24, $26 : $26, $25, @$3
-0b7d f278      MADDhL	$24, $26 : $31, @$0
-0b7e 6e68      MOVPhL	$30 : $29, @$0
-0b7f f132      LSL16hS	$31 : @$2, $30
+0b7b f2e3      MADD.LD	$24, $26 : $26, $25, @$3
+0b7c f2e7      MADD.LDN	$24, $26 : $26, $25, @$3
+0b7d f278      MADD.L	$24, $26 : $31, @$0
+0b7e 6e68      MOVP.L	$30 : $29, @$0
+0b7f f132      LSL16.S	$31 : @$2, $30
 0b80 1a3f      SRR	@$1, $31
 0b81 1c67      MRR	$3, $7
-0b82 84e3      CLRPhLD	: $26, $25, @$3
+0b82 84e3      CLRP.LD	: $26, $25, @$3
 0b83 107e      LOOPI	#0x7e
-0b84 f2e3      MADDhLD	$24, $26 : $26, $25, @$3
-0b85 f2e7      MADDhLDN	$24, $26 : $26, $25, @$3
+0b84 f2e3      MADD.LD	$24, $26 : $26, $25, @$3
+0b85 f2e7      MADD.LDN	$24, $26 : $26, $25, @$3
 0b86 f200      MADD	$24, $26
 0b87 6e00      MOVP	$30
 0b88 1b5e      SRRI	@$2, $30
@@ -2333,10 +2335,10 @@ Main()
 0b97 8f00      S16	
 0b98 11a0 0ba0 BLOOPI	#0xa0, 0x0ba0
 0b9a 197f      LRRI	$31, @$3
-0b9b 9930      ASR16hS	$31 : @$0, $30
+0b9b 9930      ASR16.S	$31 : @$0, $30
 0b9c 1b1e      SRRI	@$0, $30
 0b9d 1b3f      SRRI	@$1, $31
-0b9e 7d29      NEGhS	$31 : @$1, $29
+0b9e 7d29      NEG.S	$31 : @$1, $29
 0b9f 1b5f      SRRI	@$2, $31
 0ba0 1b5d      SRRI	@$2, $29
 0ba1 8e00      S40	
@@ -2347,9 +2349,9 @@ Main()
 0ba6 16cd 0e80 SI	@DSPA, #0x0e80
 0ba8 16c9 0001 SI	@DSCR, #0x0001
 0baa 16cb 0100 SI	@DSBL, #0x0100
-0bac 02bf 055c CALL	0x055c     // Wait for DMA control reg
+0bac 02bf 055c CALL	0x055c     				// Wait for DMA control reg
 0bae 1c04      MRR	$0, $4
-0baf 029f 0068 JMP	0x0068     // Return to message loop.
+0baf 029f 0068 JMP	0x0068     				// Return to message loop.
 
 
 // Looks like some "new command" that have been appended
@@ -2358,16 +2360,16 @@ Main()
 // Opcode_16()
 0bb1 8e00      S40	
 0bb2 8100      CLR	$30
-0bb3 8970      CLRhL	$31 : $30, @$0
+0bb3 8970      CLR.L	$31 : $30, @$0
 0bb4 191c      LRRI	$28, @$0
 0bb5 2ece      SRS	@DSMAH, $30
 0bb6 2ccf      SRS	@DSMAL, $28
 0bb7 16cd 07c0 SI	@DSPA, #0x07c0
 0bb9 16c9 0001 SI	@DSCR, #0x0001
 0bbb 16cb 0500 SI	@DSBL, #0x0500
-0bbd 02bf 055c CALL	0x055c     // Wait for DMA control reg
+0bbd 02bf 055c CALL	0x055c     				// Wait for DMA control reg
 0bbf 8100      CLR	$30
-0bc0 8970      CLRhL	$31 : $30, @$0
+0bc0 8970      CLR.L	$31 : $30, @$0
 0bc1 191c      LRRI	$28, @$0
 0bc2 2ece      SRS	@DSMAH, $30
 0bc3 2ccf      SRS	@DSMAL, $28
@@ -2384,53 +2386,53 @@ Main()
 0bd2 0a00      LRIS	$26, #0x00
 0bd3 27c9      LRS	$31, @DSCR
 0bd4 03a0 0004 ANDCF	$31, #0x0004
-0bd6 029c 0bd3 JZR	0x0bd3       // wait for DMA loop
+0bd6 029c 0bd3 JZR	0x0bd3       			// wait for DMA loop
 0bd8 2ece      SRS	@DSMAH, $30
 0bd9 2ccf      SRS	@DSMAL, $28
 0bda 16cd 07d0 SI	@DSPA, #0x07d0
 0bdc 16c9 0000 SI	@DSCR, #0x0000
 0bde 16cb 04e0 SI	@DSBL, #0x04e0
 0be0 8f00      S16	
-0be1 80f0      NXhLDX	: $25, $27, @$1
-0be2 80c0      NXhLDX	: $24, $26, @$0
+0be1 80f0      NX.LDX	: $25, $27, @$1
+0be2 80c0      NX.LDX	: $24, $26, @$0
 0be3 6a00      MOVAX	$30, $25
 0be4 4800      ADDAX	$30, $24
 0be5 114f 0bee BLOOPI	#0x4f, 0x0bee
-0be7 80f0      NXhLDX	: $25, $27, @$1
-0be8 80c0      NXhLDX	: $24, $26, @$0
-0be9 6b32      MOVAXhS	$31, $25 : @$2, $30
-0bea 4922      ADDAXhS	$31, $24 : @$2, $28
-0beb 80f0      NXhLDX	: $25, $27, @$1
-0bec 80c0      NXhLDX	: $24, $26, @$0
-0bed 6a3a      MOVAXhS	$30, $25 : @$2, $31
-0bee 482a      ADDAXhS	$30, $24 : @$2, $29
-0bef 80f0      NXhLDX	: $25, $27, @$1
-0bf0 80c0      NXhLDX	: $24, $26, @$0
-0bf1 6b32      MOVAXhS	$31, $25 : @$2, $30
-0bf2 4922      ADDAXhS	$31, $24 : @$2, $28
+0be7 80f0      NX.LDX	: $25, $27, @$1
+0be8 80c0      NX.LDX	: $24, $26, @$0
+0be9 6b32      MOVAX.S	$31, $25 : @$2, $30
+0bea 4922      ADDAX.S	$31, $24 : @$2, $28
+0beb 80f0      NX.LDX	: $25, $27, @$1
+0bec 80c0      NX.LDX	: $24, $26, @$0
+0bed 6a3a      MOVAX.S	$30, $25 : @$2, $31
+0bee 482a      ADDAX.S	$30, $24 : @$2, $29
+0bef 80f0      NX.LDX	: $25, $27, @$1
+0bf0 80c0      NX.LDX	: $24, $26, @$0
+0bf1 6b32      MOVAX.S	$31, $25 : @$2, $30
+0bf2 4922      ADDAX.S	$31, $24 : @$2, $28
 0bf3 1b5f      SRRI	@$2, $31
 0bf4 1b5d      SRRI	@$2, $29
-0bf5 80f0      NXhLDX	: $25, $27, @$1
-0bf6 80c0      NXhLDX	: $24, $26, @$0
+0bf5 80f0      NX.LDX	: $25, $27, @$1
+0bf6 80c0      NX.LDX	: $24, $26, @$0
 0bf7 6800      MOVAX	$30, $24
 0bf8 7c00      NEG	$30
 0bf9 4a00      ADDAX	$30, $25
 0bfa 114f 0c05 BLOOPI	#0x4f, 0x0c05
-0bfc 80f0      NXhLDX	: $25, $27, @$1
-0bfd 80c0      NXhLDX	: $24, $26, @$0
-0bfe 6932      MOVAXhS	$31, $24 : @$2, $30
+0bfc 80f0      NX.LDX	: $25, $27, @$1
+0bfd 80c0      NX.LDX	: $24, $26, @$0
+0bfe 6932      MOVAX.S	$31, $24 : @$2, $30
 0bff 7d00      NEG	$31
-0c00 4b22      ADDAXhS	$31, $25 : @$2, $28
-0c01 80f0      NXhLDX	: $25, $27, @$1
-0c02 80c0      NXhLDX	: $24, $26, @$0
-0c03 683a      MOVAXhS	$30, $24 : @$2, $31
+0c00 4b22      ADDAX.S	$31, $25 : @$2, $28
+0c01 80f0      NX.LDX	: $25, $27, @$1
+0c02 80c0      NX.LDX	: $24, $26, @$0
+0c03 683a      MOVAX.S	$30, $24 : @$2, $31
 0c04 7c00      NEG	$30
-0c05 4a2a      ADDAXhS	$30, $25 : @$2, $29
-0c06 80f0      NXhLDX	: $25, $27, @$1
-0c07 80c0      NXhLDX	: $24, $26, @$0
-0c08 6932      MOVAXhS	$31, $24 : @$2, $30
+0c05 4a2a      ADDAX.S	$30, $25 : @$2, $29
+0c06 80f0      NX.LDX	: $25, $27, @$1
+0c07 80c0      NX.LDX	: $24, $26, @$0
+0c08 6932      MOVAX.S	$31, $24 : @$2, $30
 0c09 7d00      NEG	$31
-0c0a 4b22      ADDAXhS	$31, $25 : @$2, $28
+0c0a 4b22      ADDAX.S	$31, $25 : @$2, $28
 0c0b 1b5f      SRRI	@$2, $31
 0c0c 1b5d      SRRI	@$2, $29
 0c0d 1c04      MRR	$0, $4
@@ -2467,7 +2469,7 @@ Main()
 0c2a 2efd      SRS	@DMBL, $30
 0c2b 26fc      LRS	$30, @DMBH
 0c2c 02a0 8000 ANDCF	$30, #0x8000
-0c2e 029c 0c2b JZR	0x0c2b         // wait for dsp mailbox
+0c2e 029c 0c2b JZR	0x0c2b        		// wait for dsp mailbox
 0c30 00d0 0e17 LR	$16, @0x0e17
 0c32 00de 0e18 LR	$30, @0x0e18
 0c34 00dc 0e19 LR	$28, @0x0e19
@@ -2478,15 +2480,24 @@ Main()
 0c3a 02ff      RTI	
 
 // exception vector 0006
+// somd kind of "stop this PB"
+// pseudo c:
+{
+	if (!pCurrPC->PBAudioAddr->looping)
+	{
+		PB->running = 0;
+	}
+	RTI
+}
 0c3b 8e00      S40	
 0c3c 1dbc      MRR	$13, $28
 0c3d 1dbe      MRR	$13, $30
 0c3e 8100      CLR	$30
-0c3f 00de 0bb7 LR	$30, @0x0bb7      	// 0BB7 should point to "looping" of the current PB... 
+0c3f 00de 0bb7 LR	$30, @0x0bb7      	// PB->PBAudioAddr->looping
 0c41 0601      CMPIS	$32, #0x01
 0c42 0295 0c47 JEQ	0x0c47
 0c44 0e00      LRIS	$30, #0x00
-0c45 00fe 0b87 SR	@0x0b87, $30		// 0B87 should point to "running" of the current PB...  
+0c45 00fe 0b87 SR	@0x0b87, $30		// PB->running  
 0c47 1fcd      MRR	$30, $13
 0c48 1f8d      MRR	$28, $13
 0c49 02ff      RTI	
@@ -2500,40 +2511,44 @@ Main()
 0c4f 02ff      RTI	
 
 // exception vector 000a
-// this is what loads loop_yn1 etc. an 000a exception should be caused when decoding reaches the end.
+// this is what loads loop_yn1 etc. 
+// An level 5 exception should be caused when the hw ADPCM Decoder reaches the end and loops.
 0c50 8e00      S40	
 0c51 1dbc      MRR	$13, $28
 0c52 1dbe      MRR	$13, $30
 0c53 8100      CLR	$30
-0c54 00de 0bb7 LR	$30, @0x0bb7		// 0BB7 should point to "looping" of the current PB... 
+0c54 00de 0bb7 LR	$30, @0x0bb7		// PB->PBAudioAddr->looping
 0c56 0601      CMPIS	$32, #0x01
 0c57 0295 0c5f JEQ	0x0c5f
 0c59 0e00      LRIS	$30, #0x00
-0c5a 00fe 0b87 SR	@0x0b87, $30        // 0B87 is "running" of the current PB...
+0c5a 00fe 0b87 SR	@0x0b87, $30        // PB->running
 0c5c 1fcd      MRR	$30, $13
 0c5d 1f8d      MRR	$28, $13
 0c5e 02ff      RTI	
+
 0c5f 8100      CLR	$30
-0c60 00de 0b88 LR	$30, @0x0b88		// 0B88 should point to "is_stream" of the current PB...  
+0c60 00de 0b88 LR	$30, @0x0b88		// PB->is_stream
 0c62 0601      CMPIS	$32, #0x01
 0c63 0295 0c71 JEQ	0x0c71
-0c65 00de 0bda LR	$30, @0x0bda		// out of normal PB space... 
+0c65 00de 0bda LR	$30, @0x0bda		// PB->PBADPCMInfo->pred_scale  
 0c67 2eda      SRS	@pred_scale, $30
-0c68 00de 0bdb LR	$30, @0x0bdb
+0c68 00de 0bdb LR	$30, @0x0bdb		// PB->PBADPCMInfo->yn1  
 0c6a 2edb      SRS	@yn1, $30
-0c6b 00de 0bdc LR	$30, @0x0bdc
+0c6b 00de 0bdc LR	$30, @0x0bdc		// PB->PBADPCMInfo->yn2 
 0c6d 2edc      SRS	@yn2, $30
 0c6e 1fcd      MRR	$30, $13
 0c6f 1f8d      MRR	$28, $13
 0c70 02ff      RTI	
-0c71 00de 0bda LR	$30, @0x0bda        // nope, we wasn't a stream. don't do that kind of stuff. just read and write for no reason?
-0c73 2eda      SRS	@pred_scale, $30
-0c74 26db      LRS	$30, @yn1
+
+// this is done for streaming
+0c71 00de 0bda LR	$30, @0x0bda  		// PB->PBADPCMInfo->pred_scale  
+0c73 2eda      SRS	@pred_scale, $30	
+0c74 26db      LRS	$30, @yn1			
 0c75 2edb      SRS	@yn1, $30
 0c76 26dc      LRS	$30, @yn2
 0c77 2edc      SRS	@yn2, $30
 0c78 8100      CLR	$30
-0c79 00dc 0bdd LR	$28, @0x0bdd		// out of normal PB space... 
+0c79 00dc 0bdd LR	$28, @0x0bdd		// reads from the first PB->padding byte :)
 0c7b 7600      INC	$30
 0c7c 00fc 0bdd SR	@0x0bdd, $28
 0c7e 8100      CLR	$30
