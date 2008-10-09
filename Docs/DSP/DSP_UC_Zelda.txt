@@ -130,7 +130,7 @@
 0093 029f 0043 JMP	0x0043					// dummy handler -> direct return
 
 
-// Opcode_01()
+// Opcode_01() - DsetupTable()
 0095 0080 0380 LRI	$R00, #0x0380
 0097 0e04      LRIS	$AC0.M, #0x04
 0098 02bf 0067 CALL	0x0067					// ReadWholeMessage($R00)
@@ -147,7 +147,7 @@
 00ae 02bf 0bec CALL	0x0bec
 00b0 029f 0043 JMP	0x0043
 
-// Opcode_0D()
+// Opcode_0D() - DsetDolbyDelay
 00b2 0080 0374 LRI	$R00, #0x0374
 00b4 0e01      LRIS	$AC0.M, #0x01
 00b5 00fe 0377 SR	@0x0377, $AC0.M
@@ -448,7 +448,7 @@
 0240 0293 0239 JX3	0x0239
 0242 02df      RET	
 
-// Opcode_02()
+// Opcode_02() - SyncFrame
 0243 0080 0388 LRI	$R00, #0x0388
 0245 0081 0067 LRI	$R01, #0x0067
 0247 0e02      LRIS	$AC0.M, #0x02
@@ -522,6 +522,7 @@
 02b8 0621      CMPIS	$ACC0, #0x21
 02b9 0295 0aa2 JEQ	0x0aa2
 02bb 029f 087c JMP	0x087c
+
 02bd 00d8 0402 LR	$AX0.L, @0x0402
 02bf 8100      CLR	$AC0.M
 02c0 8900      CLR	$AC1.M
