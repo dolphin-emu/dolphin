@@ -34,9 +34,14 @@
 // Handles OpenGL and the window
 
 
-// screen offset
-int nBackbufferWidth, nBackbufferHeight;
-int nXoff, nYoff;
+// ---------------------------------------------------------------------------------------
+// externals
+// -------------
+int gleft, gright, gtop, gbottom;
+int nBackbufferWidth, nBackbufferHeight; // screen width
+int nXoff, nYoff; // screen offset
+float AR; // aspect ratio
+
 
 #ifndef _WIN32
 GLWindow GLWin;
@@ -112,6 +117,9 @@ void UpdateFPSDisplay(const char *text)
 }
 
 
+// =======================================================================================
+// Create window. Called from main.cpp
+// ----------------
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight) 
 {
     int _twidth,  _theight;
@@ -143,29 +151,41 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     EmuWindow::SetSize(_twidth, _theight);
 #endif
 
+	// ---------------------------------------------------------------------------------------
+	// Control window size and picture scaling
+	// ------------------
+	// nBackbufferWidth and nBackbufferHeight = Screen resolution from ini, or 640x480
+	// See OpenGL_Update() for documentation of the other variables
+	// ------------------
     nBackbufferWidth = _twidth;
     nBackbufferHeight = _theight;
 
-    float FactorW  = 640.0f / (float)nBackbufferWidth;
-    float FactorH  = 480.0f / (float)nBackbufferHeight;
+	float FactorW  = 640.0f / (float)nBackbufferWidth;
+	float FactorH  = 480.0f / (float)nBackbufferHeight;
+	float Max = (FactorW < FactorH) ? FactorH : FactorW;
 
-    float Max = (FactorW < FactorH) ? FactorH : FactorW;
-    if(g_Config.bStretchToFit)
-    {
-        MValueX = 1.0f / FactorW;
-        MValueY = 1.0f / FactorH;
-        nXoff = 0;
-        nYoff = 0;
-    }
-    else
-    {
-        MValueX = 1.0f / Max;
-        MValueY = 1.0f / Max;
-        nXoff = (nBackbufferWidth - (640 * MValueX)) / 2;
-        nYoff = (nBackbufferHeight - (480 * MValueY)) / 2;
-    }
+	if(g_Config.bStretchToFit)
+	{
+		MValueX = 1.0f / FactorW;
+		MValueY = 1.0f / FactorH;
+		nXoff = 0;
+		nYoff = 0;
+	}
+	else
+	{
+		MValueX = 1.0f / Max;
+		MValueY = 1.0f / Max;
+		nXoff = (nBackbufferWidth - (640 * MValueX)) / 2;
+		nYoff = (nBackbufferHeight - (480 * MValueY)) / 2;
+	}
+
     g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
     g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
+
+	//char buff[100];
+	//sprintf(buff, "%i %i %d %d %d", nBackbufferWidth, nBackbufferHeight, Max, MValueX, MValueY);
+	//MessageBox(0, buff, "", 0);
+
 
 #if USE_SDL
 	//init sdl video
@@ -482,6 +502,10 @@ bool OpenGL_MakeCurrent()
 	return true;
 }
 
+
+// =======================================================================================
+// Update window width, size and etc. Called from Render.cpp
+// ----------------
 void OpenGL_Update()
 {
 #if USE_SDL
@@ -495,6 +519,11 @@ void OpenGL_Update()
     RECT rcWindow;
     GetWindowRect(EmuWindow::GetParentWnd(), &rcWindow);
 
+	// ---------------------------------------------------------------------------------------
+	// Get the new window width and height
+	// ------------------
+	// See below for documentation
+	// ------------------
     int width = rcWindow.right - rcWindow.left;
     int height = rcWindow.bottom - rcWindow.top;
 
@@ -567,15 +596,28 @@ void OpenGL_Update()
 	return;
 #endif
 
+	// ---------------------------------------------------------------------------------------
+	// Get the new window width and height
+	// ------------------
+	// nBackbufferWidth and nBackbufferHeight = now the actual screen size
+	// Max = the highest of w and h
+	// MValueX and MValueY = used for the picture resolution-change rescaling
+	// nXoff and nYoff = controls the picture's position inside the Dolphin window
+	// ------------------
+	/* MValueX and MValueY will be used in
+		TextureMngr and VertexShaderManager: Rescale textures on resolution changes
+		BPStructs.cpp: Control glScissor() 
+		*/
+	// ------------------
     float FactorW  = 640.0f / (float)nBackbufferWidth;
     float FactorH  = 480.0f / (float)nBackbufferHeight;
-
     float Max = (FactorW < FactorH) ? FactorH : FactorW;
+	AR = (float)nBackbufferWidth / (float)nBackbufferHeight;
 
     if(g_Config.bStretchToFit)
     {
-        MValueX = 1.0f / FactorW;
-        MValueY = 1.0f / FactorH;
+		MValueX = 1;
+		MValueY = 1;
         nXoff = 0;
         nYoff = 0;
     }
@@ -586,9 +628,17 @@ void OpenGL_Update()
         nXoff = (nBackbufferWidth - (640 * MValueX)) / 2;
         nYoff = (nBackbufferHeight - (480 * MValueY)) / 2;
     }
+	
+	// tell the debugger
+	gleft = rcWindow.left; gright = rcWindow.right;
+	gtop = rcWindow.top; gbottom = rcWindow.bottom;
 }
 
 
+
+// =======================================================================================
+// Close plugin
+// ----------------
 void OpenGL_Shutdown()
 {
 #if USE_SDL

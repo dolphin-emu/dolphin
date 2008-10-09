@@ -36,11 +36,37 @@
 #include "VertexLoader.h"
 #include "PixelShaderManager.h"
 #include "VertexShaderManager.h"
-
 #include "VideoState.h"
+#include "Debugger/Debugger.h" // for the CDebugger class
 
 SVideoInitialize g_VideoInitialize;
 #define VERSION_STRING "0.1"
+
+
+// =======================================================================================
+// Create debugging window. We can't use Show() here as usual because then DLL_PROCESS_DETACH will
+// be called immediately. And if we use ShowModal() we block the main video window from appearing.
+// So I've made a separate function called DoDllDebugger() that creates the window.
+// -------------------
+CDebugger* m_frame;
+void DllDebugger(HWND _hParent)
+{
+	if(m_frame) // if we have created it, let us show it again
+	{
+		m_frame->Show();
+	}
+	else
+	{
+		wxMessageBox(_T("The debugging window will open after you start a game."));
+	}
+}
+
+void DoDllDebugger()
+{
+	m_frame = new CDebugger(NULL);
+	m_frame->Show();
+}
+// ===================
 
 
 void GetDllInfo (PLUGIN_INFO* _PluginInfo) 
@@ -165,8 +191,8 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
     _pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
 
 	Renderer::AddMessage("Dolphin OpenGL Video Plugin v" VERSION_STRING ,5000);
-
 }
+
 
 void Video_DoState(unsigned char **ptr, int mode) {
 
@@ -178,6 +204,9 @@ void Video_DoState(unsigned char **ptr, int mode) {
 	//PanicAlert("Saving/Loading state from OpenGL");
 }
 
+// =======================================================================================
+// This is run after Video_Initialize() from the Core
+// --------------
 void Video_Prepare(void)
 {
     OpenGL_MakeCurrent();
@@ -197,6 +226,7 @@ void Video_Prepare(void)
     PixelShaderMngr::Init();
     GL_REPORT_ERRORD();
 }
+// ==============
 
 
 void Video_Shutdown(void) 
@@ -224,7 +254,7 @@ void Video_EnterLoop()
 
 void DebugLog(const char* _fmt, ...)
 {
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST)
     
     char* Msg = (char*)alloca(strlen(_fmt)+512);
     va_list ap;

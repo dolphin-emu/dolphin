@@ -51,9 +51,12 @@ void Config::Load()
     std::string temp;
     IniFile iniFile;
     iniFile.Load("gfx_opengl.ini");
+
     iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
 	if (iAdapter == -1) 
         iAdapter = 0;
+
+	// get resolution
     iniFile.Get("Hardware", "WindowedRes", &temp, 0);
 	if(temp.empty())
 		temp = "640x480";
@@ -62,10 +65,11 @@ void Config::Load()
 	if(temp.empty())
 		temp = "640x480";
     strcpy(iFSResolution, temp.c_str());
-    iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0);
+
+    iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
 	iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, 0);
 
-    iniFile.Get("Settings", "ShowFPS", &bShowFPS, false);
+    iniFile.Get("Settings", "ShowFPS", &bShowFPS, false); // Settings
 	iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
     iniFile.Get("Settings", "Postprocess", &iPostprocessEffect, 0);
     iniFile.Get("Settings", "DLOptimize", &iCompileDLsLevel, 0);
@@ -90,6 +94,7 @@ void Config::Load()
     iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
     iniFile.Get("Enhancements", "ForceMaxAniso", &bForceMaxAniso, 0);
 	iniFile.Get("Enhancements", "StretchToFit", &bStretchToFit, false);
+	iniFile.Get("Enhancements", "KeepAR", &bKeepAR, false);
 }
 
 void Config::Save()
@@ -100,7 +105,7 @@ void Config::Save()
     iniFile.Set("Hardware", "WindowedRes", iWindowedRes);
     iniFile.Set("Hardware", "FullscreenRes", iFSResolution);
     iniFile.Set("Hardware", "Fullscreen", bFullscreen);
-	iniFile.Set("Hardware", "RenderToMainframe", renderToMainframe);
+	iniFile.Set("Hardware", "RenderToMainframe", renderToMainframe);	
 
     iniFile.Set("Settings", "ShowFPS", bShowFPS);
 	iniFile.Set("Settings", "OverlayStats", bOverlayStats);
@@ -117,6 +122,7 @@ void Config::Save()
     iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
     iniFile.Set("Enhancements", "ForceMaxAniso", bForceMaxAniso);
 	iniFile.Set("Enhancements", "StretchToFit", bStretchToFit);
+	iniFile.Set("Enhancements", "KeepAR", bKeepAR);
 
     iniFile.Save("gfx_opengl.ini");
 }
@@ -198,6 +204,7 @@ bool SaveData(const char* filename, const char* data)
     return true;
 }
 
+
 #ifdef _WIN32
 // The one for Linux is in Linux/Linux.cpp
 static HANDLE hConsole = NULL;
@@ -209,15 +216,19 @@ void OpenConsole() {
 	if (hConsole) return;
 	AllocConsole();
 	SetConsoleTitle("Opengl Plugin Output");
-	csize.X = 80;
+
+	// set width and height
+	csize.X = 155; // this fits on 1280 pixels TODO: make it adjustable from the wx debugging window
 	csize.Y = 1024;
 	SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), csize);
 
+	// make the internal buffer match the width we set
 	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbiInfo);
 	srect = csbiInfo.srWindow;
-	srect.Right = srect.Left + 79;
+	srect.Right = srect.Left + csize.X - 1; // match
 	srect.Bottom = srect.Top + 44;
 	SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), TRUE, &srect);
+
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 }
 
@@ -225,13 +236,14 @@ void CloseConsole() {
 	if (hConsole == NULL) return;
 	FreeConsole(); hConsole = NULL;
 }
-
 #endif
+
 
 
 static FILE* pfLog = NULL;
 void __Log(const char *fmt, ...)
 {
+
     char* Msg = (char*)alloca(strlen(fmt)+512);
     va_list ap;
 
@@ -251,10 +263,12 @@ void __Log(const char *fmt, ...)
 #else
 	//printf("%s", Msg);
 #endif
+
 }
 
 void __Log(int type, const char *fmt, ...)
 {
+
     char* Msg = (char*)alloca(strlen(fmt)+512);
     va_list ap;
 
@@ -268,4 +282,5 @@ void __Log(int type, const char *fmt, ...)
     DWORD tmp;
     WriteConsole(hConsole, Msg, (DWORD)strlen(Msg), &tmp, 0);
 #endif
+
 }

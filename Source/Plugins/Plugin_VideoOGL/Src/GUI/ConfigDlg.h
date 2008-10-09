@@ -45,17 +45,22 @@ class ConfigDialog : public wxDialog
 		ConfigDialog(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("OpenGL Plugin Configuration"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = ConfigDialog_STYLE);
 		virtual ~ConfigDialog();
 		void OKClick(wxCommandEvent& event);
-		void FullScreenCheck(wxCommandEvent& event);
-		void RenderMainCheck(wxCommandEvent& event);
+
+		void FullScreenCheck(wxCommandEvent& event); // video
+		void RenderMainCheck(wxCommandEvent& event);				
 		void AddFSReso(char *reso);
 		void FSCB(wxCommandEvent& event);
 		void AddWindowReso(char *reso);
 		void WMCB(wxCommandEvent& event);
 		void AddAAMode(int mode);
 		void AACB(wxCommandEvent& event);
-		void ForceFilteringCheck(wxCommandEvent& event);
+
+		void ForceFilteringCheck(wxCommandEvent& event); // enhancements
 		void ForceAnisotropyCheck(wxCommandEvent& event);
-		void WireframeCheck(wxCommandEvent& event);
+		void StretchToFitCheck(wxCommandEvent& event);
+		void KeepARCheck(wxCommandEvent& event);
+
+		void WireframeCheck(wxCommandEvent& event); // advanced
 		void ShowFPSCheck(wxCommandEvent& event);
 		void OverlayCheck(wxCommandEvent& event);
 		void ShowShaderErrorsCheck(wxCommandEvent& event);
@@ -78,11 +83,13 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_ShaderErrors;
 		wxCheckBox *m_Wireframe;
 		wxCheckBox *m_ForceAnisotropy;
+		wxCheckBox *m_StretchToFit;
+		wxCheckBox *m_KeepAR;
 		wxCheckBox *m_ForceFiltering;
 		wxComboBox *m_AliasModeCB;
 		wxComboBox *m_WindowResolutionCB;
 		wxComboBox *m_FullscreenCB;
-		wxCheckBox *m_RenderToMainWindow;
+		wxCheckBox *m_RenderToMainWindow;		
 		wxCheckBox *m_Fullscreen;
 		wxPanel *m_PageAdvanced;
 		wxPanel *m_PageEnhancements;
@@ -105,6 +112,8 @@ class ConfigDialog : public wxDialog
 			ID_DUMPTEXTURES,
 			ID_WIREFRAME,
 			ID_FORCEANISOTROPY,
+			ID_STRETCHTOFIT,
+			ID_KEEPAR,
 			ID_FORCEFILTERING,
 			ID_ALIASMODECB,
 			ID_AATEXT,

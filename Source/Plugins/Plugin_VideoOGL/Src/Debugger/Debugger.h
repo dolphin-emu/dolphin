@@ -75,15 +75,12 @@ class CDebugger : public wxDialog
 		void ChangeFrequency(wxCommandEvent& event);
 		void DoChangeFrequency();
 		void ChangePreset(wxCommandEvent& event);
-		void DoChangePreset();
+		void DoChangePreset();	
 
-		void SSBM(wxCommandEvent& event);
-		void SSBMremedy1(wxCommandEvent& event);
-		void SSBMremedy2(wxCommandEvent& event);
-		void BSDON(wxCommandEvent& event);		
-		void Sequenced(wxCommandEvent& event);		
-		void Reset(wxCommandEvent& event);	
-		void OnlyLooping(wxCommandEvent& event);		
+		void Ap(wxCommandEvent& event);
+		void Am(wxCommandEvent& event);
+		void Bp(wxCommandEvent& event);
+		void Bm(wxCommandEvent& event);
 
 		CPBView* m_GPRListView;
 		
@@ -109,6 +106,7 @@ class CDebugger : public wxDialog
 			IDC_CHECK6,
 			IDC_CHECK7,
 			IDC_CHECK8,
+			IDC_CHECK9,
 			IDC_RADIO0,
 			IDC_RADIO1,
 			IDC_RADIO2,
@@ -116,13 +114,16 @@ class CDebugger : public wxDialog
 			IDG_LABEL1,
 			IDG_LABEL2,
 			ID_UPD,
-			ID_SELC,
-			ID_PRESETS,
+			ID_AP,
+			ID_AM,
+			ID_BP,
+			ID_BM,
 			ID_GPR,
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
 
 		};
-
+		
+		void OnShow(wxShowEvent& event);
 		void OnClose(wxCloseEvent& event);
 		void CreateGUIControls();		
 };

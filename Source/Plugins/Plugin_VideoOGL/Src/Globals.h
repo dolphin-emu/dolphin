@@ -89,7 +89,7 @@ extern float MValueX, MValueY;
 
 #define ERROR_LOG __Log
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST)
 #define INFO_LOG if( g_Config.iLog & 1 ) __Log
 #define PRIM_LOG if( g_Config.iLog & 2 ) __Log
 #define DEBUG_LOG __Log
@@ -135,6 +135,7 @@ struct Config
     bool bForceFiltering;
     bool bForceMaxAniso;
     bool bStretchToFit;
+	bool bKeepAR;
     bool bShowFPS;
 
     bool bTexFmtOverlayEnable;

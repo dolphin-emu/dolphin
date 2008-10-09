@@ -897,6 +897,46 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Debugger"
+			>
+			<File
+				RelativePath=".\Src\Debugger\Debugger.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Debugger\Debugger.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Debugger\PBView.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Debugger\PBView.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Logging"
+			>
+			<File
+				RelativePath=".\Src\Logging\Console.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Logging\Console.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Logging\Logging.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Logging\Logging.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\GLInit.cpp"
 			>

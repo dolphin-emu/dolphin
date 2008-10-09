@@ -24,8 +24,7 @@ DynamicLibrary CPlugin::m_hInstLib;
 void(__cdecl * CPlugin::m_GetDllInfo)   (PLUGIN_INFO * _PluginInfo) = 0;
 //void(__cdecl * CPlugin::m_DllAbout)     (HWND _hParent) = 0;
 void(__cdecl * CPlugin::m_DllConfig)    (HWND _hParent) = 0;
-void(__cdecl * CPlugin::m_DllDebugger)    (HWND _hParent) = 0; // phew, is this the last one? how many
-// of these can you have?
+void(__cdecl * CPlugin::m_DllDebugger)    (HWND _hParent) = 0;
 
 void
 CPlugin::Release(void)

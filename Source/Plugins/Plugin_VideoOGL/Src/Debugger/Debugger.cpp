@@ -19,6 +19,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
+#include "Globals.h"
 #include "Debugger.h"
 #include "PBView.h"
 #include "IniFile.h"
@@ -28,30 +29,24 @@
 extern int gSaveFile; // make this an int to allow multiple save file options
 extern int gUpdFreq;
 extern int gPreset;
-extern bool gReset;
-extern bool gSSBM;
-extern bool gSSBMremedy1;
-extern bool gSSBMremedy2;
-extern bool gSequenced;
-extern bool gOnlyLooping;
+int A, B;
+
 
 // =======================================================================================
 // Declare events
-BEGIN_EVENT_TABLE(CDebugger,wxDialog)	
+BEGIN_EVENT_TABLE(CDebugger,wxDialog)
+	EVT_SHOW(CDebugger::OnShow)
 	EVT_CLOSE(CDebugger::OnClose)
 	EVT_BUTTON(ID_UPD,CDebugger::OnUpdate)
 	EVT_CHECKBOX(IDC_CHECK0,CDebugger::SaveFile)
 	EVT_CHECKBOX(IDC_CHECK2,CDebugger::ShowHideConsole)
-
-	EVT_CHECKBOX(IDC_CHECK3,CDebugger::SSBM)
-	EVT_CHECKBOX(IDC_CHECK4,CDebugger::SSBMremedy1)
-	EVT_CHECKBOX(IDC_CHECK5,CDebugger::SSBMremedy2)
-	EVT_CHECKBOX(IDC_CHECK8,CDebugger::Sequenced)
-	EVT_CHECKBOX(IDC_CHECK6,CDebugger::Reset)
-	EVT_CHECKBOX(IDC_CHECK7,CDebugger::OnlyLooping)
-
 	EVT_RADIOBOX(IDC_RADIO1,CDebugger::ChangeFrequency)
 	EVT_RADIOBOX(IDC_RADIO2,CDebugger::ChangePreset)
+
+	EVT_BUTTON(ID_AP,CDebugger::Ap)
+	EVT_BUTTON(ID_AM,CDebugger::Am)
+	EVT_BUTTON(ID_BP,CDebugger::Bp)
+	EVT_BUTTON(ID_BM,CDebugger::Bm)
 END_EVENT_TABLE()
 // =======================================================================================
 
@@ -80,39 +75,47 @@ CDebugger::~CDebugger()
 
 void CDebugger::Save(IniFile& _IniFile) const
 {
-	_IniFile.Set("SoundWindow", "x", GetPosition().x);
-	_IniFile.Set("SoundWindow", "y", GetPosition().y);
-	_IniFile.Set("SoundWindow", "w", GetSize().GetWidth());
-	_IniFile.Set("SoundWindow", "h", GetSize().GetHeight());
-	_IniFile.Set("SoundWindow", "Console", m_Check[2]->IsChecked()); // save settings
-	_IniFile.Set("SoundWindow", "UpdateFrequency", m_RadioBox[1]->GetSelection());
+	// TODO1: make this work when we close the entire program to, currently on total close we get
+	// weird values, perhaps because of some conflict with the rendering window
+	// TODO2: get the screen resolution and make limits from that
+	if(GetPosition().x < 1000 && GetPosition().y < 1000
+		&& GetSize().GetWidth() < 1000 && GetSize().GetHeight() < 1000
+		)
+	{
+		_IniFile.Set("VideoWindow", "x", GetPosition().x);
+		_IniFile.Set("VideoWindow", "y", GetPosition().y);
+		_IniFile.Set("VideoWindow", "w", GetSize().GetWidth());
+		_IniFile.Set("VideoWindow", "h", GetSize().GetHeight());
+	}		
+	_IniFile.Set("VideoWindow", "Console", m_Check[2]->IsChecked()); // save settings
+	_IniFile.Set("VideoWindow", "UpdateFrequency", m_RadioBox[1]->GetSelection());
 }
 
 
 void CDebugger::Load(IniFile& _IniFile)
 {
 	int x,y,w,h;
-	_IniFile.Get("SoundWindow", "x", &x, GetPosition().x);
-	_IniFile.Get("SoundWindow", "y", &y, GetPosition().y);
-	_IniFile.Get("SoundWindow", "w", &w, GetSize().GetWidth());
-	_IniFile.Get("SoundWindow", "h", &h, GetSize().GetHeight());
+	_IniFile.Get("VideoWindow", "x", &x, GetPosition().x);
+	_IniFile.Get("VideoWindow", "y", &y, GetPosition().y);
+	_IniFile.Get("VideoWindow", "w", &w, GetSize().GetWidth());
+	_IniFile.Get("VideoWindow", "h", &h, GetSize().GetHeight());
 	SetSize(x, y, w, h);
 
 	// saved settings
 	bool Console;
-	_IniFile.Get("SoundWindow", "Console", &Console, m_Check[2]->IsChecked());
+	_IniFile.Get("VideoWindow", "Console", &Console, m_Check[2]->IsChecked());
 	m_Check[2]->SetValue(Console);
 	DoShowHideConsole();
 
 	int UpdateFrequency;
-	_IniFile.Get("SoundWindow", "UpdateFrequency", &UpdateFrequency, m_RadioBox[1]->GetSelection());
+	_IniFile.Get("VideoWindow", "UpdateFrequency", &UpdateFrequency, m_RadioBox[1]->GetSelection());
 	m_RadioBox[1]->SetSelection(UpdateFrequency);
 	DoChangeFrequency();
 }
 
 void CDebugger::CreateGUIControls()
 {
-SetTitle(wxT("Sound Debugging"));
+	SetTitle(wxT("OpenGL Debugging"));
 
 	// basic settings
 	SetIcon(wxNullIcon);
@@ -126,10 +129,26 @@ SetTitle(wxT("Sound Debugging"));
 	// declarations
 	wxBoxSizer* sMain;
 	wxButton* m_Upd;
-	wxButton* m_SelC;
-	wxButton* m_Presets;
+	wxButton* m_Ap; wxButton* m_Am;
+	wxButton* m_Bp; wxButton* m_Bm;
 
 	wxStaticBoxSizer* sLeft;
+
+
+	// buttons -----------------------------------------------------
+	m_Upd = new wxButton(this, ID_UPD, wxT("Update"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Ap = new wxButton(this, ID_AP, wxT("A +"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	//m_SelC->Enable(false);
+	m_Am = new wxButton(this, ID_AM, wxT("A -"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	//m_Presets->Enable(false);
+	m_Bp = new wxButton(this, ID_BP, wxT("B +"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Bm = new wxButton(this, ID_BM, wxT("B -"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
 
 	// checkboxes and labels -----------------------------------------------------
 	m_Label[0] = new wxStaticBox(this, IDG_LABEL1, wxT("Options"),
@@ -139,11 +158,12 @@ SetTitle(wxT("Sound Debugging"));
 	// checkboxes
 	m_Check[0] = new wxCheckBox(this, IDC_CHECK0, wxT("Save to file"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[1] = new wxCheckBox(this, IDC_CHECK1, wxT("Show updated"),
+	m_Check[1] = new wxCheckBox(this, IDC_CHECK1, wxT("A +"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[1]->Enable(false);
-	m_Check[7] = new wxCheckBox(this, IDC_CHECK7, wxT("Only looping"),
+		m_Check[1]->Enable(false);
+	m_Check[7] = new wxCheckBox(this, IDC_CHECK7, wxT("A -"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_Check[7]->Enable(false);
 	m_Check[2] = new wxCheckBox(this, IDC_CHECK2, wxT("Show console"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	
@@ -159,27 +179,12 @@ SetTitle(wxT("Sound Debugging"));
 	wxStaticBoxSizer * m_checkSizer2 = new wxStaticBoxSizer (m_Label[1], wxVERTICAL);
 
 	// checkboxes
-	m_Check[3] = new wxCheckBox(this, IDC_CHECK3, wxT("SSBM fix"),
+	m_Check[3] = new wxCheckBox(this, IDC_CHECK3, wxT("Setting"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_Check[3]->SetValue(gSSBM);
-	m_Check[4] = new wxCheckBox(this, IDC_CHECK4, wxT("SSBM remedy 1"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_Check[4]->SetValue(gSSBMremedy1);
-	m_Check[5] = new wxCheckBox(this, IDC_CHECK5, wxT("SSBM remedy 2"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_Check[5]->SetValue(gSSBMremedy2);
-	m_Check[8] = new wxCheckBox(this, IDC_CHECK8, wxT("Sequenced"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_Check[8]->SetValue(gSequenced);
-	m_Check[6] = new wxCheckBox(this, IDC_CHECK6, wxT("Reset all"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_Check[6]->SetValue(gReset);
+		m_Check[3]->SetValue(false);
+		m_Check[3]->Enable(false);
 	
 	m_checkSizer2->Add(m_Check[3], 0, 0, 5);
-	m_checkSizer2->Add(m_Check[4], 0, 0, 5);
-	m_checkSizer2->Add(m_Check[5], 0, 0, 5);
-	m_checkSizer2->Add(m_Check[8], 0, 0, 5);
-	m_checkSizer2->Add(m_Check[6], 0, 0, 5);
 	// ------------------------
 
 
@@ -192,26 +197,17 @@ SetTitle(wxT("Sound Debugging"));
 		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[0], m_radioBoxChoices0, 1, wxRA_SPECIFY_COLS);
 	m_RadioBox[0]->Enable(false);
 
-	wxString m_radioBoxChoices1[] = { wxT("5 times/s"), wxT("15 times/s"), wxT("30 times/s") };
+	wxString m_radioBoxChoices1[] = { wxT("Never"), wxT("5 times/s"), wxT("15 times/s"), wxT("30 times/s") };
 	m_radioBoxNChoices[1] = sizeof( m_radioBoxChoices1 ) / sizeof( wxString );
 	m_RadioBox[1] = new wxRadioBox( this, IDC_RADIO1, wxT("Update freq."),
 		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[1], m_radioBoxChoices1, 1, wxRA_SPECIFY_COLS);
 
-	wxString m_radioBoxChoices2[] = { wxT("Preset 1"), wxT("Updates"), wxT("Looping"), wxT("Mixer") };
+	wxString m_radioBoxChoices2[] = { wxT("Win stretch") };
 	m_radioBoxNChoices[2] = sizeof( m_radioBoxChoices2 ) / sizeof( wxString );
 	m_RadioBox[2] = new wxRadioBox( this, IDC_RADIO2, wxT("Presets"),
 		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[2], m_radioBoxChoices2, 1, wxRA_SPECIFY_COLS);
 	// ------------------------
 
-	// buttons
-	m_Upd = new wxButton(this, ID_UPD, wxT("Update"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_SelC = new wxButton(this, ID_SELC, wxT("Select Columns"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_SelC->Enable(false);
-	m_Presets = new wxButton(this, ID_PRESETS, wxT("Presets"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Presets->Enable(false);
 
 	// right buttons
 	wxBoxSizer* sButtons2;
@@ -230,8 +226,10 @@ SetTitle(wxT("Sound Debugging"));
 	sButtons->AddStretchSpacer(1);
 
 	sButtons->Add(m_Upd, 0, 0, 5);
-	sButtons->Add(m_SelC, 0, 0, 5);
-	sButtons->Add(m_Presets, 0, 0, 5);
+	sButtons->Add(m_Ap, 0, 0, 5);
+	sButtons->Add(m_Am, 0, 0, 5);
+	sButtons->Add(m_Bp, 0, 0, 5);
+	sButtons->Add(m_Bm, 0, 0, 5);
 
 	sButtons->AddStretchSpacer(1);
 
@@ -261,70 +259,39 @@ SetTitle(wxT("Sound Debugging"));
 	this->SetSizer(sMain);
 	sMain->SetSizeHints(this);
 
-	NotifyUpdate();
+	//NotifyUpdate();
+	Freeze(); // unfreeze this if you want to use it
+}
+
+void CDebugger::OnShow(wxShowEvent& /*event*/)
+{	
+	// bring the console back to
+	if(m_Check[2]->IsChecked())
+	{
+		OpenConsole();
+		MoveWindow(GetConsoleHwnd(), 0,400, 1280,500, true); // move window, TODO: make this
+		// adjustable from the debugging window
+	}
 }
 
 void CDebugger::OnClose(wxCloseEvent& /*event*/)
-{	
+{
 	// save the window position when we hide the window to
 	IniFile file;
 	file.Load("Debugger.ini");
 	this->Save(file);
 	file.Save("Debugger.ini");
 
-	EndModal(0);
+	EndModal(0); // it seems like this works for Show() to, not just ShowModal();
 
-	// I turned this off for now because of the ShowModal() problem and because I wanted
-	// to look at the logs at the same time as the console window.
-	//CloseConsole();
+	// The console goes with the wx window
+	CloseConsole();
 }
 
 void CDebugger::OnUpdate(wxCommandEvent& /*event*/)
 {
 	this->NotifyUpdate();
 }
-
-
-// =======================================================================================
-// Settings
-// --------------
-void CDebugger::SSBM(wxCommandEvent& event)
-{
-	if(m_Check[3]->IsChecked() == 1)
-		{gSSBM = true;}
-	else
-		{gSSBM = false;}
-}
-
-void CDebugger::SSBMremedy1(wxCommandEvent& event)
-{
-	if(m_Check[4]->IsChecked() == 1)
-		{gSSBMremedy1 = true;}
-	else
-		{gSSBMremedy1 = false;}
-}
-void CDebugger::SSBMremedy2(wxCommandEvent& event)
-{
-	if(m_Check[5]->IsChecked() == 1)
-		{gSSBMremedy2 = true;}
-	else
-		{gSSBMremedy2 = false;}
-}
-void CDebugger::Sequenced(wxCommandEvent& event)
-{
-	if(m_Check[8]->IsChecked() == 1)
-		{gSequenced = true;}
-	else
-		{gSequenced = false;}
-}
-void CDebugger::Reset(wxCommandEvent& event)
-{
-	if(m_Check[6]->IsChecked() == 1)
-		{gReset = true;}
-	else
-		{gReset = false;}
-}
-// =======================================================================================
 
 
 // =======================================================================================
@@ -358,6 +325,30 @@ void CDebugger::DoChangePreset()
 
 
 // =======================================================================================
+// Control variables
+// --------------
+void CDebugger::Ap(wxCommandEvent& event)
+{
+	A += 50;
+	//MessageBox(0, "", "", 0);
+	__Log("%i", A);
+}
+void CDebugger::Am(wxCommandEvent& event)
+{
+	A -= 50;
+}
+void CDebugger::Bp(wxCommandEvent& event)
+{
+	B += 50;
+}
+void CDebugger::Bm(wxCommandEvent& event)
+{
+	B -= 50;
+}
+// ==============
+
+
+// =======================================================================================
 // Change update frequency
 // --------------
 void CDebugger::ChangeFrequency(wxCommandEvent& event)
@@ -369,36 +360,23 @@ void CDebugger::DoChangeFrequency()
 {
 	if(m_RadioBox[1]->GetSelection() == 0)
 	{
-		gUpdFreq = 5;
+		gUpdFreq = 0;
 	}
 	else if(m_RadioBox[1]->GetSelection() == 1)
 	{
+		gUpdFreq = 5;
+	}
+	else if(m_RadioBox[1]->GetSelection() == 2)
+	{
 		gUpdFreq = 15;
 	}
-	else
+		else
 	{
 		gUpdFreq = 30;
 	}
 }
 // ==============
 
-
-// =======================================================================================
-// Show only looping blocks
-// --------------
-void CDebugger::OnlyLooping(wxCommandEvent& event)
-{	
-	if(m_Check[7]->IsChecked())
-	{
-		gOnlyLooping = true;
-
-	}
-	else
-	{
-		gOnlyLooping = false;
-	}
-}
-// ==============
 
 
 // =======================================================================================
@@ -433,6 +411,8 @@ void CDebugger::DoShowHideConsole()
 	if(m_Check[2]->IsChecked())
 	{
 		OpenConsole();
+		MoveWindow(GetConsoleHwnd(), 0,400, 1280,500, true); // move window, TODO: make this
+		// adjustable from the debugging window
 	}
 	else
 	{

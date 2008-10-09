@@ -85,6 +85,7 @@ class CCodeWindow
 			IDM_BREAKPOINTWINDOW,
 			IDM_MEMORYWINDOW,
 			IDM_SOUNDWINDOW, // sound
+			IDM_VIDEOWINDOW, // video
 			IDM_JITWINDOW, // jit
 			IDM_SCANFUNCTIONS,
 			IDM_LOGINSTRUCTIONS,
@@ -148,7 +149,8 @@ class CCodeWindow
 		void OnToggleMemoryWindow(wxCommandEvent& event);
 		void OnToggleJitWindow(wxCommandEvent& event);
 		void OnToggleSoundWindow(wxCommandEvent& event);
-
+		void OnToggleVideoWindow(wxCommandEvent& event);
+	
 		void OnHostMessage(wxCommandEvent& event);
 		void OnSymbolsMenu(wxCommandEvent& event);
 		void OnJitMenu(wxCommandEvent& event);

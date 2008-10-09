@@ -551,34 +551,34 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 			if(m_frame)
 			{
 				m_frame->m_GPRListView->m_CachedRegs[2][i] = gsamplePos[i];
-				m_frame->m_GPRListView->m_CachedRegs[2][i] = gsampleEnd[i];
-				m_frame->m_GPRListView->m_CachedRegs[3][i] = gloopPos[i];
+				m_frame->m_GPRListView->m_CachedRegs[3][i] = gsampleEnd[i];
+				m_frame->m_GPRListView->m_CachedRegs[4][i] = gloopPos[i];
 
-				m_frame->m_GPRListView->m_CachedRegs[4][i] = gvolume_left[i];
-				m_frame->m_GPRListView->m_CachedRegs[5][i] = gvolume_right[i];
+				m_frame->m_GPRListView->m_CachedRegs[5][i] = gvolume_left[i];
+				m_frame->m_GPRListView->m_CachedRegs[6][i] = gvolume_right[i];
 
-				m_frame->m_GPRListView->m_CachedRegs[6][i] = glooping[i];
-				m_frame->m_GPRListView->m_CachedRegs[7][i] = gloop1[i];
-				m_frame->m_GPRListView->m_CachedRegs[8][i] = gloop2[i];
-				m_frame->m_GPRListView->m_CachedRegs[9][i] = gloop3[i];
+				m_frame->m_GPRListView->m_CachedRegs[7][i] = glooping[i];
+				m_frame->m_GPRListView->m_CachedRegs[8][i] = gloop1[i];
+				m_frame->m_GPRListView->m_CachedRegs[9][i] = gloop2[i];
+				m_frame->m_GPRListView->m_CachedRegs[10][i] = gloop3[i];
 
-				m_frame->m_GPRListView->m_CachedRegs[10][i] = gis_stream[i];
+				m_frame->m_GPRListView->m_CachedRegs[11][i] = gis_stream[i];
 
-				m_frame->m_GPRListView->m_CachedRegs[11][i] = gaudioFormat[i];
-				m_frame->m_GPRListView->m_CachedRegs[12][i] = gsrc_type[i];
-				m_frame->m_GPRListView->m_CachedRegs[13][i] = gcoef[i];
+				m_frame->m_GPRListView->m_CachedRegs[12][i] = gaudioFormat[i];
+				m_frame->m_GPRListView->m_CachedRegs[13][i] = gsrc_type[i];
+				m_frame->m_GPRListView->m_CachedRegs[14][i] = gcoef[i];
 
-				m_frame->m_GPRListView->m_CachedRegs[14][i] = gfrac[i];
+				m_frame->m_GPRListView->m_CachedRegs[15][i] = gfrac[i];
 
-				m_frame->m_GPRListView->m_CachedRegs[15][i] = gratio[i];
-				m_frame->m_GPRListView->m_CachedRegs[16][i] = gratiohi[i];
-				m_frame->m_GPRListView->m_CachedRegs[17][i] = gratiolo[i];
+				m_frame->m_GPRListView->m_CachedRegs[16][i] = gratio[i];
+				m_frame->m_GPRListView->m_CachedRegs[17][i] = gratiohi[i];
+				m_frame->m_GPRListView->m_CachedRegs[18][i] = gratiolo[i];
 
-				m_frame->m_GPRListView->m_CachedRegs[18][i] = gupdates1[i];
-				m_frame->m_GPRListView->m_CachedRegs[19][i] = gupdates2[i];
-				m_frame->m_GPRListView->m_CachedRegs[20][i] = gupdates3[i];
-				m_frame->m_GPRListView->m_CachedRegs[21][i] = gupdates4[i];
-				m_frame->m_GPRListView->m_CachedRegs[22][i] = gupdates5[i];
+				m_frame->m_GPRListView->m_CachedRegs[19][i] = gupdates1[i];
+				m_frame->m_GPRListView->m_CachedRegs[20][i] = gupdates2[i];
+				m_frame->m_GPRListView->m_CachedRegs[21][i] = gupdates3[i];
+				m_frame->m_GPRListView->m_CachedRegs[22][i] = gupdates4[i];
+				m_frame->m_GPRListView->m_CachedRegs[23][i] = gupdates5[i];
 			}
 
 			// add new line

@@ -45,6 +45,13 @@ HINSTANCE g_hInstance = NULL;
 SVideoInitialize g_VideoInitialize;
 int initCount = 0;
 
+
+void DllDebugger(HWND _hParent)
+{
+    // TODO: implement
+}
+
+
 BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 						DWORD dwReason,		// reason called
 						LPVOID lpvReserved)	// reserved

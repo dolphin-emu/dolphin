@@ -33,6 +33,8 @@
 #include "PixelShaderManager.h"
 #include "VertexLoader.h"
 #include "XFB.h"
+#include "Debugger/Debugger.h" // for the CDebugger class
+#include "Logging/Logging.h" // for Logging()
 
 #ifdef _WIN32
 #include "OS/Win32.h"
@@ -49,6 +51,7 @@ struct MESSAGE
 
 CGcontext g_cgcontext;
 CGprofile g_cgvProf, g_cgfProf;
+extern CDebugger* m_frame; // the debugging class
 
 static int g_MaxTexWidth = 0, g_MaxTexHeight = 0;
 static RasterFont* s_pfont = NULL;
@@ -456,12 +459,18 @@ void Renderer::ReinitView(int nNewWidth, int nNewHeight)
 }
 int Renderer::GetTargetWidth()
 {
-    return nBackbufferWidth;
+	if(g_Config.bStretchToFit)
+		return 640;
+	else
+		return nBackbufferWidth; // return the actual window width
 }
 
 int Renderer::GetTargetHeight()
 {
-    return nBackbufferHeight;
+	if(g_Config.bStretchToFit)
+		return 480;
+	else
+		return nBackbufferHeight; // return the actual window height
 }
 
 bool Renderer::CanBlendLogicOp()
@@ -553,15 +562,37 @@ void Renderer::FlushZBufferAlphaToTarget()
     for(int i = 1; i < 8; ++i) TextureMngr::DisableStage(i);
     GL_REPORT_ERRORD();
 
-    // setup the stencil to only accept pixels that have been written
-    glStencilFunc(GL_EQUAL, 1, 0xff);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+	if(g_Config.bStretchToFit)
+	{
+		//TODO: Do Correctly in a bit
+		float FactorW = (float)640 / (float)nBackbufferWidth;
+		float FactorH = (float)480 / (float)nBackbufferHeight;
 
-    glBegin(GL_QUADS);
-    glTexCoord2f(0, 0); glVertex2f(-1,-1);
-    glTexCoord2f(0, (float)(GetTargetHeight())); glVertex2f(-1,1);
-    glTexCoord2f((float)(GetTargetWidth()), (float)(GetTargetHeight())); glVertex2f(1,1);
-    glTexCoord2f((float)(GetTargetWidth()), 0); glVertex2f(1,-1);
+		float Max = (FactorW < FactorH) ? FactorH : FactorW;
+		float Temp = 1 / Max;
+		FactorW *= Temp;
+		FactorH *= Temp;
+
+		glBegin(GL_QUADS);
+		glTexCoord2f(0, 0); glVertex2f(-FactorW,-FactorH);
+		glTexCoord2f(0, (float)GetTargetHeight()); glVertex2f(-FactorW,FactorH);
+		glTexCoord2f((float)GetTargetWidth(), (float)GetTargetHeight()); glVertex2f(FactorW,FactorH);
+		glTexCoord2f((float)GetTargetWidth(), 0); glVertex2f(FactorW,-FactorH);
+
+		__Log("%d, %d", FactorW, FactorH);
+	}
+	else
+	{		
+		// setup the stencil to only accept pixels that have been written
+		glStencilFunc(GL_EQUAL, 1, 0xff);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+		glBegin(GL_QUADS);
+		glTexCoord2f(0, 0); glVertex2f(-1,-1);
+		glTexCoord2f(0, (float)(GetTargetHeight())); glVertex2f(-1,1);
+		glTexCoord2f((float)(GetTargetWidth()), (float)(GetTargetHeight())); glVertex2f(1,1);
+		glTexCoord2f((float)(GetTargetWidth()), 0); glVertex2f(1,-1);
+	}
     glEnd();
     
     GL_REPORT_ERRORD();
@@ -643,6 +674,7 @@ u32 Renderer::GetZBufferTarget()
 {
     return nZBufferRender > 0 ? s_ZBufferTarget : 0;
 }
+
 void Renderer::Swap(const TRectangle& rc)
 {
     OpenGL_Update(); // just updates the render window position and the backbuffer size
@@ -685,6 +717,16 @@ void Renderer::Swap(const TRectangle& rc)
         s_fps = fpscount;
         fpscount = 0;
     }
+
+
+	// ---------------------------------------------------------------------------------------
+	// Write logging data to debugger
+	// -----------------
+	if(m_frame)
+	{
+		Logging(0);
+	}
+	
 
     if (g_Config.bOverlayStats) {
         char st[2048];

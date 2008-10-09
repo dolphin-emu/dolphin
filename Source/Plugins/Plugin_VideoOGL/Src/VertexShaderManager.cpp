@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-
 #include "Globals.h"
 #include "Profiler.h"
 
@@ -35,11 +34,15 @@ float VertexShaderMngr::rawProjection[7] = {0};
 float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
 static int s_nMaxVertexInstructions;
+extern int A, B;
+extern float AR;
+extern int nBackbufferWidth, nBackbufferHeight;
 
 ////////////////////////
 // Internal Variables //
 ////////////////////////
 static float s_fMaterials[16];
+
 
 // track changes
 static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged;
@@ -101,7 +104,7 @@ VERTEXSHADER* VertexShaderMngr::GetShader(u32 components)
     VSCacheEntry& entry = vshaders[uid];
     char *code = GenerateVertexShader(components, Renderer::GetZBufferTarget() != 0);
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST)
     if( g_Config.iLog & CONF_SAVESHADERS && code ) {	
         static int counter = 0;
         char szTemp[MAX_PATH];
@@ -210,7 +213,10 @@ const u16 s_mtrltable[16][2] = {{0, 0}, {0, 1}, {1, 1}, {0, 2},
                                 {3, 1}, {0, 4}, {1, 3}, {0, 4},
                                 {2, 2}, {0, 4}, {1, 3}, {0, 4}};
 
-/// syncs the shader constant buffers with xfmem
+
+// =======================================================================================
+// Syncs the shader constant buffers with xfmem
+// ----------------
 void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 {
     //nTransformMatricesChanged[0] = 0; nTransformMatricesChanged[1] = 256;
@@ -332,10 +338,77 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
         // [3] = xorig + width/2 + 342
         // [4] = yorig + height/2 + 342
         // [5] = 16777215 * farz
-        INFO_LOG("view: topleft=(%f,%f), wh=(%f,%f), z=(%f,%f)\n",rawViewport[3]-rawViewport[0]-342,rawViewport[4]+rawViewport[1]-342,
-            2 * rawViewport[0], 2 * rawViewport[1], (rawViewport[5]-rawViewport[2])/16777215.0f, rawViewport[5]/16777215.0f);
-        glViewport((int)(rawViewport[3]-rawViewport[0]-342) * MValueX,Renderer::GetTargetHeight()-((int)(rawViewport[4]-rawViewport[1]-342))  * MValueY, abs((int)(2 * rawViewport[0])) * MValueX, abs((int)(2 * rawViewport[1])) * MValueY);
-        glDepthRange(-(0.0f - (rawViewport[5]-rawViewport[2])/-16777215.0f), rawViewport[5]/16777215.0f);
+		/*INFO_LOG("view: topleft=(%f,%f), wh=(%f,%f), z=(%f,%f)\n",
+			rawViewport[3]-rawViewport[0]-342, rawViewport[4]+rawViewport[1]-342,
+			2 * rawViewport[0], 2 * rawViewport[1],
+			(rawViewport[5] - rawViewport[2]) / 16777215.0f, rawViewport[5] / 16777215.0f);*/
+
+		// =======================================================================================
+		// Keep aspect ratio at 4:3
+		// -------------
+		// rawViewport[0] = 320, rawViewport[1] = -240
+		// -------------
+		float fourThree = 4.0f/3.0f;
+		float ratio = AR /  fourThree;
+		float hAdj; float wAdj; float actualRatiow; float actualRatioh;
+		int overfl; int xoffs = 0; int yoffs = 0;
+		int wid, hei, actualWid, actualHei;
+		int winw = nBackbufferWidth; int winh = nBackbufferHeight;
+		if(g_Config.bKeepAR)
+		{
+			// Check if height or width is the limiting factor
+			if(ratio > 1) // then we are to wide and have to limit the width
+			{			
+				wAdj = ratio;
+				hAdj = 1;
+
+				wid = ceil(abs(2 * rawViewport[0]) / wAdj);
+				hei = ceil(abs(2 * rawViewport[1]) / hAdj);
+
+				actualWid = ceil((float)winw / ratio);
+				actualRatiow = (float)actualWid / (float)wid; // the picture versus the screen
+				overfl = (winw - actualWid) / actualRatiow;
+				xoffs = overfl / 2;
+			}
+			else // the window is to high, we have to limit the height
+			{
+				ratio = 1 / ratio;
+
+				wAdj = 1;
+				hAdj = ratio;
+
+				wid = ceil(abs(2 * rawViewport[0]) / wAdj);
+				hei = ceil(abs(2 * rawViewport[1]) / hAdj);
+
+				actualHei = ceil((float)winh / ratio);
+				actualRatioh = (float)actualHei / (float)hei; // the picture versus the screen
+				overfl = (winh - actualHei) / actualRatioh;
+				yoffs = overfl / 2;
+			}
+		}
+		else
+		{
+			wid = ceil(abs(2 * rawViewport[0]));
+			hei = ceil(abs(2 * rawViewport[1]));
+		}
+
+		if(g_Config.bStretchToFit)
+		{
+		glViewport(
+			(int)(rawViewport[3]-rawViewport[0]-342) + xoffs,
+			Renderer::GetTargetHeight() - ((int)(rawViewport[4]-rawViewport[1]-342)) + yoffs,
+			wid, // width
+			hei // height
+			);
+		}
+		else
+		{
+		glViewport((int)(rawViewport[3]-rawViewport[0]-342) * MValueX,
+			Renderer::GetTargetHeight()-((int)(rawViewport[4]-rawViewport[1]-342))  * MValueY,
+			abs((int)(2 * rawViewport[0])) * MValueX, abs((int)(2 * rawViewport[1])) * MValueY);
+		}
+
+		glDepthRange(-(0.0f - (rawViewport[5]-rawViewport[2])/-16777215.0f), rawViewport[5]/16777215.0f);
     }
 
     if (bProjectionChanged) {

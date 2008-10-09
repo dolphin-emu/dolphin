@@ -33,6 +33,8 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_COMBOBOX(ID_ALIASMODECB,ConfigDialog::AACB)
 	EVT_CHECKBOX(ID_FORCEFILTERING,ConfigDialog::ForceFilteringCheck)
 	EVT_CHECKBOX(ID_FORCEANISOTROPY,ConfigDialog::ForceAnisotropyCheck)
+	EVT_CHECKBOX(ID_STRETCHTOFIT,ConfigDialog::StretchToFitCheck)
+	EVT_CHECKBOX(ID_KEEPAR,ConfigDialog::KeepARCheck)
 	EVT_CHECKBOX(ID_WIREFRAME,ConfigDialog::WireframeCheck)
 	EVT_CHECKBOX(ID_SHOWFPS,ConfigDialog::ShowFPSCheck)
 	EVT_CHECKBOX(ID_STATISTICS,ConfigDialog::OverlayCheck)
@@ -112,11 +114,25 @@ void ConfigDialog::CreateGUIControls()
 	tmp<<g_Config.iMultisampleMode;
 	m_AliasModeCB->SetValue(tmp);
 
-	//page2
+
+	// page2 -------------------------
 	m_ForceFiltering = new wxCheckBox(m_PageEnhancements, ID_FORCEFILTERING, wxT("Force bi/trilinear filtering (May cause small glitches)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ForceFiltering->SetValue(g_Config.bForceFiltering);
 
-	//page3
+	//TODO: make the following work ^^
+	m_ForceAnisotropy = new wxCheckBox(m_PageEnhancements, ID_FORCEANISOTROPY, wxT("Force maximum anisotropy filtering"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	//m_ForceAnisotropy->SetValue(g_Config.bForceMaxAniso);
+	m_ForceAnisotropy->Enable(false);
+
+	m_StretchToFit = new wxCheckBox(m_PageEnhancements, ID_STRETCHTOFIT, wxT("Stretch to fit (instead of changing res.)"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_StretchToFit->SetValue(g_Config.bStretchToFit);
+
+	m_KeepAR = new wxCheckBox(m_PageEnhancements, ID_KEEPAR, wxT("Keep 4:3 aspect ratio"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_KeepAR->SetValue(g_Config.bKeepAR);
+
+	// page3 -------------------------
 	m_ShowFPS = new wxCheckBox(m_PageAdvanced, ID_SHOWFPS, wxT("Overlay FPS"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ShowFPS->SetValue(g_Config.bShowFPS);
 	
@@ -135,11 +151,6 @@ void ConfigDialog::CreateGUIControls()
 	m_TexturePath->SetPath(wxString::FromAscii(g_Config.texDumpPath));
 	m_TexturePath->Enable(m_DumpTextures->IsChecked());
 
-	//TODO: make the following work ^^
-	m_ForceAnisotropy = new wxCheckBox(m_PageEnhancements, ID_FORCEANISOTROPY, wxT("Force maximum anisotropy filtering"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	//m_ForceAnisotropy->SetValue(g_Config.bForceMaxAniso);
-	m_ForceAnisotropy->Enable(false);
-
 	m_Wireframe = new wxCheckBox(m_PageAdvanced, ID_WIREFRAME, wxT("Wireframe"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	//m_Wireframe->SetValue(g_Config.bWireFrame);
 	m_Wireframe->Enable(false);
@@ -155,7 +166,8 @@ void ConfigDialog::CreateGUIControls()
 	sPage1->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 	sPage1->Add(m_Fullscreen, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
 	sPage1->Add(m_RenderToMainWindow, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
-	sPage1->Add(FSText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+
+	sPage1->Add(FSText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5); // drop down boxes
 	sPage1->Add(m_FullscreenCB, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 5);
 	sPage1->Add(WMText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sPage1->Add(m_WindowResolutionCB, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
@@ -168,6 +180,8 @@ void ConfigDialog::CreateGUIControls()
 	sPage2 = new wxBoxSizer(wxVERTICAL);
 	sPage2->Add(m_ForceFiltering, 0, wxALL, 5);
 	sPage2->Add(m_ForceAnisotropy, 0, wxALL, 5);
+	sPage2->Add(m_StretchToFit, 0, wxALL, 5); // stretch
+	sPage2->Add(m_KeepAR, 0, wxALL, 5); // keep AR
 	m_PageEnhancements->SetSizer(sPage2);
 	sPage2->Layout();
 
@@ -217,6 +231,16 @@ void ConfigDialog::FullScreenCheck(wxCommandEvent& event)
 void ConfigDialog::RenderMainCheck(wxCommandEvent& event)
 {
 	g_Config.renderToMainframe = m_RenderToMainWindow->IsChecked();
+}
+
+void ConfigDialog::StretchToFitCheck(wxCommandEvent& event) // stretch
+{
+	g_Config.bStretchToFit = m_StretchToFit->IsChecked();
+}
+
+void ConfigDialog::KeepARCheck(wxCommandEvent& event) // keep AR
+{
+	g_Config.bKeepAR = m_KeepAR->IsChecked();
 }
 
 void ConfigDialog::AddFSReso(char *reso)

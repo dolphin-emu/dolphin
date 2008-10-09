@@ -15,6 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+// ---------------------------------------------------------------------------------------
+// includes
+// -------------
 #include "Globals.h"
 #include "Profiler.h"
 
@@ -28,7 +31,10 @@
 #include "VertexShaderManager.h"
 #include "PixelShaderManager.h"
 
+
+// ---------------------------------------------------------------------------------------
 // State translation lookup tables
+// -------------
 static const GLenum glSrcFactors[8] =
 {
     GL_ZERO,
@@ -57,6 +63,11 @@ void BPInit()
     bpmem.bpMask = 0xFFFFFF;
 }
 
+
+// =======================================================================================
+// Called att the end of every: OpcodeDecoding.cpp ExecuteDisplayList > Decode() >
+//		LoadBPReg()
+// ---------------
 void BPWritten(int addr, int changes, int newval)
 {
     DVSTARTPROFILE();
@@ -70,8 +81,10 @@ void BPWritten(int addr, int changes, int newval)
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            PRIM_LOG("genmode: texgen=%d, col=%d, ms_en=%d, tev=%d, culmode=%d, ind=%d, zfeeze=%d\n", bpmem.genMode.numtexgens, bpmem.genMode.numcolchans,
-                bpmem.genMode.ms_en, bpmem.genMode.numtevstages+1, bpmem.genMode.cullmode, bpmem.genMode.numindstages, bpmem.genMode.zfreeze);
+            PRIM_LOG("genmode: texgen=%d, col=%d, ms_en=%d, tev=%d, culmode=%d, ind=%d, zfeeze=%d\n",
+				bpmem.genMode.numtexgens, bpmem.genMode.numcolchans,
+                bpmem.genMode.ms_en, bpmem.genMode.numtevstages+1, bpmem.genMode.cullmode,
+				bpmem.genMode.numindstages, bpmem.genMode.zfreeze);
 
             // none, ccw, cw, ccw
             if (bpmem.genMode.cullmode>0) {
@@ -111,7 +124,8 @@ void BPWritten(int addr, int changes, int newval)
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            PRIM_LOG("zmode: test=%d, func=%d, upd=%d\n", bpmem.zmode.testenable, bpmem.zmode.func, bpmem.zmode.updateenable);
+            PRIM_LOG("zmode: test=%d, func=%d, upd=%d\n", bpmem.zmode.testenable, bpmem.zmode.func,
+				bpmem.zmode.updateenable);
             
             if (bpmem.zmode.testenable) {
                 glEnable(GL_DEPTH_TEST);
@@ -133,8 +147,8 @@ void BPWritten(int addr, int changes, int newval)
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            PRIM_LOG("alphacmp: ref0=%d, ref1=%d, comp0=%d, comp1=%d, logic=%d\n", bpmem.alphaFunc.ref0, bpmem.alphaFunc.ref1,
-                bpmem.alphaFunc.comp0, bpmem.alphaFunc.comp1, bpmem.alphaFunc.logic);
+            PRIM_LOG("alphacmp: ref0=%d, ref1=%d, comp0=%d, comp1=%d, logic=%d\n", bpmem.alphaFunc.ref0,
+				bpmem.alphaFunc.ref1, bpmem.alphaFunc.comp0, bpmem.alphaFunc.comp1, bpmem.alphaFunc.logic);
             PixelShaderMngr::SetAlpha(bpmem.alphaFunc);
         }
         break;
@@ -549,6 +563,7 @@ void BPWritten(int addr, int changes, int newval)
     }
 }
 
+
 void SetColorMask()
 {
     if (bpmem.blendmode.alphaupdate && bpmem.blendmode.colorupdate)
@@ -559,36 +574,64 @@ void SetColorMask()
         glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_FALSE);
 }
 
+
+// =======================================================================================
+// Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
+//		case 0x52 > SetScissorRect()
+// ---------------
+// This function handles the OpenGL glScissor() function
+// ---------------
+// bpmem.scissorTL.x, y = 342x342
+// bpmem.scissorBR.x, y = 981x821
+// Renderer::GetTargetHeight() = the fixed ini file setting
+// ---------------
 bool SetScissorRect()
 {
     int xoff = bpmem.scissorOffset.x * 2 - 342;
     int yoff = bpmem.scissorOffset.y * 2 - 342;
 
     RECT rc;
-    rc.left = bpmem.scissorTL.x + xoff - 342;
-    rc.left *= MValueX;
-    if (rc.left < 0) rc.left = 0;
-    rc.top = bpmem.scissorTL.y + yoff - 342;
-    rc.top *= MValueY;
-    if (rc.top < 0) rc.top = 0;
+
+	rc.left = bpmem.scissorTL.x + xoff - 342; // left = 0
+	rc.left *= MValueX;
+	if (rc.left < 0) rc.left = 0;
+
+	rc.top = bpmem.scissorTL.y + yoff - 342; // right = 0
+	rc.top *= MValueY;
+	if (rc.top < 0) rc.top = 0;
     
-    rc.right = bpmem.scissorBR.x + xoff - 342;
-    rc.right *= MValueX;
-    if (rc.right > 640 * MValueX) rc.right = 640 * MValueX;
-    rc.bottom = bpmem.scissorBR.y + yoff - 342;
-    rc.bottom *= MValueY;
-    if (rc.bottom > 480 * MValueY) rc.bottom = 480 * MValueY;
+	rc.right = bpmem.scissorBR.x + xoff - 342; // right = 640
+	rc.right *= MValueX;
+	if (rc.right > 640 * MValueX) rc.right = 640 * MValueX;
 
-    //printf("scissor: lt=(%d,%d),rb=(%d,%d),off=(%d,%d)\n", rc.left, rc.top, rc.right, rc.bottom, xoff, yoff);
+	rc.bottom = bpmem.scissorBR.y + yoff - 342; // bottom = 480
+	rc.bottom *= MValueY;
+	if (rc.bottom > 480 * MValueY) rc.bottom = 480 * MValueY;
 
-    if( rc.right>=rc.left && rc.bottom>=rc.top ) {
-        glScissor(rc.left, Renderer::GetTargetHeight()-(rc.bottom), (rc.right-rc.left), (rc.bottom-rc.top));
+   /*__Log("Scissor: lt=(%d,%d), rb=(%d,%d,%i), off=(%d,%d)\n",
+		rc.left, rc.top,
+		rc.right, rc.bottom, Renderer::GetTargetHeight(),
+		xoff, yoff
+		);*/
+
+    if( rc.right>=rc.left && rc.bottom>=rc.top )
+	{
+        glScissor(
+			rc.left, // x = 0
+			Renderer::GetTargetHeight()-(rc.bottom), // y = 0
+			(rc.right-rc.left), // y = 0
+			(rc.bottom-rc.top) // y = 0
+			); 
         return true;
     }
 
     return false;
 }
 
+
+// =======================================================================================
+// Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
+// ---------------
 void LoadBPReg(u32 value0)
 {
     DVSTARTPROFILE();
@@ -751,8 +794,11 @@ void LoadBPReg(u32 value0)
     //((u32*)&bpmem)[opcode] = newval;
 }
 
+// =======================================================================================
+// Never called?
+// ---------------
 void BPReload()
 {
     for (int i=0; i<254; i++)
-        BPWritten(i, 0xFFFFFF, ((u32*)&bpmem)[i]);
+        BPWritten(i, 0xFFFFFF, ((u32*)&bpmem)[i]);	
 }

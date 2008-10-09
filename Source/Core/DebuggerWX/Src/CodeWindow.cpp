@@ -56,6 +56,7 @@
 #include "PowerPC/Jit64/JitCache.h"
 
 #include "Plugins/Plugin_DSP.h" // new stuff, to let us open the DLLDebugger
+#include "Plugins/Plugin_Video.h" // new stuff, to let us open the DLLDebugger
 #include "../../DolphinWX/Src/PluginManager.h"
 #include "../../DolphinWX/Src/Config.h"
 
@@ -85,6 +86,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
     EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleMemoryWindow)
 	EVT_MENU(IDM_JITWINDOW,			CCodeWindow::OnToggleJitWindow)
 	EVT_MENU(IDM_SOUNDWINDOW,		CCodeWindow::OnToggleSoundWindow)
+	EVT_MENU(IDM_VIDEOWINDOW,		CCodeWindow::OnToggleVideoWindow)
 
 	EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnInterpreter)
 
@@ -204,6 +206,7 @@ bool bBreakpointWindow = true;
 bool bMemoryWindow = true;
 bool bJitWindow = true;
 bool bSoundWindow = false;
+bool bVideoWindow = false;
 // -------------------
 void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter)
 {
@@ -219,6 +222,7 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 	ini.Get("ShowOnStart", "MemoryWindow", &bMemoryWindow, true);
 	ini.Get("ShowOnStart", "JitWindow", &bJitWindow, true);
 	ini.Get("ShowOnStart", "SoundWindow", &bSoundWindow, false);
+	ini.Get("ShowOnStart", "VideoWindow", &bVideoWindow, false);
 	// ===============
 
 	CreateMenu(_LocalCoreStartupParameter);
@@ -289,6 +293,15 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
 		);	
 	} // don't have any else, just ignore it
+
+	if(bVideoWindow)
+	{
+		// possible todo: add some kind of if here to? can it fail?
+		CPluginManager::GetInstance().OpenDebug(
+		GetHandle(),
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str()
+		);	
+	} // don't have any else, just ignore it
 }
 
 
@@ -334,6 +347,9 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 
 		wxMenuItem* pSound = pDebugDialogs->Append(IDM_SOUNDWINDOW, _T("&Sound"), wxEmptyString, wxITEM_CHECK);
 		pSound->Check(bSoundWindow);
+
+		wxMenuItem* pVideo = pDebugDialogs->Append(IDM_VIDEOWINDOW, _T("&Video"), wxEmptyString, wxITEM_CHECK);
+		pVideo->Check(bVideoWindow);
 
 		pMenuBar->Append(pDebugDialogs, _T("&Views"));
 	}
@@ -836,6 +852,34 @@ void CCodeWindow::OnToggleSoundWindow(wxCommandEvent& event)
 		CPluginManager::GetInstance().OpenDebug(
 		GetHandle(),
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
+		);
+	}
+	else // hide
+	{
+		 // can we close the dll window from here?
+	}
+}
+// ===========
+
+
+// =======================================================================================
+// Toggle Video Debugging Window
+// ------------
+void CCodeWindow::OnToggleVideoWindow(wxCommandEvent& event)
+{
+	bool show = GetMenuBar()->IsChecked(event.GetId());
+
+	IniFile ini;
+	ini.Load("Debugger.ini");
+	ini.Set("ShowOnStart", "VideoWindow", show);
+	ini.Save("Debugger.ini");
+
+	if (show)
+	{
+		// TODO: add some kind of if() check here to?
+		CPluginManager::GetInstance().OpenDebug(
+		GetHandle(),
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str()
 		);
 	}
 	else // hide

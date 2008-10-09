@@ -96,6 +96,14 @@ EXPORT void CALL GetDllInfo(PLUGIN_INFO* _pPluginInfo);
 EXPORT void CALL DllConfig(HWND _hParent);
 
 // __________________________________________________________________________________________________
+// Function: DllDebugger
+// Purpose:  Open the debugger
+// input:    a handle to the window that calls this function
+// output:   none
+//
+EXPORT void CALL DllDebugger(HWND _hParent);
+
+// __________________________________________________________________________________________________
 // Function: Video_Initialize
 // Purpose:
 // input:    SVideoInitialize* - pointer because window data will be passed back

@@ -30,6 +30,8 @@
 #include "../../Core/Src/Core.h"
 #include "Win32.h"
 
+#include "IniFile.h" // we need this for the debugger to work
+
 void OpenConsole();
 void CloseConsole();
 
@@ -76,7 +78,8 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 	return TRUE;
 }
 
-
+void DoDllDebugger();
+extern bool gShowDebugger;
 namespace EmuWindow
 {
 	HWND m_hWnd = NULL;
@@ -208,6 +211,14 @@ namespace EmuWindow
 		ShowWindow(m_hWnd, SW_SHOW);
 		BringWindowToTop(m_hWnd);
 		UpdateWindow(m_hWnd);
+
+		// gShowDebugger from main.cpp is forgotten between the Dolphin-Debugger is opened and a game is
+		// started so we have to use an ini file setting here
+		bool bVideoWindow = false;
+		IniFile ini;
+		ini.Load("Debugger.ini");
+		ini.Get("ShowOnStart", "VideoWindow", &bVideoWindow, false);
+		if(bVideoWindow) DoDllDebugger();
 	}
 
 	HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title)
