@@ -128,6 +128,31 @@ void ADPCM_Loop(AXParamBlock& pb)
 	//else stream and we should not attempt to replace values
 }
 
+
+// =======================================================================================
+// Volume control (ramping)
+// --------------
+u16 ADPCM_Vol(u16 vol, u16 delta, u16 mixer_control)
+{
+	int x = vol;
+	if (delta && delta < 0x4000)
+		x += delta; // unsure what the right step is
+		//x ++;
+		//x += 8; //?
+	else if (delta && delta > 0x4000)
+		//x -= (0x8000 - pb.mixer.unknown); // this didn't work
+		x--;
+	if (x < 0) x = 0; // make limits
+	// does this make any sense?
+	//if (pb.mixer_control < 1000 && x < pb.mixer_control) x = pb.mixer_control;
+	//if (x >= 0x7fff) xl = 0x7fff; // this seems to high
+	if (mixer_control > 1000 && x > mixer_control) x = mixer_control;	
+	return x; // update volume
+}
+
+// ==============
+
+
 void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 {
 	AXParamBlock PBs[NUMBER_OF_PBS];
@@ -156,18 +181,22 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 	{
 		AXParamBlock& pb = PBs[i];
 
+		// get necessary values
+		const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
+		const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
+		const u32 updaddr   = (u32)(pb.updates.data_hi << 16) | pb.updates.data_lo;
+		const u32 upddata   = Memory_Read_U32(updaddr);
+
 
 		// =======================================================================================
 		/*
 		Fix problems introduced with the SSBM fix - Sometimes when a music stream ended sampleEnd
 		would become extremely high and the game would play random sound data from ARAM resulting in
 		a strange noise. This should take care of that. - Some games (Monkey Ball 1 and Tales of
-		Symphonia) also had one odd block with a strange high loopPos and strange num_updates values,
-		the loopPos limit turns those off also. - Please report any side effects.
+		Symphonia and other) also had one odd last block with a strange high loopPos and strange
+		num_updates values, the loopPos limit turns those off also. - Please report any side effects.
 		*/
 		// ------------
-		const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
-		const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
 		if (
 			(sampleEnd > 0x10000000 || loopPos > 0x10000000)
 			&& gSSBMremedy1
@@ -191,38 +220,38 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		/*
 		// the fact that no settings are reset (except running) after a SSBM type music stream or another
 		looping block (for example in Battle Stadium DON) has ended could cause loud garbled sound to be
-		played from one or more blocks. Battle Stadium DON would usually have as much as five short looping
-		sounds (for example for running water and other things), but one or more of those would turn in to
-		looping noise machines if the old SSBM fix (withouth the pb.mixer_control check) was applied. This
-		would fix that by resetting the values after a looping block had ended. But it would be at the price
-		of turing off all looping sounds except the music streams, it seemed. But hopefully with the improved
-		SSBM music fix this check is not needed. I'll save it for now but it may perhaps be deleted in the
-		future.
+		played from one or more blocks. Perhaps it was in conjunction with the old sequenced music fix below,
+		I'm not sure. This was an attempt to prevent that anyway by resetting all. But I'm not sure if this
+		is needed anymore. Please try to play SSBM without it and see if it works anyway.
 		*/
 		if (
 		// detect blocks that have recently been running that we should reset
 		pb.running == 0 && pb.audio_addr.looping == 1
+		//pb.running == 0 && pb.adpcm_loop_info.pred_scale
 
-		// this prevents us from ruining sequenced music blocks
+		// this prevents us from ruining sequenced music blocks, may not be needed
+		/*
 		&& !(pb.updates.num_updates[0] || pb.updates.num_updates[1] || pb.updates.num_updates[2]
 			|| pb.updates.num_updates[3] || pb.updates.num_updates[4])
+		*/	
+		&& !upddata
 	
 		&& pb.mixer_control == 0 // only use this in SSBM
 
 		&& gSSBMremedy2 // let us turn this fix on and off
 		)
 		{
-			// reset all values, or mostly all
-			pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
-			pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
-			pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
-
-			pb.src.cur_addr_frac = 0; PBs[i].src.ratio_hi = 0; PBs[i].src.ratio_lo = 0;
-			pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
-
+			// reset the detection values
 			pb.audio_addr.looping = 0;
 			pb.adpcm_loop_info.pred_scale = 0;
 			pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
+
+			//pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
+			//pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
+			//pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
+
+			//pb.src.cur_addr_frac = 0; PBs[i].src.ratio_hi = 0; PBs[i].src.ratio_lo = 0;
+			//pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
 		}
 		
 		// =============
@@ -233,17 +262,26 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		Sequenced music fix - Because SSBM type music and other (for example Battle Stadium DON) looping
 		blocks did no have its pred_scale (or any other parameter except running) turned off after a song
 		was stopped a pred_scale check here had the effect of turning those blocks on immediately after
-		the stopped. Because the pred_scale check caused these effects I'm trying the num_updates check
-		instead. Please report any side effects.
+		the stopped. One way to easily test this is to start a game in BS DON, wait for the Fight message
+		so that the loops begin, and then exit the game and you can see that the sound effects will
+		continue to play in the menus. That's not good. Because the pred_scale check caused these effects
+		I'm trying an update data check instead, it relieas on the assumption that all games that don't
+		use sequencing have blank memory at the update address so that upddata = 0 in those cases. That
+		turned out to now hold, many games that don't use sequencing still had update_addr pointing to
+		some memory location with data, either inside the parameter block space or close before or after
+		it.
 		*/
 		// ------------
 		//if (!pb.running && pb.adpcm_loop_info.pred_scale)	
-		/**/
+		//if (!pb.running && pb.audio_addr.looping)		
+		if (!pb.running && upddata)
+		/*
 		if (!pb.running && 
 			(pb.updates.num_updates[0] || pb.updates.num_updates[1] || pb.updates.num_updates[2]
 			|| pb.updates.num_updates[3] || pb.updates.num_updates[4])			
 			&& gSequenced
-			)		
+			)
+		*/
 		{
 			pb.running = 1;
 		}
@@ -326,22 +364,6 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 
 			// =======================================================================================
-			// Streaming music and volume - The streaming music in Paper Mario use these settings:
-				// Base settings
-					// is_stream = 1
-					// src_type = 0
-				// PBAudioAddr
-					// audio_addr.looping = 1 (adpcm_loop_info.pred_scale = value, .yn1 = 0, .yn2 = 0)	
-			/*
-			However. Some of the ingame music and seemingly randomly some other music incorrectly get
-			volume = 0 for both left and right. This also affects Fire Emblem. But Starfox Assault
-			that also use is_stream = 1 has no problem wuth the volume, but its settings are somewhat
-			different, it uses src_type = 1 and pb.src.ratio_lo (fraction) != 0
-			*/
-			// ==============
-
-
-			// =======================================================================================
 			// Walk through _iSize
 			for (int s = 0; s < _iSize; s++)
 			{
@@ -402,10 +424,18 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 				if (pb.mixer_control & MIXCONTROL_RAMPING)
 				{
 					int x = pb.vol_env.cur_volume;
-					x += pb.vol_env.cur_volume_delta;
+					x += pb.vol_env.cur_volume_delta; // I'm not sure about this, can anybody find a game
+					// that use this?
 					if (x < 0) x = 0;
 					if (x >= 0x7fff) x = 0x7fff;
 					pb.vol_env.cur_volume = x; // maybe not per sample?? :P
+
+					// strange way to not use this in Skies where it didn't work well
+					if(pb.mixer_control != 9 && pb.mixer_control != 123)
+					{
+						pb.mixer.volume_left = ADPCM_Vol(pb.mixer.volume_left, pb.mixer.unknown, pb.mixer_control);
+						pb.mixer.volume_right = ADPCM_Vol(pb.mixer.volume_right, pb.mixer.unknown2, pb.mixer_control);
+					}
 				}
 
 				int leftmix  = pb.mixer.volume_left >> 5;
@@ -459,6 +489,12 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 	// write back out pbs
 	WriteBackPBs(PBs, numberOfPBs);
+
+	// write logging data to debugger again after the update
+	if(m_frame)
+	{
+		CUCode_AX::Logging(_pBuffer, _iSize, 1);
+	}
 }
 
 void CUCode_AX::Update()
@@ -708,7 +744,7 @@ int CUCode_AX::ReadOutPBs(AXParamBlock* _pPBs, int _num)
 			break;
 	}
 
-	// return the number of readed PBs
+	// return the number of read PBs
 	return count;
 }
 

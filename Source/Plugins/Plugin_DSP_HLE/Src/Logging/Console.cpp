@@ -16,7 +16,8 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-
+// --------------------
+// Includes
 #include <string>
 #include <stdio.h>
 #ifdef _WIN32
@@ -24,39 +25,38 @@
 #endif
 
 
-
+// --------------------
 // On and off
 bool g_consoleEnable = true;
 int gSaveFile = 0;
 #define DEBUGG
-//#define DEBUGG_FILEONLY
+
+
 // --------------------
+// Settings
+int nFiles = 4;
 
 
+// --------------------
 // Create handles
 
 #ifdef DEBUGG
-FILE* __fStdOut = NULL;
+FILE* __fStdOut[4]; // you have to update this manually, we can't place a nFiles in there
 #endif
-#ifndef DEBUGG_FILEONLY
 #ifdef _WIN32
 HANDLE __hStdOut = NULL;
 #endif
-#endif
-// --------------------
 
 
 // =======================================================================================
 /* Start console window - width and height is the size of console window, if you specify
-fname, the output will also be writton to this file. The file pointer is automatically
-closed when you close the app */
-// ---------------------------------------------------------------------------------------
+fname, the output will also be written to this file. TODO: Close the file pointer when the app
+is closed */
+// -------------
 void startConsoleWin(int width, int height, char* fname)
 {
 
 #if defined(DEBUGG) && defined(_WIN32)
-
-#ifndef DEBUGG_FILEONLY
 
 	AllocConsole();
 
@@ -69,52 +69,78 @@ void startConsoleWin(int width, int height, char* fname)
 	SMALL_RECT coo = {0,0,(width - 1),70}; // top, left, right, bottom
 	SetConsoleWindowInfo(__hStdOut, TRUE, &coo);
 
-#endif
 	// ---------------------------------------------------------------------------------------
 	// Write to a file
 	if(fname)
 	{
-		// Edit the log file name
-		std::string FileEnding = ".log";
-		std::string FileName = fname;
-		std::string FullFilename = (FileName + FileEnding);
-		__fStdOut = fopen(FullFilename.c_str(), "w");
+		for(int i = 0; i < nFiles; i++)
+		{
+			// Edit the log file name
+			std::string FileEnding = ".log";
+			std::string FileName = fname;
+			char buffer[33]; itoa(i, buffer, 10); // convert number to string
+			std::string FullFilename = (FileName + buffer + FileEnding);
+			__fStdOut[i] = fopen(FullFilename.c_str(), "w");
+		}
 	}
-	// ---------------------------------------------------------------------------------------
-
+	// ---------------
 #endif
 }
 
 
 // ---------------------------------------------------------------------------------------
-// Printf function
+// File printf function
+int aprintf(int a, char *fmt, ...)
+{
+#if defined(DEBUGG) && defined(_WIN32)
+	if(gSaveFile)
+	{
+		char s[5000]; // WARNING: mind this value
+		va_list argptr;
+		int cnt;
+
+		va_start(argptr, fmt);
+		cnt = vsnprintf(s, 5000, fmt, argptr); // remember to update this value to
+		va_end(argptr);
+
+		// ---------------------------------------------------------------------------------------
+		if(__fStdOut[a]) // TODO: make this work, we have to set all default values to NULL
+			//to make it work
+			fprintf(__fStdOut[a], s);
+		// -------------
+
+		return(cnt);
+	}
+	else
+	{
+		return 0;
+	}
+#else
+	return 0;
+#endif
+}
+
+
+
+// ---------------------------------------------------------------------------------------
+// Printf to screen function
 int wprintf(char *fmt, ...)
 {
 #if defined(DEBUGG) && defined(_WIN32)
-	char s[7000]; // WARNING: Mind this value
+	char s[5000]; // WARNING: mind this value
 	va_list argptr;
 	int cnt;
 
 	va_start(argptr, fmt);
-	cnt = vsnprintf(s, 3000, fmt, argptr);
+	cnt = vsnprintf(s, 5000, fmt, argptr);
 	va_end(argptr);
 
 	DWORD cCharsWritten;
 
 	// ---------------------------------------------------------------------------------------
-#ifndef DEBUGG_FILEONLY
 	if(__hStdOut)
 	{
 		WriteConsole(__hStdOut, s, strlen(s), &cCharsWritten, NULL);
-	}
-#endif
-	// -------------
-
-	// ---------------------------------------------------------------------------------------
-	if(gSaveFile)
-	{
-		if(__fStdOut)
-			fprintf(__fStdOut, s);
 	}
 	// -------------
 

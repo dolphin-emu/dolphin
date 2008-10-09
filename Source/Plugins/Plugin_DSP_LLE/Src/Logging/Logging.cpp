@@ -61,14 +61,19 @@ std::vector<u32> gsamplePos(64);
 	std::vector<u32> gratiolo(64);
 	std::vector<u32> gfrac(64);
 	std::vector<u32> gcoef(64);
+
 // PBSampleRateConverter mixer
 	std::vector<u16> gvolume_left(64);
 	std::vector<u16> gvolume_right(64);
+	std::vector<u16> gmixer_control(64);
+	std::vector<u16> gcur_volume(64);
+	std::vector<u16> gcur_volume_delta(64);
 
-std::vector<u16> gaudioFormat(64);
-std::vector<u16> glooping(64);
-std::vector<u16> gsrc_type(64);
-std::vector<u16> gis_stream(64);
+
+	std::vector<u16> gaudioFormat(64);
+	std::vector<u16> glooping(64);
+	std::vector<u16> gsrc_type(64);
+	std::vector<u16> gis_stream(64);
 
 // loop
 	std::vector<u16> gloop1(64);
@@ -175,7 +180,7 @@ void Logging()
 		char buffer [1000] = "";
 		std::string sbuff;
 		//sbuff = sbuff + "          Nr |                       | frac  ratio    |     old              new  \n"; // 5
-		sbuff = sbuff + "                Nr    pos / end       lpos     | voll  volr  | isl[pre yn1   yn2] iss | frac  ratio[hi lo]     | 1 2 3 4 5\n";
+		sbuff = sbuff + "                Nr    pos / end       lpos     | voll  volr  curv  vold mix   | isl[pre yn1   yn2] iss | frac  ratio[hi lo]     | 1 2 3 4 5\n";
 		// --------------
 
 
@@ -254,6 +259,10 @@ void Logging()
 				// mixer
 					gvolume_left[i] = PBs[i].mixer.volume_left;
 					gvolume_right[i] = PBs[i].mixer.volume_right;
+
+					gmixer_control[i] = PBs[i].mixer_control;
+					gcur_volume[i] = PBs[i].vol_env.cur_volume;
+					gcur_volume_delta[i] = PBs[i].vol_env.cur_volume_delta;
 				
 				// other stuff
 				Jump[i] = (gfrac[i] >> 16); // This is 1 or 0
@@ -268,12 +277,12 @@ void Logging()
 			// PRESETS
 			// ---------------------------------------------------------------------------------------
 			/*
-			/"                Nr    pos / end       lpos     | voll  volr | isl[pre yn1   yn2] iss | frac  ratio[hi lo]     | 1 2 3 4 5\n";
-			 "---------------|00 12341234/12341234  12341234 | 00000 00000 | 0[000 00000 00000] 0   | 00000 00000[0 00000]   | 
+			/"                Nr    pos / end       lpos     | voll  volr  curv  vold mix   | isl[pre yn1   yn2] iss | frac  ratio[hi lo]     | 1 2 3 4 5\n";
+			 "---------------|00 12341234/12341234  12341234 | 00000 00000 00000 0000 00000 | 0[000 00000 00000] 0   | 00000 00000[0 00000]   | 
 			*/
-			sprintf(buffer,"%c%i %08i/%08i  %08i | %05i %05i | %i[%03i %05i %05i] %i   | %05i %05i[%i %05i]   | %i %i %i %i %i",
+			sprintf(buffer,"%c%i %08i/%08i  %08i | %05i %05i %05i %04i %05i | %i[%03i %05i %05i] %i   | %05i %05i[%i %05i]   | %i %i %i %i %i",
 				223, i, gsamplePos[i], gsampleEnd[i], gloopPos[i],
-				gvolume_left[i], gvolume_right[i],
+				gvolume_left[i], gvolume_right[i], gcur_volume[i], gcur_volume_delta[i], gmixer_control[i],
 				glooping[i], gloop1[i], gloop2[i], gloop3[i], gis_stream[i],
 				gfrac[i], gratio[i], gratiohi[i], gratiolo[i],
 				gupdates1[i], gupdates2[i], gupdates3[i], gupdates4[i], gupdates5[i]

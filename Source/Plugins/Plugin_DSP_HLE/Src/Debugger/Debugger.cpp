@@ -198,7 +198,7 @@ SetTitle(wxT("Sound Debugging"));
 	m_RadioBox[1] = new wxRadioBox( this, IDC_RADIO1, wxT("Update freq."),
 		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[1], m_radioBoxChoices1, 1, wxRA_SPECIFY_COLS);
 
-	wxString m_radioBoxChoices2[] = { wxT("Preset 1"), wxT("Preset 2"), wxT("Preset 3") };
+	wxString m_radioBoxChoices2[] = { wxT("Preset 1"), wxT("Updates"), wxT("Looping"), wxT("Mixer") };
 	m_radioBoxNChoices[2] = sizeof( m_radioBoxChoices2 ) / sizeof( wxString );
 	m_RadioBox[2] = new wxRadioBox( this, IDC_RADIO2, wxT("Presets"),
 		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[2], m_radioBoxChoices2, 1, wxRA_SPECIFY_COLS);
@@ -346,7 +346,7 @@ void CDebugger::DoChangePreset()
 	}
 	else if(m_RadioBox[2]->GetSelection() == 3)
 	{
-		gPreset = 9;
+		gPreset = 3;
 	}
 }
 // ==============
