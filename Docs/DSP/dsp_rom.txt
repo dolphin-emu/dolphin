@@ -181,6 +181,7 @@
 
 
 // Large mixer function - called a lot by AX
+// Prolly simple Stereo Mixer
 80e7 8150      CLR.L	$AC0.M : $AX0.H, @$R00
 80e8 8949      CLR.L	$AC1.M : $AX1.L, @$R01
 80e9 b072      MULX.L	$AX0.H, $AX1.L : $AC0.M, @$R02
@@ -316,6 +317,8 @@
 816b 9909      ASR16.IR	$AC1.M : $R01
 816c 1b7f      SRRI	@$R03, $AC1.M
 816d 812b      CLR.S	$AC0.M : @$R03, $AC1.L
+
+
 816e 1c04      MRR	$R00, $R04
 816f 1c45      MRR	$R02, $R05
 8170 1c62      MRR	$R03, $R02

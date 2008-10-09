@@ -7,18 +7,17 @@
 //
 
 
-0x0000
-0x0140
-0x0280						// outbuffer left and right... each channel is 0x140 samples long
-0x0400
+0x0000						// RightBuffer
+0x0140						// LeftBuffer
+0x0280						
+0x0400						// Opcode_14() interleaves the buffer to this address
 0x0540
 0x0680
 0x07C0
 0x0900
 0x0A40
-0x0B80 to 0x0C40			CurrentPB
+0x0B80 to 0x0C40			// CurrentPB
 
-0x0B87
 
 // addresses to buffers
 0x0E08						// initialized to 0x0000
@@ -914,48 +913,59 @@ Main()
 //
 043b 8c00      CLR15	
 043c 8a00      M2	
-043d 8100      CLR	$30
-043e 8970      CLR.L	$31 : $30, @$0
-043f 191f      LRRI	$31, @$0
-0440 2ece      SRS	@DSMAH, $30
-0441 2fcf      SRS	@DSMAL, $31
-0442 16cd 0280 SI	@DSPA, #0x0280
-0444 16c9 0001 SI	@DSCR, #0x0001
-0446 16cb 0280 SI	@DSBL, #0x0280
-0448 8f50      S16.L	: $26, @$0
-0449 8140      CLR.L	$30 : $24, @$0
-044a 0081 0400 LRI	$1, #0x0400
-044c 0083 0000 LRI	$3, #0x0000
-044e 0082 0140 LRI	$2, #0x0140
-0450 0099 0080 LRI	$25, #0x0080
-0452 02bf 055c CALL	0x055c     // Wait for DMA control reg
-0454 1105 046c BLOOPI	#0x05, 0x046c
-0456 1f61      MRR	$27, $1
-0457 1120 045e BLOOPI	#0x20, 0x045e
-0459 8972      CLR.L	$31 : $30, @$2
-045a 195c      LRRI	$28, @$2
-045b f07b      LSL16.L	$30 : $31, @$3
-045c 197d      LRRI	$29, @$3
-045d f131      LSL16.S	$31 : @$1, $30
-045e 8139      CLR.S	$30 : @$1, $31
-045f 8900      CLR	$31
-0460 6800      MOVAX	$30, $24
-0461 2ece      SRS	@DSMAH, $30
-0462 2ccf      SRS	@DSMAL, $28
-0463 1ffb      MRR	$31, $27
-0464 2fcd      SRS	@DSPA, $31
-0465 0f01      LRIS	$31, #0x01
-0466 2fc9      SRS	@DSCR, $31
-0467 1ff9      MRR	$31, $25
-0468 2fcb      SRS	@DSBL, $31
-0469 7200      ADDAXL	$30, $25
-046a 1f5e      MRR	$26, $30
-046b 1f1c      MRR	$24, $28
-046c 8100      CLR	$30
+
+// send the 0x280 to 0x500 to CPU RAM
+	043d 8100      CLR	$30
+	043e 8970      CLR.L	$31 : $30, @$0
+	043f 191f      LRRI	$31, @$0
+	0440 2ece      SRS	@DSMAH, $30
+	0441 2fcf      SRS	@DSMAL, $31
+	0442 16cd 0280 SI	@DSPA, #0x0280
+	0444 16c9 0001 SI	@DSCR, #0x0001
+	0446 16cb 0280 SI	@DSBL, #0x0280
+	0448 8f50      S16.L	: $26, @$0
+	0449 8140      CLR.L	$30 : $24, @$0
+	044a 0081 0400 LRI	$1, #0x0400
+	044c 0083 0000 LRI	$3, #0x0000
+	044e 0082 0140 LRI	$2, #0x0140
+	0450 0099 0080 LRI	$25, #0x0080
+	0452 02bf 055c CALL	0x055c     // Wait for DMA control reg
+
+// interleave loop and DMA the buffer to CPU... call innerloop 5 times (5 * 32Byte)
+	0454 1105 046c BLOOPI	#0x05, 0x046c
+	0456 1f61      MRR	$27, $1
+
+	// interleave 32 shorts (from left and right buffer)
+		0457 1120 045e BLOOPI	#0x20, 0x045e
+		0459 8972      CLR.L	$31 : $30, @$2
+		045a 195c      LRRI	$28, @$2
+		045b f07b      LSL16.L	$30 : $31, @$3
+		045c 197d      LRRI	$29, @$3
+		045d f131      LSL16.S	$31 : @$1, $30
+		045e 8139      CLR.S	$30 : @$1, $31
+	// end: innerloop
+
+	045f 8900      CLR	$31
+	0460 6800      MOVAX	$30, $24
+	0461 2ece      SRS	@DSMAH, $30
+	0462 2ccf      SRS	@DSMAL, $28
+	0463 1ffb      MRR	$31, $27
+	0464 2fcd      SRS	@DSPA, $31
+	0465 0f01      LRIS	$31, #0x01
+	0466 2fc9      SRS	@DSCR, $31
+	0467 1ff9      MRR	$31, $25               // $25 is const 0x80
+	0468 2fcb      SRS	@DSBL, $31
+	0469 7200      ADDAXL	$30, $25
+	046a 1f5e      MRR	$26, $30
+	046b 1f1c      MRR	$24, $28
+	046c 8100      CLR	$30
+// end: outerloop    (strange because shouldnt we wait to the DMA transfer all the time??)
+
 046d 26c9      LRS	$30, @DSCR
 046e 02a0 0004 ANDCF	$30, #0x0004
-0470 029c 046d JZR	0x046d     // wait for DMA loop
-0472 029f 0068 JMP	0x0068     // Return to message loop.
+0470 029c 046d JZR	0x046d     				// wait for DMA loop
+
+0472 029f 0068 JMP	0x0068     				// Return to message loop.
 
 // Opcode_11() - not implemented
 0474 029f 0068 JMP	0x0068     // Return to message loop.
