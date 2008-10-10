@@ -77,7 +77,10 @@ CFilesystemViewer::CFilesystemViewer(const std::string fileName, wxWindow* paren
 		m_Country->SetValue(wxString::FromAscii("UNKNOWN"));
 		break;
 	}
-	m_MakerID->SetValue(wxString::Format(_T("0x%s"), OpenISO->GetMakerID().c_str()));
+	
+	wxString temp;
+	temp = _T("0x") + wxString::FromAscii(OpenISO->GetMakerID().c_str());
+	m_MakerID->SetValue(temp);
 	m_Date->SetValue(wxString(OpenISO->GetApploaderDate().c_str(), wxConvUTF8));
 	m_TOC->SetValue(wxString::Format(_T("%u"), OpenISO->GetFSTSize()));
 
@@ -125,7 +128,7 @@ void CFilesystemViewer::CreateDirectoryTree(wxTreeItemId& parent,
 			else
 				dirName++;
 
-			wxTreeItemId item = m_Treectrl->AppendItem(parent, wxT(dirName));
+			wxTreeItemId item = m_Treectrl->AppendItem(parent, wxString::FromAscii(dirName));
 			CreateDirectoryTree(item, begin, end, ++iterPos, name);
 		} else {
 			char *fileName = strrchr(name, '\\');
@@ -134,7 +137,7 @@ void CFilesystemViewer::CreateDirectoryTree(wxTreeItemId& parent,
 			else
 				fileName++;
 
-			m_Treectrl->AppendItem(parent, wxT(fileName));
+			m_Treectrl->AppendItem(parent, wxString::FromAscii(fileName));
 			++iterPos;
 		}
 
@@ -312,7 +315,7 @@ void CFilesystemViewer::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	{
 		wxString temp;
 		temp = m_Treectrl->GetItemText(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
-		File = wxString::Format("%s\\%s", temp, File);
+		File = temp + _T("\\") + File;
 
 		m_Treectrl->SelectItem(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
 	}

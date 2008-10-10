@@ -19,7 +19,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
-#include "Globals.h"
+#include "../Globals.h"
 #include "Debugger.h"
 #include "PBView.h"
 #include "IniFile.h"
@@ -269,8 +269,10 @@ void CDebugger::OnShow(wxShowEvent& /*event*/)
 	if(m_Check[2]->IsChecked())
 	{
 		OpenConsole();
+		#ifdef _WIN32
 		MoveWindow(GetConsoleHwnd(), 0,400, 1280,500, true); // move window, TODO: make this
 		// adjustable from the debugging window
+		#endif
 	}
 }
 
@@ -411,8 +413,10 @@ void CDebugger::DoShowHideConsole()
 	if(m_Check[2]->IsChecked())
 	{
 		OpenConsole();
+		#ifdef _WIN32
 		MoveWindow(GetConsoleHwnd(), 0,400, 1280,500, true); // move window, TODO: make this
 		// adjustable from the debugging window
+		#endif
 	}
 	else
 	{

@@ -24,6 +24,10 @@ files = [
 	'VertexShaderManager.cpp',
 	'XFB.cpp',
 	'GUI/ConfigDlg.cpp',
+	'Logging/Console.cpp',
+	'Logging/Logging.cpp',
+	'Debugger/Debugger.cpp',
+	'Debugger/PBView.cpp',
 	]
 compileFlags = [
 	'-fPIC',

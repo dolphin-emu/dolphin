@@ -19,7 +19,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
-#include "Globals.h"  // this is the precompiled header and must be the first ...
+#include "../Globals.h"  // this is the precompiled header and must be the first ...
 
 // ---------------------------------------------------------------------------------------
 // Includes

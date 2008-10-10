@@ -19,7 +19,7 @@
 // ---------------------------------------------------------------------------------------
 // includes
 // -----------------
-#include "Globals.h"
+#include "../Globals.h"
 #include "PBView.h"
 
 #include <iostream>

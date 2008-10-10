@@ -535,6 +535,7 @@ void OpenGL_Update()
     // We just check all of our events here
     XEvent event;
     KeySym key;
+    static RECT rcWindow;
     static bool ShiftPressed = false;
     static bool ControlPressed = false;
     static int FKeyPressed = -1;
@@ -580,6 +581,10 @@ void OpenGL_Update()
                              &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
                 nBackbufferWidth = GLWin.width;
                 nBackbufferHeight = GLWin.height;
+                rcWindow.left = 0;
+                rcWindow.top = 0;
+                rcWindow.right = GLWin.width;
+                rcWindow.bottom = GLWin.height;
                 break;
             case ClientMessage: //TODO: We aren't reading this correctly, It could be anything, highest change is that it's a close event though
                 Video_Shutdown(); // Calling from here since returning false does nothing

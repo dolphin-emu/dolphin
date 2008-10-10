@@ -23,7 +23,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-#include "Globals.h"
+#include "../Globals.h"
 
 
 // --------------------
@@ -147,6 +147,13 @@ void ClearScreen()
 		SetConsoleCursorPosition(hConsole, coordScreen); 
 	}
 #endif
+}
+
+void CloseConsole()
+{
+}
+void OpenConsole()
+{
 }
 
 #if defined(DEBUGG) && defined(_WIN32)
