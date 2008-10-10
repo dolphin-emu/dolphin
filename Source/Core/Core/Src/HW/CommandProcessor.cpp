@@ -276,7 +276,6 @@ void Write16(const u16 _Value, const u32 _Address)
 			//while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance > fifo.CPHiWatermark &&	!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
 				ct++;
 			if (ct) {LOG(COMMANDPROCESSOR, "(Write16): %lu cycles for nothing :[ ", ct);}
-			//fifo.bPauseRead = true;
 		}
 	#ifdef _WIN32
 		//EnterCriticalSection(&fifo.sync);

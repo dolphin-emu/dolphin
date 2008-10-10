@@ -189,7 +189,6 @@ bool FifoCommandRunnable(void)
 					"bFF_BPEnable: %s\n"
 					"bFF_GPLinkEnable: %s\n"
 					"bFF_Breakpoint: %s\n"
-					"bPauseRead: %s\n"				
 					,Cmd, fifo.CPBase, fifo.CPEnd, fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance
 					,fifo.CPWritePointer, fifo.CPReadPointer, fifo.CPBreakpoint, fifo.bFF_GPReadEnable ? "true" : "false"
 					,fifo.bFF_BPEnable ? "true" : "false" ,fifo.bFF_GPLinkEnable ? "true" : "false"
