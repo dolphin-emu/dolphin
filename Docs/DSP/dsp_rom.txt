@@ -16,13 +16,13 @@
 8010 02bf 8078 CALL	0x8078						// wait for CPU mailbox & 0x8000
 8012 009f 80f3 LRI	$AC1.M, #0x80f3
 8014 8200      CMP	
-8015 0295 801f JEQ	0x801f
+8015 0295 801f JEQ	0x801f  // skip below dsp mailbox write...
 8017 27ff      LRS	$AC1.M, @CMBL
-8018 16fc feee SI	@DMBH, #0xfeee
+8018 16fc feee SI	@DMBH, #0xfeee  // Write to dsp mailbox
 801a 2efd      SRS	@DMBL, $AC0.M
 801b 02bf 807e CALL	0x807e
 801d 029f 800e JMP	0x800e
-801f 26ff      LRS	$AC0.M, @CMBL
+801f 26ff      LRS	$AC0.M, @CMBLa   // ...and end up here (skip above)
 8020 009f a001 LRI	$AC1.M, #0xa001
 
 // if equal to a001 ...
