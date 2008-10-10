@@ -20,8 +20,8 @@
 
 
 // addresses to buffers
-0x0E08						// initialized to 0x0000
-0x0E09						// initialized to 0x0140
+0x0E08						// BufferLeft
+0x0E09						// BufferRight
 0x0E0A						// 
 0x0E0B
 0x0E0C
@@ -1658,10 +1658,10 @@ Main()
 
 0768 00c0 0e40 LR	$0, @0x0e40		// PB->PBInitialTimeDelay->offsetLeft
 076a 0081 0b89 LRI	$1, #0x0b89		// PB->Mixer... struct offset
-076c 00c2 0e08 LR	$2, @0x0e08		// Buffer1   (0x0000 all the time)
+076c 00c2 0e08 LR	$2, @0x0e08		// Buffer1   (0x0000 all the time - Left Channel)
 076e 1c62      MRR	$3, $2			// Buffer2
 076f 00c4 0e41 LR	$4, @0x0e41		// PB->PBInitialTimeDelay->offsetRight
-0771 00c5 0e09 LR	$5, @0x0e09		// Buffer3   (0x0140 all the time)
+0771 00c5 0e09 LR	$5, @0x0e09		// Buffer3   (0x0140 all the time - Right Channel)
 0773 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 0775 00f8 0ba9 SR	@0x0ba9, $24	// mixer return value1
 0777 00fb 0bac SR	@0x0bac, $27	// mixer return value2
@@ -1669,12 +1669,12 @@ Main()
 
 // fn1
 077a 00c0 0e40 LR	$0, @0x0e40
-077c 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings   // PB mixer settings
+077c 0081 0b89 LRI	$1, #0x0b89    	// PB mixer settings   // PB mixer settings
 077e 00c2 0e08 LR	$2, @0x0e08
 0780 1c62      MRR	$3, $2
 0781 00c4 0e41 LR	$4, @0x0e41
 0783 00c5 0e09 LR	$5, @0x0e09
-0785 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+0785 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 0787 00f8 0ba9 SR	@0x0ba9, $24
 0789 00fb 0bac SR	@0x0bac, $27
 078b 00c0 0e40 LR	$0, @0x0e40
@@ -1683,19 +1683,19 @@ Main()
 0791 1c62      MRR	$3, $2
 0792 00c4 0e41 LR	$4, @0x0e41
 0794 00c5 0e0c LR	$5, @0x0e0c
-0796 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+0796 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 0798 00f8 0baa SR	@0x0baa, $24
 079a 00fb 0bad SR	@0x0bad, $27
 079c 02df      RET	
 
 // fn2
 079d 00c0 0e40 LR	$0, @0x0e40
-079f 0081 0b89 LRI	$1, #0x0b89    // PB mixer settings   // PB mixer settings
+079f 0081 0b89 LRI	$1, #0x0b89    	// PB mixer settings  
 07a1 00c2 0e08 LR	$2, @0x0e08
 07a3 1c62      MRR	$3, $2
 07a4 00c4 0e41 LR	$4, @0x0e41
 07a6 00c5 0e09 LR	$5, @0x0e09
-07a8 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+07a8 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 07aa 00f8 0ba9 SR	@0x0ba9, $24
 07ac 00fb 0bac SR	@0x0bac, $27
 07ae 00c0 0e40 LR	$0, @0x0e40
@@ -1704,7 +1704,7 @@ Main()
 07b4 1c62      MRR	$3, $2
 07b5 00c4 0e41 LR	$4, @0x0e41
 07b7 00c5 0e0f LR	$5, @0x0e0f
-07b9 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+07b9 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 07bb 00f8 0bab SR	@0x0bab, $24
 07bd 00fb 0bae SR	@0x0bae, $27
 07bf 02df      RET	
@@ -1716,7 +1716,7 @@ Main()
 07c6 1c62      MRR	$3, $2
 07c7 00c4 0e41 LR	$4, @0x0e41
 07c9 00c5 0e09 LR	$5, @0x0e09
-07cb 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+07cb 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 07cd 00f8 0ba9 SR	@0x0ba9, $24
 07cf 00fb 0bac SR	@0x0bac, $27
 07d1 00c0 0e40 LR	$0, @0x0e40
@@ -1725,7 +1725,7 @@ Main()
 07d7 1c62      MRR	$3, $2
 07d8 00c4 0e41 LR	$4, @0x0e41
 07da 00c5 0e0c LR	$5, @0x0e0c
-07dc 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+07dc 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 07de 00f8 0baa SR	@0x0baa, $24
 07e0 00fb 0bad SR	@0x0bad, $27
 07e2 00c0 0e40 LR	$0, @0x0e40
@@ -1734,7 +1734,7 @@ Main()
 07e8 1c62      MRR	$3, $2
 07e9 00c4 0e41 LR	$4, @0x0e41
 07eb 00c5 0e0f LR	$5, @0x0e0f
-07ed 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+07ed 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 07ef 00f8 0bab SR	@0x0bab, $24
 07f1 00fb 0bae SR	@0x0bae, $27
 07f3 02df      RET	
@@ -1746,14 +1746,14 @@ Main()
 07fa 1c62      MRR	$3, $2
 07fb 00c4 0e41 LR	$4, @0x0e41
 07fd 00c5 0e09 LR	$5, @0x0e09
-07ff 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+07ff 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 0801 00f8 0ba9 SR	@0x0ba9, $24
 0803 00fb 0bac SR	@0x0bac, $27
 0805 00c0 0e43 LR	$0, @0x0e43
 0807 0081 0b97 LRI	$1, #0x0b97
 0809 00c2 0e0a LR	$2, @0x0e0a
 080b 1c62      MRR	$3, $2
-080c 02bf 81f9 CALL	0x81f9     // Call second ROM mixer function
+080c 02bf 81f9 CALL	0x81f9     		// Call second ROM mixer function
 080e 00f8 0baf SR	@0x0baf, $24
 0810 02df      RET	
 
@@ -1764,7 +1764,7 @@ Main()
 0817 1c62      MRR	$3, $2
 0818 00c4 0e41 LR	$4, @0x0e41
 081a 00c5 0e09 LR	$5, @0x0e09
-081c 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+081c 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 081e 00f8 0ba9 SR	@0x0ba9, $24
 0820 00fb 0bac SR	@0x0bac, $27
 0822 00c0 0e40 LR	$0, @0x0e40
@@ -1773,7 +1773,7 @@ Main()
 0828 1c62      MRR	$3, $2
 0829 00c4 0e41 LR	$4, @0x0e41
 082b 00c5 0e0c LR	$5, @0x0e0c
-082d 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+082d 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 082f 00f8 0baa SR	@0x0baa, $24
 0831 00fb 0bad SR	@0x0bad, $27
 0833 00c0 0e43 LR	$0, @0x0e43
@@ -1782,7 +1782,7 @@ Main()
 0839 1c62      MRR	$3, $2
 083a 1c80      MRR	$4, $0
 083b 00c5 0e0d LR	$5, @0x0e0d
-083d 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+083d 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 083f 00f8 0baf SR	@0x0baf, $24
 0841 00fb 0bb0 SR	@0x0bb0, $27
 0843 02df      RET
@@ -1795,7 +1795,7 @@ Main()
 084a 1c62      MRR	$3, $2
 084b 00c4 0e41 LR	$4, @0x0e41
 084d 00c5 0e09 LR	$5, @0x0e09
-084f 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+084f 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 0851 00f8 0ba9 SR	@0x0ba9, $24
 0853 00fb 0bac SR	@0x0bac, $27
 0855 00c0 0e40 LR	$0, @0x0e40
@@ -1804,7 +1804,7 @@ Main()
 085b 1c62      MRR	$3, $2
 085c 00c4 0e41 LR	$4, @0x0e41
 085e 00c5 0e0f LR	$5, @0x0e0f
-0860 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+0860 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 0862 00f8 0bab SR	@0x0bab, $24
 0864 00fb 0bae SR	@0x0bae, $27
 0866 00c0 0e43 LR	$0, @0x0e43
@@ -1813,7 +1813,7 @@ Main()
 086c 1c62      MRR	$3, $2
 086d 1c80      MRR	$4, $0
 086e 00c5 0e0a LR	$5, @0x0e0a
-0870 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+0870 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 0872 00f8 0bb1 SR	@0x0bb1, $24
 0874 00fb 0baf SR	@0x0baf, $27
 0876 02df      RET	
@@ -1826,7 +1826,7 @@ Main()
 087d 1c62      MRR	$3, $2
 087e 00c4 0e41 LR	$4, @0x0e41
 0880 00c5 0e09 LR	$5, @0x0e09
-0882 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+0882 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 0884 00f8 0ba9 SR	@0x0ba9, $24
 0886 00fb 0bac SR	@0x0bac, $27
 0888 00c0 0e40 LR	$0, @0x0e40
@@ -1835,7 +1835,7 @@ Main()
 088e 1c62      MRR	$3, $2
 088f 00c4 0e41 LR	$4, @0x0e41
 0891 00c5 0e0c LR	$5, @0x0e0c
-0893 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+0893 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 0895 00f8 0baa SR	@0x0baa, $24
 0897 00fb 0bad SR	@0x0bad, $27
 0899 00c0 0e40 LR	$0, @0x0e40
@@ -1844,7 +1844,7 @@ Main()
 089f 1c62      MRR	$3, $2
 08a0 00c4 0e41 LR	$4, @0x0e41
 08a2 00c5 0e0f LR	$5, @0x0e0f
-08a4 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+08a4 02bf 80e7 CALL	0x80e7    		// Call ROM mixer function
 08a6 00f8 0bab SR	@0x0bab, $24
 08a8 00fb 0bae SR	@0x0bae, $27
 08aa 00c0 0e43 LR	$0, @0x0e43
@@ -1853,7 +1853,7 @@ Main()
 08b0 1c62      MRR	$3, $2
 08b1 1c80      MRR	$4, $0
 08b2 00c5 0e0d LR	$5, @0x0e0d
-08b4 02bf 80e7 CALL	0x80e7     // Call ROM mixer function
+08b4 02bf 80e7 CALL	0x80e7     		// Call ROM mixer function
 08b6 00f8 0baf SR	@0x0baf, $24
 08b8 00fb 0bb0 SR	@0x0bb0, $27
 08ba 00c0 0e43 LR	$0, @0x0e43
