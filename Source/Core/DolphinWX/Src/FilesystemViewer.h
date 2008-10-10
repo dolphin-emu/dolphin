@@ -26,6 +26,8 @@
 #include <wx/gbsizer.h>
 #include <string>
 
+#include "Filesystem.h"
+
 #undef FILESYSTEM_VIEWER_STYLE
 #define FILESYSTEM_VIEWER_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX
 
@@ -132,6 +134,11 @@ class CFilesystemViewer : public wxDialog
 		void OnExtractFile(wxCommandEvent& event);
 		void OnReplaceFile(wxCommandEvent& event);
 		void OnRenameFile(wxCommandEvent& event);
+
+		typedef std::vector<const DiscIO::SFileInfo *>::iterator fileIter;
+
+		void CreateDirectoryTree(wxTreeItemId& parent,fileIter& begin,
+								 fileIter& iterPos, char *directory);
 };
 
 #endif

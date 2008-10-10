@@ -51,14 +51,11 @@ CFilesystemViewer::CFilesystemViewer(const std::string fileName, wxWindow* paren
 	CreateGUIControls();
 
 	// shuffle2: things only appear in the tree for me when using debug build; why? :<
-	// TODO: make proper looking dirs
 	wxTreeItemId dirId = NULL;
-	for(u32 a = 1; a < Our_Files.size(); ++a)
-	{
-		m_Treectrl->AppendItem(RootId, wxString::Format(_T("%s"), Our_Files[a]->m_FullPath));
+	fileIter beginning = Our_Files.begin(), pos = Our_Files.begin();
 
-		//if(Our_Files[a]->IsDirectory())
-	}
+	CreateDirectoryTree(RootId, beginning, pos, "\\");
+
 	m_Treectrl->Expand(RootId);
 
 	// Disk header and apploader
@@ -97,6 +94,40 @@ CFilesystemViewer::~CFilesystemViewer()
 {
 	delete pFileSystem;
 	delete OpenISO;
+}
+
+void CFilesystemViewer::CreateDirectoryTree(wxTreeItemId& parent, 
+											fileIter& begin,
+											fileIter& iterPos,
+											char *directory)
+{
+	//TODO(XK): Fix more than one folder/file not appearing in the root
+	if(iterPos == begin)
+	 	++iterPos;
+
+	char *name = (char *)((*iterPos)->m_FullPath);
+
+	do
+	{
+		if((*iterPos)->IsDirectory()) {
+			char *dirName;
+			name[strlen(name) - 1] = '\0';
+			dirName = strrchr(name, '\\');
+			if(!dirName)
+				dirName = name;
+			else
+				dirName++;
+			//filename = strrchr(name, '\\'); ++filename;
+			wxTreeItemId item = m_Treectrl->AppendItem(parent, wxT(dirName));
+			CreateDirectoryTree(item, begin, ++iterPos, name);
+		} else {
+
+		//filename = strrchr(name, '\\'); ++filename;
+			m_Treectrl->AppendItem(parent, wxT(strrchr(name, '\\') + 1));
+		}
+		++iterPos;
+		name = (char *)((*iterPos)->m_FullPath);
+	} while(strstr(name, directory));
 }
 
 void CFilesystemViewer::CreateGUIControls()
