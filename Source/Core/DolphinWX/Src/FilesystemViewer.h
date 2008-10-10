@@ -138,6 +138,7 @@ class CFilesystemViewer : public wxDialog
 		typedef std::vector<const DiscIO::SFileInfo *>::iterator fileIter;
 
 		void CreateDirectoryTree(wxTreeItemId& parent,fileIter& begin,
+								 fileIter& end,
 								 fileIter& iterPos, char *directory);
 };
 
