@@ -50,7 +50,6 @@ CFilesystemViewer::CFilesystemViewer(const std::string fileName, wxWindow* paren
 
 	CreateGUIControls();
 
-	// shuffle2: things only appear in the tree for me when using debug build; why? :<
 	wxTreeItemId dirId = NULL;
 	fileIter beginning = Our_Files.begin(), end = Our_Files.end(), 
 		     pos = Our_Files.begin();
@@ -104,7 +103,7 @@ void CFilesystemViewer::CreateDirectoryTree(wxTreeItemId& parent,
 											char *directory)
 {
 	bool bRoot = true;
-	//TODO(XK): Fix more than one folder/file not appearing in the root
+
 	if(iterPos == begin)
 	 	++iterPos;
 	else
@@ -168,7 +167,7 @@ void CFilesystemViewer::CreateGUIControls()
 	m_TOC = new wxTextCtrl(this, ID_TOC, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 
 	sISODetails->Add(m_NameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sISODetails->Add(m_Name, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_Name, wxGBPosition(0, 1), wxGBSpan(1, 25), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_SerialText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_Serial, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_CountryText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
@@ -180,7 +179,7 @@ void CFilesystemViewer::CreateGUIControls()
 	sISODetails->Add(m_TOCText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_TOC, wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 
-	sbISODetails->Add(sISODetails, 0, wxEXPAND, 5);
+	sbISODetails->Add(sISODetails, 0, wxEXPAND, 0);
 
 	// Banner Details
 	wxArrayString arrayStringFor_Lang;
