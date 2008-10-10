@@ -153,6 +153,7 @@ void CFilesystemViewer::CreateGUIControls()
 	// ISO Details
 	sbISODetails = new wxStaticBoxSizer(wxVERTICAL, this, wxT("ISO Details:"));
 	sISODetails = new wxGridBagSizer(0, 0);
+	sISODetails->AddGrowableCol(1);
 	m_NameText = new wxStaticText(this, ID_NAME_TEXT, wxT("Name:"), wxDefaultPosition, wxDefaultSize);
 	m_Name = new wxTextCtrl(this, ID_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	m_SerialText = new wxStaticText(this, ID_SERIAL_TEXT, wxT("Serial:"), wxDefaultPosition, wxDefaultSize);
@@ -167,7 +168,7 @@ void CFilesystemViewer::CreateGUIControls()
 	m_TOC = new wxTextCtrl(this, ID_TOC, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 
 	sISODetails->Add(m_NameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sISODetails->Add(m_Name, wxGBPosition(0, 1), wxGBSpan(1, 25), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_Name, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_SerialText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_Serial, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_CountryText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
@@ -179,7 +180,7 @@ void CFilesystemViewer::CreateGUIControls()
 	sISODetails->Add(m_TOCText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_TOC, wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 
-	sbISODetails->Add(sISODetails, 0, wxEXPAND, 0);
+	sbISODetails->Add(sISODetails, 0, wxEXPAND, 5);
 
 	// Banner Details
 	wxArrayString arrayStringFor_Lang;
@@ -265,6 +266,8 @@ void CFilesystemViewer::OnRightClick(wxMouseEvent& WXUNUSED (event))
 
 void CFilesystemViewer::OnRightClickOnTree(wxTreeEvent& event)
 {
+	m_Treectrl->SelectItem(event.GetItem());
+
 	wxMenu popupMenu;
 	popupMenu.Append(IDM_EXTRACTFILE, wxString::FromAscii("Extract File..."));
 	popupMenu.Append(IDM_REPLACEFILE, wxString::FromAscii("Replace File..."));
@@ -288,9 +291,12 @@ void CFilesystemViewer::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 {
 	wxString Path;
 	wxString File;
+
+	File = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
+	
 	Path = wxFileSelector(
 		_T("Export File"),
-		wxEmptyString, wxEmptyString, wxEmptyString,
+		wxEmptyString, File, wxEmptyString,
 		wxString::Format
 		(
 		_T("All files (%s)|%s"),
@@ -298,19 +304,28 @@ void CFilesystemViewer::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 		),
 		wxFD_SAVE,
 		this);
-		
-	File = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
+
 	if (!Path || !File)
 		return;
+
+	while (m_Treectrl->GetItemParent(m_Treectrl->GetSelection()) != m_Treectrl->GetRootItem())
+	{
+		wxString temp;
+		temp = m_Treectrl->GetItemText(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
+		File = wxString::Format("%s\\%s", temp, File);
+
+		m_Treectrl->SelectItem(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
+	}
+
 	pFileSystem->ExportFile(File.mb_str(), Path.mb_str());
 }
 
 void CFilesystemViewer::OnReplaceFile(wxCommandEvent& WXUNUSED (event))
 {
-
+	wxMessageBox(_T("Not implemented yet."), _T("Sorry"), wxOK, this);
 }
 
 void CFilesystemViewer::OnRenameFile(wxCommandEvent& WXUNUSED (event))
 {
-
+	wxMessageBox(_T("Not implemented yet."), _T("Sorry"), wxOK, this);
 }
