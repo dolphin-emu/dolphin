@@ -26,7 +26,7 @@ void Decode(uint16 startAddress, uint16 endAddress)
 		uint16 oldPC = g_currentAddress;
 		uint16 op = FetchOpcode();
 		
-		OutBuffer::Add("l_%4X:", oldPC);
+		OutBuffer::Add("// l_%4X:", oldPC);
 		DecodeOpcode(op);
 	}
 }
