@@ -62,7 +62,7 @@ private:
 	bool AXTask(u32& _uMail);
 
 	void SendMail(u32 _uMail);
-	int ReadOutPBs(AXParamBlock *_pPBs, int _num);
+	int ReadOutPBs(int a, AXParamBlock *_pPBs, int _num);
 	void WriteBackPBs(AXParamBlock *_pPBs, int _num);
 	s16 ADPCM_Step(AXParamBlock& pb, u32& samplePos, u32 newSamplePos, u16 frac);
 };

@@ -171,7 +171,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 	memset(temprbuffer, 0, _iSize * sizeof(int));
 
 	// read out pbs
-	int numberOfPBs = ReadOutPBs(PBs, NUMBER_OF_PBS);
+	int numberOfPBs = ReadOutPBs(1, PBs, NUMBER_OF_PBS);
 
 #ifdef _WIN32
 	ratioFactor = 32000.0f / (float)DSound::DSound_GetSampleRate();
@@ -694,7 +694,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 	return true;
 }
 
-int CUCode_AX::ReadOutPBs(AXParamBlock* _pPBs, int _num)
+int CUCode_AX::ReadOutPBs(int a, AXParamBlock* _pPBs, int _num)
 {
 	int count = 0;
 	u32 blockAddr = m_addressPBs;
@@ -719,19 +719,22 @@ int CUCode_AX::ReadOutPBs(AXParamBlock* _pPBs, int _num)
 			// ---------------------------------------------------------------------------------------
 			// Make the updates we are told to do
 			// ------------
-			u16 upd_hi = pDest[39];
-			u16	upd_lo = pDest[40];
-			const u32 updaddr   = (u32)(upd_hi << 16) | upd_lo;
-			const u16 updpar   = Memory_Read_U16(updaddr);
-			const u16 upddata   = Memory_Read_U16(updaddr + 2);
-			// some safety checks, I hope it's enough, how long does the memory go?
-			if(updaddr > 0x80000000 && updaddr < 0x82000000
-				&& updpar < 63 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
-				// 0-3, those are important
-				&& gSequenced) // on and off option
+			if(a) // only do this once every 5 ms
 			{
-				pDest[updpar] = upddata;
-			}			
+				u16 upd_hi = pDest[39];
+				u16	upd_lo = pDest[40];
+				const u32 updaddr   = (u32)(upd_hi << 16) | upd_lo;
+				const u16 updpar   = Memory_Read_U16(updaddr);
+				const u16 upddata   = Memory_Read_U16(updaddr + 2);
+				// some safety checks, I hope it's enough, how long does the memory go?
+				if(updaddr > 0x80000000 && updaddr < 0x82000000
+					&& updpar < 63 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
+					// 0-3, those are important
+					&& gSequenced) // on and off option
+				{
+					pDest[updpar] = upddata;
+				}
+			}
 			//aprintf(1, "%08x %04x %04x\n", updaddr, updpar, upddata);
 			// ------------
 

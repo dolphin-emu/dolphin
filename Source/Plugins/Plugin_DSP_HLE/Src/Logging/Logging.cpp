@@ -263,7 +263,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 {
 
 	AXParamBlock PBs[NUMBER_OF_PBS];
-	int numberOfPBs = ReadOutPBs(PBs, NUMBER_OF_PBS);
+	int numberOfPBs = ReadOutPBs(0, PBs, NUMBER_OF_PBS);
 
 
 	// =======================================================================================
