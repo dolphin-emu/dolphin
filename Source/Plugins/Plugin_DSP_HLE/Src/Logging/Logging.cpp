@@ -53,6 +53,7 @@ extern bool gSSBM;
 extern bool gSSBMremedy1;
 extern bool gSSBMremedy2;
 extern bool gSequenced;
+extern bool gVolume;
 extern bool gReset;
 bool gOnlyLooping = false;
 extern int gSaveFile;
@@ -380,6 +381,12 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 				std::string sfbuff;
 				if(a == 0) sfbuff = "***"; // note if it's before or after an update
 					else sfbuff = "   ";
+
+				// write running
+				char cbuf[10];
+				sprintf(cbuf, "%i", PBs[i].running);
+				sfbuff = sfbuff + cbuf;
+
 				sfbuff = sfbuff + writeMessage(ii, i);
 				sfbuff = sfbuff + "\n";
 				aprintf(ii, (char *)sfbuff.c_str());
@@ -396,7 +403,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 	if(a == 0) j++;
 	//if(l == pow((double)2,32)) l=0; // reset l
 	//l++;
-	if (j > (200/gUpdFreq))
+	if (gUpdFreq > 0 && j > (200/gUpdFreq))
 	{
 
 		// =======================================================================================
@@ -603,8 +610,8 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		// =======================================================================================
 		// Write settings
 		// ---------------
-		sprintf(buffer, "\nSettings: SSBM fix %i | SSBM rem1 %i | SSBM rem2 %i | Sequenced %i | Reset %i | Only looping %i | Save file %i\n",
-			gSSBM, gSSBMremedy1, gSSBMremedy2, gSequenced, gReset, gOnlyLooping, gSaveFile);
+		sprintf(buffer, "\nSettings: SSBM fix %i | SSBM rem1 %i | SSBM rem2 %i\nSequenced %i | Volume %i | Reset %i | Only looping %i | Save file %i\n",
+			gSSBM, gSSBMremedy1, gSSBMremedy2, gSequenced, gVolume, gReset, gOnlyLooping, gSaveFile);
 		sbuff = sbuff + buffer; strcpy(buffer, "");
 		// ===============
 

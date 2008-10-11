@@ -33,6 +33,7 @@ extern bool gSSBM;
 extern bool gSSBMremedy1;
 extern bool gSSBMremedy2;
 extern bool gSequenced;
+extern bool gVolume;
 extern bool gOnlyLooping;
 
 // =======================================================================================
@@ -47,6 +48,7 @@ BEGIN_EVENT_TABLE(CDebugger,wxDialog)
 	EVT_CHECKBOX(IDC_CHECK4,CDebugger::SSBMremedy1)
 	EVT_CHECKBOX(IDC_CHECK5,CDebugger::SSBMremedy2)
 	EVT_CHECKBOX(IDC_CHECK8,CDebugger::Sequenced)
+	EVT_CHECKBOX(IDC_CHECK9,CDebugger::Volume)
 	EVT_CHECKBOX(IDC_CHECK6,CDebugger::Reset)
 	EVT_CHECKBOX(IDC_CHECK7,CDebugger::OnlyLooping)
 
@@ -80,10 +82,16 @@ CDebugger::~CDebugger()
 
 void CDebugger::Save(IniFile& _IniFile) const
 {
-	_IniFile.Set("SoundWindow", "x", GetPosition().x);
-	_IniFile.Set("SoundWindow", "y", GetPosition().y);
-	_IniFile.Set("SoundWindow", "w", GetSize().GetWidth());
-	_IniFile.Set("SoundWindow", "h", GetSize().GetHeight());
+	// TODO2: get the screen resolution and make limits from that
+	if(GetPosition().x < 1000 && GetPosition().y < 1000
+		&& GetSize().GetWidth() < 1000 && GetSize().GetHeight() < 1000
+		)
+	{
+		_IniFile.Set("SoundWindow", "x", GetPosition().x);
+		_IniFile.Set("SoundWindow", "y", GetPosition().y);
+		_IniFile.Set("SoundWindow", "w", GetSize().GetWidth());
+		_IniFile.Set("SoundWindow", "h", GetSize().GetHeight());
+	}
 	_IniFile.Set("SoundWindow", "Console", m_Check[2]->IsChecked()); // save settings
 	_IniFile.Set("SoundWindow", "UpdateFrequency", m_RadioBox[1]->GetSelection());
 }
@@ -171,6 +179,9 @@ SetTitle(wxT("Sound Debugging"));
 	m_Check[8] = new wxCheckBox(this, IDC_CHECK8, wxT("Sequenced"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		m_Check[8]->SetValue(gSequenced);
+	m_Check[9] = new wxCheckBox(this, IDC_CHECK9, wxT("Volume delta"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_Check[9]->SetValue(gVolume);
 	m_Check[6] = new wxCheckBox(this, IDC_CHECK6, wxT("Reset all"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		m_Check[6]->SetValue(gReset);
@@ -179,6 +190,7 @@ SetTitle(wxT("Sound Debugging"));
 	m_checkSizer2->Add(m_Check[4], 0, 0, 5);
 	m_checkSizer2->Add(m_Check[5], 0, 0, 5);
 	m_checkSizer2->Add(m_Check[8], 0, 0, 5);
+	m_checkSizer2->Add(m_Check[9], 0, 0, 5);
 	m_checkSizer2->Add(m_Check[6], 0, 0, 5);
 	// ------------------------
 
@@ -192,7 +204,7 @@ SetTitle(wxT("Sound Debugging"));
 		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[0], m_radioBoxChoices0, 1, wxRA_SPECIFY_COLS);
 	m_RadioBox[0]->Enable(false);
 
-	wxString m_radioBoxChoices1[] = { wxT("5 times/s"), wxT("15 times/s"), wxT("30 times/s") };
+	wxString m_radioBoxChoices1[] = { wxT("Never"), wxT("5 times/s"), wxT("15 times/s"), wxT("30 times/s") };
 	m_radioBoxNChoices[1] = sizeof( m_radioBoxChoices1 ) / sizeof( wxString );
 	m_RadioBox[1] = new wxRadioBox( this, IDC_RADIO1, wxT("Update freq."),
 		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[1], m_radioBoxChoices1, 1, wxRA_SPECIFY_COLS);
@@ -317,6 +329,13 @@ void CDebugger::Sequenced(wxCommandEvent& event)
 	else
 		{gSequenced = false;}
 }
+void CDebugger::Volume(wxCommandEvent& event)
+{
+	if(m_Check[9]->IsChecked() == 1)
+		{gVolume = true;}
+	else
+		{gVolume = false;}
+}
 void CDebugger::Reset(wxCommandEvent& event)
 {
 	if(m_Check[6]->IsChecked() == 1)
@@ -369,9 +388,13 @@ void CDebugger::DoChangeFrequency()
 {
 	if(m_RadioBox[1]->GetSelection() == 0)
 	{
-		gUpdFreq = 5;
+		gUpdFreq = 0;
 	}
 	else if(m_RadioBox[1]->GetSelection() == 1)
+	{
+		gUpdFreq = 5;
+	}
+	else if(m_RadioBox[1]->GetSelection() == 2)
 	{
 		gUpdFreq = 15;
 	}

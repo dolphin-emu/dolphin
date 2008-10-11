@@ -129,7 +129,7 @@ void OpenConsole()
 	#if defined (_WIN32)
 		startConsoleWin(155, 100, "Sound Debugging"); // give room for 100 rows
 		wprintf("OpenConsole > Console opened\n");
-		MoveWindow(GetConsoleHwnd(), 0,400, 1280,500, true); // move window, TODO: make this
+		MoveWindow(GetConsoleHwnd(), 0,450, 1280,500, true); // move window, TODO: make this
 			// adjustable from the debugging window
 	#endif
 }

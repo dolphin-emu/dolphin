@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "../Debugger/Debugger.h"
+#include "../Logging/Console.h" // for aprintf
 
 #ifdef _WIN32
 #include "../PCHW/DSoundStream.h"
@@ -37,6 +38,7 @@ bool gSSBM = true; // used externally
 bool gSSBMremedy1 = true; // used externally
 bool gSSBMremedy2 = true; // used externally
 bool gSequenced = true; // used externally
+bool gVolume= true; // used externally
 bool gReset = false; // used externally
 extern CDebugger* m_frame;
 // -----------
@@ -142,11 +144,16 @@ u16 ADPCM_Vol(u16 vol, u16 delta, u16 mixer_control)
 	else if (delta && delta > 0x4000)
 		//x -= (0x8000 - pb.mixer.unknown); // this didn't work
 		x--;
-	if (x < 0) x = 0; // make limits
+
+	 // make lower limits
+	if (x < 0) x = 0;
 	// does this make any sense?
 	//if (pb.mixer_control < 1000 && x < pb.mixer_control) x = pb.mixer_control;
-	//if (x >= 0x7fff) xl = 0x7fff; // this seems to high
-	if (mixer_control > 1000 && x > mixer_control) x = mixer_control;	
+
+	// make upper limits
+	if (mixer_control > 1000 && x > mixer_control) x = mixer_control; // I don't know if this is correct
+	//if (x >= 0x7fff) x = 0x7fff; // this seems a little high
+	if (x >= 0x4e20) x = 0x4e20; // add a definitive limit at 20 000
 	return x; // update volume
 }
 
@@ -162,8 +169,10 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 	memset(templbuffer, 0, _iSize * sizeof(int));
 	memset(temprbuffer, 0, _iSize * sizeof(int));
+
 	// read out pbs
 	int numberOfPBs = ReadOutPBs(PBs, NUMBER_OF_PBS);
+
 #ifdef _WIN32
 	ratioFactor = 32000.0f / (float)DSound::DSound_GetSampleRate();
 #else
@@ -185,7 +194,8 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
 		const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
 		const u32 updaddr   = (u32)(pb.updates.data_hi << 16) | pb.updates.data_lo;
-		const u32 upddata   = Memory_Read_U32(updaddr);
+		const u16 updpar   = Memory_Read_U16(updaddr);
+		const u16 upddata   = Memory_Read_U16(updaddr + 2);
 
 
 		// =======================================================================================
@@ -234,7 +244,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		&& !(pb.updates.num_updates[0] || pb.updates.num_updates[1] || pb.updates.num_updates[2]
 			|| pb.updates.num_updates[3] || pb.updates.num_updates[4])
 		*/	
-		&& !upddata
+		&& !(updpar || upddata)
 	
 		&& pb.mixer_control == 0 // only use this in SSBM
 
@@ -254,37 +264,6 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			//pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
 		}
 		
-		// =============
-
-
-		// =======================================================================================
-		/*
-		Sequenced music fix - Because SSBM type music and other (for example Battle Stadium DON) looping
-		blocks did no have its pred_scale (or any other parameter except running) turned off after a song
-		was stopped a pred_scale check here had the effect of turning those blocks on immediately after
-		the stopped. One way to easily test this is to start a game in BS DON, wait for the Fight message
-		so that the loops begin, and then exit the game and you can see that the sound effects will
-		continue to play in the menus. That's not good. Because the pred_scale check caused these effects
-		I'm trying an update data check instead, it relieas on the assumption that all games that don't
-		use sequencing have blank memory at the update address so that upddata = 0 in those cases. That
-		turned out to now hold, many games that don't use sequencing still had update_addr pointing to
-		some memory location with data, either inside the parameter block space or close before or after
-		it.
-		*/
-		// ------------
-		//if (!pb.running && pb.adpcm_loop_info.pred_scale)	
-		//if (!pb.running && pb.audio_addr.looping)		
-		if (!pb.running && upddata)
-		/*
-		if (!pb.running && 
-			(pb.updates.num_updates[0] || pb.updates.num_updates[1] || pb.updates.num_updates[2]
-			|| pb.updates.num_updates[3] || pb.updates.num_updates[4])			
-			&& gSequenced
-			)
-		*/
-		{
-			pb.running = 1;
-		}
 		// =============
 
 
@@ -431,8 +410,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 					if (x >= 0x7fff) x = 0x7fff;
 					pb.vol_env.cur_volume = x; // maybe not per sample?? :P
 
-					// strange way to not use this in Skies where it didn't work well
-					if(pb.mixer_control != 9 && pb.mixer_control != 123)
+					if(gVolume) // allow us to turn this off in the debugger
 					{
 						pb.mixer.volume_left = ADPCM_Vol(pb.mixer.volume_left, pb.mixer.unknown, pb.mixer_control);
 						pb.mixer.volume_right = ADPCM_Vol(pb.mixer.volume_right, pb.mixer.unknown2, pb.mixer_control);
@@ -738,6 +716,25 @@ int CUCode_AX::ReadOutPBs(AXParamBlock* _pPBs, int _num)
 					gLastBlock = blockAddr + p*2 + 2;  // save last block location
 				#endif
 			}
+			// ---------------------------------------------------------------------------------------
+			// Make the updates we are told to do
+			// ------------
+			u16 upd_hi = pDest[39];
+			u16	upd_lo = pDest[40];
+			const u32 updaddr   = (u32)(upd_hi << 16) | upd_lo;
+			const u16 updpar   = Memory_Read_U16(updaddr);
+			const u16 upddata   = Memory_Read_U16(updaddr + 2);
+			// some safety checks, I hope it's enough, how long does the memory go?
+			if(updaddr > 0x80000000 && updaddr < 0x82000000
+				&& updpar < 63 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
+				// 0-3, those are important
+				&& gSequenced) // on and off option
+			{
+				pDest[updpar] = upddata;
+			}			
+			//aprintf(1, "%08x %04x %04x\n", updaddr, updpar, upddata);
+			// ------------
+
 			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
 			count++;			
 		}

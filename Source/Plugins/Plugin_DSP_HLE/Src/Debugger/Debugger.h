@@ -81,7 +81,8 @@ class CDebugger : public wxDialog
 		void SSBMremedy1(wxCommandEvent& event);
 		void SSBMremedy2(wxCommandEvent& event);
 		void BSDON(wxCommandEvent& event);		
-		void Sequenced(wxCommandEvent& event);		
+		void Sequenced(wxCommandEvent& event);
+		void Volume(wxCommandEvent& event);
 		void Reset(wxCommandEvent& event);	
 		void OnlyLooping(wxCommandEvent& event);		
 
@@ -91,7 +92,7 @@ class CDebugger : public wxDialog
 	private:
 
 		// declarations
-		wxCheckBox *m_Check[6];
+		wxCheckBox *m_Check[9];
 		wxRadioButton *m_Radio[5];
 		wxRadioBox *m_RadioBox[3];
 		wxStaticBox *m_Label[1];
@@ -109,6 +110,7 @@ class CDebugger : public wxDialog
 			IDC_CHECK6,
 			IDC_CHECK7,
 			IDC_CHECK8,
+			IDC_CHECK9,
 			IDC_RADIO0,
 			IDC_RADIO1,
 			IDC_RADIO2,
