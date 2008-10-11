@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_DSP_HLE"
 	ProjectGUID="{D6E56527-BBB9-4EAD-A6EC-49D4BF6AFCD8}"
 	RootNamespace="Plugin_DSP"

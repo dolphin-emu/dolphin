@@ -403,28 +403,28 @@ void dsp_opc_lrr(uint16 opc)
 
 void dsp_opc_srr(uint16 opc)
 {
-	uint8 sreg = (opc >> 5) & 0x3;
-	uint8 dreg = opc & 0x1f;
+	uint8 dreg = (opc >> 5) & 0x3;
+	uint8 sreg = opc & 0x1f;
 
-	uint16 val = dsp_op_read_reg(dreg);
-	dsp_dmem_write(g_dsp.r[sreg], val);
+	uint16 val = dsp_op_read_reg(sreg);
+	dsp_dmem_write(g_dsp.r[dreg], val);
 
-	// post processing of source reg
+	// post processing of dest reg
 	switch ((opc >> 7) & 0x3)
 	{
 	    case 0x0: // SRR
 		    break;
 
 	    case 0x1: // SRRD
-		    g_dsp.r[sreg]--;
+		    g_dsp.r[dreg]--;
 		    break;
 
 	    case 0x2: // SRRI
-		    g_dsp.r[sreg]++;
+		    g_dsp.r[dreg]++;
 		    break;
 
 	    case 0x3: // SRRX
-		    g_dsp.r[sreg] += g_dsp.r[sreg + 4];
+		    g_dsp.r[dreg] += g_dsp.r[dreg + 4];
 		    break;
 	}
 }
@@ -530,7 +530,14 @@ void dsp_opc_clrp(uint16 opc)
 // NEW
 void dsp_opc_mulc(uint16 opc)
 {
-	ErrorLog("dsp_opc_mulc ni");
+	// math new prod
+	uint8 sreg = (opc >> 11) & 0x1;
+	uint8 treg = (opc >> 12) & 0x1;
+
+	sint64 prod = dsp_get_acc_m(sreg) * dsp_get_ax_h(treg) * GetMultiplyModifier();
+	dsp_set_long_prod(prod);
+
+	Update_SR_Register(prod);
 }
 
 
@@ -1023,6 +1030,17 @@ void dsp_opc_subr(uint16 opc)
 	Update_SR_Register(acc);
 }
 
+// NEW
+void dsp_opc_subax(uint16 opc)
+{
+	int regD = (opc >> 8) & 0x1;
+	int regT = (opc >> 9) & 0x1;
+
+	sint64 Acc = dsp_get_long_acc(regD) - dsp_get_long_acx(regT);
+
+	dsp_set_long_acc(regD, Acc);
+	Update_SR_Register(Acc);
+}
 
 void dsp_opc_addis(uint16 opc)
 {
@@ -1248,12 +1266,24 @@ void dsp_opc_mul(uint16 opc)
 	sint64 prod = (sint64)dsp_get_ax_h(sreg) * (sint64)dsp_get_ax_l(sreg) * GetMultiplyModifier();
 
 	dsp_set_long_prod(prod);
+
+	Update_SR_Register(prod);
 }
 
-
+// NEW
 void dsp_opc_mulac(uint16 opc)
 {
-	ErrorLog("Not implemented dsp_opc_mulac() (pc:0x%04x)\n", g_dsp.err_pc);
+	// add old prod to acc
+	uint8 rreg = (opc >> 8) & 0x1;
+	sint64 acR = dsp_get_long_acc(rreg) + dsp_get_long_prod();
+	dsp_set_long_acc(rreg, acR);
+
+	// math new prod
+	uint8 sreg = (opc >> 11) & 0x1;
+	sint64 prod = dsp_get_ax_l(sreg) * dsp_get_ax_h(sreg) * GetMultiplyModifier();
+	dsp_set_long_prod(prod);
+
+	Update_SR_Register(prod);
 }
 
 
@@ -1272,6 +1302,8 @@ void dsp_opc_mulmv(uint16 opc)
 	prod = val1 * val2 * GetMultiplyModifier();
 
 	dsp_set_long_prod(prod);
+
+	Update_SR_Register(prod);
 }
 
 
@@ -1289,6 +1321,8 @@ void dsp_opc_mulmvz(uint16 opc)
 	// math prod
 	prod = (sint64)g_dsp.r[0x18 + sreg] * (sint64)g_dsp.r[0x1a + sreg] * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
+
+	Update_SR_Register(prod);
 }
 
 
@@ -1303,6 +1337,8 @@ void dsp_opc_mulx(uint16 opc)
 
 	sint64 prod = val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
+
+	Update_SR_Register(prod);
 }
 
 
@@ -1323,6 +1359,8 @@ void dsp_opc_mulxac(uint16 opc)
 
 	sint64 prod = val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
+
+	Update_SR_Register(prod);
 }
 
 
@@ -1343,6 +1381,8 @@ void dsp_opc_mulxmv(uint16 opc)
 
 	sint64 prod = val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
+
+	Update_SR_Register(prod);
 }
 
 
@@ -1364,6 +1404,8 @@ void dsp_opc_mulxmvz(uint16 opc)
 
 	prod = val1 * val2 * GetMultiplyModifier();
 	dsp_set_long_prod(prod);
+
+	Update_SR_Register(prod);
 }
 
 
@@ -1836,13 +1878,20 @@ void dsp_op5(uint16 opc)
 		    dsp_opc_subr(opc);
 		    break;
 
+		case 0x8:
+		case 0x9:
+		case 0xa:
+		case 0xb:
+			dsp_opc_subax(opc);
+			break;
+
 	    case 0xc:
 	    case 0xd:
 		    dsp_opc_sub(opc);
 		    break;
 
 	    default:
-		    ErrorLog("dsp_op5");
+			ErrorLog("dsp_op5: %x", (opc >> 8) & 0xf);
 		    break;
 	}
 

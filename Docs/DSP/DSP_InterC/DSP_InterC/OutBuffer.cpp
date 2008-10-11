@@ -35,7 +35,7 @@ namespace OutBuffer
 		vsprintf(Msg, _fmt, ap);
 		va_end(ap);
 
-		printf("    %s\n", Msg);
+		printf("    %s;\n", Msg);
 	}
 
 	// predefined labels
@@ -68,18 +68,18 @@ namespace OutBuffer
 		{0x11, "ACH1",      "Accumulator High 1",},
 		{0x12, "CR",        "Config Register",},
 		{0x13, "SR",        "Special Register",},
-		{0x14, "PROD.L",    "PROD L",},
-		{0x15, "PROD.M1",   "PROD M1",},
-		{0x16, "PROD.H",    "PROD H",},
-		{0x17, "PROD.M2",   "PROD M2",},
-		{0x18, "AX0.L",		"Additional Accumulators Low 0",},
-		{0x19, "AX1.L", "Additional Accumulators Low 1",},
-		{0x1a, "AX0.H", "Additional Accumulators High 0",},
-		{0x1b, "AX1.H", "Additional Accumulators High 1",},
-		{0x1c, "AC0.L", "Register 28",},
-		{0x1d, "AC1.L", "Register 29",},
-		{0x1e, "AC0.M", "Register 00",},
-		{0x1f, "AC1.M", "Register 00",},
+		{0x14, "PROD_l",    "PROD L",},
+		{0x15, "PROD_m1",   "PROD M1",},
+		{0x16, "PROD_h",    "PROD H",},
+		{0x17, "PROD_m2",   "PROD M2",},
+		{0x18, "AX0_l",		"Additional Accumulators Low 0",},
+		{0x19, "AX1_l", "Additional Accumulators Low 1",},
+		{0x1a, "AX0_h", "Additional Accumulators High 0",},
+		{0x1b, "AX1_h", "Additional Accumulators High 1",},
+		{0x1c, "AC0_l", "Register 28",},
+		{0x1d, "AC1_l", "Register 29",},
+		{0x1e, "AC0_m", "Register 00",},
+		{0x1f, "AC1_m", "Register 00",},
 
 		// additional to resolve special names
 		{0x20, "ACC0",      "Accumulators 0",},

@@ -318,7 +318,7 @@ void dsp_opc_lrr(uint16 opc)
 	uint8 sreg = (opc >> 5) & 0x3;
 	uint8 dreg = opc & 0x1f;
 
-	OutBuffer::AddCode("%s = *(%s)", OutBuffer::GetRegName(dreg), OutBuffer::GetRegName(sreg));
+	OutBuffer::AddCode("%s = ReadDMEM(%s)", OutBuffer::GetRegName(dreg), OutBuffer::GetRegName(sreg));
 
 //	uint16 val = dsp_dmem_read(g_dsp.r[sreg]);
 //	dsp_op_write_reg(dreg, val);
@@ -352,7 +352,7 @@ void dsp_opc_srr(uint16 opc)
 	uint8 dreg = (opc >> 5) & 0x3;
 	uint8 sreg = opc & 0x1f;
 
-	OutBuffer::AddCode("*(%s) = %s", OutBuffer::GetRegName(dreg), OutBuffer::GetRegName(sreg));
+	OutBuffer::AddCode("WriteDMEM(%s, %s)", OutBuffer::GetRegName(dreg), OutBuffer::GetRegName(sreg));
 
 	//uint16 val = dsp_op_read_reg(sreg);
 	// dsp_dmem_write(g_dsp.r[dreg], val);
@@ -1177,7 +1177,7 @@ void dsp_opc_asr16(uint16 opc)
 	uint8 areg = (opc >> 11) & 0x1;
 
 	OutBuffer::AddCode("ACC%i >>= 16", areg);
-	OutBuffer::AddCode("Update_SR_Register(AC%i)", areg);
+	OutBuffer::AddCode("Update_SR_Register(ACC%i)", areg);
 
 	//sint64 acc = dsp_get_long_acc(areg);
 	//acc >>= 16;
@@ -1885,14 +1885,14 @@ void dsp_op2(uint16 opc)
 
 	if (opc & 0x0800)
 	{
-		OutBuffer::AddCode("*(%s) = %s", OutBuffer::GetMemName(addr), OutBuffer::GetRegName(reg));
+		OutBuffer::AddCode("WriteDMEM(%s, %s)", OutBuffer::GetMemName(addr), OutBuffer::GetRegName(reg));
 
 		// srs
 		// dsp_dmem_write(addr, g_dsp.r[reg]);
 	}
 	else
 	{
-		OutBuffer::AddCode("%s = *(%s)", OutBuffer::GetRegName(reg), OutBuffer::GetMemName(addr));
+		OutBuffer::AddCode("%s = ReadDMEM(%s)", OutBuffer::GetRegName(reg), OutBuffer::GetMemName(addr));
 
 		// lrs
 		// g_dsp.r[reg] = dsp_dmem_read(addr);

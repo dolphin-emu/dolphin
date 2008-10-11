@@ -21,8 +21,9 @@
 #include "pluginspecs_dsp.h"
 #include <stdio.h>
 
-#define WITH_DSP_ON_THREAD 1
-#define DUMP_DSP_IMEM   0
+#define WITH_DSP_ON_THREAD		1
+#define DUMP_DSP_IMEM			0
+#define PROFILE					1
 
 extern DSPInitialize g_dspInitialize;
 void DebugLog(const char* _fmt, ...);

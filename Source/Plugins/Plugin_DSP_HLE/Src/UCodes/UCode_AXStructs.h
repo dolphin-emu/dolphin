@@ -31,7 +31,13 @@ struct PBMixer
 
 struct PBInitialTimeDelay
 {
-	u16 unknown[7];
+	u16 on;
+	u16 addrMemHigh;
+	u16 addrMemLow;
+	u16 offsetLeft;
+	u16 offsetRight;
+	u16 targetLeft;
+	u16 targetRight;
 };
 
 // Update data - read these each 1ms subframe and use them!
@@ -76,7 +82,7 @@ struct PBAudioAddr
 struct PBADPCMInfo
 {
 	s16 coefs[16];
-	u16 unknown;
+	u16 gain;
 	u16 pred_scale;
 	s16 yn1;
 	s16 yn2;
@@ -112,17 +118,17 @@ struct AXParamBlock
 	u16 running;       // 1=RUN 0=STOP
 	u16 is_stream;     // 1 = stream, 0 = one shot
 
-	PBMixer mixer;
-	PBInitialTimeDelay initial_time_delay;
-	PBUpdates updates;
-	PBUnknown unknown2;
-	PBVolumeEnvelope vol_env;
-	PBUnknown2 unknown3;
-	PBAudioAddr audio_addr;
-	PBADPCMInfo adpcm;
-	PBSampleRateConverter src;
-	PBADPCMLoopInfo adpcm_loop_info;
-	u16 unknown_maybe_padding[3];
+/*  9 */	PBMixer mixer;
+/* 27 */	PBInitialTimeDelay initial_time_delay;  
+/* 34 */	PBUpdates updates;
+/* 41 */	PBUnknown unknown2;
+/* 50 */	PBVolumeEnvelope vol_env;
+/* 52 */	PBUnknown2 unknown3;
+/* 55 */	PBAudioAddr audio_addr;
+/* 63 */	PBADPCMInfo adpcm;
+/* 83 */    PBSampleRateConverter src;
+/* 90 */	PBADPCMLoopInfo adpcm_loop_info;
+/* 93 */	u16 unknown_maybe_padding[3];
 };
 
 enum {

@@ -45,6 +45,6 @@ union UDSPControl
 };
 
 
-bool DumpDSPCode(uint32 _Address, uint32 _Length);
+bool DumpDSPCode(uint32 _Address, uint32 _Length, uint32 crc);
 uint32 GenerateCRC(const unsigned char* _pBuffer, int _pLength);
 bool DumpCWCode(uint32 _Address, uint32 _Length);

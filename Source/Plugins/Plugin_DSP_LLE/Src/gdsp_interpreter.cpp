@@ -220,12 +220,19 @@ void gdsp_loop_step()
 	dsp_op[opc >> 12](opc);
 }
 
-void Hacks();
+u16 HLE_ROM_80E7_81F8();
+void hacks();
 void gdsp_step()
 {
 	g_dsp.step_counter++;
 
+	if (g_dsp.pc == 0x80e7)
+	{
+		g_dsp.pc = HLE_ROM_80E7_81F8();
+	}
+
 	g_dsp.err_pc = g_dsp.pc;
+
 	uint16 opc = dsp_fetch_code();
 	dsp_op[opc >> 12](opc);
 

@@ -74,6 +74,9 @@ const pdlabel_t pdlabels[] =
 	{0xffce, "DSMAH", "DSP DMA Mem Address H",},
 	{0xffcf, "DSMAL", "DSP DMA Mem Address L",},
 	{0xffd1, "SampleFormat", "SampleFormat",},
+
+	{0xffd3, "Unk Zelda", "Unk Zelda writes to it",},
+
 	{0xffd4, "ACSAH", "Accelerator start address H",},
 	{0xffd5, "ACSAL", "Accelerator start address L",},
 	{0xffd6, "ACEAH", "Accelerator end address H",},

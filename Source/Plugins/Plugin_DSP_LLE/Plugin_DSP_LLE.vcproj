@@ -747,6 +747,14 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="HLE"
+			>
+			<File
+				RelativePath=".\Src\HLE_Functions.cpp"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\DSoundStream.cpp"
 			>

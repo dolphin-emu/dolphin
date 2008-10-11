@@ -251,10 +251,6 @@ uint16 gdsp_ifx_read(uint16 addr)
 
 void gdsp_idma_in(uint16 dsp_addr, uint32 addr, uint32 size)
 {
-#if DUMP_DSP_IMEM
-	DumpDSPCode(addr, size);
-#endif
-
 	uint8* dst = ((uint8*)g_dsp.iram);
 
 	for (uint32 i = 0; i < size; i += 2)
@@ -264,6 +260,10 @@ void gdsp_idma_in(uint16 dsp_addr, uint32 addr, uint32 size)
 
 	g_dsp.iram_crc = GenerateCRC(g_dsp.cpu_ram + (addr & 0x0fffffff), size);
 	DebugLog("*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)\n", addr, dsp_addr, g_dsp.iram_crc);
+
+#if DUMP_DSP_IMEM
+	DumpDSPCode(addr, size, g_dsp.iram_crc );
+#endif
 }
 
 

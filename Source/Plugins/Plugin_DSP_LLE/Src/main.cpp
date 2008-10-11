@@ -258,10 +258,10 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 // --------------
 //		Dump UCode to file...
 
-/*   	FILE* t = fopen("C:\\_\\ct.txt", "wb");
+   	FILE* t = fopen("C:\\_\\DSP_UC_09CD143F.txt", "wb");
    	gd_globals_t gdg;
-   	gd_dis_file(&gdg, "C:\\_\\DSP_UCode.bin", t);
-   	fclose(t);   */
+   	gd_dis_file(&gdg, "C:\\_\\DSP_UC_09CD143F.bin", t);
+   	fclose(t);   
 // --------------
 
 #ifdef _WIN32

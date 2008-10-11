@@ -79,7 +79,7 @@ void dsp_op_ext_s(uint16 _Opcode)
 	uint8 dreg = _Opcode & 0x3;
 	uint8 sreg = ((_Opcode >> 3) & 0x3) + 0x1c;
 
-	OutBuffer::AddCode("*(%s) = %s", OutBuffer::GetRegName(dreg), OutBuffer::GetRegName(sreg));
+	OutBuffer::AddCode("WriteDMEM(%s, %s)", OutBuffer::GetRegName(dreg), OutBuffer::GetRegName(sreg));
 	// dsp_dmem_write(g_dsp.r[dreg], g_dsp.r[sreg]);
 
 	if (_Opcode & 0x04)
@@ -100,7 +100,7 @@ void dsp_op_ext_l(uint16 _Opcode)
 	uint8 sreg = _Opcode & 0x3;
 	uint8 dreg = ((_Opcode >> 3) & 0x7) + 0x18;
 
-	OutBuffer::AddCode("%s = *(%s)", OutBuffer::GetRegName(dreg), OutBuffer::GetRegName(sreg));
+	OutBuffer::AddCode("%s = ReadDMEM(%s)", OutBuffer::GetRegName(dreg), OutBuffer::GetRegName(sreg));
 	// uint16 val = dsp_dmem_read(g_dsp.r[sreg]);
 	// g_dsp.r[dreg] = val;
 
@@ -121,7 +121,7 @@ void dsp_op_ext_ls_pro(uint16 _Opcode)
 {
 	uint8 areg = (_Opcode & 0x1) + 0x1e;
 
-	OutBuffer::AddCode("*(%s) = %s", OutBuffer::GetRegName(0x03), OutBuffer::GetRegName(areg));
+	OutBuffer::AddCode("WriteDMEM(%s, %s)", OutBuffer::GetRegName(0x03), OutBuffer::GetRegName(areg));
 	// dsp_dmem_write(g_dsp.r[0x03], g_dsp.r[areg]);
 
 	if (_Opcode & 0x8)
@@ -141,7 +141,7 @@ void dsp_op_ext_ls_epi(uint16 _Opcode)
 {
 	uint8 dreg = ((_Opcode >> 4) & 0x3) + 0x18;
 
-	OutBuffer::AddCode("%s = *(%s)", OutBuffer::GetRegName(dreg), OutBuffer::GetRegName(0x00));
+	OutBuffer::AddCode("%s = ReadDMEM(%s)", OutBuffer::GetRegName(dreg), OutBuffer::GetRegName(0x00));
 	// uint16 val = dsp_dmem_read(g_dsp.r[0x00]);
 	// dsp_op_write_reg(dreg, val);
 
@@ -162,7 +162,7 @@ void dsp_op_ext_sl_pro(uint16 _Opcode)
 {
 	uint8 areg = (_Opcode & 0x1) + 0x1e;
 
-	OutBuffer::AddCode("*(%s) = %s", OutBuffer::GetRegName(0x00), OutBuffer::GetRegName(areg));
+	OutBuffer::AddCode("WriteDMEM(%s, %s)", OutBuffer::GetRegName(0x00), OutBuffer::GetRegName(areg));
 	// dsp_dmem_write(g_dsp.r[0x00], g_dsp.r[areg]);
 
 	if (_Opcode & 0x4)
@@ -182,7 +182,7 @@ void dsp_op_ext_sl_epi(uint16 _Opcode)
 {
 	uint8 dreg = ((_Opcode >> 4) & 0x3) + 0x18;
 
-	OutBuffer::AddCode("%s = *(%s)", OutBuffer::GetRegName(dreg), OutBuffer::GetRegName(0x03));
+	OutBuffer::AddCode("%s = ReadDMEM(%s)", OutBuffer::GetRegName(dreg), OutBuffer::GetRegName(0x03));
 	// uint16 val = dsp_dmem_read(g_dsp.r[0x03]);
 	// dsp_op_write_reg(dreg, val);
 
@@ -205,8 +205,8 @@ void dsp_op_ext_ld(uint16 _Opcode)
 	uint8 dreg2 = (((_Opcode >> 4) & 0x1) << 1) + 0x19;
 	uint8 sreg = _Opcode & 0x3;
 
-	OutBuffer::AddCode("%s = *(%s)", OutBuffer::GetRegName(dreg1), OutBuffer::GetRegName(sreg));
-	OutBuffer::AddCode("%s = *(%s)", OutBuffer::GetRegName(dreg2), OutBuffer::GetRegName(0x03));
+	OutBuffer::AddCode("%s = ReadDMEM(%s)", OutBuffer::GetRegName(dreg1), OutBuffer::GetRegName(sreg));
+	OutBuffer::AddCode("%s = ReadDMEM(%s)", OutBuffer::GetRegName(dreg2), OutBuffer::GetRegName(0x03));
 
 	// g_dsp.r[dreg1] = dsp_dmem_read(g_dsp.r[sreg]);
 	// g_dsp.r[dreg2] = dsp_dmem_read(g_dsp.r[0x03]);

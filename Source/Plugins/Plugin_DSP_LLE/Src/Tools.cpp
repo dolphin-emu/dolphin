@@ -23,15 +23,21 @@
 
 #include "gdsp_interpreter.h"
 
-bool DumpDSPCode(uint32 _Address, uint32 _Length)
+bool DumpDSPCode(uint32 _Address, uint32 _Length, uint32 crc)
 {
-	FILE* pFile = fopen("d:\\DSP_UCode.bin", "wb");
+	char szFilename[MAX_PATH];
+	sprintf(szFilename, "c:\\_\\DSP_UC_%08X.bin", crc);
+	FILE* pFile = fopen(szFilename, "wb");
 
 	if (pFile != NULL)
 	{
 		fwrite(g_dspInitialize.pGetMemoryPointer(_Address), _Length, 1, pFile);
 		fclose(pFile);
 		return(true);
+	}
+	else
+	{
+		PanicAlert("Cant open file (%s) to dump UCode!!", szFilename);
 	}
 
 	return(false);
