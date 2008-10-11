@@ -721,7 +721,9 @@ int CUCode_AX::ReadOutPBs(int a, AXParamBlock* _pPBs, int _num)
 			// ------------
 			if(a) // only do this once every 5 ms
 			{
-				u16 upd_hi = pDest[39];
+				u16 upd0 = pDest[34]; u16 upd1 = pDest[35]; u16 upd2 = pDest[36]; // num_updates
+				u16 upd3 = pDest[37]; u16 upd4 = pDest[38];
+				u16 upd_hi = pDest[39]; // update addr
 				u16	upd_lo = pDest[40];
 				const u32 updaddr   = (u32)(upd_hi << 16) | upd_lo;
 				const u16 updpar   = Memory_Read_U16(updaddr);
@@ -730,6 +732,8 @@ int CUCode_AX::ReadOutPBs(int a, AXParamBlock* _pPBs, int _num)
 				if(updaddr > 0x80000000 && updaddr < 0x82000000
 					&& updpar < 63 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
 					// 0-3, those are important
+					&& (upd0 || upd1 || upd2 || upd3 || upd4) // We should use these in some way to I think
+					// but I don't know how or when
 					&& gSequenced) // on and off option
 				{
 					pDest[updpar] = upddata;
