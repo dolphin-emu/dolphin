@@ -15,10 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifdef _WIN32
-#define XINPUT_ENABLE
-#endif
-
 #include <stdio.h>
 #include <math.h>
 
@@ -29,12 +25,8 @@
 
 #include "GUI/ConfigDlg.h"
 
-#ifdef XINPUT_ENABLE
-#include "XInput.h"
-#endif
-
 #ifdef _WIN32
-
+#include "XInput.h"
 #include "DirectInputBase.h"
 
 DInput dinput;
@@ -169,7 +161,6 @@ void DllConfig(HWND _hParent)
 	wxWindow win;
 	win.SetHWND(_hParent);
 	ConfigDialog frame(&win);
-	// TODO add devices
 	frame.ShowModal();
 	win.SetHWND(0);
 #else
@@ -297,17 +288,11 @@ void DInput_Read(int _numPAD, SPADStatus* _pPADStatus)
 
 bool XInput_Read(int xpadplayer, SPADStatus* _pPADStatus)
 {
-#ifdef XINPUT_ENABLE
 	const int base = 0x80;
 	XINPUT_STATE xstate;
 	DWORD xresult = XInputGetState(xpadplayer, &xstate);
 
-	if (xresult != ERROR_SUCCESS)
-	{
-		return false;
-	}
-
-	// In addition, let's .. yes, let's use XINPUT!
+	// Let's .. yes, let's use XINPUT!
 	if (xresult == ERROR_SUCCESS)
 	{
 		const XINPUT_GAMEPAD& xpad = xstate.Gamepad;
@@ -333,8 +318,8 @@ bool XInput_Read(int xpadplayer, SPADStatus* _pPADStatus)
 		_pPADStatus->triggerLeft  = xpad.bLeftTrigger;
 		_pPADStatus->triggerRight = xpad.bRightTrigger;
 
-		if (xpad.bLeftTrigger > 20)						{_pPADStatus->button |= PAD_TRIGGER_L;}
-		if (xpad.bRightTrigger > 20)					{_pPADStatus->button |= PAD_TRIGGER_R;}
+		if (xpad.bLeftTrigger > 200)					{_pPADStatus->button |= PAD_TRIGGER_L;}
+		if (xpad.bRightTrigger > 200)					{_pPADStatus->button |= PAD_TRIGGER_R;}
 		if (xpad.wButtons & XINPUT_GAMEPAD_A)			{_pPADStatus->button |= PAD_BUTTON_A;}
 		if (xpad.wButtons & XINPUT_GAMEPAD_X)			{_pPADStatus->button |= PAD_BUTTON_B;}
 		if (xpad.wButtons & XINPUT_GAMEPAD_B)			{_pPADStatus->button |= PAD_BUTTON_X;}
@@ -348,10 +333,10 @@ bool XInput_Read(int xpadplayer, SPADStatus* _pPADStatus)
 
 		return true;
 	}
-	return false;
-#else
-	return false;
-#endif
+	else
+	{
+		return false;
+	}
 }
 #endif
 
@@ -561,12 +546,10 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 			a = 0;
 		}
 
-#ifdef XINPUT_ENABLE
 		XINPUT_VIBRATION vib;
 		vib.wLeftMotorSpeed  = a; //_uStrength*100;
 		vib.wRightMotorSpeed = a; //_uStrength*100;
 		XInputSetState(pad[_numPAD].xpadplayer, &vib);
-#endif
 	}
 #endif
 }
@@ -598,7 +581,7 @@ unsigned int SaveLoadState(char* _ptr, BOOL _bSave)
 
 void LoadConfig()
 {
-	// Initialize pads to standard controls
+	// Initialize first pad to standard controls
 #ifdef _WIN32	
 	const int defaultKeyForControl[NUMCONTROLS] =
 	{
@@ -658,7 +641,7 @@ void LoadConfig()
 		char SectionName[32];
 		sprintf(SectionName, "PAD%i", i+1);
 
-		file.Get(SectionName, "Keyboard", &pad[i].keyboard, i==0);
+		file.Get(SectionName, "Keyboard", &pad[i].keyboard, true);
 		file.Get(SectionName, "Attached", &pad[i].attached, i==0);
 		file.Get(SectionName, "DisableOnBackground", &pad[i].disable, false);
 		file.Get(SectionName, "Rumble", &pad[i].rumble, true);

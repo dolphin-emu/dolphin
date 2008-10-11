@@ -20,6 +20,7 @@
 #include "../PadSimple.h"
 
 #ifdef _WIN32
+#include "XInput.h"
 #include "../DirectInputBase.h"
 
 DInput m_dinput;
@@ -142,14 +143,21 @@ void ConfigDialog::CreateGUIControls()
 		m_Disable[i]->SetValue(pad[i].disable);
 		m_Rumble[i]->SetValue(pad[i].rumble);
 		m_Rumble[i]->Enable(!pad[i].keyboard);
-		
-		// This should be considered TEMPORARY until polling x360 pads is implemented
-		m_DeviceName[i]->Append(_("Keyboard"));
-		m_DeviceName[i]->Append(_("XPAD1"));
-		m_DeviceName[i]->Append(_("XPAD2"));
-		m_DeviceName[i]->Append(_("XPAD3"));
-		m_DeviceName[i]->Append(_("XPAD4"));
 
+		m_DeviceName[i]->Append(_("Keyboard"));
+#ifdef _WIN32
+		// Add connected XPads
+		for (int x = 0; x < 4; x++)
+		{
+			XINPUT_STATE xstate;
+			DWORD xresult = XInputGetState(x, &xstate);
+
+			if (xresult == ERROR_SUCCESS)
+			{
+				m_DeviceName[i]->Append(wxString::Format("XPad %i", x+1));
+			}
+		}
+#endif
 		sDeviceTop[i]->Add(m_DeviceName[i], 1, wxEXPAND|wxALL, 1);
 		sDeviceTop[i]->Add(m_Attached[i], 0, wxEXPAND|wxALL, 1);
 		sDeviceBottom[i]->AddStretchSpacer(1);
