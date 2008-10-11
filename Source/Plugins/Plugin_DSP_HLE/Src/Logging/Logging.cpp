@@ -388,7 +388,11 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 				sfbuff = sfbuff + cbuf;
 
 				sfbuff = sfbuff + writeMessage(ii, i);
-				sfbuff = sfbuff + "\n";
+
+				// write _iSize
+				strcpy(cbuf, ""); sprintf(cbuf, "%i", _iSize);
+				sfbuff = sfbuff + " | _iSize: " + cbuf + "\n";
+
 				aprintf(ii, (char *)sfbuff.c_str());
 			}
 			// --------------
@@ -535,19 +539,11 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 			{
 				if(vector1.at(i).at(j) == 0)
 				{
-					//strcat(buffer, " ");
 					sbuff = sbuff + " ";
 				}
 				else
 				{
-					//sprintf(buffer, "%s%c", buffer, 177); // this will add strange letters if buffer has
-					// not been given any string yet
-
 					sprintf(buffer, "%c", 177);
-					//strcat(buffer, tmpbuff);
-
-					//strcpy(buffer, "");
-					//sprintf(buffer, "%c", 177);
 					sbuff = sbuff + buffer; strcpy(buffer, "");
 				}
 			}
@@ -602,7 +598,8 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		// =======================================================================================
 		// Write global values
 		// ---------------
-		sprintf(buffer, "\nThe parameter blocks span from %08x to %08x | distance %i %i\n", m_addressPBs, gLastBlock, (gLastBlock-m_addressPBs), (gLastBlock-m_addressPBs) / 192);
+		sprintf(buffer, "\nThe parameter blocks span from %08x to %08x | distance %i | num. of blocks %i | _iSize %i\n",
+			m_addressPBs, gLastBlock, (gLastBlock-m_addressPBs), (gLastBlock-m_addressPBs) / 192, _iSize);
 		sbuff = sbuff + buffer; strcpy(buffer, "");
 		// ===============
 			

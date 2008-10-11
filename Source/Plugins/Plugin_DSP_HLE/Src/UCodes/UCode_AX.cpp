@@ -137,26 +137,25 @@ void ADPCM_Loop(AXParamBlock& pb)
 u16 ADPCM_Vol(u16 vol, u16 delta, u16 mixer_control)
 {
 	int x = vol;
-	if (delta && delta < 0x4000)
-		x += delta; // unsure what the right step is
-		//x ++;
-		//x += 8; //?
-	else if (delta && delta > 0x4000)
-		//x -= (0x8000 - pb.mixer.unknown); // this didn't work
-		x--;
+	if (delta && delta < 0x5000)
+		x += delta * 20 * 8; // unsure what the right step is
+	else if (delta && delta > 0x5000)
+		//x -= (0x10000 - delta); // this is to small, it's often 1
+		x -= (0x10000 - delta) * 20 * 16; // if this was 20 * 8 the sounds in Fire Emblem and Paper Mario
+			// did not have time to go to zero before the were closed
 
 	 // make lower limits
-	if (x < 0) x = 0;
-	// does this make any sense?
-	//if (pb.mixer_control < 1000 && x < pb.mixer_control) x = pb.mixer_control;
+	if (x < 0) x = 0;	
+	//if (pb.mixer_control < 1000 && x < pb.mixer_control) x = pb.mixer_control; // does this make
+		// any sense?
 
 	// make upper limits
-	if (mixer_control > 1000 && x > mixer_control) x = mixer_control; // I don't know if this is correct
+	//if (mixer_control > 1000 && x > mixer_control) x = mixer_control; // maybe mixer_control also
+		// has a volume target?
 	//if (x >= 0x7fff) x = 0x7fff; // this seems a little high
 	if (x >= 0x4e20) x = 0x4e20; // add a definitive limit at 20 000
 	return x; // update volume
 }
-
 // ==============
 
 
@@ -308,7 +307,8 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			// =======================================================================================
 			// Handle no-src streams - No src streams have pb.src_type == 2 and have pb.src.ratio_hi = 0
 			// and pb.src.ratio_lo = 0. We handle that by setting the sampling ratio integer to 1. This
-			// makes samplePos update in the correct way.
+			// makes samplePos update in the correct way. I'm unsure how we are actually supposed to
+			// detect that this setting. Updates did not fix this automatically.
 			// ---------------------------------------------------------------------------------------
 			// Stream settings
 				// src_type = 2 (most other games have src_type = 0)
@@ -329,8 +329,9 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			// =======================================================================================
 			// Games that use looping to play non-looping music streams - SSBM has info in all
 			// pb.adpcm_loop_info parameters but has pb.audio_addr.looping = 0. If we treat these streams
-			// like any other looping streams the music works. It seems like pb.mixer_control == 0 may
-			// identify these types of blocks.
+			// like any other looping streams the music works. I'm unsure how we are actually supposed to
+			// detect that these kinds of blocks should be looping. It seems like pb.mixer_control == 0 may
+			// identify these types of blocks. Updates did not write any looping values.
 			// --------------
 			if(
 				(pb.adpcm_loop_info.pred_scale || pb.adpcm_loop_info.yn1 || pb.adpcm_loop_info.yn2)
@@ -344,7 +345,8 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 
 			// =======================================================================================
-			// Walk through _iSize
+			// Walk through _iSize. _iSize = numSamples. If the game goes slow _iSize will be higher to
+			// compensate for that. _iSize can be as low as 100 or as high as 2000 some cases.
 			for (int s = 0; s < _iSize; s++)
 			{
 				int sample = 0;
@@ -405,16 +407,10 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 				{
 					int x = pb.vol_env.cur_volume;
 					x += pb.vol_env.cur_volume_delta; // I'm not sure about this, can anybody find a game
-					// that use this?
+					// that use this? Or how does it work?
 					if (x < 0) x = 0;
 					if (x >= 0x7fff) x = 0x7fff;
 					pb.vol_env.cur_volume = x; // maybe not per sample?? :P
-
-					if(gVolume) // allow us to turn this off in the debugger
-					{
-						pb.mixer.volume_left = ADPCM_Vol(pb.mixer.volume_left, pb.mixer.unknown, pb.mixer_control);
-						pb.mixer.volume_right = ADPCM_Vol(pb.mixer.volume_right, pb.mixer.unknown2, pb.mixer_control);
-					}
 				}
 
 				int leftmix  = pb.mixer.volume_left >> 5;
@@ -446,6 +442,11 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			} // end of the _iSize loop
 			// ============
 
+			if(gVolume) // allow us to turn this off in the debugger
+			{
+				pb.mixer.volume_left = ADPCM_Vol(pb.mixer.volume_left, pb.mixer.unknown, pb.mixer_control);
+				pb.mixer.volume_right = ADPCM_Vol(pb.mixer.volume_right, pb.mixer.unknown2, pb.mixer_control);
+			}
 
 			pb.src.cur_addr_frac = (u16)frac;
 			pb.audio_addr.cur_addr_hi = samplePos >> 16;
