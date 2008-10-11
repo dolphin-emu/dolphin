@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "Globals.h"
+
 #ifdef _WIN32
 #define _interlockedbittestandset workaround_ms_header_bug_platform_sdk6_set
 #define _interlockedbittestandreset workaround_ms_header_bug_platform_sdk6_reset
@@ -27,7 +29,6 @@
 #undef _interlockedbittestandreset64
 #endif
 
-#include "Globals.h"
 #include "Profiler.h"
 
 #include "Render.h"

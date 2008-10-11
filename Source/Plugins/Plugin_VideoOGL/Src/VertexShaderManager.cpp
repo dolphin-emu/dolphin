@@ -362,8 +362,8 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 				wAdj = ratio;
 				hAdj = 1;
 
-				wid = ceil(abs(2 * rawViewport[0]) / wAdj);
-				hei = ceil(abs(2 * rawViewport[1]) / hAdj);
+				wid = ceil(fabs(2 * rawViewport[0]) / wAdj);
+				hei = ceil(fabs(2 * rawViewport[1]) / hAdj);
 
 				actualWid = ceil((float)winw / ratio);
 				actualRatiow = (float)actualWid / (float)wid; // the picture versus the screen
@@ -377,8 +377,8 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 				wAdj = 1;
 				hAdj = ratio;
 
-				wid = ceil(abs(2 * rawViewport[0]) / wAdj);
-				hei = ceil(abs(2 * rawViewport[1]) / hAdj);
+				wid = ceil(fabs(2 * rawViewport[0]) / wAdj);
+				hei = ceil(fabs(2 * rawViewport[1]) / hAdj);
 
 				actualHei = ceil((float)winh / ratio);
 				actualRatioh = (float)actualHei / (float)hei; // the picture versus the screen
@@ -388,8 +388,8 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 		}
 		else
 		{
-			wid = ceil(abs(2 * rawViewport[0]));
-			hei = ceil(abs(2 * rawViewport[1]));
+			wid = ceil(fabs(2 * rawViewport[0]));
+			hei = ceil(fabs(2 * rawViewport[1]));
 		}
 
 		if(g_Config.bStretchToFit)

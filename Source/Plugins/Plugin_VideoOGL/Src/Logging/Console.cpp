@@ -18,12 +18,12 @@
 
 // --------------------
 // Includes
+#include "../Globals.h"
 #include <string>
 #include <stdio.h>
 #ifdef _WIN32
 #include <windows.h>
 #endif
-#include "../Globals.h"
 
 
 // --------------------
@@ -149,12 +149,15 @@ void ClearScreen()
 #endif
 }
 
+#ifndef _WIN32
+// VERY UGLY! needs to be fixed soon, just fixing the biuld...
 void CloseConsole()
 {
 }
 void OpenConsole()
 {
 }
+#endif
 
 #if defined(DEBUGG) && defined(_WIN32)
 HWND GetConsoleHwnd(void)
