@@ -1,3 +1,20 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
 #pragma once
 
 typedef unsigned char u8;
@@ -128,8 +145,8 @@ public:
 	bool IsOpen();
 
 	u32  TestChecksums();
-	u32  FixChecksums();
-
+	bool FixChecksums();
+	
 	// get number of file entries in the directory
 	u32  GetNumFiles();
 	
@@ -159,6 +176,12 @@ public:
 
 	// reads a save from another memcard, and imports the data into this memcard
 	u32  CopyFrom(GCMemcard& source, u32 index);
+
+	// writes a .gci file to disk containing index
+	bool SaveGci(u32 index, const char* fileName);
+
+	// reads a .gci file and calls ImportFile
+	u32  AddGci(const char* fileName);
 
 	// reads the banner image
 	bool ReadBannerRGBA8(u32 index, u32* buffer);

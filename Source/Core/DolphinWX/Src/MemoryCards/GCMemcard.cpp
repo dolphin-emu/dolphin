@@ -1,5 +1,20 @@
-// gcmc.cpp: define el punto de entrada de la aplicación de consola.
-//
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
 #ifdef _WIN32
 #include "stdafx.h"
 #endif
@@ -249,16 +264,20 @@ bool GCMemcard::GetFileData(u32 index, u8*dest) //index in the directory array
 	if(!mcdFile) return false;
 
 	int block = BE16(dir.Dir[index].FirstBlock);
+	int saveLength = BE16(dir.Dir[index].BlockCount);
+	int memcardSize = BE16(hdr.Size) * 0x0010;
 	assert((block!=0xFFFF)&&(block>0));
 	do
 	{
-		int nextblock=bswap16(bat.Map[block-5]);
-		assert(nextblock>0);
-
 		memcpy(dest,mc_data + 0x2000*(block-5),0x2000);
 		dest+=0x2000;
 
-		block=nextblock;
+		if(block + saveLength != memcardSize)
+		{
+			int nextblock=bswap16(bat.Map[block-5]);
+			assert(nextblock>0);
+			block=nextblock;
+		}else block=0xffff;
 	}
 	while(block!=0xffff); 
 
@@ -540,46 +559,38 @@ u32  GCMemcard::TestChecksums()
 	return 0;
 }
 
-
-// ==========================================================================================
-// Fix checksums - I'll begin with fixing Directory and Directory backup. Feel free to add the 
-// other blocks.
-// ------------------------------------------------------------------------------------------
-u32  GCMemcard::FixChecksums()
+bool GCMemcard::FixChecksums()
 {
-	if(!mcdFile) return 0xFFFFFFFF;
+	if(!mcdFile) return false;
 
 	u16 csum1=0,csum2=0;
 
-	u32 results = 0;
-
 	calc_checksumsBE((u16*)&dir,0xFFE,&csum1,&csum2);
-	if(BE16(dir.CheckSum1) != csum1) results |= 2;
-	if(BE16(dir.CheckSum2) != csum2) results |= 2;
-
-	// ------------------------------------------------------------------------------------------
-	// Save the values we just read
 	dir.CheckSum1[0]=u8(csum1>>8);
 	dir.CheckSum1[1]=u8(csum1);
 	dir.CheckSum2[0]=u8(csum2>>8);
 	dir.CheckSum2[1]=u8(csum2);
-	// ------------------------------------------------------------------------------------------
 
 	calc_checksumsBE((u16*)&dir_backup,0xFFE,&csum1,&csum2);
-	if(BE16(dir_backup.CheckSum1) != csum1) results |= 4;
-	if(BE16(dir_backup.CheckSum2) != csum2) results |= 4;
-
-	// ------------------------------------------------------------------------------------------
-	// Save the values we just read
 	dir_backup.CheckSum1[0]=u8(csum1>>8);
 	dir_backup.CheckSum1[1]=u8(csum1);
 	dir_backup.CheckSum2[0]=u8(csum2>>8);
 	dir_backup.CheckSum2[1]=u8(csum2);
-	// ------------------------------------------------------------------------------------------
-	return 0;
-}
-// ==========================================================================================
 
+	calc_checksumsBE((u16*)(((u8*)&bat)+4),0xFFE,&csum1,&csum2);
+	bat.CheckSum1[0]=u8(csum1>>8);
+	bat.CheckSum1[1]=u8(csum1);
+	bat.CheckSum2[0]=u8(csum2>>8);
+	bat.CheckSum2[1]=u8(csum2);
+
+	calc_checksumsBE((u16*)(((u8*)&bat_backup)+4),0xFFE,&csum1,&csum2);
+	bat_backup.CheckSum1[0]=u8(csum1>>8);
+	bat_backup.CheckSum1[1]=u8(csum1);
+	bat_backup.CheckSum2[0]=u8(csum2>>8);
+	bat_backup.CheckSum2[1]=u8(csum2);
+
+	return true;
+}
 
 u32  GCMemcard::CopyFrom(GCMemcard& source, u32 index)
 {
@@ -596,6 +607,53 @@ u32  GCMemcard::CopyFrom(GCMemcard& source, u32 index)
 	delete[] t;
 
 	return ret;
+}
+
+u32  GCMemcard::AddGci(const char *fileName)
+{
+	if(!mcdFile) return 0;
+
+	FILE *gci=fopen(fileName,"rb");
+
+	if(!gci) return 0;
+
+	DEntry *d = new DEntry;
+	fread(d,1,0x40,gci);
+
+	u32 size=BE16((d->BlockCount))*0x2000;
+	u8 *t = new u8[size];
+	fread(t,1,size,gci);
+	u32 ret = ImportFile(*d,t);
+	delete[] t;
+	delete d;
+	return ret;
+}
+
+bool GCMemcard::SaveGci(u32 index, const char *fileName)
+{
+	FILE *gci=fopen(fileName,"wb");
+
+	if(!gci) return false;
+
+	fseek(gci,0,SEEK_SET);
+
+	DEntry d;
+	if(!this->GetFileInfo(index,d)) return false;
+	fwrite(&d,1,0x40,gci);
+
+	u8 *t = new u8[this->GetFileSize(index)*0x2000];
+
+	if(!this->GetFileData(index,t)) return false;
+
+	int fileBlocks=BE16(d.BlockCount);
+	
+	fseek(gci,0x40,SEEK_SET);
+	fwrite(t,1,0x2000*fileBlocks,gci);
+
+	fclose(gci);
+	delete[] t;
+	
+	return true;
 }
 
 bool GCMemcard::Save()
@@ -683,6 +741,7 @@ GCMemcard::GCMemcard(const char *filename)
 
 	fseek(mcd,0xa000,SEEK_SET);
 
+	assert(BE16(hdr.Size)!=0xFFFF);
 	mc_data_size=(((u32)BE16(hdr.Size)*16)-5)*0x2000;
 	mc_data = new u8[mc_data_size];
 

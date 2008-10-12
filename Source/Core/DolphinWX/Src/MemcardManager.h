@@ -14,7 +14,7 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-
+//updated to 677
 #ifndef __MEMCARD_MANAGER_h__
 #define __MEMCARD_MANAGER_h__
 
@@ -35,27 +35,29 @@ class CMemcardManager
 {
 	public:
 
-		CMemcardManager(wxWindow* parent, wxWindowID id = 1, const wxString& title = wxT("Memory Card Manager WARNING-Make backups before using, will probably mangle stuff!"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = MEMCARD_MANAGER_STYLE);
+		CMemcardManager(wxWindow *parent, wxWindowID id = 1, const wxString& title = wxT("Memory Card Manager WARNING-Make backups before using, will probably mangle stuff!"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = MEMCARD_MANAGER_STYLE);
 		virtual ~CMemcardManager();
 
 	private:
 
 		DECLARE_EVENT_TABLE();
 
-		wxBoxSizer* sMain;
-		wxButton* m_CopyRight;
-		wxButton* m_CopyLeft;
-		wxButton* m_FixChecksum;
-		wxButton* m_DeleteRight;
-		wxButton* m_DeleteLeft;
-		wxStaticBoxSizer* sMemcard1;
-		wxStaticBoxSizer* sMemcard2;
-		wxFilePickerCtrl* m_Memcard1Path;
-		wxFilePickerCtrl* m_Memcard2Path;
-		wxListCtrl* m_MemcardList[2];
-		wxTimer* m_Timer;
+		wxBoxSizer *sMain;
+		wxButton *m_CopyLeft;
+		wxButton *m_CopyRight;
+		wxButton *m_FixChecksum;
+		wxButton *m_GciOpenLeft;
+		wxButton *m_GciSaveLeft;
+		wxButton *m_GciOpenRight;
+		wxButton *m_GciSaveRight;
+		wxButton *m_DeleteLeft;
+		wxButton *m_DeleteRight;
+		wxStaticBoxSizer *sMemcard1;
+		wxStaticBoxSizer *sMemcard2;
+		wxFilePickerCtrl *m_Memcard1Path;
+		wxFilePickerCtrl *m_Memcard2Path;
 
-		int nframe;
+		wxListCtrl *m_MemcardList[2];
 
 		enum
 		{
@@ -66,6 +68,10 @@ class CMemcardManager
 			ID_DELETELEFT,
 			ID_MEMCARD1PATH,
 			ID_MEMCARD2PATH,
+			ID_GCISAVERIGHT,
+			ID_GCISAVELEFT,
+			ID_GCIOPENRIGHT,
+			ID_GCIOPENLEFT,
 			ID_MEMCARD1LIST,
 			ID_MEMCARD2LIST,
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
