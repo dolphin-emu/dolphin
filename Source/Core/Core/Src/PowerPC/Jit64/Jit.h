@@ -26,6 +26,14 @@
 #include "JitCache.h"
 #include "x64Emitter.h"
 
+
+// =======================================================================================
+// Enable or disable JIT off options. All the if() checks in the JIT functions may result in a
+// speed drop. However it should barely be noticable as the code is recompiled rarely.
+// --------------
+#define JIT_OFF_OPTIONS 
+
+
 namespace Jit64
 {
 	struct JitStats

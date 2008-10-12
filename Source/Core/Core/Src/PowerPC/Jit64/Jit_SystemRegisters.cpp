@@ -37,8 +37,10 @@ namespace Jit64
 {
 	void mtspr(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 		int d = inst.RD;
@@ -87,8 +89,10 @@ namespace Jit64
 
 	void mfspr(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 		int d = inst.RD;
@@ -115,7 +119,7 @@ namespace Jit64
 
 
 	// =======================================================================================
-	// ... ? Don't interpret this, if we do we get thrown out
+	// Don't interpret this, if we do we get thrown out
 	// --------------
 	void mtmsr(UGeckoInstruction inst)
 	{
@@ -133,8 +137,10 @@ namespace Jit64
 
 	void mfmsr(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		//Privileged?
 		gpr.LoadToX64(inst.RD, false);
@@ -143,8 +149,10 @@ namespace Jit64
 
 	void mftb(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		mfspr(inst);
 	}

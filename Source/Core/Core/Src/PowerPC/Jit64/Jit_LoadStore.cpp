@@ -54,8 +54,10 @@ namespace Jit64
 	}
 	void lbzx(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		//if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-		//	{Default(inst); return;} // turn off from debugger
+		//	{Default(inst); return;} // turn off from debugger	
+#endif
 		INSTRUCTION_START;
 
 		int a = inst.RA, b = inst.RB, d = inst.RD;
@@ -77,8 +79,10 @@ namespace Jit64
 
 	void lXz(UGeckoInstruction inst)
 	{
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-			{Default(inst); return;} // turn off from debugger		
+#ifdef JIT_OFF_OPTIONS
+		//if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+		//	{Default(inst); return;} // turn off from debugger	
+#endif
 		INSTRUCTION_START;
 
 		int d = inst.RD;
@@ -162,8 +166,10 @@ namespace Jit64
 
 	void lha(UGeckoInstruction inst)
 	{
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-			{Default(inst); return;} // turn off from debugger
+#ifdef JIT_OFF_OPTIONS
+		//if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+		//	{Default(inst); return;} // turn off from debugger	
+#endif
 		INSTRUCTION_START;
 
 		int d = inst.RD;
@@ -184,8 +190,10 @@ namespace Jit64
 	// Zero cache line.
 	void dcbz(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		//if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-		//	{Default(inst); return;} // turn off from debugger
+		//	{Default(inst); return;} // turn off from debugger	
+#endif
 		INSTRUCTION_START;
 
 		MOV(32, R(EAX), gpr.R(inst.RB));
@@ -205,8 +213,10 @@ namespace Jit64
 
 	void stX(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		//if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-		//	{Default(inst); return;} // turn off from debugger
+		//	{Default(inst); return;} // turn off from debugger	
+#endif
 		INSTRUCTION_START;
 
 		int s = inst.RS;

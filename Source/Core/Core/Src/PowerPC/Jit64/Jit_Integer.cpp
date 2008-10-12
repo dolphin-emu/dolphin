@@ -93,8 +93,10 @@ namespace Jit64
 
 	void reg_imm(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int d = inst.RD, a = inst.RA, s = inst.RS;
 		switch (inst.OPCD)
@@ -122,8 +124,10 @@ namespace Jit64
 	// unsigned
 	void cmpli(UGeckoInstruction inst)
 	{	
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA;
 		u32 uimm = inst.UIMM;
@@ -152,8 +156,10 @@ namespace Jit64
 	// signed
 	void cmpi(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA;
 		s32 simm = (s32)(s16)inst.UIMM;
@@ -182,8 +188,10 @@ namespace Jit64
 	// signed
 	void cmp(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int b = inst.RB;
@@ -214,8 +222,10 @@ namespace Jit64
 	// unsigned
 	void cmpl(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int b = inst.RB;
@@ -245,8 +255,10 @@ namespace Jit64
 	
 	void orx(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int s = inst.RS;
@@ -282,8 +294,10 @@ namespace Jit64
 
 	void andx(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA, s = inst.RS, b = inst.RB;
 		if (a != s && a != b) {
@@ -305,8 +319,10 @@ namespace Jit64
 
 	void extsbx(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA,
 			s = inst.RS;
@@ -322,8 +338,10 @@ namespace Jit64
 
 	void extshx(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA, s = inst.RS;
 		gpr.LoadToX64(a, a == s, true);
@@ -337,8 +355,10 @@ namespace Jit64
 
 	void subfic(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA, d = inst.RD;
 		gpr.FlushLockX(ECX);
@@ -373,8 +393,10 @@ namespace Jit64
 
 	void subfx(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		gpr.Lock(a, b, d);
@@ -396,8 +418,10 @@ namespace Jit64
 
 	void mulli(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA, d = inst.RD;
 		gpr.FlushLockX(EDX);
@@ -417,8 +441,10 @@ namespace Jit64
 
 	void mullwx(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		gpr.FlushLockX(EDX);
@@ -442,8 +468,10 @@ namespace Jit64
 
 	void mulhwux(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		gpr.FlushLockX(EDX);
@@ -505,8 +533,10 @@ namespace Jit64
 
 	void addx(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		_assert_msg_(DYNA_REC, !inst.OE, "Add - OE enabled :(");
@@ -558,8 +588,10 @@ namespace Jit64
 	// This can be optimized
 	void addex(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		gpr.FlushLockX(ECX);
@@ -584,8 +616,10 @@ namespace Jit64
 
 	void rlwinmx(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int s = inst.RS;
@@ -647,8 +681,10 @@ namespace Jit64
 
 	void rlwimix(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int s = inst.RS;
@@ -681,8 +717,10 @@ namespace Jit64
 
 	void rlwnmx(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, s = inst.RS;
 		if (gpr.R(a).IsImm())
@@ -711,8 +749,10 @@ namespace Jit64
 
 	void negx(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int d = inst.RD;
@@ -731,8 +771,10 @@ namespace Jit64
 
 	void srwx(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int b = inst.RB;
@@ -760,8 +802,10 @@ namespace Jit64
 
 	void slwx(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int b = inst.RB;
@@ -789,8 +833,10 @@ namespace Jit64
 
 	void srawix(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int s = inst.RS;
@@ -834,8 +880,10 @@ namespace Jit64
 	// count leading zeroes
 	void cntlzwx(UGeckoInstruction inst)
 	{
+#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
+#endif
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int s = inst.RS;

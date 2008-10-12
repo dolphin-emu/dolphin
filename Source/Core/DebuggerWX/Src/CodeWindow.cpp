@@ -325,6 +325,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _T("&Interpreter"), wxEmptyString, wxITEM_CHECK);
 		interpreter->Check(!_LocalCoreStartupParameter.bUseJIT);
 
+#ifdef JIT_OFF_OPTIONS
 		jitoff = pCoreMenu->Append(IDM_JITOFF, _T("&JIT off"), wxEmptyString, wxITEM_CHECK);
 		jitoff->Check(_LocalCoreStartupParameter.bJITOff);
 
@@ -342,6 +343,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 
 		jitsroff = pCoreMenu->Append(IDM_JITSROFF, _T("&JIT SystemRegisters off"), wxEmptyString, wxITEM_CHECK);
 		jitsroff->Check(_LocalCoreStartupParameter.bJITSystemRegistersOff);
+#endif
 
 //		wxMenuItem* dualcore = pDebugMenu->Append(IDM_DUALCORE, _T("&DualCore"), wxEmptyString, wxITEM_CHECK);
 //		dualcore->Check(_LocalCoreStartupParameter.bUseDualCore);

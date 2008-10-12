@@ -66,8 +66,10 @@ u32 GC_ALIGNED16(temp32);
 
 void lfs(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-		{Default(inst); return;} // turn off from debugger
+#ifdef JIT_OFF_OPTIONS
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger	
+#endif
 	INSTRUCTION_START;
 	int d = inst.RD;
 	int a = inst.RA;
@@ -102,8 +104,10 @@ void lfs(UGeckoInstruction inst)
 
 void lfd(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-		{Default(inst); return;} // turn off from debugger
+#ifdef JIT_OFF_OPTIONS
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger	
+#endif
 	INSTRUCTION_START;
 	if (!cpu_info.bSSSE3) {
 		DISABLE_32BIT;
@@ -148,8 +152,10 @@ void lfd(UGeckoInstruction inst)
 
 void stfd(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-		{Default(inst); return;} // turn off from debugger
+#ifdef JIT_OFF_OPTIONS
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger	
+#endif
 	INSTRUCTION_START;
 	if (!cpu_info.bSSSE3)
 	{
@@ -193,8 +199,10 @@ void stfd(UGeckoInstruction inst)
 
 void stfs(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-		{Default(inst); return;} // turn off from debugger
+#ifdef JIT_OFF_OPTIONS
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger	
+#endif
 	INSTRUCTION_START;
 	bool update = inst.OPCD & 1;
 	int s = inst.RS;
@@ -258,8 +266,10 @@ void stfsx(UGeckoInstruction inst)
 
 void lfsx(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-		{Default(inst); return;} // turn off from debugger
+#ifdef JIT_OFF_OPTIONS
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger	
+#endif
 	INSTRUCTION_START;
 	fpr.Lock(inst.RS);
 	fpr.LoadToX64(inst.RS, false, true);

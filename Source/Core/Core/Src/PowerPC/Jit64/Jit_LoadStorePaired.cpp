@@ -106,8 +106,10 @@ const double GC_ALIGNED16(m_dequantizeTableD[]) =
 // We will have to break block after quantizers are written to.
 void psq_st(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-		{Default(inst); return;} // turn off from debugger
+#ifdef JIT_OFF_OPTIONS
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger	
+#endif
 	INSTRUCTION_START;
 	js.block_flags |= BLOCK_USE_GQR0 << inst.I;
 
@@ -285,8 +287,10 @@ const u8 GC_ALIGNED16(pbswapShuffleNoop[16]) = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 
 void psq_l(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-		{Default(inst); return;} // turn off from debugger
+#ifdef JIT_OFF_OPTIONS
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger	
+#endif
 	INSTRUCTION_START;
 	js.block_flags |= BLOCK_USE_GQR0 << inst.I;
 
