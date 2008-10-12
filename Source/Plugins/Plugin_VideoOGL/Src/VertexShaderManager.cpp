@@ -392,7 +392,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 			hei = ceil(fabs(2 * rawViewport[1]));
 		}
 
-		if(g_Config.bStretchToFit)
+		if(g_Config.bStretchToFit && g_Config.renderToMainframe)
 		{
 		glViewport(
 			(int)(rawViewport[3]-rawViewport[0]-342) + xoffs,
@@ -428,7 +428,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = rawProjection[4];
-            g_fProjectionMatrix[11] = -(0.0f-rawProjection[5]); 
+            g_fProjectionMatrix[11] = rawProjection[5]; 
                         
             g_fProjectionMatrix[12] = 0.0f;
             g_fProjectionMatrix[13] = 0.0f;
@@ -449,7 +449,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = rawProjection[4];
-            g_fProjectionMatrix[11] = -(0.0f-rawProjection[5]);
+            g_fProjectionMatrix[11] = -rawProjection[5];
 
             g_fProjectionMatrix[12] = 0;
             g_fProjectionMatrix[13] = 0;

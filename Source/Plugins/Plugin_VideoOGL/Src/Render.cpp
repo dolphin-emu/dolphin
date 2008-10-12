@@ -459,7 +459,7 @@ void Renderer::ReinitView(int nNewWidth, int nNewHeight)
 }
 int Renderer::GetTargetWidth()
 {
-	if(g_Config.bStretchToFit)
+	if(g_Config.bStretchToFit && g_Config.renderToMainframe)
 		return 640;
 	else
 		return nBackbufferWidth; // return the actual window width
@@ -467,7 +467,7 @@ int Renderer::GetTargetWidth()
 
 int Renderer::GetTargetHeight()
 {
-	if(g_Config.bStretchToFit)
+	if(g_Config.bStretchToFit && g_Config.renderToMainframe)
 		return 480;
 	else
 		return nBackbufferHeight; // return the actual window height
@@ -562,7 +562,7 @@ void Renderer::FlushZBufferAlphaToTarget()
     for(int i = 1; i < 8; ++i) TextureMngr::DisableStage(i);
     GL_REPORT_ERRORD();
 
-	if(g_Config.bStretchToFit)
+	if(g_Config.bStretchToFit && g_Config.renderToMainframe)
 	{
 		//TODO: Do Correctly in a bit
 		float FactorW = (float)640 / (float)nBackbufferWidth;
