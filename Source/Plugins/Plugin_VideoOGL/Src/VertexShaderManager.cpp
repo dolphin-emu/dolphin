@@ -428,7 +428,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = rawProjection[4];
-            g_fProjectionMatrix[11] = rawProjection[5]; 
+            g_fProjectionMatrix[11] = -(0.0f - rawProjection[5]); 
                         
             g_fProjectionMatrix[12] = 0.0f;
             g_fProjectionMatrix[13] = 0.0f;
@@ -449,7 +449,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = rawProjection[4];
-            g_fProjectionMatrix[11] = -rawProjection[5];
+            g_fProjectionMatrix[11] = -(0.0f - rawProjection[5]);
 
             g_fProjectionMatrix[12] = 0;
             g_fProjectionMatrix[13] = 0;
@@ -457,7 +457,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
             g_fProjectionMatrix[15] = 1.0f;
         }
 
-        PRIM_LOG("Projection: %f %f %f %f %f %f\n",rawProjection[0], rawProjection[1], rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
+        PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1], rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
         SetVSConstant4fv(C_PROJECTION, &g_fProjectionMatrix[0]);
         SetVSConstant4fv(C_PROJECTION+1, &g_fProjectionMatrix[4]);
         SetVSConstant4fv(C_PROJECTION+2, &g_fProjectionMatrix[8]);
