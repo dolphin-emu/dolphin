@@ -17,6 +17,7 @@
 
 #include "Common.h"
 
+#include "../../Core.h"
 #include "../PowerPC.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
@@ -79,6 +80,8 @@ namespace Jit64
 
 	void fp_arith_s(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITFloatingPointOff)
+			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
 		if (inst.Rc) {
 			Default(inst); return;
@@ -103,6 +106,8 @@ namespace Jit64
 
 	void fmaddXX(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITFloatingPointOff)
+			{Default(inst); return;} // turn off from debugger		
 		INSTRUCTION_START;
 		if (inst.Rc) {
 			Default(inst); return;
@@ -152,6 +157,8 @@ namespace Jit64
 	
 	void fmrx(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITFloatingPointOff)
+			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
 		if (inst.Rc) {
 			Default(inst); return;
@@ -164,6 +171,8 @@ namespace Jit64
 
 	void fcmpx(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITFloatingPointOff)
+			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
 		if (jo.fpAccurateFlags)
 		{

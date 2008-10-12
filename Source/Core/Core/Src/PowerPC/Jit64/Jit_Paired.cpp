@@ -17,6 +17,7 @@
 
 #include "Common.h"
 
+#include "../../Core.h"
 #include "../PowerPC.h"
 #include "../PPCTables.h"
 #include "x64Emitter.h"
@@ -53,6 +54,8 @@ namespace Jit64
 
 	void ps_mr(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
+			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
 		if (inst.Rc) {
 			Default(inst); return;
@@ -67,6 +70,8 @@ namespace Jit64
 
 	void ps_sel(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
+			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
 		Default(inst);
 		return;
@@ -98,6 +103,8 @@ namespace Jit64
 
 	void ps_sign(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
+			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
 		if (inst.Rc) {
 			Default(inst); return;
@@ -134,6 +141,8 @@ namespace Jit64
 
 	void ps_rsqrte(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
+			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
 		if (inst.Rc) {
 			Default(inst); return;
@@ -205,6 +214,8 @@ namespace Jit64
 
 	void ps_arith(UGeckoInstruction inst)
 	{	
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
+			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
 		if (inst.Rc) {
 			Default(inst); return;
@@ -229,6 +240,8 @@ namespace Jit64
 	//TODO: find easy cases and optimize them, do a breakout like ps_arith
 	void ps_mergeXX(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
+			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
 		if (inst.Rc) {
 			Default(inst); return;
@@ -270,6 +283,8 @@ namespace Jit64
 	//TODO: add optimized cases
 	void ps_maddXX(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
+			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
 		if (inst.Rc) {
 			Default(inst); return;
@@ -315,6 +330,8 @@ namespace Jit64
 
 	void ps_mulsX(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
+			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
 		Default(inst);
 		return;

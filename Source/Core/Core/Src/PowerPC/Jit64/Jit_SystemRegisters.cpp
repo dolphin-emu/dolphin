@@ -17,6 +17,7 @@
 
 #include "Common.h"
 
+#include "../../Core.h"
 #include "../../CoreTiming.h"
 #include "../../HW/SystemTimers.h"
 #include "../PowerPC.h"
@@ -36,6 +37,8 @@ namespace Jit64
 {
 	void mtspr(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
+			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 		int d = inst.RD;
@@ -84,6 +87,8 @@ namespace Jit64
 
 	void mfspr(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
+			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 		int d = inst.RD;
@@ -108,8 +113,14 @@ namespace Jit64
 		}
 	}
 
+
+	// =======================================================================================
+	// ... ? Don't interpret this, if we do we get thrown out
+	// --------------
 	void mtmsr(UGeckoInstruction inst)
 	{
+		//if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
+		//	{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
 		gpr.LoadToX64(inst.RS, true, false);
 		MOV(32, M(&MSR), gpr.R(inst.RS));
@@ -117,9 +128,13 @@ namespace Jit64
 		fpr.Flush(FLUSH_ALL);
 		WriteExit(js.compilerPC + 4, 0);
 	}
+	// ==============
+
 
 	void mfmsr(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
+			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
 		//Privileged?
 		gpr.LoadToX64(inst.RD, false);
@@ -128,6 +143,8 @@ namespace Jit64
 
 	void mftb(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
+			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
 		mfspr(inst);
 	}

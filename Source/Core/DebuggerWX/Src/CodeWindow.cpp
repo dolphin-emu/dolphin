@@ -53,7 +53,7 @@
 #include "PowerPC/SignatureDB.h"
 #include "PowerPC/PPCTables.h"
 #include "PowerPC/Jit64/Jit.h"
-#include "PowerPC/Jit64/JitCache.h"
+#include "PowerPC/Jit64/JitCache.h" // for ClearCache()
 
 #include "Plugins/Plugin_DSP.h" // new stuff, to let us open the DLLDebugger
 #include "Plugins/Plugin_Video.h" // new stuff, to let us open the DLLDebugger
@@ -88,7 +88,13 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	EVT_MENU(IDM_SOUNDWINDOW,		CCodeWindow::OnToggleSoundWindow)
 	EVT_MENU(IDM_VIDEOWINDOW,		CCodeWindow::OnToggleVideoWindow)
 
-	EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnInterpreter)
+	EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnInterpreter) // CPU Mode
+	EVT_MENU(IDM_JITOFF,			CCodeWindow::OnJITOff)
+	EVT_MENU(IDM_JITLSOFF,			CCodeWindow::OnJITLSOff)
+	EVT_MENU(IDM_JITFPOFF,			CCodeWindow::OnJITFPOff)
+	EVT_MENU(IDM_JITIOFF,			CCodeWindow::OnJITIOff)
+	EVT_MENU(IDM_JITPOFF,			CCodeWindow::OnJITPOff)
+	EVT_MENU(IDM_JITSROFF,			CCodeWindow::OnJITSROff)
 
 	EVT_MENU(IDM_CLEARSYMBOLS,      CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_LOADMAPFILE,       CCodeWindow::OnSymbolsMenu)
@@ -299,7 +305,7 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 		// possible todo: add some kind of if here to? can it fail?
 		CPluginManager::GetInstance().OpenDebug(
 		GetHandle(),
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str()
+		_LocalCoreStartupParameter.m_strVideoPlugin.c_str()
 		);	
 	} // don't have any else, just ignore it
 }
@@ -313,10 +319,29 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	// ---------------
 	wxMenuBar* pMenuBar = new wxMenuBar(wxMB_DOCKABLE);
 
-	{
+	{	
 		wxMenu* pCoreMenu = new wxMenu;
+
 		wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _T("&Interpreter"), wxEmptyString, wxITEM_CHECK);
 		interpreter->Check(!_LocalCoreStartupParameter.bUseJIT);
+
+		jitoff = pCoreMenu->Append(IDM_JITOFF, _T("&JIT off"), wxEmptyString, wxITEM_CHECK);
+		jitoff->Check(_LocalCoreStartupParameter.bJITOff);
+
+		jitlsoff = pCoreMenu->Append(IDM_JITLSOFF, _T("&JIT LoadStore off"), wxEmptyString, wxITEM_CHECK);
+		jitlsoff->Check(_LocalCoreStartupParameter.bJITLoadStoreOff);
+
+		jitfpoff = pCoreMenu->Append(IDM_JITFPOFF, _T("&JIT FloatingPoint off"), wxEmptyString, wxITEM_CHECK);
+		jitfpoff->Check(_LocalCoreStartupParameter.bJITFloatingPointOff);
+
+		jitioff = pCoreMenu->Append(IDM_JITIOFF, _T("&JIT Integer off"), wxEmptyString, wxITEM_CHECK);
+		jitioff->Check(_LocalCoreStartupParameter.bJITIntegerOff);
+
+		jitpoff = pCoreMenu->Append(IDM_JITPOFF, _T("&JIT Paired off"), wxEmptyString, wxITEM_CHECK);
+		jitpoff->Check(_LocalCoreStartupParameter.bJITPairedOff);
+
+		jitsroff = pCoreMenu->Append(IDM_JITSROFF, _T("&JIT SystemRegisters off"), wxEmptyString, wxITEM_CHECK);
+		jitsroff->Check(_LocalCoreStartupParameter.bJITSystemRegistersOff);
 
 //		wxMenuItem* dualcore = pDebugMenu->Append(IDM_DUALCORE, _T("&DualCore"), wxEmptyString, wxITEM_CHECK);
 //		dualcore->Check(_LocalCoreStartupParameter.bUseDualCore);
@@ -401,6 +426,10 @@ bool CCodeWindow::UseDualCore()
 	return(GetMenuBar()->IsChecked(IDM_DUALCORE));
 }
 
+
+// =======================================================================================
+// CPU Mode
+// --------------
 void CCodeWindow::OnInterpreter(wxCommandEvent& event)
 {
 	if (Core::GetState() != Core::CORE_RUN) {
@@ -410,6 +439,41 @@ void CCodeWindow::OnInterpreter(wxCommandEvent& event)
 		wxMessageBox(_T("Please pause the emulator before changing mode."));
 	}
 }
+void CCodeWindow::DoJITOff(wxCommandEvent& event, wxMenuItem* a, bool& b)
+{
+	if (Core::GetState() == Core::CORE_UNINITIALIZED)
+	{
+		// we disallow changing the status here because it will be reset to the defult when BootCore()
+		// creates the SCoreStartupParameter as a game is loaded
+		a->Check(!a->IsChecked());
+		wxMessageBox(_T("Please start a game before changing mode."));	
+	} else {
+		if (Core::GetState() != Core::CORE_RUN)
+		{
+			b = !b;
+			Jit64::ClearCache();			
+		} else {
+			//event.Skip(); // this doesn't work
+			a->Check(!a->IsChecked());
+			wxMessageBox(_T("Please pause the emulator before changing mode."));		
+		}
+	}
+}
+
+void CCodeWindow::OnJITOff(wxCommandEvent& event) {DoJITOff(event, jitoff, 
+	Core::g_CoreStartupParameter.bJITOff);}
+void CCodeWindow::OnJITLSOff(wxCommandEvent& event) {DoJITOff(event, jitlsoff,
+	Core::g_CoreStartupParameter.bJITLoadStoreOff);}
+void CCodeWindow::OnJITFPOff(wxCommandEvent& event) {DoJITOff(event, jitfpoff,
+	Core::g_CoreStartupParameter.bJITFloatingPointOff);}
+void CCodeWindow::OnJITIOff(wxCommandEvent& event) {DoJITOff(event, jitioff,
+	Core::g_CoreStartupParameter.bJITIntegerOff);}
+void CCodeWindow::OnJITPOff(wxCommandEvent& event) {DoJITOff(event, jitpoff,
+	Core::g_CoreStartupParameter.bJITPairedOff);}
+void CCodeWindow::OnJITSROff(wxCommandEvent& event) {DoJITOff(event, jitsroff,
+	Core::g_CoreStartupParameter.bJITSystemRegistersOff);}
+// ==============
+
 
 void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 {

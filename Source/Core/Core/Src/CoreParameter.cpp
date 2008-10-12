@@ -37,6 +37,13 @@ void SCoreStartupParameter::LoadDefaults()
 	bLockThreads = true;
 	bWii = false;
 	SelectedLanguage = 0;
+
+	bJITOff = false; // debugger only settings
+	bJITLoadStoreOff = false;
+	bJITFloatingPointOff = false;
+	bJITIntegerOff = false;
+	bJITPairedOff = false;
+	bJITSystemRegistersOff = false;
 }
 
 bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios) 

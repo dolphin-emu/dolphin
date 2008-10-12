@@ -54,7 +54,10 @@ namespace Jit64
 	}
 	void lbzx(UGeckoInstruction inst)
 	{
+		//if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+		//	{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
+
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		gpr.Lock(a, b, d);
 		gpr.FlushLockX(ABI_PARAM1);
@@ -74,7 +77,10 @@ namespace Jit64
 
 	void lXz(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger		
 		INSTRUCTION_START;
+
 		int d = inst.RD;
 		int a = inst.RA;
 
@@ -156,7 +162,10 @@ namespace Jit64
 
 	void lha(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
+
 		int d = inst.RD;
 		int a = inst.RA;
 		s32 offset = (s32)(s16)inst.SIMM_16;
@@ -175,7 +184,10 @@ namespace Jit64
 	// Zero cache line.
 	void dcbz(UGeckoInstruction inst)
 	{
+		//if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+		//	{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
+
 		MOV(32, R(EAX), gpr.R(inst.RB));
 		if (inst.RA)
 			ADD(32, R(EAX), gpr.R(inst.RA));
@@ -193,7 +205,10 @@ namespace Jit64
 
 	void stX(UGeckoInstruction inst)
 	{
+		//if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+		//	{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
+
 		int s = inst.RS;
 		int a = inst.RA;
 
