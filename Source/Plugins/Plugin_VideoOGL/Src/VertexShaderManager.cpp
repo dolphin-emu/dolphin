@@ -163,11 +163,7 @@ bool VertexShaderMngr::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpro
 {
     char stropt[64];
     sprintf(stropt, "MaxLocalParams=256,MaxInstructions=%d", s_nMaxVertexInstructions);
-#ifdef _WIN32
     const char* opts[] = {"-profileopts",stropt,"-O2", "-q", NULL};
-#else
-    const char* opts[] = {"-profileopts",stropt,"-q", NULL};
-#endif
     CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgvProf, "main", opts);
     if (!cgIsProgram(tempprog) || cgGetError() != CG_NO_ERROR) {
         ERROR_LOG("Failed to load vs %s:\n", cgGetLastListing(g_cgcontext));

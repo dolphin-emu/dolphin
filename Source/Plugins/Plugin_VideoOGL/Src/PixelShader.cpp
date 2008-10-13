@@ -606,21 +606,26 @@ void WriteStage(char *&p, int n, u32 texture_mask)
         int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
         if(!bHasIndStage) {
             // calc tevcord
+            //tevcoord.xy = texdim[1].xy * uv1.xy / uv1.z;
+            int OurTexCoord = 0;
+            if(bpmem.genMode.numtexgens)
+                OurTexCoord = texcoord;
+            else
+                OurTexCoord = 0;
             if( texture_mask & (1<<texmap) ) {
                 // nonpow2
                 if( texfun == XF_TEXPROJ_STQ )
-                    WRITE(p,"tevcoord.xy = uv%d.xy / uv%d.z;\n", texcoord, texcoord);
+                    WRITE(p,"tevcoord.xy = uv%d.xy / uv%d.z;\n", texcoord, OurTexCoord);
                 else
-                    WRITE(p,"tevcoord.xy = uv%d.xy;\n", texcoord);
+                    WRITE(p,"tevcoord.xy = uv%d.xy;\n", OurTexCoord);
                 WrapNonPow2Tex(p, "tevcoord", texmap, texture_mask);
             }
             else {
-                if( texfun == XF_TEXPROJ_STQ ) {
-                    WRITE(p,"tevcoord.xy = "I_TEXDIMS"[%d].xy * uv%d.xy / uv%d.z;\n", texmap, texcoord, texcoord);
-                }
-                else {
-                    WRITE(p,"tevcoord.xy = "I_TEXDIMS"[%d].xy * uv%d.xy;\n", texmap, texcoord);
-                }
+                if( texfun == XF_TEXPROJ_STQ ) 
+                    WRITE(p,"tevcoord.xy = "I_TEXDIMS"[%d].xy * uv%d.xy / uv%d.z;\n", texmap, OurTexCoord , OurTexCoord );
+                else 
+                    WRITE(p,"tevcoord.xy = "I_TEXDIMS"[%d].xy * uv%d.xy;\n", texmap, OurTexCoord);
+
             }
         }
         else if( texture_mask & (1<<texmap) ) {
