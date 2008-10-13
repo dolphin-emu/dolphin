@@ -73,6 +73,8 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "DVDRoot",        m_LocalCoreStartupParameter.m_strDVDRoot);
 		ini.Set("Core", "OptimizeQuantizers", m_LocalCoreStartupParameter.bOptimizeQuantizers);
 		ini.Set("Core", "SelectedLanguage", m_LocalCoreStartupParameter.SelectedLanguage);
+		ini.Set("Core", "RunCompareServer", m_LocalCoreStartupParameter.bRunCompareServer);
+		ini.Set("Core", "RunCompareClient", m_LocalCoreStartupParameter.bRunCompareClient);
 	}
 
 	ini.Save("Dolphin.ini");
@@ -127,5 +129,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "DVDRoot",     &m_LocalCoreStartupParameter.m_strDVDRoot);
 		ini.Get("Core", "OptimizeQuantizers", &m_LocalCoreStartupParameter.bOptimizeQuantizers, true);
 		ini.Get("Core", "SelectedLanguage", &m_LocalCoreStartupParameter.SelectedLanguage, 0);
+		ini.Get("Core", "RunCompareServer", &m_LocalCoreStartupParameter.bRunCompareServer, false);
+		ini.Get("Core", "RunCompareClient", &m_LocalCoreStartupParameter.bRunCompareClient, false);
 	}
 }

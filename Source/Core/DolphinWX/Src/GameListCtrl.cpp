@@ -354,22 +354,16 @@ bool CGameListCtrl::MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem)
 	return(Result);
 }
 
-#ifdef _WIN32
 wxColour blend50(const wxColour& c1, const wxColour& c2)
 {
 	return(((c1.GetPixel() & 0xFEFEFE) >> 1) + ((c2.GetPixel() & 0xFEFEFE) >> 1) + 0x010101);
 }
-#endif
 
 void CGameListCtrl::SetBackgroundColor()
 {
 	for(long i = 0; i < GetItemCount(); i++)
 	{
-#ifdef _WIN32
-		wxColour color = (i & 1) ? blend50(GetSysColor(COLOR_3DLIGHT), GetSysColor(COLOR_WINDOW)) : GetSysColor(COLOR_WINDOW);
-#else
-		wxColour color = (i & 1) ? 0xFFFFFF : 0xEEEEEE;
-#endif
+		wxColour color = (i & 1) ? blend50(wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT), wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW)) : wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 		CGameListCtrl::SetItemBackgroundColour(i, color);
 	}
 }

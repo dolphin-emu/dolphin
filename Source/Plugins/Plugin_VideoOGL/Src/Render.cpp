@@ -253,8 +253,8 @@ bool Renderer::Create2()
 
     g_cgvProf = cgGLGetLatestProfile(CG_GL_VERTEX);
     g_cgfProf = cgGLGetLatestProfile(CG_GL_FRAGMENT);//CG_PROFILE_ARBFP1;
-    //cgGLSetOptimalOptions(g_cgvProf);
-    //cgGLSetOptimalOptions(g_cgfProf);
+    cgGLSetOptimalOptions(g_cgvProf);
+    cgGLSetOptimalOptions(g_cgfProf);
 
     //ERROR_LOG("max buffer sizes: %d %d\n", cgGetProgramBufferMaxSize(g_cgvProf), cgGetProgramBufferMaxSize(g_cgfProf));
     int nenvvertparams, nenvfragparams, naddrregisters[2];

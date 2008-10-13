@@ -586,7 +586,7 @@ void OpenGL_Update()
                 rcWindow.right = GLWin.width;
                 rcWindow.bottom = GLWin.height;
                 break;
-            case ClientMessage: //TODO: We aren't reading this correctly, It could be anything, highest change is that it's a close event though
+            case ClientMessage: //TODO: We aren't reading this correctly, It could be anything, highest chance is that it's a close event though
                 Video_Shutdown(); // Calling from here since returning false does nothing
                 return; 
                 break;
