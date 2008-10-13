@@ -86,7 +86,7 @@ bool IniFile::DeleteSection(const char* sectionName)
 
 	if (!s)
 	{
-		return(false);
+		return false;
 	}
 
 	for (std::vector<Section>::iterator iter = sections.begin(); iter != sections.end(); ++iter)
@@ -94,11 +94,11 @@ bool IniFile::DeleteSection(const char* sectionName)
 		if (&(*iter) == s)
 		{
 			sections.erase(iter);
-			return(true);
+			return true;
 		}
 	}
 
-	return(false);
+	return false;
 }
 
 
@@ -150,11 +150,11 @@ std::string* IniFile::GetLine(Section* section, const char* key, std::string* va
 
 		if (!stricmp(lineKey.c_str(), key))
 		{
-			return(&line);
+			return &line;
 		}
 	}
 
-	return(0);
+	return 0;
 }
 
 
@@ -206,7 +206,7 @@ bool IniFile::Get(const char* sectionName, const char* key, std::string* value, 
 			*value = defaultValue;
 		}
 
-		return(false);
+		return false;
 	}
 
 	std::string* line = GetLine(section, key, value, 0);
@@ -218,10 +218,10 @@ bool IniFile::Get(const char* sectionName, const char* key, std::string* value, 
 			*value = defaultValue;
 		}
 
-		return(false);
+		return false;
 	}
 
-	return(true);
+	return true;
 }
 
 
@@ -232,11 +232,11 @@ bool IniFile::Get(const char* sectionName, const char* key, int* value, int defa
 
 	if (retval && TryParseInt(temp.c_str(), value))
 	{
-		return(true);
+		return true;
 	}
 
 	*value = defaultValue;
-	return(false);
+	return false;
 }
 
 
@@ -247,11 +247,11 @@ bool IniFile::Get(const char* sectionName, const char* key, u32* value, u32 defa
 
 	if (retval && TryParseUInt(temp.c_str(), value))
 	{
-		return(true);
+		return true;
 	}
 
 	*value = defaultValue;
-	return(false);
+	return false;
 }
 
 
@@ -262,11 +262,11 @@ bool IniFile::Get(const char* sectionName, const char* key, bool* value, bool de
 
 	if (retval && TryParseBool(temp.c_str(), value))
 	{
-		return(true);
+		return true;
 	}
 
 	*value = defaultValue;
-	return(false);
+	return false;
 }
 
 
@@ -276,7 +276,7 @@ bool IniFile::DeleteKey(const char* sectionName, const char* key)
 
 	if (!section)
 	{
-		return(false);
+		return false;
 	}
 
 	std::string* line = GetLine(section, key, 0, 0);
@@ -286,11 +286,11 @@ bool IniFile::DeleteKey(const char* sectionName, const char* key)
 		if (line == &(*liter))
 		{
 			section->lines.erase(liter);
-			return(true);
+			return true;
 		}
 	}
 
-	return(false); //shouldn't happen
+	return false; //shouldn't happen
 }
 
 
@@ -305,7 +305,7 @@ bool IniFile::Load(const char* filename)
 
 	if (in.fail())
 	{
-		return(false);
+		return false;
 	}
 
 	while (!in.eof())
@@ -345,7 +345,7 @@ bool IniFile::Load(const char* filename)
 	}
 
 	in.close();
-	return(true);
+	return true;
 }
 
 
@@ -356,7 +356,7 @@ bool IniFile::Save(const char* filename)
 
 	if (out.fail())
 	{
-		return(false);
+		return false;
 	}
 
 	for (std::vector<Section>::const_iterator iter = sections.begin(); iter != sections.end(); ++iter)
@@ -376,7 +376,7 @@ bool IniFile::Save(const char* filename)
 	}
 
 	out.close();
-	return(true);
+	return true;
 }
 
 
@@ -386,7 +386,7 @@ bool IniFile::GetKeys(const char* sectionName, std::vector<std::string>& keys)
 
 	if (!section)
 	{
-		return(false);
+		return false;
 	}
 
 	keys.clear();
@@ -398,26 +398,21 @@ bool IniFile::GetKeys(const char* sectionName, std::vector<std::string>& keys)
 		keys.push_back(key);
 	}
 
-	return(true);
+	return true;
 }
 
 
 bool IniFile::GetLines(const char* sectionName, std::vector<std::string>& lines)
 {
 	Section* section = GetSection(sectionName);
-
 	if (!section)
-	{
-		return(false);
-	}
+		return false;
 
 	lines.clear();
-
 	for (std::vector<std::string>::const_iterator iter = section->lines.begin(); iter != section->lines.end(); ++iter)
 	{
 		std::string line = StripSpaces(*iter);
 		int commentPos = (int)line.find('#');
-
 		if (commentPos == 0)
 		{
 			continue;
@@ -431,8 +426,7 @@ bool IniFile::GetLines(const char* sectionName, std::vector<std::string>& lines)
 		lines.push_back(line);
 	}
 
-	lines = section->lines;
-	return(true);
+	return true;
 }
 
 

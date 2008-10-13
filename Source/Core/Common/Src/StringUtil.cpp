@@ -28,103 +28,35 @@ bool AsciiToHex(const char* _szValue, u32& result)
 	size_t finish = strlen(_szValue);
 
 	if (finish > 8)
-	{
-		finish = 8;
-	}
+		finish = 8;  // Max 32-bit values are supported.
 
 	for (size_t count = 0; count < finish; count++)
 	{
 		value <<= 4;
-
 		switch (_szValue[count])
 		{
-		    case '0':
-			    break;
-
-		    case '1':
-			    value += 1;
-			    break;
-
-		    case '2':
-			    value += 2;
-			    break;
-
-		    case '3':
-			    value += 3;
-			    break;
-
-		    case '4':
-			    value += 4;
-			    break;
-
-		    case '5':
-			    value += 5;
-			    break;
-
-		    case '6':
-			    value += 6;
-			    break;
-
-		    case '7':
-			    value += 7;
-			    break;
-
-		    case '8':
-			    value += 8;
-			    break;
-
-		    case '9':
-			    value += 9;
-			    break;
-
+		    case '0': break;
+		    case '1': value += 1; break;
+		    case '2': value += 2; break;
+		    case '3': value += 3; break;
+		    case '4': value += 4; break;
+		    case '5': value += 5; break;
+		    case '6': value += 6; break;
+		    case '7': value += 7; break;
+		    case '8': value += 8; break;
+		    case '9': value += 9; break;
 		    case 'A':
-			    value += 10;
-			    break;
-
-		    case 'a':
-			    value += 10;
-			    break;
-
+		    case 'a': value += 10; break;
 		    case 'B':
-			    value += 11;
-			    break;
-
-		    case 'b':
-			    value += 11;
-			    break;
-
+		    case 'b': value += 11; break;
 		    case 'C':
-			    value += 12;
-			    break;
-
-		    case 'c':
-			    value += 12;
-			    break;
-
+		    case 'c': value += 12; break;
 		    case 'D':
-			    value += 13;
-			    break;
-
-		    case 'd':
-			    value += 13;
-			    break;
-
+		    case 'd': value += 13; break;
 		    case 'E':
-			    value += 14;
-			    break;
-
-		    case 'e':
-			    value += 14;
-			    break;
-
+		    case 'e': value += 14; break;
 		    case 'F':
-			    value += 15;
-			    break;
-
-		    case 'f':
-			    value += 15;
-			    break;
-
+		    case 'f': value += 15; break;
 		    default:
 			    return false;
 			    break;
@@ -201,10 +133,10 @@ void ToStringFromFormat(std::string* out, const char* format, ...)
 
 
 // Turns "  hej " into "hej". Also handles tabs.
-std::string StripSpaces(std::string s)
+std::string StripSpaces(const std::string &str)
 {
+	std::string s = str;
 	int i;
-
 	for (i = 0; i < (int)s.size(); i++)
 	{
 		if ((s[i] != ' ') && (s[i] != 9))
@@ -223,7 +155,7 @@ std::string StripSpaces(std::string s)
 		}
 	}
 
-	return(s.substr(0, i + 1));
+	return s.substr(0, i + 1);
 }
 
 
@@ -233,15 +165,23 @@ std::string StripSpaces(std::string s)
 std::string StripQuotes(const std::string& s)
 {
 	if ((s[0] == '\"') && (s[s.size() - 1] == '\"'))
-	{
-		return(s.substr(1, s.size() - 2));
-	}
+		return s.substr(1, s.size() - 2);
 	else
-	{
-		return(s);
-	}
+		return s;
 }
 
+// "\"hello\"" is turned to "hello"
+// This one assumes that the string has already been space stripped in both
+// ends, as done by StripSpaces above, for example.
+std::string StripNewline(const std::string& s)
+{
+	if (!s.size())
+		return s;
+	else if (s[s.size() - 1] == '\n')
+		return s.substr(0, s.size() - 1);
+	else
+		return s;
+}
 
 bool TryParseInt(const char* str, int* outVal)
 {
@@ -261,7 +201,7 @@ bool TryParseInt(const char* str, int* outVal)
 
 		if ((c < '0') || (c > '9'))
 		{
-			return(false);
+			return false;
 		}
 
 		value = value * 10 + (c - '0');
@@ -270,7 +210,7 @@ bool TryParseInt(const char* str, int* outVal)
         value = -value;
 
 	*outVal = value;
-	return(true);
+	return true;
 }
 
 
@@ -279,31 +219,27 @@ bool TryParseBool(const char* str, bool* output)
 	if ((str[0] == '1') || !strcmp(str, "true") || !strcmp(str, "True") || !strcmp(str, "TRUE"))
 	{
 		*output = true;
-		return(true);
+		return true;
 	}
 	else if (str[0] == '0' || !strcmp(str, "false") || !strcmp(str, "False") || !strcmp(str, "FALSE"))
 	{
 		*output = false;
-		return(true);
+		return true;
 	}
-
-	return(false);
+	return false;
 }
-
 
 std::string StringFromInt(int value)
 {
 	char temp[16];
 	sprintf(temp, "%i", value);
-	return(std::string(temp));
+	return std::string(temp);
 }
-
 
 std::string StringFromBool(bool value)
 {
-	return(value ? "True" : "False");
+	return value ? "True" : "False";
 }
-
 
 #ifdef _WIN32
 bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename, std::string* _pExtension)
@@ -330,10 +266,10 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
 			*_pExtension = ext;
 		}
 
-		return(true);
+		return true;
 	}
 
-	return(false);
+	return false;
 }
 
 
@@ -344,14 +280,14 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
 
 	if (last_slash == std::string::npos)
 	{
-		return(false);
+		return false;
 	}
 
 	size_t last_dot = full_path.rfind('.');
 
 	if ((last_dot == std::string::npos) || (last_dot < last_slash))
 	{
-		return(false);
+		return false;
 	}
 
 	if (_pPath)
@@ -374,7 +310,7 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
 		*_pFilename += full_path.substr(last_dot);
 	}
 
-	return(true);
+	return true;
 }
 
 
@@ -418,49 +354,20 @@ void SplitString(const std::string& str, const std::string& delim, std::vector<s
 bool TryParseUInt(const std::string& str, u32* output)
 {
 	if (!strcmp(str.substr(0, 2).c_str(), "0x") || !strcmp(str.substr(0, 2).c_str(), "0X"))
-	{
-		return(sscanf(str.c_str() + 2, "%x", output) > 0);
-	}
+		return sscanf(str.c_str() + 2, "%x", output) > 0;
 	else
-	{
-		return(sscanf(str.c_str(), "%d", output) > 0);
-	}
+		return sscanf(str.c_str(), "%d", output) > 0;
 }
 
 
 int ChooseStringFrom(const char* str, const char* * items)
 {
 	int i = 0;
-
 	while (items[i] != 0)
 	{
 		if (!strcmp(str, items[i]))
-		{
-			return(i);
-		}
-
+			return i;
 		i++;
 	}
-
-	return(-1);
-}
-
-
-// Hmm, sometimes this test doesn't get run :P
-TEST(splitStringTest)
-{
-	/*
-	   std::string orig = "abc:def";
-	   std::vector<std::string> split;
-	   SplitString(orig, std::string(":"), split);
-	   CHECK(split.size() == 2);
-	   CHECK(!strcmp(split[0].c_str(), "abc"));
-	   CHECK(!strcmp(split[1].c_str(), "def"));
-
-	   orig = "abc";
-	   SplitString(orig, std::string(":"), split);
-	   CHECK(split.size() == 1);
-	   orig = ":";
-	   SplitString(orig, std::string(":"), split);
-	   CHECK(split.size() == 2);*/
+	return -1;
 }

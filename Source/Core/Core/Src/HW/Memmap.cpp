@@ -448,7 +448,6 @@ bool Init()
 
 #ifdef _M_X64
 	//Then, in x64 mode where we have space, grab a 4GB virtual address space
-	//TODO: grab 8GB and align, for easier debugging
 	base = MemArena::Find4GBBase();
 	//OK, we know where to find free space. Now grab it!
 	

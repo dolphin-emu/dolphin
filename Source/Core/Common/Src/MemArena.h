@@ -31,25 +31,21 @@
 
 class MemArena
 {
-	public:
+public:
+	void GrabLowMemSpace(size_t size);
+	void ReleaseSpace();
+	void* CreateView(s64 offset, size_t size, bool ensure_low_mem = false);
+	void* CreateViewAt(s64 offset, size_t size, void* base);
+	void ReleaseView(void* view, size_t size);
 
-		void GrabLowMemSpace(size_t size);
-		void ReleaseSpace();
-		void* CreateView(s64 offset, size_t size, bool ensure_low_mem = false);
-		void* CreateViewAt(s64 offset, size_t size, void* base);
-		void ReleaseView(void* view, size_t size);
-
-
-		// This only finds 1 GB in 32-bit
-		static u8* Find4GBBase();
-
-
-	private:
+	// This only finds 1 GB in 32-bit
+	static u8* Find4GBBase();
+private:
 
 #ifdef _WIN32
-		HANDLE hMemoryMapping;
+	HANDLE hMemoryMapping;
 #else
-		int fd;
+	int fd;
 #endif
 };
 

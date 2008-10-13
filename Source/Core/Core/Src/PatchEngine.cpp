@@ -173,47 +173,59 @@ void LoadActionReplayCodes(IniFile &ini)
 	if (!ini.GetLines("ActionReplay", lines)) 
 		return;
 
-	for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter) {
-		std::string line = StripSpaces(*iter);
+	for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
+	{
+		std::string line = *iter;
+
 		std::vector<std::string> pieces;
 		SplitString(line, " ", pieces);
-		if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8) {
+		if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
+		{
 			// Smells like a decrypted Action Replay code, great! Decode!
 			AREntry op;
 			bool success = TryParseUInt(std::string("0x") + pieces[0], &op.cmd_addr);
-			success |= TryParseUInt(std::string("0x") + pieces[1], &op.value);
-			if (!success) {
+   			success |= TryParseUInt(std::string("0x") + pieces[1], &op.value);
+			if (!success)
 				PanicAlert("Invalid AR code line: %s", line.c_str());
-			} else {
+			else
 				currentCode.ops.push_back(op);
-			}
-		} else {
+		}
+		else
+		{
 			SplitString(line, "-", pieces);
 			if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 && pieces[2].size() == 4) 
 			{
 				// Encrypted AR code
 				PanicAlert("Dolphin does not yet support encrypted AR codes.");
 			}
-			else if (line.size()) {
-				if (line[0] == '+') { 
-					// Active code
+			else if (line.size() > 1)
+			{
+				// OK, name line. This is the start of a new code. Push the old one, prepare the new one.
+				if (currentCode.ops.size())
+					arCodes.push_back(currentCode);
+				currentCode.name = "(invalid)";
+				currentCode.ops.clear();
+
+				if (line[0] == '+')
+				{ 
+					// Active code - name line.
 					line = StripSpaces(line.substr(1));
 					currentCode.name = line;
 					currentCode.active = true;
 				}
-				else if (line[0] != '+') {
+				else
+				{
+					// Inactive code.
 					currentCode.name = line;
 					currentCode.active = false;
 				}
-			} else {
-				// Empty line - end of code. Push it.
-				arCodes.push_back(currentCode);
-				currentCode.name = "(invalid)";
-				currentCode.ops.clear();
 			}
 		}
-		arCodes.push_back(currentCode);
 	}
+
+	// Handle the last code correctly.
+	if (currentCode.ops.size())
+		arCodes.push_back(currentCode);
 }
 
 // The mechanism is slightly different than what the real AR uses, so there may be compatibility problems.
