@@ -148,7 +148,7 @@ void CUCode_Jac::ExecuteList()
 		    break;
 
 	    default:
-		    PanicAlert("UCode Jac unknown cmd: %s (size %)", cmd, m_numSteps);
+		    PanicAlert("UCode Jac unknown cmd: %s (size %i)", cmd, m_numSteps);
 		    DebugLog("Jac UCode - unknown cmd: %x (size %i)", cmd, m_numSteps);
 		    break;
 	}
