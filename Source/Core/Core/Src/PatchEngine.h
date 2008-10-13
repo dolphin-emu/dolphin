@@ -24,5 +24,5 @@
 void PatchEngine_LoadPatches(const char *gameID);
 void PatchEngine_ApplyLoadPatches();
 void PatchEngine_ApplyFramePatches();
-
+void PatchEngine_ApplyARPatches();
 #endif

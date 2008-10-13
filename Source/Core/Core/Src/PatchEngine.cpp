@@ -155,6 +155,9 @@ void PatchEngine_ApplyLoadPatches()
 void PatchEngine_ApplyFramePatches() 
 {
 	ApplyPatches(onFrame);
+}
+void PatchEngine_ApplyARPatches()
+{
 	for (std::vector<ARCode>::const_iterator iter = arCodes.begin(); iter != arCodes.end(); ++iter) {
 		if (iter->active)
 			RunActionReplayCode(*iter, false);
@@ -166,6 +169,7 @@ void LoadActionReplayCodes(IniFile &ini)
 	std::vector<std::string> lines;
 	ARCode currentCode;
 	arCodes.clear();
+
 	if (!ini.GetLines("ActionReplay", lines)) 
 		return;
 
@@ -197,7 +201,7 @@ void LoadActionReplayCodes(IniFile &ini)
 					currentCode.name = line;
 					currentCode.active = true;
 				}
-				else {
+				else if (line[0] != '+') {
 					currentCode.name = line;
 					currentCode.active = false;
 				}
@@ -208,8 +212,8 @@ void LoadActionReplayCodes(IniFile &ini)
 				currentCode.ops.clear();
 			}
 		}
+		arCodes.push_back(currentCode);
 	}
-	arCodes.push_back(currentCode);
 }
 
 // The mechanism is slightly different than what the real AR uses, so there may be compatibility problems.

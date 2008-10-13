@@ -528,6 +528,7 @@ void Callback_VideoCopiedToXFB()
         Timer.Update();
 	}
 	PatchEngine_ApplyFramePatches();
+	PatchEngine_ApplyARPatches();
 }
 
 // __________________________________________________________________________________________________

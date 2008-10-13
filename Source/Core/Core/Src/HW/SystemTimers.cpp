@@ -127,6 +127,8 @@ void SICallback(u64 userdata, int cyclesLate)
 {
 	// This is once per frame - good candidate for patching stuff
 	PatchEngine_ApplyFramePatches();
+	// Apply AR cheats
+	PatchEngine_ApplyARPatches();
 	// OK, do what we are here to do.
 	SerialInterface::UpdateDevices();
 	CoreTiming::ScheduleEvent(SI_PERIOD-cyclesLate, et_SI);
