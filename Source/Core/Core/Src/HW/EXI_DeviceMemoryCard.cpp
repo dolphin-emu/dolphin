@@ -61,18 +61,31 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 	//0x00000020 Memory Card 507	32Mb
 	//0x00000040 Memory Card 1019	64Mb
 	//0x00000080 Memory Card 2043	128Mb
-	nintendo_card_id = 0x00000010;
 	card_id = 0xc221;
-	//nintendo_card_id = 0x00000510; // 16Mb "bigben" card
 	//card_id = 0xc243;
-
-	memory_card_size = 2 * 1024 * 1024; //16Mb
-	memory_card_content = new u8[memory_card_size];
-
-	memset(memory_card_content, 0xFF, memory_card_size);
-
 	FILE* pFile = NULL;
 	pFile = fopen(m_strFilename.c_str(), "rb");
+	fseek( pFile, 0L, SEEK_END );
+    long MemFileSize = ftell( pFile );
+	//the switch is based on the size of the memory cards depending on their size !IN BYTES!
+	//by default they will be 2MB mem cards
+	switch (MemFileSize)
+	{
+		case 524288:
+			//the 59 block mem card, 512KB big
+			nintendo_card_id = 0x00000004;
+			memory_card_size = 512 * 1024;
+			break;
+		default:
+			//Default = 2MB mem cards that are 251 blocks
+			nintendo_card_id = 0x00000010;
+			memory_card_size = 2 * 1024 * 1024;	
+	}
+	memory_card_content = new u8[memory_card_size];
+	memset(memory_card_content, 0xFF, memory_card_size);
+	
+	//return to start otherwise the mem card is "corrupt"
+	fseek( pFile,0L,SEEK_SET);
 	if (pFile)
 	{
 		LOG(EXPANSIONINTERFACE, "Reading memory card %s", m_strFilename.c_str());
