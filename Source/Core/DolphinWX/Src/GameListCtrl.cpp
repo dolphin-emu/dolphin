@@ -61,10 +61,8 @@ BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 EVT_SIZE(CGameListCtrl::OnSize)
 EVT_RIGHT_DOWN(CGameListCtrl::OnRightClick)
 EVT_LIST_COL_BEGIN_DRAG(LIST_CTRL, CGameListCtrl::OnColBeginDrag)
-EVT_LIST_ITEM_SELECTED(LIST_CTRL, CGameListCtrl::OnSelected)
 EVT_LIST_ITEM_ACTIVATED(LIST_CTRL, CGameListCtrl::OnActivated)
 EVT_LIST_COL_CLICK(LIST_CTRL, CGameListCtrl::OnColumnClick)
-EVT_LIST_COL_END_DRAG(LIST_CTRL, CGameListCtrl::OnColEndDrag)
 EVT_MENU(IDM_EDITPATCHFILE, CGameListCtrl::OnEditPatchFile)
 EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
 EVT_MENU(IDM_SETDEFAULTGCM, CGameListCtrl::OnSetDefaultGCM)
@@ -78,12 +76,11 @@ END_EVENT_TABLE()
 CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
 	: wxListCtrl(parent, id, pos, size, style)                                                                                                                 // | wxLC_VIRTUAL)
 {
-	InitBitmaps();
 }
 
 CGameListCtrl::~CGameListCtrl()
 {
-	delete m_imageListSmall;
+	if (m_imageListSmall) delete m_imageListSmall;
 }
 
 void CGameListCtrl::InitBitmaps()
@@ -124,6 +121,12 @@ void CGameListCtrl::BrowseForDirectory()
 
 void CGameListCtrl::Update()
 {
+	if (m_imageListSmall)
+	{
+		delete m_imageListSmall;
+		m_imageListSmall = NULL;
+	}
+
 	Hide();
 
 	ScanForISOs();
@@ -132,6 +135,9 @@ void CGameListCtrl::Update()
 
 	if (m_ISOFiles.size() != 0)
 	{
+		// Don't load bitmaps unless there are games to list
+		InitBitmaps();
+
 		// add columns
 		InsertColumn(COLUMN_BANNER, _("Banner"));
 		InsertColumn(COLUMN_TITLE, _("Title"));
@@ -153,6 +159,8 @@ void CGameListCtrl::Update()
 		for (int i = 0; i < (int)m_ISOFiles.size(); i++)
 		{
 			InsertItemInReportView(i);
+			if (m_ISOFiles[i].IsCompressed())
+				SetItemTextColour(i, wxColour(0xFF0000));
 		}
 
 		SetColumnWidth(COLUMN_SIZE, wxLIST_AUTOSIZE);
@@ -161,11 +169,10 @@ void CGameListCtrl::Update()
 	{
 		InsertColumn(COLUMN_BANNER, _("No ISOs found"));
 
-		// data
-		wxString buf(_("Dolphin could not find any GC/Wii ISOs. Doubleclick here to browse for files..."));
-		long item = InsertItem(0, buf, -1);
-		SetItemFont(item, *wxITALIC_FONT);
-		SetColumnWidth(item, wxLIST_AUTOSIZE);
+		long index = InsertItem(0, wxString::FromAscii("msgRow"));
+		SetItem(index, COLUMN_BANNER, _("Dolphin could not find any GC/Wii ISOs. Doubleclick here to browse for files..."));
+		SetItemFont(index, *wxITALIC_FONT);
+		SetColumnWidth(COLUMN_BANNER, wxLIST_AUTOSIZE);
 	}
 
 	AutomaticColumnWidth();
@@ -206,62 +213,26 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		ImageIndex = m_imageListSmall->Add(rISOFile.GetImage());
 	}
 
-	// data
-	wxString buf;
-	long ItemIndex = InsertItem(_Index, buf, ImageIndex);
+	// Insert a row with the banner image
+	long ItemIndex = InsertItem(_Index, wxEmptyString, ImageIndex);
 
-	// background color
-	SetBackgroundColor(); //temp fix so we can colorize background after sorting
-	/*{
-		wxListItem item;
-		item.SetId(ItemIndex);
-		item.SetBackgroundColour(color);
-		SetItem(item);
-	}*/
+	// Background color
+	SetBackgroundColor();
 
-	// title
+	// When using wxListCtrl, there is no hope of per-column text colors.
+	// But for reference, here are the old colors that were used: (BGR)
+	// title: 0xFF0000
+	// company: 0x007030
+
+	SetItem(_Index, COLUMN_TITLE, wxString::FromAscii(rISOFile.GetName().c_str()), -1);
+	SetItem(_Index, COLUMN_COMPANY, wxString::FromAscii(rISOFile.GetCompany().c_str()), -1);
+	SetItem(_Index, COLUMN_NOTES, wxString::FromAscii(rISOFile.GetDescription().c_str()), -1);
+	SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
+
+	// Emulation status = COLUMN_EMULATION_STATE
 	{
 		wxListItem item;
-		item.SetId(ItemIndex);
-		item.SetColumn(COLUMN_TITLE);
-		//SetItemTextColour(item, (wxColour(0xFF0000)));
-		item.SetText(wxString::FromAscii(rISOFile.GetName().c_str()));
-		SetItem(item);
-	}
-
-	// company
-	{
-		wxListItem item;
-		item.SetId(ItemIndex);
-		item.SetColumn(COLUMN_COMPANY);
-		//SetItemTextColour(item, (wxColour(0x007030)));
-		item.SetText(wxString::FromAscii(rISOFile.GetCompany().c_str()));
-		SetItem(item);
-	}
-
-	// description
-	{
-		wxListItem item;
-		item.SetId(ItemIndex);
-		item.SetColumn(COLUMN_NOTES);
-		item.SetText(wxString::FromAscii(rISOFile.GetDescription().c_str()));
-		SetItem(item);
-	}
-
-	// size
-	{
-		wxListItem item;
-		item.SetId(ItemIndex);
-		item.SetColumn(COLUMN_SIZE);
-		item.SetText(NiceSizeFormat(rISOFile.GetFileSize()));
-		if (rISOFile.IsCompressed())
-			item.SetTextColour(wxColour(0xFF0000));
-		SetItem(item);
-	}
-	//emulation status = COLUMN_EMULATION_STATE
-	{
-		wxListItem item;
-		item.SetId(ItemIndex);
+		item.SetId(_Index);
 		IniFile ini;
 		std::string EmuState;
 		std::string GameIni;
@@ -271,13 +242,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		GameIni = "GameIni/" + (rISOFile.GetUniqueID()) + ".ini";
 		ini.Load(GameIni.c_str());
 		ini.Get("EmuState","EmulationStateId",&EmuState);
-		if (EmuState.empty())
-		{	
-			//srry, its empty
-			//item.SetText(_("unknown"));
-			//without unknown it looks more pretty :P
-		}
-		else
+		if (!EmuState.empty())
 		{
 			if(EmuState == "5")
 				item.SetText(_("Perfect"));
@@ -304,11 +269,10 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 			}
 		}
 		SetItem(item);
-
 	}
 
 #ifndef __WXMSW__
-	// country
+	// Country
 	{
 		// Can't do this in Windows - we use DrawSubItem instead, see below
 		wxListItem item;
@@ -326,8 +290,8 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	}
 #endif // __WXMSW__
 
-	// item data
-	SetItemData(ItemIndex, _Index);
+	// Item data
+	SetItemData(_Index, ItemIndex);
 }
 
 bool CGameListCtrl::MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem)
@@ -336,18 +300,16 @@ bool CGameListCtrl::MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem)
 #ifdef __WXMSW__
 	switch (subitem)
 	{
-	    case COLUMN_COUNTRY:
-	    {
-		    size_t Index = GetItemData(item);
+	case COLUMN_COUNTRY:
+		size_t Index = GetItemData(item);
 
-		    if (Index < m_ISOFiles.size())
-		    {
-			    const GameListItem& rISO = m_ISOFiles[Index];
-			    wxRect SubItemRect;
-			    this->GetSubItemRect(item, subitem, SubItemRect);
-			    m_imageListSmall->Draw(m_FlagImageIndex[rISO.GetCountry()], rPaintDC, SubItemRect.GetLeft(), SubItemRect.GetTop());
-		    }
-	    }
+		if (Index < m_ISOFiles.size())
+		{
+			const GameListItem& rISO = m_ISOFiles[Index];
+			wxRect SubItemRect;
+			this->GetSubItemRect(item, subitem, SubItemRect);
+			m_imageListSmall->Draw(m_FlagImageIndex[rISO.GetCountry()], rPaintDC, SubItemRect.GetLeft(), SubItemRect.GetTop());
+		}
 	}
 #endif
 
@@ -437,7 +399,7 @@ const GameListItem *CGameListCtrl::GetISO(int index) const
 {
 	return &m_ISOFiles[index];
 }
- 
+
 CGameListCtrl *caller;
 int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 {
@@ -501,10 +463,6 @@ void CGameListCtrl::OnColumnClick(wxListEvent& event)
 	event.Skip();
 }
 
-void CGameListCtrl::OnColEndDrag(wxListEvent& WXUNUSED (event))
-{
-}
-
 void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 {
 	// Focus the clicked item.
@@ -549,6 +507,8 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 	else if (GetSelectedItemCount() > 1)
 	{
 		wxMenu popupMenu;
+		popupMenu.Append(IDM_DELETEGCM, wxString::FromAscii("&Delete selected ISOs..."));
+		popupMenu.AppendSeparator();
 		popupMenu.Append(IDM_MULTICOMPRESSGCM, wxString::FromAscii("Compress selected ISOs..."));
 		popupMenu.Append(IDM_MULTIDECOMPRESSGCM, wxString::FromAscii("Decompress selected ISOs..."));
 		PopupMenu(&popupMenu);
@@ -572,13 +532,18 @@ void CGameListCtrl::OnActivated(wxListEvent& event)
 	}
 }
 
-const GameListItem * CGameListCtrl::GetSelectedISO() const
+const GameListItem * CGameListCtrl::GetSelectedISO()
 {
-	int item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); 
+	long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); 
 	if (item == -1)
 		return 0;
 	else
+	{
+		if (GetSelectedItemCount() > 1)
+			SetItemState(item, 0, wxLIST_STATE_SELECTED);
+
 		return &m_ISOFiles[GetItemData(item)];
+	}
 }
 
 void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event)) 
@@ -602,14 +567,33 @@ void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& WXUNUSED (event))
 
 void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
 {
-	const GameListItem *iso = GetSelectedISO();
-	if (!iso)
-		return;
-	if (wxMessageBox(_T("Are you sure you want to delete this file?"), wxMessageBoxCaptionStr, wxYES_NO) == wxYES)
+	if (GetSelectedItemCount() == 1)
 	{
-		File::Delete(iso->GetFileName().c_str());
+		const GameListItem *iso = GetSelectedISO();
+		if (!iso)
+			return;
+		if (wxMessageBox(_T("Are you sure you want to delete this file?"),
+			wxMessageBoxCaptionStr, wxYES_NO|wxICON_EXCLAMATION) == wxYES)
+		{
+			File::Delete(iso->GetFileName().c_str());
+			Update();
+		}
 	}
-	Update();
+	else
+	{
+		if (wxMessageBox(_T("Are you sure you want to delete these files?\nThey will be gone forever!"),
+			wxMessageBoxCaptionStr, wxYES_NO|wxICON_EXCLAMATION) == wxYES)
+		{
+			int selected = GetSelectedItemCount();
+
+			for (int i = 0; i < selected; i++)
+			{
+				const GameListItem *iso = GetSelectedISO();
+				File::Delete(iso->GetFileName().c_str());
+			}
+			Update();
+		}
+	}
 }
 
 void CGameListCtrl::OnFilesystemViewer(wxCommandEvent& WXUNUSED (event)) 
@@ -666,39 +650,36 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 	m_currentItem = 0;
 	m_numberItem = GetSelectedItemCount();
-	for (int i=0; i<GetItemCount(); i++)
+	for (int i=0; i<m_numberItem; i++)
 	{
-		const GameListItem& rISOFile = m_ISOFiles[i];
-		if (GetItemState(i, wxLIST_STATE_SELECTED) == wxLIST_STATE_SELECTED)
-		{						
-			if (!rISOFile.IsCompressed() && _compress)
-			{								
+		const GameListItem *iso = GetSelectedISO();
+
+			if (!iso->IsCompressed() && _compress)
+			{
 				std::string FileName;
-				SplitPath(rISOFile.GetFileName(), NULL, &FileName, NULL);
+				SplitPath(iso->GetFileName(), NULL, &FileName, NULL);
 				m_currentFilename = FileName;
 				FileName.append(".gcz");
 
 				std::string OutputFileName;
 				BuildCompleteFilename(OutputFileName, (const char *)browseDialog.GetPath().mb_str(wxConvUTF8), FileName);
 
-				DiscIO::CompressFileToBlob(rISOFile.GetFileName().c_str(), OutputFileName.c_str(), 0, 16384, &MultiCompressCB, &progressDialog);					
+				DiscIO::CompressFileToBlob(iso->GetFileName().c_str(), OutputFileName.c_str(), 0, 16384, &MultiCompressCB, &progressDialog);					
 			}
-			else if (rISOFile.IsCompressed() && !_compress)
+			else if (iso->IsCompressed() && !_compress)
 			{
 				std::string FileName;
-				SplitPath(rISOFile.GetFileName(), NULL, &FileName, NULL);
+				SplitPath(iso->GetFileName(), NULL, &FileName, NULL);
 				m_currentFilename = FileName;
 				FileName.append(".gcm");
 
 				std::string OutputFileName;
 				BuildCompleteFilename(OutputFileName, (const char *)browseDialog.GetPath().mb_str(wxConvUTF8), FileName);
 
-				DiscIO::DecompressBlobToFile(rISOFile.GetFileName().c_str(), OutputFileName.c_str(), &MultiCompressCB, &progressDialog);
+				DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(), OutputFileName.c_str(), &MultiCompressCB, &progressDialog);
 			}
 			m_currentItem++;
-		}			
 	}
-
 	Update();
 }
 
@@ -808,11 +789,6 @@ void CGameListCtrl::OnEditPatchFile(wxCommandEvent& WXUNUSED (event))
 	File::Launch(filename.c_str());
 }
 
-void CGameListCtrl::OnSelected(wxListEvent& WXUNUSED (event))
-{
-
-}
-
 void CGameListCtrl::OnSize(wxSizeEvent& event)
 {
 	AutomaticColumnWidth();
@@ -837,7 +813,6 @@ void CGameListCtrl::AutomaticColumnWidth()
 		SetColumnWidth(COLUMN_NOTES, wxMax(0.5*resizable, 100));
 	}
 }
-
 
 void CGameListCtrl::UnselectAll()
 {

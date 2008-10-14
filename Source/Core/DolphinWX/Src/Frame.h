@@ -19,6 +19,7 @@ class CFrame
 
 	private:
 
+		wxBoxSizer* sizerPanel;
 		CGameListCtrl* m_GameListCtrl;
 		wxPanel* m_Panel;
 

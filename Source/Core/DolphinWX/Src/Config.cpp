@@ -44,10 +44,10 @@ void SConfig::SaveSettings()
 
 	// misc
 	{
-		ini.Set("General", "LastFilename", m_LastFilename);
+		ini.Set("General", "LastFilename",	m_LastFilename);
 
 		// ISO folders
-		ini.Set("General", "GCMPathes",        (int)m_ISOFolder.size());
+		ini.Set("General", "GCMPathes",		(int)m_ISOFolder.size());
 
 		for (size_t i = 0; i < m_ISOFolder.size(); i++)
 		{
@@ -96,7 +96,7 @@ void SConfig::LoadSettings()
 
 	// misc
 	{
-		ini.Get("General", "LastFilename",        &m_LastFilename);
+		ini.Get("General", "LastFilename",	&m_LastFilename);
 
 		m_ISOFolder.clear();
 		int numGCMPaths;

@@ -33,7 +33,7 @@ public:
 
 	void Update();
 	void BrowseForDirectory();
-	const GameListItem *GetSelectedISO() const;
+	const GameListItem *GetSelectedISO();
 	const GameListItem *GetISO(int index) const;
 
 	enum
@@ -67,8 +67,6 @@ private:
 	void OnRightClick(wxMouseEvent& event);
 	void OnColumnClick(wxListEvent& event);
 	void OnColBeginDrag(wxListEvent& event);
-	void OnColEndDrag(wxListEvent& event);
-	void OnSelected(wxListEvent& event);
 	void OnActivated(wxListEvent& event);
 	void OnSize(wxSizeEvent& event);
 	void OnEditPatchFile(wxCommandEvent& event);

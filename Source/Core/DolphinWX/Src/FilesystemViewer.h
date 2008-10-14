@@ -52,11 +52,11 @@ class CFilesystemViewer : public wxDialog
 		wxButton *m_Close;
 
 		wxStaticText *m_NameText;
-		wxStaticText *m_SerialText;
+		wxStaticText *m_GameIDText;
 		wxStaticText *m_CountryText;
 		wxStaticText *m_MakerIDText;
 		wxStaticText *m_DateText;
-		wxStaticText *m_TOCText;
+		wxStaticText *m_FSTText;
 		wxStaticText *m_VersionText;
 		wxStaticText *m_LangText;
 		wxStaticText *m_ShortText;
@@ -66,11 +66,11 @@ class CFilesystemViewer : public wxDialog
 		wxStaticText *m_BannerText;
 
 		wxTextCtrl *m_Name;
-		wxTextCtrl *m_Serial;
+		wxTextCtrl *m_GameID;
 		wxTextCtrl *m_Country;
 		wxTextCtrl *m_MakerID;
 		wxTextCtrl *m_Date;
-		wxTextCtrl *m_TOC;
+		wxTextCtrl *m_FST;
 		wxTextCtrl *m_Version;
 		wxTextCtrl *m_ShortName;
 		wxTextCtrl *m_LongName;
@@ -88,11 +88,11 @@ class CFilesystemViewer : public wxDialog
 			ID_TREECTRL,
 
 			ID_NAME_TEXT,
-			ID_SERIAL_TEXT,
+			ID_GAMEID_TEXT,
 			ID_COUNTRY_TEXT,
 			ID_MAKERID_TEXT,
 			ID_DATE_TEXT,
-			ID_TOC_TEXT,
+			ID_FST_TEXT,
 			ID_VERSION_TEXT,
 			ID_LANG_TEXT,
 			ID_SHORTNAME_TEXT,
@@ -102,11 +102,11 @@ class CFilesystemViewer : public wxDialog
 			ID_BANNER_TEXT,
 			
 			ID_NAME,
-			ID_SERIAL,
+			ID_GAMEID,
 			ID_COUNTRY,
 			ID_MAKERID,
 			ID_DATE,
-			ID_TOC,
+			ID_FST,
 			ID_VERSION,
 			ID_LANG,
 			ID_SHORTNAME,

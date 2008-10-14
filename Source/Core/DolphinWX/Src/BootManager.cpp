@@ -59,6 +59,7 @@ bool BootCore(const std::string& _rFilename)
 	}
 	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
 	StartUp.m_strFilename = _rFilename;
+	SConfig::GetInstance().m_LastFilename = StartUp.m_strFilename;
 	StartUp.bRunCompareClient = false;
 	StartUp.bRunCompareServer = false;
 	StartUp.bEnableDebugging = g_pCodeWindow ? true : false; // RUNNING_DEBUG

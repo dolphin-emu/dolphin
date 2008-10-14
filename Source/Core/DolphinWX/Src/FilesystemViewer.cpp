@@ -27,11 +27,8 @@ BEGIN_EVENT_TABLE(CFilesystemViewer, wxDialog)
 	EVT_RIGHT_DOWN(CFilesystemViewer::OnRightClick)
 	EVT_TREE_ITEM_RIGHT_CLICK(ID_TREECTRL,CFilesystemViewer::OnRightClickOnTree)
 	EVT_BUTTON(ID_CLOSE,CFilesystemViewer::OnCloseClick)
-	EVT_BUTTON(ID_SAVEBNR,CFilesystemViewer::OnSaveBNRClick)
 	EVT_MENU(IDM_BNRSAVEAS, CFilesystemViewer::OnBannerImageSave)
 	EVT_MENU(IDM_EXTRACTFILE, CFilesystemViewer::OnExtractFile)
-	EVT_MENU(IDM_REPLACEFILE, CFilesystemViewer::OnReplaceFile)
-	EVT_MENU(IDM_RENAMEFILE, CFilesystemViewer::OnRenameFile)
 END_EVENT_TABLE()
 
 DiscIO::IVolume *OpenISO = NULL;
@@ -50,7 +47,6 @@ CFilesystemViewer::CFilesystemViewer(const std::string fileName, wxWindow* paren
 
 	CreateGUIControls();
 
-	wxTreeItemId dirId = NULL;
 	fileIter beginning = Our_Files.begin(), end = Our_Files.end(), 
 		     pos = Our_Files.begin();
 
@@ -60,7 +56,7 @@ CFilesystemViewer::CFilesystemViewer(const std::string fileName, wxWindow* paren
 
 	// Disk header and apploader
 	m_Name->SetValue(wxString(OpenISO->GetName().c_str(), wxConvUTF8));
-	m_Serial->SetValue(wxString(OpenISO->GetUniqueID().c_str(), wxConvUTF8));
+	m_GameID->SetValue(wxString(OpenISO->GetUniqueID().c_str(), wxConvUTF8));
 	switch (OpenISO->GetCountry())
 	{
 	case DiscIO::IVolume::COUNTRY_EUROPE:
@@ -82,7 +78,7 @@ CFilesystemViewer::CFilesystemViewer(const std::string fileName, wxWindow* paren
 	temp = _T("0x") + wxString::FromAscii(OpenISO->GetMakerID().c_str());
 	m_MakerID->SetValue(temp);
 	m_Date->SetValue(wxString(OpenISO->GetApploaderDate().c_str(), wxConvUTF8));
-	m_TOC->SetValue(wxString::Format(_T("%u"), OpenISO->GetFSTSize()));
+	m_FST->SetValue(wxString::Format(_T("%u"), OpenISO->GetFSTSize()));
 
 	// Banner
 	// ...all the BannerLoader functions are bool...gross
@@ -159,29 +155,29 @@ void CFilesystemViewer::CreateGUIControls()
 	sISODetails->AddGrowableCol(1);
 	m_NameText = new wxStaticText(this, ID_NAME_TEXT, wxT("Name:"), wxDefaultPosition, wxDefaultSize);
 	m_Name = new wxTextCtrl(this, ID_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
-	m_SerialText = new wxStaticText(this, ID_SERIAL_TEXT, wxT("Serial:"), wxDefaultPosition, wxDefaultSize);
-	m_Serial = new wxTextCtrl(this, ID_SERIAL, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
+	m_GameIDText = new wxStaticText(this, ID_GAMEID_TEXT, wxT("Game ID:"), wxDefaultPosition, wxDefaultSize);
+	m_GameID = new wxTextCtrl(this, ID_GAMEID, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	m_CountryText = new wxStaticText(this, ID_COUNTRY_TEXT, wxT("Country:"), wxDefaultPosition, wxDefaultSize);
 	m_Country = new wxTextCtrl(this, ID_COUNTRY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	m_MakerIDText = new wxStaticText(this, ID_MAKERID_TEXT, wxT("Maker ID:"), wxDefaultPosition, wxDefaultSize);
 	m_MakerID = new wxTextCtrl(this, ID_MAKERID, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	m_DateText = new wxStaticText(this, ID_DATE_TEXT, wxT("Date:"), wxDefaultPosition, wxDefaultSize);
 	m_Date = new wxTextCtrl(this, ID_DATE, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
-	m_TOCText = new wxStaticText(this, ID_TOC_TEXT, wxT("TOC Size:"), wxDefaultPosition, wxDefaultSize);	
-	m_TOC = new wxTextCtrl(this, ID_TOC, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
+	m_FSTText = new wxStaticText(this, ID_FST_TEXT, wxT("FST Size:"), wxDefaultPosition, wxDefaultSize);	
+	m_FST = new wxTextCtrl(this, ID_FST, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 
 	sISODetails->Add(m_NameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_Name, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sISODetails->Add(m_SerialText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sISODetails->Add(m_Serial, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_GameIDText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sISODetails->Add(m_GameID, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_CountryText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_Country, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_MakerIDText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_MakerID, wxGBPosition(3, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_DateText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_Date, wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sISODetails->Add(m_TOCText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sISODetails->Add(m_TOC, wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sISODetails->Add(m_FSTText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sISODetails->Add(m_FST, wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 
 	sbISODetails->Add(sISODetails, 0, wxEXPAND, 5);
 
@@ -194,18 +190,16 @@ void CFilesystemViewer::CreateGUIControls()
 	m_LangText = new wxStaticText(this, ID_LANG_TEXT, wxT("Show Language:"), wxDefaultPosition, wxDefaultSize);
 	m_Lang = new wxChoice(this, ID_LANG, wxDefaultPosition, wxDefaultSize, arrayStringFor_Lang, 0, wxDefaultValidator);
 	m_ShortText = new wxStaticText(this, ID_SHORTNAME_TEXT, wxT("Short Name:"), wxDefaultPosition, wxDefaultSize);
-	m_ShortName = new wxTextCtrl(this, ID_SHORTNAME, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+	m_ShortName = new wxTextCtrl(this, ID_SHORTNAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	m_LongText = new wxStaticText(this, ID_LONGNAME_TEXT, wxT("Long Name:"), wxDefaultPosition, wxDefaultSize);
-	m_LongName = new wxTextCtrl(this, ID_LONGNAME, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+	m_LongName = new wxTextCtrl(this, ID_LONGNAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	m_MakerText = new wxStaticText(this, ID_MAKER_TEXT, wxT("Maker:"), wxDefaultPosition, wxDefaultSize);
-	m_Maker = new wxTextCtrl(this, ID_MAKER, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+	m_Maker = new wxTextCtrl(this, ID_MAKER, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	m_CommentText = new wxStaticText(this, ID_COMMENT_TEXT, wxT("Comment:"), wxDefaultPosition, wxDefaultSize);
-	m_Comment = new wxTextCtrl(this, ID_COMMENT, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+	m_Comment = new wxTextCtrl(this, ID_COMMENT, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY);
 	m_BannerText = new wxStaticText(this, ID_BANNER_TEXT, wxT("Banner:"), wxDefaultPosition, wxDefaultSize);
 	// Needs to be image:
 	m_Banner = new wxTextCtrl(this, ID_BANNER, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
-	m_SaveBNR = new wxButton(this, ID_SAVEBNR, wxT("Save Changes to BNR"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_SaveBNR->Disable();
 
 	sBannerDetails->Add(m_VersionText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sBannerDetails->Add(m_Version, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
@@ -221,7 +215,6 @@ void CFilesystemViewer::CreateGUIControls()
 	sBannerDetails->Add(m_Comment, wxGBPosition(4, 1), wxGBSpan(1, 3), wxEXPAND|wxALL, 5);
 	sBannerDetails->Add(m_BannerText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 5);
 	sBannerDetails->Add(m_Banner, wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sBannerDetails->Add(m_SaveBNR, wxGBPosition(5, 2), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
 
 	sbBannerDetails->Add(sBannerDetails, 0, wxEXPAND, 0);
 	
@@ -257,7 +250,7 @@ void CFilesystemViewer::OnCloseClick(wxCommandEvent& WXUNUSED (event))
 void CFilesystemViewer::OnRightClick(wxMouseEvent& WXUNUSED (event))
 {
 	//check for right click on banner image
-	//if(event.GetId() == ID_SAVEBNR)
+	//if(event.GetId() == ID_BANNER)
 	//{
 	//	//on banner then save as.
 	//	wxMenu popupMenu;
@@ -272,17 +265,13 @@ void CFilesystemViewer::OnRightClickOnTree(wxTreeEvent& event)
 	m_Treectrl->SelectItem(event.GetItem());
 
 	wxMenu popupMenu;
-	popupMenu.Append(IDM_EXTRACTFILE, wxString::FromAscii("Extract File..."));
-	popupMenu.Append(IDM_REPLACEFILE, wxString::FromAscii("Replace File..."));
-	popupMenu.Append(IDM_RENAMEFILE, wxString::FromAscii("Rename File..."));
+	if (m_Treectrl->ItemHasChildren(m_Treectrl->GetSelection()))
+		;//popupMenu.Append(IDM_EXTRACTFILE, wxString::FromAscii("Extract Directory..."));
+	else
+		popupMenu.Append(IDM_EXTRACTFILE, wxString::FromAscii("Extract File..."));
 	PopupMenu(&popupMenu);
 
 	event.Skip();
-}
-
-void CFilesystemViewer::OnSaveBNRClick(wxCommandEvent& WXUNUSED (event))
-{
-
 }
 
 void CFilesystemViewer::OnBannerImageSave(wxCommandEvent& WXUNUSED (event))
@@ -321,14 +310,4 @@ void CFilesystemViewer::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 	}
 
 	pFileSystem->ExportFile(File.mb_str(), Path.mb_str());
-}
-
-void CFilesystemViewer::OnReplaceFile(wxCommandEvent& WXUNUSED (event))
-{
-	wxMessageBox(_T("Not implemented yet."), _T("Sorry"), wxOK, this);
-}
-
-void CFilesystemViewer::OnRenameFile(wxCommandEvent& WXUNUSED (event))
-{
-	wxMessageBox(_T("Not implemented yet."), _T("Sorry"), wxOK, this);
 }

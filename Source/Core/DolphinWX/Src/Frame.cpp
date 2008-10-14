@@ -148,30 +148,27 @@ CFrame::CFrame(wxFrame* parent,
 	m_pStatusBar = CreateStatusBar();
 	CreateMenu();
 
-	// this panel is the parent for rendering and it holds the gamelistctrl
-	{
-		m_Panel = new wxPanel(this);
+	// This panel is the parent for rendering and it holds the gamelistctrl
+	m_Panel = new wxPanel(this);
 
-		m_GameListCtrl = new CGameListCtrl(m_Panel, LIST_CTRL,
-				wxDefaultPosition, wxDefaultSize,
-				wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT);
+	m_GameListCtrl = new CGameListCtrl(m_Panel, LIST_CTRL,
+			wxDefaultPosition, wxDefaultSize,
+			wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT);
 
-		wxBoxSizer* sizerPanel = new wxBoxSizer(wxHORIZONTAL);
-		sizerPanel->Add(m_GameListCtrl, 2, wxEXPAND | wxALL);
-		m_Panel->SetSizer(sizerPanel);
-
-		sizerPanel->SetSizeHints(m_Panel);
-		sizerPanel->Fit(m_Panel);
-	}
+	sizerPanel = new wxBoxSizer(wxHORIZONTAL);
+	sizerPanel->Add(m_GameListCtrl, 2, wxEXPAND);
+	m_Panel->SetSizer(sizerPanel);
 
 	// Create the toolbar
 	RecreateToolbar();
-
+	
 	Show();
 
 	CPluginManager::GetInstance().ScanForPlugins(this);
 
 	m_GameListCtrl->Update();
+
+	sizerPanel->SetSizeHints(m_Panel);
 
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN,
 			wxKeyEventHandler(CFrame::OnKeyDown),
@@ -421,28 +418,14 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 
 		UpdateGUI();
 	}
-	else if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty())
+	else if (m_GameListCtrl->GetSelectedISO() != 0)
 	{
-		if (wxFileExists(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.c_str(), wxConvUTF8)))
-		{
-			BootManager::BootCore(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM);
-		}
-		else
-		{
-			wxMessageBox(_("The default ISO you have set is invalid.\n" 
-						"Please pick on new one by right clicking on a game\n" 
-						"and selecting \"Set as default ISO\"."), 
-						_("Invalid Default ISO"), 
-						wxOK, this);
-		}
+		BootManager::BootCore(m_GameListCtrl->GetSelectedISO()->GetFileName());
 	}
-	else
+	else if (!SConfig::GetInstance().m_LastFilename.empty() && 
+		wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
 	{
-		wxMessageBox(_("You can set an ISO to load by default.\n"
-					"Choose one by right clicking on a game and selecting\n"
-					"\"Set as default ISO\"."), 
-					_("Set Default ISO"), 
-					wxOK, this);
+		BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
 	}
 }
 
@@ -470,6 +453,8 @@ void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 {
 	CConfigMain ConfigMain(this);
 	ConfigMain.ShowModal();
+	if (ConfigMain.bRefreshList)
+		m_GameListCtrl->Update();
 }
 
 
@@ -692,6 +677,7 @@ void CFrame::UpdateGUI()
 		{
 			if (m_GameListCtrl && !m_GameListCtrl->IsShown())
 			{
+				sizerPanel->Fit(m_Panel);
 				m_GameListCtrl->Enable();
 				m_GameListCtrl->Show();
 			}

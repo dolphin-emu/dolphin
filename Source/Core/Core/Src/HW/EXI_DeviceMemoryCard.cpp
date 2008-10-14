@@ -53,13 +53,20 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 	m_uPosition = 0;
 	memset(programming_buffer, 0, sizeof(programming_buffer));
 	formatDelay = 0;
-
-	nintendo_card_id = 0x00000010; // 16MBit nintendo card
+	
+	//Nintendo Memory Card EXI IDs
+	//0x00000004 Memory Card 59		4Mbit
+	//0x00000008 Memory Card 123	8Mb
+	//0x00000010 Memory Card 251	16Mb
+	//0x00000020 Memory Card 507	32Mb
+	//0x00000040 Memory Card 1019	64Mb
+	//0x00000080 Memory Card 2043	128Mb
+	nintendo_card_id = 0x00000010;
 	card_id = 0xc221;
-/*  nintendo_card_id = 0x00000510; // 16MBit "bigben" card
-	card_id = 0xc243; */
+	//nintendo_card_id = 0x00000510; // 16Mb "bigben" card
+	//card_id = 0xc243;
 
-	memory_card_size = 2 * 1024 * 1024;
+	memory_card_size = 2 * 1024 * 1024; //16Mb
 	memory_card_content = new u8[memory_card_size];
 
 	memset(memory_card_content, 0xFF, memory_card_size);

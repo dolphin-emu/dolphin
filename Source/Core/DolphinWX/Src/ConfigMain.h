@@ -37,6 +37,8 @@ class CConfigMain
 		void OnSelectionChanged(wxCommandEvent& event);
 		void OnConfig(wxCommandEvent& event);
 
+		bool bRefreshList;
+
 	private:
 
 		DECLARE_EVENT_TABLE();
@@ -140,6 +142,7 @@ class CConfigMain
 		void OptimizeQuantizersCheck(wxCommandEvent& event);
 		void SkipIdleCheck(wxCommandEvent& event);
 		void ConsoleLangChanged(wxCommandEvent& event);
+		void ISOPathsSelectionChanged(wxCommandEvent& event);
 		void AddRemoveISOPaths(wxCommandEvent& event);
 		void DefaultISOChanged(wxFileDirPickerEvent& event);
 		void DVDRootChanged(wxFileDirPickerEvent& event);

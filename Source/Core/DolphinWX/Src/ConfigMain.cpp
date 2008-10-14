@@ -38,6 +38,7 @@ EVT_CHECKBOX(ID_LOCKTHREADS, CConfigMain::LockThreadsCheck)
 EVT_CHECKBOX(ID_OPTIMIZEQUANTIZERS, CConfigMain::OptimizeQuantizersCheck)
 EVT_CHECKBOX(ID_IDLESKIP, CConfigMain::SkipIdleCheck)
 EVT_CHOICE(ID_CONSOLELANG, CConfigMain::ConsoleLangChanged)
+EVT_LISTBOX(ID_ISOPATHS, CConfigMain::ISOPathsSelectionChanged)
 EVT_BUTTON(ID_ADDISOPATH, CConfigMain::AddRemoveISOPaths)
 EVT_BUTTON(ID_REMOVEISOPATH, CConfigMain::AddRemoveISOPaths)
 EVT_FILEPICKER_CHANGED(ID_DEFAULTISO, CConfigMain::DefaultISOChanged)
@@ -56,6 +57,7 @@ END_EVENT_TABLE()
 CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
+	bRefreshList = false;
 	CreateGUIControls();
 }
 
@@ -139,6 +141,7 @@ void CConfigMain::CreateGUIControls()
 	ISOPaths = new wxListBox(PathsPage, ID_ISOPATHS, wxDefaultPosition, wxSize(290,150), arrayStringFor_ISOPaths, wxLB_SINGLE, wxDefaultValidator);
 	AddISOPath = new wxButton(PathsPage, ID_ADDISOPATH, wxT("Add..."), wxDefaultPosition, wxDefaultSize, 0);
 	RemoveISOPath = new wxButton(PathsPage, ID_REMOVEISOPATH, wxT("Remove"), wxDefaultPosition, wxDefaultSize, 0);
+	RemoveISOPath->Enable(false);
 
 	sISOButtons = new wxBoxSizer(wxHORIZONTAL);
 	sISOButtons->AddStretchSpacer(1);
@@ -274,9 +277,21 @@ void CConfigMain::ConsoleLangChanged(wxCommandEvent& WXUNUSED (event))
 	SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage = ConsoleLang->GetSelection();
 }
 
+void CConfigMain::ISOPathsSelectionChanged(wxCommandEvent& WXUNUSED (event))
+{
+	if (!ISOPaths->GetStringSelection().empty())
+	{
+		RemoveISOPath->Enable(true);
+	}
+	else
+	{
+		RemoveISOPath->Enable(false);
+	}
+}
+
 void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
 {
-	if(event.GetId() == ID_ADDISOPATH)
+	if (event.GetId() == ID_ADDISOPATH)
 	{
 		wxString dirHome;
 		wxGetHomeDir(&dirHome);
@@ -285,21 +300,21 @@ void CConfigMain::AddRemoveISOPaths(wxCommandEvent& event)
 
 		if (dialog.ShowModal() == wxID_OK)
 		{
+			bRefreshList = true;
 			ISOPaths->Append(dialog.GetPath());
 		}
 	}
 	else
 	{
+		bRefreshList = true;
 		ISOPaths->Delete(ISOPaths->GetSelection());
 	}
 
-	//save changes right away
+	// Save changes right away
 	SConfig::GetInstance().m_ISOFolder.clear();
 
-	for(unsigned int i = 0; i < ISOPaths->GetCount(); i++)
-	{
+	for (unsigned int i = 0; i < ISOPaths->GetCount(); i++)
 		SConfig::GetInstance().m_ISOFolder.push_back(std::string(ISOPaths->GetStrings()[i].ToAscii()));
-	}
 }
 
 void CConfigMain::DefaultISOChanged(wxFileDirPickerEvent& WXUNUSED (event))
