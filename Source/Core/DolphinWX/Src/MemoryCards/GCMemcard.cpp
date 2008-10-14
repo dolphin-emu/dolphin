@@ -613,7 +613,7 @@ u32  GCMemcard::ImportGci(const char *fileName, int endFile, const char *fileNam
 {
 	if(!mcdFile && !fileName2) return 0;
 
-	wxFFile gci(fileName,"rb");	
+	wxFFile gci(wxString::FromAscii(fileName), _T("rb"));	
 	if(!gci.IsOpened())return 0;
 
 	enum
@@ -628,12 +628,12 @@ u32  GCMemcard::ImportGci(const char *fileName, int endFile, const char *fileNam
 
 	const char * fileType= (char*)fileName+ endFile-3;
 
-	if(!_stricmp(fileType,"gci") && !fileName2)//Extension can be either case
+	if(!strcasecmp(fileType,"gci") && !fileName2)//Extension can be either case
 		offset = GCI;
 	else
 	{
 		gci.Read(tmp,0xD);
-		if(!_stricmp(fileType,"gcs"))//Extension can be either case
+		if(!strcasecmp(fileType,"gcs"))//Extension can be either case
 		{		
 			if(!memcmp(tmp,"GCSAVE",6))	//Header must be uppercase
 				offset = GCS;
@@ -644,7 +644,7 @@ u32  GCMemcard::ImportGci(const char *fileName, int endFile, const char *fileNam
 			}
 		}
 		else{
-			if(!_stricmp(fileType,"sav"))//Extension can be either case
+			if(!strcasecmp(fileType,"sav"))//Extension can be either case
 			{
 				if(!memcmp(tmp,"DATELGC_SAVE",0xC))//Header must be uppercase
 					offset = SAV;
@@ -713,7 +713,7 @@ u32  GCMemcard::ImportGci(const char *fileName, int endFile, const char *fileNam
 	u32 ret = 0;
 	if(!fileName2)
 	{
-		wxFFile gci2(fileName2,"wb");
+		wxFFile gci2(wxString::FromAscii(fileName2), _T("wb"));
 		if(!gci2.IsOpened())return 0;
 		gci2.Seek(0,wxFromStart);
 		gci2.Write(d,0x40);
@@ -733,7 +733,7 @@ u32  GCMemcard::ImportGci(const char *fileName, int endFile, const char *fileNam
 
 bool GCMemcard::ExportGci(u32 index, const char *fileName)
 {
-	wxFFile gci(fileName,"wb");
+	wxFFile gci(wxString::FromAscii(fileName), _T("wb"));
 	
 	if(!gci.IsOpened())return false;
 	

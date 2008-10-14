@@ -168,7 +168,7 @@ CFrame::CFrame(wxFrame* parent,
 
 	m_GameListCtrl->Update();
 
-	sizerPanel->SetSizeHints(m_Panel);
+	//sizerPanel->SetSizeHints(m_Panel);
 
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN,
 			wxKeyEventHandler(CFrame::OnKeyDown),
