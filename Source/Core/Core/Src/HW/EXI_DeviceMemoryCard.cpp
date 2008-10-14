@@ -45,7 +45,7 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 	this->card_index = _card_index;
 	cards[_card_index] = this;
 	et_this_card = CoreTiming::RegisterEvent(_rName.c_str(), FlushCallback);
-
+ 
 	interruptSwitch = 0;
 	m_bInterruptSet = 0;
 	command = 0;
@@ -53,7 +53,7 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 	m_uPosition = 0;
 	memset(programming_buffer, 0, sizeof(programming_buffer));
 	formatDelay = 0;
-	
+ 
 	//Nintendo Memory Card EXI IDs
 	//0x00000004 Memory Card 59		4Mbit
 	//0x00000008 Memory Card 123	8Mb
@@ -61,65 +61,67 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 	//0x00000020 Memory Card 507	32Mb
 	//0x00000040 Memory Card 1019	64Mb
 	//0x00000080 Memory Card 2043	128Mb
-	card_id = 0xc221;
+ 
+	//0x00000510 16Mb "bigben" card
 	//card_id = 0xc243;
+ 
+	card_id = 0xc221; // It's a nintendo brand memcard
+ 
 	FILE* pFile = NULL;
 	pFile = fopen(m_strFilename.c_str(), "rb");
-	fseek( pFile, 0L, SEEK_END );
-    long MemFileSize = ftell( pFile );
-	//the switch is based on the size of the memory cards depending on their size !IN BYTES!
-	//by default they will be 2MB mem cards
-	switch ((MemFileSize / (8 * 1024))-5) // Convert the filesize in bytes to the "nintendo-size"
+	if (pFile)
 	{
+		fseek( pFile, 0L, SEEK_END );
+		long MemFileSize = ftell( pFile );
+ 
+		switch ((MemFileSize / (8 * 1024))-5) // Convert the filesize in bytes to the "nintendo-size"
+		{
 		case 59:
-			//4Mb or 512KB size
 			nintendo_card_id = 0x00000004;
 			memory_card_size = 512 * 1024;
 			break;
 		case 123:
-			//8Mb or 1MB size
 			nintendo_card_id = 0x00000008;
 			memory_card_size = 1024 * 1024;
 			break;
 		case 251:
-			//16Mb or 2MB size
 			nintendo_card_id = 0x00000010;
 			memory_card_size = 2 * 1024 * 1024;
 			break;
 		case 507:
-			//32Mb or 4MB size
 			nintendo_card_id = 0x00000020;
 			memory_card_size = 4 * 1024 * 1024;
 			break;
 		case 1019:
-			//64Mb or 8MB size
 			nintendo_card_id = 0x00000040;
 			memory_card_size = 8 * 1024 * 1024;
 			break;
 		case 2043:
-			//128Mb or 16MB size
 			nintendo_card_id = 0x00000080;
 			memory_card_size = 16 * 1024 * 1024;
 			break;
 		default:
-			// Perhaps default behavior should be changed?
-			nintendo_card_id = 0x00000010;
-			memory_card_size = 2 * 1024 * 1024;
+			// Because everyone wants the biggest memcard :}
+			nintendo_card_id = 0x00000080;
+			memory_card_size = 16 * 1024 * 1024;
 			break;
-	}
-	memory_card_content = new u8[memory_card_size];
-	memset(memory_card_content, 0xFF, memory_card_size);
-	
-	//return to start otherwise the mem card is "corrupt"
-	fseek( pFile,0L,SEEK_SET);
-	if (pFile)
-	{
+		}
+ 
+		// Return to start otherwise the mem card is "corrupt"
+		fseek( pFile,0L,SEEK_SET);
+ 
+		memory_card_content = new u8[memory_card_size];
+		memset(memory_card_content, 0xFF, memory_card_size);
+ 
 		LOG(EXPANSIONINTERFACE, "Reading memory card %s", m_strFilename.c_str());
 		fread(memory_card_content, 1, memory_card_size, pFile);
 		fclose(pFile);
 	}
 	else
 	{
+		nintendo_card_id = 0x00000080;
+		memory_card_size = 16 * 1024 * 1024;
+ 
 		LOG(EXPANSIONINTERFACE, "No memory card found. Will create new.");
 		Flush();
 		Core::DisplayMessage(StringFromFormat("Wrote memory card contents to %s", m_strFilename.c_str()), 4000);
