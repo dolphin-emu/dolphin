@@ -97,11 +97,7 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 			memory_card_size = 8 * 1024 * 1024;
 			break;
 		case 2043:
-			nintendo_card_id = 0x00000080;
-			memory_card_size = 16 * 1024 * 1024;
-			break;
 		default:
-			// Because everyone wants the biggest memcard :}
 			nintendo_card_id = 0x00000080;
 			memory_card_size = 16 * 1024 * 1024;
 			break;
@@ -119,8 +115,12 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 	}
 	else
 	{
+		// Create a new 128Mb memcard
 		nintendo_card_id = 0x00000080;
 		memory_card_size = 16 * 1024 * 1024;
+
+		memory_card_content = new u8[memory_card_size];
+		memset(memory_card_content, 0xFF, memory_card_size);
  
 		LOG(EXPANSIONINTERFACE, "No memory card found. Will create new.");
 		Flush();
