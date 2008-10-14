@@ -270,177 +270,177 @@ void RunActionReplayCode(const ARCode &code, bool nowIsBootup) {
 		// skip these weird init lines
 		if (iter == code.ops.begin() && cmd == 1) continue;
 
-		// 0x4WXXXXXXX codes
-		if(z == 0x00) // Check the value Z in 0xZWXXXXXXX
+		switch(z)
 		{
-			// Ram write (and fill), this is for codes 0x00XXXXXXX - 0x07XXXXXXX
-			if(w < 0x8) // Check the value W in 0xZWXXXXXXX
-			{
-				u32 new_addr = (addr | 0x80000000);
-				switch ((new_addr >> 25) & 0x03) 
+			case 0x00: // Ram write (and fill)
 				{
-					case 0x00: // Byte write
-						{
-							u8 repeat = data >> 8;
-							for (int i = 0; i <= repeat; i++) {
-								Memory::Write_U8(data & 0xFF, new_addr + i);
-							}
-							break;
-						}
-
-					case 0x01: // Short write
-						{
-							u16 repeat = data >> 16;
-							for (int i = 0; i <= repeat; i++) {
-								Memory::Write_U16(data & 0xFFFF, new_addr + i * 2);
-							}
-							break;
-						}
-
-
-					case 0x02: // Dword write
-						{
-							Memory::Write_U32(data, new_addr);
-							break;
-						}
-					default: break; // TODO(Omega): maybe add a PanicAlert here?
-				}
-				continue;
-			}
-		}
-
-		// 0x4WXXXXXXX codes
-		if(z == 0x4) // Check the value Z in 0xZWXXXXXXX
-		{
-			// Write to pointer, this is for codes 0x40XXXXXXX - 0x44XXXXXXX
-			if(w < 0x8) // Check the value W in 0xZWXXXXXXX
-			{
-				u32 new_addr = (addr | 0x80000000);
-				switch ((new_addr >> 25) & 0x03) 
-				{
-					case 0x00: // Byte write to pointer
-						{
-							u32 ptr = Memory::Read_U32(new_addr);
-							u8 thebyte = data & 0xFF;
-							u32 offset = data >> 8;
-							Memory::Write_U8(thebyte, ptr + offset);
-							break;
-						}
-
-					case 0x01: // Short write to pointer
-						{
-							u32 ptr = Memory::Read_U32(new_addr);
-							u16 theshort = data & 0xFFFF;
-							u32 offset = (data >> 16) << 1;
-							Memory::Write_U16(theshort, ptr + offset);
-							break;
-						}
-
-
-					case 0x02: // Dword write to pointer
-						{
-							u32 ptr = Memory::Read_U32(new_addr);
-							Memory::Write_U32(data, ptr);
-							break;
-						}
-					default: break; // TODO(Omega): maybe add a PanicAlert here?
-				}
-				continue;
-			}
-		}
-
-		switch (cmd & 0xFE) 
-		{
-			case 0x80:  // Byte add
-				Memory::Write_U8(Memory::Read_U8(addr) + (data & 0xFF), addr);
-				break;
-			case 0x82:  // Short add
-				Memory::Write_U16(Memory::Read_U16(addr) + (data & 0xFFFF), addr);
-				break;
-			case 0x84:  // DWord add
-				Memory::Write_U32(Memory::Read_U32(addr) + data, addr);
-				break;
-			case 0x86:  // Float add (not working?)
-				{
-					union {
-						u32 u;
-						float f;
-					} fu, d;
-					fu.u = Memory::Read_U32(addr);
-					d.u = data;
-					fu.f += data;
-					Memory::Write_U32(fu.u, addr);
-					break;
-				}
-			case 0x90: if (Memory::Read_U32(addr) == data) return; // IF 32 bit equal, exit
-			case 0x08: // IF 8 bit equal, execute next opcode
-			case 0x48: // (double)
-				{
-					if (Memory::Read_U16(addr) != (data & 0xFFFF)) {
-						if (++iter == code.ops.end()) return;
-						if (cmd == 0x48) if (++iter == code.ops.end()) return;
-					}
-					break;
-				}
-			case 0x0A: // IF 16 bit equal, execute next opcode
-			case 0x4A: // (double)
-				{
-					if (Memory::Read_U16(addr) != (data & 0xFFFF)) {
-						if (++iter == code.ops.end()) return;
-						if (cmd == 0x4A) if (++iter == code.ops.end()) return;
-					}
-					break;
-				}
-			case 0x0C:  // IF 32 bit equal, execute next opcode
-			case 0x4C:  // (double)
-				{
-					if (Memory::Read_U32(addr) != data) {
-						if (++iter == code.ops.end()) return;
-						if (cmd == 0x4C) if (++iter == code.ops.end()) return;
-					}
-					break;
-				}
-			case 0x10:  // IF NOT 8 bit equal, execute next opcode
-			case 0x50:  // (double)
-				{
-					if (Memory::Read_U8(addr) == (data & 0xFF)) {
-						if (++iter == code.ops.end()) return;
-						if (cmd == 0x50) if (++iter == code.ops.end()) return;
-					}
-					break;
-				}
-			case 0x12:  // IF NOT 16 bit equal, execute next opcode
-			case 0x52:  // (double)
-				{
-					if (Memory::Read_U16(addr) == (data & 0xFFFF)) {
-						if (++iter == code.ops.end()) return;
-						if (cmd == 0x52) if (++iter == code.ops.end()) return;
-					}
-					break;
-				}
-			case 0x14:  // IF NOT 32 bit equal, execute next opcode
-			case 0x54:  // (double)
-				{
-					if (Memory::Read_U32(addr) == data) {
-						if (++iter == code.ops.end()) return;
-						if (cmd == 0x54) if (++iter == code.ops.end()) return;
-					}
-					break;
-				}
-			case 0xC4: // "Master Code" - configure the AR
-				{
-					u8 number = data & 0xFF;
-					if (number == 0)
+					if(w < 0x8) // Check the value W in 0xZWXXXXXXX
 					{
-						// Normal master code - execute once.
-					} else {
-						// PanicAlert("Not supporting multiple master codes.");
+						u32 new_addr = (addr | 0x80000000);
+						switch ((new_addr >> 25) & 0x03) 
+						{
+							case 0x00: // Byte write
+								{
+									u8 repeat = data >> 8;
+									for (int i = 0; i <= repeat; i++) {
+										Memory::Write_U8(data & 0xFF, new_addr + i);
+									}
+									break;
+								}
+
+							case 0x01: // Short write
+								{
+									u16 repeat = data >> 16;
+									for (int i = 0; i <= repeat; i++) {
+										Memory::Write_U16(data & 0xFFFF, new_addr + i * 2);
+									}
+									break;
+								}
+
+
+							case 0x02: // Dword write
+								{
+									Memory::Write_U32(data, new_addr);
+									break;
+								}
+							default: break; // TODO(Omega): maybe add a PanicAlert here?
+						}
 					}
-					// u8 numOpsPerFrame = (data >> 8) & 0xFF;
-					// Blah, we generally ignore master codes.
-					break;
+					continue;
 				}
-			default: PanicAlert("Unknown Action Replay command %02x (%08x %08x)", cmd, iter->cmd_addr, iter->value); break;
+			case 0x04: // Write to pointer
+				{
+					if(w < 0x8)
+					{
+						u32 new_addr = (addr | 0x80000000);
+						switch ((new_addr >> 25) & 0x03) 
+						{
+							case 0x00: // Byte write to pointer
+								{
+									u32 ptr = Memory::Read_U32(new_addr);
+									u8 thebyte = data & 0xFF;
+									u32 offset = data >> 8;
+									Memory::Write_U8(thebyte, ptr + offset);
+									break;
+								}
+
+							case 0x01: // Short write to pointer
+								{
+									u32 ptr = Memory::Read_U32(new_addr);
+									u16 theshort = data & 0xFFFF;
+									u32 offset = (data >> 16) << 1;
+									Memory::Write_U16(theshort, ptr + offset);
+									break;
+								}
+
+
+							case 0x02: // Dword write to pointer
+								{
+									u32 ptr = Memory::Read_U32(new_addr);
+									Memory::Write_U32(data, ptr);
+									break;
+								}
+							default: break; // TODO(Omega): maybe add a PanicAlert here?
+						}
+					}
+					continue;
+				}
+			default:
+				{
+				 switch (cmd & 0xFE) 
+		         {
+				case 0x80:  // Byte add
+					Memory::Write_U8(Memory::Read_U8(addr) + (data & 0xFF), addr);
+					break;
+				case 0x82:  // Short add
+					Memory::Write_U16(Memory::Read_U16(addr) + (data & 0xFFFF), addr);
+					break;
+				case 0x84:  // DWord add
+					Memory::Write_U32(Memory::Read_U32(addr) + data, addr);
+					break;
+				case 0x86:  // Float add (not working?)
+					{
+						union {
+							u32 u;
+							float f;
+						} fu, d;
+						fu.u = Memory::Read_U32(addr);
+						d.u = data;
+						fu.f += data;
+						Memory::Write_U32(fu.u, addr);
+						break;
+					}
+				case 0x90: if (Memory::Read_U32(addr) == data) return; // IF 32 bit equal, exit
+				case 0x08: // IF 8 bit equal, execute next opcode
+				case 0x48: // (double)
+					{
+						if (Memory::Read_U16(addr) != (data & 0xFFFF)) {
+							if (++iter == code.ops.end()) return;
+							if (cmd == 0x48) if (++iter == code.ops.end()) return;
+						}
+						break;
+					}
+				case 0x0A: // IF 16 bit equal, execute next opcode
+				case 0x4A: // (double)
+					{
+						if (Memory::Read_U16(addr) != (data & 0xFFFF)) {
+							if (++iter == code.ops.end()) return;
+							if (cmd == 0x4A) if (++iter == code.ops.end()) return;
+						}
+						break;
+					}
+				case 0x0C:  // IF 32 bit equal, execute next opcode
+				case 0x4C:  // (double)
+					{
+						if (Memory::Read_U32(addr) != data) {
+							if (++iter == code.ops.end()) return;
+							if (cmd == 0x4C) if (++iter == code.ops.end()) return;
+						}
+						break;
+					}
+				case 0x10:  // IF NOT 8 bit equal, execute next opcode
+				case 0x50:  // (double)
+					{
+						if (Memory::Read_U8(addr) == (data & 0xFF)) {
+							if (++iter == code.ops.end()) return;
+							if (cmd == 0x50) if (++iter == code.ops.end()) return;
+						}
+						break;
+					}
+				case 0x12:  // IF NOT 16 bit equal, execute next opcode
+				case 0x52:  // (double)
+					{
+						if (Memory::Read_U16(addr) == (data & 0xFFFF)) {
+							if (++iter == code.ops.end()) return;
+							if (cmd == 0x52) if (++iter == code.ops.end()) return;
+						}
+						break;
+					}
+				case 0x14:  // IF NOT 32 bit equal, execute next opcode
+				case 0x54:  // (double)
+					{
+						if (Memory::Read_U32(addr) == data) {
+							if (++iter == code.ops.end()) return;
+							if (cmd == 0x54) if (++iter == code.ops.end()) return;
+						}
+						break;
+					}
+				case 0xC4: // "Master Code" - configure the AR
+					{
+						u8 number = data & 0xFF;
+						if (number == 0)
+						{
+							// Normal master code - execute once.
+						} else {
+							// PanicAlert("Not supporting multiple master codes.");
+						}
+						// u8 numOpsPerFrame = (data >> 8) & 0xFF;
+						// Blah, we generally ignore master codes.
+						break;
+					}
+				default: PanicAlert("Unknown Action Replay command %02x (%08x %08x)", cmd, iter->cmd_addr, iter->value); break;
+				}
+			}
 		}
 	}
 }
