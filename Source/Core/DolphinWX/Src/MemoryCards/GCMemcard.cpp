@@ -24,6 +24,35 @@
 
 #include "GCMemcard.h"
 
+
+// i think there is support for this stuff in the common lib... if not there should be support
+// and to get a file exentions there is a function called SplitPath()
+#define BE16(x) ((u16((x)[0])<<8) | u16((x)[1]))
+#define BE32(x) ((u32((x)[0])<<24) | (u32((x)[1])<<16) | (u32((x)[2])<<8) | u32((x)[3]))
+#define ArrayByteSwap(a) (ByteSwap(a, a+sizeof(u8)));
+
+// undefined functions... prolly it means something like that
+void ByteSwap(u8 *valueA, u8 *valueB)
+{
+	u8 tmp = *valueA;
+	*valueA = *valueB;
+	*valueB = tmp;
+}
+
+u16 __inline bswap16(u16 s)
+{
+	return (s>>8) | (s<<8);
+}
+
+u32 __inline bswap32(u32 s)
+{
+	return (u32)bswap16((u16)(s>>16)) | ((u32)bswap16((u16)s)<<16);
+}
+
+
+
+
+
 void GCMemcard::calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2)
 {
     *c1 = 0;*c2 = 0;
@@ -198,7 +227,7 @@ u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents)
 		}
 		else
 		{
-			firstFree3 = max(firstFree3,BE16(dir.Dir[i].FirstBlock) + BE16(dir.Dir[i].BlockCount));
+			firstFree3 = max<int>(firstFree3,(int)(BE16(dir.Dir[i].FirstBlock) + BE16(dir.Dir[i].BlockCount)));
 		}
 	}
 
@@ -851,7 +880,7 @@ GCMemcard::GCMemcard(const char *filename)
 	mc_data_size=(((u32)BE16(hdr.Size)*16)-5)*0x2000;
 	mc_data = new u8[mc_data_size];
 
-	u32 read = fread(mc_data,1,mc_data_size,mcd);
+	size_t read = fread(mc_data,1,mc_data_size,mcd);
 	assert(mc_data_size==read);
 }
 
