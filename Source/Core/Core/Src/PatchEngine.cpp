@@ -235,9 +235,10 @@ void RunActionReplayCode(const ARCode &code, bool nowIsBootup) {
 	for (std::vector<AREntry>::const_iterator iter = code.ops.begin(); iter != code.ops.end(); ++iter) {
 		u32 cmd_addr = iter->cmd_addr;
 		u8 cmd = iter->cmd_addr>>24;
-		/*u32 addr = (iter->cmd_addr & 0xFFFFFF);*/ // TODO:(Omega): remove this line if not needed anymore and everything works as is
 		u32 addr = (iter->cmd_addr & 0x01FFFFFF);
 		u32 data = iter->value;
+		u8 z = (cmd >> 4);
+		u8 w = (cmd - ((cmd >> 4) << 4));
 
 		if (addr >= 0x00002000 && addr < 0x00003000) {
 			PanicAlert("This action replay simulator does not support codes that modify Action Replay itself.");
@@ -269,67 +270,84 @@ void RunActionReplayCode(const ARCode &code, bool nowIsBootup) {
 		// skip these weird init lines
 		if (iter == code.ops.begin() && cmd == 1) continue;
 
-		// Ram write (and fill), this if for codes 0x00XXXXXXX - 0x07XXXXXXX
-		if((cmd & 0xFE) < 0x8)
+		// 0x4WXXXXXXX codes
+		if(z == 0x00) // Check the value Z in 0xZWXXXXXXX
 		{
-			//u32 new_addr = ((cmd_addr & 0x01FFFFFF) | 0x80000000); // TODO:(Omega): remove this line if not needed anymore and everything works as is
-			u32 new_addr = (addr | 0x80000000);
-			switch ((new_addr >> 25) & 0x03) 
+			// Ram write (and fill), this is for codes 0x00XXXXXXX - 0x07XXXXXXX
+			if(w < 0x8) // Check the value W in 0xZWXXXXXXX
 			{
-				case 0x00:  // Byte write
-					{
-						u8 repeat = data >> 8;
-						for (int i = 0; i <= repeat; i++) {
-							Memory::Write_U8(data & 0xFF, new_addr + i);
+				u32 new_addr = (addr | 0x80000000);
+				switch ((new_addr >> 25) & 0x03) 
+				{
+					case 0x00: // Byte write
+						{
+							u8 repeat = data >> 8;
+							for (int i = 0; i <= repeat; i++) {
+								Memory::Write_U8(data & 0xFF, new_addr + i);
+							}
+							break;
 						}
-						break;
-					}
 
-				case 0x01:  // Short write
-					{
-						u16 repeat = data >> 16;
-						for (int i = 0; i <= repeat; i++) {
-							Memory::Write_U16(data & 0xFFFF, new_addr + i * 2);
+					case 0x01: // Short write
+						{
+							u16 repeat = data >> 16;
+							for (int i = 0; i <= repeat; i++) {
+								Memory::Write_U16(data & 0xFFFF, new_addr + i * 2);
+							}
+							break;
 						}
-						break;
-					}
 
 
-				case 0x02: // Dword write
-					{
-						Memory::Write_U32(data, new_addr);
-						break;
-					}
-				default: break; // TODO(Omega): maybe add a PanicAlert here?
+					case 0x02: // Dword write
+						{
+							Memory::Write_U32(data, new_addr);
+							break;
+						}
+					default: break; // TODO(Omega): maybe add a PanicAlert here?
+				}
+				continue;
 			}
-			continue;
 		}
 
-		// TODO(Omega): This commented code is here for my next fix
-		//case 0x40: // Write byte to pointer.
-		//{
-		//	u32 ptr = Memory::Read_U32(addr);
-		//	u8 thebyte = data & 0xFF;
-		//	u32 offset = data >> 8;
-		//	Memory::Write_U8(thebyte, ptr + offset);
-		//	break;
-		//}
+		// 0x4WXXXXXXX codes
+		if(z == 0x4) // Check the value Z in 0xZWXXXXXXX
+		{
+			// Write to pointer, this is for codes 0x40XXXXXXX - 0x44XXXXXXX
+			if(w < 0x8) // Check the value W in 0xZWXXXXXXX
+			{
+				u32 new_addr = (addr | 0x80000000);
+				switch ((new_addr >> 25) & 0x03) 
+				{
+					case 0x00: // Byte write to pointer
+						{
+							u32 ptr = Memory::Read_U32(new_addr);
+							u8 thebyte = data & 0xFF;
+							u32 offset = data >> 8;
+							Memory::Write_U8(thebyte, ptr + offset);
+							break;
+						}
 
-		//case 0x42: // Write short to pointer.
-		//{
-		//	u32 ptr = Memory::Read_U32(addr);
-		//	u16 theshort = data & 0xFFFF;
-		//	u32 offset = (data >> 16) << 1;
-		//	Memory::Write_U16(theshort, ptr + offset);
-		//	break;
-		//}
+					case 0x01: // Short write to pointer
+						{
+							u32 ptr = Memory::Read_U32(new_addr);
+							u16 theshort = data & 0xFFFF;
+							u32 offset = (data >> 16) << 1;
+							Memory::Write_U16(theshort, ptr + offset);
+							break;
+						}
 
-		//case 0x44: // Write dword to pointer.
-		//{
-		//	u32 ptr = Memory::Read_U32(addr);
-		//	Memory::Write_U32(data, ptr);
-		//	break;
-		//}
+
+					case 0x02: // Dword write to pointer
+						{
+							u32 ptr = Memory::Read_U32(new_addr);
+							Memory::Write_U32(data, ptr);
+							break;
+						}
+					default: break; // TODO(Omega): maybe add a PanicAlert here?
+				}
+				continue;
+			}
+		}
 
 		switch (cmd & 0xFE) 
 		{
@@ -407,28 +425,6 @@ void RunActionReplayCode(const ARCode &code, bool nowIsBootup) {
 						if (++iter == code.ops.end()) return;
 						if (cmd == 0x54) if (++iter == code.ops.end()) return;
 					}
-					break;
-				}
-			case 0x40: // Write byte to pointer.
-				{
-					u32 ptr = Memory::Read_U32(addr);
-					u8 thebyte = data & 0xFF;
-					u32 offset = data >> 8;
-					Memory::Write_U8(thebyte, ptr + offset);
-					break;
-				}
-			case 0x42: // Write short to pointer.
-				{
-					u32 ptr = Memory::Read_U32(addr);
-					u16 theshort = data & 0xFFFF;
-					u32 offset = (data >> 16) << 1;
-					Memory::Write_U16(theshort, ptr + offset);
-					break;
-				}
-			case 0x44: // Write dword to pointer.
-				{
-					u32 ptr = Memory::Read_U32(addr);
-					Memory::Write_U32(data, ptr);
 					break;
 				}
 			case 0xC4: // "Master Code" - configure the AR
