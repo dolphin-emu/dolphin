@@ -15,11 +15,17 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
 #pragma once
 
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
+
+
+#define SWAP(a) (varSwap(a,a+sizeof(u8)));
+
+void varSwap(u8 *valueA,u8 *valueB);
 
 u16 __inline bswap16(u16 s)
 {
@@ -178,10 +184,10 @@ public:
 	u32  CopyFrom(GCMemcard& source, u32 index);
 
 	// writes a .gci file to disk containing index
-	bool SaveGci(u32 index, const char* fileName);
+	bool ExportGci(u32 index, const char* fileName);
 
-	// reads a .gci file and calls ImportFile
-	u32  AddGci(const char* fileName);
+	// reads a .gci/.gcs/.sav file and calls ImportFile or saves out a gci file
+	u32  ImportGci(const char* fileName, int endFile,const char* fileName2);
 
 	// reads the banner image
 	bool ReadBannerRGBA8(u32 index, u32* buffer);

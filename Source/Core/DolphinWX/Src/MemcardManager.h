@@ -14,7 +14,7 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-//updated to 677
+
 #ifndef __MEMCARD_MANAGER_h__
 #define __MEMCARD_MANAGER_h__
 
@@ -50,6 +50,7 @@ class CMemcardManager
 		wxButton *m_GciSaveLeft;
 		wxButton *m_GciOpenRight;
 		wxButton *m_GciSaveRight;
+		wxButton *m_ConvertToGci;
 		wxButton *m_DeleteLeft;
 		wxButton *m_DeleteRight;
 		wxStaticBoxSizer *sMemcard1;
@@ -72,6 +73,7 @@ class CMemcardManager
 			ID_GCISAVELEFT,
 			ID_GCIOPENRIGHT,
 			ID_GCIOPENLEFT,
+			ID_CONVERTTOGCI,
 			ID_MEMCARD1LIST,
 			ID_MEMCARD2LIST,
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
