@@ -69,17 +69,43 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
     long MemFileSize = ftell( pFile );
 	//the switch is based on the size of the memory cards depending on their size !IN BYTES!
 	//by default they will be 2MB mem cards
-	switch (MemFileSize)
+	switch ((MemFileSize / (8 * 1024))-5) // Convert the filesize in bytes to the "nintendo-size"
 	{
-		case 524288:
-			//the 59 block mem card, 512KB big
+		case 59:
+			//4Mb or 512KB size
 			nintendo_card_id = 0x00000004;
 			memory_card_size = 512 * 1024;
 			break;
-		default:
-			//Default = 2MB mem cards that are 251 blocks
+		case 123:
+			//8Mb or 1MB size
+			nintendo_card_id = 0x00000008;
+			memory_card_size = 1024 * 1024;
+			break;
+		case 251:
+			//16Mb or 2MB size
 			nintendo_card_id = 0x00000010;
-			memory_card_size = 2 * 1024 * 1024;	
+			memory_card_size = 2 * 1024 * 1024;
+			break;
+		case 507:
+			//32Mb or 4MB size
+			nintendo_card_id = 0x00000020;
+			memory_card_size = 4 * 1024 * 1024;
+			break;
+		case 1019:
+			//64Mb or 8MB size
+			nintendo_card_id = 0x00000040;
+			memory_card_size = 8 * 1024 * 1024;
+			break;
+		case 2043:
+			//128Mb or 16MB size
+			nintendo_card_id = 0x00000080;
+			memory_card_size = 16 * 1024 * 1024;
+			break;
+		default:
+			// Perhaps default behavior should be changed?
+			nintendo_card_id = 0x00000010;
+			memory_card_size = 2 * 1024 * 1024;
+			break;
 	}
 	memory_card_content = new u8[memory_card_size];
 	memset(memory_card_content, 0xFF, memory_card_size);
