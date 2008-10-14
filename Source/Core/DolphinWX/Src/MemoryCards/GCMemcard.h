@@ -15,38 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
 #pragma once
 
-typedef unsigned char u8;
-typedef unsigned short u16;
-typedef unsigned int u32;
-
-
-#define ArrayByteSwap(a) (ByteSwap(a, a+sizeof(u8)));
-
-void ByteSwap(u8 *valueA, u8 *valueB);
-
-u16 __inline bswap16(u16 s)
-{
-	return (s>>8) | (s<<8);
-}
-
-u32 __inline bswap32(u32 s)
-{
-	return (u32)bswap16((u16)(s>>16)) | ((u32)bswap16((u16)s)<<16);
-}
-
-#ifndef max
-template<class T>
-T __inline max(T a, T b)
-{
-	return (b>a)?b:a;
-}
-#endif
-
-#define BE16(x) ((u16((x)[0])<<8) | u16((x)[1]))
-#define BE32(x) ((u32((x)[0])<<24) | (u32((x)[1])<<16) | (u32((x)[2])<<8) | u32((x)[3]))
+#include "Common.h"
 
 class GCMemcard 
 {
