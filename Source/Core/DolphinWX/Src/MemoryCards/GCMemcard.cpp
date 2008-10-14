@@ -611,10 +611,10 @@ u32  GCMemcard::CopyFrom(GCMemcard& source, u32 index)
 
 u32  GCMemcard::ImportGci(const char *fileName, int endFile, const char *fileName2)
 {
-	if(!mcdFile && !fileName2) return 0;
+	if (!mcdFile && !fileName2) return 0;
 
 	wxFFile gci(wxString::FromAscii(fileName), _T("rb"));	
-	if(!gci.IsOpened())return 0;
+	if (!gci.IsOpened()) return 0;
 
 	enum
 	{
@@ -626,87 +626,91 @@ u32  GCMemcard::ImportGci(const char *fileName, int endFile, const char *fileNam
 	char * tmp = new char[0xD];
 	u16 tmpU16;
 
-	const char * fileType= (char*)fileName+ endFile-3;
+	const char * fileType = (char*) fileName + endFile - 3;
 
-	if(!strcasecmp(fileType,"gci") && !fileName2)//Extension can be either case
+	if( !strcasecmp(fileType, "gci") && !fileName2) // Extension can be either case
 		offset = GCI;
 	else
 	{
-		gci.Read(tmp,0xD);
-		if(!strcasecmp(fileType,"gcs"))//Extension can be either case
+		gci.Read(tmp, 0xD);
+		if (!strcasecmp(fileType, "gcs")) // Extension can be either case
 		{		
-			if(!memcmp(tmp,"GCSAVE",6))	//Header must be uppercase
+			if (!memcmp(tmp, "GCSAVE", 6))	// Header must be uppercase
 				offset = GCS;
 			else
 			{
-				//TODO error message, file has gsc extension but does not have a correct header
+				// TODO: Add error message
+				// file has gsc extension but does not have a correct header
 				return 0;
 			}
 		}
 		else{
-			if(!strcasecmp(fileType,"sav"))//Extension can be either case
+			if (!strcasecmp(fileType, "sav")) // Extension can be either case
 			{
-				if(!memcmp(tmp,"DATELGC_SAVE",0xC))//Header must be uppercase
+				if (!memcmp(tmp, "DATELGC_SAVE", 0xC)) // Header must be uppercase
 					offset = SAV;
 				else
 				{
-					//TODO error message, file has sav extension but does not have a correct header
+					// TODO: Add error message
+					//file has sav extension but does not have a correct header
 					return 0;
 				}
 			}
 			else
 			{
-				//TODO error message, file has invalid extension
+				// TODO: Add error message, file has invalid extension
 				return 0;
 			}
 		}
 	}
-	gci.Seek(offset,wxFromStart);
+	gci.Seek(offset, wxFromStart);
 		
 	DEntry *d = new DEntry;
-	gci.Read(d,0x40);
+	gci.Read(d, 0x40);
 
 	switch(offset){
 		case GCS:
-			//field containing the Block count as displayed within the GameSaves software
-			//is not stored in the GCS file.
-			//It is stored only within the corresponding GSV file.
-			//If the GCS file is added without using the GameSaves software,
-			//the value stored is always "1"
-			tmpU16 =(((int)gci.Length()-offset-0x40)/0x2000);
-			if(tmpU16<0x100){
+			// field containing the Block count as displayed within
+			// the GameSaves software is not stored in the GCS file.
+			// It is stored only within the corresponding GSV file.
+			// If the GCS file is added without using the GameSaves software,
+			// the value stored is always "1"
+			tmpU16 = (((int)gci.Length() - offset - 0x40) / 0x2000);
+			if (tmpU16<0x100)
+			{
 				d->BlockCount[1] = (u8)tmpU16;
 			}
 			else{
-				d->BlockCount[0] = (u8)(tmpU16-0xFF);
+				d->BlockCount[0] = (u8)(tmpU16 - 0xFF);
 				d->BlockCount[1] = 0xFF;
 			}
 			break;
 		case SAV:
-			//swap byte pairs
-			//0x2C and 0x2D,0x2E and 0x2F,0x30 and 0x31,0x32 and 0x33,0x34 and 0x35,
-			//0x36 and 0x37,0x38 and 0x39,0x3A and 0x3B,0x3C and 0x3D,0x3E and 0x3F.
-			SWAP((d->ImageOffset));
-			SWAP(&(d->ImageOffset[2]));
-			SWAP((d->IconFmt));
-			SWAP((d->AnimSpeed));
-			varSwap(&d->Permissions,&d->CopyCounter);
-			SWAP((d->FirstBlock));
-			SWAP((d->BlockCount));
-			SWAP((d->Unused2));
-			SWAP((d->CommentsAddr));
-			SWAP(&(d->CommentsAddr[2]));
+			// swap byte pairs
+			// 0x2C and 0x2D, 0x2E and 0x2F, 0x30 and 0x31, 0x32 and 0x33,
+			// 0x34 and 0x35, 0x36 and 0x37, 0x38 and 0x39, 0x3A and 0x3B,
+			// 0x3C and 0x3D,0x3E and 0x3F.
+			ArrayByteSwap((d->ImageOffset));
+			ArrayByteSwap(&(d->ImageOffset[2]));
+			ArrayByteSwap((d->IconFmt));
+			ArrayByteSwap((d->AnimSpeed));
+			ByteSwap(&d->Permissions, &d->CopyCounter);
+			ArrayByteSwap((d->FirstBlock));
+			ArrayByteSwap((d->BlockCount));
+			ArrayByteSwap((d->Unused2));
+			ArrayByteSwap((d->CommentsAddr));
+			ArrayByteSwap(&(d->CommentsAddr[2]));
 			break;
 		default:
 			break;
 	}
-	//TODO verify file length
-	assert(((int)gci.Length()-offset)== ((BE16(d->BlockCount)* 0x2000) + 0x40));
+	// TODO: verify file length
+	assert(((int)gci.Length() - offset) == ((BE16(d->BlockCount) * 0x2000) + 0x40));
 
 
-	u32 size=BE16((d->BlockCount))*0x2000;
+	u32 size = BE16((d->BlockCount)) * 0x2000;
 	u8 *t = new u8[size];
-	gci.Read(t,size);
+	gci.Read(t, size);
 
 	gci.Close();
 	
@@ -714,19 +718,19 @@ u32  GCMemcard::ImportGci(const char *fileName, int endFile, const char *fileNam
 	if(!fileName2)
 	{
 		wxFFile gci2(wxString::FromAscii(fileName2), _T("wb"));
-		if(!gci2.IsOpened())return 0;
-		gci2.Seek(0,wxFromStart);
-		gci2.Write(d,0x40);
-		int fileBlocks=BE16(d->BlockCount);
-		gci2.Seek(0x40,wxFromStart);
-		gci2.Write(t,0x2000*fileBlocks);
+		if (!gci2.IsOpened()) return 0;
+		gci2.Seek(0, wxFromStart);
+		gci2.Write(d, 0x40);
+		int fileBlocks = BE16(d->BlockCount);
+		gci2.Seek(0x40, wxFromStart);
+		gci2.Write(t, 0x2000 * fileBlocks);
 		gci2.Close();
 	}
-	else	ret = ImportFile(*d,t);
+	else	ret = ImportFile(*d, t);
 	
 	
-	delete[] t;
-	delete[] tmp;
+	delete []t;
+	delete []tmp;
 	delete d;
 	return ret;
 }
@@ -735,25 +739,25 @@ bool GCMemcard::ExportGci(u32 index, const char *fileName)
 {
 	wxFFile gci(wxString::FromAscii(fileName), _T("wb"));
 	
-	if(!gci.IsOpened())return false;
+	if (!gci.IsOpened()) return false;
 	
-	gci.Seek(0,wxFromStart);
+	gci.Seek(0, wxFromStart);
 
 	DEntry d;
-	if(!this->GetFileInfo(index,d)) return false;
-	gci.Write(&d,0x40);
+	if(!this->GetFileInfo(index, d)) return false;
+	gci.Write(&d, 0x40);
 
-	u8 *t = new u8[this->GetFileSize(index)*0x2000];
+	u8 *t = new u8[this->GetFileSize(index) * 0x2000];
 
-	if(!this->GetFileData(index,t)) return false;
+	if (!this->GetFileData(index, t)) return false;
 
-	int fileBlocks=BE16(d.BlockCount);
+	int fileBlocks = BE16(d.BlockCount);
 	
-	gci.Seek(0x40,wxFromStart);
-	gci.Write(t,0x2000*fileBlocks);
+	gci.Seek(0x40, wxFromStart);
+	gci.Write(t, 0x2000 * fileBlocks);
 
 	gci.Close();
-	delete[] t;
+	delete []t;
 	
 	return true;
 }

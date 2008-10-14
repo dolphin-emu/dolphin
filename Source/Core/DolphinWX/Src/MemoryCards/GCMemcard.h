@@ -23,9 +23,9 @@ typedef unsigned short u16;
 typedef unsigned int u32;
 
 
-#define SWAP(a) (varSwap(a,a+sizeof(u8)));
+#define ArrayByteSwap(a) (ByteSwap(a, a+sizeof(u8)));
 
-void varSwap(u8 *valueA,u8 *valueB);
+void ByteSwap(u8 *valueA, u8 *valueB);
 
 u16 __inline bswap16(u16 s)
 {
@@ -187,7 +187,7 @@ public:
 	bool ExportGci(u32 index, const char* fileName);
 
 	// reads a .gci/.gcs/.sav file and calls ImportFile or saves out a gci file
-	u32  ImportGci(const char* fileName, int endFile,const char* fileName2);
+	u32  ImportGci(const char* fileName, int endFile, const char* fileName2);
 
 	// reads the banner image
 	bool ReadBannerRGBA8(u32 index, u32* buffer);
