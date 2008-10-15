@@ -15,35 +15,24 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _PATCHENGINE_H
-#define _PATCHENGINE_H
-
-enum PatchType
-{
-	PATCH_8BIT,
-	PATCH_16BIT,
-	PATCH_32BIT,
-};
-
-static const char *PatchTypeStrings[] = 
-{
-	"byte",
-	"word",
-	"dword",
-	0
-};
-
-struct Patch
-{
-	Patch() {}
-	Patch(PatchType _t, u32 _addr, u32 _value) : type(_t), address(_addr), value(_value) {}
-	PatchType type;
-	u32 address;
+struct AREntry {
+	u32 cmd_addr;
 	u32 value;
 };
 
-void PatchEngine_LoadPatches(const char *gameID);
-void PatchEngine_ApplyLoadPatches();
-void PatchEngine_ApplyFramePatches();
-void PatchEngine_ApplyARPatches();
-#endif
+struct ARCode {
+	std::string name;
+	std::vector<AREntry> ops;
+	bool active;
+};
+
+extern std::vector<ARCode> arCodes;
+
+void RunActionReplayCode(const ARCode &arcode, bool nowIsBootup);
+void LoadActionReplayCodes(IniFile &ini);
+void DoARSubtype_RamWriteAndFill();
+void DoARSubtype_WriteToPointer();
+void DoARSubtype_AddCode();
+void DoARSubtype_MasterCodeAndWriteToCCXXXXXX();
+void DoARSubtype_Other();
+
