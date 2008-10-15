@@ -73,6 +73,8 @@ public:
     // Finish up the current frame, print some stats
     static void Swap(const TRectangle& rc);
 
+	static void SwapBuffers();
+
     static bool SaveRenderTarget(const char* filename, int jpeg);
 };
 

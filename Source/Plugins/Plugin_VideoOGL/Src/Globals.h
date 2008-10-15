@@ -141,6 +141,7 @@ struct Config
     bool bTexFmtOverlayEnable;
 	bool bTexFmtOverlayCenter;
 	bool bOverlayStats;
+	bool bUseXFB;
     bool bDumpTextures;
 	char texDumpPath[280];
 

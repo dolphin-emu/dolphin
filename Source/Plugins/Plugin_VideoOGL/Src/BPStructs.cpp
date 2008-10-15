@@ -30,6 +30,7 @@
 #include "TextureDecoder.h"
 #include "VertexShaderManager.h"
 #include "PixelShaderManager.h"
+#include "XFB.h"
 
 
 // ---------------------------------------------------------------------------------------
@@ -592,19 +593,19 @@ bool SetScissorRect()
 
     RECT rc;
 
-	rc.left = bpmem.scissorTL.x + xoff - 342; // left = 0
+	rc.left = bpmem.scissorTL.x - xoff - 342; // left = 0
 	rc.left *= MValueX;
 	if (rc.left < 0) rc.left = 0;
 
-	rc.top = bpmem.scissorTL.y + yoff - 342; // right = 0
+	rc.top = bpmem.scissorTL.y - yoff - 342; // right = 0
 	rc.top *= MValueY;
 	if (rc.top < 0) rc.top = 0;
     
-	rc.right = bpmem.scissorBR.x + xoff - 342; // right = 640
+	rc.right = bpmem.scissorBR.x - xoff - 342; // right = 640
 	rc.right *= MValueX;
 	if (rc.right > 640 * MValueX) rc.right = 640 * MValueX;
 
-	rc.bottom = bpmem.scissorBR.y + yoff - 342; // bottom = 480
+	rc.bottom = bpmem.scissorBR.y - yoff - 342; // bottom = 480
 	rc.bottom *= MValueY;
 	if (rc.bottom > 480 * MValueY) rc.bottom = 480 * MValueY;
 
@@ -684,15 +685,15 @@ void LoadBPReg(u32 value0)
 			TRectangle rc = {
                 (int)(bpmem.copyTexSrcXY.x),
                 (int)(bpmem.copyTexSrcXY.y),
-                (int)((bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x)),
-                (int)((bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y))
+                (int)((bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1)),
+                (int)((bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1))
             };
             //Need another rc here to get it to scale.
             TRectangle multirc = {
                 (int)(bpmem.copyTexSrcXY.x * MValueX),
                 (int)(bpmem.copyTexSrcXY.y * MValueY),
-                (int)((bpmem.copyTexSrcXY.x * MValueX + bpmem.copyTexSrcWH.x * MValueX)),
-                (int)((bpmem.copyTexSrcXY.y * MValueY + bpmem.copyTexSrcWH.y * MValueY))
+                (int)((bpmem.copyTexSrcXY.x * MValueX + (bpmem.copyTexSrcWH.x + 1) * MValueX)),
+                (int)((bpmem.copyTexSrcXY.y * MValueY + (bpmem.copyTexSrcWH.y + 1) * MValueY))
             };
 
             UPE_Copy PE_copy;
@@ -706,8 +707,15 @@ void LoadBPReg(u32 value0)
             }
             else {
                 // EFB to XFB
-                Renderer::Swap(multirc);
-                g_VideoInitialize.pCopiedToXFB();
+				if(g_Config.bUseXFB)
+				{
+					XFB_Write(Memory_GetPtr(bpmem.copyTexDest<<5), multirc, (bpmem.copyMipMapStrideChannels << 4), bpmem.copyTexSrcWH.y + 1, bpmem.dispcopyyscale/256.0f);
+				}
+				else
+				{
+					Renderer::Swap(multirc);
+				}
+				g_VideoInitialize.pCopiedToXFB();
             }
 
             // clearing

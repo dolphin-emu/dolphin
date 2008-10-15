@@ -41,6 +41,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_SHADERERRORS,ConfigDialog::ShowShaderErrorsCheck)
 	EVT_CHECKBOX(ID_TEXFMTOVERLAY,ConfigDialog::TexFmtOverlayChange)
 	EVT_CHECKBOX(ID_TEXFMTCENTER,ConfigDialog::TexFmtOverlayChange)
+	EVT_CHECKBOX(ID_USEXFB,ConfigDialog::UseXFBChange)
 	EVT_CHECKBOX(ID_DUMPTEXTURES,ConfigDialog::DumpTexturesChange)
 	EVT_DIRPICKER_CHANGED(ID_TEXTUREPATH,ConfigDialog::TexturePathChange)
 END_EVENT_TABLE()
@@ -145,6 +146,9 @@ void ConfigDialog::CreateGUIControls()
 	m_TexFmtCenter->SetValue(g_Config.bTexFmtOverlayCenter);
 	m_TexFmtCenter->Enable(m_TexFmtOverlay->IsChecked());
 
+	m_UseXFB = new wxCheckBox(m_PageAdvanced, ID_USEXFB, wxT("Use XFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_UseXFB->SetValue(g_Config.bUseXFB);
+
 	m_DumpTextures = new wxCheckBox(m_PageAdvanced, ID_DUMPTEXTURES, wxT("Dump textures to:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_DumpTextures->SetValue(g_Config.bDumpTextures);
 	m_TexturePath = new wxDirPickerCtrl(m_PageAdvanced, ID_TEXTUREPATH, wxEmptyString, wxT("Choose a directory to store texture dumps:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
@@ -195,8 +199,9 @@ void ConfigDialog::CreateGUIControls()
 	sPage3->Add(m_Statistics, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
 	sPage3->Add(m_TexFmtOverlay, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
 	sPage3->Add(m_TexFmtCenter, wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
-	sPage3->Add(m_DumpTextures, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 5);
-	sPage3->Add(m_TexturePath, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
+	sPage3->Add(m_UseXFB, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 5);
+	sPage3->Add(m_DumpTextures, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALL, 5);
+	sPage3->Add(m_TexturePath, wxGBPosition(6, 1), wxGBSpan(1, 1), wxALL, 5);
 	m_PageAdvanced->SetSizer(sPage3);
 	sPage3->Layout();
 
@@ -316,6 +321,11 @@ void ConfigDialog::TexFmtOverlayChange(wxCommandEvent& event)
 		break;
 	}
 	TextureMngr::Invalidate();
+}
+
+void ConfigDialog::UseXFBChange(wxCommandEvent& event)
+{
+	g_Config.bUseXFB = m_UseXFB->IsChecked();
 }
 
 void ConfigDialog::DumpTexturesChange(wxCommandEvent& event)

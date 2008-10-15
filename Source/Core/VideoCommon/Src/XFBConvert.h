@@ -20,6 +20,9 @@
 
 #include "Common.h"
 
-void ConvertXFB(u32 *dst, const u8* _pXFB, int width, int height);
+void ConvertFromXFB(u32 *dst, const u8* _pXFB, int width, int height);
+
+// converts 32-bit RGBA data to 16-bit 4:2:2 YUV data
+void ConvertToXFB(u32 *dst, const u8* _pEFB, int width, int height);
 
 #endif

@@ -707,7 +707,21 @@ void Renderer::Swap(const TRectangle& rc)
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
     TextureMngr::DisableStage(0);
 
-    static int fpscount;
+    SwapBuffers();
+
+    RestoreGLState();
+    GL_REPORT_ERRORD();
+
+    g_Config.iSaveTargetId = 0;
+
+    // for testing zbuffer targets
+    //Renderer::SetZBufferRender();
+    //SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget, GetTargetWidth(), GetTargetHeight());
+}
+
+void Renderer::SwapBuffers()
+{
+	static int fpscount;
     static int s_fps;
     static unsigned long lasttime;
     ++fpscount;
@@ -812,15 +826,6 @@ void Renderer::Swap(const TRectangle& rc)
             Renderer::SetRenderMode(RM_Normal); // turn off any zwrites
         }
     }
-
-    RestoreGLState();
-    GL_REPORT_ERRORD();
-
-    g_Config.iSaveTargetId = 0;
-
-    // for testing zbuffer targets
-    //Renderer::SetZBufferRender();
-    //SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget, GetTargetWidth(), GetTargetHeight());
 }
 
 bool Renderer::SaveRenderTarget(const char* filename, int jpeg)

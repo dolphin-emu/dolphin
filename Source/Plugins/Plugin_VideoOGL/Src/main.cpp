@@ -36,6 +36,8 @@
 #include "VertexLoader.h"
 #include "PixelShaderManager.h"
 #include "VertexShaderManager.h"
+#include "XFB.h"
+
 #include "VideoState.h"
 #include "Debugger/Debugger.h" // for the CDebugger class
 
@@ -298,8 +300,12 @@ BOOL Video_Screenshot(TCHAR* _szFilename)
 }
 
 
-void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight)
+void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset)
 {
+	if(g_Config.bUseXFB)
+	{
+		XFB_Draw(_pXFB, _dwWidth, _dwHeight, _dwYOffset);
+	}
 }
 
 void Video_AddMessage(const char* pstr, u32 milliseconds)

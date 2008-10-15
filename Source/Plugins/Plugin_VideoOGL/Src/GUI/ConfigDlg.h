@@ -65,6 +65,7 @@ class ConfigDialog : public wxDialog
 		void OverlayCheck(wxCommandEvent& event);
 		void ShowShaderErrorsCheck(wxCommandEvent& event);
 		void TexFmtOverlayChange(wxCommandEvent& event);
+		void UseXFBChange(wxCommandEvent& event);
 		void DumpTexturesChange(wxCommandEvent& event);
 		void TexturePathChange(wxFileDirPickerEvent& event);
 		void DllAbout(wxCommandEvent& event);
@@ -76,6 +77,7 @@ class ConfigDialog : public wxDialog
 		wxButton *m_OK;
 		wxDirPickerCtrl *m_TexturePath;
 		wxCheckBox *m_DumpTextures;
+		wxCheckBox *m_UseXFB;
 		wxCheckBox *m_TexFmtCenter;
 		wxCheckBox *m_TexFmtOverlay;
 		wxCheckBox *m_Statistics;
@@ -105,6 +107,7 @@ class ConfigDialog : public wxDialog
 			ID_OK,
 			ID_TEXTUREPATH,
 			ID_SHADERERRORS,
+			ID_USEXFB,
 			ID_TEXFMTCENTER,
 			ID_TEXFMTOVERLAY,
 			ID_SHOWFPS,

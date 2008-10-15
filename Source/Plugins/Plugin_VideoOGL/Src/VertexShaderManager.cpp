@@ -344,6 +344,8 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 		// -------------
 		// rawViewport[0] = 320, rawViewport[1] = -240
 		// -------------
+		int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
+		int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
 		float fourThree = 4.0f/3.0f;
 		float ratio = AR /  fourThree;
 		float hAdj; float wAdj; float actualRatiow; float actualRatioh;
@@ -391,16 +393,16 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 		if(g_Config.bStretchToFit && g_Config.renderToMainframe)
 		{
 		glViewport(
-			(int)(rawViewport[3]-rawViewport[0]-342) + xoffs,
-			Renderer::GetTargetHeight() - ((int)(rawViewport[4]-rawViewport[1]-342)) + yoffs,
+			(int)(rawViewport[3]-rawViewport[0]-342-scissorXOff) + xoffs,
+			Renderer::GetTargetHeight() - ((int)(rawViewport[4]-rawViewport[1]-342-scissorYOff)) + yoffs,
 			wid, // width
 			hei // height
 			);
 		}
 		else
 		{
-		glViewport((int)(rawViewport[3]-rawViewport[0]-342) * MValueX,
-			Renderer::GetTargetHeight()-((int)(rawViewport[4]-rawViewport[1]-342))  * MValueY,
+		glViewport((int)(rawViewport[3]-rawViewport[0]-342-scissorXOff) * MValueX,
+			Renderer::GetTargetHeight()-((int)(rawViewport[4]-rawViewport[1]-342-scissorYOff))  * MValueY,
 			abs((int)(2 * rawViewport[0])) * MValueX, abs((int)(2 * rawViewport[1])) * MValueY);
 		}
 

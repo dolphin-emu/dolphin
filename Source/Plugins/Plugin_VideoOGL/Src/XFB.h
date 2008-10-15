@@ -18,8 +18,16 @@
 #ifndef _XFB_H
 #define _XFB_H
 
+#include "TextureMngr.h"
+
 void XFB_Init();
-void XFB_Draw(u8 *xfb_in_ram);
+
+// write the EFB to the XFB
+void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt, float yScale);
+
+// draw the XFB to the screen
+void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset);
+
 void XFB_Shutdown();
 
 #endif

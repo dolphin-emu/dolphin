@@ -32,9 +32,12 @@ namespace VideoInterface
 // VI Internal Hardware Addresses
 enum
 {
+	VI_VERTICAL_TIMING					= 0x0,
 	VI_CONTROL_REGISTER	                = 0x02,
-	VI_FRAMEBUFFER_1					= 0x01C,
-	VI_FRAMEBUFFER_2					= 0x024,
+	VI_FRAMEBUFFER_TOP_HI				= 0x01C,
+	VI_FRAMEBUFFER_TOP_LO				= 0x01E,
+	VI_FRAMEBUFFER_BOTTOM_HI			= 0x024,
+	VI_FRAMEBUFFER_BOTTOM_LO			= 0x026,
 	VI_VERTICAL_BEAM_POSITION			= 0x02C,
 	VI_HORIZONTAL_BEAM_POSITION			= 0x02e,
 	VI_PRERETRACE						= 0x030,
@@ -42,8 +45,22 @@ enum
 	VI_DI2                              = 0x038,
 	VI_DI3                              = 0x03C,
 	VI_INTERLACE						= 0x850,
-	VI_HSCALEW                          = 0x04A,
-	VI_HSCALER                          = 0x04C,
+	VI_HSCALEW                          = 0x048,
+	VI_HSCALER                          = 0x04A,
+	VI_FBWIDTH							= 0x070,
+};
+
+union UVIVerticalTimingRegister
+{
+	u16 Hex;
+	struct
+	{
+		unsigned EQU	:	4;
+		unsigned ACV	:	10;
+		unsigned		:	2;
+	};
+	UVIVerticalTimingRegister(u16 _hex) { Hex = _hex;}
+	UVIVerticalTimingRegister() { Hex = 0;}
 };
 
 union UVIDisplayControlRegister
@@ -85,15 +102,56 @@ union UVIInterruptRegister
 	};
 };
 
+union UVIHorizontalStepping
+{
+	u16 Hex;
+	struct
+	{
+		unsigned FbSteps		:	8;
+		unsigned FieldSteps		:	8;
+	};
+};
+
+union UVIHorizontalScaling
+{
+	u16 Hex;
+	struct
+	{
+		unsigned STP		:	9;
+		unsigned			:	3;
+		unsigned HS_EN		:	1;
+		unsigned			:	3;
+	};
+	UVIHorizontalScaling(u16 _hex) { Hex = _hex;}
+	UVIHorizontalScaling() { Hex = 0;}
+};
+
+union UVIFrameBufferAddress
+{
+	u32 Hex;
+	struct 
+	{
+		u16 Lo;
+		u16 Hi;
+	};
+	UVIFrameBufferAddress(u16 _hex) { Hex = _hex;}
+	UVIFrameBufferAddress() { Hex = 0;}
+};
+
 // STATE_TO_SAVE
+static UVIVerticalTimingRegister m_VIVerticalTimingRegister;
+
 static UVIDisplayControlRegister m_VIDisplayControlRegister;
 
 // Framebuffers
-static u32 m_FrameBuffer1;		// normal framebuffer address
-static u32 m_FrameBuffer2;		// framebuffer for 3d buffer address
+static UVIFrameBufferAddress m_FrameBufferTop;		// normal framebuffer address
+static UVIFrameBufferAddress m_FrameBufferBottom;
 
 // VI Interrupt Registers
 static UVIInterruptRegister m_VIInterruptRegister[4];
+
+static UVIHorizontalStepping m_VIHorizontalStepping;
+static UVIHorizontalScaling m_VIHorizontalScaling;
 
 u8 m_UVIUnknownRegs[0x1000];
 
@@ -102,19 +160,26 @@ static u16 VerticalBeamPos = 0;
 
 static u32 TicksPerFrame = 0;
 static u32 LineCount = 0;
+static u32 LinesPerField = 0;
 static u64 LastTime = 0;
+static u32 NextXFBRender = 0;
+
+// only correct when scaling is enabled?
+static u16 FbWidth = 0;
 
 void DoState(PointerWrap &p)
 {
+	p.Do(m_VIVerticalTimingRegister);
 	p.Do(m_VIDisplayControlRegister);
-	p.Do(m_FrameBuffer1);
-	p.Do(m_FrameBuffer2);
+	p.Do(m_FrameBufferTop);
+	p.Do(m_FrameBufferBottom);	
 	p.Do(m_VIInterruptRegister);
-	p.DoArray(m_UVIUnknownRegs, 0x1000);
+	p.DoArray(m_UVIUnknownRegs, 0x1000);	
 	p.Do(HorizontalBeamPos);
 	p.Do(VerticalBeamPos);
 	p.Do(TicksPerFrame);
 	p.Do(LineCount);
+	p.Do(LinesPerField);
 	p.Do(LastTime);
 }
 
@@ -126,16 +191,38 @@ void Init()
 	m_VIDisplayControlRegister.Hex = 0x0000;
 	m_VIDisplayControlRegister.ENB = 0;
 	m_VIDisplayControlRegister.FMT = 0;
+
+	NextXFBRender = 1;
 }
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)
 {
 	switch (_iAddress & 0xFFF)
 	{
+	case VI_VERTICAL_TIMING:
+		_uReturnValue = m_VIVerticalTimingRegister.Hex;
+		return;
+
 	case VI_CONTROL_REGISTER:
         LOG(VIDEOINTERFACE, "VideoInterface(r16): VI_CONTROL_REGISTER 0x%08x", m_VIDisplayControlRegister.Hex);
 		_uReturnValue = m_VIDisplayControlRegister.Hex;
 		return;
+
+	case VI_FRAMEBUFFER_TOP_HI:
+		_uReturnValue = m_FrameBufferTop.Hi;
+		break;
+
+	case VI_FRAMEBUFFER_TOP_LO:
+		_uReturnValue = m_FrameBufferTop.Lo;
+		break;
+
+	case VI_FRAMEBUFFER_BOTTOM_HI:
+		_uReturnValue = m_FrameBufferBottom.Hi;
+		break;
+
+	case VI_FRAMEBUFFER_BOTTOM_LO:
+		_uReturnValue = m_FrameBufferBottom.Lo;
+		break;
 
 	case VI_VERTICAL_BEAM_POSITION:
     	_uReturnValue = VerticalBeamPos;
@@ -154,15 +241,27 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		_uReturnValue =	m_VIInterruptRegister[1].Hi;
 		return;
 
-	case 0x38:
+	case VI_DI2:
 		_uReturnValue =	m_VIInterruptRegister[2].Hi;
 		return;
 
-	case 0x3C:
+	case VI_DI3:
 		_uReturnValue =	m_VIInterruptRegister[3].Hi;
 		return;
 
-	default:
+	case VI_HSCALEW:
+		_uReturnValue = m_VIHorizontalStepping.Hex;
+		break;
+
+	case VI_HSCALER:
+		_uReturnValue = m_VIHorizontalScaling.Hex;
+		break;
+
+	case VI_FBWIDTH:
+		_uReturnValue = FbWidth;
+		break;
+
+	default:		
 		_uReturnValue = *(u16*)&m_UVIUnknownRegs[_iAddress & 0xFFF];
 		return;
 	}
@@ -178,6 +277,10 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
 	switch (_iAddress & 0xFFF)
 	{
+	case VI_VERTICAL_TIMING:
+		m_VIVerticalTimingRegister.Hex = _iValue;
+		break;
+
 	case VI_CONTROL_REGISTER:
 		{
 			UVIDisplayControlRegister tmpConfig(_iValue);
@@ -195,6 +298,22 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
             UpdateTiming();
 		}		
+		break;
+
+	case VI_FRAMEBUFFER_TOP_HI:
+		m_FrameBufferTop.Hi = _iValue;
+		break;
+
+	case VI_FRAMEBUFFER_TOP_LO:
+		m_FrameBufferTop.Lo = _iValue;
+		break;	
+
+	case VI_FRAMEBUFFER_BOTTOM_HI:
+		m_FrameBufferBottom.Hi = _iValue;
+		break;
+
+	case VI_FRAMEBUFFER_BOTTOM_LO:
+		m_FrameBufferBottom.Lo = _iValue;
 		break;
 
 	case VI_VERTICAL_BEAM_POSITION:
@@ -225,17 +344,19 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		m_VIInterruptRegister[3].Hi = _iValue;
 		UpdateInterrupts();
 		break;
+
 	case VI_HSCALEW:
-		{
-			// int width = _iValue&0x3FF;
-			
-		}
+		m_VIHorizontalStepping.Hex = _iValue;
 		break;
+
 	case VI_HSCALER:
-		{
-			// int hsEnable = (_iValue&(1<<12)) ? true : false;
-		}
+		m_VIHorizontalScaling.Hex = _iValue;
 		break;
+
+	case VI_FBWIDTH:
+		FbWidth = _iValue;
+		break;
+
 	default:
 		*(u16*)&m_UVIUnknownRegs[_iAddress & 0xFFF] = _iValue;
 		break;
@@ -270,24 +391,12 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
 	LOG(VIDEOINTERFACE, "(w32): 0x%08x, 0x%08x",_iValue,_iAddress);
-
-	switch(_iAddress & 0xFFF)
-	{
-	case VI_FRAMEBUFFER_1:
-		m_FrameBuffer1 = _iValue;
-		break;
-	case VI_FRAMEBUFFER_2:
-		m_FrameBuffer2 = _iValue;
-		break;
-
-	default:
-		// Allow 32-bit writes to the VI: although this is officially not
-		// allowed, the hardware seems to accept it (for example, DesktopMan GC
-		// Tetris uses it).
-		Write16(_iValue >> 16, _iAddress);
-		Write16(_iValue & 0xFFFF, _iAddress + 2);
-		break;
-	}
+	
+	// Allow 32-bit writes to the VI: although this is officially not
+	// allowed, the hardware seems to accept it (for example, DesktopMan GC
+	// Tetris uses it).
+	Write16(_iValue >> 16, _iAddress);
+	Write16(_iValue & 0xFFFF, _iAddress + 2);	
 }
 
 void UpdateInterrupts()
@@ -327,7 +436,7 @@ void GenerateVIInterrupt(VIInterruptType _VIInterrupt)
 
 u8* GetFrameBufferPointer()
 {
-	return Memory::GetPointer(VideoInterface::m_FrameBuffer1);
+	return Memory::GetPointer(VideoInterface::m_FrameBufferTop.Hex);
 }
 
 void PreInit(bool _bNTSC)
@@ -355,6 +464,7 @@ void PreInit(bool _bNTSC)
 	Write16(0x01ae, 0xcc002032);
 	Write16(0x1107, 0xcc002030);
 	Write16(0x0000, 0xcc00206c);
+	Write16(0x0001, 0xcc00206e);  // component cable is connected
 
     if (_bNTSC)
         Write16(0x0001, 0xcc002002);	// STATUS REG
@@ -370,11 +480,13 @@ void UpdateTiming()
     case 2:
         TicksPerFrame = SystemTimers::GetTicksPerSecond() / 30;
         LineCount = m_VIDisplayControlRegister.NIN ? 263 : 525;
+		LinesPerField = 263;
         break;
 
     case 1:
         TicksPerFrame = SystemTimers::GetTicksPerSecond() / 25;
         LineCount = m_VIDisplayControlRegister.NIN ? 313 : 625;
+		LinesPerField = 313;
         break;
 
     default:
@@ -395,6 +507,32 @@ void Update()
         {
             VerticalBeamPos = 1;
         }
+
+		if(VerticalBeamPos == NextXFBRender)
+		{
+			
+			u8* xfbPtr = 0;
+			int yOffset = 0;
+
+			if(NextXFBRender == 1)
+			{
+				NextXFBRender = LinesPerField;
+				xfbPtr = Memory::GetPointer(VideoInterface::m_FrameBufferTop.Hex);
+			}
+			else
+			{
+				NextXFBRender = 1;
+				xfbPtr = Memory::GetPointer(VideoInterface::m_FrameBufferBottom.Hex);
+				yOffset = -1;
+			}
+
+			if(xfbPtr && PluginVideo::IsLoaded())
+			{
+				int fbWidth = m_VIHorizontalStepping.FieldSteps * 16;
+				int fbHeight = (m_VIHorizontalStepping.FbSteps / m_VIHorizontalStepping.FieldSteps) * m_VIVerticalTimingRegister.ACV;				
+				PluginVideo::Video_UpdateXFB(xfbPtr, fbWidth, fbHeight, yOffset);
+			}
+		}
         
         // check INT_PRERETRACE
         if (m_VIInterruptRegister[0].VCT == VerticalBeamPos)
