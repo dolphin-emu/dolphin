@@ -27,7 +27,9 @@
 
 enum {
 	XFB_WIDTH = 640,
-	XFB_HEIGHT = 480,
+	XFB_HEIGHT = 480, //480,
+	XFB_BUF_HEIGHT = 538, //480,
+	// TODO: figure out what to do with PAL
 };
 
 static GLuint xfb_texture;
@@ -39,8 +41,8 @@ static GLuint s_xfbRenderBuffer = 0;
 void XFB_Init()
 {
 	// used to render XFB
-	xfb_buffer = new u8[XFB_WIDTH * XFB_HEIGHT * 4];
-	memset(xfb_buffer, 0, XFB_WIDTH * XFB_HEIGHT * 4);
+	xfb_buffer = new u8[XFB_WIDTH * XFB_BUF_HEIGHT * 4];
+	memset(xfb_buffer, 0, XFB_WIDTH * XFB_BUF_HEIGHT * 4);
     glGenTextures(1, &xfb_texture);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfb_texture);
     glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, XFB_WIDTH, XFB_HEIGHT, 0, GL_BGRA, GL_UNSIGNED_BYTE, xfb_buffer);

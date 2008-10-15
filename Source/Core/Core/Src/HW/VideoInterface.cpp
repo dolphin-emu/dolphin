@@ -508,25 +508,32 @@ void Update()
             VerticalBeamPos = 1;
         }
 
-		if(VerticalBeamPos == NextXFBRender)
+		if (VerticalBeamPos == NextXFBRender)
 		{
 			
 			u8* xfbPtr = 0;
 			int yOffset = 0;
 
-			if(NextXFBRender == 1)
+			if (NextXFBRender == 1)
 			{
 				NextXFBRender = LinesPerField;
-				xfbPtr = Memory::GetPointer(VideoInterface::m_FrameBufferTop.Hex);
+				// The & mask is a hack for mario kart
+				u32 addr = (VideoInterface::m_FrameBufferTop.Hex & 0xFFFFFFF) | 0x80000000;
+				if (addr >= 0x80000000 && 
+					addr <= (0x81800000-640*480*2))
+					xfbPtr = Memory::GetPointer(addr);
 			}
 			else
 			{
 				NextXFBRender = 1;
-				xfbPtr = Memory::GetPointer(VideoInterface::m_FrameBufferBottom.Hex);
+				u32 addr = (VideoInterface::m_FrameBufferBottom.Hex & 0xFFFFFFF) | 0x80000000;
+				if (addr >= 0x80000000 && 
+					addr <= (0x81800000-640*480*2))
+					xfbPtr = Memory::GetPointer(addr);
 				yOffset = -1;
 			}
 
-			if(xfbPtr && PluginVideo::IsLoaded())
+			if (xfbPtr && PluginVideo::IsLoaded())
 			{
 				int fbWidth = m_VIHorizontalStepping.FieldSteps * 16;
 				int fbHeight = (m_VIHorizontalStepping.FbSteps / m_VIHorizontalStepping.FieldSteps) * m_VIVerticalTimingRegister.ACV;				
@@ -549,6 +556,6 @@ void Update()
         }
     }
 }
-
+ 
 }
 

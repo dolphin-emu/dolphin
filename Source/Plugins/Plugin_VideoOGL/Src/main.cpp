@@ -37,6 +37,7 @@
 #include "PixelShaderManager.h"
 #include "VertexShaderManager.h"
 #include "XFB.h"
+#include "XFBConvert.h"
 
 #include "VideoState.h"
 #include "Debugger/Debugger.h" // for the CDebugger class
@@ -182,6 +183,7 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
     frameCount = 0;
     g_VideoInitialize = *_pVideoInitialize;
     InitLUTs();
+	InitXFBConvTables();
     g_Config.Load();
     
     if (!OpenGL_Create(g_VideoInitialize, 640, 480)) { //640x480 will be the default if all else fails//

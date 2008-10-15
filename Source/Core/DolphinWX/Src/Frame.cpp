@@ -347,7 +347,7 @@ void CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 			wxEmptyString, wxEmptyString, wxEmptyString,
 			wxString::Format
 			(
-					_T("All GC/Wii files (elf, dol, gcm, iso)|*.elf;*.dol;*.gcm;*.iso|All files (%s)|%s"),
+					_T("All GC/Wii files (elf, dol, gcm, iso)|*.elf;*.dol;*.gcm;*.iso;*.gcz|All files (%s)|%s"),
 					wxFileSelectorDefaultWildcardStr,
 					wxFileSelectorDefaultWildcardStr
 			),
@@ -607,6 +607,9 @@ void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
+	event.Skip();
+	return;
+
 	if (((event.GetKeyCode() == WXK_RETURN) && (event.GetModifiers() == wxMOD_ALT)) ||
 	    (event.GetKeyCode() == WXK_ESCAPE))
 	{

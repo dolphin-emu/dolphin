@@ -38,6 +38,7 @@
 #include "W32Util/Misc.h"
 #include "EmuWindow.h"
 #include "VideoState.h"
+#include "XFBConvert.h"
 
 #include "Utils.h"
 
@@ -125,7 +126,7 @@ bool Init()
 			return false;
 		}
 		InitLUTs();
-
+		InitXFBConvTables();
 	}
 	initCount++;
 
