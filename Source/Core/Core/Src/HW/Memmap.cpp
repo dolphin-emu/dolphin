@@ -605,6 +605,21 @@ u32 Read_Instruction(const u32 _Address)
 	return Jit64::GetOriginalCode(_Address);
 }
 
+u32 Read_Opcode(const u32 _Address)
+{
+#ifdef LOGGING
+	if (_Address == 0x00000000)
+	{
+		PanicAlert("Program tried to read from [00000000]");
+		return 0x00000000;
+	}
+#endif
+
+	u32 _var = 0;	
+	ReadFromHardware2(_var, 32, _Address, _Address, FLAG_OPCODE);
+
+	return _var;
+}
 
 u8 Read_U8(const u32 _Address)
 {    

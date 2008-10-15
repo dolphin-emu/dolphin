@@ -95,6 +95,8 @@ namespace Memory
 #endif
 	}
 
+	u32 Read_Opcode(const u32 _Address);
+
 	//For use by emulator
 	u8  Read_U8(const u32 _Address);
 	u16 Read_U16(const u32 _Address);

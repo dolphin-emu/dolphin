@@ -81,14 +81,10 @@ void patches()
 }
 void SingleStepInner(void)
 {
-/*	static int count = 0;
-	count++;
-	if ((count % 50) == 0)
-		PluginDSP::DSP_Update(); */
 	static UGeckoInstruction instCode;
 
 	NPC = PC + sizeof(UGeckoInstruction);
-	instCode.hex = Memory::ReadFast32(PC);  //  Memory::ReadUnchecked_U32(PC);
+	instCode.hex = Memory::Read_Opcode(PC); 
 
 	UReg_MSR& msr = (UReg_MSR&)MSR;
 	if (msr.FP)  //If FPU is enabled, just execute
