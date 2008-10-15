@@ -146,8 +146,6 @@ void PatchEngine_ApplyARPatches()
 		if (iter->active)
 			RunActionReplayCode(*iter, false);
 	}
-<<<<<<< .mine
-}=======
 }
 
 void LoadActionReplayCodes(IniFile &ini) 
@@ -430,4 +428,3 @@ void RunActionReplayCode(const ARCode &code, bool nowIsBootup) {
 		}
 	}
 }
->>>>>>> .r873
