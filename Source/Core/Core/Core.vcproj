@@ -1193,14 +1193,6 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\Src\ActionReplay.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\ActionReplay.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\Console.cpp"
 			>
 		</File>
