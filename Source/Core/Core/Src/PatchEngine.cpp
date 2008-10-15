@@ -36,6 +36,7 @@
 #include "PatchEngine.h"
 #include "IniFile.h"
 #include "HW/Memmap.h"
+#include "ActionReplay.h"
 
 
 enum PatchType
@@ -66,22 +67,7 @@ struct Patch
 std::vector<Patch> onLoad;
 std::vector<Patch> onFrame;
 
-struct AREntry {
-	u32 cmd_addr;
-	u32 value;
-};
-
-struct ARCode {
-	std::string name;
-	std::vector<AREntry> ops;
-	bool active;
-};
-
-std::vector<ARCode> arCodes;
-
 using namespace Common;
-
-void RunActionReplayCode(const ARCode &code, bool nowIsBootup);
 
 void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile &ini)
 {
@@ -109,8 +95,6 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile 
 		}
 	}
 }
-
-void LoadActionReplayCodes(IniFile &ini);
 
 void PatchEngine_LoadPatches(const char *gameID)
 {
@@ -162,6 +146,8 @@ void PatchEngine_ApplyARPatches()
 		if (iter->active)
 			RunActionReplayCode(*iter, false);
 	}
+<<<<<<< .mine
+}=======
 }
 
 void LoadActionReplayCodes(IniFile &ini) 
@@ -444,3 +430,4 @@ void RunActionReplayCode(const ARCode &code, bool nowIsBootup) {
 		}
 	}
 }
+>>>>>>> .r873
