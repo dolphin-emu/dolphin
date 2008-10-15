@@ -55,6 +55,7 @@ enum TEXIDevices
 	EXIDEVICE_IPL,
 	EXIDEVICE_AD16,
 	EXIDEVICE_MIC,
+	EXIDEVICE_ETH,
 };
 
 extern IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice);

@@ -43,7 +43,7 @@ CEXIMic::CEXIMic(int _Index)
 	//status = MC_STATUS_BUSY | MC_STATUS_UNLOCKED | MC_STATUS_READY;
 	m_uPosition = 0;
 	formatDelay = 0;
-	ID= 0x0a000000;
+	ID = 0x0a000000;
 
 }
 
@@ -106,11 +106,17 @@ void CEXIMic::TransferByte(u8 &byte)
 				;//byte = 0x80; // dummy cycle
 			else
 				byte = (u8)(ID >> (24-(((m_uPosition-2) & 3) * 8)));
-			break;
+		break;
 		case cmdStatus:
 		{
-			u16 Status = 0x0; // 0x80 if you want button pressed forever
-			byte = (u8)(Status >> (24-(((m_uPosition-2) & 3) * 8)));
+			byte = (u8)(Status.U16 >> (24-(((m_uPosition - 2) & 3) * 8)));
+		}
+		break;
+		case cmdSetStatus:
+		{
+			Status.U8[m_uPosition - 1] = byte;
+			if(m_uPosition == 2)
+				printf("Status is 0x%04x\n", Status.U16);
 		}
 		break;
 		default:

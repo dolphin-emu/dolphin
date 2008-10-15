@@ -22,6 +22,9 @@
 #include "EXI_DeviceMemoryCard.h"
 #include "EXI_DeviceAD16.h"
 #include "EXI_DeviceMic.h"
+#if 0
+#include "EXI_DeviceEthernet.h"
+#endif
 
 #include "../Core.h"
 
@@ -148,6 +151,11 @@ IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
 	case EXIDEVICE_MIC:
 		return new CEXIMic(1);
 		break;
+	#if 0
+	case EXIDEVICE_ETH:
+		return new CEXIETHERNET();
+		break;
+	#endif
 	}
 	return NULL;
 }

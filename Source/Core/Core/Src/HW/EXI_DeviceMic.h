@@ -32,9 +32,9 @@ private:
 
 	enum 
 	{
-		cmdID			= 0x00,
-		cmdStatus			= 0x40,
-		cmdArrayToBuffer		= 0x53,
+		cmdID					= 0x00,
+		cmdStatus				= 0x40,
+		cmdSetStatus			= 0x80,
 		cmdSetInterrupt			= 0x81,
 		cmdWriteBuffer			= 0x82,
 		cmdReadStatus			= 0x83,		
@@ -53,10 +53,15 @@ private:
 	int interruptSwitch;
 	bool m_bInterruptSet;
 	int command;
-	int status;
+	union uStatus
+	{
+		u16 U16;
+		u8 U8[2];
+	};
 	int Index;
 	u32 m_uPosition;
 	u32 formatDelay;
+	uStatus Status;
 	
 	//! memory card parameters 
 	unsigned int ID;
