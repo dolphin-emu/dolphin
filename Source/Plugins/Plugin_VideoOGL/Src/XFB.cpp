@@ -144,10 +144,10 @@ void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset)
 	GL_REPORT_ERRORD();
 
     glBegin(GL_QUADS);
-    glTexCoord2f(width, height + yOffset); glVertex2f(1,-1);
-	glTexCoord2f(width, 0 + yOffset); glVertex2f(1,1);
-    glTexCoord2f(0, 0 + yOffset); glVertex2f(-1,1);
-    glTexCoord2f(0, height + yOffset); glVertex2f(-1,-1);
+    glTexCoord2f(width, height + yOffset); glVertex2f(-1,-1);
+	glTexCoord2f(width, 0 + yOffset); glVertex2f(-1,1);
+    glTexCoord2f(0, 0 + yOffset); glVertex2f(1,1);
+    glTexCoord2f(0, height + yOffset); glVertex2f(1,-1);
     glEnd();
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
