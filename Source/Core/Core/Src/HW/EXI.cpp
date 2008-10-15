@@ -44,6 +44,7 @@ void Init()
 	g_Channels[0].AddDevice(EXIDEVICE_MEMORYCARD_A,	0);
 	g_Channels[0].AddDevice(EXIDEVICE_IPL,			1);
 	g_Channels[1].AddDevice(EXIDEVICE_MEMORYCARD_B,	0);
+	//g_Channels[1].AddDevice(EXIDEVICE_MIC,	0);
 	g_Channels[2].AddDevice(EXIDEVICE_AD16,			0);
 }
 

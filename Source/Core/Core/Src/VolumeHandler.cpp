@@ -31,8 +31,15 @@ void SetVolumeName(const std::string& _rFullPath)
 {
     if (g_pVolume)
     {
-        delete g_pVolume;
-        g_pVolume = NULL;
+        try
+        {
+            delete g_pVolume;
+            g_pVolume = NULL;
+        }
+        catch()
+        {
+            printf("Couldn't Delete g_pVolume and set it to Null!\n");
+        }
     }
 
     g_pVolume = DiscIO::CreateVolumeFromFilename(_rFullPath);

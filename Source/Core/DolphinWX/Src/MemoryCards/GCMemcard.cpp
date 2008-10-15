@@ -639,7 +639,7 @@ u32  GCMemcard::ImportGci(const char *fileName, const char *fileName2)
 {
 	if (!mcdFile && !fileName2) return 0;
 
-	FILE *gci = fopen(_T(fileName), _T("rb"));
+	FILE *gci = fopen(fileName, "rb");
 	if (!gci) return 0;
 
 	enum
@@ -739,7 +739,7 @@ u32  GCMemcard::ImportGci(const char *fileName, const char *fileName2)
 	u32 ret = 0;
 	if(fileName2)
 	{
-		FILE * gci2 = fopen(_T(fileName2), _T("wb"));
+		FILE * gci2 = fopen(fileName2, "wb");
 		if (!gci2) return 0;
 		fseek(gci2, 0, SEEK_SET);
 		fwrite(d, 1, 0x40, gci2);
@@ -759,7 +759,7 @@ u32  GCMemcard::ImportGci(const char *fileName, const char *fileName2)
 
 bool GCMemcard::ExportGci(u32 index, const char *fileName)
 {
-	FILE *gci = fopen(_T(fileName), _T("wb"));
+	FILE *gci = fopen(fileName, "wb");
 	if(!gci) return false;
 	fseek(gci, 0, SEEK_SET);
 

@@ -21,6 +21,7 @@
 #include "EXI_DeviceIPL.h"
 #include "EXI_DeviceMemoryCard.h"
 #include "EXI_DeviceAD16.h"
+#include "EXI_DeviceMic.h"
 
 #include "../Core.h"
 
@@ -142,6 +143,10 @@ IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
 
 	case EXIDEVICE_AD16:
 		return new CEXIAD16();
+		break;
+		
+	case EXIDEVICE_MIC:
+		return new CEXIMic(1);
 		break;
 	}
 	return NULL;

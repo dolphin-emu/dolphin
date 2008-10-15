@@ -54,6 +54,7 @@ enum TEXIDevices
 	EXIDEVICE_MEMORYCARD_B,
 	EXIDEVICE_IPL,
 	EXIDEVICE_AD16,
+	EXIDEVICE_MIC,
 };
 
 extern IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice);
