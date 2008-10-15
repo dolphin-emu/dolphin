@@ -36,7 +36,6 @@
 #include "PatchEngine.h"
 #include "IniFile.h"
 #include "HW/Memmap.h"
-#include "ARDecrypt.h"
 
 
 enum PatchType
@@ -197,8 +196,7 @@ void LoadActionReplayCodes(IniFile &ini)
 			if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 && pieces[2].size() == 5) 
 			{
 				// Encrypted AR code
-				PanicAlert("buildseeds\ncode: %s %s %s",pieces[0].c_str(), pieces[1].c_str(), pieces[2].c_str());
-				buildseeds();
+				PanicAlert("Dolphin does not support encrypted AR codes");
 			}
 			else if (line.size() > 1)
 			{
