@@ -36,7 +36,7 @@ void SetVolumeName(const std::string& _rFullPath)
             delete g_pVolume;
             g_pVolume = NULL;
         }
-        catch()
+        catch(...)
         {
             printf("Couldn't Delete g_pVolume and set it to Null!\n");
         }

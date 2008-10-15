@@ -586,6 +586,14 @@
 					RelativePath=".\Src\Hw\EXI_DeviceMemoryCard.h"
 					>
 				</File>
+				<File
+					RelativePath=".\Src\HW\EXI_DeviceMic.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\HW\EXI_DeviceMic.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="SI - Serial Interface"
