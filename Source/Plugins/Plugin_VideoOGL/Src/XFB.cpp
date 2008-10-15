@@ -80,10 +80,10 @@ void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt,
 	float scaledTextureY = nBackbufferHeight - (nBackbufferHeight / yScale);
 
 	glBegin(GL_QUADS);
-    glTexCoord2f(nBackbufferWidth, nBackbufferHeight); glVertex2f(-1,-1);
-	glTexCoord2f(nBackbufferWidth, scaledTextureY); glVertex2f(-1,1);
-    glTexCoord2f(0, scaledTextureY); glVertex2f(1,1);
-    glTexCoord2f(0, nBackbufferHeight); glVertex2f(1,-1);
+    glTexCoord2f(0, nBackbufferHeight); glVertex2f(-1,-1);
+	glTexCoord2f(0, scaledTextureY); glVertex2f(-1,1);
+    glTexCoord2f(nBackbufferWidth, scaledTextureY); glVertex2f(1,1);
+    glTexCoord2f(nBackbufferWidth, nBackbufferHeight); glVertex2f(1,-1);
     glEnd();
 	GL_REPORT_ERRORD();
 
@@ -128,7 +128,7 @@ void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset)
     Renderer::SetRenderMode(Renderer::RM_Normal);
 
     // render to the real buffer now 
-    glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 ); // switch to the backbuffer
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the backbuffer
     glViewport(nXoff, nYoff, nBackbufferWidth, nBackbufferHeight);
 
 	Renderer::ResetGLState();
@@ -146,10 +146,10 @@ void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset)
 	GL_REPORT_ERRORD();
 
     glBegin(GL_QUADS);
-    glTexCoord2f(width, height + yOffset); glVertex2f(-1,-1);
-	glTexCoord2f(width, 0 + yOffset); glVertex2f(-1,1);
-    glTexCoord2f(0, 0 + yOffset); glVertex2f(1,1);
-    glTexCoord2f(0, height + yOffset); glVertex2f(1,-1);
+	glTexCoord2f(width, height + yOffset); glVertex2f(1,-1);
+	glTexCoord2f(width, 0 + yOffset); glVertex2f(1,1);
+	glTexCoord2f(0, 0 + yOffset); glVertex2f(-1,1);
+	glTexCoord2f(0, height + yOffset); glVertex2f(-1,-1);
     glEnd();
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
