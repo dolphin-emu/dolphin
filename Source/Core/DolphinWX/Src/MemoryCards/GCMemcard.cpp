@@ -230,10 +230,7 @@ u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents)
 			firstFree3 = max<int>(firstFree3,(int)(BE16(dir.Dir[i].FirstBlock) + BE16(dir.Dir[i].BlockCount)));
 		}
 	}
-
-	if(firstFree2 > firstFree1) firstFree1 = firstFree2;
-	if(firstFree3 > firstFree1) firstFree1 = firstFree3;
-
+	firstFree1 = max<int>(firstFree1, max<int>(firstFree3, firstFree2));
 	if(firstFree1>=126)
 	{
 		// TODO: show messagebox about the error
@@ -301,12 +298,12 @@ bool GCMemcard::GetFileData(u32 index, u8*dest) //index in the directory array
 		memcpy(dest,mc_data + 0x2000*(block-5),0x2000);
 		dest+=0x2000;
 
-		if(block + saveLength != memcardSize)
-		{
-			int nextblock=bswap16(bat.Map[block-5]);
-			assert(nextblock>0);
-			block=nextblock;
-		}else block=0xffff;
+		int nextblock = bswap16(bat.Map[block-5]);
+		if(block + saveLength != memcardSize && nextblock > 0)
+		{	//Fixes for older memcards that were not initialized with FF
+			block = nextblock;
+		}
+		else block = 0xffff;
 	}
 	while(block!=0xffff); 
 
@@ -638,12 +635,12 @@ u32  GCMemcard::CopyFrom(GCMemcard& source, u32 index)
 	return ret;
 }
 
-u32  GCMemcard::ImportGci(const char *fileName, int endFile, const char *fileName2)
+u32  GCMemcard::ImportGci(const char *fileName, const char *fileName2)
 {
 	if (!mcdFile && !fileName2) return 0;
 
-	wxFFile gci(wxString::FromAscii(fileName), _T("rb"));	
-	if (!gci.IsOpened()) return 0;
+	FILE *gci = fopen(_T(fileName), _T("rb"));
+	if (!gci) return 0;
 
 	enum
 	{
@@ -653,16 +650,15 @@ u32  GCMemcard::ImportGci(const char *fileName, int endFile, const char *fileNam
 	};
 	int offset;
 	char * tmp = new char[0xD];
-	u16 tmpU16;
+	std::string fileType;
+	SplitPath(fileName, NULL, NULL, &fileType);
 
-	const char * fileType = (char*) fileName + endFile - 3;
-
-	if( !strcasecmp(fileType, "gci") && !fileName2) // Extension can be either case
+	if( !strcasecmp(fileType.c_str(), ".gci") && !fileName2)
 		offset = GCI;
 	else
 	{
-		gci.Read(tmp, 0xD);
-		if (!strcasecmp(fileType, "gcs")) // Extension can be either case
+		fread(tmp, 1, 0xD, gci);
+		if (!strcasecmp(fileType.c_str(), ".gcs"))
 		{		
 			if (!memcmp(tmp, "GCSAVE", 6))	// Header must be uppercase
 				offset = GCS;
@@ -674,7 +670,7 @@ u32  GCMemcard::ImportGci(const char *fileName, int endFile, const char *fileNam
 			}
 		}
 		else{
-			if (!strcasecmp(fileType, "sav")) // Extension can be either case
+			if (!strcasecmp(fileType.c_str(), ".sav"))
 			{
 				if (!memcmp(tmp, "DATELGC_SAVE", 0xC)) // Header must be uppercase
 					offset = SAV;
@@ -692,27 +688,26 @@ u32  GCMemcard::ImportGci(const char *fileName, int endFile, const char *fileNam
 			}
 		}
 	}
-	gci.Seek(offset, wxFromStart);
-		
+	fseek(gci, offset, SEEK_SET);
+
 	DEntry *d = new DEntry;
-	gci.Read(d, 0x40);
+	fread(d, 1, 0x40, gci);
+	int fStart = ftell(gci);
+	fseek(gci, 0, SEEK_END);
+	int length = ftell(gci) - fStart;
+	fseek(gci, offset + 0x40, SEEK_SET);
 
 	switch(offset){
 		case GCS:
-			// field containing the Block count as displayed within
+		{	// field containing the Block count as displayed within
 			// the GameSaves software is not stored in the GCS file.
 			// It is stored only within the corresponding GSV file.
 			// If the GCS file is added without using the GameSaves software,
 			// the value stored is always "1"
-			tmpU16 = (((int)gci.Length() - offset - 0x40) / 0x2000);
-			if (tmpU16<0x100)
-			{
-				d->BlockCount[1] = (u8)tmpU16;
-			}
-			else{
-				d->BlockCount[0] = (u8)(tmpU16 - 0xFF);
-				d->BlockCount[1] = 0xFF;
-			}
+			int blockCount = length / 0x2000;
+			d->BlockCount[0] = u8(blockCount >> 8);
+			d->BlockCount[1] = u8(blockCount);
+		}
 			break;
 		case SAV:
 			// swap byte pairs
@@ -734,28 +729,26 @@ u32  GCMemcard::ImportGci(const char *fileName, int endFile, const char *fileNam
 			break;
 	}
 	// TODO: verify file length
-	assert(((int)gci.Length() - offset) == ((BE16(d->BlockCount) * 0x2000) + 0x40));
-
+	assert(length == BE16(d->BlockCount) * 0x2000);
+	assert(ftell(gci)  == offset + 0x40); // Verify correct file position
 
 	u32 size = BE16((d->BlockCount)) * 0x2000;
 	u8 *t = new u8[size];
-	gci.Read(t, size);
-
-	gci.Close();
-	
+	fread(t, 1, size, gci);
+	fclose(gci);	
 	u32 ret = 0;
-	if(!fileName2)
+	if(fileName2)
 	{
-		wxFFile gci2(wxString::FromAscii(fileName2), _T("wb"));
-		if (!gci2.IsOpened()) return 0;
-		gci2.Seek(0, wxFromStart);
-		gci2.Write(d, 0x40);
+		FILE * gci2 = fopen(_T(fileName2), _T("wb"));
+		if (!gci2) return 0;
+		fseek(gci2, 0, SEEK_SET);
+		fwrite(d, 1, 0x40, gci2);
 		int fileBlocks = BE16(d->BlockCount);
-		gci2.Seek(0x40, wxFromStart);
-		gci2.Write(t, 0x2000 * fileBlocks);
-		gci2.Close();
+		fseek(gci2, 0x40, SEEK_SET);
+		fwrite(t, 0, 0x2000 * fileBlocks, gci2);
+		fclose(gci2);
 	}
-	else	ret = ImportFile(*d, t);
+	else ret = ImportFile(*d, t);
 	
 	
 	delete []t;
@@ -766,28 +759,21 @@ u32  GCMemcard::ImportGci(const char *fileName, int endFile, const char *fileNam
 
 bool GCMemcard::ExportGci(u32 index, const char *fileName)
 {
-	wxFFile gci(wxString::FromAscii(fileName), _T("wb"));
-	
-	if (!gci.IsOpened()) return false;
-	
-	gci.Seek(0, wxFromStart);
+	FILE *gci = fopen(_T(fileName), _T("wb"));
+	if(!gci) return false;
+	fseek(gci, 0, SEEK_SET);
 
 	DEntry d;
 	if(!this->GetFileInfo(index, d)) return false;
-	gci.Write(&d, 0x40);
+	fwrite(&d, 1, 0x40, gci);
 
 	u8 *t = new u8[this->GetFileSize(index) * 0x2000];
-
 	if (!this->GetFileData(index, t)) return false;
 
-	int fileBlocks = BE16(d.BlockCount);
-	
-	gci.Seek(0x40, wxFromStart);
-	gci.Write(t, 0x2000 * fileBlocks);
-
-	gci.Close();
+	fseek(gci, 0x40, SEEK_SET);
+	fwrite(t, 1, 0x2000 * BE16(d.BlockCount), gci);
+	fclose(gci);
 	delete []t;
-	
 	return true;
 }
 

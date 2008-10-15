@@ -255,11 +255,9 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 					),
 					wxFD_OVERWRITE_PROMPT|wxFD_SAVE);
 			const char * fileName2 = temp2.ToAscii();
-
-			int len = temp.length();
-			if (len > 0)
+			if (temp.length() > 0)
 			{
-				memoryCard[0]->ImportGci(fileName, len, fileName2);
+				memoryCard[0]->ImportGci(fileName, fileName2);
 			}
 		}
 		break;
@@ -278,11 +276,9 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 					),
 					wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 			const char * fileName = temp.ToAscii();
-
-			int len = temp.length();
-			if(len > 0)
+			if (temp.length() > 0)
 			{
-				memoryCard[0]->ImportGci(fileName, len, 0);
+				memoryCard[0]->ImportGci(fileName, 0);
 				memoryCard[0]->Save();
 				ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0);
 			}
@@ -303,10 +299,9 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 					),
 					wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 			const char * fileName = temp.ToAscii();
-			int len = temp.length();
-			if(len > 0)
+			if (temp.length() > 0)
 			{
-				memoryCard[1]->ImportGci(fileName, len, 0);
+				memoryCard[1]->ImportGci(fileName, 0);
 				memoryCard[1]->Save();
 				ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0);
 			}
