@@ -54,7 +54,7 @@
 				Optimization="3"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -156,7 +156,7 @@
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;__WXMSW__;NOPCH"
+				PreprocessorDefinitions="_SECURE_SCL=0;WIN32;NDEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;__WXMSW__;NOPCH"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -255,7 +255,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				FloatingPointModel="0"
@@ -353,7 +353,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
+				PreprocessorDefinitions="_SECURE_SCL=0;WIN32;_DEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				FloatingPointModel="0"
@@ -452,7 +452,7 @@
 				Optimization="3"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;DEBUGFAST"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;DEBUGFAST;_SECURE_SCL=0"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -554,7 +554,7 @@
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;DEBUGFAST"
+				PreprocessorDefinitions="_SECURE_SCL=0;WIN32;NDEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;DEBUGFAST"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -646,7 +646,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -655,7 +654,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -664,7 +662,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 						BasicRuntimeChecks="3"
 					/>
 				</FileConfiguration>
@@ -674,7 +671,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="0"
-						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 						BasicRuntimeChecks="3"
 					/>
 				</FileConfiguration>
@@ -684,7 +680,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -693,7 +688,6 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						Optimization="2"
-						PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 					/>
 				</FileConfiguration>
 			</File>
@@ -711,7 +705,6 @@
 				<Tool
 					Name="VCCLCompilerTool"
 					Optimization="2"
-					PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 				/>
 			</FileConfiguration>
 			<FileConfiguration
@@ -720,7 +713,6 @@
 				<Tool
 					Name="VCCLCompilerTool"
 					Optimization="2"
-					PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 				/>
 			</FileConfiguration>
 			<FileConfiguration
@@ -729,7 +721,6 @@
 				<Tool
 					Name="VCCLCompilerTool"
 					Optimization="0"
-					PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 					BasicRuntimeChecks="3"
 				/>
 			</FileConfiguration>
@@ -739,7 +730,6 @@
 				<Tool
 					Name="VCCLCompilerTool"
 					Optimization="0"
-					PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 					BasicRuntimeChecks="3"
 				/>
 			</FileConfiguration>
@@ -757,7 +747,6 @@
 				<Tool
 					Name="VCCLCompilerTool"
 					Optimization="2"
-					PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 				/>
 			</FileConfiguration>
 		</File>
@@ -778,7 +767,6 @@
 				<Tool
 					Name="VCCLCompilerTool"
 					Optimization="2"
-					PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 					UsePrecompiledHeader="1"
 				/>
 			</FileConfiguration>
@@ -788,7 +776,6 @@
 				<Tool
 					Name="VCCLCompilerTool"
 					Optimization="2"
-					PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 					UsePrecompiledHeader="1"
 				/>
 			</FileConfiguration>
@@ -798,7 +785,6 @@
 				<Tool
 					Name="VCCLCompilerTool"
 					Optimization="0"
-					PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 					BasicRuntimeChecks="3"
 					UsePrecompiledHeader="1"
 				/>
@@ -809,7 +795,6 @@
 				<Tool
 					Name="VCCLCompilerTool"
 					Optimization="0"
-					PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 					BasicRuntimeChecks="3"
 					UsePrecompiledHeader="1"
 				/>
@@ -820,7 +805,6 @@
 				<Tool
 					Name="VCCLCompilerTool"
 					Optimization="2"
-					PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 					UsePrecompiledHeader="1"
 				/>
 			</FileConfiguration>
@@ -830,7 +814,6 @@
 				<Tool
 					Name="VCCLCompilerTool"
 					Optimization="2"
-					PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;PAD_SIMPLE_EXPORTS;$(NoInherit)"
 					UsePrecompiledHeader="1"
 				/>
 			</FileConfiguration>

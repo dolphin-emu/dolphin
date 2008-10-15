@@ -254,4 +254,24 @@ void Host_UpdateLogDisplay();
 #define _assert_(a)
 #define _assert_msg_(...)
 #endif
+
+// compile time asserts
+namespace 
+{
+
+// it is very risky to mix _SECURE_SCL=0 and _SECURE_SCL=1 compiled libraries
+// it is possible that you overwrite memory if you do it
+
+#ifndef _SECURE_SCL
+	#error Please define _SECURE_SCL=0 in the project settings
+#else
+	template <bool> struct CompileTimeAssert;
+	template<> struct CompileTimeAssert<true> {};
+	CompileTimeAssert<_SECURE_SCL==0> x;
 #endif
+
+}
+
+#endif	// #ifndef _COMMON_H
+
+
