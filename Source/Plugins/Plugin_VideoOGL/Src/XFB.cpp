@@ -28,7 +28,7 @@
 
 enum {
 	XFB_WIDTH = 640,
-	XFB_HEIGHT = 480, //480,
+	XFB_HEIGHT = 480, // 528 is max height.
 	XFB_BUF_HEIGHT = 538, //480,
 	// TODO: figure out what to do with PAL
 };

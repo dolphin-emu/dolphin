@@ -156,6 +156,16 @@ void InitHWMemFuncs()
 		hwRead16 [i] = HW_Default_Read<u16&>;
 		hwRead32 [i] = HW_Default_Read<u32&>;
 		hwRead64 [i] = HW_Default_Read<u64&>;
+
+		// To prevent Dolphin from crashing when running Wii executables in Gc mode.
+		hwWriteWii8 [i] = HW_Default_Write<u8>;
+		hwWriteWii16[i] = HW_Default_Write<u16>;
+		hwWriteWii32[i] = HW_Default_Write<u32>;
+		hwWriteWii64[i] = HW_Default_Write<u64>;
+		hwReadWii8  [i] = HW_Default_Read<u8&>;
+		hwReadWii16 [i] = HW_Default_Read<u16&>;
+		hwReadWii32 [i] = HW_Default_Read<u32&>;
+		hwReadWii64 [i] = HW_Default_Read<u64&>;
 	}
 
 	for (int i = 0; i < BLOCKSIZE; i++)

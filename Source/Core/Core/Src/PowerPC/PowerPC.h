@@ -31,6 +31,7 @@ namespace PowerPC
 		MODE_JIT,
 	};
 
+	// This contains the entire state of the emulated PowerPC "Gekko" CPU.
 	struct GC_ALIGNED64(PowerPCState)
 	{
 		u32 mojs[128];  // Try to isolate the regs from other variables in the cache.
@@ -88,7 +89,7 @@ namespace PowerPC
 	void OnIdleDC(void);
 }
 
-// Special registers
+// Easy register access macros.
 #define HID2 ((UReg_HID2&)PowerPC::ppcState.spr[SPR_HID2])
 #define DMAU  (*(UReg_DMAU*)&PowerPC::ppcState.spr[SPR_DMAU])
 #define DMAL  (*(UReg_DMAL*)&PowerPC::ppcState.spr[SPR_DMAL])
@@ -115,15 +116,16 @@ namespace PowerPC
 #define TL	   PowerPC::ppcState.spr[SPR_TL]
 #define TU	   PowerPC::ppcState.spr[SPR_TU]
 
-
 #define rPS0(i)	(*(double*)(&PowerPC::ppcState.ps[i][0]))
 #define rPS1(i) (*(double*)(&PowerPC::ppcState.ps[i][1]))
 
 #define riPS0(i) (*(u64*)(&PowerPC::ppcState.ps[i][0]))
 #define riPS1(i) (*(u64*)(&PowerPC::ppcState.ps[i][1]))
 
-// #define DMAU   PowerPC::ppcState.Helper[SPR_DMAU  ]
-// #define DMAL   PowerPC::ppcState.Helper[SPR_DMAL  ]
+
+// Wrappers to make it easier to in the future completely replace the storage of CR and Carry bits
+// to something more x86-friendly. These are not used 100% consistently yet - and if we do this, we
+// need the corresponding stuff on the JIT side too.
 
 inline void SetCRField(int cr_field, int value) {
 	PowerPC::ppcState.cr = (PowerPC::ppcState.cr & (~(0xF0000000 >> (cr_field * 4)))) | (value << ((7 - cr_field) * 4));
@@ -152,7 +154,5 @@ inline void SetCarry(int ca) {
 inline int GetCarry() {
 	return XER.CA;
 }
-
-
 
 #endif

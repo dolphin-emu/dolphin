@@ -15,7 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// TODO: create a OS-neutral version of this file and put it in Common.
+
+// TODO: create a working OS-neutral version of this file and put it in Common.
+
 
 #ifdef _WIN32
 

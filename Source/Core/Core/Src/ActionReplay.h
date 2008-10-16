@@ -26,13 +26,7 @@ struct ARCode {
 	bool active;
 };
 
-extern std::vector<ARCode> arCodes;
-
+void ActionReplayRunAllActive();
 void RunActionReplayCode(const ARCode &arcode, bool nowIsBootup);
 void LoadActionReplayCodes(IniFile &ini);
-void DoARSubtype_RamWriteAndFill();
-void DoARSubtype_WriteToPointer();
-void DoARSubtype_AddCode();
-void DoARSubtype_MasterCodeAndWriteToCCXXXXXX();
-void DoARSubtype_Other();
 

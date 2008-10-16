@@ -14,6 +14,10 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
+
+// Dolphin Logging framework. Needs a good ol' spring cleaning methinks.
+
 #ifndef _LOGMANAGER_H
 #define _LOGMANAGER_H
 

@@ -15,6 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+// Disc volume handler. It's here because Wii discs can consist of multiple volumes.
+// GC discs are seen as one big volume.
+
 #ifndef _VOLUMEHANDLER_H
 #define _VOLUMEHANDLER_H
 
@@ -22,25 +25,20 @@
 #include "CommonTypes.h"
 #include "Volume.h"
 
-
 namespace VolumeHandler
 {
 
 void SetVolumeName(const std::string& _rFullPath);
-
 void SetVolumeDirectory(const std::string& _rFullPath, bool _bIsWii);
 
 u32 Read32(u64 _Offset);
-
 bool ReadToPtr(u8* ptr, u64 _dwOffset, u64 _dwLength);
 
 bool IsValid();
-
 bool IsWii();
 
 DiscIO::IVolume *GetVolume();
 
-}
+}  // namespace
 
 #endif
-

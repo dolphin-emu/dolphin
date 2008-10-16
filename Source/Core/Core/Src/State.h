@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+// Emulator state saving support.
+
 #ifndef _STATE_H
 #define _STATE_H
 

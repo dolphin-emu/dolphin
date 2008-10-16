@@ -17,10 +17,9 @@
 
 // AID / AUDIO_DMA controls pushing audio out to the SRC and then the speakers.
 // The audio DMA pushes audio through a small FIFO 32 bytes at a time, as needed.
-// Since the SRC behind the fifo eats stereo 16-bit data at a sample rate of 32khz,
-// that is, 4 bytes at 32 khz, which is 32 bytes at 4 khz. We should thus schedule an
-// event that runs at 4khz, that eats audio from the fifo, and all the rest will follow.
-// Then we will have homebrew audio.
+// The SRC behind the fifo eats stereo 16-bit data at a sample rate of 32khz,
+// that is, 4 bytes at 32 khz, which is 32 bytes at 4 khz. We thereforce schedule an
+// event that runs at 4khz, that eats audio from the fifo. Thus, we have homebrew audio.
 
 // The AID interrupt is set when the fifo STARTS a transfer. It latches address and count
 // into internal registers and starts copying. This means that the interrupt handler can simply

@@ -15,9 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// Low hanging fruit:
-// all used in zelda
-// negx
+// ========================
+// See comments in Jit.cpp.
+// ========================
 
 #ifndef _JIT_H
 #define _JIT_H
@@ -26,13 +26,9 @@
 #include "JitCache.h"
 #include "x64Emitter.h"
 
-
-// =======================================================================================
 // Enable or disable JIT off options. All the if() checks in the JIT functions may result in a
 // speed drop. However it should barely be noticable as the code is recompiled rarely.
-// --------------
 #define JIT_OFF_OPTIONS 
-
 
 namespace Jit64
 {
@@ -80,6 +76,7 @@ namespace Jit64
 		bool enableFastMem;
 		bool optimizeGatherPipe;
 		bool interpretFPU;
+		bool fastInterrupts;
 	};
 
 	extern JitState js;

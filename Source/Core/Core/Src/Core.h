@@ -14,6 +14,14 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
+
+// Core
+
+// The external interface to the emulator core. Plus some extras.
+// This is another part of the emu that needs cleaning - Core.cpp really has
+// too much random junk inside.
+
 #ifndef _CORE_H
 #define _CORE_H
 
@@ -36,10 +44,7 @@ namespace Core
     bool Init(const SCoreStartupParameter _CoreParameter);
     void Stop();
 
-    // Get state
     bool SetState(EState _State);
-
-    // Get state
     EState GetState();
 
 	// Save/Load state
@@ -64,8 +69,7 @@ namespace Core
 	int SyncTrace();
 	void SetBlockStart(u32 addr);
 	void StopTrace();
-
-} // end of namespace Core
+}  // namespace
 
 #endif
 

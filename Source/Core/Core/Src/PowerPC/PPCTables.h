@@ -46,7 +46,6 @@ enum
 	FL_CHECKEXCEPTIONS = (1<<16),
 };
 
-
 enum
 {
 	OPTYPE_INVALID ,

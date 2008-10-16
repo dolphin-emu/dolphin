@@ -31,6 +31,7 @@ void SetVolumeName(const std::string& _rFullPath)
 {
     if (g_pVolume)
     {
+		// This code looks scary. Can the try/catch stuff be removed?
         try
         {
             delete g_pVolume;
@@ -91,4 +92,4 @@ bool IsWii()
     return false;
 }
 
-}
+}  // namespace

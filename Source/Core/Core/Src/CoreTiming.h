@@ -24,6 +24,13 @@
 // To schedule an event, you first have to register its type. This is where you pass in the
 // callback. You then schedule events using the type id you get back.
 
+// See HW/SystemTimers.cpp for the main part of Dolphin's usage of this scheduler.
+
+// The int cyclesLate that the callbacks get is how many cycles late it was.
+// So to schedule a new event on a regular basis:
+// inside callback:
+//   ScheduleEvent(periodInCycles - cyclesLate, callback, "whatever")
+
 #include "Common.h"
 
 #include <string>
@@ -32,7 +39,6 @@
 
 namespace CoreTiming
 {
-
 
 void Init();
 void Shutdown();
@@ -43,10 +49,6 @@ u64 GetTicks();
 u64 GetIdleTicks();
 
 void DoState(PointerWrap &p);
-// The int that the callbacks get is how many cycles late it was.
-// So to schedule a new event on a regular basis:
-// inside callback:
-//   ScheduleEvent(periodInCycles - cyclesLate, callback, "whatever")
 
 // Returns the event_type identifier.
 int RegisterEvent(const char *name, TimedCallback callback);

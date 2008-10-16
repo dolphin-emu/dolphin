@@ -20,52 +20,11 @@
 
 #include "Common.h"
 
-typedef u32 EAddr;
 
 namespace EMM
 {
-	enum WR
-	{
-		Read  = 1,
-		Write = 2,
-		Execute = 4
-	};
-
-	enum WatchType
-	{
-		Oneshot,
-		Continuous
-	};
-
-	enum AccessSize
-	{
-		Access8,
-		Access16,
-		Access32,
-		Access64,
-		Access128
-	};
-
-	typedef int WatchID;
-	typedef void (*WatchCallback)(EAddr addr, AccessSize size, WR action, WatchID id);
-
-	//Useful to emulate low-used I/O, and caching of memory resources that can change any time
-	WatchID AddWatchRegion(EAddr startAddr, EAddr endAddr, WR watchFor, WatchType type, WatchCallback callback, u64 userData);
-	void RemoveWatchRegion(WatchID id);
-	void ClearWatches();
-
-	//Call this on your main emulator thread, with your mainloop in codeToRun
-	
+	typedef u32 EAddr;
 	void InstallExceptionHandler();
 }
-
-u8 ReadHandler8(EAddr address);
-u16 ReadHandler16(EAddr address);
-u32 ReadHandler32(EAddr address);
-u64 ReadHandler64(EAddr address);
-void WriteHandler8(EAddr address, u8 value);
-void WriteHandler16(EAddr address, u16 value);
-void WriteHandler32(EAddr address, u32 value);
-void WriteHandler64(EAddr address, u64 value);
 
 #endif

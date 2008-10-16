@@ -30,17 +30,20 @@
 // and what functions calls it. That is, we will have an incomplete call graph,
 // but only missing indirect branches.
 
-// The results of this analysis are currently not really used for anything, other than
-// finding function boundaries so that we can find, fingerprint and detect library functions.
+// The results of this analysis is displayed in the code browsing sections at the bottom left
+// of the disassembly window (debugger).
+
+// It is also useful for finding function boundaries so that we can find, fingerprint and detect library functions.
+// We don't do this much currently. Only for the special case Super Monkey Ball.
 
 namespace PPCAnalyst {
 
 using namespace std;
 
-// VERY ugly. TODO: remove.
 PPCAnalyst::CodeOp *codebuffer;
 
-enum {
+enum
+{
 	CODEBUFFER_SIZE = 32000,
 };
 

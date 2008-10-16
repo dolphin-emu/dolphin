@@ -16,15 +16,15 @@
 // http://code.google.com/p/dolphin-emu/
 
 // PatchEngine
+// Supports simple memory patches, and has a partial Action Replay implementation
+// in ActionReplay.cpp/h.
+
+// Zelda item hang fixes:
 // [Tue Aug 21 2007] [18:30:40] <Knuckles->    0x802904b4 in US released
 // [Tue Aug 21 2007] [18:30:53] <Knuckles->    0x80294d54 in EUR Demo version
 // [Tue Aug 21 2007] [18:31:10] <Knuckles->    we just patch a blr on it (0x4E800020)
-// A little present to our dear hacker friends
-// (A partial Action Replay engine)
-// And a temporary "solution" to Zelda item glitch...
 // [OnLoad]
 // 0x80020394=dword,0x4e800020
-// #define BLR_OP 0x4e800020
 
 #include <string>
 #include <vector>
@@ -36,8 +36,13 @@
 
 using namespace Common;
 
+namespace
+{
+
 std::vector<Patch> onLoad;
 std::vector<Patch> onFrame;
+
+}  // namespace
 
 void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile &ini)
 {
@@ -113,8 +118,5 @@ void PatchEngine_ApplyFramePatches()
 
 void PatchEngine_ApplyARPatches()
 {
-	for (std::vector<ARCode>::const_iterator iter = arCodes.begin(); iter != arCodes.end(); ++iter) {
-		if (iter->active)
-			RunActionReplayCode(*iter, false);
-	}
+	ActionReplayRunAllActive();
 }

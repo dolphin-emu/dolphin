@@ -41,8 +41,6 @@ struct GekkoOPTemplate
 	int runCount;
 };
 
-// The eventual goal is to be able to constify as much as possible in this file.
-// Currently, the main obstacle is runCount above.
 static GekkoOPInfo *m_infoTable[64];
 static GekkoOPInfo *m_infoTable4[1024];
 static GekkoOPInfo *m_infoTable19[1024];

@@ -14,11 +14,14 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
+
+// Simple debugging console currently residing in the Logging window. Not used much.
+
 #ifndef _CONSOLE_H
 #define _CONSOLE_H
 
 void Console_Submit(const char *cmd);
-// void StartConsoleThread();
 
 #endif
 

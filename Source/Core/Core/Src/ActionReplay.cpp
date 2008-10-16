@@ -15,36 +15,60 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+// Simple partial Action Replay code system implementation.
+
+// Will never be able to support some AR codes - specifically those that patch the running
+// Action Replay engine itself - yes they do exist!!!
+
+// Action Replay actually is a small virtual machine with a limited number of commands.
+// It probably is Turing complete - but what does that matter when AR codes can write
+// actual PowerPC code.
+
 #include <string>
 #include <vector>
+
 #include "StringUtil.h"
 #include "IniFile.h"
 #include "HW/Memmap.h"
 #include "ActionReplay.h"
 
-u32 cmd_addr;
-u8 cmd;
-u32 addr;
-u32 data;
-u8 subtype;
-u8 w;
-u8 type;
-std::vector<AREntry>::const_iterator iter;
-std::vector<ARCode> arCodes;
-ARCode code;
+namespace {
 
+// These should be turned into locals in RunActionReplayCode, and passed as parameters to the others.
+static u32 cmd_addr;
+static u8 cmd;
+static u32 addr;
+static u32 data;
+static u8 subtype;
+static u8 w;
+static u8 type;
+static std::vector<AREntry>::const_iterator iter;
+
+static std::vector<ARCode> arCodes;
+static ARCode code;
+
+}  // namespace
+
+void DoARSubtype_RamWriteAndFill();
+void DoARSubtype_WriteToPointer();
+void DoARSubtype_AddCode();
+void DoARSubtype_MasterCodeAndWriteToCCXXXXXX();
+void DoARSubtype_Other();
+
+// Parses the Action Replay section of a game ini file.
 void LoadActionReplayCodes(IniFile &ini) 
 {
 	std::vector<std::string> lines;
 	ARCode currentCode;
 	arCodes.clear();
 
-	if (!ini.GetLines("ActionReplay", lines)) return;
+	if (!ini.GetLines("ActionReplay", lines))
+		return;  // no codes found.
 
 	for (std::vector<std::string>::const_iterator it = lines.begin(); it != lines.end(); ++it)
 	{
 		std::string line = *it;
-
 		std::vector<std::string> pieces;
 		SplitString(line, " ", pieces);
 		if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
@@ -96,6 +120,12 @@ void LoadActionReplayCodes(IniFile &ini)
 		arCodes.push_back(currentCode);
 }
 
+void ActionReplayRunAllActive()
+{
+	for (std::vector<ARCode>::const_iterator iter = arCodes.begin(); iter != arCodes.end(); ++iter)
+		if (iter->active)
+			RunActionReplayCode(*iter, false);
+}
 
 // The mechanism is slightly different than what the real AR uses, so there may be compatibility problems.
 // For example, some authors have created codes that add features to AR. Hacks for popular ones can be added here,
@@ -143,121 +173,114 @@ void RunActionReplayCode(const ARCode &arcode, bool nowIsBootup) {
 		if (iter == code.ops.begin() && cmd == 1) continue;
 
 		// SubType selector
-		switch(subtype)
+		switch (subtype)
 		{
-			case 0x0: // Ram write (and fill)
-				{
-					DoARSubtype_RamWriteAndFill(); continue;
-				}
-			case 0x1: // Write to pointer
-				{
-					DoARSubtype_WriteToPointer(); continue;
-				}
-			case 0x2: // Add code
-				{
-					DoARSubtype_AddCode(); continue;
-				}
-			case 0x3: // Master Code & Write to CCXXXXXX
-				{
-					DoARSubtype_MasterCodeAndWriteToCCXXXXXX(); continue;// TODO: This is not implemented yet
-				}
-			default: // non-specific z codes (hacks)
-				{
-					DoARSubtype_Other(); continue;
-				}
+		case 0x0: // Ram write (and fill)
+			DoARSubtype_RamWriteAndFill();
+			continue;
+		case 0x1: // Write to pointer
+			DoARSubtype_WriteToPointer();
+			continue;
+		case 0x2: // Add code
+			DoARSubtype_AddCode();
+			continue;
+		case 0x3: // Master Code & Write to CCXXXXXX
+			DoARSubtype_MasterCodeAndWriteToCCXXXXXX();
+			continue; // TODO: This is not implemented yet
+		default: // non-specific z codes (hacks)
+			DoARSubtype_Other();
+			continue;
 		}
 	}
 }
 
 void DoARSubtype_RamWriteAndFill()
 {
-	if(w < 0x8) // Check the value W in 0xZWXXXXXXX
+	if (w < 0x8) // Check the value W in 0xZWXXXXXXX
 	{
 		u32 new_addr = ( (addr & 0x01FFFFFF) | 0x80000000);
 		switch ((addr >> 25) & 0x03) 
 		{
-			case 0x00: // Byte write
-				{
-					u8 repeat = data >> 8;
-					for (int i = 0; i <= repeat; i++) {
-						Memory::Write_U8(data & 0xFF, new_addr + i);
-					}
-					break;
+		case 0x00: // Byte write
+			{
+				u8 repeat = data >> 8;
+				for (int i = 0; i <= repeat; i++) {
+					Memory::Write_U8(data & 0xFF, new_addr + i);
 				}
+				break;
+			}
 
-			case 0x01: // Short write
-				{
-					u16 repeat = data >> 16;
-					for (int i = 0; i <= repeat; i++) {
-						Memory::Write_U16(data & 0xFFFF, new_addr + i * 2);
-					}
-					break;
+		case 0x01: // Short write
+			{
+				u16 repeat = data >> 16;
+				for (int i = 0; i <= repeat; i++) {
+					Memory::Write_U16(data & 0xFFFF, new_addr + i * 2);
 				}
+				break;
+			}
 
-
-			case 0x02: // Dword write
-				{
-					Memory::Write_U32(data, new_addr);
-					break;
-				}
-			default: break; // TODO(Omega): maybe add a PanicAlert here?
+		case 0x02: // Dword write
+			Memory::Write_U32(data, new_addr);
+			break;
+		default:
+			break; // TODO(Omega): maybe add a PanicAlert here?
 		}
 	}
 }
+
+
 void DoARSubtype_WriteToPointer()
 {
-	if(w < 0x8)
+	if (w < 0x8)
 	{
 		u32 new_addr = ( addr | 0x80000000);
 		switch ((addr >> 25) & 0x03) 
 		{
-			case 0x00: // Byte write to pointer [40]
-				{
-					u32 ptr = Memory::Read_U32(new_addr);
-					u8 thebyte = data & 0xFF;
-					u32 offset = data >> 8;
-					Memory::Write_U8(thebyte, ptr + offset);
-					break;
-				}
+		case 0x00: // Byte write to pointer [40]
+			{
+				u32 ptr = Memory::Read_U32(new_addr);
+				u8 thebyte = data & 0xFF;
+				u32 offset = data >> 8;
+				Memory::Write_U8(thebyte, ptr + offset);
+				break;
+			}
 
-			case 0x01: // Short write to pointer [42]
-				{
-					u32 ptr = Memory::Read_U32(new_addr);
-					u16 theshort = data & 0xFFFF;
-					u32 offset = (data >> 16) << 1;
-					Memory::Write_U16(theshort, ptr + offset);
-					break;
-				}
+		case 0x01: // Short write to pointer [42]
+			{
+				u32 ptr = Memory::Read_U32(new_addr);
+				u16 theshort = data & 0xFFFF;
+				u32 offset = (data >> 16) << 1;
+				Memory::Write_U16(theshort, ptr + offset);
+				break;
+			}
 
-			case 0x02: // Dword write to pointer [44]
-				{
-					Memory::Write_U32(data, Memory::Read_U32(new_addr)); break;
-				}
+		case 0x02: // Dword write to pointer [44]
+			Memory::Write_U32(data, Memory::Read_U32(new_addr));
+			break;
 
-			default: PanicAlert("AR Method Error (Write To Pointer): w = %08x, addr = %08x",w,addr);
+		default:
+			PanicAlert("AR Method Error (Write To Pointer): w = %08x, addr = %08x", w, addr);
+			break;
 		}
 	}
 }
 
 void DoARSubtype_AddCode()
 {
-	if(w < 0x8)
+	if (w < 0x8)
 	{
 		u32 new_addr = ( (addr & 0x01FFFFFF) | 0x81FFFFFF);
-		switch((addr >> 25) & 0x03)
+		switch ((addr >> 25) & 0x03)
 		{
 		case 0x0: // Byte add
-			{
-				Memory::Write_U8(Memory::Read_U8(new_addr) + (data & 0xFF), new_addr); break;
-			}
+			Memory::Write_U8(Memory::Read_U8(new_addr) + (data & 0xFF), new_addr);
+			break;
 		case 0x1: // Short add
-			{
-				Memory::Write_U16(Memory::Read_U16(new_addr) + (data & 0xFFFF), new_addr); break;
-			}
+			Memory::Write_U16(Memory::Read_U16(new_addr) + (data & 0xFFFF), new_addr);
+			break;
 		case 0x2: // DWord add
-			{
-				Memory::Write_U32(Memory::Read_U32(new_addr) + data, new_addr); break;
-			}
+			Memory::Write_U32(Memory::Read_U32(new_addr) + data, new_addr);
+			break;
 		case 0x3: // Float add (not working?)
 			{
 				union { u32 u; float f;} fu, d;
@@ -267,7 +290,8 @@ void DoARSubtype_AddCode()
 				Memory::Write_U32(fu.u, new_addr);
 				break;
 			}
-		default: break;
+		default:
+			break;
 		}
 	}
 }
@@ -276,10 +300,10 @@ void DoARSubtype_MasterCodeAndWriteToCCXXXXXX()
 {
 	// code not yet implemented - TODO
 
-	//if(w < 0x8)
+	//if (w < 0x8)
 	//{
 	//	u32 new_addr = (addr | 0x80000000);
-	//	switch((new_addr >> 25) & 0x03)
+	//	switch ((new_addr >> 25) & 0x03)
 	//	{
 	//	case 0x2:
 	//		{
@@ -291,76 +315,68 @@ void DoARSubtype_MasterCodeAndWriteToCCXXXXXX()
 
 void DoARSubtype_Other()
 {
-					switch (cmd & 0xFE) 
-				 {
-					case 0x90: if (Memory::Read_U32(addr) == data) return; // IF 32 bit equal, exit
-					case 0x08: // IF 8 bit equal, execute next opcode
-					case 0x48: // (double)
-						{
-							if (Memory::Read_U16(addr) != (data & 0xFFFF)) {
-								if (++iter == code.ops.end()) return;
-								if (cmd == 0x48) if (++iter == code.ops.end()) return;
-							}
-							break;
-						}
-					case 0x0A: // IF 16 bit equal, execute next opcode
-					case 0x4A: // (double)
-						{
-							if (Memory::Read_U16(addr) != (data & 0xFFFF)) {
-								if (++iter == code.ops.end()) return;
-								if (cmd == 0x4A) if (++iter == code.ops.end()) return;
-							}
-							break;
-						}
-					case 0x0C:  // IF 32 bit equal, execute next opcode
-					case 0x4C:  // (double)
-						{
-							if (Memory::Read_U32(addr) != data) {
-								if (++iter == code.ops.end()) return;
-								if (cmd == 0x4C) if (++iter == code.ops.end()) return;
-							}
-							break;
-						}
-					case 0x10:  // IF NOT 8 bit equal, execute next opcode
-					case 0x50:  // (double)
-						{
-							if (Memory::Read_U8(addr) == (data & 0xFF)) {
-								if (++iter == code.ops.end()) return;
-								if (cmd == 0x50) if (++iter == code.ops.end()) return;
-							}
-							break;
-						}
-					case 0x12:  // IF NOT 16 bit equal, execute next opcode
-					case 0x52:  // (double)
-						{
-							if (Memory::Read_U16(addr) == (data & 0xFFFF)) {
-								if (++iter == code.ops.end()) return;
-								if (cmd == 0x52) if (++iter == code.ops.end()) return;
-							}
-							break;
-						}
-					case 0x14:  // IF NOT 32 bit equal, execute next opcode
-					case 0x54:  // (double)
-						{
-							if (Memory::Read_U32(addr) == data) {
-								if (++iter == code.ops.end()) return;
-								if (cmd == 0x54) if (++iter == code.ops.end()) return;
-							}
-							break;
-						}
-					case 0xC4: // "Master Code" - configure the AR
-						{
-							u8 number = data & 0xFF;
-							if (number == 0)
-							{
-								// Normal master code - execute once.
-							} else {
-								// PanicAlert("Not supporting multiple master codes.");
-							}
-							// u8 numOpsPerFrame = (data >> 8) & 0xFF;
-							// Blah, we generally ignore master codes.
-							break;
-						}
-					default: PanicAlert("Unknown Action Replay command %02x (%08x %08x)", cmd, iter->cmd_addr, iter->value); break;
-				}
+	switch (cmd & 0xFE) 
+	{
+	case 0x90:
+		// Eh, this must be wrong. Should it really fallthrough?
+		if (Memory::Read_U32(addr) == data) return; // IF 32 bit equal, exit
+	case 0x08: // IF 8 bit equal, execute next opcode
+	case 0x48: // (double)
+		if (Memory::Read_U16(addr) != (data & 0xFFFF)) {
+			if (++iter == code.ops.end()) return;
+			if (cmd == 0x48) if (++iter == code.ops.end()) return;
+		}
+		break;
+	case 0x0A: // IF 16 bit equal, execute next opcode
+	case 0x4A: // (double)
+		if (Memory::Read_U16(addr) != (data & 0xFFFF)) {
+			if (++iter == code.ops.end()) return;
+			if (cmd == 0x4A) if (++iter == code.ops.end()) return;
+		}
+		break;
+	case 0x0C:  // IF 32 bit equal, execute next opcode
+	case 0x4C:  // (double)
+		if (Memory::Read_U32(addr) != data) {
+			if (++iter == code.ops.end()) return;
+			if (cmd == 0x4C) if (++iter == code.ops.end()) return;
+		}
+		break;
+	case 0x10:  // IF NOT 8 bit equal, execute next opcode
+	case 0x50:  // (double)
+		if (Memory::Read_U8(addr) == (data & 0xFF)) {
+			if (++iter == code.ops.end()) return;
+			if (cmd == 0x50) if (++iter == code.ops.end()) return;
+		}
+		break;
+	case 0x12:  // IF NOT 16 bit equal, execute next opcode
+	case 0x52:  // (double)
+		if (Memory::Read_U16(addr) == (data & 0xFFFF)) {
+			if (++iter == code.ops.end()) return;
+			if (cmd == 0x52) if (++iter == code.ops.end()) return;
+		}
+		break;
+	case 0x14:  // IF NOT 32 bit equal, execute next opcode
+	case 0x54:  // (double)
+		if (Memory::Read_U32(addr) == data) {
+			if (++iter == code.ops.end()) return;
+			if (cmd == 0x54) if (++iter == code.ops.end()) return;
+		}
+		break;
+	case 0xC4: // "Master Code" - configure the AR
+		{
+			u8 number = data & 0xFF;
+			if (number == 0)
+			{
+				// Normal master code - execute once.
+			} else {
+				// PanicAlert("Not supporting multiple master codes.");
+			}
+			// u8 numOpsPerFrame = (data >> 8) & 0xFF;
+			// Blah, we generally ignore master codes.
+			break;
+		}
+	default:
+		PanicAlert("Unknown Action Replay command %02x (%08x %08x)", cmd, iter->cmd_addr, iter->value);
+		break;
+	}
 }

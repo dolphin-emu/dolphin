@@ -293,16 +293,13 @@ void Advance()
 	externalEventSection.Enter();
 	while (tsFirst)
 	{
-		//MessageBox(0,"yay",0,0);
 		Event *next = tsFirst->next;
 		AddEventToQueue(tsFirst);
 		tsFirst = next;
 	}
 	externalEventSection.Leave();
 
-	// we are out of run, downcount = -3
 	int cyclesExecuted = slicelength - downcount;
-	//  sliceLength = downac
 
 	globalTimer += cyclesExecuted;
 
@@ -312,7 +309,6 @@ void Advance()
 		{
 //			LOG(GEKKO, "[Scheduler] %s     (%lld, %lld) ", 
 //				first->name ? first->name : "?", (u64)globalTimer, (u64)first->time);
-			
 			event_types[first->type].callback(first->userdata, (int)(globalTimer - first->time));
 			Event *next = first->next;
 			delete first;
@@ -326,7 +322,6 @@ void Advance()
 	if (!first) 
 	{
 		LOG(GEKKO, "WARNING - no events in queue. Setting downcount to 10000");
-		// PanicAlert?
 		downcount += 10000;
 	}
 	else
@@ -379,4 +374,4 @@ std::string GetScheduledEventsSummary()
 	return text;
 }
 
-}; // end of namespace
+}  // namespace

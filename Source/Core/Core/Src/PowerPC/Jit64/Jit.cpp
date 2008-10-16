@@ -39,130 +39,77 @@ using namespace Gen;
 using namespace PowerPC;
 
 extern int blocksExecuted;
-//X64 Win64 calling convention:
-// Parameters in RCX RDX R8 R9
-// Volatile      RAX R10 R11
-// Non volatile (must be saved)
-// RBX RSI RDI R12 R13 R14 R15
 
-//Register allocation:
+// Dolphin's PowerPC->x86 JIT dynamic recompiler
+// All code by ector (hrydgard)
+// Features:
+// * x86 & x64 support, lots of shared code.
+// * Basic block linking
+// * Fast dispatcher
 
-//RAX - Generic quicktemp register
-//RBX - point to base of memory map
-//RSI RDI R12 R13 R14 R15 - free for allocation
-//RCX RDX R8 R9 R10 R11 - allocate in emergencies. These need to be flushed before functions are called.
-//RSP - stack pointer, do not generally use, very dangerous
-//RBP - ?
+// Unfeatures:
+// * Does not recompile all instructions. Often falls back to inserting a CALL to the corresponding JIT function.
 
-//RCX RDX R8 R9 are function parameters. We will only call 1 and 2 param functions from compiled code anyway.
 
-//Calling out to the interpreter needs only to flush the volatile regs!
+// Various notes below
 
-//IMPORTANT:
-//Make sure that all generated code and all emulator state sits under the 2GB boundary so that
-//RIP addressing can be used easily. Windows will always allocate static code under the 2GB boundary.
-//Also make sure to use VirtualAlloc and specify EXECUTE permission.
+// Register allocation
+//   RAX - Generic quicktemp register
+//   RBX - point to base of memory map
+//   RSI RDI R12 R13 R14 R15 - free for allocation
+//   RCX RDX R8 R9 R10 R11 - allocate in emergencies. These need to be flushed before functions are called.
+//   RSP - stack pointer, do not generally use, very dangerous
+//   RBP - ?
 
-//Since RIP stores/loads will not be possible to the high memory area, we will have to use
-//a statically allocated base pointer in a register, and use displacement addressing off of that.
-//A candidate for this is a non vol like R15, since we would not like to have to do a RIP load 
-//to restore it all the time.
-//No wait a minute, why not just keep the unprotected mappings below 2GB? 
+// IMPORTANT:
+// Make sure that all generated code and all emulator state sits under the 2GB boundary so that
+// RIP addressing can be used easily. Windows will always allocate static code under the 2GB boundary.
+// Also make sure to use VirtualAlloc and specify EXECUTE permission.
 
-//Another question to be addressed is if it is smart to have a static pointer reg to the base 
-//of the PowerPC reg area. 
-//Pro: Smaller accesses for GPR (8-bit displacement good enough only for gprs)
-//Con: A taken nonvol register (may not be so bad)
+// Open questions
+// * Should there be any statically allocated registers? r3, r4, r5, r8, r0 come to mind.. maybe sp
+// * Does it make sense to finish off the remaining non-jitted instructions? Seems we are hitting diminishing returns.
+// * Why is the FPU exception handling not working 100%? Several games still get corrupted floating point state.
+//   This can even be seen in one homebrew Wii demo - RayTracer.elf
 
-//Should there be any statically allocated registers? r3, r4, r5, r8, r0 come to mind.. maybe sp
-
-//When calling external functions, only volatile regs need to be saved.
-//This means that they should be allocated last. RAX should probably never
-//be allocated, it should just be a temporary to do non-destructive trinary ops.
-
-//However, for the above to work and be a win, we need to store away the non volatiles before  
-//entering "JIT space". However, once we're there, it will be a win.
-//Also, JIT space will need to be surrounded with stack adjusting, since functions will be called.
+// Other considerations
 
 //Many instructions have shorter forms for EAX. However, I believe their performance boost
 //will be as small to be negligble, so I haven't dirtied up the code with that. AMD recommends it in their
 //optimization manuals, though.
 
-//IDEA: FPU exception emulation support by having all fpu blocks writeNTA to a spot in memory that
-//is protected if FPU exceptions are enabled. The exception handler would then have to run the
-//interpreter until rfi, at which point control can be returned. Of course all regs need to be
-//flushed before this happens. This method is branch free but does a memory write or read in the fast case.
-// Probably not worthwhile, a test/jz in every fpu block should be enough.
+// We support block linking. Reserve space at the exits of every block for a full 5-byte jmp. Save 16-bit offsets 
+// from the starts of each block, marking the exits so that they can be nicely patched at any time.
 
-//Block linking is needed. Reserve space at the end of every block for a full 5-byte jmp. Save 16-bit offsets 
-//from the starts of each block, marking the exits so that they can be nicely patched at any time.
+// * Blocks do NOT use call/ret, they only jmp to each other and to the dispatcher when necessary.
 
-//Blocks do NOT use call/ret, they only jmp to each other and to the dispatcher when necessary.
+// All blocks that can be precompiled will be precompiled. Code will be memory protected - any write will mark
+// the region as non-compilable, and all links to the page will be torn out and replaced with dispatcher jmps.
 
-//All blocks that can be precompiled will be precompiled. Code will be memory protected - any write will mark
-//the region as non-compilable, and all links to the page will be torn out and replaced with dispatcher jmps. 
+// Alternatively, icbi instruction SHOULD mark where we can't compile
 
-//Alternatively, icbi instruction SHOULD mark where we can't compile
+// Seldom-happening events will be handled by adding a decrement of a counter to all blr instructions (which are
+// expensive anyway since we need to return to dispatcher, except when they can be predicted).
 
-//IDEA: All major memory altering events (not singular accesses) should call Gfx::Snoop to let it know that memory chagned.
-
-//Seldom-happening events will be handled by adding a decrement of a counter to all blr instructions (which are
-//expensive anyway since we need to return to dispatcher, except when they can be predicted).
-
-//TODO:
-
-// TODO: SERIOUS synchronization problem with the video plugin setting tokens and breakpoints!!!
-//        Somewhat fixed by disabling idle skipping when certain interrupts are enabled
-//        This is no permantent reliable fix
-
+// TODO: SERIOUS synchronization problem with the video plugin setting tokens and breakpoints in dual core mode!!!
+//       Somewhat fixed by disabling idle skipping when certain interrupts are enabled
+//       This is no permantent reliable fix
 // TODO: Zeldas go whacko when you hang the gfx thread
 
-// Plan: 1. Byteswap Dolphin DONE!
-//       2. Fix timing WORKING
-//       3. Lay groundwork for x64 JIT WORKING
-//       4. Get OneTri up to 60fps, and check compatibility from time to time (yea right)  ????
-//       5. Add block linking to JIT << NOT SO IMPORTANT
-//		 6. Optimize GFX plugin to hell << IMPORTANT
-//       7. Watch Zelda do 20 fps.
-//       8. Watch Zelda TP do 30 fps. DONE :D
+// Idea - Accurate exception handling
+// Compute register state at a certain instruction by running the JIT in "dry mode", and stopping at the right place.
+// Not likely to be done :P
 
-//Optimizations -
+
+// Optimization Ideas -
 /*
-  * Assume SP is in main RAM (in Wii mode too?)
+  * Assume SP is in main RAM (in Wii mode too?) - partly done
   * Assume all floating point loads and double precision loads+stores are to/from main ram
-    (single precision can be used in write gather)
-    (this is valid on Wii too when using the VM emulator)
-
+    (single precision can be used in write gather pipe, specialized fast check added)
   * AMD only - use movaps instead of movapd when loading ps from memory?
   * HLE functions like floorf, sin, memcpy, etc - they can be much faster
-  * Optimal sequence to store floats
-  * TODO: find optimal sequence to store doubles as floats
 
-  cvtpd2ps xmm0, xmm0
-  movss xmm0, f
-  movss tempspace, xmm0
-  mov eax, tempspace
-  bswap eax
-  mov [edi], eax
-
-  I think pshufb does it faster.
-
-BLOCK EXIT DESIGN
-
-TEST whatever
-JZ skip
-MOV NPC, exit1
-JMP dispatcher
-skip:
-MOV NPC, exit2
-JMP dispatcher
-
-This can be patched into (when both exits are known):
-JZ exit2
-JMP exit1
-
-The problem is, we still need to fit the downcount somewhere...
-
+  
 Low hanging fruit:
 stfd -- guaranteed in memory
 cmpl
@@ -186,9 +133,6 @@ cntlzwx
 bcctrx
 WriteBigEData
 
-
-detect immediates in stb stw sth
-
 TODO
 lha
 srawx
@@ -196,29 +140,18 @@ addic_rc
 addex
 subfcx
 subfex
-000000000A42BD7F  mov         ecx,0FCBF41BAh 
-000000000A42BD85  call        CInterpreter::fmaddx (5BA3A0h) 
-000000000A42BD8A  mov         ecx,0FC8D0132h 
-000000000A42BD90  call        CInterpreter::fmulx (5BA540h) 
-000000000A42BD95  mov         ecx,0FC85202Ah 
-000000000A42BD9B  call        CInterpreter::faddx (5BA220h) 
-000000000A42BDA0  mov         ecx,0FC81113Ah 
-000000000A42BDA6  call        CInterpreter::fmaddx (5BA3A0h) 
-000000000A42C11A  call        CInterpreter::fnegx (5BA0B0h)
-000000000A42C604  call        CInterpreter::frspx (5BA170h) 
-000000000A428FDC  call        CInterpreter::ps_sum0 (5C9730h) 
-000000000A428FE1  mov         ecx,0FCA02034h 
-000000000A428FE7  call        CInterpreter::frsqrtex (5BA7C0h)
-000000000A429062  call        CInterpreter::ps_muls0 (5C9820h) 
-000000000A4290AF  call        CInterpreter::psq_st (5C9DF0h) 
+
+fmaddx
+fmulx
+faddx
+fnegx
+frspx
+frsqrtex
+ps_sum0
 
 */
 
-// Accurate exception handling
-// Compute register state at a certain instruction by running the JIT in "dry mode", and stopping at the right place.
-// Not likely to be done :P
 
-// Evil
 namespace CPUCompare
 {
 	extern u32 m_BlockStart;
@@ -232,7 +165,7 @@ namespace Jit64
 
 	void Init()
 	{
-		jo.optimizeStack = true;
+		jo.optimizeStack = false;
 		jo.enableBlocklink = true;  // Speed boost, but not 100% safe
 #ifdef _M_X64
 		jo.enableFastMem = Core::GetStartupParameter().bUseFastMem;
@@ -243,6 +176,7 @@ namespace Jit64
 		jo.fpAccurateFlags = true;
 		jo.optimizeGatherPipe = true;
 		jo.interpretFPU = false;
+		jo.fastInterrupts = false;
 	}
 
 	void WriteCallInterpreter(UGeckoInstruction _inst)
@@ -280,6 +214,7 @@ namespace Jit64
 	static const bool ImHereDebug = false;
 	static const bool ImHereLog = false;
 	static std::map<u32, int> been_here;
+
 	void ImHere()
 	{
 		static FILE *f = 0;
@@ -378,9 +313,11 @@ namespace Jit64
 		const u8 *start = AlignCode4(); //TODO: Test if this or AlignCode16 make a difference from GetCodePtr
 		b.checkedEntry = start;
 		b.runCount = 0;
+
+		// Downcount flag check. The last block decremented downcounter, and the flag should still be available.
 		FixupBranch skip = J_CC(CC_NBE);
 		MOV(32, M(&PC), Imm32(js.blockStart));
-		JMP(Asm::doTiming, true);
+		JMP(Asm::doTiming, true);  // downcount hit zero - go doTiming.
 		SetJumpTarget(skip);
 
 		const u8 *normalEntry = GetCodePtr();
@@ -396,6 +333,17 @@ namespace Jit64
 			SetJumpTarget(b1);
 		}
 
+		if (false && jo.fastInterrupts)
+		{
+			// This does NOT yet work.
+			TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(0xFFFFFFFF));
+			FixupBranch b1 = J_CC(CC_Z);
+			MOV(32, M(&PC), Imm32(js.blockStart));
+			JMP(Asm::testExceptions, true);
+			SetJumpTarget(b1);
+		}
+
+		// Conditionally add profiling code.
 		if (Profiler::g_ProfileBlocks) {
 			ADD(32, M(&b.runCount), Imm8(1));
 #ifdef _WIN32
@@ -439,13 +387,12 @@ namespace Jit64
 			}
 			
 			// const GekkoOpInfo *info = GetOpInfo();
-			// if (js.isLastInstruction)
+
 			if (jo.interpretFPU && PPCTables::UsesFPU(ops[i].inst))
 				Default(ops[i].inst);
 			else
 				PPCTables::CompileInstruction(ops[i].inst);
-			// else
-			// 	Default(ops[i].inst);
+
 			gpr.SanityCheck();
 			fpr.SanityCheck();
 			if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)

@@ -14,6 +14,7 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #include <iostream>
 #include <cstring>
 
@@ -22,31 +23,15 @@
 #include "HW/Memmap.h"
 #include "PowerPC/PPCAnalyst.h"
 #include "PowerPC/PPCTables.h"
-#include "Console.h"
 #include "CoreTiming.h"
 #include "Core.h"
 #include "PowerPC/Jit64/JitCache.h"
 #include "PowerPC/SymbolDB.h"
 #include "PowerPCDisasm.h"
+#include "Console.h"
 
 #define CASE(x) else if (memcmp(cmd, x, 4*sizeof(TCHAR))==0)
 #define CASE1(x) if (memcmp(cmd, x, 2*sizeof(TCHAR))==0)
-
-/*
-static Common::Thread *cons_thread;
-
-THREAD_RETURN ConsoleThreadFunc(void *) {
-	printf("Welcome to the console thread!\n\n");
-	while (true) {
-		std::string command;
-		getline(std::cin, command);
-		Console_Submit(command.c_str());
-	}
-}
-
-void StartConsoleThread() {
-	cons_thread = new Common::Thread(ConsoleThreadFunc, 0);
-}*/
 
 void Console_Submit(const char *cmd)
 {
