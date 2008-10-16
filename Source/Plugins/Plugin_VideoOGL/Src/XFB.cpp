@@ -19,6 +19,7 @@
 // Preliminary non-working code.
 
 #include "Globals.h"
+#include "MemoryUtil.h"
 #include "GLInit.h"
 #include "Render.h"
 #include "TextureMngr.h"
@@ -53,8 +54,21 @@ void XFB_Init()
 	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_xfbRenderBuffer);
 	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA, nBackbufferWidth, nBackbufferHeight);
 
-	efb_buffer = new u8[nBackbufferWidth * nBackbufferHeight * 4];	
+	// Ensure efb_buffer is aligned.
+	efb_buffer = (u8 *)AllocateMemoryPages(nBackbufferWidth * nBackbufferHeight * 4);
 }
+
+void XFB_Shutdown()
+{
+	glDeleteFramebuffersEXT(1, &s_xfbFrameBuffer);
+
+	glDeleteTextures(1, &xfb_texture);
+	xfb_texture = 0;
+	delete [] xfb_buffer;
+	xfb_buffer = 0;
+	FreeMemoryPages(efb_buffer, nBackbufferWidth * nBackbufferHeight * 4);
+}
+
 
 void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt, float yScale)
 {
@@ -159,14 +173,4 @@ void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset)
 
 	Renderer::RestoreGLState();
     GL_REPORT_ERRORD();
-}
-
-void XFB_Shutdown()
-{
-	glDeleteFramebuffersEXT(1, &s_xfbFrameBuffer);
-
-	glDeleteTextures(1, &xfb_texture);
-	xfb_texture = 0;
-	delete [] xfb_buffer;
-	xfb_buffer = 0;
 }

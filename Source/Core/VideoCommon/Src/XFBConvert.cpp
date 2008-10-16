@@ -50,11 +50,13 @@ void InitXFBConvTables()
 		_u[i] = _mm_set_epi32(        0,                  0,  -25624 * (i - 128), 132252 * (i - 128));
 		_v[i] = _mm_set_epi32(        0, 104595 * (i - 128),  -53281 * (i - 128),                  0);
 
-		_r1[i] = _mm_set_epi32( 28770 * i / 2,          0,  -9699 * i / 2, 16843 * i);
+		_r1[i] = _mm_add_epi32(_mm_set_epi32( 28770 * i / 2,          0,  -9699 * i / 2, 16843 * i),
+							   _bias1);
 		_g1[i] = _mm_set_epi32(-24117 * i / 2,          0, -19071 * i / 2, 33030 * i);
 		_b1[i] = _mm_set_epi32( -4653 * i / 2,          0,  28770 * i / 2,  6423 * i);
 										   									
-		_r2[i] = _mm_set_epi32( 28770 * i / 2,  16843 * i,  -9699 * i / 2,         0);
+		_r2[i] = _mm_add_epi32(_mm_set_epi32( 28770 * i / 2,  16843 * i,  -9699 * i / 2,         0),
+							   _bias2);
 		_g2[i] = _mm_set_epi32(-24117 * i / 2,  33030 * i, -19071 * i / 2,         0);
 		_b2[i] = _mm_set_epi32( -4653 * i / 2,   6423 * i,  28770 * i / 2,         0);
 	}
@@ -62,6 +64,9 @@ void InitXFBConvTables()
 
 void ConvertFromXFB(u32 *dst, const u8* _pXFB, int width, int height)
 {
+	if (((size_t)dst & 0xF) != 0) {
+		PanicAlert("ConvertFromXFB - unaligned destination");
+	}
 	const unsigned char *src = _pXFB;
 	u32 numBlocks = ((width * height) / 2) / 2;
 	for (u32 i = 0; i < numBlocks; i++)
@@ -81,7 +86,7 @@ void ConvertFromXFB(u32 *dst, const u8* _pXFB, int width, int height)
 		__m128i c4 = _mm_srai_epi32(_mm_add_epi32(y2_2, _mm_add_epi32(u_2, v_2)), 16);
 
 		__m128i four_dest = _mm_packus_epi16(_mm_packs_epi32(c1, c2), _mm_packs_epi32(c3, c4));
-		_mm_storeu_si128((__m128i *)dst, four_dest);
+		_mm_store_si128((__m128i *)dst, four_dest);
 		dst += 4;
 		src += 8;
 	}
@@ -93,30 +98,30 @@ void ConvertToXFB(u32 *dst, const u8* _pEFB, int width, int height)
 
 	u32 numBlocks = ((width * height) / 2) / 4;
 	if (((size_t)dst & 0xF) != 0) {
-		PanicAlert("Weird - unaligned XFB");
+		PanicAlert("ConvertToXFB - unaligned XFB");
 	}
 	__m128i zero = _mm_setzero_si128();
 	for (int i = 0; i < numBlocks; i++)
 	{
 		__m128i yuyv0 = _mm_srai_epi32(
 			_mm_add_epi32(
-				_mm_add_epi32(_mm_add_epi32(_r1[src[0]], _mm_add_epi32(_g1[src[1]], _b1[src[2]])), _bias1),
-				_mm_add_epi32(_mm_add_epi32(_r2[src[4]], _mm_add_epi32(_g2[src[5]], _b2[src[6]])), _bias2)), 16);
+				_mm_add_epi32(_r1[src[0]], _mm_add_epi32(_g1[src[1]], _b1[src[2]])),
+				_mm_add_epi32(_r2[src[4]], _mm_add_epi32(_g2[src[5]], _b2[src[6]]))), 16);
 		src += 8;
 		__m128i yuyv1 = _mm_srai_epi32(
 			_mm_add_epi32(
-				_mm_add_epi32(_mm_add_epi32(_r1[src[0]], _mm_add_epi32(_g1[src[1]], _b1[src[2]])), _bias1),
-				_mm_add_epi32(_mm_add_epi32(_r2[src[4]], _mm_add_epi32(_g2[src[5]], _b2[src[6]])), _bias2)), 16);
+				_mm_add_epi32(_r1[src[0]], _mm_add_epi32(_g1[src[1]], _b1[src[2]])),
+				_mm_add_epi32(_r2[src[4]], _mm_add_epi32(_g2[src[5]], _b2[src[6]]))), 16);
 		src += 8;
 		__m128i yuyv2 = _mm_srai_epi32(
 			_mm_add_epi32(
-				_mm_add_epi32(_mm_add_epi32(_r1[src[0]], _mm_add_epi32(_g1[src[1]], _b1[src[2]])), _bias1),
-				_mm_add_epi32(_mm_add_epi32(_r2[src[4]], _mm_add_epi32(_g2[src[5]], _b2[src[6]])), _bias2)), 16);
+				_mm_add_epi32(_r1[src[0]], _mm_add_epi32(_g1[src[1]], _b1[src[2]])),
+				_mm_add_epi32(_r2[src[4]], _mm_add_epi32(_g2[src[5]], _b2[src[6]]))), 16);
 		src += 8;
 		__m128i yuyv3 = _mm_srai_epi32(
 			_mm_add_epi32(
-				_mm_add_epi32(_mm_add_epi32(_r1[src[0]], _mm_add_epi32(_g1[src[1]], _b1[src[2]])), _bias1),
-				_mm_add_epi32(_mm_add_epi32(_r2[src[4]], _mm_add_epi32(_g2[src[5]], _b2[src[6]])), _bias2)), 16);
+				_mm_add_epi32(_r1[src[0]], _mm_add_epi32(_g1[src[1]], _b1[src[2]])),
+				_mm_add_epi32(_r2[src[4]], _mm_add_epi32(_g2[src[5]], _b2[src[6]]))), 16);
 		src += 8;
 		__m128i four_dest = _mm_packus_epi16(_mm_packs_epi32(yuyv0, yuyv1), _mm_packs_epi32(yuyv2, yuyv3));
 		_mm_store_si128((__m128i *)dst, four_dest);
