@@ -29,7 +29,6 @@ u32 data;
 u8 subtype;
 u8 w;
 u8 type;
-u8 z;
 std::vector<AREntry>::const_iterator iter;
 std::vector<ARCode> arCodes;
 ARCode code;
@@ -107,12 +106,11 @@ void RunActionReplayCode(const ARCode &arcode, bool nowIsBootup) {
 	{
 		cmd_addr = iter->cmd_addr;
 		cmd = iter->cmd_addr>>24;
-		addr = (iter->cmd_addr & 0x01FFFFFF);
+		addr = iter->cmd_addr;
 		data = iter->value;
-		subtype = ((addr >> 30) & 0x03);
+		subtype = ((cmd_addr >> 30) & 0x03);
 		w = (cmd - ((cmd >> 4) << 4));
-		type = ((addr >> 27) & 0x07);
-		z = (cmd >> 4);
+		type = ((cmd_addr >> 27) & 0x07);
 
 		if (addr >= 0x00002000 && addr < 0x00003000) {
 			PanicAlert("This action replay simulator does not support codes that modify Action Replay itself.");
@@ -145,27 +143,27 @@ void RunActionReplayCode(const ARCode &arcode, bool nowIsBootup) {
 		if (iter == code.ops.begin() && cmd == 1) continue;
 
 		// SubType selector
-		switch(z)
+		switch(subtype)
 		{
 			case 0x0: // Ram write (and fill)
 				{
 					DoARSubtype_RamWriteAndFill(); continue;
 				}
-			case 0x4: // Write to pointer
+			case 0x1: // Write to pointer
 				{
 					DoARSubtype_WriteToPointer(); continue;
 				}
-			case 0x8: // Add code
+			case 0x2: // Add code
 				{
 					DoARSubtype_AddCode(); continue;
 				}
-			case 0xC: // Master Code & Write to CCXXXXXX
+			case 0x3: // Master Code & Write to CCXXXXXX
 				{
-					DoARSubtype_MasterCodeAndWriteToCCXXXXXX(); // TODO: This is not implemented yet
+					DoARSubtype_MasterCodeAndWriteToCCXXXXXX(); continue;// TODO: This is not implemented yet
 				}
 			default: // non-specific z codes (hacks)
 				{
-					DoARSubtype_Other();
+					DoARSubtype_Other(); continue;
 				}
 		}
 	}
@@ -175,8 +173,8 @@ void DoARSubtype_RamWriteAndFill()
 {
 	if(w < 0x8) // Check the value W in 0xZWXXXXXXX
 	{
-		u32 new_addr = (addr | 0x80000000);
-		switch ((new_addr >> 25) & 0x03) 
+		u32 new_addr = ( (addr & 0x01FFFFFF) | 0x80000000);
+		switch ((addr >> 25) & 0x03) 
 		{
 			case 0x00: // Byte write
 				{
@@ -210,10 +208,10 @@ void DoARSubtype_WriteToPointer()
 {
 	if(w < 0x8)
 	{
-		u32 new_addr = (addr | 0x80000000);
-		switch ((new_addr >> 25) & 0x03) 
+		u32 new_addr = ( addr | 0x80000000);
+		switch ((addr >> 25) & 0x03) 
 		{
-			case 0x00: // Byte write to pointer
+			case 0x00: // Byte write to pointer [40]
 				{
 					u32 ptr = Memory::Read_U32(new_addr);
 					u8 thebyte = data & 0xFF;
@@ -222,7 +220,7 @@ void DoARSubtype_WriteToPointer()
 					break;
 				}
 
-			case 0x01: // Short write to pointer
+			case 0x01: // Short write to pointer [42]
 				{
 					u32 ptr = Memory::Read_U32(new_addr);
 					u16 theshort = data & 0xFFFF;
@@ -231,13 +229,11 @@ void DoARSubtype_WriteToPointer()
 					break;
 				}
 
-
-			case 0x02: // Dword write to pointer
+			case 0x02: // Dword write to pointer [44]
 				{
-					u32 ptr = Memory::Read_U32(new_addr);
-					Memory::Write_U32(data, ptr);
-					break;
+					Memory::Write_U32(data, Memory::Read_U32(new_addr)); break;
 				}
+
 			default: PanicAlert("AR Method Error (Write To Pointer): w = %08x, addr = %08x",w,addr);
 		}
 	}
@@ -247,8 +243,8 @@ void DoARSubtype_AddCode()
 {
 	if(w < 0x8)
 	{
-		u32 new_addr = (addr | 0x81FFFFFF);
-		switch((new_addr >> 25) & 0x03)
+		u32 new_addr = ( (addr & 0x01FFFFFF) | 0x81FFFFFF);
+		switch((addr >> 25) & 0x03)
 		{
 		case 0x0: // Byte add
 			{
