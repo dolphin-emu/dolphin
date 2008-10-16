@@ -18,6 +18,7 @@
 #ifndef _EXI_DEVICEMIC_H
 #define _EXI_DEVICEMIC_H
 
+
 class CEXIMic : public IEXIDevice
 {
 public:
@@ -35,7 +36,7 @@ private:
 		cmdID					= 0x00,
 		cmdStatus				= 0x40,
 		cmdSetStatus			= 0x80,
-		cmdSetInterrupt			= 0x81,
+		cmdGetBuffer			= 0x20,
 		cmdWriteBuffer			= 0x82,
 		cmdReadStatus			= 0x83,		
 		cmdReadID				= 0x85,
@@ -62,6 +63,10 @@ private:
 	u32 m_uPosition;
 	u32 formatDelay;
 	uStatus Status;
+	bool Sampling;
+	short SFreq;
+	short SNum;
+	int Sample;
 	
 	//! memory card parameters 
 	unsigned int ID;
@@ -70,6 +75,9 @@ private:
 protected:
 	virtual void TransferByte(u8 &byte);
 };
+
+void SetMic(bool Value);
+bool GetMic();
 
 #endif
 

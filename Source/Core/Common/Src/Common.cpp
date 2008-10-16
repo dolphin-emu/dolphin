@@ -100,6 +100,7 @@ bool AskYesNo(const char* format, ...)
 	va_end(args);
 	return(retval);
 }
+
 // Standard implementation of logging - simply print to standard output.
 // Programs are welcome to override this.
 /*

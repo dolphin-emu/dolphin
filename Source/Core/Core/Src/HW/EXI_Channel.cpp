@@ -83,8 +83,9 @@ bool CEXIChannel::IsCausingInterrupt()
 {
 	if (m_ChannelId != 2) /* Channels 0 and 1: Memcard slot (device 0) produces interrupt */
 	{
-		if (m_pDevices[0]->IsInterruptSet())
-			m_Status.EXIINT = 1;
+		for (int i = 0; i < NUM_DEVICES; i++)
+			if (m_pDevices[i]->IsInterruptSet())
+				m_Status.EXIINT = 1;
 	}
 	else /* Channel 2: In fact, Channel 0, Device 2 (Serial A) produces interrupt */
 	{

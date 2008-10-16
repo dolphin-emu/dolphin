@@ -24,26 +24,27 @@
 #include "EXI_Device.h"
 #include "EXI_DeviceMic.h"
 
-#define MC_STATUS_BUSY					0x80   
-#define MC_STATUS_UNLOCKED				0x40
-#define MC_STATUS_SLEEP					0x20
-#define MC_STATUS_ERASEERROR			0x10
-#define MC_STATUS_PROGRAMEERROR			0x08
-#define MC_STATUS_READY					0x01
+bool MicButton = false;
 
+void SetMic(bool Value)
+{
+	MicButton = Value;
+}
+bool GetMic()
+{
+	return MicButton;
+}
 
 CEXIMic::CEXIMic(int _Index)
 {
 	Index = _Index;
-	//et_this_card = CoreTiming::RegisterEvent(_rName.c_str(), FlushCallback);
  
-	interruptSwitch = 0;
-	m_bInterruptSet = 0;
 	command = 0;
-	//status = MC_STATUS_BUSY | MC_STATUS_UNLOCKED | MC_STATUS_READY;
+	Sample = 0;
 	m_uPosition = 0;
 	formatDelay = 0;
 	ID = 0x0a000000;
+	m_bInterruptSet = false;
 
 }
 
@@ -54,7 +55,6 @@ CEXIMic::~CEXIMic()
 
 bool CEXIMic::IsPresent() 
 {
-	//return false;
 	return true;
 }
 
@@ -79,9 +79,15 @@ void CEXIMic::Update()
 
 bool CEXIMic::IsInterruptSet()
 {
-	if (interruptSwitch)
-		return m_bInterruptSet;
-	return false;
+	if(m_bInterruptSet)
+	{
+		//m_bInterruptSet = false;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 void CEXIMic::TransferByte(u8 &byte)
@@ -107,112 +113,91 @@ void CEXIMic::TransferByte(u8 &byte)
 			else
 				byte = (u8)(ID >> (24-(((m_uPosition-2) & 3) * 8)));
 		break;
+		// Setting Bits: REMEMBER THIS! D:<
+		// <ector--> var |= (1 << bitnum_from_0)
+		// <ector--> var &= ~(1 << bitnum_from_0) clears
 		case cmdStatus:
 		{
-			byte = (u8)(Status.U16 >> (24-(((m_uPosition - 2) & 3) * 8)));
+			if(GetMic())
+			{
+				Status.U16 |= (1 << 8);
+			}
+			else
+			{
+				Status.U16 &= ~(1 << 8);
+			}
+			if(Sampling)
+			{
+				//printf("Sample %d\n",Sample);
+				if(Sample >= SNum)
+				{
+					Sample = 0;
+					m_bInterruptSet = true;
+				}
+				else
+					Sample++;
+			}
+			byte = (u8)(Status.U16 >> (24-(((m_uPosition-2) & 3) * 8)));
+			
 		}
 		break;
 		case cmdSetStatus:
 		{
-			Status.U8[m_uPosition - 1] = byte;
+			Status.U8[ (m_uPosition - 1) ? 0 : 1] = byte;
 			if(m_uPosition == 2)
-				printf("Status is 0x%04x\n", Status.U16);
+			{
+				printf("Status is 0x%04x ", Status.U16);
+				//Status is 0x7273 1 1 0 0 1 1 1 0\ 0 1 0 0 1 1 1 0
+				//Status is 0x4b00 
+				// 0 0 0 0 0 0 0 0	: Bit 0-7:	Unknown
+				// 1	: Bit 8		: 1 : Button Pressed 
+				// 1	: Bit 9		: 1 ? Overflow? 
+				// 0	: Bit 10	: Unknown related to 0 and 15 values It seems
+				// 1 0	: Bit 11-12	: Sample Rate, 00-11025, 01-22050, 10-44100, 11-??
+				// 0 1	: Bit 13-14	: Period Length, 00-32, 01-64, 10-128, 11-??? 
+				// 0	: Bit 15	: If We Are Sampling or Not 
+				
+				if((Status.U16 >> 15) & 1) // We ARE Sampling
+				{
+					printf("We are now Sampling");
+					Sampling = true;
+				}
+				else
+				{
+					Sampling = false;
+					m_bInterruptSet = false;
+				}
+				if(!(Status.U16 >> 11) & 1)
+					if((Status.U16 >> 12) & 1 )
+						SFreq = 22050;
+					else
+						SFreq = 11025;
+				else
+					SFreq = 44100;
+					
+				if(!(Status.U16 >> 13) & 1)
+					if((Status.U16 >> 14) & 1)
+						SNum = 64;
+					else
+						SNum = 32;
+				else
+					SNum = 128;
+			
+				for(int a = 0;a < 16;a++)
+					printf("%d ", (Status.U16 >> a) & 1);
+				printf("\n");
+			}
 		}
+		break;
+		case cmdGetBuffer:
+			printf("POS %d\n", m_uPosition);
+			if(m_uPosition == SNum / 2) // It's 16bit Audio, so we divide by two
+				;//m_bInterruptSet = false;
+			byte = rand() % 0xFF;
 		break;
 		default:
 			printf("Don't know command %x in Byte transfer\n", command);
 		break;
-		/*
-		case cmdReadArray:
-			switch (m_uPosition)
-			{
-			case 1: // AD1
-				address = byte << 17;
-				byte = 0xFF;
-				break;
-			case 2: // AD2
-				address |= byte << 9;
-				break;
-			case 3: // AD3
-				address |= (byte & 3) << 7;
-				break;
-			case 4: // BA
-				address |= (byte & 0x7F);
-				break;
-			}
-			if (m_uPosition > 1) // not specified for 1..8, anyway
-			{
-				byte = memory_card_content[address & (memory_card_size-1)];
-				// after 9 bytes, we start incrementing the address,
-				// but only the sector offset - the pointer wraps around
-				if (m_uPosition >= 9)
-					address = (address & ~0x1FF) | ((address+1) & 0x1FF);
-			}
-			break;
-
-		case cmdReadStatus:
-			// (unspecified for byte 1)
-			byte = status;
-			break;
-
-		case cmdReadID:
-			if (m_uPosition == 1) // (unspecified)
-				byte = (u8)(card_id >> 8);
-			else
-				byte = (u8)((m_uPosition & 1) ? (card_id) : (card_id >> 8));
-			break;
-
-		case cmdSectorErase:
-			switch (m_uPosition)
-			{
-			case 1: // AD1
-				address = byte << 17;
-				break;
-			case 2: // AD2
-				address |= byte << 9;
-				break;
-			}
-			byte = 0xFF;
-			break;
-
-		case cmdSetInterrupt:
-			if (m_uPosition == 1)
-			{
-				interruptSwitch = byte;
-			}
-			byte = 0xFF;
-			break;
-
-		case cmdChipErase:
-			byte = 0xFF;
-			break;
-
-		case cmdPageProgram:
-			switch (m_uPosition)
-			{
-			case 1: // AD1
-				address = byte << 17;
-				break;
-			case 2: // AD2
-				address |= byte << 9;
-				break;
-			case 3: // AD3
-				address |= (byte & 3) << 7;
-				break;
-			case 4: // BA
-				address |= (byte & 0x7F);
-				break;
-			}
-
-			if(m_uPosition >= 5)
-				programming_buffer[((m_uPosition - 5) & 0x7F)] = byte; // wrap around after 128 bytes
-
-			byte = 0xFF;
-			break;
-
-		default:
-			LOG(EXPANSIONINTERFACE, "EXI MEMCARD: unknown command byte %02x\n", byte);
-			byte = 0xFF;	*/
 		}
 	}
 	m_uPosition++;

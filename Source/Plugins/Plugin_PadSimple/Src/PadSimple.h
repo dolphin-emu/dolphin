@@ -42,6 +42,7 @@ enum
 	CTL_DPADLEFT,
 	CTL_DPADRIGHT,
 	CTL_HALFPRESS,
+	CTL_MIC,
 	NUMCONTROLS
 };
 
@@ -69,6 +70,7 @@ static const char* controlNames[] =
 	"D-Pad_left",
 	"D-Pad_right",
 	"half_press_toggle",
+	"Mic-button",
 };
 
 struct SPads {

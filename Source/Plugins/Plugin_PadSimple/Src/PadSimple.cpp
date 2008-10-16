@@ -459,6 +459,10 @@ void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
     }
     
     if (KeyStatus[CTL_START]){_pPADStatus->button |= PAD_BUTTON_START;}
+    if (KeyStatus[CTL_MIC])
+    	_pPADStatus->MicButton = true;
+    else
+    	_pPADStatus->MicButton = false;
 }
 
 
@@ -630,7 +634,8 @@ void LoadConfig()
           XK_g,
           XK_f,
           XK_h,
-		  XK_Shift_L //halfpress
+		  XK_Shift_L, //halfpress
+		  XK_p
 	};
 #endif
 	IniFile file;

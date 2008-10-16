@@ -20,6 +20,9 @@
 
 #include "SerialInterface_Devices.h"
 
+#include "EXI_Device.h"
+#include "EXI_DeviceMic.h"
+
 #include "../Plugins/Plugin_PAD.h"
 
 #include "../PowerPC/PowerPC.h"
@@ -169,6 +172,7 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	_Low |= (u32)((u8)PadStatus.triggerLeft << 8);
 	_Low |= (u32)((u8)PadStatus.substickY << 16);
 	_Low |= (u32)((u8)PadStatus.substickX << 24);
+	SetMic(PadStatus.MicButton);
 
 	// F|RES:
 	// i dunno if i should force it here
