@@ -191,6 +191,9 @@ void CEXIMic::TransferByte(u8 &byte)
 		break;
 		case cmdGetBuffer:
 			printf("POS %d\n", m_uPosition);
+			// Are we not able to return all the data then?
+			// I think if we set the Interrupt to false, it reads another 64
+			// Will Look in to it.
 			if(m_uPosition == SNum / 2) // It's 16bit Audio, so we divide by two
 				;//m_bInterruptSet = false;
 			byte = rand() % 0xFF;
