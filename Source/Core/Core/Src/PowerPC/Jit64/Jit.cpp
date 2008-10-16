@@ -165,7 +165,7 @@ namespace Jit64
 
 	void Init()
 	{
-		jo.optimizeStack = false;
+		jo.optimizeStack = true;
 		jo.enableBlocklink = true;  // Speed boost, but not 100% safe
 #ifdef _M_X64
 		jo.enableFastMem = Core::GetStartupParameter().bUseFastMem;
