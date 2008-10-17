@@ -387,10 +387,10 @@ void Renderer::ProcessMessages()
 			int time_left = (int)(it->dwTimeStamp - timeGetTime());
 			int alpha = 255;
 
-			if(time_left<1024)
+			if (time_left < 1024)
 			{
-				alpha=time_left>>2;
-				if(time_left<0) alpha=0;
+				alpha = time_left >> 2;
+				if (time_left < 0) alpha = 0;
 			}
 
 			alpha <<= 24;

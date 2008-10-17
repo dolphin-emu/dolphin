@@ -20,6 +20,7 @@
 #include "x64Emitter.h"
 
 #include "Common.h"
+#include "LookUpTables.h"
 #include "Profiler.h"
 #include "VertexHandler.h"
 #include "VertexLoader.h"

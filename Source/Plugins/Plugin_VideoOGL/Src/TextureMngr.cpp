@@ -137,7 +137,6 @@ void TextureMngr::Shutdown()
 void TextureMngr::Cleanup()
 {
     TexCache::iterator iter = textures.begin();
-
     while (iter != textures.end()) {
         if (frameCount > 20 + iter->second.frameCount) {
             if (!iter->second.isRenderTarget) {

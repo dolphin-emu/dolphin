@@ -31,9 +31,6 @@
 
 using namespace D3D;
 
-//TODO(ector): remove and calculate inline?
-float shiftLookup[32];
-
 IndexGenerator indexGen;
 Collection CVertexHandler::collection;
 
@@ -65,10 +62,6 @@ const D3DVERTEXELEMENT9 decl[] =
 void CVertexHandler::Init()
 {
 	collection = C_NOTHING;
-
-	for (int i = 0; i < 31; i++)
-		shiftLookup[i] = 1.0f / float(1 << i);
-
 	fakeVBuffer = new D3DVertex[65536];
 	fakeIBuffer = new u16[65536];
 	CreateDeviceObjects();

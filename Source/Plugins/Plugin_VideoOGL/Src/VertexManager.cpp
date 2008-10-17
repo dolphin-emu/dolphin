@@ -15,14 +15,11 @@
 
 static GLuint s_vboBuffers[0x40] = {0};
 static int s_nCurVBOIndex = 0; // current free buffer
-static GLenum s_prevprimitive = 0; // current primitive type
 static u8 *s_pBaseBufferPointer = NULL;
 static vector< pair<int, int> > s_vStoredPrimitives; // every element, mode and count to be passed to glDrawArrays
+static u32 s_prevcomponents; // previous state set
 
 u8* VertexManager::s_pCurBufferPointer = NULL;
-u32 VertexManager::s_prevvbstride;
-u32 VertexManager::s_prevcomponents; // previous state set
-
 
 const GLenum c_primitiveType[8] =
 {
@@ -45,13 +42,8 @@ bool VertexManager::Init()
 
 	s_GlobalVtxDesc.Hex = 0;
 	s_prevcomponents = 0;
-	s_prevvbstride = 12; // just pos
-	s_prevprimitive = 0;
 	s_pBaseBufferPointer = (u8*)AllocateMemoryPages(MAX_BUFFER_SIZE);
 	s_pCurBufferPointer = s_pBaseBufferPointer;
-
-	for (u32 i = 0; i < ARRAYSIZE(shiftLookup); i++)
-		shiftLookup[i] = 1.0f / float(1 << i);
 
 	s_nCurVBOIndex = 0;
 	glGenBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
@@ -80,7 +72,7 @@ void VertexManager::Destroy()
 
 void VertexManager::ResetBuffer()
 {
-	s_nCurVBOIndex = (s_nCurVBOIndex+1)%ARRAYSIZE(s_vboBuffers);
+	s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
 	s_pCurBufferPointer = s_pBaseBufferPointer;
 	s_vStoredPrimitives.resize(0);
 }
@@ -88,20 +80,19 @@ void VertexManager::ResetBuffer()
 void VertexManager::ResetComponents()
 {
 	s_prevcomponents = 0;
-	s_prevvbstride = 12; // just pos
-	s_prevprimitive = 0;
 	glDisableVertexAttribArray(SHADER_POSMTX_ATTRIB);
 	glDisableClientState(GL_NORMAL_ARRAY);
 	glDisableVertexAttribArray(SHADER_NORM1_ATTRIB);
 	glDisableVertexAttribArray(SHADER_NORM2_ATTRIB);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
-	for (int i = 0; i < 8; ++i) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	for (int i = 0; i < 8; i++)
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
 int VertexManager::GetRemainingSize()
 {
-	return MAX_BUFFER_SIZE - (int)(s_pCurBufferPointer-s_pBaseBufferPointer);
+	return MAX_BUFFER_SIZE - (int)(s_pCurBufferPointer - s_pBaseBufferPointer);
 }
 
 void VertexManager::AddVertices(int primitive, int numvertices)
@@ -122,8 +113,8 @@ void VertexManager::Flush()
 	if (s_vStoredPrimitives.size() == 0)
 		return;
 
-	_assert_( fnSetupVertexPointers != NULL );
-	_assert_( s_pCurBufferPointer != s_pBaseBufferPointer );
+	_assert_(fnSetupVertexPointers != NULL);
+	_assert_(s_pCurBufferPointer != s_pBaseBufferPointer);
 
 #ifdef _DEBUG
 	PRIM_LOG("frame%d:\ncomps=0x%x, texgen=%d, numchan=%d, dualtex=%d, ztex=%d, proj=%d, cole=%d, alpe=%d, ze=%d\n", g_Config.iSaveTargetId, s_prevcomponents, xfregs.numTexGens,
@@ -135,6 +126,7 @@ void VertexManager::Flush()
 		ch = &xfregs.colChans[i].alpha;
 		PRIM_LOG("alpchan%d: matsrc=%d, light=0x%x, ambsrc=%d, diffunc=%d, attfunc=%d\n", i, ch->matsource, ch->GetFullLightMask(), ch->ambsource, ch->diffusefunc, ch->attnfunc);
 	}
+
 	for (int i = 0; i < xfregs.numTexGens; ++i) {
 		TexMtxInfo tinfo = xfregs.texcoords[i].texmtxinfo;
 		if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP ) tinfo.hex &= 0x7ff;
@@ -183,7 +175,7 @@ void VertexManager::Flush()
 		for (int i = 0; i < 8; i++) {
 			if (usedtextures & (1 << i)) {
 				glActiveTexture(GL_TEXTURE0+i);
-				
+			
 				FourTexUnits &tex = bpmem.tex[i>>2];
 				TextureMngr::TCacheEntry* tentry = TextureMngr::Load(i, (tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
 					tex.texImage0[i&3].width+1, tex.texImage0[i&3].height+1,
@@ -193,9 +185,9 @@ void VertexManager::Flush()
 					// texture loaded fine, set dims for pixel shader
 					if (tentry->isNonPow2) {
 						PixelShaderMngr::SetTexDims(i, tentry->w, tentry->h, tentry->mode.wrap_s, tentry->mode.wrap_t);
-						nonpow2tex |= 1<<i;
-						if (tentry->mode.wrap_s > 0 ) nonpow2tex |= 1<<(8+i);
-						if (tentry->mode.wrap_t > 0 ) nonpow2tex |= 1<<(16+i);
+						nonpow2tex |= 1 << i;
+						if (tentry->mode.wrap_s > 0) nonpow2tex |= 1 << (8 + i);
+						if (tentry->mode.wrap_t > 0) nonpow2tex |= 1 << (16 + i);
 						TextureMngr::EnableTexRECT(i);
 					}
 					// if texture is power of two, set to ones (since don't need scaling)
@@ -226,7 +218,7 @@ void VertexManager::Flush()
 
 	FRAGMENTSHADER* ps = PixelShaderMngr::GetShader();
 	VERTEXSHADER* vs = VertexShaderMngr::GetShader(s_prevcomponents);
-	_assert_( ps != NULL && vs != NULL );
+	_assert_(ps != NULL && vs != NULL);
 
 	bool bRestoreBuffers = false;
 	if (Renderer::GetZBufferTarget()) {
@@ -241,9 +233,9 @@ void VertexManager::Flush()
 			glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 			bRestoreBuffers = true;
 		}
-	}
-	else
+	} else {
 		Renderer::SetRenderMode(Renderer::RM_Normal);
+	}
 
 	// set global constants
 	VertexShaderMngr::SetConstants(*vs);
@@ -258,8 +250,7 @@ void VertexManager::Flush()
 #endif
 
 	int offset = 0;
-	vector< pair<int, int> >::iterator it;
-	for (it = s_vStoredPrimitives.begin(); it != s_vStoredPrimitives.end(); ++it) {
+	for (vector< pair<int, int> >::const_iterator it = s_vStoredPrimitives.begin(); it != s_vStoredPrimitives.end(); ++it) {
 		glDrawArrays(it->first, offset, it->second);
 		offset += it->second;
 	}
@@ -322,4 +313,60 @@ void VertexManager::LoadCPReg(u32 SubCmd, u32 Value)
 	case 0xA0: arraybases[SubCmd & 0xF]   = Value & 0xFFFFFFFF; break;
 	case 0xB0: arraystrides[SubCmd & 0xF] = Value & 0xFF;      break;
 	}
+}
+
+void VertexManager::EnableComponents(u32 components)
+{
+    if (s_prevcomponents != components) {
+        VertexManager::Flush();
+
+        // matrices
+        if ((components & VB_HAS_POSMTXIDX) != (s_prevcomponents & VB_HAS_POSMTXIDX)) {
+            if (components & VB_HAS_POSMTXIDX)
+                glEnableVertexAttribArray(SHADER_POSMTX_ATTRIB);
+            else
+                glDisableVertexAttribArray(SHADER_POSMTX_ATTRIB);
+        }
+
+        // normals
+        if ((components & VB_HAS_NRM0) != (s_prevcomponents & VB_HAS_NRM0)) {
+            if (components & VB_HAS_NRM0)
+                glEnableClientState(GL_NORMAL_ARRAY);
+            else
+                glDisableClientState(GL_NORMAL_ARRAY);
+        }
+        if ((components & VB_HAS_NRM1) != (s_prevcomponents & VB_HAS_NRM1)) {
+            if (components & VB_HAS_NRM1) {
+                glEnableVertexAttribArray(SHADER_NORM1_ATTRIB);
+                glEnableVertexAttribArray(SHADER_NORM2_ATTRIB);
+            }
+            else {
+                glDisableVertexAttribArray(SHADER_NORM1_ATTRIB);
+                glDisableVertexAttribArray(SHADER_NORM2_ATTRIB);
+            }
+        }
+
+        // color
+        for (int i = 0; i < 2; ++i) {
+            if ((components & (VB_HAS_COL0 << i)) != (s_prevcomponents & (VB_HAS_COL0 << i))) {
+                if (components & (VB_HAS_COL0 << 0))
+                    glEnableClientState(i ? GL_SECONDARY_COLOR_ARRAY : GL_COLOR_ARRAY);
+                else
+                    glDisableClientState(i ? GL_SECONDARY_COLOR_ARRAY : GL_COLOR_ARRAY);
+            }
+        }
+
+        // tex
+        for (int i = 0; i < 8; ++i) {
+            if ((components & (VB_HAS_UV0 << i)) != (s_prevcomponents & (VB_HAS_UV0 << i))) {
+                glClientActiveTexture(GL_TEXTURE0 + i);
+                if (components & (VB_HAS_UV0 << i))
+                    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                else
+                    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+            }
+        }
+
+        s_prevcomponents = components;
+    }
 }

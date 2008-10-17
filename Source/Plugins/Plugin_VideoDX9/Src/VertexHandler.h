@@ -22,8 +22,6 @@
 #include "VertexLoader.h"
 #include "DecodedVArray.h"
 
-extern float shiftLookup[32];
-
 struct UV
 {
 	float u,v,w;

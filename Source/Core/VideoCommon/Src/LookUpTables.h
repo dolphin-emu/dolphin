@@ -27,6 +27,7 @@ extern int lut6to8[64];
 extern float lutu8tosfloat[256];
 extern float lutu8toufloat[256];
 extern float luts8tosfloat[256];
+extern float shiftLookup[32];
 
 void InitLUTs();
 

@@ -49,12 +49,10 @@ public:
     static TVtxDesc &GetVtxDesc() {return s_GlobalVtxDesc; }
 
     static void LoadCPReg(u32 SubCmd, u32 Value);
+	static void EnableComponents(u32 components);
 
 	// TODO - don't expose these like this.
-	static u32 s_prevvbstride;
-	static u32 s_prevcomponents; // previous state set
     static u8* s_pCurBufferPointer;
-    static float shiftLookup[32];
 };
 
 #endif  // _VERTEXMANAGER_H

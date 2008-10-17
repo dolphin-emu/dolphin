@@ -111,7 +111,7 @@ char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
 
     // uniforms
     
-    // bool bTexMtx = ((components & VertexLoader::VB_HAS_TEXMTXIDXALL)<<VertexLoader::VB_HAS_UVTEXMTXSHIFT)!=0; unused TODO: keep?
+    // bool bTexMtx = ((components & VB_HAS_TEXMTXIDXALL)<<VB_HAS_UVTEXMTXSHIFT)!=0; unused TODO: keep?
 
     WRITE(p, "uniform s_"I_TRANSFORMMATRICES" "I_TRANSFORMMATRICES" : register(c%d);\n", C_TRANSFORMMATRICES);
     WRITE(p, "uniform s_"I_TEXMATRICES" "I_TEXMATRICES" : register(c%d);\n", C_TEXMATRICES); // also using tex matrices
@@ -126,60 +126,60 @@ char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
     WRITE(p, "VS_OUTPUT main(\n");
     
     // inputs
-    if (components & VertexLoader::VB_HAS_NRM0)
+    if (components & VB_HAS_NRM0)
         WRITE(p, "  float3 rawnorm0 : NORMAL,\n");
-    if (components & VertexLoader::VB_HAS_NRM1)
+    if (components & VB_HAS_NRM1)
         WRITE(p, "  float3 rawnorm1 : ATTR%d,\n", SHADER_NORM1_ATTRIB);
-    if (components & VertexLoader::VB_HAS_NRM2)
+    if (components & VB_HAS_NRM2)
         WRITE(p, "  float3 rawnorm2 : ATTR%d,\n", SHADER_NORM2_ATTRIB);
-    if (components & VertexLoader::VB_HAS_COL0)
+    if (components & VB_HAS_COL0)
         WRITE(p, "  float4 color0 : COLOR0,\n");
-    if (components & VertexLoader::VB_HAS_COL1)
+    if (components & VB_HAS_COL1)
         WRITE(p, "  float4 color1 : COLOR1,\n");
     for (int i = 0; i < 8; ++i) {
-        u32 hastexmtx = (components & (VertexLoader::VB_HAS_TEXMTXIDX0<<i));
-        if ((components & (VertexLoader::VB_HAS_UV0<<i)) || hastexmtx )
+        u32 hastexmtx = (components & (VB_HAS_TEXMTXIDX0<<i));
+        if ((components & (VB_HAS_UV0<<i)) || hastexmtx )
             WRITE(p, "  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i,i);
     }
-    if (components & VertexLoader::VB_HAS_POSMTXIDX)
+    if (components & VB_HAS_POSMTXIDX)
         WRITE(p, "  half posmtx : ATTR%d,\n", SHADER_POSMTX_ATTRIB);
 
     WRITE(p, "  float4 rawpos : POSITION) {\n");
     WRITE(p, "VS_OUTPUT o;\n");
 
     // transforms
-    if (components & VertexLoader::VB_HAS_POSMTXIDX) {
+    if (components & VB_HAS_POSMTXIDX) {
         WRITE(p, "float4 pos = float4(dot("I_TRANSFORMMATRICES".T[posmtx].t, rawpos), dot("I_TRANSFORMMATRICES".T[posmtx+1].t, rawpos), dot("I_TRANSFORMMATRICES".T[posmtx+2].t, rawpos),1);\n");
         
-        if (components & VertexLoader::VB_HAS_NRMALL) {
+        if (components & VB_HAS_NRMALL) {
             WRITE(p, "int normidx = posmtx >= 32 ? (posmtx-32) : posmtx;\n");
             WRITE(p, "float3 N0 = "I_NORMALMATRICES".T[normidx].t.xyz, N1 = "I_NORMALMATRICES".T[normidx+1].t.xyz, N2 = "I_NORMALMATRICES".T[normidx+2].t.xyz;\n");
         }
 
-        if (components & VertexLoader::VB_HAS_NRM0)
+        if (components & VB_HAS_NRM0)
             WRITE(p, "half3 _norm0 = half3(dot(N0, rawnorm0), dot(N1, rawnorm0), dot(N2, rawnorm0));\n"
                      "half3 norm0 = normalize(_norm0);\n");
-        if (components & VertexLoader::VB_HAS_NRM1)
+        if (components & VB_HAS_NRM1)
             WRITE(p, "half3 _norm1 = half3(dot(N0, rawnorm1), dot(N1, rawnorm1), dot(N2, rawnorm1));\n");
                     //"half3 norm1 = normalize(_norm1);\n");
-        if (components & VertexLoader::VB_HAS_NRM2)
+        if (components & VB_HAS_NRM2)
             WRITE(p, "half3 _norm2 = half3(dot(N0, rawnorm2), dot(N1, rawnorm2), dot(N2, rawnorm2));\n");
                     //"half3 norm2 = normalize(_norm2);\n");
     }
     else {
         WRITE(p, "float4 pos = float4(dot("I_POSNORMALMATRIX".T0, rawpos), dot("I_POSNORMALMATRIX".T1, rawpos), dot("I_POSNORMALMATRIX".T2, rawpos), 1);\n");
-        if (components & VertexLoader::VB_HAS_NRM0)
+        if (components & VB_HAS_NRM0)
             WRITE(p, "half3 _norm0 = half3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm0), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm0), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm0));\n"
                      "half3 norm0 = normalize(_norm0);\n");
-        if (components & VertexLoader::VB_HAS_NRM1)
+        if (components & VB_HAS_NRM1)
             WRITE(p, "half3 _norm1 = half3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm1), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm1), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm1));\n");
                     //"half3 norm1 = normalize(_norm1);\n");
-        if (components & VertexLoader::VB_HAS_NRM2)
+        if (components & VB_HAS_NRM2)
             WRITE(p, "half3 _norm2 = half3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm2), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm2), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm2));\n");
                     //"half3 norm2 = normalize(_norm2);\n");
     }
 
-    if (!(components & VertexLoader::VB_HAS_NRM0))
+    if (!(components & VB_HAS_NRM0))
         WRITE(p, "half3 _norm0 = half3(0,0,0), norm0= half3(0,0,0);\n");
 
     WRITE(p, "o.pos = float4(dot("I_PROJECTION".T0, pos), dot("I_PROJECTION".T1, pos), dot("I_PROJECTION".T2, pos), dot("I_PROJECTION".T3, pos));\n");
@@ -198,7 +198,7 @@ char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
         WRITE(p, "{\n");
 
         if (color.matsource) {// from vertex
-            if (components & (VertexLoader::VB_HAS_COL0<<j) )
+            if (components & (VB_HAS_COL0<<j) )
                 WRITE(p, "mat = color%d;\n", j);
             else WRITE(p, "mat = half4(1,1,1,1);\n");
         }
@@ -207,7 +207,7 @@ char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
 
         if (color.enablelighting) {
             if (color.ambsource) {// from vertex
-                if (components & (VertexLoader::VB_HAS_COL0<<j) )
+                if (components & (VB_HAS_COL0<<j) )
                     WRITE(p, "lacc = color%d;\n", j);
                 else WRITE(p, "lacc = half4(0.0f,0.0f,0.0f,0.0f);\n");
             }
@@ -218,7 +218,7 @@ char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
         // check if alpha is different
         if (alpha.matsource != color.matsource) {
             if (alpha.matsource) {// from vertex
-                if (components & (VertexLoader::VB_HAS_COL0<<j) )
+                if (components & (VB_HAS_COL0<<j) )
                     WRITE(p, "mat.w = color%d.w;\n", j);
                 else WRITE(p, "mat.w = 1;\n");
             }
@@ -228,7 +228,7 @@ char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
 
         if (alpha.enablelighting && alpha.ambsource != color.ambsource) {
             if (alpha.ambsource) {// from vertex
-                if (components & (VertexLoader::VB_HAS_COL0<<j) )
+                if (components & (VB_HAS_COL0<<j) )
                     WRITE(p, "lacc.w = color%d.w;\n", j);
                 else WRITE(p, "lacc.w = 0;\n");
             }
@@ -298,7 +298,7 @@ char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
             WRITE(p, "float4 coord = rawpos;\n"); // pos.w is 1
             break;
         case XF_SRCNORMAL_INROW:
-            if (components & VertexLoader::VB_HAS_NRM0) {
+            if (components & VB_HAS_NRM0) {
                 _assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
                 WRITE(p, "float4 coord = float4(rawnorm0.xyz, 1.0);\n");
             }
@@ -308,14 +308,14 @@ char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
             _assert_( texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC0 || texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC1 );
             break;
         case XF_SRCBINORMAL_T_INROW:
-            if (components & VertexLoader::VB_HAS_NRM1) {
+            if (components & VB_HAS_NRM1) {
                 _assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
                 WRITE(p, "float4 coord = float4(rawnorm1.xyz, 1.0);\n");
             }
             else WRITE(p, "float4 coord = 0;\n");
             break;
         case XF_SRCBINORMAL_B_INROW:
-            if (components & VertexLoader::VB_HAS_NRM2) {
+            if (components & VB_HAS_NRM2) {
                 _assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
                 WRITE(p, "float4 coord = float4(rawnorm2.xyz, 1.0);\n");
             }
@@ -323,7 +323,7 @@ char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
             break;
         default:
             _assert_(texinfo.sourcerow <= XF_SRCTEX7_INROW);
-            if (components & (VertexLoader::VB_HAS_UV0<<(texinfo.sourcerow - XF_SRCTEX0_INROW)) )
+            if (components & (VB_HAS_UV0<<(texinfo.sourcerow - XF_SRCTEX0_INROW)) )
                 WRITE(p, "float4 coord = float4(tex%d.x, tex%d.y, 1.0f, 1.0f);\n", texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);
             else
                 WRITE(p, "float4 coord = float4(0.0f, 0.0f, 1.0f, 1.0f);\n");
@@ -333,7 +333,7 @@ char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
         // firs transformation
         switch (texinfo.texgentype) {
             case XF_TEXGEN_REGULAR:
-                if (components & (VertexLoader::VB_HAS_TEXMTXIDX0<<i)) {
+                if (components & (VB_HAS_TEXMTXIDX0<<i)) {
                     if (texinfo.projection == XF_TEXPROJ_STQ )
                         WRITE(p, "o.tex%d.xyz = float3(dot(coord, "I_TRANSFORMMATRICES".T[tex%d.z].t), dot(coord, "I_TRANSFORMMATRICES".T[tex%d.z+1].t), dot(coord, "I_TRANSFORMMATRICES".T[tex%d.z+2].t));\n", i, i, i, i);
                     else {
@@ -349,7 +349,7 @@ char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
                 break;
             case XF_TEXGEN_EMBOSS_MAP: // calculate tex coords into bump map
 
-                if (components & (VertexLoader::VB_HAS_NRM1|VertexLoader::VB_HAS_NRM2)) {
+                if (components & (VB_HAS_NRM1|VB_HAS_NRM2)) {
                     // transform the light dir into tangent space
                     WRITE(p, "ldir = normalize("I_LIGHTS".lights[%d].pos.xyz - pos.xyz);\n", texinfo.embosslightshift); 
                     WRITE(p, "o.tex%d.xyz = o.tex%d.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0f);\n", i, texinfo.embosssourceshift);

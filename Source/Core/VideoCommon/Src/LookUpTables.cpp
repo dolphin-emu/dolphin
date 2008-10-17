@@ -28,15 +28,18 @@ int lut6to8[64];
 float lutu8tosfloat[256];
 float lutu8toufloat[256];
 float luts8tosfloat[256];
+float shiftLookup[32];
 
 void InitLUTs()
 {
-    for (int i = 0; i < 64; i++)
-        lut6to8[i] = (i*255) / 63;
-    for (int i = 0; i < 256; i++)
-    {
-        lutu8tosfloat[i] = (float)(i - 128) / 127.0f;
-        lutu8toufloat[i] = (float)(i) / 255.0f;
-        luts8tosfloat[i] = ((float)(signed char)(char)i) / 127.0f;
-    }
+	for (int i = 0; i < 32; i++)
+		shiftLookup[i] = 1.0f / float(1 << i);
+	for (int i = 0; i < 64; i++)
+		lut6to8[i] = (i*255) / 63;
+	for (int i = 0; i < 256; i++)
+	{
+		lutu8tosfloat[i] = (float)(i - 128) / 127.0f;
+		lutu8toufloat[i] = (float)(i) / 255.0f;
+		luts8tosfloat[i] = ((float)(signed char)(char)i) / 127.0f;
+	}
 }

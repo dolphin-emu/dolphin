@@ -56,9 +56,6 @@ static int colIndex;
 #endif
 
 TVtxDesc VertexManager::s_GlobalVtxDesc;
-float VertexManager::shiftLookup[32];
-
-
 
 // ==============================================================================
 // Direct
@@ -259,9 +256,9 @@ int VertexLoader::ComputeVertexSize()
 }
 
 // Note the use of CallCdeclFunction3I etc.
-// This is a horrible hack that is necessary because Opengl32.dll is based way, way above the 32-bit address space
-// that is within reach of a CALL, and just doing &fn gives us these high uncallable addresses. So we want to grab
-// the function pointers from the import table instead.
+// This is a horrible hack that is necessary because in 64-bit mode, Opengl32.dll is based way, way above the 32-bit
+// address space that is within reach of a CALL, and just doing &fn gives us these high uncallable addresses. So we
+// want to grab the function pointers from the import table instead.
 
 // This problem does not apply to glew functions, only core opengl32 functions.
 
@@ -362,7 +359,7 @@ void VertexLoader::ProcessFormat()
         }
         WriteCall(pFunc);
 
-        int sizePro=0;
+        int sizePro = 0;
         switch (m_VtxAttr.NormalFormat)
         {
         case FORMAT_UBYTE:	sizePro=1; break;
@@ -385,7 +382,7 @@ void VertexLoader::ProcessFormat()
     for (int i = 0; i < 2; i++) {
         SetupColor(i, col[i], m_VtxAttr.color[i].Comp, m_VtxAttr.color[i].Elements);
 
-        if (col[i] != NOT_PRESENT )
+        if (col[i] != NOT_PRESENT)
             m_VBVertexStride+=4;
     }
 
@@ -399,7 +396,7 @@ void VertexLoader::ProcessFormat()
     for (int i = 0; i < 8; i++) {
         SetupTexCoord(i, tc[i], m_VtxAttr.texCoord[i].Format, m_VtxAttr.texCoord[i].Elements, m_VtxAttr.texCoord[i].Frac);
 
-        if( m_components&(VB_HAS_TEXMTXIDX0<<i) ) {
+        if (m_components&(VB_HAS_TEXMTXIDX0<<i)) {
             if (tc[i] != NOT_PRESENT) {
                 // if texmtx is included, texcoord will always be 3 floats, z will be the texmtx index
                 WriteCall(m_VtxAttr.texCoord[i].Elements ? TexMtx_Write_Float : TexMtx_Write_Float2);
@@ -419,25 +416,25 @@ void VertexLoader::ProcessFormat()
 
         if (tc[i] == NOT_PRESENT) {
             // if there's more tex coords later, have to write a dummy call 
-            int j = i+1;
-            for(; j < 8; ++j) {
-                if( tc[j] != NOT_PRESENT ) {
+            int j = i + 1;
+            for (; j < 8; ++j) {
+                if (tc[j] != NOT_PRESENT) {
                     WriteCall(TexCoord_Read_Dummy); // important to get indices right!
                     break;
                 }
             }
 
-            if( j == 8 && !((m_components&VB_HAS_TEXMTXIDXALL)&(VB_HAS_TEXMTXIDXALL<<(i+1))) ) // no more tex coords and tex matrices, so exit loop
+            if (j == 8 && !((m_components&VB_HAS_TEXMTXIDXALL)&(VB_HAS_TEXMTXIDXALL<<(i+1)))) // no more tex coords and tex matrices, so exit loop
                 break;
         }
     }
 
-    if( m_VtxDesc.PosMatIdx ) {
+    if (m_VtxDesc.PosMatIdx) {
         WriteCall(PosMtx_Write);
         m_VBVertexStride += 1;
     }
 
-    if( m_VBVertexStride & 3 ) {
+    if (m_VBVertexStride & 3) {
         // make sure all strides are at least divisible by 4 (some gfx cards experience a 3x speed boost)
         m_VBStridePad = 4 - (m_VBVertexStride&3);
         m_VBVertexStride += m_VBStridePad;
@@ -462,16 +459,16 @@ void VertexLoader::ProcessFormat()
         case FORMAT_BYTE:
             CallCdeclFunction3_I(glNormalPointer, GL_BYTE, m_VBVertexStride, offset); offset += 3;
             if (m_VtxAttr.NormalElements) {
-                CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM1_ATTRIB,3,GL_BYTE, GL_TRUE, m_VBVertexStride, offset); offset += 3;
-                CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM2_ATTRIB,3,GL_BYTE, GL_TRUE, m_VBVertexStride, offset); offset += 3;
+                CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM1_ATTRIB, 3, GL_BYTE, GL_TRUE, m_VBVertexStride, offset); offset += 3;
+                CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM2_ATTRIB, 3, GL_BYTE, GL_TRUE, m_VBVertexStride, offset); offset += 3;
             }
             break;
         case FORMAT_USHORT:
         case FORMAT_SHORT:
             CallCdeclFunction3_I(glNormalPointer, GL_SHORT, m_VBVertexStride, offset); offset += 6;
             if (m_VtxAttr.NormalElements) {
-                CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM1_ATTRIB,3,GL_SHORT, GL_TRUE, m_VBVertexStride, offset); offset += 6;
-                CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM2_ATTRIB,3,GL_SHORT, GL_TRUE, m_VBVertexStride, offset); offset += 6;
+                CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM1_ATTRIB, 3, GL_SHORT, GL_TRUE, m_VBVertexStride, offset); offset += 6;
+                CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM2_ATTRIB, 3, GL_SHORT, GL_TRUE, m_VBVertexStride, offset); offset += 6;
             }
             break;
         case FORMAT_FLOAT:
@@ -497,7 +494,7 @@ void VertexLoader::ProcessFormat()
 
     // TextureCoord
     for (int i = 0; i < 8; i++) {
-        if (tc[i] != NOT_PRESENT || (m_components&(VB_HAS_TEXMTXIDX0<<i)) ) {
+        if (tc[i] != NOT_PRESENT || (m_components&(VB_HAS_TEXMTXIDX0<<i))) {
 
             int id = GL_TEXTURE0+i;
 #ifdef _M_X64
@@ -554,11 +551,11 @@ void VertexLoader::ProcessFormat()
 
 void VertexLoader::PrepareRun()
 {
-    posScale = VertexManager::shiftLookup[m_VtxAttr.PosFrac];
-    if( m_components & VB_HAS_UVALL ) {
+    posScale = shiftLookup[m_VtxAttr.PosFrac];
+    if (m_components & VB_HAS_UVALL) {
         for (int i = 0; i < 8; i++) {
-            tcScaleU[i]   = VertexManager::shiftLookup[m_VtxAttr.texCoord[i].Frac];
-            tcScaleV[i]   = VertexManager::shiftLookup[m_VtxAttr.texCoord[i].Frac];
+            tcScaleU[i] = shiftLookup[m_VtxAttr.texCoord[i].Frac];
+            tcScaleV[i] = shiftLookup[m_VtxAttr.texCoord[i].Frac];
         }
     }
     for (int i = 0; i < 2; i++)
@@ -568,7 +565,7 @@ void VertexLoader::PrepareRun()
 void VertexLoader::SetupColor(int num, int mode, int format, int elements)
 {
     // if COL0 not present, then embed COL1 into COL0
-    if( num == 1 && !(m_components & VB_HAS_COL0) ) num = 0;
+    if (num == 1 && !(m_components & VB_HAS_COL0) ) num = 0;
 
     m_components |= VB_HAS_COL0 << num;
     switch (mode)
@@ -686,60 +683,7 @@ void VertexLoader::RunVertices(int primitive, int count)
     ProcessFormat();
     fnSetupVertexPointers = (void (*)())(void*)m_compiledCode;
 
-	// Move this code into VertexManager?
-    if (VertexManager::s_prevcomponents != m_components) {
-        VertexManager::Flush();
-
-        // matrices
-        if ((m_components & VB_HAS_POSMTXIDX) != (VertexManager::s_prevcomponents & VB_HAS_POSMTXIDX)) {
-            if (m_components & VB_HAS_POSMTXIDX)
-                glEnableVertexAttribArray(SHADER_POSMTX_ATTRIB);
-            else
-                glDisableVertexAttribArray(SHADER_POSMTX_ATTRIB);
-        }
-
-        // normals
-        if ((m_components & VB_HAS_NRM0) != (VertexManager::s_prevcomponents & VB_HAS_NRM0)) {
-            if (m_components & VB_HAS_NRM0)
-                glEnableClientState(GL_NORMAL_ARRAY);
-            else
-                glDisableClientState(GL_NORMAL_ARRAY);
-        }
-        if ((m_components & VB_HAS_NRM1) != (VertexManager::s_prevcomponents & VB_HAS_NRM1)) {
-            if (m_components & VB_HAS_NRM1) {
-                glEnableVertexAttribArray(SHADER_NORM1_ATTRIB);
-                glEnableVertexAttribArray(SHADER_NORM2_ATTRIB);
-            }
-            else {
-                glDisableVertexAttribArray(SHADER_NORM1_ATTRIB);
-                glDisableVertexAttribArray(SHADER_NORM2_ATTRIB);
-            }
-        }
-
-        // color
-        for (int i = 0; i < 2; ++i) {
-            if ((m_components & (VB_HAS_COL0 << i)) != (VertexManager::s_prevcomponents & (VB_HAS_COL0 << i))) {
-                if (m_components & (VB_HAS_COL0 << 0))
-                    glEnableClientState(i ? GL_SECONDARY_COLOR_ARRAY : GL_COLOR_ARRAY);
-                else
-                    glDisableClientState(i ? GL_SECONDARY_COLOR_ARRAY : GL_COLOR_ARRAY);
-            }
-        }
-
-        // tex
-        for (int i = 0; i < 8; ++i) {
-            if ((m_components & (VB_HAS_UV0 << i)) != (VertexManager::s_prevcomponents & (VB_HAS_UV0 << i))) {
-                glClientActiveTexture(GL_TEXTURE0 + i);
-                if (m_components & (VB_HAS_UV0 << i))
-                    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                else
-                    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-            }
-        }
-
-        VertexManager::s_prevcomponents = m_components;
-        VertexManager::s_prevvbstride = m_VBVertexStride;
-    }
+	VertexManager::EnableComponents(m_components);
 
     PrepareRun();
 
@@ -749,11 +693,11 @@ void VertexLoader::RunVertices(int primitive, int count)
     switch(primitive) {
         case 3: // strip
         case 4: // fan
-            if( VertexManager::GetRemainingSize() < 3*m_VBVertexStride )
+            if (VertexManager::GetRemainingSize() < 3*m_VBVertexStride )
                 VertexManager::Flush();
             break;
         case 6: // line strip
-            if( VertexManager::GetRemainingSize() < 2*m_VBVertexStride )
+            if (VertexManager::GetRemainingSize() < 2*m_VBVertexStride )
                 VertexManager::Flush();
             break;
         case 0: // quads
@@ -774,7 +718,7 @@ void VertexLoader::RunVertices(int primitive, int count)
 		{
             if (VertexManager::GetRemainingSize() < granularity*m_VBVertexStride) {
                 u8* plastptr = VertexManager::s_pCurBufferPointer;
-                if (v-startv > 0)
+                if (v - startv > 0)
                     VertexManager::AddVertices(primitive, v-startv+extraverts);
                 VertexManager::Flush();
 				// Why does this need to be so complicated?
@@ -823,5 +767,5 @@ void VertexLoader::RunVertices(int primitive, int count)
     }
 
     if (startv < count)
-        VertexManager::AddVertices(primitive, count-startv+extraverts);
+        VertexManager::AddVertices(primitive, count - startv + extraverts);
 }
