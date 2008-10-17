@@ -81,7 +81,7 @@ if sys.platform == 'darwin':
             properties.update(srcNode.value)
             for dstNode in target:
                 writePlist(properties, str(dstNode))
-	builders['Plist'] = Builder(action = createPlist)
+    builders['Plist'] = Builder(action = createPlist)
 
 lib_paths = include_paths
 
