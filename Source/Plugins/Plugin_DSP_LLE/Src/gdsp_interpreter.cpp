@@ -228,10 +228,24 @@ void gdsp_step()
 
 	if (g_dsp.pc == 0x80e7)
 	{
-		g_dsp.pc = HLE_ROM_80E7_81F8();
+		//g_dsp.pc = HLE_ROM_80E7_81F8();
 	}
 
 	g_dsp.err_pc = g_dsp.pc;
+
+#if PROFILE
+	ProfilerAddDelta(g_dsp.err_pc, 1);
+	if (g_dsp.step_counter == 1)
+	{
+		ProfilerInit();
+	}
+
+	if ((g_dsp.step_counter & 0xFFFFF) == 0)
+	{
+		ProfilerDump(g_dsp.step_counter);
+	}
+
+#endif
 
 	uint16 opc = dsp_fetch_code();
 	dsp_op[opc >> 12](opc);

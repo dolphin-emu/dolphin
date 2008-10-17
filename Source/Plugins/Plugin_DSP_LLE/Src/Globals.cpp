@@ -88,4 +88,48 @@ u32 Memory_Read_U32(u32 _uAddress)
 	_uAddress &= RAM_MASK;
 	return Common::swap32(*(u32*)&g_dsp.cpu_ram[_uAddress]);
 }
-// =============
+
+#if PROFILE
+
+#define PROFILE_MAP_SIZE 0x10000
+
+u64 g_profileMap[PROFILE_MAP_SIZE];
+bool g_profile = false;
+
+void ProfilerStart()
+{
+	g_profile = true;
+}
+
+void ProfilerAddDelta(int _addr, int _delta)
+{
+	if (g_profile)
+	{
+		g_profileMap[_addr] += _delta;
+	}	
+}
+
+void ProfilerInit()
+{
+	memset(g_profileMap, 0, sizeof(g_profileMap));
+}
+
+void ProfilerDump(uint64 count)
+{
+	FILE* pFile = fopen("c:\\_\\DSP_Prof.txt", "wt");
+	if (pFile != NULL)
+	{
+		fprintf(pFile, "Number of DSP steps: %i\n\n", count);
+		for (int i=0; i<PROFILE_MAP_SIZE;i++)
+		{
+			if (g_profileMap[i] > 0)
+			{
+				fprintf(pFile, "0x%04X: %u\n", i, g_profileMap[i]);
+			}
+		}
+
+		fclose(pFile);
+	}
+}
+
+#endif

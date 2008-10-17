@@ -87,7 +87,7 @@ Init-Code()
 0021 00fe 0e31 SR	@0x0e31, $30
 0023 16fc dcd1 SI	@DMBH, #0xdcd1
 0025 16fd 0000 SI	@DMBL, #0x0000
-0027 16fb 0001 SI	@DIRQ, #0x0001
+0027 16fb 0001 SI	@DIRQ, #0x0001		// write mail: DSP_TASK_STATE_RUN(0xDCD10000) and calls initCB of the task
 
 // wait for mail
 0029 26fc      LRS	$30, @DMBH
@@ -109,7 +109,9 @@ Init-Code()
 0038 0092 00ff LRI	$18, #0x00ff
 003a 16fc dcd1 SI	@DMBH, #0xdcd1
 003c 16fd 0001 SI	@DMBL, #0x0001
-003e 16fb 0001 SI	@DIRQ, #0x0001
+003e 16fb 0001 SI	@DIRQ, #0x0001		// write mail: DSP_TASK_STATE_RUN(0xDCD10001) and calls resCB of the task
+
+
 0040 26fc      LRS	$30, @DMBH
 0041 02a0 8000 ANDCF	$30, #0x8000
 0043 029c 0040 JZR	0x0040
@@ -121,9 +123,15 @@ Main()
 0046 8100      CLR	$30
 0047 8900      CLR	$31
 0048 009f babe LRI	$31, #0xbabe
+
+
+// wait for dma timewasting :D
 004a 26fe      LRS	$30, @CMBH
 004b 02c0 8000 ANDF	$30, #0x8000
 004d 029c 004a JZR	0x004a
+
+
+
 004f 8200      CMP	
 0050 0294 004a JNE	0x004a
 0052 23ff      LRS	$27, @CMBL
@@ -727,6 +735,8 @@ Main()
 033b 1c03      MRR	$0, $3
 033c 1ff5      MRR	$31, $21
 033d 191a      LRRI	$26, @$0
+
+
 033e f858      ADDPAXZ.L	$30, $26 : $27, @$0
 033f fba0      ADDPAXZ.LS	$31, $27 : $26, $30
 0340 f8b1      ADDPAXZ.LS	$30, $26 : $27, $31
@@ -736,6 +746,10 @@ Main()
 0344 f8b1      ADDPAXZ.LS	$30, $26 : $27, $31
 0345 fba0      ADDPAXZ.LS	$31, $27 : $26, $30
 0346 f83b      ADDPAXZ.S	$30, $26 : @$3, $31
+
+
+
+
 0347 1b7e      SRRI	@$3, $30
 0348 0083 0e04 LRI	$3, #0x0e04
 034a 8100      CLR	$30
@@ -818,6 +832,11 @@ Main()
 03b3 16cd 03c0 SI	@DSPA, #0x03c0
 03b5 16c9 0000 SI	@DSCR, #0x0000
 03b7 16cb 0080 SI	@DSBL, #0x0080    // Don't know w.at this dma xfer is
+
+
+
+
+
 03b9 8100      CLR	$30
 03ba 8900      CLR	$31
 03bb 00de 0b84 LR	$30, @0x0b84
@@ -2598,11 +2617,11 @@ Main()
 0c90 0cdd      LRIS	$28, #0xdd			// normal case to return to the main-loop
 
 
-// Mix and write back to RAM??? It is called by AXLIST_END command only
+// Wait for new message from the CPU
 0c91 8e00      S40	
 0c92 8100      CLR	$30
 0c93 8900      CLR	$31
-0c94 02bf 0ce0 CALL	0x0ce0    // wait for CMBH
+0c94 02bf 0ce0 CALL	0x0ce0    			// wait for answer for our "0xDCD10002"-message... and we have to wait really long :(
 0c96 27ff      LRS	$31, @CMBL
 0c97 009e 0c8d LRI	$30, #0x0c8d
 0c99 4c00      ADD	$30, $31
@@ -2611,6 +2630,8 @@ Main()
 0c9c 1c7f      MRR	$3, $31
 0c9d 176f      JMPR	$3
 0c9e 0021      HALT	
+
+//////////////////////////////////////////////////////////////////////////7
 
 // case 0x00:
 0c9f 029f 0030 JMP	0x0030

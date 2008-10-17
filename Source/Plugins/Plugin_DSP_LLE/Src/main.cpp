@@ -66,7 +66,7 @@ bool AXTask(u32& _uMail);
 bool bCanWork = false;
 
 // Set this if you want to log audio. search for log_ai in this file to see the filename.
-static bool log_ai = false;
+static bool log_ai = true;
 WaveFileWriter g_wave_writer;
 
 // ==============
@@ -258,11 +258,12 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 // --------------
 //		Dump UCode to file...
 
-   	FILE* t = fopen("DSP_UC_09CD143F.txt", "wb");
-	if(t) {
+   	FILE* t = fopen("C:\\_\\DSP_UC_09CD143F.txt", "wb");
+	if (t != NULL)
+	{
    		gd_globals_t gdg;
-   		gd_dis_file(&gdg, "DSP_UC_09CD143F.bin", t);
-   		fclose(t);
+   		gd_dis_file(&gdg, "C:\\_\\DSP_UC_09CD143F.bin", t);
+   		fclose(t);   
 	}
 // --------------
 
@@ -352,6 +353,13 @@ void DSP_WriteMailboxHigh(bool _CPUMailbox, u16 _uHighMail)
 		{
 			ErrorLog("Mailbox isnt empty ... strange");
 		}
+
+#if PROFILE
+		if ((_uHighMail) == 0xBABE)
+		{
+			ProfilerStart();
+		}
+#endif
 
 		gdsp_mbox_write_h(GDSP_MBOX_CPU, _uHighMail);
 	}

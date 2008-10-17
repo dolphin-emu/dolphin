@@ -91,5 +91,4 @@ uint16* gdsp_get_irom(void);
 uint16* gdsp_get_dram(void);
 uint16* gdsp_get_drom(void);
 
-
 #endif

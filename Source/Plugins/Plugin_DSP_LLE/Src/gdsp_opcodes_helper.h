@@ -107,6 +107,10 @@ inline void dsp_op_write_reg(uint8 reg, uint16 val)
 
 inline sint64 dsp_get_long_prod()
 {
+#if PROFILE
+	ProfilerAddDelta(g_dsp.err_pc, 1);
+#endif
+
 	sint64 val;
 	sint64 low_prod;
 	val   = (sint8)g_dsp.r[0x16];
@@ -122,6 +126,10 @@ inline sint64 dsp_get_long_prod()
 
 inline void dsp_set_long_prod(sint64 val)
 {
+#if PROFILE
+	ProfilerAddDelta(g_dsp.err_pc, 1);
+#endif
+
 	g_dsp.r[0x14] = (uint16)val;
 	val >>= 16;
 	g_dsp.r[0x15] = (uint16)val;
@@ -139,6 +147,10 @@ inline void dsp_set_long_prod(sint64 val)
 
 inline sint64 dsp_get_long_acc(uint8 reg)
 {
+#if PROFILE
+	ProfilerAddDelta(g_dsp.err_pc, 1);
+#endif
+
 	_dbg_assert_(reg < 2);
 	sint64 val;
 	sint64 low_acc;
@@ -154,6 +166,10 @@ inline sint64 dsp_get_long_acc(uint8 reg)
 
 inline uint64 dsp_get_ulong_acc(uint8 reg)
 {
+#if PROFILE
+	ProfilerAddDelta(g_dsp.err_pc, 1);
+#endif
+
 	_dbg_assert_(reg < 2);
 	uint64 val;
 	uint64 low_acc;
@@ -169,6 +185,10 @@ inline uint64 dsp_get_ulong_acc(uint8 reg)
 
 inline void dsp_set_long_acc(uint8 _reg, sint64 val)
 {
+#if PROFILE
+	ProfilerAddDelta(g_dsp.err_pc, 1);
+#endif
+
 	_dbg_assert_(_reg < 2);
 	g_dsp.r[0x1c + _reg] = (uint16)val;
 	val >>= 16;
@@ -208,6 +228,10 @@ inline sint16 dsp_get_acc_h(uint8 _reg)
 
 inline sint64 dsp_get_long_acx(uint8 _reg)
 {
+#if PROFILE
+	ProfilerAddDelta(g_dsp.err_pc, 1);
+#endif
+
 	_dbg_assert_(_reg < 2);
 	sint64 val = (sint16)g_dsp.r[0x1a + _reg];
 	val <<= 16;
