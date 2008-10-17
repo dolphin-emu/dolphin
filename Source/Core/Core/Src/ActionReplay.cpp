@@ -43,6 +43,11 @@ static u32 data;
 static u8 subtype;
 static u8 w;
 static u8 type;
+static u8 zcode;
+static bool doFillNSlide = false;
+static bool doMemoryCopy = false;
+static u32 addr_last;
+static u32 val_last;
 static std::vector<AREntry>::const_iterator iter;
 
 static std::vector<ARCode> arCodes;
@@ -55,6 +60,8 @@ void DoARSubtype_WriteToPointer();
 void DoARSubtype_AddCode();
 void DoARSubtype_MasterCodeAndWriteToCCXXXXXX();
 void DoARSubtype_Other();
+void DoARZeroCode_FillAndSlide();
+void DoARZeroCode_MemoryCopy();
 
 // Parses the Action Replay section of a game ini file.
 void LoadActionReplayCodes(IniFile &ini) 
@@ -127,6 +134,7 @@ void ActionReplayRunAllActive()
 			RunActionReplayCode(*iter, false);
 }
 
+
 // The mechanism is slightly different than what the real AR uses, so there may be compatibility problems.
 // For example, some authors have created codes that add features to AR. Hacks for popular ones can be added here,
 // but the problem is not generally solvable.
@@ -135,44 +143,67 @@ void RunActionReplayCode(const ARCode &arcode, bool nowIsBootup) {
 	for (iter = code.ops.begin(); iter != code.ops.end(); ++iter) 
 	{
 		cmd_addr = iter->cmd_addr;
-		cmd = iter->cmd_addr>>24;
+		cmd = iter->cmd_addr >> 24;
 		addr = iter->cmd_addr;
 		data = iter->value;
 		subtype = ((cmd_addr >> 30) & 0x03);
-		w = (cmd - ((cmd >> 4) << 4));
+		w = (cmd & 0x07);
 		type = ((cmd_addr >> 27) & 0x07);
+		zcode = ((data >> 29) & 0x07);
 
+		// Do Fill & Slide
+		if (doFillNSlide) {
+			DoARZeroCode_FillAndSlide(); 
+			continue;
+		}
+
+		// Memory Copy
+		if (doMemoryCopy) {
+			DoARZeroCode_MemoryCopy(); 
+			continue;
+		}
+
+		// ActionReplay program self modification codes
 		if (addr >= 0x00002000 && addr < 0x00003000) {
 			PanicAlert("This action replay simulator does not support codes that modify Action Replay itself.");
 			return;
 		}
 
-		// End of sequence. Dunno why anybody would use it.
-		if (iter->cmd_addr == 0) {
-			// Special command!
-			if ((data >> 28) == 0x8) {  // Fill 'n' slide
-				PanicAlert("Fill'n'slide command not yet supported.");
-				++iter; /*
-				u32 x = data;
-				u32 size = (addr >> 25) & 3;
-				addr &= 0x01FFFFFF;*/
-			}
-			else {
-				if (data == 0x40000000) 
-				{
-					// Resume normal execution. Don't need to do anything here.
-				}
-				else 
-				{
-					PanicAlert("This action replay command (%08x %08x) not yet supported.", cmd_addr, data);
-				}
-			}
-		}
-
 		// skip these weird init lines
 		if (iter == code.ops.begin() && cmd == 1) continue;
 
-		// SubType selector
+		// Zero codes
+		if (addr == 0x0) // Check if the code is a zero code
+		{
+			switch(zcode)
+			{
+				case 0x00: // END OF CODES
+					return;
+				case 0x02: // Normal execution of codes
+					// Todo: Set register 1BB4 to 0
+					break;
+				case 0x03: // Executes all codes in the same row
+					// Todo: Set register 1BB4 to 1
+					PanicAlert("Zero code 3 is not supported");
+					continue;
+				case 0x04: // Fill & Slide or Memory Copy
+					if (((addr >> 25) & 0x03) == 0x3) {
+						doMemoryCopy = true;
+						addr_last = addr;
+						val_last = data;
+					}
+					else {
+						doFillNSlide = true;
+						addr_last = addr;
+					}
+					continue;
+				default: 
+					PanicAlert("Zero code unknown to dolphin: %08x",zcode); 
+					continue;
+			}
+		}
+
+		// Normal codes
 		switch (subtype)
 		{
 		case 0x0: // Ram write (and fill)
@@ -269,7 +300,7 @@ void DoARSubtype_AddCode()
 {
 	if (w < 0x8)
 	{
-		u32 new_addr = ( (addr & 0x01FFFFFF) | 0x81FFFFFF);
+		u32 new_addr = ( addr & 0x81FFFFFF);
 		switch ((addr >> 25) & 0x03)
 		{
 		case 0x0: // Byte add
@@ -378,5 +409,87 @@ void DoARSubtype_Other()
 	default:
 		PanicAlert("Unknown Action Replay command %02x (%08x %08x)", cmd, iter->cmd_addr, iter->value);
 		break;
+	}
+}
+void DoARZeroCode_FillAndSlide()
+{
+	u32 new_addr = (addr_last & 0x81FFFFFF);
+	u8 size = ((new_addr >> 25) & 0x03);
+	u32 addr_incr;
+	u32 val = addr;
+	int val_incr;
+	u8 write_num = ((data & 0x78000) >> 16); // Z2
+	u32 curr_addr = new_addr;
+
+	if (write_num < 1) {
+		doFillNSlide = false; 
+		return;
+	}
+
+	if ((data >> 24) >> 3) { // z1 >> 3
+		addr_incr = ((data & 0x7FFF) + 0xFFFF0000); // FFFFZ3Z4 
+		val_incr = (int)((data & 0x7F) + 0xFFFFFF00); // FFFFFFZ1
+	}
+	else {
+		addr_incr = (data & 0x7FFF); // 0000Z3Z4
+		val_incr = (int)(data & 0x7F); // 000000Z1
+	}
+
+	if (val_incr < 0)
+	{
+		curr_addr = new_addr + (addr_incr * write_num);
+	}
+
+	switch(size)
+	{
+		case 0x0: // Byte
+				for(int i=0; i < write_num; i++) {
+					u8 repeat = val >> 8;
+					for(int j=0; j < repeat; j++) {
+						Memory::Write_U8(val & 0xFF, new_addr + j);
+					}
+					val += val_incr;
+					if (val_incr < 0) curr_addr -= addr_incr;
+					else curr_addr += addr_incr;
+				} break;
+		case 0x1: // Halfword
+				for(int i=0; i < write_num; i++) {
+					u8 repeat = val >> 16;
+					for(int j=0; j < repeat; j++) {
+						Memory::Write_U8(val & 0xFFFF, new_addr + j * 2);
+					}
+					val += val_incr;
+					if (val_incr < 0) curr_addr -= addr_incr;
+					else curr_addr += addr_incr;
+				} break;
+		case 0x2: // Word
+				for(int i=0; i < write_num; i++) {
+					Memory::Write_U16(val, new_addr);
+					val += val_incr;
+					if (val_incr < 0) curr_addr -= addr_incr;
+					else curr_addr += addr_incr;
+				} break;
+		default: break;
+	}
+	doFillNSlide = false; 
+	return;
+}
+void DoARZeroCode_MemoryCopy()
+{
+	u32 addr_dest = (val_last | 0x06000000);
+	u32 addr_src = addr;
+	u8 num_bytes = (data & 0x7FFF);
+
+	if ((data & ~0x7FFF) == 0x0000) { 
+		if((data >> 24) != 0x0) { // Memory Copy With Pointers Support
+			for(int i = 0; i < 138; i++) {
+				Memory::Write_U8(Memory::Read_U8(addr_src + i), addr_dest + i);
+			}
+		}
+		else { // Memory Copy Without Pointer Support
+			for(int i=0; i < num_bytes; i++) {
+				Memory::Write_U32(Memory::Read_U32(addr_src + i), addr_dest + i);
+			} return;
+		}
 	}
 }
