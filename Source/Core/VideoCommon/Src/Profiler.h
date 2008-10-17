@@ -21,17 +21,23 @@
 #ifndef _PROFILER_H
 #define _PROFILER_H
 
+#include <string>
+
+#include "Common.h"
+
 // #define DVPROFILE // comment out to disable profiling
 
 extern int g_bWriteProfile; // global variable to enable/disable profiling (if DVPROFILE is defined)
 
-// IMPORTANT: For every Register there must be an End
+// IMPORTANT: For every Register there must be an End. Use the below DVProfileFunc utility class for safety.
 void DVProfRegister(const char* pname);			// first checks if this profiler exists in g_listProfilers
 void DVProfEnd(u32 dwUserData);
-void DVProfWrite(const char* pfilename, u32 frames = 0);
-void DVProfClear();						// clears all the profi	lers
 
-#if defined(DVPROFILE) && (defined(_WIN32)||defined(WIN32))
+void DVProfWrite(const char* pfilename, u32 frames = 0);
+void DVProfGenReport(std::string *report);
+void DVProfClear();						// clears all the profilers
+
+#if defined(DVPROFILE) && defined(_WIN32)
 
 #ifdef _MSC_VER
 

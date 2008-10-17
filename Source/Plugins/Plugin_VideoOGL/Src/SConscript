@@ -18,6 +18,8 @@ files = [
 	'rasterfont.cpp',
 	'Render.cpp',
 	'TextureMngr.cpp',
+	'ImageWrite.cpp',
+	'VertexManager.cpp',
 	'VertexLoader.cpp',
 	'VertexLoader_Normal.cpp',
 	'VertexShader.cpp',

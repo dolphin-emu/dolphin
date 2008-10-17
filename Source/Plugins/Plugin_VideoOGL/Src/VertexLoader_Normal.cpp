@@ -15,11 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-//__________________________________________________________________________________________________
-// F|RES 2003-2005
-//
 #include "Globals.h"
 #include "VertexLoader.h"
+#include "VertexManager.h"
 #include "VertexLoader_Normal.h"
 
 #define LOG_NORM8() PRIM_LOG("norm: %f %f %f, ", ((s8*)VertexManager::s_pCurBufferPointer)[-3]/127.0f, ((s8*)VertexManager::s_pCurBufferPointer)[-2]/127.0f, ((s8*)VertexManager::s_pCurBufferPointer)[-1]/127.0f);
@@ -30,9 +28,7 @@ u8					VertexLoader_Normal::m_sizeTable[NUM_NRM_TYPE][NUM_NRM_FORMAT][NUM_NRM_EL
 TPipelineFunction	VertexLoader_Normal::m_funcTable[NUM_NRM_TYPE][NUM_NRM_FORMAT][NUM_NRM_ELEMENTS];
 
 bool VertexLoader_Normal::index3;
-// __________________________________________________________________________________________________
-// Init
-//
+
 void VertexLoader_Normal::Init(void)
 {
     // size table

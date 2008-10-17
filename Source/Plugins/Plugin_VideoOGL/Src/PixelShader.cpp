@@ -40,7 +40,7 @@ void WrapNonPow2Tex(char* &p, const char* var, int texmap, u32 texture_mask);
 void WriteAlphaCompare(char *&p, int num, int comp);
 bool WriteAlphaTest(char *&p);
 
-const float epsilon = 1.0f/255.0f;
+const float epsilon8bit = 1.0f / 255.0f;
 
 static const char *tevKSelTableC[] = // KCSEL
 {
@@ -281,8 +281,8 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
     int numTexgen = bpmem.genMode.numtexgens;
 
     char *p = text;
-    WRITE(p,"//Pixel Shader for TEV stages\n");
-    WRITE(p,"//%i TEV stages, %i texgens, %i IND stages\n",
+    WRITE(p, "//Pixel Shader for TEV stages\n");
+    WRITE(p, "//%i TEV stages, %i texgens, %i IND stages\n",
         numStages,numTexgen,bpmem.genMode.numindstages);
 
     bool bRenderZ = has_zbuffer_target && bpmem.zmode.updateenable;
@@ -293,24 +293,24 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
     assert( !bRenderZToCol0 || bRenderZ );
 
     int ztexcoord = -1;
-    if( bInputZ )
+    if (bInputZ)
         ztexcoord = numTexgen == 0 ? 0 : numTexgen-1;
 
     int nIndirectStagesUsed = 0;
-    if( bpmem.genMode.numindstages > 0 ) {
-        for(int i = 0; i < numStages; ++i) {
-            if( bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages ) {
+    if (bpmem.genMode.numindstages > 0) {
+        for (int i = 0; i < numStages; ++i) {
+            if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages) {
                 nIndirectStagesUsed |= 1<<bpmem.tevind[i].bt;
             }
         }
     }
 
     // samplers
-    if( texture_mask ) {
-        WRITE(p,"uniform samplerRECT ");
+    if (texture_mask) {
+        WRITE(p, "uniform samplerRECT ");
         bool bfirst = true;
-        for(int i = 0; i < 8; ++i) {
-            if( texture_mask & (1<<i) ) {
+        for (int i = 0; i < 8; ++i) {
+            if (texture_mask & (1<<i)) {
                 WRITE(p, "%s samp%d : register(s%d)", bfirst?"":",", i, i);
                 bfirst = false;
             }
@@ -318,11 +318,11 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
         WRITE(p, ";\n");
     }
 
-    if( texture_mask != 0xff ) {
-        WRITE(p,"uniform sampler2D ");
+    if (texture_mask != 0xff) {
+        WRITE(p, "uniform sampler2D ");
         bool bfirst = true;
-        for(int i = 0; i < 8; ++i) {
-            if( !(texture_mask & (1<<i)) ) {
+        for (int i = 0; i < 8; ++i) {
+            if (!(texture_mask & (1<<i))) {
                 WRITE(p, "%s samp%d : register(s%d)", bfirst?"":",",i, i);
                 bfirst = false;
             }
@@ -332,7 +332,7 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
 
     WRITE(p, "\n");
 
-    WRITE(p,"uniform float4 "I_COLORS"[4] : register(c%d);\n", C_COLORS);
+    WRITE(p, "uniform float4 "I_COLORS"[4] : register(c%d);\n", C_COLORS);
     WRITE(p, "uniform float4 "I_KCOLORS"[4] : register(c%d);\n", C_KCOLORS);
     WRITE(p, "uniform float4 "I_ALPHA"[1] : register(c%d);\n", C_ALPHA);
     WRITE(p, "uniform float4 "I_TEXDIMS"[8] : register(c%d);\n", C_TEXDIMS);
@@ -340,65 +340,65 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
     WRITE(p, "uniform float4 "I_INDTEXSCALE"[2] : register(c%d);\n", C_INDTEXSCALE);
     WRITE(p, "uniform float4 "I_INDTEXMTX"[6] : register(c%d);\n", C_INDTEXMTX);
 
-    WRITE(p,"void main(\n");
+    WRITE(p, "void main(\n");
 
     WRITE(p, "out half4 ocol0 : COLOR0,\n");
-    if( bRenderZ && !bRenderZToCol0 )
+    if (bRenderZ && !bRenderZToCol0 )
         WRITE(p, "out half4 ocol1 : COLOR1,\n");
 
-    if( bOutputZ )
-        WRITE(p,"  out float depth : DEPTH,\n");
+    if (bOutputZ )
+        WRITE(p, "  out float depth : DEPTH,\n");
 
     // if zcoord might come from vertex shader in texcoord
-    if( bInputZ ) {
+    if (bInputZ) {
         if (numTexgen) {
-            for(int i = 0; i < numTexgen; ++i)
-                WRITE(p,"  in float%d uv%d : TEXCOORD%d, \n", i==ztexcoord?4:3, i,i);
+            for (int i = 0; i < numTexgen; ++i)
+                WRITE(p, "  in float%d uv%d : TEXCOORD%d, \n", i==ztexcoord?4:3, i,i);
         }
         else
-            WRITE(p,"  in float4 uv0 : TEXCOORD0,"); //HACK
+            WRITE(p, "  in float4 uv0 : TEXCOORD0,"); //HACK
     }
     else {
         if (numTexgen) {
-            for(int i = 0; i < numTexgen; ++i)
-                WRITE(p,"  in float3 uv%d : TEXCOORD%d,\n",i,i);
+            for (int i = 0; i < numTexgen; ++i)
+                WRITE(p, "  in float3 uv%d : TEXCOORD%d,\n",i,i);
         }
         else
-            WRITE(p,"  in float3 uv0 : TEXCOORD0,\n"); //HACK
+            WRITE(p, "  in float3 uv0 : TEXCOORD0,\n"); //HACK
     }
 
     WRITE(p, "  in float4 colors[2] : COLOR0){\n");
 
     char* pmainstart = p;
 
-    WRITE(p,"float4 c0="I_COLORS"[1],c1="I_COLORS"[2],c2="I_COLORS"[3],prev=float4(0.0f,0.0f,0.0f,0.0f),textemp,rastemp,konsttemp=float4(0.0f,0.0f,0.0f,0.0f);\n"
+    WRITE(p, "float4 c0="I_COLORS"[1],c1="I_COLORS"[2],c2="I_COLORS"[3],prev=float4(0.0f,0.0f,0.0f,0.0f),textemp,rastemp,konsttemp=float4(0.0f,0.0f,0.0f,0.0f);\n"
             "float3 comp16 = float3(1,255,0), comp24 = float3(1,255,255*255);\n"
             "float4 alphabump=0;\n"
             "float3 tevcoord;\n"
             "float2 wrappedcoord, tempcoord;\n");
 
-    //if( bOutputZ ) WRITE(p,"  float depth;\n");
+    //if (bOutputZ ) WRITE(p, "  float depth;\n");
 //    WRITE(p, "return 1;}\n");
 //    return PixelShaderMngr::CompilePixelShader(ps, text);
 
     // indirect texture map lookup
     for(u32 i = 0; i < bpmem.genMode.numindstages; ++i) {
-        if( nIndirectStagesUsed & (1<<i) ) {
+        if (nIndirectStagesUsed & (1<<i)) {
             // perform indirect texture map lookup
             // note that we have to scale by the regular texture map's coordinates since this is a texRECT call
             // (and we have to match with the game's texscale calls)
             int texcoord = bpmem.tevindref.getTexCoord(i);
-            if( texture_mask & (1<<bpmem.tevindref.getTexMap(i)) ) {
+            if (texture_mask & (1<<bpmem.tevindref.getTexMap(i))) {
                 // TODO: I removed a superfluous argument, please check that the resulting expression is correct. (mthuurne 2008-08-27)
                 WRITE(p, "float2 induv%d=uv%d.xy * "I_INDTEXSCALE"[%d].%s;\n", i, texcoord, i/2, (i&1)?"zw":"xy"); //, bpmem.tevindref.getTexMap(i)
 
                 char str[16];
                 sprintf(str, "induv%d", i);
                 WrapNonPow2Tex(p, str, bpmem.tevindref.getTexMap(i), texture_mask);
-                WRITE(p,"float3 indtex%d=texRECT(samp%d,induv%d.xy).abg;\n", i, bpmem.tevindref.getTexMap(i), i);
+                WRITE(p, "float3 indtex%d=texRECT(samp%d,induv%d.xy).abg;\n", i, bpmem.tevindref.getTexMap(i), i);
             }
             else {
-                WRITE(p,"float3 indtex%d=tex2D(samp%d,uv%d.xy*"I_INDTEXSCALE"[%d].%s).abg;\n", i, bpmem.tevindref.getTexMap(i), texcoord, i/2, (i&1)?"zw":"xy");
+                WRITE(p, "float3 indtex%d=tex2D(samp%d,uv%d.xy*"I_INDTEXSCALE"[%d].%s).abg;\n", i, bpmem.tevindref.getTexMap(i), texcoord, i/2, (i&1)?"zw":"xy");
             }
         }
     }
@@ -406,9 +406,9 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
     for (int i = 0; i < numStages; i++)
         WriteStage(p, i, texture_mask); //build the equation for this stage
 
-    if( bOutputZ ) {
+    if (bOutputZ) {
         // use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
-        if( bpmem.ztex2.op == ZTEXTURE_ADD ) {
+        if (bpmem.ztex2.op == ZTEXTURE_ADD) {
             WRITE(p, "depth = frac(dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + uv%d.w);\n", ztexcoord);
         }
         else {
@@ -417,40 +417,40 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
         }
     }
 
-    //if( bpmem.genMode.numindstages ) WRITE(p, "prev.rg = indtex0.xy;\nprev.b = 0;\n");
+    //if (bpmem.genMode.numindstages ) WRITE(p, "prev.rg = indtex0.xy;\nprev.b = 0;\n");
 
-    if( !WriteAlphaTest(p) ) {
+    if (!WriteAlphaTest(p)) {
         // alpha test will always fail, so restart the shader and just make it an empty function
         p = pmainstart;
 		WRITE(p, "discard;\n");
         WRITE(p, "ocol0 = 0;\n");
     }
     else {
-        if( !bRenderZToCol0 ) {
+        if (!bRenderZToCol0) {
             if (bpmem.dstalpha.enable)
-                WRITE(p,"  ocol0 = float4(prev.rgb,"I_ALPHA"[0].w);\n");
+                WRITE(p, "  ocol0 = float4(prev.rgb,"I_ALPHA"[0].w);\n");
             else
-                WRITE(p,"  ocol0 = prev;\n");
+                WRITE(p, "  ocol0 = prev;\n");
         }
     }
 
-    if( bRenderZ ) {
+    if (bRenderZ) {
         // write depth as color
-        if( bRenderZToCol0 ) {
-            if( bOutputZ )
+        if (bRenderZToCol0) {
+            if (bOutputZ )
                 WRITE(p, "ocol0.xyz = frac(float3(256.0f*256.0f, 256.0f, 1.0f) * depth);\n");
             else
                 WRITE(p, "ocol0.xyz = frac(float3(256.0f*256.0f, 256.0f, 1.0f) * uv%d.w);\n", ztexcoord);
             WRITE(p, "ocol0.w = prev.w;\n");
         }
         else {
-            if( bOutputZ )
+            if (bOutputZ)
                 WRITE(p, "ocol1 = frac(float4(256.0f*256.0f, 256.0f, 1.0f, 0.0f) * depth);\n");
             else
                 WRITE(p, "ocol1 = frac(float4(256.0f*256.0f, 256.0f, 1.0f, 0.0f) * uv%d.w);\n", ztexcoord);
         }
     }
-    WRITE(p,"}\n");
+    WRITE(p, "}\n");
 
     return text;
 }
@@ -470,10 +470,10 @@ void WriteStage(char *&p, int n, u32 texture_mask)
         bHasIndStage = true;
         int texmap = bpmem.tevorders[n/2].getEnable(n&1) ? bpmem.tevorders[n/2].getTexMap(n&1) : bpmem.tevindref.getTexMap(bpmem.tevind[n].bt);
 
-		if( bpmem.tevind[n].bs != ITBA_OFF ) {
+		if (bpmem.tevind[n].bs != ITBA_OFF) {
             // write the bump alpha
 
-			if( bpmem.tevind[n].fmt == ITF_8 ) {
+			if (bpmem.tevind[n].fmt == ITF_8) {
 				WRITE(p, "alphabump = indtex%d.%s %s;\n", bpmem.tevind[n].bt, 
 					tevIndAlphaSel[bpmem.tevind[n].bs], tevIndAlphaScale[bpmem.tevind[n].fmt]);
 			}
@@ -481,7 +481,7 @@ void WriteStage(char *&p, int n, u32 texture_mask)
 				// donkopunchstania: really bad way to do this
 				// cannot always use fract because fract(1.0) is 0.0 when it needs to be 1.0
 				// omitting fract seems to work as well
-				WRITE(p, "if( indtex%d.%s >= 1.0f )\n", bpmem.tevind[n].bt, 
+				WRITE(p, "if (indtex%d.%s >= 1.0f )\n", bpmem.tevind[n].bt, 
 					tevIndAlphaSel[bpmem.tevind[n].bs]);
 				WRITE(p, "   alphabump = 1.0f;\n");
 				WRITE(p, "else\n");
@@ -493,21 +493,21 @@ void WriteStage(char *&p, int n, u32 texture_mask)
         // bias
         WRITE(p, "float3 indtevcrd%d = indtex%d;\n", n, bpmem.tevind[n].bt);
         WRITE(p, "indtevcrd%d.xy *= %s;\n", n, tevIndFmtScale[bpmem.tevind[n].fmt]);
-        if( bpmem.tevind[n].bias != ITB_NONE )
+        if (bpmem.tevind[n].bias != ITB_NONE )
             WRITE(p, "indtevcrd%d.%s += %s;\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt]);
 
         // multiply by offset matrix and scale
-        if( bpmem.tevind[n].mid != 0 ) {
-            if( bpmem.tevind[n].mid <= 3 ) {
+        if (bpmem.tevind[n].mid != 0) {
+            if (bpmem.tevind[n].mid <= 3) {
                 int mtxidx = 2*(bpmem.tevind[n].mid-1);
                 WRITE(p, "float2 indtevtrans%d = float2(dot("I_INDTEXMTX"[%d].xyz, indtevcrd%d), dot("I_INDTEXMTX"[%d].xyz, indtevcrd%d));\n",
                     n, mtxidx, n, mtxidx+1, n);
             }
-            else if( bpmem.tevind[n].mid <= 5 ) { // s matrix
+            else if (bpmem.tevind[n].mid <= 5) { // s matrix
                 int mtxidx = 2*(bpmem.tevind[n].mid-5);
                 WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.xx;\n", n, mtxidx, texcoord, n);
             }
-            else if( bpmem.tevind[n].mid <= 9 ) { // t matrix
+            else if (bpmem.tevind[n].mid <= 9) { // t matrix
                 int mtxidx = 2*(bpmem.tevind[n].mid-9);
                 WRITE(p, "float2 indtevtrans%d = "I_INDTEXMTX"[%d].ww * uv%d.xy * indtevcrd%d.yy;\n", n, mtxidx, texcoord, n);
             }
@@ -522,12 +522,12 @@ void WriteStage(char *&p, int n, u32 texture_mask)
         }
 
         // wrapping
-        if( !bpmem.tevorders[n/2].getEnable(n&1) || (texture_mask & (1<<texmap)) ) {
+        if (!bpmem.tevorders[n/2].getEnable(n&1) || (texture_mask & (1<<texmap))) {
             // non pow2
 
-            if( bpmem.tevind[n].sw != ITW_OFF || bpmem.tevind[n].tw != ITW_OFF ) {
-                if( bpmem.tevind[n].sw == ITW_0 ) {
-                    if( bpmem.tevind[n].tw == ITW_0 ) {
+            if (bpmem.tevind[n].sw != ITW_OFF || bpmem.tevind[n].tw != ITW_OFF) {
+                if (bpmem.tevind[n].sw == ITW_0) {
+                    if (bpmem.tevind[n].tw == ITW_0) {
                         // zero out completely
                         WRITE(p, "wrappedcoord = float2(0.0f,0.0f);\n");
                     }
@@ -536,7 +536,7 @@ void WriteStage(char *&p, int n, u32 texture_mask)
                             "wrappedcoord.y = 0;\n", texcoord, tevIndWrapStart[bpmem.tevind[n].sw], texmap, texmap, tevIndWrapStart[bpmem.tevind[n].sw]);
                     }
                 }
-                else if( bpmem.tevind[n].tw == ITW_0 ) {
+                else if (bpmem.tevind[n].tw == ITW_0) {
                     WRITE(p, "wrappedcoord.y = fmod( (uv%d.y+%s)*"I_TEXDIMS"[%d].y*"I_TEXDIMS"[%d].w, %s);\n"
                         "wrappedcoord.x = 0;\n", texcoord, tevIndWrapStart[bpmem.tevind[n].tw], texmap, texmap, tevIndWrapStart[bpmem.tevind[n].tw]);
                 }
@@ -555,9 +555,9 @@ void WriteStage(char *&p, int n, u32 texture_mask)
             WRITE(p, "indtevtrans%d.xy *= "I_TEXDIMS"[%d].xy * "I_TEXDIMS"[%d].zw;\n", n, texmap, texmap);
 
             // mult by bitdepth / tex dimensions
-            if( bpmem.tevind[n].sw != ITW_OFF || bpmem.tevind[n].tw != ITW_OFF ) {
-                if( bpmem.tevind[n].sw == ITW_0 ) {
-                    if( bpmem.tevind[n].tw == ITW_0 ) {
+            if (bpmem.tevind[n].sw != ITW_OFF || bpmem.tevind[n].tw != ITW_OFF) {
+                if (bpmem.tevind[n].sw == ITW_0) {
+                    if (bpmem.tevind[n].tw == ITW_0) {
                         // zero out completely
                         WRITE(p, "wrappedcoord = float2(0.0f,0.0f);\n");
                     }
@@ -566,7 +566,7 @@ void WriteStage(char *&p, int n, u32 texture_mask)
                             "wrappedcoord.y = 0;\n", texmap, texcoord, tevIndWrapStart[bpmem.tevind[n].sw], texmap, tevIndWrapStart[bpmem.tevind[n].sw]);
                     }
                 }
-                else if( bpmem.tevind[n].tw == ITW_0 ) {
+                else if (bpmem.tevind[n].tw == ITW_0) {
                     WRITE(p, "wrappedcoord.y = "I_TEXDIMS"[%d].y * fmod( uv%d.y+%s, "I_TEXDIMS"[%d].w*%s);\n"
                         "wrappedcoord.x = 0;\n", texmap, texcoord, tevIndWrapStart[bpmem.tevind[n].tw], texmap, tevIndWrapStart[bpmem.tevind[n].tw]);
                 }
@@ -582,25 +582,25 @@ void WriteStage(char *&p, int n, u32 texture_mask)
             }
         }
 
-        if( bpmem.tevind[n].fb_addprev ) {
+        if (bpmem.tevind[n].fb_addprev) {
             // add previous tevcoord
 
-            if( texfun == XF_TEXPROJ_STQ ) {
-                WRITE(p,"tevcoord.xy += wrappedcoord/uv%d.z + indtevtrans%d;\n", texcoord, n);
-                //WRITE(p,"tevcoord.z += uv%d.z;\n", texcoord);
+            if (texfun == XF_TEXPROJ_STQ) {
+                WRITE(p, "tevcoord.xy += wrappedcoord/uv%d.z + indtevtrans%d;\n", texcoord, n);
+                //WRITE(p, "tevcoord.z += uv%d.z;\n", texcoord);
             }
             else {
-                WRITE(p,"tevcoord.xy += wrappedcoord + indtevtrans%d;\n", n);
+                WRITE(p, "tevcoord.xy += wrappedcoord + indtevtrans%d;\n", n);
             }
         }
         else {
-            WRITE(p,"tevcoord.xy = wrappedcoord/uv%d.z + indtevtrans%d;\n", texcoord, n);
-            //if( texfun == XF_TEXPROJ_STQ )
-            //    WRITE(p,"tevcoord.z = uv%d.z;\n", texcoord);
+            WRITE(p, "tevcoord.xy = wrappedcoord/uv%d.z + indtevtrans%d;\n", texcoord, n);
+            //if (texfun == XF_TEXPROJ_STQ )
+            //    WRITE(p, "tevcoord.z = uv%d.z;\n", texcoord);
         }
     }
 
-    WRITE(p,"rastemp=%s.%s;\n",tevRasTable[bpmem.tevorders[n/2].getColorChan(n&1)],rasswap);
+    WRITE(p, "rastemp=%s.%s;\n",tevRasTable[bpmem.tevorders[n/2].getColorChan(n&1)],rasswap);
 
     if (bpmem.tevorders[n/2].getEnable(n&1)) {
         int texmap = bpmem.tevorders[n/2].getTexMap(n&1);
@@ -612,41 +612,41 @@ void WriteStage(char *&p, int n, u32 texture_mask)
                 OurTexCoord = texcoord;
             else
                 OurTexCoord = 0;
-            if( texture_mask & (1<<texmap) ) {
+            if (texture_mask & (1<<texmap)) {
                 // nonpow2
-                if( texfun == XF_TEXPROJ_STQ )
-                    WRITE(p,"tevcoord.xy = uv%d.xy / uv%d.z;\n", texcoord, OurTexCoord);
+                if (texfun == XF_TEXPROJ_STQ )
+                    WRITE(p, "tevcoord.xy = uv%d.xy / uv%d.z;\n", texcoord, OurTexCoord);
                 else
-                    WRITE(p,"tevcoord.xy = uv%d.xy;\n", OurTexCoord);
+                    WRITE(p, "tevcoord.xy = uv%d.xy;\n", OurTexCoord);
                 WrapNonPow2Tex(p, "tevcoord", texmap, texture_mask);
             }
             else {
-                if( texfun == XF_TEXPROJ_STQ ) 
-                    WRITE(p,"tevcoord.xy = "I_TEXDIMS"[%d].xy * uv%d.xy / uv%d.z;\n", texmap, OurTexCoord , OurTexCoord );
+                if (texfun == XF_TEXPROJ_STQ ) 
+                    WRITE(p, "tevcoord.xy = "I_TEXDIMS"[%d].xy * uv%d.xy / uv%d.z;\n", texmap, OurTexCoord , OurTexCoord );
                 else 
-                    WRITE(p,"tevcoord.xy = "I_TEXDIMS"[%d].xy * uv%d.xy;\n", texmap, OurTexCoord);
+                    WRITE(p, "tevcoord.xy = "I_TEXDIMS"[%d].xy * uv%d.xy;\n", texmap, OurTexCoord);
 
             }
         }
-        else if( texture_mask & (1<<texmap) ) {
+        else if (texture_mask & (1<<texmap)) {
             // if non pow 2, have to manually repeat
             //WrapNonPow2Tex(p, "tevcoord", texmap);
             bool bwraps = !!(texture_mask & (0x100<<texmap));
             bool bwrapt = !!(texture_mask & (0x10000<<texmap));
                 
-            if( bwraps || bwrapt ) {
+            if (bwraps || bwrapt) {
                 const char* field = bwraps ? (bwrapt ? "xy" : "x") : "y";
                 WRITE(p, "tevcoord.%s = fmod(tevcoord.%s+32*"I_TEXDIMS"[%d].%s,"I_TEXDIMS"[%d].%s);\n", field, field, texmap, field, texmap, field);
             }
         }
 
-        if( texture_mask & (1<<texmap) )
-            WRITE(p,"textemp=texRECT(samp%d,tevcoord.xy).%s;\n", texmap, texswap);
+        if (texture_mask & (1<<texmap) )
+            WRITE(p, "textemp=texRECT(samp%d,tevcoord.xy).%s;\n", texmap, texswap);
         else
-            WRITE(p,"textemp=tex2D(samp%d,tevcoord.xy).%s;\n", texmap, texswap);
+            WRITE(p, "textemp=tex2D(samp%d,tevcoord.xy).%s;\n", texmap, texswap);
     }
     else
-        WRITE(p,"textemp=float4(1,1,1,1);\n");
+        WRITE(p, "textemp=float4(1,1,1,1);\n");
 
     int kc = bpmem.tevksel[n/2].getKC(n&1);
     int ka = bpmem.tevksel[n/2].getKA(n&1);
@@ -656,59 +656,59 @@ void WriteStage(char *&p, int n, u32 texture_mask)
 
     bool bCKonst = cc.a == TEVCOLORARG_KONST || cc.b == TEVCOLORARG_KONST || cc.c == TEVCOLORARG_KONST || cc.d == TEVCOLORARG_KONST;
     bool bAKonst = ac.a == TEVALPHAARG_KONST || ac.b == TEVALPHAARG_KONST || ac.c == TEVALPHAARG_KONST || ac.d == TEVALPHAARG_KONST;
-    if( bCKonst || bAKonst )
-        WRITE(p,"konsttemp=float4(%s,%s);\n",tevKSelTableC[kc],tevKSelTableA[ka]);  
+    if (bCKonst || bAKonst )
+        WRITE(p, "konsttemp=float4(%s,%s);\n",tevKSelTableC[kc],tevKSelTableA[ka]);  
 
-    WRITE(p,"%s= ", tevCOutputTable[cc.dest]); 
+    WRITE(p, "%s= ", tevCOutputTable[cc.dest]); 
 
     // combine the color channel
     if (cc.bias != 3) {  // if not compare
         //normal color combiner goes here
-        WRITE(p,"   %s*(%s%s",tevScaleTable[cc.shift],tevCInputTable[cc.d],tevOpTable[cc.op]);
-        WRITE(p,"lerp(%s,%s,%s) %s);\n",
-            tevCInputTable[cc.a],tevCInputTable[cc.b],
-            tevCInputTable[cc.c],tevBiasTable[cc.bias]);
+        WRITE(p, "   %s*(%s%s",tevScaleTable[cc.shift],tevCInputTable[cc.d],tevOpTable[cc.op]);
+        WRITE(p, "lerp(%s,%s,%s) %s);\n",
+              tevCInputTable[cc.a], tevCInputTable[cc.b],
+              tevCInputTable[cc.c], tevBiasTable[cc.bias]);
     }
     else {
         int cmp = (cc.shift<<1)|cc.op|8; // comparemode stored here
         switch(cmp) {
         case TEVCMP_R8_GT:
         case TEVCMP_RGB8_GT: // per component compares
-            WRITE(p,"   %s + ((%s.%s > %s.%s) ? %s : float3(0.0f,0.0f,0.0f));\n",
-                tevCInputTable[cc.d],tevCInputTable2[cc.a], cmp==TEVCMP_R8_GT?"r":"rgb", tevCInputTable2[cc.b], cmp==TEVCMP_R8_GT?"r":"rgb", tevCInputTable[cc.c]);
+            WRITE(p, "   %s + ((%s.%s > %s.%s) ? %s : float3(0.0f,0.0f,0.0f));\n",
+                tevCInputTable[cc.d], tevCInputTable2[cc.a], cmp==TEVCMP_R8_GT?"r":"rgb", tevCInputTable2[cc.b], cmp==TEVCMP_R8_GT?"r":"rgb", tevCInputTable[cc.c]);
             break;
         case TEVCMP_R8_EQ:
         case TEVCMP_RGB8_EQ:
-            WRITE(p,"   %s + (abs(%s.r - %s.r)<%f ? %s : float3(0.0f,0.0f,0.0f));\n",
-                tevCInputTable[cc.d],tevCInputTable2[cc.a], tevCInputTable2[cc.b],epsilon,tevCInputTable[cc.c]);
+            WRITE(p, "   %s + (abs(%s.r - %s.r)<%f ? %s : float3(0.0f,0.0f,0.0f));\n",
+                tevCInputTable[cc.d], tevCInputTable2[cc.a], tevCInputTable2[cc.b], epsilon8bit, tevCInputTable[cc.c]);
             break;
         
         case TEVCMP_GR16_GT: // 16 bit compares: 255*g+r (probably used for ztextures, so make sure in ztextures, g is the most significant byte)
         case TEVCMP_BGR24_GT: // 24 bit compares: 255*255*b+255*g+r
-            WRITE(p,"   %s + (( dot(%s.rgb-%s.rgb, comp%s) > 0) ? %s : float3(0.0f,0.0f,0.0f));\n",
-                tevCInputTable[cc.d],tevCInputTable2[cc.a], tevCInputTable2[cc.b], cmp==TEVCMP_GR16_GT?"16":"24", tevCInputTable[cc.c]);
+            WRITE(p, "   %s + (( dot(%s.rgb-%s.rgb, comp%s) > 0) ? %s : float3(0.0f,0.0f,0.0f));\n",
+                tevCInputTable[cc.d], tevCInputTable2[cc.a], tevCInputTable2[cc.b], cmp==TEVCMP_GR16_GT?"16":"24", tevCInputTable[cc.c]);
             break;
         case TEVCMP_GR16_EQ:
         case TEVCMP_BGR24_EQ:
-            WRITE(p,"   %s + (abs(dot(%s.rgb - %s.rgb, comp%s))<%f ? %s : float3(0.0f,0.0f,0.0f));\n",
-                tevCInputTable[cc.d],tevCInputTable2[cc.a], tevCInputTable2[cc.b],cmp==TEVCMP_GR16_GT?"16":"24",epsilon,tevCInputTable[cc.c]);
+            WRITE(p, "   %s + (abs(dot(%s.rgb - %s.rgb, comp%s))<%f ? %s : float3(0.0f,0.0f,0.0f));\n",
+                tevCInputTable[cc.d], tevCInputTable2[cc.a], tevCInputTable2[cc.b], cmp==TEVCMP_GR16_GT?"16":"24", epsilon8bit, tevCInputTable[cc.c]);
             break;
         default:
-            WRITE(p,"float3(0.0f,0.0f,0.0f);\n");
+            WRITE(p, "float3(0.0f,0.0f,0.0f);\n");
             break;
         }
     }
     
-    if( cc.clamp )
+    if (cc.clamp)
         WRITE(p, "%s = clamp(%s,0.0f,1.0f);\n", tevCOutputTable[cc.dest],tevCOutputTable[cc.dest]);
 
     // combine the alpha channel
-    WRITE(p,"%s= ", tevAOutputTable[ac.dest]);
+    WRITE(p, "%s= ", tevAOutputTable[ac.dest]);
 
     if (ac.bias != 3) { // if not compare
         //normal alpha combiner goes here
-        WRITE(p,"   %s*(%s%s",tevScaleTable[ac.shift],tevAInputTable[ac.d],tevOpTable[ac.op]);
-        WRITE(p,"lerp(%s,%s,%s) %s)\n",
+        WRITE(p, "   %s*(%s%s",tevScaleTable[ac.shift],tevAInputTable[ac.d],tevOpTable[ac.op]);
+        WRITE(p, "lerp(%s,%s,%s) %s)\n",
             tevAInputTable[ac.a],tevAInputTable[ac.b],
             tevAInputTable[ac.c],tevBiasTable[ac.bias]);
     }
@@ -718,34 +718,34 @@ void WriteStage(char *&p, int n, u32 texture_mask)
         switch(cmp) {
         case TEVCMP_R8_GT:
         case TEVCMP_A8_GT:
-            WRITE(p,"   %s + ((%s.%s > %s.%s) ? %s : 0)\n",
+            WRITE(p, "   %s + ((%s.%s > %s.%s) ? %s : 0)\n",
                 tevAInputTable[ac.d],tevAInputTable2[ac.a], cmp==TEVCMP_R8_GT?"r":"a", tevAInputTable2[ac.b], cmp==TEVCMP_R8_GT?"r":"a", tevAInputTable[ac.c]);
             break;
         case TEVCMP_R8_EQ:
         case TEVCMP_A8_EQ:
-            WRITE(p,"   %s + (abs(%s.r - %s.r)<%f ? %s : 0)\n",
-                tevAInputTable[ac.d],tevAInputTable2[ac.a], tevAInputTable2[ac.b],epsilon,tevAInputTable[ac.c]);
+            WRITE(p, "   %s + (abs(%s.r - %s.r)<%f ? %s : 0)\n",
+                tevAInputTable[ac.d],tevAInputTable2[ac.a], tevAInputTable2[ac.b],epsilon8bit,tevAInputTable[ac.c]);
             break;
         
         case TEVCMP_GR16_GT: // 16 bit compares: 255*g+r (probably used for ztextures, so make sure in ztextures, g is the most significant byte)
         case TEVCMP_BGR24_GT: // 24 bit compares: 255*255*b+255*g+r
-            WRITE(p,"   %s + (( dot(%s.rgb-%s.rgb, comp%s) > 0) ? %s : 0)\n",
+            WRITE(p, "   %s + (( dot(%s.rgb-%s.rgb, comp%s) > 0) ? %s : 0)\n",
                 tevAInputTable[ac.d],tevAInputTable2[ac.a], tevAInputTable2[ac.b], cmp==TEVCMP_GR16_GT?"16":"24", tevAInputTable[ac.c]);
             break;
         case TEVCMP_GR16_EQ:
         case TEVCMP_BGR24_EQ:
-            WRITE(p,"   %s + (abs(dot(%s.rgb - %s.rgb, comp%s))<%f ? %s : 0)\n",
-                tevAInputTable[ac.d],tevAInputTable2[ac.a], tevAInputTable2[ac.b],cmp==TEVCMP_GR16_GT?"16":"24",epsilon,tevAInputTable[ac.c]);
+            WRITE(p, "   %s + (abs(dot(%s.rgb - %s.rgb, comp%s))<%f ? %s : 0)\n",
+                tevAInputTable[ac.d],tevAInputTable2[ac.a], tevAInputTable2[ac.b],cmp==TEVCMP_GR16_GT?"16":"24",epsilon8bit,tevAInputTable[ac.c]);
             break;
         default:
-            WRITE(p,"0)\n");
+            WRITE(p, "0)\n");
             break;
         }
     }
 
-    WRITE(p,";\n");
+    WRITE(p, ";\n");
 
-    if( ac.clamp )
+    if (ac.clamp)
         WRITE(p, "%s = clamp(%s,0.0f,1.0f);\n", tevAOutputTable[ac.dest],tevAOutputTable[ac.dest]);
     WRITE(p, "\n");
 }
@@ -756,14 +756,14 @@ void WrapNonPow2Tex(char* &p, const char* var, int texmap, u32 texture_mask)
     bool bwraps = !!(texture_mask & (0x100<<texmap));
     bool bwrapt = !!(texture_mask & (0x10000<<texmap));
         
-    if( bwraps || bwrapt ) {
+    if (bwraps || bwrapt) {
         const char* field = bwraps ? (bwrapt ? "xy" : "x") : "y";
         const char* wrapfield = bwraps ? (bwrapt ? "zw" : "z") : "w";
         WRITE(p, "%s.%s = "I_TEXDIMS"[%d].%s*frac(%s.%s*"I_TEXDIMS"[%d].%s+32);\n", var, field, texmap, field, var, field, texmap, wrapfield);
 
-        if( !bwraps )
+        if (!bwraps )
             WRITE(p, "%s.x *= "I_TEXDIMS"[%d].x * "I_TEXDIMS"[%d].z;\n", var, texmap, texmap);
-        if( !bwrapt )
+        if (!bwrapt )
             WRITE(p, "%s.y *= "I_TEXDIMS"[%d].y * "I_TEXDIMS"[%d].w;\n", var, texmap, texmap);
     }
     else {
@@ -774,14 +774,14 @@ void WrapNonPow2Tex(char* &p, const char* var, int texmap, u32 texture_mask)
 void WriteAlphaCompare(char *&p, int num, int comp)
 {
     switch(comp) {
-    case ALPHACMP_ALWAYS:  WRITE(p,"(false)");	break;
-    case ALPHACMP_NEVER:   WRITE(p,"(true)");	break;
-    case ALPHACMP_LEQUAL:  WRITE(p,"(prev.a > %s)",alphaRef[num]);	break;
-    case ALPHACMP_LESS:    WRITE(p,"(prev.a >= %s - %f)",alphaRef[num],epsilon*0.5f);break;
-    case ALPHACMP_GEQUAL:  WRITE(p,"(prev.a < %s)",alphaRef[num]);	break;
-    case ALPHACMP_GREATER: WRITE(p,"(prev.a <= %s + %f)",alphaRef[num],epsilon*0.5f);break;
-    case ALPHACMP_EQUAL:   WRITE(p,"(abs(prev.a-%s)>%f)",alphaRef[num],epsilon*2); break;
-    case ALPHACMP_NEQUAL:  WRITE(p,"(abs(prev.a-%s)<%f)",alphaRef[num],epsilon*2); break;
+    case ALPHACMP_ALWAYS:  WRITE(p, "(false)");	break;
+    case ALPHACMP_NEVER:   WRITE(p, "(true)");	break;
+    case ALPHACMP_LEQUAL:  WRITE(p, "(prev.a > %s)",alphaRef[num]);	break;
+    case ALPHACMP_LESS:    WRITE(p, "(prev.a >= %s - %f)",alphaRef[num],epsilon8bit*0.5f);break;
+    case ALPHACMP_GEQUAL:  WRITE(p, "(prev.a < %s)",alphaRef[num]);	break;
+    case ALPHACMP_GREATER: WRITE(p, "(prev.a <= %s + %f)",alphaRef[num],epsilon8bit*0.5f);break;
+    case ALPHACMP_EQUAL:   WRITE(p, "(abs(prev.a-%s)>%f)",alphaRef[num],epsilon8bit*2); break;
+    case ALPHACMP_NEQUAL:  WRITE(p, "(abs(prev.a-%s)<%f)",alphaRef[num],epsilon8bit*2); break;
     }
 }
 
@@ -808,13 +808,13 @@ bool WriteAlphaTest(char *&p)
         break;
     case 2: // xor
         if ( (comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_NEVER) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_ALWAYS) ) return true;
-        if ( (comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER) ) {
+        if ( (comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER)) {
             WRITE(p, "discard;\n");
             return false;
         }
         break;
     case 3: // xnor
-        if ( (comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_NEVER) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_ALWAYS) ) {
+        if ( (comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_NEVER) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_ALWAYS)) {
             WRITE(p, "discard;\n");
             return false;
         }

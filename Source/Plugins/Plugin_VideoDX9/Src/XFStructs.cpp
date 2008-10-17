@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "stdafx.h"
+#include "Profiler.h"
 #include "XFStructs.h"
 #include "Render.h"
 #include "main.h"

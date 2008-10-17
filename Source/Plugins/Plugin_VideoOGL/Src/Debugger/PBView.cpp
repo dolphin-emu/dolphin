@@ -15,10 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-// ---------------------------------------------------------------------------------------
-// includes
-// -----------------
 #include "../Globals.h"
 #include "PBView.h"
 
@@ -27,24 +23,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
-
-// ---------------------------------------------------------------------------------------
-// external declarations
-// -----------------
 extern const char* GetGRPName(unsigned int index);
 
-
-// ---------------------------------------------------------------------------------------
-// No buttons or events so far
-// -----------------
 BEGIN_EVENT_TABLE(CPBView, wxListCtrl)
 END_EVENT_TABLE()
 
-
-// =======================================================================================
-// The main wxListCtrl
-// -------------
 CPBView::CPBView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
 	: wxListCtrl(parent, id, pos, size, style)
 {
@@ -54,7 +37,6 @@ CPBView::CPBView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, cons
 
 	for (int i = 0; i < 1; i++)
 	{
-
 		// Print values from 0 to 63
 		char buffer [33];
 		sprintf(buffer, "%02i", i);
@@ -72,18 +54,14 @@ CPBView::CPBView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, cons
 	Refresh();
 }
 
-
-void
-CPBView::Update()
+void CPBView::Update()
 {
 
 	Refresh();
 	
 }
 
-
-bool
-CPBView::MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem)
+bool CPBView::MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem)
 {
 	bool Result = false;
 
@@ -135,13 +113,11 @@ CPBView::MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem)
 	    rPainDC.DrawText(text, 10, 4);
 	    #endif
 
-	    return(true);
+	    return true;
 	}
 	else
 	{
 		// what does this mean?
-		return(Result);
+		return Result;
 	}
 }
-
-

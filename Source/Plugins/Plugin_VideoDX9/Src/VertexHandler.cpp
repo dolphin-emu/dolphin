@@ -18,6 +18,7 @@
 #include "D3DBase.h"
 
 #include "Common.h"
+#include "Profiler.h"
 #include "Globals.h"
 #include "VertexHandler.h"
 #include "OpcodeDecoding.h"

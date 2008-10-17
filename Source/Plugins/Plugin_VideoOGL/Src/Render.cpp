@@ -18,12 +18,16 @@
 #include "Globals.h"
 #include <list>
 
+#include <Cg/cg.h>
+#include <Cg/cgGL.h>
+
 #ifdef _WIN32
 #include <mmsystem.h>
 #endif
 
 #include "GLInit.h"
 #include "Profiler.h"
+#include "ImageWrite.h"
 #include "Render.h"
 #include "OpcodeDecoding.h"
 #include "BPStructs.h"
@@ -67,6 +71,8 @@ static Renderer::RenderMode s_RenderMode = Renderer::RM_Normal;
 static int s_nCurTarget = 0;
 bool g_bBlendLogicOp = false;
 
+float MValueX, MValueY; // Since it can Stretch to fit Window, we need two different multiplication values
+int frameCount;
 
 void HandleCgError(CGcontext ctx, CGerror err, void* appdata);
 
@@ -371,13 +377,12 @@ void Renderer::ProcessMessages()
 {
 	GLboolean wasEnabled = glIsEnabled(GL_BLEND);
 
-	if(!wasEnabled) glEnable(GL_BLEND);
+	if (!wasEnabled) glEnable(GL_BLEND);
     
 	if (s_listMsgs.size() > 0) {
         int left = 25, top = 15;
         list<MESSAGE>::iterator it = s_listMsgs.begin();
-        
-        while( it != s_listMsgs.end() ) 
+        while (it != s_listMsgs.end()) 
 		{
 			int time_left = (int)(it->dwTimeStamp - timeGetTime());
 			int alpha = 255;
@@ -388,7 +393,7 @@ void Renderer::ProcessMessages()
 				if(time_left<0) alpha=0;
 			}
 
-			alpha<<=24;
+			alpha <<= 24;
 
             RenderText(it->str, left+1, top+1, 0x000000|alpha);
             RenderText(it->str, left, top, 0xffff30|alpha);
@@ -761,7 +766,6 @@ void Renderer::SwapBuffers()
         //p+=sprintf(p,"Num strip joins:     %i\n",stats.numJoins);
         p+=sprintf(p,"Num primitives:       %i\n",stats.thisFrame.numPrims);
         p+=sprintf(p,"Num primitives (DL):  %i\n",stats.thisFrame.numDLPrims);
-        p+=sprintf(p,"Num bad commands:     %i%s\n",stats.thisFrame.numBadCommands,stats.thisFrame.numBadCommands?"!!!":"");
         p+=sprintf(p,"Num XF loads:      %i\n",stats.thisFrame.numXFLoads);
         p+=sprintf(p,"Num XF loads (DL): %i\n",stats.thisFrame.numXFLoadsInDL);
         p+=sprintf(p,"Num CP loads:      %i\n",stats.thisFrame.numCPLoads);

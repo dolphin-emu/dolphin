@@ -19,9 +19,18 @@
 #include "IniFile.h"
 #include "svnrev.h"
 
+#include "Render.h"
+
 #if defined(_WIN32)
 #include "OS/Win32.h"
+#else
+struct RECT
+{
+    int left, top;
+    int right, bottom;
+};
 #endif
+
 #include "GLInit.h"
 
 #ifndef USE_SDL
@@ -33,15 +42,11 @@
 
 // Handles OpenGL and the window
 
-
-// ---------------------------------------------------------------------------------------
 // externals
-// -------------
 int gleft, gright, gtop, gbottom;
 int nBackbufferWidth, nBackbufferHeight; // screen width
 int nXoff, nYoff; // screen offset
 float AR; // aspect ratio
-
 
 #ifndef _WIN32
 GLWindow GLWin;
@@ -104,7 +109,6 @@ BOOL Callback_PeekMessages()
 #endif
 }
 
-
 void UpdateFPSDisplay(const char *text)
 {
     char temp[512];
@@ -116,10 +120,8 @@ void UpdateFPSDisplay(const char *text)
 
 }
 
-
 // =======================================================================================
 // Create window. Called from main.cpp
-// ----------------
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight) 
 {
     int _twidth,  _theight;
@@ -186,7 +188,6 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	//sprintf(buff, "%i %i %d %d %d", nBackbufferWidth, nBackbufferHeight, Max, MValueX, MValueY);
 	//MessageBox(0, buff, "", 0);
 
-
 #if USE_SDL
 	//init sdl video
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -236,7 +237,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         dmScreenSettings.dmFields = DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
 
         // Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
-        if (ChangeDisplaySettings(&dmScreenSettings,CDS_FULLSCREEN)!=DISP_CHANGE_SUCCESSFUL)
+        if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
         {
             if (MessageBox(NULL,"The Requested Fullscreen Mode Is Not Supported By\nYour Video Card. Use Windowed Mode Instead?","NeHe GL",MB_YESNO|MB_ICONEXCLAMATION)==IDYES)
                 g_Config.bFullscreen = false;
@@ -619,7 +620,7 @@ void OpenGL_Update()
     float Max = (FactorW < FactorH) ? FactorH : FactorW;
 	AR = (float)nBackbufferWidth / (float)nBackbufferHeight;
 
-    if(g_Config.bStretchToFit && g_Config.renderToMainframe)
+    if (g_Config.bStretchToFit && g_Config.renderToMainframe)
     {
 		MValueX = 1;
 		MValueY = 1;

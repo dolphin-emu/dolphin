@@ -67,16 +67,7 @@ inline unsigned long timeGetTime()
     return (unsigned long)(t.time*1000+t.millitm);
 }
 
-struct RECT
-{
-    int left, top;
-    int right, bottom;
-};
-
 #endif // linux basic definitions
-
-#include <Cg/cg.h>
-#include <Cg/cgGL.h>
 
 #ifndef GL_DEPTH24_STENCIL8_EXT // allows FBOs to support stencils
 #define GL_DEPTH_STENCIL_EXT 0x84F9
@@ -84,8 +75,6 @@ struct RECT
 #define GL_DEPTH24_STENCIL8_EXT 0x88F0
 #define GL_TEXTURE_STENCIL_SIZE_EXT 0x88F1
 #endif
-
-extern float MValueX, MValueY;
 
 #define ERROR_LOG __Log
 
@@ -107,11 +96,6 @@ extern float MValueX, MValueY;
 #define GL_REPORT_ERRORD()
 #endif
 
-#ifndef ARRAY_SIZE
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-#endif
-
-extern int frameCount;
 
 #define CONF_LOG 1
 #define CONF_PRIMLOG 2
@@ -145,19 +129,11 @@ struct Config
     bool bDumpTextures;
 	char texDumpPath[280];
 
-	//currently unused:
 	int iLog; // CONF_ bits
 	int iSaveTargetId;
-	int iAdapter;
-	char psProfile[16];
-    char vsProfile[16];
-	int iPostprocessEffect;
+
+	//currently unused:
     int iCompileDLsLevel;
-	bool bPreUpscale;
-    int iPreUpscaleFilter;
-	bool bTruform;
-    int iTruformLevel;
-	bool bOldCard;
 	bool bWireFrame;
     bool bShowShaderErrors;
 };
@@ -199,7 +175,6 @@ struct Statistics
         int numDLPrims;
         int numPrims;
         int numShaderChanges;
-        int numBadCommands; //hope this always is zero ;)
 
 		int numDListsCalled;
     };
@@ -225,11 +200,6 @@ void DebugLog(const char* _fmt, ...);
 void __Log(const char *format, ...);
 void __Log(int type, const char *format, ...);
 void HandleGLError();
-
-void InitLUTs();
-bool SaveTGA(const char* filename, int width, int height, void* pdata);
-bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height);
-bool SaveData(const char* filename, const char* pdata);
 
 #if defined(_MSC_VER) && !defined(__x86_64__) && !defined(_M_X64)
 void * memcpy_amd(void *dest, const void *src, size_t n);

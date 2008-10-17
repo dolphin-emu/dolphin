@@ -27,6 +27,8 @@
 
 #include "GUI/ConfigDlg.h"
 
+#include "LookUpTables.h"
+#include "ImageWrite.h"
 #include "Render.h"
 #include "GLInit.h"
 #include "Fifo.h"
@@ -34,6 +36,7 @@
 #include "TextureMngr.h"
 #include "BPStructs.h"
 #include "VertexLoader.h"
+#include "VertexManager.h"
 #include "PixelShaderManager.h"
 #include "VertexShaderManager.h"
 #include "XFB.h"
@@ -45,12 +48,9 @@
 SVideoInitialize g_VideoInitialize;
 #define VERSION_STRING "0.1"
 
-
-// =======================================================================================
 // Create debugging window. We can't use Show() here as usual because then DLL_PROCESS_DETACH will
 // be called immediately. And if we use ShowModal() we block the main video window from appearing.
 // So I've made a separate function called DoDllDebugger() that creates the window.
-// -------------------
 CDebugger* m_frame;
 void DllDebugger(HWND _hParent)
 {
@@ -69,8 +69,6 @@ void DoDllDebugger()
 	m_frame = new CDebugger(NULL);
 	m_frame->Show();
 }
-// ===================
-
 
 void GetDllInfo (PLUGIN_INFO* _PluginInfo) 
 {
@@ -101,7 +99,7 @@ void DllConfig(HWND _hParent)
 	std::string resos[100];
 	int i = 0;
 	
-	while(EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
+	while (EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
 	{	
 		char szBuffer[100];
 		sprintf(szBuffer,"%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
@@ -110,7 +108,7 @@ void DllConfig(HWND _hParent)
 		//create a check loop to check every pointer of resos to see if the res is added or not
 		int b = 0;
 		bool resFound = false;
-		while(b < i && !resFound)
+		while (b < i && !resFound)
 		{
 			//is the res already added?
 			resFound = (resos[b] == strBuffer);
@@ -164,12 +162,9 @@ void DllConfig(HWND _hParent)
 	XFree(modes);
 	frame.ShowModal();
 #else
-
 	//TODO
-
 #endif
 }
-
 
 void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 {
@@ -197,7 +192,6 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 	Renderer::AddMessage("Dolphin OpenGL Video Plugin v" VERSION_STRING ,5000);
 }
 
-
 void Video_DoState(unsigned char **ptr, int mode) {
 
 	// Clear all caches
@@ -208,9 +202,7 @@ void Video_DoState(unsigned char **ptr, int mode) {
 	//PanicAlert("Saving/Loading state from OpenGL");
 }
 
-// =======================================================================================
-// This is run after Video_Initialize() from the Core
-// --------------
+// This is called after Video_Initialize() from the Core
 void Video_Prepare(void)
 {
     OpenGL_MakeCurrent();
@@ -230,8 +222,6 @@ void Video_Prepare(void)
     PixelShaderMngr::Init();
     GL_REPORT_ERRORD();
 }
-// ==============
-
 
 void Video_Shutdown(void) 
 {
@@ -255,7 +245,6 @@ void Video_EnterLoop()
 	Fifo_EnterLoop(g_VideoInitialize);
 }
 
-
 void DebugLog(const char* _fmt, ...)
 {
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -270,7 +259,6 @@ void DebugLog(const char* _fmt, ...)
     g_VideoInitialize.pLog(Msg, FALSE);
 #endif
 }
-
 
 bool ScreenShot(TCHAR *File) 
 {
@@ -292,7 +280,6 @@ bool ScreenShot(TCHAR *File)
 	return false;
 }
 
-
 BOOL Video_Screenshot(TCHAR* _szFilename)
 {
     if (ScreenShot(_szFilename))
@@ -300,7 +287,6 @@ BOOL Video_Screenshot(TCHAR* _szFilename)
 
     return FALSE;
 }
-
 
 void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset)
 {

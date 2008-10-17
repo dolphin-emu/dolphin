@@ -763,6 +763,22 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Docs"
+			>
+			<File
+				RelativePath="..\..\..\Docs\DSP\Crazy Taxi.txt"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\Docs\DSP\dsp_rom.txt"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\Docs\DSP\DSP_UC_Zelda.txt"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\DSoundStream.cpp"
 			>

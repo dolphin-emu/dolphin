@@ -17,6 +17,7 @@
 
 #include "D3DBase.h"
 #include "Utils.h"
+#include "Profiler.h"
 #include "Globals.h"
 #include "ShaderManager.h"
 #include "VertexLoader.h"

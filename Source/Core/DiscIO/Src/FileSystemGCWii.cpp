@@ -158,11 +158,11 @@ bool CFileSystemGCWii::InitFileSystem()
 {
 	if (Read32(0x18) == 0x5D1C9EA3)
 	{
-		m_OffsetShift = 2;
+		m_OffsetShift = 2; // Wii file system
 	}
 	else if (Read32(0x1c) == 0xC2339F3D)
 	{
-		m_OffsetShift = 0;
+		m_OffsetShift = 0; // GC file system
 	}
 	else
 	{
@@ -206,8 +206,6 @@ bool CFileSystemGCWii::InitFileSystem()
 	return true;
 }
 
-// __________________________________________________________________________________________________
-//
 // Changed this stuff from C++ string to C strings for speed in debug mode. Doesn't matter in release, but
 // std::string is SLOW in debug mode.
 size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const char* _szDirectory, u64 _NameTableOffset)
@@ -248,5 +246,4 @@ size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _
 	return CurrentIndex;
 }
 
-} // namespace
-
+}  // namespace

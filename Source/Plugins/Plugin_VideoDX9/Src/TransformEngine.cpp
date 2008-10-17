@@ -18,6 +18,7 @@
 #include <fvec.h>
 
 #include "Common.h"
+#include "Profiler.h"
 #include "Globals.h"
 #include "Vec3.h"
 #include "TransformEngine.h"

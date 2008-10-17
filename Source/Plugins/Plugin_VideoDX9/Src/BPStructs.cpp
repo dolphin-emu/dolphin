@@ -19,6 +19,7 @@
 
 #include "Globals.h"
 #include "Common.h"
+#include "Profiler.h"
 #include "BPStructs.h"
 #include "OpcodeDecoding.h"
 #include "TextureCache.h"

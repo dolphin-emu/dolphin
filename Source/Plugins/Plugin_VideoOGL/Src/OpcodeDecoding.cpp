@@ -28,8 +28,8 @@
 #include "Profiler.h"
 #include "OpcodeDecoding.h"
 #include "VertexLoader.h"
+#include "VertexManager.h"
 #include "VertexShaderManager.h"
-#include "TextureMngr.h"
 
 #include "BPStructs.h"
 #include "Fifo.h"
@@ -84,7 +84,7 @@ void ExecuteDisplayList(u32 address, u32 size)
 
 bool FifoCommandRunnable(void)
 {
-	u32 iBufferSize = (u32)(FAKE_GetFifoEndPtr()-g_pVideoData);
+	u32 iBufferSize = (u32)(FAKE_GetFifoEndPtr() - g_pVideoData);
     if (iBufferSize == 0)
 		return false;  // can't peek
 

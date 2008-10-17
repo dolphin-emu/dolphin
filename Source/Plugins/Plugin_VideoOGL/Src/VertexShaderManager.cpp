@@ -19,10 +19,16 @@
 #include "Globals.h"
 #include "Profiler.h"
 
+
+#include <Cg/cg.h>
+#include <Cg/cgGL.h>
+
 #include <math.h>
+
 #include "Render.h"
 #include "VertexShader.h"
 #include "VertexShaderManager.h"
+#include "VertexManager.h"
 #include "VertexLoader.h"
 #include "BPMemory.h"
 #include "XFMemory.h"
@@ -177,7 +183,7 @@ bool VertexShaderMngr::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpro
     char* pcompiledprog = (char*)cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
     char* plocal = strstr(pcompiledprog, "program.local");
 
-    while( plocal != NULL ) {
+    while (plocal != NULL) {
         const char* penv = "  program.env";
         memcpy(plocal, penv, 13);
         plocal = strstr(plocal+13, "program.local");
@@ -339,11 +345,8 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 			2 * rawViewport[0], 2 * rawViewport[1],
 			(rawViewport[5] - rawViewport[2]) / 16777215.0f, rawViewport[5] / 16777215.0f);*/
 
-		// =======================================================================================
 		// Keep aspect ratio at 4:3
-		// -------------
 		// rawViewport[0] = 320, rawViewport[1] = -240
-		// -------------
 		int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
 		int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
 		float fourThree = 4.0f/3.0f;
@@ -352,10 +355,10 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 		int overfl; int xoffs = 0; int yoffs = 0;
 		int wid, hei, actualWid, actualHei;
 		int winw = nBackbufferWidth; int winh = nBackbufferHeight;
-		if(g_Config.bKeepAR)
+		if (g_Config.bKeepAR)
 		{
 			// Check if height or width is the limiting factor
-			if(ratio > 1) // then we are to wide and have to limit the width
+			if (ratio > 1) // then we are to wide and have to limit the width
 			{			
 				wAdj = ratio;
 				hAdj = 1;

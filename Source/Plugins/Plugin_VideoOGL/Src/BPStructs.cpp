@@ -22,6 +22,7 @@
 #include "Profiler.h"
 
 #include "VertexLoader.h"
+#include "VertexManager.h"
 
 #include "BPStructs.h"
 #include "Render.h"
@@ -65,18 +66,13 @@ void BPInit()
 }
 
 
-// =======================================================================================
-// Called att the end of every: OpcodeDecoding.cpp ExecuteDisplayList > Decode() >
-//		LoadBPReg()
-// ---------------
+// Called att the end of every: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg
 void BPWritten(int addr, int changes, int newval)
 {
-    DVSTARTPROFILE();
-
     //static int count = 0;
     //ERROR_LOG("(%d) %x: %x\n", count++, addr, newval);
 
-    switch(addr)
+    switch (addr)
     {
     case BPMEM_GENMODE:
         if (changes) {
@@ -139,7 +135,7 @@ void BPWritten(int addr, int changes, int newval)
                 glDepthMask(GL_FALSE);
             }
 
-            if( !bpmem.zmode.updateenable )
+            if (!bpmem.zmode.updateenable)
                 Renderer::SetRenderMode(Renderer::RM_Normal);
         }
         break;
@@ -165,12 +161,11 @@ void BPWritten(int addr, int changes, int newval)
 
     case BPMEM_LINEPTWIDTH:
         {
-        float fratio = VertexShaderMngr::rawViewport[0] != 0 ? (float)Renderer::GetTargetWidth()/640.0f : 1.0f;
-        if( bpmem.lineptwidth.linesize > 0 ) {
-            glLineWidth((float)bpmem.lineptwidth.linesize*fratio/6.0f); // scale by ratio of widths
-        }
-        if( bpmem.lineptwidth.pointsize > 0 )
-            glPointSize((float)bpmem.lineptwidth.pointsize*fratio/6.0f);
+        float fratio = VertexShaderMngr::rawViewport[0] != 0 ? (float)Renderer::GetTargetWidth() / 640.0f : 1.0f;
+        if (bpmem.lineptwidth.linesize > 0)
+            glLineWidth((float)bpmem.lineptwidth.linesize * fratio / 6.0f); // scale by ratio of widths
+        if (bpmem.lineptwidth.pointsize > 0)
+            glPointSize((float)bpmem.lineptwidth.pointsize * fratio / 6.0f);
         break;
         }
     
@@ -197,9 +192,9 @@ void BPWritten(int addr, int changes, int newval)
                 }
                 else glDisable(GL_BLEND);
             }
-            if( changes & 2 ) {
-                if( Renderer::CanBlendLogicOp() ) {
-                    if( bpmem.blendmode.logicopenable ) {
+            if (changes & 2) {
+                if (Renderer::CanBlendLogicOp()) {
+                    if (bpmem.blendmode.logicopenable) {
                         glEnable(GL_COLOR_LOGIC_OP);
 						PanicAlert("Logic Op Blend : %i", bpmem.blendmode.logicmode);
                         glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);
@@ -207,7 +202,7 @@ void BPWritten(int addr, int changes, int newval)
                     else glDisable(GL_COLOR_LOGIC_OP);
                 }
                 //else {
-                //    if( bpmem.blendmode.logicopenable ) {
+                //    if (bpmem.blendmode.logicopenable) {
                 //        switch(bpmem.blendmode.logicmode) {
                 //            case 0: // clear dst to 0
                 //                glEnable(GL_BLEND);
@@ -254,13 +249,13 @@ void BPWritten(int addr, int changes, int newval)
                 //if (bpmem.blendmode.dither) glEnable(GL_DITHER);
                 //else glDisable(GL_DITHER);
             }
-            if( changes & 0xFE0) {
-                if( !bpmem.blendmode.subtract )
+            if (changes & 0xFE0) {
+                if (!bpmem.blendmode.subtract)
                     glBlendFunc(glSrcFactors[bpmem.blendmode.srcfactor], glDestFactors[bpmem.blendmode.dstfactor]);
             }
             if (changes & 0x800) {
                 glBlendEquation(bpmem.blendmode.subtract?GL_FUNC_REVERSE_SUBTRACT:GL_FUNC_ADD);
-                if( bpmem.blendmode.subtract )
+                if (bpmem.blendmode.subtract)
                     glBlendFunc(GL_ONE, GL_ONE);
                 else
                     glBlendFunc(glSrcFactors[bpmem.blendmode.srcfactor], glDestFactors[bpmem.blendmode.dstfactor]);
@@ -351,8 +346,8 @@ void BPWritten(int addr, int changes, int newval)
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            if( !SetScissorRect() ) {
-                if( addr == BPMEM_SCISSORBR ) 
+            if (!SetScissorRect()) {
+                if (addr == BPMEM_SCISSORBR ) 
                     ERROR_LOG("bad scissor!\n");
             }
         }
@@ -392,6 +387,154 @@ void BPWritten(int addr, int changes, int newval)
             PixelShaderMngr::SetTevKSelChanged(addr-0xf6);
         }
         break;
+    case 0x45: //GXSetDrawDone
+        VertexManager::Flush();
+        switch (newval & 0xFF)
+        {
+        case 0x02:
+            g_VideoInitialize.pSetPEFinish(); // may generate interrupt
+            DebugLog("GXSetDrawDone SetPEFinish (value: 0x%02X)", (newval & 0xFFFF));
+            break;
+
+        default:
+            DebugLog("GXSetDrawDone ??? (value 0x%02X)", (newval & 0xFFFF));
+            break;
+        }
+        break;
+
+    case BPMEM_PE_TOKEN_ID:
+        g_VideoInitialize.pSetPEToken(static_cast<u16>(newval & 0xFFFF), FALSE);
+        DebugLog("SetPEToken 0x%04x", (newval & 0xFFFF));
+        break;
+
+    case BPMEM_PE_TOKEN_INT_ID:
+        g_VideoInitialize.pSetPEToken(static_cast<u16>(newval & 0xFFFF), TRUE);
+        DebugLog("SetPEToken + INT 0x%04x", (newval & 0xFFFF));
+        break;
+
+    case 0x67: // set gp metric?
+        break;
+
+    case 0x52:
+        {
+            DVProfileFunc _pf("LoadBPReg:swap");
+            VertexManager::Flush();
+
+            ((u32*)&bpmem)[addr] = newval;
+			TRectangle rc = {
+                (int)(bpmem.copyTexSrcXY.x),
+                (int)(bpmem.copyTexSrcXY.y),
+                (int)((bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1)),
+                (int)((bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1))
+            };
+            //Need another rc here to get it to scale.
+            TRectangle multirc = {
+                (int)(bpmem.copyTexSrcXY.x * MValueX),
+                (int)(bpmem.copyTexSrcXY.y * MValueY),
+                (int)((bpmem.copyTexSrcXY.x * MValueX + (bpmem.copyTexSrcWH.x + 1) * MValueX)),
+                (int)((bpmem.copyTexSrcXY.y * MValueY + (bpmem.copyTexSrcWH.y + 1) * MValueY))
+            };
+
+            UPE_Copy PE_copy;
+            PE_copy.Hex = bpmem.triggerEFBCopy;
+
+            if (PE_copy.copy_to_xfb == 0) {
+                // EFB to texture 
+                // for some reason it sets bpmem.zcontrol.pixel_format to PIXELFMT_Z24 every time a zbuffer format is given as a dest to GXSetTexCopyDst
+                TextureMngr::CopyRenderTargetToTexture(bpmem.copyTexDest<<5, bpmem.zcontrol.pixel_format==PIXELFMT_Z24, PE_copy.intensity_fmt>0,
+                    (PE_copy.target_pixel_format/2)+((PE_copy.target_pixel_format&1)*8), PE_copy.half_scale>0, &rc);
+            }
+            else {
+                // EFB to XFB
+				if(g_Config.bUseXFB)
+				{
+					XFB_Write(Memory_GetPtr(bpmem.copyTexDest<<5), multirc, (bpmem.copyMipMapStrideChannels << 4), bpmem.copyTexSrcWH.y + 1, bpmem.dispcopyyscale/256.0f);
+				}
+				else
+				{
+					Renderer::Swap(multirc);
+				}
+				g_VideoInitialize.pCopiedToXFB();
+            }
+
+            // clearing
+            if (PE_copy.clear) {
+                // clear color
+                Renderer::SetRenderMode(Renderer::RM_Normal);
+
+                u32 nRestoreZBufferTarget = Renderer::GetZBufferTarget();
+                
+                glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
+
+                // Always set the scissor in case it was set by the game and has not been reset                
+                glScissor(multirc.left, (Renderer::GetTargetHeight() - multirc.bottom), 
+                    (multirc.right - multirc.left), (multirc.bottom - multirc.top)); 
+
+                VertexShaderMngr::SetViewportChanged();
+
+                // since clear operations use the source rectangle, have to do regular renders (glClear clears the entire buffer)
+                if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate || bpmem.zmode.updateenable) {
+                    
+                    GLbitfield bits = 0;
+                    if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate) {
+                        u32 clearColor = (bpmem.clearcolorAR<<16)|bpmem.clearcolorGB;
+                        glClearColor(((clearColor>>16)&0xff)*(1/255.0f),((clearColor>>8)&0xff)*(1/255.0f),
+                            ((clearColor>>0)&0xff)*(1/255.0f),((clearColor>>24)&0xff)*(1/255.0f));
+                        bits |= GL_COLOR_BUFFER_BIT;
+                    }
+
+                    if (bpmem.zmode.updateenable) {
+                        glClearDepth((float)(bpmem.clearZValue&0xFFFFFF) / float(0xFFFFFF));
+                        bits |= GL_DEPTH_BUFFER_BIT;
+                    }
+
+                    if (nRestoreZBufferTarget )
+                        glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT); // don't clear ztarget here
+                    
+                    glClear(bits);
+                }
+
+                if (bpmem.zmode.updateenable && nRestoreZBufferTarget) { // have to clear the target zbuffer
+
+                    glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
+                    GL_REPORT_ERRORD();
+
+                    glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
+                    
+                    // red should probably be the LSB
+                    glClearColor(((bpmem.clearZValue>>0)&0xff)*(1/255.0f),((bpmem.clearZValue>>8)&0xff)*(1/255.0f),
+                        ((bpmem.clearZValue>>16)&0xff)*(1/255.0f), 0);
+                    glClear(GL_COLOR_BUFFER_BIT);
+                    SetColorMask();
+                    GL_REPORT_ERRORD();   
+                }
+
+                if (nRestoreZBufferTarget) {
+                    // restore target
+                    GLenum s_drawbuffers[2] = {GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT};
+                    glDrawBuffers(2, s_drawbuffers);
+                }
+                
+                SetScissorRect(); // reset the scissor rect
+            }
+        }
+        break;
+
+    case 0x65: //GXLoadTlut
+        {
+            DVProfileFunc _pf("LoadBPReg:GXLoadTlut");
+            VertexManager::Flush();
+            ((u32*)&bpmem)[addr] = newval;
+
+            u32 tlutTMemAddr = (newval&0x3FF)<<9;
+            u32 tlutXferCount = (newval&0x1FFC00)>>5; 
+            //do the transfer!!			
+            memcpy_gc(texMem + tlutTMemAddr, g_VideoInitialize.pGetMemoryPointer((bpmem.tlutXferSrc&0xFFFFF)<<5), tlutXferCount);
+            // TODO(ector) : kill all textures that use this palette
+            // Not sure if it's a good idea, though. For now, we hash texture palettes
+        }
+        break;
+
 
     default:
         switch(addr & 0xFC)  //texture sampler filter
@@ -490,7 +633,7 @@ void BPWritten(int addr, int changes, int newval)
                 break;
 
             case 0x30:
-                if( changes ) {
+                if (changes) {
                     VertexManager::Flush();
                     ((u32*)&bpmem)[addr] = newval;
                     PixelShaderMngr::SetTexDimsChanged((addr>>1)&0x7);
@@ -591,37 +734,35 @@ bool SetScissorRect()
     int xoff = bpmem.scissorOffset.x * 2 - 342;
     int yoff = bpmem.scissorOffset.y * 2 - 342;
 
-    RECT rc;
+	int rc_left = bpmem.scissorTL.x - xoff - 342; // left = 0
+	rc_left *= MValueX;
+	if (rc_left < 0) rc_left = 0;
 
-	rc.left = bpmem.scissorTL.x - xoff - 342; // left = 0
-	rc.left *= MValueX;
-	if (rc.left < 0) rc.left = 0;
-
-	rc.top = bpmem.scissorTL.y - yoff - 342; // right = 0
-	rc.top *= MValueY;
-	if (rc.top < 0) rc.top = 0;
+	int rc_top = bpmem.scissorTL.y - yoff - 342; // right = 0
+	rc_top *= MValueY;
+	if (rc_top < 0) rc_top = 0;
     
-	rc.right = bpmem.scissorBR.x - xoff - 342; // right = 640
-	rc.right *= MValueX;
-	if (rc.right > 640 * MValueX) rc.right = 640 * MValueX;
+	int rc_right = bpmem.scissorBR.x - xoff - 342; // right = 640
+	rc_right *= MValueX;
+	if (rc_right > 640 * MValueX) rc_right = 640 * MValueX;
 
-	rc.bottom = bpmem.scissorBR.y - yoff - 342; // bottom = 480
-	rc.bottom *= MValueY;
-	if (rc.bottom > 480 * MValueY) rc.bottom = 480 * MValueY;
+	int rc_bottom = bpmem.scissorBR.y - yoff - 342; // bottom = 480
+	rc_bottom *= MValueY;
+	if (rc_bottom > 480 * MValueY) rc_bottom = 480 * MValueY;
 
    /*__Log("Scissor: lt=(%d,%d), rb=(%d,%d,%i), off=(%d,%d)\n",
-		rc.left, rc.top,
-		rc.right, rc.bottom, Renderer::GetTargetHeight(),
+		rc_left, rc_top,
+		rc_right, rc_bottom, Renderer::GetTargetHeight(),
 		xoff, yoff
 		);*/
 
-    if( rc.right>=rc.left && rc.bottom>=rc.top )
+    if (rc_right >= rc_left && rc_bottom >= rc_top )
 	{
         glScissor(
-			rc.left, // x = 0
-			Renderer::GetTargetHeight()-(rc.bottom), // y = 0
-			(rc.right-rc.left), // y = 0
-			(rc.bottom-rc.top) // y = 0
+			rc_left, // x = 0
+			Renderer::GetTargetHeight()-(rc_bottom), // y = 0
+			(rc_right-rc_left), // y = 0
+			(rc_bottom-rc_top) // y = 0
 			); 
         return true;
     }
@@ -630,183 +771,38 @@ bool SetScissorRect()
 }
 
 
-// =======================================================================================
 // Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
-// ---------------
 void LoadBPReg(u32 value0)
 {
     DVSTARTPROFILE();
-
     //handle the mask register
     int opcode = value0 >> 24;
     int oldval = ((u32*)&bpmem)[opcode];
-    int newval = (((u32*)&bpmem)[opcode] & ~bpmem.bpMask) | (value0 & bpmem.bpMask);
+    int newval = (oldval & ~bpmem.bpMask) | (value0 & bpmem.bpMask);
     int changes = (oldval ^ newval) & 0xFFFFFF;
     //reset the mask register
     if (opcode != 0xFE)
         bpmem.bpMask = 0xFFFFFF;
-
-    switch (opcode)
-    {
-    case 0x45: //GXSetDrawDone
-        VertexManager::Flush();
-        switch (value0 & 0xFF)
-        {
-        case 0x02:
-            g_VideoInitialize.pSetPEFinish(); // may generate interrupt
-            DebugLog("GXSetDrawDone SetPEFinish (value: 0x%02X)", (value0 & 0xFFFF));
-            break;
-
-        default:
-            DebugLog("GXSetDrawDone ??? (value 0x%02X)", (value0 & 0xFFFF));
-            break;
-        }
-        break;
-
-    case BPMEM_PE_TOKEN_ID:
-        g_VideoInitialize.pSetPEToken(static_cast<u16>(value0 & 0xFFFF), FALSE);
-        DebugLog("SetPEToken 0x%04x", (value0 & 0xFFFF));
-        break;
-
-    case BPMEM_PE_TOKEN_INT_ID:
-        g_VideoInitialize.pSetPEToken(static_cast<u16>(value0 & 0xFFFF), TRUE);
-        DebugLog("SetPEToken + INT 0x%04x", (value0 & 0xFFFF));
-        break;
-
-    case 0x67: // set gp metric?
-        break;
-
-    case 0x52:
-        {
-            DVProfileFunc _pf("LoadBPReg:swap");
-            VertexManager::Flush();
-
-            ((u32*)&bpmem)[opcode] = newval;
-			TRectangle rc = {
-                (int)(bpmem.copyTexSrcXY.x),
-                (int)(bpmem.copyTexSrcXY.y),
-                (int)((bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1)),
-                (int)((bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1))
-            };
-            //Need another rc here to get it to scale.
-            TRectangle multirc = {
-                (int)(bpmem.copyTexSrcXY.x * MValueX),
-                (int)(bpmem.copyTexSrcXY.y * MValueY),
-                (int)((bpmem.copyTexSrcXY.x * MValueX + (bpmem.copyTexSrcWH.x + 1) * MValueX)),
-                (int)((bpmem.copyTexSrcXY.y * MValueY + (bpmem.copyTexSrcWH.y + 1) * MValueY))
-            };
-
-            UPE_Copy PE_copy;
-            PE_copy.Hex = bpmem.triggerEFBCopy;
-
-            if (PE_copy.copy_to_xfb == 0) {
-                // EFB to texture 
-                // for some reason it sets bpmem.zcontrol.pixel_format to PIXELFMT_Z24 every time a zbuffer format is given as a dest to GXSetTexCopyDst
-                TextureMngr::CopyRenderTargetToTexture(bpmem.copyTexDest<<5, bpmem.zcontrol.pixel_format==PIXELFMT_Z24, PE_copy.intensity_fmt>0,
-                    (PE_copy.target_pixel_format/2)+((PE_copy.target_pixel_format&1)*8), PE_copy.half_scale>0, &rc);
-            }
-            else {
-                // EFB to XFB
-				if(g_Config.bUseXFB)
-				{
-					XFB_Write(Memory_GetPtr(bpmem.copyTexDest<<5), multirc, (bpmem.copyMipMapStrideChannels << 4), bpmem.copyTexSrcWH.y + 1, bpmem.dispcopyyscale/256.0f);
-				}
-				else
-				{
-					Renderer::Swap(multirc);
-				}
-				g_VideoInitialize.pCopiedToXFB();
-            }
-
-            // clearing
-            if (PE_copy.clear) {
-                // clear color
-                Renderer::SetRenderMode(Renderer::RM_Normal);
-
-                u32 nRestoreZBufferTarget = Renderer::GetZBufferTarget();
-                
-                glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
-
-                // Always set the scissor in case it was set by the game and has not been reset                
-                glScissor(multirc.left, (Renderer::GetTargetHeight() - multirc.bottom), 
-                    (multirc.right - multirc.left), (multirc.bottom - multirc.top)); 
-
-                VertexShaderMngr::SetViewportChanged();
-
-                // since clear operations use the source rectangle, have to do regular renders (glClear clears the entire buffer)
-                if( bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate || bpmem.zmode.updateenable ) {
-                    
-                    GLbitfield bits = 0;
-                    if( bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate ) {
-                        u32 clearColor = (bpmem.clearcolorAR<<16)|bpmem.clearcolorGB;
-                        glClearColor(((clearColor>>16)&0xff)*(1/255.0f),((clearColor>>8)&0xff)*(1/255.0f),
-                            ((clearColor>>0)&0xff)*(1/255.0f),((clearColor>>24)&0xff)*(1/255.0f));
-                        bits |= GL_COLOR_BUFFER_BIT;
-                    }
-
-                    if( bpmem.zmode.updateenable ) {
-                        glClearDepth((float)(bpmem.clearZValue&0xFFFFFF) / float(0xFFFFFF));
-                        bits |= GL_DEPTH_BUFFER_BIT;
-                    }
-
-                    if( nRestoreZBufferTarget )
-                        glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT); // don't clear ztarget here
-                    
-                    glClear(bits);
-                }
-
-                if (bpmem.zmode.updateenable && nRestoreZBufferTarget ) { // have to clear the target zbuffer
-
-                    glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
-                    GL_REPORT_ERRORD();
-
-                    glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
-                    
-                    // red should probably be the LSB
-                    glClearColor(((bpmem.clearZValue>>0)&0xff)*(1/255.0f),((bpmem.clearZValue>>8)&0xff)*(1/255.0f),
-                        ((bpmem.clearZValue>>16)&0xff)*(1/255.0f), 0);
-                    glClear(GL_COLOR_BUFFER_BIT);
-                    SetColorMask();
-                    GL_REPORT_ERRORD();   
-                }
-
-                if( nRestoreZBufferTarget ) {
-                    // restore target
-                    GLenum s_drawbuffers[2] = {GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT};
-                    glDrawBuffers(2, s_drawbuffers);
-                }
-                
-                SetScissorRect(); // reset the scissor rect
-            }
-        }
-        break;
-
-    case 0x65: //GXLoadTlut
-        {
-            DVProfileFunc _pf("LoadBPReg:GXLoadTlut");
-            VertexManager::Flush();
-            ((u32*)&bpmem)[opcode] = newval;
-
-            u32 tlutTMemAddr = (value0&0x3FF)<<9;
-            u32 tlutXferCount = (value0&0x1FFC00)>>5; 
-            //do the transfer!!			
-            memcpy_gc(texMem + tlutTMemAddr, g_VideoInitialize.pGetMemoryPointer((bpmem.tlutXferSrc&0xFFFFF)<<5), tlutXferCount);
-            // TODO(ector) : kill all textures that use this palette
-            // Not sure if it's a good idea, though. For now, we hash texture palettes
-        }
-        break;
-    }
-
     //notify the video handling so it can update render states
     BPWritten(opcode, changes, newval);
-    //((u32*)&bpmem)[opcode] = newval;
 }
 
-// =======================================================================================
-// Never called?
-// ---------------
+// Never called? Should probably be called when loading a saved state.
+// Needs testing though.
 void BPReload()
 {
-    for (int i=0; i<254; i++)
-        BPWritten(i, 0xFFFFFF, ((u32*)&bpmem)[i]);	
+	for (int i = 0; i < 254; i++)
+	{
+		switch (i) {
+		case 0x65:
+		case 0x45: //GXSetDrawDone
+		case BPMEM_PE_TOKEN_ID:
+		case BPMEM_PE_TOKEN_INT_ID:
+		case 0x67: // set gp metric?
+		case 0x52:
+			break;
+		default:
+			BPWritten(i, 0xFFFFFF, ((u32*)&bpmem)[i]);
+		}
+	}
 }

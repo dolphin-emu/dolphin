@@ -490,6 +490,14 @@
 					AssemblerOutput="4"
 				/>
 			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|x64"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					AssemblerOutput="4"
+				/>
+			</FileConfiguration>
 		</File>
 		<File
 			RelativePath=".\Src\XFBConvert.h"

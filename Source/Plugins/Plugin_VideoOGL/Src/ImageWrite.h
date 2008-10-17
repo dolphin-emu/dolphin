@@ -15,18 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _GLOBALS_H
-#define _GLOBALS_H
+#ifndef _IMAGEWRITE_H
+#define _IMAGEWRITE_H
 
-#include "Common.h"
-#include "pluginspecs_dsp.h"
+bool SaveTGA(const char* filename, int width, int height, void* pdata);
+bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height);
+bool SaveData(const char* filename, const char* pdata);
 
-extern DSPInitialize g_dspInitialize;
-void DebugLog(const char* _fmt, ...);
-
-u8 Memory_Read_U8(u32 _uAddress);
-u16 Memory_Read_U16(u32 _uAddress);
-u32 Memory_Read_U32(u32 _uAddress);
-float Memory_Read_Float(u32 _uAddress);
-
-#endif
+#endif  // _IMAGEWRITE_H

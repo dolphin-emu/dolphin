@@ -49,10 +49,12 @@
 #endif
 
 #ifdef _WIN32
-#ifdef _WIN32
+
+// By default, MS' stdio implementation does not support 64-bit offsets.
+// This little hack fixes that, keeping the code portable to linux where fseek and fread
+// do support 64-bit offsets in modern distributions.
 #define fseek _fseeki64
 #define ftell _ftelli64
-#endif
 
 #define POSIX 0
 #define NOMINMAX
@@ -128,11 +130,9 @@ typedef union _LARGE_INTEGER
 #undef max
 
 template<class T>
-inline T min(const T& a, const T& b) {return(a > b ? b : a);}
-
-
+inline T min(const T& a, const T& b) {return a > b ? b : a;}
 template<class T>
-inline T max(const T& a, const T& b) {return(a > b ? a : b);}
+inline T max(const T& a, const T& b) {return a > b ? a : b;}
 
 // Byte ordering
 

@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
 #include <wx/wx.h>
 #include <wx/filepicker.h>
 #include <wx/notebook.h>
@@ -30,8 +29,6 @@
 #include "IniFile.h"
 #include <assert.h>
 
-float MValueX, MValueY; // Since it can Stretch to fit Window, we need two different multiplication values//
-int frameCount;
 Config g_Config;
 
 Statistics stats;
@@ -52,10 +49,6 @@ void Config::Load()
     IniFile iniFile;
     iniFile.Load("gfx_opengl.ini");
 
-    iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
-	if (iAdapter == -1) 
-        iAdapter = 0;
-
 	// get resolution
     iniFile.Get("Hardware", "WindowedRes", &temp, 0);
 	if(temp.empty())
@@ -71,7 +64,6 @@ void Config::Load()
 
     iniFile.Get("Settings", "ShowFPS", &bShowFPS, false); // Settings
 	iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
-    iniFile.Get("Settings", "Postprocess", &iPostprocessEffect, 0);
     iniFile.Get("Settings", "DLOptimize", &iCompileDLsLevel, 0);
     iniFile.Get("Settings", "DumpTextures", &bDumpTextures, 0);
     iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
@@ -81,7 +73,7 @@ void Config::Load()
         iMultisampleMode = 1;
 	std::string s;
     iniFile.Get("Settings", "TexDumpPath", &s, 0);
-    if( s.size() < sizeof(texDumpPath) )
+    if (s.size() < sizeof(texDumpPath) )
         strcpy(texDumpPath, s.c_str());
     else {
         strncpy(texDumpPath, s.c_str(), sizeof(texDumpPath)-1);
@@ -102,7 +94,6 @@ void Config::Save()
 {
     IniFile iniFile;
     iniFile.Load("gfx_opengl.ini");
-    iniFile.Set("Hardware", "Adapter", iAdapter);
     iniFile.Set("Hardware", "WindowedRes", iWindowedRes);
     iniFile.Set("Hardware", "FullscreenRes", iFSResolution);
     iniFile.Set("Hardware", "Fullscreen", bFullscreen);
@@ -110,7 +101,6 @@ void Config::Save()
 
     iniFile.Set("Settings", "ShowFPS", bShowFPS);
 	iniFile.Set("Settings", "OverlayStats", bOverlayStats);
-    iniFile.Set("Settings", "Postprocess", iPostprocessEffect);
     iniFile.Set("Settings", "DLOptimize", iCompileDLsLevel);
     iniFile.Set("Settings", "DumpTextures", bDumpTextures);
     iniFile.Set("Settings", "ShowShaderErrors", bShowShaderErrors);
@@ -129,93 +119,19 @@ void Config::Save()
     iniFile.Save("gfx_opengl.ini");
 }
 
-#if defined(_MSC_VER)
-#pragma pack(push, 1)
-#endif
-
-struct TGA_HEADER
-{
-    u8  identsize;          // size of ID field that follows 18 u8 header (0 usually)
-    u8  colourmaptype;      // type of colour map 0=none, 1=has palette
-    u8  imagetype;          // type of image 0=none,1=indexed,2=rgb,3=grey,+8=rle packed
-
-    s16 colourmapstart;     // first colour map entry in palette
-    s16 colourmaplength;    // number of colours in palette
-    u8  colourmapbits;      // number of bits per palette entry 15,16,24,32
-
-    s16 xstart;             // image x origin
-    s16 ystart;             // image y origin
-    s16 width;              // image width in pixels
-    s16 height;             // image height in pixels
-    u8  bits;               // image bits per pixel 8,16,24,32
-    u8  descriptor;         // image descriptor bits (vh flip bits)
-    
-    // pixel data follows header
-    
-
-};
-#if defined(_MSC_VER)
-#pragma pack(pop)
-#endif
-
-bool SaveTGA(const char* filename, int width, int height, void* pdata)
-{
-    TGA_HEADER hdr;
-    FILE* f = fopen(filename, "wb");
-    if (f == NULL)
-        return false;
-
-    _assert_( sizeof(TGA_HEADER) == 18 && sizeof(hdr) == 18 );
-    
-    memset(&hdr, 0, sizeof(hdr));
-    hdr.imagetype = 2;
-    hdr.bits = 32;
-    hdr.width = width;
-    hdr.height = height;
-    hdr.descriptor |= 8|(1<<5); // 8bit alpha, flip vertical
-
-    fwrite(&hdr, sizeof(hdr), 1, f);
-    fwrite(pdata, width*height*4, 1, f);
-    fclose(f);
-    return true;
-}
-
-bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height)
-{
-    GL_REPORT_ERRORD();
-	std::vector<u32> data(width*height);
-    glBindTexture(textarget, tex);
-    glGetTexImage(textarget, 0, GL_BGRA, GL_UNSIGNED_BYTE, &data[0]);
-    GLenum err;
-    GL_REPORT_ERROR();
-    if (err != GL_NO_ERROR) {
-        return false;
-    }
-
-    return SaveTGA(filename, width, height, &data[0]);
-}
-
-bool SaveData(const char* filename, const char* data)
-{
-    FILE* f = fopen(filename, "wb");
-    if (f == NULL)
-        return false;
-
-    fwrite(data, strlen(data), 1, f);
-    fclose(f);
-    return true;
-}
-
-
 #ifdef _WIN32
+
 // The one for Linux is in Linux/Linux.cpp
 static HANDLE hConsole = NULL;
-void OpenConsole() {
+
+void OpenConsole()
+{
 	COORD csize;
 	CONSOLE_SCREEN_BUFFER_INFO csbiInfo; 
 	SMALL_RECT srect;
 
-	if (hConsole) return;
+	if (hConsole)
+		return;
 	AllocConsole();
 	SetConsoleTitle("Opengl Plugin Output");
 
@@ -234,18 +150,18 @@ void OpenConsole() {
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 }
 
-void CloseConsole() {
-	if (hConsole == NULL) return;
-	FreeConsole(); hConsole = NULL;
+void CloseConsole()
+{
+	if (hConsole == NULL)
+		return;
+	FreeConsole();
+	hConsole = NULL;
 }
 #endif
-
-
 
 static FILE* pfLog = NULL;
 void __Log(const char *fmt, ...)
 {
-
     char* Msg = (char*)alloca(strlen(fmt)+512);
     va_list ap;
 
@@ -255,9 +171,10 @@ void __Log(const char *fmt, ...)
 
     g_VideoInitialize.pLog(Msg, FALSE);
 
-    if( pfLog == NULL ) pfLog = fopen("Logs/oglgfx.txt", "w");
+    if (pfLog == NULL)
+		pfLog = fopen("Logs/oglgfx.txt", "w");
 
-    if( pfLog != NULL )
+    if (pfLog != NULL)
         fwrite(Msg, strlen(Msg), 1, pfLog);
 #ifdef _WIN32
     DWORD tmp;
@@ -265,12 +182,10 @@ void __Log(const char *fmt, ...)
 #else
 	//printf("%s", Msg);
 #endif
-
 }
 
 void __Log(int type, const char *fmt, ...)
 {
-
     char* Msg = (char*)alloca(strlen(fmt)+512);
     va_list ap;
 
@@ -284,5 +199,4 @@ void __Log(int type, const char *fmt, ...)
     DWORD tmp;
     WriteConsole(hConsole, Msg, (DWORD)strlen(Msg), &tmp, 0);
 #endif
-
 }

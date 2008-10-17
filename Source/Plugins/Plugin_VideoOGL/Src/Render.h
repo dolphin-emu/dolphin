@@ -20,8 +20,14 @@
 
 #include "TextureMngr.h"
 
+#include <Cg/cg.h>
+#include <Cg/cgGL.h>
+
 extern CGcontext g_cgcontext;
 extern CGprofile g_cgvProf, g_cgfProf;
+
+extern float MValueX, MValueY;
+extern int frameCount;
 
 class Renderer
 {

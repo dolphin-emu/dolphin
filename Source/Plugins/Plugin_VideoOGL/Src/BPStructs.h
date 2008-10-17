@@ -21,7 +21,6 @@
 #include "BPMemory.h"
 
 void BPInit();
-//bool BPWritten(int addr, int changes);
 void LoadBPReg(u32 value0);
 
 void SetColorMask();

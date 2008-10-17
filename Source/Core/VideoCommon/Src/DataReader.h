@@ -18,10 +18,7 @@
 #ifndef _DATAREADER_H
 #define _DATAREADER_H
 
-
 extern u8* g_pVideoData;
-
-
 
 inline u8 DataPeek8(u32 _uOffset)
 {
@@ -46,14 +43,14 @@ inline u8 DataReadU8()
 inline u16 DataReadU16()
 {
     u16 tmp = Common::swap16(*(u16*)g_pVideoData);
-	g_pVideoData+=2;
+	g_pVideoData += 2;
 	return tmp;
 }
 
 inline u32 DataReadU32()
 {
 	u32 tmp = Common::swap32(*(u32*)g_pVideoData);
-	g_pVideoData+=4;
+	g_pVideoData += 4;
 	return tmp;
 }
 
@@ -61,7 +58,7 @@ inline float DataReadF32()
 {
     union {u32 i; float f;} temp;
 	temp.i = Common::swap32(*(u32*)g_pVideoData);
-	g_pVideoData+=4;
+	g_pVideoData += 4;
 	float tmp = temp.f;
 	return tmp;
 }
@@ -77,4 +74,3 @@ inline void DataSkip(u32 skip)
 }
 
 #endif
-

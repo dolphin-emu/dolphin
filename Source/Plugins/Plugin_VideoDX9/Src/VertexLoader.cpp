@@ -20,6 +20,7 @@
 #include "x64Emitter.h"
 
 #include "Common.h"
+#include "Profiler.h"
 #include "VertexHandler.h"
 #include "VertexLoader.h"
 #include "XFStructs.h"

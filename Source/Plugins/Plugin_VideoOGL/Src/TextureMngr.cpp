@@ -30,6 +30,7 @@
 #endif
 
 #include "Profiler.h"
+#include "ImageWrite.h"
 
 #include "Render.h"
 
@@ -161,8 +162,8 @@ void TextureMngr::Cleanup()
     }
 
     std::map<u32, DEPTHTARGET>::iterator itdepth = mapDepthTargets.begin();
-    while(itdepth != mapDepthTargets.end()) {
-        if( frameCount > 20 + itdepth->second.framecount) {
+    while (itdepth != mapDepthTargets.end()) {
+        if (frameCount > 20 + itdepth->second.framecount) {
 #ifdef _WIN32
             itdepth = mapDepthTargets.erase(itdepth);
 #else

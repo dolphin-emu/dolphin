@@ -15,20 +15,14 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
+// Simple profiler
 
+#include "Common.h"
 #include "Profiler.h"
 
-
-////////////////////
-// Small profiler //
-////////////////////
 #include <list>
 #include <string>
 #include <map>
-using namespace std;
-
-int g_bWriteProfile=0;
 
 #ifdef _WIN32
 
@@ -45,7 +39,14 @@ int g_bWriteProfile=0;
 #pragma intrinsic(__rdtsc)
 #endif
 
-static u64 luPerfFreq=0;
+// Globals
+static u64 luPerfFreq = 0;
+#ifdef DVPROFILE
+int g_bWriteProfile = 1;
+#else
+int g_bWriteProfile = 1;
+#endif
+
 inline u64 GET_PROFILE_TIME()
 {
 #if defined (_MSC_VER) && _MSC_VER >= 1400
@@ -57,10 +58,9 @@ inline u64 GET_PROFILE_TIME()
 #endif
 }
 #else
-static u64 luPerfFreq=1000000;
+static u64 luPerfFreq = 1000000;
 #define GET_PROFILE_TIME() //GetCpuTick()
 #endif
-
 
 struct DVPROFSTRUCT;
 
@@ -70,25 +70,27 @@ struct DVPROFSTRUCT
     {
         DATA(u64 time, u32 user = 0) : dwTime(time), dwUserData(user) {}
         DATA() : dwTime(0), dwUserData(0) {}
-        
+
         u64 dwTime;
         u32 dwUserData;
     };
 
     ~DVPROFSTRUCT() {
-        list<DVPROFSTRUCT*>::iterator it = listpChild.begin();
-        while(it != listpChild.end() ) {
-            delete *it; *it = NULL;
+        std::list<DVPROFSTRUCT *>::iterator it = listpChild.begin();
+        while (it != listpChild.end()) {
+            delete *it;
+			*it = NULL;
             ++it;
         }
     }
 
-    list<DATA> listTimes;       // before DVProfEnd is called, contains the global time it started
-                                // after DVProfEnd is called, contains the time it lasted
-                                // the list contains all the tracked times 
+	// before DVProfEnd is called, contains the global time it started
+	// after DVProfEnd is called, contains the time it lasted
+	// the list contains all the tracked times 
+    std::list<DATA> listTimes;
+                              
     char pname[256];
-
-    list<DVPROFSTRUCT*> listpChild;     // other profilers called during this profiler period
+    std::list<DVPROFSTRUCT*> listpChild;     // other profilers called during this profiler period
 };
 
 struct DVPROFTRACK
@@ -98,13 +100,19 @@ struct DVPROFTRACK
     DVPROFSTRUCT* pprof;
 };
 
-list<DVPROFTRACK> g_listCurTracking;    // the current profiling functions, the back element is the
-                                        // one that will first get popped off the list when DVProfEnd is called
-                                        // the pointer is an element in DVPROFSTRUCT::listTimes
-list<DVPROFSTRUCT> g_listProfilers;         // the current profilers, note that these are the parents
-                                            // any profiler started during the time of another is held in
-                                            // DVPROFSTRUCT::listpChild
-list<DVPROFSTRUCT*> g_listAllProfilers;     // ignores the hierarchy, pointer to elements in g_listProfilers
+// the current profiling functions, the back element is the
+// one that will first get popped off the list when DVProfEnd is called
+// the pointer is an element in DVPROFSTRUCT::listTimes
+static std::list<DVPROFTRACK> g_listCurTracking;
+
+// the current profilers, note that these are the parents
+// any profiler started during the time of another is held in
+// DVPROFSTRUCT::listpChild
+static std::list<DVPROFSTRUCT> g_listProfilers; 
+
+// ignores the hierarchy, pointer to elements in g_listProfilers
+static std::list<DVPROFSTRUCT*> g_listAllProfilers;
+
 
 void DVProfRegister(const char *pname)
 {
@@ -123,7 +131,7 @@ void DVProfRegister(const char *pname)
     }
 #endif
 
-    list<DVPROFSTRUCT*>::iterator it = g_listAllProfilers.begin();
+    std::list<DVPROFSTRUCT*>::iterator it = g_listAllProfilers.begin();
     
 //  while(it != g_listAllProfilers.end() ) {
 //
@@ -191,19 +199,15 @@ struct DVTIMEINFO
     u64 uInclusive, uExclusive;
 };
 
-map<string, DVTIMEINFO> mapAggregateTimes;
+std::map<std::string, DVTIMEINFO> mapAggregateTimes;
 
-u64 DVProfWriteStruct(FILE* f, DVPROFSTRUCT* p, int ident)
+u64 DVProfWriteStruct(FILE* f, const DVPROFSTRUCT* p, int ident)
 {
     fprintf(f, "%*s%s - ", ident, "", p->pname);
-
-    list<DVPROFSTRUCT::DATA>::iterator ittime = p->listTimes.begin();
-
+    std::list<DVPROFSTRUCT::DATA>::const_iterator ittime = p->listTimes.begin();
     u64 utime = 0;
-
-    while(ittime != p->listTimes.end() ) {
+    while (ittime != p->listTimes.end()) {
         utime += ittime->dwTime;
-        
         if (ittime->dwUserData) 
             fprintf(f, "time: %d, user: 0x%8.8x", (u32)ittime->dwTime, ittime->dwUserData);
         else
@@ -212,9 +216,9 @@ u64 DVProfWriteStruct(FILE* f, DVPROFSTRUCT* p, int ident)
     }
 
     // yes this is necessary, maps have problems with constructors on their type
-    map<string, DVTIMEINFO>::iterator ittimes = mapAggregateTimes.find(p->pname);
+    std::map<std::string, DVTIMEINFO>::iterator ittimes = mapAggregateTimes.find(p->pname);
     if (ittimes == mapAggregateTimes.end()) {
-        ittimes = mapAggregateTimes.insert(map<string, DVTIMEINFO>::value_type(p->pname, DVTIMEINFO())).first;
+        ittimes = mapAggregateTimes.insert(std::map<std::string, DVTIMEINFO>::value_type(p->pname, DVTIMEINFO())).first;
         ittimes->second.uExclusive = 0;
         ittimes->second.uInclusive = 0;
     }
@@ -223,11 +227,10 @@ u64 DVProfWriteStruct(FILE* f, DVPROFSTRUCT* p, int ident)
 
     fprintf(f, "\n");
 
-    list<DVPROFSTRUCT*>::iterator itprof = p->listpChild.begin();
+    std::list<DVPROFSTRUCT*>::const_iterator itprof = p->listpChild.begin();
 
     u64 uex = utime;
-    while(itprof != p->listpChild.end() ) {
-
+    while (itprof != p->listpChild.end()) {
         uex -= DVProfWriteStruct(f, *itprof, ident+4);
         ++itprof;
     }
@@ -247,38 +250,35 @@ void DVProfWrite(const char* pfilename, u32 frames)
 
     // pop back any unused
     mapAggregateTimes.clear();
-    list<DVPROFSTRUCT>::iterator it = g_listProfilers.begin();
+    std::list<DVPROFSTRUCT>::iterator it = g_listProfilers.begin();
 
-    while(it != g_listProfilers.end() ) {
+    while (it != g_listProfilers.end() ) {
         DVProfWriteStruct(f, &(*it), 0);
         ++it;
     }
 
-    {
-        map<string, DVTIMEINFO>::iterator iter;
-        fprintf(f, "\n\n-------------------------------------------------------------------\n\n");
+    std::map<std::string, DVTIMEINFO>::const_iterator iter;
+    fprintf(f, "\n\n-------------------------------------------------------------------\n\n");
 
-        u64 uTotal[2] = {0};
-        double fiTotalTime[2];
+    u64 uTotal[2] = {0};
+    double fiTotalTime[2];
 
-        for(iter = mapAggregateTimes.begin(); iter != mapAggregateTimes.end(); ++iter) {
-            uTotal[0] += iter->second.uExclusive;
-            uTotal[1] += iter->second.uInclusive;
-        }
-
-        fprintf(f, "total times (%d): ex: %Lu ", frames, 1000000*uTotal[0]/(luPerfFreq*(u64)frames));
-        fprintf(f, "inc: %Lu\n", 1000000 * uTotal[1]/(luPerfFreq*(u64)frames));
-
-        fiTotalTime[0] = 1.0 / (double)uTotal[0];
-        fiTotalTime[1] = 1.0 / (double)uTotal[1];
-
-        // output the combined times
-        for(iter = mapAggregateTimes.begin(); iter != mapAggregateTimes.end(); ++iter) {
-            fprintf(f, "%s - ex: %f inc: %f\n", iter->first.c_str(), (float)((double)iter->second.uExclusive * fiTotalTime[0]),
-                (float)((double)iter->second.uInclusive * fiTotalTime[1]));
-        }
+    for (iter = mapAggregateTimes.begin(); iter != mapAggregateTimes.end(); ++iter) {
+        uTotal[0] += iter->second.uExclusive;
+        uTotal[1] += iter->second.uInclusive;
     }
 
+    fprintf(f, "total times (%d): ex: %Lu ", frames, 1000000 * uTotal[0] / (luPerfFreq*(u64)frames));
+    fprintf(f, "inc: %Lu\n", 1000000 * uTotal[1]/(luPerfFreq*(u64)frames));
+
+    fiTotalTime[0] = 1.0 / (double)uTotal[0];
+    fiTotalTime[1] = 1.0 / (double)uTotal[1];
+
+    // output the combined times
+    for (iter = mapAggregateTimes.begin(); iter != mapAggregateTimes.end(); ++iter) {
+        fprintf(f, "%s - ex: %f inc: %f\n", iter->first.c_str(), (float)((double)iter->second.uExclusive * fiTotalTime[0]),
+            (float)((double)iter->second.uInclusive * fiTotalTime[1]));
+    }
 
     fclose(f);
 }

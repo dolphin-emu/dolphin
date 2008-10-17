@@ -32,7 +32,8 @@ using namespace std;
 #define LOADERDECL __cdecl
 typedef void (LOADERDECL *TPipelineFunction)(void*);
 
-/// Use to manage loading and setting vertex buffer data for OpenGL
+// There are 8 of these. Most games only use the first, and just reconfigure it all the time
+// as needed, unfortunately.
 class VertexLoader
 {
 public:
@@ -97,10 +98,10 @@ private:
     //common for all loaders
     TVtxDesc m_VtxDesc;
 
-    // seup the pipeline with this vertex fmt
     void SetupColor(int num, int _iMode, int _iFormat, int _iElements);
     void SetupTexCoord(int num, int _iMode, int _iFormat, int _iElements, int _iFrac);
 
+	// The 3 possible values (0, 1, 2) should be documented here.
     int m_AttrDirty;
 
 public:
@@ -124,7 +125,7 @@ public:
 
     void SetVAT_group0(u32 _group0) 
     {
-        if ((m_group0.Hex&~0x3e0001f0) != (_group0&~0x3e0001f0)) {
+        if ((m_group0.Hex & ~0x3e0001f0) != (_group0 & ~0x3e0001f0)) {
             m_AttrDirty = 2;
         }
         m_group0.Hex = _group0;
@@ -147,7 +148,7 @@ public:
 
     void SetVAT_group1(u32 _group1) 
     {
-        if ((m_group1.Hex&~0x7c3e1f0) != (_group1&~0x7c3e1f0)) {
+        if ((m_group1.Hex & ~0x7c3e1f0) != (_group1 & ~0x7c3e1f0)) {
             m_AttrDirty = 2;
         }
         m_group1.Hex = _group1;
@@ -168,7 +169,7 @@ public:
                                           
     void SetVAT_group2(u32 _group2)		  
     {
-        if ((m_group2.Hex&~0xf87c3e1f) != (_group2&~0xf87c3e1f)) {
+        if ((m_group2.Hex & ~0xf87c3e1f) != (_group2 & ~0xf87c3e1f)) {
             m_AttrDirty = 2;
         }
         m_group2.Hex = _group2;
@@ -186,38 +187,6 @@ public:
     };
 };									  
 
-/// Methods to manage and cache the global state of vertex streams and flushing streams
-/// Also handles processing the CP registers
-class VertexManager
-{
-    static TVtxDesc s_GlobalVtxDesc;
-
-public:
-    enum Collection
-    {
-        C_NOTHING=0,
-        C_TRIANGLES=1,
-        C_LINES=2,
-        C_POINTS=3
-    };
-
-    static bool Init();
-    static void Destroy();
-
-    static void ResetBuffer();
-    static void ResetComponents();
-
-    static void AddVertices(int primitive, int numvertices);
-    static void Flush(); // flushes the current buffer
-
-    static int GetRemainingSize();
-    static TVtxDesc &GetVtxDesc() {return s_GlobalVtxDesc; }
-
-    static void LoadCPReg(u32 SubCmd, u32 Value);
-
-    static u8* s_pCurBufferPointer;
-    static float shiftLookup[32];
-};
-
 extern VertexLoader g_VertexLoaders[8];
+
 #endif
