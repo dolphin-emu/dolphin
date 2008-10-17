@@ -2487,6 +2487,24 @@ struct SHCIEventConnectionComplete
 	u8 EncryptionEnabled;
 };
 
+struct SHCIEventRoleChange
+{
+	u8 EventType;
+	u8 PayloadLength;
+	u8 Status;
+	bdaddr_t bdaddr;
+	u8 NewRole;
+};
+
+struct SHCIEventNumberOfCompletedPackets
+{
+	u8 EventType;
+	u8 PayloadLength;
+	u8 value;
+	u16 Connection_Handle;
+	u16 Number_Of_Completed_Packets;
+};
+
 #ifdef __cplusplus
 }
 #endif

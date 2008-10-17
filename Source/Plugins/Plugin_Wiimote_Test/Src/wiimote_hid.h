@@ -16,10 +16,10 @@ struct hid_packet {
 	u8 data[0];
 };
 
+#define HID_TYPE_HANDSHAKE 0
 #define HID_TYPE_SET_REPORT 5
 #define HID_TYPE_DATA 0xA
 
-#define HID_TYPE_HANDSHAKE 0
 #define HID_HANDSHAKE_SUCCESS 0
 
 #define HID_PARAM_INPUT 1

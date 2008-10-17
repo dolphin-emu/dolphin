@@ -190,13 +190,45 @@ extern "C" void Wiimote_Output(const void* _pData, u32 _Size) {
 
 	hid_packet* hidp = (hid_packet*) data;
 
-	if(hidp->type == HID_TYPE_SET_REPORT &&
-		hidp->param == HID_PARAM_OUTPUT)
+	if ((hidp->param != HID_PARAM_INPUT) && (hidp->param != HID_PARAM_OUTPUT))
 	{
-		HidOutputReport((wm_report*)hidp->data);
-	} else {
-		PanicAlert("HidOutput: Unknown type 0x%02x", data[0]);
+		PanicAlert("hidp->param has a wrong parameter!!!");
 	}
+
+	switch(hidp->type)
+	{
+	case HID_TYPE_HANDSHAKE:
+		if (hidp->param == HID_PARAM_INPUT)
+		{
+			PanicAlert("HID_TYPE_HANDSHAKE - HID_PARAM_INPUT");
+		}
+		else
+		{
+			PanicAlert("HID_TYPE_HANDSHAKE - HID_PARAM_OUTPUT");
+		}
+		g_ReportingMode = 0x33;
+		break;
+
+	case HID_TYPE_SET_REPORT:
+		if (hidp->param == HID_PARAM_INPUT)
+		{
+			PanicAlert("HID_TYPE_SET_REPORT input");
+		}
+		else
+		{
+			HidOutputReport((wm_report*)hidp->data);
+		}
+		break;
+
+	case HID_TYPE_DATA:
+		PanicAlert("HID_TYPE_DATA %s", hidp->type, hidp->param == HID_PARAM_INPUT ? "input" : "output");
+		break;
+
+	default:
+		PanicAlert("HidOutput: Unknown type %x and param %x", hidp->type, hidp->param);
+		break;
+	}
+
 }
 
 extern "C" void Wiimote_Update() {

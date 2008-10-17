@@ -1344,6 +1344,14 @@
 			RelativePath=".\Src\VolumeHandler.h"
 			>
 		</File>
+		<File
+			RelativePath=".\Src\IPC_HLE\WiiMote_HID_Attr.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\IPC_HLE\WiiMote_HID_Attr.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

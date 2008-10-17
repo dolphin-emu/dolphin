@@ -41,6 +41,22 @@ union UACLHeader
 	u32 Hex;
 };
 
+struct SQueuedEvent
+{
+	u8 m_buffer[1024];
+	size_t m_size;
+	SQueuedEvent(size_t size) :
+		m_size(size)
+	{}
+};
+
+struct ACLFrame 
+{
+	u16 ConnectionHandle;
+	u8* data;
+	u32 size;
+};
+
 class CWII_IPC_HLE_Device_usb_oh1_57e_305 : public IWII_IPC_HLE_Device
 {
 public:
@@ -59,6 +75,15 @@ public:
 	void SendACLFrame(u16 _ConnectionHandle, u8* _pData, u32 _Size);
 
 private:
+
+	typedef std::queue<SQueuedEvent> CEventQueue;
+	CEventQueue m_EventQueue;
+
+	void AddEventToQueue(const SQueuedEvent& _event)
+	{
+		m_EventQueue.push(_event);
+	}
+
 
 	enum
 	{
@@ -95,10 +120,9 @@ private:
 
 	// STATE_TO_SAVE
 	std::queue<SHCICommandMessage> m_HCICommandMessageQueue;
+	std::queue<ACLFrame> m_AclFrameQue;
 
-	bool m_ACLAnswer;
 	SIOCtlVBuffer* m_pACLBuffer;
-
 	SIOCtlVBuffer* m_pHCIBuffer;
 
 	bool SendEventCommandStatus(u16 _Opcode);
@@ -107,12 +131,14 @@ private:
 	bool SendEventInquiryResponse();
 	bool SendEventInquiryComplete();
 
-	bool SendEventRemoteNameReq();
+	bool SendEventRemoteNameReq(bdaddr_t _bd);
 	bool SendEventRequestConnection();
-	bool SendEventConnectionComplete();
-	bool SendEventReadClockOffsetComplete();
-	bool SendEventReadRemoteVerInfo();
-	bool SendEventReadRemoteFeatures();
+	bool SendEventConnectionComplete(bdaddr_t _bd);
+	bool SendEventReadClockOffsetComplete(u16 _connectionHandle);
+	bool SendEventReadRemoteVerInfo(u16 _connectionHandle);
+	bool SendEventReadRemoteFeatures(u16 _connectionHandle);
+	bool SendEventRoleChange(bdaddr_t _bd);
+	bool SendEventNumberOfCompletedPackets(u16 _connectionHandle);
 
 	void ExecuteHCICommandMessage(const SHCICommandMessage& _rCtrlMessage);
 
@@ -147,45 +173,10 @@ private:
 
 	void SendToDevice(u16 _ConnectionHandle, u8* _pData, u32 _Size);
 
-	enum EState
-	{
-		STATE_NONE,
-		STATE_INQUIRY_RESPONSE,
-		STATE_INQUIRY_COMPLETE,
-		STATE_START_REMOTE_NAME_REQ,
-		STATE_REMOTE_NAME_REQ,
-		STATE_CONNECTION_COMPLETE_EVENT,
-		STATE_READ_CLOCK_OFFSET,
-		STATE_READ_REMOTE_VER_INFO,
-		STATE_READ_REMOTE_FEATURES,
-		STATE_CONNECT_WIIMOTE
-	};
 
-	EState m_State;
 	u32 m_UpdateWaitCount;
-	bdaddr_t m_StateTempBD;
-	u16 m_StateTempConnectionHandle;
-
-	struct ACLFrame {
-		u16 ConnectionHandle;
-		u8* data;
-		u32 size;
-	};
-
-	std::queue<ACLFrame> m_AclFrameQue;
 
 	u8 scan_enable;
-
-	//TODO: get rid of these, integrate into EState.
-	enum EDelayedEvent
-	{
-		EVENT_NONE,
-		EVENT_REQUEST_CONNECTION,
-		EVENT_CONNECTION_COMPLETE
-	};
-	EDelayedEvent m_DelayedEvent;
-	void SetDelayedEvent(EDelayedEvent e);
-
 	bdaddr_t m_ControllerBD;
 	u8 m_ClassOfDevice[HCI_CLASS_SIZE];
 	char m_LocalName[HCI_UNIT_NAME_SIZE];
@@ -203,8 +194,6 @@ public:	//hack for wiimote plugin
 	std::vector<CWII_IPC_HLE_WiiMote> m_WiiMotes;
 	CWII_IPC_HLE_WiiMote* AccessWiiMote(const bdaddr_t& _rAddr);
 	CWII_IPC_HLE_WiiMote* AccessWiiMote(u16 _ConnectionHandle);
-	void ClearBD(bdaddr_t& _rAddr);
-
 };
 
 #endif

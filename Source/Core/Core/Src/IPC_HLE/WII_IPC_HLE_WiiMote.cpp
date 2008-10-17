@@ -20,6 +20,7 @@
 
 #include "WII_IPC_HLE_WiiMote.h"
 #include "l2cap.h"
+#include "WiiMote_HID_Attr.h"
 
 #if defined(_MSC_VER)
 #pragma pack(push, 1)
@@ -29,9 +30,12 @@
 #define HIDP_OUTPUT_CHANNEL			0x11
 #define HIDP_INPUT_CHANNEL			0x13
 
-#define HID_OUTPUT_SCID 0x1234
-#define HID_INPUT_SCID 0x5678
+// #define HID_OUTPUT_SCID 0x1234
+// #define HID_INPUT_SCID 0x5678
 
+
+#define HID_OUTPUT_SCID 0x0040
+#define HID_INPUT_SCID 0x0040
 
 struct SL2CAP_Header
 {
@@ -128,8 +132,8 @@ namespace Core {
 }
 
 CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pHost, int _Number)
-: m_Name("Nintendo RVL-CNT-01")
-, m_pHost(_pHost)
+	: m_Name("Nintendo RVL-CNT-01")
+	, m_pHost(_pHost)
 {
 	s_Usb = _pHost;
 	LOG(WIIMOTE, "Wiimote %i constructed", _Number);
@@ -143,9 +147,9 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 
 	m_ControllerConnectionHandle = 0x100 + _Number;
 
-	uclass[0]= 0x04;
-	uclass[1]= 0x25;
-	uclass[2]= 0x00;
+	uclass[0]= 0x00;
+	uclass[1]= 0x04;
+	uclass[2]= 0x48;
 
 	features[0] = 0xBC;
 	features[1] = 0x02;
@@ -155,6 +159,9 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 	features[5] = 0x00;
 	features[6] = 0x00;
 	features[7] = 0x00;
+
+	lmp_version = 0x2;
+	lmp_subversion = 0x229;
 }
 
 void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
@@ -190,12 +197,32 @@ void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 	case 0x0001:
 		SignalChannel(pData, DataSize);
 		break;
-	case HID_OUTPUT_SCID:
-		HidOutput(pData, DataSize);
-		break;
 
 	default:
-		PanicAlert("SendACLFrame to unknown channel");
+		{
+			CChannelMap::iterator  itr= m_Channel.find(pHeader->CID);
+			if (itr != m_Channel.end())
+			{
+				SChannel& rChannel = itr->second;
+				switch(rChannel.PSM)
+				{
+				case 0x01: //SDP
+					{
+						HandleSDP(pHeader->CID, pData, DataSize);
+					}
+					break;
+
+				default:
+					PanicAlert("channel %i has unknow PSM %x", pHeader->CID);
+					break;
+				}
+			}
+			else
+			{
+				PanicAlert("SendACLFrame to unknown channel %i", pHeader->CID);
+			}
+
+		}
 		break;
 	}
 }
@@ -223,16 +250,29 @@ void CWII_IPC_HLE_WiiMote::SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLeng
 	// send ....
 	m_pHost->SendACLFrame(GetConnectionHandle(), DataFrame, pHeader->Length + sizeof(SL2CAP_Header));
 
-	// stupid self-test
-	// SendACLFrame(DataFrame, pHeader->Length + sizeof(SL2CAP_Header));
+
+	// dump raw data
+	{
+		LOG(WIIMOTE, "m_pHost->SendACLFrame: 0x%x", GetConnectionHandle());
+		std::string Temp;
+		for (u32 j=0; j<pHeader->Length + sizeof(SL2CAP_Header); j++)
+		{
+			char Buffer[128];
+			sprintf(Buffer, "%02x ", DataFrame[j]);
+			Temp.append(Buffer);
+		}
+		LOG(WIIMOTE, "   Data: %s", Temp.c_str());
+	}
 }
 
-void CWII_IPC_HLE_WiiMote::Connect() {
+void CWII_IPC_HLE_WiiMote::Connect() 
+{
 	SendConnectionRequest(HID_OUTPUT_SCID, HIDP_OUTPUT_CHANNEL);
 	SendConnectionRequest(HID_INPUT_SCID, HIDP_INPUT_CHANNEL);
 }
 
-void CWII_IPC_HLE_WiiMote::SendConnectionRequest(u16 scid, u16 psm) {
+void CWII_IPC_HLE_WiiMote::SendConnectionRequest(u16 scid, u16 psm) 
+{
 	// create the channel
 	SChannel& rChannel = m_Channel[scid];
 	rChannel.PSM = psm;
@@ -253,15 +293,33 @@ void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid) {
 	_dbg_assert_(WIIMOTE, DoesChannelExist(scid));
 	SChannel& rChannel = m_Channel[scid];
 
-	l2cap_conf_req cr;
-	cr.dcid = rChannel.DCID;
-	cr.flags = 0;	//what goes here? check libogc.
+	u8 Buffer[1024];
+	int Offset = 0;
+
+	l2cap_conf_req* cr = (l2cap_conf_req*)Buffer;
+	cr->dcid = rChannel.DCID;
+	cr->flags = 0;	//what goes here? check libogc.
+
+	Offset += 2;
+
+	/*
+	controller doesnt know this...
+	Buffer[Offset++] = 1;
+	Buffer[Offset++] = 2;
+	Buffer[Offset++] = 0;
+	Buffer[Offset++] = 1;*/
+
+	Buffer[Offset++] = 2;
+	Buffer[Offset++] = 2;
+	Buffer[Offset++] = 0xff;
+	Buffer[Offset++] = 0xff;
+
 
 	LOG(WIIMOTE, "  SendConfigurationRequest()");
-	LOG(WIIMOTE, "    Dcid: 0x%04x", cr.dcid);
-	LOG(WIIMOTE, "    Flags: 0x%04x", cr.flags);
+	LOG(WIIMOTE, "    Dcid: 0x%04x", cr->dcid);
+	LOG(WIIMOTE, "    Flags: 0x%04x", cr->flags);
 
-	SendCommandToACL(L2CAP_CONF_REQ, L2CAP_CONF_REQ, sizeof(cr), (u8*)&cr);
+	SendCommandToACL(L2CAP_CONF_REQ, L2CAP_CONF_REQ, Offset, Buffer);
 }
 
 
@@ -367,6 +425,46 @@ void CWII_IPC_HLE_WiiMote::CommandConnectionReq(u8 _Ident, u8* _pData, u32 _Size
 	SendCommandToACL(_Ident, L2CAP_CONN_RSP, sizeof(SL2CAP_ConnectionResponse), (u8*)&Rsp);
 }
 
+class CConfigurationResponse
+{
+public:
+	CConfigurationResponse(u8 identifier, u16 scid, u16 flags, u16 result)
+	{
+		buffer[0] = 0x05;
+		buffer[1] = identifier;
+		*(u16*)&buffer[4] = scid;
+		*(u16*)&buffer[6] = flags;
+		*(u16*)&buffer[8] = result;
+
+		length = 10;
+
+		UpdateLen();
+	}
+
+	void AddConfig(u8 type, u8 len, void* data)
+	{
+		buffer[length++] = type;
+		buffer[length++] = len;
+		memcpy(&buffer[length], data, len);
+		length += len;
+
+		UpdateLen();
+	}
+
+	u16 getLen() { return length; }
+	u8* getBuffer() { return buffer; }
+
+private:
+
+	void UpdateLen()
+	{
+		*(u16*)&buffer[2] = length;
+	}
+
+	u8 buffer[1024];
+	u16 length;
+};
+
 void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Size)
 {
 	u32 Offset = 0;
@@ -437,6 +535,9 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 
 
 	SendCommandToACL(_Ident, L2CAP_CONF_RSP, RespLen, TempBuffer);
+
+	// ugly
+	SendConfigurationRequest(Rsp->scid);
 }
 
 void CWII_IPC_HLE_WiiMote::CommandConnectionResponse(u8 _Ident, u8* _pData, u32 _Size)
@@ -474,4 +575,220 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationResponse(u8 _Ident, u8* _pData, u3
  	LOG(WIIMOTE, "    Result: 0x%04x", rsp->result);
 
 	_dbg_assert_(WIIMOTE, rsp->result == 0);
+}
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define SDP_UINT8  		0x08
+#define SDP_UINT16		0x09
+#define SDP_UINT32		0x0A
+#define SDP_SEQ8		0x35
+#define SDP_SEQ16		0x36
+
+
+
+
+void CWII_IPC_HLE_WiiMote::SDPSendServiceSearchResponse(u16 cid, u16 TransactionID, u8* pServiceSearchPattern, u16 MaximumServiceRecordCount)
+{
+	// verify block... we hanlde search pattern for HID service only
+	{
+		CBigEndianBuffer buffer(pServiceSearchPattern);		
+		_dbg_assert_(WIIMOTE, buffer.Read8(0) == SDP_SEQ8);       // data sequence
+		_dbg_assert_(WIIMOTE, buffer.Read8(1) == 0x03);		  // sequence size
+
+		// HIDClassID
+		_dbg_assert_(WIIMOTE, buffer.Read8(2) == 0x19);
+		_dbg_assert_(WIIMOTE, buffer.Read16(3) == 0x1124);
+	}
+
+	u8 DataFrame[1000];
+	CBigEndianBuffer buffer(DataFrame);
+
+	int Offset = 0;
+	SL2CAP_Header* pHeader = (SL2CAP_Header*)&DataFrame[Offset]; Offset += sizeof(SL2CAP_Header);
+	pHeader->CID = cid;
+	pHeader->Length = 0x14;
+
+	buffer.Write8 (Offset, 0x03);				Offset++;
+	buffer.Write16(Offset, TransactionID);		Offset += 2;		// transaction ID
+	buffer.Write16(Offset, 0x0009);				Offset += 2;		// param length
+	buffer.Write16(Offset, 0x0001);				Offset += 2;		// TotalServiceRecordCount
+	buffer.Write16(Offset, 0x0001);				Offset += 2;		// CurrentServiceRecordCount
+	buffer.Write32(Offset, 0x1234ABCD);			Offset += 4;		// ServiceRecordHandleList[4]
+	buffer.Write8( Offset, 0x00);				Offset++;			// no continuation state;
+
+	pHeader->Length = Offset - sizeof(SL2CAP_Header);
+
+	m_pHost->SendACLFrame(GetConnectionHandle(), DataFrame, Offset);
+}
+
+void GetStartAndEndID(u8* pAttribIDList, u16& _startID, u16& _endID)
+{
+	u32 attribOffset = 0;
+	CBigEndianBuffer attribList(pAttribIDList);
+
+	u8 sequence		= attribList.Read8(attribOffset);		attribOffset++;  _dbg_assert_(WIIMOTE, sequence == SDP_SEQ8);
+	u8 seqSize		= attribList.Read8(attribOffset);		attribOffset++;
+	u8 typeID      = attribList.Read8(attribOffset);		attribOffset++; 
+
+	if (typeID == SDP_UINT32)
+	{
+		_startID = attribList.Read16(attribOffset);			attribOffset += 2;
+		_endID = attribList.Read16(attribOffset);			attribOffset += 2;
+	}
+	else
+	{
+		_startID = attribList.Read8(attribOffset);		attribOffset += 2;
+		_endID = _startID;
+		PanicAlert("Read just a single attrib - not tested");
+	}
+}
+
+
+void CWII_IPC_HLE_WiiMote::SDPSendServiceAttributeResponse(u16 cid, u16 TransactionID, u32 ServiceHandle, u8* pAttribIDList, u16 AttribListIDSize)
+{
+	u8 DataFrame[1000];
+	CBigEndianBuffer buffer(DataFrame);
+
+	int Offset = 0;
+	SL2CAP_Header* pHeader = (SL2CAP_Header*)&DataFrame[Offset]; Offset += sizeof(SL2CAP_Header);
+	pHeader->CID = cid;
+		
+	buffer.Write8 (Offset, 0x05);				Offset++;
+	buffer.Write16(Offset, TransactionID);		Offset += 2;		// transaction ID
+
+	{
+		u32 paraLenOffset = Offset;					Offset += 2;
+		u32 AttributeListByteCountOffset = Offset;	Offset += 2;
+
+		buffer.Write8(Offset, SDP_SEQ16);			Offset ++;		// write 16 bit sequencer
+		u32 sequenceSizeOffset = Offset;			Offset += 2;
+
+		// get attrib range 
+		u16 startAttrID;
+		u16 endAttrID;
+		GetStartAndEndID(pAttribIDList, startAttrID, endAttrID);
+
+		// walk through the table 
+		const CAttribTable& rAttribTable = GetAttribTable();
+		CAttribTable::const_iterator itr = rAttribTable.begin();
+
+		u32 sequenceSize = 0;
+		while(itr != rAttribTable.end())
+		{
+			const SAttrib& rAttrib = *itr;
+
+			if ((rAttrib.ID >= startAttrID) && (rAttrib.ID <= endAttrID))
+			{
+				_dbg_assert_(WIIMOTE, rAttrib.size <= 230);
+
+				// ATTRIB TYPE ID
+				buffer.Write8(Offset, SDP_UINT16);		Offset ++;
+				buffer.Write16(Offset, rAttrib.ID);		Offset += 2;
+				sequenceSize += 3;
+
+				// RAW ATTRIB DATA SEQ HEADER
+				buffer.Write8(Offset, SDP_SEQ8);		Offset ++;
+				buffer.Write8(Offset, rAttrib.size);	Offset ++;
+				sequenceSize += 2;
+
+				// RAW ATTRIB DATA
+				memcpy(buffer.GetPointer(Offset), rAttrib.pData, rAttrib.size);
+				Offset += rAttrib.size;
+
+				sequenceSize += rAttrib.size;
+			}
+			itr++;
+		}
+
+
+		buffer.Write16(sequenceSizeOffset,			 sequenceSize);		
+		buffer.Write16(AttributeListByteCountOffset, sequenceSize + 4);		// AttributeListByteCount
+		buffer.Write16(paraLenOffset,				 sequenceSize + 4 + 3);	// param length
+	}
+										
+	buffer.Write8(Offset, 0x00); Offset++;			// no continuation state;
+	
+	pHeader->Length = Offset - sizeof(SL2CAP_Header);
+
+
+	// dump raw data
+	{
+		LOG(WIIMOTE, "test response: 0x%x", GetConnectionHandle());
+		std::string Temp;
+		for (u32 j=0; j<pHeader->Length + sizeof(SL2CAP_Header); j++)
+		{
+			char Buffer[128];
+			sprintf(Buffer, "%02x ", DataFrame[j]);
+			Temp.append(Buffer);
+		}
+		LOG(WIIMOTE, "   Data: %s", Temp.c_str());
+	}
+
+	m_pHost->SendACLFrame(GetConnectionHandle(), DataFrame, pHeader->Length + sizeof(SL2CAP_Header));
+}
+
+void CWII_IPC_HLE_WiiMote::HandleSDP(u16 cid, u8* _pData, u32 _Size)
+{
+	// dump raw data
+	{
+		LOG(WIIMOTE, "HandleSDP: 0x%x", GetConnectionHandle());
+		std::string Temp;
+		for (u32 j=0; j<_Size; j++)
+		{
+			char Buffer[128];
+			sprintf(Buffer, "%02x ", _pData[j]);
+			Temp.append(Buffer);
+		}
+		LOG(WIIMOTE, "   Data: %s", Temp.c_str());
+	}
+
+
+
+	CBigEndianBuffer buffer(_pData);
+
+	switch(buffer.Read8(0))
+	{
+		// SDP_ServiceSearchRequest
+	case 0x02:
+		{
+			LOG(WIIMOTE, "!!! SDP_ServiceSearchRequest !!!");
+
+			_dbg_assert_(WIIMOTE, _Size == 13);
+
+			u16 TransactionID = buffer.Read16(1);
+			u16 ParameterLength = buffer.Read16(3);
+			u8* pServiceSearchPattern = buffer.GetPointer(5);
+			u16 MaximumServiceRecordCount = buffer.Read16(10);
+			u8 ContinuationState = buffer.Read8(12);
+
+			SDPSendServiceSearchResponse(cid, TransactionID, pServiceSearchPattern, MaximumServiceRecordCount);
+		}
+		break;
+
+		// SDP_ServiceAttributeRequest
+	case 0x04:
+		{
+			LOG(WIIMOTE, "!!! SDP_ServiceAttributeRequest !!!");
+
+			u16 TransactionID = buffer.Read16(1);
+			u16 ParameterLength = buffer.Read16(3);
+			u32 ServiceHandle = buffer.Read32(5);
+			u16 MaximumAttributeByteCount = buffer.Read16(9);	// MaximumAttributeByteCount
+			u8* pAttribIDList = buffer.GetPointer(11);
+			u8 ContinuationState =  buffer.Read8(16);
+
+			u8 AttribListIDSize = ParameterLength - sizeof(ContinuationState) - sizeof(ServiceHandle) -sizeof(MaximumAttributeByteCount);
+			SDPSendServiceAttributeResponse(cid, TransactionID, ServiceHandle, pAttribIDList, AttribListIDSize);
+		}
+		break;
+
+	default:
+		PanicAlert("Unknown SDP command %x", _pData[0]);
+		break;
+	}
 }
