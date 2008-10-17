@@ -25,6 +25,7 @@
 
 #include <math.h>
 
+#include "ImageWrite.h"
 #include "Render.h"
 #include "VertexShader.h"
 #include "VertexShaderManager.h"
@@ -111,7 +112,7 @@ VERTEXSHADER* VertexShaderMngr::GetShader(u32 components)
     char *code = GenerateVertexShader(components, Renderer::GetZBufferTarget() != 0);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-    if( g_Config.iLog & CONF_SAVESHADERS && code ) {	
+    if (g_Config.iLog & CONF_SAVESHADERS && code) {
         static int counter = 0;
         char szTemp[MAX_PATH];
 		sprintf(szTemp, "%s/vs_%04i.txt", g_Config.texDumpPath, counter++);

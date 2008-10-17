@@ -18,8 +18,6 @@
 #ifndef _VERTEXLOADER_H
 #define _VERTEXLOADER_H
 
-#include <vector>
-
 #define SHADER_POSMTX_ATTRIB 1
 #define SHADER_NORM1_ATTRIB 6
 #define SHADER_NORM2_ATTRIB 7
@@ -67,6 +65,7 @@ enum {
 
 // There are 8 of these. Most games only use the first, and just reconfigure it all the time
 // as needed, unfortunately.
+// TODO - clarify the role of this class. It seems to have taken on some irrelevant stuff.
 class VertexLoader
 {
 public:
@@ -77,26 +76,25 @@ public:
         NRM_THREE = 3
     };
 
-
 private:	
-    TPipelineFunction m_PipelineStates[32];
-    int m_numPipelineStates;	
-    int m_VertexSize; // number of bytes of a raw vertex
-    int m_counter;
-    int m_VBVertexStride, m_VBStridePad; // stride of a vertex to send to the GPU
+    TPipelineFunction m_PipelineStages[32];
+    int m_numPipelineStages;
 
-    u32 m_components; // VB_HAS_X
+    int m_VertexSize;      // number of bytes of a raw GC vertex
+    int m_VBVertexStride;  // PC-side vertex stride
+	int m_VBStridePad;
 
+    u32 m_components;  // VB_HAS_X. Bitmask telling what vertex components are present.
+
+	// Raw VAttr
     UVAT_group0 m_group0;
     UVAT_group1 m_group1;
     UVAT_group2 m_group2;
-
-    vector<int> m_vtexmap; // tex index map
-    TVtxAttr m_VtxAttr; //Decoded into easy format
+    TVtxAttr m_VtxAttr;  // Decoded into easy format
 
     u8* m_compiledCode;
 
-    //common for all loaders
+    // Common for all loaders  (? then why is it here?)
     TVtxDesc m_VtxDesc;
 
     void SetupColor(int num, int _iMode, int _iFormat, int _iElements);

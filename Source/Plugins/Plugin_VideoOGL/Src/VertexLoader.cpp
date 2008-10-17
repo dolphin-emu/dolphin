@@ -118,7 +118,7 @@ VertexLoader g_VertexLoaders[8];
 
 VertexLoader::VertexLoader() 
 {
-    m_numPipelineStates = 0;
+    m_numPipelineStages = 0;
     m_VertexSize = 0;
     m_AttrDirty = 1;
     VertexLoader_Normal::Init();
@@ -275,7 +275,8 @@ void VertexLoader::ProcessFormat()
 
     if (!m_AttrDirty)
     {
-        if (m_VtxDesc.Hex0 == VertexManager::GetVtxDesc().Hex0 && (m_VtxDesc.Hex1&1)==(VertexManager::GetVtxDesc().Hex1&1))
+		// Check if local cached desc (in this VL) matches global desc
+        if (m_VtxDesc.Hex0 == VertexManager::GetVtxDesc().Hex0 && (m_VtxDesc.Hex1 & 1)==(VertexManager::GetVtxDesc().Hex1 & 1))
             return; // same
     }
     else 
@@ -287,14 +288,14 @@ void VertexLoader::ProcessFormat()
     // Reset pipeline
     m_VBStridePad = 0;
     m_VBVertexStride = 0;
-    m_numPipelineStates = 0;
+    m_numPipelineStages = 0;
     m_components = 0;
 
-    // m_VBVertexStride for texmtx and posmtx is computed later when writing
+    // m_VBVertexStride for texmtx and posmtx is computed later when writing.
     
     // Position Matrix Index
     if (m_VtxDesc.PosMatIdx) {
-        m_PipelineStates[m_numPipelineStates++] = PosMtx_ReadDirect_UByte;
+        m_PipelineStages[m_numPipelineStages++] = PosMtx_ReadDirect_UByte;
         m_components |= VB_HAS_POSMTXIDX;
     }
 
@@ -565,7 +566,8 @@ void VertexLoader::PrepareRun()
 void VertexLoader::SetupColor(int num, int mode, int format, int elements)
 {
     // if COL0 not present, then embed COL1 into COL0
-    if (num == 1 && !(m_components & VB_HAS_COL0) ) num = 0;
+    if (num == 1 && !(m_components & VB_HAS_COL0))
+		num = 0;
 
     m_components |= VB_HAS_COL0 << num;
     switch (mode)
@@ -659,7 +661,7 @@ void VertexLoader::SetupTexCoord(int num, int mode, int format, int elements, in
 
 void VertexLoader::WriteCall(void  (LOADERDECL *func)(void *))
 {
-    m_PipelineStates[m_numPipelineStates++] = func;
+    m_PipelineStages[m_numPipelineStages++] = func;
 }
 
 void VertexLoader::RunVertices(int primitive, int count)
@@ -759,8 +761,8 @@ void VertexLoader::RunVertices(int primitive, int count)
         tcIndex = 0;
         colIndex = 0;
         s_texmtxwrite = s_texmtxread = 0;
-        for (int i = 0; i < m_numPipelineStates; i++)
-            m_PipelineStates[i](&m_VtxAttr);
+        for (int i = 0; i < m_numPipelineStages; i++)
+            m_PipelineStages[i](&m_VtxAttr);
 
         VertexManager::s_pCurBufferPointer += m_VBStridePad;
         PRIM_LOG("\n");

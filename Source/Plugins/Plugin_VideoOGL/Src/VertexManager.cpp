@@ -1,5 +1,7 @@
 #include "Globals.h"
 
+#include <fstream>
+
 #include "MemoryUtil.h"
 #include "Profiler.h"
 #include "Render.h"

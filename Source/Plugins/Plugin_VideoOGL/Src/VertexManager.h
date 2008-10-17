@@ -21,6 +21,9 @@
 
 #include "CPMemory.h"
 
+
+// TODO - clarify the role of this class.
+
 // Methods to manage and cache the global state of vertex streams and flushing streams
 // Also handles processing the CP registers
 class VertexManager
