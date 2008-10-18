@@ -80,6 +80,7 @@ public:
 	static void AddMemoryCheck(const TMemCheck& _rMemoryCheck);
 
 	static void ClearAllBreakPoints();
+	static void UpdateBreakPointView();
 
 	static void AddAutoBreakpoints();
 

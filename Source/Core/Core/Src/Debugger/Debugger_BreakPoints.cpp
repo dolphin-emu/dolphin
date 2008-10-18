@@ -25,10 +25,8 @@
 
 
 #include "Common.h"
-
 #include "../HW/CPU.h"
 #include "../Host.h"
-
 #include "../PowerPC/SymbolDB.h"
 #include "Debugger_BreakPoints.h"
 
@@ -48,8 +46,10 @@ void TMemCheck::Action(u32 iValue, u32 addr, bool write, int size, u32 pc)
 		if (Log)
 		{
 			LOG(MEMMAP,"CHK %08x %s%i at %08x (%s)",
-				iValue, write ? "Write" : "Read", size*8, addr,
-				g_symbolDB.GetDescription(addr));
+				iValue, write ? "Write" : "Read", // read or write
+				size*8, addr, // address
+				g_symbolDB.GetDescription(addr) // symbol map description
+				);
 		}
 		if (Break)
 			CCPU::Break();
@@ -101,16 +101,14 @@ TMemCheck *CBreakPoints::GetMemCheck(u32 address)
 
 void CBreakPoints::AddBreakPoint(u32 _iAddress, bool temp)
 {
-	if (!IsAddressBreakPoint(_iAddress))
+	if (!IsAddressBreakPoint(_iAddress)) // only add new addresses
 	{
-		TBreakPoint pt;
+		TBreakPoint pt; // breakpoint settings
 		pt.bOn = true;
 		pt.bTemporary = temp;
 		pt.iAddress = _iAddress;
 
 		m_BreakPoints.push_back(pt);
-
-		Host_UpdateBreakPointView();
 	}
 }
 
@@ -133,13 +131,19 @@ void CBreakPoints::RemoveBreakPoint(u32 _iAddress)
 void CBreakPoints::ClearAllBreakPoints()
 {
 	m_BreakPoints.clear();
+	m_MemChecks.clear();
+	Host_UpdateBreakPointView();
+}
+
+// update breakpoint window
+void CBreakPoints::UpdateBreakPointView()
+{
 	Host_UpdateBreakPointView();
 }
 
 void CBreakPoints::AddMemoryCheck(const TMemCheck& _rMemoryCheck)
 {
 	m_MemChecks.push_back(_rMemoryCheck);
-	Host_UpdateBreakPointView();
 }
 
 void CBreakPoints::AddAutoBreakpoints()

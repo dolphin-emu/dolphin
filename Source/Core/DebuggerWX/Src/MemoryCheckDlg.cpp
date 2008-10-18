@@ -101,6 +101,7 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& /*event*/)
 		MemCheck.Break = true;
 
 		CBreakPoints::AddMemoryCheck(MemCheck);
+		CBreakPoints::UpdateBreakPointView();
 		Close();
 	}
 }

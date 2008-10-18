@@ -23,6 +23,7 @@
 #include "BreakPointDlg.h"
 #include "MemoryCheckDlg.h"
 #include "IniFile.h"
+#include "Debugger/Debugger_BreakPoints.h" // for TMemCheck
 
 #include <wx/mstream.h>
 
@@ -37,8 +38,11 @@ static const long TOOLBAR_STYLE = wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
 BEGIN_EVENT_TABLE(CBreakPointWindow, wxFrame)
 	EVT_CLOSE(CBreakPointWindow::OnClose)
 	EVT_MENU(IDM_DELETE, CBreakPointWindow::OnDelete)
+	EVT_MENU(IDM_CLEAR, CBreakPointWindow::OnClear)
 	EVT_MENU(IDM_ADD_BREAKPOINT, CBreakPointWindow::OnAddBreakPoint)
+	EVT_MENU(IDM_ADD_BREAKPOINTMANY, CBreakPointWindow::OnAddBreakPointMany)	
 	EVT_MENU(IDM_ADD_MEMORYCHECK, CBreakPointWindow::OnAddMemoryCheck)
+	EVT_MENU(IDM_ADD_MEMORYCHECKMANY, CBreakPointWindow::OnAddMemoryCheckMany)	
     EVT_LIST_ITEM_ACTIVATED(ID_BPS, CBreakPointWindow::OnActivated)
 END_EVENT_TABLE()
 
@@ -115,13 +119,18 @@ CBreakPointWindow::PopulateToolbar(wxToolBar* toolBar)
 
 	toolBar->SetToolBitmapSize(wxSize(w, h));
 	toolBar->AddTool(IDM_DELETE, _T("Delete"), m_Bitmaps[Toolbar_Delete], _T("Delete the selected BreakPoint or MemoryCheck"));
+	toolBar->AddTool(IDM_CLEAR, _T("Clear all"), m_Bitmaps[Toolbar_Delete], _T("Clear all BreakPoints and MemoryChecks"));
+	
 	toolBar->AddSeparator();
+
 	toolBar->AddTool(IDM_ADD_BREAKPOINT,    _T("BP"),    m_Bitmaps[Toolbar_Add_BreakPoint], _T("Add BreakPoint..."));
+	toolBar->AddTool(IDM_ADD_BREAKPOINTMANY,    _T("BPs"),    m_Bitmaps[Toolbar_Add_BreakPoint], _T("Add BreakPoints..."));
 
     // just add memory breakpoints if you can use them
     if (Memory::AreMemoryBreakpointsActivated())
     {
 	    toolBar->AddTool(IDM_ADD_MEMORYCHECK, _T("MC"), m_Bitmaps[Toolbar_Add_Memcheck], _T("Add MemoryCheck..."));
+		toolBar->AddTool(IDM_ADD_MEMORYCHECKMANY, _T("MCs"), m_Bitmaps[Toolbar_Add_Memcheck], _T("Add MemoryChecks..."));
     }
 
 	// after adding the buttons to the toolbar, must call Realize() to reflect
@@ -190,6 +199,17 @@ CBreakPointWindow::OnDelete(wxCommandEvent& event)
 }
 
 
+// ==========================================================================================
+// Clear all breakpoints
+// ------------
+void 
+CBreakPointWindow::OnClear(wxCommandEvent& event)
+{
+	CBreakPoints::ClearAllBreakPoints();
+}
+// ============
+
+
 void 
 CBreakPointWindow::OnAddBreakPoint(wxCommandEvent& event)
 {
@@ -198,12 +218,102 @@ CBreakPointWindow::OnAddBreakPoint(wxCommandEvent& event)
 }
 
 
+// ==========================================================================================
+// Load breakpoints from file
+// --------------
+void
+CBreakPointWindow::OnAddBreakPointMany(wxCommandEvent& event)
+{
+	// load ini
+	IniFile ini;
+	std::string filename = std::string("GameIni/BreakPoints.ini");
+
+	if (ini.Load(filename.c_str())) // check if there is any file there
+	{
+		// get lines from a certain section
+		std::vector<std::string> lines;
+		if (!ini.GetLines("BreakPoints", lines))
+		{
+			wxMessageBox(_T("You have no [BreakPoints] line in your file"));
+			return;
+		}
+
+		for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
+		{
+			std::string line = StripSpaces(*iter);
+			u32 Address = 0;
+			if (AsciiToHex(line.c_str(), Address))
+			{
+				CBreakPoints::AddBreakPoint(Address);
+			}
+		}
+		// only update after we are done with the loop
+		CBreakPoints::UpdateBreakPointView();
+	}
+	else
+	{
+		wxMessageBox(_T("You have no GameIni/BreakPoints.ini file"));
+	}
+
+}
+// =================
+
+
 void 
 CBreakPointWindow::OnAddMemoryCheck(wxCommandEvent& event)
 {
 	MemoryCheckDlg memDlg(this);
 	memDlg.ShowModal();
 }
+
+
+// ==========================================================================================
+// Load memory checks from file
+// --------------
+void
+CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
+{
+	// load ini
+	IniFile ini;
+	std::string filename = std::string("GameIni/MemoryChecks.ini");
+
+	if (ini.Load(filename.c_str()))
+	{
+		// get lines from a certain section
+		std::vector<std::string> lines;
+		if (!ini.GetLines("MemoryChecks", lines))
+		{
+			wxMessageBox(_T("You have no [MemoryChecks] line in your file"));
+			return;
+		}
+
+		for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
+		{
+			std::string line = StripSpaces(*iter);
+			u32 Address = 0;
+			if (AsciiToHex(line.c_str(), Address))
+			{
+				// settting for the memory check
+				TMemCheck MemCheck;
+				MemCheck.StartAddress = Address;
+				MemCheck.EndAddress = Address;
+				MemCheck.OnRead = true;
+				MemCheck.OnWrite = true;
+				MemCheck.Log = true;
+				MemCheck.Break = false; // this is also what sets Active "on" in the breakpoint window
+				// so don't think it's off because we are only writing this to the log
+				CBreakPoints::AddMemoryCheck(MemCheck);						
+			}
+		}
+		// update after we are done with the loop
+		CBreakPoints::UpdateBreakPointView();
+	}
+	else
+	{
+		wxMessageBox(_T("You have no GameIni/MemoryChecks.ini file"));
+	}
+}
+// =================
 
 
 void

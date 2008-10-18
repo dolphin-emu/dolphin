@@ -54,8 +54,11 @@ class CBreakPointWindow
 			ID_TOOLBAR = 500,
 			ID_BPS = 1002,
 			IDM_DELETE,
+			IDM_CLEAR,
 			IDM_ADD_BREAKPOINT,
-			IDM_ADD_MEMORYCHECK
+			IDM_ADD_BREAKPOINTMANY,
+			IDM_ADD_MEMORYCHECK,
+			IDM_ADD_MEMORYCHECKMANY
 		};
 
 		enum
@@ -79,8 +82,11 @@ class CBreakPointWindow
 		void InitBitmaps();
 
 		void OnDelete(wxCommandEvent& event);
+		void OnClear(wxCommandEvent& event);
 		void OnAddBreakPoint(wxCommandEvent& event);
+		void OnAddBreakPointMany(wxCommandEvent& event);		
 		void OnAddMemoryCheck(wxCommandEvent& event);
+		void OnAddMemoryCheckMany(wxCommandEvent& event);
         void OnActivated(wxListEvent& event);
 };
 

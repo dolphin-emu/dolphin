@@ -77,7 +77,8 @@ void BreakPointDlg::OnOK(wxCommandEvent& /*event*/)
 	if (AsciiToHex(AddressString.mb_str(), Address))
 	{
 		CBreakPoints::AddBreakPoint(Address);
-		Close();
+		CBreakPoints::UpdateBreakPointView();
+		Close();		
 	}
 }
 
