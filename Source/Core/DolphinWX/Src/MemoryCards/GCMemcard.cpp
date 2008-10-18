@@ -641,7 +641,7 @@ u32  GCMemcard::CopyFrom(GCMemcard& source, u32 index)
 	return ret;
 }
 
-u32  GCMemcard::ImportGci(const char *fileName, const char *fileName2)
+int  GCMemcard::ImportGci(const char *fileName, const char *fileName2)
 {
 	if (!mcdFile && !fileName2) return OPENFAIL;
 

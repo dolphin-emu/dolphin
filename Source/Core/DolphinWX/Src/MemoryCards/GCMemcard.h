@@ -170,7 +170,7 @@ public:
 	bool ExportGci(u32 index, const char* fileName);
 
 	// reads a .gci/.gcs/.sav file and calls ImportFile or saves out a gci file
-	u32  ImportGci(const char* fileName, const char* fileName2);
+	int  ImportGci(const char* fileName, const char* fileName2);
 
 	// reads the banner image
 	bool ReadBannerRGBA8(u32 index, u32* buffer);
