@@ -291,13 +291,16 @@ CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
 		{
 			std::string line = StripSpaces(*iter);
 			std::vector<std::string> pieces;
-			SplitString(line, " ", pieces);
+			SplitString(line, " ", pieces); // split string
 
 			TMemCheck MemCheck;
 			u32 sAddress = 0;
 			u32 eAddress = 0;
 			bool doCommon = false;
 
+			// ------------------------------------------------------------------------------------------
+			// Decide if we have a range or just one address
+			// --------------
 			if (
 				pieces.size() == 1
 				&& AsciiToHex(pieces[0].c_str(), sAddress)
