@@ -46,10 +46,10 @@ class CMemcardManager
 		wxButton *m_CopyLeft;
 		wxButton *m_CopyRight;
 		wxButton *m_FixChecksum;
-		wxButton *m_GciOpenLeft;
-		wxButton *m_GciSaveLeft;
-		wxButton *m_GciOpenRight;
-		wxButton *m_GciSaveRight;
+		wxButton *m_SaveImportLeft;
+		wxButton *m_SaveExportLeft;
+		wxButton *m_SaveImportRight;
+		wxButton *m_SaveExportRight;
 		wxButton *m_ConvertToGci;
 		wxButton *m_DeleteLeft;
 		wxButton *m_DeleteRight;
@@ -69,10 +69,10 @@ class CMemcardManager
 			ID_DELETELEFT,
 			ID_MEMCARD1PATH,
 			ID_MEMCARD2PATH,
-			ID_GCISAVERIGHT,
-			ID_GCISAVELEFT,
-			ID_GCIOPENRIGHT,
-			ID_GCIOPENLEFT,
+			ID_SAVEEXPORTRIGHT,
+			ID_SAVEEXPORTLEFT,
+			ID_SAVEIMPORTRIGHT,
+			ID_SAVEIMPORTLEFT,
 			ID_CONVERTTOGCI,
 			ID_MEMCARD1LIST,
 			ID_MEMCARD2LIST,

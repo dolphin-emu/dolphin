@@ -20,6 +20,17 @@
 #include "Common.h"
 #include "StringUtil.h"
 
+enum
+{
+	LENGTHFAIL = -4,
+	GCSFAIL,
+	SAVFAIL,
+	OPENFAIL,
+	GCI,
+	SAV = 0x80,
+	GCS = 0x110
+};
+
 class GCMemcard 
 {
 	void* mcdFile;

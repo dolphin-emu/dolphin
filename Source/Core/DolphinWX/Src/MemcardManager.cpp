@@ -71,19 +71,19 @@ wxBitmap wxBitmapFromMemoryRGBA(const unsigned char* data, int width, int height
 }
 
 BEGIN_EVENT_TABLE(CMemcardManager, wxDialog)
-	EVT_CLOSE(CMemcardManager::OnClose)
-	EVT_BUTTON(ID_COPYLEFT,CMemcardManager::CopyDeleteClick)
-	EVT_BUTTON(ID_COPYRIGHT,CMemcardManager::CopyDeleteClick)
-	EVT_BUTTON(ID_FIXCHECKSUM,CMemcardManager::CopyDeleteClick)
-	EVT_BUTTON(ID_DELETELEFT,CMemcardManager::CopyDeleteClick)
-	EVT_BUTTON(ID_DELETERIGHT,CMemcardManager::CopyDeleteClick)
-	EVT_BUTTON(ID_GCIOPENRIGHT,CMemcardManager::CopyDeleteClick)
-	EVT_BUTTON(ID_GCISAVERIGHT,CMemcardManager::CopyDeleteClick)
-	EVT_BUTTON(ID_GCIOPENLEFT,CMemcardManager::CopyDeleteClick)
-	EVT_BUTTON(ID_GCISAVELEFT,CMemcardManager::CopyDeleteClick)
-	EVT_BUTTON(ID_CONVERTTOGCI,CMemcardManager::CopyDeleteClick)
-	EVT_FILEPICKER_CHANGED(ID_MEMCARD1PATH,CMemcardManager::OnPathChange)
-	EVT_FILEPICKER_CHANGED(ID_MEMCARD2PATH,CMemcardManager::OnPathChange)
+	EVT_CLOSE(OnClose)
+	EVT_BUTTON(ID_COPYLEFT,CopyDeleteClick)
+	EVT_BUTTON(ID_COPYRIGHT,CopyDeleteClick)
+	EVT_BUTTON(ID_FIXCHECKSUM,CopyDeleteClick)
+	EVT_BUTTON(ID_DELETELEFT,CopyDeleteClick)
+	EVT_BUTTON(ID_DELETERIGHT,CopyDeleteClick)
+	EVT_BUTTON(ID_SAVEIMPORTRIGHT,CopyDeleteClick)
+	EVT_BUTTON(ID_SAVEEXPORTRIGHT,CopyDeleteClick)
+	EVT_BUTTON(ID_SAVEIMPORTLEFT,CopyDeleteClick)
+	EVT_BUTTON(ID_SAVEEXPORTLEFT,CopyDeleteClick)
+	EVT_BUTTON(ID_CONVERTTOGCI,CopyDeleteClick)
+	EVT_FILEPICKER_CHANGED(ID_MEMCARD1PATH,OnPathChange)
+	EVT_FILEPICKER_CHANGED(ID_MEMCARD2PATH,OnPathChange)
 END_EVENT_TABLE()
 
 CMemcardManager::CMemcardManager(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
@@ -116,10 +116,10 @@ void CMemcardManager::CreateGUIControls()
 
 	m_FixChecksum = new wxButton(this, ID_FIXCHECKSUM, wxT("<-Fix\nChecksum"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	m_GciOpenLeft = new wxButton(this, ID_GCIOPENLEFT, wxT("<-Import GCI"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_GciSaveLeft = new wxButton(this, ID_GCISAVELEFT, wxT("<-Export GCI"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_GciOpenRight = new wxButton(this, ID_GCIOPENRIGHT, wxT("Import GCI->"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_GciSaveRight = new wxButton(this, ID_GCISAVERIGHT, wxT("Export GCI->"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_SaveImportLeft = new wxButton(this, ID_SAVEIMPORTLEFT, wxT("<-Import GCI"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_SaveExportLeft = new wxButton(this, ID_SAVEEXPORTLEFT, wxT("<-Export GCI"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_SaveImportRight = new wxButton(this, ID_SAVEIMPORTRIGHT, wxT("Import GCI->"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_SaveExportRight = new wxButton(this, ID_SAVEEXPORTRIGHT, wxT("Export GCI->"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	//Added to test GCS and SAV import, until ImportFile is fixed
 	//rather than needing to import and then export
 	m_ConvertToGci = new wxButton(this, ID_CONVERTTOGCI, wxT("Convert to GCI"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -155,13 +155,13 @@ void CMemcardManager::CreateGUIControls()
 	sButtons->AddStretchSpacer(1);
 	sButtons->Add(m_FixChecksum, 0, wxEXPAND, 5);
 	sButtons->AddStretchSpacer(1);
-	sButtons->Add(m_GciOpenLeft, 0, wxEXPAND, 5);
-	sButtons->Add(m_GciSaveLeft, 0, wxEXPAND, 5);
+	sButtons->Add(m_SaveImportLeft, 0, wxEXPAND, 5);
+	sButtons->Add(m_SaveExportLeft, 0, wxEXPAND, 5);
 	sButtons->AddStretchSpacer(1);
 	sButtons->Add(m_ConvertToGci, 0, wxEXPAND, 5);
 	sButtons->AddStretchSpacer(1);
-	sButtons->Add(m_GciOpenRight, 0, wxEXPAND, 5);
-	sButtons->Add(m_GciSaveRight, 0, wxEXPAND, 5);
+	sButtons->Add(m_SaveImportRight, 0, wxEXPAND, 5);
+	sButtons->Add(m_SaveExportRight, 0, wxEXPAND, 5);
 	sButtons->AddStretchSpacer(1);
 	sButtons->Add(m_DeleteLeft, 0, wxEXPAND, 5);
 	sButtons->Add(m_DeleteRight, 0, wxEXPAND, 5);
@@ -189,7 +189,6 @@ void CMemcardManager::OnClose(wxCloseEvent& WXUNUSED (event))
 
 void CMemcardManager::OnPathChange(wxFileDirPickerEvent& event)
 {
-	
 	switch (event.GetId())
 	{
 	case ID_MEMCARD1PATH:
@@ -203,25 +202,26 @@ void CMemcardManager::OnPathChange(wxFileDirPickerEvent& event)
 
 void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 {
-	int index0 = m_MemcardList[0]->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);;
-	int index1 = m_MemcardList[1]->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);;
+	int index0 = m_MemcardList[0]->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+	int index1 = m_MemcardList[1]->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+	int slot = 1;
+	int index2 = index1;
+	char * fileName2  = NULL;
 
 	switch(event.GetId())
 	{
 	case ID_COPYLEFT:
-		if ((index1 != -1) && (memoryCard[0] != NULL))
-		{
-			memoryCard[0]->CopyFrom(*memoryCard[1], index1);
-			memoryCard[0]->Save();
-			ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0);
-		}
-		break;
+		slot=0;
+		index2 = index0;
 	case ID_COPYRIGHT:
-		if ((index0 != -1) && (memoryCard[1] != NULL))
+		if ((index2 != -1) && (memoryCard[slot] != NULL))
 		{
-			memoryCard[1]->CopyFrom(*memoryCard[0], index0);
-			memoryCard[1]->Save();
-			ReloadMemcard(m_Memcard2Path->GetPath().mb_str(), 1);
+			int slot2;
+			slot == 0 ? slot2=1:slot2=0;
+			memoryCard[slot]->CopyFrom(*memoryCard[slot2], index2);
+			memoryCard[slot]->Save();
+			slot == 1 ? ReloadMemcard(m_Memcard2Path->GetPath().mb_str(), 1)
+				: ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0);
 		}
 		break;
 	case ID_FIXCHECKSUM:
@@ -234,85 +234,74 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		} 
 		break; 
 	case ID_CONVERTTOGCI:
-		{ // Wont compile without brackets??
-		wxString temp = wxFileSelector(_T("Select the save file to convert"),
+		fileName2 = new char;
+	case ID_SAVEIMPORTLEFT:
+		slot = 0;
+	case ID_SAVEIMPORTRIGHT:
+		if (memoryCard[slot] != NULL || fileName2 != NULL)
+		{
+			wxString temp = wxFileSelector(_T("Select the GCI file to import"),
 					wxEmptyString, wxEmptyString, wxEmptyString,wxString::Format
 					(
-							_T("Gamecube save files(*.gcs,*.sav)|*.gcs;*.sav|"
+							_T("Gamecube save files(*.gci,*.gcs,*.sav)|*.gci;*.gcs;*.sav|"
+							"Native GCI files (*.gci)|*.gci|"
 							"MadCatz Gameshark files(*.gcs)|*.gcs|"
 							"Datel MaxDrive/Pro files(*.sav)|*.sav"),
 							wxFileSelectorDefaultWildcardStr,
 							wxFileSelectorDefaultWildcardStr
 					),
 					wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-		
-		if (!temp.empty())
-		{
 			const char * fileName = temp.ToAscii();
-			wxString temp2 = wxFileSelector(_T("Save GCI as.."),
-						wxEmptyString, wxEmptyString, _T(".gci"), wxString::Format
-						(
-								_T("GCI File(*.gci)|*.gci"),
-								wxFileSelectorDefaultWildcardStr,
-								wxFileSelectorDefaultWildcardStr
-						),
-						wxFD_OVERWRITE_PROMPT|wxFD_SAVE);
-				const char * fileName2 = temp2.ToAscii();
-				if (temp.length() > 0)
+			if (*fileName2 != NULL && !temp.empty())
+			{
+				wxString temp2 = wxFileSelector(_T("Save GCI as.."),
+					wxEmptyString, wxEmptyString, _T(".gci"), wxString::Format
+					(
+							_T("GCI File(*.gci)|*.gci"),
+							wxFileSelectorDefaultWildcardStr,
+							wxFileSelectorDefaultWildcardStr
+					),
+					wxFD_OVERWRITE_PROMPT|wxFD_SAVE);
+				delete fileName2;
+				fileName2 = (char*)temp2.ToAscii();
+			}
+			if (temp.length() > 0)
+			{
+				switch(memoryCard[slot]->ImportGci(fileName, fileName2))
 				{
-					memoryCard[0]->ImportGci(fileName, fileName2);
+				case LENGTHFAIL:
+					wxMessageBox(wxT("Imported file has invalid length"),
+						wxT("Error"), wxOK|wxICON_ERROR);
+					break;
+				case GCSFAIL:
+					wxMessageBox(wxT("Imported file has gsc extension\nbut"
+						" does not have a correct header"), wxT("Error"),
+						wxOK|wxICON_ERROR);
+					break;
+				case SAVFAIL:
+					wxMessageBox(wxT("Imported file has sav extension\nbut"
+						" does not have a correct header"), wxT("Error"),
+						wxOK|wxICON_ERROR);
+					break;
+				case OPENFAIL:
+					wxMessageBox(wxT("Imported file could not be opened\nor"
+						" does not have a valid extension"), wxT("Error"),
+						wxOK|wxICON_ERROR);
+					break;
+				default:
+					memoryCard[slot]->Save();
+					slot == 1 ? ReloadMemcard(m_Memcard2Path->GetPath().mb_str(), 1)
+						: ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0);
+					break;
 				}
-		}
-		}
-		break;
-	case ID_GCIOPENLEFT:
-		if (memoryCard[0] != NULL)
-		{
-			wxString temp = wxFileSelector(_T("Select the GCI file to import"),
-					wxEmptyString, wxEmptyString, wxEmptyString,wxString::Format
-					(
-							_T("Gamecube save files(*.gci,*.gcs,*.sav)|*.gci;*.gcs;*.sav|"
-							"Native GCI files (*.gci)|*.gci|"
-							"MadCatz Gameshark files(*.gcs)|*.gcs|"
-							"Datel MaxDrive/Pro files(*.sav)|*.sav"),
-							wxFileSelectorDefaultWildcardStr,
-							wxFileSelectorDefaultWildcardStr
-					),
-					wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-			const char * fileName = temp.ToAscii();
-			if (temp.length() > 0)
-			{
-				memoryCard[0]->ImportGci(fileName, 0);
-				memoryCard[0]->Save();
-				ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0);
 			}
 		}
 		break;
-	case ID_GCIOPENRIGHT:
-		if (memoryCard[1] != NULL)
-		{
-			wxString temp = wxFileSelector(_T("Select the GCI file to import"),
-					wxEmptyString, wxEmptyString, wxEmptyString,wxString::Format
-					(
-							_T("Gamecube save files(*.gci,*.gcs,*.sav)|*.gci;*.gcs;*.sav|"
-							"Native GCI files (*.gci)|*.gci|"
-							"MadCatz Gameshark files(*.gcs)|*.gcs|"
-							"Datel MaxDrive/Pro files(*.sav)|*.sav"),
-							wxFileSelectorDefaultWildcardStr,
-							wxFileSelectorDefaultWildcardStr
-					),
-					wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-			const char * fileName = temp.ToAscii();
-			if (temp.length() > 0)
-			{
-				memoryCard[1]->ImportGci(fileName, 0);
-				memoryCard[1]->Save();
-				ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0);
-			}
-		}
-		break;
-	case ID_GCISAVELEFT:
-		if (index0 != -1)
+	case ID_SAVEEXPORTLEFT:
+		slot=0;
+		index2 = index0;
+	case ID_SAVEEXPORTRIGHT:
+		if (index2 != -1)
 		{
 			wxString temp = wxFileSelector(_T("Save GCI as.."),
 					wxEmptyString, wxEmptyString, _T(".gci"), wxString::Format
@@ -325,40 +314,19 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			const char * fileName = temp.ToAscii();
 
 			if (temp.length() > 0)
-				memoryCard[0]->ExportGci(index0, fileName);
-		}
-		break;
-	case ID_GCISAVERIGHT:
-		if (index1 != -1)
-		{
-			wxString temp = wxFileSelector(_T("Save GCI as.."),
-					wxEmptyString, wxEmptyString, _T(".gci"), wxString::Format
-					(
-							_T("GCI File(*.gci)|*.gci"),
-							wxFileSelectorDefaultWildcardStr,
-							wxFileSelectorDefaultWildcardStr
-					),
-					wxFD_OVERWRITE_PROMPT|wxFD_SAVE);
-			const char * fileName = temp.ToAscii();
-
-			if (temp.length() > 0)
-				memoryCard[1]->ExportGci(index1, fileName);
+				memoryCard[slot]->ExportGci(index2, fileName);
 		}
 		break;
 	case ID_DELETELEFT:
-		if (index0 != -1)
-		{
-			memoryCard[0]->RemoveFile(index0);
-			memoryCard[0]->Save();
-			ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0);
-		}
-		break;
+		slot=0;
+		index2 = index0;
 	case ID_DELETERIGHT:
-		if (index1 != -1)
+		if (index2 != -1)
 		{
-			memoryCard[1]->RemoveFile(index1);
-			memoryCard[1]->Save();
-			ReloadMemcard(m_Memcard2Path->GetPath().mb_str(), 1);
+			memoryCard[slot]->RemoveFile(index2);
+			memoryCard[slot]->Save();
+			slot == 1 ? ReloadMemcard(m_Memcard2Path->GetPath().mb_str(), 1)
+				: ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0);
 		}
 		break;
 	}
@@ -416,9 +384,7 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		if (numFrames>0)
 		{
 			memset(pxdata,0,96*32*4);
-
 			int frames=3;
-
 			if (numFrames<frames) frames=numFrames;
 			for (int f=0;f<frames;f++)
 			{
@@ -442,7 +408,6 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 
 		if (!memoryCard[card]->GetComment1(i,title)) title[0]=0;
 		if (!memoryCard[card]->GetComment2(i,comment)) comment[0]=0;
-
 		int index = m_MemcardList[card]->InsertItem(i, wxT("row"));
 		m_MemcardList[card]->SetItem(index, COLUMN_BANNER, wxEmptyString);
 		m_MemcardList[card]->SetItem(index, COLUMN_TITLE, wxString::FromAscii(title));
@@ -457,12 +422,10 @@ void CMemcardManager::ReloadMemcard(const char *fileName, int card)
 	}
 
 	delete[] images;
-
 	// Automatic column width and then show the list
 	for (int i = 0; i < m_MemcardList[card]->GetColumnCount(); i++)
 	{
 		m_MemcardList[card]->SetColumnWidth(i, wxLIST_AUTOSIZE);
 	}
-
 	m_MemcardList[card]->Show();
 }

@@ -75,13 +75,13 @@ void GCMemcard::calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2)
 u32  GCMemcard::GetNumFiles()
 {
 	if(!mcdFile) return 0;
-
+	int j =0;
 	for(int i=0;i<126;i++)
 	{
-		if(BE32(dir.Dir[i].Gamecode)==0xFFFFFFFF)
-			return i;
+		if(BE32(dir.Dir[i].Gamecode)!=0xFFFFFFFF)
+			 j++;
 	}
-	return 127;
+	return j;
 }
 
 bool GCMemcard::RemoveFile(u32 index) //index in the directory array
@@ -643,17 +643,11 @@ u32  GCMemcard::CopyFrom(GCMemcard& source, u32 index)
 
 u32  GCMemcard::ImportGci(const char *fileName, const char *fileName2)
 {
-	if (!mcdFile && !fileName2) return 0;
+	if (!mcdFile && !fileName2) return OPENFAIL;
 
 	FILE *gci = fopen(fileName, "rb");
-	if (!gci) return 0;
+	if (!gci) return OPENFAIL;
 
-	enum
-	{
-		GCI = 0,
-		SAV = 0x80,
-		GCS = 0x110
-	};
 	int offset;
 	char * tmp = new char[0xD];
 	std::string fileType;
@@ -670,9 +664,7 @@ u32  GCMemcard::ImportGci(const char *fileName, const char *fileName2)
 				offset = GCS;
 			else
 			{
-				// TODO: Add error message
-				// file has gsc extension but does not have a correct header
-				return 0;
+				return GCSFAIL;
 			}
 		}
 		else{
@@ -682,15 +674,12 @@ u32  GCMemcard::ImportGci(const char *fileName, const char *fileName2)
 					offset = SAV;
 				else
 				{
-					// TODO: Add error message
-					//file has sav extension but does not have a correct header
-					return 0;
+					return SAVFAIL;
 				}
 			}
 			else
 			{
-				// TODO: Add error message, file has invalid extension
-				return 0;
+				return OPENFAIL;
 			}
 		}
 	}
@@ -734,10 +723,14 @@ u32  GCMemcard::ImportGci(const char *fileName, const char *fileName2)
 		default:
 			break;
 	}
-	// TODO: verify file length
-	assert(length == BE16(d->BlockCount) * 0x2000);
-	assert(ftell(gci)  == offset + 0x40); // Verify correct file position
-
+	if (length == BE16(d->BlockCount) * 0x2000)
+	{
+		return LENGTHFAIL;
+	}
+	if (ftell(gci)  == offset + 0x40) // Verify correct file position
+	{
+		return OPENFAIL;
+	}
 	u32 size = BE16((d->BlockCount)) * 0x2000;
 	u8 *t = new u8[size];
 	fread(t, 1, size, gci);
@@ -746,7 +739,7 @@ u32  GCMemcard::ImportGci(const char *fileName, const char *fileName2)
 	if(fileName2)
 	{
 		FILE * gci2 = fopen(fileName2, "wb");
-		if (!gci2) return 0;
+		if (!gci2) return OPENFAIL;
 		fseek(gci2, 0, SEEK_SET);
 		fwrite(d, 1, 0x40, gci2);
 		int fileBlocks = BE16(d->BlockCount);
