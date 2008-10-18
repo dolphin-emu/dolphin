@@ -39,12 +39,14 @@ class CLogWindow
 		char m_logBuffer[LogBufferSize];
 		wxTextCtrl* m_log, * m_cmdline;
 		wxCheckListBox* m_checks;
+		wxRadioBox *m_RadioBox[1]; // radio boxes
 		bool m_bCheckDirty;
 		DECLARE_EVENT_TABLE()
 
 		void OnSubmit(wxCommandEvent& event);
 		void OnUpdateLog(wxCommandEvent& event);
 		void OnLogCheck(wxCommandEvent& event);
+		void OnRadioChange(wxCommandEvent& event); // verbosity buttons
 		void OnClear(wxCommandEvent& event);
 		void OnEnableAll(wxCommandEvent& event);
 
