@@ -591,6 +591,12 @@ bool GCMemcard::FixChecksums()
 
 	u16 csum1=0,csum2=0;
 
+	calc_checksumsBE((u16*)&hdr,0xFE,&csum1,&csum2);
+	hdr.CheckSum1[0]=u8(csum1>>8);
+	hdr.CheckSum1[1]=u8(csum1);
+	hdr.CheckSum2[0]=u8(csum2>>8);
+	hdr.CheckSum2[1]=u8(csum2);
+	
 	calc_checksumsBE((u16*)&dir,0xFFE,&csum1,&csum2);
 	dir.CheckSum1[0]=u8(csum1>>8);
 	dir.CheckSum1[1]=u8(csum1);
@@ -852,12 +858,14 @@ GCMemcard::GCMemcard(const char *filename)
 			// update checksums
 			csums = TestChecksums();
 		}
-	}
-
-	if(BE16(dir_backup.UpdateCounter) > BE16(dir.UpdateCounter)) //check if the backup is newer
-	{
-		dir = dir_backup;
-		bat = bat_backup; // needed?
+// It seems that the backup having a larger counter doesn't necessarily mean
+// the backup should be copied?
+//	}
+//
+//	if(BE16(dir_backup.UpdateCounter) > BE16(dir.UpdateCounter)) //check if the backup is newer
+//	{
+//		dir = dir_backup;
+//		bat = bat_backup; // needed?
 	}
 
 	fseek(mcd,0xa000,SEEK_SET);

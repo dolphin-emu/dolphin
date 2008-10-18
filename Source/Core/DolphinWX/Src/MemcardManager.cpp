@@ -132,11 +132,11 @@ void CMemcardManager::CreateGUIControls()
 	sMemcard2 = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Memory Card 2"));
 
 	// Create the controls for both memcards
-	// Will change Mem*.raw to *.raw, when loading invalid .raw files doesn't crash the app :/
+	// Loading invalid .raw files still crash the app, but eh, needed this for testing
 	m_Memcard1Path = new wxFilePickerCtrl(this, ID_MEMCARD1PATH, wxEmptyString, wxT("Choose a memory card:"),
-		wxT("Dolphin memcards (Mem*.raw)|Mem*.raw"), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_FILE_MUST_EXIST|wxFLP_OPEN);
+		wxT("Raw memcards (*.raw)|*.raw"), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_FILE_MUST_EXIST|wxFLP_OPEN);
 	m_Memcard2Path = new wxFilePickerCtrl(this, ID_MEMCARD2PATH, wxEmptyString, wxT("Choose a memory card:"),
-		wxT("Dolphin memcards (Mem*.raw)|Mem*.raw"), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_FILE_MUST_EXIST|wxFLP_OPEN);
+		wxT("Raw memcards (*.raw)|*.raw"), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_FILE_MUST_EXIST|wxFLP_OPEN);
 
 	m_MemcardList[0] = new wxListCtrl(this, ID_MEMCARD1LIST, wxDefaultPosition, wxSize(350,400),
 		wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL);
@@ -225,7 +225,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		}
 		break;
 	case ID_FIXCHECKSUM:
-		if (m_MemcardList[0]->GetItemCount() > 0) 
+		if (memoryCard[0] != NULL) 
 		{
 			// Fix checksums and save the changes
 			memoryCard[0]->FixChecksums() ? wxMessageBox(wxT("The checksum was successfully fixed"), wxT("Success"), wxOK)
@@ -234,7 +234,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		} 
 		break; 
 	case ID_CONVERTTOGCI:
-		{ // Wont compile without brackets?? VC++ Express
+		{ // Wont compile without brackets??
 		wxString temp = wxFileSelector(_T("Select the save file to convert"),
 					wxEmptyString, wxEmptyString, wxEmptyString,wxString::Format
 					(
@@ -245,20 +245,24 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 							wxFileSelectorDefaultWildcardStr
 					),
 					wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-		const char * fileName = temp.ToAscii();
-		wxString temp2 = wxFileSelector(_T("Save GCI as.."),
-					wxEmptyString, wxEmptyString, _T(".gci"), wxString::Format
-					(
-							_T("GCI File(*.gci)|*.gci"),
-							wxFileSelectorDefaultWildcardStr,
-							wxFileSelectorDefaultWildcardStr
-					),
-					wxFD_OVERWRITE_PROMPT|wxFD_SAVE);
-			const char * fileName2 = temp2.ToAscii();
-			if (temp.length() > 0)
-			{
-				memoryCard[0]->ImportGci(fileName, fileName2);
-			}
+		
+		if (!temp.empty())
+		{
+			const char * fileName = temp.ToAscii();
+			wxString temp2 = wxFileSelector(_T("Save GCI as.."),
+						wxEmptyString, wxEmptyString, _T(".gci"), wxString::Format
+						(
+								_T("GCI File(*.gci)|*.gci"),
+								wxFileSelectorDefaultWildcardStr,
+								wxFileSelectorDefaultWildcardStr
+						),
+						wxFD_OVERWRITE_PROMPT|wxFD_SAVE);
+				const char * fileName2 = temp2.ToAscii();
+				if (temp.length() > 0)
+				{
+					memoryCard[0]->ImportGci(fileName, fileName2);
+				}
+		}
 		}
 		break;
 	case ID_GCIOPENLEFT:

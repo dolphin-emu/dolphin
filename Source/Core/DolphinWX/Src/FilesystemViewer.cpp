@@ -220,7 +220,7 @@ void CFilesystemViewer::CreateGUIControls()
 	
 	// Filesystem tree
 	sbTreectrl = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Filesytem:"));
-	m_Treectrl = new wxTreeCtrl(this, ID_TREECTRL, wxDefaultPosition, wxSize(350, 450)/*wxDefaultSize*/, wxTR_DEFAULT_STYLE, wxDefaultValidator);
+	m_Treectrl = new wxTreeCtrl(this, ID_TREECTRL, wxDefaultPosition, wxSize(350, -1), wxTR_DEFAULT_STYLE, wxDefaultValidator);
 	sbTreectrl->Add(m_Treectrl, 1, wxEXPAND);
 
 	RootId = m_Treectrl->AddRoot(wxT("Root"), -1, -1, 0);
@@ -229,7 +229,7 @@ void CFilesystemViewer::CreateGUIControls()
 	sMain = new wxGridBagSizer(0, 0);
 	sMain->Add(sbISODetails, wxGBPosition(0, 0), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sMain->Add(sbBannerDetails, wxGBPosition(1, 0), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sMain->Add(sbTreectrl, wxGBPosition(0, 1), wxGBSpan(2, 1), wxALL, 5);
+	sMain->Add(sbTreectrl, wxGBPosition(0, 1), wxGBSpan(2, 1), wxEXPAND|wxALL, 5);
 	sMain->Add(m_Close, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL|wxALIGN_RIGHT, 5);
 
 	this->SetSizer(sMain);
