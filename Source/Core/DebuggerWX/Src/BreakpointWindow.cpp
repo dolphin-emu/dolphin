@@ -290,19 +290,46 @@ CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
 		for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
 		{
 			std::string line = StripSpaces(*iter);
-			u32 Address = 0;
-			if (AsciiToHex(line.c_str(), Address))
+			std::vector<std::string> pieces;
+			SplitString(line, " ", pieces);
+
+			TMemCheck MemCheck;
+			u32 sAddress = 0;
+			u32 eAddress = 0;
+			bool doCommon = false;
+
+			if (
+				pieces.size() == 1
+				&& AsciiToHex(pieces[0].c_str(), sAddress)
+				&& pieces[0].size() == 8
+				)
 			{
-				// settting for the memory check
-				TMemCheck MemCheck;
-				MemCheck.StartAddress = Address;
-				MemCheck.EndAddress = Address;
+				// address range	
+				MemCheck.StartAddress = sAddress;
+				MemCheck.EndAddress = sAddress;
+				doCommon = true;
+			}
+			else if(
+				pieces.size() == 2
+				&& AsciiToHex(pieces[0].c_str(), sAddress) && AsciiToHex(pieces[1].c_str(), eAddress)
+				&& pieces[0].size() == 8 && pieces[1].size() == 8
+				)
+			{
+				// address range	
+				MemCheck.StartAddress = sAddress;
+				MemCheck.EndAddress = eAddress;
+				doCommon = true;
+			}
+
+			if(doCommon)
+			{
+				// settings for the memory check	
 				MemCheck.OnRead = true;
 				MemCheck.OnWrite = true;
 				MemCheck.Log = true;
 				MemCheck.Break = false; // this is also what sets Active "on" in the breakpoint window
 				// so don't think it's off because we are only writing this to the log
-				CBreakPoints::AddMemoryCheck(MemCheck);						
+				CBreakPoints::AddMemoryCheck(MemCheck);	
 			}
 		}
 		// update after we are done with the loop
