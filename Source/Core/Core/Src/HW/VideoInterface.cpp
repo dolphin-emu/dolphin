@@ -204,7 +204,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		return;
 
 	case VI_CONTROL_REGISTER:
-        LOG(VIDEOINTERFACE, "VideoInterface(r16): VI_CONTROL_REGISTER 0x%08x", m_VIDisplayControlRegister.Hex);
+        LOG(VIDEOINTERFACE + 300, "VideoInterface(r16): VI_CONTROL_REGISTER 0x%08x", m_VIDisplayControlRegister.Hex);
 		_uReturnValue = m_VIDisplayControlRegister.Hex;
 		return;
 
@@ -271,7 +271,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 void Write16(const u16 _iValue, const u32 _iAddress)
 {
-	LOG(VIDEOINTERFACE, "(w16): 0x%04x, 0x%08x",_iValue,_iAddress);
+	LOG(VIDEOINTERFACE + 300, "(w16): 0x%04x, 0x%08x",_iValue,_iAddress);
 	
 	//Somewhere it sets screen width.. we need to communicate this to the gfx plugin...
 

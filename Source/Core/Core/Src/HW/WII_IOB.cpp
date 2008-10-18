@@ -38,17 +38,17 @@ void HWCALL Read32(u32& _rReturnValue, const u32 _Address)
 	{
 	case 0xc0:					// __VISendI2CData		
 		_rReturnValue = 0;
-		LOG(WII_IOB, "IOP: Read32 from 0xc0 = 0x%08x (__VISendI2CData)", _rReturnValue);
+		LOG(WII_IOB + 200, "IOP: Read32 from 0xc0 = 0x%08x (__VISendI2CData)", _rReturnValue);
 		break;
 
 	case 0xc4:					// __VISendI2CData		
 		_rReturnValue = 0;
-		LOG(WII_IOB, "IOP: Read32 from 0xc4 = 0x%08x (__VISendI2CData)", _rReturnValue);
+		LOG(WII_IOB + 200, "IOP: Read32 from 0xc4 = 0x%08x (__VISendI2CData)", _rReturnValue);
 		break;
 
 	case 0xc8:					// __VISendI2CData		
 		_rReturnValue = 0;
-		LOG(WII_IOB, "IOP: Read32 from 0xc8 = 0x%08x (__VISendI2CData)", _rReturnValue);
+		LOG(WII_IOB + 200, "IOP: Read32 from 0xc8 = 0x%08x (__VISendI2CData)", _rReturnValue);
 		break;
 
 	case 0x180:					// __AIClockInit		
@@ -92,15 +92,15 @@ void HWCALL Write32(const u32 _Value, const u32 _Address)
 	switch(_Address & 0xFFFF)
 	{
 	case 0xc0:					// __VISendI2CData		
-		LOG(WII_IOB, "IOP: Write32 to 0xc0 = 0x%08x (__VISendI2CData)", _Value);
+		LOG(WII_IOB + 200, "IOP: Write32 to 0xc0 = 0x%08x (__VISendI2CData)", _Value);
 		break;
 
 	case 0xc4:					// __VISendI2CData		
-		LOG(WII_IOB, "IOP: Write32 to 0xc4 = 0x%08x (__VISendI2CData)", _Value);
+		LOG(WII_IOB + 200, "IOP: Write32 to 0xc4 = 0x%08x (__VISendI2CData)", _Value);
 		break;
 
 	case 0xc8:					// __VISendI2CData		
-		LOG(WII_IOB, "IOP: Write32 to 0xc8 = 0x%08x (__VISendI2CData)", _Value);
+		LOG(WII_IOB + 200, "IOP: Write32 to 0xc8 = 0x%08x (__VISendI2CData)", _Value);
 		break;
 
 	case 0x180:					// __AIClockInit		

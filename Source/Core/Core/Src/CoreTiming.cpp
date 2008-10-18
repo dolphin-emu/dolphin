@@ -347,7 +347,7 @@ void LogPendingEvents()
 
 void Idle()
 {
-	LOG(GEKKO, "Idle");
+	LOG(GEKKO + 300, "Idle");
 	
 	idledCycles += downcount;
 	downcount = 0;

@@ -268,7 +268,7 @@ void Shutdown()
 
 void Read32(u32& _uReturnValue, const u32 _iAddress)
 {
-	LOG(SERIALINTERFACE, "(r32): 0x%08x", _iAddress);
+	LOG(SERIALINTERFACE + 300, "(r32): 0x%08x", _iAddress);
 
 	// SIBuffer
 	if ((_iAddress >= 0xCC006480 && _iAddress < 0xCC006500) ||
@@ -375,7 +375,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
-	LOG(SERIALINTERFACE, "(w32): 0x%08x 0x%08x", _iValue,_iAddress);
+	LOG(SERIALINTERFACE + 300, "(w32): 0x%08x 0x%08x", _iValue,_iAddress);
 
 	// SIBuffer
 	if ((_iAddress >= 0xCC006480 && _iAddress < 0xCC006500) ||
@@ -546,7 +546,7 @@ void RunSIBuffer()
 	int numOutput = 
 #endif
 		g_Channel[g_ComCSR.CHANNEL].m_pDevice->RunBuffer(g_SIBuffer, inLength);
-	LOG(SERIALINTERFACE, "RunSIBuffer     (intLen: %i    outLen: %i) (processed: %i)", inLength, outLength, numOutput);
+	LOG(SERIALINTERFACE + 200, "RunSIBuffer     (intLen: %i    outLen: %i) (processed: %i)", inLength, outLength, numOutput);
 
 	// Transfer completed
 	GenerateSIInterrupt(INT_TCINT);

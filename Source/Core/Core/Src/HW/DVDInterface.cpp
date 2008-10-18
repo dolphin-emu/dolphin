@@ -279,7 +279,7 @@ bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples)
 
 void Read32(u32& _uReturnValue, const u32 _iAddress)
 {
-	LOG(DVDINTERFACE, "DVD(r): 0x%08x", _iAddress);
+	LOG(DVDINTERFACE + 300, "DVD(r): 0x%08x", _iAddress);
 
 	switch (_iAddress & 0xFFF)
 	{
@@ -308,7 +308,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
-	LOG(DVDINTERFACE, "DVD(w): 0x%08x @ 0x%08x", _iValue, _iAddress);
+	LOG(DVDINTERFACE + 300, "DVD(w): 0x%08x @ 0x%08x", _iValue, _iAddress);
 
 	switch (_iAddress & 0x3FF)
 	{
@@ -466,7 +466,7 @@ void ExecuteCommand(UDIDMAControlRegister& _DMAControlReg)
 				u32 iDVDOffset = dvdMem.Command[1] << 2;
 				u32 iSrcLength = dvdMem.Command[2];
 				if (false) { iSrcLength++; } // avoid warning  << wtf is this?
-				LOG(DVDINTERFACE, "DVD: Read ISO: DVDOffset=%08x, DMABuffer=%08x, SrcLength=%08x, DMALength=%08x",iDVDOffset,dvdMem.DMAAddress.Address,iSrcLength,dvdMem.DMALength.Length);
+				LOG(DVDINTERFACE + 200, "DVD: Read ISO: DVDOffset=%08x, DMABuffer=%08x, SrcLength=%08x, DMALength=%08x",iDVDOffset,dvdMem.DMAAddress.Address,iSrcLength,dvdMem.DMALength.Length);
 				_dbg_assert_(DVDINTERFACE, iSrcLength == dvdMem.DMALength.Length);
 
 				if (DVDRead(iDVDOffset, dvdMem.DMAAddress.Address, dvdMem.DMALength.Length) != true)

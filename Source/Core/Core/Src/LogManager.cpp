@@ -228,6 +228,10 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 			m_Log[_type]->m_szShortName_, PC, Msg, eol);
 	}
 
+	// ==========================================================================================
+	// Level 0 verbosity logs will be written to all verbosity levels. Given that logging is enabled
+	// for that level. Level 1 verbosity will only be written to level 1, 2, 3 and so on.
+	// ---------------
 	int type = _type;
 	for (int i = LogManager::VERBOSITY_LEVELS; i >= vv ; i--)
 	{
