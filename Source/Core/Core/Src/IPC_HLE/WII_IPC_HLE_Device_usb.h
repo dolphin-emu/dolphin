@@ -139,6 +139,7 @@ private:
 	bool SendEventReadRemoteFeatures(u16 _connectionHandle);
 	bool SendEventRoleChange(bdaddr_t _bd);
 	bool SendEventNumberOfCompletedPackets(u16 _connectionHandle);
+	bool SendEventAuthenticationCompleted(u16 _connectionHandle);	
 
 	void ExecuteHCICommandMessage(const SHCICommandMessage& _rCtrlMessage);
 
@@ -170,6 +171,7 @@ private:
 	void CommandReadRemoteVerInfo(u8* _Input);
 	void CommandReadRemoteFeatures(u8* _Input);
 	void CommandWriteLinkPolicy(u8* _Input);
+	void CommandAuthenticationRequested(u8* _Input);
 
 	void SendToDevice(u16 _ConnectionHandle, u8* _pData, u32 _Size);
 

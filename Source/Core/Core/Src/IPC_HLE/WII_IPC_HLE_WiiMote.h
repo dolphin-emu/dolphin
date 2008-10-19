@@ -153,6 +153,7 @@ private:
 	void CommandConnectionReq(u8 _Ident, u8* _pData, u32 _Size);
 	void CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Size);
 	void CommandConnectionResponse(u8 _Ident, u8* _pData, u32 _Size);
+	void CommandDisconnectionReq(u8 _Ident, u8* _pData, u32 _Size);
 	void CommandCofigurationResponse(u8 _Ident, u8* _pData, u32 _Size);
 
 
@@ -163,7 +164,10 @@ private:
 	//
 	void HandleSDP(u16 cid, u8* _pData, u32 _Size);
 	void SDPSendServiceSearchResponse(u16 cid, u16 TransactionID, u8* pServiceSearchPattern, u16 MaximumServiceRecordCount);
-	void SDPSendServiceAttributeResponse(u16 cid, u16 TransactionID, u32 ServiceHandle, u8* pAttribIDList, u16 AttribListIDSize);
+
+	void SDPSendServiceAttributeResponse(u16 cid, u16 TransactionID, u32 ServiceHandle, 
+											u16 startAttrID, u16 endAttrID, 
+											u16 MaximumAttributeByteCount, u8* pContinuationState);
 
 	u16 AddAttribToList(int attribID, u8* pBuffer);
 };

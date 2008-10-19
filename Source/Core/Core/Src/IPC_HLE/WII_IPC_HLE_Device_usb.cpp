@@ -659,7 +659,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets(u16 
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_connectionHandle);
 	if (pWiiMote == NULL)
 	{
-		PanicAlert("Cant find WiiMote by connection handle: %02x", _connectionHandle);
+		PanicAlert("SendEventNumberOfCompletedPackets: Cant find WiiMote by connection handle %02x", _connectionHandle);
 		return false;
 	}
 
@@ -681,6 +681,33 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets(u16 
 
 	return true;
 }
+
+bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventAuthenticationCompleted(u16 _connectionHandle)
+{
+	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_connectionHandle);
+	if (pWiiMote == NULL)
+	{
+		PanicAlert("SendEventAuthenticationCompleted: Cant find WiiMote by connection handle %02x", _connectionHandle);
+		return false;
+	}
+
+	SQueuedEvent Event(sizeof(SHCIEventAuthenticationCompleted));
+
+	SHCIEventAuthenticationCompleted* pEventAuthenticationCompleted = (SHCIEventAuthenticationCompleted*)Event.m_buffer;
+	pEventAuthenticationCompleted->EventType = 0x13;
+	pEventAuthenticationCompleted->PayloadLength = sizeof(SHCIEventReadRemoteFeatures) - 2; 
+	pEventAuthenticationCompleted->value = 1;
+	pEventAuthenticationCompleted->Connection_Handle = _connectionHandle;
+
+	AddEventToQueue(Event);
+
+	// Log
+	LOG(WIIMOTE, "Event: SendEventAuthenticationCompleted");
+	LOG(WIIMOTE, "  Connection_Handle: 0x%04x", pEventAuthenticationCompleted->Connection_Handle);
+
+	return true;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -809,6 +836,10 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 		
 	case HCI_CMD_WRITE_LINK_POLICY_SETTINGS:
 		CommandWriteLinkPolicy(pInput);
+		break;
+
+	case HCI_CMD_AUTH_REQ:
+		CommandAuthenticationRequested(pInput);
 		break;
 
 		// 
@@ -1365,6 +1396,19 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteLinkPolicy(u8* _Input)
 	// for homebrew works this
 	CWII_IPC_HLE_WiiMote* pWiimote = AccessWiiMote(pLinkPolicy->con_handle);
 	pWiimote->Connect();
+}
+
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandAuthenticationRequested(u8* _Input)
+{
+	// command parameters
+	hci_auth_req_cp* pAuthReq = (hci_auth_req_cp*)_Input;
+
+	LOG(WIIMOTE, "Command: HCI_CMD_AUTH_REQ");
+	LOG(WIIMOTE, "Input:");
+	LOG(WIIMOTE, "  ConnectionHandle: 0x%04x", pAuthReq->con_handle);
+
+	SendEventCommandStatus(HCI_CMD_AUTH_REQ);
+	SendEventAuthenticationCompleted(pAuthReq->con_handle);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
