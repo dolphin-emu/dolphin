@@ -47,8 +47,8 @@ void __Log(int log, const char *format, ...)
 
 CDebugger_Log::CDebugger_Log(const char* _szShortName, const char* _szName, int a) :
 	m_bLogToFile(true),
-	m_bShowInLog(true),
-	m_bEnable(true),
+	m_bShowInLog(false),
+	m_bEnable(false),
 	m_pFile(NULL)
 {
 	strcpy((char*)m_szName, _szName);
@@ -172,6 +172,11 @@ void LogManager::Shutdown()
 }
 
 
+// ==========================================================================================
+// The function that finally writes the log.
+// ---------------
+u32 lastPC;
+std::string lastSymbol;
 void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 {
 	// declarations
@@ -186,7 +191,7 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	vv = atoi(svv.substr(0, 1).c_str());	
 
 	// security checks
-	if (m_Log[_type] == NULL
+	if (m_Log[_type] == NULL || !m_Log[_type]->m_bEnable || PC == 0
 		|| _type > (LogTypes::NUMBER_OF_LOGS + LogManager::VERBOSITY_LEVELS * 100)
 		|| _type < 0)
 		return;
@@ -208,24 +213,38 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	// const Debugger::Symbol& symbol = Debugger::GetSymbol(Index);
 	//symbol.GetName().c_str(),
 
+	// Warning: Getting the function name this often is very demanding on the CPU.
+	// I have limited it to the two lowest verbosity levels because of that. I've also
+	// added a simple caching function so that we don't search again if we get the same
+	// question again.
+	std::string symbol;
+	
+	if ((vv == 0 || vv == 1) && lastPC != PC)
+	{
+		symbol = g_symbolDB.GetDescription(PC);
+		lastSymbol = symbol;
+		lastPC = PC;
+	}
+	else if(lastPC == PC)
+	{
+		symbol = lastSymbol;
+	}
+	else
+	{
+		symbol = "---";
+	}
+
 	int Index = 1;
 	const char *eol = "\n";
 	if (Index > 0)
-	{ 
-		
+	{		
 		sprintf(Msg2, "%i %02i:%02i:%03i: %x %s (%s, %08x) : %s%s", 
 			++count,
 			datetime.GetMinute(), datetime.GetSecond(), datetime.GetMillisecond(),
 			PowerPC::ppcState.DebugCount, 
-			m_Log[_type]->m_szShortName_, 			
-			g_symbolDB.GetDescription(PC),
-			PC, 
+			m_Log[_type]->m_szShortName_, // (CONSOLE etc)		
+			symbol.c_str(), PC, // (name, 0xaddress)
 			Msg, eol);
-	}
-	else
-	{
-		sprintf(Msg2, "%i: %x %s ( %08x ) : %s%s", ++count, PowerPC::ppcState.DebugCount,
-			m_Log[_type]->m_szShortName_, PC, Msg, eol);
 	}
 
 	// ==========================================================================================
@@ -235,10 +254,6 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	int type = _type;
 	for (int i = LogManager::VERBOSITY_LEVELS; i >= vv ; i--)
 	{
-		// safety checks again
-		if (m_Log[_type] == NULL || !m_Log[_type]->m_bEnable)
-			continue;
-
 		// write to memory
 		m_Messages[i][m_nextMessages[i]].Set(_type, Msg2);
 
