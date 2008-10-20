@@ -180,6 +180,9 @@ u32 lastPC;
 std::string lastSymbol;
 void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 {
+	if (m_LogSettings == NULL)
+		return;
+
 	// declarations
 	int v; // verbosity level
 	int type; // the log type, CONSOLE etc.

@@ -14,7 +14,7 @@ typedef void (*TLog)(const char* _pMessage);
 
 // Called when the Wiimote sends input reports to the Core.
 // Payload: an L2CAP packet.
-typedef void (*TWiimoteInput)(const void* _pData, u32 _Size);
+typedef void (*TWiimoteInput)(u16 _channelID, const void* _pData, u32 _Size);
 
 // This data is passed from the core on initialization.
 typedef struct
@@ -71,7 +71,16 @@ EXPORT void CALL Wiimote_Shutdown();
 // input:    Da pakket.
 // output:   none
 //
-EXPORT void CALL Wiimote_Output(const void* _pData, u32 _Size);
+EXPORT void CALL Wiimote_Output(u16 _channelID, const void* _pData, u32 _Size);
+
+// __________________________________________________________________________________________________
+// Function: Wiimote_Input
+// Purpose:  An L2CAP packet is passed from the Core to the Wiimote,
+//           on the HID INPUT channel.
+// input:    Da pakket.
+// output:   none
+//
+EXPORT void CALL Wiimote_Input(u16 _channelID, const void* _pData, u32 _Size);
 
 // __________________________________________________________________________________________________
 // Function: Wiimote_Update

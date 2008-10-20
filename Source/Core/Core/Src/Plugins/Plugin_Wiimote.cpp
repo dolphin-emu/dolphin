@@ -28,6 +28,7 @@ namespace PluginWiimote
 	TWiimote_Initialize Wiimote_Initialize = 0;
 	TWiimote_Shutdown Wiimote_Shutdown = 0;
 	TWiimote_Output Wiimote_Output = 0;
+	TWiimote_Input Wiimote_Input = 0;
 	TWiimote_Update Wiimote_Update = 0;
 	TWiimote_GetAttachedControllers Wiimote_GetAttachedControllers = 0;
 	TWiimote_DoState Wiimote_DoState = 0;
@@ -50,6 +51,7 @@ namespace PluginWiimote
 		Wiimote_Initialize = 0;
 		Wiimote_Shutdown = 0;
 		Wiimote_Output = 0;
+		Wiimote_Input = 0;
 		Wiimote_Update = 0;
 		Wiimote_GetAttachedControllers = 0;
 		Wiimote_DoState = 0;
@@ -65,6 +67,7 @@ namespace PluginWiimote
 			Wiimote_Initialize = reinterpret_cast<TWiimote_Initialize> (plugin.Get("Wiimote_Initialize"));
 			Wiimote_Shutdown = reinterpret_cast<TWiimote_Shutdown> (plugin.Get("Wiimote_Shutdown"));
 			Wiimote_Output = reinterpret_cast<TWiimote_Output> (plugin.Get("Wiimote_Output"));
+			Wiimote_Input = reinterpret_cast<TWiimote_Input> (plugin.Get("Wiimote_Input"));
 			Wiimote_Update = reinterpret_cast<TWiimote_Update> (plugin.Get("Wiimote_Update"));
 			Wiimote_GetAttachedControllers = reinterpret_cast<TWiimote_GetAttachedControllers> (plugin.Get("Wiimote_GetAttachedControllers"));
 			Wiimote_DoState = reinterpret_cast<TWiimote_DoState> (plugin.Get("Wiimote_DoState"));
@@ -74,6 +77,7 @@ namespace PluginWiimote
 			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_Initialize", Wiimote_Initialize);
 			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_Shutdown", Wiimote_Shutdown);
 			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_Output", Wiimote_Output);
+			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_Input", Wiimote_Input);
 			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_Update", Wiimote_Update);
 			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_GetAttachedControllers", Wiimote_GetAttachedControllers);
 			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_DoState", Wiimote_DoState);
@@ -81,6 +85,7 @@ namespace PluginWiimote
 				(Wiimote_Initialize != 0) &&
 				(Wiimote_Shutdown != 0) &&
 				(Wiimote_Output != 0) &&
+				(Wiimote_Input != 0) &&
 				(Wiimote_Update != 0) &&
 				(Wiimote_GetAttachedControllers != 0) &&
 				(Wiimote_DoState != 0))

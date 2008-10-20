@@ -136,6 +136,10 @@ struct wm_ir_extended {
 };
 
 #define WM_REPORT_CORE 0x30
+struct wm_report_core {
+	wm_core c;
+	wm_accel a;
+};
 
 #define WM_REPORT_CORE_ACCEL 0x31
 struct wm_report_core_accel {

@@ -2500,7 +2500,7 @@ struct SHCIEventNumberOfCompletedPackets
 {
 	u8 EventType;
 	u8 PayloadLength;
-	u8 value;
+	u8 NumberOfHandles;
 	u16 Connection_Handle;
 	u16 Number_Of_Completed_Packets;
 };
@@ -2514,6 +2514,16 @@ struct SHCIEventAuthenticationCompleted
 };
 
 
+struct SHCIEventModeChange
+{
+	u8 EventType;
+	u8 PayloadLength;
+	u8 Status;
+	u16 Connection_Handle;
+	u8 CurrentMode;
+	u16 Value;
+
+};
 #ifdef __cplusplus
 }
 #endif

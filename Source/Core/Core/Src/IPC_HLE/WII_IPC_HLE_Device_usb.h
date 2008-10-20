@@ -45,8 +45,11 @@ struct SQueuedEvent
 {
 	u8 m_buffer[1024];
 	size_t m_size;
-	SQueuedEvent(size_t size) :
-		m_size(size)
+	u16 m_connectionHandle;
+
+	SQueuedEvent(size_t size, u16 connectionHandle)
+		: m_size(size)
+		, m_connectionHandle(connectionHandle)
 	{}
 };
 
@@ -138,8 +141,9 @@ private:
 	bool SendEventReadRemoteVerInfo(u16 _connectionHandle);
 	bool SendEventReadRemoteFeatures(u16 _connectionHandle);
 	bool SendEventRoleChange(bdaddr_t _bd);
-	bool SendEventNumberOfCompletedPackets(u16 _connectionHandle);
+	bool SendEventNumberOfCompletedPackets(u16 _connectionHandle, u16 _count);
 	bool SendEventAuthenticationCompleted(u16 _connectionHandle);	
+	bool SendEventModeChange(u16 _connectionHandle, u8 _mode, u16 _value);
 
 	void ExecuteHCICommandMessage(const SHCICommandMessage& _rCtrlMessage);
 
@@ -172,6 +176,7 @@ private:
 	void CommandReadRemoteFeatures(u8* _Input);
 	void CommandWriteLinkPolicy(u8* _Input);
 	void CommandAuthenticationRequested(u8* _Input);
+	void CommandSniffMode(u8* _Input);
 
 	void SendToDevice(u16 _ConnectionHandle, u8* _pData, u32 _Size);
 

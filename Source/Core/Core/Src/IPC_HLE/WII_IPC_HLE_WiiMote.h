@@ -145,8 +145,6 @@ private:
 
 	void SignalChannel(u8* _pData, u32 _Size);
 
-	void HidOutput(u8* _pData, u32 _Size);
-
 	void SendConnectionRequest(u16 scid, u16 psm);
 	void SendConfigurationRequest(u16 scid, u16* MTU, u16* FlushTimeOut);
 
