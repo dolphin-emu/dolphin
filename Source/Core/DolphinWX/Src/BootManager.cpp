@@ -27,15 +27,19 @@
 #include "VolumeCreator.h"
 #include "Config.h"
 #include "Core.h"
+#if !defined(_LP64) && !defined(__APPLE__)
 #include "Frame.h"
 #include "CodeWindow.h"
+#endif
 
 static std::string s_DataBasePath_EUR = "Data_EUR";
 static std::string s_DataBasePath_USA = "Data_USA";
 static std::string s_DataBasePath_JAP = "Data_JAP";
 
+#if !defined(_LP64) && !defined(__APPLE__)
 extern CFrame* main_frame;
 extern CCodeWindow* g_pCodeWindow;
+#endif
 
 namespace BootManager
 {
@@ -47,6 +51,7 @@ bool BootCore(const std::string& _rFilename)
 {
 	SCoreStartupParameter StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
+#if !defined(_LP64) && !defined(__APPLE__)
 	if (g_pCodeWindow)
 	{
 //		StartUp.bUseDualCore = code_frame->UseDualCore();
@@ -57,12 +62,15 @@ bool BootCore(const std::string& _rFilename)
 //		StartUp.bUseDualCore = false;
 //		StartUp.bUseJIT = true;
 	}
+#endif //osx 64
 	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
 	StartUp.m_strFilename = _rFilename;
 	SConfig::GetInstance().m_LastFilename = StartUp.m_strFilename;
 	StartUp.bRunCompareClient = false;
 	StartUp.bRunCompareServer = false;
+#if !defined(_LP64) && !defined(__APPLE__)
 	StartUp.bEnableDebugging = g_pCodeWindow ? true : false; // RUNNING_DEBUG
+#endif //osx 64
 	std::string BaseDataPath;
 #ifdef _WIN32
 	StartUp.hInstance = wxGetInstance();
@@ -85,9 +93,10 @@ bool BootCore(const std::string& _rFilename)
 		ini.Get("Core", "SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);
 		ini.Get("Core", "OptimizeQuantizers", &StartUp.bOptimizeQuantizers, StartUp.bOptimizeQuantizers);
 	}
+#if !defined(_LP64) && !defined(__APPLE__)
 	if(main_frame)
 		StartUp.hMainWindow = main_frame->GetRenderHandle();
-
+#endif
 	// init the core
 	if (!Core::Init(StartUp))
 	{
@@ -95,7 +104,11 @@ bool BootCore(const std::string& _rFilename)
 		return(false);
 	}
 
+#if !defined(_LP64) && !defined(__APPLE__)
 	Core::SetState(g_pCodeWindow ? Core::CORE_PAUSE : Core::CORE_RUN);
+#else
+	Core::SetState(Core::CORE_RUN);
+#endif
 	return(true);
 }
 

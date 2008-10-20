@@ -86,7 +86,8 @@ gfxenv.Append(
 	LINKFLAGS = linkFlags,
 	)
 
-gfxenv.SharedLibrary(
+if not env['osx64']:
+    gfxenv.SharedLibrary(
 	'../../../../Binary/%s/Plugins/zeroogl.so' % platform,
 	files,
 	LIBS = gfxenv['LIBS'] + libs

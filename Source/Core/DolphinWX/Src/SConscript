@@ -6,23 +6,33 @@ import sys
 files = [
 	'BootManager.cpp',
 	'Config.cpp',
-	'ConfigMain.cpp',
-	'FileSearch.cpp',
-	'FilesystemViewer.cpp',
-	'Frame.cpp',
-	'GameListCtrl.cpp',
-	'Globals.cpp',
-	'ISOFile.cpp',
-	'MemcardManager.cpp',
-	'MemoryCards/GCMemcard.cpp',
-	'PluginManager.cpp',
-	'stdafx.cpp',
 	'cmdline.c',
 	]
+
+if not env['osx64']:
+    files += 	[
+		'ConfigMain.cpp',
+       		'FileSearch.cpp',
+       		'FilesystemViewer.cpp',
+       		'Frame.cpp',
+       		'GameListCtrl.cpp',
+       		'Globals.cpp',
+       		'ISOFile.cpp',
+       		'MemcardManager.cpp',
+       		'MemoryCards/GCMemcard.cpp',
+       		'PluginManager.cpp',
+       		'stdafx.cpp',
+		]
+
+
 libs = [
-	'debwx', 'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'common', 'z'
+	'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'common', 'z'
 	]
 
+if not env['osx64']:
+    libs += 	[
+		'debwx'
+		]
 wxenv = env.Clone()
 wxenv.Append(
 	CPPDEFINES = [
@@ -64,5 +74,6 @@ else:
 	exeNoGUI = '../../../../Binary/linux/DolphinNoGUI'
 
 objects = [ wxenv.Object(srcFile) for srcFile in files ]
-wxenv.Program(exeGUI, objects + [ 'Main.cpp' ])
+if not env['osx64']:
+    wxenv.Program(exeGUI, objects + [ 'Main.cpp' ])
 wxenv.Program(exeNoGUI, objects + [ 'MainNoGUI.cpp' ])

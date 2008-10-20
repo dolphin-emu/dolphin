@@ -86,6 +86,7 @@ enum
 //#include <wx/wxprec.h>
 
 //#ifndef WX_PRECOMP
+#if !defined(_LP64) && !defined(__APPLE__)
 #include <wx/wx.h>
 //#endif
 
@@ -125,5 +126,5 @@ enum
 		),
 
 extern const wxEventType wxEVT_HOST_COMMAND;
-
+#endif //apple 64bit
 #endif

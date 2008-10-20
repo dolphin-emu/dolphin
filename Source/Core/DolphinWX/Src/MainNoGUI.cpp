@@ -78,8 +78,9 @@ void Host_SysMessage(const char *fmt, ...)
 }
 
 // Include SDL header so it can hijack main().
+#if !defined(_LP64) && !defined(__APPLE__)
 #include <SDL.h>
-
+#endif
 int main(int argc, char* argv[])
 {
 	gengetopt_args_info args_info;

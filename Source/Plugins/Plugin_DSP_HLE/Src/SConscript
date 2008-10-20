@@ -34,4 +34,5 @@ dspenv.Append(
 	CXXFLAGS = [ '-fPIC' ],
 	LIBS = [ 'common' ],
 	)
-dspenv.SharedLibrary(output, files)
+if not env['osx64']:
+    dspenv.SharedLibrary(output, files)

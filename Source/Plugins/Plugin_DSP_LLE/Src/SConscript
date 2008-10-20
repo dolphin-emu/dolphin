@@ -34,4 +34,5 @@ lleenv.Append(
 	CXXFLAGS = [ '-fPIC' ],
 	LIBS = [ 'common' ],
 	)
-lleenv.SharedLibrary(output, files)
+if not env['osx64']:
+    lleenv.SharedLibrary(output, files)

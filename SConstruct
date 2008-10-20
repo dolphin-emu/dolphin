@@ -92,6 +92,7 @@ vars.AddVariables(
     BoolVariable('debug', 'Set for debug build', False),
     BoolVariable('lint', 'Set for lint build (extra warnings)', False),
     BoolVariable('nowx', 'Set For Building with no WX libs (WIP)', False),
+    BoolVariable('osx64', 'Set For Building for osx in 64 bits (WIP)', False),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
                  allowed_values = ('release', 'devel', 'debug'),
                  ignorecase = 2
@@ -132,6 +133,7 @@ if not env['verbose']:
     env['SHLINKCOMSTR'] = "Linking shared $TARGET"
     env['RANLIBCOMSTR'] = "Indexing $TARGET"
 
+
 # build falvuor
 flavour = ARGUMENTS.get('flavor')
 if (flavour == 'debug'):
@@ -167,32 +169,41 @@ conf = env.Configure(custom_tests = tests)
 if not conf.CheckPKGConfig('0.15.0'):
     Exit(1)
 
-if not conf.CheckSDL('1.0.0'):
-    Exit(1)
+if not env['osx64']:
+    if not conf.CheckSDL('1.0.0'):
+        Exit(1)
 
 if not conf.CheckPKG('ao'):
     Exit(1)
 
 # handling wx flags CCFLAGS should be created before
 if not env['nowx']:
-    if not conf.CheckWXConfig(
-        '2.8', ['gl', 'adv', 'core', 'base'], env['debug']
-        ):
-        print 'gui build requires wxwidgets >= 2.8'
-        Exit(1)
+    if not env['osx64']:
+        if not conf.CheckWXConfig(
+            '2.8', ['gl', 'adv', 'core', 'base'], env['debug']
+            ):
+            print 'gui build requires wxwidgets >= 2.8'
+            Exit(1)
 if not env['nowx']:
-    dirs += ['Source/Core/DebuggerWX/Src',]
+    if not env['osx64']:
+        dirs += ['Source/Core/DebuggerWX/Src',]
 
 # After all configuration tests are done
 env = conf.Finish()
 
 #wx windows flags
 if not env['nowx']:
-    wxconfig.ParseWXConfig(env)
-    compileFlags += ['-DUSE_WX',]
+    if not env['osx64']:
+        wxconfig.ParseWXConfig(env)
+        compileFlags += ['-DUSE_WX',]
+
+#osx 64bit need this
+#if env['osx64']:
+#    compileFlags += ['\-arch x86_64',]
 
 #get sdl stuff
-env.ParseConfig('sdl-config --cflags --libs')
+if not env['osx64']:
+    env.ParseConfig('sdl-config --cflags --libs')
 
 # lib ao (needed for sound plugins)
 env.ParseConfig('pkg-config --cflags --libs ao')

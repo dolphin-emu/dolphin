@@ -19,4 +19,5 @@ padenv.Append(
 	CXXFLAGS = [ '-fPIC' ],
 	LIBS = [ 'common' ],
 	)
-padenv.SharedLibrary(output, files)
+if not env['osx64']:
+    padenv.SharedLibrary(output, files)

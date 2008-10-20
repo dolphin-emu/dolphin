@@ -16,4 +16,5 @@ files = [
 
 padenv = env.Clone()
 padenv.Append(LIBS = [ 'common' ])
-padenv.SharedLibrary(output, files)
+if not env['osx64']:
+    padenv.SharedLibrary(output, files)
