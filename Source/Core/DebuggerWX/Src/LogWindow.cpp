@@ -314,6 +314,7 @@ void CLogWindow::OnRadioChange(wxCommandEvent& event)
 			m_checks->Check(i, Enabled);
 		}
 
+		m_bCheckDirty = true;
 		UpdateLog();
 	}
 }
