@@ -71,19 +71,19 @@ wxBitmap wxBitmapFromMemoryRGBA(const unsigned char* data, int width, int height
 }
 
 BEGIN_EVENT_TABLE(CMemcardManager, wxDialog)
-	EVT_CLOSE(OnClose)
-	EVT_BUTTON(ID_COPYLEFT,CopyDeleteClick)
-	EVT_BUTTON(ID_COPYRIGHT,CopyDeleteClick)
-	EVT_BUTTON(ID_FIXCHECKSUM,CopyDeleteClick)
-	EVT_BUTTON(ID_DELETELEFT,CopyDeleteClick)
-	EVT_BUTTON(ID_DELETERIGHT,CopyDeleteClick)
-	EVT_BUTTON(ID_SAVEIMPORTRIGHT,CopyDeleteClick)
-	EVT_BUTTON(ID_SAVEEXPORTRIGHT,CopyDeleteClick)
-	EVT_BUTTON(ID_SAVEIMPORTLEFT,CopyDeleteClick)
-	EVT_BUTTON(ID_SAVEEXPORTLEFT,CopyDeleteClick)
-	EVT_BUTTON(ID_CONVERTTOGCI,CopyDeleteClick)
-	EVT_FILEPICKER_CHANGED(ID_MEMCARD1PATH,OnPathChange)
-	EVT_FILEPICKER_CHANGED(ID_MEMCARD2PATH,OnPathChange)
+	EVT_CLOSE(CMemcardManager::OnClose)
+	EVT_BUTTON(ID_COPYLEFT,CMemcardManager::CopyDeleteClick)
+	EVT_BUTTON(ID_COPYRIGHT,CMemcardManager::CopyDeleteClick)
+	EVT_BUTTON(ID_FIXCHECKSUM,CMemcardManager::CopyDeleteClick)
+	EVT_BUTTON(ID_DELETELEFT,CMemcardManager::CopyDeleteClick)
+	EVT_BUTTON(ID_DELETERIGHT,CMemcardManager::CopyDeleteClick)
+	EVT_BUTTON(ID_SAVEIMPORTRIGHT,CMemcardManager::CopyDeleteClick)
+	EVT_BUTTON(ID_SAVEEXPORTRIGHT,CMemcardManager::CopyDeleteClick)
+	EVT_BUTTON(ID_SAVEIMPORTLEFT,CMemcardManager::CopyDeleteClick)
+	EVT_BUTTON(ID_SAVEEXPORTLEFT,CMemcardManager::CopyDeleteClick)
+	EVT_BUTTON(ID_CONVERTTOGCI,CMemcardManager::CopyDeleteClick)
+	EVT_FILEPICKER_CHANGED(ID_MEMCARD1PATH,CMemcardManager::OnPathChange)
+	EVT_FILEPICKER_CHANGED(ID_MEMCARD2PATH,CMemcardManager::OnPathChange)
 END_EVENT_TABLE()
 
 CMemcardManager::CMemcardManager(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
@@ -206,7 +206,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	int index1 = m_MemcardList[1]->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 	int slot = 1;
 	int index2 = index1;
-	char * fileName2  = NULL;
+	std::string fileName2  = NULL;
 
 	switch(event.GetId())
 	{
@@ -234,11 +234,10 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		} 
 		break; 
 	case ID_CONVERTTOGCI:
-		fileName2 = new char;
 	case ID_SAVEIMPORTLEFT:
 		slot = 0;
 	case ID_SAVEIMPORTRIGHT:
-		if (memoryCard[slot] != NULL || fileName2 != NULL)
+		if (memoryCard[slot] != NULL || !fileName2.empty())
 		{
 			wxString temp = wxFileSelector(_T("Select the GCI file to import"),
 					wxEmptyString, wxEmptyString, wxEmptyString,wxString::Format
@@ -252,7 +251,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 					),
 					wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 			const char * fileName = temp.ToAscii();
-			if (*fileName2 != NULL && !temp.empty())
+			if (!fileName2.empty() && !temp.empty())
 			{
 				wxString temp2 = wxFileSelector(_T("Save GCI as.."),
 					wxEmptyString, wxEmptyString, _T(".gci"), wxString::Format
@@ -262,12 +261,11 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 							wxFileSelectorDefaultWildcardStr
 					),
 					wxFD_OVERWRITE_PROMPT|wxFD_SAVE);
-				delete fileName2;
-				fileName2 = (char*)temp2.ToAscii();
+				fileName2 = temp2.mb_str();
 			}
 			if (temp.length() > 0)
 			{
-				switch(memoryCard[slot]->ImportGci(fileName, fileName2))
+				switch(memoryCard[slot]->ImportGci(fileName, fileName2.c_str()))
 				{
 				case LENGTHFAIL:
 					wxMessageBox(wxT("Imported file has invalid length"),

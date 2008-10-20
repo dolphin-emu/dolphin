@@ -1,9 +1,10 @@
 #ifndef __FRAME_H_
 #define __FRAME_H_
 
+#include <wx/wx.h>
+#include <wx/busyinfo.h>
 class CGameListCtrl;
-class CFrame
-	: public wxFrame
+class CFrame : public wxFrame
 {
 	public:
 

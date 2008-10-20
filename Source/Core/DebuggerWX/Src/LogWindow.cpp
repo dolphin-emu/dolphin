@@ -70,8 +70,10 @@ CLogWindow::CLogWindow(wxWindow* parent)
 	m_options->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 	m_options->SetMinSize(wxSize(m_options->GetSize().GetWidth() - 40,
 		m_options->GetCount() * 15));
+	#ifdef _WIN32
 	for (int i = 0; i < m_options->GetCount(); ++i)
 		m_options->GetItem(i)->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+	#endif
 
 	m_checks = new wxCheckListBox(this, IDM_LOGCHECKS, wxDefaultPosition, wxSize(120, 280));
 

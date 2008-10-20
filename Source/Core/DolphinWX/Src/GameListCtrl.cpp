@@ -293,7 +293,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// Item data
 	SetItemData(_Index, ItemIndex);
 }
-
+#ifdef _WIN32
 bool CGameListCtrl::MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem)
 {
 	bool Result = false;
@@ -315,6 +315,7 @@ bool CGameListCtrl::MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem)
 
 	return(Result);
 }
+#endif
 
 wxColour blend50(const wxColour& c1, const wxColour& c2)
 {

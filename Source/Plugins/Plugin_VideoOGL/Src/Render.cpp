@@ -17,6 +17,8 @@
 
 #include "Globals.h"
 #include <list>
+#include <vector>
+
 
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>

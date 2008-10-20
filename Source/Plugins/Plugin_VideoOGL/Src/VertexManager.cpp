@@ -1,6 +1,7 @@
 #include "Globals.h"
 
 #include <fstream>
+#include <vector>
 
 #include "MemoryUtil.h"
 #include "Profiler.h"

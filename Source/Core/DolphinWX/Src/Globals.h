@@ -86,7 +86,7 @@ enum
 //#include <wx/wxprec.h>
 
 //#ifndef WX_PRECOMP
-#if !defined(_LP64) && !defined(__APPLE__)
+#if !defined(__APPLE__)
 #include <wx/wx.h>
 //#endif
 

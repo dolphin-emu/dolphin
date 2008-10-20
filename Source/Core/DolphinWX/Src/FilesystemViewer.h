@@ -18,6 +18,7 @@
 #ifndef __FILESYSTEM_VIEWER_h__
 #define __FILESYSTEM_VIEWER_h__
 
+#include <wx/wx.h>
 #include <wx/sizer.h>
 #include <wx/filepicker.h>
 #include <wx/statbmp.h>

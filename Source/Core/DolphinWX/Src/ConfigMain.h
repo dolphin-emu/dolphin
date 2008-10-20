@@ -18,6 +18,7 @@
 #ifndef __CONFIG_MAIN_h__
 #define __CONFIG_MAIN_h__
 
+#include <wx/wx.h>
 #include <wx/gbsizer.h>
 #include <wx/notebook.h>
 #include <wx/filepicker.h>

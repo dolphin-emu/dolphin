@@ -8,7 +8,6 @@
 #include <iostream>
 #include <iomanip>
 
-#include <iostream>
 #include <debug.h>
 #include <math.h>
 
@@ -61,7 +60,7 @@ int main()
 				std::cout << "Device isn't Mem card in Slot A";
 		else
 			std::cout << "Got an error of " << error << " with slot A";
-		std::cout << " ID of " << std::setbase(16) << ID << std::endl;
+		std::cout << " ID of 0x" << std::setbase(16) << ID << std::endl;
 			
 		std::cout << std::setbase(10);
 		EXI_GetID(1, 0, &ID);
@@ -72,7 +71,7 @@ int main()
 				std::cout << "Device isn't Mem card in Slot B";
 		else
 			std::cout << "Got an error of " << error << " with slot B";
-		std::cout << " ID of " << std::setbase(16) << ID << std::endl;
+		std::cout << " ID of 0x" << std::setbase(16) << ID << std::endl;
 		VIDEO_WaitVSync();
 	}
 	return 0;

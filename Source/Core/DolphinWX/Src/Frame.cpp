@@ -31,6 +31,7 @@
 #include "MemcardManager.h"
 
 #include <wx/mstream.h>
+#include <wx/aboutdlg.h>
 
 // ----------------------------------------------------------------------------
 // resources

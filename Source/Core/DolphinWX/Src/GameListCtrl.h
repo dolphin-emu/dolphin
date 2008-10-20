@@ -78,7 +78,9 @@ private:
 	void OnMultiDecompressGCM(wxCommandEvent& event);
 	void OnFilesystemViewer(wxCommandEvent& event);
 
+	#ifdef _WIN32
 	virtual bool MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem);
+	#endif
 
 	void CompressSelection(bool _compress);
 	void AutomaticColumnWidth();

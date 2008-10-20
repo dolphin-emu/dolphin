@@ -18,6 +18,9 @@
 #include "Globals.h"
 
 #include <stdio.h>
+#include <list>
+#include <vector>
+
 
 #include "ImageWrite.h"
 
