@@ -301,31 +301,40 @@ void CWII_IPC_HLE_WiiMote::SendConnectionRequest(u16 scid, u16 psm)
 	SendCommandToACL(L2CAP_CONN_REQ, L2CAP_CONN_REQ, sizeof(l2cap_conn_req), (u8*)&cr);
 }
 
-void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid) {
+void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16* MTU, u16* FlushTimeOut) 
+{
 	_dbg_assert_(WIIMOTE, DoesChannelExist(scid));
 	SChannel& rChannel = m_Channel[scid];
 
 	u8 Buffer[1024];
 	int Offset = 0;
 
-	l2cap_conf_req* cr = (l2cap_conf_req*)Buffer;
+	l2cap_conf_req* cr = (l2cap_conf_req*)&Buffer[Offset];
 	cr->dcid = rChannel.DCID;
-	cr->flags = 0;	//what goes here? check libogc.
+	cr->flags = 0;
+	Offset += sizeof(l2cap_conf_req);
 
-	Offset += 2;
+	if (MTU != NULL)
+	{
+		SL2CAP_Options* pOptions = (SL2CAP_Options*)&Buffer[Offset];
+		Offset += sizeof(SL2CAP_Options);
 
-	/*
-	controller doesnt know this...
-	Buffer[Offset++] = 1;
-	Buffer[Offset++] = 2;
-	Buffer[Offset++] = 0;
-	Buffer[Offset++] = 1;*/
+		pOptions->type = 1;
+		pOptions->length = 2;
 
-	Buffer[Offset++] = 2;
-	Buffer[Offset++] = 2;
-	Buffer[Offset++] = 0xff;
-	Buffer[Offset++] = 0xff;
+		*(u16*)&Buffer[Offset] = *MTU;  Offset += 2;
+	}
 
+	if (FlushTimeOut != NULL)
+	{
+		SL2CAP_Options* pOptions = (SL2CAP_Options*)&Buffer[Offset];
+		Offset += sizeof(SL2CAP_Options);
+
+		pOptions->type = 2;
+		pOptions->length = 2;
+
+		*(u16*)&Buffer[Offset] = *FlushTimeOut;  Offset += 2;
+	}
 
 	LOG(WIIMOTE, "  SendConfigurationRequest()");
 	LOG(WIIMOTE, "    Dcid: 0x%04x", cr->dcid);
@@ -486,7 +495,7 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 	_dbg_assert_(WIIMOTE, pCommandConfigReq->flags == 0x00); // 1 means that the options are send in multi-packets
 
 	_dbg_assert_(WIIMOTE, DoesChannelExist(pCommandConfigReq->dcid));
-	SChannel& rChanel = m_Channel[pCommandConfigReq->dcid];
+	SChannel& rChannel = m_Channel[pCommandConfigReq->dcid];
 
 	LOG(WIIMOTE, "  CommandCofigurationReq");
 	LOG(WIIMOTE, "    Ident: 0x%02x", _Ident);
@@ -500,7 +509,7 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 	u32 RespLen = 0;
 
 	SL2CAP_CommandConfigurationResponse* Rsp = (SL2CAP_CommandConfigurationResponse*)TempBuffer;
-	Rsp->scid   = rChanel.DCID;
+	Rsp->scid   = rChannel.DCID;
 	Rsp->flags  = 0x00;
 	Rsp->result = 0x00;
 
@@ -520,7 +529,7 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 			{
 				_dbg_assert_(WIIMOTE, pOptions->length == 2);
 				SL2CAP_OptionsMTU* pMTU = (SL2CAP_OptionsMTU*)&_pData[Offset];
-				rChanel.MTU = pMTU->MTU;
+				rChannel.MTU = pMTU->MTU;
 				LOG(WIIMOTE, "    Config MTU: 0x%04x", pMTU->MTU);
 			}
 			break;
@@ -529,7 +538,7 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 			{
 				_dbg_assert_(WIIMOTE, pOptions->length == 2);
 				SL2CAP_OptionsFlushTimeOut* pFlushTimeOut = (SL2CAP_OptionsFlushTimeOut*)&_pData[Offset];
-				rChanel.FlushTimeOut = pFlushTimeOut->TimeOut;
+				rChannel.FlushTimeOut = pFlushTimeOut->TimeOut;
 				LOG(WIIMOTE, "    Config FlushTimeOut: 0x%04x", pFlushTimeOut->TimeOut);
 			}
 			break;
@@ -550,7 +559,7 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 	SendCommandToACL(_Ident, L2CAP_CONF_RSP, RespLen, TempBuffer);
 
 	// ugly
-	SendConfigurationRequest(Rsp->scid);
+	SendConfigurationRequest(Rsp->scid, &rChannel.MTU, &rChannel.FlushTimeOut);
 }
 
 void CWII_IPC_HLE_WiiMote::CommandConnectionResponse(u8 _Ident, u8* _pData, u32 _Size)
@@ -572,7 +581,7 @@ void CWII_IPC_HLE_WiiMote::CommandConnectionResponse(u8 _Ident, u8* _pData, u32 
 	SChannel& rChannel = m_Channel[rsp->scid];
 	rChannel.DCID = rsp->dcid;
 
-	SendConfigurationRequest(rsp->scid);
+//	SendConfigurationRequest(rsp->scid);
 }
 
 void CWII_IPC_HLE_WiiMote::CommandDisconnectionReq(u8 _Ident, u8* _pData, u32 _Size)

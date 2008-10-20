@@ -148,7 +148,7 @@ private:
 	void HidOutput(u8* _pData, u32 _Size);
 
 	void SendConnectionRequest(u16 scid, u16 psm);
-	void SendConfigurationRequest(u16 scid);
+	void SendConfigurationRequest(u16 scid, u16* MTU, u16* FlushTimeOut);
 
 	void CommandConnectionReq(u8 _Ident, u8* _pData, u32 _Size);
 	void CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Size);
