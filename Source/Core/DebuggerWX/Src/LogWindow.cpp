@@ -36,6 +36,7 @@ BEGIN_EVENT_TABLE(CLogWindow, wxDialog)
 	EVT_BUTTON(IDM_UPDATELOG, CLogWindow::OnUpdateLog)
 	EVT_BUTTON(IDM_CLEARLOG,  CLogWindow::OnClear)
 	EVT_BUTTON(IDM_ENABLEALL,  CLogWindow::OnEnableAll)
+	EVT_CHECKLISTBOX(IDM_OPTIONS, CLogWindow::OnOptionsCheck)
 	EVT_CHECKLISTBOX(IDM_LOGCHECKS, CLogWindow::OnLogCheck)
 	EVT_RADIOBOX(IDM_RADIO0, CLogWindow::OnRadioChange)
 END_EVENT_TABLE()
@@ -52,18 +53,37 @@ CLogWindow::CLogWindow(wxWindow* parent)
 	* sizerLeft = new wxBoxSizer(wxVERTICAL); // LEFT sizer
 
 	// left checkboxes and radio boxes -----------------------------------
-	m_checks = new wxCheckListBox(this, IDM_LOGCHECKS, wxDefaultPosition, wxSize(120, 280));
-
 	int m_radioBoxNChoices[1];
 	wxString m_radioBoxChoices0[] = { wxT("0"), wxT("1"), wxT("2"), wxT("3") };
 	m_radioBoxNChoices[0] = sizeof( m_radioBoxChoices0 ) / sizeof( wxString );
 	m_RadioBox[0] = new wxRadioBox( this, IDM_RADIO0, wxT("Verbosity"),
 		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[0], m_radioBoxChoices0, 1, wxRA_SPECIFY_ROWS);
+
+	wxStaticBoxSizer * m_optionsSizer = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Settings"));
+	m_options = new wxCheckListBox(this, IDM_OPTIONS, wxDefaultPosition, wxDefaultSize,
+		0, NULL, wxNO_BORDER);
+	m_options->Append(wxT("Resolve symbols"));
+	m_options->Append(wxT("Write master"));
+	m_optionsSizer->Add(m_options, 0, 0, 0);
+
+	// I could not find any transparency setting and it would not automatically space correctly
+	m_options->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+	m_options->SetMinSize(wxSize(m_options->GetSize().GetWidth() - 40,
+		m_options->GetCount() * 15));
+	for (int i = 0; i < m_options->GetCount(); ++i)
+		m_options->GetItem(i)->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+
+	m_checks = new wxCheckListBox(this, IDM_LOGCHECKS, wxDefaultPosition, wxSize(120, 280));
+
+	// finally add it to the sizer
 	sizerLeft->Add(m_RadioBox[0], 0, wxGROW);
+	sizerLeft->Add(m_optionsSizer, 0, wxGROW);
 	sizerLeft->Add(m_checks, 1, wxGROW);
 
+
 	// right windows -----------------------------------------------------
-	m_log = new wxTextCtrl(this, IDM_LOG, _T(""), wxDefaultPosition, wxSize(600, 120), wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+	m_log = new wxTextCtrl(this, IDM_LOG, _T(""), wxDefaultPosition, wxSize(600, 120),
+		wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
 	m_cmdline = new wxTextCtrl(this, wxID_ANY, _T(""), wxDefaultPosition);
 	wxButton* btn = new wxButton(this, IDM_SUBMITCMD, _T("Submit"));
 
@@ -118,6 +138,12 @@ void CLogWindow::Load(IniFile& _IniFile)
 	_IniFile.Get("LogWindow", "Verbosity", &v, m_RadioBox[0]->GetSelection());
 	m_RadioBox[0]->SetSelection(v);
 	LogManager::m_LogSettings->m_iVerbosity = v;
+
+	// load options
+	_IniFile.Get("LogWindow", "ResolveSymbols", &LogManager::m_LogSettings->bResolve, false);
+	_IniFile.Get("LogWindow", "WriteMaster", &LogManager::m_LogSettings->bWriteMaster, false);
+	m_options->Check(0, LogManager::m_LogSettings->bResolve);
+	m_options->Check(1, LogManager::m_LogSettings->bWriteMaster);
 }
 
 void CLogWindow::OnSubmit(wxCommandEvent& event)
@@ -138,6 +164,10 @@ void CLogWindow::OnClear(wxCommandEvent& event)
 	}
 }
 
+
+// ----------------------------------------------------------------------------------------
+// Enable or disable all boxes for the current verbosity level and save the changes.
+// -------------
 void CLogWindow::OnEnableAll(wxCommandEvent& event)
 {
 	if (!LogManager::m_Log[0])
@@ -159,7 +189,73 @@ void CLogWindow::OnEnableAll(wxCommandEvent& event)
 
 
 // ----------------------------------------------------------------------------------------
-// enable or disable logging groups
+// Append checkboxes and update checked groups. 
+// -------------
+void CLogWindow::UpdateChecks()
+{
+	if (!LogManager::m_bInitialized)
+	{
+		return;
+	}
+
+	// This is only run once to append checkboxes to the wxCheckListBox.
+	if (m_checks->GetCount() == 0)
+	{
+		// [F|RES] hide the window while we fill it... wxwidgets gets trouble if you don't do it
+		// (at least the win version)
+		m_checks->Show(false);
+
+		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
+		{
+			m_checks->Append(wxString::FromAscii(LogManager::m_Log[i]->m_szName));
+		}
+
+		m_checks->Show(true);
+	}
+
+	// ----------------------------------------------------------------------------------------
+	// Load the correct values and enable/disable the right groups
+	// -------------
+	int v = LogManager::m_LogSettings->m_iVerbosity;
+	IniFile ini;
+	ini.Load("Debugger.ini");
+
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
+	{
+		for (int j = 0; j <= LogManager::VERBOSITY_LEVELS; j++)
+		{
+			bool Enabled = false;
+			ini.Get("LogManager", LogManager::m_Log[i + j*100]->m_szShortName, &Enabled, false);
+
+			m_checks->Check(i, Enabled);
+
+			LogManager::m_Log[i + j*100]->m_bEnable = Enabled;
+			LogManager::m_Log[i + j*100]->m_bShowInLog = Enabled;
+		}
+	}
+
+	m_bCheckDirty = true;
+}
+
+
+// ----------------------------------------------------------------------------------------
+// When an option is changed
+// ---------------
+void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
+{
+	IniFile ini;
+	ini.Load("Debugger.ini");
+	LogManager::m_LogSettings->bResolve = m_options->IsChecked(0);
+	LogManager::m_LogSettings->bWriteMaster = m_options->IsChecked(1);
+	ini.Set("LogWindow", "ResolveSymbols", m_options->IsChecked(0));
+	ini.Set("LogWindow", "WriteMaster", m_options->IsChecked(1));
+	ini.Save("Debugger.ini");
+	if (Core::GetState() != Core::CORE_UNINITIALIZED) UpdateLog();
+}
+
+
+// ----------------------------------------------------------------------------------------
+// When a checkbox is changed
 // ---------------
 void CLogWindow::OnLogCheck(wxCommandEvent& event)
 {
@@ -188,8 +284,9 @@ void CLogWindow::OnLogCheck(wxCommandEvent& event)
 	if (Core::GetState() != Core::CORE_UNINITIALIZED) UpdateLog();
 }
 
+
 // ----------------------------------------------------------------------------------------
-// Change verbosity level
+// When the verbosity level is changed
 // -------------
 void CLogWindow::OnRadioChange(wxCommandEvent& event)
 {
@@ -203,6 +300,8 @@ void CLogWindow::OnRadioChange(wxCommandEvent& event)
 	ini.Set("LogWindow", "Verbosity", v);
 	ini.Save("Debugger.ini");
 
+	// This check is because we allow this to be changed before a game has been loaded so
+	// that the boxes do not exist yet
 	if (Core::GetState() != Core::CORE_UNINITIALIZED) 
 	{
 		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
@@ -220,56 +319,9 @@ void CLogWindow::OnRadioChange(wxCommandEvent& event)
 }
 
 
-// ----------------------------------------------------------------------------------------
-// Update checked groups. 
-// -------------
-void CLogWindow::UpdateChecks()
-{
-	if (!LogManager::m_bInitialized)
-	{
-		return;
-	}
-
-	// This is only run once to append checkboxes to the wxCheckListBox.
-	if (m_checks->GetCount() == 0)
-	{
-		// [F|RES] hide the window while we fill it... wxwidgets gets trouble if you don't do it
-		// (at least the win version)
-		m_checks->Show(false);
-
-		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
-		{
-			m_checks->Append(wxString::FromAscii(LogManager::m_Log[i]->m_szName));
-		}
-
-		m_checks->Show(true);
-	}
-
-	// ----------------------------------------------------------------------------------------
-	// Load the correct values
-	// -------------
-	int v = LogManager::m_LogSettings->m_iVerbosity;
-	IniFile ini;
-	ini.Load("Debugger.ini");
-
-	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
-	{
-		bool Enabled = false;
-		ini.Get("LogManager", LogManager::m_Log[i + v*100]->m_szShortName, &Enabled, false);
-
-		m_checks->Check(i, Enabled);
-
-		LogManager::m_Log[i]->m_bEnable = Enabled;
-		LogManager::m_Log[i]->m_bShowInLog = Enabled;
-	}
-
-	m_bCheckDirty = true;
-}
-
-
 void CLogWindow::OnUpdateLog(wxCommandEvent& event)
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED) NotifyUpdate();
+	if (Core::GetState() != Core::CORE_UNINITIALIZED) UpdateLog();
 }
 
 
@@ -286,14 +338,17 @@ void CLogWindow::UpdateLog()
 	int v = LogManager::m_LogSettings->m_iVerbosity;
 	int i = LogManager::m_nextMessages[v];
 
+	// check if the the log has been updated (ie if it's dirty)
 	if ((last == i) && !m_bCheckDirty)
 	{
 		return;
 	}
-
 	m_bCheckDirty = false;
 	last = i;
-	//bash together a log buffer really fast (no slow strcpy here, just memcpys)
+
+	// ----------------------------------------------------------------------------------------
+	// Prepare a selection of the memory log to show to screen
+	// ---------------
 	int count = 0;
 	char* p = m_logBuffer;
 
@@ -303,14 +358,17 @@ void CLogWindow::UpdateLog()
 		count++;
 		const LogManager::SMessage& message = LogManager::m_Messages[v][i];
 
-		if (message.m_bInUse)
+		if (message.m_bInUse) // check if the line has a value
 		{
 			int len = message.m_dwMsgLen;
 
+			// this is what we use, I'm not sure why we have this option
 			if (LogManager::m_activeLog == LogTypes::MASTER_LOG)
 			{
+				// only show checkboxed logs
 				if (LogManager::m_Log[message.m_type]->m_bShowInLog)
 				{
+					// memcpy is faster than strcpy
 					memcpy(p, message.m_szMessage, len);
 					p += len;
 				}
@@ -332,10 +390,12 @@ void CLogWindow::UpdateLog()
 			i = 0;
 		}
 	}
+	// ---------------
 
 	*p = 0; //end the string
 	m_log->SetValue(wxString::FromAscii(m_logBuffer));
 	m_log->SetInsertionPoint(p - m_logBuffer - 1);
+	m_log->ShowPosition( m_log->GetLastPosition()); // show last line
 }
 
 

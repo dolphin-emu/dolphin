@@ -46,7 +46,7 @@ void __Log(int log, const char *format, ...)
 }
 
 CDebugger_Log::CDebugger_Log(const char* _szShortName, const char* _szName, int a) :
-	m_bLogToFile(true),
+	m_bLogToFile(true), // write to file or not
 	m_bShowInLog(false),
 	m_bEnable(false),
 	m_pFile(NULL)
@@ -125,11 +125,12 @@ void LogManager::Init()
 		m_nextMessages[i] = 0; // initiate to zero
 	}
 
+	// create the files
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 	{
 		for (int j = 0; j <= LogManager::VERBOSITY_LEVELS; j++)
 		{
-			m_Log[i]->Init();
+			m_Log[j*100 + i]->Init();
 		}
 	}	
 	m_bInitialized = true;
@@ -180,15 +181,16 @@ std::string lastSymbol;
 void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 {
 	// declarations
-	int v = m_LogSettings->m_iVerbosity;
-	int vv;
+	int v; // verbosity level
+	int type; // the log type, CONSOLE etc.
 	char cvv[20];
 	std::string svv;
 
-	// get the current verbosity level
+	// get the current verbosity level and type
 	sprintf(cvv, "%03i", (int)_type);
 	svv = cvv;
-	vv = atoi(svv.substr(0, 1).c_str());	
+	v = atoi(svv.substr(0, 1).c_str());
+	type = atoi(svv.substr(1, 2).c_str());
 
 	// security checks
 	if (m_Log[_type] == NULL || !m_Log[_type]->m_bEnable || PC == 0
@@ -219,13 +221,13 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	// question again.
 	std::string symbol;
 	
-	if ((vv == 0 || vv == 1) && lastPC != PC)
+	if ((v == 0 || v == 1) && lastPC != PC && LogManager::m_LogSettings->bResolve)
 	{
 		symbol = g_symbolDB.GetDescription(PC);
 		lastSymbol = symbol;
 		lastPC = PC;
 	}
-	else if(lastPC == PC)
+	else if(lastPC == PC && LogManager::m_LogSettings->bResolve)
 	{
 		symbol = lastSymbol;
 	}
@@ -243,7 +245,7 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 			datetime.GetMinute(), datetime.GetSecond(), datetime.GetMillisecond(),
 			PowerPC::ppcState.DebugCount, 
 			m_Log[_type]->m_szShortName_, // (CONSOLE etc)		
-			symbol.c_str(), PC, // (name, 0xaddress)
+			symbol.c_str(), PC, // current PC location (name, address)
 			Msg, eol);
 	}
 
@@ -251,29 +253,33 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	// Level 0 verbosity logs will be written to all verbosity levels. Given that logging is enabled
 	// for that level. Level 1 verbosity will only be written to level 1, 2, 3 and so on.
 	// ---------------
-	int type = _type;
-	for (int i = LogManager::VERBOSITY_LEVELS; i >= vv ; i--)
+	int id;
+	for (int i = LogManager::VERBOSITY_LEVELS; i >= v ; i--)
 	{
+		// prepare the right id
+		id = i*100 + type;
+
 		// write to memory
-		m_Messages[i][m_nextMessages[i]].Set(_type, Msg2);
+		m_Messages[i][m_nextMessages[i]].Set((LogTypes::LOG_TYPE)id, Msg2);
 
 		// ----------------------------------------------------------------------------------------
 		// write to file
 		// ---------------
-		if (m_Log[_type]->m_pFile && m_Log[_type]->m_bLogToFile)
-			fprintf(m_Log[_type]->m_pFile, "%s", Msg2);
-		if (m_Log[LogTypes::MASTER_LOG] && m_Log[LogTypes::MASTER_LOG]->m_pFile && m_Log[_type]->m_bShowInLog)
-			fprintf(m_Log[LogTypes::MASTER_LOG]->m_pFile, "%s", Msg2);
+		if (m_Log[id]->m_pFile && m_Log[id]->m_bLogToFile)
+			fprintf(m_Log[id]->m_pFile, "%s", Msg2);
+		if (m_Log[i*100 + LogTypes::MASTER_LOG] && m_Log[i*100 +  LogTypes::MASTER_LOG]->m_pFile
+				&& LogManager::m_LogSettings->bWriteMaster)
+			fprintf(m_Log[i*100 +  LogTypes::MASTER_LOG]->m_pFile, "%s", Msg2);
 
 		printf("%s", Msg2); // write to console screen
 
 		// this limits the memory space used for the memory logs to MAX_MESSAGES rows
 		m_nextMessages[i]++;
 		if (m_nextMessages[i] >= MAX_MESSAGES)
-			m_nextMessages[i] = 0;
-		m_bDirty = true;
+			m_nextMessages[i] = 0;		
 		// ---------------
 	}
+	m_bDirty = true; // tell LogWindow that the log has been updated
 }
 
 bool IsLoggingActivated()

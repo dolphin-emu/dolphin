@@ -123,7 +123,7 @@ void SignatureDB::Apply(SymbolDB *symbol_db)
 			if (iter->second.size == (unsigned int)function->size)
 			{
 				function->name = iter->second.name;
-				LOG(HLE, "Found %s at %08x (size: %08x)!", iter->second.name.c_str(), function->address, function->size);
+				LOG(HLE + 100, "Found %s at %08x (size: %08x)!", iter->second.name.c_str(), function->address, function->size);
 			}
 			else 
 			{

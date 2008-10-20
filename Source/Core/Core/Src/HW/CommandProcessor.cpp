@@ -426,7 +426,7 @@ void GatherPipeBursted()
 		while (!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint) && fifo.CPReadWriteDistance > (s32)fifo.CPHiWatermark)
 			//Common::SleepCurrentThread(1000); // 1s for test. We shouldn't fall here ever
 			ct++;
-		if (ct) {LOG(COMMANDPROCESSOR, "(GatherPipeBursted): %lu cycle for nothing :[ ", ct);}
+		if (ct) {LOG(COMMANDPROCESSOR + 100, "(GatherPipeBursted): %lu cycle for nothing :[ ", ct);}
 
 			
 #ifdef _WIN32

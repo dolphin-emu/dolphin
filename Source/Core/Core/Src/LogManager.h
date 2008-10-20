@@ -51,6 +51,8 @@ struct CDebugger_Log
 struct CDebugger_LogSettings
 {
 	int m_iVerbosity; // verbosity level 0 - 2
+	bool bResolve;
+	bool bWriteMaster;
 
 	// constructor
 	CDebugger_LogSettings();
@@ -93,7 +95,7 @@ public:
 			m_szMessage[m_dwMsgLen] = 0;
 
 			m_type = _type;
-			m_bInUse = true;
+			m_bInUse = true; // turn on this message line
 		}
 		//
 		static void Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...);
