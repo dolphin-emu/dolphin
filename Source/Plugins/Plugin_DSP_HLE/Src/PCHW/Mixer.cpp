@@ -165,8 +165,14 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate) {
  			DataL = t3l;
  			DataR = t3r;
 		}
-		sample_queue.push(DataL);
-		sample_queue.push(DataR);
+
+		int l = DataL, r = DataR;
+		if (l < -32767) l = -32767;
+		if (r < -32767) r = -32767;
+		if (l > 32767) l = 32767;
+		if (r > 32767) r = 32767;
+		sample_queue.push(l);
+		sample_queue.push(r);
 		queue_size += 2;
  	}
 	push_sync.Leave();
