@@ -106,4 +106,32 @@ void PrintCallstack()
 	}
 }
 
+void PrintCallstack(LogTypes::LOG_TYPE _Log)
+{
+	u32 addr = Memory::ReadUnchecked_U32(PowerPC::ppcState.gpr[1]);  // SP
+
+	__Log(_Log, "\n == STACK TRACE - SP = %08x ==\n", PowerPC::ppcState.gpr[1]);
+
+	if (LR == 0) {
+		__Log(_Log, " LR = 0 - this is bad\n");	
+	}
+	int count = 1;
+	if (g_symbolDB.GetDescription(PowerPC::ppcState.pc) != g_symbolDB.GetDescription(LR))
+	{
+		__Log(_Log, " * %s  [ LR = %08x ]\n", g_symbolDB.GetDescription(LR), LR);
+		count++;
+	}
+
+	//walk the stack chain
+	while ((addr != 0xFFFFFFFF) && (addr != 0) && (count++ < 20) && (PowerPC::ppcState.gpr[1] != 0))
+	{
+		u32 func = Memory::ReadUnchecked_U32(addr + 4);
+		const char *str = g_symbolDB.GetDescription(func);
+		if (!str || strlen(str) == 0 || !strcmp(str, "Invalid"))
+			str = "(unknown)";
+		__Log(_Log, " * %s [ addr = %08x ]\n", str, func);
+		addr = Memory::ReadUnchecked_U32(addr);
+	}
+}
+
 }  // end of namespace Debugger

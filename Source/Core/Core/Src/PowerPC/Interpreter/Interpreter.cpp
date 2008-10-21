@@ -59,26 +59,24 @@ void Shutdown()
 {
 }
 
-
-//#include "../../Plugins/Plugin_DSP.h"
 void patches()
 {
-//     if (Memory::Read_U32(0x80095AC0) != -1)  CCPU::Break();
-  //  if (Memory::Read_U32(0x8003E574) != 0)  CCPU::Break();
-
-    //	if (PC == 0x800077e8)
-/*    u32 op = Memory::Read_U32(0x80015180);
-    if ((op != 0xc0028218) && (op != 0))
-    {
-        PanicAlert("hrehre %x", op);
-        CCPU::Break();
-    } */
-
-     // if (PC == 0x80022588) CCPU::Break(); 
-
-//    WII_IPC_HLE_Interface::Update();
-
+/*	if (Memory::Read_U16(0x90000880) == 0x130b)
+	{
+		PanicAlert("Memory::Read_U16(0x900008800) == 0x130b");
+	}
+*/
+/*	if (PC == 0x80074cd4)
+	{
+		u16 command = Common::swap16(Memory::Read_U16(PowerPC::ppcState.gpr[3] + 8));
+		if (command == 0x0b13)
+		{
+			PanicAlert("command: %x", command);
+			CCPU::Break();
+		}
+	}*/
 }
+
 void SingleStepInner(void)
 {
 	static UGeckoInstruction instCode;

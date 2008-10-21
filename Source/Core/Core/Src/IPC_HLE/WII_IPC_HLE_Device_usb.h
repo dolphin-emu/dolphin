@@ -25,9 +25,7 @@
 #include "WII_IPC_HLE_WiiMote.h"
 
 class CWII_IPC_HLE_WiiMote;
-struct SCommandMessage;
-struct SHCIEventCommand;
-struct usb_ctrl_setup;
+
 
 union UACLHeader
 {
@@ -41,6 +39,13 @@ union UACLHeader
 	u32 Hex;
 };
 
+struct ACLFrame 
+{
+	u16 ConnectionHandle;
+	u8* data;
+	u32 size;
+};
+
 struct SQueuedEvent
 {
 	u8 m_buffer[1024];
@@ -50,14 +55,13 @@ struct SQueuedEvent
 	SQueuedEvent(size_t size, u16 connectionHandle)
 		: m_size(size)
 		, m_connectionHandle(connectionHandle)
-	{}
-};
-
-struct ACLFrame 
-{
-	u16 ConnectionHandle;
-	u8* data;
-	u32 size;
+	{
+		if (m_size > 1024)
+		{
+			// i know this code sux...
+			PanicAlert("SQueuedEvent: allocate a to big buffer!!");
+		}
+	}
 };
 
 class CWII_IPC_HLE_Device_usb_oh1_57e_305 : public IWII_IPC_HLE_Device
@@ -77,16 +81,15 @@ public:
 
 	void SendACLFrame(u16 _ConnectionHandle, u8* _pData, u32 _Size);
 
+	//hack for wiimote plugin
+
+public:	
+
+	std::vector<CWII_IPC_HLE_WiiMote> m_WiiMotes;
+	CWII_IPC_HLE_WiiMote* AccessWiiMote(const bdaddr_t& _rAddr);
+	CWII_IPC_HLE_WiiMote* AccessWiiMote(u16 _ConnectionHandle);
+
 private:
-
-	typedef std::queue<SQueuedEvent> CEventQueue;
-	CEventQueue m_EventQueue;
-
-	void AddEventToQueue(const SQueuedEvent& _event)
-	{
-		m_EventQueue.push(_event);
-	}
-
 
 	enum
 	{
@@ -120,20 +123,34 @@ private:
 		u32 m_PayLoadSize;
 	};
 
+	bdaddr_t m_ControllerBD;
+	u8 m_ClassOfDevice[HCI_CLASS_SIZE];
+	char m_LocalName[HCI_UNIT_NAME_SIZE];
+	u8 m_PINType;
+	u8 m_ScanEnable;
 
-	// STATE_TO_SAVE
-	std::queue<SHCICommandMessage> m_HCICommandMessageQueue;
-	std::queue<ACLFrame> m_AclFrameQue;
+	u8 m_EventFilterType;
+	u8 m_EventFilterCondition;
+
+	u16 m_HostMaxACLSize; 
+	u8  m_HostMaxSCOSize; 
+	u16 m_HostNumACLPackets; 
+	u16 m_HostNumSCOPackets;
+
+	typedef std::queue<SQueuedEvent> CEventQueue;
+	typedef std::queue<ACLFrame> CACLFrameQueue;
+
+	CEventQueue m_EventQueue;	
+	CACLFrameQueue m_AclFrameQue;
 
 	SIOCtlVBuffer* m_pACLBuffer;
 	SIOCtlVBuffer* m_pHCIBuffer;
 
+	// Events
 	bool SendEventCommandStatus(u16 _Opcode);
 	void SendEventCommandComplete(u16 _OpCode, void* _pData, u32 _DataSize);
-
 	bool SendEventInquiryResponse();
 	bool SendEventInquiryComplete();
-
 	bool SendEventRemoteNameReq(bdaddr_t _bd);
 	bool SendEventRequestConnection();
 	bool SendEventConnectionComplete(bdaddr_t _bd);
@@ -145,28 +162,13 @@ private:
 	bool SendEventAuthenticationCompleted(u16 _connectionHandle);	
 	bool SendEventModeChange(u16 _connectionHandle, u8 _mode, u16 _value);
 
+	// Execute HCI Message
 	void ExecuteHCICommandMessage(const SHCICommandMessage& _rCtrlMessage);
 
-	// commands
-	void CommandReset(u8* _Input);
-	void CommandReadBufferSize(u8* _Input);
-	void CommandReadLocalVer(u8* _Input);
-	void CommandReadBDAdrr(u8* _Input);
-	void CommandReadLocalFeatures(u8* _Input);
-	void CommandReadStoredLinkKey(u8* _Input);
-	void CommandWriteUnitClass(u8* _Input);
-	void CommandWriteLocalName(u8* _Input);
-	void CommandWritePinType(u8* _Input);
-	void CommandHostBufferSize(u8* _Input);
-	void CommandWritePageTimeOut(u8* _Input);
-	void CommandWriteScanEnable(u8* _Input);
+	// OGF 0x01	Link control commands and return parameters
 	void CommandWriteInquiryMode(u8* _Input);
 	void CommandWritePageScanType(u8* _Input);
-	void CommandSetEventFilter(u8* _Input);
-	void CommandInquiry(u8* _Input);
-	void CommandWriteInquiryScanType(u8* _Input);
-	void CommandVendorSpecific_FC4C(u8* _Input, u32 _Size);
-	void CommandVendorSpecific_FC4F(u8* _Input, u32 _Size);
+	void CommandHostBufferSize(u8* _Input);
 	void CommandInquiryCancel(u8* _Input);
 	void CommandRemoteNameReq(u8* _Input);
 	void CommandCreateCon(u8* _Input);
@@ -174,33 +176,40 @@ private:
 	void CommandReadClockOffset(u8* _Input);
 	void CommandReadRemoteVerInfo(u8* _Input);
 	void CommandReadRemoteFeatures(u8* _Input);
-	void CommandWriteLinkPolicy(u8* _Input);
 	void CommandAuthenticationRequested(u8* _Input);
+	void CommandInquiry(u8* _Input);
+
+	// OGF 0x02	Link policy commands and return parameters
+	void CommandWriteLinkPolicy(u8* _Input);
 	void CommandSniffMode(u8* _Input);
+
+	// OGF 0x03	Host Controller and Baseband commands and return parameters
+	void CommandReset(u8* _Input);
+	void CommandWriteLocalName(u8* _Input);
+	void CommandWritePageTimeOut(u8* _Input);
+	void CommandWriteScanEnable(u8* _Input);
+	void CommandWriteUnitClass(u8* _Input);
+	void CommandReadStoredLinkKey(u8* _Input);
+	void CommandWritePinType(u8* _Input);
+	void CommandSetEventFilter(u8* _Input);
+	void CommandWriteInquiryScanType(u8* _Input);
+
+	// OGF 0x04	Informational commands and return parameters 
+	void CommandReadBufferSize(u8* _Input);
+	void CommandReadLocalVer(u8* _Input);
+	void CommandReadLocalFeatures(u8* _Input);
+	void CommandReadBDAdrr(u8* _Input);
+
+	// OGF 0x3F Vendor specific
+	void CommandVendorSpecific_FC4C(u8* _Input, u32 _Size);
+	void CommandVendorSpecific_FC4F(u8* _Input, u32 _Size);	
 
 	void SendToDevice(u16 _ConnectionHandle, u8* _pData, u32 _Size);
 
-
-	u32 m_UpdateWaitCount;
-
-	u8 scan_enable;
-	bdaddr_t m_ControllerBD;
-	u8 m_ClassOfDevice[HCI_CLASS_SIZE];
-	char m_LocalName[HCI_UNIT_NAME_SIZE];
-	u8 m_PINType;
-	u8 filter_type;
-	u8 filter_condition_type;
-
-
-	u16 Host_max_acl_size; /* Max. size of ACL packet (bytes) */
-	u8 Host_max_sco_size; /* Max. size of SCO packet (bytes) */
-	u16 Host_num_acl_pkts;  /* Max. number of ACL packets */
-	u16 Host_num_sco_pkts;  /* Max. number of SCO packets */
-
-public:	//hack for wiimote plugin
-	std::vector<CWII_IPC_HLE_WiiMote> m_WiiMotes;
-	CWII_IPC_HLE_WiiMote* AccessWiiMote(const bdaddr_t& _rAddr);
-	CWII_IPC_HLE_WiiMote* AccessWiiMote(u16 _ConnectionHandle);
+	void AddEventToQueue(const SQueuedEvent& _event)
+	{
+		m_EventQueue.push(_event);
+	}
 };
 
 #endif

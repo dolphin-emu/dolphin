@@ -35,6 +35,8 @@
 #include "../HW/Memmap.h"
 #include "../HW/WII_IPC.h"
 
+#include "../Debugger/Debugger_SymbolMap.h"
+
 namespace WII_IPC_HLE_Interface
 {
 
@@ -174,7 +176,8 @@ bool AckCommand(u32 _Address)
         CCPU::Break();
     Count++; */
 
-	LOG(WII_IPC_HLE, "AckCommand: 0%08x", _Address);
+//	Debugger::PrintCallstack(LogTypes::WII_IPC_HLE);
+//	LOG(WII_IPC_HLE, "AckCommand: 0%08x", _Address);
 
     m_Ack.push(_Address);
 
