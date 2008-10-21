@@ -161,12 +161,12 @@ void BPWritten(int addr, int changes, int newval)
 
     case BPMEM_LINEPTWIDTH:
         {
-        float fratio = VertexShaderMngr::rawViewport[0] != 0 ? (float)Renderer::GetTargetWidth() / 640.0f : 1.0f;
-        if (bpmem.lineptwidth.linesize > 0)
-            glLineWidth((float)bpmem.lineptwidth.linesize * fratio / 6.0f); // scale by ratio of widths
-        if (bpmem.lineptwidth.pointsize > 0)
-            glPointSize((float)bpmem.lineptwidth.pointsize * fratio / 6.0f);
-        break;
+			float fratio = VertexShaderMngr::GetPixelAspectRatio();
+			if (bpmem.lineptwidth.linesize > 0)
+				glLineWidth((float)bpmem.lineptwidth.linesize * fratio / 6.0f); // scale by ratio of widths
+			if (bpmem.lineptwidth.pointsize > 0)
+				glPointSize((float)bpmem.lineptwidth.pointsize * fratio / 6.0f);
+			break;
         }
     
     case 0x43:

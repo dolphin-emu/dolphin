@@ -123,9 +123,7 @@ public:
     static void LoadIndexedXF(u32 val, int array);
 
     static float* GetPosNormalMat();
-
-    static float rawViewport[6];
-    static float rawProjection[7];
+	static float GetPixelAspectRatio();
 };
 
 

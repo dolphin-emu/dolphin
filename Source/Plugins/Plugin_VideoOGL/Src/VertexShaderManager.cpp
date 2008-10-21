@@ -36,24 +36,23 @@
 
 VertexShaderMngr::VSCache VertexShaderMngr::vshaders;
 VERTEXSHADER* VertexShaderMngr::pShaderLast = NULL;
-float VertexShaderMngr::rawViewport[6] = {0};
-float VertexShaderMngr::rawProjection[7] = {0};
+
 float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
-static int s_nMaxVertexInstructions;
 extern int A, B;
 extern float AR;
 extern int nBackbufferWidth, nBackbufferHeight;
 
-////////////////////////
-// Internal Variables //
-////////////////////////
-static float s_fMaterials[16];
+// Internal Variables
+static int s_nMaxVertexInstructions;
 
+static float s_fMaterials[16];
+static float rawViewport[6] = {0};
+static float rawProjection[7] = {0};
 
 // track changes
 static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged;
-int nMaterialsChanged;
+static int nMaterialsChanged;
 static int nTransformMatricesChanged[2]; // min,max
 static int nNormalMatricesChanged[2]; // min,max
 static int nPostTransformMatricesChanged[2]; // min,max
@@ -85,10 +84,13 @@ void VertexShaderMngr::Init()
 
 void VertexShaderMngr::Shutdown()
 {
-    VSCache::iterator iter = vshaders.begin();
-    for (;iter!=vshaders.end();iter++)
+    for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end(); iter++)
         iter->second.Destroy();
     vshaders.clear();
+}
+
+float VertexShaderMngr::GetPixelAspectRatio() {
+	return rawViewport[0] != 0 ? (float)Renderer::GetTargetWidth() / 640.0f : 1.0f;
 }
 
 VERTEXSHADER* VertexShaderMngr::GetShader(u32 components)
@@ -170,7 +172,7 @@ bool VertexShaderMngr::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpro
 {
     char stropt[64];
     sprintf(stropt, "MaxLocalParams=256,MaxInstructions=%d", s_nMaxVertexInstructions);
-    const char* opts[] = {"-profileopts",stropt,"-O2", "-q", NULL};
+    const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
     CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgvProf, "main", opts);
     if (!cgIsProgram(tempprog) || cgGetError() != CG_NO_ERROR) {
         ERROR_LOG("Failed to load vs %s:\n", cgGetLastListing(g_cgcontext));
@@ -190,9 +192,9 @@ bool VertexShaderMngr::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpro
         plocal = strstr(plocal+13, "program.local");
     }
 
-    glGenProgramsARB( 1, &vs.glprogid );
-    glBindProgramARB( GL_VERTEX_PROGRAM_ARB, vs.glprogid );
-    glProgramStringARB( GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
+    glGenProgramsARB(1, &vs.glprogid);
+    glBindProgramARB(GL_VERTEX_PROGRAM_ARB, vs.glprogid);
+    glProgramStringARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
 
     GLenum err = GL_NO_ERROR;
     GL_REPORT_ERROR();
@@ -254,25 +256,31 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
     if (nPostTransformMatricesChanged[0] >= 0) {
         int startn = nPostTransformMatricesChanged[0]/4;
         int endn = (nPostTransformMatricesChanged[1]+3)/4;
-        const float* pstart = (const float*)&xfmem[XFMEM_POSTMATRICES+startn*4];
+        const float* pstart = (const float*)&xfmem[XFMEM_POSTMATRICES + startn*4];
         for(int i = startn; i < endn; ++i, pstart += 4)
-            SetVSConstant4fv(C_POSTTRANSFORMMATRICES+i, pstart);
+            SetVSConstant4fv(C_POSTTRANSFORMMATRICES + i, pstart);
     }
 
     if (nLightsChanged[0] >= 0) {
         // lights don't have a 1 to 1 mapping, the color component needs to be converted to 4 floats
-        int istart = nLightsChanged[0]/0x10;
-        int iend = (nLightsChanged[1]+15)/0x10;
-        const float* xfmemptr = (const float*)&xfmem[0x10*istart+XFMEM_LIGHTS];
+        int istart = nLightsChanged[0] / 0x10;
+        int iend = (nLightsChanged[1] + 15) / 0x10;
+        const float* xfmemptr = (const float*)&xfmem[0x10*istart + XFMEM_LIGHTS];
         
-        for(int i = istart; i < iend; ++i) {
-            u32 color = *(const u32*)(xfmemptr+3);
-            SetVSConstant4f(C_LIGHTS+5*i,
-                ((color>>24)&0xFF)/255.0f, ((color>>16)&0xFF)/255.0f, ((color>>8)&0xFF)/255.0f, ((color)&0xFF)/255.0f);
+        for (int i = istart; i < iend; ++i) {
+            u32 color = *(const u32*)(xfmemptr + 3);
+            SetVSConstant4f(C_LIGHTS + 5*i,
+                ((color >> 24) & 0xFF)/255.0f,
+				((color >> 16) & 0xFF)/255.0f,
+				((color >> 8)  & 0xFF)/255.0f,
+				((color)       & 0xFF)/255.0f);
             xfmemptr += 4;
-            for(int j = 0; j < 4; ++j, xfmemptr += 3) {
-				if( j == 1 && fabs(xfmemptr[0]) < 0.00001f && fabs(xfmemptr[1]) < 0.00001f && fabs(xfmemptr[2]) < 0.00001f) {
-                    // dist atten, make sure not equal to 0!!!
+            for (int j = 0; j < 4; ++j, xfmemptr += 3) {
+				if (j == 1 &&
+					fabs(xfmemptr[0]) < 0.00001f &&
+					fabs(xfmemptr[1]) < 0.00001f &&
+					fabs(xfmemptr[2]) < 0.00001f) {
+                    // dist attenuation, make sure not equal to 0!!!
                     SetVSConstant4f(C_LIGHTS+5*i+j+1, 0.00001f, xfmemptr[1], xfmemptr[2], 0);
                 }
                 else
@@ -284,9 +292,9 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
     }
 
     if (nMaterialsChanged) {
-        for(int i = 0; i < 4; ++i) {
-            if( nMaterialsChanged&(1<<i) )
-                SetVSConstant4fv(C_MATERIALS+i, &s_fMaterials[4*i]);
+        for (int i = 0; i < 4; ++i) {
+            if (nMaterialsChanged & (1 << i))
+                SetVSConstant4fv(C_MATERIALS + i, &s_fMaterials[4*i]);
         }
         nMaterialsChanged = 0;
     }
@@ -307,11 +315,12 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 
     if (bTexMatricesChanged[0]) {
         bTexMatricesChanged[0] = false;
-
-        float* fptrs[] = {(float*)xfmem + MatrixIndexA.Tex0MtxIdx * 4, (float*)xfmem + MatrixIndexA.Tex1MtxIdx * 4,
-            (float*)xfmem + MatrixIndexA.Tex2MtxIdx * 4, (float*)xfmem + MatrixIndexA.Tex3MtxIdx * 4 };
+        float* fptrs[] = {
+			(float*)xfmem + MatrixIndexA.Tex0MtxIdx * 4, (float*)xfmem + MatrixIndexA.Tex1MtxIdx * 4,
+            (float*)xfmem + MatrixIndexA.Tex2MtxIdx * 4, (float*)xfmem + MatrixIndexA.Tex3MtxIdx * 4
+		};
         
-        for(int i = 0; i < 4; ++i) {
+        for (int i = 0; i < 4; ++i) {
             SetVSConstant4fv(C_TEXMATRICES+3*i, fptrs[i]);
             SetVSConstant4fv(C_TEXMATRICES+3*i+1, fptrs[i]+4);
             SetVSConstant4fv(C_TEXMATRICES+3*i+2, fptrs[i]+8);
@@ -324,7 +333,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
         float* fptrs[] = {(float*)xfmem + MatrixIndexB.Tex4MtxIdx * 4, (float*)xfmem + MatrixIndexB.Tex5MtxIdx * 4,
             (float*)xfmem + MatrixIndexB.Tex6MtxIdx * 4, (float*)xfmem + MatrixIndexB.Tex7MtxIdx * 4 };
         
-        for(int i = 0; i < 4; ++i) {
+        for (int i = 0; i < 4; ++i) {
             SetVSConstant4fv(C_TEXMATRICES+3*i+12, fptrs[i]);
             SetVSConstant4fv(C_TEXMATRICES+3*i+12+1, fptrs[i]+4);
             SetVSConstant4fv(C_TEXMATRICES+3*i+12+2, fptrs[i]+8);
@@ -350,10 +359,12 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 		// rawViewport[0] = 320, rawViewport[1] = -240
 		int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
 		int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
-		float fourThree = 4.0f/3.0f;
+		float fourThree = 4.0f / 3.0f;
 		float ratio = AR /  fourThree;
-		float hAdj; float wAdj; float actualRatiow; float actualRatioh;
-		int overfl; int xoffs = 0; int yoffs = 0;
+		float wAdj, hAdj;
+		float actualRatiow, actualRatioh;
+		int overfl;
+		int xoffs = 0, yoffs = 0;
 		int wid, hei, actualWid, actualHei;
 		int winw = nBackbufferWidth; int winh = nBackbufferHeight;
 		if (g_Config.bKeepAR)
@@ -396,18 +407,18 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 
 		if(g_Config.bStretchToFit && g_Config.renderToMainframe)
 		{
-		glViewport(
-			(int)(rawViewport[3]-rawViewport[0]-342-scissorXOff) + xoffs,
-			Renderer::GetTargetHeight() - ((int)(rawViewport[4]-rawViewport[1]-342-scissorYOff)) + yoffs,
-			wid, // width
-			hei // height
-			);
+			glViewport(
+				(int)(rawViewport[3]-rawViewport[0]-342-scissorXOff) + xoffs,
+				Renderer::GetTargetHeight() - ((int)(rawViewport[4]-rawViewport[1]-342-scissorYOff)) + yoffs,
+				wid, // width
+				hei // height
+				);
 		}
 		else
 		{
-		glViewport((int)(rawViewport[3]-rawViewport[0]-342-scissorXOff) * MValueX,
-			Renderer::GetTargetHeight()-((int)(rawViewport[4]-rawViewport[1]-342-scissorYOff))  * MValueY,
-			abs((int)(2 * rawViewport[0])) * MValueX, abs((int)(2 * rawViewport[1])) * MValueY);
+			glViewport((int)(rawViewport[3]-rawViewport[0]-342-scissorXOff) * MValueX,
+				Renderer::GetTargetHeight()-((int)(rawViewport[4]-rawViewport[1]-342-scissorYOff))  * MValueY,
+				abs((int)(2 * rawViewport[0])) * MValueX, abs((int)(2 * rawViewport[1])) * MValueY);
 		}
 
 		glDepthRange(-(0.0f - (rawViewport[5]-rawViewport[2])/-16777215.0f), rawViewport[5]/16777215.0f);
@@ -420,17 +431,17 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
             g_fProjectionMatrix[0] = rawProjection[0];
             g_fProjectionMatrix[1] = 0.0f;
             g_fProjectionMatrix[2] = rawProjection[1];
-            g_fProjectionMatrix[3] = 0;//-0.5f/Renderer::GetTargetWidth();	
+            g_fProjectionMatrix[3] = 0;
                         
             g_fProjectionMatrix[4] = 0.0f;
             g_fProjectionMatrix[5] = rawProjection[2];
             g_fProjectionMatrix[6] = rawProjection[3];
-            g_fProjectionMatrix[7] = 0;//+0.5f/Renderer::GetTargetHeight();
+            g_fProjectionMatrix[7] = 0;
                         
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = rawProjection[4];
-            g_fProjectionMatrix[11] = -(0.0f - rawProjection[5]); 
+            g_fProjectionMatrix[11] = -(0.0f - rawProjection[5]);  // Yes, it's important that it's done this way.
                         
             g_fProjectionMatrix[12] = 0.0f;
             g_fProjectionMatrix[13] = 0.0f;
@@ -451,7 +462,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = rawProjection[4];
-            g_fProjectionMatrix[11] = -(0.0f - rawProjection[5]);
+            g_fProjectionMatrix[11] = -(0.0f - rawProjection[5]);  // Yes, it's important that it's done this way.
 
             g_fProjectionMatrix[12] = 0;
             g_fProjectionMatrix[13] = 0;
@@ -564,10 +575,10 @@ void VertexShaderMngr::SetTexMatrixChangedB(u32 Value)
 
 void VertexShaderMngr::SetViewport(float* _Viewport)
 {
-    // check for paper mario
+    // Workaround for paper mario, yep this is bizarre.
     for (size_t i = 0; i < ARRAYSIZE(rawViewport); ++i) {
-        if( *(u32*)(_Viewport + i) == 0x7f800000 )
-            return; // invalid number
+        if (*(u32*)(_Viewport + i) == 0x7f800000)  // invalid fp number
+            return;
     }
     memcpy(rawViewport, _Viewport, sizeof(rawViewport));
     bViewportChanged = true;
@@ -589,7 +600,7 @@ void VertexShaderMngr::LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 {	
 
     u32 address = baseAddress;
-    for (int i=0; i<(int)transferSize; i++)
+    for (int i = 0; i < (int)transferSize; i++)
     {
         address = baseAddress + i;
 
@@ -723,16 +734,16 @@ void VertexShaderMngr::LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
                 break;
             case 0x1018:
                 //_assert_msg_(GX_XF, 0, "XF matrixindex0");
-                VertexShaderMngr::SetTexMatrixChangedA(data); //?
+                SetTexMatrixChangedA(data); //?
                 break;
             case 0x1019:
                 //_assert_msg_(GX_XF, 0, "XF matrixindex1");
-                VertexShaderMngr::SetTexMatrixChangedB(data); //?
+                SetTexMatrixChangedB(data); //?
                 break;
 
             case 0x101a: 
                 VertexManager::Flush();
-                VertexShaderMngr::SetViewport((float*)&pData[i]);
+                SetViewport((float*)&pData[i]);
                 i += 6;
                 break;
 
@@ -795,12 +806,12 @@ void VertexShaderMngr::LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
     }
 }
 
-// Check docs for this sucker...
+// TODO - verify that it is correct. Seems to work, though.
 void VertexShaderMngr::LoadIndexedXF(u32 val, int array)
 {
-    int index = val>>16;
-    int address = val&0xFFF; //check mask
-    int size = ((val>>12)&0xF)+1;
+    int index = val >> 16;
+    int address = val & 0xFFF; //check mask
+    int size = ((val >> 12) & 0xF) + 1;
     //load stuff from array to address in xf mem
 
     VertexManager::Flush();
@@ -816,39 +827,49 @@ float* VertexShaderMngr::GetPosNormalMat()
     return (float*)xfmem + MatrixIndexA.PosNormalMtxIdx * 4;
 }
 
+// Mash together all the inputs that contribute to the code of a generated vertex shader into
+// a unique identifier, basically containing all the bits. Yup, it's a lot ....
 void VertexShaderMngr::GetVertexShaderId(VERTEXSHADERUID& id, u32 components)
 {
-    u32 zbufrender = (bpmem.ztex2.op==ZTEXTURE_ADD)||Renderer::GetZBufferTarget()!=0;
-    id.values[0] = components|(xfregs.numTexGens<<23)|(xfregs.nNumChans<<27)|((u32)xfregs.bEnableDualTexTransform<<29)|(zbufrender<<30);
+    u32 zbufrender = (bpmem.ztex2.op == ZTEXTURE_ADD) || Renderer::GetZBufferTarget() != 0;
+    id.values[0] = components | 
+		(xfregs.numTexGens << 23) |
+		(xfregs.nNumChans << 27) |
+	    ((u32)xfregs.bEnableDualTexTransform << 29) |
+		(zbufrender << 30);
 
-    for(int i = 0; i < 2; ++i) {
-        id.values[1+i] = xfregs.colChans[i].color.enablelighting?(u32)xfregs.colChans[i].color.hex:(u32)xfregs.colChans[i].color.matsource;
-        id.values[1+i] |= (xfregs.colChans[i].alpha.enablelighting?(u32)xfregs.colChans[i].alpha.hex:(u32)xfregs.colChans[i].alpha.matsource)<<15;
+    for (int i = 0; i < 2; ++i) {
+        id.values[1+i] = xfregs.colChans[i].color.enablelighting ? 
+			(u32)xfregs.colChans[i].color.hex : 
+		    (u32)xfregs.colChans[i].color.matsource;
+        id.values[1+i] |= (xfregs.colChans[i].alpha.enablelighting ? 
+			(u32)xfregs.colChans[i].alpha.hex : 
+		    (u32)xfregs.colChans[i].alpha.matsource) << 15;
     }
-    // fog
-    id.values[1] |= (((u32)bpmem.fog.c_proj_fsel.fsel&3)<<30);
-    id.values[2] |= (((u32)bpmem.fog.c_proj_fsel.fsel>>2)<<30);
+
+	// fog
+    id.values[1] |= (((u32)bpmem.fog.c_proj_fsel.fsel & 3) << 30);
+    id.values[2] |= (((u32)bpmem.fog.c_proj_fsel.fsel >> 2) << 30);
 
     u32* pcurvalue = &id.values[3];
-
-    for(int i = 0; i < xfregs.numTexGens; ++i) {
+    for (int i = 0; i < xfregs.numTexGens; ++i) {
         TexMtxInfo tinfo = xfregs.texcoords[i].texmtxinfo;
-        if( tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP )
+        if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP)
             tinfo.hex &= 0x7ff;
-        if( tinfo.texgentype != XF_TEXGEN_REGULAR )
+        if (tinfo.texgentype != XF_TEXGEN_REGULAR)
             tinfo.projection = 0;
 
-        u32 val = ((tinfo.hex>>1)&0x1ffff);
-        if( xfregs.bEnableDualTexTransform && tinfo.texgentype == XF_TEXGEN_REGULAR ) {
+        u32 val = ((tinfo.hex >> 1) & 0x1ffff);
+        if (xfregs.bEnableDualTexTransform && tinfo.texgentype == XF_TEXGEN_REGULAR) {
             // rewrite normalization and post index
-            val |= ((u32)xfregs.texcoords[i].postmtxinfo.index<<17)|((u32)xfregs.texcoords[i].postmtxinfo.normalize<<23);
+            val |= ((u32)xfregs.texcoords[i].postmtxinfo.index << 17) | ((u32)xfregs.texcoords[i].postmtxinfo.normalize << 23);
         }
 
-        switch(i & 3) {
+        switch (i & 3) {
             case 0: pcurvalue[0] |= val; break;
-            case 1: pcurvalue[0] |= val<<24; pcurvalue[1] = val>>8; ++pcurvalue; break;
-            case 2: pcurvalue[0] |= val<<16; pcurvalue[1] = val>>16; ++pcurvalue; break;
-            case 3: pcurvalue[0] |= val<<8; ++pcurvalue; break;
+            case 1: pcurvalue[0] |= val << 24; pcurvalue[1] = val >> 8; ++pcurvalue; break;
+            case 2: pcurvalue[0] |= val << 16; pcurvalue[1] = val >> 16; ++pcurvalue; break;
+            case 3: pcurvalue[0] |= val << 8; ++pcurvalue; break;
         }
     }
 }

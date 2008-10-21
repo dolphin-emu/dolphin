@@ -24,7 +24,7 @@ static u32 s_prevcomponents; // previous state set
 
 u8* VertexManager::s_pCurBufferPointer = NULL;
 
-const GLenum c_primitiveType[8] =
+static const GLenum c_primitiveType[8] =
 {
     GL_QUADS,
     0, //nothing
@@ -57,6 +57,7 @@ bool VertexManager::Init()
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	fnSetupVertexPointers = NULL;
+	s_vStoredPrimitives.reserve(1000);
 	GL_REPORT_ERRORD();
 
 	return true;
@@ -149,7 +150,7 @@ void VertexManager::Flush()
 	GL_REPORT_ERRORD();
 
 	glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
-	glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer-s_pBaseBufferPointer, s_pBaseBufferPointer, GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - s_pBaseBufferPointer, s_pBaseBufferPointer, GL_STREAM_DRAW);
 	GL_REPORT_ERRORD();
 
 	// setup the pointers
@@ -159,17 +160,17 @@ void VertexManager::Flush()
 	// set the textures
 	{
 		DVProfileFunc _pf("VertexManager::Flush:textures");
-	
+
 		u32 usedtextures = 0;
 		for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i) {
 			if (bpmem.tevorders[i/2].getEnable(i & 1))
-				usedtextures |= 1<<bpmem.tevorders[i/2].getTexMap(i & 1);
+				usedtextures |= 1 << bpmem.tevorders[i/2].getTexMap(i & 1);
 		}
 
 		if (bpmem.genMode.numindstages > 0) {
 			for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i) {
 				if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages) {
-					usedtextures |= 1<<bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
+					usedtextures |= 1 << bpmem.tevindref.getTexMap(bpmem.tevind[i].bt);
 				}
 			}
 		}
@@ -177,7 +178,7 @@ void VertexManager::Flush()
 		u32 nonpow2tex = 0;
 		for (int i = 0; i < 8; i++) {
 			if (usedtextures & (1 << i)) {
-				glActiveTexture(GL_TEXTURE0+i);
+				glActiveTexture(GL_TEXTURE0 + i);
 			
 				FourTexUnits &tex = bpmem.tex[i>>2];
 				TextureMngr::TCacheEntry* tentry = TextureMngr::Load(i, (tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
@@ -245,6 +246,9 @@ void VertexManager::Flush()
 	PixelShaderMngr::SetConstants(*ps);
 
 	// finally bind
+
+	// TODO - cache progid, check if same as before. Maybe GL does this internally, though.
+	// This is the really annoying problem with GL - you never know whether it's worth caching stuff yourself.
 	glBindProgramARB(GL_VERTEX_PROGRAM_ARB, vs->glprogid);
 	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, ps->glprogid);
 
@@ -253,7 +257,8 @@ void VertexManager::Flush()
 #endif
 
 	int offset = 0;
-	for (vector< pair<int, int> >::const_iterator it = s_vStoredPrimitives.begin(); it != s_vStoredPrimitives.end(); ++it) {
+	for (vector< pair<int, int> >::const_iterator it = s_vStoredPrimitives.begin(); it != s_vStoredPrimitives.end(); ++it)
+	{
 		glDrawArrays(it->first, offset, it->second);
 		offset += it->second;
 	}
@@ -314,7 +319,7 @@ void VertexManager::LoadCPReg(u32 SubCmd, u32 Value)
 	case 0x90: g_VertexLoaders[SubCmd & 7].SetVAT_group2(Value); _assert_((SubCmd & 0x0F) < 8); break;
 
 	case 0xA0: arraybases[SubCmd & 0xF]   = Value & 0xFFFFFFFF; break;
-	case 0xB0: arraystrides[SubCmd & 0xF] = Value & 0xFF;      break;
+	case 0xB0: arraystrides[SubCmd & 0xF] = Value & 0xFF; break;
 	}
 }
 

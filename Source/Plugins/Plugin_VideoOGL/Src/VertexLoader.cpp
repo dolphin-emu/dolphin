@@ -137,13 +137,15 @@ VertexLoader::~VertexLoader()
 int VertexLoader::ComputeVertexSize()
 {
     if (!m_AttrDirty) {
-        if (m_VtxDesc.Hex0 == VertexManager::GetVtxDesc().Hex0 && (m_VtxDesc.Hex1&1)==(VertexManager::GetVtxDesc().Hex1&1))
+		// Compare the 33 desc bits. 
+        if (m_VtxDesc.Hex0 == VertexManager::GetVtxDesc().Hex0 &&
+		    (m_VtxDesc.Hex1 & 1) == (VertexManager::GetVtxDesc().Hex1 & 1))
             return m_VertexSize;
 
         m_VtxDesc.Hex = VertexManager::GetVtxDesc().Hex;
     }
     else {
-        // set anyway
+        // Attributes are dirty so we have to recompute everything anyway.
         m_VtxDesc.Hex = VertexManager::GetVtxDesc().Hex;
     }
 
@@ -157,14 +159,14 @@ int VertexLoader::ComputeVertexSize()
         m_VertexSize += 1;
 
     // Texture matrix indices
-    if (m_VtxDesc.Tex0MatIdx) {m_VertexSize+=1; }
-    if (m_VtxDesc.Tex1MatIdx) {m_VertexSize+=1; }
-    if (m_VtxDesc.Tex2MatIdx) {m_VertexSize+=1; }
-    if (m_VtxDesc.Tex3MatIdx) {m_VertexSize+=1; }
-    if (m_VtxDesc.Tex4MatIdx) {m_VertexSize+=1; }
-    if (m_VtxDesc.Tex5MatIdx) {m_VertexSize+=1; }
-    if (m_VtxDesc.Tex6MatIdx) {m_VertexSize+=1; }
-    if (m_VtxDesc.Tex7MatIdx) {m_VertexSize+=1; }
+    if (m_VtxDesc.Tex0MatIdx) m_VertexSize += 1;
+    if (m_VtxDesc.Tex1MatIdx) m_VertexSize += 1;
+    if (m_VtxDesc.Tex2MatIdx) m_VertexSize += 1;
+    if (m_VtxDesc.Tex3MatIdx) m_VertexSize += 1;
+    if (m_VtxDesc.Tex4MatIdx) m_VertexSize += 1;
+    if (m_VtxDesc.Tex5MatIdx) m_VertexSize += 1;
+    if (m_VtxDesc.Tex6MatIdx) m_VertexSize += 1;
+    if (m_VtxDesc.Tex7MatIdx) m_VertexSize += 1;
     
     switch (m_VtxDesc.Position) {
     case NOT_PRESENT:	{_assert_("Vertex descriptor without position!");} break;
@@ -181,10 +183,10 @@ int VertexLoader::ComputeVertexSize()
         }
         break;
     case INDEX8:		
-        m_VertexSize+=1;
+        m_VertexSize += 1;
         break;
     case INDEX16:
-        m_VertexSize+=2;
+        m_VertexSize += 2;
         break;
     }
 
@@ -202,20 +204,20 @@ int VertexLoader::ComputeVertexSize()
         case DIRECT:
             switch (m_VtxAttr.color[i].Comp)
             {
-            case FORMAT_16B_565:	m_VertexSize+=2; break;
-            case FORMAT_24B_888:	m_VertexSize+=3; break;
-            case FORMAT_32B_888x:	m_VertexSize+=4; break;
-            case FORMAT_16B_4444:	m_VertexSize+=2; break;
-            case FORMAT_24B_6666:	m_VertexSize+=3; break;
-            case FORMAT_32B_8888:	m_VertexSize+=4; break;
+            case FORMAT_16B_565:	m_VertexSize += 2; break;
+            case FORMAT_24B_888:	m_VertexSize += 3; break;
+            case FORMAT_32B_888x:	m_VertexSize += 4; break;
+            case FORMAT_16B_4444:	m_VertexSize += 2; break;
+            case FORMAT_24B_6666:	m_VertexSize += 3; break;
+            case FORMAT_32B_8888:	m_VertexSize += 4; break;
             default: _assert_(0); break;
-            }
+            }									    
             break;
         case INDEX8:	
-            m_VertexSize+=1;
+            m_VertexSize += 1;
             break;
         case INDEX16:
-            m_VertexSize+=2;
+            m_VertexSize += 2;
             break;
         }   
     }
@@ -244,10 +246,10 @@ int VertexLoader::ComputeVertexSize()
             }
             break;
         case INDEX8:	
-            m_VertexSize+=1;
+            m_VertexSize += 1;
             break;
         case INDEX16:
-            m_VertexSize+=2;
+            m_VertexSize += 2;
             break;
         }
     }
@@ -317,32 +319,32 @@ void VertexLoader::ProcessFormat()
     case DIRECT:
         {
             switch (m_VtxAttr.PosFormat) {
-            case FORMAT_UBYTE:	WriteCall(Pos_ReadDirect_UByte); break;
-            case FORMAT_BYTE:	WriteCall(Pos_ReadDirect_Byte); break;
+            case FORMAT_UBYTE:	WriteCall(Pos_ReadDirect_UByte);  break;
+            case FORMAT_BYTE:	WriteCall(Pos_ReadDirect_Byte);   break;
             case FORMAT_USHORT:	WriteCall(Pos_ReadDirect_UShort); break;
-            case FORMAT_SHORT:	WriteCall(Pos_ReadDirect_Short); break;
-            case FORMAT_FLOAT:	WriteCall(Pos_ReadDirect_Float); break;
+            case FORMAT_SHORT:	WriteCall(Pos_ReadDirect_Short);  break;
+            case FORMAT_FLOAT:	WriteCall(Pos_ReadDirect_Float);  break;
             default: _assert_(0); break;
             }
         }
         break;
     case INDEX8:		
         switch (m_VtxAttr.PosFormat) {
-        case FORMAT_UBYTE:	WriteCall(Pos_ReadIndex8_UByte); break; //WTF?
-        case FORMAT_BYTE:	WriteCall(Pos_ReadIndex8_Byte); break;
+        case FORMAT_UBYTE:	WriteCall(Pos_ReadIndex8_UByte);  break; //WTF?
+        case FORMAT_BYTE:	WriteCall(Pos_ReadIndex8_Byte);   break;
         case FORMAT_USHORT:	WriteCall(Pos_ReadIndex8_UShort); break;
-        case FORMAT_SHORT:	WriteCall(Pos_ReadIndex8_Short); break;
-        case FORMAT_FLOAT:	WriteCall(Pos_ReadIndex8_Float); break;
+        case FORMAT_SHORT:	WriteCall(Pos_ReadIndex8_Short);  break;
+        case FORMAT_FLOAT:	WriteCall(Pos_ReadIndex8_Float);  break;
         default: _assert_(0); break;
         }
         break;
     case INDEX16:
         switch (m_VtxAttr.PosFormat) {
-        case FORMAT_UBYTE:	WriteCall(Pos_ReadIndex16_UByte); break;
-        case FORMAT_BYTE:	WriteCall(Pos_ReadIndex16_Byte); break;
+        case FORMAT_UBYTE:	WriteCall(Pos_ReadIndex16_UByte);  break;
+        case FORMAT_BYTE:	WriteCall(Pos_ReadIndex16_Byte);   break;
         case FORMAT_USHORT:	WriteCall(Pos_ReadIndex16_UShort); break;
-        case FORMAT_SHORT:	WriteCall(Pos_ReadIndex16_Short); break;
-        case FORMAT_FLOAT:	WriteCall(Pos_ReadIndex16_Float); break;
+        case FORMAT_SHORT:	WriteCall(Pos_ReadIndex16_Short);  break;
+        case FORMAT_FLOAT:	WriteCall(Pos_ReadIndex16_Float);  break;
         default: _assert_(0); break;
         }
         break;
@@ -396,8 +398,7 @@ void VertexLoader::ProcessFormat()
     // Texture matrix indices (remove if corresponding texture coordinate isn't enabled)
     for (int i = 0; i < 8; i++) {
         SetupTexCoord(i, tc[i], m_VtxAttr.texCoord[i].Format, m_VtxAttr.texCoord[i].Elements, m_VtxAttr.texCoord[i].Frac);
-
-        if (m_components&(VB_HAS_TEXMTXIDX0<<i)) {
+        if (m_components & (VB_HAS_TEXMTXIDX0 << i)) {
             if (tc[i] != NOT_PRESENT) {
                 // if texmtx is included, texcoord will always be 3 floats, z will be the texmtx index
                 WriteCall(m_VtxAttr.texCoord[i].Elements ? TexMtx_Write_Float : TexMtx_Write_Float2);
@@ -412,7 +413,7 @@ void VertexLoader::ProcessFormat()
         }
         else {
             if (tc[i] != NOT_PRESENT)
-                m_VBVertexStride += 4 * (m_VtxAttr.texCoord[i].Elements?2:1);
+                m_VBVertexStride += 4 * (m_VtxAttr.texCoord[i].Elements ? 2 : 1);
         }
 
         if (tc[i] == NOT_PRESENT) {
@@ -719,9 +720,10 @@ void VertexLoader::RunVertices(int primitive, int count)
         if ((v % granularity) == 0)
 		{
             if (VertexManager::GetRemainingSize() < granularity*m_VBVertexStride) {
+				// This buffer full - break current primitive and flush, to switch to the next buffer.
                 u8* plastptr = VertexManager::s_pCurBufferPointer;
                 if (v - startv > 0)
-                    VertexManager::AddVertices(primitive, v-startv+extraverts);
+                    VertexManager::AddVertices(primitive, v - startv + extraverts);
                 VertexManager::Flush();
 				// Why does this need to be so complicated?
                 switch (primitive) {
