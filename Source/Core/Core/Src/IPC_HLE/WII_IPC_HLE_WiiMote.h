@@ -18,7 +18,6 @@
 #define _WII_IPC_HLE_WII_MOTE_
 
 #include <map>
-#include "WII_IPC_HLE_Device_usb.h"
 
 class CWII_IPC_HLE_Device_usb_oh1_57e_305;
 

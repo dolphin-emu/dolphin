@@ -14,6 +14,7 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #ifndef _WII_IPC_HLE_DEVICE_USB_H_
 #define _WII_IPC_HLE_DEVICE_USB_H_
 
@@ -23,8 +24,6 @@
 #include <queue>
 
 #include "WII_IPC_HLE_WiiMote.h"
-
-class CWII_IPC_HLE_WiiMote;
 
 
 union UACLHeader
@@ -147,6 +146,7 @@ private:
 	SIOCtlVBuffer* m_pHCIBuffer;
 
 	// Events
+	void AddEventToQueue(const SQueuedEvent& _event);
 	bool SendEventCommandStatus(u16 _Opcode);
 	void SendEventCommandComplete(u16 _OpCode, void* _pData, u32 _DataSize);
 	bool SendEventInquiryResponse();
@@ -205,11 +205,6 @@ private:
 	void CommandVendorSpecific_FC4F(u8* _Input, u32 _Size);	
 
 	void SendToDevice(u16 _ConnectionHandle, u8* _pData, u32 _Size);
-
-	void AddEventToQueue(const SQueuedEvent& _event)
-	{
-		m_EventQueue.push(_event);
-	}
 };
 
 #endif

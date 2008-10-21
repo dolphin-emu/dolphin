@@ -305,6 +305,11 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _event)
+{
+	m_EventQueue.push(_event);
+}
+
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventCommandStatus(u16 _Opcode)
 {        
 	SQueuedEvent Event(sizeof(SHCIEventStatus), 0);
@@ -883,11 +888,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 		//
 	default:
 		{
-#ifdef LOGGING
 			u16 ocf = HCI_OCF(pMsg->Opcode);
 			u16 ogf = HCI_OGF(pMsg->Opcode);
-#endif
-
 			
 			PanicAlert("0x%08x", _rHCICommandMessage.m_PayLoadAddr);
 

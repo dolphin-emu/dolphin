@@ -18,6 +18,7 @@
 #include "Common.h"
 #include "../Plugins/Plugin_Wiimote.h"
 
+#include "WII_IPC_HLE_Device_usb.h"
 #include "WII_IPC_HLE_WiiMote.h"
 #include "l2cap.h"
 #include "WiiMote_HID_Attr.h"
