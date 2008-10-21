@@ -318,9 +318,11 @@ void PixelShaderMngr::SetConstants(FRAGMENTSHADER& ps)
             int texcoord = bpmem.tevindref.getTexCoord(i);
             TCoordInfo& tc = bpmem.texcoords[texcoord];
             
-            f[2*i] = bpmem.texscale[i/2].getScaleS(i&1) * (float)(tc.s.scale_minus_1+1) / (float)(lastTexDims[srctexmap] & 0xffff);
-            f[2*i+1] = bpmem.texscale[i/2].getScaleT(i&1) * (float)(tc.t.scale_minus_1+1) / (float)((lastTexDims[srctexmap] >> 16) & 0xffff);
-
+            f[2*i] = bpmem.texscale[i/2].getScaleS(i&1) *
+				(float)(tc.s.scale_minus_1+1) / (float)(lastTexDims[srctexmap] & 0xffff);
+            f[2*i+1] = bpmem.texscale[i/2].getScaleT(i&1) *
+				(float)(tc.t.scale_minus_1+1) / (float)((lastTexDims[srctexmap] >> 16) & 0xfff);
+			// Yes, the above should really be 0xfff. The top 4 bits are used for other stuff.
             PRIM_LOG("tex indscale%d: %f %f\n", i, f[2*i], f[2*i+1]);
         }
 
