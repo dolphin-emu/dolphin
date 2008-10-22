@@ -9,7 +9,7 @@ import utils
 files = [
 	'BPStructs.cpp',
 	'Globals.cpp',
-	'GLInit.cpp',
+	'GLUtil.cpp',
 	'main.cpp',
 	'memcpy_amd.cpp',
 	'OpcodeDecoding.cpp',

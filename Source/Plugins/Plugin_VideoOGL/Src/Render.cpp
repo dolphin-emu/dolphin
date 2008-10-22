@@ -19,6 +19,7 @@
 #include <list>
 #include <vector>
 
+#include "GLUtil.h"
 
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>
@@ -27,7 +28,6 @@
 #include <mmsystem.h>
 #endif
 
-#include "GLInit.h"
 #include "Profiler.h"
 #include "Statistics.h"
 #include "ImageWrite.h"

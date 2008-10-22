@@ -19,6 +19,8 @@
 #define _TextureMngr_H
 
 #include <map>
+
+#include "GLUtil.h"
 #include "BPStructs.h"
 
 struct TRectangle

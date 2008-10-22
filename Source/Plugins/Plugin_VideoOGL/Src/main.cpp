@@ -30,7 +30,7 @@
 #include "LookUpTables.h"
 #include "ImageWrite.h"
 #include "Render.h"
-#include "GLInit.h"
+#include "GLUtil.h"
 #include "Fifo.h"
 #include "OpcodeDecoding.h"
 #include "TextureMngr.h"

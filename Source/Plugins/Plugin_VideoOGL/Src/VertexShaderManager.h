@@ -20,6 +20,8 @@
 
 #include <map>
 
+#include "GLUtil.h"
+
 struct VERTEXSHADER
 {
     VERTEXSHADER() : glprogid(0) {}

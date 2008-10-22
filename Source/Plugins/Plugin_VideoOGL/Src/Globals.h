@@ -24,58 +24,6 @@
 #include "Common.h"
 #include "x64Emitter.h"
 
-#ifdef _WIN32
-
-#define GLEW_STATIC
-
-#include <GLew/glew.h>
-#include <GLew/wglew.h>
-#include <GLew/gl.h>
-#include <GLew/glext.h>
-
-#else // linux basic definitions
-
-#define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
-#define I_NEED_OS2_H // HAXXOR
-//#include <GL/glew.h>
-#include <GL/glxew.h>
-
-#if defined(__APPLE__) 
-
-#include <OpenGL/gl.h>
-
-#else
-
-#include <GL/gl.h>
-
-#endif
-//#include <GL/glx.h>
-#define __inline inline
-
-#include <sys/timeb.h>    // ftime(), struct timeb
-
-inline unsigned long timeGetTime()
-{
-#ifdef _WIN32
-    _timeb t;
-    _ftime(&t);
-#else
-    timeb t;
-    ftime(&t);
-#endif
-
-    return (unsigned long)(t.time*1000+t.millitm);
-}
-
-#endif // linux basic definitions
-
-#ifndef GL_DEPTH24_STENCIL8_EXT // allows FBOs to support stencils
-#define GL_DEPTH_STENCIL_EXT 0x84F9
-#define GL_UNSIGNED_INT_24_8_EXT 0x84FA
-#define GL_DEPTH24_STENCIL8_EXT 0x88F0
-#define GL_TEXTURE_STENCIL_SIZE_EXT 0x88F1
-#endif
-
 #define ERROR_LOG __Log
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -87,15 +35,6 @@ inline unsigned long timeGetTime()
 #define PRIM_LOG(...)
 #define DEBUG_LOG(...)
 #endif
-
-#define GL_REPORT_ERROR() { err = glGetError(); if( err != GL_NO_ERROR ) { ERROR_LOG("%s:%d: gl error 0x%x\n", __FILE__, (int)__LINE__, err); HandleGLError(); } }
-
-#ifdef _DEBUG
-#define GL_REPORT_ERRORD() { GLenum err = glGetError(); if( err != GL_NO_ERROR ) { ERROR_LOG("%s:%d: gl error 0x%x\n", __FILE__, (int)__LINE__, err); HandleGLError(); } }
-#else
-#define GL_REPORT_ERRORD()
-#endif
-
 
 #define CONF_LOG 1
 #define CONF_PRIMLOG 2

@@ -31,7 +31,7 @@ struct RECT
 };
 #endif
 
-#include "GLInit.h"
+#include "GLUtil.h"
 
 #ifndef USE_SDL
 #define USE_SDL 0

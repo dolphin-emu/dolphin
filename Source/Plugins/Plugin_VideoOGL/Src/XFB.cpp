@@ -19,8 +19,8 @@
 // Preliminary non-working code.
 
 #include "Globals.h"
+#include "GLUtil.h"
 #include "MemoryUtil.h"
-#include "GLInit.h"
 #include "Render.h"
 #include "TextureMngr.h"
 #include "VertexShaderManager.h"

@@ -16,11 +16,11 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Globals.h"
+#include "GLUtil.h"
 
 #include <stdio.h>
 #include <list>
 #include <vector>
-
 
 #include "ImageWrite.h"
 

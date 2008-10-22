@@ -18,6 +18,8 @@
 #include "Globals.h"
 #include "Profiler.h"
 
+#include "GLUtil.h"
+
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>
 
