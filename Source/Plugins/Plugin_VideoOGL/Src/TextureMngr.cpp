@@ -98,7 +98,7 @@ void TextureMngr::TCacheEntry::Destroy()
 			*ptr = oldpixel;
 	}
 	texture = 0;
-}
+} 
 
 void TextureMngr::Init()
 {
@@ -509,10 +509,10 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     GL_REPORT_ERRORD();
 
     // create and attach the render target
-    std::map<u32, DEPTHTARGET>::iterator itdepth = mapDepthTargets.find((h<<16)|w);
+    std::map<u32, DEPTHTARGET>::iterator itdepth = mapDepthTargets.find((h << 16) | w);
     
-    if( itdepth == mapDepthTargets.end() ) {
-        DEPTHTARGET& depth = mapDepthTargets[(h<<16)|w];
+    if (itdepth == mapDepthTargets.end()) {
+        DEPTHTARGET& depth = mapDepthTargets[(h << 16) | w];
         depth.framecount = frameCount;
         glGenRenderbuffersEXT( 1, &depth.targ);
         glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depth.targ);

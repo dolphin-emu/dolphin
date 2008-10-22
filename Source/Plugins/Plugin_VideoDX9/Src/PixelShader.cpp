@@ -283,14 +283,13 @@ char swapModeTable[4][5];
 
 void BuildSwapModeTable()
 {
-	//bpmem.tevregs[0].
 	for (int i = 0; i < 4; i++)
 	{
-		swapModeTable[i][0]=swapColors[bpmem.tevksel[i*2].swap1];
-		swapModeTable[i][1]=swapColors[bpmem.tevksel[i*2].swap2];
-		swapModeTable[i][2]=swapColors[bpmem.tevksel[i*2+1].swap1];
-		swapModeTable[i][3]=swapColors[bpmem.tevksel[i*2+1].swap2];
-		swapModeTable[i][4]=0;
+		swapModeTable[i][0] = swapColors[bpmem.tevksel[i*2].swap1];
+		swapModeTable[i][1] = swapColors[bpmem.tevksel[i*2].swap2];
+		swapModeTable[i][2] = swapColors[bpmem.tevksel[i*2+1].swap1];
+		swapModeTable[i][3] = swapColors[bpmem.tevksel[i*2+1].swap2];
+		swapModeTable[i][4] = 0;
 	}
 }
 
@@ -336,9 +335,11 @@ float3 comp16 = float3(1,255,0), comp24 = float3(1,255,255*255);\n\
 
 	WriteAlphaTest(p);
 	
+	/* see GL shader generator - this is Donko's hack
 	if (bpmem.dstalpha.enable)
 		WRITE(p,"  return float4(prev.rgb,constalpha.x);\n");
 	else
+	*/
 		WRITE(p,"  return prev;\n");
 
 	WRITE(p,"}\n\0");
@@ -348,8 +349,8 @@ float3 comp16 = float3(1,255,0), comp24 = float3(1,255,255*255);\n\
 
 void WriteStage(char *&p, int n)
 {
-	char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
-	char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
+	const char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
+	const char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
 
 	int texfun = xfregs.texcoords[n].texmtxinfo.projection;
 

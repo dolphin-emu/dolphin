@@ -23,9 +23,10 @@
 #include "VertexShader.h"
 
 // This is the tricky one to get rid off.
-#include "VertexLoader.h"
+// #include "VertexLoader.h"
 
 static char text[16384];
+
 #define WRITE p+=sprintf
 
 #define LIGHTS_POS ""
@@ -34,6 +35,7 @@ char *GenerateLightShader(char* p, int index, const LitChannel& chan, const char
 
 char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
 {
+	text[sizeof(text) - 1] = 0x7C;  // canary
     DVSTARTPROFILE();
 
     _assert_( bpmem.genMode.numtexgens == xfregs.numTexGens);
@@ -405,6 +407,8 @@ char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
 
     WRITE(p, "return o;\n}\n");
 
+	if (text[sizeof(text) - 1] != 0x7C)
+		PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");
     return text;
 }
 
@@ -415,7 +419,7 @@ char* GenerateLightShader(char* p, int index, const LitChannel& chan, const char
     if (coloralpha == 1 ) swizzle = "xyz";
     else if (coloralpha == 2 ) swizzle = "w";
 
-    if (!(chan.attnfunc&1)) {
+    if (!(chan.attnfunc & 1)) {
         // atten disabled
         switch (chan.diffusefunc) {
             case LIGHTDIF_NONE:

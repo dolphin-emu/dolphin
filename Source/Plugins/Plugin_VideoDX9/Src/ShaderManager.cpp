@@ -118,7 +118,7 @@ void PShaderCache::Cleanup()
 	PSCache::iterator iter;
 	iter = pshaders.begin();
 
-	while(iter != pshaders.end())
+	while (iter != pshaders.end())
 	{
 		PSCacheEntry &entry = iter->second;
 		if (entry.frameCount < frameCount-30)
@@ -128,7 +128,7 @@ void PShaderCache::Cleanup()
 		}
 		else
 		{
-		  iter++;
+			iter++;
 		}
 	}
 	SETSTAT(stats.numPixelShadersAlive, (int)pshaders.size());
@@ -145,7 +145,7 @@ void VShaderCache::Init()
 void VShaderCache::Shutdown()
 {
 	VSCache::iterator iter = vshaders.begin();
-	for (;iter!=vshaders.end();iter++)
+	for (; iter != vshaders.end(); iter++)
 		iter->second.Destroy();
 	vshaders.clear();
 }
@@ -157,7 +157,7 @@ void VShaderCache::SetShader()
 	if (D3D::GetShaderVersion() < 2)
 		return; // we are screwed
 
-	if(shader) {
+	if (shader) {
 		//D3D::dev->SetVertexShader(shader);
 		return;
 	}

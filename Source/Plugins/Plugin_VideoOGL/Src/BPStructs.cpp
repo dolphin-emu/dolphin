@@ -65,8 +65,9 @@ void BPInit()
     bpmem.bpMask = 0xFFFFFF;
 }
 
-
-// Called att the end of every: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg
+// Called at the end of every: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg
+// TODO - turn into function table. The (future) DL jit can then call the functions directly,
+// getting rid of dynamic dispatch.
 void BPWritten(int addr, int changes, int newval)
 {
     //static int count = 0;
@@ -448,7 +449,7 @@ void BPWritten(int addr, int changes, int newval)
                 // EFB to XFB
 				if(g_Config.bUseXFB)
 				{
-					XFB_Write(Memory_GetPtr(bpmem.copyTexDest<<5), multirc, (bpmem.copyMipMapStrideChannels << 4), bpmem.copyTexSrcWH.y + 1, bpmem.dispcopyyscale/256.0f);
+					XFB_Write(Memory_GetPtr(bpmem.copyTexDest<<5), multirc, (bpmem.copyMipMapStrideChannels << 4), bpmem.copyTexSrcWH.y + 1, bpmem.dispcopyyscale / 256.0f);
 				}
 				else
 				{

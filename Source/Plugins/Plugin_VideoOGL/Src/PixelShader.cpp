@@ -35,10 +35,10 @@
 //   output is given by .outreg
 //   tevtemp is set according to swapmodetables and 
 
-void WriteStage(char *&p, int n, u32 texture_mask);
-void WrapNonPow2Tex(char* &p, const char* var, int texmap, u32 texture_mask);
-void WriteAlphaCompare(char *&p, int num, int comp);
-bool WriteAlphaTest(char *&p);
+static void WriteStage(char *&p, int n, u32 texture_mask);
+static void WrapNonPow2Tex(char* &p, const char* var, int texmap, u32 texture_mask);
+static void WriteAlphaCompare(char *&p, int num, int comp);
+static bool WriteAlphaTest(char *&p);
 
 const float epsilon8bit = 1.0f / 255.0f;
 
@@ -257,23 +257,25 @@ static const char* tevIndFmtScale[]   = {"255.0f", "31.0f", "15.0f", "8.0f" };
 
 static const char *swapColors = "rgba";
 static char swapModeTable[4][5];
+
 static char text[16384];
 
-void BuildSwapModeTable()
+static void BuildSwapModeTable()
 {
     //bpmem.tevregs[0].
     for (int i = 0; i < 4; i++)
     {
-        swapModeTable[i][0]=swapColors[bpmem.tevksel[i*2].swap1];
-        swapModeTable[i][1]=swapColors[bpmem.tevksel[i*2].swap2];
-        swapModeTable[i][2]=swapColors[bpmem.tevksel[i*2+1].swap1];
-        swapModeTable[i][3]=swapColors[bpmem.tevksel[i*2+1].swap2];
-        swapModeTable[i][4]=0;
+        swapModeTable[i][0] = swapColors[bpmem.tevksel[i*2].swap1];
+        swapModeTable[i][1] = swapColors[bpmem.tevksel[i*2].swap2];
+        swapModeTable[i][2] = swapColors[bpmem.tevksel[i*2+1].swap1];
+        swapModeTable[i][3] = swapColors[bpmem.tevksel[i*2+1].swap2];
+        swapModeTable[i][4] = 0;
     }
 }
 
 char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRenderZToCol0)
 {
+	text[sizeof(text) - 1] = 0x7C;  // canary
     DVSTARTPROFILE();
 
     BuildSwapModeTable();
@@ -283,7 +285,7 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
     char *p = text;
     WRITE(p, "//Pixel Shader for TEV stages\n");
     WRITE(p, "//%i TEV stages, %i texgens, %i IND stages\n",
-        numStages,numTexgen,bpmem.genMode.numindstages);
+		numStages, numTexgen, bpmem.genMode.numindstages);
 
     bool bRenderZ = has_zbuffer_target && bpmem.zmode.updateenable;
     bool bOutputZ = bpmem.ztex2.op != ZTEXTURE_DISABLE;
@@ -305,7 +307,7 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
         }
     }
 
-    // samplers
+    // Declare samplers
     if (texture_mask) {
         WRITE(p, "uniform samplerRECT ");
         bool bfirst = true;
@@ -455,11 +457,12 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
         }
     }
     WRITE(p, "}\n");
-
+	if (text[sizeof(text) - 1] != 0x7C)
+		PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
     return text;
 }
 
-void WriteStage(char *&p, int n, u32 texture_mask)
+static void WriteStage(char *&p, int n, u32 texture_mask)
 {
     char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
     char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
@@ -775,7 +778,7 @@ void WrapNonPow2Tex(char* &p, const char* var, int texmap, u32 texture_mask)
     }
 }
 
-void WriteAlphaCompare(char *&p, int num, int comp)
+static void WriteAlphaCompare(char *&p, int num, int comp)
 {
     switch(comp) {
     case ALPHACMP_ALWAYS:  WRITE(p, "(false)");	break;
@@ -789,7 +792,7 @@ void WriteAlphaCompare(char *&p, int num, int comp)
     }
 }
 
-bool WriteAlphaTest(char *&p)
+static bool WriteAlphaTest(char *&p)
 {
     u32 op = bpmem.alphaFunc.logic;
     u32 comp[2] = {bpmem.alphaFunc.comp0,bpmem.alphaFunc.comp1};
