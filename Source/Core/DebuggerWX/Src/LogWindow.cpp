@@ -224,16 +224,13 @@ void CLogWindow::UpdateChecks()
 
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 	{
-		for (int j = 0; j <= LogManager::VERBOSITY_LEVELS; j++)
-		{
-			bool Enabled = false;
-			ini.Get("LogManager", LogManager::m_Log[i + j*100]->m_szShortName, &Enabled, false);
+		bool Enabled = false;
+		ini.Get("LogManager", LogManager::m_Log[i + v*100]->m_szShortName, &Enabled, false);
 
-			m_checks->Check(i, Enabled);
+		m_checks->Check(i, Enabled);
 
-			LogManager::m_Log[i + j*100]->m_bEnable = Enabled;
-			LogManager::m_Log[i + j*100]->m_bShowInLog = Enabled;
-		}
+		LogManager::m_Log[i + v*100]->m_bEnable = Enabled;
+		LogManager::m_Log[i + v*100]->m_bShowInLog = Enabled;
 	}
 
 	m_bCheckDirty = true;
