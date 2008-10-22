@@ -43,7 +43,8 @@ struct wm_leds {
 struct wm_data_reporting {
 	u8 rumble : 1;
 	u8 continuous : 1;
-	u8 : 6;
+	u8 all_the_time : 1;
+	u8 : 5;
 	u8 mode;
 };
 
@@ -138,7 +139,6 @@ struct wm_ir_extended {
 #define WM_REPORT_CORE 0x30
 struct wm_report_core {
 	wm_core c;
-	wm_accel a;
 };
 
 #define WM_REPORT_CORE_ACCEL 0x31

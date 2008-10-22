@@ -278,10 +278,11 @@ extern "C" void Wiimote_Update() {
 	switch(g_ReportingMode) {
 	case 0:
 		break;
-	case WM_REPORT_CORE:			SendReportCore(g_ReportingChannel);			break;
+	case WM_REPORT_CORE:			SendReportCoreAccel(g_ReportingChannel);			break;
 	case WM_REPORT_CORE_ACCEL:		SendReportCoreAccel(g_ReportingChannel);	break;
 	case WM_REPORT_CORE_ACCEL_IR12: SendReportCoreAccelIr12(g_ReportingChannel);break;
 	}
+	// g_ReportingMode = 0;
 }
 
 extern "C" unsigned int Wiimote_GetAttachedControllers() {
@@ -332,7 +333,9 @@ void WmLeds(u16 _channelID, wm_leds* leds) {
 
 void WmDataReporting(u16 _channelID, wm_data_reporting* dr) {
 	LOG(WIIMOTE, " Set Data reporting mode");
+	LOG(WIIMOTE, "  Rumble: %x", dr->rumble);
 	LOG(WIIMOTE, "  Continuous: %x", dr->continuous);
+	LOG(WIIMOTE, "  All The Time: %x (not only on data change)", dr->all_the_time);
 	LOG(WIIMOTE, "  Rumble: %x", dr->rumble);
 	LOG(WIIMOTE, "  Mode: 0x%02x", dr->mode);
 
@@ -348,6 +351,15 @@ void WmDataReporting(u16 _channelID, wm_data_reporting* dr) {
 	}
 }
 
+
+void FillReportInfo(wm_report_core& _reportCore)
+{
+	static bool bb = true;
+	bb = !bb;
+	_reportCore.c.a = bb ? 1 : 0;
+}
+
+
 void SendReportCore(u16 _channelID) {
 	u8 DataFrame[1024];
 	u32 Offset = WriteWmReport(_channelID, DataFrame, WM_REPORT_CORE);
@@ -356,7 +368,7 @@ void SendReportCore(u16 _channelID) {
 	Offset += sizeof(wm_report_core);
 	memset(pReport, 0, sizeof(wm_report_core));
 
-	pReport->c.a = 1;
+	FillReportInfo(*pReport);
 
 	LOG(WIIMOTE, "  SendReportCore()");
 

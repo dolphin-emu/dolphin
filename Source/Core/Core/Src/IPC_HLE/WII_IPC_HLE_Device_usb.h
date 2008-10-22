@@ -161,6 +161,7 @@ private:
 	bool SendEventNumberOfCompletedPackets(u16 _connectionHandle, u16 _count);
 	bool SendEventAuthenticationCompleted(u16 _connectionHandle);	
 	bool SendEventModeChange(u16 _connectionHandle, u8 _mode, u16 _value);
+	bool SendEventDisconnect(u16 _connectionHandle, u8 _Reason);
 
 	// Execute HCI Message
 	void ExecuteHCICommandMessage(const SHCICommandMessage& _rCtrlMessage);
@@ -178,6 +179,7 @@ private:
 	void CommandReadRemoteFeatures(u8* _Input);
 	void CommandAuthenticationRequested(u8* _Input);
 	void CommandInquiry(u8* _Input);
+	void CommandDisconnect(u8* _Input);
 
 	// OGF 0x02	Link policy commands and return parameters
 	void CommandWriteLinkPolicy(u8* _Input);

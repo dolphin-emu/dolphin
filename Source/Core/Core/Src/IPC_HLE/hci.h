@@ -2426,14 +2426,14 @@ struct SHCIEventInquiryComplete
 {
     u8 EventType;
 	u8 PayloadLength;
-    u8 status;
+    u8 Status;
 };
 
 struct SHCIEventReadClockOffsetComplete
 {
     u8 EventType;
     u8 PayloadLength;
-    u8 status;
+    u8 Status;
     u16 ConnectionHandle;
     u16 ClockOffset;
 };
@@ -2442,7 +2442,7 @@ struct SHCIEventReadRemoteVerInfo
 {
     u8 EventType;
     u8 PayloadLength;
-    u8 status;
+    u8 Status;
     u16 ConnectionHandle;
     u8	lmp_version;
     u16	manufacturer;
@@ -2453,7 +2453,7 @@ struct SHCIEventReadRemoteFeatures
 {
     u8 EventType;
     u8 PayloadLength;
-    u8 status;
+    u8 Status;
     u16 ConnectionHandle;
     u8 features[HCI_FEATURES_SIZE];
 };
@@ -2509,7 +2509,7 @@ struct SHCIEventAuthenticationCompleted
 {
 	u8 EventType;
 	u8 PayloadLength;
-	u8 value;
+	u8 Status;
 	u16 Connection_Handle;
 };
 
@@ -2524,6 +2524,17 @@ struct SHCIEventModeChange
 	u16 Value;
 
 };
+
+struct SHCIEventDisconnectCompleted
+{
+	u8 EventType;
+	u8 PayloadLength;
+	u8 Status;
+	u16 Connection_Handle;
+	u8 Reason;
+};
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -69,6 +69,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 {	
 	// wpadsampled.elf - patch so the USB_LOG will print somehting 
 	// even it it wasn't very useful yet...
+	Memory::Write_U8(1, 0x80151488); // DebugLog
 	// Memory::Write_U8(1, 0x801514A8); // USB_LOG
 	// Memory::Write_U8(1, 0x801514D8); // WUD_DEBUGPrint
 	// Memory::Write_U8(1, 0x80148E09); // HID LOG
@@ -398,7 +399,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventInquiryComplete()
 	SHCIEventInquiryComplete* pInquiryComplete = (SHCIEventInquiryComplete*)Event.m_buffer;    
 	pInquiryComplete->EventType = 0x01;
 	pInquiryComplete->PayloadLength = sizeof(SHCIEventInquiryComplete) - 2; 
-	pInquiryComplete->status = 0x00;
+	pInquiryComplete->Status = 0x00;
 
 	AddEventToQueue(Event);
 
@@ -574,7 +575,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventReadClockOffsetComplete(u16 _
 	SHCIEventReadClockOffsetComplete* pReadClockOffsetComplete = (SHCIEventReadClockOffsetComplete*)Event.m_buffer;
 	pReadClockOffsetComplete->EventType = 0x1C;
 	pReadClockOffsetComplete->PayloadLength = sizeof(SHCIEventReadClockOffsetComplete) - 2; 
-	pReadClockOffsetComplete->status = 0x00;
+	pReadClockOffsetComplete->Status = 0x00;
 	pReadClockOffsetComplete->ConnectionHandle = pWiiMote->GetConnectionHandle();
 	pReadClockOffsetComplete->ClockOffset = 0x3818;
 
@@ -602,7 +603,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventReadRemoteVerInfo(u16 _connec
 	SHCIEventReadRemoteVerInfo* pReadRemoteVerInfo = (SHCIEventReadRemoteVerInfo*)Event.m_buffer;    
 	pReadRemoteVerInfo->EventType = 0x0C;
 	pReadRemoteVerInfo->PayloadLength = sizeof(SHCIEventReadRemoteVerInfo) - 2; 
-	pReadRemoteVerInfo->status = 0x00;
+	pReadRemoteVerInfo->Status = 0x00;
 	pReadRemoteVerInfo->ConnectionHandle = pWiiMote->GetConnectionHandle();
 	pReadRemoteVerInfo->lmp_version = pWiiMote->GetLMPVersion();
 	pReadRemoteVerInfo->manufacturer = pWiiMote->GetManufactorID();
@@ -634,7 +635,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventReadRemoteFeatures(u16 _conne
 	SHCIEventReadRemoteFeatures* pReadRemoteFeatures = (SHCIEventReadRemoteFeatures*)Event.m_buffer;
 	pReadRemoteFeatures->EventType = 0x0C;
 	pReadRemoteFeatures->PayloadLength = sizeof(SHCIEventReadRemoteFeatures) - 2; 
-	pReadRemoteFeatures->status = 0x00;
+	pReadRemoteFeatures->Status = 0x00;
 	pReadRemoteFeatures->ConnectionHandle = pWiiMote->GetConnectionHandle();
 	pReadRemoteFeatures->features[0] = pWiiMote->GetFeatures()[0];
 	pReadRemoteFeatures->features[1] = pWiiMote->GetFeatures()[1];
@@ -700,7 +701,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventAuthenticationCompleted(u16 _
 	SHCIEventAuthenticationCompleted* pEventAuthenticationCompleted = (SHCIEventAuthenticationCompleted*)Event.m_buffer;
 	pEventAuthenticationCompleted->EventType = 0x06;
 	pEventAuthenticationCompleted->PayloadLength = sizeof(SHCIEventAuthenticationCompleted) - 2; 
-	pEventAuthenticationCompleted->value = 0;
+	pEventAuthenticationCompleted->Status = 0;
 	pEventAuthenticationCompleted->Connection_Handle = _connectionHandle;
 
 	AddEventToQueue(Event);
@@ -741,6 +742,36 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventModeChange(u16 _connectionHan
 	return true;
 }
 
+bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventDisconnect(u16 _connectionHandle, u8 _Reason)
+{
+	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_connectionHandle);
+	if (pWiiMote == NULL)
+	{
+		PanicAlert("SendEventDisconnect: Cant find WiiMote by connection handle %02x", _connectionHandle);
+		return false;
+	}
+
+	SQueuedEvent Event(sizeof(SHCIEventDisconnectCompleted), _connectionHandle);
+
+	SHCIEventDisconnectCompleted* pDisconnect = (SHCIEventDisconnectCompleted*)Event.m_buffer;
+	pDisconnect->EventType = 0x06;
+	pDisconnect->PayloadLength = sizeof(SHCIEventDisconnectCompleted) - 2; 
+	pDisconnect->Status = 0;
+	pDisconnect->Connection_Handle = _connectionHandle;
+	pDisconnect->Reason = _Reason;
+
+	AddEventToQueue(Event);
+
+	// Log
+	LOG(WIIMOTE, "Event: SendEventDisconnect");
+	LOG(WIIMOTE, "  Connection_Handle: 0x%04x", pDisconnect->Connection_Handle);
+	LOG(WIIMOTE, "  Reason: 0x%02x", pDisconnect->Reason);
+
+	return true;
+}
+
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -756,7 +787,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 	u8* pInput = Memory::GetPointer(_rHCICommandMessage.m_PayLoadAddr + 3);
 	SCommandMessage* pMsg = (SCommandMessage*)Memory::GetPointer(_rHCICommandMessage.m_PayLoadAddr);
 
-	// LOG(WIIMOTE, "ExecuteHCICommandMessage(0x%04x)", pMsg->Opcode);
+	LOG(WIIMOTE, "****************************** ExecuteHCICommandMessage(0x%04x)", pMsg->Opcode);
 
 	switch(pMsg->Opcode)
 	{
@@ -881,7 +912,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 		break;
 
 	case HCI_CMD_DISCONNECT:
-		PanicAlert("HCI_CMD_DISCONNECT is not implemented");
+		CommandDisconnect(pInput);
 		break;
 		// 
 		// --- default ---
@@ -1261,9 +1292,13 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandInquiry(u8* _Input)
 	LOG(WIIMOTE, "  num_responses: %i (N x 1.28) sec", pInquiry->num_responses);       
 
 	SendEventCommandStatus(HCI_CMD_INQUIRY);
-	SendEventInquiryResponse();
 
-	SendEventInquiryComplete();
+	if (g_GlobalHandle == 0)
+	{
+		SendEventInquiryResponse();
+	}
+/*
+	SendEventInquiryComplete(); */
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryScanType(u8* _Input)
@@ -1487,6 +1522,23 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandSniffMode(u8* _Input)
 	SendEventCommandStatus(HCI_CMD_SNIFF_MODE);
 	SendEventModeChange(pSniffMode->con_handle, 0x02, pSniffMode->max_interval);  // sniff mode
 }
+
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandDisconnect(u8* _Input)
+{
+	// command parameters
+	hci_discon_cp* pDiscon = (hci_discon_cp*)_Input;
+
+	LOG(WIIMOTE, "Command: HCI_CMD_DISCONNECT");
+	LOG(WIIMOTE, "Input:");
+	LOG(WIIMOTE, "  ConnectionHandle: 0x%04x", pDiscon->con_handle);
+	LOG(WIIMOTE, "  Reason: 0x%02x", pDiscon->reason);
+
+	SendEventCommandStatus(HCI_CMD_DISCONNECT);
+	SendEventDisconnect(pDiscon->con_handle, pDiscon->reason);
+}
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //
