@@ -24,7 +24,6 @@
 // and hope that the vertex format doesn't change, though, if you do it just when they are 
 // called. The reason is that the vertex format affects the sizes of the vertices.
 
-
 #include "D3DBase.h"
 
 #include "Common.h"
@@ -35,18 +34,12 @@
 #include "OpcodeDecoding.h"
 #include "TextureCache.h"
 #include "ShaderManager.h"
-#include "DecodedVArray.h"
 
 #include "BPStructs.h"
 #include "XFStructs.h"
 #include "Utils.h"
-#include "main.h"
 #include "Fifo.h"
 #include "DataReader.h"
-
-#include "DLCompiler.h"
-
-#define CMDBUFFER_SIZE 1024*1024
 
 DecodedVArray tempvarray;
 u8 *g_pVideoData = 0;
@@ -54,20 +47,12 @@ u8 *g_pVideoData = 0;
 extern u8* FAKE_GetFifoStartPtr();
 extern u8* FAKE_GetFifoEndPtr();
 
-void Decode();
+static void Decode();
 
-template <class T>
-void Xchg(T& a, T&b)
-{
-	T c = a;
-	a = b;
-	b = c;
-}
-
-void ExecuteDisplayList(u32 address, u32 size)
+static void ExecuteDisplayList(u32 address, u32 size)
 {
 	u8* old_pVideoData = g_pVideoData;
-
+	
 	u8* startAddress = Memory_GetPtr(address);
 	g_pVideoData = startAddress;
 
@@ -88,7 +73,7 @@ void ExecuteDisplayList(u32 address, u32 size)
 	g_pVideoData = old_pVideoData;
 }
 
-bool FifoCommandRunnable(void)
+bool FifoCommandRunnable()
 {
 	u32 iBufferSize = (u32)(FAKE_GetFifoEndPtr()-g_pVideoData);
 	if (iBufferSize == 0)
@@ -224,15 +209,15 @@ bool FifoCommandRunnable(void)
 	return true;
 }
 
-void Decode(void)
+static void Decode(void)
 {
     int Cmd = DataReadU8();
-	switch(Cmd)
+	switch (Cmd)
 	{
 	case GX_NOP:
 		break;
 
-	case GX_LOAD_CP_REG: //0x08
+	case GX_LOAD_CP_REG:
 		{
 			u32 SubCmd = DataReadU8();
 			u32 Value = DataReadU32();

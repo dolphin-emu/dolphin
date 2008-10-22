@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Globals.h"
+#include "Config.h"
 #include "VertexLoader.h"
 #include "VertexManager.h"
 #include "VertexLoader_Normal.h"

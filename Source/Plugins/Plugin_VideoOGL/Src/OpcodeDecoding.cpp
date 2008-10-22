@@ -27,25 +27,25 @@
 #include "Globals.h"
 #include "Profiler.h"
 #include "OpcodeDecoding.h"
+
 #include "VertexLoader.h"
 #include "VertexManager.h"
 #include "VertexShaderManager.h"
+
 #include "Statistics.h"
 
 #include "BPStructs.h"
 #include "Fifo.h"
 #include "DataReader.h"
 
-#define CMDBUFFER_SIZE 1024*1024
-
 u8* g_pVideoData = 0;
 
 extern u8* FAKE_GetFifoStartPtr();
 extern u8* FAKE_GetFifoEndPtr();
 
-void Decode();
+static void Decode();
 
-void ExecuteDisplayList(u32 address, u32 size)
+static void ExecuteDisplayList(u32 address, u32 size)
 {
 	u8* old_pVideoData = g_pVideoData;
 
@@ -69,7 +69,7 @@ void ExecuteDisplayList(u32 address, u32 size)
 	g_pVideoData = old_pVideoData;
 }
 
-bool FifoCommandRunnable(void)
+bool FifoCommandRunnable()
 {
 	u32 iBufferSize = (u32)(FAKE_GetFifoEndPtr() - g_pVideoData);
     if (iBufferSize == 0)
@@ -198,7 +198,7 @@ bool FifoCommandRunnable(void)
     return true;
 }
 
-void Decode(void)
+static void Decode()
 {
     int Cmd = DataReadU8();
     switch(Cmd)
@@ -230,16 +230,16 @@ void Decode(void)
         break;
 
     case GX_LOAD_INDX_A: //used for position matrices
-        VertexShaderMngr::LoadIndexedXF(DataReadU32(),0xC);
+        VertexShaderMngr::LoadIndexedXF(DataReadU32(), 0xC);
         break;
     case GX_LOAD_INDX_B: //used for normal matrices
-        VertexShaderMngr::LoadIndexedXF(DataReadU32(),0xD);
+        VertexShaderMngr::LoadIndexedXF(DataReadU32(), 0xD);
         break;
     case GX_LOAD_INDX_C: //used for postmatrices
-        VertexShaderMngr::LoadIndexedXF(DataReadU32(),0xE);
+        VertexShaderMngr::LoadIndexedXF(DataReadU32(), 0xE);
         break;
     case GX_LOAD_INDX_D: //used for lights
-        VertexShaderMngr::LoadIndexedXF(DataReadU32(),0xF);
+        VertexShaderMngr::LoadIndexedXF(DataReadU32(), 0xF);
         break;
 
     case GX_CMD_CALL_DL:
@@ -268,7 +268,7 @@ void Decode(void)
 
     // draw primitives 
     default:
-        if (Cmd&0x80)
+        if (Cmd & 0x80)
         {
             // load vertices (use computed vertex size from FifoCommandRunnable above)
 			u16 numVertices = DataReadU16();

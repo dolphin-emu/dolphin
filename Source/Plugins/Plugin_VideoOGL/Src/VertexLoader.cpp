@@ -21,6 +21,7 @@
 #include <assert.h>
 
 #include "Common.h"
+#include "Config.h"
 #include "ImageWrite.h"
 #include "x64Emitter.h"
 #include "ABI.h"

@@ -419,7 +419,7 @@ void BPWritten(int addr, int changes, int newval)
 
     case 0x52:
         {
-            DVProfileFunc _pf("LoadBPReg:swap");
+			DVSTARTSUBPROFILE("LoadBPReg:swap");
             VertexManager::Flush();
 
             ((u32*)&bpmem)[addr] = newval;
@@ -524,7 +524,7 @@ void BPWritten(int addr, int changes, int newval)
 
     case 0x65: //GXLoadTlut
         {
-            DVProfileFunc _pf("LoadBPReg:GXLoadTlut");
+            DVSTARTSUBPROFILE("LoadBPReg:GXLoadTlut");
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
 

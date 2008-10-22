@@ -48,6 +48,7 @@ void DVProfClear();						// clears all the profilers
 #endif
 
 #define DVSTARTPROFILE() DVProfileFunc _pf(__PRETTY_FUNCTION__);
+#define DVSTARTSUBPROFILE(name) DVProfileFunc _pf(name);
 
 class DVProfileFunc
 {
@@ -61,6 +62,7 @@ public:
 #else
 
 #define DVSTARTPROFILE()
+#define DVSTARTSUBPROFILE(name)
 
 class DVProfileFunc
 {

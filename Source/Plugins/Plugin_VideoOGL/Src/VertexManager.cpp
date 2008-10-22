@@ -125,8 +125,8 @@ void VertexManager::Flush()
 	_assert_(s_pCurBufferPointer != s_pBaseBufferPointer);
 
 #ifdef _DEBUG
-	PRIM_LOG("frame%d:\ncomps=0x%x, texgen=%d, numchan=%d, dualtex=%d, ztex=%d, proj=%d, cole=%d, alpe=%d, ze=%d\n", g_Config.iSaveTargetId, s_prevcomponents, xfregs.numTexGens,
-		xfregs.nNumChans, (int)xfregs.bEnableDualTexTransform, bpmem.ztex2.op, VertexShaderMngr::rawProjection[6]==0,
+	PRIM_LOG("frame%d:\ncomps=0x%x, texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d\n", g_Config.iSaveTargetId, s_prevcomponents, xfregs.numTexGens,
+		xfregs.nNumChans, (int)xfregs.bEnableDualTexTransform, bpmem.ztex2.op,
 		bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate, bpmem.zmode.updateenable);
 	for (int i = 0; i < xfregs.nNumChans; ++i) {
 		LitChannel* ch = &xfregs.colChans[i].color;
@@ -163,7 +163,7 @@ void VertexManager::Flush()
 
 	// set the textures
 	{
-		DVProfileFunc _pf("VertexManager::Flush:textures");
+		DVSTARTPROFILE("VertexManager::Flush:textures");
 
 		u32 usedtextures = 0;
 		for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i) {
@@ -275,7 +275,7 @@ void VertexManager::Flush()
 		std::ofstream fps(strfile);
 		fps << ps->strprog.c_str();
 		sprintf(strfile, "frames/vs%.3d.txt", g_Config.iSaveTargetId);
-		ofstream fvs(strfile);
+		std::ofstream fvs(strfile);
 		fvs << vs->strprog.c_str();
 	}
 

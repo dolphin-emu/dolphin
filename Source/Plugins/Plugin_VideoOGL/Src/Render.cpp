@@ -688,7 +688,7 @@ void Renderer::Swap(const TRectangle& rc)
 {
     OpenGL_Update(); // just updates the render window position and the backbuffer size
 
-    DVProfileFunc _pf("Renderer::Swap");
+    DVSTARTPROFILE();
 
     Renderer::SetRenderMode(Renderer::RM_Normal);
 
