@@ -69,20 +69,25 @@ class CDebugger : public wxDialog
 		void NotifyUpdate();
 		void OnUpdate(wxCommandEvent& event);
 
-		void SaveFile(wxCommandEvent& event); // options
+		void SaveFile(wxCommandEvent& event);
 		void ShowHideConsole(wxCommandEvent& event);
 		void DoShowHideConsole();
-		void OnlyLooping(wxCommandEvent& event);
-
-
-		void ChangeFrequency(wxCommandEvent& event); // update frequency
+		void ChangeFrequency(wxCommandEvent& event);
 		void DoChangeFrequency();
 		void ChangePreset(wxCommandEvent& event);
 		void DoChangePreset();
 
-		void OnSettingsCheck(wxCommandEvent& event); // settings				
+		void SSBM(wxCommandEvent& event);
+		void SSBMremedy1(wxCommandEvent& event);
+		void SSBMremedy2(wxCommandEvent& event);
+		void BSDON(wxCommandEvent& event);		
+		void Sequenced(wxCommandEvent& event);
+		void Volume(wxCommandEvent& event);
+		void Reset(wxCommandEvent& event);	
+		void OnlyLooping(wxCommandEvent& event);		
 
-		CPBView* m_GPRListView;		
+		CPBView* m_GPRListView;
+		
 
 	private:
 
@@ -90,7 +95,7 @@ class CDebugger : public wxDialog
 		wxCheckBox *m_Check[9];
 		wxRadioButton *m_Radio[5];
 		wxRadioBox *m_RadioBox[3];
-		wxCheckListBox * m_settings;
+		wxStaticBox *m_Label[1];
 		wxPanel *m_Controller;
 
 		// WARNING: Make sure these are not also elsewhere, for example in resource.h.
@@ -101,7 +106,11 @@ class CDebugger : public wxDialog
 			IDC_CHECK2,
 			IDC_CHECK3,
 			IDC_CHECK4,
-			IDC_CHECKLIST1,
+			IDC_CHECK5,
+			IDC_CHECK6,
+			IDC_CHECK7,
+			IDC_CHECK8,
+			IDC_CHECK9,
 			IDC_RADIO0,
 			IDC_RADIO1,
 			IDC_RADIO2,

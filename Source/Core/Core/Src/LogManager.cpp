@@ -16,20 +16,18 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <stdio.h>
-#include <wx/datetime.h> // for the timestamps
 
 #include "Common.h"
 #include "StringUtil.h"
 #include "LogManager.h"
 #include "PowerPC/PowerPC.h"
-#include "PowerPC/SymbolDB.h" // for g_symbolDB
 #include "Debugger/Debugger_SymbolMap.h"
 
 
-LogManager::SMessage	(*LogManager::m_Messages)[MAX_MESSAGES];
-int						LogManager::m_nextMessages[LogManager::VERBOSITY_LEVELS + 1];
+LogManager::SMessage	*LogManager::m_Messages;
+int						LogManager::m_nextMessages = 0;
 
-CDebugger_Log*			LogManager::m_Log[LogTypes::NUMBER_OF_LOGS + (LogManager::VERBOSITY_LEVELS * 100)];
+CDebugger_Log*			LogManager::m_Log[LogTypes::NUMBER_OF_LOGS];
 int						LogManager::m_activeLog = LogTypes::MASTER_LOG;
 bool					LogManager::m_bDirty = true;
 bool					LogManager::m_bInitialized = false;
@@ -37,6 +35,9 @@ bool					LogManager::m_bInitialized = false;
 
 void __Log(int log, const char *format, ...)
 {
+	if (!LogManager::IsLogEnabled((LogTypes::LOG_TYPE)log))
+		return;
+
 	char* temp = (char*)alloca(strlen(format)+512);
 	va_list args;
 	va_start(args, format);
@@ -45,16 +46,15 @@ void __Log(int log, const char *format, ...)
 	LogManager::Log((LogTypes::LOG_TYPE)log, temp);
 }
 
-CDebugger_Log::CDebugger_Log(const char* _szShortName, const char* _szName, int a) :
-	m_bLogToFile(true), // write to file or not
-	m_bShowInLog(false),
-	m_bEnable(false),
+CDebugger_Log::CDebugger_Log(const char* _szShortName, const char* _szName) :
+	m_bLogToFile(true),
+	m_bShowInLog(true),
+	m_bEnable(true),
 	m_pFile(NULL)
 {
 	strcpy((char*)m_szName, _szName);
-	strcpy((char*)m_szShortName_, _szShortName);
-	sprintf((char*)m_szShortName, "%s%i", _szShortName, a);
-	sprintf((char*)m_szFilename, "Logs/%s%i.txt", _szName, a);
+	strcpy((char*)m_szShortName, _szShortName);
+	sprintf((char*)m_szFilename, "Logs/%s.txt", _szName);
 
 	unlink(m_szFilename);
 }
@@ -67,10 +67,6 @@ CDebugger_Log::~CDebugger_Log(void)
 		m_pFile = NULL;
 	}
 }
-
-// we may need to declare these
-CDebugger_LogSettings::CDebugger_LogSettings() {}
-CDebugger_LogSettings::~CDebugger_LogSettings(void) {}
 
 void CDebugger_Log::Init()
 {
@@ -89,49 +85,40 @@ void CDebugger_Log::Shutdown()
 
 void LogManager::Init()
 {
-	m_Messages = new SMessage[LogManager::VERBOSITY_LEVELS + 1][MAX_MESSAGES];
+	m_Messages = new SMessage[MAX_MESSAGES];
 	m_bDirty = true;
 
 	// create Logs
-	for(int i = 0; i <= LogManager::VERBOSITY_LEVELS; i++)
-	{
-		m_Log[LogTypes::MASTER_LOG + i*100]			= new CDebugger_Log("*",   "Master Log", i);
-		m_Log[LogTypes::BOOT + i*100]				= new CDebugger_Log("BOOT", "Boot", i);
-		m_Log[LogTypes::PIXELENGINE + i*100]		= new CDebugger_Log("PE",  "PixelEngine", i);
-		m_Log[LogTypes::COMMANDPROCESSOR + i*100]	= new CDebugger_Log("CP",  "CommandProc", i);
-		m_Log[LogTypes::VIDEOINTERFACE + i*100]		= new CDebugger_Log("VI",  "VideoInt", i);
-		m_Log[LogTypes::SERIALINTERFACE + i*100]	= new CDebugger_Log("SI",  "SerialInt", i);
-		m_Log[LogTypes::PERIPHERALINTERFACE + i*100]= new CDebugger_Log("PI",  "PeripheralInt", i);
-		m_Log[LogTypes::MEMMAP + i*100]				= new CDebugger_Log("MI",  "MI & memmap", i);
-		m_Log[LogTypes::STREAMINGINTERFACE + i*100] = new CDebugger_Log("Stream", "StreamingInt", i);
-		m_Log[LogTypes::DSPINTERFACE + i*100]		= new CDebugger_Log("DSP", "DSPInterface", i);
-		m_Log[LogTypes::DVDINTERFACE + i*100]		= new CDebugger_Log("DVD", "DVDInterface", i);
-		m_Log[LogTypes::GPFIFO + i*100]				= new CDebugger_Log("GP",  "GPFifo", i);
-		m_Log[LogTypes::EXPANSIONINTERFACE + i*100]	= new CDebugger_Log("EXI", "ExpansionInt", i);
-		m_Log[LogTypes::AUDIO_INTERFACE + i*100]	= new CDebugger_Log("AI", "AudioInt", i);
-		m_Log[LogTypes::GEKKO + i*100]				= new CDebugger_Log("GEKKO", "IBM CPU", i);
-		m_Log[LogTypes::HLE + i*100]				= new CDebugger_Log("HLE", "HLE", i);
-		m_Log[LogTypes::DSPHLE + i*100]			    = new CDebugger_Log("DSPHLE", "DSP HLE", i);
-		m_Log[LogTypes::VIDEO + i*100]			    = new CDebugger_Log("Video", "Video Plugin", i);
-		m_Log[LogTypes::AUDIO + i*100]			    = new CDebugger_Log("Audio", "Audio Plugin", i);
-		m_Log[LogTypes::DYNA_REC + i*100]			= new CDebugger_Log("DYNA", "Dynamic Recompiler", i);
-		m_Log[LogTypes::CONSOLE + i*100]			= new CDebugger_Log("CONSOLE", "Dolphin Console", i);
-		m_Log[LogTypes::OSREPORT + i*100]			= new CDebugger_Log("OSREPORT", "OSReport", i);
-		m_Log[LogTypes::WII_IOB + i*100]			= new CDebugger_Log("WII_IOB", "WII IO Bridge", i);
-		m_Log[LogTypes::WII_IPC + i*100]			= new CDebugger_Log("WII_IPC", "WII IPC", i);
-		m_Log[LogTypes::WII_IPC_HLE + i*100]		= new CDebugger_Log("WII_IPC_HLE", "WII IPC HLE", i);
-		m_Log[LogTypes::WIIMOTE + i*100]            = new CDebugger_Log("WIIMOTE", "WIIMOTE", i);
+	m_Log[LogTypes::MASTER_LOG]			= new CDebugger_Log("*",   "Master Log");
+	m_Log[LogTypes::BOOT]				= new CDebugger_Log("BOOT", "Boot");
+	m_Log[LogTypes::PIXELENGINE]		= new CDebugger_Log("PE",  "PixelEngine");
+	m_Log[LogTypes::COMMANDPROCESSOR]	= new CDebugger_Log("CP",  "CommandProc");
+	m_Log[LogTypes::VIDEOINTERFACE]		= new CDebugger_Log("VI",  "VideoInt");
+	m_Log[LogTypes::SERIALINTERFACE]	= new CDebugger_Log("SI",  "SerialInt");
+	m_Log[LogTypes::PERIPHERALINTERFACE]= new CDebugger_Log("PI",  "PeripheralInt");
+	m_Log[LogTypes::MEMMAP]				= new CDebugger_Log("MI",  "MI & memmap");
+	m_Log[LogTypes::STREAMINGINTERFACE] = new CDebugger_Log("Stream", "StreamingInt");
+	m_Log[LogTypes::DSPINTERFACE]		= new CDebugger_Log("DSP", "DSPInterface");
+	m_Log[LogTypes::DVDINTERFACE]		= new CDebugger_Log("DVD", "DVDInterface");
+	m_Log[LogTypes::GPFIFO]				= new CDebugger_Log("GP",  "GPFifo");
+	m_Log[LogTypes::EXPANSIONINTERFACE]	= new CDebugger_Log("EXI", "ExpansionInt.");
+	m_Log[LogTypes::AUDIO_INTERFACE]	= new CDebugger_Log("AI", "AudioInt.");
+	m_Log[LogTypes::GEKKO]				= new CDebugger_Log("GEKKO", "IBM CPU");
+	m_Log[LogTypes::HLE]				= new CDebugger_Log("HLE", "HLE");
+	m_Log[LogTypes::DSPHLE]			    = new CDebugger_Log("DSPHLE", "DSP HLE");
+	m_Log[LogTypes::VIDEO]			    = new CDebugger_Log("Video", "Video Plugin");
+	m_Log[LogTypes::AUDIO]			    = new CDebugger_Log("Audio", "Audio Plugin");
+	m_Log[LogTypes::DYNA_REC]			= new CDebugger_Log("DYNA", "Dynamic Recompiler");
+	m_Log[LogTypes::CONSOLE]			= new CDebugger_Log("CONSOLE", "Dolphin Console");
+	m_Log[LogTypes::OSREPORT]			= new CDebugger_Log("OSREPORT", "OSReport");
+	m_Log[LogTypes::WII_IOB]			= new CDebugger_Log("WII_IOB", "WII IO Bridge");
+	m_Log[LogTypes::WII_IPC]			= new CDebugger_Log("WII_IPC", "WII IPC");
+	m_Log[LogTypes::WII_IPC_HLE]		= new CDebugger_Log("WII_IPC_HLE", "WII IPC HLE");
+	m_Log[LogTypes::WIIMOTE]            = new CDebugger_Log("WIIMOTE", "WIIMOTE");
 
-		m_nextMessages[i] = 0; // initiate to zero
-	}
-
-	// create the files
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 	{
-		for (int j = 0; j <= LogManager::VERBOSITY_LEVELS; j++)
-		{
-			m_Log[j*100 + i]->Init();
-		}
+		m_Log[i]->Init();
 	}	
 	m_bInitialized = true;
 }
@@ -139,21 +126,15 @@ void LogManager::Init()
 
 void LogManager::Clear()
 {
-	for (int v = 0; v <= LogManager::VERBOSITY_LEVELS; v++)
+	for (int i = 0;i < MAX_MESSAGES;i++)
 	{
-		for (int i = 0; i < MAX_MESSAGES; i++)
-		{
-			strcpy(m_Messages[v][i].m_szMessage,"");
-			m_Messages[v][i].m_dwMsgLen = 0;
-			m_Messages[v][i].m_bInUse = false;
-		}
-		m_nextMessages[v] = 0;
+		strcpy(m_Messages[i].m_szMessage,"");
+		m_Messages[i].m_dwMsgLen = 0;
+		m_Messages[i].m_bInUse = false;
 	}
+	m_nextMessages = 0;
 }
 
-// __________________________________________________________________________________________________
-// Shutdown
-//
 void LogManager::Shutdown()
 {
 	m_bInitialized = false;
@@ -172,117 +153,68 @@ void LogManager::Shutdown()
 	delete [] m_Messages;
 }
 
+bool LogManager::IsLogEnabled(LogTypes::LOG_TYPE _type)
+{
+	if (_type >= LogTypes::NUMBER_OF_LOGS)
+	{
+		PanicAlert("Try to access unknown log (%i)", _type);
+		return false;
+	}
 
-// ==========================================================================================
-// The function that finally writes the log.
-// ---------------
-u32 lastPC;
-std::string lastSymbol;
+	if (m_Log[_type] == NULL || !m_Log[_type]->m_bEnable)
+		return false;
+
+	return true;
+}
+
 void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 {
-	if (m_LogSettings == NULL)
+	if (m_Log[_type] == NULL || !m_Log[_type]->m_bEnable)
 		return;
 
-	// declarations
-	int v; // verbosity level
-	int type; // the log type, CONSOLE etc.
-	char cvv[20];
-	std::string svv;
-
-	// get the current verbosity level and type
-	sprintf(cvv, "%03i", (int)_type);
-	svv = cvv;
-	v = atoi(svv.substr(0, 1).c_str());
-	type = atoi(svv.substr(1, 2).c_str());
-
-	// security checks
-	if (m_Log[_type] == NULL || !m_Log[_type]->m_bEnable || PC == 0
-		|| _type > (LogTypes::NUMBER_OF_LOGS + LogManager::VERBOSITY_LEVELS * 100)
-		|| _type < 0)
-		return;
-
-	// prepare message
 	char Msg[512];
 	va_list ap;
 	va_start(ap, _fmt);
 	vsprintf(Msg, _fmt, ap);
 	va_end(ap);
+	
+	SMessage& Message = m_Messages[m_nextMessages];
 
 	static u32 count = 0;
-	wxDateTime datetime = wxDateTime::UNow(); // get timestamp
 
 	char* Msg2 = (char*)alloca(strlen(_fmt)+512);
 
-	// Here's the old symbol request
-	//Debugger::FindSymbol(PC);
-	// const Debugger::Symbol& symbol = Debugger::GetSymbol(Index);
-	//symbol.GetName().c_str(),
-
-	// Warning: Getting the function name this often is very demanding on the CPU.
-	// I have limited it to the two lowest verbosity levels because of that. I've also
-	// added a simple caching function so that we don't search again if we get the same
-	// question again.
-	std::string symbol;
-	
-	if ((v == 0 || v == 1) && lastPC != PC && LogManager::m_LogSettings->bResolve)
-	{
-		symbol = g_symbolDB.GetDescription(PC);
-		lastSymbol = symbol;
-		lastPC = PC;
-	}
-	else if(lastPC == PC && LogManager::m_LogSettings->bResolve)
-	{
-		symbol = lastSymbol;
+	int Index = 0; //Debugger::FindSymbol(PC);
+	const char *eol = "\n";
+	if (Index > 0)
+	{ 
+		// const Debugger::Symbol& symbol = Debugger::GetSymbol(Index);
+		sprintf(Msg2, "%i: %x %s (%s, %08x ) : %s%s", 
+			++count, 
+			PowerPC::ppcState.DebugCount, 
+			m_Log[_type]->m_szShortName, 
+			"", //symbol.GetName().c_str(), 
+			PC, 
+			Msg, eol);
 	}
 	else
 	{
-		symbol = "---";
+		sprintf(Msg2, "%i: %x %s ( %08x ) : %s%s", ++count, PowerPC::ppcState.DebugCount, m_Log[_type]->m_szShortName, PC, Msg, eol);
 	}
 
-	int Index = 1;
-	const char *eol = "\n";
-	if (Index > 0)
-	{		
-		sprintf(Msg2, "%i %02i:%02i:%03i: %x %s (%s, %08x) : %s%s", 
-			++count,
-			datetime.GetMinute(), datetime.GetSecond(), datetime.GetMillisecond(),
-			PowerPC::ppcState.DebugCount, 
-			m_Log[_type]->m_szShortName_, // (CONSOLE etc)		
-			symbol.c_str(), PC, // current PC location (name, address)
-			Msg, eol);
-	}
+	Message.Set(_type, Msg2);
 
-	// ==========================================================================================
-	// Level 0 verbosity logs will be written to all verbosity levels. Given that logging is enabled
-	// for that level. Level 1 verbosity will only be written to level 1, 2, 3 and so on.
-	// ---------------
-	int id;
-	for (int i = LogManager::VERBOSITY_LEVELS; i >= v ; i--)
-	{
-		// prepare the right id
-		id = i*100 + type;
+	if (m_Log[_type]->m_pFile && m_Log[_type]->m_bLogToFile)
+		fprintf(m_Log[_type]->m_pFile, "%s", Msg2);
+	if (m_Log[LogTypes::MASTER_LOG] && m_Log[LogTypes::MASTER_LOG]->m_pFile && m_Log[_type]->m_bShowInLog)
+		fprintf(m_Log[LogTypes::MASTER_LOG]->m_pFile, "%s", Msg2);
 
-		// write to memory
-		m_Messages[i][m_nextMessages[i]].Set((LogTypes::LOG_TYPE)id, Msg2);
+	printf("%s", Msg2);
 
-		// ----------------------------------------------------------------------------------------
-		// write to file
-		// ---------------
-		if (m_Log[id]->m_pFile && m_Log[id]->m_bLogToFile)
-			fprintf(m_Log[id]->m_pFile, "%s", Msg2);
-		if (m_Log[i*100 + LogTypes::MASTER_LOG] && m_Log[i*100 +  LogTypes::MASTER_LOG]->m_pFile
-				&& LogManager::m_LogSettings->bWriteMaster)
-			fprintf(m_Log[i*100 +  LogTypes::MASTER_LOG]->m_pFile, "%s", Msg2);
-
-		printf("%s", Msg2); // write to console screen
-
-		// this limits the memory space used for the memory logs to MAX_MESSAGES rows
-		m_nextMessages[i]++;
-		if (m_nextMessages[i] >= MAX_MESSAGES)
-			m_nextMessages[i] = 0;		
-		// ---------------
-	}
-	m_bDirty = true; // tell LogWindow that the log has been updated
+	m_nextMessages++;
+	if (m_nextMessages >= MAX_MESSAGES)
+		m_nextMessages = 0;
+	m_bDirty = true;
 }
 
 bool IsLoggingActivated()

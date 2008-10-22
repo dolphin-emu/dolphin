@@ -39,19 +39,21 @@ extern bool gOnlyLooping;
 // =======================================================================================
 // Declare events
 BEGIN_EVENT_TABLE(CDebugger,wxDialog)	
-	EVT_CLOSE(CDebugger::OnClose) // on close event
-
-	EVT_BUTTON(ID_UPD,CDebugger::OnUpdate) // buttons
-
-	EVT_CHECKBOX(IDC_CHECK0,CDebugger::SaveFile) // options
+	EVT_CLOSE(CDebugger::OnClose)
+	EVT_BUTTON(ID_UPD,CDebugger::OnUpdate)
+	EVT_CHECKBOX(IDC_CHECK0,CDebugger::SaveFile)
 	EVT_CHECKBOX(IDC_CHECK2,CDebugger::ShowHideConsole)
-	EVT_CHECKBOX(IDC_CHECK3,CDebugger::OnlyLooping)		
 
-	EVT_RADIOBOX(IDC_RADIO1,CDebugger::ChangeFrequency) // update frequency
+	EVT_CHECKBOX(IDC_CHECK3,CDebugger::SSBM)
+	EVT_CHECKBOX(IDC_CHECK4,CDebugger::SSBMremedy1)
+	EVT_CHECKBOX(IDC_CHECK5,CDebugger::SSBMremedy2)
+	EVT_CHECKBOX(IDC_CHECK8,CDebugger::Sequenced)
+	EVT_CHECKBOX(IDC_CHECK9,CDebugger::Volume)
+	EVT_CHECKBOX(IDC_CHECK6,CDebugger::Reset)
+	EVT_CHECKBOX(IDC_CHECK7,CDebugger::OnlyLooping)
 
-	EVT_RADIOBOX(IDC_RADIO2,CDebugger::ChangePreset) // presets
-
-	EVT_CHECKLISTBOX(IDC_CHECKLIST1, CDebugger::OnSettingsCheck) // settings
+	EVT_RADIOBOX(IDC_RADIO1,CDebugger::ChangeFrequency)
+	EVT_RADIOBOX(IDC_RADIO2,CDebugger::ChangePreset)
 END_EVENT_TABLE()
 // =======================================================================================
 
@@ -138,17 +140,19 @@ SetTitle(wxT("Sound Debugging"));
 	wxStaticBoxSizer* sLeft;
 
 	// checkboxes and labels -----------------------------------------------------
-	wxStaticBoxSizer * m_checkSizer = new wxStaticBoxSizer (wxVERTICAL, this, wxT("Options"));
+	m_Label[0] = new wxStaticBox(this, IDG_LABEL1, wxT("Options"),
+		wxDefaultPosition, wxDefaultSize, 0);
+	wxStaticBoxSizer * m_checkSizer = new wxStaticBoxSizer (m_Label[0], wxVERTICAL);
 
 	// checkboxes
-	m_Check[0] = new wxCheckBox(this, IDC_CHECK1, wxT("Save to file"),
+	m_Check[0] = new wxCheckBox(this, IDC_CHECK0, wxT("Save to file"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[1] = new wxCheckBox(this, IDC_CHECK2, wxT("Show updated"),
+	m_Check[1] = new wxCheckBox(this, IDC_CHECK1, wxT("Show updated"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Check[1]->Enable(false);
-	m_Check[7] = new wxCheckBox(this, IDC_CHECK3, wxT("Only looping"),
+	m_Check[7] = new wxCheckBox(this, IDC_CHECK7, wxT("Only looping"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[2] = new wxCheckBox(this, IDC_CHECK4, wxT("Show console"),
+	m_Check[2] = new wxCheckBox(this, IDC_CHECK2, wxT("Show console"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	
     m_checkSizer->Add(m_Check[0], 0, 0, 5);
@@ -158,34 +162,38 @@ SetTitle(wxT("Sound Debugging"));
 	// ------------------------
 
 	// settings checkboxes -----------------------------------------------------
-	wxStaticBoxSizer * m_checkSizer2 = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Settings"));
-	m_settings = new wxCheckListBox(this, IDC_CHECKLIST1, wxDefaultPosition, wxDefaultSize,
-		0, NULL, wxNO_BORDER);
-	
-	m_settings->Append(wxT("SSBM fix"));
-	m_settings->Append(wxT("SSBM remedy 1"));
-	m_settings->Append(wxT("SSBM remedy 2"));
-	m_settings->Append(wxT("Sequenced"));
-	m_settings->Append(wxT("Volume delta"));
-	m_settings->Append(wxT("Reset all"));
-	
-	m_settings->Check(0, gSSBM);
-	m_settings->Check(1, gSSBMremedy1);
-	m_settings->Check(2, gSSBMremedy2);
-	m_settings->Check(3, gSequenced);
-	m_settings->Check(4, gVolume);
-	m_settings->Check(5, gReset);
+	m_Label[1] = new wxStaticBox(this, IDG_LABEL2, wxT("Settings"),
+		wxDefaultPosition, wxDefaultSize, 0);
+	wxStaticBoxSizer * m_checkSizer2 = new wxStaticBoxSizer (m_Label[1], wxVERTICAL);
 
-	// because the wxCheckListBox is a little underdeveloped we have to help it with this
-	// to bad there's no windows xp styles for the checkboxes
-	m_settings->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-	m_settings->SetMinSize(wxSize(m_settings->GetSize().GetWidth() - 40,
-		m_settings->GetCount() * 15));
-	for (int i = 0; i < m_settings->GetCount(); ++i)
-		m_settings->GetItem(i)->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-
-	m_checkSizer2->Add(m_settings, 0, 0, 0);
+	// checkboxes
+	m_Check[3] = new wxCheckBox(this, IDC_CHECK3, wxT("SSBM fix"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_Check[3]->SetValue(gSSBM);
+	m_Check[4] = new wxCheckBox(this, IDC_CHECK4, wxT("SSBM remedy 1"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_Check[4]->SetValue(gSSBMremedy1);
+	m_Check[5] = new wxCheckBox(this, IDC_CHECK5, wxT("SSBM remedy 2"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_Check[5]->SetValue(gSSBMremedy2);
+	m_Check[8] = new wxCheckBox(this, IDC_CHECK8, wxT("Sequenced"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_Check[8]->SetValue(gSequenced);
+	m_Check[9] = new wxCheckBox(this, IDC_CHECK9, wxT("Volume delta"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_Check[9]->SetValue(gVolume);
+	m_Check[6] = new wxCheckBox(this, IDC_CHECK6, wxT("Reset all"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_Check[6]->SetValue(gReset);
+	
+	m_checkSizer2->Add(m_Check[3], 0, 0, 5);
+	m_checkSizer2->Add(m_Check[4], 0, 0, 5);
+	m_checkSizer2->Add(m_Check[5], 0, 0, 5);
+	m_checkSizer2->Add(m_Check[8], 0, 0, 5);
+	m_checkSizer2->Add(m_Check[9], 0, 0, 5);
+	m_checkSizer2->Add(m_Check[6], 0, 0, 5);
 	// ------------------------
+
 
 	// radio boxes -----------------------------------------------------
 	int m_radioBoxNChoices[2];
@@ -224,27 +232,32 @@ SetTitle(wxT("Sound Debugging"));
 	sButtons2->AddStretchSpacer(1);
 	sButtons2->Add(m_RadioBox[2], 0, 0, 5);
 	sButtons2->AddStretchSpacer(1);
-	sButtons2->Add(m_checkSizer2, 0, 0, 5);
+	sButtons2->Add(m_checkSizer2, 0, 2, 5);
 	sButtons2->AddStretchSpacer(1);
 
 	// left buttons
 	wxBoxSizer* sButtons;
 	sButtons = new wxBoxSizer(wxVERTICAL);
 
-	sButtons->AddSpacer(5); // to set a minimum margin
+	sButtons->AddStretchSpacer(1);
 
 	sButtons->Add(m_Upd, 0, 0, 5);
 	sButtons->Add(m_SelC, 0, 0, 5);
 	sButtons->Add(m_Presets, 0, 0, 5);
 
 	sButtons->AddStretchSpacer(1);
-	sButtons->Add(m_checkSizer, 0, 0, 5);
+
+	sButtons->Add(m_checkSizer, 0, 2, 5);
+
 	sButtons->AddStretchSpacer(1);
+
 	sButtons->Add(m_RadioBox[0], 0, 0, 5);
+
 	sButtons->AddStretchSpacer(1);
+
 	sButtons->Add(m_RadioBox[1], 0, 0, 5);
 
-	sButtons->AddSpacer(5);
+	sButtons->AddStretchSpacer(1);
 
 	// blocks view
 	sLeft = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Current Status"));
@@ -253,9 +266,9 @@ SetTitle(wxT("Sound Debugging"));
 
 	// add all stuff to the main container
 	sMain = new wxBoxSizer(wxHORIZONTAL);
-	sMain->Add(sLeft, 1, wxEXPAND | wxALL, 5); // margin = 5
-	sMain->Add(sButtons, 0, wxALL, 0);
-	sMain->Add(sButtons2, 0, wxALL, 5); // margin = 5
+	sMain->Add(sLeft, 1, wxEXPAND|wxALL, 5);
+	sMain->Add(sButtons, 0, wxEXPAND, 0);
+	sMain->Add(sButtons2, 0, wxEXPAND, 0);
 
 	this->SetSizer(sMain);
 	sMain->SetSizeHints(this);
@@ -287,14 +300,48 @@ void CDebugger::OnUpdate(wxCommandEvent& /*event*/)
 // =======================================================================================
 // Settings
 // --------------
-void CDebugger::OnSettingsCheck(wxCommandEvent& event)
+void CDebugger::SSBM(wxCommandEvent& event)
 {
-	gSSBM = m_settings->IsChecked(0);
-	gSSBMremedy1 = m_settings->IsChecked(1);
-	gSSBMremedy2 = m_settings->IsChecked(2);
-	gSequenced = m_settings->IsChecked(3);
-	gVolume = m_settings->IsChecked(4);
-	gReset = m_settings->IsChecked(5);
+	if(m_Check[3]->IsChecked() == 1)
+		{gSSBM = true;}
+	else
+		{gSSBM = false;}
+}
+
+void CDebugger::SSBMremedy1(wxCommandEvent& event)
+{
+	if(m_Check[4]->IsChecked() == 1)
+		{gSSBMremedy1 = true;}
+	else
+		{gSSBMremedy1 = false;}
+}
+void CDebugger::SSBMremedy2(wxCommandEvent& event)
+{
+	if(m_Check[5]->IsChecked() == 1)
+		{gSSBMremedy2 = true;}
+	else
+		{gSSBMremedy2 = false;}
+}
+void CDebugger::Sequenced(wxCommandEvent& event)
+{
+	if(m_Check[8]->IsChecked() == 1)
+		{gSequenced = true;}
+	else
+		{gSequenced = false;}
+}
+void CDebugger::Volume(wxCommandEvent& event)
+{
+	if(m_Check[9]->IsChecked() == 1)
+		{gVolume = true;}
+	else
+		{gVolume = false;}
+}
+void CDebugger::Reset(wxCommandEvent& event)
+{
+	if(m_Check[6]->IsChecked() == 1)
+		{gReset = true;}
+	else
+		{gReset = false;}
 }
 // =======================================================================================
 

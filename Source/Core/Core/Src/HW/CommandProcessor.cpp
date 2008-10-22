@@ -171,7 +171,7 @@ void Shutdown()
 
 void Read16(u16& _rReturnValue, const u32 _Address)
 {
-	LOG(COMMANDPROCESSOR + 100, "(r): 0x%08x", _Address);
+	LOG(COMMANDPROCESSOR, "(r): 0x%08x", _Address);
 	if (Core::g_CoreStartupParameter.bUseDualCore)
 	{
 		//if ((_Address&0xFFF)>=0x20)
@@ -258,7 +258,7 @@ bool AllowIdleSkipping()
 
 void Write16(const u16 _Value, const u32 _Address)
 {
-	LOG(COMMANDPROCESSOR + 100, "(w): 0x%04x @ 0x%08x",_Value,_Address);
+	LOG(COMMANDPROCESSOR, "(w): 0x%04x @ 0x%08x",_Value,_Address);
 
 	//Spin until queue is empty - it WILL become empty because this is the only thread
 	//that submits data
@@ -275,7 +275,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance > 0 &&	!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
 			//while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance > fifo.CPHiWatermark &&	!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
 				ct++;
-			if (ct) {LOG(COMMANDPROCESSOR + 200, "(Write16): %lu cycles for nothing :[ ", ct);}
+			if (ct) {LOG(COMMANDPROCESSOR, "(Write16): %lu cycles for nothing :[ ", ct);}
 		}
 	#ifdef _WIN32
 		//EnterCriticalSection(&fifo.sync);
@@ -426,7 +426,7 @@ void GatherPipeBursted()
 		while (!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint) && fifo.CPReadWriteDistance > (s32)fifo.CPHiWatermark)
 			//Common::SleepCurrentThread(1000); // 1s for test. We shouldn't fall here ever
 			ct++;
-		if (ct) {LOG(COMMANDPROCESSOR + 100, "(GatherPipeBursted): %lu cycle for nothing :[ ", ct);}
+		if (ct) {LOG(COMMANDPROCESSOR, "(GatherPipeBursted): %lu cycle for nothing :[ ", ct);}
 
 			
 #ifdef _WIN32

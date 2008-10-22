@@ -188,7 +188,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 			// debug only
 			else if ((m_uAddress & 0x60000000) == 0)
 			{
-				LOG(EXPANSIONINTERFACE + 200, "EXI IPL-DEV: IPL access");
+				LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: IPL access");
 			}
 			else if ((m_uAddress & 0x7FFFFF00) == 0x20000000)
 			{
@@ -200,7 +200,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 			}
 			else if ((m_uAddress & 0x7FFFFF00) == 0x20010000)
 			{
-				LOG(EXPANSIONINTERFACE + 300, "EXI IPL-DEV: UART");
+				LOG(EXPANSIONINTERFACE, "EXI IPL-DEV: UART");
 			}
 			else
 			{

@@ -299,7 +299,7 @@ CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
 			bool doCommon = false;
 
 			// ------------------------------------------------------------------------------------------
-			// Decide if we have a range or just one address, and if we should break or not
+			// Decide if we have a range or just one address
 			// --------------
 			if (
 				pieces.size() == 1
@@ -311,7 +311,6 @@ CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
 				MemCheck.StartAddress = sAddress;
 				MemCheck.EndAddress = sAddress;
 				doCommon = true;
-				MemCheck.Break = false;
 			}
 			else if(
 				pieces.size() == 2
@@ -323,19 +322,6 @@ CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
 				MemCheck.StartAddress = sAddress;
 				MemCheck.EndAddress = eAddress;
 				doCommon = true;
-				MemCheck.Break = false;
-			}
-			else if(
-				pieces.size() == 3
-				&& AsciiToHex(pieces[0].c_str(), sAddress) && AsciiToHex(pieces[1].c_str(), eAddress)
-				&& pieces[0].size() == 8 && pieces[1].size() == 8 && pieces[2].size() == 1
-				)
-			{
-				// address range	
-				MemCheck.StartAddress = sAddress;
-				MemCheck.EndAddress = eAddress;
-				doCommon = true;
-				MemCheck.Break = true;
 			}
 
 			if(doCommon)
@@ -344,7 +330,7 @@ CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
 				MemCheck.OnRead = true;
 				MemCheck.OnWrite = true;
 				MemCheck.Log = true;
-				//MemCheck.Break = false; // this is also what sets Active "on" in the breakpoint window
+				MemCheck.Break = false; // this is also what sets Active "on" in the breakpoint window
 				// so don't think it's off because we are only writing this to the log
 				CBreakPoints::AddMemoryCheck(MemCheck);	
 			}

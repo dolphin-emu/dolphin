@@ -129,7 +129,7 @@ void HWCALL Read32(u32& _rReturnValue, const u32 _Address)
 
         _rReturnValue = g_IPC_Control.Hex;
 
-		LOG(WII_IPC + 200, "IOP: Read32 from IPC_CONTROL_REGISTER(0x04) = 0x%08x", _rReturnValue);
+		LOG(WII_IPC, "IOP: Read32 from IPC_CONTROL_REGISTER(0x04) = 0x%08x", _rReturnValue);
 		// CCPU::Break();
 
         // if ((REASON_REG & 0x14) == 0x14) CALL IPCReplayHanlder
@@ -139,7 +139,7 @@ void HWCALL Read32(u32& _rReturnValue, const u32 _Address)
 
     case IPC_REPLY_REGISTER: // looks a little bit like a callback function
         _rReturnValue = g_Reply;
-        LOG(WII_IPC + 200, "IOP: Write32 to IPC_REPLAY_REGISTER(0x08) = 0x%08x ", _rReturnValue);
+        LOG(WII_IPC, "IOP: Write32 to IPC_REPLAY_REGISTER(0x08) = 0x%08x ", _rReturnValue);
         break;
 
 	case IPC_SENSOR_BAR_POWER_REGISTER:
@@ -160,13 +160,13 @@ void HWCALL Write32(const u32 _Value, const u32 _Address)
 	case IPC_COMMAND_REGISTER:					// __ios_Ipc2 ... a value from __responses is loaded
         {
             g_Address = _Value;
-            LOG(WII_IPC + 100, "IOP: Write32 to IPC_ADDRESS_REGISTER(0x00) = 0x%08x", g_Address);
+            LOG(WII_IPC, "IOP: Write32 to IPC_ADDRESS_REGISTER(0x00) = 0x%08x", g_Address);
         }
 		break;
 
 	case IPC_CONTROL_REGISTER:
         {
-            LOG(WII_IPC + 100, "IOP: Write32 to IPC_CONTROL_REGISTER(0x04) = 0x%08x (old: 0x%08x)", _Value, g_IPC_Control.Hex);
+            LOG(WII_IPC, "IOP: Write32 to IPC_CONTROL_REGISTER(0x04) = 0x%08x (old: 0x%08x)", _Value, g_IPC_Control.Hex);
 
             UIPC_Control TempControl(_Value);
             _dbg_assert_msg_(WII_IPC, TempControl.pad == 0, "IOP: Write to UIPC_Control.pad", _Address);
@@ -192,7 +192,7 @@ void HWCALL Write32(const u32 _Value, const u32 _Address)
             UIPC_Status NewStatus(_Value);
             if (NewStatus.INTERRUPT) g_IPC_Status.INTERRUPT = 0;    // clear interrupt
 
-            LOG(WII_IPC + 100, "IOP: Write32 to IPC_STATUS_REGISTER(0x30) = 0x%08x", _Value);
+            LOG(WII_IPC, "IOP: Write32 to IPC_STATUS_REGISTER(0x30) = 0x%08x", _Value);
         }
         break;
 

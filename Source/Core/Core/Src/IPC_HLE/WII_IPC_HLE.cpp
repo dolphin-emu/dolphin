@@ -355,7 +355,7 @@ void Update()
         // check if we have to execute an acknowledged command
         if (!m_ReplyQueue.empty())
         {
-            LOG(WII_IPC_HLE + 100, "-- Generate Reply %s (0x%08x)", m_ReplyQueue.front().second.c_str(), m_ReplyQueue.front().first);
+            LOG(WII_IPC_HLE, "-- Generate Reply %s (0x%08x)", m_ReplyQueue.front().second.c_str(), m_ReplyQueue.front().first);
             WII_IPCInterface::GenerateReply(m_ReplyQueue.front().first);
             m_ReplyQueue.pop();
             return;
@@ -368,7 +368,7 @@ void Update()
             u32 _Address = m_Ack.front();
             m_Ack.pop();
             ExecuteCommand(_Address);
-            LOG(WII_IPC_HLE + 100, "-- Generate Ack (0x%08x)", _Address);
+            LOG(WII_IPC_HLE, "-- Generate Ack (0x%08x)", _Address);
             WII_IPCInterface::GenerateAck(_Address);
         }
 	}
