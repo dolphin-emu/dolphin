@@ -18,8 +18,6 @@
 #ifndef _VERTEXLOADER_H
 #define _VERTEXLOADER_H
 
-using namespace std;
-
 #include "CPMemory.h"
 #include "DataReader.h"
 

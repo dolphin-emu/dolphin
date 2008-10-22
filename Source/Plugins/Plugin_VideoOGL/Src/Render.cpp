@@ -28,6 +28,7 @@
 #include <mmsystem.h>
 #endif
 
+#include "Config.h"
 #include "Profiler.h"
 #include "Statistics.h"
 #include "ImageWrite.h"
@@ -384,7 +385,7 @@ void Renderer::ProcessMessages()
     
 	if (s_listMsgs.size() > 0) {
         int left = 25, top = 15;
-        list<MESSAGE>::iterator it = s_listMsgs.begin();
+		std::list<MESSAGE>::iterator it = s_listMsgs.begin();
         while (it != s_listMsgs.end()) 
 		{
 			int time_left = (int)(it->dwTimeStamp - timeGetTime());
@@ -838,14 +839,14 @@ void Renderer::SwapBuffers()
 bool Renderer::SaveRenderTarget(const char* filename, int jpeg)
 {
     bool bflip = true;
-    vector<u32> data(nBackbufferWidth*nBackbufferHeight);
+    std::vector<u32> data(nBackbufferWidth*nBackbufferHeight);
     glReadPixels(0, 0, nBackbufferWidth, nBackbufferHeight, GL_BGRA, GL_UNSIGNED_BYTE, &data[0]);
     if (glGetError() != GL_NO_ERROR)
         return false;
 
     if (bflip) {
         // swap scanlines
-        vector<u32> scanline(nBackbufferWidth);
+        std::vector<u32> scanline(nBackbufferWidth);
         for(int i = 0; i < nBackbufferHeight/2; ++i) {
             memcpy(&scanline[0], &data[i*nBackbufferWidth], nBackbufferWidth*4);
             memcpy(&data[i*nBackbufferWidth], &data[(nBackbufferHeight-i-1)*nBackbufferWidth], nBackbufferWidth*4);

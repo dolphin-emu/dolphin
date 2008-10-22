@@ -17,6 +17,7 @@
 
 #include "Globals.h"
 #include "Profiler.h"
+#include "Config.h"
 
 #include "GLUtil.h"
 

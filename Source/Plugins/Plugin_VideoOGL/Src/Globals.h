@@ -15,11 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// several global utilities not really tied to core emulation
+// This file should DIE.
+
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
-//#define LOGGING
+// #define LOGGING
 
 #include "Common.h"
 #include "x64Emitter.h"
@@ -35,49 +36,6 @@
 #define PRIM_LOG(...)
 #define DEBUG_LOG(...)
 #endif
-
-#define CONF_LOG 1
-#define CONF_PRIMLOG 2
-#define CONF_SAVETEXTURES 4
-#define CONF_SAVETARGETS 8
-#define CONF_SAVESHADERS 16
-
-struct Config 
-{
-    Config();
-    void Load();
-    void Save();
-
-    //video
-	bool bFullscreen;
-	bool renderToMainframe;
-	char iFSResolution[16];
-	char iWindowedRes[16];
-	int iMultisampleMode;
-
-    bool bForceFiltering;
-    bool bForceMaxAniso;
-    bool bStretchToFit;
-	bool bKeepAR;
-    bool bShowFPS;
-
-    bool bTexFmtOverlayEnable;
-	bool bTexFmtOverlayCenter;
-	bool bOverlayStats;
-	bool bUseXFB;
-    bool bDumpTextures;
-	char texDumpPath[280];
-
-	int iLog; // CONF_ bits
-	int iSaveTargetId;
-
-	//currently unused:
-    int iCompileDLsLevel;
-	bool bWireFrame;
-    bool bShowShaderErrors;
-};
-
-extern Config g_Config;
 
 void DebugLog(const char* _fmt, ...);
 void __Log(const char *format, ...);

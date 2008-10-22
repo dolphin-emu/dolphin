@@ -11,6 +11,7 @@ files = [
 	'Globals.cpp',
 	'GLUtil.cpp',
 	'main.cpp',
+	'Config.cpp',
 	'memcpy_amd.cpp',
 	'OpcodeDecoding.cpp',
 	'PixelShaderManager.cpp',

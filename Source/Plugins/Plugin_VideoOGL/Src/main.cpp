@@ -27,6 +27,7 @@
 
 #include "GUI/ConfigDlg.h"
 
+#include "Config.h"
 #include "LookUpTables.h"
 #include "ImageWrite.h"
 #include "Render.h"

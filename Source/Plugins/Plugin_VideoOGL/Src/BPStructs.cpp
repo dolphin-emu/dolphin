@@ -20,6 +20,7 @@
 // -------------
 #include "Globals.h"
 #include "Profiler.h"
+#include "Config.h"
 
 #include "VertexLoader.h"
 #include "VertexManager.h"

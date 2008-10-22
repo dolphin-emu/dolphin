@@ -3,6 +3,7 @@
 #include <fstream>
 #include <vector>
 
+#include "Config.h"
 #include "Statistics.h"
 #include "MemoryUtil.h"
 #include "Profiler.h"
@@ -21,7 +22,7 @@
 static GLuint s_vboBuffers[0x40] = {0};
 static int s_nCurVBOIndex = 0; // current free buffer
 static u8 *s_pBaseBufferPointer = NULL;
-static vector< pair<int, int> > s_vStoredPrimitives; // every element, mode and count to be passed to glDrawArrays
+static std::vector< std::pair<int, int> > s_vStoredPrimitives; // every element, mode and count to be passed to glDrawArrays
 static u32 s_prevcomponents; // previous state set
 
 u8* VertexManager::s_pCurBufferPointer = NULL;
@@ -107,7 +108,7 @@ void VertexManager::AddVertices(int primitive, int numvertices)
 	_assert_( numvertices > 0 );
 
 	ADDSTAT(stats.thisFrame.numPrims, numvertices);
-	s_vStoredPrimitives.push_back(pair<int, int>(c_primitiveType[primitive], numvertices));
+	s_vStoredPrimitives.push_back(std::pair<int, int>(c_primitiveType[primitive], numvertices));
 
 #ifdef _DEBUG
 	static const char *sprims[8] = {"quads", "nothing", "tris", "tstrip", "tfan", "lines", "lstrip", "points"};
@@ -260,7 +261,7 @@ void VertexManager::Flush()
 #endif
 
 	int offset = 0;
-	for (vector< pair<int, int> >::const_iterator it = s_vStoredPrimitives.begin(); it != s_vStoredPrimitives.end(); ++it)
+	for (std::vector< std::pair<int, int> >::const_iterator it = s_vStoredPrimitives.begin(); it != s_vStoredPrimitives.end(); ++it)
 	{
 		glDrawArrays(it->first, offset, it->second);
 		offset += it->second;

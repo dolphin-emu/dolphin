@@ -66,7 +66,7 @@
 				EnableEnhancedInstructionSet="2"
 				FloatingPointModel="2"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="Globals.h"
+				PrecompiledHeaderThrough="stdafx.h"
 				PrecompiledHeaderFile="$(IntDir)/VideoOGL.pch"
 				AssemblerListingLocation="$(IntDir)\"
 				ObjectFile="$(IntDir)\"
@@ -175,7 +175,7 @@
 				EnableEnhancedInstructionSet="0"
 				FloatingPointModel="2"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="Globals.h"
+				PrecompiledHeaderThrough="stdafx.h"
 				PrecompiledHeaderFile="$(IntDir)/VideoOGL.pch"
 				AssemblerListingLocation="$(IntDir)\"
 				ObjectFile="$(IntDir)\"
@@ -275,7 +275,7 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="Globals.h"
+				PrecompiledHeaderThrough="stdafx.h"
 				PrecompiledHeaderFile="$(IntDir)/VideoOGL.pch"
 				AssemblerListingLocation="$(IntDir)\"
 				ObjectFile="$(IntDir)\"
@@ -374,7 +374,7 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="Globals.h"
+				PrecompiledHeaderThrough="stdafx.h"
 				PrecompiledHeaderFile="$(IntDir)/VideoOGL.pch"
 				AssemblerListingLocation="$(IntDir)\"
 				ObjectFile="$(IntDir)\"
@@ -483,7 +483,7 @@
 				EnableEnhancedInstructionSet="2"
 				FloatingPointModel="2"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="Globals.h"
+				PrecompiledHeaderThrough="stdafx.h"
 				PrecompiledHeaderFile="$(IntDir)/VideoOGL.pch"
 				AssemblerListingLocation="$(IntDir)\"
 				ObjectFile="$(IntDir)\"
@@ -594,7 +594,7 @@
 				EnableEnhancedInstructionSet="0"
 				FloatingPointModel="2"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="Globals.h"
+				PrecompiledHeaderThrough="stdafx.h"
 				PrecompiledHeaderFile="$(IntDir)/VideoOGL.pch"
 				AssemblerListingLocation="$(IntDir)\"
 				ObjectFile="$(IntDir)\"
@@ -895,54 +895,6 @@
 			<File
 				RelativePath=".\Src\Debugger\Debugger.cpp"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="DebugFast|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\Src\Debugger\Debugger.h"
@@ -951,54 +903,6 @@
 			<File
 				RelativePath=".\Src\Debugger\PBView.cpp"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="DebugFast|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\Src\Debugger\PBView.h"
@@ -1011,54 +915,6 @@
 			<File
 				RelativePath=".\Src\Logging\Console.cpp"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="DebugFast|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\Src\Logging\Console.h"
@@ -1075,54 +931,6 @@
 			<File
 				RelativePath=".\Src\Logging\Logging.cpp"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="DebugFast|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						PrecompiledHeaderThrough="../Globals.h"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\Src\Logging\Logging.h"
@@ -1130,56 +938,16 @@
 			</File>
 		</Filter>
 		<File
+			RelativePath=".\Src\Config.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\Config.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\Globals.cpp"
 			>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="DebugFast|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="DebugFast|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
 		</File>
 		<File
 			RelativePath=".\Src\Globals.h"
@@ -1265,6 +1033,62 @@
 		</File>
 		<File
 			RelativePath=".\Src\SConscript"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\stdafx.cpp"
+			>
+			<FileConfiguration
+				Name="Release|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Release|x64"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Debug|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="Debug|x64"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="DebugFast|Win32"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+			<FileConfiguration
+				Name="DebugFast|x64"
+				>
+				<Tool
+					Name="VCCLCompilerTool"
+					UsePrecompiledHeader="1"
+				/>
+			</FileConfiguration>
+		</File>
+		<File
+			RelativePath=".\Src\stdafx.h"
 			>
 		</File>
 		<File

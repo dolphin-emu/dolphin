@@ -29,6 +29,7 @@
 #undef _interlockedbittestandreset64
 #endif
 
+#include "Config.h"
 #include "Statistics.h"
 #include "Profiler.h"
 #include "ImageWrite.h"

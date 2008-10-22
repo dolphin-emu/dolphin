@@ -25,9 +25,9 @@
 #include <wx/aboutdlg.h>
 
 #include "../Globals.h"
+#include "../Config.h"
 #include "main.h"
 
-#include "../../Core/Src/Core.h"
 #include "Win32.h"
 
 #include "IniFile.h" // we need this for the debugger to work
