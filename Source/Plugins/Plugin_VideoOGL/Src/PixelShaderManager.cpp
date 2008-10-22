@@ -137,7 +137,7 @@ FRAGMENTSHADER* PixelShaderMngr::GetShader()
 		                             Renderer::GetZBufferTarget() != 0,
 									 Renderer::GetRenderMode() != Renderer::RM_Normal);
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST)
     if (g_Config.iLog & CONF_SAVESHADERS && code) {	
         static int counter = 0;
         char szTemp[MAX_PATH];

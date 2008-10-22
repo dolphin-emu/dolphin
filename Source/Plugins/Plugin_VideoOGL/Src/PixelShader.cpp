@@ -427,10 +427,14 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
     }
     else {
         if (!bRenderZToCol0) {
-            if (bpmem.dstalpha.enable)
+            /* NEEDS FIX - dstalpha does not change how fragments are blended with the EFB
+			   once the blending is done, the dstalpha is written to the EFB in place of the
+			   fragment alpha if dstalpha is enabled. this only matters if the EFB supports alpha.
+			if (bpmem.dstalpha.enable)
                 WRITE(p, "  ocol0 = float4(prev.rgb,"I_ALPHA"[0].w);\n");
-            else
-                WRITE(p, "  ocol0 = prev;\n");
+            else*/
+            
+			WRITE(p, "  ocol0 = prev;\n");
         }
     }
 
