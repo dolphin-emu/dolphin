@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Globals.h"
 #include "PixelShader.h"
 #include "BPStructs.h"
 #include "XFStructs.h"

@@ -28,6 +28,7 @@
 #include "StringUtil.h"
 
 #include "Render.h"
+#include "VertexShader.h"
 #include "VertexManager.h"
 #include "VertexLoader.h"
 #include "BPStructs.h"
@@ -55,7 +56,6 @@ static int colIndex;
     #define inline
 #endif
 
-TVtxDesc VertexManager::s_GlobalVtxDesc;
 
 // ==============================================================================
 // Direct
@@ -120,7 +120,7 @@ VertexLoader::VertexLoader()
 {
     m_numPipelineStages = 0;
     m_VertexSize = 0;
-    m_AttrDirty = 1;
+    m_AttrDirty = AD_DIRTY;
     VertexLoader_Normal::Init();
 
     m_compiledCode = (u8 *)AllocateExecutableMemory(COMPILED_CODE_SIZE, false);
@@ -136,7 +136,7 @@ VertexLoader::~VertexLoader()
 
 int VertexLoader::ComputeVertexSize()
 {
-    if (!m_AttrDirty) {
+    if (m_AttrDirty == AD_CLEAN) {
 		// Compare the 33 desc bits. 
         if (m_VtxDesc.Hex0 == VertexManager::GetVtxDesc().Hex0 &&
 		    (m_VtxDesc.Hex1 & 1) == (VertexManager::GetVtxDesc().Hex1 & 1))
@@ -152,7 +152,7 @@ int VertexLoader::ComputeVertexSize()
     if (fnSetupVertexPointers != NULL && fnSetupVertexPointers == (void (*)())(void*)m_compiledCode)
         VertexManager::Flush();
 
-    m_AttrDirty = 1;
+    m_AttrDirty = AD_DIRTY;
     m_VertexSize = 0;
     // Position Matrix Index
     if (m_VtxDesc.PosMatIdx)
@@ -257,6 +257,7 @@ int VertexLoader::ComputeVertexSize()
     return m_VertexSize;
 }
 
+
 // Note the use of CallCdeclFunction3I etc.
 // This is a horrible hack that is necessary because in 64-bit mode, Opengl32.dll is based way, way above the 32-bit
 // address space that is within reach of a CALL, and just doing &fn gives us these high uncallable addresses. So we
@@ -269,20 +270,24 @@ DECLARE_IMPORT(glVertexPointer);
 DECLARE_IMPORT(glColorPointer);
 DECLARE_IMPORT(glTexCoordPointer);
 
-void VertexLoader::ProcessFormat()
+void VertexLoader::PrepareForVertexFormat()
 {
     using namespace Gen;
 
     //_assert_( VertexManager::s_pCurBufferPointer == s_pBaseBufferPointer );
 
-    if (!m_AttrDirty)
+    if (m_AttrDirty == AD_CLEAN)
     {
 		// Check if local cached desc (in this VL) matches global desc
         if (m_VtxDesc.Hex0 == VertexManager::GetVtxDesc().Hex0 && (m_VtxDesc.Hex1 & 1)==(VertexManager::GetVtxDesc().Hex1 & 1))
-            return; // same
+		{
+            return;  // same
+		}
     }
-    else 
-        m_AttrDirty = 0;
+    else
+	{
+        m_AttrDirty = AD_CLEAN;
+	}
         
     m_VtxDesc.Hex = VertexManager::GetVtxDesc().Hex;
     DVSTARTPROFILE();
@@ -315,7 +320,7 @@ void VertexLoader::ProcessFormat()
         m_VBVertexStride += 12;
 
     switch (m_VtxDesc.Position) {
-    case NOT_PRESENT:	{_assert_msg_(0,"Vertex descriptor without position!","WTF?");} break;
+    case NOT_PRESENT:	{_assert_msg_(0, "Vertex descriptor without position!", "WTF?");} break;
     case DIRECT:
         {
             switch (m_VtxAttr.PosFormat) {
@@ -409,7 +414,6 @@ void VertexLoader::ProcessFormat()
                 m_VBVertexStride += 6; // still include the texture coordinate, but this time as 6 bytes
                 m_components |= VB_HAS_UV0 << i; // have to include since using now
             }
-            
         }
         else {
             if (tc[i] != NOT_PRESENT)
@@ -425,8 +429,7 @@ void VertexLoader::ProcessFormat()
                     break;
                 }
             }
-
-            if (j == 8 && !((m_components&VB_HAS_TEXMTXIDXALL)&(VB_HAS_TEXMTXIDXALL<<(i+1)))) // no more tex coords and tex matrices, so exit loop
+            if (j == 8 && !((m_components&VB_HAS_TEXMTXIDXALL) & (VB_HAS_TEXMTXIDXALL<<(i+1)))) // no more tex coords and tex matrices, so exit loop
                 break;
         }
     }
@@ -438,18 +441,18 @@ void VertexLoader::ProcessFormat()
 
     if (m_VBVertexStride & 3) {
         // make sure all strides are at least divisible by 4 (some gfx cards experience a 3x speed boost)
-        m_VBStridePad = 4 - (m_VBVertexStride&3);
+        m_VBStridePad = 4 - (m_VBVertexStride & 3);
         m_VBVertexStride += m_VBStridePad;
     }
 
-    // compile the pointer set function
+    // compile the pointer set function - why?
     u8 *old_code_ptr = GetWritableCodePtr();
     SetCodePtr(m_compiledCode);
     Util::EmitPrologue(6);
     int offset = 0;
     
     // Position
-    if (m_VtxDesc.Position != NOT_PRESENT) {
+    if (m_VtxDesc.Position != NOT_PRESENT) {  // TODO: Why the check? Always present, AFAIK!
         CallCdeclFunction4_I(glVertexPointer, 3, GL_FLOAT, m_VBVertexStride, offset);
         offset += 12;
     }
@@ -484,6 +487,8 @@ void VertexLoader::ProcessFormat()
         }
     }
 
+	// TODO : With byte or short normals above, offset will be misaligned (not 4byte aligned)! Ugh!
+
     for (int i = 0; i < 2; i++) {
         if (col[i] != NOT_PRESENT) {
 			if (i)
@@ -496,9 +501,8 @@ void VertexLoader::ProcessFormat()
 
     // TextureCoord
     for (int i = 0; i < 8; i++) {
-        if (tc[i] != NOT_PRESENT || (m_components&(VB_HAS_TEXMTXIDX0<<i))) {
-
-            int id = GL_TEXTURE0+i;
+        if (tc[i] != NOT_PRESENT || (m_components & (VB_HAS_TEXMTXIDX0 << i))) {
+            int id = GL_TEXTURE0 + i;
 #ifdef _M_X64
 #ifdef _MSC_VER
             MOV(32, R(RCX), Imm32(id));
@@ -517,6 +521,7 @@ void VertexLoader::ProcessFormat()
             ABI_RestoreStack(1 * 4);
 #endif
 #endif
+			// TODO : More potential disalignment!
             if (m_components & (VB_HAS_TEXMTXIDX0 << i)) {
                 if (tc[i] != NOT_PRESENT) {
                     CallCdeclFunction4_I(glTexCoordPointer, 3, GL_FLOAT, m_VBVertexStride, offset);
@@ -528,14 +533,14 @@ void VertexLoader::ProcessFormat()
                 }
             }
             else {
-                CallCdeclFunction4_I(glTexCoordPointer, m_VtxAttr.texCoord[i].Elements?2:1, GL_FLOAT, m_VBVertexStride, offset);
+                CallCdeclFunction4_I(glTexCoordPointer, m_VtxAttr.texCoord[i].Elements ? 2 : 1, GL_FLOAT, m_VBVertexStride, offset);
                 offset += 4 * (m_VtxAttr.texCoord[i].Elements?2:1);
             }
         }
     }
 
     if (m_VtxDesc.PosMatIdx) {
-        CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_POSMTX_ATTRIB,1,GL_UNSIGNED_BYTE, GL_FALSE, m_VBVertexStride, offset);
+        CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_POSMTX_ATTRIB, 1, GL_UNSIGNED_BYTE, GL_FALSE, m_VBVertexStride, offset);
         offset += 1;
     }
 
@@ -549,19 +554,6 @@ void VertexLoader::ProcessFormat()
     }
 
     SetCodePtr(old_code_ptr);
-}
-
-void VertexLoader::PrepareRun()
-{
-    posScale = shiftLookup[m_VtxAttr.PosFrac];
-    if (m_components & VB_HAS_UVALL) {
-        for (int i = 0; i < 8; i++) {
-            tcScaleU[i] = shiftLookup[m_VtxAttr.texCoord[i].Frac];
-            tcScaleV[i] = shiftLookup[m_VtxAttr.texCoord[i].Frac];
-        }
-    }
-    for (int i = 0; i < 2; i++)
-        colElements[i] = m_VtxAttr.color[i].Elements;
 }
 
 void VertexLoader::SetupColor(int num, int mode, int format, int elements)
@@ -669,38 +661,49 @@ void VertexLoader::RunVertices(int primitive, int count)
 {
     DVSTARTPROFILE();
 
-	ComputeVertexSize();  // HACK for underruns in Super Monkey Ball etc. !!!! dirty handling must be wrong.
-	if (count <= 0)
-        return;
+	// This has dirty handling - won't actually recompute unless necessary.
+	ComputeVertexSize();
 
+	// Figure out a better check. Also, jitting fnSetupVertexPointers seems pretty silly - not likely to be a bottleneck.
     if (fnSetupVertexPointers != NULL && fnSetupVertexPointers != (void (*)())(void*)m_compiledCode)
         VertexManager::Flush();
 
     if (bpmem.genMode.cullmode == 3 && primitive < 5)
 	{
         // if cull mode is none, ignore triangles and quads
-		DataSkip(count*m_VertexSize);
+		DataSkip(count * m_VertexSize);
         return;
     }
 
-    ProcessFormat();
-    fnSetupVertexPointers = (void (*)())(void*)m_compiledCode;
+	// This has dirty handling - won't actually recompute unless necessary.
+    PrepareForVertexFormat();
+
+	fnSetupVertexPointers = (void (*)())(void*)m_compiledCode;
 
 	VertexManager::EnableComponents(m_components);
 
-    PrepareRun();
+    // Load position and texcoord scale factors.
+	// Hm, this could be done when the VtxAttr is set, instead.
+	posScale = shiftLookup[m_VtxAttr.PosFrac];
+    if (m_components & VB_HAS_UVALL) {
+        for (int i = 0; i < 8; i++) {
+            tcScaleU[i] = shiftLookup[m_VtxAttr.texCoord[i].Frac];
+            tcScaleV[i] = shiftLookup[m_VtxAttr.texCoord[i].Frac];
+        }
+    }
+    for (int i = 0; i < 2; i++)
+        colElements[i] = m_VtxAttr.color[i].Elements;
 
     // if strips or fans, make sure all vertices can fit in buffer, otherwise flush
     int granularity = 1;
-
-    switch(primitive) {
+    switch (primitive) {
         case 3: // strip
         case 4: // fan
-            if (VertexManager::GetRemainingSize() < 3*m_VBVertexStride )
+            if (VertexManager::GetRemainingSize() < 3 * m_VBVertexStride )
                 VertexManager::Flush();
             break;
         case 6: // line strip
-            if (VertexManager::GetRemainingSize() < 2*m_VBVertexStride )
+            if (VertexManager::GetRemainingSize() < 2 * m_VBVertexStride )
                 VertexManager::Flush();
             break;
         case 0: // quads

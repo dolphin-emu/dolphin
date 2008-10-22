@@ -18,8 +18,9 @@
 #include <d3dx9.h>
 
 #include "Common.h"
+#include "Statistics.h"
 
-#include "Globals.h"
+#include "Config.h"
 #include "main.h"
 #include "VertexHandler.h"
 #include "Render.h"
@@ -209,7 +210,6 @@ void Renderer::SwapBuffers(void)
 		p+=sprintf(p,"Num strip joins: %i\n",stats.numJoins);
 		p+=sprintf(p,"Num primitives: %i\n",stats.thisFrame.numPrims);
 		p+=sprintf(p,"Num primitives (DL): %i\n",stats.thisFrame.numDLPrims);
-		p+=sprintf(p,"Num bad commands: %i%s\n",stats.thisFrame.numBadCommands,stats.thisFrame.numBadCommands?"!!!":"");
 		p+=sprintf(p,"Num XF loads: %i\n",stats.thisFrame.numXFLoads);
 		p+=sprintf(p,"Num XF loads (DL): %i\n",stats.thisFrame.numXFLoadsInDL);
 		p+=sprintf(p,"Num CP loads: %i\n",stats.thisFrame.numCPLoads);

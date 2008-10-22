@@ -36,7 +36,8 @@ enum {
     VB_HAS_TEXMTXIDX6=(1<<8),
     VB_HAS_TEXMTXIDX7=(1<<9),
     VB_HAS_TEXMTXIDXALL=(0xff<<2),
-    //VB_HAS_POS=0, // Implied, it always has pos! don't bother testing
+
+	//VB_HAS_POS=0, // Implied, it always has pos! don't bother testing
     VB_HAS_NRM0=(1<<10),
     VB_HAS_NRM1=(1<<11),
     VB_HAS_NRM2=(1<<12),

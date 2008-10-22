@@ -29,6 +29,7 @@
 
 #include "GLInit.h"
 #include "Profiler.h"
+#include "Statistics.h"
 #include "ImageWrite.h"
 #include "Render.h"
 #include "OpcodeDecoding.h"

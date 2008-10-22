@@ -18,6 +18,7 @@
 #include <d3dx9.h>
 
 #include "Common.h"
+#include "Statistics.h"
 
 #include "D3DBase.h"
 #include "D3DTexture.h"
@@ -27,7 +28,7 @@
 #include "TextureDecoder.h"
 #include "TextureCache.h"
 
-#include "Globals.h"
+#include "Config.h"
 #include "main.h"
 
 u8 *TextureCache::temp = NULL;

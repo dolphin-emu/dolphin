@@ -411,22 +411,54 @@
 	<References>
 	</References>
 	<Files>
-		<File
-			RelativePath=".\Src\BPMemory.cpp"
+		<Filter
+			Name="ShaderGenerators"
 			>
-		</File>
-		<File
-			RelativePath=".\Src\BPMemory.h"
+			<File
+				RelativePath=".\Src\PixelShader.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PixelShader.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexShader.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexShader.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Sections"
 			>
-		</File>
-		<File
-			RelativePath=".\Src\CPMemory.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\CPMemory.h"
-			>
-		</File>
+			<File
+				RelativePath=".\Src\BPMemory.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\BPMemory.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\CPMemory.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\CPMemory.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\XFMemory.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\XFMemory.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\DataReader.h"
 			>
@@ -461,6 +493,14 @@
 		</File>
 		<File
 			RelativePath=".\Src\SConscript"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\Statistics.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\Statistics.h"
 			>
 		</File>
 		<File
@@ -501,14 +541,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\XFBConvert.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\XFMemory.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\XFMemory.h"
 			>
 		</File>
 	</Files>

@@ -18,7 +18,7 @@
 #include <d3dx9.h>
 #include <string>
 
-#include "Globals.h"
+#include "Config.h"
 #include "D3DShader.h"
 
 

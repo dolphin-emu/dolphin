@@ -28,8 +28,8 @@
 #include "D3DBase.h"
 
 #include "Common.h"
+#include "Statistics.h"
 #include "Profiler.h"
-#include "Globals.h"
 #include "VertexHandler.h"
 #include "TransformEngine.h"
 #include "OpcodeDecoding.h"
@@ -72,10 +72,7 @@ void ExecuteDisplayList(u32 address, u32 size)
 	g_pVideoData = startAddress;
 
 	// temporarily swap dl and non-dl(small "hack" for the stats)
-	Xchg(stats.thisFrame.numDLPrims, stats.thisFrame.numPrims);
-	Xchg(stats.thisFrame.numXFLoadsInDL, stats.thisFrame.numXFLoads);
-	Xchg(stats.thisFrame.numCPLoadsInDL, stats.thisFrame.numCPLoads);
-	Xchg(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
+	Statistics::SwapDL();
 
     while((u32)(g_pVideoData - startAddress) < size)
     {
@@ -85,10 +82,7 @@ void ExecuteDisplayList(u32 address, u32 size)
     INCSTAT(stats.thisFrame.numDListsCalled);
 
 	// un-swap
-	Xchg(stats.thisFrame.numDLPrims, stats.thisFrame.numPrims);
-	Xchg(stats.thisFrame.numXFLoadsInDL, stats.thisFrame.numXFLoads);
-	Xchg(stats.thisFrame.numCPLoadsInDL, stats.thisFrame.numCPLoads);
-	Xchg(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
+	Statistics::SwapDL();
 
     // reset to the old pointer
 	g_pVideoData = old_pVideoData;

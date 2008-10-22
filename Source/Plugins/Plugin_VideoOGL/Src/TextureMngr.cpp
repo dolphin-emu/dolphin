@@ -29,6 +29,7 @@
 #undef _interlockedbittestandreset64
 #endif
 
+#include "Statistics.h"
 #include "Profiler.h"
 #include "ImageWrite.h"
 
@@ -51,8 +52,15 @@ static u32 s_TempFramebuffer = 0;
 #define TEMP_SIZE (1024*1024*4)
 
 const GLint c_MinLinearFilter[8] = {
-    GL_NEAREST, GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST_MIPMAP_LINEAR, GL_NEAREST,
-    GL_LINEAR, GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR_MIPMAP_LINEAR, GL_LINEAR};
+	GL_NEAREST,
+	GL_NEAREST_MIPMAP_NEAREST,
+	GL_NEAREST_MIPMAP_LINEAR,
+	GL_NEAREST,
+	GL_LINEAR,
+	GL_LINEAR_MIPMAP_NEAREST,
+	GL_LINEAR_MIPMAP_LINEAR,
+	GL_LINEAR
+};
 
 const GLint c_WrapSettings[4] = { GL_CLAMP_TO_EDGE, GL_REPEAT, GL_MIRRORED_REPEAT, GL_REPEAT };
 

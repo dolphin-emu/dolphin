@@ -23,6 +23,7 @@
 
 #include <cmath>
 
+#include "Statistics.h"
 #include "ImageWrite.h"
 #include "Common.h"
 #include "Render.h"
@@ -32,7 +33,7 @@
 
 PixelShaderMngr::PSCache PixelShaderMngr::pshaders;
 FRAGMENTSHADER* PixelShaderMngr::pShaderLast = NULL;
-PixelShaderMngr::PIXELSHADERUID PixelShaderMngr::s_curuid;
+PIXELSHADERUID PixelShaderMngr::s_curuid;
 
 static int s_nMaxPixelInstructions;
 static int s_nColorsChanged[2]; // 0 - regular colors, 1 - k colors
@@ -517,7 +518,7 @@ GLuint PixelShaderMngr::GetColorMatrixProgram()
 
 // Mash together all the inputs that contribute to the code of a generated pixel shader into
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
-void PixelShaderMngr::GetPixelShaderId(PixelShaderMngr::PIXELSHADERUID& uid)
+void PixelShaderMngr::GetPixelShaderId(PIXELSHADERUID &uid)
 {
     u32 projtexcoords = 0;
     for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; i++) {

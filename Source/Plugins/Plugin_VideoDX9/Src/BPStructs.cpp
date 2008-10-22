@@ -17,7 +17,7 @@
 
 #include "D3DBase.h"
 
-#include "Globals.h"
+#include "Config.h"
 #include "Common.h"
 #include "Profiler.h"
 #include "BPStructs.h"

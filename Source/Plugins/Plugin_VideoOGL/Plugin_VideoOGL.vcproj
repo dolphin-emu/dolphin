@@ -773,14 +773,6 @@
 			Name="Render"
 			>
 			<File
-				RelativePath=".\Src\PixelShader.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\PixelShader.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\PixelShaderManager.cpp"
 				>
 			</File>
@@ -826,14 +818,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\TextureMngr.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexShader.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexShader.h"
 				>
 			</File>
 			<File

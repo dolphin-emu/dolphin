@@ -16,9 +16,9 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "D3DBase.h"
+#include "Statistics.h"
 #include "Utils.h"
 #include "Profiler.h"
-#include "Globals.h"
 #include "ShaderManager.h"
 #include "VertexLoader.h"
 #include "BPMemory.h"

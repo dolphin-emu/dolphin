@@ -20,9 +20,6 @@
 
 #include <map>
 
-#include "VertexShader.h"
-
-
 struct VERTEXSHADER
 {
     VERTEXSHADER() : glprogid(0) {}
@@ -32,6 +29,55 @@ struct VERTEXSHADER
 	std::string strprog;
 #endif
 };
+
+
+class VERTEXSHADERUID
+{
+public:
+	u32 values[9];
+
+	VERTEXSHADERUID() {
+		memset(values, 0, sizeof(values));		
+	}
+
+	VERTEXSHADERUID(const VERTEXSHADERUID& r) {
+		for (size_t i = 0; i < sizeof(values) / sizeof(u32); ++i) 
+			values[i] = r.values[i]; 
+	}
+
+	int GetNumValues() const {
+		return (((values[0] >> 23) & 0xf)*3 + 3)/4 + 3; // numTexGens*3/4+1
+	}
+
+	bool operator <(const VERTEXSHADERUID& _Right) const
+	{
+		if (values[0] < _Right.values[0])
+			return true;
+		else if (values[0] > _Right.values[0])
+			return false;
+		int N = GetNumValues();
+		for (int i = 1; i < N; ++i) {
+			if (values[i] < _Right.values[i])
+				return true;
+			else if (values[i] > _Right.values[i])
+				return false;
+		}
+		return false;
+	}
+
+	bool operator ==(const VERTEXSHADERUID& _Right) const
+	{
+		if (values[0] != _Right.values[0])
+			return false;
+		int N = GetNumValues();
+		for (int i = 1; i < N; ++i) {
+			if (values[i] != _Right.values[i])
+				return false;
+		}
+		return true;
+	}
+};
+
 
 class VertexShaderMngr
 {
@@ -47,53 +93,7 @@ class VertexShaderMngr
         }
     };
 
-    class VERTEXSHADERUID
-    {
-    public:
-        VERTEXSHADERUID() {
-			memset(values, 0, sizeof(values));		
-		}
-        VERTEXSHADERUID(const VERTEXSHADERUID& r) {
-			for(size_t i = 0; i < sizeof(values) / sizeof(u32); ++i) 
-				values[i] = r.values[i]; 
-		}
-
-        bool operator<(const VERTEXSHADERUID& _Right) const
-        {
-            if( values[0] < _Right.values[0] )
-                return true;
-            else if( values[0] > _Right.values[0] )
-                return false;
-
-            int N = (((values[0]>>23)&0xf)*3+3)/4 + 3; // numTexGens*3/4+1
-            for(int i = 1; i < N; ++i) {
-                if( values[i] < _Right.values[i] )
-                    return true;
-                else if( values[i] > _Right.values[i] )
-                    return false;
-            }
-
-            return false;
-        }
-
-        bool operator==(const VERTEXSHADERUID& _Right) const
-        {
-            if( values[0] != _Right.values[0] )
-                return false;
-
-            int N = (((values[0]>>23)&0xf)*3+3)/4 + 3; // numTexGens*3/4+1
-            for(int i = 1; i < N; ++i) {
-                if( values[i] != _Right.values[i] )
-                    return false;
-            }
-
-            return true;
-        }
-
-        u32 values[9];
-    };
-
-    typedef std::map<VERTEXSHADERUID,VSCacheEntry> VSCache;
+    typedef std::map<VERTEXSHADERUID, VSCacheEntry> VSCache;
 
     static VSCache vshaders;
     static VERTEXSHADER* pShaderLast;

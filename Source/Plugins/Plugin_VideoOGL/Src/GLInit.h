@@ -60,6 +60,4 @@ void OpenGL_SetWindowText(const char *text);
 void OpenGL_Shutdown();
 void OpenGL_Update();
 
-
-
 #endif

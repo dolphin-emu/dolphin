@@ -15,11 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "Common.h"
+
 #include "D3DBase.h"
 
-#include "Common.h"
+#include "Statistics.h"
 #include "Profiler.h"
-#include "Globals.h"
 #include "VertexHandler.h"
 #include "OpcodeDecoding.h"
 #include "TransformEngine.h"

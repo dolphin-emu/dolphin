@@ -2,7 +2,7 @@
 #include <windows.h>
 
 #include "../../Core/Src/Core.h"
-#include "Globals.h"
+#include "Config.h"
 #include "main.h"
 #include "EmuWindow.h"
 

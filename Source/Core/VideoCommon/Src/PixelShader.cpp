@@ -15,8 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Globals.h"
-
 #include <stdio.h>
 #include <cmath>
 #include <assert.h>
@@ -429,14 +427,16 @@ char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRende
     }
     else {
         if (!bRenderZToCol0) {
-            /* NEEDS FIX - dstalpha does not change how fragments are blended with the EFB
+            /* donkopunchstania: NEEDS FIX - dstalpha does not change how fragments are blended with the EFB
 			   once the blending is done, the dstalpha is written to the EFB in place of the
 			   fragment alpha if dstalpha is enabled. this only matters if the EFB supports alpha.
+               Commenting this out fixed Metroids but causes glitches in Super Mario Sunshine.
+
 			if (bpmem.dstalpha.enable)
                 WRITE(p, "  ocol0 = float4(prev.rgb,"I_ALPHA"[0].w);\n");
-            else*/
-            
-			WRITE(p, "  ocol0 = prev;\n");
+            else
+			   */
+            	WRITE(p, "  ocol0 = prev;\n");
         }
     }
 

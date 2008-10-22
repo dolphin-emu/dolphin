@@ -18,11 +18,9 @@
 #ifndef _PIXELSHADERMANAGER_H
 #define _PIXELSHADERMANAGER_H
 
-#include "PixelShader.h"
+#include <map>
 
 #include "BPMemory.h"
-
-#include <map>
 
 struct FRAGMENTSHADER
 {
@@ -33,65 +31,59 @@ struct FRAGMENTSHADER
 #endif
 };
 
+class PIXELSHADERUID
+{
+public:
+	u32 values[4+32+6+11];
+	u16 tevstages, indstages;
+
+	PIXELSHADERUID() {
+		memset(values, 0, (4+32+6+11) * 4);
+		tevstages = indstages = 0;
+	}
+	PIXELSHADERUID(const PIXELSHADERUID& r)
+	{
+		tevstages = r.tevstages;
+		indstages = r.indstages;
+		int N = tevstages + indstages + 3;
+		_assert_(N <= 4+32+6+11);
+		for (int i = 0; i < N; ++i) 
+			values[i] = r.values[i];
+	}
+	int GetNumValues() const {
+		return tevstages + indstages + 3; // numTevStages*3/2+1
+	}
+	bool operator <(const PIXELSHADERUID& _Right) const
+	{
+		if (values[0] < _Right.values[0])
+			return true;
+		else if (values[0] > _Right.values[0])
+			return false;
+		int N = GetNumValues();
+		for (int i = 1; i < N; ++i) {
+			if (values[i] < _Right.values[i])
+				return true;
+			else if (values[i] > _Right.values[i])
+				return false;
+		}
+		return false;
+	}
+	bool operator ==(const PIXELSHADERUID& _Right) const
+	{
+		if (values[0] != _Right.values[0])
+			return false;
+		int N = GetNumValues();
+		for (int i = 1; i < N; ++i) {
+			if (values[i] != _Right.values[i])
+				return false;
+		}
+		return true;
+	}
+};
+
+
 class PixelShaderMngr
 {
-    class PIXELSHADERUID
-    {
-    public:
-        PIXELSHADERUID() {
-			values = new u32[4+32+6+11];
-			memset(values, 0, (4+32+6+11) * 4);
-            tevstages = indstages = 0;
-		}
-        ~PIXELSHADERUID() { delete[] values; values = NULL;}
-        PIXELSHADERUID(const PIXELSHADERUID& r)
-        {
-            values = new u32[4+32+6+11];
-            tevstages = r.tevstages; indstages = r.indstages;
-            int N = tevstages + indstages + 3;
-            _assert_(N <= 4+32+6+11);
-            for(int i = 0; i < N; ++i) 
-				values[i] = r.values[i];
-        }
-
-        bool operator <(const PIXELSHADERUID& _Right) const
-        {
-            if( values[0] < _Right.values[0] )
-                return true;
-            else if( values[0] > _Right.values[0] )
-                return false;
-
-            int N = tevstages + indstages + 3; // numTevStages*3/2+1
-            int i = 1;
-            for(; i < N; ++i) {
-                if( values[i] < _Right.values[i] )
-                    return true;
-                else if( values[i] > _Right.values[i] )
-                    return false;
-            }
-
-            return false;
-        }
-
-        bool operator ==(const PIXELSHADERUID& _Right) const
-        {
-            if( values[0] != _Right.values[0] )
-                return false;
-
-            int N = tevstages + indstages + 3; // numTevStages*3/2+1
-            int i = 1;
-            for(; i < N; ++i) {
-                if( values[i] != _Right.values[i] )
-                    return false;
-            }
-
-            return true;
-        }
-
-        u32* values;
-        u16 tevstages, indstages;
-    };
-
     struct PSCacheEntry
     {
         FRAGMENTSHADER shader;
@@ -105,7 +97,7 @@ class PixelShaderMngr
         }
     };
 
-    typedef std::map<PIXELSHADERUID,PSCacheEntry> PSCache;
+    typedef std::map<PIXELSHADERUID, PSCacheEntry> PSCache;
 
     static FRAGMENTSHADER* pShaderLast; // last used shader
     static PSCache pshaders;

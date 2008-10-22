@@ -15,16 +15,15 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
 #include "Globals.h"
 #include "Profiler.h"
-
 
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>
 
 #include <math.h>
 
+#include "Statistics.h"
 #include "ImageWrite.h"
 #include "Render.h"
 #include "VertexShader.h"
@@ -366,7 +365,8 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 		int overfl;
 		int xoffs = 0, yoffs = 0;
 		int wid, hei, actualWid, actualHei;
-		int winw = nBackbufferWidth; int winh = nBackbufferHeight;
+		int winw = nBackbufferWidth;
+		int winh = nBackbufferHeight;
 		if (g_Config.bKeepAR)
 		{
 			// Check if height or width is the limiting factor
@@ -405,7 +405,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 			hei = ceil(fabs(2 * rawViewport[1]));
 		}
 
-		if(g_Config.bStretchToFit && g_Config.renderToMainframe)
+		if (g_Config.bStretchToFit && g_Config.renderToMainframe)
 		{
 			glViewport(
 				(int)(rawViewport[3]-rawViewport[0]-342-scissorXOff) + xoffs,
@@ -471,7 +471,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
         }
 
         PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1], rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
-        SetVSConstant4fv(C_PROJECTION, &g_fProjectionMatrix[0]);
+        SetVSConstant4fv(C_PROJECTION,   &g_fProjectionMatrix[0]);
         SetVSConstant4fv(C_PROJECTION+1, &g_fProjectionMatrix[4]);
         SetVSConstant4fv(C_PROJECTION+2, &g_fProjectionMatrix[8]);
         SetVSConstant4fv(C_PROJECTION+3, &g_fProjectionMatrix[12]);
@@ -480,8 +480,10 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 
 void VertexShaderMngr::InvalidateXFRange(int start, int end)
 {
-    if( ((u32)start >= (u32)MatrixIndexA.PosNormalMtxIdx*4 && (u32)start < (u32)MatrixIndexA.PosNormalMtxIdx*4+12) ||
-        ((u32)start >= XFMEM_NORMALMATRICES+((u32)MatrixIndexA.PosNormalMtxIdx&31)*3 && (u32)start < XFMEM_NORMALMATRICES+((u32)MatrixIndexA.PosNormalMtxIdx&31)*3+9) ) {
+    if (((u32)start >= (u32)MatrixIndexA.PosNormalMtxIdx*4 &&
+		 (u32)start <  (u32)MatrixIndexA.PosNormalMtxIdx*4 + 12) ||
+        ((u32)start >= XFMEM_NORMALMATRICES + ((u32)MatrixIndexA.PosNormalMtxIdx & 31)*3 &&
+		 (u32)start <  XFMEM_NORMALMATRICES + ((u32)MatrixIndexA.PosNormalMtxIdx & 31)*3 + 9)) {
         bPosNormalMatrixChanged = true;
     }
 
@@ -499,7 +501,7 @@ void VertexShaderMngr::InvalidateXFRange(int start, int end)
         bTexMatricesChanged[1] = true;
     }
 
-    if (start < XFMEM_POSMATRICES_END ) {
+    if (start < XFMEM_POSMATRICES_END) {
         if (nTransformMatricesChanged[0] == -1) {
             nTransformMatricesChanged[0] = start;
             nTransformMatricesChanged[1] = end>XFMEM_POSMATRICES_END?XFMEM_POSMATRICES_END:end;
@@ -510,7 +512,7 @@ void VertexShaderMngr::InvalidateXFRange(int start, int end)
         }
     }
     
-    if (start < XFMEM_NORMALMATRICES_END && end > XFMEM_NORMALMATRICES ) {
+    if (start < XFMEM_NORMALMATRICES_END && end > XFMEM_NORMALMATRICES) {
         int _start = start < XFMEM_NORMALMATRICES ? 0 : start-XFMEM_NORMALMATRICES;
         int _end = end < XFMEM_NORMALMATRICES_END ? end-XFMEM_NORMALMATRICES : XFMEM_NORMALMATRICES_END-XFMEM_NORMALMATRICES;
 
@@ -524,7 +526,7 @@ void VertexShaderMngr::InvalidateXFRange(int start, int end)
         }
     }
 
-    if (start < XFMEM_POSTMATRICES_END && end > XFMEM_POSTMATRICES ) {
+    if (start < XFMEM_POSTMATRICES_END && end > XFMEM_POSTMATRICES) {
         int _start = start < XFMEM_POSTMATRICES ? XFMEM_POSTMATRICES : start-XFMEM_POSTMATRICES;
         int _end = end < XFMEM_POSTMATRICES_END ? end-XFMEM_POSTMATRICES : XFMEM_POSTMATRICES_END-XFMEM_POSTMATRICES;
 
@@ -548,7 +550,7 @@ void VertexShaderMngr::InvalidateXFRange(int start, int end)
         }
         else {
             if (nLightsChanged[0] > _start) nLightsChanged[0] = _start;
-            if (nLightsChanged[1] < _end) nLightsChanged[1] = _end;
+            if (nLightsChanged[1] < _end)   nLightsChanged[1] = _end;
         }
     }
 }
@@ -598,7 +600,6 @@ void VertexShaderMngr::SetProjection(float* _pProjection, int constantIndex)
 // LoadXFReg 0x10
 void VertexShaderMngr::LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 {	
-
     u32 address = baseAddress;
     for (int i = 0; i < (int)transferSize; i++)
     {
@@ -644,7 +645,7 @@ void VertexShaderMngr::LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
                 xfregs.hostinfo = *(INVTXSPEC*)&data;
                 break;
             case 0x1009: //GXSetNumChans (no)
-              if ((u32)xfregs.nNumChans != (data&3) ) {
+				if ((u32)xfregs.nNumChans != (data&3)) {
                     VertexManager::Flush();
                     xfregs.nNumChans = data&3;
                 }

@@ -24,7 +24,7 @@
 #include "D3DBase.h"
 #include "D3DPostprocess.h"
 
-#include "Globals.h"
+#include "Config.h"
 
 #include "TextureCache.h"
 

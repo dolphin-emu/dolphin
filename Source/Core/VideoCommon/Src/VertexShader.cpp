@@ -15,15 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Globals.h"
 #include "Profiler.h"
 #include <math.h>
 
-#include "BPStructs.h"
+#include "BPMemory.h"
 #include "VertexShader.h"
-
-// This is the tricky one to get rid off.
-// #include "VertexLoader.h"
 
 static char text[16384];
 

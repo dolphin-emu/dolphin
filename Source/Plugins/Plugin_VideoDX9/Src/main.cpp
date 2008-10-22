@@ -24,7 +24,7 @@
 #include "svnrev.h"
 #include "resource.h"
 #include "main.h"
-#include "Globals.h"
+#include "Config.h"
 #include "Fifo.h"
 #include "OpcodeDecoding.h"
 #include "TextureCache.h"

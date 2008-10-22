@@ -15,17 +15,29 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _XFB_CONVERT
-#define _XFB_CONVERT
+#include <string.h>
 
-#include "Common.h"
+#include "Statistics.h"
 
-void InitXFBConvTables();
+Statistics stats;
 
-// Converts 4:2:2 YUV (YUYV) data to 32-bit RGBA data.
-void ConvertFromXFB(u32 *dst, const u8* _pXFB, int width, int height);
+template <class T>
+void Xchg(T& a, T&b)
+{
+	T c = a;
+	a = b;
+	b = c;
+}
 
-// Converts 32-bit RGBA data to 4:2:2 YUV (YUYV) data.
-void ConvertToXFB(u32 *dst, const u8* _pEFB, int width, int height);
+void Statistics::ResetFrame()
+{
+	memset(&thisFrame, 0, sizeof(ThisFrame));
+}
 
-#endif
+void Statistics::SwapDL()
+{
+	Xchg(stats.thisFrame.numDLPrims, stats.thisFrame.numPrims);
+	Xchg(stats.thisFrame.numXFLoadsInDL, stats.thisFrame.numXFLoads);
+	Xchg(stats.thisFrame.numCPLoadsInDL, stats.thisFrame.numCPLoads);
+	Xchg(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
+}

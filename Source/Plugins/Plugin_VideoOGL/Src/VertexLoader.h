@@ -64,7 +64,11 @@ private:
     void SetupTexCoord(int num, int _iMode, int _iFormat, int _iElements, int _iFrac);
 
 	// The 3 possible values (0, 1, 2) should be documented here.
-    int m_AttrDirty;
+	enum {
+		AD_CLEAN = 0,
+		AD_DIRTY = 1,
+		AD_VAT_DIRTY = 2,
+	} m_AttrDirty;
 
 public:
     // constructor
@@ -72,23 +76,19 @@ public:
     ~VertexLoader();
     
     // run the pipeline 
-    void ProcessFormat();
-    void PrepareRun();
+    void PrepareForVertexFormat();
     void RunVertices(int primitive, int count);
     void WriteCall(void  (LOADERDECL *func)(void *));
     
-    int GetGCVertexSize() const { _assert_( !m_AttrDirty ); return m_VertexSize; }
-    int GetVBVertexStride() const { _assert_( !m_AttrDirty); return m_VBVertexStride; }
+    int GetGCVertexSize()   const { _assert_( !m_AttrDirty ); return m_VertexSize; }
+    int GetVBVertexStride() const { _assert_( !m_AttrDirty);  return m_VBVertexStride; }
 
     int ComputeVertexSize();
-
-     // SetVAT_group
-    // ignore PosFrac, texCoord[i].Frac
 
     void SetVAT_group0(u32 _group0) 
     {
         if ((m_group0.Hex & ~0x3e0001f0) != (_group0 & ~0x3e0001f0)) {
-            m_AttrDirty = 2;
+            m_AttrDirty = AD_VAT_DIRTY;
         }
         m_group0.Hex = _group0;
 
@@ -111,10 +111,9 @@ public:
     void SetVAT_group1(u32 _group1) 
     {
         if ((m_group1.Hex & ~0x7c3e1f0) != (_group1 & ~0x7c3e1f0)) {
-            m_AttrDirty = 2;
+            m_AttrDirty = AD_VAT_DIRTY;
         }
         m_group1.Hex = _group1;
-        
 
         m_VtxAttr.texCoord[1].Elements	= m_group1.Tex1CoordElements;
         m_VtxAttr.texCoord[1].Format	= m_group1.Tex1CoordFormat;
@@ -132,7 +131,7 @@ public:
     void SetVAT_group2(u32 _group2)		  
     {
         if ((m_group2.Hex & ~0xf87c3e1f) != (_group2 & ~0xf87c3e1f)) {
-            m_AttrDirty = 2;
+            m_AttrDirty = AD_VAT_DIRTY;
         }
         m_group2.Hex = _group2;
 

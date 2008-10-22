@@ -30,6 +30,7 @@
 #include "VertexLoader.h"
 #include "VertexManager.h"
 #include "VertexShaderManager.h"
+#include "Statistics.h"
 
 #include "BPStructs.h"
 #include "Fifo.h"
@@ -44,14 +45,6 @@ extern u8* FAKE_GetFifoEndPtr();
 
 void Decode();
 
-template <class T>
-void Xchg(T& a, T&b)
-{
-	T c = a;
-	a = b;
-	b = c;
-}
-
 void ExecuteDisplayList(u32 address, u32 size)
 {
 	u8* old_pVideoData = g_pVideoData;
@@ -59,13 +52,10 @@ void ExecuteDisplayList(u32 address, u32 size)
 	u8* startAddress = Memory_GetPtr(address);
 	g_pVideoData = startAddress;
 
-	// temporarily swap dl and non-dl(small "hack" for the stats)
-	Xchg(stats.thisFrame.numDLPrims, stats.thisFrame.numPrims);
-	Xchg(stats.thisFrame.numXFLoadsInDL, stats.thisFrame.numXFLoads);
-	Xchg(stats.thisFrame.numCPLoadsInDL, stats.thisFrame.numCPLoads);
-	Xchg(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
-
-    while((u32)(g_pVideoData - startAddress) < size)
+	// temporarily swap dl and non-dl (small "hack" for the stats)
+	Statistics::SwapDL();
+	
+	while((u32)(g_pVideoData - startAddress) < size)
     {
         Decode();
     }
@@ -73,10 +63,7 @@ void ExecuteDisplayList(u32 address, u32 size)
     INCSTAT(stats.thisFrame.numDListsCalled);
 
 	// un-swap
-	Xchg(stats.thisFrame.numDLPrims, stats.thisFrame.numPrims);
-	Xchg(stats.thisFrame.numXFLoadsInDL, stats.thisFrame.numXFLoads);
-	Xchg(stats.thisFrame.numCPLoadsInDL, stats.thisFrame.numCPLoads);
-	Xchg(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
+	Statistics::SwapDL();
 
     // reset to the old pointer
 	g_pVideoData = old_pVideoData;

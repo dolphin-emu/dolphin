@@ -31,13 +31,6 @@
 
 Config g_Config;
 
-Statistics stats;
-
-void Statistics::ResetFrame()
-{
-	memset(&thisFrame, 0, sizeof(ThisFrame));
-}
-
 Config::Config()
 {
     memset(this, 0, sizeof(Config));

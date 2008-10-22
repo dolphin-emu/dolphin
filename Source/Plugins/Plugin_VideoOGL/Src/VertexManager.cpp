@@ -3,6 +3,7 @@
 #include <fstream>
 #include <vector>
 
+#include "Statistics.h"
 #include "MemoryUtil.h"
 #include "Profiler.h"
 #include "Render.h"
@@ -11,6 +12,7 @@
 #include "TextureMngr.h"
 #include "PixelShaderManager.h"
 #include "VertexShaderManager.h"
+#include "VertexShader.h"
 #include "VertexLoader.h"
 #include "VertexManager.h"
 
@@ -23,6 +25,7 @@ static vector< pair<int, int> > s_vStoredPrimitives; // every element, mode and 
 static u32 s_prevcomponents; // previous state set
 
 u8* VertexManager::s_pCurBufferPointer = NULL;
+TVtxDesc VertexManager::s_GlobalVtxDesc;
 
 static const GLenum c_primitiveType[8] =
 {
@@ -294,32 +297,32 @@ void VertexManager::Flush()
 	ResetBuffer();
 }
 
-void VertexManager::LoadCPReg(u32 SubCmd, u32 Value)
+void VertexManager::LoadCPReg(u32 sub_cmd, u32 value)
 {
-	switch (SubCmd & 0xF0)
+	switch (sub_cmd & 0xF0)
 	{
 	case 0x30:
-		VertexShaderMngr::SetTexMatrixChangedA(Value);
+		VertexShaderMngr::SetTexMatrixChangedA(value);
 		break;
 	case 0x40:
-		VertexShaderMngr::SetTexMatrixChangedB(Value);
+		VertexShaderMngr::SetTexMatrixChangedB(value);
 		break;
 
 	case 0x50:
 		s_GlobalVtxDesc.Hex &= ~0x1FFFF; // keep the Upper bits
-		s_GlobalVtxDesc.Hex |= Value;
+		s_GlobalVtxDesc.Hex |= value;
 		break;
 	case 0x60:
 		s_GlobalVtxDesc.Hex &= 0x1FFFF; // keep the lower 17Bits
-		s_GlobalVtxDesc.Hex |= (u64)Value << 17;
+		s_GlobalVtxDesc.Hex |= (u64)value << 17;
 		break;
 
-	case 0x70: g_VertexLoaders[SubCmd & 7].SetVAT_group0(Value); _assert_((SubCmd & 0x0F) < 8); break;
-	case 0x80: g_VertexLoaders[SubCmd & 7].SetVAT_group1(Value); _assert_((SubCmd & 0x0F) < 8); break;
-	case 0x90: g_VertexLoaders[SubCmd & 7].SetVAT_group2(Value); _assert_((SubCmd & 0x0F) < 8); break;
+	case 0x70: g_VertexLoaders[sub_cmd & 7].SetVAT_group0(value); _assert_((sub_cmd & 0x0F) < 8); break;
+	case 0x80: g_VertexLoaders[sub_cmd & 7].SetVAT_group1(value); _assert_((sub_cmd & 0x0F) < 8); break;
+	case 0x90: g_VertexLoaders[sub_cmd & 7].SetVAT_group2(value); _assert_((sub_cmd & 0x0F) < 8); break;
 
-	case 0xA0: arraybases[SubCmd & 0xF]   = Value & 0xFFFFFFFF; break;
-	case 0xB0: arraystrides[SubCmd & 0xF] = Value & 0xFF; break;
+	case 0xA0: arraybases[sub_cmd & 0xF]   = value & 0xFFFFFFFF; break;
+	case 0xB0: arraystrides[sub_cmd & 0xF] = value & 0xFF; break;
 	}
 }
 

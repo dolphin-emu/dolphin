@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Globals.h"
+#include "Config.h"
 #include "IniFile.h"
 
 Config g_Config;
@@ -80,5 +80,3 @@ void Config::Save()
 	iniFile.Set("Enhancements", "ForceMaxAniso", bForceMaxAniso);
 	iniFile.Save("gfx_dx9.ini");
 }
-
-Statistics stats;

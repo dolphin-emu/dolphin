@@ -21,7 +21,7 @@
 #include "D3DTexture.h"
 #include "D3DUtil.h"
 
-#include "Globals.h"
+#include "Config.h"
 
 #include "Render.h"
 

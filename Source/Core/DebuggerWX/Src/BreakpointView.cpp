@@ -115,7 +115,7 @@ void CBreakPointView::DeleteCurrentSelection()
     int Item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     if (Item >= 0)
     {
-        u32 Address = GetItemData(Item);
+        u32 Address = (u32)GetItemData(Item);
         CBreakPoints::DeleteElementByAddress(Address);
     }
 }
