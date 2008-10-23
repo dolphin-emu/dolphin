@@ -424,7 +424,11 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 				abs((int)(2 * rawViewport[0])) * MValueX, abs((int)(2 * rawViewport[1])) * MValueY);
 		}
 
-		glDepthRange(-(0.0f - (rawViewport[5]-rawViewport[2])/-16777215.0f), rawViewport[5]/16777215.0f);
+		// Metroid Prime 1 & 2 likes this
+		glDepthRange(-(0.0f - (rawViewport[5]-rawViewport[2])/16777215.0f), rawViewport[5]/16777215.0f);
+
+		// FZero stage likes this (a sonic hack)
+		// glDepthRange(-(0.0f - (rawViewport[5]-rawViewport[2])/-16777215.0f), rawViewport[5]/16777215.0f);
     }
 
     if (bProjectionChanged) {
@@ -444,7 +448,10 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = rawProjection[4];
+			// Working bloom in ZTP
             g_fProjectionMatrix[11] = -(0.0f - rawProjection[5]);  // Yes, it's important that it's done this way.
+			// Working projection in PSO
+			// g_fProjectionMatrix[11] = -(1.0f - rawProjection[5]);
                         
             g_fProjectionMatrix[12] = 0.0f;
             g_fProjectionMatrix[13] = 0.0f;
@@ -465,7 +472,10 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = rawProjection[4];
-            g_fProjectionMatrix[11] = -(0.0f - rawProjection[5]);  // Yes, it's important that it's done this way.
+			// Working bloom in ZTP
+            g_fProjectionMatrix[11] = -(-1.0f - rawProjection[5]);  // Yes, it's important that it's done this way.
+			// Working projection in PSO
+			// g_fProjectionMatrix[11] = -(0.0f - rawProjection[5]);
 
             g_fProjectionMatrix[12] = 0;
             g_fProjectionMatrix[13] = 0;
