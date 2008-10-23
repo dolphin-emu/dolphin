@@ -18,7 +18,7 @@
 
 #include "ConfigDlg.h"
 #include "../Globals.h"
-#include "Config.h"
+#include "../Config.h"
 
 #include "../TextureMngr.h"
 
