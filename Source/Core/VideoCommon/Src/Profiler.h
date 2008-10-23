@@ -61,7 +61,7 @@ public:
 
 #else
 
-#define DVSTARTPROFILE()
+#define DVSTARTPROFILE(name)
 #define DVSTARTSUBPROFILE(name)
 
 class DVProfileFunc
