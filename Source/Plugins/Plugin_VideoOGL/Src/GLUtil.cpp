@@ -167,7 +167,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	float FactorH  = 480.0f / (float)nBackbufferHeight;
 	float Max = (FactorW < FactorH) ? FactorH : FactorW;
 
-	if(g_Config.bStretchToFit && g_Config.renderToMainframe)
+	if(g_Config.bStretchToFit)
 	{
 		MValueX = 1.0f / FactorW;
 		MValueY = 1.0f / FactorH;
@@ -621,7 +621,7 @@ void OpenGL_Update()
     float Max = (FactorW < FactorH) ? FactorH : FactorW;
 	AR = (float)nBackbufferWidth / (float)nBackbufferHeight;
 
-    if (g_Config.bStretchToFit && g_Config.renderToMainframe)
+    if (g_Config.bStretchToFit)
     {
 		MValueX = 1;
 		MValueY = 1;

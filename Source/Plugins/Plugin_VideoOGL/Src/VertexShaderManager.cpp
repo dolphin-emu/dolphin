@@ -408,7 +408,7 @@ void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
 			hei = ceil(fabs(2 * rawViewport[1]));
 		}
 
-		if (g_Config.bStretchToFit && g_Config.renderToMainframe)
+		if (g_Config.bStretchToFit)
 		{
 			glViewport(
 				(int)(rawViewport[3]-rawViewport[0]-342-scissorXOff) + xoffs,
