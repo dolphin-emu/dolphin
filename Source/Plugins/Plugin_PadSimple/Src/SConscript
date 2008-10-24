@@ -10,11 +10,21 @@ else:
 
 files = [
 	"PadSimple.cpp",
-        "XInputBase.cpp",
-	"GUI/ConfigDlg.cpp",
 	]
-
 padenv = env.Clone()
+
+if not padenv['osx64']:
+    file += [ 
+	     "GUI/ConfigDlg.cpp",
+             "XInputBase.cpp",
+	     ]
+
 padenv.Append(LIBS = [ 'common' ])
-if not env['osx64']:
-    padenv.SharedLibrary(output, files)
+
+if padenv['osx64']:
+    padenv.Append(
+        CXXFLAGS = [ '-arch', 'x86_64' ],
+        LINKFLAGS = [ '-arch', 'x86_64' ],
+        )
+
+padenv.SharedLibrary(output, files)

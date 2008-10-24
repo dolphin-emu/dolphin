@@ -173,8 +173,9 @@ if not env['osx64']:
     if not conf.CheckSDL('1.0.0'):
         Exit(1)
 
-if not conf.CheckPKG('ao'):
-    Exit(1)
+if not env['osx64']:
+    if not conf.CheckPKG('ao'):
+        Exit(1)
 
 # handling wx flags CCFLAGS should be created before
 if not env['nowx']:
@@ -198,15 +199,16 @@ if not env['nowx']:
         compileFlags += ['-DUSE_WX',]
 
 #osx 64bit need this
-#if env['osx64']:
-#    compileFlags += ['\-arch x86_64',]
+if env['osx64']:
+    compileFlags += ['-arch' , 'x86_64', '-DOSX64']
 
 #get sdl stuff
 if not env['osx64']:
     env.ParseConfig('sdl-config --cflags --libs')
 
 # lib ao (needed for sound plugins)
-env.ParseConfig('pkg-config --cflags --libs ao')
+if not env['osx64']:
+    env.ParseConfig('pkg-config --cflags --libs ao')
 
 # add methods from utils to env
 env.AddMethod(utils.filterWarnings)

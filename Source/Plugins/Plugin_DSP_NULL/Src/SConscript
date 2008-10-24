@@ -23,8 +23,16 @@ files = [
 	]
 
 dspenv = env.Clone()
-dspenv.Append(
+if not dspenv['osx64']:
+    dspenv.Append(
 	CXXFLAGS = [ '-fPIC' ],
         LIBS = [ 'common' ],
 	)
+else:
+    dspenv.Append(
+	CXXFLAGS = [ '-fPIC','-arch', 'x86_64' ],
+	LINKFLAGS = [ '-arch', 'x86_64' ],
+        LIBS = [ 'common' ],
+	)
+
 dspenv.SharedLibrary(output, files)

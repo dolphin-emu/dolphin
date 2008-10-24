@@ -21,6 +21,10 @@
 #define _CRTDBG_MAP_ALLOC
 #define _CRTDBG_MAP_ALLOC_NEW
 
+#ifdef OSX64
+#define MAP_32BIT 0
+#endif
+
 #define CHECK_HEAP_INTEGRITY()
 
 #ifdef _WIN32

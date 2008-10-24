@@ -78,7 +78,7 @@ void Host_SysMessage(const char *fmt, ...)
 }
 
 // Include SDL header so it can hijack main().
-#if !defined(_LP64) && !defined(__APPLE__)
+#if !defined(OSX64)
 #include <SDL.h>
 #endif
 int main(int argc, char* argv[])

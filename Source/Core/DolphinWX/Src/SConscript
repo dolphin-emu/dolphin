@@ -29,16 +29,29 @@ libs = [
 	'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'common', 'z'
 	]
 
-if not env['osx64']:
-    libs = [ 'debwx' ] + libs
 wxenv = env.Clone()
-wxenv.Append(
+if not wxenv['osx64']:
+    libs = [ 'debwx' ] + libs
+    wxenv.Append(
 	CPPDEFINES = [
 		'USE_XPM_BITMAPS',
 		'wxNEEDS_CHARPP',
 		],
 	LINKFLAGS = [
 		'-pthread',
+		],
+	LIBS = libs
+	)
+else:
+    wxenv.Append(
+	CPPDEFINES = [
+		'USE_XPM_BITMAPS',
+		'wxNEEDS_CHARPP',
+		],
+	LINKFLAGS = [
+		'-pthread',
+		'-arch',
+		'x86_64'
 		],
 	LIBS = libs
 	)
@@ -72,6 +85,6 @@ else:
 	exeNoGUI = '../../../../Binary/linux/DolphinNoGUI'
 
 objects = [ wxenv.Object(srcFile) for srcFile in files ]
-if not env['osx64']:
+if not wxenv['osx64']:
     wxenv.Program(exeGUI, objects + [ 'Main.cpp' ])
 wxenv.Program(exeNoGUI, objects + [ 'MainNoGUI.cpp' ])

@@ -23,7 +23,9 @@
 #include "PadSimple.h"
 #include "IniFile.h"
 
+#if !defined(OSX64)
 #include "GUI/ConfigDlg.h"
+#endif
 
 #ifdef _WIN32
 #include "XInput.h"
@@ -163,7 +165,7 @@ void DllConfig(HWND _hParent)
 	ConfigDialog frame(&win);
 	frame.ShowModal();
 	win.SetHWND(0);
-#else
+#elif !defined(OSX64)
 	ConfigDialog frame(NULL);
 	frame.ShowModal();
 #endif
