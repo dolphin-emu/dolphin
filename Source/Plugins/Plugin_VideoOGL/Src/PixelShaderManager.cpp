@@ -238,7 +238,7 @@ bool PixelShaderMngr::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpro
     return true;
 }
 
-void PixelShaderMngr::SetConstants(FRAGMENTSHADER& ps)
+void PixelShaderMngr::SetConstants()
 {
     for (int i = 0; i < 2; ++i) {
         if (s_nColorsChanged[i]) {
