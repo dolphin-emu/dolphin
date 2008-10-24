@@ -729,6 +729,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\NativeVertexFormat.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\OpcodeDecoding.cpp"
 				>
 			</File>

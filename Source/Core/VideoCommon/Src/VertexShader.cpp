@@ -15,8 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Profiler.h"
 #include <math.h>
+
+#include "Profiler.h"
+#include "NativeVertexFormat.h"
 
 #include "BPMemory.h"
 #include "VertexShader.h"

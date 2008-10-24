@@ -63,7 +63,7 @@ void LOADERDECL _ReadPosFloatMem(int iAddress, TVtxAttr* pVtxAttr)
 		varray->SetPosZ(1.0);	
 }
 
-void LOADERDECL Pos_ReadDirect_UByte(void* _p)
+void LOADERDECL Pos_ReadDirect_UByte(const void* _p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	varray->SetPosX((float)DataReadU8() * posScale);
@@ -75,7 +75,7 @@ void LOADERDECL Pos_ReadDirect_UByte(void* _p)
 		varray->SetPosZ(1.0);
 }
 
-void LOADERDECL Pos_ReadDirect_Byte(void* _p)
+void LOADERDECL Pos_ReadDirect_Byte(const void* _p)
 {	
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	varray->SetPosX((float)(s8)DataReadU8() * posScale);
@@ -87,7 +87,7 @@ void LOADERDECL Pos_ReadDirect_Byte(void* _p)
 		varray->SetPosZ(1.0);
 }
 
-void LOADERDECL Pos_ReadDirect_UShort(void* _p)
+void LOADERDECL Pos_ReadDirect_UShort(const void* _p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 
@@ -100,7 +100,7 @@ void LOADERDECL Pos_ReadDirect_UShort(void* _p)
 		varray->SetPosZ(1.0);
 }
 
-void LOADERDECL Pos_ReadDirect_Short(void* _p)
+void LOADERDECL Pos_ReadDirect_Short(const void* _p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 
@@ -113,7 +113,7 @@ void LOADERDECL Pos_ReadDirect_Short(void* _p)
 		varray->SetPosZ(1.0);
 }
 
-void LOADERDECL Pos_ReadDirect_Float(void* _p)
+void LOADERDECL Pos_ReadDirect_Float(const void* _p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 
@@ -130,14 +130,14 @@ void LOADERDECL Pos_ReadDirect_Float(void* _p)
 // Index 8
 // ==============================================================================
 
-void LOADERDECL Pos_ReadIndex8_UByte(void* _p) 
+void LOADERDECL Pos_ReadIndex8_UByte(const void* _p) 
 { 
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u8 Index = DataReadU8();
 	u32 iAddress = arraybases[ARRAY_POSITION] + (Index * arraystrides[ARRAY_POSITION]);
 	_ReadPos8Mem<u8>(iAddress, pVtxAttr);
 }
-void LOADERDECL Pos_ReadIndex8_Byte(void* _p)
+void LOADERDECL Pos_ReadIndex8_Byte(const void* _p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u8 Index = DataReadU8();
@@ -145,7 +145,7 @@ void LOADERDECL Pos_ReadIndex8_Byte(void* _p)
 	_ReadPos8Mem<s8>(iAddress, pVtxAttr);
 }
 
-void LOADERDECL Pos_ReadIndex8_UShort(void* _p)
+void LOADERDECL Pos_ReadIndex8_UShort(const void* _p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u8 Index = DataReadU8();
@@ -153,7 +153,7 @@ void LOADERDECL Pos_ReadIndex8_UShort(void* _p)
 	_ReadPos16Mem<u16>(iAddress, pVtxAttr);
 }
 
-void LOADERDECL Pos_ReadIndex8_Short(void* _p)
+void LOADERDECL Pos_ReadIndex8_Short(const void* _p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u8 Index = DataReadU8();
@@ -161,7 +161,7 @@ void LOADERDECL Pos_ReadIndex8_Short(void* _p)
 	_ReadPos16Mem<s16>(iAddress, pVtxAttr);
 }
 
-void LOADERDECL Pos_ReadIndex8_Float(void* _p)
+void LOADERDECL Pos_ReadIndex8_Float(const void* _p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u8 Index = DataReadU8();
@@ -173,28 +173,28 @@ void LOADERDECL Pos_ReadIndex8_Float(void* _p)
 // Index 16
 // ==============================================================================
 
-void LOADERDECL Pos_ReadIndex16_UByte(void* _p){
+void LOADERDECL Pos_ReadIndex16_UByte(const void* _p){
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u16 Index = DataReadU16(); 
 	u32 iAddress = arraybases[ARRAY_POSITION] + (Index * arraystrides[ARRAY_POSITION]);
 	_ReadPos8Mem<u8>(iAddress, pVtxAttr);
 }
 
-void LOADERDECL Pos_ReadIndex16_Byte(void* _p){
+void LOADERDECL Pos_ReadIndex16_Byte(const void* _p){
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u16 Index = DataReadU16(); 
 	u32 iAddress = arraybases[ARRAY_POSITION] + (Index * arraystrides[ARRAY_POSITION]);
 	_ReadPos8Mem<s8>(iAddress, pVtxAttr);
 }
 
-void LOADERDECL Pos_ReadIndex16_UShort(void* _p){
+void LOADERDECL Pos_ReadIndex16_UShort(const void* _p){
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u16 Index = DataReadU16(); 
 	u32 iAddress = arraybases[ARRAY_POSITION] + (Index * arraystrides[ARRAY_POSITION]);
 	_ReadPos16Mem<u16>(iAddress, pVtxAttr);
 }
 
-void LOADERDECL Pos_ReadIndex16_Short(void* _p)
+void LOADERDECL Pos_ReadIndex16_Short(const void* _p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u16 Index = DataReadU16(); 
@@ -202,7 +202,7 @@ void LOADERDECL Pos_ReadIndex16_Short(void* _p)
 	_ReadPos16Mem<s16>(iAddress, pVtxAttr);
 }
 
-void LOADERDECL Pos_ReadIndex16_Float(void* _p)
+void LOADERDECL Pos_ReadIndex16_Float(const void* _p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u16 Index = DataReadU16(); 

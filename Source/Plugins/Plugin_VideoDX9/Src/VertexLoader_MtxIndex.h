@@ -24,7 +24,7 @@
 // ==============================================================================
 // Direct
 // ==============================================================================
-void LOADERDECL PosMtx_ReadDirect_UByte(void* _p)
+void LOADERDECL PosMtx_ReadDirect_UByte(const void* _p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	int index = DataReadU8() & 0x3f;
@@ -33,7 +33,7 @@ void LOADERDECL PosMtx_ReadDirect_UByte(void* _p)
 }
 
 int s_texmtxread = 0, s_texmtxwrite = 0;
-void LOADERDECL TexMtx_ReadDirect_UByte(void* _p)
+void LOADERDECL TexMtx_ReadDirect_UByte(const void* _p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	int index = DataReadU8() & 0x3f;

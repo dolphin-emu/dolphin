@@ -48,7 +48,7 @@ int ComputeVertexSize(u32 components);
 #include "DataReader.h"
 
 #define LOADERDECL __cdecl
-typedef void (LOADERDECL *TPipelineFunction)(void*);
+typedef void (LOADERDECL *TPipelineFunction)(const void*);
 
 class VertexLoader
 {
@@ -127,7 +127,7 @@ public:
 	void Compile();
 	void PrepareRun();
 	void RunVertices(int count);
-	void WriteCall(void  (LOADERDECL *func)(void *));
+	void WriteCall(TPipelineFunction func);
 	int GetVertexSize(){return m_VertexSize;}
 
 	//VtxDesc - global

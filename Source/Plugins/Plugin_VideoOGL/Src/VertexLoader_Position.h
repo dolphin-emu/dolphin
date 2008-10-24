@@ -23,7 +23,7 @@
 // ==============================================================================
 // Direct
 // ==============================================================================
-void LOADERDECL Pos_ReadDirect_UByte(void* _p)
+void LOADERDECL Pos_ReadDirect_UByte(const void *_p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)DataReadU8() * posScale;
@@ -36,7 +36,7 @@ void LOADERDECL Pos_ReadDirect_UByte(void* _p)
     VertexManager::s_pCurBufferPointer += 12;
 }
 
-void LOADERDECL Pos_ReadDirect_Byte(void* _p)
+void LOADERDECL Pos_ReadDirect_Byte(const void *_p)
 {	
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(s8)DataReadU8() * posScale;
@@ -49,7 +49,7 @@ void LOADERDECL Pos_ReadDirect_Byte(void* _p)
     VertexManager::s_pCurBufferPointer += 12;
 }
 
-void LOADERDECL Pos_ReadDirect_UShort(void* _p)
+void LOADERDECL Pos_ReadDirect_UShort(const void *_p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)DataReadU16() * posScale;
@@ -62,7 +62,7 @@ void LOADERDECL Pos_ReadDirect_UShort(void* _p)
     VertexManager::s_pCurBufferPointer += 12;
 }
 
-void LOADERDECL Pos_ReadDirect_Short(void* _p)
+void LOADERDECL Pos_ReadDirect_Short(const void *_p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	((float*)VertexManager::s_pCurBufferPointer)[0] = (float)(s16)DataReadU16() * posScale;
@@ -75,7 +75,7 @@ void LOADERDECL Pos_ReadDirect_Short(void* _p)
     VertexManager::s_pCurBufferPointer += 12;
 }
 
-void LOADERDECL Pos_ReadDirect_Float(void* _p)
+void LOADERDECL Pos_ReadDirect_Float(const void *_p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	((float*)VertexManager::s_pCurBufferPointer)[0] = DataReadF32(); 
@@ -127,35 +127,35 @@ void LOADERDECL Pos_ReadDirect_Float(void* _p)
 // ==============================================================================
 // Index 8
 // ==============================================================================
-void LOADERDECL Pos_ReadIndex8_UByte(void* _p) 
+void LOADERDECL Pos_ReadIndex8_UByte(const void *_p) 
 { 
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u8 Index = DataReadU8();
     Pos_ReadIndex_Byte(u8);
 }
 
-void LOADERDECL Pos_ReadIndex8_Byte(void* _p)
+void LOADERDECL Pos_ReadIndex8_Byte(const void *_p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u8 Index = DataReadU8();
 	Pos_ReadIndex_Byte(s8);
 }
 
-void LOADERDECL Pos_ReadIndex8_UShort(void* _p)
+void LOADERDECL Pos_ReadIndex8_UShort(const void *_p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u8 Index = DataReadU8();
     Pos_ReadIndex_Short(u16);
 }
 
-void LOADERDECL Pos_ReadIndex8_Short(void* _p)
+void LOADERDECL Pos_ReadIndex8_Short(const void *_p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u8 Index = DataReadU8();
 	Pos_ReadIndex_Short(s16);
 }
 
-void LOADERDECL Pos_ReadIndex8_Float(void* _p)
+void LOADERDECL Pos_ReadIndex8_Float(const void *_p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u8 Index = DataReadU8();
@@ -166,32 +166,32 @@ void LOADERDECL Pos_ReadIndex8_Float(void* _p)
 // Index 16
 // ==============================================================================
 
-void LOADERDECL Pos_ReadIndex16_UByte(void* _p){
+void LOADERDECL Pos_ReadIndex16_UByte(const void *_p){
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u16 Index = DataReadU16(); 
 	Pos_ReadIndex_Byte(u8);
 }
 
-void LOADERDECL Pos_ReadIndex16_Byte(void* _p){
+void LOADERDECL Pos_ReadIndex16_Byte(const void *_p){
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u16 Index = DataReadU16(); 
 	Pos_ReadIndex_Byte(s8);
 }
 
-void LOADERDECL Pos_ReadIndex16_UShort(void* _p){
+void LOADERDECL Pos_ReadIndex16_UShort(const void *_p){
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u16 Index = DataReadU16(); 
 	Pos_ReadIndex_Short(u16);
 }
 
-void LOADERDECL Pos_ReadIndex16_Short(void* _p)
+void LOADERDECL Pos_ReadIndex16_Short(const void *_p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u16 Index = DataReadU16(); 
 	Pos_ReadIndex_Short(s16);
 }
 
-void LOADERDECL Pos_ReadIndex16_Float(void* _p)
+void LOADERDECL Pos_ReadIndex16_Float(const void *_p)
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u16 Index = DataReadU16(); 

@@ -317,9 +317,9 @@ void VertexLoader::SetupTexCoord(int num, int mode, int format, int elements, in
 	}
 }
 
-void VertexLoader::WriteCall(void  (LOADERDECL *func)(void *))
+void VertexLoader::WriteCall(TPipelineFunction func)
 {
-	m_PipelineStates[m_numPipelineStates++] = func;;
+	m_PipelineStates[m_numPipelineStates++] = func;
 }
 
 using namespace Gen;

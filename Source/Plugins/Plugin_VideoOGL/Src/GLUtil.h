@@ -18,6 +18,8 @@
 #ifndef _GLINIT_H
 #define _GLINIT_H
 
+#include "pluginspecs_video.h"
+
 #ifdef _WIN32
 
 #define GLEW_STATIC

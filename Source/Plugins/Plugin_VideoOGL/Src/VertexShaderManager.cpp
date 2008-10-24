@@ -224,7 +224,7 @@ const u16 s_mtrltable[16][2] = {{0, 0}, {0, 1}, {1, 1}, {0, 2},
 // =======================================================================================
 // Syncs the shader constant buffers with xfmem
 // ----------------
-void VertexShaderMngr::SetConstants(VERTEXSHADER& vs)
+void VertexShaderMngr::SetConstants()
 {
     //nTransformMatricesChanged[0] = 0; nTransformMatricesChanged[1] = 256;
     //nNormalMatricesChanged[0] = 0; nNormalMatricesChanged[1] = 96;

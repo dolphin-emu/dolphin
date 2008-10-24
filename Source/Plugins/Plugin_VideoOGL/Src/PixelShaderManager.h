@@ -117,7 +117,7 @@ public:
     static FRAGMENTSHADER* GetShader();
     static bool CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram);
 
-    static void SetConstants(FRAGMENTSHADER& ps); // sets pixel shader constants
+    static void SetConstants(); // sets pixel shader constants
 
     // constant management, should be called after memory is committed
     static void SetColorChanged(int type, int index);

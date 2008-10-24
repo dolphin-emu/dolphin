@@ -20,7 +20,7 @@
 
 extern int tcIndex;
 
-void LOADERDECL TexCoord_ReadDirect_UByte(void* _p)
+void LOADERDECL TexCoord_ReadDirect_UByte(const void* _p)
 {
 	varray->SetU(tcIndex, DataReadU8() * tcScaleU[tcIndex]);   
 	if (tcElements[tcIndex])
@@ -28,7 +28,7 @@ void LOADERDECL TexCoord_ReadDirect_UByte(void* _p)
 	tcIndex++;
 }
 
-void LOADERDECL TexCoord_ReadDirect_Byte(void* _p)
+void LOADERDECL TexCoord_ReadDirect_Byte(const void* _p)
 {
 	varray->SetU(tcIndex, (s8)DataReadU8() * tcScaleU[tcIndex]);   
 	if (tcElements[tcIndex])
@@ -36,7 +36,7 @@ void LOADERDECL TexCoord_ReadDirect_Byte(void* _p)
 	tcIndex++;
 }
 
-void LOADERDECL TexCoord_ReadDirect_UShort(void* _p)
+void LOADERDECL TexCoord_ReadDirect_UShort(const void* _p)
 {
 	varray->SetU(tcIndex, DataReadU16() * tcScaleU[tcIndex]);
 	if (tcElements[tcIndex])
@@ -44,14 +44,14 @@ void LOADERDECL TexCoord_ReadDirect_UShort(void* _p)
 	tcIndex++;
 }
 
-void LOADERDECL TexCoord_ReadDirect_Short(void* _p)
+void LOADERDECL TexCoord_ReadDirect_Short(const void* _p)
 {
 	varray->SetU(tcIndex, (s16)DataReadU16() * tcScaleU[tcIndex]);
 	if (tcElements[tcIndex])
 		varray->SetV(tcIndex, (s16)DataReadU16() * tcScaleV[tcIndex]);
 	tcIndex++;
 }
-void LOADERDECL TexCoord_ReadDirect_Float(void* _p)
+void LOADERDECL TexCoord_ReadDirect_Float(const void* _p)
 {
 	varray->SetU(tcIndex, DataReadF32() * tcScaleU[tcIndex]);
 	if (tcElements[tcIndex])
@@ -60,7 +60,7 @@ void LOADERDECL TexCoord_ReadDirect_Float(void* _p)
 }
 
 // ==================================================================================
-void LOADERDECL TexCoord_ReadIndex8_UByte(void* _p)	
+void LOADERDECL TexCoord_ReadIndex8_UByte(const void* _p)	
 {
 	u8 Index = DataReadU8();
 	u32 iAddress = arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
@@ -70,7 +70,7 @@ void LOADERDECL TexCoord_ReadIndex8_UByte(void* _p)
 		varray->SetV(tcIndex, (float)(u8)Memory_Read_U8(iAddress+1) * tcScaleV[tcIndex]);
 	tcIndex++;
 }
-void LOADERDECL TexCoord_ReadIndex8_Byte(void* _p)		
+void LOADERDECL TexCoord_ReadIndex8_Byte(const void* _p)		
 {
 	u8 Index = DataReadU8();
 	u32 iAddress = arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
@@ -81,7 +81,7 @@ void LOADERDECL TexCoord_ReadIndex8_Byte(void* _p)
 
 	tcIndex++;
 }
-void LOADERDECL TexCoord_ReadIndex8_UShort(void* _p)	
+void LOADERDECL TexCoord_ReadIndex8_UShort(const void* _p)	
 {
 	u8 Index = DataReadU8();
 	u32 iAddress = arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
@@ -91,7 +91,7 @@ void LOADERDECL TexCoord_ReadIndex8_UShort(void* _p)
 		varray->SetV(tcIndex, (float)(u16)Memory_Read_U16(iAddress+2) * tcScaleV[tcIndex]);
 	tcIndex++;
 }
-void LOADERDECL TexCoord_ReadIndex8_Short(void* _p)	
+void LOADERDECL TexCoord_ReadIndex8_Short(const void* _p)	
 {
 	u8 Index = DataReadU8();
 	u32 iAddress = arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
@@ -101,7 +101,7 @@ void LOADERDECL TexCoord_ReadIndex8_Short(void* _p)
 		varray->SetV(tcIndex, (float)(s16)Memory_Read_U16(iAddress+2) * tcScaleV[tcIndex]);
 	tcIndex++;
 }
-void LOADERDECL TexCoord_ReadIndex8_Float(void* _p)	
+void LOADERDECL TexCoord_ReadIndex8_Float(const void* _p)	
 {
 	u16 Index = DataReadU8(); 
 	u32 iAddress = arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
@@ -118,7 +118,7 @@ void LOADERDECL TexCoord_ReadIndex8_Float(void* _p)
 
 
 // ==================================================================================
-void LOADERDECL TexCoord_ReadIndex16_UByte(void* _p)	
+void LOADERDECL TexCoord_ReadIndex16_UByte(const void* _p)	
 {
 	u16 Index = DataReadU16(); 
 	u32 iAddress = arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
@@ -134,7 +134,7 @@ void LOADERDECL TexCoord_ReadIndex16_UByte(void* _p)
 	}
 	tcIndex++;
 }
-void LOADERDECL TexCoord_ReadIndex16_Byte(void* _p)	
+void LOADERDECL TexCoord_ReadIndex16_Byte(const void* _p)	
 {
 	u16 Index = DataReadU16(); 
 	u32 iAddress = arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
@@ -151,7 +151,7 @@ void LOADERDECL TexCoord_ReadIndex16_Byte(void* _p)
 	tcIndex++;
 }
 
-void LOADERDECL TexCoord_ReadIndex16_UShort(void* _p)	
+void LOADERDECL TexCoord_ReadIndex16_UShort(const void* _p)	
 {
 	TVtxAttr* pVtxAttr = (TVtxAttr*)_p;
 	u16 Index = DataReadU16(); 
@@ -168,7 +168,7 @@ void LOADERDECL TexCoord_ReadIndex16_UShort(void* _p)
 	}
 	tcIndex++;
 }
-void LOADERDECL TexCoord_ReadIndex16_Short(void* _p)	
+void LOADERDECL TexCoord_ReadIndex16_Short(const void* _p)	
 {
 	u16 Index = DataReadU16(); 
 	u32 iAddress = arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);
@@ -184,7 +184,7 @@ void LOADERDECL TexCoord_ReadIndex16_Short(void* _p)
 	}
 	tcIndex++;
 }
-void LOADERDECL TexCoord_ReadIndex16_Float(void* _p)	
+void LOADERDECL TexCoord_ReadIndex16_Float(const void* _p)	
 {
 	u16 Index = DataReadU16(); 
 	u32 iAddress = arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]);

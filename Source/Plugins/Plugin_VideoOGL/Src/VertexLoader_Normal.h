@@ -66,28 +66,28 @@ private:
     static TPipelineFunction m_funcTable[NUM_NRM_TYPE][NUM_NRM_FORMAT][NUM_NRM_ELEMENTS];
 
     // direct
-    static void LOADERDECL Normal_DirectByte(void* _p);
-    static void LOADERDECL Normal_DirectShort(void* _p);
-    static void LOADERDECL Normal_DirectFloat(void* _p);
-    static void LOADERDECL Normal_DirectByte3(void* _p);
-    static void LOADERDECL Normal_DirectShort3(void* _p);
-    static void LOADERDECL Normal_DirectFloat3(void* _p);
+    static void LOADERDECL Normal_DirectByte(const void *_p);
+    static void LOADERDECL Normal_DirectShort(const void *_p);
+    static void LOADERDECL Normal_DirectFloat(const void *_p);
+    static void LOADERDECL Normal_DirectByte3(const void *_p);
+    static void LOADERDECL Normal_DirectShort3(const void *_p);
+    static void LOADERDECL Normal_DirectFloat3(const void *_p);
 
     // index8
-    static void LOADERDECL Normal_Index8_Byte(void* _p);
-    static void LOADERDECL Normal_Index8_Short(void* _p);
-    static void LOADERDECL Normal_Index8_Float(void* _p);
-    static void LOADERDECL Normal_Index8_Byte3(void* _p);
-    static void LOADERDECL Normal_Index8_Short3(void* _p);
-    static void LOADERDECL Normal_Index8_Float3(void* _p);
+    static void LOADERDECL Normal_Index8_Byte(const void *_p);
+    static void LOADERDECL Normal_Index8_Short(const void *_p);
+    static void LOADERDECL Normal_Index8_Float(const void *_p);
+    static void LOADERDECL Normal_Index8_Byte3(const void *_p);
+    static void LOADERDECL Normal_Index8_Short3(const void *_p);
+    static void LOADERDECL Normal_Index8_Float3(const void *_p);
 
     // index16
-    static void LOADERDECL Normal_Index16_Byte(void* _p);
-    static void LOADERDECL Normal_Index16_Short(void* _p);
-    static void LOADERDECL Normal_Index16_Float(void* _p);
-    static void LOADERDECL Normal_Index16_Byte3(void* _p);
-    static void LOADERDECL Normal_Index16_Short3(void* _p);
-    static void LOADERDECL Normal_Index16_Float3(void* _p);
+    static void LOADERDECL Normal_Index16_Byte(const void *_p);
+    static void LOADERDECL Normal_Index16_Short(const void *_p);
+    static void LOADERDECL Normal_Index16_Float(const void *_p);
+    static void LOADERDECL Normal_Index16_Byte3(const void *_p);
+    static void LOADERDECL Normal_Index16_Short3(const void *_p);
+    static void LOADERDECL Normal_Index16_Float3(const void *_p);
 };
 
 #endif

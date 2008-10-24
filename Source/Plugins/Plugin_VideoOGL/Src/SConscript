@@ -19,6 +19,7 @@ files = [
 	'Render.cpp',
 	'TextureMngr.cpp',
 	'ImageWrite.cpp',
+	'NativeVertexFormat.cpp',
 	'VertexManager.cpp',
 	'VertexLoader.cpp',
 	'VertexLoader_Normal.cpp',

@@ -163,7 +163,7 @@ void VertexManager::Flush()
 
 	// set the textures
 	{
-		DVSTARTPROFILE("VertexManager::Flush:textures");
+		DVSTARTSUBPROFILE("VertexManager::Flush:textures");
 
 		u32 usedtextures = 0;
 		for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i) {
@@ -226,7 +226,8 @@ void VertexManager::Flush()
 
 	FRAGMENTSHADER* ps = PixelShaderMngr::GetShader();
 	VERTEXSHADER* vs = VertexShaderMngr::GetShader(s_prevcomponents);
-	_assert_(ps != NULL && vs != NULL);
+	//if (!ps) PanicAlert("Pixel shader = 0. Argh.");
+	//if (!vs) PanicAlert("Vertex shader = 0. Argh.");
 
 	bool bRestoreBuffers = false;
 	if (Renderer::GetZBufferTarget()) {
@@ -246,15 +247,15 @@ void VertexManager::Flush()
 	}
 
 	// set global constants
-	VertexShaderMngr::SetConstants(*vs);
-	PixelShaderMngr::SetConstants(*ps);
+	VertexShaderMngr::SetConstants();
+	PixelShaderMngr::SetConstants();
 
 	// finally bind
 
 	// TODO - cache progid, check if same as before. Maybe GL does this internally, though.
 	// This is the really annoying problem with GL - you never know whether it's worth caching stuff yourself.
-	glBindProgramARB(GL_VERTEX_PROGRAM_ARB, vs->glprogid);
-	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, ps->glprogid);
+	if (vs) glBindProgramARB(GL_VERTEX_PROGRAM_ARB, vs->glprogid);
+	if (ps) glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, ps->glprogid); // Lego Star Wars crashes here.
 
 #ifdef _DEBUG
 	PRIM_LOG("\n");
@@ -327,10 +328,12 @@ void VertexManager::LoadCPReg(u32 sub_cmd, u32 value)
 	}
 }
 
+// This should move into NativeVertexFormat
 void VertexManager::EnableComponents(u32 components)
 {
     if (s_prevcomponents != components) {
-        VertexManager::Flush();
+		if (s_vStoredPrimitives.size() != 0)
+			PanicAlert("EnableComponents - report this bug");
 
         // matrices
         if ((components & VB_HAS_POSMTXIDX) != (s_prevcomponents & VB_HAS_POSMTXIDX)) {

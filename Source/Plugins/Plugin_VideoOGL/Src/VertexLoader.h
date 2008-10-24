@@ -21,8 +21,7 @@
 #include "CPMemory.h"
 #include "DataReader.h"
 
-#define LOADERDECL __cdecl
-typedef void (LOADERDECL *TPipelineFunction)(void*);
+#include "NativeVertexFormat.h"
 
 // There are 8 of these. Most games only use the first, and just reconfigure it all the time
 // as needed, unfortunately.
@@ -37,15 +36,16 @@ public:
         NRM_THREE = 3
     };
 
-private:	
-    TPipelineFunction m_PipelineStages[32];
-    int m_numPipelineStages;
+private:
+	// The 3 possible values (0, 1, 2) should be documented here.
+	enum {
+		AD_CLEAN = 0,
+		AD_DIRTY = 1,
+		AD_VAT_DIRTY = 2,
+	} m_AttrDirty;
 
+	// Flipper vertex format =============
     int m_VertexSize;      // number of bytes of a raw GC vertex
-    int m_VBVertexStride;  // PC-side vertex stride
-	int m_VBStridePad;
-
-    u32 m_components;  // VB_HAS_X. Bitmask telling what vertex components are present.
 
 	// Raw VAttr
     UVAT_group0 m_group0;
@@ -53,20 +53,14 @@ private:
     UVAT_group2 m_group2;
     TVtxAttr m_VtxAttr;  // Decoded into easy format
 
-    u8* m_compiledCode;
-
     // Common for all loaders  (? then why is it here?)
     TVtxDesc m_VtxDesc;
 
+	// PC vertex format, + converter ======
+	NativeVertexFormat m_NativeFmt;
+
     void SetupColor(int num, int _iMode, int _iFormat, int _iElements);
     void SetupTexCoord(int num, int _iMode, int _iFormat, int _iElements, int _iFrac);
-
-	// The 3 possible values (0, 1, 2) should be documented here.
-	enum {
-		AD_CLEAN = 0,
-		AD_DIRTY = 1,
-		AD_VAT_DIRTY = 2,
-	} m_AttrDirty;
 
 public:
     // constructor
@@ -76,10 +70,10 @@ public:
     // run the pipeline 
     void PrepareForVertexFormat();
     void RunVertices(int primitive, int count);
-    void WriteCall(void  (LOADERDECL *func)(void *));
+    void WriteCall(TPipelineFunction);
     
     int GetGCVertexSize()   const { _assert_( !m_AttrDirty ); return m_VertexSize; }
-    int GetVBVertexStride() const { _assert_( !m_AttrDirty);  return m_VBVertexStride; }
+    int GetVBVertexStride() const { _assert_( !m_AttrDirty);  return m_NativeFmt.m_VBVertexStride; }
 
     int ComputeVertexSize();
 

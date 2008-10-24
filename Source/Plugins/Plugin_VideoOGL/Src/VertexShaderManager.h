@@ -112,7 +112,7 @@ public:
     static bool CompileVertexShader(VERTEXSHADER& ps, const char* pstrprogram);
 
     // constant management
-    static void SetConstants(VERTEXSHADER& vs);
+    static void SetConstants();
 
     static void SetViewport(float* _Viewport);
     static void SetViewportChanged();

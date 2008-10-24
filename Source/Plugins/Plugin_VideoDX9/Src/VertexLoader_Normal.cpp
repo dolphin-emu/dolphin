@@ -128,7 +128,7 @@ VertexLoader_Normal::GetFunction(unsigned int _type, unsigned int _format, unsig
 // Normal_DirectByte
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_DirectByte(void* _p)
+VertexLoader_Normal::Normal_DirectByte(const void* _p)
 {
 	varray->SetNormalX(0, ((float)(signed char)DataReadU8()+0.5f) / 127.5f);
 	varray->SetNormalY(0, ((float)(signed char)DataReadU8()+0.5f) / 127.5f);
@@ -139,7 +139,7 @@ VertexLoader_Normal::Normal_DirectByte(void* _p)
 // Normal_DirectShort
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_DirectShort(void* _p)
+VertexLoader_Normal::Normal_DirectShort(const void* _p)
 {
 	varray->SetNormalX(0, ((float)(signed short)DataReadU16()+0.5f) / 32767.5f);
 	varray->SetNormalY(0, ((float)(signed short)DataReadU16()+0.5f) / 32767.5f);
@@ -150,7 +150,7 @@ VertexLoader_Normal::Normal_DirectShort(void* _p)
 // Normal_DirectFloat
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_DirectFloat(void* _p)
+VertexLoader_Normal::Normal_DirectFloat(const void* _p)
 {
 	varray->SetNormalX(0, DataReadF32());
 	varray->SetNormalY(0, DataReadF32());
@@ -161,7 +161,7 @@ VertexLoader_Normal::Normal_DirectFloat(void* _p)
 // Normal_DirectByte3
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_DirectByte3(void* _p)
+VertexLoader_Normal::Normal_DirectByte3(const void* _p)
 {
 	for (int i=0; i<3; i++)
 	{
@@ -175,7 +175,7 @@ VertexLoader_Normal::Normal_DirectByte3(void* _p)
 // Normal_DirectShort3
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_DirectShort3(void* _p)
+VertexLoader_Normal::Normal_DirectShort3(const void* _p)
 {
 	for (int i=0; i<3; i++)
 	{
@@ -189,7 +189,7 @@ VertexLoader_Normal::Normal_DirectShort3(void* _p)
 // Normal_DirectFloat3
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_DirectFloat3(void* _p)
+VertexLoader_Normal::Normal_DirectFloat3(const void* _p)
 {
 	for (int i=0; i<3; i++)
 	{
@@ -209,7 +209,7 @@ VertexLoader_Normal::Normal_DirectFloat3(void* _p)
 // Normal_Index8_Byte
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_Index8_Byte(void* _p)
+VertexLoader_Normal::Normal_Index8_Byte(const void* _p)
 {
 	u8 Index = DataReadU8();
 	u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]);
@@ -223,7 +223,7 @@ VertexLoader_Normal::Normal_Index8_Byte(void* _p)
 // Normal_Index8_Short
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_Index8_Short(void* _p)
+VertexLoader_Normal::Normal_Index8_Short(const void* _p)
 {
 	u8 Index = DataReadU8();
 	u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]);
@@ -237,7 +237,7 @@ VertexLoader_Normal::Normal_Index8_Short(void* _p)
 // Normal_Index8_Float
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_Index8_Float(void* _p)
+VertexLoader_Normal::Normal_Index8_Float(const void* _p)
 {
 	u8 Index = DataReadU8();
 	u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]);
@@ -251,7 +251,7 @@ VertexLoader_Normal::Normal_Index8_Float(void* _p)
 // Normal_Index8_Byte3
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_Index8_Byte3(void* _p)
+VertexLoader_Normal::Normal_Index8_Byte3(const void* _p)
 {
 	if (index3)
 	{
@@ -283,7 +283,7 @@ VertexLoader_Normal::Normal_Index8_Byte3(void* _p)
 // Normal_Index8_Short3
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_Index8_Short3(void* _p)
+VertexLoader_Normal::Normal_Index8_Short3(const void* _p)
 {
 	if (index3)
 	{
@@ -315,7 +315,7 @@ VertexLoader_Normal::Normal_Index8_Short3(void* _p)
 // Normal_Index8_Float3
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_Index8_Float3(void* _p)
+VertexLoader_Normal::Normal_Index8_Float3(const void* _p)
 {
 	if (index3)
 	{
@@ -353,7 +353,7 @@ VertexLoader_Normal::Normal_Index8_Float3(void* _p)
 // Normal_Index16_Byte
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_Index16_Byte(void* _p)
+VertexLoader_Normal::Normal_Index16_Byte(const void* _p)
 {
 	u16 Index = DataReadU16();
 	u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]);
@@ -367,7 +367,7 @@ VertexLoader_Normal::Normal_Index16_Byte(void* _p)
 // Normal_Index16_Short
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_Index16_Short(void* _p)
+VertexLoader_Normal::Normal_Index16_Short(const void* _p)
 {
 	u16 Index = DataReadU16();
 	u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]);
@@ -381,7 +381,7 @@ VertexLoader_Normal::Normal_Index16_Short(void* _p)
 // Normal_Index8_Float
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_Index16_Float(void* _p)
+VertexLoader_Normal::Normal_Index16_Float(const void* _p)
 {
 	u16 Index = DataReadU16();
 	u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]);
@@ -395,7 +395,7 @@ VertexLoader_Normal::Normal_Index16_Float(void* _p)
 // Normal_Index16_Byte3
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_Index16_Byte3(void* _p)
+VertexLoader_Normal::Normal_Index16_Byte3(const void* _p)
 {
 	if (index3)
 	{
@@ -427,7 +427,7 @@ VertexLoader_Normal::Normal_Index16_Byte3(void* _p)
 // Normal_Index16_Short3
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_Index16_Short3(void* _p)
+VertexLoader_Normal::Normal_Index16_Short3(const void* _p)
 {
 	if (index3)
 	{
@@ -459,7 +459,7 @@ VertexLoader_Normal::Normal_Index16_Short3(void* _p)
 // Normal_Index16_Float3
 //
 void LOADERDECL 
-VertexLoader_Normal::Normal_Index16_Float3(void* _p)
+VertexLoader_Normal::Normal_Index16_Float3(const void* _p)
 {
 	if (index3)
 	{

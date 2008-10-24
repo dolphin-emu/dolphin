@@ -178,8 +178,8 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	{
 		MValueX = 1.0f / Max;
 		MValueY = 1.0f / Max;
-		nXoff = (nBackbufferWidth - (640 * MValueX)) / 2;
-		nYoff = (nBackbufferHeight - (480 * MValueY)) / 2;
+		nXoff = (int)((nBackbufferWidth - (640 * MValueX)) / 2);
+		nYoff = (int)((nBackbufferHeight - (480 * MValueY)) / 2);
 	}
 
     g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;

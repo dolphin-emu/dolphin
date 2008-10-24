@@ -480,6 +480,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\NativeVertexFormat.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\OpcodeDecoding.h"
 			>
 		</File>
