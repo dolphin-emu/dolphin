@@ -19,6 +19,7 @@
 #define _NATIVEVERTEXFORMAT_H
 
 #include "CPMemory.h"
+#include "PluginSpecs.h"
 
 // m_components
 enum {
