@@ -41,7 +41,7 @@ static const GLenum c_primitiveType[8] =
 };
 
 // internal state for loading vertices
-void (*fnSetupVertexPointers)() = NULL;
+extern NativeVertexFormat *g_nativeVertexFmt;
 
 bool VertexManager::Init()
 {
@@ -60,7 +60,7 @@ bool VertexManager::Init()
 	}
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	fnSetupVertexPointers = NULL;
+	g_nativeVertexFmt = NULL;
 	s_vStoredPrimitives.reserve(1000);
 	GL_REPORT_ERRORD();
 
@@ -121,7 +121,6 @@ void VertexManager::Flush()
 	if (s_vStoredPrimitives.size() == 0)
 		return;
 
-	_assert_(fnSetupVertexPointers != NULL);
 	_assert_(s_pCurBufferPointer != s_pBaseBufferPointer);
 
 #ifdef _DEBUG
@@ -158,7 +157,7 @@ void VertexManager::Flush()
 	GL_REPORT_ERRORD();
 
 	// setup the pointers
-	fnSetupVertexPointers();
+	g_nativeVertexFmt->SetupVertexPointers();
 	GL_REPORT_ERRORD();
 
 	// set the textures
@@ -184,7 +183,7 @@ void VertexManager::Flush()
 			if (usedtextures & (1 << i)) {
 				glActiveTexture(GL_TEXTURE0 + i);
 			
-				FourTexUnits &tex = bpmem.tex[i>>2];
+				FourTexUnits &tex = bpmem.tex[i >> 2];
 				TextureMngr::TCacheEntry* tentry = TextureMngr::Load(i, (tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
 					tex.texImage0[i&3].width+1, tex.texImage0[i&3].height+1,
 					tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, tex.texTlut[i&3].tlut_format);
@@ -333,7 +332,7 @@ void VertexManager::EnableComponents(u32 components)
 {
     if (s_prevcomponents != components) {
 		if (s_vStoredPrimitives.size() != 0)
-			PanicAlert("EnableComponents - report this bug");
+			VertexManager::Flush();
 
         // matrices
         if ((components & VB_HAS_POSMTXIDX) != (s_prevcomponents & VB_HAS_POSMTXIDX)) {

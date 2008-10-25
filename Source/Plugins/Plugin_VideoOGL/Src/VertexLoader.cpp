@@ -39,7 +39,7 @@
 
 #include <fstream>
 
-extern void (*fnSetupVertexPointers)();
+NativeVertexFormat *g_nativeVertexFmt;
 
 //these don't need to be saved
 static float posScale;
@@ -136,9 +136,6 @@ int VertexLoader::ComputeVertexSize()
         // Attributes are dirty so we have to recompute everything anyway.
         m_VtxDesc.Hex = VertexManager::GetVtxDesc().Hex;
     }
-
-    if (fnSetupVertexPointers != NULL && fnSetupVertexPointers == (void (*)())(void*)m_NativeFmt.m_compiledCode)
-        VertexManager::Flush();
 
     m_AttrDirty = AD_DIRTY;
     m_VertexSize = 0;
@@ -518,12 +515,17 @@ void VertexLoader::RunVertices(int primitive, int count)
 {
     DVSTARTPROFILE();
 
+	// Flush if our vertex format is different from the currently set.
+	// TODO - this check should be moved.
+    if (g_nativeVertexFmt != NULL && g_nativeVertexFmt != &m_NativeFmt)
+	{
+        VertexManager::Flush();
+
+		// Also move the Set() here?
+	}
+
 	// This has dirty handling - won't actually recompute unless necessary.
 	ComputeVertexSize();
-
-	// Figure out a better check. Also, jitting fnSetupVertexPointers seems pretty silly - not likely to be a bottleneck.
-    if (fnSetupVertexPointers != NULL && fnSetupVertexPointers != (void (*)())(void*)m_NativeFmt.m_compiledCode)
-        VertexManager::Flush();
 
     if (bpmem.genMode.cullmode == 3 && primitive < 5)
 	{
@@ -535,7 +537,7 @@ void VertexLoader::RunVertices(int primitive, int count)
 	// This has dirty handling - won't actually recompute unless necessary.
     PrepareForVertexFormat();
 
-	fnSetupVertexPointers = (void (*)())(void*)m_NativeFmt.m_compiledCode;
+	g_nativeVertexFmt = &m_NativeFmt;
 
 	VertexManager::EnableComponents(m_NativeFmt.m_components);
 

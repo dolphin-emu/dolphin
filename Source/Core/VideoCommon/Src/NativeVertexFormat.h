@@ -62,19 +62,25 @@ typedef void (LOADERDECL *TPipelineFunction)(const void *);
 // The implementation of this class is specific for GL/DX, so NativeVertexFormat.cpp
 // is in the respective plugin, not here in VideoCommon.
 
+// This class will also be split into NativeVertexFormat and VertexFormatConverter.
+// VertexFormatConverters will be cached, indexed by TVtxDesc+TVtxAttr.
+
 // Note that this class can't just invent arbitrary vertex formats out of its input - 
 // all the data loading code must always be made compatible.
 class NativeVertexFormat
 {
-	void SetupColor(int num, int _iMode, int _iFormat, int _iElements);
-	void SetupTexCoord(int num, int _iMode, int _iFormat, int _iElements, int _iFrac);
-
 public:
 	NativeVertexFormat();
 	~NativeVertexFormat();
 
 	void Initialize(const TVtxDesc &vtx_desc, const TVtxAttr &vtx_attr);
 	void RunPipelineOnce(const TVtxAttr &vtx_attr) const;
+
+	void SetupVertexPointers() {
+		// Cast a pointer to compiled code to a pointer to a function taking no parameters, through a (void *) cast first to
+		// get around type checking errors, and call it.
+		((void (*)())(void*)m_compiledCode)();
+	}
 
 	// TODO: move these in under private:
 	int m_VBVertexStride;  // PC-side vertex stride
