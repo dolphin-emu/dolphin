@@ -139,8 +139,7 @@ bool FifoCommandRunnable()
 			{
                 iCommandSize = 1 + 2;
                 u16 numVertices = DataPeek16(1);
-                VertexLoader& vtxLoader = g_VertexLoaders[Cmd & GX_VAT_MASK];
-                iCommandSize += numVertices * vtxLoader.ComputeVertexSize();
+				iCommandSize += numVertices * VertexLoaderManager::GetVertexSize(Cmd & GX_VAT_MASK);
             }
 			else
 			{				

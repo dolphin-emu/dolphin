@@ -79,7 +79,7 @@ void CVertexHandler::Shutdown()
 void CVertexHandler::CreateDeviceObjects()
 {
 	HRESULT hr;
-	if( FAILED( hr = D3D::dev->CreateVertexDeclaration( decl, &vDecl) ) )
+	if (FAILED(hr = D3D::dev->CreateVertexDeclaration(decl, &vDecl)))
     {
 		MessageBox(0,"Failed to create vertex declaration","sdfsd",0);
         return;
@@ -96,7 +96,7 @@ void CVertexHandler::DestroyDeviceObjects()
 {
 	if (vDecl)
 		vDecl->Release();
-	vDecl=0;
+	vDecl = 0;
 }
 
 

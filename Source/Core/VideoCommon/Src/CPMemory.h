@@ -248,4 +248,14 @@ extern u32 arraystrides[16];
 extern TMatrixIndexA MatrixIndexA;
 extern TMatrixIndexB MatrixIndexB;
 
+struct VAT
+{
+	UVAT_group0 g0;
+	UVAT_group1 g1;
+	UVAT_group2 g2;
+};
+
+extern TVtxDesc g_VtxDesc;
+extern VAT g_VtxAttr[8];
+
 #endif

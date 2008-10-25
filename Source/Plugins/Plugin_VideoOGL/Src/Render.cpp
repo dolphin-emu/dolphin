@@ -80,7 +80,6 @@ int frameCount;
 
 void HandleCgError(CGcontext ctx, CGerror err, void* appdata);
 
-
 bool Renderer::Create2() 
 {
     bool bSuccess = true;
@@ -189,7 +188,7 @@ bool Renderer::Create2()
     int nMaxMRT = 0;
     glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, (GLint *)&nMaxMRT);
 
-    if( nMaxMRT > 1 ) {
+    if (nMaxMRT > 1) {
         // create zbuffer target
         glGenTextures(1, (GLuint *)&s_ZBufferTarget);
         glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget);
@@ -210,11 +209,12 @@ bool Renderer::Create2()
     glGenRenderbuffersEXT( 1, (GLuint *)&s_DepthTarget);
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_DepthTarget);
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8_EXT, nBackbufferWidth, nBackbufferHeight);
-    if( glGetError() != GL_NO_ERROR ) {
+    if (glGetError() != GL_NO_ERROR) {
         glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, nBackbufferWidth, nBackbufferHeight);
         s_bHaveStencilBuffer = false;
-    }
-    else s_bHaveStencilBuffer = true;
+    } else {
+		s_bHaveStencilBuffer = true;
+	}
 
     GL_REPORT_ERROR();
 
@@ -223,7 +223,7 @@ bool Renderer::Create2()
     glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthTarget );
     GL_REPORT_ERROR();
 
-    if( s_ZBufferTarget != 0 ) {
+    if (s_ZBufferTarget != 0) {
         // test to make sure it works
         glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget, 0);
         bool bFailed = glGetError() != GL_NO_ERROR || glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT;
@@ -235,7 +235,7 @@ bool Renderer::Create2()
         }
     }
 
-    if( s_ZBufferTarget == 0 )
+    if (s_ZBufferTarget == 0)
         ERROR_LOG("disabling ztarget mrt feature (max mrt=%d)\n", nMaxMRT);
 
     //glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthTarget );
@@ -244,7 +244,8 @@ bool Renderer::Create2()
     nZBufferRender = 0;
 
     GL_REPORT_ERROR();
-    if (err != GL_NO_ERROR) bSuccess = false;
+    if (err != GL_NO_ERROR)
+		bSuccess = false;
 
     s_pfont = new RasterFont();
 
@@ -290,7 +291,6 @@ bool Renderer::Create2()
     //glEnable(GL_POLYGON_OFFSET_FILL);
     //glEnable(GL_POLYGON_OFFSET_LINE);
     //glPolygonOffset(0, 1);
-
     if (!Initialize())
         return false;
 
@@ -329,7 +329,7 @@ bool Renderer::Initialize()
     glStencilFunc(GL_ALWAYS, 0, 0);
     glBlendFunc(GL_ONE, GL_ONE);
 
-    glViewport(0,0,GetTargetWidth(),GetTargetHeight());                     // Reset The Current Viewport
+    glViewport(0, 0, GetTargetWidth(), GetTargetHeight());                     // Reset The Current Viewport
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -345,10 +345,9 @@ bool Renderer::Initialize()
     
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);  // perspective correct interpolation of colors and tex coords
     
-    // setup the default vertex declaration
     glDisable(GL_STENCIL_TEST);
     glEnable(GL_SCISSOR_TEST);
-    glScissor(0,0,nBackbufferWidth,nBackbufferHeight);
+    glScissor(0, 0, nBackbufferWidth, nBackbufferHeight);
     glBlendColorEXT(0, 0, 0, 0.5f);
     glClearDepth(1.0f);
 
@@ -357,12 +356,10 @@ bool Renderer::Initialize()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    //Renderer::SetZBufferRender();
-
-    // legacy multitexturing: select texture channel only
+    // legacy multitexturing: select texture channel only.
     glActiveTexture(GL_TEXTURE0);
     glClientActiveTexture(GL_TEXTURE0);
-    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE );
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
     s_RenderMode = Renderer::RM_Normal;
 
@@ -499,7 +496,7 @@ void Renderer::SetDepthTarget(u32 targ)
 
 void Renderer::SetFramebuffer(u32 fb)
 {
-    glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, fb != 0 ? fb : s_uFramebuffer );
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb != 0 ? fb : s_uFramebuffer);
 }
 
 u32 Renderer::GetRenderTarget()
@@ -516,21 +513,21 @@ void Renderer::ResetGLState()
     glDepthMask(GL_FALSE);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-    glDisable( GL_VERTEX_PROGRAM_ARB );
-    glDisable( GL_FRAGMENT_PROGRAM_ARB );
+    glDisable(GL_VERTEX_PROGRAM_ARB);
+    glDisable(GL_FRAGMENT_PROGRAM_ARB);
 }
 
 void Renderer::RestoreGLState()
 {
     glEnable(GL_SCISSOR_TEST);
 
-    if (bpmem.genMode.cullmode>0) glEnable(GL_CULL_FACE);
+    if (bpmem.genMode.cullmode > 0) glEnable(GL_CULL_FACE);
     if (bpmem.zmode.testenable) glEnable(GL_DEPTH_TEST);
     if (bpmem.blendmode.blendenable) glEnable(GL_BLEND);
     if(bpmem.zmode.updateenable) glDepthMask(GL_TRUE);
 
-    glEnable( GL_VERTEX_PROGRAM_ARB );
-    glEnable( GL_FRAGMENT_PROGRAM_ARB );
+    glEnable(GL_VERTEX_PROGRAM_ARB);
+    glEnable(GL_FRAGMENT_PROGRAM_ARB);
     SetColorMask();
 }
 
@@ -547,9 +544,12 @@ bool Renderer::HaveStencilBuffer()
 void Renderer::SetZBufferRender()
 {
     nZBufferRender = 10; // give it 10 frames
-    GLenum s_drawbuffers[2] = {GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT};
+    GLenum s_drawbuffers[2] = {
+		GL_COLOR_ATTACHMENT0_EXT,
+		GL_COLOR_ATTACHMENT1_EXT
+	};
     glDrawBuffers(2, s_drawbuffers);
-    glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget, 0);
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget, 0);
     _assert_(glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT);
 }
 
@@ -568,7 +568,8 @@ void Renderer::FlushZBufferAlphaToTarget()
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget);
     TextureMngr::EnableTexRECT(0);
     // disable all other stages
-    for(int i = 1; i < 8; ++i) TextureMngr::DisableStage(i);
+    for(int i = 1; i < 8; ++i)
+		TextureMngr::DisableStage(i);
     GL_REPORT_ERRORD();
 
 	if(g_Config.bStretchToFit)
@@ -612,13 +613,13 @@ void Renderer::FlushZBufferAlphaToTarget()
 
 void Renderer::SetRenderMode(RenderMode mode)
 {
-    if( !s_bHaveStencilBuffer && mode == RM_ZBufferAlpha )
+    if (!s_bHaveStencilBuffer && mode == RM_ZBufferAlpha)
         mode = RM_ZBufferOnly;
 
-    if( s_RenderMode == mode )
+    if (s_RenderMode == mode)
         return;
 
-    if( mode == RM_Normal ) {
+    if (mode == RM_Normal) {
         // flush buffers
         if( s_RenderMode == RM_ZBufferAlpha ) {
             FlushZBufferAlphaToTarget();
@@ -629,7 +630,7 @@ void Renderer::SetRenderMode(RenderMode mode)
         SetZBufferRender();
         GL_REPORT_ERRORD();
     }
-    else if( s_RenderMode == RM_Normal ) {
+    else if (s_RenderMode == RM_Normal) {
         // setup buffers
         _assert_(GetZBufferTarget() && bpmem.zmode.updateenable);
 
@@ -741,16 +742,12 @@ void Renderer::SwapBuffers()
         fpscount = 0;
     }
 
-
-	// ---------------------------------------------------------------------------------------
 	// Write logging data to debugger
-	// -----------------
 	if(m_frame)
 	{
 		Logging(0);
 	}
 	
-
     if (g_Config.bOverlayStats) {
         char st[2048];
         char *p = st;
@@ -821,17 +818,14 @@ void Renderer::SwapBuffers()
     stats.ResetFrame();
     
     glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, s_uFramebuffer );
-
-//    s_nCurTarget = !s_nCurTarget;
-//    SetRenderTarget(0);
-    
-    if( nZBufferRender > 0 ) {
-        if( --nZBufferRender == 0 ) {
+   
+    if (nZBufferRender > 0) {
+        if (--nZBufferRender == 0) {
             // turn off
             nZBufferRender = 0;
             glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-            glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
-            Renderer::SetRenderMode(RM_Normal); // turn off any zwrites
+            glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
+            Renderer::SetRenderMode(RM_Normal);  // turn off any zwrites
         }
     }
 }
@@ -839,7 +833,7 @@ void Renderer::SwapBuffers()
 bool Renderer::SaveRenderTarget(const char* filename, int jpeg)
 {
     bool bflip = true;
-    std::vector<u32> data(nBackbufferWidth*nBackbufferHeight);
+    std::vector<u32> data(nBackbufferWidth * nBackbufferHeight);
     glReadPixels(0, 0, nBackbufferWidth, nBackbufferHeight, GL_BGRA, GL_UNSIGNED_BYTE, &data[0]);
     if (glGetError() != GL_NO_ERROR)
         return false;
@@ -865,8 +859,9 @@ void Renderer::SetCgErrorOutput(bool bOutput)
 void HandleGLError()
 {
     const GLubyte* pstr = glGetString(GL_PROGRAM_ERROR_STRING_ARB);
-    if (pstr != NULL && pstr[0] != 0 ) {
-        GLint loc=0;
+    if (pstr != NULL && pstr[0] != 0)
+	{
+        GLint loc = 0;
         glGetIntegerv(GL_PROGRAM_ERROR_POSITION_ARB, &loc);
         ERROR_LOG("program error at %d: ", loc);
         ERROR_LOG((char*)pstr);
@@ -877,51 +872,53 @@ void HandleGLError()
     GLenum error = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
 
     // if error != GL_FRAMEBUFFER_COMPLETE_EXT, there's an error of some sort 
-    if (error != 0) {
-        int w, h;
-        GLint fmt;
-        glGetRenderbufferParameterivEXT(GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_INTERNAL_FORMAT_EXT, &fmt);
-        glGetRenderbufferParameterivEXT(GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_WIDTH_EXT, (GLint *)&w);
-        glGetRenderbufferParameterivEXT(GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_HEIGHT_EXT, (GLint *)&h);
+    if (!error)
+		return;
 
-        switch(error)
-        {
-            case GL_FRAMEBUFFER_COMPLETE_EXT:
-                break;
-            case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
-                ERROR_LOG("Error! missing a required image/buffer attachment!\n");
-                break;
-            case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
-                ERROR_LOG("Error! has no images/buffers attached!\n");
-                break;
-//            case GL_FRAMEBUFFER_INCOMPLETE_DUPLICATE_ATTACHMENT_EXT:
-//                ERROR_LOG("Error! has an image/buffer attached in multiple locations!\n");
-//                break;
-            case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
-                ERROR_LOG("Error! has mismatched image/buffer dimensions!\n");
-                break;
-            case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
-                ERROR_LOG("Error! colorbuffer attachments have different types!\n");
-                break;
-            case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
-                ERROR_LOG("Error! trying to draw to non-attached color buffer!\n");
-                break;
-            case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
-                ERROR_LOG("Error! trying to read from a non-attached color buffer!\n");
-                break;
-            case GL_FRAMEBUFFER_UNSUPPORTED_EXT:
-                ERROR_LOG("Error! format is not supported by current graphics card/driver!\n");
-                break;
-            default:
-                ERROR_LOG("*UNKNOWN ERROR* reported from glCheckFramebufferStatusEXT()!\n");
-                break;
-        }
-    }
+//	int w, h;
+//	GLint fmt;
+//	glGetRenderbufferParameterivEXT(GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_INTERNAL_FORMAT_EXT, &fmt);
+//	glGetRenderbufferParameterivEXT(GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_WIDTH_EXT, (GLint *)&w);
+//	glGetRenderbufferParameterivEXT(GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_HEIGHT_EXT, (GLint *)&h);
+
+    switch(error)
+	{
+		case GL_FRAMEBUFFER_COMPLETE_EXT:
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
+			ERROR_LOG("Error! missing a required image/buffer attachment!\n");
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
+			ERROR_LOG("Error! has no images/buffers attached!\n");
+			break;
+//      case GL_FRAMEBUFFER_INCOMPLETE_DUPLICATE_ATTACHMENT_EXT:
+//          ERROR_LOG("Error! has an image/buffer attached in multiple locations!\n");
+//           break;
+		case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
+			ERROR_LOG("Error! has mismatched image/buffer dimensions!\n");
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
+			ERROR_LOG("Error! colorbuffer attachments have different types!\n");
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
+			ERROR_LOG("Error! trying to draw to non-attached color buffer!\n");
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
+			ERROR_LOG("Error! trying to read from a non-attached color buffer!\n");
+			break;
+		case GL_FRAMEBUFFER_UNSUPPORTED_EXT:
+			ERROR_LOG("Error! format is not supported by current graphics card/driver!\n");
+			break;
+		default:
+			ERROR_LOG("*UNKNOWN ERROR* reported from glCheckFramebufferStatusEXT()!\n");
+			break;
+	}
 }
 
 void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 {
-    if( s_bOutputCgErrors ) {
+    if (s_bOutputCgErrors)
+	{
         ERROR_LOG("Cg error: %s\n", cgGetErrorString(err));
         const char* listing = cgGetLastListing(g_cgcontext);
         if (listing != NULL) {

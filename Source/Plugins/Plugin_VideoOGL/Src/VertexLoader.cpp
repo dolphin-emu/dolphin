@@ -110,8 +110,6 @@ void LOADERDECL TexMtx_Write_Short3(const void *_p)
 #include "VertexLoader_Color.h"
 #include "VertexLoader_TextCoord.h"
 
-VertexLoader g_VertexLoaders[8];
-
 VertexLoader::VertexLoader() 
 {
     m_VertexSize = 0;
@@ -128,15 +126,15 @@ int VertexLoader::ComputeVertexSize()
 {
     if (m_AttrDirty == AD_CLEAN) {
 		// Compare the 33 desc bits. 
-        if (m_VtxDesc.Hex0 == GetVtxDesc().Hex0 &&
-		    (m_VtxDesc.Hex1 & 1) == (GetVtxDesc().Hex1 & 1))
+        if (m_VtxDesc.Hex0 == g_VtxDesc.Hex0 &&
+		    (m_VtxDesc.Hex1 & 1) == (g_VtxDesc.Hex1 & 1))
             return m_VertexSize;
 
-        m_VtxDesc.Hex = GetVtxDesc().Hex;
+        m_VtxDesc.Hex = g_VtxDesc.Hex;
     }
     else {
         // Attributes are dirty so we have to recompute everything anyway.
-        m_VtxDesc.Hex = GetVtxDesc().Hex;
+        m_VtxDesc.Hex = g_VtxDesc.Hex;
     }
 
     m_AttrDirty = AD_DIRTY;
@@ -245,13 +243,13 @@ int VertexLoader::ComputeVertexSize()
 }
 
 
-void VertexLoader::PrepareForVertexFormat()
+void VertexLoader::CompileVertexTranslator()
 {
     if (m_AttrDirty == AD_CLEAN)
     {
 		// Check if local cached desc (in this VL) matches global desc
-        if (m_VtxDesc.Hex0 == GetVtxDesc().Hex0 &&
-		    (m_VtxDesc.Hex1 & 1) == (GetVtxDesc().Hex1 & 1))
+        if (m_VtxDesc.Hex0 == g_VtxDesc.Hex0 &&
+		    (m_VtxDesc.Hex1 & 1) == (g_VtxDesc.Hex1 & 1))
 		{
             return;  // same
 		}
@@ -261,7 +259,7 @@ void VertexLoader::PrepareForVertexFormat()
         m_AttrDirty = AD_CLEAN;
 	}
      
-    m_VtxDesc.Hex = GetVtxDesc().Hex;
+    m_VtxDesc.Hex = g_VtxDesc.Hex;
 
     // Reset pipeline
     m_numPipelineStages = 0;
@@ -525,9 +523,9 @@ void VertexLoader::RunVertices(int primitive, int count)
     if (g_nativeVertexFmt != NULL && g_nativeVertexFmt != &m_NativeFmt)
 	{
         VertexManager::Flush();
-
 		// Also move the Set() here?
 	}
+	g_nativeVertexFmt = &m_NativeFmt;
 
 	// This has dirty handling - won't actually recompute unless necessary.
 	ComputeVertexSize();
@@ -540,9 +538,7 @@ void VertexLoader::RunVertices(int primitive, int count)
     }
 
 	// This has dirty handling - won't actually recompute unless necessary.
-    PrepareForVertexFormat();
-
-	g_nativeVertexFmt = &m_NativeFmt;
+    CompileVertexTranslator();
 
 	VertexManager::EnableComponents(m_NativeFmt.m_components);
 
@@ -646,3 +642,66 @@ void VertexLoader::RunPipelineOnce() const
 	for (int i = 0; i < m_numPipelineStages; i++)
 		m_PipelineStages[i](&m_VtxAttr);
 }
+
+void VertexLoader::SetVAT_group0(u32 _group0) 
+{
+	// ignore frac bits - we don't need to recompute if all that's changed was the frac bits.
+    if ((m_group0.Hex & ~VAT_0_FRACBITS) != (_group0 & ~VAT_0_FRACBITS)) {
+        m_AttrDirty = AD_VAT_DIRTY;
+    }
+    m_group0.Hex = _group0;
+
+    m_VtxAttr.PosElements			= m_group0.PosElements;
+    m_VtxAttr.PosFormat				= m_group0.PosFormat;
+    m_VtxAttr.PosFrac				= m_group0.PosFrac;
+    m_VtxAttr.NormalElements		= m_group0.NormalElements;
+    m_VtxAttr.NormalFormat			= m_group0.NormalFormat;
+    m_VtxAttr.color[0].Elements		= m_group0.Color0Elements;
+    m_VtxAttr.color[0].Comp			= m_group0.Color0Comp;
+    m_VtxAttr.color[1].Elements		= m_group0.Color1Elements;
+    m_VtxAttr.color[1].Comp			= m_group0.Color1Comp;
+    m_VtxAttr.texCoord[0].Elements	= m_group0.Tex0CoordElements;
+    m_VtxAttr.texCoord[0].Format	= m_group0.Tex0CoordFormat;
+    m_VtxAttr.texCoord[0].Frac		= m_group0.Tex0Frac;
+    m_VtxAttr.ByteDequant			= m_group0.ByteDequant;
+    m_VtxAttr.NormalIndex3			= m_group0.NormalIndex3;
+};
+
+void VertexLoader::SetVAT_group1(u32 _group1) 
+{
+    if ((m_group1.Hex & ~VAT_1_FRACBITS) != (_group1 & ~VAT_1_FRACBITS)) {
+        m_AttrDirty = AD_VAT_DIRTY;
+    }
+    m_group1.Hex = _group1;
+
+    m_VtxAttr.texCoord[1].Elements	= m_group1.Tex1CoordElements;
+    m_VtxAttr.texCoord[1].Format	= m_group1.Tex1CoordFormat;
+    m_VtxAttr.texCoord[1].Frac		= m_group1.Tex1Frac;
+    m_VtxAttr.texCoord[2].Elements	= m_group1.Tex2CoordElements;
+    m_VtxAttr.texCoord[2].Format	= m_group1.Tex2CoordFormat;
+    m_VtxAttr.texCoord[2].Frac		= m_group1.Tex2Frac;
+    m_VtxAttr.texCoord[3].Elements	= m_group1.Tex3CoordElements;
+    m_VtxAttr.texCoord[3].Format	= m_group1.Tex3CoordFormat;
+    m_VtxAttr.texCoord[3].Frac      = m_group1.Tex3Frac;
+    m_VtxAttr.texCoord[4].Elements	= m_group1.Tex4CoordElements;
+    m_VtxAttr.texCoord[4].Format	= m_group1.Tex4CoordFormat;
+};									  
+                                      
+void VertexLoader::SetVAT_group2(u32 _group2)		  
+{
+    if ((m_group2.Hex & ~VAT_2_FRACBITS) != (_group2 & ~VAT_2_FRACBITS)) {
+        m_AttrDirty = AD_VAT_DIRTY;
+    }
+    m_group2.Hex = _group2;
+
+    m_VtxAttr.texCoord[4].Frac		= m_group2.Tex4Frac;
+    m_VtxAttr.texCoord[5].Elements	= m_group2.Tex5CoordElements;
+    m_VtxAttr.texCoord[5].Format	= m_group2.Tex5CoordFormat;
+    m_VtxAttr.texCoord[5].Frac		= m_group2.Tex5Frac;
+    m_VtxAttr.texCoord[6].Elements	= m_group2.Tex6CoordElements;
+    m_VtxAttr.texCoord[6].Format	= m_group2.Tex6CoordFormat;
+    m_VtxAttr.texCoord[6].Frac		= m_group2.Tex6Frac;
+    m_VtxAttr.texCoord[7].Elements	= m_group2.Tex7CoordElements;
+    m_VtxAttr.texCoord[7].Format	= m_group2.Tex7CoordFormat;
+    m_VtxAttr.texCoord[7].Frac		= m_group2.Tex7Frac;
+};

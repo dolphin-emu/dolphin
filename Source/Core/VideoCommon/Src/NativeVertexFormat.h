@@ -55,16 +55,11 @@ enum {
 	VB_HAS_UVTEXMTXSHIFT=13,
 };
 
-
 #define LOADERDECL __cdecl
 typedef void (LOADERDECL *TPipelineFunction)(const void *);
 
-// This will soon be used in a cache of vertex formats, rather than used in-place.
 // The implementation of this class is specific for GL/DX, so NativeVertexFormat.cpp
 // is in the respective plugin, not here in VideoCommon.
-
-// This class will also be split into NativeVertexFormat and VertexFormatConverter.
-// VertexFormatConverters will be cached, indexed by TVtxDesc+TVtxAttr.
 
 // Note that this class can't just invent arbitrary vertex formats out of its input - 
 // all the data loading code must always be made compatible.
@@ -83,7 +78,5 @@ public:
 	int m_VBStridePad;
 	u32 m_components;  // VB_HAS_X. Bitmask telling what vertex components are present.
 };
-
-
 
 #endif  // _NATIVEVERTEXFORMAT_H

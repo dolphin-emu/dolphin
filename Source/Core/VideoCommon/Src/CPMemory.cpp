@@ -24,3 +24,6 @@ u32 arraybases[16];
 u32 arraystrides[16];
 TMatrixIndexA MatrixIndexA;
 TMatrixIndexB MatrixIndexB;
+TVtxDesc g_VtxDesc;
+// Most games only use the first VtxAttr and simply reconfigure it all the time as needed.
+VAT g_VtxAttr[8];

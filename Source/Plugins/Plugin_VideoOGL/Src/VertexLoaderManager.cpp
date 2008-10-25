@@ -19,22 +19,24 @@
 #include "VertexLoader.h"
 #include "VertexLoaderManager.h"
 
-// The one and only vtx_desc
-TVtxDesc g_vtx_desc;
-// There are 8 vtx_attr structures. They will soon live here.
+static bool s_desc_dirty;
+static bool s_attr_dirty[8];
 
-const TVtxDesc &GetVtxDesc()
+// TODO - change into array of pointers. Keep a map of all seen so far.
+static VertexLoader g_VertexLoaders[8];
+
+namespace VertexLoaderManager
 {
-	return g_vtx_desc;
+
+void Init()
+{
+	s_desc_dirty = false;
+	for (int i = 0; i < 8; i++)
+		s_attr_dirty[i] = false;
 }
 
-namespace VertexLoaderManager {
-
-void Init() {
-	g_vtx_desc.Hex = 0;
-}
-
-void Shutdown() {
+void Shutdown()
+{
 
 }
 
@@ -42,12 +44,17 @@ void RunVertices(int vtx_attr_group, int primitive, int count)
 {
 	if (!count)
 		return;
-	// TODO - grab load the correct vertex loader if anything is dirty.
+	// TODO - grab & load the correct vertex loader if anything is dirty.
 	g_VertexLoaders[vtx_attr_group].RunVertices(primitive, count);
 }
 
-}  // namespace
+int GetVertexSize(int vtx_attr_group)
+{
+	// The vertex loaders will soon cache the vertex size.
+	return g_VertexLoaders[vtx_attr_group].ComputeVertexSize();
+}
 
+}  // namespace
 
 void LoadCPReg(u32 sub_cmd, u32 value)
 {
@@ -56,24 +63,51 @@ void LoadCPReg(u32 sub_cmd, u32 value)
 	case 0x30:
 		VertexShaderMngr::SetTexMatrixChangedA(value);
 		break;
+
 	case 0x40:
 		VertexShaderMngr::SetTexMatrixChangedB(value);
 		break;
 
 	case 0x50:
-		g_vtx_desc.Hex &= ~0x1FFFF; // keep the Upper bits
-		g_vtx_desc.Hex |= value;
+		g_VtxDesc.Hex &= ~0x1FFFF;  // keep the Upper bits
+		g_VtxDesc.Hex |= value;
+		s_desc_dirty = true;
 		break;
+
 	case 0x60:
-		g_vtx_desc.Hex &= 0x1FFFF; // keep the lower 17Bits
-		g_vtx_desc.Hex |= (u64)value << 17;
+		g_VtxDesc.Hex &= 0x1FFFF;  // keep the lower 17Bits
+		g_VtxDesc.Hex |= (u64)value << 17;
+		s_desc_dirty = true;
 		break;
 
-	case 0x70: g_VertexLoaders[sub_cmd & 7].SetVAT_group0(value); _assert_((sub_cmd & 0x0F) < 8); break;
-	case 0x80: g_VertexLoaders[sub_cmd & 7].SetVAT_group1(value); _assert_((sub_cmd & 0x0F) < 8); break;
-	case 0x90: g_VertexLoaders[sub_cmd & 7].SetVAT_group2(value); _assert_((sub_cmd & 0x0F) < 8); break;
+	case 0x70:
+		_assert_((sub_cmd & 0x0F) < 8);
+		g_VtxAttr[sub_cmd & 7].g0.Hex = value;
+		g_VertexLoaders[sub_cmd & 7].SetVAT_group0(value);
+		s_attr_dirty[sub_cmd & 7] = true;
+		break;
 
-	case 0xA0: arraybases[sub_cmd & 0xF]   = value & 0xFFFFFFFF; break;
-	case 0xB0: arraystrides[sub_cmd & 0xF] = value & 0xFF; break;
+	case 0x80:
+		_assert_((sub_cmd & 0x0F) < 8);
+		g_VtxAttr[sub_cmd & 7].g1.Hex = value;
+		g_VertexLoaders[sub_cmd & 7].SetVAT_group1(value);
+		s_attr_dirty[sub_cmd & 7] = true;
+		break;
+
+	case 0x90:
+		_assert_((sub_cmd & 0x0F) < 8);
+		g_VtxAttr[sub_cmd & 7].g2.Hex = value;
+		g_VertexLoaders[sub_cmd & 7].SetVAT_group2(value);
+		s_attr_dirty[sub_cmd & 7] = true;
+		break;
+
+	// Pointers to vertex arrays in GC RAM
+	case 0xA0:
+		arraybases[sub_cmd & 0xF] = value & 0xFFFFFFFF;  // huh, why the mask?
+		break;
+
+	case 0xB0:
+		arraystrides[sub_cmd & 0xF] = value & 0xFF;
+		break;
 	}
 }

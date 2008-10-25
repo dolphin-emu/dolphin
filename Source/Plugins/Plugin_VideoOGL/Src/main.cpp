@@ -37,6 +37,7 @@
 #include "TextureMngr.h"
 #include "BPStructs.h"
 #include "VertexLoader.h"
+#include "VertexLoaderManager.h"
 #include "VertexManager.h"
 #include "PixelShaderManager.h"
 #include "VertexShaderManager.h"
@@ -222,10 +223,12 @@ void Video_Prepare(void)
     VertexShaderMngr::Init();
     PixelShaderMngr::Init();
     GL_REPORT_ERRORD();
+    VertexLoaderManager::Init();
 }
 
 void Video_Shutdown(void) 
 {
+    VertexLoaderManager::Shutdown();
     VertexShaderMngr::Shutdown();
     PixelShaderMngr::Shutdown();
     Fifo_Shutdown();

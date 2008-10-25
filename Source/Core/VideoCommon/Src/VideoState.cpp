@@ -32,6 +32,9 @@ static void DoState(PointerWrap &p) {
     p.DoArray(arraystrides, 16);
     p.Do(MatrixIndexA);
     p.Do(MatrixIndexB);
+    p.Do(g_VtxDesc.Hex);
+	p.DoArray(g_VtxAttr, 8);
+
     // XF Memory
     p.Do(xfregs);
     p.DoArray(xfmem, XFMEM_SIZE);

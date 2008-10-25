@@ -33,7 +33,6 @@ static u32 s_prevcomponents; // previous state set
 
 u8* s_pCurBufferPointer = NULL;
 
-TVtxDesc s_GlobalVtxDesc;
 
 static const GLenum c_primitiveType[8] =
 {

@@ -24,14 +24,13 @@ namespace VertexLoaderManager
 {
     void Init();
     void Shutdown();
+
+	int GetVertexSize(int vtx_attr_group);
     void RunVertices(int vtx_attr_group, int primitive, int count);
 
 	// TODO - don't expose these like this.
     static u8* s_pCurBufferPointer;
 };
-
-
-const TVtxDesc &GetVtxDesc();
 
 // Might move this into its own file later.
 void LoadCPReg(u32 SubCmd, u32 Value);

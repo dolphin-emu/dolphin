@@ -23,9 +23,6 @@
 
 #include "NativeVertexFormat.h"
 
-// There are 8 of these. Most games only use the first, and just reconfigure it all the time
-// as needed, unfortunately.
-// TODO - clarify the role of this class. It seems to have taken on some irrelevant stuff.
 class VertexLoader
 {
 public:
@@ -44,8 +41,9 @@ private:
 		AD_VAT_DIRTY = 2,
 	} m_AttrDirty;
 
-	// Flipper vertex format =============
     int m_VertexSize;      // number of bytes of a raw GC vertex
+
+	// Flipper vertex format
 
 	// Raw VAttr
     UVAT_group0 m_group0;
@@ -53,10 +51,10 @@ private:
     UVAT_group2 m_group2;
     TVtxAttr m_VtxAttr;  // Decoded into easy format
 
-    // Common for all loaders  (? then why is it here?)
+    // Vtx desc
     TVtxDesc m_VtxDesc;
 
-	// PC vertex format, + converter ======
+	// PC vertex format, + converter
 	NativeVertexFormat m_NativeFmt;
 
 	// Pipeline. To be JIT compiled in the future.
@@ -73,7 +71,7 @@ public:
     ~VertexLoader();
     
     // run the pipeline 
-    void PrepareForVertexFormat();
+    void CompileVertexTranslator();
     void RunVertices(int primitive, int count);
     void WriteCall(TPipelineFunction);
     
@@ -82,70 +80,9 @@ public:
 
     int ComputeVertexSize();
 
-    void SetVAT_group0(u32 _group0) 
-    {
-		// ignore frac bits - we don't need to recompute if all that's changed was the frac bits.
-        if ((m_group0.Hex & ~VAT_0_FRACBITS) != (_group0 & ~VAT_0_FRACBITS)) {
-            m_AttrDirty = AD_VAT_DIRTY;
-        }
-        m_group0.Hex = _group0;
-
-        m_VtxAttr.PosElements			= m_group0.PosElements;
-        m_VtxAttr.PosFormat				= m_group0.PosFormat;
-        m_VtxAttr.PosFrac				= m_group0.PosFrac;
-        m_VtxAttr.NormalElements		= m_group0.NormalElements;
-        m_VtxAttr.NormalFormat			= m_group0.NormalFormat;
-        m_VtxAttr.color[0].Elements		= m_group0.Color0Elements;
-        m_VtxAttr.color[0].Comp			= m_group0.Color0Comp;
-        m_VtxAttr.color[1].Elements		= m_group0.Color1Elements;
-        m_VtxAttr.color[1].Comp			= m_group0.Color1Comp;
-        m_VtxAttr.texCoord[0].Elements	= m_group0.Tex0CoordElements;
-        m_VtxAttr.texCoord[0].Format	= m_group0.Tex0CoordFormat;
-        m_VtxAttr.texCoord[0].Frac		= m_group0.Tex0Frac;
-        m_VtxAttr.ByteDequant			= m_group0.ByteDequant;
-        m_VtxAttr.NormalIndex3			= m_group0.NormalIndex3;
-    };
-
-    void SetVAT_group1(u32 _group1) 
-    {
-        if ((m_group1.Hex & ~VAT_1_FRACBITS) != (_group1 & ~VAT_1_FRACBITS)) {
-            m_AttrDirty = AD_VAT_DIRTY;
-        }
-        m_group1.Hex = _group1;
-
-        m_VtxAttr.texCoord[1].Elements	= m_group1.Tex1CoordElements;
-        m_VtxAttr.texCoord[1].Format	= m_group1.Tex1CoordFormat;
-        m_VtxAttr.texCoord[1].Frac		= m_group1.Tex1Frac;
-        m_VtxAttr.texCoord[2].Elements	= m_group1.Tex2CoordElements;
-        m_VtxAttr.texCoord[2].Format	= m_group1.Tex2CoordFormat;
-        m_VtxAttr.texCoord[2].Frac		= m_group1.Tex2Frac;
-        m_VtxAttr.texCoord[3].Elements	= m_group1.Tex3CoordElements;
-        m_VtxAttr.texCoord[3].Format	= m_group1.Tex3CoordFormat;
-        m_VtxAttr.texCoord[3].Frac      = m_group1.Tex3Frac;
-        m_VtxAttr.texCoord[4].Elements	= m_group1.Tex4CoordElements;
-        m_VtxAttr.texCoord[4].Format	= m_group1.Tex4CoordFormat;
-    };									  
-                                          
-    void SetVAT_group2(u32 _group2)		  
-    {
-        if ((m_group2.Hex & ~VAT_2_FRACBITS) != (_group2 & ~VAT_2_FRACBITS)) {
-            m_AttrDirty = AD_VAT_DIRTY;
-        }
-        m_group2.Hex = _group2;
-
-        m_VtxAttr.texCoord[4].Frac		= m_group2.Tex4Frac;
-        m_VtxAttr.texCoord[5].Elements	= m_group2.Tex5CoordElements;
-        m_VtxAttr.texCoord[5].Format	= m_group2.Tex5CoordFormat;
-        m_VtxAttr.texCoord[5].Frac		= m_group2.Tex5Frac;
-        m_VtxAttr.texCoord[6].Elements	= m_group2.Tex6CoordElements;
-        m_VtxAttr.texCoord[6].Format	= m_group2.Tex6CoordFormat;
-        m_VtxAttr.texCoord[6].Frac		= m_group2.Tex6Frac;
-        m_VtxAttr.texCoord[7].Elements	= m_group2.Tex7CoordElements;
-        m_VtxAttr.texCoord[7].Format	= m_group2.Tex7CoordFormat;
-        m_VtxAttr.texCoord[7].Frac		= m_group2.Tex7Frac;
-    };
+    void SetVAT_group0(u32 _group0);
+    void SetVAT_group1(u32 _group1);       
+    void SetVAT_group2(u32 _group2);
 };									  
-
-extern VertexLoader g_VertexLoaders[8];
 
 #endif
