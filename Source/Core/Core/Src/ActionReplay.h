@@ -24,9 +24,10 @@ struct ARCode {
 	std::string name;
 	std::vector<AREntry> ops;
 	bool active;
+	bool failed;
 };
 
 void ActionReplayRunAllActive();
-void RunActionReplayCode(const ARCode &arcode, bool nowIsBootup);
+void RunActionReplayCode(ARCode &arcode, bool nowIsBootup);
 void LoadActionReplayCodes(IniFile &ini);
 

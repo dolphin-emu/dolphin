@@ -91,6 +91,7 @@ void LoadActionReplayCodes(IniFile &ini)
 			currentCode.name = line;
 			if (line[0] == '+') currentCode.active = true;
 			else currentCode.active = false;
+			currentCode.failed = false;
 			continue;
 		}
 
@@ -129,7 +130,7 @@ void LoadActionReplayCodes(IniFile &ini)
 void ActionReplayRunAllActive()
 {
 	if (Core::GetStartupParameter().bEnableCheats && !fail) {
-		for (std::vector<ARCode>::const_iterator iter = arCodes.begin(); iter != arCodes.end(); ++iter)
+		for (std::vector<ARCode>::iterator iter = arCodes.begin(); iter != arCodes.end(); ++iter)
 			if (iter->active)
 				RunActionReplayCode(*iter, false);
 	}
@@ -140,8 +141,12 @@ void ActionReplayRunAllActive()
 // For example, some authors have created codes that add features to AR. Hacks for popular ones can be added here,
 // but the problem is not generally solvable.
 // TODO: what is "nowIsBootup" for?
-void RunActionReplayCode(const ARCode &arcode, bool nowIsBootup) {
+void RunActionReplayCode(ARCode &arcode, bool nowIsBootup) {
 	code = arcode;
+
+	if (arcode.failed) // If the code doesn't work, skip it
+		return;
+
 	for (iter = code.ops.begin(); iter != code.ops.end(); ++iter) 
 	{
 		cmd = iter->cmd_addr >> 24;
@@ -167,7 +172,7 @@ void RunActionReplayCode(const ARCode &arcode, bool nowIsBootup) {
 		// ActionReplay program self modification codes
 		if (addr >= 0x00002000 && addr < 0x00003000) {
 			PanicAlert("This action replay simulator does not support codes that modify Action Replay itself.");
-			fail = true;
+			arcode.failed = true;
 			return;
 		}
 
@@ -202,7 +207,7 @@ void RunActionReplayCode(const ARCode &arcode, bool nowIsBootup) {
 					continue;
 				default: 
 					PanicAlert("Zero code unknown to dolphin: %08x",zcode); 
-					fail = true;
+					arcode.failed = true;
 					return;
 			}
 		}
