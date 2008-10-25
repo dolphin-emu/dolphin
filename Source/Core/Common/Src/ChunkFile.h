@@ -80,7 +80,8 @@ public:
 		// TODO
 		PanicAlert("Do(map<>) does not yet work.");
 	}
-	// Store vectors.
+
+	// Store vectors.
 	template<class T>
 	void Do(std::vector<T> &x) {
 		// TODO

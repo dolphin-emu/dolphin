@@ -204,7 +204,10 @@ void Video_DoState(unsigned char **ptr, int mode) {
 
 	PointerWrap p(ptr, mode);
 	VideoCommon_DoState(p);
-	//PanicAlert("Saving/Loading state from OpenGL");
+
+	// Refresh state.
+	if (mode == 1)  // read
+		BPReload();
 }
 
 // This is called after Video_Initialize() from the Core
