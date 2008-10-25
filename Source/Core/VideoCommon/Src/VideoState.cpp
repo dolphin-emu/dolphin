@@ -23,8 +23,8 @@
 #include "TextureDecoder.h"
 #include "Fifo.h"
 
-static void DoState(PointerWrap &p) {
-
+static void DoState(PointerWrap &p)
+{
     // BP Memory
     p.Do(bpmem);
     // CP Memory

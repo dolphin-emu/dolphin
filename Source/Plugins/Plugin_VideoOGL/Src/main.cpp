@@ -116,7 +116,7 @@ void DllConfig(HWND _hParent)
 			resFound = (resos[b] == strBuffer);
 			b++;
 		}
-		if(!resFound)
+		if (!resFound)
 		//and add the res
 		{
 			resos[i] = strBuffer;
@@ -196,8 +196,11 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 
 void Video_DoState(unsigned char **ptr, int mode) {
 
-	// Clear all caches
+	// Clear all caches that touch RAM
 	TextureMngr::Invalidate();
+	// DisplayListManager::Invalidate();
+
+	VertexLoaderManager::MarkAllDirty();
 
 	PointerWrap p(ptr, mode);
 	VideoCommon_DoState(p);

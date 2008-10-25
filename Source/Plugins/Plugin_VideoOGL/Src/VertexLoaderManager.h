@@ -25,6 +25,8 @@ namespace VertexLoaderManager
     void Init();
     void Shutdown();
 
+	void MarkAllDirty();
+
 	int GetVertexSize(int vtx_attr_group);
     void RunVertices(int vtx_attr_group, int primitive, int count);
 

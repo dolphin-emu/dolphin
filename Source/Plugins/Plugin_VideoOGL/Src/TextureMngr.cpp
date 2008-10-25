@@ -50,7 +50,9 @@ int TextureMngr::nTex2DEnabled, TextureMngr::nTexRECTEnabled;
 
 extern int frameCount;
 static u32 s_TempFramebuffer = 0;
+
 #define TEMP_SIZE (1024*1024*4)
+#define TEXTURE_KILL_THRESHOLD 200
 
 const GLint c_MinLinearFilter[8] = {
 	GL_NEAREST,
@@ -119,7 +121,7 @@ void TextureMngr::Init()
 void TextureMngr::Invalidate()
 {
     TexCache::iterator iter = textures.begin();
-    for (;iter!=textures.end();iter++)
+    for (; iter!=textures.end(); iter++)
         iter->second.Destroy();
     textures.clear();
 	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable, g_Config.bTexFmtOverlayCenter);
@@ -134,7 +136,7 @@ void TextureMngr::Shutdown()
 	}
     mapDepthTargets.clear();
 
-    if( s_TempFramebuffer ) {
+    if (s_TempFramebuffer) {
         glDeleteFramebuffersEXT(1, (GLuint *)&s_TempFramebuffer);
         s_TempFramebuffer = 0;
     }
@@ -147,7 +149,7 @@ void TextureMngr::Cleanup()
 {
     TexCache::iterator iter = textures.begin();
     while (iter != textures.end()) {
-        if (frameCount > 20 + iter->second.frameCount) {
+        if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second.frameCount) {
             if (!iter->second.isRenderTarget) {
                 iter->second.Destroy();
 #ifdef _WIN32
@@ -215,10 +217,10 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     if (iter != textures.end()) {
         TCacheEntry &entry = iter->second;
 
-        if(entry.isRenderTarget || (((u32 *)ptr)[entry.hashoffset] == entry.hash && palhash == entry.paletteHash)) { //stupid, improve
+        if (entry.isRenderTarget || (((u32 *)ptr)[entry.hashoffset] == entry.hash && palhash == entry.paletteHash)) { //stupid, improve
             entry.frameCount = frameCount;
             //glEnable(entry.isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D);
-            glBindTexture(entry.isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D, entry.texture);
+            glBindTexture(entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D, entry.texture);
             if (entry.mode.hex != tm0.hex)
                 entry.SetTextureParameters(tm0);
             return &entry;

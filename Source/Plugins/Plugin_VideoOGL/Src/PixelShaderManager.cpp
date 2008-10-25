@@ -171,7 +171,7 @@ void PixelShaderMngr::Cleanup()
     PSCache::iterator iter = pshaders.begin();
     while (iter != pshaders.end()) {
         PSCacheEntry &entry = iter->second;
-        if (entry.frameCount < frameCount - 200) {
+        if (entry.frameCount < frameCount - 400) {
             entry.Destroy();
 #ifdef _WIN32
             iter = pshaders.erase(iter);
@@ -242,10 +242,9 @@ void PixelShaderMngr::SetConstants()
 {
     for (int i = 0; i < 2; ++i) {
         if (s_nColorsChanged[i]) {
-            
-            int baseind = i?C_KCOLORS:C_COLORS;
+            int baseind = i ? C_KCOLORS : C_COLORS;
             for (int j = 0; j < 4; ++j) {
-                if (s_nColorsChanged[i] & (1<<j)) {
+                if (s_nColorsChanged[i] & (1 << j)) {
                     SetPSConstant4fv(baseind+j, &lastRGBAfull[i][j][0]);
                 }
             }
@@ -258,7 +257,7 @@ void PixelShaderMngr::SetConstants()
         if (bpmem.tevorders[i/2].getEnable(i&1)) {
             int texmap = bpmem.tevorders[i/2].getTexMap(i&1);
             maptocoord[texmap] = bpmem.tevorders[i/2].getTexCoord(i&1);
-            newmask |= 1<<texmap;
+            newmask |= 1 << texmap;
             SetTexDimsChanged(texmap);
         }
     }
@@ -266,7 +265,7 @@ void PixelShaderMngr::SetConstants()
     if (maptocoord_mask != newmask) {
         //u32 changes = maptocoord_mask ^ newmask;
         for (int i = 0; i < 8; ++i) {
-            if (newmask&(1<<i)) {
+            if (newmask & (1 << i)) {
                 SetTexDimsChanged(i);
             }
 			else {

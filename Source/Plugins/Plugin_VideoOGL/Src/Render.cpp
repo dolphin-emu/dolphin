@@ -773,6 +773,7 @@ void Renderer::SwapBuffers()
         p+=sprintf(p,"Num CP loads (DL): %i\n",stats.thisFrame.numCPLoadsInDL);
         p+=sprintf(p,"Num BP loads:      %i\n",stats.thisFrame.numBPLoads);
         p+=sprintf(p,"Num BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
+        p+=sprintf(p,"Num vertex loaders:       %i\n",stats.numVertexLoaders);
 
 		Renderer::RenderText(st, 20, 20, 0xFF00FFFF);
     }

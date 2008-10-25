@@ -39,6 +39,8 @@ struct Statistics
 
     int numJoins;
 
+	int numVertexLoaders;
+
     struct ThisFrame
     {
         int numBPLoads;

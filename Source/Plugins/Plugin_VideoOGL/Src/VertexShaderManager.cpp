@@ -104,7 +104,7 @@ VERTEXSHADER* VertexShaderMngr::GetShader(u32 components)
     VSCache::iterator iter = vshaders.find(uid);
 
     if (iter != vshaders.end()) {
-        iter->second.frameCount=frameCount;
+        iter->second.frameCount = frameCount;
         VSCacheEntry &entry = iter->second;
         if (&entry.shader != pShaderLast) {
             pShaderLast = &entry.shader;

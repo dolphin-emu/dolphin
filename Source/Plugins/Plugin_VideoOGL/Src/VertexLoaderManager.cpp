@@ -15,43 +15,78 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <map>
+
+#include "Statistics.h"
+
 #include "VertexShaderManager.h"
 #include "VertexLoader.h"
 #include "VertexLoaderManager.h"
 
-static bool s_desc_dirty;
-static bool s_attr_dirty[8];
+static int s_attr_dirty;  // bitfield
 
-// TODO - change into array of pointers. Keep a map of all seen so far.
-static VertexLoader g_VertexLoaders[8];
+static VertexLoader *g_VertexLoaders[8];
 
 namespace VertexLoaderManager
 {
 
+typedef std::map<VertexLoaderUID, VertexLoader *> VertexLoaderMap;
+static VertexLoaderMap g_VertexLoaderMap;
+// TODO - change into array of pointers. Keep a map of all seen so far.
+
 void Init()
 {
-	s_desc_dirty = false;
-	for (int i = 0; i < 8; i++)
-		s_attr_dirty[i] = false;
+	MarkAllDirty();
 }
 
 void Shutdown()
 {
+	for (VertexLoaderMap::iterator iter = g_VertexLoaderMap.begin(); iter != g_VertexLoaderMap.end(); ++iter)
+	{
+		delete iter->second;
+	}
+	g_VertexLoaderMap.clear();
+}
 
+void MarkAllDirty()
+{
+	s_attr_dirty = 0xff;
+}
+
+void RefreshLoader(int vtx_attr_group)
+{
+	if (((s_attr_dirty >> vtx_attr_group) & 1) || !g_VertexLoaders[vtx_attr_group])
+	{
+		VertexLoaderUID uid;
+		uid.InitFromCurrentState(vtx_attr_group);
+		VertexLoaderMap::iterator iter = g_VertexLoaderMap.find(uid);
+		if (iter != g_VertexLoaderMap.end())
+		{
+			g_VertexLoaders[vtx_attr_group] = iter->second;
+		}
+		else
+		{
+			VertexLoader *loader = new VertexLoader(g_VtxDesc, g_VtxAttr[vtx_attr_group]);
+			g_VertexLoaderMap[uid] = loader;
+			g_VertexLoaders[vtx_attr_group] = loader;
+			INCSTAT(stats.numVertexLoaders);
+		}
+	}
+	s_attr_dirty &= ~(1 << vtx_attr_group);
 }
 
 void RunVertices(int vtx_attr_group, int primitive, int count)
 {
 	if (!count)
 		return;
-	// TODO - grab & load the correct vertex loader if anything is dirty.
-	g_VertexLoaders[vtx_attr_group].RunVertices(primitive, count);
+	RefreshLoader(vtx_attr_group);
+	g_VertexLoaders[vtx_attr_group]->RunVertices(vtx_attr_group, primitive, count);
 }
 
 int GetVertexSize(int vtx_attr_group)
 {
-	// The vertex loaders will soon cache the vertex size.
-	return g_VertexLoaders[vtx_attr_group].ComputeVertexSize();
+	RefreshLoader(vtx_attr_group);
+	return g_VertexLoaders[vtx_attr_group]->GetVertexSize();
 }
 
 }  // namespace
@@ -71,34 +106,31 @@ void LoadCPReg(u32 sub_cmd, u32 value)
 	case 0x50:
 		g_VtxDesc.Hex &= ~0x1FFFF;  // keep the Upper bits
 		g_VtxDesc.Hex |= value;
-		s_desc_dirty = true;
+		s_attr_dirty = 0xFF;
 		break;
 
 	case 0x60:
 		g_VtxDesc.Hex &= 0x1FFFF;  // keep the lower 17Bits
 		g_VtxDesc.Hex |= (u64)value << 17;
-		s_desc_dirty = true;
+		s_attr_dirty = 0xFF;
 		break;
 
 	case 0x70:
 		_assert_((sub_cmd & 0x0F) < 8);
 		g_VtxAttr[sub_cmd & 7].g0.Hex = value;
-		g_VertexLoaders[sub_cmd & 7].SetVAT_group0(value);
-		s_attr_dirty[sub_cmd & 7] = true;
+		s_attr_dirty |= 1 << (sub_cmd & 7);
 		break;
 
 	case 0x80:
 		_assert_((sub_cmd & 0x0F) < 8);
 		g_VtxAttr[sub_cmd & 7].g1.Hex = value;
-		g_VertexLoaders[sub_cmd & 7].SetVAT_group1(value);
-		s_attr_dirty[sub_cmd & 7] = true;
+		s_attr_dirty |= 1 << (sub_cmd & 7);
 		break;
 
 	case 0x90:
 		_assert_((sub_cmd & 0x0F) < 8);
 		g_VtxAttr[sub_cmd & 7].g2.Hex = value;
-		g_VertexLoaders[sub_cmd & 7].SetVAT_group2(value);
-		s_attr_dirty[sub_cmd & 7] = true;
+		s_attr_dirty |= 1 << (sub_cmd & 7);
 		break;
 
 	// Pointers to vertex arrays in GC RAM

@@ -23,66 +23,72 @@
 
 #include "NativeVertexFormat.h"
 
+class VertexLoaderUID
+{
+	u32 id[5];
+public:
+	VertexLoaderUID() {}
+	void InitFromCurrentState(int vtx_attr_group) {
+		id[0] = g_VtxDesc.Hex & 0xFFFFFFFF;
+		id[1] = g_VtxDesc.Hex >> 32;
+		id[2] = g_VtxAttr[vtx_attr_group].g0.Hex & ~VAT_0_FRACBITS;
+		id[3] = g_VtxAttr[vtx_attr_group].g1.Hex & ~VAT_1_FRACBITS;
+		id[4] = g_VtxAttr[vtx_attr_group].g2.Hex & ~VAT_2_FRACBITS;
+	}
+	bool operator < (const VertexLoaderUID &other) const {
+		if (id[0] < other.id[0])
+			return true;
+		else if (id[0] > other.id[0])
+			return false;
+		for (int i = 1; i < 5; ++i) {
+			if (id[i] < other.id[i])
+				return true;
+			else if (id[i] > other.id[i])
+				return false;
+		}
+		return false;
+	}
+};
+
 class VertexLoader
 {
 public:
-    enum
-    {
-        NRM_ZERO = 0,
-        NRM_ONE = 1,
-        NRM_THREE = 3
-    };
+	VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr);
+	~VertexLoader();
+
+	int GetVertexSize() const {return m_VertexSize;}
+	void RunVertices(int vtx_attr_group, int primitive, int count);
 
 private:
-	// The 3 possible values (0, 1, 2) should be documented here.
-	enum {
-		AD_CLEAN = 0,
-		AD_DIRTY = 1,
-		AD_VAT_DIRTY = 2,
-	} m_AttrDirty;
+	enum
+	{
+		NRM_ZERO = 0,
+		NRM_ONE = 1,
+		NRM_THREE = 3,
+	};
 
-    int m_VertexSize;      // number of bytes of a raw GC vertex
+	int m_VertexSize;      // number of bytes of a raw GC vertex
 
-	// Flipper vertex format
+	// GC vertex format
+	TVtxAttr m_VtxAttr;  // VAT decoded into easy format
+	TVtxDesc m_VtxDesc;  // Not really used currently - or well it is, but could be easily avoided.
 
-	// Raw VAttr
-    UVAT_group0 m_group0;
-    UVAT_group1 m_group1;
-    UVAT_group2 m_group2;
-    TVtxAttr m_VtxAttr;  // Decoded into easy format
-
-    // Vtx desc
-    TVtxDesc m_VtxDesc;
-
-	// PC vertex format, + converter
+	// PC vertex format
 	NativeVertexFormat m_NativeFmt;
 
 	// Pipeline. To be JIT compiled in the future.
-	TPipelineFunction m_PipelineStages[32];
+	TPipelineFunction m_PipelineStages[32];  // TODO - figure out real max. it's lower.
 	int m_numPipelineStages;
 
-    void SetupColor(int num, int _iMode, int _iFormat, int _iElements);
-    void SetupTexCoord(int num, int _iMode, int _iFormat, int _iElements, int _iFrac);
-	void RunPipelineOnce() const;
+	void SetupColor(int num, int _iMode, int _iFormat, int _iElements);
+	void SetupTexCoord(int num, int _iMode, int _iFormat, int _iElements, int _iFrac);
 
-public:
-    // constructor
-    VertexLoader();
-    ~VertexLoader();
-    
-    // run the pipeline 
-    void CompileVertexTranslator();
-    void RunVertices(int primitive, int count);
-    void WriteCall(TPipelineFunction);
-    
-    int GetGCVertexSize()   const { _assert_( !m_AttrDirty ); return m_VertexSize; }
-    int GetVBVertexStride() const { _assert_( !m_AttrDirty);  return m_NativeFmt.m_VBVertexStride; }
+	void SetVAT(u32 _group0, u32 _group1, u32 _group2);
 
-    int ComputeVertexSize();
+	int ComputeVertexSize();
+	void CompileVertexTranslator();
 
-    void SetVAT_group0(u32 _group0);
-    void SetVAT_group1(u32 _group1);       
-    void SetVAT_group2(u32 _group2);
+	void WriteCall(TPipelineFunction);
 };									  
 
 #endif
