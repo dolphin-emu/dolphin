@@ -71,7 +71,7 @@ void CConfigMain::CreateGUIControls()
 	Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 
 	GeneralPage = new wxPanel(Notebook, ID_GENERALPAGE, wxDefaultPosition, wxDefaultSize);
-	Notebook->AddPage(GeneralPage, wxT("General"));
+	Notebook->AddPage(GeneralPage, wxT("Core"));
 	PathsPage = new wxPanel(Notebook, ID_PATHSPAGE, wxDefaultPosition, wxDefaultSize);
 	Notebook->AddPage(PathsPage, wxT("Paths"));
 	PluginPage = new wxPanel(Notebook, ID_PLUGINPAGE, wxDefaultPosition, wxDefaultSize);
@@ -100,15 +100,15 @@ void CConfigMain::CreateGUIControls()
 	// General page
 	AllwaysHLEBIOS = new wxCheckBox(GeneralPage, ID_ALLWAYS_HLEBIOS, wxT("HLE the BIOS all the time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	AllwaysHLEBIOS->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios);
-	UseDynaRec = new wxCheckBox(GeneralPage, ID_USEDYNAREC, wxT("Use dynamic recompilation"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	UseDynaRec = new wxCheckBox(GeneralPage, ID_USEDYNAREC, wxT("Enable Dynamic Recompilation"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UseDynaRec->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT);
-	UseDualCore = new wxCheckBox(GeneralPage, ID_USEDUALCORE, wxT("Use dual core mode"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	UseDualCore = new wxCheckBox(GeneralPage, ID_USEDUALCORE, wxT("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UseDualCore->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);
 	LockThreads = new wxCheckBox(GeneralPage, ID_LOCKTHREADS, wxT("Lock threads to cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	LockThreads->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads);
-	OptimizeQuantizers = new wxCheckBox(GeneralPage, ID_OPTIMIZEQUANTIZERS, wxT("Optimize quantizers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	OptimizeQuantizers = new wxCheckBox(GeneralPage, ID_OPTIMIZEQUANTIZERS, wxT("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	OptimizeQuantizers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bOptimizeQuantizers);
-	SkipIdle = new wxCheckBox(GeneralPage, ID_IDLESKIP, wxT("Use idle skipping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	SkipIdle = new wxCheckBox(GeneralPage, ID_IDLESKIP, wxT("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	SkipIdle->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);
 	EnableCheats = new wxCheckBox(GeneralPage, ID_ENABLECHEATS, wxT("Enable cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	EnableCheats->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);
