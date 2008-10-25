@@ -32,11 +32,11 @@
 #include "IniFile.h"
 #include "HW/Memmap.h"
 #include "ActionReplay.h"
+#include "Core.h"
 
 namespace {
 
 // These should be turned into locals in RunActionReplayCode, and passed as parameters to the others.
-static u32 cmd_addr;
 static u8 cmd;
 static u32 addr;
 static u32 data;
@@ -46,6 +46,7 @@ static u8 type;
 static u8 zcode;
 static bool doFillNSlide = false;
 static bool doMemoryCopy = false;
+static bool fail = false;
 static u32 addr_last;
 static u32 val_last;
 static std::vector<AREntry>::const_iterator iter;
@@ -66,6 +67,9 @@ void DoARZeroCode_MemoryCopy();
 // Parses the Action Replay section of a game ini file.
 void LoadActionReplayCodes(IniFile &ini) 
 {
+	if (!Core::GetStartupParameter().bEnableCheats) 
+		return; // If cheats are off, do not load them
+
 	std::vector<std::string> lines;
 	ARCode currentCode;
 	arCodes.clear();
@@ -76,16 +80,33 @@ void LoadActionReplayCodes(IniFile &ini)
 	for (std::vector<std::string>::const_iterator it = lines.begin(); it != lines.end(); ++it)
 	{
 		std::string line = *it;
-		std::vector<std::string> pieces;
+		std::vector<std::string> pieces; 
+
+		// Check if the line is a name of the code
+		if (line[0] == '+' || line[0] == '$') {
+			if (currentCode.ops.size() > 0) {
+					arCodes.push_back(currentCode);
+					currentCode.ops.clear();
+			}
+			currentCode.name = line;
+			if (line[0] == '+') currentCode.active = true;
+			else currentCode.active = false;
+			continue;
+		}
+
 		SplitString(line, " ", pieces);
+
+		// Check if the AR code is decrypted
 		if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
 		{
-			// Smells like a decrypted Action Replay code, great! Decode!
 			AREntry op;
-			bool success = TryParseUInt(std::string("0x") + pieces[0], &op.cmd_addr);
-   			success |= TryParseUInt(std::string("0x") + pieces[1], &op.value);
-			if (!success)
-				PanicAlert("Invalid AR code line: %s", line.c_str());
+			bool success_addr = TryParseUInt(std::string("0x") + pieces[0], &op.cmd_addr);
+   			bool success_val = TryParseUInt(std::string("0x") + pieces[1], &op.value);
+			if (!(success_addr | success_val)) {
+				PanicAlert("Action Replay Error: invalid AR code line: %s", line.c_str());
+				if (!success_addr) PanicAlert("The address is invalid");
+				if (!success_val) PanicAlert("The value is invalid");
+			}
 			else
 				currentCode.ops.push_back(op);
 		}
@@ -97,28 +118,6 @@ void LoadActionReplayCodes(IniFile &ini)
 				// Encrypted AR code
 				PanicAlert("Dolphin does not yet support encrypted AR codes.");
 			}
-			else if (line.size() > 1)
-			{
-				// OK, name line. This is the start of a new code. Push the old one, prepare the new one.
-				if (currentCode.ops.size())
-					arCodes.push_back(currentCode);
-				currentCode.name = "(invalid)";
-				currentCode.ops.clear();
-
-				if (line[0] == '+')
-				{ 
-					// Active code - name line.
-					line = StripSpaces(line.substr(1));
-					currentCode.name = line;
-					currentCode.active = true;
-				}
-				else
-				{
-					// Inactive code.
-					currentCode.name = line;
-					currentCode.active = false;
-				}
-			}
 		}
 	}
 
@@ -129,26 +128,28 @@ void LoadActionReplayCodes(IniFile &ini)
 
 void ActionReplayRunAllActive()
 {
-	for (std::vector<ARCode>::const_iterator iter = arCodes.begin(); iter != arCodes.end(); ++iter)
-		if (iter->active)
-			RunActionReplayCode(*iter, false);
+	if (Core::GetStartupParameter().bEnableCheats && !fail) {
+		for (std::vector<ARCode>::const_iterator iter = arCodes.begin(); iter != arCodes.end(); ++iter)
+			if (iter->active)
+				RunActionReplayCode(*iter, false);
+	}
 }
 
 
 // The mechanism is slightly different than what the real AR uses, so there may be compatibility problems.
 // For example, some authors have created codes that add features to AR. Hacks for popular ones can be added here,
 // but the problem is not generally solvable.
+// TODO: what is "nowIsBootup" for?
 void RunActionReplayCode(const ARCode &arcode, bool nowIsBootup) {
 	code = arcode;
 	for (iter = code.ops.begin(); iter != code.ops.end(); ++iter) 
 	{
-		cmd_addr = iter->cmd_addr;
 		cmd = iter->cmd_addr >> 24;
 		addr = iter->cmd_addr;
 		data = iter->value;
-		subtype = ((cmd_addr >> 30) & 0x03);
+		subtype = ((addr >> 30) & 0x03);
 		w = (cmd & 0x07);
-		type = ((cmd_addr >> 27) & 0x07);
+		type = ((addr >> 27) & 0x07);
 		zcode = ((data >> 29) & 0x07);
 
 		// Do Fill & Slide
@@ -166,11 +167,12 @@ void RunActionReplayCode(const ARCode &arcode, bool nowIsBootup) {
 		// ActionReplay program self modification codes
 		if (addr >= 0x00002000 && addr < 0x00003000) {
 			PanicAlert("This action replay simulator does not support codes that modify Action Replay itself.");
+			fail = true;
 			return;
 		}
 
 		// skip these weird init lines
-		if (iter == code.ops.begin() && cmd == 1) continue;
+	    if (iter == code.ops.begin() && cmd == 1) continue;
 
 		// Zero codes
 		if (addr == 0x0) // Check if the code is a zero code
@@ -184,8 +186,9 @@ void RunActionReplayCode(const ARCode &arcode, bool nowIsBootup) {
 					break;
 				case 0x03: // Executes all codes in the same row
 					// Todo: Set register 1BB4 to 1
-					PanicAlert("Zero code 3 is not supported");
-					continue;
+					PanicAlert("Zero 3 code not supported");
+					fail = true;
+					return;
 				case 0x04: // Fill & Slide or Memory Copy
 					if (((addr >> 25) & 0x03) == 0x3) {
 						doMemoryCopy = true;
@@ -199,7 +202,8 @@ void RunActionReplayCode(const ARCode &arcode, bool nowIsBootup) {
 					continue;
 				default: 
 					PanicAlert("Zero code unknown to dolphin: %08x",zcode); 
-					continue;
+					fail = true;
+					return;
 			}
 		}
 
@@ -229,7 +233,7 @@ void DoARSubtype_RamWriteAndFill()
 {
 	if (w < 0x8) // Check the value W in 0xZWXXXXXXX
 	{
-		u32 new_addr = ( (addr & 0x01FFFFFF) | 0x80000000);
+		u32 new_addr = ((addr & 0x01FFFFFF) | 0x80000000);
 		switch ((addr >> 25) & 0x03) 
 		{
 		case 0x00: // Byte write
@@ -254,7 +258,9 @@ void DoARSubtype_RamWriteAndFill()
 			Memory::Write_U32(data, new_addr);
 			break;
 		default:
-			break; // TODO(Omega): maybe add a PanicAlert here?
+			PanicAlert("Action Replay Error: Invalid size in Ram Write And Fill (%s)",code.name.c_str());
+			fail = true;
+			return;
 		}
 	}
 }
@@ -264,7 +270,7 @@ void DoARSubtype_WriteToPointer()
 {
 	if (w < 0x8)
 	{
-		u32 new_addr = ( addr | 0x80000000);
+		u32 new_addr = ((addr & 0x01FFFFFF) | 0x80000000);
 		switch ((addr >> 25) & 0x03) 
 		{
 		case 0x00: // Byte write to pointer [40]
@@ -290,8 +296,9 @@ void DoARSubtype_WriteToPointer()
 			break;
 
 		default:
-			PanicAlert("AR Method Error (Write To Pointer): w = %08x, addr = %08x", w, addr);
-			break;
+			PanicAlert("Action Replay Error: Invalid size in Write To Pointer (%s)",code.name.c_str());
+			fail = true;
+			return;
 		}
 	}
 }
@@ -300,8 +307,8 @@ void DoARSubtype_AddCode()
 {
 	if (w < 0x8)
 	{
-		u32 new_addr = ( addr & 0x81FFFFFF);
-		switch ((addr >> 25) & 0x03)
+		u32 new_addr = (addr & 0x81FFFFFF);
+		switch ((new_addr >> 25) & 0x03)
 		{
 		case 0x0: // Byte add
 			Memory::Write_U8(Memory::Read_U8(new_addr) + (data & 0xFF), new_addr);
@@ -322,7 +329,9 @@ void DoARSubtype_AddCode()
 				break;
 			}
 		default:
-			break;
+			PanicAlert("Action Replay Error: Invalid size in Add Code (%s)",code.name.c_str());
+			fail = true;
+			return;
 		}
 	}
 }
@@ -330,20 +339,12 @@ void DoARSubtype_AddCode()
 void DoARSubtype_MasterCodeAndWriteToCCXXXXXX()
 {
 	// code not yet implemented - TODO
-
-	//if (w < 0x8)
-	//{
-	//	u32 new_addr = (addr | 0x80000000);
-	//	switch ((new_addr >> 25) & 0x03)
-	//	{
-	//	case 0x2:
-	//		{
-
-	//		}
-	//	}
-	//}
+	PanicAlert("Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)",code.name.c_str());
+	fail = true;
+	return;
 }
 
+// TODO(Omega): I think this needs cleanup, there might be a better way to code this part
 void DoARSubtype_Other()
 {
 	switch (cmd & 0xFE) 
@@ -407,15 +408,16 @@ void DoARSubtype_Other()
 			break;
 		}
 	default:
-		PanicAlert("Unknown Action Replay command %02x (%08x %08x)", cmd, iter->cmd_addr, iter->value);
-		break;
+		PanicAlert("Action Replay Error: Unknown Action Replay command %02x (%08x %08x)(%s)", cmd, iter->cmd_addr, iter->value, code.name.c_str());
+		fail = true;
+		return;
 	}
 }
 void DoARZeroCode_FillAndSlide()
 {
 	u32 new_addr = (addr_last & 0x81FFFFFF);
 	u8 size = ((new_addr >> 25) & 0x03);
-	u32 addr_incr;
+	int addr_incr;
 	u32 val = addr;
 	int val_incr;
 	u8 write_num = ((data & 0x78000) >> 16); // Z2
@@ -449,8 +451,7 @@ void DoARZeroCode_FillAndSlide()
 						Memory::Write_U8(val & 0xFF, new_addr + j);
 					}
 					val += val_incr;
-					if (val_incr < 0) curr_addr -= addr_incr;
-					else curr_addr += addr_incr;
+					curr_addr += addr_incr;
 				} break;
 		case 0x1: // Halfword
 				for(int i=0; i < write_num; i++) {
@@ -459,17 +460,19 @@ void DoARZeroCode_FillAndSlide()
 						Memory::Write_U8(val & 0xFFFF, new_addr + j * 2);
 					}
 					val += val_incr;
-					if (val_incr < 0) curr_addr -= addr_incr;
-					else curr_addr += addr_incr;
+					curr_addr += addr_incr;
 				} break;
 		case 0x2: // Word
 				for(int i=0; i < write_num; i++) {
 					Memory::Write_U16(val, new_addr);
 					val += val_incr;
-					if (val_incr < 0) curr_addr -= addr_incr;
-					else curr_addr += addr_incr;
+					curr_addr += addr_incr;
 				} break;
-		default: break;
+		default:
+			PanicAlert("Action Replay Error: Invalid size in Fill and Slide (%s)",code.name.c_str());
+			doFillNSlide = false;
+			fail = true;
+			return;
 	}
 	doFillNSlide = false; 
 	return;
@@ -491,5 +494,10 @@ void DoARZeroCode_MemoryCopy()
 				Memory::Write_U32(Memory::Read_U32(addr_src + i), addr_dest + i);
 			} return;
 		}
+	}
+	else {
+		PanicAlert("Action Replay Error: Invalid value (&08x) in Memory Copy (%s)", (data & ~0x7FFF), code.name.c_str());
+		fail = true;
+		return;
 	}
 }

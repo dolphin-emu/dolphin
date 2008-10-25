@@ -37,6 +37,7 @@ EVT_CHECKBOX(ID_USEDUALCORE, CConfigMain::UseDualCoreCheck)
 EVT_CHECKBOX(ID_LOCKTHREADS, CConfigMain::LockThreadsCheck)
 EVT_CHECKBOX(ID_OPTIMIZEQUANTIZERS, CConfigMain::OptimizeQuantizersCheck)
 EVT_CHECKBOX(ID_IDLESKIP, CConfigMain::SkipIdleCheck)
+EVT_CHECKBOX(ID_ENABLECHEATS, CConfigMain::EnableCheatsCheck)
 EVT_CHOICE(ID_CONSOLELANG, CConfigMain::ConsoleLangChanged)
 EVT_LISTBOX(ID_ISOPATHS, CConfigMain::ISOPathsSelectionChanged)
 EVT_BUTTON(ID_ADDISOPATH, CConfigMain::AddRemoveISOPaths)
@@ -109,6 +110,8 @@ void CConfigMain::CreateGUIControls()
 	OptimizeQuantizers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bOptimizeQuantizers);
 	SkipIdle = new wxCheckBox(GeneralPage, ID_IDLESKIP, wxT("Use idle skipping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	SkipIdle->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);
+	EnableCheats = new wxCheckBox(GeneralPage, ID_ENABLECHEATS, wxT("Enable cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	EnableCheats->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);
 	wxArrayString arrayStringFor_ConsoleLang;
 	arrayStringFor_ConsoleLang.Add(wxT("English"));
 	arrayStringFor_ConsoleLang.Add(wxT("German"));
@@ -127,8 +130,9 @@ void CConfigMain::CreateGUIControls()
 	sGeneral->Add(LockThreads, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
 	sGeneral->Add(OptimizeQuantizers, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
 	sGeneral->Add(SkipIdle, wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL, 5);
-	sGeneral->Add(ConsoleLangText, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sGeneral->Add(ConsoleLang, wxGBPosition(6, 1), wxGBSpan(1, 1), wxALL, 5);
+	sGeneral->Add(EnableCheats, wxGBPosition(6, 0), wxGBSpan(1, 2), wxALL, 5);
+	sGeneral->Add(ConsoleLangText, wxGBPosition(7, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sGeneral->Add(ConsoleLang, wxGBPosition(7, 1), wxGBSpan(1, 1), wxALL, 5);
 	GeneralPage->SetSizer(sGeneral);
 	sGeneral->Layout();
 
@@ -270,6 +274,11 @@ void CConfigMain::OptimizeQuantizersCheck(wxCommandEvent& WXUNUSED (event))
 void CConfigMain::SkipIdleCheck(wxCommandEvent& WXUNUSED (event))
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = SkipIdle->IsChecked();
+}
+
+void CConfigMain::EnableCheatsCheck(wxCommandEvent& WXUNUSED (event))
+{
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = EnableCheats->IsChecked();
 }
 
 void CConfigMain::ConsoleLangChanged(wxCommandEvent& WXUNUSED (event))

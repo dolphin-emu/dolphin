@@ -50,6 +50,7 @@ struct SCoreStartupParameter
 	bool bUseFastMem;
 	bool bLockThreads;
 	bool bOptimizeQuantizers;
+	bool bEnableCheats;
 
 	bool bRunCompareServer;
 	bool bRunCompareClient;

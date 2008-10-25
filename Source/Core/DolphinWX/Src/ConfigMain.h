@@ -65,6 +65,7 @@ class CConfigMain
 		wxCheckBox* LockThreads;
 		wxCheckBox* OptimizeQuantizers;
 		wxCheckBox* SkipIdle;
+		wxCheckBox* EnableCheats;
 		wxStaticText* ConsoleLangText;
 		wxChoice* ConsoleLang;
 
@@ -105,6 +106,7 @@ class CConfigMain
 			ID_LOCKTHREADS,
 			ID_OPTIMIZEQUANTIZERS,
 			ID_IDLESKIP,
+			ID_ENABLECHEATS,
 			ID_CONSOLELANG_TEXT,
 			ID_CONSOLELANG,
 			ID_ISOPATHS,
@@ -142,6 +144,7 @@ class CConfigMain
 		void LockThreadsCheck(wxCommandEvent& event);
 		void OptimizeQuantizersCheck(wxCommandEvent& event);
 		void SkipIdleCheck(wxCommandEvent& event);
+		void EnableCheatsCheck(wxCommandEvent& event);
 		void ConsoleLangChanged(wxCommandEvent& event);
 		void ISOPathsSelectionChanged(wxCommandEvent& event);
 		void AddRemoveISOPaths(wxCommandEvent& event);
