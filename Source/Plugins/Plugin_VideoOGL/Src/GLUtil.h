@@ -34,8 +34,11 @@
 #define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
 #define I_NEED_OS2_H // HAXXOR
 //#include <GL/glew.h>
+#if !defined(OSX64)
 #include <GL/glxew.h>
-
+#else
+#include <GL/glew.h>
+#endif
 #if defined(__APPLE__) 
 
 #include <OpenGL/gl.h>
@@ -97,11 +100,15 @@ typedef struct {
     Display *dpy;
     int screen;
     Window win;
+#if defined(OSX64)
+
+#else //linux
     GLXContext ctx;
     XSetWindowAttributes attr;
     Bool fs;
     Bool doubleBuffered;
     XF86VidModeModeInfo deskMode;
+#endif
     int x, y;
     unsigned int width, height;
     unsigned int depth;    

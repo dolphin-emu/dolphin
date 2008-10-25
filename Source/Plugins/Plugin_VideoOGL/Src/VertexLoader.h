@@ -25,25 +25,25 @@
 
 class VertexLoaderUID
 {
-	u32 id[5];
+	u32 vid[5];
 public:
 	VertexLoaderUID() {}
 	void InitFromCurrentState(int vtx_attr_group) {
-		id[0] = g_VtxDesc.Hex & 0xFFFFFFFF;
-		id[1] = g_VtxDesc.Hex >> 32;
-		id[2] = g_VtxAttr[vtx_attr_group].g0.Hex & ~VAT_0_FRACBITS;
-		id[3] = g_VtxAttr[vtx_attr_group].g1.Hex & ~VAT_1_FRACBITS;
-		id[4] = g_VtxAttr[vtx_attr_group].g2.Hex & ~VAT_2_FRACBITS;
+		vid[0] = g_VtxDesc.Hex & 0xFFFFFFFF;
+		vid[1] = g_VtxDesc.Hex >> 32;
+		vid[2] = g_VtxAttr[vtx_attr_group].g0.Hex & ~VAT_0_FRACBITS;
+		vid[3] = g_VtxAttr[vtx_attr_group].g1.Hex & ~VAT_1_FRACBITS;
+		vid[4] = g_VtxAttr[vtx_attr_group].g2.Hex & ~VAT_2_FRACBITS;
 	}
 	bool operator < (const VertexLoaderUID &other) const {
-		if (id[0] < other.id[0])
+		if (vid[0] < other.vid[0])
 			return true;
-		else if (id[0] > other.id[0])
+		else if (vid[0] > other.vid[0])
 			return false;
 		for (int i = 1; i < 5; ++i) {
-			if (id[i] < other.id[i])
+			if (vid[i] < other.vid[i])
 				return true;
-			else if (id[i] > other.id[i])
+			else if (vid[i] > other.vid[i])
 				return false;
 		}
 		return false;

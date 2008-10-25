@@ -33,9 +33,11 @@
 #endif
 
 
+#if !defined(OSX64)
 #include "../Debugger/Debugger.h" // for the CDebugger class
 #include "../Debugger/PBView.h"
 #include "Console.h" // open and close console, clear console window
+#endif
 #include "../Logging/Logging.h" // for global logging values
 
 
@@ -71,8 +73,9 @@ std::vector<u16> viupd(15); // the length of the update frequency bar
 // ---------------------------------------------------------------------------------------
 // Classes
 // -------------
+#if !defined(OSX64)
 extern CDebugger* m_frame;
-		
+#endif		
 
 
 // =======================================================================================
@@ -143,7 +146,9 @@ void Logging(int a)
 	{		
 		std::string sfbuff;
 		sfbuff = sfbuff + writeMessage(ii, 0);
+#if !defined(OSX64)
 		aprintf(ii, (char *)sfbuff.c_str());
+#endif
 	}
 	// --------------
 
@@ -254,7 +259,9 @@ void Logging(int a)
 		// =======================================================================================
 		// Print
 		// ----------------
+#if !defined(OSX64)
 		ClearScreen();
+#endif
 		__Log("%s", sbuff.c_str());
 		sbuff.clear(); strcpy(buffer, "");
 		// ================

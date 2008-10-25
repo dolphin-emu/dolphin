@@ -843,29 +843,29 @@ float* VertexShaderMngr::GetPosNormalMat()
 
 // Mash together all the inputs that contribute to the code of a generated vertex shader into
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
-void VertexShaderMngr::GetVertexShaderId(VERTEXSHADERUID& id, u32 components)
+void VertexShaderMngr::GetVertexShaderId(VERTEXSHADERUID& vid, u32 components)
 {
     u32 zbufrender = (bpmem.ztex2.op == ZTEXTURE_ADD) || Renderer::GetZBufferTarget() != 0;
-    id.values[0] = components | 
+    vid.values[0] = components | 
 		(xfregs.numTexGens << 23) |
 		(xfregs.nNumChans << 27) |
 	    ((u32)xfregs.bEnableDualTexTransform << 29) |
 		(zbufrender << 30);
 
     for (int i = 0; i < 2; ++i) {
-        id.values[1+i] = xfregs.colChans[i].color.enablelighting ? 
+        vid.values[1+i] = xfregs.colChans[i].color.enablelighting ? 
 			(u32)xfregs.colChans[i].color.hex : 
 		    (u32)xfregs.colChans[i].color.matsource;
-        id.values[1+i] |= (xfregs.colChans[i].alpha.enablelighting ? 
+        vid.values[1+i] |= (xfregs.colChans[i].alpha.enablelighting ? 
 			(u32)xfregs.colChans[i].alpha.hex : 
 		    (u32)xfregs.colChans[i].alpha.matsource) << 15;
     }
 
 	// fog
-    id.values[1] |= (((u32)bpmem.fog.c_proj_fsel.fsel & 3) << 30);
-    id.values[2] |= (((u32)bpmem.fog.c_proj_fsel.fsel >> 2) << 30);
+    vid.values[1] |= (((u32)bpmem.fog.c_proj_fsel.fsel & 3) << 30);
+    vid.values[2] |= (((u32)bpmem.fog.c_proj_fsel.fsel >> 2) << 30);
 
-    u32* pcurvalue = &id.values[3];
+    u32* pcurvalue = &vid.values[3];
     for (int i = 0; i < xfregs.numTexGens; ++i) {
         TexMtxInfo tinfo = xfregs.texcoords[i].texmtxinfo;
         if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP)

@@ -41,7 +41,9 @@
 #include "PixelShaderManager.h"
 #include "VertexLoader.h"
 #include "XFB.h"
+#if !defined(OSX64)
 #include "Debugger/Debugger.h" // for the CDebugger class
+#endif
 #include "Logging/Logging.h" // for Logging()
 
 #ifdef _WIN32
@@ -59,7 +61,9 @@ struct MESSAGE
 
 CGcontext g_cgcontext;
 CGprofile g_cgvProf, g_cgfProf;
+#if !defined(OSX64)
 extern CDebugger* m_frame; // the debugging class
+#endif
 
 static int g_MaxTexWidth = 0, g_MaxTexHeight = 0;
 static RasterFont* s_pfont = NULL;
@@ -743,11 +747,12 @@ void Renderer::SwapBuffers()
     }
 
 	// Write logging data to debugger
+#if !defined(OSX64)
 	if(m_frame)
 	{
 		Logging(0);
 	}
-	
+#endif	
     if (g_Config.bOverlayStats) {
         char st[2048];
         char *p = st;

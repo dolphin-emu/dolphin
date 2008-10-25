@@ -26,11 +26,8 @@ files = [
 	'VertexLoaderManager.cpp',
 	'VertexShaderManager.cpp',
 	'XFB.cpp',
-	'GUI/ConfigDlg.cpp',
 	'Logging/Console.cpp',
 	'Logging/Logging.cpp',
-	'Debugger/Debugger.cpp',
-	'Debugger/PBView.cpp',
 	]
 compileFlags = [
 	'-fPIC',
@@ -42,6 +39,26 @@ libs = [
 	]
 
 gfxenv = env.Clone()
+
+if not gfxenv['osx64']:
+	files += [
+	'GUI/ConfigDlg.cpp',
+	'Debugger/Debugger.cpp',
+	'Debugger/PBView.cpp',
+	]
+
+if gfxenv['osx64']:
+	files += [ 'cocoaGL.m' ]
+	compileFlags +=	[
+			'-x',
+			'objective-c++',
+			]
+	linkFlags += 	[
+			'-framework',
+			'cocoa',
+			'-arch',
+			'x86_64'
+			]
 
 if sys.platform == 'darwin':
 	platform = 'mac'
@@ -87,9 +104,8 @@ gfxenv.Append(
 	LINKFLAGS = linkFlags,
 	)
 
-if not env['osx64']:
-    gfxenv.SharedLibrary(
+gfxenv.SharedLibrary(
 	'../../../../Binary/%s/Plugins/zeroogl.so' % platform,
 	files,
-	LIBS = gfxenv['LIBS'] + libs
+	LIBS =  libs
 	)

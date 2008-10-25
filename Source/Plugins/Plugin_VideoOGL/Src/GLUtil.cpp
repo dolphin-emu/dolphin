@@ -63,6 +63,8 @@ void OpenGL_SwapBuffers()
 {
 #if USE_SDL
     SDL_GL_SwapBuffers();
+#elif defined(OSX64)
+
 #elif defined(_WIN32)
     SwapBuffers(hDC);
 #else // GLX
@@ -74,6 +76,8 @@ void OpenGL_SetWindowText(const char *text)
 {
 #if USE_SDL
     SDL_WM_SetCaption(text, NULL);
+#elif defined(OSX64)
+
 #elif defined(_WIN32)
     SetWindowText(EmuWindow::GetWnd(), text);
 #else // GLX
@@ -85,12 +89,18 @@ void OpenGL_SetWindowText(const char *text)
 #endif
 }
 
+#if defined(OSX64)
+unsigned int  Callback_PeekMessages()
+#else
 BOOL Callback_PeekMessages()
+#endif
 {
 #if USE_SDL
 	// TODO: There is no documentation of this function and the calling code
 	//       ignores the return value, so I have no idea what would be the
 	//       proper value to return.
+    return FALSE;
+#elif defined(OSX64)
     return FALSE;
 #elif defined(_WIN32)
     //TODO: peekmessage
@@ -199,6 +209,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 
 	//setup ogl to use double buffering
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+#elif defined(OSX64)
 
 #elif defined(_WIN32)
     // create the window
@@ -479,6 +490,8 @@ bool OpenGL_MakeCurrent()
 		SDL_Quit();
 		return false;
 	}
+#elif defined(OSX64)
+
 #elif defined(_WIN32)
     if (!wglMakeCurrent(hDC,hRC)) {
         MessageBox(NULL,"(5) Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
@@ -515,6 +528,8 @@ void OpenGL_Update()
     if (!surface) return;
     nBackbufferWidth = surface->w;
     nBackbufferHeight = surface->h;
+#elif defined(OSX64)
+    RECT rcWindow;
 
 #elif defined(_WIN32)
     if (!EmuWindow::GetParentWnd()) return;
@@ -650,6 +665,8 @@ void OpenGL_Shutdown()
 {
 #if USE_SDL
 	SDL_Quit();
+#elif defined(OSX64)
+
 #elif defined(_WIN32)
     if (hRC)                                            // Do We Have A Rendering Context?
     {

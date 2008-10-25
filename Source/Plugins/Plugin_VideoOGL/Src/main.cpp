@@ -21,11 +21,13 @@
 #include "OS/Win32.h"
 #endif
 
-#if defined(__APPLE__) 
+#if defined(__APPLE__) && !defined(OSX64)
 #include <SDL.h>
 #endif
 
+#if !defined(OSX64)
 #include "GUI/ConfigDlg.h"
+#endif
 
 #include "Config.h"
 #include "LookUpTables.h"
@@ -45,14 +47,19 @@
 #include "XFBConvert.h"
 
 #include "VideoState.h"
+#if !defined(OSX64)
 #include "Debugger/Debugger.h" // for the CDebugger class
-
+#endif
 SVideoInitialize g_VideoInitialize;
 #define VERSION_STRING "0.1"
 
 // Create debugging window. We can't use Show() here as usual because then DLL_PROCESS_DETACH will
 // be called immediately. And if we use ShowModal() we block the main video window from appearing.
 // So I've made a separate function called DoDllDebugger() that creates the window.
+#if defined(OSX64)
+void DllDebugger(HWND _hParent) { }
+void DoDllDebugger() { }
+#else
 CDebugger* m_frame;
 void DllDebugger(HWND _hParent)
 {
@@ -71,6 +78,7 @@ void DoDllDebugger()
 	m_frame = new CDebugger(NULL);
 	m_frame->Show();
 }
+#endif
 
 void GetDllInfo (PLUGIN_INFO* _PluginInfo) 
 {
@@ -289,8 +297,11 @@ bool ScreenShot(TCHAR *File)
     }
 	return false;
 }
-
+#if defined(OSX64)
+unsigned int Video_Screenshot(TCHAR* _szFilename)
+#else
 BOOL Video_Screenshot(TCHAR* _szFilename)
+#endif
 {
     if (ScreenShot(_szFilename))
         return TRUE;
