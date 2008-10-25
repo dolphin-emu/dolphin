@@ -55,7 +55,9 @@ void UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 o
 		SHR(32, R(EAX), Imm8(16));
 	}
 	if (signExtend && accessSize < 32) {
-		MOVSX(32, accessSize, EAX, R(EAX));
+		// For 16-bit, this must be done AFTER the BSWAP.
+		// TODO: bake 8-bit into the original load.
+		MOVSX(32, accessSize, EAX, R(EAX));   
 	}
 }
 
@@ -75,6 +77,7 @@ void SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset, bool signExtend)
 	case 8:  ABI_CallFunctionR(ProtectFunction((void *)&Memory::Read_U8, 1), reg);  break;
 	}
 	if (signExtend && accessSize < 32) {
+		// Need to sign extend values coming from the Read_U* functions.
 		MOVSX(32, accessSize, EAX, R(EAX));
 	}
 	SetJumpTarget(arg2);
@@ -111,7 +114,7 @@ void SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 of
 void WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address)
 {
 #ifdef _M_X64
-	MOV(accessSize, MDisp(RBX, address & 0x3FFFFFFF), arg);
+ 	MOV(accessSize, MDisp(RBX, address & 0x3FFFFFFF), arg);
 #else
 	MOV(accessSize, M((void*)(Memory::base + (address & Memory::MEMVIEW32_MASK))), arg);
 #endif

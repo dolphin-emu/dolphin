@@ -101,7 +101,19 @@ namespace Jit64
 		int d = inst.RD, a = inst.RA, s = inst.RS;
 		switch (inst.OPCD)
 		{
-		case 14: regimmop(d, a, false, (u32)(s32)inst.SIMM_16,  Add, ADD); break; //addi
+		case 14:  // addi
+			// occasionally used as MOV - emulate, with immediate propagation
+			if (gpr.R(a).IsImm() && d != a && a != 0) {
+				gpr.SetImmediate32(d, (u32)gpr.R(a).offset + (u32)(s32)(s16)inst.SIMM_16);
+			} else if (inst.SIMM_16 == 0 && d != a && a != 0) {
+				gpr.Lock(a);
+				gpr.LoadToX64(d, false, true);
+				MOV(32, gpr.R(d), gpr.R(a));
+				gpr.UnlockAll();
+			} else {
+				regimmop(d, a, false, (u32)(s32)inst.SIMM_16,  Add, ADD); //addi
+			}
+			break;
 		case 15: regimmop(d, a, false, (u32)inst.SIMM_16 << 16, Add, ADD); break; //addis
 		case 24: 
 			if (a == 0 && s == 0 && inst.UIMM == 0 && !inst.Rc)  //check for nop
@@ -281,6 +293,39 @@ namespace Jit64
 			gpr.Lock(a, s, b);
 			MOV(32, R(EAX), gpr.R(s));
 			OR(32, R(EAX), gpr.R(b));
+			MOV(32, gpr.R(a), R(EAX));
+			gpr.UnlockAll();
+		}
+
+		if (inst.Rc)
+		{
+			MOV(32, R(EAX), gpr.R(a));
+			CALL((u8*)Asm::computeRc);
+		}
+	}
+
+	
+	// m_GPR[_inst.RA] = m_GPR[_inst.RS] ^ m_GPR[_inst.RB];
+	void xorx(UGeckoInstruction inst)
+	{
+#ifdef JIT_OFF_OPTIONS
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
+			{Default(inst); return;} // turn off from debugger
+#endif
+		INSTRUCTION_START;
+		int a = inst.RA;
+		int s = inst.RS;
+		int b = inst.RB;
+
+		if (s == b) {
+			gpr.SetImmediate32(a, 0);
+		}
+		else
+		{
+			gpr.LoadToX64(a, a == s || a == b, true);
+			gpr.Lock(a, s, b);
+			MOV(32, R(EAX), gpr.R(s));
+			XOR(32, R(EAX), gpr.R(b));
 			MOV(32, gpr.R(a), R(EAX));
 			gpr.UnlockAll();
 		}

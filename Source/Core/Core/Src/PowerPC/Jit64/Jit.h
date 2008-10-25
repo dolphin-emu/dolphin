@@ -96,6 +96,7 @@ namespace Jit64
 
 	void addx(UGeckoInstruction inst);
 	void orx(UGeckoInstruction inst);
+	void xorx(UGeckoInstruction inst);
 	void andx(UGeckoInstruction inst);
 	void mulli(UGeckoInstruction inst);
 	void mulhwux(UGeckoInstruction inst);
@@ -120,6 +121,7 @@ namespace Jit64
 	void mtmsr(UGeckoInstruction inst);
 	void mfmsr(UGeckoInstruction inst);
 	void mftb(UGeckoInstruction inst);
+	void mtcrf(UGeckoInstruction inst);
 
 	void reg_imm(UGeckoInstruction inst);
 
@@ -130,6 +132,8 @@ namespace Jit64
 	void ps_mergeXX(UGeckoInstruction inst);
 	void ps_maddXX(UGeckoInstruction inst);
 	void ps_rsqrte(UGeckoInstruction inst);
+	void ps_sum(UGeckoInstruction inst);
+	void ps_muls(UGeckoInstruction inst);
 
 	void fp_arith_s(UGeckoInstruction inst);
 

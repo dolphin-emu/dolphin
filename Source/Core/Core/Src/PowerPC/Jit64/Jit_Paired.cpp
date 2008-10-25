@@ -247,6 +247,92 @@ namespace Jit64
 		}
 	}
 
+	void ps_sum(UGeckoInstruction inst)
+	{	
+#ifdef JIT_OFF_OPTIONS
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
+			{Default(inst); return;} // turn off from debugger
+#endif
+		INSTRUCTION_START;
+		if (inst.Rc) {
+			Default(inst); return;
+		}
+		int d = inst.FD;
+		int a = inst.FA;
+		int b = inst.FB;
+		int c = inst.FC;
+		fpr.Lock(a,b,c,d);
+		fpr.LoadToX64(d, d == a || d == b || d == c, true);
+		switch (inst.SUBOP5)
+		{
+		case 10:
+			// Do the sum in upper subregisters, merge uppers
+			MOVDDUP(XMM0, fpr.R(a));
+			MOVAPD(XMM1, fpr.R(b));
+			ADDPD(XMM0, R(XMM1));
+			UNPCKHPD(XMM0, fpr.R(c)); //merge
+			MOVAPD(fpr.R(d), XMM0);
+			break;
+		case 11:
+			// Do the sum in lower subregisters, merge lowers
+			MOVAPD(XMM0, fpr.R(a));
+			MOVAPD(XMM1, fpr.R(b));
+			SHUFPD(XMM1, R(XMM1), 5); // copy higher to lower
+			ADDPD(XMM0, R(XMM1)); // sum lowers
+			MOVAPD(XMM1, fpr.R(c));  
+			UNPCKLPD(XMM1, R(XMM0)); // merge
+			MOVAPD(fpr.R(d), XMM1);
+			break;
+		default:
+			PanicAlert("ps_sum WTF!!!");
+		}
+		ForceSinglePrecisionP(fpr.RX(d));
+		fpr.UnlockAll();
+	}
+
+
+	void ps_muls(UGeckoInstruction inst)
+	{
+		Default(inst); return;
+#ifdef JIT_OFF_OPTIONS
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
+			{Default(inst); return;} // turn off from debugger
+#endif
+		INSTRUCTION_START;
+		if (inst.Rc) {
+			Default(inst); return;
+		}
+		int d = inst.FD;
+		int a = inst.FA;
+		int c = inst.FC;
+		fpr.Lock(a, c, d);
+		fpr.LoadToX64(d, d == a || d == c, true);
+		switch (inst.SUBOP5)
+		{
+		case 12:
+			// Single multiply scalar high
+			// TODO - faster version for when regs are different
+			MOVAPD(XMM0, fpr.R(c));
+			MOVDDUP(XMM1, fpr.R(a));
+			MULPS(XMM0, R(XMM1));
+			MOVAPD(fpr.R(d), XMM0);
+			break;
+		case 13:
+			// TODO - faster version for when regs are different
+			MOVAPD(XMM0, fpr.R(c));
+			MOVAPD(XMM1, fpr.R(a));
+			SHUFPD(XMM1, R(XMM1), 5); // copy higher to lower
+			MULPD(XMM0, R(XMM1)); // sum lowers
+			MOVAPD(fpr.R(d), XMM0);
+			break;
+		default:
+			PanicAlert("ps_muls WTF!!!");
+		}
+		ForceSinglePrecisionP(fpr.RX(d));
+		fpr.UnlockAll();
+	}
+
+
 	//TODO: find easy cases and optimize them, do a breakout like ps_arith
 	void ps_mergeXX(UGeckoInstruction inst)
 	{

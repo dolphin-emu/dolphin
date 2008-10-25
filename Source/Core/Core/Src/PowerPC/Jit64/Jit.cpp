@@ -148,6 +148,8 @@ fnegx
 frspx
 frsqrtex
 ps_sum0
+ps_muls0
+ps_adds1
 
 */
 

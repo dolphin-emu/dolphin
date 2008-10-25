@@ -52,8 +52,11 @@
 
 namespace Jit64 {
 
-double GC_ALIGNED16(psTemp[2]) = {1.0, 1.0};
-u64 GC_ALIGNED16(temp64);
+const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
+const u8 GC_ALIGNED16(pbswapShuffleNoop[16]) = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+
+static double GC_ALIGNED16(psTemp[2]) = {1.0, 1.0};
+static u64 GC_ALIGNED16(temp64);
 
 // TODO(ector): Improve 64-bit version
 void WriteDual32(u64 value, u32 address)
@@ -183,6 +186,20 @@ void psq_st(UGeckoInstruction inst)
 	if (stType == QUANTIZE_FLOAT)
 	{
 		DISABLE_32BIT;
+
+		if (gpr.R(a).IsImm() && !update && cpu_info.bSSSE3)
+		{
+			u32 addr = gpr.R(a).offset + offset;
+			if (addr == 0xCC008000) {
+				// Writing to FIFO. Let's do fast method.
+				CVTPD2PS(XMM0, fpr.R(s));
+				PSHUFB(XMM0, M((void*)&pbswapShuffle2x4));
+				CALL((void*)Asm::fifoDirectWriteXmm64);
+				js.fifoBytesThisBlock += 8;
+				return;
+			}
+		}
+
 		gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
 		gpr.Lock(a);
 		fpr.Lock(s);
@@ -281,9 +298,6 @@ void psq_st(UGeckoInstruction inst)
 		Default(inst);
 	}
 }
-
-const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
-const u8 GC_ALIGNED16(pbswapShuffleNoop[16]) = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
 void psq_l(UGeckoInstruction inst)
 {

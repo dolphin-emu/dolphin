@@ -91,7 +91,7 @@ namespace Jit64
 		// TODO(ector): Make it dynamically enable/disable idle skipping where appropriate
 		// Will give nice boost to dual core mode
 		// (mb2): I agree, 
-		// IMHO those Idles should be always skipped and replaced by a more controlable "native" Idle methode
+		// IMHO those Idles should always be skipped and replaced by a more controllable "native" Idle methode
 		// ... maybe the throttle one already do that :p
 		// if (CommandProcessor::AllowIdleSkipping() && PixelEngine::AllowIdleSkipping())
 		if (Core::GetStartupParameter().bSkipIdle &&
@@ -100,17 +100,16 @@ namespace Jit64
 			Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 &&
 			Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
 		{
-				
-				gpr.Flush(FLUSH_ALL);
-				fpr.Flush(FLUSH_ALL);
-				if (Core::GetStartupParameter().bUseDualCore) 
-					CALL((void *)&PowerPC::OnIdleDC);
-				else 
-					ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
-				MOV(32, M(&PowerPC::ppcState.pc), Imm32(js.compilerPC + 12));
-				JMP(Asm::testExceptions, true);
-				js.compilerPC += 8;
-				return;
+			gpr.Flush(FLUSH_ALL);
+			fpr.Flush(FLUSH_ALL);
+			if (Core::GetStartupParameter().bUseDualCore) 
+				CALL((void *)&PowerPC::OnIdleDC);
+			else 
+				ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
+			MOV(32, M(&PowerPC::ppcState.pc), Imm32(js.compilerPC + 12));
+			JMP(Asm::testExceptions, true);
+			js.compilerPC += 8;
+			return;
 		}
 
 		s32 offset = (s32)(s16)inst.SIMM_16;
@@ -236,7 +235,7 @@ namespace Jit64
 			default: _assert_msg_(DYNA_REC, 0, "AWETKLJASDLKF"); return;
 			}
 
-			if (gpr.R(a).IsImm() && !update)
+			if (gpr.R(a).IsImm())
 			{
 				// If we already know the address through constant folding, we can do some
 				// fun tricks...
@@ -244,6 +243,8 @@ namespace Jit64
 				addr += offset;
 				if ((addr & 0xFFFFF000) == 0xCC008000 && jo.optimizeGatherPipe)
 				{
+					if (offset && update)
+						gpr.SetImmediate32(a, addr);
 					gpr.FlushLockX(ABI_PARAM1);
 					MOV(32, R(ABI_PARAM1), gpr.R(s));
 					// INT3();
@@ -261,6 +262,8 @@ namespace Jit64
 				}
 				else if (Memory::IsRAMAddress(addr) && accessSize == 32)
 				{
+					if (offset && update)
+						gpr.SetImmediate32(a, addr);
 					MOV(accessSize, R(EAX), gpr.R(s));
 					BSWAP(accessSize, EAX);
 					WriteToConstRamAddress(accessSize, R(EAX), addr); 

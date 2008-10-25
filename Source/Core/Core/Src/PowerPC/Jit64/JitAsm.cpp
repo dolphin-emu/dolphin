@@ -54,6 +54,7 @@ const u8 *fifoDirectWrite8;
 const u8 *fifoDirectWrite16;
 const u8 *fifoDirectWrite32;
 const u8 *fifoDirectWriteFloat;
+const u8 *fifoDirectWriteXmm64;
 
 bool compareEnabled = false;
 
@@ -308,6 +309,19 @@ void GenFifoFloatWrite()
 	RET();
 }
 
+void GenFifoXmm64Write() 
+{
+	// Assume value in XMM0. Assume pre-byteswapped (unlike the others here!)
+	PUSH(ESI);
+	MOV(32, R(EAX), Imm32((u32)(u64)GPFifo::m_gatherPipe));
+	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
+	MOVQ_xmm(MComplex(RAX, RSI, 1, 0), XMM0);
+	ADD(32, R(ESI), Imm8(8));
+	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
+	POP(ESI);
+	RET();
+}
+
 void GenerateCommon()
 {
 	computeRc = AlignCode16();
@@ -332,6 +346,8 @@ void GenerateCommon()
 	GenFifoWrite(32);
 	fifoDirectWriteFloat = AlignCode4();
 	GenFifoFloatWrite();
+	fifoDirectWriteXmm64 = AlignCode4();
+	GenFifoXmm64Write();
 
 	computeRcFp = AlignCode16();
 	//CMPSD(R(XMM0), M(&zero), 

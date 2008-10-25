@@ -39,6 +39,7 @@ namespace Jit64
 		extern const u8 *fifoDirectWrite16;
 		extern const u8 *fifoDirectWrite32;
 		extern const u8 *fifoDirectWriteFloat;
+		extern const u8 *fifoDirectWriteXmm64;
 
 		extern bool compareEnabled;
 		void Generate();

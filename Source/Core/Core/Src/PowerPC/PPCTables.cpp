@@ -224,10 +224,10 @@ GekkoOPTemplate table4[] =
 
 GekkoOPTemplate table4_2[] = 
 {
-	{10, Interpreter::ps_sum0,   Jit64::Default,   {"ps_sum0",   OPTYPE_PS, 0}},
-	{11, Interpreter::ps_sum1,   Jit64::Default,   {"ps_sum1",   OPTYPE_PS, 0}},
-	{12, Interpreter::ps_muls0,  Jit64::Default,   {"ps_muls0",  OPTYPE_PS, 0}},
-	{13, Interpreter::ps_muls1,  Jit64::Default,   {"ps_muls1",  OPTYPE_PS, 0}},
+	{10, Interpreter::ps_sum0,   Jit64::ps_sum,    {"ps_sum0",   OPTYPE_PS, 0}},
+	{11, Interpreter::ps_sum1,   Jit64::ps_sum,    {"ps_sum1",   OPTYPE_PS, 0}},
+	{12, Interpreter::ps_muls0,  Jit64::ps_muls,   {"ps_muls0",  OPTYPE_PS, 0}},
+	{13, Interpreter::ps_muls1,  Jit64::ps_muls,   {"ps_muls1",  OPTYPE_PS, 0}},
 	{14, Interpreter::ps_madds0, Jit64::Default,   {"ps_madds0", OPTYPE_PS, 0}},
 	{15, Interpreter::ps_madds1, Jit64::Default,   {"ps_madds1", OPTYPE_PS, 0}},
 	{18, Interpreter::ps_div,    Jit64::ps_arith,  {"ps_div",    OPTYPE_PS, 0, 16}},
@@ -278,7 +278,7 @@ GekkoOPTemplate table31[] =
 	{60,  Interpreter::andcx,   Jit64::Default,  {"andcx",  OPTYPE_INTEGER, FL_IN_AB | FL_OUT_S | FL_RC_BIT}},
 	{444, Interpreter::orx,     Jit64::orx,      {"orx",    OPTYPE_INTEGER, FL_IN_AB | FL_OUT_S | FL_RC_BIT}},
 	{124, Interpreter::norx,    Jit64::Default,  {"norx",   OPTYPE_INTEGER, FL_IN_AB | FL_OUT_S | FL_RC_BIT}},
-	{316, Interpreter::xorx,    Jit64::Default,  {"xorx",   OPTYPE_INTEGER, FL_IN_AB | FL_OUT_S | FL_RC_BIT}},
+	{316, Interpreter::xorx,    Jit64::xorx,     {"xorx",   OPTYPE_INTEGER, FL_IN_AB | FL_OUT_S | FL_RC_BIT}},
 	{412, Interpreter::orcx,    Jit64::Default,  {"orcx",   OPTYPE_INTEGER, FL_IN_AB | FL_OUT_S | FL_RC_BIT}},
 	{476, Interpreter::nandx,   Jit64::Default,  {"nandx",  OPTYPE_INTEGER, FL_IN_AB | FL_OUT_S | FL_RC_BIT}},
 	{284, Interpreter::eqvx,    Jit64::Default,  {"eqvx",   OPTYPE_INTEGER, FL_IN_AB | FL_OUT_S | FL_RC_BIT}},
@@ -359,7 +359,7 @@ GekkoOPTemplate table31[] =
 
 	{19,  Interpreter::mfcr,   Jit64::Default,    {"mfcr",   OPTYPE_SYSTEM, 0}},
 	{83,  Interpreter::mfmsr,  Jit64::mfmsr,      {"mfmsr",  OPTYPE_SYSTEM, 0}},
-	{144, Interpreter::mtcrf,  Jit64::Default,    {"mtcrf",  OPTYPE_SYSTEM, 0}},
+	{144, Interpreter::mtcrf,  Jit64::mtcrf,      {"mtcrf",  OPTYPE_SYSTEM, 0}},
 	{146, Interpreter::mtmsr,  Jit64::mtmsr,      {"mtmsr",  OPTYPE_SYSTEM, FL_ENDBLOCK}},
 	{210, Interpreter::mtsr,   Jit64::Default,    {"mtsr",   OPTYPE_SYSTEM, 0}},
 	{242, Interpreter::mtsrin, Jit64::Default,    {"mtsrin", OPTYPE_SYSTEM, 0}},

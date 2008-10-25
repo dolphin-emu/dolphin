@@ -659,7 +659,8 @@ void FindFunctions(u32 startAddr, u32 endAddr, SymbolDB *func_db)
 	//Step 2: 
 	func_db->FillInCallers();
 
-	int numLeafs = 0, numNice = 0, numUnNice = 0, numTimer=0, numRFI=0, numStraightLeaf=0;
+	int numLeafs = 0, numNice = 0, numUnNice = 0;
+	int numTimer = 0, numRFI = 0, numStraightLeaf = 0;
 	int leafSize = 0, niceSize = 0, unniceSize = 0;
 	for (SymbolDB::XFuncMap::iterator iter = func_db->GetIterator(); iter != func_db->End(); iter++)
 	{

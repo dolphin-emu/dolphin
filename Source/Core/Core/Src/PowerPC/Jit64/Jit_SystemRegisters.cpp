@@ -156,5 +156,29 @@ namespace Jit64
 		INSTRUCTION_START;
 		mfspr(inst);
 	}
+
+	void mtcrf(UGeckoInstruction inst)
+	{
+		u32 mask = 0;
+		u32 crm = inst.CRM;
+		gpr.FlushLockX(ECX);
+		if (crm == 0xFF) {
+			MOV(32, R(EAX), gpr.R(inst.RS));
+			MOV(32, M(&PowerPC::ppcState.cr), R(EAX));
+		} else {
+			//TODO: use lookup table? probably not worth it
+			for (int i = 0; i < 8; i++) {
+				if (crm & (1 << i))
+					mask |= 0xF << (i*4);
+			}
+			MOV(32, R(EAX), gpr.R(inst.RS));
+			MOV(32, R(ECX), M(&PowerPC::ppcState.cr));
+			AND(32, R(EAX), Imm32(mask));
+			AND(32, R(ECX), Imm32(~mask));
+			OR(32, R(EAX), R(ECX));
+			MOV(32, M(&PowerPC::ppcState.cr), R(EAX));
+		}
+		gpr.UnlockAllX();
+	}
 }
 
