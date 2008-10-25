@@ -29,6 +29,7 @@
 #include "Render.h"
 #include "VertexShader.h"
 #include "VertexManager.h"
+#include "VertexLoaderManager.h"
 #include "VertexLoader.h"
 #include "BPStructs.h"
 #include "DataReader.h"
@@ -115,6 +116,7 @@ VertexLoader::VertexLoader()
 {
     m_VertexSize = 0;
     m_AttrDirty = AD_DIRTY;
+	m_numPipelineStages = 0;
     VertexLoader_Normal::Init();
 }
 
@@ -126,15 +128,15 @@ int VertexLoader::ComputeVertexSize()
 {
     if (m_AttrDirty == AD_CLEAN) {
 		// Compare the 33 desc bits. 
-        if (m_VtxDesc.Hex0 == VertexManager::GetVtxDesc().Hex0 &&
-		    (m_VtxDesc.Hex1 & 1) == (VertexManager::GetVtxDesc().Hex1 & 1))
+        if (m_VtxDesc.Hex0 == GetVtxDesc().Hex0 &&
+		    (m_VtxDesc.Hex1 & 1) == (GetVtxDesc().Hex1 & 1))
             return m_VertexSize;
 
-        m_VtxDesc.Hex = VertexManager::GetVtxDesc().Hex;
+        m_VtxDesc.Hex = GetVtxDesc().Hex;
     }
     else {
         // Attributes are dirty so we have to recompute everything anyway.
-        m_VtxDesc.Hex = VertexManager::GetVtxDesc().Hex;
+        m_VtxDesc.Hex = GetVtxDesc().Hex;
     }
 
     m_AttrDirty = AD_DIRTY;
@@ -248,7 +250,8 @@ void VertexLoader::PrepareForVertexFormat()
     if (m_AttrDirty == AD_CLEAN)
     {
 		// Check if local cached desc (in this VL) matches global desc
-        if (m_VtxDesc.Hex0 == VertexManager::GetVtxDesc().Hex0 && (m_VtxDesc.Hex1 & 1)==(VertexManager::GetVtxDesc().Hex1 & 1))
+        if (m_VtxDesc.Hex0 == GetVtxDesc().Hex0 &&
+		    (m_VtxDesc.Hex1 & 1) == (GetVtxDesc().Hex1 & 1))
 		{
             return;  // same
 		}
@@ -258,19 +261,21 @@ void VertexLoader::PrepareForVertexFormat()
         m_AttrDirty = AD_CLEAN;
 	}
      
-    m_VtxDesc.Hex = VertexManager::GetVtxDesc().Hex;
+    m_VtxDesc.Hex = GetVtxDesc().Hex;
 
     // Reset pipeline
+    m_numPipelineStages = 0;
+
+	// It's a bit ugly that we poke inside m_NativeFmt in this function. Planning to fix this.
     m_NativeFmt.m_VBStridePad = 0;
     m_NativeFmt.m_VBVertexStride = 0;
-    m_NativeFmt.m_numPipelineStages = 0;
     m_NativeFmt.m_components = 0;
 
     // m_VBVertexStride for texmtx and posmtx is computed later when writing.
     
     // Position Matrix Index
     if (m_VtxDesc.PosMatIdx) {
-        m_NativeFmt.m_PipelineStages[m_NativeFmt.m_numPipelineStages++] = PosMtx_ReadDirect_UByte;
+        m_PipelineStages[m_numPipelineStages++] = PosMtx_ReadDirect_UByte;
         m_NativeFmt.m_components |= VB_HAS_POSMTXIDX;
     }
 
@@ -508,7 +513,7 @@ void VertexLoader::SetupTexCoord(int num, int mode, int format, int elements, in
 
 void VertexLoader::WriteCall(TPipelineFunction func)
 {
-	m_NativeFmt.m_PipelineStages[m_NativeFmt.m_numPipelineStages++] = func;
+	m_PipelineStages[m_numPipelineStages++] = func;
 }
 
 void VertexLoader::RunVertices(int primitive, int count)
@@ -626,7 +631,7 @@ void VertexLoader::RunVertices(int primitive, int count)
         colIndex = 0;
         s_texmtxwrite = s_texmtxread = 0;
 
-		m_NativeFmt.RunPipelineOnce(m_VtxAttr);
+		RunPipelineOnce();
 
         VertexManager::s_pCurBufferPointer += m_NativeFmt.m_VBStridePad;
         PRIM_LOG("\n");
@@ -634,4 +639,10 @@ void VertexLoader::RunVertices(int primitive, int count)
 
     if (startv < count)
         VertexManager::AddVertices(primitive, count - startv + extraverts);
+}
+
+void VertexLoader::RunPipelineOnce() const
+{
+	for (int i = 0; i < m_numPipelineStages; i++)
+		m_PipelineStages[i](&m_VtxAttr);
 }

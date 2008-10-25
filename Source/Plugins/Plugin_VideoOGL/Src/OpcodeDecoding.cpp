@@ -29,6 +29,7 @@
 #include "OpcodeDecoding.h"
 
 #include "VertexLoader.h"
+#include "VertexLoaderManager.h"
 #include "VertexManager.h"
 #include "VertexShaderManager.h"
 
@@ -55,7 +56,7 @@ static void ExecuteDisplayList(u32 address, u32 size)
 	// temporarily swap dl and non-dl (small "hack" for the stats)
 	Statistics::SwapDL();
 	
-	while((u32)(g_pVideoData - startAddress) < size)
+	while ((u32)(g_pVideoData - startAddress) < size)
     {
         Decode();
     }
@@ -78,7 +79,7 @@ bool FifoCommandRunnable()
 	u8 Cmd = DataPeek8(0);	
     u32 iCommandSize = 0;
 
-    switch(Cmd)
+    switch (Cmd)
     {
     case GX_NOP:
         // Hm, this means that we scan over nop streams pretty slowly...
@@ -210,7 +211,7 @@ static void Decode()
         {
             u32 SubCmd = DataReadU8();
             u32 Value = DataReadU32();
-            VertexManager::LoadCPReg(SubCmd,Value);
+            LoadCPReg(SubCmd, Value);
 			INCSTAT(stats.thisFrame.numCPLoads);
         }
         break;
@@ -218,13 +219,13 @@ static void Decode()
     case GX_LOAD_XF_REG:
         {
             u32 Cmd2 = DataReadU32();
-
-            int dwTransferSize = ((Cmd2>>16)&15) + 1;
+            int dwTransferSize = ((Cmd2 >> 16) & 15) + 1;
             u32 dwAddress = Cmd2 & 0xFFFF;
+			// TODO - speed this up. pshufb?
             static u32 pData[16];
-            for (int i=0; i<dwTransferSize; i++)
+            for (int i = 0; i < dwTransferSize; i++)
                 pData[i] = DataReadU32();
-            VertexShaderMngr::LoadXFReg(dwTransferSize,dwAddress,pData);
+            VertexShaderMngr::LoadXFReg(dwTransferSize, dwAddress, pData);
 			INCSTAT(stats.thisFrame.numXFLoads);
         }
         break;
@@ -272,9 +273,10 @@ static void Decode()
         {
             // load vertices (use computed vertex size from FifoCommandRunnable above)
 			u16 numVertices = DataReadU16();
-            if (numVertices > 0) {
-                g_VertexLoaders[Cmd & GX_VAT_MASK].RunVertices((Cmd & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, numVertices);
-            }
+			VertexLoaderManager::RunVertices(
+				Cmd & GX_VAT_MASK,   // Vertex loader index (0 - 7)
+				(Cmd & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
+				numVertices);
         }
         else
         {

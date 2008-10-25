@@ -70,26 +70,20 @@ typedef void (LOADERDECL *TPipelineFunction)(const void *);
 // all the data loading code must always be made compatible.
 class NativeVertexFormat
 {
+	u8* m_compiledCode;
 public:
 	NativeVertexFormat();
 	~NativeVertexFormat();
 
 	void Initialize(const TVtxDesc &vtx_desc, const TVtxAttr &vtx_attr);
-	void RunPipelineOnce(const TVtxAttr &vtx_attr) const;
-
-	void SetupVertexPointers() {
-		// Cast a pointer to compiled code to a pointer to a function taking no parameters, through a (void *) cast first to
-		// get around type checking errors, and call it.
-		((void (*)())(void*)m_compiledCode)();
-	}
+	void SetupVertexPointers() const;
 
 	// TODO: move these in under private:
 	int m_VBVertexStride;  // PC-side vertex stride
 	int m_VBStridePad;
 	u32 m_components;  // VB_HAS_X. Bitmask telling what vertex components are present.
-	TPipelineFunction m_PipelineStages[32];
-	int m_numPipelineStages;
-	u8* m_compiledCode;
 };
+
+
 
 #endif  // _NATIVEVERTEXFORMAT_H

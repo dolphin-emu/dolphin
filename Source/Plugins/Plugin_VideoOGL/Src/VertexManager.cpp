@@ -19,14 +19,21 @@
 
 #define MAX_BUFFER_SIZE 0x4000
 
+// internal state for loading vertices
+extern NativeVertexFormat *g_nativeVertexFmt;
+
+namespace VertexManager
+{
+
 static GLuint s_vboBuffers[0x40] = {0};
 static int s_nCurVBOIndex = 0; // current free buffer
 static u8 *s_pBaseBufferPointer = NULL;
 static std::vector< std::pair<int, int> > s_vStoredPrimitives; // every element, mode and count to be passed to glDrawArrays
 static u32 s_prevcomponents; // previous state set
 
-u8* VertexManager::s_pCurBufferPointer = NULL;
-TVtxDesc VertexManager::s_GlobalVtxDesc;
+u8* s_pCurBufferPointer = NULL;
+
+TVtxDesc s_GlobalVtxDesc;
 
 static const GLenum c_primitiveType[8] =
 {
@@ -40,14 +47,10 @@ static const GLenum c_primitiveType[8] =
     GL_POINTS
 };
 
-// internal state for loading vertices
-extern NativeVertexFormat *g_nativeVertexFmt;
-
-bool VertexManager::Init()
+bool Init()
 {
 	Destroy();
 
-	s_GlobalVtxDesc.Hex = 0;
 	s_prevcomponents = 0;
 	s_pBaseBufferPointer = (u8*)AllocateMemoryPages(MAX_BUFFER_SIZE);
 	s_pCurBufferPointer = s_pBaseBufferPointer;
@@ -67,7 +70,7 @@ bool VertexManager::Init()
 	return true;
 }
 
-void VertexManager::Destroy()
+void Destroy()
 {
 	FreeMemoryPages(s_pBaseBufferPointer, MAX_BUFFER_SIZE); s_pBaseBufferPointer = s_pCurBufferPointer = NULL;
 	glDeleteBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
@@ -78,14 +81,14 @@ void VertexManager::Destroy()
 	ResetBuffer();
 }
 
-void VertexManager::ResetBuffer()
+void ResetBuffer()
 {
 	s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
 	s_pCurBufferPointer = s_pBaseBufferPointer;
 	s_vStoredPrimitives.resize(0);
 }
 
-void VertexManager::ResetComponents()
+void ResetComponents()
 {
 	s_prevcomponents = 0;
 	glDisableVertexAttribArray(SHADER_POSMTX_ATTRIB);
@@ -98,12 +101,12 @@ void VertexManager::ResetComponents()
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
-int VertexManager::GetRemainingSize()
+int GetRemainingSize()
 {
 	return MAX_BUFFER_SIZE - (int)(s_pCurBufferPointer - s_pBaseBufferPointer);
 }
 
-void VertexManager::AddVertices(int primitive, int numvertices)
+void AddVertices(int primitive, int numvertices)
 {
 	_assert_( numvertices > 0 );
 
@@ -116,7 +119,7 @@ void VertexManager::AddVertices(int primitive, int numvertices)
 #endif
 }
 
-void VertexManager::Flush()
+void Flush()
 {
 	if (s_vStoredPrimitives.size() == 0)
 		return;
@@ -298,37 +301,8 @@ void VertexManager::Flush()
 	ResetBuffer();
 }
 
-void VertexManager::LoadCPReg(u32 sub_cmd, u32 value)
-{
-	switch (sub_cmd & 0xF0)
-	{
-	case 0x30:
-		VertexShaderMngr::SetTexMatrixChangedA(value);
-		break;
-	case 0x40:
-		VertexShaderMngr::SetTexMatrixChangedB(value);
-		break;
-
-	case 0x50:
-		s_GlobalVtxDesc.Hex &= ~0x1FFFF; // keep the Upper bits
-		s_GlobalVtxDesc.Hex |= value;
-		break;
-	case 0x60:
-		s_GlobalVtxDesc.Hex &= 0x1FFFF; // keep the lower 17Bits
-		s_GlobalVtxDesc.Hex |= (u64)value << 17;
-		break;
-
-	case 0x70: g_VertexLoaders[sub_cmd & 7].SetVAT_group0(value); _assert_((sub_cmd & 0x0F) < 8); break;
-	case 0x80: g_VertexLoaders[sub_cmd & 7].SetVAT_group1(value); _assert_((sub_cmd & 0x0F) < 8); break;
-	case 0x90: g_VertexLoaders[sub_cmd & 7].SetVAT_group2(value); _assert_((sub_cmd & 0x0F) < 8); break;
-
-	case 0xA0: arraybases[sub_cmd & 0xF]   = value & 0xFFFFFFFF; break;
-	case 0xB0: arraystrides[sub_cmd & 0xF] = value & 0xFF; break;
-	}
-}
-
 // This should move into NativeVertexFormat
-void VertexManager::EnableComponents(u32 components)
+void EnableComponents(u32 components)
 {
     if (s_prevcomponents != components) {
 		if (s_vStoredPrimitives.size() != 0)
@@ -384,3 +358,5 @@ void VertexManager::EnableComponents(u32 components)
         s_prevcomponents = components;
     }
 }
+
+}  // namespace

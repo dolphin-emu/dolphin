@@ -37,10 +37,6 @@
 // Here's some global state. We only use this to keep track of what we've sent to the OpenGL state
 // machine.
 
-
-
-
-
 DECLARE_IMPORT(glNormalPointer);
 DECLARE_IMPORT(glVertexPointer);
 DECLARE_IMPORT(glColorPointer);
@@ -49,7 +45,6 @@ DECLARE_IMPORT(glTexCoordPointer);
 NativeVertexFormat::NativeVertexFormat()
 {
 	m_compiledCode = (u8 *)AllocateExecutableMemory(COMPILED_CODE_SIZE, false);
-	m_numPipelineStages = 0;
 	if (m_compiledCode) {
 		memset(m_compiledCode, 0, COMPILED_CODE_SIZE);
 	}
@@ -59,6 +54,12 @@ NativeVertexFormat::~NativeVertexFormat()
 {
 	FreeMemoryPages(m_compiledCode, COMPILED_CODE_SIZE);
 	m_compiledCode = 0;
+}
+
+void NativeVertexFormat::SetupVertexPointers() const {
+	// Cast a pointer to compiled code to a pointer to a function taking no parameters, through a (void *) cast first to
+	// get around type checking errors, and call it.
+	((void (*)())(void*)m_compiledCode)();
 }
 
 void NativeVertexFormat::Initialize(const TVtxDesc &vtx_desc, const TVtxAttr &vtx_attr)
@@ -178,7 +179,7 @@ void NativeVertexFormat::Initialize(const TVtxDesc &vtx_desc, const TVtxAttr &vt
 		offset += 1;
 	}
 
-	_assert_(offset+m_VBStridePad == m_VBVertexStride);
+	_assert_(offset + m_VBStridePad == m_VBVertexStride);
 
 	Util::EmitEpilogue(6);
 	if (Gen::GetCodePtr() - (u8*)m_compiledCode > COMPILED_CODE_SIZE)
@@ -187,10 +188,4 @@ void NativeVertexFormat::Initialize(const TVtxDesc &vtx_desc, const TVtxAttr &vt
 	}
 
 	SetCodePtr(old_code_ptr);
-}
-
-void NativeVertexFormat::RunPipelineOnce(const TVtxAttr &vtx_attr) const
-{
-	for (int i = 0; i < m_numPipelineStages; i++)
-		m_PipelineStages[i](&vtx_attr);
 }

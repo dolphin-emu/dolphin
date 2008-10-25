@@ -15,31 +15,25 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#ifndef _VERTEXLOADERMANAGER_H
+#define _VERTEXLOADERMANAGER_H
 
-#ifndef _VERTEXMANAGER_H
-#define _VERTEXMANAGER_H
+#include "Common.h"
 
-#include "CPMemory.h"
-
-// Handles the OpenGL details of drawing lots of vertices quickly.
-// Other functionality is moving out.
-namespace VertexManager
+namespace VertexLoaderManager
 {
-    bool Init();
-    void Destroy();
+    void Init();
+    void Shutdown();
+    void RunVertices(int vtx_attr_group, int primitive, int count);
 
-    void ResetBuffer();
-    void ResetComponents();
-
-    void AddVertices(int primitive, int numvertices);
-    void Flush(); // flushes the current buffer
-
-    int GetRemainingSize();  // remaining space in the current buffer.
-
-	void EnableComponents(u32 components);  // very implementation specific - D3D9 won't need this one.
-
-	// TODO: move, rename.
-    extern u8* s_pCurBufferPointer;
+	// TODO - don't expose these like this.
+    static u8* s_pCurBufferPointer;
 };
 
-#endif  // _VERTEXMANAGER_H
+
+const TVtxDesc &GetVtxDesc();
+
+// Might move this into its own file later.
+void LoadCPReg(u32 SubCmd, u32 Value);
+
+#endif  // _VERTEXLOADERMANAGER_H

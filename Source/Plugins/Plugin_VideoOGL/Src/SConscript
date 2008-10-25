@@ -23,6 +23,7 @@ files = [
 	'VertexManager.cpp',
 	'VertexLoader.cpp',
 	'VertexLoader_Normal.cpp',
+	'VertexLoaderManager.cpp',
 	'VertexShaderManager.cpp',
 	'XFB.cpp',
 	'GUI/ConfigDlg.cpp',

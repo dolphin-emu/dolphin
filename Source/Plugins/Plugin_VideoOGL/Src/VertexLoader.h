@@ -59,8 +59,13 @@ private:
 	// PC vertex format, + converter ======
 	NativeVertexFormat m_NativeFmt;
 
+	// Pipeline. To be JIT compiled in the future.
+	TPipelineFunction m_PipelineStages[32];
+	int m_numPipelineStages;
+
     void SetupColor(int num, int _iMode, int _iFormat, int _iElements);
     void SetupTexCoord(int num, int _iMode, int _iFormat, int _iElements, int _iFrac);
+	void RunPipelineOnce() const;
 
 public:
     // constructor
@@ -79,7 +84,8 @@ public:
 
     void SetVAT_group0(u32 _group0) 
     {
-        if ((m_group0.Hex & ~0x3e0001f0) != (_group0 & ~0x3e0001f0)) {
+		// ignore frac bits - we don't need to recompute if all that's changed was the frac bits.
+        if ((m_group0.Hex & ~VAT_0_FRACBITS) != (_group0 & ~VAT_0_FRACBITS)) {
             m_AttrDirty = AD_VAT_DIRTY;
         }
         m_group0.Hex = _group0;
@@ -102,7 +108,7 @@ public:
 
     void SetVAT_group1(u32 _group1) 
     {
-        if ((m_group1.Hex & ~0x7c3e1f0) != (_group1 & ~0x7c3e1f0)) {
+        if ((m_group1.Hex & ~VAT_1_FRACBITS) != (_group1 & ~VAT_1_FRACBITS)) {
             m_AttrDirty = AD_VAT_DIRTY;
         }
         m_group1.Hex = _group1;
@@ -122,7 +128,7 @@ public:
                                           
     void SetVAT_group2(u32 _group2)		  
     {
-        if ((m_group2.Hex & ~0xf87c3e1f) != (_group2 & ~0xf87c3e1f)) {
+        if ((m_group2.Hex & ~VAT_2_FRACBITS) != (_group2 & ~VAT_2_FRACBITS)) {
             m_AttrDirty = AD_VAT_DIRTY;
         }
         m_group2.Hex = _group2;
