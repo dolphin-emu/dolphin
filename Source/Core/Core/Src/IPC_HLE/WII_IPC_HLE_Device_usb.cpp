@@ -308,7 +308,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		PluginWiimote::Wiimote_Update();
 	}
 
-
+#ifdef _WIN32
 	static bool test = true;
 	if (GetAsyncKeyState(VK_LBUTTON) && GetAsyncKeyState(VK_RBUTTON))
 	{
@@ -316,7 +316,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		{
 			for (size_t i=0; i<m_WiiMotes.size(); i++)
 			{
-				// if (m_WiiMotes[i].EventPagingChanged(2))
+				if (m_WiiMotes[i].EventPagingChanged(2))
 				{
 					SendEventRequestConnection(m_WiiMotes[i].GetBD());
 				}
@@ -324,10 +324,11 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 			test = false;
 		}
 	}
-	else
+/*	else
 	{
 		test = true;
-	}
+	}*/
+#endif
 
 	return 0; 
 }
@@ -540,6 +541,32 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestLinkKey(bdaddr_t _bd)
 	return true;
 };
 
+bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventLinkKeyNotification(const CWII_IPC_HLE_WiiMote& _rWiiMote)
+{
+	SQueuedEvent Event(sizeof(SHCIEventLinkKeyNotification), 0);
+
+	SHCIEventLinkKeyNotification* pEventLinkKey = (SHCIEventLinkKeyNotification*)Event.m_buffer;
+
+	pEventLinkKey->EventType = 0x18;
+	pEventLinkKey->PayloadLength = sizeof(SHCIEventLinkKeyNotification) - 2;
+	pEventLinkKey->bdaddr = _rWiiMote.GetBD();
+	memcpy(pEventLinkKey->LinkKey, _rWiiMote.GetLinkKey(), 16);
+	pEventLinkKey->Key_Type = 0x00;
+
+	AddEventToQueue(Event);
+
+
+	LOG(WIIMOTE, "Event: SendEventLinkKeyNotification");
+	LOG(WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x",
+		pEventLinkKey->bdaddr.b[0], pEventLinkKey->bdaddr.b[1], pEventLinkKey->bdaddr.b[2],
+		pEventLinkKey->bdaddr.b[3], pEventLinkKey->bdaddr.b[4], pEventLinkKey->bdaddr.b[5]);
+	LOG(WIIMOTE, "  link key: no reason to show it...");
+	LOG(WIIMOTE, "  key type: 0x02%x", pEventLinkKey->Key_Type);
+
+	return true;
+};
+
+
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventConnectionComplete(bdaddr_t _bd)
 {    
@@ -588,7 +615,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventConnectionComplete(bdaddr_t _
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRoleChange(bdaddr_t _bd)
+bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRoleChange(bdaddr_t _bd, bool _master)
 {    
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_bd);
 	if (pWiiMote == NULL)
@@ -607,7 +634,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRoleChange(bdaddr_t _bd)
 	pRoleChange->PayloadLength = sizeof(SHCIEventRoleChange) - 2;
 	pRoleChange->Status = 0x00;
 	pRoleChange->bdaddr = pWiiMote->GetBD();
-	pRoleChange->NewRole = 0x00;
+	pRoleChange->NewRole = _master ? 0x00 : 0x01;
 
 	AddEventToQueue(Event);
 
@@ -984,6 +1011,11 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 		CommandLinkKeyNegRep(pInput);
 		break;
 
+	case HCI_CMD_LINK_KEY_REP:
+		CommandLinkKeyRep(pInput);
+		break;
+
+
 		// 
 		// --- default ---
 		//
@@ -1123,9 +1155,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadStoredLinkKey(u8* _Input)
 	// command parameters
 	hci_read_stored_link_key_cp* ReadStoredLinkKey = (hci_read_stored_link_key_cp*)_Input;
 #endif
-	// reply
-	hci_read_stored_link_key_rp Reply;    
-	Reply.status = 0x00;
 
 	LOG(WIIMOTE, "Command: HCI_CMD_READ_STORED_LINK_KEY:");
 	LOG(WIIMOTE, "input:");
@@ -1136,7 +1165,28 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadStoredLinkKey(u8* _Input)
 	LOG(WIIMOTE, "return:");
 	LOG(WIIMOTE, "  no idea what i should answer :)");
 
+
+	// reply
+	hci_read_stored_link_key_rp Reply;    
+	Reply.status = 0x00;
+
+	Reply.max_num_keys = 255;
+	if (ReadStoredLinkKey->read_all)
+	{
+		Reply.num_keys_read = 1;
+	}
+	else	
+	{
+		PanicAlert("CommandReadStoredLinkKey");
+	}
+	
 	SendEventCommandComplete(HCI_CMD_READ_STORED_LINK_KEY, &Reply, sizeof(hci_read_stored_link_key_rp));
+
+	// generate link key
+	for (int i=0; i<m_WiiMotes.size(); i++)
+	{
+		SendEventLinkKeyNotification(m_WiiMotes[i]);
+	}	
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteUnitClass(u8* _Input)
@@ -1495,6 +1545,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandAcceptCon(u8* _Input)
 		pWiimote->EventConnectionAccepted();
 	}
 
+	SendEventRoleChange(pAcceptCon->bdaddr, false);
 	SendEventConnectionComplete(pAcceptCon->bdaddr);
 }
 
@@ -1510,7 +1561,10 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadClockOffset(u8* _Input)
 	SendEventCommandStatus(HCI_CMD_READ_CLOCK_OFFSET);
 	SendEventReadClockOffsetComplete(pReadClockOffset->con_handle);
 
-	//CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(pReadClockOffset->con_handle);
+	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(pReadClockOffset->con_handle);
+	SendEventRequestLinkKey(pWiiMote->GetBD());
+
+//	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(pReadClockOffset->con_handle);
 //	pWiiMote->Connect();
 }
 
@@ -1644,6 +1698,33 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandLinkKeyNegRep(u8* _Input)
 
 //	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(pKeyNeg->bdaddr);
 //	pWiiMote->Connect();
+}
+
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandLinkKeyRep(u8* _Input)
+{
+	// command parameters
+	hci_link_key_rep_cp* pKeyRep = (hci_link_key_rep_cp*)_Input;
+
+	LOG(WIIMOTE, "Command: HCI_CMD_LINK_KEY_REP");
+	LOG(WIIMOTE, "Input:");
+	LOG(WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x", 
+		pKeyRep->bdaddr.b[0], pKeyRep->bdaddr.b[1], pKeyRep->bdaddr.b[2],
+		pKeyRep->bdaddr.b[3], pKeyRep->bdaddr.b[4], pKeyRep->bdaddr.b[5]);
+	LOG(WIIMOTE, "  link key: %02x (all the values are the same)", pKeyRep->key[0]);
+
+
+	hci_link_key_rep_rp Reply;
+	Reply.status = 0x00;
+	Reply.bdaddr = pKeyRep->bdaddr;
+
+	SendEventCommandComplete(HCI_CMD_LINK_KEY_REP, &Reply, sizeof(hci_link_key_rep_rp));
+
+	
+
+	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(pKeyRep->bdaddr);
+	SendEventAuthenticationCompleted(pWiiMote->GetConnectionHandle());
+
+	pWiiMote->Connect();
 }
 
 

@@ -2541,6 +2541,15 @@ struct SHCIEventRequestLinkKey
 	bdaddr_t bdaddr;
 };
 
+struct SHCIEventLinkKeyNotification
+{
+	u8 EventType;
+	u8 PayloadLength;
+	bdaddr_t bdaddr;
+	u8 LinkKey[16];
+	u8 Key_Type;
+};
+
 #ifdef __cplusplus
 }
 #endif

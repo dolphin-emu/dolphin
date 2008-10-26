@@ -184,6 +184,8 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 
 	lmp_version = 0x2;
 	lmp_subversion = 0x229;
+
+	memset(m_LinkKey, _Number+1, 16);
 }
 
 void CWII_IPC_HLE_WiiMote::EventConnectionAccepted()
@@ -322,10 +324,10 @@ void CWII_IPC_HLE_WiiMote::SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLeng
 
 void CWII_IPC_HLE_WiiMote::Connect() 
 {
-	SendConnectionRequest(0x0040, 1);
+//	SendConnectionRequest(0x0040, 1);
 
-//	SendConnectionRequest(0x0041, HIDP_OUTPUT_CHANNEL);
-//	SendConnectionRequest(0x0042, HIDP_INPUT_CHANNEL);
+	SendConnectionRequest(0x0041, HIDP_OUTPUT_CHANNEL);
+	SendConnectionRequest(0x0042, HIDP_INPUT_CHANNEL);
 }
 
 void CWII_IPC_HLE_WiiMote::SendConnectionRequest(u16 scid, u16 psm) 

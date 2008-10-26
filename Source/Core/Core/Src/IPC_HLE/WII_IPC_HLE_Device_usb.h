@@ -157,12 +157,13 @@ private:
 	bool SendEventReadClockOffsetComplete(u16 _connectionHandle);
 	bool SendEventReadRemoteVerInfo(u16 _connectionHandle);
 	bool SendEventReadRemoteFeatures(u16 _connectionHandle);
-	bool SendEventRoleChange(bdaddr_t _bd);
+	bool SendEventRoleChange(bdaddr_t _bd, bool _master);
 	bool SendEventNumberOfCompletedPackets(u16 _connectionHandle, u16 _count);
 	bool SendEventAuthenticationCompleted(u16 _connectionHandle);	
 	bool SendEventModeChange(u16 _connectionHandle, u8 _mode, u16 _value);
 	bool SendEventDisconnect(u16 _connectionHandle, u8 _Reason);
 	bool SendEventRequestLinkKey(bdaddr_t _bd);
+	bool SendEventLinkKeyNotification(const CWII_IPC_HLE_WiiMote& _rWiiMote);
 
 	// Execute HCI Message
 	void ExecuteHCICommandMessage(const SHCICommandMessage& _rCtrlMessage);
@@ -182,6 +183,7 @@ private:
 	void CommandInquiry(u8* _Input);
 	void CommandDisconnect(u8* _Input);
 	void CommandLinkKeyNegRep(u8* _Input);
+	void CommandLinkKeyRep(u8* _Input);
 
 	// OGF 0x02	Link policy commands and return parameters
 	void CommandWriteLinkPolicy(u8* _Input);

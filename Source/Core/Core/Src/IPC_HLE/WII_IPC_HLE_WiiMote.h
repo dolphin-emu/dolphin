@@ -113,6 +113,8 @@ public:
 
 	void SendL2capData(u16 scid, const void* _pData, u32 _Size);	//from wiimote
 
+	const u8* GetLinkKey() const { return m_LinkKey; }
+
 private:
 
 	bool m_Connected;
@@ -130,6 +132,7 @@ private:
 
 	u16 lmp_subversion;
 
+	u8 m_LinkKey[16];
 
 	std::string m_Name;
 
