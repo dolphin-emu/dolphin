@@ -608,9 +608,6 @@ void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
-	event.Skip();
-	return;
-
 	if (((event.GetKeyCode() == WXK_RETURN) && (event.GetModifiers() == wxMOD_ALT)) ||
 	    (event.GetKeyCode() == WXK_ESCAPE))
 	{
