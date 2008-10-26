@@ -43,8 +43,8 @@ typedef signed __int64 s64;
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
-#ifndef BOOL
-#define BOOL unsigned int
+#if !defined(OSX64)
+typedef unsigned int BOOL;
 #endif
 typedef unsigned long long u64;
 
