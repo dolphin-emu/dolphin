@@ -24,6 +24,7 @@
 #include "Debugger.h"
 #include "MemoryView.h"
 #include "Thread.h"
+#include "StringUtil.h"
 
 #include "CoreParameter.h"
 
@@ -59,6 +60,7 @@ class CMemoryWindow
 
 		wxButton* buttonGo;
 		wxTextCtrl* addrbox;
+		wxTextCtrl* valbox;
 
 		DECLARE_EVENT_TABLE()
 
@@ -66,6 +68,7 @@ class CMemoryWindow
 		void OnCallstackListChange(wxCommandEvent& event);
 		void OnAddrBoxChange(wxCommandEvent& event);
 		void OnHostMessage(wxCommandEvent& event);
+		void SetMemoryValue(wxCommandEvent& event);
 };
 
 #endif /*MEMORYWINDOW_*/

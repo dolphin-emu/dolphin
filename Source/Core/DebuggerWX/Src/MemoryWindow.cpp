@@ -35,6 +35,8 @@
 #include "Core.h"
 #include "LogManager.h"
 
+#include "HW/Memmap.h"
+
 // ugly that this lib included code from the main
 #include "../../DolphinWX/Src/Globals.h"
 
@@ -54,13 +56,16 @@ enum
 	IDM_DUALCORE,
 	IDM_LOGWINDOW,
 	IDM_REGISTERWINDOW,
-	IDM_BREAKPOINTWINDOW
+	IDM_BREAKPOINTWINDOW,
+	IDM_VALBOX,
+	IDM_SETVALBUTTON
 };
 
 BEGIN_EVENT_TABLE(CMemoryWindow, wxFrame)
     EVT_TEXT(IDM_ADDRBOX,           CMemoryWindow::OnAddrBoxChange)
     EVT_LISTBOX(IDM_SYMBOLLIST,     CMemoryWindow::OnSymbolListChange)
     EVT_HOST_COMMAND(wxID_ANY,      CMemoryWindow::OnHostMessage)
+	EVT_BUTTON(IDM_SETVALBUTTON,    CMemoryWindow::SetMemoryValue)
 END_EVENT_TABLE()
 
 
@@ -83,6 +88,8 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	sizerRight->Add(buttonGo = new wxButton(this, IDM_DEBUG_GO, _T("&Go")));
 	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_ADDRBOX, _T("")));
 	sizerRight->Add(new wxButton(this, IDM_SETPC, _T("S&et PC")));
+	sizerRight->Add(valbox = new wxTextCtrl(this, IDM_VALBOX, _T("")));
+	sizerRight->Add(new wxButton(this, IDM_SETVALBUTTON, _T("Set &Value")));
 
 	SetSizer(sizerBig);
 
@@ -126,6 +133,26 @@ void CMemoryWindow::JumpToAddress(u32 _Address)
 }
 
 
+void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)
+{
+	std::string str_addr = std::string(addrbox->GetValue().mb_str());
+	std::string str_val = std::string(valbox->GetValue().mb_str());
+	u32 addr;
+	u32 val;
+
+	if (!TryParseUInt(std::string("0x") + str_addr, &addr)) {
+		PanicAlert("Invalid Address: %s", str_addr);
+		return;
+	}
+
+	if (!TryParseUInt(std::string("0x") + str_val, &val)) {
+		PanicAlert("Invalid Value: %s", str_val);
+		return;
+	}
+
+	Memory::Write_U32(val, addr);
+	memview->Refresh();
+}
 void CMemoryWindow::OnAddrBoxChange(wxCommandEvent& event)
 {
 	wxString txt = addrbox->GetValue();
