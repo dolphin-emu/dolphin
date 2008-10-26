@@ -27,6 +27,6 @@ struct ARCode {
 };
 
 void ActionReplayRunAllActive();
-void RunActionReplayCode(const ARCode &arcode, bool nowIsBootup);
+bool RunActionReplayCode(const ARCode &arcode);
 void LoadActionReplayCodes(IniFile &ini);
 
