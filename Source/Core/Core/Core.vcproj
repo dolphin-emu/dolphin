@@ -1143,10 +1143,6 @@
 				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_WiiMote.h"
 				>
 			</File>
-			<File
-				RelativePath=".\Src\IPC_HLE\wiimote_hid.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Boot"

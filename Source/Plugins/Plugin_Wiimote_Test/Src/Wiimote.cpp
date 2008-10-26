@@ -67,12 +67,12 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs);
 void WmDataReporting(u16 _channelID, wm_data_reporting* dr);
 
 void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _Size);
-void SendWriteDataReply(u16 _channelID);
 void SendReportCoreAccel(u16 _channelID);
 void SendReportCoreAccelIr12(u16 _channelID);
 void SendReportCore(u16 _channelID);
 
-int WriteWmReport(u16 _channelID, u8* dst, u8 channel);
+int WriteWmReport(u8* dst, u8 channel);
+void WmSendAck(u16 _channelID, u8 _reportID);
 
 static u32 convert24bit(const u8* src) {
 	return (src[0] << 16) | (src[1] << 8) | src[2];
@@ -202,7 +202,11 @@ extern "C" void Wiimote_Input(u16 _channelID, const void* _pData, u32 _Size)
 			switch(hidp->param)
 			{
 			case HID_PARAM_OUTPUT:
-				HidOutputReport(_channelID, (wm_report*)hidp->data);
+				{
+					wm_report* sr = (wm_report*)hidp->data;
+					WmSendAck(_channelID, sr->channel);
+					HidOutputReport(_channelID, sr);
+				}
 				break;
 
 			default:
@@ -278,7 +282,7 @@ extern "C" void Wiimote_Update() {
 	switch(g_ReportingMode) {
 	case 0:
 		break;
-	case WM_REPORT_CORE:			SendReportCoreAccel(g_ReportingChannel);			break;
+	case WM_REPORT_CORE:			SendReportCore(g_ReportingChannel);			break;
 	case WM_REPORT_CORE_ACCEL:		SendReportCoreAccel(g_ReportingChannel);	break;
 	case WM_REPORT_CORE_ACCEL_IR12: SendReportCoreAccelIr12(g_ReportingChannel);break;
 	}
@@ -299,6 +303,7 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 	{
 	case WM_LEDS:
 		WmLeds(_channelID, (wm_leds*)sr->data);
+		// WmSendAck(_channelID, WM_LEDS);
 		break;
 	case WM_READ_DATA:
 		WmReadData(_channelID, (wm_read_data*)sr->data);
@@ -309,6 +314,7 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 	case WM_IR_PIXEL_CLOCK:
 	case WM_IR_LOGIC:
 		LOG(WIIMOTE, " IR Enable 0x%02x 0x%02x", sr->channel, sr->data[0]);
+		// WmSendAck(_channelID, WM_IR_LOGIC);
 		break;
 	case WM_WRITE_DATA:
 		WmWriteData(_channelID, (wm_write_data*)sr->data);
@@ -330,8 +336,36 @@ void WmLeds(u16 _channelID, wm_leds* leds) {
 
 	g_Leds = leds->leds;
 }
+void WmSendAck(u16 _channelID, u8 _reportID)
+{
 
-void WmDataReporting(u16 _channelID, wm_data_reporting* dr) {
+	u8 DataFrame[1024];
+
+	u32 Offset = 0;
+
+	// header
+	hid_packet* pHidHeader = (hid_packet*)(DataFrame + Offset);
+	pHidHeader->type = HID_TYPE_DATA;
+	pHidHeader->param = HID_PARAM_INPUT;
+	Offset += sizeof(hid_packet);
+
+	wm_acknowledge* pData = (wm_acknowledge*)(DataFrame + Offset);
+	pData->Channel = WM_WRITE_DATA_REPLY;
+	pData->unk0 = 0;
+	pData->unk1 = 0;
+	pData->reportID = _reportID;
+	pData->errorID = 0;
+	Offset += sizeof(wm_acknowledge);
+
+
+	LOG(WIIMOTE, "  WMSendAck()");
+
+	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
+}
+
+
+void WmDataReporting(u16 _channelID, wm_data_reporting* dr) 
+{
 	LOG(WIIMOTE, " Set Data reporting mode");
 	LOG(WIIMOTE, "  Rumble: %x", dr->rumble);
 	LOG(WIIMOTE, "  Continuous: %x", dr->continuous);
@@ -341,7 +375,7 @@ void WmDataReporting(u16 _channelID, wm_data_reporting* dr) {
 
 	g_ReportingMode = dr->mode;
 	g_ReportingChannel = _channelID;
-	switch(g_ReportingMode) {	//see Wiimote_Update()
+	switch(dr->mode) {	//see Wiimote_Update()
 	case 0x30:
 	case 0x31:
 	case 0x33:
@@ -349,26 +383,30 @@ void WmDataReporting(u16 _channelID, wm_data_reporting* dr) {
 	default:
 		PanicAlert("Wiimote: Unknown reporting mode 0x%x", dr->mode);
 	}
+
+	// WmSendAck(_channelID, WM_DATA_REPORTING);
 }
 
 
-void FillReportInfo(wm_report_core& _reportCore)
+void FillReportInfo(wm_core& _core)
 {
 	static bool bb = true;
 	bb = !bb;
-	_reportCore.c.a = bb ? 1 : 0;
+	_core.a = GetAsyncKeyState(VK_LBUTTON) ? 1 : 0;
+	_core.b = GetAsyncKeyState(VK_RBUTTON) ? 1 : 0;
 }
 
 
-void SendReportCore(u16 _channelID) {
+void SendReportCore(u16 _channelID) 
+{
 	u8 DataFrame[1024];
-	u32 Offset = WriteWmReport(_channelID, DataFrame, WM_REPORT_CORE);
+	u32 Offset = WriteWmReport(DataFrame, WM_REPORT_CORE);
 
 	wm_report_core* pReport = (wm_report_core*)(DataFrame + Offset);
 	Offset += sizeof(wm_report_core);
 	memset(pReport, 0, sizeof(wm_report_core));
 
-	FillReportInfo(*pReport);
+	FillReportInfo(pReport->c);
 
 	LOG(WIIMOTE, "  SendReportCore()");
 
@@ -378,7 +416,7 @@ void SendReportCore(u16 _channelID) {
 
 void SendReportCoreAccelIr12(u16 _channelID) {
 	u8 DataFrame[1024];
-	u32 Offset = WriteWmReport(_channelID, DataFrame, WM_REPORT_CORE_ACCEL_IR12);
+	u32 Offset = WriteWmReport(DataFrame, WM_REPORT_CORE_ACCEL_IR12);
 
 	wm_report_core_accel_ir12* pReport = (wm_report_core_accel_ir12*)(DataFrame + Offset);
 	Offset += sizeof(wm_report_core_accel_ir12);
@@ -437,7 +475,7 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 
 void SendReportCoreAccel(u16 _channelID) {
 	u8 DataFrame[1024];
-	u32 Offset = WriteWmReport(_channelID, DataFrame, WM_REPORT_CORE_ACCEL);
+	u32 Offset = WriteWmReport(DataFrame, WM_REPORT_CORE_ACCEL);
 
 	wm_report_core_accel* pReport = (wm_report_core_accel*)(DataFrame + Offset);
 	Offset += sizeof(wm_report_core_accel);
@@ -462,10 +500,12 @@ void WmReadData(u16 _channelID, wm_read_data* rd) {
 	LOG(WIIMOTE, "  Size: 0x%04x", size);
 	LOG(WIIMOTE, "  Rumble: %x", rd->rumble);
 
-	if(size <= 16 && rd->space == 0) {
+	if(size <= 100 && rd->space == 0) {
 		SendReadDataReply(_channelID, g_Eeprom, address, (u8)size);
-	} else {
-		PanicAlert("WmReadData: unimplemented parameters!");
+	} 
+	else 
+	{		
+		PanicAlert("WmReadData: unimplemented parameters (size: %i, addr: 0x%x!", size, rd->space);
 	}
 }
 
@@ -484,7 +524,8 @@ void WmWriteData(u16 _channelID, wm_write_data* wd) {
 			return;
 		}
 		memcpy(g_Eeprom + address, wd->data, wd->size);
-		SendWriteDataReply(_channelID);
+
+	//	WmSendAck(_channelID, WM_WRITE_DATA);
 	}
 	else if(wd->size <= 16 && (wd->space == WM_SPACE_REGS1 || wd->space == WM_SPACE_REGS2))
 	{
@@ -513,22 +554,14 @@ void WmWriteData(u16 _channelID, wm_write_data* wd) {
 			return;
 		}
 		memcpy(block + address, wd->data, wd->size);
-		SendWriteDataReply(_channelID);
+
+	//	WmSendAck(_channelID, WM_WRITE_DATA);
 	} else {
 		PanicAlert("WmWriteData: unimplemented parameters!");
 	}
 }
 
-void SendWriteDataReply(u16 _channelID) {
-	u8 DataFrame[1024];
-	u32 Offset = WriteWmReport(_channelID, DataFrame, WM_WRITE_DATA_REPLY);
-
-	LOG(WIIMOTE, "  SendWriteDataReply()");
-
-	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
-}
-
-int WriteWmReport(u16 _channelID, u8* dst, u8 channel) {
+int WriteWmReport(u8* dst, u8 channel) {
 	u32 Offset = 0;
 	hid_packet* pHidHeader = (hid_packet*)(dst + Offset);
 	Offset += sizeof(hid_packet);
@@ -547,7 +580,7 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs) {
 
 	//SendStatusReport();
 	u8 DataFrame[1024];
-	u32 Offset = WriteWmReport(_channelID, DataFrame, WM_STATUS_REPORT);
+	u32 Offset = WriteWmReport(DataFrame, WM_STATUS_REPORT);
 
 	wm_status_report* pStatus = (wm_status_report*)(DataFrame + Offset);
 	Offset += sizeof(wm_status_report);
@@ -566,7 +599,7 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs) {
 void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _Size)
 {
 	u8 DataFrame[1024];
-	u32 Offset = WriteWmReport(_channelID, DataFrame, WM_READ_DATA_REPLY);
+	u32 Offset = WriteWmReport(DataFrame, WM_READ_DATA_REPLY);
 
 	_dbg_assert_(WIIMOTE, _Size <= 16);
 

@@ -80,6 +80,17 @@ public:
 	virtual ~CWII_IPC_HLE_WiiMote()
 	{}
 
+	//////////////////////////////////////////////////////////////
+	// ugly Host handling....
+	// we really have to clean all this code
+
+	bool IsConnected() const { return m_Connected; }
+
+
+	void EventConnectionAccepted();
+	void EventDisconnect();
+	bool EventPagingChanged(u8 _pageMode);
+
 	const bdaddr_t& GetBD() const { return m_BD; }
 
 	const uint8_t* GetClass() const { return uclass; }
@@ -103,6 +114,8 @@ public:
 	void SendL2capData(u16 scid, const void* _pData, u32 _Size);	//from wiimote
 
 private:
+
+	bool m_Connected;
 
 	// STATE_TO_SAVE
 	bdaddr_t m_BD;
@@ -146,6 +159,7 @@ private:
 
 	void SendConnectionRequest(u16 scid, u16 psm);
 	void SendConfigurationRequest(u16 scid, u16* MTU, u16* FlushTimeOut);
+	void SendDisconnectRequest(u16 scid);
 
 	void CommandConnectionReq(u8 _Ident, u8* _pData, u32 _Size);
 	void CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Size);

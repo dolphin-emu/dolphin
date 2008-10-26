@@ -134,4 +134,24 @@ void PrintCallstack(LogTypes::LOG_TYPE _Log)
 	}
 }
 
+void PrintDataBuffer(LogTypes::LOG_TYPE _Log, u8* _pData, size_t _Size, const char* _title)
+{
+	__Log(_Log, _title);		
+	for (u32 j=0; j<_Size;)
+	{
+		std::string Temp;
+		for (int i=0; i<16; i++)
+		{
+			char Buffer[128];
+			sprintf(Buffer, "%02x ", _pData[j++]);
+			Temp.append(Buffer);
+
+			if (j >= _Size)
+				break;
+		}
+
+		__Log(_Log, "   Data: %s", Temp.c_str());
+	}
+}
+
 }  // end of namespace Debugger

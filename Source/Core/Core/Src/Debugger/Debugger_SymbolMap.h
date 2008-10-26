@@ -35,6 +35,7 @@ struct CallstackEntry
 bool GetCallstack(std::vector<CallstackEntry> &output);
 void PrintCallstack();
 void PrintCallstack(LogTypes::LOG_TYPE _Log);
+void PrintDataBuffer(LogTypes::LOG_TYPE _Log, u8* _pData, size_t _Size, const char* _title);
 
 } // end of namespace Debugger
 

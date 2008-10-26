@@ -80,6 +80,15 @@ struct wm_write_data {
 };
 
 #define WM_WRITE_DATA_REPLY 0x22	//empty, afaik
+struct wm_acknowledge 
+{
+	u8 Channel;
+	u8 unk0;
+	u8 unk1;
+	u8 reportID;
+	u8 errorID;
+};
+
 
 #define WM_READ_DATA 0x17
 struct wm_read_data {

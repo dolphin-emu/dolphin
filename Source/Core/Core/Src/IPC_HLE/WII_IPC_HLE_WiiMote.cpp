@@ -135,13 +135,27 @@ static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb;
 namespace Core {
 	void Callback_WiimoteInput(u16 _channelID, const void* _pData, u32 _Size) 
 	{
+		const u8* pData = (const u8*)_pData;
+		LOG(WIIMOTE, "Callback_WiimoteInput: 0x%x", _channelID);
+		std::string Temp;
+		for (u32 j=0; j<_Size; j++)
+		{
+			char Buffer[128];
+			sprintf(Buffer, "%02x ", pData[j]);
+			Temp.append(Buffer);
+		}
+		LOG(WIIMOTE, "   Data: %s", Temp.c_str());
+
 		s_Usb->m_WiiMotes[0].SendL2capData(_channelID, _pData, _Size);
+
+		// CCPU::Break();
 	}
 }
 
 CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pHost, int _Number)
 	: m_Name("Nintendo RVL-CNT-01")
 	, m_pHost(_pHost)
+	, m_Connected(false)
 {
 	s_Usb = _pHost;
 	LOG(WIIMOTE, "Wiimote %i constructed", _Number);
@@ -172,21 +186,33 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 	lmp_subversion = 0x229;
 }
 
+void CWII_IPC_HLE_WiiMote::EventConnectionAccepted()
+{
+	m_Connected = true;
+}
+
+void CWII_IPC_HLE_WiiMote::EventDisconnect()
+{
+	m_Connected = false;
+}
+
+bool CWII_IPC_HLE_WiiMote::EventPagingChanged(u8 _pageMode)
+{
+	if (m_Connected)
+		return false;
+
+	if ((_pageMode & 2) == 0)
+		return false;
+		 
+	return true;
+}
+
+
+
 void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 {
-/*	// dump raw data
-	{
-		LOG(WIIMOTE, "SendToDevice: 0x%x", GetConnectionHandle());
-		std::string Temp;
-		for (u32 j=0; j<_Size; j++)
-		{
-			char Buffer[128];
-			sprintf(Buffer, "%02x ", _pData[j]);
-			Temp.append(Buffer);
-		}
-		LOG(WIIMOTE, "   Data: %s", Temp.c_str());
-	}
-*/
+	// Debugger::PrintDataBuffer(LogTypes::WIIMOTE, _pData, _Size, "SendACLFrame: ");
+
 	// parse the command
 	SL2CAP_Header* pHeader = (SL2CAP_Header*)_pData;
 	u8* pData = _pData + sizeof(SL2CAP_Header);
@@ -296,8 +322,10 @@ void CWII_IPC_HLE_WiiMote::SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLeng
 
 void CWII_IPC_HLE_WiiMote::Connect() 
 {
-	SendConnectionRequest(0x0040, HIDP_OUTPUT_CHANNEL);
-	SendConnectionRequest(0x0041, HIDP_INPUT_CHANNEL);
+	SendConnectionRequest(0x0040, 1);
+
+//	SendConnectionRequest(0x0041, HIDP_OUTPUT_CHANNEL);
+//	SendConnectionRequest(0x0042, HIDP_INPUT_CHANNEL);
 }
 
 void CWII_IPC_HLE_WiiMote::SendConnectionRequest(u16 scid, u16 psm) 
@@ -316,6 +344,22 @@ void CWII_IPC_HLE_WiiMote::SendConnectionRequest(u16 scid, u16 psm)
 	LOG(WIIMOTE, "    Scid: 0x%04x", cr.scid);
 
 	SendCommandToACL(L2CAP_CONN_REQ, L2CAP_CONN_REQ, sizeof(l2cap_conn_req), (u8*)&cr);
+}
+
+void CWII_IPC_HLE_WiiMote::SendDisconnectRequest(u16 scid) 
+{
+	// create the channel
+	SChannel& rChannel = m_Channel[scid];
+
+	l2cap_disconn_req cr;
+	cr.dcid = rChannel.DCID;
+	cr.scid = rChannel.SCID;
+
+	LOG(WIIMOTE, "  SendDisconnectionRequest()");
+	LOG(WIIMOTE, "    Dcid: 0x%04x", cr.dcid);
+	LOG(WIIMOTE, "    Scid: 0x%04x", cr.scid);
+
+	SendCommandToACL(L2CAP_DISCONN_REQ, L2CAP_DISCONN_REQ, sizeof(l2cap_disconn_req), (u8*)&cr);
 }
 
 void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16* MTU, u16* FlushTimeOut) 

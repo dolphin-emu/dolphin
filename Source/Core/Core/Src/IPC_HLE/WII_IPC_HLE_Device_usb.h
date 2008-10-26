@@ -152,7 +152,7 @@ private:
 	bool SendEventInquiryResponse();
 	bool SendEventInquiryComplete();
 	bool SendEventRemoteNameReq(bdaddr_t _bd);
-	bool SendEventRequestConnection();
+	bool SendEventRequestConnection(bdaddr_t _bd);
 	bool SendEventConnectionComplete(bdaddr_t _bd);
 	bool SendEventReadClockOffsetComplete(u16 _connectionHandle);
 	bool SendEventReadRemoteVerInfo(u16 _connectionHandle);
@@ -162,6 +162,7 @@ private:
 	bool SendEventAuthenticationCompleted(u16 _connectionHandle);	
 	bool SendEventModeChange(u16 _connectionHandle, u8 _mode, u16 _value);
 	bool SendEventDisconnect(u16 _connectionHandle, u8 _Reason);
+	bool SendEventRequestLinkKey(bdaddr_t _bd);
 
 	// Execute HCI Message
 	void ExecuteHCICommandMessage(const SHCICommandMessage& _rCtrlMessage);
@@ -180,6 +181,7 @@ private:
 	void CommandAuthenticationRequested(u8* _Input);
 	void CommandInquiry(u8* _Input);
 	void CommandDisconnect(u8* _Input);
+	void CommandLinkKeyNegRep(u8* _Input);
 
 	// OGF 0x02	Link policy commands and return parameters
 	void CommandWriteLinkPolicy(u8* _Input);
@@ -195,6 +197,7 @@ private:
 	void CommandWritePinType(u8* _Input);
 	void CommandSetEventFilter(u8* _Input);
 	void CommandWriteInquiryScanType(u8* _Input);
+	void CommandWriteLinkSupervisionTimeout(u8* _Input);
 
 	// OGF 0x04	Informational commands and return parameters 
 	void CommandReadBufferSize(u8* _Input);

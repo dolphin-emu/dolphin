@@ -2534,6 +2534,12 @@ struct SHCIEventDisconnectCompleted
 	u8 Reason;
 };
 
+struct SHCIEventRequestLinkKey
+{
+	u8 EventType;
+	u8 PayloadLength;
+	bdaddr_t bdaddr;
+};
 
 #ifdef __cplusplus
 }
