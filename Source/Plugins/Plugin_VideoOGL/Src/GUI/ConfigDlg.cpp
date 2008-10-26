@@ -63,14 +63,21 @@ void ConfigDialog::CreateGUIControls()
 {	
 	//notebook
 	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
-	m_PageVideo = new wxPanel(m_Notebook, ID_PAGEVIDEO, wxDefaultPosition, wxDefaultSize);
-	m_Notebook->AddPage(m_PageVideo, wxT("Video"));
+
+	m_PageGeneral = new wxPanel(m_Notebook, ID_PAGEGENERAL, wxDefaultPosition, wxDefaultSize);
+	m_Notebook->AddPage(m_PageGeneral, wxT("General"));
 
 	m_PageEnhancements = new wxPanel(m_Notebook, ID_PAGEENHANCEMENTS, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_PageEnhancements, wxT("Enhancements"));
 
-	m_PageAdvanced = new wxPanel(m_Notebook, ID_PAGEADVANCED, wxDefaultPosition, wxDefaultSize);
-	m_Notebook->AddPage(m_PageAdvanced, wxT("Advanced"));
+	m_PageInformation = new wxPanel(m_Notebook, ID_PAGEINFORMATION, wxDefaultPosition, wxDefaultSize);
+	m_Notebook->AddPage(m_PageInformation, wxT("Info"));
+
+	m_PageRender = new wxPanel(m_Notebook, ID_PAGERENDER, wxDefaultPosition, wxDefaultSize);
+	m_Notebook->AddPage(m_PageRender, wxT("Render"));
+
+	m_PageUtility = new wxPanel(m_Notebook, ID_PAGEUTILITY, wxDefaultPosition, wxDefaultSize);
+	m_Notebook->AddPage(m_PageUtility, wxT("Util"));
 
 	m_PageHacks = new wxPanel(m_Notebook, ID_PAGEHACKS, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_PageHacks, wxT("Hacks"));
@@ -96,32 +103,32 @@ void ConfigDialog::CreateGUIControls()
 	this->SetSizer(sMain);
 	this->Layout();
 
-	//page1
-	m_Fullscreen = new wxCheckBox(m_PageVideo, ID_FULLSCREEN, wxT("Fullscreen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	// Page 1 "General"
+	m_Fullscreen = new wxCheckBox(m_PageGeneral, ID_FULLSCREEN, wxT("Fullscreen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Fullscreen->SetValue(g_Config.bFullscreen);
 
-	m_RenderToMainWindow = new wxCheckBox(m_PageVideo, ID_RENDERTOMAINWINDOW, wxT("Render to main window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_RenderToMainWindow = new wxCheckBox(m_PageGeneral, ID_RENDERTOMAINWINDOW, wxT("Render to main window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_RenderToMainWindow->SetValue(g_Config.renderToMainframe);
 
-	wxStaticText *FSText = new wxStaticText(m_PageVideo, ID_FSTEXT, wxT("Fullscreen video mode:"), wxDefaultPosition, wxDefaultSize, 0);
+	m_StretchToFit = new wxCheckBox(m_PageGeneral, ID_STRETCHTOFIT, wxT("Stretch to fit (instead of changing res.)"),
+	wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_StretchToFit->SetValue(g_Config.bStretchToFit);
+
+	m_KeepAR = new wxCheckBox(m_PageGeneral, ID_KEEPAR, wxT("Keep 4:3 aspect ratio"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_KeepAR->SetValue(g_Config.bKeepAR);
+
+	wxStaticText *FSText = new wxStaticText(m_PageGeneral, ID_FSTEXT, wxT("Fullscreen video mode:"), wxDefaultPosition, wxDefaultSize, 0);
 	wxArrayString arrayStringFor_FullscreenCB;
-	m_FullscreenCB = new wxComboBox(m_PageVideo, ID_FULLSCREENCB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, 0, wxDefaultValidator);
+	m_FullscreenCB = new wxComboBox(m_PageGeneral, ID_FULLSCREENCB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, 0, wxDefaultValidator);
 	m_FullscreenCB->SetValue(wxString::FromAscii(g_Config.iFSResolution));
 
-	wxStaticText *WMText = new wxStaticText(m_PageVideo, ID_WMTEXT, wxT("Windowed resolution:"), wxDefaultPosition, wxDefaultSize, 0);
+	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Windowed resolution:"), wxDefaultPosition, wxDefaultSize, 0);
 	wxArrayString arrayStringFor_WindowResolutionCB;
-	m_WindowResolutionCB = new wxComboBox(m_PageVideo, ID_WINDOWRESOLUTIONCB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, 0, wxDefaultValidator);
+	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, 0, wxDefaultValidator);
 	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.iWindowedRes));
 
-	wxStaticText *AAText = new wxStaticText(m_PageVideo, ID_AATEXT, wxT("Anti-alias mode:"),  wxDefaultPosition, wxDefaultSize, 0);
-	wxArrayString arrayStringFor_AliasModeCB;
-	m_AliasModeCB = new wxComboBox(m_PageVideo, ID_ALIASMODECB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_AliasModeCB, 0, wxDefaultValidator);
-	wxString tmp;
-	tmp<<g_Config.iMultisampleMode;
-	m_AliasModeCB->SetValue(tmp);
-
-
-	// page2 -------------------------
+	// Page 2 "Enhancements"
 	m_ForceFiltering = new wxCheckBox(m_PageEnhancements, ID_FORCEFILTERING, wxT("Force bi/trilinear filtering (May cause small glitches)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ForceFiltering->SetValue(g_Config.bForceFiltering);
 
@@ -130,45 +137,46 @@ void ConfigDialog::CreateGUIControls()
 	//m_ForceAnisotropy->SetValue(g_Config.bForceMaxAniso);
 	m_ForceAnisotropy->Enable(false);
 
-	m_StretchToFit = new wxCheckBox(m_PageEnhancements, ID_STRETCHTOFIT, wxT("Stretch to fit (instead of changing res.)"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_StretchToFit->SetValue(g_Config.bStretchToFit);
+	wxStaticText *AAText = new wxStaticText(m_PageEnhancements, ID_AATEXT, wxT("Anti-alias mode:"),  wxDefaultPosition, wxDefaultSize, 0);
+	wxArrayString arrayStringFor_AliasModeCB;
+	m_AliasModeCB = new wxComboBox(m_PageEnhancements, ID_ALIASMODECB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_AliasModeCB, 0, wxDefaultValidator);
+	wxString tmp;
+	tmp<<g_Config.iMultisampleMode;
+	m_AliasModeCB->SetValue(tmp);
 
-	m_KeepAR = new wxCheckBox(m_PageEnhancements, ID_KEEPAR, wxT("Keep 4:3 aspect ratio"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_KeepAR->SetValue(g_Config.bKeepAR);
-
-	// page3 -------------------------
-	m_ShowFPS = new wxCheckBox(m_PageAdvanced, ID_SHOWFPS, wxT("Overlay FPS"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	// Page 3 "Information"
+	m_ShowFPS = new wxCheckBox(m_PageInformation, ID_SHOWFPS, wxT("Overlay FPS"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ShowFPS->SetValue(g_Config.bShowFPS);
 	
-	m_Statistics = new wxCheckBox(m_PageAdvanced, ID_STATISTICS, wxT("Overlay some statistics"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Statistics = new wxCheckBox(m_PageInformation, ID_STATISTICS, wxT("Overlay some statistics"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Statistics->SetValue(g_Config.bOverlayStats);
 
-	m_TexFmtOverlay = new wxCheckBox(m_PageAdvanced, ID_TEXFMTOVERLAY, wxT("Overlay texture format"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_TexFmtOverlay->SetValue(g_Config.bTexFmtOverlayEnable);
-	m_TexFmtCenter = new wxCheckBox(m_PageAdvanced, ID_TEXFMTCENTER, wxT("centered"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_TexFmtCenter->SetValue(g_Config.bTexFmtOverlayCenter);
-	m_TexFmtCenter->Enable(m_TexFmtOverlay->IsChecked());
-
-	m_UseXFB = new wxCheckBox(m_PageAdvanced, ID_USEXFB, wxT("Use XFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_UseXFB->SetValue(g_Config.bUseXFB);
-
-	m_DumpTextures = new wxCheckBox(m_PageAdvanced, ID_DUMPTEXTURES, wxT("Dump textures to:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_DumpTextures->SetValue(g_Config.bDumpTextures);
-	m_TexturePath = new wxDirPickerCtrl(m_PageAdvanced, ID_TEXTUREPATH, wxEmptyString, wxT("Choose a directory to store texture dumps:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
-	m_TexturePath->SetPath(wxString::FromAscii(g_Config.texDumpPath));
-	m_TexturePath->Enable(m_DumpTextures->IsChecked());
-
-	m_Wireframe = new wxCheckBox(m_PageAdvanced, ID_WIREFRAME, wxT("Wireframe"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	//m_Wireframe->SetValue(g_Config.bWireFrame);
-	m_Wireframe->Enable(false);
-
-	m_ShaderErrors = new wxCheckBox(m_PageAdvanced, ID_SHADERERRORS, wxT("Show shader compilation issues"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ShaderErrors = new wxCheckBox(m_PageInformation, ID_SHADERERRORS, wxT("Show shader compilation issues"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	//m_ShaderErrors->SetValue(g_Config.bShowShaderErrors);
 	m_ShaderErrors->Enable(false);
 
-	// Page 4 (hacks)
+	m_TexFmtOverlay = new wxCheckBox(m_PageInformation, ID_TEXFMTOVERLAY, wxT("Overlay texture format"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_TexFmtOverlay->SetValue(g_Config.bTexFmtOverlayEnable);
+	m_TexFmtCenter = new wxCheckBox(m_PageInformation, ID_TEXFMTCENTER, wxT("centered"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_TexFmtCenter->SetValue(g_Config.bTexFmtOverlayCenter);
+	m_TexFmtCenter->Enable(m_TexFmtOverlay->IsChecked());
+
+	// Page 4 "Render"
+	m_UseXFB = new wxCheckBox(m_PageRender, ID_USEXFB, wxT("Use XFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_UseXFB->SetValue(g_Config.bUseXFB);
+
+	m_Wireframe = new wxCheckBox(m_PageRender, ID_WIREFRAME, wxT("Wireframe"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	//m_Wireframe->SetValue(g_Config.bWireFrame);
+	m_Wireframe->Enable(false);
+
+	// Page 5 "Utility"
+	m_DumpTextures = new wxCheckBox(m_PageUtility, ID_DUMPTEXTURES, wxT("Dump textures to:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_DumpTextures->SetValue(g_Config.bDumpTextures);
+	m_TexturePath = new wxDirPickerCtrl(m_PageUtility, ID_TEXTUREPATH, wxEmptyString, wxT("Choose a directory to store texture dumps:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
+	m_TexturePath->SetPath(wxString::FromAscii(g_Config.texDumpPath));
+	m_TexturePath->Enable(m_DumpTextures->IsChecked());
+
+	// Page 6 "Hacks"
 	m_InvertDepth = new wxCheckBox(m_PageHacks, ID_INVERTDEPTH, wxT("Invert Depth"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_InvertDepth->Enable(true);
 	m_InvertDepth->SetValue(g_Config.bInvertDepth);
@@ -180,22 +188,23 @@ void ConfigDialog::CreateGUIControls()
 	sPage1->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 	sPage1->Add(m_Fullscreen, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
 	sPage1->Add(m_RenderToMainWindow, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
-
-	sPage1->Add(FSText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5); // drop down boxes
-	sPage1->Add(m_FullscreenCB, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 5);
-	sPage1->Add(WMText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sPage1->Add(m_WindowResolutionCB, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
-	sPage1->Add(AAText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sPage1->Add(m_AliasModeCB, wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
-	m_PageVideo->SetSizer(sPage1);
+	sPage1->Add(m_StretchToFit, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
+	sPage1->Add(m_KeepAR, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
+	sPage1->Add(FSText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sPage1->Add(m_FullscreenCB, wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
+	sPage1->Add(WMText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sPage1->Add(m_WindowResolutionCB, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
+	m_PageGeneral->SetSizer(sPage1);
 	sPage1->Layout();
 
-	wxBoxSizer* sPage2;
-	sPage2 = new wxBoxSizer(wxVERTICAL);
-	sPage2->Add(m_ForceFiltering, 0, wxALL, 5);
-	sPage2->Add(m_ForceAnisotropy, 0, wxALL, 5);
-	sPage2->Add(m_StretchToFit, 0, wxALL, 5); // stretch
-	sPage2->Add(m_KeepAR, 0, wxALL, 5); // keep AR
+    wxGridBagSizer* sPage2;
+	sPage2 = new wxGridBagSizer(0, 0);
+	sPage2->SetFlexibleDirection(wxBOTH);
+	sPage2->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+	sPage2->Add(m_ForceFiltering, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
+	sPage2->Add(m_ForceAnisotropy, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
+    sPage2->Add(AAText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sPage2->Add(m_AliasModeCB, wxGBPosition(2, 1), wxGBSpan(1, 2), wxALL, 5);
 	m_PageEnhancements->SetSizer(sPage2);
 	sPage2->Layout();
 
@@ -203,25 +212,39 @@ void ConfigDialog::CreateGUIControls()
 	sPage3 = new wxGridBagSizer(0, 0);
 	sPage3->SetFlexibleDirection(wxBOTH);
 	sPage3->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
-	sPage3->Add(m_Wireframe, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
+	sPage3->Add(m_ShowFPS, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
 	sPage3->Add(m_ShaderErrors, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
-	sPage3->Add(m_ShowFPS, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
-	sPage3->Add(m_Statistics, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
-	sPage3->Add(m_TexFmtOverlay, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
-	sPage3->Add(m_TexFmtCenter, wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
-	sPage3->Add(m_UseXFB, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALL, 5);
-	sPage3->Add(m_DumpTextures, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALL, 5);
-	sPage3->Add(m_TexturePath, wxGBPosition(6, 1), wxGBSpan(1, 1), wxALL, 5);
-	m_PageAdvanced->SetSizer(sPage3);
+	sPage3->Add(m_Statistics, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
+	sPage3->Add(m_TexFmtOverlay, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
+	sPage3->Add(m_TexFmtCenter, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
+	m_PageInformation->SetSizer(sPage3);
 	sPage3->Layout();
 
 	wxGridBagSizer* sPage4;
 	sPage4 = new wxGridBagSizer(0, 0);
 	sPage4->SetFlexibleDirection(wxBOTH);
 	sPage4->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
-	sPage4->Add(m_InvertDepth, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
-	m_PageHacks->SetSizer(sPage4);
+	sPage4->Add(m_UseXFB, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
+	sPage4->Add(m_Wireframe, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
+	m_PageRender->SetSizer(sPage4);
 	sPage4->Layout();
+
+	wxGridBagSizer* sPage5;
+	sPage5 = new wxGridBagSizer(0, 0);
+	sPage5->SetFlexibleDirection(wxBOTH);
+	sPage5->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+	sPage5->Add(m_DumpTextures, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sPage5->Add(m_TexturePath, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
+	m_PageUtility->SetSizer(sPage5);
+	sPage5->Layout();
+
+	wxGridBagSizer* sPage6;
+	sPage6 = new wxGridBagSizer(0, 0);
+	sPage6->SetFlexibleDirection(wxBOTH);
+	sPage6->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+	sPage6->Add(m_InvertDepth, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
+	m_PageHacks->SetSizer(sPage6);
+	sPage6->Layout();
 
 	SetIcon(wxNullIcon);
 	Fit();

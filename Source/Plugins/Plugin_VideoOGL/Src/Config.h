@@ -30,25 +30,31 @@ struct Config
     void Load();
     void Save();
 
-    //video
+    // General
 	bool bFullscreen;
 	bool renderToMainframe;
 	char iFSResolution[16];
 	char iWindowedRes[16];
-	int iMultisampleMode;
+	bool bStretchToFit;
+	bool bKeepAR;
 
+	// Enhancements
+	int iMultisampleMode;
     bool bForceFiltering;
     bool bForceMaxAniso;
-    bool bStretchToFit;
-	bool bKeepAR;
-    bool bShowFPS;
 
+	// Information
+    bool bShowFPS;
+	bool bOverlayStats;
     bool bTexFmtOverlayEnable;
 	bool bTexFmtOverlayCenter;
-	bool bOverlayStats;
+	
+	// Render
 	bool bUseXFB;
-    bool bDumpTextures;
+    
+	// Utility
 	char texDumpPath[280];
+	bool bDumpTextures;
 
 	// Hacks
 	bool bInvertDepth;

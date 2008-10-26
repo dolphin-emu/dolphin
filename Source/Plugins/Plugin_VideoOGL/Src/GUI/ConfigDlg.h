@@ -46,36 +46,40 @@ class ConfigDialog : public wxDialog
 		virtual ~ConfigDialog();
 		void OKClick(wxCommandEvent& event);
 
-		// Video
+		// General
 		void FullScreenCheck(wxCommandEvent& event); 
-		void RenderMainCheck(wxCommandEvent& event);				
+		void RenderMainCheck(wxCommandEvent& event);
 		void AddFSReso(char *reso);
-		void FSCB(wxCommandEvent& event);
 		void AddWindowReso(char *reso);
-		void WMCB(wxCommandEvent& event);
-		void AddAAMode(int mode);
-		void AACB(wxCommandEvent& event);
-
-		// Enhancements
-		void ForceFilteringCheck(wxCommandEvent& event); 
-		void ForceAnisotropyCheck(wxCommandEvent& event);
 		void StretchToFitCheck(wxCommandEvent& event);
 		void KeepARCheck(wxCommandEvent& event);
+		void DllAbout(wxCommandEvent& event);
 
-		// Advanced
-		void WireframeCheck(wxCommandEvent& event); 
+		// Enhancements
+		void AddAAMode(int mode);
+		void FSCB(wxCommandEvent& event);
+		void WMCB(wxCommandEvent& event);
+		void AACB(wxCommandEvent& event);
+		void ForceFilteringCheck(wxCommandEvent& event); 
+		void ForceAnisotropyCheck(wxCommandEvent& event);
+
+		// Information
 		void ShowFPSCheck(wxCommandEvent& event);
 		void OverlayCheck(wxCommandEvent& event);
 		void ShowShaderErrorsCheck(wxCommandEvent& event);
 		void TexFmtOverlayChange(wxCommandEvent& event);
+
+		// Render
+		void WireframeCheck(wxCommandEvent& event);
 		void UseXFBChange(wxCommandEvent& event);
+
+		// Util
 		void DumpTexturesChange(wxCommandEvent& event);
 		void TexturePathChange(wxFileDirPickerEvent& event);
-		void DllAbout(wxCommandEvent& event);
 
 		// Hacks
 		void InvertDepth(wxCommandEvent& event);
-
+		
 	private:
 
 		wxButton* m_About;
@@ -100,9 +104,11 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_RenderToMainWindow;		
 		wxCheckBox *m_Fullscreen;
 		wxCheckBox *m_InvertDepth;
-		wxPanel *m_PageAdvanced;
+		wxPanel *m_PageGeneral;
 		wxPanel *m_PageEnhancements;
-		wxPanel *m_PageVideo;
+		wxPanel *m_PageInformation;
+		wxPanel *m_PageRender;
+		wxPanel *m_PageUtility;
 		wxPanel *m_PageHacks;
 		wxNotebook *m_Notebook;
 		
@@ -134,11 +140,13 @@ class ConfigDialog : public wxDialog
 			ID_FSTEXT,
 			ID_RENDERTOMAINWINDOW,
 			ID_FULLSCREEN,
-			ID_PAGEADVANCED,
 			ID_NOTEBOOK,
-			ID_PAGEVIDEO,
-			ID_PAGEENHANCEMENTS,
 			ID_INVERTDEPTH,
+			ID_PAGEGENERAL,
+			ID_PAGEENHANCEMENTS,
+			ID_PAGEINFORMATION,
+			ID_PAGERENDER,
+			ID_PAGEUTILITY,
 			ID_PAGEHACKS,
 			ID_GRAPHIC_ABOUT,
 			////GUI Enum Control ID End
