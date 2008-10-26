@@ -425,7 +425,7 @@ void VertexShaderMngr::SetConstants()
 		}
 
 		// Metroid Prime 1 & 2 likes this
-		glDepthRange(-(0.0f - (rawViewport[5]-rawViewport[2])/16777215.0f), rawViewport[5]/16777215.0f);
+		glDepthRange((g_Config.bInvertDepth ? -1 : 1) * -(0.0f - (rawViewport[5]-rawViewport[2])/16777215.0f), rawViewport[5]/16777215.0f);
 
 		// FZero stage likes this (a sonic hack)
 		// glDepthRange(-(0.0f - (rawViewport[5]-rawViewport[2])/-16777215.0f), rawViewport[5]/16777215.0f);

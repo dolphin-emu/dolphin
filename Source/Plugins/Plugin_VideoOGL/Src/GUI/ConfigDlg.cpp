@@ -44,6 +44,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_TEXFMTCENTER,ConfigDialog::TexFmtOverlayChange)
 	EVT_CHECKBOX(ID_USEXFB,ConfigDialog::UseXFBChange)
 	EVT_CHECKBOX(ID_DUMPTEXTURES,ConfigDialog::DumpTexturesChange)
+	EVT_CHECKBOX(ID_INVERTDEPTH,ConfigDialog::InvertDepth)
 	EVT_DIRPICKER_CHANGED(ID_TEXTUREPATH,ConfigDialog::TexturePathChange)
 END_EVENT_TABLE()
 
@@ -70,6 +71,9 @@ void ConfigDialog::CreateGUIControls()
 
 	m_PageAdvanced = new wxPanel(m_Notebook, ID_PAGEADVANCED, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_PageAdvanced, wxT("Advanced"));
+
+	m_PageHacks = new wxPanel(m_Notebook, ID_PAGEHACKS, wxDefaultPosition, wxDefaultSize);
+	m_Notebook->AddPage(m_PageHacks, wxT("Hacks"));
 	
 	//buttons
 	m_About = new wxButton(this, ID_GRAPHIC_ABOUT, wxT("About"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -164,6 +168,11 @@ void ConfigDialog::CreateGUIControls()
 	//m_ShaderErrors->SetValue(g_Config.bShowShaderErrors);
 	m_ShaderErrors->Enable(false);
 
+	// Page 4 (hacks)
+	m_InvertDepth = new wxCheckBox(m_PageHacks, ID_INVERTDEPTH, wxT("Invert Depth"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_InvertDepth->Enable(true);
+	m_InvertDepth->SetValue(g_Config.bInvertDepth);
+
 	//Put options in sizers within the notebook
 	wxGridBagSizer* sPage1;
 	sPage1 = new wxGridBagSizer(0, 0);
@@ -205,6 +214,14 @@ void ConfigDialog::CreateGUIControls()
 	sPage3->Add(m_TexturePath, wxGBPosition(6, 1), wxGBSpan(1, 1), wxALL, 5);
 	m_PageAdvanced->SetSizer(sPage3);
 	sPage3->Layout();
+
+	wxGridBagSizer* sPage4;
+	sPage4 = new wxGridBagSizer(0, 0);
+	sPage4->SetFlexibleDirection(wxBOTH);
+	sPage4->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+	sPage4->Add(m_InvertDepth, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
+	m_PageHacks->SetSizer(sPage4);
+	sPage4->Layout();
 
 	SetIcon(wxNullIcon);
 	Fit();
@@ -347,4 +364,8 @@ void ConfigDialog::DllAbout(wxCommandEvent& event)
 	info.AddDeveloper(_T("zerofrog(@gmail.com)"));
 	info.SetDescription(_T("Vertex/Pixel Shader 2.0 or higher, framebuffer objects, multiple render targets"));
 	wxAboutBox(info);
+}
+void ConfigDialog::InvertDepth(wxCommandEvent& event)
+{
+	g_Config.bInvertDepth = m_InvertDepth->IsChecked();
 }

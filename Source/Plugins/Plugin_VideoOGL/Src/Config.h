@@ -50,6 +50,9 @@ struct Config
     bool bDumpTextures;
 	char texDumpPath[280];
 
+	// Hacks
+	bool bInvertDepth;
+
 	int iLog; // CONF_ bits
 	int iSaveTargetId;
 

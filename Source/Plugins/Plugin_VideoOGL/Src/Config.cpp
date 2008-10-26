@@ -72,6 +72,8 @@ void Config::Load()
     iniFile.Get("Enhancements", "ForceMaxAniso", &bForceMaxAniso, 0);
 	iniFile.Get("Enhancements", "StretchToFit", &bStretchToFit, false);
 	iniFile.Get("Enhancements", "KeepAR", &bKeepAR, false);
+
+	iniFile.Get("Hacks", "InvertDepth", &bInvertDepth, 0);
 }
 
 void Config::Save()
@@ -99,6 +101,8 @@ void Config::Save()
     iniFile.Set("Enhancements", "ForceMaxAniso", bForceMaxAniso);
 	iniFile.Set("Enhancements", "StretchToFit", bStretchToFit);
 	iniFile.Set("Enhancements", "KeepAR", bKeepAR);
+
+	iniFile.Set("Hacks", "InvertDepth", bInvertDepth);
 
     iniFile.Save("gfx_opengl.ini");
 }

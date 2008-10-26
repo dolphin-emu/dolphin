@@ -46,7 +46,8 @@ class ConfigDialog : public wxDialog
 		virtual ~ConfigDialog();
 		void OKClick(wxCommandEvent& event);
 
-		void FullScreenCheck(wxCommandEvent& event); // video
+		// Video
+		void FullScreenCheck(wxCommandEvent& event); 
 		void RenderMainCheck(wxCommandEvent& event);				
 		void AddFSReso(char *reso);
 		void FSCB(wxCommandEvent& event);
@@ -55,12 +56,14 @@ class ConfigDialog : public wxDialog
 		void AddAAMode(int mode);
 		void AACB(wxCommandEvent& event);
 
-		void ForceFilteringCheck(wxCommandEvent& event); // enhancements
+		// Enhancements
+		void ForceFilteringCheck(wxCommandEvent& event); 
 		void ForceAnisotropyCheck(wxCommandEvent& event);
 		void StretchToFitCheck(wxCommandEvent& event);
 		void KeepARCheck(wxCommandEvent& event);
 
-		void WireframeCheck(wxCommandEvent& event); // advanced
+		// Advanced
+		void WireframeCheck(wxCommandEvent& event); 
 		void ShowFPSCheck(wxCommandEvent& event);
 		void OverlayCheck(wxCommandEvent& event);
 		void ShowShaderErrorsCheck(wxCommandEvent& event);
@@ -69,6 +72,9 @@ class ConfigDialog : public wxDialog
 		void DumpTexturesChange(wxCommandEvent& event);
 		void TexturePathChange(wxFileDirPickerEvent& event);
 		void DllAbout(wxCommandEvent& event);
+
+		// Hacks
+		void InvertDepth(wxCommandEvent& event);
 
 	private:
 
@@ -93,9 +99,11 @@ class ConfigDialog : public wxDialog
 		wxComboBox *m_FullscreenCB;
 		wxCheckBox *m_RenderToMainWindow;		
 		wxCheckBox *m_Fullscreen;
+		wxCheckBox *m_InvertDepth;
 		wxPanel *m_PageAdvanced;
 		wxPanel *m_PageEnhancements;
 		wxPanel *m_PageVideo;
+		wxPanel *m_PageHacks;
 		wxNotebook *m_Notebook;
 		
 	private:
@@ -130,6 +138,8 @@ class ConfigDialog : public wxDialog
 			ID_NOTEBOOK,
 			ID_PAGEVIDEO,
 			ID_PAGEENHANCEMENTS,
+			ID_INVERTDEPTH,
+			ID_PAGEHACKS,
 			ID_GRAPHIC_ABOUT,
 			////GUI Enum Control ID End
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
