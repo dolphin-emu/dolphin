@@ -1151,11 +1151,11 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadLocalFeatures(u8* _Input)
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadStoredLinkKey(u8* _Input)
 {
-#ifdef LOGGING
+
 	// command parameters
 	hci_read_stored_link_key_cp* ReadStoredLinkKey = (hci_read_stored_link_key_cp*)_Input;
-#endif
 
+#ifdef LOGGING
 	LOG(WIIMOTE, "Command: HCI_CMD_READ_STORED_LINK_KEY:");
 	LOG(WIIMOTE, "input:");
 	LOG(WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x", 
@@ -1164,7 +1164,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadStoredLinkKey(u8* _Input)
 	LOG(WIIMOTE, "  read_all_ %i", ReadStoredLinkKey->read_all);
 	LOG(WIIMOTE, "return:");
 	LOG(WIIMOTE, "  no idea what i should answer :)");
-
+#endif
 
 	// reply
 	hci_read_stored_link_key_rp Reply;    

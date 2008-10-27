@@ -392,8 +392,12 @@ void FillReportInfo(wm_core& _core)
 {
 	static bool bb = true;
 	bb = !bb;
+#ifdef _WIN32
 	_core.a = GetAsyncKeyState(VK_LBUTTON) ? 1 : 0;
 	_core.b = GetAsyncKeyState(VK_RBUTTON) ? 1 : 0;
+#else 
+        // TODO: fill in
+#endif
 }
 
 
