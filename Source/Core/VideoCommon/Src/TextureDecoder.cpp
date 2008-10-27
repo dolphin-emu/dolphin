@@ -284,15 +284,15 @@ inline void decodebytesARGB8_4(u32 *dst, const u16 *src, const u16 *src2)
 
 inline u32 makecol(int r, int g, int b, int a)
 {
-    return ((a&255)<<24)|((r&255)<<16)|((g&255)<<8)|((b&255));
+    return (a<<24)|(r<<16)|(g<<8)|b;
 }
 
 void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 {
     u16 c1 = Common::swap16(src->color1);
     u16 c2 = Common::swap16(src->color2);
-    int blue1 = lut5to8[c1&0x1F];
-    int blue2 = lut5to8[c2&0x1F];
+    int blue1 = lut5to8[c1 & 0x1F];
+    int blue2 = lut5to8[c2 & 0x1F];
     int green1 = lut6to8[(c1>>5) & 0x3F];
     int green2 = lut6to8[(c2>>5) & 0x3F];
     int red1 = lut5to8[(c1>>11) & 0x1F];
@@ -320,7 +320,7 @@ void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
         int val = src->lines[y];
         for (int x = 0; x < 4; x++)
         {
-            dst[x] = colors[(val>>6) & 3];
+            dst[x] = colors[(val >> 6) & 3];
             val <<= 2;
         }
         dst += pitch;
@@ -515,11 +515,12 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 			}
         }
         return PC_TEX_FMT_BGRA32;
-    case GX_TF_CMPR:
+    case GX_TF_CMPR:  // speed critical
         {
 			// TODO: Shuffle to PC S3TC (DXTC) format instead of converting
             // 11111111 22222222 55555555 66666666
             // 33333333 44444444 77777777 88888888
+			// The metroid games use this format almost exclusively.
             for (int y = 0; y < height; y += 8)
                 for (int x = 0; x < width; x += 8)
                 {

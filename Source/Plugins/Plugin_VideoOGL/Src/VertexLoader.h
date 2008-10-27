@@ -74,7 +74,7 @@ private:
 	TVtxDesc m_VtxDesc;  // Not really used currently - or well it is, but could be easily avoided.
 
 	// PC vertex format
-	NativeVertexFormat m_NativeFmt;
+	NativeVertexFormat *m_NativeFmt;
 
 	// Pipeline. To be JIT compiled in the future.
 	TPipelineFunction m_PipelineStages[32];  // TODO - figure out real max. it's lower.

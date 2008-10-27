@@ -24,7 +24,7 @@
 #include "OpcodeDecoding.h"
 #include "TextureCache.h"
 #include "TextureDecoder.h"
-#include "VertexHandler.h"
+#include "VertexManager.h"
 #include "PixelShader.h"
 #include "Utils.h"
 
@@ -112,7 +112,7 @@ void BPWritten(int addr, int changes, int newval)
 	case BPMEM_GENMODE:
 		if (changes)
 		{
-			CVertexHandler::Flush();
+			VertexManager::Flush();
 			((u32*)&bpmem)[addr] = newval;
 			
 			// dev->SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
@@ -146,7 +146,7 @@ void BPWritten(int addr, int changes, int newval)
     case BPMEM_IND_MTX+7:
     case BPMEM_IND_MTX+8:
         if (changes) {
-            CVertexHandler::Flush();
+            VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
             // PixelShaderMngr::SetIndMatrixChanged((addr-BPMEM_IND_MTX)/3);
         }
@@ -154,7 +154,7 @@ void BPWritten(int addr, int changes, int newval)
     case BPMEM_RAS1_SS0:
     case BPMEM_RAS1_SS1:
         if (changes) {
-            CVertexHandler::Flush();
+            VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
             // PixelShaderMngr::SetIndTexScaleChanged();
         }
@@ -163,7 +163,7 @@ void BPWritten(int addr, int changes, int newval)
 	case BPMEM_ZMODE:
 		if (changes)
 		{
-			CVertexHandler::Flush();
+			VertexManager::Flush();
 			((u32*)&bpmem)[addr] = newval;
 			if (bpmem.zmode.testenable)
 			{
@@ -190,7 +190,7 @@ void BPWritten(int addr, int changes, int newval)
 	case BPMEM_ALPHACOMPARE:
 		if (changes)
 		{
-			CVertexHandler::Flush();
+			VertexManager::Flush();
 			((u32*)&bpmem)[addr] = newval;
 			float f[4] =
 			{
@@ -217,7 +217,7 @@ void BPWritten(int addr, int changes, int newval)
 	case BPMEM_CONSTANTALPHA:
 		if (changes)
 		{
-			CVertexHandler::Flush();
+			VertexManager::Flush();
 			((u32*)&bpmem)[addr] = newval;
 			float f[4] = {
 				bpmem.dstalpha.alpha/255.0f,0,0,0
@@ -238,7 +238,7 @@ void BPWritten(int addr, int changes, int newval)
 	
 	case 0x43:
         if (changes) {
-            CVertexHandler::Flush();
+            VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
         }
         break;
@@ -246,7 +246,7 @@ void BPWritten(int addr, int changes, int newval)
 	case BPMEM_BLENDMODE:	
 		if (changes & 0xFFFF)
 		{
-			CVertexHandler::Flush();
+			VertexManager::Flush();
 			((u32*)&bpmem)[addr] = newval;
 			if (changes & 1)
 			{
@@ -328,7 +328,7 @@ void BPWritten(int addr, int changes, int newval)
 		{
 			// u32 fogATemp = bpmem.fog.a<<12;
 			// float fogA = *(float*)(&fogATemp);
-            CVertexHandler::Flush();
+            VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
 		}
 		break;
@@ -336,7 +336,7 @@ void BPWritten(int addr, int changes, int newval)
 	case BPMEM_FOGBEXPONENT: 
 	case BPMEM_FOGBMAGNITUDE:
 		{
-            CVertexHandler::Flush();
+            VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
 		}
 		break;
@@ -345,7 +345,7 @@ void BPWritten(int addr, int changes, int newval)
 		//fog settings
 		if(changes) {
 			static bool bFog = false;
-			CVertexHandler::Flush();
+			VertexManager::Flush();
 			((u32*)&bpmem)[addr] = newval;
 			
 			if(!renderFog)
@@ -393,7 +393,7 @@ void BPWritten(int addr, int changes, int newval)
 
 	case BPMEM_FOGCOLOR:
 		 if(changes) {
-			CVertexHandler::Flush();
+			VertexManager::Flush();
 			((u32*)&bpmem)[addr] = newval;
 
 			if(!renderFog)
@@ -412,7 +412,7 @@ void BPWritten(int addr, int changes, int newval)
 
 	case BPMEM_SCISSOROFFSET: //TODO: investigate
 		{
-			CVertexHandler::Flush();
+			VertexManager::Flush();
 			((u32*)&bpmem)[addr] = newval;
 		}
 		break;
@@ -420,7 +420,7 @@ void BPWritten(int addr, int changes, int newval)
 	case BPMEM_SCISSORTL:
 	case BPMEM_SCISSORBR:
 		{
-			CVertexHandler::Flush();
+			VertexManager::Flush();
 			((u32*)&bpmem)[addr] = newval;
 			int xoff = bpmem.scissorOffset.x*2-342;
 			int yoff = bpmem.scissorOffset.y*2-342;
@@ -445,7 +445,7 @@ void BPWritten(int addr, int changes, int newval)
 		break;
 	case BPMEM_ZTEX1:
         if (changes) {
-            CVertexHandler::Flush();
+            VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
             //PRIM_LOG("ztex bias=0x%x\n", bpmem.ztex1.bias);
             //PixelShaderMngr::SetZTextureBias(bpmem.ztex1.bias);
@@ -453,7 +453,7 @@ void BPWritten(int addr, int changes, int newval)
 		break;
 	case BPMEM_ZTEX2:
         if (changes) {
-            CVertexHandler::Flush();
+            VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
 #ifdef _DEBUG
             const char* pzop[] = {"DISABLE", "ADD", "REPLACE", "?"};
@@ -473,7 +473,7 @@ void BPWritten(int addr, int changes, int newval)
     case 0xfd: // ksel7
         if (changes)
         {
-            CVertexHandler::Flush();
+            VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
             // PixelShaderMngr::SetTevKSelChanged(addr-0xf6);
         }
@@ -486,7 +486,7 @@ void BPWritten(int addr, int changes, int newval)
 		case 0xA0: 
 			if (changes)
 			{
-				CVertexHandler::Flush();
+				VertexManager::Flush();
 				((u32*)&bpmem)[addr] = newval;
 				FourTexUnits &tex = bpmem.tex[(addr&0xE0)==0xA0];
 				int stage = (addr&3);//(addr>>4)&2;
@@ -534,7 +534,7 @@ void BPWritten(int addr, int changes, int newval)
 			if (changes)
 			{
 				textureChanged[((addr&0xE0)==0xA0)*4+(addr&3)] = true;
-				CVertexHandler::Flush();
+				VertexManager::Flush();
 			}
 			break;
 		case 0x8C://TEX IMAGE 1
@@ -542,7 +542,7 @@ void BPWritten(int addr, int changes, int newval)
 			if (changes)
 			{
 				textureChanged[((addr&0xE0)==0xA0)*4+(addr&3)] = true;
-				CVertexHandler::Flush();
+				VertexManager::Flush();
 			}
 			break;
 		case 0x90://TEX IMAGE 2
@@ -550,7 +550,7 @@ void BPWritten(int addr, int changes, int newval)
 			if (changes)
 			{
 				textureChanged[((addr&0xE0)==0xA0)*4+(addr&3)] = true;
-				CVertexHandler::Flush();
+				VertexManager::Flush();
 			}
 			break;
 		case 0x94://TEX IMAGE 3
@@ -558,7 +558,7 @@ void BPWritten(int addr, int changes, int newval)
 			if (changes)
 			{
 				textureChanged[((addr&0xE0)==0xA0)*4+(addr&3)] = true;
-				CVertexHandler::Flush();
+				VertexManager::Flush();
 			}
 			break;
 		case 0x98://TEX TLUT
@@ -566,7 +566,7 @@ void BPWritten(int addr, int changes, int newval)
 			if (changes)
 			{
 				textureChanged[((addr&0xE0)==0xA0)*4+(addr&3)] = true;
-				CVertexHandler::Flush();
+				VertexManager::Flush();
 			}
 			break;
 		case 0x9C://TEX UNKNOWN
@@ -588,7 +588,7 @@ void BPWritten(int addr, int changes, int newval)
             case 0xD0:
                 if (changes)
                 {
-                    CVertexHandler::Flush();
+                    VertexManager::Flush();
                     ((u32*)&bpmem)[addr] = newval;
                     // PixelShaderMngr::SetTevCombinerChanged((addr&0x1f)/2);
                 }
@@ -599,7 +599,7 @@ void BPWritten(int addr, int changes, int newval)
 				{
 					if (addr&1)
 					{
-						CVertexHandler::Flush();
+						VertexManager::Flush();
 						((u32*)&bpmem)[addr] = newval;
 						static int lastRGBA[2][4] = {
 							{0xEEEEEEEE, 0xEEEEEEEE, 0xEEEEEEEE, 0xEEEEEEEE},
@@ -616,7 +616,7 @@ void BPWritten(int addr, int changes, int newval)
 						int rgba = ((a<<24) | (r << 16) | (g << 8) | b) & 0xFCFCFCFC; //let's not detect minimal changes
 						if (rgba != lastRGBA[type][num])
 						{
-							CVertexHandler::Flush();
+							VertexManager::Flush();
 							lastRGBA[type][num] = rgba;
 							float temp[4] = {
 								r/255.0f, g/255.0f, b/255.0f, a/255.0f
@@ -634,7 +634,7 @@ void BPWritten(int addr, int changes, int newval)
 			default:
 				if (changes)
 				{
-					CVertexHandler::Flush();
+					VertexManager::Flush();
 					((u32*)&bpmem)[addr] = newval;
 				}
 				break;
@@ -665,7 +665,7 @@ void LoadBPReg(u32 value0)
 	switch (opcode)
 	{
 	case 0x45: //GXSetDrawDone
-		CVertexHandler::Flush();
+		VertexManager::Flush();
 		switch (value0 & 0xFF)
 		{
 		case 0x02:
@@ -694,7 +694,7 @@ void LoadBPReg(u32 value0)
 
 	case 0x52:
 		{
-			CVertexHandler::Flush();
+			VertexManager::Flush();
 
 			((u32*)&bpmem)[opcode] = newval;
 			RECT rc = {
@@ -778,7 +778,7 @@ void LoadBPReg(u32 value0)
 
 	case 0x65: //GXLoadTlut
 		{
-			CVertexHandler::Flush();
+			VertexManager::Flush();
 			((u32*)&bpmem)[opcode] = newval;
 
 			u32 tlutTMemAddr = (value0&0x3FF)<<9;

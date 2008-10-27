@@ -246,7 +246,7 @@ void Video_Shutdown(void)
     VertexShaderMngr::Shutdown();
     PixelShaderMngr::Shutdown();
     Fifo_Shutdown();
-    VertexManager::Destroy();
+    VertexManager::Shutdown();
     TextureMngr::Shutdown();
     OpcodeDecoder_Shutdown();
     Renderer::Shutdown();

@@ -20,18 +20,15 @@
 #include "XFStructs.h"
 #include "Render.h"
 #include "main.h"
-#include "VertexHandler.h"
+#include "VertexManager.h"
 #include "Utils.h"
-
-float rawViewPort[6];
-float rawProjection[7];
 
 // LoadXFReg 0x10
 void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 {	
     DVSTARTPROFILE();
 	u32 address = baseAddress;
-	for (int i=0; i<(int)transferSize; i++)
+	for (int i = 0; i < (int)transferSize; i++)
 	{
 		address = baseAddress + i;
 
@@ -68,15 +65,15 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 				break;
 
 			case 0x101a: 
-				CVertexHandler::Flush();
-				memcpy(rawViewPort, &pData[i], sizeof(rawViewPort)); 
+				VertexManager::Flush();
+				memcpy(xfregs.rawViewport, &pData[i], sizeof(xfregs.rawViewport)); 
 				XFUpdateVP(); 
 				i += 6;
 				break;
 
 			case 0x1020: 
-				CVertexHandler::Flush();
-				memcpy(rawProjection, &pData[i], sizeof(rawProjection)); 
+				VertexManager::Flush();
+				memcpy(xfregs.rawProjection, &pData[i], sizeof(xfregs.rawProjection)); 
 				XFUpdatePJ(); 
 				i += 7;
 				return;
@@ -130,10 +127,10 @@ void LoadIndexedXF(u32 val, int array)
 
 void XFUpdateVP()
 {
-	Renderer::SetViewport(rawViewPort); 
+	Renderer::SetViewport(xfregs.rawViewport); 
 }
 
 void XFUpdatePJ()
 {
-	Renderer::SetProjection(rawProjection, 0); 
+	Renderer::SetProjection(xfregs.rawProjection, 0); 
 }

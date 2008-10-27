@@ -52,13 +52,17 @@ static const GLenum glSrcFactors[8] =
 
 static const GLenum glDestFactors[8] = {
     GL_ZERO, GL_ONE, GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR,
-    GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,  GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA };
+    GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,  GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA
+};
 
-static const GLenum glCmpFuncs[8] =  { GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL, GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS };
+static const GLenum glCmpFuncs[8] = {
+	GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL, GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS
+};
 
 static const GLenum glLogicOpCodes[16] = {
     GL_CLEAR, GL_SET, GL_COPY, GL_COPY_INVERTED, GL_NOOP, GL_INVERT, GL_AND, GL_NAND,
-    GL_OR, GL_NOR, GL_XOR, GL_EQUIV, GL_AND_REVERSE, GL_AND_INVERTED, GL_OR_REVERSE, GL_OR_INVERTED };
+    GL_OR, GL_NOR, GL_XOR, GL_EQUIV, GL_AND_REVERSE, GL_AND_INVERTED, GL_OR_REVERSE, GL_OR_INVERTED
+};
 
 void BPInit()
 {
@@ -88,7 +92,7 @@ void BPWritten(int addr, int changes, int newval)
             // none, ccw, cw, ccw
             if (bpmem.genMode.cullmode>0) {
                 glEnable(GL_CULL_FACE);
-                glFrontFace(bpmem.genMode.cullmode==2?GL_CCW:GL_CW);
+                glFrontFace(bpmem.genMode.cullmode == 2 ? GL_CCW : GL_CW);
             }
             else glDisable(GL_CULL_FACE);
 
@@ -256,7 +260,7 @@ void BPWritten(int addr, int changes, int newval)
                     glBlendFunc(glSrcFactors[bpmem.blendmode.srcfactor], glDestFactors[bpmem.blendmode.dstfactor]);
             }
             if (changes & 0x800) {
-                glBlendEquation(bpmem.blendmode.subtract?GL_FUNC_REVERSE_SUBTRACT:GL_FUNC_ADD);
+                glBlendEquation(bpmem.blendmode.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD);
                 if (bpmem.blendmode.subtract)
                     glBlendFunc(GL_ONE, GL_ONE);
                 else
@@ -269,7 +273,7 @@ void BPWritten(int addr, int changes, int newval)
         break;
 
 	case BPMEM_FOGRANGE:
-		if(changes) {
+		if (changes) {
 			// TODO(XK): Fog range format
 			//glFogi(GL_FOG_START, ...
 			//glFogi(GL_FOG_END, ...
@@ -474,25 +478,25 @@ void BPWritten(int addr, int changes, int newval)
 
                 VertexShaderMngr::SetViewportChanged();
 
-                // since clear operations use the source rectangle, have to do regular renders (glClear clears the entire buffer)
-                if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate || bpmem.zmode.updateenable) {
-                    
+                // Since clear operations use the source rectangle, we have to do
+				// regular renders (glClear clears the entire buffer)
+                if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate || bpmem.zmode.updateenable)
+				{                    
                     GLbitfield bits = 0;
                     if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate) {
-                        u32 clearColor = (bpmem.clearcolorAR<<16)|bpmem.clearcolorGB;
-                        glClearColor(((clearColor>>16)&0xff)*(1/255.0f),((clearColor>>8)&0xff)*(1/255.0f),
-                            ((clearColor>>0)&0xff)*(1/255.0f),((clearColor>>24)&0xff)*(1/255.0f));
+                        u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
+                        glClearColor(((clearColor>>16) & 0xff)*(1/255.0f),
+							         ((clearColor>>8 ) & 0xff)*(1/255.0f),
+                                     ((clearColor>>0 ) & 0xff)*(1/255.0f),
+									 ((clearColor>>24) & 0xff)*(1/255.0f));
                         bits |= GL_COLOR_BUFFER_BIT;
                     }
-
                     if (bpmem.zmode.updateenable) {
                         glClearDepth((float)(bpmem.clearZValue&0xFFFFFF) / float(0xFFFFFF));
                         bits |= GL_DEPTH_BUFFER_BIT;
                     }
-
                     if (nRestoreZBufferTarget )
                         glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT); // don't clear ztarget here
-                    
                     glClear(bits);
                 }
 
@@ -500,12 +504,12 @@ void BPWritten(int addr, int changes, int newval)
 
                     glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
                     GL_REPORT_ERRORD();
-
                     glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
                     
                     // red should probably be the LSB
-                    glClearColor(((bpmem.clearZValue>>0)&0xff)*(1/255.0f),((bpmem.clearZValue>>8)&0xff)*(1/255.0f),
-                        ((bpmem.clearZValue>>16)&0xff)*(1/255.0f), 0);
+                    glClearColor(((bpmem.clearZValue>>0)&0xff)*(1/255.0f),
+						         ((bpmem.clearZValue>>8)&0xff)*(1/255.0f),
+                                 ((bpmem.clearZValue>>16)&0xff)*(1/255.0f), 0);
                     glClear(GL_COLOR_BUFFER_BIT);
                     SetColorMask();
                     GL_REPORT_ERRORD();   
@@ -547,7 +551,7 @@ void BPWritten(int addr, int changes, int newval)
             {
                 VertexManager::Flush();
                 ((u32*)&bpmem)[addr] = newval;
-                PixelShaderMngr::SetTevOrderChanged(addr-0x28);
+                PixelShaderMngr::SetTevOrderChanged(addr - 0x28);
             }
             break;
 

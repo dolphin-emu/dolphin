@@ -116,27 +116,12 @@ void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt,
 	Renderer::RestoreGLState();
     GL_REPORT_ERRORD();
 
-	// TODO - verify that XFB pixel order. probably reverse of GL pixel order
 	// TODO - use shader for conversion
 	ConvertToXFB((u32 *)xfb_in_ram, efb_buffer, dstWd, dstHt);
-
-	// old way
-	/*glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, Renderer::GetRenderTarget());
-    TextureMngr::EnableTexRECT(0);
-	
-	glGetTexImage(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, GL_UNSIGNED_BYTE, efb_buffer);
-	
-	static u8 *efbEndAddress = efb_buffer + ((nBackbufferWidth * nBackbufferHeight) - 1) * 4;	
-	ConvertToXFBReverse((u32 *)xfb_in_ram, efbEndAddress, dstWd, dstHt);*/
-	
 }
 
 void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset)
 {
-	if(width == 0 || height == 0)
-		return;
-
 	OpenGL_Update(); // just updates the render window position and the backbuffer size
 
     Renderer::SetRenderMode(Renderer::RM_Normal);

@@ -18,29 +18,6 @@
 #ifndef _VERTEXLOADER_H
 #define _VERTEXLOADER_H
 
-/*
-Ideas for new intermediate vertex format
-
-Produce a mask specifying with components are present.
-
-Decoder always produces a canonical format for all components:
-
-Ubyte4 for matrix indices (x,y,z,w) and colors
-
-FloatN for all others, texcoords are always XY at this stage
-
-The decoders will write a continuous stream of vertices, to take maximum
-advantage of write combining hardware
-
-a map<mask, vdecl> will keep track of vertex declarations
-
-this time, we are going to minimize transfers to the gfx card
-
-it turns out that with PS2.0 we can easily do all the pipeline in hardware.
-The decision will be how granular to be with the number of shaders and lighting settin
-
-*/
-
 int ComputeVertexSize(u32 components);
 
 #include "CPStructs.h"
@@ -97,7 +74,6 @@ private:
 	int m_numPipelineStates;	
 	int m_VertexSize;
 	int m_counter;
-	u8 m_compiledCode[1024];
 
 	u32 m_components;
 
@@ -106,7 +82,6 @@ private:
 	UVAT_group2 m_group2;
 
 	bool m_AttrDirty;
-
 	TVtxAttr m_VtxAttr; //Decoded into easy format
 
 	//common for all loaders
@@ -124,7 +99,6 @@ public:
 	// run the pipeline 
 	static void SetVArray(DecodedVArray *_varray);
 	void Setup();
-	void Compile();
 	void PrepareRun();
 	void RunVertices(int count);
 	void WriteCall(TPipelineFunction func);

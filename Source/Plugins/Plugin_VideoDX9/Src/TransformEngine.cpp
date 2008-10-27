@@ -22,7 +22,7 @@
 // #include "Globals.h"
 #include "Vec3.h"
 #include "TransformEngine.h"
-#include "VertexHandler.h"
+#include "VertexManager.h"
 #include "VertexLoader.h"
 
 #include "BPStructs.h"

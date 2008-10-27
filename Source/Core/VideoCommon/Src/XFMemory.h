@@ -173,6 +173,8 @@ struct XFRegisters
     ColorChannel colChans[2]; //C0A0 C1A1
     TexCoordInfo texcoords[8];
     bool bEnableDualTexTransform;
+	float rawViewport[6];
+	float rawProjection[7];
 };
 
 #define XFMEM_SIZE               0x8000

@@ -1206,14 +1206,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\VertexHandler.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexHandler.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\VertexLoader.cpp"
 				>
 			</File>
@@ -1243,6 +1235,14 @@
 			</File>
 			<File
 				RelativePath=".\Src\VertexLoader_TextCoord.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexManager.h"
 				>
 			</File>
 			<File

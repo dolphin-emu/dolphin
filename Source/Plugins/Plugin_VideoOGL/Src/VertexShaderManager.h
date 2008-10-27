@@ -121,12 +121,11 @@ public:
     static void SetTexMatrixChangedA(u32 Value);
     static void SetTexMatrixChangedB(u32 Value);
 
-    static void LoadXFReg(u32 transferSize, u32 address, u32 *pData);
-    static void LoadIndexedXF(u32 val, int array);
-
     static float* GetPosNormalMat();
 	static float GetPixelAspectRatio();
 };
 
+void LoadXFReg(u32 transferSize, u32 address, u32 *pData);
+void LoadIndexedXF(u32 val, int array);
 
 #endif

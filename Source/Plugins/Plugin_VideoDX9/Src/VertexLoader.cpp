@@ -22,7 +22,7 @@
 #include "Common.h"
 #include "LookUpTables.h"
 #include "Profiler.h"
-#include "VertexHandler.h"
+#include "VertexManager.h"
 #include "VertexLoader.h"
 #include "XFStructs.h"
 #include "BPStructs.h"
@@ -207,15 +207,6 @@ void VertexLoader::Setup()
 		              m_VtxAttr.texCoord[i].Format, 
 		              m_VtxAttr.texCoord[i].Elements,
 					  m_VtxAttr.texCoord[i].Frac);
-
-	Compile();
-	//RET();
-/*
-	char temp[256];
-	sprintf(temp,"Size: %08x Pos: %i Norm:%i Col0: %i Col1: %i",m_VertexSize,m_VtxDesc.Position,m_VtxDesc.Normal,m_VtxDesc.Color0,m_VtxDesc.Color1);
-	g_VideoInitialize.pLog(temp);
-	sprintf(temp,"Pos: %i Norm:%i Col0: %i Col1: %i",_VtxAttr.PosFormat,_VtxAttr.NormalFormat,_VtxAttr.color[0].Comp,_VtxAttr.color[1].Comp);
-	g_VideoInitialize.pLog(temp);*/
 }
 
 void VertexLoader::SetupColor(int num, int mode, int format, int elements)
@@ -280,14 +271,14 @@ void VertexLoader::SetupTexCoord(int num, int mode, int format, int elements, in
 			int sizePro=0;
 			switch (format)
 			{
-			case FORMAT_UBYTE:	sizePro=1; WriteCall(TexCoord_ReadDirect_UByte);  break;
-			case FORMAT_BYTE:	sizePro=1; WriteCall(TexCoord_ReadDirect_Byte);   break;
-			case FORMAT_USHORT:	sizePro=2; WriteCall(TexCoord_ReadDirect_UShort); break;
-			case FORMAT_SHORT:	sizePro=2; WriteCall(TexCoord_ReadDirect_Short);  break;
-			case FORMAT_FLOAT:	sizePro=4; WriteCall(TexCoord_ReadDirect_Float);  break;
+			case FORMAT_UBYTE:	sizePro = 1; WriteCall(TexCoord_ReadDirect_UByte);  break;
+			case FORMAT_BYTE:	sizePro = 1; WriteCall(TexCoord_ReadDirect_Byte);   break;
+			case FORMAT_USHORT:	sizePro = 2; WriteCall(TexCoord_ReadDirect_UShort); break;
+			case FORMAT_SHORT:	sizePro = 2; WriteCall(TexCoord_ReadDirect_Short);  break;
+			case FORMAT_FLOAT:	sizePro = 4; WriteCall(TexCoord_ReadDirect_Float);  break;
 			default: _assert_(0); break;
 			}
-			m_VertexSize += sizePro * (elements?2:1);
+			m_VertexSize += sizePro * (elements ? 2 : 1);
 		}
 		break;
 	case INDEX8:	
@@ -323,37 +314,6 @@ void VertexLoader::WriteCall(TPipelineFunction func)
 }
 
 using namespace Gen;
-
-// See comment in RunVertices
-void VertexLoader::Compile()
-{
-	return;
-/*	Gen::SetCodePtr(m_compiledCode);
-	//INT3();
-	Gen::Util::EmitPrologue(0);
-	
-	const u8 *loopStart = Gen::GetCodePtr();
-	MOV(32, M(&tcIndex), Imm32(0));
-	MOV(32, M(&colIndex), Imm32(0));
-
-	for (int i = 0; i < m_numPipelineStates; i++)
-	{
-		ABI_AlignStack(1 * 4);
-		PUSH(32, Imm32((u32)&m_VtxAttr));
-		CALL(m_PipelineStates[i]);
-		ABI_RestoreStack(1 * 4);
-	}
-
-	ADD(32, M(&varray->count), Imm8(1));
-	SUB(32, M(&this->m_counter), Imm8(1));
-	J_CC(CC_NZ, loopStart, true);
-	// Epilogue
-	Gen::Util::EmitEpilogue(0);
-	if (Gen::GetCodePtr()-(u8*)m_compiledCode > sizeof(m_compiledCode))
-	{
-		Crash();
-	}*/
-}
 
 void VertexLoader::PrepareRun()
 {

@@ -41,26 +41,21 @@ enum Collection
 	C_LINES=2,
 	C_POINTS=3
 };
+
+namespace VertexManager
+{
+
 extern const Collection collectionTypeLUT[8];
 
-class CVertexHandler
-{
-private:
-	static Collection collection;
-	// Pipeline
+bool Init();
+void Shutdown();
 
-	static void PrepareRender();
-	static void AddIndices(int _primitive, int _numVertices);
+void BeginFrame();
 
-public:
-	static void Init();
-	static void Shutdown();
+void CreateDeviceObjects();
+void DestroyDeviceObjects();
 
-	static void BeginFrame();
-	
-	static void CreateDeviceObjects();
-	static void DestroyDeviceObjects();
+void AddVertices(int _primitive, int _numVertices, const DecodedVArray *varray);
+void Flush();
 
-	static void DrawVertices(int _primitive, int _numVertices, const DecodedVArray *varray);
-	static void Flush();
-};
+}  // namespace

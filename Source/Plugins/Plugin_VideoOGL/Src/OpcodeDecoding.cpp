@@ -224,22 +224,22 @@ static void Decode()
             static u32 pData[16];
             for (int i = 0; i < dwTransferSize; i++)
                 pData[i] = DataReadU32();
-            VertexShaderMngr::LoadXFReg(dwTransferSize, dwAddress, pData);
+            LoadXFReg(dwTransferSize, dwAddress, pData);
 			INCSTAT(stats.thisFrame.numXFLoads);
         }
         break;
 
     case GX_LOAD_INDX_A: //used for position matrices
-        VertexShaderMngr::LoadIndexedXF(DataReadU32(), 0xC);
+        LoadIndexedXF(DataReadU32(), 0xC);
         break;
     case GX_LOAD_INDX_B: //used for normal matrices
-        VertexShaderMngr::LoadIndexedXF(DataReadU32(), 0xD);
+        LoadIndexedXF(DataReadU32(), 0xD);
         break;
     case GX_LOAD_INDX_C: //used for postmatrices
-        VertexShaderMngr::LoadIndexedXF(DataReadU32(), 0xE);
+        LoadIndexedXF(DataReadU32(), 0xE);
         break;
     case GX_LOAD_INDX_D: //used for lights
-        VertexShaderMngr::LoadIndexedXF(DataReadU32(), 0xF);
+        LoadIndexedXF(DataReadU32(), 0xF);
         break;
 
     case GX_CMD_CALL_DL:

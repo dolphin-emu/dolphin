@@ -29,7 +29,7 @@
 #include "Common.h"
 #include "Statistics.h"
 #include "Profiler.h"
-#include "VertexHandler.h"
+#include "VertexManager.h"
 #include "TransformEngine.h"
 #include "OpcodeDecoding.h"
 #include "TextureCache.h"
@@ -288,9 +288,9 @@ static void Decode(void)
 			int vsize = vtxLoader.GetVertexSize();
 			vtxLoader.RunVertices(numVertices);
 
-			// draw vertices
+			// add vertices
 			int primitive = (Cmd & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT;
-			CVertexHandler::DrawVertices(primitive, numVertices, &tempvarray);
+			VertexManager::AddVertices(primitive, numVertices, &tempvarray);
 		}
 		else
 		{

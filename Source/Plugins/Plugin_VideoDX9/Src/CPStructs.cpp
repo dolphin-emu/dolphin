@@ -20,7 +20,7 @@
 #include "CPStructs.h"
 #include "XFStructs.h"
 #include "TransformEngine.h"
-#include "VertexHandler.h"
+#include "VertexManager.h"
 #include "VertexLoader.h"
 
 // PROBLEM - matrix switching within vbuffers may be stateful!
@@ -59,8 +59,12 @@ void LoadCPReg(u32 SubCmd, u32 Value)
 		CPUpdateMatricesB();
 		break;			
 
-	case 0x50: CVertexHandler::Flush(); VertexLoader::SetVtxDesc_Lo(Value); break;
-	case 0x60: CVertexHandler::Flush(); VertexLoader::SetVtxDesc_Hi(Value); break;
+	case 0x50:
+		VertexManager::Flush(); VertexLoader::SetVtxDesc_Lo(Value);
+		break;
+	case 0x60:
+		VertexManager::Flush(); VertexLoader::SetVtxDesc_Hi(Value);
+		break;
 
 	case 0x70: g_VertexLoaders[SubCmd & 7].SetVAT_group0(Value); _assert_((SubCmd & 0x0F) < 8); break;
 	case 0x80: g_VertexLoaders[SubCmd & 7].SetVAT_group1(Value); _assert_((SubCmd & 0x0F) < 8); break;

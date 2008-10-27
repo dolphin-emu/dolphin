@@ -49,8 +49,6 @@ extern int nBackbufferWidth, nBackbufferHeight;
 static int s_nMaxVertexInstructions;
 
 static float s_fMaterials[16];
-static float rawViewport[6] = {0};
-static float rawProjection[7] = {0};
 
 // track changes
 static bool bTexMatricesChanged[2], bPosNormalMatrixChanged, bProjectionChanged, bViewportChanged;
@@ -92,7 +90,7 @@ void VertexShaderMngr::Shutdown()
 }
 
 float VertexShaderMngr::GetPixelAspectRatio() {
-	return rawViewport[0] != 0 ? (float)Renderer::GetTargetWidth() / 640.0f : 1.0f;
+	return xfregs.rawViewport[0] != 0 ? (float)Renderer::GetTargetWidth() / 640.0f : 1.0f;
 }
 
 VERTEXSHADER* VertexShaderMngr::GetShader(u32 components)
@@ -378,8 +376,8 @@ void VertexShaderMngr::SetConstants()
 				wAdj = ratio;
 				hAdj = 1;
 
-				wid = ceil(fabs(2 * rawViewport[0]) / wAdj);
-				hei = ceil(fabs(2 * rawViewport[1]) / hAdj);
+				wid = ceil(fabs(2 * xfregs.rawViewport[0]) / wAdj);
+				hei = ceil(fabs(2 * xfregs.rawViewport[1]) / hAdj);
 
 				actualWid = ceil((float)winw / ratio);
 				actualRatiow = (float)actualWid / (float)wid; // the picture versus the screen
@@ -393,8 +391,8 @@ void VertexShaderMngr::SetConstants()
 				wAdj = 1;
 				hAdj = ratio;
 
-				wid = ceil(fabs(2 * rawViewport[0]) / wAdj);
-				hei = ceil(fabs(2 * rawViewport[1]) / hAdj);
+				wid = ceil(fabs(2 * xfregs.rawViewport[0]) / wAdj);
+				hei = ceil(fabs(2 * xfregs.rawViewport[1]) / hAdj);
 
 				actualHei = ceil((float)winh / ratio);
 				actualRatioh = (float)actualHei / (float)hei; // the picture versus the screen
@@ -404,52 +402,56 @@ void VertexShaderMngr::SetConstants()
 		}
 		else
 		{
-			wid = ceil(fabs(2 * rawViewport[0]));
-			hei = ceil(fabs(2 * rawViewport[1]));
+			wid = ceil(fabs(2 * xfregs.rawViewport[0]));
+			hei = ceil(fabs(2 * xfregs.rawViewport[1]));
 		}
 
 		if (g_Config.bStretchToFit)
 		{
 			glViewport(
-				(int)(rawViewport[3]-rawViewport[0]-342-scissorXOff) + xoffs,
-				Renderer::GetTargetHeight() - ((int)(rawViewport[4]-rawViewport[1]-342-scissorYOff)) + yoffs,
+				(int)(xfregs.rawViewport[3]-xfregs.rawViewport[0]-342-scissorXOff) + xoffs,
+				Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4]-xfregs.rawViewport[1]-342-scissorYOff)) + yoffs,
 				wid, // width
 				hei // height
 				);
 		}
 		else
 		{
-			glViewport((int)(rawViewport[3]-rawViewport[0]-342-scissorXOff) * MValueX,
-				Renderer::GetTargetHeight()-((int)(rawViewport[4]-rawViewport[1]-342-scissorYOff))  * MValueY,
-				abs((int)(2 * rawViewport[0])) * MValueX, abs((int)(2 * rawViewport[1])) * MValueY);
+			glViewport((int)(xfregs.rawViewport[3]-xfregs.rawViewport[0]-342-scissorXOff) * MValueX,
+				Renderer::GetTargetHeight()-((int)(xfregs.rawViewport[4]-xfregs.rawViewport[1]-342-scissorYOff))  * MValueY,
+				abs((int)(2 * xfregs.rawViewport[0])) * MValueX, abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
 		}
 
+		// Standard depth range
+		//glDepthRange(-(0.0f - (xfregs.rawViewport[5]-xfregs.rawViewport[2])/-16777215.0f), xfregs.rawViewport[5]/16777215.0f);
+
 		// Metroid Prime 1 & 2 likes this
-		glDepthRange((g_Config.bInvertDepth ? -1 : 1) * -(0.0f - (rawViewport[5]-rawViewport[2])/16777215.0f), rawViewport[5]/16777215.0f);
+		//glDepthRange(-(0.0f - (xfregs.rawViewport[5]-xfregs.rawViewport[2])/16777215.0f), xfregs.rawViewport[5]/16777215.0f);
+		glDepthRange((g_Config.bInvertDepth ? -1 : 1) * -(0.0f - (xfregs.rawViewport[5]-xfregs.rawViewport[2])/16777215.0f), xfregs.rawViewport[5]/16777215.0f);
 
 		// FZero stage likes this (a sonic hack)
-		// glDepthRange(-(0.0f - (rawViewport[5]-rawViewport[2])/-16777215.0f), rawViewport[5]/16777215.0f);
+		// glDepthRange(-(0.0f - (xfregs.rawViewport[5]-xfregs.rawViewport[2])/-16777215.0f), xfregs.rawViewport[5]/16777215.0f);
     }
 
     if (bProjectionChanged) {
         bProjectionChanged = false;
 
-        if (rawProjection[6] == 0) {
-            g_fProjectionMatrix[0] = rawProjection[0];
+        if (xfregs.rawProjection[6] == 0) {
+            g_fProjectionMatrix[0] = xfregs.rawProjection[0];
             g_fProjectionMatrix[1] = 0.0f;
-            g_fProjectionMatrix[2] = rawProjection[1];
+            g_fProjectionMatrix[2] = xfregs.rawProjection[1];
             g_fProjectionMatrix[3] = 0;
                         
             g_fProjectionMatrix[4] = 0.0f;
-            g_fProjectionMatrix[5] = rawProjection[2];
-            g_fProjectionMatrix[6] = rawProjection[3];
+            g_fProjectionMatrix[5] = xfregs.rawProjection[2];
+            g_fProjectionMatrix[6] = xfregs.rawProjection[3];
             g_fProjectionMatrix[7] = 0;
                         
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
-            g_fProjectionMatrix[10] = rawProjection[4];
+            g_fProjectionMatrix[10] = xfregs.rawProjection[4];
 			// Working bloom in ZTP
-            g_fProjectionMatrix[11] = -(0.0f - rawProjection[5]);  // Yes, it's important that it's done this way.
+            g_fProjectionMatrix[11] = -(0.0f - xfregs.rawProjection[5]);  // Yes, it's important that it's done this way.
 			// Working projection in PSO
 			// g_fProjectionMatrix[11] = -(1.0f - rawProjection[5]);
                         
@@ -459,23 +461,23 @@ void VertexShaderMngr::SetConstants()
             g_fProjectionMatrix[15] = 0.0f;
         }
         else {
-            g_fProjectionMatrix[0] = rawProjection[0];
+            g_fProjectionMatrix[0] = xfregs.rawProjection[0];
             g_fProjectionMatrix[1] = 0.0f;
             g_fProjectionMatrix[2] = 0.0f;
-            g_fProjectionMatrix[3] = rawProjection[1];
+            g_fProjectionMatrix[3] = xfregs.rawProjection[1];
 
             g_fProjectionMatrix[4] = 0.0f;
-            g_fProjectionMatrix[5] = rawProjection[2];
+            g_fProjectionMatrix[5] = xfregs.rawProjection[2];
             g_fProjectionMatrix[6] = 0.0f;
-            g_fProjectionMatrix[7] = rawProjection[3];
+            g_fProjectionMatrix[7] = xfregs.rawProjection[3];
 
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
-            g_fProjectionMatrix[10] = rawProjection[4];
+            g_fProjectionMatrix[10] = xfregs.rawProjection[4];
 			// Working bloom in ZTP
-            g_fProjectionMatrix[11] = -(-1.0f - rawProjection[5]);  // Yes, it's important that it's done this way.
-			// Working projection in PSO
-			// g_fProjectionMatrix[11] = -(0.0f - rawProjection[5]);
+            //g_fProjectionMatrix[11] = -(-1.0f - rawProjection[5]);  // Yes, it's important that it's done this way.
+			// Working projection in PSO, working Super Monkey Ball
+			g_fProjectionMatrix[11] = -(0.0f - xfregs.rawProjection[5]);
 
             g_fProjectionMatrix[12] = 0;
             g_fProjectionMatrix[13] = 0;
@@ -483,7 +485,7 @@ void VertexShaderMngr::SetConstants()
             g_fProjectionMatrix[15] = 1.0f;
         }
 
-        PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1], rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
+        PRIM_LOG("Projection: %f %f %f %f %f %f\n", xfregs.rawProjection[0], xfregs.rawProjection[1], xfregs.rawProjection[2], xfregs.rawProjection[3], xfregs.rawProjection[4], xfregs.rawProjection[5]);
         SetVSConstant4fv(C_PROJECTION,   &g_fProjectionMatrix[0]);
         SetVSConstant4fv(C_PROJECTION+1, &g_fProjectionMatrix[4]);
         SetVSConstant4fv(C_PROJECTION+2, &g_fProjectionMatrix[8]);
@@ -591,11 +593,11 @@ void VertexShaderMngr::SetTexMatrixChangedB(u32 Value)
 void VertexShaderMngr::SetViewport(float* _Viewport)
 {
     // Workaround for paper mario, yep this is bizarre.
-    for (size_t i = 0; i < ARRAYSIZE(rawViewport); ++i) {
+    for (size_t i = 0; i < ARRAYSIZE(xfregs.rawViewport); ++i) {
         if (*(u32*)(_Viewport + i) == 0x7f800000)  // invalid fp number
             return;
     }
-    memcpy(rawViewport, _Viewport, sizeof(rawViewport));
+    memcpy(xfregs.rawViewport, _Viewport, sizeof(xfregs.rawViewport));
     bViewportChanged = true;
 }
 
@@ -606,12 +608,65 @@ void VertexShaderMngr::SetViewportChanged()
 
 void VertexShaderMngr::SetProjection(float* _pProjection, int constantIndex)
 {
-    memcpy(rawProjection, _pProjection, sizeof(rawProjection));
+    memcpy(xfregs.rawProjection, _pProjection, sizeof(xfregs.rawProjection));
     bProjectionChanged = true;
 }
 
+float* VertexShaderMngr::GetPosNormalMat()
+{
+    return (float*)xfmem + MatrixIndexA.PosNormalMtxIdx * 4;
+}
+
+// Mash together all the inputs that contribute to the code of a generated vertex shader into
+// a unique identifier, basically containing all the bits. Yup, it's a lot ....
+void VertexShaderMngr::GetVertexShaderId(VERTEXSHADERUID& vid, u32 components)
+{
+	u32 zbufrender = (bpmem.ztex2.op == ZTEXTURE_ADD) || Renderer::GetZBufferTarget() != 0;
+	vid.values[0] = components | 
+		(xfregs.numTexGens << 23) |
+		(xfregs.nNumChans << 27) |
+		((u32)xfregs.bEnableDualTexTransform << 29) |
+		(zbufrender << 30);
+
+	for (int i = 0; i < 2; ++i) {
+		vid.values[1+i] = xfregs.colChans[i].color.enablelighting ? 
+			(u32)xfregs.colChans[i].color.hex : 
+			(u32)xfregs.colChans[i].color.matsource;
+		vid.values[1+i] |= (xfregs.colChans[i].alpha.enablelighting ? 
+			(u32)xfregs.colChans[i].alpha.hex : 
+			(u32)xfregs.colChans[i].alpha.matsource) << 15;
+	}
+
+	// fog
+	vid.values[1] |= (((u32)bpmem.fog.c_proj_fsel.fsel & 3) << 30);
+	vid.values[2] |= (((u32)bpmem.fog.c_proj_fsel.fsel >> 2) << 30);
+
+	u32* pcurvalue = &vid.values[3];
+	for (int i = 0; i < xfregs.numTexGens; ++i) {
+		TexMtxInfo tinfo = xfregs.texcoords[i].texmtxinfo;
+		if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP)
+			tinfo.hex &= 0x7ff;
+		if (tinfo.texgentype != XF_TEXGEN_REGULAR)
+			tinfo.projection = 0;
+
+		u32 val = ((tinfo.hex >> 1) & 0x1ffff);
+		if (xfregs.bEnableDualTexTransform && tinfo.texgentype == XF_TEXGEN_REGULAR) {
+			// rewrite normalization and post index
+			val |= ((u32)xfregs.texcoords[i].postmtxinfo.index << 17) | ((u32)xfregs.texcoords[i].postmtxinfo.normalize << 23);
+		}
+
+		switch (i & 3) {
+			case 0: pcurvalue[0] |= val; break;
+			case 1: pcurvalue[0] |= val << 24; pcurvalue[1] = val >> 8; ++pcurvalue; break;
+			case 2: pcurvalue[0] |= val << 16; pcurvalue[1] = val >> 16; ++pcurvalue; break;
+			case 3: pcurvalue[0] |= val << 8; ++pcurvalue; break;
+		}
+	}
+}
+
+
 // LoadXFReg 0x10
-void VertexShaderMngr::LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
+void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 {	
     u32 address = baseAddress;
     for (int i = 0; i < (int)transferSize; i++)
@@ -622,7 +677,7 @@ void VertexShaderMngr::LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
         if (address < 0x1000)
         {
             VertexManager::Flush();
-            InvalidateXFRange(address, address+transferSize);
+			VertexShaderMngr::InvalidateXFRange(address, address + transferSize);
             //PRIM_LOG("xfmem write: 0x%x-0x%x\n", address, address+transferSize);
 
             u32* p1 = &xfmem[address];
@@ -748,16 +803,16 @@ void VertexShaderMngr::LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
                 break;
             case 0x1018:
                 //_assert_msg_(GX_XF, 0, "XF matrixindex0");
-                SetTexMatrixChangedA(data); //?
+				VertexShaderMngr::SetTexMatrixChangedA(data); //?
                 break;
             case 0x1019:
                 //_assert_msg_(GX_XF, 0, "XF matrixindex1");
-                SetTexMatrixChangedB(data); //?
+                VertexShaderMngr::SetTexMatrixChangedB(data); //?
                 break;
 
             case 0x101a: 
                 VertexManager::Flush();
-                SetViewport((float*)&pData[i]);
+                VertexShaderMngr::SetViewport((float*)&pData[i]);
                 i += 6;
                 break;
 
@@ -812,7 +867,7 @@ void VertexShaderMngr::LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
                 break;
             }
         }
-        else if (address>=0x4000)
+        else if (address >= 0x4000)
         {
             // MessageBox(NULL, "1", "1", MB_OK);
             //4010 __GXSetGenMode
@@ -821,7 +876,7 @@ void VertexShaderMngr::LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 }
 
 // TODO - verify that it is correct. Seems to work, though.
-void VertexShaderMngr::LoadIndexedXF(u32 val, int array)
+void LoadIndexedXF(u32 val, int array)
 {
     int index = val >> 16;
     int address = val & 0xFFF; //check mask
@@ -829,61 +884,9 @@ void VertexShaderMngr::LoadIndexedXF(u32 val, int array)
     //load stuff from array to address in xf mem
 
     VertexManager::Flush();
-    InvalidateXFRange(address, address+size);
+    VertexShaderMngr::InvalidateXFRange(address, address+size);
     //PRIM_LOG("xfmem iwrite: 0x%x-0x%x\n", address, address+size);
 
     for (int i = 0; i < size; i++)
         xfmem[address + i] = Memory_Read_U32(arraybases[array] + arraystrides[array]*index + i*4);
-}
-
-float* VertexShaderMngr::GetPosNormalMat()
-{
-    return (float*)xfmem + MatrixIndexA.PosNormalMtxIdx * 4;
-}
-
-// Mash together all the inputs that contribute to the code of a generated vertex shader into
-// a unique identifier, basically containing all the bits. Yup, it's a lot ....
-void VertexShaderMngr::GetVertexShaderId(VERTEXSHADERUID& vid, u32 components)
-{
-    u32 zbufrender = (bpmem.ztex2.op == ZTEXTURE_ADD) || Renderer::GetZBufferTarget() != 0;
-    vid.values[0] = components | 
-		(xfregs.numTexGens << 23) |
-		(xfregs.nNumChans << 27) |
-	    ((u32)xfregs.bEnableDualTexTransform << 29) |
-		(zbufrender << 30);
-
-    for (int i = 0; i < 2; ++i) {
-        vid.values[1+i] = xfregs.colChans[i].color.enablelighting ? 
-			(u32)xfregs.colChans[i].color.hex : 
-		    (u32)xfregs.colChans[i].color.matsource;
-        vid.values[1+i] |= (xfregs.colChans[i].alpha.enablelighting ? 
-			(u32)xfregs.colChans[i].alpha.hex : 
-		    (u32)xfregs.colChans[i].alpha.matsource) << 15;
-    }
-
-	// fog
-    vid.values[1] |= (((u32)bpmem.fog.c_proj_fsel.fsel & 3) << 30);
-    vid.values[2] |= (((u32)bpmem.fog.c_proj_fsel.fsel >> 2) << 30);
-
-    u32* pcurvalue = &vid.values[3];
-    for (int i = 0; i < xfregs.numTexGens; ++i) {
-        TexMtxInfo tinfo = xfregs.texcoords[i].texmtxinfo;
-        if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP)
-            tinfo.hex &= 0x7ff;
-        if (tinfo.texgentype != XF_TEXGEN_REGULAR)
-            tinfo.projection = 0;
-
-        u32 val = ((tinfo.hex >> 1) & 0x1ffff);
-        if (xfregs.bEnableDualTexTransform && tinfo.texgentype == XF_TEXGEN_REGULAR) {
-            // rewrite normalization and post index
-            val |= ((u32)xfregs.texcoords[i].postmtxinfo.index << 17) | ((u32)xfregs.texcoords[i].postmtxinfo.normalize << 23);
-        }
-
-        switch (i & 3) {
-            case 0: pcurvalue[0] |= val; break;
-            case 1: pcurvalue[0] |= val << 24; pcurvalue[1] = val >> 8; ++pcurvalue; break;
-            case 2: pcurvalue[0] |= val << 16; pcurvalue[1] = val >> 16; ++pcurvalue; break;
-            case 3: pcurvalue[0] |= val << 8; ++pcurvalue; break;
-        }
-    }
 }

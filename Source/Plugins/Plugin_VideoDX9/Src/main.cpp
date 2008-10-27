@@ -29,7 +29,7 @@
 #include "OpcodeDecoding.h"
 #include "TextureCache.h"
 #include "BPStructs.h"
-#include "VertexHandler.h"
+#include "VertexManager.h"
 #include "TransformEngine.h"
 #include "DlgSettings.h"
 #include "D3DPostprocess.h"
@@ -213,7 +213,7 @@ void Video_Prepare(void)
 	TextureCache::Init();
 
 	BPInit();
-	CVertexHandler::Init();
+	VertexManager::Init();
 	Fifo_Init();
 	OpcodeDecoder_Init();
 }
@@ -221,7 +221,7 @@ void Video_Prepare(void)
 void Video_Shutdown(void) 
 {
 	Fifo_Shutdown();
-	CVertexHandler::Shutdown();
+	VertexManager::Shutdown();
 	TextureCache::Shutdown();
 	Renderer::Shutdown();
 	OpcodeDecoder_Shutdown();

@@ -75,7 +75,6 @@ public:
 
 	// TODO: move these in under private:
 	int m_VBVertexStride;  // PC-side vertex stride
-	int m_VBStridePad;
 	u32 m_components;  // VB_HAS_X. Bitmask telling what vertex components are present.
 };
 

@@ -75,9 +75,8 @@ void NativeVertexFormat::Initialize(const TVtxDesc &vtx_desc, const TVtxAttr &vt
 	DVSTARTPROFILE();
 
 	if (m_VBVertexStride & 3) {
-		// make sure all strides are at least divisible by 4 (some gfx cards experience a 3x speed boost)
-		m_VBStridePad = 4 - (m_VBVertexStride & 3);
-		m_VBVertexStride += m_VBStridePad;
+		// We will not allow vertex components causing uneven strides.
+		PanicAlert("Uneven vertex stride: %i", m_VBVertexStride);
 	}
 
 	// compile the pointer set function - why?
@@ -86,9 +85,9 @@ void NativeVertexFormat::Initialize(const TVtxDesc &vtx_desc, const TVtxAttr &vt
 	Util::EmitPrologue(6);
 	int offset = 0;
 	
-	// Position
+	// Position, part 1
 	if (vtx_desc.Position != NOT_PRESENT) {  // TODO: Why the check? Always present, AFAIK!
-		CallCdeclFunction4_I(glVertexPointer, 3, GL_FLOAT, m_VBVertexStride, offset);
+		CallCdeclFunction4_I(glVertexPointer, 3, GL_FLOAT, m_VBVertexStride, 0);
 		offset += 12;
 	}
 
@@ -97,18 +96,18 @@ void NativeVertexFormat::Initialize(const TVtxDesc &vtx_desc, const TVtxAttr &vt
 		switch (vtx_attr.NormalFormat) {
 		case FORMAT_UBYTE:	
 		case FORMAT_BYTE:
-			CallCdeclFunction3_I(glNormalPointer, GL_BYTE, m_VBVertexStride, offset); offset += 3;
+			CallCdeclFunction3_I(glNormalPointer, GL_BYTE, m_VBVertexStride, offset); offset += 4;
 			if (vtx_attr.NormalElements) {
-				CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM1_ATTRIB, 3, GL_BYTE, GL_TRUE, m_VBVertexStride, offset); offset += 3;
-				CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM2_ATTRIB, 3, GL_BYTE, GL_TRUE, m_VBVertexStride, offset); offset += 3;
+				CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM1_ATTRIB, 4, GL_BYTE, GL_TRUE, m_VBVertexStride, offset); offset += 4;
+				CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM2_ATTRIB, 4, GL_BYTE, GL_TRUE, m_VBVertexStride, offset); offset += 4;
 			}
 			break;
 		case FORMAT_USHORT:
 		case FORMAT_SHORT:
-			CallCdeclFunction3_I(glNormalPointer, GL_SHORT, m_VBVertexStride, offset); offset += 6;
+			CallCdeclFunction3_I(glNormalPointer, GL_SHORT, m_VBVertexStride, offset); offset += 8;
 			if (vtx_attr.NormalElements) {
-				CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM1_ATTRIB, 3, GL_SHORT, GL_TRUE, m_VBVertexStride, offset); offset += 6;
-				CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM2_ATTRIB, 3, GL_SHORT, GL_TRUE, m_VBVertexStride, offset); offset += 6;
+				CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM1_ATTRIB, 4, GL_SHORT, GL_TRUE, m_VBVertexStride, offset); offset += 8;
+				CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM2_ATTRIB, 4, GL_SHORT, GL_TRUE, m_VBVertexStride, offset); offset += 8;
 			}
 			break;
 		case FORMAT_FLOAT:
@@ -164,19 +163,19 @@ void NativeVertexFormat::Initialize(const TVtxDesc &vtx_desc, const TVtxAttr &vt
 				}
 				else {
 					CallCdeclFunction4_I(glTexCoordPointer, 3, GL_SHORT, m_VBVertexStride, offset);
-					offset += 6;
+					offset += 8;
 				}
 			}
 			else {
 				CallCdeclFunction4_I(glTexCoordPointer, vtx_attr.texCoord[i].Elements ? 2 : 1, GL_FLOAT, m_VBVertexStride, offset);
-				offset += 4 * (vtx_attr.texCoord[i].Elements?2:1);
+				offset += 4 * (vtx_attr.texCoord[i].Elements ? 2 : 1);
 			}
 		}
 	}
 
 	if (vtx_desc.PosMatIdx) {
-		CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_POSMTX_ATTRIB, 1, GL_UNSIGNED_BYTE, GL_FALSE, m_VBVertexStride, offset);
-		offset += 1;
+		CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_POSMTX_ATTRIB, 4, GL_UNSIGNED_BYTE, GL_FALSE, m_VBVertexStride, offset);
+		offset += 4;
 	}
 
 	_assert_(offset + m_VBStridePad == m_VBVertexStride);

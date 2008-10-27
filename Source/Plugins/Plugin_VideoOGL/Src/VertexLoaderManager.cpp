@@ -37,6 +37,8 @@ static VertexLoaderMap g_VertexLoaderMap;
 void Init()
 {
 	MarkAllDirty();
+	for (int i = 0; i < 8; i++)
+		g_VertexLoaders[i] = NULL;
 }
 
 void Shutdown()
@@ -53,9 +55,9 @@ void MarkAllDirty()
 	s_attr_dirty = 0xff;
 }
 
-void RefreshLoader(int vtx_attr_group)
+static void RefreshLoader(int vtx_attr_group)
 {
-	if (((s_attr_dirty >> vtx_attr_group) & 1) || !g_VertexLoaders[vtx_attr_group])
+	if ((s_attr_dirty >> vtx_attr_group) & 1)
 	{
 		VertexLoaderUID uid;
 		uid.InitFromCurrentState(vtx_attr_group);

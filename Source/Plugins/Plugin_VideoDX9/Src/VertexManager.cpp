@@ -21,7 +21,7 @@
 
 #include "Statistics.h"
 #include "Profiler.h"
-#include "VertexHandler.h"
+#include "VertexManager.h"
 #include "OpcodeDecoding.h"
 #include "TransformEngine.h"
 #include "IndexGenerator.h"
@@ -32,13 +32,17 @@
 
 using namespace D3D;
 
-IndexGenerator indexGen;
-Collection CVertexHandler::collection;
 
-LPDIRECT3DVERTEXDECLARATION9 vDecl;
+namespace VertexManager
+{
 
-D3DVertex *fakeVBuffer;
-u16 *fakeIBuffer;
+static IndexGenerator indexGen;
+static Collection collection;
+
+static LPDIRECT3DVERTEXDECLARATION9 vDecl;
+
+static D3DVertex *fakeVBuffer;
+static u16 *fakeIBuffer;
 
 #define MAXVBUFFERSIZE 65536*3
 #define MAXIBUFFERSIZE 65536*3
@@ -60,23 +64,24 @@ const D3DVERTEXELEMENT9 decl[] =
     D3DDECL_END()
 };
 
-void CVertexHandler::Init()
+
+bool Init()
 {
 	collection = C_NOTHING;
 	fakeVBuffer = new D3DVertex[65536];
 	fakeIBuffer = new u16[65536];
 	CreateDeviceObjects();
+	return true;
 }
 
-
-void CVertexHandler::Shutdown()
+void Shutdown()
 {
 	DestroyDeviceObjects();
 	delete [] fakeVBuffer;
 	delete [] fakeIBuffer;
 }
 
-void CVertexHandler::CreateDeviceObjects()
+void CreateDeviceObjects()
 {
 	HRESULT hr;
 	if (FAILED(hr = D3D::dev->CreateVertexDeclaration(decl, &vDecl)))
@@ -86,13 +91,13 @@ void CVertexHandler::CreateDeviceObjects()
     }
 }
 
-void CVertexHandler::BeginFrame()
+void BeginFrame()
 {
 	D3D::dev->SetVertexDeclaration(vDecl);
 	//D3D::dev->SetStreamSource(0,vBuffer,0,sizeof(D3DVertex));
 }
 
-void CVertexHandler::DestroyDeviceObjects()
+void DestroyDeviceObjects()
 {
 	if (vDecl)
 		vDecl->Release();
@@ -100,7 +105,7 @@ void CVertexHandler::DestroyDeviceObjects()
 }
 
 
-void CVertexHandler::AddIndices(int _primitive, int _numVertices)
+void AddIndices(int _primitive, int _numVertices)
 {
 	switch(_primitive) {
 	case GX_DRAW_QUADS:          indexGen.AddQuads(_numVertices); return;    
@@ -127,7 +132,7 @@ const Collection collectionTypeLUT[8] =
 
 D3DVertex *vbufferwrite;
 
-void CVertexHandler::DrawVertices(int _primitive, int _numVertices, const DecodedVArray *varray)
+void AddVertices(int _primitive, int _numVertices, const DecodedVArray *varray)
 {
 	if (_numVertices <= 0) //This check is pretty stupid... 
 		return;
@@ -163,7 +168,7 @@ void CVertexHandler::DrawVertices(int _primitive, int _numVertices, const Decode
 		if (_numVertices >= MAXVBUFFERSIZE)
 			MessageBox(NULL, "To much vertices for the buffer", "Video.DLL", MB_OK);
 
-		CTransformEngine::TransformVertices(_numVertices,varray,vbufferwrite);
+		CTransformEngine::TransformVertices(_numVertices, varray, vbufferwrite);
 	}
 	else //We are collecting the right type, keep going
 	{
@@ -171,11 +176,11 @@ void CVertexHandler::DrawVertices(int _primitive, int _numVertices, const Decode
 		INCSTAT(stats.numJoins);
 		//Success, keep adding to unlocked buffer
 		int last=indexGen.GetNumVerts();
-		AddIndices(_primitive,_numVertices);
+		AddIndices(_primitive, _numVertices);
 
 		if (_numVertices >= MAXVBUFFERSIZE)
 			MessageBox(NULL, "Too many vertices for the buffer", "Video.DLL", MB_OK);
-		CTransformEngine::TransformVertices(_numVertices,varray,vbufferwrite + last);
+		CTransformEngine::TransformVertices(_numVertices, varray, vbufferwrite + last);
 	}
 }
 
@@ -186,7 +191,7 @@ const D3DPRIMITIVETYPE pts[3] =
 	D3DPT_LINELIST,
 };
 
-void CVertexHandler::Flush()
+void Flush()
 {
     DVSTARTPROFILE();
 
@@ -226,46 +231,4 @@ void CVertexHandler::Flush()
 	}
 }
 
-
-/*
-	char szTmp[256];
-	sprintf(szTmp, "Batch size : %i",_numVertices);
-	g_VideoInitialize.pLog(szTmp);
-
-
-	char szTemp[256];
-	sprintf(szTemp, "count: %i", count);
-	SendMessage(g_VideoInitialize.hStatusBar, SB_SETTEXT,0,(LPARAM)szTemp);	
-
-	static bool bWaitStep = false;
-	if (count == 24800)
-	{
-		bWaitStep = true;
-		Renderer::Flush();
-	}
-	if (GetAsyncKeyState('J'))
-		bWaitStep = true;
-	if (GetAsyncKeyState('U'))
-		bWaitStep = false;
-
-	if (bWaitStep)
-	{	
-		static bool bKey = false;
-		while (GetAsyncKeyState('H') == 0)
-		{			
-			if (GetAsyncKeyState(VK_SPACE))
-				_asm int 3;
-			if (GetAsyncKeyState('U'))
-			{
-				bWaitStep = false;
-				break;
-			}
-		}
-		Renderer::Flush();
-		// wait for key release
-		while (GetAsyncKeyState ('H')){
-		};
-	}
-}
-*/
-//	old = bpmem.combiners[0].colorC.hex;
+}  // namespace

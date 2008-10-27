@@ -22,7 +22,7 @@
 
 #include "Config.h"
 #include "main.h"
-#include "VertexHandler.h"
+#include "VertexManager.h"
 #include "Render.h"
 #include "OpcodeDecoding.h"
 #include "BPStructs.h"
@@ -105,7 +105,7 @@ void Renderer::Initialize(void)
 	Postprocess::Initialize();
 	Postprocess::BeginFrame();
 	D3D::BeginFrame(true, 0);
-	CVertexHandler::BeginFrame();
+	VertexManager::BeginFrame();
 }
 
 void Renderer::AddMessage(const std::string &message, u32 ms)
@@ -274,7 +274,7 @@ void Renderer::SwapBuffers(void)
 	// D3D::EnableAlphaToCoverage();
 
 	Postprocess::BeginFrame();
-	CVertexHandler::BeginFrame();
+	VertexManager::BeginFrame();
 
 	if (g_Config.bOldCard)
 		D3D::font.SetRenderStates(); //compatibility with low end cards

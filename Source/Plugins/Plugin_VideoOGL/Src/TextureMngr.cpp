@@ -67,28 +67,32 @@ const GLint c_MinLinearFilter[8] = {
 
 const GLint c_WrapSettings[4] = { GL_CLAMP_TO_EDGE, GL_REPEAT, GL_MIRRORED_REPEAT, GL_REPEAT };
 
-void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0& newmode)
+void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode)
 {
     mode = newmode;
-    if( isNonPow2 ) {
+    if (isNonPow2) {
         // very limited!
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, (newmode.mag_filter||g_Config.bForceFiltering)?GL_LINEAR:GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, (g_Config.bForceFiltering||newmode.min_filter>=4)?GL_LINEAR:GL_NEAREST);
-		if( newmode.wrap_s == 2 || newmode.wrap_t == 2 ) {
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER,
+			            (newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER,
+			            (g_Config.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
+		if (newmode.wrap_s == 2 || newmode.wrap_t == 2) {
             DEBUG_LOG("cannot support mirrorred repeat mode\n");
 		}
     }
     else {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (newmode.mag_filter||g_Config.bForceFiltering)?GL_LINEAR:GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+			            (newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
 
-        if( bHaveMipMaps ) {
+        if (bHaveMipMaps) {
             int filt = newmode.min_filter;
-            if( g_Config.bForceFiltering && newmode.min_filter < 4 )
+            if (g_Config.bForceFiltering && newmode.min_filter < 4)
                 newmode.min_filter += 4; // take equivalent forced linear
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt]);
         }
         else
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (g_Config.bForceFiltering||newmode.min_filter>=4)?GL_LINEAR:GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+			                (g_Config.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, c_WrapSettings[newmode.wrap_s]);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[newmode.wrap_t]);
@@ -195,7 +199,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
         return NULL;
 
     TexCache::iterator iter = textures.find(address);
-    TexMode0 &tm0 = bpmem.tex[texstage>3].texMode0[texstage&3];
+    TexMode0 &tm0 = bpmem.tex[texstage > 3].texMode0[texstage & 3];
     u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
 
     int palSize = TexDecoder_GetPaletteSize(format);
@@ -248,9 +252,9 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
         }
     }
     
-    int bs = TexDecoder_GetBlockWidthInTexels(format)-1; //TexelSizeInNibbles(format)*width*height/16;
-    int expandedWidth = (width+bs) & (~bs);
-    PC_TexFormat dfmt = TexDecoder_Decode(temp,ptr,expandedWidth,height,format, tlutaddr, tlutfmt);
+    int bs = TexDecoder_GetBlockWidthInTexels(format) - 1; //TexelSizeInNibbles(format)*width*height/16;
+    int expandedWidth = (width + bs) & (~bs);
+    PC_TexFormat dfmt = TexDecoder_Decode(temp, ptr, expandedWidth, height, format, tlutaddr, tlutfmt);
 
     //Make an entry in the table
     TCacheEntry& entry = textures[address];
@@ -283,7 +287,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		gl_type = GL_UNSIGNED_BYTE;
 		break;
 	}
-    if( !entry.isNonPow2 && ((tm0.min_filter&3)==1||(tm0.min_filter&3)==2) ) {
+    if (!entry.isNonPow2 && ((tm0.min_filter & 3) == 1 || (tm0.min_filter & 3) == 2)) {
         gluBuild2DMipmaps(GL_TEXTURE_2D, 4, width, height, gl_format, gl_type, temp);
         entry.bHaveMipMaps = true;
     }
@@ -294,9 +298,9 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
         glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 
     entry.frameCount = frameCount;
-    entry.w=width;
-    entry.h=height;
-    entry.fmt=format;
+    entry.w = width;
+    entry.h = height;
+    entry.fmt = format;
     entry.SetTextureParameters(tm0);
 
     if (g_Config.bDumpTextures) { // dump texture to file
@@ -346,7 +350,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     GL_REPORT_ERRORD();
 
-    if( !bIsInit ) {
+    if (!bIsInit) {
         glGenTextures(1, (GLuint *)&entry.texture);
         glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
         glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
@@ -356,16 +360,16 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
         _assert_(entry.texture);
         bool bReInit = true;
 
-        if( entry.w == w && entry.h == h ) {
+        if (entry.w == w && entry.h == h) {
             glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
             // for some reason mario sunshine errors here...
             GLenum err = GL_NO_ERROR;
             GL_REPORT_ERROR();
-            if( err == GL_NO_ERROR )
+            if (err == GL_NO_ERROR )
                 bReInit = false;
         }
 
-        if( bReInit ) {
+        if (bReInit) {
             // necessary, for some reason opengl gives errors when texture isn't deleted
             glDeleteTextures(1,(GLuint *)&entry.texture);
             glGenTextures(1, (GLuint *)&entry.texture);
@@ -375,13 +379,13 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
         }
     }
 
-    if( !bIsInit || !entry.isRenderTarget ) {
+    if (!bIsInit || !entry.isRenderTarget) {
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        if( glGetError() != GL_NO_ERROR) {
+        if (glGetError() != GL_NO_ERROR) {
             glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
             glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
             GL_REPORT_ERRORD();
@@ -390,14 +394,14 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     
     entry.w = w;
     entry.h = h;
-    entry.isRenderTarget=true;
+    entry.isRenderTarget = true;
     entry.fmt = copyfmt;
 
     float colmat[16];
     float fConstAdd[4] = {0};
     memset(colmat, 0, sizeof(colmat));
 
-    if( bFromZBuffer ) {
+    if (bFromZBuffer) {
         switch(copyfmt) {
             case 0: // Z4
             case 1: // Z8
@@ -428,18 +432,19 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
                 break;
         }
     }
-    else if( bIsIntensityFmt ) {
+    else if (bIsIntensityFmt) {
         fConstAdd[0] = fConstAdd[1] = fConstAdd[2] = 16.0f/255.0f;
         switch(copyfmt) {
             case 0: // I4
             case 1: // I8
             case 2: // IA4
             case 3: // IA8
+				// TODO - verify these coefficients
                 colmat[0] = 0.257f; colmat[1] = 0.504f; colmat[2] = 0.098f;
                 colmat[4] = 0.257f; colmat[5] = 0.504f; colmat[6] = 0.098f;
                 colmat[8] = 0.257f; colmat[9] = 0.504f; colmat[10] = 0.098f;
-                if( copyfmt < 2 ) {
-                    fConstAdd[3] = 16.0f/255.0f;
+                if (copyfmt < 2) {
+                    fConstAdd[3] = 16.0f / 255.0f;
                     colmat[12] = 0.257f; colmat[13] = 0.504f; colmat[14] = 0.098f;
                 }
                 else { // alpha
@@ -453,7 +458,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
         }
     }
     else {
-        switch(copyfmt) {
+        switch (copyfmt) {
             case 0: // R4
             case 8: // R8
                 colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
@@ -495,7 +500,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
         }
     }
 
-//    if( bCopyToTarget ) {
+//    if (bCopyToTarget) {
 //        _assert_( glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT );
 //        glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
 //        GL_REPORT_ERRORD();
@@ -512,7 +517,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     Renderer::ResetGLState(); // reset any game specific settings
 
-    if( s_TempFramebuffer == 0 )
+    if (s_TempFramebuffer == 0 )
         glGenFramebuffersEXT( 1, (GLuint *)&s_TempFramebuffer);
 
     Renderer::SetFramebuffer(s_TempFramebuffer);
@@ -525,7 +530,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     if (itdepth == mapDepthTargets.end()) {
         DEPTHTARGET& depth = mapDepthTargets[(h << 16) | w];
         depth.framecount = frameCount;
-        glGenRenderbuffersEXT( 1, &depth.targ);
+        glGenRenderbuffersEXT(1, &depth.targ);
         glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, depth.targ);
         glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT/*GL_DEPTH24_STENCIL8_EXT*/, w, h);
         GL_REPORT_ERRORD();
@@ -565,7 +570,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     TextureMngr::DisableStage(0);
 
-    if( bFromZBuffer )
+    if (bFromZBuffer )
         Renderer::SetZBufferRender(); // notify for future settings
 
     GL_REPORT_ERRORD();
@@ -575,11 +580,11 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
 void TextureMngr::EnableTex2D(int stage)
 {
-    if( !(nTex2DEnabled & (1<<stage)) ) {
+    if (!(nTex2DEnabled & (1<<stage))) {
         nTex2DEnabled |= (1<<stage);
         glEnable(GL_TEXTURE_2D);
     }
-    if( nTexRECTEnabled & (1<<stage) ) {
+    if (nTexRECTEnabled & (1<<stage)) {
         nTexRECTEnabled &= ~(1<<stage);
         glDisable(GL_TEXTURE_RECTANGLE_ARB);
     }
@@ -587,12 +592,12 @@ void TextureMngr::EnableTex2D(int stage)
 
 void TextureMngr::EnableTexRECT(int stage)
 {
-    if( (nTex2DEnabled & (1<<stage)) ) {
-        nTex2DEnabled &= ~(1<<stage);
+    if ((nTex2DEnabled & (1 << stage))) {
+        nTex2DEnabled &= ~(1 << stage);
         glDisable(GL_TEXTURE_2D);
     }
-    if( !(nTexRECTEnabled & (1<<stage)) ) {
-        nTexRECTEnabled |= (1<<stage);
+    if (!(nTexRECTEnabled & (1 << stage))) {
+        nTexRECTEnabled |= (1 << stage);
         glEnable(GL_TEXTURE_RECTANGLE_ARB);
     }
 }
@@ -600,15 +605,16 @@ void TextureMngr::EnableTexRECT(int stage)
 void TextureMngr::DisableStage(int stage)
 {
     bool bset = false;
-    if( nTex2DEnabled & (1<<stage) ) {
-        nTex2DEnabled &= ~(1<<stage);
-        glActiveTexture(GL_TEXTURE0+stage);
+    if (nTex2DEnabled & (1 << stage)) {
+        nTex2DEnabled &= ~(1 << stage);
+        glActiveTexture(GL_TEXTURE0 + stage);
         glDisable(GL_TEXTURE_2D);
         bset = true;
     }
-    if( nTexRECTEnabled & (1<<stage) ) {
-        nTexRECTEnabled &= ~(1<<stage);
-        if( !bset ) glActiveTexture(GL_TEXTURE0+stage);
+    if (nTexRECTEnabled & (1<<stage)) {
+        nTexRECTEnabled &= ~(1 << stage);
+        if (!bset)
+			glActiveTexture(GL_TEXTURE0 + stage);
         glDisable(GL_TEXTURE_RECTANGLE_ARB);
     }
 }

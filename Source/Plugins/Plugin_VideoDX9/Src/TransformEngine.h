@@ -22,7 +22,7 @@
 //as much work as possible will be delegated to vertex shaders later
 //to take full advantage of current PC HW
 
-#include "VertexHandler.h"	
+#include "VertexManager.h"	
 #include "DecodedVArray.h"
 
 class CTransformEngine

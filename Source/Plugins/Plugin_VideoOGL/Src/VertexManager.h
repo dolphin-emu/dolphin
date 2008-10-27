@@ -25,21 +25,23 @@
 // Other functionality is moving out.
 namespace VertexManager
 {
-    bool Init();
-    void Destroy();
 
-    void ResetBuffer();
-    void ResetComponents();
+bool Init();
+void Shutdown();
 
-    void AddVertices(int primitive, int numvertices);
-    void Flush(); // flushes the current buffer
+void ResetBuffer();
+void ResetComponents();
 
-    int GetRemainingSize();  // remaining space in the current buffer.
+void AddVertices(int primitive, int numvertices);
+void Flush(); // flushes the current buffer
 
-	void EnableComponents(u32 components);  // very implementation specific - D3D9 won't need this one.
+int GetRemainingSize();  // remaining space in the current buffer.
 
-	// TODO: move, rename.
-    extern u8* s_pCurBufferPointer;
+void EnableComponents(u32 components);  // very implementation specific - D3D9 won't need this one.
+
+// TODO: move, rename.
+extern u8* s_pCurBufferPointer;
+
 };
 
 #endif  // _VERTEXMANAGER_H

@@ -48,8 +48,6 @@ static const GLenum c_primitiveType[8] =
 
 bool Init()
 {
-	Destroy();
-
 	s_prevcomponents = 0;
 	s_pBaseBufferPointer = (u8*)AllocateMemoryPages(MAX_BUFFER_SIZE);
 	s_pCurBufferPointer = s_pBaseBufferPointer;
@@ -69,7 +67,7 @@ bool Init()
 	return true;
 }
 
-void Destroy()
+void Shutdown()
 {
 	FreeMemoryPages(s_pBaseBufferPointer, MAX_BUFFER_SIZE); s_pBaseBufferPointer = s_pCurBufferPointer = NULL;
 	glDeleteBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
