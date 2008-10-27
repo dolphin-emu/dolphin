@@ -185,7 +185,7 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 	lmp_version = 0x2;
 	lmp_subversion = 0x229;
 
-	memset(m_LinkKey, _Number+1, 16);
+	memset(m_LinkKey, 0xA0 + _Number, 16);
 }
 
 void CWII_IPC_HLE_WiiMote::EventConnectionAccepted()

@@ -152,7 +152,7 @@ private:
 	bool SendEventInquiryResponse();
 	bool SendEventInquiryComplete();
 	bool SendEventRemoteNameReq(bdaddr_t _bd);
-	bool SendEventRequestConnection(bdaddr_t _bd);
+	bool SendEventRequestConnection(CWII_IPC_HLE_WiiMote& _rWiiMote);
 	bool SendEventConnectionComplete(bdaddr_t _bd);
 	bool SendEventReadClockOffsetComplete(u16 _connectionHandle);
 	bool SendEventReadRemoteVerInfo(u16 _connectionHandle);
@@ -212,6 +212,8 @@ private:
 	void CommandVendorSpecific_FC4F(u8* _Input, u32 _Size);	
 
 	void SendToDevice(u16 _ConnectionHandle, u8* _pData, u32 _Size);
+
+	void LOG_LinkKey(const u8* _pLinkKey);
 };
 
 #endif

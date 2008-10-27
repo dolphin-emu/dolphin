@@ -23,6 +23,8 @@
 // ugly hacks for "SendEventNumberOfCompletedPackets"
 int g_HCICount = 0;
 int g_GlobalHandle = 0;
+bool g_ConnectionRequested = false;
+
 
 CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
@@ -70,13 +72,16 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtl(u32 _CommandAddress)
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress) 
 {	
 
+	
 	Memory::Write_U8(255, 0x80149950); // BTM LOG
 									 // 3 logs L2Cap
 									 // 4 logs l2_csm$
 
-	Memory::Write_U8(255, 0x80149949);  // HID
+	Memory::Write_U8(255, 0x80149949);  // Security Manager
 
-	Memory::Write_U8(255, 0x80152058);  // low ??
+	Memory::Write_U8(255, 0x80149048);  // HID
+
+	Memory::Write_U8(3, 0x80152058);  // low ??   // >= 4 and you will get a lot of event messages of the same type
 	 
 	// even it it wasn't very useful yet...
 	// Memory::Write_U8(1, 0x80151488); // WPAD_LOG
@@ -85,10 +90,6 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 	// Memory::Write_U8(1, 0x80148E09); // HID LOG
 
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
-
-	// LOG(WIIMOTE, "USB_IOCTL_CTRLMSG(0x%x)", CommandBuffer.Parameter);
-	// DumpAsync(CommandBuffer.BufferVector, _CommandAddress, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer);
-
 	switch(CommandBuffer.Parameter)
 	{
 	case USB_IOCTL_HCI_COMMAND_MESSAGE:
@@ -255,7 +256,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		memcpy(pHCIEvent, rEvent.m_buffer, rEvent.m_size);
 
 		// return reply buffer size
-		Memory::Write_U32(rEvent.m_size, pHCIBuffer->m_Address + 0x4);
+		Memory::Write_U32((u32)rEvent.m_size, pHCIBuffer->m_Address + 0x4);
 
 		if (rEvent.m_connectionHandle > 0)
 		{
@@ -309,6 +310,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	}
 
 #ifdef _WIN32
+
 	static bool test = true;
 	if (GetAsyncKeyState(VK_LBUTTON) && GetAsyncKeyState(VK_RBUTTON))
 	{
@@ -318,10 +320,14 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 			{
 				if (m_WiiMotes[i].EventPagingChanged(2))
 				{
-					SendEventRequestConnection(m_WiiMotes[i].GetBD());
+					SendEventRequestConnection(m_WiiMotes[i]);
 				}
 			}
 			test = false;
+		}
+		else
+		{
+		//	SendEventNumberOfCompletedPackets(g_GlobalHandle, 10);
 		}
 	}
 /*	else
@@ -367,11 +373,13 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventCommandStatus(u16 _Opcode)
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventCommandComplete(u16 _OpCode, void* _pData, u32 _DataSize)
 {
+	_dbg_assert_(WIIMOTE, (sizeof(SHCIEventCommand) - 2 + _DataSize) < 256);
+
 	SQueuedEvent Event(sizeof(SHCIEventCommand) + _DataSize, 0);
 
 	SHCIEventCommand* pHCIEvent = (SHCIEventCommand*)Event.m_buffer;    
 	pHCIEvent->EventType = 0x0E;          
-	pHCIEvent->PayloadLength = sizeof(SHCIEventCommand) - 2 + _DataSize;
+	pHCIEvent->PayloadLength = (u8)(sizeof(SHCIEventCommand) - 2 + _DataSize);
 	pHCIEvent->PacketIndicator = 0x01;     
 	pHCIEvent->Opcode = _OpCode;
 
@@ -393,13 +401,15 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventInquiryResponse()
 	if (m_WiiMotes.empty())
 		return false;
 
+	_dbg_assert_(WIIMOTE, sizeof(SHCIEventInquiryResult) - 2 + (m_WiiMotes.size() * sizeof(hci_inquiry_response)) < 256);
+
 	SQueuedEvent Event(sizeof(SHCIEventInquiryResult) + m_WiiMotes.size()*sizeof(hci_inquiry_response), 0);
 
 	SHCIEventInquiryResult* pInquiryResult = (SHCIEventInquiryResult*)Event.m_buffer;  
 
 	pInquiryResult->EventType = 0x02;
-	pInquiryResult->PayloadLength = sizeof(SHCIEventInquiryResult) - 2 + (m_WiiMotes.size() * sizeof(hci_inquiry_response)); 
-	pInquiryResult->num_responses = m_WiiMotes.size();
+	pInquiryResult->PayloadLength = (u8)(sizeof(SHCIEventInquiryResult) - 2 + (m_WiiMotes.size() * sizeof(hci_inquiry_response))); 
+	pInquiryResult->num_responses = (u8)m_WiiMotes.size();
 
 	for (size_t i=0; i<m_WiiMotes.size(); i++)
 	{
@@ -452,8 +462,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRemoteNameReq(bdaddr_t _bd)
 	if (pWiiMote == NULL)
 	{
 		PanicAlert("SendEventRemoteNameReq: Cant find WiiMote by bd: %02x:%02x:%02x:%02x:%02x:%02x",
-			_bd.b[0], _bd.b[1], _bd.b[2],
-			_bd.b[3], _bd.b[4], _bd.b[5]);
+			_bd.b[0], _bd.b[1], _bd.b[2], _bd.b[3], _bd.b[4], _bd.b[5]);
 		return false;
 	}
 
@@ -478,20 +487,18 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRemoteNameReq(bdaddr_t _bd)
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(bdaddr_t _bd)
+bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HLE_WiiMote& _rWiiMote)
 {
-	const CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_bd);
-
 	SQueuedEvent Event(sizeof(SHCIEventRequestConnection), 0);
 
 	SHCIEventRequestConnection* pEventRequestConnection = (SHCIEventRequestConnection*)Event.m_buffer;
 
 	pEventRequestConnection->EventType = 0x04;
 	pEventRequestConnection->PayloadLength = sizeof(SHCIEventRequestConnection) - 2;
-	pEventRequestConnection->bdaddr = pWiiMote->GetBD();  // BD_ADDR of the device that requests the connection
-	pEventRequestConnection->uclass[0] = pWiiMote->GetClass()[0];
-	pEventRequestConnection->uclass[1] = pWiiMote->GetClass()[1];
-	pEventRequestConnection->uclass[2] = pWiiMote->GetClass()[2];
+	pEventRequestConnection->bdaddr = _rWiiMote.GetBD(); 
+	pEventRequestConnection->uclass[0] = _rWiiMote.GetClass()[0];
+	pEventRequestConnection->uclass[1] = _rWiiMote.GetClass()[1];
+	pEventRequestConnection->uclass[2] = _rWiiMote.GetClass()[2];
 	pEventRequestConnection->LinkType = 0x01;
 
 	AddEventToQueue(Event);
@@ -515,6 +522,8 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(bdaddr_t _b
 	LOG(WIIMOTE, "  COD[2]: 0x%02x", pEventRequestConnection->uclass[2]);
 	LOG(WIIMOTE, "  LinkType: %s", LinkType[pEventRequestConnection->LinkType]);
 
+	g_ConnectionRequested = true;
+
 	return true;
 };
 
@@ -531,7 +540,6 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestLinkKey(bdaddr_t _bd)
 	pEventRequestLinkKey->bdaddr = _bd;
 
 	AddEventToQueue(Event);
-
 
 	LOG(WIIMOTE, "Event: SendEventRequestLinkKey");
 	LOG(WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x",
@@ -555,13 +563,12 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventLinkKeyNotification(const CWI
 
 	AddEventToQueue(Event);
 
-
 	LOG(WIIMOTE, "Event: SendEventLinkKeyNotification");
 	LOG(WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x",
 		pEventLinkKey->bdaddr.b[0], pEventLinkKey->bdaddr.b[1], pEventLinkKey->bdaddr.b[2],
 		pEventLinkKey->bdaddr.b[3], pEventLinkKey->bdaddr.b[4], pEventLinkKey->bdaddr.b[5]);
-	LOG(WIIMOTE, "  link key: no reason to show it...");
-	LOG(WIIMOTE, "  key type: 0x02%x", pEventLinkKey->Key_Type);
+	LOG_LinkKey(pEventLinkKey->LinkKey);
+	LOG(WIIMOTE, "  key type: 0x%02x", pEventLinkKey->Key_Type);
 
 	return true;
 };
@@ -1151,19 +1158,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadLocalFeatures(u8* _Input)
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadStoredLinkKey(u8* _Input)
 {
-
+#ifdef LOGGING
 	// command parameters
 	hci_read_stored_link_key_cp* ReadStoredLinkKey = (hci_read_stored_link_key_cp*)_Input;
-
-#ifdef LOGGING
-	LOG(WIIMOTE, "Command: HCI_CMD_READ_STORED_LINK_KEY:");
-	LOG(WIIMOTE, "input:");
-	LOG(WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x", 
-		ReadStoredLinkKey->bdaddr.b[0], ReadStoredLinkKey->bdaddr.b[1], ReadStoredLinkKey->bdaddr.b[2],
-		ReadStoredLinkKey->bdaddr.b[3], ReadStoredLinkKey->bdaddr.b[4], ReadStoredLinkKey->bdaddr.b[5]);
-	LOG(WIIMOTE, "  read_all_ %i", ReadStoredLinkKey->read_all);
-	LOG(WIIMOTE, "return:");
-	LOG(WIIMOTE, "  no idea what i should answer :)");
 #endif
 
 	// reply
@@ -1173,13 +1170,24 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadStoredLinkKey(u8* _Input)
 	Reply.max_num_keys = 255;
 	if (ReadStoredLinkKey->read_all)
 	{
-		Reply.num_keys_read = 1;
+		Reply.num_keys_read = (u16)m_WiiMotes.size();
 	}
 	else	
 	{
 		PanicAlert("CommandReadStoredLinkKey");
 	}
 	
+	// logging
+	LOG(WIIMOTE, "Command: HCI_CMD_READ_STORED_LINK_KEY:");
+	LOG(WIIMOTE, "input:");
+	LOG(WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x", 
+		ReadStoredLinkKey->bdaddr.b[0], ReadStoredLinkKey->bdaddr.b[1], ReadStoredLinkKey->bdaddr.b[2],
+		ReadStoredLinkKey->bdaddr.b[3], ReadStoredLinkKey->bdaddr.b[4], ReadStoredLinkKey->bdaddr.b[5]);
+	LOG(WIIMOTE, "  read_all_ %i", ReadStoredLinkKey->read_all);
+	LOG(WIIMOTE, "return:");
+	LOG(WIIMOTE, "  max_num_keys: %i", Reply.max_num_keys);
+	LOG(WIIMOTE, "  num_keys_read: %i", Reply.num_keys_read);
+
 	SendEventCommandComplete(HCI_CMD_READ_STORED_LINK_KEY, &Reply, sizeof(hci_read_stored_link_key_rp));
 
 	// generate link key
@@ -1319,7 +1327,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
 	{
 		if (m_WiiMotes[i].EventPagingChanged(pWriteScanEnable->scan_enable))
 		{
-			SendEventRequestConnection(m_WiiMotes[i].GetBD());
+			SendEventRequestConnection(m_WiiMotes[i]);
 		}
 	}
 }
@@ -1539,14 +1547,21 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandAcceptCon(u8* _Input)
 
 	SendEventCommandStatus(HCI_CMD_ACCEPT_CON);
 
+	// this connection wants to be the master
+	if (pAcceptCon->role == 0)
+	{
+		SendEventRoleChange(pAcceptCon->bdaddr, true);
+	}
+	
+	SendEventConnectionComplete(pAcceptCon->bdaddr);
+
+
+
 	CWII_IPC_HLE_WiiMote* pWiimote = AccessWiiMote(pAcceptCon->bdaddr);
 	if (pWiimote)
 	{
 		pWiimote->EventConnectionAccepted();
 	}
-
-	SendEventRoleChange(pAcceptCon->bdaddr, false);
-	SendEventConnectionComplete(pAcceptCon->bdaddr);
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadClockOffset(u8* _Input)
@@ -1561,11 +1576,15 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadClockOffset(u8* _Input)
 	SendEventCommandStatus(HCI_CMD_READ_CLOCK_OFFSET);
 	SendEventReadClockOffsetComplete(pReadClockOffset->con_handle);
 
-	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(pReadClockOffset->con_handle);
-	SendEventRequestLinkKey(pWiiMote->GetBD());
 
-//	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(pReadClockOffset->con_handle);
-//	pWiiMote->Connect();
+	if (g_ConnectionRequested)
+	{
+		CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(pReadClockOffset->con_handle);
+		SendEventRequestLinkKey(pWiiMote->GetBD());
+
+		//	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(pReadClockOffset->con_handle);
+		//	pWiiMote->Connect();
+	}
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadRemoteVerInfo(u8* _Input)
@@ -1593,9 +1612,12 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadRemoteFeatures(u8* _Input)
 	SendEventCommandStatus(HCI_CMD_READ_REMOTE_FEATURES);
 	SendEventReadRemoteFeatures(pReadRemoteFeatures->con_handle);
 
-	// connect
-	// CWII_IPC_HLE_WiiMote* pWiimote = AccessWiiMote(pReadRemoteFeatures->con_handle);
-	// pWiimote->Connect();
+	if (g_ConnectionRequested)
+	{
+		// connect
+		// CWII_IPC_HLE_WiiMote* pWiimote = AccessWiiMote(pReadRemoteFeatures->con_handle);
+		// pWiimote->Connect();
+	}
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteLinkPolicy(u8* _Input)
@@ -1622,6 +1644,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandAuthenticationRequested(u8* _In
 
 	SendEventCommandStatus(HCI_CMD_AUTH_REQ);
 	SendEventAuthenticationCompleted(pAuthReq->con_handle);
+
+	PanicAlert("sfsdfsdfsd");
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandSniffMode(u8* _Input)
@@ -1638,7 +1662,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandSniffMode(u8* _Input)
 	LOG(WIIMOTE, "  timeout: 0x%04x", pSniffMode->timeout);
 
 	SendEventCommandStatus(HCI_CMD_SNIFF_MODE);
-	SendEventModeChange(pSniffMode->con_handle, 0x02, pSniffMode->max_interval);  // sniff mode
+	SendEventModeChange(pSniffMode->con_handle, 0x02, pSniffMode->max_interval);  // 0x02 - sniff mode
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandDisconnect(u8* _Input)
@@ -1660,6 +1684,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandDisconnect(u8* _Input)
 		pWiimote->EventDisconnect();
 	}
 
+	PanicAlert("disconnect");
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteLinkSupervisionTimeout(u8* _Input)
@@ -1695,9 +1720,12 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandLinkKeyNegRep(u8* _Input)
 	Reply.bdaddr = pKeyNeg->bdaddr;
 
 	SendEventCommandComplete(HCI_OCF_WRITE_LINK_SUPERVISION_TIMEOUT, &Reply, sizeof(hci_link_key_neg_rep_rp));
-
-//	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(pKeyNeg->bdaddr);
-//	pWiiMote->Connect();
+	
+	if (g_ConnectionRequested)
+	{
+		//	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(pKeyNeg->bdaddr);
+		//	pWiiMote->Connect();
+	}
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandLinkKeyRep(u8* _Input)
@@ -1710,7 +1738,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandLinkKeyRep(u8* _Input)
 	LOG(WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x", 
 		pKeyRep->bdaddr.b[0], pKeyRep->bdaddr.b[1], pKeyRep->bdaddr.b[2],
 		pKeyRep->bdaddr.b[3], pKeyRep->bdaddr.b[4], pKeyRep->bdaddr.b[5]);
-	LOG(WIIMOTE, "  link key: %02x (all the values are the same)", pKeyRep->key[0]);
+	LOG_LinkKey(pKeyRep->key);
 
 
 	hci_link_key_rep_rp Reply;
@@ -1719,12 +1747,12 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandLinkKeyRep(u8* _Input)
 
 	SendEventCommandComplete(HCI_CMD_LINK_KEY_REP, &Reply, sizeof(hci_link_key_rep_rp));
 
-	
-
-	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(pKeyRep->bdaddr);
-	SendEventAuthenticationCompleted(pWiiMote->GetConnectionHandle());
-
-	pWiiMote->Connect();
+	if (g_ConnectionRequested)
+	{
+		//	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(pKeyRep->bdaddr);
+		//	SendEventAuthenticationCompleted(pWiiMote->GetConnectionHandle());
+		//	pWiiMote->Connect();
+	}
 }
 
 
@@ -1761,4 +1789,14 @@ CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(u16 _Co
 			return &m_WiiMotes[i];
 	}
 	return NULL;
+}
+
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::LOG_LinkKey(const u8* _pLinkKey)
+{
+	LOG(WIIMOTE, "  link key: "
+				 "0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x "
+				 "0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x "
+				 , _pLinkKey[0], _pLinkKey[1], _pLinkKey[2], _pLinkKey[3], _pLinkKey[4], _pLinkKey[5], _pLinkKey[6], _pLinkKey[7]
+				 , _pLinkKey[8], _pLinkKey[9], _pLinkKey[10], _pLinkKey[11], _pLinkKey[12], _pLinkKey[13], _pLinkKey[14], _pLinkKey[15]);
+
 }
