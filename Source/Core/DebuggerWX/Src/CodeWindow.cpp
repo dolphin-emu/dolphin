@@ -41,6 +41,7 @@
 
 #include "FileUtil.h"
 #include "Core.h"
+#include "HLE/HLE.h"
 #include "Boot/Boot.h"
 #include "LogManager.h"
 #include "HW/CPU.h"
@@ -102,6 +103,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	EVT_MENU(IDM_SAVEMAPFILE,       CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_CREATESIGNATUREFILE, CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_USESIGNATUREFILE,  CCodeWindow::OnSymbolsMenu)
+	EVT_MENU(IDM_PATCHHLEFUNCTIONS, CCodeWindow::OnSymbolsMenu)
 
 	EVT_MENU(IDM_CLEARCODECACHE,    CCodeWindow::OnJitMenu)
 	EVT_MENU(IDM_LOGINSTRUCTIONS,   CCodeWindow::OnJitMenu)
@@ -394,6 +396,8 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		pSymbolsMenu->AppendSeparator();
 		pSymbolsMenu->Append(IDM_CREATESIGNATUREFILE, _T("&Create signature file..."));
 		pSymbolsMenu->Append(IDM_USESIGNATUREFILE, _T("&Use signature file..."));
+		pSymbolsMenu->AppendSeparator();
+		pSymbolsMenu->Append(IDM_PATCHHLEFUNCTIONS, _T("&Patch HLE functions"));
 		pMenuBar->Append(pSymbolsMenu, _T("&Symbols"));
 	}
 
@@ -419,13 +423,13 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 
 bool CCodeWindow::UseInterpreter()
 {
-	return(GetMenuBar()->IsChecked(IDM_INTERPRETER));
+	return GetMenuBar()->IsChecked(IDM_INTERPRETER);
 }
 
 
 bool CCodeWindow::UseDualCore()
 {
-	return(GetMenuBar()->IsChecked(IDM_DUALCORE));
+	return GetMenuBar()->IsChecked(IDM_DUALCORE);
 }
 
 
@@ -504,6 +508,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 		break;
 	case IDM_WRITEPROFILE:
 		Profiler::WriteProfileResults("profiler.txt");
+		File::Launch("profiler.txt");
 		break;
 	}
 }
@@ -532,6 +537,8 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		SignatureDB db;
 		if (db.Load("data/totaldb.dsy"))
 			db.Apply(&g_symbolDB);
+
+		// HLE::PatchFunctions();
 		NotifyMapLoaded();
 		break;
 		}
@@ -583,6 +590,10 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		}
 		}
 		NotifyMapLoaded();
+		break;
+	case IDM_PATCHHLEFUNCTIONS:
+		HLE::PatchFunctions();
+		Update();
 		break;
 	}
 }
