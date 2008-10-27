@@ -64,7 +64,7 @@ void OpenGL_SwapBuffers()
 #if USE_SDL
     SDL_GL_SwapBuffers();
 #elif defined(OSX64)
-    cocoaGLSwap(GLWin.cocoaWin,GLWin.cocoaWin);
+    cocoaGLSwap(GLWin.cocoaCtx,GLWin.cocoaWin);
 #elif defined(_WIN32)
     SwapBuffers(hDC);
 #else // GLX
@@ -496,7 +496,7 @@ bool OpenGL_MakeCurrent()
 		return false;
 	}
 #elif defined(OSX64)
-    cocoaGLMakeCurrent(GLWin.cocoaWin,GLWin.cocoaCtx);
+    cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
 #elif defined(_WIN32)
     if (!wglMakeCurrent(hDC,hRC)) {
         MessageBox(NULL,"(5) Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
