@@ -37,10 +37,12 @@
 #if !defined(OSX64)
 #include <GL/glxew.h>
 #else
+#undef BOOL
 #include <GL/glew.h>
+#include "cocoaGL.h"
 #endif
-#if defined(__APPLE__) 
 
+#if defined(__APPLE__) 
 #include <OpenGL/gl.h>
 
 #else
@@ -88,21 +90,24 @@ inline unsigned long timeGetTime()
 #undef I_NEED_OS2_H
 #undef BOOL
 
+#if !defined(__APPLE__)
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 #include <X11/extensions/xf86vmode.h>
 //#include <gtk/gtk.h>
+#endif
 #include <sys/stat.h>
 #include <sys/types.h>
 
 typedef struct {
-    Display *dpy;
     int screen;
-    Window win;
 #if defined(OSX64)
-
+    NSWindow *cocoaWin;
+    NSOpenGLContext *cocoaCtx;
 #else //linux
+    Window win;
+    Display *dpy;
     GLXContext ctx;
     XSetWindowAttributes attr;
     Bool fs;

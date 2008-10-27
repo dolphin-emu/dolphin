@@ -63,7 +63,10 @@ if gfxenv['osx64']:
 if sys.platform == 'darwin':
 	platform = 'mac'
 	# SDL is currently the only way to get video on Mac OS X.
-	useSDL = True
+	if gfxenv['osx64']:
+		useSDL = False
+	else:
+		useSDL = True
 	# TODO: clean it up (use incpath and libpath)
 	# Use libraries from MacPorts.
 	compileFlags.append('-I/opt/local/include')

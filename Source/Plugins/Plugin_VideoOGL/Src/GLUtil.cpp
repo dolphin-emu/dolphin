@@ -64,7 +64,7 @@ void OpenGL_SwapBuffers()
 #if USE_SDL
     SDL_GL_SwapBuffers();
 #elif defined(OSX64)
-
+    cocoaGLSwap(GLWin.cocoaWin,GLWin.cocoaWin);
 #elif defined(_WIN32)
     SwapBuffers(hDC);
 #else // GLX
@@ -77,7 +77,7 @@ void OpenGL_SetWindowText(const char *text)
 #if USE_SDL
     SDL_WM_SetCaption(text, NULL);
 #elif defined(OSX64)
-
+    cocoaGLSetTitle();
 #elif defined(_WIN32)
     SetWindowText(EmuWindow::GetWnd(), text);
 #else // GLX
@@ -101,6 +101,7 @@ BOOL Callback_PeekMessages()
 	//       proper value to return.
     return FALSE;
 #elif defined(OSX64)
+    //TODO
     return FALSE;
 #elif defined(_WIN32)
     //TODO: peekmessage
@@ -210,7 +211,11 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	//setup ogl to use double buffering
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 #elif defined(OSX64)
-
+    cocoaGLCreateApp();
+    GLWin.width = nBackbufferWidth;
+    GLWin.height = nBackbufferHeight;
+    GLWin.cocoaWin = cocoaGLCreateWindow(GLWin.width, GLWin.height);
+    GLWin.cocoaCtx = cocoaGLInit(g_Config.iMultisampleMode);
 #elif defined(_WIN32)
     // create the window
     if (!g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL)
@@ -491,7 +496,7 @@ bool OpenGL_MakeCurrent()
 		return false;
 	}
 #elif defined(OSX64)
-
+    cocoaGLMakeCurrent(GLWin.cocoaWin,GLWin.cocoaCtx);
 #elif defined(_WIN32)
     if (!wglMakeCurrent(hDC,hRC)) {
         MessageBox(NULL,"(5) Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
@@ -530,6 +535,8 @@ void OpenGL_Update()
     nBackbufferHeight = surface->h;
 #elif defined(OSX64)
     RECT rcWindow;
+     rcWindow.right = GLWin.width;
+      rcWindow.bottom = GLWin.height;
 
 #elif defined(_WIN32)
     if (!EmuWindow::GetParentWnd()) return;
@@ -666,7 +673,7 @@ void OpenGL_Shutdown()
 #if USE_SDL
 	SDL_Quit();
 #elif defined(OSX64)
-
+    cocoaGLDelete(GLWin.cocoaCtx);
 #elif defined(_WIN32)
     if (hRC)                                            // Do We Have A Rendering Context?
     {
