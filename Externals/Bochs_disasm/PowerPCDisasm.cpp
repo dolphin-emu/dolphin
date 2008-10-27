@@ -2210,7 +2210,7 @@ namespace PPCDisasm
 
 const char *DisassembleGekko(unsigned int opcode, unsigned int curInstAddr)
 {
-	char opcodeStr[32], operandStr[32];
+	char opcodeStr[64], operandStr[64];
 	PPCDisasm::DisasmPara_PPC dp;
 	static char buf[128];
 	static unsigned int opc, adr;
