@@ -1158,10 +1158,10 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadLocalFeatures(u8* _Input)
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadStoredLinkKey(u8* _Input)
 {
-#ifdef LOGGING
+// #ifdef LOGGING
 	// command parameters
 	hci_read_stored_link_key_cp* ReadStoredLinkKey = (hci_read_stored_link_key_cp*)_Input;
-#endif
+// #endif
 
 	// reply
 	hci_read_stored_link_key_rp Reply;    
