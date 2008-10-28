@@ -20,14 +20,6 @@
 
 namespace Interpreter
 {
-#ifndef _WIN32
-
-inline u32 _rotl(u32 x, int shift) {
-    return (x << shift) | (x >> (32 - shift));
-}
-
-#endif
-
 
 void Helper_UpdateCR0(u32 _uValue)
 {

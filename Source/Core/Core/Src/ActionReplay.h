@@ -14,6 +14,10 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+#ifndef _ACTIONREPLAY_H_
+#define _ACTIONREPLAY_H_
+
+#include "IniFile.h"
 
 struct AREntry {
 	u32 cmd_addr;
@@ -30,3 +34,4 @@ void ActionReplayRunAllActive();
 bool RunActionReplayCode(const ARCode &arcode);
 void LoadActionReplayCodes(IniFile &ini);
 
+#endif //_ACTIONREPLAY_H_

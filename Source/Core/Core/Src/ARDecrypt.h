@@ -14,36 +14,20 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+#ifndef _ARDECRYPT_H_
+#define _ARDECRYPT_H_
 
-#ifndef _PATCHENGINE_H
-#define _PATCHENGINE_H
+#include <windows.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <vector>
+#include "Common.h"
+#include "ActionReplay.h"
 
-enum PatchType
-{
-	PATCH_8BIT,
-	PATCH_16BIT,
-	PATCH_32BIT,
-};
+extern int total;
+extern const char *filter;
 
-static const char *PatchTypeStrings[] = 
-{
-	"byte",
-	"word",
-	"dword",
-	0
-};
+void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry> &ops);
 
-struct Patch
-{
-	Patch() {}
-	Patch(PatchType _t, u32 _addr, u32 _value) : type(_t), address(_addr), value(_value) {}
-	PatchType type;
-	u32 address;
-	u32 value;
-};
-
-void PatchEngine_LoadPatches(const char *gameID);
-void PatchEngine_ApplyLoadPatches();
-void PatchEngine_ApplyFramePatches();
-void PatchEngine_ApplyARPatches();
-#endif //_PATCHENGINE_H
+#endif //_ARDECRYPT_H_

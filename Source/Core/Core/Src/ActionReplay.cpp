@@ -29,10 +29,10 @@
 #include <vector>
 
 #include "StringUtil.h"
-#include "IniFile.h"
 #include "HW/Memmap.h"
 #include "ActionReplay.h"
 #include "Core.h"
+#include "ARDecrypt.h"
 
 namespace {
 
@@ -70,6 +70,8 @@ void LoadActionReplayCodes(IniFile &ini)
 		return; // If cheats are off, do not load them
 
 	std::vector<std::string> lines;
+	std::vector<std::string> encryptedLines;
+	std::string oldName;
 	ARCode currentCode;
 	arCodes.clear();
 
@@ -82,10 +84,19 @@ void LoadActionReplayCodes(IniFile &ini)
 		std::vector<std::string> pieces; 
 
 		// Check if the line is a name of the code
-		if (line[0] == '+' || line[0] == '$') {
-			if (currentCode.ops.size() > 0) {
-					arCodes.push_back(currentCode);
-					currentCode.ops.clear();
+		if (line[0] == '+' || line[0] == '$')
+		{
+			if (currentCode.ops.size())
+			{
+				arCodes.push_back(currentCode);
+				currentCode.ops.clear();
+			}
+			if (encryptedLines.size())
+			{
+				DecryptARCode(encryptedLines, currentCode.ops);
+				arCodes.push_back(currentCode);
+				currentCode.ops.clear();
+				encryptedLines.clear();
 			}
 			currentCode.name = line;
 			if (line[0] == '+') currentCode.active = true;
@@ -112,17 +123,26 @@ void LoadActionReplayCodes(IniFile &ini)
 		else
 		{
 			SplitString(line, "-", pieces);
-			if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 && pieces[2].size() == 4) 
+			if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 && pieces[2].size() == 5) 
 			{
 				// Encrypted AR code
-				PanicAlert("Dolphin does not yet support encrypted AR codes.");
+				// Decryption is done in "blocks", so we must push blocks into a vector,
+				//	then send to decrypt when a new block is encountered, or if it's the last block.
+				encryptedLines.push_back(pieces[0]+pieces[1]+pieces[2]);
 			}
 		}
 	}
 
 	// Handle the last code correctly.
 	if (currentCode.ops.size())
+	{
 		arCodes.push_back(currentCode);
+	}
+	if (encryptedLines.size())
+	{
+		DecryptARCode(encryptedLines, currentCode.ops);
+		arCodes.push_back(currentCode);
+	}
 }
 
 void ActionReplayRunAllActive()
