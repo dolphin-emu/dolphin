@@ -17,7 +17,10 @@
 #ifndef _ARDECRYPT_H_
 #define _ARDECRYPT_H_
 
+#ifdef _WIN32
 #include <windows.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
