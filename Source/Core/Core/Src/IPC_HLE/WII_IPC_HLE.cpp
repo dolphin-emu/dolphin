@@ -254,7 +254,7 @@ void ExecuteCommand(u32 _Address)
             IWII_IPC_HLE_Device* pDevice = AccessDeviceByID(DeviceID);
 			if (pDevice != NULL)
 			{
-                // pDevice->Close(_Address);
+                pDevice->Close(_Address);
 
 				LOG(WII_IPC_HLE, "IOP: Close (Device=%s ID=0x%08x)", pDevice->GetDeviceName().c_str(), DeviceID);				
 

@@ -22,8 +22,6 @@
 // smash bros writes to  /shared2/sys/SYSCONF
 
 
-// __________________________________________________________________________________________________
-//
 CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std::string& _rDeviceName ) 
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
     , m_pFileHandle(NULL)
@@ -32,8 +30,6 @@ CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std:
 {
 }
 
-// __________________________________________________________________________________________________
-//
 CWII_IPC_HLE_Device_FileIO::~CWII_IPC_HLE_Device_FileIO()
 {
     if (m_pFileHandle != NULL)
@@ -43,8 +39,13 @@ CWII_IPC_HLE_Device_FileIO::~CWII_IPC_HLE_Device_FileIO()
     }
 }
 
-// __________________________________________________________________________________________________
-//
+bool 
+CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress)
+{
+	Memory::Write_U32(0, _CommandAddress+4);
+	return true;
+}
+
 bool 
 CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress)  
 { 
@@ -68,8 +69,6 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress)
     return true; 
 }
 
-// __________________________________________________________________________________________________
-//
 bool 
 CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress) 
 {
@@ -84,8 +83,6 @@ CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
     return true;
 }
 
-// __________________________________________________________________________________________________
-//
 bool 
 CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress) 
 {    
@@ -109,8 +106,6 @@ CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
     return true;
 }
 
-// __________________________________________________________________________________________________
-//
 bool 
 CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress) 
 {        
@@ -125,8 +120,6 @@ CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
     return true;
 }
 
-// __________________________________________________________________________________________________
-//
 bool 
 CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress) 
 {
