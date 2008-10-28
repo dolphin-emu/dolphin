@@ -27,6 +27,10 @@
 
 #define COMPILED_CODE_SIZE 4096
 
+#ifdef _WIN32
+#define USE_JIT
+#endif
+
 // Note the use of CallCdeclFunction3I etc.
 // This is a horrible hack that is necessary because in 64-bit mode, Opengl32.dll is based way, way above the 32-bit
 // address space that is within reach of a CALL, and just doing &fn gives us these high uncallable addresses. So we
@@ -56,86 +60,52 @@ NativeVertexFormat::~NativeVertexFormat()
 	m_compiledCode = 0;
 }
 
-void NativeVertexFormat::SetupVertexPointers() const {
-	// Cast a pointer to compiled code to a pointer to a function taking no parameters, through a (void *) cast first to
-	// get around type checking errors, and call it.
-	((void (*)())(void*)m_compiledCode)();
+inline GLuint VarToGL(VarType t)
+{
+	switch (t) {
+	case VAR_BYTE: return GL_BYTE;
+	case VAR_UNSIGNED_BYTE: return GL_UNSIGNED_BYTE;
+	case VAR_SHORT: return GL_SHORT;
+	case VAR_UNSIGNED_SHORT: return GL_UNSIGNED_SHORT;
+	case VAR_FLOAT: return GL_FLOAT;
+	}
 }
 
-void NativeVertexFormat::Initialize(const TVtxDesc &vtx_desc, const TVtxAttr &vtx_attr)
+void NativeVertexFormat::Initialize(const PortableVertexDeclaration &vtx_decl)
 {
 	using namespace Gen;
-	const int col[2] = {vtx_desc.Color0, vtx_desc.Color1};
-	// TextureCoord
-	const int tc[8] = {
-		vtx_desc.Tex0Coord, vtx_desc.Tex1Coord, vtx_desc.Tex2Coord, vtx_desc.Tex3Coord,
-		vtx_desc.Tex4Coord, vtx_desc.Tex5Coord, vtx_desc.Tex6Coord, vtx_desc.Tex7Coord,
-	};
-	
-	DVSTARTPROFILE();
 
-	if (m_VBVertexStride & 3) {
+	if (vtx_decl.stride & 3) {
 		// We will not allow vertex components causing uneven strides.
-		PanicAlert("Uneven vertex stride: %i", m_VBVertexStride);
+		PanicAlert("Uneven vertex stride: %i", vtx_decl.stride);
 	}
 
-	// compile the pointer set function - why?
+	// Alright, we have our vertex declaration. Compile some crazy code to set it quickly using GL.
 	u8 *old_code_ptr = GetWritableCodePtr();
 	SetCodePtr(m_compiledCode);
 	Util::EmitPrologue(6);
-	int offset = 0;
 	
-	// Position, part 1
-	if (vtx_desc.Position != NOT_PRESENT) {  // TODO: Why the check? Always present, AFAIK!
-		CallCdeclFunction4_I(glVertexPointer, 3, GL_FLOAT, m_VBVertexStride, 0);
-		offset += 12;
-	}
+	CallCdeclFunction4_I(glVertexPointer, 3, GL_FLOAT, vtx_decl.stride, 0);
 
-	// Normals
-	if (vtx_desc.Normal != NOT_PRESENT) {
-		switch (vtx_attr.NormalFormat) {
-		case FORMAT_UBYTE:	
-		case FORMAT_BYTE:
-			CallCdeclFunction3_I(glNormalPointer, GL_BYTE, m_VBVertexStride, offset); offset += 4;
-			if (vtx_attr.NormalElements) {
-				CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM1_ATTRIB, 4, GL_BYTE, GL_TRUE, m_VBVertexStride, offset); offset += 4;
-				CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM2_ATTRIB, 4, GL_BYTE, GL_TRUE, m_VBVertexStride, offset); offset += 4;
-			}
-			break;
-		case FORMAT_USHORT:
-		case FORMAT_SHORT:
-			CallCdeclFunction3_I(glNormalPointer, GL_SHORT, m_VBVertexStride, offset); offset += 8;
-			if (vtx_attr.NormalElements) {
-				CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM1_ATTRIB, 4, GL_SHORT, GL_TRUE, m_VBVertexStride, offset); offset += 8;
-				CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM2_ATTRIB, 4, GL_SHORT, GL_TRUE, m_VBVertexStride, offset); offset += 8;
-			}
-			break;
-		case FORMAT_FLOAT:
-			CallCdeclFunction3_I(glNormalPointer, GL_FLOAT, m_VBVertexStride, offset); offset += 12;
-			if (vtx_attr.NormalElements) {
-				CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM1_ATTRIB, 3, GL_FLOAT, GL_TRUE, m_VBVertexStride, offset); offset += 12;
-				CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM2_ATTRIB, 3, GL_FLOAT, GL_TRUE, m_VBVertexStride, offset); offset += 12;
-			}
-			break;
-		default: _assert_(0); break;
+	if (vtx_decl.num_normals >= 1) {
+		CallCdeclFunction3_I(glNormalPointer, VarToGL(vtx_decl.normal_gl_type), vtx_decl.stride, vtx_decl.normal_offset[0]);
+		if (vtx_decl.num_normals == 3) {
+			CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM1_ATTRIB, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, vtx_decl.normal_offset[1]);
+			CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_NORM2_ATTRIB, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, vtx_decl.normal_offset[2]);
 		}
 	}
-
-	// TODO : With byte or short normals above, offset will be misaligned (not 4byte aligned)! Ugh!
 
 	for (int i = 0; i < 2; i++) {
-		if (col[i] != NOT_PRESENT) {
-			if (i)
-				CallCdeclFunction4((void *)glSecondaryColorPointer, 4, GL_UNSIGNED_BYTE, m_VBVertexStride, offset); 
+		if (vtx_decl.color_offset[i] != -1) {
+			if (i == 0)
+				CallCdeclFunction4_I(glColorPointer, 4, GL_UNSIGNED_BYTE, vtx_decl.stride, vtx_decl.color_offset[i]);
 			else
-				CallCdeclFunction4_I(glColorPointer, 4, GL_UNSIGNED_BYTE, m_VBVertexStride, offset);
-			offset += 4;
+				CallCdeclFunction4((void *)glSecondaryColorPointer, 4, GL_UNSIGNED_BYTE, vtx_decl.stride, vtx_decl.color_offset[i]); 
 		}
 	}
 
-	// TextureCoord
 	for (int i = 0; i < 8; i++) {
-		if (tc[i] != NOT_PRESENT || (m_components & (VB_HAS_TEXMTXIDX0 << i))) {
+		if (vtx_decl.texcoord_offset[i] != -1) {
 			int id = GL_TEXTURE0 + i;
 #ifdef _M_X64
 #ifdef _MSC_VER
@@ -155,30 +125,15 @@ void NativeVertexFormat::Initialize(const TVtxDesc &vtx_desc, const TVtxAttr &vt
 			ABI_RestoreStack(1 * 4);
 #endif
 #endif
-			// TODO : More potential disalignment!
-			if (m_components & (VB_HAS_TEXMTXIDX0 << i)) {
-				if (tc[i] != NOT_PRESENT) {
-					CallCdeclFunction4_I(glTexCoordPointer, 3, GL_FLOAT, m_VBVertexStride, offset);
-					offset += 12;
-				}
-				else {
-					CallCdeclFunction4_I(glTexCoordPointer, 3, GL_SHORT, m_VBVertexStride, offset);
-					offset += 8;
-				}
-			}
-			else {
-				CallCdeclFunction4_I(glTexCoordPointer, vtx_attr.texCoord[i].Elements ? 2 : 1, GL_FLOAT, m_VBVertexStride, offset);
-				offset += 4 * (vtx_attr.texCoord[i].Elements ? 2 : 1);
-			}
+			CallCdeclFunction4_I(
+				glTexCoordPointer, vtx_decl.texcoord_size[i], VarToGL(vtx_decl.texcoord_gl_type[i]),
+				vtx_decl.stride, vtx_decl.texcoord_offset[i]);
 		}
 	}
 
-	if (vtx_desc.PosMatIdx) {
-		CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_POSMTX_ATTRIB, 4, GL_UNSIGNED_BYTE, GL_FALSE, m_VBVertexStride, offset);
-		offset += 4;
+	if (vtx_decl.posmtx_offset != -1) {
+		CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_POSMTX_ATTRIB, 4, GL_UNSIGNED_BYTE, GL_FALSE, vtx_decl.stride, vtx_decl.posmtx_offset);
 	}
-
-	_assert_(offset + m_VBStridePad == m_VBVertexStride);
 
 	Util::EmitEpilogue(6);
 	if (Gen::GetCodePtr() - (u8*)m_compiledCode > COMPILED_CODE_SIZE)
@@ -187,4 +142,44 @@ void NativeVertexFormat::Initialize(const TVtxDesc &vtx_desc, const TVtxAttr &vt
 	}
 
 	SetCodePtr(old_code_ptr);
+	this->vtx_decl = vtx_decl;
+}
+
+void NativeVertexFormat::SetupVertexPointers() const {
+	// Cast a pointer to compiled code to a pointer to a function taking no parameters, through a (void *) cast first to
+	// get around type checking errors, and call it.
+#ifdef USE_JIT
+	((void (*)())(void*)m_compiledCode)();
+#else
+	glVertexPointer(3, GL_FLOAT, vtx_decl.stride, 0);
+	if (vtx_decl.num_normals >= 1) {
+		glNormalPointer(VarToGL(vtx_decl.normal_gl_type), vtx_decl.stride, (void *)vtx_decl.normal_offset[0]);
+		if (vtx_decl.num_normals == 3) {
+			glVertexAttribPointer(SHADER_NORM1_ATTRIB, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, (void *)vtx_decl.normal_offset[1]);
+			glVertexAttribPointer(SHADER_NORM2_ATTRIB, vtx_decl.normal_gl_size, VarToGL(vtx_decl.normal_gl_type), GL_TRUE, vtx_decl.stride, (void *)vtx_decl.normal_offset[2]);
+		}
+	}
+
+	for (int i = 0; i < 2; i++) {
+		if (vtx_decl.color_offset[i] != -1) {
+			if (i == 0)
+				glColorPointer(4, GL_UNSIGNED_BYTE, vtx_decl.stride, (void *)vtx_decl.color_offset[i]);
+			else
+				glSecondaryColorPointer(4, GL_UNSIGNED_BYTE, vtx_decl.stride, (void *)vtx_decl.color_offset[i]); 
+		}
+	}
+
+	for (int i = 0; i < 8; i++) {
+		if (vtx_decl.texcoord_offset[i] != -1) {
+			int id = GL_TEXTURE0 + i;
+			glClientActiveTexture(id);
+			glTexCoordPointer(vtx_decl.texcoord_size[i], VarToGL(vtx_decl.texcoord_gl_type[i]),
+				vtx_decl.stride, (void *)vtx_decl.texcoord_offset[i]);
+		}
+	}
+
+	if (vtx_decl.posmtx_offset != -1) {
+		glVertexAttribPointer(SHADER_POSMTX_ATTRIB, 4, GL_UNSIGNED_BYTE, GL_FALSE, vtx_decl.stride, (void *)vtx_decl.posmtx_offset);
+	}
+#endif
 }

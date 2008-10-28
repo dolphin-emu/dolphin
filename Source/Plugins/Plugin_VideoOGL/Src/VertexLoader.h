@@ -75,6 +75,7 @@ private:
 
 	// PC vertex format
 	NativeVertexFormat *m_NativeFmt;
+	int native_stride;
 
 	// Pipeline. To be JIT compiled in the future.
 	TPipelineFunction m_PipelineStages[32];  // TODO - figure out real max. it's lower.

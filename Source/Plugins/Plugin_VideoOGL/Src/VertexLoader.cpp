@@ -225,12 +225,23 @@ int VertexLoader::ComputeVertexSize()
 
 void VertexLoader::CompileVertexTranslator()
 {
+	// Colors
+	const int col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
+	// TextureCoord
+	const int tc[8] = {
+		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord,
+		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, m_VtxDesc.Tex7Coord,
+	};
+	
 	// Reset pipeline
 	m_numPipelineStages = 0;
 
 	// It's a bit ugly that we poke inside m_NativeFmt in this function. Planning to fix this.
-	m_NativeFmt->m_VBVertexStride = 0;
+	native_stride = 0;
 	m_NativeFmt->m_components = 0;
+
+	// Position
+	int offset = 0;
 
 	// m_VBVertexStride for texmtx and posmtx is computed later when writing.
 	
@@ -250,8 +261,10 @@ void VertexLoader::CompileVertexTranslator()
 	if (m_VtxDesc.Tex7MatIdx) {m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX7; WriteCall(TexMtx_ReadDirect_UByte); }
 
 	// Position
-	if (m_VtxDesc.Position != NOT_PRESENT)
-		m_NativeFmt->m_VBVertexStride += 12;
+	if (m_VtxDesc.Position != NOT_PRESENT) {
+		offset += 12;
+		native_stride += 12;
+	}
 
 	switch (m_VtxDesc.Position) {
 	case NOT_PRESENT:	{_assert_msg_(0, "Vertex descriptor without position!", "WTF?");} break;
@@ -311,29 +324,22 @@ void VertexLoader::CompileVertexTranslator()
 		case FORMAT_FLOAT:	sizePro = 4*3; break;
 		default: _assert_(0); break;
 		}
-		m_NativeFmt->m_VBVertexStride += sizePro * (m_VtxAttr.NormalElements?3:1);
+		native_stride += sizePro * (m_VtxAttr.NormalElements?3:1);
 
 		int numNormals = (m_VtxAttr.NormalElements == 1) ? NRM_THREE : NRM_ONE;
 		m_NativeFmt->m_components |= VB_HAS_NRM0;
+
 		if (numNormals == NRM_THREE)
 			m_NativeFmt->m_components |= VB_HAS_NRM1 | VB_HAS_NRM2;
 	}
 	
-	// Colors
-	int col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
 	for (int i = 0; i < 2; i++) {
 		SetupColor(i, col[i], m_VtxAttr.color[i].Comp, m_VtxAttr.color[i].Elements);
 
 		if (col[i] != NOT_PRESENT)
-			m_NativeFmt->m_VBVertexStride += 4;
+			native_stride += 4;
 	}
 
-	// TextureCoord
-	int tc[8] = {
-		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord,
-		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, m_VtxDesc.Tex7Coord,
-	};
-	
 	// Texture matrix indices (remove if corresponding texture coordinate isn't enabled)
 	for (int i = 0; i < 8; i++) {
 		SetupTexCoord(i, tc[i], m_VtxAttr.texCoord[i].Format, m_VtxAttr.texCoord[i].Elements, m_VtxAttr.texCoord[i].Frac);
@@ -341,17 +347,17 @@ void VertexLoader::CompileVertexTranslator()
 			if (tc[i] != NOT_PRESENT) {
 				// if texmtx is included, texcoord will always be 3 floats, z will be the texmtx index
 				WriteCall(m_VtxAttr.texCoord[i].Elements ? TexMtx_Write_Float : TexMtx_Write_Float2);
-				m_NativeFmt->m_VBVertexStride += 12;
+				native_stride += 12;
 			}
 			else {
 				WriteCall(TexMtx_Write_Short3);
-				m_NativeFmt->m_VBVertexStride += 8; // still include the texture coordinate, but this time as 6 bytes
+				native_stride += 8; // still include the texture coordinate, but this time as 6 + 2 bytes
 				m_NativeFmt->m_components |= VB_HAS_UV0 << i; // have to include since using now
 			}
 		}
 		else {
 			if (tc[i] != NOT_PRESENT)
-				m_NativeFmt->m_VBVertexStride += 4 * (m_VtxAttr.texCoord[i].Elements ? 2 : 1);
+				native_stride += 4 * (m_VtxAttr.texCoord[i].Elements ? 2 : 1);
 		}
 
 		if (tc[i] == NOT_PRESENT) {
@@ -370,17 +376,122 @@ void VertexLoader::CompileVertexTranslator()
 
 	if (m_VtxDesc.PosMatIdx) {
 		WriteCall(PosMtx_Write);
-		m_NativeFmt->m_VBVertexStride += 4;
+		native_stride += 4;
 	}
 
-	m_NativeFmt->Initialize(m_VtxDesc, m_VtxAttr);
+	PortableVertexDeclaration vtx_decl;
+
+
+	int m_components = m_NativeFmt->m_components;
+
+	const TVtxAttr &vtx_attr = m_VtxAttr;
+	const TVtxDesc &vtx_desc = m_VtxDesc;
+	// Normals
+	vtx_decl.num_normals = 0;
+	if (vtx_desc.Normal != NOT_PRESENT) {
+		vtx_decl.num_normals = vtx_attr.NormalElements ? 3 : 1;
+		switch (vtx_attr.NormalFormat) {
+		case FORMAT_UBYTE:	
+		case FORMAT_BYTE:
+			vtx_decl.normal_gl_type = VAR_BYTE;
+			vtx_decl.normal_gl_size = 4;
+			vtx_decl.normal_offset[0] = offset;
+			offset += 4;
+			if (vtx_attr.NormalElements) {
+				vtx_decl.normal_offset[1] = offset;
+				offset += 4;
+				vtx_decl.normal_offset[2] = offset;
+				offset += 4;
+			}
+			break;
+		case FORMAT_USHORT:
+		case FORMAT_SHORT:
+			vtx_decl.normal_gl_type = VAR_SHORT;
+			vtx_decl.normal_gl_size = 4;
+			vtx_decl.normal_offset[0] = offset;
+			offset += 8;
+			if (vtx_attr.NormalElements) {
+				vtx_decl.normal_offset[1] = offset;
+				offset += 8;
+				vtx_decl.normal_offset[2] = offset;
+				offset += 8;
+			}
+			break;
+		case FORMAT_FLOAT:
+			vtx_decl.normal_gl_type = VAR_FLOAT;
+			vtx_decl.normal_gl_size = 3;
+			vtx_decl.normal_offset[0] = offset;
+			offset += 12;
+			if (vtx_attr.NormalElements) {
+				vtx_decl.normal_offset[1] = offset;
+				offset += 12;
+				vtx_decl.normal_offset[2] = offset;
+				offset += 12;
+			}
+			break;
+		default: _assert_(0); break;
+		}
+	}
+
+	// TODO : With byte or short normals above, offset will be misaligned (not 4byte aligned)! Ugh!
+	vtx_decl.color_gl_type = VAR_UNSIGNED_BYTE;
+	for (int i = 0; i < 2; i++) {
+		if (col[i] != NOT_PRESENT) {
+			vtx_decl.color_offset[i] = offset;
+			offset += 4;
+		} else {
+			vtx_decl.color_offset[i] = -1;
+		}
+	}
+
+	// TextureCoord
+	for (int i = 0; i < 8; i++) {
+		if (tc[i] != NOT_PRESENT || (m_components & (VB_HAS_TEXMTXIDX0 << i))) {
+			// TODO : More potential disalignment!
+			if (m_components & (VB_HAS_TEXMTXIDX0 << i)) {
+				if (tc[i] != NOT_PRESENT) {
+					vtx_decl.texcoord_offset[i] = offset;
+					vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
+					vtx_decl.texcoord_size[i] = 3;
+					offset += 12;
+				}
+				else {
+					vtx_decl.texcoord_offset[i] = offset;
+					vtx_decl.texcoord_gl_type[i] = VAR_SHORT;
+					vtx_decl.texcoord_size[i] = 4;
+					offset += 8;
+				}
+			}
+			else {
+				vtx_decl.texcoord_offset[i] = offset;
+				vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
+				vtx_decl.texcoord_size[i] = vtx_attr.texCoord[i].Elements ? 2 : 1;
+				offset += 4 * (vtx_attr.texCoord[i].Elements ? 2 : 1);
+			}
+		} else {
+			vtx_decl.texcoord_offset[i] = -1;
+		}
+	}
+
+	if (vtx_desc.PosMatIdx) {
+		vtx_decl.posmtx_offset = offset;
+		offset += 4;
+	} else {
+		vtx_decl.posmtx_offset = -1;
+	}
+
+	vtx_decl.stride = native_stride;
+	if (vtx_decl.stride != offset)
+		PanicAlert("offset/stride mismatch, %i %i", vtx_decl.stride, offset);
+
+	m_NativeFmt->Initialize(vtx_decl);
 }
 
 void VertexLoader::SetupColor(int num, int mode, int format, int elements)
 {
 	// if COL0 not present, then embed COL1 into COL0
-	if (num == 1 && !(m_NativeFmt->m_components & VB_HAS_COL0))
-		num = 0;
+//	if (num == 1 && !(m_NativeFmt->m_components & VB_HAS_COL0))
+//		num = 0;
 
 	m_NativeFmt->m_components |= VB_HAS_COL0 << num;
 	switch (mode)
@@ -526,11 +637,11 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	switch (primitive) {
 		case 3: // strip
 		case 4: // fan
-			if (VertexManager::GetRemainingSize() < 3 * m_NativeFmt->m_VBVertexStride)
+			if (VertexManager::GetRemainingSize() < 3 * native_stride)
 				VertexManager::Flush();
 			break;
 		case 6: // line strip
-			if (VertexManager::GetRemainingSize() < 2 * m_NativeFmt->m_VBVertexStride)
+			if (VertexManager::GetRemainingSize() < 2 * native_stride)
 				VertexManager::Flush();
 			break;
 		case 0: // quads
@@ -550,7 +661,7 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	{
 		if ((v % granularity) == 0)
 		{
-			if (VertexManager::GetRemainingSize() < granularity*m_NativeFmt->m_VBVertexStride) {
+			if (VertexManager::GetRemainingSize() < granularity*native_stride) {
 				// This buffer full - break current primitive and flush, to switch to the next buffer.
 				u8* plastptr = VertexManager::s_pCurBufferPointer;
 				if (v - startv > 0)
@@ -561,27 +672,27 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 					case 3: // triangle strip, copy last two vertices
 						// a little trick since we have to keep track of signs
 						if (v & 1) {
-							memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-2*m_NativeFmt->m_VBVertexStride, m_NativeFmt->m_VBVertexStride);
-							memcpy_gc(VertexManager::s_pCurBufferPointer+m_NativeFmt->m_VBVertexStride, plastptr-m_NativeFmt->m_VBVertexStride*2, 2*m_NativeFmt->m_VBVertexStride);
-							VertexManager::s_pCurBufferPointer += m_NativeFmt->m_VBVertexStride*3;
+							memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-2*native_stride, native_stride);
+							memcpy_gc(VertexManager::s_pCurBufferPointer+native_stride, plastptr-native_stride*2, 2*native_stride);
+							VertexManager::s_pCurBufferPointer += native_stride*3;
 							extraverts = 3;
 						}
 						else {
-							memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-m_NativeFmt->m_VBVertexStride*2, m_NativeFmt->m_VBVertexStride*2);
-							VertexManager::s_pCurBufferPointer += m_NativeFmt->m_VBVertexStride*2;
+							memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride*2, native_stride*2);
+							VertexManager::s_pCurBufferPointer += native_stride*2;
 							extraverts = 2;
 						}
 						break;
 					case 4: // tri fan, copy first and last vert
-						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-m_NativeFmt->m_VBVertexStride*(v-startv+extraverts), m_NativeFmt->m_VBVertexStride);
-						VertexManager::s_pCurBufferPointer += m_NativeFmt->m_VBVertexStride;
-						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-m_NativeFmt->m_VBVertexStride, m_NativeFmt->m_VBVertexStride);
-						VertexManager::s_pCurBufferPointer += m_NativeFmt->m_VBVertexStride;
+						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride*(v-startv+extraverts), native_stride);
+						VertexManager::s_pCurBufferPointer += native_stride;
+						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride, native_stride);
+						VertexManager::s_pCurBufferPointer += native_stride;
 						extraverts = 2;
 						break;
 					case 6: // line strip
-						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-m_NativeFmt->m_VBVertexStride, m_NativeFmt->m_VBVertexStride);
-						VertexManager::s_pCurBufferPointer += m_NativeFmt->m_VBVertexStride;
+						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride, native_stride);
+						VertexManager::s_pCurBufferPointer += native_stride;
 						extraverts = 1;
 						break;
 					default:

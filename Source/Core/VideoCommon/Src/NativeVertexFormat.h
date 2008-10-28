@@ -18,7 +18,6 @@
 #ifndef _NATIVEVERTEXFORMAT_H
 #define _NATIVEVERTEXFORMAT_H
 
-#include "CPMemory.h"
 #include "PluginSpecs.h"
 
 // m_components
@@ -58,6 +57,31 @@ enum {
 #define LOADERDECL __cdecl
 typedef void (LOADERDECL *TPipelineFunction)(const void *);
 
+enum VarType {
+	VAR_BYTE,
+	VAR_UNSIGNED_BYTE,
+	VAR_SHORT,
+	VAR_UNSIGNED_SHORT,
+	VAR_FLOAT,
+};
+
+struct PortableVertexDeclaration
+{
+	int stride;
+
+	int num_normals;
+	int normal_offset[3];
+	VarType normal_gl_type;
+	int normal_gl_size;
+	VarType color_gl_type;  // always GL_UNSIGNED_BYTE
+	int color_offset[2];
+	VarType texcoord_gl_type[8];
+	int texcoord_gl_size[8];
+	int texcoord_offset[8];
+	int texcoord_size[8];
+	int posmtx_offset;
+};
+
 // The implementation of this class is specific for GL/DX, so NativeVertexFormat.cpp
 // is in the respective plugin, not here in VideoCommon.
 
@@ -66,15 +90,15 @@ typedef void (LOADERDECL *TPipelineFunction)(const void *);
 class NativeVertexFormat
 {
 	u8* m_compiledCode;
+	PortableVertexDeclaration vtx_decl;
 public:
 	NativeVertexFormat();
 	~NativeVertexFormat();
 
-	void Initialize(const TVtxDesc &vtx_desc, const TVtxAttr &vtx_attr);
+	void Initialize(const PortableVertexDeclaration &vtx_decl);
 	void SetupVertexPointers() const;
 
 	// TODO: move these in under private:
-	int m_VBVertexStride;  // PC-side vertex stride
 	u32 m_components;  // VB_HAS_X. Bitmask telling what vertex components are present.
 };
 
