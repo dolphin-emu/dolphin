@@ -41,23 +41,29 @@
 // Here's some global state. We only use this to keep track of what we've sent to the OpenGL state
 // machine.
 
+#ifdef USE_JIT
 DECLARE_IMPORT(glNormalPointer);
 DECLARE_IMPORT(glVertexPointer);
 DECLARE_IMPORT(glColorPointer);
 DECLARE_IMPORT(glTexCoordPointer);
+#endif
 
 NativeVertexFormat::NativeVertexFormat()
 {
+#ifdef USE_JIT
 	m_compiledCode = (u8 *)AllocateExecutableMemory(COMPILED_CODE_SIZE, false);
 	if (m_compiledCode) {
 		memset(m_compiledCode, 0, COMPILED_CODE_SIZE);
 	}
+#endif
 }
 
 NativeVertexFormat::~NativeVertexFormat()
 {
+#ifdef USE_JIT
 	FreeMemoryPages(m_compiledCode, COMPILED_CODE_SIZE);
 	m_compiledCode = 0;
+#endif
 }
 
 inline GLuint VarToGL(VarType t)
@@ -69,6 +75,7 @@ inline GLuint VarToGL(VarType t)
 	case VAR_UNSIGNED_SHORT: return GL_UNSIGNED_SHORT;
 	case VAR_FLOAT: return GL_FLOAT;
 	}
+	return 0;
 }
 
 void NativeVertexFormat::Initialize(const PortableVertexDeclaration &vtx_decl)
@@ -80,6 +87,7 @@ void NativeVertexFormat::Initialize(const PortableVertexDeclaration &vtx_decl)
 		PanicAlert("Uneven vertex stride: %i", vtx_decl.stride);
 	}
 
+#ifdef USE_JIT
 	// Alright, we have our vertex declaration. Compile some crazy code to set it quickly using GL.
 	u8 *old_code_ptr = GetWritableCodePtr();
 	SetCodePtr(m_compiledCode);
@@ -142,6 +150,7 @@ void NativeVertexFormat::Initialize(const PortableVertexDeclaration &vtx_decl)
 	}
 
 	SetCodePtr(old_code_ptr);
+#endif
 	this->vtx_decl = vtx_decl;
 }
 
