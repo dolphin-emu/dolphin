@@ -85,7 +85,11 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			// We no longer touch Rip, since we return back to the instruction, after overwriting it with a
 			// trampoline jump and some nops
 			if (new_rip)
+#ifdef _M_X64
 				ctx->Rip = (DWORD_PTR)new_rip;
+#else
+				ctx->Eip = (DWORD_PTR)new_rip;
+#endif
 		}
 		return (DWORD)EXCEPTION_CONTINUE_EXECUTION;
 

@@ -104,8 +104,6 @@ void lfs(UGeckoInstruction inst)
 
 void lfd(UGeckoInstruction inst)
 {
-	Default(inst);
-	return;
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
 			{Default(inst); return;} // turn off from debugger	
@@ -125,26 +123,30 @@ void lfd(UGeckoInstruction inst)
 	gpr.FlushLockX(ABI_PARAM1);
 	gpr.Lock(a);
 	MOV(32, R(ABI_PARAM1), gpr.R(a));
-	fpr.LoadToX64(d, false);
+	// TODO - optimize. This has to load the previous value - upper double should stay unmodified.
+	fpr.LoadToX64(d, true);
 	fpr.Lock(d);
 	if (cpu_info.bSSSE3) {
 		X64Reg xd = fpr.RX(d);
 #ifdef _M_X64
-		MOVQ_xmm(xd, MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
+		MOVQ_xmm(XMM0, MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
 #else
 		MOV(32, R(EAX), R(ABI_PARAM1));
 		AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
-		MOVQ_xmm(xd, MDisp(EAX, (u32)Memory::base + offset));
+		MOVQ_xmm(XMM0, MDisp(EAX, (u32)Memory::base + offset));
 #endif
-		PSHUFB(xd, M((void *)bswapShuffle1x8Dupe));
+		PSHUFB(XMM0, M((void *)bswapShuffle1x8Dupe));
+		MOVSD(xd, R(XMM0));
 	} else {
 #ifndef _M_X64
 		PanicAlert("lfd - wtf");
 #endif
+		X64Reg xd = fpr.RX(d);
 		MOV(64, R(EAX), MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
 		BSWAP(64, EAX);
 		MOV(64, M(&temp64), R(EAX));
-		MOVDDUP(fpr.RX(d), M(&temp64));
+		MOVSD(XMM0, M(&temp64));
+		MOVSD(xd, R(XMM0));
 	}
 	gpr.UnlockAll();
 	gpr.UnlockAllX();

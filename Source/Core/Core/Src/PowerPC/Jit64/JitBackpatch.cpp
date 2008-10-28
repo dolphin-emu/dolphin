@@ -189,6 +189,8 @@ u8 *BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx)
 		return codePtr - 2;
 	}
 	return 0;
+#else
+	return 0;
 #endif
 }
 
