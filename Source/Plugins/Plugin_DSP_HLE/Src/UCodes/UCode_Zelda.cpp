@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 // Games that uses this UCode:
-// Zelda: The Windwaker, Mario Sunshine, Mario Kart
+// Zelda: The Windwaker, Mario Sunshine, Mario Kart, Twilight Princess
 
 #include "../Globals.h"
 #include "UCodes.h"

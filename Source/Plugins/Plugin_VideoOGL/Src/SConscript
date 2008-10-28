@@ -99,6 +99,8 @@ else:
 	# Libraries without pkg-config support.
 	libs += [ 'GL', 'Cg', 'CgGL' ]
 
+
+
 if useSDL:                    
 	compileFlags += [ '-DUSE_SDL=1' ]
 
@@ -110,5 +112,5 @@ gfxenv.Append(
 gfxenv.SharedLibrary(
 	'../../../../Binary/%s/Plugins/zeroogl.so' % platform,
 	files,
-	LIBS =  libs
+	LIBS =  libs + gfxenv['LIBS']
 	)
