@@ -188,11 +188,6 @@ void TextureMngr::Cleanup()
     }
 }
 
-#ifndef _WIN32
-inline u32 _rotl(u32 x, int shift) {
-	return (x << shift) | (x >> (32 - shift));
-}
-#endif
 TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt)
 {
     if (address == 0)
