@@ -20,8 +20,13 @@
 
 #include "Common.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 namespace Jit64 {
-void BackPatch(u8 *codePtr, int accessType, u32 emAddress);
+// Returns the new RIP value
+u8 *BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx);
 }
 
 #endif

@@ -108,7 +108,14 @@ extern int blocksExecuted;
     (single precision can be used in write gather pipe, specialized fast check added)
   * AMD only - use movaps instead of movapd when loading ps from memory?
   * HLE functions like floorf, sin, memcpy, etc - they can be much faster
+  * ABI optimizations - drop F0-F13 on blr, for example. Watch out for context switching.
+    CR2-CR4 are non-volatile, rest of CR is volatile -> dropped on blr.
+	R5-R12 are volatile -> dropped on blr.
+  * classic inlining across calls.
 
+Metroid wants
+subc
+subfe
   
 Low hanging fruit:
 stfd -- guaranteed in memory

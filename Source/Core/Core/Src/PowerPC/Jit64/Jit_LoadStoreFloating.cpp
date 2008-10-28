@@ -67,7 +67,7 @@ u32 GC_ALIGNED16(temp32);
 void lfs(UGeckoInstruction inst)
 {
 #ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
 			{Default(inst); return;} // turn off from debugger	
 #endif
 	INSTRUCTION_START;
@@ -107,7 +107,7 @@ void lfd(UGeckoInstruction inst)
 	Default(inst);
 	return;
 #ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
 			{Default(inst); return;} // turn off from debugger	
 #endif
 	INSTRUCTION_START;
@@ -155,7 +155,7 @@ void lfd(UGeckoInstruction inst)
 void stfd(UGeckoInstruction inst)
 {
 #ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
 			{Default(inst); return;} // turn off from debugger	
 #endif
 	INSTRUCTION_START;
@@ -202,7 +202,7 @@ void stfd(UGeckoInstruction inst)
 void stfs(UGeckoInstruction inst)
 {
 #ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
 			{Default(inst); return;} // turn off from debugger	
 #endif
 	INSTRUCTION_START;
@@ -269,7 +269,7 @@ void stfsx(UGeckoInstruction inst)
 void lfsx(UGeckoInstruction inst)
 {
 #ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
 			{Default(inst); return;} // turn off from debugger	
 #endif
 	INSTRUCTION_START;

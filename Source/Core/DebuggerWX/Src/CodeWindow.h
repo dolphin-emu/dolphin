@@ -81,6 +81,8 @@ class CCodeWindow
 			IDM_INTERPRETER,
 			IDM_JITOFF, // jit
 			IDM_JITLSOFF,
+			IDM_JITLSPOFF,
+			IDM_JITLSFOFF,
 			IDM_JITIOFF,
 			IDM_JITFPOFF,
 			IDM_JITPOFF,
@@ -129,6 +131,8 @@ class CCodeWindow
 
 		wxMenuItem* jitoff;
 		wxMenuItem* jitlsoff;
+		wxMenuItem* jitlspoff;
+		wxMenuItem* jitlsfoff;
 		wxMenuItem* jitfpoff;
 		wxMenuItem* jitioff;
 		wxMenuItem* jitpoff;
@@ -173,6 +177,8 @@ class CCodeWindow
 		void OnInterpreter(wxCommandEvent& event); // cpu mode menu
 		void OnJITOff(wxCommandEvent& event);
 		void OnJITLSOff(wxCommandEvent& event);
+		void OnJITLSPOff(wxCommandEvent& event);
+		void OnJITLSFOff(wxCommandEvent& event);
 		void OnJITFPOff(wxCommandEvent& event);
 		void OnJITIOff(wxCommandEvent& event);
 		void OnJITPOff(wxCommandEvent& event);

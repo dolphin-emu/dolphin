@@ -49,6 +49,7 @@ namespace Jit64
 		{
 		case SPR_LR:
 		case SPR_CTR:
+		case SPR_XER:
 			// These are safe to do the easy way, see the bottom of this function.
 			break;
 
@@ -157,6 +158,13 @@ namespace Jit64
 		mfspr(inst);
 	}
 
+	void mfcr(UGeckoInstruction inst)
+	{
+		int d = inst.RD;
+		gpr.LoadToX64(d, false, true);
+		MOV(32, gpr.R(d), M(&PowerPC::ppcState.cr));
+	}
+
 	void mtcrf(UGeckoInstruction inst)
 	{
 		u32 mask = 0;
@@ -180,5 +188,7 @@ namespace Jit64
 		}
 		gpr.UnlockAllX();
 	}
+
+
 }
 

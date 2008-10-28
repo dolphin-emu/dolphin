@@ -110,7 +110,7 @@ const double GC_ALIGNED16(m_dequantizeTableD[]) =
 void psq_st(UGeckoInstruction inst)
 {
 #ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStorePairedOff)
 			{Default(inst); return;} // turn off from debugger	
 #endif
 	INSTRUCTION_START;
@@ -302,7 +302,7 @@ void psq_st(UGeckoInstruction inst)
 void psq_l(UGeckoInstruction inst)
 {
 #ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStorePairedOff)
 			{Default(inst); return;} // turn off from debugger	
 #endif
 	INSTRUCTION_START;

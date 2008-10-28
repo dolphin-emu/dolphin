@@ -99,8 +99,11 @@ void LoadActionReplayCodes(IniFile &ini)
 				encryptedLines.clear();
 			}
 			currentCode.name = line;
-			if (line[0] == '+') currentCode.active = true;
-			else currentCode.active = false;
+			Core::DisplayMessage("AR code active: " + line, 5000);
+			if (line[0] == '+')
+				currentCode.active = true;
+			else
+				currentCode.active = false;
 			continue;
 		}
 

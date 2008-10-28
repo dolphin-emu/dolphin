@@ -46,17 +46,18 @@ namespace Jit64
 		}
 		
 		// todo: sort to find the most popular regs
-		int maxPreload = 3;
+		/*
+		int maxPreload = 2;
 		for (int i = 0; i < 32; i++)
 		{
 			if (stats.numReads[i] > 2 || stats.numWrites[i] >= 2)
 			{
-				LoadToX64(i, true, false); //, stats.firstRead[i] <= stats.firstWrite[i], false);
+				LoadToX64(i, true, false); //stats.firstRead[i] <= stats.firstWrite[i], false);
 				maxPreload--;
 				if (!maxPreload)
 					break;
 			}
-		}
+		}*/
 		//Find top regs - preload them (load bursts ain't bad)
 		//But only preload IF written OR reads >= 3
 	}

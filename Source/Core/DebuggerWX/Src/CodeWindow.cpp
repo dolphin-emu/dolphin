@@ -92,6 +92,8 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnInterpreter) // CPU Mode
 	EVT_MENU(IDM_JITOFF,			CCodeWindow::OnJITOff)
 	EVT_MENU(IDM_JITLSOFF,			CCodeWindow::OnJITLSOff)
+	EVT_MENU(IDM_JITLSFOFF,			CCodeWindow::OnJITLSFOff)
+	EVT_MENU(IDM_JITLSPOFF,			CCodeWindow::OnJITLSPOff)
 	EVT_MENU(IDM_JITFPOFF,			CCodeWindow::OnJITFPOff)
 	EVT_MENU(IDM_JITIOFF,			CCodeWindow::OnJITIOff)
 	EVT_MENU(IDM_JITPOFF,			CCodeWindow::OnJITPOff)
@@ -334,6 +336,12 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		jitlsoff = pCoreMenu->Append(IDM_JITLSOFF, _T("&JIT LoadStore off"), wxEmptyString, wxITEM_CHECK);
 		jitlsoff->Check(_LocalCoreStartupParameter.bJITLoadStoreOff);
 
+		jitlspoff = pCoreMenu->Append(IDM_JITLSFOFF, _T("&JIT LoadStore Floating off"), wxEmptyString, wxITEM_CHECK);
+		jitlspoff->Check(_LocalCoreStartupParameter.bJITLoadStoreFloatingOff);
+
+		jitlsfoff = pCoreMenu->Append(IDM_JITLSPOFF, _T("&JIT LoadStore Paired off"), wxEmptyString, wxITEM_CHECK);
+		jitlsfoff->Check(_LocalCoreStartupParameter.bJITLoadStorePairedOff);
+
 		jitfpoff = pCoreMenu->Append(IDM_JITFPOFF, _T("&JIT FloatingPoint off"), wxEmptyString, wxITEM_CHECK);
 		jitfpoff->Check(_LocalCoreStartupParameter.bJITFloatingPointOff);
 
@@ -470,6 +478,10 @@ void CCodeWindow::OnJITOff(wxCommandEvent& event) {DoJITOff(event, jitoff,
 	Core::g_CoreStartupParameter.bJITOff);}
 void CCodeWindow::OnJITLSOff(wxCommandEvent& event) {DoJITOff(event, jitlsoff,
 	Core::g_CoreStartupParameter.bJITLoadStoreOff);}
+void CCodeWindow::OnJITLSFOff(wxCommandEvent& event) {DoJITOff(event, jitlsoff,
+	Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff);}
+void CCodeWindow::OnJITLSPOff(wxCommandEvent& event) {DoJITOff(event, jitlsoff,
+	Core::g_CoreStartupParameter.bJITLoadStorePairedOff);}
 void CCodeWindow::OnJITFPOff(wxCommandEvent& event) {DoJITOff(event, jitfpoff,
 	Core::g_CoreStartupParameter.bJITFloatingPointOff);}
 void CCodeWindow::OnJITIOff(wxCommandEvent& event) {DoJITOff(event, jitioff,

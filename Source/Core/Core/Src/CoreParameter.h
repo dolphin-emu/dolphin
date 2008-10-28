@@ -39,6 +39,8 @@ struct SCoreStartupParameter
 	bool bUseJIT;
 	bool bJITOff;
 	bool bJITLoadStoreOff;
+	bool bJITLoadStoreFloatingOff;
+	bool bJITLoadStorePairedOff;
 	bool bJITFloatingPointOff;
 	bool bJITIntegerOff;
 	bool bJITPairedOff;

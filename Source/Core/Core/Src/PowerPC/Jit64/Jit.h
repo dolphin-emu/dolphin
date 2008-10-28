@@ -122,6 +122,7 @@ namespace Jit64
 	void mfmsr(UGeckoInstruction inst);
 	void mftb(UGeckoInstruction inst);
 	void mtcrf(UGeckoInstruction inst);
+	void mfcr(UGeckoInstruction inst);
 
 	void reg_imm(UGeckoInstruction inst);
 
@@ -166,9 +167,12 @@ namespace Jit64
 	void srwx(UGeckoInstruction inst);
 	void dcbz(UGeckoInstruction inst);
 	void lfsx(UGeckoInstruction inst);
+
 	void subfic(UGeckoInstruction inst);
 	void subfcx(UGeckoInstruction inst);
 	void subfx(UGeckoInstruction inst);
+	void subfex(UGeckoInstruction inst);
+
 	void lbzx(UGeckoInstruction inst);
 
 	void lmw(UGeckoInstruction inst);

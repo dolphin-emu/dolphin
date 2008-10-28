@@ -40,6 +40,8 @@ void SCoreStartupParameter::LoadDefaults()
 
 	bJITOff = false; // debugger only settings
 	bJITLoadStoreOff = false;
+	bJITLoadStoreFloatingOff = false;
+	bJITLoadStorePairedOff = false;
 	bJITFloatingPointOff = false;
 	bJITIntegerOff = false;
 	bJITPairedOff = false;

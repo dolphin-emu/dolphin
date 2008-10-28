@@ -80,11 +80,12 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 
 			//We could emulate the memory accesses here, but then they would still be around to take up
 			//execution resources. Instead, we backpatch into a generic memory call and retry.
-			Jit64::BackPatch(codePtr, accessType, emAddress);
+			u8 *new_rip = Jit64::BackPatch(codePtr, accessType, emAddress, ctx);
 			
 			// We no longer touch Rip, since we return back to the instruction, after overwriting it with a
 			// trampoline jump and some nops
-			//ctx->Rip = (DWORD_PTR)codeAddr + info.instructionSize;
+			if (new_rip)
+				ctx->Rip = (DWORD_PTR)new_rip;
 		}
 		return (DWORD)EXCEPTION_CONTINUE_EXECUTION;
 

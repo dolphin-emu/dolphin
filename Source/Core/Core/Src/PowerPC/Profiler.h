@@ -20,6 +20,8 @@
 #define _PROFILER_H
 
 #ifdef _WIN32
+
+#ifdef _M_IX86
 #define PROFILER_QUERY_PERFORMACE_COUNTER(pt)		\
 					LEA(32, EAX, M(pt)); PUSH(EAX);	\
 					CALL(QueryPerformanceCounter)
@@ -38,6 +40,15 @@
 
 #define PROFILER_VPUSH	PUSH(EAX);PUSH(ECX);PUSH(EDX)
 #define PROFILER_VPOP	POP(EDX);POP(ECX);POP(EAX)
+
+#else
+
+#define PROFILER_QUERY_PERFORMACE_COUNTER(pt) 
+#define PROFILER_ADD_DIFF_LARGE_INTEGER(pdt, pt1, pt0) 
+#define PROFILER_VPUSH
+#define PROFILER_VPOP
+#endif
+
 #else
 // TODO
 #define PROFILER_QUERY_PERFORMACE_COUNTER(pt) 

@@ -181,6 +181,7 @@ void DoState(PointerWrap &p)
 	p.Do(LineCount);
 	p.Do(LinesPerField);
 	p.Do(LastTime);
+	// p.Do(NextXFBRender);   // Activate when changing saves next time.
 }
 
 void Init()

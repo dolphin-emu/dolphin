@@ -112,6 +112,9 @@ namespace Jit64
 			return;
 		}
 
+		// R2 always points to the small read-only data area. We could bake R2-relative loads into immediates.
+		// R13 always points to the small read/write data area. Not so exciting but at least could drop checks in 32-bit safe mode.
+
 		s32 offset = (s32)(s16)inst.SIMM_16;
 		if (!a) 
 		{
@@ -293,6 +296,19 @@ namespace Jit64
 				return;
 			}
 
+			/* // TODO - figure out why Beyond Good and Evil hates this
+#ifdef _M_X64
+			if (accessSize == 32 && !update && jo.enableFastMem)
+			{
+				// Fast and daring - requires 64-bit
+				MOV(32, R(EAX), gpr.R(s));
+				gpr.LoadToX64(a, true, false);
+				BSWAP(32, EAX);
+				MOV(accessSize, MComplex(RBX, gpr.RX(a), SCALE_1, (u32)offset), R(EAX));
+				return;
+			}
+#endif*/
+
 			//Still here? Do regular path.
 			#ifndef _WIN32
 			if(accessSize == 8)
@@ -345,6 +361,7 @@ namespace Jit64
 		INSTRUCTION_START;
 		Default(inst);
 		return;
+
 		/*
 		/// BUGGY
 		//return _inst.RA ? (m_GPR[_inst.RA] + _inst.SIMM_16) : _inst.SIMM_16;
@@ -363,7 +380,6 @@ namespace Jit64
 		ADD(32, R(ESI), Imm8(4));
 		ADD(32, R(ECX), Imm8(1));
 		CMP(32, R(ECX), Imm8(32));
-		J_CC(CC_NE, loopPtr, false);
 		gpr.UnlockAllX();*/
 	}
 

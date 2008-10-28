@@ -19,6 +19,7 @@
 
 #include "Common.h"
 #include "disasm.h"
+#include "JitAsm.h"
 #include "JitBackpatch.h"
 #include "../../HW/Memmap.h"
 
@@ -58,28 +59,28 @@ void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) {
 // 1) It's really necessary. We don't know anything about the context.
 // 2) It doesn't really hurt. Only instructions that access I/O will get these, and there won't be 
 //    that many of them in a typical program/game.
-void BackPatch(u8 *codePtr, int accessType, u32 emAddress)
+u8 *BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx)
 {
 #ifdef _M_X64
 	if (!IsInJitCode(codePtr))
-		return;  // this will become a regular crash real soon after this
+		return 0;  // this will become a regular crash real soon after this
 	
-	// TODO: also mark and remember the instruction address as known HW memory access, for use in later compiles.
-	// But to do that we need to be able to reconstruct what instruction wrote this code, and we can't do that yet.
 	u8 *oldCodePtr = GetWritableCodePtr();
 	InstructionInfo info;
 	if (!DisassembleMov(codePtr, info, accessType)) {
 		BackPatchError("BackPatch - failed to disassemble MOV instruction", codePtr, emAddress);
 	}
 
+	/*
 	if (info.isMemoryWrite) {
 		if (!Memory::IsRAMAddress(emAddress, true)) {
-			PanicAlert("Write to invalid address %08x", emAddress);
+			PanicAlert("Exception: Caught write to invalid address %08x", emAddress);
 			return;
 		}
 		BackPatchError("BackPatch - determined that MOV is write, not yet supported and should have been caught before",
 					   codePtr, emAddress);
-	}
+	}*/
+
 	if (info.operandSize != 4) {
 		BackPatchError(StringFromFormat("BackPatch - no support for operand size %i", info.operandSize), codePtr, emAddress);
 	}
@@ -89,9 +90,9 @@ void BackPatch(u8 *codePtr, int accessType, u32 emAddress)
 	if (info.otherReg != RBX)
 		PanicAlert("BackPatch : Base reg not RBX."
 		           "\n\nAttempted to access %08x.", emAddress);
-	if (accessType == OP_ACCESS_WRITE)
-		PanicAlert("BackPatch : Currently only supporting reads."
-		           "\n\nAttempted to write to %08x.", emAddress);
+	//if (accessType == OP_ACCESS_WRITE)
+	//	PanicAlert("BackPatch : Currently only supporting reads."
+	//	           "\n\nAttempted to write to %08x.", emAddress);
 
 	// OK, let's write a trampoline, and a jump to it.
 	// Later, let's share trampolines.
@@ -100,42 +101,94 @@ void BackPatch(u8 *codePtr, int accessType, u32 emAddress)
 	// Next step - support writes, special case FIFO writes. Also, support 32-bit mode.
 	u8 *trampoline = trampolineCodePtr;
 	SetCodePtr(trampolineCodePtr);
-	// * Save all volatile regs
-	ABI_PushAllCallerSavedRegsAndAdjustStack();
-	// * Set up stack frame.
-	// * Call ReadMemory32
-	//LEA(32, ABI_PARAM1, MDisp((X64Reg)addrReg, info.displacement));
-	MOV(32, R(ABI_PARAM1), R((X64Reg)addrReg));
-	if (info.displacement) {
-		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
-	}
-	switch (info.operandSize) {
-	//case 1: 
-	//	CALL((void *)&Memory::Read_U8);
-	//	break;
-	case 4:
-		CALL(ProtectFunction((void *)&Memory::Read_U32, 1));
-		break;
-	default:
-		BackPatchError(StringFromFormat("We don't handle the size %i yet in backpatch", info.operandSize), codePtr, emAddress);
-		break;
-	}
-	// * Tear down stack frame.
-	ABI_PopAllCallerSavedRegsAndAdjustStack();
-	MOV(32, R(dataReg), R(EAX));
-	RET();
-	trampolineCodePtr = GetWritableCodePtr();
 
-	SetCodePtr(codePtr);
-	int bswapNopCount;
-	// Check the following BSWAP for REX byte
-	if ((GetCodePtr()[info.instructionSize] & 0xF0) == 0x40)
-		bswapNopCount = 3;
-	else
-		bswapNopCount = 2;
-	CALL(trampoline);
-	NOP((int)info.instructionSize + bswapNopCount - 5);
-	SetCodePtr(oldCodePtr);
+	if (accessType == 0)
+	{
+		// It's a read. Easy.
+		ABI_PushAllCallerSavedRegsAndAdjustStack();
+		MOV(32, R(ABI_PARAM1), R((X64Reg)addrReg));
+		if (info.displacement) {
+			ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
+		}
+		switch (info.operandSize) {
+		case 4:
+			CALL(ProtectFunction((void *)&Memory::Read_U32, 1));
+			break;
+		default:
+			BackPatchError(StringFromFormat("We don't handle the size %i yet in backpatch", info.operandSize), codePtr, emAddress);
+			break;
+		}
+		ABI_PopAllCallerSavedRegsAndAdjustStack();
+		MOV(32, R(dataReg), R(EAX));
+		RET();
+		trampolineCodePtr = GetWritableCodePtr();
+
+		SetCodePtr(codePtr);
+		int bswapNopCount;
+		// Check the following BSWAP for REX byte
+		if ((GetCodePtr()[info.instructionSize] & 0xF0) == 0x40)
+			bswapNopCount = 3;
+		else
+			bswapNopCount = 2;
+		CALL(trampoline);
+		NOP((int)info.instructionSize + bswapNopCount - 5);
+		SetCodePtr(oldCodePtr);
+
+		return codePtr;
+	}
+	else if (accessType == 1)
+	{
+		// It's a write. Yay. Remember that we don't have to be super efficient since it's "just" a 
+		// hardware access - we can take shortcuts.
+		//if (emAddress == 0xCC008000)
+		//	PanicAlert("caught a fifo write");
+		if (dataReg != EAX)
+			PanicAlert("Backpatch write - not through EAX");
+		CMP(32, R(addrReg), Imm32(0xCC008000));
+		FixupBranch skip_fast = J_CC(CC_NE, false);
+		MOV(32, R(ABI_PARAM1), R((X64Reg)dataReg));
+		CALL((void*)Asm::fifoDirectWrite32);
+		RET();
+		SetJumpTarget(skip_fast);
+		ABI_PushAllCallerSavedRegsAndAdjustStack();
+		if (addrReg != ABI_PARAM1) {
+			//INT3();
+			MOV(32, R(ABI_PARAM1), R((X64Reg)dataReg));
+			MOV(32, R(ABI_PARAM2), R((X64Reg)addrReg));
+		} else {
+			MOV(32, R(ABI_PARAM2), R((X64Reg)addrReg));
+			MOV(32, R(ABI_PARAM1), R((X64Reg)dataReg));
+		}
+		if (info.displacement) {
+			ADD(32, R(ABI_PARAM2), Imm32(info.displacement));
+		}
+		switch (info.operandSize) {
+		case 4:
+			CALL(ProtectFunction((void *)&Memory::Write_U32, 2));
+			break;
+		default:
+			BackPatchError(StringFromFormat("We don't handle the size %i yet in backpatch", info.operandSize), codePtr, emAddress);
+			break;
+		}
+		ABI_PopAllCallerSavedRegsAndAdjustStack();
+		RET();
+
+		trampolineCodePtr = GetWritableCodePtr();
+
+		// We know it's EAX so the BSWAP before will be two byte. Overwrite it.
+		SetCodePtr(codePtr - 2);
+		CALL(trampoline);
+		NOP((int)info.instructionSize - 3);
+		if (info.instructionSize < 3)
+			PanicAlert("instruction too small");
+		SetCodePtr(oldCodePtr);
+
+		// We entered here with a BSWAP-ed EAX. We'll have to swap it back.
+		ctx->Rax = _byteswap_ulong(ctx->Rax);
+
+		return codePtr - 2;
+	}
+	return 0;
 #endif
 }
 
