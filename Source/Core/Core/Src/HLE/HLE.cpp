@@ -63,7 +63,6 @@ static const SPatch OSPatches[] =
 	{ "puts",						HLE_OS::HLE_printf      },	//gcc-optimized printf?
 
 	// wii only
-	{ "SCCheckStatus",				HLE_Misc::UnimplementedFunctionFalse },	
 	{ "__OSInitAudioSystem",        HLE_Misc::UnimplementedFunction },			
 
 	// Super Monkey Ball
