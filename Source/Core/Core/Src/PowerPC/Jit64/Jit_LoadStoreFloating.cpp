@@ -104,6 +104,8 @@ void lfs(UGeckoInstruction inst)
 
 void lfd(UGeckoInstruction inst)
 {
+	Default(inst);
+	return;
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
 			{Default(inst); return;} // turn off from debugger	
