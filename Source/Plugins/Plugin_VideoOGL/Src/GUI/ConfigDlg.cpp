@@ -45,6 +45,12 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_USEXFB,ConfigDialog::UseXFBChange)
 	EVT_CHECKBOX(ID_DUMPTEXTURES,ConfigDialog::DumpTexturesChange)
 	EVT_CHECKBOX(ID_INVERTDEPTH,ConfigDialog::InvertDepth)
+	EVT_CHECKBOX(ID_PROJECTIONHAX1,ConfigDialog::ProjectionHax1)
+	EVT_CHECKBOX(ID_PROJECTIONHAX2,ConfigDialog::ProjectionHax2)
+	EVT_CHECKBOX(ID_DISABLELIGHTING,ConfigDialog::DisableLighting)
+	EVT_CHECKBOX(ID_DISABLETEXTURING,ConfigDialog::DisableTexturing)
+	EVT_CHECKBOX(ID_EFBTOTEXTUREDISABLE,ConfigDialog::EFBToTextureDisable)
+	EVT_CHECKBOX(ID_DISABLECULLING,ConfigDialog::DisableCulling)
 	EVT_DIRPICKER_CHANGED(ID_TEXTUREPATH,ConfigDialog::TexturePathChange)
 END_EVENT_TABLE()
 
@@ -162,12 +168,24 @@ void ConfigDialog::CreateGUIControls()
 	m_TexFmtCenter->Enable(m_TexFmtOverlay->IsChecked());
 
 	// Page 4 "Render"
-	m_UseXFB = new wxCheckBox(m_PageRender, ID_USEXFB, wxT("Use XFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_UseXFB = new wxCheckBox(m_PageRender, ID_USEXFB, wxT("Use External Framebuffer (XFB)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_UseXFB->SetValue(g_Config.bUseXFB);
 
-	m_Wireframe = new wxCheckBox(m_PageRender, ID_WIREFRAME, wxT("Wireframe"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	//m_Wireframe->SetValue(g_Config.bWireFrame);
-	m_Wireframe->Enable(false);
+	m_Wireframe = new wxCheckBox(m_PageRender, ID_WIREFRAME, wxT("Enable Wireframe"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Wireframe->SetValue(g_Config.bWireFrame);
+	m_Wireframe->Enable(true);
+
+	m_DisableLighting = new wxCheckBox(m_PageRender, ID_DISABLELIGHTING, wxT("Disable Material Lighting"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_DisableLighting->SetValue(g_Config.bDisableLighting);
+	m_DisableLighting->Enable(true);
+
+	m_DisableTexturing = new wxCheckBox(m_PageRender, ID_DISABLETEXTURING, wxT("Disable Texturing"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_DisableTexturing->SetValue(g_Config.bDisableTexturing);
+	m_DisableTexturing->Enable(true);
+
+	m_DisableCulling = new wxCheckBox(m_PageRender, ID_DISABLECULLING, wxT("Disable Culling"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_DisableCulling->SetValue(g_Config.bDisableCulling);
+	m_DisableCulling->Enable(true);
 
 	// Page 5 "Utility"
 	m_DumpTextures = new wxCheckBox(m_PageUtility, ID_DUMPTEXTURES, wxT("Dump textures to:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -180,6 +198,18 @@ void ConfigDialog::CreateGUIControls()
 	m_InvertDepth = new wxCheckBox(m_PageHacks, ID_INVERTDEPTH, wxT("Invert Depth"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_InvertDepth->Enable(true);
 	m_InvertDepth->SetValue(g_Config.bInvertDepth);
+
+	m_EFBToTextureDisable = new wxCheckBox(m_PageHacks, ID_EFBTOTEXTUREDISABLE, wxT("Disable copy EFB to texture"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_EFBToTextureDisable->Enable(true);
+	m_EFBToTextureDisable->SetValue(g_Config.bEBFToTextureDisable);
+
+	m_ProjectionHax1 = new wxCheckBox(m_PageHacks, ID_PROJECTIONHAX1, wxT("Projection before R945"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ProjectionHax1->Enable(true);
+	m_ProjectionHax1->SetValue(g_Config.bProjectionHax1);
+
+	m_ProjectionHax2 = new wxCheckBox(m_PageHacks, ID_PROJECTIONHAX2, wxT("Projection hack of R844"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ProjectionHax2->Enable(true);
+	m_ProjectionHax2->SetValue(g_Config.bProjectionHax2);
 
 	//Put options in sizers within the notebook
 	wxGridBagSizer* sPage1;
@@ -226,6 +256,9 @@ void ConfigDialog::CreateGUIControls()
 	sPage4->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 	sPage4->Add(m_UseXFB, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
 	sPage4->Add(m_Wireframe, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
+	sPage4->Add(m_DisableLighting, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
+	sPage4->Add(m_DisableTexturing, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
+	sPage4->Add(m_DisableCulling, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
 	m_PageRender->SetSizer(sPage4);
 	sPage4->Layout();
 
@@ -243,6 +276,9 @@ void ConfigDialog::CreateGUIControls()
 	sPage6->SetFlexibleDirection(wxBOTH);
 	sPage6->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 	sPage6->Add(m_InvertDepth, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
+	sPage6->Add(m_EFBToTextureDisable, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
+	sPage6->Add(m_ProjectionHax1, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
+	sPage6->Add(m_ProjectionHax2, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
 	m_PageHacks->SetSizer(sPage6);
 	sPage6->Layout();
 
@@ -391,4 +427,29 @@ void ConfigDialog::DllAbout(wxCommandEvent& event)
 void ConfigDialog::InvertDepth(wxCommandEvent& event)
 {
 	g_Config.bInvertDepth = m_InvertDepth->IsChecked();
+}
+void ConfigDialog::ProjectionHax1(wxCommandEvent& event)
+{	
+	g_Config.bProjectionHax1 = m_ProjectionHax1->IsChecked();
+}
+void ConfigDialog::ProjectionHax2(wxCommandEvent& event)
+{
+	g_Config.bProjectionHax2 = m_ProjectionHax2->IsChecked();
+}
+
+void ConfigDialog::DisableLighting(wxCommandEvent &event)
+{
+	g_Config.bDisableLighting = m_DisableLighting->IsChecked();
+}
+void ConfigDialog::DisableTexturing(wxCommandEvent &event)
+{
+	g_Config.bDisableTexturing = m_DisableTexturing->IsChecked();
+}
+void ConfigDialog::EFBToTextureDisable(wxCommandEvent &event)
+{
+	g_Config.bEBFToTextureDisable = m_EFBToTextureDisable->IsChecked();
+}
+void ConfigDialog::DisableCulling(wxCommandEvent &event)
+{
+	g_Config.bDisableCulling = m_DisableCulling->IsChecked();
 }

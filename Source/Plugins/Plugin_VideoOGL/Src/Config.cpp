@@ -67,6 +67,10 @@ void Config::Load()
 	iniFile.Get("Settings", "TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
 	iniFile.Get("Settings", "TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
 	iniFile.Get("Settings", "UseXFB", &bUseXFB, 0);
+	iniFile.Get("Settings", "WireFrame", &bWireFrame, 0);
+	iniFile.Get("Settings", "DisableLighting", &bDisableLighting, 0);
+	iniFile.Get("Settings", "DisableTexturing", &bDisableTexturing, 0);
+	iniFile.Get("Settings", "DisableCulling", &bDisableCulling, 0);
     
     iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
     iniFile.Get("Enhancements", "ForceMaxAniso", &bForceMaxAniso, 0);
@@ -74,6 +78,9 @@ void Config::Load()
 	iniFile.Get("Enhancements", "KeepAR", &bKeepAR, false);
 
 	iniFile.Get("Hacks", "InvertDepth", &bInvertDepth, 0);
+	iniFile.Get("Hacks", "ProjectionHax1", &bProjectionHax1, 0);
+	iniFile.Get("Hacks", "ProjectionHax2", &bProjectionHax2, 0);
+	iniFile.Get("Hacks", "EFBToTextureDisable", &bEBFToTextureDisable, 0);
 }
 
 void Config::Save()
@@ -96,6 +103,10 @@ void Config::Save()
 	iniFile.Set("Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);
 	iniFile.Set("Settings", "TexFmtOverlayCenter", bTexFmtOverlayCenter);
 	iniFile.Set("Settings", "UseXFB", bUseXFB);
+	iniFile.Set("Settings", "Wireframe", bWireFrame);
+	iniFile.Set("Settings", "DisableLighting", bDisableLighting);
+	iniFile.Set("Settings", "DisableTexturing", bDisableTexturing);
+	iniFile.Set("Settings", "DisableCulling", bDisableCulling);
 
     iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
     iniFile.Set("Enhancements", "ForceMaxAniso", bForceMaxAniso);
@@ -103,6 +114,9 @@ void Config::Save()
 	iniFile.Set("Enhancements", "KeepAR", bKeepAR);
 
 	iniFile.Set("Hacks", "InvertDepth", bInvertDepth);
+	iniFile.Set("Hacks", "ProjectionHax1", bProjectionHax1);
+	iniFile.Set("Hacks", "ProjectionHax2", bProjectionHax2);
+	iniFile.Set("Hacks", "EFBToTextureDisable", bEBFToTextureDisable);
 
     iniFile.Save("gfx_opengl.ini");
 }

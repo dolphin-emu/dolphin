@@ -54,9 +54,8 @@ static const GLenum glDestFactors[8] = {
     GL_ZERO, GL_ONE, GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR,
     GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,  GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA
 };
-
 static const GLenum glCmpFuncs[8] = {
-	GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL, GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS
+GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL, GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS };
 };
 
 static const GLenum glLogicOpCodes[16] = {
@@ -90,7 +89,7 @@ void BPWritten(int addr, int changes, int newval)
 				bpmem.genMode.numindstages, bpmem.genMode.zfreeze);
 
             // none, ccw, cw, ccw
-            if (bpmem.genMode.cullmode>0) {
+            if (bpmem.genMode.cullmode>0 && !g_Config.bDisableCulling) {
                 glEnable(GL_CULL_FACE);
                 glFrontFace(bpmem.genMode.cullmode == 2 ? GL_CCW : GL_CW);
             }
@@ -441,13 +440,18 @@ void BPWritten(int addr, int changes, int newval)
                 (int)((bpmem.copyTexSrcXY.y * MValueY + (bpmem.copyTexSrcWH.y + 1) * MValueY))
             };
 
-            UPE_Copy PE_copy;
-            PE_copy.Hex = bpmem.triggerEFBCopy;
+			UPE_Copy PE_copy;
+			PE_copy.Hex = bpmem.triggerEFBCopy;
 
             if (PE_copy.copy_to_xfb == 0) {
+				if(g_Config.bEBFToTextureDisable) {
+					glViewport(rc.left,rc.bottom,rc.right,rc.top);
+					glScissor(rc.left,rc.bottom,rc.right,rc.top);
+				}
+				else
                 // EFB to texture 
                 // for some reason it sets bpmem.zcontrol.pixel_format to PIXELFMT_Z24 every time a zbuffer format is given as a dest to GXSetTexCopyDst
-                TextureMngr::CopyRenderTargetToTexture(bpmem.copyTexDest<<5, bpmem.zcontrol.pixel_format==PIXELFMT_Z24, PE_copy.intensity_fmt>0,
+				TextureMngr::CopyRenderTargetToTexture(bpmem.copyTexDest<<5, bpmem.zcontrol.pixel_format==PIXELFMT_Z24, PE_copy.intensity_fmt>0,
                     (PE_copy.target_pixel_format/2)+((PE_copy.target_pixel_format&1)*8), PE_copy.half_scale>0, &rc);
             }
             else {
@@ -486,6 +490,7 @@ void BPWritten(int addr, int changes, int newval)
                     if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate) {
                         u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
                         glClearColor(((clearColor>>16) & 0xff)*(1/255.0f),
+
 							         ((clearColor>>8 ) & 0xff)*(1/255.0f),
                                      ((clearColor>>0 ) & 0xff)*(1/255.0f),
 									 ((clearColor>>24) & 0xff)*(1/255.0f));

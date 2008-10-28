@@ -342,18 +342,37 @@ void EnableComponents(u32 components)
         }
 
         // tex
-        for (int i = 0; i < 8; ++i) {
-            if ((components & (VB_HAS_UV0 << i)) != (s_prevcomponents & (VB_HAS_UV0 << i))) {
-                glClientActiveTexture(GL_TEXTURE0 + i);
-                if (components & (VB_HAS_UV0 << i))
-                    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                else
-                    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-            }
-        }
+		if (!g_Config.bDisableTexturing) {
+			for (int i = 0; i < 8; ++i) {
+				if ((components & (VB_HAS_UV0 << i)) != (s_prevcomponents & (VB_HAS_UV0 << i))) {
+					glClientActiveTexture(GL_TEXTURE0 + i);
+					if (components & (VB_HAS_UV0 << i))
+						glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+					else
+						glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+				}
+			}
+		}
+		else // Disable Texturing
+		{
+			for (int i = 0; i < 8; ++i) {
+				glClientActiveTexture(GL_TEXTURE0 + i);
+			    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			}
+		}
 
-        s_prevcomponents = components;
-    }
+
+		// Disable Lighting	
+		// TODO - move to better spot
+		if (g_Config.bDisableLighting) {
+			for (int i = 0; i < xfregs.nNumChans; i++)
+			{
+				xfregs.colChans[i].alpha.enablelighting = false;
+				xfregs.colChans[i].color.enablelighting = false;
+			}
+		}
+			s_prevcomponents = components;
+		}
 }
 
 }  // namespace

@@ -72,6 +72,9 @@ class ConfigDialog : public wxDialog
 		// Render
 		void WireframeCheck(wxCommandEvent& event);
 		void UseXFBChange(wxCommandEvent& event);
+		void DisableLighting(wxCommandEvent& event);
+		void DisableTexturing(wxCommandEvent& event);
+		void DisableCulling(wxCommandEvent& event);
 
 		// Util
 		void DumpTexturesChange(wxCommandEvent& event);
@@ -79,6 +82,9 @@ class ConfigDialog : public wxDialog
 
 		// Hacks
 		void InvertDepth(wxCommandEvent& event);
+		void ProjectionHax1(wxCommandEvent& event);
+		void ProjectionHax2(wxCommandEvent& event);
+		void EFBToTextureDisable(wxCommandEvent& event);
 		
 	private:
 
@@ -103,7 +109,13 @@ class ConfigDialog : public wxDialog
 		wxComboBox *m_FullscreenCB;
 		wxCheckBox *m_RenderToMainWindow;		
 		wxCheckBox *m_Fullscreen;
+		wxCheckBox *m_DisableLighting;
+		wxCheckBox *m_DisableTexturing;
 		wxCheckBox *m_InvertDepth;
+		wxCheckBox *m_ProjectionHax1;
+		wxCheckBox *m_ProjectionHax2;
+		wxCheckBox *m_EFBToTextureDisable;
+		wxCheckBox *m_DisableCulling;
 		wxPanel *m_PageGeneral;
 		wxPanel *m_PageEnhancements;
 		wxPanel *m_PageInformation;
@@ -142,6 +154,12 @@ class ConfigDialog : public wxDialog
 			ID_FULLSCREEN,
 			ID_NOTEBOOK,
 			ID_INVERTDEPTH,
+			ID_PROJECTIONHAX1,
+			ID_PROJECTIONHAX2,
+			ID_DISABLELIGHTING,
+			ID_DISABLETEXTURING,
+			ID_EFBTOTEXTUREDISABLE,
+			ID_DISABLECULLING,
 			ID_PAGEGENERAL,
 			ID_PAGEENHANCEMENTS,
 			ID_PAGEINFORMATION,

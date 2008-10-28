@@ -705,18 +705,22 @@ void Renderer::Swap(const TRectangle& rc)
 
     // texture map s_RenderTargets[s_curtarget] onto the main buffer
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTargets[s_nCurTarget]);
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTargets[s_nCurTarget]);
     TextureMngr::EnableTexRECT(0);
     // disable all other stages
     for(int i = 1; i < 8; ++i) TextureMngr::DisableStage(i);
     GL_REPORT_ERRORD();
 
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glBegin(GL_QUADS);
     glTexCoord2f(0, 0);                                             glVertex2f(-1,-1);
     glTexCoord2f(0, (float)GetTargetHeight());                        glVertex2f(-1,1);
     glTexCoord2f((float)GetTargetWidth(), (float)GetTargetHeight());    glVertex2f(1,1);
     glTexCoord2f((float)GetTargetWidth(), 0);                         glVertex2f(1,-1);
     glEnd();
+
+	if (g_Config.bWireFrame)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
     TextureMngr::DisableStage(0);

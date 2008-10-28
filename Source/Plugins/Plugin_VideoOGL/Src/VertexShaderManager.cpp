@@ -450,11 +450,20 @@ void VertexShaderMngr::SetConstants()
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = xfregs.rawProjection[4];
+
+			if((!g_Config.bProjectionHax1 && !g_Config.bProjectionHax2) || (g_Config.bProjectionHax1 && g_Config.bProjectionHax2)) {
 			// Working bloom in ZTP
             g_fProjectionMatrix[11] = -(0.0f - xfregs.rawProjection[5]);  // Yes, it's important that it's done this way.
 			// Working projection in PSO
-			// g_fProjectionMatrix[11] = -(1.0f - rawProjection[5]);
-                        
+			// g_fProjectionMatrix[11] = -(1.0f - rawProjection[5]); 
+			}
+
+			if(g_Config.bProjectionHax1 && !g_Config.bProjectionHax2) // Before R945
+				g_fProjectionMatrix[11] = -(1.0f -  xfregs.rawProjection[5]); 
+
+			if(!g_Config.bProjectionHax1 && g_Config.bProjectionHax2) // R844
+				g_fProjectionMatrix[11] =  xfregs.rawProjection[5];
+
             g_fProjectionMatrix[12] = 0.0f;
             g_fProjectionMatrix[13] = 0.0f;
             g_fProjectionMatrix[14] = -1.0f;
@@ -474,10 +483,19 @@ void VertexShaderMngr::SetConstants()
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = xfregs.rawProjection[4];
+
+			if((!g_Config.bProjectionHax1 && !g_Config.bProjectionHax2) || (g_Config.bProjectionHax1 && g_Config.bProjectionHax2)) {
 			// Working bloom in ZTP
-            //g_fProjectionMatrix[11] = -(-1.0f - rawProjection[5]);  // Yes, it's important that it's done this way.
+            g_fProjectionMatrix[11] = -(-1.0f - xfregs.rawProjection[5]);  // Yes, it's important that it's done this way.
 			// Working projection in PSO, working Super Monkey Ball
-			g_fProjectionMatrix[11] = -(0.0f - xfregs.rawProjection[5]);
+			// g_fProjectionMatrix[11] = -(0.0f - xfregs.rawProjection[5]);
+			}
+
+			if(g_Config.bProjectionHax1 && !g_Config.bProjectionHax2) // Before R945
+				g_fProjectionMatrix[11] = -(0.0f - xfregs.rawProjection[5]);
+
+			if(!g_Config.bProjectionHax1 && g_Config.bProjectionHax2) // R844
+				g_fProjectionMatrix[11] = -xfregs.rawProjection[5];
 
             g_fProjectionMatrix[12] = 0;
             g_fProjectionMatrix[13] = 0;

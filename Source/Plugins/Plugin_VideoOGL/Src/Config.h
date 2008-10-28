@@ -51,6 +51,10 @@ struct Config
 	
 	// Render
 	bool bUseXFB;
+	bool bWireFrame;
+	bool bDisableLighting;
+	bool bDisableTexturing;
+	bool bDisableCulling;
     
 	// Utility
 	char texDumpPath[280];
@@ -58,13 +62,15 @@ struct Config
 
 	// Hacks
 	bool bInvertDepth;
+	bool bProjectionHax1;
+	bool bProjectionHax2;
+	bool bEBFToTextureDisable;
 
 	int iLog; // CONF_ bits
 	int iSaveTargetId;
 
 	//currently unused:
     int iCompileDLsLevel;
-	bool bWireFrame;
     bool bShowShaderErrors;
 };
 
