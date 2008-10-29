@@ -65,6 +65,7 @@ typedef struct
 	SCPFifoStruct                   *pCPFifo;
 	unsigned char                   *pVIRegs;
 	void *pMemoryBase;
+	bool bWii;
 } SVideoInitialize;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
