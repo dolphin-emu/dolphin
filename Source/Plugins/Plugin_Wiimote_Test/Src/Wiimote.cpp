@@ -367,6 +367,9 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 
 	switch(sr->channel)
 	{
+	case 0x10:
+		LOG(WIIMOTE, "HidOutputReport: unknown sr->channel 0x10");
+		break;
 	case WM_LEDS:
 		WmLeds(_channelID, (wm_leds*)sr->data);
 		break;
