@@ -506,7 +506,6 @@ void BPWritten(int addr, int changes, int newval)
                 }
 
                 if (bpmem.zmode.updateenable && nRestoreZBufferTarget) { // have to clear the target zbuffer
-
                     glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
                     GL_REPORT_ERRORD();
                     glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
@@ -537,12 +536,19 @@ void BPWritten(int addr, int changes, int newval)
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
 
-            u32 tlutTMemAddr = (newval&0x3FF)<<9;
-            u32 tlutXferCount = (newval&0x1FFC00)>>5; 
-            //do the transfer!!
-			u8 *ptr = g_VideoInitialize.pGetMemoryPointer((bpmem.tlutXferSrc)<<5);
+            u32 tlutTMemAddr = (newval & 0x3FF) << 9;
+            u32 tlutXferCount = (newval & 0x1FFC00) >> 5; 
+
+			u8 *ptr = 0;
+            // TODO - figure out a cleaner way.
+			if (g_VideoInitialize.bWii)
+				ptr = g_VideoInitialize.pGetMemoryPointer(bpmem.tlutXferSrc << 5);
+			else
+				ptr = g_VideoInitialize.pGetMemoryPointer((bpmem.tlutXferSrc & 0xFFFFF) << 5);
 			if (ptr)
 				memcpy_gc(texMem + tlutTMemAddr, ptr, tlutXferCount);
+			else
+				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tlutXferSrc, bpmem.tlutXferSrc << 5, (bpmem.tlutXferSrc & 0xFFFFF)<< 5);
             // TODO(ector) : kill all textures that use this palette
             // Not sure if it's a good idea, though. For now, we hash texture palettes
         }
