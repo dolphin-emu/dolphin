@@ -89,7 +89,7 @@ void BPWritten(int addr, int changes, int newval)
 				bpmem.genMode.numindstages, bpmem.genMode.zfreeze);
 
             // none, ccw, cw, ccw
-            if (bpmem.genMode.cullmode>0 && !g_Config.bDisableCulling) {
+            if (bpmem.genMode.cullmode > 0) {
                 glEnable(GL_CULL_FACE);
                 glFrontFace(bpmem.genMode.cullmode == 2 ? GL_CCW : GL_CW);
             }
@@ -539,8 +539,10 @@ void BPWritten(int addr, int changes, int newval)
 
             u32 tlutTMemAddr = (newval&0x3FF)<<9;
             u32 tlutXferCount = (newval&0x1FFC00)>>5; 
-            //do the transfer!!			
-            memcpy_gc(texMem + tlutTMemAddr, g_VideoInitialize.pGetMemoryPointer((bpmem.tlutXferSrc&0xFFFFF)<<5), tlutXferCount);
+            //do the transfer!!
+			u8 *ptr = g_VideoInitialize.pGetMemoryPointer((bpmem.tlutXferSrc)<<5);
+			if (ptr)
+				memcpy_gc(texMem + tlutTMemAddr, ptr, tlutXferCount);
             // TODO(ector) : kill all textures that use this palette
             // Not sure if it's a good idea, though. For now, we hash texture palettes
         }
