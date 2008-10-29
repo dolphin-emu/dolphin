@@ -96,6 +96,7 @@ static u16 convert16bit(const u8* src) {
 }
 #ifdef _WIN32
 HINSTANCE g_hInstance;
+#endif 
 
 void GetMousePos(float& x, float& y)
 {
@@ -132,7 +133,7 @@ IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 
-
+#ifdef _WIN32
 BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 					  DWORD dwReason,		// reason called
 					  LPVOID lpvReserved)	// reserved

@@ -19,6 +19,7 @@
 
 #include <map>
 #include "hci.h"
+#include <string>
 
 class CWII_IPC_HLE_Device_usb_oh1_57e_305;
 
