@@ -160,13 +160,6 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 	m_BD.b[4] = 0x00;
 	m_BD.b[5] = _Number;
 
-	m_BD.b[0] = 0x5c;
-	m_BD.b[1] = 0x87;
-	m_BD.b[2] = 0x21;
-	m_BD.b[3] = 0xe9;
-	m_BD.b[4] = 0x1a;
-	m_BD.b[5] = 0x00; //_Number;
-
 	m_ControllerConnectionHandle = 0x100 + _Number;
 
 	uclass[0]= 0x00;
