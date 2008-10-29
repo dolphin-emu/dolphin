@@ -97,7 +97,8 @@ namespace Jit64
 		if (Core::GetStartupParameter().bSkipIdle &&
 			inst.OPCD == 32 && 
 			(inst.hex & 0xFFFF0000) == 0x800D0000 &&
-			Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 &&
+			(Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
+			(Core::GetStartupParameter().bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
 			Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
 		{
 			gpr.Flush(FLUSH_ALL);
