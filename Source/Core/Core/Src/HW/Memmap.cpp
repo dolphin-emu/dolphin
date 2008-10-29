@@ -906,7 +906,10 @@ u8 *GetPointer(const u32 _Address)
     case 0xD1:
     case 0xD2:
     case 0xD3:
-        return (u8*)(((char*)m_pEXRAM) + (_Address&EXRAM_MASK));
+		if (Core::GetStartupParameter().bWii)
+			return (u8*)(((char*)m_pEXRAM) + (_Address&EXRAM_MASK));
+		else
+			return 0;
 
 	case 0xE0:
 		if (_Address < (0xE0000000 + L1_CACHE_SIZE))

@@ -276,6 +276,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pUpdateInterrupts   = &(CommandProcessor::UpdateInterruptsFromVideoPlugin);
 	VideoInitialize.pMemoryBase         = Memory::base;
 	VideoInitialize.pKeyPress           = Callback_KeyPress;
+	VideoInitialize.bWii                = _CoreParameter.bWii;
 	PluginVideo::Video_Initialize(&VideoInitialize);
 
 	// Under linux, this is an X11 Display, not an HWND!
