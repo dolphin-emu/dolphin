@@ -70,7 +70,8 @@ struct wm_status_report {
 };
 
 #define WM_WRITE_DATA 0x16
-struct wm_write_data {
+struct wm_write_data 
+{
 	u8 rumble : 1;
 	u8 space : 2;	//see WM_SPACE_*
 	u8 : 5;
@@ -137,7 +138,20 @@ struct wm_accel {
 };
 
 //filled with 0xFF if empty
-struct wm_ir_extended {
+struct wm_ir_basic
+{
+	u8 x1;
+	u8 y1;
+	u8 x2High : 2;
+	u8 y2High : 2;
+	u8 x1High : 2;
+	u8 y1High : 2;
+	u8 x2;
+	u8 y2;
+};
+
+struct wm_ir_extended 
+{
 	u8 x;
 	u8 y;
 	u8 size : 4;
@@ -168,10 +182,23 @@ struct wm_report_core_accel_ir12 {
 #define WM_REPORT_CORE_EXT19 0x34
 #define WM_REPORT_CORE_ACCEL_EXT16 0x35
 #define WM_REPORT_CORE_IR10_EXT9 0x36
+
 #define WM_REPORT_CORE_ACCEL_IR10_EXT6 0x37
+struct wm_report_core_accel_ir10_ext6 
+{
+	wm_core c;
+	wm_accel a;
+	wm_ir_basic ir[2];
+	u8 ext[6];
+};
+
 #define WM_REPORT_EXT21 0x3d
 #define WM_REPORT_INTERLEAVE1 0x3e
 #define WM_REPORT_INTERLEAVE2 0x3f
+
+#define WM_SPEAKER_ENABLE 0x14
+#define WM_SPEAKER_MUTE 0x19 
+
 
 #if defined(_MSC_VER)
 #pragma pack(pop)
