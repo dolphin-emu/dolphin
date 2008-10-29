@@ -2545,9 +2545,9 @@ struct SHCIEventLinkKeyNotification
 {
 	u8 EventType;
 	u8 PayloadLength;
+	u8 numKeys;
 	bdaddr_t bdaddr;
 	u8 LinkKey[16];
-	u8 Key_Type;
 };
 
 #ifdef __cplusplus
