@@ -470,7 +470,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry> &ops)
 	u32 uCodes[1200];
 	int i,ret;
 
-	for(int i = 0; i < vCodes.size(); ++i)
+	for(i = 0; i < vCodes.size(); ++i)
 	{
 		transform(vCodes[i].begin(), vCodes[i].end(), vCodes[i].begin(), toupper);
 		//PanicAlert("Encrypted AR Code\n%s", vCodes[i].c_str());
@@ -483,15 +483,28 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry> &ops)
 	}
 	else if (!batchdecrypt(uCodes, vCodes.size()<<1))
 	{
-		PanicAlert("Action Replay Code Decryption Error:\nCRC Check Failed\n\nFirst Code in Block(verification code):\n%s", vCodes[0].c_str());
-	}
+		PanicAlert("Action Replay Code Decryption Error:\nCRC Check Failed\n\n"
+			"First Code in Block(should be verification code):\n%s", vCodes[0].c_str());
 
-	for (i = 0; i < (vCodes.size()<<1); i+=2)
+		for (i = 0; i < (vCodes.size()<<1); i+=2)
+		{
+			AREntry op;
+			op.cmd_addr = uCodes[i];
+			op.value = uCodes[i+1];
+			ops.push_back(op);
+			//PanicAlert("Decrypted AR Code without verification code:\n%08X %08X", uCodes[i], uCodes[i+1]);
+		}
+	}
+	else
 	{
-		AREntry op;
-		op.cmd_addr = uCodes[i];
-		op.value = uCodes[i+1];
-		ops.push_back(op);
-		//PanicAlert("Decrypted AR Code:\n%08X %08X", uCodes[i], uCodes[i+1]);
+		// Skip passing the verification code back
+		for (i = 2; i < (vCodes.size()<<1); i+=2)
+		{
+			AREntry op;
+			op.cmd_addr = uCodes[i];
+			op.value = uCodes[i+1];
+			ops.push_back(op);
+			//PanicAlert("Decrypted AR Code:\n%08X %08X", uCodes[i], uCodes[i+1]);
+		}
 	}
 }

@@ -71,7 +71,6 @@ void LoadActionReplayCodes(IniFile &ini)
 
 	std::vector<std::string> lines;
 	std::vector<std::string> encryptedLines;
-	std::string oldName;
 	ARCode currentCode;
 	arCodes.clear();
 
