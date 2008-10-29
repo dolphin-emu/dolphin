@@ -239,7 +239,7 @@ extern "C" void Wiimote_Shutdown(void)
 {
 }
 
-extern "C" void Wiimote_Input(u16 _channelID, const void* _pData, u32 _Size) 
+extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {
 	
 	const u8* data = (const u8*)_pData;
@@ -285,12 +285,12 @@ extern "C" void Wiimote_Input(u16 _channelID, const void* _pData, u32 _Size)
 	}
 }
 
-extern "C" void Wiimote_Output(u16 _channelID, const void* _pData, u32 _Size) 
+extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {
 	const u8* data = (const u8*)_pData;
 	// dump raw data
 	{
-		LOG(WIIMOTE, "Wiimote_Output");
+		LOG(WIIMOTE, "Wiimote_ControlChannel");
 		std::string Temp;
 		for (u32 j=0; j<_Size; j++)
 		{
@@ -302,8 +302,6 @@ extern "C" void Wiimote_Output(u16 _channelID, const void* _pData, u32 _Size)
 	}
 
 	hid_packet* hidp = (hid_packet*) data;
-	PanicAlert("HidOutput: Unknown type %x and param %x", hidp->type, hidp->param);
-
 	switch(hidp->type)
 	{
 	case HID_TYPE_HANDSHAKE:
@@ -325,6 +323,10 @@ extern "C" void Wiimote_Output(u16 _channelID, const void* _pData, u32 _Size)
 		else
 		{
 			HidOutputReport(_channelID, (wm_report*)hidp->data);
+
+			//return handshake
+			u8 handshake = 0;
+			g_WiimoteInitialize.pWiimoteInput(_channelID, &handshake, 1);
 		}
 		break;
 
@@ -333,7 +335,7 @@ extern "C" void Wiimote_Output(u16 _channelID, const void* _pData, u32 _Size)
 		break;
 
 	default:
-		PanicAlert("HidOutput: Unknown type %x and param %x", hidp->type, hidp->param);
+		PanicAlert("HidControlChanel: Unknown type %x and param %x", hidp->type, hidp->param);
 		break;
 	}
 
@@ -710,6 +712,9 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 	} else {
 		PanicAlert("WmWriteData: unimplemented parameters!");
 	}
+
+	// just added for home brew.... hmmmm
+	WmSendAck(_channelID, WM_WRITE_DATA);
 }
 
 int WriteWmReport(u8* dst, u8 channel) {

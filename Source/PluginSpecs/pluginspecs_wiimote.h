@@ -67,20 +67,20 @@ EXPORT void CALL Wiimote_Shutdown();
 // __________________________________________________________________________________________________
 // Function: Wiimote_Output
 // Purpose:  An L2CAP packet is passed from the Core to the Wiimote,
-//           on the HID OUTPUT channel.
+//           on the HID CONTROL channel.
 // input:    Da pakket.
 // output:   none
 //
-EXPORT void CALL Wiimote_Output(u16 _channelID, const void* _pData, u32 _Size);
+EXPORT void CALL Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size);
 
 // __________________________________________________________________________________________________
 // Function: Wiimote_Input
 // Purpose:  An L2CAP packet is passed from the Core to the Wiimote,
-//           on the HID INPUT channel.
+//           on the HID INTERRUPT channel.
 // input:    Da pakket.
 // output:   none
 //
-EXPORT void CALL Wiimote_Input(u16 _channelID, const void* _pData, u32 _Size);
+EXPORT void CALL Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size);
 
 // __________________________________________________________________________________________________
 // Function: Wiimote_Update

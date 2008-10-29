@@ -18,6 +18,7 @@
 #define _WII_IPC_HLE_WII_MOTE_
 
 #include <map>
+#include "hci.h"
 
 class CWII_IPC_HLE_Device_usb_oh1_57e_305;
 
@@ -71,6 +72,9 @@ private:
 
 };
 
+
+
+
 class CWII_IPC_HLE_WiiMote
 {
 public:
@@ -84,12 +88,14 @@ public:
 	// ugly Host handling....
 	// we really have to clean all this code
 
+	bool Update();
 	bool IsConnected() const { return m_Connected; }
 
 
 	void EventConnectionAccepted();
 	void EventDisconnect();
 	bool EventPagingChanged(u8 _pageMode);
+	void EventCommandWriteLinkPolicy();
 
 	const bdaddr_t& GetBD() const { return m_BD; }
 
@@ -109,15 +115,26 @@ public:
 
 	void SendACLFrame(u8* _pData, u32 _Size);	//to wiimote
 
-	void Connect();
-
 	void SendL2capData(u16 scid, const void* _pData, u32 _Size);	//from wiimote
 
 	const u8* GetLinkKey() const { return m_LinkKey; }
 
 private:
 
+	// state machine
 	bool m_Connected;
+	bool m_HIDControlChannel_Connected;
+	bool m_HIDControlChannel_ConnectedWait;
+	bool m_HIDControlChannel_Config;
+	bool m_HIDControlChannelHost_Config;
+	bool m_HIDControlChannel_ConfigWait;
+	bool m_HIDInterruptChannel_Connected;
+	bool m_HIDInterruptChannel_ConnectedWait;
+	bool m_HIDInterruptChannel_Config;
+	bool m_HIDInterruptChannelHost_Config;
+	bool m_HIDInterruptChannel_ConfigWait;
+
+
 
 	// STATE_TO_SAVE
 	bdaddr_t m_BD;
@@ -160,9 +177,9 @@ private:
 
 	void SignalChannel(u8* _pData, u32 _Size);
 
-	void SendConnectionRequest(u16 scid, u16 psm);
-	void SendConfigurationRequest(u16 scid, u16* MTU, u16* FlushTimeOut);
-	void SendDisconnectRequest(u16 scid);
+	void SendConnectionRequest(u16 _SCID, u16 _PSM);
+	void SendConfigurationRequest(u16 _SCID, u16* _pMTU = NULL, u16* _pFlushTimeOut = NULL);
+	void SendDisconnectRequest(u16 _SCID);
 
 	void CommandConnectionReq(u8 _Ident, u8* _pData, u32 _Size);
 	void CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Size);
@@ -176,14 +193,14 @@ private:
 	//
 	// should be inside the plugin 
 	//
-	void HandleSDP(u16 cid, u8* _pData, u32 _Size);
-	void SDPSendServiceSearchResponse(u16 cid, u16 TransactionID, u8* pServiceSearchPattern, u16 MaximumServiceRecordCount);
+	void HandleSDP(u16 _SCID, u8* _pData, u32 _Size);
+	void SDPSendServiceSearchResponse(u16 _SCID, u16 _TransactionID, u8* _pServiceSearchPattern, u16 _MaximumServiceRecordCount);
 
-	void SDPSendServiceAttributeResponse(u16 cid, u16 TransactionID, u32 ServiceHandle, 
-											u16 startAttrID, u16 endAttrID, 
-											u16 MaximumAttributeByteCount, u8* pContinuationState);
+	void SDPSendServiceAttributeResponse(u16 _SCID, u16 TransactionID, u32 _ServiceHandle, 
+											u16 _StartAttrID, u16 _EndAttrID, 
+											u16 _MaximumAttributeByteCount, u8* _pContinuationState);
 
-	u16 AddAttribToList(int attribID, u8* pBuffer);
+	u16 AddAttribToList(int _AttribID, u8* _pBuffer);
 };
 
 #endif
