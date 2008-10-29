@@ -65,6 +65,8 @@ private:
     FILE* m_pFileHandle;
     u32 m_FileLength;
     u32 m_Seek;
+
+	std::string m_Filename;
 };
 
 #endif

@@ -52,6 +52,7 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress)
     std::string Filename("WII");
     Filename += GetDeviceName();
 
+	m_Filename = Filename;
     m_pFileHandle = fopen(Filename.c_str(), "r+b");
 
     if (m_pFileHandle != NULL)
@@ -75,7 +76,7 @@ CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
     LOG(WII_IPC_HLE, "FileIO: Seek (Device=%s)", GetDeviceName().c_str());	
     DumpCommands(_CommandAddress);
 
-    PanicAlert("CWII_IPC_HLE_Device_FileIO: Seek");
+	PanicAlert("CWII_IPC_HLE_Device_FileIO: Seek (%s)", m_Filename.c_str());
 
     u32 ReturnValue = 1;
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
@@ -112,7 +113,7 @@ CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
     LOG(WII_IPC_HLE, "FileIO: Write (Device=%s)", GetDeviceName().c_str());	
     DumpCommands(_CommandAddress);
 
-    //PanicAlert("CWII_IPC_HLE_Device_FileIO: Write (Device=%s)", GetDeviceName().c_str());
+ //   PanicAlert("CWII_IPC_HLE_Device_FileIO: Write (Device=%s)", GetDeviceName().c_str());
 
     u32 ReturnValue = 1;
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
@@ -143,6 +144,8 @@ CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 
             Memory::Write_U32(m_FileLength, BufferOut);
             Memory::Write_U32(m_Seek, BufferOut+4);
+
+			PanicAlert("ISFS_IOCTL_GETFILESTATS: %s", m_Filename.c_str());
         }
         break;
 
@@ -157,8 +160,6 @@ CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
     // Return Value
     u32 ReturnValue = 0;  // no error
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-
-    CCPU::Break();
 
     return true;
 }
