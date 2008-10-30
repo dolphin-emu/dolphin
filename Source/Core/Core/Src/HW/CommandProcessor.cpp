@@ -360,11 +360,9 @@ void Write16(const u16 _Value, const u32 _Address)
 			InterlockedExchange((LONG*)&fifo.bFF_GPLinkEnable,	m_CPCtrlReg.GPLinkEnable);
 			InterlockedExchange((LONG*)&fifo.bFF_BPEnable,		m_CPCtrlReg.BPEnable);
 #else 
-#warning "Hi pingouin lover :p. Just make sure the following is ok for linux please."
-			// TODO: safely?
-            fifo.bFF_GPReadEnable	=	m_CPCtrlReg.GPReadEnable;
-            fifo.bFF_GPLinkEnable	=	m_CPCtrlReg.GPLinkEnable;
-            fifo.bFF_BPEnable		=	m_CPCtrlReg.BPEnable;
+			Common::InterlockedExchange((int*)&fifo.bFF_GPReadEnable,	m_CPCtrlReg.GPReadEnable);
+			Common::InterlockedExchange((int*)&fifo.bFF_GPLinkEnable,	m_CPCtrlReg.GPLinkEnable);
+			Common::InterlockedExchange((int*)&fifo.bFF_BPEnable,		m_CPCtrlReg.BPEnable);
 #endif
 			// TOCHECK (mb2): could BP irq be cleared with w16 to STATUS_REGISTER?
 			// funny hack: eg in MP1 if we disable the clear breakpoint ability by commenting this block

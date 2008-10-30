@@ -116,6 +116,7 @@ void SetCurrentThreadName(const char *name);
 
 #ifndef _WIN32
 int InterlockedExchangeAdd(int *Addend, int Increment);
+int InterlockedExchange(int *Addend, int Increment);
 #endif
 
 } // end of namespace Common

@@ -358,6 +358,15 @@ int InterlockedExchangeAdd(int *Addend, int Increment)
   return result + Increment;
 #endif
 }
+int InterlockedExchange(int *Addend, int Increment)
+{
+#if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))
+  return  __sync_lock_test_and_set(Addend, Increment);
+#else
+	// TODO:
+	#warning Support older GCC Versions
+#endif
+}
 
 #endif
 
