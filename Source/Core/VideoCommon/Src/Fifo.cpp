@@ -147,7 +147,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 #ifdef _WIN32
                 //EnterCriticalSection(&_fifo.sync);
 #else
-                _fifo.sync->Enter();
+                //                _fifo.sync->Enter();
 #endif
                 Video_SendFifoData(uData);
 				// increase the ReadPtr
@@ -161,7 +161,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 #else 
                 Common::InterlockedExchange((int*)&_fifo.CPReadPointer, readPtr);
                 Common::InterlockedExchangeAdd((int*)&_fifo.CPReadWriteDistance, -32);
-                _fifo.sync->Leave();
+                //                _fifo.sync->Leave();
 #endif
             }
         }
