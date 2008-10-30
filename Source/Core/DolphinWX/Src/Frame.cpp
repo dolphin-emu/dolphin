@@ -679,10 +679,10 @@ void CFrame::UpdateGUI()
 		if (Core::GetState() == Core::CORE_UNINITIALIZED)
 		{
 			if (m_GameListCtrl && !m_GameListCtrl->IsShown())
-			{
-				sizerPanel->Fit(m_Panel);
-				m_GameListCtrl->Enable();
-				m_GameListCtrl->Show();
+                            {
+                                m_GameListCtrl->Enable();
+                                m_GameListCtrl->Show();
+				sizerPanel->FitInside(m_Panel);
 			}
 		}
 		else
