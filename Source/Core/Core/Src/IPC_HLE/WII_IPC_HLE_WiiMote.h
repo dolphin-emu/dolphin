@@ -127,12 +127,10 @@ private:
 	bool m_HIDControlChannel_Connected;
 	bool m_HIDControlChannel_ConnectedWait;
 	bool m_HIDControlChannel_Config;
-	bool m_HIDControlChannelHost_Config;
 	bool m_HIDControlChannel_ConfigWait;
 	bool m_HIDInterruptChannel_Connected;
 	bool m_HIDInterruptChannel_ConnectedWait;
 	bool m_HIDInterruptChannel_Config;
-	bool m_HIDInterruptChannelHost_Config;
 	bool m_HIDInterruptChannel_ConfigWait;
 
 

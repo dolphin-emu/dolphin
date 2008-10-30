@@ -146,7 +146,9 @@ CFrame::CFrame(wxFrame* parent,
 	SetIcon(IconTemp);
 
 	// Give it a status line
-	m_pStatusBar = CreateStatusBar();
+	m_pStatusBar = CreateStatusBar(2);
+	int StylesField[] = {wxSB_FLAT, wxSB_FLAT};
+	m_pStatusBar->SetStatusStyles(2, StylesField);
 	CreateMenu();
 
 	// This panel is the parent for rendering and it holds the gamelistctrl
@@ -541,7 +543,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		case IDM_UPDATESTATUSBAR:
 			if (m_pStatusBar != NULL)
 			{
-				m_pStatusBar->SetStatusText(event.GetString());
+				m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
 			}
 			break;
 	}

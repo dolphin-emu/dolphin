@@ -19,6 +19,7 @@
 #include "../Plugins/Plugin_Wiimote.h"
 
 #include "../Debugger/Debugger_SymbolMap.h"
+#include "../Host.h"
 
 // ugly hacks for "SendEventNumberOfCompletedPackets"
 int g_HCICount = 0;
@@ -51,6 +52,8 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	m_ClassOfDevice[2] = 0x00;
 
 	memset(m_LocalName, 0, HCI_UNIT_NAME_SIZE);
+
+	Host_SetWiiMoteConnectionState(0);
 }
 
 CWII_IPC_HLE_Device_usb_oh1_57e_305::~CWII_IPC_HLE_Device_usb_oh1_57e_305()
@@ -333,6 +336,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 			{
 				if (m_WiiMotes[i].EventPagingChanged(2))
 				{
+					Host_SetWiiMoteConnectionState(1);
 					SendEventRequestConnection(m_WiiMotes[i]);
 				}
 			}
@@ -1193,7 +1197,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadStoredLinkKey(u8* _Input)
 	LOG(WIIMOTE, "  num_keys_read: %i", Reply.num_keys_read);
 
 	// generate link key
-	for (int i=0; i<m_WiiMotes.size(); i++)
+	for (size_t i=0; i<m_WiiMotes.size(); i++)
 	{
 		SendEventLinkKeyNotification(m_WiiMotes[i]);
 	}

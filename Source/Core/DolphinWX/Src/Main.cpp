@@ -302,6 +302,7 @@ void Host_UpdateStatusBar(const char* _pText)
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATESTATUSBAR);
 	event.SetString(wxString::FromAscii(_pText));
+	event.SetInt(0);
 
 	wxPostEvent(main_frame, event);
 }
@@ -317,4 +318,25 @@ void Host_SysMessage(const char *fmt, ...)
 
 	if (msg[strlen(msg)-1] == '\n') msg[strlen(msg)-1] = 0;
 	wxMessageBox(wxString::FromAscii(msg));
+}
+
+void Host_SetWiiMoteConnectionState(int _State)
+{
+	static int currentState = -1;
+	if (_State == currentState)
+		return;
+	currentState = _State;
+
+	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATESTATUSBAR);
+
+	switch(_State)
+	{
+	case 0: event.SetString(wxString::FromAscii("not connected")); break;
+	case 1: event.SetString(wxString::FromAscii("connecting...")); break;
+	case 2: event.SetString(wxString::FromAscii("conected!")); break;
+	}
+
+	event.SetInt(1);
+
+	wxPostEvent(main_frame, event);
 }

@@ -19,6 +19,7 @@
 #include "WII_IPC_HLE_WiiMote.h"
 
 #include "../Plugins/Plugin_Wiimote.h"
+#include "../Host.h"
 
 #include "WII_IPC_HLE_Device_usb.h"
 
@@ -147,8 +148,6 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 	, m_HIDControlChannel_ConfigWait(false)
 	, m_HIDInterruptChannel_ConnectedWait(false)
 	, m_HIDInterruptChannel_ConfigWait(false)
-	, m_HIDInterruptChannelHost_Config(false)
-	, m_HIDControlChannelHost_Config(false)
 {
 	s_Usb = _pHost;
 	LOG(WIIMOTE, "Wiimote %i constructed", _Number);
@@ -931,6 +930,9 @@ void CWII_IPC_HLE_WiiMote::SendL2capData(u16 scid, const void* _pData, u32 _Size
 
 	//send
 	m_pHost->SendACLFrame(GetConnectionHandle(), DataFrame, Offset);
+
+	//
+	Host_SetWiiMoteConnectionState(2);
 }
 
 
