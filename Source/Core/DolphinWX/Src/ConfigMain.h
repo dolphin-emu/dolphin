@@ -23,6 +23,7 @@
 #include <wx/notebook.h>
 #include <wx/filepicker.h>
 //#include <wx/listbox.h>
+#include "Config.h"
 
 #undef CONFIG_MAIN_STYLE
 #define CONFIG_MAIN_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX
@@ -44,14 +45,25 @@ class CConfigMain
 
 		DECLARE_EVENT_TABLE();
 		
-		wxGridBagSizer* sGeneral;
+		wxBoxSizer* sGeneral;
+		wxStaticBoxSizer* sbBasic;
+		wxStaticBoxSizer* sbAdvanced;
+		wxGridBagSizer* sGamecube;
+		wxStaticBoxSizer* sbGamecube;
+		wxBoxSizer* sWii;
+		wxStaticBoxSizer* sbWiimoteSettings;
+		wxGridBagSizer* sWiimoteSettings;
+		wxStaticBoxSizer* sbWiiIPLSettings;
+		wxGridBagSizer* sWiiIPLSettings;
 		wxGridBagSizer* sPaths;
-		wxStaticBoxSizer* sbISOPaths;
+		wxStaticBoxSizer* sbISOPaths;		
 		wxBoxSizer* sISOButtons;
 		wxGridBagSizer* sPlugins;
 
 		wxNotebook *Notebook;
 		wxPanel *GeneralPage;
+		wxPanel *GamecubePage;
+		wxPanel *WiiPage;
 		wxPanel *PathsPage;
 		wxPanel *PluginPage;
 
@@ -66,8 +78,81 @@ class CConfigMain
 		wxCheckBox* OptimizeQuantizers;
 		wxCheckBox* SkipIdle;
 		wxCheckBox* EnableCheats;
-		wxStaticText* ConsoleLangText;
-		wxChoice* ConsoleLang;
+		wxArrayString arrayStringFor_GCSystemLang;
+		wxStaticText* GCSystemLangText;
+		wxChoice* GCSystemLang;
+
+		FILE* pStream;
+		u8 m_SYSCONF[0x4000];
+		enum
+		{
+			BT_DINF = 0x0044,
+			BT_SENS = 0x04AF,
+			BT_BAR	= 0x04E1,
+			BT_SPKV = 0x151A,
+			BT_MOT = 0x1807
+		};
+		enum
+		{
+			IPL_AR = 0x04D9,
+			IPL_SSV = 0x04EA,
+			IPL_LNG = 0x04AF,
+			IPL_PGS = 0x17CC,
+			IPL_E60 = 0x17D5
+		};
+		/* Some offsets in SYSCONF: (taken from ector's SYSCONF)
+		Note: offset is where the actual data starts, not where the type or name begins
+		offset	length	name		comment
+		0x0044	0x460	BT.DINF		List of Wiimotes "synced" to the system
+		0x158B	?		BT.CDIF		? -- Starts with 0x0204 followed by 0x210 of 0x00
+		0x04AF	4		BT.SENS		Wiimote sensitivity setting
+		0x04E1	1		BT.BAR		Sensor bar position (0:bottom)
+		0x151A	1		BT.SPKV		Wiimote speaker volume
+		0x1807	1		BT.MOT		Wiimote motor on/off
+
+		0x17F3	2		IPL.IDL		Shutdown mode and idle LED mode
+		0x17C3	1		IPL.UPT		Update Type
+		0x04BB	0x16	IPL.NIK		Console Nickname
+		0x04D9	1		IPL.AR		Aspect ratio setting. 0: 4:3 1: 16:9
+		0x04EA	1		IPL.SSV		Screen Saver off/on (burn-in reduction)
+		0x04F3	1		IPL.LNG		System Language, see conf.c for some values
+		0x04FD	0x1007	IPL.SADR	"Simple Address" Contains some region info
+		0x150E	4		IPL.CB		Counter Bias -- difference between RTC and local time, in seconds
+		0x1522	0x50	IPL.PC		Parental Control password/setting
+		0x17B1	1		IPL.CD		Config Done flag -- has initial setup been performed?
+		0x17BA	1		IPL.CD2		Config2 Done flag -- has network setup been performed?
+		0x17FF	1		IPL.EULA	EULA Done flag -- has EULA been acknowledged?
+		0x17CC	1		IPL.PGS		Use Progressive Scan
+		0x17D5	1		IPL.E60		Use EuRGB60 (PAL6)
+		?		1		IPL.SND		Sound setting
+		0x17DD	1		IPL.DH		Display Offset (Horiz)
+		0x179A	4		IPL.INC		"Installed Channel App Count"
+		?		?		IPL.ARN		?
+		0x17A7	4		IPL.FRC		"Free Channel App Count"
+
+		?		?		DEV.BTM		?
+		?		?		DEV.VIM		?
+		?		?		DEV.CTC		?
+		?		?		DEV.DSM		?
+		?		?		DVD.CNF		?
+		0x1582	?		WWW.RST		WWW Restriction
+		?		?		NET.CNF		?
+		?		?		NET.CFG		?
+		0x1576	4		NET.CTPC	Net Content Restrictions ("Content Parental Control"?)
+		0x17E7	4		NET.WCFG	WC24 Configuration flags
+		*/
+		wxArrayString arrayStringFor_WiiSensBarPos;
+		wxStaticText* WiiSensBarPosText;
+		wxChoice* WiiSensBarPos;
+		wxCheckBox* WiiScreenSaver;
+		wxCheckBox* WiiProgressiveScan;
+		wxCheckBox* WiiEuRGB60;
+		wxArrayString arrayStringFor_WiiAspectRatio;
+		wxStaticText* WiiAspectRatioText;
+		wxChoice* WiiAspectRatio;
+		wxArrayString arrayStringFor_WiiSytemLang;
+		wxStaticText* WiiSystemLangText;
+		wxChoice* WiiSystemLang;
 
 		wxArrayString arrayStringFor_ISOPaths;
 		wxListBox* ISOPaths;
@@ -95,6 +180,8 @@ class CConfigMain
 		{
 			ID_NOTEBOOK = 1000,
 			ID_GENERALPAGE,
+			ID_GAMECUBEPAGE,
+			ID_WIIPAGE,
 			ID_PATHSPAGE,
 			ID_PLUGINPAGE,
 			ID_CANCEL,
@@ -107,8 +194,17 @@ class CConfigMain
 			ID_OPTIMIZEQUANTIZERS,
 			ID_IDLESKIP,
 			ID_ENABLECHEATS,
-			ID_CONSOLELANG_TEXT,
-			ID_CONSOLELANG,
+			ID_GC_SRAM_LNG_TEXT,
+			ID_GC_SRAM_LNG,
+			ID_WII_BT_BAR_TEXT,
+			ID_WII_BT_BAR,
+			ID_WII_IPL_SSV,
+			ID_WII_IPL_PGS,
+			ID_WII_IPL_E60,
+			ID_WII_IPL_AR_TEXT,
+			ID_WII_IPL_AR,
+			ID_WII_IPL_LNG_TEXT,
+			ID_WII_IPL_LNG,
 			ID_ISOPATHS,
 			ID_ADDISOPATH,
 			ID_REMOVEISOPATH,
@@ -138,14 +234,9 @@ class CConfigMain
 
 		void CreateGUIControls();
 		void OnClose(wxCloseEvent& event);
-		void AllwaysHLEBIOSCheck(wxCommandEvent& event);
-		void UseDynaRecCheck(wxCommandEvent& event);
-		void UseDualCoreCheck(wxCommandEvent& event);
-		void LockThreadsCheck(wxCommandEvent& event);
-		void OptimizeQuantizersCheck(wxCommandEvent& event);
-		void SkipIdleCheck(wxCommandEvent& event);
-		void EnableCheatsCheck(wxCommandEvent& event);
-		void ConsoleLangChanged(wxCommandEvent& event);
+		void CoreSettingsChanged(wxCommandEvent& event);
+		void GCSettingsChanged(wxCommandEvent& event);
+		void WiiSettingsChanged(wxCommandEvent& event);
 		void ISOPathsSelectionChanged(wxCommandEvent& event);
 		void AddRemoveISOPaths(wxCommandEvent& event);
 		void DefaultISOChanged(wxFileDirPickerEvent& event);

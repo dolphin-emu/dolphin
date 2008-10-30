@@ -23,22 +23,26 @@
 #include "ConfigMain.h"
 #include "PluginManager.h"
 
-#include "Config.h"
-
 BEGIN_EVENT_TABLE(CConfigMain, wxDialog)
 
 EVT_CLOSE(CConfigMain::OnClose)
 EVT_BUTTON(ID_OK, CConfigMain::OKClick)
 EVT_BUTTON(ID_APPLY, CConfigMain::OKClick)
 EVT_BUTTON(ID_CANCEL, CConfigMain::OKClick)
-EVT_CHECKBOX(ID_ALLWAYS_HLEBIOS, CConfigMain::AllwaysHLEBIOSCheck)
-EVT_CHECKBOX(ID_USEDYNAREC, CConfigMain::UseDynaRecCheck)
-EVT_CHECKBOX(ID_USEDUALCORE, CConfigMain::UseDualCoreCheck)
-EVT_CHECKBOX(ID_LOCKTHREADS, CConfigMain::LockThreadsCheck)
-EVT_CHECKBOX(ID_OPTIMIZEQUANTIZERS, CConfigMain::OptimizeQuantizersCheck)
-EVT_CHECKBOX(ID_IDLESKIP, CConfigMain::SkipIdleCheck)
-EVT_CHECKBOX(ID_ENABLECHEATS, CConfigMain::EnableCheatsCheck)
-EVT_CHOICE(ID_CONSOLELANG, CConfigMain::ConsoleLangChanged)
+EVT_CHECKBOX(ID_ALLWAYS_HLEBIOS, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_USEDYNAREC, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_USEDUALCORE, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_LOCKTHREADS, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_OPTIMIZEQUANTIZERS, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_IDLESKIP, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_ENABLECHEATS, CConfigMain::CoreSettingsChanged)
+EVT_CHOICE(ID_GC_SRAM_LNG, CConfigMain::GCSettingsChanged)
+EVT_CHOICE(ID_WII_BT_BAR, CConfigMain::WiiSettingsChanged)
+EVT_CHECKBOX(ID_WII_IPL_SSV, CConfigMain::WiiSettingsChanged)
+EVT_CHECKBOX(ID_WII_IPL_PGS, CConfigMain::WiiSettingsChanged)
+EVT_CHECKBOX(ID_WII_IPL_E60, CConfigMain::WiiSettingsChanged)
+EVT_CHOICE(ID_WII_IPL_AR, CConfigMain::WiiSettingsChanged)
+EVT_CHOICE(ID_WII_IPL_LNG, CConfigMain::WiiSettingsChanged)
 EVT_LISTBOX(ID_ISOPATHS, CConfigMain::ISOPathsSelectionChanged)
 EVT_BUTTON(ID_ADDISOPATH, CConfigMain::AddRemoveISOPaths)
 EVT_BUTTON(ID_REMOVEISOPATH, CConfigMain::AddRemoveISOPaths)
@@ -59,6 +63,20 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 	: wxDialog(parent, id, title, position, size, style)
 {
 	bRefreshList = false;
+
+	// Load Wii SYSCONF
+	pStream = NULL;
+	pStream = fopen("./WII/shared2/sys/SYSCONF", "rb");
+    if (pStream != NULL)
+    {
+        fread(m_SYSCONF, 1, 0x4000, pStream);
+        fclose(pStream);
+    }
+    else
+	{
+		PanicAlert("Could not read Wii SYSCONF");
+	}
+
 	CreateGUIControls();
 }
 
@@ -72,6 +90,10 @@ void CConfigMain::CreateGUIControls()
 
 	GeneralPage = new wxPanel(Notebook, ID_GENERALPAGE, wxDefaultPosition, wxDefaultSize);
 	Notebook->AddPage(GeneralPage, wxT("Core"));
+	GamecubePage = new wxPanel(Notebook, ID_GAMECUBEPAGE, wxDefaultPosition, wxDefaultSize);
+	Notebook->AddPage(GamecubePage, wxT("Gamecube"));
+	WiiPage = new wxPanel(Notebook, ID_WIIPAGE, wxDefaultPosition, wxDefaultSize);
+	Notebook->AddPage(WiiPage, wxT("Wii"));
 	PathsPage = new wxPanel(Notebook, ID_PATHSPAGE, wxDefaultPosition, wxDefaultSize);
 	Notebook->AddPage(PathsPage, wxT("Paths"));
 	PluginPage = new wxPanel(Notebook, ID_PLUGINPAGE, wxDefaultPosition, wxDefaultSize);
@@ -97,47 +119,104 @@ void CConfigMain::CreateGUIControls()
 	this->SetSizer(sMain);
 	this->Layout();
 
-	// General page
-	AllwaysHLEBIOS = new wxCheckBox(GeneralPage, ID_ALLWAYS_HLEBIOS, wxT("HLE the BIOS all the time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	AllwaysHLEBIOS->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios);
-	UseDynaRec = new wxCheckBox(GeneralPage, ID_USEDYNAREC, wxT("Enable Dynamic Recompilation"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	UseDynaRec->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT);
+	// Core page
+	sbBasic = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Basic Settings"));
 	UseDualCore = new wxCheckBox(GeneralPage, ID_USEDUALCORE, wxT("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UseDualCore->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);
-	LockThreads = new wxCheckBox(GeneralPage, ID_LOCKTHREADS, wxT("Lock threads to cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	LockThreads->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads);
-	OptimizeQuantizers = new wxCheckBox(GeneralPage, ID_OPTIMIZEQUANTIZERS, wxT("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	OptimizeQuantizers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bOptimizeQuantizers);
 	SkipIdle = new wxCheckBox(GeneralPage, ID_IDLESKIP, wxT("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	SkipIdle->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);
 	EnableCheats = new wxCheckBox(GeneralPage, ID_ENABLECHEATS, wxT("Enable cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	EnableCheats->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);
-	wxArrayString arrayStringFor_ConsoleLang;
-	arrayStringFor_ConsoleLang.Add(wxT("English"));
-	arrayStringFor_ConsoleLang.Add(wxT("German"));
-	arrayStringFor_ConsoleLang.Add(wxT("French"));
-	arrayStringFor_ConsoleLang.Add(wxT("Spanish"));
-	arrayStringFor_ConsoleLang.Add(wxT("Italian"));
-	arrayStringFor_ConsoleLang.Add(wxT("Dutch"));
-	ConsoleLangText = new wxStaticText(GeneralPage, ID_CONSOLELANG_TEXT, wxT("Console Language:"), wxDefaultPosition, wxDefaultSize);
-	ConsoleLang = new wxChoice(GeneralPage, ID_CONSOLELANG, wxDefaultPosition, wxDefaultSize, arrayStringFor_ConsoleLang, 0, wxDefaultValidator);
-	ConsoleLang->SetSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
 
-	sGeneral = new wxGridBagSizer(0, 0);
-	sGeneral->Add(AllwaysHLEBIOS, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
-	sGeneral->Add(UseDynaRec, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
-	sGeneral->Add(UseDualCore, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
-	sGeneral->Add(LockThreads, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
-	sGeneral->Add(OptimizeQuantizers, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
-	sGeneral->Add(SkipIdle, wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL, 5);
-	sGeneral->Add(EnableCheats, wxGBPosition(6, 0), wxGBSpan(1, 2), wxALL, 5);
-	sGeneral->Add(ConsoleLangText, wxGBPosition(7, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sGeneral->Add(ConsoleLang, wxGBPosition(7, 1), wxGBSpan(1, 1), wxALL, 5);
+	sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Advanced Settings"));
+	AllwaysHLEBIOS = new wxCheckBox(GeneralPage, ID_ALLWAYS_HLEBIOS, wxT("HLE the BIOS all the time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	AllwaysHLEBIOS->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios);
+	UseDynaRec = new wxCheckBox(GeneralPage, ID_USEDYNAREC, wxT("Enable Dynamic Recompilation"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	UseDynaRec->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT);
+	LockThreads = new wxCheckBox(GeneralPage, ID_LOCKTHREADS, wxT("Lock threads to cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	LockThreads->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads);
+	OptimizeQuantizers = new wxCheckBox(GeneralPage, ID_OPTIMIZEQUANTIZERS, wxT("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	OptimizeQuantizers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bOptimizeQuantizers);
+
+	sGeneral = new wxBoxSizer(wxVERTICAL);
+	sbBasic->Add(UseDualCore, 0, wxALL, 5);
+	sbBasic->Add(SkipIdle, 0, wxALL, 5);
+	sbBasic->Add(EnableCheats, 0, wxALL, 5);
+	sGeneral->Add(sbBasic);
+
+	sbAdvanced->Add(AllwaysHLEBIOS, 0, wxALL, 5);
+	sbAdvanced->Add(UseDynaRec, 0, wxALL, 5);
+	sbAdvanced->Add(LockThreads, 0, wxALL, 5);
+	sbAdvanced->Add(OptimizeQuantizers, 0, wxALL, 5);
+	sGeneral->Add(sbAdvanced);
 	GeneralPage->SetSizer(sGeneral);
 	sGeneral->Layout();
 
+	// Gamecube page
+	sbGamecube = new wxStaticBoxSizer(wxVERTICAL, GamecubePage, wxT("IPL Settings"));
+	arrayStringFor_GCSystemLang.Add(wxT("English"));
+	arrayStringFor_GCSystemLang.Add(wxT("German"));
+	arrayStringFor_GCSystemLang.Add(wxT("French"));
+	arrayStringFor_GCSystemLang.Add(wxT("Spanish"));
+	arrayStringFor_GCSystemLang.Add(wxT("Italian"));
+	arrayStringFor_GCSystemLang.Add(wxT("Dutch"));
+	GCSystemLangText = new wxStaticText(GamecubePage, ID_GC_SRAM_LNG_TEXT, wxT("System Language:"), wxDefaultPosition, wxDefaultSize);
+	GCSystemLang = new wxChoice(GamecubePage, ID_GC_SRAM_LNG, wxDefaultPosition, wxDefaultSize, arrayStringFor_GCSystemLang, 0, wxDefaultValidator);
+	GCSystemLang->SetSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
+
+	sGamecube= new wxGridBagSizer(0, 0);
+	sGamecube->Add(GCSystemLangText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sGamecube->Add(GCSystemLang, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
+	sbGamecube->Add(sGamecube);
+	GamecubePage->SetSizer(sbGamecube);
+	sbGamecube->Layout();
+
+	// Wii SYSCONF page
+	sbWiimoteSettings = new wxStaticBoxSizer(wxVERTICAL, WiiPage, wxT("Wiimote Settings"));
+	arrayStringFor_WiiSensBarPos.Add(wxT("Bottom")); arrayStringFor_WiiSensBarPos.Add(wxT("Top"));
+	WiiSensBarPosText = new wxStaticText(WiiPage, ID_WII_BT_BAR_TEXT, wxT("Sensor Bar Position:"), wxDefaultPosition, wxDefaultSize);
+	WiiSensBarPos = new wxChoice(WiiPage, ID_WII_BT_BAR, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiSensBarPos, 0, wxDefaultValidator);
+	WiiSensBarPos->SetSelection(m_SYSCONF[BT_BAR]);
+
+	sbWiiIPLSettings = new wxStaticBoxSizer(wxVERTICAL, WiiPage, wxT("IPL Settings"));
+	WiiScreenSaver = new wxCheckBox(WiiPage, ID_WII_IPL_SSV, wxT("Enable Screen Saver (burn-in reduction)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	WiiScreenSaver->SetValue(m_SYSCONF[IPL_SSV]);
+	WiiProgressiveScan = new wxCheckBox(WiiPage, ID_WII_IPL_PGS, wxT("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	WiiProgressiveScan->SetValue(m_SYSCONF[IPL_PGS]);
+	WiiEuRGB60 = new wxCheckBox(WiiPage, ID_WII_IPL_E60, wxT("Use EuRGB60 Mode (PAL6)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	WiiEuRGB60->SetValue(m_SYSCONF[IPL_E60]);
+	arrayStringFor_WiiAspectRatio.Add(wxT("4:3")); arrayStringFor_WiiAspectRatio.Add(wxT("16:9"));
+	WiiAspectRatioText = new wxStaticText(WiiPage, ID_WII_IPL_AR_TEXT, wxT("Aspect Ratio:"), wxDefaultPosition, wxDefaultSize);
+	WiiAspectRatio = new wxChoice(WiiPage, ID_WII_IPL_AR, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiAspectRatio, 0, wxDefaultValidator);
+	WiiAspectRatio->SetSelection(m_SYSCONF[IPL_AR]);
+	arrayStringFor_WiiSytemLang = arrayStringFor_GCSystemLang;
+	arrayStringFor_WiiSytemLang.Insert(wxT("Japanese"), 0);
+	WiiSystemLangText = new wxStaticText(WiiPage, ID_WII_IPL_LNG_TEXT, wxT("System Language:"), wxDefaultPosition, wxDefaultSize);
+	WiiSystemLang = new wxChoice(WiiPage, ID_WII_IPL_LNG, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiSytemLang, 0, wxDefaultValidator);
+	WiiSystemLang->SetSelection(m_SYSCONF[IPL_LNG]);
+
+	sWii = new wxBoxSizer(wxVERTICAL);
+	sWiimoteSettings = new wxGridBagSizer(0, 0);
+	sWiimoteSettings->Add(WiiSensBarPosText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sWiimoteSettings->Add(WiiSensBarPos, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
+	sbWiimoteSettings->Add(sWiimoteSettings);
+	sWii->Add(sbWiimoteSettings);
+
+	sWiiIPLSettings = new wxGridBagSizer(0, 0);
+	sWiiIPLSettings->Add(WiiScreenSaver, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
+	sWiiIPLSettings->Add(WiiProgressiveScan, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
+	sWiiIPLSettings->Add(WiiEuRGB60, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
+	sWiiIPLSettings->Add(WiiAspectRatioText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sWiiIPLSettings->Add(WiiAspectRatio, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
+	sWiiIPLSettings->Add(WiiSystemLangText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sWiiIPLSettings->Add(WiiSystemLang, wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
+	sbWiiIPLSettings->Add(sWiiIPLSettings);
+	sWii->Add(sbWiiIPLSettings);
+	WiiPage->SetSizer(sWii);
+	sWii->Layout();
+
 	// Paths page
-	sbISOPaths = new wxStaticBoxSizer(wxVERTICAL, PathsPage, wxT("ISO Directories:"));
+	sbISOPaths = new wxStaticBoxSizer(wxVERTICAL, PathsPage, wxT("ISO Directories"));
 	for(u32 i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); i++)
 	{
 		arrayStringFor_ISOPaths.Add(wxString(SConfig::GetInstance().m_ISOFolder[i].c_str(), wxConvUTF8));
@@ -234,6 +313,19 @@ void CConfigMain::OKClick(wxCommandEvent& event)
 	    case ID_OK:
 		    DoApply();
 		    Destroy();
+
+			// Save Wii SYSCONF
+			pStream = NULL;
+			pStream = fopen("./WII/shared2/sys/SYSCONF", "wb");
+			if (pStream != NULL)
+			{
+				fwrite(m_SYSCONF, 1, 0x4000, pStream);
+				fclose(pStream);
+			}
+			else
+			{
+				PanicAlert("Could not write to Wii SYSCONF");
+			}
 		    break;
 
 	    case ID_APPLY:
@@ -246,44 +338,67 @@ void CConfigMain::OKClick(wxCommandEvent& event)
 	}
 }
 
-void CConfigMain::AllwaysHLEBIOSCheck(wxCommandEvent& WXUNUSED (event))
+void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios = AllwaysHLEBIOS->IsChecked();
+	switch (event.GetId())
+	{
+	case ID_ALLWAYS_HLEBIOS:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios = AllwaysHLEBIOS->IsChecked();
+		break;
+	case ID_USEDYNAREC:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT = UseDynaRec->IsChecked();
+		break;
+	case ID_USEDUALCORE:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore = UseDualCore->IsChecked();
+		break;
+	case ID_LOCKTHREADS:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads = LockThreads->IsChecked();
+		break;
+	case ID_OPTIMIZEQUANTIZERS:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bOptimizeQuantizers = OptimizeQuantizers->IsChecked();
+		break;
+	case ID_IDLESKIP:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = SkipIdle->IsChecked();
+		break;
+	case ID_ENABLECHEATS:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = EnableCheats->IsChecked();
+		break;
+	}
 }
 
-void CConfigMain::UseDynaRecCheck(wxCommandEvent& WXUNUSED (event))
+void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT = UseDynaRec->IsChecked();
+	switch (event.GetId())
+	{
+	case ID_GC_SRAM_LNG:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage = GCSystemLang->GetSelection();
+		break;
+	}
 }
 
-void CConfigMain::UseDualCoreCheck(wxCommandEvent& WXUNUSED (event))
+void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore = UseDualCore->IsChecked();
-}
-
-void CConfigMain::LockThreadsCheck(wxCommandEvent& WXUNUSED (event))
-{
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads = LockThreads->IsChecked();
-}
-
-void CConfigMain::OptimizeQuantizersCheck(wxCommandEvent& WXUNUSED (event))
-{
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bOptimizeQuantizers = OptimizeQuantizers->IsChecked();
-}
-
-void CConfigMain::SkipIdleCheck(wxCommandEvent& WXUNUSED (event))
-{
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = SkipIdle->IsChecked();
-}
-
-void CConfigMain::EnableCheatsCheck(wxCommandEvent& WXUNUSED (event))
-{
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = EnableCheats->IsChecked();
-}
-
-void CConfigMain::ConsoleLangChanged(wxCommandEvent& WXUNUSED (event))
-{
-	SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage = ConsoleLang->GetSelection();
+	switch (event.GetId())
+	{
+	case ID_WII_BT_BAR:
+		m_SYSCONF[BT_BAR] = WiiSensBarPos->GetSelection();
+		break;
+	case ID_WII_IPL_AR:
+		m_SYSCONF[IPL_AR] = WiiAspectRatio->GetSelection();
+		break;
+	case ID_WII_IPL_SSV:
+		m_SYSCONF[IPL_SSV] = WiiScreenSaver->IsChecked();
+		break;
+	case ID_WII_IPL_LNG:
+		m_SYSCONF[IPL_LNG] = WiiSystemLang->GetSelection();
+		break;
+	case ID_WII_IPL_PGS:
+		m_SYSCONF[IPL_PGS] = WiiProgressiveScan->IsChecked();
+		break;
+	case ID_WII_IPL_E60:
+		m_SYSCONF[IPL_E60] = WiiEuRGB60->IsChecked();
+		break;
+	}
 }
 
 void CConfigMain::ISOPathsSelectionChanged(wxCommandEvent& WXUNUSED (event))
