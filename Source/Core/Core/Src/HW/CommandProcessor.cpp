@@ -189,14 +189,14 @@ void Init()
 #ifdef _WIN32
 	//InitializeCriticalSection(&fifo.sync);
 #else
-        fifo.sync = new Common::CriticalSection(0);
+        //        fifo.sync = new Common::CriticalSection(0);
 #endif
 }
 
 void Shutdown()
 {
 #ifndef _WIN32
-  delete fifo.sync;
+  //  delete fifo.sync;
 #endif
 }
 
@@ -316,7 +316,7 @@ void Write16(const u16 _Value, const u32 _Address)
 	#ifdef _WIN32
 		//EnterCriticalSection(&fifo.sync);
     #else
-        fifo.sync->Enter();
+                //        fifo.sync->Enter();
 	#endif
 	}
 
@@ -461,7 +461,7 @@ void Write16(const u16 _Value, const u32 _Address)
 #ifdef _WIN32
 		//LeaveCriticalSection(&fifo.sync);
 #else
-        fifo.sync->Leave();
+        //        fifo.sync->Leave();
 #endif
 }
 
