@@ -150,7 +150,7 @@ class CConfigMain
 		wxArrayString arrayStringFor_WiiAspectRatio;
 		wxStaticText* WiiAspectRatioText;
 		wxChoice* WiiAspectRatio;
-		wxArrayString arrayStringFor_WiiSytemLang;
+		wxArrayString arrayStringFor_WiiSystemLang;
 		wxStaticText* WiiSystemLangText;
 		wxChoice* WiiSystemLang;
 

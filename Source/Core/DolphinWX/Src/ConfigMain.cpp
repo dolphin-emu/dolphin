@@ -180,19 +180,19 @@ void CConfigMain::CreateGUIControls()
 
 	sbWiiIPLSettings = new wxStaticBoxSizer(wxVERTICAL, WiiPage, wxT("IPL Settings"));
 	WiiScreenSaver = new wxCheckBox(WiiPage, ID_WII_IPL_SSV, wxT("Enable Screen Saver (burn-in reduction)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	WiiScreenSaver->SetValue(m_SYSCONF[IPL_SSV]);
+	WiiScreenSaver->SetValue(m_SYSCONF[IPL_SSV]!=0);
 	WiiProgressiveScan = new wxCheckBox(WiiPage, ID_WII_IPL_PGS, wxT("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	WiiProgressiveScan->SetValue(m_SYSCONF[IPL_PGS]);
+	WiiProgressiveScan->SetValue(m_SYSCONF[IPL_PGS]!=0);
 	WiiEuRGB60 = new wxCheckBox(WiiPage, ID_WII_IPL_E60, wxT("Use EuRGB60 Mode (PAL6)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	WiiEuRGB60->SetValue(m_SYSCONF[IPL_E60]);
+	WiiEuRGB60->SetValue(m_SYSCONF[IPL_E60]!=0);
 	arrayStringFor_WiiAspectRatio.Add(wxT("4:3")); arrayStringFor_WiiAspectRatio.Add(wxT("16:9"));
 	WiiAspectRatioText = new wxStaticText(WiiPage, ID_WII_IPL_AR_TEXT, wxT("Aspect Ratio:"), wxDefaultPosition, wxDefaultSize);
 	WiiAspectRatio = new wxChoice(WiiPage, ID_WII_IPL_AR, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiAspectRatio, 0, wxDefaultValidator);
 	WiiAspectRatio->SetSelection(m_SYSCONF[IPL_AR]);
-	arrayStringFor_WiiSytemLang = arrayStringFor_GCSystemLang;
-	arrayStringFor_WiiSytemLang.Insert(wxT("Japanese"), 0);
+	arrayStringFor_WiiSystemLang = arrayStringFor_GCSystemLang;
+	arrayStringFor_WiiSystemLang.Insert(wxT("Japanese"), 0);
 	WiiSystemLangText = new wxStaticText(WiiPage, ID_WII_IPL_LNG_TEXT, wxT("System Language:"), wxDefaultPosition, wxDefaultSize);
-	WiiSystemLang = new wxChoice(WiiPage, ID_WII_IPL_LNG, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiSytemLang, 0, wxDefaultValidator);
+	WiiSystemLang = new wxChoice(WiiPage, ID_WII_IPL_LNG, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiSystemLang, 0, wxDefaultValidator);
 	WiiSystemLang->SetSelection(m_SYSCONF[IPL_LNG]);
 
 	sWii = new wxBoxSizer(wxVERTICAL);
