@@ -339,9 +339,9 @@ void decryptcode(u32 *seeds, u32 *code)
 	setcode(code,val,addr);
 }
 
-u8 getbitstring(u32 *ctrl, u32 *out, u8 len)
+bool getbitstring(u32 *ctrl, u32 *out, u8 len)
 {
-	u32 *ptr=(u32*)(ctrl[0]+(ctrl[1]<<2));
+	u32 tmp=(ctrl[0]+(ctrl[1]<<2));
 
 	*out = 0;
 	while (len--)
@@ -350,16 +350,16 @@ u8 getbitstring(u32 *ctrl, u32 *out, u8 len)
 		{
 			ctrl[2] = 0;
 			ctrl[1]++;
-			ptr = (u32*)(ctrl[0]+(ctrl[1]<<2));
+			tmp = (ctrl[0]+(ctrl[1]<<2));
 		}
-		if (ctrl[1] >= ctrl[3]) return 0;
-		*out = ((*out<<1) | ((*ptr >> (0x1F-ctrl[2])) & 1));
+		if (ctrl[1] >= ctrl[3]) return false;
+		*out = ((*out<<1) | ((tmp >> (0x1F-ctrl[2])) & 1));
 		ctrl[2]++;
 	}
-	return 1;
+	return true;
 }
 
-u8 batchdecrypt(u32 *codes, u16 size)
+bool batchdecrypt(u32 *codes, u16 size)
 {
 	u32 tmp,*ptr=codes;
 	u32 tmparray[4] = { 0 },tmparray2[8] = { 0 };
@@ -375,7 +375,7 @@ u8 batchdecrypt(u32 *codes, u16 size)
 		ptr+=2;
 	}
 
-	tmparray[0] = (u32)codes;
+	tmparray[0] = *codes;
 	tmparray[1] = 0;
 	tmparray[2] = 4; // Skip crc
 	tmparray[3] = size;
@@ -392,9 +392,9 @@ u8 batchdecrypt(u32 *codes, u16 size)
 
 	tmp = codes[0];
 	codes[0] &= 0x0FFFFFFF;
-	if ((tmp>>28) != verifycode(codes,size)) return 0;
+	if ((tmp>>28) != verifycode(codes,size)) return false;
 
-	return 1;
+	return true;
 
 	// Unfinished (so says Parasyte :p )
 }
@@ -476,15 +476,16 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry> &ops)
 		//PanicAlert("Encrypted AR Code\n%s", vCodes[i].c_str());
 	}
 
-	if ((ret=alphatobin(uCodes, vCodes, vCodes.size())))
+	if ((ret=alphatobin(uCodes, vCodes, (int)vCodes.size())))
 	{
 		PanicAlert("Action Replay Code Decryption Error:\nParity Check Failed\n\nCulprit Code:\n%s", vCodes[ret].c_str());
-		batchdecrypt(uCodes, vCodes.size()<<1);
+		batchdecrypt(uCodes, (u16)vCodes.size()<<1);
 	}
-	else if (!batchdecrypt(uCodes, vCodes.size()<<1))
+	else if (!batchdecrypt(uCodes, (u16)vCodes.size()<<1))
 	{
-		PanicAlert("Action Replay Code Decryption Error:\nCRC Check Failed\n\n"
-			"First Code in Block(should be verification code):\n%s", vCodes[0].c_str());
+		// Commented out since we just send the code anyways and hope for the best XD
+		//PanicAlert("Action Replay Code Decryption Error:\nCRC Check Failed\n\n"
+		//	"First Code in Block(should be verification code):\n%s", vCodes[0].c_str());
 
 		for (i = 0; i < (vCodes.size()<<1); i+=2)
 		{

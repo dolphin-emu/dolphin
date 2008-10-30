@@ -297,7 +297,7 @@ writeFn32 GetHWWriteFun32(const u32 _Address)
 }
 
 
-#define ReadFromHardware2(_var, _type, _Address, EffictiveAddress, flag)				\
+#define ReadFromHardware2(_var, _type, _Address, EffectiveAddress, flag)				\
 {																						\
 	if ((_Address & 0xC8000000) == 0xC8000000)											\
 		if (_Address < 0xcc000000)														\
@@ -341,7 +341,7 @@ writeFn32 GetHWWriteFun32(const u32 _Address)
 		else {/* LOG(MEMMAP,"READ (unknown): %08x (PC: %08x)",_Address,PC);*/			\
 			/*CCPU::EnableStepping(TRUE);*/												\
 		/*PanicAlert("READ: Unknown Address", "1", MB_OK);*/							\
-		u32 tmpAddress = CheckDTLB(EffictiveAddress, flag);								\
+		u32 tmpAddress = CheckDTLB(EffectiveAddress, flag);								\
 		tmpAddress =(tmpAddress & 0xFFFFFFF0) | (_Address & 0xF);						\
 		if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))							\
 		_var = bswap((*(u##_type*)&m_pRAM[tmpAddress & RAM_MASK]));						\
@@ -350,7 +350,7 @@ writeFn32 GetHWWriteFun32(const u32 _Address)
 }
 
 
-#define WriteToHardware2(_type, _Address, _Data, EffictiveAddress, flag)				\
+#define WriteToHardware2(_type, _Address, _Data, EffectiveAddress, flag)				\
 {																						\
 	if ((_Address & 0xC8000000) == 0xC8000000)											\
 	{																					\
@@ -413,7 +413,7 @@ writeFn32 GetHWWriteFun32(const u32 _Address)
 		/* LOG(MEMMAP,"WRITE: %08x (PC: %08x)",_Address,PC);*/							\
 		/*MessageBox(NULL, "WRITE: unknown Address", "1", MB_OK);*/						\
 		/*CCPU::EnableStepping(TRUE);*/													\
-		u32 tmpAddress = CheckDTLB(EffictiveAddress, flag);								\
+		u32 tmpAddress = CheckDTLB(EffectiveAddress, flag);								\
 		tmpAddress = (tmpAddress & 0xFFFFFFF0) | (_Address & 0xF);						\
 		*(u##_type*)&m_pRAM[tmpAddress & RAM_MASK] = bswap(_Data);						\
 	}																					\
