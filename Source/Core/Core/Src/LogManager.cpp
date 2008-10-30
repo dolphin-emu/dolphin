@@ -111,10 +111,13 @@ void LogManager::Init()
 	m_Log[LogTypes::DYNA_REC]			= new CDebugger_Log("DYNA", "Dynamic Recompiler");
 	m_Log[LogTypes::CONSOLE]			= new CDebugger_Log("CONSOLE", "Dolphin Console");
 	m_Log[LogTypes::OSREPORT]			= new CDebugger_Log("OSREPORT", "OSReport");
-	m_Log[LogTypes::WII_IOB]			= new CDebugger_Log("WII_IOB", "WII IO Bridge");
-	m_Log[LogTypes::WII_IPC]			= new CDebugger_Log("WII_IPC", "WII IPC");
-	m_Log[LogTypes::WII_IPC_HLE]		= new CDebugger_Log("WII_IPC_HLE", "WII IPC HLE");
-	m_Log[LogTypes::WIIMOTE]            = new CDebugger_Log("WIIMOTE", "WIIMOTE");
+	m_Log[LogTypes::WII_IOB]			= new CDebugger_Log("WII_IOB",			"WII IO Bridge");
+	m_Log[LogTypes::WII_IPC]			= new CDebugger_Log("WII_IPC",			"WII IPC");
+	m_Log[LogTypes::WII_IPC_HLE]		= new CDebugger_Log("WII_IPC_HLE",		"WII IPC HLE");
+	m_Log[LogTypes::WII_IPC_DVD]		= new CDebugger_Log("WII_IPC_DVD",		"WII IPC DVD");
+	m_Log[LogTypes::WII_IPC_ES]			= new CDebugger_Log("WII_IPC_ES",		"WII IPC ES");
+	m_Log[LogTypes::WII_IPC_FILEIO]		= new CDebugger_Log("WII_IPC_FILEIO",	"WII IPC FILEIO");
+	m_Log[LogTypes::WII_IPC_WIIMOTE]    = new CDebugger_Log("WII_IPC_WIIMOTE",	"WII IPC WIIMOTE");
 
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 	{

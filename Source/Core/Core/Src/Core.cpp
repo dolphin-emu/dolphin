@@ -577,7 +577,7 @@ void Callback_KeyPress(int key, BOOL shift, BOOL control)
 //
 void Callback_WiimoteLog(const TCHAR* _szMessage)
 {
-	LOG(WIIMOTE, _szMessage);
+	LOG(WII_IPC_WIIMOTE, _szMessage);
 }
 
 } // end of namespace Core

@@ -56,9 +56,9 @@ bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress)
 
 bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress) 
 {
-    LOG(WII_IPC_HLE, "*******************************");
-    LOG(WII_IPC_HLE, "CWII_IPC_HLE_Device_di::IOCtl");
-    LOG(WII_IPC_HLE, "*******************************");
+    LOG(WII_IPC_DVD, "*******************************");
+    LOG(WII_IPC_DVD, "CWII_IPC_DVD_Device_di::IOCtl");
+    LOG(WII_IPC_DVD, "*******************************");
 
     // DumpCommands(_CommandAddress);
 
@@ -70,17 +70,17 @@ bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
     u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
     u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
 
-    LOG(WII_IPC_HLE, "%s - BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)", GetDeviceName().c_str(), BufferIn, BufferInSize, BufferOut, BufferOutSize);
+    LOG(WII_IPC_DVD, "%s - BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)", GetDeviceName().c_str(), BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 	u32 ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);	
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
 /*    DumpCommands(_CommandAddress);
 
-    LOG(WII_IPC_HLE, "InBuffer");
+    LOG(WII_IPC_DVD, "InBuffer");
     DumpCommands(BufferIn, BufferInSize);
 
-//    LOG(WII_IPC_HLE, "OutBuffer");
+//    LOG(WII_IPC_DVD, "OutBuffer");
   //  DumpCommands(BufferOut, BufferOutSize); */
 
     return true;
@@ -121,7 +121,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			buffer[6] = 0x08;
 			buffer[7] = 0x29;			
 
-			LOG(WII_IPC_HLE, "%s executes DVDLowInquiry (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
+			LOG(WII_IPC_DVD, "%s executes DVDLowInquiry (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
 			
             return 0x1;			
 		}
@@ -133,7 +133,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			// TODO - verify that this is correct
 			VolumeHandler::ReadToPtr(Memory::GetPointer(_BufferOut), 0, _BufferOutSize);
 
-			LOG(WII_IPC_HLE, "%s executes DVDLowReadDiskID (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
+			LOG(WII_IPC_DVD, "%s executes DVDLowReadDiskID (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
 			
             return 0x1;			
 		}
@@ -152,11 +152,11 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
             const char* pFilename = m_pFileSystem->GetFileName(DVDAddress);
             if (pFilename != NULL)
             {
-                LOG(WII_IPC_HLE, "    DVDLowRead: %s (0x%x) - (DVDAddr: 0x%x, Size: 0x%x)", pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress, Size);
+                LOG(WII_IPC_DVD, "    DVDLowRead: %s (0x%x) - (DVDAddr: 0x%x, Size: 0x%x)", pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress, Size);
             }
             else
             {
-                LOG(WII_IPC_HLE, "    DVDLowRead: file unkw - (DVDAddr: 0x%x, Size: 0x%x)", GetDeviceName().c_str(), DVDAddress, Size);
+                LOG(WII_IPC_DVD, "    DVDLowRead: file unkw - (DVDAddr: 0x%x, Size: 0x%x)", GetDeviceName().c_str(), DVDAddress, Size);
             }
 
             if (Size > _BufferOutSize)
@@ -178,7 +178,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
     case 0x79:
         {   
             Memory::Memset(_BufferOut, 0, _BufferOutSize);
-			LOG(WII_IPC_HLE, "%s executes DVDLowWaitForCoverClose (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
+			LOG(WII_IPC_DVD, "%s executes DVDLowWaitForCoverClose (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
 			return 4;
         }
         break;
@@ -205,7 +205,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	case 0x86:
 		{
 			Memory::Memset(_BufferOut, 0, _BufferOutSize);
-			LOG(WII_IPC_HLE, "%s executes DVDLowClearCoverInterrupt (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
+			LOG(WII_IPC_DVD, "%s executes DVDLowClearCoverInterrupt (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
 		}
 		break;
 
@@ -213,7 +213,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	case 0x88:
 		{
 			Memory::Memset(_BufferOut, 0, _BufferOutSize);
-			LOG(WII_IPC_HLE, "%s executes DVDLowGetCoverStatus (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
+			LOG(WII_IPC_DVD, "%s executes DVDLowGetCoverStatus (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
 			return 1;
 		}
 		break;
@@ -222,7 +222,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	case 0x8a:
 		{
 			Memory::Memset(_BufferOut, 0, _BufferOutSize);
-			LOG(WII_IPC_HLE, "%s executes DVDLowReset (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
+			LOG(WII_IPC_DVD, "%s executes DVDLowReset (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
 			return 1;
 		}
 		break;
@@ -241,18 +241,18 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			Memory::Memset(_BufferOut, 0, _BufferOutSize);
 			u32 eject = Memory::Read_U32(_BufferIn + 0x04);			
 
-			LOG(WII_IPC_HLE, "%s executes DVDLowStopMotor (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
+			LOG(WII_IPC_DVD, "%s executes DVDLowStopMotor (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
 
 			if(eject)
 			{
-				LOG(WII_IPC_HLE, "Eject disc", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
+				LOG(WII_IPC_DVD, "Eject disc", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
 				// TODO: eject the disc
 			}
 		}
 		break;
 
 	default:
-		LOG(WII_IPC_HLE, "%s executes unknown cmd 0x%08x (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), Command, _BufferOut, _BufferOutSize);
+		LOG(WII_IPC_DVD, "%s executes unknown cmd 0x%08x (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), Command, _BufferOut, _BufferOutSize);
 
         PanicAlert("%s executes unknown cmd 0x%08x", GetDeviceName().c_str(), Command);
 		break;

@@ -73,7 +73,7 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress)
 bool 
 CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress) 
 {
-    LOG(WII_IPC_HLE, "FileIO: Seek (Device=%s)", GetDeviceName().c_str());	
+    LOG(WII_IPC_FILEIO, "FileIO: Seek (Device=%s)", GetDeviceName().c_str());	
     DumpCommands(_CommandAddress);
 
 	PanicAlert("CWII_IPC_HLE_Device_FileIO: Seek (%s)", m_Filename.c_str());
@@ -95,11 +95,11 @@ CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
     {
         fread(Memory::GetPointer(Address), Size, 1, m_pFileHandle);
         ReturnValue = Size;
-        LOG(WII_IPC_HLE, "FileIO reads from %s (Addr=0x%08x Size=0x%x)", GetDeviceName().c_str(), Address, Size);	
+        LOG(WII_IPC_FILEIO, "FileIO reads from %s (Addr=0x%08x Size=0x%x)", GetDeviceName().c_str(), Address, Size);	
     }
     else
     {
-        LOG(WII_IPC_HLE, "FileIO failed to read from %s (Addr=0x%08x Size=0x%x) - file not open", GetDeviceName().c_str(), Address, Size);	
+        LOG(WII_IPC_FILEIO, "FileIO failed to read from %s (Addr=0x%08x Size=0x%x) - file not open", GetDeviceName().c_str(), Address, Size);	
     }
 
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
@@ -110,7 +110,7 @@ CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 bool 
 CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress) 
 {        
-    LOG(WII_IPC_HLE, "FileIO: Write (Device=%s)", GetDeviceName().c_str());	
+    LOG(WII_IPC_FILEIO, "FileIO: Write (Device=%s)", GetDeviceName().c_str());	
     DumpCommands(_CommandAddress);
 
  //   PanicAlert("CWII_IPC_HLE_Device_FileIO: Write (Device=%s)", GetDeviceName().c_str());
@@ -124,7 +124,7 @@ CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 bool 
 CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress) 
 {
-    LOG(WII_IPC_HLE, "FileIO: IOCtl (Device=%s)", GetDeviceName().c_str());	
+    LOG(WII_IPC_FILEIO, "FileIO: IOCtl (Device=%s)", GetDeviceName().c_str());	
     DumpCommands(_CommandAddress);
 
     u32 Parameter =  Memory::Read_U32(_CommandAddress + 0xC);
@@ -139,8 +139,8 @@ CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
     case ISFS_IOCTL_GETFILESTATS:
         {
             u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-            LOG(WII_IPC_HLE, "FileIO: ISFS_IOCTL_GETFILESTATS");
-            LOG(WII_IPC_HLE, "Length: %i   Seek: %i", m_FileLength, m_Seek);
+            LOG(WII_IPC_FILEIO, "FileIO: ISFS_IOCTL_GETFILESTATS");
+            LOG(WII_IPC_FILEIO, "Length: %i   Seek: %i", m_FileLength, m_Seek);
 
             Memory::Write_U32(m_FileLength, BufferOut);
             Memory::Write_U32(m_Seek, BufferOut+4);
