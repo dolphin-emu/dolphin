@@ -35,10 +35,10 @@ typedef struct
 	volatile u32 CPReadPointer;
 	volatile u32 CPBreakpoint;
 
-	volatile bool bFF_GPReadEnable;
-	volatile bool bFF_BPEnable;
-	volatile bool bFF_GPLinkEnable;
-	volatile bool bFF_Breakpoint;
+	volatile BOOL bFF_GPReadEnable;
+	volatile BOOL bFF_BPEnable;
+	volatile BOOL bFF_GPLinkEnable;
+	volatile BOOL bFF_Breakpoint;
 #ifdef _WIN32
 //	CRITICAL_SECTION sync;
 #else 
