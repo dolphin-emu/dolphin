@@ -288,11 +288,11 @@ void DInput_Read(int _numPAD, SPADStatus* _pPADStatus)
 	if (dinput.diks[pad[_numPAD].keyForControl[CTL_START]]    & 0xFF){_pPADStatus->button |= PAD_BUTTON_START;}
 }
 
-bool XInput_Read(int xpadplayer, SPADStatus* _pPADStatus)
+bool XInput_Read(int XPadPlayer, SPADStatus* _pPADStatus)
 {
 	const int base = 0x80;
 	XINPUT_STATE xstate;
-	DWORD xresult = XInputGetState(xpadplayer, &xstate);
+	DWORD xresult = XInputGetState(XPadPlayer, &xstate);
 
 	// Let's .. yes, let's use XINPUT!
 	if (xresult == ERROR_SUCCESS)
@@ -495,28 +495,15 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 #ifdef _WIN32
 	// Just update pad on focus
 	// TODO fix g_PADInitialize.hWnd != DolphinWX frame
-	if (pad[_numPAD].disable)
+	if (pad[_numPAD].bDisable)
 	{
 		if (g_PADInitialize.hWnd != GetForegroundWindow())
 			return;
 	}
-
-	if (pad[_numPAD].keyboard)
-	{
-		// Keyboard, so we assume it's ok
-		_pPADStatus->err = PAD_ERR_NONE;
-		DInput_Read(_numPAD, _pPADStatus);
-	}
-	else
-	{
-		// It's an xpad, so error if it's not connected
-		// shuffle2: pretty sure this does nothing for now, dolphin
-		// seems to ignore changes to the connected mask after init...
-		if (XInput_Read(pad[_numPAD].xpadplayer, _pPADStatus))
-			_pPADStatus->err = PAD_ERR_NONE;
-		else
-			_pPADStatus->err = PAD_ERR_NO_CONTROLLER;
-	}		
+	// Dolphin doesn't really care about the pad error codes anyways...
+	_pPADStatus->err = PAD_ERR_NONE;
+	if (pad[_numPAD].bEnableXPad) XInput_Read(pad[_numPAD].XPadPlayer, _pPADStatus);
+	DInput_Read(_numPAD, _pPADStatus);
 #elif defined(__linux__)
 	_pPADStatus->err = PAD_ERR_NONE;
 	X11_Read(_numPAD, _pPADStatus);
@@ -532,7 +519,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
 #ifdef _WIN32
-	if (!pad[_numPAD].keyboard)
+	if (pad[_numPAD].bEnableXPad)
 	{
 		static int a = 0;
 
@@ -547,7 +534,7 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 
 		a = int ((float)a * 0.96f);
 
-		if (!pad[_numPAD].rumble)
+		if (!pad[_numPAD].bRumble)
 		{
 			a = 0;
 		}
@@ -555,7 +542,7 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 		XINPUT_VIBRATION vib;
 		vib.wLeftMotorSpeed  = a; //_uStrength*100;
 		vib.wRightMotorSpeed = a; //_uStrength*100;
-		XInputSetState(pad[_numPAD].xpadplayer, &vib);
+		XInputSetState(pad[_numPAD].XPadPlayer, &vib);
 	}
 #endif
 }
@@ -566,13 +553,13 @@ unsigned int PAD_GetAttachedPads()
 	
 	LoadConfig();
 
-	if(pad[0].attached)
+	if(pad[0].bAttached)
 		connected |= 1;		
-	if(pad[1].attached)
+	if(pad[1].bAttached)
 		connected |= 2;
-	if(pad[2].attached)
+	if(pad[2].bAttached)
 		connected |= 4;
-	if(pad[3].attached)
+	if(pad[3].bAttached)
 		connected |= 8;
 
 	return connected;
@@ -648,11 +635,11 @@ void LoadConfig()
 		char SectionName[32];
 		sprintf(SectionName, "PAD%i", i+1);
 
-		file.Get(SectionName, "Keyboard", &pad[i].keyboard, true);
-		file.Get(SectionName, "Attached", &pad[i].attached, i==0);
-		file.Get(SectionName, "DisableOnBackground", &pad[i].disable, false);
-		file.Get(SectionName, "Rumble", &pad[i].rumble, true);
-		file.Get(SectionName, "XPad#", &pad[i].xpadplayer);
+		file.Get(SectionName, "UseXPad", &pad[i].bEnableXPad, true);
+		file.Get(SectionName, "Attached", &pad[i].bAttached, i==0);
+		file.Get(SectionName, "DisableOnBackground", &pad[i].bDisable, false);
+		file.Get(SectionName, "Rumble", &pad[i].bRumble, true);
+		file.Get(SectionName, "XPad#", &pad[i].XPadPlayer);
 		
 		for (int x = 0; x < NUMCONTROLS; x++) 
 		{
@@ -678,11 +665,11 @@ void SaveConfig()
 		char SectionName[32];
 		sprintf(SectionName, "PAD%i", i+1);
 
-		file.Set(SectionName, "Keyboard", pad[i].keyboard);
-		file.Set(SectionName, "Attached", pad[i].attached);
-		file.Set(SectionName, "DisableOnBackground", pad[i].disable);
-		file.Set(SectionName, "Rumble", pad[i].rumble);
-		file.Set(SectionName, "XPad#", pad[i].xpadplayer);
+		file.Set(SectionName, "UseXPad", pad[i].bEnableXPad);
+		file.Set(SectionName, "Attached", pad[i].bAttached);
+		file.Set(SectionName, "DisableOnBackground", pad[i].bDisable);
+		file.Set(SectionName, "Rumble", pad[i].bRumble);
+		file.Set(SectionName, "XPad#", pad[i].XPadPlayer);
 		
 		for (int x = 0; x < NUMCONTROLS; x++)
 		{

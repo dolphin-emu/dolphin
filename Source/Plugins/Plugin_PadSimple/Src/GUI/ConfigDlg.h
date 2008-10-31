@@ -24,7 +24,7 @@
 #include <wx/textctrl.h>
 #include <wx/button.h>
 #include <wx/stattext.h>
-#include <wx/combobox.h>
+#include <wx/choice.h>
 #include <wx/checkbox.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
@@ -54,9 +54,8 @@ class ConfigDialog : public wxDialog
 		wxButton *m_About;
 		wxButton *m_Close;
 
-		wxStaticBoxSizer *sDevice[4];
-		wxBoxSizer *sDeviceTop[4];
-		wxBoxSizer *sDeviceBottom[4];
+		wxStaticBoxSizer *sbDevice[4];
+		wxBoxSizer *sDevice[4];
 		wxGridBagSizer *sPage[4];
 		wxStaticBoxSizer *sButtons[4];
 		wxStaticBoxSizer *sTriggers[4];
@@ -65,7 +64,9 @@ class ConfigDialog : public wxDialog
 		wxStaticBoxSizer *sCStick[4];
 		wxStaticBoxSizer *sDPad[4];
 
-		wxChoice *m_DeviceName[4];
+		wxArrayString arrayStringFor_X360Pad;
+		wxCheckBox *m_X360Pad[4];
+		wxChoice *m_X360PadC[4];
 		wxCheckBox *m_Attached[4];
 		wxCheckBox *m_Disable[4];
 		wxCheckBox *m_Rumble[4];
@@ -102,24 +103,19 @@ class ConfigDialog : public wxDialog
 			ID_CONTROLLERPAGE3,
 			ID_CONTROLLERPAGE4,
 
-			ID_DEVICENAME,
+			ID_X360PAD_CHOICE,
+			ID_X360PAD,
 			ID_ATTACHED,
 			ID_DISABLE,
 			ID_RUMBLE,
-			ID_PAD_ABOUT,
-
-			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
+			ID_PAD_ABOUT
 		};
 	
 		void OnClose(wxCloseEvent& event);
 		void CreateGUIControls();
 		void OnCloseClick(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event);
-		void DeviceChanged(wxCommandEvent& event);
-		void EnableKeyboardConfig(int page, bool a);
-		void AttachedCheck(wxCommandEvent& event);
-		void DisableCheck(wxCommandEvent& event);
-		void RumbleCheck(wxCommandEvent& event);
+		void ControllerSettingsChanged(wxCommandEvent& event);
 		void OnButtonClick(wxCommandEvent& event);
 		void DllAbout(wxCommandEvent& event);
 		

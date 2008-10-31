@@ -74,11 +74,11 @@ static const char* controlNames[] =
 };
 
 struct SPads {
-	bool keyboard;		// Is it a keyboard?
-	bool attached;		// Pad is "attached" to the gamecube/wii
-	bool disable;		// Disabled when dolphin isn't in focus
-	bool rumble;		// Rumble for xpad
-	int xpadplayer;		// Player# of the xpad
+	bool bEnableXPad;	// Use an XPad in addition to the keyboard?
+	bool bAttached;		// Pad is "attached" to the gamecube/wii
+	bool bDisable;		// Disabled when dolphin isn't in focus
+	bool bRumble;		// Rumble for xpad
+	int XPadPlayer;		// Player# of the xpad
 	unsigned int keyForControl[NUMCONTROLS];// Keyboard mapping
 };
 

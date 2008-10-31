@@ -30,10 +30,11 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
 	EVT_BUTTON(ID_CLOSE,ConfigDialog::OnCloseClick)
 	EVT_BUTTON(ID_PAD_ABOUT,ConfigDialog::DllAbout)
-	EVT_CHOICE(ID_DEVICENAME,ConfigDialog::DeviceChanged)
-	EVT_CHECKBOX(ID_ATTACHED,ConfigDialog::AttachedCheck)
-	EVT_CHECKBOX(ID_DISABLE,ConfigDialog::DisableCheck)
-	EVT_CHECKBOX(ID_RUMBLE,ConfigDialog::RumbleCheck)
+	EVT_CHECKBOX(ID_ATTACHED,ConfigDialog::ControllerSettingsChanged)	
+	EVT_CHECKBOX(ID_X360PAD,ConfigDialog::ControllerSettingsChanged)
+	EVT_CHOICE(ID_X360PAD_CHOICE,ConfigDialog::ControllerSettingsChanged)
+	EVT_CHECKBOX(ID_RUMBLE,ConfigDialog::ControllerSettingsChanged)
+	EVT_CHECKBOX(ID_DISABLE,ConfigDialog::ControllerSettingsChanged)
 	EVT_BUTTON(CTL_A,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_B,ConfigDialog::OnButtonClick)
 	EVT_BUTTON(CTL_X,ConfigDialog::OnButtonClick)
@@ -128,44 +129,57 @@ void ConfigDialog::CreateGUIControls()
 	this->SetSizer(sMain);
 	this->Layout();
 
-	wxArrayString arrayStringFor_DeviceName;
+#ifdef _WIN32
+	// Add connected XPads
+	for (int x = 0; x < 4; x++)
+	{
+		XINPUT_STATE xstate;
+		DWORD xresult = XInputGetState(x, &xstate);
 
+		if (xresult == ERROR_SUCCESS)
+		{
+			arrayStringFor_X360Pad.Add(wxString::Format("%i", x+1));
+		}
+	}
+#endif
+	
 	for(int i = 0; i < 4; i++)
 	{
-		sDevice[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Controller:"));
-		sDeviceTop[i] = new wxBoxSizer(wxHORIZONTAL);
-		sDeviceBottom[i] = new wxBoxSizer(wxHORIZONTAL);
-		m_DeviceName[i] = new wxChoice(m_Controller[i], ID_DEVICENAME, wxDefaultPosition, wxDefaultSize, arrayStringFor_DeviceName, 0, wxDefaultValidator);
+		sbDevice[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Controller Settings"));
+		sDevice[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_Attached[i] = new wxCheckBox(m_Controller[i], ID_ATTACHED, wxT("Controller attached"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_Disable[i] = new wxCheckBox(m_Controller[i], ID_DISABLE, wxT("Disable when Dolphin is not in focus"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_X360Pad[i] = new wxCheckBox(m_Controller[i], ID_X360PAD, wxT("Use X360Pad"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_X360PadC[i] = new wxChoice(m_Controller[i], ID_X360PAD_CHOICE, wxDefaultPosition, wxDefaultSize, arrayStringFor_X360Pad, 0, wxDefaultValidator);
 		m_Rumble[i] = new wxCheckBox(m_Controller[i], ID_RUMBLE, wxT("Enable rumble"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_Attached[i]->SetValue(pad[i].attached);
-		m_Disable[i]->SetValue(pad[i].disable);
-		m_Rumble[i]->SetValue(pad[i].rumble);
-		m_Rumble[i]->Enable(!pad[i].keyboard);
-
-		m_DeviceName[i]->Append(_("Keyboard"));
-#ifdef _WIN32
-		// Add connected XPads
-		for (int x = 0; x < 4; x++)
+		m_Disable[i] = new wxCheckBox(m_Controller[i], ID_DISABLE, wxT("Disable when Dolphin is not in focus"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_Attached[i]->SetValue(pad[i].bAttached);
+		if (arrayStringFor_X360Pad.IsEmpty())
 		{
-			XINPUT_STATE xstate;
-			DWORD xresult = XInputGetState(x, &xstate);
-
-			if (xresult == ERROR_SUCCESS)
-			{
-				m_DeviceName[i]->Append(wxString::Format("XPad %i", x+1));
-			}
+			m_X360Pad[i]->SetLabel(wxT("Use X360Pad - No pad connected"));
+			m_X360Pad[i]->SetValue(false);
+			m_X360Pad[i]->Enable(false);
+			pad[i].bEnableXPad = false;
+			m_X360PadC[i]->Hide();
+			m_Rumble[i]->Hide();
 		}
-#endif
-		sDeviceTop[i]->Add(m_DeviceName[i], 1, wxEXPAND|wxALL, 1);
-		sDeviceTop[i]->Add(m_Attached[i], 0, wxEXPAND|wxALL, 1);
-		sDeviceBottom[i]->AddStretchSpacer(1);
-		sDeviceBottom[i]->Add(m_Disable[i], 0, wxEXPAND|wxALL, 1);
-		sDeviceBottom[i]->Add(m_Rumble[i], 0, wxEXPAND|wxALL, 1);
-		sDeviceBottom[i]->AddStretchSpacer(1);
-		sDevice[i]->Add(sDeviceTop[i], 0, wxEXPAND|wxALL, 1);
-		sDevice[i]->Add(sDeviceBottom[i], 0, wxEXPAND|wxALL, 1);
+		else
+		{
+			m_X360Pad[i]->SetValue(pad[i].bEnableXPad);
+			m_X360PadC[i]->SetSelection(pad[i].XPadPlayer);
+			m_X360PadC[i]->Enable(m_X360Pad[i]->IsChecked());
+			m_Rumble[i]->SetValue(pad[i].bRumble);
+			m_Rumble[i]->Enable(m_X360Pad[i]->IsChecked());
+		}
+		m_Disable[i]->SetValue(pad[i].bDisable);
+
+		sDevice[i]->Add(m_Attached[i], 0, wxEXPAND|wxALL, 1);
+		sDevice[i]->AddStretchSpacer();
+		sDevice[i]->Add(m_X360Pad[i], 0, wxEXPAND|wxALL, 1);
+		sDevice[i]->Add(m_X360PadC[i], 0, wxEXPAND|wxALL, 1);
+		sDevice[i]->Add(m_Rumble[i], 0, wxEXPAND|wxALL, 1);
+		sDevice[i]->AddStretchSpacer();
+		sDevice[i]->Add(m_Disable[i], 0, wxEXPAND|wxALL, 1);
+		sbDevice[i]->Add(sDevice[i], 0, wxEXPAND|wxALL, 1);
 
 		sButtons[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Buttons:"));
 
@@ -209,7 +223,7 @@ void ConfigDialog::CreateGUIControls()
 		sPage[i] = new wxGridBagSizer(0, 0);
 		sPage[i]->SetFlexibleDirection(wxBOTH);
 		sPage[i]->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
-		sPage[i]->Add(sDevice[i], wxGBPosition(0, 0), wxGBSpan(1, 5), wxEXPAND|wxALL, 1);
+		sPage[i]->Add(sbDevice[i], wxGBPosition(0, 0), wxGBSpan(1, 5), wxEXPAND|wxALL, 1);
 		sPage[i]->Add(sButtons[i], wxGBPosition(1, 0), wxGBSpan(2, 1), wxALL, 1);
 		sPage[i]->Add(sTriggers[i], wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 1);
 		sPage[i]->Add(sModifiers[i], wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 1);
@@ -218,17 +232,6 @@ void ConfigDialog::CreateGUIControls()
 		sPage[i]->Add(sCStick[i], wxGBPosition(1, 4), wxGBSpan(2, 1), wxALL, 1);
 		m_Controller[i]->SetSizer(sPage[i]);
 		sPage[i]->Layout();
-
-		if (pad[i].keyboard)
-		{
-			m_DeviceName[i]->SetSelection(0);
-			EnableKeyboardConfig(i, true);
-		}
-		else
-		{
-			m_DeviceName[i]->SetSelection(pad[i].xpadplayer + 1);
-			EnableKeyboardConfig(i, false);
-		}
 	}
 
 	SetIcon(wxNullIcon);
@@ -278,68 +281,30 @@ void ConfigDialog::OnCloseClick(wxCommandEvent& event)
 	Close();
 }
 
-void ConfigDialog::DeviceChanged(wxCommandEvent& event)
+void ConfigDialog::ControllerSettingsChanged(wxCommandEvent& event)
 {
 	int page = m_Notebook->GetSelection();
 
-	if(event.GetSelection() == 0)
+	switch (event.GetId())
 	{
-		// Keyboard
-		pad[page].keyboard = true;
-		m_Rumble[page]->Disable();
-		EnableKeyboardConfig(page, true);
+	case ID_ATTACHED:
+		pad[page].bAttached = m_Attached[page]->GetValue();
+		break;
+	case ID_X360PAD:
+		pad[page].bEnableXPad = event.IsChecked();
+		m_Rumble[page]->Enable(event.IsChecked());
+		m_X360PadC[page]->Enable(event.IsChecked());
+		break;
+	case ID_X360PAD_CHOICE:
+		pad[page].XPadPlayer = event.GetSelection();
+		break;		
+	case ID_RUMBLE:
+		pad[page].bRumble = m_Rumble[page]->GetValue();
+		break;
+	case ID_DISABLE:
+		pad[page].bDisable = m_Disable[page]->GetValue();
+		break;
 	}
-	else
-	{
-		// XPad, so also set xpadplayer
-		pad[page].keyboard = false;
-		pad[page].xpadplayer = event.GetSelection() - 1;
-		m_Rumble[page]->Enable();
-		EnableKeyboardConfig(page, false);
-	}
-}
-
-void ConfigDialog::EnableKeyboardConfig(int page, bool a)
-{
-	m_ButtonA[page]->Enable(a);
-	m_ButtonB[page]->Enable(a);
-	m_ButtonX[page]->Enable(a);
-	m_ButtonY[page]->Enable(a);
-	m_ButtonZ[page]->Enable(a);
-	m_ButtonStart[page]->Enable(a);
-	m_ButtonL[page]->Enable(a);
-	m_ButtonR[page]->Enable(a);
-	m_HalfPress[page]->Enable(a);
-	m_StickUp[page]->Enable(a);
-	m_StickDown[page]->Enable(a);
-	m_StickLeft[page]->Enable(a);
-	m_StickRight[page]->Enable(a);
-	m_CStickUp[page]->Enable(a);
-	m_CStickDown[page]->Enable(a);
-	m_CStickLeft[page]->Enable(a);
-	m_CStickRight[page]->Enable(a);
-	m_DPadUp[page]->Enable(a);
-	m_DPadDown[page]->Enable(a);
-	m_DPadLeft[page]->Enable(a);
-	m_DPadRight[page]->Enable(a);
-}
-
-void ConfigDialog::AttachedCheck(wxCommandEvent& event)
-{
-	int page = m_Notebook->GetSelection();
-	pad[page].attached = m_Attached[page]->GetValue();
-}
-
-void ConfigDialog::DisableCheck(wxCommandEvent& event)
-{
-	int page = m_Notebook->GetSelection();
-	pad[page].disable = m_Disable[page]->GetValue();
-}
-
-void ConfigDialog::RumbleCheck(wxCommandEvent& event)
-{
-	int page = m_Notebook->GetSelection();
-	pad[page].rumble = m_Rumble[page]->GetValue();
 }
 
 void ConfigDialog::OnButtonClick(wxCommandEvent& event)
