@@ -389,8 +389,10 @@ void CFrame::OnHelp(wxCommandEvent& event)
 			frame.ShowModal();
 			win.SetHWND(0); 
 		#else
-			AboutBox frame(NULL);
+                        wxWindow win;
+			AboutDolphin frame(&win);
 			frame.ShowModal();
+
 		#endif
 		break;
 		}
