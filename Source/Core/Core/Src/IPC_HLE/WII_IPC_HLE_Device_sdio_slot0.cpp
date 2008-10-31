@@ -41,7 +41,7 @@ CWII_IPC_HLE_Device_sdio_slot0::~CWII_IPC_HLE_Device_sdio_slot0()
 // __________________________________________________________________________________________________
 //
 bool 
-CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress)
+CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
 {
     Memory::Write_U32(GetDeviceID(), _CommandAddress + 0x4);
 

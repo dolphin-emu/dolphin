@@ -19,14 +19,11 @@
 
 #include "WII_IPC_HLE_Device_FileIO.h"
 
-// smash bros writes to  /shared2/sys/SYSCONF
-
 
 CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std::string& _rDeviceName ) 
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
     , m_pFileHandle(NULL)
     , m_FileLength(0)
-    , m_Seek(0)
 {
 }
 
@@ -46,39 +43,73 @@ CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress)
 	return true;
 }
 
-bool 
-CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress)  
-{ 
-    std::string Filename("WII");
-    Filename += GetDeviceName();
+std::string HLE_IPC_BuildFilename(const char* _pFilename)
+{
+	std::string Filename("WII");
+	if (_pFilename[1] == '0')
+		Filename += std::string("/title");     // this looks and feel like an hack...
+	Filename += std::string (_pFilename);
 
-	m_Filename = Filename;
-    m_pFileHandle = fopen(Filename.c_str(), "r+b");
+	return Filename;
+}
+
+bool 
+CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)  
+{ 
+	u32 ReturnValue = 0;
+
+	LOG(WII_IPC_FILEIO, "FileIO: Open (Device=%s)", GetDeviceName().c_str());	
+
+    m_Filename = (HLE_IPC_BuildFilename(GetDeviceName().c_str()));
+
+	switch(_Mode)
+	{
+	case 0x01:	m_pFileHandle = fopen(m_Filename.c_str(), "rb"); break;
+	case 0x02:	m_pFileHandle = fopen(m_Filename.c_str(), "wb"); break;
+	case 0x03:	m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
+	default: PanicAlert("CWII_IPC_HLE_Device_FileIO: unknown open mode"); break;
+	}
 
     if (m_pFileHandle != NULL)
     {
         fseek(m_pFileHandle, 0, SEEK_END);
-        m_FileLength = ftell(m_pFileHandle);
+        m_FileLength = (u32)ftell(m_pFileHandle);
         rewind(m_pFileHandle);
+
+		ReturnValue = GetDeviceID();
     }
     else
     {
-        //PanicAlert("CWII_IPC_HLE_Device_FileIO: cant open %s", Filename.c_str());
+		ReturnValue = -106;
     }
 
-    Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+    Memory::Write_U32(ReturnValue, _CommandAddress+4);
     return true; 
 }
 
 bool 
 CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress) 
 {
-    LOG(WII_IPC_FILEIO, "FileIO: Seek (Device=%s)", GetDeviceName().c_str());	
-    DumpCommands(_CommandAddress);
+	u32 ReturnValue = 0;
+	u32 SeekPosition = Memory::Read_U32(_CommandAddress +0xC);
+	u32 Mode = Memory::Read_U32(_CommandAddress +0x10);  
 
-	PanicAlert("CWII_IPC_HLE_Device_FileIO: Seek (%s)", m_Filename.c_str());
+	LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: %i, Mode: %i(Device=%s)", SeekPosition, Mode, GetDeviceName().c_str());	
 
-    u32 ReturnValue = 1;
+	switch(Mode)
+	{
+	case 0:
+		fseek(m_pFileHandle, SeekPosition, SEEK_SET);
+		ReturnValue = 0;
+		break;
+
+	case 1: // cur
+	case 2: // end
+	default:
+		PanicAlert("CWII_IPC_HLE_Device_FileIO unsupported seek mode");
+		break;
+	}
+
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
     return true;
@@ -110,12 +141,18 @@ CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 bool 
 CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress) 
 {        
-    LOG(WII_IPC_FILEIO, "FileIO: Write (Device=%s)", GetDeviceName().c_str());	
-    DumpCommands(_CommandAddress);
+	u32 ReturnValue = 0;
+	u32 Address = Memory::Read_U32(_CommandAddress +0xC);
+	u32 Size = Memory::Read_U32(_CommandAddress +0x10);    
 
- //   PanicAlert("CWII_IPC_HLE_Device_FileIO: Write (Device=%s)", GetDeviceName().c_str());
+	LOG(WII_IPC_FILEIO, "FileIO: Write Addr: 0x%08x Size: %i (Device=%s)", Address, Size, GetDeviceName().c_str());	
 
-    u32 ReturnValue = 1;
+	if (m_pFileHandle)
+	{
+		fwrite(Memory::GetPointer(Address), Size, 1, m_pFileHandle);
+		ReturnValue = Size;
+	}
+
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
     return true;
@@ -138,14 +175,14 @@ CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
     {
     case ISFS_IOCTL_GETFILESTATS:
         {
+			u32 Position = ftell(m_pFileHandle);
+
             u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
             LOG(WII_IPC_FILEIO, "FileIO: ISFS_IOCTL_GETFILESTATS");
-            LOG(WII_IPC_FILEIO, "Length: %i   Seek: %i", m_FileLength, m_Seek);
+            LOG(WII_IPC_FILEIO, "Length: %i   Seek: %i", m_FileLength, Position);
 
             Memory::Write_U32(m_FileLength, BufferOut);
-            Memory::Write_U32(m_Seek, BufferOut+4);
-
-			PanicAlert("ISFS_IOCTL_GETFILESTATS: %s", m_Filename.c_str());
+            Memory::Write_U32(Position, BufferOut+4);
         }
         break;
 

@@ -17,6 +17,7 @@
 
 #include <map>
 #include <string>
+#include <list>
 
 #include "Common.h"
 #include "WII_IPC_HLE.h"
@@ -164,22 +165,28 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
 	return pDevice;
 }
 
-std::queue<u32> m_Ack;
+std::list<u32> m_Ack;
 std::queue<std::pair<u32,std::string> > m_ReplyQueue;
 
 void ExecuteCommand(u32 _Address);
 bool AckCommand(u32 _Address)
 {   
-/*    static u32 Count = 0;
-    LOG(WII_IPC_HLE, "AckAdd: %i", Count);
-    if (Count == 63)
-        CCPU::Break();
-    Count++; */
+	Debugger::PrintCallstack(LogTypes::WII_IPC_HLE);
+	LOG(WII_IPC_HLE, "AckCommand: 0%08x", _Address);
 
-//	Debugger::PrintCallstack(LogTypes::WII_IPC_HLE);
-//	LOG(WII_IPC_HLE, "AckCommand: 0%08x", _Address);
+	std::list<u32>::iterator itr = m_Ack.begin();
+	while (itr != m_Ack.end())
+	{
+		if (*itr == _Address)
+		{
+			PanicAlert("execute a command two times");
+			return false;
+		}
 
-    m_Ack.push(_Address);
+		itr++;
+	}
+
+    m_Ack.push_back(_Address);
 
     return true;
 }
@@ -214,10 +221,8 @@ void ExecuteCommand(u32 _Address)
             // HLE - Create a new HLE device
             std::string DeviceName;
             Memory::GetString(DeviceName, Memory::Read_U32(_Address + 0xC));
-#ifdef LOGGING
+
             u32 Mode = Memory::Read_U32(_Address+0x10);
-#endif
-           
             u32 DeviceID = GetDeviceIDByName(DeviceName);
             if (DeviceID == 0)
             {
@@ -229,7 +234,7 @@ void ExecuteCommand(u32 _Address)
 			    g_DeviceMap[CurrentDeviceID] = pDevice;
 			    g_LastDeviceID++;
                                 
-                GenerateReply = pDevice->Open(_Address);
+                GenerateReply = pDevice->Open(_Address, Mode);
                 LOG(WII_IPC_HLE, "IOP: Open (Device=%s, Mode=%i)", pDevice->GetDeviceName().c_str(), Mode);
             }
             else
@@ -327,7 +332,6 @@ void ExecuteCommand(u32 _Address)
         if (g_DeviceMap.find(DeviceID) != g_DeviceMap.end())
             pDevice = g_DeviceMap[DeviceID];
 
-
         if (pDevice != NULL)
             m_ReplyQueue.push(std::pair<u32, std::string>(_Address, pDevice->GetDeviceName()));        
         else
@@ -335,7 +339,6 @@ void ExecuteCommand(u32 _Address)
     }
 }
 
-// Update
 void Update()
 {    
 	if (WII_IPCInterface::IsReady())    
@@ -361,12 +364,10 @@ void Update()
             return;
         }
 
-
-
         if (m_ReplyQueue.empty() && !m_Ack.empty())
         {
             u32 _Address = m_Ack.front();
-            m_Ack.pop();
+            m_Ack.pop_front();
             ExecuteCommand(_Address);
             LOG(WII_IPC_HLE, "-- Generate Ack (0x%08x)", _Address);
             WII_IPCInterface::GenerateAck(_Address);

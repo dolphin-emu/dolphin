@@ -37,7 +37,7 @@ public:
 	const std::string& GetDeviceName() const { return m_Name; } 
     u32 GetDeviceID() const { return m_DeviceID; } 
 
-    virtual bool Open(u32 _CommandAddress)  { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Open()", m_Name.c_str()); return true; }
+    virtual bool Open(u32 _CommandAddress, u32 _Mode)  { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Open()", m_Name.c_str()); return true; }
     virtual bool Close(u32 _CommandAddress)  { /*_dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Close()", m_Name.c_str()); */ return true; }
     virtual bool Seek(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Seek()", m_Name.c_str()); return true; }
 	virtual bool Read(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Read()", m_Name.c_str()); return true; }

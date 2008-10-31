@@ -64,7 +64,7 @@ public:
       virtual ~CWII_IPC_HLE_Device_es()
       {}
 
-      virtual bool Open(u32 _CommandAddress)
+      virtual bool Open(u32 _CommandAddress, u32 _Mode)
       {
           Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 
@@ -87,7 +87,7 @@ public:
                     char* pTitleID = (char*)&TitleID;
 
                     char* Path = (char*)Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
-                    sprintf(Path, "/title/00010000/%02x%02x%02x%02x/data", (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
+                    sprintf(Path, "/00010000/%02x%02x%02x%02x/data", (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
 
                     LOG(WII_IPC_HLE, "CWII_IPC_HLE_Device_es command:"
                         "      IOCTL_ES_GETTITLEDIR: %s", Path); 

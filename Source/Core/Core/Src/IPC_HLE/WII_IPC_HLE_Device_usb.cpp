@@ -59,7 +59,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 CWII_IPC_HLE_Device_usb_oh1_57e_305::~CWII_IPC_HLE_Device_usb_oh1_57e_305()
 {}
 
-bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Open(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Open(u32 _CommandAddress, u32 _Mode)
 {
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 	return true;

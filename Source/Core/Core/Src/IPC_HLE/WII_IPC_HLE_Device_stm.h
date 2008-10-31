@@ -48,7 +48,7 @@ public:
 	virtual ~CWII_IPC_HLE_Device_stm_immediate()
     {}
 
-    virtual bool Open(u32 _CommandAddress)
+    virtual bool Open(u32 _CommandAddress, u32 _Mode)
     {
         Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
         return true;
@@ -111,7 +111,7 @@ public:
     virtual ~CWII_IPC_HLE_Device_stm_eventhook()
     {}
 
-    virtual bool Open(u32 _CommandAddress)
+    virtual bool Open(u32 _CommandAddress, u32 _Mode)
     {
         Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 

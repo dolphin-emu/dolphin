@@ -515,6 +515,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\FileSearch.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\FileSearch.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\FileUtil.cpp"
 			>
 		</File>

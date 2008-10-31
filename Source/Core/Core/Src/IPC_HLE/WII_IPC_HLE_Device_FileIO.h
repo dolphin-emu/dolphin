@@ -28,7 +28,7 @@ public:
 	virtual ~CWII_IPC_HLE_Device_FileIO();
 
 	bool Close(u32 _CommandAddress);
-    bool Open(u32 _CommandAddress);
+    bool Open(u32 _CommandAddress, u32 _Mode);
 	bool Seek(u32 _CommandAddress);
 	bool Read(u32 _CommandAddress);
 	bool Write(u32 _CommandAddress);
@@ -64,7 +64,6 @@ private:
 
     FILE* m_pFileHandle;
     u32 m_FileLength;
-    u32 m_Seek;
 
 	std::string m_Filename;
 };

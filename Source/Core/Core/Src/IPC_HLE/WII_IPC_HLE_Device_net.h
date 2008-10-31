@@ -30,7 +30,7 @@ public:
       virtual ~CWII_IPC_HLE_Device_net_kd_request()
       {}
 
-      virtual bool Open(u32 _CommandAddress)
+      virtual bool Open(u32 _CommandAddress, u32 _Mode)
       {
           Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 
@@ -49,7 +49,7 @@ public:
 	  virtual ~CWII_IPC_HLE_Device_net_kd_time()
 	  {}
 
-	  virtual bool Open(u32 _CommandAddress)
+	  virtual bool Open(u32 _CommandAddress, u32 _Mode)
 	  {
 		  Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 		  return true;
@@ -90,7 +90,7 @@ public:
 	virtual ~CWII_IPC_HLE_Device_net_ip_top() {
 	}
 
-	virtual bool Open(u32 _CommandAddress)
+	virtual bool Open(u32 _CommandAddress, u32 _Mode)
 	{
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 		return true;

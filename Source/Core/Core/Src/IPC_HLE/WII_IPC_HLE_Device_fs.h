@@ -23,18 +23,10 @@ class CWII_IPC_HLE_Device_fs : public IWII_IPC_HLE_Device
 {
 public:
 
-    CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName) :
-      IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-      {}
+    CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName);
+	virtual ~CWII_IPC_HLE_Device_fs();
 
-      virtual ~CWII_IPC_HLE_Device_fs()
-      {}
-
-      virtual bool Open(u32 _CommandAddress)
-      {
-          Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
-          return true;
-      }
+    virtual bool Open(u32 _CommandAddress, u32 _Mode);
 
 #if 0
     virtual bool Close(u32 _CommandAddress)  { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Close()", m_Name.c_str()); return true; }
@@ -42,8 +34,25 @@ public:
 	virtual bool Read(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Read()", m_Name.c_str()); return true; }
 	virtual bool Write(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Write()", m_Name.c_str()); return true; }
 #endif
-	virtual bool IOCtl(u32 _CommandAddress) { return true; }
-	virtual bool IOCtlV(u32 _CommandAddress) { return true; }
+
+	virtual bool IOCtl(u32 _CommandAddress);
+
+	virtual bool IOCtlV(u32 _CommandAddress);
+
+private:
+
+	enum 
+	{
+		IOCTL_READ_DIR		= 0x04,
+		DELETE_FILE			= 0x07,
+		RENAME_FILE			= 0x08,
+		CREATE_FILE			= 0x09,
+		IOCTL_GETUSAGE		= 0x0C
+	};
+
+	s32 ExecuteCommand(u32 Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);
+
+	void CreateDirectoryStruct(const std::string& _rFullPath);
 };
 
 #endif

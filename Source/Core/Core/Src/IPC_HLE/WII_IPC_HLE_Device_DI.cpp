@@ -28,9 +28,6 @@
 #include "VolumeCreator.h"
 #include "Filesystem.h"
 
-// Hack
-u8 coverByte = 0;
-
 
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName )
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
@@ -48,7 +45,7 @@ CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
     delete m_pVolume;
 }
 
-bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
 {
     Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
     return true;
@@ -60,10 +57,6 @@ bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
     LOG(WII_IPC_DVD, "CWII_IPC_DVD_Device_di::IOCtl");
     LOG(WII_IPC_DVD, "*******************************");
 
-    // DumpCommands(_CommandAddress);
-
-	// u32 Cmd =  Memory::Read_U32(_CommandAddress + 0xC);
-	// TODO: Use Cmd for something?
 
 	u32 BufferIn =  Memory::Read_U32(_CommandAddress + 0x10);
 	u32 BufferInSize =  Memory::Read_U32(_CommandAddress + 0x14);
@@ -74,14 +67,6 @@ bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 
 	u32 ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);	
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-
-/*    DumpCommands(_CommandAddress);
-
-    LOG(WII_IPC_DVD, "InBuffer");
-    DumpCommands(BufferIn, BufferInSize);
-
-//    LOG(WII_IPC_DVD, "OutBuffer");
-  //  DumpCommands(BufferOut, BufferOutSize); */
 
     return true;
 }
@@ -139,11 +124,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		}
 		break;
 	
-    // DVDLowRead
-	// TODO - find out if 80, 8d, or and d0 need to do something specific 
-	case 0x80:
-	case 0x8d:
-	case 0xd0:
+	// DVDLowRead 
     case 0x71:
         {                                 
             u32 Size = Memory::Read_U32(_BufferIn + 0x04);
@@ -186,7 +167,12 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
     // DVDLowGetCoverReg - called by "Legend of Spyro"	
     case 0x7a:
         {   
-            // HACK - swiching the 4th byte between 0 and 1 gets through this check
+			LOG(WII_IPC_DVD, "%s executes DVDLowGetCoverReg (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
+
+            // HACK - switching the 4th byte between 0 and 1 gets through this check
+
+			static u8 coverByte = 0;
+
 			Memory::Memset(_BufferOut, 0, _BufferOutSize);	
 
 			u8* buffer = Memory::GetPointer(_BufferOut);
@@ -227,12 +213,20 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		}
 		break;
 
+	// DVDLowOpenPartition
+	case 0x8b:
+		PanicAlert("DVDLowOpenPartition", Command);
+		break;
+
+
+	// DVDLowUnencryptedRead 
+	case 0x8d:
+		PanicAlert("DVDLowUnencryptedRead");
+		break;
 
     // DVDLowSeek
     case 0xab:
-        {
-			// PanicAlert("DVDLowSeek");
-		}
+		// PanicAlert("DVDLowSeek");
         break;
 
 	// DVDLowStopMotor
