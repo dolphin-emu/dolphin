@@ -33,7 +33,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id, const wxString &titl
 
 AboutDolphin::~AboutDolphin()
 {
-} 
+}
 
 void AboutDolphin::CreateGUIControls()
 {
@@ -45,9 +45,7 @@ void AboutDolphin::CreateGUIControls()
 	DolphinLogo = new wxBitmap(iDolphinLogo);
 	sbDolphinLogo = new wxStaticBitmap(this, ID_LOGO, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
 	sbDolphinLogo->SetBitmap(*DolphinLogo);
-
-	Message = new wxStaticText(this, ID_MESSAGE,
-		wxString::Format(wxT("Dolphin SVN revision %s\nCPU: %s\n\n" // Maybe add OS/arch info too?
+	std::string Text = std::string("Dolphin SVN revision ") +  SVN_REV_STR + "\nCPU: " + cpu_info.Summarize() +  "\n\n" // Maybe add OS/arch info too?
 		"Copyright (c) by F|RES, ector, yaz0r 2003-2008\n"
 		"Additional code by Schibo and Costis.\n\n"
 		"Greets to Azimer, Caustik, Costis, Cyrus64, Desktopman, Epsilon, Hotquik, Jazzmin, mamedevs, (Lazer)Maksen, Martin64, or9, Runik, Schibo,"
@@ -59,7 +57,9 @@ void AboutDolphin::CreateGUIControls()
 		"Thanks to Shinji Chiba for his GC ADPCM decoder.\n\n"
 		"We are not affiliated with Nintendo in any way. Gamecube and Wii are trademarks of Nintendo.\n"
 		"The emulator is for educational purposes only and we do not support using this emulator to play games you do not legally own.\n\n"
-                                     "Beta testers: EFX, Falcon4ever and Shadowprince (kx)."), SVN_REV_STR, cpu_info.Summarize().c_str()),
+                                     "Beta testers: EFX, Falcon4ever and Shadowprince (kx).";
+	Message = new wxStaticText(this, ID_MESSAGE,
+		wxString::FromAscii(Text.c_str()),
 		wxDefaultPosition, wxDefaultSize, 0);
 	Message->Wrap(this->GetSize().GetWidth());
 
