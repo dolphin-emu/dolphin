@@ -29,9 +29,9 @@
 #include "ConfigMain.h"
 #include "PluginManager.h"
 #include "MemcardManager.h"
+#include "AboutDolphin.h"
 
 #include <wx/mstream.h>
-#include <wx/aboutdlg.h>
 
 // ----------------------------------------------------------------------------
 // resources
@@ -378,22 +378,20 @@ void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnHelp(wxCommandEvent& event)
 {
-	switch (event.GetId()) {
+	switch (event.GetId())
+	{
 	case IDM_HELPABOUT:
 		{
-		wxAboutDialogInfo info;
-		info.AddDeveloper(_T("ector"));
-		info.AddDeveloper(_T("F|RES"));
-		info.AddDeveloper(_T("yaz0r"));
-		info.AddDeveloper(_T("zerofrog"));
-	/*	info.SetLicence(wxString::FromAscii(
-		"Dolphin Licence 1.0"
-		"#include GPL.TXT"));
-	 */
-
-		info.AddArtist(_T("miloszwl@miloszwl.com (miloszwl.deviantart.com)"));
-
-		wxAboutBox(info);
+		#ifdef _WIN32
+			wxWindow win;
+			win.SetHWND(this->GetHWND());
+			AboutDolphin frame(&win);
+			frame.ShowModal();
+			win.SetHWND(0); 
+		#else
+			AboutBox frame(NULL);
+			frame.ShowModal();
+		#endif
 		break;
 		}
 	case IDM_HELPWEBSITE:
@@ -679,9 +677,9 @@ void CFrame::UpdateGUI()
 		if (Core::GetState() == Core::CORE_UNINITIALIZED)
 		{
 			if (m_GameListCtrl && !m_GameListCtrl->IsShown())
-                            {
-                                m_GameListCtrl->Enable();
-                                m_GameListCtrl->Show();
+			{
+				m_GameListCtrl->Enable();
+				m_GameListCtrl->Show();
 				sizerPanel->FitInside(m_Panel);
 			}
 		}

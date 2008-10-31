@@ -142,18 +142,19 @@ void CConfigMain::CreateGUIControls()
 	sbBasic->Add(UseDualCore, 0, wxALL, 5);
 	sbBasic->Add(SkipIdle, 0, wxALL, 5);
 	sbBasic->Add(EnableCheats, 0, wxALL, 5);
-	sGeneral->Add(sbBasic);
+	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
+	sGeneral->AddStretchSpacer();
 
 	sbAdvanced->Add(AllwaysHLEBIOS, 0, wxALL, 5);
 	sbAdvanced->Add(UseDynaRec, 0, wxALL, 5);
 	sbAdvanced->Add(LockThreads, 0, wxALL, 5);
 	sbAdvanced->Add(OptimizeQuantizers, 0, wxALL, 5);
-	sGeneral->Add(sbAdvanced);
+	sGeneral->Add(sbAdvanced, 0, wxEXPAND|wxALL, 5);
 	GeneralPage->SetSizer(sGeneral);
 	sGeneral->Layout();
 
 	// Gamecube page
-	sbGamecube = new wxStaticBoxSizer(wxVERTICAL, GamecubePage, wxT("IPL Settings"));
+	sbGamecubeIPLSettings = new wxStaticBoxSizer(wxVERTICAL, GamecubePage, wxT("IPL Settings"));
 	arrayStringFor_GCSystemLang.Add(wxT("English"));
 	arrayStringFor_GCSystemLang.Add(wxT("German"));
 	arrayStringFor_GCSystemLang.Add(wxT("French"));
@@ -164,12 +165,14 @@ void CConfigMain::CreateGUIControls()
 	GCSystemLang = new wxChoice(GamecubePage, ID_GC_SRAM_LNG, wxDefaultPosition, wxDefaultSize, arrayStringFor_GCSystemLang, 0, wxDefaultValidator);
 	GCSystemLang->SetSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
 
-	sGamecube= new wxGridBagSizer(0, 0);
-	sGamecube->Add(GCSystemLangText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sGamecube->Add(GCSystemLang, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
-	sbGamecube->Add(sGamecube);
-	GamecubePage->SetSizer(sbGamecube);
-	sbGamecube->Layout();
+	sGamecube = new wxBoxSizer(wxVERTICAL);
+	sGamecubeIPLSettings = new wxGridBagSizer(0, 0);
+	sGamecubeIPLSettings->Add(GCSystemLangText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sGamecubeIPLSettings->Add(GCSystemLang, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
+	sbGamecubeIPLSettings->Add(sGamecubeIPLSettings);
+	sGamecube->Add(sbGamecubeIPLSettings, 0, wxEXPAND|wxALL, 5);
+	GamecubePage->SetSizer(sGamecube);
+	sGamecube->Layout();
 
 	// Wii SYSCONF page
 	sbWiimoteSettings = new wxStaticBoxSizer(wxVERTICAL, WiiPage, wxT("Wiimote Settings"));
@@ -200,7 +203,7 @@ void CConfigMain::CreateGUIControls()
 	sWiimoteSettings->Add(WiiSensBarPosText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sWiimoteSettings->Add(WiiSensBarPos, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
 	sbWiimoteSettings->Add(sWiimoteSettings);
-	sWii->Add(sbWiimoteSettings);
+	sWii->Add(sbWiimoteSettings, 0, wxEXPAND|wxALL, 5);
 
 	sWiiIPLSettings = new wxGridBagSizer(0, 0);
 	sWiiIPLSettings->Add(WiiScreenSaver, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
@@ -211,7 +214,7 @@ void CConfigMain::CreateGUIControls()
 	sWiiIPLSettings->Add(WiiSystemLangText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sWiiIPLSettings->Add(WiiSystemLang, wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
 	sbWiiIPLSettings->Add(sWiiIPLSettings);
-	sWii->Add(sbWiiIPLSettings);
+	sWii->Add(sbWiiIPLSettings, 0, wxEXPAND|wxALL, 5);
 	WiiPage->SetSizer(sWii);
 	sWii->Layout();
 
@@ -221,17 +224,10 @@ void CConfigMain::CreateGUIControls()
 	{
 		arrayStringFor_ISOPaths.Add(wxString(SConfig::GetInstance().m_ISOFolder[i].c_str(), wxConvUTF8));
 	}
-	ISOPaths = new wxListBox(PathsPage, ID_ISOPATHS, wxDefaultPosition, wxSize(290,150), arrayStringFor_ISOPaths, wxLB_SINGLE, wxDefaultValidator);
+	ISOPaths = new wxListBox(PathsPage, ID_ISOPATHS, wxDefaultPosition, wxDefaultSize, arrayStringFor_ISOPaths, wxLB_SINGLE, wxDefaultValidator);
 	AddISOPath = new wxButton(PathsPage, ID_ADDISOPATH, wxT("Add..."), wxDefaultPosition, wxDefaultSize, 0);
 	RemoveISOPath = new wxButton(PathsPage, ID_REMOVEISOPATH, wxT("Remove"), wxDefaultPosition, wxDefaultSize, 0);
 	RemoveISOPath->Enable(false);
-
-	sISOButtons = new wxBoxSizer(wxHORIZONTAL);
-	sISOButtons->AddStretchSpacer(1);
-	sISOButtons->Add(AddISOPath, 0, wxALL, 5);
-	sISOButtons->Add(RemoveISOPath, 0, wxALL, 5);
-	sbISOPaths->Add(ISOPaths, 1, wxEXPAND|wxALL, 5);
-	sbISOPaths->Add(sISOButtons, 0, wxEXPAND|wxALL, 5);
 
 	DefaultISOText = new wxStaticText(PathsPage, ID_DEFAULTISO_TEXT, wxT("Default ISO:"), wxDefaultPosition, wxDefaultSize);
 	DefaultISO = new wxFilePickerCtrl(PathsPage, ID_DEFAULTISO, wxEmptyString, wxT("Choose a default ISO:"),
@@ -243,57 +239,65 @@ void CConfigMain::CreateGUIControls()
 	DVDRoot = new wxDirPickerCtrl(PathsPage, ID_DVDROOT, wxEmptyString, wxT("Choose a DVD root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
 	DVDRoot->SetPath(wxString::FromAscii(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot.c_str()));
 
-	sPaths = new wxGridBagSizer(0, 0);
-	sPaths->Add(sbISOPaths, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL|wxEXPAND, 5);
-	sPaths->Add(DefaultISOText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sPaths->Add(DefaultISO, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL|wxEXPAND, 5);
-	sPaths->Add(DVDRootText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sPaths->Add(DVDRoot, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL|wxEXPAND, 5);
+	sPaths = new wxBoxSizer(wxVERTICAL);
+
+	sbISOPaths->Add(ISOPaths, 1, wxEXPAND|wxALL, 5);
+
+	sISOButtons = new wxBoxSizer(wxHORIZONTAL);
+	sISOButtons->AddStretchSpacer(1);
+	sISOButtons->Add(AddISOPath, 0, wxALL, 5);
+	sISOButtons->Add(RemoveISOPath, 0, wxALL, 5);
+	sbISOPaths->Add(sISOButtons, 0, wxEXPAND|wxALL, 5);
+	sPaths->Add(sbISOPaths, 1, wxEXPAND|wxALL, 5);
+
+	sOtherPaths = new wxGridBagSizer(0, 0);
+	sOtherPaths->AddGrowableCol(1);
+	sOtherPaths->Add(DefaultISOText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sOtherPaths->Add(DefaultISO, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sOtherPaths->Add(DVDRootText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sOtherPaths->Add(DVDRoot, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sPaths->Add(sOtherPaths, 0, wxEXPAND|wxALL, 5);
 	PathsPage->SetSizer(sPaths);
 	sPaths->Layout();
 
 	// Plugin page
+	sbGraphicsPlugin = new wxStaticBoxSizer(wxHORIZONTAL, PluginPage, wxT("Graphics"));
 	GraphicSelection = new wxChoice(PluginPage, ID_GRAPHIC_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
 	GraphicConfig = new wxButton(PluginPage, ID_GRAPHIC_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	GraphicText = new wxStaticText(PluginPage, ID_GRAPHIC_TEXT, wxT("GFX:"), wxDefaultPosition, wxDefaultSize);
 
-	FillChoiceBox(GraphicSelection, PLUGIN_TYPE_VIDEO, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
-
+	sbDSPPlugin = new wxStaticBoxSizer(wxHORIZONTAL, PluginPage, wxT("DSP"));
 	DSPSelection = new wxChoice(PluginPage, ID_DSP_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
 	DSPConfig = new wxButton(PluginPage, ID_DSP_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	DSPText = new wxStaticText(PluginPage, ID_DSP_TEXT, wxT("DSP:"), wxDefaultPosition, wxDefaultSize);
 
-	FillChoiceBox(DSPSelection, PLUGIN_TYPE_DSP, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin);
-
+	sbPadPlugin = new wxStaticBoxSizer(wxHORIZONTAL, PluginPage, wxT("Pad"));
 	PADSelection = new wxChoice(PluginPage, ID_PAD_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
 	PADConfig = new wxButton(PluginPage, ID_PAD_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	PADText = new wxStaticText(PluginPage, ID_PAD_TEXT, wxT("PAD:"), wxDefaultPosition, wxDefaultSize);
 
-	FillChoiceBox(PADSelection, PLUGIN_TYPE_PAD, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin);
-
+	sbWiimotePlugin = new wxStaticBoxSizer(wxHORIZONTAL, PluginPage, wxT("Wiimote"));
 	WiimoteSelection = new wxChoice(PluginPage, ID_WIIMOTE_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
 	WiimoteConfig = new wxButton(PluginPage, ID_WIIMOTE_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	WiimoteText = new wxStaticText(PluginPage, ID_WIIMOTE_TEXT, wxT("Wiimote:"), wxDefaultPosition, wxDefaultSize);
-
+	
+	FillChoiceBox(GraphicSelection, PLUGIN_TYPE_VIDEO, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
+	FillChoiceBox(DSPSelection, PLUGIN_TYPE_DSP, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin);
+	FillChoiceBox(PADSelection, PLUGIN_TYPE_PAD, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin);
 	FillChoiceBox(WiimoteSelection, PLUGIN_TYPE_WIIMOTE, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin);
 
-	sPlugins = new wxGridBagSizer(0, 0);
-	sPlugins->Add(GraphicText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sPlugins->Add(GraphicSelection, wxGBPosition(0, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
-	sPlugins->Add(GraphicConfig, wxGBPosition(0, 3), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sPlugins = new wxBoxSizer(wxVERTICAL);
+	sbGraphicsPlugin->Add(GraphicSelection, 1, wxEXPAND|wxALL, 5);
+	sbGraphicsPlugin->Add(GraphicConfig, 0, wxALL, 5);
+	sPlugins->Add(sbGraphicsPlugin, 0, wxEXPAND|wxALL, 5);
 
-	sPlugins->Add(DSPText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sPlugins->Add(DSPSelection, wxGBPosition(1, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
-	sPlugins->Add(DSPConfig, wxGBPosition(1, 3), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sbDSPPlugin->Add(DSPSelection, 1, wxEXPAND|wxALL, 5);
+	sbDSPPlugin->Add(DSPConfig, 0, wxALL, 5);
+	sPlugins->Add(sbDSPPlugin, 0, wxEXPAND|wxALL, 5);
 
-	sPlugins->Add(PADText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sPlugins->Add(PADSelection, wxGBPosition(2, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
-	sPlugins->Add(PADConfig, wxGBPosition(2, 3), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sbPadPlugin->Add(PADSelection, 1, wxEXPAND|wxALL, 5);
+	sbPadPlugin->Add(PADConfig, 0, wxALL, 5);
+	sPlugins->Add(sbPadPlugin, 0, wxEXPAND|wxALL, 5);
 
-	sPlugins->Add(WiimoteText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sPlugins->Add(WiimoteSelection, wxGBPosition(3, 1), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
-	sPlugins->Add(WiimoteConfig, wxGBPosition(3, 3), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-
+	sbWiimotePlugin->Add(WiimoteSelection, 1, wxEXPAND|wxALL, 5);
+	sbWiimotePlugin->Add(WiimoteConfig, 0, wxALL, 5);
+	sPlugins->Add(sbWiimotePlugin, 0, wxEXPAND|wxALL, 5);
 	PluginPage->SetSizer(sPlugins);
 	sPlugins->Layout();
 

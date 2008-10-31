@@ -48,17 +48,23 @@ class CConfigMain
 		wxBoxSizer* sGeneral;
 		wxStaticBoxSizer* sbBasic;
 		wxStaticBoxSizer* sbAdvanced;
-		wxGridBagSizer* sGamecube;
-		wxStaticBoxSizer* sbGamecube;
+		wxBoxSizer* sGamecube;
+		wxStaticBoxSizer* sbGamecubeIPLSettings;
+		wxGridBagSizer* sGamecubeIPLSettings;
 		wxBoxSizer* sWii;
 		wxStaticBoxSizer* sbWiimoteSettings;
 		wxGridBagSizer* sWiimoteSettings;
 		wxStaticBoxSizer* sbWiiIPLSettings;
 		wxGridBagSizer* sWiiIPLSettings;
-		wxGridBagSizer* sPaths;
+		wxBoxSizer* sPaths;
 		wxStaticBoxSizer* sbISOPaths;		
 		wxBoxSizer* sISOButtons;
-		wxGridBagSizer* sPlugins;
+		wxGridBagSizer* sOtherPaths;
+		wxBoxSizer* sPlugins;
+		wxStaticBoxSizer* sbGraphicsPlugin;
+		wxStaticBoxSizer* sbDSPPlugin;
+		wxStaticBoxSizer* sbPadPlugin;
+		wxStaticBoxSizer* sbWiimotePlugin;
 
 		wxNotebook *Notebook;
 		wxPanel *GeneralPage;

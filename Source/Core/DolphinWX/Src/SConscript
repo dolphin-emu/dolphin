@@ -11,7 +11,8 @@ files = [
 
 if not env['osx64']:
     files += 	[
-		'ConfigMain.cpp',
+		'AboutDolphin.cpp',
+			'ConfigMain.cpp',
        		'FileSearch.cpp',
        		'FilesystemViewer.cpp',
        		'Frame.cpp',

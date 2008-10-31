@@ -163,14 +163,10 @@ void DllConfig(HWND _hParent)
 	LoadConfig();	// load settings
 
 	wxWindow win;
-	win.SetHWND((WXHWND)_hParent);
-	win.Enable(false);  
-	
+	win.SetHWND(_hParent);
 	ConfigBox frame(&win);
 	frame.ShowModal();
-
-	win.Enable(true);
-	win.SetHWND(0); 
+	win.SetHWND(0);
 
 	#else
 	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
