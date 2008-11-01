@@ -10,21 +10,20 @@ files = [
 	]
 
 if not env['osx64']:
-    files += 	[
+	files += [
 		'AboutDolphin.cpp',
-			'ConfigMain.cpp',
-       		'FileSearch.cpp',
-       		'FilesystemViewer.cpp',
-       		'Frame.cpp',
-       		'GameListCtrl.cpp',
-       		'Globals.cpp',
-       		'ISOFile.cpp',
-       		'MemcardManager.cpp',
-       		'MemoryCards/GCMemcard.cpp',
-       		'PluginManager.cpp',
-       		'stdafx.cpp',
+		'ConfigMain.cpp',
+		'FileSearch.cpp',
+		'FilesystemViewer.cpp',
+		'Frame.cpp',
+		'GameListCtrl.cpp',
+		'Globals.cpp',
+		'ISOFile.cpp',
+		'MemcardManager.cpp',
+		'MemoryCards/GCMemcard.cpp',
+		'PluginManager.cpp',
+		'stdafx.cpp',
 		]
-
 
 libs = [
 	'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'common', 'z'
@@ -32,30 +31,30 @@ libs = [
 
 wxenv = env.Clone()
 if not wxenv['osx64']:
-    libs = [ 'debwx' ] + libs
-    wxenv.Append(
-	CPPDEFINES = [
-		'USE_XPM_BITMAPS',
-		'wxNEEDS_CHARPP',
-		],
-	LINKFLAGS = [
-		'-pthread',
-		],
-	LIBS = libs
-	)
+	libs = [ 'debwx' ] + libs
+	wxenv.Append(
+		CPPDEFINES = [
+			'USE_XPM_BITMAPS',
+			'wxNEEDS_CHARPP',
+			],
+		LINKFLAGS = [
+			'-pthread',
+			],
+		LIBS = libs
+		)
 else:
-    wxenv.Append(
-	CPPDEFINES = [
-		'USE_XPM_BITMAPS',
-		'wxNEEDS_CHARPP',
-		],
-	LINKFLAGS = [
-		'-pthread',
-		'-arch',
-		'x86_64'
-		],
-	LIBS = libs
-	)
+	wxenv.Append(
+		CPPDEFINES = [
+			'USE_XPM_BITMAPS',
+			'wxNEEDS_CHARPP',
+			],
+		LINKFLAGS = [
+			'-pthread',
+			'-arch',
+			'x86_64'
+			],
+		LIBS = libs
+		)
 
 if sys.platform == 'darwin':
 	exeGUI = '../../../../Binary/mac/Dolphin.app/Contents/MacOS/Dolphin'
@@ -87,5 +86,5 @@ else:
 
 objects = [ wxenv.Object(srcFile) for srcFile in files ]
 if not wxenv['osx64']:
-    wxenv.Program(exeGUI, objects + [ 'Main.cpp' ])
+	wxenv.Program(exeGUI, objects + [ 'Main.cpp' ])
 wxenv.Program(exeNoGUI, objects + [ 'MainNoGUI.cpp' ])
