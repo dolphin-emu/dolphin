@@ -22,10 +22,6 @@
 
 #include "WII_IPC_HLE_Device_fs.h"
 
-#ifdef _WIN32
-#include <direct.h>
-#endif
-
 
 
 extern std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size);
