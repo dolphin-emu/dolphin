@@ -63,7 +63,7 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 
 bool CWII_IPC_HLE_Device_fs::IOCtl(u32 _CommandAddress) 
 { 
-	LOG(WII_IPC_FILEIO, "FileIO: IOCtl (Device=%s)", GetDeviceName().c_str());	
+	LOG(WII_IPC_FILEIO, "FS: IOCtl (Device=%s)", GetDeviceName().c_str());	
 
 	u32 Parameter =  Memory::Read_U32(_CommandAddress + 0xC);
 	u32 BufferIn =  Memory::Read_U32(_CommandAddress + 0x10);
@@ -189,11 +189,11 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			Addr += 9; // owner attribs, permission
 			u8 Attribs = Memory::Read_U8(Addr);
 
+			LOG(WII_IPC_FILEIO, "FS: CREATE_DIR %s", DirName.c_str());
+
 			if (File::IsDirectory(DirName.c_str()))
 			{
 				bool Result = File::CreateDir(DirName.c_str());
-				LOG(WII_IPC_FILEIO, "FS: CREATE_DIR %s (%s)", DirName.c_str(), Result ? "success" : "failed");
-
 				_dbg_assert_msg_(WII_IPC_FILEIO, Result, "FS: CREATE_DIR %s failed", DirName.c_str());
 			}
 
@@ -202,12 +202,19 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 		break;
 
 	case GET_ATTR:
-		{
-			_dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
-			int Offset = 0;
+		{		
+			_dbg_assert_msg_(WII_IPC_FILEIO, _BufferOutSize == 76, "    GET_ATTR needs an 76 bytes large output buffer but it is %i bytes large", _BufferOutSize);
 
-			std::string Filename = HLE_IPC_BuildFilename((const char*)Memory::GetPointer(_BufferIn+Offset), 64);
-			Offset += 64;
+			// first clear the whole output buffer
+			memset(Memory::GetPointer(_BufferOut), 0, _BufferOutSize);
+
+			u32 OwnerID = 0;
+			u16 GroupID = 0;
+			std::string Filename = HLE_IPC_BuildFilename((const char*)Memory::GetPointer(_BufferIn), 64);
+			u8 OwnerPerm = 0;
+			u8 GroupPerm = 0;
+			u8 OtherPerm = 0;
+			u8 Attributes = 0;
 
 			if (File::IsDirectory(Filename.c_str()))
 			{
@@ -219,7 +226,24 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 				{
 					LOG(WII_IPC_FILEIO, "FS: GET_ATTR %s - ni", Filename.c_str());
 				}
+				else
+				{
+					LOG(WII_IPC_FILEIO, "FS: GET_ATTR unknown %s", Filename.c_str());
+					return FS_FILE_NOT_EXIST;
+				}
+			}
 
+			// write answer to buffer
+			if (_BufferOutSize == 76)
+			{
+				u32 Addr = _BufferOut;
+				Memory::Write_U32(OwnerID, Addr);										Addr += 4;
+				Memory::Write_U16(GroupID, Addr);										Addr += 2;
+				memcpy(Memory::GetPointer(Addr), Filename.c_str(), Filename.size());	Addr += 64;
+				Memory::Write_U8(OwnerPerm, Addr);										Addr += 1;
+				Memory::Write_U8(GroupPerm, Addr);										Addr += 1;
+				Memory::Write_U8(OtherPerm, Addr);										Addr += 1;
+				Memory::Write_U8(Attributes, Addr);										Addr += 1;
 			}
 
 			return FS_RESULT_OK;

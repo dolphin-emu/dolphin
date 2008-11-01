@@ -333,7 +333,7 @@ void Host_SetWiiMoteConnectionState(int _State)
 	{
 	case 0: event.SetString(wxString::FromAscii("not connected")); break;
 	case 1: event.SetString(wxString::FromAscii("connecting...")); break;
-	case 2: event.SetString(wxString::FromAscii("conected!")); break;
+	case 2: event.SetString(wxString::FromAscii("connected!")); break;
 	}
 
 	event.SetInt(1);

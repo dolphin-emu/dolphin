@@ -69,7 +69,14 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 { 
 	u32 ReturnValue = 0;
 
-	LOG(WII_IPC_FILEIO, "FileIO: Open (Device=%s)", GetDeviceName().c_str());	
+	const char Modes[][128] =
+	{
+		{ "Read only" },
+		{ "Write only" },
+		{ "Read and Write" }
+	};
+
+	LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s)", GetDeviceName().c_str(), Modes[_Mode]);	
 
 	m_Filename = std::string(HLE_IPC_BuildFilename(GetDeviceName().c_str(), 64));
 
@@ -135,8 +142,8 @@ CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 
     if (m_pFileHandle != NULL)
     {
-        fread(Memory::GetPointer(Address), Size, 1, m_pFileHandle);
-        ReturnValue = Size;
+        size_t readItems = fread(Memory::GetPointer(Address), 1, Size, m_pFileHandle);
+        ReturnValue = readItems;
         LOG(WII_IPC_FILEIO, "FileIO reads from %s (Addr=0x%08x Size=0x%x)", GetDeviceName().c_str(), Address, Size);	
     }
     else
@@ -190,7 +197,7 @@ CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 
             u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
             LOG(WII_IPC_FILEIO, "FileIO: ISFS_IOCTL_GETFILESTATS");
-            LOG(WII_IPC_FILEIO, "Length: %i   Seek: %i", m_FileLength, Position);
+            LOG(WII_IPC_FILEIO, "    Length: %i   Seek: %i", m_FileLength, Position);
 
             Memory::Write_U32(m_FileLength, BufferOut);
             Memory::Write_U32(Position, BufferOut+4);

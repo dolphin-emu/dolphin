@@ -83,6 +83,7 @@ CBannerLoaderWii::GetBanner(u32* _pBannerImage)
 	static u32 Buffer[192 * 64];
 	decode5A3image(Buffer, (u16*)pBanner->m_BannerTexture, 192, 64);
 
+	// ugly scaling :)
 	for (int y=0; y<32; y++)
 	{
 		for (int x=0; x<96; x++)
