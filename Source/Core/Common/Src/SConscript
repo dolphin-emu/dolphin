@@ -10,6 +10,7 @@ files = [
 	"DynamicLibrary.cpp",
 	"Hash.cpp",
 	"IniFile.cpp",
+	"FileSearch.cpp",
 	"Logging.cpp",
 	"FileUtil.cpp",
 	"MappedFile.cpp",

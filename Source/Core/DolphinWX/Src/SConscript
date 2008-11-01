@@ -13,7 +13,6 @@ if not env['osx64']:
 	files += [
 		'AboutDolphin.cpp',
 		'ConfigMain.cpp',
-		'FileSearch.cpp',
 		'FilesystemViewer.cpp',
 		'Frame.cpp',
 		'GameListCtrl.cpp',
