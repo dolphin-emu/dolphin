@@ -16,8 +16,29 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "FileUtil.h"
 
 #include "WII_IPC_HLE_Device_FileIO.h"
+
+
+
+std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
+{
+	char Buffer[128];
+	memcpy(Buffer, _pFilename, _size);
+
+	std::string Filename("WII");
+	if (Buffer[1] == '0')
+		Filename += std::string("/title");     // this looks and feel like an hack...
+
+	Filename += File::SanitizePath(Buffer);
+
+	return Filename;
+}
+
+
+/// ----------------------------------------------------------------
+
 
 
 CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std::string& _rDeviceName ) 
@@ -43,16 +64,6 @@ CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress)
 	return true;
 }
 
-std::string HLE_IPC_BuildFilename(const char* _pFilename)
-{
-	std::string Filename("WII");
-	if (_pFilename[1] == '0')
-		Filename += std::string("/title");     // this looks and feel like an hack...
-	Filename += std::string (_pFilename);
-
-	return Filename;
-}
-
 bool 
 CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)  
 { 
@@ -60,7 +71,7 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 
 	LOG(WII_IPC_FILEIO, "FileIO: Open (Device=%s)", GetDeviceName().c_str());	
 
-    m_Filename = (HLE_IPC_BuildFilename(GetDeviceName().c_str()));
+	m_Filename = std::string(HLE_IPC_BuildFilename(GetDeviceName().c_str(), 64));
 
 	switch(_Mode)
 	{
@@ -175,7 +186,7 @@ CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
     {
     case ISFS_IOCTL_GETFILESTATS:
         {
-			u32 Position = ftell(m_pFileHandle);
+			u32 Position = (u32)ftell(m_pFileHandle);
 
             u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
             LOG(WII_IPC_FILEIO, "FileIO: ISFS_IOCTL_GETFILESTATS");

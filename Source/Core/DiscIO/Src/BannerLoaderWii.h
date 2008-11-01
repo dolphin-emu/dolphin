@@ -43,10 +43,40 @@ class CBannerLoaderWii
 
 
 	private:
+		
+		#define WII_BANNER_TEXTURE_SIZE (192 * 64 * 2)
+		#define WII_BANNER_ICON_SIZE    ( 48 * 48 * 2)
+		#define WII_BANNER_COMMENT_SIZE 32
+
+		struct SWiiBanner
+		{
+			u32 ID;
+
+			u32 m_Flag;
+			u16 m_Speed;
+			u8  m_Unknown[22];
+
+			u16 m_Comment[2][WII_BANNER_COMMENT_SIZE]; 
+			u8  m_BannerTexture[WII_BANNER_TEXTURE_SIZE]; 
+			u8  m_IconTexture[8][WII_BANNER_ICON_SIZE]; 
+		} ;
+
+		// for banner decoding
+		int lut3to8[8];
+		int lut4to8[16];
+		int lut5to8[32];
 
 		std::string m_Name;
 
-		u8* m_pBuffer;
+		u8* m_pBannerFile;
+
+		bool m_IsValid;
+
+		void InitLUTTable();
+		u32 decode5A3(u16 val);
+		void decode5A3image(u32* dst, u16* src, int width, int height);
+
+		std::string StupidWideCharToString(u16* _pSrc, size_t _max);
 };
 } // namespace
 

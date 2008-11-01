@@ -35,6 +35,7 @@ struct FSTEntry
 	std::vector<FSTEntry> children;
 };
 
+std::string SanitizePath(const char *filename);
 bool Exists(const char *filename);
 void Launch(const char *filename);
 void Explore(const char *path);
@@ -43,6 +44,7 @@ bool CreateDir(const char *filename);
 bool Delete(const char *filename);
 u64 GetSize(const char *filename);
 std::string GetUserDirectory();
+bool CreateEmptyFile(const char *filename);
 
 u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry);
 

@@ -18,6 +18,7 @@
 #include "Common.h"
 #include "StringUtil.h"
 #include "FileSearch.h"
+#include "FileUtil.h"
 
 #include "WII_IPC_HLE_Device_fs.h"
 
@@ -26,11 +27,15 @@
 
 
 
-extern std::string HLE_IPC_BuildFilename(const char* _pFilename);
+extern std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size);
 
 #define FS_RESULT_OK		(0)
 #define FS_FILE_EXIST		(-105)
+#define FS_FILE_NOT_EXIST	(-106)
 #define FS_RESULT_FATAL		(-128)
+
+#define MAX_NAME			(12)
+
 
 CWII_IPC_HLE_Device_fs::CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName) 
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
@@ -85,18 +90,60 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 	{
 	case IOCTL_READ_DIR:
 		{
-			std::string Filename(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address)));
+			// the wii uses this function to define the type (dir or file)
+			std::string Filename(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address), CommandBuffer.InBuffer[0].m_Size));
 
+			LOG(WII_IPC_FILEIO, "FS: IOCTL_READ_DIR %s", Filename.c_str());
+
+			// check if this is really a directory
+			if (!File::IsDirectory(Filename.c_str()))
+			{
+				LOG(WII_IPC_FILEIO, "    Not a directory - return -6 (dunno if this is a correct return value)", Filename.c_str());
+				ReturnValue = -6;				
+				break;
+			}
+
+			// make a file search
+			CFileSearch::XStringVector Directories;
+			Directories.push_back(Filename);
+
+			CFileSearch::XStringVector Extensions;
+			Extensions.push_back("*.*");
+
+			CFileSearch FileSearch(Extensions, Directories);
+
+			// it is one
 			if ((CommandBuffer.InBuffer.size() == 1) && (CommandBuffer.PayloadBuffer.size() == 1))
 			{
-				LOG(WII_IPC_FILEIO, "FS: IOCTL_READ_DIR %s (dunno what i should return, number of FiLES?)", Filename.c_str());
+				size_t numFile = FileSearch.GetFileNames().size();
+				LOG(WII_IPC_FILEIO, "    Files in directory: %i", numFile);
 
-				Memory::Write_U32(0, CommandBuffer.PayloadBuffer[0].m_Address);
+				Memory::Write_U32((u32)numFile, CommandBuffer.PayloadBuffer[0].m_Address);
 			}
 			else
 			{
-				PanicAlert("IOCTL_READ_DIR with a lot of parameters");
+				
+
+				memset(Memory::GetPointer(CommandBuffer.PayloadBuffer[0].m_Address), 0, CommandBuffer.PayloadBuffer[0].m_Size);
+
+				size_t numFile = FileSearch.GetFileNames().size();
+				for (size_t i=0; i<numFile; i++)
+				{
+					char* pDest = (char*)Memory::GetPointer((u32)(CommandBuffer.PayloadBuffer[0].m_Address + i * MAX_NAME));
+
+					std::string filename, ext;
+					SplitPath(FileSearch.GetFileNames()[i], NULL, &filename, &ext);
+					
+
+					memcpy(pDest, (filename + ext).c_str(), MAX_NAME);
+					pDest[MAX_NAME-1] = 0x00;
+					LOG(WII_IPC_FILEIO, "    %s", pDest);
+				}
+
+				Memory::Write_U32((u32)numFile, CommandBuffer.PayloadBuffer[1].m_Address);
 			}
+
+			ReturnValue = 0;
 		}
 		break;
 
@@ -106,12 +153,14 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			// fsBlocks and inodes
 			// we answer nothing is used, but if a program uses it to check
 			// how much memory has been used we are doomed...
-			std::string Filename(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address)));
+			std::string Filename(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address), CommandBuffer.InBuffer[0].m_Size));
 
 			LOG(WII_IPC_FILEIO, "FS: IOCTL_GETUSAGE %s", Filename.c_str());
 
 			Memory::Write_U32(0, CommandBuffer.PayloadBuffer[0].m_Address);
 			Memory::Write_U32(0, CommandBuffer.PayloadBuffer[1].m_Address);
+
+			ReturnValue = 0;
 		}
 		break;
 
@@ -131,13 +180,64 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 {
 	switch(_Parameter)
 	{
-	case DELETE_FILE:
+	case CREATE_DIR:
 		{
+			_dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
+			u32 Addr = _BufferIn;
+
+			u32 OwnerID = Memory::Read_U32(Addr); Addr += 4;
+			u16 GroupID = Memory::Read_U16(Addr); Addr += 2;
+			std::string DirName(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(Addr), 64));
+			Addr += 64;
+			Addr += 9; // owner attribs, permission
+			u8 Attribs = Memory::Read_U8(Addr);
+
+			if (File::IsDirectory(DirName.c_str()))
+			{
+				bool Result = File::CreateDir(DirName.c_str());
+				LOG(WII_IPC_FILEIO, "FS: CREATE_DIR %s (%s)", DirName.c_str(), Result ? "success" : "failed");
+
+				_dbg_assert_msg_(WII_IPC_FILEIO, Result, "FS: CREATE_DIR %s failed", DirName.c_str());
+			}
+
+			return FS_RESULT_OK;
+		}
+		break;
+
+	case GET_ATTR:
+		{
+			_dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
 			int Offset = 0;
 
-			std::string Filename = HLE_IPC_BuildFilename((const char*)Memory::GetPointer(_BufferIn+Offset));
+			std::string Filename = HLE_IPC_BuildFilename((const char*)Memory::GetPointer(_BufferIn+Offset), 64);
 			Offset += 64;
-			if (remove(Filename.c_str()) == 0)
+
+			if (File::IsDirectory(Filename.c_str()))
+			{
+				LOG(WII_IPC_FILEIO, "FS: GET_ATTR Directory %s - ni", Filename.c_str());
+			}
+			else
+			{
+				if (File::Exists(Filename.c_str()))
+				{
+					LOG(WII_IPC_FILEIO, "FS: GET_ATTR %s - ni", Filename.c_str());
+				}
+
+			}
+
+			return FS_RESULT_OK;
+		}
+		break;
+
+
+	case DELETE_FILE:
+		{
+			_dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
+			int Offset = 0;
+
+			std::string Filename = HLE_IPC_BuildFilename((const char*)Memory::GetPointer(_BufferIn+Offset), 64);
+			Offset += 64;
+			if (File::Delete(Filename.c_str()))
 			{
 				LOG(WII_IPC_FILEIO, "FS: DeleteFile %s", Filename.c_str());
 			}
@@ -152,13 +252,16 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 
 	case RENAME_FILE:
 		{
+			_dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
 			int Offset = 0;
 
-			std::string Filename = HLE_IPC_BuildFilename((const char*)Memory::GetPointer(_BufferIn+Offset));
+			std::string Filename = HLE_IPC_BuildFilename((const char*)Memory::GetPointer(_BufferIn+Offset), 64);
 			Offset += 64;
 
-			std::string FilenameRename = HLE_IPC_BuildFilename((const char*)Memory::GetPointer(_BufferIn+Offset));
+			std::string FilenameRename = HLE_IPC_BuildFilename((const char*)Memory::GetPointer(_BufferIn+Offset), 64);
 			Offset += 64;
+
+			CreateDirectoryStruct(FilenameRename);
 
 			if (rename(Filename.c_str(), FilenameRename.c_str()) == 0)
 			{
@@ -176,40 +279,36 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 
 	case CREATE_FILE:
 		{
+			_dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
+
 			u32 Addr = _BufferIn;
 			u32 OwnerID = Memory::Read_U32(Addr); Addr += 4;
 			u16 GroupID = Memory::Read_U16(Addr); Addr += 2;
-			std::string Filename(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(Addr)));
+			std::string Filename(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(Addr), 64));
 			Addr += 64;
 			Addr += 9; // unk memory;
 			u8 Attribs = Memory::Read_U8(Addr);
 
 			LOG(WII_IPC_FILEIO, "FS: CreateFile %s (attrib: 0x%02x)", Filename.c_str(), Attribs);
 
-			FILE* pFileHandle = fopen(Filename.c_str(), "r+b");
-			if (pFileHandle != NULL)
+			// check if the file allready exist
+			if (File::Exists(Filename.c_str()))
 			{
-				fclose(pFileHandle);
-				pFileHandle = NULL;
-				LOG(WII_IPC_FILEIO, "    result = FS_RESULT_EXISTS", Filename.c_str(), Attribs);
-
+				LOG(WII_IPC_FILEIO, "    result = FS_RESULT_EXISTS", Filename.c_str());
 				return FS_FILE_EXIST;
 			}
-			else
-			{	
-				CreateDirectoryStruct(Filename);
 
-				FILE* pFileHandle = fopen(Filename.c_str(), "w+b");
-				if (!pFileHandle)
-				{
-					PanicAlert("CWII_IPC_HLE_Device_fs: couldn't create new file");
-					return FS_RESULT_FATAL;
-				}
-				fclose(pFileHandle);
-				LOG(WII_IPC_FILEIO, "    result = FS_RESULT_OK", Filename.c_str(), Attribs);
-
-				return FS_RESULT_OK;
+			// create the file
+			CreateDirectoryStruct(Filename);
+			bool Result = File::CreateEmptyFile(Filename.c_str());
+			if (!Result)
+			{
+				PanicAlert("CWII_IPC_HLE_Device_fs: couldn't create new file");
+				return FS_RESULT_FATAL;
 			}
+
+			LOG(WII_IPC_FILEIO, "    result = FS_RESULT_OK", Filename.c_str(), Attribs);
+			return FS_RESULT_OK;
 		}
 		break;
 
@@ -228,18 +327,31 @@ void CWII_IPC_HLE_Device_fs::CreateDirectoryStruct(const std::string& _rFullPath
 	size_t Position = 0;
 	while(true)
 	{
-		Position = _rFullPath.find('/', Position);
-		if (Position == std::string::npos)
-			break;
+		// find next sub path
+		{
+			size_t nextPosition = _rFullPath.find('/', Position);
+			if (nextPosition == std::string::npos)
+				nextPosition = _rFullPath.find('\\', Position);
+			Position = nextPosition;
 
-		Position++;
+			if (Position == std::string::npos)
+				break;
 
+			Position++;
+		}
+
+		// create next sub path
 		std::string SubPath = _rFullPath.substr(0, Position);
 		if (!SubPath.empty())
-			_mkdir(SubPath.c_str());
+		{
+			if (!File::IsDirectory(SubPath.c_str()))
+			{
+				File::CreateDir(SubPath.c_str());
+				LOG(WII_IPC_FILEIO, "    CreateSubDir %s", SubPath.c_str());
+			}
+		}
 
-		LOG(WII_IPC_FILEIO, "    CreateSubDir %s", SubPath.c_str());
-
+		// just a safty check...
 		PanicCounter--;
 		if (PanicCounter <= 0)
 		{

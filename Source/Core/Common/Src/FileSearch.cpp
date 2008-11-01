@@ -56,11 +56,13 @@ void CFileSearch::FindFiles(const std::string& _searchString, const std::string&
 		bool bkeepLooping = true;
 
 		while (bkeepLooping)
-		{
-			std::string strFilename;
-			BuildCompleteFilename(strFilename, _strPath, findData.cFileName);
-
-			m_FileNames.push_back(strFilename);
+		{			
+			if (findData.cFileName[0] != '.')
+			{
+				std::string strFilename;
+				BuildCompleteFilename(strFilename, _strPath, findData.cFileName);
+				m_FileNames.push_back(strFilename);
+			}
 
 			bkeepLooping = FindNextFile(FindFirst, &findData) ? true : false;
 		}

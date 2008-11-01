@@ -21,6 +21,7 @@
 #include "BannerLoaderGC.h"
 
 #include "VolumeCreator.h"
+#include "FileUtil.h"
 
 namespace DiscIO
 {

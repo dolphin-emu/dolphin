@@ -43,7 +43,9 @@ private:
 
 	enum 
 	{
+		CREATE_DIR			= 0x03,
 		IOCTL_READ_DIR		= 0x04,
+		GET_ATTR			= 0x06,
 		DELETE_FILE			= 0x07,
 		RENAME_FILE			= 0x08,
 		CREATE_FILE			= 0x09,
@@ -53,6 +55,7 @@ private:
 	s32 ExecuteCommand(u32 Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);
 
 	void CreateDirectoryStruct(const std::string& _rFullPath);
+
 };
 
 #endif

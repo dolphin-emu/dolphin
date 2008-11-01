@@ -48,6 +48,10 @@ bool Exists(const char *filename)
 bool IsDirectory(const char *filename)
 {
 #ifdef _WIN32
+	DWORD Attribs = GetFileAttributes(filename);
+	if (Attribs == INVALID_FILE_ATTRIBUTES)
+		return false;
+
 	return (GetFileAttributes(filename) & FILE_ATTRIBUTE_DIRECTORY) != 0;
 #else
 	struct stat file_info;
@@ -163,11 +167,15 @@ std::string GetUserDirectory()
 
 u64 GetSize(const char *filename)
 {
-	FILE *f = fopen(filename, "rb");
-	fseek(f, 0, SEEK_END);
-	u64 pos = ftell(f);
-	fclose(f);
-	return pos;
+	FILE *pFile = fopen(filename, "rb");
+	if (pFile)
+	{
+		fseek(pFile, 0, SEEK_END);
+		u64 pos = ftell(pFile);
+		fclose(pFile);
+		return pos;
+	}
+	return 0;
 }
 
 #ifdef _WIN32
@@ -235,5 +243,15 @@ u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry)
 	return 0;
 }
 #endif
+
+bool CreateEmptyFile(const char *filename)
+{
+	FILE* pFile = fopen(filename, "wb");
+	if (pFile == NULL)
+		return false;
+
+	fclose(pFile);
+	return true;
+}
 
 } // namespace
