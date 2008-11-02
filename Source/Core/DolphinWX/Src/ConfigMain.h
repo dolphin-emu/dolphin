@@ -84,6 +84,7 @@ class CConfigMain
 		wxCheckBox* OptimizeQuantizers;
 		wxCheckBox* SkipIdle;
 		wxCheckBox* EnableCheats;
+		wxCheckBox* EnableIsoCache;
 		wxArrayString arrayStringFor_GCSystemLang;
 		wxStaticText* GCSystemLangText;
 		wxChoice* GCSystemLang;
@@ -200,6 +201,7 @@ class CConfigMain
 			ID_OPTIMIZEQUANTIZERS,
 			ID_IDLESKIP,
 			ID_ENABLECHEATS,
+			ID_ENABLEISOCACHE,
 			ID_GC_SRAM_LNG_TEXT,
 			ID_GC_SRAM_LNG,
 			ID_WII_BT_BAR_TEXT,

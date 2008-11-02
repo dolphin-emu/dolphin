@@ -90,7 +90,6 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 			delete pFileSystem;
 		}
-
 		delete pVolume;
 
 		m_Valid = true;

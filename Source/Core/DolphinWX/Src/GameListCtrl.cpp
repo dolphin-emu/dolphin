@@ -18,6 +18,7 @@
 #include "Globals.h"
 
 #include <wx/imaglist.h>
+
 #include <algorithm>
 
 #include "FileSearch.h"
@@ -115,11 +116,11 @@ void CGameListCtrl::BrowseForDirectory()
 			std::string(dialog.GetPath().ToAscii())
 			);
 		SConfig::GetInstance().SaveSettings();
-		Update();
+		Update(false);
 	}
 }
 
-void CGameListCtrl::Update()
+void CGameListCtrl::Update(bool Loadcache)
 {
 	if (m_imageListSmall)
 	{
@@ -129,7 +130,7 @@ void CGameListCtrl::Update()
 
 	Hide();
 
-	ScanForISOs();
+	ScanForISOs(Loadcache);
 
 	ClearAll();
 
@@ -331,60 +332,205 @@ void CGameListCtrl::SetBackgroundColor()
 	}
 }
 
-void CGameListCtrl::ScanForISOs()
+void CGameListCtrl::ScanForISOs(bool Loadcache)
 {
-	m_ISOFiles.clear();
-
-	CFileSearch::XStringVector Directories(SConfig::GetInstance().m_ISOFolder);
-
-	CFileSearch::XStringVector Extensions;
-	Extensions.push_back("*.iso");
-	Extensions.push_back("*.gcm");
-	Extensions.push_back("*.gcz");
-
-	CFileSearch FileSearch(Extensions, Directories);
-	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
-
-	if (rFilenames.size() > 0)
+	FILE * CacheFile;
+	bool ScanIso = true;
+	if (Loadcache)
 	{
-		wxProgressDialog dialog(_T("Scanning for ISOs"),
-					_T("Scanning..."),
-					rFilenames.size(), // range
-					this, // parent
-					wxPD_APP_MODAL |
-					// wxPD_AUTO_HIDE | -- try this as well
-					wxPD_ELAPSED_TIME |
-					wxPD_ESTIMATED_TIME |
-					wxPD_REMAINING_TIME |
-					wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-					);
-
-		dialog.CenterOnParent();
-
-		for (u32 i = 0; i < rFilenames.size(); i++)
+		ScanIso = false;
+		if((CacheFile = fopen ("DolphinWx.cache","rb")) == NULL)
 		{
-			std::string FileName;
-			SplitPath(rFilenames[i], NULL, &FileName, NULL);
-
-			wxString msg;
-			char tempstring[128];
-			sprintf(tempstring,"Scanning %s", FileName.c_str());
-			msg = wxString::FromAscii(tempstring);
-
-			bool Cont = dialog.Update(i, msg);
-
-			if (!Cont)
+			ScanIso = true;
+			if((CacheFile = fopen ("DolphinWx.cache","wb")) == NULL)
 			{
+				PanicAlert("Unable to make or open the dolphin iso cache: is the directory write protected?");
+			}
+		}
+	}
+	else 
+	{
+		if((CacheFile = fopen ("DolphinWx.cache","wb")) == NULL)
+		{
+			//Normally the file should be made when it opens it so if it can't open the file it's 
+			//write protected or something is stoping us from writing
+			PanicAlert("Unable to make or open the dolphin iso cache: is the directory write protected?");
+		}
+	}
+	m_ISOFiles.clear();
+	if (!ScanIso)
+	{
+		//TODO: complete cache loading here. this means ADDING THE BANNER >_<
+		char Buffer[257];
+		char temp[257];
+		std::string Filename = " ";
+		GameListItem ISOFile(Filename.c_str());
+		//looping every line of the file
+		while (fgets(Buffer,256,CacheFile) !=NULL)
+		{
+			strncpy(temp,"",257);
+			int i = 0;
+			switch(Buffer[0])
+			{				
+				/*! = file name
+				I = Game ID
+				N = Game Name
+				D = Description
+				C = Country
+				O = company
+				S = file size
+				V = Volume Size*/
+			case '!':
+				while (i < 256)
+				{
+					if (Buffer[1+i] != '\n')
+						temp[i] = Buffer[1+i];
+					i++;
+				}
+				Filename = temp;
+				ISOFile.m_FileName = Filename.c_str();
+				break;
+			case 'I':
+				memcpy(temp,&Buffer[1],6);
+				ISOFile.m_UniqueID = temp;
+				break;
+			case 'N':
+				while (i < 257)
+				{
+					if (Buffer[1+i] != '\n')
+						temp[i] = Buffer[1+i];
+					i++;
+				}
+				ISOFile.m_Name = temp;
+				break;
+			case 'D':
+				while (i < 257)
+				{
+					if (Buffer[1+i] != '\n')
+						temp[i] = Buffer[1+i];
+					i++;
+				}
+				ISOFile.m_Description = temp;
+				break;
+			case 'O':
+				while (i < 257)
+				{
+					if (Buffer[1+i] != '\n')
+						temp[i] = Buffer[1+i];
+					i++;
+				}
+				ISOFile.m_Company = temp;
+				break;
+			case 'C':
+				memcpy(temp,&Buffer[1],3);
+				ISOFile.m_Country = (DiscIO::IVolume::ECountry) atoi (temp);
+				break;
+			case 'S':
+				memcpy(temp,&Buffer[1],11);
+				ISOFile.m_FileSize = atoi (temp);
+				break;
+			case 'V':
+				memcpy(temp,&Buffer[1],11);
+				ISOFile.m_VolumeSize = atoi (temp);
+				break;
+			case 'B':
+				memcpy(temp,&Buffer[1],1);
+				if (temp[0] == '1')
+					ISOFile.m_BlobCompressed = true;
+				else if(temp[0] == '0')
+					ISOFile.m_BlobCompressed = false;
+				else
+					PanicAlert("unknown Compressed value %c",temp[1]);
+				break;
+			case '$':
+				if(ISOFile.GetFileName().c_str() != NULL)
+				{
+					//TODO: it would be good to check if the iso is valid but this would mean adding 
+					//the banner cache and fixing the ISOFile declaration to have the right file name 
+					//from the start (not " " but the Filename from the '!' case)
+					/*if (ISOFile.IsValid())
+					{
+						//PanicAlert("pushing %s in stack...",ISOFile.GetFileName().c_str());
+						m_ISOFiles.push_back(ISOFile);
+					}
+					else
+						PanicAlert("Invalid ISO file %s", ISOFile.GetFileName().c_str());*/
+					//TODO: stick the banners in 1 file ;_;
+					ISOFile.m_Image.LoadFile("GameIni\\" + ISOFile.GetUniqueID() + ".png",wxBITMAP_TYPE_PNG);
+					m_ISOFiles.push_back(ISOFile);
+				}
+				break;
+			default:
+				PanicAlert("Unknown Cache line Found:\n%s",Buffer);
 				break;
 			}
-
-			GameListItem ISOFile(rFilenames[i]);
-
-			if (ISOFile.IsValid())
-				m_ISOFiles.push_back(ISOFile);
-			else
-				PanicAlert("Invalid ISO file %s", rFilenames[i].c_str());
 		}
+	}
+	else
+	{
+		CFileSearch::XStringVector Directories(SConfig::GetInstance().m_ISOFolder);
+
+		CFileSearch::XStringVector Extensions;
+		Extensions.push_back("*.iso");
+		Extensions.push_back("*.gcm");
+		Extensions.push_back("*.gcz");
+
+		CFileSearch FileSearch(Extensions, Directories);
+		const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
+
+		if (rFilenames.size() > 0)
+		{
+			wxProgressDialog dialog(_T("Scanning for ISOs"),
+						_T("Scanning..."),
+						rFilenames.size(), // range
+						this, // parent
+						wxPD_APP_MODAL |
+						// wxPD_AUTO_HIDE | -- try this as well
+						wxPD_ELAPSED_TIME |
+						wxPD_ESTIMATED_TIME |
+						wxPD_REMAINING_TIME |
+						wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+						);
+			dialog.CenterOnParent();
+
+			for (u32 i = 0; i < rFilenames.size(); i++)
+			{
+				std::string FileName;
+				SplitPath(rFilenames[i], NULL, &FileName, NULL);
+
+				wxString msg;
+				char tempstring[128];
+				sprintf(tempstring,"Scanning %s", FileName.c_str());
+				msg = wxString::FromAscii(tempstring);
+
+				bool Cont = dialog.Update(i, msg);
+
+				if (!Cont)
+				{
+					break;
+				}
+				GameListItem ISOFile(rFilenames[i]);
+				if (ISOFile.IsValid())
+				{
+					if(CacheFile)
+					{
+						fseek( CacheFile, 0L, SEEK_END );
+						fprintf(CacheFile,"!%s\nI%s\nN%s\nD%s\nC%u\nO%s\nS%u\n",ISOFile.GetFileName().c_str(),
+							ISOFile.GetUniqueID().c_str(), ISOFile.GetName().c_str(), ISOFile.GetDescription().c_str()
+							,ISOFile.GetCountry(), ISOFile.GetCompany().c_str(), ISOFile.GetFileSize());
+						//why a new fprintf? cause volume size got writen as 0 for some bloody odd reason
+						fprintf(CacheFile,"V%u\nB%u\n$\n", ISOFile.GetVolumeSize(),ISOFile.IsCompressed());
+						ISOFile.m_Image.SaveFile("Gameini\\" + ISOFile.GetUniqueID() + ".png",wxBITMAP_TYPE_PNG);//".JPG",wxBITMAP_TYPE_JPEG);
+						//TODO: add the banner saving TO 1 FILE AND JPG as well & make the cache MUCH better. 
+						//this is ugly as fuck
+					}
+					m_ISOFiles.push_back(ISOFile);
+				}
+				else
+					PanicAlert("Invalid ISO file %s", rFilenames[i].c_str());
+			}
+		}
+		fclose (CacheFile);
 	}
 	std::sort(m_ISOFiles.begin(), m_ISOFiles.end());
 }
@@ -577,7 +723,7 @@ void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
 			wxMessageBoxCaptionStr, wxYES_NO|wxICON_EXCLAMATION) == wxYES)
 		{
 			File::Delete(iso->GetFileName().c_str());
-			Update();
+			Update(false);
 		}
 	}
 	else
@@ -592,7 +738,7 @@ void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
 				const GameListItem *iso = GetSelectedISO();
 				File::Delete(iso->GetFileName().c_str());
 			}
-			Update();
+			Update(false);
 		}
 	}
 }
@@ -681,7 +827,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 			}
 			m_currentItem++;
 	}
-	Update();
+	Update(false);
 }
 
 void CGameListCtrl::CompressCB(const char* text, float percent, void* arg)
@@ -760,7 +906,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 	else
 		DiscIO::CompressFileToBlob(iso->GetFileName().c_str(), path.char_str(), 0, 16384, &CompressCB, &dialog);
 
-	Update();
+	Update(false);
 }
 
 void CGameListCtrl::OnEditPatchFile(wxCommandEvent& WXUNUSED (event))

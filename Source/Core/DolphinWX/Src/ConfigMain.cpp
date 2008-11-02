@@ -36,6 +36,7 @@ EVT_CHECKBOX(ID_LOCKTHREADS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_OPTIMIZEQUANTIZERS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_IDLESKIP, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_ENABLECHEATS, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_ENABLEISOCACHE, CConfigMain::CoreSettingsChanged)
 EVT_CHOICE(ID_GC_SRAM_LNG, CConfigMain::GCSettingsChanged)
 EVT_CHOICE(ID_WII_BT_BAR, CConfigMain::WiiSettingsChanged)
 EVT_CHECKBOX(ID_WII_IPL_SSV, CConfigMain::WiiSettingsChanged)
@@ -127,6 +128,8 @@ void CConfigMain::CreateGUIControls()
 	SkipIdle->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);
 	EnableCheats = new wxCheckBox(GeneralPage, ID_ENABLECHEATS, wxT("Enable cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	EnableCheats->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);
+	EnableIsoCache = new wxCheckBox(GeneralPage, ID_ENABLEISOCACHE, wxT("Enable Iso Caching"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	EnableIsoCache->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache);
 
 	sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Advanced Settings"));
 	AllwaysHLEBIOS = new wxCheckBox(GeneralPage, ID_ALLWAYS_HLEBIOS, wxT("HLE the BIOS all the time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -142,6 +145,7 @@ void CConfigMain::CreateGUIControls()
 	sbBasic->Add(UseDualCore, 0, wxALL, 5);
 	sbBasic->Add(SkipIdle, 0, wxALL, 5);
 	sbBasic->Add(EnableCheats, 0, wxALL, 5);
+	sbBasic->Add(EnableIsoCache, 0, wxALL,5);
 	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
 	sGeneral->AddStretchSpacer();
 
@@ -366,6 +370,9 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_ENABLECHEATS:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = EnableCheats->IsChecked();
+		break;
+	case ID_ENABLEISOCACHE:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache = EnableIsoCache->IsChecked();
 		break;
 	}
 }

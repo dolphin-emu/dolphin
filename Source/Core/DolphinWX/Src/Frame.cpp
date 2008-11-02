@@ -169,7 +169,7 @@ CFrame::CFrame(wxFrame* parent,
 
 	CPluginManager::GetInstance().ScanForPlugins(this);
 
-	m_GameListCtrl->Update();
+	m_GameListCtrl->Update(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache);
 
 	//sizerPanel->SetSizeHints(m_Panel);
 
@@ -447,7 +447,7 @@ void CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
 {
 	if (m_GameListCtrl)
 	{
-		m_GameListCtrl->Update();
+		m_GameListCtrl->Update(false);
 	}
 }
 
@@ -457,7 +457,7 @@ void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 	CConfigMain ConfigMain(this);
 	ConfigMain.ShowModal();
 	if (ConfigMain.bRefreshList)
-		m_GameListCtrl->Update();
+		m_GameListCtrl->Update(true);
 }
 
 

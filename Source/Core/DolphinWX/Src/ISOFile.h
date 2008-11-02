@@ -36,11 +36,11 @@ public:
 	bool IsCompressed() const {return m_BlobCompressed;}
 	u64 GetFileSize() const {return m_FileSize;}
 	u64 GetVolumeSize() const {return m_VolumeSize;}
+	
 #if !defined(OSX64)
 	const wxImage& GetImage() const {return m_Image;}
 #endif
 
-private:
 	std::string m_FileName;
 	std::string m_Name;
 	std::string m_Company;

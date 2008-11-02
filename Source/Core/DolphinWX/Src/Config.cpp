@@ -73,6 +73,7 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "DVDRoot",        m_LocalCoreStartupParameter.m_strDVDRoot);
 		ini.Set("Core", "OptimizeQuantizers", m_LocalCoreStartupParameter.bOptimizeQuantizers);
 		ini.Set("Core", "EnableCheats", m_LocalCoreStartupParameter.bEnableCheats);
+		ini.Set("Core", "EnableIsoCache",m_LocalCoreStartupParameter.bEnableIsoCache);
 		ini.Set("Core", "SelectedLanguage", m_LocalCoreStartupParameter.SelectedLanguage);
 		ini.Set("Core", "RunCompareServer", m_LocalCoreStartupParameter.bRunCompareServer);
 		ini.Set("Core", "RunCompareClient", m_LocalCoreStartupParameter.bRunCompareClient);
@@ -130,6 +131,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "DVDRoot",     &m_LocalCoreStartupParameter.m_strDVDRoot);
 		ini.Get("Core", "OptimizeQuantizers", &m_LocalCoreStartupParameter.bOptimizeQuantizers, true);
 		ini.Get("Core", "EnableCheats", &m_LocalCoreStartupParameter.bEnableCheats, false);
+		ini.Get("Core", "EnableIsoCache", &m_LocalCoreStartupParameter.bEnableIsoCache, false);
 		ini.Get("Core", "SelectedLanguage", &m_LocalCoreStartupParameter.SelectedLanguage, 0);
 		ini.Get("Core", "RunCompareServer", &m_LocalCoreStartupParameter.bRunCompareServer, false);
 		ini.Get("Core", "RunCompareClient", &m_LocalCoreStartupParameter.bRunCompareClient, false);
