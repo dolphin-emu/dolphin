@@ -16,13 +16,14 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+
+#include "WII_IPC_HLE_Device_fs.h"
+
 #include "StringUtil.h"
 #include "FileSearch.h"
 #include "FileUtil.h"
 
-#include "WII_IPC_HLE_Device_fs.h"
-
-
+#include "../VolumeHandler.h"
 
 extern std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size);
 
@@ -43,18 +44,33 @@ CWII_IPC_HLE_Device_fs::~CWII_IPC_HLE_Device_fs()
 
 bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 {
-	CFileSearch::XStringVector Directories;
-	Directories.push_back("Wii/tmp");
-
-	CFileSearch::XStringVector Extensions;
-	Extensions.push_back("*.*");
-
-	CFileSearch FileSearch(Extensions, Directories);
-	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
-	for (u32 i = 0; i < rFilenames.size(); i++)
+	// clear tmp folder
 	{
-		if (rFilenames[i].c_str()[0] != '.')
-			remove(rFilenames[i].c_str());
+		std::string WiiTempFolder("Wii/tmp");
+		bool Result = File::DeleteDirRecursively(WiiTempFolder.c_str());
+		if (Result == false)
+		{
+			PanicAlert("Cant delete Wii Temp folder");
+		}
+		File::CreateDir(WiiTempFolder.c_str());
+	}
+
+	// create home directory
+	{
+		u32 TitleID = VolumeHandler::Read32(0);
+		if (TitleID == 0)
+			TitleID = 0xF00DBEEF;
+
+		char* pTitleID = (char*)&TitleID;
+
+		char Path[260+1];
+		sprintf(Path, "Wii/title/00010000/%02x%02x%02x%02x", (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
+		if (!File::IsDirectory(Path))
+		{
+			File::CreateDir(Path);
+			sprintf(Path, "Wii/title/00010000/%02x%02x%02x%02x/data", (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);	
+			File::CreateDir(Path);
+		}	
 	}
 
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
@@ -146,18 +162,47 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 	case IOCTL_GETUSAGE:
 		{
+			// check buffer sizes
+			_dbg_assert_(WII_IPC_FILEIO, CommandBuffer.PayloadBuffer.size() == 2);
+			_dbg_assert_(WII_IPC_FILEIO, CommandBuffer.PayloadBuffer[0].m_Size == 4);
+			_dbg_assert_(WII_IPC_FILEIO, CommandBuffer.PayloadBuffer[1].m_Size == 4);
+
 			// this command sucks because it asks of the number of used 
 			// fsBlocks and inodes
 			// we answer nothing is used, but if a program uses it to check
 			// how much memory has been used we are doomed...
 			std::string Filename(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address), CommandBuffer.InBuffer[0].m_Size));
+			u32 fsBlock = 0;
+			u32 iNodes = 0;
 
 			LOG(WII_IPC_FILEIO, "FS: IOCTL_GETUSAGE %s", Filename.c_str());
+			if (File::IsDirectory(Filename.c_str()))
+			{
+				// make a file search
+				CFileSearch::XStringVector Directories;
+				Directories.push_back(Filename);
 
-			Memory::Write_U32(0, CommandBuffer.PayloadBuffer[0].m_Address);
-			Memory::Write_U32(0, CommandBuffer.PayloadBuffer[1].m_Address);
+				CFileSearch::XStringVector Extensions;
+				Extensions.push_back("*.*");
 
-			ReturnValue = 0;
+				CFileSearch FileSearch(Extensions, Directories);
+				fsBlock = (u32)FileSearch.GetFileNames().size();
+				iNodes = fsBlock * 10;
+
+				ReturnValue = 0;
+
+				LOG(WII_IPC_FILEIO, "    fsBlock: %i, iNodes: %i", fsBlock, iNodes);
+			}
+			else
+			{
+				fsBlock = 0;
+				iNodes = 0;
+				ReturnValue = 0;
+				LOG(WII_IPC_FILEIO, "    error: not executed on a valid directoy: %s", Filename.c_str());
+			}
+			
+			Memory::Write_U32(fsBlock, CommandBuffer.PayloadBuffer[0].m_Address);
+			Memory::Write_U32(iNodes, CommandBuffer.PayloadBuffer[1].m_Address);
 		}
 		break;
 

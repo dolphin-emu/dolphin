@@ -42,11 +42,14 @@ void Explore(const char *path);
 bool IsDirectory(const char *filename);
 bool CreateDir(const char *filename);
 bool Delete(const char *filename);
+bool DeleteDir(const char *filename);
 u64 GetSize(const char *filename);
 std::string GetUserDirectory();
 bool CreateEmptyFile(const char *filename);
 
 u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry);
+
+bool DeleteDirRecursively(const std::string& _Directory);
 
 }  // namespace
 

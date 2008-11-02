@@ -14,6 +14,7 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #ifndef _WII_IPC_HLE_DEVICE_NET_H_
 #define _WII_IPC_HLE_DEVICE_NET_H_
 
@@ -23,20 +24,20 @@ class CWII_IPC_HLE_Device_net_kd_request : public IWII_IPC_HLE_Device
 {
 public:
 
-    CWII_IPC_HLE_Device_net_kd_request(u32 _DeviceID, const std::string& _rDeviceName) :
-      IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-      {}
+    CWII_IPC_HLE_Device_net_kd_request(u32 _DeviceID, const std::string& _rDeviceName);
 
-      virtual ~CWII_IPC_HLE_Device_net_kd_request()
-      {}
+	virtual ~CWII_IPC_HLE_Device_net_kd_request();
 
-      virtual bool Open(u32 _CommandAddress, u32 _Mode)
-      {
-          Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+	virtual bool Open(u32 _CommandAddress, u32 _Mode);
 
-          return true;
-      }
+	virtual bool IOCtl(u32 _CommandAddress);
+
+private:
+
+	s32 ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);
 };
+
+// **************************************************************************************
 
 class CWII_IPC_HLE_Device_net_kd_time : public IWII_IPC_HLE_Device
 {
@@ -80,6 +81,8 @@ public:
   }
 };
 
+// **************************************************************************************
+
 class CWII_IPC_HLE_Device_net_ip_top : public IWII_IPC_HLE_Device
 {
 public:
@@ -95,6 +98,21 @@ public:
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 		return true;
 	}
+
+};
+
+// **************************************************************************************
+
+class CWII_IPC_HLE_Device_net_ncd_manage : public IWII_IPC_HLE_Device
+{
+public:
+	CWII_IPC_HLE_Device_net_ncd_manage(u32 _DeviceID, const std::string& _rDeviceName);
+
+	virtual ~CWII_IPC_HLE_Device_net_ncd_manage();
+
+	virtual bool Open(u32 _CommandAddress, u32 _Mode);
+
+	virtual bool IOCtlV(u32 _CommandAddress);
 
 };
 

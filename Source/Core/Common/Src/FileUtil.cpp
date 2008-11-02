@@ -148,6 +148,21 @@ bool CreateDir(const char *path)
 #endif
 }
 
+bool DeleteDir(const char *filename)
+{
+#ifdef _WIN32
+	if (!File::IsDirectory(filename))
+		return false;
+
+	return ::RemoveDirectory (filename) ? true : false;
+#else
+
+	PanicAlert("File::DeleteDir() not implemented");
+	return false;
+
+#endif
+}
+
 std::string GetUserDirectory()
 {
 #ifdef _WIN32 
@@ -252,6 +267,63 @@ bool CreateEmptyFile(const char *filename)
 
 	fclose(pFile);
 	return true;
+}
+
+
+bool DeleteDirRecursively(const std::string& _Directory)
+{
+#ifdef _WIN32
+
+	bool Result = false;
+
+	WIN32_FIND_DATA ffd;
+	std::string searchName = _Directory + "\\*";
+	HANDLE hFind = FindFirstFile(searchName.c_str(), &ffd);
+
+	if (hFind != INVALID_HANDLE_VALUE)
+	{
+		do
+		{
+			// check for "." and ".."
+			if (((ffd.cFileName[0] == '.') && (ffd.cFileName[1] == 0x00)) ||
+				((ffd.cFileName[0] == '.') && (ffd.cFileName[1] == '.') && (ffd.cFileName[2] == 0x00)))
+				continue;
+
+			// build path
+			std::string newPath(_Directory);
+			newPath += '\\';
+			newPath += ffd.cFileName;
+
+			if (ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			{			
+				if (!File::DeleteDirRecursively(newPath))
+					goto error_jmp;
+			}
+			else
+			{
+				if (!File::Delete(newPath.c_str()))
+					goto error_jmp;
+			}
+
+		} while (FindNextFile(hFind, &ffd) != 0);
+	}
+
+	if (!File::DeleteDir(_Directory.c_str()))
+		goto error_jmp;
+
+	Result = true;
+
+error_jmp:
+
+	FindClose(hFind);
+
+	return Result;
+#else
+
+	PanicAlert("File::DeleteDirRecursively() not implemented");
+	return false;
+
+#endif
 }
 
 } // namespace

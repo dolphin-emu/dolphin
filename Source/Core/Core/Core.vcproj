@@ -1112,6 +1112,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_net.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_net.h"
 				>
 			</File>

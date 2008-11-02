@@ -117,6 +117,7 @@ void LogManager::Init()
 	m_Log[LogTypes::WII_IPC_DVD]		= new CDebugger_Log("WII_IPC_DVD",		"WII IPC DVD");
 	m_Log[LogTypes::WII_IPC_ES]			= new CDebugger_Log("WII_IPC_ES",		"WII IPC ES");
 	m_Log[LogTypes::WII_IPC_FILEIO]		= new CDebugger_Log("WII_IPC_FILEIO",	"WII IPC FILEIO");
+	m_Log[LogTypes::WII_IPC_NET]		= new CDebugger_Log("WII_IPC_NET",		"WII IPC NET");
 	m_Log[LogTypes::WII_IPC_WIIMOTE]    = new CDebugger_Log("WII_IPC_WIIMOTE",	"WII IPC WIIMOTE");
 
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)

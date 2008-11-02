@@ -71,6 +71,7 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 
 	const char Modes[][128] =
 	{
+		{ "Unk Mode" },
 		{ "Read only" },
 		{ "Write only" },
 		{ "Read and Write" }
@@ -98,6 +99,7 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
     }
     else
     {
+		LOG(WII_IPC_FILEIO, "    failed - File doesn't exist");
 		ReturnValue = -106;
     }
 
