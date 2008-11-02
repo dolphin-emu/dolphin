@@ -499,7 +499,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
 
         // bias
         WRITE(p, "float3 indtevcrd%d = indtex%d;\n", n, bpmem.tevind[n].bt);
-        WRITE(p, "indtevcrd%d.xy *= %s;\n", n, tevIndFmtScale[bpmem.tevind[n].fmt]);
+        WRITE(p, "indtevcrd%d.xyz *= %s;\n", n, tevIndFmtScale[bpmem.tevind[n].fmt]);
         if (bpmem.tevind[n].bias != ITB_NONE )
             WRITE(p, "indtevcrd%d.%s += %s;\n", n, tevIndBiasField[bpmem.tevind[n].bias], tevIndBiasAdd[bpmem.tevind[n].fmt]);
 

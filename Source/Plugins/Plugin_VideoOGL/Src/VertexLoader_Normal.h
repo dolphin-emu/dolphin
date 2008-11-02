@@ -24,15 +24,14 @@ class VertexLoader_Normal
 {
 public:
 
-    static bool index3;
     // Init
     static void Init(void);
 
     // GetSize
-    static unsigned int GetSize(unsigned int _type, unsigned int _format, unsigned int _elements);
+    static unsigned int GetSize(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _index3);
 
     // GetFunction
-    static TPipelineFunction GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements);
+    static TPipelineFunction GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _index3);
 
 private:
     enum ENormalType
@@ -61,9 +60,17 @@ private:
         NUM_NRM_ELEMENTS
     };
 
+	enum ENormalIndices
+	{
+		NRM_INDICES1		= 0,
+		NRM_INDICES3		= 1,
+		NUM_NRM_INDICES
+	};
+
+
     // tables
-    static u8 m_sizeTable[NUM_NRM_TYPE][NUM_NRM_FORMAT][NUM_NRM_ELEMENTS];
-    static TPipelineFunction m_funcTable[NUM_NRM_TYPE][NUM_NRM_FORMAT][NUM_NRM_ELEMENTS];
+    static u8 m_sizeTable[NUM_NRM_TYPE][NUM_NRM_FORMAT][NUM_NRM_ELEMENTS][NUM_NRM_INDICES];
+    static TPipelineFunction m_funcTable[NUM_NRM_TYPE][NUM_NRM_FORMAT][NUM_NRM_ELEMENTS][NUM_NRM_INDICES];
 
     // direct
     static void LOADERDECL Normal_DirectByte(const void *_p);
@@ -77,17 +84,23 @@ private:
     static void LOADERDECL Normal_Index8_Byte(const void *_p);
     static void LOADERDECL Normal_Index8_Short(const void *_p);
     static void LOADERDECL Normal_Index8_Float(const void *_p);
-    static void LOADERDECL Normal_Index8_Byte3(const void *_p);
-    static void LOADERDECL Normal_Index8_Short3(const void *_p);
-    static void LOADERDECL Normal_Index8_Float3(const void *_p);
+    static void LOADERDECL Normal_Index8_Byte3_Indices1(const void *_p);
+    static void LOADERDECL Normal_Index8_Short3_Indices1(const void *_p);
+    static void LOADERDECL Normal_Index8_Float3_Indices1(const void *_p);
+	static void LOADERDECL Normal_Index8_Byte3_Indices3(const void *_p);
+    static void LOADERDECL Normal_Index8_Short3_Indices3(const void *_p);
+    static void LOADERDECL Normal_Index8_Float3_Indices3(const void *_p);
 
     // index16
     static void LOADERDECL Normal_Index16_Byte(const void *_p);
     static void LOADERDECL Normal_Index16_Short(const void *_p);
     static void LOADERDECL Normal_Index16_Float(const void *_p);
-    static void LOADERDECL Normal_Index16_Byte3(const void *_p);
-    static void LOADERDECL Normal_Index16_Short3(const void *_p);
-    static void LOADERDECL Normal_Index16_Float3(const void *_p);
+    static void LOADERDECL Normal_Index16_Byte3_Indices1(const void *_p);
+    static void LOADERDECL Normal_Index16_Short3_Indices1(const void *_p);
+    static void LOADERDECL Normal_Index16_Float3_Indices1(const void *_p);
+	static void LOADERDECL Normal_Index16_Byte3_Indices3(const void *_p);
+    static void LOADERDECL Normal_Index16_Short3_Indices3(const void *_p);
+    static void LOADERDECL Normal_Index16_Float3_Indices3(const void *_p);
 };
 
 #endif

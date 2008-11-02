@@ -155,9 +155,8 @@ int VertexLoader::ComputeVertexSize()
 		break;
 	}
 
-	VertexLoader_Normal::index3 = m_VtxAttr.NormalIndex3 ? true : false;
 	if (m_VtxDesc.Normal != NOT_PRESENT)
-		m_VertexSize += VertexLoader_Normal::GetSize(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements);
+		m_VertexSize += VertexLoader_Normal::GetSize(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
 	
 	// Colors
 	int col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
@@ -304,12 +303,11 @@ void VertexLoader::CompileVertexTranslator()
 
 	// Normals
 	if (m_VtxDesc.Normal != NOT_PRESENT) {
-		VertexLoader_Normal::index3 = m_VtxAttr.NormalIndex3 ? true : false;
-		TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements);
+		TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
 		if (pFunc == 0)
 		{
 			char temp[256];
-			sprintf(temp,"%i %i %i", m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements);
+			sprintf(temp,"%i %i %i %i", m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
 			g_VideoInitialize.pSysMessage("VertexLoader_Normal::GetFunction returned zero!");
 		}
 		WriteCall(pFunc);

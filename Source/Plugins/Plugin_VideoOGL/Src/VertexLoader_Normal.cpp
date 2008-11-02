@@ -25,93 +25,154 @@
 #define LOG_NORM16() PRIM_LOG("norm: %f %f %f, ", ((s16*)VertexManager::s_pCurBufferPointer)[-3]/32767.0f, ((s16*)VertexManager::s_pCurBufferPointer)[-2]/32767.0f, ((s16*)VertexManager::s_pCurBufferPointer)[-1]/32767.0f);
 #define LOG_NORMF() PRIM_LOG("norm: %f %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[-3], ((float*)VertexManager::s_pCurBufferPointer)[-2], ((float*)VertexManager::s_pCurBufferPointer)[-1]);
 
-u8					VertexLoader_Normal::m_sizeTable[NUM_NRM_TYPE][NUM_NRM_FORMAT][NUM_NRM_ELEMENTS];
-TPipelineFunction	VertexLoader_Normal::m_funcTable[NUM_NRM_TYPE][NUM_NRM_FORMAT][NUM_NRM_ELEMENTS];
-
-bool VertexLoader_Normal::index3;
+u8					VertexLoader_Normal::m_sizeTable[NUM_NRM_TYPE][NUM_NRM_FORMAT][NUM_NRM_ELEMENTS][NUM_NRM_INDICES];
+TPipelineFunction	VertexLoader_Normal::m_funcTable[NUM_NRM_TYPE][NUM_NRM_FORMAT][NUM_NRM_ELEMENTS][NUM_NRM_INDICES];
 
 void VertexLoader_Normal::Init(void)
 {
     // size table
-    m_sizeTable[NRM_DIRECT][FORMAT_UBYTE] [NRM_NBT]		= 3;
-    m_sizeTable[NRM_DIRECT][FORMAT_BYTE]  [NRM_NBT]		= 3;
-    m_sizeTable[NRM_DIRECT][FORMAT_USHORT][NRM_NBT]		= 6;
-    m_sizeTable[NRM_DIRECT][FORMAT_SHORT] [NRM_NBT]		= 6;
-    m_sizeTable[NRM_DIRECT][FORMAT_FLOAT] [NRM_NBT]		= 12;
-    m_sizeTable[NRM_DIRECT][FORMAT_UBYTE] [NRM_NBT3]	= 9;	
-    m_sizeTable[NRM_DIRECT][FORMAT_BYTE]  [NRM_NBT3]	= 9;
-    m_sizeTable[NRM_DIRECT][FORMAT_USHORT][NRM_NBT3]	= 18;
-    m_sizeTable[NRM_DIRECT][FORMAT_SHORT] [NRM_NBT3]	= 18;
-    m_sizeTable[NRM_DIRECT][FORMAT_FLOAT] [NRM_NBT3]	= 36;
+    m_sizeTable[NRM_DIRECT][FORMAT_UBYTE] [NRM_NBT] [NRM_INDICES1]		= 3;
+    m_sizeTable[NRM_DIRECT][FORMAT_BYTE]  [NRM_NBT] [NRM_INDICES1]		= 3;
+    m_sizeTable[NRM_DIRECT][FORMAT_USHORT][NRM_NBT] [NRM_INDICES1]		= 6;
+    m_sizeTable[NRM_DIRECT][FORMAT_SHORT] [NRM_NBT] [NRM_INDICES1]		= 6;
+    m_sizeTable[NRM_DIRECT][FORMAT_FLOAT] [NRM_NBT] [NRM_INDICES1]		= 12;
+    m_sizeTable[NRM_DIRECT][FORMAT_UBYTE] [NRM_NBT3] [NRM_INDICES1]		= 9;	
+    m_sizeTable[NRM_DIRECT][FORMAT_BYTE]  [NRM_NBT3] [NRM_INDICES1]		= 9;
+    m_sizeTable[NRM_DIRECT][FORMAT_USHORT][NRM_NBT3] [NRM_INDICES1]		= 18;
+    m_sizeTable[NRM_DIRECT][FORMAT_SHORT] [NRM_NBT3] [NRM_INDICES1]		= 18;
+    m_sizeTable[NRM_DIRECT][FORMAT_FLOAT] [NRM_NBT3] [NRM_INDICES1]		= 36;
 
-    m_sizeTable[NRM_INDEX8][FORMAT_UBYTE] [NRM_NBT]		= 1;
-    m_sizeTable[NRM_INDEX8][FORMAT_BYTE]  [NRM_NBT]		= 1;
-    m_sizeTable[NRM_INDEX8][FORMAT_USHORT][NRM_NBT]		= 1;
-    m_sizeTable[NRM_INDEX8][FORMAT_SHORT] [NRM_NBT]		= 1;
-    m_sizeTable[NRM_INDEX8][FORMAT_FLOAT] [NRM_NBT]		= 1;
-    m_sizeTable[NRM_INDEX8][FORMAT_UBYTE] [NRM_NBT3]	= 3;	
-    m_sizeTable[NRM_INDEX8][FORMAT_BYTE]  [NRM_NBT3]	= 3;
-    m_sizeTable[NRM_INDEX8][FORMAT_USHORT][NRM_NBT3]	= 3;
-    m_sizeTable[NRM_INDEX8][FORMAT_SHORT] [NRM_NBT3]	= 3;
-    m_sizeTable[NRM_INDEX8][FORMAT_FLOAT] [NRM_NBT3]	= 3;
+	m_sizeTable[NRM_DIRECT][FORMAT_UBYTE] [NRM_NBT] [NRM_INDICES3]		= 3;
+    m_sizeTable[NRM_DIRECT][FORMAT_BYTE]  [NRM_NBT] [NRM_INDICES3]		= 3;
+    m_sizeTable[NRM_DIRECT][FORMAT_USHORT][NRM_NBT] [NRM_INDICES3]		= 6;
+    m_sizeTable[NRM_DIRECT][FORMAT_SHORT] [NRM_NBT] [NRM_INDICES3]		= 6;
+    m_sizeTable[NRM_DIRECT][FORMAT_FLOAT] [NRM_NBT] [NRM_INDICES3]		= 12;
+    m_sizeTable[NRM_DIRECT][FORMAT_UBYTE] [NRM_NBT3] [NRM_INDICES3]		= 9;	
+    m_sizeTable[NRM_DIRECT][FORMAT_BYTE]  [NRM_NBT3] [NRM_INDICES3]		= 9;
+    m_sizeTable[NRM_DIRECT][FORMAT_USHORT][NRM_NBT3] [NRM_INDICES3]		= 18;
+    m_sizeTable[NRM_DIRECT][FORMAT_SHORT] [NRM_NBT3] [NRM_INDICES3]		= 18;
+    m_sizeTable[NRM_DIRECT][FORMAT_FLOAT] [NRM_NBT3] [NRM_INDICES3]		= 36;
 
-    m_sizeTable[NRM_INDEX16][FORMAT_UBYTE] [NRM_NBT]	= 2;
-    m_sizeTable[NRM_INDEX16][FORMAT_BYTE]  [NRM_NBT]	= 2;
-    m_sizeTable[NRM_INDEX16][FORMAT_USHORT][NRM_NBT]	= 2;
-    m_sizeTable[NRM_INDEX16][FORMAT_SHORT] [NRM_NBT]	= 2;
-    m_sizeTable[NRM_INDEX16][FORMAT_FLOAT] [NRM_NBT]	= 2;
-    m_sizeTable[NRM_INDEX16][FORMAT_UBYTE] [NRM_NBT3]	= 6;	
-    m_sizeTable[NRM_INDEX16][FORMAT_BYTE]  [NRM_NBT3]	= 6;
-    m_sizeTable[NRM_INDEX16][FORMAT_USHORT][NRM_NBT3]	= 6;
-    m_sizeTable[NRM_INDEX16][FORMAT_SHORT] [NRM_NBT3]	= 6;
-    m_sizeTable[NRM_INDEX16][FORMAT_FLOAT] [NRM_NBT3]	= 6;
+    m_sizeTable[NRM_INDEX8][FORMAT_UBYTE] [NRM_NBT] [NRM_INDICES1]		= 1;
+    m_sizeTable[NRM_INDEX8][FORMAT_BYTE]  [NRM_NBT] [NRM_INDICES1]		= 1;
+    m_sizeTable[NRM_INDEX8][FORMAT_USHORT][NRM_NBT] [NRM_INDICES1]		= 1;
+    m_sizeTable[NRM_INDEX8][FORMAT_SHORT] [NRM_NBT] [NRM_INDICES1]		= 1;
+    m_sizeTable[NRM_INDEX8][FORMAT_FLOAT] [NRM_NBT] [NRM_INDICES1]		= 1;
+    m_sizeTable[NRM_INDEX8][FORMAT_UBYTE] [NRM_NBT3] [NRM_INDICES1]		= 1;	
+    m_sizeTable[NRM_INDEX8][FORMAT_BYTE]  [NRM_NBT3] [NRM_INDICES1]		= 1;
+    m_sizeTable[NRM_INDEX8][FORMAT_USHORT][NRM_NBT3] [NRM_INDICES1]		= 1;
+    m_sizeTable[NRM_INDEX8][FORMAT_SHORT] [NRM_NBT3] [NRM_INDICES1]		= 1;
+    m_sizeTable[NRM_INDEX8][FORMAT_FLOAT] [NRM_NBT3] [NRM_INDICES1]		= 1;
+
+	m_sizeTable[NRM_INDEX8][FORMAT_UBYTE] [NRM_NBT] [NRM_INDICES3]		= 1;
+    m_sizeTable[NRM_INDEX8][FORMAT_BYTE]  [NRM_NBT] [NRM_INDICES3]		= 1;
+    m_sizeTable[NRM_INDEX8][FORMAT_USHORT][NRM_NBT] [NRM_INDICES3]		= 1;
+    m_sizeTable[NRM_INDEX8][FORMAT_SHORT] [NRM_NBT] [NRM_INDICES3]		= 1;
+    m_sizeTable[NRM_INDEX8][FORMAT_FLOAT] [NRM_NBT] [NRM_INDICES3]		= 1;
+    m_sizeTable[NRM_INDEX8][FORMAT_UBYTE] [NRM_NBT3] [NRM_INDICES3]		= 3;	
+    m_sizeTable[NRM_INDEX8][FORMAT_BYTE]  [NRM_NBT3] [NRM_INDICES3]		= 3;
+    m_sizeTable[NRM_INDEX8][FORMAT_USHORT][NRM_NBT3] [NRM_INDICES3]		= 3;
+    m_sizeTable[NRM_INDEX8][FORMAT_SHORT] [NRM_NBT3] [NRM_INDICES3]		= 3;
+    m_sizeTable[NRM_INDEX8][FORMAT_FLOAT] [NRM_NBT3] [NRM_INDICES3]		= 3;
+
+    m_sizeTable[NRM_INDEX16][FORMAT_UBYTE] [NRM_NBT] [NRM_INDICES1]		= 2;
+    m_sizeTable[NRM_INDEX16][FORMAT_BYTE]  [NRM_NBT] [NRM_INDICES1]		= 2;
+    m_sizeTable[NRM_INDEX16][FORMAT_USHORT][NRM_NBT] [NRM_INDICES1]		= 2;
+    m_sizeTable[NRM_INDEX16][FORMAT_SHORT] [NRM_NBT] [NRM_INDICES1]		= 2;
+    m_sizeTable[NRM_INDEX16][FORMAT_FLOAT] [NRM_NBT] [NRM_INDICES1]		= 2;
+    m_sizeTable[NRM_INDEX16][FORMAT_UBYTE] [NRM_NBT3] [NRM_INDICES1]	= 2;	
+    m_sizeTable[NRM_INDEX16][FORMAT_BYTE]  [NRM_NBT3] [NRM_INDICES1]	= 2;
+    m_sizeTable[NRM_INDEX16][FORMAT_USHORT][NRM_NBT3] [NRM_INDICES1]	= 2;
+    m_sizeTable[NRM_INDEX16][FORMAT_SHORT] [NRM_NBT3] [NRM_INDICES1]	= 2;
+    m_sizeTable[NRM_INDEX16][FORMAT_FLOAT] [NRM_NBT3] [NRM_INDICES1]	= 2;
+
+	m_sizeTable[NRM_INDEX16][FORMAT_UBYTE] [NRM_NBT] [NRM_INDICES3]		= 2;
+    m_sizeTable[NRM_INDEX16][FORMAT_BYTE]  [NRM_NBT] [NRM_INDICES3]		= 2;
+    m_sizeTable[NRM_INDEX16][FORMAT_USHORT][NRM_NBT] [NRM_INDICES3]		= 2;
+    m_sizeTable[NRM_INDEX16][FORMAT_SHORT] [NRM_NBT] [NRM_INDICES3]		= 2;
+    m_sizeTable[NRM_INDEX16][FORMAT_FLOAT] [NRM_NBT] [NRM_INDICES3]		= 2;
+    m_sizeTable[NRM_INDEX16][FORMAT_UBYTE] [NRM_NBT3] [NRM_INDICES3]	= 6;	
+    m_sizeTable[NRM_INDEX16][FORMAT_BYTE]  [NRM_NBT3] [NRM_INDICES3]	= 6;
+    m_sizeTable[NRM_INDEX16][FORMAT_USHORT][NRM_NBT3] [NRM_INDICES3]	= 6;
+    m_sizeTable[NRM_INDEX16][FORMAT_SHORT] [NRM_NBT3] [NRM_INDICES3]	= 6;
+    m_sizeTable[NRM_INDEX16][FORMAT_FLOAT] [NRM_NBT3] [NRM_INDICES3]	= 6;
 
     // function table
-    m_funcTable[NRM_DIRECT][FORMAT_UBYTE] [NRM_NBT]		= Normal_DirectByte; //HACK
-    m_funcTable[NRM_DIRECT][FORMAT_BYTE]  [NRM_NBT]		= Normal_DirectByte;
-    m_funcTable[NRM_DIRECT][FORMAT_USHORT][NRM_NBT]		= Normal_DirectShort; //HACK
-    m_funcTable[NRM_DIRECT][FORMAT_SHORT] [NRM_NBT]		= Normal_DirectShort;
-    m_funcTable[NRM_DIRECT][FORMAT_FLOAT] [NRM_NBT]		= Normal_DirectFloat;
-    m_funcTable[NRM_DIRECT][FORMAT_UBYTE] [NRM_NBT3]	= Normal_DirectByte3;	 //HACK
-    m_funcTable[NRM_DIRECT][FORMAT_BYTE]  [NRM_NBT3]	= Normal_DirectByte3;
-    m_funcTable[NRM_DIRECT][FORMAT_USHORT][NRM_NBT3]	= Normal_DirectShort3; //HACK
-    m_funcTable[NRM_DIRECT][FORMAT_SHORT] [NRM_NBT3]	= Normal_DirectShort3;
-    m_funcTable[NRM_DIRECT][FORMAT_FLOAT] [NRM_NBT3]	= Normal_DirectFloat3;
+    m_funcTable[NRM_DIRECT][FORMAT_UBYTE] [NRM_NBT] [NRM_INDICES1]		= Normal_DirectByte; //HACK
+    m_funcTable[NRM_DIRECT][FORMAT_BYTE]  [NRM_NBT] [NRM_INDICES1]		= Normal_DirectByte;
+    m_funcTable[NRM_DIRECT][FORMAT_USHORT][NRM_NBT] [NRM_INDICES1]		= Normal_DirectShort; //HACK
+    m_funcTable[NRM_DIRECT][FORMAT_SHORT] [NRM_NBT] [NRM_INDICES1]		= Normal_DirectShort;
+    m_funcTable[NRM_DIRECT][FORMAT_FLOAT] [NRM_NBT] [NRM_INDICES1]		= Normal_DirectFloat;
+    m_funcTable[NRM_DIRECT][FORMAT_UBYTE] [NRM_NBT3] [NRM_INDICES1]		= Normal_DirectByte3; //HACK
+    m_funcTable[NRM_DIRECT][FORMAT_BYTE]  [NRM_NBT3] [NRM_INDICES1]		= Normal_DirectByte3;
+    m_funcTable[NRM_DIRECT][FORMAT_USHORT][NRM_NBT3] [NRM_INDICES1]		= Normal_DirectShort3; //HACK
+    m_funcTable[NRM_DIRECT][FORMAT_SHORT] [NRM_NBT3] [NRM_INDICES1]		= Normal_DirectShort3;
+    m_funcTable[NRM_DIRECT][FORMAT_FLOAT] [NRM_NBT3] [NRM_INDICES1]		= Normal_DirectFloat3;
 
-    m_funcTable[NRM_INDEX8][FORMAT_UBYTE] [NRM_NBT]		= Normal_Index8_Byte; //HACK
-    m_funcTable[NRM_INDEX8][FORMAT_BYTE]  [NRM_NBT]		= Normal_Index8_Byte;
-    m_funcTable[NRM_INDEX8][FORMAT_USHORT][NRM_NBT]		= Normal_Index8_Short; //HACK
-    m_funcTable[NRM_INDEX8][FORMAT_SHORT] [NRM_NBT]		= Normal_Index8_Short;
-    m_funcTable[NRM_INDEX8][FORMAT_FLOAT] [NRM_NBT]		= Normal_Index8_Float;
-    m_funcTable[NRM_INDEX8][FORMAT_UBYTE] [NRM_NBT3]	= Normal_Index8_Byte3;	 //HACK
-    m_funcTable[NRM_INDEX8][FORMAT_BYTE]  [NRM_NBT3]	= Normal_Index8_Byte3;
-    m_funcTable[NRM_INDEX8][FORMAT_USHORT][NRM_NBT3]	= Normal_Index8_Short3; //HACK
-    m_funcTable[NRM_INDEX8][FORMAT_SHORT] [NRM_NBT3]	= Normal_Index8_Short3;
-    m_funcTable[NRM_INDEX8][FORMAT_FLOAT] [NRM_NBT3]	= Normal_Index8_Float3;
+	m_funcTable[NRM_DIRECT][FORMAT_UBYTE] [NRM_NBT] [NRM_INDICES3]		= Normal_DirectByte; //HACK
+    m_funcTable[NRM_DIRECT][FORMAT_BYTE]  [NRM_NBT] [NRM_INDICES3]		= Normal_DirectByte;
+    m_funcTable[NRM_DIRECT][FORMAT_USHORT][NRM_NBT] [NRM_INDICES3]		= Normal_DirectShort; //HACK
+    m_funcTable[NRM_DIRECT][FORMAT_SHORT] [NRM_NBT] [NRM_INDICES3]		= Normal_DirectShort;
+    m_funcTable[NRM_DIRECT][FORMAT_FLOAT] [NRM_NBT] [NRM_INDICES3]		= Normal_DirectFloat;
+    m_funcTable[NRM_DIRECT][FORMAT_UBYTE] [NRM_NBT3] [NRM_INDICES3]		= Normal_DirectByte3; //HACK
+    m_funcTable[NRM_DIRECT][FORMAT_BYTE]  [NRM_NBT3] [NRM_INDICES3]		= Normal_DirectByte3;
+    m_funcTable[NRM_DIRECT][FORMAT_USHORT][NRM_NBT3] [NRM_INDICES3]		= Normal_DirectShort3; //HACK
+    m_funcTable[NRM_DIRECT][FORMAT_SHORT] [NRM_NBT3] [NRM_INDICES3]		= Normal_DirectShort3;
+    m_funcTable[NRM_DIRECT][FORMAT_FLOAT] [NRM_NBT3] [NRM_INDICES3]		= Normal_DirectFloat3;
 
-    m_funcTable[NRM_INDEX16][FORMAT_UBYTE] [NRM_NBT]	= Normal_Index16_Byte; //HACK
-    m_funcTable[NRM_INDEX16][FORMAT_BYTE]  [NRM_NBT]	= Normal_Index16_Byte;
-    m_funcTable[NRM_INDEX16][FORMAT_USHORT][NRM_NBT]	= Normal_Index16_Short; //HACK
-    m_funcTable[NRM_INDEX16][FORMAT_SHORT] [NRM_NBT]	= Normal_Index16_Short;
-    m_funcTable[NRM_INDEX16][FORMAT_FLOAT] [NRM_NBT]	= Normal_Index16_Float;
-    m_funcTable[NRM_INDEX16][FORMAT_UBYTE] [NRM_NBT3]	= Normal_Index16_Byte3;	//HACK
-    m_funcTable[NRM_INDEX16][FORMAT_BYTE]  [NRM_NBT3]	= Normal_Index16_Byte3;
-    m_funcTable[NRM_INDEX16][FORMAT_USHORT][NRM_NBT3]	= Normal_Index16_Short3; //HACK
-    m_funcTable[NRM_INDEX16][FORMAT_SHORT] [NRM_NBT3]	= Normal_Index16_Short3;
-    m_funcTable[NRM_INDEX16][FORMAT_FLOAT] [NRM_NBT3]	= Normal_Index16_Float3;
+    m_funcTable[NRM_INDEX8][FORMAT_UBYTE] [NRM_NBT] [NRM_INDICES1]		= Normal_Index8_Byte; //HACK
+    m_funcTable[NRM_INDEX8][FORMAT_BYTE]  [NRM_NBT] [NRM_INDICES1]		= Normal_Index8_Byte;
+    m_funcTable[NRM_INDEX8][FORMAT_USHORT][NRM_NBT] [NRM_INDICES1]		= Normal_Index8_Short; //HACK
+    m_funcTable[NRM_INDEX8][FORMAT_SHORT] [NRM_NBT] [NRM_INDICES1]		= Normal_Index8_Short;
+    m_funcTable[NRM_INDEX8][FORMAT_FLOAT] [NRM_NBT] [NRM_INDICES1]		= Normal_Index8_Float;
+    m_funcTable[NRM_INDEX8][FORMAT_UBYTE] [NRM_NBT3] [NRM_INDICES1]		= Normal_Index8_Byte3_Indices1; //HACK
+    m_funcTable[NRM_INDEX8][FORMAT_BYTE]  [NRM_NBT3] [NRM_INDICES1]		= Normal_Index8_Byte3_Indices1;
+    m_funcTable[NRM_INDEX8][FORMAT_USHORT][NRM_NBT3] [NRM_INDICES1]		= Normal_Index8_Short3_Indices1; //HACK
+    m_funcTable[NRM_INDEX8][FORMAT_SHORT] [NRM_NBT3] [NRM_INDICES1]		= Normal_Index8_Short3_Indices1;
+    m_funcTable[NRM_INDEX8][FORMAT_FLOAT] [NRM_NBT3] [NRM_INDICES1]		= Normal_Index8_Float3_Indices1;
+
+	m_funcTable[NRM_INDEX8][FORMAT_UBYTE] [NRM_NBT] [NRM_INDICES3]		= Normal_Index8_Byte; //HACK
+    m_funcTable[NRM_INDEX8][FORMAT_BYTE]  [NRM_NBT] [NRM_INDICES3]		= Normal_Index8_Byte;
+    m_funcTable[NRM_INDEX8][FORMAT_USHORT][NRM_NBT] [NRM_INDICES3]		= Normal_Index8_Short; //HACK
+    m_funcTable[NRM_INDEX8][FORMAT_SHORT] [NRM_NBT] [NRM_INDICES3]		= Normal_Index8_Short;
+    m_funcTable[NRM_INDEX8][FORMAT_FLOAT] [NRM_NBT] [NRM_INDICES3]		= Normal_Index8_Float;
+    m_funcTable[NRM_INDEX8][FORMAT_UBYTE] [NRM_NBT3] [NRM_INDICES3]		= Normal_Index8_Byte3_Indices3; //HACK
+    m_funcTable[NRM_INDEX8][FORMAT_BYTE]  [NRM_NBT3] [NRM_INDICES3]		= Normal_Index8_Byte3_Indices3;
+    m_funcTable[NRM_INDEX8][FORMAT_USHORT][NRM_NBT3] [NRM_INDICES3]		= Normal_Index8_Short3_Indices3; //HACK
+    m_funcTable[NRM_INDEX8][FORMAT_SHORT] [NRM_NBT3] [NRM_INDICES3]		= Normal_Index8_Short3_Indices3;
+    m_funcTable[NRM_INDEX8][FORMAT_FLOAT] [NRM_NBT3] [NRM_INDICES3]		= Normal_Index8_Float3_Indices3;
+
+    m_funcTable[NRM_INDEX16][FORMAT_UBYTE] [NRM_NBT] [NRM_INDICES1]		= Normal_Index16_Byte; //HACK
+    m_funcTable[NRM_INDEX16][FORMAT_BYTE]  [NRM_NBT] [NRM_INDICES1]		= Normal_Index16_Byte;
+    m_funcTable[NRM_INDEX16][FORMAT_USHORT][NRM_NBT] [NRM_INDICES1]		= Normal_Index16_Short; //HACK
+    m_funcTable[NRM_INDEX16][FORMAT_SHORT] [NRM_NBT] [NRM_INDICES1]		= Normal_Index16_Short;
+    m_funcTable[NRM_INDEX16][FORMAT_FLOAT] [NRM_NBT] [NRM_INDICES1]		= Normal_Index16_Float;
+    m_funcTable[NRM_INDEX16][FORMAT_UBYTE] [NRM_NBT3] [NRM_INDICES1]	= Normal_Index16_Byte3_Indices1; //HACK
+    m_funcTable[NRM_INDEX16][FORMAT_BYTE]  [NRM_NBT3] [NRM_INDICES1]	= Normal_Index16_Byte3_Indices1;
+    m_funcTable[NRM_INDEX16][FORMAT_USHORT][NRM_NBT3] [NRM_INDICES1]	= Normal_Index16_Short3_Indices1; //HACK
+    m_funcTable[NRM_INDEX16][FORMAT_SHORT] [NRM_NBT3] [NRM_INDICES1]	= Normal_Index16_Short3_Indices1;
+    m_funcTable[NRM_INDEX16][FORMAT_FLOAT] [NRM_NBT3] [NRM_INDICES1]	= Normal_Index16_Float3_Indices1;
+
+	m_funcTable[NRM_INDEX16][FORMAT_UBYTE] [NRM_NBT] [NRM_INDICES3]		= Normal_Index16_Byte; //HACK
+    m_funcTable[NRM_INDEX16][FORMAT_BYTE]  [NRM_NBT] [NRM_INDICES3]		= Normal_Index16_Byte;
+    m_funcTable[NRM_INDEX16][FORMAT_USHORT][NRM_NBT] [NRM_INDICES3]		= Normal_Index16_Short; //HACK
+    m_funcTable[NRM_INDEX16][FORMAT_SHORT] [NRM_NBT] [NRM_INDICES3]		= Normal_Index16_Short;
+    m_funcTable[NRM_INDEX16][FORMAT_FLOAT] [NRM_NBT] [NRM_INDICES3]		= Normal_Index16_Float;
+    m_funcTable[NRM_INDEX16][FORMAT_UBYTE] [NRM_NBT3] [NRM_INDICES3]	= Normal_Index16_Byte3_Indices3; //HACK
+    m_funcTable[NRM_INDEX16][FORMAT_BYTE]  [NRM_NBT3] [NRM_INDICES3]	= Normal_Index16_Byte3_Indices3;
+    m_funcTable[NRM_INDEX16][FORMAT_USHORT][NRM_NBT3] [NRM_INDICES3]	= Normal_Index16_Short3_Indices3; //HACK
+    m_funcTable[NRM_INDEX16][FORMAT_SHORT] [NRM_NBT3] [NRM_INDICES3]	= Normal_Index16_Short3_Indices3;
+    m_funcTable[NRM_INDEX16][FORMAT_FLOAT] [NRM_NBT3] [NRM_INDICES3]	= Normal_Index16_Float3_Indices3;
 }
 
-unsigned int VertexLoader_Normal::GetSize(unsigned int _type, unsigned int _format, unsigned int _elements)
+unsigned int VertexLoader_Normal::GetSize(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _index3)
 {
-	if (!index3 && _elements == NRM_NBT3)
-		return m_sizeTable[_type][_format][_elements] / 3;
-	else 
-		return m_sizeTable[_type][_format][_elements];
+	return m_sizeTable[_type][_format][_elements][_index3];
 }
 
-TPipelineFunction VertexLoader_Normal::GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements)
+TPipelineFunction VertexLoader_Normal::GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _index3)
 {
-    TPipelineFunction pFunc = m_funcTable[_type][_format][_elements];
+    TPipelineFunction pFunc = m_funcTable[_type][_format][_elements][_index3];
     return pFunc;
 }
 
@@ -225,82 +286,88 @@ void LOADERDECL VertexLoader_Normal::Normal_Index8_Float(const void *_p)
     LOG_NORMF();
 }
 
-void LOADERDECL VertexLoader_Normal::Normal_Index8_Byte3(const void *_p)
+void LOADERDECL VertexLoader_Normal::Normal_Index8_Byte3_Indices1(const void *_p)
 {
-    if (index3) {
-        for (int i = 0; i < 3; i++) {
-            u8 Index = DataReadU8();
-            u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 1*3*i;
-            *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress);
-            *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress+1);
-            *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress+2);
-            *VertexManager::s_pCurBufferPointer++;
-            LOG_NORM8();
-        }
-    }
-    else {
-        u8 Index = DataReadU8();
-        for (int i = 0; i < 3; i++) {
-            u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 1*3*i;
-            *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress);
-            *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress+1);
-            *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress+2);
-			VertexManager::s_pCurBufferPointer++;
-            LOG_NORM8();
-        }
+    u8 Index = DataReadU8();
+    for (int i = 0; i < 3; i++)
+	{
+        u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 1*3*i;
+        *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress);
+        *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress+1);
+        *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress+2);
+		VertexManager::s_pCurBufferPointer++;
+        LOG_NORM8();
     }
 }
 
-void LOADERDECL VertexLoader_Normal::Normal_Index8_Short3(const void *_p)
+void LOADERDECL VertexLoader_Normal::Normal_Index8_Short3_Indices1(const void *_p)
 {
-    if (index3) {
-        for (int i = 0; i < 3; i++) {
-            u8 Index = DataReadU8();
-            u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 2*3*i;
-            ((u16*)VertexManager::s_pCurBufferPointer)[0] = Memory_Read_U16(iAddress);
-            ((u16*)VertexManager::s_pCurBufferPointer)[1] = Memory_Read_U16(iAddress+2);
-            ((u16*)VertexManager::s_pCurBufferPointer)[2] = Memory_Read_U16(iAddress+4);
-            VertexManager::s_pCurBufferPointer += 8;
-            LOG_NORM16();
-        }
-    }
-    else {
+    u8 Index = DataReadU8();
+    for (int i = 0; i < 3; i++)
+	{
+        u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 2*3*i;
+        ((u16*)VertexManager::s_pCurBufferPointer)[0] = Memory_Read_U16(iAddress);
+        ((u16*)VertexManager::s_pCurBufferPointer)[1] = Memory_Read_U16(iAddress+2);
+        ((u16*)VertexManager::s_pCurBufferPointer)[2] = Memory_Read_U16(iAddress+4);
+        VertexManager::s_pCurBufferPointer += 8;
+        LOG_NORM16();
+    }    
+}
+
+void LOADERDECL VertexLoader_Normal::Normal_Index8_Float3_Indices1(const void *_p)
+{
+    u8 Index = DataReadU8();
+    for (int i = 0; i < 3; i++)
+	{
+        u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 4*3*i;
+        ((float*)VertexManager::s_pCurBufferPointer)[0] = Memory_Read_Float(iAddress);
+        ((float*)VertexManager::s_pCurBufferPointer)[1] = Memory_Read_Float(iAddress+4);
+        ((float*)VertexManager::s_pCurBufferPointer)[2] = Memory_Read_Float(iAddress+8);
+        VertexManager::s_pCurBufferPointer += 12;
+        LOG_NORMF();
+    }    
+}
+
+void LOADERDECL VertexLoader_Normal::Normal_Index8_Byte3_Indices3(const void *_p)
+{
+    for (int i = 0; i < 3; i++)
+	{
         u8 Index = DataReadU8();
-        for (int i = 0; i < 3; i++) {
-            u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 2*3*i;
-            ((u16*)VertexManager::s_pCurBufferPointer)[0] = Memory_Read_U16(iAddress);
-            ((u16*)VertexManager::s_pCurBufferPointer)[1] = Memory_Read_U16(iAddress+2);
-            ((u16*)VertexManager::s_pCurBufferPointer)[2] = Memory_Read_U16(iAddress+4);
-            VertexManager::s_pCurBufferPointer += 8;
-            LOG_NORM16();
-        }
+        u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 1*3*i;
+        *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress);
+        *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress+1);
+        *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress+2);
+        *VertexManager::s_pCurBufferPointer++;
+        LOG_NORM8();
     }
 }
 
-void LOADERDECL VertexLoader_Normal::Normal_Index8_Float3(const void *_p)
+void LOADERDECL VertexLoader_Normal::Normal_Index8_Short3_Indices3(const void *_p)
 {
-    if (index3) {
-        for (int i = 0; i < 3; i++) {
-            u8 Index = DataReadU8();
-            u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 4*3*i;
-            ((float*)VertexManager::s_pCurBufferPointer)[0] = Memory_Read_Float(iAddress);
-            ((float*)VertexManager::s_pCurBufferPointer)[1] = Memory_Read_Float(iAddress+4);
-            ((float*)VertexManager::s_pCurBufferPointer)[2] = Memory_Read_Float(iAddress+8);
-            VertexManager::s_pCurBufferPointer += 12;
-            LOG_NORMF();
-        }
-    }
-    else {
+    for (int i = 0; i < 3; i++)
+	{
         u8 Index = DataReadU8();
-        for (int i = 0; i < 3; i++) {
-            u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 4*3*i;
-            ((float*)VertexManager::s_pCurBufferPointer)[0] = Memory_Read_Float(iAddress);
-            ((float*)VertexManager::s_pCurBufferPointer)[1] = Memory_Read_Float(iAddress+4);
-            ((float*)VertexManager::s_pCurBufferPointer)[2] = Memory_Read_Float(iAddress+8);
-            VertexManager::s_pCurBufferPointer += 12;
-            LOG_NORMF();
-        }
+        u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 2*3*i;
+        ((u16*)VertexManager::s_pCurBufferPointer)[0] = Memory_Read_U16(iAddress);
+        ((u16*)VertexManager::s_pCurBufferPointer)[1] = Memory_Read_U16(iAddress+2);
+        ((u16*)VertexManager::s_pCurBufferPointer)[2] = Memory_Read_U16(iAddress+4);
+        VertexManager::s_pCurBufferPointer += 8;
+        LOG_NORM16();
     }
+}
+
+void LOADERDECL VertexLoader_Normal::Normal_Index8_Float3_Indices3(const void *_p)
+{
+    for (int i = 0; i < 3; i++)
+	{
+        u8 Index = DataReadU8();
+        u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 4*3*i;
+        ((float*)VertexManager::s_pCurBufferPointer)[0] = Memory_Read_Float(iAddress);
+        ((float*)VertexManager::s_pCurBufferPointer)[1] = Memory_Read_Float(iAddress+4);
+        ((float*)VertexManager::s_pCurBufferPointer)[2] = Memory_Read_Float(iAddress+8);
+        VertexManager::s_pCurBufferPointer += 12;
+        LOG_NORMF();
+    }    
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -340,88 +407,87 @@ void LOADERDECL VertexLoader_Normal::Normal_Index16_Float(const void *_p)
     LOG_NORMF();
 }
 
-void LOADERDECL VertexLoader_Normal::Normal_Index16_Byte3(const void *_p)
+void LOADERDECL VertexLoader_Normal::Normal_Index16_Byte3_Indices1(const void *_p)
 {
-    if (index3) {
-        for (int i = 0; i < 3; i++) {
-            u16 Index = DataReadU16();
-            u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 1*3*i;
-            *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress);
-            *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress+1);
-            *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress+2);
-			VertexManager::s_pCurBufferPointer++;
-            LOG_NORM8();
-        }
-    }
-    else {
-        u16 Index = DataReadU16();
-        for (int i = 0; i < 3; i++) {
-            u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 1*3*i;
-            *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress);
-            *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress+1);
-            *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress+2);
-			VertexManager::s_pCurBufferPointer++;
-            LOG_NORM8();
-        }
+    u16 Index = DataReadU16();
+    for (int i = 0; i < 3; i++)
+	{
+        u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 1*3*i;
+        *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress);
+        *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress+1);
+        *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress+2);
+		VertexManager::s_pCurBufferPointer++;
+        LOG_NORM8();
     }
 }
 
-void LOADERDECL VertexLoader_Normal::Normal_Index16_Short3(const void *_p)
+void LOADERDECL VertexLoader_Normal::Normal_Index16_Short3_Indices1(const void *_p)
 {
-    if (index3)
+    u16 Index = DataReadU16();
+    for (int i = 0; i < 3; i++)
     {
-        for (int i = 0; i < 3; i++)
-        {
-            u16 Index = DataReadU16();
-            u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 2*3*i;
-            ((u16*)VertexManager::s_pCurBufferPointer)[0] = Memory_Read_U16(iAddress);
-            ((u16*)VertexManager::s_pCurBufferPointer)[1] = Memory_Read_U16(iAddress+2);
-            ((u16*)VertexManager::s_pCurBufferPointer)[2] = Memory_Read_U16(iAddress+4);
-            VertexManager::s_pCurBufferPointer += 8;
-            LOG_NORM16();
-        }
-    }
-    else
-    {
-        u16 Index = DataReadU16();
-        for (int i = 0; i < 3; i++)
-        {
-            u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 2*3*i;
-            ((u16*)VertexManager::s_pCurBufferPointer)[0] = Memory_Read_U16(iAddress);
-            ((u16*)VertexManager::s_pCurBufferPointer)[1] = Memory_Read_U16(iAddress+2);
-            ((u16*)VertexManager::s_pCurBufferPointer)[2] = Memory_Read_U16(iAddress+4);
-            VertexManager::s_pCurBufferPointer += 8;
-            LOG_NORM16();
-        }
+        u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 2*3*i;
+        ((u16*)VertexManager::s_pCurBufferPointer)[0] = Memory_Read_U16(iAddress);
+        ((u16*)VertexManager::s_pCurBufferPointer)[1] = Memory_Read_U16(iAddress+2);
+        ((u16*)VertexManager::s_pCurBufferPointer)[2] = Memory_Read_U16(iAddress+4);
+        VertexManager::s_pCurBufferPointer += 8;
+        LOG_NORM16();
     }
 }
 
-void LOADERDECL VertexLoader_Normal::Normal_Index16_Float3(const void *_p)
+void LOADERDECL VertexLoader_Normal::Normal_Index16_Float3_Indices1(const void *_p)
 {
-    if (index3)
+    u16 Index = DataReadU16();
+    for (int i = 0; i < 3; i++)
     {
-        for (int i = 0; i < 3; i++)
-        {
-            u16 Index = DataReadU16();
-            u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 4*3*i;
-            ((float*)VertexManager::s_pCurBufferPointer)[0] = Memory_Read_Float(iAddress);
-            ((float*)VertexManager::s_pCurBufferPointer)[1] = Memory_Read_Float(iAddress+4);
-            ((float*)VertexManager::s_pCurBufferPointer)[2] = Memory_Read_Float(iAddress+8);
-            VertexManager::s_pCurBufferPointer += 12;
-            LOG_NORMF();
-        }
+        u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 4*3*i;
+        ((float*)VertexManager::s_pCurBufferPointer)[0] = Memory_Read_Float(iAddress);
+        ((float*)VertexManager::s_pCurBufferPointer)[1] = Memory_Read_Float(iAddress+4);
+        ((float*)VertexManager::s_pCurBufferPointer)[2] = Memory_Read_Float(iAddress+8);
+        VertexManager::s_pCurBufferPointer += 12;
+        LOG_NORMF();
     }
-    else
+}
+
+void LOADERDECL VertexLoader_Normal::Normal_Index16_Byte3_Indices3(const void *_p)
+{
+    for (int i = 0; i < 3; i++)
+	{
+        u16 Index = DataReadU16();
+        u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 1*3*i;
+        *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress);
+        *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress+1);
+        *VertexManager::s_pCurBufferPointer++ = Memory_Read_U8(iAddress+2);
+		VertexManager::s_pCurBufferPointer++;
+        LOG_NORM8();
+    }    
+}
+
+void LOADERDECL VertexLoader_Normal::Normal_Index16_Short3_Indices3(const void *_p)
+{
+    for (int i = 0; i < 3; i++)
     {
         u16 Index = DataReadU16();
-        for (int i = 0; i < 3; i++)
-        {
-            u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 4*3*i;
-            ((float*)VertexManager::s_pCurBufferPointer)[0] = Memory_Read_Float(iAddress);
-            ((float*)VertexManager::s_pCurBufferPointer)[1] = Memory_Read_Float(iAddress+4);
-            ((float*)VertexManager::s_pCurBufferPointer)[2] = Memory_Read_Float(iAddress+8);
-            VertexManager::s_pCurBufferPointer += 12;
-            LOG_NORMF();
-        }
+        u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 2*3*i;
+        ((u16*)VertexManager::s_pCurBufferPointer)[0] = Memory_Read_U16(iAddress);
+        ((u16*)VertexManager::s_pCurBufferPointer)[1] = Memory_Read_U16(iAddress+2);
+        ((u16*)VertexManager::s_pCurBufferPointer)[2] = Memory_Read_U16(iAddress+4);
+        VertexManager::s_pCurBufferPointer += 8;
+        LOG_NORM16();
     }
+   
+}
+
+void LOADERDECL VertexLoader_Normal::Normal_Index16_Float3_Indices3(const void *_p)
+{
+    for (int i = 0; i < 3; i++)
+    {
+        u16 Index = DataReadU16();
+        u32 iAddress = arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]) + 4*3*i;
+        ((float*)VertexManager::s_pCurBufferPointer)[0] = Memory_Read_Float(iAddress);
+        ((float*)VertexManager::s_pCurBufferPointer)[1] = Memory_Read_Float(iAddress+4);
+        ((float*)VertexManager::s_pCurBufferPointer)[2] = Memory_Read_Float(iAddress+8);
+        VertexManager::s_pCurBufferPointer += 12;
+        LOG_NORMF();
+    }    
 }

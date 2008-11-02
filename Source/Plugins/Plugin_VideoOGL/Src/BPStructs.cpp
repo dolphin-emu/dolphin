@@ -426,13 +426,15 @@ void BPWritten(int addr, int changes, int newval)
             VertexManager::Flush();
 
             ((u32*)&bpmem)[addr] = newval;
+			//The bottom right is within the rectangle.
 			TRectangle rc = {
                 (int)(bpmem.copyTexSrcXY.x),
                 (int)(bpmem.copyTexSrcXY.y),
-                (int)((bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1)),
-                (int)((bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1))
+                (int)((bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x)),
+                (int)((bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y))
             };
             //Need another rc here to get it to scale.
+			//Here the bottom right is the out of the rectangle.
             TRectangle multirc = {
                 (int)(bpmem.copyTexSrcXY.x * MValueX),
                 (int)(bpmem.copyTexSrcXY.y * MValueY),
