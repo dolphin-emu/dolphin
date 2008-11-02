@@ -113,7 +113,8 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 #if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
             continue;
 #else
-            Common::SleepCurrentThread(1);
+        //Common::SleepCurrentThread(1);
+        continue;
 #endif
         //etc...
 
