@@ -457,7 +457,7 @@ void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 	CConfigMain ConfigMain(this);
 	ConfigMain.ShowModal();
 	if (ConfigMain.bRefreshList)
-		m_GameListCtrl->Update(true);
+		m_GameListCtrl->Update(false);
 }
 
 

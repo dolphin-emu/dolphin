@@ -120,7 +120,7 @@ void CGameListCtrl::BrowseForDirectory()
 	}
 }
 
-void CGameListCtrl::Update(bool Loadcache)
+void CGameListCtrl::Update(bool loadcache)
 {
 	if (m_imageListSmall)
 	{
@@ -130,7 +130,7 @@ void CGameListCtrl::Update(bool Loadcache)
 
 	Hide();
 
-	ScanForISOs(Loadcache);
+	ScanForISOs(loadcache);
 
 	ClearAll();
 
@@ -332,17 +332,17 @@ void CGameListCtrl::SetBackgroundColor()
 	}
 }
 
-void CGameListCtrl::ScanForISOs(bool Loadcache)
+void CGameListCtrl::ScanForISOs(bool loadcache)
 {
-	FILE * CacheFile;
-	bool ScanIso = true;
-	if (Loadcache)
+	FILE * cacheFile;
+	bool scanISO = true;
+	if (loadcache)
 	{
-		ScanIso = false;
-		if((CacheFile = fopen("DolphinWx.cache","rb")) == NULL)
+		scanISO = false;
+		if ((cacheFile = fopen("DolphinWx.cache", "rb")) == NULL)
 		{
-			ScanIso = true;
-			if((CacheFile = fopen("DolphinWx.cache","wb")) == NULL)
+			scanISO = true;
+			if ((cacheFile = fopen("DolphinWx.cache", "wb")) == NULL)
 			{
 				PanicAlert("Unable to make or open the dolphin iso cache: is the directory write protected?");
 			}
@@ -350,7 +350,7 @@ void CGameListCtrl::ScanForISOs(bool Loadcache)
 	}
 	else 
 	{
-		if((CacheFile = fopen("DolphinWx.cache","wb")) == NULL)
+		if ((cacheFile = fopen("DolphinWx.cache", "wb")) == NULL)
 		{
 			// Normally the file should be made when it is opened so if it can't open the file it's 
 			//	write protected or something is stopping us from writing
@@ -358,19 +358,19 @@ void CGameListCtrl::ScanForISOs(bool Loadcache)
 		}
 	}
 	m_ISOFiles.clear();
-	if (!ScanIso)
+	if (!scanISO)
 	{
 		// TODO: complete cache loading here. this means ADDING THE BANNER >_<
-		char Buffer[257];
+		char buffer[257];
 		char temp[257];
-		std::string Filename = " ";
-		GameListItem ISOFile(Filename.c_str());
+		std::string filename = " ";
+		GameListItem ISOFile(filename.c_str());
 		// Looping every line of the file
-		while (fgets(Buffer, 256, CacheFile) != NULL)
+		while (fgets(buffer, 256, cacheFile) != NULL)
 		{
-			strncpy(temp,"",257);
+			strncpy(temp, "", 257);
 			int i = 0;
-			switch(Buffer[0])
+			switch (buffer[0])
 			{				
 				/*
 				! = file name
@@ -385,22 +385,22 @@ void CGameListCtrl::ScanForISOs(bool Loadcache)
 			case '!':
 				while (i < 256)
 				{
-					if (Buffer[1+i] != '\n')
-						temp[i] = Buffer[1+i];
+					if (buffer[1+i] != '\n')
+						temp[i] = buffer[1+i];
 					i++;
 				}
-				Filename = temp;
-				ISOFile.m_FileName = Filename.c_str();
+				filename = temp;
+				ISOFile.m_FileName = filename.c_str();
 				break;
 			case 'I':
-				memcpy(temp, &Buffer[1], 6);
+				memcpy(temp, &buffer[1], 6);
 				ISOFile.m_UniqueID = temp;
 				break;
 			case 'N':
 				while (i < 257)
 				{
-					if (Buffer[1+i] != '\n')
-						temp[i] = Buffer[1+i];
+					if (buffer[1+i] != '\n')
+						temp[i] = buffer[1+i];
 					i++;
 				}
 				ISOFile.m_Name = temp;
@@ -408,8 +408,8 @@ void CGameListCtrl::ScanForISOs(bool Loadcache)
 			case 'D':
 				while (i < 257)
 				{
-					if (Buffer[1+i] != '\n')
-						temp[i] = Buffer[1+i];
+					if (buffer[1+i] != '\n')
+						temp[i] = buffer[1+i];
 					i++;
 				}
 				ISOFile.m_Description = temp;
@@ -417,29 +417,29 @@ void CGameListCtrl::ScanForISOs(bool Loadcache)
 			case 'O':
 				while (i < 257)
 				{
-					if (Buffer[1+i] != '\n')
-						temp[i] = Buffer[1+i];
+					if (buffer[1+i] != '\n')
+						temp[i] = buffer[1+i];
 					i++;
 				}
 				ISOFile.m_Company = temp;
 				break;
 			case 'C':
-				memcpy(temp,&Buffer[1],3);
+				memcpy(temp, &buffer[1], 3);
 				ISOFile.m_Country = (DiscIO::IVolume::ECountry) atoi(temp);
 				break;
 			case 'S':
-				memcpy(temp,&Buffer[1],11);
-				ISOFile.m_FileSize = atoi(temp);
+				memcpy(temp, &buffer[1], 11);
+				ISOFile.m_FileSize = atoll(temp);
 				break;
 			case 'V':
-				memcpy(temp, &Buffer[1], 11);
-				ISOFile.m_VolumeSize = atoi(temp);
+				memcpy(temp, &buffer[1], 11);
+				ISOFile.m_VolumeSize = atoll(temp);
 				break;
 			case 'B':
-				memcpy(temp, &Buffer[1], 1);
+				memcpy(temp, &buffer[1], 1);
 				if (temp[0] == '1')
 					ISOFile.m_BlobCompressed = true;
-				else if(temp[0] == '0')
+				else if (temp[0] == '0')
 					ISOFile.m_BlobCompressed = false;
 				else
 					PanicAlert("unknown Compressed value %c", temp[1]);
@@ -477,7 +477,7 @@ void CGameListCtrl::ScanForISOs(bool Loadcache)
 				}
 				break;
 			default:
-				PanicAlert("Unknown Cache line Found:\n%s", Buffer);
+				PanicAlert("Unknown Cache line Found:\n%s", buffer);
 				break;
 			}
 		}
@@ -528,15 +528,22 @@ void CGameListCtrl::ScanForISOs(bool Loadcache)
 				GameListItem ISOFile(rFilenames[i]);
 				if (ISOFile.IsValid())
 				{
-					if(CacheFile)
+					if(cacheFile)
 					{
-						fseek( CacheFile, 0L, SEEK_END );
-						fprintf(CacheFile,"!%s\nI%s\nN%s\nD%s\nC%u\nO%s\nS%u\n",ISOFile.GetFileName().c_str(),
-							ISOFile.GetUniqueID().c_str(), ISOFile.GetName().c_str(), ISOFile.GetDescription().c_str()
-							,ISOFile.GetCountry(), ISOFile.GetCompany().c_str(), ISOFile.GetFileSize());
-						// Why a new fprintf? cause volume size got writen as 0 for some bloody odd reason
-						fprintf(CacheFile,"V%u\nB%u\n$\n", ISOFile.GetVolumeSize(),	ISOFile.IsCompressed());
-						ISOFile.m_Image.SaveFile("GameIni\\" + ISOFile.GetUniqueID() + ".png",wxBITMAP_TYPE_PNG);//".JPG",wxBITMAP_TYPE_JPEG);
+						fseek(cacheFile, 0L, SEEK_END);
+
+						fprintf(cacheFile, "!%s\nI%s\nN%s\nD%s\nC%u\nO%s\nS%llu\nV%llu\nB%u\n$\n",
+							ISOFile.GetFileName().c_str(),
+							ISOFile.GetUniqueID().c_str(),
+							ISOFile.GetName().c_str(),
+							ISOFile.GetDescription().c_str(),
+							ISOFile.GetCountry(),
+							ISOFile.GetCompany().c_str(),
+							ISOFile.GetFileSize(),
+							ISOFile.GetVolumeSize(),
+							ISOFile.IsCompressed());
+
+						ISOFile.m_Image.SaveFile("GameIni\\" + ISOFile.GetUniqueID() + ".png", wxBITMAP_TYPE_PNG);//".JPG",wxBITMAP_TYPE_JPEG);
 						// TODO: add the banner saving TO 1 FILE AND JPG as well & make the cache MUCH better. 
 						// This is ugly as fuck
 					}
@@ -546,7 +553,7 @@ void CGameListCtrl::ScanForISOs(bool Loadcache)
 					PanicAlert("Invalid ISO file %s", rFilenames[i].c_str());
 			}
 		}
-		fclose (CacheFile);
+		fclose (cacheFile);
 	}
 	std::sort(m_ISOFiles.begin(), m_ISOFiles.end());
 }

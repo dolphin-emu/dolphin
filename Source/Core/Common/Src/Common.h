@@ -60,6 +60,8 @@
 #define fseek _fseeki64
 #define ftell _ftelli64
 
+#define atoll _atoi64
+
 #define POSIX 0
 #define NOMINMAX
 
