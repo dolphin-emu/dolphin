@@ -456,7 +456,22 @@ void CGameListCtrl::ScanForISOs(bool Loadcache)
 					else
 						PanicAlert("Invalid ISO file %s", ISOFile.GetFileName().c_str());*/
 					//TODO: stick the banners in 1 file ;_;
-					ISOFile.m_Image.LoadFile("GameIni\\" + ISOFile.GetUniqueID() + ".png",wxBITMAP_TYPE_PNG);
+					
+					strcpy(temp,"Gameini\\");
+					strcpy(&temp[8],ISOFile.GetUniqueID().c_str());
+					strcpy(&temp[14],".png");
+					if(fopen(temp,"rb"))
+					{
+						ISOFile.m_Image.LoadFile(temp,wxBITMAP_TYPE_PNG);
+					}
+					else
+					{
+						PanicAlert("Could not find banner for %s",ISOFile.GetName().c_str());
+						//remove any data left of the image of the game before the current. or you'll get the same
+						//banner twice :P
+						ISOFile.m_Image.Destroy();
+					}
+
 					m_ISOFiles.push_back(ISOFile);
 				}
 				break;
@@ -519,7 +534,7 @@ void CGameListCtrl::ScanForISOs(bool Loadcache)
 							ISOFile.GetUniqueID().c_str(), ISOFile.GetName().c_str(), ISOFile.GetDescription().c_str()
 							,ISOFile.GetCountry(), ISOFile.GetCompany().c_str(), ISOFile.GetFileSize());
 						//why a new fprintf? cause volume size got writen as 0 for some bloody odd reason
-						fprintf(CacheFile,"V%u\nB%u\n$\n", ISOFile.GetVolumeSize(),ISOFile.IsCompressed());
+						fprintf(CacheFile,"V%u\nB%u\n$\n", ISOFile.GetVolumeSize(),	ISOFile.IsCompressed());
 						ISOFile.m_Image.SaveFile("Gameini\\" + ISOFile.GetUniqueID() + ".png",wxBITMAP_TYPE_PNG);//".JPG",wxBITMAP_TYPE_JPEG);
 						//TODO: add the banner saving TO 1 FILE AND JPG as well & make the cache MUCH better. 
 						//this is ugly as fuck
