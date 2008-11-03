@@ -31,6 +31,7 @@
 
 #include <map>
 #include <vector>
+#include <string>
 
 #include "Common.h"
 
@@ -87,7 +88,42 @@ public:
 		// TODO
 		PanicAlert("Do(vector<>) does not yet work.");
 	}
+
+	// Store strings.
+	void Do(std::string &x) 
+	{
+		int stringLen = x.length() + 1;
+		Do(stringLen);
+
+		switch (mode)
+		{
+		case MODE_READ:		x = (char*)*ptr; break;
+		case MODE_WRITE:	memcpy(*ptr, x.c_str(), stringLen); break;
+		case MODE_MEASURE: break;
+		}
+		(*ptr) += stringLen;
+	}
  
+	void DoBuffer(u8** pBuffer, u32& _Size) 
+	{
+		Do(_Size);	
+
+		if (_Size > 0)
+		{
+			switch (mode)
+			{
+			case MODE_READ:		*pBuffer = new u8[_Size]; memcpy(*pBuffer, *ptr, _Size); break;
+			case MODE_WRITE:	memcpy(*ptr, *pBuffer, _Size); break;
+			case MODE_MEASURE:	break;
+			}
+		}
+		else
+		{
+			*pBuffer = NULL;
+		}
+		(*ptr) += _Size;
+	}
+
     template<class T>
     void DoArray(T *x, int count) {
         DoVoid((void *)x, sizeof(T) * count);
@@ -103,6 +139,98 @@ public:
 		// TODO
 		PanicAlert("Do(vector<>) does not yet work.");
 	}
+};
+
+
+class CChunkFileReader
+{
+public:
+	template<class T>
+	static bool Load(const std::string& _rFilename, int _Revision, T& _class)
+	{
+		FILE* pFile = fopen(_rFilename.c_str(), "rb");
+		if (pFile)
+		{
+			// get size
+			fseek(pFile, 0, SEEK_END);
+			size_t FileSize = ftell(pFile);
+			fseek(pFile, 0, SEEK_SET);
+
+			if (FileSize < sizeof(SChunkHeader))
+			{
+				fclose(pFile);
+				return false;
+			}
+
+			// read the header
+			SChunkHeader Header;
+			fread(&Header, sizeof(SChunkHeader), 1, pFile);
+			if (Header.Revision != _Revision)
+			{
+				fclose(pFile);
+				return false;
+			}
+
+			// get size
+			int sz = FileSize - sizeof(SChunkHeader);
+			if (Header.ExpectedSize != sz)
+			{
+				fclose(pFile);
+				return false;
+			}
+
+			// read the state
+			u8* buffer = new u8[sz];
+			fread(buffer, 1, sz, pFile);
+			fclose(pFile);
+
+			u8 *ptr = buffer;
+			PointerWrap p(&ptr, PointerWrap::MODE_READ);
+			_class.DoState(p);
+			delete [] buffer;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	template<class T>
+	static bool Save(const std::string& _rFilename, int _Revision, T& _class)
+	{
+		FILE* pFile = fopen(_rFilename.c_str(), "wb");
+		if (pFile)
+		{
+			u8 *ptr = 0;
+			PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
+			_class.DoState(p);
+			size_t sz = (size_t)ptr;
+			u8 *buffer = new u8[sz];
+			ptr = buffer;
+			p.SetMode(PointerWrap::MODE_WRITE);
+			_class.DoState(p);
+
+			SChunkHeader Header;
+			Header.Compress = 0;
+			Header.Revision = _Revision;
+			Header.ExpectedSize = sz;
+
+			fwrite(&Header, sizeof(SChunkHeader), 1, pFile);
+			fwrite(buffer, sz, 1, pFile);
+			fclose(pFile);
+
+			return true;
+		}
+
+		return false;
+	}
+private:
+	struct SChunkHeader
+	{
+		int Revision;
+		int Compress;
+		int ExpectedSize;
+	};
 };
 
 #endif  // _POINTERWRAP_H

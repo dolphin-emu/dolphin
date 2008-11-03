@@ -334,6 +334,7 @@ void CGameListCtrl::SetBackgroundColor()
 
 void CGameListCtrl::ScanForISOs(bool loadcache)
 {
+#if 0
 	FILE * cacheFile;
 	bool scanISO = true;
 	if (loadcache)
@@ -358,6 +359,7 @@ void CGameListCtrl::ScanForISOs(bool loadcache)
 		}
 	}
 	m_ISOFiles.clear();
+
 	if (!scanISO)
 	{
 		// TODO: complete cache loading here. this means ADDING THE BANNER >_<
@@ -483,6 +485,8 @@ void CGameListCtrl::ScanForISOs(bool loadcache)
 		}
 	}
 	else
+#endif
+
 	{
 		CFileSearch::XStringVector Directories(SConfig::GetInstance().m_ISOFolder);
 
@@ -528,6 +532,7 @@ void CGameListCtrl::ScanForISOs(bool loadcache)
 				GameListItem ISOFile(rFilenames[i]);
 				if (ISOFile.IsValid())
 				{
+#if 0
 					if(cacheFile)
 					{
 						fseek(cacheFile, 0L, SEEK_END);
@@ -547,13 +552,16 @@ void CGameListCtrl::ScanForISOs(bool loadcache)
 						// TODO: add the banner saving TO 1 FILE AND JPG as well & make the cache MUCH better. 
 						// This is ugly as fuck
 					}
+#endif 0
 					m_ISOFiles.push_back(ISOFile);
 				}
 				else
 					PanicAlert("Invalid ISO file %s", rFilenames[i].c_str());
 			}
 		}
+#if 0
 		fclose (cacheFile);
+#endif
 	}
 	std::sort(m_ISOFiles.begin(), m_ISOFiles.end());
 }

@@ -17,19 +17,22 @@
 
 #include <string>
 #include <vector>
+#include <wx/mstream.h>
 
 #include "Globals.h"
 #include "FileUtil.h"
 #include "ISOFile.h"
+#include "StringUtil.h"
 
 #include "VolumeCreator.h"
 #include "Filesystem.h"
 #include "BannerLoader.h"
 #include "FileSearch.h"
 #include "CompressedBlob.h"
+#include "ChunkFile.h"
 #include "../resources/no_banner.cpp"
 
-#include <wx/mstream.h>
+#define CACHE_REVISION 0x103
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -37,73 +40,125 @@
 static u32 g_ImageTemp[DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT];
 
 GameListItem::GameListItem(const std::string& _rFileName)
-	: m_FileName(_rFileName),
-	m_FileSize(0),
-	m_Valid(false),
-	m_BlobCompressed(false)
+	: m_FileName(_rFileName)
+	, m_FileSize(0)
+	, m_Valid(false)
+	, m_BlobCompressed(false)
+	, m_pImage(NULL)
+	, m_ImageSize(0)
 {
-	DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_rFileName);
 
-	if (pVolume != NULL)
+	if (LoadFromCache())
 	{
-		m_Name = _rFileName;
-		m_Country  = pVolume->GetCountry();
-		m_FileSize = File::GetSize(_rFileName.c_str());
-		m_VolumeSize = pVolume->GetSize();
-		m_Name = pVolume->GetName();
-		m_UniqueID = pVolume->GetUniqueID();
-		m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName.c_str());
+		m_Valid = true;
+	}
+	else
+	{
+		DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename(_rFileName);
 
-		// check if we can get some infos from the banner file too
-		DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
-
-		if (pFileSystem != NULL)
+		if (pVolume != NULL)
 		{
-			DiscIO::IBannerLoader* pBannerLoader = DiscIO::CreateBannerLoader(*pFileSystem);
+			m_Name = _rFileName;
+			m_Country  = pVolume->GetCountry();
+			m_FileSize = File::GetSize(_rFileName.c_str());
+			m_VolumeSize = pVolume->GetSize();
+			m_Name = pVolume->GetName();
+			m_UniqueID = pVolume->GetUniqueID();
+			m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName.c_str());
 
-			if (pBannerLoader != NULL)
+			// check if we can get some infos from the banner file too
+			DiscIO::IFileSystem* pFileSystem = DiscIO::CreateFileSystem(pVolume);
+
+			if (pFileSystem != NULL)
 			{
-				if (pBannerLoader->IsValid())
+				DiscIO::IBannerLoader* pBannerLoader = DiscIO::CreateBannerLoader(*pFileSystem);
+
+				if (pBannerLoader != NULL)
 				{
-					pBannerLoader->GetName(m_Name, 0); //m_Country == DiscIO::IVolume::COUNTRY_JAP ? 1 : 0);
-					pBannerLoader->GetCompany(m_Company);
-					pBannerLoader->GetDescription(m_Description);
-					if (pBannerLoader->GetBanner(g_ImageTemp))
+					if (pBannerLoader->IsValid())
 					{
-						unsigned char* pImage = (unsigned char*)malloc(DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT * 3);
-
-						for (size_t i = 0; i < DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT; i++)
+						pBannerLoader->GetName(m_Name, 0); //m_Country == DiscIO::IVolume::COUNTRY_JAP ? 1 : 0);
+						pBannerLoader->GetCompany(m_Company);
+						pBannerLoader->GetDescription(m_Description);
+						if (pBannerLoader->GetBanner(g_ImageTemp))
 						{
-							pImage[i * 3 + 0] = (g_ImageTemp[i] & 0xFF0000) >> 16;
-							pImage[i * 3 + 1] = (g_ImageTemp[i] & 0x00FF00) >>  8;
-							pImage[i * 3 + 2] = (g_ImageTemp[i] & 0x0000FF) >>  0;
+							m_ImageSize = DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT * 3;
+							m_pImage = new u8[m_ImageSize]; //(u8*)malloc(m_ImageSize);
+
+							for (size_t i = 0; i < DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT; i++)
+							{
+								m_pImage[i * 3 + 0] = (g_ImageTemp[i] & 0xFF0000) >> 16;
+								m_pImage[i * 3 + 1] = (g_ImageTemp[i] & 0x00FF00) >>  8;
+								m_pImage[i * 3 + 2] = (g_ImageTemp[i] & 0x0000FF) >>  0;
+							}		
 						}
-
-						m_Image.Create(DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT, pImage);
 					}
-				}
-				else
-				{
-					// default banner
-					wxMemoryInputStream istream(no_banner_png, sizeof no_banner_png);
-					wxImage iNoBanner(istream, wxBITMAP_TYPE_PNG);
-					m_Image = iNoBanner;
-					
+
+					delete pBannerLoader;
 				}
 
-				delete pBannerLoader;
+				delete pFileSystem;
 			}
 
-			delete pFileSystem;
-		}
-		delete pVolume;
+			delete pVolume;
 
-		m_Valid = true;
+			m_Valid = true;
+
+			SaveToCache();
+		}
+	}
+
+	// i am not sure if this is a leak or if wxImage will release the code
+	if (m_pImage)
+	{
+#if !defined(OSX64)
+		m_Image.Create(DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT, m_pImage);
+#endif
+	}
+	else
+	{
+		// default banner
+		wxMemoryInputStream istream(no_banner_png, sizeof no_banner_png);
+		wxImage iNoBanner(istream, wxBITMAP_TYPE_PNG);
+		m_Image = iNoBanner;
 	}
 }
 
 
 GameListItem::~GameListItem()
-{}
+{
+}
 
+bool GameListItem::LoadFromCache()
+{
+	return CChunkFileReader::Load<GameListItem>(CreateCacheFilename(), CACHE_REVISION, *this);
+}
 
+void GameListItem::SaveToCache()
+{
+	CChunkFileReader::Save<GameListItem>(CreateCacheFilename(), CACHE_REVISION, *this);
+}
+
+void GameListItem::DoState(PointerWrap &p)
+{
+	p.Do(m_Name);
+	p.Do(m_Company);
+	p.Do(m_Description);
+	p.Do(m_UniqueID);
+	p.Do(m_FileSize);
+	p.Do(m_VolumeSize);
+	p.Do(m_Country);
+	p.Do(m_BlobCompressed);
+	p.DoBuffer(&m_pImage, m_ImageSize);
+}
+
+std::string GameListItem::CreateCacheFilename()
+{
+	std::string Filename;
+	SplitPath(m_FileName, NULL, &Filename, NULL);
+	Filename.append(".cache");
+
+	std::string fullname("ISOCache\\");
+	fullname += Filename;
+	return fullname;
+}

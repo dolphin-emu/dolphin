@@ -20,6 +20,7 @@
 
 #include "Volume.h"
 
+class PointerWrap;
 class GameListItem
 {
 public:
@@ -36,11 +37,13 @@ public:
 	bool IsCompressed() const {return m_BlobCompressed;}
 	u64 GetFileSize() const {return m_FileSize;}
 	u64 GetVolumeSize() const {return m_VolumeSize;}
-	
 #if !defined(OSX64)
 	const wxImage& GetImage() const {return m_Image;}
 #endif
 
+	void DoState(PointerWrap &p);
+
+private:
 	std::string m_FileName;
 	std::string m_Name;
 	std::string m_Company;
@@ -51,13 +54,21 @@ public:
 	u64 m_VolumeSize;
 
 	DiscIO::IVolume::ECountry m_Country;
+	bool m_BlobCompressed;
+
+	u32 m_ImageSize;
+	u8* m_pImage;
 
 #if !defined(OSX64)
 	wxImage m_Image;
 #endif
 	bool m_Valid;
 
-	bool m_BlobCompressed;
+	bool LoadFromCache();
+	void SaveToCache();
+	
+
+	std::string CreateCacheFilename();
 };
 
 
