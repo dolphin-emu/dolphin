@@ -304,8 +304,9 @@ void CFilesystemViewer::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 		wxEmptyString, File, wxEmptyString,
 		wxString::Format
 		(
-		_T("All files (%s)|%s"),
-		wxFileSelectorDefaultWildcardStr
+			_T("All files (%s)|%s"),
+			wxFileSelectorDefaultWildcardStr,
+			wxFileSelectorDefaultWildcardStr
 		),
 		wxFD_SAVE,
 		this);

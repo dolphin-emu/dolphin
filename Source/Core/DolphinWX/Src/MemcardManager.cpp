@@ -245,7 +245,8 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 							_T("Gamecube save files(*.gci,*.gcs,*.sav)|*.gci;*.gcs;*.sav|"
 							"Native GCI files (*.gci)|*.gci|"
 							"MadCatz Gameshark files(*.gcs)|*.gcs|"
-							"Datel MaxDrive/Pro files(*.sav)|*.sav"),
+							"Datel MaxDrive/Pro files(*.sav)|*.sav|",
+							"All files (%s)|%s"),
 							wxFileSelectorDefaultWildcardStr,
 							wxFileSelectorDefaultWildcardStr
 					),
