@@ -446,10 +446,12 @@ void Write16(const u16 _Value, const u32 _Address)
 		LOG(COMMANDPROCESSOR,"write to FIFO_BP_HI : %04x", _Value);
 		break;
 
-	// ignored writes
+	// needed for CPReadWriteDistance reset only
 	case FIFO_RW_DISTANCE_HI:
 	case FIFO_RW_DISTANCE_LO:	
 		LOG(COMMANDPROCESSOR,"try to write to %s : %04x",((_Address & 0xFFF) == FIFO_RW_DISTANCE_HI)	? "FIFO_RW_DISTANCE_HI" : "FIFO_RW_DISTANCE_LO", _Value);
+		_dbg_assert_msg_(COMMANDPROCESSOR, _Value==0, "WTF? attempt to overwrite fifo CPReadWriteDistance with a value(%04x) != 0 ",_Value);
+		InterlockedExchange((LONG*)&fifo.CPReadWriteDistance, 0);
 		break;
 	}
 
