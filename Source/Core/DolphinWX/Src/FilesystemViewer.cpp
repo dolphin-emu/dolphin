@@ -49,7 +49,7 @@ CFilesystemViewer::CFilesystemViewer(const std::string fileName, wxWindow* paren
 	fileIter beginning = Our_Files.begin(), end = Our_Files.end(), 
 		     pos = Our_Files.begin();
 
-	CreateDirectoryTree(RootId, beginning, end, pos, "\\");	
+	CreateDirectoryTree(RootId, beginning, end, pos, (char *)"\\");	
 
 	m_Treectrl->Expand(RootId);
 
@@ -270,7 +270,7 @@ void CFilesystemViewer::OnBannerImageSave(wxCommandEvent& event)
 {
 	wxString dirHome;
 
-	wxFileDialog dialog(this, _("Save as..."), wxGetHomeDir(&dirHome), wxString::Format("%s.png", m_GameID->GetLabel()),
+	wxFileDialog dialog(this, _("Save as..."), wxGetHomeDir(&dirHome), wxString::Format(_("%s.png"), m_GameID->GetLabel()),
 		_("*.*"), wxFD_SAVE|wxFD_OVERWRITE_PROMPT, wxDefaultPosition, wxDefaultSize);
 	if (dialog.ShowModal() == wxID_OK)
 	{

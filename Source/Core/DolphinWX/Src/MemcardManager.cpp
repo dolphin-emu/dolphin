@@ -245,12 +245,12 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 							_T("Gamecube save files(*.gci,*.gcs,*.sav)|*.gci;*.gcs;*.sav|"
 							"Native GCI files (*.gci)|*.gci|"
 							"MadCatz Gameshark files(*.gcs)|*.gcs|"
-							"Datel MaxDrive/Pro files(*.sav)|*.sav|",
-							"All files (%s)|%s"),
+                                                           "Datel MaxDrive/Pro files(*.sav)|*.sav|"),
+							_T("All files (%s)|%s"),
 							wxFileSelectorDefaultWildcardStr,
 							wxFileSelectorDefaultWildcardStr
-					),
-					wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+                                         ),
+                                                       wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 			const char * fileName = temp.ToAscii();
 			if (!fileName2.empty() && !temp.empty())
 			{

@@ -451,7 +451,11 @@ void Write16(const u16 _Value, const u32 _Address)
 	case FIFO_RW_DISTANCE_LO:	
 		LOG(COMMANDPROCESSOR,"try to write to %s : %04x",((_Address & 0xFFF) == FIFO_RW_DISTANCE_HI)	? "FIFO_RW_DISTANCE_HI" : "FIFO_RW_DISTANCE_LO", _Value);
 		_dbg_assert_msg_(COMMANDPROCESSOR, _Value==0, "WTF? attempt to overwrite fifo CPReadWriteDistance with a value(%04x) != 0 ",_Value);
+#ifdef _WIN32
 		InterlockedExchange((LONG*)&fifo.CPReadWriteDistance, 0);
+#else
+                Common::InterlockedExchange((int*)&fifo.CPReadWriteDistance, 0);
+#endif
 		break;
 	}
 
