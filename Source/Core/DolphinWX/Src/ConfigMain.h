@@ -84,7 +84,6 @@ class CConfigMain
 		wxCheckBox* OptimizeQuantizers;
 		wxCheckBox* SkipIdle;
 		wxCheckBox* EnableCheats;
-		wxCheckBox* EnableIsoCache;
 		wxArrayString arrayStringFor_GCSystemLang;
 		wxStaticText* GCSystemLangText;
 		wxChoice* GCSystemLang;

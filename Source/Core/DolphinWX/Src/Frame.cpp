@@ -169,8 +169,9 @@ CFrame::CFrame(wxFrame* parent,
 
 	CPluginManager::GetInstance().ScanForPlugins(this);
 
-	m_GameListCtrl->Update(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache);
-
+	//if we are ever going back to optional iso caching: 
+	//m_GameListCtrl->Update(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache);
+	m_GameListCtrl->Update();
 	//sizerPanel->SetSizeHints(m_Panel);
 
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN,
@@ -447,7 +448,7 @@ void CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
 {
 	if (m_GameListCtrl)
 	{
-		m_GameListCtrl->Update(false);
+		m_GameListCtrl->Update();
 	}
 }
 
@@ -457,7 +458,7 @@ void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 	CConfigMain ConfigMain(this);
 	ConfigMain.ShowModal();
 	if (ConfigMain.bRefreshList)
-		m_GameListCtrl->Update(false);
+		m_GameListCtrl->Update();
 }
 
 
