@@ -136,6 +136,11 @@ bool GameListItem::LoadFromCache()
 
 void GameListItem::SaveToCache()
 {
+	if (!File::IsDirectory("ISOCache"))
+	{
+		File::CreateDir("ISOCache");
+	}
+
 	CChunkFileReader::Save<GameListItem>(CreateCacheFilename(), CACHE_REVISION, *this);
 }
 
