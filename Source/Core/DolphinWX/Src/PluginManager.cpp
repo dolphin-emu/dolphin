@@ -54,6 +54,7 @@ void CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 
 	if (rFilenames.size() > 0)
 	{
+		/*
 		wxProgressDialog dialog(_T("Scanning for Plugins"),
 					_T("Scanning..."),
 					(int)rFilenames.size(), // range
@@ -67,6 +68,7 @@ void CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 					wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 					);
 		dialog.CenterOnParent();
+		*/
 
 		for (size_t i = 0; i < rFilenames.size(); i++)
 		{
@@ -79,6 +81,7 @@ void CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 				return;
 			}
 
+			/*
 			wxString msg;
 			char temp[128];
 			sprintf(temp,"Scanning %s", FileName.c_str());
@@ -89,7 +92,7 @@ void CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 			{
 				break;
 			}
-
+			*/
 			CPluginInfo PluginInfo(orig_name.c_str());
 			if (PluginInfo.IsValid())
 			{

@@ -24,7 +24,6 @@
 
 BEGIN_EVENT_TABLE(CFilesystemViewer, wxDialog)
 	EVT_CLOSE(CFilesystemViewer::OnClose)
-	EVT_RIGHT_DOWN(CFilesystemViewer::OnRightClick)
 	EVT_TREE_ITEM_RIGHT_CLICK(ID_TREECTRL,CFilesystemViewer::OnRightClickOnTree)
 	EVT_BUTTON(ID_CLOSE,CFilesystemViewer::OnCloseClick)
 	EVT_MENU(IDM_BNRSAVEAS, CFilesystemViewer::OnBannerImageSave)
@@ -83,10 +82,17 @@ CFilesystemViewer::CFilesystemViewer(const std::string fileName, wxWindow* paren
 	// Banner
 	// ...all the BannerLoader functions are bool...gross
 	//m_Version;
+	//if (OpenISO_.GetBNRVersion() == "BNR1")
+		m_Lang->Enable(false);
 	m_ShortName->SetValue(wxString(OpenISO_.GetName().c_str(), wxConvUTF8));
 	//m_LongName->SetValue(wxString(OpenISO_.GetLongName().c_str(), wxConvUTF8));
 	m_Maker->SetValue(wxString(OpenISO_.GetCompany().c_str(), wxConvUTF8));//dev too
 	m_Comment->SetValue(wxString(OpenISO_.GetDescription().c_str(), wxConvUTF8));
+	m_Banner->SetBitmap(OpenISO_.GetImage());
+	m_Banner->Connect(wxID_ANY, wxEVT_RIGHT_DOWN,
+		wxMouseEventHandler(CFilesystemViewer::RightClickOnBanner), (wxObject*)NULL, this);
+
+	Fit();
 }
 
 CFilesystemViewer::~CFilesystemViewer()
@@ -150,7 +156,7 @@ void CFilesystemViewer::CreateGUIControls()
 	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	
 	// ISO Details
-	sbISODetails = new wxStaticBoxSizer(wxVERTICAL, this, wxT("ISO Details:"));
+	sbISODetails = new wxStaticBoxSizer(wxVERTICAL, this, wxT("ISO Details"));
 	sISODetails = new wxGridBagSizer(0, 0);
 	sISODetails->AddGrowableCol(1);
 	m_NameText = new wxStaticText(this, ID_NAME_TEXT, wxT("Name:"), wxDefaultPosition, wxDefaultSize);
@@ -182,13 +188,19 @@ void CFilesystemViewer::CreateGUIControls()
 	sbISODetails->Add(sISODetails, 0, wxEXPAND, 5);
 
 	// Banner Details
-	wxArrayString arrayStringFor_Lang;
-	sbBannerDetails = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Banner Details:"));
+	sbBannerDetails = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Banner Details"));
 	sBannerDetails = new wxGridBagSizer(0, 0);
 	m_VersionText = new wxStaticText(this, ID_VERSION_TEXT, wxT("Version:"), wxDefaultPosition, wxDefaultSize);
 	m_Version = new wxTextCtrl(this, ID_VERSION, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	m_LangText = new wxStaticText(this, ID_LANG_TEXT, wxT("Show Language:"), wxDefaultPosition, wxDefaultSize);
+	arrayStringFor_Lang.Add(wxT("English"));
+	arrayStringFor_Lang.Add(wxT("German"));
+	arrayStringFor_Lang.Add(wxT("French"));
+	arrayStringFor_Lang.Add(wxT("Spanish"));
+	arrayStringFor_Lang.Add(wxT("Italian"));
+	arrayStringFor_Lang.Add(wxT("Dutch"));
 	m_Lang = new wxChoice(this, ID_LANG, wxDefaultPosition, wxDefaultSize, arrayStringFor_Lang, 0, wxDefaultValidator);
+	m_Lang->SetSelection(0);
 	m_ShortText = new wxStaticText(this, ID_SHORTNAME_TEXT, wxT("Short Name:"), wxDefaultPosition, wxDefaultSize);
 	m_ShortName = new wxTextCtrl(this, ID_SHORTNAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	m_LongText = new wxStaticText(this, ID_LONGNAME_TEXT, wxT("Long Name:"), wxDefaultPosition, wxDefaultSize);
@@ -198,8 +210,7 @@ void CFilesystemViewer::CreateGUIControls()
 	m_CommentText = new wxStaticText(this, ID_COMMENT_TEXT, wxT("Comment:"), wxDefaultPosition, wxDefaultSize);
 	m_Comment = new wxTextCtrl(this, ID_COMMENT, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY);
 	m_BannerText = new wxStaticText(this, ID_BANNER_TEXT, wxT("Banner:"), wxDefaultPosition, wxDefaultSize);
-	// Needs to be image:
-	m_Banner = new wxTextCtrl(this, ID_BANNER, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
+	m_Banner = new wxStaticBitmap(this, ID_BANNER, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
 
 	sBannerDetails->Add(m_VersionText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sBannerDetails->Add(m_Version, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
@@ -219,7 +230,7 @@ void CFilesystemViewer::CreateGUIControls()
 	sbBannerDetails->Add(sBannerDetails, 0, wxEXPAND, 0);
 	
 	// Filesystem tree
-	sbTreectrl = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Filesytem:"));
+	sbTreectrl = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Filesytem"));
 	m_Treectrl = new wxTreeCtrl(this, ID_TREECTRL, wxDefaultPosition, wxSize(350, -1), wxTR_DEFAULT_STYLE, wxDefaultValidator);
 	sbTreectrl->Add(m_Treectrl, 1, wxEXPAND);
 
@@ -234,7 +245,6 @@ void CFilesystemViewer::CreateGUIControls()
 
 	this->SetSizer(sMain);
 	this->Layout();
-	Fit();
 }
 
 void CFilesystemViewer::OnClose(wxCloseEvent& WXUNUSED (event))
@@ -247,17 +257,25 @@ void CFilesystemViewer::OnCloseClick(wxCommandEvent& WXUNUSED (event))
 	Close();
 }
 
-void CFilesystemViewer::OnRightClick(wxMouseEvent& WXUNUSED (event))
+void CFilesystemViewer::RightClickOnBanner(wxMouseEvent& event)
 {
-	//check for right click on banner image
-	//if(event.GetId() == ID_BANNER)
-	//{
-	//	//on banner then save as.
-	//	wxMenu popupMenu;
-	//	popupMenu.Append(IDM_BNRSAVEAS, wxString::FromAscii("Save as..."));
-	//	PopupMenu(&popupMenu);
-	//}
-	//event.Skip();
+	wxMenu popupMenu;
+	popupMenu.Append(IDM_BNRSAVEAS, _("Save as..."));
+	PopupMenu(&popupMenu);
+
+	event.Skip();
+}
+
+void CFilesystemViewer::OnBannerImageSave(wxCommandEvent& event)
+{
+	wxString dirHome;
+
+	wxFileDialog dialog(this, _("Save as..."), wxGetHomeDir(&dirHome), wxString::Format("%s.png", m_GameID->GetLabel()),
+		_("*.*"), wxFD_SAVE|wxFD_OVERWRITE_PROMPT, wxDefaultPosition, wxDefaultSize);
+	if (dialog.ShowModal() == wxID_OK)
+	{
+		m_Banner->GetBitmap().ConvertToImage().SaveFile(dialog.GetPath());
+	}
 }
 
 void CFilesystemViewer::OnRightClickOnTree(wxTreeEvent& event)
@@ -272,11 +290,6 @@ void CFilesystemViewer::OnRightClickOnTree(wxTreeEvent& event)
 	PopupMenu(&popupMenu);
 
 	event.Skip();
-}
-
-void CFilesystemViewer::OnBannerImageSave(wxCommandEvent& WXUNUSED (event))
-{
-
 }
 
 void CFilesystemViewer::OnExtractFile(wxCommandEvent& WXUNUSED (event))

@@ -73,15 +73,14 @@ class CFilesystemViewer : public wxDialog
 		wxTextCtrl *m_Date;
 		wxTextCtrl *m_FST;
 		wxTextCtrl *m_Version;
+		wxArrayString arrayStringFor_Lang;
+		wxChoice *m_Lang;
 		wxTextCtrl *m_ShortName;
 		wxTextCtrl *m_LongName;
 		wxTextCtrl *m_Maker;
 		wxTextCtrl *m_Comment;
-		wxTextCtrl *m_Banner;
+		wxStaticBitmap *m_Banner;
 		wxTreeItemId RootId;
-
-		wxChoice *m_Lang;
-		wxButton *m_SaveBNR;
 
 		enum
 		{
@@ -128,13 +127,10 @@ class CFilesystemViewer : public wxDialog
 		void CreateGUIControls();
 		void OnClose(wxCloseEvent& event);
 		void OnCloseClick(wxCommandEvent& event);
-		void OnRightClick(wxMouseEvent& event);
-		void OnRightClickOnTree(wxTreeEvent& event);
-		void OnSaveBNRClick(wxCommandEvent& event);
+		void RightClickOnBanner(wxMouseEvent& event);
 		void OnBannerImageSave(wxCommandEvent& event);
+		void OnRightClickOnTree(wxTreeEvent& event);
 		void OnExtractFile(wxCommandEvent& event);
-		void OnReplaceFile(wxCommandEvent& event);
-		void OnRenameFile(wxCommandEvent& event);
 
 		typedef std::vector<const DiscIO::SFileInfo *>::iterator fileIter;
 

@@ -181,7 +181,7 @@ void ConfigDialog::CreateGUIControls()
 		sDevice[i]->Add(m_Disable[i], 0, wxEXPAND|wxALL, 1);
 		sbDevice[i]->Add(sDevice[i], 0, wxEXPAND|wxALL, 1);
 
-		sButtons[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Buttons:"));
+		sButtons[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Buttons"));
 
 		AddControl(m_Controller[i], &(m_ButtonA[i]), sButtons[i], "A: ", CTL_A, i);
 		AddControl(m_Controller[i], &(m_ButtonB[i]), sButtons[i], "B: ", CTL_B, i);

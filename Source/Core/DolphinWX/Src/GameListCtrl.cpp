@@ -339,10 +339,10 @@ void CGameListCtrl::ScanForISOs(bool Loadcache)
 	if (Loadcache)
 	{
 		ScanIso = false;
-		if((CacheFile = fopen ("DolphinWx.cache","rb")) == NULL)
+		if((CacheFile = fopen("DolphinWx.cache","rb")) == NULL)
 		{
 			ScanIso = true;
-			if((CacheFile = fopen ("DolphinWx.cache","wb")) == NULL)
+			if((CacheFile = fopen("DolphinWx.cache","wb")) == NULL)
 			{
 				PanicAlert("Unable to make or open the dolphin iso cache: is the directory write protected?");
 			}
@@ -350,36 +350,38 @@ void CGameListCtrl::ScanForISOs(bool Loadcache)
 	}
 	else 
 	{
-		if((CacheFile = fopen ("DolphinWx.cache","wb")) == NULL)
+		if((CacheFile = fopen("DolphinWx.cache","wb")) == NULL)
 		{
-			//Normally the file should be made when it opens it so if it can't open the file it's 
-			//write protected or something is stoping us from writing
+			// Normally the file should be made when it is opened so if it can't open the file it's 
+			//	write protected or something is stopping us from writing
 			PanicAlert("Unable to make or open the dolphin iso cache: is the directory write protected?");
 		}
 	}
 	m_ISOFiles.clear();
 	if (!ScanIso)
 	{
-		//TODO: complete cache loading here. this means ADDING THE BANNER >_<
+		// TODO: complete cache loading here. this means ADDING THE BANNER >_<
 		char Buffer[257];
 		char temp[257];
 		std::string Filename = " ";
 		GameListItem ISOFile(Filename.c_str());
-		//looping every line of the file
-		while (fgets(Buffer,256,CacheFile) !=NULL)
+		// Looping every line of the file
+		while (fgets(Buffer, 256, CacheFile) != NULL)
 		{
 			strncpy(temp,"",257);
 			int i = 0;
 			switch(Buffer[0])
 			{				
-				/*! = file name
+				/*
+				! = file name
 				I = Game ID
 				N = Game Name
 				D = Description
 				C = Country
 				O = company
 				S = file size
-				V = Volume Size*/
+				V = Volume Size
+				*/
 			case '!':
 				while (i < 256)
 				{
@@ -391,7 +393,7 @@ void CGameListCtrl::ScanForISOs(bool Loadcache)
 				ISOFile.m_FileName = Filename.c_str();
 				break;
 			case 'I':
-				memcpy(temp,&Buffer[1],6);
+				memcpy(temp, &Buffer[1], 6);
 				ISOFile.m_UniqueID = temp;
 				break;
 			case 'N':
@@ -423,60 +425,59 @@ void CGameListCtrl::ScanForISOs(bool Loadcache)
 				break;
 			case 'C':
 				memcpy(temp,&Buffer[1],3);
-				ISOFile.m_Country = (DiscIO::IVolume::ECountry) atoi (temp);
+				ISOFile.m_Country = (DiscIO::IVolume::ECountry) atoi(temp);
 				break;
 			case 'S':
 				memcpy(temp,&Buffer[1],11);
-				ISOFile.m_FileSize = atoi (temp);
+				ISOFile.m_FileSize = atoi(temp);
 				break;
 			case 'V':
-				memcpy(temp,&Buffer[1],11);
-				ISOFile.m_VolumeSize = atoi (temp);
+				memcpy(temp, &Buffer[1], 11);
+				ISOFile.m_VolumeSize = atoi(temp);
 				break;
 			case 'B':
-				memcpy(temp,&Buffer[1],1);
+				memcpy(temp, &Buffer[1], 1);
 				if (temp[0] == '1')
 					ISOFile.m_BlobCompressed = true;
 				else if(temp[0] == '0')
 					ISOFile.m_BlobCompressed = false;
 				else
-					PanicAlert("unknown Compressed value %c",temp[1]);
+					PanicAlert("unknown Compressed value %c", temp[1]);
 				break;
 			case '$':
-				if(ISOFile.GetFileName().c_str() != NULL)
+				if (ISOFile.GetFileName().c_str() != NULL)
 				{
-					//TODO: it would be good to check if the iso is valid but this would mean adding 
-					//the banner cache and fixing the ISOFile declaration to have the right file name 
-					//from the start (not " " but the Filename from the '!' case)
-					/*if (ISOFile.IsValid())
+					// TODO: it would be good to check if the iso is valid but this would mean adding 
+					//	the banner cache and fixing the ISOFile declaration to have the right file name 
+					//	from the start (not " " but the Filename from the '!' case)
+					/*
+					if (ISOFile.IsValid())
 					{
 						//PanicAlert("pushing %s in stack...",ISOFile.GetFileName().c_str());
 						m_ISOFiles.push_back(ISOFile);
 					}
 					else
-						PanicAlert("Invalid ISO file %s", ISOFile.GetFileName().c_str());*/
-					//TODO: stick the banners in 1 file ;_;
+						PanicAlert("Invalid ISO file %s", ISOFile.GetFileName().c_str());
+					*/
+					// TODO: stick the banners in 1 file ;_;
 					
-					strcpy(temp,"Gameini\\");
-					strcpy(&temp[8],ISOFile.GetUniqueID().c_str());
-					strcpy(&temp[14],".png");
-					if(fopen(temp,"rb"))
+					strcpy(temp, "GameIni\\");
+					strcpy(&temp[8], ISOFile.GetUniqueID().c_str());
+					strcpy(&temp[14], ".png");
+					if (fopen(temp, "rb"))
 					{
-						ISOFile.m_Image.LoadFile(temp,wxBITMAP_TYPE_PNG);
+						ISOFile.m_Image.LoadFile(temp, wxBITMAP_TYPE_PNG);
 					}
 					else
 					{
-						PanicAlert("Could not find banner for %s",ISOFile.GetName().c_str());
-						//remove any data left of the image of the game before the current. or you'll get the same
-						//banner twice :P
-						ISOFile.m_Image.Destroy();
+						// Don't worry about it, the no_banner_png was saved before.
 					}
 
 					m_ISOFiles.push_back(ISOFile);
 				}
 				break;
 			default:
-				PanicAlert("Unknown Cache line Found:\n%s",Buffer);
+				PanicAlert("Unknown Cache line Found:\n%s", Buffer);
 				break;
 			}
 		}
@@ -533,11 +534,11 @@ void CGameListCtrl::ScanForISOs(bool Loadcache)
 						fprintf(CacheFile,"!%s\nI%s\nN%s\nD%s\nC%u\nO%s\nS%u\n",ISOFile.GetFileName().c_str(),
 							ISOFile.GetUniqueID().c_str(), ISOFile.GetName().c_str(), ISOFile.GetDescription().c_str()
 							,ISOFile.GetCountry(), ISOFile.GetCompany().c_str(), ISOFile.GetFileSize());
-						//why a new fprintf? cause volume size got writen as 0 for some bloody odd reason
+						// Why a new fprintf? cause volume size got writen as 0 for some bloody odd reason
 						fprintf(CacheFile,"V%u\nB%u\n$\n", ISOFile.GetVolumeSize(),	ISOFile.IsCompressed());
-						ISOFile.m_Image.SaveFile("Gameini\\" + ISOFile.GetUniqueID() + ".png",wxBITMAP_TYPE_PNG);//".JPG",wxBITMAP_TYPE_JPEG);
-						//TODO: add the banner saving TO 1 FILE AND JPG as well & make the cache MUCH better. 
-						//this is ugly as fuck
+						ISOFile.m_Image.SaveFile("GameIni\\" + ISOFile.GetUniqueID() + ".png",wxBITMAP_TYPE_PNG);//".JPG",wxBITMAP_TYPE_JPEG);
+						// TODO: add the banner saving TO 1 FILE AND JPG as well & make the cache MUCH better. 
+						// This is ugly as fuck
 					}
 					m_ISOFiles.push_back(ISOFile);
 				}

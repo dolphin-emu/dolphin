@@ -27,6 +27,9 @@
 #include "BannerLoader.h"
 #include "FileSearch.h"
 #include "CompressedBlob.h"
+#include "../resources/no_banner.cpp"
+
+#include <wx/mstream.h>
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -82,6 +85,9 @@ GameListItem::GameListItem(const std::string& _rFileName)
 				else
 				{
 					// default banner
+					wxMemoryInputStream istream(no_banner_png, sizeof no_banner_png);
+					wxImage iNoBanner(istream, wxBITMAP_TYPE_PNG);
+					m_Image = iNoBanner;
 					
 				}
 
