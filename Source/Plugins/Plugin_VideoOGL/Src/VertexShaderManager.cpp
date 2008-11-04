@@ -421,16 +421,7 @@ void VertexShaderMngr::SetConstants()
 				Renderer::GetTargetHeight()-((int)(xfregs.rawViewport[4]-xfregs.rawViewport[1]-342-scissorYOff))  * MValueY,
 				abs((int)(2 * xfregs.rawViewport[0])) * MValueX, abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
 		}
-
-		// Standard depth range
-		//glDepthRange(-(0.0f - (xfregs.rawViewport[5]-xfregs.rawViewport[2])/-16777215.0f), xfregs.rawViewport[5]/16777215.0f);
-
-		// Metroid Prime 1 & 2 likes this
-		//glDepthRange(-(0.0f - (xfregs.rawViewport[5]-xfregs.rawViewport[2])/16777215.0f), xfregs.rawViewport[5]/16777215.0f);
-		glDepthRange((g_Config.bInvertDepth ? -1 : 1) * -(0.0f - (xfregs.rawViewport[5]-xfregs.rawViewport[2])/16777215.0f), xfregs.rawViewport[5]/16777215.0f);
-
-		// FZero stage likes this (a sonic hack)
-		// glDepthRange(-(0.0f - (xfregs.rawViewport[5]-xfregs.rawViewport[2])/-16777215.0f), xfregs.rawViewport[5]/16777215.0f);
+		glDepthRange((xfregs.rawViewport[5]- xfregs.rawViewport[2])/16777215.0f, xfregs.rawViewport[5]/16777215.0f);
     }
 
     if (bProjectionChanged) {
@@ -450,8 +441,8 @@ void VertexShaderMngr::SetConstants()
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = xfregs.rawProjection[4];
-
- 			g_fProjectionMatrix[11] = xfregs.rawProjection[5];
+			g_fProjectionMatrix[11] = xfregs.rawProjection[5];
+ 			
             g_fProjectionMatrix[12] = 0.0f;
             g_fProjectionMatrix[13] = 0.0f;
 			// donkopunchstania: GC GPU rounds differently?
@@ -473,7 +464,7 @@ void VertexShaderMngr::SetConstants()
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = xfregs.rawProjection[4];
-			g_fProjectionMatrix[11] = -(-1.0f - xfregs.rawProjection[5]);
+			g_fProjectionMatrix[11] = 1.0f + xfregs.rawProjection[5];
 
             g_fProjectionMatrix[12] = 0;
             g_fProjectionMatrix[13] = 0;
