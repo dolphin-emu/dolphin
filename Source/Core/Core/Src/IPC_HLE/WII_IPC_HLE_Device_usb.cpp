@@ -72,8 +72,8 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtl(u32 _CommandAddress)
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress) 
 {	
-
-/*	
+/*
+	
 	Memory::Write_U8(255, 0x80149950); // BTM LOG
 									 // 3 logs L2Cap
 									 // 4 logs l2_csm$
@@ -328,21 +328,19 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 #ifdef _WIN32
 
 	static bool test = true;
-	if (GetAsyncKeyState(VK_LBUTTON) && GetAsyncKeyState(VK_RBUTTON))
+	if (test && GetAsyncKeyState(VK_LBUTTON) && GetAsyncKeyState(VK_RBUTTON))
 	{
-		if (test)
+		test = false;
+		for (size_t i=0; i<m_WiiMotes.size(); i++)
 		{
-			for (size_t i=0; i<m_WiiMotes.size(); i++)
+			if (m_WiiMotes[i].EventPagingChanged(2))
 			{
-				if (m_WiiMotes[i].EventPagingChanged(2))
-				{
-					Host_SetWiiMoteConnectionState(1);
-					SendEventRequestConnection(m_WiiMotes[i]);
-				}
+				Host_SetWiiMoteConnectionState(1);
+				SendEventRequestConnection(m_WiiMotes[i]);
 			}
-			test = false;
-		}
+		}	
 	}
+
 #endif
 
 	return 0; 

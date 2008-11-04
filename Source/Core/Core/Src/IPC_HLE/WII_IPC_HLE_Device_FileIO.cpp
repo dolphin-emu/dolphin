@@ -21,7 +21,6 @@
 #include "WII_IPC_HLE_Device_FileIO.h"
 
 
-
 std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 {
 	char Buffer[128];
@@ -60,6 +59,8 @@ CWII_IPC_HLE_Device_FileIO::~CWII_IPC_HLE_Device_FileIO()
 bool 
 CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress)
 {
+	LOG(WII_IPC_FILEIO, "FileIO: Close %s", GetDeviceName().c_str());	
+
 	Memory::Write_U32(0, _CommandAddress+4);
 	return true;
 }
@@ -81,12 +82,15 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 
 	m_Filename = std::string(HLE_IPC_BuildFilename(GetDeviceName().c_str(), 64));
 
-	switch(_Mode)
+	if (File::Exists(m_Filename.c_str()))
 	{
-	case 0x01:	m_pFileHandle = fopen(m_Filename.c_str(), "rb"); break;
-	case 0x02:	m_pFileHandle = fopen(m_Filename.c_str(), "wb"); break;
-	case 0x03:	m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
-	default: PanicAlert("CWII_IPC_HLE_Device_FileIO: unknown open mode"); break;
+		switch(_Mode)
+		{
+		case 0x01:	m_pFileHandle = fopen(m_Filename.c_str(), "rb"); break;
+		case 0x02:	m_pFileHandle = fopen(m_Filename.c_str(), "wb"); break;
+		case 0x03:	m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
+		default: PanicAlert("CWII_IPC_HLE_Device_FileIO: unknown open mode"); break;
+		}
 	}
 
     if (m_pFileHandle != NULL)

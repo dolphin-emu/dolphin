@@ -64,13 +64,9 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 		char* pTitleID = (char*)&TitleID;
 
 		char Path[260+1];
-		sprintf(Path, "Wii/title/00010000/%02x%02x%02x%02x", (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
-		if (!File::IsDirectory(Path))
-		{
-			File::CreateDir(Path);
-			sprintf(Path, "Wii/title/00010000/%02x%02x%02x%02x/data", (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);	
-			File::CreateDir(Path);
-		}	
+		sprintf(Path, "Wii/title/00010000/%02x%02x%02x%02x/data/nocopy/", (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
+	
+		CreateDirectoryStruct(Path);
 	}
 
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
@@ -186,8 +182,15 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 				Extensions.push_back("*.*");
 
 				CFileSearch FileSearch(Extensions, Directories);
-				fsBlock = (u32)FileSearch.GetFileNames().size();
-				iNodes = fsBlock * 10;
+			
+				u64 overAllSize = 0;
+				for (size_t i=0; i<FileSearch.GetFileNames().size(); i++)
+				{
+					overAllSize += File::GetSize(FileSearch.GetFileNames()[i].c_str());
+				}
+
+				fsBlock = (u32)(overAllSize / (16 * 1024));  // one bock is 16kb
+				iNodes = (u32)(FileSearch.GetFileNames().size());
 
 				ReturnValue = 0;
 
@@ -327,7 +330,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			std::string FilenameRename = HLE_IPC_BuildFilename((const char*)Memory::GetPointer(_BufferIn+Offset), 64);
 			Offset += 64;
 
-			CreateDirectoryStruct(FilenameRename);
+			// F|RES: i think that we dont need this - CreateDirectoryStruct(Filename);
 
 			if (rename(Filename.c_str(), FilenameRename.c_str()) == 0)
 			{
@@ -352,10 +355,19 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			u16 GroupID = Memory::Read_U16(Addr); Addr += 2;
 			std::string Filename(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(Addr), 64));
 			Addr += 64;
-			Addr += 9; // unk memory;
-			u8 Attribs = Memory::Read_U8(Addr);
 
-			LOG(WII_IPC_FILEIO, "FS: CreateFile %s (attrib: 0x%02x)", Filename.c_str(), Attribs);
+			u8 OwnerPerm = Memory::Read_U8(Addr); Addr++;
+			u8 GroupPerm = Memory::Read_U8(Addr); Addr++;
+			u8 OtherPerm = Memory::Read_U8(Addr); Addr++;
+			u8 Attributes = Memory::Read_U8(Addr); Addr++;
+
+			LOG(WII_IPC_FILEIO, "FS: CreateFile %s", Filename.c_str());
+			LOG(WII_IPC_FILEIO, "    OwnerID: 0x08%x", OwnerID);
+			LOG(WII_IPC_FILEIO, "    GroupID: 0x04%x", GroupID);
+			LOG(WII_IPC_FILEIO, "    OwnerPerm: 0x02%x", OwnerPerm);
+			LOG(WII_IPC_FILEIO, "    GroupPerm: 0x02%x", GroupPerm);
+			LOG(WII_IPC_FILEIO, "    OtherPerm: 0x02%x", OtherPerm);
+			LOG(WII_IPC_FILEIO, "    Attributes: 0x02%x", Attributes);
 
 			// check if the file allready exist
 			if (File::Exists(Filename.c_str()))
@@ -365,7 +377,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			}
 
 			// create the file
-			CreateDirectoryStruct(Filename);
+			// F|RES: i think that we dont need this - CreateDirectoryStruct(Filename);
 			bool Result = File::CreateEmptyFile(Filename.c_str());
 			if (!Result)
 			{
@@ -373,7 +385,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 				return FS_RESULT_FATAL;
 			}
 
-			LOG(WII_IPC_FILEIO, "    result = FS_RESULT_OK", Filename.c_str(), Attribs);
+			LOG(WII_IPC_FILEIO, "    result = FS_RESULT_OK", Filename.c_str());
 			return FS_RESULT_OK;
 		}
 		break;

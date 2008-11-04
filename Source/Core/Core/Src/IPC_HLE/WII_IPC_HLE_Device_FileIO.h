@@ -14,6 +14,7 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #ifndef _WII_IPC_HLE_DEVICE_FILEIO_H_
 #define _WII_IPC_HLE_DEVICE_FILEIO_H_
 
