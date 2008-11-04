@@ -45,8 +45,6 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_USEXFB,ConfigDialog::UseXFBChange)
 	EVT_CHECKBOX(ID_DUMPTEXTURES,ConfigDialog::DumpTexturesChange)
 	EVT_CHECKBOX(ID_INVERTDEPTH,ConfigDialog::InvertDepth)
-	EVT_CHECKBOX(ID_PROJECTIONHAX1,ConfigDialog::ProjectionHax1)
-	EVT_CHECKBOX(ID_PROJECTIONHAX2,ConfigDialog::ProjectionHax2)
 	EVT_CHECKBOX(ID_DISABLELIGHTING,ConfigDialog::DisableLighting)
 	EVT_CHECKBOX(ID_DISABLETEXTURING,ConfigDialog::DisableTexturing)
 	EVT_CHECKBOX(ID_EFBTOTEXTUREDISABLE,ConfigDialog::EFBToTextureDisable)
@@ -63,10 +61,10 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 
 ConfigDialog::~ConfigDialog()
 {
-} 
+}
 
 void ConfigDialog::CreateGUIControls()
-{	
+{
 	//notebook
 	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 
@@ -87,11 +85,11 @@ void ConfigDialog::CreateGUIControls()
 
 	m_PageHacks = new wxPanel(m_Notebook, ID_PAGEHACKS, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_PageHacks, wxT("Hacks"));
-	
+
 	//buttons
 	m_About = new wxButton(this, ID_GRAPHIC_ABOUT, wxT("About"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Cancel = new wxButton(this, ID_CANCEL, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);	
+	m_Cancel = new wxButton(this, ID_CANCEL, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	//put notebook and buttons in sizers
 	wxBoxSizer* sButtons;
@@ -100,12 +98,12 @@ void ConfigDialog::CreateGUIControls()
 	sButtons->Add(0, 0, 1, wxEXPAND, 5);
 	sButtons->Add(m_OK, 0, wxALL, 5);
 	sButtons->Add(m_Cancel, 0, wxALL, 5);
-	
+
 	wxBoxSizer* sMain;
 	sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(m_Notebook, 1, wxEXPAND|wxALL, 5);
 	sMain->Add(sButtons, 0, wxEXPAND, 5);
-	
+
 	this->SetSizer(sMain);
 	this->Layout();
 
@@ -153,7 +151,7 @@ void ConfigDialog::CreateGUIControls()
 	// Page 3 "Information"
 	m_ShowFPS = new wxCheckBox(m_PageInformation, ID_SHOWFPS, wxT("Overlay FPS"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ShowFPS->SetValue(g_Config.bShowFPS);
-	
+
 	m_Statistics = new wxCheckBox(m_PageInformation, ID_STATISTICS, wxT("Overlay some statistics"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Statistics->SetValue(g_Config.bOverlayStats);
 
@@ -202,14 +200,6 @@ void ConfigDialog::CreateGUIControls()
 	m_EFBToTextureDisable = new wxCheckBox(m_PageHacks, ID_EFBTOTEXTUREDISABLE, wxT("Disable copy EFB to texture"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_EFBToTextureDisable->Enable(true);
 	m_EFBToTextureDisable->SetValue(g_Config.bEBFToTextureDisable);
-
-	m_ProjectionHax1 = new wxCheckBox(m_PageHacks, ID_PROJECTIONHAX1, wxT("Projection before R945"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_ProjectionHax1->Enable(true);
-	m_ProjectionHax1->SetValue(g_Config.bProjectionHax1);
-
-	m_ProjectionHax2 = new wxCheckBox(m_PageHacks, ID_PROJECTIONHAX2, wxT("Projection hack of R844"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_ProjectionHax2->Enable(true);
-	m_ProjectionHax2->SetValue(g_Config.bProjectionHax2);
 
 	//Put options in sizers within the notebook
 	wxGridBagSizer* sPage1;
@@ -277,8 +267,6 @@ void ConfigDialog::CreateGUIControls()
 	sPage6->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
 	sPage6->Add(m_InvertDepth, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
 	sPage6->Add(m_EFBToTextureDisable, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
-	sPage6->Add(m_ProjectionHax1, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
-	sPage6->Add(m_ProjectionHax2, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
 	m_PageHacks->SetSizer(sPage6);
 	sPage6->Layout();
 
@@ -406,7 +394,7 @@ void ConfigDialog::UseXFBChange(wxCommandEvent& event)
 }
 
 void ConfigDialog::DumpTexturesChange(wxCommandEvent& event)
-{	
+{
 	m_TexturePath->Enable(m_DumpTextures->IsChecked());
 	g_Config.bDumpTextures = m_DumpTextures->IsChecked();
 }
@@ -417,7 +405,7 @@ void ConfigDialog::TexturePathChange(wxFileDirPickerEvent& event)
 	// the combobox, this event wil not be fired.
 	strcpy(g_Config.texDumpPath,event.GetPath().mb_str());
 }
-void ConfigDialog::DllAbout(wxCommandEvent& event) 
+void ConfigDialog::DllAbout(wxCommandEvent& event)
 {
 	wxAboutDialogInfo info;
 	info.AddDeveloper(_T("zerofrog(@gmail.com)"));
@@ -427,14 +415,6 @@ void ConfigDialog::DllAbout(wxCommandEvent& event)
 void ConfigDialog::InvertDepth(wxCommandEvent& event)
 {
 	g_Config.bInvertDepth = m_InvertDepth->IsChecked();
-}
-void ConfigDialog::ProjectionHax1(wxCommandEvent& event)
-{	
-	g_Config.bProjectionHax1 = m_ProjectionHax1->IsChecked();
-}
-void ConfigDialog::ProjectionHax2(wxCommandEvent& event)
-{
-	g_Config.bProjectionHax2 = m_ProjectionHax2->IsChecked();
 }
 
 void ConfigDialog::DisableLighting(wxCommandEvent &event)

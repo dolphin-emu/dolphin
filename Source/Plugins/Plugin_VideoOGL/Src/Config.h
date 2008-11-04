@@ -24,7 +24,7 @@
 #define CONF_SAVETARGETS 8
 #define CONF_SAVESHADERS 16
 
-struct Config 
+struct Config
 {
     Config();
     void Load();
@@ -48,22 +48,20 @@ struct Config
 	bool bOverlayStats;
     bool bTexFmtOverlayEnable;
 	bool bTexFmtOverlayCenter;
-	
+
 	// Render
 	bool bUseXFB;
 	bool bWireFrame;
 	bool bDisableLighting;
 	bool bDisableTexturing;
 	bool bDisableCulling;
-    
+
 	// Utility
 	char texDumpPath[280];
 	bool bDumpTextures;
 
 	// Hacks
 	bool bInvertDepth;
-	bool bProjectionHax1;
-	bool bProjectionHax2;
 	bool bEBFToTextureDisable;
 
 	int iLog; // CONF_ bits

@@ -75,7 +75,7 @@ void VertexShaderMngr::Init()
     bTexMatricesChanged[0] = bTexMatricesChanged[1] = false;
     bPosNormalMatrixChanged = bProjectionChanged = bViewportChanged = false;
     nMaterialsChanged = 0;
-    
+
     memset(&xfregs, 0, sizeof(xfregs));
     memset(xfmem, 0, sizeof(xfmem));
 
@@ -118,7 +118,7 @@ VERTEXSHADER* VertexShaderMngr::GetShader(u32 components)
         static int counter = 0;
         char szTemp[MAX_PATH];
 		sprintf(szTemp, "%s/vs_%04i.txt", g_Config.texDumpPath, counter++);
-        
+
         SaveData(szTemp, code);
     }
 #endif
@@ -266,7 +266,7 @@ void VertexShaderMngr::SetConstants()
         int istart = nLightsChanged[0] / 0x10;
         int iend = (nLightsChanged[1] + 15) / 0x10;
         const float* xfmemptr = (const float*)&xfmem[0x10*istart + XFMEM_LIGHTS];
-        
+
         for (int i = istart; i < iend; ++i) {
             u32 color = *(const u32*)(xfmemptr + 3);
             SetVSConstant4f(C_LIGHTS + 5*i,
@@ -319,7 +319,7 @@ void VertexShaderMngr::SetConstants()
 			(float*)xfmem + MatrixIndexA.Tex0MtxIdx * 4, (float*)xfmem + MatrixIndexA.Tex1MtxIdx * 4,
             (float*)xfmem + MatrixIndexA.Tex2MtxIdx * 4, (float*)xfmem + MatrixIndexA.Tex3MtxIdx * 4
 		};
-        
+
         for (int i = 0; i < 4; ++i) {
             SetVSConstant4fv(C_TEXMATRICES+3*i, fptrs[i]);
             SetVSConstant4fv(C_TEXMATRICES+3*i+1, fptrs[i]+4);
@@ -332,7 +332,7 @@ void VertexShaderMngr::SetConstants()
 
         float* fptrs[] = {(float*)xfmem + MatrixIndexB.Tex4MtxIdx * 4, (float*)xfmem + MatrixIndexB.Tex5MtxIdx * 4,
             (float*)xfmem + MatrixIndexB.Tex6MtxIdx * 4, (float*)xfmem + MatrixIndexB.Tex7MtxIdx * 4 };
-        
+
         for (int i = 0; i < 4; ++i) {
             SetVSConstant4fv(C_TEXMATRICES+3*i+12, fptrs[i]);
             SetVSConstant4fv(C_TEXMATRICES+3*i+12+1, fptrs[i]+4);
@@ -372,7 +372,7 @@ void VertexShaderMngr::SetConstants()
 		{
 			// Check if height or width is the limiting factor
 			if (ratio > 1) // then we are to wide and have to limit the width
-			{			
+			{
 				wAdj = ratio;
 				hAdj = 1;
 
@@ -441,29 +441,17 @@ void VertexShaderMngr::SetConstants()
             g_fProjectionMatrix[1] = 0.0f;
             g_fProjectionMatrix[2] = xfregs.rawProjection[1];
             g_fProjectionMatrix[3] = 0;
-                        
+
             g_fProjectionMatrix[4] = 0.0f;
             g_fProjectionMatrix[5] = xfregs.rawProjection[2];
             g_fProjectionMatrix[6] = xfregs.rawProjection[3];
             g_fProjectionMatrix[7] = 0;
-                        
+
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = xfregs.rawProjection[4];
 
-			if((!g_Config.bProjectionHax1 && !g_Config.bProjectionHax2) || (g_Config.bProjectionHax1 && g_Config.bProjectionHax2)) {
-			// Working bloom in ZTP
-            g_fProjectionMatrix[11] = -(0.0f - xfregs.rawProjection[5]);  // Yes, it's important that it's done this way.
-			// Working projection in PSO
-			// g_fProjectionMatrix[11] = -(1.0f - rawProjection[5]); 
-			}
-
-			if(g_Config.bProjectionHax1 && !g_Config.bProjectionHax2) // Before R945
-				g_fProjectionMatrix[11] = -(1.0f -  xfregs.rawProjection[5]); 
-
-			if(!g_Config.bProjectionHax1 && g_Config.bProjectionHax2) // R844
-				g_fProjectionMatrix[11] =  xfregs.rawProjection[5];
-
+ 			g_fProjectionMatrix[11] = xfregs.rawProjection[5];
             g_fProjectionMatrix[12] = 0.0f;
             g_fProjectionMatrix[13] = 0.0f;
 			// donkopunchstania: GC GPU rounds differently?
@@ -485,19 +473,7 @@ void VertexShaderMngr::SetConstants()
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = xfregs.rawProjection[4];
-
-			if((!g_Config.bProjectionHax1 && !g_Config.bProjectionHax2) || (g_Config.bProjectionHax1 && g_Config.bProjectionHax2)) {
-			// Working bloom in ZTP
-            g_fProjectionMatrix[11] = -(-1.0f - xfregs.rawProjection[5]);  // Yes, it's important that it's done this way.
-			// Working projection in PSO, working Super Monkey Ball
-			// g_fProjectionMatrix[11] = -(0.0f - xfregs.rawProjection[5]);
-			}
-
-			if(g_Config.bProjectionHax1 && !g_Config.bProjectionHax2) // Before R945
-				g_fProjectionMatrix[11] = -(0.0f - xfregs.rawProjection[5]);
-
-			if(!g_Config.bProjectionHax1 && g_Config.bProjectionHax2) // R844
-				g_fProjectionMatrix[11] = -xfregs.rawProjection[5];
+			g_fProjectionMatrix[11] = -(-1.0f - xfregs.rawProjection[5]);
 
             g_fProjectionMatrix[12] = 0;
             g_fProjectionMatrix[13] = 0;
@@ -546,7 +522,7 @@ void VertexShaderMngr::InvalidateXFRange(int start, int end)
             if (nTransformMatricesChanged[1] < end) nTransformMatricesChanged[1] = end>XFMEM_POSMATRICES_END?XFMEM_POSMATRICES_END:end;
         }
     }
-    
+
     if (start < XFMEM_NORMALMATRICES_END && end > XFMEM_NORMALMATRICES) {
         int _start = start < XFMEM_NORMALMATRICES ? 0 : start-XFMEM_NORMALMATRICES;
         int _end = end < XFMEM_NORMALMATRICES_END ? end-XFMEM_NORMALMATRICES : XFMEM_NORMALMATRICES_END-XFMEM_NORMALMATRICES;
@@ -642,18 +618,18 @@ float* VertexShaderMngr::GetPosNormalMat()
 void VertexShaderMngr::GetVertexShaderId(VERTEXSHADERUID& vid, u32 components)
 {
 	u32 zbufrender = (bpmem.ztex2.op == ZTEXTURE_ADD) || Renderer::GetZBufferTarget() != 0;
-	vid.values[0] = components | 
+	vid.values[0] = components |
 		(xfregs.numTexGens << 23) |
 		(xfregs.nNumChans << 27) |
 		((u32)xfregs.bEnableDualTexTransform << 29) |
 		(zbufrender << 30);
 
 	for (int i = 0; i < 2; ++i) {
-		vid.values[1+i] = xfregs.colChans[i].color.enablelighting ? 
-			(u32)xfregs.colChans[i].color.hex : 
+		vid.values[1+i] = xfregs.colChans[i].color.enablelighting ?
+			(u32)xfregs.colChans[i].color.hex :
 			(u32)xfregs.colChans[i].color.matsource;
-		vid.values[1+i] |= (xfregs.colChans[i].alpha.enablelighting ? 
-			(u32)xfregs.colChans[i].alpha.hex : 
+		vid.values[1+i] |= (xfregs.colChans[i].alpha.enablelighting ?
+			(u32)xfregs.colChans[i].alpha.hex :
 			(u32)xfregs.colChans[i].alpha.matsource) << 15;
 	}
 
@@ -687,7 +663,7 @@ void VertexShaderMngr::GetVertexShaderId(VERTEXSHADERUID& vid, u32 components)
 
 // LoadXFReg 0x10
 void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
-{	
+{
     u32 address = baseAddress;
     for (int i = 0; i < (int)transferSize; i++)
     {
@@ -706,7 +682,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
         }
         else if (address<0x2000)
         {
-            u32 data = pData[i];	
+            u32 data = pData[i];
             switch (address)
             {
             case 0x1000: // error
@@ -743,19 +719,19 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
                     VertexManager::Flush();
                     nMaterialsChanged |= 1;
                     xfregs.colChans[0].ambColor = data;
-                    s_fMaterials[0] = ((data>>24)&0xFF)/255.0f; 
-                    s_fMaterials[1] = ((data>>16)&0xFF)/255.0f; 
+                    s_fMaterials[0] = ((data>>24)&0xFF)/255.0f;
+                    s_fMaterials[1] = ((data>>16)&0xFF)/255.0f;
                     s_fMaterials[2] = ((data>>8)&0xFF)/255.0f;
                     s_fMaterials[3] = ((data)&0xFF)/255.0f;
                 }
-                break; 
+                break;
             case 0x100b: //GXSetChanAmbientcolor
                 if (xfregs.colChans[1].ambColor != data) {
                     VertexManager::Flush();
                     nMaterialsChanged |= 2;
                     xfregs.colChans[1].ambColor = data;
-                    s_fMaterials[4] = ((data>>24)&0xFF)/255.0f; 
-                    s_fMaterials[5] = ((data>>16)&0xFF)/255.0f; 
+                    s_fMaterials[4] = ((data>>24)&0xFF)/255.0f;
+                    s_fMaterials[5] = ((data>>16)&0xFF)/255.0f;
                     s_fMaterials[6] = ((data>>8)&0xFF)/255.0f;
                     s_fMaterials[7] = ((data)&0xFF)/255.0f;
                 }
@@ -765,8 +741,8 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
                     VertexManager::Flush();
                     nMaterialsChanged |= 4;
                     xfregs.colChans[0].matColor = data;
-                    s_fMaterials[8] = ((data>>24)&0xFF)/255.0f; 
-                    s_fMaterials[9] = ((data>>16)&0xFF)/255.0f; 
+                    s_fMaterials[8] = ((data>>24)&0xFF)/255.0f;
+                    s_fMaterials[9] = ((data>>16)&0xFF)/255.0f;
                     s_fMaterials[10] = ((data>>8)&0xFF)/255.0f;
                     s_fMaterials[11] = ((data)&0xFF)/255.0f;
                 }
@@ -776,8 +752,8 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
                     VertexManager::Flush();
                     nMaterialsChanged |= 8;
                     xfregs.colChans[1].matColor = data;
-                    s_fMaterials[12] = ((data>>24)&0xFF)/255.0f; 
-                    s_fMaterials[13] = ((data>>16)&0xFF)/255.0f; 
+                    s_fMaterials[12] = ((data>>24)&0xFF)/255.0f;
+                    s_fMaterials[13] = ((data>>16)&0xFF)/255.0f;
                     s_fMaterials[14] = ((data>>8)&0xFF)/255.0f;
                     s_fMaterials[15] = ((data)&0xFF)/255.0f;
                 }
@@ -830,7 +806,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
                 VertexShaderMngr::SetTexMatrixChangedB(data); //?
                 break;
 
-            case 0x101a: 
+            case 0x101a:
                 VertexManager::Flush();
                 VertexShaderMngr::SetViewport((float*)&pData[i]);
                 i += 6;
@@ -838,10 +814,10 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 
             case 0x101c: // paper mario writes 16777216.0f, 1677721.75
                 break;
-            case 0x101f: // paper mario writes 16777216.0f, 5033165.0f  
+            case 0x101f: // paper mario writes 16777216.0f, 5033165.0f
                 break;
 
-            case 0x1020: 
+            case 0x1020:
                 VertexManager::Flush();
                 VertexShaderMngr::SetProjection((float*)&pData[i]);
                 i += 7;

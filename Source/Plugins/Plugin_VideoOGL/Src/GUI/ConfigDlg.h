@@ -40,14 +40,14 @@ class ConfigDialog : public wxDialog
 {
 	private:
 		DECLARE_EVENT_TABLE();
-		
+
 	public:
 		ConfigDialog(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("OpenGL Plugin Configuration"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = ConfigDialog_STYLE);
 		virtual ~ConfigDialog();
 		void OKClick(wxCommandEvent& event);
 
 		// General
-		void FullScreenCheck(wxCommandEvent& event); 
+		void FullScreenCheck(wxCommandEvent& event);
 		void RenderMainCheck(wxCommandEvent& event);
 		void AddFSReso(char *reso);
 		void AddWindowReso(char *reso);
@@ -60,7 +60,7 @@ class ConfigDialog : public wxDialog
 		void FSCB(wxCommandEvent& event);
 		void WMCB(wxCommandEvent& event);
 		void AACB(wxCommandEvent& event);
-		void ForceFilteringCheck(wxCommandEvent& event); 
+		void ForceFilteringCheck(wxCommandEvent& event);
 		void ForceAnisotropyCheck(wxCommandEvent& event);
 
 		// Information
@@ -82,10 +82,8 @@ class ConfigDialog : public wxDialog
 
 		// Hacks
 		void InvertDepth(wxCommandEvent& event);
-		void ProjectionHax1(wxCommandEvent& event);
-		void ProjectionHax2(wxCommandEvent& event);
 		void EFBToTextureDisable(wxCommandEvent& event);
-		
+
 	private:
 
 		wxButton* m_About;
@@ -107,7 +105,7 @@ class ConfigDialog : public wxDialog
 		wxComboBox *m_AliasModeCB;
 		wxComboBox *m_WindowResolutionCB;
 		wxComboBox *m_FullscreenCB;
-		wxCheckBox *m_RenderToMainWindow;		
+		wxCheckBox *m_RenderToMainWindow;
 		wxCheckBox *m_Fullscreen;
 		wxCheckBox *m_DisableLighting;
 		wxCheckBox *m_DisableTexturing;
@@ -123,7 +121,7 @@ class ConfigDialog : public wxDialog
 		wxPanel *m_PageUtility;
 		wxPanel *m_PageHacks;
 		wxNotebook *m_Notebook;
-		
+
 	private:
 
 		enum
@@ -170,7 +168,7 @@ class ConfigDialog : public wxDialog
 			////GUI Enum Control ID End
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
 		};
-	
+
 	private:
 		void OnClose(wxCloseEvent& event);
 		void CreateGUIControls();
