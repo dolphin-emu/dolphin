@@ -23,16 +23,74 @@
 
 #include "EXI_Device.h"
 #include "EXI_DeviceMic.h"
+    
+	bool MicButton;
+	bool IsOpen;
+// Doing it this way since it's Linux only atm due to portaudio, even though the lib is crossplatform
+// I had to include libs in the DolphinWX Sconscript file which I thought was BS.
+// So I'm committing with all the code ifdeff'ed out
+#if 1
+void SetMic(bool Value)
+{}
+bool GetMic()
+{return false;}
+CEXIMic::CEXIMic(int _Index){}
+CEXIMic::~CEXIMic(){}
+bool CEXIMic::IsPresent() {return false;}
+void CEXIMic::SetCS(int cs){}
+void CEXIMic::Update(){}
+void CEXIMic::TransferByte(u8 &byte){}
+bool CEXIMic::IsInterruptSet(){return false;}
+#else
 
-bool MicButton = false;
+#include <portaudio.h>
+#include <stdio.h>
+
+	unsigned char InputData[128*44100]; // Max Data is 128 samples at 44100
+	PaStream *stream;
+	PaError err;
+	unsigned short SFreq;
+	unsigned short SNum;
+	unsigned int Sample;
+	bool m_bInterruptSet;
+		bool Sampling;
+
 
 void SetMic(bool Value)
 {
-	MicButton = Value;
+	if(Value != MicButton)
+	{
+		MicButton = Value;
+		printf("Mic is set to %s\n", MicButton ? "true" : "false");
+		if(Sampling)
+		{
+			if(MicButton)
+				Pa_StartStream( stream );
+			else
+				Pa_StopStream( stream );
+		}
+	}
 }
 bool GetMic()
 {
 	return MicButton;
+}
+static unsigned int k = 0;
+int patestCallback( const void *inputBuffer, void *outputBuffer,
+                           unsigned long framesPerBuffer,
+                           const PaStreamCallbackTimeInfo* timeInfo,
+                           PaStreamCallbackFlags statusFlags,
+                           void *userData )
+{
+   unsigned char *data = (unsigned char*)inputBuffer; 
+    unsigned int i;
+    
+    for( i=0; i<framesPerBuffer && k < (SFreq*SNum); i++, k++ )
+    {
+        InputData[k] = data[i];
+    }
+    m_bInterruptSet = true;
+    return 0;
 }
 
 CEXIMic::CEXIMic(int _Index)
@@ -45,12 +103,17 @@ CEXIMic::CEXIMic(int _Index)
 	formatDelay = 0;
 	ID = 0x0a000000;
 	m_bInterruptSet = false;
+	MicButton = false;
+	IsOpen = false;
+	Pa_Initialize();
 
 }
 
 
 CEXIMic::~CEXIMic()
 {
+	Pa_CloseStream( stream );
+	Pa_Terminate();
 }
 
 bool CEXIMic::IsPresent() 
@@ -61,7 +124,10 @@ bool CEXIMic::IsPresent()
 void CEXIMic::SetCS(int cs)
 {
 	if (cs)  // not-selected to selected
+	{
 		m_uPosition = 0;
+		m_bInterruptSet = false;
+	}
 	else
 	{	
 		switch (command)
@@ -101,6 +167,7 @@ void CEXIMic::TransferByte(u8 &byte)
 		{
 			byte = 0xFF;
 			m_uPosition = 0;
+			m_bInterruptSet = false;
 		}
 	} 
 	else
@@ -120,22 +187,11 @@ void CEXIMic::TransferByte(u8 &byte)
 		{
 			if(GetMic())
 			{
-				Status.U16 |= (1 << 8);
+				Status.U16 |= (1 << 7);
 			}
 			else
 			{
-				Status.U16 &= ~(1 << 8);
-			}
-			if(Sampling)
-			{
-				//printf("Sample %d\n",Sample);
-				if(Sample >= SNum)
-				{
-					Sample = 0;
-					m_bInterruptSet = true;
-				}
-				else
-					Sample++;
+				Status.U16 &= ~(1 << 7);
 			}
 			byte = (u8)(Status.U16 >> (24-(((m_uPosition-2) & 3) * 8)));
 			
@@ -165,7 +221,8 @@ void CEXIMic::TransferByte(u8 &byte)
 				else
 				{
 					Sampling = false;
-					m_bInterruptSet = false;
+					// Only set to false once we have run out of Data?
+					//m_bInterruptSet = false;
 				}
 				if(!(Status.U16 >> 11) & 1)
 					if((Status.U16 >> 12) & 1 )
@@ -186,17 +243,38 @@ void CEXIMic::TransferByte(u8 &byte)
 				for(int a = 0;a < 16;a++)
 					printf("%d ", (Status.U16 >> a) & 1);
 				printf("\n");
+				if(!IsOpen)
+				{
+					// Open Our PortAudio Stream
+    				err = Pa_OpenDefaultStream( &stream,
+                                1,         
+                                0,          
+                                paUInt8 , 
+                                SFreq,
+                                SNum,        
+                                patestCallback, 
+                                NULL); 
+   					 if( err != paNoError )
+   					 	printf("error %s\n", Pa_GetErrorText (err));
+   					 IsOpen = true;
+				}
 			}
 		}
 		break;
 		case cmdGetBuffer:
+			static unsigned long At = 0;
 			printf("POS %d\n", m_uPosition);
 			// Are we not able to return all the data then?
 			// I think if we set the Interrupt to false, it reads another 64
 			// Will Look in to it.
-			if(m_uPosition == SNum / 2) // It's 16bit Audio, so we divide by two
-				;//m_bInterruptSet = false;
-			byte = rand() % 0xFF;
+			// Set to False here? Prevents lock ups maybe?
+			if(At >= SNum){
+				At = 0;
+				k = 0;
+				m_bInterruptSet = false;
+			}
+			byte = InputData[At];
+			At++;
 		break;
 		default:
 			printf("Don't know command %x in Byte transfer\n", command);
@@ -205,3 +283,4 @@ void CEXIMic::TransferByte(u8 &byte)
 	}
 	m_uPosition++;
 }
+#endif

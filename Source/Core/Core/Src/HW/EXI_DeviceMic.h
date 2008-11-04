@@ -18,7 +18,6 @@
 #ifndef _EXI_DEVICEMIC_H
 #define _EXI_DEVICEMIC_H
 
-
 class CEXIMic : public IEXIDevice
 {
 public:
@@ -52,7 +51,6 @@ private:
 
 	// STATE_TO_SAVE
 	int interruptSwitch;
-	bool m_bInterruptSet;
 	int command;
 	union uStatus
 	{
@@ -63,10 +61,6 @@ private:
 	u32 m_uPosition;
 	u32 formatDelay;
 	uStatus Status;
-	bool Sampling;
-	short SFreq;
-	short SNum;
-	int Sample;
 	
 	//! memory card parameters 
 	unsigned int ID;
