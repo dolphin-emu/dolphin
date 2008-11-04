@@ -80,7 +80,6 @@ void AboutDolphin::CreateGUIControls()
 	this->SetSizer(sMain);
 	sMain->Layout();
 
-	SetIcon(wxNullIcon);
 	CenterOnParent();
 	Fit();
 }

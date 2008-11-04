@@ -35,7 +35,7 @@ class CConfigMain
 
 		CConfigMain(wxWindow* parent, wxWindowID id = 1, const wxString& title = wxT("Dolphin Configuration"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = CONFIG_MAIN_STYLE);
 		virtual ~CConfigMain();
-		void OKClick(wxCommandEvent& event);
+		void CloseClick(wxCommandEvent& event);
 		void OnSelectionChanged(wxCommandEvent& event);
 		void OnConfig(wxCommandEvent& event);
 
@@ -73,9 +73,7 @@ class CConfigMain
 		wxPanel *PathsPage;
 		wxPanel *PluginPage;
 
-		wxButton* OK;
-		wxButton* Cancel;
-		wxButton* Apply;
+		wxButton* m_Close;
 
 		wxCheckBox* AllwaysHLEBIOS;
 		wxCheckBox* UseDynaRec;
@@ -190,9 +188,7 @@ class CConfigMain
 			ID_WIIPAGE,
 			ID_PATHSPAGE,
 			ID_PLUGINPAGE,
-			ID_CANCEL,
-			ID_APPLY,
-			ID_OK,
+			ID_CLOSE,
 			ID_ALLWAYS_HLEBIOS,
 			ID_USEDYNAREC,
 			ID_USEDUALCORE,
@@ -227,16 +223,14 @@ class CConfigMain
 			ID_PAD_ABOUT ,
 			ID_PAD_CONFIG,
 			ID_PAD_CB,
-			ID_DSP_ABOUT ,
+			ID_DSP_ABOUT,
 			ID_DSP_CONFIG,
 			ID_DSP_TEXT,
 			ID_DSP_CB,
-			ID_GRAPHIC_ABOUT ,
+			ID_GRAPHIC_ABOUT,
 			ID_GRAPHIC_CONFIG,
 			ID_GRAPHIC_TEXT,
-			ID_GRAPHIC_CB,
-
-			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
+			ID_GRAPHIC_CB
 		};
 
 		void CreateGUIControls();
@@ -252,9 +246,6 @@ class CConfigMain
 		void FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::string& _SelectFilename);
 
 		void CallConfig(wxChoice* _pChoice);
-		//void CallAbout(wxChoice* _pChoice);
-
-		void DoApply();
 
 		bool GetFilename(wxChoice* _pChoice, std::string& _rFilename);
 };

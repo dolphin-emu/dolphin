@@ -70,14 +70,12 @@ void Config::Load()
 	iniFile.Get("Settings", "WireFrame", &bWireFrame, 0);
 	iniFile.Get("Settings", "DisableLighting", &bDisableLighting, 0);
 	iniFile.Get("Settings", "DisableTexturing", &bDisableTexturing, 0);
-	iniFile.Get("Settings", "DisableCulling", &bDisableCulling, 0);
 
     iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
     iniFile.Get("Enhancements", "ForceMaxAniso", &bForceMaxAniso, 0);
 	iniFile.Get("Enhancements", "StretchToFit", &bStretchToFit, false);
 	iniFile.Get("Enhancements", "KeepAR", &bKeepAR, false);
 
-	iniFile.Get("Hacks", "InvertDepth", &bInvertDepth, 0);
 	iniFile.Get("Hacks", "EFBToTextureDisable", &bEBFToTextureDisable, 0);
 }
 
@@ -104,14 +102,12 @@ void Config::Save()
 	iniFile.Set("Settings", "Wireframe", bWireFrame);
 	iniFile.Set("Settings", "DisableLighting", bDisableLighting);
 	iniFile.Set("Settings", "DisableTexturing", bDisableTexturing);
-	iniFile.Set("Settings", "DisableCulling", bDisableCulling);
 
     iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
     iniFile.Set("Enhancements", "ForceMaxAniso", bForceMaxAniso);
 	iniFile.Set("Enhancements", "StretchToFit", bStretchToFit);
 	iniFile.Set("Enhancements", "KeepAR", bKeepAR);
 
-	iniFile.Set("Hacks", "InvertDepth", bInvertDepth);
 	iniFile.Set("Hacks", "EFBToTextureDisable", bEBFToTextureDisable);
 
     iniFile.Save("gfx_opengl.ini");

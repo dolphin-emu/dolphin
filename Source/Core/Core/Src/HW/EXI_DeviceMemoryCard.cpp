@@ -194,7 +194,7 @@ void CEXIMemoryCard::SetCS(int cs)
 			if (m_uPosition > 2)
 			{
 				memset(memory_card_content, 0xFF, memory_card_size);
-				status &= ~0x80;
+				status &= ~MC_STATUS_BUSY;
 			}
 			break;
 

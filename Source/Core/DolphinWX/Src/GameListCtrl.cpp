@@ -572,7 +572,7 @@ void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
 		const GameListItem *iso = GetSelectedISO();
 		if (!iso)
 			return;
-		if (wxMessageBox(_T("Are you sure you want to delete this file?"),
+		if (wxMessageBox(_T("Are you sure you want to delete this file?\nIt will be gone forever!"),
 			wxMessageBoxCaptionStr, wxYES_NO|wxICON_EXCLAMATION) == wxYES)
 		{
 			File::Delete(iso->GetFileName().c_str());

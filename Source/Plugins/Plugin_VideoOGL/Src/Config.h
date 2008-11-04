@@ -54,14 +54,12 @@ struct Config
 	bool bWireFrame;
 	bool bDisableLighting;
 	bool bDisableTexturing;
-	bool bDisableCulling;
 
 	// Utility
 	char texDumpPath[280];
 	bool bDumpTextures;
 
 	// Hacks
-	bool bInvertDepth;
 	bool bEBFToTextureDisable;
 
 	int iLog; // CONF_ bits

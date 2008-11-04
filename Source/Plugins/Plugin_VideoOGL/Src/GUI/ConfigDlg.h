@@ -19,7 +19,6 @@
 #define __CONFIGDIALOG_h__
 
 #include <wx/wx.h>
-#include <wx/aboutdlg.h>
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
 #include <wx/button.h>
@@ -38,140 +37,111 @@
 
 class ConfigDialog : public wxDialog
 {
-	private:
-		DECLARE_EVENT_TABLE();
-
 	public:
 		ConfigDialog(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("OpenGL Plugin Configuration"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = ConfigDialog_STYLE);
 		virtual ~ConfigDialog();
 		void OKClick(wxCommandEvent& event);
 
-		// General
-		void FullScreenCheck(wxCommandEvent& event);
-		void RenderMainCheck(wxCommandEvent& event);
 		void AddFSReso(char *reso);
 		void AddWindowReso(char *reso);
-		void StretchToFitCheck(wxCommandEvent& event);
-		void KeepARCheck(wxCommandEvent& event);
-		void DllAbout(wxCommandEvent& event);
-
-		// Enhancements
 		void AddAAMode(int mode);
-		void FSCB(wxCommandEvent& event);
-		void WMCB(wxCommandEvent& event);
-		void AACB(wxCommandEvent& event);
-		void ForceFilteringCheck(wxCommandEvent& event);
-		void ForceAnisotropyCheck(wxCommandEvent& event);
-
-		// Information
-		void ShowFPSCheck(wxCommandEvent& event);
-		void OverlayCheck(wxCommandEvent& event);
-		void ShowShaderErrorsCheck(wxCommandEvent& event);
-		void TexFmtOverlayChange(wxCommandEvent& event);
-
-		// Render
-		void WireframeCheck(wxCommandEvent& event);
-		void UseXFBChange(wxCommandEvent& event);
-		void DisableLighting(wxCommandEvent& event);
-		void DisableTexturing(wxCommandEvent& event);
-		void DisableCulling(wxCommandEvent& event);
-
-		// Util
-		void DumpTexturesChange(wxCommandEvent& event);
-		void TexturePathChange(wxFileDirPickerEvent& event);
-
-		// Hacks
-		void InvertDepth(wxCommandEvent& event);
-		void EFBToTextureDisable(wxCommandEvent& event);
 
 	private:
+		DECLARE_EVENT_TABLE();
 
-		wxButton* m_About;
+		wxBoxSizer* sGeneral;
+		wxStaticBoxSizer* sbBasic;
+		wxGridBagSizer* sBasic;
+		wxStaticBoxSizer* sbEnhancements;
+		wxGridBagSizer* sEnhancements;
+		wxBoxSizer* sAdvanced;
+		wxStaticBoxSizer* sbInfo;
+		wxGridBagSizer* sInfo;
+		wxStaticBoxSizer* sbRendering;
+		wxGridBagSizer* sRendering;
+		wxStaticBoxSizer* sbUtilities;
+		wxGridBagSizer* sUtilities;
+		wxStaticBoxSizer* sbHacks;
+		wxGridBagSizer* sHacks;
+		
+		wxButton *m_About;
 		wxButton *m_Cancel;
 		wxButton *m_OK;
-		wxDirPickerCtrl *m_TexturePath;
-		wxCheckBox *m_DumpTextures;
-		wxCheckBox *m_UseXFB;
-		wxCheckBox *m_TexFmtCenter;
-		wxCheckBox *m_TexFmtOverlay;
-		wxCheckBox *m_Statistics;
-		wxCheckBox *m_ShowFPS;
-		wxCheckBox *m_ShaderErrors;
-		wxCheckBox *m_Wireframe;
-		wxCheckBox *m_ForceAnisotropy;
+		wxNotebook *m_Notebook;
+		wxPanel *m_PageGeneral;
+		wxPanel *m_PageAdvanced;
+		wxCheckBox *m_Fullscreen;
+		wxCheckBox *m_RenderToMainWindow;
 		wxCheckBox *m_StretchToFit;
 		wxCheckBox *m_KeepAR;
-		wxCheckBox *m_ForceFiltering;
-		wxComboBox *m_AliasModeCB;
-		wxComboBox *m_WindowResolutionCB;
+		wxArrayString arrayStringFor_FullscreenCB;
 		wxComboBox *m_FullscreenCB;
-		wxCheckBox *m_RenderToMainWindow;
-		wxCheckBox *m_Fullscreen;
+		wxArrayString arrayStringFor_WindowResolutionCB;
+		wxComboBox *m_WindowResolutionCB;
+		wxCheckBox *m_ForceFiltering;
+		wxCheckBox *m_ForceAnisotropy;
+		wxComboBox *m_AliasModeCB;
+		wxCheckBox *m_ShowFPS;
+		wxCheckBox *m_ShaderErrors;
+		wxCheckBox *m_Statistics;
+		wxCheckBox *m_TexFmtOverlay;
+		wxCheckBox *m_TexFmtCenter;
+		wxCheckBox *m_UseXFB;
+		wxCheckBox *m_Wireframe;
 		wxCheckBox *m_DisableLighting;
 		wxCheckBox *m_DisableTexturing;
-		wxCheckBox *m_InvertDepth;
-		wxCheckBox *m_ProjectionHax1;
-		wxCheckBox *m_ProjectionHax2;
+		wxCheckBox *m_DumpTextures;
+		wxDirPickerCtrl *m_TexturePath;
 		wxCheckBox *m_EFBToTextureDisable;
-		wxCheckBox *m_DisableCulling;
-		wxPanel *m_PageGeneral;
-		wxPanel *m_PageEnhancements;
-		wxPanel *m_PageInformation;
-		wxPanel *m_PageRender;
-		wxPanel *m_PageUtility;
-		wxPanel *m_PageHacks;
-		wxNotebook *m_Notebook;
-
-	private:
 
 		enum
 		{
-			////GUI Enum Control ID Start
-			ID_CANCEL = 1000,
-			ID_OK,
-			ID_TEXTUREPATH,
-			ID_SHADERERRORS,
-			ID_USEXFB,
-			ID_TEXFMTCENTER,
-			ID_TEXFMTOVERLAY,
-			ID_SHOWFPS,
-			ID_STATISTICS,
-			ID_DUMPTEXTURES,
-			ID_WIREFRAME,
-			ID_FORCEANISOTROPY,
+			ID_OK = 1000,
+			ID_CANCEL,
+			ID_ABOUTOGL,
+
+			ID_NOTEBOOK,
+			ID_PAGEGENERAL,
+			ID_PAGEADVANCED,
+
+			ID_FULLSCREEN,
+			ID_RENDERTOMAINWINDOW,
 			ID_STRETCHTOFIT,
 			ID_KEEPAR,
-			ID_FORCEFILTERING,
-			ID_ALIASMODECB,
-			ID_AATEXT,
-			ID_WINDOWRESOLUTIONCB,
-			ID_WMTEXT,
-			ID_FULLSCREENCB,
 			ID_FSTEXT,
-			ID_RENDERTOMAINWINDOW,
-			ID_FULLSCREEN,
-			ID_NOTEBOOK,
-			ID_INVERTDEPTH,
-			ID_PROJECTIONHAX1,
-			ID_PROJECTIONHAX2,
+			ID_FULLSCREENCB,
+			ID_WMTEXT,
+			ID_WINDOWRESOLUTIONCB,
+
+			ID_FORCEFILTERING,
+			ID_FORCEANISOTROPY,
+			ID_AATEXT,
+			ID_ALIASMODECB,
+
+			ID_SHOWFPS,
+			ID_SHADERERRORS,
+			ID_STATISTICS,
+			ID_TEXFMTOVERLAY,
+			ID_TEXFMTCENTER,
+
+			ID_USEXFB,
+			ID_WIREFRAME,
 			ID_DISABLELIGHTING,
 			ID_DISABLETEXTURING,
+
+			ID_DUMPTEXTURES,
+			ID_TEXTUREPATH,
+
 			ID_EFBTOTEXTUREDISABLE,
-			ID_DISABLECULLING,
-			ID_PAGEGENERAL,
-			ID_PAGEENHANCEMENTS,
-			ID_PAGEINFORMATION,
-			ID_PAGERENDER,
-			ID_PAGEUTILITY,
-			ID_PAGEHACKS,
-			ID_GRAPHIC_ABOUT,
-			////GUI Enum Control ID End
-			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
 		};
 
-	private:
 		void OnClose(wxCloseEvent& event);
 		void CreateGUIControls();
+
+		void AboutClick(wxCommandEvent& event);
+		void GeneralSettingsChanged(wxCommandEvent& event);
+		void AdvancedSettingsChanged(wxCommandEvent& event);
+		void TexturePathChange(wxFileDirPickerEvent& event);
 };
 
 #endif

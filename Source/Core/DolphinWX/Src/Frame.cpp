@@ -383,18 +383,8 @@ void CFrame::OnHelp(wxCommandEvent& event)
 	{
 	case IDM_HELPABOUT:
 		{
-		#ifdef _WIN32
-			wxWindow win;
-			win.SetHWND(this->GetHWND());
-			AboutDolphin frame(&win);
-			frame.ShowModal();
-			win.SetHWND(0); 
-		#else
-                        wxWindow win;
-			AboutDolphin frame(&win);
-			frame.ShowModal();
-
-		#endif
+		AboutDolphin frame(this);
+		frame.ShowModal();
 		break;
 		}
 	case IDM_HELPWEBSITE:

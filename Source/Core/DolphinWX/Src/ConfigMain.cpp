@@ -26,9 +26,7 @@
 BEGIN_EVENT_TABLE(CConfigMain, wxDialog)
 
 EVT_CLOSE(CConfigMain::OnClose)
-EVT_BUTTON(ID_OK, CConfigMain::OKClick)
-EVT_BUTTON(ID_APPLY, CConfigMain::OKClick)
-EVT_BUTTON(ID_CANCEL, CConfigMain::OKClick)
+EVT_BUTTON(ID_CLOSE, CConfigMain::CloseClick)
 EVT_CHECKBOX(ID_ALLWAYS_HLEBIOS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_USEDYNAREC, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_USEDUALCORE, CConfigMain::CoreSettingsChanged)
@@ -63,7 +61,7 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 	: wxDialog(parent, id, title, position, size, style)
 {
 	bRefreshList = false;
-
+	
 	// Load Wii SYSCONF
 	pStream = NULL;
 	pStream = fopen("./WII/shared2/sys/SYSCONF", "rb");
@@ -86,6 +84,10 @@ CConfigMain::~CConfigMain()
 
 void CConfigMain::CreateGUIControls()
 {
+	// Why does this not work? some restriction is needed so that huge
+	//	ISO paths dont cause the dialog to become gargantuan
+	SetMaxSize(wxSize(350, 350));
+	
 	Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 
 	GeneralPage = new wxPanel(Notebook, ID_GENERALPAGE, wxDefaultPosition, wxDefaultSize);
@@ -99,17 +101,12 @@ void CConfigMain::CreateGUIControls()
 	PluginPage = new wxPanel(Notebook, ID_PLUGINPAGE, wxDefaultPosition, wxDefaultSize);
 	Notebook->AddPage(PluginPage, wxT("Plugins"));
 
-	OK = new wxButton(this, ID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	Cancel = new wxButton(this, ID_CANCEL, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	Apply = new wxButton(this, ID_APPLY, wxT("Apply"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	Apply->Disable();
+	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	wxBoxSizer* sButtons;
 	sButtons = new wxBoxSizer(wxHORIZONTAL);
 	sButtons->Add(0, 0, 1, wxEXPAND, 5);
-	sButtons->Add(OK, 0, wxALL, 5);
-	sButtons->Add(Cancel, 0, wxALL, 5);
-	sButtons->Add(Apply, 0, wxALL, 5);
+	sButtons->Add(m_Close, 0, wxALL, 5);
 	
 	wxBoxSizer* sMain;
 	sMain = new wxBoxSizer(wxVERTICAL);
@@ -125,7 +122,7 @@ void CConfigMain::CreateGUIControls()
 	UseDualCore->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);
 	SkipIdle = new wxCheckBox(GeneralPage, ID_IDLESKIP, wxT("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	SkipIdle->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);
-	EnableCheats = new wxCheckBox(GeneralPage, ID_ENABLECHEATS, wxT("Enable cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	EnableCheats = new wxCheckBox(GeneralPage, ID_ENABLECHEATS, wxT("Enable Cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	EnableCheats->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);
 
 	sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Advanced Settings"));
@@ -300,46 +297,31 @@ void CConfigMain::CreateGUIControls()
 	sPlugins->Add(sbWiimotePlugin, 0, wxEXPAND|wxALL, 5);
 	PluginPage->SetSizer(sPlugins);
 	sPlugins->Layout();
-
-	SetIcon(wxNullIcon);
 	Fit();
+	Center();
 }
 
 void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	Destroy();
+
+	// Save Wii SYSCONF
+	pStream = NULL;
+	pStream = fopen("./WII/shared2/sys/SYSCONF", "wb");
+	if (pStream != NULL)
+	{
+		fwrite(m_SYSCONF, 1, 0x4000, pStream);
+		fclose(pStream);
+	}
+	else
+	{
+		PanicAlert("Could not write to Wii SYSCONF");
+	}
 }
 
-void CConfigMain::OKClick(wxCommandEvent& event)
+void CConfigMain::CloseClick(wxCommandEvent& WXUNUSED (event))
 {
-	switch (event.GetId())
-	{
-	    case ID_OK:
-		    DoApply();
-		    Destroy();
-
-			// Save Wii SYSCONF
-			pStream = NULL;
-			pStream = fopen("./WII/shared2/sys/SYSCONF", "wb");
-			if (pStream != NULL)
-			{
-				fwrite(m_SYSCONF, 1, 0x4000, pStream);
-				fclose(pStream);
-			}
-			else
-			{
-				PanicAlert("Could not write to Wii SYSCONF");
-			}
-		    break;
-
-	    case ID_APPLY:
-		    DoApply();
-		    break;
-
-	    case ID_CANCEL:
-		    Destroy();
-		    break;
-	}
+	Close();
 }
 
 void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
@@ -464,7 +446,10 @@ void CConfigMain::DVDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
 
 void CConfigMain::OnSelectionChanged(wxCommandEvent& WXUNUSED (event))
 {
-	Apply->Enable();
+	GetFilename(GraphicSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
+	GetFilename(DSPSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin);
+	GetFilename(PADSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin);
+	GetFilename(WiimoteSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin);
 }
 
 void CConfigMain::OnConfig(wxCommandEvent& event)
@@ -527,18 +512,6 @@ void CConfigMain::CallConfig(wxChoice* _pChoice)
 		if (pInfo != NULL)
 			CPluginManager::GetInstance().OpenConfig((HWND) this->GetHandle(), pInfo->GetFileName().c_str());
 	}
-}
-
-void CConfigMain::DoApply()
-{
-	Apply->Disable();
-
-	GetFilename(GraphicSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
-	GetFilename(DSPSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin);
-	GetFilename(PADSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin);
-	GetFilename(WiimoteSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin);
-
-	SConfig::GetInstance().SaveSettings();
 }
 
 bool CConfigMain::GetFilename(wxChoice* _pChoice, std::string& _rFilename)

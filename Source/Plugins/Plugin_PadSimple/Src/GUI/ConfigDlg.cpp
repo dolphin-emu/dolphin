@@ -66,6 +66,7 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 #endif
 	clickedButton = NULL;
 	CreateGUIControls();
+	Fit();
 }
 
 ConfigDialog::~ConfigDialog()
@@ -233,9 +234,6 @@ void ConfigDialog::CreateGUIControls()
 		m_Controller[i]->SetSizer(sPage[i]);
 		sPage[i]->Layout();
 	}
-
-	SetIcon(wxNullIcon);
-	Fit();
 }
 
 void ConfigDialog::OnClose(wxCloseEvent& event)
