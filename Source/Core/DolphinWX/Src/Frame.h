@@ -80,6 +80,7 @@ class CFrame : public wxFrame
 		void OnHostMessage(wxCommandEvent& event);
 		void OnLoadState(wxCommandEvent& event);
 		void OnSaveState(wxCommandEvent& event);
+		void OnClose(wxCloseEvent &event); 
 
 
 		wxStatusBar* m_pStatusBar;

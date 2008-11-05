@@ -80,6 +80,7 @@ static const long TOOLBAR_STYLE = wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
 const wxEventType wxEVT_HOST_COMMAND = wxNewEventType();
 
 BEGIN_EVENT_TABLE(CFrame, wxFrame)
+EVT_CLOSE(CFrame::OnClose)
 EVT_MENU(wxID_OPEN, CFrame::OnOpen)
 EVT_MENU(wxID_EXIT, CFrame::OnQuit)
 EVT_MENU(IDM_HELPWEBSITE, CFrame::OnHelp)
@@ -367,15 +368,21 @@ void CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
 {
+	Close(true);
+}
+
+
+void CFrame::OnClose(wxCloseEvent& event)
+{
+	// Don't forget the skip of the window won't be destroyed
+	event.Skip();
+
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		Core::Stop();
 		UpdateGUI();
 	}
-
-	Close(true);
 }
-
 
 void CFrame::OnHelp(wxCommandEvent& event)
 {
