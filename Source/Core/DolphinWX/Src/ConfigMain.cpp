@@ -317,6 +317,9 @@ void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
 	{
 		PanicAlert("Could not write to Wii SYSCONF");
 	}
+
+	// save the config... dolphin crashes by far to often to save the settings on closing only
+	SConfig::GetInstance().SaveSettings();
 }
 
 void CConfigMain::CloseClick(wxCommandEvent& WXUNUSED (event))
