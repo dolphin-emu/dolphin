@@ -17,6 +17,7 @@
 
 #include "pluginspecs_wiimote.h"
 
+#include "wiiuse.h"
 #include <queue>
 
 #include "common.h"
@@ -24,14 +25,6 @@
 
 #include "wiimote_hid.h"
 #include "wiimote_emu.h"
-
-
-#define WIIUSE_INTERNAL_H_INCLUDED
-#define WIIUSE_COMPILE_LIB
-
-#include "wiiuse_012/wiiuse.h"
-#include "wiiuse_012/io.h"
-
 
 extern SWiimoteInitialize g_WiimoteInitialize;
 extern void __Log(int log, const char *format, ...);
@@ -98,10 +91,9 @@ namespace WiiMoteReal
 
 			g_pCriticalSection->Leave();
 
-			memset(m_pWiiMote->event_buf, 0, MAX_PAYLOAD);
 			if (wiiuse_io_read(m_pWiiMote))
 			{
-				byte* pBuffer = m_pWiiMote->event_buf;
+				const byte* pBuffer = m_pWiiMote->event_buf;
 
 				// check if we have a channel (connection) if so save the data...
 				if (m_channelID > 0)
