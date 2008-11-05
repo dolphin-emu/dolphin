@@ -325,8 +325,6 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		PluginWiimote::Wiimote_Update();
 	}
 
-#ifdef _WIN32
-
 	// FiRES: TODO find a good solution to do this
 	static bool test = true;
 	static int counter = 1000;
@@ -346,8 +344,6 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 			}
 		}
 	}
-
-#endif
 
 	return 0; 
 }
