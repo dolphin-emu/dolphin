@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\WiiUse\include"
 				PreprocessorDefinitions="LOGGING;WIN32;_DEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -67,9 +67,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib rpcrt4.lib"
+				AdditionalDependencies="comctl32.lib wiiuse.lib rpcrt4.lib"
 				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_WiimoteD.dll"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="0"
@@ -127,7 +128,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\WiiUse\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -150,9 +151,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib rpcrt4.lib"
+				AdditionalDependencies="comctl32.lib wiiuse.lib rpcrt4.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_WiimoteD.dll"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="0"
@@ -209,7 +211,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\WiiUse\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				AssemblerListingLocation="$(IntDir)\"
@@ -230,9 +232,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib rpcrt4.lib"
+				AdditionalDependencies="comctl32.lib wiiuse.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_Wiimote.dll"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="false"
 				SubSystem="0"
@@ -291,7 +294,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\WiiUse\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				AssemblerListingLocation="$(IntDir)\"
@@ -312,9 +315,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib rpcrt4.lib"
+				AdditionalDependencies="comctl32.lib wiiuse.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_Wiimote.dll"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="false"
 				SubSystem="0"
@@ -371,7 +375,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\WiiUse\include"
 				PreprocessorDefinitions="LOGGING;DEBUGFAST;WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				WarningLevel="3"
@@ -390,9 +394,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib rpcrt4.lib"
+				AdditionalDependencies="comctl32.lib wiiuse.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_WiimoteDF.dll"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\win32"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -450,7 +455,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\WiiUse\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS;DEBUGFAST;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				WarningLevel="3"
@@ -469,9 +474,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib rpcrt4.lib"
+				AdditionalDependencies="comctl32.lib wiiuse.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_WiimoteDF.dll"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -507,16 +513,36 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="misc"
+			>
+			<File
+				RelativePath="..\..\PluginSpecs\pluginspecs_wiimote.h"
+				>
+			</File>
+		</Filter>
 		<File
-			RelativePath="..\..\PluginSpecs\pluginspecs_wiimote.h"
+			RelativePath=".\Src\main.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\Wiimote.cpp"
+			RelativePath=".\Src\wiimote_emu.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\wiimote_emu.h"
 			>
 		</File>
 		<File
 			RelativePath=".\Src\wiimote_hid.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\wiimote_real.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\wiimote_real.h"
 			>
 		</File>
 	</Files>

@@ -327,18 +327,24 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 
 #ifdef _WIN32
 
+	// FiRES: TODO find a good solution to do this
 	static bool test = true;
-	if (test && GetAsyncKeyState(VK_LBUTTON) && GetAsyncKeyState(VK_RBUTTON))
+	static int counter = 1000;
+	if (test && !stricmp(m_LocalName, "Wii") && (m_ScanEnable & 0x2))
 	{
-		test = false;
-		for (size_t i=0; i<m_WiiMotes.size(); i++)
+		counter--;
+		if (counter < 0)
 		{
-			if (m_WiiMotes[i].EventPagingChanged(2))
+			test = false;
+			for (size_t i=0; i<m_WiiMotes.size(); i++)
 			{
-				Host_SetWiiMoteConnectionState(1);
-				SendEventRequestConnection(m_WiiMotes[i]);
+				if (m_WiiMotes[i].EventPagingChanged(2))
+				{
+					Host_SetWiiMoteConnectionState(1);
+					SendEventRequestConnection(m_WiiMotes[i]);
+				}
 			}
-		}	
+		}
 	}
 
 #endif
@@ -1324,18 +1330,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
 	LOG(WII_IPC_WIIMOTE, "  scan_enable: %s", Scanning[pWriteScanEnable->scan_enable]);
 
 	SendEventCommandComplete(HCI_CMD_WRITE_SCAN_ENABLE, &Reply, sizeof(hci_write_scan_enable_rp));
-
-	return;
-
-	// TODO: fix this ugly request connection hack :)
-	//for homebrew works this	
-	for (size_t i=0; i<m_WiiMotes.size(); i++)
-	{
-		if (m_WiiMotes[i].EventPagingChanged(pWriteScanEnable->scan_enable))
-		{
-			SendEventRequestConnection(m_WiiMotes[i]);
-		}
-	}
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryMode(u8* _Input)
@@ -1673,7 +1667,16 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandDisconnect(u8* _Input)
 		pWiimote->EventDisconnect();
 	}
 
-	PanicAlert("disconnect");
+	static bool OneShotMessage = true;
+	if (OneShotMessage)
+	{
+		OneShotMessage = false;
+		PanicAlert("IPC CommandDisconnect: WiiMote emulation is out of sync.\n"
+				   "This message will be shot one time only, because dolphin\n"
+				   "executes the disconnect at all and some times you can play\n"
+				   "anyway. It is strongly recommed to save and/or restart the"
+				   "emulation.");
+	}
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteLinkSupervisionTimeout(u8* _Input)
