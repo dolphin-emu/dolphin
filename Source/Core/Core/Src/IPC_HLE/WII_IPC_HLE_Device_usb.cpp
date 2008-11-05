@@ -1672,9 +1672,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandDisconnect(u8* _Input)
 	{
 		OneShotMessage = false;
 		PanicAlert("IPC CommandDisconnect: WiiMote emulation is out of sync.\n"
-				   "This message will be shot one time only, because dolphin\n"
-				   "executes the disconnect at all and some times you can play\n"
-				   "anyway. It is strongly recommed to save and/or restart the"
+				   "This message will be shot one time only, because dolphin does\n"
+				   "not executes the disconnect at all and some times you can play\n"
+				   "anyway. It is strongly recommed to save and/or restart the\n"
 				   "emulation.");
 	}
 }

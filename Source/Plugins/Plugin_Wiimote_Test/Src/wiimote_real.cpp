@@ -34,14 +34,26 @@ namespace WiiMoteReal
 #define MAX_WIIMOTES 1
 
 	//******************************************************************************
+	// Forwording
+	//******************************************************************************
+	
+	class CWiiMote;
+	DWORD WINAPI ReadWiimote_ThreadFunc(void* arg);
+
+	//******************************************************************************
 	// Variable declarations
 	//******************************************************************************
+		
+	wiimote_t**			g_WiiMotesFromWiiUse = NULL;
+	Common::Thread*		g_pReadThread = NULL;
+	int					g_NumberOfWiiMotes;
+	CWiiMote*			g_WiiMotes[MAX_WIIMOTES];	
+	bool				g_Shutdown = false;
 
-	wiimote_t** m_WiiMotesFromWiiUse = NULL;
-	Common::Thread* g_pReadThread = NULL;
-	Common::CriticalSection* g_pCriticalSection = NULL;
-	bool g_Shutdown = false;
-	
+	//******************************************************************************
+	// Prolly this class should be in its own file
+	//******************************************************************************
+
 	class CWiiMote
 	{
 	public:
@@ -51,7 +63,10 @@ namespace WiiMoteReal
 			, m_pWiiMote(_pWiimote)
 			, m_LastReportValid(false)
 			, m_channelID(0)
+			, m_pCriticalSection(NULL)
 		{
+			m_pCriticalSection = new Common::CriticalSection();
+
 			wiiuse_set_leds(m_pWiiMote, WIIMOTE_LED_4);
 
 #ifdef _WIN32
@@ -61,26 +76,28 @@ namespace WiiMoteReal
 		}
 
 		virtual ~CWiiMote() 
-		{};
+		{
+			delete m_pCriticalSection;
+		};
 
 		// send raw HID data from the core to wiimote
 		void SendData(u16 _channelID, const u8* _pData, u32 _Size)
 		{
 			m_channelID = _channelID;
 
-			g_pCriticalSection->Enter();
+			m_pCriticalSection->Enter();
 			{
 				SEvent WriteEvent;
 				memcpy(WriteEvent.m_PayLoad, _pData+1, _Size-1);
 				m_EventWriteQueue.push(WriteEvent);
 			}
-			g_pCriticalSection->Leave();
+			m_pCriticalSection->Leave();
 		}
 
 		// read data from wiimote (but don't send it to the core, just filter and queue)
 		void ReadData() 
 		{
-			g_pCriticalSection->Enter();
+			m_pCriticalSection->Enter();
 
 			if (!m_EventWriteQueue.empty())
 			{
@@ -89,7 +106,7 @@ namespace WiiMoteReal
 				m_EventWriteQueue.pop();
 			}
 
-			g_pCriticalSection->Leave();
+			m_pCriticalSection->Leave();
 
 			if (wiiuse_io_read(m_pWiiMote))
 			{
@@ -98,7 +115,7 @@ namespace WiiMoteReal
 				// check if we have a channel (connection) if so save the data...
 				if (m_channelID > 0)
 				{
-					g_pCriticalSection->Enter();
+					m_pCriticalSection->Enter();
 
 					// filter out reports
 					if (pBuffer[0] >= 0x30) 
@@ -113,7 +130,7 @@ namespace WiiMoteReal
 						m_EventReadQueue.push(ImportantEvent);
 					}
 
-					g_pCriticalSection->Leave();
+					m_pCriticalSection->Leave();
 				}
 			}
 		};
@@ -121,7 +138,7 @@ namespace WiiMoteReal
 		// send queued data to the core
 		void Update() 
 		{
-			g_pCriticalSection->Enter();
+			m_pCriticalSection->Enter();
 
 			if (m_EventReadQueue.empty())
 			{
@@ -134,7 +151,7 @@ namespace WiiMoteReal
 				m_EventReadQueue.pop();
 			}
 
-			g_pCriticalSection->Leave();
+			m_pCriticalSection->Leave();
 		};
 
 	private:
@@ -153,6 +170,7 @@ namespace WiiMoteReal
 		u16 m_channelID;
 		wiimote_t* m_pWiiMote;
 
+		Common::CriticalSection* m_pCriticalSection;
 		CEventQueue m_EventReadQueue;
 		CEventQueue m_EventWriteQueue;
 		bool m_LastReportValid;
@@ -179,11 +197,6 @@ namespace WiiMoteReal
 		}
 	};
 
-	int g_NumberOfWiiMotes;
-	CWiiMote* g_WiiMotes[MAX_WIIMOTES];
-
-	DWORD WINAPI ReadWiimote_ThreadFunc(void* arg);
-
 	//******************************************************************************
 	// Function Definitions 
 	//******************************************************************************
@@ -191,18 +204,17 @@ namespace WiiMoteReal
 	int Initialize()
 	{
 		memset(g_WiiMotes, 0, sizeof(CWiiMote*) * MAX_WIIMOTES);
-		m_WiiMotesFromWiiUse = wiiuse_init(MAX_WIIMOTES);
-		g_NumberOfWiiMotes= wiiuse_find(m_WiiMotesFromWiiUse, MAX_WIIMOTES, 5);
+		g_WiiMotesFromWiiUse = wiiuse_init(MAX_WIIMOTES);
+		g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, MAX_WIIMOTES, 5);
 
 		for (int i=0; i<g_NumberOfWiiMotes; i++)
 		{
-			g_WiiMotes[i] = new CWiiMote(i+1, m_WiiMotesFromWiiUse[i]); 
+			g_WiiMotes[i] = new CWiiMote(i+1, g_WiiMotesFromWiiUse[i]); 
 		}
 
 		if (g_NumberOfWiiMotes == 0)
 			return 0;
 
-		g_pCriticalSection = new Common::CriticalSection();
 		g_pReadThread = new Common::Thread(ReadWiimote_ThreadFunc, NULL);
 
 		return true;
@@ -225,8 +237,8 @@ namespace WiiMoteReal
 
 		delete g_pReadThread;
 		g_pReadThread = NULL;
-		delete g_pCriticalSection;
-		g_pCriticalSection = NULL;
+
+		wiiuse_cleanup(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes);
 	}
 
 	void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
