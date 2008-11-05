@@ -88,7 +88,7 @@ CBannerLoaderWii::GetBanner(u32* _pBannerImage)
 	{
 		for (int x=0; x<96; x++)
 		{
-			_pBannerImage[y*96+x] = Buffer[(y*2)*96+(x*2)];
+			_pBannerImage[y*96+x] = Buffer[(y*192*2)+(x*2)];
 		}
 	}
 

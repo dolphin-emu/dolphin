@@ -32,7 +32,7 @@
 #include "ChunkFile.h"
 #include "../resources/no_banner.cpp"
 
-#define CACHE_REVISION 0x104
+#define CACHE_REVISION 0x105
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
