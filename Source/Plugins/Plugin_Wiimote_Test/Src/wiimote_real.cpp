@@ -227,17 +227,22 @@ namespace WiiMoteReal
 	{
 		g_Shutdown = true;
 
-		g_pReadThread->WaitForDeath();
+		// stop the thread
+		if (g_pReadThread != NULL)
+		{
+			g_pReadThread->WaitForDeath();
+			delete g_pReadThread;
+			g_pReadThread = NULL;
+		}
 
+		// delete the wiimotes
 		for (int i=0; i<g_NumberOfWiiMotes; i++)
 		{
 			delete g_WiiMotes[i];
 			g_WiiMotes[i] = NULL;
 		}
 
-		delete g_pReadThread;
-		g_pReadThread = NULL;
-
+		// clean up wiiuse
 		wiiuse_cleanup(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes);
 	}
 
