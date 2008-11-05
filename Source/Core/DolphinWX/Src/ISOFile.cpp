@@ -32,7 +32,7 @@
 #include "ChunkFile.h"
 #include "../resources/no_banner.cpp"
 
-#define CACHE_REVISION 0x103
+#define CACHE_REVISION 0x104
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
@@ -104,7 +104,10 @@ GameListItem::GameListItem(const std::string& _rFileName)
 
 			m_Valid = true;
 
-			SaveToCache();
+			// just if we have an image create a cache file
+			// Wii isos create their images after you have generated the first savegame
+			if (m_pImage)
+				SaveToCache();
 		}
 	}
 
