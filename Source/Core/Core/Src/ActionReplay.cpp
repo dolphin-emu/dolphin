@@ -445,7 +445,7 @@ bool DoARSubtype_Other()
 	}
 	return true;
 }
-bool DoARZeroCode_FillAndSlide()
+bool DoARZeroCode_FillAndSlide() // This needs more testing
 {
 	u32 new_addr = (addr_last & 0x81FFFFFF);
 	u8 size = ((new_addr >> 25) & 0x03);
@@ -469,6 +469,7 @@ bool DoARZeroCode_FillAndSlide()
 		val_incr = (int)(data & 0x7F); // 000000Z1
 	}
 
+	// Correct?
 	if (val_incr < 0)
 	{
 		curr_addr = new_addr + (addr_incr * write_num);
@@ -486,7 +487,7 @@ bool DoARZeroCode_FillAndSlide()
 					curr_addr += addr_incr;
 				} break;
 		case 0x1: // Halfword
-				curr_addr >>= 1;
+				addr_incr >>= 1;
 				for(int i=0; i < write_num; i++) {
 					u8 repeat = val >> 16;
 					for(int j=0; j < repeat; j++) {
@@ -496,7 +497,7 @@ bool DoARZeroCode_FillAndSlide()
 					curr_addr += addr_incr;
 				} break;
 		case 0x2: // Word
-				curr_addr >>= 2;
+				addr_incr >>= 2;
 				for(int i=0; i < write_num; i++) {
 					Memory::Write_U32(val, new_addr);
 					val += val_incr;
@@ -510,7 +511,7 @@ bool DoARZeroCode_FillAndSlide()
 	doFillNSlide = false; 
 	return true;
 }
-bool DoARZeroCode_MemoryCopy()
+bool DoARZeroCode_MemoryCopy() // Has not been tested
 {
 	u32 addr_dest = (val_last | 0x06000000);
 	u32 addr_src = ((addr & 0x7FFFFF) | 0x80000000);
