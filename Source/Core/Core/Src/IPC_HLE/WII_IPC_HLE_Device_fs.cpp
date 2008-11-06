@@ -328,9 +328,17 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			std::string FilenameRename = HLE_IPC_BuildFilename((const char*)Memory::GetPointer(_BufferIn+Offset), 64);
 			Offset += 64;
 
-			// F|RES: i think that we dont need this - CreateDirectoryStruct(Filename);
+			// try to make the basis directory
+			CreateDirectoryStruct(Filename);
 
-			if (rename(Filename.c_str(), FilenameRename.c_str()) == 0)
+			// if there is already a filedelete it
+			if (File::Exists(FilenameRename.c_str()))
+			{
+				File::Delete(FilenameRename.c_str());
+			}
+
+			// finally try to rename the file
+			if (File::Rename(Filename.c_str(), FilenameRename.c_str()))
 			{
 				LOG(WII_IPC_FILEIO, "FS: Rename %s to %s", Filename.c_str(), FilenameRename.c_str());
 			}

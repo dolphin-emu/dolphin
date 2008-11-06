@@ -163,6 +163,11 @@ bool DeleteDir(const char *filename)
 #endif
 }
 
+bool Rename(const char *srcFilename, const char *destFilename)
+{
+	return (rename(srcFilename, destFilename) == 0);
+}
+
 std::string GetUserDirectory()
 {
 #ifdef _WIN32 
