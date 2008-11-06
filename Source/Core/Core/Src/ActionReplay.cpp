@@ -486,17 +486,19 @@ bool DoARZeroCode_FillAndSlide()
 					curr_addr += addr_incr;
 				} break;
 		case 0x1: // Halfword
+				curr_addr >>= 1;
 				for(int i=0; i < write_num; i++) {
 					u8 repeat = val >> 16;
 					for(int j=0; j < repeat; j++) {
-						Memory::Write_U8(val & 0xFFFF, new_addr + j * 2);
+						Memory::Write_U16(val & 0xFFFF, new_addr + j * 2);
 					}
 					val += val_incr;
 					curr_addr += addr_incr;
 				} break;
 		case 0x2: // Word
+				curr_addr >>= 2;
 				for(int i=0; i < write_num; i++) {
-					Memory::Write_U16(val, new_addr);
+					Memory::Write_U32(val, new_addr);
 					val += val_incr;
 					curr_addr += addr_incr;
 				} break;
