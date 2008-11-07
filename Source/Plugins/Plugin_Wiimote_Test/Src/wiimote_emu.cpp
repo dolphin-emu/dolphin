@@ -393,8 +393,24 @@ void FillReportInfo(wm_core& _core)
 	memset(&_core, 0x00, sizeof(wm_core));
 
 #ifdef _WIN32
-	_core.a = GetAsyncKeyState(VK_LBUTTON) ? 1 : 0;
-	_core.b = GetAsyncKeyState(VK_RBUTTON) ? 1 : 0;
+	// allow both mouse buttons and keyboard to press a and b
+	if(GetAsyncKeyState(VK_LBUTTON) ? 1 : 0 || GetAsyncKeyState('A') ? 1 : 0)
+		_core.a = 1;
+
+	if(GetAsyncKeyState(VK_LBUTTON) ? 1 : 0 || GetAsyncKeyState('B') ? 1 : 0)
+		_core.b = 1;
+
+	_core.one = GetAsyncKeyState('1') ? 1 : 0;
+	_core.two = GetAsyncKeyState('2') ? 1 : 0;
+	_core.plus = GetAsyncKeyState('P') ? 1 : 0;
+	_core.minus = GetAsyncKeyState('M') ? 1 : 0;
+	_core.home = GetAsyncKeyState('H') ? 1 : 0;
+
+	// these had to be shuffled around a little bit
+	_core.left = GetAsyncKeyState(VK_DOWN) ? 1 : 0;
+	_core.up = GetAsyncKeyState(VK_LEFT) ? 1 : 0;
+	_core.right = GetAsyncKeyState(VK_UP) ? 1 : 0;
+	_core.down = GetAsyncKeyState(VK_RIGHT) ? 1 : 0;
 #else 
         // TODO: fill in
 #endif
