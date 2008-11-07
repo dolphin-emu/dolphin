@@ -235,6 +235,7 @@ void Host_UpdateLogDisplay();
 #ifdef LOGGING
 
 #define LOG(t, ...) __Log(LogTypes::t, __VA_ARGS__);
+#define LOGV(t,v, ...) __Log(LogTypes::t + v*100, __VA_ARGS__);
 
 #define _dbg_assert_(_t_, _a_) \
 	if (!(_a_)){\
@@ -252,6 +253,7 @@ void Host_UpdateLogDisplay();
 #else
 
 #define LOG(_t_, ...)
+#define LOGV(_t_,_v_, ...)
 #define _dbg_clear_()
 #ifndef _dbg_assert_
 #define _dbg_assert_(_t_, _a_) ;

@@ -87,7 +87,7 @@ void Init()
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)
 {
-	LOG(PIXELENGINE, "(r16): 0x%08x", _iAddress);
+	LOGV(PIXELENGINE, 3, "(r16): 0x%08x", _iAddress);
 
 	switch (_iAddress & 0xFFF)
 	{
@@ -109,12 +109,12 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
-	LOG(PIXELENGINE, "(w32): 0x%08x @ 0x%08x",_iValue,_iAddress);
+	LOGV(PIXELENGINE, 2, "(w32): 0x%08x @ 0x%08x",_iValue,_iAddress);
 }
 
 void Write16(const u16 _iValue, const u32 _iAddress)
 {
-	LOG(PIXELENGINE, "(w16): 0x%04x @ 0x%08x",_iValue,_iAddress);
+	LOGV(PIXELENGINE, 3, "(w16): 0x%04x @ 0x%08x",_iValue,_iAddress);
 
 	switch(_iAddress & 0xFFF)
 	{
@@ -169,7 +169,7 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 	if (userdata >> 16)
 		g_bSignalTokenInterrupt = true;	
 	g_token = (u16)(userdata & 0xFFFF);
-	LOG(PIXELENGINE, "VIDEO Plugin wrote token: %i", g_token);
+	LOGV(PIXELENGINE, 1, "VIDEO Plugin wrote token: %i", g_token);
 	UpdateInterrupts();
 }
 
@@ -193,7 +193,7 @@ void SetFinish()
 {
 	CoreTiming::ScheduleEvent_Threadsafe(
 		0, et_SetFinishOnMainThread);
-	LOG(PIXELENGINE, "VIDEO Set Finish");
+	LOGV(PIXELENGINE, 2, "VIDEO Set Finish");
 }
 
 } // end of namespace PixelEngine

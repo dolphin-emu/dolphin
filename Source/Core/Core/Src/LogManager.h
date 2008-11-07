@@ -30,6 +30,7 @@ struct CDebugger_Log
 {
 	char m_szName[128];
 	char m_szShortName[32];
+	char m_szShortName_[32]; // save the unadjusted originals here
 	char m_szFilename[256];
 	bool m_bLogToFile;
 	bool m_bShowInLog;
@@ -40,10 +41,24 @@ struct CDebugger_Log
 	void Shutdown();
 
 	// constructor
-	CDebugger_Log(const char* _szShortName, const char* _szName);
+	CDebugger_Log(const char* _szShortName, const char* _szName, int a);
 
 	// destructor
 	~CDebugger_Log();
+};
+
+// make a variable that can be accessed from both LogManager.cpp and LogWindow.cpp
+struct CDebugger_LogSettings
+{
+	int m_iVerbosity; // verbosity level 0 - 2
+	bool bResolve;
+	bool bWriteMaster;
+
+	// constructor
+	CDebugger_LogSettings();
+
+	// destructor
+	~CDebugger_LogSettings();
 };
 
 class LogManager
@@ -80,26 +95,30 @@ public:
 			m_szMessage[m_dwMsgLen] = 0;
 
 			m_type = _type;
-			m_bInUse = true;
+			m_bInUse = true; // turn on this message line
 		}
 		//
 		static void Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...);
 	};
 private:
+	enum LOG_SETTINGS
+	{
+		VERBOSITY_LEVELS = 3
+	};
+
 	friend class CDebugger_LogWindow;
 	friend class CLogWindow;
-	static SMessage *m_Messages;
-	static int m_nextMessages;
+	static SMessage (*m_Messages)[MAX_MESSAGES];
+	static int m_nextMessages[VERBOSITY_LEVELS + 1];
 	static int m_activeLog;
 	static bool m_bDirty;
 	static bool m_bInitialized;
-	static CDebugger_Log* m_Log[LogTypes::NUMBER_OF_LOGS];
+	static CDebugger_LogSettings* m_LogSettings;
+	static CDebugger_Log* m_Log[LogTypes::NUMBER_OF_LOGS + (VERBOSITY_LEVELS * 100)]; // make 326 of them
 public:
 	static void Init();
 	static void Clear(void);
 	static void Shutdown();
-
-	static bool IsLogEnabled(LogTypes::LOG_TYPE _type);
 	static void Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...);
 };
 

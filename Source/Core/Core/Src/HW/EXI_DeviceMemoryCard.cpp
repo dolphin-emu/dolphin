@@ -252,12 +252,12 @@ bool CEXIMemoryCard::IsInterruptSet()
 
 void CEXIMemoryCard::TransferByte(u8 &byte)
 {
-	LOG(EXPANSIONINTERFACE, "EXI MEMCARD: > %02x", byte);
+	LOGV(EXPANSIONINTERFACE, 3, "EXI MEMCARD: > %02x", byte);
 	if (m_uPosition == 0)
 	{
 		command = byte;  // first byte is command
 		byte = 0xFF; // would be tristate, but we don't care.
-		LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x", byte)
+		LOGV(EXPANSIONINTERFACE, 1, "EXI MEMCARD: command %02x", byte)
 
 		if(command == cmdClearStatus)
 		{
@@ -382,5 +382,5 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 		}
 	}
 	m_uPosition++;
-	LOG(EXPANSIONINTERFACE, "EXI MEMCARD: < %02x", byte);
+	LOGV(EXPANSIONINTERFACE, 3, "EXI MEMCARD: < %02x", byte);
 }

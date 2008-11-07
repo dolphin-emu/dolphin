@@ -79,7 +79,7 @@ void CPeripheralInterface::Read32(u32& _uReturnValue, const u32 _iAddress)
 		return;
 
 	case PI_FIFO_WPTR:
-		LOG(PERIPHERALINTERFACE,"read writepointer, value = %08x",Fifo_CPUWritePointer);
+		LOGV(PERIPHERALINTERFACE, 3, "read writepointer, value = %08x",Fifo_CPUWritePointer);
 		_uReturnValue = Fifo_CPUWritePointer;  //really writes in 32-byte chunks
 
 		// Monk's gcube does some crazy align trickery here.
@@ -206,12 +206,12 @@ void CPeripheralInterface::SetInterrupt(InterruptCause _causemask, bool _bSet)
 
     if (_bSet && !(m_InterruptCause & (u32)_causemask))
     {
-        LOG(PERIPHERALINTERFACE,"Setting Interrupt %s (%s)",Debug_GetInterruptName(_causemask), "set");
+        LOGV(PERIPHERALINTERFACE, 2, "Setting Interrupt %s (%s)",Debug_GetInterruptName(_causemask), "set");
     }
 
     if (!_bSet && (m_InterruptCause & (u32)_causemask))
     {
-        LOG(PERIPHERALINTERFACE,"Setting Interrupt %s (%s)",Debug_GetInterruptName(_causemask), "clear");
+        LOGV(PERIPHERALINTERFACE, 2, "Setting Interrupt %s (%s)",Debug_GetInterruptName(_causemask), "clear");
     }
 	
 	if (_bSet)

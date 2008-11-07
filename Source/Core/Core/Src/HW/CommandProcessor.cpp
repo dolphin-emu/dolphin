@@ -202,7 +202,7 @@ void Shutdown()
 
 void Read16(u16& _rReturnValue, const u32 _Address)
 {
-	LOG(COMMANDPROCESSOR, "(r): 0x%08x", _Address);
+	LOGV(COMMANDPROCESSOR, 1, "(r): 0x%08x", _Address);
 	switch (_Address & 0xFFF)
 	{
 	case STATUS_REGISTER:	_rReturnValue = m_CPStatusReg.Hex; return;
@@ -274,7 +274,7 @@ bool AllowIdleSkipping()
 
 void Write16(const u16 _Value, const u32 _Address)
 {
-	LOG(COMMANDPROCESSOR, "(w): 0x%04x @ 0x%08x",_Value,_Address);
+	LOGV(COMMANDPROCESSOR, 1, "(w): 0x%04x @ 0x%08x",_Value,_Address);
 
 	//Spin until queue is empty - it WILL become empty because this is the only thread
 	//that submits data

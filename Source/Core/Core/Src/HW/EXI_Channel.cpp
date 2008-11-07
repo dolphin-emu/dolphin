@@ -128,7 +128,7 @@ void CEXIChannel::Update()
 
 void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 {
-	LOG(EXPANSIONINTERFACE, "ExtensionInterface(R): channel: %i  reg: %i", m_ChannelId, _iRegister);
+	LOGV(EXPANSIONINTERFACE, 3, "ExtensionInterface(R): channel: %i  reg: %i", m_ChannelId, _iRegister);
 
 	switch (_iRegister)
 	{
@@ -172,7 +172,7 @@ void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 
 void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 {
-	LOG(EXPANSIONINTERFACE, "ExtensionInterface(W): 0x%08x channel: %i  reg: %i", _iValue, m_ChannelId, _iRegister);
+	LOGV(EXPANSIONINTERFACE, 2, "ExtensionInterface(W): 0x%08x channel: %i  reg: %i", _iValue, m_ChannelId, _iRegister);
 
 	switch (_iRegister)
 	{
@@ -226,17 +226,17 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 		break;
 
 	case EXI_DMAADDR:
-		LOG(EXPANSIONINTERFACE, "EXI: Wrote DMABuf, chan %i", m_ChannelId);
+		LOGV(EXPANSIONINTERFACE, 2, "EXI: Wrote DMABuf, chan %i", m_ChannelId);
 		m_DMAMemoryAddress = _iValue;
 		break;
 
 	case EXI_DMALENGTH:
-		LOG(EXPANSIONINTERFACE, "EXI: Wrote DMASize, chan %i", m_ChannelId);
+		LOGV(EXPANSIONINTERFACE, 2, "EXI: Wrote DMASize, chan %i", m_ChannelId);
 		m_DMALength = _iValue;
 		break;
 
 	case EXI_DMACONTROL:
-		LOG(EXPANSIONINTERFACE, "EXI: Wrote DMAControl, chan %i", m_ChannelId);
+		LOGV(EXPANSIONINTERFACE, 2, "EXI: Wrote DMAControl, chan %i", m_ChannelId);
 		m_Control.hex = _iValue;
 
 		if (m_Control.TSTART)
@@ -277,7 +277,7 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 		break;
 
 	case EXI_IMMDATA:
-		LOG(EXPANSIONINTERFACE, "EXI: Wrote IMMData, chan %i", m_ChannelId);
+		LOGV(EXPANSIONINTERFACE, 2, "EXI: Wrote IMMData, chan %i", m_ChannelId);
 		m_ImmData = _iValue;
 		break;
 	}

@@ -218,7 +218,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	if ((_iAddress & 0x6C00) !=  0x6c00)
 	{
 		if (_iAddress != 0xCC005004) {
-			LOG(DSPINTERFACE, "DSPInterface(r16) 0x%08x", _iAddress);
+			LOGV(DSPINTERFACE, 3, "DSPInterface(r16) 0x%08x", _iAddress);
 		}
 
 		switch (_iAddress & 0xFFFF)
@@ -303,7 +303,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 void Write16(const u16 _Value, const u32 _Address)
 {
-	LOG(DSPINTERFACE, "DSPInterface(w16) 0x%04x 0x%08x", _Value, _Address);
+	LOGV(DSPINTERFACE, 3, "DSPInterface(w16) 0x%04x 0x%08x", _Value, _Address);
 
 	switch(_Address & 0xFFFF)
 	{
@@ -559,13 +559,13 @@ void Update_ARAM_DMA()
 		return;
 	g_arDMA.CntValid[0] = g_arDMA.CntValid[1] = false;
 
-	LOG(DSPINTERFACE,"ARAM DMA triggered");
+	LOGV(DSPINTERFACE, 1, "ARAM DMA triggered");
 
 	//TODO: speedup
 	if (g_arDMA.Cnt.dir)
 	{
 		//read from ARAM
-		LOG(DSPINTERFACE,"ARAM DMA read %08x bytes from %08x to Mem: %08x",g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr);
+		LOGV(DSPINTERFACE, 1, "ARAM DMA read %08x bytes from %08x to Mem: %08x",g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr);
 		u32 iMemAddress = g_arDMA.MMAddr;
 		u32 iARAMAddress = g_arDMA.ARAddr;
 		
@@ -585,7 +585,7 @@ void Update_ARAM_DMA()
 		u32 iARAMAddress = g_arDMA.ARAddr;
 
 		//write to g_ARAM
-		LOG(DSPINTERFACE,"g_ARAM DMA write %08x bytes from %08x to Aram: %08x",g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr);
+		LOGV(DSPINTERFACE, 1, "g_ARAM DMA write %08x bytes from %08x to Aram: %08x",g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr);
 		for (u32 i = 0; i < g_arDMA.Cnt.count; i++)
 		{
 			if (iARAMAddress < ARAM_SIZE)
