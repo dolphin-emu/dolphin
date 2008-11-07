@@ -511,7 +511,7 @@ void Callback_VideoCopiedToXFB()
 
 		float t = (float)(Timer.GetTimeDifference()) / 1000.f;
 		char temp[256];
-		sprintf(temp, "FPS: %8.2f - %s - %i MHz (%i real, %i idle skipped) out of %i MHz", 
+		sprintf(temp, "FPS:%8.2f - Core: %s - Speed: %i MHz [Real: %i + IdleSkip: %i] / %i MHz", 
 			(float)frames / t, 
 			g_CoreStartupParameter.bUseJIT ? "JIT" : "Interpreter", 
 			(int)(diff),
