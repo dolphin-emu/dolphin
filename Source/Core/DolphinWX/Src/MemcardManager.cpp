@@ -206,7 +206,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	int index1 = m_MemcardList[1]->GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 	int slot = 1;
 	int index2 = index1;
-	std::string fileName2  = NULL;
+	char * fileName2  = NULL;
 
 	switch(event.GetId())
 	{
@@ -234,10 +234,11 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		} 
 		break; 
 	case ID_CONVERTTOGCI:
+		fileName2 = new char;
 	case ID_SAVEIMPORTLEFT:
 		slot = 0;
 	case ID_SAVEIMPORTRIGHT:
-		if (memoryCard[slot] != NULL || !fileName2.empty())
+		if (memoryCard[slot] != NULL || fileName2 != NULL)
 		{
 			wxString temp = wxFileSelector(_T("Select the GCI file to import"),
 					wxEmptyString, wxEmptyString, wxEmptyString,wxString::Format
@@ -245,14 +246,13 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 							_T("Gamecube save files(*.gci,*.gcs,*.sav)|*.gci;*.gcs;*.sav|"
 							"Native GCI files (*.gci)|*.gci|"
 							"MadCatz Gameshark files(*.gcs)|*.gcs|"
-                                                           "Datel MaxDrive/Pro files(*.sav)|*.sav|"),
-							_T("All files (%s)|%s"),
+							"Datel MaxDrive/Pro files(*.sav)|*.sav"),
 							wxFileSelectorDefaultWildcardStr,
 							wxFileSelectorDefaultWildcardStr
-                                         ),
-                                                       wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+					),
+					wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 			const char * fileName = temp.ToAscii();
-			if (!fileName2.empty() && !temp.empty())
+			if (*fileName2 != NULL && !temp.empty())
 			{
 				wxString temp2 = wxFileSelector(_T("Save GCI as.."),
 					wxEmptyString, wxEmptyString, _T(".gci"), wxString::Format
@@ -262,11 +262,12 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 							wxFileSelectorDefaultWildcardStr
 					),
 					wxFD_OVERWRITE_PROMPT|wxFD_SAVE);
-				fileName2 = temp2.mb_str();
+				delete fileName2;
+				fileName2 = (char*)temp2.ToAscii();
 			}
 			if (temp.length() > 0)
 			{
-				switch(memoryCard[slot]->ImportGci(fileName, fileName2.c_str()))
+				switch(memoryCard[slot]->ImportGci(fileName, fileName2))
 				{
 				case LENGTHFAIL:
 					wxMessageBox(wxT("Imported file has invalid length"),
