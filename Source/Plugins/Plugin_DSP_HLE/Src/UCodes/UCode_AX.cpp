@@ -676,7 +676,8 @@ bool CUCode_AX::AXTask(u32& _uMail)
 				    num += 2;
 			    }
 
-			    PanicAlert(szTemp);
+				// Wii AX will always show this
+			    //PanicAlert(szTemp);
 			    bFirst = false;
 		    }
 

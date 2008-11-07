@@ -55,8 +55,8 @@ namespace Jit64
 	void lbzx(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
-		//if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-		//	{Default(inst); return;} // turn off from debugger	
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger	
 #endif
 		INSTRUCTION_START;
 
@@ -80,8 +80,8 @@ namespace Jit64
 	void lXz(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
-		//if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-		//	{Default(inst); return;} // turn off from debugger	
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger	
 #endif
 		INSTRUCTION_START;
 
@@ -170,8 +170,8 @@ namespace Jit64
 	void lha(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
-		//if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-		//	{Default(inst); return;} // turn off from debugger	
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger	
 #endif
 		INSTRUCTION_START;
 
@@ -194,8 +194,8 @@ namespace Jit64
 	void dcbz(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
-		//if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-		//	{Default(inst); return;} // turn off from debugger	
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger	
 #endif
 		INSTRUCTION_START;
 
@@ -217,8 +217,8 @@ namespace Jit64
 	void stX(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
-		//if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
-		//	{Default(inst); return;} // turn off from debugger	
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger	
 #endif
 		INSTRUCTION_START;
 
