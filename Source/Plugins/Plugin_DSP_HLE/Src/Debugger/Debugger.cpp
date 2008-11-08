@@ -43,9 +43,9 @@ BEGIN_EVENT_TABLE(CDebugger,wxDialog)
 
 	EVT_BUTTON(ID_UPD,CDebugger::OnUpdate) // buttons
 
-	EVT_CHECKBOX(IDC_CHECK0,CDebugger::SaveFile) // options
-	EVT_CHECKBOX(IDC_CHECK2,CDebugger::ShowHideConsole)
+	EVT_CHECKBOX(IDC_CHECK1,CDebugger::SaveFile) // options	
 	EVT_CHECKBOX(IDC_CHECK3,CDebugger::OnlyLooping)		
+	EVT_CHECKBOX(IDC_CHECK4,CDebugger::ShowHideConsole)
 
 	EVT_RADIOBOX(IDC_RADIO1,CDebugger::ChangeFrequency) // update frequency
 
@@ -404,8 +404,7 @@ void CDebugger::ShowHideConsole(wxCommandEvent& event)
 }
 
 void CDebugger::DoShowHideConsole()
-{
-	
+{	
 	if(m_Check[2]->IsChecked())
 	{
 		OpenConsole();

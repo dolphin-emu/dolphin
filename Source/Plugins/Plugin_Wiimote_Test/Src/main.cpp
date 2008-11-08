@@ -28,14 +28,14 @@
 #include "wiimote_emu.h"
 #include "wiimote_real.h"
 
+#include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
+
 SWiimoteInitialize g_WiimoteInitialize;
 #define VERSION_STRING "0.1"
 
 bool g_UseRealWiiMote = false;
 
 HINSTANCE g_hInstance;
-
-
 
 class wxDLLApp : public wxApp
 {
@@ -119,6 +119,11 @@ extern "C" void Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize)
 
 
 	WiiMoteEmu::Initialize();
+
+	// Debugging window
+	/*startConsoleWin(100, 30, "Wiimote"); // give room for 20 rows
+	wprintf("Wiimote console opened\n");
+	MoveWindow(GetConsoleHwnd(), 0,400, 100*8,30*14, true); // move window, TODO: make this*/
 }
 
 extern "C" void Wiimote_DoState(void* ptr, int mode) 

@@ -521,6 +521,18 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Debugging"
+			>
+			<File
+				RelativePath=".\Src\Console.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Console.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\main.cpp"
 			>

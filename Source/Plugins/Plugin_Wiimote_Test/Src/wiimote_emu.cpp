@@ -18,9 +18,11 @@
 
 #include "pluginspecs_wiimote.h"
 
+#include <vector>
 #include <string>
 #include "common.h"
 #include "wiimote_hid.h"
+#include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
 
 extern SWiimoteInitialize g_WiimoteInitialize;
 extern void __Log(int log, const char *format, ...);
@@ -416,11 +418,142 @@ void FillReportInfo(wm_core& _core)
 #endif
 }
 
+// -----------------------------
+// Global declarations for FillReportAcc. The accelerometer x, y and z values range from
+// 0x00 to 0xff with 0x80 being neutral and 0x00 being - and 0xff being +
+// ----------
+//int A = 64, B = 64, C = 64; // for debugging
+int X = 0x80, Y = 0x80, Z = 0x80; // global so they can be changed during debugging
+u8 x = 0x80, y = 0x80, z = 0x80;
+int shake = -1; // for the shake function
+std::vector<u8> yhist(15); // for the tilt function
+
 void FillReportAcc(wm_accel& _acc)
 {
-	_acc.x = 0x00;
-	_acc.y = 0x00;
-	_acc.z = 0x00;
+	// -----------------------------
+	// Wiimote to Gamepad translations
+	// ----------
+	// Tilting Wiimote (Wario Land aiming, Mario Kart steering)
+	if(GetAsyncKeyState('3'))
+		y+=2; // aim left
+	else if(GetAsyncKeyState('4'))
+		y-=2; // aim right
+
+	// Single shake of Wiimote while holding it sideways (Wario Land pound ground)
+	if(GetAsyncKeyState('S'))
+	{
+		z = 0;
+		y = 0;
+		shake = 2;
+	}
+	else if(shake == 2)
+	{
+		z = 128;
+		y = 0;
+		shake = 1;
+	}
+	else if(shake == 1)
+	{
+		z = Z;
+		y = Y;
+		shake = -1;
+	}
+	// ----------
+
+
+	// -----------------------------
+	// Add new value and move all back
+	// ----------
+	bool ypressed = false;
+
+	yhist[yhist.size() - 1] = (
+		GetAsyncKeyState('3') ? true : false
+		|| GetAsyncKeyState('4') ? true : false
+		|| shake > 0
+		);	
+	for (int i = 1; i < yhist.size(); i++)
+	{
+		yhist[i-1] = yhist[i];
+		if(yhist[i]) ypressed = true;
+	}
+	
+	if(!ypressed) // y was not pressed a single time
+	{
+		y = Y;
+	}
+	// ----------
+
+
+	// Write values
+	_acc.x = X;
+	_acc.y = y;
+	_acc.z = z;
+
+
+	// ----------------------------
+	// Debugging for translating Wiimote to Gamepad
+	// ----------
+	/*
+	if(GetAsyncKeyState('5'))
+		A-=8;
+	else if(GetAsyncKeyState('6'))
+		A+=8;
+	if(GetAsyncKeyState('7'))
+		B-=8;
+	else if(GetAsyncKeyState('8'))
+		B+=8;
+	if(GetAsyncKeyState('9'))
+		C-=8;
+	else if(GetAsyncKeyState('0'))
+		C+=8;
+
+
+	if(GetAsyncKeyState(VK_NUMPAD1))
+		X+=8;
+	else if(GetAsyncKeyState(VK_NUMPAD2))
+		X-=8;
+	if(GetAsyncKeyState(VK_NUMPAD4))
+		Y+=8;
+	else if(GetAsyncKeyState(VK_NUMPAD5))
+		Y-=8;
+	if(GetAsyncKeyState(VK_NUMPAD7))
+		Z+=8;
+	else if(GetAsyncKeyState(VK_NUMPAD8))
+		Z-=8;
+
+	if(GetAsyncKeyState('S'))
+	{
+		z = Z + C;
+	}
+	else
+	{
+		z = Z;
+	}
+
+	if(GetAsyncKeyState('D'))
+	{
+		y = Y + B;
+	}
+	else
+	{
+		y = Y;
+	}
+
+	if(GetAsyncKeyState('F'))
+	{
+		z = Z + C;
+		y = Y + B;
+	}
+	else if(!GetAsyncKeyState('S') && !GetAsyncKeyState('D'))
+	{
+		z = Z;
+		y = Y;
+	}	
+	
+	wprintf("x: %03i | y: %03i | z: %03i  |  A:%i B:%i C:%i  X:%i Y:%i Z:%i\n", _acc.x, _acc.y, _acc.z,
+		A, B, C,
+		X, Y, Z);
+	*/
 }
 
 void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)

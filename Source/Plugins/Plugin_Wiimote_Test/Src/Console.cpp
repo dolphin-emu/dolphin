@@ -29,19 +29,19 @@
 // On and off
 bool g_consoleEnable = true;
 int gSaveFile = 0;
-#define DEBUG_HLE
+#define DEBUG_WIIMOTE
 
 
 // --------------------
 // Settings
-int nFiles = 4;
+int nFiles = 1;
 
 
 // --------------------
 // Create handles
 
-#ifdef DEBUG_HLE
-	FILE* __fStdOut[4]; // you have to update this manually, we can't place a nFiles in there
+#ifdef DEBUG_WIIMOTE
+	FILE* __fStdOut[1]; // you have to update this manually, we can't place a nFiles in there
 #endif
 #ifdef _WIN32
 	HANDLE __hStdOut = NULL;
@@ -55,7 +55,7 @@ is closed */
 // -------------
 void startConsoleWin(int width, int height, char* fname)
 {
-#if defined(DEBUG_HLE) defined(_WIN32)
+#if defined(DEBUG_WIIMOTE) && defined(_WIN32)
 
 	AllocConsole();
 
@@ -92,15 +92,15 @@ void startConsoleWin(int width, int height, char* fname)
 // File printf function
 int aprintf(int a, char *fmt, ...)
 {
-#if defined(DEBUG_HLE) && defined(_WIN32)
+#if defined(DEBUG_WIIMOTE) && defined(_WIN32)
 	if(gSaveFile)
 	{
-		char s[5000]; // WARNING: mind this value
+		char s[500]; // WARNING: mind this value
 		va_list argptr;
 		int cnt;
 
 		va_start(argptr, fmt);
-		cnt = vsnprintf(s, 5000, fmt, argptr); // remember to update this value to
+		cnt = vsnprintf(s, 500, fmt, argptr); // remember to update this value to
 		va_end(argptr);
 
 		// ---------------------------------------------------------------------------------------
@@ -126,13 +126,13 @@ int aprintf(int a, char *fmt, ...)
 // Printf to screen function
 int wprintf(char *fmt, ...)
 {
-#if defined(DEBUG_HLE) && defined(_WIN32)
-	char s[5000]; // WARNING: mind this value
+#if defined(DEBUG_WIIMOTE) && defined(_WIN32)
+	char s[500]; // WARNING: mind this value
 	va_list argptr;
 	int cnt;
 
 	va_start(argptr, fmt);
-	cnt = vsnprintf(s, 5000, fmt, argptr);
+	cnt = vsnprintf(s, 500, fmt, argptr);
 	va_end(argptr);
 
 	DWORD cCharsWritten;
@@ -155,7 +155,7 @@ int wprintf(char *fmt, ...)
 // Clear console screen
 void ClearScreen() 
 { 
-#if defined(DEBUG_HLE) && defined(_WIN32)
+#if defined(_WIN32)
 	if(g_consoleEnable)
 	{
 		COORD coordScreen = { 0, 0 }; 
@@ -180,7 +180,7 @@ void ClearScreen()
 
 // ---------------------------------------------------------------------------------------
 // Get window handle of console window to be able to resize it
-#if defined(DEBUG_HLE) && defined(_WIN32)
+#if defined(_WIN32)
 HWND GetConsoleHwnd(void)
 {
 
