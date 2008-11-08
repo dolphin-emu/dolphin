@@ -451,6 +451,12 @@ void Write16(const u16 _Value, const u32 _Address)
 	case FIFO_RW_DISTANCE_LO:	
 		LOG(COMMANDPROCESSOR,"try to write to %s : %04x",((_Address & 0xFFF) == FIFO_RW_DISTANCE_HI)	? "FIFO_RW_DISTANCE_HI" : "FIFO_RW_DISTANCE_LO", _Value);
 		_dbg_assert_msg_(COMMANDPROCESSOR, _Value==0, "WTF? attempt to overwrite fifo CPReadWriteDistance with a value(%04x) != 0 ",_Value);
+		// TODO: break this hack
+		// hack: if fifo is not empty and readable then spin until flushed
+		// sleeping here is not a perf issue since GXSetFifo shouldn't be called too much often.
+		while((fifo.CPReadWriteDistance>0) && (fifo.bFF_GPReadEnable==1))
+			Common::SleepCurrentThread(1);
+		_dbg_assert_msg_(COMMANDPROCESSOR, !(fifo.CPReadWriteDistance!=0 && fifo.bFF_GPReadEnable==0), "Is that bad? WARNING: reset a not empty and not readable fifo.\n CPReadWriteDistance: %08x | fifo.bFF_GPReadEnable: %i",fifo.CPReadWriteDistance,fifo.bFF_GPReadEnable);
 #ifdef _WIN32
 		InterlockedExchange((LONG*)&fifo.CPReadWriteDistance, 0);
 #else
