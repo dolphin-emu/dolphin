@@ -28,7 +28,10 @@ enum
 	OPENFAIL,
 	GCI,
 	SAV = 0x80,
-	GCS = 0x110
+	GCS = 0x110,
+	OUTOFBLOCKS,
+	OUTOFDIRENTRIES,
+	NOMEMCARD
 };
 
 class GCMemcard 
@@ -155,13 +158,17 @@ public:
 	u32  GetFileSize(u32 index);
 
 	// assumes there's enough space in buffer
-	bool GetFileData(u32 index, u8* buffer);
+	// old determines if function uses old or new method of copying data
+	// some functions only work with old way, some only work with new way
+	// TODO: find a function that works for all calls or split into 2 functions
+	bool GetFileData(u32 index, u8* buffer, bool old);
 
 	// delete a file from the directory
 	bool RemoveFile(u32 index);
 	
 	// adds the file to the directory and copies its contents
-	u32  ImportFile(DEntry& direntry, u8* contents);
+	// if remove > 0 it will pad bat.map with 0's sifeof remove
+	u32  ImportFile(DEntry& direntry, u8* contents, int remove);
 
 	// reads a save from another memcard, and imports the data into this memcard
 	u32  CopyFrom(GCMemcard& source, u32 index);
@@ -170,7 +177,7 @@ public:
 	bool ExportGci(u32 index, const char* fileName);
 
 	// reads a .gci/.gcs/.sav file and calls ImportFile or saves out a gci file
-	int  ImportGci(const char* fileName, const char* fileName2);
+	s32  ImportGci(const char* fileName, std::string fileName2);
 
 	// reads the banner image
 	bool ReadBannerRGBA8(u32 index, u32* buffer);

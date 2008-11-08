@@ -20,7 +20,6 @@
 #endif
 #include <assert.h>
 #include <stdio.h>
-#include "wx/ffile.h"
 
 #include "GCMemcard.h"
 
@@ -74,11 +73,11 @@ void GCMemcard::calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2)
 
 u32  GCMemcard::GetNumFiles()
 {
-	if(!mcdFile) return 0;
-	int j =0;
-	for(int i=0;i<126;i++)
+	if (!mcdFile) return 0;
+	int j = 0;
+	for (int i = 0; i < 127; i++)
 	{
-		if(BE32(dir.Dir[i].Gamecode)!=0xFFFFFFFF)
+		if (BE32(dir.Dir[i].Gamecode)!= 0xFFFFFFFF)
 			 j++;
 	}
 	return j;
@@ -86,285 +85,254 @@ u32  GCMemcard::GetNumFiles()
 
 bool GCMemcard::RemoveFile(u32 index) //index in the directory array
 {
-	if(!mcdFile) return false;
+	if (!mcdFile) return false;
 
 	//backup the directory and bat (not really needed here but meh :P
-	dir_backup=dir;
-	bat_backup=bat;
-
-	int totalspace = (((u32)BE16(hdr.Size)*16)-5);
+	dir_backup = dir;
+	bat_backup = bat;
 
 	//free the blocks
 	int blocks_left = BE16(dir.Dir[index].BlockCount);
 	int block = BE16(dir.Dir[index].FirstBlock);
-	do
+	bat.LastAllocated[0] = (u8)((block - 1) >> 8);
+	bat.LastAllocated[1] = (u8)(block - 1);
+	int i = index + 1;
+	memset(&(dir.Dir[index]), 0xFF, 0x40);
+	while (i < 127)
 	{
-		int cbi = block-5;
-		int nextblock=bswap16(bat.Map[cbi]);
-		//assert(nextblock!=0);
-		if(nextblock==0)
+		DEntry * d = new DEntry;
+		GetFileInfo(i, *d);
+		u8 *t = NULL;
+		//Only get file data if it is a valid dir entry
+		if (BE16(d->FirstBlock) != 0xFFFF)
 		{
-			nextblock = block+1;
+			u16 freeBlock= BE16(bat.FreeBlocks) - BE16(d->BlockCount);
+			bat.FreeBlocks[0] = u8(freeBlock >> 8);
+			bat.FreeBlocks[1] = u8(freeBlock);
+			t = new u8[GetFileSize(i) * 0x2000];
+			if (!GetFileData(i, t, true))
+			{
+				delete[] t;
+			}
 		}
-
-		bat.Map[cbi]=0;
-
-		block=nextblock;
-		blocks_left--;
-	}
-	while((block!=0xffff)&&(blocks_left>0)); 
-
-	//delete directory entry
-	for(int i=index;i<125;i++)
-	{
-		dir.Dir[i]=dir.Dir[i+1];
-	}
-	memset(&(dir.Dir[125]),0xFF,sizeof(DEntry));
-
-	//pack blocks to remove free space partitioning, assume no fragmentation.
-	u8 *mc_data2 = new u8[mc_data_size];
-
-	int firstFree=0;
-	for(int i=0;i<126;i++)
-	{
-		if(BE32(dir.Dir[i].Gamecode)==0xFFFFFFFF)
+		memset(&(dir.Dir[i]), 0xFF, 0x40);
+		//Only call import file if Get File Data returns true
+		if (t)
 		{
-			break;
+			ImportFile(*d, t, blocks_left);
+			delete[] t;
 		}
+		delete d;
+		i++;
 
-		int fb = BE16(dir.Dir[i].FirstBlock);
-		int bc = BE16(dir.Dir[i].BlockCount);
-
-		u8* src = mc_data + (fb-5)*0x2000;
-		u8* dst = mc_data2 + firstFree*0x2000;
-
-		memcpy(dst,src,bc*0x2000);
-
-		for(int j=0;j<bc;j++)
-		{
-			bat.Map[firstFree+j] = bswap16(u16(firstFree+j+6)); 
-		}
-		bat.Map[firstFree+bc-1] = 0xFFFF;
-
-		dir.Dir[i].FirstBlock[0] = u8((firstFree+5)>>8);
-		dir.Dir[i].FirstBlock[1] = u8((firstFree+5));
-
-		firstFree += bc;
 	}
 
-	for(int j=firstFree;j<totalspace;j++)
-	{
-		bat.Map[j] = 0; 
-	}
-
-	firstFree+=4;
-	bat.LastAllocated[0] = u8(firstFree>>8);
-	bat.LastAllocated[1] = u8(firstFree);
-
-	delete [] mc_data;
-	mc_data = mc_data2;
-	//--
-	
-	//update freespace counter
-	int freespace1 = totalspace - firstFree;
-	bat.FreeBlocks[0] = u8(freespace1>>8);
-	bat.FreeBlocks[1] = u8(freespace1);
-
-	// ... and update counter
-	int updateCtr = BE16(dir.UpdateCounter)+1;
-	dir.UpdateCounter[0] = u8(updateCtr>>8);
+	// increment update counter
+	int updateCtr = BE16(dir.UpdateCounter) + 1;
+	dir.UpdateCounter[0] = u8(updateCtr >> 8);
 	dir.UpdateCounter[1] = u8(updateCtr);
 	
-	//fix checksums
-	u16 csum1=0,csum2=0;
-	calc_checksumsBE((u16*)&dir,0xFFE,&csum1,&csum2);
-	dir.CheckSum1[0]=u8(csum1>>8);
-	dir.CheckSum1[1]=u8(csum1);
-	dir.CheckSum2[0]=u8(csum2>>8);
-	dir.CheckSum2[1]=u8(csum2);
-	calc_checksumsBE((u16*)(((u8*)&bat)+4),0xFFE,&csum1,&csum2);
-	bat.CheckSum1[0]=u8(csum1>>8);
-	bat.CheckSum1[1]=u8(csum1);
-	bat.CheckSum2[0]=u8(csum2>>8);
-	bat.CheckSum2[1]=u8(csum2);
-
-	dir_backup=dir;
-	bat_backup=bat;
+	
+	FixChecksums();
+	Save();
 
 	return true;
 }
 
-u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents)
+u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 {
-	if(!mcdFile) return 0;
+	// TODO: add a check for existing game id
+	// so that only one save per title is allowed
+	// until then any particular title will always use the first save
+	if (!mcdFile) return NOMEMCARD;
 
-	if(BE16(bat.FreeBlocks)<BE16(direntry.BlockCount))
+	if (GetNumFiles() >= 127)
 	{
-		return 0;
+		return OUTOFDIRENTRIES;
+	}
+	if (BE16(bat.FreeBlocks) < BE16(direntry.BlockCount))
+	{
+		return OUTOFBLOCKS;
 	}
 
 	// find first free data block -- assume no freespace fragmentation
-	int totalspace = (((u32)BE16(hdr.Size)*16)-5);
+	int totalspace = (((u32)BE16(hdr.Size) * 16) - 5);
 
-	int firstFree1 = BE16(bat.LastAllocated)+1;
-
+	int firstFree1 = BE16(bat.LastAllocated) + 1;
 	int firstFree2 = 0;
-	for(int i=0;i<totalspace;i++)
+	for (int i = 0; i < 126; i++)
 	{
-		if(bat.Map[i]==0)
-		{
-			firstFree2=i+5;
-			break;
-		}
-	}
-
-	int firstFree3 = 0;
-	for(int i=0;i<126;i++)
-	{
-		if(BE32(dir.Dir[i].Gamecode)==0xFFFFFFFF)
+		if (BE32(dir.Dir[i].Gamecode) == 0xFFFFFFFF)
 		{
 			break;
 		}
 		else
 		{
-			firstFree3 = max<int>(firstFree3,(int)(BE16(dir.Dir[i].FirstBlock) + BE16(dir.Dir[i].BlockCount)));
+			firstFree2 = max<int>(firstFree2,
+				(int)(BE16(dir.Dir[i].FirstBlock) + BE16(dir.Dir[i].BlockCount)));
 		}
 	}
-	firstFree1 = max<int>(firstFree1, max<int>(firstFree3, firstFree2));
-	if(firstFree1>=126)
-	{
-		// TODO: show messagebox about the error
-		return 0;
-	}
+	firstFree1 = max<int>(firstFree1, firstFree2);
 
 	// find first free dir entry
-	int index=-1;
-	for(int i=0;i<127;i++)
+	int index = -1;
+	for (int i=0; i < 127; i++)
 	{
-		if(BE32(dir.Dir[i].Gamecode)==0xFFFFFFFF)
+		if (BE32(dir.Dir[i].Gamecode) == 0xFFFFFFFF)
 		{
-			index=i;
+			index = i;
 			dir.Dir[i] = direntry;
-			dir.Dir[i].FirstBlock[0] = u8(firstFree1>>8);
+			dir.Dir[i].FirstBlock[0] = u8(firstFree1 >> 8);
 			dir.Dir[i].FirstBlock[1] = u8(firstFree1);
-			dir.Dir[i].CopyCounter   = dir.Dir[i].CopyCounter+1;
+			if (!remove)
+			{
+				dir.Dir[i].CopyCounter = dir.Dir[i].CopyCounter+1;
+			}
+			dir_backup = dir;
 			break;
 		}
 	}
 
 	// keep assuming no freespace fragmentation, and copy over all the data
-	u8*destination = mc_data + (firstFree1-5)*0x2000;
+	u8*destination = mc_data + (firstFree1 - 5) * 0x2000;
 
-	int fileBlocks=BE16(direntry.BlockCount);
-	memcpy(destination,contents,0x2000*fileBlocks);
+	int fileBlocks = BE16(direntry.BlockCount);
+	memcpy(destination, contents, 0x2000 * fileBlocks);
+	bat_backup = bat;
+	u16 last = BE16(bat_backup.LastAllocated);
+	u16 i = (last - 4);
+	int j = 2;
+	while(j < BE16(direntry.BlockCount) + 1)
+	{
+		bat_backup.Map[i] = bswap16(last + (u16)j);
+		i++;
+		j++;
+	}
+	bat_backup.Map[i++] = 0xFFFF;
+	//Set bat.map to 0 for each block that was removed
+	for (int j = 0; j < remove; j++)
+	{
+		bat_backup.Map[i++] = 0x0000;
+	}
 
+	//update last allocated block
+	int lastallocated = BE16(bat_backup.LastAllocated) + j - 1;
+	bat_backup.LastAllocated[0] = u8(lastallocated >> 8);
+	bat_backup.LastAllocated[1] = u8(lastallocated);
 
 	//update freespace counter
-	int freespace1 = totalspace - firstFree1;
-	bat.FreeBlocks[0] = u8(freespace1>>8);
-	bat.FreeBlocks[1] = u8(freespace1);
+	int freespace1 = totalspace - firstFree1 - fileBlocks + 5;
+	bat_backup.FreeBlocks[0] = u8(freespace1 >> 8);
+	bat_backup.FreeBlocks[1] = u8(freespace1);
 
-	// ... and update counter
-	int updateCtr = BE16(dir.UpdateCounter)+1;
-	dir.UpdateCounter[0] = u8(updateCtr>>8);
-	dir.UpdateCounter[1] = u8(updateCtr);
 	
-	//fix checksums
-	u16 csum1=0,csum2=0;
-	calc_checksumsBE((u16*)&dir,0xFFE,&csum1,&csum2);
-	dir.CheckSum1[0]=u8(csum1>>8);
-	dir.CheckSum1[1]=u8(csum1);
-	dir.CheckSum2[0]=u8(csum2>>8);
-	dir.CheckSum2[1]=u8(csum2);
-	calc_checksumsBE((u16*)(((u8*)&bat)+4),0xFFE,&csum1,&csum2);
-	bat.CheckSum1[0]=u8(csum1>>8);
-	bat.CheckSum1[1]=u8(csum1);
-	bat.CheckSum2[0]=u8(csum2>>8);
-	bat.CheckSum2[1]=u8(csum2);
+	if (!remove)
+	{	// ... and dir update counter
+		int updateCtr = BE16(dir_backup.UpdateCounter) + 1;
+		dir_backup.UpdateCounter[0] = u8(updateCtr>>8);
+		dir_backup.UpdateCounter[1] = u8(updateCtr);
+		// ... and bat update counter
+		updateCtr = BE16(bat_backup.UpdateCounter) + 1;
+		bat_backup.UpdateCounter[0] = u8(updateCtr>>8);
+		bat_backup.UpdateCounter[1] = u8(updateCtr);
+	}
+	bat = bat_backup;
 
+	if (!remove)
+	{
+		FixChecksums();
+		Save();
+	}
 	return fileBlocks;
 }
 
-bool GCMemcard::GetFileData(u32 index, u8*dest) //index in the directory array
+bool GCMemcard::GetFileData(u32 index, u8*dest, bool old) //index in the directory array
 {
-	if(!mcdFile) return false;
+	if (!mcdFile) return false;
 
-	int block = BE16(dir.Dir[index].FirstBlock);
-	int saveLength = BE16(dir.Dir[index].BlockCount);
-	int memcardSize = BE16(hdr.Size) * 0x0010;
-	assert((block!=0xFFFF)&&(block>0));
-	do
+	if (!old)
 	{
-		memcpy(dest,mc_data + 0x2000*(block-5),0x2000);
-		dest+=0x2000;
-
-		int nextblock = bswap16(bat.Map[block-5]);
-		if(block + saveLength != memcardSize && nextblock > 0)
-		{	//Fixes for older memcards that were not initialized with FF
-			block = nextblock;
-		}
-		else block = 0xffff;
+		int block = BE16(dir.Dir[index].FirstBlock);
+		int saveLength = BE16(dir.Dir[index].BlockCount) * 2000;
+		memcpy(dest,mc_data + 0x2000*(block-5), saveLength);
 	}
-	while(block!=0xffff); 
+	else
+	{
+		int block = BE16(dir.Dir[index].FirstBlock);
+        int saveLength = BE16(dir.Dir[index].BlockCount);
+        int memcardSize = BE16(hdr.Size) * 0x0010;
+       assert(block != 0xFFFF);
+	   assert(block > 0);
+        do
+        {
+                memcpy(dest,mc_data + 0x2000 * (block - 5), 0x2000);
+                dest+=0x2000;
 
+                int nextblock = bswap16(bat.Map[block - 5]);
+                if(block + saveLength != memcardSize && nextblock > 0)
+                {       //Fixes for older memcards that were not initialized with FF
+                        block = nextblock;
+                }
+                else block = 0xffff;
+        }
+        while (block != 0xffff); 
+	}
 	return true;
 }
 
 u32  GCMemcard::GetFileSize(u32 index) //index in the directory array
 {
-	if(!mcdFile) return 0;
+	if (!mcdFile) return 0;
 
 	return BE16(dir.Dir[index].BlockCount);
 }
 
 bool GCMemcard::GetFileInfo(u32 index, GCMemcard::DEntry& info) //index in the directory array
 {
-	if(!mcdFile) return false;
+	if (!mcdFile) return false;
 
 	info = dir.Dir[index];
 	return true;
 }
 bool GCMemcard::GetFileName(u32 index, char *fn) //index in the directory array
 {
-	if(!mcdFile) return false;
+	if (!mcdFile) return false;
 
-	memcpy(fn,(const char*)dir.Dir[index].Filename,32);
-	fn[31]=0;
+	memcpy (fn, (const char*)dir.Dir[index].Filename, 32);
+	fn[31] = 0;
 	return true;
 }
 
 bool GCMemcard::GetComment1(u32 index, char *fn) //index in the directory array
 {
-	if(!mcdFile) return false;
+	if (!mcdFile) return false;
 
-	u32 Comment1  =BE32(dir.Dir[index].CommentsAddr);
-	u32 DataBlock =BE16(dir.Dir[index].FirstBlock)-5;
-	if(Comment1==0xFFFFFFFF)
+	u32 Comment1 = BE32(dir.Dir[index].CommentsAddr);
+	u32 DataBlock = BE16(dir.Dir[index].FirstBlock) - 5;
+	if (Comment1 == 0xFFFFFFFF)
 	{
-		fn[0]=0;
+		fn[0] = 0;
 		return false;
 	}
-
-	memcpy(fn,mc_data +(DataBlock*0x2000) + Comment1,32);
-	fn[31]=0;
+	memcpy(fn, mc_data + (DataBlock * 0x2000) + Comment1, 32);
+	fn[31] = 0;
 	return true;
 }
 
 bool GCMemcard::GetComment2(u32 index, char *fn) //index in the directory array
 {
-	if(!mcdFile) return false;
+	if (!mcdFile) return false;
 
-	u32 Comment1  =BE32(dir.Dir[index].CommentsAddr);
-	u32 Comment2  =Comment1+32;
-	u32 DataBlock =BE16(dir.Dir[index].FirstBlock)-5;
-	if(Comment1==0xFFFFFFFF)
+	u32 Comment1 = BE32(dir.Dir[index].CommentsAddr);
+	u32 Comment2 = Comment1 + 32;
+	u32 DataBlock = BE16(dir.Dir[index].FirstBlock) - 5;
+	if (Comment1 == 0xFFFFFFFF)
 	{
-		fn[0]=0;
+		fn[0] = 0;
 		return false;
 	}
-
-	memcpy(fn,mc_data +(DataBlock*0x2000) + Comment2,32);
-	fn[31]=0;
+	memcpy(fn, mc_data + (DataBlock * 0x2000) + Comment2, 32);
+	fn[31] = 0;
 	return true;
 }
 
@@ -435,70 +403,70 @@ void decodeCI8image(u32* dst, u8* src, u16* pal, int width, int height)
 
 bool GCMemcard::ReadBannerRGBA8(u32 index, u32* buffer)
 {
-	if(!mcdFile) return false;
+	if (!mcdFile) return false;
 
 	int flags = dir.Dir[index].BIFlags;
 
 	int  bnrFormat = (flags&3);
 
-	if(bnrFormat==0)
+	if (bnrFormat == 0)
 		return false;
 
-	u32 DataOffset=BE32(dir.Dir[index].ImageOffset);
-	u32 DataBlock =BE16(dir.Dir[index].FirstBlock)-5;
+	u32 DataOffset = BE32(dir.Dir[index].ImageOffset);
+	u32 DataBlock = BE16(dir.Dir[index].FirstBlock) - 5;
 
-	if(DataOffset==0xFFFFFFFF)
+	if (DataOffset == 0xFFFFFFFF)
 	{
 		return false;
 	}
 
 	const int pixels = 96*32;
 
-	if(bnrFormat&1)
+	if (bnrFormat&1)
 	{
 		u8  *pxdata  = (u8* )(mc_data +(DataBlock*0x2000) + DataOffset);
 		u16 *paldata = (u16*)(mc_data +(DataBlock*0x2000) + DataOffset + pixels);
 
-		decodeCI8image(buffer,pxdata,paldata,96,32);
+		decodeCI8image(buffer, pxdata, paldata, 96, 32);
 	}
 	else
 	{
 		u16 *pxdata = (u16*)(mc_data +(DataBlock*0x2000) + DataOffset);
 
-		decode5A3image(buffer,pxdata,96,32);
+		decode5A3image(buffer, pxdata, 96, 32);
 	}
 	return true;
 }
 
 u32  GCMemcard::ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays)
 {
-	if(!mcdFile) return 0;
+	if (!mcdFile) return 0;
 
 	int formats = BE16(dir.Dir[index].IconFmt);
 	int fdelays  = BE16(dir.Dir[index].AnimSpeed);
 
 	int flags = dir.Dir[index].BIFlags;
 
-	int  bnrFormat = (flags&3);
+	int bnrFormat = (flags&3);
 
-	u32 DataOffset=BE32(dir.Dir[index].ImageOffset);
-	u32 DataBlock =BE16(dir.Dir[index].FirstBlock)-5;
+	u32 DataOffset = BE32(dir.Dir[index].ImageOffset);
+	u32 DataBlock = BE16(dir.Dir[index].FirstBlock) - 5;
 
-	if(DataOffset==0xFFFFFFFF)
+	if (DataOffset == 0xFFFFFFFF)
 	{
 		return 0;
 	}
 
-	u8* animData=(u8*)(mc_data +(DataBlock*0x2000) + DataOffset);
+	u8* animData = (u8*)(mc_data +(DataBlock*0x2000) + DataOffset);
 
-	switch(bnrFormat)
+	switch (bnrFormat)
 	{
 	case 1:
 	case 3:
-		animData+=96*32 + 2*256; // image+palette
+		animData += 96*32 + 2*256; // image+palette
 		break;
 	case 2:
-		animData+=96*32*2;
+		animData += 96*32*2;
 		break;
 	}
 
@@ -507,24 +475,24 @@ u32  GCMemcard::ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays)
 	int frames = 0;
 
 
-	for(int i=0;i<8;i++)
+	for (int i = 0; i < 8; i++)
 	{
-		fmts[i] = (formats>>(2*i))&3;
-		delays[i] = ((fdelays>>(2*i))&3)<<2;
+		fmts[i] = (formats >> (2*i))&3;
+		delays[i] = ((fdelays >> (2*i))&3) << 2;
 		data[i] = animData;
 
-		switch(fmts[i])
+		switch (fmts[i])
 		{
 		case 1: // CI8 with shared palette
-			animData+=32*32;
+			animData += 32*32;
 			frames++;
 			break;
 		case 2: // RGB5A3
-			animData+=32*32*2;
+			animData += 32*32*2;
 			frames++;
 			break;
 		case 3: // CI8 with own palette
-			animData+=32*32 + 2*256;
+			animData += 32*32 + 2*256;
 			frames++;
 			break;
 		}
@@ -532,21 +500,21 @@ u32  GCMemcard::ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays)
 
 	u16* sharedPal = (u16*)(animData);
 
-	for(int i=0;i<8;i++)
+	for (int i = 0; i < 8; i++)
 	{
-		switch(fmts[i])
+		switch (fmts[i])
 		{
 		case 1: // CI8 with shared palette
 			decodeCI8image(buffer,data[i],sharedPal,32,32);
-			buffer+=32*32;
+			buffer += 32*32;
 			break;
 		case 2: // RGB5A3
-			decode5A3image(buffer,(u16*)(data[i]),32,32);
+			decode5A3image(buffer, (u16*)(data[i]), 32, 32);
 			break;
 		case 3: // CI8 with own palette
-			u16 *paldata = (u16*)(data[i]+32*32);
-			decodeCI8image(buffer,data[i],paldata,32,32);
-			buffer+=32*32;
+			u16 *paldata = (u16*)(data[i] + 32*32);
+			decodeCI8image(buffer, data[i], paldata, 32, 32);
+			buffer += 32*32;
 			break;
 		}
 	}
@@ -556,94 +524,95 @@ u32  GCMemcard::ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays)
 
 u32  GCMemcard::TestChecksums()
 {
-	if(!mcdFile) return 0xFFFFFFFF;
+	if (!mcdFile) return 0xFFFFFFFF;
 
-	u16 csum1=0,csum2=0;
+	u16 csum1=0,
+		csum2=0;
 
 	u32 results = 0;
 
-	calc_checksumsBE((u16*)&hdr, 0xFE ,&csum1,&csum2);
-	if(BE16(hdr.CheckSum1)!=csum1) results |= 1;
-	if(BE16(hdr.CheckSum2)!=csum2) results |= 1;
+	calc_checksumsBE((u16*)&hdr, 0xFE , &csum1, &csum2);
+	if (BE16(hdr.CheckSum1) != csum1) results |= 1;
+	if (BE16(hdr.CheckSum2) != csum2) results |= 1;
 
-	calc_checksumsBE((u16*)&dir,0xFFE,&csum1,&csum2);
-	if(BE16(dir.CheckSum1)!=csum1) results |= 2;
-	if(BE16(dir.CheckSum2)!=csum2) results |= 2;
+	calc_checksumsBE((u16*)&dir, 0xFFE, &csum1, &csum2);
+	if (BE16(dir.CheckSum1) != csum1) results |= 2;
+	if (BE16(dir.CheckSum2) != csum2) results |= 2;
 
-	calc_checksumsBE((u16*)&dir_backup,0xFFE,&csum1,&csum2);
-	if(BE16(dir_backup.CheckSum1)!=csum1) results |= 4;
-	if(BE16(dir_backup.CheckSum2)!=csum2) results |= 4;
+	calc_checksumsBE((u16*)&dir_backup, 0xFFE, &csum1, &csum2);
+	if (BE16(dir_backup.CheckSum1) != csum1) results |= 4;
+	if (BE16(dir_backup.CheckSum2) != csum2) results |= 4;
 
-	calc_checksumsBE((u16*)(((u8*)&bat)+4),0xFFE,&csum1,&csum2);
-	if(BE16(bat.CheckSum1)!=csum1) results |= 8;
-	if(BE16(bat.CheckSum2)!=csum2) results |= 8;
+	calc_checksumsBE((u16*)(((u8*)&bat)+4), 0xFFE, &csum1, &csum2);
+	if (BE16(bat.CheckSum1) != csum1) results |= 8;
+	if (BE16(bat.CheckSum2) != csum2) results |= 8;
 
-	calc_checksumsBE((u16*)(((u8*)&bat_backup)+4),0xFFE,&csum1,&csum2);
-	if(BE16(bat_backup.CheckSum1)!=csum1) results |= 16;
-	if(BE16(bat_backup.CheckSum2)!=csum2) results |= 16;
+	calc_checksumsBE((u16*)(((u8*)&bat_backup)+4), 0xFFE, &csum1, &csum2);
+	if (BE16(bat_backup.CheckSum1) != csum1) results |= 16;
+	if (BE16(bat_backup.CheckSum2) != csum2) results |= 16;
 
 	return 0;
 }
 
 bool GCMemcard::FixChecksums()
 {
-	if(!mcdFile) return false;
+	if (!mcdFile) return false;
 
-	u16 csum1=0,csum2=0;
+	u16 csum1=0,
+		csum2=0;
 
-	calc_checksumsBE((u16*)&hdr,0xFE,&csum1,&csum2);
-	hdr.CheckSum1[0]=u8(csum1>>8);
-	hdr.CheckSum1[1]=u8(csum1);
-	hdr.CheckSum2[0]=u8(csum2>>8);
-	hdr.CheckSum2[1]=u8(csum2);
+	calc_checksumsBE((u16*)&hdr, 0xFE, &csum1, &csum2);
+	hdr.CheckSum1[0] = u8(csum1 >> 8);
+	hdr.CheckSum1[1] = u8(csum1);
+	hdr.CheckSum2[0] = u8(csum2 >> 8);
+	hdr.CheckSum2[1] = u8(csum2);
 	
-	calc_checksumsBE((u16*)&dir,0xFFE,&csum1,&csum2);
-	dir.CheckSum1[0]=u8(csum1>>8);
-	dir.CheckSum1[1]=u8(csum1);
-	dir.CheckSum2[0]=u8(csum2>>8);
-	dir.CheckSum2[1]=u8(csum2);
+	calc_checksumsBE((u16*)&dir, 0xFFE, &csum1, &csum2);
+	dir.CheckSum1[0] = u8(csum1 >> 8);
+	dir.CheckSum1[1] = u8(csum1);
+	dir.CheckSum2[0] = u8(csum2 >> 8);
+	dir.CheckSum2[1] = u8(csum2);
 
-	calc_checksumsBE((u16*)&dir_backup,0xFFE,&csum1,&csum2);
-	dir_backup.CheckSum1[0]=u8(csum1>>8);
-	dir_backup.CheckSum1[1]=u8(csum1);
-	dir_backup.CheckSum2[0]=u8(csum2>>8);
-	dir_backup.CheckSum2[1]=u8(csum2);
+	calc_checksumsBE((u16*)&dir_backup, 0xFFE, &csum1, &csum2);
+	dir_backup.CheckSum1[0] = u8(csum1 >> 8);
+	dir_backup.CheckSum1[1] = u8(csum1);
+	dir_backup.CheckSum2[0] = u8(csum2 >> 8);
+	dir_backup.CheckSum2[1] = u8(csum2);
 
-	calc_checksumsBE((u16*)(((u8*)&bat)+4),0xFFE,&csum1,&csum2);
-	bat.CheckSum1[0]=u8(csum1>>8);
-	bat.CheckSum1[1]=u8(csum1);
-	bat.CheckSum2[0]=u8(csum2>>8);
-	bat.CheckSum2[1]=u8(csum2);
+	calc_checksumsBE((u16*)(((u8*)&bat)+4), 0xFFE, &csum1, &csum2);
+	bat.CheckSum1[0] = u8(csum1 >> 8);
+	bat.CheckSum1[1] = u8(csum1);
+	bat.CheckSum2[0] = u8(csum2 >> 8);
+	bat.CheckSum2[1] = u8(csum2);
 
-	calc_checksumsBE((u16*)(((u8*)&bat_backup)+4),0xFFE,&csum1,&csum2);
-	bat_backup.CheckSum1[0]=u8(csum1>>8);
-	bat_backup.CheckSum1[1]=u8(csum1);
-	bat_backup.CheckSum2[0]=u8(csum2>>8);
-	bat_backup.CheckSum2[1]=u8(csum2);
+	calc_checksumsBE((u16*)(((u8*)&bat_backup)+4), 0xFFE, &csum1, &csum2);
+	bat_backup.CheckSum1[0] = u8(csum1 >> 8);
+	bat_backup.CheckSum1[1] = u8(csum1);
+	bat_backup.CheckSum2[0] = u8(csum2 >> 8);
+	bat_backup.CheckSum2[1] = u8(csum2);
 
 	return true;
 }
-
 u32  GCMemcard::CopyFrom(GCMemcard& source, u32 index)
 {
-	if(!mcdFile) return 0;
+	if (!mcdFile) return 0;
 
 	DEntry d;
-	if(!source.GetFileInfo(index,d)) return 0;
+	if (!source.GetFileInfo(index, d)) return 0;
 
-	u8 *t = new u8[source.GetFileSize(index)*0x2000];
+	u8 *t = new u8[source.GetFileSize(index) * 0x2000];
 
-	if(!source.GetFileData(index,t)) return 0;
-	u32 ret = ImportFile(d,t);
+	if(!source.GetFileData(index, t, true)) return 0;
+	u32 ret = ImportFile(d,t,0);
 
 	delete[] t;
 
 	return ret;
 }
 
-int  GCMemcard::ImportGci(const char *fileName, const char *fileName2)
+s32  GCMemcard::ImportGci(const char *fileName, std::string fileName2)
 {
-	if (!mcdFile && !fileName2) return OPENFAIL;
+	if (fileName2.empty() && !mcdFile) return OPENFAIL;
 
 	FILE *gci = fopen(fileName, "rb");
 	if (!gci) return OPENFAIL;
@@ -653,7 +622,7 @@ int  GCMemcard::ImportGci(const char *fileName, const char *fileName2)
 	std::string fileType;
 	SplitPath(fileName, NULL, NULL, &fileType);
 
-	if( !strcasecmp(fileType.c_str(), ".gci") && !fileName2)
+	if( !strcasecmp(fileType.c_str(), ".gci"))
 		offset = GCI;
 	else
 	{
@@ -687,9 +656,9 @@ int  GCMemcard::ImportGci(const char *fileName, const char *fileName2)
 
 	DEntry *d = new DEntry;
 	fread(d, 1, 0x40, gci);
-	int fStart = ftell(gci);
+	int fStart = (int) ftell(gci);
 	fseek(gci, 0, SEEK_END);
-	int length = ftell(gci) - fStart;
+	int length = (int) ftell(gci) - fStart;
 	fseek(gci, offset + 0x40, SEEK_SET);
 
 	switch(offset){
@@ -723,11 +692,11 @@ int  GCMemcard::ImportGci(const char *fileName, const char *fileName2)
 		default:
 			break;
 	}
-	if (length == BE16(d->BlockCount) * 0x2000)
+	if (length != BE16(d->BlockCount) * 0x2000)
 	{
 		return LENGTHFAIL;
 	}
-	if (ftell(gci)  == offset + 0x40) // Verify correct file position
+	if (ftell(gci)  != offset + 0x40) // Verify correct file position
 	{
 		return OPENFAIL;
 	}
@@ -735,21 +704,22 @@ int  GCMemcard::ImportGci(const char *fileName, const char *fileName2)
 	u8 *t = new u8[size];
 	fread(t, 1, size, gci);
 	fclose(gci);	
-	u32 ret = 0;
-	if(fileName2)
+	u32 ret;
+	if(!fileName2.empty())
 	{
-		FILE * gci2 = fopen(fileName2, "wb");
+		FILE * gci2 = fopen(fileName2.c_str(), "wb");
 		if (!gci2) return OPENFAIL;
 		fseek(gci2, 0, SEEK_SET);
-		fwrite(d, 1, 0x40, gci2);
+		assert(fwrite(d, 1, 0x40, gci2)==0x40);
 		int fileBlocks = BE16(d->BlockCount);
 		fseek(gci2, 0x40, SEEK_SET);
-		fwrite(t, 0, 0x2000 * fileBlocks, gci2);
+
+		assert(fwrite(t, 1, 0x2000 * fileBlocks, gci2)==(unsigned) (0x2000*fileBlocks));
 		fclose(gci2);
+		ret = GCS;
 	}
-	else ret = ImportFile(*d, t);
-	
-	
+	else ret= ImportFile(*d, t,0);
+
 	delete []t;
 	delete []tmp;
 	delete d;
@@ -759,18 +729,18 @@ int  GCMemcard::ImportGci(const char *fileName, const char *fileName2)
 bool GCMemcard::ExportGci(u32 index, const char *fileName)
 {
 	FILE *gci = fopen(fileName, "wb");
-	if(!gci) return false;
+	if (!gci) return false;
 	fseek(gci, 0, SEEK_SET);
 
 	DEntry d;
-	if(!this->GetFileInfo(index, d)) return false;
-	fwrite(&d, 1, 0x40, gci);
+	if (!this->GetFileInfo(index, d)) return false;
+	assert(fwrite(&d, 1, 0x40, gci) == 0x40);
 
 	u8 *t = new u8[this->GetFileSize(index) * 0x2000];
-	if (!this->GetFileData(index, t)) return false;
+	if (!this->GetFileData(index, t, true)) return false;
 
 	fseek(gci, 0x40, SEEK_SET);
-	fwrite(t, 1, 0x2000 * BE16(d.BlockCount), gci);
+	assert(fwrite(t, 1, 0x2000 * BE16(d.BlockCount), gci)== (unsigned) (0x2000 * BE16(d.BlockCount)));
 	fclose(gci);
 	delete []t;
 	return true;
@@ -778,16 +748,16 @@ bool GCMemcard::ExportGci(u32 index, const char *fileName)
 
 bool GCMemcard::Save()
 {
-	if(!mcdFile) return false;
+	if (!mcdFile) return false;
 
 	FILE *mcd=(FILE*)mcdFile;
-	fseek(mcd,0,SEEK_SET);
-	fwrite(&hdr,1,0x2000,mcd);
-	fwrite(&dir,1,0x2000,mcd);
-	fwrite(&dir_backup,1,0x2000,mcd);
-	fwrite(&bat,1,0x2000,mcd);
-	fwrite(&bat_backup,1,0x2000,mcd);
-	fwrite(mc_data,1,mc_data_size,mcd);
+	fseek(mcd, 0, SEEK_SET);
+	assert(fwrite(&hdr, 1, 0x2000, mcd) == 0x2000);
+	assert(fwrite(&dir, 1, 0x2000, mcd) == 0x2000);
+	assert(fwrite(&dir_backup, 1, 0x2000, mcd) == 0x2000);
+	assert(fwrite(&bat, 1, 0x2000 ,mcd) == 0x2000);
+	assert(fwrite(&bat_backup, 1, 0x2000, mcd) == 0x2000);
+	assert(fwrite(mc_data, 1, mc_data_size, mcd) == mc_data_size);
 	return true;
 }
 
@@ -798,28 +768,28 @@ bool GCMemcard::IsOpen()
 
 GCMemcard::GCMemcard(const char *filename)
 {
-	FILE *mcd=fopen(filename,"r+b");
-	mcdFile=mcd;
-	if(!mcd) return;
+	FILE *mcd = fopen(filename,"r+b");
+	mcdFile = mcd;
+	if (!mcd) return;
 
-	fseek(mcd,0x0000,SEEK_SET);
-	assert(fread(&hdr,       1,0x2000,mcd)==0x2000);
-	assert(fread(&dir,       1,0x2000,mcd)==0x2000);
-	assert(fread(&dir_backup,1,0x2000,mcd)==0x2000);
-	assert(fread(&bat,       1,0x2000,mcd)==0x2000);
-	assert(fread(&bat_backup,1,0x2000,mcd)==0x2000);
+	fseek(mcd, 0x0000, SEEK_SET);
+	assert(fread(&hdr, 1, 0x2000, mcd) == 0x2000);
+	assert(fread(&dir, 1, 0x2000, mcd) == 0x2000);
+	assert(fread(&dir_backup, 1, 0x2000, mcd) == 0x2000);
+	assert(fread(&bat, 1, 0x2000, mcd) == 0x2000);
+	assert(fread(&bat_backup, 1, 0x2000, mcd) == 0x2000);
 
 	u32 csums = TestChecksums();
 	
-	if(csums&1)
+	if (csums&1)
 	{
 		// header checksum error!
 		// TODO: fail to load
 	}
 
-	if(csums&2) // directory checksum error!
+	if (csums&2) // directory checksum error!
 	{
-		if(csums&4)
+		if (csums&4)
 		{
 			// backup is also wrong!
 			// TODO: fail to load
@@ -835,9 +805,9 @@ GCMemcard::GCMemcard(const char *filename)
 		}
 	}
 
-	if(csums&8) // BAT checksum error!
+	if (csums&8) // BAT checksum error!
 	{
-		if(csums&16)
+		if (csums&16)
 		{
 			// backup is also wrong!
 			// TODO: fail to load
@@ -861,23 +831,17 @@ GCMemcard::GCMemcard(const char *filename)
 //		bat = bat_backup; // needed?
 	}
 
-	fseek(mcd,0xa000,SEEK_SET);
+	fseek(mcd, 0xa000, SEEK_SET);
 
-	assert(BE16(hdr.Size)!=0xFFFF);
-	mc_data_size=(((u32)BE16(hdr.Size)*16)-5)*0x2000;
+	assert(BE16(hdr.Size) != 0xFFFF);
+	mc_data_size = (((u32)BE16(hdr.Size) * 16) - 5) * 0x2000;
 	mc_data = new u8[mc_data_size];
 
-	size_t read = fread(mc_data,1,mc_data_size,mcd);
-	assert(mc_data_size==read);
+	size_t read = fread(mc_data, 1, mc_data_size, mcd);
+	assert(mc_data_size == read);
 }
 
 GCMemcard::~GCMemcard()
 {
 	fclose((FILE*)mcdFile);
-}
-
-void varSwap(u8 *valueA,u8 *valueB){
-	u8 temp = *valueA;
-	*valueA = *valueB;
-	*valueB = temp;
 }

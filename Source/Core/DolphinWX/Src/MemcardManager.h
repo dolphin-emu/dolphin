@@ -26,7 +26,7 @@
 #include <wx/imaglist.h>
 
 #include "MemoryCards/GCMemcard.h"
-
+#define BE16(x) ((u16((x)[0])<<8) | u16((x)[1]))
 #undef MEMCARD_MANAGER_STYLE
 #define MEMCARD_MANAGER_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX | wxRESIZE_BORDER | wxMAXIMIZE_BOX
 
@@ -35,7 +35,7 @@ class CMemcardManager
 {
 	public:
 
-		CMemcardManager(wxWindow *parent, wxWindowID id = 1, const wxString& title = wxT("Memory Card Manager WARNING-Make backups before using, will probably mangle stuff!"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = MEMCARD_MANAGER_STYLE);
+		CMemcardManager(wxWindow *parent, wxWindowID id = 1, const wxString& title = wxT("Memory Card Manager WARNING-Make backups before using, should be fixed but could mangle stuff!"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = MEMCARD_MANAGER_STYLE);
 		virtual ~CMemcardManager();
 
 	private:
@@ -43,8 +43,8 @@ class CMemcardManager
 		DECLARE_EVENT_TABLE();
 
 		wxBoxSizer *sMain;
-		wxButton *m_CopyLeft;
-		wxButton *m_CopyRight;
+		wxButton *m_CopyToLeft;
+		wxButton *m_CopyToRight;
 		wxButton *m_FixChecksum;
 		wxButton *m_SaveImportLeft;
 		wxButton *m_SaveExportLeft;
@@ -62,8 +62,8 @@ class CMemcardManager
 
 		enum
 		{
-			ID_COPYRIGHT = 1000,
-			ID_COPYLEFT,
+			ID_COPYTORIGHT = 1000,
+			ID_COPYTOLEFT,
 			ID_FIXCHECKSUM,
 			ID_DELETERIGHT,
 			ID_DELETELEFT,
