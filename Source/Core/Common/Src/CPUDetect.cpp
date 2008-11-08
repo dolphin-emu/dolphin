@@ -183,7 +183,11 @@ void CPUInfo::Detect()
 
 std::string CPUInfo::Summarize()
 {
-	std::string sum = StringFromFormat("%s : %i cores. ", cpu_string, num_cores);
+	std::string sum;
+	if (num_cores == 1)
+		sum = StringFromFormat("%s, %i core, ", cpu_string, num_cores);
+	else
+		sum = StringFromFormat("%s, %i cores, ", cpu_string, num_cores);
 	if (bSSE) sum += "SSE";
 	if (bSSE2) sum += ", SSE2";
 	if (bSSE3) sum += ", SSE3";
@@ -191,6 +195,5 @@ std::string CPUInfo::Summarize()
 	if (bSSE4_1) sum += ", SSE4.1";
 	if (bSSE4_2) sum += ", SSE4.2";
 	if (bLongMode) sum += ", 64-bit support";
-	sum += "  (wrong? report)";
 	return sum;
 }

@@ -1101,14 +1101,22 @@ void SDRUpdated()
 
 u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag)
 {
-	PanicAlert("TLB: %s unknown memory (0x%08x)\n"
-		       "This is either the game crashing randomly, or a TLB write."
-			   "Several games uses the TLB to map memory. This\n"
-			   "function is not supported in Dolphin. "
-			   "Also, unfortunately there is no way to recover from this error,"
-			   "so Dolphin will now exit abruptly. Sorry!",
-			   _Flag == FLAG_WRITE ? "Write to" : "Read from", _Address);
-
+	if (Core::GetStartupParameter().bWii) {
+		// TLB is never used on Wii (except linux and stuff, but we don't care about that)
+		PanicAlert("%s invalid memory region (0x%08x)\n\n"
+			"There is no way to recover from this error,"
+			"so Dolphin will now exit. Sorry!",
+			_Flag == FLAG_WRITE ? "Write to" : "Read from", _Address);
+	}
+	else {
+		PanicAlert("%s invalid memory region (0x%08x)\n\n"
+			"This is either the game crashing randomly, or a TLB write."
+			"Several games uses the TLB to map memory. This\n"
+			"function is not supported in Dolphin. "
+			"Unfortunately there is no way to recover from this error,"
+			"so Dolphin will now exit abruptly. Sorry!",
+			 _Flag == FLAG_WRITE ? "Write to" : "Read from", _Address);
+	}
 	exit(0);
 	u32 sr = PowerPC::ppcState.sr[EA_SR(_Address)]; 
 
