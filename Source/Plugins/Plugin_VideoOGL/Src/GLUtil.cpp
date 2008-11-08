@@ -539,9 +539,15 @@ void OpenGL_Update()
       rcWindow.bottom = GLWin.height;
 
 #elif defined(_WIN32)
-    if (!EmuWindow::GetParentWnd()) return;
-    RECT rcWindow;
-    GetWindowRect(EmuWindow::GetParentWnd(), &rcWindow);
+	RECT rcWindow;
+	if (!EmuWindow::GetParentWnd()) {
+		GetWindowRect(EmuWindow::GetWnd(), &rcWindow);
+		rcWindow.top += 25;
+	}
+	else
+	{
+		GetWindowRect(EmuWindow::GetParentWnd(), &rcWindow);
+	}
 
 	// ---------------------------------------------------------------------------------------
 	// Get the new window width and height
@@ -551,7 +557,9 @@ void OpenGL_Update()
     int width = rcWindow.right - rcWindow.left;
     int height = rcWindow.bottom - rcWindow.top;
 
-    ::MoveWindow(EmuWindow::GetWnd(), 0,0,width,height, FALSE);
+	if (EmuWindow::GetParentWnd() != 0)
+		::MoveWindow(EmuWindow::GetWnd(), 0,0,width,height, FALSE);
+
     nBackbufferWidth = width;
     nBackbufferHeight = height;
 
