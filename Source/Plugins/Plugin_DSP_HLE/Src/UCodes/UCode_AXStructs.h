@@ -190,7 +190,6 @@ struct AXParamBlockWii
 	PBUpdatesWii updates;
 	PBDpopWii dpop;
 	PBVolumeEnvelope vol_env;
-	PBUnknown2 unknown3;
 	PBAudioAddr audio_addr;
 	PBADPCMInfo adpcm;
 	PBSampleRateConverter src;
