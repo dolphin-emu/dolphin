@@ -217,7 +217,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 
 	bool bExecuteList = true;
 
-	if (true) 
+	if (false) 
 	{
 		// PanicAlert("%i", sizeof(AXParamBlockWii));  // 252 ??
 		FILE *f = fopen("D:\\axdump.txt", "a");
