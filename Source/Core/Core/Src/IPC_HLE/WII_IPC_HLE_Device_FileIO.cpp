@@ -149,7 +149,7 @@ CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
     if (m_pFileHandle != NULL)
     {
         size_t readItems = fread(Memory::GetPointer(Address), 1, Size, m_pFileHandle);
-        ReturnValue = readItems;
+        ReturnValue = (u32)readItems;
         LOG(WII_IPC_FILEIO, "FileIO reads from %s (Addr=0x%08x Size=0x%x)", GetDeviceName().c_str(), Address, Size);	
     }
     else

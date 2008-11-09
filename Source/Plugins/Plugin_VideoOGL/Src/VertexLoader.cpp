@@ -367,7 +367,7 @@ void VertexLoader::CompileVertexTranslator()
 					break;
 				}
 			}
-			if (j == 8 && !((m_NativeFmt->m_components&VB_HAS_TEXMTXIDXALL) & (VB_HAS_TEXMTXIDXALL<<(i+1)))) // no more tex coords and tex matrices, so exit loop
+			if (j == 8 && !((m_NativeFmt->m_components & VB_HAS_TEXMTXIDXALL) & (VB_HAS_TEXMTXIDXALL << (i + 1)))) // no more tex coords and tex matrices, so exit loop
 				break;
 		}
 	}
@@ -379,7 +379,8 @@ void VertexLoader::CompileVertexTranslator()
 
 	PortableVertexDeclaration vtx_decl;
 
-
+	// TODO - merge all the below into the ifs and stuff above.
+	// Also merge ComputeVertexSize into the result.
 	int m_components = m_NativeFmt->m_components;
 
 	const TVtxAttr &vtx_attr = m_VtxAttr;
@@ -445,7 +446,6 @@ void VertexLoader::CompileVertexTranslator()
 	// TextureCoord
 	for (int i = 0; i < 8; i++) {
 		if (tc[i] != NOT_PRESENT || (m_components & (VB_HAS_TEXMTXIDX0 << i))) {
-			// TODO : More potential disalignment!
 			if (m_components & (VB_HAS_TEXMTXIDX0 << i)) {
 				if (tc[i] != NOT_PRESENT) {
 					vtx_decl.texcoord_offset[i] = offset;

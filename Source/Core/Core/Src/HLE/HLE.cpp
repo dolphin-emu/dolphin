@@ -104,7 +104,7 @@ void PatchFunctions()
 		if (symbol > 0)
 		{
 			u32 HLEPatchValue = (1 & 0x3f) << 26;
-			for (size_t addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
+			for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
 				Memory::Write_U32(HLEPatchValue | i, addr);
 			LOG(HLE,"Patching %s %08x", OSPatches[i].m_szPatchName, symbol->address);
 		}

@@ -232,7 +232,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			/*if (width == entry.w && height==entry.h && format==entry.fmt)
             {
                 LPDIRECT3DTEXTURE9 tex = entry.texture;
-                int bs = TexDecoder_GetBlockWidthInTexels(format)-1; //TexelSizeInNibbles(format)*width*height/16;
+                int bs = TexDecoder_GetBlockWidthInTexels(format)-1;
                 int expandedWidth = (width+bs) & (~bs);
                 D3DFORMAT dfmt = TexDecoder_Decode(temp,ptr,expandedWidth,height,format, tlutaddr, tlutfmt);
                 ReplaceTexture2D(tex,temp,width,height,expandedWidth,dfmt);
@@ -247,7 +247,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
         }
     }
     
-    int bs = TexDecoder_GetBlockWidthInTexels(format) - 1; //TexelSizeInNibbles(format)*width*height/16;
+    int bs = TexDecoder_GetBlockWidthInTexels(format) - 1;
     int expandedWidth = (width + bs) & (~bs);
     PC_TexFormat dfmt = TexDecoder_Decode(temp, ptr, expandedWidth, height, format, tlutaddr, tlutfmt);
 
@@ -261,9 +261,9 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     ((u32 *)ptr)[entry.hashoffset] = entry.hash;
 
     entry.addr = address;
-    entry.isRenderTarget=false;
-    
-    entry.isNonPow2 = ((width&(width-1)) || (height&(height-1)));
+    entry.isRenderTarget = false;
+
+    entry.isNonPow2 = ((width & (width - 1)) || (height & (height - 1)));
     
     glGenTextures(1, (GLuint *)&entry.texture);
     GLenum target = entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D;
@@ -307,7 +307,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     }
 
     INCSTAT(stats.numTexturesCreated);
-    SETSTAT(stats.numTexturesAlive,textures.size());
+    SETSTAT(stats.numTexturesAlive, textures.size());
 
     //glEnable(entry.isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D);
 

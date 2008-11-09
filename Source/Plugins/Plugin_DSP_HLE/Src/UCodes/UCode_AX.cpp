@@ -442,7 +442,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			} // end of the _iSize loop
 			// ============
 
-			if(gVolume) // allow us to turn this off in the debugger
+			if (gVolume) // allow us to turn this off in the debugger
 			{
 				pb.mixer.volume_left = ADPCM_Vol(pb.mixer.volume_left, pb.mixer.unknown, pb.mixer_control);
 				pb.mixer.volume_right = ADPCM_Vol(pb.mixer.volume_right, pb.mixer.unknown2, pb.mixer_control);
@@ -457,21 +457,21 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 	for (int i = 0; i < _iSize; i++)
 	{
 		// Clamp into 16-bit. Maybe we should add a volume compressor here.
-		int left  = templbuffer[i];
-		int right = temprbuffer[i];
+		int left  = templbuffer[i] + _pBuffer[0];
+		int right = temprbuffer[i] + _pBuffer[1];
 		if (left < -32767)  left = -32767;
 		if (left > 32767)   left = 32767;
 		if (right < -32767) right = -32767;
 		if (right >  32767) right = 32767;
-		*_pBuffer++ += left;
-		*_pBuffer++ += right;
+		*_pBuffer++ = left;
+		*_pBuffer++ = right;
 	}
 
 	// write back out pbs
 	WriteBackPBs(PBs, numberOfPBs);
 
 	// write logging data to debugger again after the update
-	if(m_frame)
+	if (m_frame)
 	{
 		CUCode_AX::Logging(_pBuffer, _iSize, 1);
 	}

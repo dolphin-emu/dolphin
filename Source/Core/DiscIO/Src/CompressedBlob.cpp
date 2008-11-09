@@ -181,7 +181,7 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 	callback("Files opened, ready to compress.", 0, arg);
 
 	fseek(inf, 0, SEEK_END);
-	int insize = ftell(inf);
+	s64 insize = ftell(inf);
 	fseek(inf, 0, SEEK_SET);
 	CompressedBlobHeader header;
 	header.magic_cookie = kBlobCookie;

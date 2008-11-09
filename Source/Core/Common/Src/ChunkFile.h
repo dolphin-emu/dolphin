@@ -92,7 +92,7 @@ public:
 	// Store strings.
 	void Do(std::string &x) 
 	{
-		int stringLen = x.length() + 1;
+		int stringLen = (int)x.length() + 1;
 		Do(stringLen);
 
 		switch (mode)
