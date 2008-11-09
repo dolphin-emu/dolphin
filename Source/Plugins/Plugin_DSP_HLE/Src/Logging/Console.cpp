@@ -55,7 +55,7 @@ is closed */
 // -------------
 void startConsoleWin(int width, int height, char* fname)
 {
-#if defined(DEBUG_HLE) defined(_WIN32)
+#if defined(DEBUG_HLE) && defined(_WIN32)
 
 	AllocConsole();
 

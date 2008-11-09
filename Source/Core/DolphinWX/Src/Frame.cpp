@@ -434,8 +434,8 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 {
 	// Ask for confirmation in case the user accidently clicked Stop
-	int answer = wxMessageBox("Are you sure you want to stop the current emulation?",
-		"Confirm", wxYES_NO);
+  int answer = wxMessageBox(wxT("Are you sure you want to stop the current emulation?"),
+                            wxT("Confirm"), wxYES_NO);
 
 	if (answer == wxYES && Core::GetState() != Core::CORE_UNINITIALIZED)
 	{

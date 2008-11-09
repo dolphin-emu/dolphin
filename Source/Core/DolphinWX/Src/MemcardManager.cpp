@@ -299,7 +299,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 					freeblocks = BE16(memoryCard[slot]->bat.FreeBlocks);
 					{
 					wxString Foobar;
-					Foobar.Printf("Only %d blocks available", freeblocks);
+					Foobar.Printf(wxT("Only %d blocks available"), freeblocks);
 					wxMessageBox(Foobar,wxT("Failure"),wxOK);
 					}
 					break;

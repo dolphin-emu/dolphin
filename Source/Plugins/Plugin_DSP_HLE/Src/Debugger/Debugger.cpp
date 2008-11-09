@@ -181,9 +181,10 @@ SetTitle(wxT("Sound Debugging"));
 	m_settings->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 	m_settings->SetMinSize(wxSize(m_settings->GetSize().GetWidth() - 40,
 		m_settings->GetCount() * 15));
+#ifdef _WIN32
 	for (int i = 0; i < m_settings->GetCount(); ++i)
 		m_settings->GetItem(i)->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-
+#endif
 	m_checkSizer2->Add(m_settings, 0, 0, 0);
 	// ------------------------
 
