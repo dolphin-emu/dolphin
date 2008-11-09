@@ -541,6 +541,8 @@ void OpenGL_Update()
 #elif defined(_WIN32)
 	RECT rcWindow;
 	if (!EmuWindow::GetParentWnd()) {
+		if (!g_Config.bStretchToFit)
+			return;
 		GetWindowRect(EmuWindow::GetWnd(), &rcWindow);
 		rcWindow.top += 25;
 	}

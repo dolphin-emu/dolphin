@@ -576,6 +576,10 @@ void Renderer::FlushZBufferAlphaToTarget()
 		TextureMngr::DisableStage(i);
     GL_REPORT_ERRORD();
 
+	// setup the stencil to only accept pixels that have been written
+	glStencilFunc(GL_EQUAL, 1, 0xff);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
 	if(g_Config.bStretchToFit)
 	{
 		//TODO: Do Correctly in a bit
@@ -597,10 +601,6 @@ void Renderer::FlushZBufferAlphaToTarget()
 	}
 	else
 	{		
-		// setup the stencil to only accept pixels that have been written
-		glStencilFunc(GL_EQUAL, 1, 0xff);
-		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-
 		glBegin(GL_QUADS);
 		glTexCoord2f(0, 0); glVertex2f(-1,-1);
 		glTexCoord2f(0, (float)(GetTargetHeight())); glVertex2f(-1,1);
