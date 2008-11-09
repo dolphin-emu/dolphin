@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef UCODE_AX_STRUCTS
-#define UCODE_AX_STRUCTS
+#ifndef _UCODE_AX_STRUCTS_H
+#define _UCODE_AX_STRUCTS_H
 
 struct PBMixer
 {
@@ -203,5 +203,4 @@ enum {
 	MIXCONTROL_RAMPING = 8,
 };
 
-
-#endif
+#endif  // _UCODE_AX_STRUCTS_H

@@ -683,7 +683,23 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Src\UCodes\UCode_AX_ADPCM.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\UCodes\UCode_AX_Voice.h"
+					>
+				</File>
+				<File
 					RelativePath=".\Src\UCodes\UCode_AXStructs.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\UCodes\UCode_AXWii.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\UCodes\UCode_AXWii.h"
 					>
 				</File>
 			</Filter>

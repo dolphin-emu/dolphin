@@ -15,21 +15,18 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _UCODE_AX
-#define _UCODE_AX
+#ifndef _UCODE_AXWII
+#define _UCODE_AXWII
 
 #include "UCode_AXStructs.h"
 
-enum
-{
-	NUMBER_OF_PBS = 64
-};
+#define NUMBER_OF_PBS 64
 
-class CUCode_AX	: public IUCode
+class CUCode_AXWii : public IUCode
 {
 public:
-	CUCode_AX(CMailHandler& _rMailHandler);
-	virtual ~CUCode_AX();
+	CUCode_AXWii(CMailHandler& _rMailHandler);
+	virtual ~CUCode_AXWii();
 
 	void HandleMail(u32 _uMail);
 	void MixAdd(short* _pBuffer, int _iSize);
@@ -42,11 +39,6 @@ private:
 	enum
 	{
 		MAIL_AX_ALIST = 0xBABE0000,
-		AXLIST_STUDIOADDR = 0x0000,
-		AXLIST_PBADDR  = 0x0002,
-		AXLIST_SBUFFER = 0x0007,
-		AXLIST_COMPRESSORTABLE = 0x000A,
-		AXLIST_END = 0x000F
 	};
 
 	// PBs
@@ -60,8 +52,7 @@ private:
 	void SendMail(u32 _uMail);
 };
 
-int ReadOutPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num);
-void WriteBackPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num);
+int ReadOutPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num);
+void WriteBackPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num);
 
-
-#endif  // _UCODE_AX
+#endif  // _UCODE_AXWII

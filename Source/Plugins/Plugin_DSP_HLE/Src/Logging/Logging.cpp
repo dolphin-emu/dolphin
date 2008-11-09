@@ -48,7 +48,6 @@ extern int nFiles;
 float ratioFactor; // a global to get the ratio factor from MixAdd
 int gUpdFreq = 5;
 int gPreset = 0;
-u32 gLastBlock;
 extern bool gSSBM;
 extern bool gSSBMremedy1;
 extern bool gSSBMremedy2;
@@ -261,10 +260,8 @@ std::string writeMessage(int a, int i)
 // I placed this in CUCode_AX because it needs access to private members of that class.
 void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 {
-
 	AXParamBlock PBs[NUMBER_OF_PBS];
-	int numberOfPBs = ReadOutPBs(0, PBs, NUMBER_OF_PBS);
-
+	int numberOfPBs = ReadOutPBs(m_addressPBs, PBs, NUMBER_OF_PBS);
 
 	// =======================================================================================
 	// Update parameter values
@@ -275,7 +272,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 	int irun = 0;
 	for (int i = 0; i < numberOfPBs; i++)
 	{		
-		if(PBs[i].running)
+		if (PBs[i].running)
 		{
 			irun++;
 		}
@@ -598,8 +595,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		// =======================================================================================
 		// Write global values
 		// ---------------
-		sprintf(buffer, "\nThe parameter blocks span from %08x to %08x | distance %i | num. of blocks %i | _iSize %i\n",
-			m_addressPBs, gLastBlock, (gLastBlock-m_addressPBs), (gLastBlock-m_addressPBs) / 192, _iSize);
+		sprintf(buffer, "\nThe parameter blocks span from %08x", m_addressPBs);
 		sbuff = sbuff + buffer; strcpy(buffer, "");
 		// ===============
 			

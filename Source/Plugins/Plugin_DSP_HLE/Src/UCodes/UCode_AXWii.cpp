@@ -26,23 +26,10 @@
 
 #include "UCodes.h"
 #include "UCode_AXStructs.h"
-#include "UCode_AX.h"
+#include "UCode_AXWii.h"
 #include "UCode_AX_Voice.h"
 
-// ---------------------------------------------------------------------------------------
-// Externals
-// -----------
-extern float ratioFactor;
-bool gSSBM = true; // used externally
-bool gSSBMremedy1 = true; // used externally
-bool gSSBMremedy2 = true; // used externally
-bool gSequenced = true; // used externally
-bool gVolume = true; // used externally
-bool gReset = false; // used externally
-extern CDebugger* m_frame;
-// -----------
-
-CUCode_AX::CUCode_AX(CMailHandler& _rMailHandler)
+CUCode_AXWii::CUCode_AXWii(CMailHandler& _rMailHandler)
 	: IUCode(_rMailHandler)
 	, m_addressPBs(0xFFFFFFFF)
 {
@@ -54,14 +41,14 @@ CUCode_AX::CUCode_AX(CMailHandler& _rMailHandler)
 	temprbuffer = new int[1024 * 1024];
 }
 
-CUCode_AX::~CUCode_AX()
+CUCode_AXWii::~CUCode_AXWii()
 {
 	m_rMailHandler.Clear();
 	delete [] templbuffer;
 	delete [] temprbuffer;
 }
 
-void CUCode_AX::HandleMail(u32 _uMail)
+void CUCode_AXWii::HandleMail(u32 _uMail)
 {
 	if ((_uMail & 0xFFFF0000) == MAIL_AX_ALIST)
 	{
@@ -73,107 +60,7 @@ void CUCode_AX::HandleMail(u32 _uMail)
 	}
 }
 
-void DoVoiceHacks(AXParamBlock &pb)
-{
-	// get necessary values
-	const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
-	const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
-	const u32 updaddr   = (u32)(pb.updates.data_hi << 16) | pb.updates.data_lo;
-	const u16 updpar    = Memory_Read_U16(updaddr);
-	const u16 upddata   = Memory_Read_U16(updaddr + 2);
-
-	// =======================================================================================
-	/*
-	Fix problems introduced with the SSBM fix - Sometimes when a music stream ended sampleEnd
-	would become extremely high and the game would play random sound data from ARAM resulting in
-	a strange noise. This should take care of that. - Some games (Monkey Ball 1 and Tales of
-	Symphonia and other) also had one odd last block with a strange high loopPos and strange
-	num_updates values, the loopPos limit turns those off also. - Please report any side effects.
-	*/
-	// ------------
-	if (
-		(sampleEnd > 0x10000000 || loopPos > 0x10000000)
-		&& gSSBMremedy1
-		)
-	{
-		pb.running = 0;
-
-		// also reset all values if it makes any difference
-		pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
-		pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
-		pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
-
-		pb.src.cur_addr_frac = 0; pb.src.ratio_hi = 0; pb.src.ratio_lo = 0;
-		pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
-
-		pb.audio_addr.looping = 0;
-		pb.adpcm_loop_info.pred_scale = 0;
-		pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
-	}
-
-	/*
-	// the fact that no settings are reset (except running) after a SSBM type music stream or another
-	looping block (for example in Battle Stadium DON) has ended could cause loud garbled sound to be
-	played from one or more blocks. Perhaps it was in conjunction with the old sequenced music fix below,
-	I'm not sure. This was an attempt to prevent that anyway by resetting all. But I'm not sure if this
-	is needed anymore. Please try to play SSBM without it and see if it works anyway.
-	*/
-	if (
-	// detect blocks that have recently been running that we should reset
-	pb.running == 0 && pb.audio_addr.looping == 1
-	//pb.running == 0 && pb.adpcm_loop_info.pred_scale
-
-	// this prevents us from ruining sequenced music blocks, may not be needed
-	/*
-	&& !(pb.updates.num_updates[0] || pb.updates.num_updates[1] || pb.updates.num_updates[2]
-		|| pb.updates.num_updates[3] || pb.updates.num_updates[4])
-	*/	
-	&& !(updpar || upddata)
-
-	&& pb.mixer_control == 0 // only use this in SSBM
-
-	&& gSSBMremedy2 // let us turn this fix on and off
-	)
-	{
-		// reset the detection values
-		pb.audio_addr.looping = 0;
-		pb.adpcm_loop_info.pred_scale = 0;
-		pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
-
-		//pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
-		//pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
-		//pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
-
-		//pb.src.cur_addr_frac = 0; PBs[i].src.ratio_hi = 0; PBs[i].src.ratio_lo = 0;
-		//pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
-	}
-	
-	// =============
-
-
-	// =======================================================================================
-	// Reset all values
-	// ------------
-	if (gReset
-		&& (pb.running || pb.audio_addr.looping || pb.adpcm_loop_info.pred_scale)
-		)	
-	{
-		pb.running = 0;
-
-		pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
-		pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
-		pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
-
-		pb.src.cur_addr_frac = 0; pb.src.ratio_hi = 0; pb.src.ratio_lo = 0;
-		pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
-
-		pb.audio_addr.looping = 0;
-		pb.adpcm_loop_info.pred_scale = 0;
-		pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
-	}
-}
-
-int ReadOutPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num)
+int ReadOutPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
 {
 	int count = 0;
 	u32 blockAddr = pbs_address;
@@ -200,7 +87,7 @@ int ReadOutPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num)
 	return count;
 }
 
-void WriteBackPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num)
+void WriteBackPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
 {
 	u32 blockAddr = pbs_address;
 
@@ -209,7 +96,7 @@ void WriteBackPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num)
 	{
 		short* pSrc  = (short*)&_pPBs[i];
 		short* pDest = (short*)g_dspInitialize.pGetMemoryPointer(blockAddr);
-		for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
+		for (size_t p = 0; p < sizeof(AXParamBlockWii) / 2; p++)
 		{
 			pDest[p] = Common::swap16(pSrc[p]);
 		}
@@ -219,12 +106,12 @@ void WriteBackPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num)
 	}
 }
 
-void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
+void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 {
-	AXParamBlock PBs[NUMBER_OF_PBS];
+	AXParamBlockWii PBs[NUMBER_OF_PBS];
 
 	// read out pbs
-	int numberOfPBs = ReadOutPBs(m_addressPBs, PBs, NUMBER_OF_PBS);
+	int numberOfPBs = ReadOutPBsWii(m_addressPBs, PBs, NUMBER_OF_PBS);
 
 	if (_iSize > 1024 * 1024)
 		_iSize = 1024 * 1024;
@@ -233,19 +120,19 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 	memset(temprbuffer, 0, _iSize * sizeof(int));
 
 	// write logging data to debugger
-	if (m_frame)
+	//if (m_frame)
 	{
-		CUCode_AX::Logging(_pBuffer, _iSize, 0);
+//		CUCode_AXWii::Logging(_pBuffer, _iSize, 0);
 	}
 	
 	// ---------------------------------------------------------------------------------------
 	// Make the updates we are told to do
 	// This code is buggy, TODO - fix. If multiple updates in a ms, only does first.
 	// ------------
+	/*
 	for (int i = 0; i < numberOfPBs; i++) {
 		u16 *pDest = (u16 *)&PBs[i];
 		u16 upd0 = pDest[34]; u16 upd1 = pDest[35]; u16 upd2 = pDest[36]; // num_updates
-		u16 upd3 = pDest[37]; u16 upd4 = pDest[38];
 		u16 upd_hi = pDest[39]; // update addr
 		u16	upd_lo = pDest[40];
 		const u32 updaddr   = (u32)(upd_hi << 16) | upd_lo;
@@ -261,19 +148,19 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		{
 			pDest[updpar] = upddata;
 		}
-	}
+	}*/
 
 	//aprintf(1, "%08x %04x %04x\n", updaddr, updpar, upddata);
 	// ------------
 
 	for (int i = 0; i < numberOfPBs; i++)
 	{
-		AXParamBlock& pb = PBs[i];
+		AXParamBlockWii& pb = PBs[i];
 		MixAddVoice(pb, templbuffer, temprbuffer, _iSize);
 	}
 
 	// write back out pbs
-	WriteBackPBs(m_addressPBs, PBs, numberOfPBs);
+	WriteBackPBsWii(m_addressPBs, PBs, numberOfPBs);
 
 	for (int i = 0; i < _iSize; i++)
 	{
@@ -289,14 +176,14 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 	}
 
 	// write logging data to debugger again after the update
-	if (m_frame)
+	//if (m_frame)
 	{
-		CUCode_AX::Logging(_pBuffer, _iSize, 1);
+//		CUCode_AXWii::Logging(_pBuffer, _iSize, 1);
 	}
 }
 
 
-void CUCode_AX::Update()
+void CUCode_AXWii::Update()
 {
 	// check if we have to sent something
 	if (!m_rMailHandler.IsEmpty())
@@ -308,7 +195,7 @@ void CUCode_AX::Update()
 // AX seems to bootup one task only and waits for resume-callbacks
 // everytime the DSP has "spare time" it sends a resume-mail to the CPU
 // and the __DSPHandler calls a AX-Callback which generates a new AXFrame
-bool CUCode_AX::AXTask(u32& _uMail)
+bool CUCode_AXWii::AXTask(u32& _uMail)
 {
 	u32 uAddress = _uMail;
 	DebugLog("AXTask - AXCommandList-Addr: 0x%08x", uAddress);
@@ -330,6 +217,25 @@ bool CUCode_AX::AXTask(u32& _uMail)
 
 	bool bExecuteList = true;
 
+	if (true) 
+	{
+		// PanicAlert("%i", sizeof(AXParamBlockWii));  // 252 ??
+		FILE *f = fopen("D:\\axdump.txt", "a");
+		if (!f)
+			f = fopen("D:\\axdump.txt", "w");
+
+		u32 addr = uAddress;
+		for (int i = 0; i < 100; i++) {
+			fprintf(f, "%02x\n", Memory_Read_U16(addr + i * 2));
+		}
+		fprintf(f, "===========------------------------------------------------=\n");
+		fclose(f);
+	}
+	else
+	{
+		// PanicAlert("%i", sizeof(AXParamBlock));  // 192
+	}
+
 	while (bExecuteList)
 	{
 		static int last_valid_command = 0;
@@ -337,23 +243,17 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		uAddress += 2;
 		switch (iCommand)
 		{
-	    case AXLIST_STUDIOADDR: //00
+	    case 0x0000: //00
 		    Addr__AXStudio = Memory_Read_U32(uAddress);
 		    uAddress += 4;
 		    DebugLog("AXLIST studio address: %08x", Addr__AXStudio);
 		    break;
 
-	    case 0x001: // 2byte x 10
+	    case 0x0001:
 	    {
 		    u32 address = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    u16 param1 = Memory_Read_U16(uAddress);
-		    uAddress += 2;
-		    u16 param2 = Memory_Read_U16(uAddress);
-		    uAddress += 2;
-		    u16 param3 = Memory_Read_U16(uAddress);
-		    uAddress += 2;
-		    DebugLog("AXLIST 1: %08x, %04x, %04x, %04x", address, param1, param2, param3);
+		    DebugLog("AXLIST 1: %08x", address);
 	    }
 		    break;
 
@@ -362,7 +262,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 	    // that tells us what has been updated
 	    // Dunno if important
 	    //
-	    case AXLIST_PBADDR: //02
+	    case 0x0002: //02
 		    {
 		    m_addressPBs = Memory_Read_U32(uAddress);
 		    uAddress += 4;
@@ -383,9 +283,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 	    case 0x0004:  // AUX?
 		    Addr__4_1 = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    Addr__4_2 = Memory_Read_U32(uAddress);
-		    uAddress += 4;
-		    DebugLog("AXLIST 4_1 4_2 addresses: %08x %08x", Addr__4_1, Addr__4_2);
+		    DebugLog("AXLIST 4 address: %08x", Addr__4_1);
 		    break;
 
 	    case 0x0005:
@@ -393,18 +291,21 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		    uAddress += 4;
 		    Addr__5_2 = Memory_Read_U32(uAddress);
 		    uAddress += 4;
+			
+			uAddress += 2;
 		    DebugLog("AXLIST 5_1 5_2 addresses: %08x %08x", Addr__5_1, Addr__5_2);
 		    break;
 
 	    case 0x0006:
 		    Addr__6   = Memory_Read_U32(uAddress);
-		    uAddress += 4;
+		    uAddress += 10;
 		    DebugLog("AXLIST 6 address: %08x", Addr__6);
 		    break;
 
-	    case AXLIST_SBUFFER:
+	    case 0x0007:   // AXLIST_SBUFFER
 		    Addr__AXOutSBuffer = Memory_Read_U32(uAddress);
 		    uAddress += 4;
+			// uAddress += 12;
 		    DebugLog("AXLIST OutSBuffer address: %08x", Addr__AXOutSBuffer);
 		    break;
 
@@ -414,27 +315,28 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		    DebugLog("AXLIST 6 address: %08x", Addr__9);
 		    break;
 
-	    case AXLIST_COMPRESSORTABLE:  // 0xa
+		case 0x000a:  // AXLIST_COMPRESSORTABLE
 		    Addr__A   = Memory_Read_U32(uAddress);
+		    uAddress += 4;
+		    //Addr__A   = Memory_Read_U32(uAddress);
 		    uAddress += 4;
 		    DebugLog("AXLIST CompressorTable address: %08x", Addr__A);
 		    break;
 
+		case 0x000b:
+			uAddress += 2;  // one 0x8000 in rabbids
+			uAddress += 4 * 2; // then two RAM addressses
+			break;
+
+		case 0x000d:
+			uAddress += 4 * 4;
+			break;
+
 	    case 0x000e:
-		    Addr__AXOutSBuffer_1 = Memory_Read_U32(uAddress);
-		    uAddress += 4;
-
-			// Addr__AXOutSBuffer_2 is the address in RAM that we are supposed to mix to.
-			// Although we don't, currently.
-		    Addr__AXOutSBuffer_2 = Memory_Read_U32(uAddress);
-		    uAddress += 4;
-		    DebugLog("AXLIST sbuf2 addresses: %08x %08x", Addr__AXOutSBuffer_1, Addr__AXOutSBuffer_2);
-		    break;
-
-	    case AXLIST_END:
-		    bExecuteList = false;
-		    DebugLog("AXLIST end");
-		    break;
+			// This is the end.
+			bExecuteList = false;
+			DebugLog("AXLIST end, wii stylee.");
+			break;
 
 	    case 0x0010:  //Super Monkey Ball 2
 		    DebugLog("AXLIST unknown");
@@ -455,7 +357,8 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		    uAddress += 6 * 4; // 6 Addresses.
 		    break;
 
-		default:
+
+	    default:
 			{
 		    static bool bFirst = true;
 		    if (bFirst == true)

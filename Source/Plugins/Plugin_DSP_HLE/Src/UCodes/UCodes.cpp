@@ -20,6 +20,7 @@
 #include "UCodes.h"
 
 #include "UCode_AX.h"
+#include "UCode_AXWii.h"
 #include "UCode_Zelda.h"
 #include "UCode_Jac.h"
 #include "UCode_ROM.h"
@@ -72,8 +73,8 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 		    return new CUCode_Zelda(_rMailHandler);
 
 	    case 0x347112ba: // raving rabbits
-		    DebugLog("Wii - AX chosen");
-		    return new CUCode_AX(_rMailHandler, true);
+		    DebugLog("Wii - AXWii chosen");
+		    return new CUCode_AXWii(_rMailHandler);
 
 	    default:
 		    PanicAlert("Unknown ucode (CRC = %08x) - forcing AX", _CRC);
