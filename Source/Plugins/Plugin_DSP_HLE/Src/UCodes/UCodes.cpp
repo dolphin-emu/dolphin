@@ -72,8 +72,9 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 		    DebugLog("Zelda Wii ucode chosen");
 		    return new CUCode_Zelda(_rMailHandler);
 
+		case 0x5ef56da3: // AX demo
 	    case 0x347112ba: // raving rabbits
-		    DebugLog("Wii - AXWii chosen");
+			DebugLog("Wii - AXWii chosen");
 		    return new CUCode_AXWii(_rMailHandler);
 
 	    default:

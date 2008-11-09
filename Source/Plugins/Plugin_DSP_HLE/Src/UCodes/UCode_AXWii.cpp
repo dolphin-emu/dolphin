@@ -206,10 +206,6 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 	u32 Addr__AXOutSBuffer_2;
 	u32 Addr__A;
 	u32 Addr__12;
-	u32 Addr__4_1;
-	u32 Addr__4_2;
-	u32 Addr__4_3;
-	u32 Addr__4_4;
 	u32 Addr__5_1;
 	u32 Addr__5_2;
 	u32 Addr__6;
@@ -250,40 +246,30 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		    break;
 
 	    case 0x0001:
-	    {
+		    {
 		    u32 address = Memory_Read_U32(uAddress);
 		    uAddress += 4;
 		    DebugLog("AXLIST 1: %08x", address);
-	    }
+		    }
 		    break;
 
-	    //
-	    // Somewhere we should be getting a bitmask of AX_SYNC values
-	    // that tells us what has been updated
-	    // Dunno if important
-	    //
-	    case 0x0002: //02
+		case 0x0003:
 		    {
-		    m_addressPBs = Memory_Read_U32(uAddress);
+		    u32 address = Memory_Read_U32(uAddress);
 		    uAddress += 4;
+		    DebugLog("AXLIST 3: %08x", address);
+		    }
+		    break;
 
+	    case 0x0004:  // PBs are here now
+		    m_addressPBs = Memory_Read_U32(uAddress);
 		    mixer_HLEready = true;
 		    DebugLog("AXLIST PB address: %08x", m_addressPBs);
 #ifdef _WIN32
 		    DebugLog("Update the SoundThread to be in sync");
 		    DSound::DSound_UpdateSound(); //do it in this thread to avoid sync problems
 #endif
-		    }
-		    break;
-
-	    case 0x0003:
-		    DebugLog("AXLIST command 0x0003 ????");
-		    break;
-
-	    case 0x0004:  // AUX?
-		    Addr__4_1 = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST 4 address: %08x", Addr__4_1);
 		    break;
 
 	    case 0x0005:
@@ -300,20 +286,20 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		    Addr__6   = Memory_Read_U32(uAddress);
 		    uAddress += 10;
 		    DebugLog("AXLIST 6 address: %08x", Addr__6);
-		    break;
+		    break; 
 
-	    case 0x0007:   // AXLIST_SBUFFER
+/*	    case 0x0007:   // AXLIST_SBUFFER
 		    Addr__AXOutSBuffer = Memory_Read_U32(uAddress);
 		    uAddress += 4;
 			// uAddress += 12;
 		    DebugLog("AXLIST OutSBuffer address: %08x", Addr__AXOutSBuffer);
-		    break;
+		    break;*/
 
-	    case 0x0009:
+/*	    case 0x0009:
 		    Addr__9   = Memory_Read_U32(uAddress);
 		    uAddress += 4;
 		    DebugLog("AXLIST 6 address: %08x", Addr__9);
-		    break;
+		    break;*/
 
 		case 0x000a:  // AXLIST_COMPRESSORTABLE
 		    Addr__A   = Memory_Read_U32(uAddress);
@@ -328,6 +314,11 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 			uAddress += 4 * 2; // then two RAM addressses
 			break;
 
+		case 0x000c:
+			uAddress += 2;  // one 0x8000 in rabbids
+			uAddress += 4 * 2; // then two RAM addressses
+			break;
+
 		case 0x000d:
 			uAddress += 4 * 4;
 			break;
@@ -337,26 +328,6 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 			bExecuteList = false;
 			DebugLog("AXLIST end, wii stylee.");
 			break;
-
-	    case 0x0010:  //Super Monkey Ball 2
-		    DebugLog("AXLIST unknown");
-		    //should probably read/skip stuff here
-		    uAddress += 8;
-		    break;
-
-	    case 0x0011:
-		    uAddress += 4;
-		    break;
-
-	    case 0x0012:
-		    Addr__12  = Memory_Read_U16(uAddress);
-		    uAddress += 2;
-		    break;
-
-	    case 0x0013:
-		    uAddress += 6 * 4; // 6 Addresses.
-		    break;
-
 
 	    default:
 			{

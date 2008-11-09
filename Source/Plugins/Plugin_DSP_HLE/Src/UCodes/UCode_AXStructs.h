@@ -162,6 +162,14 @@ struct PBLpf
 	u16 b0;
 };
 
+struct PBHpf
+{
+	u16 enabled;
+	u16 yn1;
+	u16 a0;
+	u16 b0;
+};
+
 struct AXParamBlockWii
 {
 	u16 next_pb_hi;
@@ -172,9 +180,9 @@ struct AXParamBlockWii
 
 	u16 src_type;     // Type of sample rate converter (none, ?, linear)
 	u16 coef_select;
+	u32 mixer_control;
 
-	u16 mixer_control;
-	u16 running;       // 1=RUN 0=STOP
+	u16 running;       // 1=RUN   0=STOP
 	u16 is_stream;     // 1 = stream, 0 = one shot
 
 	PBMixerWii mixer;
@@ -188,6 +196,7 @@ struct AXParamBlockWii
 	PBSampleRateConverter src;
 	PBADPCMLoopInfo adpcm_loop_info;
 	PBLpf lpf;
+	PBHpf hpf;
 	u16 pad[22];
 };
 
