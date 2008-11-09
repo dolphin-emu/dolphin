@@ -28,7 +28,6 @@
 #include "UCode_AXStructs.h"
 #include "UCode_AX.h"
 
-
 // ---------------------------------------------------------------------------------------
 // Externals
 // -----------
@@ -42,7 +41,6 @@ bool gVolume= true; // used externally
 bool gReset = false; // used externally
 extern CDebugger* m_frame;
 // -----------
-
 
 CUCode_AX::CUCode_AX(CMailHandler& _rMailHandler, bool wii)
 	: IUCode(_rMailHandler)
@@ -76,7 +74,7 @@ void CUCode_AX::HandleMail(u32 _uMail)
 	}
 }
 
-s16 CUCode_AX::ADPCM_Step(AXParamBlock& pb, u32& samplePos, u32 newSamplePos, u16 frac)
+s16 ADPCM_Step(AXParamBlock& pb, u32& samplePos, u32 newSamplePos, u16 frac)
 {
 	PBADPCMInfo &adpcm = pb.adpcm;
 
@@ -158,10 +156,272 @@ u16 ADPCM_Vol(u16 vol, u16 delta, u16 mixer_control)
 }
 // ==============
 
+void MixAddVoice(AXParamBlock &pb, int *templbuffer, int *temprbuffer, int _iSize)
+{
+#ifdef _WIN32
+	ratioFactor = 32000.0f / (float)DSound::DSound_GetSampleRate();
+#else
+	ratioFactor = 32000.0f / 44100.0f;
+#endif
+
+	// get necessary values
+	const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
+	const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
+	const u32 updaddr   = (u32)(pb.updates.data_hi << 16) | pb.updates.data_lo;
+	const u16 updpar    = Memory_Read_U16(updaddr);
+	const u16 upddata   = Memory_Read_U16(updaddr + 2);
+
+	// =======================================================================================
+	/*
+	Fix problems introduced with the SSBM fix - Sometimes when a music stream ended sampleEnd
+	would become extremely high and the game would play random sound data from ARAM resulting in
+	a strange noise. This should take care of that. - Some games (Monkey Ball 1 and Tales of
+	Symphonia and other) also had one odd last block with a strange high loopPos and strange
+	num_updates values, the loopPos limit turns those off also. - Please report any side effects.
+	*/
+	// ------------
+	if (
+		(sampleEnd > 0x10000000 || loopPos > 0x10000000)
+		&& gSSBMremedy1
+		)
+	{
+		pb.running = 0;
+
+		// also reset all values if it makes any difference
+		pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
+		pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
+		pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
+
+		pb.src.cur_addr_frac = 0; pb.src.ratio_hi = 0; pb.src.ratio_lo = 0;
+		pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
+
+		pb.audio_addr.looping = 0;
+		pb.adpcm_loop_info.pred_scale = 0;
+		pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
+	}
+
+	/*
+	// the fact that no settings are reset (except running) after a SSBM type music stream or another
+	looping block (for example in Battle Stadium DON) has ended could cause loud garbled sound to be
+	played from one or more blocks. Perhaps it was in conjunction with the old sequenced music fix below,
+	I'm not sure. This was an attempt to prevent that anyway by resetting all. But I'm not sure if this
+	is needed anymore. Please try to play SSBM without it and see if it works anyway.
+	*/
+	if (
+	// detect blocks that have recently been running that we should reset
+	pb.running == 0 && pb.audio_addr.looping == 1
+	//pb.running == 0 && pb.adpcm_loop_info.pred_scale
+
+	// this prevents us from ruining sequenced music blocks, may not be needed
+	/*
+	&& !(pb.updates.num_updates[0] || pb.updates.num_updates[1] || pb.updates.num_updates[2]
+		|| pb.updates.num_updates[3] || pb.updates.num_updates[4])
+	*/	
+	&& !(updpar || upddata)
+
+	&& pb.mixer_control == 0 // only use this in SSBM
+
+	&& gSSBMremedy2 // let us turn this fix on and off
+	)
+	{
+		// reset the detection values
+		pb.audio_addr.looping = 0;
+		pb.adpcm_loop_info.pred_scale = 0;
+		pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
+
+		//pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
+		//pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
+		//pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
+
+		//pb.src.cur_addr_frac = 0; PBs[i].src.ratio_hi = 0; PBs[i].src.ratio_lo = 0;
+		//pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
+	}
+	
+	// =============
+
+
+	// =======================================================================================
+	// Reset all values
+	// ------------
+	if (gReset
+		&& (pb.running || pb.audio_addr.looping || pb.adpcm_loop_info.pred_scale)
+		)	
+	{
+		pb.running = 0;
+
+		pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
+		pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
+		pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
+
+		pb.src.cur_addr_frac = 0; pb.src.ratio_hi = 0; pb.src.ratio_lo = 0;
+		pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
+
+		pb.audio_addr.looping = 0;
+		pb.adpcm_loop_info.pred_scale = 0;
+		pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
+	}
+	// =============
+	if (pb.running)
+	{
+		// =======================================================================================
+		// Set initial parameters
+		// ------------
+		//constants						
+		const u32 ratio     = (u32)(((pb.src.ratio_hi << 16) + pb.src.ratio_lo) * ratioFactor);
+
+		//variables
+		u32 samplePos = (pb.audio_addr.cur_addr_hi << 16) | pb.audio_addr.cur_addr_lo;
+		u32 frac = pb.src.cur_addr_frac;
+		// =============
+		
+		// =======================================================================================
+		// Handle no-src streams - No src streams have pb.src_type == 2 and have pb.src.ratio_hi = 0
+		// and pb.src.ratio_lo = 0. We handle that by setting the sampling ratio integer to 1. This
+		// makes samplePos update in the correct way. I'm unsure how we are actually supposed to
+		// detect that this setting. Updates did not fix this automatically.
+		// ---------------------------------------------------------------------------------------
+		// Stream settings
+			// src_type = 2 (most other games have src_type = 0)
+		// ------------
+		// Affected games:
+			// Baten Kaitos - Eternal Wings (2003)
+			// Baten Kaitos - Origins (2006)?
+			// Soul Calibur 2: The movie music use src_type 2 but it needs no adjustment, perhaps
+			// the sound format plays in to, Baten use ADPCM SC2 use PCM16
+		// ------------
+		if(pb.src_type == 2 && (pb.src.ratio_hi == 0 && pb.src.ratio_lo == 0))
+		{
+			pb.src.ratio_hi = 1;
+		}
+		// =============
+
+
+		// =======================================================================================
+		// Games that use looping to play non-looping music streams - SSBM has info in all
+		// pb.adpcm_loop_info parameters but has pb.audio_addr.looping = 0. If we treat these streams
+		// like any other looping streams the music works. I'm unsure how we are actually supposed to
+		// detect that these kinds of blocks should be looping. It seems like pb.mixer_control == 0 may
+		// identify these types of blocks. Updates did not write any looping values.
+		// --------------
+		if(
+			(pb.adpcm_loop_info.pred_scale || pb.adpcm_loop_info.yn1 || pb.adpcm_loop_info.yn2)
+			&& pb.mixer_control == 0
+			&& gSSBM
+			)
+		{
+			pb.audio_addr.looping = 1;
+		}
+		// ==============
+
+		// =======================================================================================
+		// Walk through _iSize. _iSize = numSamples. If the game goes slow _iSize will be higher to
+		// compensate for that. _iSize can be as low as 100 or as high as 2000 some cases.
+		for (int s = 0; s < _iSize; s++)
+		{
+			int sample = 0;
+			frac += ratio;
+			u32 newSamplePos = samplePos + (frac >> 16); //whole number of frac
+
+			// =======================================================================================
+			// Process sample format
+			// --------------
+			switch (pb.audio_addr.sample_format)
+			{
+			    case AUDIOFORMAT_PCM8:
+				    pb.adpcm.yn2 = pb.adpcm.yn1; //save last sample
+				    pb.adpcm.yn1 = ((s8)g_dspInitialize.pARAM_Read_U8(samplePos)) << 8;
+
+				    if (pb.src_type == SRCTYPE_NEAREST)
+				    {
+					    sample = pb.adpcm.yn1;
+				    }
+				    else //linear interpolation
+				    {
+					    sample = (pb.adpcm.yn1 * (u16)frac + pb.adpcm.yn2 * (u16)(0xFFFF - frac)) >> 16;
+				    }
+
+				    samplePos = newSamplePos;
+				    break;
+
+			    case AUDIOFORMAT_PCM16:
+				    pb.adpcm.yn2 = pb.adpcm.yn1; //save last sample
+				    pb.adpcm.yn1 = (s16)(u16)((g_dspInitialize.pARAM_Read_U8(samplePos * 2) << 8) | (g_dspInitialize.pARAM_Read_U8((samplePos * 2 + 1))));
+				    if (pb.src_type == SRCTYPE_NEAREST)
+					    sample = pb.adpcm.yn1;
+				    else //linear interpolation
+					    sample = (pb.adpcm.yn1 * (u16)frac + pb.adpcm.yn2 * (u16)(0xFFFF - frac)) >> 16;
+
+				    samplePos = newSamplePos;
+				    break;
+
+			    case AUDIOFORMAT_ADPCM:
+				    sample = ADPCM_Step(pb, samplePos, newSamplePos, frac);
+				    break;
+
+			    default:
+				    break;
+			}
+			// ================
+
+			// =======================================================================================
+			// Volume control
+			frac &= 0xffff;
+
+			int vol = pb.vol_env.cur_volume >> 9;
+			sample = sample * vol >> 8;
+
+			if (pb.mixer_control & MIXCONTROL_RAMPING)
+			{
+				int x = pb.vol_env.cur_volume;
+				x += pb.vol_env.cur_volume_delta; // I'm not sure about this, can anybody find a game
+				// that use this? Or how does it work?
+				if (x < 0) x = 0;
+				if (x >= 0x7fff) x = 0x7fff;
+				pb.vol_env.cur_volume = x; // maybe not per sample?? :P
+			}
+
+			int leftmix  = pb.mixer.volume_left >> 5;
+			int rightmix = pb.mixer.volume_right >> 5;
+			// ===============
+			int left  = sample * leftmix >> 8;
+			int right = sample * rightmix >> 8;
+			//adpcm has to walk from oldSamplePos to samplePos here
+			templbuffer[s] += left;
+			temprbuffer[s] += right;
+
+			if (samplePos >= sampleEnd)
+			{
+				if (pb.audio_addr.looping == 1)
+				{
+					samplePos = loopPos;
+					if (pb.audio_addr.sample_format == AUDIOFORMAT_ADPCM)
+						ADPCM_Loop(pb);
+				}
+				else
+				{
+					pb.running = 0;
+					break;
+				}
+			}
+		} // end of the _iSize loop
+		// ============
+		if (gVolume) // allow us to turn this off in the debugger
+		{
+			pb.mixer.volume_left = ADPCM_Vol(pb.mixer.volume_left, pb.mixer.unknown, pb.mixer_control);
+			pb.mixer.volume_right = ADPCM_Vol(pb.mixer.volume_right, pb.mixer.unknown2, pb.mixer_control);
+		}
+		pb.src.cur_addr_frac = (u16)frac;
+		pb.audio_addr.cur_addr_hi = samplePos >> 16;
+		pb.audio_addr.cur_addr_lo = (u16)samplePos;
+	}
+}
 
 void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 {
 	AXParamBlock PBs[NUMBER_OF_PBS];
+
+	// read out pbs
+	int numberOfPBs = ReadOutPBs(1, PBs, NUMBER_OF_PBS);
 
 	if (_iSize > 1024 * 1024)
 		_iSize = 1024 * 1024;
@@ -169,290 +429,20 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 	memset(templbuffer, 0, _iSize * sizeof(int));
 	memset(temprbuffer, 0, _iSize * sizeof(int));
 
-	// read out pbs
-	int numberOfPBs = ReadOutPBs(1, PBs, NUMBER_OF_PBS);
-
-#ifdef _WIN32
-	ratioFactor = 32000.0f / (float)DSound::DSound_GetSampleRate();
-#else
-	ratioFactor = 32000.0f / 44100.0f;
-#endif
-
 	// write logging data to debugger
-	if(m_frame)
+	if (m_frame)
 	{
 		CUCode_AX::Logging(_pBuffer, _iSize, 0);
 	}
-
-
+	
 	for (int i = 0; i < numberOfPBs; i++)
 	{
 		AXParamBlock& pb = PBs[i];
-
-		// get necessary values
-		const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
-		const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
-		const u32 updaddr   = (u32)(pb.updates.data_hi << 16) | pb.updates.data_lo;
-		const u16 updpar   = Memory_Read_U16(updaddr);
-		const u16 upddata   = Memory_Read_U16(updaddr + 2);
-
-
-		// =======================================================================================
-		/*
-		Fix problems introduced with the SSBM fix - Sometimes when a music stream ended sampleEnd
-		would become extremely high and the game would play random sound data from ARAM resulting in
-		a strange noise. This should take care of that. - Some games (Monkey Ball 1 and Tales of
-		Symphonia and other) also had one odd last block with a strange high loopPos and strange
-		num_updates values, the loopPos limit turns those off also. - Please report any side effects.
-		*/
-		// ------------
-		if (
-			(sampleEnd > 0x10000000 || loopPos > 0x10000000)
-			&& gSSBMremedy1
-			)
-		{
-			pb.running = 0;
-
-			// also reset all values if it makes any difference
-			pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
-			pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
-			pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
-
-			pb.src.cur_addr_frac = 0; PBs[i].src.ratio_hi = 0; PBs[i].src.ratio_lo = 0;
-			pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
-
-			pb.audio_addr.looping = 0;
-			pb.adpcm_loop_info.pred_scale = 0;
-			pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
-		}
-
-		/*
-		// the fact that no settings are reset (except running) after a SSBM type music stream or another
-		looping block (for example in Battle Stadium DON) has ended could cause loud garbled sound to be
-		played from one or more blocks. Perhaps it was in conjunction with the old sequenced music fix below,
-		I'm not sure. This was an attempt to prevent that anyway by resetting all. But I'm not sure if this
-		is needed anymore. Please try to play SSBM without it and see if it works anyway.
-		*/
-		if (
-		// detect blocks that have recently been running that we should reset
-		pb.running == 0 && pb.audio_addr.looping == 1
-		//pb.running == 0 && pb.adpcm_loop_info.pred_scale
-
-		// this prevents us from ruining sequenced music blocks, may not be needed
-		/*
-		&& !(pb.updates.num_updates[0] || pb.updates.num_updates[1] || pb.updates.num_updates[2]
-			|| pb.updates.num_updates[3] || pb.updates.num_updates[4])
-		*/	
-		&& !(updpar || upddata)
-	
-		&& pb.mixer_control == 0 // only use this in SSBM
-
-		&& gSSBMremedy2 // let us turn this fix on and off
-		)
-		{
-			// reset the detection values
-			pb.audio_addr.looping = 0;
-			pb.adpcm_loop_info.pred_scale = 0;
-			pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
-
-			//pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
-			//pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
-			//pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
-
-			//pb.src.cur_addr_frac = 0; PBs[i].src.ratio_hi = 0; PBs[i].src.ratio_lo = 0;
-			//pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
-		}
-		
-		// =============
-
-
-		// =======================================================================================
-		// Reset all values
-		// ------------
-		if (gReset
-			&& (pb.running || pb.audio_addr.looping || pb.adpcm_loop_info.pred_scale)
-			)	
-		{
-			pb.running = 0;
-
-			pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
-			pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
-			pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
-
-			pb.src.cur_addr_frac = 0; PBs[i].src.ratio_hi = 0; PBs[i].src.ratio_lo = 0;
-			pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
-
-			pb.audio_addr.looping = 0;
-			pb.adpcm_loop_info.pred_scale = 0;
-			pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
-		}
-		// =============
-
-
-		if (pb.running)
-		{
-			// =======================================================================================
-			// Set initial parameters
-			// ------------
-			//constants						
-			const u32 ratio     = (u32)(((pb.src.ratio_hi << 16) + pb.src.ratio_lo) * ratioFactor);
-
-			//variables
-			u32 samplePos = (pb.audio_addr.cur_addr_hi << 16) | pb.audio_addr.cur_addr_lo;
-			u32 frac = pb.src.cur_addr_frac;
-			// =============
-
-			
-
-			// =======================================================================================
-			// Handle no-src streams - No src streams have pb.src_type == 2 and have pb.src.ratio_hi = 0
-			// and pb.src.ratio_lo = 0. We handle that by setting the sampling ratio integer to 1. This
-			// makes samplePos update in the correct way. I'm unsure how we are actually supposed to
-			// detect that this setting. Updates did not fix this automatically.
-			// ---------------------------------------------------------------------------------------
-			// Stream settings
-				// src_type = 2 (most other games have src_type = 0)
-			// ------------
-			// Affected games:
-				// Baten Kaitos - Eternal Wings (2003)
-				// Baten Kaitos - Origins (2006)?
-				// Soul Calibur 2: The movie music use src_type 2 but it needs no adjustment, perhaps
-				// the sound format plays in to, Baten use ADPCM SC2 use PCM16
-			// ------------
-			if(pb.src_type == 2 && (pb.src.ratio_hi == 0 && pb.src.ratio_lo == 0))
-			{
-				pb.src.ratio_hi = 1;
-			}
-			// =============
-
-
-			// =======================================================================================
-			// Games that use looping to play non-looping music streams - SSBM has info in all
-			// pb.adpcm_loop_info parameters but has pb.audio_addr.looping = 0. If we treat these streams
-			// like any other looping streams the music works. I'm unsure how we are actually supposed to
-			// detect that these kinds of blocks should be looping. It seems like pb.mixer_control == 0 may
-			// identify these types of blocks. Updates did not write any looping values.
-			// --------------
-			if(
-				(pb.adpcm_loop_info.pred_scale || pb.adpcm_loop_info.yn1 || pb.adpcm_loop_info.yn2)
-				&& pb.mixer_control == 0
-				&& gSSBM
-				)
-			{
-				pb.audio_addr.looping = 1;
-			}
-			// ==============
-
-
-			// =======================================================================================
-			// Walk through _iSize. _iSize = numSamples. If the game goes slow _iSize will be higher to
-			// compensate for that. _iSize can be as low as 100 or as high as 2000 some cases.
-			for (int s = 0; s < _iSize; s++)
-			{
-				int sample = 0;
-				frac += ratio;
-				u32 newSamplePos = samplePos + (frac >> 16); //whole number of frac
-
-
-				// =======================================================================================
-				// Process sample format
-				// --------------
-				switch (pb.audio_addr.sample_format)
-				{
-				    case AUDIOFORMAT_PCM8:
-					    pb.adpcm.yn2 = pb.adpcm.yn1; //save last sample
-					    pb.adpcm.yn1 = ((s8)g_dspInitialize.pARAM_Read_U8(samplePos)) << 8;
-
-					    if (pb.src_type == SRCTYPE_NEAREST)
-					    {
-						    sample = pb.adpcm.yn1;
-					    }
-					    else //linear interpolation
-					    {
-						    sample = (pb.adpcm.yn1 * (u16)frac + pb.adpcm.yn2 * (u16)(0xFFFF - frac)) >> 16;
-					    }
-
-					    samplePos = newSamplePos;
-					    break;
-
-				    case AUDIOFORMAT_PCM16:
-					    pb.adpcm.yn2 = pb.adpcm.yn1; //save last sample
-					    pb.adpcm.yn1 = (s16)(u16)((g_dspInitialize.pARAM_Read_U8(samplePos * 2) << 8) | (g_dspInitialize.pARAM_Read_U8((samplePos * 2 + 1))));
-					    if (pb.src_type == SRCTYPE_NEAREST)
-						    sample = pb.adpcm.yn1;
-					    else //linear interpolation
-						    sample = (pb.adpcm.yn1 * (u16)frac + pb.adpcm.yn2 * (u16)(0xFFFF - frac)) >> 16;
-
-					    samplePos = newSamplePos;
-					    break;
-
-				    case AUDIOFORMAT_ADPCM:
-					    sample = ADPCM_Step(pb, samplePos, newSamplePos, frac);
-					    break;
-
-				    default:
-					    break;
-				}
-				// ================
-
-
-				// =======================================================================================
-				// Volume control
-				frac &= 0xffff;
-
-				int vol = pb.vol_env.cur_volume >> 9;
-				sample = sample * vol >> 8;
-
-				if (pb.mixer_control & MIXCONTROL_RAMPING)
-				{
-					int x = pb.vol_env.cur_volume;
-					x += pb.vol_env.cur_volume_delta; // I'm not sure about this, can anybody find a game
-					// that use this? Or how does it work?
-					if (x < 0) x = 0;
-					if (x >= 0x7fff) x = 0x7fff;
-					pb.vol_env.cur_volume = x; // maybe not per sample?? :P
-				}
-
-				int leftmix  = pb.mixer.volume_left >> 5;
-				int rightmix = pb.mixer.volume_right >> 5;
-				// ===============
-
-
-				int left  = sample * leftmix >> 8;
-				int right = sample * rightmix >> 8;
-
-				//adpcm has to walk from oldSamplePos to samplePos here
-				templbuffer[s] += left;
-				temprbuffer[s] += right;
-
-				if (samplePos >= sampleEnd)
-				{
-					if (pb.audio_addr.looping == 1)
-					{
-						samplePos = loopPos;
-						if (pb.audio_addr.sample_format == AUDIOFORMAT_ADPCM)
-							ADPCM_Loop(pb);
-					}
-					else
-					{
-						pb.running = 0;
-						break;
-					}
-				}
-			} // end of the _iSize loop
-			// ============
-
-			if (gVolume) // allow us to turn this off in the debugger
-			{
-				pb.mixer.volume_left = ADPCM_Vol(pb.mixer.volume_left, pb.mixer.unknown, pb.mixer_control);
-				pb.mixer.volume_right = ADPCM_Vol(pb.mixer.volume_right, pb.mixer.unknown2, pb.mixer_control);
-			}
-
-			pb.src.cur_addr_frac = (u16)frac;
-			pb.audio_addr.cur_addr_hi = samplePos >> 16;
-			pb.audio_addr.cur_addr_lo = (u16)samplePos;
-		}
+		MixAddVoice(pb, templbuffer, temprbuffer, _iSize);
 	}
+
+	// write back out pbs
+	WriteBackPBs(PBs, numberOfPBs);
 
 	for (int i = 0; i < _iSize; i++)
 	{
@@ -467,15 +457,13 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		*_pBuffer++ = right;
 	}
 
-	// write back out pbs
-	WriteBackPBs(PBs, numberOfPBs);
-
 	// write logging data to debugger again after the update
 	if (m_frame)
 	{
 		CUCode_AX::Logging(_pBuffer, _iSize, 1);
 	}
 }
+
 
 void CUCode_AX::Update()
 {

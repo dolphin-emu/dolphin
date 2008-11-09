@@ -29,6 +29,17 @@ struct PBMixer
 	u16 unknown4[6];
 };
 
+struct PBMixerWii
+{
+	u16 volume_left;
+	u16 unknown;
+	u16 volume_right;
+	u16 unknown2;
+
+	u16 unknown3[12];
+	u16 unknown4[8];
+};
+
 struct PBInitialTimeDelay
 {
 	u16 on;
@@ -51,9 +62,21 @@ struct PBUpdates
 	u16 data_lo;
 };
 
-struct PBUnknown
+struct PBUpdatesWii
+{
+	u16 num_updates[3];
+	u16 data_hi;  // These point to main RAM. Not sure about the structure of the data.
+	u16 data_lo;
+};
+
+struct PBDpop
 {
 	s16 unknown[9];
+};
+
+struct PBDpopWii
+{
+	s16 unknown[12];
 };
 
 struct PBVolumeEnvelope
@@ -121,7 +144,7 @@ struct AXParamBlock
 /*  9 */	PBMixer mixer;
 /* 27 */	PBInitialTimeDelay initial_time_delay;  
 /* 34 */	PBUpdates updates;
-/* 41 */	PBUnknown unknown2;
+/* 41 */	PBDpop dpop;
 /* 50 */	PBVolumeEnvelope vol_env;
 /* 52 */	PBUnknown2 unknown3;
 /* 55 */	PBAudioAddr audio_addr;
@@ -129,6 +152,43 @@ struct AXParamBlock
 /* 83 */    PBSampleRateConverter src;
 /* 90 */	PBADPCMLoopInfo adpcm_loop_info;
 /* 93 */	u16 unknown_maybe_padding[3];
+};
+
+struct PBLpf
+{
+	u16 enabled;
+	u16 yn1;
+	u16 a0;
+	u16 b0;
+};
+
+struct AXParamBlockWii
+{
+	u16 next_pb_hi;
+	u16 next_pb_lo;
+
+	u16 this_pb_hi;
+	u16 this_pb_lo;
+
+	u16 src_type;     // Type of sample rate converter (none, ?, linear)
+	u16 coef_select;
+
+	u16 mixer_control;
+	u16 running;       // 1=RUN 0=STOP
+	u16 is_stream;     // 1 = stream, 0 = one shot
+
+	PBMixerWii mixer;
+	PBInitialTimeDelay initial_time_delay;  
+	PBUpdatesWii updates;
+	PBDpopWii dpop;
+	PBVolumeEnvelope vol_env;
+	PBUnknown2 unknown3;
+	PBAudioAddr audio_addr;
+	PBADPCMInfo adpcm;
+	PBSampleRateConverter src;
+	PBADPCMLoopInfo adpcm_loop_info;
+	PBLpf lpf;
+	u16 pad[22];
 };
 
 enum {

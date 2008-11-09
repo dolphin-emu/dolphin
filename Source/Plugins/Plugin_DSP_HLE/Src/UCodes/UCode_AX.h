@@ -20,6 +20,11 @@
 
 #include "UCode_AXStructs.h"
 
+enum
+{
+	NUMBER_OF_PBS = 64
+};
+
 class CUCode_AX	: public IUCode
 {
 public:
@@ -34,12 +39,6 @@ public:
 	void Logging(short* _pBuffer, int _iSize, int a);
 
 private:
-
-	enum
-	{
-		NUMBER_OF_PBS = 64
-	};
-
 	enum
 	{
 		MAIL_AX_ALIST = 0xBABE0000,
@@ -64,7 +63,6 @@ private:
 	void SendMail(u32 _uMail);
 	int ReadOutPBs(int a, AXParamBlock *_pPBs, int _num);
 	void WriteBackPBs(AXParamBlock *_pPBs, int _num);
-	s16 ADPCM_Step(AXParamBlock& pb, u32& samplePos, u32 newSamplePos, u16 frac);
 };
 
 #endif  // _UCODE_AX

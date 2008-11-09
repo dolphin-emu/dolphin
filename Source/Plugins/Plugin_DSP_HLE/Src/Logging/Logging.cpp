@@ -141,8 +141,8 @@ int vectorLength2 = 100; // for console version
 
 // should we worry about the additonal memory these lists require? bool will allocate
 // very little memory
-std::vector< std::vector<bool> > vector1(64, std::vector<bool>(vectorLength,0)); 
-std::vector< std::vector<bool> > vector2(64, std::vector<bool>(vectorLength2,0));
+std::vector< std::vector<bool> > vector1(64, std::vector<bool>(vectorLength, 0)); 
+std::vector< std::vector<bool> > vector2(64, std::vector<bool>(vectorLength2, 0));
 std::vector<int> numberRunning(64);
 
 
@@ -301,12 +301,12 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		}
 		else
 		{
-			Conditions = (numberRunning.at(i) > 0 || PBs[i].audio_addr.looping);
+			Conditions = numberRunning.at(i) > 0 || PBs[i].audio_addr.looping;
 		}
 		// --------------
 
 
-		if(Conditions)
+		if (Conditions)
 		{
 			// AXPB base
 			gcoef[i] = PBs[i].unknown1;
