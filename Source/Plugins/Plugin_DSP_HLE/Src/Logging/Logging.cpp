@@ -312,11 +312,8 @@ template<class ParamBlockType> void CollectPB(bool Wii, int i, ParamBlockType &P
 	gmixer_vol6[i] = PBs[i].mixer.unknown3[2];
 	gmixer_vol7[i] = PBs[i].mixer.unknown3[4];
 
-	//gmixer_d1[i] = PBs[i].mixer.unknown4[1];
-	gmixer_d1[i] = PBs[i].next_pb_lo;
-	gmixer_d2[i] = PBs[i].next_pb_hi;
-
-	//gmixer_d2[i] = PBs[i].mixer.unknown4[3];
+	gmixer_d1[i] = PBs[i].mixer.unknown4[1];
+	gmixer_d2[i] = PBs[i].mixer.unknown4[3];
 	gmixer_d3[i] = PBs[i].mixer.unknown4[5];
 	gmixer_d4[i] = PBs[i].mixer.unknown4[7];
 	gmixer_d5[i] = PBs[i].mixer.unknown4[1];
