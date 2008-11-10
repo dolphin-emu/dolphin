@@ -83,8 +83,10 @@ int ReadOutPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
 	{
 		const short *pSrc = (const short *)g_dspInitialize.pGetMemoryPointer(blockAddr);
 		pAddr = blockAddr;
-		u32 nextBlock = (Common::swap16(pSrc[162]) << 16 | Common::swap16(pSrc[163]));
-		if (pSrc != NULL && nextBlock == blockAddr + 320) // new way to stop
+
+		// Detect the last mail by checking when next_pb = 0
+		u32 next_pb = (Common::swap16(pSrc[160]) << 16 | Common::swap16(pSrc[161]));
+		if (pSrc != NULL && next_pb > 0)
 		{
 			short *pDest = (short *)&_pPBs[i];
 			for (int p = 0; p < sizeof(AXParamBlockWii) / 2; p++)
