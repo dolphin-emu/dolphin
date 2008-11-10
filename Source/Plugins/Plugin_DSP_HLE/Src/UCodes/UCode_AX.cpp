@@ -408,7 +408,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 	// write logging data to debugger
 	if (m_frame)
 	{
-		CUCode_AX::Logging(_pBuffer, _iSize, 0);
+		CUCode_AX::Logging(_pBuffer, _iSize, 0, false);
 	}
 	
 	// ---------------------------------------------------------------------------------------
@@ -464,7 +464,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 	// write logging data to debugger again after the update
 	if (m_frame)
 	{
-		CUCode_AX::Logging(_pBuffer, _iSize, 1);
+		CUCode_AX::Logging(_pBuffer, _iSize, 1, false);
 	}
 }
 

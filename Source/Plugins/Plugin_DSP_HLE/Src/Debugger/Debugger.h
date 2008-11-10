@@ -73,11 +73,11 @@ class CDebugger : public wxDialog
 		void NotifyUpdate();
 		void OnUpdate(wxCommandEvent& event);
 
-		void SaveFile(wxCommandEvent& event); // options
-		void ShowHideConsole(wxCommandEvent& event);
+		void ShowHideConsole(wxCommandEvent& event); // options
 		void DoShowHideConsole();
-		void OnlyLooping(wxCommandEvent& event);
-
+		//void OnlyLooping(wxCommandEvent& event);
+		void OnOptions(wxCommandEvent& event);
+		void OnShowAll(wxCommandEvent& event);
 
 		void ChangeFrequency(wxCommandEvent& event); // update frequency
 		void DoChangeFrequency();
@@ -100,12 +100,14 @@ class CDebugger : public wxDialog
 
 		CPBView* m_GPRListView;
 		std::vector<std::string> sMail, sMailEnd, sFullMail;
-		wxRadioBox *m_RadioBox[4];
+		wxRadioBox * m_RadioBox[4], * m_RadioBoxShowAll;
 		
 		bool gSaveFile; // main options
 		bool gOnlyLooping;
+		bool gShowAll;
+		int giShowAll;
 		int gUpdFreq;// main update freq.
-		bool gPreset; // main presets		
+		int gPreset; // main presets		
 
 		bool gSSBM;  // main settings
 		bool gSSBMremedy1;
@@ -128,7 +130,7 @@ class CDebugger : public wxDialog
 
 		wxCheckBox *m_Check[9];
 		wxRadioButton *m_Radio[5];
-		wxCheckListBox * m_settings, * m_gc, * m_wii, * m_gcwiiset;
+		wxCheckListBox * m_options, * m_opt_showall, * m_settings, * m_gc, * m_wii, * m_gcwiiset;
 		wxPanel *m_Controller;
 
 		std::vector<std::string> all_all_files, all_files, gc_files, wii_files;
@@ -141,8 +143,8 @@ class CDebugger : public wxDialog
 			IDC_CHECK2,
 			IDC_CHECK3,
 			IDC_CHECK4,
-			IDC_CHECKLIST1, IDC_CHECKLIST2, IDC_CHECKLIST3, IDC_CHECKLIST4,
-			IDC_RADIO0, IDC_RADIO1, IDC_RADIO2, IDC_RADIO3,
+			IDC_CHECKLIST1, IDC_CHECKLIST2, IDC_CHECKLIST3, IDC_CHECKLIST4, IDC_CHECKLIST5, IDC_CHECKLIST6,
+			IDC_RADIO0, IDC_RADIO1, IDC_RADIO2, IDC_RADIO3, IDC_RADIO4,
 			IDG_LABEL1, IDG_LABEL2,
 			ID_UPD,
 			ID_SELC,

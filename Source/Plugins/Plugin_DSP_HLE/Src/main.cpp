@@ -199,6 +199,7 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 
 	g_pMemory = g_dspInitialize.pGetMemoryPointer(0);
 
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	gpName = g_dspInitialize.pName(); // save the game name globally
 	for (int i = 0; i < gpName.length(); ++i) // and fix it
 	{
@@ -207,6 +208,7 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 		if (gpName[i] == ':') gpName[i] = ' ';
 	}
 	wprintf("\n");
+#endif
 
 	CDSPHandler::CreateInstance();
 

@@ -67,10 +67,12 @@ inline u16 ADPCM_Vol(u16 vol, u16 delta, u16 mixer_control)
 	int x = vol;
 	if (delta && delta < 0x5000)
 		x += delta * 20 * 8; // unsure what the right step is
-	else if (delta && delta > 0x5000)
+		//x += 1 * 20 * 8;
+	else if (delta && delta > 05000)
 		//x -= (0x10000 - delta); // this is to small, it's often 1
 		x -= (0x10000 - delta) * 20 * 16; // if this was 20 * 8 the sounds in Fire Emblem and Paper Mario
 			// did not have time to go to zero before the were closed
+		//x -= 1 * 20 * 16;
 
 	 // make lower limits
 	if (x < 0) x = 0;	

@@ -23,7 +23,7 @@
 
 enum
 {
-	NUMBER_OF_PBS = 64
+	NUMBER_OF_PBS = 128
 };
 
 class CUCode_AX	: public IUCode
@@ -37,7 +37,9 @@ public:
 	void Update();
 
 	// Logging
-	void Logging(short* _pBuffer, int _iSize, int a);
+	//template<class ParamBlockType>
+	//void Logging(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs, int numberOfPBs);
+	void Logging(short* _pBuffer, int _iSize, int a, bool Wii);
 	void SaveLog_(bool Wii, const char* _fmt, ...);
 	void SaveMail(bool Wii, u32 _uMail);
 	void SaveLogFile(std::string f, int resizeTo, bool type, bool Wii);

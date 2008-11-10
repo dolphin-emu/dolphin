@@ -39,7 +39,7 @@
 #include "../UCodes/UCodes.h"
 #include "../UCodes/UCode_AXStructs.h"
 #include "../UCodes/UCode_AX.h"
-
+#include "../UCodes/UCode_AXWii.h"
 
 // Externals
 
@@ -47,72 +47,72 @@ u32 gLastBlock;
 extern int nFiles;
 float ratioFactor; // a global to get the ratio factor from MixAdd
 extern CDebugger* m_frame;
-
+//int PBSize = 128;
 
 // Parameter blocks
 
-	std::vector<u32> gloopPos(64);
-	std::vector<u32> gsampleEnd(64);
-	std::vector<u32> gsamplePos(64);
+	std::vector<u32> gloopPos(NUMBER_OF_PBS);
+	std::vector<u32> gsampleEnd(NUMBER_OF_PBS);
+	std::vector<u32> gsamplePos(NUMBER_OF_PBS);
 
 // main
-	std::vector<u16> gsrc_type(64);
-	std::vector<u16> gis_stream(64);
+	std::vector<u16> gsrc_type(NUMBER_OF_PBS);
+	std::vector<u16> gis_stream(NUMBER_OF_PBS);
 
 // PBSampleRateConverter src
-	std::vector<u32> gratio(64);
-	std::vector<u32> gratiohi(64);
-	std::vector<u32> gratiolo(64);
-	std::vector<u32> gfrac(64);
-	std::vector<u32> gcoef(64);
+	std::vector<u32> gratio(NUMBER_OF_PBS);
+	std::vector<u32> gratiohi(NUMBER_OF_PBS);
+	std::vector<u32> gratiolo(NUMBER_OF_PBS);
+	std::vector<u32> gfrac(NUMBER_OF_PBS);
+	std::vector<u32> gcoef(NUMBER_OF_PBS);
 
 // PBSampleRateConverter mixer
-	std::vector<u16> gvolume_left(64);
-	std::vector<u16> gmix_unknown(64);
-	std::vector<u16> gvolume_right(64);
-	std::vector<u16> gmix_unknown2(64);
-	std::vector<u16> gmixer_control(64);
+	std::vector<u16> gvolume_left(NUMBER_OF_PBS);
+	std::vector<u16> gmix_unknown(NUMBER_OF_PBS);
+	std::vector<u16> gvolume_right(NUMBER_OF_PBS);
+	std::vector<u16> gmix_unknown2(NUMBER_OF_PBS);
+	std::vector<u16> gmixer_control(NUMBER_OF_PBS);
 
-	std::vector<u16> gmixer_vol1(64);
-	std::vector<u16> gmixer_vol2(64);
-	std::vector<u16> gmixer_vol3(64);
-	std::vector<u16> gmixer_vol4(64);
-	std::vector<u16> gmixer_vol5(64);
-	std::vector<u16> gmixer_vol6(64);
-	std::vector<u16> gmixer_vol7(64);
+	std::vector<u16> gmixer_vol1(NUMBER_OF_PBS);
+	std::vector<u16> gmixer_vol2(NUMBER_OF_PBS);
+	std::vector<u16> gmixer_vol3(NUMBER_OF_PBS);
+	std::vector<u16> gmixer_vol4(NUMBER_OF_PBS);
+	std::vector<u16> gmixer_vol5(NUMBER_OF_PBS);
+	std::vector<u16> gmixer_vol6(NUMBER_OF_PBS);
+	std::vector<u16> gmixer_vol7(NUMBER_OF_PBS);
 
-	std::vector<u16> gmixer_d1(64);
-	std::vector<u16> gmixer_d2(64);
-	std::vector<u16> gmixer_d3(64);
-	std::vector<u16> gmixer_d4(64);
-	std::vector<u16> gmixer_d5(64);
-	std::vector<u16> gmixer_d6(64);
-	std::vector<u16> gmixer_d7(64);
+	std::vector<u16> gmixer_d1(NUMBER_OF_PBS);
+	std::vector<u16> gmixer_d2(NUMBER_OF_PBS);
+	std::vector<u16> gmixer_d3(NUMBER_OF_PBS);
+	std::vector<u16> gmixer_d4(NUMBER_OF_PBS);
+	std::vector<u16> gmixer_d5(NUMBER_OF_PBS);
+	std::vector<u16> gmixer_d6(NUMBER_OF_PBS);
+	std::vector<u16> gmixer_d7(NUMBER_OF_PBS);
 
 // PBVolumeEnvelope vol_env
-	std::vector<u16> gcur_volume(64);
-	std::vector<u16> gcur_volume_delta(64);
+	std::vector<u16> gcur_volume(NUMBER_OF_PBS);
+	std::vector<u16> gcur_volume_delta(NUMBER_OF_PBS);
 
 // PBAudioAddr audio_addr (incl looping)
-	std::vector<u16> gaudioFormat(64);
-	std::vector<u16> glooping(64);
-	std::vector<u16> gloop1(64);
-	std::vector<u16> gloop2(64);
-	std::vector<u16> gloop3(64);
+	std::vector<u16> gaudioFormat(NUMBER_OF_PBS);
+	std::vector<u16> glooping(NUMBER_OF_PBS);
+	std::vector<u16> gloop1(NUMBER_OF_PBS);
+	std::vector<u16> gloop2(NUMBER_OF_PBS);
+	std::vector<u16> gloop3(NUMBER_OF_PBS);
 
 // PBADPCMInfo adpcm
-	std::vector<u16> gadloop1(64);
-	std::vector<u16> gadloop2(64);
-	std::vector<u16> gadloop3(64);
+	std::vector<u16> gadloop1(NUMBER_OF_PBS);
+	std::vector<u16> gadloop2(NUMBER_OF_PBS);
+	std::vector<u16> gadloop3(NUMBER_OF_PBS);
 
 // updates
-	std::vector<u16> gupdates1(64);
-	std::vector<u16> gupdates2(64);
-	std::vector<u16> gupdates3(64);
-	std::vector<u16> gupdates4(64);
-	std::vector<u16> gupdates5(64);
-	std::vector<u32> gupdates_addr(64);
-	std::vector<u32> gupdates_data(64);
+	std::vector<u16> gupdates1(NUMBER_OF_PBS);
+	std::vector<u16> gupdates2(NUMBER_OF_PBS);
+	std::vector<u16> gupdates3(NUMBER_OF_PBS);
+	std::vector<u16> gupdates4(NUMBER_OF_PBS);
+	std::vector<u16> gupdates5(NUMBER_OF_PBS);
+	std::vector<u32> gupdates_addr(NUMBER_OF_PBS);
+	std::vector<u32> gupdates_data(NUMBER_OF_PBS);
 
 
 // Counters
@@ -132,9 +132,9 @@ int vectorLength2 = 100; // for console version
 
 // should we worry about the additonal memory these lists require? bool will allocate
 // very little memory
-std::vector< std::vector<bool> > vector1(64, std::vector<bool>(vectorLength, 0)); 
-std::vector< std::vector<bool> > vector2(64, std::vector<bool>(vectorLength2, 0));
-std::vector<int> numberRunning(64);
+std::vector< std::vector<bool> > vector1(NUMBER_OF_PBS, std::vector<bool>(vectorLength, 0)); 
+std::vector< std::vector<bool> > vector2(NUMBER_OF_PBS, std::vector<bool>(vectorLength2, 0));
+std::vector<int> numberRunning(NUMBER_OF_PBS);
 
 
 // Classes
@@ -245,31 +245,207 @@ std::string writeMessage(int a, int i)
 }
 
 
-// =======================================================================================
+// ================
 
+
+// =======================================================================================
+// Collect parameters from Wii or GC
+// --------------
+/*
+std::string ShowAllPB(int a, int i)
+{
+	if(a == 0)
+	{
+
+	}
+	else if(a == 1)
+	{
+
+
+	}
+	else if(a == 1)
+	{
+
+	}
+	else if(a == 1)
+
+}
+*/
+// ================
+
+
+// =======================================================================================
+// Collect parameters from Wii or GC
+// --------------
+
+//inline void MixAddVoice(ParamBlockType &pb
+//void CollectPB(bool Wii, int i, AXParamBlockWii * PBw, ParamBlockType &pb)
+template<class ParamBlockType> void CollectPB(bool Wii, int i, ParamBlockType &PBs)
+//void CollectPB(bool Wii, int i, AXParamBlockWii * PBw, AXParamBlock * PBs)
+{
+	// AXPB base
+	gcoef[i] = PBs[i].coef_select;
+
+	gloopPos[i]   = (PBs[i].audio_addr.loop_addr_hi << 16) | PBs[i].audio_addr.loop_addr_lo;
+	gsampleEnd[i] = (PBs[i].audio_addr.end_addr_hi << 16) | PBs[i].audio_addr.end_addr_lo;
+	gsamplePos[i] = (PBs[i].audio_addr.cur_addr_hi << 16) | PBs[i].audio_addr.cur_addr_lo;
+
+	// mixer (some differences)
+	gvolume_left[i] = PBs[i].mixer.volume_left;
+	gvolume_right[i] = PBs[i].mixer.volume_right;
+
+	if(i == 94 && (PBs[i].mixer.unknown > 0 || PBs[i].mixer.unknown2 > 0))
+		DebugLog("(%i)  |  LOG Read Left:  %04x |   Right: %04x", i, PBs[i].mixer.unknown, PBs[i].mixer.unknown2);
+
+	gmix_unknown[i] = PBs[i].mixer.unknown;
+	gmix_unknown2[i] = PBs[i].mixer.unknown2;
+
+	gmixer_control[i] = PBs[i].mixer_control;
+	gcur_volume[i] = PBs[i].vol_env.cur_volume;
+	gcur_volume_delta[i] = PBs[i].vol_env.cur_volume_delta;
+
+	gmixer_vol1[i] = PBs[i].mixer.unknown3[0];
+	gmixer_vol2[i] = PBs[i].mixer.unknown3[2];
+	gmixer_vol3[i] = PBs[i].mixer.unknown3[4];
+	gmixer_vol4[i] = PBs[i].mixer.unknown3[6];
+	gmixer_vol5[i] = PBs[i].mixer.unknown3[0];
+	gmixer_vol6[i] = PBs[i].mixer.unknown3[2];
+	gmixer_vol7[i] = PBs[i].mixer.unknown3[4];
+
+	//gmixer_d1[i] = PBs[i].mixer.unknown4[1];
+	gmixer_d1[i] = PBs[i].next_pb_lo;
+	gmixer_d2[i] = PBs[i].next_pb_hi;
+
+	//gmixer_d2[i] = PBs[i].mixer.unknown4[3];
+	gmixer_d3[i] = PBs[i].mixer.unknown4[5];
+	gmixer_d4[i] = PBs[i].mixer.unknown4[7];
+	gmixer_d5[i] = PBs[i].mixer.unknown4[1];
+	gmixer_d6[i] = PBs[i].mixer.unknown4[3];
+	gmixer_d7[i] = PBs[i].mixer.unknown4[5];
+
+	// adpcm_loop_info (same in GC and Wii)
+	gadloop1[i] = PBs[i].adpcm.pred_scale;
+	gadloop2[i] = PBs[i].adpcm.yn1;
+	gadloop3[i] = PBs[i].adpcm.yn2;
+
+	gloop1[i] = PBs[i].adpcm_loop_info.pred_scale;
+	gloop2[i] = PBs[i].adpcm_loop_info.yn1;
+	gloop3[i] = PBs[i].adpcm_loop_info.yn2;
+
+	// updates (differences)
+	gupdates1[i] = PBs[i].updates.num_updates[0];
+	gupdates2[i] = PBs[i].updates.num_updates[1];
+	gupdates3[i] = PBs[i].updates.num_updates[2];
+	gupdates4[i] = PBs[i].updates.num_updates[3];
+	gupdates5[i] = PBs[i].updates.num_updates[4];
+
+	gupdates_addr[i] = (PBs[i].updates.data_hi << 16) | PBs[i].updates.data_lo;
+	gupdates_data[i] = Memory_Read_U32(gupdates_addr[i]);
+
+	gaudioFormat[i] = PBs[i].audio_addr.sample_format;
+	glooping[i] = PBs[i].audio_addr.looping;
+	gsrc_type[i] = PBs[i].src_type;
+	gis_stream[i] = PBs[i].is_stream;
+	
+	// PBSampleRateConverter src
+
+	gratio[i] = (u32)(((PBs[i].src.ratio_hi << 16) + PBs[i].src.ratio_lo) * ratioFactor);
+	gratiohi[i] = PBs[i].src.ratio_hi;
+	gratiolo[i] = PBs[i].src.ratio_lo;
+	gfrac[i] = PBs[i].src.cur_addr_frac;
+}
+// ===============
+
+
+
+// =======================================================================================
+// Prepare the condition that makes us show a certain block
+// --------------
+template<class ParamBlockType>
+bool PrepareConditions(bool Wii, int i, ParamBlockType &PBs)
+{
+	bool Conditions;
+
+	if (m_frame->gOnlyLooping) // show only looping blocks
+	{
+		Conditions = PBs[i].audio_addr.looping;
+	}
+	else if (m_frame->gShowAll) // show all blocks
+	{
+		Conditions = true;
+	}
+	else if (m_frame->giShowAll > -1) // show all blocks
+	{
+		if (m_frame->giShowAll == 0)
+			Conditions = (i < 31);
+		else if(m_frame->giShowAll == 1)
+			Conditions = (i > 30 && i < 61);
+		else if(m_frame->giShowAll == 2)
+			Conditions = (i > 60 && i < 91);
+		else if(m_frame->giShowAll == 3)
+			Conditions = (i > 90 && i < 121);
+	}		
+	else // show only the ones that have recently been running
+	{
+		Conditions = (numberRunning.at(i) > 0 || PBs[i].audio_addr.looping);
+	}
+
+	return Conditions;
+}
+// ===============
 
 
 // I placed this in CUCode_AX because it needs access to private members of that class.
-void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
+//template<class ParamBlockType>
+//void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii, AXParamBlockWii *PBs, int numberOfPBs)
+void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 {
-	AXParamBlock PBs[NUMBER_OF_PBS];
-	int numberOfPBs = ReadOutPBs(m_addressPBs, PBs, NUMBER_OF_PBS);
+	// Declare structures
+	/**/
+	AXParamBlock PBs[64];
+	AXParamBlockWii PBw[NUMBER_OF_PBS];
+	int numberOfPBsWii = ReadOutPBsWii(m_addressPBs, PBw, NUMBER_OF_PBS - 1);
+	int numberOfPBsGC = ReadOutPBs(m_addressPBs, PBs, 64);
+	
+
+	/**/
+	// Read out the number of PBs that have data
+	int numberOfPBs;
+	if(Wii)
+		numberOfPBs = numberOfPBsWii;
+	else	
+		numberOfPBs = numberOfPBsGC;
+	
+
+	/*
+		DebugLog("After Read LOG: Left: %04x | Right: %04x     ||  Left: %04x | Right: %04x  ",
+		PBs[94].mixer.unknown, PBs[94].mixer.unknown2,
+		PBw[94].mixer.unknown, PBw[94].mixer.unknown2
+		);
+		*/
+
+
+	// Select blocks to show
+	bool Conditions;
 
 	// =======================================================================================
 	// Update parameter values
 	// --------------
-	// We could chose to update these only if a block is currently running - Later I'll add options
-	// to see both the current and the lastets active value.
+	// We could chose to update these only if a block is currently running. Later I'll add options
+	// to see both the current and the latest active value.
 	//if (PBs[i].running)
 	int irun = 0;
 	for (int i = 0; i < numberOfPBs; i++)
 	{		
+
+		// --------------------------------------------------------------------
+		// Write a line for the text log if nothing is playing
+		// --------------
 		if (PBs[i].running)
 		{
 			irun++;
 		}
-
-		// write a line if nothing is playing
+		
 		if (i == numberOfPBs - 1 && irun == 0) 
 		{
 			for (int i = 0; i < nFiles; i++)
@@ -279,88 +455,24 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 				aprintf(i, (char *)sfbuff.c_str());
 			}
 		}
+		// --------------
 
-		// ---------------------------------------------------------------------------------------
+
 		// Prepare conditions
-		// --------------
-		bool Conditions;
-		if (m_frame->gOnlyLooping)
-		{
-			Conditions = PBs[i].audio_addr.looping;
-		}
+		/**/
+		if(Wii)
+			Conditions = PrepareConditions(Wii, i, PBw);
 		else
-		{
-			Conditions = numberRunning.at(i) > 0 || PBs[i].audio_addr.looping;
-		}
-		// --------------
+			Conditions = PrepareConditions(Wii, i, PBs);
 
 
 		if (Conditions)
 		{
-			// AXPB base
-			gcoef[i] = PBs[i].unknown1;
-
-			gloopPos[i]   = (PBs[i].audio_addr.loop_addr_hi << 16) | PBs[i].audio_addr.loop_addr_lo;
-			gsampleEnd[i] = (PBs[i].audio_addr.end_addr_hi << 16) | PBs[i].audio_addr.end_addr_lo;
-			gsamplePos[i] = (PBs[i].audio_addr.cur_addr_hi << 16) | PBs[i].audio_addr.cur_addr_lo;
-
-			// PBSampleRateConverter src
-
-			gratio[i] = (u32)(((PBs[i].src.ratio_hi << 16) + PBs[i].src.ratio_lo) * ratioFactor);
-			gratiohi[i] = PBs[i].src.ratio_hi;
-			gratiolo[i] = PBs[i].src.ratio_lo;
-			gfrac[i] = PBs[i].src.cur_addr_frac;
-
-			// adpcm_loop_info
-			gadloop1[i] = PBs[i].adpcm.pred_scale;
-			gadloop2[i] = PBs[i].adpcm.yn1;
-			gadloop3[i] = PBs[i].adpcm.yn2;
-
-			gloop1[i] = PBs[i].adpcm_loop_info.pred_scale;
-			gloop2[i] = PBs[i].adpcm_loop_info.yn1;
-			gloop3[i] = PBs[i].adpcm_loop_info.yn2;
-
-			// updates
-			gupdates1[i] = PBs[i].updates.num_updates[0];
-			gupdates2[i] = PBs[i].updates.num_updates[1];
-			gupdates3[i] = PBs[i].updates.num_updates[2];
-			gupdates4[i] = PBs[i].updates.num_updates[3];
-			gupdates5[i] = PBs[i].updates.num_updates[4];
-
-			gupdates_addr[i] = (PBs[i].updates.data_hi << 16) | PBs[i].updates.data_lo;
-			gupdates_data[i] = Memory_Read_U32(gupdates_addr[i]);
-
-			gaudioFormat[i] = PBs[i].audio_addr.sample_format;
-			glooping[i] = PBs[i].audio_addr.looping;
-			gsrc_type[i] = PBs[i].src_type;
-			gis_stream[i] = PBs[i].is_stream;
-
-			// mixer
-			gvolume_left[i] = PBs[i].mixer.volume_left;
-			gvolume_right[i] = PBs[i].mixer.volume_right;
-
-			gmix_unknown[i] = PBs[i].mixer.unknown;
-			gmix_unknown2[i] = PBs[i].mixer.unknown2;
-
-			gmixer_control[i] = PBs[i].mixer_control;
-			gcur_volume[i] = PBs[i].vol_env.cur_volume;
-			gcur_volume_delta[i] = PBs[i].vol_env.cur_volume_delta;
-
-			gmixer_vol1[i] = PBs[i].mixer.unknown3[0];
-			gmixer_vol2[i] = PBs[i].mixer.unknown3[2];
-			gmixer_vol3[i] = PBs[i].mixer.unknown3[4];
-			gmixer_vol4[i] = PBs[i].mixer.unknown3[6];
-			gmixer_vol5[i] = PBs[i].mixer.unknown3[0];
-			gmixer_vol6[i] = PBs[i].mixer.unknown3[2];
-			gmixer_vol7[i] = PBs[i].mixer.unknown3[4];
-
-			gmixer_d1[i] = PBs[i].mixer.unknown4[1];
-			gmixer_d2[i] = PBs[i].mixer.unknown4[3];
-			gmixer_d3[i] = PBs[i].mixer.unknown4[5];
-			gmixer_d4[i] = PBs[i].mixer.unknown4[7];
-			gmixer_d5[i] = PBs[i].mixer.unknown4[1];
-			gmixer_d6[i] = PBs[i].mixer.unknown4[3];
-			gmixer_d7[i] = PBs[i].mixer.unknown4[5];
+			 // Collect parameters
+			if(Wii)
+				CollectPB(Wii, i, PBw);
+			else
+				CollectPB(Wii, i, PBs);
 
 			// ---------------------------------------------------------------------------------------
 			// Write to file
@@ -368,7 +480,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 			for (int ii = 0; ii < nFiles; ii++)
 			{			 
 				std::string sfbuff;
-				if(a == 0) sfbuff = "***"; // note if it's before or after an update
+				if(a == 0) sfbuff = "***"; // note if it's before or after an update (*** = before)
 					else sfbuff = "   ";
 
 				// write running
@@ -390,17 +502,18 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 	// ==============
 
 
+	//PanicAlert("Done now before: %i", numberOfPBs);
+
+
 	// =======================================================================================
 	// Control how often the screen is updated, and then update the screen
 	// --------------
 	if(a == 0) j++;
-	//if(l == pow((double)2,32)) l=0; // reset l
-	//l++;
 	if (m_frame->gUpdFreq > 0 && j > (200/m_frame->gUpdFreq))
 	{
 
 		// =======================================================================================
-		// Move all items back - Vector1 is a vector1[64][100] vector
+		// Move all items back. Vector1 is a vector1[NUMBER_OF_PBS][100] vector.
 		// --------------
 		/*
 		Move all items back like this:		
@@ -408,7 +521,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		2      3
 		3 ...
 		*/
-		for (int i = 0; i < 64; i++)
+		for (int i = 0; i < NUMBER_OF_PBS; i++)
 		{
 			for (int j = 1; j < vectorLength; j++)
 			{
@@ -433,7 +546,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		2      3
 		3 ...
 		*/
-		for (int i = 0; i < 64; i++)
+		for (int i = 0; i < NUMBER_OF_PBS; i++)
 		{
 			for (int j = 1; j < vectorLength2; j++)
 			{
@@ -453,7 +566,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		// Count how many we have running now
 		// --------------
 		int jj = 0;
-		for (int i = 0; i < 64; i++)
+		for (int i = 0; i < NUMBER_OF_PBS; i++)
 		{
 			for (int j = 0; j < vectorLength2-1; j++)
 			{
@@ -472,35 +585,23 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		// --------------
 		char buffer [1000] = "";
 		std::string sbuff;
-		sbuff = writeTitle(m_frame->gPreset);		
+		sbuff = writeTitle(m_frame->gPreset);
 		// ==============
 
 
 		// go through all running blocks
 		for (int i = 0; i < numberOfPBs; i++)
 		{
-
-		// ---------------------------------------------------------------------------------------
 		// Prepare conditions. TODO: We use this in two places now, make it only one
-		// --------------
-		bool Conditions;
-		if (m_frame->gOnlyLooping)
-		{
-			Conditions = PBs[i].audio_addr.looping;
-		}
+		/**/if(Wii)
+			Conditions = PrepareConditions(Wii, i, PBw);
 		else
-		{
-			Conditions = (numberRunning.at(i) > 0 || PBs[i].audio_addr.looping);
-		}
-		// --------------
+			Conditions = PrepareConditions(Wii, i, PBs);
 
-
-		// use the condition
+		// Use the condition
 		if (Conditions)
-		{
-
-			
-			// Playback history for the GUI debugger --------------------------
+		{			
+			// Save playback history for the GUI debugger --------------------------
 			if(m_frame)
 			{
 				std::string guipr; // gui progress
@@ -523,7 +624,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 			}
 
 
-			// Playback history for the console debugger --------------------------
+			// Make the playback history (progress bar) to display in the console debugger
 			for (int j = 0; j < vectorLength; j++)
 			{
 				if(vector1.at(i).at(j) == 0)
@@ -539,7 +640,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 			// ---------	
 
 
-			// hopefully this is false if we don't have a debugging window and so it doesn't cause a crash
+			// Hopefully this is false if we don't have a debugging window and so it doesn't cause a crash
 			if(m_frame)
 			{
 				m_frame->m_GPRListView->m_CachedRegs[2][i] = gsamplePos[i];
@@ -577,7 +678,6 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 			sbuff = sbuff + writeMessage(m_frame->gPreset, i); strcpy(buffer, "");
 			sbuff = sbuff + "\n";
 
-
 		} // end of if (PBs[i].running)		
 
 		} // end of big loop - for (int i = 0; i < numberOfPBs; i++)
@@ -587,8 +687,13 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		// =======================================================================================
 		// Write global values
 		// ---------------
-		sprintf(buffer, "\nThe parameter blocks span from %08x to %08x | distance %i | num. of blocks %i | _iSize %i\n",
-			m_addressPBs, gLastBlock, (gLastBlock-m_addressPBs), (gLastBlock-m_addressPBs) / 192, _iSize);
+		int nOfBlocks;
+		if(Wii)
+			nOfBlocks = (gLastBlock-m_addressPBs) / 256;
+		else
+			nOfBlocks = (gLastBlock-m_addressPBs) / 192;
+		sprintf(buffer, "\nThe parameter blocks span from %08x to %08x | distance %i | num. of blocks %i | _iSize %i | numberOfPBs %i\n",
+			m_addressPBs, gLastBlock, (gLastBlock-m_addressPBs), nOfBlocks, _iSize, numberOfPBs);
 		sbuff = sbuff + buffer; strcpy(buffer, "");
 		// ===============
 			
@@ -609,12 +714,6 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		sbuff = sbuff + "\n";
 		if(!iupdonce)
 		{
-			/*
-			for (int i = 0; i < 10; i++)
-			{
-				viupd.at(i) == 0;
-			}
-			*/
 			viupd.at(0) = 1;
 			viupd.at(1) = 1;
 			viupd.at(2) = 1;

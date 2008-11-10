@@ -23,12 +23,14 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
+#include "../Debugger/Debugger.h"
 
+extern CDebugger* m_frame;
 
 // --------------------
 // On and off
 bool g_consoleEnable = true;
-int gSaveFile = 0;
+//int gSaveFile = 0;
 #define DEBUG_HLE
 
 
@@ -93,7 +95,7 @@ void startConsoleWin(int width, int height, char* fname)
 int aprintf(int a, char *fmt, ...)
 {
 #if defined(DEBUG_HLE) && defined(_WIN32)
-	if(gSaveFile)
+	if(m_frame->gSaveFile)
 	{
 		char s[5000]; // WARNING: mind this value
 		va_list argptr;
@@ -127,12 +129,12 @@ int aprintf(int a, char *fmt, ...)
 int wprintf(char *fmt, ...)
 {
 #if defined(DEBUG_HLE) && defined(_WIN32)
-	char s[5000]; // WARNING: mind this value
+	char s[1024*20]; // Warning, mind this value
 	va_list argptr;
 	int cnt;
 
 	va_start(argptr, fmt);
-	cnt = vsnprintf(s, 5000, fmt, argptr);
+	cnt = vsnprintf(s, 1024*20, fmt, argptr);
 	va_end(argptr);
 
 	DWORD cCharsWritten;

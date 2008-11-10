@@ -187,10 +187,18 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 			}
 		} // end of the _iSize loop
 
+		// Update volume
+		if(m_frame->gVolume) // allow us to turn this off in the debugger
+		{
+			pb.mixer.volume_left = ADPCM_Vol(pb.mixer.volume_left, pb.mixer.unknown, pb.mixer_control);
+			pb.mixer.volume_right = ADPCM_Vol(pb.mixer.volume_right, pb.mixer.unknown2, pb.mixer_control);
+		}
+ 
+
 		pb.src.cur_addr_frac = (u16)frac;
 		pb.audio_addr.cur_addr_hi = samplePos >> 16;
 		pb.audio_addr.cur_addr_lo = (u16)samplePos;
-	}
+	} //if (pb.running)
 }
 
 #endif  // _UCODE_AX_VOICE_H

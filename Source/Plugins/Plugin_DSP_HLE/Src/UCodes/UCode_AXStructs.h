@@ -135,7 +135,7 @@ struct AXParamBlock
 	u16 this_pb_lo;
 
 	u16 src_type;     // Type of sample rate converter (none, ?, linear)
-	u16 unknown1;
+	u16 coef_select;
 
 	u16 mixer_control;
 	u16 running;       // 1=RUN 0=STOP

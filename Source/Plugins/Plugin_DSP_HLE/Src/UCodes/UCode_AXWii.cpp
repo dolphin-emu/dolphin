@@ -50,7 +50,7 @@ CUCode_AXWii::CUCode_AXWii(CMailHandler& _rMailHandler)
 	templbuffer = new int[1024 * 1024];
 	temprbuffer = new int[1024 * 1024];
 
-	lCUCode_AX = new CUCode_AX(_rMailHandler);	
+	lCUCode_AX = new CUCode_AX(_rMailHandler);
 }
 
 CUCode_AXWii::~CUCode_AXWii()
@@ -76,24 +76,27 @@ int ReadOutPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
 {
 	int count = 0;
 	u32 blockAddr = pbs_address;
+	u32 pAddr = 0;
 
 	// reading and 'halfword' swap
 	for (int i = 0; i < _num; i++)
 	{
 		const short *pSrc = (const short *)g_dspInitialize.pGetMemoryPointer(blockAddr);
-		if (pSrc != NULL)
+		pAddr = blockAddr;
+		u32 nextBlock = (Common::swap16(pSrc[162]) << 16 | Common::swap16(pSrc[163]));
+		if (pSrc != NULL && nextBlock == blockAddr + 320) // new way to stop
 		{
 			short *pDest = (short *)&_pPBs[i];
-			for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
-			{
+			for (int p = 0; p < sizeof(AXParamBlockWii) / 2; p++)
+			{		
 				pDest[p] = Common::swap16(pSrc[p]);
-				
+
 				#if defined(_DEBUG) || defined(DEBUGFAST)
 					gLastBlock = blockAddr + p*2 + 2;  // save last block location
 				#endif
 			}
 			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
-			count++;			
+			count++;
 		}
 		else
 			break;
@@ -113,7 +116,7 @@ void WriteBackPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
 		short* pSrc  = (short*)&_pPBs[i];
 		short* pDest = (short*)g_dspInitialize.pGetMemoryPointer(blockAddr);
 		for (size_t p = 0; p < sizeof(AXParamBlockWii) / 2; p++)
-		{
+		{			
 			pDest[p] = Common::swap16(pSrc[p]);
 		}
 
@@ -138,7 +141,7 @@ void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 	// write logging data to debugger
 	if (m_frame)
 	{
-		lCUCode_AX->Logging(_pBuffer, _iSize, 0);
+		lCUCode_AX->Logging(_pBuffer, _iSize, 0, true);
 	}
 	
 	// ---------------------------------------------------------------------------------------
@@ -170,12 +173,11 @@ void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 	// ------------
 
 	for (int i = 0; i < numberOfPBs; i++)
-	{
+	{		
 		AXParamBlockWii& pb = PBs[i];
 		MixAddVoice(pb, templbuffer, temprbuffer, _iSize);
-	}
+	}	
 
-	// write back out pbs
 	WriteBackPBsWii(m_addressPBs, PBs, numberOfPBs);
 
 	for (int i = 0; i < _iSize; i++)
@@ -192,9 +194,9 @@ void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 	}
 
 	// write logging data to debugger again after the update
-	//if (m_frame)
+	if (m_frame)
 	{
-//		CUCode_AXWii::Logging(_pBuffer, _iSize, 1);
+		lCUCode_AX->Logging(_pBuffer, _iSize, 1, true);
 	}
 }
 

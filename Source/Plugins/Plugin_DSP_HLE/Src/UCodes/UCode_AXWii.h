@@ -20,7 +20,7 @@
 
 #include "UCode_AXStructs.h"
 
-#define NUMBER_OF_PBS 64
+#define NUMBER_OF_PBS 128
 
 class CUCode_AXWii : public IUCode
 {

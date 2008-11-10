@@ -28,8 +28,8 @@ void __Log(int, const char *fmt, ...)
 void DebugLog(const char* _fmt, ...)
 {
 #if defined(_DEBUG) || defined(DEBUGFAST)
-//if(strncmp (_fmt, "AX", 2)) // match = 0, in that case this is ignored
-if(true)
+if(strncmp (_fmt, "AX", 2)) // match = 0, in that case this is ignored
+//if(true)
 {
 	char Msg[512];
 	va_list ap;

@@ -48,14 +48,13 @@ BEGIN_EVENT_TABLE(CDebugger,wxDialog)
 
 	EVT_BUTTON(ID_UPD,CDebugger::OnUpdate) // buttons
 
-	EVT_CHECKBOX(IDC_CHECK1,CDebugger::SaveFile) // options	
-	EVT_CHECKBOX(IDC_CHECK3,CDebugger::OnlyLooping)		
-	EVT_CHECKBOX(IDC_CHECK4,CDebugger::ShowHideConsole)
+	// left cotrols
+	EVT_CHECKLISTBOX(IDC_CHECKLIST5, CDebugger::OnOptions) // options
+	EVT_CHECKLISTBOX(IDC_CHECKLIST6, CDebugger::OnShowAll)
 
+	// right cotrols
 	EVT_RADIOBOX(IDC_RADIO1,CDebugger::ChangeFrequency) // update frequency
-
 	EVT_RADIOBOX(IDC_RADIO2,CDebugger::ChangePreset) // presets
-
 	EVT_CHECKLISTBOX(IDC_CHECKLIST1, CDebugger::OnSettingsCheck) // settings
 
 	EVT_NOTEBOOK_PAGE_CHANGED(ID_NOTEBOOK, CDebugger::UpdateMail) // mails
@@ -73,6 +72,8 @@ CDebugger::CDebugger(wxWindow *parent, wxWindowID id, const wxString &title,
 	, m_GPRListView(NULL)
 	//, gUpdFreq(5) // loaded from file
 	, gPreset(0)
+	, giShowAll(-1)
+
 	, gSSBM(true)
 	, gSSBMremedy1(true)
 	, gSSBMremedy2(true)
@@ -108,8 +109,8 @@ void CDebugger::Save(IniFile& _IniFile) const
 		_IniFile.Set("SoundWindow", "y", GetPosition().y);
 		_IniFile.Set("SoundWindow", "w", GetSize().GetWidth());
 		_IniFile.Set("SoundWindow", "h", GetSize().GetHeight());
-	}
-	_IniFile.Set("SoundWindow", "Console", m_Check[2]->IsChecked()); // save settings
+	}	
+	_IniFile.Set("SoundWindow", "Console", m_options->IsChecked(3)); // save settings
 	_IniFile.Set("SoundWindow", "UpdateFrequency", m_RadioBox[1]->GetSelection());
 	_IniFile.Set("SoundWindow", "ScanMails", m_gcwiiset->IsChecked(0));
 	_IniFile.Set("SoundWindow", "StoreMails", m_gcwiiset->IsChecked(1));
@@ -127,21 +128,19 @@ void CDebugger::Load(IniFile& _IniFile)
 
 	// saved settings
 	bool Console;
-	_IniFile.Get("SoundWindow", "Console", &Console, m_Check[2]->IsChecked());
-	m_Check[2]->SetValue(Console);
+	_IniFile.Get("SoundWindow", "Console", &Console, m_options->IsChecked(3));
+	m_options->Check(3, Console);
 	DoShowHideConsole();
 
 	_IniFile.Get("SoundWindow", "UpdateFrequency", &gUpdFreq, m_RadioBox[1]->GetSelection());
 	m_RadioBox[1]->SetSelection(gUpdFreq);
-	//DoChangeFrequency();
+	DoChangeFrequency();
 
 	// Read and store mails on/off
 	_IniFile.Get("SoundWindow", "ScanMails", &ScanMails, m_gcwiiset->IsChecked(0));
 	m_gcwiiset->Check(0, ScanMails);
 	_IniFile.Get("SoundWindow", "StoreMails", &StoreMails, m_gcwiiset->IsChecked(1));
-	m_gcwiiset->Check(1, StoreMails);
-
-	
+	m_gcwiiset->Check(1, StoreMails);	
 }
 
 void CDebugger::CreateGUIControls()
@@ -220,27 +219,66 @@ SetTitle(wxT("Sound Debugging"));
 
 	// Options checkboxlist (m_PageMain) -----------------------------------
 	wxStaticBoxSizer * m_checkSizer = new wxStaticBoxSizer (wxVERTICAL, m_PageMain, wxT("Options"));
+	m_options = new wxCheckListBox(m_PageMain, IDC_CHECKLIST5, wxDefaultPosition, wxDefaultSize,
+		0, NULL, wxNO_BORDER);
 
 	// checkboxes
-	m_Check[0] = new wxCheckBox(m_PageMain, IDC_CHECK1, wxT("Save to file"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[1] = new wxCheckBox(m_PageMain, IDC_CHECK2, wxT("Show updated"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[1]->Enable(false);
-	m_Check[7] = new wxCheckBox(m_PageMain, IDC_CHECK3, wxT("Only looping"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[2] = new wxCheckBox(m_PageMain, IDC_CHECK4, wxT("Show console"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_options->Append(wxT("Save to file"));
+	m_options->Append(wxT("Only looping"));
+	m_options->Append(wxT("Show all"));
+	m_options->Append(wxT("Show console"));
+
+	m_options->Check(0, gSaveFile);
+	m_options->Check(1, gOnlyLooping);
+	m_options->Check(2, gShowAll);
+	m_options->Check(3, gSaveFile);
+
+	m_options->SetMinSize(wxSize(m_options->GetSize().GetWidth() - 40,
+	m_options->GetCount() * 15));
+
+	m_checkSizer->Add(m_options, 0, 0, 0);
+	// ------------------------
+
 	
-    m_checkSizer->Add(m_Check[0], 0, 0, 5);
-    m_checkSizer->Add(m_Check[1], 0, 0, 5);
-	m_checkSizer->Add(m_Check[7], 0, 0, 5);
-	m_checkSizer->Add(m_Check[2], 0, 0, 5);	
+	// Options checkboxlist (m_PageMain) -----------------------------------
+	wxStaticBoxSizer * m_showallSizer = new wxStaticBoxSizer (wxVERTICAL, m_PageMain, wxT("Show all"));
+	m_opt_showall = new wxCheckListBox(m_PageMain, IDC_CHECKLIST6, wxDefaultPosition, wxDefaultSize,
+		0, NULL, wxNO_BORDER);
+
+	// checkboxes
+	m_opt_showall->Append(wxT("Part 1"));
+	m_opt_showall->Append(wxT("Part 2"));
+	m_opt_showall->Append(wxT("Part 3"));
+	m_opt_showall->Append(wxT("Part 4"));
+
+	m_opt_showall->SetMinSize(wxSize(m_opt_showall->GetSize().GetWidth() - 40,
+	m_opt_showall->GetCount() * 15));
+
+	m_showallSizer->Add(m_opt_showall, 0, 0, 0);
+
+
+	// Update frequency, numeric base, presets radio boxes --------------------
+	wxString m_radioBoxChoices0[] = { wxT("Show base 10"), wxT("Show base 16") };
+	m_radioBoxNChoices[0] = sizeof( m_radioBoxChoices0 ) / sizeof( wxString );
+	m_RadioBox[0] = new wxRadioBox( m_PageMain, IDC_RADIO0, wxT("Show base"),
+		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[0], m_radioBoxChoices0, 1, wxRA_SPECIFY_COLS);
+	m_RadioBox[0]->Enable(false);
+
+	wxString m_radioBoxChoices1[] = { wxT("Never"), wxT("5 times/s"), wxT("15 times/s"), wxT("30 times/s") };
+	m_radioBoxNChoices[1] = sizeof( m_radioBoxChoices1 ) / sizeof( wxString );
+	m_RadioBox[1] = new wxRadioBox( m_PageMain, IDC_RADIO1, wxT("Update freq."),
+		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[1], m_radioBoxChoices1, 1, wxRA_SPECIFY_COLS);
+
+	wxString m_radioBoxChoices2[] = { wxT("Preset 1"), wxT("Updates"), wxT("Looping"), wxT("Mixer") };
+	m_radioBoxNChoices[2] = sizeof( m_radioBoxChoices2 ) / sizeof( wxString );
+	m_RadioBox[2] = new wxRadioBox( m_PageMain, IDC_RADIO2, wxT("Presets"),
+		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[2], m_radioBoxChoices2, 1, wxRA_SPECIFY_COLS);
 	// ------------------------
 
 
-
-	// Settings checkboxes (m_PageMain) -----------------------------
+	// --------------------------------------------------------------------
+	// Settings checkboxes (m_PageMain)
+	// -------------------------
 	wxStaticBoxSizer * m_checkSizer2 = new wxStaticBoxSizer(wxVERTICAL, m_PageMain, wxT("Settings"));
 	m_settings = new wxCheckListBox(m_PageMain, IDC_CHECKLIST1, wxDefaultPosition, wxDefaultSize,
 		0, NULL, wxNO_BORDER);
@@ -272,25 +310,6 @@ SetTitle(wxT("Sound Debugging"));
 	// ------------------------
 
 
-	// Update frequency, numeric base, presets radio boxes --------------------
-	wxString m_radioBoxChoices0[] = { wxT("Show base 10"), wxT("Show base 16") };
-	m_radioBoxNChoices[0] = sizeof( m_radioBoxChoices0 ) / sizeof( wxString );
-	m_RadioBox[0] = new wxRadioBox( m_PageMain, IDC_RADIO0, wxT("Show base"),
-		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[0], m_radioBoxChoices0, 1, wxRA_SPECIFY_COLS);
-	m_RadioBox[0]->Enable(false);
-
-	wxString m_radioBoxChoices1[] = { wxT("Never"), wxT("5 times/s"), wxT("15 times/s"), wxT("30 times/s") };
-	m_radioBoxNChoices[1] = sizeof( m_radioBoxChoices1 ) / sizeof( wxString );
-	m_RadioBox[1] = new wxRadioBox( m_PageMain, IDC_RADIO1, wxT("Update freq."),
-		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[1], m_radioBoxChoices1, 1, wxRA_SPECIFY_COLS);
-
-	wxString m_radioBoxChoices2[] = { wxT("Preset 1"), wxT("Updates"), wxT("Looping"), wxT("Mixer") };
-	m_radioBoxNChoices[2] = sizeof( m_radioBoxChoices2 ) / sizeof( wxString );
-	m_RadioBox[2] = new wxRadioBox( m_PageMain, IDC_RADIO2, wxT("Presets"),
-		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[2], m_radioBoxChoices2, 1, wxRA_SPECIFY_COLS);
-	// ------------------------
-
-
 	// --------------------------------------------------------------------
 	// Buttons
 	// ------------------------
@@ -306,18 +325,8 @@ SetTitle(wxT("Sound Debugging"));
 
 
 	// --------------------------------------------------------------------
-	// Right buttons and checkboxes (MAIN)
+	// Left buttons and checkboxes (MAIN
 	// ------------------------
-	wxBoxSizer* sButtons2;
-	sButtons2 = new wxBoxSizer(wxVERTICAL);
-
-	sButtons2->AddStretchSpacer(1);
-	sButtons2->Add(m_RadioBox[2], 0, 0, 5);
-	sButtons2->AddStretchSpacer(1);
-	sButtons2->Add(m_checkSizer2, 0, 0, 5);
-	sButtons2->AddStretchSpacer(1);
-
-	// Left buttons and checkboxes
 	wxBoxSizer* sButtons;
 	sButtons = new wxBoxSizer(wxVERTICAL);
 
@@ -330,12 +339,28 @@ SetTitle(wxT("Sound Debugging"));
 	sButtons->AddStretchSpacer(1);
 	sButtons->Add(m_checkSizer, 0, 0, 5);
 	sButtons->AddStretchSpacer(1);
-	sButtons->Add(m_RadioBox[0], 0, 0, 5);
+	sButtons->Add(m_showallSizer, 0, 0, 5);
 	sButtons->AddStretchSpacer(1);
-	sButtons->Add(m_RadioBox[1], 0, 0, 5);
+	sButtons->Add(m_RadioBox[0], 0, 0, 5);
 
 	sButtons->AddSpacer(5);
+	// ------------------------
+
+
 	// --------------------------------------------------------------------
+	// Right buttons and checkboxes (MAIN)
+	// ------------------------
+	wxBoxSizer* sButtons2;
+	sButtons2 = new wxBoxSizer(wxVERTICAL);
+
+	sButtons2->AddStretchSpacer(1);
+	sButtons2->Add(m_RadioBox[1], 0, 0, 5);  // Update freq.
+	sButtons2->AddStretchSpacer(1);
+	sButtons2->Add(m_RadioBox[2], 0, 0, 5);
+	sButtons2->AddStretchSpacer(1);
+	sButtons2->Add(m_checkSizer2, 0, 0, 5);
+	sButtons2->AddStretchSpacer(1);
+	// ------------------------
 
 
 	// --------------------------------------------------------------------
@@ -348,8 +373,6 @@ SetTitle(wxT("Sound Debugging"));
 
 	sLeft->Add(m_GPRListView, 1, wxEXPAND|wxALL, 5);	
 	// --------------------------------------------------------------------
-
-
 
 
 	// --------------------------------------------------------------------
@@ -442,21 +465,13 @@ void CDebugger::ChangePreset(wxCommandEvent& event)
 void CDebugger::DoChangePreset()
 {
 	if(m_RadioBox[2]->GetSelection() == 0)
-	{
 		gPreset = 0;
-	}
 	else if(m_RadioBox[2]->GetSelection() == 1)
-	{
 		gPreset = 1;
-	}
 	else if(m_RadioBox[2]->GetSelection() == 2)
-	{
 		gPreset = 2;
-	}
 	else if(m_RadioBox[2]->GetSelection() == 3)
-	{
 		gPreset = 3;
-	}
 }
 // ==============
 
@@ -472,54 +487,44 @@ void CDebugger::ChangeFrequency(wxCommandEvent& event)
 void CDebugger::DoChangeFrequency()
 {
 	if(m_RadioBox[1]->GetSelection() == 0)
-	{
 		gUpdFreq = 0;
-	}
 	else if(m_RadioBox[1]->GetSelection() == 1)
-	{
 		gUpdFreq = 5;
-	}
 	else if(m_RadioBox[1]->GetSelection() == 2)
-	{
 		gUpdFreq = 15;
-	}
-	else
-	{
+	else if(m_RadioBox[1]->GetSelection() == 3)
 		gUpdFreq = 30;
-	}
 }
 // ==============
 
 
 // =======================================================================================
-// Show only looping blocks
+// Options
 // --------------
-void CDebugger::OnlyLooping(wxCommandEvent& event)
-{	
-	if(m_Check[7]->IsChecked())
-	{
-		gOnlyLooping = true;
+void CDebugger::OnOptions(wxCommandEvent& event)
+{
+	gSaveFile = m_options->IsChecked(0);
+	gOnlyLooping = m_options->IsChecked(1);
+	gShowAll = m_options->IsChecked(2);
+	gSaveFile = m_options->IsChecked(3);
 
-	}
-	else
-	{
-		gOnlyLooping = false;
-	}
+	if(event.GetInt() == 3) DoShowHideConsole();
 }
-// ==============
 
+void CDebugger::OnShowAll(wxCommandEvent& event)
+{
+	/// Only allow one selection at a time
+	for (int i = 0; i < m_opt_showall->GetCount(); ++i)
+		if(i != event.GetInt()) m_opt_showall->Check(i, false);
 
-// =======================================================================================
-// Save to file
+	if(m_opt_showall->IsChecked(0)) giShowAll = 0;
+	else if(m_opt_showall->IsChecked(1)) giShowAll = 1;
+	else if(m_opt_showall->IsChecked(2)) giShowAll = 2;
+	else if(m_opt_showall->IsChecked(3)) giShowAll = 3;
+	else giShowAll = -1;
+}
+
 // --------------
-void CDebugger::SaveFile(wxCommandEvent& event)
-{	
-	if(m_Check[0]->IsChecked())
-		gSaveFile = 1;
-	else
-		gSaveFile = 0;
-}
-// ==============
 
 
 // =======================================================================================
@@ -532,7 +537,7 @@ void CDebugger::ShowHideConsole(wxCommandEvent& event)
 
 void CDebugger::DoShowHideConsole()
 {	
-	if(m_Check[2]->IsChecked())
+	if(m_options->IsChecked(3))
 	{
 		OpenConsole();
 	}
