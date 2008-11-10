@@ -15,19 +15,24 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _XFB_H
-#define _XFB_H
+#ifndef _TEXTURECONVERTER_H
+#define _TEXTURECONVERTER_H
 
 #include "TextureMngr.h"
 
-void XFB_Init();
+// Converts textures between formats
+// TODO: support multiple texture formats
+namespace TextureConverter
+{
 
-// write the EFB to the XFB
-void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt);
+void Init();
+void Shutdown();
 
-// draw the XFB to the screen
-void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset);
+void EncodeToRam(GLuint srcTexture, const TRectangle& sourceRc,
+				 u8* destAddr, int dstWidth, int dstHeight);
 
-void XFB_Shutdown();
+void DecodeToTexture(u8* srcAddr, int srcWidth, int srcHeight, GLuint destTexture);
+
+}
 
 #endif

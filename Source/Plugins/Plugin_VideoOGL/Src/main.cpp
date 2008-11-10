@@ -45,6 +45,7 @@
 #include "VertexShaderManager.h"
 #include "XFB.h"
 #include "XFBConvert.h"
+#include "TextureConverter.h"
 
 #include "VideoState.h"
 #if !defined(OSX64)
@@ -238,10 +239,12 @@ void Video_Prepare(void)
     PixelShaderMngr::Init();
     GL_REPORT_ERRORD();
     VertexLoaderManager::Init();
+    TextureConverter::Init();
 }
 
 void Video_Shutdown(void) 
 {
+    TextureConverter::Shutdown();
     VertexLoaderManager::Shutdown();
     VertexShaderMngr::Shutdown();
     PixelShaderMngr::Shutdown();

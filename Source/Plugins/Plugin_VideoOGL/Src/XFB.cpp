@@ -25,6 +25,9 @@
 #include "TextureMngr.h"
 #include "VertexShaderManager.h"
 #include "XFBConvert.h"
+#include "TextureConverter.h"
+
+#define XFB_USE_SHADERS 1
 
 enum {
 	XFB_WIDTH = 640,
@@ -32,6 +35,69 @@ enum {
 	XFB_BUF_HEIGHT = 538, //480,
 	// TODO: figure out what to do with PAL
 };
+
+
+#if XFB_USE_SHADERS
+
+static GLuint xfb_decoded_texture;
+
+void XFB_Init()
+{
+	glGenTextures(1, &xfb_decoded_texture);
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfb_decoded_texture);
+	glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, XFB_WIDTH, XFB_BUF_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+}
+
+void XFB_Shutdown()
+{
+	glDeleteTextures(1, &xfb_decoded_texture);
+}
+
+
+void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt)
+{
+	TRectangle renderSrcRc;
+	renderSrcRc.left = sourceRc.left;
+	renderSrcRc.right = sourceRc.right;
+	renderSrcRc.top = nBackbufferHeight - sourceRc.top;
+	renderSrcRc.bottom = nBackbufferHeight - sourceRc.bottom; 
+	TextureConverter::EncodeToRam(Renderer::GetRenderTarget(), renderSrcRc, xfb_in_ram, dstWd, dstHt);
+}
+
+void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset)
+{
+	TextureConverter::DecodeToTexture(xfb_in_ram, width, height, xfb_decoded_texture);
+
+	OpenGL_Update(); // just updates the render window position and the backbuffer size
+
+	Renderer::ResetGLState();
+
+	TextureMngr::EnableTexRECT(0);
+
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the backbuffer
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfb_decoded_texture);
+
+	glViewport(nXoff, nYoff, nBackbufferWidth, nBackbufferHeight);
+	GL_REPORT_ERRORD();
+
+    glBegin(GL_QUADS);
+	glTexCoord2f(width, 0 - yOffset); glVertex2f(1,-1);
+	glTexCoord2f(width, height - yOffset); glVertex2f(1,1);
+	glTexCoord2f(0, height - yOffset); glVertex2f(-1,1);
+	glTexCoord2f(0, 0 - yOffset); glVertex2f(-1,-1);
+    glEnd();	
+
+	TextureMngr::DisableStage(0);
+
+	Renderer::SwapBuffers();
+
+	Renderer::RestoreGLState();
+	GL_REPORT_ERRORD();
+}
+
+#else
 
 static GLuint xfb_texture;
 static u8 *xfb_buffer = 0;
@@ -70,7 +136,7 @@ void XFB_Shutdown()
 }
 
 
-void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt, float yScale)
+void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt)
 {
 	Renderer::SetRenderMode(Renderer::RM_Normal);
 
@@ -91,12 +157,10 @@ void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt,
 		TextureMngr::DisableStage(i);	
 	GL_REPORT_ERRORD();
 
-	float scaledTextureY = nBackbufferHeight - (nBackbufferHeight / yScale);
-
 	glBegin(GL_QUADS);
     glTexCoord2f(0, nBackbufferHeight); glVertex2f(-1,-1);
-	glTexCoord2f(0, scaledTextureY); glVertex2f(-1,1);
-    glTexCoord2f(nBackbufferWidth, scaledTextureY); glVertex2f(1,1);
+	glTexCoord2f(0, 0); glVertex2f(-1,1);
+    glTexCoord2f(nBackbufferWidth, 0); glVertex2f(1,1);
     glTexCoord2f(nBackbufferWidth, nBackbufferHeight); glVertex2f(1,-1);
     glEnd();
 	GL_REPORT_ERRORD();
@@ -159,3 +223,5 @@ void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset)
 	Renderer::RestoreGLState();
     GL_REPORT_ERRORD();
 }
+
+#endif
