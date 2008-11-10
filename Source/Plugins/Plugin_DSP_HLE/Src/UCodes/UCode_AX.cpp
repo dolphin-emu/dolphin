@@ -18,6 +18,7 @@
 #include "FileUtil.h" // for IsDirectory
 #include "../Debugger/Debugger.h"
 #include "../Logging/Console.h" // for aprintf
+#include <sstream>
 
 #ifdef _WIN32
 #include "../PCHW/DSoundStream.h"
@@ -67,11 +68,14 @@ CUCode_AX::~CUCode_AX()
 void CUCode_AX::SaveLogFile(std::string f, int resizeTo, bool type, bool Wii)
 {
 	if (!File::IsDirectory("Logs/Mail")) File::CreateDir("Logs/Mail");
-	char ci[10]; itoa(resizeTo - 1, ci, 10); // write ci
-	char cType[10]; itoa(type, cType, 10); // write cType
+        std::ostringstream ci;
+        std::ostringstream cType;
+        
+	ci << (resizeTo - 1); // write ci
+	cType << type; // write cType
 
 	std::string FileName = "Logs/Mail/"; FileName += gpName;
-	FileName += "_sep"; FileName += ci; FileName += "_sep"; FileName += cType;
+	FileName += "_sep"; FileName += ci.str(); FileName += "_sep"; FileName += cType.str();
 	FileName += Wii ? "_sepWii_sep" : "_sepGC_sep"; FileName += ".log";
 
 	FILE* fhandle = fopen(FileName.c_str(), "w");
@@ -107,10 +111,11 @@ if(m_frame->ScanMails)
 			//wprintf("End");
 
 			// Save the timestamps and comment
-			char ci[10]; itoa(saveNext - 1, ci, 10); // write ci
+                        std::ostringstream ci;
+                        ci << (saveNext - 1);
 			TmpMailLog += "\n\n";
 			TmpMailLog += "-----------------------------------------------------------------------\n";
-			TmpMailLog += "Current mail: " + gpName + " mail " + ci + "\n\n";
+			TmpMailLog += "Current mail: " + gpName + " mail " + ci.str() + "\n\n";
 
 			for (int i = 0; i < sMailTime.size(); i++)
 			{

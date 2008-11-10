@@ -22,6 +22,11 @@
 // includes
 #include <iostream>
 #include <fstream>
+#include <sstream>
+
+#ifndef _WIN32
+#include <stdlib.h>
+#endif
 
 #include "Debugger.h"
 #include "PBView.h"
@@ -557,11 +562,11 @@ void CDebugger::DoUpdateMail()
 
 	if(sFullMail.size() > 0 && sMailLog.size() > 0)
 	{
-		m_log->SetValue(sFullMail.at(m_RadioBox[3]->GetSelection()).c_str());
-		m_log->SetDefaultStyle(wxTextAttr(*wxBLUE)); // doesn't work because of the current wx
-
-		m_log1->SetValue(sMailLog.at(m_RadioBox[3]->GetSelection()).c_str());
-		m_log1->AppendText(wxT("\n\n"));
+            m_log->SetValue(wxString::FromAscii(sFullMail.at(m_RadioBox[3]->GetSelection()).c_str()));
+            m_log->SetDefaultStyle(wxTextAttr(*wxBLUE)); // doesn't work because of the current wx
+            
+            m_log1->SetValue(wxString::FromAscii(sMailLog.at(m_RadioBox[3]->GetSelection()).c_str()));
+            m_log1->AppendText(wxT("\n\n"));
 	}
 }
 
@@ -734,9 +739,10 @@ void CDebugger::Readfile(std::string FileName, bool GC)
 		//wprintf("m_RadioBox[3] enabled:  %i\n", i);
 
 		std::string sz = "";
-		char ci[10]; itoa(i, ci, 10);
-		std::string f0 = "Logs/Mail/" + FileName + "_sep" + ci + "_sep" + "0_sep" + (GC ? "GC" : "Wii") +  "_sep.log";
-		std::string f1 = "Logs/Mail/" + FileName + "_sep" + ci + "_sep" + "1_sep" + (GC ? "GC" : "Wii") +  "_sep.log";
+                std::ostringstream ci;
+                ci << i;
+		std::string f0 = "Logs/Mail/" + FileName + "_sep" + ci.str() + "_sep" + "0_sep" + (GC ? "GC" : "Wii") +  "_sep.log";
+		std::string f1 = "Logs/Mail/" + FileName + "_sep" + ci.str() + "_sep" + "1_sep" + (GC ? "GC" : "Wii") +  "_sep.log";
 
 		//wprintf("ifstream  %s  %s\n", f0.c_str(), f1.c_str());
 
