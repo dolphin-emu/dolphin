@@ -21,6 +21,7 @@ files = [
         'Logging/Logging.cpp',
         'Logging/Console.cpp',
 	'UCodes/UCode_AX.cpp',
+        'UCodes/UCode_AXWii.cpp',
 	'UCodes/UCode_CARD.cpp',
 	'UCodes/UCode_InitAudioSystem.cpp',
 	'UCodes/UCode_Jac.cpp',
