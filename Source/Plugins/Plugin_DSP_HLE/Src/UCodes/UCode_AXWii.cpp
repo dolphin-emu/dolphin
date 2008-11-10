@@ -85,7 +85,7 @@ int ReadOutPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
 		pAddr = blockAddr;
 
 		// Detect the last mail by checking when next_pb = 0
-		u32 next_pb = (Common::swap16(pSrc[0]) << 16 | Common::swap16(pSrc[1]));
+		u32 next_pb = (Common::swap16(pSrc[0]) << 16) | Common::swap16(pSrc[1]);
 		if (pSrc != NULL && next_pb > 0)
 		{
 			short *pDest = (short *)&_pPBs[i];
