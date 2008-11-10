@@ -23,7 +23,6 @@
 
 // Includes
 
-
 #include <iostream>
 #include <vector>
 #include <string> // so that we can test std::string == abc
@@ -44,18 +43,11 @@
 
 // Externals
 
+u32 gLastBlock;
 extern int nFiles;
 float ratioFactor; // a global to get the ratio factor from MixAdd
-int gUpdFreq = 5;
-int gPreset = 0;
-extern bool gSSBM;
-extern bool gSSBMremedy1;
-extern bool gSSBMremedy2;
-extern bool gSequenced;
-extern bool gVolume;
-extern bool gReset;
-bool gOnlyLooping = false;
-extern int gSaveFile;
+extern CDebugger* m_frame;
+
 
 // Parameter blocks
 
@@ -292,7 +284,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		// Prepare conditions
 		// --------------
 		bool Conditions;
-		if (gOnlyLooping)
+		if (m_frame->gOnlyLooping)
 		{
 			Conditions = PBs[i].audio_addr.looping;
 		}
@@ -404,7 +396,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 	if(a == 0) j++;
 	//if(l == pow((double)2,32)) l=0; // reset l
 	//l++;
-	if (gUpdFreq > 0 && j > (200/gUpdFreq))
+	if (m_frame->gUpdFreq > 0 && j > (200/m_frame->gUpdFreq))
 	{
 
 		// =======================================================================================
@@ -480,7 +472,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		// --------------
 		char buffer [1000] = "";
 		std::string sbuff;
-		sbuff = writeTitle(gPreset);		
+		sbuff = writeTitle(m_frame->gPreset);		
 		// ==============
 
 
@@ -492,7 +484,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		// Prepare conditions. TODO: We use this in two places now, make it only one
 		// --------------
 		bool Conditions;
-		if (gOnlyLooping)
+		if (m_frame->gOnlyLooping)
 		{
 			Conditions = PBs[i].audio_addr.looping;
 		}
@@ -582,7 +574,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 			}
 
 			// add new line
-			sbuff = sbuff + writeMessage(gPreset, i); strcpy(buffer, "");
+			sbuff = sbuff + writeMessage(m_frame->gPreset, i); strcpy(buffer, "");
 			sbuff = sbuff + "\n";
 
 
@@ -595,7 +587,8 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		// =======================================================================================
 		// Write global values
 		// ---------------
-		sprintf(buffer, "\nThe parameter blocks span from %08x", m_addressPBs);
+		sprintf(buffer, "\nThe parameter blocks span from %08x to %08x | distance %i | num. of blocks %i | _iSize %i\n",
+			m_addressPBs, gLastBlock, (gLastBlock-m_addressPBs), (gLastBlock-m_addressPBs) / 192, _iSize);
 		sbuff = sbuff + buffer; strcpy(buffer, "");
 		// ===============
 			
@@ -604,7 +597,8 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a)
 		// Write settings
 		// ---------------
 		sprintf(buffer, "\nSettings: SSBM fix %i | SSBM rem1 %i | SSBM rem2 %i\nSequenced %i | Volume %i | Reset %i | Only looping %i | Save file %i\n",
-			gSSBM, gSSBMremedy1, gSSBMremedy2, gSequenced, gVolume, gReset, gOnlyLooping, gSaveFile);
+			m_frame->gSSBM, m_frame->gSSBMremedy1, m_frame->gSSBMremedy2, m_frame->gSequenced,
+			m_frame->gVolume, m_frame->gReset, m_frame->gOnlyLooping, m_frame->gSaveFile);
 		sbuff = sbuff + buffer; strcpy(buffer, "");
 		// ===============
 

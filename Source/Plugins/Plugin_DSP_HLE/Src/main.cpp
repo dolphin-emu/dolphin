@@ -37,6 +37,8 @@
 
 DSPInitialize g_dspInitialize;
 u8* g_pMemory;
+extern std::vector<std::string> sMailLog, sMailTime;
+std::string gpName;
 
 // Set this if you want to log audio. search for log_ai in this file to see the filename.
 static bool log_ai = false;
@@ -197,6 +199,15 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 
 	g_pMemory = g_dspInitialize.pGetMemoryPointer(0);
 
+	gpName = g_dspInitialize.pName(); // save the game name globally
+	for (int i = 0; i < gpName.length(); ++i) // and fix it
+	{
+		wprintf("%c", gpName[i]);
+		std::cout << gpName[i];
+		if (gpName[i] == ':') gpName[i] = ' ';
+	}
+	wprintf("\n");
+
 	CDSPHandler::CreateInstance();
 
 #ifdef _WIN32
@@ -227,6 +238,15 @@ void DSP_Shutdown()
 	AOSound::AOSound_StopSound();
 #endif
 	CDSPHandler::Destroy();
+
+	// Reset mails
+	if(m_frame)
+	{
+		sMailLog.clear();
+		sMailTime.clear();
+		m_frame->sMail.clear();
+		m_frame->sMailEnd.clear();
+	}
 }
 
 void DSP_DoState(unsigned char **ptr, int mode) {

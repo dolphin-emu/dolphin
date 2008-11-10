@@ -6,13 +6,13 @@
 #define _DSP_H_INCLUDED__
 
 #include "PluginSpecs.h"
-
 #include "ExportProlog.h"
 
 typedef unsigned char	(*TARAM_Read_U8)(const unsigned int _uAddress);
 typedef unsigned char*	(*TGetMemoryPointer)(const unsigned int  _uAddress);
 typedef unsigned char*	(*TGetARAMPointer)(void);
 typedef void			(*TLog)(const char* _szMessage);
+typedef char *			(*TName)(void);
 typedef void			(*TDebuggerBreak)(void);
 typedef void			(*TGenerateDSPInt)(void);
 typedef unsigned int(*TAudioGetStreaming)(short* _pDestBuffer, unsigned int _numSamples);
@@ -24,6 +24,7 @@ typedef struct
 	TGetMemoryPointer		pGetMemoryPointer;
 	TGetARAMPointer			pGetARAMPointer;
 	TLog					pLog;	
+	TName					pName;
 	TDebuggerBreak			pDebuggerBreak;
 	TGenerateDSPInt			pGenerateDSPInterrupt;
 	TAudioGetStreaming		pGetAudioStreaming;

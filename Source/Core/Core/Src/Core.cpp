@@ -73,6 +73,7 @@ namespace Core
 void Callback_VideoLog(const TCHAR* _szMessage, BOOL _bDoBreak);
 void Callback_VideoCopiedToXFB();
 void Callback_DSPLog(const TCHAR* _szMessage);
+char * Callback_ISOName(void);
 void Callback_DSPInterrupt();
 void Callback_PADLog(const TCHAR* _szMessage);
 void Callback_WiimoteLog(const TCHAR* _szMessage);
@@ -291,6 +292,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.pGetARAMPointer = DSP::GetARAMPtr;
 	dspInit.pGetMemoryPointer = Memory::GetPointer;
 	dspInit.pLog = Callback_DSPLog;
+	dspInit.pName = Callback_ISOName;
 	dspInit.pDebuggerBreak = Callback_DebuggerBreak;
 	dspInit.pGenerateDSPInterrupt = Callback_DSPInterrupt;
 	dspInit.pGetAudioStreaming = AudioInterface::Callback_GetStreaming;
@@ -556,7 +558,20 @@ void Callback_PADLog(const TCHAR* _szMessage)
 	LOG(SERIALINTERFACE, _szMessage);
 }
 
+// __________________________________________________________________________________________________
+// Callback_ISOName: Let the DSP plugin get the game name
+//
+//std::string Callback_ISOName(void)
+char * Callback_ISOName(void)
+{
+	char * a = "";
+	if(g_CoreStartupParameter.m_strName.length() > 0)
+		return (char *)g_CoreStartupParameter.m_strName.c_str();
+	else	
+		return a;
+}
 
+// __________________________________________________________________________________________________
 // Called from ANY thread!
 void Callback_KeyPress(int key, BOOL shift, BOOL control)
 {

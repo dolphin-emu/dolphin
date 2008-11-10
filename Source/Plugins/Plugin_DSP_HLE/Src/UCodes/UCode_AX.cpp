@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "FileUtil.h" // for IsDirectory
 #include "../Debugger/Debugger.h"
 #include "../Logging/Console.h" // for aprintf
 
@@ -29,18 +30,16 @@
 #include "UCode_AX.h"
 #include "UCode_AX_Voice.h"
 
-// ---------------------------------------------------------------------------------------
+
+// ------------------------------------------------------------------
 // Externals
 // -----------
-extern float ratioFactor;
-bool gSSBM = true; // used externally
-bool gSSBMremedy1 = true; // used externally
-bool gSSBMremedy2 = true; // used externally
-bool gSequenced = true; // used externally
-bool gVolume = true; // used externally
-bool gReset = false; // used externally
+extern u32 gLastBlock;
+extern std::string gpName;
 extern CDebugger* m_frame;
+std::vector<std::string> sMailLog, sMailTime;
 // -----------
+
 
 CUCode_AX::CUCode_AX(CMailHandler& _rMailHandler)
 	: IUCode(_rMailHandler)
@@ -61,17 +60,183 @@ CUCode_AX::~CUCode_AX()
 	delete [] temprbuffer;
 }
 
-void CUCode_AX::HandleMail(u32 _uMail)
+
+// ============================================
+// Save file to harddrive
+// ----------------
+void CUCode_AX::SaveLogFile(std::string f, int resizeTo, bool type, bool Wii)
 {
-	if ((_uMail & 0xFFFF0000) == MAIL_AX_ALIST)
+	if (!File::IsDirectory("Logs/Mail")) File::CreateDir("Logs/Mail");
+	char ci[10]; itoa(resizeTo - 1, ci, 10); // write ci
+	char cType[10]; itoa(type, cType, 10); // write cType
+
+	std::string FileName = "Logs/Mail/"; FileName += gpName;
+	FileName += "_sep"; FileName += ci; FileName += "_sep"; FileName += cType;
+	FileName += Wii ? "_sepWii_sep" : "_sepGC_sep"; FileName += ".log";
+
+	FILE* fhandle = fopen(FileName.c_str(), "w");
+	fprintf(fhandle, f.c_str());
+	fflush(fhandle); fhandle = NULL;
+}
+
+
+// ============================================
+// Save the logged AX mail
+// ----------------
+void CUCode_AX::SaveLog_(bool Wii, const char* _fmt, ...)
+{
+if(m_frame->ScanMails)
+{	
+	char Msg[512*10];
+	va_list ap;
+
+	va_start(ap, _fmt);
+	vsprintf(Msg, _fmt, ap);
+	va_end(ap);
+
+	//wxMessageBox( wxString::Format("SaveLog_ again: %s\n", Msg) );
+	
+	if(strcmp(Msg, "Begin") == 0)
 	{
-		// a new List
+		TmpMailLog = "";
+	}
+	else if(strcmp(Msg, "End") == 0)
+	{
+		if(saveNext && saveNext < 100) // limit because saveNext is not initialized
+		{		
+			//wprintf("End");
+
+			// Save the timestamps and comment
+			char ci[10]; itoa(saveNext - 1, ci, 10); // write ci
+			TmpMailLog += "\n\n";
+			TmpMailLog += "-----------------------------------------------------------------------\n";
+			TmpMailLog += "Current mail: " + gpName + " mail " + ci + "\n\n";
+
+			for (int i = 0; i < sMailTime.size(); i++)
+			{
+				char tmpbuf[128]; sprintf(tmpbuf, "Mail %i received: %s\n", i, sMailTime.at(i).c_str());
+				TmpMailLog += tmpbuf;
+			}
+			TmpMailLog += "-----------------------------------------------------------------------";
+
+			sMailLog.push_back(TmpMailLog);
+			// Save file to disc
+			if(m_frame->StoreMails)
+			{
+				SaveLogFile(TmpMailLog, saveNext, 1, Wii);
+			}
+			
+			m_frame->DoUpdateMail(); // update the view
+			saveNext = 0;
+		}
 	}
 	else
 	{
-		AXTask(_uMail);
+		TmpMailLog += Msg;
+		TmpMailLog += "\n";
+		g_dspInitialize.pLog(Msg);
 	}
 }
+}
+// ----------------
+
+
+// ============================================
+// Save the whole AX mail
+// ----------------
+void CUCode_AX::SaveMail(bool Wii, u32 _uMail)
+{
+if(m_frame->ScanMails)
+{
+	int i = 0;
+	std::string sTemp;
+	std::string sTempEnd;
+	std::string * sAct = &sTemp;
+	bool doOnce = true; // for the while loop, to avoid getting stuck
+
+	// Go through the mail
+	while (i < 250)
+	{
+		// Make a new row for each AX-Command
+		u16 axcomm = Memory_Read_U16(_uMail + i);
+		if(axcomm < 15 && axcomm != 0) // we can at most write 8 messages per log
+		{	
+			*sAct += "\n";
+		}
+
+		char szTemp2[128] = "";
+		sprintf(szTemp2, "%08x : 0x%04x\n", _uMail + i, axcomm);
+		*sAct += szTemp2;
+
+		 // set i to 160 so that we show some things after the end to			
+		if ((axcomm == AXLIST_END || axcomm == 0x000e) && doOnce)
+		{
+			i = 160;
+			sAct = &sTempEnd;
+			doOnce = false;
+		}
+
+		i += 2;
+	}
+
+	// Compare this mail to old mails
+	int addnew = 0;
+	for (int i = 0; i < m_frame->sMail.size(); i++)
+	{
+		if(m_frame->sMail.at(i).length() != sTemp.length())
+		{
+			//wxMessageBox( wxString::Format("%s  \n\n%s", m_frame->sMail.at(i).c_str(),
+			//	sTemp.c_str()) );
+			addnew++;	
+		}
+	}
+
+
+	// In case the mail didn't match any saved mail, save it
+	if(addnew == m_frame->sMail.size())
+	{		
+		//wprintf("%i  |  %i\n", addnew, m_frame->sMail.size());
+		int resizeTo = m_frame->sMail.size() + 1;		
+
+		// ------------------------------------
+		// get timestamp
+		wxDateTime datetime = wxDateTime::UNow();	
+		char Msg[128];
+		sprintf(Msg, "%04i-%02i-%02i  %02i:%02i:%02i:%03i",
+			datetime.GetYear(), datetime.GetMonth() + 1, datetime.GetDay(),
+			datetime.GetHour(), datetime.GetMinute(), datetime.GetSecond(), datetime.GetMillisecond());
+		sMailTime.push_back(Msg);
+		// ------------------------------------
+
+		m_frame->sMail.push_back(sTemp); // save the main comparison mail
+		std::string lMail = sTemp +  "------------------\n" + sTempEnd;
+		m_frame->sFullMail.push_back(lMail);
+
+		// enable the radio button and update view
+		if(resizeTo <= m_frame->m_RadioBox[3]->GetCount())
+		{
+			m_frame->m_RadioBox[3]->Enable(resizeTo - 1, true);
+			m_frame->m_RadioBox[3]->Select(resizeTo - 1);
+		}
+
+		addnew = 0;
+		saveNext = resizeTo; // save the log to
+
+		// ------------------------------------
+		// Save as file
+		if(m_frame->StoreMails)
+		{
+			//wprintf("m_frame->sMail.size(): %i  |  resizeTo:%i\n", m_frame->sMail.size(), resizeTo);
+			SaveLogFile(lMail, resizeTo, 0, Wii);
+		}
+		
+	}
+	sTemp = "";
+	sTempEnd = "";
+}
+}
+// ----------------
+
 
 void DoVoiceHacks(AXParamBlock &pb)
 {
@@ -83,8 +248,7 @@ void DoVoiceHacks(AXParamBlock &pb)
 	const u16 upddata   = Memory_Read_U16(updaddr + 2);
 
 	// =======================================================================================
-	/*
-	Fix problems introduced with the SSBM fix - Sometimes when a music stream ended sampleEnd
+	/* Fix problems introduced with the SSBM fix - Sometimes when a music stream ended sampleEnd
 	would become extremely high and the game would play random sound data from ARAM resulting in
 	a strange noise. This should take care of that. - Some games (Monkey Ball 1 and Tales of
 	Symphonia and other) also had one odd last block with a strange high loopPos and strange
@@ -93,7 +257,7 @@ void DoVoiceHacks(AXParamBlock &pb)
 	// ------------
 	if (
 		(sampleEnd > 0x10000000 || loopPos > 0x10000000)
-		&& gSSBMremedy1
+		&& m_frame->gSSBMremedy1
 		)
 	{
 		pb.running = 0;
@@ -132,7 +296,7 @@ void DoVoiceHacks(AXParamBlock &pb)
 
 	&& pb.mixer_control == 0 // only use this in SSBM
 
-	&& gSSBMremedy2 // let us turn this fix on and off
+	&& m_frame->gSSBMremedy2 // let us turn this fix on and off
 	)
 	{
 		// reset the detection values
@@ -154,7 +318,7 @@ void DoVoiceHacks(AXParamBlock &pb)
 	// =======================================================================================
 	// Reset all values
 	// ------------
-	if (gReset
+	if (m_frame->gReset
 		&& (pb.running || pb.audio_addr.looping || pb.adpcm_loop_info.pred_scale)
 		)	
 	{
@@ -188,6 +352,10 @@ int ReadOutPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num)
 			for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
 			{
 				pDest[p] = Common::swap16(pSrc[p]);
+
+				#if defined(_DEBUG) || defined(DEBUGFAST)
+					gLastBlock = blockAddr + p*2 + 2;  // save last block location
+				#endif
 			}
 			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
 			count++;			
@@ -257,7 +425,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			// 0-3, those are important
 			&& (upd0 || upd1 || upd2 || upd3 || upd4) // We should use these in some way to I think
 			// but I don't know how or when
-			&& gSequenced) // on and off option
+			&& m_frame->gSequenced) // on and off option
 		{
 			pDest[updpar] = upddata;
 		}
@@ -296,6 +464,28 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 }
 
 
+// ------------------------------------------------------------------------------
+// Handle incoming mail
+// -----------
+void CUCode_AX::HandleMail(u32 _uMail)
+{
+	if ((_uMail & 0xFFFF0000) == MAIL_AX_ALIST)
+	{
+		// a new List
+		DebugLog(" >>>> u32 MAIL : General Mail (%08x)", _uMail);
+	}
+	else
+	{
+		DebugLog(" >>>> u32 MAIL : AXTask Mail (%08x)", _uMail);
+		AXTask(_uMail);
+		
+	}
+}
+
+
+// ------------------------------------------------------------------------------
+// Update with DSP Interrupt
+// -----------
 void CUCode_AX::Update()
 {
 	// check if we have to sent something
@@ -304,14 +494,23 @@ void CUCode_AX::Update()
 		g_dspInitialize.pGenerateDSPInterrupt();
 	}
 }
+// -----------
 
+
+// Shortcut
+void CUCode_AX::SaveLog(const char* _fmt, ...) { if(m_frame) SaveLog_(false, _fmt); }
+
+
+// ============================================
 // AX seems to bootup one task only and waits for resume-callbacks
 // everytime the DSP has "spare time" it sends a resume-mail to the CPU
 // and the __DSPHandler calls a AX-Callback which generates a new AXFrame
 bool CUCode_AX::AXTask(u32& _uMail)
 {
 	u32 uAddress = _uMail;
-	DebugLog("AXTask - AXCommandList-Addr: 0x%08x", uAddress);
+	SaveLog("Begin");
+	SaveLog("=====================================================================");
+	SaveLog("%08x : AXTask - AXCommandList-Addr:", uAddress);
 
 	u32 Addr__AXStudio;
 	u32 Addr__AXOutSBuffer;
@@ -330,6 +529,8 @@ bool CUCode_AX::AXTask(u32& _uMail)
 
 	bool bExecuteList = true;
 
+	if(m_frame) SaveMail(false, _uMail); // Save mail for debugging
+
 	while (bExecuteList)
 	{
 		static int last_valid_command = 0;
@@ -340,7 +541,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 	    case AXLIST_STUDIOADDR: //00
 		    Addr__AXStudio = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST studio address: %08x", Addr__AXStudio);
+		    SaveLog("%08x : AXLIST studio address: %08x", uAddress, Addr__AXStudio);
 		    break;
 
 	    case 0x001: // 2byte x 10
@@ -353,7 +554,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		    uAddress += 2;
 		    u16 param3 = Memory_Read_U16(uAddress);
 		    uAddress += 2;
-		    DebugLog("AXLIST 1: %08x, %04x, %04x, %04x", address, param1, param2, param3);
+		    SaveLog("%08x : AXLIST 1: %08x, %04x, %04x, %04x", uAddress, address, param1, param2, param3);
 	    }
 		    break;
 
@@ -368,16 +569,16 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		    uAddress += 4;
 
 		    mixer_HLEready = true;
-		    DebugLog("AXLIST PB address: %08x", m_addressPBs);
+		    SaveLog("%08x : AXLIST PB address: %08x", uAddress, m_addressPBs);
 #ifdef _WIN32
-		    DebugLog("Update the SoundThread to be in sync");
+		    SaveLog("Update the SoundThread to be in sync");
 		    DSound::DSound_UpdateSound(); //do it in this thread to avoid sync problems
 #endif
 		    }
 		    break;
 
 	    case 0x0003:
-		    DebugLog("AXLIST command 0x0003 ????");
+		    SaveLog("%08x : AXLIST command 0x0003 ????");
 		    break;
 
 	    case 0x0004:  // AUX?
@@ -385,7 +586,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		    uAddress += 4;
 		    Addr__4_2 = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST 4_1 4_2 addresses: %08x %08x", Addr__4_1, Addr__4_2);
+		    SaveLog("%08x : AXLIST 4_1 4_2 addresses: %08x %08x", uAddress, Addr__4_1, Addr__4_2);
 		    break;
 
 	    case 0x0005:
@@ -393,31 +594,31 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		    uAddress += 4;
 		    Addr__5_2 = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST 5_1 5_2 addresses: %08x %08x", Addr__5_1, Addr__5_2);
+		    SaveLog("%08x : AXLIST 5_1 5_2 addresses: %08x %08x", uAddress, Addr__5_1, Addr__5_2);
 		    break;
 
 	    case 0x0006:
 		    Addr__6   = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST 6 address: %08x", Addr__6);
+		    SaveLog("%08x : AXLIST 6 address: %08x", uAddress, Addr__6);
 		    break;
 
 	    case AXLIST_SBUFFER:
 		    Addr__AXOutSBuffer = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST OutSBuffer address: %08x", Addr__AXOutSBuffer);
+		    SaveLog("%08x : AXLIST OutSBuffer address: %08x", uAddress, Addr__AXOutSBuffer);
 		    break;
 
 	    case 0x0009:
 		    Addr__9   = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST 6 address: %08x", Addr__9);
+		    SaveLog("%08x : AXLIST 6 address: %08x", Addr__9);
 		    break;
 
 	    case AXLIST_COMPRESSORTABLE:  // 0xa
 		    Addr__A   = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST CompressorTable address: %08x", Addr__A);
+		    SaveLog("%08x : AXLIST CompressorTable address: %08x", uAddress, Addr__A);
 		    break;
 
 	    case 0x000e:
@@ -428,16 +629,16 @@ bool CUCode_AX::AXTask(u32& _uMail)
 			// Although we don't, currently.
 		    Addr__AXOutSBuffer_2 = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST sbuf2 addresses: %08x %08x", Addr__AXOutSBuffer_1, Addr__AXOutSBuffer_2);
+		    SaveLog("%08x : AXLIST sbuf2 addresses: %08x %08x", uAddress, Addr__AXOutSBuffer_1, Addr__AXOutSBuffer_2);
 		    break;
 
 	    case AXLIST_END:
 		    bExecuteList = false;
-		    DebugLog("AXLIST end");
+		    SaveLog("%08x : AXLIST end", uAddress);
 		    break;
 
 	    case 0x0010:  //Super Monkey Ball 2
-		    DebugLog("AXLIST unknown");
+		    SaveLog("%08x : AXLIST 0x0010", uAddress);
 		    //should probably read/skip stuff here
 		    uAddress += 8;
 		    break;
@@ -485,7 +686,9 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		if (bExecuteList)
 			last_valid_command = iCommand;
 	}
-	DebugLog("AXTask - done, send resume");
+	SaveLog("AXTask - done, send resume");
+	SaveLog("=====================================================================");
+	SaveLog("End");
 
 	// i hope resume is okay AX
 	m_rMailHandler.PushMail(0xDCD10001);

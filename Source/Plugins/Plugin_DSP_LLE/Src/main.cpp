@@ -66,7 +66,7 @@ bool AXTask(u32& _uMail);
 bool bCanWork = false;
 
 // Set this if you want to log audio. search for log_ai in this file to see the filename.
-static bool log_ai = true;
+static bool log_ai = false;
 WaveFileWriter g_wave_writer;
 
 // ==============

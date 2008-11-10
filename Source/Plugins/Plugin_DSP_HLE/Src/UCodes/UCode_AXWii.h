@@ -34,6 +34,8 @@ public:
 
 	// this is a little ugly perhaps, feel free to move it out of here
 	void Logging(short* _pBuffer, int _iSize, int a);
+	CUCode_AX * lCUCode_AX; // we need the logging functions in there
+
 
 private:
 	enum
@@ -49,6 +51,7 @@ private:
 
 	// ax task message handler
 	bool AXTask(u32& _uMail);
+	void SaveLog(const char* _fmt, ...);
 	void SendMail(u32 _uMail);
 };
 

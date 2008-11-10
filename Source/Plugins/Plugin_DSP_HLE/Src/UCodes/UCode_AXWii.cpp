@@ -26,8 +26,18 @@
 
 #include "UCodes.h"
 #include "UCode_AXStructs.h"
+#include "UCode_AX.h" // for some functions in CUCode_AX
 #include "UCode_AXWii.h"
 #include "UCode_AX_Voice.h"
+
+
+// ------------------------------------------------------------------
+// Declarations
+// -----------
+extern u32 gLastBlock;
+extern CDebugger * m_frame;
+// -----------
+
 
 CUCode_AXWii::CUCode_AXWii(CMailHandler& _rMailHandler)
 	: IUCode(_rMailHandler)
@@ -39,6 +49,8 @@ CUCode_AXWii::CUCode_AXWii(CMailHandler& _rMailHandler)
 
 	templbuffer = new int[1024 * 1024];
 	temprbuffer = new int[1024 * 1024];
+
+	lCUCode_AX = new CUCode_AX(_rMailHandler);	
 }
 
 CUCode_AXWii::~CUCode_AXWii()
@@ -75,6 +87,10 @@ int ReadOutPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
 			for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
 			{
 				pDest[p] = Common::swap16(pSrc[p]);
+				
+				#if defined(_DEBUG) || defined(DEBUGFAST)
+					gLastBlock = blockAddr + p*2 + 2;  // save last block location
+				#endif
 			}
 			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
 			count++;			
@@ -120,9 +136,9 @@ void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 	memset(temprbuffer, 0, _iSize * sizeof(int));
 
 	// write logging data to debugger
-	//if (m_frame)
+	if (m_frame)
 	{
-//		CUCode_AXWii::Logging(_pBuffer, _iSize, 0);
+		lCUCode_AX->Logging(_pBuffer, _iSize, 0);
 	}
 	
 	// ---------------------------------------------------------------------------------------
@@ -192,13 +208,19 @@ void CUCode_AXWii::Update()
 	}
 }
 
+// Shortcut
+void CUCode_AXWii::SaveLog(const char* _fmt, ...) { if(m_frame) lCUCode_AX->SaveLog_(true, _fmt); }
+
+
 // AX seems to bootup one task only and waits for resume-callbacks
 // everytime the DSP has "spare time" it sends a resume-mail to the CPU
 // and the __DSPHandler calls a AX-Callback which generates a new AXFrame
 bool CUCode_AXWii::AXTask(u32& _uMail)
 {
 	u32 uAddress = _uMail;
-	DebugLog("AXTask - AXCommandList-Addr: 0x%08x", uAddress);
+	SaveLog("Begin");
+	SaveLog("=====================================================================");
+	SaveLog("%08x: AXTask - AXCommandList-Addr", uAddress);
 
 	u32 Addr__AXStudio;
 	u32 Addr__AXOutSBuffer;
@@ -212,6 +234,8 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 	u32 Addr__9;
 
 	bool bExecuteList = true;
+
+	if(m_frame) lCUCode_AX->SaveMail(true, uAddress); // Save mail for debugging
 
 	if (false) 
 	{
@@ -242,14 +266,14 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 	    case 0x0000: //00
 		    Addr__AXStudio = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST studio address: %08x", Addr__AXStudio);
+		    SaveLog("%08x : AXLIST studio address: %08x", uAddress, Addr__AXStudio);
 		    break;
 
 	    case 0x0001:
 		    {
 		    u32 address = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST 1: %08x", address);
+		    SaveLog("%08x : AXLIST 1: %08x", uAddress, address);
 		    }
 		    break;
 
@@ -257,14 +281,15 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		    {
 		    u32 address = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST 3: %08x", address);
+		    SaveLog("%08x : AXLIST 3: %08x", uAddress, address);
 		    }
 		    break;
 
 	    case 0x0004:  // PBs are here now
 		    m_addressPBs = Memory_Read_U32(uAddress);
+			lCUCode_AX->m_addressPBs = m_addressPBs; // for the sake of logging
 		    mixer_HLEready = true;
-		    DebugLog("AXLIST PB address: %08x", m_addressPBs);
+		    SaveLog("%08x : AXLIST PB address: %08x", uAddress, m_addressPBs);
 #ifdef _WIN32
 		    DebugLog("Update the SoundThread to be in sync");
 		    DSound::DSound_UpdateSound(); //do it in this thread to avoid sync problems
@@ -279,13 +304,13 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		    uAddress += 4;
 			
 			uAddress += 2;
-		    DebugLog("AXLIST 5_1 5_2 addresses: %08x %08x", Addr__5_1, Addr__5_2);
+		    SaveLog("%08x : AXLIST 5_1 5_2 addresses: %08x %08x", uAddress, Addr__5_1, Addr__5_2);
 		    break;
 
 	    case 0x0006:
 		    Addr__6   = Memory_Read_U32(uAddress);
 		    uAddress += 10;
-		    DebugLog("AXLIST 6 address: %08x", Addr__6);
+		    SaveLog("%08x : AXLIST 6 address: %08x", uAddress, Addr__6);
 		    break; 
 
 /*	    case 0x0007:   // AXLIST_SBUFFER
@@ -306,7 +331,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		    uAddress += 4;
 		    //Addr__A   = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST CompressorTable address: %08x", Addr__A);
+		    SaveLog("%08x : AXLIST CompressorTable address: %08x", uAddress, Addr__A);
 		    break;
 
 		case 0x000b:
@@ -326,7 +351,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 	    case 0x000e:
 			// This is the end.
 			bExecuteList = false;
-			DebugLog("AXLIST end, wii stylee.");
+			SaveLog("%08x : AXLIST end, wii stylee.", uAddress);
 			break;
 
 	    default:
@@ -359,7 +384,9 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		if (bExecuteList)
 			last_valid_command = iCommand;
 	}
-	DebugLog("AXTask - done, send resume");
+	SaveLog("AXTask - done, send resume");
+	SaveLog("=====================================================================");
+	SaveLog("End");
 
 	// i hope resume is okay AX
 	m_rMailHandler.PushMail(0xDCD10001);

@@ -73,6 +73,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
                     PanicAlert("Your GCM/ISO file seems to be invalid, or not a GC/Wii ISO.");
                     return false;                    
                 }
+				m_strName = pVolume->GetName();
 				m_strUniqueID = pVolume->GetUniqueID();
                 bWii = DiscIO::IsVolumeWiiDisc(pVolume);
 

@@ -18,6 +18,7 @@
 #ifndef _UCODE_AX
 #define _UCODE_AX
 
+#include <iostream>
 #include "UCode_AXStructs.h"
 
 enum
@@ -35,8 +36,16 @@ public:
 	void MixAdd(short* _pBuffer, int _iSize);
 	void Update();
 
-	// this is a little ugly perhaps, feel free to move it out of here
+	// Logging
 	void Logging(short* _pBuffer, int _iSize, int a);
+	void SaveLog_(bool Wii, const char* _fmt, ...);
+	void SaveMail(bool Wii, u32 _uMail);
+	void SaveLogFile(std::string f, int resizeTo, bool type, bool Wii);
+	std::string TmpMailLog;
+	int saveNext;
+
+	// PBs
+	u32 m_addressPBs;
 
 private:
 	enum
@@ -49,14 +58,12 @@ private:
 		AXLIST_END = 0x000F
 	};
 
-	// PBs
-	u32 m_addressPBs;
-
 	int *templbuffer;
 	int *temprbuffer;
 
 	// ax task message handler
 	bool AXTask(u32& _uMail);
+	void SaveLog(const char* _fmt, ...);
 	void SendMail(u32 _uMail);
 };
 
