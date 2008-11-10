@@ -176,7 +176,8 @@ u16 g_AR_MODE = 0x43;		// 0x23 -> Zelda standard mode (standard ARAM access ??)
 
 void DoState(PointerWrap &p)
 {
-	p.DoArray(g_ARAM, ARAM_SIZE);
+	if (!Core::GetStartupParameter().bWii)
+		p.DoArray(g_ARAM, ARAM_SIZE);
 	p.Do(g_dspState);
 	p.Do(g_audioDMA);
 	p.Do(g_arDMA);
@@ -200,7 +201,15 @@ void GenerateDSPInterrupt_Wrapper(u64 userdata, int cyclesLate)
 
 void Init()
 {
-	g_ARAM = (u8 *)AllocateMemoryPages(ARAM_SIZE);
+	if (Core::GetStartupParameter().bWii)
+	{
+		// On the Wii, ARAM is simply mapped to EXRAM.
+		g_ARAM = Memory::GetPointer(0x10000000);
+	}
+	else
+	{
+		g_ARAM = (u8 *)AllocateMemoryPages(ARAM_SIZE);
+	}
 	g_dspState.DSPControl.Hex = 0;
     g_dspState.DSPControl.DSPHalt = 1;
 	et_GenerateDSPInterrupt = CoreTiming::RegisterEvent("DSPint", GenerateDSPInterrupt_Wrapper);
@@ -208,7 +217,8 @@ void Init()
 
 void Shutdown()
 {
-	FreeMemoryPages(g_ARAM, ARAM_SIZE);
+	if (!Core::GetStartupParameter().bWii)
+		FreeMemoryPages(g_ARAM, ARAM_SIZE);
 	g_ARAM = NULL;
 }
 
