@@ -40,14 +40,10 @@ void CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 	m_PluginInfos.clear();
 
 	CFileSearch::XStringVector Directories;
-	Directories.push_back(std::string("Plugins"));
+	Directories.push_back(std::string(PLUGINS_DIR));
 
 	CFileSearch::XStringVector Extensions;
-#ifdef _WIN32
-	Extensions.push_back("*.dll");
-#else
-	Extensions.push_back("*.so");
-#endif
+        Extensions.push_back("*." PLUGIN_SUFFIX);
 
 	CFileSearch FileSearch(Extensions, Directories);
 	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();
