@@ -282,7 +282,7 @@ bool DoARSubtype_RamWriteAndFill(u8 w, u32 addr, u32 data)
 					Memory::Write_U16(data & 0xFFFF, new_addr + i * 2);
 				break;
 			}
-
+		case 0x03: //some codes use 03, but its just the same as 02...
 		case 0x02: // Dword write
 			Memory::Write_U32(data, new_addr);
 			break;
