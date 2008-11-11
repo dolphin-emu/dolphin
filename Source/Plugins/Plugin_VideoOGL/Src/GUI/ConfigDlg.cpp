@@ -263,7 +263,7 @@ void ConfigDialog::AboutClick(wxCommandEvent& event)
 {
 	wxMessageBox(_T("Dolphin OpenGL Plugin\nBy zerofrog(@gmail.com)\n\n"
 		"A card supporting Vertex/Pixel Shader 2.0 or higher, framebuffer objects, "
-		"and multiple render targets is required in order to use this plugin"),
+		"and multiple render targets is required in order to use this plugin."),
 		_T("Dolphin OGL"), wxOK, this);
 }
 

@@ -232,7 +232,7 @@ void VertexLoader::CompileVertexTranslator()
 	// TextureCoord
 	const int tc[8] = {
 		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord,
-		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, m_VtxDesc.Tex7Coord,
+		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, (m_VtxDesc.Hex >> 31) & 3
 	};
 	
 	// Reset pipeline
