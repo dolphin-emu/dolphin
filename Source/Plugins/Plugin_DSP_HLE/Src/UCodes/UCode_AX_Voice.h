@@ -21,6 +21,12 @@
 #include "UCode_AX_ADPCM.h"
 #include "../main.h"
 
+// ----------------------------------------------------
+// Externals
+// -----------
+extern bool gSequenced;
+extern bool gVolume;
+
 template<class ParamBlockType>
 inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, int _iSize)
 {
@@ -35,13 +41,14 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 	// =============
 	if (pb.running)
 	{
+
 		// =======================================================================================
 		// Read initial parameters
 		// ------------
 		//constants						
 		const u32 ratio     = (u32)(((pb.src.ratio_hi << 16) + pb.src.ratio_lo) * ratioFactor);
-		const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
-		const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
+		u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
+		u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
 
 		//variables
 		u32 samplePos = (pb.audio_addr.cur_addr_hi << 16) | pb.audio_addr.cur_addr_lo;
@@ -63,7 +70,8 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 			// Soul Calibur 2: The movie music use src_type 2 but it needs no adjustment, perhaps
 			// the sound format plays in to, Baten use ADPCM SC2 use PCM16
 		// ------------
-		if (pb.src_type == 2 && (pb.src.ratio_hi == 0 && pb.src.ratio_lo == 0))
+		//if (pb.src_type == 2 && (pb.src.ratio_hi == 0 && pb.src.ratio_lo == 0))
+		if (pb.running && (pb.src.ratio_hi == 0 && pb.src.ratio_lo == 0))
 		{
 			pb.src.ratio_hi = 1;
 		}
@@ -78,13 +86,21 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 		// --------------
 		if (
 			(pb.adpcm_loop_info.pred_scale || pb.adpcm_loop_info.yn1 || pb.adpcm_loop_info.yn2)
-			&& pb.mixer_control == 0
-			
+			&& pb.mixer_control == 0			
 			)
 		{
 			pb.audio_addr.looping = 1;
 		}
 		// ==============
+
+		// Top Spin 3 Wii
+		if(pb.audio_addr.sample_format > 25) pb.audio_addr.sample_format = 0;
+
+		/* What's with the high samplePos values in Wii? Should we adjust them somehow?
+		samplePos = ((samplePos/14)*16) + (samplePos % 14) + 2;
+		sampleEnd = ((sampleEnd/14)*16) + (sampleEnd % 14) + 2;
+		loopPos = ((loopPos/14)*16) + (loopPos % 14) + 2;
+		*/
 
 		// =======================================================================================
 		// Walk through _iSize. _iSize = numSamples. If the game goes slow _iSize will be higher to
@@ -188,10 +204,11 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 		} // end of the _iSize loop
 
 		// Update volume
-		if (sizeof(ParamBlockType) == sizeof(AXParamBlock) && m_frame->gVolume) // allow us to turn this off in the debugger
+		//if (sizeof(ParamBlockType) == sizeof(AXParamBlock)) // this is not needed anymore I think
+		if (gVolume) // allow us to turn this off in the debugger
 		{
-			pb.mixer.volume_left = ADPCM_Vol(pb.mixer.volume_left, pb.mixer.unknown, pb.mixer_control);
-			pb.mixer.volume_right = ADPCM_Vol(pb.mixer.volume_right, pb.mixer.unknown2, pb.mixer_control);
+			pb.mixer.volume_left = ADPCM_Vol(pb.mixer.volume_left, pb.mixer.unknown);
+			pb.mixer.volume_right = ADPCM_Vol(pb.mixer.volume_right, pb.mixer.unknown2);
 		}
 
 		pb.src.cur_addr_frac = (u16)frac;

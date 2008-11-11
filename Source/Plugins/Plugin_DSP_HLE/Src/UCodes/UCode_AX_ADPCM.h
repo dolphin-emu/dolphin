@@ -62,7 +62,7 @@ inline s16 ADPCM_Step(PBADPCMInfo &adpcm, u32& samplePos, u32 newSamplePos, u16 
 // =======================================================================================
 // Volume control (ramping)
 // --------------
-inline u16 ADPCM_Vol(u16 vol, u16 delta, u16 mixer_control)
+inline u16 ADPCM_Vol(u16 vol, u16 delta)
 {
 	int x = vol;
 	if (delta && delta < 0x5000)

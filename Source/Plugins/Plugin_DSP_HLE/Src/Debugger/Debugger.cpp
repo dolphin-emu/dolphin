@@ -37,7 +37,13 @@
 #include "../Logging/Console.h" // open and close console
 
 
-// externals
+// externals that are needed even in Release builds
+bool gSSBM = true;
+bool gSSBMremedy1 = true;
+bool gSSBMremedy2 = true;
+bool gSequenced = true;
+bool gVolume = true;
+bool gReset = false;
 extern std::vector<std::string> sMailLog, sMailTime;
 
 
@@ -73,13 +79,6 @@ CDebugger::CDebugger(wxWindow *parent, wxWindowID id, const wxString &title,
 	//, gUpdFreq(5) // loaded from file
 	, gPreset(0)
 	, giShowAll(-1)
-
-	, gSSBM(true)
-	, gSSBMremedy1(true)
-	, gSSBMremedy2(true)
-	, gSequenced(true)
-	, gVolume(true)
-	, gReset(false)
 {
 	CreateGUIControls();
 

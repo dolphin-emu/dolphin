@@ -35,6 +35,12 @@
 // ------------------------------------------------------------------
 // Externals
 // -----------
+extern bool gSSBM;
+extern bool gSSBMremedy1;
+extern bool gSSBMremedy2;
+extern bool gSequenced;
+extern bool gVolume;
+extern bool gReset;
 extern u32 gLastBlock;
 extern std::string gpName;
 extern CDebugger* m_frame;
@@ -262,7 +268,7 @@ void DoVoiceHacks(AXParamBlock &pb)
 	// ------------
 	if (
 		(sampleEnd > 0x10000000 || loopPos > 0x10000000)
-		&& m_frame->gSSBMremedy1
+		&& gSSBMremedy1
 		)
 	{
 		pb.running = 0;
@@ -301,7 +307,7 @@ void DoVoiceHacks(AXParamBlock &pb)
 
 	&& pb.mixer_control == 0 // only use this in SSBM
 
-	&& m_frame->gSSBMremedy2 // let us turn this fix on and off
+	&& gSSBMremedy2 // let us turn this fix on and off
 	)
 	{
 		// reset the detection values
@@ -323,7 +329,7 @@ void DoVoiceHacks(AXParamBlock &pb)
 	// =======================================================================================
 	// Reset all values
 	// ------------
-	if (m_frame->gReset
+	if (gReset
 		&& (pb.running || pb.audio_addr.looping || pb.adpcm_loop_info.pred_scale)
 		)	
 	{
@@ -430,7 +436,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 			// 0-3, those are important
 			&& (upd0 || upd1 || upd2 || upd3 || upd4) // We should use these in some way to I think
 			// but I don't know how or when
-			&& m_frame->gSequenced) // on and off option
+			&& gSequenced) // on and off option
 		{
 			pDest[updpar] = upddata;
 		}

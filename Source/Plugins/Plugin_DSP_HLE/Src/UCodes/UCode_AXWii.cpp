@@ -34,6 +34,7 @@
 // ------------------------------------------------------------------
 // Declarations
 // -----------
+extern bool gSequenced;
 extern u32 gLastBlock;
 extern CDebugger * m_frame;
 // -----------
@@ -84,13 +85,11 @@ int ReadOutPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
 		const short *pSrc = (const short *)g_dspInitialize.pGetMemoryPointer(blockAddr);
 		pAddr = blockAddr;
 
-		// Detect the last mail by checking when next_pb = 0
-		u32 next_pb = (Common::swap16(pSrc[0]) << 16) | Common::swap16(pSrc[1]);
-		if (pSrc != NULL && next_pb > 0)
+		if (pSrc != NULL)
 		{
 			short *pDest = (short *)&_pPBs[i];
 			for (int p = 0; p < sizeof(AXParamBlockWii) / 2; p++)
-			{		
+			{
 				pDest[p] = Common::swap16(pSrc[p]);
 
 				#if defined(_DEBUG) || defined(DEBUGFAST)
@@ -99,6 +98,10 @@ int ReadOutPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
 			}
 			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
 			count++;
+			
+			// Detect the last mail by checking when next_pb = 0
+			u32 next_pb = (Common::swap16(pSrc[0]) << 16) | Common::swap16(pSrc[1]);
+			if(next_pb == 0) break;
 		}
 		else
 			break;
@@ -118,11 +121,11 @@ void WriteBackPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
 		short* pSrc  = (short*)&_pPBs[i];
 		short* pDest = (short*)g_dspInitialize.pGetMemoryPointer(blockAddr);
 		for (size_t p = 0; p < sizeof(AXParamBlockWii) / 2; p++)
-		{			
-			pDest[p] = Common::swap16(pSrc[p]);
+		{
+				pDest[p] = Common::swap16(pSrc[p]);				
 		}
 
-		// next block
+		// next block		
 		blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
 	}
 }
@@ -146,33 +149,37 @@ void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 		lCUCode_AX->Logging(_pBuffer, _iSize, 0, true);
 	}
 	
+
 	// ---------------------------------------------------------------------------------------
-	// Make the updates we are told to do
-	// This code is buggy, TODO - fix. If multiple updates in a ms, only does first.
+	// Make the updates we are told to do. This code may be buggy, TODO - fix. If multiple
+	// updates in a ms, only does first.
 	// ------------
-	/*
-	for (int i = 0; i < numberOfPBs; i++) {
+	for (int i = 0; i < numberOfPBs; i++)
+	{
 		u16 *pDest = (u16 *)&PBs[i];
-		u16 upd0 = pDest[34]; u16 upd1 = pDest[35]; u16 upd2 = pDest[36]; // num_updates
-		u16 upd_hi = pDest[39]; // update addr
-		u16	upd_lo = pDest[40];
+		u16 upd0 = pDest[41]; u16 upd1 = pDest[42]; u16 upd2 = pDest[43]; // num_updates
+		u16 upd_hi = pDest[44]; // update addr
+		u16	upd_lo = pDest[45];
 		const u32 updaddr   = (u32)(upd_hi << 16) | upd_lo;
 		const u16 updpar   = Memory_Read_U16(updaddr);
 		const u16 upddata   = Memory_Read_U16(updaddr + 2);
 		// some safety checks, I hope it's enough, how long does the memory go?
 		if(updaddr > 0x80000000 && updaddr < 0x82000000
-			&& updpar < 63 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
+			&& updpar < 127 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
 			// 0-3, those are important
-			&& (upd0 || upd1 || upd2 || upd3 || upd4) // We should use these in some way to I think
+			&& (upd0 || upd1 || upd2) // We should use these in some way to I think
 			// but I don't know how or when
 			&& gSequenced) // on and off option
 		{
+			//PanicAlert("Update %i: %i = %04x", i, updpar, upddata);
+			//DebugLog("Update: %i = %04x", updpar, upddata);
 			pDest[updpar] = upddata;
 		}
-	}*/
+	}
 
 	//aprintf(1, "%08x %04x %04x\n", updaddr, updpar, upddata);
 	// ------------
+
 
 	for (int i = 0; i < numberOfPBs; i++)
 	{		

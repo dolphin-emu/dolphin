@@ -56,6 +56,7 @@ extern CDebugger* m_frame;
 	std::vector<u32> gsamplePos(NUMBER_OF_PBS);
 
 // main
+	std::vector<u16> running(NUMBER_OF_PBS);
 	std::vector<u16> gsrc_type(NUMBER_OF_PBS);
 	std::vector<u16> gis_stream(NUMBER_OF_PBS);
 
@@ -72,6 +73,7 @@ extern CDebugger* m_frame;
 	std::vector<u16> gvolume_right(NUMBER_OF_PBS);
 	std::vector<u16> gmix_unknown2(NUMBER_OF_PBS);
 	std::vector<u16> gmixer_control(NUMBER_OF_PBS);
+	std::vector<u32> gmixer_control_wii(NUMBER_OF_PBS);
 
 	std::vector<u16> gmixer_vol1(NUMBER_OF_PBS);
 	std::vector<u16> gmixer_vol2(NUMBER_OF_PBS);
@@ -152,15 +154,15 @@ std::string writeTitle(int a)
 	if(a == 0)
 	{			
 		b =     "                                                                        adpcm           adpcm_loop\n";
-		b = b + "                Nr    pos / end      lpos     | voll  volr  | isl iss | pre yn1   yn2   pre yn1   yn2   | frac  ratio[hi lo]\n";
+		b = b + "                Nr     pos / end     lpos      | voll  volr  | isl iss | pre yn1   yn2   pre yn1   yn2   | frac  ratio[hi lo]\n";
 	}
 	else if(a == 1)
 	{
-		b = "                Nr    pos / end      lpos     | voll  volr  | src form coef | 1 2 3 4 5\n";
+		b = "                Nr     pos / end     lpos     | voll  volr  | src form coef | 1 2 3 4 5\n";
 	}
 	else if(a == 2)
 	{
-		b = "                Nr    pos / end      lpos     | voll  volr  | isl iss | e-l    e-s\n";
+		b = "                Nr     pos / end    lpos     | voll  volr  | isl iss | e-l    e-s\n";
 	}
 	else if(a == 3)
 	{
@@ -184,20 +186,20 @@ std::string writeMessage(int a, int i)
 	// ---------------------------------------------------------------------------------------
 	/*
 	PRESET 0
-	"                Nr    pos / end      lpos     | voll  volr  | isl iss | pre yn1   yn2   pre yn1   yn2   | frac  ratio[hi lo]\n";
-	"---------------|00 12341234/12341234 12341234 | 00000 00000 | 0   0   | 000 00000 00000 000 00000 00000 | 00000 00000[0 00000] 
+	"                Nr     pos / end       lpos     | voll  volr  | isl iss | pre yn1   yn2   pre yn1   yn2   | frac  ratio[hi lo]\n";
+	"---------------|00 12341234/1234123412 12341234 | 00000 00000 | 0   0   | 000 00000 00000 000 00000 00000 | 00000 00000[0 00000] 
 	
 	PRESET 1 (updates)
-	"                Nr    pos / end      lpos     | voll  volr  | src form coef | 1 2 3 4 5\n";
+	"                Nr     pos / end     lpos     | voll  volr  | src form coef | 1 2 3 4 5\n";
 	"---------------|00 12341234/12341234 12341234 | 00000 00000 | 0   0    0    | 0 0 0 0 0	
 
 	PRESET 2
-	"                Nr    pos / end      lpos     | voll  volr  | isl iss | e-l    e-s\n";
+	"                Nr     pos / end     lpos  | voll  volr  | isl iss | e-l    e-s\n";
 	"---------------|00 12341234/12341234 12341234 | 00000 00000 | 0   0   | 000000 000000
 	*/
 	if(a == 0)
 	{
-	sprintf(buf,"%c%02i %08i/%08i %08i | %05i %05i | %i   %i   | %03i %05i %05i %03i %05i %05i | %05i %05i[%i %05i]",
+	sprintf(buf,"%c%02i %08x/%08x %08x | %05u %05u | %i   %i   | %03i %05i %05i %03i %05i %05i | %05i %05i[%i %05i]",
 		223, i, gsamplePos[i], gsampleEnd[i], gloopPos[i],
 		gvolume_left[i], gvolume_right[i],
 		glooping[i], gis_stream[i],
@@ -207,7 +209,7 @@ std::string writeMessage(int a, int i)
 	}
 	else if(a == 1)
 	{
-	sprintf(buf,"%c%02i %08i/%08i %08i | %05i %05i | %i   %i    %i    | %i %i %i %i %i %08x %08x",
+	sprintf(buf,"%c%02i %08x/%08x %08x | %05u %05u | %i   %i    %i    | %i %i %i %i %i %08x %08x",
 		223, i, gsamplePos[i], gsampleEnd[i], gloopPos[i],
 		gvolume_left[i], gvolume_right[i],		
 		gsrc_type[i], gaudioFormat[i], gcoef[i],
@@ -284,23 +286,21 @@ template<class ParamBlockType> void CollectPB(bool Wii, int i, ParamBlockType &P
 //void CollectPB(bool Wii, int i, AXParamBlockWii * PBw, AXParamBlock * PBs)
 {
 	// AXPB base
+	gsrc_type[i] = PBs[i].src_type;
 	gcoef[i] = PBs[i].coef_select;
+	if(Wii) gmixer_control_wii[i] = PBs[i].mixer_control;
+		else gmixer_control[i] = PBs[i].mixer_control;
 
-	gloopPos[i]   = (PBs[i].audio_addr.loop_addr_hi << 16) | PBs[i].audio_addr.loop_addr_lo;
-	gsampleEnd[i] = (PBs[i].audio_addr.end_addr_hi << 16) | PBs[i].audio_addr.end_addr_lo;
-	gsamplePos[i] = (PBs[i].audio_addr.cur_addr_hi << 16) | PBs[i].audio_addr.cur_addr_lo;
+	running[i] = PBs[i].running;
+	gis_stream[i] = PBs[i].is_stream;
 
 	// mixer (some differences)
 	gvolume_left[i] = PBs[i].mixer.volume_left;
 	gvolume_right[i] = PBs[i].mixer.volume_right;
 
-	if(i == 94 && (PBs[i].mixer.unknown > 0 || PBs[i].mixer.unknown2 > 0))
-		DebugLog("(%i)  |  LOG Read Left:  %04x |   Right: %04x", i, PBs[i].mixer.unknown, PBs[i].mixer.unknown2);
-
 	gmix_unknown[i] = PBs[i].mixer.unknown;
 	gmix_unknown2[i] = PBs[i].mixer.unknown2;
 
-	gmixer_control[i] = PBs[i].mixer_control;
 	gcur_volume[i] = PBs[i].vol_env.cur_volume;
 	gcur_volume_delta[i] = PBs[i].vol_env.cur_volume_delta;
 
@@ -320,7 +320,14 @@ template<class ParamBlockType> void CollectPB(bool Wii, int i, ParamBlockType &P
 	gmixer_d6[i] = PBs[i].mixer.unknown4[3];
 	gmixer_d7[i] = PBs[i].mixer.unknown4[5];
 
-	// adpcm_loop_info (same in GC and Wii)
+	// PBAudioAddr audio_addr
+	glooping[i] = PBs[i].audio_addr.looping;
+	gaudioFormat[i] = PBs[i].audio_addr.sample_format;
+	gloopPos[i]   = (PBs[i].audio_addr.loop_addr_hi << 16) | PBs[i].audio_addr.loop_addr_lo;
+	gsampleEnd[i] = (PBs[i].audio_addr.end_addr_hi << 16) | PBs[i].audio_addr.end_addr_lo;
+	gsamplePos[i] = (PBs[i].audio_addr.cur_addr_hi << 16) | PBs[i].audio_addr.cur_addr_lo;
+
+	// PBADPCMLoopInfo adpcm_loop_info (same in GC and Wii)
 	gadloop1[i] = PBs[i].adpcm.pred_scale;
 	gadloop2[i] = PBs[i].adpcm.yn1;
 	gadloop3[i] = PBs[i].adpcm.yn2;
@@ -338,12 +345,7 @@ template<class ParamBlockType> void CollectPB(bool Wii, int i, ParamBlockType &P
 
 	gupdates_addr[i] = (PBs[i].updates.data_hi << 16) | PBs[i].updates.data_lo;
 	gupdates_data[i] = Memory_Read_U32(gupdates_addr[i]);
-
-	gaudioFormat[i] = PBs[i].audio_addr.sample_format;
-	glooping[i] = PBs[i].audio_addr.looping;
-	gsrc_type[i] = PBs[i].src_type;
-	gis_stream[i] = PBs[i].is_stream;
-	
+		
 	// PBSampleRateConverter src
 
 	gratio[i] = (u32)(((PBs[i].src.ratio_hi << 16) + PBs[i].src.ratio_lo) * ratioFactor);
@@ -413,15 +415,6 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 	else	
 		numberOfPBs = numberOfPBsGC;
 	
-
-	/*
-		DebugLog("After Read LOG: Left: %04x | Right: %04x     ||  Left: %04x | Right: %04x  ",
-		PBs[94].mixer.unknown, PBs[94].mixer.unknown2,
-		PBw[94].mixer.unknown, PBw[94].mixer.unknown2
-		);
-		*/
-
-
 	// Select blocks to show
 	bool Conditions;
 
@@ -433,7 +426,11 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 	//if (PBs[i].running)
 	int irun = 0;
 	for (int i = 0; i < numberOfPBs; i++)
-	{		
+	{
+		if(Wii)
+			running[i] = PBs[i].running;
+		else
+			running[i] = PBs[i].running;
 
 		// --------------------------------------------------------------------
 		// Write a line for the text log if nothing is playing
@@ -482,7 +479,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 
 				// write running
 				char cbuf[10];
-				sprintf(cbuf, "%i", PBs[i].running);
+				sprintf(cbuf, "%i", running[i]);
 				sfbuff = sfbuff + cbuf;
 
 				sfbuff = sfbuff + writeMessage(ii, i);
@@ -510,7 +507,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 	{
 
 		// =======================================================================================
-		// Move all items back. Vector1 is a vector1[NUMBER_OF_PBS][100] vector.
+		// Save the running history for each block. Vector1 is a vector1[NUMBER_OF_PBS][100] vector.
 		// --------------
 		/*
 		Move all items back like this:		
@@ -529,7 +526,16 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 		// Save the latest value		
 		for (int i = 0; i < numberOfPBs; i++)
 		{
-			vector1.at(i).at(vectorLength-1) = PBs[i].running ? true : false;
+			if(Wii)
+			{
+				//DebugLog("Writing %i to %i  |  m_addressPBs: %08x", running[i], i, m_addressPBs);
+				vector1.at(i).at(vectorLength-1) = running[i] ? true : false;
+			}
+			else
+			{
+				//DebugLog("Writing %i to %i", running[i], i);
+				vector1.at(i).at(vectorLength-1) = running[i] ? true : false;
+			}
 		}
 		// ==============
 
@@ -554,7 +560,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 		// Save the latest value		
 		for (int i = 0; i < numberOfPBs; i++)
 		{
-			vector2.at(i).at(vectorLength2-1) = PBs[i].running;
+			vector2.at(i).at(vectorLength2-1) = running[i];
 		}
 		// ==============
 
