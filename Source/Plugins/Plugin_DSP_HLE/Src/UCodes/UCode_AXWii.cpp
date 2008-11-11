@@ -334,12 +334,12 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		    SaveLog("%08x : AXLIST 6 address: %08x", uAddress, Addr__6);
 		    break; 
 
-/*	    case 0x0007:   // AXLIST_SBUFFER
+/**/	    case 0x0007:   // AXLIST_SBUFFER
 		    Addr__AXOutSBuffer = Memory_Read_U32(uAddress);
-		    uAddress += 4;
+		    uAddress += 10;
 			// uAddress += 12;
-		    DebugLog("AXLIST OutSBuffer address: %08x", Addr__AXOutSBuffer);
-		    break;*/
+		    DebugLog("%08x : AXLIST OutSBuffer (0x0007) address: %08x", uAddress, Addr__AXOutSBuffer);
+		    break;
 
 /*	    case 0x0009:
 		    Addr__9   = Memory_Read_U32(uAddress);
@@ -381,7 +381,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		    if (bFirst == true)
 		    {
 			    char szTemp[2048];
-				sprintf(szTemp, "Unknown AX-Command 0x%x (address: 0x%08x). Last valid: %02x\n",
+				sprintf(szTemp, "Unknown AX-Command 0x%04x (address: 0x%08x). Last valid: %02x\n",
 					    iCommand, uAddress - 2, last_valid_command);
 			    int num = -32;
 			    while (num < 64+32)
