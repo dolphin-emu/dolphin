@@ -204,7 +204,7 @@ void Init()
 	if (Core::GetStartupParameter().bWii)
 	{
 		// On the Wii, ARAM is simply mapped to EXRAM.
-		g_ARAM = Memory::GetPointer(0x10000000);
+		g_ARAM = Memory::GetPointer(0x00000000);
 	}
 	else
 	{
@@ -595,7 +595,8 @@ void Update_ARAM_DMA()
 		u32 iARAMAddress = g_arDMA.ARAddr;
 
 		//write to g_ARAM
-		LOGV(DSPINTERFACE, 1, "g_ARAM DMA write %08x bytes from %08x to Aram: %08x",g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr);
+		LOGV(DSPINTERFACE, 1, "g_ARAM DMA write %08x bytes from %08x to Aram: %08x",
+			g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr);
 		for (u32 i = 0; i < g_arDMA.Cnt.count; i++)
 		{
 			if (iARAMAddress < ARAM_SIZE)
@@ -612,6 +613,8 @@ void Update_ARAM_DMA()
 
 u8 ReadARAM(const u32 _iAddress)
 {
+	//LOGV(DSPINTERFACE, 0, "ARAM (r) 0x%08x", _iAddress);
+
 //	_dbg_assert_(DSPINTERFACE,(_iAddress) < ARAM_SIZE);
 	return g_ARAM[_iAddress & ARAM_MASK];
 }
@@ -623,6 +626,8 @@ u8* GetARAMPtr()
 
 void WriteARAM(u8 _iValue, u32 _iAddress)
 {
+	//LOGV(DSPINTERFACE, 0, "ARAM (w)  0x%08x 0x%08x", _iAddress);
+
 //	_dbg_assert_(DSPINTERFACE,(_iAddress) < ARAM_SIZE);
 	//rouge leader writes WAY outside
 	//not really surprising since it uses a totally different memory model :P

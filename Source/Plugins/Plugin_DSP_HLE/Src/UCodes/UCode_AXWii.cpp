@@ -319,13 +319,21 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		    break;
 
 	    case 0x0005:
-		    Addr__5_1 = Memory_Read_U32(uAddress);
-		    uAddress += 4;
-		    Addr__5_2 = Memory_Read_U32(uAddress);
-		    uAddress += 4;
-			
-			uAddress += 2;
-		    SaveLog("%08x : AXLIST 5_1 5_2 addresses: %08x %08x", uAddress, Addr__5_1, Addr__5_2);
+			if(Memory_Read_U16(uAddress) > 25) // this occured in Wii Sports
+			{
+				Addr__5_1 = Memory_Read_U32(uAddress);
+				uAddress += 4;
+				Addr__5_2 = Memory_Read_U32(uAddress);
+				uAddress += 4;
+				
+				uAddress += 2;
+				SaveLog("%08x : AXLIST 5_1 5_2 addresses: %08x %08x", uAddress, Addr__5_1, Addr__5_2);
+			}
+			else
+			{
+				uAddress += 2;
+				SaveLog("%08x : AXLIST Empty 0x0005", uAddress);
+			}
 		    break;
 
 	    case 0x0006:
@@ -380,6 +388,12 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		    static bool bFirst = true;
 		    if (bFirst == true)
 		    {
+				// A little more descreet way to say that there is a problem, that also let you
+				// take a look at the mail (and possible previous mails) in the debugger
+				SaveLog("%08x : Unknown AX-Command 0x%04x", uAddress, iCommand);
+				bExecuteList = false;
+				break;
+
 			    char szTemp[2048];
 				sprintf(szTemp, "Unknown AX-Command 0x%04x (address: 0x%08x). Last valid: %02x\n",
 					    iCommand, uAddress - 2, last_valid_command);
