@@ -66,7 +66,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		if (GameIni.Load(GameIniFile.c_str()))
 			LoadGameConfig();
 		else
-			wxMessageBox(wxString::Format("Could not create %s", GameIniFile.c_str()), _("Error"), wxOK|wxICON_ERROR, this);
+			wxMessageBox(wxString::Format(_("Could not create %s"), GameIniFile.c_str()), _("Error"), wxOK|wxICON_ERROR, this);
 	}
 
 	// Disk header and apploader
@@ -112,7 +112,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	CreateDirectoryTree(RootId, beginning, end, pos, (char *)"\\");	
 	m_Treectrl->Expand(RootId);
 
-	SetTitle(wxString::Format("Properties: %s - %s", OpenISO_.GetUniqueID().c_str(), OpenISO_.GetName().c_str()));
+	SetTitle(wxString::Format(_("Properties: %s - %s"), OpenISO_.GetUniqueID().c_str(), OpenISO_.GetName().c_str()));
 	Fit();
 }
 
@@ -366,7 +366,7 @@ void CISOProperties::CreateGUIControls()
 void CISOProperties::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	if (!SaveGameConfig(GameIniFile))
-		wxMessageBox(wxString::Format("Could not save %s", GameIniFile.c_str()), _("Error"), wxOK|wxICON_ERROR, this);
+		wxMessageBox(wxString::Format(_("Could not save %s"), GameIniFile.c_str()), _("Error"), wxOK|wxICON_ERROR, this);
 	Destroy();
 }
 

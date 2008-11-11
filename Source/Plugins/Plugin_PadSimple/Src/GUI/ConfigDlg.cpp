@@ -328,7 +328,11 @@ void ConfigDialog::OnButtonClick(wxCommandEvent& event)
 void ConfigDialog::DllAbout(wxCommandEvent& event)
 {
 	wxString message;
-	_WIN32 ? message = "A simple keyboard and XInput plugin for dolphin." : message = "A simple keyboard plugin for dolphin.";
+#ifdef _WIN32
+	message = _("A simple keyboard and XInput plugin for dolphin.");
+#else
+	message = _("A simple keyboard plugin for dolphin.");
+#endif
 
 	wxMessageBox(_T("Dolphin PadSimple Plugin\nBy ector and F|RES\n\n" + message),
 		_T("Dolphin PadSimple"), wxOK, this);
