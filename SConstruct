@@ -213,6 +213,13 @@ if not env['osx64']:
 # add methods from utils to env
 env.AddMethod(utils.filterWarnings)
 
+# output
+if sys.platform == 'darwin':
+	platform = 'mac'
+else:
+	platform = 'linux'
+
+env['plugin_dir'] = 'Binary/%s/Plugins/' % platform
 Export('env')
 
 utils.GenerateRevFile(env['flavor'], "Source/Core/Common/Src/svnrev_template.h",

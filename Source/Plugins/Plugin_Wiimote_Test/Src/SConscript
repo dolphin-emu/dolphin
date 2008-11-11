@@ -3,10 +3,7 @@
 Import('env')
 import sys
 
-if sys.platform == 'darwin':
-	output = "../../../../Binary/mac/Plugins/Plugin_Wiimote.so"
-else:
-	output = "../../../../Binary/linux/Plugins/Plugin_Wiimote.so"
+name = "Plugin_Wiimote.so"
 
 files = [
 	"Wiimote.cpp",
@@ -26,4 +23,4 @@ else:
         LIBS = [ 'common' ],
         )
 
-padenv.SharedLibrary(output, files)
+padenv.SharedLibrary('../../../../'+env['plugin_dir']+name, files)

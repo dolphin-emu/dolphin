@@ -43,6 +43,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "Paths.h"
+
 // Function Cross-Compatibility
 #ifdef _WIN32
 #define strcasecmp _stricmp

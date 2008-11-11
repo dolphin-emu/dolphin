@@ -25,7 +25,7 @@
 
 struct SConfig
 {
-	// default plugins ... hard coded inside the ini
+	// hard coded default plugins ...
 	std::string m_DefaultGFXPlugin;
 	std::string m_DefaultDSPPlugin;
 	std::string m_DefaultPADPlugin;

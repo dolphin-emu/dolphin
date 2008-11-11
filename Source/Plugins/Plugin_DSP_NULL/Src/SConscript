@@ -3,10 +3,7 @@
 Import('env')
 import sys
 
-if sys.platform == 'darwin':
-	output = "../../../../Binary/mac/Plugins/dspnull.so"
-else:
-	output = "../../../../Binary/linux/Plugins/dspnull.so"
+name = "Plugin_DSP_NULL.so"
 
 files = [
         "DSPHandler.cpp",
@@ -35,4 +32,4 @@ else:
         LIBS = [ 'common' ],
 	)
 
-dspenv.SharedLibrary(output, files)
+dspenv.SharedLibrary('../../../../'+env['plugin_dir']+name, files)

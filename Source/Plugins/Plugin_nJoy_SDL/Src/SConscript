@@ -3,10 +3,7 @@
 Import('env')
 import sys
 
-if sys.platform == 'darwin':
-	output = '../../../../Binary/mac/Plugins/Plugin_nJoy_SDL.so'
-else:
-	output = '../../../../Binary/linux/Plugins/Plugin_nJoy_SDL.so'
+name = "Plugin_nJoy_SDL.so"
 
 files = [
 	'nJoy.cpp',
@@ -20,4 +17,4 @@ padenv.Append(
 	LIBS = [ 'common' ],
 	)
 if not env['osx64']:
-    padenv.SharedLibrary(output, files)
+    padenv.SharedLibrary('../../../../'+env['plugin_dir']+name, files)

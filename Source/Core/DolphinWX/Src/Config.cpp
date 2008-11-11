@@ -40,7 +40,7 @@ SConfig::~SConfig()
 void SConfig::SaveSettings()
 {
 	IniFile ini;
-	ini.Load("Dolphin.ini"); // yes we must load first to not kill unknown stuff
+        //	ini.Load(DOLPHIN_CONFIG); // yes we must load first to not kill unknown stuff
 
 	// misc
 	{
@@ -78,21 +78,21 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "RunCompareClient", m_LocalCoreStartupParameter.bRunCompareClient);
 	}
 
-	ini.Save("Dolphin.ini");
+	ini.Save(DOLPHIN_CONFIG);
 }
 
 
 void SConfig::LoadSettings()
 {
 	IniFile ini;
-	ini.Load("Dolphin.ini");
+	ini.Load(DOLPHIN_CONFIG);
 
 	// hard coded default plugin
 	{
-		ini.Get("Default", "GFXPlugin", &m_DefaultGFXPlugin);
-		ini.Get("Default", "DSPPlugin", &m_DefaultDSPPlugin);
-		ini.Get("Default", "PadPlugin", &m_DefaultPADPlugin);
-		ini.Get("Default", "WiiMotePlugin", &m_DefaultWiiMotePlugin);
+            m_DefaultGFXPlugin = PLUGINS_DIR DIR_SEP DEFAULT_GFX_PLUGIN PLUGIN_SUFFIX;
+            m_DefaultDSPPlugin = PLUGINS_DIR DIR_SEP DEFAULT_DSP_PLUGIN PLUGIN_SUFFIX; 
+            m_DefaultPADPlugin = PLUGINS_DIR DIR_SEP DEFAULT_PAD_PLUGIN PLUGIN_SUFFIX; 
+            m_DefaultWiiMotePlugin = PLUGINS_DIR DIR_SEP DEFAULT_WIIMOTE_PLUGIN PLUGIN_SUFFIX;  
 	}
 
 	// misc

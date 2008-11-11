@@ -3,10 +3,7 @@
 Import('env')
 import sys
 
-if sys.platform == 'darwin':
-	output = "../../../../Binary/mac/Plugins/dsplle.so"
-else:
-	output = "../../../../Binary/linux/Plugins/dsplle.so"
+name = "Plugin_DSP_LLE.so"
 
 files = [
 	"AOSoundStream.cpp",
@@ -35,4 +32,4 @@ lleenv.Append(
 	LIBS = [ 'common' ],
 	)
 if not env['osx64']:
-    lleenv.SharedLibrary(output, files)
+    lleenv.SharedLibrary('../../../../'+env['plugin_dir']+name, files)

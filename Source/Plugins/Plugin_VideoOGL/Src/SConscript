@@ -6,6 +6,8 @@ import sys
 sys.path.append('../../../SconsTests')
 import utils
 
+name = "Plugin_VideoOGL.so"
+
 files = [
 	'BPStructs.cpp',
 	'Globals.cpp',
@@ -62,7 +64,6 @@ if gfxenv['osx64']:
 			]
 
 if sys.platform == 'darwin':
-	platform = 'mac'
 	# SDL is currently the only way to get video on Mac OS X.
 	if gfxenv['osx64']:
 		useSDL = False
@@ -78,7 +79,6 @@ if sys.platform == 'darwin':
 		for framework in [ 'OpenGL', 'Cg' ]
 		]
 else:
-	platform = 'linux'
 	# By default, GLX is used on Linux to setup OpenGL, but you can select SDL
 	# instead if you like, by changing the line below.
         tests = {'CheckPKG' : utils.CheckPKG}
@@ -111,7 +111,7 @@ gfxenv.Append(
 	)
 
 gfxenv.SharedLibrary(
-	'../../../../Binary/%s/Plugins/zeroogl.so' % platform,
+	'../../../../'+env['plugin_dir']+name,
 	files,
 	LIBS =  libs + gfxenv['LIBS']
 	)

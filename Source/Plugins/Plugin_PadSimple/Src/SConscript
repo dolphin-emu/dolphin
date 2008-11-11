@@ -3,10 +3,7 @@
 Import('env')
 import sys
 
-if sys.platform == 'darwin':
-	output = "../../../../Binary/mac/Plugins/padsimple.so"
-else:
-	output = "../../../../Binary/linux/Plugins/padsimple.so"
+name = "Plugin_PadSimple.so"
 
 files = [
 	"PadSimple.cpp",
@@ -27,4 +24,4 @@ if padenv['osx64']:
 		LINKFLAGS = [ '-arch', 'x86_64' ],
 		)
 
-padenv.SharedLibrary(output, files)
+padenv.SharedLibrary('../../../../'+env['plugin_dir']+name, files)
