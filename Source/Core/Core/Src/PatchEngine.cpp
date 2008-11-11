@@ -74,7 +74,7 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile 
 void PatchEngine_LoadPatches(const char *gameID)
 {
 	IniFile ini;
-	std::string filename = std::string("GameIni/") + gameID + ".ini";
+	std::string filename = std::string(FULL_GAMECONFIG_DIR) + gameID + ".ini";
 	if (ini.Load(filename.c_str())) {
 		LoadPatchSection("OnLoad",  onLoad, ini);
 		LoadPatchSection("OnFrame", onFrame, ini);
