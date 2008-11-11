@@ -612,6 +612,11 @@ void Update_ARAM_DMA()
 	GenerateDSPInterrupt(INT_ARAM);
 }
 
+// =============================================================
+// This is how it works: The game has written sound to RAM, the DSP will read it with
+// this function. SamplePos in the plugin is double the value given here because it
+// works on a nibble level.
+// -------------------
 u8 ReadARAM(u32 _iAddress)
 {
 	//LOGV(DSPINTERFACE, 0, "ARAM (r) 0x%08x", _iAddress);
@@ -631,6 +636,8 @@ u8* GetARAMPtr()
 {
 	return g_ARAM;
 }
+// ===================
+
 
 void WriteARAM(u8 _iValue, u32 _iAddress)
 {
