@@ -207,7 +207,8 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	int slot = 1;
 	int index2 = index1;
 	std::string fileName2("");
-	int freeblocks = 0;
+	int freeBlocks = 0;
+	wxString blocksOpen;
 
 	switch (event.GetId())
 	{
@@ -296,12 +297,9 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 						wxT("Success"),wxOK);
 					break;
 				case OUTOFBLOCKS:
-					freeblocks = BE16(memoryCard[slot]->bat.FreeBlocks);
-					{
-					wxString Foobar;
-					Foobar.Printf(wxT("Only %d blocks available"), freeblocks);
-					wxMessageBox(Foobar,wxT("Failure"),wxOK);
-					}
+					freeBlocks = BE16(memoryCard[slot]->bat.FreeBlocks);
+					blocksOpen.Printf(wxT("Only %d blocks available"), freeBlocks);
+					wxMessageBox(blocksOpen,wxT("Failure"),wxOK);
 					break;
 				case OUTOFDIRENTRIES:
 					wxMessageBox(wxT("No free dir index entries"),
@@ -309,6 +307,10 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 					break;
 				case NOMEMCARD:
 					wxMessageBox(wxT("File is not recognized as a memcard"),
+						wxT("Failure"),wxOK);
+					break;
+				case TITLEPRESENT:
+					wxMessageBox(wxT("Memcard already has a save for this title"),
 						wxT("Failure"),wxOK);
 					break;
 				default:

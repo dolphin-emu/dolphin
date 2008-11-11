@@ -31,7 +31,8 @@ enum
 	GCS = 0x110,
 	OUTOFBLOCKS,
 	OUTOFDIRENTRIES,
-	NOMEMCARD
+	NOMEMCARD,
+	TITLEPRESENT
 };
 
 class GCMemcard 
@@ -141,6 +142,9 @@ public:
 	
 	// get number of file entries in the directory
 	u32  GetNumFiles();
+
+	// Returns true if title already on memcard
+	bool titlePresent(u32 gameCode);
 	
 	// read directory entry
 	bool GetFileInfo(u32 index, DEntry& data);

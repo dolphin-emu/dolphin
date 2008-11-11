@@ -83,6 +83,18 @@ u32  GCMemcard::GetNumFiles()
 	return j;
 }
 
+bool GCMemcard::titlePresent(u32 gameCode)
+{
+	if (!mcdFile) return 0;
+
+	for (int i = 0; i < 127; i++)
+	{
+		if (BE32(dir.Dir[i].Gamecode) == gameCode)
+			 return true;
+	}
+	return false;
+}
+
 bool GCMemcard::RemoveFile(u32 index) //index in the directory array
 {
 	if (!mcdFile) return false;
@@ -93,11 +105,13 @@ bool GCMemcard::RemoveFile(u32 index) //index in the directory array
 
 	//free the blocks
 	int blocks_left = BE16(dir.Dir[index].BlockCount);
-	int block = BE16(dir.Dir[index].FirstBlock);
-	bat.LastAllocated[0] = (u8)((block - 1) >> 8);
-	bat.LastAllocated[1] = (u8)(block - 1);
+	int block = BE16(dir.Dir[index].FirstBlock) - 1;
+	bat.LastAllocated[0] = (u8)(block  >> 8);
+	bat.LastAllocated[1] = (u8)block;
+
 	int i = index + 1;
 	memset(&(dir.Dir[index]), 0xFF, 0x40);
+	
 	while (i < 127)
 	{
 		DEntry * d = new DEntry;
@@ -126,7 +140,14 @@ bool GCMemcard::RemoveFile(u32 index) //index in the directory array
 		i++;
 
 	}
-
+	//Added to clean up if removing last file
+	if (BE16(bat.LastAllocated) == (u16)4)
+	{
+		for (int j = 0; j < blocks_left; j++)
+		{
+			bat.Map[j] = 0x0000;
+		}
+	}
 	// increment update counter
 	int updateCtr = BE16(dir.UpdateCounter) + 1;
 	dir.UpdateCounter[0] = u8(updateCtr >> 8);
@@ -141,9 +162,6 @@ bool GCMemcard::RemoveFile(u32 index) //index in the directory array
 
 u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 {
-	// TODO: add a check for existing game id
-	// so that only one save per title is allowed
-	// until then any particular title will always use the first save
 	if (!mcdFile) return NOMEMCARD;
 
 	if (GetNumFiles() >= 127)
@@ -154,6 +172,7 @@ u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 	{
 		return OUTOFBLOCKS;
 	}
+	if (!remove && titlePresent(BE32(direntry.Gamecode))) return TITLEPRESENT;
 
 	// find first free data block -- assume no freespace fragmentation
 	int totalspace = (((u32)BE16(hdr.Size) * 16) - 5);
