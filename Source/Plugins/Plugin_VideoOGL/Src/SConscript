@@ -25,6 +25,7 @@ files = [
 	'VertexLoader_Normal.cpp',
 	'VertexLoaderManager.cpp',
 	'VertexShaderManager.cpp',
+	'TextureConverter.cpp',
 	'XFB.cpp',
 	'Logging/Console.cpp',
 	'Logging/Logging.cpp',

@@ -19,7 +19,7 @@
 #define _UCODE_AX_VOICE_H
 
 #include "UCode_AX_ADPCM.h"
-
+#include "../main.h"
 
 template<class ParamBlockType>
 inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, int _iSize)
