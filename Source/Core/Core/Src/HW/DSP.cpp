@@ -70,7 +70,8 @@ enum
 enum
 {
 	ARAM_SIZE	= 0x01000000,			// 16 MB
-	ARAM_MASK	= 0x00FFFFFF			
+	ARAM_MASK	= 0x00FFFFFF,
+	WII_MASK	= 0x017FFFFF
 };
 
 // UARAMCount
@@ -611,12 +612,19 @@ void Update_ARAM_DMA()
 	GenerateDSPInterrupt(INT_ARAM);
 }
 
-u8 ReadARAM(const u32 _iAddress)
+u8 ReadARAM(u32 _iAddress)
 {
 	//LOGV(DSPINTERFACE, 0, "ARAM (r) 0x%08x", _iAddress);
 
 //	_dbg_assert_(DSPINTERFACE,(_iAddress) < ARAM_SIZE);
-	return g_ARAM[_iAddress & ARAM_MASK];
+	if(Core::GetStartupParameter().bWii)
+	{
+		if(_iAddress > WII_MASK)
+			_iAddress = (_iAddress & WII_MASK);
+		return g_ARAM[_iAddress];
+	}
+	else
+		return g_ARAM[_iAddress & ARAM_MASK];
 }
 
 u8* GetARAMPtr() 
@@ -626,7 +634,7 @@ u8* GetARAMPtr()
 
 void WriteARAM(u8 _iValue, u32 _iAddress)
 {
-	//LOGV(DSPINTERFACE, 0, "ARAM (w)  0x%08x 0x%08x", _iAddress);
+	//LOGV(DSPINTERFACE, 0, "ARAM (w)  0x%08x = 0x%08x", _iAddress, (_iAddress & ARAM_MASK));
 
 //	_dbg_assert_(DSPINTERFACE,(_iAddress) < ARAM_SIZE);
 	//rouge leader writes WAY outside
