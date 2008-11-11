@@ -185,18 +185,18 @@ struct AXParamBlockWii
 	u16 running;       // 1=RUN   0=STOP
 	u16 is_stream;     // 1 = stream, 0 = one shot
 
-	PBMixerWii mixer;
-	PBInitialTimeDelay initial_time_delay;  
-	PBUpdatesWii updates;
-	PBDpopWii dpop;
-	PBVolumeEnvelope vol_env;
-	PBAudioAddr audio_addr;
-	PBADPCMInfo adpcm;
-	PBSampleRateConverter src;
-	PBADPCMLoopInfo adpcm_loop_info;
-	PBLpf lpf;
-	PBHpf hpf;
-	u16 pad[22];
+/*  10 */	PBMixerWii mixer;
+/*  34 */	PBInitialTimeDelay initial_time_delay;  
+/*  41 */	PBUpdatesWii updates;
+/*  46 */	PBDpopWii dpop;
+/*  58 */	PBVolumeEnvelope vol_env;
+/*  60 */	PBAudioAddr audio_addr;
+/*  68 */	PBADPCMInfo adpcm;
+/*  88 */	PBSampleRateConverter src;
+/*  95 */	PBADPCMLoopInfo adpcm_loop_info;
+/*  98 */	PBLpf lpf;
+/* 102 */	PBHpf hpf;
+/* 106 */	u16 pad[22];
 };
 
 enum {

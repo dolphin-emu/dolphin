@@ -96,12 +96,6 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 		// Top Spin 3 Wii
 		if(pb.audio_addr.sample_format > 25) pb.audio_addr.sample_format = 0;
 
-		/* What's with the high samplePos values in Wii? Should we adjust them somehow?
-		samplePos = ((samplePos/14)*16) + (samplePos % 14) + 2;
-		sampleEnd = ((sampleEnd/14)*16) + (sampleEnd % 14) + 2;
-		loopPos = ((loopPos/14)*16) + (loopPos % 14) + 2;
-		*/
-
 		// =======================================================================================
 		// Walk through _iSize. _iSize = numSamples. If the game goes slow _iSize will be higher to
 		// compensate for that. _iSize can be as low as 100 or as high as 2000 some cases.
@@ -154,8 +148,9 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 			}
 			// ================
 
-			// =======================================================================================
-			// Volume control
+			// ===================================================================
+			// Overall volume control. In addition to this there is also separate volume settings to
+			// different channels (left, right etc).
 			frac &= 0xffff;
 
 			int vol = pb.vol_env.cur_volume >> 9;
@@ -173,13 +168,16 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 
 			int leftmix  = pb.mixer.volume_left >> 5;
 			int rightmix = pb.mixer.volume_right >> 5;
-			// ===============
 			int left  = sample * leftmix >> 8;
 			int right = sample * rightmix >> 8;
 			//adpcm has to walk from oldSamplePos to samplePos here
 			templbuffer[s] += left;
 			temprbuffer[s] += right;
+			// ===============
 
+
+			// ===================================================================
+			// Control the behavior when we reach the end of the sample
 			if (samplePos >= sampleEnd)
 			{
 				if (pb.audio_addr.looping == 1)
@@ -201,6 +199,8 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 					break;
 				}
 			}
+			// ===============
+
 		} // end of the _iSize loop
 
 		// Update volume
@@ -214,7 +214,7 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 		pb.src.cur_addr_frac = (u16)frac;
 		pb.audio_addr.cur_addr_hi = samplePos >> 16;
 		pb.audio_addr.cur_addr_lo = (u16)samplePos;
-	} //if (pb.running)
+	} // if (pb.running)
 }
 
 #endif  // _UCODE_AX_VOICE_H

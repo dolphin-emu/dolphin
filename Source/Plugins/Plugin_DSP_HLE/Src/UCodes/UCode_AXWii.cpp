@@ -90,12 +90,14 @@ int ReadOutPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
 			short *pDest = (short *)&_pPBs[i];
 			for (int p = 0; p < sizeof(AXParamBlockWii) / 2; p++)
 			{
-				pDest[p] = Common::swap16(pSrc[p]);
+				if(p == 6 || p == 7) pDest[p] = pSrc[p]; // control for the u32
+					else pDest[p] = Common::swap16(pSrc[p]);
 
 				#if defined(_DEBUG) || defined(DEBUGFAST)
 					gLastBlock = blockAddr + p*2 + 2;  // save last block location
 				#endif
-			}
+			}			
+			_pPBs[i].mixer_control = Common::swap32(_pPBs[i].mixer_control);
 			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
 			count++;
 			
@@ -120,9 +122,11 @@ void WriteBackPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
 	{
 		short* pSrc  = (short*)&_pPBs[i];
 		short* pDest = (short*)g_dspInitialize.pGetMemoryPointer(blockAddr);
+		_pPBs[i].mixer_control = Common::swap32(_pPBs[i].mixer_control);
 		for (size_t p = 0; p < sizeof(AXParamBlockWii) / 2; p++)
 		{
-				pDest[p] = Common::swap16(pSrc[p]);				
+			if(p == 6 || p == 7) pDest[p] = pSrc[p]; // control for the u32
+				else pDest[p] = Common::swap16(pSrc[p]);				
 		}
 
 		// next block		
@@ -136,10 +140,11 @@ void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 
 	// read out pbs
 	int numberOfPBs = ReadOutPBsWii(m_addressPBs, PBs, NUMBER_OF_PBS);
-
+	
 	if (_iSize > 1024 * 1024)
 		_iSize = 1024 * 1024;
 
+	// write zeroes to the beginning of templbuffer
 	memset(templbuffer, 0, _iSize * sizeof(int));
 	memset(temprbuffer, 0, _iSize * sizeof(int));
 
@@ -189,6 +194,7 @@ void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 
 	WriteBackPBsWii(m_addressPBs, PBs, numberOfPBs);
 
+	// We write the sound to _pBuffer
 	for (int i = 0; i < _iSize; i++)
 	{
 		// Clamp into 16-bit. Maybe we should add a volume compressor here.
@@ -219,8 +225,12 @@ void CUCode_AXWii::Update()
 	}
 }
 
+
 // Shortcut
-void CUCode_AXWii::SaveLog(const char* _fmt, ...) { if(m_frame) lCUCode_AX->SaveLog_(true, _fmt); }
+void CUCode_AXWii::SaveLog(const char* _fmt, ...)
+{
+	va_list ap; va_start(ap, _fmt); if(m_frame) lCUCode_AX->SaveLog_(true, _fmt, ap); va_end(ap);
+}
 
 
 // AX seems to bootup one task only and waits for resume-callbacks

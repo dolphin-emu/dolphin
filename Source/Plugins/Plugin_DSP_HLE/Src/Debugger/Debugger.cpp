@@ -57,8 +57,10 @@ BEGIN_EVENT_TABLE(CDebugger,wxDialog)
 	// left cotrols
 	EVT_CHECKLISTBOX(IDC_CHECKLIST5, CDebugger::OnOptions) // options
 	EVT_CHECKLISTBOX(IDC_CHECKLIST6, CDebugger::OnShowAll)
+	EVT_RADIOBOX(IDC_RADIO0,CDebugger::ShowBase) // update frequency
 
 	// right cotrols
+	EVT_RADIOBOX(IDC_RADIO0,CDebugger::ShowBase)
 	EVT_RADIOBOX(IDC_RADIO1,CDebugger::ChangeFrequency) // update frequency
 	EVT_RADIOBOX(IDC_RADIO2,CDebugger::ChangePreset) // presets
 	EVT_CHECKLISTBOX(IDC_CHECKLIST1, CDebugger::OnSettingsCheck) // settings
@@ -113,6 +115,7 @@ void CDebugger::Save(IniFile& _IniFile) const
 	_IniFile.Set("SoundWindow", "UpdateFrequency", m_RadioBox[1]->GetSelection());
 	_IniFile.Set("SoundWindow", "ScanMails", m_gcwiiset->IsChecked(0));
 	_IniFile.Set("SoundWindow", "StoreMails", m_gcwiiset->IsChecked(1));
+	_IniFile.Set("SoundWindow", "ShowBase", m_RadioBox[0]->GetSelection() ? false : true);
 }
 
 
@@ -125,11 +128,15 @@ void CDebugger::Load(IniFile& _IniFile)
 	_IniFile.Get("SoundWindow", "h", &h, GetSize().GetHeight());
 	SetSize(x, y, w, h);
 
-	// saved settings
+	// Show console or not
 	bool Console;
 	_IniFile.Get("SoundWindow", "Console", &Console, m_options->IsChecked(3));
 	m_options->Check(3, Console);
 	DoShowHideConsole();
+
+	// Show number base
+	_IniFile.Get("SoundWindow", "ShowBase", &bShowBase, !m_RadioBox[0]->GetSelection());
+	m_RadioBox[0]->SetSelection(!bShowBase);
 
 	_IniFile.Get("SoundWindow", "UpdateFrequency", &gUpdFreq, m_RadioBox[1]->GetSelection());
 	m_RadioBox[1]->SetSelection(gUpdFreq);
@@ -261,7 +268,6 @@ SetTitle(wxT("Sound Debugging"));
 	m_radioBoxNChoices[0] = sizeof( m_radioBoxChoices0 ) / sizeof( wxString );
 	m_RadioBox[0] = new wxRadioBox( m_PageMain, IDC_RADIO0, wxT("Show base"),
 		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[0], m_radioBoxChoices0, 1, wxRA_SPECIFY_COLS);
-	m_RadioBox[0]->Enable(false);
 
 	wxString m_radioBoxChoices1[] = { wxT("Never"), wxT("5 times/s"), wxT("15 times/s"), wxT("30 times/s") };
 	m_radioBoxNChoices[1] = sizeof( m_radioBoxChoices1 ) / sizeof( wxString );
@@ -471,6 +477,19 @@ void CDebugger::DoChangePreset()
 		gPreset = 2;
 	else if(m_RadioBox[2]->GetSelection() == 3)
 		gPreset = 3;
+}
+// ==============
+
+
+// =======================================================================================
+// Show base
+// --------------
+void CDebugger::ShowBase(wxCommandEvent& event)
+{
+	if(m_RadioBox[0]->GetSelection() == 0)
+		bShowBase = true;
+	else if(m_RadioBox[0]->GetSelection() == 1)
+		bShowBase = false;
 }
 // ==============
 

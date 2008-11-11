@@ -74,6 +74,7 @@ class CDebugger : public wxDialog
 		void OnUpdate(wxCommandEvent& event);
 
 		void ShowHideConsole(wxCommandEvent& event); // options
+		void ShowBase(wxCommandEvent& event);
 		void DoShowHideConsole();
 		//void OnlyLooping(wxCommandEvent& event);
 		void OnOptions(wxCommandEvent& event);
@@ -84,7 +85,7 @@ class CDebugger : public wxDialog
 		void ChangePreset(wxCommandEvent& event);
 		void DoChangePreset();
 
-		void OnSettingsCheck(wxCommandEvent& event); // settings				
+		void OnSettingsCheck(wxCommandEvent& event); // settings
 
 		// ============== Mail
 		void DoUpdateMail();
@@ -107,14 +108,8 @@ class CDebugger : public wxDialog
 		bool gShowAll;
 		int giShowAll;
 		int gUpdFreq;// main update freq.
-		int gPreset; // main presets		
-
-		bool gSSBM;  // main settings
-		bool gSSBMremedy1;
-		bool gSSBMremedy2;
-		bool gSequenced;
-		bool gVolume;
-		bool gReset;		
+		int gPreset; // main presets	
+		bool bShowBase; // main presets	
 
 		bool ScanMails; // mail settings
 		bool StoreMails;

@@ -50,6 +50,7 @@ inline void CharArrayFromFormat(char (& out)[Count], const char* format, ...)
 std::string StripSpaces(const std::string &s);
 std::string StripQuotes(const std::string &s);
 std::string StripNewline(const std::string &s);
+std::string ThS(int a, bool b = true); // thousand separator
 
 
 std::string StringFromInt(int value);

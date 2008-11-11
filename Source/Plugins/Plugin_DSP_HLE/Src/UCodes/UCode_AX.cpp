@@ -73,36 +73,35 @@ CUCode_AX::~CUCode_AX()
 // ----------------
 void CUCode_AX::SaveLogFile(std::string f, int resizeTo, bool type, bool Wii)
 {
-	if (!File::IsDirectory("Logs/Mail")) File::CreateDir("Logs/Mail");
-        std::ostringstream ci;
-        std::ostringstream cType;
-        
-	ci << (resizeTo - 1); // write ci
-	cType << type; // write cType
+	if(gpName.length() > 0) // thios is currently off in the Release build
+	{
+		if (!File::IsDirectory("Logs/Mail")) File::CreateDir("Logs/Mail");
+			std::ostringstream ci;
+			std::ostringstream cType;
+	        
+		ci << (resizeTo - 1); // write ci
+		cType << type; // write cType
 
-	std::string FileName = "Logs/Mail/"; FileName += gpName;
-	FileName += "_sep"; FileName += ci.str(); FileName += "_sep"; FileName += cType.str();
-	FileName += Wii ? "_sepWii_sep" : "_sepGC_sep"; FileName += ".log";
+		std::string FileName = "Logs/Mail/"; FileName += gpName;
+		FileName += "_sep"; FileName += ci.str(); FileName += "_sep"; FileName += cType.str();
+		FileName += Wii ? "_sepWii_sep" : "_sepGC_sep"; FileName += ".log";
 
-	FILE* fhandle = fopen(FileName.c_str(), "w");
-	fprintf(fhandle, f.c_str());
-	fflush(fhandle); fhandle = NULL;
+		FILE* fhandle = fopen(FileName.c_str(), "w");
+		fprintf(fhandle, f.c_str());
+		fflush(fhandle); fhandle = NULL;
+	}
 }
 
 
 // ============================================
 // Save the logged AX mail
 // ----------------
-void CUCode_AX::SaveLog_(bool Wii, const char* _fmt, ...)
+void CUCode_AX::SaveLog_(bool Wii, const char* _fmt, va_list ap)
 {
 if(m_frame->ScanMails)
 {	
-	char Msg[512*10];
-	va_list ap;
-
-	va_start(ap, _fmt);
+	char Msg[512];
 	vsprintf(Msg, _fmt, ap);
-	va_end(ap);
 
 	//wxMessageBox( wxString::Format("SaveLog_ again: %s\n", Msg) );
 	
@@ -508,8 +507,11 @@ void CUCode_AX::Update()
 // -----------
 
 
-// Shortcut
-void CUCode_AX::SaveLog(const char* _fmt, ...) { if(m_frame) SaveLog_(false, _fmt); }
+// Shortcut to avoid having to write SaveLog(false, ...) every time
+void CUCode_AX::SaveLog(const char* _fmt, ...)
+{
+	va_list ap; va_start(ap, _fmt); if(m_frame) SaveLog_(false, _fmt, ap); va_end(ap);
+}
 
 
 // ============================================

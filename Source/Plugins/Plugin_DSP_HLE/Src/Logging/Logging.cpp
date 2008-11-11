@@ -31,6 +31,8 @@
 	#include <windows.h>
 #endif
 
+#include "StringUtil.h"
+
 #include "../Debugger/Debugger.h"
 #include "../Debugger/PBView.h"
 #include "Console.h" // open and close console, clear console window
@@ -43,6 +45,12 @@
 
 // Externals
 
+extern bool gSSBM;
+extern bool gSSBMremedy1;
+extern bool gSSBMremedy2;
+extern bool gSequenced;
+extern bool gVolume;
+extern bool gReset;
 u32 gLastBlock;
 extern int nFiles;
 float ratioFactor; // a global to get the ratio factor from MixAdd
@@ -148,25 +156,60 @@ extern CDebugger* m_frame;
 // =======================================================================================
 // Write title
 // --------------
-std::string writeTitle(int a)
+std::string writeTitle(int a, bool Wii)
 {
 	std::string b;
 	if(a == 0)
-	{			
-		b =     "                                                                        adpcm           adpcm_loop\n";
-		b = b + "                Nr     pos / end     lpos      | voll  volr  | isl iss | pre yn1   yn2   pre yn1   yn2   | frac  ratio[hi lo]\n";
+	{		
+		if(m_frame->bShowBase) // show base 10
+		{
+			b =     "                                                                                adpcm           adpcm_loop\n";
+			b = b + "                Nr       pos / end        lpos      | voll  volr    | isl iss | pre yn1   yn2   pre yn1   yn2   | frac  ratio[hi lo]\n";
+		}
+		else
+		{
+			b =     "                                                                      adpcm         adpcm_loop\n";
+			b = b + "                Nr     pos / end     lpos     | voll volr | isl iss | pre yn1  yn2  pre yn1  yn2  | frac rati[hi lo   ]\n";
+		}
 	}
 	else if(a == 1)
 	{
-		b = "                Nr     pos / end     lpos     | voll  volr  | src form coef | 1 2 3 4 5\n";
+		if(m_frame->bShowBase) // show base 10
+		{
+			b = "                Nr       pos / end       lpos       | voll   volr   | src form coef | 1 2 3 4 5 addr     value\n";
+		}
+		else
+		{
+			b = "                Nr     pos / end     lpos     | voll volr | src form coef | 1 2 3 4 5 addr     value\n";
+		}
 	}
 	else if(a == 2)
 	{
-		b = "                Nr     pos / end    lpos     | voll  volr  | isl iss | e-l    e-s\n";
+		if(m_frame->bShowBase) // show base 10
+		{
+			b = "                Nr     pos / end      lpos          | voll   volr | isl iss | e-l      e-s\n";
+		}
+		else
+		{
+			b = "                Nr     pos / end     lpos     | voll volr | isl iss | e-l       e-s\n";
+		}
 	}
 	else if(a == 3)
 	{
-		b = "                Nr  voll  volr  dl    dr    curv  delt  mixc  r | v1    v2    v3    v4    v5    v6    v7    | d1    d2    d3    d4    d5    d6    d7\n";
+		if(m_frame->bShowBase) // show base 10
+		{
+			if(Wii)
+				b = "                Nr  voll  volr  dl    dr    curv  delt  mixc     r | v1    v2    v3    v4    v5    v6    v7    | d1    d2    d3    d4    d5    d6    d7\n";
+			else
+				b = "                Nr  voll  volr  dl    dr    curv  delt  mixc  r | v1    v2    v3    v4    v5    v6    v7    | d1    d2    d3    d4    d5    d6    d7\n";
+		}
+		else
+		{
+			if(Wii)
+				b = "                Nr  voll volr dl   dr   curv delt mixc     r | v1   v2   v3   v4   v5   v6   v7   | d1   d2   d3   d4   d5   d6   d7\n";
+			else
+				b = "                Nr  voll volr dl   dr   curv delt mixc r | v1   v2   v3   v4   v5   v6   v7   | d1   d2   d3   d4   d5   d6   d7\n";
+		}
 	}	
 	return b;
 }
@@ -177,7 +220,7 @@ std::string writeTitle(int a)
 // =======================================================================================
 // Write main message (presets)
 // --------------
-std::string writeMessage(int a, int i)
+std::string writeMessage(int a, int i, bool Wii)
 {
 	char buf [1000] = "";
 	std::string sbuf;
@@ -186,44 +229,84 @@ std::string writeMessage(int a, int i)
 	// ---------------------------------------------------------------------------------------
 	/*
 	PRESET 0
-	"                Nr     pos / end       lpos     | voll  volr  | isl iss | pre yn1   yn2   pre yn1   yn2   | frac  ratio[hi lo]\n";
-	"---------------|00 12341234/1234123412 12341234 | 00000 00000 | 0   0   | 000 00000 00000 000 00000 00000 | 00000 00000[0 00000] 
+	"                Nr       pos / end        lpos     | voll   volr   | isl iss | pre yn1   yn2   pre yn1   yn2   | frac  ratio[hi lo]\n";
+	"---------------|00 12,341,234/134,123,412 12341234 | 00,000 00,000 | 0   0   | 000 00000 00000 000 00000 00000 | 00000 00000[0 00000] 
+			
+		"                Nr       pos / end        lpos     | voll   volr   | isl iss | pre yn1  yn2  pre yn1  yn2  | frac rati[hi lo   ]\n";
+		"---------------|00 12,341,234/134,123,412 12341234 | 00,000 00,000 | 0   0   | 000 0000 0000 000 0000 0000 | 0000 0000[0  00000] 
 	
 	PRESET 1 (updates)
-	"                Nr     pos / end     lpos     | voll  volr  | src form coef | 1 2 3 4 5\n";
-	"---------------|00 12341234/12341234 12341234 | 00000 00000 | 0   0    0    | 0 0 0 0 0	
+	"                Nr       pos / end       lpos     | voll  volr    | src form coef | 1 2 3 4 5 addr     value\n";
+	"---------------|00 12,341,234/12,341,234 12341234 | 00,000 00,000 | 0   0    0    | 0 0 0 0 0 80808080 80808080
 
 	PRESET 2
-	"                Nr     pos / end     lpos  | voll  volr  | isl iss | e-l    e-s\n";
-	"---------------|00 12341234/12341234 12341234 | 00000 00000 | 0   0   | 000000 000000
+	"                Nr       pos / end     lpos       | voll  volr  | isl iss | e-l        e-s\n";
+	"---------------|00 12,341,234/12341234 12,341,234 | 00000 00000 | 0   0   | 00,000,000 00,000,000
 	*/
 	if(a == 0)
 	{
-	sprintf(buf,"%c%02i %08x/%08x %08x | %05u %05u | %i   %i   | %03i %05i %05i %03i %05i %05i | %05i %05i[%i %05i]",
-		223, i, gsamplePos[i], gsampleEnd[i], gloopPos[i],
-		gvolume_left[i], gvolume_right[i],
-		glooping[i], gis_stream[i],
-		gadloop1[i], gadloop2[i], gadloop3[i], gloop1[i], gloop2[i], gloop3[i],
-		gfrac[i], gratio[i], gratiohi[i], gratiolo[i]
-		);
+		if(m_frame->bShowBase)
+		{
+		sprintf(buf,"%c%02i %10s/%10s %10s | %06s %06s | %i   %i   | %03i %05i %05i %03i %05i %05i | %05i %05i[%i %05i]",
+			223, i, ThS(gsamplePos[i],true).c_str(), ThS(gsampleEnd[i],true).c_str(), ThS(gloopPos[i],true).c_str(),
+			ThS(gvolume_left[i]).c_str(), ThS(gvolume_right[i]).c_str(),
+			glooping[i], gis_stream[i],
+			gadloop1[i], gadloop2[i], gadloop3[i], gloop1[i], gloop2[i], gloop3[i],
+			gfrac[i], gratio[i], gratiohi[i], gratiolo[i]
+			);
+		}
+		else
+		{
+		sprintf(buf,"%c%02i %08x/%08x %08x | %04x %04x | %i   %i   | %02x  %04x %04x %02x  %04x %04x | %04x %04x[%i %04x]",
+			223, i, gsamplePos[i], gsampleEnd[i], gloopPos[i],
+			gvolume_left[i], gvolume_right[i],
+			glooping[i], gis_stream[i],
+			gadloop1[i], gadloop2[i], gadloop3[i], gloop1[i], gloop2[i], gloop3[i],
+			gfrac[i], gratio[i], gratiohi[i], gratiolo[i]
+			);
+		}
 	}
 	else if(a == 1)
 	{
-	sprintf(buf,"%c%02i %08x/%08x %08x | %05u %05u | %i   %i    %i    | %i %i %i %i %i %08x %08x",
-		223, i, gsamplePos[i], gsampleEnd[i], gloopPos[i],
-		gvolume_left[i], gvolume_right[i],		
-		gsrc_type[i], gaudioFormat[i], gcoef[i],
-		gupdates1[i], gupdates2[i], gupdates3[i], gupdates4[i], gupdates5[i], gupdates_addr[i], gupdates_data[i]
-		);
+		if(m_frame->bShowBase)
+		{
+		sprintf(buf,"%c%02i %10s/%10s %10s | %06s %06s | %u   %u    %u    | %u %u %u %u %u %08x %08x",
+			223, i, ThS(gsamplePos[i]).c_str(), ThS(gsampleEnd[i]).c_str(), ThS(gloopPos[i]).c_str(),
+			ThS(gvolume_left[i]).c_str(), ThS(gvolume_right[i]).c_str(),		
+			gsrc_type[i], gaudioFormat[i], gcoef[i],
+			gupdates1[i], gupdates2[i], gupdates3[i], gupdates4[i], gupdates5[i], gupdates_addr[i], gupdates_data[i]
+			);
+		}
+		else
+		{
+		sprintf(buf,"%c%02i %08x/%08x %08x | %04x %04x | %u   %u    %u    | %u %u %u %u %u %08x %08x",
+			223, i, ThS(gsamplePos[i]).c_str(), ThS(gsampleEnd[i]).c_str(), ThS(gloopPos[i]).c_str(),
+			gvolume_left[i], gvolume_right[i],		
+			gsrc_type[i], gaudioFormat[i], gcoef[i],
+			gupdates1[i], gupdates2[i], gupdates3[i], gupdates4[i], gupdates5[i], gupdates_addr[i], gupdates_data[i]
+			);
+		}
 	}
 	else if(a == 2)
 	{
-	sprintf(buf,"%c%02i %08i/%08i %08i | %05i %05i | %i   %i   | %06i %06i",
-		223, i, gsamplePos[i], gsampleEnd[i], gloopPos[i],
-		gvolume_left[i], gvolume_right[i],
-		glooping[i], gis_stream[i],				
-		gsampleEnd[i] - gloopPos[i], gsampleEnd[i] - gsamplePos[i]
-		);
+		if(m_frame->bShowBase)
+		{
+		sprintf(buf,"%c%02i %10s/%10s %10s | %05i %05i | %i   %i   | %10s     %10s",
+			223, i, ThS(gsamplePos[i]).c_str(), ThS(gsampleEnd[i]).c_str(), ThS(gloopPos[i]).c_str(),
+			gvolume_left[i], gvolume_right[i],
+			glooping[i], gis_stream[i],				
+			ThS(gsampleEnd[i] - gloopPos[i], false).c_str(), ThS(gsampleEnd[i] - gsamplePos[i], false).c_str()
+			);
+		}
+		else
+		{
+		sprintf(buf,"%c%02i %08x/%08x %08x | %04x %04x | %i   %i   | %08x   %08x",
+			223, i, gsamplePos[i], gsampleEnd[i], gloopPos[i],
+			gvolume_left[i], gvolume_right[i],
+			glooping[i], gis_stream[i],				
+			gsampleEnd[i] - gloopPos[i], gsampleEnd[i] - gsamplePos[i]
+			);
+		}
 	}
 	/*
 	PRESET 3
@@ -232,15 +315,60 @@ std::string writeMessage(int a, int i)
 	*/
 	else if(a == 3)
 	{
-	sprintf(buf,"%c%02i  %05i %05i %05i %05i %05i %05i %05i %i | %05i %05i %05i %05i %05i %05i %05i | %05i %05i %05i %05i %05i %05i %05i",
-		223, i,
-		gvolume_left[i], gvolume_right[i], gmix_unknown[i], gmix_unknown2[i], gcur_volume[i], gcur_volume_delta[i],
-			gmixer_control[i], (gmixer_control[i] & MIXCONTROL_RAMPING),
-		gmixer_vol1[i], gmixer_vol2[i], gmixer_vol3[i], gmixer_vol4[i], gmixer_vol5[i],
-		gmixer_vol6[i], gmixer_vol7[i],
-		gmixer_d1[i], gmixer_d2[i], gmixer_d3[i], gmixer_d4[i], gmixer_d5[i],
-		gmixer_d6[i], gmixer_d7[i]
-		);
+		if(m_frame->bShowBase)
+		{
+			if(Wii)
+			{
+			sprintf(buf,"%c%02i  %05i %05i %05i %05i %05i %05i %05i %i | %05i %05i %05i %05i %05i %05i %05i | %05i %05i %05i %05i %05i %05i %05i",
+				223, i,
+				gvolume_left[i], gvolume_right[i], gmix_unknown[i], gmix_unknown2[i], gcur_volume[i], gcur_volume_delta[i],
+					gmixer_control_wii[i], (gmixer_control_wii[i] & MIXCONTROL_RAMPING),
+				gmixer_vol1[i], gmixer_vol2[i], gmixer_vol3[i], gmixer_vol4[i], gmixer_vol5[i],
+				gmixer_vol6[i], gmixer_vol7[i],
+				gmixer_d1[i], gmixer_d2[i], gmixer_d3[i], gmixer_d4[i], gmixer_d5[i],
+				gmixer_d6[i], gmixer_d7[i]
+				);
+			}
+			else
+			{
+			sprintf(buf,"%c%02i  %05i %05i %05i %05i %05i %05i %08i %i | %05i %05i %05i %05i %05i %05i %05i | %05i %05i %05i %05i %05i %05i %05i",
+				223, i,
+				gvolume_left[i], gvolume_right[i], gmix_unknown[i], gmix_unknown2[i], gcur_volume[i], gcur_volume_delta[i],
+					gmixer_control[i], (gmixer_control[i] & MIXCONTROL_RAMPING),
+				gmixer_vol1[i], gmixer_vol2[i], gmixer_vol3[i], gmixer_vol4[i], gmixer_vol5[i],
+				gmixer_vol6[i], gmixer_vol7[i],
+				gmixer_d1[i], gmixer_d2[i], gmixer_d3[i], gmixer_d4[i], gmixer_d5[i],
+				gmixer_d6[i], gmixer_d7[i]
+				);
+			}
+		}
+		else
+		{
+			if(Wii)
+			{
+			sprintf(buf,"%c%02i  %04x %04x %04x %04x %04x %04x %08x %i | %04x %04x %04x %04x %04x %04x %04x | %04x %04x %04x %04x %04x %04x %04x",
+				223, i,
+				gvolume_left[i], gvolume_right[i], gmix_unknown[i], gmix_unknown2[i], gcur_volume[i], gcur_volume_delta[i],
+					gmixer_control_wii[i], (gmixer_control_wii[i] & MIXCONTROL_RAMPING),
+				gmixer_vol1[i], gmixer_vol2[i], gmixer_vol3[i], gmixer_vol4[i], gmixer_vol5[i],
+				gmixer_vol6[i], gmixer_vol7[i],
+				gmixer_d1[i], gmixer_d2[i], gmixer_d3[i], gmixer_d4[i], gmixer_d5[i],
+				gmixer_d6[i], gmixer_d7[i]
+				);
+			}
+			else
+			{
+			sprintf(buf,"%c%02i  %04x %04x %04x %04x %04x %04x %04x %i | %04x %04x %04x %04x %04x %04x %04x | %04x %04x %04x %04x %04x %04x %04x",
+				223, i,
+				gvolume_left[i], gvolume_right[i], gmix_unknown[i], gmix_unknown2[i], gcur_volume[i], gcur_volume_delta[i],
+					gmixer_control[i], (gmixer_control[i] & MIXCONTROL_RAMPING),
+				gmixer_vol1[i], gmixer_vol2[i], gmixer_vol3[i], gmixer_vol4[i], gmixer_vol5[i],
+				gmixer_vol6[i], gmixer_vol7[i],
+				gmixer_d1[i], gmixer_d2[i], gmixer_d3[i], gmixer_d4[i], gmixer_d5[i],
+				gmixer_d6[i], gmixer_d7[i]
+				);
+			}
+		}
 	}
 	sbuf = buf;
 	return sbuf;
@@ -445,7 +573,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 			for (int i = 0; i < nFiles; i++)
 			{	
 				std::string sfbuff;
-				sfbuff = "-----";
+				sfbuff = "-----\n";
 				aprintf(i, (char *)sfbuff.c_str());
 			}
 		}
@@ -482,7 +610,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 				sprintf(cbuf, "%i", running[i]);
 				sfbuff = sfbuff + cbuf;
 
-				sfbuff = sfbuff + writeMessage(ii, i);
+				sfbuff = sfbuff + writeMessage(ii, i, Wii);
 
 				// write _iSize
 				strcpy(cbuf, ""); sprintf(cbuf, "%i", _iSize);
@@ -588,7 +716,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 		// --------------
 		char buffer [1000] = "";
 		std::string sbuff;
-		sbuff = writeTitle(m_frame->gPreset);
+		sbuff = writeTitle(m_frame->gPreset, Wii);
 		// ==============
 
 
@@ -678,7 +806,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 			}
 
 			// add new line
-			sbuff = sbuff + writeMessage(m_frame->gPreset, i); strcpy(buffer, "");
+			sbuff = sbuff + writeMessage(m_frame->gPreset, i, Wii); strcpy(buffer, "");
 			sbuff = sbuff + "\n";
 
 		} // end of if (PBs[i].running)		
@@ -705,8 +833,8 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 		// Write settings
 		// ---------------
 		sprintf(buffer, "\nSettings: SSBM fix %i | SSBM rem1 %i | SSBM rem2 %i\nSequenced %i | Volume %i | Reset %i | Only looping %i | Save file %i\n",
-			m_frame->gSSBM, m_frame->gSSBMremedy1, m_frame->gSSBMremedy2, m_frame->gSequenced,
-			m_frame->gVolume, m_frame->gReset, m_frame->gOnlyLooping, m_frame->gSaveFile);
+			gSSBM, gSSBMremedy1, gSSBMremedy2, gSequenced,
+			gVolume, gReset, m_frame->gOnlyLooping, m_frame->gSaveFile);
 		sbuff = sbuff + buffer; strcpy(buffer, "");
 		// ===============
 
