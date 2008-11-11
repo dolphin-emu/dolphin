@@ -187,9 +187,12 @@ int VertexLoader::ComputeVertexSize()
 	}
 
 	// TextureCoord
+	// Since m_VtxDesc.Text7Coord is broken across a 32 bit word boundary, retrieve its value manually.
+	// If we didn't do this, the vertex format would be read as one bit offset from where it should be, making
+	// 01 become 00, and 10/11 become 01
 	int tc[8] = {
 		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord,
-		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, m_VtxDesc.Tex7Coord,
+		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, (m_VtxDesc.Hex >> 31) & 3
 	};
 	
 	for (int i = 0; i < 8; i++) {
