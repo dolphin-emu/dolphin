@@ -74,6 +74,7 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 
 		case 0x5ef56da3: // AX demo
 	    case 0x347112ba: // raving rabbits
+		case 0xfa450138: // wii sports - PAL
 			DebugLog("Wii - AXWii chosen");
 		    return new CUCode_AXWii(_rMailHandler);
 
