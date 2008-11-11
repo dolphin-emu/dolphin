@@ -78,7 +78,7 @@ void PatchEngine_LoadPatches(const char *gameID)
 	if (ini.Load(filename.c_str())) {
 		LoadPatchSection("OnLoad",  onLoad, ini);
 		LoadPatchSection("OnFrame", onFrame, ini);
-		LoadActionReplayCodes(ini);
+		LoadActionReplayCodes(ini, false);
 	}
 }
 

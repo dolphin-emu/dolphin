@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef __FILESYSTEM_VIEWER_h__
-#define __FILESYSTEM_VIEWER_h__
+#ifndef __ISOPROPERTIES_h__
+#define __ISOPROPERTIES_h__
 
 #include <wx/wx.h>
 #include <wx/sizer.h>
@@ -25,33 +25,68 @@
 #include <wx/imaglist.h>
 #include <wx/treectrl.h>
 #include <wx/gbsizer.h>
+#include <wx/notebook.h>
 #include <string>
 
 #include "Filesystem.h"
+#include "IniFile.h"
 
-#undef FILESYSTEM_VIEWER_STYLE
-#define FILESYSTEM_VIEWER_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX
+#undef ISOPROPERTIES_STYLE
+#define ISOPROPERTIES_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX
 
-class CFilesystemViewer : public wxDialog
+class CISOProperties : public wxDialog
 {
 	public:
 
-		CFilesystemViewer(const std::string fileName, wxWindow* parent, wxWindowID id = 1, const wxString& title = wxT("Filesystem Viewer"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = FILESYSTEM_VIEWER_STYLE);
-		virtual ~CFilesystemViewer();
+		CISOProperties(const std::string fileName, wxWindow* parent, wxWindowID id = 1, const wxString& title = wxT("Properties"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = ISOPROPERTIES_STYLE);
+		virtual ~CISOProperties();
+
+		bool bRefreshList;
 
 	private:
 
 		DECLARE_EVENT_TABLE();
 		
+		wxStaticBoxSizer *sbCoreOverrides;
+		wxBoxSizer *sCoreOverrides;
+		wxBoxSizer *sEmuState;
+		wxStaticBoxSizer *sbPatches;
+		wxBoxSizer *sPatches;
+		wxBoxSizer *sPatchButtons;
+		wxStaticBoxSizer *sbCheats;
+		wxBoxSizer *sCheats;
+		wxBoxSizer *sCheatButtons;
 		wxStaticBoxSizer *sbISODetails;
 		wxGridBagSizer *sISODetails;
 		wxStaticBoxSizer *sbBannerDetails;
 		wxGridBagSizer *sBannerDetails;
 		wxStaticBoxSizer *sbTreectrl;
 
-		wxTreeCtrl *m_Treectrl;
 		wxButton *m_Close;
 
+		wxNotebook *m_Notebook;
+		wxPanel *m_GameConfig;
+		wxPanel *m_Information;
+		wxPanel *m_Filesystem;
+
+		wxStaticText *OverrideText;
+		wxCheckBox *UseDualCore;
+		wxCheckBox *SkipIdle;
+		wxCheckBox *OptimizeQuantizers;
+		wxStaticText *EmuStateText;
+		wxArrayString arrayStringFor_EmuState;
+		wxChoice *EmuState;
+		wxArrayString arrayStringFor_Patches;
+		wxCheckListBox *Patches;
+		wxButton *EditPatch;
+		wxButton *AddPatch;
+		wxButton *RemovePatch;
+		wxArrayString arrayStringFor_Cheats;
+		wxCheckListBox *Cheats;
+		wxButton *EditCheat;
+		wxButton *AddCheat;
+		wxButton *RemoveCheat;
+		
 		wxStaticText *m_NameText;
 		wxStaticText *m_GameIDText;
 		wxStaticText *m_CountryText;
@@ -65,7 +100,6 @@ class CFilesystemViewer : public wxDialog
 		wxStaticText *m_MakerText;
 		wxStaticText *m_CommentText;
 		wxStaticText *m_BannerText;
-
 		wxTextCtrl *m_Name;
 		wxTextCtrl *m_GameID;
 		wxTextCtrl *m_Country;
@@ -80,6 +114,8 @@ class CFilesystemViewer : public wxDialog
 		wxTextCtrl *m_Maker;
 		wxTextCtrl *m_Comment;
 		wxStaticBitmap *m_Banner;
+
+		wxTreeCtrl *m_Treectrl;
 		wxTreeItemId RootId;
 
 		enum
@@ -87,6 +123,26 @@ class CFilesystemViewer : public wxDialog
 			ID_CLOSE = 1000,
 			ID_TREECTRL,
 
+			ID_NOTEBOOK,
+			ID_GAMECONFIG,
+			ID_INFORMATION,
+			ID_FILESYSTEM,
+
+			ID_OVERRIDE_TEXT,
+			ID_USEDUALCORE,
+			ID_IDLESKIP,
+			ID_OPTIMIZEQUANTIZERS,
+			ID_EMUSTATE_TEXT,
+			ID_EMUSTATE,
+			ID_PATCHES_LIST,
+			ID_EDITPATCH,
+			ID_ADDPATCH,
+			ID_REMOVEPATCH,
+			ID_CHEATS_LIST,
+			ID_EDITCHEAT,
+			ID_ADDCHEAT,
+			ID_REMOVECHEAT,
+			
 			ID_NAME_TEXT,
 			ID_GAMEID_TEXT,
 			ID_COUNTRY_TEXT,
@@ -114,14 +170,9 @@ class CFilesystemViewer : public wxDialog
 			ID_MAKER,
 			ID_COMMENT,
 			ID_BANNER,
-
-			ID_SAVEBNR,
-
+			IDM_EXTRACTDIR,
 			IDM_EXTRACTFILE,
-			IDM_REPLACEFILE,
-			IDM_RENAMEFILE,
-			IDM_BNRSAVEAS,
-			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
+			IDM_BNRSAVEAS
 		};
 
 		void CreateGUIControls();
@@ -131,12 +182,20 @@ class CFilesystemViewer : public wxDialog
 		void OnBannerImageSave(wxCommandEvent& event);
 		void OnRightClickOnTree(wxTreeEvent& event);
 		void OnExtractFile(wxCommandEvent& event);
+		void OnExtractDir(wxCommandEvent& event);
+		void SetRefresh(wxCommandEvent& event);
 
+		std::vector<const DiscIO::SFileInfo *> Our_Files;
 		typedef std::vector<const DiscIO::SFileInfo *>::iterator fileIter;
 
 		void CreateDirectoryTree(wxTreeItemId& parent,fileIter& begin,
 								 fileIter& end,
 								 fileIter& iterPos, char *directory);
+
+		IniFile GameIni;
+		std::string GameIniFile;
+		void LoadGameConfig();
+		bool SaveGameConfig(std::string GameIniFile);
 };
 
 #endif

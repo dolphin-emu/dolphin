@@ -40,7 +40,7 @@ class ConfigDialog : public wxDialog
 	public:
 		ConfigDialog(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("OpenGL Plugin Configuration"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = ConfigDialog_STYLE);
 		virtual ~ConfigDialog();
-		void OKClick(wxCommandEvent& event);
+		void CloseClick(wxCommandEvent& event);
 
 		void AddFSReso(char *reso);
 		void AddWindowReso(char *reso);
@@ -65,8 +65,7 @@ class ConfigDialog : public wxDialog
 		wxGridBagSizer* sHacks;
 		
 		wxButton *m_About;
-		wxButton *m_Cancel;
-		wxButton *m_OK;
+		wxButton *m_Close;
 		wxNotebook *m_Notebook;
 		wxPanel *m_PageGeneral;
 		wxPanel *m_PageAdvanced;
@@ -96,8 +95,7 @@ class ConfigDialog : public wxDialog
 
 		enum
 		{
-			ID_OK = 1000,
-			ID_CANCEL,
+			ID_CLOSE = 1000,
 			ID_ABOUTOGL,
 
 			ID_NOTEBOOK,

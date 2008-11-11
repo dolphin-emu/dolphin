@@ -238,12 +238,12 @@ void CConfigMain::CreateGUIControls()
 
 	sPaths = new wxBoxSizer(wxVERTICAL);
 
-	sbISOPaths->Add(ISOPaths, 1, wxEXPAND|wxALL, 5);
+	sbISOPaths->Add(ISOPaths, 1, wxEXPAND|wxALL, 0);
 
 	sISOButtons = new wxBoxSizer(wxHORIZONTAL);
 	sISOButtons->AddStretchSpacer(1);
-	sISOButtons->Add(AddISOPath, 0, wxALL, 5);
-	sISOButtons->Add(RemoveISOPath, 0, wxALL, 5);
+	sISOButtons->Add(AddISOPath, 0, wxALL, 0);
+	sISOButtons->Add(RemoveISOPath, 0, wxALL, 0);
 	sbISOPaths->Add(sISOButtons, 0, wxEXPAND|wxALL, 5);
 	sPaths->Add(sbISOPaths, 1, wxEXPAND|wxALL, 5);
 

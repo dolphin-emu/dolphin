@@ -19,7 +19,6 @@
 #define __CONFIGDLG_H__
 
 #include <wx/wx.h>
-#include <wx/aboutdlg.h>
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
 #include <wx/button.h>

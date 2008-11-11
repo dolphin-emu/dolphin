@@ -246,25 +246,25 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		if (memoryCard[slot] != NULL || !fileName2.empty())
 		{
 			wxString temp = wxFileSelector(_T("Select the GCI file to import"),
-					wxEmptyString, wxEmptyString, wxEmptyString,wxString::Format
-					(
-							_T("Gamecube save files(*.gci,*.gcs,*.sav)|*.gci;*.gcs;*.sav|"
-							"Native GCI files (*.gci)|*.gci|"
-							"MadCatz Gameshark files(*.gcs)|*.gcs|"
-							"Datel MaxDrive/Pro files(*.sav)|*.sav"),
-							wxFileSelectorDefaultWildcardStr,
-							wxFileSelectorDefaultWildcardStr
-                                         ),
-                                                       wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+				wxEmptyString, wxEmptyString, wxEmptyString,wxString::Format
+				(
+					_T("Gamecube save files(*.gci,*.gcs,*.sav)|*.gci;*.gcs;*.sav|"
+					"Native GCI files (*.gci)|*.gci|"
+					"MadCatz Gameshark files(*.gcs)|*.gcs|"
+					"Datel MaxDrive/Pro files(*.sav)|*.sav"),
+					wxFileSelectorDefaultWildcardStr,
+					wxFileSelectorDefaultWildcardStr
+				),
+				wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 			const char * fileName = temp.ToAscii();
 			if (!temp.empty() && !fileName2.empty())
 			{
 				wxString temp2 = wxFileSelector(_T("Save GCI as.."),
 					wxEmptyString, wxEmptyString, _T(".gci"), wxString::Format
 					(
-							_T("GCI File(*.gci)|*.gci"),
-							wxFileSelectorDefaultWildcardStr,
-							wxFileSelectorDefaultWildcardStr
+						_T("GCI File(*.gci)|*.gci"),
+						wxFileSelectorDefaultWildcardStr,
+						wxFileSelectorDefaultWildcardStr
 					),
 					wxFD_OVERWRITE_PROMPT|wxFD_SAVE);
 				fileName2 = temp2.mb_str();

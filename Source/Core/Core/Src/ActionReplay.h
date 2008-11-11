@@ -32,6 +32,6 @@ struct ARCode {
 
 void ActionReplayRunAllActive();
 bool RunActionReplayCode(const ARCode &arcode);
-void LoadActionReplayCodes(IniFile &ini);
+void LoadActionReplayCodes(IniFile &ini, bool bForGUI);
 
 #endif //_ACTIONREPLAY_H_

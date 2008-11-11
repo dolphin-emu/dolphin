@@ -28,7 +28,7 @@
 #include "Config.h"
 #include "GameListCtrl.h"
 #include "Blob.h"
-#include "FilesystemViewer.h"
+#include "ISOProperties.h"
 #include "IniFile.h"
 
 #if USE_XPM_BITMAPS
@@ -64,10 +64,9 @@ EVT_RIGHT_DOWN(CGameListCtrl::OnRightClick)
 EVT_LIST_COL_BEGIN_DRAG(LIST_CTRL, CGameListCtrl::OnColBeginDrag)
 EVT_LIST_ITEM_ACTIVATED(LIST_CTRL, CGameListCtrl::OnActivated)
 EVT_LIST_COL_CLICK(LIST_CTRL, CGameListCtrl::OnColumnClick)
-EVT_MENU(IDM_EDITPATCHFILE, CGameListCtrl::OnEditPatchFile)
+EVT_MENU(IDM_PROPERTIES, CGameListCtrl::OnProperties)
 EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
 EVT_MENU(IDM_SETDEFAULTGCM, CGameListCtrl::OnSetDefaultGCM)
-EVT_MENU(IDM_FILESYSTEMVIEWER, CGameListCtrl::OnFilesystemViewer)
 EVT_MENU(IDM_COMPRESSGCM, CGameListCtrl::OnCompressGCM)
 EVT_MENU(IDM_MULTICOMPRESSGCM, CGameListCtrl::OnMultiCompressGCM)
 EVT_MENU(IDM_MULTIDECOMPRESSGCM, CGameListCtrl::OnMultiDecompressGCM)
@@ -483,23 +482,21 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 		const GameListItem *selected_iso = GetSelectedISO();
 		if (selected_iso)
 		{
-			std::string unique_id = selected_iso->GetUniqueID();
 			wxMenu popupMenu;
-			std::string menu_text = StringFromFormat("Edit &patch file: %s.ini", unique_id.c_str());
-			popupMenu.Append(IDM_EDITPATCHFILE, wxString::FromAscii(menu_text.c_str())); //Pretty much everything in wxwidgets is a wxString, try to convert to those first!
-			popupMenu.Append(IDM_OPENCONTAININGFOLDER, wxString::FromAscii("Open &containing folder"));
-			popupMenu.Append(IDM_FILESYSTEMVIEWER, wxString::FromAscii("Open in ISO viewer/dumper"));
-			popupMenu.AppendCheckItem(IDM_SETDEFAULTGCM, wxString::FromAscii("Set as &default ISO"));
+			popupMenu.Append(IDM_PROPERTIES, _("&Properties"));
+			popupMenu.AppendSeparator();
+			popupMenu.Append(IDM_OPENCONTAININGFOLDER, _("Open &containing folder"));
+			popupMenu.AppendCheckItem(IDM_SETDEFAULTGCM, _("Set as &default ISO"));
 			if(selected_iso->GetFileName() == SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM)
 				popupMenu.FindItemByPosition(3)->Check();
 
 			popupMenu.AppendSeparator();
-			popupMenu.Append(IDM_DELETEGCM, wxString::FromAscii("&Delete ISO..."));
+			popupMenu.Append(IDM_DELETEGCM, _("&Delete ISO..."));
 
 			if (selected_iso->IsCompressed())
-				popupMenu.Append(IDM_COMPRESSGCM, wxString::FromAscii("Decompress ISO... (UNTESTED)"));
+				popupMenu.Append(IDM_COMPRESSGCM, _("Decompress ISO... (UNTESTED)"));
 			else
-				popupMenu.Append(IDM_COMPRESSGCM, wxString::FromAscii("Compress ISO... (UNTESTED)"));
+				popupMenu.Append(IDM_COMPRESSGCM, _("Compress ISO... (UNTESTED)"));
 
 			PopupMenu(&popupMenu);
 		}
@@ -507,10 +504,10 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 	else if (GetSelectedItemCount() > 1)
 	{
 		wxMenu popupMenu;
-		popupMenu.Append(IDM_DELETEGCM, wxString::FromAscii("&Delete selected ISOs..."));
+		popupMenu.Append(IDM_DELETEGCM, _("&Delete selected ISOs..."));
 		popupMenu.AppendSeparator();
-		popupMenu.Append(IDM_MULTICOMPRESSGCM, wxString::FromAscii("Compress selected ISOs..."));
-		popupMenu.Append(IDM_MULTIDECOMPRESSGCM, wxString::FromAscii("Decompress selected ISOs..."));
+		popupMenu.Append(IDM_MULTICOMPRESSGCM, _("Compress selected ISOs..."));
+		popupMenu.Append(IDM_MULTIDECOMPRESSGCM, _("Decompress selected ISOs..."));
 		PopupMenu(&popupMenu);
 	}
 }
@@ -572,7 +569,7 @@ void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
 		const GameListItem *iso = GetSelectedISO();
 		if (!iso)
 			return;
-		if (wxMessageBox(_T("Are you sure you want to delete this file?\nIt will be gone forever!"),
+		if (wxMessageBox(_("Are you sure you want to delete this file?\nIt will be gone forever!"),
 			wxMessageBoxCaptionStr, wxYES_NO|wxICON_EXCLAMATION) == wxYES)
 		{
 			File::Delete(iso->GetFileName().c_str());
@@ -581,7 +578,7 @@ void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
 	}
 	else
 	{
-		if (wxMessageBox(_T("Are you sure you want to delete these files?\nThey will be gone forever!"),
+		if (wxMessageBox(_("Are you sure you want to delete these files?\nThey will be gone forever!"),
 			wxMessageBoxCaptionStr, wxYES_NO|wxICON_EXCLAMATION) == wxYES)
 		{
 			int selected = GetSelectedItemCount();
@@ -596,13 +593,15 @@ void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
 	}
 }
 
-void CGameListCtrl::OnFilesystemViewer(wxCommandEvent& WXUNUSED (event)) 
+void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event)) 
 {
 	const GameListItem *iso = GetSelectedISO();
 	if (!iso)
 		return;
-	CFilesystemViewer FSViewer(iso->GetFileName(), this);
-	FSViewer.ShowModal();
+	CISOProperties ISOProperties(iso->GetFileName(), this);
+	ISOProperties.ShowModal();
+	if (ISOProperties.bRefreshList)
+		Update();
 }
 
 void CGameListCtrl::MultiCompressCB(const char* text, float percent, void* arg)
@@ -760,33 +759,6 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 		DiscIO::CompressFileToBlob(iso->GetFileName().c_str(), path.char_str(), 0, 16384, &CompressCB, &dialog);
 
 	Update();
-}
-
-void CGameListCtrl::OnEditPatchFile(wxCommandEvent& WXUNUSED (event))
-{
-	const GameListItem *iso = GetSelectedISO();
-	if (!iso)
-		return;
-
-	std::string filename = "GameIni/" + iso->GetUniqueID() + ".ini";
-	if (!File::Exists(filename.c_str())) 
-	{
-		if (AskYesNo("%s.ini does not exist. Do you want to create it?", iso->GetUniqueID().c_str())) 
-		{
-			FILE *f = fopen(filename.c_str(), "w");
-			fprintf(f, "# %s - %s\r\n\r\n", iso->GetUniqueID().c_str(), iso->GetName().c_str());
-			fprintf(f, "[EmuState]\n#The Emulation State.\n");
-			fprintf(f, "EmulationStateId = 0\n");
-			fprintf(f, "[OnFrame]\r\n#Add memory patches here.\r\n\r\n");
-			fprintf(f, "[ActionReplay]\r\n#Add decrypted action replay cheats here.\r\n");
-			fclose(f);
-		} 
-		else 
-		{
-			return;
-		}
-	}
-	File::Launch(filename.c_str());
 }
 
 void CGameListCtrl::OnSize(wxSizeEvent& event)

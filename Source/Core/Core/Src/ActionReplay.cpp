@@ -34,40 +34,28 @@
 #include "Core.h"
 #include "ARDecrypt.h"
 
-namespace {
+namespace
+{
+	static std::vector<AREntry>::const_iterator iter;
+	static std::vector<ARCode> arCodes;
+	static ARCode code;
 
-// These should be turned into locals in RunActionReplayCode, and passed as parameters to the others.
-static u8 cmd;
-static u32 addr;
-static u32 data;
-static u8 subtype;
-static u8 w;
-static u8 type;
-static u8 zcode;
-static bool doFillNSlide = false;
-static bool doMemoryCopy = false;
-static u32 addr_last;
-static u32 val_last;
-static std::vector<AREntry>::const_iterator iter;
+} // namespace
 
-static std::vector<ARCode> arCodes;
-static ARCode code;
 
-}  // namespace
-
-bool DoARSubtype_RamWriteAndFill();
-bool DoARSubtype_WriteToPointer();
-bool DoARSubtype_AddCode();
+bool DoARSubtype_RamWriteAndFill(u8 w, u32 addr, u32 data);
+bool DoARSubtype_WriteToPointer(u8 w, u32 addr, u32 data);
+bool DoARSubtype_AddCode(u8 w, u32 addr, u32 data);
 bool DoARSubtype_MasterCodeAndWriteToCCXXXXXX();
-bool DoARSubtype_Other();
-bool DoARZeroCode_FillAndSlide();
-bool DoARZeroCode_MemoryCopy();
+bool DoARSubtype_Other(u8 cmd, u32 addr, u32 data);
+bool DoARZeroCode_FillAndSlide(u32 addr_last, u32 addr, u32 data, bool doFillNSlide);
+bool DoARZeroCode_MemoryCopy(u32 val_last, u32 addr, u32 data);
 
 // Parses the Action Replay section of a game ini file.
-void LoadActionReplayCodes(IniFile &ini) 
+void LoadActionReplayCodes(IniFile &ini, bool bForGUI) 
 {
-	if (!Core::GetStartupParameter().bEnableCheats) 
-		return; // If cheats are off, do not load them
+	if (!Core::GetStartupParameter().bEnableCheats && !bForGUI) 
+		return; // If cheats are off, do not load them; but load anyway if it's for GameConfig GUI
 
 	std::vector<std::string> lines;
 	std::vector<std::string> encryptedLines;
@@ -164,7 +152,20 @@ void ActionReplayRunAllActive()
 // but the problem is not generally solvable.
 // TODO: what is "nowIsBootup" for?
 bool RunActionReplayCode(const ARCode &arcode) {
+	u8 cmd;
+	u32 addr;
+	u32 data;
+	u8 subtype;
+	u8 w;
+	u8 type;
+	u8 zcode;
+	bool doFillNSlide = false;
+	bool doMemoryCopy = false;
+	u32 addr_last;
+	u32 val_last;
+
 	code = arcode;
+
 	for (iter = code.ops.begin(); iter != code.ops.end(); ++iter) 
 	{
 		cmd = iter->cmd_addr >> 24; // AR command
@@ -177,14 +178,14 @@ bool RunActionReplayCode(const ARCode &arcode) {
 
 		// Do Fill & Slide
 		if (doFillNSlide) {
-			if (!DoARZeroCode_FillAndSlide())
+			if (!DoARZeroCode_FillAndSlide(addr_last, addr, data, doFillNSlide))
 				return false;
 			continue;
 			}
 
 		// Memory Copy
 		if (doMemoryCopy) {
-			if (!DoARZeroCode_MemoryCopy())
+			if (!DoARZeroCode_MemoryCopy(val_last, addr, data))
 				return false;
 			continue;
 		}
@@ -233,15 +234,15 @@ bool RunActionReplayCode(const ARCode &arcode) {
 		switch (subtype)
 		{
 		case 0x0: // Ram write (and fill)
-			if (!DoARSubtype_RamWriteAndFill())
+			if (!DoARSubtype_RamWriteAndFill(w, addr, data))
 				return false;
 			continue;
 		case 0x1: // Write to pointer
-			if (!DoARSubtype_WriteToPointer())
+			if (!DoARSubtype_WriteToPointer(w, addr, data))
 				return false;
 			continue;
 		case 0x2: // Add code
-			if (!DoARSubtype_AddCode())
+			if (!DoARSubtype_AddCode(w, addr, data))
 				return false;
 			continue;
 		case 0x3: // Master Code & Write to CCXXXXXX
@@ -249,7 +250,7 @@ bool RunActionReplayCode(const ARCode &arcode) {
 				return false;
 			continue;
 		default: // non-specific z codes (hacks)
-			if (!DoARSubtype_Other())
+			if (!DoARSubtype_Other(cmd, addr, data))
 				return false;
 			continue;
 		}
@@ -257,7 +258,7 @@ bool RunActionReplayCode(const ARCode &arcode) {
 	return true;
 }
 
-bool DoARSubtype_RamWriteAndFill()
+bool DoARSubtype_RamWriteAndFill(u8 w, u32 addr, u32 data)
 {
 	if (w < 0x8) // Check the value W in 0xZWXXXXXXX
 	{
@@ -277,9 +278,8 @@ bool DoARSubtype_RamWriteAndFill()
 		case 0x01: // Short write
 			{
 				u16 repeat = data >> 16;
-				for (int i = 0; i <= repeat; i++) {
+				for (int i = 0; i <= repeat; i++)
 					Memory::Write_U16(data & 0xFFFF, new_addr + i * 2);
-				}
 				break;
 			}
 
@@ -295,8 +295,7 @@ bool DoARSubtype_RamWriteAndFill()
 	return false;
 }
 
-
-bool DoARSubtype_WriteToPointer()
+bool DoARSubtype_WriteToPointer(u8 w, u32 addr, u32 data)
 {
 	if (w < 0x8)
 	{
@@ -335,7 +334,7 @@ bool DoARSubtype_WriteToPointer()
 	return false;
 }
 
-bool DoARSubtype_AddCode()
+bool DoARSubtype_AddCode(u8 w, u32 addr, u32 data)
 {
 	if (w < 0x8)
 	{
@@ -373,12 +372,12 @@ bool DoARSubtype_AddCode()
 bool DoARSubtype_MasterCodeAndWriteToCCXXXXXX()
 {
 	// code not yet implemented - TODO
-	PanicAlert("Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)",code.name.c_str());
+	PanicAlert("Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)", code.name.c_str());
 	return false;
 }
 
 // TODO(Omega): I think this needs cleanup, there might be a better way to code this part
-bool DoARSubtype_Other()
+bool DoARSubtype_Other(u8 cmd, u32 addr, u32 data)
 {
 	switch (cmd & 0xFE) 
 	{
@@ -446,7 +445,8 @@ bool DoARSubtype_Other()
 	}
 	return true;
 }
-bool DoARZeroCode_FillAndSlide() // This needs more testing
+
+bool DoARZeroCode_FillAndSlide(u32 addr_last, u32 addr, u32 data, bool doFillNSlide) // This needs more testing
 {
 	u32 new_addr = (addr_last & 0x81FFFFFF);
 	u8 size = ((new_addr >> 25) & 0x03);
@@ -512,25 +512,29 @@ bool DoARZeroCode_FillAndSlide() // This needs more testing
 	doFillNSlide = false; 
 	return true;
 }
-bool DoARZeroCode_MemoryCopy() // Has not been tested
+
+bool DoARZeroCode_MemoryCopy(u32 val_last, u32 addr, u32 data) // Has not been tested
 {
 	u32 addr_dest = (val_last | 0x06000000);
 	u32 addr_src = ((addr & 0x7FFFFF) | 0x80000000);
 	u8 num_bytes = (data & 0x7FFF);
 
-	if ((data & ~0x7FFF) == 0x0000) { 
-		if((data >> 24) != 0x0) { // Memory Copy With Pointers Support
-			for(int i = 0; i < 138; i++) {
+	if ((data & ~0x7FFF) == 0x0000)
+	{ 
+		if((data >> 24) != 0x0)
+		{ // Memory Copy With Pointers Support
+			for(int i = 0; i < 138; i++)
 				Memory::Write_U8(Memory::Read_U8(addr_src + i), addr_dest + i);
-			}
 		}
-		else { // Memory Copy Without Pointer Support
-			for(int i=0; i < num_bytes; i++) {
+		else
+		{ // Memory Copy Without Pointer Support
+			for (int i=0; i < num_bytes; i++)
 				Memory::Write_U32(Memory::Read_U32(addr_src + i), addr_dest + i);
-			} return true;
+			return true;
 		}
 	}
-	else {
+	else
+	{
 		PanicAlert("Action Replay Error: Invalid value (&08x) in Memory Copy (%s)", (data & ~0x7FFF), code.name.c_str());
 		return false;
 	}

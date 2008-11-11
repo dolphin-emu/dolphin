@@ -24,30 +24,29 @@
 
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
-	EVT_BUTTON(ID_CANCEL,ConfigDialog::OKClick)
-	EVT_BUTTON(ID_OK,ConfigDialog::OKClick)
-	EVT_BUTTON(ID_ABOUTOGL,ConfigDialog::AboutClick)
-	EVT_CHECKBOX(ID_FULLSCREEN,ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_RENDERTOMAINWINDOW,ConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(ID_FULLSCREENCB,ConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(ID_WINDOWRESOLUTIONCB,ConfigDialog::GeneralSettingsChanged)
-	EVT_COMBOBOX(ID_ALIASMODECB,ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_FORCEFILTERING,ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_FORCEANISOTROPY,ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_STRETCHTOFIT,ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_KEEPAR,ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_WIREFRAME,ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_SHOWFPS,ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_STATISTICS,ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_SHADERERRORS,ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_TEXFMTOVERLAY,ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_TEXFMTCENTER,ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_USEXFB,ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_DUMPTEXTURES,ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_DISABLELIGHTING,ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_DISABLETEXTURING,ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_EFBTOTEXTUREDISABLE,ConfigDialog::AdvancedSettingsChanged)
-	EVT_DIRPICKER_CHANGED(ID_TEXTUREPATH,ConfigDialog::TexturePathChange)
+	EVT_BUTTON(ID_CLOSE, ConfigDialog::CloseClick)
+	EVT_BUTTON(ID_ABOUTOGL, ConfigDialog::AboutClick)
+	EVT_CHECKBOX(ID_FULLSCREEN, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_RENDERTOMAINWINDOW, ConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(ID_FULLSCREENCB, ConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(ID_WINDOWRESOLUTIONCB, ConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(ID_ALIASMODECB, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_FORCEFILTERING, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_FORCEANISOTROPY, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_STRETCHTOFIT, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_KEEPAR, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_WIREFRAME, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_SHOWFPS, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_STATISTICS, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_SHADERERRORS, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_TEXFMTOVERLAY, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_TEXFMTCENTER, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_USEXFB, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_DUMPTEXTURES, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_DISABLELIGHTING, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_DISABLETEXTURING, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_EFBTOTEXTUREDISABLE, ConfigDialog::AdvancedSettingsChanged)
+	EVT_DIRPICKER_CHANGED(ID_TEXTUREPATH, ConfigDialog::TexturePathChange)
 END_EVENT_TABLE()
 
 ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
@@ -72,16 +71,14 @@ void ConfigDialog::CreateGUIControls()
 
 	// Buttons
 	m_About = new wxButton(this, ID_ABOUTOGL, wxT("About"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Cancel = new wxButton(this, ID_CANCEL, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Put notebook and buttons in sizers
 	wxBoxSizer* sButtons;
 	sButtons = new wxBoxSizer(wxHORIZONTAL);
 	sButtons->Add(m_About, 0, wxALL, 5);
-	sButtons->Add(0, 0, 1, wxEXPAND, 5);
-	sButtons->Add(m_OK, 0, wxALL, 5);
-	sButtons->Add(m_Cancel, 0, wxALL, 5);
+	sButtons->AddStretchSpacer();
+	sButtons->Add(m_Close, 0, wxALL, 5);
 
 	wxBoxSizer* sMain;
 	sMain = new wxBoxSizer(wxVERTICAL);
@@ -223,23 +220,15 @@ void ConfigDialog::CreateGUIControls()
 	Center();
 }
 
-void ConfigDialog::OnClose(wxCloseEvent& event)
+void ConfigDialog::OnClose(wxCloseEvent& WXUNUSED (event))
 {
+	g_Config.Save();
 	EndModal(0);
 }
 
-void ConfigDialog::OKClick(wxCommandEvent& event)
+void ConfigDialog::CloseClick(wxCommandEvent& WXUNUSED (event))
 {
-	switch(event.GetId())
-	{
-	case ID_CANCEL:
-		Close();
-		break;
-	case ID_OK:
-		g_Config.Save();
-		Close();
-		break;
-	}
+	Close();
 }
 
 void ConfigDialog::AddFSReso(char *reso)
@@ -259,7 +248,7 @@ void ConfigDialog::AddAAMode(int mode)
 	m_AliasModeCB->Append(tmp);
 }
 
-void ConfigDialog::AboutClick(wxCommandEvent& event)
+void ConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
 {
 	wxMessageBox(_T("Dolphin OpenGL Plugin\nBy zerofrog(@gmail.com)\n\n"
 		"A card supporting Vertex/Pixel Shader 2.0 or higher, framebuffer objects, "
@@ -351,5 +340,5 @@ void ConfigDialog::TexturePathChange(wxFileDirPickerEvent& event)
 {
 	// Note: if a user inputs an incorrect path(by typing, not by choosing from
 	// the combobox) this event wil not be fired.
-	strcpy(g_Config.texDumpPath,event.GetPath().mb_str());
+	strcpy(g_Config.texDumpPath, event.GetPath().mb_str());
 }

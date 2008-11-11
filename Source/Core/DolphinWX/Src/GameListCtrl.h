@@ -69,14 +69,13 @@ private:
 	void OnColBeginDrag(wxListEvent& event);
 	void OnActivated(wxListEvent& event);
 	void OnSize(wxSizeEvent& event);
-	void OnEditPatchFile(wxCommandEvent& event);
+	void OnProperties(wxCommandEvent& event);
 	void OnOpenContainingFolder(wxCommandEvent& event);
 	void OnSetDefaultGCM(wxCommandEvent& event);
 	void OnDeleteGCM(wxCommandEvent& event);
 	void OnCompressGCM(wxCommandEvent& event);
 	void OnMultiCompressGCM(wxCommandEvent& event);
 	void OnMultiDecompressGCM(wxCommandEvent& event);
-	void OnFilesystemViewer(wxCommandEvent& event);
 
 	#ifdef _WIN32
 	virtual bool MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem);

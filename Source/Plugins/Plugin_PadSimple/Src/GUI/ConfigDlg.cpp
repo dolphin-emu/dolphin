@@ -149,14 +149,17 @@ void ConfigDialog::CreateGUIControls()
 		sbDevice[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Controller Settings"));
 		sDevice[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_Attached[i] = new wxCheckBox(m_Controller[i], ID_ATTACHED, wxT("Controller attached"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_X360Pad[i] = new wxCheckBox(m_Controller[i], ID_X360PAD, wxT("Use X360Pad"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+#ifdef _WIN32
+		m_X360Pad[i] = new wxCheckBox(m_Controller[i], ID_X360PAD, wxT("Enable X360Pad"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		m_X360PadC[i] = new wxChoice(m_Controller[i], ID_X360PAD_CHOICE, wxDefaultPosition, wxDefaultSize, arrayStringFor_X360Pad, 0, wxDefaultValidator);
 		m_Rumble[i] = new wxCheckBox(m_Controller[i], ID_RUMBLE, wxT("Enable rumble"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+#endif
 		m_Disable[i] = new wxCheckBox(m_Controller[i], ID_DISABLE, wxT("Disable when Dolphin is not in focus"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		m_Attached[i]->SetValue(pad[i].bAttached);
+#ifdef _WIN32
 		if (arrayStringFor_X360Pad.IsEmpty())
 		{
-			m_X360Pad[i]->SetLabel(wxT("Use X360Pad - No pad connected"));
+			m_X360Pad[i]->SetLabel(wxT("Enable X360Pad - No pad connected"));
 			m_X360Pad[i]->SetValue(false);
 			m_X360Pad[i]->Enable(false);
 			pad[i].bEnableXPad = false;
@@ -171,14 +174,17 @@ void ConfigDialog::CreateGUIControls()
 			m_Rumble[i]->SetValue(pad[i].bRumble);
 			m_Rumble[i]->Enable(m_X360Pad[i]->IsChecked());
 		}
+#endif
 		m_Disable[i]->SetValue(pad[i].bDisable);
 
 		sDevice[i]->Add(m_Attached[i], 0, wxEXPAND|wxALL, 1);
 		sDevice[i]->AddStretchSpacer();
+#ifdef _WIN32
 		sDevice[i]->Add(m_X360Pad[i], 0, wxEXPAND|wxALL, 1);
 		sDevice[i]->Add(m_X360PadC[i], 0, wxEXPAND|wxALL, 1);
 		sDevice[i]->Add(m_Rumble[i], 0, wxEXPAND|wxALL, 1);
 		sDevice[i]->AddStretchSpacer();
+#endif
 		sDevice[i]->Add(m_Disable[i], 0, wxEXPAND|wxALL, 1);
 		sbDevice[i]->Add(sDevice[i], 0, wxEXPAND|wxALL, 1);
 
@@ -321,9 +327,9 @@ void ConfigDialog::OnButtonClick(wxCommandEvent& event)
 }
 void ConfigDialog::DllAbout(wxCommandEvent& event)
 {
-	wxAboutDialogInfo info;
-	info.AddDeveloper(_T("ector"));
-	info.AddDeveloper(_T("F|RES"));
-	info.SetDescription(_T("Simple keyboard and XInput plugin for dolphin"));
-	wxAboutBox(info);
+	wxString message;
+	_WIN32 ? message = "A simple keyboard and XInput plugin for dolphin." : message = "A simple keyboard plugin for dolphin.";
+
+	wxMessageBox(_T("Dolphin PadSimple Plugin\nBy ector and F|RES\n\n" + message),
+		_T("Dolphin PadSimple"), wxOK, this);
 }

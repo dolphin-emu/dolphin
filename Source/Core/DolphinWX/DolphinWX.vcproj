@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="DolphinWX"
 	ProjectGUID="{A72606EF-C5C1-4954-90AD-F0F93A8D97D9}"
 	RootNamespace="DolphinWX"
@@ -759,14 +759,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\FilesystemViewer.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\FilesystemViewer.h"
-				>
-			</File>
-			<File
 				RelativePath=".\src\Frame.cpp"
 				>
 			</File>
@@ -820,6 +812,14 @@
 			</File>
 			<File
 				RelativePath=".\src\Globals.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ISOProperties.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ISOProperties.h"
 				>
 			</File>
 			<File
