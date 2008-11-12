@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_Wiimote"
 	ProjectGUID="{8D612734-FAA5-4B8A-804F-4DEA2367D495}"
 	RootNamespace="Plugin_Wiimote_Test"
@@ -129,7 +129,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\WiiUse\inc"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS;_SECURE_SCL=0"
+				PreprocessorDefinitions="LOGGING;WIN32;_DEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -456,7 +456,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\WiiUse\inc"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS;DEBUGFAST;_SECURE_SCL=0"
+				PreprocessorDefinitions="LOGGING;WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS;DEBUGFAST;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				WarningLevel="3"
 				WarnAsError="false"
@@ -533,32 +533,56 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Emulated Wiimote"
+			>
+			<File
+				RelativePath=".\Src\EmuDeclarations.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\EmuDeclarations.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\EmuDefinitions.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\EmuDefinitions.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\EmuMain.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\EmuMain.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\FillReport.cpp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Real Wiimote"
+			>
+			<File
+				RelativePath=".\Src\wiimote_real.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\wiimote_real.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\main.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\SConscript"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\wiimote_emu.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\wiimote_emu.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\wiimote_hid.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\wiimote_real.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\wiimote_real.h"
 			>
 		</File>
 	</Files>

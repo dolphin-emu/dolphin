@@ -6,11 +6,9 @@
 #define _WIIMOTE_H_INCLUDED__
 
 #include "PluginSpecs.h"
-
 #include "ExportProlog.h"
 
-
-typedef void (*TLog)(const char* _pMessage);
+typedef void (*TLogv)(const char* _pMessage, int _v);
 
 // Called when the Wiimote sends input reports to the Core.
 // Payload: an L2CAP packet.
@@ -20,7 +18,7 @@ typedef void (*TWiimoteInput)(u16 _channelID, const void* _pData, u32 _Size);
 typedef struct
 {
 	HWND hWnd;
-	TLog pLog;
+	TLogv pLog;
 	TWiimoteInput pWiimoteInput;
 } SWiimoteInitialize;
 

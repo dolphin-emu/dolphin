@@ -45,6 +45,16 @@ void __Log(int log, const char *format, ...)
 	LogManager::Log((LogTypes::LOG_TYPE)log, temp);
 }
 
+void __Logv(int log, int v, const char *format, ...)
+{
+	char* temp = (char*)alloca(strlen(format)+512);
+	va_list args;
+	va_start(args, format);
+	CharArrayFromFormatV(temp, 512, format, args);
+	va_end(args);
+	LogManager::Log((LogTypes::LOG_TYPE)(log + v*100), temp);
+}
+
 CDebugger_Log::CDebugger_Log(const char* _szShortName, const char* _szName, int a) :
 	m_bLogToFile(true), // write to file or not
 	m_bShowInLog(false),

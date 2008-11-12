@@ -25,7 +25,7 @@
 
 #include "pluginspecs_wiimote.h"
 
-#include "wiimote_emu.h"
+#include "EmuMain.h"
 #include "wiimote_real.h"
 
 #include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
@@ -121,7 +121,7 @@ extern "C" void Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize)
 	WiiMoteEmu::Initialize();
 
 	// Debugging window
-	/*startConsoleWin(100, 30, "Wiimote"); // give room for 20 rows
+	/*startConsoleWin(160, 30, "Wiimote"); // give room for 20 rows
 	wprintf("Wiimote console opened\n");
 	MoveWindow(GetConsoleHwnd(), 0,400, 100*8,30*14, true); // move window, TODO: make this*/
 }
@@ -207,5 +207,18 @@ void __Log(int log, const char *_fmt, ...)
 	vsprintf( Msg, _fmt, ap );
 	va_end( ap );
 
-	g_WiimoteInitialize.pLog(Msg);
+	g_WiimoteInitialize.pLog(Msg, 0);	
+}
+
+
+void __Logv(int log, int v, const char *_fmt, ...)
+{
+	char Msg[512];
+	va_list ap;
+
+	va_start( ap, _fmt );
+	vsprintf( Msg, _fmt, ap );
+	va_end( ap );
+
+	g_WiimoteInitialize.pLog(Msg, v);	
 }

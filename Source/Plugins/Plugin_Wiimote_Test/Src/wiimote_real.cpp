@@ -24,10 +24,13 @@
 #include "thread.h"
 
 #include "wiimote_hid.h"
-#include "wiimote_emu.h"
+#include "EmuMain.h"
+
 
 extern SWiimoteInitialize g_WiimoteInitialize;
-extern void __Log(int log, const char *format, ...);
+//extern void __Log(int log, const char *format, ...);
+//extern void __Log(int log, int v, const char *format, ...);
+
 
 namespace WiiMoteReal
 {

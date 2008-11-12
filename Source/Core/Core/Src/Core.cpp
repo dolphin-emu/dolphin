@@ -76,7 +76,7 @@ void Callback_DSPLog(const TCHAR* _szMessage);
 char * Callback_ISOName(void);
 void Callback_DSPInterrupt();
 void Callback_PADLog(const TCHAR* _szMessage);
-void Callback_WiimoteLog(const TCHAR* _szMessage);
+void Callback_WiimoteLog(const TCHAR* _szMessage, int _v);
 void Callback_WiimoteInput(u16 _channelID, const void* _pData, u32 _Size);
 
 // For keyboard shortcuts.
@@ -590,9 +590,9 @@ void Callback_KeyPress(int key, BOOL shift, BOOL control)
 // __________________________________________________________________________________________________
 // Callback_WiimoteLog
 //
-void Callback_WiimoteLog(const TCHAR* _szMessage)
+void Callback_WiimoteLog(const TCHAR* _szMessage, int _v)
 {
-	LOG(WII_IPC_WIIMOTE, _szMessage);
+	LOGV(WII_IPC_WIIMOTE, _v, _szMessage);
 }
 
 } // end of namespace Core

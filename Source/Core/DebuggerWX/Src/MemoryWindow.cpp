@@ -109,10 +109,14 @@ CMemoryWindow::~CMemoryWindow()
 
 void CMemoryWindow::Save(IniFile& _IniFile) const
 {
-	_IniFile.Set("MemoryWindow", "x", GetPosition().x);
-	_IniFile.Set("MemoryWindow", "y", GetPosition().y);
-	_IniFile.Set("MemoryWindow", "w", GetSize().GetWidth());
-	_IniFile.Set("MemoryWindow", "h", GetSize().GetHeight());
+	// Prevent these bad values that can happen after a crash or hanging
+	if(GetPosition().x != -32000 && GetPosition().y != -32000)
+	{
+		_IniFile.Set("MemoryWindow", "x", GetPosition().x);
+		_IniFile.Set("MemoryWindow", "y", GetPosition().y);
+		_IniFile.Set("MemoryWindow", "w", GetSize().GetWidth());
+		_IniFile.Set("MemoryWindow", "h", GetSize().GetHeight());
+	}
 }
 
 

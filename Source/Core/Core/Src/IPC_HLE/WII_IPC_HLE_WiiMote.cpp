@@ -320,7 +320,7 @@ void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 	u8* pData = _pData + sizeof(SL2CAP_Header);
 	u32 DataSize = _Size - sizeof(SL2CAP_Header);
 
-	LOG(WII_IPC_WIIMOTE, "L2Cap-SendFrame: Channel 0x%04x, Len 0x%x, DataSize 0x%x",
+	LOGV(WII_IPC_WIIMOTE, 2, "L2Cap-SendFrame: Channel 0x%04x, Len 0x%x, DataSize 0x%x",
 		pHeader->CID, pHeader->Length, DataSize);
 
 	if(pHeader->Length != DataSize) 
@@ -941,7 +941,7 @@ namespace Core
 	void Callback_WiimoteInput(u16 _channelID, const void* _pData, u32 _Size) 
 	{
 		const u8* pData = (const u8*)_pData;
-		LOG(WII_IPC_WIIMOTE, "Callback_WiimoteInput: 0x%x", _channelID);
+		LOGV(WII_IPC_WIIMOTE, 2, "Callback_WiimoteInput: 0x%x", _channelID);
 		std::string Temp;
 		for (u32 j=0; j<_Size; j++)
 		{
@@ -949,7 +949,7 @@ namespace Core
 			sprintf(Buffer, "%02x ", pData[j]);
 			Temp.append(Buffer);
 		}
-		LOG(WII_IPC_WIIMOTE, "   Data: %s", Temp.c_str());
+		LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
 
 		s_Usb->m_WiiMotes[0].SendL2capData(_channelID, _pData, _Size);
 	}

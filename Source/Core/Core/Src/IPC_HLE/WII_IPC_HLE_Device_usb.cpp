@@ -161,7 +161,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 						delete m_pACLBuffer;
 					m_pACLBuffer = new SIOCtlVBuffer(_CommandAddress);
 
-					LOG(WII_IPC_WIIMOTE, "ACL_DATA_ENDPOINT: 0x%08x ", _CommandAddress);
+					LOGV(WII_IPC_WIIMOTE, 2, "ACL_DATA_ENDPOINT: 0x%08x ", _CommandAddress);
 					return false;
 				}
 				break;
@@ -237,7 +237,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendToDevice(u16 _ConnectionHandle, u8
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLFrame(u16 _ConnectionHandle, u8* _pData, u32 _Size)
 {
-	LOG(WII_IPC_WIIMOTE, "Queing ACL frame.");
+	LOGV(WII_IPC_WIIMOTE, 1, "Queing ACL frame.");
 
 	//queue the packet
 	ACLFrame frame;
@@ -283,7 +283,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	{
 		ACLFrame& frame = m_AclFrameQue.front();	
 
-		LOG(WII_IPC_WIIMOTE, "Sending ACL frame.");
+		LOGV(WII_IPC_WIIMOTE, 1, "Sending ACL frame.");
 		UACLHeader* pHeader = (UACLHeader*)Memory::GetPointer(m_pACLBuffer->PayloadBuffer[0].m_Address);
 		pHeader->ConnectionHandle = frame.ConnectionHandle;
 		pHeader->BCFlag = 0;
@@ -788,9 +788,9 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets(u16 
 	AddEventToQueue(Event);
 
 	// Log
-	LOG(WII_IPC_WIIMOTE, "Event: SendEventNumberOfCompletedPackets");
-	LOG(WII_IPC_WIIMOTE, "  Connection_Handle: 0x%04x", pNumberOfCompletedPackets->Connection_Handle);
-	LOG(WII_IPC_WIIMOTE, "  Number_Of_Completed_Packets: %i", pNumberOfCompletedPackets->Number_Of_Completed_Packets);
+	LOGV(WII_IPC_WIIMOTE, 1, "Event: SendEventNumberOfCompletedPackets");
+	LOGV(WII_IPC_WIIMOTE, 1,  "  Connection_Handle: 0x%04x", pNumberOfCompletedPackets->Connection_Handle);
+	LOGV(WII_IPC_WIIMOTE, 1, "  Number_Of_Completed_Packets: %i", pNumberOfCompletedPackets->Number_Of_Completed_Packets);
 
 	return true;
 }
