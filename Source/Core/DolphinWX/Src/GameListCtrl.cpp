@@ -239,7 +239,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		item.SetColumn(COLUMN_EMULATION_STATE);
 		//NOTE (Daco): i dont like the fact of having so much ini's just to have 
 		//the game emulation state of every game you have. but 1 huge ini is no option
-		GameIni = "GameIni/" + (rISOFile.GetUniqueID()) + ".ini";
+		GameIni = FULL_GAMECONFIG_DIR + (rISOFile.GetUniqueID()) + ".ini";
 		ini.Load(GameIni.c_str());
 		ini.Get("EmuState","EmulationStateId",&EmuState);
 		if (!EmuState.empty())

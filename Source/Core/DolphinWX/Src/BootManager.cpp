@@ -87,7 +87,7 @@ bool BootCore(const std::string& _rFilename)
 	// Load overrides
 	IniFile ini;
 	std::string unique_id = StartUp.GetUniqueID();
-	if (unique_id.size() == 6 && ini.Load(("GameIni/" + unique_id + ".ini").c_str()))
+	if (unique_id.size() == 6 && ini.Load((FULL_GAMECONFIG_DIR + unique_id + ".ini").c_str()))
 	{
 		ini.Get("Core", "UseDualCore", &StartUp.bUseDualCore, StartUp.bUseDualCore);
 		ini.Get("Core", "SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);

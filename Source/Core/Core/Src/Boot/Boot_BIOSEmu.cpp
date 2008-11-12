@@ -185,7 +185,7 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 {	
 	LOG(BOOT, "Faking Wii BIOS...");
 
-    FILE* pDump = fopen("WII/dump_0x0000_0x4000.bin", "rb");
+    FILE* pDump = fopen(FULL_WII_SYS_DIR "dump_0x0000_0x4000.bin", "rb");
     if (pDump != NULL)
     {
         LOG(MASTER_LOG, "Init from memory dump.");	
@@ -198,26 +198,26 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
     {
 	    // load settings.txt
 	    {
-		    std::string filename("WII/setting-eur.txt");
+		    std::string filename(WII_EUR_SETTING_FILE);
 		    if (VolumeHandler::IsValid())
 		    {
 			    switch(VolumeHandler::GetVolume()->GetCountry())
 			    {
 			    case DiscIO::IVolume::COUNTRY_JAP:
-				    filename = "WII/setting-jpn.txt";
+				    filename = WII_JAP_SETTING_FILE;
 				    break;
 
 			    case DiscIO::IVolume::COUNTRY_USA:
-				    filename = "WII/setting-usa.txt";
+				    filename = WII_USA_SETTING_FILE;
 				    break;
 
 			    case DiscIO::IVolume::COUNTRY_EUROPE:
-				    filename = "WII/setting-eur.txt";
+				    filename = WII_EUR_SETTING_FILE;
 				    break;
 
 			    default:
 				    PanicAlert("Unknown country. Wii boot process will be switched to European settings.");
-				    filename = "WII/setting-eur.txt";
+				    filename = WII_EUR_SETTING_FILE;
 				    break;
 			    }
 		    }

@@ -628,7 +628,7 @@ void LoadConfig()
 	};
 #endif
 	IniFile file;
-	file.Load("pad.ini");
+	file.Load(FULL_CONFIG_DIR "pad.ini");
 
 	for(int i = 0; i < 4; i++)
 	{
@@ -658,7 +658,7 @@ void LoadConfig()
 void SaveConfig()
 {
 	IniFile file;
-	file.Load("pad.ini");
+	file.Load(FULL_CONFIG_DIR "pad.ini");
 
 	for(int i = 0; i < 4; i++)
 	{
@@ -676,7 +676,7 @@ void SaveConfig()
 			file.Set(SectionName, controlNames[x], pad[i].keyForControl[x]);
 		}
 	}
-	file.Save("pad.ini");
+	file.Save(FULL_CONFIG_DIR "pad.ini");
 }
 
 

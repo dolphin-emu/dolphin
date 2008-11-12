@@ -126,6 +126,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying Data\* to $(TargetDir)"
+				CommandLine="xcopy $(SolutionDir)..\Data $(TargetDir) /s /e /q /y"
 			/>
 		</Configuration>
 		<Configuration
@@ -235,6 +237,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying Data\* to $(TargetDir)"
+				CommandLine="xcopy $(SolutionDir)..\Data $(TargetDir) /s /e /q /y"
 			/>
 		</Configuration>
 		<Configuration
@@ -342,6 +346,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying Data\* to $(TargetDir)"
+				CommandLine="xcopy $(SolutionDir)..\Data $(TargetDir) /s /e /q /y"
 			/>
 		</Configuration>
 		<Configuration
@@ -449,6 +455,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying Data\* to $(TargetDir)"
+				CommandLine="xcopy $(SolutionDir)..\Data $(TargetDir) /s /e /q /y"
 			/>
 		</Configuration>
 		<Configuration
@@ -558,6 +566,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying Data\* to $(TargetDir)"
+				CommandLine="xcopy $(SolutionDir)..\Data $(TargetDir) /s /e /q /y"
 			/>
 		</Configuration>
 		<Configuration
@@ -665,6 +675,8 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copying Data\* to $(TargetDir)"
+				CommandLine="xcopy $(SolutionDir)..\Data $(TargetDir) /s /e /q /y"
 			/>
 		</Configuration>
 	</Configurations>
@@ -889,6 +901,10 @@
 		</File>
 		<File
 			RelativePath=".\resource.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SConscript"
 			>
 		</File>
 		<File

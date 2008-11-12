@@ -145,7 +145,7 @@ bool DolphinApp::OnInit()
 	// TODO: Save position and size on exit
 	// ---------
 	IniFile ini;
-	ini.Load("Debugger.ini");
+	ini.Load(DEBUGGER_CONFIG_FILE);
 
 	int x, y, w, h;
 

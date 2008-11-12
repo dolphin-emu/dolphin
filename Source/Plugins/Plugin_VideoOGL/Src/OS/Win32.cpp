@@ -218,7 +218,7 @@ namespace EmuWindow
 		// started so we have to use an ini file setting here
 		bool bVideoWindow = false;
 		IniFile ini;
-		ini.Load("Debugger.ini");
+		ini.Load(DEBUGGER_CONFIG_FILE);
 		ini.Get("ShowOnStart", "VideoWindow", &bVideoWindow, false);
 		if(bVideoWindow) DoDllDebugger();
 	}

@@ -226,7 +226,7 @@ CBreakPointWindow::OnAddBreakPointMany(wxCommandEvent& event)
 {
 	// load ini
 	IniFile ini;
-	std::string filename = std::string("GameIni/BreakPoints.ini");
+	std::string filename = std::string(FULL_GAMECONFIG_DIR "BreakPoints.ini");
 
 	if (ini.Load(filename.c_str())) // check if there is any file there
 	{
@@ -275,7 +275,7 @@ CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
 {
 	// load ini
 	IniFile ini;
-	std::string filename = std::string("GameIni/MemoryChecks.ini");
+	std::string filename = std::string(FULL_GAMECONFIG_DIR "MemoryChecks.ini");
 
 	if (ini.Load(filename.c_str()))
 	{
@@ -354,7 +354,7 @@ CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
 	}
 	else
 	{
-		wxMessageBox(_T("You have no GameIni/MemoryChecks.ini file"));
+		wxMessageBox(_T("You have no " FULL_GAMECONFIG_DIR "MemoryChecks.ini file"));
 	}
 }
 // =================

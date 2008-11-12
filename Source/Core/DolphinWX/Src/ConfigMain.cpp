@@ -64,7 +64,7 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 	
 	// Load Wii SYSCONF
 	pStream = NULL;
-	pStream = fopen("./WII/shared2/sys/SYSCONF", "rb");
+	pStream = fopen(FULL_WII_USER_DIR "shared2/sys/SYSCONF", "rb");
     if (pStream != NULL)
     {
         fread(m_SYSCONF, 1, 0x4000, pStream);
@@ -307,7 +307,7 @@ void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
 
 	// Save Wii SYSCONF
 	pStream = NULL;
-	pStream = fopen("./WII/shared2/sys/SYSCONF", "wb");
+	pStream = fopen(FULL_WII_USER_DIR "shared2/sys/SYSCONF", "wb");
 	if (pStream != NULL)
 	{
 		fwrite(m_SYSCONF, 1, 0x4000, pStream);

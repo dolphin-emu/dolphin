@@ -26,7 +26,7 @@ std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 	char Buffer[128];
 	memcpy(Buffer, _pFilename, _size);
 
-	std::string Filename("WII");
+	std::string Filename(WII_SYS_DIR);
 	if (Buffer[1] == '0')
 		Filename += std::string("/title");     // this looks and feel like an hack...
 

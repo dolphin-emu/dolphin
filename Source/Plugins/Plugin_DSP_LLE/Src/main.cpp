@@ -235,14 +235,14 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 	g_dsp.irq_request = dspi_req_dsp_irq;
 	gdsp_reset();
 
-	if (!gdsp_load_rom((char *)"data\\dsp_rom.bin"))
+	if (!gdsp_load_rom((char *)DSP_ROM_FILE))
 	{
                 bCanWork = false;
                 PanicAlert("No DSP ROM");
 		ErrorLog("Cannot load DSP ROM\n");
 	}
 
-	if (!gdsp_load_coef((char *)"data\\dsp_coef.bin"))
+	if (!gdsp_load_coef((char *)DSP_COEF_FILE))
 	{
                 bCanWork = false;
                 PanicAlert("No DSP COEF");

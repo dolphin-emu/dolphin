@@ -31,7 +31,7 @@ void Config::Load()
 {
     std::string temp;
     IniFile iniFile;
-    iniFile.Load("gfx_opengl.ini");
+    iniFile.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
 
 	// get resolution
     iniFile.Get("Hardware", "WindowedRes", &temp, 0);
@@ -82,7 +82,7 @@ void Config::Load()
 void Config::Save()
 {
     IniFile iniFile;
-    iniFile.Load("gfx_opengl.ini");
+    iniFile.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
     iniFile.Set("Hardware", "WindowedRes", iWindowedRes);
     iniFile.Set("Hardware", "FullscreenRes", iFSResolution);
     iniFile.Set("Hardware", "Fullscreen", bFullscreen);
@@ -110,5 +110,5 @@ void Config::Save()
 
 	iniFile.Set("Hacks", "EFBToTextureDisable", bEBFToTextureDisable);
 
-    iniFile.Save("gfx_opengl.ini");
+    iniFile.Save(FULL_CONFIG_DIR "gfx_opengl.ini");
 }

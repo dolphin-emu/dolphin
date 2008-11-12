@@ -27,7 +27,7 @@ Config::Config()
 void Config::Load()
 {
 	IniFile iniFile;
-	iniFile.Load("gfx_dx9.ini");
+	iniFile.Load(FULL_CONFIG_DIR "gfx_dx9.ini");
 	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
 	iniFile.Get("Hardware", "WindowedRes", &iWindowedRes, 0);
 	iniFile.Get("Hardware", "FullscreenRes", &iFSResolution, 0);
@@ -56,7 +56,7 @@ void Config::Load()
 void Config::Save()
 {
 	IniFile iniFile;
-	iniFile.Load("gfx_dx9.ini");
+	iniFile.Load(FULL_CONFIG_DIR "gfx_dx9.ini");
 	iniFile.Set("Hardware", "Adapter", iAdapter);
 	iniFile.Set("Hardware", "WindowedRes", iWindowedRes);
 	iniFile.Set("Hardware", "FullscreenRes", iFSResolution);
@@ -78,5 +78,5 @@ void Config::Save()
 
 	iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
 	iniFile.Set("Enhancements", "ForceMaxAniso", bForceMaxAniso);
-	iniFile.Save("gfx_dx9.ini");
+	iniFile.Save(FULL_CONFIG_DIR "gfx_dx9.ini");
 }

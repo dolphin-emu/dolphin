@@ -59,10 +59,10 @@ CEXIIPL::CEXIIPL() :
 	m_uRWOffset(0),
 	m_count(0)
 {
-	// load the IPL
+	// Load the IPL
 	m_pIPL = (u8*)AllocateMemoryPages(ROM_SIZE); 
 	FILE* pStream = NULL;
-	pStream = fopen("./Data/font_ansi.bin", "rb");
+	pStream = fopen(FONT_ANSI_FILE, "rb");
 	if (pStream != NULL)
 	{
 		fseek(pStream, 0, SEEK_END);
@@ -77,7 +77,7 @@ CEXIIPL::CEXIIPL() :
 		PanicAlert("Error: failed to load font_ansi.bin. Fonts may bug");
 	}
 
-	pStream = fopen("./Data/font_sjis.bin", "rb");
+	pStream = fopen(FONT_SJIS_FILE, "rb");
 	if (pStream != NULL)
 	{
 		fseek(pStream, 0, SEEK_END);
@@ -94,10 +94,10 @@ CEXIIPL::CEXIIPL() :
 
 	memcpy(m_pIPL, iplver, sizeof(iplver));
 
-	// clear RTC 
+	// Clear RTC 
 	memset(m_RTC, 0, sizeof(m_RTC));
 
-	// SRam
+	// SRAM
     pStream = fopen(Core::GetStartupParameter().m_strSRAM.c_str(), "rb");
     if (pStream != NULL)
     {
@@ -129,7 +129,7 @@ CEXIIPL::~CEXIIPL()
 		m_pIPL = NULL;
 	}	
 
-    // SRam
+    // SRAM
     FILE* pStream = NULL;
     pStream = fopen(Core::GetStartupParameter().m_strSRAM.c_str(), "wb");
     if (pStream != NULL)
@@ -154,8 +154,8 @@ bool CEXIIPL::IsPresent()
 
 void CEXIIPL::TransferByte(u8& _uByte)
 {
-	// the first 4 bytes must be the address
-	// if we havnt read it, do it now
+	// The first 4 bytes must be the address
+	// If we haven't read it, do it now
 	if (m_uPosition < 4)
 	{
 		m_uAddress <<= 8;
@@ -163,10 +163,10 @@ void CEXIIPL::TransferByte(u8& _uByte)
 		m_uRWOffset = 0;
 		_uByte = 0xFF;
 
-		// check if the command is complete
+		// Check if the command is complete
 		if (m_uPosition == 3)
 		{
-			// get the time ... 
+			// Get the time ... 
             u32 GCTime = CEXIIPL::GetGCTime();
 			u8* pGCTime = (u8*)&GCTime;
 			for (int i=0; i<4; i++)
@@ -231,7 +231,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 				_uByte = m_RTC[(m_uAddress & 0x03) + m_uRWOffset];
 		} 
 		//
-		// --- SRam ---
+		// --- SRAM ---
 		//
 		else if ((m_uAddress & 0x7FFFFF00) == 0x20000100)
 		{
@@ -266,7 +266,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 
 u32 CEXIIPL::GetGCTime()
 {
-    // get sram bias	
+    // Get SRAM bias	
     u32 Bias;
 
     for (int i=0; i<4; i++)
@@ -274,8 +274,8 @@ u32 CEXIIPL::GetGCTime()
         ((u8*)&Bias)[i] = sram_dump[0xc + (i^3)];
     }
 
-    // get the time ... 
-    const u32 cJanuary2000 = 0x386d35a1;  // seconds between 1.1.1970 and 1.1.2000
+    // Get the time ... 
+    const u32 cJanuary2000 = 0x386d35a1;  // Seconds between 1.1.1970 and 1.1.2000
     u64 ltime = Common::Timer::GetTimeSinceJan1970();
     return ((u32)ltime - cJanuary2000 - Bias);
 }

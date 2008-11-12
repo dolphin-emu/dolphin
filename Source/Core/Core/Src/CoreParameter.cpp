@@ -50,11 +50,7 @@ void SCoreStartupParameter::LoadDefaults()
 
 bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios) 
 {
-	static const char *s_DataBasePath_EUR = "Data_EUR";
-	static const char *s_DataBasePath_USA = "Data_USA";
-	static const char *s_DataBasePath_JAP = "Data_JAP";
-
-	std::string BaseDataPath(s_DataBasePath_EUR);
+	std::string Region(EUR_DIR);
 
     switch (_BootBios)
     {
@@ -81,18 +77,18 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
                 {
 				case DiscIO::IVolume::COUNTRY_USA:
                     bNTSC = true;
-                    BaseDataPath = s_DataBasePath_USA; 
+                    Region = USA_DIR; 
                     break;
 
                 case DiscIO::IVolume::COUNTRY_JAP:
                     bNTSC = true;
-                    BaseDataPath = s_DataBasePath_JAP; 
+                    Region = JAP_DIR; 
                     break;
 
                 case DiscIO::IVolume::COUNTRY_EUROPE:
                 case DiscIO::IVolume::COUNTRY_FRANCE:
                     bNTSC = false;
-                    BaseDataPath = s_DataBasePath_EUR; 
+                    Region = EUR_DIR; 
                     break;
 
                 default:
@@ -105,13 +101,13 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
             else if (!strcasecmp(Extension.c_str(), ".elf"))
             {
 				bWii = CBoot::IsElfWii(m_strFilename.c_str());
-                BaseDataPath = s_DataBasePath_USA; 
+                Region = USA_DIR; 
                 m_BootType = BOOT_ELF;
                 bNTSC = true;
             }
             else if (!strcasecmp(Extension.c_str(), ".dol"))
             {
-                BaseDataPath = s_DataBasePath_USA; 
+                Region = USA_DIR; 
                 m_BootType = BOOT_DOL;
                 bNTSC = true;
             }
@@ -124,29 +120,29 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
         break;
 
     case BOOT_BIOS_USA:
-        BaseDataPath = s_DataBasePath_USA;
+        Region = USA_DIR;
         m_strFilename.clear();
         bNTSC = true;         
         break;
 
     case BOOT_BIOS_JAP:     
-        BaseDataPath = s_DataBasePath_JAP;
+        Region = JAP_DIR;
 		m_strFilename.clear();
         bNTSC = true;         
         break;
 
     case BOOT_BIOS_EUR:  
-        BaseDataPath = s_DataBasePath_EUR;
+        Region = EUR_DIR;
         m_strFilename.clear();
         bNTSC = false;         
         break;
     }
 
 	// setup paths
-    m_strBios = BaseDataPath + "/IPL.bin";
-    m_strMemoryCardA = BaseDataPath + "/MemoryCardA.raw";
-    m_strMemoryCardB = BaseDataPath + "/MemoryCardB.raw";
-    m_strSRAM = BaseDataPath + "/SRAM.raw";
+    m_strBios = FULL_GC_SYS_DIR + Region + DIR_SEP GC_IPL;
+    m_strMemoryCardA = FULL_GC_USER_DIR + Region + DIR_SEP GC_MEMCARDA;
+    m_strMemoryCardB = FULL_GC_USER_DIR + Region + DIR_SEP GC_MEMCARDB;
+    m_strSRAM = GC_SRAM_FILE;
 	if (!File::Exists(m_strBios.c_str())) {
 		LOG(BOOT, "BIOS file %s not found - using HLE.", m_strBios.c_str());
 		bHLEBios = true;

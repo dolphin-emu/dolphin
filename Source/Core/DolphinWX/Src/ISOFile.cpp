@@ -139,9 +139,9 @@ bool GameListItem::LoadFromCache()
 
 void GameListItem::SaveToCache()
 {
-	if (!File::IsDirectory("ISOCache"))
+	if (!File::IsDirectory(FULL_CACHE_DIR))
 	{
-		File::CreateDir("ISOCache");
+		File::CreateDir(FULL_CACHE_DIR);
 	}
 
 	CChunkFileReader::Save<GameListItem>(CreateCacheFilename(), CACHE_REVISION, *this);
@@ -166,7 +166,7 @@ std::string GameListItem::CreateCacheFilename()
 	SplitPath(m_FileName, NULL, &Filename, NULL);
 	Filename.append(".cache");
 
-	std::string fullname("ISOCache\\");
+	std::string fullname(FULL_CACHE_DIR "\\");
 	fullname += Filename;
 	return fullname;
 }

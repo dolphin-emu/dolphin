@@ -177,7 +177,7 @@ void CLogWindow::OnEnableAll(wxCommandEvent& event)
 	static bool enable = true;
 	int v = LogManager::m_LogSettings->m_iVerbosity;
 	IniFile ini;
-	ini.Load("Debugger.ini");
+	ini.Load(DEBUGGER_CONFIG_FILE);
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 	{
 		m_checks->Check(i, enable);
@@ -185,7 +185,7 @@ void CLogWindow::OnEnableAll(wxCommandEvent& event)
 		LogManager::m_Log[i + v*100]->m_bShowInLog = enable;
 		ini.Set("LogManager", LogManager::m_Log[i + v*100]->m_szShortName, enable);
 	}
-	ini.Save("Debugger.ini");
+	ini.Save(DEBUGGER_CONFIG_FILE);
 	enable = !enable;
 }
 
@@ -220,7 +220,7 @@ void CLogWindow::UpdateChecks()
 	// -------------
 	int v = LogManager::m_LogSettings->m_iVerbosity;
 	IniFile ini;
-	ini.Load("Debugger.ini");
+	ini.Load(DEBUGGER_CONFIG_FILE);
 
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 	{
@@ -244,12 +244,12 @@ void CLogWindow::UpdateChecks()
 void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 {
 	IniFile ini;
-	ini.Load("Debugger.ini");
+	ini.Load(DEBUGGER_CONFIG_FILE);
 	LogManager::m_LogSettings->bResolve = m_options->IsChecked(0);
 	LogManager::m_LogSettings->bWriteMaster = m_options->IsChecked(1);
 	ini.Set("LogWindow", "ResolveSymbols", m_options->IsChecked(0));
 	ini.Set("LogWindow", "WriteMaster", m_options->IsChecked(1));
-	ini.Save("Debugger.ini");
+	ini.Save(DEBUGGER_CONFIG_FILE);
 	if (Core::GetState() != Core::CORE_UNINITIALIZED) UpdateLog();
 }
 
@@ -265,7 +265,7 @@ void CLogWindow::OnLogCheck(wxCommandEvent& event)
 	}
 
 	IniFile ini;
-	ini.Load("Debugger.ini");
+	ini.Load(DEBUGGER_CONFIG_FILE);
 	int v = LogManager::m_LogSettings->m_iVerbosity;
 
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
@@ -278,7 +278,7 @@ void CLogWindow::OnLogCheck(wxCommandEvent& event)
 		ini.Set("LogManager", LogManager::m_Log[i + 100*v]->m_szShortName, Enabled);
 	}
 
-	ini.Save("Debugger.ini");
+	ini.Save(DEBUGGER_CONFIG_FILE);
 
 	m_bCheckDirty = true;
 	if (Core::GetState() != Core::CORE_UNINITIALIZED) UpdateLog();
@@ -296,9 +296,9 @@ void CLogWindow::OnRadioChange(wxCommandEvent& event)
 	// save it
 	LogManager::m_LogSettings->m_iVerbosity = v;
 	IniFile ini;
-	ini.Load("Debugger.ini");
+	ini.Load(DEBUGGER_CONFIG_FILE);
 	ini.Set("LogWindow", "Verbosity", v);
-	ini.Save("Debugger.ini");
+	ini.Save(DEBUGGER_CONFIG_FILE);
 
 	// This check is because we allow this to be changed before a game has been loaded so
 	// that the boxes do not exist yet

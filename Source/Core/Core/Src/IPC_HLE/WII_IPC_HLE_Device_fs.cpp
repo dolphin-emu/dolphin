@@ -46,7 +46,7 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 {
 	// clear tmp folder
 	{
-		std::string WiiTempFolder("Wii/tmp");
+		std::string WiiTempFolder(FULL_WII_USER_DIR "tmp");
 		bool Result = File::DeleteDirRecursively(WiiTempFolder.c_str());
 		if (Result == false)
 		{
@@ -64,7 +64,7 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 		char* pTitleID = (char*)&TitleID;
 
 		char Path[260+1];
-		sprintf(Path, "Wii/title/00010000/%02x%02x%02x%02x/data/nocopy/", (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
+		sprintf(Path, FULL_WII_USER_DIR "title/00010000/%02x%02x%02x%02x/data/nocopy/", (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
 	
 		CreateDirectoryStruct(Path);
 	}

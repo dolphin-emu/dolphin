@@ -86,7 +86,7 @@ CDebugger::CDebugger(wxWindow *parent, wxWindowID id, const wxString &title,
 
 	// load ini...
 	IniFile file;
-	file.Load("Debugger.ini");
+	file.Load(DEBUGGER_CONFIG_FILE);
 	this->Load(file);
 }
 
@@ -94,9 +94,9 @@ CDebugger::~CDebugger()
 {
 	// empty
 	IniFile file;
-	file.Load("Debugger.ini");
+	file.Load(DEBUGGER_CONFIG_FILE);
 	this->Save(file);
-	file.Save("Debugger.ini");
+	file.Save(DEBUGGER_CONFIG_FILE);
 } 
 
 void CDebugger::Save(IniFile& _IniFile) const
@@ -426,9 +426,9 @@ void CDebugger::OnClose(wxCloseEvent& /*event*/)
 {	
 	// save the window position when we hide the window to
 	IniFile file;
-	file.Load("Debugger.ini");
+	file.Load(DEBUGGER_CONFIG_FILE);
 	this->Save(file);
-	file.Save("Debugger.ini");
+	file.Save(DEBUGGER_CONFIG_FILE);
 
 	EndModal(0);
 

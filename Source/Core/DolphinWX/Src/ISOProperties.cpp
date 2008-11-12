@@ -49,7 +49,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	bRefreshList = false;
 	CreateGUIControls();
 
-	GameIniFile = "GameIni/" + (OpenISO->GetUniqueID()) + ".ini";
+	GameIniFile = FULL_GAMECONFIG_DIR + (OpenISO->GetUniqueID()) + ".ini";
 	if (GameIni.Load(GameIniFile.c_str()))
 		LoadGameConfig();
 	else

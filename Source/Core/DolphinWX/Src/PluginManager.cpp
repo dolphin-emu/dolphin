@@ -43,7 +43,7 @@ void CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 	Directories.push_back(std::string(PLUGINS_DIR));
 
 	CFileSearch::XStringVector Extensions;
-        Extensions.push_back("*." PLUGIN_SUFFIX);
+        Extensions.push_back("*" PLUGIN_SUFFIX);
 
 	CFileSearch FileSearch(Extensions, Directories);
 	const CFileSearch::XStringVector& rFilenames = FileSearch.GetFileNames();

@@ -160,7 +160,7 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 
 	// load ini...
 	IniFile file;
-	file.Load("Debugger.ini");
+	file.Load(DEBUGGER_CONFIG_FILE);
 
 	this->Load(file);
 	if (m_BreakpointWindow) m_BreakpointWindow->Load(file);
@@ -175,7 +175,7 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 CCodeWindow::~CCodeWindow()
 {
 	IniFile file;
-	file.Load("Debugger.ini");
+	file.Load(DEBUGGER_CONFIG_FILE);
 
 	this->Save(file);
 	if (m_BreakpointWindow) m_BreakpointWindow->Save(file);
@@ -184,7 +184,7 @@ CCodeWindow::~CCodeWindow()
 	if (m_MemoryWindow) m_MemoryWindow->Save(file);
 	if (m_JitWindow) m_JitWindow->Save(file);
 
-	file.Save("Debugger.ini");
+	file.Save(DEBUGGER_CONFIG_FILE);
 }
 
 
@@ -224,7 +224,7 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 	// Decide what windows to use
 	// --------------
 	IniFile ini;
-	ini.Load("Debugger.ini");
+	ini.Load(DEBUGGER_CONFIG_FILE);
 
 	ini.Get("ShowOnStart", "LogWindow", &bLogWindow, true);
 	ini.Get("ShowOnStart", "RegisterWindow", &bRegisterWindow, true);
@@ -547,7 +547,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		{
 		PPCAnalyst::FindFunctions(0x80000000, 0x80400000, &g_symbolDB);
 		SignatureDB db;
-		if (db.Load("data/totaldb.dsy"))
+		if (db.Load(TOTALDB_FILE))
 			db.Apply(&g_symbolDB);
 
 		// HLE::PatchFunctions();
@@ -560,7 +560,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			g_symbolDB.Clear();
 			PPCAnalyst::FindFunctions(0x80000000, 0x80400000, &g_symbolDB);
 			SignatureDB db;
-			if (db.Load("data/totaldb.dsy"))
+			if (db.Load(TOTALDB_FILE))
 				db.Apply(&g_symbolDB);
 		} else {
 			g_symbolDB.LoadMap(mapfile.c_str());
@@ -859,9 +859,9 @@ void CCodeWindow::OnToggleLogWindow(wxCommandEvent& event)
 		// this may be a little ugly to have these here - you're more than welcome to
 		// turn this into the same fancy class stuff like the load windows positions
 		IniFile ini;
-		ini.Load("Debugger.ini");
+		ini.Load(DEBUGGER_CONFIG_FILE);
 		ini.Set("ShowOnStart", "LogWindow", show);
-		ini.Save("Debugger.ini");
+		ini.Save(DEBUGGER_CONFIG_FILE);
 
 		if (show)
 		{
@@ -894,9 +894,9 @@ void CCodeWindow::OnToggleRegisterWindow(wxCommandEvent& event)
 	bool show = GetMenuBar()->IsChecked(event.GetId());
 
 	IniFile ini;
-	ini.Load("Debugger.ini");
+	ini.Load(DEBUGGER_CONFIG_FILE);
 	ini.Set("ShowOnStart", "RegisterWindow", show);
-	ini.Save("Debugger.ini");
+	ini.Save(DEBUGGER_CONFIG_FILE);
 
 	if (show)
 	{
@@ -931,9 +931,9 @@ void CCodeWindow::OnToggleSoundWindow(wxCommandEvent& event)
 	bool show = GetMenuBar()->IsChecked(event.GetId());
 
 	IniFile ini;
-	ini.Load("Debugger.ini");
+	ini.Load(DEBUGGER_CONFIG_FILE);
 	ini.Set("ShowOnStart", "SoundWindow", show);
-	ini.Save("Debugger.ini");
+	ini.Save(DEBUGGER_CONFIG_FILE);
 
 	if (show)
 	{
@@ -959,9 +959,9 @@ void CCodeWindow::OnToggleVideoWindow(wxCommandEvent& event)
 	bool show = GetMenuBar()->IsChecked(event.GetId());
 
 	IniFile ini;
-	ini.Load("Debugger.ini");
+	ini.Load(DEBUGGER_CONFIG_FILE);
 	ini.Set("ShowOnStart", "VideoWindow", show);
-	ini.Save("Debugger.ini");
+	ini.Save(DEBUGGER_CONFIG_FILE);
 
 	if (show)
 	{
@@ -984,9 +984,9 @@ void CCodeWindow::OnToggleJitWindow(wxCommandEvent& event)
 	bool show = GetMenuBar()->IsChecked(event.GetId());
 
 	IniFile ini;
-	ini.Load("Debugger.ini");
+	ini.Load(DEBUGGER_CONFIG_FILE);
 	ini.Set("ShowOnStart", "JitWindow", show);
-	ini.Save("Debugger.ini");
+	ini.Save(DEBUGGER_CONFIG_FILE);
 
 	if (show)
 	{
@@ -1018,9 +1018,9 @@ void CCodeWindow::OnToggleBreakPointWindow(wxCommandEvent& event)
 	bool show = GetMenuBar()->IsChecked(event.GetId());
 
 	IniFile ini;
-	ini.Load("Debugger.ini");
+	ini.Load(DEBUGGER_CONFIG_FILE);
 	ini.Set("ShowOnStart", "BreakpointWindow", show);
-	ini.Save("Debugger.ini");
+	ini.Save(DEBUGGER_CONFIG_FILE);
 
 	if (show)
 	{
@@ -1051,9 +1051,9 @@ void CCodeWindow::OnToggleMemoryWindow(wxCommandEvent& event)
 	bool show = GetMenuBar()->IsChecked(event.GetId());
 	
 	IniFile ini;
-	ini.Load("Debugger.ini");
+	ini.Load(DEBUGGER_CONFIG_FILE);
 	ini.Set("ShowOnStart", "MemoryWindow", show);
-	ini.Save("Debugger.ini");
+	ini.Save(DEBUGGER_CONFIG_FILE);
 
 	if (show)
 	{
