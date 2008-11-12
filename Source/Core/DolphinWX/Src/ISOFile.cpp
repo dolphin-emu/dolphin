@@ -166,7 +166,7 @@ std::string GameListItem::CreateCacheFilename()
 	SplitPath(m_FileName, NULL, &Filename, NULL);
 	Filename.append(".cache");
 
-	std::string fullname(FULL_CACHE_DIR "\\");
+	std::string fullname(FULL_CACHE_DIR);
 	fullname += Filename;
 	return fullname;
 }
