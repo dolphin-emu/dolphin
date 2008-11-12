@@ -197,6 +197,13 @@ void PAD_Shutdown()
 #endif
 #ifdef _WIN32
 	dinput.Free();
+	// Kill xpad rumble
+	XINPUT_VIBRATION vib;
+	vib.wLeftMotorSpeed  = 0;
+	vib.wRightMotorSpeed = 0;
+	for (int i = 0; i < 4; i++)
+		if (pad[i].bRumble)
+			XInputSetState(pad[i].XPadPlayer, &vib);
 #endif
 	SaveConfig();
 }
