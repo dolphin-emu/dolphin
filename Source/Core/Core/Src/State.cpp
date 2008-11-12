@@ -217,7 +217,7 @@ void State_Shutdown()
 }
 
 std::string MakeStateFilename(int state_number) {
-	return StringFromFormat("StateSaves/%s.s%02i", Core::GetStartupParameter().GetUniqueID().c_str(), state_number);
+	return StringFromFormat(FULL_STATESAVES_DIR "%s.s%02i", Core::GetStartupParameter().GetUniqueID().c_str(), state_number);
 }
 
 void State_Save(int slot)
