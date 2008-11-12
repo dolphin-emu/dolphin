@@ -16,6 +16,8 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+#include <wx/msgdlg.h>
+
 #include "pluginspecs_wiimote.h"
 
 #include <vector>
@@ -60,7 +62,8 @@ void FillReportInfo(wm_core& _core)
 
 	if(GetAsyncKeyState('T'))
 	{
-		PanicAlert("You turned %s sideways controls", toggleSideWays ? "off" : "on");
+		wxMessageBox(wxString::Format("You turned %s sideways controls",
+			toggleSideWays ? "off" : "on"));
 		toggleSideWays = !toggleSideWays;
 	}
 
