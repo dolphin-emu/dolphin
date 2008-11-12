@@ -42,7 +42,7 @@ void CConfig::Load()
 	LoadDefaults();
 
 	IniFile file;
-	file.Load("DSP.ini");
+	file.Load(FULL_CONFIG_DIR "DSP.ini");
 	file.Get("Config", "EnableHLEAudio", &m_EnableHLEAudio, true);
 	file.Get("Config", "EnableDTKMusic", &m_EnableDTKMusic, true);
 	file.Get("Config", "Interpolation", &m_Interpolation, true);
@@ -59,7 +59,7 @@ void CConfig::Load()
 void CConfig::Save()
 {
 	IniFile file;
-	file.Load("DSP.ini");
+	file.Load(FULL_CONFIG_DIR "DSP.ini");
 	file.Set("Config", "EnableHLEAudio", m_EnableHLEAudio);
 	file.Set("Config", "EnableDTKMusic", m_EnableDTKMusic);
 	file.Set("Config", "Interpolation", m_Interpolation);
@@ -71,5 +71,5 @@ void CConfig::Save()
 	file.Set("Config", "DumpSamplePath", m_szSamplePath);
 #endif
 	file.Set("Config", "AntiGap", m_AntiGap);
-	file.Save("DSP.ini");
+	file.Save(FULL_CONFIG_DIR "DSP.ini");
 }
