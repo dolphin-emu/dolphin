@@ -764,8 +764,8 @@ void CDebugger::Readfile(std::string FileName, bool GC)
 		std::string sz = "";
                 std::ostringstream ci;
                 ci << i;
-		std::string f0 = "Logs/Mail/" + FileName + "_sep" + ci.str() + "_sep" + "0_sep" + (GC ? "GC" : "Wii") +  "_sep.log";
-		std::string f1 = "Logs/Mail/" + FileName + "_sep" + ci.str() + "_sep" + "1_sep" + (GC ? "GC" : "Wii") +  "_sep.log";
+		std::string f0 = FULL_MAIL_LOGS_DIR + FileName + "_sep" + ci.str() + "_sep" + "0_sep" + (GC ? "GC" : "Wii") +  "_sep.log";
+		std::string f1 = FULL_MAIL_LOGS_DIR + FileName + "_sep" + ci.str() + "_sep" + "1_sep" + (GC ? "GC" : "Wii") +  "_sep.log";
 
 		//wprintf("ifstream  %s  %s\n", f0.c_str(), f1.c_str());
 

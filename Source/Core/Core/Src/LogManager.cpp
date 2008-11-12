@@ -54,7 +54,7 @@ CDebugger_Log::CDebugger_Log(const char* _szShortName, const char* _szName, int 
 	strcpy((char*)m_szName, _szName);
 	strcpy((char*)m_szShortName_, _szShortName);
 	sprintf((char*)m_szShortName, "%s%i", _szShortName, a);
-	sprintf((char*)m_szFilename, "Logs/%s%i.txt", _szName, a);
+	sprintf((char*)m_szFilename, FULL_LOGS_DIR "%s%i.txt", _szName, a);
 
 	unlink(m_szFilename);
 }

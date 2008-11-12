@@ -75,14 +75,13 @@ void CUCode_AX::SaveLogFile(std::string f, int resizeTo, bool type, bool Wii)
 {
 	if(gpName.length() > 0) // thios is currently off in the Release build
 	{
-		if (!File::IsDirectory("Logs/Mail")) File::CreateDir("Logs/Mail");
 			std::ostringstream ci;
 			std::ostringstream cType;
 	        
 		ci << (resizeTo - 1); // write ci
 		cType << type; // write cType
 
-		std::string FileName = "Logs/Mail/"; FileName += gpName;
+		std::string FileName = FULL_MAIL_LOGS_DIR + gpName;
 		FileName += "_sep"; FileName += ci.str(); FileName += "_sep"; FileName += cType.str();
 		FileName += Wii ? "_sepWii_sep" : "_sepGC_sep"; FileName += ".log";
 
