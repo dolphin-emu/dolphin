@@ -91,7 +91,7 @@ std::string CBoot::GenerateMapFilename()
 	std::string strMapFilename;
 	BuildCompleteFilename(strMapFilename, strDriveDirectory, strFullfilename);
 	*/
-	return "Maps/" + Core::GetStartupParameter().GetUniqueID() + ".map";
+	return FULL_MAPS_DIR + Core::GetStartupParameter().GetUniqueID() + ".map";
 }
 
 bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_gameID)
