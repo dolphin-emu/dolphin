@@ -3,7 +3,7 @@
 Import('env')
 import sys
 
-name = "Plugin_DSP_LLE.so"
+name = "Plugin_DSP_LLE"
 
 files = [
 	"AOSoundStream.cpp",
@@ -31,5 +31,5 @@ lleenv.Append(
 	CXXFLAGS = [ '-fPIC' ],
 	LIBS = [ 'common' ],
 	)
-if not env['osx64']:
-    lleenv.SharedLibrary('../../../../'+env['plugin_dir']+name, files)
+
+lleenv.SharedLibrary(env['plugin_dir']+name, files)

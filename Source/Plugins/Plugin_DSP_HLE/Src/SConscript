@@ -3,7 +3,7 @@
 Import('env')
 import sys
 
-name = "Plugin_DSP_HLE.so"
+name = "Plugin_DSP_HLE"
 
 files = [
 	'DSPHandler.cpp',
@@ -32,5 +32,5 @@ dspenv.Append(
 	CXXFLAGS = [ '-fPIC' ],
 	LIBS = [ 'common' ],
 	)
-if not env['osx64']:
-    dspenv.SharedLibrary('../../../../'+env['plugin_dir']+name, files)
+
+dspenv.SharedLibrary(env['plugin_dir']+name, files)

@@ -2,6 +2,7 @@
 
 import os
 import sys
+import platform
 
 # Home made tests
 sys.path.append('SconsTests')
@@ -213,13 +214,19 @@ if not env['osx64']:
 # add methods from utils to env
 env.AddMethod(utils.filterWarnings)
 
-# output
-if sys.platform == 'darwin':
-	platform = 'mac'
-else:
-	platform = 'linux'
+# Where do we run from
+env['base_dir'] = os.getcwd()+ '/';
 
-env['plugin_dir'] = 'Binary/%s/Plugins/' % platform
+# install paths
+# TODO: support global install
+env['prefix'] = os.path.join(env['base_dir'] + 'Binary', platform.system() + '-' + platform.machine() + '/')
+#TODO add lib
+env['plugin_dir'] = env['prefix'] + 'Plugins/' 
+#TODO add bin
+env['binary_dir'] = env['prefix']
+#TODO where should this go?
+env['data_dir'] = env['prefix']
+
 Export('env')
 
 utils.GenerateRevFile(env['flavor'], "Source/Core/Common/Src/svnrev_template.h",
@@ -241,3 +248,11 @@ for subdir in dirs:
         subdir + os.sep + 'SConscript',
         duplicate = 0
         )
+
+# Data install
+env.Install(env['data_dir'], 'Data/Sys')
+env.Install(env['data_dir'], 'Data/User')
+
+if sys.platform == 'darwin':
+    env.Install(env['binary_dir'] + 'Dolphin.app/Contents/Resources/', 
+                Source/Core/DolphinWX/resources/Dolphin.icns)

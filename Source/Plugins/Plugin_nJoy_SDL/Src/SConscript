@@ -3,7 +3,7 @@
 Import('env')
 import sys
 
-name = "Plugin_nJoy_SDL.so"
+name = "Plugin_nJoy_SDL"
 
 files = [
 	'nJoy.cpp',
@@ -17,4 +17,4 @@ padenv.Append(
 	LIBS = [ 'common' ],
 	)
 if not env['osx64']:
-    padenv.SharedLibrary('../../../../'+env['plugin_dir']+name, files)
+    padenv.SharedLibrary(env['plugin_dir']+name, files)

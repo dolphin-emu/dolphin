@@ -3,7 +3,7 @@
 Import('env')
 import sys
 
-name = "Plugin_DSP_NULL.so"
+name = "Plugin_DSP_NULL"
 
 files = [
         "DSPHandler.cpp",
@@ -32,4 +32,4 @@ else:
         LIBS = [ 'common' ],
 	)
 
-dspenv.SharedLibrary('../../../../'+env['plugin_dir']+name, files)
+dspenv.SharedLibrary(env['plugin_dir']+name, files)

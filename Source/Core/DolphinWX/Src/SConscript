@@ -56,13 +56,13 @@ else:
 		)
 
 if sys.platform == 'darwin':
-	exeGUI = '../../../../Binary/mac/Dolphin.app/Contents/MacOS/Dolphin'
-	exeNoGUI = '../../../../Binary/mac/DolphinNoGUI'
+	exeGUI = env['binary_dir'] + 'Dolphin.app/Contents/MacOS/Dolphin'
+	exeNoGUI = env['binary_dir'] + 'DolphinNoGUI'
 
 	icon = 'Dolphin'
 	version = 'svn'
 	wxenv.Plist(
-		'../../../../Binary/mac/Dolphin.app/Contents/Info.plist',
+		env['binary_dir'] + 'Dolphin.app/Contents/Info.plist',
 		Value(dict(
 			CFAppleHelpAnchor = 'index',
 			CFBundleExecutable = 'Dolphin',
@@ -80,8 +80,8 @@ if sys.platform == 'darwin':
 			))
 		)
 else:
-	exeGUI = '../../../../Binary/linux/Dolphin'
-	exeNoGUI = '../../../../Binary/linux/DolphinNoGUI'
+	exeGUI = env['binary_dir'] + 'Dolphin'
+	exeNoGUI = env['binary_dir'] + 'DolphinNoGUI'
 
 objects = [ wxenv.Object(srcFile) for srcFile in files ]
 if not wxenv['osx64']:

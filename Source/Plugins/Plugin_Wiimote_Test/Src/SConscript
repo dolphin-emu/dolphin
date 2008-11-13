@@ -3,7 +3,7 @@
 Import('env')
 import sys
 
-name = "Plugin_Wiimote.so"
+name = "Plugin_Wiimote"
 
 files = [
 	"Wiimote.cpp",
@@ -23,4 +23,4 @@ else:
         LIBS = [ 'common' ],
         )
 
-padenv.SharedLibrary('../../../../'+env['plugin_dir']+name, files)
+padenv.SharedLibrary(env['plugin_dir']+name, files)

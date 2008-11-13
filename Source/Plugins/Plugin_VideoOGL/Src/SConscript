@@ -3,10 +3,10 @@
 Import('env')
 # can we import path in one place?
 import sys
-sys.path.append('../../../SconsTests')
+sys.path.append(env['base_dir']+'SconsTests')
 import utils
 
-name = "Plugin_VideoOGL.so"
+name = "Plugin_VideoOGL"
 
 files = [
 	'BPStructs.cpp',
@@ -111,7 +111,7 @@ gfxenv.Append(
 	)
 
 gfxenv.SharedLibrary(
-	'../../../../'+env['plugin_dir']+name,
+	env['plugin_dir']+name,
 	files,
 	LIBS =  libs + gfxenv['LIBS']
 	)

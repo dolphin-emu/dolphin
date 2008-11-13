@@ -3,7 +3,7 @@
 Import('env')
 import sys
 
-name = "Plugin_PadSimple.so"
+name = "Plugin_PadSimple"
 
 files = [
 	"PadSimple.cpp",
@@ -24,4 +24,4 @@ if padenv['osx64']:
 		LINKFLAGS = [ '-arch', 'x86_64' ],
 		)
 
-padenv.SharedLibrary('../../../../'+env['plugin_dir']+name, files)
+padenv.SharedLibrary(env['plugin_dir']+name, files)
