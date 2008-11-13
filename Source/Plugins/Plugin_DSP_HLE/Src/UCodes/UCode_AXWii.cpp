@@ -141,8 +141,8 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 						i/2, i,
 						Common::swap16(pSrc[i]), Common::swap16(pSrc[i+1]));
 				}
-				m_frame->m_bl95->AppendText(m_frame->str95.c_str());
-				m_frame->m_bl0->AppendText(m_frame->str0.c_str());
+				m_frame->m_bl95->AppendText(wxString::FromAscii(m_frame->str95.c_str()));
+				m_frame->m_bl0->AppendText(wxString::FromAscii(m_frame->str0.c_str()));
 				m_frame->upd95 = true;
 			}	
 		}
