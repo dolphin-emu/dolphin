@@ -66,7 +66,7 @@ void __Log(int log, const char *format, ...)
 	va_start(args, format);
 	CharArrayFromFormatV(temp, 512, format, args);
 	va_end(args);
-	g_WiimoteInitialize.pLog(temp);
+	g_WiimoteInitialize.pLog(temp, FALSE);
 }
 //void PanicAlert(const char* fmt, ...);
 
