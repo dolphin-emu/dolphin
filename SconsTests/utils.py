@@ -50,4 +50,4 @@ def GenerateRevFile(flavour, template, output):
     outfile.write(tmpstr +"\n")
     outfile.close()
     
-    return
+    return revstr

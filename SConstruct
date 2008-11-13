@@ -90,6 +90,7 @@ lib_paths = include_paths
 vars = Variables('args.cache')
 vars.AddVariables(
     BoolVariable('verbose', 'Set for compilation line', False),
+    BoolVariable('bundle', 'Set to create bundle', False),
     BoolVariable('debug', 'Set for debug build', False),
     BoolVariable('lint', 'Set for lint build (extra warnings)', False),
     BoolVariable('nowx', 'Set For Building with no WX libs (WIP)', False),
@@ -229,8 +230,9 @@ env['data_dir'] = env['prefix']
 
 Export('env')
 
-utils.GenerateRevFile(env['flavor'], "Source/Core/Common/Src/svnrev_template.h",
-                      "Source/Core/Common/Src/svnrev.h")
+rev = utils.GenerateRevFile(env['flavor'], 
+                            "Source/Core/Common/Src/svnrev_template.h",
+                            "Source/Core/Common/Src/svnrev.h")
 # print a nice progress indication when not compiling
 Progress(['-\r', '\\\r', '|\r', '/\r'], interval = 5)
 
@@ -256,3 +258,16 @@ env.Install(env['data_dir'], 'Data/User')
 if sys.platform == 'darwin':
     env.Install(env['binary_dir'] + 'Dolphin.app/Contents/Resources/', 
                 Source/Core/DolphinWX/resources/Dolphin.icns)
+
+if env['bundle']:
+    # Make tar ball (TODO put inside normal dir)
+    tar_env = env.Clone()
+    tarball = tar_env.Tar('dolphin-'+rev +'.tar.bz2', env['prefix'])
+    tar_env.Append(TARFLAGS='-j', 
+                   TARCOMSTR="Creating release tarball")
+
+
+#TODO clean all bundles
+#env.Clean(all, 'dolphin-*'+ '.tar.bz2')
+
+
