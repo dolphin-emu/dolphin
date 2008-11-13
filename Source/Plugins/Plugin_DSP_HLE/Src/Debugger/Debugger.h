@@ -97,7 +97,13 @@ class CDebugger : public wxDialog
 		void MailSettings(wxCommandEvent& event);
 		void Readfile(std::string FileName, bool GC);
 		std::string Readfile_(std::string FileName);
-		int CountFiles(std::string FileName);		
+		int CountFiles(std::string FileName);
+
+		// ============== Blocks
+		void DoScrollBlocks();
+		void ScrollBlocksMouse(wxMouseEvent& event);
+		void ScrollBlocksCursor(wxScrollWinEvent& event);	
+
 
 		CPBView* m_GPRListView;
 		std::vector<std::string> sMail, sMailEnd, sFullMail;
@@ -114,14 +120,19 @@ class CDebugger : public wxDialog
 		bool ScanMails; // mail settings
 		bool StoreMails;
 
+		bool upd95; bool upd94; bool upd93; bool upd92; // block view settings
+		std::string str0; std::string str95; std::string str94; std::string str93; std::string str92;
+		std::vector<std::string> PBn; std::vector<std::string> PBp;
+
+		// members
+		wxTextCtrl * m_log, * m_log1,  // mail
+			* m_bl0, * m_bl95, * m_bl94; // blocks
+
 	private:
 
 		// declarations
 		wxNotebook *m_Notebook; // notebook
-		wxPanel *m_PageMain;
-		wxPanel *m_PageMail;
-
-		wxTextCtrl * m_log, * m_log1; // mail
+		wxPanel *m_PageMain, *m_PageMail, *m_PageBlock;
 
 		wxCheckBox *m_Check[9];
 		wxRadioButton *m_Radio[5];
@@ -145,11 +156,9 @@ class CDebugger : public wxDialog
 			ID_SELC,
 			ID_PRESETS,
 			ID_GPR,
-			ID_NOTEBOOK, // notebook
-			ID_PAGEMAIN,
-			ID_PAGEMAIL,
-			ID_LOG, // mails
-			ID_LOG1,
+			ID_NOTEBOOK, ID_PAGEMAIN, ID_PAGEMAIL, ID_PAGEBLOCK, // notebook
+			ID_LOG, ID_LOG1, // mails
+			ID_BL0, ID_BL95, ID_BL94, ID_BL93, ID_BL92,
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
 
 		};

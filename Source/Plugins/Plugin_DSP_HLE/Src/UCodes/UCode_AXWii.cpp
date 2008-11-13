@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "StringUtil.h"
+
 #include "../Debugger/Debugger.h"
 #include "../Logging/Console.h" // for aprintf
 
@@ -40,7 +42,7 @@ extern CDebugger * m_frame;
 // -----------
 
 
-CUCode_AXWii::CUCode_AXWii(CMailHandler& _rMailHandler)
+CUCode_AXWii::CUCode_AXWii(CMailHandler& _rMailHandler, u32 _CRC)
 	: IUCode(_rMailHandler)
 	, m_addressPBs(0xFFFFFFFF)
 {
@@ -52,6 +54,7 @@ CUCode_AXWii::CUCode_AXWii(CMailHandler& _rMailHandler)
 	temprbuffer = new int[1024 * 1024];
 
 	lCUCode_AX = new CUCode_AX(_rMailHandler);
+	_CRC = _CRC;
 }
 
 CUCode_AXWii::~CUCode_AXWii()
@@ -73,70 +76,27 @@ void CUCode_AXWii::HandleMail(u32 _uMail)
 	}
 }
 
-int ReadOutPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
-{
-	int count = 0;
-	u32 blockAddr = pbs_address;
-	u32 pAddr = 0;
-
-	// reading and 'halfword' swap
-	for (int i = 0; i < _num; i++)
-	{
-		const short *pSrc = (const short *)g_dspInitialize.pGetMemoryPointer(blockAddr);
-		pAddr = blockAddr;
-
-		if (pSrc != NULL)
-		{
-			short *pDest = (short *)&_pPBs[i];
-			for (int p = 0; p < sizeof(AXParamBlockWii) / 2; p++)
-			{
-				if(p == 6 || p == 7) pDest[p] = pSrc[p]; // control for the u32
-					else pDest[p] = Common::swap16(pSrc[p]);
-
-				#if defined(_DEBUG) || defined(DEBUGFAST)
-					gLastBlock = blockAddr + p*2 + 2;  // save last block location
-				#endif
-			}			
-			_pPBs[i].mixer_control = Common::swap32(_pPBs[i].mixer_control);
-			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
-			count++;
-			
-			// Detect the last mail by checking when next_pb = 0
-			u32 next_pb = (Common::swap16(pSrc[0]) << 16) | Common::swap16(pSrc[1]);
-			if(next_pb == 0) break;
-		}
-		else
-			break;
-	}
-
-	// return the number of read PBs
-	return count;
-}
-
-void WriteBackPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
-{
-	u32 blockAddr = pbs_address;
-
-	// write back and 'halfword'swap
-	for (int i = 0; i < _num; i++)
-	{
-		short* pSrc  = (short*)&_pPBs[i];
-		short* pDest = (short*)g_dspInitialize.pGetMemoryPointer(blockAddr);
-		_pPBs[i].mixer_control = Common::swap32(_pPBs[i].mixer_control);
-		for (size_t p = 0; p < sizeof(AXParamBlockWii) / 2; p++)
-		{
-			if(p == 6 || p == 7) pDest[p] = pSrc[p]; // control for the u32
-				else pDest[p] = Common::swap16(pSrc[p]);				
-		}
-
-		// next block		
-		blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
-	}
-}
 
 void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 {
-	AXParamBlockWii PBs[NUMBER_OF_PBS];
+	if(_CRC == 0xfa450138)
+	{
+		AXParamBlockWii PBs[NUMBER_OF_PBS];
+		MixAdd_( _pBuffer, _iSize, PBs);
+	}
+	else
+	{
+		AXParamBlockWii_ PBs[NUMBER_OF_PBS];
+		MixAdd_(_pBuffer, _iSize, PBs);
+	}
+}
+
+
+template<class ParamBlockType>
+void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
+//void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize)
+{
+	//AXParamBlockWii PBs[NUMBER_OF_PBS];
 
 	// read out pbs
 	int numberOfPBs = ReadOutPBsWii(m_addressPBs, PBs, NUMBER_OF_PBS);
@@ -152,8 +112,41 @@ void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 	if (m_frame)
 	{
 		lCUCode_AX->Logging(_pBuffer, _iSize, 0, true);
+
+		// -------------------------------------------
+		// Write the first block values
+		int p = numberOfPBs - 1;
+		if(numberOfPBs > p)
+		{
+			if(PBs[p].running && !m_frame->upd95)
+			{
+				const u32 blockAddr = (u32)(PBs[p].this_pb_hi<< 16) | PBs[p].this_pb_lo;
+				const short *pSrc = (const short *)g_dspInitialize.pGetMemoryPointer(blockAddr);
+				for (int i = 0; i < sizeof(AXParamBlockWii) / 2; i+=2)
+				{
+					if(i == 10 || i == 34 || i == 41 || i == 46 || i == 46 || i == 58 || i == 60
+						|| i == 68 || i == 88 || i == 95)
+						{m_frame->str0 += "\n"; m_frame->str95 += "\n";}
+
+					std::string line = StringFromFormat("%02i|%02i : %s : %s",
+						i/2, i,
+						m_frame->PBn[i].c_str(), m_frame->PBp[i].c_str()
+						);
+					for (int i = 0; i < 50 - line.length(); ++i)						
+						line += " ";
+						m_frame->str0 += line;
+
+					m_frame->str0 += "\n"; 
+					m_frame->str95 += StringFromFormat(" : %02i|%02i : %04x%04x\n",
+						i/2, i,
+						Common::swap16(pSrc[i]), Common::swap16(pSrc[i+1]));
+				}
+				m_frame->m_bl95->AppendText(m_frame->str95.c_str());
+				m_frame->m_bl0->AppendText(m_frame->str0.c_str());
+				m_frame->upd95 = true;
+			}	
+		}
 	}
-	
 
 	// ---------------------------------------------------------------------------------------
 	// Make the updates we are told to do. This code may be buggy, TODO - fix. If multiple
@@ -188,8 +181,19 @@ void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 
 	for (int i = 0; i < numberOfPBs; i++)
 	{		
-		AXParamBlockWii& pb = PBs[i];
-		MixAddVoice(pb, templbuffer, temprbuffer, _iSize);
+		if(_CRC == 0xfa450138)
+		{
+			//ParamBlockType pb = PBs[i];
+			//AXParamBlockWii& pb = PBs[i];
+			//MixAddVoice(pb, templbuffer, temprbuffer, _iSize);
+			MixAddVoice(PBs[i], templbuffer, temprbuffer, _iSize);
+		}
+		else
+		{
+			//AXParamBlockWii_& pb = PBs[i];
+			//MixAddVoice(pb, templbuffer, temprbuffer, _iSize);
+			MixAddVoice(PBs[i], templbuffer, temprbuffer, _iSize);
+		}
 	}	
 
 	WriteBackPBsWii(m_addressPBs, PBs, numberOfPBs);
@@ -312,7 +316,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		    mixer_HLEready = true;
 		    SaveLog("%08x : AXLIST PB address: %08x", uAddress, m_addressPBs);
 #ifdef _WIN32
-		    DebugLog("Update the SoundThread to be in sync");
+		    //DebugLog("Update the SoundThread to be in sync");
 		    DSound::DSound_UpdateSound(); //do it in this thread to avoid sync problems
 #endif
 		    uAddress += 4;

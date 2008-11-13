@@ -238,7 +238,6 @@ void Host_UpdateLogDisplay();
 #ifdef LOGGING
 
 #define LOG(t, ...) __Log(LogTypes::t, __VA_ARGS__);
-//#define LOGV(t,v, ...) __Log(LogTypes::t + v*100, __VA_ARGS__);
 #define LOGV(t,v, ...) __Logv(LogTypes::t, v, __VA_ARGS__);
 
 #define _dbg_assert_(_t_, _a_) \

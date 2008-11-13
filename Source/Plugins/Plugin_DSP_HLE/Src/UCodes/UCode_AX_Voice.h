@@ -27,6 +27,84 @@
 extern bool gSequenced;
 extern bool gVolume;
 
+
+
+
+template<class ParamBlockType>
+inline int ReadOutPBsWii(u32 pbs_address, ParamBlockType& _pPBs, int _num)
+//int ReadOutPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
+{
+	int count = 0;
+	u32 blockAddr = pbs_address;
+	u32 pAddr = 0;
+
+	// reading and 'halfword' swap
+	for (int i = 0; i < _num; i++)
+	{
+		const short *pSrc = (const short *)g_dspInitialize.pGetMemoryPointer(blockAddr);
+		pAddr = blockAddr;
+
+		if (pSrc != NULL)
+		{
+			short *pDest = (short *)&_pPBs[i];
+			for (int p = 0; p < sizeof(AXParamBlockWii) / 2; p++)
+			{
+				if(p == 6 || p == 7) pDest[p] = pSrc[p]; // control for the u32
+				//else if(p == 62 || p == 63 || p == 64 || p == 65 || p == 66 || p == 67)
+				//	pDest[p] = Common::swap16(pSrc[p-1]);
+				else pDest[p] = Common::swap16(pSrc[p]);
+
+				#if defined(_DEBUG) || defined(DEBUGFAST)
+					gLastBlock = blockAddr + p*2 + 2;  // save last block location
+				#endif
+			}			
+			_pPBs[i].mixer_control = Common::swap32(_pPBs[i].mixer_control);
+			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
+			count++;
+			
+			// Detect the last mail by checking when next_pb = 0
+			u32 next_pb = (Common::swap16(pSrc[0]) << 16) | Common::swap16(pSrc[1]);
+			if(next_pb == 0) break;
+		}
+		else
+			break;
+	}
+
+	// return the number of read PBs
+	return count;
+}
+
+template<class ParamBlockType>
+inline void WriteBackPBsWii(u32 pbs_address, ParamBlockType& _pPBs, int _num)
+//void WriteBackPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
+{
+	u32 blockAddr = pbs_address;
+
+	// write back and 'halfword'swap
+	for (int i = 0; i < _num; i++)
+	{
+		short* pSrc  = (short*)&_pPBs[i];
+		short* pDest = (short*)g_dspInitialize.pGetMemoryPointer(blockAddr);
+		_pPBs[i].mixer_control = Common::swap32(_pPBs[i].mixer_control);
+		for (size_t p = 0; p < sizeof(AXParamBlockWii) / 2; p++)
+		{
+			if(p == 6 || p == 7) pDest[p] = pSrc[p]; // control for the u32
+			//else if(p == 62 || p == 63 || p == 64 || p == 65 || p == 66 || p == 67)
+			//	pDest[p-1] = Common::swap16(pSrc[p]);
+			else pDest[p] = Common::swap16(pSrc[p]);				
+		}
+
+		// next block		
+		blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
+	}
+}
+
+
+
+
+
+
+
 template<class ParamBlockType>
 inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, int _iSize)
 {

@@ -43,10 +43,8 @@ char Msg[512];
 		// no match = -1
 	{
 		OutputDebugString(Msg);
-		g_dspInitialize.pLog(Msg);
+		g_dspInitialize.pLog(Msg,0);
 	}
-
-    
 
 #endif
 }
@@ -62,7 +60,7 @@ void ErrorLog(const char* _fmt, ...)
 	vsprintf(Msg, _fmt, ap);
 	va_end(ap);
 
-	g_dspInitialize.pLog(Msg);
+	g_dspInitialize.pLog(Msg,0);
 #ifdef _WIN32
 	::MessageBox(NULL, Msg, "Error", MB_OK);
 #endif

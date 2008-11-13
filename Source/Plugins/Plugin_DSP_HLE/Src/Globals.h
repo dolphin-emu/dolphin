@@ -23,6 +23,13 @@
 
 extern DSPInitialize g_dspInitialize;
 void DebugLog(const char* _fmt, ...);
+void __Log_(int v, const char *fmt, ...);
+
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	#define LOG_(v, ...) __Log_(v, __VA_ARGS__);
+#else
+	#define LOG_(_v_, ...)
+#endif
 
 u8 Memory_Read_U8(u32 _uAddress);
 u16 Memory_Read_U16(u32 _uAddress);

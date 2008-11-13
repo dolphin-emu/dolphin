@@ -42,6 +42,7 @@
 #include "../UCodes/UCode_AXStructs.h"
 #include "../UCodes/UCode_AX.h"
 #include "../UCodes/UCode_AXWii.h"
+#include "../UCodes/UCode_AX_Voice.h"
 
 // Externals
 

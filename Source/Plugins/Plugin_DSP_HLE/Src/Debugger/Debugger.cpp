@@ -70,6 +70,14 @@ BEGIN_EVENT_TABLE(CDebugger,wxDialog)
 	EVT_CHECKLISTBOX(IDC_CHECKLIST2, CDebugger::OnGameChange) // gc
 	EVT_CHECKLISTBOX(IDC_CHECKLIST3, CDebugger::OnGameChange) // wii
 	EVT_CHECKLISTBOX(IDC_CHECKLIST4, CDebugger::MailSettings) // settings
+
+	//EVT_RIGHT_DOWN(CDebugger::ScrollBlocks)
+	//EVT_LEFT_DOWN(CDebugger::ScrollBlocks)
+	//EVT_MOUSE_EVENTS(CDebugger::ScrollBlocks)
+	//EVT_MOTION(CDebugger::ScrollBlocks)
+
+	//EVT_SCROLL(CDebugger::ScrollBlocks)
+	//EVT_SCROLLWIN(CDebugger::ScrollBlocks)
 END_EVENT_TABLE()
 // =======================================================================================
 
@@ -81,6 +89,11 @@ CDebugger::CDebugger(wxWindow *parent, wxWindowID id, const wxString &title,
 	//, gUpdFreq(5) // loaded from file
 	, gPreset(0)
 	, giShowAll(-1)
+
+	, upd95(false) // block view settings
+	, upd94(false)
+	, upd93(false)
+	, upd92(false)
 {
 	CreateGUIControls();
 
@@ -88,6 +101,58 @@ CDebugger::CDebugger(wxWindow *parent, wxWindowID id, const wxString &title,
 	IniFile file;
 	file.Load(DEBUGGER_CONFIG_FILE);
 	this->Load(file);
+
+	// append block names
+	PBn.resize(266/2);
+	PBn[10] = "mixer";
+	PBn[34] = "initial_time_delay";
+	PBn[41] = "updates";
+	PBn[46] = "dpop";
+	PBn[58] = "vol_env";
+	PBn[60] = "audio_addr";
+	PBn[68] = "adpcm";
+	PBn[88] = "src";
+	PBn[95] = "adpcm_loop_info";
+	PBn[98] = "lpf";
+	PBn[102] = "hpf";
+	PBn[106] = "pad";
+
+	PBp.resize(266/2);
+	PBp[10] = "volume_left, unknown";
+
+	PBp[58] = "cur_volume, cur_volume_delta"; // PBVolumeEnvelope
+	
+
+	PBp[60] = "looping, sample_format"; // PBAudioAddr
+	PBp[62] = "loop_addr_hi, loop_addr_lo";
+	PBp[64] = "end_addr_hi, end_addr_lo";
+	PBp[66] = "cur_addr_hi, cur_addr_lo";
+
+	PBp[68] = "coef[0], coef[1]"; // PBADPCMInfo
+
+	PBp[94] = "cur_addr_frac, last_samples[0]";
+
+	PBp[94] = "last_samples[3], pred_scale";
+	PBp[96] = "yn1, yn2";
+
+	//wxEVT_RIGHT_DOWN, wxEVT_MOUSEWHEEL, wxEVT_LEFT_UP, 
+	//m_bl95, m_PageBlock, sBlock
+
+	/*
+	for (int i = 0; i < 127; ++i)
+	{
+		m_bl0->AppendText(wxString::Format("%02i|68 : 01a70144\n", i));
+		m_bl95->AppendText(wxString::Format("%i Mouse\n", i));
+	}*/
+
+	m_bl95->Connect(wxID_ANY, wxEVT_SCROLLWIN_THUMBTRACK,
+		wxScrollWinEventHandler(CDebugger::ScrollBlocksCursor), (wxObject*)NULL, this);
+	m_bl95->Connect(wxID_ANY, wxEVT_SCROLLWIN_THUMBRELEASE,
+		wxScrollWinEventHandler(CDebugger::ScrollBlocksCursor), (wxObject*)NULL, this);
+	m_bl95->Connect(wxID_ANY, wxEVT_MOTION,
+		wxMouseEventHandler(CDebugger::ScrollBlocksMouse), (wxObject*)NULL, this);
+	m_bl95->Connect(wxID_ANY, wxEVT_MOUSEWHEEL,
+		wxMouseEventHandler(CDebugger::ScrollBlocksMouse), (wxObject*)NULL, this);			
 }
 
 CDebugger::~CDebugger()
@@ -159,8 +224,9 @@ SetTitle(wxT("Sound Debugging"));
 	Center();
 
 
-	// Declarations
-	wxBoxSizer * sMAIN, * sMain, * sMail;
+	// Declarations	
+	wxBoxSizer * sMAIN, * sMain, * sMail, * sBlock;
+
 	wxButton* m_Upd;
 	wxButton* m_SelC;
 	wxButton* m_Presets;
@@ -176,6 +242,31 @@ SetTitle(wxT("Sound Debugging"));
 	m_Notebook->AddPage(m_PageMain, wxT("Main"));
 	m_PageMail = new wxPanel(m_Notebook, ID_PAGEMAIL, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_PageMail, wxT("Mail"));
+	m_PageBlock = new wxPanel(m_Notebook, ID_PAGEBLOCK, wxDefaultPosition, wxDefaultSize);
+	m_Notebook->AddPage(m_PageBlock, wxT("Blocks"));
+
+
+
+
+	// ===================================================================
+	// Blocks Page
+
+	wxStaticBoxSizer * m_bl0Sizer = new wxStaticBoxSizer (wxVERTICAL, m_PageBlock, wxT("Block"));
+	m_bl0 = new wxTextCtrl(m_PageBlock, ID_BL0, _T(""), wxDefaultPosition, wxSize(250, 120),
+		wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP | wxNO_BORDER);
+	m_bl0Sizer->Add(m_bl0, 1, wxEXPAND | wxALL, 0);
+
+	wxStaticBoxSizer * m_bl1Sizer = new wxStaticBoxSizer (wxVERTICAL, m_PageBlock, wxT("Block 95"));
+	m_bl95 = new wxTextCtrl(m_PageBlock, ID_BL95, _T(""), wxDefaultPosition, wxSize(300, 120),
+		wxTE_RICH | wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP | wxNO_BORDER);
+	m_bl1Sizer->Add(m_bl95, 1, wxEXPAND | wxALL, 0);
+
+	wxStaticBoxSizer * m_bl2Sizer = new wxStaticBoxSizer (wxVERTICAL, m_PageBlock, wxT("Block 94"));
+	m_bl94 = new wxTextCtrl(m_PageBlock, ID_BL94, _T(""), wxDefaultPosition, wxSize(300, 120),
+		wxTE_RICH | wxTE_MULTILINE | wxTE_DONTWRAP | wxNO_BORDER );
+	m_bl2Sizer->Add(m_bl94, 1, wxEXPAND | wxALL, 0);
+
+
 
 
 
@@ -377,6 +468,11 @@ SetTitle(wxT("Sound Debugging"));
 			wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING);
 
 	sLeft->Add(m_GPRListView, 1, wxEXPAND|wxALL, 5);	
+
+	sMain = new wxBoxSizer(wxHORIZONTAL);
+	sMain->Add(sLeft, 1, wxEXPAND | wxALL, 5); // margin = 5
+	sMain->Add(sButtons, 0, wxALL, 0);
+	sMain->Add(sButtons2, 0, wxALL, 5); // margin = 5
 	// --------------------------------------------------------------------
 
 
@@ -400,23 +496,39 @@ SetTitle(wxT("Sound Debugging"));
 
 
 	// --------------------------------------------------------------------
+	// The blocks view container (BLOCKS)
+	// -----------------------------
+	// For the buttons on the right
+	//wxBoxSizer * sMailRight = new wxBoxSizer(wxVERTICAL);
+	//wxStaticBoxSizer * sMailRight = new wxStaticBoxSizer(wxVERTICAL, m_PageMail, wxT("Current"));
+
+	sBlock = new wxBoxSizer(wxHORIZONTAL);	
+	sBlock->Add(m_bl0Sizer, 0, wxEXPAND | (wxUP | wxDOWN), 5); // margin = 5
+	sBlock->Add(m_bl1Sizer, 1, wxEXPAND | (wxUP | wxDOWN | wxLEFT), 5); // margin = 5
+	sBlock->Add(m_bl2Sizer, 1, wxEXPAND | (wxUP | wxDOWN | wxRIGHT), 5); // margin = 5
+	//sBlock->Add(sMailRight, 0, wxEXPAND | wxALL, 0); // margin = 0
+
+	/*sMailRight->Add(m_RadioBox[3], 0, wxALL, 5); // margin = 5
+	sMailRight->Add(m_gameSizer1, 1, wxEXPAND | wxALL, 5); // margin = 5
+	sMailRight->Add(m_gameSizer2, 1, wxEXPAND | wxALL, 5); // margin = 5	
+	sMailRight->Add(m_gameSizer3, 0, wxALL, 5); // margin = 5*/
+	// --------------------------------------------------------------------
+
+
+	// --------------------------------------------------------------------
 	// Main containers
 	// -----------------------------
-	sMain = new wxBoxSizer(wxHORIZONTAL);
-	sMain->Add(sLeft, 1, wxEXPAND | wxALL, 5); // margin = 5
-	sMain->Add(sButtons, 0, wxALL, 0);
-	sMain->Add(sButtons2, 0, wxALL, 5); // margin = 5
-
 	sMAIN = new wxBoxSizer(wxVERTICAL);
 	sMAIN->Add(m_Notebook, 1, wxEXPAND | wxALL, 5);
 	//sMAIN->SetSizeHints(this);
 
-	this->SetSizer(sMAIN);
-	//this->Layout();
-
 	m_PageMain->SetSizer(sMain);
 	m_PageMail->SetSizer(sMail);
+	m_PageBlock->SetSizer(sBlock);
 	//sMain->Layout();	
+
+	this->SetSizer(sMAIN);
+	//this->Layout();
 
 	NotifyUpdate();
 	// --------------------------------------------------------------------
@@ -817,5 +929,54 @@ void CDebugger::MailSettings(wxCommandEvent& event)
 
 	ScanMails = m_gcwiiset->IsChecked(0);
 	StoreMails = m_gcwiiset->IsChecked(1);
+}
+
+
+
+
+//double A;
+void CDebugger::DoScrollBlocks()
+{
+	// ShowPosition = in letters
+	// GetScrollPos = number of lines from the top
+	// GetLineLength = letters in one line
+	// SetScrollPos = only set the scrollbar, doesn't update the text,
+		// Update() or Refresh() doesn't help
+
+	double pos = m_bl95->GetScrollPos(wxVERTICAL)*(m_bl95->GetLineLength(0)+12.95); // annoying :(
+	m_bl0->ShowPosition((int)pos);
+
+	/*
+	if(GetAsyncKeyState(VK_NUMPAD1))
+		A -= 0.1;
+	else if(GetAsyncKeyState(VK_NUMPAD2))
+		A += 0.11;
+
+	wprintf("GetScrollPos:%i GetScrollRange:%i GetPosition:%i GetLastPosition:%i GetMaxWidth:%i \
+			GetLineLength:%i XYToPosition:%i\n \
+			GetScrollPos * GetLineLength + GetScrollRange:%i A:%f\n",
+		m_bl95->GetScrollPos(wxVERTICAL), m_bl95->GetScrollRange(wxVERTICAL),
+		m_bl95->GetPosition().y, m_bl95->GetLastPosition(), m_bl95->GetMaxWidth(),
+		m_bl95->GetLineLength(0), m_bl95->XYToPosition(0,25),
+		pos, A
+		);
+
+	for (int i = 0; i < 127; ++i)
+	{
+		m_bl0->AppendText(wxString::Format("%02i|68 : 01a70144\n", i));
+		m_bl95->AppendText(wxString::Format("%i Mouse\n", i));
+	}*/
+}
+
+void CDebugger::ScrollBlocksMouse(wxMouseEvent& event)
+{
+	DoScrollBlocks();
+	event.Skip(); // otherwise we remove the regular behavior, for example scrolling
+}
+
+void CDebugger::ScrollBlocksCursor(wxScrollWinEvent& event)
+{
+	DoScrollBlocks();
+	event.Skip(); // otherwise we remove the regular behavior, for example scrolling
 }
 // ==============

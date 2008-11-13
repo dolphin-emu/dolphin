@@ -362,7 +362,7 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs)
 	pStatus->battery = 0x4F;	//arbitrary number
 
 	// this gets us passed the first error, but later brings up the disconnected error
-	pStatus->extension = 0;
+	pStatus->extension = 1;
 
 	LOGV(WII_IPC_WIIMOTE, 0,"  SendStatusReport()");
 	LOGV(WII_IPC_WIIMOTE, 0,  "    Flags: 0x%02x", pStatus->padding1[2]);

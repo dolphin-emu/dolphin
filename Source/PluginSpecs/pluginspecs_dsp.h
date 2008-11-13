@@ -11,8 +11,8 @@
 typedef unsigned char	(*TARAM_Read_U8)(const unsigned int _uAddress);
 typedef unsigned char*	(*TGetMemoryPointer)(const unsigned int  _uAddress);
 typedef unsigned char*	(*TGetARAMPointer)(void);
-typedef void			(*TLog)(const char* _szMessage);
-typedef char *			(*TName)(void);
+typedef void			(*TLogv)(const char* _szMessage, int _v);
+typedef char*			(*TName)(void);
 typedef void			(*TDebuggerBreak)(void);
 typedef void			(*TGenerateDSPInt)(void);
 typedef unsigned int(*TAudioGetStreaming)(short* _pDestBuffer, unsigned int _numSamples);
@@ -23,7 +23,7 @@ typedef struct
 	TARAM_Read_U8			pARAM_Read_U8;
 	TGetMemoryPointer		pGetMemoryPointer;
 	TGetARAMPointer			pGetARAMPointer;
-	TLog					pLog;	
+	TLogv					pLog;	
 	TName					pName;
 	TDebuggerBreak			pDebuggerBreak;
 	TGenerateDSPInt			pGenerateDSPInterrupt;

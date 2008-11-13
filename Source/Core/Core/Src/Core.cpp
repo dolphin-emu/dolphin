@@ -72,7 +72,7 @@ namespace Core
 //void Callback_VideoRequestWindowSize(int _iWidth, int _iHeight, BOOL _bFullscreen);
 void Callback_VideoLog(const TCHAR* _szMessage, BOOL _bDoBreak);
 void Callback_VideoCopiedToXFB();
-void Callback_DSPLog(const TCHAR* _szMessage);
+void Callback_DSPLog(const TCHAR* _szMessage, int _v);
 char * Callback_ISOName(void);
 void Callback_DSPInterrupt();
 void Callback_PADLog(const TCHAR* _szMessage);
@@ -537,9 +537,9 @@ void Callback_VideoCopiedToXFB()
 // __________________________________________________________________________________________________
 // Callback_DSPLog
 // WARNING - THIS MAY EXECUTED FROM DSP THREAD
-void Callback_DSPLog(const TCHAR* _szMessage)
+void Callback_DSPLog(const TCHAR* _szMessage, int _v)
 {
-	LOG(AUDIO, _szMessage);
+	LOGV(AUDIO, _v, _szMessage);
 }
 
 // __________________________________________________________________________________________________

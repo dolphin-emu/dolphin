@@ -19,17 +19,29 @@
 #include <stdio.h>
 
 #include "Globals.h"
+#include "Common.h"
 
 void __Log(int, const char *fmt, ...)
 {
 	DebugLog(fmt);
 }
 
+void __Log_(int v, const char *fmt, ...)
+{
+	char Msg[512];
+	va_list ap;
+
+	va_start(ap, fmt);
+	vsprintf(Msg, fmt, ap);
+	va_end(ap);
+
+	g_dspInitialize.pLog(Msg, v);
+}
+
 void DebugLog(const char* _fmt, ...)
 {
 #if defined(_DEBUG) || defined(DEBUGFAST)
-if(strncmp (_fmt, "AX", 2)) // match = 0, in that case this is ignored
-//if(true)
+//if(strncmp (_fmt, "AX", 2)) // match = 0, in that case this is ignored
 {
 	char Msg[512];
 	va_list ap;
@@ -38,7 +50,7 @@ if(strncmp (_fmt, "AX", 2)) // match = 0, in that case this is ignored
 	vsprintf(Msg, _fmt, ap);
 	va_end(ap);
 
-	g_dspInitialize.pLog(Msg);
+	g_dspInitialize.pLog(Msg, 0);
 }
 #endif
 }

@@ -143,7 +143,7 @@ if(m_frame->ScanMails)
 	{
 		TmpMailLog += Msg;
 		TmpMailLog += "\n";
-		g_dspInitialize.pLog(Msg);
+		LOG_(1, Msg);
 	}
 }
 }

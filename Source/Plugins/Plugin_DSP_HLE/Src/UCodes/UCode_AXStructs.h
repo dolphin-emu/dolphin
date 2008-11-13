@@ -74,10 +74,15 @@ struct PBDpop
 	s16 unknown[9];
 };
 
-struct PBDpopWii
-{
-	s16 unknown[12];
-};
+	struct PBDpopWii
+	{
+		s16 unknown[12];
+	};
+
+	struct PBDpopWii_
+	{
+		s16 unknown[7];
+	};
 
 struct PBVolumeEnvelope
 {
@@ -197,6 +202,35 @@ struct AXParamBlockWii
 /*  98 */	PBLpf lpf;
 /* 102 */	PBHpf hpf;
 /* 106 */	u16 pad[22];
+};
+
+struct AXParamBlockWii_
+{
+	u16 next_pb_hi;
+	u16 next_pb_lo;
+
+	u16 this_pb_hi;
+	u16 this_pb_lo;
+
+	u16 src_type;     // Type of sample rate converter (none, ?, linear)
+	u16 coef_select;
+	u32 mixer_control;
+
+	u16 running;       // 1=RUN   0=STOP
+	u16 is_stream;     // 1 = stream, 0 = one shot
+
+/*  10 */	PBMixerWii mixer;
+/*  34 */	PBInitialTimeDelay initial_time_delay;  
+/*  41 */	PBUpdatesWii updates;
+/*  46 */	PBDpopWii_ dpop;
+/*  53 */	PBVolumeEnvelope vol_env;
+/*  55 */	PBAudioAddr audio_addr;
+/*  63 */	PBADPCMInfo adpcm;
+/*  83 */	PBSampleRateConverter src;
+/*  90 */	PBADPCMLoopInfo adpcm_loop_info;
+/*  93 */	PBLpf lpf;
+/* 97 */	PBHpf hpf;
+/* 101 */	u16 pad[27];
 };
 
 enum {

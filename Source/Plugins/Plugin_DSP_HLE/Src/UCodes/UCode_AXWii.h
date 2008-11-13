@@ -25,17 +25,19 @@
 class CUCode_AXWii : public IUCode
 {
 public:
-	CUCode_AXWii(CMailHandler& _rMailHandler);
+	CUCode_AXWii(CMailHandler& _rMailHandler, u32 _CRC);
 	virtual ~CUCode_AXWii();
 
 	void HandleMail(u32 _uMail);
 	void MixAdd(short* _pBuffer, int _iSize);
+	template<class ParamBlockType>
+	//void Logging(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs, int numberOfPBs);
+	void MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs);	
 	void Update();
 
-	// this is a little ugly perhaps, feel free to move it out of here
+	// The logging function for the debugger
 	void Logging(short* _pBuffer, int _iSize, int a);
 	CUCode_AX * lCUCode_AX; // we need the logging functions in there
-
 
 private:
 	enum
@@ -45,6 +47,7 @@ private:
 
 	// PBs
 	u32 m_addressPBs;
+	u32 _CRC;
 
 	int *templbuffer;
 	int *temprbuffer;
@@ -55,7 +58,7 @@ private:
 	void SendMail(u32 _uMail);
 };
 
-int ReadOutPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num);
-void WriteBackPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num);
+//int ReadOutPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num);
+//void WriteBackPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num);
 
 #endif  // _UCODE_AXWII
