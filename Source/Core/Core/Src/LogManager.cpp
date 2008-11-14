@@ -125,8 +125,8 @@ void LogManager::Init()
 		m_Log[LogTypes::VIDEO + i*100]			    = new CDebugger_Log("Video", "Video Plugin", i);
 		m_Log[LogTypes::AUDIO + i*100]			    = new CDebugger_Log("Audio", "Audio Plugin", i);
 		m_Log[LogTypes::DYNA_REC + i*100]			= new CDebugger_Log("DYNA", "Dynamic Recompiler", i);
-		m_Log[LogTypes::OSREPORT + i*100]			= new CDebugger_Log("OSREPORT", "Dolphin Console", i);
-		m_Log[LogTypes::CONSOLE + i*100]			= new CDebugger_Log("CONSOLE", "OSReport", i);		
+		m_Log[LogTypes::CONSOLE + i*100]			= new CDebugger_Log("CONSOLE", "Dolphin Console", i);	
+		m_Log[LogTypes::OSREPORT + i*100]			= new CDebugger_Log("OSREPORT", "OSReport", i);			
 		m_Log[LogTypes::WII_IOB + i*100]			= new CDebugger_Log("WII_IOB",			"WII IO Bridge", i);
 		m_Log[LogTypes::WII_IPC + i*100]			= new CDebugger_Log("WII_IPC",			"WII IPC", i);
 		m_Log[LogTypes::WII_IPC_HLE + i*100]		= new CDebugger_Log("WII_IPC_HLE",		"WII IPC HLE", i);

@@ -27,7 +27,7 @@
 extern bool gSequenced;
 extern bool gVolume;
 extern float ratioFactor;
-
+extern u32 gLastBlock;
 
 template<class ParamBlockType>
 inline int ReadOutPBsWii(u32 pbs_address, ParamBlockType& _pPBs, int _num, int _deb)

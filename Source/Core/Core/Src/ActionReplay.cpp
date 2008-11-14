@@ -138,6 +138,8 @@ void LoadActionReplayCodes(IniFile &ini, bool bForGUI)
 
 void ActionReplayRunAllActive()
 {
+	LOGV(CONSOLE, 0, "ActionReplayRunAllActive %s", code.name.c_str());
+
 	if (Core::GetStartupParameter().bEnableCheats) {
 		for (std::vector<ARCode>::iterator iter = arCodes.begin(); iter != arCodes.end(); ++iter)
 			if (iter->active)
@@ -165,6 +167,9 @@ bool RunActionReplayCode(const ARCode &arcode) {
 	u32 val_last;
 
 	code = arcode;
+
+	LOGV(CONSOLE, 0, "RunActionReplayCode %s", code.name.c_str());
+	PanicAlert("RunActionReplayCode %s", code.name.c_str());
 
 	for (iter = code.ops.begin(); iter != code.ops.end(); ++iter) 
 	{

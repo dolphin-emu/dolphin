@@ -42,7 +42,6 @@ extern bool gSSBMremedy2;
 extern bool gSequenced;
 extern bool gVolume;
 extern bool gReset;
-extern u32 gLastBlock;
 extern std::string gpName;
 extern CDebugger* m_frame;
 std::vector<std::string> sMailLog, sMailTime;
