@@ -119,7 +119,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
 	g_hInstance = hinstDLL;
 	return(TRUE);
 }
-
 #endif
 
 
@@ -154,7 +153,7 @@ CDebugger* m_frame;
 void DllDebugger(HWND _hParent)
 {
 	m_frame = new CDebugger(NULL);
-	m_frame->ShowModal();
+	m_frame->Show();
 }
 // ===================
 

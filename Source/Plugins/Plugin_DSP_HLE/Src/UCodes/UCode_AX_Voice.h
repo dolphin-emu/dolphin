@@ -26,12 +26,11 @@
 // -----------
 extern bool gSequenced;
 extern bool gVolume;
-
-
+extern float ratioFactor;
 
 
 template<class ParamBlockType>
-inline int ReadOutPBsWii(u32 pbs_address, ParamBlockType& _pPBs, int _num)
+inline int ReadOutPBsWii(u32 pbs_address, ParamBlockType& _pPBs, int _num, int _deb)
 //int ReadOutPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
 {
 	int count = 0;
@@ -50,14 +49,13 @@ inline int ReadOutPBsWii(u32 pbs_address, ParamBlockType& _pPBs, int _num)
 			for (int p = 0; p < sizeof(AXParamBlockWii) / 2; p++)
 			{
 				if(p == 6 || p == 7) pDest[p] = pSrc[p]; // control for the u32
-				//else if(p == 62 || p == 63 || p == 64 || p == 65 || p == 66 || p == 67)
-				//	pDest[p] = Common::swap16(pSrc[p-1]);
 				else pDest[p] = Common::swap16(pSrc[p]);
 
 				#if defined(_DEBUG) || defined(DEBUGFAST)
 					gLastBlock = blockAddr + p*2 + 2;  // save last block location
 				#endif
-			}			
+			}
+
 			_pPBs[i].mixer_control = Common::swap32(_pPBs[i].mixer_control);
 			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
 			count++;
@@ -88,10 +86,8 @@ inline void WriteBackPBsWii(u32 pbs_address, ParamBlockType& _pPBs, int _num)
 		_pPBs[i].mixer_control = Common::swap32(_pPBs[i].mixer_control);
 		for (size_t p = 0; p < sizeof(AXParamBlockWii) / 2; p++)
 		{
-			if(p == 6 || p == 7) pDest[p] = pSrc[p]; // control for the u32
-			//else if(p == 62 || p == 63 || p == 64 || p == 65 || p == 66 || p == 67)
-			//	pDest[p-1] = Common::swap16(pSrc[p]);
-			else pDest[p] = Common::swap16(pSrc[p]);				
+			if(p == 6 || p == 7) pDest[p] = pSrc[p]; // control for the u32		
+			else pDest[p] = Common::swap16(pSrc[p]);
 		}
 
 		// next block		
@@ -100,18 +96,13 @@ inline void WriteBackPBsWii(u32 pbs_address, ParamBlockType& _pPBs, int _num)
 }
 
 
-
-
-
-
-
 template<class ParamBlockType>
 inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, int _iSize)
 {
 #ifdef _WIN32
-	float ratioFactor = 32000.0f / (float)DSound::DSound_GetSampleRate();
+	ratioFactor = 32000.0f / (float)DSound::DSound_GetSampleRate();
 #else
-	float ratioFactor = 32000.0f / 44100.0f;
+	ratioFactor = 32000.0f / 44100.0f;
 #endif
 
 	// DoVoiceHacks(pb);
@@ -123,7 +114,7 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 		// =======================================================================================
 		// Read initial parameters
 		// ------------
-		//constants						
+		//constants
 		const u32 ratio     = (u32)(((pb.src.ratio_hi << 16) + pb.src.ratio_lo) * ratioFactor);
 		u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
 		u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
@@ -132,7 +123,7 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 		u32 samplePos = (pb.audio_addr.cur_addr_hi << 16) | pb.audio_addr.cur_addr_lo;
 		u32 frac = pb.src.cur_addr_frac;
 		// =============
-		
+
 		// =======================================================================================
 		// Handle no-src streams - No src streams have pb.src_type == 2 and have pb.src.ratio_hi = 0
 		// and pb.src.ratio_lo = 0. We handle that by setting the sampling ratio integer to 1. This
@@ -154,6 +145,7 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 			pb.src.ratio_hi = 1;
 		}
 		// =============
+
 
 		// =======================================================================================
 		// Games that use looping to play non-looping music streams - SSBM has info in all
@@ -278,7 +270,6 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 				}
 			}
 			// ===============
-
 		} // end of the _iSize loop
 
 		// Update volume
@@ -292,6 +283,7 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 		pb.src.cur_addr_frac = (u16)frac;
 		pb.audio_addr.cur_addr_hi = samplePos >> 16;
 		pb.audio_addr.cur_addr_lo = (u16)samplePos;
+		
 	} // if (pb.running)
 }
 

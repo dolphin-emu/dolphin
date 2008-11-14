@@ -48,6 +48,7 @@ public:
 
 	// PBs
 	u32 m_addressPBs;
+	u32 _CRC;
 
 private:
 	enum

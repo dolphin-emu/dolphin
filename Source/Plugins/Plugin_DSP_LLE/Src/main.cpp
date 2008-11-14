@@ -127,23 +127,15 @@ void DllDebugger(HWND _hParent)
 {
 #ifdef _WIN32
 	#if defined (_DEBUG) || defined (DEBUGFAST)
-		if(bCanWork)
-		{
-			g_Dialog.Create(NULL); //_hParent);
-			g_Dialog.ShowWindow(SW_SHOW);
-
-			// Open the console window
-			startConsoleWin(155, 100, "Sound Debugging"); // give room for 100 rows
-			wprintf("DllDebugger > Console opened\n");
-			// TODO: Make this adjustable from the Debugging window
-			MoveWindow(GetConsoleHwnd(), 0,400, 1280,500, true);
-		}
-		else
-		{
-			// TODO: let us open the debugging window when we open the Dolphin-Debugger, fix the crash
-			// that currently occurs of you try to do that
-			MessageBox(0, "Can't open debugging window yet. Please start a game first", "DSP LLE", 0);
-		}
+		g_Dialog.Create(NULL); //_hParent);
+		g_Dialog.ShowWindow(SW_SHOW);
+		MoveWindow(g_Dialog.m_hWnd, 450,0, 780,530, true);
+		
+		// Open the console window
+		startConsoleWin(155, 100, "Sound Debugging"); // give room for 100 rows
+		wprintf("DllDebugger > Console opened\n");
+		// TODO: Make this adjustable from the Debugging window
+		MoveWindow(GetConsoleHwnd(), 0,400, 1280,500, true);
 	#else
 		MessageBox(0, "Can't open debugging window in Release build of this plugin.", "DSP LLE", 0);
 	#endif

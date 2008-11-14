@@ -79,7 +79,7 @@ struct PBDpop
 		s16 unknown[12];
 	};
 
-	struct PBDpopWii_
+	struct PBDpopWii_ // new CRC version
 	{
 		s16 unknown[7];
 	};
@@ -204,7 +204,7 @@ struct AXParamBlockWii
 /* 106 */	u16 pad[22];
 };
 
-struct AXParamBlockWii_
+struct AXParamBlockWii_ // new CRC version
 {
 	u16 next_pb_hi;
 	u16 next_pb_lo;

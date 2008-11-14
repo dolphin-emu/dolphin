@@ -112,7 +112,7 @@ void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename)
 	if (Common::CPlugin::Load(_rFilename))
 	{
 		Common::CPlugin::Debug((HWND)_Parent);
-		Common::CPlugin::Release();
+		//Common::CPlugin::Release(); // this is only if the wx dialog is called with ShowModal()
 	}
 }
 

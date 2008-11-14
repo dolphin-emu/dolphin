@@ -52,7 +52,7 @@ LRESULT CDisAsmDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	{
 		ws.ApplyTo(CWindow(m_hWnd), SW_SHOW);
 	}
-
+	
 	m_DisAsmListViewCtrl.m_hWnd = GetDlgItem(IDC_DISASM_LIST);
 
 	UIAddChildWindowContainer(m_hWnd);
@@ -78,6 +78,8 @@ LRESULT CDisAsmDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 	m_RegisterDlg.Create(m_hWnd);
 
 	UpdateDialog();
+
+	DlgResize_Init(true, false, WS_THICKFRAME);
 
 	return(TRUE);
 }
@@ -257,7 +259,7 @@ void CDisAsmDlg::RebuildDisAsmListView()
 		m_DisAsmListViewCtrl.AddItem(Item, ColumnMenmomic, Temp2);
 		m_DisAsmListViewCtrl.AddItem(Item, ColumnOpcode, pOpcode);
 		m_DisAsmListViewCtrl.AddItem(Item, ColumnExt, pExtension);
-
+		
 		if (!_stricmp(pOpcode, "CALL"))
 		{
 			uint32 FunctionAddress = -1;
@@ -637,4 +639,29 @@ void CDisAsmDlg::UpdateDialog()
 	UpdateDisAsmListView();
 //	UpdateButtonTexts();
 	UpdateRegisterFlags();
+}
+
+LRESULT CDisAsmDlg::OnLvnItemchangedDisasmList(int /*idCtrl*/, LPNMHDR pNMHDR, BOOL& /*bHandled*/)
+{
+	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
+	// TODO: Add your control notification handler code here
+
+	return 0;
+}
+
+
+// TODO: make the members adjust with the dialog
+LRESULT CDisAsmDlg::OnSize(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, BOOL& /*bHandled*/)
+{
+	// we habe to make a group of the items I think
+	/*
+	CRect lpRect;
+
+	
+	int wid = lpRect.right - lpRect.left - 100;
+	int hei = lpRect.bottom - lpRect.top - 20;
+	m_DisAsmListViewCtrl.ResizeClient(wid, hei, true);	
+	*/
+
+	return 0;
 }

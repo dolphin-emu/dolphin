@@ -25,7 +25,7 @@
 #include "RegisterDlg.h"
 
 class CDisAsmDlg
-	: public CDialogImpl<CDisAsmDlg>, public CUpdateUI<CDisAsmDlg>
+	: public CDialogImpl<CDisAsmDlg>, public CUpdateUI<CDisAsmDlg>, public CDialogResize<CDisAsmDlg>
 {
 	public:
 
@@ -40,6 +40,10 @@ class CDisAsmDlg
 		BEGIN_UPDATE_UI_MAP(CDisAsmDlg)
 		END_UPDATE_UI_MAP()
 
+		BEGIN_DLGRESIZE_MAP(CDisAsmDlg)
+			DLGRESIZE_CONTROL(IDR_MAINFRAME, DLSZ_SIZE_X | DLSZ_SIZE_Y)
+		END_DLGRESIZE_MAP()
+
 		BEGIN_MSG_MAP(CDisAsmDlg)
 		MESSAGE_HANDLER(WM_INITDIALOG, OnInitDialog)
 		MESSAGE_HANDLER(WM_DESTROY, OnDestroy)
@@ -50,6 +54,10 @@ class CDisAsmDlg
 		NOTIFY_CODE_HANDLER(NM_RETURN, OnDblClick)
 		NOTIFY_CODE_HANDLER(NM_RCLICK, OnRClick)
 		NOTIFY_CODE_HANDLER(NM_CUSTOMDRAW, OnCustomDraw)
+		NOTIFY_HANDLER(IDC_DISASM_LIST, LVN_ITEMCHANGED, OnLvnItemchangedDisasmList)
+		MESSAGE_HANDLER(WM_SIZE, OnSize)
+		CHAIN_MSG_MAP(CDialogResize<CDisAsmDlg>)
+
 		END_MSG_MAP()
 
 // Handler prototypes (uncomment arguments if needed):
@@ -100,6 +108,8 @@ class CDisAsmDlg
 
 		CListViewCtrl m_DisAsmListViewCtrl;
 		CRegisterDlg m_RegisterDlg;
+		//CWindow GroupLeft
+		CStatic GroupLeft;
 
 		uint64 m_CachedStepCounter;
 		uint16 m_CachedCR;
@@ -147,4 +157,7 @@ class CDisAsmDlg
 		void UpdateDialog();
 
 		static int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
+public:
+	LRESULT OnLvnItemchangedDisasmList(int /*idCtrl*/, LPNMHDR pNMHDR, BOOL& /*bHandled*/);
+	LRESULT OnSize(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/);
 };

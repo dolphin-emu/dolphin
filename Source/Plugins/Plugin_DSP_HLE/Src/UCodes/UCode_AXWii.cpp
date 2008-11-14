@@ -54,6 +54,7 @@ CUCode_AXWii::CUCode_AXWii(CMailHandler& _rMailHandler, u32 _CRC)
 	temprbuffer = new int[1024 * 1024];
 
 	lCUCode_AX = new CUCode_AX(_rMailHandler);
+	lCUCode_AX->_CRC = _CRC;
 	_CRC = _CRC;
 }
 
@@ -86,6 +87,7 @@ void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 	}
 	else
 	{
+		//LOG_(0, "else");
 		AXParamBlockWii_ PBs[NUMBER_OF_PBS];
 		MixAdd_(_pBuffer, _iSize, PBs);
 	}
@@ -99,7 +101,7 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 	//AXParamBlockWii PBs[NUMBER_OF_PBS];
 
 	// read out pbs
-	int numberOfPBs = ReadOutPBsWii(m_addressPBs, PBs, NUMBER_OF_PBS);
+	int numberOfPBs = ReadOutPBsWii(m_addressPBs, PBs, NUMBER_OF_PBS, false);
 	
 	if (_iSize > 1024 * 1024)
 		_iSize = 1024 * 1024;
@@ -194,10 +196,9 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 			//MixAddVoice(pb, templbuffer, temprbuffer, _iSize);
 			MixAddVoice(PBs[i], templbuffer, temprbuffer, _iSize);
 		}
-	}	
+	}		
 
 	WriteBackPBsWii(m_addressPBs, PBs, numberOfPBs);
-
 	// We write the sound to _pBuffer
 	for (int i = 0; i < _iSize; i++)
 	{
@@ -350,7 +351,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		    Addr__AXOutSBuffer = Memory_Read_U32(uAddress);
 		    uAddress += 10;
 			// uAddress += 12;
-		    DebugLog("%08x : AXLIST OutSBuffer (0x0007) address: %08x", uAddress, Addr__AXOutSBuffer);
+		    SaveLog("%08x : AXLIST OutSBuffer (0x0007) address: %08x", uAddress, Addr__AXOutSBuffer);			
 		    break;
 
 /*	    case 0x0009:

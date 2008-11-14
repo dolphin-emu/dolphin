@@ -138,13 +138,6 @@ CDebugger::CDebugger(wxWindow *parent, wxWindowID id, const wxString &title,
 	//wxEVT_RIGHT_DOWN, wxEVT_MOUSEWHEEL, wxEVT_LEFT_UP, 
 	//m_bl95, m_PageBlock, sBlock
 
-	/*
-	for (int i = 0; i < 127; ++i)
-	{
-		m_bl0->AppendText(wxString::Format("%02i|68 : 01a70144\n", i));
-		m_bl95->AppendText(wxString::Format("%i Mouse\n", i));
-	}*/
-
 	m_bl95->Connect(wxID_ANY, wxEVT_SCROLLWIN_THUMBTRACK,
 		wxScrollWinEventHandler(CDebugger::ScrollBlocksCursor), (wxObject*)NULL, this);
 	m_bl95->Connect(wxID_ANY, wxEVT_SCROLLWIN_THUMBRELEASE,
@@ -729,7 +722,8 @@ void CDebugger::ChangeMail(wxCommandEvent& event)
 void CDebugger::ReadDir()
 {
 	CFileSearch::XStringVector Directories;
-	Directories.push_back("Logs/Mail");
+	//Directories.push_back("Logs/Mail");
+	Directories.push_back(FULL_MAIL_LOGS_DIR);	
 
 	CFileSearch::XStringVector Extensions;
 	Extensions.push_back("*.log");
@@ -857,7 +851,7 @@ std::string CDebugger::Readfile_(std::string FileName)
 // Read file
 void CDebugger::Readfile(std::string FileName, bool GC)
 {
-	int n = CountFiles(FileName);
+	int n = CountFiles(FileName); // count how many mails we have
 	int curr_n = 0;
 	std::ifstream file;
 	for (int i = 0; i < m_RadioBox[3]->GetCount(); i++)
@@ -897,12 +891,13 @@ void CDebugger::Readfile(std::string FileName, bool GC)
 
 
 // =======================================================================================
-// Only allow one selected game at a time
+// Read the file to the text window
 // ---------------
 void CDebugger::OnGameChange(wxCommandEvent& event)
 {
 	if(event.GetId() == 2006)
 	{
+		// Only allow one selected game at a time
 		for (int i = 0; i < m_gc->GetCount(); ++i)
 			if(i != event.GetInt()) m_gc->Check(i, false);
 		for (int i = 0; i < m_wii->GetCount(); ++i)

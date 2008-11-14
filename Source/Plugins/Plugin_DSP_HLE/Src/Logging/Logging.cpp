@@ -532,7 +532,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 	/**/
 	AXParamBlock PBs[64];
 	AXParamBlockWii PBw[NUMBER_OF_PBS];
-	int numberOfPBsWii = ReadOutPBsWii(m_addressPBs, PBw, NUMBER_OF_PBS - 1);
+	int numberOfPBsWii = ReadOutPBsWii(m_addressPBs, PBw, NUMBER_OF_PBS, true);
 	int numberOfPBsGC = ReadOutPBs(m_addressPBs, PBs, 64);
 	
 

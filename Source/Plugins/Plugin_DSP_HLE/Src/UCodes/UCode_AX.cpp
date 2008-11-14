@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "FileUtil.h" // for IsDirectory
+#include "StringUtil.h" // for StringFromFormat
 #include "../Debugger/Debugger.h"
 #include "../Logging/Console.h" // for aprintf
 #include <sstream>
@@ -119,7 +120,9 @@ if(m_frame->ScanMails)
                         ci << (saveNext - 1);
 			TmpMailLog += "\n\n";
 			TmpMailLog += "-----------------------------------------------------------------------\n";
-			TmpMailLog += "Current mail: " + gpName + " mail " + ci.str() + "\n\n";
+			TmpMailLog += "Current mail: " + gpName + " mail " + ci.str() + "\n";
+			if(Wii)
+				TmpMailLog += "Current CRC: " + StringFromFormat("0x%08x \n\n", _CRC);			
 
 			for (int i = 0; i < sMailTime.size(); i++)
 			{
@@ -143,7 +146,7 @@ if(m_frame->ScanMails)
 	{
 		TmpMailLog += Msg;
 		TmpMailLog += "\n";
-		LOG_(1, Msg);
+		LOG_(1, Msg); // also write it to the log
 	}
 }
 }

@@ -166,7 +166,7 @@ struct ARDMA
 
 
 // STATE_TO_SAVE
-u8 *g_ARAM = NULL;
+u8 *g_ARAM = NULL, *g_MEM2 = NULL;
 DSPState g_dspState;
 AudioDMA g_audioDMA;
 ARDMA g_arDMA;
@@ -206,6 +206,7 @@ void Init()
 	{
 		// On the Wii, ARAM is simply mapped to EXRAM.
 		g_ARAM = Memory::GetPointer(0x00000000);
+		g_MEM2 = Memory::GetPointer(0x10000000);
 	}
 	else
 	{
@@ -615,7 +616,9 @@ void Update_ARAM_DMA()
 // =============================================================
 // This is how it works: The game has written sound to RAM, the DSP will read it with
 // this function. SamplePos in the plugin is double the value given here because it
-// works on a nibble level.
+// works on a nibble level. In Wii addresses can eather be for MEM1 or MEM2, when it wants
+// to read from MEM2 it adds 0x2000000 (in nibble terms) to get up to the MEM2 hardware
+// address. But in our case we use a second pointer and adjust the value down to 0x00...
 // -------------------
 u8 ReadARAM(u32 _iAddress)
 {
@@ -624,9 +627,21 @@ u8 ReadARAM(u32 _iAddress)
 //	_dbg_assert_(DSPINTERFACE,(_iAddress) < ARAM_SIZE);
 	if(Core::GetStartupParameter().bWii)
 	{
+		//LOGV(DSPINTERFACE, 0, "ARAM (r) 0x%08x 0x%08x 0x%08x", WII_MASK, _iAddress, (_iAddress & WII_MASK));
+
+		// Does this make any sense?
 		if(_iAddress > WII_MASK)
-			_iAddress = (_iAddress & WII_MASK);
-		return g_ARAM[_iAddress];
+		{
+			if(_iAddress > WII_MASK)
+				_iAddress = (_iAddress & WII_MASK);
+			return g_MEM2[_iAddress];
+		}
+		else
+		{
+			if(_iAddress > WII_MASK)
+				_iAddress = (_iAddress & WII_MASK);
+			return g_ARAM[_iAddress];
+		}		
 	}
 	else
 		return g_ARAM[_iAddress & ARAM_MASK];
@@ -636,7 +651,7 @@ u8* GetARAMPtr()
 {
 	return g_ARAM;
 }
-// ===================
+
 
 
 void WriteARAM(u8 _iValue, u32 _iAddress)
@@ -650,4 +665,4 @@ void WriteARAM(u8 _iValue, u32 _iAddress)
 }
 
 } // end of namespace DSP
-
+// ===================
