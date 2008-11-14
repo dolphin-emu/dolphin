@@ -293,6 +293,10 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 }
 
 
+
+// ================================================
+// Voice hacks
+// --------------
 template<class ParamBlockType>
 inline void DoVoiceHacks(ParamBlockType &pb)
 {

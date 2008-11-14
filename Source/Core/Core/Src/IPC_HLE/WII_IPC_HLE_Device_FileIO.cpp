@@ -68,6 +68,8 @@ CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress)
 bool 
 CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)  
 { 
+	LOG(WII_IPC_FILEIO, "FileIO::Open=======================================================");
+
 	u32 ReturnValue = 0;
 
 	const char Modes[][128] =
@@ -108,7 +110,8 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
     }
 
     Memory::Write_U32(ReturnValue, _CommandAddress+4);
-    return true; 
+	LOG(WII_IPC_FILEIO, "===================================================================");
+    return true;
 }
 
 bool 

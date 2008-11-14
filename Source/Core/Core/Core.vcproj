@@ -1108,7 +1108,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_fs.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_fs.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_net.cpp"
 				>
 			</File>
 			<File
@@ -1141,6 +1149,14 @@
 			</File>
 			<File
 				RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_WiiMote.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\IPC_HLE\WiiMote_HID_Attr.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\IPC_HLE\WiiMote_HID_Attr.h"
 				>
 			</File>
 		</Filter>
@@ -1346,22 +1362,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\VolumeHandler.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_fs.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_net.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\IPC_HLE\WiiMote_HID_Attr.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\IPC_HLE\WiiMote_HID_Attr.h"
 			>
 		</File>
 	</Files>

@@ -354,6 +354,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 
 	case CREATE_FILE:
 		{
+			LOGV(WII_IPC_FILEIO, 0, "==============================================================");
 			_dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
 
 			u32 Addr = _BufferIn;
@@ -367,7 +368,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			u8 OtherPerm = Memory::Read_U8(Addr); Addr++;
 			u8 Attributes = Memory::Read_U8(Addr); Addr++;
 
-			LOG(WII_IPC_FILEIO, "FS: CreateFile %s", Filename.c_str());
+			LOGV(WII_IPC_FILEIO, 0, "FS: CreateFile %s", Filename.c_str());
 			LOG(WII_IPC_FILEIO, "    OwnerID: 0x08%x", OwnerID);
 			LOG(WII_IPC_FILEIO, "    GroupID: 0x04%x", GroupID);
 			LOG(WII_IPC_FILEIO, "    OwnerPerm: 0x02%x", OwnerPerm);
@@ -400,7 +401,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 		PanicAlert("CWII_IPC_HLE_Device_fs::IOCtl: ni  0x%x", _Parameter);
 		break;
 	}
-
+	LOGV(WII_IPC_FILEIO, 0, "==============================================================");
 	return FS_RESULT_FATAL;
 }
 
