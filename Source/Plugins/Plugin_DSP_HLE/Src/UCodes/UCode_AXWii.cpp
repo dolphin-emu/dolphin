@@ -45,6 +45,7 @@ extern CDebugger * m_frame;
 CUCode_AXWii::CUCode_AXWii(CMailHandler& _rMailHandler, u32 _CRC)
 	: IUCode(_rMailHandler)
 	, m_addressPBs(0xFFFFFFFF)
+	, _CRC(_CRC)
 {
 	// we got loaded
 	m_rMailHandler.PushMail(0xDCD10000);
@@ -55,7 +56,6 @@ CUCode_AXWii::CUCode_AXWii(CMailHandler& _rMailHandler, u32 _CRC)
 
 	lCUCode_AX = new CUCode_AX(_rMailHandler);
 	lCUCode_AX->_CRC = _CRC;
-	_CRC = _CRC;
 }
 
 CUCode_AXWii::~CUCode_AXWii()
@@ -80,14 +80,16 @@ void CUCode_AXWii::HandleMail(u32 _uMail)
 
 void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 {
+	LOG_(0, "MixAdd  %08x", _CRC);
 	if(_CRC == 0xfa450138)
 	{
+		LOG_(0, "THIS");
 		AXParamBlockWii PBs[NUMBER_OF_PBS];
 		MixAdd_( _pBuffer, _iSize, PBs);
 	}
 	else
 	{
-		//LOG_(0, "else");
+		LOG_(0, "else");
 		AXParamBlockWii_ PBs[NUMBER_OF_PBS];
 		MixAdd_(_pBuffer, _iSize, PBs);
 	}
@@ -96,7 +98,6 @@ void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 
 template<class ParamBlockType>
 void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
-//void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize)
 {
 	//AXParamBlockWii PBs[NUMBER_OF_PBS];
 
@@ -183,19 +184,7 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 
 	for (int i = 0; i < numberOfPBs; i++)
 	{		
-		if(_CRC == 0xfa450138)
-		{
-			//ParamBlockType pb = PBs[i];
-			//AXParamBlockWii& pb = PBs[i];
-			//MixAddVoice(pb, templbuffer, temprbuffer, _iSize);
-			MixAddVoice(PBs[i], templbuffer, temprbuffer, _iSize);
-		}
-		else
-		{
-			//AXParamBlockWii_& pb = PBs[i];
-			//MixAddVoice(pb, templbuffer, temprbuffer, _iSize);
-			MixAddVoice(PBs[i], templbuffer, temprbuffer, _iSize);
-		}
+		MixAddVoice(PBs[i], templbuffer, temprbuffer, _iSize);
 	}		
 
 	WriteBackPBsWii(m_addressPBs, PBs, numberOfPBs);
