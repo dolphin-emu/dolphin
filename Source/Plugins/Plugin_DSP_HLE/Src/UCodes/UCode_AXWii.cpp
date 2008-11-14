@@ -181,7 +181,7 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 
 	for (int i = 0; i < numberOfPBs; i++)
 	{		
-		MixAddVoice(PBs[i], templbuffer, temprbuffer, _iSize);
+		MixAddVoice(PBs[i], templbuffer, temprbuffer, _iSize, true);
 	}		
 
 	WriteBackPBsWii(m_addressPBs, PBs, numberOfPBs);

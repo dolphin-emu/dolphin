@@ -249,105 +249,6 @@ if(m_frame->ScanMails)
 // ----------------
 
 
-void DoVoiceHacks(AXParamBlock &pb)
-{
-	// get necessary values
-	const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
-	const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
-	const u32 updaddr   = (u32)(pb.updates.data_hi << 16) | pb.updates.data_lo;
-	const u16 updpar    = Memory_Read_U16(updaddr);
-	const u16 upddata   = Memory_Read_U16(updaddr + 2);
-
-	// =======================================================================================
-	/* Fix problems introduced with the SSBM fix - Sometimes when a music stream ended sampleEnd
-	would become extremely high and the game would play random sound data from ARAM resulting in
-	a strange noise. This should take care of that. - Some games (Monkey Ball 1 and Tales of
-	Symphonia and other) also had one odd last block with a strange high loopPos and strange
-	num_updates values, the loopPos limit turns those off also. - Please report any side effects.
-	*/
-	// ------------
-	if (
-		(sampleEnd > 0x10000000 || loopPos > 0x10000000)
-		&& gSSBMremedy1
-		)
-	{
-		pb.running = 0;
-
-		// also reset all values if it makes any difference
-		pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
-		pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
-		pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
-
-		pb.src.cur_addr_frac = 0; pb.src.ratio_hi = 0; pb.src.ratio_lo = 0;
-		pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
-
-		pb.audio_addr.looping = 0;
-		pb.adpcm_loop_info.pred_scale = 0;
-		pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
-	}
-
-	/*
-	// the fact that no settings are reset (except running) after a SSBM type music stream or another
-	looping block (for example in Battle Stadium DON) has ended could cause loud garbled sound to be
-	played from one or more blocks. Perhaps it was in conjunction with the old sequenced music fix below,
-	I'm not sure. This was an attempt to prevent that anyway by resetting all. But I'm not sure if this
-	is needed anymore. Please try to play SSBM without it and see if it works anyway.
-	*/
-	if (
-	// detect blocks that have recently been running that we should reset
-	pb.running == 0 && pb.audio_addr.looping == 1
-	//pb.running == 0 && pb.adpcm_loop_info.pred_scale
-
-	// this prevents us from ruining sequenced music blocks, may not be needed
-	/*
-	&& !(pb.updates.num_updates[0] || pb.updates.num_updates[1] || pb.updates.num_updates[2]
-		|| pb.updates.num_updates[3] || pb.updates.num_updates[4])
-	*/	
-	&& !(updpar || upddata)
-
-	&& pb.mixer_control == 0 // only use this in SSBM
-
-	&& gSSBMremedy2 // let us turn this fix on and off
-	)
-	{
-		// reset the detection values
-		pb.audio_addr.looping = 0;
-		pb.adpcm_loop_info.pred_scale = 0;
-		pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
-
-		//pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
-		//pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
-		//pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
-
-		//pb.src.cur_addr_frac = 0; PBs[i].src.ratio_hi = 0; PBs[i].src.ratio_lo = 0;
-		//pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
-	}
-	
-	// =============
-
-
-	// =======================================================================================
-	// Reset all values
-	// ------------
-	if (gReset
-		&& (pb.running || pb.audio_addr.looping || pb.adpcm_loop_info.pred_scale)
-		)	
-	{
-		pb.running = 0;
-
-		pb.audio_addr.cur_addr_hi = 0; pb.audio_addr.cur_addr_lo = 0;
-		pb.audio_addr.end_addr_hi = 0; pb.audio_addr.end_addr_lo = 0;
-		pb.audio_addr.loop_addr_hi = 0; pb.audio_addr.loop_addr_lo = 0;
-
-		pb.src.cur_addr_frac = 0; pb.src.ratio_hi = 0; pb.src.ratio_lo = 0;
-		pb.adpcm.pred_scale = 0; pb.adpcm.yn1 = 0; pb.adpcm.yn2 = 0;
-
-		pb.audio_addr.looping = 0;
-		pb.adpcm_loop_info.pred_scale = 0;
-		pb.adpcm_loop_info.yn1 = 0; pb.adpcm_loop_info.yn2 = 0;
-	}
-}
-
 int ReadOutPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num)
 {
 	int count = 0;
@@ -448,7 +349,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 	for (int i = 0; i < numberOfPBs; i++)
 	{
 		AXParamBlock& pb = PBs[i];
-		MixAddVoice(pb, templbuffer, temprbuffer, _iSize);
+		MixAddVoice(pb, templbuffer, temprbuffer, _iSize, false);
 	}
 
 	// write back out pbs
