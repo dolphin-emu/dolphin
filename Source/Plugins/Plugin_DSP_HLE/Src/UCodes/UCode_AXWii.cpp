@@ -80,16 +80,13 @@ void CUCode_AXWii::HandleMail(u32 _uMail)
 
 void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 {
-	LOG_(0, "MixAdd  %08x", _CRC);
 	if(_CRC == 0xfa450138)
 	{
-		LOG_(0, "THIS");
 		AXParamBlockWii PBs[NUMBER_OF_PBS];
 		MixAdd_( _pBuffer, _iSize, PBs);
 	}
 	else
 	{
-		LOG_(0, "else");
 		AXParamBlockWii_ PBs[NUMBER_OF_PBS];
 		MixAdd_(_pBuffer, _iSize, PBs);
 	}
