@@ -31,7 +31,6 @@ extern float ratioFactor;
 
 template<class ParamBlockType>
 inline int ReadOutPBsWii(u32 pbs_address, ParamBlockType& _pPBs, int _num, int _deb)
-//int ReadOutPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
 {
 	int count = 0;
 	u32 blockAddr = pbs_address;

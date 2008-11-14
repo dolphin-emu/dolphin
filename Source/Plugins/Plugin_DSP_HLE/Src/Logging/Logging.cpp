@@ -456,6 +456,10 @@ template<class ParamBlockType> void CollectPB(bool Wii, int i, ParamBlockType &P
 	gsampleEnd[i] = (PBs[i].audio_addr.end_addr_hi << 16) | PBs[i].audio_addr.end_addr_lo;
 	gsamplePos[i] = (PBs[i].audio_addr.cur_addr_hi << 16) | PBs[i].audio_addr.cur_addr_lo;
 
+	if(gloopPos[i] > 0x20000000) gloopPos[i] -= 0x20000000;
+	if(gsampleEnd[i] > 0x20000000) gsampleEnd[i] -= 0x20000000;
+	if(gsamplePos[i] > 0x20000000) gsamplePos[i] -= 0x20000000;
+
 	// PBADPCMLoopInfo adpcm_loop_info (same in GC and Wii)
 	gadloop1[i] = PBs[i].adpcm.pred_scale;
 	gadloop2[i] = PBs[i].adpcm.yn1;
@@ -530,22 +534,27 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 {
 	// Declare structures
 	/**/
-	AXParamBlock PBs[64];
-	AXParamBlockWii PBw[NUMBER_OF_PBS];
-	int numberOfPBsWii = ReadOutPBsWii(m_addressPBs, PBw, NUMBER_OF_PBS, true);
-	int numberOfPBsGC = ReadOutPBs(m_addressPBs, PBs, 64);
-	
+	int version; // AX version
+	int numberOfPBs, numberOfPBsWii, numberOfPBsGC;
+	bool Conditions; // Select blocks to show
 
-	/**/
+	AXParamBlock PBs[NUMBER_OF_PBS];
+	AXParamBlockWii PBw[NUMBER_OF_PBS];
+	AXParamBlockWii_ PBw_[NUMBER_OF_PBS];
+	if(_CRC == 0xfa450138) LOG_(0, "CRC old");
+	if(_CRC == 0xfa450138) version = 0;
+
 	// Read out the number of PBs that have data
-	int numberOfPBs;
-	if(Wii)
-		numberOfPBs = numberOfPBsWii;
-	else	
-		numberOfPBs = numberOfPBsGC;
+	if(_CRC == 0xfa450138)
+		numberOfPBsWii = ReadOutPBsWii(m_addressPBs, PBw, NUMBER_OF_PBS, true);
+	else
+		numberOfPBsWii = ReadOutPBsWii(m_addressPBs, PBw_, NUMBER_OF_PBS, true);
+	numberOfPBsGC = ReadOutPBs(m_addressPBs, PBs, NUMBER_OF_PBS);
 	
-	// Select blocks to show
-	bool Conditions;
+	// Select the right one
+	if(Wii) numberOfPBs = numberOfPBsWii;
+	else numberOfPBs = numberOfPBsGC;
+	
 
 	// =======================================================================================
 	// Update parameter values
@@ -584,7 +593,8 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 		// Prepare conditions
 		/**/
 		if(Wii)
-			Conditions = PrepareConditions(Wii, i, PBw);
+			if(version == 0) Conditions = PrepareConditions(Wii, i, PBw);
+			else Conditions = PrepareConditions(Wii, i, PBw_);
 		else
 			Conditions = PrepareConditions(Wii, i, PBs);
 
@@ -593,7 +603,8 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 		{
 			 // Collect parameters
 			if(Wii)
-				CollectPB(Wii, i, PBw);
+				if(version == 0) CollectPB(Wii, i, PBw);
+				else CollectPB(Wii, i, PBw_);				
 			else
 				CollectPB(Wii, i, PBs);
 
@@ -726,7 +737,8 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 		{
 		// Prepare conditions. TODO: We use this in two places now, make it only one
 		/**/if(Wii)
-			Conditions = PrepareConditions(Wii, i, PBw);
+			if(version == 0) Conditions = PrepareConditions(Wii, i, PBw);
+			else Conditions = PrepareConditions(Wii, i, PBw_);
 		else
 			Conditions = PrepareConditions(Wii, i, PBs);
 
@@ -824,8 +836,8 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 			nOfBlocks = (gLastBlock-m_addressPBs) / 256;
 		else
 			nOfBlocks = (gLastBlock-m_addressPBs) / 192;
-		sprintf(buffer, "\nThe parameter blocks span from %08x to %08x | distance %i | num. of blocks %i | _iSize %i | numberOfPBs %i\n",
-			m_addressPBs, gLastBlock, (gLastBlock-m_addressPBs), nOfBlocks, _iSize, numberOfPBs);
+		sprintf(buffer, "\nThe parameter blocks span from %08x to %08x | distance %i | num. of blocks %i | numberOfPBs %i | _iSize %i\n",
+			m_addressPBs, gLastBlock, (gLastBlock-m_addressPBs), nOfBlocks, numberOfPBs, _iSize);
 		sbuff = sbuff + buffer; strcpy(buffer, "");
 		// ===============
 			

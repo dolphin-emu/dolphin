@@ -71,7 +71,8 @@ enum
 {
 	ARAM_SIZE	= 0x01000000,			// 16 MB
 	ARAM_MASK	= 0x00FFFFFF,
-	WII_MASK	= 0x017FFFFF
+	WII_MASK	= 0x017FFFFF,
+	WII_MEM2	= 0x03FFFFFF
 };
 
 // UARAMCount
@@ -632,8 +633,8 @@ u8 ReadARAM(u32 _iAddress)
 		// Does this make any sense?
 		if(_iAddress > WII_MASK)
 		{
-			if(_iAddress > WII_MASK)
-				_iAddress = (_iAddress & WII_MASK);
+			if(_iAddress > WII_MEM2)
+				_iAddress = (_iAddress & WII_MEM2);
 			return g_MEM2[_iAddress];
 		}
 		else
