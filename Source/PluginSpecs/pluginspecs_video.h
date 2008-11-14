@@ -39,11 +39,10 @@ typedef struct
 	volatile BOOL bFF_BPEnable;
 	volatile BOOL bFF_GPLinkEnable;
 	volatile BOOL bFF_Breakpoint;
-#ifdef _WIN32
-//	CRITICAL_SECTION sync;
-#else 
-    Common::CriticalSection *sync;
-#endif
+
+	// for GP watchdog hack
+	volatile BOOL Fake_GPWDInterrupt;
+	volatile u32 Fake_GPWDToken; // cicular incrementer
 } SCPFifoStruct;
 
 typedef struct
@@ -137,7 +136,7 @@ EXPORT void CALL Video_Shutdown(void);
 // input:    a data-byte (i know we have to optimize this ;-))
 // output:   none
 //
-EXPORT void CALL Video_SendFifoData(u8* _uData);
+EXPORT void CALL Video_SendFifoData(u8* _uData, u32 len);
 
 // __________________________________________________________________________________________________
 // Function: Video_UpdateXFB

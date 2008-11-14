@@ -67,12 +67,9 @@ u8* FAKE_GetFifoEndPtr()
 	return &videoBuffer[size];
 }
 
-void Video_SendFifoData(u8* _uData)
+void Video_SendFifoData(u8* _uData, u32 len)
 {
-	// TODO (mb2): unrolled loop faster than memcpy here?
-    memcpy(videoBuffer + size, _uData, 32);
-    size += 32;
-    if (size + 32 >= FIFO_SIZE)
+    if (size + len >= FIFO_SIZE)
     {
 		int pos = (int)(g_pVideoData-videoBuffer);
         if (size-pos > pos)
@@ -83,12 +80,38 @@ void Video_SendFifoData(u8* _uData)
         size -= pos;
 		g_pVideoData = FAKE_GetFifoStartPtr();
     }
+    memcpy(videoBuffer + size, _uData, len);
+    size += len;
     OpcodeDecoder_Run();
 }
 
+// for GP watchdog hack
+THREAD_RETURN GPWatchdogThread(void *pArg)
+{
+	const SCPFifoStruct &_fifo = *(SCPFifoStruct*)pArg;
+	u32 token = 0;
 
-//TODO - turn inside out, have the "reader" ask for bytes instead
-// See Core.cpp for threading idea
+	Common::SetCurrentThreadName("GPWatchdogThread");
+	Common::Thread::SetCurrentThreadAffinity(2); //Force to second core
+	//int i=30*1000/16;
+	while (1)
+	{
+		Common::SleepCurrentThread(8);	 // about 1s/60/2 (less than twice a frame should be enough)
+		//if (!_fifo.bFF_GPReadIdle)
+
+		// TODO (mb2): FIX this !!!
+		//if (token == _fifo.Fake_GPWDToken)
+		{
+			InterlockedExchange((LONG*)&_fifo.Fake_GPWDInterrupt, 1);
+			//__Log(LogTypes::VIDEO,"!!! Watchdog hit",_fifo.CPReadWriteDistance);
+		}
+		token = _fifo.Fake_GPWDToken;
+		//i--;
+	}
+	return 0;
+}
+
+
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 {
     SCPFifoStruct &_fifo = *video_initialize.pCPFifo;
@@ -96,6 +119,10 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 	HANDLE hEventOnIdle= OpenEventA(EVENT_ALL_ACCESS,FALSE,(LPCSTR)"EventOnIdle");
 	if (hEventOnIdle==NULL) PanicAlert("Fifo_EnterLoop() -> EventOnIdle NULL");
 #endif
+
+	// for GP watchdog hack
+	Common::Thread *watchdogThread = NULL;
+	watchdogThread = new Common::Thread(GPWatchdogThread, (void*)&_fifo);
 
 #ifdef _WIN32
     // TODO(ector): Don't peek so often!
@@ -123,7 +150,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 #if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
             while(_fifo.CPReadWriteDistance > 0)
 #else
-            while(_fifo.bFF_GPReadEnable && (_fifo.CPReadWriteDistance > 0) )// && count)
+            while(_fifo.bFF_GPReadEnable && (_fifo.CPReadWriteDistance > 0) )
 #endif
 			{
                 // check if we are on a breakpoint
@@ -144,28 +171,27 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 
                 // read the data and send it to the VideoPlugin
                 u8 *uData = video_initialize.pGetMemoryPointer(_fifo.CPReadPointer);
-#ifdef _WIN32
-                //EnterCriticalSection(&_fifo.sync);
-#else
-                //                _fifo.sync->Enter();
-#endif
-                Video_SendFifoData(uData);
-				// increase the ReadPtr
-				u32 readPtr = _fifo.CPReadPointer+32;
-                if (readPtr >= _fifo.CPEnd)
-                    readPtr = _fifo.CPBase;				
+
+				u32 dist = _fifo.CPReadWriteDistance;
+				u32 readPtr = _fifo.CPReadPointer;
+				if ( (dist+readPtr) > _fifo.CPEnd) // TODO: better
+				{
+					dist =_fifo.CPEnd - readPtr;
+					readPtr = _fifo.CPBase;
+				}
+				else
+					readPtr += dist; 
+				
+				Video_SendFifoData(uData, dist);
 #ifdef _WIN32
                 InterlockedExchange((LONG*)&_fifo.CPReadPointer, readPtr);
-                InterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -32);
-                //LeaveCriticalSection(&_fifo.sync);
+                InterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -dist);
 #else 
                 Common::InterlockedExchange((int*)&_fifo.CPReadPointer, readPtr);
-                Common::InterlockedExchangeAdd((int*)&_fifo.CPReadWriteDistance, -32);
-                //                _fifo.sync->Leave();
+                Common::InterlockedExchangeAdd((int*)&_fifo.CPReadWriteDistance, -dist);
 #endif
-            }
+			}
         }
-
     }
 #if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
 	CloseHandle(hEventOnIdle);

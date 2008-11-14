@@ -177,6 +177,7 @@ void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 {
 	g_bSignalFinishInterrupt = 1;	
 	UpdateInterrupts();
+	CommandProcessor::IncrementGPWDToken();
 }
 
 // SetToken

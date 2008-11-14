@@ -26,22 +26,32 @@
 // - Animal Crossing: PEfinish at start but there's a bug... 
 //		There's tons of HiWmk/LoWmk ping pong -> Another sync fashion?
 
+// *What I guess (thx to asynchronous DualCore mode):
+// PPC have a frame-finish watchdog. Handled by system timming stuff like the decrementer.
+// (DualCore mode): I have observed, after ZTP logos, a fifo-recovery start when DECREMENTER_EXCEPTION is throwned. 
+// The frame setting (by GP) took too much time and didn't finish properly due to this watchdog. 
+// Faster GX plugins required, indeed :p
+
 // * BPs are needed for some game GP/CPU sync.
 // But it could slowdown (MP1 at least) because our GP in DC is faster than "expected" in some area.
 // eg: in movie-menus in MP1, BP are reached quickly.
 // The bad thing is that involve too much PPC work (int ack, lock GP, reset BP, new BP addr, unlock BP...) hence the slowdown.
-// Anyway, emulation is more accurate like this and it emulate some sort of better load balancing.
+// Anyway, emulation should more accurate like this and it emulate some sort of better load balancing.
 // Eather way in those area a more accurate GP timing could be done by slowing down the GP or something less stupid.
+// Not functional and not used atm (breaks MP2).
 
 // * funny, in revs before those with this note, BP irq wasn't cleared (a bug indeed) and MP1 menus was faster.
 // BP irq was raised and ack just once but never cleared. However it's sufficient for MP1 to work.
-// I see a possible ugly hack there :p
+// This hack is used atm. Known BPs handling doesn't work well (btw, BP irq clearing might be done by CPIntEnable raising edge).
+// The hack seems to be responsible of the movie stutering in MP1 menus.
 
 // TODO (mb2):
-// * raise watermark Ov/Un irq: DONE but not commited because useless(?) and it slowdown DC. 
-//		TODO: commit #ifdef'ed?... if I'm begged :p
-// * raise ReadIdle/CmdIdle irq and observe behaviour of MP1 & ZTP (at least)
-// * find who command a complete fifo flush (could be some sort of timeout + wait for ReadIdle irq)
+// * raise watermark Ov/Un irq: POINTLESS since emulated GP timings can't be accuratly set.
+//   Only 3 choises IMHO for a correct emulated load balancing in DC mode:
+//		- make our own GP watchdog hack that can lock CPU if GP too slow.
+//		- hack directly something in PPC timings (dunno how)
+//		- boost GP so we can consider it as infinitly fast compared to CPU.
+// * raise ReadIdle/CmdIdle flags and observe behaviour of MP1 & ZTP (at least)
 // * investigate VI and PI for fixing the DC ZTP bug.
 // * Clean useless comments and debug stuff in Read16, Write16, GatherPipeBursted when sync will be fixed for DC
 // * (reminder) do the same in:
@@ -160,6 +170,16 @@ inline u16 ReadHigh (u32 _reg)  {return (u16)(_reg >> 16);}
 
 int et_UpdateInterrupts;
 
+// for GP watchdog hack
+void IncrementGPWDToken()
+{
+#ifdef WIN32
+	InterlockedIncrement((LONG*)&fifo.Fake_GPWDToken);
+#else
+	//TODO
+#endif
+}
+
 void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
 {
 	UpdateInterrupts();
@@ -180,17 +200,14 @@ void Init()
 
 	m_tokenReg = 0;
 
-	fifo.bFF_GPReadEnable = FALSE;
-	fifo.bFF_GPLinkEnable = FALSE;
-	fifo.bFF_BPEnable = FALSE;
-
+	fifo.bFF_GPReadEnable	= FALSE;
+	fifo.bFF_GPLinkEnable	= FALSE;
+	fifo.bFF_BPEnable		= FALSE;
+	// for GP watchdog hack
+	fifo.Fake_GPWDInterrupt = FALSE;
+	fifo.Fake_GPWDToken		= 0;
 	et_UpdateInterrupts = CoreTiming::RegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
 
-#ifdef _WIN32
-	//InitializeCriticalSection(&fifo.sync);
-#else
-        //        fifo.sync = new Common::CriticalSection(0);
-#endif
 }
 
 void Shutdown()
@@ -250,6 +267,9 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 	case FIFO_BP_LO:			_rReturnValue = ReadLow (fifo.CPBreakpoint); return;
 	case FIFO_BP_HI:			_rReturnValue = ReadHigh(fifo.CPBreakpoint); return;
 
+//	case 0x42: // first metric reg (I guess) read in case of "fifo unknown state"
+//		Crash();
+//		return;
 
 //	case 0x64:
 //		return 4; //Number of clocks per vertex.. todo: calculate properly
@@ -313,11 +333,6 @@ void Write16(const u16 _Value, const u32 _Address)
 				ct++;
 			if (ct) {LOG(COMMANDPROCESSOR, "(Write16): %lu cycles for nothing :[ ", ct);}
 		}
-	#ifdef _WIN32
-		//EnterCriticalSection(&fifo.sync);
-    #else
-                //        fifo.sync->Enter();
-	#endif
 	}
 
 	switch (_Address & 0xFFF)
@@ -451,30 +466,18 @@ void Write16(const u16 _Value, const u32 _Address)
 	case FIFO_RW_DISTANCE_LO:	
 		LOG(COMMANDPROCESSOR,"try to write to %s : %04x",((_Address & 0xFFF) == FIFO_RW_DISTANCE_HI)	? "FIFO_RW_DISTANCE_HI" : "FIFO_RW_DISTANCE_LO", _Value);
 		_dbg_assert_msg_(COMMANDPROCESSOR, _Value==0, "WTF? attempt to overwrite fifo CPReadWriteDistance with a value(%04x) != 0 ",_Value);
-		// TODO: break this hack
-		// hack: if fifo is not empty and readable then spin until flushed
-		// sleeping here is not a perf issue since GXSetFifo shouldn't be called too much often.
-		while((fifo.CPReadWriteDistance>0) && (fifo.bFF_GPReadEnable==1))
-			Common::SleepCurrentThread(1);
-		_dbg_assert_msg_(COMMANDPROCESSOR, !(fifo.CPReadWriteDistance!=0 && fifo.bFF_GPReadEnable==0), "Is that bad? WARNING: reset a not empty and not readable fifo.\n CPReadWriteDistance: %08x | fifo.bFF_GPReadEnable: %i",fifo.CPReadWriteDistance,fifo.bFF_GPReadEnable);
+		
+		// This SHOULD NOT be a problem to overwrite here unless this msg appears:
+		_dbg_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance==0, "Is that bad? WARNING: reset a non empty fifo.\n CPReadWriteDistance: %08x | fifo.bFF_GPReadEnable: %i",fifo.CPReadWriteDistance,fifo.bFF_GPReadEnable);
+		//_dbg_assert_msg_(COMMANDPROCESSOR, !(fifo.CPReadWriteDistance!=0 && fifo.bFF_GPReadEnable==0), "Is that bad? WARNING: reset a not empty and not readable fifo.\n CPReadWriteDistance: %08x | fifo.bFF_GPReadEnable: %i",fifo.CPReadWriteDistance,fifo.bFF_GPReadEnable);
+
 #ifdef _WIN32
-		InterlockedExchange((LONG*)&fifo.CPReadWriteDistance, 0);
+		//InterlockedExchange((LONG*)&fifo.CPReadWriteDistance, 0);
 #else
-                Common::InterlockedExchange((int*)&fifo.CPReadWriteDistance, 0);
+        //Common::InterlockedExchange((int*)&fifo.CPReadWriteDistance, 0);
 #endif
 		break;
 	}
-
-	// (mb2) very dangerous to UpdateFifoRegister() that way in DC when there no criticalsections anymore
-	//       ... completely useless btw :p
-	// update the registers and run the fifo
-	//UpdateFifoRegister();	
-	//if (Core::g_CoreStartupParameter.bUseDualCore)
-#ifdef _WIN32
-		//LeaveCriticalSection(&fifo.sync);
-#else
-        //        fifo.sync->Leave();
-#endif
 }
 
 void Read32(u32& _rReturnValue, const u32 _Address)
@@ -496,6 +499,17 @@ void GatherPipeBursted()
 
 	if (Core::g_CoreStartupParameter.bUseDualCore)
 	{
+		// for GP watchdog hack
+		if (fifo.Fake_GPWDInterrupt)
+		{
+			// Wait for GPU to catch up
+			while (fifo.CPReadWriteDistance > 0) // TOCHECK: more checks could be needed
+				;
+			InterlockedExchange((LONG*)&fifo.Fake_GPWDInterrupt, 0);
+			LOGV(COMMANDPROCESSOR, 2, "!!! Fake_GPWDInterrupt raised. Fake_GPWDToken %i",fifo.Fake_GPWDToken);
+		}
+
+
 		// update the fifo-pointer
 		fifo.CPWritePointer += GPFifo::GATHER_PIPE_SIZE;
 		if (fifo.CPWritePointer >= fifo.CPEnd) 
@@ -506,25 +520,13 @@ void GatherPipeBursted()
         Common::InterlockedExchangeAdd((int*)&fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
 #endif
 
-		// Wait for GPU to catch up
-#if 0
-		// High watermark overflow handling: hacked way
-		u32 ct=0;
-		while (!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint) && fifo.CPReadWriteDistance > (s32)fifo.CPHiWatermark)
-		{
-			ct++;
-			// dunno if others threads (like the audio thread) really need a forced context switch here
-			//Common::SleepCurrentThread(1);
-		}
-		if (ct) {LOG(COMMANDPROCESSOR, "(GatherPipeBursted): %lu cycles for nothing :[ ", ct);}
-#else		
-		// High watermark overflow handling: less hacked way
+		// High watermark overflow handling (hacked way)
 		u32 ct=0;
 		if (fifo.CPReadWriteDistance > (s32)fifo.CPHiWatermark)
 		{
 			// we should raise an Ov interrupt for an accurate fifo emulation and let PPC deal with it.
 			// But it slowdown things because of if(interrupt blah blah){} blocks for each 32B fifo transactions.
-			// CPU would be a bit more loaded too by interrupt handling...
+			// CPU would be a bit more loaded too by its interrupt handling...
 			// Eather way, CPU would have the ability to resume another thread.
 			// To be clear: this spin loop is like a critical section spin loop in the emulated GX thread hence "hacked way"
 
@@ -538,6 +540,7 @@ void GatherPipeBursted()
 			//		- CPU can write to fifo
 			//		- disable Underflow interrupt
 
+			// Wait for GPU to catch up
 			//while (!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint) && fifo.CPReadWriteDistance > (s32)fifo.CPLoWatermark)
 			while (fifo.CPReadWriteDistance > (s32)fifo.CPLoWatermark)
 			{
@@ -545,21 +548,13 @@ void GatherPipeBursted()
 				// dunno if others threads (like the audio thread) really need a forced context switch here
 				//Common::SleepCurrentThread(1);
 			}
-			if (ct) {LOG(COMMANDPROCESSOR, "(GatherPipeBursted): %lu cycles for nothing :[ ", ct);}
+			if (ct) {LOG(COMMANDPROCESSOR, "(GatherPipeBursted): %lu cycles for nothing :[", ct);}
 			/**/
 		}
-#endif
 		// check if we are in sync
 		_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== CPeripheralInterface::Fifo_CPUWritePointer, "FIFOs linked but out of sync");
 		_assert_msg_(COMMANDPROCESSOR, fifo.CPBase			== CPeripheralInterface::Fifo_CPUBase, "FIFOs linked but out of sync");
 		_assert_msg_(COMMANDPROCESSOR, fifo.CPEnd			== CPeripheralInterface::Fifo_CPUEnd, "FIFOs linked but out of sync");
-
-		// no not from CPU. Only GP can throw BP irq
-		/*if (fifo.bFF_Breakpoint)
-		{
-			m_CPStatusReg.Breakpoint = 1;
-			UpdateInterrupts();
-		}/**/
 	}
 	else
 	{
@@ -606,7 +601,7 @@ void CatchUpGPU()
 			// We are going to do FP math on the main thread so have to save the current state
 			SaveSSEState();
 			LoadDefaultSSEState();
-			PluginVideo::Video_SendFifoData(ptr);
+			PluginVideo::Video_SendFifoData(ptr,32);
 			LoadSSEState();
 
 			fifo.CPReadWriteDistance -= 32;
