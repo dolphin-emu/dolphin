@@ -102,7 +102,11 @@ THREAD_RETURN GPWatchdogThread(void *pArg)
 		// TODO (mb2): FIX this !!!
 		//if (token == _fifo.Fake_GPWDToken)
 		{
+#ifdef _WIN32
 			InterlockedExchange((LONG*)&_fifo.Fake_GPWDInterrupt, 1);
+#else
+                        Common::InterlockedExchange((int*)&_fifo.Fake_GPWDInterrupt, 1);
+#endif 
 			//__Log(LogTypes::VIDEO,"!!! Watchdog hit",_fifo.CPReadWriteDistance);
 		}
 		token = _fifo.Fake_GPWDToken;

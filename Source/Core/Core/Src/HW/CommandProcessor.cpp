@@ -505,7 +505,11 @@ void GatherPipeBursted()
 			// Wait for GPU to catch up
 			while (fifo.CPReadWriteDistance > 0) // TOCHECK: more checks could be needed
 				;
+#ifdef _WIN32                        
 			InterlockedExchange((LONG*)&fifo.Fake_GPWDInterrupt, 0);
+#else 
+                        Common::InterlockedExchange((int*)&fifo.Fake_GPWDInterrupt, 0);
+#endif
 			LOGV(COMMANDPROCESSOR, 2, "!!! Fake_GPWDInterrupt raised. Fake_GPWDToken %i",fifo.Fake_GPWDToken);
 		}
 
