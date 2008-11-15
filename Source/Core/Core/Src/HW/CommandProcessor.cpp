@@ -47,10 +47,10 @@
 
 // TODO (mb2):
 // * raise watermark Ov/Un irq: POINTLESS since emulated GP timings can't be accuratly set.
-//   Only 3 choises IMHO for a correct emulated load balancing in DC mode:
+//   Only 3 choices IMHO for a correct emulated load balancing in DC mode:
 //		- make our own GP watchdog hack that can lock CPU if GP too slow.
 //		- hack directly something in PPC timings (dunno how)
-//		- boost GP so we can consider it as infinitly fast compared to CPU.
+//		- boost GP so we can consider it as infinitely fast compared to CPU.
 // * raise ReadIdle/CmdIdle flags and observe behaviour of MP1 & ZTP (at least)
 // * investigate VI and PI for fixing the DC ZTP bug.
 // * Clean useless comments and debug stuff in Read16, Write16, GatherPipeBursted when sync will be fixed for DC
@@ -173,11 +173,29 @@ int et_UpdateInterrupts;
 // for GP watchdog hack
 void IncrementGPWDToken()
 {
-#ifdef _WIN32
+#ifdef WIN32
 	InterlockedIncrement((LONG*)&fifo.Fake_GPWDToken);
 #else
-        Common::InterlockedIncrement((int*)&fifo.Fake_GPWDToken);
+    Common::InterlockedIncrement((int*)&fifo.Fake_GPWDToken);
 #endif
+}
+
+void CheckGPWDInterruptForSpinlock()
+{
+	if (fifo.Fake_GPWDInterrupt)
+	{
+		// Wait for GPU to catch up
+		while (fifo.bFF_GPReadEnable && (fifo.CPReadWriteDistance > 0) && !(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
+		//while (fifo.bFF_GPReadEnable && (fifo.CPReadWriteDistance > 0))
+			;
+		//if (!fifo.bFF_GPReadEnable) PanicAlert("WARNING: Fake_GPWDInterrupt raised but can't flush fifo. Fake_GPWDToken %i",fifo.Fake_GPWDToken);
+#ifdef _WIN32
+		InterlockedExchange((LONG*)&fifo.Fake_GPWDInterrupt, 0); 
+#else
+        Common::InterlockedExchange((int*)&fifo.Fake_GPWDInterrupt, 0);
+#endif 
+		LOGV(COMMANDPROCESSOR, 2, "!!! Fake_GPWDInterrupt raised. Fake_GPWDToken %i",fifo.Fake_GPWDToken);
+	}
 }
 
 void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
@@ -500,19 +518,8 @@ void GatherPipeBursted()
 	if (Core::g_CoreStartupParameter.bUseDualCore)
 	{
 		// for GP watchdog hack
-		if (fifo.Fake_GPWDInterrupt)
-		{
-			// Wait for GPU to catch up
-			while (fifo.CPReadWriteDistance > 0) // TOCHECK: more checks could be needed
-				;
-#ifdef _WIN32                        
-			InterlockedExchange((LONG*)&fifo.Fake_GPWDInterrupt, 0);
-#else 
-                        Common::InterlockedExchange((int*)&fifo.Fake_GPWDInterrupt, 0);
-#endif
-			LOGV(COMMANDPROCESSOR, 2, "!!! Fake_GPWDInterrupt raised. Fake_GPWDToken %i",fifo.Fake_GPWDToken);
-		}
-
+		// not very safe to do that here
+		CheckGPWDInterruptForSpinlock();
 
 		// update the fifo-pointer
 		fifo.CPWritePointer += GPFifo::GATHER_PIPE_SIZE;
@@ -521,15 +528,15 @@ void GatherPipeBursted()
 #ifdef _WIN32
 		InterlockedExchangeAdd((LONG*)&fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
 #else 
-                Common::InterlockedExchangeAdd((int*)&fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
+        Common::InterlockedExchangeAdd((int*)&fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
 #endif
 
 		// High watermark overflow handling (hacked way)
 		u32 ct=0;
-		if (fifo.CPReadWriteDistance > (s32)fifo.CPHiWatermark)
+		if (fifo.CPReadWriteDistance > fifo.CPHiWatermark)
 		{
 			// we should raise an Ov interrupt for an accurate fifo emulation and let PPC deal with it.
-			// But it slowdown things because of if(interrupt blah blah){} blocks for each 32B fifo transactions.
+			// But it slowdowns things because of if(interrupt blah blah){} blocks for each 32B fifo transactions.
 			// CPU would be a bit more loaded too by its interrupt handling...
 			// Eather way, CPU would have the ability to resume another thread.
 			// To be clear: this spin loop is like a critical section spin loop in the emulated GX thread hence "hacked way"
@@ -546,7 +553,7 @@ void GatherPipeBursted()
 
 			// Wait for GPU to catch up
 			//while (!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint) && fifo.CPReadWriteDistance > (s32)fifo.CPLoWatermark)
-			while (fifo.CPReadWriteDistance > (s32)fifo.CPLoWatermark)
+			while (fifo.CPReadWriteDistance > fifo.CPLoWatermark)
 			{
 				ct++;
 				// dunno if others threads (like the audio thread) really need a forced context switch here

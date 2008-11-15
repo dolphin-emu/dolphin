@@ -81,6 +81,7 @@ bool AllowIdleSkipping();
 
 // for GP watchdog hack
 void IncrementGPWDToken();
+void CheckGPWDInterruptForSpinlock();
 
 } // end of namespace CommandProcessor
 

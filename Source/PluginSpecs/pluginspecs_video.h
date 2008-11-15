@@ -30,7 +30,7 @@ typedef struct
 	volatile u32 CPEnd;
 	u32 CPHiWatermark;
 	u32 CPLoWatermark;
-	volatile s32 CPReadWriteDistance;
+	volatile u32 CPReadWriteDistance;
 	volatile u32 CPWritePointer;
 	volatile u32 CPReadPointer;
 	volatile u32 CPBreakpoint;

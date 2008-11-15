@@ -89,28 +89,38 @@ void Video_SendFifoData(u8* _uData, u32 len)
 THREAD_RETURN GPWatchdogThread(void *pArg)
 {
 	const SCPFifoStruct &_fifo = *(SCPFifoStruct*)pArg;
-	u32 token = 0;
+	u32 lastToken = 0;
+	u32 currentToken = 0;
+	int FourMsCount = 0;
 
 	Common::SetCurrentThreadName("GPWatchdogThread");
-	Common::Thread::SetCurrentThreadAffinity(2); //Force to second core
-	//int i=30*1000/16;
-	while (1)
+	
+	while (_fifo.bFF_GPReadEnable != ~0) // blah
 	{
-		Common::SleepCurrentThread(8);	 // about 1s/60/2 (less than twice a frame should be enough)
-		//if (!_fifo.bFF_GPReadIdle)
-
-		// TODO (mb2): FIX this !!!
-		//if (token == _fifo.Fake_GPWDToken)
+		// 4 ms should be enough insignificant
+		Common::SleepCurrentThread(4);
+		currentToken = _fifo.Fake_GPWDToken;
+		if (lastToken == currentToken)
 		{
+			FourMsCount++;
+			// Threshold quite arbitrary.
+			// Assuming the PPC-frame-finish-watchdog use RTC(TOCHECK) and throw its exception after several times the normal frame rate
+			// I tested higher frame-periode-factor but 3 might be safe enough for DC stability for everyone.
+			// I may be wrong, so TOTEST on different machine like hell !!!
+			if (FourMsCount >= 3*16/4)//  frame_periode_factor(3) * frame_periode(~16ms) / ms_step(4)
+			{
 #ifdef _WIN32
-			InterlockedExchange((LONG*)&_fifo.Fake_GPWDInterrupt, 1);
+				InterlockedExchange((LONG*)&_fifo.Fake_GPWDInterrupt, 1); 
 #else
-                        Common::InterlockedExchange((int*)&_fifo.Fake_GPWDInterrupt, 1);
+                Common::InterlockedExchange((int*)&_fifo.Fake_GPWDInterrupt, 1);
 #endif 
 			//__Log(LogTypes::VIDEO,"!!! Watchdog hit",_fifo.CPReadWriteDistance);
+			}
 		}
-		token = _fifo.Fake_GPWDToken;
-		//i--;
+		else
+			FourMsCount = 0;
+
+		lastToken = currentToken;
 	}
 	return 0;
 }
@@ -119,6 +129,7 @@ THREAD_RETURN GPWatchdogThread(void *pArg)
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 {
     SCPFifoStruct &_fifo = *video_initialize.pCPFifo;
+	u32 distToSend;
 #if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
 	HANDLE hEventOnIdle= OpenEventA(EVENT_ALL_ACCESS,FALSE,(LPCSTR)"EventOnIdle");
 	if (hEventOnIdle==NULL) PanicAlert("Fifo_EnterLoop() -> EventOnIdle NULL");
@@ -127,6 +138,14 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 	// for GP watchdog hack
 	Common::Thread *watchdogThread = NULL;
 	watchdogThread = new Common::Thread(GPWatchdogThread, (void*)&_fifo);
+	// TODO (mb2): figure out why doesn't work on core 2 ???
+	// may have to force it for DualCores
+	//watchdogThread->SetAffinity(1);
+#ifdef _WIN32
+	SetThreadPriority(watchdogThread, THREAD_PRIORITY_ABOVE_NORMAL);
+#else
+	//TODO
+#endif
 
 #ifdef _WIN32
     // TODO(ector): Don't peek so often!
@@ -139,8 +158,8 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 	if (MsgWaitForMultipleObjects(1, &hEventOnIdle, FALSE, 1L, QS_ALLEVENTS) == WAIT_ABANDONED)
 		break;
 #endif
-        if (_fifo.CPReadWriteDistance < 1) 
-        //if (_fifo.CPReadWriteDistance < _fifo.CPLoWatermark)
+        //if (_fifo.CPReadWriteDistance < 1) 
+        if (_fifo.CPReadWriteDistance < _fifo.CPLoWatermark)
 #if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
             continue;
 #else
@@ -157,12 +176,20 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
             while(_fifo.bFF_GPReadEnable && (_fifo.CPReadWriteDistance > 0) )
 #endif
 			{
-                // check if we are on a breakpoint
-                if (_fifo.bFF_BPEnable)
+                // read the data and send it to the VideoPlugin
+                u8 *uData = video_initialize.pGetMemoryPointer(_fifo.CPReadPointer);
+
+				u32 readPtr = _fifo.CPReadPointer;
+				// if we are on BP mode we must send 32B chunks to Video plugin
+				// for BP checking
+				if (_fifo.bFF_BPEnable)
                 {
-					if (_fifo.CPReadPointer == _fifo.CPBreakpoint)
+					distToSend = 32;
+					readPtr += 32;
+					if (readPtr == _fifo.CPBreakpoint)
                     {
 						video_initialize.pLog("!!! BP irq raised",FALSE);
+						//PanicAlert("!!! BP irq raised");
                         #ifdef _WIN32
 						InterlockedExchange((LONG*)&_fifo.bFF_Breakpoint, 1);
 						#else
@@ -172,24 +199,23 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
                         break;
                     }
                 }
-
-                // read the data and send it to the VideoPlugin
-                u8 *uData = video_initialize.pGetMemoryPointer(_fifo.CPReadPointer);
-
-				u32 dist = _fifo.CPReadWriteDistance;
-				u32 readPtr = _fifo.CPReadPointer;
-				if ( (dist+readPtr) > _fifo.CPEnd) // TODO: better
-				{
-					dist =_fifo.CPEnd - readPtr;
-					readPtr = _fifo.CPBase;
-				}
 				else
-					readPtr += dist; 
-				
-				Video_SendFifoData(uData, dist);
+				{
+					distToSend = _fifo.CPReadWriteDistance;
+					if ( (distToSend+readPtr) > _fifo.CPEnd) // TODO: better
+					{
+						distToSend =_fifo.CPEnd - readPtr;
+						readPtr = _fifo.CPBase;
+					}
+					else
+						readPtr += distToSend; 
+				}
+				// TODO (mb2): add warning comments here for BP irq
+				// sending the whole CPReadWriteDistance most of the time
+				Video_SendFifoData(uData, distToSend);
 #ifdef _WIN32
                 InterlockedExchange((LONG*)&_fifo.CPReadPointer, readPtr);
-                InterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -dist);
+                InterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -distToSend);
 #else 
                 Common::InterlockedExchange((int*)&_fifo.CPReadPointer, readPtr);
                 Common::InterlockedExchangeAdd((int*)&_fifo.CPReadWriteDistance, -dist);
@@ -200,5 +226,11 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 #if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
 	CloseHandle(hEventOnIdle);
 #endif
+	// for GP watchdog DC hack
+	// dummy finish signal to watchdog
+	_fifo.bFF_GPReadEnable = ~0;
+	if(watchdogThread)
+		watchdogThread->WaitForDeath();
+
 }
 

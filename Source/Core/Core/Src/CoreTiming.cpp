@@ -22,6 +22,8 @@
 #include "CoreTiming.h"
 #include "StringUtil.h"
 
+#include "HW/CommandProcessor.h" // <- for DC watchdog hack
+
 // TODO(ector): Replace new/delete in this file with a simple memory pool
 // Don't expect a massive speedup though.
 
@@ -302,6 +304,10 @@ void Advance()
 	int cyclesExecuted = slicelength - downcount;
 
 	globalTimer += cyclesExecuted;
+
+	// for DC watchdog hack 
+	// TODO (mb2): add DC mode check
+	CommandProcessor::CheckGPWDInterruptForSpinlock();
 
 	while (first)
 	{
