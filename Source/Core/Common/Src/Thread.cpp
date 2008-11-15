@@ -345,6 +345,20 @@ void Event::Wait()
 	pthread_mutex_unlock(&mutex_);
 }
 
+int InterlockedIncrement(int *Addend)
+{
+#if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))
+  return  __sync_add_and_fetch(Addend, 1);
+#else
+  register int result;
+  __asm__ __volatile__("lock; xadd %0,%1"
+                       : "=r" (result), "=m" (1)
+                       : "0" (Increment), "m" (1)
+                       : "memory");
+  return result + 1;
+#endif 
+}
+
 int InterlockedExchangeAdd(int *Addend, int Increment)
 {
 #if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))

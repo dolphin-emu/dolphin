@@ -173,10 +173,10 @@ int et_UpdateInterrupts;
 // for GP watchdog hack
 void IncrementGPWDToken()
 {
-#ifdef WIN32
+#ifdef _WIN32
 	InterlockedIncrement((LONG*)&fifo.Fake_GPWDToken);
 #else
-	//TODO
+        Common::InterlockedIncrement((int*)&fifo.Fake_GPWDToken);
 #endif
 }
 
@@ -521,7 +521,7 @@ void GatherPipeBursted()
 #ifdef _WIN32
 		InterlockedExchangeAdd((LONG*)&fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
 #else 
-        Common::InterlockedExchangeAdd((int*)&fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
+                Common::InterlockedExchangeAdd((int*)&fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
 #endif
 
 		// High watermark overflow handling (hacked way)
