@@ -218,7 +218,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
                 InterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -distToSend);
 #else 
                 Common::InterlockedExchange((int*)&_fifo.CPReadPointer, readPtr);
-                Common::InterlockedExchangeAdd((int*)&_fifo.CPReadWriteDistance, -dist);
+                Common::InterlockedExchangeAdd((int*)&_fifo.CPReadWriteDistance, -distToSend);
 #endif
 			}
         }
