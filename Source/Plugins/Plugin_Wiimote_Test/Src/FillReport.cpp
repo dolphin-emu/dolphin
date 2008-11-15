@@ -51,7 +51,7 @@ void FillReportInfo(wm_core& _core)
 	if(GetAsyncKeyState(VK_LBUTTON) ? 1 : 0 || GetAsyncKeyState('A') ? 1 : 0)
 		_core.a = 1;
 
-	if(GetAsyncKeyState(VK_LBUTTON) ? 1 : 0 || GetAsyncKeyState('B') ? 1 : 0)
+	if(GetAsyncKeyState(VK_RBUTTON) ? 1 : 0 || GetAsyncKeyState('B') ? 1 : 0)
 		_core.b = 1;
 
 	_core.one = GetAsyncKeyState('1') ? 1 : 0;

@@ -100,7 +100,7 @@ class CConfigMain
 		{
 			IPL_AR = 0x04D9,
 			IPL_SSV = 0x04EA,
-			IPL_LNG = 0x04AF,
+			IPL_LNG = 0x04F3,
 			IPL_PGS = 0x17CC,
 			IPL_E60 = 0x17D5
 		};

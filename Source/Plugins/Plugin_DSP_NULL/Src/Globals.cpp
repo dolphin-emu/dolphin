@@ -19,7 +19,7 @@ void DebugLog(const char* _fmt, ...)
 	vsprintf(Msg, _fmt, ap);
 	va_end(ap);
 
-	g_dspInitialize.pLog(Msg);
+	g_dspInitialize.pLog(Msg, FALSE);
 #endif
 }
 

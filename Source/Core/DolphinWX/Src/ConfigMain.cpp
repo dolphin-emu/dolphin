@@ -76,6 +76,10 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 	}
 
 	CreateGUIControls();
+	for(u32 i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); i++)
+	{
+		ISOPaths->Append(wxString(SConfig::GetInstance().m_ISOFolder[i].c_str(), wxConvUTF8));
+	}
 }
 
 CConfigMain::~CConfigMain()
@@ -84,10 +88,6 @@ CConfigMain::~CConfigMain()
 
 void CConfigMain::CreateGUIControls()
 {
-	// Why does this not work? some restriction is needed so that huge
-	//	ISO paths dont cause the dialog to become gargantuan
-	SetMaxSize(wxSize(350, 350));
-	
 	Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 
 	GeneralPage = new wxPanel(Notebook, ID_GENERALPAGE, wxDefaultPosition, wxDefaultSize);
@@ -217,10 +217,6 @@ void CConfigMain::CreateGUIControls()
 
 	// Paths page
 	sbISOPaths = new wxStaticBoxSizer(wxVERTICAL, PathsPage, wxT("ISO Directories"));
-	for(u32 i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); i++)
-	{
-		arrayStringFor_ISOPaths.Add(wxString(SConfig::GetInstance().m_ISOFolder[i].c_str(), wxConvUTF8));
-	}
 	ISOPaths = new wxListBox(PathsPage, ID_ISOPATHS, wxDefaultPosition, wxDefaultSize, arrayStringFor_ISOPaths, wxLB_SINGLE, wxDefaultValidator);
 	AddISOPath = new wxButton(PathsPage, ID_ADDISOPATH, wxT("Add..."), wxDefaultPosition, wxDefaultSize, 0);
 	RemoveISOPath = new wxButton(PathsPage, ID_REMOVEISOPATH, wxT("Remove"), wxDefaultPosition, wxDefaultSize, 0);
