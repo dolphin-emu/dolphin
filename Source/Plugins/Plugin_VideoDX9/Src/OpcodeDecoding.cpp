@@ -54,23 +54,28 @@ static void ExecuteDisplayList(u32 address, u32 size)
 	u8* old_pVideoData = g_pVideoData;
 	
 	u8* startAddress = Memory_GetPtr(address);
-	g_pVideoData = startAddress;
 
-	// temporarily swap dl and non-dl(small "hack" for the stats)
-	Statistics::SwapDL();
+	//Avoid the crash if Memory_GetPtr failed ..
+	if (startAddress!=0)
+	{
+		g_pVideoData = startAddress;
 
-    while((u32)(g_pVideoData - startAddress) < size)
-    {
-        Decode();
-    }
-    INCSTAT(stats.numDListsCalled);
-    INCSTAT(stats.thisFrame.numDListsCalled);
+		// temporarily swap dl and non-dl(small "hack" for the stats)
+		Statistics::SwapDL();
 
-	// un-swap
-	Statistics::SwapDL();
+		while((u32)(g_pVideoData - startAddress) < size)
+		{
+			Decode();
+		}
+		INCSTAT(stats.numDListsCalled);
+		INCSTAT(stats.thisFrame.numDListsCalled);
 
-    // reset to the old pointer
-	g_pVideoData = old_pVideoData;
+		// un-swap
+		Statistics::SwapDL();
+
+		// reset to the old pointer
+		g_pVideoData = old_pVideoData;
+	}
 }
 
 bool FifoCommandRunnable()

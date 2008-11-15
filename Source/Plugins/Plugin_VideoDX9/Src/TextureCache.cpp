@@ -200,7 +200,7 @@ void TextureCache::Load(int stage, u32 address, int width, int height, int forma
 	{ // dump texture to file
 		static int counter = 0;
 		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%s\\txt_%04i_%i.png", g_Config.texDumpPath, counter++, format);
+		sprintf(szTemp, "%s\\txt_%04i_%i.png", g_Config.texDumpPath.c_str(), counter++, format);
 		
 	    D3DXSaveTextureToFile(szTemp,D3DXIFF_BMP,entry.texture,0);
 	}

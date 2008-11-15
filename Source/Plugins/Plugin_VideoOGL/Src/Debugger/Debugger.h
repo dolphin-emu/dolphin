@@ -84,10 +84,10 @@ class CDebugger : public wxDialog
 	private:
 
 		// declarations
-		wxCheckBox *m_Check[6];
+		wxCheckBox *m_Check[7];
 		wxRadioButton *m_Radio[5];
 		wxRadioBox *m_RadioBox[3];
-		wxStaticBox *m_Label[1];
+		wxStaticBox *m_Label[2];
 		wxPanel *m_Controller;
 
 		// WARNING: Make sure these are not also elsewhere, for example in resource.h.

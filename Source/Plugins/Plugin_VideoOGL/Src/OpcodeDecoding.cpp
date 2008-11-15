@@ -51,20 +51,25 @@ static void ExecuteDisplayList(u32 address, u32 size)
 	u8* old_pVideoData = g_pVideoData;
 
 	u8* startAddress = Memory_GetPtr(address);
-	g_pVideoData = startAddress;
 
-	// temporarily swap dl and non-dl (small "hack" for the stats)
-	Statistics::SwapDL();
-	
-	while ((u32)(g_pVideoData - startAddress) < size)
-    {
-        Decode();
-    }
-    INCSTAT(stats.numDListsCalled);
-    INCSTAT(stats.thisFrame.numDListsCalled);
+	//Avoid the crash if Memory_GetPtr failed ..
+	if (startAddress!=0)
+	{
+		g_pVideoData = startAddress;
 
-	// un-swap
-	Statistics::SwapDL();
+		// temporarily swap dl and non-dl (small "hack" for the stats)
+		Statistics::SwapDL();
+
+		while ((u32)(g_pVideoData - startAddress) < size)
+		{
+			Decode();
+		}
+		INCSTAT(stats.numDListsCalled);
+		INCSTAT(stats.thisFrame.numDListsCalled);
+
+		// un-swap
+		Statistics::SwapDL();
+	}
 
     // reset to the old pointer
 	g_pVideoData = old_pVideoData;

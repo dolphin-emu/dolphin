@@ -185,7 +185,7 @@ void CDebugger::CreateGUIControls()
 
 
 	// radio boxes -----------------------------------------------------
-	int m_radioBoxNChoices[2];
+	int m_radioBoxNChoices[3];
 
 	wxString m_radioBoxChoices0[] = { wxT("Show base 10"), wxT("Show base 16") };
 	m_radioBoxNChoices[0] = sizeof( m_radioBoxChoices0 ) / sizeof( wxString );
