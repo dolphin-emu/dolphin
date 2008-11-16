@@ -65,7 +65,7 @@ void ConfigDialog::CreateGUIControls()
 
 	// General
 	sbBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Basic Settings"));
-	m_SidewaysDPad = new wxCheckBox(m_PageGeneral, ID_SIDEWAYSDPAD, wxT("Enable Sideways D-Pad"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_SidewaysDPad = new wxCheckBox(m_PageGeneral, ID_SIDEWAYSDPAD, wxT("Sideways D-Pad"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_SidewaysDPad->SetValue(g_Config.bSidewaysDPad);
 	m_WideScreen = new wxCheckBox(m_PageGeneral, ID_WIDESCREEN, wxT("WideScreen Mode (for correct aiming)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_WideScreen->SetValue(g_Config.bWideScreen);

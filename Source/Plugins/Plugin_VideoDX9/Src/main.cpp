@@ -47,7 +47,7 @@ SVideoInitialize g_VideoInitialize;
 int initCount = 0;
 
 
-void DllDebugger(HWND _hParent)
+void DllDebugger(HWND _hParent, bool Show)
 {
     // TODO: implement
 }
