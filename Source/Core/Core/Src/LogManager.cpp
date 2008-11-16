@@ -84,16 +84,20 @@ CDebugger_LogSettings::~CDebugger_LogSettings(void) {}
 
 void CDebugger_Log::Init()
 {
+#ifdef LOGGING
 	m_pFile = fopen(m_szFilename, "wtb");
+#endif
 }
 
 void CDebugger_Log::Shutdown() 
 {
+#ifdef LOGGING
 	if (m_pFile != NULL)
 	{
 		fclose(m_pFile);
 		m_pFile = NULL;
 	}
+#endif
 }
 
 
