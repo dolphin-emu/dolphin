@@ -43,8 +43,10 @@ void ConfigDialog::CreateGUIControls()
 {
 	// Notebook
 	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
-	m_PageGeneral = new wxPanel(m_Notebook, ID_PAGEGENERAL, wxDefaultPosition, wxDefaultSize);
-	m_Notebook->AddPage(m_PageGeneral, wxT("General"));
+	m_PageEmu = new wxPanel(m_Notebook, ID_PAGEEMU, wxDefaultPosition, wxDefaultSize);
+	m_PageReal = new wxPanel(m_Notebook, ID_PAGEREAL, wxDefaultPosition, wxDefaultSize);
+	m_Notebook->AddPage(m_PageEmu, wxT("Emulated Wiimote"));
+	m_Notebook->AddPage(m_PageReal, wxT("Real Wiimote"));
 
 	// Buttons
 	//m_About = new wxButton(this, ID_ABOUTOGL, wxT("About"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -64,10 +66,10 @@ void ConfigDialog::CreateGUIControls()
 
 
 	// General
-	sbBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Basic Settings"));
-	m_SidewaysDPad = new wxCheckBox(m_PageGeneral, ID_SIDEWAYSDPAD, wxT("Sideways D-Pad"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	sbBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageEmu, wxT("Basic Settings"));
+	m_SidewaysDPad = new wxCheckBox(m_PageEmu, ID_SIDEWAYSDPAD, wxT("Sideways D-Pad"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_SidewaysDPad->SetValue(g_Config.bSidewaysDPad);
-	m_WideScreen = new wxCheckBox(m_PageGeneral, ID_WIDESCREEN, wxT("WideScreen Mode (for correct aiming)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_WideScreen = new wxCheckBox(m_PageEmu, ID_WIDESCREEN, wxT("WideScreen Mode (for correct aiming)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_WideScreen->SetValue(g_Config.bWideScreen);
 
 
@@ -82,7 +84,7 @@ void ConfigDialog::CreateGUIControls()
 	sbBasic->Add(sBasic);
 	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
 
-	m_PageGeneral->SetSizer(sGeneral);
+	m_PageEmu->SetSizer(sGeneral);
 	sGeneral->Layout();
 
 	this->SetSizer(sMain);

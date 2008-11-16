@@ -55,8 +55,7 @@ class ConfigDialog : public wxDialog
 		wxButton *m_About;
 		wxButton *m_Close;
 		wxNotebook *m_Notebook;
-		wxPanel *m_PageGeneral;
-		wxPanel *m_PageAdvanced;
+		wxPanel *m_PageEmu, *m_PageReal;
 
 		wxCheckBox *m_SidewaysDPad; // general settings
 		wxCheckBox *m_WideScreen;
@@ -67,8 +66,8 @@ class ConfigDialog : public wxDialog
 			ID_ABOUTOGL,
 
 			ID_NOTEBOOK,
-			ID_PAGEGENERAL,
-			ID_PAGEADVANCED,
+			ID_PAGEEMU,
+			ID_PAGEREAL,
 
 			ID_SIDEWAYSDPAD,
 			ID_WIDESCREEN
