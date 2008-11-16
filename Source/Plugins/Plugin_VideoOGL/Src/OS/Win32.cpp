@@ -89,6 +89,21 @@ namespace EmuWindow
 	const TCHAR m_szClassName[] = "DolphinEmuWnd";
     int g_winstyle;
 
+	// ------------------------------------------
+	/* Invisible cursor option. In the lack of a predefined IDC_BLANK we make
+	   an empty transparent cursor */
+	// ------------------
+	HCURSOR hCursor = NULL, hCursorBlank = NULL;
+	void CreateCursors(HINSTANCE hInstance)
+	{
+		BYTE ANDmaskCursor[] = { 0xff };
+		BYTE XORmaskCursor[] = { 0x00 };
+		hCursorBlank = CreateCursor(hInstance, 0,0, 1,1, ANDmaskCursor,XORmaskCursor);
+
+		hCursor = LoadCursor( NULL, IDC_ARROW );
+	}
+	
+
 	HWND GetWnd()
 	{
 		return m_hWnd;
@@ -125,6 +140,18 @@ namespace EmuWindow
 			g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
 			break;
 
+		/* The reason we pick up the WM_MOUSEMOVE is to be able to change this option
+		   during gameplay. The alternative is to load one of the cursors when the plugin
+		   is loaded and go with that. This should only produce a minimal performance hit
+		   because SetCursor is not supposed to actually change the cursor if it's the
+		   same as the one before. */
+		case WM_MOUSEMOVE:
+			if(g_Config.bHideCursor)
+				SetCursor(hCursorBlank);
+			else
+				SetCursor(hCursor);
+			break;
+
 		case WM_CLOSE:
 			ExitProcess(0);
 
@@ -159,7 +186,8 @@ namespace EmuWindow
 		wndClass.cbWndExtra = 0;
 		wndClass.hInstance = hInstance;
 		wndClass.hIcon = LoadIcon( NULL, IDI_APPLICATION );
-		wndClass.hCursor = LoadCursor( NULL, IDC_ARROW );
+		//wndClass.hCursor = LoadCursor( NULL, IDC_ARROW );
+		wndClass.hCursor = NULL; // to interfer less with SetCursor() later
 		wndClass.hbrBackground = (HBRUSH)GetStockObject( BLACK_BRUSH );
 		wndClass.lpszMenuName = NULL;
 		wndClass.lpszClassName = m_szClassName;
@@ -167,6 +195,8 @@ namespace EmuWindow
 
 		m_hInstance = hInstance;
 		RegisterClassEx( &wndClass );
+
+		CreateCursors(m_hInstance);
 
         if (parent)
         {
@@ -216,11 +246,13 @@ namespace EmuWindow
 
 		// gShowDebugger from main.cpp is forgotten between the Dolphin-Debugger is opened and a game is
 		// started so we have to use an ini file setting here
+		/*
 		bool bVideoWindow = false;
 		IniFile ini;
 		ini.Load(DEBUGGER_CONFIG_FILE);
 		ini.Get("ShowOnStart", "VideoWindow", &bVideoWindow, false);
 		if(bVideoWindow) DoDllDebugger();
+		*/
 	}
 
 	HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title)

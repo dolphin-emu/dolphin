@@ -56,26 +56,32 @@ std::string GetLastErrorAsString()
 }
 #endif
 
-bool DynamicLibrary::Load(const char* filename)
+// ------------------------------------------------------------------
+/* Loading means loading the dll with LoadLibrary() to get an instance to the dll.
+   This is done when Dolphin is started to determine which dlls are good, and
+   before opening the Config and Debugging windowses from Plugin.cpp and
+   before opening the dll for running the emulation in Video_...cpp in Core. */
+// -----------------------
+int DynamicLibrary::Load(const char* filename)
 {
 	if (!filename || strlen(filename) == 0)
 	{
 		LOG(MASTER_LOG, "Missing filename of dynamic library to load");
-		return false;
+		return 0;
 	}
 	LOG(MASTER_LOG, "Trying to load library %s", filename);
 
 	if (IsLoaded())
 	{
 		LOG(MASTER_LOG, "Trying to load already loaded library %s", filename);
-		return false;
+		return 2;
 	}
 
 #ifdef _WIN32
 	library = LoadLibrary(filename);
 	if (!library) {
 		LOG(MASTER_LOG, "Error loading DLL %s: %s", filename, GetLastErrorAsString().c_str());
-		return false;
+		return 0;
 	}
 #else
 	library = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
@@ -90,7 +96,7 @@ bool DynamicLibrary::Load(const char* filename)
 	}
 #endif
 	library_file = filename;
-	return true;
+	return 1;
 }
 
 

@@ -73,6 +73,8 @@ class CISOProperties : public wxDialog
 		wxCheckBox *UseDualCore;
 		wxCheckBox *SkipIdle;
 		wxCheckBox *OptimizeQuantizers;
+		wxCheckBox *EnableProgressiveScan, *EnableWideScreen; // Wii
+
 		wxStaticText *EmuStateText;
 		wxArrayString arrayStringFor_EmuState;
 		wxChoice *EmuState;
@@ -131,6 +133,8 @@ class CISOProperties : public wxDialog
 			ID_OVERRIDE_TEXT,
 			ID_USEDUALCORE,
 			ID_IDLESKIP,
+			ID_ENABLEPROGRESSIVESCAN,
+			ID_ENABLEWIDESCREEN,
 			ID_OPTIMIZEQUANTIZERS,
 			ID_EMUSTATE_TEXT,
 			ID_EMUSTATE,

@@ -24,6 +24,28 @@
 #include "PluginManager.h"
 #include "StringUtil.h"
 
+/* Why does it crash if we try to open the debugger in the same instance like this? */
+namespace PluginVideo
+{
+	extern DynamicLibrary plugin;
+	extern bool IsLoaded();
+	extern bool LoadPlugin(const char *_Filename);
+	extern void Debug(HWND _hwnd, bool Show);
+}
+
+
+namespace PluginDSP
+{
+	extern DynamicLibrary plugin;
+	extern bool IsLoaded();
+	extern bool LoadPlugin(const char *_Filename);
+	extern void Debug(HWND _hwnd, bool Show);
+}
+
+
+//void(__cdecl * m_DllDebugger)    (HWND _hParent) = 0;
+
+
 CPluginManager CPluginManager::m_Instance;
 
 
@@ -35,6 +57,9 @@ CPluginManager::~CPluginManager()
 {}
 
 
+// ----------------------------------------
+// Create list of avaliable plugins
+// -------------
 void CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 {
 	m_PluginInfos.clear();
@@ -98,24 +123,49 @@ void CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 	}
 }
 
+
+// ----------------------------------------
+// Open config window. _rFilename = plugin filename ,ret = the dll slot number
+// -------------
 void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename)
 {
-	if (Common::CPlugin::Load(_rFilename))
-	{
-		Common::CPlugin::Config((HWND)_Parent);
-		Common::CPlugin::Release();
-	}
+	int ret = Common::CPlugin::Load(_rFilename);
+
+	Common::CPlugin::Config((HWND)_Parent);
+	Common::CPlugin::Release();	
 }
 
-void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename)
+// ----------------------------------------
+// Open debugging window. Type = Video or DSP. Show = Show or hide window.
+// -------------
+void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, bool Type, bool Show)
 {
-	if (Common::CPlugin::Load(_rFilename))
-	{
-		Common::CPlugin::Debug((HWND)_Parent);
+	//int ret = 1;
+	//int ret = Common::CPlugin::Load(_rFilename, true);
+	//int ret = PluginVideo::LoadPlugin(_rFilename);
+	//int ret = PluginDSP::LoadPlugin(_rFilename);
+
+		if(Type)
+		{
+			//Common::CPlugin::Debug((HWND)_Parent);
+			if(!PluginVideo::IsLoaded()) PluginVideo::LoadPlugin(_rFilename);
+			PluginVideo::Debug((HWND)_Parent, Show);
+		}
+		else
+		{
+			if(!PluginDSP::IsLoaded()) PluginDSP::LoadPlugin(_rFilename);
+			PluginDSP::Debug((HWND)_Parent, Show);
+		}
 		//Common::CPlugin::Release(); // this is only if the wx dialog is called with ShowModal()
-	}
+
+		//m_DllDebugger = (void (__cdecl*)(HWND))PluginVideo::plugin.Get("DllDebugger");
+		//m_DllDebugger(NULL);
 }
 
+
+// ----------------------------------------
+// Get dll info
+// -------------
 CPluginInfo::CPluginInfo(const char *_rFileName)
 	: m_FileName(_rFileName)
 	, m_Valid(false)

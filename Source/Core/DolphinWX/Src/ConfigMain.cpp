@@ -64,7 +64,7 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 	
 	// Load Wii SYSCONF
 	pStream = NULL;
-	pStream = fopen(FULL_WII_USER_DIR "shared2/sys/SYSCONF", "rb");
+	pStream = fopen(FULL_CONFIG_DIR "SYSCONF", "rb");
     if (pStream != NULL)
     {
         fread(m_SYSCONF, 1, 0x4000, pStream);
@@ -301,8 +301,19 @@ void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	Destroy();
 
-	// Save Wii SYSCONF
+	// Save Wii SYSCONF twice so that we can keep game specific settings for it
 	pStream = NULL;
+	pStream = fopen(FULL_CONFIG_DIR "SYSCONF", "wb");
+	if (pStream != NULL)
+	{
+		fwrite(m_SYSCONF, 1, 0x4000, pStream);
+		fclose(pStream);
+	}
+	else
+	{
+		PanicAlert("Could not write to SYSCONF");
+	}
+
 	pStream = fopen(FULL_WII_USER_DIR "shared2/sys/SYSCONF", "wb");
 	if (pStream != NULL)
 	{
@@ -311,7 +322,7 @@ void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
 	}
 	else
 	{
-		PanicAlert("Could not write to Wii SYSCONF");
+		PanicAlert("Could not write to shared2/sys/SYSCONF");
 	}
 
 	// save the config... dolphin crashes by far to often to save the settings on closing only

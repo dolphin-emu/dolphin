@@ -34,7 +34,7 @@ void UnloadPlugin();
 typedef void (__cdecl* TGetDllInfo)(PLUGIN_INFO*);
 //typedef void (__cdecl* TDllAbout)(HWND);
 typedef void (__cdecl* TDllConfig)(HWND);
-typedef void (__cdecl* TDllDebugger)(HWND);
+typedef void (__cdecl* TDllDebugger)(HWND, bool);
 typedef void (__cdecl* TVideo_Initialize)(SVideoInitialize*);
 typedef void (__cdecl* TVideo_Prepare)();
 typedef void (__cdecl* TVideo_Shutdown)();

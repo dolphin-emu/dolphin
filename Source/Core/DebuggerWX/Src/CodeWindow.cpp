@@ -64,6 +64,8 @@
 // and here are the classes
 class CPluginInfo;
 class CPluginManager;
+//extern DynamicLibrary Common::CPlugin;
+//extern CPluginManager CPluginManager::m_Instance;
 
 extern "C" {
 	#include "../resources/toolbar_play.c"
@@ -300,16 +302,21 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 		// possible todo: add some kind of if here to? can it fail?
 		CPluginManager::GetInstance().OpenDebug(
 		GetHandle(),
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
+		false, true
 		);	
 	} // don't have any else, just ignore it
 
 	if(bVideoWindow)
 	{
+		wxMessageBox(_T("Warning, automatically opening this window before a game is started \n\
+may cause a crash. Todo: figure out why and fix it."), wxT("OpenGL Debugging Window"));	
+
 		// possible todo: add some kind of if here to? can it fail?
 		CPluginManager::GetInstance().OpenDebug(
 		GetHandle(),
-		_LocalCoreStartupParameter.m_strVideoPlugin.c_str()
+		_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
+		true, true
 		);	
 	} // don't have any else, just ignore it
 }
@@ -939,13 +946,19 @@ void CCodeWindow::OnToggleSoundWindow(wxCommandEvent& event)
 	{
 		// TODO: add some kind of if() check here to?
 		CPluginManager::GetInstance().OpenDebug(
-		GetHandle(),
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
-		);
+			GetHandle(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
+			false, true // DSP, show
+			);
 	}
 	else // hide
 	{
-		 // can we close the dll window from here?
+		// Close the sound dll that has an open debugger
+		CPluginManager::GetInstance().OpenDebug(
+			GetHandle(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
+			false, false // DSP, hide
+			);
 	}
 }
 // ===========
@@ -968,12 +981,18 @@ void CCodeWindow::OnToggleVideoWindow(wxCommandEvent& event)
 		// TODO: add some kind of if() check here to?
 		CPluginManager::GetInstance().OpenDebug(
 		GetHandle(),
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str()
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
+		true, true // Video, show
 		);
 	}
 	else // hide
 	{
-		 // can we close the dll window from here?
+		// Close the video dll that has an open debugger
+		CPluginManager::GetInstance().OpenDebug(
+			GetHandle(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
+			true, false // Video, hide
+			);
 	}
 }
 // ===========

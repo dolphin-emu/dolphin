@@ -15,6 +15,16 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+
+// =======================================================
+// File description
+// -------------
+/* This file is a simpler version of Plugin_...cpp found in Core. This file only loads
+   the config and debugging windowses and works with all plugins. */
+// =============
+
+
 #include "Plugin.h"
 
 namespace Common
@@ -24,7 +34,7 @@ DynamicLibrary CPlugin::m_hInstLib;
 void(__cdecl * CPlugin::m_GetDllInfo)   (PLUGIN_INFO * _PluginInfo) = 0;
 //void(__cdecl * CPlugin::m_DllAbout)     (HWND _hParent) = 0;
 void(__cdecl * CPlugin::m_DllConfig)    (HWND _hParent) = 0;
-void(__cdecl * CPlugin::m_DllDebugger)    (HWND _hParent) = 0;
+void(__cdecl * CPlugin::m_DllDebugger)    (HWND _hParent, bool Show) = 0;
 
 void
 CPlugin::Release(void)
@@ -42,9 +52,9 @@ CPlugin::Load(const char* _szName)
 {
 	if (m_hInstLib.Load(_szName))
 	{
-		m_GetDllInfo = (void (__cdecl*)(PLUGIN_INFO*))m_hInstLib.Get("GetDllInfo");
-		m_DllConfig = (void (__cdecl*)(HWND))m_hInstLib.Get("DllConfig");
-		m_DllDebugger = (void (__cdecl*)(HWND))m_hInstLib.Get("DllDebugger");
+		m_GetDllInfo = (void (__cdecl*)(PLUGIN_INFO*)) m_hInstLib.Get("GetDllInfo");
+		m_DllConfig = (void (__cdecl*)(HWND)) m_hInstLib.Get("DllConfig");
+		m_DllDebugger = (void (__cdecl*)(HWND, bool)) m_hInstLib.Get("DllDebugger");
 		return(true);
 	}
 
@@ -80,11 +90,11 @@ void CPlugin::Config(HWND _hwnd)
 //	}
 //}
 
-void CPlugin::Debug(HWND _hwnd)
+void CPlugin::Debug(HWND _hwnd, bool Show)
 {
 	if (m_DllDebugger != 0)
 	{
-		m_DllDebugger(_hwnd);
+		m_DllDebugger(_hwnd, Show);
 	}
 }
 } // end of namespace Common

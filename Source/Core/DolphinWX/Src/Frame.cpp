@@ -93,6 +93,7 @@ EVT_MENU(IDM_CONFIG_MAIN, CFrame::OnConfigMain)
 EVT_MENU(IDM_CONFIG_GFX_PLUGIN, CFrame::OnPluginGFX)
 EVT_MENU(IDM_CONFIG_DSP_PLUGIN, CFrame::OnPluginDSP)
 EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnPluginPAD)
+EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnPluginWiimote)
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
@@ -289,6 +290,7 @@ void CFrame::PopulateToolbar(wxToolBar* toolBar)
 	toolBar->AddTool(IDM_CONFIG_GFX_PLUGIN, _T("GFX"),  m_Bitmaps[Toolbar_PluginGFX], _T("GFX settings"));
 	toolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _T("DSP"),  m_Bitmaps[Toolbar_PluginDSP], _T("DSP settings"));
 	toolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("PAD"),  m_Bitmaps[Toolbar_PluginPAD], _T("PAD settings"));
+	toolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _T("Wiimote"),  m_Bitmaps[Toolbar_PluginPAD], _T("Wiimote settings"));
 	toolBar->AddSeparator();
 	toolBar->AddTool(IDM_HELPABOUT, _T("About"), m_Bitmaps[Toolbar_Help], _T("About Dolphin"));
 
@@ -480,7 +482,6 @@ void CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))
 			);
 }
 
-
 void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
@@ -488,7 +489,7 @@ void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin.c_str()
 			);
 }
-void CFrame::OnPluginWiiMote(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnPluginWiimote(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
 			GetHandle(),

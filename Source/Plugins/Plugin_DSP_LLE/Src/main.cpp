@@ -123,7 +123,7 @@ void DSP_DoState(unsigned char **ptr, int mode) {
 	PointerWrap p(ptr, mode);
 }
 
-void DllDebugger(HWND _hParent)
+void DllDebugger(HWND _hParent, bool Show)
 {
 #ifdef _WIN32
 	#if defined (_DEBUG) || defined (DEBUGFAST)

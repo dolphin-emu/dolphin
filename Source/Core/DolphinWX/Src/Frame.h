@@ -64,7 +64,7 @@ class CFrame : public wxFrame
 		void OnPluginGFX(wxCommandEvent& event);
 		void OnPluginDSP(wxCommandEvent& event);
 		void OnPluginPAD(wxCommandEvent& event);
-		void OnPluginWiiMote(wxCommandEvent& event);
+		void OnPluginWiimote(wxCommandEvent& event);
 		void OnOpen(wxCommandEvent& event);
 		void OnPlay(wxCommandEvent& event);
 		void OnStop(wxCommandEvent& event);

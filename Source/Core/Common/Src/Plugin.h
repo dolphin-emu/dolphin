@@ -35,7 +35,7 @@ class CPlugin
 
 		static void Config(HWND _hwnd);
 		static void About(HWND _hwnd);
-		static void Debug(HWND _hwnd);
+		static void Debug(HWND _hwnd, bool Show);
 
 
 	private:
@@ -44,7 +44,7 @@ class CPlugin
 
 		static void (__cdecl * m_GetDllInfo)(PLUGIN_INFO* _PluginInfo);
 		static void (__cdecl * m_DllConfig)(HWND _hParent);
-		static void (__cdecl * m_DllDebugger)(HWND _hParent);
+		static void (__cdecl * m_DllDebugger)(HWND _hParent, bool Show);
 };
 } // end of namespace Common
 

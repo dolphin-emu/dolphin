@@ -54,32 +54,41 @@
 SVideoInitialize g_VideoInitialize;
 #define VERSION_STRING "0.1"
 
-// Create debugging window. We can't use Show() here as usual because then DLL_PROCESS_DETACH will
-// be called immediately. And if we use ShowModal() we block the main video window from appearing.
-// So I've made a separate function called DoDllDebugger() that creates the window.
+
+/* Create debugging window. There's currently a strange crash that occurs whe a game is loaded
+   if the OpenGL plugin was loaded before. I'll try to fix that. Currently you may have to
+   clsoe the window if it has auto started, and then restart it after the dll has loaded
+   for the purpose of the game. At that point there is no need to use the same dll instance
+   as the one that is rendering the game. However, that could be done. */
 #if defined(OSX64)
 void DllDebugger(HWND _hParent) { }
 void DoDllDebugger() { }
 #else
 CDebugger* m_frame;
-void DllDebugger(HWND _hParent)
+void DllDebugger(HWND _hParent, bool Show)
 {
-	if(m_frame) // if we have created it, let us show it again
+	if(m_frame && Show) // if we have created it, let us show it again
 	{
 		m_frame->Show();
 	}
-	else
+	else if(!m_frame && Show) 
+	{		
+		m_frame = new CDebugger(NULL);
+		m_frame->Show();
+	}
+	else if(m_frame && !Show)
 	{
-		wxMessageBox(_T("The debugging window will open after you start a game."));
+		m_frame->Hide();
 	}
 }
 
 void DoDllDebugger()
 {
-	m_frame = new CDebugger(NULL);
-	m_frame->Show();
+	//m_frame = new CDebugger(NULL);
+	//m_frame->Show();
 }
 #endif
+
 
 void GetDllInfo (PLUGIN_INFO* _PluginInfo) 
 {
@@ -99,9 +108,13 @@ void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 void DllConfig(HWND _hParent)
 {
 #if defined(_WIN32)
-	wxWindow win;
-	win.SetHWND(_hParent);
-	ConfigDialog frame(&win);
+	//wxWindow win;
+	//win.SetHWND(_hParent);
+	//ConfigDialog frame(&win);
+	//ConfigDialog frame(NULL);
+
+	ConfigDialog *frame;
+	frame = new ConfigDialog(NULL);
 
 	DWORD iModeNum = 0;
 	DEVMODE dmi;
@@ -130,13 +143,16 @@ void DllConfig(HWND _hParent)
 		{
 			resos[i] = strBuffer;
 			i++;
-			frame.AddFSReso(szBuffer);			
-			frame.AddWindowReso(szBuffer);
+			//frame.AddFSReso(szBuffer);			
+			//frame.AddWindowReso(szBuffer);
+			frame->AddFSReso(szBuffer);			
+			frame->AddWindowReso(szBuffer);
 		}
         ZeroMemory(&dmi, sizeof(dmi));
 	}
-	frame.ShowModal();
-	win.SetHWND(0);
+	//frame.ShowModal();
+	frame->ShowModal();
+	//win.SetHWND(0);
 
 #elif defined(__linux__)
 	ConfigDialog frame(NULL);
@@ -185,7 +201,16 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 #ifdef _WIN32
 //    OpenConsole();
 #endif
-   
+
+	/* Dolphin currently crashes if the dll is loaded when a game is started so we clsoe the
+	   debugger and open it again after loading */
+	/*
+	if(m_frame)
+	{
+		m_frame->EndModal(0); wxEntryCleanup();
+	}//use wxUninitialize() if you don't want GUI 
+	*/
+
     frameCount = 0;
     g_VideoInitialize = *_pVideoInitialize;
     InitLUTs();

@@ -18,9 +18,11 @@
 
 #if !defined(OSX64)
 #include <wx/aboutdlg.h>
+#include "ConfigDlg.h"
 #endif
 
 #include "Common.h"
+#include "Config.h"
 #include "StringUtil.h"
 
 #include "pluginspecs_wiimote.h"
@@ -109,6 +111,17 @@ extern "C" void DllAbout(HWND _hParent)
 
 extern "C" void DllConfig(HWND _hParent)
 {
+#if defined(_WIN32)
+	wxWindow win;
+	win.SetHWND(_hParent);
+	ConfigDialog frame(&win);
+	frame.ShowModal();
+	win.SetHWND(0);
+#elif defined(__linux__)  
+	//TODO
+#else
+	//TODO
+#endif
 }
 
 extern "C" void Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize)
@@ -117,8 +130,9 @@ extern "C" void Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize)
 
 	g_UseRealWiiMote = WiiMoteReal::Initialize() > 0;
 
-
 	WiiMoteEmu::Initialize();
+
+	g_Config.Load(); // load config settings
 
 	// Debugging window
 	/*startConsoleWin(160, 30, "Wiimote"); // give room for 20 rows

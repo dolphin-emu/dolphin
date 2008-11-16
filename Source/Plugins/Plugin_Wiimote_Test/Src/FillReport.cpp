@@ -27,6 +27,7 @@
 #include "EmuDeclarations.h"
 #include "EmuDefinitions.h"
 #include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
+#include "Config.h" // for g_Config
 
 extern SWiimoteInitialize g_WiimoteInitialize;
 //extern void __Log(int log, const char *format, ...);
@@ -60,17 +61,11 @@ void FillReportInfo(wm_core& _core)
 	_core.minus = GetAsyncKeyState('M') ? 1 : 0;
 	_core.home = GetAsyncKeyState('H') ? 1 : 0;
 
-	if(GetAsyncKeyState('T'))
-	{
-		wxMessageBox(wxString::Format("You turned %s sideways controls",
-			toggleSideWays ? "off" : "on"));
-		toggleSideWays = !toggleSideWays;
-	}
 
 	/* Sideways controls (for example for Wario Land) was not enabled automatically
 	   so I have to use this function. I'm not sure how it works on the actual Wii.
 	   */
-	if(toggleSideWays)
+	if(g_Config.bSidewaysDPad)
 	{
 		_core.left = GetAsyncKeyState(VK_DOWN) ? 1 : 0;
 		_core.up = GetAsyncKeyState(VK_LEFT) ? 1 : 0;
@@ -302,14 +297,29 @@ void FillReportAcc(wm_accel& _acc)
 	*/
 }
 
-/* DESCRIPTION: The calibration is controlled by these values, their absolute value and
-   the relative distance between between them control the calibration. These integers is
-   for the debugger so that we can calibrate the best values */
-int Top = TOP, Left = LEFT, Right = RIGHT,
-Bottom = BOTTOM, SensorBarRadius = SENSOR_BAR_RADIUS;
+bool toggleWideScreen = false, toggleCursor = true;
+
 
 void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 {
+
+/* DESCRIPTION: The calibration is controlled by these values, their absolute value and
+   the relative distance between between them control the calibration. WideScreen mode
+   has its own settings. */
+	/**/
+	int Top, Left, Right, Bottom, SensorBarRadius;
+	if(g_Config.bWideScreen)
+	{		
+		Top = wTOP; Left = wLEFT; Right = wRIGHT;
+		Bottom = wBOTTOM; SensorBarRadius = wSENSOR_BAR_RADIUS;
+	}
+	else
+	{
+		Top = TOP; Left = LEFT; Right = RIGHT;
+		Bottom = BOTTOM; SensorBarRadius = SENSOR_BAR_RADIUS;		
+	}
+	
+
 	memset(&_ir0, 0xFF, sizeof(wm_ir_extended));
 	memset(&_ir1, 0xFF, sizeof(wm_ir_extended));
 
@@ -340,7 +350,7 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	// ----------------------------
 	// Debugging for calibration
 	// ----------
-	/*
+	/**/
 	if(GetAsyncKeyState(VK_NUMPAD1))
 		Right +=1;
 	else if(GetAsyncKeyState(VK_NUMPAD2))
@@ -363,11 +373,11 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 		SensorBarRadius -= 1;
 
 	//ClearScreen();
-	if(consoleDisplay == 1)
+	//if(consoleDisplay == 1)
 		wprintf("x0:%03i x1:%03i  y0:%03i y1:%03i   irx0:%03i y0:%03i  x1:%03i y1:%03i | T:%i L:%i R:%i B:%i S:%i\n",
 		x0, x1, y0, y1, _ir0.x, _ir0.y, _ir1.x, _ir1.y, Top, Left, Right, Bottom, SensorBarRadius
 		);
-	*/
+	
 	
 }
 

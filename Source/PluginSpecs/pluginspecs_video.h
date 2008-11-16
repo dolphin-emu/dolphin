@@ -101,7 +101,7 @@ EXPORT void CALL DllConfig(HWND _hParent);
 // input:    a handle to the window that calls this function
 // output:   none
 //
-EXPORT void CALL DllDebugger(HWND _hParent);
+EXPORT void CALL DllDebugger(HWND _hParent, bool Show);
 
 // __________________________________________________________________________________________________
 // Function: Video_Initialize

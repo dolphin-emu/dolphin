@@ -45,6 +45,9 @@ void Config::Load()
 
     iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
 	iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, 0);
+	iniFile.Get("Settings", "StretchToFit", &bStretchToFit, false);
+	iniFile.Get("Settings", "KeepAR", &bKeepAR, false);
+	iniFile.Get("Settings", "HideCursor", &bHideCursor, false);
 
     iniFile.Get("Settings", "ShowFPS", &bShowFPS, false); // Settings
 	iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
@@ -73,8 +76,7 @@ void Config::Load()
 
     iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
     iniFile.Get("Enhancements", "ForceMaxAniso", &bForceMaxAniso, 0);
-	iniFile.Get("Enhancements", "StretchToFit", &bStretchToFit, false);
-	iniFile.Get("Enhancements", "KeepAR", &bKeepAR, false);
+
 
 	iniFile.Get("Hacks", "EFBToTextureDisable", &bEBFToTextureDisable, 0);
 }
@@ -87,6 +89,9 @@ void Config::Save()
     iniFile.Set("Hardware", "FullscreenRes", iFSResolution);
     iniFile.Set("Hardware", "Fullscreen", bFullscreen);
 	iniFile.Set("Hardware", "RenderToMainframe", renderToMainframe);
+	iniFile.Set("Settings", "StretchToFit", bStretchToFit);
+	iniFile.Set("Settings", "KeepAR", bKeepAR);
+	iniFile.Set("Settings", "HideCursor", bHideCursor);
 
     iniFile.Set("Settings", "ShowFPS", bShowFPS);
 	iniFile.Set("Settings", "OverlayStats", bOverlayStats);
@@ -105,8 +110,6 @@ void Config::Save()
 
     iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
     iniFile.Set("Enhancements", "ForceMaxAniso", bForceMaxAniso);
-	iniFile.Set("Enhancements", "StretchToFit", bStretchToFit);
-	iniFile.Set("Enhancements", "KeepAR", bKeepAR);
 
 	iniFile.Set("Hacks", "EFBToTextureDisable", bEBFToTextureDisable);
 

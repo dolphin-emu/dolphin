@@ -150,10 +150,21 @@ void CloseConsole()
 // because then DLL_PROCESS_DETACH is called immediately after DLL_PROCESS_ATTACH.
 // -------------------
 CDebugger* m_frame;
-void DllDebugger(HWND _hParent)
+void DllDebugger(HWND _hParent, bool Show)
 {
-	m_frame = new CDebugger(NULL);
-	m_frame->Show();
+	if(m_frame && Show) // if we have created it, let us show it again
+	{
+		m_frame->Show();
+	}
+	else if(!m_frame && Show) 
+	{
+		m_frame = new CDebugger(NULL);
+		m_frame->Show();
+	}
+	else if(m_frame && !Show)
+	{
+		m_frame->Hide();
+	}
 }
 // ===================
 

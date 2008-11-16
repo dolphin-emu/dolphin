@@ -15,33 +15,26 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _DYNAMICLIBRARY_H
-#define _DYNAMICLIBRARY_H
+#ifndef _CONFIG_H
+#define _CONFIG_H
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
+#define CONF_LOG 1
+#define CONF_PRIMLOG 2
+#define CONF_SAVETEXTURES 4
+#define CONF_SAVETARGETS 8
+#define CONF_SAVESHADERS 16
 
-#include <string>
-
-class DynamicLibrary
+struct Config
 {
-	public:
+    Config();
+    void Load();
+    void Save();
 
-		DynamicLibrary();
-		int Load(const char* filename);
-		void Unload();
-		void* Get(const char* funcname) const;
-
-		bool IsLoaded() const {return(library != 0);}
-
-	private:
-		std::string library_file;
-#ifdef _WIN32
-		HINSTANCE library;
-#else
-		void* library;
-#endif
+    // General
+	bool bSidewaysDPad;
+	bool bWideScreen;
 };
 
-#endif
+extern Config g_Config;
+
+#endif  // _CONFIG_H

@@ -15,33 +15,36 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _DYNAMICLIBRARY_H
-#define _DYNAMICLIBRARY_H
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
+#include "Common.h"
+#include "IniFile.h"
+#include "Config.h"
 
-#include <string>
+Config g_Config;
 
-class DynamicLibrary
+Config::Config()
 {
-	public:
+    memset(this, 0, sizeof(Config));
+}
 
-		DynamicLibrary();
-		int Load(const char* filename);
-		void Unload();
-		void* Get(const char* funcname) const;
+void Config::Load()
+{
+    std::string temp;
+    IniFile iniFile;
+    iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
 
-		bool IsLoaded() const {return(library != 0);}
+	// get resolution
 
-	private:
-		std::string library_file;
-#ifdef _WIN32
-		HINSTANCE library;
-#else
-		void* library;
-#endif
-};
+    iniFile.Get("Settings", "SidewaysDPad", &bSidewaysDPad, 0); // Hardware
+	iniFile.Get("Settings", "WideScreen", &bWideScreen, 0);
+}
 
-#endif
+void Config::Save()
+{
+    IniFile iniFile;
+    iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
+    iniFile.Set("Settings", "SidewaysDPad", bSidewaysDPad);
+    iniFile.Set("Settings", "WideScreen", bWideScreen);
+
+    iniFile.Save(FULL_CONFIG_DIR "Wiimote.ini");
+}

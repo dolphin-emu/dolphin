@@ -201,10 +201,13 @@ void CISOProperties::CreateGUIControls()
 	// GameConfig editing - Core overrides and emulation state
 	sbCoreOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
 	sCoreOverrides = new wxBoxSizer(wxVERTICAL);
-	OverrideText = new wxStaticText(m_GameConfig, ID_OVERRIDE_TEXT, _("These settings override core Dolphin settings.\nThe 3rd state means the game uses Dolphin's setting."), wxDefaultPosition, wxDefaultSize);
+	OverrideText = new wxStaticText(m_GameConfig, ID_OVERRIDE_TEXT, _("These settings override core Dolphin settings. The 3rd state means the game uses Dolphin's setting."), wxDefaultPosition, wxDefaultSize);
 	UseDualCore = new wxCheckBox(m_GameConfig, ID_USEDUALCORE, _("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	OptimizeQuantizers = new wxCheckBox(m_GameConfig, ID_OPTIMIZEQUANTIZERS, _("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	EnableProgressiveScan = new wxCheckBox(m_GameConfig, ID_ENABLEPROGRESSIVESCAN, _("[Wii] Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("[Wii] Enable WideScreen"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	
 	sEmuState = new wxBoxSizer(wxHORIZONTAL);
 	arrayStringFor_EmuState.Add(_("Not Set"));
 	arrayStringFor_EmuState.Add(_("Broken"));
@@ -243,6 +246,8 @@ void CISOProperties::CreateGUIControls()
 	sCoreOverrides->Add(UseDualCore, 0, wxEXPAND|wxLEFT, 5);
 	sCoreOverrides->Add(SkipIdle, 0, wxEXPAND|wxLEFT, 5);
 	sCoreOverrides->Add(OptimizeQuantizers, 0, wxEXPAND|wxLEFT, 5);
+	sCoreOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
+	sCoreOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
 	sEmuState->AddStretchSpacer();
 	sEmuState->Add(EmuStateText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0);
 	sEmuState->Add(EmuState, 0, wxEXPAND|wxALL, 0);
@@ -473,6 +478,16 @@ void CISOProperties::LoadGameConfig()
 	else
 		OptimizeQuantizers->Set3StateValue(wxCHK_UNDETERMINED);
 
+	if (GameIni.Get("Core", "EnableProgressiveScan", &bTemp))
+		EnableProgressiveScan->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		EnableProgressiveScan->Set3StateValue(wxCHK_UNDETERMINED);
+
+	if (GameIni.Get("Core", "EnableWideScreen", &bTemp))
+		EnableWideScreen->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		EnableWideScreen->Set3StateValue(wxCHK_UNDETERMINED);
+
 	GameIni.Get("EmuState", "EmulationStateId", &iTemp, 0);
 	EmuState->SetSelection(iTemp);
 
@@ -498,6 +513,16 @@ bool CISOProperties::SaveGameConfig(std::string GameIniFile)
 		GameIni.DeleteKey("Core", "OptimizeQuantizers");
 	else
 		GameIni.Set("Core", "OptimizeQuantizers", OptimizeQuantizers->Get3StateValue());
+
+	if (EnableProgressiveScan->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Core", "EnableProgressiveScan");
+	else
+		GameIni.Set("Core", "EnableProgressiveScan", EnableProgressiveScan->Get3StateValue());
+
+	if (EnableWideScreen->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Core", "EnableWideScreen");
+	else
+		GameIni.Set("Core", "EnableWideScreen", EnableWideScreen->Get3StateValue());
 
 	GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
 	return GameIni.Save(GameIniFile.c_str());

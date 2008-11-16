@@ -37,6 +37,7 @@ struct Config
 	char iWindowedRes[16];
 	bool bStretchToFit;
 	bool bKeepAR;
+	bool bHideCursor;
 
 	// Enhancements
 	int iMultisampleMode;

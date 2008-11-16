@@ -46,6 +46,12 @@ namespace WiiMoteEmu
 #define BOTTOM 728
 #define SENSOR_BAR_RADIUS 200
 
+#define wLEFT 332
+#define wTOP 348
+#define wRIGHT 693
+#define wBOTTOM 625
+#define wSENSOR_BAR_RADIUS 200
+
 // vars 
 #define WIIMOTE_EEPROM_SIZE (16*1024)
 #define WIIMOTE_REG_SPEAKER_SIZE 10

@@ -577,6 +577,26 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Config"
+			>
+			<File
+				RelativePath=".\Src\Config.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Config.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ConfigDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ConfigDlg.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\main.cpp"
 			>

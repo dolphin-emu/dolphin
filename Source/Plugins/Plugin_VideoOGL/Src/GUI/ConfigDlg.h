@@ -73,11 +73,13 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_RenderToMainWindow;
 		wxCheckBox *m_StretchToFit;
 		wxCheckBox *m_KeepAR;
+		wxCheckBox *m_HideCursor;
 		wxArrayString arrayStringFor_FullscreenCB;
 		wxComboBox *m_FullscreenCB;
 		wxArrayString arrayStringFor_WindowResolutionCB;
 		wxComboBox *m_WindowResolutionCB;
-		wxCheckBox *m_ForceFiltering;
+
+		wxCheckBox *m_ForceFiltering; // advanced
 		wxCheckBox *m_ForceAnisotropy;
 		wxComboBox *m_AliasModeCB;
 		wxCheckBox *m_ShowFPS;
@@ -106,6 +108,7 @@ class ConfigDialog : public wxDialog
 			ID_RENDERTOMAINWINDOW,
 			ID_STRETCHTOFIT,
 			ID_KEEPAR,
+			ID_HIDECURSOR,
 			ID_FSTEXT,
 			ID_FULLSCREENCB,
 			ID_WMTEXT,

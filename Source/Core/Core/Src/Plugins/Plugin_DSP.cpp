@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "Common.h"
 #include "DynamicLibrary.h"
 #include "Plugin_DSP.h"
 
@@ -45,6 +46,11 @@ bool IsLoaded()
     return plugin.IsLoaded();
 }
 
+void Debug(HWND _hwnd, bool Show)
+{
+    DllDebugger(_hwnd, Show);
+}
+
 void UnloadPlugin()
 {
     plugin.Unload();
@@ -68,7 +74,9 @@ void UnloadPlugin()
 
 bool LoadPlugin(const char *_Filename)
 {
-    if (plugin.Load(_Filename)) 
+	int ret = plugin.Load(_Filename); // we may have alredy loaded this to open the debugger
+
+    if (ret == 1) 
     {
         GetDllInfo               = reinterpret_cast<TGetDllInfo>               (plugin.Get("GetDllInfo"));
         DllConfig                = reinterpret_cast<TDllConfig>                (plugin.Get("DllConfig"));
@@ -97,7 +105,8 @@ bool LoadPlugin(const char *_Filename)
             (DSP_Update != 0) &&
             (DSP_SendAIBuffer != 0) &&
 			(DSP_DoState != 0))
-        {
+        {			
+			//PanicAlert("return true: %i", ret);
             return true;
         }
         else
@@ -106,8 +115,13 @@ bool LoadPlugin(const char *_Filename)
             return false;
         }
     }
-
-    return false;
+	else if (ret == 2)
+	{
+		//PanicAlert("return true: %i", ret);
+		return true;
+	}
+	else if (ret == 0)
+		return false;
 }
 
 }  // namespace

@@ -26,6 +26,7 @@
 #include "Volume.h"
 #include "VolumeCreator.h"
 #include "Config.h"
+#include "ConfigMain.h"
 #include "Core.h"
 #if !defined(OSX64)
 #include "Frame.h"
@@ -89,9 +90,61 @@ bool BootCore(const std::string& _rFilename)
 	std::string unique_id = StartUp.GetUniqueID();
 	if (unique_id.size() == 6 && ini.Load((FULL_GAMECONFIG_DIR + unique_id + ".ini").c_str()))
 	{
+		// ------------------------------------------------
+		// General settings
+		// ----------------
 		ini.Get("Core", "UseDualCore", &StartUp.bUseDualCore, StartUp.bUseDualCore);
 		ini.Get("Core", "SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);
 		ini.Get("Core", "OptimizeQuantizers", &StartUp.bOptimizeQuantizers, StartUp.bOptimizeQuantizers);
+
+
+		// ------------------------------------------------
+		// Read SYSCONF settings
+		// ----------------
+		bool bEnableProgressiveScan, bEnableWideScreen;
+		//bRefreshList = false;
+		FILE* pStream; // file handle
+		u8 m_SYSCONF[0x4000]; // SYSCONF file
+		u16 IPL_PGS = 0x17CC; // pregressive scan
+		u16 IPL_AR = 0x04D9; // widescreen
+
+		// Load Wii SYSCONF
+		pStream = NULL;
+		pStream = fopen(FULL_CONFIG_DIR "SYSCONF", "rb");
+		if (pStream != NULL)
+		{
+			fread(m_SYSCONF, 1, 0x4000, pStream);
+			fclose(pStream);
+
+			//wxMessageBox(wxString::Format(": %02x", m_SYSCONF[IPL_AR]));
+
+			ini.Get("Core", "EnableProgressiveScan", &bEnableProgressiveScan, (int)m_SYSCONF[IPL_PGS]);
+			ini.Get("Core", "EnableWideScreen", &bEnableWideScreen, (int)m_SYSCONF[IPL_AR]);
+
+			m_SYSCONF[IPL_PGS] = bEnableProgressiveScan;
+			m_SYSCONF[IPL_AR] = bEnableWideScreen;
+
+			//wxMessageBox(wxString::Format(": %02x", m_SYSCONF[IPL_AR]));
+
+			// Enable custom Wii SYSCONF settings by saving the file to shared2
+			pStream = NULL;
+			pStream = fopen(FULL_WII_USER_DIR "shared2/sys/SYSCONF", "wb");
+			if (pStream != NULL)
+			{
+				fwrite(m_SYSCONF, 1, 0x4000, pStream);
+				fclose(pStream);
+			}	
+			else
+			{
+				PanicAlert("Could not write to shared2/sys/SYSCONF");
+			}	
+			
+		}
+		else
+		{
+			PanicAlert("Could not write to SYSCONF");
+		}
+		// ----------------
 	}
 #if !defined(OSX64)
 	if(main_frame)

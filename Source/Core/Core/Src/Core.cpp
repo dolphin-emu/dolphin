@@ -152,6 +152,7 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 	DisplayMessage("CPU: " + cpu_info.Summarize(), 8000);
 	DisplayMessage(_CoreParameter.m_strFilename, 3000);
 
+	//PluginVideo::DllDebugger(NULL);
 
 	//RegisterPanicAlertHandler(PanicAlertToVideo);
 

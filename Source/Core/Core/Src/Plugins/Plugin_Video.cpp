@@ -18,6 +18,9 @@
 #include "Common.h"
 #include "DynamicLibrary.h"
 #include "Plugin_Video.h"
+#include "Plugin.h"
+
+extern DynamicLibrary Common::CPlugin;
 
 namespace PluginVideo
 {
@@ -25,7 +28,7 @@ namespace PluginVideo
 // Function Pointer
 TGetDllInfo         GetDllInfo            = 0;
 TDllConfig          DllConfig             = 0;
-TDllDebugger        DllDebugger            = 0;
+TDllDebugger        DllDebugger           = 0;
 TVideo_Initialize   Video_Initialize      = 0;
 TVideo_Prepare      Video_Prepare         = 0;
 TVideo_Shutdown     Video_Shutdown        = 0;
@@ -36,9 +39,14 @@ TVideo_EnterLoop    Video_EnterLoop       = 0;
 TVideo_AddMessage   Video_AddMessage      = 0;
 TVideo_DoState      Video_DoState         = 0;
 TVideo_Stop         Video_Stop            = 0;
-    
+
 // Library Instance
 DynamicLibrary plugin;
+
+void Debug(HWND _hwnd, bool Show)
+{
+    DllDebugger(_hwnd, Show);
+}
 
 bool IsLoaded()
 {
@@ -47,6 +55,8 @@ bool IsLoaded()
 
 void UnloadPlugin()
 {
+	//PanicAlert("Video UnloadPlugin");
+
     // set Functions to 0
     GetDllInfo = 0;
     DllConfig = 0;
@@ -65,7 +75,9 @@ void UnloadPlugin()
 
 bool LoadPlugin(const char *_Filename)
 {
-	if (plugin.Load(_Filename))
+	int ret = plugin.Load(_Filename);
+
+	if (ret == 1)
 	{
 		GetDllInfo         = reinterpret_cast<TGetDllInfo>         (plugin.Get("GetDllInfo"));
 		DllConfig          = reinterpret_cast<TDllConfig>          (plugin.Get("DllConfig"));
@@ -79,10 +91,11 @@ bool LoadPlugin(const char *_Filename)
 		Video_EnterLoop    = reinterpret_cast<TVideo_EnterLoop>    (plugin.Get("Video_EnterLoop"));
 		Video_AddMessage   = reinterpret_cast<TVideo_AddMessage>   (plugin.Get("Video_AddMessage"));
 		Video_DoState      = reinterpret_cast<TVideo_DoState>      (plugin.Get("Video_DoState"));
-                Video_Stop         = reinterpret_cast<TVideo_Stop>         (plugin.Get("Video_Stop"));
+        Video_Stop         = reinterpret_cast<TVideo_Stop>         (plugin.Get("Video_Stop"));
 		if ((GetDllInfo != 0) &&
 			//(DllAbout != 0) &&
 			(DllConfig != 0) &&
+			(DllDebugger != 0) &&
 			(Video_Initialize != 0) &&
 			(Video_Prepare != 0) &&
 			(Video_Shutdown != 0) &&
@@ -92,8 +105,9 @@ bool LoadPlugin(const char *_Filename)
 			(Video_Screenshot != 0) &&
 			(Video_AddMessage != 0) &&
 			(Video_DoState != 0) && 
-                        (Video_Stop != 0))
+            (Video_Stop != 0))
 		{
+			//PanicAlert("return true: %i", ret);
 			return true;
 		}
 		else
@@ -102,7 +116,16 @@ bool LoadPlugin(const char *_Filename)
 			return false;
 		}
 	}
-	return false;
+	else if(ret == 2)
+	{
+		//PanicAlert("return true: %i", ret);
+		return true;
+	}
+	else if(ret == 0)
+	{
+		//PanicAlert("return false: %i", ret);
+		return false;
+	}
 }
 
 
