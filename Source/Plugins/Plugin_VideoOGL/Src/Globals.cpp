@@ -84,7 +84,7 @@ void __Log(const char *fmt, ...)
     g_VideoInitialize.pLog(Msg, FALSE);
 
     if (pfLog == NULL)
-		pfLog = fopen("Logs/oglgfx.txt", "w");
+		pfLog = fopen(FULL_LOGS_DIR "oglgfx.txt", "w");
 
     if (pfLog != NULL)
         fwrite(Msg, strlen(Msg), 1, pfLog);
