@@ -189,7 +189,7 @@ void Stop() // - Hammertime!
         PluginVideo::Video_Stop();
 #endif
 
-	delete g_pThread; //Wait for emuthread to close
+	//delete g_pThread; //Wait for emuthread to close
 	g_pThread = 0;
 	Core::StopTrace();
 	LogManager::Shutdown();

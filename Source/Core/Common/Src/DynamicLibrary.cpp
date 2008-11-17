@@ -26,6 +26,7 @@
 #include "Common.h"
 #include "StringUtil.h"
 #include "DynamicLibrary.h"
+#include "../../Core/Src/PowerPC/PowerPC.h"
 
 DynamicLibrary::DynamicLibrary()
 {
@@ -109,6 +110,7 @@ void DynamicLibrary::Unload()
 	}
 
 #ifdef _WIN32
+	if( ! (library_file.find("OGL.") != std::string::npos) && !PowerPC::CPU_POWERDOWN)
 	FreeLibrary(library);
 #else
 	dlclose(library);
