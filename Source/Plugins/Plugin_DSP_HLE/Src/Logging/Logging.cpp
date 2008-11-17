@@ -52,7 +52,6 @@ extern bool gSSBMremedy2;
 extern bool gSequenced;
 extern bool gVolume;
 extern bool gReset;
-u32 gLastBlock;
 extern int nFiles;
 float ratioFactor; // a global to get the ratio factor from MixAdd
 extern CDebugger* m_frame;
@@ -60,12 +59,13 @@ extern CDebugger* m_frame;
 
 // Parameter blocks
 
+	std::vector<int> mem(NUMBER_OF_PBS); // mem1 or mem2
 	std::vector<u32> gloopPos(NUMBER_OF_PBS);
 	std::vector<u32> gsampleEnd(NUMBER_OF_PBS);
 	std::vector<u32> gsamplePos(NUMBER_OF_PBS);
 
 // main
-	std::vector<u16> running(NUMBER_OF_PBS);
+	std::vector<u16> running(NUMBER_OF_PBS, 0);
 	std::vector<u16> gsrc_type(NUMBER_OF_PBS);
 	std::vector<u16> gis_stream(NUMBER_OF_PBS);
 
@@ -124,7 +124,10 @@ extern CDebugger* m_frame;
 	std::vector<u16> gupdates5(NUMBER_OF_PBS);
 	std::vector<u32> gupdates_addr(NUMBER_OF_PBS);
 	std::vector<u32> gupdates_data(NUMBER_OF_PBS);
-
+	std::vector<u32> gupdates_data1(NUMBER_OF_PBS);
+	std::vector<u32> gupdates_data2(NUMBER_OF_PBS);
+	std::vector<u32> gupdates_data3(NUMBER_OF_PBS);
+	std::vector<u32> gupdates_data4(NUMBER_OF_PBS);
 
 // Counters
 
@@ -136,15 +139,14 @@ bool iupdonce = false;
 std::vector<u16> viupd(15); // the length of the update frequency bar
 int vectorLengthGUI = 8; // length of playback history bar for the GUI version
 int vectorLength = 15; // for console version
-int vectorLength2 = 100; // for console version
-
+int vectorLength2 = 100; // for console version, how long to show
 
 // More stuff
 
 // should we worry about the additonal memory these lists require? bool will allocate
 // very little memory
-std::vector< std::vector<bool> > vector1(NUMBER_OF_PBS, std::vector<bool>(vectorLength, 0)); 
-std::vector< std::vector<bool> > vector2(NUMBER_OF_PBS, std::vector<bool>(vectorLength2, 0));
+std::vector< std::vector<bool> > vector1(NUMBER_OF_PBS, std::vector<bool>(vectorLength, false)); 
+std::vector< std::vector<bool> > vector2(NUMBER_OF_PBS, std::vector<bool>(vectorLength2, false));
 std::vector<int> numberRunning(NUMBER_OF_PBS);
 
 
@@ -164,8 +166,8 @@ std::string writeTitle(int a, bool Wii)
 	{		
 		if(m_frame->bShowBase) // show base 10
 		{
-			b =     "                                                                                adpcm           adpcm_loop\n";
-			b = b + "                Nr       pos / end        lpos      | voll  volr    | isl iss | pre yn1   yn2   pre yn1   yn2   | frac  ratio[hi lo]\n";
+			b =     "                                                                                  adpcm           adpcm_loop\n";
+			b = b + "                Nr m       pos / end        lpos      | voll  volr    | isl iss | pre yn1   yn2   pre yn1   yn2   | frac  ratio[hi lo]\n";
 		}
 		else
 		{
@@ -230,8 +232,8 @@ std::string writeMessage(int a, int i, bool Wii)
 	// ---------------------------------------------------------------------------------------
 	/*
 	PRESET 0
-	"                Nr       pos / end        lpos     | voll   volr   | isl iss | pre yn1   yn2   pre yn1   yn2   | frac  ratio[hi lo]\n";
-	"---------------|00 12,341,234/134,123,412 12341234 | 00,000 00,000 | 0   0   | 000 00000 00000 000 00000 00000 | 00000 00000[0 00000] 
+	"                Nr m      pos / end        lpos     | voll   volr   | isl iss | pre yn1   yn2   pre yn1   yn2   | frac  ratio[hi lo]\n";
+	"---------------|00 1 12,341,234/134,123,412 12341234 | 00,000 00,000 | 0   0   | 000 00000 00000 000 00000 00000 | 00000 00000[0 00000] 
 			
 		"                Nr       pos / end        lpos     | voll   volr   | isl iss | pre yn1  yn2  pre yn1  yn2  | frac rati[hi lo   ]\n";
 		"---------------|00 12,341,234/134,123,412 12341234 | 00,000 00,000 | 0   0   | 000 0000 0000 000 0000 0000 | 0000 0000[0  00000] 
@@ -246,15 +248,28 @@ std::string writeMessage(int a, int i, bool Wii)
 	*/
 	if(a == 0)
 	{
-		if(m_frame->bShowBase)
+		if(m_frame->bShowBase) // base 10 (decimal)
 		{
-		sprintf(buf,"%c%02i %10s/%10s %10s | %06s %06s | %i   %i   | %03i %05i %05i %03i %05i %05i | %05i %05i[%i %05i]",
-			223, i, ThS(gsamplePos[i],true).c_str(), ThS(gsampleEnd[i],true).c_str(), ThS(gloopPos[i],true).c_str(),
-			ThS(gvolume_left[i]).c_str(), ThS(gvolume_right[i]).c_str(),
-			glooping[i], gis_stream[i],
-			gadloop1[i], gadloop2[i], gadloop3[i], gloop1[i], gloop2[i], gloop3[i],
-			gfrac[i], gratio[i], gratiohi[i], gratiolo[i]
-			);
+			if(Wii) // Wii
+			{
+			sprintf(buf,"%c%02i %i %10s/%10s %10s | %06s %06s | %i   %i   | %03i %05i %05i %03i %05i %05i | %05i %05i[%i %05i]",
+				223, i, mem[i], ThS(gsamplePos[i],true).c_str(), ThS(gsampleEnd[i],true).c_str(), ThS(gloopPos[i],true).c_str(),
+				ThS(gvolume_left[i]).c_str(), ThS(gvolume_right[i]).c_str(),
+				glooping[i], gis_stream[i],
+				gadloop1[i], gadloop2[i], gadloop3[i], gloop1[i], gloop2[i], gloop3[i],
+				gfrac[i], gratio[i], gratiohi[i], gratiolo[i]
+				);
+			}
+			else // GC
+			{
+			sprintf(buf,"%c%02i %10s/%10s %10s | %06s %06s | %i   %i   | %03i %05i %05i %03i %05i %05i | %05i %05i[%i %05i]",
+				223, i, ThS(gsamplePos[i],true).c_str(), ThS(gsampleEnd[i],true).c_str(), ThS(gloopPos[i],true).c_str(),
+				ThS(gvolume_left[i]).c_str(), ThS(gvolume_right[i]).c_str(),
+				glooping[i], gis_stream[i],
+				gadloop1[i], gadloop2[i], gadloop3[i], gloop1[i], gloop2[i], gloop3[i],
+				gfrac[i], gratio[i], gratiohi[i], gratiolo[i]
+				);
+			}
 		}
 		else
 		{
@@ -269,23 +284,38 @@ std::string writeMessage(int a, int i, bool Wii)
 	}
 	else if(a == 1)
 	{
-		if(m_frame->bShowBase)
+		if(m_frame->bShowBase) // base 10 (decimal)
 		{
 		sprintf(buf,"%c%02i %10s/%10s %10s | %06s %06s | %u   %u    %u    | %u %u %u %u %u %08x %08x",
 			223, i, ThS(gsamplePos[i]).c_str(), ThS(gsampleEnd[i]).c_str(), ThS(gloopPos[i]).c_str(),
 			ThS(gvolume_left[i]).c_str(), ThS(gvolume_right[i]).c_str(),		
 			gsrc_type[i], gaudioFormat[i], gcoef[i],
-			gupdates1[i], gupdates2[i], gupdates3[i], gupdates4[i], gupdates5[i], gupdates_addr[i], gupdates_data[i]
+			gupdates1[i], gupdates2[i], gupdates3[i], gupdates4[i], gupdates5[i], gupdates_addr[i],
+			gupdates_data[i], gupdates_data1[i], gupdates_data2[i], gupdates_data3[i], gupdates_data4[i] 
 			);
 		}
-		else
+		else // base 16 (hexadecimal)
 		{
-		sprintf(buf,"%c%02i %08x/%08x %08x | %04x %04x | %u   %u    %u    | %u %u %u %u %u %08x %08x",
-			223, i, ThS(gsamplePos[i]).c_str(), ThS(gsampleEnd[i]).c_str(), ThS(gloopPos[i]).c_str(),
-			gvolume_left[i], gvolume_right[i],		
-			gsrc_type[i], gaudioFormat[i], gcoef[i],
-			gupdates1[i], gupdates2[i], gupdates3[i], gupdates4[i], gupdates5[i], gupdates_addr[i], gupdates_data[i]
-			);
+			if(Wii) // Wii
+			{
+			sprintf(buf,"%c%02i %08x/%08x %08x | %04x %04x | %u   %u    %u    | %u %u %u %08x %08x %08x %08x %08x",
+				223, i, gsamplePos[i], gsampleEnd[i], gloopPos[i],
+				gvolume_left[i], gvolume_right[i],		
+				gsrc_type[i], gaudioFormat[i], gcoef[i],
+				gupdates1[i], gupdates2[i], gupdates3[i], gupdates_addr[i],
+				gupdates_data[i], gupdates_data1[i], gupdates_data2[i], gupdates_data3[i], gupdates_data4[i] 
+				);
+			}
+			else // GC
+			{
+			sprintf(buf,"%c%02i %08x/%08x %08x | %04x %04x | %u   %u    %u    | %u %u %u %u %u %08x %08x %08x %08x %08x",
+				223, i, gsamplePos[i], gsampleEnd[i], gloopPos[i],
+				gvolume_left[i], gvolume_right[i],		
+				gsrc_type[i], gaudioFormat[i], gcoef[i],
+				gupdates1[i], gupdates2[i], gupdates3[i], gupdates4[i], gupdates5[i], gupdates_addr[i],
+				gupdates_data[i], gupdates_data1[i], gupdates_data2[i], gupdates_data3[i], gupdates_data4[i] 
+				);
+			}
 		}
 	}
 	else if(a == 2)
@@ -318,7 +348,7 @@ std::string writeMessage(int a, int i, bool Wii)
 	{
 		if(m_frame->bShowBase)
 		{
-			if(Wii)
+			if(Wii) // Wii
 			{
 			sprintf(buf,"%c%02i  %05i %05i %05i %05i %05i %05i %05i %i | %05i %05i %05i %05i %05i %05i %05i | %05i %05i %05i %05i %05i %05i %05i",
 				223, i,
@@ -330,7 +360,7 @@ std::string writeMessage(int a, int i, bool Wii)
 				gmixer_d6[i], gmixer_d7[i]
 				);
 			}
-			else
+			else // GC
 			{
 			sprintf(buf,"%c%02i  %05i %05i %05i %05i %05i %05i %08i %i | %05i %05i %05i %05i %05i %05i %05i | %05i %05i %05i %05i %05i %05i %05i",
 				223, i,
@@ -420,7 +450,7 @@ template<class ParamBlockType> void CollectPB(bool Wii, int i, ParamBlockType &P
 	if(Wii) gmixer_control_wii[i] = PBs[i].mixer_control;
 		else gmixer_control[i] = PBs[i].mixer_control;
 
-	running[i] = PBs[i].running;
+	//running[i] = PBs[i].running;
 	gis_stream[i] = PBs[i].is_stream;
 
 	// mixer (some differences)
@@ -458,7 +488,8 @@ template<class ParamBlockType> void CollectPB(bool Wii, int i, ParamBlockType &P
 
 	if(gloopPos[i] > 0x20000000) gloopPos[i] -= 0x20000000;
 	if(gsampleEnd[i] > 0x20000000) gsampleEnd[i] -= 0x20000000;
-	if(gsamplePos[i] > 0x20000000) gsamplePos[i] -= 0x20000000;
+	if(gsamplePos[i] > 0x20000000) { gsamplePos[i] -= 0x20000000;
+		mem[i] = 2;} else { mem[i] = 1; }
 
 	// PBADPCMLoopInfo adpcm_loop_info (same in GC and Wii)
 	gadloop1[i] = PBs[i].adpcm.pred_scale;
@@ -477,7 +508,14 @@ template<class ParamBlockType> void CollectPB(bool Wii, int i, ParamBlockType &P
 	gupdates5[i] = PBs[i].updates.num_updates[4];
 
 	gupdates_addr[i] = (PBs[i].updates.data_hi << 16) | PBs[i].updates.data_lo;
-	gupdates_data[i] = Memory_Read_U32(gupdates_addr[i]);
+	if(gupdates_addr[i] > 0x80000000 && gupdates_addr[i] < 0x93ffffff)
+	{
+		gupdates_data[i] = Memory_Read_U32(gupdates_addr[i]);
+		gupdates_data1[i] = Memory_Read_U32(gupdates_addr[i] + 4);
+		gupdates_data2[i] = Memory_Read_U32(gupdates_addr[i] + 8);
+		gupdates_data3[i] = Memory_Read_U32(gupdates_addr[i] + 12);
+		gupdates_data3[i] = Memory_Read_U32(gupdates_addr[i] + 16);
+	}
 		
 	// PBSampleRateConverter src
 
@@ -527,49 +565,22 @@ bool PrepareConditions(bool Wii, int i, ParamBlockType &PBs)
 // ===============
 
 
-// I placed this in CUCode_AX because it needs access to private members of that class.
-//template<class ParamBlockType>
-//void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii, AXParamBlockWii *PBs, int numberOfPBs)
-void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
+
+template<class ParamBlockType>
+void Logging_(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs,
+			  int numberOfPBs, u32 m_addressPBs)
+//void Logging__(short* _pBuffer, int _iSize, int a, bool Wii)
 {
-	// Declare structures
-	/**/
-	int version; // AX version
-	int numberOfPBs, numberOfPBsWii, numberOfPBsGC;
 	bool Conditions; // Select blocks to show
-
-	AXParamBlock PBs[NUMBER_OF_PBS];
-	AXParamBlockWii PBw[NUMBER_OF_PBS];
-	AXParamBlockWii_ PBw_[NUMBER_OF_PBS];
-	if(_CRC == 0xfa450138) LOG_(0, "CRC old");
-	if(_CRC == 0xfa450138) version = 0;
-
-	// Read out the number of PBs that have data
-	if(_CRC == 0xfa450138)
-		numberOfPBsWii = ReadOutPBsWii(m_addressPBs, PBw, NUMBER_OF_PBS, true);
-	else
-		numberOfPBsWii = ReadOutPBsWii(m_addressPBs, PBw_, NUMBER_OF_PBS, true);
-	numberOfPBsGC = ReadOutPBs(m_addressPBs, PBs, NUMBER_OF_PBS);
-	
-	// Select the right one
-	if(Wii) numberOfPBs = numberOfPBsWii;
-	else numberOfPBs = numberOfPBsGC;
-	
 
 	// =======================================================================================
 	// Update parameter values
 	// --------------
 	// We could chose to update these only if a block is currently running. Later I'll add options
 	// to see both the current and the latest active value.
-	//if (PBs[i].running)
 	int irun = 0;
 	for (int i = 0; i < numberOfPBs; i++)
 	{
-		if(Wii)
-			running[i] = PBs[i].running;
-		else
-			running[i] = PBs[i].running;
-
 		// --------------------------------------------------------------------
 		// Write a line for the text log if nothing is playing
 		// --------------
@@ -590,23 +601,16 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 		// --------------
 
 
-		// Prepare conditions
-		/**/
-		if(Wii)
-			if(version == 0) Conditions = PrepareConditions(Wii, i, PBw);
-			else Conditions = PrepareConditions(Wii, i, PBw_);
-		else
-			Conditions = PrepareConditions(Wii, i, PBs);
-
-
+		// --------------------------------------
+		// Now go through only a subset of the blocks depending on Conditions
+		// ------------------
+		/* Prepare conditions. We may for example get Conditions = true for blocks
+		   that currently have numberRunning.at(i) > 0 */
+		Conditions = PrepareConditions(Wii, i, PBs);
 		if (Conditions)
 		{
 			 // Collect parameters
-			if(Wii)
-				if(version == 0) CollectPB(Wii, i, PBw);
-				else CollectPB(Wii, i, PBw_);				
-			else
-				CollectPB(Wii, i, PBs);
+			CollectPB(Wii, i, PBs);
 
 			// ---------------------------------------------------------------------------------------
 			// Write to file
@@ -619,7 +623,7 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 
 				// write running
 				char cbuf[10];
-				sprintf(cbuf, "%i", running[i]);
+				sprintf(cbuf, "%i", PBs[i].running);
 				sfbuff = sfbuff + cbuf;
 
 				sfbuff = sfbuff + writeMessage(ii, i, Wii);
@@ -636,85 +640,69 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 	// ==============
 
 
-	//PanicAlert("Done now before: %i", numberOfPBs);
-
-
 	// =======================================================================================
 	// Control how often the screen is updated, and then update the screen
 	// --------------
-	if(a == 0) j++;
+	if(a == 0) j++; // a == 0 when Logging is called before the blocks are updated
 	if (m_frame->gUpdFreq > 0 && j > (200/m_frame->gUpdFreq))
 	{
 
 		// =======================================================================================
-		// Save the running history for each block. Vector1 is a vector1[NUMBER_OF_PBS][100] vector.
+		/* Save the displayed running history for each block. Vector1 is a vector1[NUMBER_OF_PBS]
+		   [100] vector. */
 		// --------------
 		/*
 		Move all items back like this:		
-		1  to  2
-		2      3
+		1  to  0
+		2      1
 		3 ...
+		5  to  4
 		*/
-		for (int i = 0; i < NUMBER_OF_PBS; i++)
+		for (int i = 0; i < numberOfPBs; i++)
 		{
 			for (int j = 1; j < vectorLength; j++)
 			{
 				vector1.at(i).at(j-1) = vector1.at(i).at(j);
 			}
-		}		
-		
-		// Save the latest value		
-		for (int i = 0; i < numberOfPBs; i++)
-		{
-			if(Wii)
-			{
-				//DebugLog("Writing %i to %i  |  m_addressPBs: %08x", running[i], i, m_addressPBs);
-				vector1.at(i).at(vectorLength-1) = running[i] ? true : false;
-			}
-			else
-			{
-				//DebugLog("Writing %i to %i", running[i], i);
-				vector1.at(i).at(vectorLength-1) = running[i] ? true : false;
-			}
+			// save the latest value
+			vector1.at(i).at(vectorLength-1) = PBs[i].running ? true : false;
 		}
 		// ==============
 
 
 		// =======================================================================================
-		// Have a separate set for which ones to show
+		/* Have a separate set for which ones to show. Currently show blocks that have been
+		   running at least once the last 100 updates.
 		// --------------
 		/*
 		Move all items back like this:		
-		1  to  2
-		2      3
+		1  to  0
+		2      1
 		3 ...
 		*/
-		for (int i = 0; i < NUMBER_OF_PBS; i++)
+		for (int i = 0; i < numberOfPBs; i++)
 		{
 			for (int j = 1; j < vectorLength2; j++)
 			{
 				vector2.at(i).at(j-1) = vector2.at(i).at(j);
 			}
-		}		
-		
-		// Save the latest value		
-		for (int i = 0; i < numberOfPBs; i++)
-		{
-			vector2.at(i).at(vectorLength2-1) = running[i];
+			// save the latest value
+			vector2.at(i).at(vectorLength2-1) = PBs[i].running ? true : false;
 		}
 		// ==============
 
 		
 		// =======================================================================================
-		// Count how many we have running now
+		// Count how many we have running now in a certain block
 		// --------------
 		int jj = 0;
-		for (int i = 0; i < NUMBER_OF_PBS; i++)
+		for (int i = 0; i < numberOfPBs; i++)
 		{
-			for (int j = 0; j < vectorLength2-1; j++)
+			jj = 0;
+			for (int j = 0; j < vectorLength2-1; j++) // the hundred last updates
 			{
-				if (vector2.at(i).at(j) == 1)
-				{
+				if (vector2.at(i).at(j)) // if it was on then
+				{					
 					jj++;					
 				}
 				numberRunning.at(i) = jj;
@@ -732,27 +720,30 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 		// ==============
 
 
-		// go through all running blocks
+		// =======================================================================================
+		// Now go through all blocks
+		// --------------
 		for (int i = 0; i < numberOfPBs; i++)
 		{
-		// Prepare conditions. TODO: We use this in two places now, make it only one
-		/**/if(Wii)
-			if(version == 0) Conditions = PrepareConditions(Wii, i, PBw);
-			else Conditions = PrepareConditions(Wii, i, PBw_);
-		else
-			Conditions = PrepareConditions(Wii, i, PBs);
+		
 
-		// Use the condition
+		// --------------------------------------
+		// Now go through only a subset of the blocks depending on Conditions
+		// ------------------
+		// Prepare conditions
+		Conditions = PrepareConditions(Wii, i, PBs);
 		if (Conditions)
 		{			
-			// Save playback history for the GUI debugger --------------------------
+			// --------------------------------------
+			// Save playback history text string for the console and GUI debugger
+			// ------------------
 			if(m_frame)
 			{
 				std::string guipr; // gui progress
 
 				for (int j = 0; j < vectorLengthGUI; j++)
 				{
-					if(vector1.at(i).at(j) == 0)
+					if(vector1.at(i).at(j) == false)
 					{
 						guipr = guipr + "0";
 					}
@@ -767,11 +758,10 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 				guipr.clear();
 			}
 
-
-			// Make the playback history (progress bar) to display in the console debugger
+			// and for the console debugger
 			for (int j = 0; j < vectorLength; j++)
 			{
-				if(vector1.at(i).at(j) == 0)
+				if(vector1.at(i).at(j) == false)
 				{
 					sbuff = sbuff + " ";
 				}
@@ -822,22 +812,23 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 			sbuff = sbuff + writeMessage(m_frame->gPreset, i, Wii); strcpy(buffer, "");
 			sbuff = sbuff + "\n";
 
-		} // end of if (PBs[i].running)		
+		} // end of if(Conditions)
+		// ==============
 
-		} // end of big loop - for (int i = 0; i < numberOfPBs; i++)
-
+		} // end of for (int i = 0; i < numberOfPBs; i++)
 
 
 		// =======================================================================================
 		// Write global values
 		// ---------------
 		int nOfBlocks;
+		int span = m_frame->gLastBlock - m_addressPBs;
 		if(Wii)
-			nOfBlocks = (gLastBlock-m_addressPBs) / 256;
+			nOfBlocks = (m_frame->gLastBlock-m_addressPBs) / 256;
 		else
-			nOfBlocks = (gLastBlock-m_addressPBs) / 192;
-		sprintf(buffer, "\nThe parameter blocks span from %08x to %08x | distance %i | num. of blocks %i | numberOfPBs %i | _iSize %i\n",
-			m_addressPBs, gLastBlock, (gLastBlock-m_addressPBs), nOfBlocks, numberOfPBs, _iSize);
+			nOfBlocks = (m_frame->gLastBlock-m_addressPBs) / 192;
+		sprintf(buffer, "\nThe parameter blocks span from %08x to %08x (%s bytes) impl. %i blocks | numberOfPBs %i | _iSize %i\n",
+			m_addressPBs, m_frame->gLastBlock, ThS(span).c_str(), nOfBlocks, numberOfPBs, _iSize);
 		sbuff = sbuff + buffer; strcpy(buffer, "");
 		// ===============
 			
@@ -920,3 +911,42 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 	} // end of if (j>20)	
 	
 } // end of function
+
+
+// I placed this in CUCode_AX so it can share member values with that class
+void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
+{
+	/* Doing all this may have a noticable CPU effect, so we can disable it completely
+	   this way. But remember that "Save to file" will not write anything then either. */
+	if (m_frame->gUpdFreq > 0)
+	{
+		int version; // AX version
+		int numberOfPBs;
+
+		// Declare structures
+		AXParamBlock PBs[NUMBER_OF_PBS];
+		AXParamBlockWii PBw[NUMBER_OF_PBS];
+		AXParamBlockWii_ PBw_[NUMBER_OF_PBS];
+		if(_CRC == 0xfa450138) version = 0; else version = 1;
+		
+		// Read out structs and number of PBs that have data
+		if(Wii)
+		{
+			if(version == 0)
+			{
+				numberOfPBs = ReadOutPBsWii(m_addressPBs, PBw, NUMBER_OF_PBS, true);
+				Logging_(_pBuffer, _iSize, a, Wii, PBw, numberOfPBs, m_addressPBs);
+			}
+			else
+			{
+				numberOfPBs = ReadOutPBsWii(m_addressPBs, PBw_, NUMBER_OF_PBS, true);
+				Logging_(_pBuffer, _iSize, a, Wii, PBw_, numberOfPBs, m_addressPBs);
+			}
+		}
+		else
+		{
+			numberOfPBs = ReadOutPBs(m_addressPBs, PBs, NUMBER_OF_PBS);
+			Logging_(_pBuffer, _iSize, a, Wii, PBs, numberOfPBs, m_addressPBs);
+		}	
+	}	
+}

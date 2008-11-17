@@ -128,6 +128,9 @@ extern "C" void Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize)
 {
 	g_WiimoteInitialize = _WiimoteInitialize;
 
+	/* We will run WiiMoteReal::Initialize() even if we are not using a real wiimote,
+	   we will ini wiiuse.dll, but we will return before creating a new thread for
+	   it, in that case */
 	g_UseRealWiiMote = WiiMoteReal::Initialize() > 0;
 
 	WiiMoteEmu::Initialize();

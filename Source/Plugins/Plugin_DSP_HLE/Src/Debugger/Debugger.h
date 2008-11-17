@@ -116,6 +116,7 @@ class CDebugger : public wxDialog
 		int gUpdFreq;// main update freq.
 		int gPreset; // main presets	
 		bool bShowBase; // main presets	
+		u32 gLastBlock;
 
 		bool ScanMails; // mail settings
 		bool StoreMails;

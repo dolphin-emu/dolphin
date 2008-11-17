@@ -37,7 +37,6 @@
 // Declarations
 // -----------
 extern bool gSequenced;
-extern u32 gLastBlock;
 extern CDebugger * m_frame;
 // -----------
 
@@ -108,6 +107,7 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 	memset(templbuffer, 0, _iSize * sizeof(int));
 	memset(temprbuffer, 0, _iSize * sizeof(int));
 
+	// -------------------------------------------
 	// write logging data to debugger
 	if (m_frame)
 	{
@@ -147,10 +147,11 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 			}	
 		}
 	}
+	// -----------------
+
 
 	// ---------------------------------------------------------------------------------------
-	// Make the updates we are told to do. This code may be buggy, TODO - fix. If multiple
-	// updates in a ms, only does first.
+	/* Make the updates we are told to do. See comments to the GC version in UCode_AX.cpp */
 	// ------------
 	for (int i = 0; i < numberOfPBs; i++)
 	{
@@ -158,21 +159,32 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 		u16 upd0 = pDest[41]; u16 upd1 = pDest[42]; u16 upd2 = pDest[43]; // num_updates
 		u16 upd_hi = pDest[44]; // update addr
 		u16	upd_lo = pDest[45];
-		const u32 updaddr   = (u32)(upd_hi << 16) | upd_lo;
-		const u16 updpar   = Memory_Read_U16(updaddr);
-		const u16 upddata   = Memory_Read_U16(updaddr + 2);
-		// some safety checks, I hope it's enough, how long does the memory go?
-		if(updaddr > 0x80000000 && updaddr < 0x82000000
-			&& updpar < 127 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
-			// 0-3, those are important
-			&& (upd0 || upd1 || upd2) // We should use these in some way to I think
-			// but I don't know how or when
-			&& gSequenced) // on and off option
-		{
-			//PanicAlert("Update %i: %i = %04x", i, updpar, upddata);
-			//DebugLog("Update: %i = %04x", updpar, upddata);
-			pDest[updpar] = upddata;
+		int numupd = upd0 + upd1 + upd2;
+		if(numupd > 64) numupd = 64; // prevent to high values
+		const u32 updaddr   = (u32)(upd_hi << 16) | upd_lo;		
+		int on = false, off = false;
+		for (int j = 0; j < numupd; j++) // make alll updates
+		{	
+			const u16 updpar   = Memory_Read_U16(updaddr);
+			const u16 upddata   = Memory_Read_U16(updaddr + 2);
+			// some safety checks, I hope it's enough
+			if( (  (updaddr > 0x80000000 && updaddr < 0x817fffff)
+				|| (updaddr > 0x90000000 && updaddr < 0x93ffffff) )
+				&& updpar < 127 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
+				// 0-3, those are important
+				//&& (upd0 || upd1 || upd2) // We should use these in some way to I think
+				// but I don't know how or when
+				&& gSequenced) // on and off option
+			{
+				//PanicAlert("Update %i: %i = %04x", i, updpar, upddata);
+				//DebugLog("Update: %i = %04x", updpar, upddata);
+				pDest[updpar] = upddata;
+			}
+			if (updpar == 7 && upddata == 1) on++;
+			if (updpar == 7 && upddata == 1) off++;
 		}
+		// hack: if we get both an on and an off select on rather than off
+		if (on > 0 && off > 0) pDest[7] = 1;
 	}
 
 	//aprintf(1, "%08x %04x %04x\n", updaddr, updpar, upddata);

@@ -266,11 +266,15 @@ int ReadOutPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num)
 				pDest[p] = Common::swap16(pSrc[p]);
 
 				#if defined(_DEBUG) || defined(DEBUGFAST)
-					gLastBlock = blockAddr + p*2 + 2;  // save last block location
+					if(m_frame) m_frame->gLastBlock = blockAddr + p*2 + 2;  // save last block location
 				#endif
 			}
 			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
-			count++;			
+			count++;	
+
+			// Detect the last mail by checking when next_pb = 0
+			u32 next_pb = (Common::swap16(pSrc[0]) << 16) | Common::swap16(pSrc[1]);
+			if(next_pb == 0) break;
 		}
 		else
 			break;
@@ -319,28 +323,42 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 	}
 	
 	// ---------------------------------------------------------------------------------------
-	// Make the updates we are told to do
-	// This code is buggy, TODO - fix. If multiple updates in a ms, only does first.
+	/* Make the updates we are told to do. When there are multiple updates for a block they
+	   are placed in memory directly following updaddr. They are mostly for initial time
+	   delays, sometimes for the FIR filter or channel volumes. We do all of them at once here.
+	   If we get both an on and an off update we chose on. Perhaps that makes the RE1 music
+	   work better. */
 	// ------------
-	for (int i = 0; i < numberOfPBs; i++) {
+	for (int i = 0; i < numberOfPBs; i++)
+	{
 		u16 *pDest = (u16 *)&PBs[i];
 		u16 upd0 = pDest[34]; u16 upd1 = pDest[35]; u16 upd2 = pDest[36]; // num_updates
 		u16 upd3 = pDest[37]; u16 upd4 = pDest[38];
 		u16 upd_hi = pDest[39]; // update addr
 		u16	upd_lo = pDest[40];
+		int numupd = upd0 + upd1 + upd2 + upd3 + upd4;
+		if(numupd > 64) numupd = 64; // prevent crazy values
 		const u32 updaddr   = (u32)(upd_hi << 16) | upd_lo;
-		const u16 updpar   = Memory_Read_U16(updaddr);
-		const u16 upddata   = Memory_Read_U16(updaddr + 2);
-		// some safety checks, I hope it's enough, how long does the memory go?
-		if(updaddr > 0x80000000 && updaddr < 0x82000000
-			&& updpar < 63 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
-			// 0-3, those are important
-			&& (upd0 || upd1 || upd2 || upd3 || upd4) // We should use these in some way to I think
-			// but I don't know how or when
-			&& gSequenced) // on and off option
-		{
-			pDest[updpar] = upddata;
+		int on = false, off = false;
+		for (int j = 0; j < numupd; j++)
+		{			
+			const u16 updpar   = Memory_Read_U16(updaddr + j);
+			const u16 upddata   = Memory_Read_U16(updaddr + j + 2);
+			// some safety checks, I hope it's enough
+			if(updaddr > 0x80000000 && updaddr < 0x817fffff
+				&& updpar < 63 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
+				// 0-3, those are important
+				//&& (upd0 || upd1 || upd2 || upd3 || upd4) // We should use these in some way to I think
+				// but I don't know how or when
+				&& gSequenced) // on and off option
+			{
+				pDest[updpar] = upddata;
+			}
+			if (updpar == 7 && upddata == 1) on++;
+			if (updpar == 7 && upddata == 1) off++;
 		}
+		// hack: if we get both an on and an off select on rather than off
+		if (on > 0 && off > 0) pDest[7] = 1;
 	}
 
 	//aprintf(1, "%08x %04x %04x\n", updaddr, updpar, upddata);

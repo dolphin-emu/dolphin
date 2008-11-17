@@ -22,6 +22,7 @@
 #include "UCode_AX.h"
 #include "../main.h"
 
+
 // ----------------------------------------------------
 // Externals
 // -----------
@@ -33,7 +34,7 @@ extern bool gVolume;
 extern bool gReset;
 extern bool gSequenced;
 extern float ratioFactor;
-extern u32 gLastBlock;
+
 
 template<class ParamBlockType>
 inline int ReadOutPBsWii(u32 pbs_address, ParamBlockType& _pPBs, int _num, int _deb)
@@ -57,7 +58,7 @@ inline int ReadOutPBsWii(u32 pbs_address, ParamBlockType& _pPBs, int _num, int _
 				else pDest[p] = Common::swap16(pSrc[p]);
 
 				#if defined(_DEBUG) || defined(DEBUGFAST)
-					gLastBlock = blockAddr + p*2 + 2;  // save last block location
+					if(m_frame) m_frame->gLastBlock = blockAddr + p*2 + 2;  // save last block location
 				#endif
 			}
 
@@ -308,15 +309,13 @@ inline void DoVoiceHacks(ParamBlockType &pb)
 	const u16 upddata   = Memory_Read_U16(updaddr + 2);
 
 	// =======================================================================================
-	/* Fix problems introduced with the SSBM fix - Sometimes when a music stream ended sampleEnd
-	would become extremely high and the game would play random sound data from ARAM resulting in
-	a strange noise. This should take care of that. - Some games (Monkey Ball 1 and Tales of
-	Symphonia and other) also had one odd last block with a strange high loopPos and strange
-	num_updates values, the loopPos limit turns those off also. - Please report any side effects.
+	/* Fix problems introduced with the SSBM fix. Sometimes when a music stream ended sampleEnd
+	would end up outside of bounds while the block was still playing resulting in noise 
+	a strange noise. This should take care of that.
 	*/
 	// ------------
 	if (
-		(sampleEnd > 0x10000000 || loopPos > 0x10000000)
+		(sampleEnd > (0x017fffff * 2) || loopPos > (0x017fffff * 2)) // ARAM bounds in nibbles
 		&& gSSBMremedy1
 		)
 	{
