@@ -52,7 +52,7 @@ struct CDebugger_LogSettings
 {
 	int m_iVerbosity; // verbosity level 0 - 2
 	bool bResolve;
-	bool bWriteMaster;
+	bool bWriteMaster;	
 
 	// constructor
 	CDebugger_LogSettings();
@@ -72,6 +72,7 @@ public:
 	{
 		bool m_bInUse;
 		LogTypes::LOG_TYPE m_type;
+		int m_verbosity;
 		char m_szMessage[MAX_MSGLEN];
 		int m_dwMsgLen;
 
@@ -81,7 +82,7 @@ public:
 		{}
 
 		// set
-		void Set(LogTypes::LOG_TYPE _type, char* _szMessage)
+		void Set(LogTypes::LOG_TYPE _type, int _verbosity, char* _szMessage)
 		{
 			strncpy(m_szMessage, _szMessage, MAX_MSGLEN-1);
 			m_szMessage[MAX_MSGLEN-1] = 0;
@@ -95,6 +96,7 @@ public:
 			m_szMessage[m_dwMsgLen] = 0;
 
 			m_type = _type;
+			m_verbosity = _verbosity;
 			m_bInUse = true; // turn on this message line
 		}
 		//

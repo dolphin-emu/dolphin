@@ -37,6 +37,8 @@ void Config::Load()
 
     iniFile.Get("Settings", "SidewaysDPad", &bSidewaysDPad, 0); // Hardware
 	iniFile.Get("Settings", "WideScreen", &bWideScreen, 0);
+	iniFile.Get("Settings", "ExtensionConnected", &bExtensionConnected, 0);
+	
 }
 
 void Config::Save()
@@ -45,6 +47,8 @@ void Config::Save()
     iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
     iniFile.Set("Settings", "SidewaysDPad", bSidewaysDPad);
     iniFile.Set("Settings", "WideScreen", bWideScreen);
+	iniFile.Set("Settings", "ExtensionConnected", bExtensionConnected);
+
 
     iniFile.Save(FULL_CONFIG_DIR "Wiimote.ini");
 }

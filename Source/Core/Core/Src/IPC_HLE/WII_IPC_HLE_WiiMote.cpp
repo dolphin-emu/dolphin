@@ -459,6 +459,7 @@ void CWII_IPC_HLE_WiiMote::CommandConnectionReq(u8 _Ident, u8* _pData, u32 _Size
 
 void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Size)
 {
+	LOGV(WII_IPC_WIIMOTE, 1, "=======================================================");
 	u32 Offset = 0;
 	SL2CAP_CommandConfigurationReq* pCommandConfigReq = (SL2CAP_CommandConfigurationReq*)_pData;
 
@@ -467,10 +468,10 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 	_dbg_assert_(WII_IPC_WIIMOTE, DoesChannelExist(pCommandConfigReq->dcid));
 	SChannel& rChannel = m_Channel[pCommandConfigReq->dcid];
 
-	LOG(WII_IPC_WIIMOTE, "  CommandCofigurationReq");
-	LOG(WII_IPC_WIIMOTE, "    Ident: 0x%02x", _Ident);
-	LOG(WII_IPC_WIIMOTE, "    DCID: 0x%04x", pCommandConfigReq->dcid);
-	LOG(WII_IPC_WIIMOTE, "    Flags: 0x%04x", pCommandConfigReq->flags);
+	LOGV(WII_IPC_WIIMOTE, 1, "  CommandCofigurationReq");
+	LOGV(WII_IPC_WIIMOTE, 1, "    Ident: 0x%02x", _Ident);
+	LOGV(WII_IPC_WIIMOTE, 1, "    DCID: 0x%04x", pCommandConfigReq->dcid);
+	LOGV(WII_IPC_WIIMOTE, 1, "    Flags: 0x%04x", pCommandConfigReq->flags);
 
 	Offset += sizeof(SL2CAP_CommandConfigurationReq);
 
@@ -497,7 +498,7 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 				_dbg_assert_(WII_IPC_WIIMOTE, pOptions->length == 2);
 				SL2CAP_OptionsMTU* pMTU = (SL2CAP_OptionsMTU*)&_pData[Offset];
 				rChannel.MTU = pMTU->MTU;
-				LOG(WII_IPC_WIIMOTE, "    Config MTU: 0x%04x", pMTU->MTU);
+				LOGV(WII_IPC_WIIMOTE, 1, "    Config MTU: 0x%04x", pMTU->MTU);
 			}
 			break;
 
@@ -506,7 +507,7 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 				_dbg_assert_(WII_IPC_WIIMOTE, pOptions->length == 2);
 				SL2CAP_OptionsFlushTimeOut* pFlushTimeOut = (SL2CAP_OptionsFlushTimeOut*)&_pData[Offset];
 				rChannel.FlushTimeOut = pFlushTimeOut->TimeOut;
-				LOG(WII_IPC_WIIMOTE, "    Config FlushTimeOut: 0x%04x", pFlushTimeOut->TimeOut);
+				LOGV(WII_IPC_WIIMOTE, 1, "    Config FlushTimeOut: 0x%04x", pFlushTimeOut->TimeOut);
 			}
 			break;
 
@@ -523,6 +524,7 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 	}
 
 	SendCommandToACL(_Ident, L2CAP_CONF_RSP, RespLen, TempBuffer);
+	LOGV(WII_IPC_WIIMOTE, 1, "=======================================================");
 }
 
 void CWII_IPC_HLE_WiiMote::CommandConnectionResponse(u8 _Ident, u8* _pData, u32 _Size)

@@ -22,7 +22,7 @@
 #include <string>
 #include "Common.h"
 #include "wiimote_hid.h"
-#include "EmuDeclarations.h"
+#include "EmuSubroutines.h"
 #include "EmuDefinitions.h"
 #include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
 
@@ -77,12 +77,13 @@ void CryptBuffer(u8* _buffer, u8 _size)
 	}
 }
 
-void WriteCryped16(u8* _baseBlock, u16 _address, u16 _value)
+void WriteCrypted16(u8* _baseBlock, u16 _address, u16 _value)
 {
 	u16 cryptedValue = _value;
 	CryptBuffer((u8*)&cryptedValue, sizeof(u16));
 
 	*(u16*)(_baseBlock + _address) = cryptedValue;
+	//PanicAlert("Converted %04x to %04x", _value, cryptedValue);
 }
 
 void Initialize()
@@ -94,11 +95,13 @@ void Initialize()
 	g_ReportingMode = 0;
 
 
-	
-	WriteCryped16(g_RegExt, 0xfe, 0x0000);
+	// Write 0x0000 in encrypted form (0xfefe) to 0xfe in the extension register
+	WriteCrypted16(g_RegExt, 0xfe, 0x0000); // Fully inserted Nunchuk
+
 
 //	g_RegExt[0xfd] = 0x1e;
 //	g_RegExt[0xfc] = 0x9a;
+
 
 }
 
@@ -113,7 +116,7 @@ void Shutdown(void)
 
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {
-	
+	LOGV(WII_IPC_WIIMOTE, 0, "=============================================================");
 	const u8* data = (const u8*)_pData;
 
 	// dump raw data
@@ -155,6 +158,7 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 		PanicAlert("HidInput: Unknown type 0x%02x and param 0x%02x", hidp->type, hidp->param);
 		break;
 	}
+	LOGV(WII_IPC_WIIMOTE, 0, "=============================================================");
 }
 
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size) 

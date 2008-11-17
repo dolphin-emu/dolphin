@@ -157,6 +157,7 @@ extern "C" void Wiimote_Shutdown(void)
 
 extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {	
+	LOGV(WII_IPC_WIIMOTE, 0, "=============================================================");
 	const u8* data = (const u8*)_pData;
 
 	// dump raw data
@@ -176,7 +177,7 @@ extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32
 		WiiMoteReal::InterruptChannel(_channelID, _pData, _Size);
 	else
 		WiiMoteEmu::InterruptChannel(_channelID, _pData, _Size);
-
+	LOGV(WII_IPC_WIIMOTE, 0, "=============================================================");
 }
 
 extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size) 

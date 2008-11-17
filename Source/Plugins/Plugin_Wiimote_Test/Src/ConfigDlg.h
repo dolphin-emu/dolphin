@@ -59,6 +59,7 @@ class ConfigDialog : public wxDialog
 
 		wxCheckBox *m_SidewaysDPad; // general settings
 		wxCheckBox *m_WideScreen;
+		wxCheckBox *m_ExtensionConnected;
 
 		enum
 		{
@@ -70,7 +71,8 @@ class ConfigDialog : public wxDialog
 			ID_PAGEREAL,
 
 			ID_SIDEWAYSDPAD,
-			ID_WIDESCREEN
+			ID_WIDESCREEN,
+			ID_EXTENSIONCONNECTED
 		};
 
 		void OnClose(wxCloseEvent& event);

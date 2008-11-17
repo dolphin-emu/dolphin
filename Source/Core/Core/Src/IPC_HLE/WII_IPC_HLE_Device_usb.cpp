@@ -815,8 +815,8 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventAuthenticationCompleted(u16 _
 	AddEventToQueue(Event);
 
 	// Log
-	LOG(WII_IPC_WIIMOTE, "Event: SendEventAuthenticationCompleted");
-	LOG(WII_IPC_WIIMOTE, "  Connection_Handle: 0x%04x", pEventAuthenticationCompleted->Connection_Handle);
+	LOGV(WII_IPC_WIIMOTE, 1, "Event: SendEventAuthenticationCompleted");
+	LOGV(WII_IPC_WIIMOTE, 1, "  Connection_Handle: 0x%04x", pEventAuthenticationCompleted->Connection_Handle);
 
 	return true;
 }

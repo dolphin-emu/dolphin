@@ -24,7 +24,7 @@
 #include <string>
 #include "Common.h"
 #include "wiimote_hid.h"
-#include "EmuDeclarations.h"
+#include "EmuSubroutines.h"
 #include "EmuDefinitions.h"
 #include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
 #include "Config.h" // for g_Config

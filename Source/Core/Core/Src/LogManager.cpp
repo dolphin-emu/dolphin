@@ -281,7 +281,7 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 		id = i*100 + type;
 
 		// write to memory
-		m_Messages[i][m_nextMessages[i]].Set((LogTypes::LOG_TYPE)id, Msg2);
+		m_Messages[i][m_nextMessages[i]].Set((LogTypes::LOG_TYPE)id, v, Msg2);
 
 		// ----------------------------------------------------------------------------------------
 		// write to file

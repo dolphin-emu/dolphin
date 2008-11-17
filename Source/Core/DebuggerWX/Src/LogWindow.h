@@ -42,6 +42,8 @@ class CLogWindow
 		wxCheckListBox* m_options;
 		wxRadioBox *m_RadioBox[1]; // radio boxes
 		bool m_bCheckDirty;
+		bool bOnlyUnique;
+
 		DECLARE_EVENT_TABLE()
 
 		void OnSubmit(wxCommandEvent& event);

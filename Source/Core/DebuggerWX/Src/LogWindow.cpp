@@ -64,6 +64,7 @@ CLogWindow::CLogWindow(wxWindow* parent)
 		0, NULL, wxNO_BORDER);
 	m_options->Append(wxT("Resolve symbols"));
 	m_options->Append(wxT("Write master"));
+	m_options->Append(wxT("Show unique"));
 	m_optionsSizer->Add(m_options, 0, 0, 0);
 
 	// I could not find any transparency setting and it would not automatically space correctly
@@ -144,8 +145,10 @@ void CLogWindow::Load(IniFile& _IniFile)
 	// load options
 	_IniFile.Get("LogWindow", "ResolveSymbols", &LogManager::m_LogSettings->bResolve, false);
 	_IniFile.Get("LogWindow", "WriteMaster", &LogManager::m_LogSettings->bWriteMaster, false);
+	_IniFile.Get("LogWindow", "Show unique", &bOnlyUnique, false);
 	m_options->Check(0, LogManager::m_LogSettings->bResolve);
 	m_options->Check(1, LogManager::m_LogSettings->bWriteMaster);
+	m_options->Check(2, bOnlyUnique);
 }
 
 void CLogWindow::OnSubmit(wxCommandEvent& event)
@@ -239,7 +242,7 @@ void CLogWindow::UpdateChecks()
 
 
 // ----------------------------------------------------------------------------------------
-// When an option is changed
+// When an option is changed, save the change
 // ---------------
 void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 {
@@ -247,8 +250,10 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 	ini.Load(DEBUGGER_CONFIG_FILE);
 	LogManager::m_LogSettings->bResolve = m_options->IsChecked(0);
 	LogManager::m_LogSettings->bWriteMaster = m_options->IsChecked(1);
+	bOnlyUnique = m_options->IsChecked(2);
 	ini.Set("LogWindow", "ResolveSymbols", m_options->IsChecked(0));
 	ini.Set("LogWindow", "WriteMaster", m_options->IsChecked(1));
+	ini.Set("LogWindow", "OnlyUnique", m_options->IsChecked(2));
 	ini.Save(DEBUGGER_CONFIG_FILE);
 	if (Core::GetState() != Core::CORE_UNINITIALIZED) UpdateLog();
 }
@@ -369,9 +374,22 @@ void CLogWindow::UpdateLog()
 				// only show checkboxed logs
 				if (LogManager::m_Log[message.m_type]->m_bShowInLog)
 				{
-					// memcpy is faster than strcpy
-					memcpy(p, message.m_szMessage, len);
-					p += len;
+					if(bOnlyUnique) /* don't show lower level messages that have fallen through
+						to this higher level */
+					{
+						if(message.m_verbosity == v)
+						{
+							// memcpy is faster than strcpy
+							memcpy(p, message.m_szMessage, len);
+							p += len;
+						}
+					}
+					else
+					{		
+						// memcpy is faster than strcpy
+						memcpy(p, message.m_szMessage, len);
+						p += len;
+					}
 				}
 			}
 			else
