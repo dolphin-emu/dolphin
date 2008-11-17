@@ -38,10 +38,12 @@ u32 CPU_CORE_CLOCK  = 486000000u;             // 486 mhz (its not 485, stop bugg
 
 s64 fakeDec;
 
-//ratio of TB and Decrementer to clock cycles
-//4 or 8? not really sure, but think it's 8
+// ratio of TB and Decrementer to clock cycles
+// With TB clk at 1/4 of BUS clk
+// and it seems BUS clk is really 1/3 of CPU clk
+// note: ZWW is ok and faster with TIMER_RATIO=8 though.
 enum {
-	TIMER_RATIO = 8
+	TIMER_RATIO = 12
 };
 
 int et_Dec;
