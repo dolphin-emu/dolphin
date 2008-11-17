@@ -73,6 +73,15 @@ void UnloadPlugin()
     plugin.Unload();
 }
 
+// ==============================================
+/* Load the plugin, but first check if we have already loaded the plugin for
+   the sake of showing the debugger.
+
+   ret values:
+		0 = failed
+		1 = loaded successfully
+		2 = already loaded from PluginManager.cpp, use it as it is */
+// ------------
 bool LoadPlugin(const char *_Filename)
 {
 	int ret = plugin.Load(_Filename);
@@ -127,6 +136,7 @@ bool LoadPlugin(const char *_Filename)
 		return false;
 	}
 }
+// ============
 
 
 }  // namespace
