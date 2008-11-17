@@ -88,6 +88,7 @@ class CISOProperties : public wxDialog
 		wxButton *EditCheat;
 		wxButton *AddCheat;
 		wxButton *RemoveCheat;
+		wxButton *EditConfig;
 		
 		wxStaticText *m_NameText;
 		wxStaticText *m_GameIDText;
@@ -146,6 +147,7 @@ class CISOProperties : public wxDialog
 			ID_EDITCHEAT,
 			ID_ADDCHEAT,
 			ID_REMOVECHEAT,
+			ID_EDITCONFIG,
 			
 			ID_NAME_TEXT,
 			ID_GAMEID_TEXT,
@@ -188,6 +190,7 @@ class CISOProperties : public wxDialog
 		void OnExtractFile(wxCommandEvent& event);
 		void OnExtractDir(wxCommandEvent& event);
 		void SetRefresh(wxCommandEvent& event);
+		void OnEditConfig(wxCommandEvent& event);
 
 		std::vector<const DiscIO::SFileInfo *> Our_Files;
 		typedef std::vector<const DiscIO::SFileInfo *>::iterator fileIter;

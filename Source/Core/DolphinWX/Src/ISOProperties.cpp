@@ -31,6 +31,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_TREE_ITEM_RIGHT_CLICK(ID_TREECTRL, CISOProperties::OnRightClickOnTree)
 	EVT_MENU(IDM_EXTRACTFILE, CISOProperties::OnExtractFile)
 	EVT_MENU(IDM_EXTRACTDIR, CISOProperties::OnExtractDir)
+	EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
 END_EVENT_TABLE()
 
 DiscIO::IVolume *OpenISO = NULL;
@@ -201,6 +202,7 @@ void CISOProperties::CreateGUIControls()
 	// GameConfig editing - Core overrides and emulation state
 	sbCoreOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
 	sCoreOverrides = new wxBoxSizer(wxVERTICAL);
+	EditConfig = new wxButton(m_GameConfig, ID_EDITCONFIG, _("Edit Config"), wxDefaultPosition, wxDefaultSize);
 	OverrideText = new wxStaticText(m_GameConfig, ID_OVERRIDE_TEXT, _("These settings override core Dolphin settings. The 3rd state means the game uses Dolphin's setting."), wxDefaultPosition, wxDefaultSize);
 	UseDualCore = new wxCheckBox(m_GameConfig, ID_USEDUALCORE, _("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -248,6 +250,7 @@ void CISOProperties::CreateGUIControls()
 	sCoreOverrides->Add(OptimizeQuantizers, 0, wxEXPAND|wxLEFT, 5);
 	sCoreOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
 	sCoreOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
+	sEmuState->Add(EditConfig, 0, wxALL, 0);
 	sEmuState->AddStretchSpacer();
 	sEmuState->Add(EmuStateText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 0);
 	sEmuState->Add(EmuState, 0, wxEXPAND|wxALL, 0);
@@ -528,4 +531,12 @@ bool CISOProperties::SaveGameConfig(std::string GameIniFile)
 	return GameIni.Save(GameIniFile.c_str());
 
 	// TODO save patches+cheats
+}
+
+void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
+{
+	if (File::Exists(GameIniFile.c_str()))
+	{
+		File::Launch(GameIniFile.c_str());
+	}
 }
