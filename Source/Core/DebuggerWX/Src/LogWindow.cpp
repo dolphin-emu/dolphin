@@ -145,7 +145,7 @@ void CLogWindow::Load(IniFile& _IniFile)
 	// load options
 	_IniFile.Get("LogWindow", "ResolveSymbols", &LogManager::m_LogSettings->bResolve, false);
 	_IniFile.Get("LogWindow", "WriteMaster", &LogManager::m_LogSettings->bWriteMaster, false);
-	_IniFile.Get("LogWindow", "Show unique", &bOnlyUnique, false);
+	_IniFile.Get("LogWindow", "OnlyUnique", &bOnlyUnique, false);
 	m_options->Check(0, LogManager::m_LogSettings->bResolve);
 	m_options->Check(1, LogManager::m_LogSettings->bWriteMaster);
 	m_options->Check(2, bOnlyUnique);
