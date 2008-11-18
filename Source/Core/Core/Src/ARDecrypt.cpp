@@ -468,7 +468,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry> &ops)
 	buildseeds();
 
 	u32 uCodes[1200];
-	int i,ret;
+	u32 i,ret;
 
 	for(i = 0; i < vCodes.size(); ++i)
 	{

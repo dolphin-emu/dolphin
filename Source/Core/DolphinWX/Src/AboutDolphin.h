@@ -45,7 +45,6 @@ class AboutDolphin : public wxDialog
 
 		wxButton *m_Close;
 		wxStaticText *Message;
-		wxImage *iDolphinLogo;
 		wxBitmap *DolphinLogo;
 		wxStaticBitmap *sbDolphinLogo;
 

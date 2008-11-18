@@ -373,7 +373,7 @@ void CISOProperties::CreateGUIControls()
 
 void CISOProperties::OnClose(wxCloseEvent& WXUNUSED (event))
 {
-	if (!SaveGameConfig(GameIniFile))
+	if (!SaveGameConfig())
 		wxMessageBox(wxString::Format(_("Could not save %s"), GameIniFile.c_str()), _("Error"), wxOK|wxICON_ERROR, this);
 	Destroy();
 }
@@ -500,7 +500,7 @@ void CISOProperties::LoadGameConfig()
 	//	Cheats->Append(wxString(arCodes[i].name.c_str(), wxConvUTF8));
 }
 
-bool CISOProperties::SaveGameConfig(std::string GameIniFile)
+bool CISOProperties::SaveGameConfig()
 {
 	if (UseDualCore->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Core", "UseDualCore");

@@ -202,7 +202,7 @@ class CISOProperties : public wxDialog
 		IniFile GameIni;
 		std::string GameIniFile;
 		void LoadGameConfig();
-		bool SaveGameConfig(std::string GameIniFile);
+		bool SaveGameConfig();
 };
 
 #endif

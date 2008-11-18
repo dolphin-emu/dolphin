@@ -161,7 +161,7 @@ bool RunActionReplayCode(const ARCode &arcode) {
 	u8 zcode;
 	bool doFillNSlide = false;
 	bool doMemoryCopy = false;
-	u32 addr_last;
+	u32 addr_last = 0;
 	u32 val_last;
 
 	code = arcode;

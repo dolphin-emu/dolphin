@@ -129,7 +129,7 @@ void CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 // -------------
 void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename)
 {
-	int ret = Common::CPlugin::Load(_rFilename);
+	Common::CPlugin::Load(_rFilename);
 
 	Common::CPlugin::Config((HWND)_Parent);
 	Common::CPlugin::Release();	

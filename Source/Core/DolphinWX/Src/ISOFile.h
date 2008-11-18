@@ -54,15 +54,14 @@ private:
 	u64 m_VolumeSize;
 
 	DiscIO::IVolume::ECountry m_Country;
-	bool m_BlobCompressed;
-
-	u32 m_ImageSize;
-	u8* m_pImage;
 
 #if !defined(OSX64)
 	wxImage m_Image;
 #endif
 	bool m_Valid;
+	bool m_BlobCompressed;
+	u8* m_pImage;
+	u32 m_ImageSize;
 
 	bool LoadFromCache();
 	void SaveToCache();
