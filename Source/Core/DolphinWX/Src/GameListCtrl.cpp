@@ -319,7 +319,7 @@ bool CGameListCtrl::MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem)
 
 wxColour blend50(const wxColour& c1, const wxColour& c2)
 {
-	return(((c1.GetPixel() & 0xFEFEFE) >> 1) + ((c2.GetPixel() & 0xFEFEFE) >> 1) + 0x010101);
+  return((((int)c1.GetPixel() & 0xFEFEFE) >> 1) + (((int)c2.GetPixel() & 0xFEFEFE) >> 1) + 0x010101);
 }
 
 void CGameListCtrl::SetBackgroundColor()
@@ -649,7 +649,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 	m_currentItem = 0;
 	m_numberItem = GetSelectedItemCount();
-	for (int i=0; i<m_numberItem; i++)
+	for (u32 i=0; i<m_numberItem; i++)
 	{
 		const GameListItem *iso = GetSelectedISO();
 
