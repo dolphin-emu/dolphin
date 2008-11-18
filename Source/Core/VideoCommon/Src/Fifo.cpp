@@ -95,7 +95,7 @@ THREAD_RETURN GPWatchdogThread(void *pArg)
 
 	Common::SetCurrentThreadName("GPWatchdogThread");
 	
-	while (_fifo.bFF_GPReadEnable != ~0) // blah
+	while (_fifo.bFF_GPReadEnable != ~0UL) // blah
 	{
 		// 4 ms should be enough insignificant
 		Common::SleepCurrentThread(4);
