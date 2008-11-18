@@ -31,7 +31,7 @@ namespace VertexLoaderManager
     void RunVertices(int vtx_attr_group, int primitive, int count);
 
 	// TODO - don't expose these like this.
-    static u8* s_pCurBufferPointer;
+    //    static u8* s_pCurBufferPointer;
 };
 
 // Might move this into its own file later.

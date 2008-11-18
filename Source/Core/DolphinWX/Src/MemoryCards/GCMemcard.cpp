@@ -229,7 +229,7 @@ u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 	}
 	bat_backup.Map[i++] = 0xFFFF;
 	//Set bat.map to 0 for each block that was removed
-	for (int j = 0; j < remove; j++)
+	for (int k = 0; k < remove; k++)
 	{
 		bat_backup.Map[i++] = 0x0000;
 	}
