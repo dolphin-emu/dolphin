@@ -261,7 +261,9 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	const char *eol = "\n";
 	if (Index > 0)
 	{		
+		//sprintf(Msg2, "%i | %i %02i:%02i:%03i: %x %s (%s, %08x) : %s%s", 
 		sprintf(Msg2, "%i %02i:%02i:%03i: %x %s (%s, %08x) : %s%s", 
+			//v,
 			++count,
 			datetime.GetMinute(), datetime.GetSecond(), datetime.GetMillisecond(),
 			PowerPC::ppcState.DebugCount, 
@@ -271,34 +273,69 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	}
 
 	// ==========================================================================================
-	// Level 0 verbosity logs will be written to all verbosity levels. Given that logging is enabled
-	// for that level. Level 1 verbosity will only be written to level 1, 2, 3 and so on.
+	/* Here we have two options
+	      1. Verbosity mode where level 0 verbosity logs will be written to all verbosity
+		     levels. Given that logging is enabled for that level. Level 1 verbosity will
+		     only be written to level 1, 2, 3 and so on.
+		  2. Unify mode where everything is written to the last message struct and the
+		     last file */
 	// ---------------
-	int id;
-	for (int i = LogManager::VERBOSITY_LEVELS; i >= v ; i--)
+
+	// Check if we should do a unified write to a single file
+	if(m_LogSettings->bUnify)
 	{
 		// prepare the right id
-		id = i*100 + type;
+		int id = VERBOSITY_LEVELS*100 + type;
+		int ver = VERBOSITY_LEVELS;
 
 		// write to memory
-		m_Messages[i][m_nextMessages[i]].Set((LogTypes::LOG_TYPE)id, v, Msg2);
+		m_Messages[ver][m_nextMessages[ver]].Set((LogTypes::LOG_TYPE)id, v, Msg2);
 
 		// ----------------------------------------------------------------------------------------
-		// write to file
+		// Write to file
 		// ---------------
 		if (m_Log[id]->m_pFile && m_Log[id]->m_bLogToFile)
 			fprintf(m_Log[id]->m_pFile, "%s", Msg2);
-		if (m_Log[i*100 + LogTypes::MASTER_LOG] && m_Log[i*100 +  LogTypes::MASTER_LOG]->m_pFile
-				&& LogManager::m_LogSettings->bWriteMaster)
-			fprintf(m_Log[i*100 +  LogTypes::MASTER_LOG]->m_pFile, "%s", Msg2);
+		if (m_Log[ver*100 + LogTypes::MASTER_LOG] && m_Log[ver*100 +  LogTypes::MASTER_LOG]->m_pFile
+				&& m_LogSettings->bWriteMaster)
+			fprintf(m_Log[ver*100 + LogTypes::MASTER_LOG]->m_pFile, "%s", Msg2);
 
 		printf("%s", Msg2); // write to console screen
 
 		// this limits the memory space used for the memory logs to MAX_MESSAGES rows
-		m_nextMessages[i]++;
-		if (m_nextMessages[i] >= MAX_MESSAGES)
-			m_nextMessages[i] = 0;		
+		m_nextMessages[ver]++;
+		if (m_nextMessages[ver] >= MAX_MESSAGES)
+			m_nextMessages[ver] = 0;		
 		// ---------------
+	}
+	else // write to separate files and structs
+	{
+		int id;
+		for (int i = VERBOSITY_LEVELS; i >= v ; i--)
+		{
+			// prepare the right id
+			id = i*100 + type;
+
+			// write to memory
+			m_Messages[i][m_nextMessages[i]].Set((LogTypes::LOG_TYPE)id, v, Msg2);
+
+			// ----------------------------------------------------------------------------------------
+			// Write to file
+			// ---------------
+			if (m_Log[id]->m_pFile && m_Log[id]->m_bLogToFile)
+				fprintf(m_Log[id]->m_pFile, "%s", Msg2);
+			if (m_Log[i*100 + LogTypes::MASTER_LOG] && m_Log[i*100 +  LogTypes::MASTER_LOG]->m_pFile
+					&& m_LogSettings->bWriteMaster)
+				fprintf(m_Log[i*100 +  LogTypes::MASTER_LOG]->m_pFile, "%s", Msg2);
+
+			printf("%s", Msg2); // write to console screen
+
+			// this limits the memory space used for the memory logs to MAX_MESSAGES rows
+			m_nextMessages[i]++;
+			if (m_nextMessages[i] >= MAX_MESSAGES)
+				m_nextMessages[i] = 0;		
+			// ---------------
+		}
 	}
 	m_bDirty = true; // tell LogWindow that the log has been updated
 }

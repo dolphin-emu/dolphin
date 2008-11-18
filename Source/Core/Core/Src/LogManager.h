@@ -52,7 +52,8 @@ struct CDebugger_LogSettings
 {
 	int m_iVerbosity; // verbosity level 0 - 2
 	bool bResolve;
-	bool bWriteMaster;	
+	bool bWriteMaster;
+	bool bUnify;
 
 	// constructor
 	CDebugger_LogSettings();

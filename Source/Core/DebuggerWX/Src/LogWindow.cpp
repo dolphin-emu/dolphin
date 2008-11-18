@@ -62,6 +62,7 @@ CLogWindow::CLogWindow(wxWindow* parent)
 	wxStaticBoxSizer * m_optionsSizer = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Settings"));
 	m_options = new wxCheckListBox(this, IDM_OPTIONS, wxDefaultPosition, wxDefaultSize,
 		0, NULL, wxNO_BORDER);
+	m_options->Append(wxT("Unify"));
 	m_options->Append(wxT("Resolve symbols"));
 	m_options->Append(wxT("Write master"));
 	m_options->Append(wxT("Show unique"));
@@ -143,12 +144,21 @@ void CLogWindow::Load(IniFile& _IniFile)
 	LogManager::m_LogSettings->m_iVerbosity = v;
 
 	// load options
+	_IniFile.Get("LogWindow", "Unify", &LogManager::m_LogSettings->bUnify, false);
 	_IniFile.Get("LogWindow", "ResolveSymbols", &LogManager::m_LogSettings->bResolve, false);
 	_IniFile.Get("LogWindow", "WriteMaster", &LogManager::m_LogSettings->bWriteMaster, false);
 	_IniFile.Get("LogWindow", "OnlyUnique", &bOnlyUnique, false);
-	m_options->Check(0, LogManager::m_LogSettings->bResolve);
-	m_options->Check(1, LogManager::m_LogSettings->bWriteMaster);
-	m_options->Check(2, bOnlyUnique);
+	m_options->Check(0, LogManager::m_LogSettings->bUnify);
+	m_options->Check(1, LogManager::m_LogSettings->bResolve);
+	m_options->Check(2, LogManager::m_LogSettings->bWriteMaster);
+	m_options->Check(3, bOnlyUnique);
+
+	if(LogManager::m_LogSettings->bUnify)
+	{
+		m_RadioBox[0]->SetSelection(LogManager::VERBOSITY_LEVELS);
+		LogManager::m_LogSettings->m_iVerbosity = LogManager::VERBOSITY_LEVELS;
+		m_RadioBox[0]->Disable();
+	}
 }
 
 void CLogWindow::OnSubmit(wxCommandEvent& event)
@@ -248,12 +258,42 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 {
 	IniFile ini;
 	ini.Load(DEBUGGER_CONFIG_FILE);
-	LogManager::m_LogSettings->bResolve = m_options->IsChecked(0);
-	LogManager::m_LogSettings->bWriteMaster = m_options->IsChecked(1);
-	bOnlyUnique = m_options->IsChecked(2);
-	ini.Set("LogWindow", "ResolveSymbols", m_options->IsChecked(0));
-	ini.Set("LogWindow", "WriteMaster", m_options->IsChecked(1));
-	ini.Set("LogWindow", "OnlyUnique", m_options->IsChecked(2));
+
+	// Unified case
+	if(m_options->IsChecked(0) && Core::GetState() != Core::CORE_UNINITIALIZED)
+	{		
+		m_RadioBox[0]->SetSelection(LogManager::VERBOSITY_LEVELS);
+		LogManager::m_LogSettings->m_iVerbosity = LogManager::VERBOSITY_LEVELS;
+		m_RadioBox[0]->Disable();
+
+		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
+		{
+			for (int j = 0; j <= LogManager::VERBOSITY_LEVELS; j++)
+			{
+				// update groups to enabled or disabled
+				bool Enabled = m_checks->IsChecked(i); // get all from the current i
+				LogManager::m_Log[i + 100*j]->m_bEnable = Enabled;
+				LogManager::m_Log[i + 100*j]->m_bShowInLog = Enabled;
+
+				// update all verbosity levels to this level's Enabled
+				ini.Set("LogManager", LogManager::m_Log[i + 100*j]->m_szShortName, Enabled);
+			}
+		}
+	}
+	else
+	{
+		m_RadioBox[0]->Enable(true);
+	}
+
+	LogManager::m_LogSettings->bUnify = m_options->IsChecked(0);
+	LogManager::m_LogSettings->bResolve = m_options->IsChecked(1);
+	LogManager::m_LogSettings->bWriteMaster = m_options->IsChecked(2);
+	bOnlyUnique = m_options->IsChecked(3);
+
+	ini.Set("LogWindow", "Unify", m_options->IsChecked(0));
+	ini.Set("LogWindow", "ResolveSymbols", m_options->IsChecked(1));
+	ini.Set("LogWindow", "WriteMaster", m_options->IsChecked(2));
+	ini.Set("LogWindow", "OnlyUnique", m_options->IsChecked(3));
 	ini.Save(DEBUGGER_CONFIG_FILE);
 	if (Core::GetState() != Core::CORE_UNINITIALIZED) UpdateLog();
 }
@@ -271,16 +311,36 @@ void CLogWindow::OnLogCheck(wxCommandEvent& event)
 
 	IniFile ini;
 	ini.Load(DEBUGGER_CONFIG_FILE);
-	int v = LogManager::m_LogSettings->m_iVerbosity;
+	int v = LogManager::m_LogSettings->m_iVerbosity; // current radio button
+	int uni = LogManager::m_LogSettings->bUnify;
 
-	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
+	// Unified case
+	if(uni)
 	{
-		// update groups to enabled or disabled
-		bool Enabled = m_checks->IsChecked(i);
-		LogManager::m_Log[i + 100*v]->m_bEnable = Enabled;
-		LogManager::m_Log[i + 100*v]->m_bShowInLog = Enabled;
+		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
+		{
+			for (int j = 0; j <= LogManager::VERBOSITY_LEVELS; j++)
+			{
+				// update groups to enabled or disabled
+				bool Enabled = m_checks->IsChecked(i); // get all from the current i
+				LogManager::m_Log[i + 100*j]->m_bEnable = Enabled;
+				LogManager::m_Log[i + 100*j]->m_bShowInLog = Enabled;
 
-		ini.Set("LogManager", LogManager::m_Log[i + 100*v]->m_szShortName, Enabled);
+				ini.Set("LogManager", LogManager::m_Log[i + 100*v]->m_szShortName, Enabled);
+			}
+		}
+	}
+	else
+	{
+		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
+		{
+			// update groups to enabled or disabled
+			bool Enabled = m_checks->IsChecked(i);
+			LogManager::m_Log[i + 100*v]->m_bEnable = Enabled;
+			LogManager::m_Log[i + 100*v]->m_bShowInLog = Enabled;
+
+			ini.Set("LogManager", LogManager::m_Log[i + 100*v]->m_szShortName, Enabled);
+		}
 	}
 
 	ini.Save(DEBUGGER_CONFIG_FILE);
