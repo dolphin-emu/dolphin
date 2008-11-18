@@ -191,13 +191,33 @@ void CLogWindow::OnEnableAll(wxCommandEvent& event)
 	int v = LogManager::m_LogSettings->m_iVerbosity;
 	IniFile ini;
 	ini.Load(DEBUGGER_CONFIG_FILE);
-	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
+
+	// Unified case. Write the same to all levels.
+	if(m_options->IsChecked(0))
 	{
-		m_checks->Check(i, enable);
-		LogManager::m_Log[i + v*100]->m_bEnable = enable;
-		LogManager::m_Log[i + v*100]->m_bShowInLog = enable;
-		ini.Set("LogManager", LogManager::m_Log[i + v*100]->m_szShortName, enable);
+		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
+		{
+			m_checks->Check(i, enable); // get all from the current selection
+			for (int j = 0; j <= LogManager::VERBOSITY_LEVELS; j++)
+			{				
+				LogManager::m_Log[i + j*100]->m_bEnable = enable;
+				LogManager::m_Log[i + j*100]->m_bShowInLog = enable;
+				ini.Set("LogManager", LogManager::m_Log[i + j*100]->m_szShortName, enable);
+			}		
+		}
 	}
+	else // otherwise only update the current shown level
+	{
+		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
+		{
+			m_checks->Check(i, enable);
+			LogManager::m_Log[i + v*100]->m_bEnable = enable;
+			LogManager::m_Log[i + v*100]->m_bShowInLog = enable;
+			ini.Set("LogManager", LogManager::m_Log[i + v*100]->m_szShortName, enable);		
+		}
+	}
+
+
 	ini.Save(DEBUGGER_CONFIG_FILE);
 	enable = !enable;
 }
@@ -259,8 +279,17 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 	IniFile ini;
 	ini.Load(DEBUGGER_CONFIG_FILE);
 
-	// Unified case
-	if(m_options->IsChecked(0) && Core::GetState() != Core::CORE_UNINITIALIZED)
+	//PanicAlert("%i", (int)Core::GetState());
+
+	// Unified case. If the core is uninitialized we only disable the radio boxes
+	if(m_options->IsChecked(0) && Core::GetState() == Core::CORE_UNINITIALIZED)
+	{	
+		m_RadioBox[0]->SetSelection(LogManager::VERBOSITY_LEVELS);
+		LogManager::m_LogSettings->m_iVerbosity = LogManager::VERBOSITY_LEVELS;
+		m_RadioBox[0]->Disable();
+	}
+	// otherwise we both disable them and update all blocks
+	else if(m_options->IsChecked(0) && Core::GetState() != Core::CORE_UNINITIALIZED)
 	{		
 		m_RadioBox[0]->SetSelection(LogManager::VERBOSITY_LEVELS);
 		LogManager::m_LogSettings->m_iVerbosity = LogManager::VERBOSITY_LEVELS;
@@ -268,10 +297,10 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 
 		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
 		{
+			bool Enabled = m_checks->IsChecked(i); // get all from the current i
 			for (int j = 0; j <= LogManager::VERBOSITY_LEVELS; j++)
 			{
-				// update groups to enabled or disabled
-				bool Enabled = m_checks->IsChecked(i); // get all from the current i
+				// update groups to enabled or disabled				
 				LogManager::m_Log[i + 100*j]->m_bEnable = Enabled;
 				LogManager::m_Log[i + 100*j]->m_bShowInLog = Enabled;
 
@@ -326,7 +355,7 @@ void CLogWindow::OnLogCheck(wxCommandEvent& event)
 				LogManager::m_Log[i + 100*j]->m_bEnable = Enabled;
 				LogManager::m_Log[i + 100*j]->m_bShowInLog = Enabled;
 
-				ini.Set("LogManager", LogManager::m_Log[i + 100*v]->m_szShortName, Enabled);
+				ini.Set("LogManager", LogManager::m_Log[i + 100*j]->m_szShortName, Enabled);
 			}
 		}
 	}
