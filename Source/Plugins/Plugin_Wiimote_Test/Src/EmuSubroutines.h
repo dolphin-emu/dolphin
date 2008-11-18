@@ -38,6 +38,8 @@ namespace WiiMoteEmu
 // Definitions and variable declarations
 //******************************************************************************
 
+extern u16 g_channelID;
+
 //extern u8 g_Leds = 0x1;
 extern u8 g_Leds;
 
@@ -73,6 +75,7 @@ void WmLeds(u16 _channelID, wm_leds* leds);
 void WmReadData(u16 _channelID, wm_read_data* rd);
 void WmWriteData(u16 _channelID, wm_write_data* wd);
 void WmRequestStatus(u16 _channelID, wm_request_status* rs);
+void WmRequestStatus_(u16 _channelID);
 void WmDataReporting(u16 _channelID, wm_data_reporting* dr);
 
 void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _Size);

@@ -31,16 +31,26 @@ extern SWiimoteInitialize g_WiimoteInitialize;
 //extern void __Log(int log, const char *format, ...);
 //extern void __Log(int log, int v, const char *format, ...);
 
+
 namespace WiiMoteEmu
 {
-
 
 //******************************************************************************
 // Subroutines
 //******************************************************************************
 
 
+//wm_request_status global_struct;
+//extern wm_request_status global_struct;
+//extern u16 g_channelID;
+//void ReadExt();
 
+
+// ===================================================
+/* Here we process the Output Reports that the Wii sends. Our response will be an Input Report
+   back to the Wii. Input and Output is from the Wii's perspective, Output means data to
+   the Wiimote (from the Wii), Input means data from the Wiimote. */
+// ----------------
 void HidOutputReport(u16 _channelID, wm_report* sr) {
 	LOGV(WII_IPC_WIIMOTE, 0, "===========================================================");
 
@@ -58,6 +68,7 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 		WmReadData(_channelID, (wm_read_data*)sr->data);
 		break;
 	case WM_REQUEST_STATUS:
+		//global_struct = (wm_request_status*)sr->data;
 		WmRequestStatus(_channelID, (wm_request_status*)sr->data);
 		break;
 	case WM_IR_PIXEL_CLOCK:
@@ -85,6 +96,7 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 	}
 	LOGV(WII_IPC_WIIMOTE, 0, "===========================================================");
 }
+
 
 void WmLeds(u16 _channelID, wm_leds* leds) {
 	LOGV(WII_IPC_WIIMOTE, 0, "===========================================================");
@@ -256,7 +268,8 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 			block = g_RegExt;
 			blockSize = WIIMOTE_REG_EXT_SIZE;
 			//PanicAlert("WmReadData: 0xA4 g_RegExt");
-			LOGV(WII_IPC_WIIMOTE, 0, "WmReadData: 0xA4 g_RegExt");
+			LOGV(WII_IPC_WIIMOTE, 0, "  Case 0xA4: Read ExtReg ****************************");
+			//wprintf("WmReadData\n"); ReadExt();
 			break;
 /*	case 0xB0:
 			block = g_RegIr;
@@ -273,6 +286,16 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 			PanicAlert("WmReadData: address + size out of bounds!");
 			return;
 		}
+
+		/*// Debugging
+		wprintf("WmReadData %08x %i\n", address, (u8)size);
+		for (int i = 0; i < sizeof(block+address); i++)
+		{			
+			wprintf("%02x ", g_RegExt[i]);
+			if((i + 1) % 25 == 0) wprintf("\n");
+		}
+		wprintf("\n\n");
+		//---------*/
 
 		SendReadDataReply(_channelID, block+address, address, (u8)size);
 	} 
@@ -319,8 +342,9 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 			case 0xA4:
 				block = g_RegExt; // Extension Controller register
 				blockSize = WIIMOTE_REG_EXT_SIZE;
-				LOGV(WII_IPC_WIIMOTE, 0, "  Case 0xA4: Write g_RegExt *********************************");
-				PanicAlert("  Case 0xA4: Write g_RegExt");
+				LOGV(WII_IPC_WIIMOTE, 0, "  Case 0xA4: Write ExtReg *********************************");
+				//PanicAlert("  Case 0xA4: Write g_RegExt");
+				//wprintf("WmWriteData\n"); ReadExt();
 				break;
 			case 0xB0:
 				block = g_RegIr;
@@ -336,7 +360,24 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 			return;
 		}
 		// finally write the registers to memory
+
+
+		/*// Debugging
+		if( ((address >> 16) & 0xFE) == 0xa4 )
+		{
+			wprintf("WmWriteData %i\n", wd->size);
+			for (int i = 0; i < sizeof(wd->data); i++)
+			{			
+				wprintf("%02x ", wd->data[i]);
+				if((i + 1) % 25 == 0) wprintf("\n");
+			}
+			wprintf("\n\n");
+		}
+		//---------*/
+
+
 		memcpy(wd->data, block + address, wd->size);
+
 
 	} else {
 		PanicAlert("WmWriteData: unimplemented parameters!");
@@ -360,12 +401,17 @@ int WriteWmReport(u8* dst, u8 channel) {
 	return Offset;
 }
 
-void WmRequestStatus(u16 _channelID, wm_request_status* rs)
+// ===================================================
+/* Here we produce status report to send to the Wii. We currently ignore the status
+   request rs and all its eventual instructions it may include (for example turn off
+   rumble or something else) and just send the status report. */
+// ----------------
+void WmRequestStatus_(u16 _channelID)
 {
 	//PanicAlert("WmRequestStatus");
 	LOGV(WII_IPC_WIIMOTE, 0, "================================================");
 	LOGV(WII_IPC_WIIMOTE, 0, " Request Status");
-	LOGV(WII_IPC_WIIMOTE, 0, "  Rumble: %x", rs->rumble);
+	LOGV(WII_IPC_WIIMOTE, 0, "  Channel: %04x", _channelID);
 
 	//SendStatusReport();
 	u8 DataFrame[1024];
@@ -373,7 +419,7 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs)
 
 	wm_status_report* pStatus = (wm_status_report*)(DataFrame + Offset);
 	Offset += sizeof(wm_status_report);
-	memset(pStatus, 0, sizeof(wm_status_report));
+	memset(pStatus, 0, sizeof(wm_status_report)); // fill the status report with zeroes
 	pStatus->leds = g_Leds;
 	pStatus->ir = 1;
 	pStatus->battery = 0x4F;	//arbitrary number
@@ -392,6 +438,42 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs)
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 	LOGV(WII_IPC_WIIMOTE, 0, "=================================================");
 }
+
+
+void WmRequestStatus(u16 _channelID, wm_request_status* rs)
+{
+	//PanicAlert("WmRequestStatus");
+	LOGV(WII_IPC_WIIMOTE, 0, "================================================");
+	LOGV(WII_IPC_WIIMOTE, 0, " Request Status");
+	LOGV(WII_IPC_WIIMOTE, 0, "  Rumble: %x", rs->rumble);
+	LOGV(WII_IPC_WIIMOTE, 0, "  Channel: %04x", _channelID);
+
+	//SendStatusReport();
+	u8 DataFrame[1024];
+	u32 Offset = WriteWmReport(DataFrame, WM_STATUS_REPORT);
+
+	wm_status_report* pStatus = (wm_status_report*)(DataFrame + Offset);
+	Offset += sizeof(wm_status_report);
+	memset(pStatus, 0, sizeof(wm_status_report)); // fill the status report with zeroes
+	pStatus->leds = g_Leds;
+	pStatus->ir = 1;
+	pStatus->battery = 0x4F;	//arbitrary number
+
+	// this gets us passed the first error, but later brings up the disconnected error
+	if(g_Config.bExtensionConnected)
+		pStatus->extension = 1;
+	else
+		pStatus->extension = 0;
+
+	LOGV(WII_IPC_WIIMOTE, 0, "  Extension: %x", pStatus->extension);
+	LOGV(WII_IPC_WIIMOTE, 0, "  SendStatusReport()");
+	LOGV(WII_IPC_WIIMOTE, 0, "    Flags: 0x%02x", pStatus->padding1[2]);
+	LOGV(WII_IPC_WIIMOTE, 0, "    Battery: %d", pStatus->battery);
+
+	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
+	LOGV(WII_IPC_WIIMOTE, 0, "=================================================");
+}
+
 
 void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _Size)
 {
@@ -414,7 +496,11 @@ void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _Size)
 		pReply->error = 0;
 		pReply->size = (copySize - 1) & 0xF;
 		pReply->address = Common::swap16(_Address + dataOffset);
+
+
 		memcpy(pReply->data + dataOffset, _Base, copySize);
+
+
 		if(copySize < 16) 
 		{
 			memset(pReply->data + copySize, 0, 16 - copySize);
@@ -426,6 +512,18 @@ void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _Size)
 		LOG(WII_IPC_WIIMOTE, "    Error: 0x%x", pReply->error);
 		LOG(WII_IPC_WIIMOTE, "    Size: 0x%x", pReply->size);
 		LOG(WII_IPC_WIIMOTE, "    Address: 0x%04x", pReply->address);
+
+		// Debugging
+		/*
+		wprintf("SendReadDataReply\n");
+		for (int i = 0; i < sizeof(DataFrame); i++)
+		{			
+			wprintf("%02x ", g_RegExt[i]);
+			if((i + 1) % 25 == 0) wprintf("\n");
+		}
+		wprintf("\n\n");
+		*/
+		//---------
 
 		g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 

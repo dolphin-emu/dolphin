@@ -138,10 +138,14 @@ extern "C" void Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize)
 	g_Config.Load(); // load config settings
 
 	// Debugging window
-	/*startConsoleWin(160, 30, "Wiimote"); // give room for 20 rows
+	/*startConsoleWin(100, 750, "Wiimote"); // give room for 20 rows
 	wprintf("Wiimote console opened\n");
-	MoveWindow(GetConsoleHwnd(), 0,400, 100*8,30*14, true); // move window, TODO: make this*/
+
+	 // move window, TODO: make this
+	//MoveWindow(GetConsoleHwnd(), 0,400, 100*8,10*14, true); // small window
+	MoveWindow(GetConsoleHwnd(), 400,0, 100*8,70*14, true); // big window*/
 }
+
 
 extern "C" void Wiimote_DoState(void* ptr, int mode) 
 {
@@ -163,6 +167,8 @@ extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32
 	// dump raw data
 	{
 		LOG(WII_IPC_WIIMOTE, "Wiimote_Input");
+		LOG(WII_IPC_WIIMOTE, "   Channel ID: %04x", _channelID);
+		
 		std::string Temp;
 		for (u32 j=0; j<_Size; j++)
 		{

@@ -15,10 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
+//#include "Common.h" // for u16
 #include "ConfigDlg.h"
 #include "Config.h"
+#include "EmuSubroutines.h" // for WmRequestStatus_
 
+//extern u16 WiiMoteEmu::g_channelID; // global id
 
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
@@ -128,6 +130,10 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_EXTENSIONCONNECTED:
 		g_Config.bExtensionConnected = m_ExtensionConnected->IsChecked();
+
+		 // generate connect/disconnect status event
+		if(WiiMoteEmu::g_channelID > 0)
+			WiiMoteEmu::WmRequestStatus_(WiiMoteEmu::g_channelID);
 		break;		
 	}
 }

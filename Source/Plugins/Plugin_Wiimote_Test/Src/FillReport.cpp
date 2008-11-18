@@ -33,16 +33,33 @@ extern SWiimoteInitialize g_WiimoteInitialize;
 //extern void __Log(int log, const char *format, ...);
 //extern void __Log(int log, int v, const char *format, ...);
 
+
 namespace WiiMoteEmu
 {
-
 
 //******************************************************************************
 // Subroutines
 //******************************************************************************
 
 
-bool toggleSideWays = false;
+	/*
+void ReadExt()
+{
+	for (int i = 0; i < WIIMOTE_REG_EXT_SIZE; i++)
+	{
+		//wprintf("%i | (i % 16)
+		wprintf("%02x ", g_RegExt[i]);
+		if((i + 1) % 20 == 0) wprintf("\n");
+	}
+	wprintf("\n\n");
+}
+*/
+
+
+//bool AllowReport = true;
+//int AllowCount = 0;
+//bool toggleSideWays = false;
+
 void FillReportInfo(wm_core& _core)
 {
 	memset(&_core, 0x00, sizeof(wm_core));
@@ -79,6 +96,34 @@ void FillReportInfo(wm_core& _core)
 		_core.right = GetAsyncKeyState(VK_RIGHT) ? 1 : 0;
 		_core.down = GetAsyncKeyState(VK_DOWN) ? 1 : 0;
 	}
+
+	/*
+	if(GetAsyncKeyState('M') && AllowReport)
+	{
+		//wm_report sr;
+		//wm_request_status *sr;
+		//WmRequestStatus(0x41, sr);
+
+		WmRequestStatus_(0x0041);
+
+		wprintf("Sent status report\n");
+		AllowReport = false;
+		AllowCount = 0;
+
+		void ReadExt();
+	}
+	*/
+
+	/*
+	if(AllowCount > 20)
+	{
+		AllowReport = true;
+		AllowCount = 0;
+	}
+
+	AllowCount++;
+	*/
+
 #else 
         // TODO: fill in
 #endif
@@ -350,7 +395,7 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	// ----------------------------
 	// Debugging for calibration
 	// ----------
-	/**/
+	/*
 	if(GetAsyncKeyState(VK_NUMPAD1))
 		Right +=1;
 	else if(GetAsyncKeyState(VK_NUMPAD2))
@@ -376,9 +421,8 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	//if(consoleDisplay == 1)
 		wprintf("x0:%03i x1:%03i  y0:%03i y1:%03i   irx0:%03i y0:%03i  x1:%03i y1:%03i | T:%i L:%i R:%i B:%i S:%i\n",
 		x0, x1, y0, y1, _ir0.x, _ir0.y, _ir1.x, _ir1.y, Top, Left, Right, Bottom, SensorBarRadius
-		);
-	
-	
+		);	
+	*/
 }
 
 void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)

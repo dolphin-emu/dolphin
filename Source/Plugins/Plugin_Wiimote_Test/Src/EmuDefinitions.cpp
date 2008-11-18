@@ -38,6 +38,8 @@ namespace WiiMoteEmu
 // Definitions and variable declarations
 //******************************************************************************
 
+u16 g_channelID;
+
 u8 g_Leds = 0x1;
 
 u8 g_Eeprom[WIIMOTE_EEPROM_SIZE];

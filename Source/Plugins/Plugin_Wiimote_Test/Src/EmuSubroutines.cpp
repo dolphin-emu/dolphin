@@ -98,6 +98,14 @@ void Initialize()
 	// Write 0x0000 in encrypted form (0xfefe) to 0xfe in the extension register
 	WriteCrypted16(g_RegExt, 0xfe, 0x0000); // Fully inserted Nunchuk
 
+	/*
+	g_RegExt[0xfa] = 0x00;
+	g_RegExt[0xfb] = 0x00;
+	g_RegExt[0xfc] = 0xa4;
+	g_RegExt[0xfd] = 0x20;
+	g_RegExt[0xfe] = 0x00;
+	g_RegExt[0xff] = 0x00;
+	*/
 
 //	g_RegExt[0xfd] = 0x1e;
 //	g_RegExt[0xfc] = 0x9a;
@@ -114,8 +122,15 @@ void Shutdown(void)
 {
 }
 
+
+// ===================================================
+/* This function produce Wiimote Input, i.e. reports from the Wiimote in response
+   to Output from the Wii. */
+// ----------------
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {
+	g_channelID = _channelID; // store the channel id for manual use
+
 	LOGV(WII_IPC_WIIMOTE, 0, "=============================================================");
 	const u8* data = (const u8*)_pData;
 
@@ -160,6 +175,7 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 	}
 	LOGV(WII_IPC_WIIMOTE, 0, "=============================================================");
 }
+
 
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {
