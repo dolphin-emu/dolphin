@@ -48,11 +48,10 @@
 // TODO (mb2):
 // * raise watermark Ov/Un irq: POINTLESS since emulated GP timings can't be accuratly set.
 //   Only 3 choices IMHO for a correct emulated load balancing in DC mode:
-//		- make our own GP watchdog hack that can lock CPU if GP too slow.
+//		- make our own GP watchdog hack that can lock CPU if GP too slow. STARTED
 //		- hack directly something in PPC timings (dunno how)
 //		- boost GP so we can consider it as infinitely fast compared to CPU.
 // * raise ReadIdle/CmdIdle flags and observe behaviour of MP1 & ZTP (at least)
-// * investigate VI and PI for fixing the DC ZTP bug.
 // * Clean useless comments and debug stuff in Read16, Write16, GatherPipeBursted when sync will be fixed for DC
 // * (reminder) do the same in:
 //		PeripheralInterface.cpp, PixelEngine.cpp, OGL->BPStructs.cpp, fifo.cpp... ok just check change log >>
@@ -173,30 +172,27 @@ int et_UpdateInterrupts;
 // for GP watchdog hack
 void IncrementGPWDToken()
 {
-#ifdef WIN32
+#ifdef _WIN32
 	InterlockedIncrement((LONG*)&fifo.Fake_GPWDToken);
 #else
     Common::InterlockedIncrement((int*)&fifo.Fake_GPWDToken);
 #endif
 }
 
-void CheckGPWDInterruptForSpinlock()
+// Check every FAKE_GP_WATCHDOG_PERIOD if a PE-frame-finish occured
+// if not then lock CPUThread until GP finish a frame.
+u32 fake_GPWatchdogLastToken = 0;
+void WaitForFrameFinish()
 {
-	if (fifo.Fake_GPWDInterrupt)
-	{
-		// Wait for GPU to catch up
-		while (fifo.bFF_GPReadEnable && (fifo.CPReadWriteDistance > 0) && !(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
-		//while (fifo.bFF_GPReadEnable && (fifo.CPReadWriteDistance > 0))
-			;
-		//if (!fifo.bFF_GPReadEnable) PanicAlert("WARNING: Fake_GPWDInterrupt raised but can't flush fifo. Fake_GPWDToken %i",fifo.Fake_GPWDToken);
-#ifdef _WIN32
-		InterlockedExchange((LONG*)&fifo.Fake_GPWDInterrupt, 0); 
-#else
-        Common::InterlockedExchange((int*)&fifo.Fake_GPWDInterrupt, 0);
-#endif 
-		LOGV(COMMANDPROCESSOR, 2, "!!! Fake_GPWDInterrupt raised. Fake_GPWDToken %i",fifo.Fake_GPWDToken);
-	}
+	while (fake_GPWatchdogLastToken == fifo.Fake_GPWDToken && fifo.bFF_GPReadEnable && (fifo.CPReadWriteDistance > 0) && !(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
+		;
+	// oh well, should be safe.
+	// Assuming: time between 2 GP-frame-finish (ie. increment of fifo.Fake_GPWDToken) 
+	// will be EVER way superior to time between 
+	// "while (g_FAKE_GPWatchdogToken == fifo.Fake_GPWDToken..." and this line. :p
+	fake_GPWatchdogLastToken = fifo.Fake_GPWDToken; 
 }
+
 
 void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
 {
@@ -517,10 +513,6 @@ void GatherPipeBursted()
 
 	if (Core::g_CoreStartupParameter.bUseDualCore)
 	{
-		// for GP watchdog hack
-		// not very safe to do that here
-		CheckGPWDInterruptForSpinlock();
-
 		// update the fifo-pointer
 		fifo.CPWritePointer += GPFifo::GATHER_PIPE_SIZE;
 		if (fifo.CPWritePointer >= fifo.CPEnd) 

@@ -24,6 +24,7 @@
 #include "../HW/AudioInterface.h"
 #include "../HW/VideoInterface.h"
 #include "../HW/SerialInterface.h"
+#include "../HW/CommandProcessor.h" // for DC watchdog hack
 #include "../PowerPC/PowerPC.h"
 #include "../CoreTiming.h"
 #include "../Core.h"
@@ -42,6 +43,7 @@ s64 fakeDec;
 // With TB clk at 1/4 of BUS clk
 // and it seems BUS clk is really 1/3 of CPU clk
 // note: ZWW is ok and faster with TIMER_RATIO=8 though.
+// !!! POSSIBLE STABLE PERF BOOST HACK THERE !!!
 enum {
 	TIMER_RATIO = 12
 };
@@ -53,7 +55,7 @@ int et_AI;
 int et_AudioFifo;
 int et_DSP;
 int et_IPC_HLE;
-int et_GPU;
+int et_FakeGPWD; // for DC watchdog hack
 
 // These are badly educated guesses
 // Feel free to experiment
@@ -77,8 +79,10 @@ int
 	// increase this number.
     IPC_HLE_PERIOD = GetTicksPerSecond() / 250,
 
-	// This one is also fairly arbitrary. Every N cycles, run the GPU until it starves (in single core mode only).
-	GPU_PERIOD = 10000;
+	// For DC watchdog hack
+	// Once every 2 frame-period should be enough.
+	// Assuming game's frame-finish-watchdog wait more than 2 emulated frame-period before starting its mess.
+	FAKE_GP_WATCHDOG_PERIOD = GetTicksPerSecond() / 30;
 
 u32 GetTicksPerSecond()
 {
@@ -161,9 +165,12 @@ void AdvanceCallback(int cyclesExecuted)
 		PowerPC::ppcState.spr[SPR_DEC] = (u32)fakeDec / TIMER_RATIO;
 }
 
-void GPUCallback(u64 userdata, int cyclesLate)
+
+// For DC watchdog hack
+void FakeGPWatchdogCallback(u64 userdata, int cyclesLate)
 {
-	CoreTiming::ScheduleEvent(GPU_PERIOD-cyclesLate, et_GPU);
+	CommandProcessor::WaitForFrameFinish(); // lock CPUThread until frame finish
+	CoreTiming::ScheduleEvent(FAKE_GP_WATCHDOG_PERIOD-cyclesLate, et_FakeGPWD);
 }
 
 void Init()
@@ -197,7 +204,6 @@ void Init()
 	et_VI = CoreTiming::RegisterEvent("VICallback", VICallback);
 	et_SI = CoreTiming::RegisterEvent("SICallback", SICallback);
 	et_DSP = CoreTiming::RegisterEvent("DSPCallback", DSPCallback);
-	et_GPU = CoreTiming::RegisterEvent("GPUCallback", GPUCallback);
 	et_AudioFifo = CoreTiming::RegisterEvent("AudioFifoCallback", AudioFifoCallback);
 	et_IPC_HLE = CoreTiming::RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
 
@@ -207,8 +213,12 @@ void Init()
 	CoreTiming::ScheduleEvent(SI_PERIOD, et_SI);
 	CoreTiming::ScheduleEvent(CPU_CORE_CLOCK / (32000 * 4 / 32), et_AudioFifo);
 
-	if (!Core::GetStartupParameter().bUseDualCore)
-		CoreTiming::ScheduleEvent(GPU_PERIOD, et_GPU);
+	// For DC watchdog hack
+	if (Core::GetStartupParameter().bUseDualCore)
+	{
+		et_FakeGPWD = CoreTiming::RegisterEvent("FakeGPWatchdogCallback", FakeGPWatchdogCallback);
+		CoreTiming::ScheduleEvent(FAKE_GP_WATCHDOG_PERIOD, et_FakeGPWD);
+	}
 
     if (Core::GetStartupParameter().bWii)
         CoreTiming::ScheduleEvent(IPC_HLE_PERIOD, et_IPC_HLE);

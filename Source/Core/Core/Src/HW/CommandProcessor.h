@@ -79,9 +79,9 @@ void UpdateInterruptsFromVideoPlugin();
 
 bool AllowIdleSkipping();
 
-// for GP watchdog hack
+// for DC GP watchdog hack
 void IncrementGPWDToken();
-void CheckGPWDInterruptForSpinlock();
+void WaitForFrameFinish();
 
 } // end of namespace CommandProcessor
 

@@ -177,7 +177,6 @@ void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 {
 	g_bSignalFinishInterrupt = 1;	
 	UpdateInterrupts();
-	CommandProcessor::IncrementGPWDToken();
 }
 
 // SetToken
@@ -192,6 +191,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 // THIS IS EXECUTED FROM VIDEO THREAD
 void SetFinish()
 {
+	CommandProcessor::IncrementGPWDToken(); // for DC watchdog hack
 	CoreTiming::ScheduleEvent_Threadsafe(
 		0, et_SetFinishOnMainThread);
 	LOGV(PIXELENGINE, 2, "VIDEO Set Finish");
