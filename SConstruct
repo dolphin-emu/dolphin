@@ -257,7 +257,7 @@ env.Install(env['data_dir'], 'Data/User')
 
 if sys.platform == 'darwin':
     env.Install(env['binary_dir'] + 'Dolphin.app/Contents/Resources/', 
-                Source/Core/DolphinWX/resources/Dolphin.icns)
+                'Source/Core/DolphinWX/resources/Dolphin.icns')
 
 if env['bundle']:
     # Make tar ball (TODO put inside normal dir)
