@@ -15,7 +15,7 @@ files = [
 	]
 
 env_wiiuse = env.Clone(
-	CCFLAGS = env.filterWarnings(env['CCFLAGS']),
+	CCFLAGS = env.filterWarnings(env['CCFLAGS']) + ' -fvisibility=default',
 	CXXFLAGS = env.filterWarnings(env['CXXFLAGS']),
 	)
 
