@@ -135,7 +135,8 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 	LOGV(WII_IPC_WIIMOTE, 2, "    Offset: %08x", Offset);
 
 	// Debugging
-	/**/if(GetAsyncKeyState('V'))
+#ifdef _WIN32
+	if(GetAsyncKeyState('V'))
 	{
 		wprintf("DataFrame: ");
 		for (int i = 0; i < Offset; i++)
@@ -145,7 +146,7 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 		}
 		wprintf("\n");
 	}
-
+#endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 }
 
@@ -172,7 +173,8 @@ void SendReportCoreAccelExt16(u16 _channelID)
 	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccelExt16()");
 
 	// Debugging
-	/**/if(GetAsyncKeyState('V'))
+#ifdef _WIN32
+	if(GetAsyncKeyState('V'))
 	{
 		wprintf("DataFrame: ");
 		for (int i = 0; i < Offset; i++)
@@ -182,7 +184,7 @@ void SendReportCoreAccelExt16(u16 _channelID)
 		}
 		wprintf("\n");
 	}
-
+#endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 }
 
@@ -207,7 +209,8 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccelIr10Ext()");
 	
 	// Debugging
-	/**/if(GetAsyncKeyState('V'))
+#ifdef _WIN32
+	if(GetAsyncKeyState('V'))
 	{
 		wprintf("DataFrame: ");
 		for (int i = 0; i < Offset; i++)
@@ -217,7 +220,7 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 		}
 		wprintf("\n");
 	}
-
+#endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 }
 

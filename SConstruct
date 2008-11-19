@@ -53,13 +53,15 @@ include_paths = [
     '../../../Core/DebuggerWX/Src',
     '../../../../Externals/Bochs_disasm',
     '../../../../Externals/LZO',
+    '../../../../Externals/WiiUseSrc/Src',
     '../../../Core/VideoCommon/Src',
     ]
 
 dirs = [
-    'Source/Core/Common/Src',
     'Externals/Bochs_disasm',
     'Externals/LZO',
+    'Externals/WiiUseSrc/Src',
+    'Source/Core/Common/Src',
     'Source/Core/Core/Src',
     'Source/Core/DiscIO/Src',
     'Source/Core/VideoCommon/Src',

@@ -20,8 +20,8 @@
 #include "wiiuse.h"
 #include <queue>
 
-#include "common.h"
-#include "thread.h"
+#include "Common.h"
+#include "Thread.h"
 
 #include "wiimote_hid.h"
 #include "EmuMain.h"
@@ -41,8 +41,11 @@ namespace WiiMoteReal
 	//******************************************************************************
 	
 	class CWiiMote;
+#ifdef _WIN32
 	DWORD WINAPI ReadWiimote_ThreadFunc(void* arg);
-
+#else
+    void* ReadWiimote_ThreadFunc(void* arg);
+#endif
 	//******************************************************************************
 	// Variable declarations
 	//******************************************************************************
@@ -267,7 +270,11 @@ namespace WiiMoteReal
 		}
 	}
 
+#ifdef _WIN32
 	DWORD WINAPI ReadWiimote_ThreadFunc(void* arg)
+#else
+            void *ReadWiimote_ThreadFunc(void* arg)
+#endif
 	{
 		while (!g_Shutdown)
 		{

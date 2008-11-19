@@ -1,26 +1,35 @@
 # -*- python -*- 
-
+ 
 Import('env')
 import sys
 
 name = "Plugin_Wiimote"
 
 files = [
-	"Wiimote.cpp",
+        "Config.cpp",
+        "ConfigDlg.cpp",
+        "Console.cpp",
+        "DataReports.cpp",
+        "EmuDefinitions.cpp",
+        "EmuMain.cpp",
+        "Encryption.cpp",
+        "FillReport.cpp",
+        "main.cpp",
+        "wiimote_real.cpp",
 	]
 
-padenv = env.Clone()
+wiimoteenv = env.Clone()
 
-if padenv['osx64']:
-    padenv.Append(
+if wiimoteenv['osx64']:
+    wiimoteenv.Append(
         CXXFLAGS = [ '-arch', 'x86_64' ],
         LINKFLAGS = [ '-arch', 'x86_64' ],
         LIBS = [ 'common' ],
         )
 else:
-    padenv.Append(
+    wiimoteenv.Append(
         CXXFLAGS = [ '-fPIC' ],
         LIBS = [ 'common' ],
         )
 
-padenv.SharedLibrary(env['plugin_dir']+name, files)
+wiimoteenv.SharedLibrary(env['plugin_dir']+name, files)

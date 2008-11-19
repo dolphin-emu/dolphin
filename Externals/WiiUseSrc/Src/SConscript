@@ -1,0 +1,25 @@
+# -*- python -*- 
+
+Import('env')
+
+files = [
+	"classic.c",
+        "dynamics.c",
+        "events.c",
+        "io.c",
+        "io_nix.c",
+        "ir.c",
+        "nunchuk.c",
+        "guitar_hero_3.c",
+        "wiiuse.c",
+	]
+
+env_wiiuse = env.Clone(
+	CCFLAGS = env.filterWarnings(env['CCFLAGS']),
+	CXXFLAGS = env.filterWarnings(env['CXXFLAGS']),
+	)
+
+libs = [
+    'm', 'bluetooth',
+]
+env_wiiuse.SharedLibrary(env['plugin_dir']+"wiiuse", files, LIBS=libs)

@@ -212,6 +212,7 @@ std::vector<u8> yhist(15); // for the tilt function
 
 void FillReportAcc(wm_accel& _acc)
 {
+#ifdef _WIN32
 	// -----------------------------
 	// Wiimote to Gamepad translations
 	// ----------
@@ -402,6 +403,9 @@ void FillReportAcc(wm_accel& _acc)
 		a, b, c, d,
 		X, Y, Z);
 	*/
+#else 
+        // TODO port to linux
+#endif
 }
 
 //bool toggleWideScreen = false, toggleCursor = true;
@@ -581,6 +585,7 @@ void FillReportExtension(wm_extension& _ext)
 
 
 
+#ifdef _WIN32
 	if(GetAsyncKeyState(VK_NUMPAD4))
 		_ext.jx = 0x20;
 
@@ -603,7 +608,9 @@ void FillReportExtension(wm_extension& _ext)
 	
 	if(GetAsyncKeyState('C') && GetAsyncKeyState('Z'))
 		_ext.bt = 0x00;
-
+#else 
+        // TODO linux port
+#endif
 
 	// Clear g_RegExtTmp by copying g_RegExtBlnk to g_RegExtTmp
 	memcpy(g_RegExtTmp, g_RegExtBlnk, sizeof(g_RegExt));
