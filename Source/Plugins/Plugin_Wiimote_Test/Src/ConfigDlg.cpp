@@ -20,7 +20,6 @@
 #include "Config.h"
 #include "EmuSubroutines.h" // for WmRequestStatus_
 
-//extern u16 WiiMoteEmu::g_channelID; // global id
 
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
@@ -132,8 +131,9 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		g_Config.bExtensionConnected = m_ExtensionConnected->IsChecked();
 
 		 // generate connect/disconnect status event
-		if(WiiMoteEmu::g_channelID > 0)
-			WiiMoteEmu::WmRequestStatus_(WiiMoteEmu::g_channelID);
+		if(WiiMoteEmu::g_ReportingChannel > 0)
+			WiiMoteEmu::WmRequestStatus_(WiiMoteEmu::g_ReportingChannel,
+				g_Config.bExtensionConnected ? 1 : 0);
 		break;		
 	}
 }

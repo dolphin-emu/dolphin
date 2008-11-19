@@ -25,6 +25,7 @@
 #include "Common.h"
 #include "wiimote_hid.h"
 #include "EmuDefinitions.h"
+#include "Encryption.h"
 #include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
 
 extern SWiimoteInitialize g_WiimoteInitialize;
@@ -38,19 +39,20 @@ namespace WiiMoteEmu
 // Definitions and variable declarations
 //******************************************************************************
 
-u16 g_channelID;
-
 u8 g_Leds = 0x1;
 
 u8 g_Eeprom[WIIMOTE_EEPROM_SIZE];
 
 u8 g_RegSpeaker[WIIMOTE_REG_SPEAKER_SIZE];
 u8 g_RegExt[WIIMOTE_REG_EXT_SIZE];
+u8 g_RegExtTmp[WIIMOTE_REG_EXT_SIZE];
+u8 g_RegExtBlnk[WIIMOTE_REG_EXT_SIZE];
 u8 g_RegIr[WIIMOTE_REG_IR_SIZE];
 
-u8 g_ReportingMode;
+u8 g_ReportingMode; // the reporting mode and channel id
 u16 g_ReportingChannel;
 
+wiimote_key g_ExtKey; // the extension encryption key
 
 } // namespace
 

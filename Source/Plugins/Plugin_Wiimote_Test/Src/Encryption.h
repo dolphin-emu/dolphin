@@ -1,4 +1,5 @@
 // Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) Hector Martin "marcan" (hector@marcansoft.com)
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,26 +16,23 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef WIIMOTE_EMU_H
-#define WIIMOTE_EMU_H
 
-#include "wiimote_hid.h"
+#ifndef WIIMOTE_EXTENSION_ENCRYPTION_H
+#define WIIMOTE_EXTENSION_ENCRYPTION_H
 
-namespace WiiMoteEmu
-{
 
-void Initialize();
-void DoState(void* ptr, int mode);
-void Shutdown(void);
-void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size);
-void ControlChannel(u16 _channelID, const void* _pData, u32 _Size) ;
-void Update();
+// ===================================================
+/* They key structure to use with wiimote_gen_key() */
+// ----------------
+typedef struct {
+	u8 ft[8];
+	u8 sb[8];
+} wiimote_key;
 
-//void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1);
 
-void ReadExt(); // Debugging
-void ReadExtTmp();
+void wiimote_encrypt(wiimote_key *key, u8 *data, int addr, u8 len);
 
-};
+void wiimote_gen_key(wiimote_key *key, u8 *keydata);
+
 
 #endif

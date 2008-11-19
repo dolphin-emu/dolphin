@@ -37,7 +37,7 @@ namespace WiiMoteEmu
 // Definitions and variable declarations
 //******************************************************************************
 
-/* libogc bounding box, in smoothed IR coordinates: 232,284 792,704, however, it was
+/* Libogc bounding box, in smoothed IR coordinates: 232,284 792,704, however, it was
    possible for me to get a better calibration with these values, if they are not
    universal for all PCs we have to make a setting for it. */
 #define LEFT 266

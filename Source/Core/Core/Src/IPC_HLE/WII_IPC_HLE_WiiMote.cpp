@@ -942,9 +942,9 @@ namespace Core
 {
 	void Callback_WiimoteInput(u16 _channelID, const void* _pData, u32 _Size) 
 	{
-		LOGV(WII_IPC_WIIMOTE, 2, "=========================================================");
+		LOGV(WII_IPC_WIIMOTE, 3, "=========================================================");
 		const u8* pData = (const u8*)_pData;
-		LOGV(WII_IPC_WIIMOTE, 2, "Callback_WiimoteInput: 0x%x", _channelID);
+		LOGV(WII_IPC_WIIMOTE, 3, "Callback_WiimoteInput: 0x%x", _channelID);
 		std::string Temp;
 		for (u32 j=0; j<_Size; j++)
 		{
@@ -952,9 +952,9 @@ namespace Core
 			sprintf(Buffer, "%02x ", pData[j]);
 			Temp.append(Buffer);
 		}
-		LOGV(WII_IPC_WIIMOTE, 2, "   Data: %s", Temp.c_str());
+		LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
 
 		s_Usb->m_WiiMotes[0].SendL2capData(_channelID, _pData, _Size);
-		LOGV(WII_IPC_WIIMOTE, 2, "=========================================================");
+		LOGV(WII_IPC_WIIMOTE, 3, "=========================================================");
 	}
 }

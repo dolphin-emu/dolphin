@@ -42,7 +42,8 @@ namespace WiiMoteEmu
 //******************************************************************************
 
 
-	/*
+
+/* Debugging. Read out the structs.  */
 void ReadExt()
 {
 	for (int i = 0; i < WIIMOTE_REG_EXT_SIZE; i++)
@@ -53,12 +54,26 @@ void ReadExt()
 	}
 	wprintf("\n\n");
 }
-*/
 
 
-//bool AllowReport = true;
-//int AllowCount = 0;
-//bool toggleSideWays = false;
+void ReadExtTmp()
+{
+	for (int i = 0; i < WIIMOTE_REG_EXT_SIZE; i++)
+	{
+		//wprintf("%i | (i % 16)
+		wprintf("%02x ", g_RegExtTmp[i]);
+		if((i + 1) % 20 == 0) wprintf("\n");
+	}
+	wprintf("\n\n");
+}
+
+
+
+/* The extension status can be a little difficult, this lets's us change the extension
+   status back and forth */
+bool AllowReport = true;
+int AllowCount = 0;
+
 
 void FillReportInfo(wm_core& _core)
 {
@@ -97,32 +112,79 @@ void FillReportInfo(wm_core& _core)
 		_core.down = GetAsyncKeyState(VK_DOWN) ? 1 : 0;
 	}
 
-	/*
-	if(GetAsyncKeyState('M') && AllowReport)
+	/**/
+	// -----------------------
+	// Debugging. Send status report.
+	if(GetAsyncKeyState('I') && AllowReport)
 	{
+		//ClearScreen();
+
+		// Clear the register
+		//memcpy(g_RegExt, g_RegExtBlnk, sizeof(g_RegExt));
+		//g_RegExt[0xfc] = 0xa4;
+		//g_RegExt[0xfd] = 0x20;
+
+		// Clear the key part of the register
+		/**/
+		for(int i=0; i <= 16; i++)
+		{
+			g_RegExt[0x40 + i] = 0;
+		}
+		
 		//wm_report sr;
 		//wm_request_status *sr;
-		//WmRequestStatus(0x41, sr);
+		//WmRequestStatus(g_ReportingChannel, sr);
 
-		WmRequestStatus_(0x0041);
+		/**/
+		WmRequestStatus_(g_ReportingChannel, 1);
 
 		wprintf("Sent status report\n");
 		AllowReport = false;
 		AllowCount = 0;
 
-		void ReadExt();
+		//void ReadExt();		
 	}
-	*/
 
-	/*
-	if(AllowCount > 20)
+
+		/**/
+	if(GetAsyncKeyState('U') && AllowReport)
+	{
+		//ClearScreen();
+		//wm_report sr;
+		//wm_request_status *sr;
+		//WmRequestStatus(g_ReportingChannel, sr);
+
+		//memcpy(g_RegExt, g_RegExtBlnk, sizeof(g_RegExt));
+		//g_RegExt[0xfc] = 0xa4;
+		//g_RegExt[0xfd] = 0x20;
+
+		/**/
+		for(int i=0; i <= 16; i++)
+		{
+			g_RegExt[0x40 + i] = 0;
+		}
+		
+
+		/*	*/
+		WmRequestStatus_(g_ReportingChannel, 0);
+
+		wprintf("Sent status report\n");
+		AllowReport = false;
+		AllowCount = 0;
+
+		//void ReadExt();	
+	}
+	
+	
+	/**/
+	if(AllowCount > 10)
 	{
 		AllowReport = true;
 		AllowCount = 0;
 	}
 
 	AllowCount++;
-	*/
+	// ----------
 
 #else 
         // TODO: fill in
@@ -342,7 +404,7 @@ void FillReportAcc(wm_accel& _acc)
 	*/
 }
 
-bool toggleWideScreen = false, toggleCursor = true;
+//bool toggleWideScreen = false, toggleCursor = true;
 
 
 void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
@@ -427,37 +489,148 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 
 void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 {
+	/* See description above */
+	int Top, Left, Right, Bottom, SensorBarRadius;
+	if(g_Config.bWideScreen)
+	{		
+		Top = wTOP; Left = wLEFT; Right = wRIGHT;
+		Bottom = wBOTTOM; SensorBarRadius = wSENSOR_BAR_RADIUS;
+	}
+	else
+	{
+		Top = TOP; Left = LEFT; Right = RIGHT;
+		Bottom = BOTTOM; SensorBarRadius = SENSOR_BAR_RADIUS;		
+	}
+
 	memset(&_ir0, 0xFF, sizeof(wm_ir_basic));
 	memset(&_ir1, 0xFF, sizeof(wm_ir_basic));
 
 	float MouseX, MouseY;
 	GetMousePos(MouseX, MouseY);
 
-	int y1 = TOP + (MouseY * (BOTTOM - TOP));
-	int y2 = TOP + (MouseY * (BOTTOM - TOP));
+	int y1 = Top + (MouseY * (Bottom - Top));
+	int y2 = Top + (MouseY * (Bottom - Top));
 
-	int x1 = LEFT + (MouseX * (RIGHT - LEFT)) - SENSOR_BAR_RADIUS;
-	int x2 = LEFT + (MouseX * (RIGHT - LEFT)) + SENSOR_BAR_RADIUS;
+	int x1 = Left + (MouseX * (Right - Left)) - SensorBarRadius;
+	int x2 = Left + (MouseX * (Right - Left)) + SensorBarRadius;
 
 	x1 = 1023 - x1;
 	_ir0.x1 = x1 & 0xFF;
 	_ir0.y1 = y1 & 0xFF;
-	_ir0.x1High = (x1 >> 8) & 0x3;
-	_ir0.y1High = (y1 >> 8) & 0x3;
+	_ir0.x1Hi = (x1 >> 8) & 0x3;
+	_ir0.y1Hi = (y1 >> 8) & 0x3;
 
 	x2 = 1023 - x2;
 	_ir1.x2 = x2 & 0xFF;
 	_ir1.y2 = y2 & 0xFF;
-	_ir1.x2High = (x2 >> 8) & 0x3;
-	_ir1.y2High = (y2 >> 8) & 0x3;
+	_ir1.x2Hi = (x2 >> 8) & 0x3;
+	_ir1.y2Hi = (y2 >> 8) & 0x3;
+
+	// ----------------------------
+	// Debugging for calibration
+	// ----------
+	/*
+	if(GetAsyncKeyState(VK_NUMPAD1))
+		Right +=1;
+	else if(GetAsyncKeyState(VK_NUMPAD2))
+		Right -=1;
+	if(GetAsyncKeyState(VK_NUMPAD4))
+		Left +=1;
+	else if(GetAsyncKeyState(VK_NUMPAD5))
+		Left -=1;
+	if(GetAsyncKeyState(VK_NUMPAD7))
+		Top += 1;
+	else if(GetAsyncKeyState(VK_NUMPAD8))
+		Top -= 1;
+	if(GetAsyncKeyState(VK_NUMPAD6))
+		Bottom += 1;
+	else if(GetAsyncKeyState(VK_NUMPAD3))
+		Bottom -= 1;
+	if(GetAsyncKeyState(VK_INSERT))
+		SensorBarRadius += 1;
+	else if(GetAsyncKeyState(VK_DELETE))
+		SensorBarRadius -= 1;
 
 	//ClearScreen();
-	/*
-	wprintf("x0:%03i | y0:%03i  ||  x1:%03i | 0.y: %03i  ||  1.x: %03i | 1.y %03i\n", _ir0.x1, _ir0.y1,
-	_ir1.x2, _ir1.y2
-	);
-	*/
+	//if(consoleDisplay == 1)
+		wprintf("x1:%03i x2:%03i  y1:%03i y2:%03i   irx1:%03i y1:%03i  x2:%03i y2:%03i | T:%i L:%i R:%i B:%i S:%i\n",
+		x1, x2, y1, y2, _ir0.x1, _ir0.y1, _ir1.x2, _ir1.y2, Top, Left, Right, Bottom, SensorBarRadius
+		);*/
 }
+
+
+
+
+// ===================================================
+/* Generate the 6 byte extension report, encrypted. */
+// ----------------
+void FillReportExtension(wm_extension& _ext)
+{
+	// JX JY AX AY AZ BT
+
+	// Make temporary values	
+
+	_ext.ax = 0x80;
+	_ext.ay = 0x80;
+	_ext.az = 0xb3;
+
+
+	_ext.jx = 0x80; // these are the default values unless we don't use them
+	_ext.jy = 0x80;
+	_ext.bt = 0x03; // 0x03 means no button pressed, the button is zero active
+
+
+
+	if(GetAsyncKeyState(VK_NUMPAD4))
+		_ext.jx = 0x20;
+
+	if(GetAsyncKeyState(VK_NUMPAD8))
+		_ext.jy = 0x20;
+
+	if(GetAsyncKeyState(VK_NUMPAD6))
+		_ext.jx = 0xe0;
+
+	if(GetAsyncKeyState(VK_NUMPAD5))
+		_ext.jy = 0xe0;
+
+
+
+	if(GetAsyncKeyState('C'))
+		_ext.bt = 0x01;
+
+	if(GetAsyncKeyState('Z'))
+		_ext.bt = 0x02;
+	
+	if(GetAsyncKeyState('C') && GetAsyncKeyState('Z'))
+		_ext.bt = 0x00;
+
+
+	// Clear g_RegExtTmp by copying g_RegExtBlnk to g_RegExtTmp
+	memcpy(g_RegExtTmp, g_RegExtBlnk, sizeof(g_RegExt));
+
+	// Write the nunchuck inputs to it
+	g_RegExtTmp[0x08] = _ext.jx;
+	g_RegExtTmp[0x09] = _ext.jy;
+	g_RegExtTmp[0x0a] = _ext.ax;
+	g_RegExtTmp[0x0b] = _ext.ay;
+	g_RegExtTmp[0x0c] = _ext.az;
+	g_RegExtTmp[0x0d] = _ext.bt;
+
+	// Encrypt it
+	wiimote_encrypt(&g_ExtKey, &g_RegExtTmp[0x08], 0x08, 0x06);
+
+	// Write it back
+	_ext.jx = g_RegExtTmp[0x08];
+	_ext.jy = g_RegExtTmp[0x09];
+	_ext.ax = g_RegExtTmp[0x0a];
+	_ext.ay = g_RegExtTmp[0x0b];
+	_ext.az = g_RegExtTmp[0x0c];
+	_ext.bt = g_RegExtTmp[0x0d];
+}
+
+
+
+
 
 
 } // end of namespace

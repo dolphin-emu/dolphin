@@ -159,13 +159,25 @@ struct wm_ir_basic
 {
 	u8 x1;
 	u8 y1;
-	u8 x2High : 2;
-	u8 y2High : 2;
-	u8 x1High : 2;
-	u8 y1High : 2;
+	u8 x2Hi : 2;
+	u8 y2Hi : 2;
+	u8 x1Hi : 2;
+	u8 y1Hi : 2;
 	u8 x2;
 	u8 y2;
 };
+
+
+struct wm_extension
+{
+	u8 jx; // joystick x, y
+	u8 jy;
+	u8 ax; // accelerometer
+	u8 ay;
+	u8 az;
+	u8 bt; // buttons
+};
+
 
 struct wm_ir_extended 
 {
@@ -198,6 +210,16 @@ struct wm_report_core_accel_ir12 {
 
 #define WM_REPORT_CORE_EXT19 0x34
 #define WM_REPORT_CORE_ACCEL_EXT16 0x35
+struct wm_report_core_accel_ext16 
+{
+	wm_core c;
+	wm_accel a;
+	wm_extension ext;
+	//wm_ir_basic ir[2];
+	u8 pad[10];
+	
+};
+
 #define WM_REPORT_CORE_IR10_EXT9 0x36
 
 #define WM_REPORT_CORE_ACCEL_IR10_EXT6 0x37
@@ -206,10 +228,17 @@ struct wm_report_core_accel_ir10_ext6
 	wm_core c;
 	wm_accel a;
 	wm_ir_basic ir[2];
-	u8 ext[6];
+	//u8 ext[6];
+	wm_extension ext;
 };
 
-#define WM_REPORT_EXT21 0x3d
+
+#define WM_REPORT_EXT21 0x3d // never used?
+struct wm_report_ext21
+{
+	u8 ext[21];
+};
+
 #define WM_REPORT_INTERLEAVE1 0x3e
 #define WM_REPORT_INTERLEAVE2 0x3f
 

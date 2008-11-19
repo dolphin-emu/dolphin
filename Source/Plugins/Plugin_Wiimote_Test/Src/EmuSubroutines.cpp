@@ -46,6 +46,10 @@ u16 convert16bit(const u8* src) {
 	return (src[0] << 8) | src[1];
 }
 
+
+// ===================================================
+/* Calibrate the mouse position to the emulation window. */
+// ----------------
 void GetMousePos(float& x, float& y)
 {
 #ifdef _WIN32
@@ -69,6 +73,9 @@ void GetMousePos(float& x, float& y)
 }
 
 
+// ===================================================
+/* Homebrew encryption for 0x00000000 encryption keys. */
+// ----------------
 void CryptBuffer(u8* _buffer, u8 _size)
 {
 	for (int i=0; i<_size; i++)
@@ -85,7 +92,12 @@ void WriteCrypted16(u8* _baseBlock, u16 _address, u16 _value)
 	*(u16*)(_baseBlock + _address) = cryptedValue;
 	//PanicAlert("Converted %04x to %04x", _value, cryptedValue);
 }
+// ================
 
+
+// ===================================================
+/* Write initial values to Eeprom and registers. */
+// ----------------
 void Initialize()
 {
 	memset(g_Eeprom, 0, WIIMOTE_EEPROM_SIZE);
@@ -95,23 +107,21 @@ void Initialize()
 	g_ReportingMode = 0;
 
 
-	// Write 0x0000 in encrypted form (0xfefe) to 0xfe in the extension register
-	WriteCrypted16(g_RegExt, 0xfe, 0x0000); // Fully inserted Nunchuk
+	/* Extension data for homebrew applications that use the 0x00000000 key. This
+	   writes 0x0000 in encrypted form (0xfefe) to 0xfe in the extension register. */
+	//WriteCrypted16(g_RegExt, 0xfe, 0x0000); // Fully inserted Nunchuk
 
-	/*
-	g_RegExt[0xfa] = 0x00;
-	g_RegExt[0xfb] = 0x00;
-	g_RegExt[0xfc] = 0xa4;
-	g_RegExt[0xfd] = 0x20;
-	g_RegExt[0xfe] = 0x00;
-	g_RegExt[0xff] = 0x00;
-	*/
+
+	// Copy nuncuck id and calibration to its register
+	memcpy(g_RegExt + 0x20, nunchuck_calibration, sizeof(nunchuck_calibration));
+	memcpy(g_RegExt + 0xfa, nunchuck_id, sizeof(nunchuck_id));
+
 
 //	g_RegExt[0xfd] = 0x1e;
 //	g_RegExt[0xfc] = 0x9a;
-
-
 }
+// ================
+
 
 void DoState(void* ptr, int mode) 
 {
@@ -129,8 +139,6 @@ void Shutdown(void)
 // ----------------
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {
-	g_channelID = _channelID; // store the channel id for manual use
-
 	LOGV(WII_IPC_WIIMOTE, 0, "=============================================================");
 	const u8* data = (const u8*)_pData;
 
@@ -243,6 +251,7 @@ void Update()
 	case WM_REPORT_CORE:			SendReportCore(g_ReportingChannel);			break;
 	case WM_REPORT_CORE_ACCEL:		SendReportCoreAccel(g_ReportingChannel);	break;
 	case WM_REPORT_CORE_ACCEL_IR12: SendReportCoreAccelIr12(g_ReportingChannel);break;
+	case WM_REPORT_CORE_ACCEL_EXT16: SendReportCoreAccelExt16(g_ReportingChannel);break;
 	case WM_REPORT_CORE_ACCEL_IR10_EXT6: SendReportCoreAccelIr10Ext(g_ReportingChannel);break;
 	}
 	// g_ReportingMode = 0;

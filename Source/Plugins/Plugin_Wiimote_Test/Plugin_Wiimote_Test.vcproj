@@ -537,6 +537,10 @@
 			Name="Emulated Wiimote"
 			>
 			<File
+				RelativePath=".\Src\DataReports.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\EmuDefinitions.cpp"
 				>
 			</File>
@@ -558,6 +562,14 @@
 			</File>
 			<File
 				RelativePath=".\Src\EmuSubroutines.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Encryption.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Encryption.h"
 				>
 			</File>
 			<File

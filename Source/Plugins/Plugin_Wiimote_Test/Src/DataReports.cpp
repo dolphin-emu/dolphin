@@ -1,0 +1,225 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
+
+#include "pluginspecs_wiimote.h"
+
+#include <vector>
+#include <string>
+#include "Common.h"
+#include "wiimote_hid.h"
+#include "EmuSubroutines.h"
+#include "EmuDefinitions.h"
+#include "Encryption.h" // for extension encryption
+#include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
+#include "Config.h" // for g_Config
+
+extern SWiimoteInitialize g_WiimoteInitialize;
+//extern void __Log(int log, const char *format, ...);
+//extern void __Log(int log, int v, const char *format, ...);
+
+
+namespace WiiMoteEmu
+{
+
+//******************************************************************************
+// Subroutines
+//******************************************************************************
+
+
+void WmDataReporting(u16 _channelID, wm_data_reporting* dr) 
+{
+	LOGV(WII_IPC_WIIMOTE, 0, "===========================================================");
+	LOG(WII_IPC_WIIMOTE, " Set Data reporting mode");
+	LOG(WII_IPC_WIIMOTE, "  Rumble: %x", dr->rumble);
+	LOG(WII_IPC_WIIMOTE, "  Continuous: %x", dr->continuous);
+	LOG(WII_IPC_WIIMOTE, "  All The Time: %x (not only on data change)", dr->all_the_time);
+	LOG(WII_IPC_WIIMOTE, "  Rumble: %x", dr->rumble);
+	LOG(WII_IPC_WIIMOTE, "  Mode: 0x%02x", dr->mode);
+	//PanicAlert("Data reporting mode: 0x%02x", dr->mode);
+	wprintf("\nData reporting mode: 0x%02x", dr->mode);
+	wprintf("\nData reporting channel: 0x%04x\n", _channelID);
+	
+
+	g_ReportingMode = dr->mode;
+	g_ReportingChannel = _channelID;
+	switch(dr->mode) {	//see Wiimote_Update()
+	case WM_REPORT_CORE:
+	case WM_REPORT_CORE_ACCEL:
+	case WM_REPORT_CORE_ACCEL_IR12:
+	case WM_REPORT_CORE_ACCEL_EXT16:
+	case WM_REPORT_CORE_ACCEL_IR10_EXT6:
+		break;
+	default:
+		PanicAlert("Wiimote: Unknown reporting mode 0x%x", dr->mode);
+	}
+
+	// WmSendAck(_channelID, WM_DATA_REPORTING);
+
+	LOGV(WII_IPC_WIIMOTE, 0, "===========================================================");
+}
+
+
+
+// ===================================================
+/* Case 0x30: Core Buttons */
+// ----------------
+void SendReportCore(u16 _channelID) 
+{
+	u8 DataFrame[1024];
+	u32 Offset = WriteWmReport(DataFrame, WM_REPORT_CORE);
+
+	wm_report_core* pReport = (wm_report_core*)(DataFrame + Offset);
+	Offset += sizeof(wm_report_core);
+	memset(pReport, 0, sizeof(wm_report_core));
+
+	FillReportInfo(pReport->c);
+
+	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCore()");
+
+	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
+}
+
+
+// ===================================================
+/* 0x31: Core Buttons and Accelerometer */
+// ----------------
+void SendReportCoreAccel(u16 _channelID) 
+{
+	u8 DataFrame[1024];
+	u32 Offset = WriteWmReport(DataFrame, WM_REPORT_CORE_ACCEL);
+
+	wm_report_core_accel* pReport = (wm_report_core_accel*)(DataFrame + Offset);
+	Offset += sizeof(wm_report_core_accel);
+	memset(pReport, 0, sizeof(wm_report_core_accel));
+	
+	FillReportInfo(pReport->c);
+	FillReportAcc(pReport->a);
+
+	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccel()");
+
+	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
+}
+
+
+// ===================================================
+/* Case 0x33: Core Buttons and Accelerometer with 12 IR bytes   */
+// ----------------
+void SendReportCoreAccelIr12(u16 _channelID) {
+	u8 DataFrame[1024];
+	u32 Offset = WriteWmReport(DataFrame, WM_REPORT_CORE_ACCEL_IR12);
+
+	wm_report_core_accel_ir12* pReport = (wm_report_core_accel_ir12*)(DataFrame + Offset);
+	Offset += sizeof(wm_report_core_accel_ir12);
+	memset(pReport, 0, sizeof(wm_report_core_accel_ir12));
+	
+	FillReportInfo(pReport->c);
+	FillReportAcc(pReport->a);
+	FillReportIR(pReport->ir[0], pReport->ir[1]);
+
+	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccelIr12()");
+	LOGV(WII_IPC_WIIMOTE, 2, "    Offset: %08x", Offset);
+
+	// Debugging
+	/**/if(GetAsyncKeyState('V'))
+	{
+		wprintf("DataFrame: ");
+		for (int i = 0; i < Offset; i++)
+		{			
+			wprintf("%02x ", DataFrame[i]);
+			if((i + 1) % 30 == 0) wprintf("\n");
+		}
+		wprintf("\n");
+	}
+
+	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
+}
+
+
+
+
+// ===================================================
+/* Case 0x35: Core Buttons and Accelerometer with 16 Extension Bytes  */
+// ----------------
+void SendReportCoreAccelExt16(u16 _channelID) 
+{
+	u8 DataFrame[1024];
+	u32 Offset = WriteWmReport(DataFrame, WM_REPORT_CORE_ACCEL_EXT16);
+
+	wm_report_core_accel_ext16* pReport = (wm_report_core_accel_ext16*)(DataFrame + Offset);
+	Offset += sizeof(wm_report_core_accel_ext16);
+	memset(pReport, 0, sizeof(wm_report_core_accel_ext16));
+
+	FillReportInfo(pReport->c);
+	FillReportAcc(pReport->a);
+	//FillReportIRBasic(pReport->ir[0], pReport->ir[1]); // no IR here
+	FillReportExtension(pReport->ext);
+
+	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccelExt16()");
+
+	// Debugging
+	/**/if(GetAsyncKeyState('V'))
+	{
+		wprintf("DataFrame: ");
+		for (int i = 0; i < Offset; i++)
+		{			
+			wprintf("%02x ", DataFrame[i]);
+			if((i + 1) % 30 == 0) wprintf("\n");
+		}
+		wprintf("\n");
+	}
+
+	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
+}
+
+
+// ===================================================
+/* Case 0x37: Core Buttons and Accelerometer with 10 IR bytes and 6 Extension Bytes */
+// ----------------
+void SendReportCoreAccelIr10Ext(u16 _channelID) 
+{
+	u8 DataFrame[1024];
+	u32 Offset = WriteWmReport(DataFrame, WM_REPORT_CORE_ACCEL_IR10_EXT6);
+
+	wm_report_core_accel_ir10_ext6* pReport = (wm_report_core_accel_ir10_ext6*)(DataFrame + Offset);
+	Offset += sizeof(wm_report_core_accel_ir10_ext6);
+	memset(pReport, 0, sizeof(wm_report_core_accel_ir10_ext6));
+
+	FillReportInfo(pReport->c);
+	FillReportAcc(pReport->a);
+	FillReportIRBasic(pReport->ir[0], pReport->ir[1]);
+	FillReportExtension(pReport->ext);
+
+	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccelIr10Ext()");
+	
+	// Debugging
+	/**/if(GetAsyncKeyState('V'))
+	{
+		wprintf("DataFrame: ");
+		for (int i = 0; i < Offset; i++)
+		{			
+			wprintf("%02x ", DataFrame[i]);
+			if((i + 1) % 30 == 0) wprintf("\n");
+		}
+		wprintf("\n");
+	}
+
+	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
+}
+
+
+} // end of namespace
