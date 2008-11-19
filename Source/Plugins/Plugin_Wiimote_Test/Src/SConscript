@@ -31,6 +31,7 @@ else:
     wiimoteenv.Append(
         CXXFLAGS = [ '-fPIC' ],
         LIBS = [ 'common', 'wiiuse' ],
+        LINKFLAGS = [ '-Wl,-rpath=' + env['libs_dir'] ]
         )
 
 wiimoteenv.SharedLibrary(env['plugin_dir']+name, files)
