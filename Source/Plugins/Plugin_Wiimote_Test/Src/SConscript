@@ -12,6 +12,7 @@ files = [
         "DataReports.cpp",
         "EmuDefinitions.cpp",
         "EmuMain.cpp",
+        "EmuSubroutines.cpp",
         "Encryption.cpp",
         "FillReport.cpp",
         "main.cpp",
@@ -29,7 +30,7 @@ if wiimoteenv['osx64']:
 else:
     wiimoteenv.Append(
         CXXFLAGS = [ '-fPIC' ],
-        LIBS = [ 'common' ],
+        LIBS = [ 'common', 'wiiuse' ],
         )
 
 wiimoteenv.SharedLibrary(env['plugin_dir']+name, files)
