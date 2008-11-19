@@ -233,7 +233,7 @@ env['libs_dir'] = env['prefix'] + 'Libs/'
 env['data_dir'] = env['prefix']
 
 env['LINKFLAGS'] = [ '-Wl,-rpath=' + env['libs_dir'] ]
-
+env['LIBPATH'] += [ env['libs_dir'] ] 
 Export('env')
 
 rev = utils.GenerateRevFile(env['flavor'], 
