@@ -227,6 +227,8 @@ env['prefix'] = os.path.join(env['base_dir'] + 'Binary', platform.system() + '-'
 env['plugin_dir'] = env['prefix'] + 'Plugins/' 
 #TODO add bin
 env['binary_dir'] = env['prefix']
+#TODO add libs
+env['libs_dir'] = env['prefix'] + 'Libs/'
 #TODO where should this go?
 env['data_dir'] = env['prefix']
 
