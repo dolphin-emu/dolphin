@@ -215,17 +215,40 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	case ID_COPYTOLEFT:
 		if ((index1 != -1) && (memoryCard[0] != NULL))
 		{
-			memoryCard[0]->CopyFrom(*memoryCard[1], index1);
-			memoryCard[0]->Save();
-			ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0);
+			switch (memoryCard[0]->CopyFrom(*memoryCard[1], index1))
+			{
+			case FAIL:
+				wxMessageBox(wxT("Invalid bat.map or dir entry"), wxT("Failure"), wxOK);
+				break;
+			case NOMEMCARD:
+				wxMessageBox(wxT("File is not recognized as a memcard"), wxT("Failure"), wxOK);
+				break;
+			case SUCCESS:
+				memoryCard[0]->Save();
+				ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0);
+				break;
+			}
+
 		}
 		break;
 	case ID_COPYTORIGHT:
 		if ((index0 != -1) && (memoryCard[1] != NULL))
 		{
-			memoryCard[1]->CopyFrom(*memoryCard[0], index0);
-			memoryCard[1]->Save();
-			ReloadMemcard(m_Memcard2Path->GetPath().mb_str(), 1);
+			switch (memoryCard[1]->CopyFrom(*memoryCard[0], index0))
+			{
+			case FAIL:
+				wxMessageBox(wxT("Invalid bat.map or dir entry"),
+					wxT("Error"), wxOK|wxICON_ERROR);
+				break;
+			case NOMEMCARD:
+				wxMessageBox(wxT("File is not recognized as a memcard"),
+					wxT("Error"), wxOK|wxICON_ERROR);
+				break;
+			case SUCCESS:
+				memoryCard[1]->Save();
+				ReloadMemcard(m_Memcard2Path->GetPath().mb_str(), 1);
+				break;
+			}
 		}
 		break;
 	case ID_FIXCHECKSUM:
@@ -279,39 +302,43 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 					break;
 				case GCSFAIL:
 					wxMessageBox(wxT("Imported file has gsc extension\nbut"
-						" does not have a correct header"), wxT("Error"),
-						wxOK|wxICON_ERROR);
+						" does not have a correct header"),
+						wxT("Error"), wxOK|wxICON_ERROR);
 					break;
 				case SAVFAIL:
 					wxMessageBox(wxT("Imported file has sav extension\nbut"
-						" does not have a correct header"), wxT("Error"),
-						wxOK|wxICON_ERROR);
+						" does not have a correct header"),
+						wxT("Error"), wxOK|wxICON_ERROR);
 					break;
 				case OPENFAIL:
 					wxMessageBox(wxT("Imported file could not be opened\nor"
-						" does not have a valid extension"), wxT("Error"),
-						wxOK|wxICON_ERROR);
+						" does not have a valid extension"),
+						wxT("Error"), wxOK|wxICON_ERROR);
 					break;
 				case GCS:
 					wxMessageBox(wxT("File converted to .gci"),
-						wxT("Success"),wxOK);
+						wxT("Success"), wxOK);
 					break;
 				case OUTOFBLOCKS:
 					freeBlocks = BE16(memoryCard[slot]->bat.FreeBlocks);
 					blocksOpen.Printf(wxT("Only %d blocks available"), freeBlocks);
-					wxMessageBox(blocksOpen,wxT("Failure"),wxOK);
+					wxMessageBox(blocksOpen, wxT("Error"), wxOK|wxICON_ERROR);
 					break;
 				case OUTOFDIRENTRIES:
 					wxMessageBox(wxT("No free dir index entries"),
-						wxT("Failure"),wxOK);
+						wxT("Error"), wxOK|wxICON_ERROR);
 					break;
 				case NOMEMCARD:
 					wxMessageBox(wxT("File is not recognized as a memcard"),
-						wxT("Failure"),wxOK);
+						wxT("Error"), wxOK|wxICON_ERROR);
 					break;
 				case TITLEPRESENT:
 					wxMessageBox(wxT("Memcard already has a save for this title"),
-						wxT("Failure"),wxOK);
+						wxT("Error"), wxOK|wxICON_ERROR);
+					break;
+				case FAIL:
+					wxMessageBox(wxT("Invalid bat.map or dir entry"),
+						wxT("Error"), wxOK|wxICON_ERROR);
 					break;
 				default:
 					memoryCard[slot]->Save();
@@ -339,7 +366,26 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			const char * fileName = temp.ToAscii();
 
 			if (temp.length() > 0)
-				memoryCard[slot]->ExportGci(index2, fileName);
+			{
+				switch (memoryCard[slot]->ExportGci(index2, fileName))
+				{
+				case NOMEMCARD:
+						wxMessageBox(wxT("File is not recognized as a memcard"),
+							wxT("Error"), wxOK|wxICON_ERROR);
+					break;
+				case NOFILE:
+						wxMessageBox(wxT("Could not open gci for writing"),
+							wxT("Error"), wxOK|wxICON_ERROR);
+					break;
+				case FAIL:
+						//TODO: delete file if fails
+						wxMessageBox(wxT("Invalid bat.map or dir entry"),
+							wxT("Error"), wxOK|wxICON_ERROR);
+					break;
+				default:
+					break;
+				}
+			}
 		}
 		break;
 	case ID_DELETELEFT:
@@ -348,10 +394,22 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	case ID_DELETERIGHT:
 		if (index2 != -1)
 		{
-			memoryCard[slot]->RemoveFile(index2);
-			memoryCard[slot]->Save();
-			slot == 1 ? ReloadMemcard(m_Memcard2Path->GetPath().mb_str(), 1)
+			switch (memoryCard[slot]->RemoveFile(index2))
+			{
+			case NOMEMCARD:
+				wxMessageBox(wxT("File is not recognized as a memcard"),
+					wxT("Error"), wxOK|wxICON_ERROR);
+				break;
+			case FAIL:
+				wxMessageBox(wxT("Invalid bat.map or dir entry"),
+					wxT("Error"), wxOK|wxICON_ERROR);
+				break;
+			case SUCCESS:
+				memoryCard[slot]->Save();
+				slot == 1 ? ReloadMemcard(m_Memcard2Path->GetPath().mb_str(), 1)
 				: ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0);
+				break;
+			}
 		}
 		break;
 	}

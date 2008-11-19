@@ -32,8 +32,12 @@ enum
 	OUTOFBLOCKS,
 	OUTOFDIRENTRIES,
 	NOMEMCARD,
-	TITLEPRESENT
+	NOFILE,
+	TITLEPRESENT,
+	SUCCESS = 0x2000,
+	FAIL
 };
+
 
 class GCMemcard 
 {
@@ -144,7 +148,7 @@ public:
 	u32  GetNumFiles();
 
 	// Returns true if title already on memcard
-	bool titlePresent(u32 gameCode);
+	bool titlePresent(DEntry d);
 	
 	// read directory entry
 	bool GetFileInfo(u32 index, DEntry& data);
@@ -165,10 +169,10 @@ public:
 	// old determines if function uses old or new method of copying data
 	// some functions only work with old way, some only work with new way
 	// TODO: find a function that works for all calls or split into 2 functions
-	bool GetFileData(u32 index, u8* buffer, bool old);
+	u32 GetFileData(u32 index, u8* buffer, bool old);
 
 	// delete a file from the directory
-	bool RemoveFile(u32 index);
+	u32 RemoveFile(u32 index);
 	
 	// adds the file to the directory and copies its contents
 	// if remove > 0 it will pad bat.map with 0's sifeof remove
@@ -178,7 +182,7 @@ public:
 	u32  CopyFrom(GCMemcard& source, u32 index);
 
 	// writes a .gci file to disk containing index
-	bool ExportGci(u32 index, const char* fileName);
+	u32 ExportGci(u32 index, const char* fileName);
 
 	// reads a .gci/.gcs/.sav file and calls ImportFile or saves out a gci file
 	s32  ImportGci(const char* fileName, std::string fileName2);
