@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Core"
 	ProjectGUID="{F0B874CB-4476-4199-9315-8343D05AE684}"
 	RootNamespace="Core"
@@ -1204,22 +1204,26 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\Src\ActionReplay.cpp"
+		<Filter
+			Name="ActionReplay"
 			>
-		</File>
-		<File
-			RelativePath=".\Src\ActionReplay.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\ARDecrypt.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\ARDecrypt.h"
-			>
-		</File>
+			<File
+				RelativePath=".\Src\ActionReplay.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ActionReplay.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ARDecrypt.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ARDecrypt.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\Console.cpp"
 			>

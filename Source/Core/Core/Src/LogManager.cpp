@@ -139,6 +139,7 @@ void LogManager::Init()
 		m_Log[LogTypes::WII_IPC_FILEIO + i*100]		= new CDebugger_Log("WII_IPC_FILEIO",	"WII IPC FILEIO", i);
 		m_Log[LogTypes::WII_IPC_NET + i*100]		= new CDebugger_Log("WII_IPC_NET",		"WII IPC NET", i);
 		m_Log[LogTypes::WII_IPC_WIIMOTE + i*100]    = new CDebugger_Log("WII_IPC_WIIMOTE",	"WII IPC WIIMOTE", i);
+		m_Log[LogTypes::ACTIONREPLAY + i*100]       = new CDebugger_Log("ActionReplay",	"ActionReplay", i);
 
 		m_nextMessages[i] = 0; // initiate to zero
 	}
