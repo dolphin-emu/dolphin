@@ -35,13 +35,17 @@ typedef struct
 	volatile u32 CPReadPointer;
 	volatile u32 CPBreakpoint;
 
+	// Super Monkey Ball Adventure require this.
+	// Because the read&check-PEToken-loop stays in its JITed block I suppose.
+	// So no possiblity to ack the Token irq by the scheduler until some sort of PPC watchdog do its mess.
+	volatile u16 PEToken;
+
 	volatile BOOL bFF_GPReadEnable;
 	volatile BOOL bFF_BPEnable;
 	volatile BOOL bFF_GPLinkEnable;
 	volatile BOOL bFF_Breakpoint;
 
 	// for GP watchdog hack
-	volatile BOOL Fake_GPWDInterrupt;
 	volatile u32 Fake_GPWDToken; // cicular incrementer
 } SCPFifoStruct;
 

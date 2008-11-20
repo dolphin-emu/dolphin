@@ -55,7 +55,6 @@ union UPECtrlReg
 
 // STATE_TO_SAVE
 static UPECtrlReg g_ctrlReg;
-static u16        g_token = 0;		
 
 static bool       g_bSignalTokenInterrupt;
 static bool       g_bSignalFinishInterrupt;
@@ -66,7 +65,7 @@ int et_SetFinishOnMainThread;
 void DoState(PointerWrap &p)
 {
 	p.Do(g_ctrlReg);
-	p.Do(g_token);
+	p.Do(CommandProcessor::fifo.PEToken);
 	p.Do(g_bSignalTokenInterrupt);
 	p.Do(g_bSignalFinishInterrupt);
 }
@@ -78,7 +77,6 @@ void SetFinish_OnMainThread(u64 userdata, int cyclesLate);
 
 void Init()
 {
-	g_token = 0;
 	g_ctrlReg.Hex = 0;
 
 	et_SetTokenOnMainThread = CoreTiming::RegisterEvent("SetToken", SetToken_OnMainThread);
@@ -93,10 +91,12 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	{
 	case CTRL_REGISTER:
 		_uReturnValue = g_ctrlReg.Hex;
+		LOG(PIXELENGINE,"\t CTRL_REGISTER : %04x", _uReturnValue);
 		return;
 
 	case TOKEN_REG:
-		_uReturnValue = g_token;
+		_uReturnValue = CommandProcessor::fifo.PEToken;
+		LOG(PIXELENGINE,"\t TOKEN_REG : %04x", _uReturnValue);
 		return;
 
 	default:
@@ -135,9 +135,10 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		break;
 
 	case TOKEN_REG:
-		LOG(PIXELENGINE,"WEIRD: program wrote token: %i",_iValue);
+		//LOG(PIXELENGINE,"WEIRD: program wrote token: %i",_iValue);
+		PanicAlert("PIXELENGINE : (w16) WTF? program wrote token: %i",_iValue);
 		//only the gx pipeline is supposed to be able to write here
-		g_token = _iValue;
+		//g_token = _iValue;
 		break;
 	}
 }
@@ -162,15 +163,19 @@ void UpdateInterrupts()
 		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_PE_FINISH, false);
 }
 
+// TODO(mb2): Refactor SetTokenINT_OnMainThread(u64 userdata, int cyclesLate). Cleanup++
+// Called only if BPMEM_PE_TOKEN_INT_ID is ack by GP
 void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 {
-	// In the future: schedule callback that does the rest of this function
-	// This way we will be threadsafe
-	if (userdata >> 16)
+	//if (userdata >> 16)
+	//{
 		g_bSignalTokenInterrupt = true;	
-	g_token = (u16)(userdata & 0xFFFF);
-	LOGV(PIXELENGINE, 1, "VIDEO Plugin wrote token: %i", g_token);
-	UpdateInterrupts();
+		_dbg_assert_msg_(PIXELENGINE, (CommandProcessor::fifo.PEToken == (userdata&0xFFFF)), "WTF? BPMEM_PE_TOKEN_INT_ID's token != BPMEM_PE_TOKEN_ID's token" );
+		LOGV(PIXELENGINE, 1, "VIDEO Plugin raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
+		UpdateInterrupts();
+	//}
+	//else
+	//	LOGV(PIXELENGINE, 1, "VIDEO Plugin wrote token: %i", CommandProcessor::fifo.PEToken);
 }
 
 void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
@@ -183,8 +188,23 @@ void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
 // THIS IS EXECUTED FROM VIDEO THREAD
 void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 {
-	CoreTiming::ScheduleEvent_Threadsafe(
-		0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
+	// TODO?: set-token-value and set-token-INT could be merged since set-token-INT own the token value.
+	if (_bSetTokenAcknowledge) // set token INT
+	{
+		CommandProcessor::IncrementGPWDToken(); // for DC watchdog hack since PEToken seems to be a frame-finish too
+		CoreTiming::ScheduleEvent_Threadsafe(
+			0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
+	}
+	else // set token value
+	{
+		// we do it directly from videoThread because of
+		// Super Monkey Ball Advance
+#ifdef _WIN32
+		InterlockedExchange((LONG*)&CommandProcessor::fifo.PEToken, _token);
+#else 
+        Common::InterlockedExchange((int*)&CommandProcessor::fifo.PEToken, _token);
+#endif
+	}
 }
 
 // SetFinish

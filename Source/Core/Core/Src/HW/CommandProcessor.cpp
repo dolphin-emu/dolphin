@@ -25,6 +25,10 @@
 // - ZTP: seems to use PEfinish only
 // - Animal Crossing: PEfinish at start but there's a bug... 
 //		There's tons of HiWmk/LoWmk ping pong -> Another sync fashion?
+// - Super Monkey Ball Adventures: PEToken. Oddity: read&check-PEToken-value-loop stays
+//		in its JITed block (never fall in Advance() until the game-watchdog's stuff). 
+//		That's why we can't let perform the AdvanceCallBack as usual.
+//		The PEToken is volatile now and in the fifo struct.
 
 // *What I guess (thx to asynchronous DualCore mode):
 // PPC have a frame-finish watchdog. Handled by system timming stuff like the decrementer.
@@ -144,6 +148,7 @@ int m_bboxbottom;
 u16 m_tokenReg;
 
 SCPFifoStruct fifo; //This one is shared between gfx thread and emulator thread
+static u32 fake_GPWatchdogLastToken = 0;
 
 void DoState(PointerWrap &p)
 {
@@ -181,15 +186,10 @@ void IncrementGPWDToken()
 
 // Check every FAKE_GP_WATCHDOG_PERIOD if a PE-frame-finish occured
 // if not then lock CPUThread until GP finish a frame.
-u32 fake_GPWatchdogLastToken = 0;
 void WaitForFrameFinish()
 {
-	while (fake_GPWatchdogLastToken == fifo.Fake_GPWDToken && fifo.bFF_GPReadEnable && (fifo.CPReadWriteDistance > 0) && !(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
+	while ((fake_GPWatchdogLastToken == fifo.Fake_GPWDToken) && fifo.bFF_GPReadEnable && (fifo.CPReadWriteDistance > 0) && !(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
 		;
-	// oh well, should be safe.
-	// Assuming: time between 2 GP-frame-finish (ie. increment of fifo.Fake_GPWDToken) 
-	// will be EVER way superior to time between 
-	// "while (g_FAKE_GPWatchdogToken == fifo.Fake_GPWDToken..." and this line. :p
 	fake_GPWatchdogLastToken = fifo.Fake_GPWDToken; 
 }
 
@@ -217,9 +217,10 @@ void Init()
 	fifo.bFF_GPReadEnable	= FALSE;
 	fifo.bFF_GPLinkEnable	= FALSE;
 	fifo.bFF_BPEnable		= FALSE;
+	fifo.PEToken			= 0;
 	// for GP watchdog hack
-	fifo.Fake_GPWDInterrupt = FALSE;
 	fifo.Fake_GPWDToken		= 0;
+	fake_GPWatchdogLastToken = 0;
 	et_UpdateInterrupts = CoreTiming::RegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
 
 }
@@ -376,7 +377,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			// update interrupts
 			UpdateInterrupts();
 
-			LOG(COMMANDPROCESSOR,"write to STATUS_REGISTER : %04x", _Value);
+			LOG(COMMANDPROCESSOR,"\t write to STATUS_REGISTER : %04x", _Value);
 		}
 		break;
 
@@ -413,14 +414,16 @@ void Write16(const u16 _Value, const u32 _Address)
 				}
 			}/**/
 			UpdateInterrupts();
-			LOG(COMMANDPROCESSOR, "\t GPREAD %s | CPULINK %s | BP %s || CPIntEnable %s"
+			LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
+			LOG(COMMANDPROCESSOR, "\t GPREAD %s | CPULINK %s | BP %s || CPIntEnable %s | OvF %s | UndF %s"
 				, fifo.bFF_GPReadEnable ?				"ON" : "OFF"
 				, fifo.bFF_GPLinkEnable ?				"ON" : "OFF"
 				, fifo.bFF_BPEnable ?					"ON" : "OFF"
 				, m_CPCtrlReg.CPIntEnable ?				"ON" : "OFF"
+				, m_CPCtrlReg.FifoOverflowIntEnable ?	"ON" : "OFF"
+				, m_CPCtrlReg.FifoUnderflowIntEnable ?	"ON" : "OFF"
 				);
 
-			LOG(COMMANDPROCESSOR,"write to CTRL_REGISTER : %04x", _Value);
 		}
 		break;
 
@@ -429,12 +432,15 @@ void Write16(const u16 _Value, const u32 _Address)
 			UCPClearReg tmpClearReg(_Value);			
 			m_CPClearReg.Hex = 0;
 
-			LOG(COMMANDPROCESSOR,"write to CLEAR_REGISTER : %04x",_Value);
+			LOG(COMMANDPROCESSOR,"\t write to CLEAR_REGISTER : %04x",_Value);
 		}		
 		break;
 
 	// Fifo Registers
-	case FIFO_TOKEN_REGISTER:	m_tokenReg = _Value; break;
+	case FIFO_TOKEN_REGISTER:	
+		m_tokenReg = _Value; 
+		LOG(COMMANDPROCESSOR,"write to FIFO_TOKEN_REGISTER : %04x", _Value);
+		break;
 
 	case FIFO_BASE_LO:			WriteLow ((u32 &)fifo.CPBase, _Value); fifo.CPBase &= 0xFFFFFFE0; break;
 	case FIFO_BASE_HI:			WriteHigh((u32 &)fifo.CPBase, _Value); fifo.CPBase &= 0xFFFFFFE0; break;
@@ -543,6 +549,7 @@ void GatherPipeBursted()
 			//		- CPU can write to fifo
 			//		- disable Underflow interrupt
 
+			LOG(COMMANDPROCESSOR, "(GatherPipeBursted): CPHiWatermark reached");
 			// Wait for GPU to catch up
 			//while (!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint) && fifo.CPReadWriteDistance > (s32)fifo.CPLoWatermark)
 			while (fifo.CPReadWriteDistance > fifo.CPLoWatermark)
