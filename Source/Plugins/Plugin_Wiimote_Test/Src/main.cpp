@@ -111,16 +111,14 @@ extern "C" void DllAbout(HWND _hParent)
 
 extern "C" void DllConfig(HWND _hParent)
 {
-#if defined(_WIN32)
 	wxWindow win;
+#ifdef _WIN32
 	win.SetHWND(_hParent);
+#endif
 	ConfigDialog frame(&win);
 	frame.ShowModal();
+#ifdef _WIN32
 	win.SetHWND(0);
-#elif defined(__linux__)  
-	//TODO
-#else
-	//TODO
 #endif
 }
 
