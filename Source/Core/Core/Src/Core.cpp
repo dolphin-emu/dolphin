@@ -176,10 +176,11 @@ void Stop() // - Hammertime!
 	Host_SetWaitCursor(true);
 	if (PowerPC::state == PowerPC::CPU_POWERDOWN)
 		return;
-	// stop the CPU
-	PowerPC::state = PowerPC::CPU_POWERDOWN;
 	
-	CCPU::StepOpcode(); //kick it if it's waiting
+        // stop the CPU
+        PowerPC::state = PowerPC::CPU_POWERDOWN;
+	
+        CCPU::StepOpcode(); //kick it if it's waiting
 
 	// The quit is to get it out of its message loop
 	// Should be moved inside the plugin.
@@ -189,7 +190,7 @@ void Stop() // - Hammertime!
         PluginVideo::Video_Stop();
 #endif
 
-	//delete g_pThread; //Wait for emuthread to close
+	delete g_pThread; //Wait for emuthread to close
 	g_pThread = 0;
 	Core::StopTrace();
 	LogManager::Shutdown();
