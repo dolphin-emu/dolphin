@@ -94,6 +94,8 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_DumpTextures;
 		wxDirPickerCtrl *m_TexturePath;
 		wxCheckBox *m_EFBToTextureDisable;
+		wxCheckBox *m_ProjectionHax1;
+		wxCheckBox *m_ProjectionHax2;
 
 		enum
 		{
@@ -134,6 +136,8 @@ class ConfigDialog : public wxDialog
 			ID_TEXTUREPATH,
 
 			ID_EFBTOTEXTUREDISABLE,
+			ID_PROJECTIONHACK1,
+			ID_PROJECTIONHACK2
 		};
 
 		void OnClose(wxCloseEvent& event);

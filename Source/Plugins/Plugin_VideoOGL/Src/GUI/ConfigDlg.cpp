@@ -47,6 +47,8 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_DISABLELIGHTING, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLETEXTURING, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_EFBTOTEXTUREDISABLE, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_PROJECTIONHACK1,ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_PROJECTIONHACK2,ConfigDialog::AdvancedSettingsChanged)
 	EVT_DIRPICKER_CHANGED(ID_TEXTUREPATH, ConfigDialog::TexturePathChange)
 END_EVENT_TABLE()
 
@@ -190,6 +192,14 @@ void ConfigDialog::CreateGUIControls()
 	m_EFBToTextureDisable->Enable(true);
 	m_EFBToTextureDisable->SetValue(g_Config.bEBFToTextureDisable);
 
+	m_ProjectionHax1 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK1, wxT("Projection before R945"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ProjectionHax1->Enable(true);
+	m_ProjectionHax1->SetValue(g_Config.bProjectionHax1);
+
+	m_ProjectionHax2 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK2, wxT("Projection hack of R844"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ProjectionHax2->Enable(true);
+	m_ProjectionHax2->SetValue(g_Config.bProjectionHax2);
+
 	sAdvanced = new wxBoxSizer(wxVERTICAL);
 	sInfo = new wxGridBagSizer(0, 0);
 	sInfo->Add(m_ShowFPS, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
@@ -216,6 +226,8 @@ void ConfigDialog::CreateGUIControls()
 
 	sHacks = new wxGridBagSizer(0, 0);
 	sHacks->Add(m_EFBToTextureDisable, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
+	sHacks->Add(m_ProjectionHax1, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
+	sHacks->Add(m_ProjectionHax2, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 	sbHacks->Add(sHacks);
 	sAdvanced->Add(sbHacks, 0, wxEXPAND|wxALL, 5);
 	m_PageAdvanced->SetSizer(sAdvanced);
@@ -342,6 +354,14 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_EFBTOTEXTUREDISABLE:
 		g_Config.bEBFToTextureDisable = m_EFBToTextureDisable->IsChecked();
+		break;
+	case ID_PROJECTIONHACK1:
+		g_Config.bProjectionHax1 = m_ProjectionHax1->IsChecked();
+		break;
+	case ID_PROJECTIONHACK2:
+		g_Config.bProjectionHax2 = m_ProjectionHax2->IsChecked();
+		break;
+	default:
 		break;
 	}
 }

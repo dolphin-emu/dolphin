@@ -62,6 +62,8 @@ struct Config
 
 	// Hacks
 	bool bEBFToTextureDisable;
+	bool bProjectionHax1;
+	bool bProjectionHax2;
 
 	int iLog; // CONF_ bits
 	int iSaveTargetId;

@@ -441,7 +441,20 @@ void VertexShaderMngr::SetConstants()
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = xfregs.rawProjection[4];
-			g_fProjectionMatrix[11] = xfregs.rawProjection[5];
+
+			//---------Projection[11]---------
+			// No hacks
+			if ((!g_Config.bProjectionHax1 && !g_Config.bProjectionHax2) || (g_Config.bProjectionHax1 && g_Config.bProjectionHax2))
+				g_fProjectionMatrix[11] = -(0.0f - xfregs.rawProjection[5]);
+
+			// Before R945 Hack
+			if(g_Config.bProjectionHax1 && !g_Config.bProjectionHax2)
+				g_fProjectionMatrix[11] = -(1.0f -  xfregs.rawProjection[5]); 
+
+			// R844 Hack
+			if(!g_Config.bProjectionHax1 && g_Config.bProjectionHax2)
+				g_fProjectionMatrix[11] =  xfregs.rawProjection[5];
+			//--------------------------------
  			
             g_fProjectionMatrix[12] = 0.0f;
             g_fProjectionMatrix[13] = 0.0f;
@@ -464,7 +477,21 @@ void VertexShaderMngr::SetConstants()
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
             g_fProjectionMatrix[10] = xfregs.rawProjection[4];
-			g_fProjectionMatrix[11] = 1.0f + xfregs.rawProjection[5];
+			
+			//---------Projection[11]---------
+			// No hacks
+			if ((!g_Config.bProjectionHax1 && !g_Config.bProjectionHax2) || (g_Config.bProjectionHax1 && g_Config.bProjectionHax2))
+				g_fProjectionMatrix[11] = -(-1.0f - xfregs.rawProjection[5]);
+
+			// Before R945 Hack
+			if (g_Config.bProjectionHax1 && !g_Config.bProjectionHax2)
+				g_fProjectionMatrix[11] = -(0.0f - xfregs.rawProjection[5]);
+
+			// R844 Hack
+			if (!g_Config.bProjectionHax1 && g_Config.bProjectionHax2)
+				g_fProjectionMatrix[11] = -xfregs.rawProjection[5];
+
+			//--------------------------------
 
             g_fProjectionMatrix[12] = 0;
             g_fProjectionMatrix[13] = 0;
