@@ -32,15 +32,8 @@ void SetVolumeName(const std::string& _rFullPath)
     if (g_pVolume)
     {
 		// This code looks scary. Can the try/catch stuff be removed?
-        try
-        {
-            delete g_pVolume;
-            g_pVolume = NULL;
-        }
-        catch(...)
-        {
-            printf("Couldn't Delete g_pVolume and set it to Null!\n");
-        }
+        delete g_pVolume;
+        g_pVolume = NULL;
     }
 
     g_pVolume = DiscIO::CreateVolumeFromFilename(_rFullPath);
