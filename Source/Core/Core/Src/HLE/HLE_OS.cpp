@@ -76,6 +76,7 @@ void GetStringVA(std::string& _rOutBuffer)
 	_rOutBuffer = "";
 	char ArgumentBuffer[256];
 	u32 ParameterCounter = 4;    
+	u32 FloatingParameterCounter = 1;
 	char* pString = (char*)Memory::GetPointer(GPR(3));
 	if (!pString) {
 		//PanicAlert("Invalid GetStringVA call");
@@ -110,15 +111,24 @@ void GetStringVA(std::string& _rOutBuffer)
 				_rOutBuffer += StringFromFormat(ArgumentBuffer, (char*)Memory::GetPointer(Parameter));
 				break;
 
-#if 0
 			case 'd':
+			case 'i':
 				{
 					//u64 Double = Memory::Read_U64(Parameter);
 					_rOutBuffer += StringFromFormat(ArgumentBuffer, Parameter);
 				}
 				break;
-#endif
-				//TODO: fix floating-point (%f)
+			
+			case 'f':
+				{
+					_rOutBuffer += StringFromFormat(ArgumentBuffer, 
+													rPS0(FloatingParameterCounter));
+					FloatingParameterCounter++;
+					ParameterCounter--;
+				}
+				break;
+
+
 			default:
 				_rOutBuffer += StringFromFormat(ArgumentBuffer, Parameter);
 				break;
