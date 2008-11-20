@@ -86,6 +86,7 @@ void GetMousePos(float& x, float& y)
 	x = point.x / (float)width;
 	y = point.y / (float)height;
 #else
+        // TODO fix on linux
 	x = 0.5f;
 	y = 0.5f;
 #endif
