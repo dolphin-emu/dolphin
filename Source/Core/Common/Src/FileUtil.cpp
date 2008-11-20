@@ -25,7 +25,8 @@
 #include <commdlg.h>   // for GetSaveFileName
 #include <io.h>
 #else
-
+#include <sys/types.h>
+#include <dirent.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -128,10 +129,10 @@ bool CreateDir(const char *path)
 		PanicAlert("%s already exists", path);
 		return true;
 	}
-	PanicAlert("Error creating directory: %i", error);
+	PanicAlert("Error creating directory %s: %i", path, error);
 	return false;
 #else
-	if (mkdir(path, 0644) == 0)
+	if (mkdir(path, 0755) == 0)
 		return true;
 
 	int err = errno;
@@ -142,7 +143,7 @@ bool CreateDir(const char *path)
 		return true;
 	}
 
-	PanicAlert("Error creating directory: %s", strerror(err));
+	PanicAlert("Error creating directory %s: %s", path, strerror(err));
 	return false;
 
 #endif
@@ -150,16 +151,19 @@ bool CreateDir(const char *path)
 
 bool DeleteDir(const char *filename)
 {
-#ifdef _WIN32
+
 	if (!File::IsDirectory(filename))
 		return false;
-
+#ifdef _WIN32
 	return ::RemoveDirectory (filename) ? true : false;
 #else
-
-	PanicAlert("File::DeleteDir() not implemented");
-	return false;
-
+        if (rmdir(filename) == 0)
+            return true;
+        
+        int err = errno;
+        
+        PanicAlert("Error removing directory %s",strerror(err));
+        return false;
 #endif
 }
 
@@ -324,10 +328,38 @@ error_jmp:
 
 	return Result;
 #else
+        // taken from http://www.dreamincode.net/code/snippet2700.htm
+        DIR *pdir = NULL; 
+        pdir = opendir (_Directory.c_str());
+        struct dirent *pent = NULL;
+        
+        if (pdir == NULL) { 
+            return false; 
+        } 
 
-	PanicAlert("File::DeleteDirRecursively() not implemented");
-	return false;
+        char file[256];
 
+        int counter = 1;
+        
+        while ((pent = readdir(pdir))) { 
+            if (counter > 2) {
+                for (int i = 0; i < 256; i++) file[i] = '\0';
+                strcat(file, _Directory.c_str());
+                if (pent == NULL) { 
+                    return false; 
+                } 
+                strcat(file, pent->d_name); 
+                if (IsDirectory(file) == true) {
+                    DeleteDir(file);
+                } else { 
+                    remove(file);
+                }
+            }
+            counter++;
+        }
+
+        
+        return DeleteDir(_Directory.c_str());
 #endif
 }
 
