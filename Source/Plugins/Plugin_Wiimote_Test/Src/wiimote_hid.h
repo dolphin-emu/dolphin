@@ -167,6 +167,14 @@ struct wm_ir_basic
 	u8 y2;
 };
 
+struct wm_ir_extended 
+{
+	u8 x;
+	u8 y;
+	u8 size : 4;
+	u8 xHi : 2;
+	u8 yHi : 2;
+};
 
 struct wm_extension
 {
@@ -176,16 +184,6 @@ struct wm_extension
 	u8 ay;
 	u8 az;
 	u8 bt; // buttons
-};
-
-
-struct wm_ir_extended 
-{
-	u8 x;
-	u8 y;
-	u8 size : 4;
-	u8 xHi : 2;
-	u8 yHi : 2;
 };
 
 #define WM_REPORT_CORE 0x30

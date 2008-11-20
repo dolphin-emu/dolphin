@@ -16,6 +16,27 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+
+
+// ===================================================
+/* HID reports access guide. */
+// ----------------
+
+/* 0x10 - 0x1a   Output   EmuMain.cpp: HidOutputReport()
+       0x10 - 0x14: General
+	   0x15: Status report request from the Wii
+	   0x16 and 0x17: Write and read memory or registers
+       0x19 and 0x1a: General
+   0x20 - 0x22   Input    EmuMain.cpp: HidOutputReport() to the destination
+       0x15 leads to a 0x20 Input report
+       0x17 leads to a 0x21 Input report
+	   0x10 - 0x1a leads to a 0x22 Input report
+   0x30 - 0x3f   Input    This file: Update() */
+
+// ================
+
+
+
 #include "pluginspecs_wiimote.h"
 
 #include <vector>
@@ -27,8 +48,6 @@
 #include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
 
 extern SWiimoteInitialize g_WiimoteInitialize;
-//extern void __Log(int log, const char *format, ...);
-//extern void __Log(int log, int v, const char *format, ...);
 
 namespace WiiMoteEmu
 {
@@ -142,7 +161,7 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 	LOGV(WII_IPC_WIIMOTE, 0, "=============================================================");
 	const u8* data = (const u8*)_pData;
 
-	// dump raw data
+	// Debugging. Dump raw data.
 	{
 		LOG(WII_IPC_WIIMOTE, "Wiimote_Input");
 		std::string Temp;
@@ -165,8 +184,16 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 			case HID_PARAM_OUTPUT:
 				{
 					wm_report* sr = (wm_report*)hidp->data;
-					WmSendAck(_channelID, sr->channel);
+
 					HidOutputReport(_channelID, sr);
+
+					/* This is the 0x22 answer to all Inputs. In most games it didn't matter
+					   if it was written before or after HidOutputReport(), but Wii Sports
+					   and Mario Galaxy would stop working if it was placed before
+					   HidOutputReport(). */
+					wm_write_data *wd = (wm_write_data*)sr->data;
+					u32 address = convert24bit(wd->address);
+					WmSendAck(_channelID, sr->channel, address);
 				}
 				break;
 

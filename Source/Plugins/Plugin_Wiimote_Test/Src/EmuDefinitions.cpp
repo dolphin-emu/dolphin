@@ -29,8 +29,6 @@
 #include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
 
 extern SWiimoteInitialize g_WiimoteInitialize;
-//extern void __Log(int log, const char *format, ...);
-//extern void __Log(int log, int v, const char *format, ...);
 
 namespace WiiMoteEmu
 {
@@ -46,7 +44,6 @@ u8 g_Eeprom[WIIMOTE_EEPROM_SIZE];
 u8 g_RegSpeaker[WIIMOTE_REG_SPEAKER_SIZE];
 u8 g_RegExt[WIIMOTE_REG_EXT_SIZE];
 u8 g_RegExtTmp[WIIMOTE_REG_EXT_SIZE];
-u8 g_RegExtBlnk[WIIMOTE_REG_EXT_SIZE];
 u8 g_RegIr[WIIMOTE_REG_IR_SIZE];
 
 u8 g_ReportingMode; // the reporting mode and channel id

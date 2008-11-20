@@ -576,6 +576,10 @@
 				RelativePath=".\Src\FillReport.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\Src\wiimote_hid.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Real Wiimote"
@@ -611,10 +615,6 @@
 		</Filter>
 		<File
 			RelativePath=".\Src\main.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\wiimote_hid.h"
 			>
 		</File>
 	</Files>

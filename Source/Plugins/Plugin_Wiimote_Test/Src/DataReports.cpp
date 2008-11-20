@@ -16,6 +16,24 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+
+
+// ===================================================
+/* Data reports guide. The different structures location in the Input reports. The ? in
+   the IR coordinates is the High coordinates that are four in one byte. */
+// ----------------
+
+/* 0x33
+   [c.left etc] [c.a etc]   acc.x y z   ir0.x y ? ir1.x y ? ir2.x y ? ir3.x y ?
+
+   0x37
+   [c.left etc] [c.a etc]   acc.x y z   ir0.x1 y1 ? x2 y2 ir1.x1 y1 ? x2 y2   ext.jx jy ax ay az bt*/
+
+// ================
+
+
+
+
 #include "pluginspecs_wiimote.h"
 
 #include <vector>
@@ -50,7 +68,6 @@ void WmDataReporting(u16 _channelID, wm_data_reporting* dr)
 	LOG(WII_IPC_WIIMOTE, "  All The Time: %x (not only on data change)", dr->all_the_time);
 	LOG(WII_IPC_WIIMOTE, "  Rumble: %x", dr->rumble);
 	LOG(WII_IPC_WIIMOTE, "  Mode: 0x%02x", dr->mode);
-	//PanicAlert("Data reporting mode: 0x%02x", dr->mode);
 	wprintf("\nData reporting mode: 0x%02x", dr->mode);
 	wprintf("\nData reporting channel: 0x%04x\n", _channelID);
 	
@@ -112,6 +129,18 @@ void SendReportCoreAccel(u16 _channelID)
 
 	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccel()");
 
+	// Debugging
+	/*if(GetAsyncKeyState('V'))
+	{
+		wprintf("DataFrame: ");
+		for (int i = 0; i < Offset; i++)
+		{			
+			wprintf("%02x ", DataFrame[i]);
+			if((i + 1) % 30 == 0) wprintf("\n");
+		}
+		wprintf("\n");
+	}*/
+
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 }
 
@@ -129,6 +158,8 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 	
 	FillReportInfo(pReport->c);
 	FillReportAcc(pReport->a);
+
+	// We settle with emulating two objects, not all four
 	FillReportIR(pReport->ir[0], pReport->ir[1]);
 
 	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccelIr12()");
@@ -136,7 +167,7 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 
 	// Debugging
 #ifdef _WIN32
-	if(GetAsyncKeyState('V'))
+	/*if(GetAsyncKeyState('V'))
 	{
 		wprintf("DataFrame: ");
 		for (int i = 0; i < Offset; i++)
@@ -145,7 +176,7 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 			if((i + 1) % 30 == 0) wprintf("\n");
 		}
 		wprintf("\n");
-	}
+	}*/
 #endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 }
@@ -174,7 +205,7 @@ void SendReportCoreAccelExt16(u16 _channelID)
 
 	// Debugging
 #ifdef _WIN32
-	if(GetAsyncKeyState('V'))
+	/*if(GetAsyncKeyState('V'))
 	{
 		wprintf("DataFrame: ");
 		for (int i = 0; i < Offset; i++)
@@ -183,7 +214,7 @@ void SendReportCoreAccelExt16(u16 _channelID)
 			if((i + 1) % 30 == 0) wprintf("\n");
 		}
 		wprintf("\n");
-	}
+	}*/
 #endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 }
@@ -210,7 +241,7 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 	
 	// Debugging
 #ifdef _WIN32
-	if(GetAsyncKeyState('V'))
+	/*if(GetAsyncKeyState('V'))
 	{
 		wprintf("DataFrame: ");
 		for (int i = 0; i < Offset; i++)
@@ -219,7 +250,7 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 			if((i + 1) % 30 == 0) wprintf("\n");
 		}
 		wprintf("\n");
-	}
+	}*/
 #endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 }

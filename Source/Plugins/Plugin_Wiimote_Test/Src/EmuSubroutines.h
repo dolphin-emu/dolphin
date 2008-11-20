@@ -48,14 +48,13 @@ extern u8 g_Eeprom[WIIMOTE_EEPROM_SIZE];
 extern u8 g_RegSpeaker[WIIMOTE_REG_SPEAKER_SIZE];
 extern u8 g_RegExt[WIIMOTE_REG_EXT_SIZE];
 extern u8 g_RegExtTmp[WIIMOTE_REG_EXT_SIZE];
-extern u8 g_RegExtBlnk[WIIMOTE_REG_EXT_SIZE];
-
 extern u8 g_RegIr[WIIMOTE_REG_IR_SIZE];
 
 extern u8 g_ReportingMode;
 extern u16 g_ReportingChannel;
 
 extern wiimote_key g_ExtKey; // extension encryption key
+
 
 static const u8 EepromData_0[] = {
 	0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30,
@@ -74,7 +73,8 @@ static const u8 EepromData_16D0[] = {
 
 
 /* Default calibration for the nunchuck. It should be written to 0x20 - 0x3f of the
-   extension register */
+   extension register. 0x80 is the neutral x and y accelerators and 0xb3 is the
+   neutral z accelerometer that is adjusted for gravity. */
 static const u8 nunchuck_calibration[] =
 {
 	0x80,0x80,0x80,0x00, 0xb3,0xb3,0xb3,0x00,
@@ -89,7 +89,18 @@ static const u8 nunchuck_calibration[] =
 static const u8 nunchuck_id[] =
 {
 	0x00, 0x00, 0xa4, 0x20, 0x00, 0x00
-	//0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+/* The id for nothing inserted */
+static const u8 nothing_id[] =
+{
+	0x00, 0x00, 0x00, 0x00, 0x2e, 0x2e
+};
+
+/* The id for a partially inserted extension */
+static const u8 partially_id[] =
+{
+	0x00, 0x00, 0x00, 0x00, 0xff, 0xff
 };
 
 
@@ -110,7 +121,7 @@ void SendReportCoreAccelExt16(u16 _channelID);
 void SendReportCoreAccelIr10Ext(u16 _channelID);
 
 int WriteWmReport(u8* dst, u8 channel);
-void WmSendAck(u16 _channelID, u8 _reportID);
+void WmSendAck(u16 _channelID, u8 _reportID, u32 address);
 
 
 void FillReportAcc(wm_accel& _acc);

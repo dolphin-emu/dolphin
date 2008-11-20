@@ -142,7 +142,7 @@ bool BootCore(const std::string& _rFilename)
 		}
 		else
 		{
-			PanicAlert("Could not write to SYSCONF");
+			PanicAlert("Could not read %sSYSCONF", FULL_CONFIG_DIR);
 		}
 		// ----------------
 	}

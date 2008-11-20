@@ -131,9 +131,10 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		g_Config.bExtensionConnected = m_ExtensionConnected->IsChecked();
 
 		 // generate connect/disconnect status event
+		u8 DataFrame[8]; // make a blank report for it
+		wm_request_status *rs = (wm_request_status*)DataFrame;
 		if(WiiMoteEmu::g_ReportingChannel > 0)
-			WiiMoteEmu::WmRequestStatus_(WiiMoteEmu::g_ReportingChannel,
-				g_Config.bExtensionConnected ? 1 : 0);
+			WiiMoteEmu::WmRequestStatus(WiiMoteEmu::g_ReportingChannel, rs);
 		break;		
 	}
 }

@@ -72,7 +72,7 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
     }
     else
 	{
-		PanicAlert("Could not read Wii SYSCONF");
+		PanicAlert("Could not read " FULL_CONFIG_DIR "SYSCONF");
 	}
 
 	CreateGUIControls();

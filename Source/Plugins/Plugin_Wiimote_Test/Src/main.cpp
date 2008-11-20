@@ -164,7 +164,7 @@ extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32
 	LOGV(WII_IPC_WIIMOTE, 0, "=============================================================");
 	const u8* data = (const u8*)_pData;
 
-	// dump raw data
+	// Debugging. Dump raw data.
 	{
 		LOG(WII_IPC_WIIMOTE, "Wiimote_Input");
 		LOG(WII_IPC_WIIMOTE, "   Channel ID: %04x", _channelID);
@@ -222,6 +222,9 @@ extern "C" unsigned int Wiimote_GetAttachedControllers()
 }
 
 
+// ===================================================
+/* Logging functions. */
+// ----------------
 void __Log(int log, const char *_fmt, ...)
 {
 	char Msg[512];
@@ -246,3 +249,4 @@ void __Logv(int log, int v, const char *_fmt, ...)
 
 	g_WiimoteInitialize.pLog(Msg, v);	
 }
+// ================

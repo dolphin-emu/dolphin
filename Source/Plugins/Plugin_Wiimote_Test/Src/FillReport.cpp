@@ -30,8 +30,6 @@
 #include "Config.h" // for g_Config
 
 extern SWiimoteInitialize g_WiimoteInitialize;
-//extern void __Log(int log, const char *format, ...);
-//extern void __Log(int log, int v, const char *format, ...);
 
 
 namespace WiiMoteEmu
@@ -43,7 +41,7 @@ namespace WiiMoteEmu
 
 
 
-/* Debugging. Read out the structs.  */
+/* Debugging. Read out the structs. */
 void ReadExt()
 {
 	for (int i = 0; i < WIIMOTE_REG_EXT_SIZE; i++)
@@ -66,13 +64,6 @@ void ReadExtTmp()
 	}
 	wprintf("\n\n");
 }
-
-
-
-/* The extension status can be a little difficult, this lets's us change the extension
-   status back and forth */
-bool AllowReport = true;
-int AllowCount = 0;
 
 
 void FillReportInfo(wm_core& _core)
@@ -111,104 +102,27 @@ void FillReportInfo(wm_core& _core)
 		_core.right = GetAsyncKeyState(VK_RIGHT) ? 1 : 0;
 		_core.down = GetAsyncKeyState(VK_DOWN) ? 1 : 0;
 	}
-
-	/**/
-	// -----------------------
-	// Debugging. Send status report.
-	if(GetAsyncKeyState('I') && AllowReport)
-	{
-		//ClearScreen();
-
-		// Clear the register
-		//memcpy(g_RegExt, g_RegExtBlnk, sizeof(g_RegExt));
-		//g_RegExt[0xfc] = 0xa4;
-		//g_RegExt[0xfd] = 0x20;
-
-		// Clear the key part of the register
-		/**/
-		for(int i=0; i <= 16; i++)
-		{
-			g_RegExt[0x40 + i] = 0;
-		}
-		
-		//wm_report sr;
-		//wm_request_status *sr;
-		//WmRequestStatus(g_ReportingChannel, sr);
-
-		/**/
-		WmRequestStatus_(g_ReportingChannel, 1);
-
-		wprintf("Sent status report\n");
-		AllowReport = false;
-		AllowCount = 0;
-
-		//void ReadExt();		
-	}
-
-
-		/**/
-	if(GetAsyncKeyState('U') && AllowReport)
-	{
-		//ClearScreen();
-		//wm_report sr;
-		//wm_request_status *sr;
-		//WmRequestStatus(g_ReportingChannel, sr);
-
-		//memcpy(g_RegExt, g_RegExtBlnk, sizeof(g_RegExt));
-		//g_RegExt[0xfc] = 0xa4;
-		//g_RegExt[0xfd] = 0x20;
-
-		/**/
-		for(int i=0; i <= 16; i++)
-		{
-			g_RegExt[0x40 + i] = 0;
-		}
-		
-
-		/*	*/
-		WmRequestStatus_(g_ReportingChannel, 0);
-
-		wprintf("Sent status report\n");
-		AllowReport = false;
-		AllowCount = 0;
-
-		//void ReadExt();	
-	}
-	
-	
-	/**/
-	if(AllowCount > 10)
-	{
-		AllowReport = true;
-		AllowCount = 0;
-	}
-
-	AllowCount++;
-	// ----------
-
 #else 
         // TODO: fill in
 #endif
 }
 
 // -----------------------------
-// Global declarations for FillReportAcc. The accelerometer x, y and z values range from
-// 0x00 to 0xff with [y = 0x80, x = 0x80, z ~ 0xa0] being neutral and 0x00 being (-)
-// and 0xff being (+). Or does it not? It's important that all values are not 0x80,
-// the the mouse pointer can disappear from the screen permanently, until z is adjusted
-// back.
+/* Global declarations for FillReportAcc. The accelerometer x, y and z values range from
+   0x00 to 0xff with the default netural values being [y = 0x84, x = 0x84, z = 0x9f]
+   according to a source. The extremes are 0x00 for (-) and 0xff for (+). It's important
+   that all values are not 0x80, the the mouse pointer can disappear from the screen
+   permanently then, until z is adjusted back. */
 // ----------
 // the variables are global so they can be changed during debugging
 //int A = 0, B = 128, C = 64; // for debugging
 //int a = 1, b = 1, c = 2, d = -2; // for debugging
 //int consoleDisplay = 0;
 
-
-int X = 0x80, Y = 0x80, Z = 160; // neutral values
-u8 x = 0x0, y = 0x0, z = 0x00;
+int X = 0x84, Y = 0x84, Z = 0x9f; // neutral values
+u8 x = X, y = Y, z = Z;
 int shake = -1, yhistsize = 15; // for the shake function
 std::vector<u8> yhist(15); // for the tilt function
-
 
 void FillReportAcc(wm_accel& _acc)
 {
@@ -240,13 +154,11 @@ void FillReportAcc(wm_accel& _acc)
 	}
 
 
-	// Single shake of Wiimote while holding it sideways (Wario Land pound ground)
-	/*
+	/* Single shake of Wiimote while holding it sideways (Wario Land pound ground)	
 	if(GetAsyncKeyState('S'))
 		z = 0;
 	else
-		z  = Z;
-		*/
+		z  = Z;*/
 
 	if(GetAsyncKeyState('S'))
 	{
@@ -265,6 +177,10 @@ void FillReportAcc(wm_accel& _acc)
 		z = Z;
 		y = Y;
 		shake = -1;
+	}
+	else // the default Y and Z if nothing is pressed
+	{
+		z = Z;
 	}
 	// ----------
 
@@ -288,7 +204,7 @@ void FillReportAcc(wm_accel& _acc)
 	
 	if(!ypressed) // y was not pressed a single time
 	{
-		y = Y;
+		y = Y; // this is the default value that will occur most of the time
 		//a = 0; // for debugging
 		//b = 0;
 	}
@@ -319,7 +235,6 @@ void FillReportAcc(wm_accel& _acc)
 			consoleDisplay = 0;
 	}
 
-
 	if(GetAsyncKeyState('5'))
 		A-=1;
 	else if(GetAsyncKeyState('6'))
@@ -332,18 +247,7 @@ void FillReportAcc(wm_accel& _acc)
 		C-=1;
 	else if(GetAsyncKeyState('0'))
 		C+=1;
-	else if(GetAsyncKeyState(VK_INSERT))
-		a-=1;
-	else if(GetAsyncKeyState(VK_DELETE))
-		a+=1;
-	else if(GetAsyncKeyState(VK_HOME))
-		b-=1;
-	else if(GetAsyncKeyState(VK_END))
-		b+=1;
-	else if(GetAsyncKeyState(VK_SHIFT))
-		c-=1;
-	else if(GetAsyncKeyState(VK_CONTROL))
-		c+=1;
+
 	else if(GetAsyncKeyState(VK_NUMPAD3))
 		d-=1;
 	else if(GetAsyncKeyState(VK_NUMPAD6))
@@ -353,7 +257,21 @@ void FillReportAcc(wm_accel& _acc)
 	else if(GetAsyncKeyState(VK_SUBTRACT))
 		yhistsize+=1;
 
+	
+	/*if(GetAsyncKeyState(VK_INSERT))
+		AX-=1;
+	else if(GetAsyncKeyState(VK_DELETE))
+		AX+=1;
+	else if(GetAsyncKeyState(VK_HOME))
+		AY-=1;
+	else if(GetAsyncKeyState(VK_END))
+		AY+=1;
+	else if(GetAsyncKeyState(VK_SHIFT))
+		AZ-=1;
+	else if(GetAsyncKeyState(VK_CONTROL))
+		AZ+=1;*/
 
+	/*
 	if(GetAsyncKeyState(VK_NUMPAD1))
 		X+=1;
 	else if(GetAsyncKeyState(VK_NUMPAD2))
@@ -367,48 +285,23 @@ void FillReportAcc(wm_accel& _acc)
 	else if(GetAsyncKeyState(VK_NUMPAD8))
 		Z-=1;
 
-	/*
-	if(GetAsyncKeyState('S'))
-	{
-		z = Z + C;
-	}
-	else
-	{
-		z = Z;
-	}
 	
-
-	if(GetAsyncKeyState('D'))
-	{
-		y = Y + B;
-	}
-	else
-	{
-		y = Y;
-	}
-
-	if(GetAsyncKeyState('F'))
-	{
-		z = Z + C;
-		y = Y + B;
-	}
-	else if(!GetAsyncKeyState('S') && !GetAsyncKeyState('D'))
-	{
-		z = Z;
-		y = Y;
-	}	
-	if(consoleDisplay == 0)
-	wprintf("x: %03i | y: %03i | z: %03i  |  A:%i B:%i C:%i  a:%i b:%i c:%i d:%i  X:%i Y:%i Z:%i\n", _acc.x, _acc.y, _acc.z,
+	//if(consoleDisplay == 0)
+	wprintf("x: %03i | y: %03i | z: %03i  |  A:%i B:%i C:%i  a:%i b:%i c:%i d:%i  X:%i Y:%i Z:%i\n",
+		_acc.x, _acc.y, _acc.z,
 		A, B, C,
 		a, b, c, d,
-		X, Y, Z);
-	*/
+		X, Y, Z
+		);
+	wprintf("x: %03i | y: %03i | z: %03i  |  X:%i Y:%i Z:%i  | AX:%i AY:%i AZ:%i \n",
+		_acc.x, _acc.y, _acc.z,
+		X, Y, Z,
+		AX, AY, AZ
+		);*/	
 #else 
         // TODO port to linux
 #endif
 }
-
-//bool toggleWideScreen = false, toggleCursor = true;
 
 
 void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
@@ -417,7 +310,6 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 /* DESCRIPTION: The calibration is controlled by these values, their absolute value and
    the relative distance between between them control the calibration. WideScreen mode
    has its own settings. */
-	/**/
 	int Top, Left, Right, Bottom, SensorBarRadius;
 	if(g_Config.bWideScreen)
 	{		
@@ -429,8 +321,8 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 		Top = TOP; Left = LEFT; Right = RIGHT;
 		Bottom = BOTTOM; SensorBarRadius = SENSOR_BAR_RADIUS;		
 	}
-	
 
+	// Fill with 0xff if empty
 	memset(&_ir0, 0xFF, sizeof(wm_ir_extended));
 	memset(&_ir1, 0xFF, sizeof(wm_ir_extended));
 
@@ -451,7 +343,7 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	_ir0.yHi = y0 >> 8;
 
 	x1 = 1023 - x1;
-	_ir1.x = x1;
+	_ir1.x = x1 & 0xFF;
 	_ir1.y = y1 & 0xFF;
 	_ir1.size = 10;
 	_ir1.xHi = x1 >> 8;
@@ -488,13 +380,20 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 		wprintf("x0:%03i x1:%03i  y0:%03i y1:%03i   irx0:%03i y0:%03i  x1:%03i y1:%03i | T:%i L:%i R:%i B:%i S:%i\n",
 		x0, x1, y0, y1, _ir0.x, _ir0.y, _ir1.x, _ir1.y, Top, Left, Right, Bottom, SensorBarRadius
 		);	
-	*/
+	wprintf("\n");
+	wprintf("ir0.x:%02x xHi:%02x  ir1.x:%02x xHi:%02x  |  ir0.y:%02x yHi:%02x  ir1.y:%02x yHi:%02x  |  1.s:%02x 2:%02x\n",
+		_ir0.x, _ir0.xHi, _ir1.x, _ir1.xHi,
+		_ir0.y, _ir0.yHi, _ir1.y, _ir1.yHi,
+		_ir0.size, _ir1.size
+		);*/
 }
+
 
 void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 {
 	/* See description above */
 	int Top, Left, Right, Bottom, SensorBarRadius;
+
 	if(g_Config.bWideScreen)
 	{		
 		Top = wTOP; Left = wLEFT; Right = wRIGHT;
@@ -506,8 +405,9 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 		Bottom = BOTTOM; SensorBarRadius = SENSOR_BAR_RADIUS;		
 	}
 
-	memset(&_ir0, 0xFF, sizeof(wm_ir_basic));
-	memset(&_ir1, 0xFF, sizeof(wm_ir_basic));
+	// Fill with 0xff if empty
+	memset(&_ir0, 0xff, sizeof(wm_ir_basic));
+	memset(&_ir1, 0xff, sizeof(wm_ir_basic));
 
 	float MouseX, MouseY;
 	GetMousePos(MouseX, MouseY);
@@ -518,17 +418,23 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	int x1 = Left + (MouseX * (Right - Left)) - SensorBarRadius;
 	int x2 = Left + (MouseX * (Right - Left)) + SensorBarRadius;
 
+	/* As with the extented report we settle with emulating two out of four
+	   possible objects */
 	x1 = 1023 - x1;
-	_ir0.x1 = x1 & 0xFF;
-	_ir0.y1 = y1 & 0xFF;
-	_ir0.x1Hi = (x1 >> 8) & 0x3;
-	_ir0.y1Hi = (y1 >> 8) & 0x3;
+	_ir0.x1 = x1 & 0xff;
+	_ir0.y1 = y1 & 0xff;
+	_ir0.x1Hi = (x1 >> 8); // we are dealing with 2 bit values here
+	_ir0.y1Hi = (y1 >> 8);
 
 	x2 = 1023 - x2;
-	_ir1.x2 = x2 & 0xFF;
-	_ir1.y2 = y2 & 0xFF;
-	_ir1.x2Hi = (x2 >> 8) & 0x3;
-	_ir1.y2Hi = (y2 >> 8) & 0x3;
+	_ir0.x2 = x2 & 0xff;
+	_ir0.y2 = y2 & 0xff;
+	_ir0.x2Hi = (x2 >> 8);
+	_ir0.y2Hi = (y2 >> 8);
+
+	// I don't understand't the & 0x03, should we do that?
+	//_ir1.x1Hi = (x1 >> 8) & 0x3;
+	//_ir1.y1Hi = (y1 >> 8) & 0x3;
 
 	// ----------------------------
 	// Debugging for calibration
@@ -557,32 +463,36 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 
 	//ClearScreen();
 	//if(consoleDisplay == 1)
-		wprintf("x1:%03i x2:%03i  y1:%03i y2:%03i   irx1:%03i y1:%03i  x2:%03i y2:%03i | T:%i L:%i R:%i B:%i S:%i\n",
+		
+		wprintf("x1:%03i x2:%03i  y1:%03i y2:%03i   irx1:%02x y1:%02x  x2:%02x y2:%02x | T:%i L:%i R:%i B:%i S:%i\n",
 		x1, x2, y1, y2, _ir0.x1, _ir0.y1, _ir1.x2, _ir1.y2, Top, Left, Right, Bottom, SensorBarRadius
+		);
+		wprintf("\n");
+		wprintf("ir0.x1:%02x x1h:%02x x2:%02x x2h:%02x  |  ir0.y1:%02x y1h:%02x y2:%02x y2h:%02x  |  ir1.x1:%02x x1h:%02x x2:%02x x2h:%02x  |  ir1.y1:%02x y1h:%02x y2:%02x y2h:%02x\n",
+		_ir0.x1, _ir0.x1Hi, _ir0.x2, _ir0.x2Hi,
+		_ir0.y1, _ir0.y1Hi, _ir0.y2, _ir0.y2Hi,
+		_ir1.x1, _ir1.x1Hi, _ir1.x2, _ir1.x2Hi,
+		_ir1.y1, _ir1.y1Hi, _ir1.y2, _ir1.y2Hi
 		);*/
 }
 
 
-
-
 // ===================================================
-/* Generate the 6 byte extension report, encrypted. */
+/* Generate the 6 byte extension report, encrypted. The bytes are JX JY AX AY AZ BT. */
 // ----------------
 void FillReportExtension(wm_extension& _ext)
 {
-	// JX JY AX AY AZ BT
 
-	// Make temporary values	
-
+	/* These are the default neutral values for the nunchuck accelerometer according
+	   to a source. */
 	_ext.ax = 0x80;
 	_ext.ay = 0x80;
 	_ext.az = 0xb3;
 
 
-	_ext.jx = 0x80; // these are the default values unless we don't use them
+	_ext.jx = 0x80; // these are the default values unless we use them
 	_ext.jy = 0x80;
 	_ext.bt = 0x03; // 0x03 means no button pressed, the button is zero active
-
 
 
 #ifdef _WIN32
@@ -590,13 +500,13 @@ void FillReportExtension(wm_extension& _ext)
 		_ext.jx = 0x20;
 
 	if(GetAsyncKeyState(VK_NUMPAD8))
-		_ext.jy = 0x20;
+		_ext.jy = 0xe0;
 
 	if(GetAsyncKeyState(VK_NUMPAD6))
 		_ext.jx = 0xe0;
 
 	if(GetAsyncKeyState(VK_NUMPAD5))
-		_ext.jy = 0xe0;
+		_ext.jy = 0x20;
 
 
 
@@ -612,8 +522,8 @@ void FillReportExtension(wm_extension& _ext)
         // TODO linux port
 #endif
 
-	// Clear g_RegExtTmp by copying g_RegExtBlnk to g_RegExtTmp
-	memcpy(g_RegExtTmp, g_RegExtBlnk, sizeof(g_RegExt));
+	// Clear g_RegExtTmp by copying zeroes to it
+	memset(g_RegExtTmp, 0, sizeof(g_RegExtTmp));
 
 	// Write the nunchuck inputs to it
 	g_RegExtTmp[0x08] = _ext.jx;
@@ -634,10 +544,6 @@ void FillReportExtension(wm_extension& _ext)
 	_ext.az = g_RegExtTmp[0x0c];
 	_ext.bt = g_RegExtTmp[0x0d];
 }
-
-
-
-
 
 
 } // end of namespace

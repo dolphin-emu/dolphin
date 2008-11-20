@@ -128,7 +128,7 @@ int aprintf(int a, char *fmt, ...)
 // Printf to screen function
 int wprintf(char *fmt, ...)
 {
-#if defined(DEBUG_HLE) && defined(_WIN32)
+#if defined(DEBUG_HLE) && defined(_WIN32) && (defined(_DEBUG) || defined(DEBUGFAST))
 	char s[1024*20]; // Warning, mind this value
 	va_list argptr;
 	int cnt;

@@ -24,6 +24,7 @@
 #include "wiimote_hid.h"
 #include "EmuSubroutines.h"
 #include "EmuDefinitions.h"
+#include "EmuMain.h"
 #include "Encryption.h" // for extension encryption
 #include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
 #include "Config.h" // for g_Config
@@ -41,20 +42,21 @@ namespace WiiMoteEmu
 //******************************************************************************
 
 
-//wm_request_status global_struct;
-//extern wm_request_status global_struct;
-
-
 
 // ===================================================
 /* Here we process the Output Reports that the Wii sends. Our response will be an Input Report
    back to the Wii. Input and Output is from the Wii's perspective, Output means data to
-   the Wiimote (from the Wii), Input means data from the Wiimote. */
+   the Wiimote (from the Wii), Input means data from the Wiimote.
+   
+   The call browser:
+
+   1. Wiimote_InterruptChannel > InterruptChannel > HidOutputReport
+   2. Wiimote_ControlChannel > ControlChannel > HidOutputReport */
 // ----------------
 void HidOutputReport(u16 _channelID, wm_report* sr) {
 	LOGV(WII_IPC_WIIMOTE, 0, "===========================================================");
 
-	LOGV(WII_IPC_WIIMOTE, 0, "HidOutputReport(0x%02x)", sr->channel);
+	LOGV(WII_IPC_WIIMOTE, 0, "HidOutputReport (0x%02x)", sr->channel);
 
 	switch(sr->channel)
 	{
@@ -96,6 +98,23 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 
 
 // ===================================================
+/* Generate the right address for wm reports. */
+// ----------------
+int WriteWmReport(u8* dst, u8 channel) {
+	u32 Offset = 0;
+	hid_packet* pHidHeader = (hid_packet*)(dst + Offset);
+	Offset += sizeof(hid_packet);
+	pHidHeader->type = HID_TYPE_DATA;
+	pHidHeader->param = HID_PARAM_INPUT;
+
+	wm_report* pReport = (wm_report*)(dst + Offset);
+	Offset += sizeof(wm_report);
+	pReport->channel = channel;
+	return Offset;
+}
+
+
+// ===================================================
 /* LED (blue lights) report. */
 // ----------------
 void WmLeds(u16 _channelID, wm_leds* leds) {
@@ -110,13 +129,18 @@ void WmLeds(u16 _channelID, wm_leds* leds) {
 }
 
 
-void WmSendAck(u16 _channelID, u8 _reportID)
+// ===================================================
+/* This will generate the 0x22 acknowledgment after all Input reports. It will
+   have the form a1 22 00 00 _reportID 00. The first two bytes are unknown but
+   00 00 seems to work fine. */
+// ----------------
+void WmSendAck(u16 _channelID, u8 _reportID, u32 address)
 {
 	u8 DataFrame[1024];
 
 	u32 Offset = 0;
 
-	// header
+	// Header
 	hid_packet* pHidHeader = (hid_packet*)(DataFrame + Offset);
 	pHidHeader->type = HID_TYPE_DATA;
 	pHidHeader->param = HID_PARAM_INPUT;
@@ -130,8 +154,22 @@ void WmSendAck(u16 _channelID, u8 _reportID)
 	pData->errorID = 0;
 	Offset += sizeof(wm_acknowledge);
 
+	/* Debug. Write the report for extension registry writes. 
+	if((_reportID == 0x16 || _reportID == 0x17)  &&  ((address >> 16) & 0xfe) == 0xa4)
+	{
+		wprintf("\nWMSendAck  Report ID: %02x  KeyReady: %i,  Encryption: %02x\n",
+			_reportID, (int)KeyReady, g_RegExt[0xf0]);
+		wprintf("Data: ");
+		for (int i = 0; i < Offset; i++)
+		{			
+			wprintf("%02x ", DataFrame[i]);
+			if((i + 1) % 20 == 0) wprintf("\n");
+		}
+		wprintf("\n");
+	}*/
 
 	LOGV(WII_IPC_WIIMOTE, 2, "  WMSendAck()");
+	LOGV(WII_IPC_WIIMOTE, 2, "    Report ID: %02x", _reportID);
 
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 }
@@ -150,6 +188,8 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 	LOG(WII_IPC_WIIMOTE, "  Address: 0x%06x", address);
 	LOG(WII_IPC_WIIMOTE, "  Size: 0x%04x", size);
 	LOG(WII_IPC_WIIMOTE, "  Rumble: %x", rd->rumble);
+
+	//u32 _address = address;
 
 	if(rd->space == 0) 
 	{
@@ -218,7 +258,7 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 				// Encrypt the read
 				wiimote_encrypt(&g_ExtKey, &g_RegExtTmp[address & 0xffff], (address & 0xffff), (u8)size);
 
-				// Debugging
+				/* Debugging
 				wprintf("\nEncrypted data:\n");
 				for (int i = 0; i < (u8)size; i++)
 				{			
@@ -226,16 +266,16 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 					if((i + 1) % 20 == 0) wprintf("\n");
 				}
 
-				//wprintf("\ng_RegExtTmp after: \n");
-				//ReadExtTmp();
-				//wprintf("\nFrom g_RegExt: \n");
-				//ReadExt();
+				wprintf("\ng_RegExtTmp after: \n");
+				ReadExtTmp();
+				wprintf("\nFrom g_RegExt: \n");
+				ReadExt();*/
 
 				// Update the block that SendReadDataReply will eventually send to the Wii
 				block = g_RegExtTmp;
 			}
 
-			wprintf("\n\n\n");
+			//wprintf("\n\n");
 		}
 		//---------
 
@@ -246,14 +286,17 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 			return;
 		}
 
-
-
+		// Let this function process the message and send it to the Wii
 		SendReadDataReply(_channelID, block+address, address, (u8)size);
 	} 
 	else
 	{
 		PanicAlert("WmReadData: unimplemented parameters (size: %i, addr: 0x%x!", size, rd->space);
 	}
+
+	// Acknowledge the 0x17 read, we will do this from InterruptChannel() 
+	//WmSendAck(_channelID, WM_READ_DATA, _address);
+
 	LOGV(WII_IPC_WIIMOTE, 0, "===========================================================");
 }
 
@@ -265,12 +308,14 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 void WmWriteData(u16 _channelID, wm_write_data* wd) 
 {
 	LOGV(WII_IPC_WIIMOTE, 0, "========================================================");
-	u32 address = convert24bit(wd->address);
+	u32 address = convert24bit(wd->address);	
 	LOG(WII_IPC_WIIMOTE, " Write data");
 	LOG(WII_IPC_WIIMOTE, "  Address space: %x", wd->space);
 	LOG(WII_IPC_WIIMOTE, "  Address: 0x%06x", address);
 	LOG(WII_IPC_WIIMOTE, "  Size: 0x%02x", wd->size);
 	LOG(WII_IPC_WIIMOTE, "  Rumble: %x", wd->rumble);
+
+	u32 _address = address;
 
 	// Write to EEPROM
 	if(wd->size <= 16 && wd->space == WM_SPACE_EEPROM)
@@ -316,7 +361,7 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 
 		
 		 // Remove for example 0xa40000 from the address
-		address &= 0xFFFF;
+		 _address = address; address &= 0xFFFF;
 
 		// Check if the address is within bounds
 		if(address + wd->size > blockSize) {
@@ -332,8 +377,7 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 		// -------------
 		if(blockSize == WIIMOTE_REG_EXT_SIZE)
 		{
-			// Debugging
-			// Write the data 
+			/* Debugging. Write the data.		
 			wprintf("Data: ");
 			for (int i = 0; i < wd->size; i++)
 			{			
@@ -345,16 +389,14 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 			//wprintf("Current address: %08x\n", address);
 
 			//wprintf("g_RegExt:\n");
-			//ReadExt();
+			//ReadExt(); */
 
 
 			/* Run the key generation on all writes in the key area, it doesn't matter 
 			   that we send it parts of a key, only the last full key will have an
 			   effect */
-			//if(address >= 0xa40040 && address <= 0xa4004c)
 			if(address >= 0x40 && address <= 0x4c)
-			//if(address == 0x4c)
-					wiimote_gen_key(&g_ExtKey, &g_RegExt[0x40]);
+				wiimote_gen_key(&g_ExtKey, &g_RegExt[0x40]);
 		}
 		// -------------
 
@@ -363,71 +405,85 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 		PanicAlert("WmWriteData: unimplemented parameters!");
 	}
 
-	// just added for home brew.... hmmmm
-	WmSendAck(_channelID, WM_WRITE_DATA);
+	/* Just added for home brew... Isn't it enough that we call this from
+	InterruptChannel()? Or is there a separate route here that don't pass though
+	InterruptChannel()? */
+	//WmSendAck(_channelID, WM_WRITE_DATA, _address);
 	LOGV(WII_IPC_WIIMOTE, 0, "==========================================================");
 }
 
 
 // ===================================================
-/* Generate the right address for wm reports. */
+/* Here we produce the actual 0x21 Input report that we send to the Wii. The message
+   is divided into 16 bytes pieces and sent piece by piece. There will be five formatting
+   bytes at the begging of all reports. A common format is 00 00 f0 00 20, the 00 00
+   means that no buttons are pressedn, the f means 16 bytes in the message, the 0
+   means no error, the 00 20 means that the message is at the 00 20 offest the the
+   registry that was read. */
 // ----------------
-int WriteWmReport(u8* dst, u8 channel) {
-	u32 Offset = 0;
-	hid_packet* pHidHeader = (hid_packet*)(dst + Offset);
-	Offset += sizeof(hid_packet);
-	pHidHeader->type = HID_TYPE_DATA;
-	pHidHeader->param = HID_PARAM_INPUT;
-
-	wm_report* pReport = (wm_report*)(dst + Offset);
-	Offset += sizeof(wm_report);
-	pReport->channel = channel;
-	return Offset;
-}
-
-
-// Custom call version
-void WmRequestStatus_(u16 _channelID, int a)
+void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _Size)
 {
-	//PanicAlert("WmRequestStatus");
-	LOGV(WII_IPC_WIIMOTE, 0, "================================================");
-	LOGV(WII_IPC_WIIMOTE, 0, " Request Status");
-	LOGV(WII_IPC_WIIMOTE, 0, "  Channel: %04x", _channelID);
-
-	//SendStatusReport();
-	u8 DataFrame[1024];
-	u32 Offset = WriteWmReport(DataFrame, WM_STATUS_REPORT);
-
-	wm_status_report* pStatus = (wm_status_report*)(DataFrame + Offset);
-	Offset += sizeof(wm_status_report);
-	memset(pStatus, 0, sizeof(wm_status_report)); // fill the status report with zeroes
-
-	// Status values
-	pStatus->leds = g_Leds;
-	pStatus->ir = 1;
-	pStatus->battery = 0x4F;	//arbitrary number
-
-
-	if(a == 1)
+	LOGV(WII_IPC_WIIMOTE, 0, "=========================================");
+	int dataOffset = 0;
+	while (_Size > 0)
 	{
-		wprintf("pStatus->extension = 1\n");
-		pStatus->extension = 1;
+		u8 DataFrame[1024];
+		u32 Offset = WriteWmReport(DataFrame, WM_READ_DATA_REPLY);
+		
+		int copySize = _Size;
+		if (copySize > 16)
+		{
+			copySize = 16;
+		}
+
+		wm_read_data_reply* pReply = (wm_read_data_reply*)(DataFrame + Offset);
+		Offset += sizeof(wm_read_data_reply);
+		pReply->buttons = 0;
+		pReply->error = 0;
+		pReply->size = (copySize - 1) & 0xF;
+		pReply->address = Common::swap16(_Address + dataOffset);
+
+
+		// Write a pice
+		memcpy(pReply->data + dataOffset, _Base, copySize);
+
+		if(copySize < 16) // check if we have less than 16 bytes left to send
+		{
+			memset(pReply->data + copySize, 0, 16 - copySize);
+		}
+		dataOffset += copySize;
+
+
+		LOG(WII_IPC_WIIMOTE, "  SendReadDataReply()");
+		LOG(WII_IPC_WIIMOTE, "    Buttons: 0x%04x", pReply->buttons);
+		LOG(WII_IPC_WIIMOTE, "    Error: 0x%x", pReply->error);
+		LOG(WII_IPC_WIIMOTE, "    Size: 0x%x", pReply->size);
+		LOG(WII_IPC_WIIMOTE, "    Address: 0x%04x", pReply->address);
+
+
+		/* Debugging 	
+		wprintf("SendReadDataReply  Address: %08x\n", _Address);
+		for (int i = 0; i < Offset; i++)
+		{			
+			wprintf("%02x ", DataFrame[i]);
+			if((i + 1) % 25 == 0) wprintf("\n");
+		}
+		wprintf("\n\n");*/		
+		//---------
+
+		// Send a piece
+		g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
+
+		_Size -= copySize;
 	}
-	else
+
+	if (_Size != 0)
 	{
-		wprintf("pStatus->extension = 0\n");
-		pStatus->extension = 0;
+		PanicAlert("WiiMote-Plugin: SendReadDataReply() failed");
 	}
-
-
-	LOGV(WII_IPC_WIIMOTE, 0, "  Extension: %x", pStatus->extension);
-	LOGV(WII_IPC_WIIMOTE, 0, "  SendStatusReport()");
-	LOGV(WII_IPC_WIIMOTE, 0, "    Flags: 0x%02x", pStatus->padding1[2]);
-	LOGV(WII_IPC_WIIMOTE, 0, "    Battery: %d", pStatus->battery);
-
-	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
-	LOGV(WII_IPC_WIIMOTE, 0, "=================================================");
+	LOGV(WII_IPC_WIIMOTE, 0, "==========================================");
 }
+// ================
 
 
 // ===================================================
@@ -470,75 +526,5 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs)
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 	LOGV(WII_IPC_WIIMOTE, 0, "=================================================");
 }
-
-
-// ===================================================
-/* Here we produce the actual reply that we send to the Wii. The message is divided
-   into 16 bytes pieces and sent piece by piece. */
-// ----------------
-void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _Size)
-{
-	LOGV(WII_IPC_WIIMOTE, 0, "=========================================");
-	int dataOffset = 0;
-	while (_Size > 0)
-	{
-		u8 DataFrame[1024];
-		u32 Offset = WriteWmReport(DataFrame, WM_READ_DATA_REPLY);
-		
-		int copySize = _Size;
-		if (copySize > 16)
-		{
-			copySize = 16;
-		}
-
-		wm_read_data_reply* pReply = (wm_read_data_reply*)(DataFrame + Offset);
-		Offset += sizeof(wm_read_data_reply);
-		pReply->buttons = 0;
-		pReply->error = 0;
-		pReply->size = (copySize - 1) & 0xF;
-		pReply->address = Common::swap16(_Address + dataOffset);
-
-
-		// Write a pice
-		memcpy(pReply->data + dataOffset, _Base, copySize);
-
-		if(copySize < 16) // check if we have less than 16 bytes left to send
-		{
-			memset(pReply->data + copySize, 0, 16 - copySize);
-		}
-		dataOffset += copySize;
-
-
-		LOG(WII_IPC_WIIMOTE, "  SendReadDataReply()");
-		LOG(WII_IPC_WIIMOTE, "    Buttons: 0x%04x", pReply->buttons);
-		LOG(WII_IPC_WIIMOTE, "    Error: 0x%x", pReply->error);
-		LOG(WII_IPC_WIIMOTE, "    Size: 0x%x", pReply->size);
-		LOG(WII_IPC_WIIMOTE, "    Address: 0x%04x", pReply->address);
-
-		// Debugging
-		/*
-		wprintf("SendReadDataReply\n");
-		for (int i = 0; i < sizeof(DataFrame); i++)
-		{			
-			wprintf("%02x ", g_RegExt[i]);
-			if((i + 1) % 25 == 0) wprintf("\n");
-		}
-		wprintf("\n\n");
-		*/
-		//---------
-
-		// Send a piece
-		g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
-
-		_Size -= copySize;
-	}
-
-	if (_Size != 0)
-	{
-		PanicAlert("WiiMote-Plugin: SendReadDataReply() failed");
-	}
-	LOGV(WII_IPC_WIIMOTE, 0, "==========================================");
-}
-
 
 } // end of namespace
