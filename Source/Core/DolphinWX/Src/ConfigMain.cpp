@@ -69,10 +69,12 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
     {
         fread(m_SYSCONF, 1, 0x4000, pStream);
         fclose(pStream);
+		m_bSysconfOK = true;
     }
     else
 	{
-		PanicAlert("Could not read " FULL_CONFIG_DIR "SYSCONF");
+		PanicAlert("Could not read " FULL_CONFIG_DIR "SYSCONF. Please recover the SYSCONF file to that location.");
+		m_bSysconfOK = false;
 	}
 
 	CreateGUIControls();
@@ -301,28 +303,33 @@ void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	Destroy();
 
-	// Save Wii SYSCONF twice so that we can keep game specific settings for it
-	pStream = NULL;
-	pStream = fopen(FULL_CONFIG_DIR "SYSCONF", "wb");
-	if (pStream != NULL)
+	/* First check that we did successfully populate m_SYSCONF earlier, otherwise don't 
+       save anything, it will be a corrupted file */
+	if(m_bSysconfOK)
 	{
-		fwrite(m_SYSCONF, 1, 0x4000, pStream);
-		fclose(pStream);
-	}
-	else
-	{
-		PanicAlert("Could not write to SYSCONF");
-	}
+		// Save Wii SYSCONF twice so that we can keep game specific settings for it
+		pStream = NULL;
+		pStream = fopen(FULL_CONFIG_DIR "SYSCONF", "wb");
+		if (pStream != NULL)
+		{
+			fwrite(m_SYSCONF, 1, 0x4000, pStream);
+			fclose(pStream);
+		}
+		else
+		{
+			PanicAlert("Could not write to SYSCONF");
+		}
 
-	pStream = fopen(FULL_WII_USER_DIR "shared2/sys/SYSCONF", "wb");
-	if (pStream != NULL)
-	{
-		fwrite(m_SYSCONF, 1, 0x4000, pStream);
-		fclose(pStream);
-	}
-	else
-	{
-		PanicAlert("Could not write to shared2/sys/SYSCONF");
+		pStream = fopen(FULL_WII_USER_DIR "shared2/sys/SYSCONF", "wb");
+		if (pStream != NULL)
+		{
+			fwrite(m_SYSCONF, 1, 0x4000, pStream);
+			fclose(pStream);
+		}
+		else
+		{
+			PanicAlert("Could not write to shared2/sys/SYSCONF");
+		}
 	}
 
 	// save the config... dolphin crashes by far to often to save the settings on closing only
