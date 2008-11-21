@@ -28,12 +28,14 @@ class CConfigDlg
 		MESSAGE_HANDLER(WM_INITDIALOG,  OnInitDialog)
 		COMMAND_ID_HANDLER(IDOK,        OnCloseCmd)
 		COMMAND_ID_HANDLER(IDCANCEL,    OnCloseCmd)
+		COMMAND_HANDLER(IDC_ENABLE_SPEED_THROTTLE, BN_CLICKED, OnBnClickedEnableSpeedThrottle)
 		END_MSG_MAP()
 
 	private:
 
 		CButton m_buttonEnableHLEAudio;
 		CButton m_buttonEnableDTKMusic;
+		CButton m_buttonEnableThrottle;
 		CButton m_buttonDumpSamples;
 		CButton m_buttonAntiGap;
 		CEdit m_editDumpSamplePath;
@@ -46,4 +48,6 @@ class CConfigDlg
 
 		LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL & /*bHandled*/);
 		LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL & /*bHandled*/);
+public:
+	LRESULT OnBnClickedEnableSpeedThrottle(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/);
 };

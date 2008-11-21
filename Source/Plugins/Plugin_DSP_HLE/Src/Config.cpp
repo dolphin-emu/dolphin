@@ -43,33 +43,38 @@ void CConfig::Load()
 
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR "DSP.ini");
-	file.Get("Config", "EnableHLEAudio", &m_EnableHLEAudio, true);
+	file.Get("Config", "EnableHLEAudio", &m_EnableHLEAudio, true); // Sound Settings
 	file.Get("Config", "EnableDTKMusic", &m_EnableDTKMusic, true);
+	file.Get("Config", "EnableThrottle", &m_EnableThrottle, true);
 	file.Get("Config", "Interpolation", &m_Interpolation, true);
-	file.Get("Config", "DumpSamples", &m_DumpSamples, false);
+	file.Get("Config", "AntiGap", &m_AntiGap, false);
+
+	file.Get("Config", "DumpSamples", &m_DumpSamples, false); // Sample Dumping
 	file.Get("Config", "DumpSampleMinLength", &m_DumpSampleMinLength, true);
 #ifdef _WIN32
 	file.Get("Config", "DumpSamplePath", &m_szSamplePath, "C:\\");
 #else
 	file.Get("Config", "DumpSamplePath", &m_szSamplePath, "/dev/null/");
-#endif
-	file.Get("Config", "AntiGap", &m_AntiGap, false);
+#endif	
 }
 
 void CConfig::Save()
 {
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR "DSP.ini");
-	file.Set("Config", "EnableHLEAudio", m_EnableHLEAudio);
+	file.Set("Config", "EnableHLEAudio", m_EnableHLEAudio); // Sound Settings
 	file.Set("Config", "EnableDTKMusic", m_EnableDTKMusic);
+	file.Set("Config", "EnableThrottle", m_EnableThrottle);
 	file.Set("Config", "Interpolation", m_Interpolation);
-	file.Set("Config", "DumpSamples", m_DumpSamples);
+	file.Set("Config", "AntiGap", m_AntiGap);
+
+	file.Set("Config", "DumpSamples", m_DumpSamples); // Sample Dumping
 	file.Set("Config", "DumpSampleMinLength", m_DumpSampleMinLength);
 #ifdef _WIN32
 	file.Set("Config", "DumpSamplePath", m_szSamplePath);
 #else
 	file.Set("Config", "DumpSamplePath", m_szSamplePath);
 #endif
-	file.Set("Config", "AntiGap", m_AntiGap);
+
 	file.Save(FULL_CONFIG_DIR "DSP.ini");
 }

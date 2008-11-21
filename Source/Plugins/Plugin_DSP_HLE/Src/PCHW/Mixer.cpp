@@ -21,6 +21,7 @@
 #include "../Config.h"
 #include "../Globals.h"
 #include "../DSPHandler.h"
+#include "../Logging/Console.h"
 #include "Thread.h"
 #include "Mixer.h"
 #include "FixedSizeQueue.h"
@@ -99,12 +100,16 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate) {
 	static int acc=0;
 
 #ifdef _WIN32
-	if (!GetAsyncKeyState(VK_TAB)) {
+	if (! (GetAsyncKeyState(VK_TAB)) && g_Config.m_EnableThrottle) {
+
+		/* This is only needed for non-AX sound, currently directly streamed and
+		   DTK sound. For AX we call DSound_UpdateSound in AXTask() for example. */
 		while (queue_size > queue_maxlength / 2) {
 			DSound::DSound_UpdateSound();
 			Sleep(0);
 		}
 	} else {
+		wprintf("Tab");
 		return;
 	}
 #else

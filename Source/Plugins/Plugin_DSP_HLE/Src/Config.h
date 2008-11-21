@@ -25,6 +25,7 @@ struct CConfig
 	bool m_AntiGap;
 	bool m_EnableHLEAudio;
 	bool m_EnableDTKMusic;
+	bool m_EnableThrottle;
 	bool m_Interpolation;
 	bool m_DumpSamples;
 	std::string m_szSamplePath;

@@ -314,7 +314,7 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 		GetHandle(),
 		_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
 		true, true
-		);	
+		);
 	} // don't have any else, just ignore it
 }
 
