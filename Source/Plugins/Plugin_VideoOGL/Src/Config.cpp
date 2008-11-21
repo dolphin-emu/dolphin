@@ -54,7 +54,6 @@ void Config::Load()
     iniFile.Get("Settings", "DLOptimize", &iCompileDLsLevel, 0);
     iniFile.Get("Settings", "DumpTextures", &bDumpTextures, 0);
     iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
-	iniFile.Get("Settings", "LogLevel", &iLog, 0);
     iniFile.Get("Settings", "Multisample", &iMultisampleMode, 0);
     if(iMultisampleMode == 0)
         iMultisampleMode = 1;
@@ -100,7 +99,6 @@ void Config::Save()
     iniFile.Set("Settings", "DLOptimize", iCompileDLsLevel);
     iniFile.Set("Settings", "DumpTextures", bDumpTextures);
     iniFile.Set("Settings", "ShowShaderErrors", bShowShaderErrors);
-	iniFile.Set("Settings", "LogLevel", iLog);
     iniFile.Set("Settings", "Multisample", iMultisampleMode);
     iniFile.Set("Settings", "TexDumpPath", texDumpPath);
 	iniFile.Set("Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);

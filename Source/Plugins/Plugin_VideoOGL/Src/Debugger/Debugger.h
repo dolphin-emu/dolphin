@@ -36,6 +36,7 @@
 #include <wx/filepicker.h>
 #include <wx/listctrl.h>
 #include <wx/imaglist.h>
+#include <wx/notebook.h> // notebook
 
 #include "../Globals.h"
 
@@ -61,12 +62,13 @@ class CDebugger : public wxDialog
 
 		void Save(IniFile& _IniFile) const;
 		void Load(IniFile& _IniFile);
-	
+		void DoHide(); void DoShow();
+
 		void NotifyUpdate();
 		void OnUpdate(wxCommandEvent& event);
 
-		void SaveFile(wxCommandEvent& event);
-		void ShowHideConsole(wxCommandEvent& event);
+		void GeneralSettings(wxCommandEvent& event);
+		void LogSettings(wxCommandEvent& event);
 		void DoShowHideConsole();
 		void ChangeFrequency(wxCommandEvent& event);
 		void DoChangeFrequency();
@@ -79,12 +81,20 @@ class CDebugger : public wxDialog
 		void Bm(wxCommandEvent& event);
 
 		CPBView* m_GPRListView;
+
+		int gUpdFreq;
+		bool bInfoLog;
+		bool bPrimLog;
 		
 
 	private:
 
 		// declarations
+		wxNotebook *m_Notebook; // notebook
+		wxPanel *m_PageMain;
+
 		wxCheckBox *m_Check[7];
+		wxCheckListBox * m_options, * m_settings;
 		wxRadioButton *m_Radio[5];
 		wxRadioBox *m_RadioBox[3];
 		wxStaticBox *m_Label[2];
@@ -93,8 +103,9 @@ class CDebugger : public wxDialog
 		// WARNING: Make sure these are not also elsewhere, for example in resource.h.
 		enum
 		{
-			IDC_CHECK0 = 2000,
-			IDC_CHECK1,
+			ID_NOTEBOOK  = 2000, ID_PAGEMAIN, // notebook
+
+			ID_SAVETOFILE, ID_SHOWCONSOLE, // options
 			IDC_CHECK2,
 			IDC_CHECK3,
 			IDC_CHECK4,
@@ -103,12 +114,17 @@ class CDebugger : public wxDialog
 			IDC_CHECK7,
 			IDC_CHECK8,
 			IDC_CHECK9,
+
+			ID_CHECKLIST1,
+
 			IDC_RADIO0,
 			IDC_RADIO1,
 			IDC_RADIO2,
 			IDC_RADIO3,
+
 			IDG_LABEL1,
 			IDG_LABEL2,
+
 			ID_UPD,
 			ID_AP,
 			ID_AM,
@@ -120,7 +136,7 @@ class CDebugger : public wxDialog
 		};
 		
 		void OnShow(wxShowEvent& event);
-		void OnClose(wxCloseEvent& event);
+		void OnClose(wxCloseEvent& event);		
 		void CreateGUIControls();		
 };
 

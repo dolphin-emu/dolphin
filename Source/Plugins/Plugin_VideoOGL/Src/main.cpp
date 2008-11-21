@@ -69,7 +69,7 @@ void DllDebugger(HWND _hParent, bool Show)
 {
 	if(m_frame && Show) // if we have created it, let us show it again
 	{
-		m_frame->Show();
+		m_frame->DoShow();
 	}
 	else if(!m_frame && Show) 
 	{		
@@ -78,7 +78,7 @@ void DllDebugger(HWND _hParent, bool Show)
 	}
 	else if(m_frame && !Show)
 	{
-		m_frame->Hide();
+		m_frame->DoHide();
 	}
 }
 

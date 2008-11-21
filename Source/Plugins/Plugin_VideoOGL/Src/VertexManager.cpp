@@ -110,7 +110,7 @@ void AddVertices(int primitive, int numvertices)
 	ADDSTAT(stats.thisFrame.numPrims, numvertices);
 	s_vStoredPrimitives.push_back(std::pair<int, int>(c_primitiveType[primitive], numvertices));
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST) 
 	static const char *sprims[8] = {"quads", "nothing", "tris", "tstrip", "tfan", "lines", "lstrip", "points"};
 	PRIM_LOG("prim: %s, c=%d\n", sprims[primitive], numvertices);
 #endif
@@ -123,7 +123,7 @@ void Flush()
 
 	_assert_(s_pCurBufferPointer != s_pBaseBufferPointer);
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST) 
 	PRIM_LOG("frame%d:\ncomps=0x%x, texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d\n", g_Config.iSaveTargetId, s_prevcomponents, xfregs.numTexGens,
 		xfregs.nNumChans, (int)xfregs.bEnableDualTexTransform, bpmem.ztex2.op,
 		bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate, bpmem.zmode.updateenable);
@@ -256,7 +256,7 @@ void Flush()
 	if (vs) glBindProgramARB(GL_VERTEX_PROGRAM_ARB, vs->glprogid);
 	if (ps) glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, ps->glprogid); // Lego Star Wars crashes here.
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST) 
 	PRIM_LOG("\n");
 #endif
 
@@ -267,7 +267,7 @@ void Flush()
 		offset += it->second;
 	}
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST) 
 	if (g_Config.iLog & CONF_PRIMLOG) {
 		// save the shaders
 		char strfile[255];

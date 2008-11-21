@@ -27,7 +27,7 @@ struct VERTEXSHADER
     VERTEXSHADER() : glprogid(0) {}
     GLuint glprogid; // opengl program id
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST) 
 	std::string strprog;
 #endif
 };

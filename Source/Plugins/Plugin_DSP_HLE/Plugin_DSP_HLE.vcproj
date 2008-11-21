@@ -732,11 +732,19 @@
 			Name="Debugger"
 			>
 			<File
+				RelativePath=".\Src\Debugger\Blocks.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\Debugger\Debugger.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\Src\Debugger\Debugger.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Debugger\Mails.cpp"
 				>
 			</File>
 			<File

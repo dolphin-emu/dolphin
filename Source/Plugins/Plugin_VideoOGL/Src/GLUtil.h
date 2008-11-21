@@ -79,7 +79,7 @@ inline unsigned long timeGetTime()
 
 #define GL_REPORT_ERROR() { err = glGetError(); if( err != GL_NO_ERROR ) { ERROR_LOG("%s:%d: gl error 0x%x\n", __FILE__, (int)__LINE__, err); HandleGLError(); } }
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST) 
 #define GL_REPORT_ERRORD() { GLenum err = glGetError(); if( err != GL_NO_ERROR ) { ERROR_LOG("%s:%d: gl error 0x%x\n", __FILE__, (int)__LINE__, err); HandleGLError(); } }
 #else
 #define GL_REPORT_ERRORD()

@@ -28,8 +28,8 @@
 #define ERROR_LOG __Log
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-#define INFO_LOG if( g_Config.iLog & 1 ) __Log
-#define PRIM_LOG if( g_Config.iLog & 2 ) __Log
+#define INFO_LOG if( g_Config.iLog & CONF_LOG ) __Log
+#define PRIM_LOG if( g_Config.iLog & CONF_PRIMLOG ) __Log
 #define DEBUG_LOG __Log
 #else
 #define INFO_LOG(...)

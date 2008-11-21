@@ -369,7 +369,7 @@ void BPWritten(int addr, int changes, int newval)
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST) 
             const char* pzop[] = {"DISABLE", "ADD", "REPLACE", "?"};
             const char* pztype[] = {"Z8", "Z16", "Z24", "?"};
             PRIM_LOG("ztex op=%s, type=%s\n", pzop[bpmem.ztex2.op], pztype[bpmem.ztex2.type]);

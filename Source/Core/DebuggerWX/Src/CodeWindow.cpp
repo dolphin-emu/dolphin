@@ -309,9 +309,6 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 	if(bVideoWindow)
 	{
-		wxMessageBox(_T("Warning, automatically opening this window before a game is started \n\
-may cause a crash. Todo: figure out why and fix it."), wxT("OpenGL Debugging Window"));	
-
 		// possible todo: add some kind of if here to? can it fail?
 		CPluginManager::GetInstance().OpenDebug(
 		GetHandle(),
@@ -333,11 +330,12 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	{	
 		wxMenu* pCoreMenu = new wxMenu;
 
-		wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _T("&Interpreter"), wxEmptyString, wxITEM_CHECK);
+		wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _T("&Interpreter core"), wxEmptyString, wxITEM_CHECK);
 		interpreter->Check(!_LocalCoreStartupParameter.bUseJIT);
+		pCoreMenu->AppendSeparator();
 
 #ifdef JIT_OFF_OPTIONS
-		jitoff = pCoreMenu->Append(IDM_JITOFF, _T("&JIT off"), wxEmptyString, wxITEM_CHECK);
+		jitoff = pCoreMenu->Append(IDM_JITOFF, _T("&JIT off (JIT core)"), wxEmptyString, wxITEM_CHECK);
 		jitoff->Check(_LocalCoreStartupParameter.bJITOff);
 
 		jitlsoff = pCoreMenu->Append(IDM_JITLSOFF, _T("&JIT LoadStore off"), wxEmptyString, wxITEM_CHECK);
@@ -364,8 +362,9 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 
 //		wxMenuItem* dualcore = pDebugMenu->Append(IDM_DUALCORE, _T("&DualCore"), wxEmptyString, wxITEM_CHECK);
 //		dualcore->Check(_LocalCoreStartupParameter.bUseDualCore);
+		
+		pMenuBar->Append(pCoreMenu, _T("&CPU Mode"));		
 
-		pMenuBar->Append(pCoreMenu, _T("&CPU Mode"));
 	}
 
 	{
@@ -970,6 +969,7 @@ void CCodeWindow::OnToggleSoundWindow(wxCommandEvent& event)
 void CCodeWindow::OnToggleVideoWindow(wxCommandEvent& event)
 {
 	bool show = GetMenuBar()->IsChecked(event.GetId());
+	//GetMenuBar()->Check(event.GetId(), false); // Turn off
 
 	IniFile ini;
 	ini.Load(DEBUGGER_CONFIG_FILE);
@@ -978,6 +978,13 @@ void CCodeWindow::OnToggleVideoWindow(wxCommandEvent& event)
 
 	if (show)
 	{
+		// It works now, but I'll keep this message in case the problem reappears
+		/*if(Core::GetState() == Core::CORE_UNINITIALIZED)
+		{
+			wxMessageBox(_T("Warning, opening this window before a game is started \n\
+may cause a crash when a game is later started. Todo: figure out why and fix it."), wxT("OpenGL Debugging Window"));	
+		}*/
+
 		// TODO: add some kind of if() check here to?
 		CPluginManager::GetInstance().OpenDebug(
 		GetHandle(),

@@ -18,6 +18,7 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
+// Log in two categories, andsave three other options in the same byte
 #define CONF_LOG 1
 #define CONF_PRIMLOG 2
 #define CONF_SAVETEXTURES 4

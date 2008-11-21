@@ -16,14 +16,17 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "../Globals.h"
+
+#include "IniFile.h" // Common files
+
+#include "Config.h" // Config settings
+
+#include "PBView.h" // Debugger files
 #include "Debugger.h"
-#include "PBView.h"
-#include "IniFile.h"
 #include "../Logging/Console.h" // open and close console
 
 // externals
 extern int gSaveFile; // make this an int to allow multiple save file options
-extern int gUpdFreq;
 extern int gPreset;
 int A, B;
 
@@ -34,10 +37,11 @@ BEGIN_EVENT_TABLE(CDebugger,wxDialog)
 	EVT_SHOW(CDebugger::OnShow)
 	EVT_CLOSE(CDebugger::OnClose)
 	EVT_BUTTON(ID_UPD,CDebugger::OnUpdate)
-	EVT_CHECKBOX(IDC_CHECK0,CDebugger::SaveFile)
-	EVT_CHECKBOX(IDC_CHECK2,CDebugger::ShowHideConsole)
-	EVT_RADIOBOX(IDC_RADIO1,CDebugger::ChangeFrequency)
-	EVT_RADIOBOX(IDC_RADIO2,CDebugger::ChangePreset)
+
+	EVT_CHECKBOX(ID_SAVETOFILE,CDebugger::GeneralSettings) // General settings
+	EVT_CHECKBOX(ID_SHOWCONSOLE,CDebugger::GeneralSettings)
+	EVT_CHECKLISTBOX(ID_CHECKLIST1, CDebugger::LogSettings) // Check list box
+	EVT_RADIOBOX(IDC_RADIO1, CDebugger::ChangeFrequency) // Update freq.
 
 	EVT_BUTTON(ID_AP,CDebugger::Ap)
 	EVT_BUTTON(ID_AM,CDebugger::Am)
@@ -85,6 +89,7 @@ void CDebugger::Save(IniFile& _IniFile) const
 	}		
 	_IniFile.Set("VideoWindow", "Console", m_Check[2]->IsChecked()); // save settings
 	_IniFile.Set("VideoWindow", "UpdateFrequency", m_RadioBox[1]->GetSelection());
+	_IniFile.Set("VideoWindow", "LogLevel", g_Config.iLog);
 }
 
 
@@ -103,27 +108,24 @@ void CDebugger::Load(IniFile& _IniFile)
 	m_Check[2]->SetValue(Console);
 	DoShowHideConsole();
 
-	int UpdateFrequency;
-	_IniFile.Get("VideoWindow", "UpdateFrequency", &UpdateFrequency, m_RadioBox[1]->GetSelection());
-	m_RadioBox[1]->SetSelection(UpdateFrequency);
+	_IniFile.Get("VideoWindow", "UpdateFrequency", &gUpdFreq, m_RadioBox[1]->GetSelection());
+	m_RadioBox[1]->SetSelection(gUpdFreq);
 	DoChangeFrequency();
+
+	_IniFile.Get("VideoWindow", "LogLevel", &g_Config.iLog, 0);
+	m_settings->Check(g_Config.iLog - 1, true);
 }
 
 void CDebugger::CreateGUIControls()
 {
+	// Basic settings
 	SetTitle(wxT("OpenGL Debugging"));
-
-	// basic settings
 	SetIcon(wxNullIcon);
 	SetSize(8, 8, 200, 100); // these will become the minimin sizes allowed by resizing
 	Center();
 
-	// the big window
-	m_GPRListView = new CPBView(this, ID_GPR, wxDefaultPosition, GetSize(),
-			wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING);
-
-	// declarations
-	wxBoxSizer* sMain;
+	// Declarations
+	wxBoxSizer *sMain, *sGeneral;
 	wxButton* m_Upd;
 	wxButton* m_Ap; wxButton* m_Am;
 	wxButton* m_Bp; wxButton* m_Bm;
@@ -131,134 +133,173 @@ void CDebugger::CreateGUIControls()
 	wxStaticBoxSizer* sLeft;
 
 
-	// buttons -----------------------------------------------------
-	m_Upd = new wxButton(this, ID_UPD, wxT("Update"),
+	// Notebook -----------------------------------------------------
+	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
+	m_PageMain = new wxPanel(m_Notebook, ID_PAGEMAIN, wxDefaultPosition, wxDefaultSize);
+	m_Notebook->AddPage(m_PageMain, wxT("Main"));
+
+
+
+	// ===================================================================
+	// Main Page
+
+
+	// Buttons -----------------------------------------------------
+	wxStaticBoxSizer * m_updSizer = new wxStaticBoxSizer (wxVERTICAL, m_PageMain, wxT("Update"));
+	m_Upd = new wxButton(m_PageMain, ID_UPD, wxT("Update"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Ap = new wxButton(this, ID_AP, wxT("A +"),
+	m_updSizer->Add(m_Upd, 0, 0, 5);
+	// ------------------------
+
+
+	// Variables -----------------------------------------------------
+	wxStaticBoxSizer * m_buttonSizer = new wxStaticBoxSizer (wxVERTICAL, m_PageMain, wxT("Variables"));
+	m_Ap = new wxButton(m_PageMain, ID_AP, wxT("A +"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	//m_SelC->Enable(false);
-	m_Am = new wxButton(this, ID_AM, wxT("A -"),
+	m_Am = new wxButton(m_PageMain, ID_AM, wxT("A -"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	//m_Presets->Enable(false);
-	m_Bp = new wxButton(this, ID_BP, wxT("B +"),
+	m_Bp = new wxButton(m_PageMain, ID_BP, wxT("B +"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Bm = new wxButton(this, ID_BM, wxT("B -"),
+	m_Bm = new wxButton(m_PageMain, ID_BM, wxT("B -"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-
-	// checkboxes and labels -----------------------------------------------------
-	m_Label[0] = new wxStaticBox(this, IDG_LABEL1, wxT("Options"),
-		wxDefaultPosition, wxDefaultSize, 0);
-	wxStaticBoxSizer * m_checkSizer = new wxStaticBoxSizer (m_Label[0], wxVERTICAL);
-
-	// checkboxes
-	m_Check[0] = new wxCheckBox(this, IDC_CHECK0, wxT("Save to file"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[1] = new wxCheckBox(this, IDC_CHECK1, wxT("A +"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_Check[1]->Enable(false);
-	m_Check[7] = new wxCheckBox(this, IDC_CHECK7, wxT("A -"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_Check[7]->Enable(false);
-	m_Check[2] = new wxCheckBox(this, IDC_CHECK2, wxT("Show console"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	
-    m_checkSizer->Add(m_Check[0], 0, 0, 5);
-    m_checkSizer->Add(m_Check[1], 0, 0, 5);
-	m_checkSizer->Add(m_Check[7], 0, 0, 5);
-	m_checkSizer->Add(m_Check[2], 0, 0, 5);	
-	// ------------------------
-
-	// settings checkboxes -----------------------------------------------------
-	m_Label[1] = new wxStaticBox(this, IDG_LABEL2, wxT("Settings"),
-		wxDefaultPosition, wxDefaultSize, 0);
-	wxStaticBoxSizer * m_checkSizer2 = new wxStaticBoxSizer (m_Label[1], wxVERTICAL);
-
-	// checkboxes
-	m_Check[3] = new wxCheckBox(this, IDC_CHECK3, wxT("Setting"),
-		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_Check[3]->SetValue(false);
-		m_Check[3]->Enable(false);
-	
-	m_checkSizer2->Add(m_Check[3], 0, 0, 5);
+	m_buttonSizer->Add(m_Ap, 0, 0, 5);
+	m_buttonSizer->Add(m_Am, 0, 0, 5);
+	m_buttonSizer->Add(m_Bp, 0, 0, 5);
+	m_buttonSizer->Add(m_Bm, 0, 0, 5);
 	// ------------------------
 
 
-	// radio boxes -----------------------------------------------------
+	// --------------------------------------------------------------------
+	// m_PageMain: Options
+	// -------------------------
+	wxStaticBoxSizer * m_optionsSizer = new wxStaticBoxSizer(wxVERTICAL, m_PageMain, wxT("Options"));
+	//m_Label[0] = new wxStaticBox(m_PageMain, IDG_LABEL1, wxT("Options"),
+	//	wxDefaultPosition, wxDefaultSize, 0);
+	//wxStaticBoxSizer * m_checkSizer3 = new wxStaticBoxSizer (m_Label[0], wxVERTICAL);
+
+	// checkboxes
+	m_Check[0] = new wxCheckBox(m_PageMain, ID_SAVETOFILE, wxT("Save to file"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Check[2] = new wxCheckBox(m_PageMain, ID_SHOWCONSOLE, wxT("Show console"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	
+    m_optionsSizer->Add(m_Check[0], 0, 0, 5);
+	m_optionsSizer->Add(m_Check[2], 0, 0, 5);	
+	// ------------------------
+
+
+	// --------------------------------------------------------------------
+	// m_PageMain: Log settings checkboxes
+	// -------------------------
+	wxStaticBoxSizer * m_logSizer = new wxStaticBoxSizer(wxVERTICAL, m_PageMain, wxT("Log setting"));
+	m_settings = new wxCheckListBox(m_PageMain, ID_CHECKLIST1, wxDefaultPosition, wxDefaultSize,
+		0, NULL, wxNO_BORDER);
+	
+	m_settings->Append(wxT("Info log"));
+	m_settings->Append(wxT("Primary log"));
+
+	m_settings->Check(0, bInfoLog);
+	m_settings->Check(1, bPrimLog);
+
+	// because the wxCheckListBox is a little underdeveloped we have to help it with this
+	// to bad there's no windows xp styles for the checkboxes
+	m_settings->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
+	m_settings->SetMinSize(wxSize(m_settings->GetSize().GetWidth() - 40,
+		m_settings->GetCount() * 15));
+	
+	m_logSizer->Add(m_settings, 0, 0, 0);
+	// ------------------------
+
+
+	// --------------------------------------------------------------------
+	// m_PageMain: Radio boxes
+	// -------------------------
 	int m_radioBoxNChoices[3];
 
 	wxString m_radioBoxChoices0[] = { wxT("Show base 10"), wxT("Show base 16") };
 	m_radioBoxNChoices[0] = sizeof( m_radioBoxChoices0 ) / sizeof( wxString );
-	m_RadioBox[0] = new wxRadioBox( this, IDC_RADIO0, wxT("Show base"),
+	m_RadioBox[0] = new wxRadioBox( m_PageMain, IDC_RADIO0, wxT("Show base"),
 		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[0], m_radioBoxChoices0, 1, wxRA_SPECIFY_COLS);
 	m_RadioBox[0]->Enable(false);
 
 	wxString m_radioBoxChoices1[] = { wxT("Never"), wxT("5 times/s"), wxT("15 times/s"), wxT("30 times/s") };
 	m_radioBoxNChoices[1] = sizeof( m_radioBoxChoices1 ) / sizeof( wxString );
-	m_RadioBox[1] = new wxRadioBox( this, IDC_RADIO1, wxT("Update freq."),
+	m_RadioBox[1] = new wxRadioBox( m_PageMain, IDC_RADIO1, wxT("Update freq."),
 		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[1], m_radioBoxChoices1, 1, wxRA_SPECIFY_COLS);
 
 	wxString m_radioBoxChoices2[] = { wxT("Win stretch") };
 	m_radioBoxNChoices[2] = sizeof( m_radioBoxChoices2 ) / sizeof( wxString );
-	m_RadioBox[2] = new wxRadioBox( this, IDC_RADIO2, wxT("Presets"),
+	m_RadioBox[2] = new wxRadioBox( m_PageMain, IDC_RADIO2, wxT("Presets"),
 		wxDefaultPosition, wxDefaultSize, m_radioBoxNChoices[2], m_radioBoxChoices2, 1, wxRA_SPECIFY_COLS);
 	// ------------------------
 
 
-	// right buttons
-	wxBoxSizer* sButtons2;
-	sButtons2 = new wxBoxSizer(wxVERTICAL);
+	// --------------------------------------------------------------------
+	// Main: Left buttons and checkboxes
+	// ------------------------
+	wxBoxSizer* sButtons = new wxBoxSizer(wxVERTICAL);
 
-	sButtons2->AddStretchSpacer(1);
-	sButtons2->Add(m_RadioBox[2], 0, 0, 5);
-	sButtons2->AddStretchSpacer(1);
-	sButtons2->Add(m_checkSizer2, 0, 2, 5);
-	sButtons2->AddStretchSpacer(1);
+	//sButtons->AddStretchSpacer(1);
 
-	// left buttons
-	wxBoxSizer* sButtons;
-	sButtons = new wxBoxSizer(wxVERTICAL);
+	sButtons->Add(m_updSizer, 0, 0, 5);  // update button
+	sButtons->Add(m_buttonSizer, 0, 0, 5); // variables buttons
+	sButtons->Add(m_logSizer, 0, 0, 5); // log settings
 
-	sButtons->AddStretchSpacer(1);
+	sButtons->Add(m_optionsSizer, 0, 2, 5); // Log options, show console etc.
 
-	sButtons->Add(m_Upd, 0, 0, 5);
-	sButtons->Add(m_Ap, 0, 0, 5);
-	sButtons->Add(m_Am, 0, 0, 5);
-	sButtons->Add(m_Bp, 0, 0, 5);
-	sButtons->Add(m_Bm, 0, 0, 5);
 
-	sButtons->AddStretchSpacer(1);
+	// --------------------------------------------------------------------
+	// Main: Right buttons and checkboxes
+	// ------------------------
+	wxBoxSizer* sButtons2 = new wxBoxSizer(wxVERTICAL);
 
-	sButtons->Add(m_checkSizer, 0, 2, 5);
+	sButtons2->Add(m_RadioBox[0], 0, 0, 5); // Show base
+	sButtons2->Add(m_RadioBox[1], 0, 0, 5); // Update frequency
+	sButtons2->Add(m_RadioBox[2], 0, 0, 5); // Preset views
+	//sButtons2->AddStretchSpacer(1);
+	//sButtons2->Add(m_checkSizer2, 0, 2, 5);
 
-	sButtons->AddStretchSpacer(1);
 
-	sButtons->Add(m_RadioBox[0], 0, 0, 5);
+	// --------------------------------------------------------------------
+	// Main: Parameter tables view, the big window
+	sLeft = new wxStaticBoxSizer(wxVERTICAL, m_PageMain, wxT("Current Status"));
 
-	sButtons->AddStretchSpacer(1);
+	m_GPRListView = new CPBView(m_PageMain, ID_GPR, wxDefaultPosition, GetSize(),
+		wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING);
 
-	sButtons->Add(m_RadioBox[1], 0, 0, 5);
-
-	sButtons->AddStretchSpacer(1);
-
-	// blocks view
-	sLeft = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Current Status"));
 	sLeft->Add(m_GPRListView, 1, wxEXPAND|wxALL, 5);	
 
 
-	// add all stuff to the main container
-	sMain = new wxBoxSizer(wxHORIZONTAL);
-	sMain->Add(sLeft, 1, wxEXPAND|wxALL, 5);
-	sMain->Add(sButtons, 0, wxEXPAND, 0);
-	sMain->Add(sButtons2, 0, wxEXPAND, 0);
+	// --------------------------------------------------------------------
+	// General container
+	// -----------------------------
+	sGeneral = new wxBoxSizer(wxHORIZONTAL);
+	sGeneral->Add(sLeft, 1, wxEXPAND | wxALL, 5);
+	sGeneral->Add(sButtons, 0, wxEXPAND | (wxUP | wxDOWN), 5);
+	sGeneral->Add(sButtons2, 0, wxEXPAND | (wxUP | wxDOWN | wxRIGHT | wxLEFT), 5);
 
+
+	// --------------------------------------------------------------------
+	// Main container
+	// -----------------------------
+	sMain = new wxBoxSizer(wxVERTICAL);
+	sMain->Add(m_Notebook, 1, wxEXPAND | wxALL, 5);
+
+	m_PageMain->SetSizer(sGeneral);
 	this->SetSizer(sMain);
-	sMain->SetSizeHints(this);
+	//sGeneral->SetSizeHints(this);
 
 	//NotifyUpdate();
-	Freeze(); // unfreeze this if you want to use it
+	//Freeze(); // unfreeze this if you want to use it
 }
 
+
+// ==========================================================================
+// System functions
+// --------------
 void CDebugger::OnShow(wxShowEvent& /*event*/)
 {	
 	// bring the console back to
@@ -266,7 +307,7 @@ void CDebugger::OnShow(wxShowEvent& /*event*/)
 	{
 		OpenConsole();
 		#ifdef _WIN32
-		MoveWindow(GetConsoleHwnd(), 0,400, 1280,500, true); // move window, TODO: make this
+		MoveWindow(GetConsoleHwnd(), 0,400, 1280,500, true); // Move window  TODO: make this
 		// adjustable from the debugging window
 		#endif
 	}
@@ -281,15 +322,28 @@ void CDebugger::OnClose(wxCloseEvent& /*event*/)
 	file.Save(DEBUGGER_CONFIG_FILE);
 
 	EndModal(0); // it seems like this works for Show() to, not just ShowModal();
-
-	// The console goes with the wx window
-	CloseConsole();
+	CloseConsole(); // The console goes with the wx window
 }
+
+
+void CDebugger::DoHide()
+{
+	Hide();
+	CloseConsole(); // The console goes with the wx window
+}
+
+void CDebugger::DoShow()
+{
+	Show();
+	DoShowHideConsole(); // The console goes with the wx window
+}
+
 
 void CDebugger::OnUpdate(wxCommandEvent& /*event*/)
 {
 	this->NotifyUpdate();
 }
+// ===============
 
 
 // =======================================================================================
@@ -303,21 +357,13 @@ void CDebugger::ChangePreset(wxCommandEvent& event)
 void CDebugger::DoChangePreset()
 {
 	if(m_RadioBox[2]->GetSelection() == 0)
-	{
 		gPreset = 0;
-	}
 	else if(m_RadioBox[2]->GetSelection() == 1)
-	{
 		gPreset = 1;
-	}
 	else if(m_RadioBox[2]->GetSelection() == 2)
-	{
 		gPreset = 2;
-	}
 	else if(m_RadioBox[2]->GetSelection() == 3)
-	{
 		gPreset = 3;
-	}
 }
 // ==============
 
@@ -357,39 +403,30 @@ void CDebugger::ChangeFrequency(wxCommandEvent& event)
 void CDebugger::DoChangeFrequency()
 {
 	if(m_RadioBox[1]->GetSelection() == 0)
-	{
 		gUpdFreq = 0;
-	}
 	else if(m_RadioBox[1]->GetSelection() == 1)
-	{
 		gUpdFreq = 5;
-	}
 	else if(m_RadioBox[1]->GetSelection() == 2)
-	{
 		gUpdFreq = 15;
-	}
-		else
-	{
+	else
 		gUpdFreq = 30;
-	}
 }
 // ==============
 
 
-
 // =======================================================================================
-// Save to file
+// General settings
 // --------------
-void CDebugger::SaveFile(wxCommandEvent& event)
-{	
-	if(m_Check[0]->IsChecked())
+void CDebugger::GeneralSettings(wxCommandEvent& event)
+{
+	switch (event.GetId())
 	{
-		gSaveFile = 1;
-
-	}
-	else
-	{
-		gSaveFile = 0;
+		case ID_SAVETOFILE: // Save to file
+			gSaveFile = m_Check[0]->IsChecked();
+			break;
+		case ID_SHOWCONSOLE:
+			DoShowHideConsole();
+			break;
 	}
 }
 // ==============
@@ -398,14 +435,8 @@ void CDebugger::SaveFile(wxCommandEvent& event)
 // =======================================================================================
 // Show or hide console window
 // --------------
-void CDebugger::ShowHideConsole(wxCommandEvent& event)
-{
-	DoShowHideConsole();
-}
-
 void CDebugger::DoShowHideConsole()
 {
-	
 	if(m_Check[2]->IsChecked())
 	{
 		OpenConsole();
@@ -422,6 +453,25 @@ void CDebugger::DoShowHideConsole()
 // ==============
 
 
+// =======================================================================================
+// Enable or disable logs
+// --------------
+void CDebugger::LogSettings(wxCommandEvent& event)
+{
+	// Only allow one selected log at a time
+	for (int i = 0; i < m_settings->GetCount(); ++i)
+		if(i != event.GetInt()) m_settings->Check(i, false);
+
+	if(m_settings->IsChecked(0)) g_Config.iLog = CONF_LOG;
+	else if(m_settings->IsChecked(1)) g_Config.iLog = CONF_PRIMLOG;
+	else g_Config.iLog = 0;
+}
+// ==============
+
+
+// =======================================================================================
+// Update the wxListCtrl
+// --------------
 void CDebugger::NotifyUpdate()
 {
 	if (m_GPRListView != NULL)
@@ -429,3 +479,4 @@ void CDebugger::NotifyUpdate()
 		m_GPRListView->Update();
 	}
 }
+// ==============

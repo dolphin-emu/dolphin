@@ -69,6 +69,7 @@ class CDebugger : public wxDialog
 
 		void Save(IniFile& _IniFile) const;
 		void Load(IniFile& _IniFile);
+		void DoHide(); void DoShow();
 	
 		void NotifyUpdate();
 		void OnUpdate(wxCommandEvent& event);
@@ -164,7 +165,7 @@ class CDebugger : public wxDialog
 
 		};
 
-		void OnClose(wxCloseEvent& event);
+		void OnClose(wxCloseEvent& event);		
 		void CreateGUIControls();		
 };
 

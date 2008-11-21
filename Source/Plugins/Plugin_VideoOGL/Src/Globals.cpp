@@ -49,7 +49,7 @@ void OpenConsole()
 
 	// set width and height
 	csize.X = 155; // this fits on 1280 pixels TODO: make it adjustable from the wx debugging window
-	csize.Y = 1024;
+	csize.Y = 300; // 300 rows
 	SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), csize);
 
 	// make the internal buffer match the width we set

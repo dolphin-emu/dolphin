@@ -47,7 +47,6 @@
 // -------------
 extern int nFiles;
 float ratioFactor; // a global to get the ratio factor from MixAdd
-int gUpdFreq = 5;
 int gPreset = 0;
 u32 gLastBlock;
 extern bool gSSBM;
@@ -159,7 +158,7 @@ void Logging(int a)
 	if(a == 0) j++;
 	//if(l == pow((double)2,32)) l=0; // reset l
 	//l++;
-	if (gUpdFreq > 0 && j > (30/gUpdFreq))
+	if (m_frame->gUpdFreq > 0 && j > (30 / m_frame->gUpdFreq))
 	{
 
 			

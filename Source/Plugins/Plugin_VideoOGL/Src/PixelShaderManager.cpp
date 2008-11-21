@@ -232,7 +232,7 @@ bool PixelShaderMngr::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpro
     cgDestroyProgram(tempprog);
 	// printf("Compiled pixel shader %i\n", ps.glprogid);
 
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUGFAST) 
     ps.strprog = pstrprogram;
 #endif
     return true;
@@ -394,6 +394,7 @@ void PixelShaderMngr::SetPSTextureDims(int texid)
 			fdims[3] = 1.0f/(float)((lastTexDims[texid]>>16)&0xfff);
 		}
 	}
+
 	PRIM_LOG("texdims%d: %f %f %f %f\n", texid, fdims[0], fdims[1], fdims[2], fdims[3]);
 	SetPSConstant4fv(C_TEXDIMS + texid, fdims);
 }
