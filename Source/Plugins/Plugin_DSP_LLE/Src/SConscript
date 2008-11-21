@@ -7,7 +7,9 @@ name = "Plugin_DSP_LLE"
 
 files = [
 	"AOSoundStream.cpp",
+#        "DisAsmDlg.cpp",
 	"disassemble.cpp",
+#        "DSoundStream.cpp",
 	"gdsp_aram.cpp",
 	"gdsp_ext_op.cpp",
 	"gdsp_interface.cpp",
@@ -16,14 +18,19 @@ files = [
 	"gdsp_opcodes.cpp",
 	"gdsp_registers.cpp",
 	"Globals.cpp",
-	"opcodes.cpp",
-	"Tools.cpp",
+        "HLE_Functions.cpp",
+        "HLE_Helper.cpp",
 	"main.cpp",
         "Mixer.cpp",
-        "Logging/ReadPBs.cpp",
+	"opcodes.cpp",
+#        "RegisterDlg.cpp",
+#        "RegSettings.cpp",
+#        "stdafx.cpp",
+	"Tools.cpp",
+        "Logging/AXTask.cpp",
         "Logging/Console.cpp",
         "Logging/Logging.cpp",
-        "Logging/AXTask.cpp",
+        "Logging/ReadPBs.cpp",
 	]
 
 lleenv = env.Clone()

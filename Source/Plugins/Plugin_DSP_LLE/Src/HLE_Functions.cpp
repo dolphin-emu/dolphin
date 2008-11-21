@@ -15,9 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#ifdef _WIN32
 #include "stdafx.h"
-
-#include "globals.h"
+#endif
+#include "Globals.h"
 #include "HLE_Helper.h"
 
 

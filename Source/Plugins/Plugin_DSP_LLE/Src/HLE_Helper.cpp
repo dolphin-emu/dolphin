@@ -15,9 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#ifdef _WIN32
 #include "stdafx.h"
+#endif
 
-#include "globals.h"
+#include "Globals.h"
 #include "gdsp_interpreter.h"
 #include "gdsp_memory.h"
 #include "gdsp_opcodes_helper.h"
