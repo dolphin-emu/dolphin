@@ -76,12 +76,3 @@ CConfigDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /
 	g_Config.Save();
 	return(0);
 }
-
-
-
-LRESULT CConfigDlg::OnBnClickedEnableSpeedThrottle(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-{
-	// TODO: Add your control notification handler code here
-
-	return 0;
-}
