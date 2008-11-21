@@ -19,7 +19,7 @@
 
 #include "IniFile.h" // Common files
 
-#include "Config.h" // Config settings
+#include "../Config.h" // Config settings
 
 #include "PBView.h" // Debugger files
 #include "Debugger.h"
