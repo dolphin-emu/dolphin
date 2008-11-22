@@ -116,7 +116,11 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
         // check if we are able to run this buffer
         if ((_fifo.bFF_GPReadEnable) && _fifo.CPReadWriteDistance && !(_fifo.bFF_BPEnable && _fifo.bFF_Breakpoint))
         {
+#ifdef _WIN32
 			InterlockedExchange((LONG*)&_fifo.CPReadIdle, 0);
+#else
+			Common::InterlockedExchange((int*)&_fifo.CPReadIdle, 0);
+#endif
 #if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
             while(_fifo.CPReadWriteDistance > 0)
 #else
@@ -169,7 +173,11 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 #endif
 			}
 			//video_initialize.pLog("IDLE",FALSE);
+#ifdef _WIN32
 			InterlockedExchange((LONG*)&_fifo.CPReadIdle, 1);
+#else
+			Common::InterlockedExchange((int*)&_fifo.CPReadIdle, 1);
+#endif
         }
     }
 #if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)

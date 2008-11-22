@@ -171,8 +171,13 @@ void UpdateInterrupts();
 
 //inline void WriteLow (u32& _reg, u16 lowbits)  {_reg = (_reg & 0xFFFF0000) | lowbits;}
 //inline void WriteHigh(u32& _reg, u16 highbits) {_reg = (_reg & 0x0000FFFF) | ((u32)highbits << 16);}
+#ifdef _WIN32
 inline void WriteLow (volatile u32& _reg, u16 lowbits)  {InterlockedExchange((LONG*)&_reg,(_reg & 0xFFFF0000) | lowbits);}
 inline void WriteHigh(volatile u32& _reg, u16 highbits) {InterlockedExchange((LONG*)&_reg,(_reg & 0x0000FFFF) | ((u32)highbits << 16));}
+#else
+inline void WriteLow (volatile u32& _reg, u16 lowbits)  {Common::InterlockedExchange((int*)&_reg,(_reg & 0xFFFF0000) | lowbits);}
+inline void WriteHigh(volatile u32& _reg, u16 highbits) {Common::InterlockedExchange((int*)&_reg,(_reg & 0x0000FFFF) | ((u32)highbits << 16));}
+#endif
 inline u16 ReadLow  (u32 _reg)  {return (u16)(_reg & 0xFFFF);}
 inline u16 ReadHigh (u32 _reg)  {return (u16)(_reg >> 16);}
 
@@ -711,7 +716,11 @@ void UpdateFifoRegister()
 	else
 		dist = (wp - fifo.CPBase) + (fifo.CPEnd - rp);
 	//fifo.CPReadWriteDistance = dist;
+#ifdef _WIN32
 	InterlockedExchange((LONG*)&fifo.CPReadWriteDistance, dist);
+#else
+	Common::InterlockedExchange((int*)&fifo.CPReadWriteDistance, dist);
+#endif
 	if (!Core::g_CoreStartupParameter.bUseDualCore)
 		CatchUpGPU();
 }

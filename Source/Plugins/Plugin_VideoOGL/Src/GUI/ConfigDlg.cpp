@@ -99,10 +99,10 @@ void ConfigDialog::CreateGUIControls()
 	m_RenderToMainWindow->SetValue(g_Config.renderToMainframe);
 	m_StretchToFit = new wxCheckBox(m_PageGeneral, ID_STRETCHTOFIT, wxT("Stretch to fit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_StretchToFit->SetToolTip
-		("This will use the game's native resolution and stretch it to fill the"
+		(wxT("This will use the game's native resolution and stretch it to fill the"
 		"\nwindow instead of changing the internal display resolution. It"
 		"\nmay result in a slightly blurrier image, but it may also give a higher"
-		"\nFPS if you have a slow graphics card.");
+		"\nFPS if you have a slow graphics card."));
 	m_StretchToFit->SetValue(g_Config.bStretchToFit);
 	m_KeepAR = new wxCheckBox(m_PageGeneral, ID_KEEPAR, wxT("Keep 4:3 aspect ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_KeepAR->SetValue(g_Config.bKeepAR);
@@ -195,18 +195,18 @@ void ConfigDialog::CreateGUIControls()
 	sbHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
 	m_EFBToTextureDisable = new wxCheckBox(m_PageAdvanced,
 		ID_EFBTOTEXTUREDISABLE, wxT("Disable copy EFB to texture"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_EFBToTextureDisable->SetToolTip("Do not copy the Embedded Framebuffer (EFB)"
-		" to the\nTexture. This may result in a speed increase.");
+	m_EFBToTextureDisable->SetToolTip(wxT("Do not copy the Embedded Framebuffer (EFB)"
+		" to the\nTexture. This may result in a speed increase."));
 	m_EFBToTextureDisable->Enable(true);
 	m_EFBToTextureDisable->SetValue(g_Config.bEBFToTextureDisable);
 	m_EFBToTextureDisableHotKey = new wxCheckBox(m_PageAdvanced,
 		ID_EFBTOTEXTUREDISABLEHOTKEY, wxT("with hotkey E"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_EFBToTextureDisableHotKey->SetToolTip("Use the E key to turn this option on and off");
+	m_EFBToTextureDisableHotKey->SetToolTip(wxT("Use the E key to turn this option on and off"));
 	m_EFBToTextureDisableHotKey->SetValue(g_Config.bEBFToTextureDisableHotKey);
 
 	m_ProjectionHax1 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK1, wxT("Projection before R945"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_ProjectionHax1->SetToolTip("This may reveal otherwise invisible graphics"
-		" in\ngames like Mario Galaxy or Ikaruga.");
+	m_ProjectionHax1->SetToolTip(wxT("This may reveal otherwise invisible graphics"
+		" in\ngames like Mario Galaxy or Ikaruga."));
 	m_ProjectionHax1->Enable(true);
 	m_ProjectionHax1->SetValue(g_Config.bProjectionHax1);
 
