@@ -17,7 +17,6 @@
 
 #include "Globals.h"
 
-#include "FileUtil.h"
 #include "ISOFile.h"
 #include "VolumeCreator.h"
 #include "Filesystem.h"
@@ -59,7 +58,6 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		fprintf(f, "# %s - %s\n", OpenISO->GetUniqueID().c_str(), OpenISO->GetName().c_str());
 		fprintf(f, "[Core]\n#Values set here will override the main dolphin settings.\n");
 		fprintf(f, "[EmuState]\n#The Emulation State. 1 is worst, 5 is best, 0 is not set.\n");
-		fprintf(f, "EmulationStateId = 0\n");
 		fprintf(f, "[OnLoad]\n#Add memory patches to be loaded once on boot here.\n");
 		fprintf(f, "[OnFrame]\n#Add memory patches to be applied every frame here.\n");
 		fprintf(f, "[ActionReplay]\n#Add action replay cheats here.\n");
@@ -203,7 +201,7 @@ void CISOProperties::CreateGUIControls()
 	sbCoreOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
 	sCoreOverrides = new wxBoxSizer(wxVERTICAL);
 	EditConfig = new wxButton(m_GameConfig, ID_EDITCONFIG, _("Edit Config"), wxDefaultPosition, wxDefaultSize);
-	OverrideText = new wxStaticText(m_GameConfig, ID_OVERRIDE_TEXT, _("These settings override core Dolphin settings. The 3rd state means the game uses Dolphin's setting."), wxDefaultPosition, wxDefaultSize);
+	OverrideText = new wxStaticText(m_GameConfig, ID_OVERRIDE_TEXT, _("These settings override core Dolphin settings.\nThe 3rd state means the game uses Dolphin's setting."), wxDefaultPosition, wxDefaultSize);
 	UseDualCore = new wxCheckBox(m_GameConfig, ID_USEDUALCORE, _("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	OptimizeQuantizers = new wxCheckBox(m_GameConfig, ID_OPTIMIZEQUANTIZERS, _("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -242,6 +240,15 @@ void CISOProperties::CreateGUIControls()
 	EditCheat->Enable(false);
 	RemoveCheat->Enable(false);
 
+	// Remove when cheat + patch editor works
+	Patches->Append(_("Not yet functional"));
+	Patches->Enable(false);
+	AddPatch->Enable(false);
+	Cheats->Append(_("Not yet functional"));
+	Cheats->Enable(false);
+	AddCheat->Enable(false);
+	// --------------------------------------
+	
 	wxBoxSizer* sConfigPage;
 	sConfigPage = new wxBoxSizer(wxVERTICAL);
 	sCoreOverrides->Add(OverrideText, 0, wxEXPAND|wxALL, 5);
@@ -375,6 +382,7 @@ void CISOProperties::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	if (!SaveGameConfig())
 		wxMessageBox(wxString::Format(_("Could not save %s"), GameIniFile.c_str()), _("Error"), wxOK|wxICON_ERROR, this);
+
 	Destroy();
 }
 
@@ -491,7 +499,12 @@ void CISOProperties::LoadGameConfig()
 	else
 		EnableWideScreen->Set3StateValue(wxCHK_UNDETERMINED);
 
-	GameIni.Get("EmuState", "EmulationStateId", &iTemp, 0);
+	GameIni.Get("EmuState", "EmulationStateId", &iTemp, -1);
+	if (iTemp == -1)
+	{
+		iTemp = 0;
+		bRefreshList = true;
+	}
 	EmuState->SetSelection(iTemp);
 
 	// TODO handle patches+cheats
@@ -528,6 +541,7 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.Set("Core", "EnableWideScreen", EnableWideScreen->Get3StateValue());
 
 	GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
+
 	return GameIni.Save(GameIniFile.c_str());
 
 	// TODO save patches+cheats
@@ -535,8 +549,16 @@ bool CISOProperties::SaveGameConfig()
 
 void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 {
-	if (File::Exists(GameIniFile.c_str()))
+	if (wxFileExists(GameIniFile.c_str()))
 	{
-		File::Launch(GameIniFile.c_str());
+		SaveGameConfig();
+
+		wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_("ini"));
+		wxExecute(filetype->GetOpenCommand(_(GameIniFile.c_str())), wxEXEC_SYNC);
+
+		GameIni.Load(GameIniFile.c_str());
+		LoadGameConfig();
+
+		bRefreshList = true; // Just in case
 	}
 }

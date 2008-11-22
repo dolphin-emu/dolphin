@@ -26,6 +26,7 @@
 #include <wx/treectrl.h>
 #include <wx/gbsizer.h>
 #include <wx/notebook.h>
+#include <wx/mimetype.h>
 #include <string>
 
 #include "Filesystem.h"
