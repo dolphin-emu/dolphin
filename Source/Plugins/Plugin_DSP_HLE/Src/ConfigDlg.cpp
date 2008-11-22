@@ -54,7 +54,7 @@ CConfigDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BO
 	CToolTipCtrl ToolTips;
 	ToolTips.Create(m_hWnd);
 	ToolTips.Activate(true);
-	ToolTips.SetMaxTipWidth(200); // limit the width
+	ToolTips.SetMaxTipWidth(220); // limit the width
 	ToolTips.SetDelayTime(TTDT_AUTOPOP, 20 * 1000); // give us time to read it
 	CToolInfo tiHLE(TTF_SUBCLASS, m_buttonEnableHLEAudio, 0, NULL,
 		"This is the most common sound type");
