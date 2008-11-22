@@ -87,12 +87,12 @@ extern "C" void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_WIIMOTE;
 #ifdef DEBUGFAST 
-	sprintf(_PluginInfo->Name, "Wiimote Test (DebugFast) " VERSION_STRING);
+	sprintf(_PluginInfo->Name, "Wiimote Plug-in (DebugFast) " VERSION_STRING);
 #else
 #ifndef _DEBUG
-	sprintf(_PluginInfo->Name, "Wiimote Test " VERSION_STRING);
+	sprintf(_PluginInfo->Name, "Wiimote Plug-in " VERSION_STRING);
 #else
-	sprintf(_PluginInfo->Name, "Wiimote Test (Debug) " VERSION_STRING);
+	sprintf(_PluginInfo->Name, "Wiimote Plug-in (Debug) " VERSION_STRING);
 #endif
 #endif
 }
@@ -102,9 +102,9 @@ extern "C" void DllAbout(HWND _hParent)
 {
 #if !defined(OSX64)
 	wxAboutDialogInfo info;
-	info.SetName(_T("Wiimote test plugin"));
+	info.SetName(_T("Wiimote plug-in"));
 	info.AddDeveloper(_T("masken (masken3@gmail.com)"));
-	info.SetDescription(_T("Wiimote test plugin"));
+	info.SetDescription(_T("Wiimote plug-in"));
 	wxAboutBox(info);
 #endif
 }
