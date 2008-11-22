@@ -47,6 +47,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_DISABLELIGHTING, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLETEXTURING, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_EFBTOTEXTUREDISABLE, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_EFBTOTEXTUREDISABLEHOTKEY, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJECTIONHACK1,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJECTIONHACK2,ConfigDialog::AdvancedSettingsChanged)
 	EVT_DIRPICKER_CHANGED(ID_TEXTUREPATH, ConfigDialog::TexturePathChange)
@@ -202,6 +203,10 @@ void ConfigDialog::CreateGUIControls()
 	m_EFBToTextureDisableHotKey = new wxCheckBox(m_PageAdvanced,
 		ID_EFBTOTEXTUREDISABLEHOTKEY, wxT("with hotkey E"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_EFBToTextureDisableHotKey->SetToolTip(wxT("Use the E key to turn this option on and off"));
+#ifndef _WIN32
+	// JPeterson set the hot key to be Win32-specific
+	m_EFBToTextureDisableHotKey->Enable(false);
+#endif
 	m_EFBToTextureDisableHotKey->SetValue(g_Config.bEBFToTextureDisableHotKey);
 
 	m_ProjectionHax1 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK1, wxT("Projection before R945"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
