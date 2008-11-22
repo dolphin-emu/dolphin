@@ -45,6 +45,9 @@ typedef struct
 	volatile BOOL bFF_GPLinkEnable;
 	volatile BOOL bFF_Breakpoint;
 
+	volatile BOOL CPCmdIdle;
+	volatile BOOL CPReadIdle;
+
 	// for GP watchdog hack
 	volatile u32 Fake_GPWDToken; // cicular incrementer
 } SCPFifoStruct;

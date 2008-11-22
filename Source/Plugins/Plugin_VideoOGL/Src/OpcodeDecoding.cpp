@@ -310,6 +310,8 @@ void OpcodeDecoder_Run()
     DVSTARTPROFILE();
     while (FifoCommandRunnable())
     {
+		//TODO?: if really needed, do something like this: "InterlockedExchange((LONG*)&_fifo.CPCmdIdle, 0);"
         Decode();
     }
+	//TODO?: if really needed, do something like this: "InterlockedExchange((LONG*)&_fifo.CPCmdIdle, 1);"
 }
