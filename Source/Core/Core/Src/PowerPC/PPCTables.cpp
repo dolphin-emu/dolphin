@@ -288,7 +288,7 @@ GekkoOPTemplate table31[] =
 	{922, Interpreter::extshx,  Jit64::extshx,   {"extshx", OPTYPE_INTEGER, FL_IN_A  | FL_OUT_S | FL_RC_BIT}},
 	{954, Interpreter::extsbx,  Jit64::extsbx,   {"extsbx", OPTYPE_INTEGER, FL_IN_A  | FL_OUT_S | FL_RC_BIT}},
 	{536, Interpreter::srwx,    Jit64::srwx,     {"srwx",   OPTYPE_INTEGER, FL_RC_BIT}},
-	{792, Interpreter::srawx,   Jit64::srawx,  {"srawx",  OPTYPE_INTEGER, FL_RC_BIT}},
+	{792, Interpreter::srawx,   Jit64::srawx,    {"srawx",  OPTYPE_INTEGER, FL_RC_BIT}},
 	{824, Interpreter::srawix,  Jit64::srawix,   {"srawix", OPTYPE_INTEGER, FL_RC_BIT}},
 	{24,  Interpreter::slwx,    Jit64::slwx,     {"slwx",   OPTYPE_INTEGER, FL_RC_BIT}},
 
@@ -301,7 +301,7 @@ GekkoOPTemplate table31[] =
 	{1014, Interpreter::dcbz,   Jit64::dcbz,     {"dcbz",   OPTYPE_DCACHE, 0, 4}},
 
 	//load word
-	{23,  Interpreter::lwzx,  Jit64::Default,   {"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{23,  Interpreter::lwzx,  Jit64::lwzx,   {"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 	{55,  Interpreter::lwzux, Jit64::Default,   {"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_IN_A | FL_IN_B}},
 
 	//load halfword
@@ -309,7 +309,7 @@ GekkoOPTemplate table31[] =
 	{311, Interpreter::lhzux, Jit64::Default,   {"lhzux", OPTYPE_LOAD, FL_OUT_D | FL_IN_A | FL_IN_B}},
 
 	//load halfword signextend
-	{343, Interpreter::lhax,  Jit64::Default,   {"lhax",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{343, Interpreter::lhax,  Jit64::lhax,   {"lhax",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 	{375, Interpreter::lhaux, Jit64::Default,   {"lhaux", OPTYPE_LOAD, FL_OUT_D | FL_IN_A | FL_IN_B}},
 
 	//load byte

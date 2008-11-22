@@ -71,9 +71,68 @@ namespace Jit64
 		MOV(32, R(ABI_PARAM1), gpr.R(b));
 		if (a)
 			ADD(32, R(ABI_PARAM1), gpr.R(a));
-		//SafeLoadRegToEAX(ABI_PARAM1, 8, 0);
+#if 0
+		SafeLoadRegToEAX(ABI_PARAM1, 8, 0);
+		MOV(32, gpr.R(d), R(EAX));
+#else
 		UnsafeLoadRegToReg(ABI_PARAM1, gpr.RX(d), 8, 0, false);
-		//MOV(32, gpr.R(d), R(EAX));
+#endif
+		gpr.UnlockAll();
+		gpr.UnlockAllX();
+	}
+
+	void lwzx(UGeckoInstruction inst)
+	{
+#ifdef JIT_OFF_OPTIONS
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger	
+#endif
+		INSTRUCTION_START;
+
+		int a = inst.RA, b = inst.RB, d = inst.RD;
+		gpr.Lock(a, b, d);
+		gpr.FlushLockX(ABI_PARAM1);
+		if (b == d || a == d)
+			gpr.LoadToX64(d, true, true);
+		else 
+			gpr.LoadToX64(d, false, true);
+		MOV(32, R(ABI_PARAM1), gpr.R(b));
+		if (a)
+			ADD(32, R(ABI_PARAM1), gpr.R(a));
+#if 1
+		SafeLoadRegToEAX(ABI_PARAM1, 32, 0);
+		MOV(32, gpr.R(d), R(EAX));
+#else
+		UnsafeLoadRegToReg(ABI_PARAM1, gpr.RX(d), 32, 0, false);
+#endif
+		gpr.UnlockAll();
+		gpr.UnlockAllX();
+	}
+
+	void lhax(UGeckoInstruction inst)
+	{
+#ifdef JIT_OFF_OPTIONS
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger	
+#endif
+		INSTRUCTION_START;
+
+		int a = inst.RA, b = inst.RB, d = inst.RD;
+		gpr.Lock(a, b, d);
+		gpr.FlushLockX(ABI_PARAM1);
+		if (b == d || a == d)
+			gpr.LoadToX64(d, true, true);
+		else 
+			gpr.LoadToX64(d, false, true);
+		MOV(32, R(ABI_PARAM1), gpr.R(b));
+		if (a)
+			ADD(32, R(ABI_PARAM1), gpr.R(a));
+#if 1
+		SafeLoadRegToEAX(ABI_PARAM1, 16, 0, true);
+		MOV(32, gpr.R(d), R(EAX));
+#else
+		UnsafeLoadRegToReg(ABI_PARAM1, gpr.RX(d), 16, 0, true);
+#endif
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
 	}
