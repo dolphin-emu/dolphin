@@ -336,7 +336,8 @@ namespace Jit64
 				//must be immediate - do nothing
 			}
 			OpArg newLoc = GetDefaultLocation(i);
-			if (doStore)
+
+			//if (doStore) <-- Breaks JIT compilation
 				MOV(32, newLoc, regs[i].location);
 			regs[i].location = newLoc;
 			regs[i].away = false;
