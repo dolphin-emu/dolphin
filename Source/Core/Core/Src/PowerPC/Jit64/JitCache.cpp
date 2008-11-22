@@ -79,8 +79,8 @@ namespace Jit64
 	{
 		if(Core::g_CoreStartupParameter.bJITUnlimitedCache)
 		{
-			CODE_SIZE *= 8;
-			MAX_NUM_BLOCKS *= 8;
+			CODE_SIZE = 1024*1024*8*8;
+			MAX_NUM_BLOCKS = 65536*8;
 		}
 
 		codeCache    = (u8*)AllocateExecutableMemory(CODE_SIZE);
