@@ -52,7 +52,7 @@
 #include "Debugger/Debugger.h" // for the CDebugger class
 #endif
 SVideoInitialize g_VideoInitialize;
-#define VERSION_STRING "0.1"
+#define VERSION_STRING "0.7"
 
 
 /* Create debugging window. There's currently a strange crash that occurs whe a game is loaded
