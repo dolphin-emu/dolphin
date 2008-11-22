@@ -14,6 +14,15 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
+// Enable define below to enable oprofile integration. For this to work,
+// it requires at least oprofile version 0.9.4, and changing the build
+// system to link the Dolphin executable against libopagent.  Since the
+// dependency is a little inconvenient and this is possibly a slight
+// performance hit, it's not enabled by default, but it's useful for
+// locating performance issues.
+//#define OPROFILE_REPORT
+
 #include <map>
 
 #include "Common.h"
@@ -36,10 +45,17 @@
 
 #include "disasm.h"
 
+#ifdef OPROFILE_REPORT
+#include <opagent.h>
+#endif
+
 using namespace Gen;
 
 namespace Jit64
 {
+#ifdef OPROFILE_REPORT
+	op_agent_t agent;
+#endif
 	static u8 *codeCache;
 	static u8 *genFunctions;
 	static u8 *trampolineCache;
@@ -88,6 +104,9 @@ namespace Jit64
 		trampolineCache = (u8*)AllocateExecutableMemory(TRAMPOLINE_SIZE);
 		trampolineCodePtr = trampolineCache;
 
+#ifdef OPROFILE_REPORT
+		agent = op_open_agent();
+#endif
 		blocks = new JitBlock[MAX_NUM_BLOCKS];
 		blockCodePointers = new u8*[MAX_NUM_BLOCKS];
 		ClearCache();
@@ -109,6 +128,9 @@ namespace Jit64
 		blocks = 0;
 		blockCodePointers = 0;
 		numBlocks = 0;
+#ifdef OPROFILE_REPORT
+		op_close_agent(agent);
+#endif
 	}
 	
 	/* This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
@@ -208,6 +230,15 @@ namespace Jit64
 			LinkBlockExits(numBlocks);
 			SetCodePtr(oldCodePtr);
 		}
+
+#ifdef OPROFILE_REPORT
+		char buf[100];
+		sprintf(buf, "EmuCode%x", emAddress);
+		u8* blockStart = blockCodePointers[numBlocks], *blockEnd = GetWritableCodePtr();
+		op_write_native_code(agent, buf, (uint64_t)blockStart,
+		                     blockStart, blockEnd - blockStart);
+#endif
+
 		numBlocks++; //commit the current block
 		return 0;
 	}
