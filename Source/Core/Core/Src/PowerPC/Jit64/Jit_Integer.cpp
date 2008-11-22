@@ -486,19 +486,11 @@ namespace Jit64
 #endif
 		INSTRUCTION_START;
 		int a = inst.RA, d = inst.RD;
-		gpr.FlushLockX(EDX);
-		gpr.Lock(a, d);
-		if (d != a) {
-			gpr.LoadToX64(d, false, true);
-		} else {
-			gpr.LoadToX64(d, true, true);
-		}
-		MOV(32, R(EAX), gpr.R(a));
-		MOV(32, R(EDX), Imm32((u32)(s32)inst.SIMM_16));
-		IMUL(32, R(EDX));
-		MOV(32, gpr.R(d), R(EAX));
-		gpr.UnlockAll();
-		gpr.UnlockAllX();
+ 		gpr.Lock(a, d);
+		gpr.LoadToX64(d, (d == a), true);
+		gpr.KillImmediate(a);
+		IMUL(32, gpr.RX(d), gpr.R(a), Imm32((u32)(s32)inst.SIMM_16));
+ 		gpr.UnlockAll();
 	}
 
 	void mullwx(UGeckoInstruction inst)
@@ -509,21 +501,19 @@ namespace Jit64
 #endif
 		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
-		gpr.FlushLockX(EDX);
-		gpr.Lock(a, b, d);
-		if (d != a && d != b) {
-			gpr.LoadToX64(d, false, true);
+ 		gpr.Lock(a, b, d);
+		gpr.LoadToX64(d, (d == a || d == b), true);
+		if (d == a) {
+			IMUL(32, gpr.RX(d), gpr.R(b));
+		} else if (d == b) {
+			IMUL(32, gpr.RX(d), gpr.R(a));
 		} else {
-			gpr.LoadToX64(d, true, true);
+			MOV(32, gpr.R(d), gpr.R(b));
+			IMUL(32, gpr.RX(d), gpr.R(a));
 		}
-		MOV(32, R(EAX), gpr.R(a));
-		gpr.KillImmediate(b);
-		IMUL(32, gpr.R(b));
-		MOV(32, gpr.R(d), R(EAX));
 		gpr.UnlockAll();
-		gpr.UnlockAllX();
-		// result is already in eax
 		if (inst.Rc) {
+			MOV(32, R(EAX), gpr.R(d));
 			CALL((u8*)Asm::computeRc);
 		}
 	}

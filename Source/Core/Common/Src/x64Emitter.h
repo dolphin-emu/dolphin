@@ -282,7 +282,9 @@ namespace Gen
 	void DIV(int bits, OpArg src);
 	void IMUL(int bits, OpArg src); //SIGNED
 	void IDIV(int bits, OpArg src);
-	//TODO: alternate IMUL forms
+	void IMUL(int bits, X64Reg regOp, OpArg src);
+	void IMUL(int bits, X64Reg regOp, OpArg src, OpArg imm);
+
 
 	void NEG(int bits, OpArg src);
 	void NOT(int bits, OpArg src);

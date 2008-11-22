@@ -936,6 +936,64 @@ namespace Gen
 	void CMP (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(bits, nrmCMP, a1, a2);}
 	void XCHG(int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(bits, nrmXCHG, a1, a2);}
 
+	void IMUL(int bits, X64Reg regOp, OpArg a1, OpArg a2)
+	{
+		if (bits == 8) {
+			_assert_msg_(DYNA_REC, 0, "IMUL - illegal bit size!");
+			return;
+		}
+		if (a1.IsImm()) {
+			_assert_msg_(DYNA_REC, 0, "IMUL - second arg cannot be imm!");
+			return;
+		}
+		if (!a2.IsImm())
+		{
+			_assert_msg_(DYNA_REC, 0, "IMUL - third arg must be imm!");
+			return;
+		}
+
+		if (bits == 16)
+			Write8(0x66);
+		a1.WriteRex(bits == 64, regOp);
+
+		if (a2.GetImmBits() == 8) {
+			Write8(0x6B);
+			a1.WriteRest(1, regOp);
+			Write8((u8)a2.offset);
+		} else {
+			Write8(0x69);
+			if (a2.GetImmBits() == 16 && bits == 16) {
+				a1.WriteRest(2, regOp);
+				Write16((u16)a2.offset);
+			} else if (a2.GetImmBits() == 32 &&
+				(bits == 32 || bits == 64)) {
+					a1.WriteRest(4, regOp);
+					Write32((u32)a2.offset);
+			} else {
+				_assert_msg_(DYNA_REC, 0, "IMUL - unhandled case!");
+			}
+		}
+	}
+
+	void IMUL(int bits, X64Reg regOp, OpArg a)
+	{
+		if (bits == 8) {
+			_assert_msg_(DYNA_REC, 0, "IMUL - illegal bit size!");
+			return;
+		}
+		if (a.IsImm())
+		{
+			IMUL(bits, regOp, R(regOp), a) ;
+			return ;
+		}
+
+		if (bits == 16)
+			Write8(0x66);
+		a.WriteRex(bits == 64, regOp);
+		Write8(0x0F);
+		Write8(0xAF);
+		a.WriteRest(0, regOp);
+	}
 
 
 	void WriteSSEOp(int size, u8 sseOp, bool packed, X64Reg regOp, OpArg arg, int extrabytes = 0)
