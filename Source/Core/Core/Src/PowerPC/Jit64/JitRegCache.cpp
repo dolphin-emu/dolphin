@@ -198,6 +198,7 @@ namespace Jit64
 		if (regs[preg].away && regs[preg].location.IsSimpleReg())
 		{
 			xregs[regs[preg].location.GetSimpleReg()].free = true;
+			xregs[regs[preg].location.GetSimpleReg()].dirty = false;
 			regs[preg].away = false;
 		}
 	}
@@ -291,7 +292,7 @@ namespace Jit64
 			if (xlocks[xr]) PanicAlert("GetFreeXReg returned locked register");
 			xregs[xr].free = false;
 			xregs[xr].ppcReg = i;
-			xregs[xr].dirty = makeDirty;
+			xregs[xr].dirty = makeDirty || regs[i].location.IsImm();
 			OpArg newloc = ::Gen::R(xr);
 			if (doLoad || regs[i].location.IsImm())
 				MOV(32, newloc, regs[i].location);
@@ -321,11 +322,13 @@ namespace Jit64
 	{
 		if (regs[i].away)
 		{
+			bool doStore = true;
 			if (regs[i].location.IsSimpleReg())
 			{
 				X64Reg xr = RX(i);
 				xregs[xr].free = true;
 				xregs[xr].ppcReg = -1;
+				doStore = xregs[xr].dirty;
 				xregs[xr].dirty = false;
 			}
 			else
@@ -333,7 +336,8 @@ namespace Jit64
 				//must be immediate - do nothing
 			}
 			OpArg newLoc = GetDefaultLocation(i);
-			MOV(32, newLoc, regs[i].location);
+			if (doStore)
+				MOV(32, newLoc, regs[i].location);
 			regs[i].location = newLoc;
 			regs[i].away = false;
 		}
