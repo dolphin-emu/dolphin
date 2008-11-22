@@ -811,20 +811,23 @@ void LoadBPReg(u32 value0)
     BPWritten(opcode, changes, newval);
 }
 
-// Never called? Should probably be called when loading a saved state.
-// Needs testing though.
+// Called when loading a saved state.
+// Needs more testing though.
 void BPReload()
 {
 	for (int i = 0; i < 254; i++)
 	{
 		switch (i) {
-		case 0x65:
+		
+		case 0x41:
 		case 0x45: //GXSetDrawDone
+		case 0x52:
+		case 0x65:
+		case 0x67: // set gp metric?
 		case BPMEM_PE_TOKEN_ID:
 		case BPMEM_PE_TOKEN_INT_ID:
-		case 0x67: // set gp metric?
-		case 0x52:
-			break;
+			// Cases in which we DON'T want to reload the BP
+			continue;
 		default:
 			BPWritten(i, 0xFFFFFF, ((u32*)&bpmem)[i]);
 		}

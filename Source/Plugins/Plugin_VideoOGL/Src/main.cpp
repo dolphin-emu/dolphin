@@ -238,9 +238,9 @@ void Video_DoState(unsigned char **ptr, int mode) {
 
 	PointerWrap p(ptr, mode);
 	VideoCommon_DoState(p);
-
+	
 	// Refresh state.
-	if (mode == 1)  // read
+	if (mode == PointerWrap::MODE_READ)
 		BPReload();
 }
 

@@ -48,8 +48,8 @@ public:
 	enum Mode  // also defined in pluginspecs.h. Didn't want to couple them.
 	{
 		MODE_READ = 1,
-		MODE_WRITE = 2,
-		MODE_MEASURE = 3,
+		MODE_WRITE,
+		MODE_MEASURE,
 	};
 
 	u8 **ptr;
