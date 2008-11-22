@@ -103,6 +103,7 @@ namespace Jit64
 	void mullwx(UGeckoInstruction inst);
 	void divwux(UGeckoInstruction inst);
 	void srawix(UGeckoInstruction inst);
+	void srawx(UGeckoInstruction inst);
 	void addex(UGeckoInstruction inst);
 
 	void extsbx(UGeckoInstruction inst);
@@ -174,6 +175,8 @@ namespace Jit64
 	void subfex(UGeckoInstruction inst);
 
 	void lbzx(UGeckoInstruction inst);
+	void lwzx(UGeckoInstruction inst);
+	void lhax(UGeckoInstruction inst);
 
 	void lmw(UGeckoInstruction inst);
 	void stmw(UGeckoInstruction inst);

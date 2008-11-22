@@ -106,7 +106,7 @@ namespace Jit64
 			if (gpr.R(a).IsImm() && d != a && a != 0) {
 				gpr.SetImmediate32(d, (u32)gpr.R(a).offset + (u32)(s32)(s16)inst.SIMM_16);
 			} else if (inst.SIMM_16 == 0 && d != a && a != 0) {
-				gpr.Lock(a);
+				gpr.Lock(a, d);
 				gpr.LoadToX64(d, false, true);
 				MOV(32, gpr.R(d), gpr.R(a));
 				gpr.UnlockAll();
@@ -285,15 +285,16 @@ namespace Jit64
 		}
 		else
 		{
-			if (a != s && a != b) {
-				gpr.LoadToX64(a, false, true);
-			} else {
-				gpr.LoadToX64(a, true, true);
-			}
 			gpr.Lock(a, s, b);
-			MOV(32, R(EAX), gpr.R(s));
-			OR(32, R(EAX), gpr.R(b));
-			MOV(32, gpr.R(a), R(EAX));
+			gpr.LoadToX64(a, (a == s || a == b), true);
+			if (a == s) 
+				OR(32, gpr.R(a), gpr.R(b));
+			else if (a == b)
+				OR(32, gpr.R(a), gpr.R(s));
+			else {
+				MOV(32, gpr.R(a), gpr.R(b));
+				OR(32, gpr.R(a), gpr.R(s));
+			}
 			gpr.UnlockAll();
 		}
 
@@ -597,9 +598,12 @@ namespace Jit64
 		{
 			gpr.Lock(a, b, d);
 			gpr.LoadToX64(d, false);
-			gpr.LoadToX64(a, true, false);
-			gpr.LoadToX64(b, true, false);
-			LEA(32, gpr.RX(d), MComplex(gpr.RX(a), gpr.RX(b), 1, 0));
+			if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg()) {
+				LEA(32, gpr.RX(d), MComplex(gpr.RX(a), gpr.RX(b), 1, 0));
+			} else {
+				MOV(32, gpr.R(d), gpr.R(a));
+				ADD(32, gpr.R(d), gpr.R(b));
+			}
 			if (inst.Rc)
 			{
 				MOV(32, R(EAX), gpr.R(d));
@@ -835,7 +839,6 @@ namespace Jit64
 		gpr.Lock(a, b, s);
 		gpr.LoadToX64(a, a == s || a == b || s == b, true);
 		MOV(32, R(ECX), gpr.R(b));
-		AND(32, R(ECX), Imm8(63));
 		XOR(32, R(EAX), R(EAX));
 		TEST(32, R(ECX), Imm32(32));
 		FixupBranch branch = J_CC(CC_NZ);
@@ -866,7 +869,6 @@ namespace Jit64
 		gpr.Lock(a, b, s);
 		gpr.LoadToX64(a, a == s || a == b || s == b, true);
 		MOV(32, R(ECX), gpr.R(b));
-		AND(32, R(ECX), Imm8(63));
 		XOR(32, R(EAX), R(EAX));
 		TEST(32, R(ECX), Imm32(32));
 		FixupBranch branch = J_CC(CC_NZ);
@@ -878,6 +880,53 @@ namespace Jit64
 		gpr.UnlockAllX();
 		if (inst.Rc) 
 		{
+			MOV(32, R(EAX), gpr.R(a));
+			CALL((u8*)Asm::computeRc);
+		}
+	}
+
+	void srawx(UGeckoInstruction inst)
+	{
+#ifdef JIT_OFF_OPTIONS
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
+			{Default(inst); return;} // turn off from debugger
+#endif
+		INSTRUCTION_START;
+		int a = inst.RA;
+		int b = inst.RB;
+		int s = inst.RS;
+		gpr.Lock(a, s);
+		gpr.FlushLockX(ECX);
+		gpr.LoadToX64(a, a == s || a == b, true);
+		MOV(32, R(ECX), gpr.R(b));
+		TEST(32, R(ECX), Imm32(32));
+		FixupBranch topBitSet = J_CC(CC_NZ);
+		if (a != s)
+			MOV(32, gpr.R(a), gpr.R(s));
+		MOV(32, R(EAX), Imm32(1));
+		SHL(32, R(EAX), R(ECX));
+		ADD(32, R(EAX), Imm32(0x7FFFFFFF));
+		AND(32, R(EAX), gpr.R(a));
+		ADD(32, R(EAX), Imm32(-1));
+		CMP(32, R(EAX), Imm32(-1));
+		SETcc(CC_L, R(EAX));
+		SAR(32, gpr.R(a), R(ECX));
+		AND(32, M(&XER), Imm32(~(1 << 29)));
+		SHL(32, R(EAX), Imm8(29));
+		OR(32, M(&XER), R(EAX));
+		FixupBranch end = J();
+		SetJumpTarget(topBitSet);
+		MOV(32, R(EAX), gpr.R(s));
+		SAR(32, R(EAX), Imm8(31));
+		MOV(32, gpr.R(a), R(EAX));
+		AND(32, M(&XER), Imm32(~(1 << 29)));
+		AND(32, R(EAX), Imm32(1<<29));
+		OR(32, M(&XER), R(EAX));
+		SetJumpTarget(end);
+		gpr.UnlockAll();
+		gpr.UnlockAllX();
+
+		if (inst.Rc) {
 			MOV(32, R(EAX), gpr.R(a));
 			CALL((u8*)Asm::computeRc);
 		}

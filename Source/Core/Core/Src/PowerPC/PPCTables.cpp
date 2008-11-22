@@ -288,7 +288,7 @@ GekkoOPTemplate table31[] =
 	{922, Interpreter::extshx,  Jit64::extshx,   {"extshx", OPTYPE_INTEGER, FL_IN_A  | FL_OUT_S | FL_RC_BIT}},
 	{954, Interpreter::extsbx,  Jit64::extsbx,   {"extsbx", OPTYPE_INTEGER, FL_IN_A  | FL_OUT_S | FL_RC_BIT}},
 	{536, Interpreter::srwx,    Jit64::srwx,     {"srwx",   OPTYPE_INTEGER, FL_RC_BIT}},
-	{792, Interpreter::srawx,   Jit64::Default,  {"srawx",  OPTYPE_INTEGER, FL_RC_BIT}},
+	{792, Interpreter::srawx,   Jit64::srawx,  {"srawx",  OPTYPE_INTEGER, FL_RC_BIT}},
 	{824, Interpreter::srawix,  Jit64::srawix,   {"srawix", OPTYPE_INTEGER, FL_RC_BIT}},
 	{24,  Interpreter::slwx,    Jit64::slwx,     {"slwx",   OPTYPE_INTEGER, FL_RC_BIT}},
 
