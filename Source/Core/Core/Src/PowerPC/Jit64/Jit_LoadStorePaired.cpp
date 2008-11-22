@@ -37,18 +37,7 @@
 #include "JitAsm.h"
 #include "JitRegCache.h"
 
-#ifndef _WIN32
-// GCC won't obey alignment requirement :(
-#define INSTRUCTION_START Default(inst); return;
-#else
 #define INSTRUCTION_START
-#endif
-
-#ifdef _M_IX86
-#define DISABLE_32BIT Default(inst); return;
-#else
-#define DISABLE_32BIT ;
-#endif
 
 namespace Jit64 {
 
@@ -149,7 +138,6 @@ void psq_st(UGeckoInstruction inst)
 			{
 				PanicAlert("Imm: %08x", gpr.R(a).offset);
 			}
-			DISABLE_32BIT;
 			gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
 			gpr.Lock(a);
 			fpr.Lock(s);
@@ -166,10 +154,16 @@ void psq_st(UGeckoInstruction inst)
 			MOV(32, R(ABI_PARAM1), M(&temp64));
 			FixupBranch argh = J_CC(CC_NZ);
 			BSWAP(32, ABI_PARAM1);
+#ifdef _M_X64
 			MOV(32, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
+#else
+			MOV(32, R(EAX), R(ABI_PARAM2));
+			AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
+			MOV(32, MDisp(EAX, (u32)Memory::base), R(ABI_PARAM1));
+#endif
 			FixupBranch skip_call = J();
 			SetJumpTarget(argh);
-			CALL(ProtectFunction((void *)&Memory::Write_U32, 2));
+			ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
 			SetJumpTarget(skip_call);
 			gpr.UnlockAll();
 			gpr.UnlockAllX();
@@ -185,8 +179,6 @@ void psq_st(UGeckoInstruction inst)
 
 	if (stType == QUANTIZE_FLOAT)
 	{
-		DISABLE_32BIT;
-
 		if (gpr.R(a).IsImm() && !update && cpu_info.bSSSE3)
 		{
 			u32 addr = gpr.R(a).offset + offset;
@@ -214,6 +206,7 @@ void psq_st(UGeckoInstruction inst)
 		CVTPD2PS(XMM0, fpr.R(s));
 		SHUFPS(XMM0, R(XMM0), 1);
 		MOVQ_xmm(M(&temp64), XMM0);
+#ifdef _M_X64
 		MOV(64, R(ABI_PARAM1), M(&temp64));
 		FixupBranch argh = J_CC(CC_NZ);
 		BSWAP(64, ABI_PARAM1);
@@ -221,6 +214,23 @@ void psq_st(UGeckoInstruction inst)
 		FixupBranch arg2 = J();
 		SetJumpTarget(argh);
 		CALL(ProtectFunction((void *)&WriteDual32, 0));
+#else
+		FixupBranch argh = J_CC(CC_NZ);
+		MOV(32, R(ABI_PARAM1), M(((char*)&temp64)+4));
+		BSWAP(32, ABI_PARAM1);
+		AND(32, R(ABI_PARAM2), Imm32(Memory::MEMVIEW32_MASK));
+		MOV(32, MDisp(ABI_PARAM2, (u32)Memory::base), R(ABI_PARAM1));
+		MOV(32, R(ABI_PARAM1), M(&temp64));
+		BSWAP(32, ABI_PARAM1);
+		MOV(32, MDisp(ABI_PARAM2, 4+(u32)Memory::base), R(ABI_PARAM1));
+		FixupBranch arg2 = J();
+		SetJumpTarget(argh);
+		MOV(32, R(ABI_PARAM1), M(((char*)&temp64)+4));
+		ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
+		MOV(32, R(ABI_PARAM1), M(((char*)&temp64)));
+		ADD(32, R(ABI_PARAM2), Imm32(4));
+		ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
+#endif
 		SetJumpTarget(arg2);
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
