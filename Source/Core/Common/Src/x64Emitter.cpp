@@ -927,7 +927,7 @@ namespace Gen
 	void AND (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(bits, nrmAND, a1, a2);}
 	void OR  (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(bits, nrmOR , a1, a2);}
 	void XOR (int bits, const OpArg &a1, const OpArg &a2) {WriteNormalOp(bits, nrmXOR, a1, a2);}
-	inline void MOV (int bits, const OpArg &a1, const OpArg &a2) 
+	void MOV (int bits, const OpArg &a1, const OpArg &a2) 
 	{
 		_assert_msg_(DYNA_REC, !a1.IsSimpleReg() || !a2.IsSimpleReg() || a1.GetSimpleReg() != a2.GetSimpleReg(), "Redundant MOV @ %p", 
 					 code); 
@@ -1315,7 +1315,8 @@ namespace Gen
 		Write8(0x9B);
 	}
 
-	
+	void RTDSC() { Write8(0x0F); Write8(0x31); }
+
 	namespace Util
 	{
 

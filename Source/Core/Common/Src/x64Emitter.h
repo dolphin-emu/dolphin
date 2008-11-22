@@ -160,7 +160,7 @@ namespace Gen
 				return false;
 			return GetSimpleReg() == reg;
 		}
-		bool CanDoOpWith(OpArg &other) const
+		bool CanDoOpWith(const OpArg &other) const
 		{
 			if (IsSimpleReg()) return true;
 			if (!IsSimpleReg() && !other.IsSimpleReg() && !other.IsImm()) return false;
@@ -519,6 +519,8 @@ namespace Gen
 
 	void PMOVMSKB(X64Reg dest, OpArg arg);
 	void PSHUFB(X64Reg dest, OpArg arg);
+
+        void RTDSC();
 
 	namespace Util
 	{
