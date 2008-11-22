@@ -549,12 +549,12 @@ bool CISOProperties::SaveGameConfig()
 
 void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 {
-	if (wxFileExists(GameIniFile.c_str()))
+	if (wxFileExists(wxString::FromAscii(GameIniFile.c_str())))
 	{
 		SaveGameConfig();
 
 		wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_("ini"));
-		wxExecute(filetype->GetOpenCommand(_(GameIniFile.c_str())), wxEXEC_SYNC);
+		wxExecute(filetype->GetOpenCommand(wxString::FromAscii(GameIniFile.c_str())), wxEXEC_SYNC);
 
 		GameIni.Load(GameIniFile.c_str());
 		LoadGameConfig();
