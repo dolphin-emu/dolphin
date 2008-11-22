@@ -319,13 +319,6 @@ namespace Jit64
 #endif*/
 
 			//Still here? Do regular path.
-			#ifndef _WIN32
-			if(accessSize == 8)
-			{
-				Default(inst);
-				return;
-			}
-			#endif
 			gpr.Lock(s, a);
 			gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
 			MOV(32, R(ABI_PARAM2), gpr.R(a));
