@@ -92,14 +92,18 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	EVT_MENU(IDM_VIDEOWINDOW,		CCodeWindow::OnToggleVideoWindow)
 
 	EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnInterpreter) // CPU Mode
+	EVT_MENU(IDM_JITUNLIMITED,			CCodeWindow::OnJITOff)	
 	EVT_MENU(IDM_JITOFF,			CCodeWindow::OnJITOff)
-	EVT_MENU(IDM_JITLSOFF,			CCodeWindow::OnJITLSOff)
-	EVT_MENU(IDM_JITLSFOFF,			CCodeWindow::OnJITLSFOff)
-	EVT_MENU(IDM_JITLSPOFF,			CCodeWindow::OnJITLSPOff)
-	EVT_MENU(IDM_JITFPOFF,			CCodeWindow::OnJITFPOff)
-	EVT_MENU(IDM_JITIOFF,			CCodeWindow::OnJITIOff)
-	EVT_MENU(IDM_JITPOFF,			CCodeWindow::OnJITPOff)
-	EVT_MENU(IDM_JITSROFF,			CCodeWindow::OnJITSROff)
+	EVT_MENU(IDM_JITLSOFF,			CCodeWindow::OnJITOff)
+		EVT_MENU(IDM_JITLSLXZOFF,		CCodeWindow::OnJITOff)
+			EVT_MENU(IDM_JITLSLWZOFF,		CCodeWindow::OnJITOff)
+		EVT_MENU(IDM_JITLSLBZXOFF,		CCodeWindow::OnJITOff)
+	EVT_MENU(IDM_JITLSFOFF,			CCodeWindow::OnJITOff)
+	EVT_MENU(IDM_JITLSPOFF,			CCodeWindow::OnJITOff)
+	EVT_MENU(IDM_JITFPOFF,			CCodeWindow::OnJITOff)
+	EVT_MENU(IDM_JITIOFF,			CCodeWindow::OnJITOff)
+	EVT_MENU(IDM_JITPOFF,			CCodeWindow::OnJITOff)
+	EVT_MENU(IDM_JITSROFF,			CCodeWindow::OnJITOff)
 
 	EVT_MENU(IDM_CLEARSYMBOLS,      CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_LOADMAPFILE,       CCodeWindow::OnSymbolsMenu)
@@ -335,29 +339,19 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		pCoreMenu->AppendSeparator();
 
 #ifdef JIT_OFF_OPTIONS
+		jitunlimited = pCoreMenu->Append(IDM_JITUNLIMITED, _T("&Unlimited JIT Cache"), wxEmptyString, wxITEM_CHECK);
+		pCoreMenu->AppendSeparator();
 		jitoff = pCoreMenu->Append(IDM_JITOFF, _T("&JIT off (JIT core)"), wxEmptyString, wxITEM_CHECK);
-		jitoff->Check(_LocalCoreStartupParameter.bJITOff);
-
 		jitlsoff = pCoreMenu->Append(IDM_JITLSOFF, _T("&JIT LoadStore off"), wxEmptyString, wxITEM_CHECK);
-		jitlsoff->Check(_LocalCoreStartupParameter.bJITLoadStoreOff);
-
+			jitlslbzxoff = pCoreMenu->Append(IDM_JITLSLBZXOFF, _T("    &JIT LoadStore lbzx off"), wxEmptyString, wxITEM_CHECK);
+			jitlslxzoff = pCoreMenu->Append(IDM_JITLSLXZOFF, _T("    &JIT LoadStore lXz off"), wxEmptyString, wxITEM_CHECK);
+				jitlslwzoff = pCoreMenu->Append(IDM_JITLSLWZOFF, _T("        &JIT LoadStore lwz off"), wxEmptyString, wxITEM_CHECK);
 		jitlspoff = pCoreMenu->Append(IDM_JITLSFOFF, _T("&JIT LoadStore Floating off"), wxEmptyString, wxITEM_CHECK);
-		jitlspoff->Check(_LocalCoreStartupParameter.bJITLoadStoreFloatingOff);
-
 		jitlsfoff = pCoreMenu->Append(IDM_JITLSPOFF, _T("&JIT LoadStore Paired off"), wxEmptyString, wxITEM_CHECK);
-		jitlsfoff->Check(_LocalCoreStartupParameter.bJITLoadStorePairedOff);
-
 		jitfpoff = pCoreMenu->Append(IDM_JITFPOFF, _T("&JIT FloatingPoint off"), wxEmptyString, wxITEM_CHECK);
-		jitfpoff->Check(_LocalCoreStartupParameter.bJITFloatingPointOff);
-
 		jitioff = pCoreMenu->Append(IDM_JITIOFF, _T("&JIT Integer off"), wxEmptyString, wxITEM_CHECK);
-		jitioff->Check(_LocalCoreStartupParameter.bJITIntegerOff);
-
 		jitpoff = pCoreMenu->Append(IDM_JITPOFF, _T("&JIT Paired off"), wxEmptyString, wxITEM_CHECK);
-		jitpoff->Check(_LocalCoreStartupParameter.bJITPairedOff);
-
 		jitsroff = pCoreMenu->Append(IDM_JITSROFF, _T("&JIT SystemRegisters off"), wxEmptyString, wxITEM_CHECK);
-		jitsroff->Check(_LocalCoreStartupParameter.bJITSystemRegistersOff);
 #endif
 
 //		wxMenuItem* dualcore = pDebugMenu->Append(IDM_DUALCORE, _T("&DualCore"), wxEmptyString, wxITEM_CHECK);
@@ -459,43 +453,58 @@ void CCodeWindow::OnInterpreter(wxCommandEvent& event)
 		wxMessageBox(_T("Please pause the emulator before changing mode."));
 	}
 }
-void CCodeWindow::DoJITOff(wxCommandEvent& event, wxMenuItem* a, bool& b)
+
+
+void CCodeWindow::OnJITOff(wxCommandEvent& event)
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED)
 	{
 		// we disallow changing the status here because it will be reset to the defult when BootCore()
 		// creates the SCoreStartupParameter as a game is loaded
-		a->Check(!a->IsChecked());
+		GetMenuBar()->Check(event.GetId(),!event.IsChecked());
 		wxMessageBox(_T("Please start a game before changing mode."));	
 	} else {
 		if (Core::GetState() != Core::CORE_RUN)
 		{
-			b = !b;
+			switch (event.GetId())
+			{
+			case IDM_JITUNLIMITED:
+				Core::g_CoreStartupParameter.bJITUnlimitedCache = event.IsChecked();
+				Jit64::ClearCache(); // allow InitCache() even after the game has started
+				Jit64::InitCache();
+				GetMenuBar()->Enable(event.GetId(),!event.IsChecked());
+				break;
+			case IDM_JITOFF:
+				Core::g_CoreStartupParameter.bJITOff = event.IsChecked(); break;
+			case IDM_JITLSOFF:
+				Core::g_CoreStartupParameter.bJITLoadStoreOff = event.IsChecked(); break;
+				case IDM_JITLSLXZOFF:
+					Core::g_CoreStartupParameter.bJITLoadStorelXzOff = event.IsChecked(); break;
+					case IDM_JITLSLWZOFF:
+						Core::g_CoreStartupParameter.bJITLoadStorelwzOff = event.IsChecked(); break;
+				case IDM_JITLSLBZXOFF:
+					Core::g_CoreStartupParameter.bJITLoadStorelbzxOff = event.IsChecked(); break;
+			case IDM_JITLSFOFF:
+				Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff = event.IsChecked(); break;
+			case IDM_JITLSPOFF:
+				Core::g_CoreStartupParameter.bJITLoadStorePairedOff = event.IsChecked(); break;
+			case IDM_JITFPOFF:
+				Core::g_CoreStartupParameter.bJITFloatingPointOff = event.IsChecked(); break;
+			case IDM_JITIOFF:
+				Core::g_CoreStartupParameter.bJITIntegerOff = event.IsChecked(); break;
+			case IDM_JITPOFF:
+				Core::g_CoreStartupParameter.bJITPairedOff = event.IsChecked(); break;
+			case IDM_JITSROFF:
+				Core::g_CoreStartupParameter.bJITSystemRegistersOff = event.IsChecked(); break;
+			}
 			Jit64::ClearCache();			
 		} else {
 			//event.Skip(); // this doesn't work
-			a->Check(!a->IsChecked());
+			GetMenuBar()->Check(event.GetId(),!event.IsChecked());
 			wxMessageBox(_T("Please pause the emulator before changing mode."));		
 		}
 	}
 }
-
-void CCodeWindow::OnJITOff(wxCommandEvent& event) {DoJITOff(event, jitoff, 
-	Core::g_CoreStartupParameter.bJITOff);}
-void CCodeWindow::OnJITLSOff(wxCommandEvent& event) {DoJITOff(event, jitlsoff,
-	Core::g_CoreStartupParameter.bJITLoadStoreOff);}
-void CCodeWindow::OnJITLSFOff(wxCommandEvent& event) {DoJITOff(event, jitlsoff,
-	Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff);}
-void CCodeWindow::OnJITLSPOff(wxCommandEvent& event) {DoJITOff(event, jitlsoff,
-	Core::g_CoreStartupParameter.bJITLoadStorePairedOff);}
-void CCodeWindow::OnJITFPOff(wxCommandEvent& event) {DoJITOff(event, jitfpoff,
-	Core::g_CoreStartupParameter.bJITFloatingPointOff);}
-void CCodeWindow::OnJITIOff(wxCommandEvent& event) {DoJITOff(event, jitioff,
-	Core::g_CoreStartupParameter.bJITIntegerOff);}
-void CCodeWindow::OnJITPOff(wxCommandEvent& event) {DoJITOff(event, jitpoff,
-	Core::g_CoreStartupParameter.bJITPairedOff);}
-void CCodeWindow::OnJITSROff(wxCommandEvent& event) {DoJITOff(event, jitsroff,
-	Core::g_CoreStartupParameter.bJITSystemRegistersOff);}
 // ==============
 
 
@@ -970,7 +979,7 @@ void CCodeWindow::OnToggleVideoWindow(wxCommandEvent& event)
 {
 	bool show = GetMenuBar()->IsChecked(event.GetId());
 	//GetMenuBar()->Check(event.GetId(), false); // Turn off
-
+	
 	IniFile ini;
 	ini.Load(DEBUGGER_CONFIG_FILE);
 	ini.Set("ShowOnStart", "VideoWindow", show);

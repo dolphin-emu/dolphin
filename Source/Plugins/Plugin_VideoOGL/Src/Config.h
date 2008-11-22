@@ -62,7 +62,7 @@ struct Config
 	bool bDumpTextures;
 
 	// Hacks
-	bool bEBFToTextureDisable;
+	bool bEBFToTextureDisable; bool bEBFToTextureDisableHotKey;
 	bool bProjectionHax1;
 	bool bProjectionHax2;
 

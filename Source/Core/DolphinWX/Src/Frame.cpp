@@ -613,12 +613,19 @@ void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
+	// Toggle fullscreen from Alt + Enter or Esc
 	if (((event.GetKeyCode() == WXK_RETURN) && (event.GetModifiers() == wxMOD_ALT)) ||
 	    (event.GetKeyCode() == WXK_ESCAPE))
 	{
 		ShowFullScreen(!IsFullScreen());
 		UpdateGUI();
 	}
+#ifdef _WIN32
+	else if(event.GetKeyCode() == 'E') // Send this to the video plugin WndProc
+	{
+		PostMessage((HWND)Core::GetWindowHandle(), WM_KEYDOWN, event.GetKeyCode(), 0);
+	}
+#endif
 	else
 	{
 		event.Skip();

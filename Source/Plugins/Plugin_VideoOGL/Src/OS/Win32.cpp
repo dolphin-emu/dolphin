@@ -29,8 +29,9 @@
 #include "main.h"
 
 #include "Win32.h"
+#include "Render.h" // for AddMessage
 
-#include "IniFile.h" // we need this for the debugger to work
+#include "StringUtil.h" // for StringFromFormat
 
 void OpenConsole();
 void CloseConsole();
@@ -136,6 +137,14 @@ namespace EmuWindow
 				case MY_KEYS:
 				hypotheticalScene->sendMessage(KEYDOWN...);
 				*/
+			case 'E': // EFB hotkey
+				if(g_Config.bEBFToTextureDisableHotKey)
+				{
+					g_Config.bEBFToTextureDisable = !g_Config.bEBFToTextureDisable;
+					Renderer::AddMessage(StringFromFormat("Copy EFB was turned %s",
+						g_Config.bEBFToTextureDisable ? "off" : "on").c_str(), 5000);
+				}
+				break;
 			}
 			g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
 			break;

@@ -37,14 +37,16 @@ struct SCoreStartupParameter
 	// flags
 	bool bEnableDebugging;
 	bool bUseJIT;
-	bool bJITOff;
-	bool bJITLoadStoreOff;
+
+	bool bJITUnlimitedCache, bJITOff; // JIT
+	bool bJITLoadStoreOff, bJITLoadStorelXzOff, bJITLoadStorelwzOff, bJITLoadStorelbzxOff;
 	bool bJITLoadStoreFloatingOff;
 	bool bJITLoadStorePairedOff;
 	bool bJITFloatingPointOff;
 	bool bJITIntegerOff;
 	bool bJITPairedOff;
 	bool bJITSystemRegistersOff;
+
 	bool bUseDualCore;
 	bool bSkipIdle;
 	bool bNTSC;

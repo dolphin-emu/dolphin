@@ -109,7 +109,6 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate) {
 			Sleep(0);
 		}
 	} else {
-		wprintf("Tab");
 		return;
 	}
 #else

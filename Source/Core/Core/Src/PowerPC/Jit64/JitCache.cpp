@@ -50,11 +50,13 @@ namespace Jit64
 
 	enum 
 	{
-		CODE_SIZE = 1024*1024*8,
+		//CODE_SIZE = 1024*1024*8,
 		GEN_SIZE = 4096,
 		TRAMPOLINE_SIZE = 1024*1024,
-		MAX_NUM_BLOCKS = 65536,
+		//MAX_NUM_BLOCKS = 65536,
 	};
+	int CODE_SIZE = 1024*1024*8; // nonconstant to be able to have an option for it
+	int MAX_NUM_BLOCKS = 65536;
 
 	static u8 **blockCodePointers; // cut these in half and force below 2GB?
 
@@ -75,6 +77,12 @@ namespace Jit64
 
 	void InitCache()
 	{
+		if(Core::g_CoreStartupParameter.bJITUnlimitedCache)
+		{
+			CODE_SIZE *= 8;
+			MAX_NUM_BLOCKS *= 8;
+		}
+
 		codeCache    = (u8*)AllocateExecutableMemory(CODE_SIZE);
 		genFunctions = (u8*)AllocateExecutableMemory(GEN_SIZE);
 		trampolineCache = (u8*)AllocateExecutableMemory(TRAMPOLINE_SIZE);
@@ -103,6 +111,8 @@ namespace Jit64
 		numBlocks = 0;
 	}
 	
+	/* This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
+	   is full and when saving and loading states */
 	void ClearCache()
 	{
 		Core::DisplayMessage("Cleared code cache.", 3000);
@@ -165,6 +175,10 @@ namespace Jit64
 		if (GetCodePtr() >= codeCache + CODE_SIZE - 0x10000 || numBlocks >= MAX_NUM_BLOCKS - 1)
 		{
 			LOG(DYNA_REC, "JIT cache full - clearing.")
+			if(Core::g_CoreStartupParameter.bJITUnlimitedCache)
+			{
+				PanicAlert("What? JIT cache still full - clearing.");
+			}
 			ClearCache();
 		}
 

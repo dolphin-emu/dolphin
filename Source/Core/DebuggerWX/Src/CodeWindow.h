@@ -79,14 +79,15 @@ class CCodeWindow
 			IDM_CALLSLIST,
 			IDM_SYMBOLLIST,
 			IDM_INTERPRETER,
-			IDM_JITOFF, // jit
-			IDM_JITLSOFF,
-			IDM_JITLSPOFF,
-			IDM_JITLSFOFF,
+
+			IDM_JITUNLIMITED, IDM_JITOFF, // jit
+			IDM_JITLSOFF, IDM_JITLSLXZOFF, IDM_JITLSLWZOFF, IDM_JITLSLBZXOFF,
+			IDM_JITLSPOFF, IDM_JITLSFOFF,
 			IDM_JITIOFF,
 			IDM_JITFPOFF,
 			IDM_JITPOFF,
 			IDM_JITSROFF,
+
 			IDM_DUALCORE,
 			IDM_LOGWINDOW,
 			IDM_REGISTERWINDOW,
@@ -129,8 +130,8 @@ class CCodeWindow
 		CMemoryWindow* m_MemoryWindow;
 		CJitWindow* m_JitWindow;
 
-		wxMenuItem* jitoff;
-		wxMenuItem* jitlsoff;
+		wxMenuItem* jitunlimited, *jitoff;
+		wxMenuItem* jitlsoff, *jitlslxzoff, *jitlslwzoff, *jitlslbzxoff;
 		wxMenuItem* jitlspoff;
 		wxMenuItem* jitlsfoff;
 		wxMenuItem* jitfpoff;
@@ -175,15 +176,7 @@ class CCodeWindow
 		void OnProfilerMenu(wxCommandEvent& event);
 
 		void OnInterpreter(wxCommandEvent& event); // cpu mode menu
-		void OnJITOff(wxCommandEvent& event);
-		void OnJITLSOff(wxCommandEvent& event);
-		void OnJITLSPOff(wxCommandEvent& event);
-		void OnJITLSFOff(wxCommandEvent& event);
-		void OnJITFPOff(wxCommandEvent& event);
-		void OnJITIOff(wxCommandEvent& event);
-		void OnJITPOff(wxCommandEvent& event);
-		void OnJITSROff(wxCommandEvent& event);
-		void DoJITOff(wxCommandEvent& event, wxMenuItem* a, bool& b);		
+		void OnJITOff(wxCommandEvent& event);	
 
 		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter);
 

@@ -111,7 +111,7 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 	ratioFactor = 32000.0f / 44100.0f;
 #endif
 
-	if(!Wii) DoVoiceHacks(pb);
+	DoVoiceHacks(pb, Wii);
 
 	// =============
 	if (pb.running)
@@ -148,7 +148,7 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 		//if (pb.src_type == 2 && (pb.src.ratio_hi == 0 && pb.src.ratio_lo == 0))
 		if (pb.running && (pb.src.ratio_hi == 0 && pb.src.ratio_lo == 0))
 		{
-			pb.src.ratio_hi = 1;
+			//pb.src.ratio_hi = 1;
 		}
 		// =============
 
@@ -299,7 +299,7 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 // Voice hacks
 // --------------
 template<class ParamBlockType>
-inline void DoVoiceHacks(ParamBlockType &pb)
+inline void DoVoiceHacks(ParamBlockType &pb, bool Wii)
 {
 	// get necessary values
 	const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
@@ -317,6 +317,7 @@ inline void DoVoiceHacks(ParamBlockType &pb)
 	if (
 		(sampleEnd > (0x017fffff * 2) || loopPos > (0x017fffff * 2)) // ARAM bounds in nibbles
 		&& gSSBMremedy1
+		&& !Wii
 		)
 	{
 		pb.running = 0;
@@ -356,6 +357,7 @@ inline void DoVoiceHacks(ParamBlockType &pb)
 	&& pb.mixer_control == 0 // only use this in SSBM
 
 	&& gSSBMremedy2 // let us turn this fix on and off
+	&& !Wii
 	)
 	{
 		// reset the detection values

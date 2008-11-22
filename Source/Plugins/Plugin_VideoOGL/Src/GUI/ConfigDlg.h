@@ -93,7 +93,7 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_DisableTexturing;
 		wxCheckBox *m_DumpTextures;
 		wxDirPickerCtrl *m_TexturePath;
-		wxCheckBox *m_EFBToTextureDisable;
+		wxCheckBox *m_EFBToTextureDisable, *m_EFBToTextureDisableHotKey;
 		wxCheckBox *m_ProjectionHax1;
 		wxCheckBox *m_ProjectionHax2;
 
@@ -135,7 +135,7 @@ class ConfigDialog : public wxDialog
 			ID_DUMPTEXTURES,
 			ID_TEXTUREPATH,
 
-			ID_EFBTOTEXTUREDISABLE,
+			ID_EFBTOTEXTUREDISABLE, ID_EFBTOTEXTUREDISABLEHOTKEY,
 			ID_PROJECTIONHACK1,
 			ID_PROJECTIONHACK2
 		};

@@ -97,7 +97,12 @@ void ConfigDialog::CreateGUIControls()
 	m_Fullscreen->SetValue(g_Config.bFullscreen);
 	m_RenderToMainWindow = new wxCheckBox(m_PageGeneral, ID_RENDERTOMAINWINDOW, wxT("Render to main window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_RenderToMainWindow->SetValue(g_Config.renderToMainframe);
-	m_StretchToFit = new wxCheckBox(m_PageGeneral, ID_STRETCHTOFIT, wxT("Stretch to fit (instead of changing res.)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_StretchToFit = new wxCheckBox(m_PageGeneral, ID_STRETCHTOFIT, wxT("Stretch to fit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_StretchToFit->SetToolTip
+		("This will use the game's native resolution and stretch it to fill the"
+		"\nwindow instead of changing the internal display resolution. It"
+		"\nmay result in a slightly blurrier image, but it may also give a higher"
+		"\nFPS if you have a slow graphics card.");
 	m_StretchToFit->SetValue(g_Config.bStretchToFit);
 	m_KeepAR = new wxCheckBox(m_PageGeneral, ID_KEEPAR, wxT("Keep 4:3 aspect ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_KeepAR->SetValue(g_Config.bKeepAR);
@@ -188,11 +193,20 @@ void ConfigDialog::CreateGUIControls()
 
 	// Hacks
 	sbHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
-	m_EFBToTextureDisable = new wxCheckBox(m_PageAdvanced, ID_EFBTOTEXTUREDISABLE, wxT("Disable copy EFB to texture"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_EFBToTextureDisable = new wxCheckBox(m_PageAdvanced,
+		ID_EFBTOTEXTUREDISABLE, wxT("Disable copy EFB to texture"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_EFBToTextureDisable->SetToolTip("Do not copy the Embedded Framebuffer (EFB)"
+		" to the\nTexture. This may result in a speed increase.");
 	m_EFBToTextureDisable->Enable(true);
 	m_EFBToTextureDisable->SetValue(g_Config.bEBFToTextureDisable);
+	m_EFBToTextureDisableHotKey = new wxCheckBox(m_PageAdvanced,
+		ID_EFBTOTEXTUREDISABLEHOTKEY, wxT("with hotkey E"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_EFBToTextureDisableHotKey->SetToolTip("Use the E key to turn this option on and off");
+	m_EFBToTextureDisableHotKey->SetValue(g_Config.bEBFToTextureDisableHotKey);
 
 	m_ProjectionHax1 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK1, wxT("Projection before R945"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ProjectionHax1->SetToolTip("This may reveal otherwise invisible graphics"
+		" in\ngames like Mario Galaxy or Ikaruga.");
 	m_ProjectionHax1->Enable(true);
 	m_ProjectionHax1->SetValue(g_Config.bProjectionHax1);
 
@@ -226,6 +240,7 @@ void ConfigDialog::CreateGUIControls()
 
 	sHacks = new wxGridBagSizer(0, 0);
 	sHacks->Add(m_EFBToTextureDisable, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
+	sHacks->Add(m_EFBToTextureDisableHotKey, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
 	sHacks->Add(m_ProjectionHax1, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
 	sHacks->Add(m_ProjectionHax2, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 	sbHacks->Add(sHacks);
@@ -288,7 +303,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_STRETCHTOFIT:
 		g_Config.bStretchToFit = m_StretchToFit->IsChecked();
 		break;
-	case ID_KEEPAR:
+	case ID_KEEPAR:		
 		g_Config.bKeepAR = m_KeepAR->IsChecked();
 		break;
 	case ID_HIDECURSOR:
@@ -354,6 +369,9 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_EFBTOTEXTUREDISABLE:
 		g_Config.bEBFToTextureDisable = m_EFBToTextureDisable->IsChecked();
+		break;
+	case ID_EFBTOTEXTUREDISABLEHOTKEY:
+		g_Config.bEBFToTextureDisableHotKey = m_EFBToTextureDisableHotKey->IsChecked();
 		break;
 	case ID_PROJECTIONHACK1:
 		g_Config.bProjectionHax1 = m_ProjectionHax1->IsChecked();

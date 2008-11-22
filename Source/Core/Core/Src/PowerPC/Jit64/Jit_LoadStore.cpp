@@ -55,7 +55,8 @@ namespace Jit64
 	void lbzx(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff
+			|| Core::g_CoreStartupParameter.bJITLoadStorelbzxOff)
 			{Default(inst); return;} // turn off from debugger	
 #endif
 		INSTRUCTION_START;
@@ -80,11 +81,12 @@ namespace Jit64
 	void lXz(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff
+			|| Core::g_CoreStartupParameter.bJITLoadStorelXzOff)
 			{Default(inst); return;} // turn off from debugger	
 #endif
 		INSTRUCTION_START;
-
+		
 		int d = inst.RD;
 		int a = inst.RA;
 
@@ -125,10 +127,16 @@ namespace Jit64
 		int accessSize;
 		switch (inst.OPCD)
 		{
-		case 32: accessSize = 32; break; //lwz
+		case 32:
+			accessSize = 32;
+			if(Core::g_CoreStartupParameter.bJITLoadStorelwzOff) {Default(inst); return;}
+			break; //lwz	
 		case 40: accessSize = 16; break; //lhz
 		case 34: accessSize = 8;  break; //lbz
-		default: _assert_msg_(DYNA_REC, 0, "lXz: invalid access size"); return;
+		default:
+			//_assert_msg_(DYNA_REC, 0, "lXz: invalid access size");
+			PanicAlert("lXz: invalid access size");
+			return;
 		}
 
 		//Still here? Do regular path.

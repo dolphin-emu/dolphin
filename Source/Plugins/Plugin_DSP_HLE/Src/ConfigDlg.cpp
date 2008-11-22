@@ -50,6 +50,24 @@ CConfigDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BO
 	m_comboSampleRate.AddString("48000");
 	m_comboSampleRate.SetCurSel(g_Config.m_SampleRate == 44100 ? 0 : 1);
 
+	// Add tooltips
+	CToolTipCtrl ToolTips;
+	ToolTips.Create(m_hWnd);
+	ToolTips.Activate(true);
+	ToolTips.SetMaxTipWidth(200); // limit the width
+	ToolTips.SetDelayTime(TTDT_AUTOPOP, 20 * 1000); // give us time to read it
+	CToolInfo tiHLE(TTF_SUBCLASS, m_buttonEnableHLEAudio, 0, NULL,
+		"This is the most common sound type");
+	CToolInfo tiDTK(TTF_SUBCLASS, m_buttonEnableDTKMusic, 0, NULL,
+		"This is sometimes used to play music tracks from the disc");
+	CToolInfo tiOther(TTF_SUBCLASS, m_buttonEnableThrottle, 0, NULL,
+		"This is sometimes used together with pre-rendered movies. Disabling this"
+		" also disables the speed throttle that is causes. Meaning that"
+		" there will be no upper limit on your FPS.");
+	ToolTips.AddTool(tiHLE);
+	ToolTips.AddTool(tiDTK);
+	ToolTips.AddTool(tiOther);
+
 	return(TRUE);
 }
 
