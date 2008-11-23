@@ -705,18 +705,6 @@
 			</Filter>
 		</Filter>
 		<Filter
-			Name="AboutDialog"
-			>
-			<File
-				RelativePath=".\Src\AboutDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\AboutDlg.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="ConfigDialog"
 			>
 			<File

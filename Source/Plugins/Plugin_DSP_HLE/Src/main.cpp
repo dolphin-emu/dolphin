@@ -22,7 +22,6 @@
 
 #ifdef _WIN32
 #include "PCHW/DSoundStream.h"
-#include "AboutDlg.h"
 #include "ConfigDlg.h"
 #else
 #include "PCHW/AOSoundStream.h"
@@ -186,10 +185,6 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 
 void DllAbout(HWND _hParent)
 {
-#ifdef _WIN32
-	CAboutDlg aboutDlg;
-	aboutDlg.DoModal(_hParent);
-#endif
 }
 
 void DllConfig(HWND _hParent)

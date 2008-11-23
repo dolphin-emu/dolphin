@@ -4,7 +4,6 @@
 //
 #define IDD_SETTINGS                    101
 #define IDD_DIALOG2                     102
-#define IDD_ABOUT                       102
 #define IDC_COMBO1                      1001
 #define IDC_SAMPLERATE                  1001
 #define IDC_EDIT1                       1002

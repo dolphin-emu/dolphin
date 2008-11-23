@@ -65,16 +65,6 @@ BEGIN
     CONTROL         "Enable Other Audio",IDC_ENABLE_THROTTLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,50,94,10
 END
 
-IDD_ABOUT DIALOGEX 0, 0, 184, 65
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "About Dolphin DSP-HLE Plugin"
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,127,44,50,14
-    LTEXT           "Coded by ector and F|RES",IDC_STATIC,51,25,104,14
-    LTEXT           "Dolphin DSP-HLE plugin",IDC_STATIC,51,7,104,14
-END
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -92,14 +82,6 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 79
         HORZGUIDE, 31
-    END
-
-    IDD_ABOUT, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 177
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 58
     END
 END
 #endif    // APSTUDIO_INVOKED
