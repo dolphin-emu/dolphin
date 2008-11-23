@@ -52,7 +52,6 @@
 #include "Debugger/Debugger.h" // for the CDebugger class
 #endif
 SVideoInitialize g_VideoInitialize;
-#define VERSION_STRING "0.7"
 
 
 /* Create debugging window. There's currently a strange crash that occurs whe a game is loaded
@@ -95,12 +94,12 @@ void GetDllInfo (PLUGIN_INFO* _PluginInfo)
     _PluginInfo->Version = 0x0100;
     _PluginInfo->Type = PLUGIN_TYPE_VIDEO;
 #ifdef DEBUGFAST 
-    sprintf(_PluginInfo->Name, "Dolphin OGL (DebugFast) " VERSION_STRING);
+    sprintf(_PluginInfo->Name, "Dolphin OpenGL (DebugFast)");
 #else
 #ifndef _DEBUG
-    sprintf(_PluginInfo->Name, "Dolphin OGL " VERSION_STRING);
+    sprintf(_PluginInfo->Name, "Dolphin OpenGL");
 #else
-    sprintf(_PluginInfo->Name, "Dolphin OGL (Debug) " VERSION_STRING);
+    sprintf(_PluginInfo->Name, "Dolphin OpenGL (Debug)");
 #endif
 #endif
 }
@@ -225,7 +224,7 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
     _pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
     _pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
 
-	Renderer::AddMessage("Dolphin OpenGL Video Plugin v" VERSION_STRING ,5000);
+	Renderer::AddMessage("Dolphin OpenGL Video Plugin" ,5000);
 }
 
 void Video_DoState(unsigned char **ptr, int mode) {
@@ -310,7 +309,7 @@ bool ScreenShot(TCHAR *File)
 {
     char str[64];
     int left = 200, top = 15;
-    sprintf(str, "Dolphin OGL " VERSION_STRING);
+    sprintf(str, "Dolphin OpenGL");
 
     Renderer::ResetGLState();
     Renderer::RenderText(str, left+1, top+1, 0xff000000);
