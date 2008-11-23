@@ -33,7 +33,6 @@
 #include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
 
 SWiimoteInitialize g_WiimoteInitialize;
-#define VERSION_STRING "0.1"
 
 bool g_UseRealWiiMote = false;
 
@@ -87,12 +86,12 @@ extern "C" void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_WIIMOTE;
 #ifdef DEBUGFAST 
-	sprintf(_PluginInfo->Name, "Wiimote Plug-in (DebugFast) " VERSION_STRING);
+	sprintf(_PluginInfo->Name, "Wiimote Plug-in (DebugFast)");
 #else
 #ifndef _DEBUG
-	sprintf(_PluginInfo->Name, "Wiimote Plug-in " VERSION_STRING);
+	sprintf(_PluginInfo->Name, "Wiimote Plug-in");
 #else
-	sprintf(_PluginInfo->Name, "Wiimote Plug-in (Debug) " VERSION_STRING);
+	sprintf(_PluginInfo->Name, "Wiimote Plug-in (Debug)");
 #endif
 #endif
 }
