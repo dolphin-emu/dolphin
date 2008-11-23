@@ -102,7 +102,6 @@ bool LoadPlugin(const char *_Filename)
 		Video_DoState      = reinterpret_cast<TVideo_DoState>      (plugin.Get("Video_DoState"));
         Video_Stop         = reinterpret_cast<TVideo_Stop>         (plugin.Get("Video_Stop"));
 		if ((GetDllInfo != 0) &&
-			//(DllAbout != 0) &&
 			(DllConfig != 0) &&
 			(DllDebugger != 0) &&
 			(Video_Initialize != 0) &&

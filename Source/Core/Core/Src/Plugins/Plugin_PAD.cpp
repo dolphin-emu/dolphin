@@ -24,7 +24,6 @@ namespace PluginPAD
 // Function Pointers
 TGetDllInfo		GetDllInfo = 0;
 TPAD_Shutdown	PAD_Shutdown = 0;
-//TDllAbout		DllAbout = 0;
 TDllConfig		DllConfig = 0;
 TPAD_Initialize PAD_Initialize = 0;
 TPAD_GetStatus	PAD_GetStatus = 0;
@@ -45,7 +44,6 @@ void UnloadPlugin()
 	// Set Functions to 0
 	GetDllInfo = 0;
 	PAD_Shutdown = 0;
-	//DllAbout = 0;
 	DllConfig = 0;
 	PAD_Initialize = 0;
 	PAD_GetStatus = 0;

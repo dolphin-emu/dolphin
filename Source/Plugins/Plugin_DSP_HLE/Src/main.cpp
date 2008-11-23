@@ -183,10 +183,6 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 #endif
 }
 
-void DllAbout(HWND _hParent)
-{
-}
-
 void DllConfig(HWND _hParent)
 {
 #ifdef _WIN32

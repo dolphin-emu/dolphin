@@ -24,7 +24,6 @@ namespace PluginDVD
 
 //! Function Types
 typedef void (__cdecl* TGetDllInfo)		(PLUGIN_INFO*);
-typedef void (__cdecl* TDllAbout)		(HWND);
 typedef void (__cdecl* TDllConfig)		(HWND);
 typedef void (__cdecl* TDVD_Initialize)	(SDVDInitialize);
 typedef void (__cdecl* TDVD_Shutdown)	();
@@ -36,7 +35,6 @@ typedef u32 (__cdecl* TDVD_Read32) (u64);
 
 //! Function Pointer
 TGetDllInfo     g_GetDllInfo        = NULL;
-TDllAbout       g_DllAbout          = NULL;
 TDllConfig      g_DllConfig         = NULL;
 TDVD_Initialize g_DVD_Initialize    = NULL;
 TDVD_Shutdown   g_DVD_Shutdown      = NULL;
@@ -62,7 +60,6 @@ bool LoadPlugin(const char *_strFilename)
 	if (g_hLibraryInstance)
 	{
 		g_GetDllInfo		= reinterpret_cast<TGetDllInfo>     (GetProcAddress(g_hLibraryInstance, "GetDllInfo"));
-		g_DllAbout			= reinterpret_cast<TDllAbout>       (GetProcAddress(g_hLibraryInstance, "DllAbout"));
 		g_DllConfig			= reinterpret_cast<TDllConfig>      (GetProcAddress(g_hLibraryInstance, "DllConfig"));
 		g_DVD_Initialize	= reinterpret_cast<TDVD_Initialize> (GetProcAddress(g_hLibraryInstance, "DVD_Initialize"));
 		g_DVD_Shutdown		= reinterpret_cast<TDVD_Shutdown>   (GetProcAddress(g_hLibraryInstance, "DVD_Shutdown"));
@@ -73,7 +70,6 @@ bool LoadPlugin(const char *_strFilename)
         g_DVD_IsValid		= reinterpret_cast<TDVD_IsValid>     (GetProcAddress(g_hLibraryInstance, "DVD_IsValid"));
 
 		if ((g_GetDllInfo != NULL) &&
-			(g_DllAbout != NULL) &&
 			(g_DllConfig != NULL) &&
 			(g_DVD_Initialize != NULL) &&
 			(g_DVD_Shutdown != NULL) &&
@@ -99,7 +95,6 @@ void UnloadPlugin()
 {
 	// Set Functions to NULL
 	g_GetDllInfo = NULL;
-	g_DllAbout = NULL;
 	g_DllConfig = NULL;
 	g_DVD_Initialize = NULL;
 	g_DVD_Shutdown = NULL;
@@ -123,11 +118,6 @@ void UnloadPlugin()
 void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
 	g_GetDllInfo(_PluginInfo);
-}
-
-void DllAbout(HWND _hParent)
-{
-	g_DllAbout(_hParent);
 }
 
 void DllConfig(HWND _hParent)

@@ -39,9 +39,6 @@ void UnloadPlugin();
 //! GetDllInfo
 void GetDllInfo(PLUGIN_INFO* _PluginInfo) ;
 
-//! DllAbout
-void DllAbout(HWND _hParent);
-
 //! DllConfig
 void DllConfig(HWND _hParent);
 
