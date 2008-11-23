@@ -703,10 +703,11 @@ void PPCTables::PrintInstructionRunCounts()
 	}
 }
 
+//TODO move to LogManager
 void PPCTables::LogCompiledInstructions()
 {
 	static int time = 0;
-	FILE *f = fopen(StringFromFormat("inst_log%i.txt", time).c_str(), "w");
+	FILE *f = fopen(StringFromFormat(FULL_LOGS_DIR "inst_log%i.txt", time).c_str(), "w");
 	for (int i = 0; i < m_numInstructions; i++)
 	{
 		if (m_allInstructions[i]->compileCount > 0) {
@@ -714,7 +715,7 @@ void PPCTables::LogCompiledInstructions()
 		}
 	}
 	fclose(f);
-	f = fopen(StringFromFormat("inst_not%i.txt", time).c_str(), "w");
+	f = fopen(StringFromFormat(FULL_LOGS_DIR "inst_not%i.txt", time).c_str(), "w");
 	for (int i = 0; i < m_numInstructions; i++)
 	{
 		if (m_allInstructions[i]->compileCount == 0) {
@@ -722,7 +723,7 @@ void PPCTables::LogCompiledInstructions()
 		}
 	}
 	fclose(f);
-	f = fopen(StringFromFormat("mcrfs_at.txt", time).c_str(), "w");
+	f = fopen(StringFromFormat(FULL_LOGS_DIR "mcrfs_at.txt", time).c_str(), "w");
 	for (size_t i = 0; i < rsplocations.size(); i++) {
 		fprintf(f, "mcrfs: %08x\n", rsplocations[i]);
 	}
