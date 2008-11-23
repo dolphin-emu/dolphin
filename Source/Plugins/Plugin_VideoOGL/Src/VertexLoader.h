@@ -67,7 +67,7 @@ private:
 		NRM_THREE = 3,
 	};
 
-	int m_VertexSize;      // number of bytes of a raw GC vertex
+	int m_VertexSize;      // number of bytes of a raw GC vertex. Computed by CompileVertexTranslator.
 
 	// GC vertex format
 	TVtxAttr m_VtxAttr;  // VAT decoded into easy format
@@ -86,7 +86,6 @@ private:
 
 	void SetVAT(u32 _group0, u32 _group1, u32 _group2);
 
-	int ComputeVertexSize();
 	void CompileVertexTranslator();
 
 	void WriteCall(TPipelineFunction);

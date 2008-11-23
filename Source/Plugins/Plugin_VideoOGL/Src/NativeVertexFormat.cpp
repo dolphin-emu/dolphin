@@ -70,7 +70,6 @@ inline GLuint VarToGL(VarType t)
 {
 	static const GLuint lookup[5] = {GL_BYTE, GL_UNSIGNED_BYTE, GL_SHORT, GL_UNSIGNED_SHORT, GL_FLOAT};
 	return lookup[t];
-	return 0;
 }
 
 void NativeVertexFormat::Initialize(const PortableVertexDeclaration &vtx_decl)

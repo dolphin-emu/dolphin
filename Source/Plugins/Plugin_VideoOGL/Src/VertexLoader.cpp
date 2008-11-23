@@ -107,7 +107,6 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	m_VtxDesc = vtx_desc;
 	SetVAT(vtx_attr.g0.Hex, vtx_attr.g1.Hex, vtx_attr.g2.Hex);
 
-	ComputeVertexSize();
 	CompileVertexTranslator();
 }
 
@@ -116,120 +115,16 @@ VertexLoader::~VertexLoader()
 	delete m_NativeFmt;
 }
 
-int VertexLoader::ComputeVertexSize()
+void VertexLoader::CompileVertexTranslator()
 {
 	m_VertexSize = 0;
-	// Position Matrix Index
-	if (m_VtxDesc.PosMatIdx)
-		m_VertexSize += 1;
 
-	// Texture matrix indices
-	if (m_VtxDesc.Tex0MatIdx) m_VertexSize += 1;
-	if (m_VtxDesc.Tex1MatIdx) m_VertexSize += 1;
-	if (m_VtxDesc.Tex2MatIdx) m_VertexSize += 1;
-	if (m_VtxDesc.Tex3MatIdx) m_VertexSize += 1;
-	if (m_VtxDesc.Tex4MatIdx) m_VertexSize += 1;
-	if (m_VtxDesc.Tex5MatIdx) m_VertexSize += 1;
-	if (m_VtxDesc.Tex6MatIdx) m_VertexSize += 1;
-	if (m_VtxDesc.Tex7MatIdx) m_VertexSize += 1;
-	
-	switch (m_VtxDesc.Position) {
-	case NOT_PRESENT:	{_assert_("Vertex descriptor without position!");} break;
-	case DIRECT:
-		{
-			switch (m_VtxAttr.PosFormat) {
-			case FORMAT_UBYTE:
-			case FORMAT_BYTE: m_VertexSize += m_VtxAttr.PosElements?3:2; break;
-			case FORMAT_USHORT:
-			case FORMAT_SHORT: m_VertexSize += m_VtxAttr.PosElements?6:4; break;
-			case FORMAT_FLOAT: m_VertexSize += m_VtxAttr.PosElements?12:8; break;
-			default: _assert_(0); break;
-			}
-		}
-		break;
-	case INDEX8:		
-		m_VertexSize += 1;
-		break;
-	case INDEX16:
-		m_VertexSize += 2;
-		break;
-	}
-
-	if (m_VtxDesc.Normal != NOT_PRESENT)
-		m_VertexSize += VertexLoader_Normal::GetSize(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
-	
 	// Colors
-	int col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
-	for (int i = 0; i < 2; i++) {
-		switch (col[i])
-		{
-		case NOT_PRESENT: 
-			break;
-		case DIRECT:
-			switch (m_VtxAttr.color[i].Comp)
-			{
-			case FORMAT_16B_565:	m_VertexSize += 2; break;
-			case FORMAT_24B_888:	m_VertexSize += 3; break;
-			case FORMAT_32B_888x:	m_VertexSize += 4; break;
-			case FORMAT_16B_4444:	m_VertexSize += 2; break;
-			case FORMAT_24B_6666:	m_VertexSize += 3; break;
-			case FORMAT_32B_8888:	m_VertexSize += 4; break;
-			default: _assert_(0); break;
-			}									    
-			break;
-		case INDEX8:	
-			m_VertexSize += 1;
-			break;
-		case INDEX16:
-			m_VertexSize += 2;
-			break;
-		}   
-	}
-
+	const int col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
 	// TextureCoord
 	// Since m_VtxDesc.Text7Coord is broken across a 32 bit word boundary, retrieve its value manually.
 	// If we didn't do this, the vertex format would be read as one bit offset from where it should be, making
 	// 01 become 00, and 10/11 become 01
-	int tc[8] = {
-		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord,
-		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, (m_VtxDesc.Hex >> 31) & 3
-	};
-	
-	for (int i = 0; i < 8; i++) {
-		switch (tc[i]) {
-		case NOT_PRESENT: 
-			break;
-		case DIRECT: 
-			{
-				switch (m_VtxAttr.texCoord[i].Format)
-				{
-				case FORMAT_UBYTE:
-				case FORMAT_BYTE: m_VertexSize += m_VtxAttr.texCoord[i].Elements?2:1; break;
-				case FORMAT_USHORT:
-				case FORMAT_SHORT: m_VertexSize += m_VtxAttr.texCoord[i].Elements?4:2; break;
-				case FORMAT_FLOAT: m_VertexSize += m_VtxAttr.texCoord[i].Elements?8:4; break;
-				default: _assert_(0); break;
-				}
-			}
-			break;
-		case INDEX8:	
-			m_VertexSize += 1;
-			break;
-		case INDEX16:
-			m_VertexSize += 2;
-			break;
-		}
-	}
-
-	return m_VertexSize;
-}
-
-
-void VertexLoader::CompileVertexTranslator()
-{
-	// Colors
-	const int col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
-	// TextureCoord
 	const int tc[8] = {
 		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord,
 		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, (m_VtxDesc.Hex >> 31) & 3
@@ -251,16 +146,17 @@ void VertexLoader::CompileVertexTranslator()
 	if (m_VtxDesc.PosMatIdx) {
 		m_PipelineStages[m_numPipelineStages++] = PosMtx_ReadDirect_UByte;
 		m_NativeFmt->m_components |= VB_HAS_POSMTXIDX;
+		m_VertexSize += 1;
 	}
 
-	if (m_VtxDesc.Tex0MatIdx) {m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX0; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex1MatIdx) {m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX1; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex2MatIdx) {m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX2; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex3MatIdx) {m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX3; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex4MatIdx) {m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX4; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex5MatIdx) {m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX5; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex6MatIdx) {m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX6; WriteCall(TexMtx_ReadDirect_UByte); }
-	if (m_VtxDesc.Tex7MatIdx) {m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX7; WriteCall(TexMtx_ReadDirect_UByte); }
+	if (m_VtxDesc.Tex0MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX0; WriteCall(TexMtx_ReadDirect_UByte); }
+	if (m_VtxDesc.Tex1MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX1; WriteCall(TexMtx_ReadDirect_UByte); }
+	if (m_VtxDesc.Tex2MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX2; WriteCall(TexMtx_ReadDirect_UByte); }
+	if (m_VtxDesc.Tex3MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX3; WriteCall(TexMtx_ReadDirect_UByte); }
+	if (m_VtxDesc.Tex4MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX4; WriteCall(TexMtx_ReadDirect_UByte); }
+	if (m_VtxDesc.Tex5MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX5; WriteCall(TexMtx_ReadDirect_UByte); }
+	if (m_VtxDesc.Tex6MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX6; WriteCall(TexMtx_ReadDirect_UByte); }
+	if (m_VtxDesc.Tex7MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX7; WriteCall(TexMtx_ReadDirect_UByte); }
 
 	// Position
 	if (m_VtxDesc.Position != NOT_PRESENT) {
@@ -273,11 +169,11 @@ void VertexLoader::CompileVertexTranslator()
 	case DIRECT:
 		{
 			switch (m_VtxAttr.PosFormat) {
-			case FORMAT_UBYTE:	WriteCall(Pos_ReadDirect_UByte);  break;
-			case FORMAT_BYTE:	WriteCall(Pos_ReadDirect_Byte);   break;
-			case FORMAT_USHORT:	WriteCall(Pos_ReadDirect_UShort); break;
-			case FORMAT_SHORT:	WriteCall(Pos_ReadDirect_Short);  break;
-			case FORMAT_FLOAT:	WriteCall(Pos_ReadDirect_Float);  break;
+	        case FORMAT_UBYTE:  m_VertexSize += m_VtxAttr.PosElements?3:2; WriteCall(Pos_ReadDirect_UByte);  break;
+			case FORMAT_BYTE:   m_VertexSize += m_VtxAttr.PosElements?3:2; WriteCall(Pos_ReadDirect_Byte);   break;
+			case FORMAT_USHORT: m_VertexSize += m_VtxAttr.PosElements?6:4; WriteCall(Pos_ReadDirect_UShort); break;
+			case FORMAT_SHORT:  m_VertexSize += m_VtxAttr.PosElements?6:4; WriteCall(Pos_ReadDirect_Short);  break;
+			case FORMAT_FLOAT:  m_VertexSize += m_VtxAttr.PosElements?12:8; WriteCall(Pos_ReadDirect_Float);  break;
 			default: _assert_(0); break;
 			}
 		}
@@ -291,6 +187,7 @@ void VertexLoader::CompileVertexTranslator()
 		case FORMAT_FLOAT:	WriteCall(Pos_ReadIndex8_Float);  break;
 		default: _assert_(0); break;
 		}
+		m_VertexSize += 1;
 		break;
 	case INDEX16:
 		switch (m_VtxAttr.PosFormat) {
@@ -301,11 +198,13 @@ void VertexLoader::CompileVertexTranslator()
 		case FORMAT_FLOAT:	WriteCall(Pos_ReadIndex16_Float);  break;
 		default: _assert_(0); break;
 		}
+		m_VertexSize += 2;
 		break;
 	}
 
 	// Normals
 	if (m_VtxDesc.Normal != NOT_PRESENT) {
+		m_VertexSize += VertexLoader_Normal::GetSize(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
 		TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
 		if (pFunc == 0)
 		{
@@ -339,6 +238,29 @@ void VertexLoader::CompileVertexTranslator()
 
 		if (col[i] != NOT_PRESENT)
 			native_stride += 4;
+		switch (col[i])
+		{
+		case NOT_PRESENT: 
+			break;
+		case DIRECT:
+			switch (m_VtxAttr.color[i].Comp)
+			{
+			case FORMAT_16B_565:	m_VertexSize += 2; break;
+			case FORMAT_24B_888:	m_VertexSize += 3; break;
+			case FORMAT_32B_888x:	m_VertexSize += 4; break;
+			case FORMAT_16B_4444:	m_VertexSize += 2; break;
+			case FORMAT_24B_6666:	m_VertexSize += 3; break;
+			case FORMAT_32B_8888:	m_VertexSize += 4; break;
+			default: _assert_(0); break;
+			}									    
+			break;
+		case INDEX8:	
+			m_VertexSize += 1;
+			break;
+		case INDEX16:
+			m_VertexSize += 2;
+			break;
+		}
 	}
 
 	// Texture matrix indices (remove if corresponding texture coordinate isn't enabled)
@@ -372,6 +294,30 @@ void VertexLoader::CompileVertexTranslator()
 			}
 			if (j == 8 && !((m_NativeFmt->m_components & VB_HAS_TEXMTXIDXALL) & (VB_HAS_TEXMTXIDXALL << (i + 1)))) // no more tex coords and tex matrices, so exit loop
 				break;
+		}
+
+		switch (tc[i]) {
+		case NOT_PRESENT: 
+			break;
+		case DIRECT: 
+			{
+				switch (m_VtxAttr.texCoord[i].Format)
+				{
+				case FORMAT_UBYTE:
+				case FORMAT_BYTE: m_VertexSize += m_VtxAttr.texCoord[i].Elements?2:1; break;
+				case FORMAT_USHORT:
+				case FORMAT_SHORT: m_VertexSize += m_VtxAttr.texCoord[i].Elements?4:2; break;
+				case FORMAT_FLOAT: m_VertexSize += m_VtxAttr.texCoord[i].Elements?8:4; break;
+				default: _assert_(0); break;
+				}
+			}
+			break;
+		case INDEX8:	
+			m_VertexSize += 1;
+			break;
+		case INDEX16:
+			m_VertexSize += 2;
+			break;
 		}
 	}
 
@@ -657,7 +603,6 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	}
 
 	int startv = 0, extraverts = 0;
-
 	for (int v = 0; v < count; v++)
 	{
 		if ((v % granularity) == 0)
