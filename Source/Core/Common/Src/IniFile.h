@@ -64,20 +64,21 @@ public:
 	bool Get(const char* sectionName, const char* key, bool* value, bool defaultValue = false);
 	bool Get(const char* sectionName, const char* key, std::vector<std::string>& values);
 
-	bool GetKeys(const char* sectionName, std::vector<std::string>& keys);
-	bool GetLines(const char* sectionName, std::vector<std::string>& lines);
+	bool GetKeys(const char* sectionName, std::vector<std::string>& keys) const;
+	bool GetLines(const char* sectionName, std::vector<std::string>& lines) const;
 
 	bool DeleteKey(const char* sectionName, const char* key);
 	bool DeleteSection(const char* sectionName);
 
 	void SortSections();
 
-	void ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut, std::string* commentOut);
+	void ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut, std::string* commentOut) const;
 	std::string* GetLine(Section* section, const char* key, std::string* valueOut, std::string* commentOut);
 
 private:
 	std::vector<Section>sections;
 
+	const Section* GetSection(const char* section) const;
 	Section* GetSection(const char* section);
 	Section* GetOrCreateSection(const char* section);
 	std::string* GetLine(const char* section, const char* key);

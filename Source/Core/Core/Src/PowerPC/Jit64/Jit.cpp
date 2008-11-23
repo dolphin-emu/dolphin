@@ -23,6 +23,7 @@
 #include "Thunk.h"
 #include "../../HLE/HLE.h"
 #include "../../Core.h"
+#include "../../PatchEngine.h"
 #include "../../CoreTiming.h"
 #include "../PowerPC.h"
 #include "../Profiler.h"
@@ -371,7 +372,7 @@ namespace Jit64
 		gpr.Start(js.gpa);
 		fpr.Start(js.fpa);
 
-		js.downcountAmount = js.st.numCycles;
+		js.downcountAmount = js.st.numCycles + PatchEngine_GetSpeedhackCycles(emaddress);
 		js.blockSize = size;
 		// Translate instructions
 		for (int i = 0; i < (int)size; i++)
@@ -396,7 +397,6 @@ namespace Jit64
 			}
 			
 			// const GekkoOpInfo *info = GetOpInfo();
-
 			if (jo.interpretFPU && PPCTables::UsesFPU(ops[i].inst))
 				Default(ops[i].inst);
 			else

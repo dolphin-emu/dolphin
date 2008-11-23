@@ -28,6 +28,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include "StringUtil.h"
 #include "PatchEngine.h"
 #include "IniFile.h"
@@ -41,10 +42,9 @@ namespace
 
 std::vector<Patch> onLoad;
 std::vector<Patch> onFrame;
+std::map<u32, int> speedHacks;
 
-}  // namespace
-
-void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile &ini)
+static void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile &ini)
 {
 	std::vector<std::string> keys;
 	ini.GetKeys(section, keys);
@@ -59,16 +59,52 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile 
 			std::string val(value);
 			std::vector<std::string> items;
 			SplitString(val, ":", items);
-			Patch p;
-			bool success = true;
-			success = success && TryParseUInt(std::string(key.c_str()), &p.address);
-			success = success && TryParseUInt(items[1], &p.value);
-			p.type = (PatchType)ChooseStringFrom(items[0].c_str(), PatchTypeStrings);
-			success = success && (p.type != (PatchType)-1);
-			if (success)
-				patches.push_back(p);
+			if (items.size() >= 2) {
+				Patch p;
+				bool success = true;
+				success = success && TryParseUInt(std::string(key.c_str()), &p.address);
+				success = success && TryParseUInt(items[1], &p.value);
+				p.type = (PatchType)ChooseStringFrom(items[0].c_str(), PatchTypeStrings);
+				success = success && (p.type != (PatchType)-1);
+				if (success)
+					patches.push_back(p);
+			}
 		}
 	}
+}
+
+static void LoadSpeedhacks(const char *section, std::map<u32, int> &hacks, IniFile &ini) {
+	std::vector<std::string> keys;
+	ini.GetKeys(section, keys);
+	for (std::vector<std::string>::const_iterator iter = keys.begin(); iter != keys.end(); ++iter)
+	{
+		std::string key = *iter;
+		std::string value;
+		ini.Get(section, key.c_str(), &value, "BOGUS");
+		if (value != "BOGUS")
+		{
+			u32 address;
+			u32 cycles;
+			bool success = true;
+			success = success && TryParseUInt(std::string(key.c_str()), &address);
+			success = success && TryParseUInt(value, &cycles);
+			if (success) {
+				speedHacks[address] = (int)cycles;
+			}
+		}
+	}
+}
+
+}  // namespace
+
+
+int PatchEngine_GetSpeedhackCycles(u32 addr)
+{
+	std::map<u32, int>::const_iterator iter = speedHacks.find(addr);
+	if (iter == speedHacks.end())
+		return 0;
+	else
+		return iter->second;
 }
 
 void PatchEngine_LoadPatches(const char *gameID)
@@ -79,6 +115,7 @@ void PatchEngine_LoadPatches(const char *gameID)
 		LoadPatchSection("OnLoad",  onLoad, ini);
 		LoadPatchSection("OnFrame", onFrame, ini);
 		LoadActionReplayCodes(ini, false);
+		LoadSpeedhacks("Speedhacks", speedHacks, ini);
 	}
 }
 

@@ -51,20 +51,21 @@ Section::Section(const Section& other)
 	lines = other.lines;
 }
 
+const Section* IniFile::GetSection(const char* sectionName) const
+{
+	for (std::vector<Section>::const_iterator iter = sections.begin(); iter != sections.end(); ++iter)
+		if (!strcmp(iter->name.c_str(), sectionName))
+			return (&(*iter));
+	return 0;
+}
 
 Section* IniFile::GetSection(const char* sectionName)
 {
 	for (std::vector<Section>::iterator iter = sections.begin(); iter != sections.end(); ++iter)
-	{
 		if (!strcmp(iter->name.c_str(), sectionName))
-		{
-			return(&(*iter));
-		}
-	}
-
-	return(0);
+			return (&(*iter));
+	return 0;
 }
-
 
 Section* IniFile::GetOrCreateSection(const char* sectionName)
 {
@@ -102,7 +103,7 @@ bool IniFile::DeleteSection(const char* sectionName)
 }
 
 
-void IniFile::ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut, std::string* commentOut)
+void IniFile::ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut, std::string* commentOut) const
 {
 	// allow many types of commenting
 	// These MUST be signed! Do not change to size_t
@@ -390,9 +391,9 @@ bool IniFile::Save(const char* filename)
 }
 
 
-bool IniFile::GetKeys(const char* sectionName, std::vector<std::string>& keys)
+bool IniFile::GetKeys(const char* sectionName, std::vector<std::string>& keys) const
 {
-	Section* section = GetSection(sectionName);
+	const Section* section = GetSection(sectionName);
 
 	if (!section)
 	{
@@ -412,9 +413,9 @@ bool IniFile::GetKeys(const char* sectionName, std::vector<std::string>& keys)
 }
 
 
-bool IniFile::GetLines(const char* sectionName, std::vector<std::string>& lines)
+bool IniFile::GetLines(const char* sectionName, std::vector<std::string>& lines) const
 {
-	Section* section = GetSection(sectionName);
+	const Section* section = GetSection(sectionName);
 	if (!section)
 		return false;
 
