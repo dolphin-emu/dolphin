@@ -21,6 +21,7 @@ public:
 	virtual void clearAllBreakpoints();
 	virtual void toggleBreakpoint(unsigned int address);
 	virtual unsigned int readMemory(unsigned int address);
+	virtual unsigned int readInstruction(unsigned int address);
 	virtual unsigned int getPC();
 	virtual void setPC(unsigned int address);
 	virtual void step() {}

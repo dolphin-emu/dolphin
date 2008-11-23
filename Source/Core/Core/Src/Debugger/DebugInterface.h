@@ -19,6 +19,7 @@ public:
 	virtual void clearAllBreakpoints() {}
 	virtual void toggleBreakpoint(unsigned int /*address*/){}
 	virtual unsigned int readMemory(unsigned int /*address*/){return 0;}
+	virtual unsigned int readInstruction(unsigned int /*address*/){return 0;}
 	virtual unsigned int getPC() {return 0;}
 	virtual void setPC(unsigned int /*address*/) {}
 	virtual void step() {}

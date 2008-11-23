@@ -66,6 +66,11 @@ unsigned int PPCDebugInterface::readMemory(unsigned int address)
 	return Memory::ReadUnchecked_U32(address);
 }
 
+unsigned int PPCDebugInterface::readInstruction(unsigned int address)
+{
+	return Memory::Read_Instruction(address);
+}
+
 bool PPCDebugInterface::isAlive()
 {
 	return Core::GetState() != Core::CORE_UNINITIALIZED;
