@@ -665,9 +665,9 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card, int page)
 		m_MemcardList[card]->SetItem(index, COLUMN_TITLE, wxString::FromAscii(title));
 		m_MemcardList[card]->SetItem(index, COLUMN_COMMENT, wxString::FromAscii(comment));
 		if (!memoryCard[card]->GetNumBlocks(j, &blocks)) blocks = 0;
-		wxBlock.Printf("%10d", blocks);
+		wxBlock.Printf(wxT("%10d"), blocks);
 		if (!memoryCard[card]->GetFirstBlock(j,&firstblock)) firstblock = 0;
-		wxFirstBlock.Printf("%10d", firstblock-4);
+		wxFirstBlock.Printf(wxT("%10d"), firstblock-4);
 		m_MemcardList[card]->SetItem(index,COLUMN_BLOCKS, wxBlock);
 		m_MemcardList[card]->SetItem(index,COLUMN_FIRSTBLOCK, wxFirstBlock);
 		m_MemcardList[card]->SetItem(index, COLUMN_ICON, wxEmptyString);
@@ -695,7 +695,7 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card, int page)
 		m_MemcardList[card]->SetColumnWidth(i, wxLIST_AUTOSIZE);
 	}
 	m_MemcardList[card]->Show();
-	wxLabel.Printf("%d Free Blocks; %d Free Dir Entries",
+	wxLabel.Printf(wxT("%d Free Blocks; %d Free Dir Entries"),
 		memoryCard[card]->GetFreeBlocks(), 127 - nFiles);
 	card ? t_StatusRight->SetLabel(wxLabel) : t_StatusLeft->SetLabel(wxLabel);
 

@@ -589,7 +589,7 @@ void CISOProperties::ActionReplayList_Load()
 			// Take care of the previous code
 			if (code.ops.size())
 			{
-				code.uiIndex = Cheats->Append(_T(code.name));
+                          code.uiIndex = Cheats->Append(wxString::FromAscii(code.name.c_str()));
 				ARCodes.push_back(code);
 				Cheats->Check(code.uiIndex, code.enabled);
 				code.ops.clear();
@@ -618,9 +618,9 @@ void CISOProperties::ActionReplayList_Load()
  
 	if (code.ops.size())
 	{
-		code.uiIndex = Cheats->Append(_T(code.name));
-		ARCodes.push_back(code);
-		Cheats->Check(code.uiIndex, code.enabled);
+            code.uiIndex = Cheats->Append(wxString::FromAscii(code.name.c_str()));
+            ARCodes.push_back(code);
+            Cheats->Check(code.uiIndex, code.enabled);
 	}
 }
 void CISOProperties::ActionReplayList_Save()

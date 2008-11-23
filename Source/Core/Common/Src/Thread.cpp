@@ -248,6 +248,8 @@ void Thread::WaitForDeath()
 	{
 		void* exit_status;
 		pthread_join(thread_id, &exit_status);
+                if (exit_status)
+                  fprintf(stderr, "error %d joining thread\n", *(int *)exit_status);
 		thread_id = 0;
 	}
 }
