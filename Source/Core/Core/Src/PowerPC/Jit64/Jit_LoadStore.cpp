@@ -339,8 +339,6 @@ namespace Jit64
 					BSWAP(accessSize, EAX);
 					WriteToConstRamAddress(accessSize, R(EAX), addr); 
 					return;
-					// PanicAlert("yum yum");
-					// This may be quite beneficial.
 				}
 				// Other IO not worth the trouble.
 			}

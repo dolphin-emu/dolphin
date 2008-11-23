@@ -96,7 +96,7 @@ namespace Jit64
 
 	void RegCache::UnlockAllX()
 	{
-		for (int i = 0; i < 16; i++)
+		for (int i = 0; i < NUMXREGS; i++)
 			xlocks[i] = false;
 	}
 	
@@ -175,24 +175,6 @@ namespace Jit64
 		}
 	}
 
-	bool GPRRegCache::IsXRegVolatile(X64Reg reg) const
-	{
-#ifdef _WIN32
-		switch (reg)
-		{
-		case RAX: case RCX: case RDX: case R8: case R9: case R10: case R11:
-#ifdef _M_IX86
-		case RBX:
-#endif
-			return true;
-		default:
-			return false;
-		}
-#else
-		return true;
-#endif
-	}
-
 	void RegCache::DiscardRegContentsIfCached(int preg)
 	{
 		if (regs[preg].away && regs[preg].location.IsSimpleReg())
@@ -211,23 +193,11 @@ namespace Jit64
 		regs[preg].location = Imm32(immValue);
 	}
 
-	bool FPURegCache::IsXRegVolatile(X64Reg reg) const
-	{
-#ifdef _WIN32
-		// return true;
-		if (reg < 6) 
-			return true;
-		else
-			return false;
-#else
-		return true;
-#endif
-	}
-
 	void GPRRegCache::Start(PPCAnalyst::BlockRegStats &stats)
 	{
 		RegCache::Start(stats);
 	}
+
 	void FPURegCache::Start(PPCAnalyst::BlockRegStats &stats)
 	{
 		RegCache::Start(stats);
@@ -275,20 +245,23 @@ namespace Jit64
 		return M(&ppcState.ps[reg][0]);
 	}
 
-	// eheh, this was a dupe.
 	void RegCache::KillImmediate(int preg)
 	{
 		if (regs[preg].away && regs[preg].location.IsImm())
 		{
-			StoreFromX64(preg);
+			LoadToX64(preg, true, true);
 		}
 	}
 
 	void GPRRegCache::LoadToX64(int i, bool doLoad, bool makeDirty)
 	{
+		if (!regs[i].away && regs[i].location.IsImm())
+			PanicAlert("Bad immedaite");
+
 		if (!regs[i].away || (regs[i].away && regs[i].location.IsImm()))
 		{
 			X64Reg xr = GetFreeXReg();
+			if (xregs[xr].dirty) PanicAlert("Xreg already dirty");
 			if (xlocks[xr]) PanicAlert("GetFreeXReg returned locked register");
 			xregs[xr].free = false;
 			xregs[xr].ppcReg = i;
@@ -310,8 +283,10 @@ namespace Jit64
 		{
 			// HERE HOLDS: regs[i].away == true
 			//             
-			//reg location must be simplereg
-			xregs[RX(i)].dirty |= makeDirty;
+			//reg location must be simplereg or immediate
+			if (regs[i].location.IsSimpleReg()) {
+				xregs[RX(i)].dirty |= makeDirty;
+			}
 		}
 		if (xlocks[RX(i)]) {
 			PanicAlert("Seriously WTF, this reg should have been flushed");
@@ -322,7 +297,7 @@ namespace Jit64
 	{
 		if (regs[i].away)
 		{
-			bool doStore = true;
+			bool doStore;
 			if (regs[i].location.IsSimpleReg())
 			{
 				X64Reg xr = RX(i);
@@ -334,10 +309,10 @@ namespace Jit64
 			else
 			{
 				//must be immediate - do nothing
+				doStore = true;
 			}
 			OpArg newLoc = GetDefaultLocation(i);
-
-			//if (doStore) <-- Breaks JIT compilation
+			// if (doStore) //<-- Breaks JIT compilation
 				MOV(32, newLoc, regs[i].location);
 			regs[i].location = newLoc;
 			regs[i].away = false;
@@ -349,6 +324,7 @@ namespace Jit64
 		_assert_msg_(DYNA_REC, !regs[i].location.IsImm(), "WTF - load - imm");
 		if (!regs[i].away)
 		{
+			// Reg is at home in the memory register file. Let's pull it out.
 			X64Reg xr = GetFreeXReg();
 			_assert_msg_(DYNA_REC, xr >= 0 && xr < NUMXREGS, "WTF - load - invalid reg");
 			xregs[xr].ppcReg = i;
@@ -363,6 +339,9 @@ namespace Jit64
 			}
 			regs[i].location = newloc;
 			regs[i].away = true;
+		} else {
+			// There are no immediates in the FPR reg file, so we already had this in a register. Make dirty as necessary.
+			xregs[RX(i)].dirty |= makeDirty;
 		}
 	}
 
@@ -389,11 +368,15 @@ namespace Jit64
 
 	void RegCache::Flush(FlushMode mode)
 	{
+		for (int i = 0; i < NUMXREGS; i++) {
+			if (xlocks[i])
+				PanicAlert("Somone forgot to unlock X64 reg %i.", i);
+		}
 		for (int i = 0; i < 32; i++)
 		{
 			if (locks[i])
 			{
-				_assert_msg_(DYNA_REC,0,"Somebody forgot some register locks.");
+				PanicAlert("Somebody forgot to unlock PPC reg %i.", i);
 			}
 			if (regs[i].away)
 			{

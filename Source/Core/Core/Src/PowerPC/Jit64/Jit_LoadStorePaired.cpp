@@ -134,6 +134,7 @@ void psq_st(UGeckoInstruction inst)
 		{
 		case QUANTIZE_FLOAT:
 			{
+			// This one has quite a bit of optimization potential.
 			if (gpr.R(a).IsImm())
 			{
 				PanicAlert("Imm: %08x", gpr.R(a).offset);
@@ -216,7 +217,7 @@ void psq_st(UGeckoInstruction inst)
 		CALL(ProtectFunction((void *)&WriteDual32, 0));
 #else
 		FixupBranch argh = J_CC(CC_NZ);
-		MOV(32, R(ABI_PARAM1), M(((char*)&temp64)+4));
+		MOV(32, R(ABI_PARAM1), M(((char*)&temp64) + 4));
 		BSWAP(32, ABI_PARAM1);
 		AND(32, R(ABI_PARAM2), Imm32(Memory::MEMVIEW32_MASK));
 		MOV(32, MDisp(ABI_PARAM2, (u32)Memory::base), R(ABI_PARAM1));
@@ -225,7 +226,7 @@ void psq_st(UGeckoInstruction inst)
 		MOV(32, MDisp(ABI_PARAM2, 4+(u32)Memory::base), R(ABI_PARAM1));
 		FixupBranch arg2 = J();
 		SetJumpTarget(argh);
-		MOV(32, R(ABI_PARAM1), M(((char*)&temp64)+4));
+		MOV(32, R(ABI_PARAM1), M(((char*)&temp64) + 4));
 		ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
 		MOV(32, R(ABI_PARAM1), M(((char*)&temp64)));
 		ADD(32, R(ABI_PARAM2), Imm32(4));
@@ -370,7 +371,7 @@ void psq_l(UGeckoInstruction inst)
 				CVTPS2PD(xd, R(xd));
 			} else {
 				gpr.FlushLockX(ECX);
-				gpr.LoadToX64(inst.RA);
+				gpr.LoadToX64(inst.RA, true, update);
 				// This can probably be optimized somewhat.
 				LEA(32, ECX, MDisp(gpr.R(inst.RA).GetSimpleReg(), offset));
 				AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
@@ -380,7 +381,7 @@ void psq_l(UGeckoInstruction inst)
 				MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base + 4));
 				BSWAP(32, RAX);
 				MOV(32, M(((float *)&psTemp[0]) + 1), R(RAX));
-				fpr.LoadToX64(inst.RS, false);
+				fpr.LoadToX64(inst.RS, false, true);
 				X64Reg r = fpr.R(inst.RS).GetSimpleReg();
 				CVTPS2PD(r, M(&psTemp[0]));
 				gpr.UnlockAllX();
@@ -392,7 +393,7 @@ void psq_l(UGeckoInstruction inst)
 			}
 		case QUANTIZE_U8:
 			{
-			gpr.LoadToX64(inst.RA);
+			gpr.LoadToX64(inst.RA, true, update);
 #ifdef _M_X64
 			MOVZX(32, 16, EAX, MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
 #else
@@ -407,7 +408,7 @@ void psq_l(UGeckoInstruction inst)
 			PUNPCKLBW(XMM0, R(XMM1));
 			PUNPCKLWD(XMM0, R(XMM1));
 			CVTDQ2PD(XMM0, R(XMM0));
-			fpr.LoadToX64(inst.RS, false);
+			fpr.LoadToX64(inst.RS, false, true);
 			X64Reg r = fpr.R(inst.RS).GetSimpleReg();
 			MOVDDUP(r, M((void *)&m_dequantizeTableD[ldScale]));
 			MULPD(r, R(XMM0));
@@ -417,7 +418,7 @@ void psq_l(UGeckoInstruction inst)
 			break;
 		case QUANTIZE_S16:
 			{
-			gpr.LoadToX64(inst.RA);
+			gpr.LoadToX64(inst.RA, true, update);
 #ifdef _M_X64
 			MOV(32, R(EAX), MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
 #else
@@ -428,7 +429,7 @@ void psq_l(UGeckoInstruction inst)
 			BSWAP(32, EAX);
 			MOV(32, M(&temp64), R(EAX));
 			//INT3();
-			fpr.LoadToX64(inst.RS, false);
+			fpr.LoadToX64(inst.RS, false, true);
 			X64Reg r = fpr.R(inst.RS).GetSimpleReg();
 			MOVD_xmm(XMM0, M(&temp64));
 			PUNPCKLWD(XMM0, R(XMM0)); // unpack to higher word in each dword..

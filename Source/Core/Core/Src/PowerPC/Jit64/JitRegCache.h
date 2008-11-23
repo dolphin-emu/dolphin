@@ -64,9 +64,9 @@ namespace Jit64
 	private:
 		bool locks[32];
 		bool saved_locks[32];
-		bool saved_xlocks[16];
+		bool saved_xlocks[NUMXREGS];
 	protected:
-		bool xlocks[16];
+		bool xlocks[NUMXREGS];
 		PPCCachedReg regs[32];
 		X64CachedReg xregs[NUMXREGS];
 
@@ -102,7 +102,7 @@ namespace Jit64
 		{
 			if (regs[preg].away && regs[preg].location.IsSimpleReg()) 
 				return regs[preg].location.GetSimpleReg(); 
-			_assert_msg_(DYNA_REC,0,"Not so simple"); 
+			PanicAlert("Not so simple - %i", preg); 
 			return (X64Reg)-1;
 		}
 		virtual OpArg GetDefaultLocation(int reg) const = 0;
@@ -115,9 +115,6 @@ namespace Jit64
 		bool IsFreeX(int xreg) const;
 
 		X64Reg GetFreeXReg();
-		int GetNumXRegs(){return 16;}
-
-		virtual bool IsXRegVolatile(X64Reg reg) const = 0;
 
 		void SaveState();
 		void LoadState();
@@ -131,7 +128,6 @@ namespace Jit64
 		void StoreFromX64(int preg);
 		OpArg GetDefaultLocation(int reg) const;
 		const int *GetAllocationOrder(int &count);
-		bool IsXRegVolatile(X64Reg reg) const;
 		void SetImmediate32(int preg, u32 immValue);
 	};
 
@@ -143,7 +139,6 @@ namespace Jit64
 		void LoadToX64(int preg, bool doLoad = true, bool makeDirty = true);
 		void StoreFromX64(int preg);
 		const int *GetAllocationOrder(int &count);
-		bool IsXRegVolatile(X64Reg reg) const;
 		OpArg GetDefaultLocation(int reg) const;
 	};
 
