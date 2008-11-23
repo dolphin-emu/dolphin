@@ -27,6 +27,17 @@ enum
 	SAVFAIL,
 	OPENFAIL,
 	GCI,
+	HDR_READ_ERROR,
+	DIR_READ_ERROR,
+	DIR_BAK_READ_ERROR,
+	BAT_READ_ERROR,
+	BAT_BAK_READ_ERROR,
+	HDR_CSUM_FAIL,
+	DIR_CSUM_FAIL,
+	BAT_CSUM_FAIL,
+	DATA_READ_FAIL,
+	HDR_SIZE_FFFF,
+	NOTRAWORGCP,
 	SAV = 0x80,
 	GCS = 0x110,
 	OUTOFBLOCKS,
@@ -38,17 +49,15 @@ enum
 	FAIL
 };
 
-
 class GCMemcard 
 {
+private:
 	void* mcdFile;
 
 	u32 mc_data_size;
 	u8* mc_data;
 
 	void calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2);
-
-public:
 
 #pragma pack(push,1)
 	struct OSTime {
@@ -133,6 +142,9 @@ public:
 	} bat,bat_backup;
 #pragma pack(pop)
 
+public:
+	bool fail[12];
+
 	// constructor
 	GCMemcard(const char* fileName);
 
@@ -148,13 +160,19 @@ public:
 	u32  GetNumFiles();
 
 	// Returns true if title already on memcard
-	bool titlePresent(DEntry d);
+	bool TitlePresent(DEntry d);
 	
 	// read directory entry
 	bool GetFileInfo(u32 index, DEntry& data);
 
 	// buffer needs to be a char[32] or bigger
 	bool GetFileName(u32 index, char* buffer);
+
+	bool GetNumBlocks(u32 index, u16* buffer);
+
+	u16 GetFreeBlocks(void);
+
+	bool GetFirstBlock(u32 index, u16* buffer);
 
 	// buffer needs to be a char[32] or bigger
 	bool GetComment1(u32 index, char* buffer);

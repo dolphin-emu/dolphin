@@ -26,7 +26,6 @@
 #include <wx/imaglist.h>
 
 #include "MemoryCards/GCMemcard.h"
-#define BE16(x) ((u16((x)[0])<<8) | u16((x)[1]))
 #undef MEMCARD_MANAGER_STYLE
 #define MEMCARD_MANAGER_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX | wxRESIZE_BORDER | wxMAXIMIZE_BOX
 
@@ -42,10 +41,18 @@ class CMemcardManager
 
 		DECLARE_EVENT_TABLE();
 
+		int page1,
+			page2;
+
 		wxBoxSizer *sMain;
+		wxBoxSizer *sPagesLeft;
+		wxBoxSizer *sPagesRight;
+		wxStaticText *t_StatusLeft;
+		wxStaticText *t_StatusRight;
 		wxButton *m_CopyToLeft;
 		wxButton *m_CopyToRight;
-		wxButton *m_FixChecksum;
+		wxButton *m_FixChecksumLeft;
+		wxButton *m_FixChecksumRight;
 		wxButton *m_SaveImportLeft;
 		wxButton *m_SaveExportLeft;
 		wxButton *m_SaveImportRight;
@@ -53,6 +60,10 @@ class CMemcardManager
 		wxButton *m_ConvertToGci;
 		wxButton *m_DeleteLeft;
 		wxButton *m_DeleteRight;
+		wxButton *m_Memcard1PrevPage;
+		wxButton *m_Memcard1NextPage;
+		wxButton *m_Memcard2PrevPage;
+		wxButton *m_Memcard2NextPage;
 		wxStaticBoxSizer *sMemcard1;
 		wxStaticBoxSizer *sMemcard2;
 		wxFilePickerCtrl *m_Memcard1Path;
@@ -64,11 +75,16 @@ class CMemcardManager
 		{
 			ID_COPYTORIGHT = 1000,
 			ID_COPYTOLEFT,
-			ID_FIXCHECKSUM,
+			ID_FIXCHECKSUMRIGHT,
+			ID_FIXCHECKSUMLEFT,
 			ID_DELETERIGHT,
 			ID_DELETELEFT,
 			ID_MEMCARD1PATH,
 			ID_MEMCARD2PATH,
+			ID_MEMCARD1NEXTPAGE,
+			ID_MEMCARD1PREVPAGE,
+			ID_MEMCARD2NEXTPAGE,
+			ID_MEMCARD2PREVPAGE,
 			ID_SAVEEXPORTRIGHT,
 			ID_SAVEEXPORTLEFT,
 			ID_SAVEIMPORTRIGHT,
@@ -85,6 +101,8 @@ class CMemcardManager
 			COLUMN_TITLE,
 			COLUMN_COMMENT,
 			COLUMN_ICON,
+			COLUMN_BLOCKS,
+			COLUMN_FIRSTBLOCK,
 			NUMBER_OF_COLUMN
 		};
 		
@@ -93,9 +111,10 @@ class CMemcardManager
 		void CreateGUIControls();
 		void OnClose(wxCloseEvent& event);
 		void CopyDeleteClick(wxCommandEvent& event);
-		void ReloadMemcard(const char *fileName, int card);
+		bool ReloadMemcard(const char *fileName, int card, int page);
+		void OnPageChange(wxCommandEvent& event);
 		void OnPathChange(wxFileDirPickerEvent& event);
-		void OnTimer(wxTimerEvent& event);
+		bool ReadError(GCMemcard *memcard);
 };
 
 #endif

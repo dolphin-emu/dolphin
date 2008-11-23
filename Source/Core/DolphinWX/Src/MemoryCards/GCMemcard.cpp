@@ -25,7 +25,6 @@
 
 
 // i think there is support for this stuff in the common lib... if not there should be support
-// and to get a file exentions there is a function called SplitPath()
 #define BE16(x) ((u16((x)[0])<<8) | u16((x)[1]))
 #define BE32(x) ((u32((x)[0])<<24) | (u32((x)[1])<<16) | (u32((x)[2])<<8) | u32((x)[3]))
 #define ArrayByteSwap(a) (ByteSwap(a, a+sizeof(u8)));
@@ -54,24 +53,30 @@ u32 __inline bswap32(u32 s)
 
 void GCMemcard::calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2)
 {
-    *c1 = 0;*c2 = 0;
-    for (u32 i = 0; i < num; ++i)
-    {
-				//weird warnings here
-        *c1 += bswap16(buf[i]);
-        *c2 += bswap16((u16)(buf[i] ^ 0xffff));
-    }
-    if (*c1 == 0xffff)
-    {
-        *c1 = 0;
-    }
-    if (*c2 == 0xffff)
-    {
-        *c2 = 0;
-    }
+	*c1 = 0;*c2 = 0;
+	for (u32 i = 0; i < num; ++i)
+	{
+		//weird warnings here
+		*c1 += bswap16(buf[i]);
+		*c2 += bswap16((u16)(buf[i] ^ 0xffff));
+	}
+	if (*c1 == 0xffff)
+	{
+		*c1 = 0;
+	}
+	if (*c2 == 0xffff)
+	{
+		*c2 = 0;
+	}
 }
 
-u32  GCMemcard::GetNumFiles()
+u16 GCMemcard::GetFreeBlocks(void)
+{
+	if (!mcdFile) return 0;
+	return BE16(bat.FreeBlocks);
+}
+
+u32 GCMemcard::GetNumFiles()
 {
 	if (!mcdFile) return 0;
 	int j = 0;
@@ -83,7 +88,7 @@ u32  GCMemcard::GetNumFiles()
 	return j;
 }
 
-bool GCMemcard::titlePresent(DEntry d)
+bool GCMemcard::TitlePresent(DEntry d)
 {
 	//TODO: Clean up this function
 	bool equal = false;
@@ -114,6 +119,20 @@ bool GCMemcard::titlePresent(DEntry d)
 	return false;
 }
 
+bool GCMemcard::GetNumBlocks(u32 index, u16* buffer)
+{
+	if (!mcdFile) return false;
+	*buffer = BE16(dir.Dir[index].BlockCount);
+	return true;
+}
+
+bool GCMemcard::GetFirstBlock(u32 index, u16* buffer)
+{
+	if (!mcdFile) return false;
+	*buffer = BE16(dir.Dir[index].FirstBlock);
+	return true;
+}
+
 u32 GCMemcard::RemoveFile(u32 index) //index in the directory array
 {
 	if (!mcdFile) return NOMEMCARD;
@@ -130,7 +149,7 @@ u32 GCMemcard::RemoveFile(u32 index) //index in the directory array
 
 	int i = index + 1;
 	memset(&(dir.Dir[index]), 0xFF, 0x40);
-	
+
 	while (i < 127)
 	{
 		DEntry * d = new DEntry;
@@ -196,7 +215,7 @@ u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 	{
 		return OUTOFBLOCKS;
 	}
-	if (!remove && titlePresent(direntry)) return TITLEPRESENT;
+	if (!remove && TitlePresent(direntry)) return TITLEPRESENT;
 
 	// find first free data block -- assume no freespace fragmentation
 	int totalspace = (((u32)BE16(hdr.Size) * 16) - 5);
@@ -293,9 +312,9 @@ u32 GCMemcard::GetFileData(u32 index, u8*dest, bool old) //index in the director
 {
 	if (!mcdFile) return NOMEMCARD;
 
-	int block = BE16(dir.Dir[index].FirstBlock);
-	int saveLength = BE16(dir.Dir[index].BlockCount);
-	int memcardSize = BE16(hdr.Size) * 0x0010;
+	u16 block = BE16(dir.Dir[index].FirstBlock);
+	u16 saveLength = BE16(dir.Dir[index].BlockCount);
+	u16 memcardSize = BE16(hdr.Size) * 0x0010;
 
 	if (block + saveLength > memcardSize)
 	{
@@ -308,27 +327,24 @@ u32 GCMemcard::GetFileData(u32 index, u8*dest, bool old) //index in the director
 	}
 	else
 	{
-		assert(block != 0xFFFF);
 		assert(block > 0);
-        do
-        {
-                memcpy(dest,mc_data + 0x2000 * (block - 5), 0x2000);
-                dest+=0x2000;
+		while (block != 0xffff) 
+		{
+			memcpy(dest,mc_data + 0x2000 * (block - 5), 0x2000);
+			dest+=0x2000;
 
-
-				int nextblock = bswap16(bat.Map[block - 5]);
-				if (block + saveLength != memcardSize && nextblock > 0)
-                {//Fixes for older memcards that were not initialized with FF
-					block = nextblock;
-                }
-                else block = 0xffff;
-        }
-        while (block != 0xffff); 
+			u16 nextblock = bswap16(bat.Map[block - 5]);
+			if (block + saveLength != memcardSize && nextblock > 0)
+			{//Fixes for older memcards that were not initialized with FF
+				block = nextblock;
+			}
+			else break;
+		}
 	}
 	return SUCCESS;
 }
 
-u32  GCMemcard::GetFileSize(u32 index) //index in the directory array
+u32 GCMemcard::GetFileSize(u32 index) //index in the directory array
 {
 	if (!mcdFile) return 0;
 
@@ -342,6 +358,7 @@ bool GCMemcard::GetFileInfo(u32 index, GCMemcard::DEntry& info) //index in the d
 	info = dir.Dir[index];
 	return true;
 }
+
 bool GCMemcard::GetFileName(u32 index, char *fn) //index in the directory array
 {
 	if (!mcdFile) return false;
@@ -387,13 +404,12 @@ bool GCMemcard::GetComment2(u32 index, char *fn) //index in the directory array
 u32 decode5A3(u16 val)
 {
 	const int lut5to8[] = { 0x00,0x08,0x10,0x18,0x20,0x29,0x31,0x39,
-	                        0x41,0x4A,0x52,0x5A,0x62,0x6A,0x73,0x7B,
-	                        0x83,0x8B,0x94,0x9C,0xA4,0xAC,0xB4,0xBD,
-	                        0xC5,0xCD,0xD5,0xDE,0xE6,0xEE,0xF6,0xFF};
+							0x41,0x4A,0x52,0x5A,0x62,0x6A,0x73,0x7B,
+							0x83,0x8B,0x94,0x9C,0xA4,0xAC,0xB4,0xBD,
+							0xC5,0xCD,0xD5,0xDE,0xE6,0xEE,0xF6,0xFF};
 	const int lut4to8[] = { 0x00,0x11,0x22,0x33,0x44,0x55,0x66,0x77,
-	                        0x88,0x99,0xAA,0xBB,0xCC,0xDD,0xEE,0xFF};
+							0x88,0x99,0xAA,0xBB,0xCC,0xDD,0xEE,0xFF};
 	const int lut3to8[] = { 0x00,0x24,0x48,0x6D,0x91,0xB6,0xDA,0xFF};
-
 
 	int r,g,b,a;
 	if ((val&0x8000))
@@ -433,11 +449,11 @@ void decode5A3image(u32* dst, u16* src, int width, int height)
 
 void decodeCI8image(u32* dst, u8* src, u16* pal, int width, int height)
 {
-    for (int y = 0; y < height; y += 4)
+	for (int y = 0; y < height; y += 4)
 	{
-        for (int x = 0; x < width; x += 8)
+		for (int x = 0; x < width; x += 8)
 		{
-            for (int iy = 0; iy < 4; iy++, src += 8)
+			for (int iy = 0; iy < 4; iy++, src += 8)
 			{
 				u32 *tdst = dst+(y+iy)*width+x;
 				for (int ix = 0; ix < 8; ix++)
@@ -486,7 +502,7 @@ bool GCMemcard::ReadBannerRGBA8(u32 index, u32* buffer)
 	return true;
 }
 
-u32  GCMemcard::ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays)
+u32 GCMemcard::ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays)
 {
 	if (!mcdFile) return 0;
 
@@ -614,7 +630,7 @@ bool GCMemcard::FixChecksums()
 	hdr.CheckSum1[1] = u8(csum1);
 	hdr.CheckSum2[0] = u8(csum2 >> 8);
 	hdr.CheckSum2[1] = u8(csum2);
-	
+
 	calc_checksumsBE((u16*)&dir, 0xFFE, &csum1, &csum2);
 	dir.CheckSum1[0] = u8(csum1 >> 8);
 	dir.CheckSum1[1] = u8(csum1);
@@ -641,7 +657,7 @@ bool GCMemcard::FixChecksums()
 
 	return true;
 }
-u32  GCMemcard::CopyFrom(GCMemcard& source, u32 index)
+u32 GCMemcard::CopyFrom(GCMemcard& source, u32 index)
 {
 	if (!mcdFile) return NOMEMCARD;
 
@@ -667,7 +683,7 @@ u32  GCMemcard::CopyFrom(GCMemcard& source, u32 index)
 	return ret;
 }
 
-s32  GCMemcard::ImportGci(const char *fileName, std::string fileName2)
+s32 GCMemcard::ImportGci(const char *fileName, std::string fileName2)
 {
 	if (fileName2.empty() && !mcdFile) return OPENFAIL;
 
@@ -685,7 +701,7 @@ s32  GCMemcard::ImportGci(const char *fileName, std::string fileName2)
 	{
 		fread(tmp, 1, 0xD, gci);
 		if (!strcasecmp(fileType.c_str(), ".gcs"))
-		{		
+		{
 			if (!memcmp(tmp, "GCSAVE", 6))	// Header must be uppercase
 				offset = GCS;
 			else
@@ -760,7 +776,7 @@ s32  GCMemcard::ImportGci(const char *fileName, std::string fileName2)
 	u32 size = BE16((d->BlockCount)) * 0x2000;
 	u8 *t = new u8[size];
 	fread(t, 1, size, gci);
-	fclose(gci);	
+	fclose(gci);
 	u32 ret;
 	if(!fileName2.empty())
 	{
@@ -805,7 +821,6 @@ u32 GCMemcard::ExportGci(u32 index, const char *fileName)
 		break;
 	}
 
-
 	fseek(gci, 0x40, SEEK_SET);
 	assert(fwrite(t, 1, 0x2000 * BE16(d.BlockCount), gci)== (unsigned) (0x2000 * BE16(d.BlockCount)));
 	fclose(gci);
@@ -837,21 +852,62 @@ GCMemcard::GCMemcard(const char *filename)
 {
 	FILE *mcd = fopen(filename,"r+b");
 	mcdFile = mcd;
+	fail[0] = true;
 	if (!mcd) return;
 
+	for(int i=0;i<12;i++)fail[i]=false;
+
+	//This function can be removed once more about hdr is known and we can check for a valid header
+	std::string fileType;
+	SplitPath(filename, NULL, NULL, &fileType);
+	if (strcasecmp(fileType.c_str(), ".raw") && strcasecmp(fileType.c_str(), ".gcp"))
+	{
+		fail[0] = true;
+		fail[NOTRAWORGCP] = true;
+		return;
+	}
+
 	fseek(mcd, 0x0000, SEEK_SET);
-	assert(fread(&hdr, 1, 0x2000, mcd) == 0x2000);
-	assert(fread(&dir, 1, 0x2000, mcd) == 0x2000);
-	assert(fread(&dir_backup, 1, 0x2000, mcd) == 0x2000);
-	assert(fread(&bat, 1, 0x2000, mcd) == 0x2000);
-	assert(fread(&bat_backup, 1, 0x2000, mcd) == 0x2000);
+	if (fread(&hdr, 1, 0x2000, mcd) != 0x2000)
+	{
+		fail[0] = true;
+		fail[HDR_READ_ERROR] = true;
+		return;
+	}
+	if (fread(&dir, 1, 0x2000, mcd) != 0x2000)
+	{
+		fail[0] = true;
+		fail[DIR_READ_ERROR] = true;
+		return;
+	}
+	if (fread(&dir_backup, 1, 0x2000, mcd) != 0x2000)
+	{
+		fail[0] = true;
+		fail[DIR_BAK_READ_ERROR] = true;
+		return;
+	}
+	if (fread(&bat, 1, 0x2000, mcd) != 0x2000)
+	{
+		fail[0] = true;
+		fail[BAT_READ_ERROR] = true;
+		return;
+	}
+	if (fread(&bat_backup, 1, 0x2000, mcd) != 0x2000)
+	{
+		fail[0] = true;
+		fail[BAT_BAK_READ_ERROR] = true;
+		return;
+	}
 
 	u32 csums = TestChecksums();
 	
 	if (csums&1)
 	{
 		// header checksum error!
-		// TODO: fail to load
+		// invalid files do not always get here
+		fail[0] = true;
+		fail[HDR_CSUM_FAIL] = true;
+		return;
 	}
 
 	if (csums&2) // directory checksum error!
@@ -859,7 +915,9 @@ GCMemcard::GCMemcard(const char *filename)
 		if (csums&4)
 		{
 			// backup is also wrong!
-			// TODO: fail to load
+			fail[0] = true;
+			fail[DIR_CSUM_FAIL] = true;
+			return;
 		}
 		else
 		{
@@ -877,7 +935,9 @@ GCMemcard::GCMemcard(const char *filename)
 		if (csums&16)
 		{
 			// backup is also wrong!
-			// TODO: fail to load
+			fail[0] = true;
+			fail[BAT_CSUM_FAIL] = true;
+			return;
 		}
 		else
 		{
@@ -900,15 +960,30 @@ GCMemcard::GCMemcard(const char *filename)
 
 	fseek(mcd, 0xa000, SEEK_SET);
 
-	assert(BE16(hdr.Size) != 0xFFFF);
-	mc_data_size = (((u32)BE16(hdr.Size) * 16) - 5) * 0x2000;
-	mc_data = new u8[mc_data_size];
+	u16 size = BE16(hdr.Size);
+	if ((size== 0x0080) || (size == 0x0040) ||
+		(size == 0x0020) || (size == 0x0010) ||
+		(size == 0x0008) || (size == 0x0004))
+	{
+		mc_data_size = (((u32)size * 16) - 5) * 0x2000;
+		mc_data = new u8[mc_data_size];
 
-	size_t read = fread(mc_data, 1, mc_data_size, mcd);
-	assert(mc_data_size == read);
+		size_t read = fread(mc_data, 1, mc_data_size, mcd);
+		if (mc_data_size != read)
+		{
+			fail[0] = true;
+			fail[DATA_READ_FAIL] = true;
+		}
+	}
+	else
+	{
+		fail[0] = true;
+		fail[HDR_SIZE_FFFF] = true;
+	}
 }
 
 GCMemcard::~GCMemcard()
 {
+	if (!mcdFile) return;
 	fclose((FILE*)mcdFile);
 }
