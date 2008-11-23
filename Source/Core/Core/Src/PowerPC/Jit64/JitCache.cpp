@@ -71,8 +71,8 @@ namespace Jit64
 		TRAMPOLINE_SIZE = 1024*1024,
 		//MAX_NUM_BLOCKS = 65536,
 	};
-	int CODE_SIZE = 1024*1024*8; // nonconstant to be able to have an option for it
-	int MAX_NUM_BLOCKS = 65536;
+	int CODE_SIZE = 1024*1024*16; // nonconstant to be able to have an option for it
+	int MAX_NUM_BLOCKS = 65536*2;
 
 	static u8 **blockCodePointers; // cut these in half and force below 2GB?
 
