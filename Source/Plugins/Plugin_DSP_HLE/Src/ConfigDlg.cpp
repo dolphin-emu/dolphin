@@ -34,18 +34,12 @@ CConfigDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BO
 	m_buttonEnableHLEAudio = GetDlgItem(IDC_ENABLE_HLE_AUDIO);
 	m_buttonEnableDTKMusic = GetDlgItem(IDC_ENABLE_DTK_MUSIC);
 	m_buttonEnableThrottle = GetDlgItem(IDC_ENABLE_THROTTLE);
-	m_buttonAntiGap = GetDlgItem(IDC_ANTIGAP);
-	m_buttonDumpSamples  = GetDlgItem(IDC_DUMPSAMPLES);
-	m_editDumpSamplePath = GetDlgItem(IDC_SAMPLEDUMPPATH);
 	m_comboSampleRate = GetDlgItem(IDC_SAMPLERATE);
 
 	// Update checkboxes
 	m_buttonEnableHLEAudio.SetCheck(g_Config.m_EnableHLEAudio ? BST_CHECKED : BST_UNCHECKED);
 	m_buttonEnableDTKMusic.SetCheck(g_Config.m_EnableDTKMusic ? BST_CHECKED : BST_UNCHECKED);
 	m_buttonEnableThrottle.SetCheck(g_Config.m_EnableThrottle ? BST_CHECKED : BST_UNCHECKED);
-	m_buttonAntiGap.SetCheck(g_Config.m_AntiGap ? BST_CHECKED : BST_UNCHECKED);
-	m_buttonDumpSamples.SetCheck(g_Config.m_DumpSamples ? BST_CHECKED : BST_UNCHECKED);
-	m_editDumpSamplePath.SetWindowText(g_Config.m_szSamplePath.c_str());
 	m_comboSampleRate.AddString("44100");
 	m_comboSampleRate.AddString("48000");
 	m_comboSampleRate.SetCurSel(g_Config.m_SampleRate == 44100 ? 0 : 1);
@@ -81,11 +75,6 @@ CConfigDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /
 		g_Config.m_EnableHLEAudio = (m_buttonEnableHLEAudio.GetCheck() == BST_CHECKED) ? true : false;
 		g_Config.m_EnableDTKMusic = (m_buttonEnableDTKMusic.GetCheck() == BST_CHECKED) ? true : false;
 		g_Config.m_EnableThrottle = (m_buttonEnableThrottle.GetCheck() == BST_CHECKED) ? true : false;
-		g_Config.m_DumpSamples = (m_buttonDumpSamples.GetCheck() == BST_CHECKED) ? true : false;
-		g_Config.m_AntiGap = (m_buttonAntiGap.GetCheck() == BST_CHECKED) ? true : false;
-		char temp[MAX_PATH];
-		m_editDumpSamplePath.GetWindowText(temp, MAX_PATH);
-		g_Config.m_szSamplePath = temp;
 		g_Config.m_SampleRate = (m_comboSampleRate.GetCurSel() == 0 ? 44100 : 48000);
 		g_Config.Save();
 	}

@@ -56,7 +56,7 @@ void Mixer(short *buffer, int numSamples, int bits, int rate, int channels)
 	}
 
 	//if this was called directly from the HLE, and not by timeout
-	if (g_Config.m_EnableHLEAudio && (mixer_HLEready || g_Config.m_AntiGap))
+	if (g_Config.m_EnableHLEAudio && mixer_HLEready)
 	{
 		IUCode* pUCode = CDSPHandler::GetInstance().GetUCode();
 		if (pUCode != NULL)

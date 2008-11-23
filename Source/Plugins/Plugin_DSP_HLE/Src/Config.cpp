@@ -31,9 +31,6 @@ void CConfig::LoadDefaults()
 	m_EnableHLEAudio = true;
 	m_EnableDTKMusic = true;
 	m_Interpolation = true;
-	m_DumpSampleMinLength = true;
-	m_DumpSamples = false;
-	m_AntiGap = false;
 }
 
 void CConfig::Load()
@@ -47,15 +44,6 @@ void CConfig::Load()
 	file.Get("Config", "EnableDTKMusic", &m_EnableDTKMusic, true);
 	file.Get("Config", "EnableThrottle", &m_EnableThrottle, true);
 	file.Get("Config", "Interpolation", &m_Interpolation, true);
-	file.Get("Config", "AntiGap", &m_AntiGap, false);
-
-	file.Get("Config", "DumpSamples", &m_DumpSamples, false); // Sample Dumping
-	file.Get("Config", "DumpSampleMinLength", &m_DumpSampleMinLength, true);
-#ifdef _WIN32
-	file.Get("Config", "DumpSamplePath", &m_szSamplePath, "C:\\");
-#else
-	file.Get("Config", "DumpSamplePath", &m_szSamplePath, "/dev/null/");
-#endif	
 }
 
 void CConfig::Save()
@@ -66,15 +54,6 @@ void CConfig::Save()
 	file.Set("Config", "EnableDTKMusic", m_EnableDTKMusic);
 	file.Set("Config", "EnableThrottle", m_EnableThrottle);
 	file.Set("Config", "Interpolation", m_Interpolation);
-	file.Set("Config", "AntiGap", m_AntiGap);
-
-	file.Set("Config", "DumpSamples", m_DumpSamples); // Sample Dumping
-	file.Set("Config", "DumpSampleMinLength", m_DumpSampleMinLength);
-#ifdef _WIN32
-	file.Set("Config", "DumpSamplePath", m_szSamplePath);
-#else
-	file.Set("Config", "DumpSamplePath", m_szSamplePath);
-#endif
 
 	file.Save(FULL_CONFIG_DIR "DSP.ini");
 }
