@@ -4,7 +4,7 @@
 	Version="9,00"
 	Name="Plugin_Wiimote"
 	ProjectGUID="{8D612734-FAA5-4B8A-804F-4DEA2367D495}"
-	RootNamespace="Plugin_Wiimote_Test"
+	RootNamespace="Plugin_Wiimote"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
