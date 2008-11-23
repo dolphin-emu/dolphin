@@ -145,13 +145,12 @@ void CPeripheralInterface::Write32(const u32 _uValue, const u32 _iAddress)
             {
 				switch (_uValue) {
 				case 3:
-					PanicAlert("Game wants to go to memory card manager. Since BIOS is being HLE:d - can't do that.\n"
-						       "We might pop up a fake memcard manager here and then reset the game in the future :)\n");
+					PanicAlert("The game wants to go to memory card manager. BIOS is being HLE:d - so we can't do that.\n");
 					break;
 				default:
 					{
 					TCHAR szTemp[256];
-					sprintf(szTemp, "Game wants to reset the machine. PI_RESET_CODE: (%08x)", _uValue);
+					sprintf(szTemp, "The game wants to reset the machine. PI_RESET_CODE: (%08x)", _uValue);
 					PanicAlert(szTemp);
 					}
 					break;
@@ -161,8 +160,8 @@ void CPeripheralInterface::Write32(const u32 _uValue, const u32 _iAddress)
 		break;
 
 	default:
-		LOG(PERIPHERALINTERFACE,"!!!!Unknown write!!!! 0x%08x", _iAddress);
-		PanicAlert("Unknown write to PI");
+		LOG(PERIPHERALINTERFACE,"!!!!Unknown PI write!!!! 0x%08x", _iAddress);
+		PanicAlert("Unknown write to PI: %08x", _iAddress);
 		break;
 	}
 }

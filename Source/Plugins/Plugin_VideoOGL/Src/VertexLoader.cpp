@@ -22,12 +22,18 @@
 #include "Common.h"
 #include "Config.h"
 #include "Profiler.h"
+#include "MemoryUtil.h"
+#include "x64Emitter.h"
+#include "ABI.h"
 
+#include "Statistics.h"
 #include "VertexManager.h"
 #include "VertexLoaderManager.h"
 #include "VertexLoader.h"
 #include "BPStructs.h"
 #include "DataReader.h"
+
+#define USE_JIT
 
 NativeVertexFormat *g_nativeVertexFmt;
 
@@ -49,14 +55,17 @@ static u8 s_curposmtx;
 static u8 s_curtexmtx[8];
 static int s_texmtxwrite = 0;
 static int s_texmtxread = 0;
+static TVtxAttr* pVtxAttr;
 
-void LOADERDECL PosMtx_ReadDirect_UByte(const void *_p)
+using namespace Gen;
+
+void LOADERDECL PosMtx_ReadDirect_UByte()
 {
 	s_curposmtx = DataReadU8() & 0x3f;
 	PRIM_LOG("posmtx: %d, ", s_curposmtx);
 }
 
-void LOADERDECL PosMtx_Write(const void *_p)
+void LOADERDECL PosMtx_Write()
 {
 	*VertexManager::s_pCurBufferPointer++ = s_curposmtx;
 	*VertexManager::s_pCurBufferPointer++ = 0;
@@ -64,27 +73,27 @@ void LOADERDECL PosMtx_Write(const void *_p)
 	*VertexManager::s_pCurBufferPointer++ = 0;
 }
 
-void LOADERDECL TexMtx_ReadDirect_UByte(const void *_p)
+void LOADERDECL TexMtx_ReadDirect_UByte()
 {
 	s_curtexmtx[s_texmtxread] = DataReadU8()&0x3f;
 	PRIM_LOG("texmtx%d: %d, ", s_texmtxread, s_curtexmtx[s_texmtxread]);
 	s_texmtxread++;
 }
 
-void LOADERDECL TexMtx_Write_Float(const void *_p)
+void LOADERDECL TexMtx_Write_Float()
 {
 	*(float*)VertexManager::s_pCurBufferPointer = (float)s_curtexmtx[s_texmtxwrite++];
 	VertexManager::s_pCurBufferPointer += 4;
 }
 
-void LOADERDECL TexMtx_Write_Float2(const void *_p)
+void LOADERDECL TexMtx_Write_Float2()
 {
 	((float*)VertexManager::s_pCurBufferPointer)[0] = 0;
 	((float*)VertexManager::s_pCurBufferPointer)[1] = (float)s_curtexmtx[s_texmtxwrite++];
 	VertexManager::s_pCurBufferPointer += 8;
 }
 
-void LOADERDECL TexMtx_Write_Short3(const void *_p)
+void LOADERDECL TexMtx_Write_Short3()
 {
 	((s16*)VertexManager::s_pCurBufferPointer)[0] = 0;
 	((s16*)VertexManager::s_pCurBufferPointer)[1] = 0;
@@ -97,6 +106,8 @@ void LOADERDECL TexMtx_Write_Short3(const void *_p)
 #include "VertexLoader_Color.h"
 #include "VertexLoader_TextCoord.h"
 
+#define COMPILED_CODE_SIZE 4096
+
 VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr) 
 {
 	m_VertexSize = 0;
@@ -107,11 +118,16 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	m_VtxDesc = vtx_desc;
 	SetVAT(vtx_attr.g0.Hex, vtx_attr.g1.Hex, vtx_attr.g2.Hex);
 
+	m_compiledCode = (u8 *)AllocateExecutableMemory(COMPILED_CODE_SIZE, false);
+	if (m_compiledCode) {
+		memset(m_compiledCode, 0, COMPILED_CODE_SIZE);
+	}
 	CompileVertexTranslator();
 }
 
 VertexLoader::~VertexLoader() 
 {
+	FreeMemoryPages(m_compiledCode, COMPILED_CODE_SIZE);
 	delete m_NativeFmt;
 }
 
@@ -119,6 +135,9 @@ void VertexLoader::CompileVertexTranslator()
 {
 	m_VertexSize = 0;
 
+	u8 *old_code_ptr = GetWritableCodePtr();
+	SetCodePtr(m_compiledCode);
+	ABI_EmitPrologue(4);
 	// Colors
 	const int col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
 	// TextureCoord
@@ -144,7 +163,7 @@ void VertexLoader::CompileVertexTranslator()
 	
 	// Position Matrix Index
 	if (m_VtxDesc.PosMatIdx) {
-		m_PipelineStages[m_numPipelineStages++] = PosMtx_ReadDirect_UByte;
+		WriteCall(PosMtx_ReadDirect_UByte);
 		m_NativeFmt->m_components |= VB_HAS_POSMTXIDX;
 		m_VertexSize += 1;
 	}
@@ -430,7 +449,10 @@ void VertexLoader::CompileVertexTranslator()
 	vtx_decl.stride = native_stride;
 	if (vtx_decl.stride != offset)
 		PanicAlert("offset/stride mismatch, %i %i", vtx_decl.stride, offset);
-
+#ifdef USE_JIT
+	ABI_EmitEpilogue(4);
+#endif
+	SetCodePtr(old_code_ptr);
 	m_NativeFmt->Initialize(vtx_decl);
 }
 
@@ -532,7 +554,11 @@ void VertexLoader::SetupTexCoord(int num, int mode, int format, int elements, in
 
 void VertexLoader::WriteCall(TPipelineFunction func)
 {
+#ifdef USE_JIT
+	CALL((void*)func);
+#else
 	m_PipelineStages[m_numPipelineStages++] = func;
+#endif
 }
 
 void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
@@ -569,6 +595,7 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	m_VtxAttr.texCoord[6].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex6Frac;
 	m_VtxAttr.texCoord[7].Frac		= g_VtxAttr[vtx_attr_group].g2.Tex7Frac;
 
+	pVtxAttr = &m_VtxAttr;
 	posScale = shiftLookup[m_VtxAttr.PosFrac];
 	if (m_NativeFmt->m_components & VB_HAS_UVALL) {
 		for (int i = 0; i < 8; i++) {
@@ -582,7 +609,7 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	// if strips or fans, make sure all vertices can fit in buffer, otherwise flush
 	int granularity = 1;
 	switch (primitive) {
-		case 3: // strip
+		case 3: // strip .. hm, weird
 		case 4: // fan
 			if (VertexManager::GetRemainingSize() < 3 * native_stride)
 				VertexManager::Flush();
@@ -603,59 +630,67 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	}
 
 	int startv = 0, extraverts = 0;
-	for (int v = 0; v < count; v++)
+	int v = 0;
+
+	while (v < count)
 	{
-		if ((v % granularity) == 0)
-		{
-			if (VertexManager::GetRemainingSize() < granularity*native_stride) {
-				// This buffer full - break current primitive and flush, to switch to the next buffer.
-				u8* plastptr = VertexManager::s_pCurBufferPointer;
-				if (v - startv > 0)
-					VertexManager::AddVertices(primitive, v - startv + extraverts);
-				VertexManager::Flush();
-				// Why does this need to be so complicated?
-				switch (primitive) {
-					case 3: // triangle strip, copy last two vertices
-						// a little trick since we have to keep track of signs
-						if (v & 1) {
-							memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-2*native_stride, native_stride);
-							memcpy_gc(VertexManager::s_pCurBufferPointer+native_stride, plastptr-native_stride*2, 2*native_stride);
-							VertexManager::s_pCurBufferPointer += native_stride*3;
-							extraverts = 3;
-						}
-						else {
-							memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride*2, native_stride*2);
-							VertexManager::s_pCurBufferPointer += native_stride*2;
-							extraverts = 2;
-						}
-						break;
-					case 4: // tri fan, copy first and last vert
-						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride*(v-startv+extraverts), native_stride);
-						VertexManager::s_pCurBufferPointer += native_stride;
-						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride, native_stride);
-						VertexManager::s_pCurBufferPointer += native_stride;
+		if (VertexManager::GetRemainingSize() < granularity*native_stride) {
+			INCSTAT(stats.thisFrame.numBufferSplits);
+			// This buffer full - break current primitive and flush, to switch to the next buffer.
+			u8* plastptr = VertexManager::s_pCurBufferPointer;
+			if (v - startv > 0)
+				VertexManager::AddVertices(primitive, v - startv + extraverts);
+			VertexManager::Flush();
+			// Why does this need to be so complicated?
+			switch (primitive) {
+				case 3: // triangle strip, copy last two vertices
+					// a little trick since we have to keep track of signs
+					if (v & 1) {
+						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-2*native_stride, native_stride);
+						memcpy_gc(VertexManager::s_pCurBufferPointer+native_stride, plastptr-native_stride*2, 2*native_stride);
+						VertexManager::s_pCurBufferPointer += native_stride*3;
+						extraverts = 3;
+					}
+					else {
+						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride*2, native_stride*2);
+						VertexManager::s_pCurBufferPointer += native_stride*2;
 						extraverts = 2;
-						break;
-					case 6: // line strip
-						memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride, native_stride);
-						VertexManager::s_pCurBufferPointer += native_stride;
-						extraverts = 1;
-						break;
-					default:
-						extraverts = 0;
-						break;
-				}
-				startv = v;
+					}
+					break;
+				case 4: // tri fan, copy first and last vert
+					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride*(v-startv+extraverts), native_stride);
+					VertexManager::s_pCurBufferPointer += native_stride;
+					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride, native_stride);
+					VertexManager::s_pCurBufferPointer += native_stride;
+					extraverts = 2;
+					break;
+				case 6: // line strip
+					memcpy_gc(VertexManager::s_pCurBufferPointer, plastptr-native_stride, native_stride);
+					VertexManager::s_pCurBufferPointer += native_stride;
+					extraverts = 1;
+					break;
+				default:
+					extraverts = 0;
+					break;
 			}
+			startv = v;
 		}
-		tcIndex = 0;
-		colIndex = 0;
-		s_texmtxwrite = s_texmtxread = 0;
 
-		for (int i = 0; i < m_numPipelineStages; i++)
-			m_PipelineStages[i](&m_VtxAttr);
+		for (int s = 0; s < granularity; s++)
+		{
+			tcIndex = 0;
+			colIndex = 0;
+			s_texmtxwrite = s_texmtxread = 0;
+	#ifdef USE_JIT
+			((void (*)())(void*)m_compiledCode)();
+	#else
+			for (int i = 0; i < m_numPipelineStages; i++)
+				m_PipelineStages[i]();
+	#endif
 
-		PRIM_LOG("\n");
+			PRIM_LOG("\n");
+			v++;
+		}
 	}
 
 	if (startv < count)

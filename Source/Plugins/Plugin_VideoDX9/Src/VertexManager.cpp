@@ -173,9 +173,9 @@ void AddVertices(int _primitive, int _numVertices, const DecodedVArray *varray)
 	else //We are collecting the right type, keep going
 	{
 		_assert_msg_(vbufferwrite!=0, "collecting: vbufferwrite == 0!","WTF");
-		INCSTAT(stats.numJoins);
+		INCSTAT(stats.thisFrame.numPrimitiveJoins);
 		//Success, keep adding to unlocked buffer
-		int last=indexGen.GetNumVerts();
+		int last = indexGen.GetNumVerts();
 		AddIndices(_primitive, _numVertices);
 
 		if (_numVertices >= MAXVBUFFERSIZE)

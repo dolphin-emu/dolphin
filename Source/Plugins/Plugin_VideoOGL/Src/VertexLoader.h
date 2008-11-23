@@ -81,6 +81,8 @@ private:
 	TPipelineFunction m_PipelineStages[32];  // TODO - figure out real max. it's lower.
 	int m_numPipelineStages;
 
+	u8 *m_compiledCode;
+
 	void SetupColor(int num, int _iMode, int _iFormat, int _iElements);
 	void SetupTexCoord(int num, int _iMode, int _iFormat, int _iElements, int _iFrac);
 

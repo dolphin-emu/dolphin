@@ -775,6 +775,9 @@ void Renderer::SwapBuffers()
         //p+=sprintf(p,"Num dlists alive:    %i\n",stats.numDListsAlive);
         //p+=sprintf(p,"Num strip joins:     %i\n",stats.numJoins);
         p+=sprintf(p,"Num primitives:       %i\n",stats.thisFrame.numPrims);
+		p+=sprintf(p,"Num primitive joins:  %i\n",stats.thisFrame.numPrimitiveJoins);
+		p+=sprintf(p,"Num buffer splits:    %i\n",stats.thisFrame.numBufferSplits);
+		p+=sprintf(p,"Num draw calls:       %i\n",stats.thisFrame.numDrawCalls);
         p+=sprintf(p,"Num primitives (DL):  %i\n",stats.thisFrame.numDLPrims);
         p+=sprintf(p,"Num XF loads:      %i\n",stats.thisFrame.numXFLoads);
         p+=sprintf(p,"Num XF loads (DL): %i\n",stats.thisFrame.numXFLoadsInDL);

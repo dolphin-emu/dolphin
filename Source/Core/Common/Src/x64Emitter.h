@@ -520,16 +520,8 @@ namespace Gen
 	void PMOVMSKB(X64Reg dest, OpArg arg);
 	void PSHUFB(X64Reg dest, OpArg arg);
 
-        void RTDSC();
+	void RTDSC();
 
-	namespace Util
-	{
-		// Sets up a __cdecl function.
-		// Only x64 really needs the parameter.
-		void EmitPrologue(int maxCallParams);
-		void EmitEpilogue(int maxCallParams);
-	}
-	
 void CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2);
 void CallCdeclFunction4(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3);
 void CallCdeclFunction5(void* fnptr, u32 arg0, u32 arg1, u32 arg2, u32 arg3, u32 arg4);

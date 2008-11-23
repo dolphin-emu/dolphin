@@ -4,6 +4,40 @@
 
 using namespace Gen;
 
+// Shared code between Win64 and Unix64
+// ====================================
+
+// Sets up a __cdecl function.
+void ABI_EmitPrologue(int maxCallParams)
+{
+#ifdef _M_IX86
+	// Don't really need to do anything
+#elif defined(_M_X64)
+#if _WIN32
+	int stacksize = ((maxCallParams + 1) & ~1)*8 + 8;
+	// Set up a stack frame so that we can call functions
+	// TODO: use maxCallParams
+    SUB(64, R(RSP), Imm8(stacksize));
+#endif
+#else
+#error Arch not supported
+#endif
+}
+void ABI_EmitEpilogue(int maxCallParams)
+{
+#ifdef _M_IX86
+	RET();
+#elif defined(_M_X64)
+#ifdef _WIN32
+	int stacksize = ((maxCallParams+1)&~1)*8 + 8;
+	ADD(64, R(RSP), Imm8(stacksize));
+#endif
+	RET();
+#else
+#error Arch not supported
+#endif
+}
+
 #ifdef _M_IX86 // All32
 
 // Shared code between Win32 and Unix32
@@ -76,6 +110,7 @@ unsigned int ABI_GetAlignedFrameSize(unsigned int frameSize) {
 	return alignedSize;
 }
 
+
 void ABI_AlignStack(unsigned int frameSize) {
 // Mac OS X requires the stack to be 16-byte aligned before every call.
 // Linux requires the stack to be 16-byte aligned before calls that put SSE
@@ -102,9 +137,6 @@ void ABI_RestoreStack(unsigned int frameSize) {
 }
 
 #else
-
-// Shared code between Win64 and Unix64
-// ====================================
 
 void ABI_CallFunctionC(void *func, u32 param1) {
 	MOV(32, R(ABI_PARAM1), Imm32(param1));

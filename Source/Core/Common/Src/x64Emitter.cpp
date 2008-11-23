@@ -1316,43 +1316,6 @@ namespace Gen
 	}
 
 	void RTDSC() { Write8(0x0F); Write8(0x31); }
-
-	namespace Util
-	{
-
-	// Sets up a __cdecl function.
-	void EmitPrologue(int maxCallParams)
-	{
-#ifdef _M_IX86
-		// Don't really need to do anything
-#elif defined(_M_X64)
-#if _WIN32
-		int stacksize = ((maxCallParams + 1) & ~1)*8 + 8;
-		// Set up a stack frame so that we can call functions
-		// TODO: use maxCallParams
-	    SUB(64, R(RSP), Imm8(stacksize));
-#endif
-#else
-#error Arch not supported
-#endif
-	}
-	void EmitEpilogue(int maxCallParams)
-	{
-#ifdef _M_IX86
-		RET();
-#elif defined(_M_X64)
-#ifdef _WIN32
-		int stacksize = ((maxCallParams+1)&~1)*8 + 8;
-		ADD(64, R(RSP), Imm8(stacksize));
-#endif
-		RET();
-#else
-#error Arch not supported
-#endif
-	}
-
-	}  // namespace
-
 	
 // helper routines for setting pointers
 void CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2)

@@ -20,8 +20,6 @@
 
 struct Statistics
 {
-    int numPrimitives;
-
     int numPixelShadersCreated;
     int numPixelShadersAlive;
     int numVertexShadersCreated;
@@ -37,8 +35,6 @@ struct Statistics
     int numDListsCreated;
     int numDListsAlive;
 
-    int numJoins;
-
 	int numVertexLoaders;
 
     struct ThisFrame
@@ -52,9 +48,13 @@ struct Statistics
         int numXFLoadsInDL;
         
         int numDLs;
-        int numDLPrims;
         int numPrims;
+        int numDLPrims;
         int numShaderChanges;
+
+	    int numPrimitiveJoins;
+	    int numDrawCalls;
+	    int numBufferSplits;
 
 		int numDListsCalled;
     };

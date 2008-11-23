@@ -107,6 +107,11 @@ unsigned int ABI_GetAlignedFrameSize(unsigned int frameSize);
 void ABI_AlignStack(unsigned int frameSize);
 void ABI_RestoreStack(unsigned int frameSize);
 
+// Sets up a __cdecl function.
+// Only x64 really needs the parameter.
+void ABI_EmitPrologue(int maxCallParams);
+void ABI_EmitEpilogue(int maxCallParams);
+
 #ifdef _M_IX86
 inline int ABI_GetNumXMMRegs() { return 8; }
 #else

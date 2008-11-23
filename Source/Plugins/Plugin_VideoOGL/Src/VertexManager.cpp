@@ -108,6 +108,12 @@ void AddVertices(int primitive, int numvertices)
 	_assert_( numvertices > 0 );
 
 	ADDSTAT(stats.thisFrame.numPrims, numvertices);
+	/*
+	if (s_vStoredPrimitives.size() && s_vStoredPrimitives[s_vStoredPrimitives.size() - 1].first == primitive) {
+		// Actually, just count potential primitive joins.
+		// Doesn't seem worth it in Metroid Prime games.
+		INCSTAT(stats.thisFrame.numPrimitiveJoins);
+	}*/
 	s_vStoredPrimitives.push_back(std::pair<int, int>(c_primitiveType[primitive], numvertices));
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
@@ -150,7 +156,7 @@ void Flush()
 
 	DVSTARTPROFILE();
 
-	GL_REPORT_ERRORD();
+	GL_REPORT_ERRORD(); 
 
 	glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
 	glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - s_pBaseBufferPointer, s_pBaseBufferPointer, GL_STREAM_DRAW);
@@ -263,6 +269,7 @@ void Flush()
 	int offset = 0;
 	for (std::vector< std::pair<int, int> >::const_iterator it = s_vStoredPrimitives.begin(); it != s_vStoredPrimitives.end(); ++it)
 	{
+		INCSTAT(stats.thisFrame.numDrawCalls);
 		glDrawArrays(it->first, offset, it->second);
 		offset += it->second;
 	}

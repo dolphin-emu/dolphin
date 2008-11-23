@@ -85,7 +85,7 @@ void NativeVertexFormat::Initialize(const PortableVertexDeclaration &vtx_decl)
 	// Alright, we have our vertex declaration. Compile some crazy code to set it quickly using GL.
 	u8 *old_code_ptr = GetWritableCodePtr();
 	SetCodePtr(m_compiledCode);
-	Util::EmitPrologue(6);
+	ABI_EmitPrologue(6);
 	
 	CallCdeclFunction4_I(glVertexPointer, 3, GL_FLOAT, vtx_decl.stride, 0);
 
@@ -137,7 +137,7 @@ void NativeVertexFormat::Initialize(const PortableVertexDeclaration &vtx_decl)
 		CallCdeclFunction6((void *)glVertexAttribPointer, SHADER_POSMTX_ATTRIB, 4, GL_UNSIGNED_BYTE, GL_FALSE, vtx_decl.stride, vtx_decl.posmtx_offset);
 	}
 
-	Util::EmitEpilogue(6);
+	ABI_EmitEpilogue(6);
 	if (Gen::GetCodePtr() - (u8*)m_compiledCode > COMPILED_CODE_SIZE)
 	{
 		Crash();
