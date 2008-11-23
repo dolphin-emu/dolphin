@@ -20,6 +20,52 @@
 
 #define LOG_VTX() PRIM_LOG("vtx: %f %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0], ((float*)VertexManager::s_pCurBufferPointer)[1], ((float*)VertexManager::s_pCurBufferPointer)[2]);
 
+// Thoughts on the implementation of a vertex loader compiler.
+// s_pCurBufferPointer should definitely be in a register.
+// Could load the position scale factor in XMM7, for example.
+
+// The pointer inside DataReadU8 in another.
+// Let's check out Pos_ReadDirect_UByte(). For Byte, replace MOVZX with MOVSX.
+
+/*
+MOVZX(32, R(EAX), MOffset(ESI, 0));
+MOVZX(32, R(EBX), MOffset(ESI, 1));
+MOVZX(32, R(ECX), MOffset(ESI, 2));
+MOVD(XMM0, R(EAX));
+MOVD(XMM1, R(EBX));
+MOVD(XMM2, R(ECX));                   
+CVTDQ2PS(XMM0, XMM0);
+CVTDQ2PS(XMM1, XMM1);
+CVTDQ2PS(XMM2, XMM2);
+MULSS(XMM0, XMM7);
+MULSS(XMM1, XMM7);
+MULSS(XMM2, XMM7);
+MOVSS(MOffset(EDI, 0), XMM0);
+MOVSS(MOffset(EDI, 4), XMM1);
+MOVSS(MOffset(EDI, 8), XMM2);
+
+Alternatively, lookup table:
+MOVZX(32, R(EAX), MOffset(ESI, 0));
+MOVZX(32, R(EBX), MOffset(ESI, 1));
+MOVZX(32, R(ECX), MOffset(ESI, 2));
+MOV(32, R(EAX), MComplex(LUTREG, EAX, 4));
+MOV(32, R(EBX), MComplex(LUTREG, EBX, 4));
+MOV(32, R(ECX), MComplex(LUTREG, ECX, 4));
+MOV(MOffset(EDI, 0), XMM0);
+MOV(MOffset(EDI, 4), XMM1);
+MOV(MOffset(EDI, 8), XMM2);
+
+SSE4:
+PINSRB(XMM0, MOffset(ESI, 0), 0);
+PINSRB(XMM0, MOffset(ESI, 1), 4);
+PINSRB(XMM0, MOffset(ESI, 2), 8);
+CVTDQ2PS(XMM0, XMM0);
+<two unpacks here to sign extend>
+MULPS(XMM0, XMM7);
+MOVUPS(MOffset(EDI, 0), XMM0);
+
+                                     */
+
 // ==============================================================================
 // Direct
 // ==============================================================================
@@ -73,10 +119,11 @@ void LOADERDECL Pos_ReadDirect_Short()
 
 void LOADERDECL Pos_ReadDirect_Float()
 {
-	((float*)VertexManager::s_pCurBufferPointer)[0] = DataReadF32(); 
-	((float*)VertexManager::s_pCurBufferPointer)[1] = DataReadF32();
+	// No need to use floating point here.
+	((u32 *)VertexManager::s_pCurBufferPointer)[0] = DataReadU32(); 
+	((u32 *)VertexManager::s_pCurBufferPointer)[1] = DataReadU32();
 	if (pVtxAttr->PosElements)
-		((float*)VertexManager::s_pCurBufferPointer)[2] = DataReadF32();
+		((u32 *)VertexManager::s_pCurBufferPointer)[2] = DataReadU32();
 	else
 		((float*)VertexManager::s_pCurBufferPointer)[2] = 1.0f;
     LOG_VTX();

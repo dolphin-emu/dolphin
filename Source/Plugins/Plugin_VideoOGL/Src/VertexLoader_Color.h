@@ -37,18 +37,18 @@ inline void _SetCol(u32 val)
 void _SetCol4444(u16 val)
 {
     u32 col = lut4to8[(val>>0)&0xF]<<ASHIFT;
-    col |= lut4to8[(val>>12)&0xF]   <<RSHIFT;
-    col |= lut4to8[(val>>8)&0xF]    <<GSHIFT;
-    col |= lut4to8[(val>>4)&0xF]    <<BSHIFT;
+    col    |= lut4to8[(val>>12)&0xF]   <<RSHIFT;
+    col    |= lut4to8[(val>>8)&0xF]    <<GSHIFT;
+    col    |= lut4to8[(val>>4)&0xF]    <<BSHIFT;
     _SetCol(col);
 }
 
 void _SetCol6666(u32 val)
 {
     u32 col = lut6to8[(val>>18)&0x3F] << RSHIFT;
-    col     |= lut6to8[(val>>12)&0x3F] << GSHIFT;
-    col     |= lut6to8[(val>>6)&0x3F]  << BSHIFT;
-    col     |= lut6to8[(val>>0)&0x3F]  << ASHIFT;
+    col    |= lut6to8[(val>>12)&0x3F] << GSHIFT;
+    col    |= lut6to8[(val>>6)&0x3F]  << BSHIFT;
+    col    |= lut6to8[(val>>0)&0x3F]  << ASHIFT;
     _SetCol(col);
 }
 
