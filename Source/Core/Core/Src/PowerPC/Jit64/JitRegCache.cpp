@@ -281,12 +281,9 @@ namespace Jit64
 		}
 		else
 		{
-			// HERE HOLDS: regs[i].away == true
-			//             
-			//reg location must be simplereg or immediate
-			if (regs[i].location.IsSimpleReg()) {
-				xregs[RX(i)].dirty |= makeDirty;
-			}
+			// reg location must be simplereg; memory locations
+			// and immediates are taken care of above.
+			xregs[RX(i)].dirty |= makeDirty;
 		}
 		if (xlocks[RX(i)]) {
 			PanicAlert("Seriously WTF, this reg should have been flushed");

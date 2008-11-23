@@ -373,6 +373,9 @@ namespace Jit64
 		int a = inst.RA,
 			s = inst.RS;
 		gpr.LoadToX64(a, a == s, true);
+		// Always force moving to EAX because it isn't possible
+		// to refer to the lowest byte of some registers, at least in
+		// 32-bit mode.
 		MOV(32, R(EAX), gpr.R(s));
 		MOVSX(32, 8, gpr.RX(a), R(AL)); // watch out for ah and friends
 		if (inst.Rc) {
@@ -390,8 +393,11 @@ namespace Jit64
 		INSTRUCTION_START;
 		int a = inst.RA, s = inst.RS;
 		gpr.LoadToX64(a, a == s, true);
-		MOV(32, R(EAX), gpr.R(s));
-		MOVSX(32, 16, gpr.RX(a), R(EAX));
+		// This looks a little dangerous, but it's safe because
+		// every 32-bit register has a 16-bit half at the same index
+		// as the 32-bit register.
+		gpr.KillImmediate(s);
+		MOVSX(32, 16, gpr.RX(a), gpr.R(s));
 		if (inst.Rc) {
 			MOV(32, R(EAX), gpr.R(a));
 			CALL((u8*)Asm::computeRc);
