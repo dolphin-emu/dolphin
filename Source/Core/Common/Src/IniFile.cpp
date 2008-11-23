@@ -195,6 +195,16 @@ void IniFile::Set(const char* sectionName, const char* key, bool newValue)
 }
 
 
+void IniFile::SetLines(const char* sectionName, const std::vector<std::string> &lines)
+{
+	Section* section = GetOrCreateSection(sectionName);
+	section->lines.clear();
+
+	for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
+	{
+		section->lines.push_back(*iter);
+	}
+}
 bool IniFile::Get(const char* sectionName, const char* key, std::string* value, const char* defaultValue)
 {
 	Section* section = GetSection(sectionName);

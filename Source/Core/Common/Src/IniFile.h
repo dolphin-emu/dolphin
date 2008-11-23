@@ -55,6 +55,8 @@ public:
 	void Set(const char* sectionName, const char* key, const std::string& newValue) {Set(sectionName, key, newValue.c_str());}
 	void Set(const char* sectionName, const char* key, const std::vector<std::string>& newValues);
 
+	void SetLines(const char* sectionName, const std::vector<std::string> &lines);
+
 	// getter should be const
 	bool Get(const char* sectionName, const char* key, std::string* value, const char* defaultValue = "");
 	bool Get(const char* sectionName, const char* key, int* value, int defaultValue = 0);

@@ -192,6 +192,8 @@ class CISOProperties : public wxDialog
 		void OnExtractDir(wxCommandEvent& event);
 		void SetRefresh(wxCommandEvent& event);
 		void OnEditConfig(wxCommandEvent& event);
+		void ActionReplayList_Load();
+		void ActionReplayList_Save();
 
 		std::vector<const DiscIO::SFileInfo *> Our_Files;
 		typedef std::vector<const DiscIO::SFileInfo *>::iterator fileIter;
@@ -205,5 +207,4 @@ class CISOProperties : public wxDialog
 		void LoadGameConfig();
 		bool SaveGameConfig();
 };
-
 #endif

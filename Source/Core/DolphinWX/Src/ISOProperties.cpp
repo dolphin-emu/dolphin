@@ -22,6 +22,13 @@
 #include "Filesystem.h"
 #include "ISOProperties.h"
 
+struct ARListCode {
+	std::string name;
+	bool enabled;
+	std::vector<std::string> ops;
+	u32 uiIndex;
+};
+
 BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_CLOSE(CISOProperties::OnClose)
 	EVT_BUTTON(ID_CLOSE, CISOProperties::OnCloseClick)
@@ -35,6 +42,7 @@ END_EVENT_TABLE()
 
 DiscIO::IVolume *OpenISO = NULL;
 DiscIO::IFileSystem *pFileSystem = NULL;
+std::vector<ARListCode> ARCodes;
 
 CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
@@ -244,8 +252,6 @@ void CISOProperties::CreateGUIControls()
 	Patches->Append(_("Not yet functional"));
 	Patches->Enable(false);
 	AddPatch->Enable(false);
-	Cheats->Append(_("Not yet functional"));
-	Cheats->Enable(false);
 	AddCheat->Enable(false);
 	// --------------------------------------
 	
@@ -507,10 +513,9 @@ void CISOProperties::LoadGameConfig()
 	}
 	EmuState->SetSelection(iTemp);
 
-	// TODO handle patches+cheats
-	//LoadActionReplayCodes(GameIni, true);
-	//for (int i = 0; i < arCodes.size(); i++)
-	//	Cheats->Append(wxString(arCodes[i].name.c_str(), wxConvUTF8));
+	ActionReplayList_Load();
+
+	// TODO handle patches
 }
 
 bool CISOProperties::SaveGameConfig()
@@ -542,9 +547,11 @@ bool CISOProperties::SaveGameConfig()
 
 	GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
 
+	ActionReplayList_Save();
+
 	return GameIni.Save(GameIniFile.c_str());
 
-	// TODO save patches+cheats
+	// TODO save patches
 }
 
 void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
@@ -561,4 +568,74 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 
 		bRefreshList = true; // Just in case
 	}
+}
+
+void CISOProperties::ActionReplayList_Load()
+{
+	ARCodes.clear();
+	std::vector<std::string> lines;
+ 
+	if (!GameIni.GetLines("ActionReplay", lines))
+		return;
+ 
+	ARListCode code;
+ 
+	for (std::vector<std::string>::const_iterator it = lines.begin(); it != lines.end(); ++it)
+	{
+		std::string line = *it;
+ 
+		if (line[0] == '+' || line[0] == '$')
+		{
+			// Take care of the previous code
+			if (code.ops.size())
+			{
+				code.uiIndex = Cheats->Append(_T(code.name));
+				ARCodes.push_back(code);
+				Cheats->Check(code.uiIndex, code.enabled);
+				code.ops.clear();
+			}
+ 
+			// Give name and enabled to current code
+			if(line.size() > 1)
+			{
+				if (line[0] == '+')
+				{
+					code.enabled = true;
+					code.name = line.substr(2, line.size() - 2);
+				}
+				else
+				{
+					code.enabled = false;
+					code.name = line.substr(1, line.size() - 1);
+				}
+			}
+ 
+			continue;
+		}
+ 
+		code.ops.push_back(line);
+	}
+ 
+	if (code.ops.size())
+	{
+		code.uiIndex = Cheats->Append(_T(code.name));
+		ARCodes.push_back(code);
+		Cheats->Check(code.uiIndex, code.enabled);
+	}
+}
+void CISOProperties::ActionReplayList_Save()
+{
+	std::vector<std::string> lines;
+	for (std::vector<ARListCode>::const_iterator iter = ARCodes.begin(); iter != ARCodes.end(); ++iter)
+	{
+		ARListCode code = *iter;
+ 
+		lines.push_back(Cheats->IsChecked(code.uiIndex) ? "+$" + code.name : "$" + code.name);
+ 
+		for (std::vector<std::string>::const_iterator iter2 = code.ops.begin(); iter2 != code.ops.end(); ++iter2)
+		{
+			lines.push_back(*iter2);
+		}
+	}
+	GameIni.SetLines("ActionReplay", lines);
 }
