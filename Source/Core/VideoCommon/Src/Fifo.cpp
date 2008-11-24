@@ -110,8 +110,14 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			Common::InterlockedExchange((int*)&_fifo.CPReadIdle, 0);
 #endif
 			//video_initialize.pLog("RUN...........................",FALSE);
-            while(_fifo.bFF_GPReadEnable && (_fifo.CPReadWriteDistance > 0) )
+			int peek_counter = 0;
+            while (_fifo.bFF_GPReadEnable && (_fifo.CPReadWriteDistance > 0))
 			{
+				peek_counter++;
+				if (peek_counter == 50) {
+					video_initialize.pPeekMessages();
+					peek_counter = 0;
+				}
                 // read the data and send it to the VideoPlugin
 				u32 readPtr = _fifo.CPReadPointer;
                 u8 *uData = video_initialize.pGetMemoryPointer(readPtr);
