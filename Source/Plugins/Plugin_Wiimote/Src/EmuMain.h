@@ -19,6 +19,7 @@
 #define WIIMOTE_EMU_H
 
 #include "wiimote_hid.h"
+#include <string>
 
 namespace WiiMoteEmu
 {
