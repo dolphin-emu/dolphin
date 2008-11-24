@@ -134,7 +134,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 CISOProperties::~CISOProperties()
 {
+    if (pFileSystem)
 	delete pFileSystem;
+    if (OpenISO)
 	delete OpenISO;
 }
 
