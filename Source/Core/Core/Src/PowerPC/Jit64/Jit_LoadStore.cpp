@@ -164,10 +164,7 @@ namespace Jit64
 		{
 			gpr.Flush(FLUSH_ALL);
 			fpr.Flush(FLUSH_ALL);
-			if (Core::GetStartupParameter().bUseDualCore) 
-				CALL((void *)&PowerPC::OnIdleDC);
-			else 
-				ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
+			ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
 			MOV(32, M(&PowerPC::ppcState.pc), Imm32(js.compilerPC + 12));
 			JMP(Asm::testExceptions, true);
 			js.compilerPC += 8;

@@ -33,8 +33,6 @@
 
 #include "../Host.h"
 
-#include "Thread.h" // for g_hEventOnIdle
-
 namespace PowerPC
 {
 
@@ -289,19 +287,7 @@ void OnIdle(u32 _uThreadAddr)
 	u32 nextThread = Memory::Read_U32(_uThreadAddr);
 	//do idle skipping
 	if (nextThread == 0)
-	{
 		CoreTiming::Idle();
-	}
-}
-
-//DualCore OnIdle
-void OnIdleDC(void)
-{
-#if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
-	if (g_hEventOnIdle==NULL) PanicAlert("Idle() -> EventOnIdle NULL");
-	if (! SetEvent(g_hEventOnIdle) ) { PanicAlert("Idle() -> SetEvent EventOnIdle failed");}
-#endif
-	CoreTiming::Idle();
 }
 
 }  // namespace

@@ -163,14 +163,17 @@ void UpdateInterrupts()
 		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_PE_FINISH, false);
 }
 
-// TODO(mb2): Refactor SetTokenINT_OnMainThread(u64 userdata, int cyclesLate). Cleanup++
+// TODO(mb2): Refactor SetTokenINT_OnMainThread(u64 userdata, int cyclesLate).
+//			  Think about the right order between tokenVal and tokenINT... one day maybe.
+//			  Cleanup++
+
 // Called only if BPMEM_PE_TOKEN_INT_ID is ack by GP
 void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 {
 	//if (userdata >> 16)
 	//{
 		g_bSignalTokenInterrupt = true;	
-		_dbg_assert_msg_(PIXELENGINE, (CommandProcessor::fifo.PEToken == (userdata&0xFFFF)), "WTF? BPMEM_PE_TOKEN_INT_ID's token != BPMEM_PE_TOKEN_ID's token" );
+		//_dbg_assert_msg_(PIXELENGINE, (CommandProcessor::fifo.PEToken == (userdata&0xFFFF)), "WTF? BPMEM_PE_TOKEN_INT_ID's token != BPMEM_PE_TOKEN_ID's token" );
 		LOGV(PIXELENGINE, 1, "VIDEO Plugin raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", CommandProcessor::fifo.PEToken);
 		UpdateInterrupts();
 	//}

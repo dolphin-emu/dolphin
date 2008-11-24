@@ -248,11 +248,12 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		//TODO?: if really needed
 		//m_CPStatusReg.CommandIdle = fifo.CPCmdIdle;
 		// uncomment: change a bit the behaviour MP1. Not very useful though
-		//m_CPStatusReg.ReadIdle = fifo.CPReadIdle;
+		m_CPStatusReg.ReadIdle = fifo.CPReadIdle;
+		//m_CPStatusReg.CommandIdle = fifo.CPReadIdle;
 
 		// hack: CPU will always believe fifo is empty and on idle
-		m_CPStatusReg.ReadIdle = 1;
-		m_CPStatusReg.CommandIdle = 1;
+		//m_CPStatusReg.ReadIdle = 1;
+		//m_CPStatusReg.CommandIdle = 1;
 		
 		_rReturnValue = m_CPStatusReg.Hex;
 		LOG(COMMANDPROCESSOR, "\t iBP %s | fREADIDLE %s | fCMDIDLE %s | iOvF %s | iUndF %s"

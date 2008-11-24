@@ -89,10 +89,6 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 {
     SCPFifoStruct &_fifo = *video_initialize.pCPFifo;
 	u32 distToSend;
-#if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
-	HANDLE hEventOnIdle= OpenEventA(EVENT_ALL_ACCESS,FALSE,(LPCSTR)"EventOnIdle");
-	if (hEventOnIdle==NULL) PanicAlert("Fifo_EnterLoop() -> EventOnIdle NULL");
-#endif
 
 #ifdef _WIN32
     // TODO(ector): Don't peek so often!
@@ -101,16 +97,8 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
     while (fifoStateRun)
 #endif
     {
-#if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
-	if (MsgWaitForMultipleObjects(1, &hEventOnIdle, FALSE, 1L, QS_ALLEVENTS) == WAIT_ABANDONED)
-		break;
-#endif
         if (_fifo.CPReadWriteDistance < _fifo.CPLoWatermark)
-#if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
-            continue;
-#else
 			Common::SleepCurrentThread(1);
-#endif
         //etc...
 
         // check if we are able to run this buffer
@@ -121,18 +109,15 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 #else
 			Common::InterlockedExchange((int*)&_fifo.CPReadIdle, 0);
 #endif
-#if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
-            while(_fifo.CPReadWriteDistance > 0)
-#else
+			//video_initialize.pLog("RUN...........................",FALSE);
             while(_fifo.bFF_GPReadEnable && (_fifo.CPReadWriteDistance > 0) )
-#endif
 			{
                 // read the data and send it to the VideoPlugin
-                u8 *uData = video_initialize.pGetMemoryPointer(_fifo.CPReadPointer);
-
 				u32 readPtr = _fifo.CPReadPointer;
+                u8 *uData = video_initialize.pGetMemoryPointer(readPtr);
+
 				// if we are on BP mode we must send 32B chunks to Video plugin for BP checking
-				// TODO (mb2): test & check if MP1/MP2 are ok with that (It may happens the whole fifo RW dist is send too iirc).
+				// TODO (mb2): test & check if MP1/MP2 realy need this now.
 				if (_fifo.bFF_BPEnable)
                 {
 					if (readPtr == _fifo.CPBreakpoint)
@@ -148,20 +133,28 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
                     }
 					distToSend = 32;
 					readPtr += 32;
-					if ( readPtr > _fifo.CPEnd) 
+					if ( readPtr >= _fifo.CPEnd) 
 						readPtr = _fifo.CPBase;
                 }
 				else
 				{
+#if 0 // ugly random GP slowdown for testing DC robustness... TODO: remove when completly sure DC is ok
+				int r=rand();if ((r&0xF)==r) Common::SleepCurrentThread(r);
+				distToSend = 32;
+				readPtr += 32;
+				if ( readPtr >= _fifo.CPEnd) 
+					readPtr = _fifo.CPBase;
+#else
 					// sending the whole CPReadWriteDistance
 					distToSend = _fifo.CPReadWriteDistance;
-					if ( (distToSend+readPtr) > _fifo.CPEnd) // TODO: better?
+					if ( (distToSend+readPtr) >= _fifo.CPEnd) // TODO: better?
 					{
 						distToSend =_fifo.CPEnd - readPtr;
 						readPtr = _fifo.CPBase;
 					}
 					else
 						readPtr += distToSend; 
+#endif
 				}
 				Video_SendFifoData(uData, distToSend);
 #ifdef _WIN32
@@ -172,7 +165,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
                 Common::InterlockedExchangeAdd((int*)&_fifo.CPReadWriteDistance, -distToSend);
 #endif
 			}
-			//video_initialize.pLog("IDLE",FALSE);
+			//video_initialize.pLog("..........................IDLE",FALSE);
 #ifdef _WIN32
 			InterlockedExchange((LONG*)&_fifo.CPReadIdle, 1);
 #else
@@ -180,8 +173,5 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 #endif
         }
     }
-#if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
-	CloseHandle(hEventOnIdle);
-#endif
 }
 

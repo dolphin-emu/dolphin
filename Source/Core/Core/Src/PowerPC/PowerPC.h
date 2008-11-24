@@ -86,7 +86,6 @@ namespace PowerPC
 	void Stop();
 
 	void OnIdle(u32 _uThreadAddr);
-	void OnIdleDC(void);
 }
 
 // Easy register access macros.

@@ -367,17 +367,10 @@ THREAD_RETURN EmuThread(void *pArg)
 	}
 	else
 	{
-#if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
-		g_hEventOnIdle = CreateEvent( NULL, FALSE, FALSE, "EventOnIdle");
-		if (g_hEventOnIdle == NULL) PanicAlert("EmuThread() -> Create EventOnIdle error");
-#endif
 		cpuThread = new Common::Thread(CpuThread, pArg);
         PluginVideo::Video_Prepare(); //wglMakeCurrent
 		Common::SetCurrentThreadName("Video thread");
 		PluginVideo::Video_EnterLoop();
-#if defined(THREAD_VIDEO_WAKEUP_ONIDLE) && defined(_WIN32)
-		CloseHandle(g_hEventOnIdle);
-#endif
 	}
 
 	// Wait for CPU thread to exit - it should have been signaled to do so by now
