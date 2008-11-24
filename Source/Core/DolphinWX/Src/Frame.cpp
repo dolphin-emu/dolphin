@@ -624,6 +624,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 	else if(event.GetKeyCode() == 'E') // Send this to the video plugin WndProc
 	{
 		PostMessage((HWND)Core::GetWindowHandle(), WM_KEYDOWN, event.GetKeyCode(), 0);
+		event.Skip();
 	}
 #endif
 	else
