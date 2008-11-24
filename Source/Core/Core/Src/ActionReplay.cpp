@@ -65,10 +65,10 @@ bool NormalCode_Type_6(u8 subtype, u32 addr, u32 data, int *count, bool *skip);
 bool NormalCode_Type_7(u8 subtype, u32 addr, u32 data, int *count, bool *skip);
 
 // Parses the Action Replay section of a game ini file.
-void LoadActionReplayCodes(IniFile &ini, bool bForGUI) 
+void LoadActionReplayCodes(IniFile &ini) 
 {
-	if (!Core::GetStartupParameter().bEnableCheats && !bForGUI) 
-		return; // If cheats are off, do not load them; but load anyway if it's for GameConfig GUI
+	if (!Core::GetStartupParameter().bEnableCheats) 
+		return; // If cheats are off, do not load them
 
 	std::vector<std::string> lines;
 	std::vector<std::string> encryptedLines;

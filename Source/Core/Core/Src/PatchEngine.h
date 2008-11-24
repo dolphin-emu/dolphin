@@ -18,6 +18,11 @@
 #ifndef _PATCHENGINE_H
 #define _PATCHENGINE_H
 
+#include "IniFile.h"
+
+namespace PatchEngine
+{
+
 enum PatchType
 {
 	PATCH_8BIT,
@@ -33,19 +38,27 @@ static const char *PatchTypeStrings[] =
 	0
 };
 
-struct Patch
+struct PatchEntry
 {
-	Patch() {}
-	Patch(PatchType _t, u32 _addr, u32 _value) : type(_t), address(_addr), value(_value) {}
+	PatchEntry() {}
+	PatchEntry(PatchType _t, u32 _addr, u32 _value) : type(_t), address(_addr), value(_value) {}
 	PatchType type;
 	u32 address;
 	u32 value;
 };
 
-void PatchEngine_LoadPatches(const char *gameID);
-void PatchEngine_ApplyLoadPatches();
-void PatchEngine_ApplyFramePatches();
-void PatchEngine_ApplyARPatches();
-int PatchEngine_GetSpeedhackCycles(u32 addr);
+struct Patch
+{
+	std::string name;
+	std::vector<PatchEntry> entries;
+	bool active;
+};
+
+int GetSpeedhackCycles(u32 addr);
+void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile &ini);
+void LoadPatches(const char *gameID);
+void ApplyFramePatches();
+void ApplyARPatches();
+}  // namespace
 
 #endif //_PATCHENGINE_H

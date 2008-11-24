@@ -31,46 +31,61 @@
 #include <map>
 #include "StringUtil.h"
 #include "PatchEngine.h"
-#include "IniFile.h"
 #include "HW/Memmap.h"
 #include "ActionReplay.h"
 
 using namespace Common;
 
-namespace
+namespace PatchEngine
 {
 
-std::vector<Patch> onLoad;
 std::vector<Patch> onFrame;
 std::map<u32, int> speedHacks;
 
-static void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile &ini)
+void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile &ini)
 {
-	std::vector<std::string> keys;
-	ini.GetKeys(section, keys);
+	std::vector<std::string> lines;
+	if (!ini.GetLines(section, lines))
+		return;
 
-	for (std::vector<std::string>::const_iterator iter = keys.begin(); iter != keys.end(); ++iter)
+	Patch currentPatch;
+	int index = 0;
+
+	for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
 	{
-		std::string key = *iter;
-		std::string value;
-		ini.Get(section, key.c_str(), &value, "BOGUS");
-		if (value != "BOGUS")
+		std::string line = *iter;
+		if (line.size())
 		{
-			std::string val(value);
+			if (line[0] == '+' || line[0] == '$')
+			{
+				// Take care of the previous code
+				if (currentPatch.name.size()) patches.push_back(currentPatch);
+				currentPatch.entries.clear();
+
+				// Set active and name
+				currentPatch.active = (line[0] == '+') ? true : false;
+				if (currentPatch.active)
+					currentPatch.name = line.substr(2, line.size() - 2);
+				else
+					currentPatch.name = line.substr(1, line.size() - 1);
+				continue;
+			}
+
 			std::vector<std::string> items;
-			SplitString(val, ":", items);
-			if (items.size() >= 2) {
-				Patch p;
+			SplitString(line, ":", items);
+			if (items.size() >= 3) {
+				PatchEntry pE;
 				bool success = true;
-				success = success && TryParseUInt(std::string(key.c_str()), &p.address);
-				success = success && TryParseUInt(items[1], &p.value);
-				p.type = (PatchType)ChooseStringFrom(items[0].c_str(), PatchTypeStrings);
-				success = success && (p.type != (PatchType)-1);
+				success = success && TryParseUInt(items[0], &pE.address);
+				success = success && TryParseUInt(items[2], &pE.value);
+				pE.type = (PatchType)ChooseStringFrom(items[1].c_str(), PatchTypeStrings);
+				success = success && (pE.type != (PatchType)-1);
 				if (success)
-					patches.push_back(p);
+					currentPatch.entries.push_back(pE);
 			}
 		}
 	}
+	if (currentPatch.name.size()) patches.push_back(currentPatch);
 }
 
 static void LoadSpeedhacks(const char *section, std::map<u32, int> &hacks, IniFile &ini) {
@@ -95,10 +110,7 @@ static void LoadSpeedhacks(const char *section, std::map<u32, int> &hacks, IniFi
 	}
 }
 
-}  // namespace
-
-
-int PatchEngine_GetSpeedhackCycles(u32 addr)
+int GetSpeedhackCycles(u32 addr)
 {
 	std::map<u32, int>::const_iterator iter = speedHacks.find(addr);
 	if (iter == speedHacks.end())
@@ -107,14 +119,13 @@ int PatchEngine_GetSpeedhackCycles(u32 addr)
 		return iter->second;
 }
 
-void PatchEngine_LoadPatches(const char *gameID)
+void LoadPatches(const char *gameID)
 {
 	IniFile ini;
 	std::string filename = std::string(FULL_GAMECONFIG_DIR) + gameID + ".ini";
 	if (ini.Load(filename.c_str())) {
-		LoadPatchSection("OnLoad",  onLoad, ini);
 		LoadPatchSection("OnFrame", onFrame, ini);
-		LoadActionReplayCodes(ini, false);
+		LoadActionReplayCodes(ini);
 		LoadSpeedhacks("Speedhacks", speedHacks, ini);
 	}
 }
@@ -123,37 +134,39 @@ void ApplyPatches(const std::vector<Patch> &patches)
 {
 	for (std::vector<Patch>::const_iterator iter = patches.begin(); iter != patches.end(); ++iter)
 	{
-		u32 addr = iter->address;
-		u32 value = iter->value;
-		switch (iter->type)
+		if (iter->active)
 		{
-		case PATCH_8BIT:
-			Memory::Write_U8((u8)value, addr);
-			break;
-		case PATCH_16BIT:
-			Memory::Write_U16((u16)value, addr);
-			break;
-		case PATCH_32BIT:
-			Memory::Write_U32(value, addr);
-			break;
-		default:
-			//unknown patchtype
-			break;
+			for (std::vector<PatchEntry>::const_iterator iter2 = iter->entries.begin(); iter2 != iter->entries.end(); ++iter2)
+			{
+				u32 addr = iter2->address;
+				u32 value = iter2->value;
+				switch (iter2->type)
+				{
+				case PATCH_8BIT:
+					Memory::Write_U8((u8)value, addr);
+					break;
+				case PATCH_16BIT:
+					Memory::Write_U16((u16)value, addr);
+					break;
+				case PATCH_32BIT:
+					Memory::Write_U32(value, addr);
+					break;
+				default:
+					//unknown patchtype
+					break;
+				}
+			}
 		}
 	}
 }
 
-void PatchEngine_ApplyLoadPatches() 
-{
-	ApplyPatches(onLoad);
-}
-
-void PatchEngine_ApplyFramePatches() 
+void ApplyFramePatches() 
 {
 	ApplyPatches(onFrame);
 }
 
-void PatchEngine_ApplyARPatches()
+void ApplyARPatches()
 {
 	ActionReplayRunAllActive();
 }
+}  // namespace

@@ -372,7 +372,7 @@ namespace Jit64
 		gpr.Start(js.gpa);
 		fpr.Start(js.fpa);
 
-		js.downcountAmount = js.st.numCycles + PatchEngine_GetSpeedhackCycles(emaddress);
+		js.downcountAmount = js.st.numCycles + PatchEngine::GetSpeedhackCycles(emaddress);
 		js.blockSize = size;
 		// Translate instructions
 		for (int i = 0; i < (int)size; i++)

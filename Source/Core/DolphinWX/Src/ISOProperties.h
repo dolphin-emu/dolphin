@@ -67,6 +67,9 @@ class CISOProperties : public wxDialog
 
 		wxNotebook *m_Notebook;
 		wxPanel *m_GameConfig;
+		wxNotebook *m_GameConfig_Notebook;
+		wxPanel *m_PatchPage;
+		wxPanel *m_CheatPage;
 		wxPanel *m_Information;
 		wxPanel *m_Filesystem;
 
@@ -76,6 +79,7 @@ class CISOProperties : public wxDialog
 		wxCheckBox *OptimizeQuantizers;
 		wxCheckBox *EnableProgressiveScan, *EnableWideScreen; // Wii
 
+		wxButton *EditConfig;
 		wxStaticText *EmuStateText;
 		wxArrayString arrayStringFor_EmuState;
 		wxChoice *EmuState;
@@ -89,8 +93,12 @@ class CISOProperties : public wxDialog
 		wxButton *EditCheat;
 		wxButton *AddCheat;
 		wxButton *RemoveCheat;
-		wxButton *EditConfig;
-		
+		wxArrayString arrayStringFor_Speedhacks;
+		wxCheckListBox *Speedhacks;
+		wxButton *EditSpeedhack;
+		wxButton *AddSpeedhack;
+		wxButton *RemoveSpeedhack;
+
 		wxStaticText *m_NameText;
 		wxStaticText *m_GameIDText;
 		wxStaticText *m_CountryText;
@@ -129,6 +137,10 @@ class CISOProperties : public wxDialog
 
 			ID_NOTEBOOK,
 			ID_GAMECONFIG,
+			ID_GAMECONFIG_NOTEBOOK,
+			ID_PATCH_PAGE,
+			ID_ARCODE_PAGE,
+			ID_SPEEDHACK_PAGE,
 			ID_INFORMATION,
 			ID_FILESYSTEM,
 
@@ -138,6 +150,7 @@ class CISOProperties : public wxDialog
 			ID_ENABLEPROGRESSIVESCAN,
 			ID_ENABLEWIDESCREEN,
 			ID_OPTIMIZEQUANTIZERS,
+			ID_EDITCONFIG,
 			ID_EMUSTATE_TEXT,
 			ID_EMUSTATE,
 			ID_PATCHES_LIST,
@@ -148,7 +161,6 @@ class CISOProperties : public wxDialog
 			ID_EDITCHEAT,
 			ID_ADDCHEAT,
 			ID_REMOVECHEAT,
-			ID_EDITCONFIG,
 			
 			ID_NAME_TEXT,
 			ID_GAMEID_TEXT,
@@ -185,26 +197,31 @@ class CISOProperties : public wxDialog
 		void CreateGUIControls();
 		void OnClose(wxCloseEvent& event);
 		void OnCloseClick(wxCommandEvent& event);
+		void OnEditConfig(wxCommandEvent& event);
+		void ListSelectionChanged(wxCommandEvent& event);
+		void PatchButtonClicked(wxCommandEvent& event);
+		void ActionReplayButtonClicked(wxCommandEvent& event);
 		void RightClickOnBanner(wxMouseEvent& event);
 		void OnBannerImageSave(wxCommandEvent& event);
 		void OnRightClickOnTree(wxTreeEvent& event);
 		void OnExtractFile(wxCommandEvent& event);
 		void OnExtractDir(wxCommandEvent& event);
 		void SetRefresh(wxCommandEvent& event);
-		void OnEditConfig(wxCommandEvent& event);
-		void ActionReplayList_Load();
-		void ActionReplayList_Save();
 
 		std::vector<const DiscIO::SFileInfo *> Our_Files;
 		typedef std::vector<const DiscIO::SFileInfo *>::iterator fileIter;
 
+		IniFile GameIni;
+		std::string GameIniFile;
+
 		void CreateDirectoryTree(wxTreeItemId& parent,fileIter& begin,
 								 fileIter& end,
 								 fileIter& iterPos, char *directory);
-
-		IniFile GameIni;
-		std::string GameIniFile;
 		void LoadGameConfig();
 		bool SaveGameConfig();
+		void PatchList_Load();
+		void PatchList_Save();
+		void ActionReplayList_Load();
+		void ActionReplayList_Save();
 };
 #endif

@@ -153,10 +153,9 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	LOG(MASTER_LOG, "call iAppLoaderClose");
 	RunFunction(iAppLoaderClose, _bDebug);
 
-	// Load patches and run startup patches
+	// Load patches
 	std::string gameID = VolumeHandler::GetVolume()->GetUniqueID();
-	PatchEngine_LoadPatches(gameID.c_str());
-	PatchEngine_ApplyLoadPatches();
+	PatchEngine::LoadPatches(gameID.c_str());
 	PowerPC::ppcState.DebugCount = 0;
 	// return
 	PC = PowerPC::ppcState.gpr[3];
@@ -359,7 +358,7 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 
 		// Load patches and run startup patches
 		std::string gameID = VolumeHandler::GetVolume()->GetUniqueID();
-		PatchEngine_LoadPatches(gameID.c_str());
+		PatchEngine::LoadPatches(gameID.c_str());
 
 		// return
 		PC = PowerPC::ppcState.gpr[3];

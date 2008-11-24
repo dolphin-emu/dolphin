@@ -21,6 +21,12 @@
 #include "VolumeCreator.h"
 #include "Filesystem.h"
 #include "ISOProperties.h"
+#include "PatchEngine.h"
+
+DiscIO::IVolume *OpenISO = NULL;
+DiscIO::IFileSystem *pFileSystem = NULL;
+
+std::vector<PatchEngine::Patch> onFrame;
 
 struct ARListCode {
 	std::string name;
@@ -28,21 +34,26 @@ struct ARListCode {
 	std::vector<std::string> ops;
 	u32 uiIndex;
 };
+std::vector<ARListCode> ARCodes;
 
 BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_CLOSE(CISOProperties::OnClose)
 	EVT_BUTTON(ID_CLOSE, CISOProperties::OnCloseClick)
+	EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
 	EVT_CHOICE(ID_EMUSTATE, CISOProperties::SetRefresh)
+	EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::ListSelectionChanged)
+	EVT_BUTTON(ID_EDITPATCH, CISOProperties::PatchButtonClicked)
+	EVT_BUTTON(ID_ADDPATCH, CISOProperties::PatchButtonClicked)
+	EVT_BUTTON(ID_REMOVEPATCH, CISOProperties::PatchButtonClicked)
+	EVT_LISTBOX(ID_CHEATS_LIST, CISOProperties::ListSelectionChanged)
+	EVT_BUTTON(ID_EDITCHEAT, CISOProperties::ActionReplayButtonClicked)
+	EVT_BUTTON(ID_ADDCHEAT, CISOProperties::ActionReplayButtonClicked)
+	EVT_BUTTON(ID_REMOVECHEAT, CISOProperties::ActionReplayButtonClicked)
 	EVT_MENU(IDM_BNRSAVEAS, CISOProperties::OnBannerImageSave)
 	EVT_TREE_ITEM_RIGHT_CLICK(ID_TREECTRL, CISOProperties::OnRightClickOnTree)
 	EVT_MENU(IDM_EXTRACTFILE, CISOProperties::OnExtractFile)
 	EVT_MENU(IDM_EXTRACTDIR, CISOProperties::OnExtractDir)
-	EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
 END_EVENT_TABLE()
-
-DiscIO::IVolume *OpenISO = NULL;
-DiscIO::IFileSystem *pFileSystem = NULL;
-std::vector<ARListCode> ARCodes;
 
 CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
@@ -66,7 +77,6 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		fprintf(f, "# %s - %s\n", OpenISO->GetUniqueID().c_str(), OpenISO->GetName().c_str());
 		fprintf(f, "[Core]\n#Values set here will override the main dolphin settings.\n");
 		fprintf(f, "[EmuState]\n#The Emulation State. 1 is worst, 5 is best, 0 is not set.\n");
-		fprintf(f, "[OnLoad]\n#Add memory patches to be loaded once on boot here.\n");
 		fprintf(f, "[OnFrame]\n#Add memory patches to be applied every frame here.\n");
 		fprintf(f, "[ActionReplay]\n#Add action replay cheats here.\n");
 		fclose(f);
@@ -120,7 +130,6 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	m_Treectrl->Expand(RootId);
 
 	SetTitle(wxString::Format(_("Properties: %s - %s"), OpenISO_.GetUniqueID().c_str(), OpenISO_.GetName().c_str()));
-	Fit();
 }
 
 CISOProperties::~CISOProperties()
@@ -187,6 +196,11 @@ void CISOProperties::CreateGUIControls()
 	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 	m_GameConfig = new wxPanel(m_Notebook, ID_GAMECONFIG, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_GameConfig, _("GameConfig"));
+		m_GameConfig_Notebook = new wxNotebook(m_GameConfig, ID_GAMECONFIG_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
+		m_PatchPage = new wxPanel(m_GameConfig_Notebook, ID_PATCH_PAGE, wxDefaultPosition, wxDefaultSize);
+		m_GameConfig_Notebook->AddPage(m_PatchPage, _("Patches"));
+		m_CheatPage = new wxPanel(m_GameConfig_Notebook, ID_ARCODE_PAGE, wxDefaultPosition, wxDefaultSize);
+		m_GameConfig_Notebook->AddPage(m_CheatPage, _("AR Codes"));
 	m_Information = new wxPanel(m_Notebook, ID_INFORMATION, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_Information, _("Info"));
 	m_Filesystem = new wxPanel(m_Notebook, ID_FILESYSTEM, wxDefaultPosition, wxDefaultSize);
@@ -227,34 +241,27 @@ void CISOProperties::CreateGUIControls()
 	EmuState = new wxChoice(m_GameConfig, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, arrayStringFor_EmuState, 0, wxDefaultValidator);
 
 	// Patches
-	sbPatches = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Patches"));
+	sbPatches = new wxStaticBoxSizer(wxVERTICAL, m_PatchPage, _("Patches"));
 	sPatches = new wxBoxSizer(wxVERTICAL);
-	Patches = new wxCheckListBox(m_GameConfig, ID_PATCHES_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_Patches, 0, wxDefaultValidator);
+	Patches = new wxCheckListBox(m_PatchPage, ID_PATCHES_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_Patches, wxLB_HSCROLL, wxDefaultValidator);
 	sPatchButtons = new wxBoxSizer(wxHORIZONTAL);
-	EditPatch = new wxButton(m_GameConfig, ID_EDITPATCH, _("Edit..."), wxDefaultPosition, wxDefaultSize, 0);
-	AddPatch = new wxButton(m_GameConfig, ID_ADDPATCH, _("Add..."), wxDefaultPosition, wxDefaultSize, 0);
-	RemovePatch = new wxButton(m_GameConfig, ID_REMOVEPATCH, _("Remove"), wxDefaultPosition, wxDefaultSize, 0);
+	EditPatch = new wxButton(m_PatchPage, ID_EDITPATCH, _("Edit..."), wxDefaultPosition, wxDefaultSize, 0);
+	AddPatch = new wxButton(m_PatchPage, ID_ADDPATCH, _("Add..."), wxDefaultPosition, wxDefaultSize, 0);
+	RemovePatch = new wxButton(m_PatchPage, ID_REMOVEPATCH, _("Remove"), wxDefaultPosition, wxDefaultSize, 0);
 	EditPatch->Enable(false);
 	RemovePatch->Enable(false);
 
 	// Action Replay Cheats
-	sbCheats = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Action Replay Codes"));
+	sbCheats = new wxStaticBoxSizer(wxVERTICAL, m_CheatPage, _("Action Replay Codes"));
 	sCheats = new wxBoxSizer(wxVERTICAL);
-	Cheats = new wxCheckListBox(m_GameConfig, ID_CHEATS_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_Cheats, 0, wxDefaultValidator);
+	Cheats = new wxCheckListBox(m_CheatPage, ID_CHEATS_LIST, wxDefaultPosition, wxDefaultSize, arrayStringFor_Cheats, wxLB_HSCROLL, wxDefaultValidator);
 	sCheatButtons = new wxBoxSizer(wxHORIZONTAL);
-	EditCheat = new wxButton(m_GameConfig, ID_EDITCHEAT, _("Edit..."), wxDefaultPosition, wxDefaultSize, 0);
-	AddCheat = new wxButton(m_GameConfig, ID_ADDCHEAT, _("Add..."), wxDefaultPosition, wxDefaultSize, 0);
-	RemoveCheat = new wxButton(m_GameConfig, ID_REMOVECHEAT, _("Remove"), wxDefaultPosition, wxDefaultSize, 0);
+	EditCheat = new wxButton(m_CheatPage, ID_EDITCHEAT, _("Edit..."), wxDefaultPosition, wxDefaultSize, 0);
+	AddCheat = new wxButton(m_CheatPage, ID_ADDCHEAT, _("Add..."), wxDefaultPosition, wxDefaultSize, 0);
+	RemoveCheat = new wxButton(m_CheatPage, ID_REMOVECHEAT, _("Remove"), wxDefaultPosition, wxDefaultSize, 0);
 	EditCheat->Enable(false);
 	RemoveCheat->Enable(false);
 
-	// Remove when cheat + patch editor works
-	Patches->Append(_("Not yet functional"));
-	Patches->Enable(false);
-	AddPatch->Enable(false);
-	AddCheat->Enable(false);
-	// --------------------------------------
-	
 	wxBoxSizer* sConfigPage;
 	sConfigPage = new wxBoxSizer(wxVERTICAL);
 	sCoreOverrides->Add(OverrideText, 0, wxEXPAND|wxALL, 5);
@@ -271,6 +278,8 @@ void CISOProperties::CreateGUIControls()
 	sbCoreOverrides->Add(sCoreOverrides, 0, wxEXPAND|wxALL, 0);
 	sConfigPage->Add(sbCoreOverrides, 0, wxEXPAND|wxALL, 5);
 
+	wxBoxSizer* sPatchPage;
+	sPatchPage = new wxBoxSizer(wxVERTICAL);
 	sPatches->Add(Patches, 1, wxEXPAND|wxALL, 0);
 	sPatchButtons->Add(EditPatch,  0, wxEXPAND|wxALL, 0);
 	sPatchButtons->AddStretchSpacer();
@@ -278,8 +287,12 @@ void CISOProperties::CreateGUIControls()
 	sPatchButtons->Add(RemovePatch,  0, wxEXPAND|wxALL, 0);
 	sPatches->Add(sPatchButtons, 0, wxEXPAND|wxALL, 0);
 	sbPatches->Add(sPatches, 1, wxEXPAND|wxALL, 0);
-	sConfigPage->Add(sbPatches, 1, wxEXPAND|wxALL, 5);
+	sPatchPage->Add(sbPatches, 1, wxEXPAND|wxALL, 5);
+	m_PatchPage->SetSizer(sPatchPage);
+	sPatchPage->Layout();
 
+	wxBoxSizer* sCheatPage;
+	sCheatPage = new wxBoxSizer(wxVERTICAL);
 	sCheats->Add(Cheats, 1, wxEXPAND|wxALL, 0);
 	sCheatButtons->Add(EditCheat,  0, wxEXPAND|wxALL, 0);
 	sCheatButtons->AddStretchSpacer();
@@ -287,7 +300,12 @@ void CISOProperties::CreateGUIControls()
 	sCheatButtons->Add(RemoveCheat,  0, wxEXPAND|wxALL, 0);
 	sCheats->Add(sCheatButtons, 0, wxEXPAND|wxALL, 0);
 	sbCheats->Add(sCheats, 1, wxEXPAND|wxALL, 0);
-	sConfigPage->Add(sbCheats, 1, wxEXPAND|wxALL, 5);
+	sCheatPage->Add(sbCheats, 1, wxEXPAND|wxALL, 5);
+	m_CheatPage->SetSizer(sCheatPage);
+	sCheatPage->Layout();
+
+	sConfigPage->Add(m_GameConfig_Notebook, 1, wxEXPAND|wxALL, 5);
+
 	m_GameConfig->SetSizer(sConfigPage);
 	sConfigPage->Layout();
 	
@@ -332,7 +350,7 @@ void CISOProperties::CreateGUIControls()
 	m_CommentText = new wxStaticText(m_Information, ID_COMMENT_TEXT, _("Comment:"), wxDefaultPosition, wxDefaultSize);
 	m_Comment = new wxTextCtrl(m_Information, ID_COMMENT, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY);
 	m_BannerText = new wxStaticText(m_Information, ID_BANNER_TEXT, _("Banner:"), wxDefaultPosition, wxDefaultSize);
-	m_Banner = new wxStaticBitmap(m_Information, ID_BANNER, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
+	m_Banner = new wxStaticBitmap(m_Information, ID_BANNER, wxNullBitmap, wxDefaultPosition, wxSize(96, 32), 0);
 
 	wxBoxSizer* sInfoPage;
 	sInfoPage = new wxBoxSizer(wxVERTICAL);
@@ -382,6 +400,8 @@ void CISOProperties::CreateGUIControls()
 	sTreePage->Add(sbTreectrl, 1, wxEXPAND|wxALL, 5);
 	m_Filesystem->SetSizer(sTreePage);
 	sTreePage->Layout();
+
+	Fit();
 }
 
 void CISOProperties::OnClose(wxCloseEvent& WXUNUSED (event))
@@ -513,9 +533,8 @@ void CISOProperties::LoadGameConfig()
 	}
 	EmuState->SetSelection(iTemp);
 
+	PatchList_Load();
 	ActionReplayList_Load();
-
-	// TODO handle patches
 }
 
 bool CISOProperties::SaveGameConfig()
@@ -547,11 +566,10 @@ bool CISOProperties::SaveGameConfig()
 
 	GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
 
+	PatchList_Save();
 	ActionReplayList_Save();
 
 	return GameIni.Save(GameIniFile.c_str());
-
-	// TODO save patches
 }
 
 void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
@@ -570,31 +588,104 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 	}
 }
 
+void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
+{
+	switch (event.GetId())
+	{
+	case ID_PATCHES_LIST:
+		EditPatch->Enable();
+		RemovePatch->Enable();
+		break;
+	case ID_CHEATS_LIST:
+		EditCheat->Enable();
+		RemoveCheat->Enable();
+		break;
+	}
+}
+
+void CISOProperties::PatchList_Load()
+{
+	onFrame.clear();
+	PatchEngine::LoadPatchSection("OnFrame", onFrame, GameIni);
+
+	u32 index = 0;
+	for (std::vector<PatchEngine::Patch>::const_iterator it = onFrame.begin(); it != onFrame.end(); ++it)
+	{
+		PatchEngine::Patch p = *it;
+		Patches->Append(wxString::FromAscii(p.name.c_str()));
+		Patches->Check(index, p.active);
+		++index;
+	}
+}
+
+void CISOProperties::PatchList_Save()
+{
+	std::vector<std::string> lines;
+	u32 index = 0;
+	for (std::vector<PatchEngine::Patch>::const_iterator onFrame_it = onFrame.begin(); onFrame_it != onFrame.end(); ++onFrame_it)
+	{
+		lines.push_back(Patches->IsChecked(index) ? "+$" + onFrame_it->name : "$" + onFrame_it->name);
+
+		for (std::vector<PatchEngine::PatchEntry>::const_iterator iter2 = onFrame_it->entries.begin(); iter2 != onFrame_it->entries.end(); ++iter2)
+		{
+			std::string temp;
+			ToStringFromFormat(&temp, "0x%08X:%s:0x%08X", iter2->address, PatchEngine::PatchTypeStrings[iter2->type], iter2->value);
+			lines.push_back(temp);
+		}
+		++index;
+	}
+	GameIni.SetLines("OnFrame", lines);
+	lines.clear();
+}
+
+void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
+{
+	switch (event.GetId())
+	{
+	case ID_EDITPATCH:
+		// dialog
+		break;
+	case ID_ADDPATCH:
+		// dialog
+		break;
+	case ID_REMOVEPATCH:
+		onFrame.erase(onFrame.begin() + Patches->GetSelection());
+		break;
+	}
+
+	PatchList_Save();
+	Patches->Clear();
+	PatchList_Load();
+
+	EditPatch->Enable(false);
+	RemovePatch->Enable(false);
+}
+
 void CISOProperties::ActionReplayList_Load()
 {
 	ARCodes.clear();
 	std::vector<std::string> lines;
- 
+
 	if (!GameIni.GetLines("ActionReplay", lines))
 		return;
- 
+
 	ARListCode code;
- 
+
 	for (std::vector<std::string>::const_iterator it = lines.begin(); it != lines.end(); ++it)
 	{
 		std::string line = *it;
- 
+
 		if (line[0] == '+' || line[0] == '$')
 		{
 			// Take care of the previous code
 			if (code.ops.size())
 			{
-                          code.uiIndex = Cheats->Append(wxString::FromAscii(code.name.c_str()));
+				code.uiIndex = Cheats->Append(wxString::FromAscii(code.name.c_str()));
 				ARCodes.push_back(code);
 				Cheats->Check(code.uiIndex, code.enabled);
 				code.ops.clear();
 			}
- 
+
 			// Give name and enabled to current code
 			if(line.size() > 1)
 			{
@@ -609,33 +700,55 @@ void CISOProperties::ActionReplayList_Load()
 					code.name = line.substr(1, line.size() - 1);
 				}
 			}
- 
 			continue;
 		}
- 
 		code.ops.push_back(line);
 	}
- 
+
 	if (code.ops.size())
 	{
-            code.uiIndex = Cheats->Append(wxString::FromAscii(code.name.c_str()));
-            ARCodes.push_back(code);
-            Cheats->Check(code.uiIndex, code.enabled);
+		code.uiIndex = Cheats->Append(wxString::FromAscii(code.name.c_str()));
+		ARCodes.push_back(code);
+		Cheats->Check(code.uiIndex, code.enabled);
 	}
 }
+
 void CISOProperties::ActionReplayList_Save()
 {
 	std::vector<std::string> lines;
 	for (std::vector<ARListCode>::const_iterator iter = ARCodes.begin(); iter != ARCodes.end(); ++iter)
 	{
 		ARListCode code = *iter;
- 
+
 		lines.push_back(Cheats->IsChecked(code.uiIndex) ? "+$" + code.name : "$" + code.name);
- 
+
 		for (std::vector<std::string>::const_iterator iter2 = code.ops.begin(); iter2 != code.ops.end(); ++iter2)
 		{
 			lines.push_back(*iter2);
 		}
 	}
 	GameIni.SetLines("ActionReplay", lines);
+}
+
+void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
+{
+	switch (event.GetId())
+	{
+	case ID_EDITCHEAT:
+		// dialog
+		break;
+	case ID_ADDCHEAT:
+		// dialog
+		break;
+	case ID_REMOVECHEAT:
+		ARCodes.erase(ARCodes.begin() + Cheats->GetSelection());
+		break;
+	}
+
+	ActionReplayList_Save();
+	Cheats->Clear();
+	ActionReplayList_Load();
+
+	EditCheat->Enable(false);
+	RemoveCheat->Enable(false);
 }
