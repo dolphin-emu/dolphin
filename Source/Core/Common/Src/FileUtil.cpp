@@ -191,15 +191,25 @@ std::string GetUserDirectory()
 
 u64 GetSize(const char *filename)
 {
-	FILE *pFile = fopen(filename, "rb");
-	if (pFile)
+#ifdef _WIN32
+    FILE *pFile = fopen(filename, "rb");
+    if (pFile)
 	{
-		fseek(pFile, 0, SEEK_END);
-		u64 pos = ftell(pFile);
-		fclose(pFile);
-		return pos;
-	}
-	return 0;
+            fseek(pFile, 0, SEEK_END);
+            u64 pos = ftell(pFile);
+            fclose(pFile);
+            return pos;
+        }
+#else
+    struct stat buf;
+    if (stat(filename, &buf) == 0) {
+        return buf.st_size;
+    }
+    int err = errno;
+    PanicAlert("Error stating %s: %s", filename, strerror(err));
+    
+#endif
+    return 0;
 }
 
 #ifdef _WIN32
@@ -263,6 +273,7 @@ u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry)
 #else
 u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry)
 {
+    PanicAlert("Scan directory not implemanted yet\n");
 	// TODO - Insert linux stuff here
 	return 0;
 }
