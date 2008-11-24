@@ -40,30 +40,23 @@ namespace WiiMoteEmu
 //******************************************************************************
 
 
-
-/* Debugging. Read out the structs. */
-void ReadExt()
+// ===================================================
+/* Debugging. Read out an u8 array. */
+// ----------------
+std::string ArrayToString(const u8 *data, u32 size, u32 offset, int line_len)
 {
-	for (int i = 0; i < WIIMOTE_REG_EXT_SIZE; i++)
+	//const u8* _data = (const u8*)data;
+	std::string Temp;
+	for (u32 i = 0; i < size; i++)
 	{
-		//wprintf("%i | (i % 16)
-		wprintf("%02x ", g_RegExt[i]);
-		if((i + 1) % 20 == 0) wprintf("\n");
-	}
-	wprintf("\n\n");
+		char Buffer[128];
+		sprintf(Buffer, "%02x ", data[i + offset]);
+		if((i + 1) % line_len == 0) Temp.append("\n"); // break long lines
+		Temp.append(Buffer);
+	}	
+	return Temp;
 }
-
-
-void ReadExtTmp()
-{
-	for (int i = 0; i < WIIMOTE_REG_EXT_SIZE; i++)
-	{
-		//wprintf("%i | (i % 16)
-		wprintf("%02x ", g_RegExtTmp[i]);
-		if((i + 1) % 20 == 0) wprintf("\n");
-	}
-	wprintf("\n\n");
-}
+// ================
 
 
 void FillReportInfo(wm_core& _core)
@@ -525,7 +518,9 @@ void FillReportExtension(wm_extension& _ext)
 	// Clear g_RegExtTmp by copying zeroes to it
 	memset(g_RegExtTmp, 0, sizeof(g_RegExtTmp));
 
-	// Write the nunchuck inputs to it
+	/* Write the nunchuck inputs to it. We begin writing at 0x08, but it could also be
+	   0x00, the important thing is that we begin at an address evenly divisible
+	   by 0x08 */
 	g_RegExtTmp[0x08] = _ext.jx;
 	g_RegExtTmp[0x09] = _ext.jy;
 	g_RegExtTmp[0x0a] = _ext.ax;

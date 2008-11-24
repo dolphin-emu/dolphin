@@ -311,6 +311,11 @@ void CWII_IPC_HLE_WiiMote::EventCommandWriteLinkPolicy()
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+// ===================================================
+/* This function send ACL frams from the Wii to Wiimote_ControlChannel() in the Wiimote.
+   It's called from SendToDevice() in WII_IPC_HLE_Device_usb.cpp. */
+// ----------------
 void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 {
 	// Debugger::PrintDataBuffer(LogTypes::WIIMOTE, _pData, _Size, "SendACLFrame: ");
@@ -325,7 +330,7 @@ void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 
 	if(pHeader->Length != DataSize) 
 	{
-		LOG(WII_IPC_WIIMOTE, "Faulty packet. It is dropped.");
+		LOGV(WII_IPC_WIIMOTE, 2, "Faulty packet. It is dropped.");
 		return;
 	}
 
@@ -459,7 +464,7 @@ void CWII_IPC_HLE_WiiMote::CommandConnectionReq(u8 _Ident, u8* _pData, u32 _Size
 
 void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Size)
 {
-	LOGV(WII_IPC_WIIMOTE, 1, "=======================================================");
+	LOGV(WII_IPC_WIIMOTE, 1, "*******************************************************");
 	u32 Offset = 0;
 	SL2CAP_CommandConfigurationReq* pCommandConfigReq = (SL2CAP_CommandConfigurationReq*)_pData;
 
@@ -524,7 +529,7 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 	}
 
 	SendCommandToACL(_Ident, L2CAP_CONF_RSP, RespLen, TempBuffer);
-	LOGV(WII_IPC_WIIMOTE, 1, "=======================================================");
+	LOGV(WII_IPC_WIIMOTE, 1, "*******************************************************");
 }
 
 void CWII_IPC_HLE_WiiMote::CommandConnectionResponse(u8 _Ident, u8* _pData, u32 _Size)

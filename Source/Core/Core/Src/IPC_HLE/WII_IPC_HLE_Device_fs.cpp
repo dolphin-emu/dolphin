@@ -221,6 +221,9 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 {
 	switch(_Parameter)
 	{
+	case GET_STATS:
+		PanicAlert("FS: GET_STATS not supported");
+		break;
 	case CREATE_DIR:
 		{
 			_dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);

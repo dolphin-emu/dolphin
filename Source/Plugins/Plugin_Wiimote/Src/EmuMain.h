@@ -30,10 +30,7 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size);
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size) ;
 void Update();
 
-//void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1);
-
-void ReadExt(); // Debugging
-void ReadExtTmp();
+std::string ArrayToString(const u8 *data, u32 size, u32 offset = 0, int line_len = 20);
 
 };
 

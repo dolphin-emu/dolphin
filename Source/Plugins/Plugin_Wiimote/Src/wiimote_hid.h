@@ -76,13 +76,13 @@ struct wm_request_status {
 
 #define WM_STATUS_REPORT 0x20
 struct wm_status_report {
-	u8 padding1[2];
-	u8 unknown : 1;
+	u8 padding1[2]; // two 00
+	u8 battery_low : 1;
 	u8 extension : 1;
 	u8 speaker : 1;
 	u8 ir : 1;
 	u8 leds : 4;
-	u8 padding2[2];
+	u8 padding2[2]; // two 00
 	u8 battery;
 };
 

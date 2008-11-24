@@ -235,17 +235,33 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendToDevice(u16 _ConnectionHandle, u8
 	pWiiMote->SendACLFrame(_pData, _Size);
 }
 
+
+// ===================================================
+/* Here we queue the ACL frames. They will consist of header + data. The header is
+   for example 07 00 41 00 which means size 0x0007 and channel 0x0041. */
+// ----------------
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLFrame(u16 _ConnectionHandle, u8* _pData, u32 _Size)
 {
 	LOGV(WII_IPC_WIIMOTE, 1, "Queing ACL frame.");
 
-	//queue the packet
+	// Queue the packet
 	ACLFrame frame;
 	frame.ConnectionHandle = _ConnectionHandle;
 	frame.data = new u8[_Size];
 	memcpy(frame.data, _pData, _Size);
 	frame.size = _Size;
 	m_AclFrameQue.push(frame);
+
+	/* Debugging
+	std::string Temp;
+	for (u32 j = 0; j < _Size; j++)
+	{
+		char Buffer[128];
+		sprintf(Buffer, "%02x ", frame.data[j]);
+		Temp.append(Buffer);
+	}
+	LOGV(WII_IPC_WIIMOTE, 1, "   Size: 0x%08x", _Size);
+	LOGV(WII_IPC_WIIMOTE, 1, "   Data: %s", Temp.c_str()); */
 	
 	g_HCICount++;
 }
@@ -290,7 +306,9 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		pHeader->PBFlag = 2;
 		pHeader->Size = frame.size;
 
-		memcpy(Memory::GetPointer(m_pACLBuffer->PayloadBuffer[0].m_Address + sizeof(UACLHeader)), frame.data , frame.size);
+		// Write the fram to the PayloadBuffer
+		memcpy(Memory::GetPointer(m_pACLBuffer->PayloadBuffer[0].m_Address + sizeof(UACLHeader)),
+			frame.data, frame.size);
 
 		// return reply buffer size
 		Memory::Write_U32(sizeof(UACLHeader) + frame.size, m_pACLBuffer->m_Address + 0x4);
@@ -301,6 +319,19 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		u32 Addr = m_pACLBuffer->m_Address;
 		delete m_pACLBuffer;
 		m_pACLBuffer = NULL;
+
+
+		/* Debugging
+		std::string Temp;
+		for (u32 j = 0; j < frame.size; j++)
+		{
+			char Buffer[128];
+			sprintf(Buffer, "%02x ", frame.data[j]);
+			Temp.append(Buffer);
+		}
+		LOGV(WII_IPC_WIIMOTE, 1, "   Size: 0x%08x", frame.size);
+		LOGV(WII_IPC_WIIMOTE, 1, "   Size of UACLHeader: 0x%08x", sizeof(UACLHeader));		
+		LOGV(WII_IPC_WIIMOTE, 1, "   Data: %s", Temp.c_str()); */
 
 		return Addr;
 	}
@@ -894,8 +925,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 
 	u16 ocf = HCI_OCF(pMsg->Opcode);
 	u16 ogf = HCI_OGF(pMsg->Opcode);
-	LOG(WII_IPC_WIIMOTE, "****************************** ExecuteHCICommandMessage(0x%04x)"
-					"(ocf: 0x%02x, ogf: 0x%02x)", pMsg->Opcode, ocf, ogf);
+	LOG(WII_IPC_WIIMOTE, "******************************");
+	LOG(WII_IPC_WIIMOTE, "ExecuteHCICommandMessage(0x%04x)(ocf: 0x%02x, ogf: 0x%02x)",
+		pMsg->Opcode, ocf, ogf);
 
 	switch(pMsg->Opcode)
 	{

@@ -27,8 +27,18 @@
    [c.left etc] [c.a etc]   acc.x y z   ir0.x y ? ir1.x y ? ir2.x y ? ir3.x y ?
 
    0x37
-   [c.left etc] [c.a etc]   acc.x y z   ir0.x1 y1 ? x2 y2 ir1.x1 y1 ? x2 y2   ext.jx jy ax ay az bt*/
+   [c.left etc] [c.a etc]   acc.x y z   ir0.x1 y1 ? x2 y2 ir1.x1 y1 ? x2 y2   ext.jx jy ax ay az bt
 
+
+   The Data Report's path from here is
+      WII_IPC_HLE_WiiMote.cpp:
+	     Callback_WiimoteInput()
+	     CWII_IPC_HLE_WiiMote::SendL2capData()
+	  WII_IPC_HLE_Device_usb.cpp:
+	     CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLFrame()
+	  at that point the message is queued and will be sent by the next
+	     CWII_IPC_HLE_Device_usb_oh1_57e_305::Update() */
+         
 // ================
 
 
@@ -40,6 +50,7 @@
 #include <string>
 #include "Common.h"
 #include "wiimote_hid.h"
+#include "EmuMain.h"
 #include "EmuSubroutines.h"
 #include "EmuDefinitions.h"
 #include "Encryption.h" // for extension encryption
@@ -66,7 +77,6 @@ void WmDataReporting(u16 _channelID, wm_data_reporting* dr)
 	LOG(WII_IPC_WIIMOTE, "  Rumble: %x", dr->rumble);
 	LOG(WII_IPC_WIIMOTE, "  Continuous: %x", dr->continuous);
 	LOG(WII_IPC_WIIMOTE, "  All The Time: %x (not only on data change)", dr->all_the_time);
-	LOG(WII_IPC_WIIMOTE, "  Rumble: %x", dr->rumble);
 	LOG(WII_IPC_WIIMOTE, "  Mode: 0x%02x", dr->mode);
 	wprintf("\nData reporting mode: 0x%02x", dr->mode);
 	wprintf("\nData reporting channel: 0x%04x\n", _channelID);
@@ -127,20 +137,18 @@ void SendReportCoreAccel(u16 _channelID)
 	FillReportInfo(pReport->c);
 	FillReportAcc(pReport->a);
 
-	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccel()");
+	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccel (0x31)");
+	LOGV(WII_IPC_WIIMOTE, 2, "      Channel: %04x", _channelID);
+	LOGV(WII_IPC_WIIMOTE, 2, "      Offset: %08x", Offset);
 
 	// Debugging
+#ifdef _WIN32
 	/*if(GetAsyncKeyState('V'))
 	{
-		wprintf("DataFrame: ");
-		for (int i = 0; i < Offset; i++)
-		{			
-			wprintf("%02x ", DataFrame[i]);
-			if((i + 1) % 30 == 0) wprintf("\n");
-		}
-		wprintf("\n");
+		std::string Temp = WiiMoteEmu::ArrayToString(DataFrame, Offset, 0, 30);
+		wprintf("DataFrame: %s\n", Temp.c_str());
 	}*/
-
+#endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 }
 
@@ -169,13 +177,8 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 #ifdef _WIN32
 	/*if(GetAsyncKeyState('V'))
 	{
-		wprintf("DataFrame: ");
-		for (int i = 0; i < Offset; i++)
-		{			
-			wprintf("%02x ", DataFrame[i]);
-			if((i + 1) % 30 == 0) wprintf("\n");
-		}
-		wprintf("\n");
+		std::string Temp = WiiMoteEmu::ArrayToString(DataFrame, Offset, 0, 30);
+		wprintf("DataFrame: %s\n", Temp.c_str());
 	}*/
 #endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
@@ -201,19 +204,16 @@ void SendReportCoreAccelExt16(u16 _channelID)
 	//FillReportIRBasic(pReport->ir[0], pReport->ir[1]); // no IR here
 	FillReportExtension(pReport->ext);
 
-	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccelExt16()");
+	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccelExt16 (0x35)");
+	LOGV(WII_IPC_WIIMOTE, 2, "      Channel: %04x", _channelID);
+	LOGV(WII_IPC_WIIMOTE, 2, "      Offset: %08x", Offset);
 
 	// Debugging
 #ifdef _WIN32
 	/*if(GetAsyncKeyState('V'))
 	{
-		wprintf("DataFrame: ");
-		for (int i = 0; i < Offset; i++)
-		{			
-			wprintf("%02x ", DataFrame[i]);
-			if((i + 1) % 30 == 0) wprintf("\n");
-		}
-		wprintf("\n");
+		std::string Temp = WiiMoteEmu::ArrayToString(DataFrame, Offset, 0, 30);
+		wprintf("DataFrame: %s\n", Temp.c_str());
 	}*/
 #endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
@@ -243,13 +243,8 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 #ifdef _WIN32
 	/*if(GetAsyncKeyState('V'))
 	{
-		wprintf("DataFrame: ");
-		for (int i = 0; i < Offset; i++)
-		{			
-			wprintf("%02x ", DataFrame[i]);
-			if((i + 1) % 30 == 0) wprintf("\n");
-		}
-		wprintf("\n");
+		std::string Temp = WiiMoteEmu::ArrayToString(DataFrame, Offset, 0, 30);
+		wprintf("DataFrame: %s\n", Temp.c_str());
 	}*/
 #endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);

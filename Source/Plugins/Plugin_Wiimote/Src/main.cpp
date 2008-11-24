@@ -156,53 +156,47 @@ extern "C" void Wiimote_Shutdown(void)
 	WiiMoteEmu::Shutdown();
 }
 
+// ===================================================
+/* This function produce Wiimote Input (reports from the Wiimote) in response
+   to Output from the Wii. It's called from WII_IPC_HLE_WiiMote.cpp. */
+// ----------------
 extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {	
-	LOGV(WII_IPC_WIIMOTE, 0, "=============================================================");
+	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
 	const u8* data = (const u8*)_pData;
 
-	// Debugging. Dump raw data.
+	// Debugging
 	{
-		LOG(WII_IPC_WIIMOTE, "Wiimote_Input");
-		LOG(WII_IPC_WIIMOTE, "   Channel ID: %04x", _channelID);
-		
-		std::string Temp;
-		for (u32 j=0; j<_Size; j++)
-		{
-			char Buffer[128];
-			sprintf(Buffer, "%02x ", data[j]);
-			Temp.append(Buffer);
-		}
-		LOG(WII_IPC_WIIMOTE, "   Data: %s", Temp.c_str());
+		LOGV(WII_IPC_WIIMOTE, 3, "Wiimote_Input");
+		LOGV(WII_IPC_WIIMOTE, 3, "   Channel ID: %04x", _channelID);
+		std::string Temp = WiiMoteEmu::ArrayToString(data, _Size);
+		LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
 	}
 
 	if (g_UseRealWiiMote)
 		WiiMoteReal::InterruptChannel(_channelID, _pData, _Size);
 	else
 		WiiMoteEmu::InterruptChannel(_channelID, _pData, _Size);
-	LOGV(WII_IPC_WIIMOTE, 0, "=============================================================");
+	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
 }
 
 extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {
+	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
 	const u8* data = (const u8*)_pData;
-	// dump raw data
+
+	// Debugging
 	{
-		LOG(WII_IPC_WIIMOTE, "Wiimote_ControlChannel");
-		std::string Temp;
-		for (u32 j=0; j<_Size; j++)
-		{
-			char Buffer[128];
-			sprintf(Buffer, "%02x ", data[j]);
-			Temp.append(Buffer);
-		}
-		LOG(WII_IPC_WIIMOTE, "   Data: %s", Temp.c_str());
+		LOGV(WII_IPC_WIIMOTE, 3, "Wiimote_ControlChannel");
+		std::string Temp = WiiMoteEmu::ArrayToString(data, _Size);
+		LOGV(WII_IPC_WIIMOTE, 3, "    Data: %s", Temp.c_str());
 	}
 
 	if (g_UseRealWiiMote)
 		WiiMoteReal::ControlChannel(_channelID, _pData, _Size);
 	else
 		WiiMoteEmu::ControlChannel(_channelID, _pData, _Size);
+	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
 }
 
 extern "C" void Wiimote_Update() 

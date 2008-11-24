@@ -30,8 +30,6 @@
 #include "Config.h" // for g_Config
 
 extern SWiimoteInitialize g_WiimoteInitialize;
-//extern void __Log(int log, const char *format, ...);
-//extern void __Log(int log, int v, const char *format, ...);
 
 
 namespace WiiMoteEmu
@@ -70,7 +68,6 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 		WmDataReporting(_channelID, (wm_data_reporting*)sr->data);
 		break;
 	case WM_REQUEST_STATUS: // 0x15
-		//global_struct = (wm_request_status*)sr->data;
 		WmRequestStatus(_channelID, (wm_request_status*)sr->data);
 		break;
 	case WM_READ_DATA: // 0x17
@@ -78,16 +75,20 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 		break;
 	case WM_IR_PIXEL_CLOCK: // 0x13
 	case WM_IR_LOGIC: // 0x1a
-		LOGV(WII_IPC_WIIMOTE, 0, "  IR Enable 0x%02x 0x%02x", sr->channel, sr->data[0]);
+		LOGV(WII_IPC_WIIMOTE, 0, "  IR Enable 0x%02x: 0x%02x", sr->channel, sr->data[0]);
+		//wprintf("IR Enable/Disable 0x%02x: 0x%02x\n", sr->channel, sr->data[0]);
+		// Update the global value so that WmRequestStatus() knows it
+		if(sr->data[0] == 0x02) g_IR = 0;
+			else if(sr->data[0] == 0x06) g_IR = 1;
 		break;
 	case WM_WRITE_DATA: // 0x16
 		WmWriteData(_channelID, (wm_write_data*)sr->data);
 		break;
 	case WM_SPEAKER_ENABLE:
-		LOGV(WII_IPC_WIIMOTE, 1, "  WM Speaker Enable 0x%02x 0x%02x", sr->channel, sr->data[0]);
+		LOGV(WII_IPC_WIIMOTE, 1, "  WM Speaker Enable 0x%02x: 0x%02x", sr->channel, sr->data[0]);
 		break;
 	case WM_SPEAKER_MUTE:
-		LOGV(WII_IPC_WIIMOTE, 1, "  WM Mute Enable 0x%02x 0x%02x", sr->channel, sr->data[0]);
+		LOGV(WII_IPC_WIIMOTE, 1, "  WM Mute Enable 0x%02x: 0x%02x", sr->channel, sr->data[0]);
 		break;
 	default:
 		PanicAlert("HidOutputReport: Unknown channel 0x%02x", sr->channel);
@@ -119,12 +120,12 @@ int WriteWmReport(u8* dst, u8 channel) {
 // ----------------
 void WmLeds(u16 _channelID, wm_leds* leds) {
 	LOGV(WII_IPC_WIIMOTE, 0, "===========================================================");
-
 	LOG(WII_IPC_WIIMOTE, " Set LEDs");
-	LOG(WII_IPC_WIIMOTE, "  Leds: %x", leds->leds);
-	LOG(WII_IPC_WIIMOTE, "  Rumble: %x", leds->rumble);
+	LOG(WII_IPC_WIIMOTE, "   Leds: %x", leds->leds);
+	LOG(WII_IPC_WIIMOTE, "   Rumble: %x", leds->rumble);
 
 	g_Leds = leds->leds;
+
 	LOGV(WII_IPC_WIIMOTE, 0, "===========================================================");
 }
 
@@ -137,7 +138,6 @@ void WmLeds(u16 _channelID, wm_leds* leds) {
 void WmSendAck(u16 _channelID, u8 _reportID, u32 address)
 {
 	u8 DataFrame[1024];
-
 	u32 Offset = 0;
 
 	// Header
@@ -154,22 +154,17 @@ void WmSendAck(u16 _channelID, u8 _reportID, u32 address)
 	pData->errorID = 0;
 	Offset += sizeof(wm_acknowledge);
 
-	/* Debug. Write the report for extension registry writes. 
+	LOGV(WII_IPC_WIIMOTE, 2, "  WMSendAck()");
+	LOGV(WII_IPC_WIIMOTE, 2, "      Report ID: %02x", _reportID);
+	//std::string Temp = WiiMoteEmu::ArrayToString(DataFrame, Offset, 0);
+	//LOGV(WII_IPC_WIIMOTE, 2, "      Data: %s", Temp.c_str());
+
+	/* Debug. Write the report for extension registry writes.
 	if((_reportID == 0x16 || _reportID == 0x17)  &&  ((address >> 16) & 0xfe) == 0xa4)
 	{
-		wprintf("\nWMSendAck  Report ID: %02x  KeyReady: %i,  Encryption: %02x\n",
-			_reportID, (int)KeyReady, g_RegExt[0xf0]);
-		wprintf("Data: ");
-		for (int i = 0; i < Offset; i++)
-		{			
-			wprintf("%02x ", DataFrame[i]);
-			if((i + 1) % 20 == 0) wprintf("\n");
-		}
-		wprintf("\n");
+		wprintf("\nWMSendAck  Report ID: %02x  Encryption: %02x\n", _reportID, g_RegExt[0xf0]);		
+		wprintf("Data: %s\n", Temp.c_str());
 	}*/
-
-	LOGV(WII_IPC_WIIMOTE, 2, "  WMSendAck()");
-	LOGV(WII_IPC_WIIMOTE, 2, "    Report ID: %02x", _reportID);
 
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 }
@@ -183,14 +178,17 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 	LOGV(WII_IPC_WIIMOTE, 0, "===========================================================");
 	u32 address = convert24bit(rd->address);
 	u16 size = convert16bit(rd->size);
-	LOG(WII_IPC_WIIMOTE, " Read data");
-	LOG(WII_IPC_WIIMOTE, "  Address space: %x", rd->space);
-	LOG(WII_IPC_WIIMOTE, "  Address: 0x%06x", address);
-	LOG(WII_IPC_WIIMOTE, "  Size: 0x%04x", size);
-	LOG(WII_IPC_WIIMOTE, "  Rumble: %x", rd->rumble);
-
+	std::string Temp;
+	LOG(WII_IPC_WIIMOTE, "Read data");
+	LOG(WII_IPC_WIIMOTE, "    Address space: %x", rd->space);
+	LOG(WII_IPC_WIIMOTE, "    Address: 0x%06x", address);
+	LOG(WII_IPC_WIIMOTE, "    Size: 0x%04x", size);
+	LOG(WII_IPC_WIIMOTE, "    Rumble: %x", rd->rumble);
+	
 	//u32 _address = address;
 
+	/* Now we determine what address space we are reading from. Space 0 is Eeprom and
+	   space 1 and 2 is the registers. */
 	if(rd->space == 0) 
 	{
 		if (address + size > WIIMOTE_EEPROM_SIZE) 
@@ -206,22 +204,26 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 		u32 blockSize;
 		switch((address >> 16) & 0xFE) 
 		{
-/**/	case 0xA2:
+		case 0xA2:
 			block = g_RegSpeaker;
 			blockSize = WIIMOTE_REG_SPEAKER_SIZE;
-			LOGV(WII_IPC_WIIMOTE, 0, "WmReadData: 0xB0 g_RegSpeaker");
+			LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xa2: g_RegSpeaker");
+			//Temp = WiiMoteEmu::ArrayToString(g_RegSpeaker, size, (address & 0xffff));
+			//LOGV(WII_IPC_WIIMOTE, 0, "    Data: %s", Temp.c_str());
 			break;
 		case 0xA4:
 			block = g_RegExt;
 			blockSize = WIIMOTE_REG_EXT_SIZE;
-			LOGV(WII_IPC_WIIMOTE, 0, "  Case 0xA4: Read ExtReg ****************************");
-			//wprintf("WmReadData\n"); ReadExt();
+			LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xa4: Read ExtReg ****************************");
+			//Temp = WiiMoteEmu::ArrayToString(g_RegExt, size, (address & 0xffff));
+			//LOGV(WII_IPC_WIIMOTE, 0, "    Data: %s", Temp.c_str());			
 			break;
-/**/	case 0xB0:
+		case 0xB0:
 			block = g_RegIr;
 			blockSize = WIIMOTE_REG_IR_SIZE;
-			//PanicAlert("WmReadData: 0xB0 g_RegIr");
-			LOGV(WII_IPC_WIIMOTE, 0, "WmReadData: 0xB0 g_RegIr");
+			LOGV(WII_IPC_WIIMOTE, 0, "    Case: 0xb0 g_RegIr");
+			//Temp = WiiMoteEmu::ArrayToString(g_RegIr, size, (address & 0xffff));
+			//LOGV(WII_IPC_WIIMOTE, 0, "    Data: %s", Temp.c_str());
 			break;
 		default:
 			PanicAlert("WmWriteData: bad register block!");
@@ -239,12 +241,8 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 			
 			// Debugging
 			u32 offset = address & 0xffff;
-			wprintf("Unencrypted data:\n");
-			for (int i = 0; i < (u8)size; i++)
-			{			
-				wprintf("%02x ", g_RegExt[i + offset]);
-				if((i + 1) % 20 == 0) wprintf("\n");
-			}
+			//std::string Temp = WiiMoteEmu::ArrayToString(g_RegExt, size, offset);
+			//wprintf("Unencrypted data:\n%s\n", Temp.c_str());
 
 			// Check if encrypted reads is on
 			if(g_RegExt[0xf0] == 0xaa)
@@ -264,18 +262,11 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 				{			
 					wprintf("%02x ", g_RegExtTmp[i + offset]);
 					if((i + 1) % 20 == 0) wprintf("\n");
-				}
-
-				wprintf("\ng_RegExtTmp after: \n");
-				ReadExtTmp();
-				wprintf("\nFrom g_RegExt: \n");
-				ReadExt();*/
+				}*/
 
 				// Update the block that SendReadDataReply will eventually send to the Wii
 				block = g_RegExtTmp;
 			}
-
-			//wprintf("\n\n");
 		}
 		//---------
 
@@ -288,6 +279,8 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 
 		// Let this function process the message and send it to the Wii
 		SendReadDataReply(_channelID, block+address, address, (u8)size);
+
+
 	} 
 	else
 	{
@@ -309,13 +302,13 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 {
 	LOGV(WII_IPC_WIIMOTE, 0, "========================================================");
 	u32 address = convert24bit(wd->address);	
-	LOG(WII_IPC_WIIMOTE, " Write data");
-	LOG(WII_IPC_WIIMOTE, "  Address space: %x", wd->space);
-	LOG(WII_IPC_WIIMOTE, "  Address: 0x%06x", address);
-	LOG(WII_IPC_WIIMOTE, "  Size: 0x%02x", wd->size);
-	LOG(WII_IPC_WIIMOTE, "  Rumble: %x", wd->rumble);
-
-	u32 _address = address;
+	LOG(WII_IPC_WIIMOTE, "Write data");
+	LOG(WII_IPC_WIIMOTE, "    Address space: %x", wd->space);
+	LOG(WII_IPC_WIIMOTE, "    Address: 0x%06x", address);
+	LOG(WII_IPC_WIIMOTE, "    Size: 0x%02x", wd->size);
+	LOG(WII_IPC_WIIMOTE, "    Rumble: %x", wd->rumble);
+	//std::string Temp = WiiMoteEmu::ArrayToString(wd->data, wd->size);
+	//LOGV(WII_IPC_WIIMOTE, 0, "    Data: %s", Temp.c_str());
 
 	// Write to EEPROM
 	if(wd->size <= 16 && wd->space == WM_SPACE_EEPROM)
@@ -325,8 +318,6 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 			return;
 		}
 		memcpy(g_Eeprom + address, wd->data, wd->size);
-
-	//	WmSendAck(_channelID, WM_WRITE_DATA);
 	}
 	// Write to registers
 	else if(wd->size <= 16 && (wd->space == WM_SPACE_REGS1 || wd->space == WM_SPACE_REGS2))
@@ -338,21 +329,21 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 			case 0xA2:
 				block = g_RegSpeaker;
 				blockSize = WIIMOTE_REG_SPEAKER_SIZE;
+				LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xa2: g_RegSpeaker");
 				break;
 			case 0xA4:
 				block = g_RegExt; // Extension Controller register
 				blockSize = WIIMOTE_REG_EXT_SIZE;
-				LOGV(WII_IPC_WIIMOTE, 0, "  *******************************************************");
-				LOGV(WII_IPC_WIIMOTE, 0, "");
-				LOGV(WII_IPC_WIIMOTE, 0, "  Case 0xA4: Write ExtReg");
-				LOGV(WII_IPC_WIIMOTE, 0, "");
-				LOGV(WII_IPC_WIIMOTE, 0, "  *******************************************************");
+				//LOGV(WII_IPC_WIIMOTE, 0, "  *******************************************************");
+				LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xa4: ExtReg");
+				//LOGV(WII_IPC_WIIMOTE, 0, "  *******************************************************");
 				wprintf("\n\nWmWriteData  Size: %i  Address: %08x  Offset: %08x \n",
 					wd->size, address, (address & 0xffff));
 				break;
 			case 0xB0:
 				block = g_RegIr;
 				blockSize = WIIMOTE_REG_IR_SIZE;
+				LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xb0: g_RegIr");
 				break;
 			default:
 				PanicAlert("WmWriteData: bad register block!");
@@ -361,7 +352,7 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 
 		
 		 // Remove for example 0xa40000 from the address
-		 _address = address; address &= 0xFFFF;
+		 address &= 0xFFFF;
 
 		// Check if the address is within bounds
 		if(address + wd->size > blockSize) {
@@ -371,26 +362,16 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 
 		// Finally write the registers to the right structure
 		memcpy(block + address, wd->data, wd->size);
+		
 
 		// -----------------------------------------
 		// Generate key for the Wiimote Extension
 		// -------------
 		if(blockSize == WIIMOTE_REG_EXT_SIZE)
 		{
-			/* Debugging. Write the data.		
-			wprintf("Data: ");
-			for (int i = 0; i < wd->size; i++)
-			{			
-				wprintf("%02x ", wd->data[i]);
-				if((i + 1) % 25 == 0) wprintf("\n");
-			}
-			wprintf("\n");
-
-			//wprintf("Current address: %08x\n", address);
-
-			//wprintf("g_RegExt:\n");
-			//ReadExt(); */
-
+			/* Debugging. Write the data. 			
+			wprintf("Data: %s\n", Temp.c_str());
+			wprintf("Current address: %08x\n", address); */
 
 			/* Run the key generation on all writes in the key area, it doesn't matter 
 			   that we send it parts of a key, only the last full key will have an
@@ -417,8 +398,8 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 /* Here we produce the actual 0x21 Input report that we send to the Wii. The message
    is divided into 16 bytes pieces and sent piece by piece. There will be five formatting
    bytes at the begging of all reports. A common format is 00 00 f0 00 20, the 00 00
-   means that no buttons are pressedn, the f means 16 bytes in the message, the 0
-   means no error, the 00 20 means that the message is at the 00 20 offest the the
+   means that no buttons are pressed, the f means 16 bytes in the message, the 0
+   means no error, the 00 20 means that the message is at the 00 20 offest in the
    registry that was read. */
 // ----------------
 void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _Size)
@@ -460,17 +441,6 @@ void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _Size)
 		LOG(WII_IPC_WIIMOTE, "    Size: 0x%x", pReply->size);
 		LOG(WII_IPC_WIIMOTE, "    Address: 0x%04x", pReply->address);
 
-
-		/* Debugging 	
-		wprintf("SendReadDataReply  Address: %08x\n", _Address);
-		for (int i = 0; i < Offset; i++)
-		{			
-			wprintf("%02x ", DataFrame[i]);
-			if((i + 1) % 25 == 0) wprintf("\n");
-		}
-		wprintf("\n\n");*/		
-		//---------
-
 		// Send a piece
 		g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 
@@ -496,8 +466,8 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs)
 	//PanicAlert("WmRequestStatus");
 	LOGV(WII_IPC_WIIMOTE, 0, "================================================");
 	LOGV(WII_IPC_WIIMOTE, 0, " Request Status");
-	LOGV(WII_IPC_WIIMOTE, 0, "  Rumble: %x", rs->rumble);
-	LOGV(WII_IPC_WIIMOTE, 0, "  Channel: %04x", _channelID);
+	LOGV(WII_IPC_WIIMOTE, 0, "    Rumble: %x", rs->rumble);
+	LOGV(WII_IPC_WIIMOTE, 0, "    Channel: %04x", _channelID);
 
 	//SendStatusReport();
 	u8 DataFrame[1024];
@@ -508,9 +478,16 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs)
 	memset(pStatus, 0, sizeof(wm_status_report)); // fill the status report with zeroes
 
 	// Status values
-	pStatus->leds = g_Leds;
-	pStatus->ir = 1;
-	pStatus->battery = 0x4F;	//arbitrary number
+	pStatus->battery_low = 0; // battery is okay
+	pStatus->leds = g_Leds; // current setting
+	pStatus->ir = g_IR; // current setting
+
+	/* Battery levels in voltage
+		  0x00 - 0x32: level 1
+		  0x33 - 0x43: level 2
+		  0x33 - 0x54: level 3
+		  0x55 - 0xff: level 4 */
+	pStatus->battery = 0x5f; // fully charged
 
 	// Read config value for this one
 	if(g_Config.bExtensionConnected)
@@ -518,11 +495,14 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs)
 	else
 		pStatus->extension = 0;
 
-	LOGV(WII_IPC_WIIMOTE, 0, "  Extension: %x", pStatus->extension);
-	LOGV(WII_IPC_WIIMOTE, 0, "  SendStatusReport()");
-	LOGV(WII_IPC_WIIMOTE, 0, "    Flags: 0x%02x", pStatus->padding1[2]);
-	LOGV(WII_IPC_WIIMOTE, 0, "    Battery: %d", pStatus->battery);
+	LOGV(WII_IPC_WIIMOTE, 0, "    Extension: %x", pStatus->extension);
+	LOGV(WII_IPC_WIIMOTE, 0, "    SendStatusReport()");
+	LOGV(WII_IPC_WIIMOTE, 0, "        Flags: 0x%02x", pStatus->padding1[2]);
+	LOGV(WII_IPC_WIIMOTE, 0, "        Battery: %d", pStatus->battery);
 
+	//std::string Temp = WiiMoteEmu::ArrayToString(DataFrame, Offset, 0);
+	//wprintf("Status Report: %s\n", Temp.c_str());
+	
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 	LOGV(WII_IPC_WIIMOTE, 0, "=================================================");
 }

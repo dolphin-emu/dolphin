@@ -40,8 +40,8 @@ namespace WiiMoteEmu
 //******************************************************************************
 
 
-//extern u8 g_Leds = 0x1;
 extern u8 g_Leds;
+extern u8 g_IR;
 
 extern u8 g_Eeprom[WIIMOTE_EEPROM_SIZE];
 

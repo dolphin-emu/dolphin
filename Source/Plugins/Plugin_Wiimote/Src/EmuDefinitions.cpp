@@ -38,6 +38,7 @@ namespace WiiMoteEmu
 //******************************************************************************
 
 u8 g_Leds = 0x1;
+u8 g_IR = 0x1; // 1 = on
 
 u8 g_Eeprom[WIIMOTE_EEPROM_SIZE];
 

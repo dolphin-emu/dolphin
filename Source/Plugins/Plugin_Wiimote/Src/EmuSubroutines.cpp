@@ -159,12 +159,12 @@ void Shutdown(void)
 // ----------------
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {
-	LOGV(WII_IPC_WIIMOTE, 0, "=============================================================");
+	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
 	const u8* data = (const u8*)_pData;
 
 	// Debugging. Dump raw data.
 	{
-		LOG(WII_IPC_WIIMOTE, "Wiimote_Input");
+		LOGV(WII_IPC_WIIMOTE, 3, "Wiimote_Input");
 		std::string Temp;
 		for (u32 j=0; j<_Size; j++)
 		{
@@ -172,7 +172,7 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 			sprintf(Buffer, "%02x ", data[j]);
 			Temp.append(Buffer);
 		}
-		LOG(WII_IPC_WIIMOTE, "   Data: %s", Temp.c_str());
+		LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
 	}
 	hid_packet* hidp = (hid_packet*) data;
 
@@ -209,7 +209,7 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 		PanicAlert("HidInput: Unknown type 0x%02x and param 0x%02x", hidp->type, hidp->param);
 		break;
 	}
-	LOGV(WII_IPC_WIIMOTE, 0, "=============================================================");
+	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
 }
 
 

@@ -43,6 +43,7 @@ private:
 
 	enum 
 	{
+		GET_STATS			= 0x02,
 		CREATE_DIR			= 0x03,
 		IOCTL_READ_DIR		= 0x04,
 		GET_ATTR			= 0x06,
