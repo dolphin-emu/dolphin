@@ -108,9 +108,11 @@ void TextureMngr::TCacheEntry::Destroy()
 {
     glDeleteTextures(1, &texture);
 	if (!isRenderTarget) {
-		u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr + hashoffset*4);
-		if (*ptr == hash)
-			*ptr = oldpixel;
+		if (!g_Config.bSafeTextureCache) {
+			u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr + hashoffset * 4);
+			if (*ptr == hash)
+				*ptr = oldpixel;
+		}
 	}
 	texture = 0;
 } 
@@ -255,10 +257,14 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     TCacheEntry& entry = textures[address];
 
     entry.hashoffset = 0; 
-    entry.hash = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
     entry.paletteHash = palhash;
     entry.oldpixel = ((u32 *)ptr)[entry.hashoffset];
-    ((u32 *)ptr)[entry.hashoffset] = entry.hash;
+	if (g_Config.bSafeTextureCache) {
+		entry.hash = entry.oldpixel;
+	} else {
+		entry.hash = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
+	    ((u32 *)ptr)[entry.hashoffset] = entry.hash;
+	}
 
     entry.addr = address;
     entry.isRenderTarget = false;

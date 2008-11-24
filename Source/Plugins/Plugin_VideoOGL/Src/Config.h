@@ -39,6 +39,7 @@ struct Config
 	bool bStretchToFit;
 	bool bKeepAR;
 	bool bHideCursor;
+	bool bSafeTextureCache;
 
 	// Enhancements
 	int iMultisampleMode;

@@ -50,6 +50,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_EFBTOTEXTUREDISABLEHOTKEY, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJECTIONHACK1,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJECTIONHACK2,ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_SAFETEXTURECACHE,ConfigDialog::AdvancedSettingsChanged)
 	EVT_DIRPICKER_CHANGED(ID_TEXTUREPATH, ConfigDialog::TexturePathChange)
 END_EVENT_TABLE()
 
@@ -209,6 +210,11 @@ void ConfigDialog::CreateGUIControls()
 #endif
 	m_EFBToTextureDisableHotKey->SetValue(g_Config.bEBFToTextureDisableHotKey);
 
+	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_SafeTextureCache->SetToolTip(wxT("This is useful to prevent Metroid Prime from crashing, but can cause problems in other games."));
+	m_SafeTextureCache->Enable(true);
+	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);
+
 	m_ProjectionHax1 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK1, wxT("Projection before R945"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ProjectionHax1->SetToolTip(wxT("This may reveal otherwise invisible graphics"
 		" in\ngames like Mario Galaxy or Ikaruga."));
@@ -248,6 +254,7 @@ void ConfigDialog::CreateGUIControls()
 	sHacks->Add(m_EFBToTextureDisableHotKey, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
 	sHacks->Add(m_ProjectionHax1, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
 	sHacks->Add(m_ProjectionHax2, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
+	sHacks->Add(m_SafeTextureCache, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
 	sbHacks->Add(sHacks);
 	sAdvanced->Add(sbHacks, 0, wxEXPAND|wxALL, 5);
 	m_PageAdvanced->SetSizer(sAdvanced);
@@ -383,6 +390,9 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_PROJECTIONHACK2:
 		g_Config.bProjectionHax2 = m_ProjectionHax2->IsChecked();
+		break;
+	case ID_SAFETEXTURECACHE:
+		g_Config.bSafeTextureCache = m_SafeTextureCache->IsChecked();
 		break;
 	default:
 		break;

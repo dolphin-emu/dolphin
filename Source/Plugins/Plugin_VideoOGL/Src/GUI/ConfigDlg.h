@@ -96,6 +96,7 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_EFBToTextureDisable, *m_EFBToTextureDisableHotKey;
 		wxCheckBox *m_ProjectionHax1;
 		wxCheckBox *m_ProjectionHax2;
+		wxCheckBox *m_SafeTextureCache;
 
 		enum
 		{
@@ -131,6 +132,7 @@ class ConfigDialog : public wxDialog
 			ID_WIREFRAME,
 			ID_DISABLELIGHTING,
 			ID_DISABLETEXTURING,
+			ID_SAFETEXTURECACHE,
 
 			ID_DUMPTEXTURES,
 			ID_TEXTUREPATH,
