@@ -217,10 +217,15 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
         }
     }
 
+	int bs = TexDecoder_GetBlockWidthInTexels(format) - 1;
+    int expandedWidth = (width + bs) & (~bs);
+
     if (iter != textures.end()) {
         TCacheEntry &entry = iter->second;
 
-        if (entry.isRenderTarget || (((u32 *)ptr)[entry.hashoffset] == entry.hash && palhash == entry.paletteHash)) { //stupid, improve
+        if (entry.isRenderTarget || 
+			(TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format) == entry.hash && 
+			palhash == entry.paletteHash)) {
             entry.frameCount = frameCount;
             //glEnable(entry.isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D);
             glBindTexture(entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D, entry.texture);
@@ -251,18 +256,15 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
         }
     }
     
-    int bs = TexDecoder_GetBlockWidthInTexels(format) - 1;
-    int expandedWidth = (width + bs) & (~bs);
     PC_TexFormat dfmt = TexDecoder_Decode(temp, ptr, expandedWidth, height, format, tlutaddr, tlutfmt);
 
     //Make an entry in the table
     TCacheEntry& entry = textures[address];
 
-    entry.hashoffset = 0; 
     entry.paletteHash = palhash;
     entry.oldpixel = ((u32 *)ptr)[entry.hashoffset];
 	if (g_Config.bSafeTextureCache) {
-		entry.hash = entry.oldpixel;
+		entry.hash = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format);
 	} else {
 		entry.hash = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
 	    ((u32 *)ptr)[entry.hashoffset] = entry.hash;

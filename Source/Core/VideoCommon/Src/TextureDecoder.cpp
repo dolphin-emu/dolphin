@@ -57,6 +57,29 @@ int TexDecoder_GetTexelSizeInNibbles(int format)
     }
 }
 
+int TexDecoder_GetTextureSizeInBytes(int width, int height, int format)
+{
+	return (width * height * TexDecoder_GetTexelSizeInNibbles(format)) / 4;
+}
+
+u32 TexDecoder_GetSafeTextureHash(const u8 *src, int width, int height, int texformat)
+{
+	int sz = TexDecoder_GetTextureSizeInBytes(width, height, texformat);
+	u32 hash = 0x1337c0de;
+	if (sz < 2048) {
+		for (int i = 0; i < sz / 4; i += 13) {
+			hash = _rotl(hash, 17) ^ ((u32 *)src)[i];
+		}
+		return hash;
+	} else {
+		int step = sz / 13 / 4;
+		for (int i = 0; i < sz / 4; i += step) {
+			hash = _rotl(hash, 17) ^ ((u32 *)src)[i];
+		}
+	}
+	return hash;
+}
+
 int TexDecoder_GetBlockWidthInTexels(int format)
 {
     switch (format) {
