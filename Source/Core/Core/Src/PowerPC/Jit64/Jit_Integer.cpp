@@ -392,11 +392,11 @@ namespace Jit64
 #endif
 		INSTRUCTION_START;
 		int a = inst.RA, s = inst.RS;
+		gpr.KillImmediate(s);
 		gpr.LoadToX64(a, a == s, true);
 		// This looks a little dangerous, but it's safe because
 		// every 32-bit register has a 16-bit half at the same index
 		// as the 32-bit register.
-		gpr.KillImmediate(s);
 		MOVSX(32, 16, gpr.RX(a), gpr.R(s));
 		if (inst.Rc) {
 			MOV(32, R(EAX), gpr.R(a));
