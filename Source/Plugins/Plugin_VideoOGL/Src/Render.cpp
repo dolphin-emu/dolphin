@@ -39,6 +39,7 @@
 #include "rasterfont.h"
 #include "VertexShader.h"
 #include "PixelShaderManager.h"
+#include "VertexLoaderManager.h"
 #include "VertexLoader.h"
 #include "XFB.h"
 #if !defined(OSX64)
@@ -791,7 +792,11 @@ void Renderer::SwapBuffers()
         p+=sprintf(p,"Num BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
         p+=sprintf(p,"Num vertex loaders:       %i\n",stats.numVertexLoaders);
 
-		Renderer::RenderText(st, 20, 20, 0xFF00FFFF);
+
+		std::string text = st;
+		VertexLoaderManager::AppendListToString(&text);
+	
+		Renderer::RenderText(text.c_str(), 20, 20, 0xFF00FFFF);
     }
     else
     {

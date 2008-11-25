@@ -23,6 +23,7 @@
 #include "Config.h"
 #include "Profiler.h"
 #include "MemoryUtil.h"
+#include "StringUtil.h"
 #include "x64Emitter.h"
 #include "ABI.h"
 
@@ -110,6 +111,7 @@ void LOADERDECL TexMtx_Write_Short3()
 
 VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr) 
 {
+	m_numLoadedVertices = 0;
 	m_VertexSize = 0;
 	m_numPipelineStages = 0;
 	m_NativeFmt = new NativeVertexFormat();
@@ -135,9 +137,18 @@ void VertexLoader::CompileVertexTranslator()
 {
 	m_VertexSize = 0;
 
+#ifdef USE_JIT
 	u8 *old_code_ptr = GetWritableCodePtr();
 	SetCodePtr(m_compiledCode);
 	ABI_EmitPrologue(4);
+
+	// Start loop here
+	MOV(32, M(&tcIndex), Imm32(0));
+	MOV(32, M(&colIndex), Imm32(0));
+	MOV(32, M(&s_texmtxwrite), Imm32(0));
+	MOV(32, M(&s_texmtxread), Imm32(0));
+#endif
+
 	// Colors
 	const int col[2] = {m_VtxDesc.Color0, m_VtxDesc.Color1};
 	// TextureCoord
@@ -450,6 +461,9 @@ void VertexLoader::CompileVertexTranslator()
 	if (vtx_decl.stride != offset)
 		PanicAlert("offset/stride mismatch, %i %i", vtx_decl.stride, offset);
 #ifdef USE_JIT
+	// End loop here
+	// SUB(32, M(&vtxCounter), Imm8(1));
+	// J_CC(CC_NZ, loop);
 	ABI_EmitEpilogue(4);
 #endif
 	SetCodePtr(old_code_ptr);
@@ -565,6 +579,8 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 {
 	DVSTARTPROFILE();
 
+	m_numLoadedVertices += count;
+
 	// Flush if our vertex format is different from the currently set.
 	if (g_nativeVertexFmt != NULL && g_nativeVertexFmt != m_NativeFmt)
 	{
@@ -618,15 +634,9 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 			if (VertexManager::GetRemainingSize() < 2 * native_stride)
 				VertexManager::Flush();
 			break;
-		case 0: // quads
-			granularity = 4;
-			break;
-		case 2: // tris
-			granularity = 3;
-			break;
-		case 5: // lines
-			granularity = 2;
-			break;
+		case 0: granularity = 4; break; // quads
+		case 2: granularity = 3; break; // tris
+		case 5: granularity = 2; break; // lines
 	}
 
 	int startv = 0, extraverts = 0;
@@ -634,7 +644,8 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 
 	while (v < count)
 	{
-		if (VertexManager::GetRemainingSize() < granularity*native_stride) {
+		int remainingVerts = VertexManager::GetRemainingSize() / native_stride;
+		if (remainingVerts < granularity) {
 			INCSTAT(stats.thisFrame.numBufferSplits);
 			// This buffer full - break current primitive and flush, to switch to the next buffer.
 			u8* plastptr = VertexManager::s_pCurBufferPointer;
@@ -675,22 +686,26 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 			}
 			startv = v;
 		}
+		int remainingPrims = remainingVerts / granularity;
+		remainingVerts = remainingPrims * granularity;
+		if (count - v < remainingVerts)
+			remainingVerts = count - v;
 
-		for (int s = 0; s < granularity; s++)
+		// Clean tight loader loop. Todo - build the loop into the JIT code.
+		for (int s = 0; s < remainingVerts; s++)
 		{
-			tcIndex = 0;
-			colIndex = 0;
-			s_texmtxwrite = s_texmtxread = 0;
 	#ifdef USE_JIT
 			((void (*)())(void*)m_compiledCode)();
 	#else
+			tcIndex = 0;
+			colIndex = 0;
+			s_texmtxwrite = s_texmtxread = 0;
 			for (int i = 0; i < m_numPipelineStages; i++)
 				m_PipelineStages[i]();
 	#endif
-
 			PRIM_LOG("\n");
-			v++;
 		}
+		v += remainingVerts;
 	}
 
 	if (startv < count)
@@ -742,3 +757,18 @@ void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)
 	m_VtxAttr.texCoord[7].Format	= vat.g2.Tex7CoordFormat;
 	m_VtxAttr.texCoord[7].Frac		= vat.g2.Tex7Frac;
 };
+
+void VertexLoader::AppendToString(std::string *dest) {
+	static const char *posMode[4] = {
+		"Invalid",
+		"Direct",
+		"Idx8",
+		"Idx16",
+	};
+	static const char *posFormats[5] = {
+		"u8", "s8", "u16", "s16", "flt",
+	};
+	dest->append(StringFromFormat("sz: %i skin: %i Pos: %i %s %s Nrm: %i %s %s - %i vtx\n",
+		m_VertexSize, m_VtxDesc.PosMatIdx, m_VtxAttr.PosElements ? 3 : 2, posMode[m_VtxDesc.Position], posFormats[m_VtxAttr.PosFormat],
+		m_VtxAttr.NormalElements, posMode[m_VtxDesc.Normal], posFormats[m_VtxAttr.NormalFormat], m_numLoadedVertices));
+}

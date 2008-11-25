@@ -18,6 +18,8 @@
 #ifndef _VERTEXLOADER_H
 #define _VERTEXLOADER_H
 
+#include <string>
+
 #include "CPMemory.h"
 #include "DataReader.h"
 
@@ -59,6 +61,9 @@ public:
 	int GetVertexSize() const {return m_VertexSize;}
 	void RunVertices(int vtx_attr_group, int primitive, int count);
 
+	// For debugging / profiling
+	void AppendToString(std::string *dest);
+
 private:
 	enum
 	{
@@ -82,6 +87,8 @@ private:
 	int m_numPipelineStages;
 
 	u8 *m_compiledCode;
+
+	int m_numLoadedVertices;
 
 	void SetupColor(int num, int _iMode, int _iFormat, int _iElements);
 	void SetupTexCoord(int num, int _iMode, int _iFormat, int _iElements, int _iFrac);

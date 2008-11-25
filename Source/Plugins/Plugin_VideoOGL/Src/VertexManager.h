@@ -30,7 +30,6 @@ bool Init();
 void Shutdown();
 
 void ResetBuffer();
-void ResetComponents();
 
 void AddVertices(int primitive, int numvertices);
 void Flush(); // flushes the current buffer

@@ -30,6 +30,9 @@ namespace VertexLoaderManager
 	int GetVertexSize(int vtx_attr_group);
     void RunVertices(int vtx_attr_group, int primitive, int count);
 
+	// For debugging
+	void AppendListToString(std::string *dest);
+	
 	// TODO - don't expose these like this.
     //    static u8* s_pCurBufferPointer;
 };

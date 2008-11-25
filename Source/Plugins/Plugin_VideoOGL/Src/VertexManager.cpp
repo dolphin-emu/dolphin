@@ -85,19 +85,6 @@ void ResetBuffer()
 	s_vStoredPrimitives.resize(0);
 }
 
-void ResetComponents()
-{
-	s_prevcomponents = 0;
-	glDisableVertexAttribArray(SHADER_POSMTX_ATTRIB);
-	glDisableClientState(GL_NORMAL_ARRAY);
-	glDisableVertexAttribArray(SHADER_NORM1_ATTRIB);
-	glDisableVertexAttribArray(SHADER_NORM2_ATTRIB);
-	glDisableClientState(GL_COLOR_ARRAY);
-	glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
-	for (int i = 0; i < 8; i++)
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-}
-
 int GetRemainingSize()
 {
 	return MAX_BUFFER_SIZE - (int)(s_pCurBufferPointer - s_pBaseBufferPointer);
@@ -108,12 +95,21 @@ void AddVertices(int primitive, int numvertices)
 	_assert_( numvertices > 0 );
 
 	ADDSTAT(stats.thisFrame.numPrims, numvertices);
-	/*
-	if (s_vStoredPrimitives.size() && s_vStoredPrimitives[s_vStoredPrimitives.size() - 1].first == primitive) {
-		// Actually, just count potential primitive joins.
-		// Doesn't seem worth it in Metroid Prime games.
-		INCSTAT(stats.thisFrame.numPrimitiveJoins);
-	}*/
+	if (s_vStoredPrimitives.size() && s_vStoredPrimitives[s_vStoredPrimitives.size() - 1].first == c_primitiveType[primitive]) {
+		// We can join primitives for free here. Not likely to help much, though, but whatever...
+		if (c_primitiveType[primitive] == GL_TRIANGLES ||
+			c_primitiveType[primitive] == GL_LINES ||
+			c_primitiveType[primitive] == GL_POINTS ||
+			c_primitiveType[primitive] == GL_QUADS) {
+			INCSTAT(stats.thisFrame.numPrimitiveJoins);
+			// Easy join
+			std::pair<int, int> &last_pair = s_vStoredPrimitives[s_vStoredPrimitives.size() - 1];
+			last_pair.second += numvertices;
+			return;
+		}
+		// Joining strips is a lot more work but would bring more gain. Not sure if it's worth it though.
+	}
+
 	s_vStoredPrimitives.push_back(std::pair<int, int>(c_primitiveType[primitive], numvertices));
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 

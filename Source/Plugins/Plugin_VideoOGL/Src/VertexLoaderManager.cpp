@@ -50,6 +50,14 @@ void Shutdown()
 	g_VertexLoaderMap.clear();
 }
 
+void AppendListToString(std::string *dest)
+{
+	for (VertexLoaderMap::iterator iter = g_VertexLoaderMap.begin(); iter != g_VertexLoaderMap.end(); ++iter)
+	{
+		iter->second->AppendToString(dest);
+	}
+}
+
 void MarkAllDirty()
 {
 	s_attr_dirty = 0xff;
