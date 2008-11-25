@@ -79,6 +79,9 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode)
 		if (newmode.wrap_s == 2 || newmode.wrap_t == 2) {
             DEBUG_LOG("cannot support mirrorred repeat mode\n");
 		}
+		if (newmode.wrap_s == 1 || newmode.wrap_t == 1) {
+            DEBUG_LOG("cannot support repeat mode\n");
+		}
     }
     else {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
@@ -93,7 +96,6 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode)
         else
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
 			                (g_Config.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
-
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, c_WrapSettings[newmode.wrap_s]);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[newmode.wrap_t]);
     }

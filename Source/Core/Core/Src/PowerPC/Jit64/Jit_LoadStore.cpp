@@ -373,6 +373,14 @@ namespace Jit64
 #endif*/
 
 			//Still here? Do regular path.
+			
+			// NOTE: stb and stbu are broken under 64bit Linux
+			#ifndef _WIN32
+			#ifdef _M_X64
+				Default(inst);
+				return;
+			#endif
+			#endif
 			gpr.Lock(s, a);
 			gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
 			MOV(32, R(ABI_PARAM2), gpr.R(a));

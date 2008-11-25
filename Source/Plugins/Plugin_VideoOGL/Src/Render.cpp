@@ -347,7 +347,11 @@ bool Renderer::Initialize()
     glDisable(GL_LIGHTING);
     glDepthFunc(GL_LEQUAL);
     
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);      // 4-byte pixel alignment
+    
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);  // perspective correct interpolation of colors and tex coords
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
     
     glDisable(GL_STENCIL_TEST);
     glEnable(GL_SCISSOR_TEST);
