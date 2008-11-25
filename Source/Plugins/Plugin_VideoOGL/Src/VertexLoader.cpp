@@ -38,6 +38,7 @@
 
 NativeVertexFormat *g_nativeVertexFmt;
 
+
 //these don't need to be saved
 static float posScale;
 static int colElements[2];
@@ -57,6 +58,7 @@ static u8 s_curtexmtx[8];
 static int s_texmtxwrite = 0;
 static int s_texmtxread = 0;
 static TVtxAttr* pVtxAttr;
+static int loop_counter;
 
 using namespace Gen;
 
@@ -107,7 +109,7 @@ void LOADERDECL TexMtx_Write_Short3()
 #include "VertexLoader_Color.h"
 #include "VertexLoader_TextCoord.h"
 
-#define COMPILED_CODE_SIZE 4096
+#define COMPILED_CODE_SIZE 4096*4
 
 VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr) 
 {
@@ -115,6 +117,7 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	m_VertexSize = 0;
 	m_numPipelineStages = 0;
 	m_NativeFmt = new NativeVertexFormat();
+	loop_counter = 0;
 	VertexLoader_Normal::Init();
 
 	m_VtxDesc = vtx_desc;
@@ -143,10 +146,21 @@ void VertexLoader::CompileVertexTranslator()
 	ABI_EmitPrologue(4);
 
 	// Start loop here
-	MOV(32, M(&tcIndex), Imm32(0));
-	MOV(32, M(&colIndex), Imm32(0));
-	MOV(32, M(&s_texmtxwrite), Imm32(0));
-	MOV(32, M(&s_texmtxread), Imm32(0));
+	const u8 *loop_start = GetCodePtr();
+
+	// Reset component counters if present in vertex format only.
+	if (m_VtxDesc.Tex0Coord || m_VtxDesc.Tex1Coord || m_VtxDesc.Tex2Coord || m_VtxDesc.Tex3Coord ||
+		m_VtxDesc.Tex4Coord || m_VtxDesc.Tex5Coord || m_VtxDesc.Tex6Coord || m_VtxDesc.Tex7Coord) {
+		MOV(32, M(&tcIndex), Imm32(0));
+	}
+	if (m_VtxDesc.Color0 || m_VtxDesc.Color1) {
+		MOV(32, M(&colIndex), Imm32(0));
+	}
+	if (m_VtxDesc.Tex0MatIdx || m_VtxDesc.Tex1MatIdx || m_VtxDesc.Tex2MatIdx || m_VtxDesc.Tex3MatIdx ||
+		m_VtxDesc.Tex4MatIdx || m_VtxDesc.Tex5MatIdx || m_VtxDesc.Tex6MatIdx || m_VtxDesc.Tex7MatIdx) {
+		MOV(32, M(&s_texmtxwrite), Imm32(0));
+		MOV(32, M(&s_texmtxread), Imm32(0));
+	}
 #endif
 
 	// Colors
@@ -460,13 +474,14 @@ void VertexLoader::CompileVertexTranslator()
 	vtx_decl.stride = native_stride;
 	if (vtx_decl.stride != offset)
 		PanicAlert("offset/stride mismatch, %i %i", vtx_decl.stride, offset);
+
 #ifdef USE_JIT
 	// End loop here
-	// SUB(32, M(&vtxCounter), Imm8(1));
-	// J_CC(CC_NZ, loop);
+	SUB(32, M(&loop_counter), Imm8(1));
+	J_CC(CC_NZ, loop_start, true);
 	ABI_EmitEpilogue(4);
-#endif
 	SetCodePtr(old_code_ptr);
+#endif
 	m_NativeFmt->Initialize(vtx_decl);
 }
 
@@ -692,19 +707,22 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 			remainingVerts = count - v;
 
 		// Clean tight loader loop. Todo - build the loop into the JIT code.
+	#ifdef USE_JIT
+		if (remainingVerts > 0) {
+			loop_counter = remainingVerts;
+			((void (*)())(void*)m_compiledCode)();
+		}
+	#else
 		for (int s = 0; s < remainingVerts; s++)
 		{
-	#ifdef USE_JIT
-			((void (*)())(void*)m_compiledCode)();
-	#else
 			tcIndex = 0;
 			colIndex = 0;
 			s_texmtxwrite = s_texmtxread = 0;
 			for (int i = 0; i < m_numPipelineStages; i++)
 				m_PipelineStages[i]();
-	#endif
 			PRIM_LOG("\n");
 		}
+	#endif
 		v += remainingVerts;
 	}
 

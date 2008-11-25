@@ -83,7 +83,7 @@ private:
 	int native_stride;
 
 	// Pipeline. To be JIT compiled in the future.
-	TPipelineFunction m_PipelineStages[32];  // TODO - figure out real max. it's lower.
+	TPipelineFunction m_PipelineStages[64];  // TODO - figure out real max. it's lower.
 	int m_numPipelineStages;
 
 	u8 *m_compiledCode;
