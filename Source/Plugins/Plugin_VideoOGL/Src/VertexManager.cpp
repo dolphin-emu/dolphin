@@ -28,7 +28,7 @@ namespace VertexManager
 static GLuint s_vboBuffers[0x40] = {0};
 static int s_nCurVBOIndex = 0; // current free buffer
 static u8 *s_pBaseBufferPointer = NULL;
-static std::vector< std::pair<int, int> > s_vStoredPrimitives; // every element, mode and count to be passed to glDrawArrays
+static std::vector< std::pair<u32, u32> > s_vStoredPrimitives; // every element, mode and count to be passed to glDrawArrays
 static u32 s_prevcomponents; // previous state set
 
 u8* s_pCurBufferPointer = NULL;
@@ -103,7 +103,7 @@ void AddVertices(int primitive, int numvertices)
 			c_primitiveType[primitive] == GL_QUADS) {
 			INCSTAT(stats.thisFrame.numPrimitiveJoins);
 			// Easy join
-			std::pair<int, int> &last_pair = s_vStoredPrimitives[s_vStoredPrimitives.size() - 1];
+			std::pair<u32, u32> &last_pair = s_vStoredPrimitives[s_vStoredPrimitives.size() - 1];
 			last_pair.second += numvertices;
 			return;
 		}
@@ -263,7 +263,7 @@ void Flush()
 #endif
 
 	int offset = 0;
-	for (std::vector< std::pair<int, int> >::const_iterator it = s_vStoredPrimitives.begin(); it != s_vStoredPrimitives.end(); ++it)
+	for (std::vector< std::pair<u32, u32> >::const_iterator it = s_vStoredPrimitives.begin(); it != s_vStoredPrimitives.end(); ++it)
 	{
 		INCSTAT(stats.thisFrame.numDrawCalls);
 		glDrawArrays(it->first, offset, it->second);

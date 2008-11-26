@@ -32,7 +32,7 @@ public:
 
 	TAccumulator()
 	{
-		_dbg_assert_(N < 2);
+		_assert_(N < 2);
 	}
 
 	void operator=(sint64 val)

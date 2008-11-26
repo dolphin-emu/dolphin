@@ -117,12 +117,12 @@ void ProfilerDump(uint64 count)
 	FILE* pFile = fopen("c:\\_\\DSP_Prof.txt", "wt");
 	if (pFile != NULL)
 	{
-		fprintf(pFile, "Number of DSP steps: %i\n\n", count);
+		fprintf(pFile, "Number of DSP steps: %llu\n\n", count);
 		for (int i=0; i<PROFILE_MAP_SIZE;i++)
 		{
 			if (g_profileMap[i] > 0)
 			{
-				fprintf(pFile, "0x%04X: %u\n", i, g_profileMap[i]);
+				fprintf(pFile, "0x%04X: %llu\n", i, g_profileMap[i]);
 			}
 		}
 

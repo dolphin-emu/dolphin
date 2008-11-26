@@ -19,6 +19,7 @@
 #define _GLOBALS_H
 
 #include "pluginspecs_dsp.h"
+#include "Common.h"
 #include <stdio.h>
 
 #define WITH_DSP_ON_THREAD		1
@@ -30,24 +31,6 @@ void DebugLog(const char* _fmt, ...);
 void ErrorLog(const char* _fmt, ...);
 void DSP_DebugBreak();
 
-
-#ifndef _dbg_assert_
-	#if defined(_DEBUG) || defined(DEBUGFAST)
-
-		#undef _dbg_assert_
-		#undef _dbg_assert_msg_
-		#define _dbg_assert_(_a_)                   if (!(_a_)){DebugBreak();}
-		#define _dbg_assert_msg_(_a_, _desc_, ...)\
-			if (!(_a_)){\
-				if (MessageBox(NULL, _desc_, "*** Fatal Error ***", MB_YESNO | MB_ICONERROR) == IDNO){DebugBreak();}}
-
-	#else
-
-	#define _dbg_assert_(_a_);
-	#define _dbg_assert_msg_(_a_, _desc_, ...);
-
-	#endif
-#endif
 
 typedef unsigned char uint8;
 typedef unsigned short uint16;

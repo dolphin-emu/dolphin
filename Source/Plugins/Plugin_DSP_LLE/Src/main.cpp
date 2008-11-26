@@ -254,7 +254,7 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 	if (t != NULL)
 	{
    		gd_globals_t gdg;
-   		gd_dis_file(&gdg, "C:\\_\\DSP_UC_09CD143F.bin", t);
+   		gd_dis_file(&gdg, (char *)"C:\\_\\DSP_UC_09CD143F.bin", t);
    		fclose(t);   
 	}
 // --------------

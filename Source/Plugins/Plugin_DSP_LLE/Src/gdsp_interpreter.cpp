@@ -131,8 +131,8 @@ void gdsp_init()
 
 void gdsp_reset()
 {
-//	_dbg_assert_msg_(0, "gdsp_reset()");
-	_dbg_assert_msg_(!g_dsp.exception_in_progress_hack, "assert while exception");
+//	_assert_msg_(0, "gdsp_reset()");
+	_assert_msg_(!g_dsp.exception_in_progress_hack, "assert while exception");
 	g_dsp.pc = DSP_RESET_VECTOR;
 	g_dsp.exception_in_progress_hack = false;
 }
@@ -294,7 +294,7 @@ void gdsp_step()
 		{
 			if (gdsp_exceptions & (1<<i))
 			{
-				_dbg_assert_msg_(!g_dsp.exception_in_progress_hack, "assert while exception");
+				_assert_msg_(!g_dsp.exception_in_progress_hack, "assert while exception");
 
 				dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
 				dsp_reg_store_stack(DSP_STACK_D, g_dsp.r[R_SR]);

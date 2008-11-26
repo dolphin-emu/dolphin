@@ -38,7 +38,7 @@ static FRAGMENTSHADER s_yuyvToRgbProgram;
 void CreateRgbToYuyvProgram()
 {
 	// output is BGRA because that is slightly faster than RGBA
-	char *FProgram =
+  char *FProgram = (char *)
 	"uniform samplerRECT samp0 : register(s0);\n"	
 	"void main(\n"
 	"  out float4 ocol0 : COLOR0,\n"
@@ -63,7 +63,7 @@ void CreateRgbToYuyvProgram()
 
 void CreateYuyvToRgbProgram()
 {
-	char *FProgram =
+  char *FProgram = (char *)
 	"uniform samplerRECT samp0 : register(s0);\n"	
 	"void main(\n"
 	"  out float4 ocol0 : COLOR0,\n"

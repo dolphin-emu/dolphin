@@ -223,7 +223,7 @@ void Logging(int a)
 			iupdonce = true;
 		}
 
-		for (int i = 0; i < viupd.size(); i++) // 0, 1,..., 9
+		for (u32 i = 0; i < viupd.size(); i++) // 0, 1,..., 9
 		{
 			if (i < viupd.size()-1)
 			{
@@ -245,7 +245,7 @@ void Logging(int a)
 			}				
 		}
 
-		for (int i = 0; i < viupd.size(); i++)
+		for (u32 i = 0; i < viupd.size(); i++)
 		{
 			if(viupd.at(i) == 0)
 				sbuff = sbuff + " ";

@@ -199,7 +199,7 @@ bool CheckCondition(uint8 _Condition)
 
 void dsp_op_unknown(uint16 opc)
 {
-	_dbg_assert_msg_(!g_dsp.exception_in_progress_hack, "assert while exception");
+	_assert_msg_(!g_dsp.exception_in_progress_hack, "assert while exception");
 	ErrorLog("dsp_op_unknown somewhere");
 	g_dsp.pc = g_dsp.err_pc;
 }

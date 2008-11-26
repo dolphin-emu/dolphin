@@ -459,8 +459,8 @@ void CDebugger::DoShowHideConsole()
 void CDebugger::LogSettings(wxCommandEvent& event)
 {
 	// Only allow one selected log at a time
-	for (int i = 0; i < m_settings->GetCount(); ++i)
-		if(i != event.GetInt()) m_settings->Check(i, false);
+	for (u32 i = 0; i < m_settings->GetCount(); ++i)
+          if(i != (u32)event.GetInt()) m_settings->Check(i, false);
 
 	if(m_settings->IsChecked(0)) g_Config.iLog = CONF_LOG;
 	else if(m_settings->IsChecked(1)) g_Config.iLog = CONF_PRIMLOG;
