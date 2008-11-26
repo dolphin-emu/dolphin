@@ -17,7 +17,7 @@
 
 
 void startConsoleWin(int width, int height, char* fname);
-int wprintf(char *fmt, ...);
+int wprintf(const char *fmt, ...);
 int aprintf(int a, char *fmt, ...);
 void ClearScreen();
 void OpenConsole();

@@ -252,7 +252,7 @@ std::string writeMessage(int a, int i, bool Wii)
 		{
 			if(Wii) // Wii
 			{
-			sprintf(buf,"%c%02i %i %10s/%10s %10s | %06s %06s | %i   %i   | %03i %05i %05i %03i %05i %05i | %05i %05i[%i %05i]",
+			sprintf(buf,"%c%02i %i %10s/%10s %10s | %6s %6s | %i   %i   | %03i %05i %05i %03i %05i %05i | %05i %05i[%i %05i]",
 				223, i, mem[i], ThS(gsamplePos[i],true).c_str(), ThS(gsampleEnd[i],true).c_str(), ThS(gloopPos[i],true).c_str(),
 				ThS(gvolume_left[i]).c_str(), ThS(gvolume_right[i]).c_str(),
 				glooping[i], gis_stream[i],
@@ -262,7 +262,7 @@ std::string writeMessage(int a, int i, bool Wii)
 			}
 			else // GC
 			{
-			sprintf(buf,"%c%02i %10s/%10s %10s | %06s %06s | %i   %i   | %03i %05i %05i %03i %05i %05i | %05i %05i[%i %05i]",
+			sprintf(buf,"%c%02i %10s/%10s %10s | %6s %6s | %i   %i   | %03i %05i %05i %03i %05i %05i | %05i %05i[%i %05i]",
 				223, i, ThS(gsamplePos[i],true).c_str(), ThS(gsampleEnd[i],true).c_str(), ThS(gloopPos[i],true).c_str(),
 				ThS(gvolume_left[i]).c_str(), ThS(gvolume_right[i]).c_str(),
 				glooping[i], gis_stream[i],
@@ -286,7 +286,7 @@ std::string writeMessage(int a, int i, bool Wii)
 	{
 		if(m_frame->bShowBase) // base 10 (decimal)
 		{
-		sprintf(buf,"%c%02i %10s/%10s %10s | %06s %06s | %u   %u    %u    | %u %u %u %u %u %08x %08x",
+		sprintf(buf,"%c%02i %10s/%10s %10s | %6s %6s | %u   %u    %u    | %u %u %u %u %u %08x %08x %08x %08x %08x %08x %08x",
 			223, i, ThS(gsamplePos[i]).c_str(), ThS(gsampleEnd[i]).c_str(), ThS(gloopPos[i]).c_str(),
 			ThS(gvolume_left[i]).c_str(), ThS(gvolume_right[i]).c_str(),		
 			gsrc_type[i], gaudioFormat[i], gcoef[i],
@@ -298,7 +298,7 @@ std::string writeMessage(int a, int i, bool Wii)
 		{
 			if(Wii) // Wii
 			{
-			sprintf(buf,"%c%02i %08x/%08x %08x | %04x %04x | %u   %u    %u    | %u %u %u %08x %08x %08x %08x %08x",
+			sprintf(buf,"%c%02i %08x/%08x %08x | %04x %04x | %u   %u    %u    | %u %u %u %08x %08x %08x %08x %08x %08x",
 				223, i, gsamplePos[i], gsampleEnd[i], gloopPos[i],
 				gvolume_left[i], gvolume_right[i],		
 				gsrc_type[i], gaudioFormat[i], gcoef[i],
@@ -308,7 +308,7 @@ std::string writeMessage(int a, int i, bool Wii)
 			}
 			else // GC
 			{
-			sprintf(buf,"%c%02i %08x/%08x %08x | %04x %04x | %u   %u    %u    | %u %u %u %u %u %08x %08x %08x %08x %08x",
+			sprintf(buf,"%c%02i %08x/%08x %08x | %04x %04x | %u   %u    %u    | %u %u %u %u %u %08x %08x %08x %08x %08x %08x",
 				223, i, gsamplePos[i], gsampleEnd[i], gloopPos[i],
 				gvolume_left[i], gvolume_right[i],		
 				gsrc_type[i], gaudioFormat[i], gcoef[i],
@@ -674,7 +674,7 @@ void Logging_(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs,
 		/* Have a separate set for which ones to show. Currently show blocks that have been
 		   running at least once the last 100 updates.
 		// --------------
-		/*
+
 		Move all items back like this:		
 		1  to  0
 		2      1
@@ -855,7 +855,7 @@ void Logging_(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs,
 			iupdonce = true;
 		}
 
-		for (int i = 0; i < viupd.size(); i++) // 0, 1,..., 9
+		for (u32 i = 0; i < viupd.size(); i++) // 0, 1,..., 9
 		{
 			if (i < viupd.size()-1)
 			{
@@ -877,7 +877,7 @@ void Logging_(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs,
 			}				
 		}
 
-		for (int i = 0; i < viupd.size(); i++)
+		for (u32 i = 0; i < viupd.size(); i++)
 		{
 			if(viupd.at(i) == 0)
 				sbuff = sbuff + " ";
@@ -934,12 +934,12 @@ void CUCode_AX::Logging(short* _pBuffer, int _iSize, int a, bool Wii)
 		{
 			if(version == 0)
 			{
-				numberOfPBs = ReadOutPBsWii(m_addressPBs, PBw, NUMBER_OF_PBS, true);
+				numberOfPBs = ReadOutPBsWii(m_addressPBs, PBw, NUMBER_OF_PBS);
 				Logging_(_pBuffer, _iSize, a, Wii, PBw, numberOfPBs, m_addressPBs);
 			}
 			else
 			{
-				numberOfPBs = ReadOutPBsWii(m_addressPBs, PBw_, NUMBER_OF_PBS, true);
+				numberOfPBs = ReadOutPBsWii(m_addressPBs, PBw_, NUMBER_OF_PBS);
 				Logging_(_pBuffer, _iSize, a, Wii, PBw_, numberOfPBs, m_addressPBs);
 			}
 		}

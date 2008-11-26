@@ -17,8 +17,8 @@
 
 
 void startConsoleWin(int width, int height, char* fname);
-int wprintf(char *fmt, ...);
-int aprintf(int a, char *fmt, ...);
+int wprintf(const char *fmt, ...);
+int aprintf(int a, const char *fmt, ...);
 void ClearScreen();
 
 #ifdef _WIN32

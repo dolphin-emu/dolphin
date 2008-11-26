@@ -58,13 +58,15 @@ bool WaveFileWriter::Start(const char *filename)
 	// We are now at offset 44
 	if (ftell(file) != 44)
 		PanicAlert("wrong offset: %i", ftell(file));
+
+        return true;
 }
 
 void WaveFileWriter::Stop()
 {
 	if (!file)
 		return;
-	u32 file_size = (u32)ftell(file);
+        //	u32 file_size = (u32)ftell(file);
 	fseek(file, 4, SEEK_SET);
 	Write(audio_size + 36);
 	fseek(file, 40, SEEK_SET);

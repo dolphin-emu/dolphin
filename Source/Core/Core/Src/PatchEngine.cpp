@@ -49,7 +49,6 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile 
 		return;
 
 	Patch currentPatch;
-	int index = 0;
 
 	for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
 	{

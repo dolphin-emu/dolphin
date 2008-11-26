@@ -240,7 +240,7 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 				address, address & 0xffff, (u8)size);
 			
 			// Debugging
-			u32 offset = address & 0xffff;
+			// u32 offset = address & 0xffff;
 			//std::string Temp = WiiMoteEmu::ArrayToString(g_RegExt, size, offset);
 			//wprintf("Unencrypted data:\n%s\n", Temp.c_str());
 

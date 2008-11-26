@@ -251,7 +251,7 @@ void FillReportAcc(wm_accel& _acc)
 		yhistsize+=1;
 
 	
-	/*if(GetAsyncKeyState(VK_INSERT))
+	if(GetAsyncKeyState(VK_INSERT))
 		AX-=1;
 	else if(GetAsyncKeyState(VK_DELETE))
 		AX+=1;
@@ -262,9 +262,8 @@ void FillReportAcc(wm_accel& _acc)
 	else if(GetAsyncKeyState(VK_SHIFT))
 		AZ-=1;
 	else if(GetAsyncKeyState(VK_CONTROL))
-		AZ+=1;*/
+		AZ+=1;
 
-	/*
 	if(GetAsyncKeyState(VK_NUMPAD1))
 		X+=1;
 	else if(GetAsyncKeyState(VK_NUMPAD2))

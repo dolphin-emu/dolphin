@@ -98,7 +98,7 @@ class CDebugger : public wxDialog
 		void MailSettings(wxCommandEvent& event);
 		void Readfile(std::string FileName, bool GC);
 		std::string Readfile_(std::string FileName);
-		int CountFiles(std::string FileName);
+		u32 CountFiles(std::string FileName);
 
 		// ============== Blocks
 		void DoScrollBlocks();

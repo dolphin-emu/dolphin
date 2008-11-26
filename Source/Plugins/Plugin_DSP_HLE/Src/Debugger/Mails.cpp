@@ -145,7 +145,7 @@ void CDebugger::ReadDir()
 // --------------
 bool CDebugger::NoDuplicate(std::string FileName)
 {
-	for (int i = 0; i < all_files.size(); i++)
+	for (u32 i = 0; i < all_files.size(); i++)
 	{
 		if(all_files.at(i) == FileName)
 			return false;
@@ -154,7 +154,7 @@ bool CDebugger::NoDuplicate(std::string FileName)
 }
 
 // Count the number of files for each game
-int CDebugger::CountFiles(std::string FileName)
+u32 CDebugger::CountFiles(std::string FileName)
 {
 	int match = 0;
 
@@ -178,7 +178,6 @@ std::string CDebugger::Readfile_(std::string FileName)
 	char c;     // declare a char variable
 	FILE *file; // declare a FILE pointer
 	std::string sz = "";
-	char ch[1] = "";
 
 	if(File::Exists(FileName.c_str()))
 		file = fopen(FileName.c_str(), "r"); // open a text file for reading
@@ -201,18 +200,18 @@ std::string CDebugger::Readfile_(std::string FileName)
 				break; // break when EOF is reached
 		}
 	
-    fclose(file);
-	return sz;
+                fclose(file);
 	}
+        return sz;
 }
 
 // Read file
 void CDebugger::Readfile(std::string FileName, bool GC)
 {
-	int n = CountFiles(FileName); // count how many mails we have
-	int curr_n = 0;
+	u32 n = CountFiles(FileName); // count how many mails we have
+	u32 curr_n = 0;
 	std::ifstream file;
-	for (int i = 0; i < m_RadioBox[3]->GetCount(); i++)
+	for (u32 i = 0; i < m_RadioBox[3]->GetCount(); i++)
 	{
 		if(m_RadioBox[3]->IsItemEnabled(i)) curr_n++;
 		m_RadioBox[3]->Enable(i, false); // disable all
@@ -220,7 +219,7 @@ void CDebugger::Readfile(std::string FileName, bool GC)
 	//wprintf("Disabled all: n %i\n", n);
 
 
-	for (int i = 0; i < n; i++)
+	for (u32 i = 0; i < n; i++)
 	{
 		m_RadioBox[3]->Enable(i, true); // then anble the right ones
 		//wprintf("m_RadioBox[3] enabled:  %i\n", i);
@@ -253,25 +252,23 @@ void CDebugger::Readfile(std::string FileName, bool GC)
 // ---------------
 void CDebugger::OnGameChange(wxCommandEvent& event)
 {
-	if(event.GetId() == 2006)
+    if(event.GetId() == 2006)
 	{
-		// Only allow one selected game at a time
-		for (int i = 0; i < m_gc->GetCount(); ++i)
-			if(i != event.GetInt()) m_gc->Check(i, false);
-		for (int i = 0; i < m_wii->GetCount(); ++i)
-			m_wii->Check(i, false);
-		Readfile(gc_files[event.GetInt()], true);
+            // Only allow one selected game at a time
+            for (u32 i = 0; i < m_gc->GetCount(); ++i)
+                if(i != (u32)event.GetInt()) m_gc->Check(i, false);
+            for (u32 i = 0; i < m_wii->GetCount(); ++i)
+                m_wii->Check(i, false);
+            Readfile(gc_files[event.GetInt()], true);
 	}
-	else
+    else
 	{
-		for (int i = 0; i < m_gc->GetCount(); ++i)
-			m_gc->Check(i, false);
-		for (int i = 0; i < m_wii->GetCount(); ++i)
-			if(i != event.GetInt()) m_wii->Check(i, false);
-		Readfile(wii_files[event.GetInt()], false);
+            for (u32 i = 0; i < m_gc->GetCount(); ++i)
+                m_gc->Check(i, false);
+            for (u32 i = 0; i < m_wii->GetCount(); ++i)
+                if(i != (u32)event.GetInt()) m_wii->Check(i, false);
+            Readfile(wii_files[event.GetInt()], false);
 	}
-
-
 }
 
 // Settings

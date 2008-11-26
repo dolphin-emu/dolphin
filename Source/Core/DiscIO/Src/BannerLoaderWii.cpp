@@ -101,7 +101,7 @@ CBannerLoaderWii::StupidWideCharToString(u16* _pSrc, size_t _max)
 {
 	std::string temp;
 
-	int offset = 0;
+	u32 offset = 0;
 	while (_pSrc[offset] != 0x0000)
 	{
 		temp += (char)(_pSrc[offset] >> 8);

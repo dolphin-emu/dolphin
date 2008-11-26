@@ -41,10 +41,10 @@ extern CDebugger * m_frame;
 // -----------
 
 
-CUCode_AXWii::CUCode_AXWii(CMailHandler& _rMailHandler, u32 _CRC)
+CUCode_AXWii::CUCode_AXWii(CMailHandler& _rMailHandler, u32 l_CRC)
 	: IUCode(_rMailHandler)
 	, m_addressPBs(0xFFFFFFFF)
-	, _CRC(_CRC)
+	, _CRC(l_CRC)
 {
 	// we got loaded
 	m_rMailHandler.PushMail(0xDCD10000);
@@ -54,7 +54,7 @@ CUCode_AXWii::CUCode_AXWii(CMailHandler& _rMailHandler, u32 _CRC)
 	temprbuffer = new int[1024 * 1024];
 
 	lCUCode_AX = new CUCode_AX(_rMailHandler);
-	lCUCode_AX->_CRC = _CRC;
+	lCUCode_AX->_CRC = l_CRC;
 }
 
 CUCode_AXWii::~CUCode_AXWii()
@@ -98,7 +98,7 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 	//AXParamBlockWii PBs[NUMBER_OF_PBS];
 
 	// read out pbs
-	int numberOfPBs = ReadOutPBsWii(m_addressPBs, PBs, NUMBER_OF_PBS, false);
+	int numberOfPBs = ReadOutPBsWii(m_addressPBs, PBs, NUMBER_OF_PBS);
 	
 	if (_iSize > 1024 * 1024)
 		_iSize = 1024 * 1024;
@@ -122,7 +122,7 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 			{
 				const u32 blockAddr = (u32)(PBs[p].this_pb_hi<< 16) | PBs[p].this_pb_lo;
 				const short *pSrc = (const short *)g_dspInitialize.pGetMemoryPointer(blockAddr);
-				for (int i = 0; i < sizeof(AXParamBlockWii) / 2; i+=2)
+				for (u32 i = 0; i < sizeof(AXParamBlockWii) / 2; i+=2)
 				{
 					if(i == 10 || i == 34 || i == 41 || i == 46 || i == 46 || i == 58 || i == 60
 						|| i == 68 || i == 88 || i == 95)
@@ -132,7 +132,7 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 						i/2, i,
 						m_frame->PBn[i].c_str(), m_frame->PBp[i].c_str()
 						);
-					for (int i = 0; i < 50 - line.length(); ++i)						
+					for (u32 j = 0; j < 50 - line.length(); ++j)						
 						line += " ";
 						m_frame->str0 += line;
 
@@ -248,14 +248,14 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 
 	u32 Addr__AXStudio;
 	u32 Addr__AXOutSBuffer;
-	u32 Addr__AXOutSBuffer_1;
-	u32 Addr__AXOutSBuffer_2;
+        //	u32 Addr__AXOutSBuffer_1;
+        //	u32 Addr__AXOutSBuffer_2;
 	u32 Addr__A;
-	u32 Addr__12;
+        //	u32 Addr__12;
 	u32 Addr__5_1;
 	u32 Addr__5_2;
 	u32 Addr__6;
-	u32 Addr__9;
+        //	u32 Addr__9;
 
 	bool bExecuteList = true;
 

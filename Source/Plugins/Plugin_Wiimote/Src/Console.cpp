@@ -124,7 +124,7 @@ int aprintf(int a, char *fmt, ...)
 
 // ---------------------------------------------------------------------------------------
 // Printf to screen function
-int wprintf(char *fmt, ...)
+int wprintf(const char *fmt, ...)
 {
 #if defined(DEBUG_WIIMOTE) && defined(_WIN32)
 	char s[500]; // WARNING: mind this value

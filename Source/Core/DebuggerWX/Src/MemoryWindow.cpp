@@ -145,13 +145,13 @@ void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)
 	u32 val;
 
 	if (!TryParseUInt(std::string("0x") + str_addr, &addr)) {
-		PanicAlert("Invalid Address: %s", str_addr);
-		return;
+            PanicAlert("Invalid Address: %s", str_addr.c_str());
+            return;
 	}
 
 	if (!TryParseUInt(std::string("0x") + str_val, &val)) {
-		PanicAlert("Invalid Value: %s", str_val);
-		return;
+            PanicAlert("Invalid Value: %s", str_val.c_str());
+            return;
 	}
 
 	Memory::Write_U32(val, addr);

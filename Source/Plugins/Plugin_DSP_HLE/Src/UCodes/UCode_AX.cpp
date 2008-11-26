@@ -123,7 +123,7 @@ if(m_frame->ScanMails)
 			if(Wii)
 				TmpMailLog += "Current CRC: " + StringFromFormat("0x%08x \n\n", _CRC);			
 
-			for (int i = 0; i < sMailTime.size(); i++)
+			for (u32 i = 0; i < sMailTime.size(); i++)
 			{
 				char tmpbuf[128]; sprintf(tmpbuf, "Mail %i received: %s\n", i, sMailTime.at(i).c_str());
 				TmpMailLog += tmpbuf;
@@ -191,10 +191,10 @@ if(m_frame->ScanMails)
 	}
 
 	// Compare this mail to old mails
-	int addnew = 0;
-	for (int i = 0; i < m_frame->sMail.size(); i++)
+	u32 addnew = 0;
+	for (u32 j = 0; j < m_frame->sMail.size(); j++)
 	{
-		if(m_frame->sMail.at(i).length() != sTemp.length())
+		if(m_frame->sMail.at(j).length() != sTemp.length())
 		{
 			//wxMessageBox( wxString::Format("%s  \n\n%s", m_frame->sMail.at(i).c_str(),
 			//	sTemp.c_str()) );
@@ -207,7 +207,7 @@ if(m_frame->ScanMails)
 	if(addnew == m_frame->sMail.size())
 	{		
 		//wprintf("%i  |  %i\n", addnew, m_frame->sMail.size());
-		int resizeTo = m_frame->sMail.size() + 1;		
+		u32 resizeTo = m_frame->sMail.size() + 1;		
 
 		// ------------------------------------
 		// get timestamp
@@ -453,8 +453,8 @@ bool CUCode_AX::AXTask(u32& _uMail)
 	u32 Addr__12;
 	u32 Addr__4_1;
 	u32 Addr__4_2;
-	u32 Addr__4_3;
-	u32 Addr__4_4;
+        //	u32 Addr__4_3;
+        //	u32 Addr__4_4;
 	u32 Addr__5_1;
 	u32 Addr__5_2;
 	u32 Addr__6;

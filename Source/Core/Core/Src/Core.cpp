@@ -560,11 +560,10 @@ void Callback_PADLog(const TCHAR* _szMessage)
 //std::string Callback_ISOName(void)
 char * Callback_ISOName(void)
 {
-	char * a = "";
 	if(g_CoreStartupParameter.m_strName.length() > 0)
 		return (char *)g_CoreStartupParameter.m_strName.c_str();
 	else	
-		return a;
+          return (char *)"";
 }
 
 // __________________________________________________________________________________________________

@@ -66,10 +66,10 @@ namespace WiiMoteReal
         
         CWiiMote(u8 _WiimoteNumber, wiimote_t* _pWiimote) 
             : m_WiimoteNumber(_WiimoteNumber)
-            , m_pWiiMote(_pWiimote)
-            , m_LastReportValid(false)
             , m_channelID(0)
+            , m_pWiiMote(_pWiimote)
             , m_pCriticalSection(NULL)
+            , m_LastReportValid(false)
         {
             m_pCriticalSection = new Common::CriticalSection();
 

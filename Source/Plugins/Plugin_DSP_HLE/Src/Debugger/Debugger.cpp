@@ -86,8 +86,9 @@ CDebugger::CDebugger(wxWindow *parent, wxWindowID id, const wxString &title,
 	: wxDialog(parent, id, title, position, size, style)
 	, m_GPRListView(NULL)
 	//, gUpdFreq(5) // loaded from file
-	, gPreset(0)
 	, giShowAll(-1)
+	, gPreset(0)
+
 
 	, upd95(false) // block view settings
 	, upd94(false)
@@ -217,7 +218,7 @@ SetTitle(wxT("Sound Debugging"));
 
 
 	// Declarations	
-	wxBoxSizer * sMAIN, * sMain, * sMail, * sBlock;
+	wxBoxSizer * sMAIN, * sMain, *_sMail, * sBlock;
 
 	wxButton* m_Upd;
 	wxButton* m_SelC;
@@ -475,10 +476,10 @@ SetTitle(wxT("Sound Debugging"));
 	wxBoxSizer * sMailRight = new wxBoxSizer(wxVERTICAL);
 	//wxStaticBoxSizer * sMailRight = new wxStaticBoxSizer(wxVERTICAL, m_PageMail, wxT("Current"));
 
-	sMail = new wxBoxSizer(wxHORIZONTAL);
-	sMail->Add(m_m1Sizer, 0, wxEXPAND | (wxUP | wxDOWN), 5); // margin = 5
-	sMail->Add(m_m2Sizer, 1, wxEXPAND | (wxUP | wxDOWN | wxLEFT), 5); // margin = 5
-	sMail->Add(sMailRight, 0, wxEXPAND | wxALL, 0); // margin = 0
+	_sMail = new wxBoxSizer(wxHORIZONTAL);
+	_sMail->Add(m_m1Sizer, 0, wxEXPAND | (wxUP | wxDOWN), 5); // margin = 5
+	_sMail->Add(m_m2Sizer, 1, wxEXPAND | (wxUP | wxDOWN | wxLEFT), 5); // margin = 5
+	_sMail->Add(sMailRight, 0, wxEXPAND | wxALL, 0); // margin = 0
 
 	sMailRight->Add(m_RadioBox[3], 0, wxALL, 5); // margin = 5
 	sMailRight->Add(m_gameSizer1, 1, wxEXPAND | wxALL, 5); // margin = 5
@@ -515,7 +516,7 @@ SetTitle(wxT("Sound Debugging"));
 	//sMAIN->SetSizeHints(this);
 
 	m_PageMain->SetSizer(sMain);
-	m_PageMail->SetSizer(sMail);
+	m_PageMail->SetSizer(_sMail);
 	m_PageBlock->SetSizer(sBlock);
 	//sMain->Layout();	
 
@@ -649,8 +650,8 @@ void CDebugger::OnOptions(wxCommandEvent& event)
 void CDebugger::OnShowAll(wxCommandEvent& event)
 {
 	/// Only allow one selection at a time
-	for (int i = 0; i < m_opt_showall->GetCount(); ++i)
-		if(i != event.GetInt()) m_opt_showall->Check(i, false);
+	for (u32 i = 0; i < m_opt_showall->GetCount(); ++i)
+          if(i != (u32)event.GetInt()) m_opt_showall->Check(i, false);
 
 	if(m_opt_showall->IsChecked(0)) giShowAll = 0;
 	else if(m_opt_showall->IsChecked(1)) giShowAll = 1;

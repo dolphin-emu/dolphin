@@ -100,8 +100,8 @@ void ConvertToXFB(u32 *dst, const u8* _pEFB, int width, int height)
 	if (((size_t)dst & 0xF) != 0) {
 		PanicAlert("ConvertToXFB - unaligned XFB");
 	}
-	__m128i zero = _mm_setzero_si128();
-	for (int i = 0; i < numBlocks; i++)
+
+	for (u32 i = 0; i < numBlocks; i++)
 	{
 		__m128i yuyv0 = _mm_srai_epi32(
 			_mm_add_epi32(

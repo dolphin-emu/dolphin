@@ -151,11 +151,13 @@ IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
 	case EXIDEVICE_MIC:
 		return new CEXIMic(1);
 		break;
-	#if 0
+
 	case EXIDEVICE_ETH:
+	#if 0
 		return new CEXIETHERNET();
-		break;
 	#endif
+		break;
+
 	}
 	return NULL;
 }

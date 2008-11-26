@@ -134,6 +134,8 @@ bool LoadPlugin(const char *_Filename)
 		//PanicAlert("return false: %i", ret);
 		return false;
 	}
+        
+        return false;
 }
 // ============
 
