@@ -377,7 +377,7 @@ void Write16(const u16 _Value, const u32 _Address)
 				" - The good news is, the time you read that message, the fifo should be empty now :p\n"
 				" - Anyway, fifo flush will be forced if you press OK and dolphin might continue to work...\n"
 				" - We aren't betting on that :)", fifo.CPReadWriteDistance);
-			/**/
+                        */
 			LOG(COMMANDPROCESSOR, "*********************** GXSetGPFifo very soon? ***********************");
 			u32 ct=0;
 			while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance > 0 )
@@ -406,7 +406,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			//fifo.bFF_Breakpoint = m_CPStatusReg.Breakpoint;
 			fifo.bFF_Breakpoint = m_CPStatusReg.Breakpoint	? true : false;
 			//LOG(COMMANDPROCESSOR,"fifo.bFF_Breakpoint : %i",fifo.bFF_Breakpoint);
-			/**/
+			*/
 
 			// update interrupts
 			UpdateInterrupts();
@@ -449,7 +449,7 @@ void Write16(const u16 _Value, const u32 _Address)
 					m_CPStatusReg.Breakpoint = 0;
 					InterlockedExchange((LONG*)&fifo.bFF_Breakpoint,	0);
 				}
-			}/**/
+			}*/
 			m_CPCtrlReg.Hex = tmpCtrl.Hex;
 			UpdateInterrupts();
 			LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
@@ -617,7 +617,7 @@ void GatherPipeBursted()
 
 			LOG(COMMANDPROCESSOR, "(GatherPipeBursted): CPHiWatermark reached");
 			// Wait for GPU to catch up
-			while (!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint) && fifo.CPReadWriteDistance > (s32)fifo.CPLoWatermark)
+			while (!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint) && fifo.CPReadWriteDistance > fifo.CPLoWatermark)
 			{
 				ct++;
 				// dunno if others threads (like the audio thread) really need a forced context switch here

@@ -274,8 +274,8 @@ u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry)
 u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry)
 {
     PanicAlert("Scan directory not implemanted yet\n");
-	// TODO - Insert linux stuff here
-	return 0;
+    // TODO - Insert linux stuff here
+    return 0;
 }
 #endif
 

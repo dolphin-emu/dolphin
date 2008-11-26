@@ -66,8 +66,6 @@ class CBannerLoaderWii
 		int lut4to8[16];
 		int lut5to8[32];
 
-		std::string m_Name;
-
 		u8* m_pBannerFile;
 
 		bool m_IsValid;

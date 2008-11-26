@@ -75,7 +75,7 @@ CBannerLoaderWii::GetBanner(u32* _pBannerImage)
 {
 	if (!IsValid())
 	{
-		return(false);
+		return false;
 	}
 
 	SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
@@ -93,7 +93,7 @@ CBannerLoaderWii::GetBanner(u32* _pBannerImage)
 	}
 
 
-	return(true);
+	return true;
 }
 
 std::string 
@@ -126,15 +126,15 @@ CBannerLoaderWii::GetName(std::string& _rName, int language)
 		return true;
 	}
 
-	_rName = m_Name;
-	return(true);
+	return true;
 }
 
 
 bool
 CBannerLoaderWii::GetCompany(std::string& _rCompany)
 {
-	return(false);
+    _rCompany = "N/A";
+    return true;
 }
 
 
@@ -150,7 +150,7 @@ CBannerLoaderWii::GetDescription(std::string& _rDescription)
 		return true;
 	}
 
-	return(false);
+	return false;
 }
 
 
@@ -197,7 +197,7 @@ CBannerLoaderWii::decode5A3(u16 val)
 		a = 0xFF;
 	}
 
-	return((a << 24) | (r << 16) | (g << 8) | b);
+	return ((a << 24) | (r << 16) | (g << 8) | b);
 }
 
 
