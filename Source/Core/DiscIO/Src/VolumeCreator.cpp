@@ -18,7 +18,6 @@
 #include <vector>
 
 #include "AES/aes.h"
-#include <wx/wx.h>
 
 #include "VolumeCreator.h"
 
@@ -128,9 +127,8 @@ IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType)
 		FILE* pT = fopen(WII_MASTERKEY_FILE, "rb");
 		if (pT == NULL)
 		{
-			if (wxMessageBox(_("Can't open '" WII_MASTERKEY_FILE "'.\n If you know the key, now it's the time to paste it into '"
-				WII_MASTERKEY_FILE_HEX "' before pressing [YES]."),
-				wxMessageBoxCaptionStr, wxYES_NO|wxICON_EXCLAMATION) == wxYES)
+			if(PanicYesNo("Can't open '" WII_MASTERKEY_FILE "'.\n If you know the key, now it's the time to paste it into '"
+				WII_MASTERKEY_FILE_HEX "' before pressing [YES]."))
 			{
 				pT = fopen(WII_MASTERKEY_FILE_HEX, "r");
 				if(pT==NULL){
