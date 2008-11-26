@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "AES/aes.h"
+#include <wx/wx.h>
 
 #include "VolumeCreator.h"
 
@@ -127,37 +128,49 @@ IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType)
 		FILE* pT = fopen(WII_MASTERKEY_FILE, "rb");
 		if (pT == NULL)
 		{
-			PanicAlert("Can't open '" WII_MASTERKEY_FILE "'.\n If you know the key, now it's the time to paste it into '" WII_MASTERKEY_FILE_HEX "' before pressing [OK].");
-
-			pT = fopen(WII_MASTERKEY_FILE_HEX, "r");
-			if(pT==NULL)
-				return NULL;
-
-			static char hexkey[32];
-			if(fread(hexkey,1,32,pT)<32)
+			if (wxMessageBox(_("Can't open '" WII_MASTERKEY_FILE "'.\n If you know the key, now it's the time to paste it into '"
+				WII_MASTERKEY_FILE_HEX "' before pressing [YES]."),
+				wxMessageBoxCaptionStr, wxYES_NO|wxICON_EXCLAMATION) == wxYES)
 			{
+				pT = fopen(WII_MASTERKEY_FILE_HEX, "r");
+				if(pT==NULL){
+					PanicAlert("could not open " WII_MASTERKEY_FILE_HEX );
+					return NULL;
+				}
+
+				static char hexkey[32];
+				if(fread(hexkey,1,32,pT)<32)
+				{
+					PanicAlert(WII_MASTERKEY_FILE_HEX " is not the right size" );
+					fclose(pT);
+					return NULL;
+				}
 				fclose(pT);
-				return NULL;
+
+				static char binkey[16];
+				char *t=hexkey;
+				for(int i=0;i<16;i++)
+				{
+					char h[3]={*(t++),*(t++),0};
+					binkey[i] = strtol(h,NULL,16);
+				}
+
+				pT = fopen(WII_MASTERKEY_FILE, "wb");
+				if(pT==NULL){
+					PanicAlert("could not open/make '" WII_MASTERKEY_FILE "' for writing!");
+					return NULL;
+				}
+
+				fwrite(binkey,16,1,pT);
+				fclose(pT);
+
+				pT = fopen(WII_MASTERKEY_FILE, "rb");
+				if(pT==NULL){
+					PanicAlert("could not open '" WII_MASTERKEY_FILE "' for reading!\n did the file get deleted or locked after converting?");
+					return NULL;
+				}
 			}
-			fclose(pT);
-
-			static char binkey[16];
-			char *t=hexkey;
-			for(int i=0;i<16;i++)
-			{
-				char h[3]={*(t++),*(t++),0};
-				binkey[i] = strtol(h,NULL,16);
-			}
-
-			pT = fopen(WII_MASTERKEY_FILE, "wb");
-			if(pT==NULL)
-				return NULL;
-
-			fwrite(binkey,16,1,pT);
-			fclose(pT);
-
-			pT = fopen(WII_MASTERKEY_FILE, "rb");
-			if(pT==NULL)
+			else
 				return NULL;
 		}
 
