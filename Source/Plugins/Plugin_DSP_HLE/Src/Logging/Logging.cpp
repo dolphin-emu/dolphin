@@ -131,9 +131,8 @@ extern CDebugger* m_frame;
 
 // Counters
 
-int j = 0;
-int k = 0;
-unsigned int l = 0;
+int count1 = 0;
+int count2 = 0;
 int iupd = 0;
 bool iupdonce = false;
 std::vector<u16> viupd(15); // the length of the update frequency bar
@@ -286,7 +285,7 @@ std::string writeMessage(int a, int i, bool Wii)
 	{
 		if(m_frame->bShowBase) // base 10 (decimal)
 		{
-		sprintf(buf,"%c%02i %10s/%10s %10s | %6s %6s | %u   %u    %u    | %u %u %u %u %u %08x %08x %08x %08x %08x %08x %08x",
+                    sprintf(buf,"%c%02i %10s/%10s %10s | %6s %6s | %u   %u    %u    | %u %u %u %u %u %08x %08x %08x %08x %08x %08x",
 			223, i, ThS(gsamplePos[i]).c_str(), ThS(gsampleEnd[i]).c_str(), ThS(gloopPos[i]).c_str(),
 			ThS(gvolume_left[i]).c_str(), ThS(gvolume_right[i]).c_str(),		
 			gsrc_type[i], gaudioFormat[i], gcoef[i],
@@ -591,11 +590,11 @@ void Logging_(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs,
 		
 		if (i == numberOfPBs - 1 && irun == 0) 
 		{
-			for (int i = 0; i < nFiles; i++)
+			for (int j = 0; j < nFiles; j++)
 			{	
 				std::string sfbuff;
 				sfbuff = "-----\n";
-				aprintf(i, (char *)sfbuff.c_str());
+				aprintf(j, (char *)sfbuff.c_str());
 			}
 		}
 		// --------------
@@ -643,8 +642,8 @@ void Logging_(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs,
 	// =======================================================================================
 	// Control how often the screen is updated, and then update the screen
 	// --------------
-	if(a == 0) j++; // a == 0 when Logging is called before the blocks are updated
-	if (m_frame->gUpdFreq > 0 && j > (200/m_frame->gUpdFreq))
+	if(a == 0) count1++; // a == 0 when Logging is called before the blocks are updated
+	if (m_frame->gUpdFreq > 0 && count1 > (200/m_frame->gUpdFreq))
 	{
 
 		// =======================================================================================
@@ -905,8 +904,8 @@ void Logging_(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs,
 		}
 		*/			
 
-		k=0;
-		j=0;
+		count2=0;
+		count1=0;
 
 	} // end of if (j>20)	
 	
