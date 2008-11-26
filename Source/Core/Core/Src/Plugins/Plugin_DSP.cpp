@@ -122,6 +122,8 @@ bool LoadPlugin(const char *_Filename)
 	}
 	else if (ret == 0)
 		return false;
+
+    return false;
 }
 
 }  // namespace

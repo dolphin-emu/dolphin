@@ -219,52 +219,52 @@ struct value_string
 };
 
 static const value_string command_code_vals[] = {
-	{ 0x01,	"Command Reject" },
-	{ 0x02,	"Connection Request" },
-	{ 0x03,	"Connection Response" },
-	{ 0x04,	"Configure Request" },
-	{ 0x05,	"Configure Response" },
-	{ 0x06,	"Disconnect Request" },
-	{ 0x07,	"Disconnect Response" },
-	{ 0x08,	"Echo Request" },
-	{ 0x09,	"Echo Response" },
-	{ 0x0A,	"Information Request" },
-	{ 0x0B,	"Information Response" },
-	{ 0,			NULL }
+    { 0x01,	(char *)"Command Reject" },
+    { 0x02,	(char *)"Connection Request" },
+    { 0x03,	(char *)"Connection Response" },
+    { 0x04,	(char *)"Configure Request" },
+    { 0x05,	(char *)"Configure Response" },
+    { 0x06,	(char *)"Disconnect Request" },
+    { 0x07,	(char *)"Disconnect Response" },
+    { 0x08,	(char *)"Echo Request" },
+    { 0x09,	(char *)"Echo Response" },
+    { 0x0A,	(char *)"Information Request" },
+    { 0x0B,	(char *)"Information Response" },
+    { 0,		NULL }
 };
 
 
 
 static const value_string psm_vals[] = {
-	{ 0x0001,	"SDP" },
-	{ 0x0003,	"RFCOMM" },
-	{ 0x0005,	"TCS-BIN" },
-	{ 0x0007,	"TCS-BIN-CORDLESS" },
-	{ 0x000F,	"BNEP" },
-	{ 0x0011,	"HID_CONTROL" },
-	{ 0x0013,	"HID_INTERRUPT" },
-	{ 0x0015,	"UPnP" },
-	{ 0x0017,	"AVCTP" },
-	{ 0x0019,	"AVDTP" },
-	{ 0x001D,	"UDI_C-Plane" },
+	{ 0x0001,	(char *)"SDP" },
+	{ 0x0003,	(char *)"RFCOMM" },
+	{ 0x0005,	(char *)"TCS-BIN" },
+	{ 0x0007,	(char *)"TCS-BIN-CORDLESS" },
+	{ 0x000F,	(char *)"BNEP" },
+	{ 0x0011,	(char *)"HID_CONTROL" },
+	{ 0x0013,	(char *)"HID_INTERRUPT" },
+	{ 0x0015,	(char *)"UPnP" },
+	{ 0x0017,	(char *)"AVCTP" },
+	{ 0x0019,	(char *)"AVDTP" },
+	{ 0x001D,	(char *)"UDI_C-Plane" },
 	{ 0,			NULL }
 };
 
 
 static const value_string result_vals[] = {
-	{ 0x0000,	"Connection successful" },
-	{ 0x0001,	"Connection pending" },
-	{ 0x0002,	"Connection Refused - PSM not supported" },
-	{ 0x0003,	"Connection refused - security block" },
-	{ 0x0004,	"Connection refused - no resources available" },
+	{ 0x0000,	(char *)"Connection successful" },
+	{ 0x0001,	(char *)"Connection pending" },
+	{ 0x0002,	(char *)"Connection Refused - PSM not supported" },
+	{ 0x0003,	(char *)"Connection refused - security block" },
+	{ 0x0004,	(char *)"Connection refused - no resources available" },
 	{ 0,			NULL }
 };
 
 
 static const value_string status_vals[] = {
-	{ 0x0000,	"No further information available" },
-	{ 0x0001,	"Authentication panding" },
-	{ 0x0002,	"Authorization pending" },
+	{ 0x0000,	(char *)"No further information available" },
+	{ 0x0001,	(char *)"Authentication panding" },
+	{ 0x0002,	(char *)"Authorization pending" },
 	{ 0,			NULL }
 };
 

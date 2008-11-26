@@ -27,16 +27,16 @@ int g_GlobalHandle = 0;
 
 CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-	, m_pACLBuffer(NULL)
-	, m_pHCIBuffer(NULL)
+        , m_PINType(0)
 	, m_ScanEnable(0)
-	, m_PINType(0)
 	, m_EventFilterType(0)
 	, m_EventFilterCondition(0)
 	, m_HostMaxACLSize(0)
 	, m_HostMaxSCOSize(0)
 	, m_HostNumACLPackets(0)
 	, m_HostNumSCOPackets(0)
+	, m_pACLBuffer(NULL)
+	, m_pHCIBuffer(NULL)
 {
 	m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, 0));
 
@@ -567,8 +567,6 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HL
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestLinkKey(bdaddr_t _bd)
 {
-	const CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_bd);
-
 	SQueuedEvent Event(sizeof(SHCIEventRequestLinkKey), 0);
 
 	SHCIEventRequestLinkKey* pEventRequestLinkKey = (SHCIEventRequestLinkKey*)Event.m_buffer;
@@ -1073,13 +1071,13 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 		//
 	default:
 		{
-			u16 ocf = HCI_OCF(pMsg->Opcode);
-			u16 ogf = HCI_OGF(pMsg->Opcode);
+			u16 _ocf = HCI_OCF(pMsg->Opcode);
+			u16 _ogf = HCI_OGF(pMsg->Opcode);
 			
-			if (ogf == 0x3f)
+			if (_ogf == 0x3f)
 			{
 				PanicAlert("Vendor specific HCI command");
-				LOG(WII_IPC_WIIMOTE, "Command: vendor specific: 0x%04X (ocf: 0x%x)", pMsg->Opcode, ocf);
+				LOG(WII_IPC_WIIMOTE, "Command: vendor specific: 0x%04X (ocf: 0x%x)", pMsg->Opcode, _ocf);
 
 				for (int i=0; i<pMsg->len; i++)
 				{
@@ -1088,7 +1086,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 			}
 			else
 			{
-				_dbg_assert_msg_(WII_IPC_WIIMOTE, 0, "Unknown USB_IOCTL_CTRLMSG: 0x%04X (ocf: 0x%x  ogf 0x%x)", pMsg->Opcode, ocf, ogf);
+				_dbg_assert_msg_(WII_IPC_WIIMOTE, 0, "Unknown USB_IOCTL_CTRLMSG: 0x%04X (ocf: 0x%x  ogf 0x%x)", pMsg->Opcode, _ocf, _ogf);
 			}
 
 			// send fake all is okay msg...
