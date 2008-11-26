@@ -144,7 +144,6 @@ void VertexLoader::CompileVertexTranslator()
 	u8 *old_code_ptr = GetWritableCodePtr();
 	SetCodePtr(m_compiledCode);
 	ABI_EmitPrologue(4);
-
 	// Start loop here
 	const u8 *loop_start = GetCodePtr();
 

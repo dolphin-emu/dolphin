@@ -223,9 +223,13 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     if (iter != textures.end()) {
         TCacheEntry &entry = iter->second;
 
-        if (entry.isRenderTarget || 
-			(TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format) == entry.hash && 
-			palhash == entry.paletteHash)) {
+		u32 hash_value;
+		if (g_Config.bSafeTextureCache)
+			hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format);
+		else
+			hash_value = ((u32 *)ptr)[entry.hashoffset];
+
+        if (entry.isRenderTarget || (hash_value == entry.hash && palhash == entry.paletteHash)) {
             entry.frameCount = frameCount;
             //glEnable(entry.isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D);
             glBindTexture(entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D, entry.texture);
@@ -261,6 +265,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     //Make an entry in the table
     TCacheEntry& entry = textures[address];
 
+	entry.hashoffset = 0;
     entry.paletteHash = palhash;
     entry.oldpixel = ((u32 *)ptr)[entry.hashoffset];
 	if (g_Config.bSafeTextureCache) {
