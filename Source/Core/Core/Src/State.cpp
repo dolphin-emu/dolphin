@@ -70,8 +70,8 @@ void DoState(PointerWrap &p)
 		return;
 	}
 	// Begin with video plugin, so that it gets a chance to clear it's caches and writeback modified things to RAM
-    PluginVideo::Video_DoState(p.GetPPtr(), p.GetMode());
-    PluginDSP::DSP_DoState(p.GetPPtr(), p.GetMode());
+        PluginVideo::Video_DoState(p.GetPPtr(), p.GetMode());
+        PluginDSP::DSP_DoState(p.GetPPtr(), p.GetMode());
 	PowerPC::DoState(p);
 	HW::DoState(p);
 	CoreTiming::DoState(p);

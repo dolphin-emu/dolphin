@@ -108,15 +108,17 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode)
 
 void TextureMngr::TCacheEntry::Destroy()
 {
+    if(!texture)
+        return;
     glDeleteTextures(1, &texture);
-	if (!isRenderTarget) {
-		if (!g_Config.bSafeTextureCache) {
-			u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr + hashoffset * 4);
-			if (*ptr == hash)
-				*ptr = oldpixel;
-		}
-	}
-	texture = 0;
+    if (!isRenderTarget) {
+        if (!g_Config.bSafeTextureCache) {
+            u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr + hashoffset * 4);
+            if (*ptr == hash)
+                *ptr = oldpixel;
+        }
+    }
+    texture = 0;
 } 
 
 void TextureMngr::Init()

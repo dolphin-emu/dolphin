@@ -228,19 +228,29 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 }
 
 void Video_DoState(unsigned char **ptr, int mode) {
-
-	// Clear all caches that touch RAM
-	TextureMngr::Invalidate();
-	// DisplayListManager::Invalidate();
-
-	VertexLoaderManager::MarkAllDirty();
-
-	PointerWrap p(ptr, mode);
-	VideoCommon_DoState(p);
-	
-	// Refresh state.
-	if (mode == PointerWrap::MODE_READ)
-		BPReload();
+#ifdef _WIN32
+    if (!wglMakeCurrent(hDC,hRC)) {
+        PanicAlert("Can't Activate The GL Rendering Context for saving");
+        return false;
+    }
+#elif defined(OSX64)
+    cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
+#else // Linux
+    glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
+#endif
+        
+    // Clear all caches that touch RAM
+    TextureMngr::Invalidate();
+    // DisplayListManager::Invalidate();
+    
+    VertexLoaderManager::MarkAllDirty();
+    
+    PointerWrap p(ptr, mode);
+    VideoCommon_DoState(p);
+    
+    // Refresh state.
+    if (mode == PointerWrap::MODE_READ)
+        BPReload();
 }
 
 // This is called after Video_Initialize() from the Core

@@ -93,7 +93,8 @@ void BPWritten(int addr, int changes, int newval)
                 glEnable(GL_CULL_FACE);
                 glFrontFace(bpmem.genMode.cullmode == 2 ? GL_CCW : GL_CW);
             }
-            else glDisable(GL_CULL_FACE);
+            else if(glIsEnabled(GL_CULL_FACE) == GL_TRUE)
+                   glDisable(GL_CULL_FACE);
 
             PixelShaderMngr::SetGenModeChanged();
         }
