@@ -664,9 +664,11 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card, int page)
 		m_MemcardList[card]->SetItem(index, COLUMN_BANNER, wxEmptyString);
 		m_MemcardList[card]->SetItem(index, COLUMN_TITLE, wxString::FromAscii(title));
 		m_MemcardList[card]->SetItem(index, COLUMN_COMMENT, wxString::FromAscii(comment));
-		if (!memoryCard[card]->GetNumBlocks(j, &blocks)) blocks = 0;
+		blocks = memoryCard[card]->GetFileSize(j);
+		if (blocks == 0xFFFF) blocks = 0;
 		wxBlock.Printf(wxT("%10d"), blocks);
-		if (!memoryCard[card]->GetFirstBlock(j,&firstblock)) firstblock = 0;
+		firstblock = memoryCard[card]->GetFirstBlock(j);
+		if (firstblock == 0xFFFF) firstblock = 3;	// to make firstblock -1
 		wxFirstBlock.Printf(wxT("%10d"), firstblock-4);
 		m_MemcardList[card]->SetItem(index,COLUMN_BLOCKS, wxBlock);
 		m_MemcardList[card]->SetItem(index,COLUMN_FIRSTBLOCK, wxFirstBlock);

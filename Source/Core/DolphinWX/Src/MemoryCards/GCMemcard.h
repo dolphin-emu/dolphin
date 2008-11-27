@@ -46,7 +46,8 @@ enum
 	NOFILE,
 	TITLEPRESENT,
 	SUCCESS = 0x2000,
-	FAIL
+	FAIL,
+	MAXBLOCK = 0x2049
 };
 
 class GCMemcard 
@@ -66,9 +67,10 @@ private:
 	};
 
 	struct Header {			//Offset	Size	Description
-		u8 Unk[12];			//0x0000	12		?
+		u8 Unk1[12];		//0x0000	12		?
 		OSTime fmtTime;		//0x000c	8		time of format (OSTime value)
-		u8 UID[12];			//0x0014	12	 	unique card id (?)
+		u8 SramBias[4];		//0x0014	4		sram bias at time of format	
+		u8 Unk2[8];			//0x0018	8	 	? almost always 0 or 1
 		u8 Pad1[2];			//0x0020	2		padding zeroes
 		u8 Size[2];			//0x0022	2		size of memcard in Mbits
 		u8 Encoding[2];		//0x0024	2		encoding (ASCII or japanese)
@@ -168,20 +170,20 @@ public:
 	// buffer needs to be a char[32] or bigger
 	bool GetFileName(u32 index, char* buffer);
 
-	bool GetNumBlocks(u32 index, u16* buffer);
+	// get file length in blocks
+	u16  GetFileSize(u32 index);
 
+	// get first block for file
+	u16 GetFirstBlock(u32 index);
+
+	// get the free blocks from bat
 	u16 GetFreeBlocks(void);
-
-	bool GetFirstBlock(u32 index, u16* buffer);
 
 	// buffer needs to be a char[32] or bigger
 	bool GetComment1(u32 index, char* buffer);
 
 	// buffer needs to be a char[32] or bigger
 	bool GetComment2(u32 index, char* buffer);
-
-	// get file length un bytes
-	u32  GetFileSize(u32 index);
 
 	// assumes there's enough space in buffer
 	// old determines if function uses old or new method of copying data
