@@ -131,7 +131,7 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 		// =============
 
 		// =======================================================================================
-		// Handle no-src streams - No src streams have pb.src_type == 2 and have pb.src.ratio_hi = 0
+		// Handle No-SRC streams - No src streams have pb.src_type == 2 and have pb.src.ratio_hi = 0
 		// and pb.src.ratio_lo = 0. We handle that by setting the sampling ratio integer to 1. This
 		// makes samplePos update in the correct way. I'm unsure how we are actually supposed to
 		// detect that this setting. Updates did not fix this automatically.
@@ -143,12 +143,12 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 			// Baten Kaitos - Eternal Wings (2003)
 			// Baten Kaitos - Origins (2006)?
 			// Soul Calibur 2: The movie music use src_type 2 but it needs no adjustment, perhaps
-			// the sound format plays in to, Baten use ADPCM SC2 use PCM16
+			// the sound format plays in to, Baten use ADPCM, SC2 use PCM16
 		// ------------
 		//if (pb.src_type == 2 && (pb.src.ratio_hi == 0 && pb.src.ratio_lo == 0))
 		if (pb.running && (pb.src.ratio_hi == 0 && pb.src.ratio_lo == 0))
 		{
-			//pb.src.ratio_hi = 1;
+			pb.src.ratio_hi = 1;
 		}
 		// =============
 

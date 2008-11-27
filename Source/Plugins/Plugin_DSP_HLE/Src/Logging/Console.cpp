@@ -94,7 +94,8 @@ void startConsoleWin(int width, int height, char* fname)
 // File printf function
 int aprintf(int a, char *fmt, ...)
 {
-#if defined(DEBUG_HLE) && defined(_WIN32) && (defined(_DEBUG) || defined(DEBUGFAST))
+#if defined(DEBUG_HLE) && defined(_WIN32)
+
 	if(m_frame->gSaveFile)
 	{
 		char s[5000]; // WARNING: mind this value
@@ -128,7 +129,7 @@ int aprintf(int a, char *fmt, ...)
 // Printf to screen function
 int wprintf(const char *fmt, ...)
 {
-#if defined(DEBUG_HLE) && defined(_WIN32) && (defined(_DEBUG) || defined(DEBUGFAST))
+#if defined(DEBUG_HLE) && defined(_WIN32)
 	char s[1024*20]; // Warning, mind this value
 	va_list argptr;
 	int cnt;
