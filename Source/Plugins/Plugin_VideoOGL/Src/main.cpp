@@ -231,7 +231,7 @@ void Video_DoState(unsigned char **ptr, int mode) {
 #ifdef _WIN32
     if (!wglMakeCurrent(hDC,hRC)) {
         PanicAlert("Can't Activate The GL Rendering Context for saving");
-        return false;
+        return;
     }
 #elif defined(OSX64)
     cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
