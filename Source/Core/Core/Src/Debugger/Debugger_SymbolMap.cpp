@@ -129,7 +129,7 @@ void PrintCallstack(LogTypes::LOG_TYPE _Log)
 		const char *str = g_symbolDB.GetDescription(func);
 		if (!str || strlen(str) == 0 || !strcmp(str, "Invalid"))
 			str = "(unknown)";
-		__Log(_Log, " * %s [ addr = %08x ]\n", str, func);
+		__Logv(_Log, 3, " * %s [ addr = %08x ]\n", str, func);
 		addr = Memory::ReadUnchecked_U32(addr);
 	}
 }

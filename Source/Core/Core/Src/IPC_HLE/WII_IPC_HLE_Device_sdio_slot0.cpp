@@ -50,12 +50,12 @@ CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
 
 
 // __________________________________________________________________________________________________
-//
+// The front SD slot
 bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress) 
 {
-    LOG(WII_IPC_HLE, "*************************************");
-    LOG(WII_IPC_HLE, "CWII_IPC_HLE_Device_sdio_slot0::IOCtl");
-    LOG(WII_IPC_HLE, "*************************************");
+    LOG(WII_IPC_FILEIO, "*************************************");
+    LOG(WII_IPC_FILEIO, "CWII_IPC_HLE_Device_sdio_slot0::IOCtl");
+    LOG(WII_IPC_FILEIO, "*************************************");
 
     // DumpCommands(_CommandAddress);
 
@@ -67,7 +67,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
     u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
     u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
 
-    LOG(WII_IPC_HLE, "%s - BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)", GetDeviceName().c_str(), BufferIn, BufferInSize, BufferOut, BufferOutSize);
+    LOG(WII_IPC_FILEIO, "%s - BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)", GetDeviceName().c_str(), BufferIn, BufferInSize, BufferOut, BufferOutSize);
 	
 	u32 ReturnValue = 0;
 	switch (Cmd) {
@@ -86,8 +86,13 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 	case 7: //sendcmd
 		ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);	
 		break;
+
+	case 11: // sd_get_status 
+		LOGV(WII_IPC_FILEIO, 0, "SD command: sd_get_status. Answer: SD card is inserted (write 1 to %08x).", BufferOut);
+		Memory::Write_U32(1, BufferOut); // SD card is inserted?
+		break;
 	default:
-		PanicAlert("Unknown SD command");
+		PanicAlert("Unknown SD command (0x%08x)", Cmd);
 		break;
 	}
 

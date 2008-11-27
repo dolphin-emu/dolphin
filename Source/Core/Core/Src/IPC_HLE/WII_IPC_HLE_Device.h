@@ -49,37 +49,56 @@ public:
 
 protected:
 
+	// ===================================================
+	/* A struct for IOS ioctlv calls */
+	// ----------------
     struct SIOCtlVBuffer
     {
         SIOCtlVBuffer(u32 _Address)
             : m_Address(_Address)
         {
-            Parameter = Memory::Read_U32(m_Address + 0x0C);
-            NumberInBuffer = Memory::Read_U32(m_Address + 0x10);
-            NumberPayloadBuffer = Memory::Read_U32(m_Address + 0x14);
-            BufferVector = Memory::Read_U32(m_Address + 0x18);
-            BufferSize = Memory::Read_U32(m_Address + 0x1C);
+			/* These are the Ioctlv parameters in the IOS communication. The BufferVector
+			   is a memory address offset at where the in and out buffer addresses are
+			   stored. */
+            Parameter = Memory::Read_U32(m_Address + 0x0C); // command 3
+            NumberInBuffer = Memory::Read_U32(m_Address + 0x10); // 4
+            NumberPayloadBuffer = Memory::Read_U32(m_Address + 0x14); // 5
+            BufferVector = Memory::Read_U32(m_Address + 0x18); // 6
+            BufferSize = Memory::Read_U32(m_Address + 0x1C); // 7
 
+			// The start of the out buffer
             u32 BufferVectorOffset = BufferVector;
-            for (u32 i=0; i<NumberInBuffer; i++)
+
+			//if(Parameter = 0x1d) PanicAlert("%i: %i", Parameter, NumberInBuffer);
+
+			// Write the address and size for all in messages
+            for (u32 i = 0; i < NumberInBuffer; i++)
             {
                 SBuffer Buffer;
                 Buffer.m_Address = Memory::Read_U32(BufferVectorOffset);
-								//restore cached address, mauled by emulatee's ioctl functions.
-								Memory::Write_U32(Buffer.m_Address | 0x80000000, BufferVectorOffset);
-								BufferVectorOffset += 4;
-                Buffer.m_Size = Memory::Read_U32(BufferVectorOffset); BufferVectorOffset += 4;
-								LOG(WII_IPC_HLE, "SIOCtlVBuffer in%i: 0x%08x, 0x%x", i, Buffer.m_Address, Buffer.m_Size);
+						// Restore cached address, mauled by emulatee's ioctl functions.
+						Memory::Write_U32(Buffer.m_Address | 0x80000000, BufferVectorOffset);
+						BufferVectorOffset += 4;
+
+                Buffer.m_Size = Memory::Read_U32(BufferVectorOffset);
+				BufferVectorOffset += 4;
+						LOGV(WII_IPC_HLE, 3, "SIOCtlVBuffer in%i: 0x%08x, 0x%x",
+							i, Buffer.m_Address, Buffer.m_Size);
                 InBuffer.push_back(Buffer);
             }
-            for (u32 i=0; i<NumberPayloadBuffer; i++)
+
+			// Write the address and size for all out or in-out messages
+            for (u32 i = 0; i < NumberPayloadBuffer; i++)
             {
                 SBuffer Buffer;
                 Buffer.m_Address = Memory::Read_U32(BufferVectorOffset);
-								Memory::Write_U32(Buffer.m_Address | 0x80000000, BufferVectorOffset);
-								BufferVectorOffset += 4;
-                Buffer.m_Size = Memory::Read_U32(BufferVectorOffset); BufferVectorOffset += 4;
-								LOG(WII_IPC_HLE, "SIOCtlVBuffer io%i: 0x%08x, 0x%x", i, Buffer.m_Address, Buffer.m_Size);
+						Memory::Write_U32(Buffer.m_Address | 0x80000000, BufferVectorOffset);
+						BufferVectorOffset += 4;
+
+                Buffer.m_Size = Memory::Read_U32(BufferVectorOffset);
+				BufferVectorOffset += 4;
+						LOGV(WII_IPC_HLE, 3, "SIOCtlVBuffer io%i: 0x%08x, 0x%x",
+							i, Buffer.m_Address, Buffer.m_Size);
                 PayloadBuffer.push_back(Buffer);
             }
         }
@@ -93,21 +112,34 @@ protected:
         u32 BufferVector;
         u32 BufferSize;
 
-
         struct SBuffer { u32 m_Address, m_Size; };
         std::vector<SBuffer> InBuffer;
         std::vector<SBuffer> PayloadBuffer;
     };
 
+	// ===================================================
+	/* Write out the IPC struct from _CommandAddress to _NumberOfCommands numbers
+	   of 4 byte commands. */
+	// ----------------
     void DumpCommands(u32 _CommandAddress, size_t _NumberOfCommands = 8)
     {
-        LOG(WII_IPC_HLE, "  CommandDump of %s", GetDeviceName().c_str());
-        for (u32 i=0; i<_NumberOfCommands; i++)
-        {            
-            LOG(WII_IPC_HLE, "    Command%02i: 0x%08x", i, Memory::Read_U32(_CommandAddress + i*4));	
-        }
-    }
+// Because I have to use __Logv here I add this #if
+#if defined(_DEBUG) || defined(DEBUGFAST)
+		// Select log type
+		int log;
+		if(GetDeviceName().find("dev/es") != std::string::npos)
+			log = LogTypes::WII_IPC_ES;
+		else
+			log = LogTypes::WII_IPC_HLE;
 
+		__Logv(log, 0, "CommandDump of %s", GetDeviceName().c_str());
+		for (u32 i=0; i<_NumberOfCommands; i++)
+		{            
+			__Logv(log, 0, "    Command%02i: 0x%08x", i, Memory::Read_U32(_CommandAddress + i*4));	
+		}
+#endif
+    }
+	
     void DumpAsync( u32 BufferVector, u32 _CommandAddress, u32 NumberInBuffer, u32 NumberOutBuffer )
     {
 		LOG(WII_IPC_HLE, "======= DumpAsync ======");

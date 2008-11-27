@@ -42,6 +42,7 @@ public:
         IOCTL_ES_GETTITLES				= 0x0F,
         IOCTL_ES_GETVIEWCNT				= 0x12,
         IOCTL_ES_GETVIEWS				= 0x13,
+		IOCTL_ES_GETTMDVIEWCNT			= 0x14,
         IOCTL_ES_DIVERIFY				= 0x1C,
         IOCTL_ES_GETTITLEDIR			= 0x1D,
         IOCTL_ES_GETTITLEID				= 0x20,
@@ -78,8 +79,8 @@ public:
             SIOCtlVBuffer Buffer(_CommandAddress);
             switch(Buffer.Parameter)
             {
-            case IOCTL_ES_GETTITLEDIR:
-                {                    
+            case IOCTL_ES_GETTITLEDIR: // ES_GetDataDir in DevKitPro
+                {
                     u32 TitleID = VolumeHandler::Read32(0);
                     if (TitleID == 0)
                         TitleID = 0xF00DBEEF;
@@ -89,8 +90,7 @@ public:
                     char* Path = (char*)Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
                     sprintf(Path, "/00010000/%02x%02x%02x%02x/data", (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
 
-                    LOG(WII_IPC_HLE, "CWII_IPC_HLE_Device_es command:"
-                        "      IOCTL_ES_GETTITLEDIR: %s", Path); 
+                    LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEDIR: %s ", Path);
                 }
                 break;
 
@@ -104,11 +104,35 @@ public:
 
                     Memory::Write_U32(TitleID, OutBuffer);
 
-                    LOG(WII_IPC_HLE, "CWII_IPC_HLE_Device_es command:"
-                                     "      IOCTL_ES_GETTITLEID: 0x%x", TitleID);
+                    LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEID: 0x%x", TitleID);
                 }
                 break;
-            
+
+			// This and 0x14 are called by Mario Kart
+            case IOCTL_ES_GETVIEWCNT: // (0x12) ES_GetNumTicketViews in DevKitPro
+                {
+					if(Buffer.NumberPayloadBuffer)
+						u32 OutBuffer = Memory::Read_U32(Buffer.PayloadBuffer[0].m_Address);
+					if(Buffer.NumberInBuffer)
+						u32 InBuffer = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+
+					// Should we write something here?
+					//Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);					
+                }
+                break;
+
+			case IOCTL_ES_GETTMDVIEWCNT: // (0x14) ES_GetTMDViewSize in DevKitPro
+                {
+					if(Buffer.NumberPayloadBuffer)
+						u32 OutBuffer = Memory::Read_U32(Buffer.PayloadBuffer[0].m_Address);
+					if(Buffer.NumberInBuffer)
+						u32 InBuffer = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+
+					// Should we write something here?
+					//Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);
+                }
+                break;
+
             case 0x16: // Consumption
             case 0x1B: // ES_DiGetTicketView
 
@@ -121,7 +145,7 @@ public:
 
 					Memory::Write_U32(0, OutBuffer);
 
-					LOG(WII_IPC_HLE, "CWII_IPC_HLE_Device_es command:"
+					LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es command:"
 						"      IOCTL_ES_GETTITLECOUNT: 0x%x", OutBuffer);
 				}
 				break;
@@ -136,6 +160,30 @@ public:
 
                 break;
             }
+
+			/* Extended logs 
+			//if(Buffer.Parameter == IOCTL_ES_GETTITLEDIR || Buffer.Parameter == IOCTL_ES_GETTITLEID ||
+			//	Buffer.Parameter == IOCTL_ES_GETVIEWCNT || Buffer.Parameter == IOCTL_ES_GETTMDVIEWCNT)
+			{	
+				u32 OutBuffer = Memory::Read_U32(Buffer.PayloadBuffer[0].m_Address);
+				if(Buffer.NumberInBuffer > 0)
+				{					
+					u32 InBuffer = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+					LOG(WII_IPC_ES, "ES Parameter: 0x%x (In: %i, Out:%i) (In 0x%08x = 0x%08x %i) (Out 0x%08x = 0x%08x  %i)",
+						Buffer.Parameter,
+						Buffer.NumberInBuffer, Buffer.NumberPayloadBuffer,
+						Buffer.InBuffer[0].m_Address, InBuffer, Buffer.InBuffer[0].m_Size,
+						Buffer.PayloadBuffer[0].m_Address, OutBuffer, Buffer.PayloadBuffer[0].m_Size);
+				}
+				else
+				{
+				LOG(WII_IPC_ES, "ES Parameter: 0x%x (In: %i, Out:%i) (Out 0x%08x = 0x%08x  %i)",
+					Buffer.Parameter,
+					Buffer.NumberInBuffer, Buffer.NumberPayloadBuffer,
+					Buffer.PayloadBuffer[0].m_Address, OutBuffer, Buffer.PayloadBuffer[0].m_Size);				
+				}
+				//DumpCommands(_CommandAddress, 8);
+			} */
 
             // write return value
             Memory::Write_U32(0, _CommandAddress + 0x4);
