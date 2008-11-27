@@ -229,10 +229,11 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 
 void Video_DoState(unsigned char **ptr, int mode) {
 #ifdef _WIN32
-    if (!wglMakeCurrent(hDC,hRC)) {
-        PanicAlert("Can't Activate The GL Rendering Context for saving");
-        return;
-    }
+//  What is this code doing here?
+//  if (!wglMakeCurrent(hDC,hRC)) {
+//      PanicAlert("Can't Activate The GL Rendering Context for saving");
+//      return;
+//  }
 #elif defined(OSX64)
     cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
 #else // Linux
