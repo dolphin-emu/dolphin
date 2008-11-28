@@ -145,6 +145,8 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_NUNCHUCKCONNECTED:
 		g_Config.bNunchuckConnected = m_NunchuckConnected->IsChecked();
 		// generate connect/disconnect status event
+		memcpy(WiiMoteEmu::g_RegExt + 0x20, WiiMoteEmu::nunchuck_calibration,
+			sizeof(WiiMoteEmu::nunchuck_calibration));
 		memcpy(WiiMoteEmu::g_RegExt + 0xfa, WiiMoteEmu::nunchuck_id, sizeof(WiiMoteEmu::nunchuck_id));
 		DoExtensionConnectedDisconnected();
 		break;
@@ -152,6 +154,8 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_CLASSICCONTROLLERCONNECTED:
 		g_Config.bClassicControllerConnected = m_ClassicControllerConnected->IsChecked();
 		// generate connect/disconnect status event
+		memcpy(WiiMoteEmu::g_RegExt + 0x20, WiiMoteEmu::classic_calibration,
+			sizeof(WiiMoteEmu::classic_calibration));
 		memcpy(WiiMoteEmu::g_RegExt + 0xfa, WiiMoteEmu::classic_id, sizeof(WiiMoteEmu::classic_id));
 		DoExtensionConnectedDisconnected();
 		break;

@@ -485,7 +485,7 @@ void FillReportExtension(wm_extension& _ext)
 	_ext.jx = 0x80; // these are the default values unless we use them
 	_ext.jy = 0x80;
 	_ext.bt = 0x03; // 0x03 means no button pressed, the button is zero active
-
+	
 
 #ifdef _WIN32
 	if(GetAsyncKeyState(VK_NUMPAD4))
@@ -519,24 +519,161 @@ void FillReportExtension(wm_extension& _ext)
 
 	/* Write the nunchuck inputs to it. We begin writing at 0x08, but it could also be
 	   0x00, the important thing is that we begin at an address evenly divisible
-	   by 0x08 */
+	   by 0x08 
 	g_RegExtTmp[0x08] = _ext.jx;
 	g_RegExtTmp[0x09] = _ext.jy;
 	g_RegExtTmp[0x0a] = _ext.ax;
 	g_RegExtTmp[0x0b] = _ext.ay;
 	g_RegExtTmp[0x0c] = _ext.az;
-	g_RegExtTmp[0x0d] = _ext.bt;
+	g_RegExtTmp[0x0d] = _ext.bt; */
+	memcpy(g_RegExtTmp + 0x08, &_ext, sizeof(_ext));
 
 	// Encrypt it
-	wiimote_encrypt(&g_ExtKey, &g_RegExtTmp[0x08], 0x08, 0x06);
+	wiimote_encrypt(&g_ExtKey, &g_RegExtTmp[0x08], 0x08, sizeof(_ext));
 
 	// Write it back
+	/*
 	_ext.jx = g_RegExtTmp[0x08];
 	_ext.jy = g_RegExtTmp[0x09];
 	_ext.ax = g_RegExtTmp[0x0a];
 	_ext.ay = g_RegExtTmp[0x0b];
 	_ext.az = g_RegExtTmp[0x0c];
-	_ext.bt = g_RegExtTmp[0x0d];
+	_ext.bt = g_RegExtTmp[0x0d];*/
+	memcpy(&_ext, &g_RegExtTmp[0x08], sizeof(_ext));
+}
+
+
+// ===================================================
+/* Generate the 6 byte extension report for the Classic Controller, encrypted.
+   The bytes are ... */
+// ----------------
+void FillReportClassicExtension(wm_classic_extension& _ext)
+{
+
+	/* These are the default neutral values for the nunchuck accelerometer according
+	   to a source. 
+	_ext.ax = 0x80;
+	_ext.ay = 0x80;
+	_ext.az = 0xb3; */
+
+	_ext.b1.padding = 0x01; // these are the default values unless we use them
+	_ext.b1.bRT = 0x01;
+	_ext.b1.bP = 0x01;
+	_ext.b1.bH = 0x01;
+	_ext.b1.bM = 0x01;
+	_ext.b1.bLT = 0x01;
+	_ext.b1.bdD = 0x01;
+	_ext.b1.bdR = 0x01;
+
+	_ext.b2.bdU = 0x01;
+	_ext.b2.bdL = 0x01;
+	_ext.b2.bZR = 0x01;
+	_ext.b2.bX = 0x01;
+	_ext.b2.bA = 0x01;
+	_ext.b2.bY = 0x01;
+	_ext.b2.bB = 0x01;
+	_ext.b2.bZL = 0x01;
+
+	//_ext.bt = 0x03; // 0x03 means no button pressed, the button is zero active
+
+	/*
+	_ir0.y2 = y2 & 0xff;
+	_ir0.x2Hi = (x2 >> 8);
+	_ir0.y2Hi = (y2 >> 8);
+
+	// I don't understand't the & 0x03, should we do that?
+	//_ir1.x1Hi = (x1 >> 8) & 0x3;*/
+
+
+
+	// --------------------------------------
+	/* D-Pad
+	
+	u8 b1;
+		0:
+		6: bdD
+		7: bdR
+
+	u8 b2;
+		0: bdU
+		1: bdL	
+	*/
+#ifdef _WIN32
+	if(GetAsyncKeyState(VK_NUMPAD4)) // left
+		_ext.b2.bdL = 0x00;
+
+	if(GetAsyncKeyState(VK_NUMPAD8)) // up
+		_ext.b2.bdU = 0x00;
+
+	if(GetAsyncKeyState(VK_NUMPAD6)) // right
+		_ext.b1.bdR = 0x00;
+
+	if(GetAsyncKeyState(VK_NUMPAD5)) // down
+		_ext.b1.bdD = 0x00;
+	// --------------
+
+
+	// --------------------------------------
+	/* Buttons
+		u8 b1;
+			0:
+			6: -
+			7: -
+
+		u8 b2;
+			0: -
+			1: -
+			2: bZr
+			3: bX
+			4: bA
+			5: bY
+			6: bB
+			7: bZl
+	*/
+	if(GetAsyncKeyState('Z'))
+		_ext.b2.bA = 0x00;
+
+	if(GetAsyncKeyState('C'))
+		_ext.b2.bB = 0x00;
+
+	if(GetAsyncKeyState('Y'))
+		_ext.b2.bY = 0x00;
+
+	if(GetAsyncKeyState('X'))
+		_ext.b2.bX = 0x00;
+
+	if(GetAsyncKeyState('7')) // digital left trigger
+		_ext.b1.bLT = 0x00;
+
+	if(GetAsyncKeyState('8'))
+		_ext.b2.bZL = 0x00;
+
+	if(GetAsyncKeyState('9'))
+		_ext.b2.bZR = 0x00;
+
+	if(GetAsyncKeyState('0')) // digital right trigger
+		_ext.b1.bRT = 0x00;
+	
+	// All buttons pressed
+	if(GetAsyncKeyState('C') && GetAsyncKeyState('Z'))
+		{ _ext.b2.bA = 0x01; _ext.b2.bB = 0x01; }
+	// --------------
+#else 
+        // TODO linux port
+#endif
+
+
+	// Clear g_RegExtTmp by copying zeroes to it
+	memset(g_RegExtTmp, 0, sizeof(g_RegExtTmp));
+
+	/* Write the nunchuck inputs to it. We begin writing at 0x08, see comment above. */
+	memcpy(g_RegExtTmp + 0x08, &_ext, sizeof(_ext));
+
+	// Encrypt it
+	wiimote_encrypt(&g_ExtKey, &g_RegExtTmp[0x08], 0x08, 0x06);
+
+	// Write it back
+	memcpy(&_ext, &g_RegExtTmp[0x08], sizeof(_ext));
 }
 
 

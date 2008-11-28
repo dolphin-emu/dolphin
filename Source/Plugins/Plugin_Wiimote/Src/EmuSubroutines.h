@@ -83,6 +83,17 @@ static const u8 nunchuck_calibration[] =
 	0xe0,0x20,0x80,0xe0, 0x20,0x80,0xee,0x43
 };
 
+/* Classic Controller calibration */
+static const u8 classic_calibration[] =
+{
+	0xe4,0x1c,0x80,0xe4, 0x1c,0x80,0xd8,0x28,
+	0x80,0xd8,0x28,0x80, 0x20,0x20,0x95,0xea,
+	0xe4,0x1c,0x80,0xe4, 0x1c,0x80,0xd8,0x28,
+	0x80,0xd8,0x28,0x80, 0x20,0x20,0x95,0xea
+};
+
+
+
 
 /* The Nunchuck id. It should be written to the last bytes of the
    extension register */
@@ -95,7 +106,7 @@ static const u8 nunchuck_id[] =
    extension register */
 static const u8 classic_id[] =
 {
-	0x00, 0x00, 0x00, 0x00, 0x01, 0x01
+	0x00, 0x00, 0xa4, 0x20, 0x01, 0x01
 };
 
 /* The id for nothing inserted */
@@ -136,7 +147,7 @@ void FillReportInfo(wm_core& _core);
 void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1);
 void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1);
 void FillReportExtension(wm_extension& _ext);
-
+void FillReportClassicExtension(wm_classic_extension& _ext);
 
 u32 convert24bit(const u8* src);
 u16 convert16bit(const u8* src);

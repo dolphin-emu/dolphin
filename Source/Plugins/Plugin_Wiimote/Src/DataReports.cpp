@@ -199,10 +199,23 @@ void SendReportCoreAccelExt16(u16 _channelID)
 	Offset += sizeof(wm_report_core_accel_ext16);
 	memset(pReport, 0, sizeof(wm_report_core_accel_ext16));
 
+	// Make a classic extension struct
+	wm_classic_extension _ext;
+	memset(&_ext, 0, sizeof(wm_classic_extension));
+
 	FillReportInfo(pReport->c);
 	FillReportAcc(pReport->a);
-	//FillReportIRBasic(pReport->ir[0], pReport->ir[1]); // no IR here
-	FillReportExtension(pReport->ext);
+
+	if(g_Config.bNunchuckConnected)
+	{
+		FillReportExtension(pReport->ext);
+	}
+	else if(g_Config.bClassicControllerConnected)
+	{
+		FillReportClassicExtension(_ext);
+		// Copy _ext to pReport->ext
+		memcpy(&pReport->ext, &_ext, sizeof(_ext));
+	}
 
 	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccelExt16 (0x35)");
 	LOGV(WII_IPC_WIIMOTE, 2, "      Channel: %04x", _channelID);
@@ -210,11 +223,11 @@ void SendReportCoreAccelExt16(u16 _channelID)
 
 	// Debugging
 #ifdef _WIN32
-	/*if(GetAsyncKeyState('V'))
+	/**/if(GetAsyncKeyState('V'))
 	{
 		std::string Temp = WiiMoteEmu::ArrayToString(DataFrame, Offset, 0, 30);
 		wprintf("DataFrame: %s\n", Temp.c_str());
-	}*/
+	}
 #endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 }
@@ -232,20 +245,34 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 	Offset += sizeof(wm_report_core_accel_ir10_ext6);
 	memset(pReport, 0, sizeof(wm_report_core_accel_ir10_ext6));
 
+	// Make a classic extension struct
+	wm_classic_extension _ext;
+	memset(&_ext, 0, sizeof(wm_classic_extension));
+
 	FillReportInfo(pReport->c);
 	FillReportAcc(pReport->a);
 	FillReportIRBasic(pReport->ir[0], pReport->ir[1]);
-	FillReportExtension(pReport->ext);
+
+	if(g_Config.bNunchuckConnected)
+	{
+		FillReportExtension(pReport->ext);
+	}
+	else if(g_Config.bClassicControllerConnected)
+	{
+		FillReportClassicExtension(_ext);
+		// Copy _ext to pReport->ext
+		memcpy(&pReport->ext, &_ext, sizeof(_ext));
+	}
 
 	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccelIr10Ext()");
 	
 	// Debugging
 #ifdef _WIN32
-	/*if(GetAsyncKeyState('V'))
+	/**/if(GetAsyncKeyState('V'))
 	{
 		std::string Temp = WiiMoteEmu::ArrayToString(DataFrame, Offset, 0, 30);
 		wprintf("DataFrame: %s\n", Temp.c_str());
-	}*/
+	}
 #endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 }

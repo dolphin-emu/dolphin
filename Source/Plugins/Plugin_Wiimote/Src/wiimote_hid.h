@@ -186,6 +186,45 @@ struct wm_extension
 	u8 bt; // buttons
 };
 
+struct wm_cc_4
+{
+	u8 padding : 1;
+	u8 bRT : 1;
+	u8 bP : 1;
+	u8 bH : 1;
+	u8 bM : 1;
+	u8 bLT : 1;
+	u8 bdD : 1;
+	u8 bdR : 1;
+};
+
+struct wm_cc_5
+{
+	u8 bdU : 1;
+	u8 bdL : 1;
+	u8 bZR : 1;
+	u8 bX : 1;
+	u8 bA : 1;
+	u8 bY : 1;
+	u8 bB : 1;
+	u8 bZL : 1;
+};
+
+struct wm_classic_extension
+{
+	u8 Lx : 6; // byte 0
+	u8 Rx : 2;
+	u8 Ly : 6; // byte 1
+	u8 Rx2 : 2;
+	u8 Ry : 5; // byte 2
+	u8 lT : 2;
+	u8 Rx3 : 1;
+	u8 rT : 5; // byte 3
+	u8 lT2 : 3;
+	wm_cc_4 b1; // byte 4
+	wm_cc_5 b2; // byte 5
+};
+
 #define WM_REPORT_CORE 0x30
 struct wm_report_core {
 	wm_core c;
@@ -229,7 +268,6 @@ struct wm_report_core_accel_ir10_ext6
 	//u8 ext[6];
 	wm_extension ext;
 };
-
 
 #define WM_REPORT_EXT21 0x3d // never used?
 struct wm_report_ext21
