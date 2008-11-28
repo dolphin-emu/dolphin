@@ -121,15 +121,24 @@ void ConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
 
 }
 
+
+// ===================================================
+/* Generate connect/disconnect status event */
+// ----------------
 void ConfigDialog::DoExtensionConnectedDisconnected()
 {
-	// generate connect/disconnect status event
 	u8 DataFrame[8]; // make a blank report for it
 	wm_request_status *rs = (wm_request_status*)DataFrame;
+
+	// Check if a game is running, in that case change the status
 	if(WiiMoteEmu::g_ReportingChannel > 0)
 		WiiMoteEmu::WmRequestStatus(WiiMoteEmu::g_ReportingChannel, rs);
 }
 
+
+// ===================================================
+/* Change general Emulated Wii Remote settings */
+// ----------------
 void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -143,8 +152,18 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 
 	case ID_NUNCHUCKCONNECTED:
+		// Don't allow two extensions at the same time
+		if(m_ClassicControllerConnected->IsChecked())
+		{
+			m_ClassicControllerConnected->SetValue(false);
+			g_Config.bClassicControllerConnected = false;
+			// Disconnect the extension so that the game recognize the change
+			DoExtensionConnectedDisconnected();
+		}
+
 		g_Config.bNunchuckConnected = m_NunchuckConnected->IsChecked();
-		// generate connect/disconnect status event
+
+		// Generate connect/disconnect status event
 		memcpy(WiiMoteEmu::g_RegExt + 0x20, WiiMoteEmu::nunchuck_calibration,
 			sizeof(WiiMoteEmu::nunchuck_calibration));
 		memcpy(WiiMoteEmu::g_RegExt + 0xfa, WiiMoteEmu::nunchuck_id, sizeof(WiiMoteEmu::nunchuck_id));
@@ -152,8 +171,18 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 
 	case ID_CLASSICCONTROLLERCONNECTED:
+		// Don't allow two extensions at the same time
+		if(m_NunchuckConnected->IsChecked())
+		{
+			m_NunchuckConnected->SetValue(false);
+			g_Config.bNunchuckConnected = false;
+			// Disconnect the extension so that the game recognize the change
+			DoExtensionConnectedDisconnected();
+		}
+
 		g_Config.bClassicControllerConnected = m_ClassicControllerConnected->IsChecked();
-		// generate connect/disconnect status event
+
+		// Generate connect/disconnect status event
 		memcpy(WiiMoteEmu::g_RegExt + 0x20, WiiMoteEmu::classic_calibration,
 			sizeof(WiiMoteEmu::classic_calibration));
 		memcpy(WiiMoteEmu::g_RegExt + 0xfa, WiiMoteEmu::classic_id, sizeof(WiiMoteEmu::classic_id));
