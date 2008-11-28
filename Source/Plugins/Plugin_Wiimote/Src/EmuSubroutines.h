@@ -84,11 +84,18 @@ static const u8 nunchuck_calibration[] =
 };
 
 
-/* The nunchuck id. It should be written to the last bytes of the
+/* The Nunchuck id. It should be written to the last bytes of the
    extension register */
 static const u8 nunchuck_id[] =
 {
 	0x00, 0x00, 0xa4, 0x20, 0x00, 0x00
+};
+
+/* The Classic Controller id. It should be written to the last bytes of the
+   extension register */
+static const u8 classic_id[] =
+{
+	0x00, 0x00, 0x00, 0x00, 0x01, 0x01
 };
 
 /* The id for nothing inserted */

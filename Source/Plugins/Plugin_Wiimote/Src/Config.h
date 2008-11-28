@@ -33,7 +33,7 @@ struct Config
     // General
 	bool bSidewaysDPad;
 	bool bWideScreen;
-	bool bExtensionConnected;
+	bool bNunchuckConnected, bClassicControllerConnected;
 };
 
 extern Config g_Config;

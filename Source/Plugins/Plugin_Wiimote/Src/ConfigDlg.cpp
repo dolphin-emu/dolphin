@@ -18,7 +18,7 @@
 //#include "Common.h" // for u16
 #include "ConfigDlg.h"
 #include "Config.h"
-#include "EmuSubroutines.h" // for WmRequestStatus_
+#include "EmuSubroutines.h" // for WmRequestStatus
 
 
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
@@ -27,7 +27,8 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_BUTTON(ID_ABOUTOGL, ConfigDialog::AboutClick)
 	EVT_CHECKBOX(ID_SIDEWAYSDPAD, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_WIDESCREEN, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_EXTENSIONCONNECTED, ConfigDialog::GeneralSettingsChanged)	
+	EVT_CHECKBOX(ID_NUNCHUCKCONNECTED, ConfigDialog::GeneralSettingsChanged)	
+	EVT_CHECKBOX(ID_CLASSICCONTROLLERCONNECTED, ConfigDialog::GeneralSettingsChanged)
 END_EVENT_TABLE()
 
 ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
@@ -73,8 +74,10 @@ void ConfigDialog::CreateGUIControls()
 	m_SidewaysDPad->SetValue(g_Config.bSidewaysDPad);
 	m_WideScreen = new wxCheckBox(m_PageEmu, ID_WIDESCREEN, wxT("WideScreen Mode (for correct aiming)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_WideScreen->SetValue(g_Config.bWideScreen);
-	m_ExtensionConnected = new wxCheckBox(m_PageEmu, ID_EXTENSIONCONNECTED, wxT("Extension connected"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_ExtensionConnected->SetValue(g_Config.bExtensionConnected);
+	m_NunchuckConnected = new wxCheckBox(m_PageEmu, ID_NUNCHUCKCONNECTED, wxT("Nunchuck connected"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_NunchuckConnected->SetValue(g_Config.bNunchuckConnected);
+	m_ClassicControllerConnected = new wxCheckBox(m_PageEmu, ID_CLASSICCONTROLLERCONNECTED, wxT("Classic Controller connected"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ClassicControllerConnected->SetValue(g_Config.bClassicControllerConnected);
 
 
 	// ----------------------------------------------------------------------
@@ -85,7 +88,8 @@ void ConfigDialog::CreateGUIControls()
 	sBasic = new wxGridBagSizer(0, 0);
 	sBasic->Add(m_SidewaysDPad, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasic->Add(m_WideScreen, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasic->Add(m_ExtensionConnected, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasic->Add(m_NunchuckConnected, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasic->Add(m_ClassicControllerConnected, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
 	sbBasic->Add(sBasic);
 	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
 
@@ -117,6 +121,15 @@ void ConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
 
 }
 
+void ConfigDialog::DoExtensionConnectedDisconnected()
+{
+	// generate connect/disconnect status event
+	u8 DataFrame[8]; // make a blank report for it
+	wm_request_status *rs = (wm_request_status*)DataFrame;
+	if(WiiMoteEmu::g_ReportingChannel > 0)
+		WiiMoteEmu::WmRequestStatus(WiiMoteEmu::g_ReportingChannel, rs);
+}
+
 void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -124,17 +137,23 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_SIDEWAYSDPAD:
 		g_Config.bSidewaysDPad = m_SidewaysDPad->IsChecked();
 		break;
+
 	case ID_WIDESCREEN:
 		g_Config.bWideScreen = m_WideScreen->IsChecked();
 		break;
-	case ID_EXTENSIONCONNECTED:
-		g_Config.bExtensionConnected = m_ExtensionConnected->IsChecked();
 
-		 // generate connect/disconnect status event
-		u8 DataFrame[8]; // make a blank report for it
-		wm_request_status *rs = (wm_request_status*)DataFrame;
-		if(WiiMoteEmu::g_ReportingChannel > 0)
-			WiiMoteEmu::WmRequestStatus(WiiMoteEmu::g_ReportingChannel, rs);
-		break;		
+	case ID_NUNCHUCKCONNECTED:
+		g_Config.bNunchuckConnected = m_NunchuckConnected->IsChecked();
+		// generate connect/disconnect status event
+		memcpy(WiiMoteEmu::g_RegExt + 0xfa, WiiMoteEmu::nunchuck_id, sizeof(WiiMoteEmu::nunchuck_id));
+		DoExtensionConnectedDisconnected();
+		break;
+
+	case ID_CLASSICCONTROLLERCONNECTED:
+		g_Config.bClassicControllerConnected = m_ClassicControllerConnected->IsChecked();
+		// generate connect/disconnect status event
+		memcpy(WiiMoteEmu::g_RegExt + 0xfa, WiiMoteEmu::classic_id, sizeof(WiiMoteEmu::classic_id));
+		DoExtensionConnectedDisconnected();
+		break;
 	}
 }

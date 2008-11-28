@@ -490,7 +490,7 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs)
 	pStatus->battery = 0x5f; // fully charged
 
 	// Read config value for this one
-	if(g_Config.bExtensionConnected)
+	if(g_Config.bNunchuckConnected || g_Config.bClassicControllerConnected)
 		pStatus->extension = 1;
 	else
 		pStatus->extension = 0;

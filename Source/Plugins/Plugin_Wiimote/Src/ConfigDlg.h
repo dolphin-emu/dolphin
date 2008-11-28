@@ -59,7 +59,7 @@ class ConfigDialog : public wxDialog
 
 		wxCheckBox *m_SidewaysDPad; // general settings
 		wxCheckBox *m_WideScreen;
-		wxCheckBox *m_ExtensionConnected;
+		wxCheckBox *m_NunchuckConnected, *m_ClassicControllerConnected;
 
 		enum
 		{
@@ -72,13 +72,14 @@ class ConfigDialog : public wxDialog
 
 			ID_SIDEWAYSDPAD,
 			ID_WIDESCREEN,
-			ID_EXTENSIONCONNECTED
+			ID_NUNCHUCKCONNECTED, ID_CLASSICCONTROLLERCONNECTED
 		};
 
 		void OnClose(wxCloseEvent& event);
 		void CreateGUIControls();
 
 		void AboutClick(wxCommandEvent& event);
+		void DoExtensionConnectedDisconnected();
 		void GeneralSettingsChanged(wxCommandEvent& event);
 };
 

@@ -35,10 +35,10 @@ void Config::Load()
 
 	// get resolution
 
-    iniFile.Get("Settings", "SidewaysDPad", &bSidewaysDPad, 0); // Hardware
-	iniFile.Get("Settings", "WideScreen", &bWideScreen, 0);
-	iniFile.Get("Settings", "ExtensionConnected", &bExtensionConnected, 0);
-	
+    iniFile.Get("Settings", "SidewaysDPad", &bSidewaysDPad, false); // Hardware
+	iniFile.Get("Settings", "WideScreen", &bWideScreen, false);
+	iniFile.Get("Settings", "NunchuckConnected", &bNunchuckConnected, false);
+	iniFile.Get("Settings", "ClassicControllerConnected", &bClassicControllerConnected, false);
 }
 
 void Config::Save()
@@ -47,7 +47,8 @@ void Config::Save()
     iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
     iniFile.Set("Settings", "SidewaysDPad", bSidewaysDPad);
     iniFile.Set("Settings", "WideScreen", bWideScreen);
-	iniFile.Set("Settings", "ExtensionConnected", bExtensionConnected);
+	iniFile.Set("Settings", "NunchuckConnected", bNunchuckConnected);
+	iniFile.Set("Settings", "ClassicControllerConnected", bClassicControllerConnected);
 
 
     iniFile.Save(FULL_CONFIG_DIR "Wiimote.ini");
