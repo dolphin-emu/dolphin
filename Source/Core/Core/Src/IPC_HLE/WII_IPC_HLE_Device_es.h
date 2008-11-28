@@ -74,9 +74,34 @@ public:
 
         virtual bool IOCtlV(u32 _CommandAddress) 
         {
-            LOG(WII_IPC_HLE, "%s", GetDeviceName().c_str());            
-
             SIOCtlVBuffer Buffer(_CommandAddress);
+
+			LOG(WII_IPC_ES, "%s (0x%x)", GetDeviceName().c_str(), Buffer.Parameter);
+
+			/* Extended logs 
+			//if(Buffer.Parameter == IOCTL_ES_GETTITLEDIR || Buffer.Parameter == IOCTL_ES_GETTITLEID ||
+			//	Buffer.Parameter == IOCTL_ES_GETVIEWCNT || Buffer.Parameter == IOCTL_ES_GETTMDVIEWCNT)
+			{	
+				u32 OutBuffer = Memory::Read_U32(Buffer.PayloadBuffer[0].m_Address | 0x80000000);
+				if(Buffer.NumberInBuffer > 0)
+				{					
+					u32 InBuffer = Memory::Read_U32(Buffer.InBuffer[0].m_Address | 0x80000000);
+					LOG(WII_IPC_ES, "ES Parameter: 0x%x (In: %i, Out:%i) (In 0x%08x = 0x%08x %i) (Out 0x%08x = 0x%08x  %i)",
+						Buffer.Parameter,
+						Buffer.NumberInBuffer, Buffer.NumberPayloadBuffer,
+						Buffer.InBuffer[0].m_Address, InBuffer, Buffer.InBuffer[0].m_Size,
+						Buffer.PayloadBuffer[0].m_Address, OutBuffer, Buffer.PayloadBuffer[0].m_Size);
+				}
+				else
+				{
+				LOG(WII_IPC_ES, "ES Parameter: 0x%x (In: %i, Out:%i) (Out 0x%08x = 0x%08x  %i)",
+					Buffer.Parameter,
+					Buffer.NumberInBuffer, Buffer.NumberPayloadBuffer,
+					Buffer.PayloadBuffer[0].m_Address, OutBuffer, Buffer.PayloadBuffer[0].m_Size);				
+				}
+				//DumpCommands(_CommandAddress, 8);
+			}*/
+
             switch(Buffer.Parameter)
             {
             case IOCTL_ES_GETTITLEDIR: // ES_GetDataDir in DevKitPro
@@ -94,7 +119,7 @@ public:
                 }
                 break;
 
-            case IOCTL_ES_GETTITLEID:
+            case IOCTL_ES_GETTITLEID: // ES_GetTitleID in DevKitPro
                 {
                     u32 OutBuffer = Memory::Read_U32(Buffer.PayloadBuffer[0].m_Address);
 
@@ -102,6 +127,7 @@ public:
                     if (TitleID == 0)
                         TitleID = 0xF00DBEEF;
 
+					// Write the Title ID to 0x00000000
                     Memory::Write_U32(TitleID, OutBuffer);
 
                     LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEID: 0x%x", TitleID);
@@ -117,7 +143,7 @@ public:
 						u32 InBuffer = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
 
 					// Should we write something here?
-					//Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);					
+					Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);	
                 }
                 break;
 
@@ -129,7 +155,7 @@ public:
 						u32 InBuffer = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
 
 					// Should we write something here?
-					//Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);
+					Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);
                 }
                 break;
 
@@ -161,32 +187,8 @@ public:
                 break;
             }
 
-			/* Extended logs 
-			//if(Buffer.Parameter == IOCTL_ES_GETTITLEDIR || Buffer.Parameter == IOCTL_ES_GETTITLEID ||
-			//	Buffer.Parameter == IOCTL_ES_GETVIEWCNT || Buffer.Parameter == IOCTL_ES_GETTMDVIEWCNT)
-			{	
-				u32 OutBuffer = Memory::Read_U32(Buffer.PayloadBuffer[0].m_Address);
-				if(Buffer.NumberInBuffer > 0)
-				{					
-					u32 InBuffer = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
-					LOG(WII_IPC_ES, "ES Parameter: 0x%x (In: %i, Out:%i) (In 0x%08x = 0x%08x %i) (Out 0x%08x = 0x%08x  %i)",
-						Buffer.Parameter,
-						Buffer.NumberInBuffer, Buffer.NumberPayloadBuffer,
-						Buffer.InBuffer[0].m_Address, InBuffer, Buffer.InBuffer[0].m_Size,
-						Buffer.PayloadBuffer[0].m_Address, OutBuffer, Buffer.PayloadBuffer[0].m_Size);
-				}
-				else
-				{
-				LOG(WII_IPC_ES, "ES Parameter: 0x%x (In: %i, Out:%i) (Out 0x%08x = 0x%08x  %i)",
-					Buffer.Parameter,
-					Buffer.NumberInBuffer, Buffer.NumberPayloadBuffer,
-					Buffer.PayloadBuffer[0].m_Address, OutBuffer, Buffer.PayloadBuffer[0].m_Size);				
-				}
-				//DumpCommands(_CommandAddress, 8);
-			} */
-
-            // write return value
-            Memory::Write_U32(0, _CommandAddress + 0x4);
+            // Write return value (0 means OK)
+            Memory::Write_U32(0, _CommandAddress + 0x4);		
 
             return true;
       }

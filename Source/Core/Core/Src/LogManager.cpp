@@ -301,6 +301,10 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 				&& m_LogSettings->bWriteMaster)
 			fprintf(m_Log[ver*100 + LogTypes::MASTER_LOG]->m_pFile, "%s", Msg2);
 
+		// Write now. Is this slower than caching it?
+		//fflush(m_Log[id]->m_pFile);
+		//fflush(m_Log[ver*100 + LogTypes::MASTER_LOG]->m_pFile);
+
 		printf("%s", Msg2); // write to console screen
 
 		// this limits the memory space used for the memory logs to MAX_MESSAGES rows
@@ -328,6 +332,10 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 			if (m_Log[i*100 + LogTypes::MASTER_LOG] && m_Log[i*100 +  LogTypes::MASTER_LOG]->m_pFile
 					&& m_LogSettings->bWriteMaster)
 				fprintf(m_Log[i*100 +  LogTypes::MASTER_LOG]->m_pFile, "%s", Msg2);
+
+			// Write now. Is this slower than caching it?
+			//fflush(m_Log[id]->m_pFile);
+			//fflush(m_Log[i*100 +  LogTypes::MASTER_LOG]->m_pFile);
 
 			printf("%s", Msg2); // write to console screen
 

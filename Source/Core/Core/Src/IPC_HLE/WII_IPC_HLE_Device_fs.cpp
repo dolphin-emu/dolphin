@@ -100,11 +100,14 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 			LOG(WII_IPC_FILEIO, "FS: IOCTL_READ_DIR %s", Filename.c_str());
 
-			// check if this is really a directory
-			if (!File::IsDirectory(Filename.c_str()))
+			/* Check if this is really a directory. Or a file, because it seems like Mario Kart
+			   did a IOCTL_READ_DIR on the save file to check if it existed before deleting it,
+			   and if I returned a -something it never deleted the file presumably because it
+			   thought it didn't exist. So this solution worked for Mario Kart. */
+			if (!File::Exists(Filename.c_str()) && !File::IsDirectory(Filename.c_str()))
 			{
-				LOG(WII_IPC_FILEIO, "    Not a directory - return -6 (dunno if this is a correct return value)", Filename.c_str());
-				ReturnValue = -6;				
+				LOG(WII_IPC_FILEIO, "    No file and not a directory - return -6 (dunno if this is a correct return value)", Filename.c_str());
+				ReturnValue = -6;
 				break;
 			}
 
@@ -127,8 +130,6 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			}
 			else
 			{
-				
-
 				memset(Memory::GetPointer(CommandBuffer.PayloadBuffer[0].m_Address), 0, CommandBuffer.PayloadBuffer[0].m_Size);
 
 				size_t numFile = FileSearch.GetFileNames().size();
@@ -167,7 +168,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			u32 fsBlock = 0;
 			u32 iNodes = 0;
 
-			LOG(WII_IPC_FILEIO, "FS: IOCTL_GETUSAGE %s", Filename.c_str());
+			LOGV(WII_IPC_FILEIO, 1, "FS: IOCTL_GETUSAGE %s", Filename.c_str());
 			if (File::IsDirectory(Filename.c_str()))
 			{
 				// make a file search
@@ -190,14 +191,14 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 				ReturnValue = 0;
 
-				LOG(WII_IPC_FILEIO, "    fsBlock: %i, iNodes: %i", fsBlock, iNodes);
+				LOGV(WII_IPC_FILEIO, 1, "    fsBlock: %i, iNodes: %i", fsBlock, iNodes);
 			}
 			else
 			{
 				fsBlock = 0;
 				iNodes = 0;
 				ReturnValue = 0;
-				LOG(WII_IPC_FILEIO, "    error: not executed on a valid directoy: %s", Filename.c_str());
+				LOGV(WII_IPC_FILEIO, 1, "    error: not executed on a valid directoy: %s", Filename.c_str());
 			}
 			
 			Memory::Write_U32(fsBlock, CommandBuffer.PayloadBuffer[0].m_Address);

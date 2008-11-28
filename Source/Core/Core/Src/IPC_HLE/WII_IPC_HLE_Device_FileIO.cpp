@@ -61,14 +61,16 @@ CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress)
 {
 	LOG(WII_IPC_FILEIO, "FileIO: Close %s", GetDeviceName().c_str());	
 
-	Memory::Write_U32(0, _CommandAddress+4);
+	// Close always return 0 for success
+	Memory::Write_U32(0, _CommandAddress + 4);
+	
 	return true;
 }
 
 bool 
 CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)  
 { 
-	LOG(WII_IPC_FILEIO, "FileIO::Open=======================================================");
+	LOG(WII_IPC_FILEIO, "===================================================================");
 
 	u32 ReturnValue = 0;
 
@@ -88,8 +90,9 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 	{
 		switch(_Mode)
 		{
+		// Do "r+b" for all writing to avoid truncating the file
 		case 0x01:	m_pFileHandle = fopen(m_Filename.c_str(), "rb"); break;
-		case 0x02:	m_pFileHandle = fopen(m_Filename.c_str(), "wb"); break;
+		case 0x02:	//m_pFileHandle = fopen(m_Filename.c_str(), "wb"); break;
 		case 0x03:	m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
 		default: PanicAlert("CWII_IPC_HLE_Device_FileIO: unknown open mode"); break;
 		}
@@ -118,16 +121,17 @@ bool
 CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress) 
 {
 	u32 ReturnValue = 0;
-	u32 SeekPosition = Memory::Read_U32(_CommandAddress +0xC);
+	u32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
 	u32 Mode = Memory::Read_U32(_CommandAddress +0x10);  
 
-	LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: %i, Mode: %i(Device=%s)", SeekPosition, Mode, GetDeviceName().c_str());	
+	LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: %i, Mode: %i (Device=%s)", SeekPosition, Mode, GetDeviceName().c_str());	
 
 	switch(Mode)
 	{
 	case 0:
 		fseek(m_pFileHandle, SeekPosition, SEEK_SET);
-		ReturnValue = 0;
+		// Seek always return the seek position for success
+		ReturnValue = SeekPosition;		
 		break;
 
 	case 1: // cur
@@ -147,7 +151,7 @@ CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 {    
     u32 ReturnValue = 0;
     u32 Address = Memory::Read_U32(_CommandAddress +0xC);
-    u32 Size = Memory::Read_U32(_CommandAddress +0x10);       
+    u32 Size = Memory::Read_U32(_CommandAddress +0x10);
 
     if (m_pFileHandle != NULL)
     {
@@ -177,6 +181,8 @@ CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 	if (m_pFileHandle)
 	{
 		fwrite(Memory::GetPointer(Address), Size, 1, m_pFileHandle);
+
+		// Write always return the written bytes for success
 		ReturnValue = Size;
 	}
 

@@ -58,26 +58,31 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 
 s32 CWII_IPC_HLE_Device_net_kd_request::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize)
 {
-	// Requests are made in this order by these games
-	// Mario Kart: 2, 1, f, 3
-	// SSBB: 2, 3
+	// -----------------------
+	/* Requests are made in this order by these games
+	   Mario Kart: 2, 1, f, 3
+	   SSBB: 2, 3
+
+	   For Mario Kart I had to return -1 from at least 2, f and 3 to convince it that the network
+	   was unavaliable and prevent if from looking for shared2/wc24 files (and do a PPCHalt when
+	   it failed) */
+	// -------
 
 	/* Extended logs 
 	//if(_Parameter == 2 || _Parameter == 3)
-	if(true)
 	{
 		u32 OutBuffer = Memory::Read_U32(_BufferOut);
 		if(_BufferInSize > 0)
 		{					
 			u32 InBuffer = Memory::Read_U32(_BufferIn);
-			LOG(WII_IPC_ES, "NET_KD_REQ: IOCtl Parameter: 0x%x (In 0x%08x = 0x%08x %i) (Out 0x%08x = 0x%08x  %i)",
+			LOG(WII_IPC_NET, "NET_KD_REQ: IOCtl Parameter: 0x%x (In 0x%08x = 0x%08x %i) (Out 0x%08x = 0x%08x  %i)",
 				_Parameter,
 				_BufferIn, InBuffer, _BufferInSize,
 				_BufferOut, OutBuffer, _BufferOutSize);
 		}
 		else
 		{
-		LOG(WII_IPC_ES, "NET_KD_REQ: IOCtl Parameter: 0x%x (Out 0x%08x = 0x%08x  %i)",
+		LOG(WII_IPC_NET, "NET_KD_REQ: IOCtl Parameter: 0x%x (Out 0x%08x = 0x%08x  %i)",
 			_Parameter,
 			_BufferOut, OutBuffer, _BufferOutSize);
 		}
@@ -86,17 +91,21 @@ s32 CWII_IPC_HLE_Device_net_kd_request::ExecuteCommand(u32 _Parameter, u32 _Buff
 	switch(_Parameter)
 	{
 	case 1: // SuspendScheduler (Input: none, Output: 32 bytes) 
-		Memory::Write_U32(0, _BufferOut);
+		//Memory::Write_U32(0, _BufferOut);
+		return -1;
 		break;
 	case 2: /* ExecTrySuspendScheduler (Input: 32 bytes, Output: 32 bytes). Sounds like it will check
 	           if it should suspend the updates scheduler or not. */
-		Memory::Write_U32(1, _BufferOut);
+		//Memory::Write_U32(0, _BufferOut);
+		return -1;
 		break;
 	case 3: // ?
-		Memory::Write_U32(0, _BufferOut);
+		//Memory::Write_U32(0, _BufferOut);
+		return -1;
 		break;
 	case 0xf: // NWC24iRequestGenerateUserId (Input: none, Output: 32 bytes)
-		Memory::Write_U32(0, _BufferOut);
+		//Memory::Write_U32(0, _BufferOut);
+		return -1;
 		break;
 	default:
 		_dbg_assert_msg_(WII_IPC_NET, 0, "/dev/net/kd/request::IOCtl request 0x%x (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
@@ -104,7 +113,7 @@ s32 CWII_IPC_HLE_Device_net_kd_request::ExecuteCommand(u32 _Parameter, u32 _Buff
 		break;
 	}
 
-	// Should we always return 0?
+	// We return a success for any potential unknown requests
 	return 0;
 }
 
@@ -135,8 +144,8 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 	switch(CommandBuffer.Parameter)
 	{
 	default:
-		LOG(WII_IPC_NET, "CWII_IPC_HLE_Device_fs::IOCtlV: %i", CommandBuffer.Parameter);
-		_dbg_assert_msg_(WII_IPC_NET, 0, "CWII_IPC_HLE_Device_fs::IOCtlV: %i", CommandBuffer.Parameter);
+		LOG(WII_IPC_NET, "NET_NCD_MANAGE IOCtlV: %i", CommandBuffer.Parameter);
+		_dbg_assert_msg_(WII_IPC_NET, 0, "NET_NCD_MANAGE IOCtlV: %i", CommandBuffer.Parameter);
 		break;
 	}
 

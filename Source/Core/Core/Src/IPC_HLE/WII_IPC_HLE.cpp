@@ -163,6 +163,7 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
     }
     else
     {
+		LOGV(WII_IPC_FILEIO, 0, "FS: New pDevice %s", _rDeviceName.c_str());
         pDevice = new CWII_IPC_HLE_Device_FileIO(_DeviceID, _rDeviceName);
     }
 
@@ -228,7 +229,15 @@ void ExecuteCommand(u32 _Address)
 
             u32 Mode = Memory::Read_U32(_Address+0x10);
             u32 DeviceID = GetDeviceIDByName(DeviceName);
-            if (DeviceID == 0)
+
+			/* TEMPORARY SOLUTION: For some reason no file was written after a ReOpen in
+			   Mario Galaxy and Mario Kart Wii so I had to do a Open instead */
+            if (DeviceID == 0
+				|| DeviceName.find(".bin") != std::string::npos // Do Open instead for common
+				|| DeviceName.find(".dat") != std::string::npos // save game file types
+				|| DeviceName.find(".vff") != std::string::npos
+				|| DeviceName.find(".mod") != std::string::npos
+				)				
             {
                 // create the new device
 				// alternatively we could pre create all devices and put them in a directory tree structure
