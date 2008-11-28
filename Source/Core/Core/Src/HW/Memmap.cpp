@@ -939,7 +939,7 @@ bool IsRAMAddress(const u32 addr, bool allow_locked_cache)
 	case 0x10:
 	case 0x90:
 	case 0xD0:
-		if (Core::g_CoreStartupParameter.bWii && (addr & 0x1FFFFFFF) < EXRAM_SIZE)
+		if (Core::g_CoreStartupParameter.bWii && (addr & 0x0FFFFFFF) < EXRAM_SIZE)
 			return true;
 		else
 			return false;
