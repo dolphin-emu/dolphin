@@ -585,13 +585,13 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 	if(GetAsyncKeyState('K')) // down
 		Ly = 0x1c;
 
-	if(GetAsyncKeyState('F')) // right analog left
+	if(GetAsyncKeyState('D')) // right analog left
 		Rx = 0x28;
-	if(GetAsyncKeyState('T')) // up
+	if(GetAsyncKeyState('R')) // up
 		Ry = 0xd8;
-	if(GetAsyncKeyState('H')) // right
+	if(GetAsyncKeyState('G')) // right
 		Rx = 0xd8;
-	if(GetAsyncKeyState('G')) // down
+	if(GetAsyncKeyState('F')) // down
 		Ry = 0x28;
 
 	_ext.Lx = (Lx >> 2);
