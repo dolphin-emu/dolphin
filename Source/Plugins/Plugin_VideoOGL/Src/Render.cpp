@@ -51,7 +51,7 @@
 #include "OS/Win32.h"
 #else
 #endif
-
+//#define USE_AA
 struct MESSAGE
 {
     MESSAGE() {}
@@ -71,6 +71,7 @@ static RasterFont* s_pfont = NULL;
 static std::list<MESSAGE> s_listMsgs;
 static bool s_bFullscreen = false;
 static bool s_bOutputCgErrors = true;
+
 static int nZBufferRender = 0; // if > 0, then using zbuffer render
 static u32 s_uFramebuffer = 0;
 static u32 s_RenderTargets[1] = {0}, s_DepthTarget = 0, s_ZBufferTarget = 0;
@@ -185,6 +186,10 @@ bool Renderer::Create2()
         }
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        #ifdef USE_AA
+        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_RenderTargets[i]);
+        glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, 4, GL_RGBA, nBackbufferWidth, nBackbufferHeight);
+        #endif
     }
     s_nCurTarget = 0;
 
@@ -208,12 +213,21 @@ bool Renderer::Create2()
         }
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        #ifdef USE_AA
+        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_ZBufferTarget);
+        glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, 4, GL_RGBA, nBackbufferWidth, nBackbufferHeight);
+        #endif
     }
 
     // create the depth buffer
     glGenRenderbuffersEXT( 1, (GLuint *)&s_DepthTarget);
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_DepthTarget);
+    #ifdef USE_AA
+    glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, 4, GL_DEPTH24_STENCIL8_EXT, nBackbufferWidth, nBackbufferHeight);
+    #else
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8_EXT, nBackbufferWidth, nBackbufferHeight);
+    #endif
+    
     if (glGetError() != GL_NO_ERROR) {
         glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, nBackbufferWidth, nBackbufferHeight);
         s_bHaveStencilBuffer = false;
@@ -226,6 +240,13 @@ bool Renderer::Create2()
     // set as render targets
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, s_RenderTargets[s_nCurTarget], 0 );
     glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthTarget );
+    
+    #ifdef USE_AA
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_RenderTargets[s_nCurTarget]);
+    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, s_RenderTargets[s_nCurTarget]);
+    
+    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthTarget);
+    #endif
     GL_REPORT_ERROR();
 
     if (s_ZBufferTarget != 0) {
@@ -703,7 +724,11 @@ void Renderer::Swap(const TRectangle& rc)
     Renderer::SetRenderMode(Renderer::RM_Normal);
 
     // render to the real buffer now 
+    #ifdef USE_AA
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_RenderTargets[0]);
+    #else
     glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 ); // switch to the backbuffer
+    #endif
     glViewport(nXoff, nYoff, nBackbufferWidth, nBackbufferHeight);
 
     ResetGLState();
@@ -733,6 +758,13 @@ void Renderer::Swap(const TRectangle& rc)
     SwapBuffers();
 
     RestoreGLState();
+    #ifdef USE_AA
+	glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_RenderTargets[s_nCurTarget]);
+	glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
+	glBlitFramebufferEXT(0, 0, nBackbufferWidth, nBackbufferHeight, 0, 0, nBackbufferWidth, nBackbufferHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+	
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+	#endif
     GL_REPORT_ERRORD();
 
     g_Config.iSaveTargetId = 0;
