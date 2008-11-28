@@ -223,11 +223,11 @@ void SendReportCoreAccelExt16(u16 _channelID)
 
 	// Debugging
 #ifdef _WIN32
-	/**/if(GetAsyncKeyState('V'))
+	/*if(GetAsyncKeyState('V'))
 	{
 		std::string Temp = WiiMoteEmu::ArrayToString(DataFrame, Offset, 0, 30);
 		wprintf("DataFrame: %s\n", Temp.c_str());
-	}
+	}*/
 #endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 }
@@ -268,11 +268,11 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 	
 	// Debugging
 #ifdef _WIN32
-	/**/if(GetAsyncKeyState('V'))
+	/*if(GetAsyncKeyState('V'))
 	{
 		std::string Temp = WiiMoteEmu::ArrayToString(DataFrame, Offset, 0, 30);
 		wprintf("DataFrame: %s\n", Temp.c_str());
-	}
+	}*/
 #endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 }

@@ -133,14 +133,15 @@ void Initialize()
 	//WriteCrypted16(g_RegExt, 0xfe, 0x0000); // Fully inserted Nunchuk
 
 
-	// Copy extension id and calibration to its register
-	memcpy(g_RegExt + 0x20, nunchuck_calibration, sizeof(nunchuck_calibration));
+	// Copy extension id and calibration to its register	
 	if(g_Config.bNunchuckConnected)
 	{
+		memcpy(g_RegExt + 0x20, nunchuck_calibration, sizeof(nunchuck_calibration));
 		memcpy(g_RegExt + 0xfa, nunchuck_id, sizeof(nunchuck_id));
 	}
 	else if(g_Config.bClassicControllerConnected)
 	{
+		memcpy(g_RegExt + 0x20, classic_calibration, sizeof(classic_calibration));
 		memcpy(g_RegExt + 0xfa, classic_id, sizeof(classic_id));
 	}
 

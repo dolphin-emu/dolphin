@@ -130,9 +130,9 @@ extern "C" void Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize)
 	   for it in that case */
 	g_UseRealWiiMote = WiiMoteReal::Initialize() > 0;
 
-	WiiMoteEmu::Initialize();
-
 	g_Config.Load(); // load config settings
+
+	WiiMoteEmu::Initialize();	
 
 	// Debugging window
 	/*startConsoleWin(100, 750, "Wiimote"); // give room for 20 rows

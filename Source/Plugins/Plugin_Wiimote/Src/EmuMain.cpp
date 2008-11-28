@@ -239,10 +239,10 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 			wprintf("\n\nWmReadData  Address: %08x Offset: %08x Size: %i byte\n",
 				address, address & 0xffff, (u8)size);
 			
-			// Debugging
-			// u32 offset = address & 0xffff;
-			//std::string Temp = WiiMoteEmu::ArrayToString(g_RegExt, size, offset);
-			//wprintf("Unencrypted data:\n%s\n", Temp.c_str());
+			/* Debugging 
+			u32 offset = address & 0xffff;
+			std::string Temp = WiiMoteEmu::ArrayToString(g_RegExt, size, offset);
+			wprintf("Unencrypted data:\n%s\n", Temp.c_str());*/
 
 			// Check if encrypted reads is on
 			if(g_RegExt[0xf0] == 0xaa)
@@ -369,7 +369,7 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 		// -------------
 		if(blockSize == WIIMOTE_REG_EXT_SIZE)
 		{
-			/* Debugging. Write the data. 			
+			/* Debugging. Write the data. 	
 			wprintf("Data: %s\n", Temp.c_str());
 			wprintf("Current address: %08x\n", address); */
 

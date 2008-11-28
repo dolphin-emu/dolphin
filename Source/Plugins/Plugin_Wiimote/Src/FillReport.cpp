@@ -488,18 +488,19 @@ void FillReportExtension(wm_extension& _ext)
 	
 
 #ifdef _WIN32
-	if(GetAsyncKeyState(VK_NUMPAD4))
+	/* We use a 192 range (32 to 224) that match our calibration values in
+	   nunchuck_calibration */
+	if(GetAsyncKeyState(VK_NUMPAD4)) // left
 		_ext.jx = 0x20;
 
 	if(GetAsyncKeyState(VK_NUMPAD8))
 		_ext.jy = 0xe0;
 
-	if(GetAsyncKeyState(VK_NUMPAD6))
+	if(GetAsyncKeyState(VK_NUMPAD6)) // right
 		_ext.jx = 0xe0;
 
 	if(GetAsyncKeyState(VK_NUMPAD5))
 		_ext.jy = 0x20;
-
 
 
 	if(GetAsyncKeyState('C'))
@@ -519,26 +520,13 @@ void FillReportExtension(wm_extension& _ext)
 
 	/* Write the nunchuck inputs to it. We begin writing at 0x08, but it could also be
 	   0x00, the important thing is that we begin at an address evenly divisible
-	   by 0x08 
-	g_RegExtTmp[0x08] = _ext.jx;
-	g_RegExtTmp[0x09] = _ext.jy;
-	g_RegExtTmp[0x0a] = _ext.ax;
-	g_RegExtTmp[0x0b] = _ext.ay;
-	g_RegExtTmp[0x0c] = _ext.az;
-	g_RegExtTmp[0x0d] = _ext.bt; */
+	   by 0x08 */
 	memcpy(g_RegExtTmp + 0x08, &_ext, sizeof(_ext));
 
 	// Encrypt it
 	wiimote_encrypt(&g_ExtKey, &g_RegExtTmp[0x08], 0x08, sizeof(_ext));
 
 	// Write it back
-	/*
-	_ext.jx = g_RegExtTmp[0x08];
-	_ext.jy = g_RegExtTmp[0x09];
-	_ext.ax = g_RegExtTmp[0x0a];
-	_ext.ay = g_RegExtTmp[0x0b];
-	_ext.az = g_RegExtTmp[0x0c];
-	_ext.bt = g_RegExtTmp[0x0d];*/
 	memcpy(&_ext, &g_RegExtTmp[0x08], sizeof(_ext));
 }
 
@@ -550,13 +538,10 @@ void FillReportExtension(wm_extension& _ext)
 void FillReportClassicExtension(wm_classic_extension& _ext)
 {
 
-	/* These are the default neutral values for the nunchuck accelerometer according
-	   to a source. 
-	_ext.ax = 0x80;
-	_ext.ay = 0x80;
-	_ext.az = 0xb3; */
+	/* These are the default neutral values for the analog triggers and sticks */
+	u8 Rx = 0x80, Ry = 0x80, Lx = 0x80, Ly = 0x80, lT = 0x80, rT = 0x80;
 
-	_ext.b1.padding = 0x01; // these are the default values unless we use them
+	_ext.b1.padding = 0x01; // 0x01 means not pressed
 	_ext.b1.bRT = 0x01;
 	_ext.b1.bP = 0x01;
 	_ext.b1.bH = 0x01;
@@ -574,15 +559,53 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 	_ext.b2.bB = 0x01;
 	_ext.b2.bZL = 0x01;
 
-	//_ext.bt = 0x03; // 0x03 means no button pressed, the button is zero active
+	// --------------------------------------
+	/* Left and right analog sticks
 
-	/*
-	_ir0.y2 = y2 & 0xff;
-	_ir0.x2Hi = (x2 >> 8);
-	_ir0.y2Hi = (y2 >> 8);
+		u8 Lx : 6; // byte 0
+		u8 Rx : 2;
+		u8 Ly : 6; // byte 1
+		u8 Rx2 : 2;
+		u8 Ry : 5; // byte 2
+		u8 lT : 2;
+		u8 Rx3 : 1;
+		u8 rT : 5; // byte 3
+		u8 lT2 : 3;
+	*/
+#ifdef _WIN32
+	/* We use a 200 range (28 to 228) for the left analog stick and a 176 range
+	   (40 to 216) for the right analog stick to match our calibration values
+	   in classic_calibration */
+	if(GetAsyncKeyState('J')) // left analog left
+		Lx = 0x1c;
+	if(GetAsyncKeyState('I')) // up
+		Ly = 0xe4;
+	if(GetAsyncKeyState('L')) // right
+		Lx = 0xe4;
+	if(GetAsyncKeyState('K')) // down
+		Ly = 0x1c;
 
-	// I don't understand't the & 0x03, should we do that?
-	//_ir1.x1Hi = (x1 >> 8) & 0x3;*/
+	if(GetAsyncKeyState('F')) // right analog left
+		Rx = 0x28;
+	if(GetAsyncKeyState('T')) // up
+		Ry = 0xd8;
+	if(GetAsyncKeyState('H')) // right
+		Rx = 0xd8;
+	if(GetAsyncKeyState('G')) // down
+		Ry = 0x28;
+
+	_ext.Lx = (Lx >> 2);
+	_ext.Ly = (Ly >> 2);
+	_ext.Rx = (Rx >> 3); // this may be wrong
+	_ext.Rx2 = (Rx >> 5);
+	_ext.Rx3 = (Rx >> 7);
+	_ext.Ry = (Ry >> 2);
+
+	_ext.lT = (Ry >> 2);
+	_ext.lT2 = (Ry >> 3);
+	_ext.rT = (Ry >> 4);
+	// --------------
+
 
 
 
@@ -598,7 +621,6 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 		0: bdU
 		1: bdL	
 	*/
-#ifdef _WIN32
 	if(GetAsyncKeyState(VK_NUMPAD4)) // left
 		_ext.b2.bdL = 0x00;
 
@@ -642,6 +664,15 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 	if(GetAsyncKeyState('X'))
 		_ext.b2.bX = 0x00;
 
+	if(GetAsyncKeyState('O')) // O instead of P
+		_ext.b1.bP = 0x00;
+
+	if(GetAsyncKeyState('N')) // N instead of M
+		_ext.b1.bM = 0x00;
+
+	if(GetAsyncKeyState('U')) // Home button
+		_ext.b1.bH = 0x00;
+
 	if(GetAsyncKeyState('7')) // digital left trigger
 		_ext.b1.bLT = 0x00;
 
@@ -655,8 +686,8 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 		_ext.b1.bRT = 0x00;
 	
 	// All buttons pressed
-	if(GetAsyncKeyState('C') && GetAsyncKeyState('Z'))
-		{ _ext.b2.bA = 0x01; _ext.b2.bB = 0x01; }
+	//if(GetAsyncKeyState('C') && GetAsyncKeyState('Z'))
+	//	{ _ext.b2.bA = 0x01; _ext.b2.bB = 0x01; }
 	// --------------
 #else 
         // TODO linux port
