@@ -22,6 +22,7 @@
 #include "Common.h"
 #include "Debugger/DebugInterface.h"
 
+#include <vector>
 #include <wx/wx.h>
 
 DECLARE_EVENT_TYPE(wxEVT_CODEVIEW_CHANGE, -1);
@@ -41,6 +42,13 @@ class CCodeView
 		void OnPopupMenu(wxCommandEvent& event);
 
 		u32 GetSelection() {return(selection);}
+
+		struct BlrStruct // for IDM_INSERTBLR
+		{
+			u32 Address;
+			u32 OldValue;
+		};
+		std::vector<BlrStruct> BlrList;
 
 		void Center(u32 addr)
 		{

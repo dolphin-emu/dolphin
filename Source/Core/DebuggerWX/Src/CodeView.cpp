@@ -18,6 +18,7 @@
 #include "Debugger.h"
 #include "Debugger/PPCDebugInterface.h"
 #include "PowerPC/SymbolDB.h"
+#include "HW/Memmap.h" // for Write_U32
 #include "Common.h"
 #include "StringUtil.h"
 
@@ -238,9 +239,33 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 		    redraw();
 		    break;
 
+		// Insert blr or restore old value
 		case IDM_INSERTBLR:
-			debugger->insertBLR(selection);
-		    redraw();
+			{
+				// Check if this address has been modified
+				int find = -1;				
+				for(int i = 0; i < BlrList.size(); i++)
+				{
+					if(BlrList.at(i).Address == selection)
+					{ find = i; break;  }					
+				}
+
+				// Save the old value				
+				if(find >= 0)
+				{
+					Memory::Write_U32(BlrList.at(find).OldValue, selection);
+					BlrList.erase(BlrList.begin() + find);
+				}
+				else
+				{
+					BlrStruct Temp;
+					Temp.Address = selection;
+					Temp.OldValue = debugger->readMemory(selection);
+					BlrList.push_back(Temp);
+					debugger->insertBLR(selection);					
+				}
+				redraw();
+			}
 			break;
 
 	    case IDM_JITRESULTS:
