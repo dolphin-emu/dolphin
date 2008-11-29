@@ -41,6 +41,7 @@ void Launch(const char *filename);
 void Explore(const char *path);
 bool IsDirectory(const char *filename);
 bool CreateDir(const char *filename);
+bool CreateDirectoryStructure(const std::string& _rFullPath);
 bool Delete(const char *filename);
 bool DeleteDir(const char *filename);
 bool Rename(const char *srcFilename, const char *destFilename);

@@ -54,9 +54,6 @@ private:
 	};
 
 	s32 ExecuteCommand(u32 Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);
-
-	void CreateDirectoryStruct(const std::string& _rFullPath);
-
 };
 
 #endif

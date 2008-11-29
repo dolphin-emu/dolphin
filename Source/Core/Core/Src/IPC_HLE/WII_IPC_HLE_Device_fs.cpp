@@ -62,7 +62,7 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 		char Path[260+1];
 		sprintf(Path, FULL_WII_USER_DIR "title/00010000/%02x%02x%02x%02x/data/nocopy/", (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
 	
-		CreateDirectoryStruct(Path);
+		File::CreateDirectoryStructure(Path);
 	}
 
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
@@ -241,7 +241,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			LOG(WII_IPC_FILEIO, "FS: CREATE_DIR %s", DirName.c_str());
 
 			DirName += "\\";
-			CreateDirectoryStruct(DirName);
+			File::CreateDirectoryStructure(DirName);
 			_dbg_assert_msg_(WII_IPC_FILEIO, File::IsDirectory(DirName.c_str()), "FS: CREATE_DIR %s failed", DirName.c_str());
 
 			return FS_RESULT_OK;
@@ -330,7 +330,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			Offset += 64;
 
 			// try to make the basis directory
-			CreateDirectoryStruct(Filename);
+			File::CreateDirectoryStructure(Filename);
 
 			// if there is already a filedelete it
 			if (File::Exists(FilenameRename.c_str()))
@@ -385,7 +385,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			}
 
 			// create the file
-			// F|RES: i think that we dont need this - CreateDirectoryStruct(Filename);
+			// F|RES: i think that we dont need this - File::CreateDirectoryStructure(Filename);
 			bool Result = File::CreateEmptyFile(Filename.c_str());
 			if (!Result)
 			{
@@ -404,45 +404,4 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 	}
 	//LOGV(WII_IPC_FILEIO, 0, "==============================================================");
 	return FS_RESULT_FATAL;
-}
-
-void CWII_IPC_HLE_Device_fs::CreateDirectoryStruct(const std::string& _rFullPath)
-{
-	int PanicCounter = 10;
-
-	size_t Position = 0;
-	while(true)
-	{
-		// find next sub path
-		{
-			size_t nextPosition = _rFullPath.find('/', Position);
-			if (nextPosition == std::string::npos)
-				nextPosition = _rFullPath.find('\\', Position);
-			Position = nextPosition;
-
-			if (Position == std::string::npos)
-				break;
-
-			Position++;
-		}
-
-		// create next sub path
-		std::string SubPath = _rFullPath.substr(0, Position);
-		if (!SubPath.empty())
-		{
-			if (!File::IsDirectory(SubPath.c_str()))
-			{
-				File::CreateDir(SubPath.c_str());
-				LOG(WII_IPC_FILEIO, "    CreateSubDir %s", SubPath.c_str());
-			}
-		}
-
-		// just a safty check...
-		PanicCounter--;
-		if (PanicCounter <= 0)
-		{
-			PanicAlert("CreateDirectoryStruct creates way to much dirs...");
-			break;
-		}
-	}
 }

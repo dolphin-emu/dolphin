@@ -249,6 +249,10 @@ void CopySettingsFile(std::string DeviceName)
 
 	std::string Target = "User/Wii" + DeviceName;
 
+	// Check if the target dir exists, otherwise create it
+	std::string TargetDir = Target.substr(0, Target.find_last_of("/"));
+	if(!File::IsDirectory(TargetDir.c_str())) File::CreateDirectoryStructure(Target.c_str());
+
 	if (File::Copy(Source.c_str(), Target.c_str()))
 	{
 		LOG(WII_IPC_FILEIO, "FS: Copied %s to %s", Source.c_str(), Target.c_str());

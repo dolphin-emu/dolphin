@@ -149,6 +149,49 @@ bool CreateDir(const char *path)
 #endif
 }
 
+// Create several dirs
+bool CreateDirectoryStructure(const std::string& _rFullPath)
+{
+	int PanicCounter = 10;
+
+	size_t Position = 0;
+	while(true)
+	{
+		// find next sub path
+		{
+			size_t nextPosition = _rFullPath.find('/', Position);
+			if (nextPosition == std::string::npos)
+				nextPosition = _rFullPath.find('\\', Position);
+			Position = nextPosition;
+
+			if (Position == std::string::npos)
+				return true;
+
+			Position++;
+		}
+
+		// create next sub path
+		std::string SubPath = _rFullPath.substr(0, Position);
+		if (!SubPath.empty())
+		{
+			if (!File::IsDirectory(SubPath.c_str()))
+			{
+				File::CreateDir(SubPath.c_str());
+				LOG(WII_IPC_FILEIO, "    CreateSubDir %s", SubPath.c_str());
+			}
+		}
+
+		// just a safty check...
+		PanicCounter--;
+		if (PanicCounter <= 0)
+		{
+			PanicAlert("CreateDirectoryStruct creates way to much dirs...");
+			return false;
+		}
+	}
+}
+
+
 bool DeleteDir(const char *filename)
 {
 
