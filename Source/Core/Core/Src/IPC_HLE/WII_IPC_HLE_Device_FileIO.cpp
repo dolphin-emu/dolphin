@@ -21,6 +21,9 @@
 #include "WII_IPC_HLE_Device_FileIO.h"
 
 
+// ===================================================
+/* This is used by several of the FileIO and /dev/fs/ functions */
+// ----------------
 std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 {
 	char Buffer[128];
@@ -37,7 +40,7 @@ std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 
 
 /// ----------------------------------------------------------------
-
+// The FileIO class
 
 
 CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std::string& _rDeviceName ) 
@@ -59,7 +62,8 @@ CWII_IPC_HLE_Device_FileIO::~CWII_IPC_HLE_Device_FileIO()
 bool 
 CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress)
 {
-	LOG(WII_IPC_FILEIO, "FileIO: Close %s", GetDeviceName().c_str());	
+	u32 DeviceID = Memory::Read_U32(_CommandAddress + 8);
+	LOG(WII_IPC_FILEIO, "FileIO: Close %s (DeviceID=%08x)", GetDeviceName().c_str(), DeviceID);	
 
 	// Close always return 0 for success
 	Memory::Write_U32(0, _CommandAddress + 4);
@@ -70,7 +74,7 @@ CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress)
 bool 
 CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)  
 { 
-	LOG(WII_IPC_FILEIO, "===================================================================");
+	//LOG(WII_IPC_FILEIO, "===================================================================");
 
 	u32 ReturnValue = 0;
 
@@ -113,7 +117,7 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
     }
 
     Memory::Write_U32(ReturnValue, _CommandAddress+4);
-	LOG(WII_IPC_FILEIO, "===================================================================");
+	//LOG(WII_IPC_FILEIO, "===================================================================");
     return true;
 }
 
@@ -174,7 +178,7 @@ CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 {        
 	u32 ReturnValue = 0;
 	u32 Address = Memory::Read_U32(_CommandAddress +0xC);
-	u32 Size = Memory::Read_U32(_CommandAddress +0x10);    
+	u32 Size = Memory::Read_U32(_CommandAddress +0x10);
 
 	LOG(WII_IPC_FILEIO, "FileIO: Write Addr: 0x%08x Size: %i (Device=%s)", Address, Size, GetDeviceName().c_str());	
 
@@ -232,4 +236,13 @@ CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
     return true;
+}
+
+bool
+CWII_IPC_HLE_Device_FileIO::ReturnFileHandle()
+{
+	if(m_pFileHandle == NULL)
+		return false;
+	else
+		return true;
 }

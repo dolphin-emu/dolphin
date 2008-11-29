@@ -71,7 +71,8 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 
 bool CWII_IPC_HLE_Device_fs::IOCtl(u32 _CommandAddress) 
 { 
-	LOG(WII_IPC_FILEIO, "FS: IOCtl (Device=%s)", GetDeviceName().c_str());	
+	//u32 DeviceID = Memory::Read_U32(_CommandAddress + 8);
+	//LOG(WII_IPC_FILEIO, "FS: IOCtl (Device=%s, DeviceID=%08x)", GetDeviceName().c_str(), DeviceID);
 
 	u32 Parameter =  Memory::Read_U32(_CommandAddress + 0xC);
 	u32 BufferIn =  Memory::Read_U32(_CommandAddress + 0x10);
@@ -354,7 +355,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 
 	case CREATE_FILE:
 		{
-			LOGV(WII_IPC_FILEIO, 0, "==============================================================");
+			//LOGV(WII_IPC_FILEIO, 0, "==============================================================");
 			_dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
 
 			u32 Addr = _BufferIn;
@@ -369,12 +370,12 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			u8 Attributes = Memory::Read_U8(Addr); Addr++;
 
 			LOGV(WII_IPC_FILEIO, 0, "FS: CreateFile %s", Filename.c_str());
-			LOG(WII_IPC_FILEIO, "    OwnerID: 0x08%x", OwnerID);
-			LOG(WII_IPC_FILEIO, "    GroupID: 0x04%x", GroupID);
-			LOG(WII_IPC_FILEIO, "    OwnerPerm: 0x02%x", OwnerPerm);
-			LOG(WII_IPC_FILEIO, "    GroupPerm: 0x02%x", GroupPerm);
-			LOG(WII_IPC_FILEIO, "    OtherPerm: 0x02%x", OtherPerm);
-			LOG(WII_IPC_FILEIO, "    Attributes: 0x02%x", Attributes);
+			LOG(WII_IPC_FILEIO, "    OwnerID: 0x%08x", OwnerID);
+			LOG(WII_IPC_FILEIO, "    GroupID: 0x%04x", GroupID);
+			LOG(WII_IPC_FILEIO, "    OwnerPerm: 0x%02x", OwnerPerm);
+			LOG(WII_IPC_FILEIO, "    GroupPerm: 0x%02x", GroupPerm);
+			LOG(WII_IPC_FILEIO, "    OtherPerm: 0x%02x", OtherPerm);
+			LOG(WII_IPC_FILEIO, "    Attributes: 0x%02x", Attributes);
 
 			// check if the file allready exist
 			if (File::Exists(Filename.c_str()))
@@ -401,7 +402,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 		PanicAlert("CWII_IPC_HLE_Device_fs::IOCtl: ni  0x%x", _Parameter);
 		break;
 	}
-	LOGV(WII_IPC_FILEIO, 0, "==============================================================");
+	//LOGV(WII_IPC_FILEIO, 0, "==============================================================");
 	return FS_RESULT_FATAL;
 }
 

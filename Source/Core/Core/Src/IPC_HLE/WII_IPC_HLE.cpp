@@ -15,6 +15,31 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+
+// =======================================================
+// File description
+// -------------
+/* This is the main Wii IPC file that handles all incoming IPC calls and directs them
+   to the right function.
+   
+   IPC basics:
+   
+   Return values for file handles: All IPC calls will generate a return value to 0x04,
+   in case of success they are
+		Open: DeviceID
+		Close: 0
+		Read: Bytes read
+		Write: Bytes written
+		Seek: Seek position
+		Ioctl: 0 (in addition to that there may be messages to the out buffers)
+		Ioctlv: 0 (in addition to that there may be messages to the out buffers)
+   They will also generate a true or false return for UpdateInterrupts() in WII_IPC.cpp. */
+// =============
+
+
+
+
 #include <map>
 #include <string>
 #include <list>
@@ -32,6 +57,8 @@
 #include "WII_IPC_HLE_Device_usb.h"
 #include "WII_IPC_HLE_Device_sdio_slot0.h"
 
+#include "FileUtil.h" // For Copy
+#include "../Core.h"
 #include "../HW/CPU.h"
 #include "../HW/Memmap.h"
 #include "../HW/WII_IPC.h"
@@ -59,6 +86,10 @@ TDeviceMap g_DeviceMap;
 u32 g_LastDeviceID = 0x13370000;
 
 
+
+// ===================================================
+/* General IPC functions */
+// ----------------
 void Init()
 {
     _dbg_assert_msg_(WII_IPC, g_DeviceMap.empty(), "DeviceMap isnt empty on init");   
@@ -108,7 +139,13 @@ void DeleteDeviceByID(u32 ID)
 		g_DeviceMap.erase(ID);
 	}
 }
+// ================
 
+
+// ===================================================
+/* This is called from COMMAND_OPEN_DEVICE. Here we either create a new device
+   or open a new file handle. */
+// ----------------
 IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName)
 {
 	// scan device name and create the right one ^^
@@ -162,8 +199,8 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
         }
     }
     else
-    {
-		LOGV(WII_IPC_FILEIO, 0, "FS: New pDevice %s", _rDeviceName.c_str());
+    {		
+		LOGV(WII_IPC_FILEIO, 0, "IOP: Create Device %s", _rDeviceName.c_str());
         pDevice = new CWII_IPC_HLE_Device_FileIO(_DeviceID, _rDeviceName);
     }
 
@@ -174,6 +211,11 @@ std::list<u32> m_Ack;
 std::queue<std::pair<u32,std::string> > m_ReplyQueue;
 
 void ExecuteCommand(u32 _Address);
+
+
+// ===================================================
+/* This generates some kind of acknowledgment. This function is called from? */
+// ----------------
 bool AckCommand(u32 _Address)
 {   
 	Debugger::PrintCallstack(LogTypes::WII_IPC_HLE);
@@ -194,6 +236,28 @@ bool AckCommand(u32 _Address)
     m_Ack.push_back(_Address);
 
     return true;
+}
+
+// Let the game read the setting.txt file
+void CopySettingsFile(std::string DeviceName)
+{
+	std::string Source;
+	if(Core::GetStartupParameter().bNTSC)
+		Source = "Sys/Wii/setting-usa.txt";
+	else
+		Source = "Sys/Wii/setting-eur.txt";
+
+	std::string Target = "User/Wii" + DeviceName;
+
+	if (File::Copy(Source.c_str(), Target.c_str()))
+	{
+		LOG(WII_IPC_FILEIO, "FS: Copied %s to %s", Source.c_str(), Target.c_str());
+	}
+	else
+	{
+		LOG(WII_IPC_FILEIO, "Could not copy %s to %s", Source.c_str(), Target.c_str());
+		PanicAlert("Could not copy %s to %s", Source.c_str(), Target.c_str());
+	}
 }
 
 
@@ -223,21 +287,20 @@ void ExecuteCommand(u32 _Address)
     {
     case COMMAND_OPEN_DEVICE:
         {
-            // HLE - Create a new HLE device
+			LOG(WII_IPC_FILEIO, "===================================================================");
+            /* Create a new HLE device. The Mode and DeviceName is given to us but we
+			   generate a DeviceID to be used for access to this device until it is Closed. */
             std::string DeviceName;
             Memory::GetString(DeviceName, Memory::Read_U32(_Address + 0xC));
 
-            u32 Mode = Memory::Read_U32(_Address+0x10);
+			// The game may try to read setting.txt here, in that case copy it so it can read it
+			if(DeviceName.find("setting.txt") != std::string::npos) CopySettingsFile(DeviceName);
+
+            u32 Mode = Memory::Read_U32(_Address + 0x10);
             u32 DeviceID = GetDeviceIDByName(DeviceName);
 
-			/* TEMPORARY SOLUTION: For some reason no file was written after a ReOpen in
-			   Mario Galaxy and Mario Kart Wii so I had to do a Open instead */
-            if (DeviceID == 0
-				|| DeviceName.find(".bin") != std::string::npos // Do Open instead for common
-				|| DeviceName.find(".dat") != std::string::npos // save game file types
-				|| DeviceName.find(".vff") != std::string::npos
-				|| DeviceName.find(".mod") != std::string::npos
-				)				
+			/* The device has already been opened and was not closed, reuse the same DeviceID. */
+            if (DeviceID == 0)				
             {
                 // create the new device
 				// alternatively we could pre create all devices and put them in a directory tree structure
@@ -248,36 +311,80 @@ void ExecuteCommand(u32 _Address)
 			    g_LastDeviceID++;
                                 
                 GenerateReply = pDevice->Open(_Address, Mode);
-                LOG(WII_IPC_HLE, "IOP: Open (Device=%s, Mode=%i)", pDevice->GetDeviceName().c_str(), Mode);
+				if(pDevice->GetDeviceName().find("/dev/") == std::string::npos
+					|| pDevice->GetDeviceName().c_str() == std::string("/dev/fs"))
+				{					
+					LOG(WII_IPC_FILEIO, "IOP: Open (Device=%s, DeviceID=%08x, Mode=%i, GenerateReply=%i)",
+						pDevice->GetDeviceName().c_str(), CurrentDeviceID, Mode, (int)GenerateReply);
+				}
+				else
+				{
+					LOG(WII_IPC_HLE, "IOP: Open (Device=%s, Mode=%i)",
+						pDevice->GetDeviceName().c_str(), Mode);
+				}
             }
             else
             {
 #ifdef LOGGING
                 IWII_IPC_HLE_Device* pDevice = AccessDeviceByID(DeviceID);
 #endif
+                /* If we return -6 here after a Open > Failed > CREATE_FILE > ReOpen call
+				   sequence Mario Galaxy and Mario Kart Wii will not start writing to the file,
+				   it will just (seemingly) wait for one or two seconds and then give an error
+				   message. So I'm trying to return the DeviceID instead to make it write to the file.
+				   (Which was most likely the reason it created the file in the first place.) */
 
-                // we have already opened this device
-                Memory::Write_U32(u32(-6), _Address + 4);
-                GenerateReply = true;
+				if(DeviceName.find("/dev/") == std::string::npos)
+				{
+					LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
+						pDevice->GetDeviceName().c_str(), DeviceID, Mode);
 
-                LOG(WII_IPC_HLE, "IOP: ReOpen (Device=%s, Mode=%i)", pDevice->GetDeviceName().c_str(), Mode);
+					u32 Mode = Memory::Read_U32(_Address + 0x10);
+
+					/* We may not have a file handle at this point, in Mario Kart I got a
+					Open > Failed > ... other stuff > ReOpen call sequence, in that case
+					we have no file and no file handle, so we call Open again to basically
+					get a -106 error so that the game call CreateFile and then ReOpen again. */
+					if(pDevice->ReturnFileHandle())
+						Memory::Write_U32(DeviceID, _Address + 4);
+					else
+						GenerateReply = pDevice->Open(_Address, Mode);						
+				}
+				else
+				{
+					LOG(WII_IPC_HLE, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
+						pDevice->GetDeviceName().c_str(), pDevice->GetDeviceID(), Mode);
+					// We have already opened this device, return -6
+					Memory::Write_U32(u32(-6), _Address + 4);
+				}
+                GenerateReply = true;                
             } 
         }
         break;
 
     case COMMAND_CLOSE_DEVICE:
         {
-            u32 DeviceID = Memory::Read_U32(_Address+8);
+            u32 DeviceID = Memory::Read_U32(_Address + 8);
 
             IWII_IPC_HLE_Device* pDevice = AccessDeviceByID(DeviceID);
 			if (pDevice != NULL)
 			{
                 pDevice->Close(_Address);
 
-				LOG(WII_IPC_HLE, "IOP: Close (Device=%s ID=0x%08x)", pDevice->GetDeviceName().c_str(), DeviceID);				
+				/* Write log
+				if(pDevice->GetDeviceName().find("/dev/") == std::string::npos
+					|| pDevice->GetDeviceName().c_str() == std::string("/dev/fs")) {
+					LOG(WII_IPC_FILEIO, "IOP: Close (Device=%s ID=0x%08x)",
+						pDevice->GetDeviceName().c_str(), DeviceID);
+					LOG(WII_IPC_FILEIO, "===================================================================");
+				} else {
+					LOG(WII_IPC_HLE, "IOP: Close (Device=%s ID=0x%08x)",
+						pDevice->GetDeviceName().c_str(), DeviceID); }*/
 
+				/* Delete the device when CLOSE is called, this does not effect
+				   GenerateReply() for any other purpose than the logging because
+				   it's a true / false only function */
                 DeleteDeviceByID(DeviceID);
-
                 GenerateReply = true;
 			}            
         }
@@ -334,24 +441,52 @@ void ExecuteCommand(u32 _Address)
         break;
     }
 
-    // seems that the org hw overwrites the command after it has been executed
-    Memory::Write_U32(8, _Address);
+    /* It seems that the original hardware overwrites the command after it has been
+	   executed. We write 8 which is not any valid command. */
+	Memory::Write_U32(8, _Address);
 
+	// Generate a reply to the IPC command
     if (GenerateReply)
     {
-        u32 DeviceID = Memory::Read_U32(_Address+8);
-
+		// Get device id
+		u32 DeviceID = Memory::Read_U32(_Address + 8);
         IWII_IPC_HLE_Device* pDevice = NULL;
+
+		// Get the device from the device map
         if (g_DeviceMap.find(DeviceID) != g_DeviceMap.end())
             pDevice = g_DeviceMap[DeviceID];
 
         if (pDevice != NULL)
-            m_ReplyQueue.push(std::pair<u32, std::string>(_Address, pDevice->GetDeviceName()));        
+		{
+			/* Write log
+			u32 Mode = Memory::Read_U32(_Address + 0x10);
+			if(pDevice->GetDeviceName().find("/dev/") == std::string::npos				
+				|| pDevice->GetDeviceName().c_str() == std::string("/dev/fs"))
+			{
+				LOGV(WII_IPC_FILEIO, 1, "IOP: GenerateReply (Device=%s, DeviceID=%08x, Mode=%i)",
+					pDevice->GetDeviceName().c_str(), pDevice->GetDeviceID(), Mode); 
+			}
+			else
+			{
+				LOG(WII_IPC_HLE, "IOP: GenerateReply (Device=%s, DeviceID=%08x, Mode=%i)",
+					pDevice->GetDeviceName().c_str(), pDevice->GetDeviceID(), Mode);
+			} */
+
+			// Write reply, this will later be executed in Update()
+			m_ReplyQueue.push(std::pair<u32, std::string>(_Address, pDevice->GetDeviceName()));
+		}
         else
-            m_ReplyQueue.push(std::pair<u32, std::string>(_Address, "unknown"));        
+		{
+            m_ReplyQueue.push(std::pair<u32, std::string>(_Address, "unknown")); 
+		}
     }
 }
 
+
+// ===================================================
+/* This is called continouosly and WII_IPCInterface::IsReady() is controlled from
+   WII_IPC.cpp. */
+// ----------------
 void Update()
 {    
 	if (WII_IPCInterface::IsReady())    
@@ -368,21 +503,38 @@ void Update()
 		    ++itr;
 	    }
 
-        // check if we have to execute an acknowledged command
+        // Check if we have to execute an acknowledge command...
         if (!m_ReplyQueue.empty())
         {
-            LOGV(WII_IPC_HLE, 1, "-- Generate Reply %s (0x%08x)", m_ReplyQueue.front().second.c_str(), m_ReplyQueue.front().first);
+			/* Write one log for files and one for devices
+			if(m_ReplyQueue.front().second.find("unknown") == std::string::npos
+				&& (m_ReplyQueue.front().second.find("/dev/") == std::string::npos				
+				|| m_ReplyQueue.front().second.c_str() == std::string("/dev/fs")))
+			{
+				LOGV(WII_IPC_FILEIO, 1, "-- Update() Reply %s (0x%08x)",
+					m_ReplyQueue.front().second.c_str(), m_ReplyQueue.front().first);
+			}
+			else
+			{
+				LOGV(WII_IPC_HLE, 1, "-- Update() Reply %s (0x%08x)",
+					m_ReplyQueue.front().second.c_str(), m_ReplyQueue.front().first);
+			} */
+
+
             WII_IPCInterface::GenerateReply(m_ReplyQueue.front().first);
             m_ReplyQueue.pop();
             return;
         }
 
+		// ...no we don't, we can now execute the IPC command
         if (m_ReplyQueue.empty() && !m_Ack.empty())
         {
             u32 _Address = m_Ack.front();
             m_Ack.pop_front();
             ExecuteCommand(_Address);
             LOGV(WII_IPC_HLE, 1, "-- Generate Ack (0x%08x)", _Address);
+
+			// Go back to WII_IPC.cpp and generate an acknowledgement
             WII_IPCInterface::GenerateAck(_Address);
         }
 	}

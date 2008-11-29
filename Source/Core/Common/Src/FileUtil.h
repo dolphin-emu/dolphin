@@ -44,6 +44,7 @@ bool CreateDir(const char *filename);
 bool Delete(const char *filename);
 bool DeleteDir(const char *filename);
 bool Rename(const char *srcFilename, const char *destFilename);
+bool Copy(const char *srcFilename, const char *destFilename);
 u64 GetSize(const char *filename);
 std::string GetUserDirectory();
 bool CreateEmptyFile(const char *filename);

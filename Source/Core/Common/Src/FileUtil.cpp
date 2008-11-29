@@ -172,6 +172,15 @@ bool Rename(const char *srcFilename, const char *destFilename)
 	return (rename(srcFilename, destFilename) == 0);
 }
 
+bool Copy(const char *srcFilename, const char *destFilename)
+{
+#ifdef _WIN32 
+	return CopyFile(srcFilename, destFilename, FALSE);
+#else
+
+#endif
+}
+
 std::string GetUserDirectory()
 {
 #ifdef _WIN32 

@@ -47,6 +47,17 @@ public:
 
 	virtual u32 Update() { return 0; }
 
+	virtual bool ReturnFileHandle() { return false; }
+	//FILE* ReturnFileHandle() const { return m_pFileHandle; }
+
+
+private:
+
+	// STATE_TO_SAVE
+	std::string m_Name;
+    u32 m_DeviceID;
+
+
 protected:
 
 	// ===================================================
@@ -182,12 +193,6 @@ protected:
 #endif
        }
     }
-
-private:
-
-	// STATE_TO_SAVE
-	std::string m_Name;
-    u32 m_DeviceID;
 
 };
 
