@@ -329,9 +329,7 @@ void ExecuteCommand(u32 _Address)
             }
             else
             {
-#ifdef LOGGING
                 IWII_IPC_HLE_Device* pDevice = AccessDeviceByID(DeviceID);
-#endif
                 /* If we return -6 here after a Open > Failed > CREATE_FILE > ReOpen call
 				   sequence Mario Galaxy and Mario Kart Wii will not start writing to the file,
 				   it will just (seemingly) wait for one or two seconds and then give an error
