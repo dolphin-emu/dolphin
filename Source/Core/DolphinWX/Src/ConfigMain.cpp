@@ -63,8 +63,9 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 	bRefreshList = false;
 	
 	// Load Wii SYSCONF
+	FullSYSCONFPath = FULL_WII_USER_DIR "shared2/sys/SYSCONF";
 	pStream = NULL;
-	pStream = fopen(FULL_CONFIG_DIR "SYSCONF", "rb");
+	pStream = fopen(FullSYSCONFPath.c_str(), "rb");
     if (pStream != NULL)
     {
         fread(m_SYSCONF, 1, 0x4000, pStream);
@@ -73,7 +74,7 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
     }
     else
 	{
-		PanicAlert("Could not read " FULL_CONFIG_DIR "SYSCONF. Please recover the SYSCONF file to that location.");
+		PanicAlert("Could not read %s. Please recover the SYSCONF file to that location.", FullSYSCONFPath.c_str());
 		m_bSysconfOK = false;
 	}
 
@@ -307,9 +308,8 @@ void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
        save anything, it will be a corrupted file */
 	if(m_bSysconfOK)
 	{
-		// Save Wii SYSCONF twice so that we can keep game specific settings for it
-		pStream = NULL;
-		pStream = fopen(FULL_CONFIG_DIR "SYSCONF", "wb");
+		// Save SYSCONF with the new settings
+		pStream = fopen(FullSYSCONFPath.c_str(), "wb");
 		if (pStream != NULL)
 		{
 			fwrite(m_SYSCONF, 1, 0x4000, pStream);
@@ -317,18 +317,7 @@ void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
 		}
 		else
 		{
-			PanicAlert("Could not write to SYSCONF");
-		}
-
-		pStream = fopen(FULL_WII_USER_DIR "shared2/sys/SYSCONF", "wb");
-		if (pStream != NULL)
-		{
-			fwrite(m_SYSCONF, 1, 0x4000, pStream);
-			fclose(pStream);
-		}
-		else
-		{
-			PanicAlert("Could not write to shared2/sys/SYSCONF");
+			PanicAlert("Could not write to %s", FullSYSCONFPath.c_str());
 		}
 	}
 

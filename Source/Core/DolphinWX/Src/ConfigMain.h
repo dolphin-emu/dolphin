@@ -89,6 +89,7 @@ class CConfigMain
 		FILE* pStream;
 		u8 m_SYSCONF[0x4000];
 		bool m_bSysconfOK;
+		std::string FullSYSCONFPath;
 
 		enum
 		{

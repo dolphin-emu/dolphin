@@ -85,7 +85,9 @@ bool BootCore(const std::string& _rFilename)
 		return false;
 	}
 
-	// Load overrides
+	// ------------------------------------------------
+	// Load game specific settings
+	// ----------------
 	IniFile ini;
 	std::string unique_id = StartUp.GetUniqueID();
 	if (unique_id.size() == 6 && ini.Load((FULL_GAMECONFIG_DIR + unique_id + ".ini").c_str()))
@@ -99,7 +101,7 @@ bool BootCore(const std::string& _rFilename)
 
 
 		// ------------------------------------------------
-		// Read SYSCONF settings
+		// Update SYSCONF with game specific settings
 		// ----------------
 		bool bEnableProgressiveScan, bEnableWideScreen;
 		//bRefreshList = false;
@@ -107,10 +109,11 @@ bool BootCore(const std::string& _rFilename)
 		u8 m_SYSCONF[0x4000]; // SYSCONF file
 		u16 IPL_PGS = 0x17CC; // pregressive scan
 		u16 IPL_AR = 0x04D9; // widescreen
+		std::string FullSYSCONFPath = FULL_WII_USER_DIR "shared2/sys/SYSCONF";
 
 		// Load Wii SYSCONF
 		pStream = NULL;
-		pStream = fopen(FULL_CONFIG_DIR "SYSCONF", "rb");
+		pStream = fopen(FullSYSCONFPath.c_str(), "rb");
 		if (pStream != NULL)
 		{
 			fread(m_SYSCONF, 1, 0x4000, pStream);
@@ -128,7 +131,7 @@ bool BootCore(const std::string& _rFilename)
 
 			// Enable custom Wii SYSCONF settings by saving the file to shared2
 			pStream = NULL;
-			pStream = fopen(FULL_WII_USER_DIR "shared2/sys/SYSCONF", "wb");
+			pStream = fopen(FullSYSCONFPath.c_str(), "wb");
 			if (pStream != NULL)
 			{
 				fwrite(m_SYSCONF, 1, 0x4000, pStream);
@@ -136,16 +139,17 @@ bool BootCore(const std::string& _rFilename)
 			}	
 			else
 			{
-				PanicAlert("Could not write to shared2/sys/SYSCONF");
+				PanicAlert("Could not write to %s", FullSYSCONFPath.c_str());
 			}	
 			
 		}
 		else
 		{
-			PanicAlert("Could not read %sSYSCONF", FULL_CONFIG_DIR);
+			PanicAlert("Could not read %s", FullSYSCONFPath.c_str());
 		}
-		// ----------------
+		// ---------
 	}
+	// ---------
 #if !defined(OSX64)
 	if(main_frame)
 		StartUp.hMainWindow = main_frame->GetRenderHandle();
