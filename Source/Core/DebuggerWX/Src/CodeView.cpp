@@ -211,7 +211,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 	    case IDM_COPYHEX:
 		    {
 		    char temp[24];
-		    sprintf(temp, "%08x", debugger->readMemory(selection));
+		    sprintf(temp, "%08x", debugger->readInstruction(selection));
 		    wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(temp)));
 		    }
 		    break;
