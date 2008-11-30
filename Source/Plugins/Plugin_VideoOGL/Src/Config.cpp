@@ -75,11 +75,10 @@ void Config::Load()
 	iniFile.Get("Settings", "DisableTexturing", &bDisableTexturing, 0);
 
     iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
-    iniFile.Get("Enhancements", "ForceMaxAniso", &bForceMaxAniso, 0);
+    iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 3);  // NOTE - this is x in (1 << x)
 
-
-	iniFile.Get("Hacks", "EFBToTextureDisable", &bEBFToTextureDisable, 0);
-	iniFile.Get("Hacks", "EBFToTextureDisableHotKey", &bEBFToTextureDisableHotKey, 0);	
+	iniFile.Get("Hacks", "EFBToTextureDisable", &bEFBToTextureDisable, 0);
+	iniFile.Get("Hacks", "EFBToTextureDisableHotKey", &bEFBToTextureDisableHotKey, 0);	
 	iniFile.Get("Hacks", "ProjectionHax1", &bProjectionHax1, 0);
 	iniFile.Get("Hacks", "ProjectionHax2", &bProjectionHax2, 0);
 }
@@ -112,10 +111,10 @@ void Config::Save()
 	iniFile.Set("Settings", "DisableTexturing", bDisableTexturing);
 
     iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
-    iniFile.Set("Enhancements", "ForceMaxAniso", bForceMaxAniso);
+    iniFile.Set("Enhancements", "MaxAnisotropy", iMaxAnisotropy);
 
-	iniFile.Set("Hacks", "EFBToTextureDisable", bEBFToTextureDisable);
-	iniFile.Set("Hacks", "EBFToTextureDisableHotKey", bEBFToTextureDisableHotKey);
+	iniFile.Set("Hacks", "EFBToTextureDisable", bEFBToTextureDisable);
+	iniFile.Set("Hacks", "EFBToTextureDisableHotKey", bEFBToTextureDisableHotKey);
 	iniFile.Set("Hacks", "ProjectionHax1", bProjectionHax1);
 	iniFile.Set("Hacks", "ProjectionHax2", bProjectionHax2);
 

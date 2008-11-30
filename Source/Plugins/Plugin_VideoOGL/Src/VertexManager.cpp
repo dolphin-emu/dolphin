@@ -227,8 +227,6 @@ void Flush()
 
 	FRAGMENTSHADER* ps = PixelShaderMngr::GetShader();
 	VERTEXSHADER* vs = VertexShaderMngr::GetShader(s_prevcomponents);
-	//if (!ps) PanicAlert("Pixel shader = 0. Argh.");
-	//if (!vs) PanicAlert("Vertex shader = 0. Argh.");
 
 	bool bRestoreBuffers = false;
 	if (Renderer::GetZBufferTarget()) {
@@ -295,7 +293,7 @@ void Flush()
 	if (bRestoreBuffers) {
 		GLenum s_drawbuffers[2] = {GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT};
 		glDrawBuffers(2, s_drawbuffers);
-		SetColorMask();
+		Renderer::SetColorMask();
 	}
 
 	ResetBuffer();
@@ -374,8 +372,8 @@ void EnableComponents(u32 components)
 				xfregs.colChans[i].color.enablelighting = false;
 			}
 		}
-			s_prevcomponents = components;
-		}
+		s_prevcomponents = components;
+	}
 }
 
 }  // namespace

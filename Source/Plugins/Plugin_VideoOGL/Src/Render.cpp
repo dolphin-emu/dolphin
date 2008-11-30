@@ -561,6 +561,69 @@ void Renderer::RestoreGLState()
     SetColorMask();
 }
 
+void Renderer::SetColorMask()
+{
+    if (bpmem.blendmode.alphaupdate && bpmem.blendmode.colorupdate)
+        glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
+    else if (bpmem.blendmode.alphaupdate)
+        glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_TRUE);
+    else if (bpmem.blendmode.colorupdate) 
+        glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_FALSE);
+}
+
+
+// =======================================================================================
+// Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
+//		case 0x52 > SetScissorRect()
+// ---------------
+// This function handles the OpenGL glScissor() function
+// ---------------
+// bpmem.scissorTL.x, y = 342x342
+// bpmem.scissorBR.x, y = 981x821
+// Renderer::GetTargetHeight() = the fixed ini file setting
+// ---------------
+bool Renderer::SetScissorRect()
+{
+    int xoff = bpmem.scissorOffset.x * 2 - 342;
+    int yoff = bpmem.scissorOffset.y * 2 - 342;
+
+	float rc_left = bpmem.scissorTL.x - xoff - 342; // left = 0
+	rc_left *= MValueX;
+	if (rc_left < 0) rc_left = 0;
+
+	float rc_top = bpmem.scissorTL.y - yoff - 342; // right = 0
+	rc_top *= MValueY;
+	if (rc_top < 0) rc_top = 0;
+    
+	float rc_right = bpmem.scissorBR.x - xoff - 342; // right = 640
+	rc_right *= MValueX;
+	if (rc_right > 640 * MValueX) rc_right = 640 * MValueX;
+
+	float rc_bottom = bpmem.scissorBR.y - yoff - 342; // bottom = 480
+	rc_bottom *= MValueY;
+	if (rc_bottom > 480 * MValueY) rc_bottom = 480 * MValueY;
+
+   /*__Log("Scissor: lt=(%d,%d), rb=(%d,%d,%i), off=(%d,%d)\n",
+		rc_left, rc_top,
+		rc_right, rc_bottom, Renderer::GetTargetHeight(),
+		xoff, yoff
+		);*/
+
+    if (rc_right >= rc_left && rc_bottom >= rc_top )
+	{
+        glScissor(
+			(int)rc_left, // x = 0
+			Renderer::GetTargetHeight()-(int)(rc_bottom), // y = 0
+			(int)(rc_right-rc_left), // y = 0
+			(int)(rc_bottom-rc_top) // y = 0
+			); 
+        return true;
+    }
+
+    return false;
+}
+
+
 bool Renderer::IsUsingATIDrawBuffers()
 {
     return s_bATIDrawBuffers;

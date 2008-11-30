@@ -739,9 +739,21 @@
 			<File
 				RelativePath=".\Src\VertexLoader.cpp"
 				>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerOutput="4"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\Src\VertexLoader.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexLoader_Color.cpp"
 				>
 			</File>
 			<File
@@ -757,7 +769,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\VertexLoader_Position.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\VertexLoader_Position.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexLoader_TextCoord.cpp"
 				>
 			</File>
 			<File

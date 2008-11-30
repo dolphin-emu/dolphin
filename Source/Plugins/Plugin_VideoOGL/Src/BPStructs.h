@@ -24,7 +24,4 @@ void BPInit();
 void LoadBPReg(u32 value0);
 void BPReload();
 
-void SetColorMask();
-bool SetScissorRect();
-
 #endif

@@ -100,9 +100,9 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[newmode.wrap_t]);
     }
     
-    if (g_Config.bForceMaxAniso)
+    if (g_Config.iMaxAnisotropy >= 1)
     {
-        // not used for now, check out GL_EXT_texture_filter_anisotropic
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1 << g_Config.iMaxAnisotropy);
     }
 }
 

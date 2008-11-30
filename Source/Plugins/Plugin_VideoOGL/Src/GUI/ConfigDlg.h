@@ -23,6 +23,7 @@
 #include <wx/textctrl.h>
 #include <wx/button.h>
 #include <wx/stattext.h>
+#include <wx/choice.h>
 #include <wx/combobox.h>
 #include <wx/checkbox.h>
 #include <wx/notebook.h>
@@ -80,7 +81,8 @@ class ConfigDialog : public wxDialog
 		wxComboBox *m_WindowResolutionCB;
 
 		wxCheckBox *m_ForceFiltering; // advanced
-		wxCheckBox *m_ForceAnisotropy;
+		wxChoice *m_MaxAnisotropyCB;
+		wxArrayString arrayStringFor_MaxAnisotropyCB;
 		wxComboBox *m_AliasModeCB;
 		wxCheckBox *m_ShowFPS;
 		wxCheckBox *m_ShaderErrors;
@@ -118,7 +120,7 @@ class ConfigDialog : public wxDialog
 			ID_WINDOWRESOLUTIONCB,
 
 			ID_FORCEFILTERING,
-			ID_FORCEANISOTROPY,
+			ID_MAXANISOTROPY,
 			ID_AATEXT,
 			ID_ALIASMODECB,
 

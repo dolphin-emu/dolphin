@@ -27,25 +27,28 @@
 #include "x64Emitter.h"
 #include "ABI.h"
 
+#include "LookUpTables.h"
 #include "Statistics.h"
 #include "VertexManager.h"
 #include "VertexLoaderManager.h"
+#include "VertexShaderManager.h"
+#include "VertexManager.h"
 #include "VertexLoader.h"
 #include "BPStructs.h"
 #include "DataReader.h"
 
+#include "VertexLoader_Position.h"
+#include "VertexLoader_Normal.h"
+#include "VertexLoader_Color.h"
+#include "VertexLoader_TextCoord.h"
+
 #define USE_JIT
+
+#define COMPILED_CODE_SIZE 4096*4
 
 NativeVertexFormat *g_nativeVertexFmt;
 
-
 //these don't need to be saved
-static float posScale;
-static int colElements[2];
-static float tcScaleU[8];
-static float tcScaleV[8];
-static int tcIndex;
-static int colIndex;
 #ifndef _WIN32
 	#undef inline
 	#define inline
@@ -57,8 +60,15 @@ static u8 s_curposmtx;
 static u8 s_curtexmtx[8];
 static int s_texmtxwrite = 0;
 static int s_texmtxread = 0;
-static TVtxAttr* pVtxAttr;
 static int loop_counter;
+
+// Vertex loaders read these. Although the scale ones should be baked into the shader.
+int tcIndex;
+int colIndex;
+TVtxAttr* pVtxAttr;
+int colElements[2];
+float posScale;
+float tcScale[8];
 
 using namespace Gen;
 
@@ -103,13 +113,6 @@ void LOADERDECL TexMtx_Write_Short3()
 	((s16*)VertexManager::s_pCurBufferPointer)[2] = s_curtexmtx[s_texmtxwrite++];
 	VertexManager::s_pCurBufferPointer += 8;
 }
-
-#include "VertexLoader_Position.h"
-#include "VertexLoader_Normal.h"
-#include "VertexLoader_Color.h"
-#include "VertexLoader_TextCoord.h"
-
-#define COMPILED_CODE_SIZE 4096*4
 
 VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr) 
 {
@@ -628,10 +631,8 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	pVtxAttr = &m_VtxAttr;
 	posScale = shiftLookup[m_VtxAttr.PosFrac];
 	if (m_NativeFmt->m_components & VB_HAS_UVALL) {
-		for (int i = 0; i < 8; i++) {
-			tcScaleU[i] = shiftLookup[m_VtxAttr.texCoord[i].Frac];
-			tcScaleV[i] = shiftLookup[m_VtxAttr.texCoord[i].Frac];
-		}
+		for (int i = 0; i < 8; i++)
+			tcScale[i] = shiftLookup[m_VtxAttr.texCoord[i].Frac];
 	}
 	for (int i = 0; i < 2; i++)
 		colElements[i] = m_VtxAttr.color[i].Elements;

@@ -148,10 +148,10 @@ void EncodeToRam(GLuint srcTexture, const TRectangle& sourceRc,
     glBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, s_rgbToYuyvProgram.glprogid);	
 
 	glBegin(GL_QUADS);
-    glTexCoord2f(sourceRc.left, sourceRc.top); glVertex2f(-1,-1);
-	glTexCoord2f(sourceRc.left, sourceRc.bottom); glVertex2f(-1,1);
-    glTexCoord2f(sourceRc.right, sourceRc.bottom); glVertex2f(1,1);
-    glTexCoord2f(sourceRc.right, sourceRc.top); glVertex2f(1,-1);
+    glTexCoord2f((float)sourceRc.left, (float)sourceRc.top);     glVertex2f(-1,-1);
+	glTexCoord2f((float)sourceRc.left, (float)sourceRc.bottom);  glVertex2f(-1,1);
+    glTexCoord2f((float)sourceRc.right, (float)sourceRc.bottom); glVertex2f(1,1);
+    glTexCoord2f((float)sourceRc.right, (float)sourceRc.top);    glVertex2f(1,-1);
     glEnd();
 	GL_REPORT_ERRORD();
 

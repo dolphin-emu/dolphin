@@ -68,6 +68,9 @@ public:
     static void SetZBufferRender(); // sets rendering of the zbuffer using MRTs
     static u32 GetZBufferTarget();
 
+    static void SetColorMask();
+	static bool SetScissorRect();
+
     static void SetRenderMode(RenderMode mode);
     static RenderMode GetRenderMode();
 

@@ -44,7 +44,7 @@ struct Config
 	// Enhancements
 	int iMultisampleMode;
     bool bForceFiltering;
-    bool bForceMaxAniso;
+    int iMaxAnisotropy;
 
 	// Information
     bool bShowFPS;
@@ -63,7 +63,8 @@ struct Config
 	bool bDumpTextures;
 
 	// Hacks
-	bool bEBFToTextureDisable; bool bEBFToTextureDisableHotKey;
+	bool bEFBToTextureDisable;
+	bool bEFBToTextureDisableHotKey;
 	bool bProjectionHax1;
 	bool bProjectionHax2;
 

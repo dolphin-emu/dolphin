@@ -31,8 +31,8 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_COMBOBOX(ID_FULLSCREENCB, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_WINDOWRESOLUTIONCB, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_ALIASMODECB, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(ID_MAXANISOTROPY, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_FORCEFILTERING, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_FORCEANISOTROPY, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_STRETCHTOFIT, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_KEEPAR, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_HIDECURSOR, ConfigDialog::GeneralSettingsChanged)
@@ -121,14 +121,20 @@ void ConfigDialog::CreateGUIControls()
 	sbEnhancements = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Enhancements"));
 	m_ForceFiltering = new wxCheckBox(m_PageGeneral, ID_FORCEFILTERING, wxT("Force bi/trilinear filtering (May cause small glitches)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ForceFiltering->SetValue(g_Config.bForceFiltering);
-	m_ForceAnisotropy = new wxCheckBox(m_PageGeneral, ID_FORCEANISOTROPY, wxT("Force maximum anisotropy filtering"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	//m_ForceAnisotropy->SetValue(g_Config.bForceMaxAniso);
-	m_ForceAnisotropy->Enable(false);
+	wxStaticText *AnisoText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Anisotropic filter:"), wxDefaultPosition, wxDefaultSize, 0);
+	m_MaxAnisotropyCB = new wxChoice(m_PageGeneral, ID_MAXANISOTROPY, wxDefaultPosition, wxDefaultSize, arrayStringFor_MaxAnisotropyCB, 0, wxDefaultValidator);
+	m_MaxAnisotropyCB->Append("1x");
+	m_MaxAnisotropyCB->Append("2x");
+	m_MaxAnisotropyCB->Append("4x");
+	m_MaxAnisotropyCB->Append("8x");
+	m_MaxAnisotropyCB->Append("16x");
+	m_MaxAnisotropyCB->SetSelection(g_Config.iMaxAnisotropy - 1);
+
 	wxStaticText *AAText = new wxStaticText(m_PageGeneral, ID_AATEXT, wxT("Anti-alias mode:"),  wxDefaultPosition, wxDefaultSize, 0);
 	wxArrayString arrayStringFor_AliasModeCB;
 	m_AliasModeCB = new wxComboBox(m_PageGeneral, ID_ALIASMODECB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_AliasModeCB, 0, wxDefaultValidator);
 	wxString tmp;
-	tmp<<g_Config.iMultisampleMode;
+	tmp << g_Config.iMultisampleMode;
 	m_AliasModeCB->SetValue(tmp);
 
 	// Usage: The wxGBPosition() must have a column and row
@@ -148,7 +154,8 @@ void ConfigDialog::CreateGUIControls()
 
 	sEnhancements = new wxGridBagSizer(0, 0);
 	sEnhancements->Add(m_ForceFiltering, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
-	sEnhancements->Add(m_ForceAnisotropy, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
+	sEnhancements->Add(AnisoText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sEnhancements->Add(m_MaxAnisotropyCB, wxGBPosition(1, 1), wxGBSpan(1, 2), wxALL, 5);
     sEnhancements->Add(AAText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sEnhancements->Add(m_AliasModeCB, wxGBPosition(2, 1), wxGBSpan(1, 2), wxALL, 5);
 	sbEnhancements->Add(sEnhancements);
@@ -200,7 +207,7 @@ void ConfigDialog::CreateGUIControls()
 	m_EFBToTextureDisable->SetToolTip(wxT("Do not copy the Embedded Framebuffer (EFB)"
 		" to the\nTexture. This may result in a speed increase."));
 	m_EFBToTextureDisable->Enable(true);
-	m_EFBToTextureDisable->SetValue(g_Config.bEBFToTextureDisable);
+	m_EFBToTextureDisable->SetValue(g_Config.bEFBToTextureDisable);
 	m_EFBToTextureDisableHotKey = new wxCheckBox(m_PageAdvanced,
 		ID_EFBTOTEXTUREDISABLEHOTKEY, wxT("with hotkey E"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_EFBToTextureDisableHotKey->SetToolTip(wxT("Use the E key to turn this option on and off"));
@@ -208,7 +215,7 @@ void ConfigDialog::CreateGUIControls()
 	// JPeterson set the hot key to be Win32-specific
 	m_EFBToTextureDisableHotKey->Enable(false);
 #endif
-	m_EFBToTextureDisableHotKey->SetValue(g_Config.bEBFToTextureDisableHotKey);
+	m_EFBToTextureDisableHotKey->SetValue(g_Config.bEFBToTextureDisableHotKey);
 
 	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_SafeTextureCache->SetToolTip(wxT("This is useful to prevent Metroid Prime from crashing, but can cause problems in other games."));
@@ -330,8 +337,8 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_FORCEFILTERING:
 		g_Config.bForceFiltering = m_ForceFiltering->IsChecked();
 		break;
-	case ID_FORCEANISOTROPY:
-		g_Config.bForceMaxAniso = m_ForceAnisotropy->IsChecked();
+	case ID_MAXANISOTROPY:
+		g_Config.iMaxAnisotropy = m_MaxAnisotropyCB->GetSelection() + 1;
 		break;
 	case ID_ALIASMODECB:
 		g_Config.iMultisampleMode = atoi(m_AliasModeCB->GetValue().mb_str());
@@ -380,10 +387,10 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 	case ID_TEXTUREPATH:
 		break;
 	case ID_EFBTOTEXTUREDISABLE:
-		g_Config.bEBFToTextureDisable = m_EFBToTextureDisable->IsChecked();
+		g_Config.bEFBToTextureDisable = m_EFBToTextureDisable->IsChecked();
 		break;
 	case ID_EFBTOTEXTUREDISABLEHOTKEY:
-		g_Config.bEBFToTextureDisableHotKey = m_EFBToTextureDisableHotKey->IsChecked();
+		g_Config.bEFBToTextureDisableHotKey = m_EFBToTextureDisableHotKey->IsChecked();
 		break;
 	case ID_PROJECTIONHACK1:
 		g_Config.bProjectionHax1 = m_ProjectionHax1->IsChecked();

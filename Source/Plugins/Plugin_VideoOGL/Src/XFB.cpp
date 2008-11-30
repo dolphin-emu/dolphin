@@ -82,11 +82,15 @@ void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset)
 	glViewport(nXoff, nYoff, nBackbufferWidth, nBackbufferHeight);
 	GL_REPORT_ERRORD();
 
+	float w = (float)width;
+	float h = (float)height;
+	float yOff = (float)yOffset;
+
     glBegin(GL_QUADS);
-	glTexCoord2f(width, 0 - yOffset); glVertex2f(1,-1);
-	glTexCoord2f(width, height - yOffset); glVertex2f(1,1);
-	glTexCoord2f(0, height - yOffset); glVertex2f(-1,1);
-	glTexCoord2f(0, 0 - yOffset); glVertex2f(-1,-1);
+	glTexCoord2f(w, 0 - yOff);  glVertex2f(1, -1);
+	glTexCoord2f(w, h - yOff);  glVertex2f(1, 1);
+	glTexCoord2f(0, h - yOff);  glVertex2f(-1, 1);
+	glTexCoord2f(0, 0 - yOff);  glVertex2f(-1,-1);
     glEnd();	
 
 	TextureMngr::DisableStage(0);
