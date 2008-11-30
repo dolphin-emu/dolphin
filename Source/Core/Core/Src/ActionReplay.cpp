@@ -459,7 +459,7 @@ bool Subtype_WriteToPointer(u32 addr, u32 data)
 			LogInfo("--------");
 			break;
 		}
-
+	case 0x03:
 	case 0x02: // Dword write to pointer [44]
 		LogInfo("Write dword to pointer");
 		LogInfo("--------");
@@ -715,6 +715,7 @@ bool NormalCode_Type_1(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
 	{
 	case 0x0: con = (Memory::Read_U8(new_addr) == (u8)(data & 0xFF)); break;
 	case 0x1: con = (Memory::Read_U16(new_addr) == (u16)(data & 0xFFFF)); break;
+	case 0x3:
 	case 0x2: con = (Memory::Read_U32(new_addr) == data); break;
 	default:
 		LogInfo("Bad Size");
@@ -749,6 +750,7 @@ bool NormalCode_Type_2(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
 	{
 	case 0x0: con = (Memory::Read_U8(new_addr) != (u8)(data & 0xFF)); break;
 	case 0x1: con = (Memory::Read_U16(new_addr) != (u16)(data & 0xFFFF)); break;
+	case 0x3:
 	case 0x2: con = (Memory::Read_U32(new_addr) != data); break;
 	default:
 		LogInfo("Bad Size");
@@ -783,6 +785,7 @@ bool NormalCode_Type_3(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
 	{
 	case 0x0: con = ((char)Memory::Read_U8(new_addr) < (char)(data & 0xFF)); break;
 	case 0x1: con = ((short)Memory::Read_U16(new_addr) < (short)(data & 0xFFFF)); break;
+	case 0x3:
 	case 0x2: con = ((int)Memory::Read_U32(new_addr) < (int)data); break;
 	default:
 		LogInfo("Bad Size");
@@ -817,6 +820,7 @@ bool NormalCode_Type_4(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
 	{
 	case 0x0: con = ((char)Memory::Read_U8(new_addr) > (char)(data & 0xFF)); break;
 	case 0x1: con = ((short)Memory::Read_U16(new_addr) > (short)(data & 0xFFFF)); break;
+	case 0x3:
 	case 0x2: con = ((int)Memory::Read_U32(new_addr) > (int)data); break;
 	default:
 		LogInfo("Bad Size");
@@ -851,6 +855,7 @@ bool NormalCode_Type_5(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
 	{
 	case 0x0: con = (Memory::Read_U8(new_addr) < (data & 0xFF)); break;
 	case 0x1: con = (Memory::Read_U16(new_addr) < (data & 0xFFFF)); break;
+	case 0x3:
 	case 0x2: con = (Memory::Read_U32(new_addr) < data); break;
 	default:
 		LogInfo("Bad Size");
@@ -885,6 +890,7 @@ bool NormalCode_Type_6(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
 	{
 	case 0x0: con = (Memory::Read_U8(new_addr) > (data & 0xFF)); break;
 	case 0x1: con = (Memory::Read_U16(new_addr) > (data & 0xFFFF)); break;
+	case 0x3:
 	case 0x2: con = (Memory::Read_U32(new_addr) > data); break;
 	default:
 		LogInfo("Bad Size");
@@ -919,6 +925,7 @@ bool NormalCode_Type_7(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
 	{
 	case 0x0: con = ((Memory::Read_U8(new_addr) & (data & 0xFF)) != 0); break;
 	case 0x1: con = ((Memory::Read_U16(new_addr) & (data & 0xFFFF)) != 0); break;
+	case 0x3:
 	case 0x2: con = ((Memory::Read_U32(new_addr) & data) != 0); break;
 	default:
 		LogInfo("Bad Size");
