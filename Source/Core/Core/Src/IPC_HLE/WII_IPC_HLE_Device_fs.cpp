@@ -240,8 +240,8 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 
 			LOG(WII_IPC_FILEIO, "FS: CREATE_DIR %s", DirName.c_str());
 
-			DirName += "\\";
-			File::CreateDirectoryStructure(DirName);
+			DirName += DIR_SEP;
+			File::CreateDirectoryStructure(DirName );
 			_dbg_assert_msg_(WII_IPC_FILEIO, File::IsDirectory(DirName.c_str()), "FS: CREATE_DIR %s failed", DirName.c_str());
 
 			return FS_RESULT_OK;

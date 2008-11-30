@@ -167,9 +167,7 @@ bool CreateDirectoryStructure(const std::string& _rFullPath)
 	{
 		// find next sub path
 		{
-			size_t nextPosition = _rFullPath.find('/', Position);
-			if (nextPosition == std::string::npos)
-				nextPosition = _rFullPath.find('\\', Position);
+			size_t nextPosition = _rFullPath.find(DIR_SEP, Position);
 			Position = nextPosition;
 
 			if (Position == std::string::npos)
