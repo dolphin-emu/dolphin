@@ -104,16 +104,13 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 
     if (m_pFileHandle != NULL)
     {
-        fseek(m_pFileHandle, 0, SEEK_END);
-        m_FileLength = (u32)ftell(m_pFileHandle);
-        rewind(m_pFileHandle);
-
-		ReturnValue = GetDeviceID();
+        m_FileLength = File::GetSize(m_Filename.c_str());
+        ReturnValue = GetDeviceID();
     }
     else
     {
-		LOG(WII_IPC_FILEIO, "    failed - File doesn't exist");
-		ReturnValue = -106;
+        LOG(WII_IPC_FILEIO, "    failed - File doesn't exist");
+        ReturnValue = -106;
     }
 
     Memory::Write_U32(ReturnValue, _CommandAddress+4);
@@ -133,9 +130,12 @@ CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	switch(Mode)
 	{
 	case 0:
-		fseek(m_pFileHandle, SeekPosition, SEEK_SET);
+            if (fseek(m_pFileHandle, SeekPosition, SEEK_SET) == 0) {
 		// Seek always return the seek position for success
 		ReturnValue = SeekPosition;		
+            } else {
+                LOG(WII_IPC_FILEIO, "FILEIO: Seek failed");
+            }
 		break;
 
 	case 1: // cur
@@ -212,8 +212,8 @@ CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
     {
     case ISFS_IOCTL_GETFILESTATS:
         {
-			u32 Position = (u32)ftell(m_pFileHandle);
-
+            u32 Position = (u32)ftell(m_pFileHandle);
+            
             u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
             LOG(WII_IPC_FILEIO, "FileIO: ISFS_IOCTL_GETFILESTATS");
             LOG(WII_IPC_FILEIO, "    Length: %i   Seek: %i", m_FileLength, Position);

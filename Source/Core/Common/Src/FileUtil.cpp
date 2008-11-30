@@ -32,6 +32,9 @@
 #include <stdlib.h>
 #endif
 
+#include <fstream>
+
+
 namespace File
 {
 
@@ -221,6 +224,52 @@ bool Copy(const char *srcFilename, const char *destFilename)
 	return CopyFile(srcFilename, destFilename, FALSE);
 #else
 
+#define BSIZE 1024
+
+        int rnum, wnum, err;
+        char buffer[BSIZE];
+        FILE *output, *input;
+                
+        if (! (input = fopen(srcFilename, "r"))) {
+            err = errno;
+            PanicAlert("Error copying from %s: %s", srcFilename, strerror(err));
+            return false;
+        }
+
+        if (! (output = fopen(destFilename, "w"))) {
+            err = errno;
+            PanicAlert("Error copying to %s: %s", destFilename, strerror(err));
+            return false;
+        }
+
+	while(! feof(input)) {	
+            if((rnum = fread(buffer, sizeof(char), BSIZE, input)) != BSIZE) {
+		if(ferror(input) != 0){
+                    PanicAlert("can't read source file\n");
+                    return false;
+                }
+            }
+            
+            if((wnum = fwrite(buffer, sizeof(char), rnum, output))!= rnum){
+		PanicAlert("can't write output file\n");
+		return false;
+            }
+	}
+        
+        fclose(input);
+        fclose(output);
+
+        return true;
+      /*
+        std::ifstream ifs(srcFilename, std::ios::binary);
+        std::ofstream ofs(destFilename, std::ios::binary);
+        
+        ofs << ifs.rdbuf();
+
+        ifs.close();
+        ofs.close();
+          
+        return true;*/
 #endif
 }
 
