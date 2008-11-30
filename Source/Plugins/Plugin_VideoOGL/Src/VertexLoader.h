@@ -90,9 +90,6 @@ private:
 
 	int m_numLoadedVertices;
 
-	void SetupColor(int num, int _iMode, int _iFormat, int _iElements);
-	void SetupTexCoord(int num, int _iMode, int _iFormat, int _iElements, int _iFrac);
-
 	void SetVAT(u32 _group0, u32 _group1, u32 _group2);
 
 	void CompileVertexTranslator();

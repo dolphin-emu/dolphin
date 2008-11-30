@@ -142,11 +142,14 @@ VertexLoader::~VertexLoader()
 void VertexLoader::CompileVertexTranslator()
 {
 	m_VertexSize = 0;
+	const TVtxAttr &vtx_attr = m_VtxAttr;
+	const TVtxDesc &vtx_desc = m_VtxDesc;
 
 #ifdef USE_JIT
 	u8 *old_code_ptr = GetWritableCodePtr();
 	SetCodePtr(m_compiledCode);
 	ABI_EmitPrologue(4);
+	MOV(32, R(EBX), M(&loop_counter));
 	// Start loop here
 	const u8 *loop_start = GetCodePtr();
 
@@ -180,11 +183,15 @@ void VertexLoader::CompileVertexTranslator()
 	m_numPipelineStages = 0;
 
 	// It's a bit ugly that we poke inside m_NativeFmt in this function. Planning to fix this.
-	native_stride = 0;
 	m_NativeFmt->m_components = 0;
 
-	// Position
-	int offset = 0;
+	// Position in pc vertex format.
+	int nat_offset = 0;
+	PortableVertexDeclaration vtx_decl;
+	memset(&vtx_decl, 0, sizeof(vtx_decl));
+	for (int i = 0; i < 8; i++) {
+		vtx_decl.texcoord_offset[i] = -1;
+	}
 
 	// m_VBVertexStride for texmtx and posmtx is computed later when writing.
 	
@@ -206,8 +213,7 @@ void VertexLoader::CompileVertexTranslator()
 
 	// Position
 	if (m_VtxDesc.Position != NOT_PRESENT) {
-		offset += 12;
-		native_stride += 12;
+		nat_offset += 12;
 	}
 
 	switch (m_VtxDesc.Position) {
@@ -249,6 +255,7 @@ void VertexLoader::CompileVertexTranslator()
 	}
 
 	// Normals
+	vtx_decl.num_normals = 0;
 	if (m_VtxDesc.Normal != NOT_PRESENT) {
 		m_VertexSize += VertexLoader_Normal::GetSize(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
 		TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
@@ -260,17 +267,48 @@ void VertexLoader::CompileVertexTranslator()
 		}
 		WriteCall(pFunc);
 
-		int sizePro = 0;
-		switch (m_VtxAttr.NormalFormat)
-		{
-		case FORMAT_UBYTE:	sizePro = 1*4; break;
-		case FORMAT_BYTE:	sizePro = 1*4; break;
-		case FORMAT_USHORT:	sizePro = 2*4; break;
-		case FORMAT_SHORT:	sizePro = 2*4; break;
-		case FORMAT_FLOAT:	sizePro = 4*3; break;
+		vtx_decl.num_normals = vtx_attr.NormalElements ? 3 : 1;
+		switch (vtx_attr.NormalFormat) {
+		case FORMAT_UBYTE:	
+		case FORMAT_BYTE:
+			vtx_decl.normal_gl_type = VAR_BYTE;
+			vtx_decl.normal_gl_size = 4;
+			vtx_decl.normal_offset[0] = nat_offset;
+			nat_offset += 4;
+			if (vtx_attr.NormalElements) {
+				vtx_decl.normal_offset[1] = nat_offset;
+				nat_offset += 4;
+				vtx_decl.normal_offset[2] = nat_offset;
+				nat_offset += 4;
+			}
+			break;
+		case FORMAT_USHORT:
+		case FORMAT_SHORT:
+			vtx_decl.normal_gl_type = VAR_SHORT;
+			vtx_decl.normal_gl_size = 4;
+			vtx_decl.normal_offset[0] = nat_offset;
+			nat_offset += 8;
+			if (vtx_attr.NormalElements) {
+				vtx_decl.normal_offset[1] = nat_offset;
+				nat_offset += 8;
+				vtx_decl.normal_offset[2] = nat_offset;
+				nat_offset += 8;
+			}
+			break;
+		case FORMAT_FLOAT:
+			vtx_decl.normal_gl_type = VAR_FLOAT;
+			vtx_decl.normal_gl_size = 3;
+			vtx_decl.normal_offset[0] = nat_offset;
+			nat_offset += 12;
+			if (vtx_attr.NormalElements) {
+				vtx_decl.normal_offset[1] = nat_offset;
+				nat_offset += 12;
+				vtx_decl.normal_offset[2] = nat_offset;
+				nat_offset += 12;
+			}
+			break;
 		default: _assert_(0); break;
 		}
-		native_stride += sizePro * (m_VtxAttr.NormalElements?3:1);
 
 		int numNormals = (m_VtxAttr.NormalElements == 1) ? NRM_THREE : NRM_ONE;
 		m_NativeFmt->m_components |= VB_HAS_NRM0;
@@ -278,17 +316,26 @@ void VertexLoader::CompileVertexTranslator()
 		if (numNormals == NRM_THREE)
 			m_NativeFmt->m_components |= VB_HAS_NRM1 | VB_HAS_NRM2;
 	}
-	
-	for (int i = 0; i < 2; i++) {
-		SetupColor(i, col[i], m_VtxAttr.color[i].Comp, m_VtxAttr.color[i].Elements);
 
-		if (col[i] != NOT_PRESENT)
-			native_stride += 4;
+	vtx_decl.color_gl_type = VAR_UNSIGNED_BYTE;
+	for (int i = 0; i < 2; i++) {
+		m_NativeFmt->m_components |= VB_HAS_COL0 << i;
 		switch (col[i])
 		{
 		case NOT_PRESENT: 
+			m_NativeFmt->m_components &= ~(VB_HAS_COL0 << i);
 			break;
 		case DIRECT:
+			switch (m_VtxAttr.color[i].Comp)
+			{
+			case FORMAT_16B_565:	WriteCall(Color_ReadDirect_16b_565); break;
+			case FORMAT_24B_888:	WriteCall(Color_ReadDirect_24b_888); break;
+			case FORMAT_32B_888x:	WriteCall(Color_ReadDirect_32b_888x); break;
+			case FORMAT_16B_4444:	WriteCall(Color_ReadDirect_16b_4444); break;
+			case FORMAT_24B_6666:	WriteCall(Color_ReadDirect_24b_6666); break;
+			case FORMAT_32B_8888:	WriteCall(Color_ReadDirect_32b_8888); break;
+			default: _assert_(0); break;
+			}
 			switch (m_VtxAttr.color[i].Comp)
 			{
 			case FORMAT_16B_565:	m_VertexSize += 2; break;
@@ -301,32 +348,114 @@ void VertexLoader::CompileVertexTranslator()
 			}									    
 			break;
 		case INDEX8:	
+			switch (m_VtxAttr.color[i].Comp)
+			{
+			case FORMAT_16B_565:	WriteCall(Color_ReadIndex8_16b_565); break;
+			case FORMAT_24B_888:	WriteCall(Color_ReadIndex8_24b_888); break;
+			case FORMAT_32B_888x:	WriteCall(Color_ReadIndex8_32b_888x); break;
+			case FORMAT_16B_4444:	WriteCall(Color_ReadIndex8_16b_4444); break;
+			case FORMAT_24B_6666:	WriteCall(Color_ReadIndex8_24b_6666); break;
+			case FORMAT_32B_8888:	WriteCall(Color_ReadIndex8_32b_8888); break;
+			default: _assert_(0); break;
+			}
 			m_VertexSize += 1;
 			break;
 		case INDEX16:
+			switch (m_VtxAttr.color[i].Comp)
+			{
+			case FORMAT_16B_565:	WriteCall(Color_ReadIndex16_16b_565); break;
+			case FORMAT_24B_888:	WriteCall(Color_ReadIndex16_24b_888); break;
+			case FORMAT_32B_888x:	WriteCall(Color_ReadIndex16_32b_888x); break;
+			case FORMAT_16B_4444:	WriteCall(Color_ReadIndex16_16b_4444); break;
+			case FORMAT_24B_6666:	WriteCall(Color_ReadIndex16_24b_6666); break;
+			case FORMAT_32B_8888:	WriteCall(Color_ReadIndex16_32b_8888); break;
+			default: _assert_(0); break;
+			}
 			m_VertexSize += 2;
 			break;
+		}
+
+		if (col[i] != NOT_PRESENT) {
+			vtx_decl.color_offset[i] = nat_offset;
+			nat_offset += 4;
+		} else {
+			vtx_decl.color_offset[i] = -1;
 		}
 	}
 
 	// Texture matrix indices (remove if corresponding texture coordinate isn't enabled)
 	for (int i = 0; i < 8; i++) {
-		SetupTexCoord(i, tc[i], m_VtxAttr.texCoord[i].Format, m_VtxAttr.texCoord[i].Elements, m_VtxAttr.texCoord[i].Frac);
+		m_NativeFmt->m_components |= VB_HAS_UV0 << i;
+		int elements = m_VtxAttr.texCoord[i].Elements;
+		switch (tc[i])
+		{
+		case NOT_PRESENT: 
+			m_NativeFmt->m_components &= ~(VB_HAS_UV0 << i);
+			break;
+		case DIRECT:
+			switch (m_VtxAttr.texCoord[i].Format)
+			{
+			case FORMAT_UBYTE:	m_VertexSize += elements?2:1; WriteCall(elements?TexCoord_ReadDirect_UByte2:TexCoord_ReadDirect_UByte1);  break;
+			case FORMAT_BYTE:	m_VertexSize += elements?2:1; WriteCall(elements?TexCoord_ReadDirect_Byte2:TexCoord_ReadDirect_Byte1);   break;
+			case FORMAT_USHORT:	m_VertexSize += elements?4:2; WriteCall(elements?TexCoord_ReadDirect_UShort2:TexCoord_ReadDirect_UShort1); break;
+			case FORMAT_SHORT:	m_VertexSize += elements?4:2; WriteCall(elements?TexCoord_ReadDirect_Short2:TexCoord_ReadDirect_Short1);  break;
+			case FORMAT_FLOAT:	m_VertexSize += elements?8:4; WriteCall(elements?TexCoord_ReadDirect_Float2:TexCoord_ReadDirect_Float1);  break;
+			default: _assert_(0); break;
+			}
+			break;
+		case INDEX8:	
+			m_VertexSize += 1;
+			switch (m_VtxAttr.texCoord[i].Format)
+			{
+			case FORMAT_UBYTE:	WriteCall(elements?TexCoord_ReadIndex8_UByte2:TexCoord_ReadIndex8_UByte1);  break;
+			case FORMAT_BYTE:	WriteCall(elements?TexCoord_ReadIndex8_Byte2:TexCoord_ReadIndex8_Byte1);   break;
+			case FORMAT_USHORT:	WriteCall(elements?TexCoord_ReadIndex8_UShort2:TexCoord_ReadIndex8_UShort1); break;
+			case FORMAT_SHORT:	WriteCall(elements?TexCoord_ReadIndex8_Short2:TexCoord_ReadIndex8_Short1);  break;
+			case FORMAT_FLOAT:	WriteCall(elements?TexCoord_ReadIndex8_Float2:TexCoord_ReadIndex8_Float1);  break;
+			default: _assert_(0); break;
+			}
+			break;
+		case INDEX16:
+			m_VertexSize += 2;
+			switch (m_VtxAttr.texCoord[i].Format)
+			{
+			case FORMAT_UBYTE:	WriteCall(elements?TexCoord_ReadIndex16_UByte2:TexCoord_ReadIndex16_UByte1);  break;
+			case FORMAT_BYTE:	WriteCall(elements?TexCoord_ReadIndex16_Byte2:TexCoord_ReadIndex16_Byte1);   break;
+			case FORMAT_USHORT:	WriteCall(elements?TexCoord_ReadIndex16_UShort2:TexCoord_ReadIndex16_UShort1); break;
+			case FORMAT_SHORT:	WriteCall(elements?TexCoord_ReadIndex16_Short2:TexCoord_ReadIndex16_Short1);  break;
+			case FORMAT_FLOAT:	WriteCall(elements?TexCoord_ReadIndex16_Float2:TexCoord_ReadIndex16_Float1);  break;
+			default: _assert_(0);
+			}
+			break;
+		}
+
 		if (m_NativeFmt->m_components & (VB_HAS_TEXMTXIDX0 << i)) {
 			if (tc[i] != NOT_PRESENT) {
 				// if texmtx is included, texcoord will always be 3 floats, z will be the texmtx index
+				vtx_decl.texcoord_offset[i] = nat_offset;
+				vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
+				vtx_decl.texcoord_size[i] = 3;
+				nat_offset += 12;
 				WriteCall(m_VtxAttr.texCoord[i].Elements ? TexMtx_Write_Float : TexMtx_Write_Float2);
-				native_stride += 12;
 			}
 			else {
-				WriteCall(TexMtx_Write_Short3);
-				native_stride += 8; // still include the texture coordinate, but this time as 6 + 2 bytes
 				m_NativeFmt->m_components |= VB_HAS_UV0 << i; // have to include since using now
+				vtx_decl.texcoord_offset[i] = nat_offset;
+				vtx_decl.texcoord_gl_type[i] = VAR_SHORT;
+				vtx_decl.texcoord_size[i] = 4;
+				nat_offset += 8; // still include the texture coordinate, but this time as 6 + 2 bytes
+				WriteCall(TexMtx_Write_Short3);
 			}
 		}
 		else {
-			if (tc[i] != NOT_PRESENT)
-				native_stride += 4 * (m_VtxAttr.texCoord[i].Elements ? 2 : 1);
+			if (tc[i] != NOT_PRESENT) {
+				vtx_decl.texcoord_offset[i] = nat_offset;
+				vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
+				vtx_decl.texcoord_size[i] = vtx_attr.texCoord[i].Elements ? 2 : 1;
+				nat_offset += 4 * (vtx_attr.texCoord[i].Elements ? 2 : 1);
+			} else {
+				vtx_decl.texcoord_offset[i] = -1;
+			}
 		}
 
 		if (tc[i] == NOT_PRESENT) {
@@ -338,249 +467,33 @@ void VertexLoader::CompileVertexTranslator()
 					break;
 				}
 			}
-			if (j == 8 && !((m_NativeFmt->m_components & VB_HAS_TEXMTXIDXALL) & (VB_HAS_TEXMTXIDXALL << (i + 1)))) // no more tex coords and tex matrices, so exit loop
+			// tricky!
+			if (j == 8 && !((m_NativeFmt->m_components & VB_HAS_TEXMTXIDXALL) & (VB_HAS_TEXMTXIDXALL << (i + 1)))) {
+				// no more tex coords and tex matrices, so exit loop
 				break;
-		}
-
-		switch (tc[i]) {
-		case NOT_PRESENT: 
-			break;
-		case DIRECT: 
-			{
-				switch (m_VtxAttr.texCoord[i].Format)
-				{
-				case FORMAT_UBYTE:
-				case FORMAT_BYTE: m_VertexSize += m_VtxAttr.texCoord[i].Elements?2:1; break;
-				case FORMAT_USHORT:
-				case FORMAT_SHORT: m_VertexSize += m_VtxAttr.texCoord[i].Elements?4:2; break;
-				case FORMAT_FLOAT: m_VertexSize += m_VtxAttr.texCoord[i].Elements?8:4; break;
-				default: _assert_(0); break;
-				}
 			}
-			break;
-		case INDEX8:	
-			m_VertexSize += 1;
-			break;
-		case INDEX16:
-			m_VertexSize += 2;
-			break;
 		}
 	}
 
 	if (m_VtxDesc.PosMatIdx) {
 		WriteCall(PosMtx_Write);
-		native_stride += 4;
-	}
-
-	PortableVertexDeclaration vtx_decl;
-
-	// TODO - merge all the below into the ifs and stuff above.
-	// Also merge ComputeVertexSize into the result.
-	int m_components = m_NativeFmt->m_components;
-
-	const TVtxAttr &vtx_attr = m_VtxAttr;
-	const TVtxDesc &vtx_desc = m_VtxDesc;
-	// Normals
-	vtx_decl.num_normals = 0;
-	if (vtx_desc.Normal != NOT_PRESENT) {
-		vtx_decl.num_normals = vtx_attr.NormalElements ? 3 : 1;
-		switch (vtx_attr.NormalFormat) {
-		case FORMAT_UBYTE:	
-		case FORMAT_BYTE:
-			vtx_decl.normal_gl_type = VAR_BYTE;
-			vtx_decl.normal_gl_size = 4;
-			vtx_decl.normal_offset[0] = offset;
-			offset += 4;
-			if (vtx_attr.NormalElements) {
-				vtx_decl.normal_offset[1] = offset;
-				offset += 4;
-				vtx_decl.normal_offset[2] = offset;
-				offset += 4;
-			}
-			break;
-		case FORMAT_USHORT:
-		case FORMAT_SHORT:
-			vtx_decl.normal_gl_type = VAR_SHORT;
-			vtx_decl.normal_gl_size = 4;
-			vtx_decl.normal_offset[0] = offset;
-			offset += 8;
-			if (vtx_attr.NormalElements) {
-				vtx_decl.normal_offset[1] = offset;
-				offset += 8;
-				vtx_decl.normal_offset[2] = offset;
-				offset += 8;
-			}
-			break;
-		case FORMAT_FLOAT:
-			vtx_decl.normal_gl_type = VAR_FLOAT;
-			vtx_decl.normal_gl_size = 3;
-			vtx_decl.normal_offset[0] = offset;
-			offset += 12;
-			if (vtx_attr.NormalElements) {
-				vtx_decl.normal_offset[1] = offset;
-				offset += 12;
-				vtx_decl.normal_offset[2] = offset;
-				offset += 12;
-			}
-			break;
-		default: _assert_(0); break;
-		}
-	}
-
-	// TODO : With byte or short normals above, offset will be misaligned (not 4byte aligned)! Ugh!
-	vtx_decl.color_gl_type = VAR_UNSIGNED_BYTE;
-	for (int i = 0; i < 2; i++) {
-		if (col[i] != NOT_PRESENT) {
-			vtx_decl.color_offset[i] = offset;
-			offset += 4;
-		} else {
-			vtx_decl.color_offset[i] = -1;
-		}
-	}
-
-	// TextureCoord
-	for (int i = 0; i < 8; i++) {
-		if (tc[i] != NOT_PRESENT || (m_components & (VB_HAS_TEXMTXIDX0 << i))) {
-			if (m_components & (VB_HAS_TEXMTXIDX0 << i)) {
-				if (tc[i] != NOT_PRESENT) {
-					vtx_decl.texcoord_offset[i] = offset;
-					vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
-					vtx_decl.texcoord_size[i] = 3;
-					offset += 12;
-				}
-				else {
-					vtx_decl.texcoord_offset[i] = offset;
-					vtx_decl.texcoord_gl_type[i] = VAR_SHORT;
-					vtx_decl.texcoord_size[i] = 4;
-					offset += 8;
-				}
-			}
-			else {
-				vtx_decl.texcoord_offset[i] = offset;
-				vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
-				vtx_decl.texcoord_size[i] = vtx_attr.texCoord[i].Elements ? 2 : 1;
-				offset += 4 * (vtx_attr.texCoord[i].Elements ? 2 : 1);
-			}
-		} else {
-			vtx_decl.texcoord_offset[i] = -1;
-		}
-	}
-
-	if (vtx_desc.PosMatIdx) {
-		vtx_decl.posmtx_offset = offset;
-		offset += 4;
+		vtx_decl.posmtx_offset = nat_offset;
+		nat_offset += 4;
 	} else {
 		vtx_decl.posmtx_offset = -1;
 	}
 
+	native_stride = nat_offset;
 	vtx_decl.stride = native_stride;
-	if (vtx_decl.stride != offset)
-		PanicAlert("offset/stride mismatch, %i %i", vtx_decl.stride, offset);
 
 #ifdef USE_JIT
 	// End loop here
-	SUB(32, M(&loop_counter), Imm8(1));
+	SUB(32, R(EBX), Imm8(1));
 	J_CC(CC_NZ, loop_start, true);
 	ABI_EmitEpilogue(4);
 	SetCodePtr(old_code_ptr);
 #endif
 	m_NativeFmt->Initialize(vtx_decl);
-}
-
-void VertexLoader::SetupColor(int num, int mode, int format, int elements)
-{
-	// if COL0 not present, then embed COL1 into COL0
-//	if (num == 1 && !(m_NativeFmt->m_components & VB_HAS_COL0))
-//		num = 0;
-
-	m_NativeFmt->m_components |= VB_HAS_COL0 << num;
-	switch (mode)
-	{
-	case NOT_PRESENT: 
-		m_NativeFmt->m_components &= ~(VB_HAS_COL0 << num);
-		break;
-	case DIRECT:
-		switch (format)
-		{
-		case FORMAT_16B_565:	WriteCall(Color_ReadDirect_16b_565); break;
-		case FORMAT_24B_888:	WriteCall(Color_ReadDirect_24b_888); break;
-		case FORMAT_32B_888x:	WriteCall(Color_ReadDirect_32b_888x); break;
-		case FORMAT_16B_4444:	WriteCall(Color_ReadDirect_16b_4444); break;
-		case FORMAT_24B_6666:	WriteCall(Color_ReadDirect_24b_6666); break;
-		case FORMAT_32B_8888:	WriteCall(Color_ReadDirect_32b_8888); break;
-		default: _assert_(0); break;
-		}
-		break;
-	case INDEX8:	
-		switch (format)
-		{
-		case FORMAT_16B_565:	WriteCall(Color_ReadIndex8_16b_565); break;
-		case FORMAT_24B_888:	WriteCall(Color_ReadIndex8_24b_888); break;
-		case FORMAT_32B_888x:	WriteCall(Color_ReadIndex8_32b_888x); break;
-		case FORMAT_16B_4444:	WriteCall(Color_ReadIndex8_16b_4444); break;
-		case FORMAT_24B_6666:	WriteCall(Color_ReadIndex8_24b_6666); break;
-		case FORMAT_32B_8888:	WriteCall(Color_ReadIndex8_32b_8888); break;
-		default: _assert_(0); break;
-		}
-		break;
-	case INDEX16:
-		switch (format)
-		{
-		case FORMAT_16B_565:	WriteCall(Color_ReadIndex16_16b_565); break;
-		case FORMAT_24B_888:	WriteCall(Color_ReadIndex16_24b_888); break;
-		case FORMAT_32B_888x:	WriteCall(Color_ReadIndex16_32b_888x); break;
-		case FORMAT_16B_4444:	WriteCall(Color_ReadIndex16_16b_4444); break;
-		case FORMAT_24B_6666:	WriteCall(Color_ReadIndex16_24b_6666); break;
-		case FORMAT_32B_8888:	WriteCall(Color_ReadIndex16_32b_8888); break;
-		default: _assert_(0); break;
-		}
-		break;
-	}
-}
-
-void VertexLoader::SetupTexCoord(int num, int mode, int format, int elements, int _iFrac)
-{
-	m_NativeFmt->m_components |= VB_HAS_UV0 << num;
-	
-	switch (mode)
-	{
-	case NOT_PRESENT: 
-		m_NativeFmt->m_components &= ~(VB_HAS_UV0 << num);
-		break;
-	case DIRECT:
-		switch (format)
-		{
-		case FORMAT_UBYTE:	WriteCall(elements?TexCoord_ReadDirect_UByte2:TexCoord_ReadDirect_UByte1);  break;
-		case FORMAT_BYTE:	WriteCall(elements?TexCoord_ReadDirect_Byte2:TexCoord_ReadDirect_Byte1);   break;
-		case FORMAT_USHORT:	WriteCall(elements?TexCoord_ReadDirect_UShort2:TexCoord_ReadDirect_UShort1); break;
-		case FORMAT_SHORT:	WriteCall(elements?TexCoord_ReadDirect_Short2:TexCoord_ReadDirect_Short1);  break;
-		case FORMAT_FLOAT:	WriteCall(elements?TexCoord_ReadDirect_Float2:TexCoord_ReadDirect_Float1);  break;
-		default: _assert_(0); break;
-		}
-		break;
-	case INDEX8:	
-		switch (format)
-		{
-		case FORMAT_UBYTE:	WriteCall(elements?TexCoord_ReadIndex8_UByte2:TexCoord_ReadIndex8_UByte1);  break;
-		case FORMAT_BYTE:	WriteCall(elements?TexCoord_ReadIndex8_Byte2:TexCoord_ReadIndex8_Byte1);   break;
-		case FORMAT_USHORT:	WriteCall(elements?TexCoord_ReadIndex8_UShort2:TexCoord_ReadIndex8_UShort1); break;
-		case FORMAT_SHORT:	WriteCall(elements?TexCoord_ReadIndex8_Short2:TexCoord_ReadIndex8_Short1);  break;
-		case FORMAT_FLOAT:	WriteCall(elements?TexCoord_ReadIndex8_Float2:TexCoord_ReadIndex8_Float1);  break;
-		default: _assert_(0); break;
-		}
-		break;
-	case INDEX16:
-		switch (format)
-		{
-		case FORMAT_UBYTE:	WriteCall(elements?TexCoord_ReadIndex16_UByte2:TexCoord_ReadIndex16_UByte1);  break;
-		case FORMAT_BYTE:	WriteCall(elements?TexCoord_ReadIndex16_Byte2:TexCoord_ReadIndex16_Byte1);   break;
-		case FORMAT_USHORT:	WriteCall(elements?TexCoord_ReadIndex16_UShort2:TexCoord_ReadIndex16_UShort1); break;
-		case FORMAT_SHORT:	WriteCall(elements?TexCoord_ReadIndex16_Short2:TexCoord_ReadIndex16_Short1);  break;
-		case FORMAT_FLOAT:	WriteCall(elements?TexCoord_ReadIndex16_Float2:TexCoord_ReadIndex16_Float1);  break;
-		default: _assert_(0);
-		}
-		break;
-	}
 }
 
 void VertexLoader::WriteCall(TPipelineFunction func)
