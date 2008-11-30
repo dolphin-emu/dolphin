@@ -100,12 +100,12 @@ vars.AddVariables(
     EnumVariable('flavor', 'Choose a build flavor', 'release',
                  allowed_values = ('release', 'devel', 'debug'),
                  ignorecase = 2
-                 )
+                 ),
+    ('CC', 'The c compiler', 'gcc'),
+    ('CXX', 'The c++ compiler', 'g++'),
     )
 
 env = Environment(
-    CC = 'gcc',
-    CXX = 'g++',
     CPPPATH = include_paths,
     LIBPATH = lib_paths,
     variables = vars,
@@ -156,6 +156,10 @@ if env['lint']:
 
 # add the warnings to the compile flags
 compileFlags += [ '-W' + warning for warning in warnings ]
+
+# Handle the compilers
+CC = env['CC'],
+CXX = env['CXX'],
 
 env['CCFLAGS'] = compileFlags
 env['CXXFLAGS'] = compileFlags + [ '-fvisibility-inlines-hidden' ]
