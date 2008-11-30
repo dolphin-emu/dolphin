@@ -83,11 +83,16 @@ bool Delete(const char *filename)
 
 std::string SanitizePath(const char *filename)
 {
-	std::string copy = filename;
-	for (size_t i = 0; i < copy.size(); i++)
-		if (copy[i] == '/')
-			copy[i] = '\\';
-	return copy;
+
+    std::string copy = filename;
+#ifdef _WIN32
+    for (size_t i = 0; i < copy.size(); i++)
+        if (copy[i] == '/')
+            copy[i] = '\\';
+#else
+    // Should we do the otherway around?
+#endif
+    return copy;
 }
 
 void Launch(const char *filename)
