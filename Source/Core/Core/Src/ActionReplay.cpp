@@ -39,13 +39,14 @@
 namespace
 {
 	static std::vector<AREntry>::const_iterator iter;
-	static std::vector<ARCode> arCodes;
 	static ARCode code;
 	static bool b_RanOnce = false;
+	static std::vector<ARCode> arCodes;
+	static std::vector<ARCode> activeCodes;
 } // namespace
 
 void LogInfo(const char *format, ...);
-// --Codes--
+// --- Codes ---
 // SubTypes (Normal 0 Codes)
 bool Subtype_RamWriteAndFill(u32 addr, u32 data);
 bool Subtype_WriteToPointer(u32 addr, u32 data);
@@ -64,9 +65,9 @@ bool NormalCode_Type_5(u8 subtype, u32 addr, u32 data, int *count, bool *skip);
 bool NormalCode_Type_6(u8 subtype, u32 addr, u32 data, int *count, bool *skip);
 bool NormalCode_Type_7(u8 subtype, u32 addr, u32 data, int *count, bool *skip);
 
-// Parses the Action Replay section of a game ini file.
 void LoadActionReplayCodes(IniFile &ini) 
 {
+	// Parses the Action Replay section of a game ini file.
 	if (!Core::GetStartupParameter().bEnableCheats) 
 		return; // If cheats are off, do not load them
 
@@ -88,7 +89,7 @@ void LoadActionReplayCodes(IniFile &ini)
 		{
 			if (currentCode.ops.size())
 			{
-				if (currentCode.active) arCodes.push_back(currentCode); //temp hack to not store inactive codes
+				arCodes.push_back(currentCode);
 				currentCode.ops.clear();
 			}
 			if (encryptedLines.size())
@@ -98,13 +99,21 @@ void LoadActionReplayCodes(IniFile &ini)
 				currentCode.ops.clear();
 				encryptedLines.clear();
 			}
-			currentCode.name = line;
-			if (line[0] == '+'){
-				Core::DisplayMessage("AR code active: " + line, 5000);
-				currentCode.active = true;
+			
+			if(line.size() > 1)
+			{
+				if (line[0] == '+')
+				{
+					currentCode.active = true;
+					currentCode.name = line.substr(2, line.size() - 2);;
+					Core::DisplayMessage("AR code active: " + currentCode.name, 5000);
+				}
+				else
+				{
+					currentCode.active = false;
+					currentCode.name = line.substr(1, line.size() - 1);
+				}
 			}
-			else
-				currentCode.active = false;
 			continue;
 		}
 
@@ -147,6 +156,8 @@ void LoadActionReplayCodes(IniFile &ini)
 		DecryptARCode(encryptedLines, currentCode.ops);
 		arCodes.push_back(currentCode);
 	}
+
+	ActionReplay_UpdateActiveList();
 }
 
 void LogInfo(const char *format, ...)
@@ -164,7 +175,7 @@ void LogInfo(const char *format, ...)
 void ActionReplayRunAllActive()
 {
 	if (Core::GetStartupParameter().bEnableCheats) {
-		for (std::vector<ARCode>::iterator iter = arCodes.begin(); iter != arCodes.end(); ++iter)
+		for (std::vector<ARCode>::iterator iter = activeCodes.begin(); iter != activeCodes.end(); ++iter)
 			if (iter->active) {
 				if(!RunActionReplayCode(*iter))
 					iter->active = false;
@@ -176,11 +187,9 @@ void ActionReplayRunAllActive()
 }
 
 
-// The mechanism is slightly different than what the real AR uses, so there may be compatibility problems.
-// For example, some authors have created codes that add features to AR. Hacks for popular ones can be added here,
-// but the problem is not generally solvable.
-// TODO: what is "nowIsBootup" for?
+
 bool RunActionReplayCode(const ARCode &arcode) {
+	// The mechanism is slightly different than what the real AR uses, so there may be compatibility problems.
 	u8 cmd;
 	u32 addr;
 	u32 data;
@@ -216,6 +225,9 @@ bool RunActionReplayCode(const ARCode &arcode) {
 			if (!skip && count == 0) { LogInfo("Line skipped"); continue; }// Skip rest of lines
 			if (!skip && count > 0) count--; // execute n lines
 			// if -2 : execute all lines
+
+			if(b_RanOnce)
+				b_RanOnce = false;
 		}
 
 		cmd = iter->cmd_addr >> 24; // AR command
@@ -348,6 +360,10 @@ bool RunActionReplayCode(const ARCode &arcode) {
 			PanicAlert("Action Replay: Invalid Normal Code Type %08x (%s)", type, code.name.c_str());
 		}
 	}
+
+	if(b_RanOnce && cond)
+		b_RanOnce = true;
+
 	return true;
 }
 
@@ -925,4 +941,38 @@ bool NormalCode_Type_7(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
 		return false;
 	}
 	return true;
+}
+
+size_t ActionReplay_GetCodeListSize()
+{
+	return arCodes.size();
+}
+ARCode ActionReplay_GetARCode(size_t index)
+{
+	if (index > arCodes.size())
+	{
+		PanicAlert("ActionReplay_GetARCode: Index is greater than ar code list size %i", index);
+		return ARCode();
+	}
+	return arCodes[index];
+}
+void ActionReplay_SetARCode_IsActive(bool active, size_t index)
+{
+	if (index > arCodes.size())
+	{
+		PanicAlert("ActionReplay_SetARCode_IsActive: Index is greater than ar code list size %i", index);
+		return;
+	}
+	arCodes[index].active = active;
+	ActionReplay_UpdateActiveList();
+}
+void ActionReplay_UpdateActiveList()
+{
+	b_RanOnce = false;
+	activeCodes.clear();
+	for (size_t i = 0; i < arCodes.size(); i++)
+	{
+		if (arCodes[i].active)
+			activeCodes.push_back(arCodes[i]);
+	}
 }

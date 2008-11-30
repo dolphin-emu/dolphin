@@ -13,7 +13,7 @@ class CFrame : public wxFrame
 			const wxString& title = _T("Dolphin"),
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
-		long style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE);
+		long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
 		void* GetRenderHandle() {return(m_Panel->GetHandle());}
 
@@ -70,6 +70,7 @@ class CFrame : public wxFrame
 		void OnStop(wxCommandEvent& event);
 		void OnBrowse(wxCommandEvent& event);
 		void OnMemcard(wxCommandEvent& event);
+		void OnShow_CheatsWindow(wxCommandEvent& event);
 		void OnToggleFullscreen(wxCommandEvent& event);
 		void OnToggleDualCore(wxCommandEvent& event);
 		void OnToggleSkipIdle(wxCommandEvent& event);
@@ -81,7 +82,6 @@ class CFrame : public wxFrame
 		void OnLoadState(wxCommandEvent& event);
 		void OnSaveState(wxCommandEvent& event);
 		void OnClose(wxCloseEvent &event); 
-
 
 		wxStatusBar* m_pStatusBar;
 		wxMenuBar* m_pMenuBar;

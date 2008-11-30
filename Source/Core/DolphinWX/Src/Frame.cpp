@@ -29,6 +29,7 @@
 #include "ConfigMain.h"
 #include "PluginManager.h"
 #include "MemcardManager.h"
+#include "CheatsWindow.h"
 #include "AboutDolphin.h"
 
 #include <wx/mstream.h>
@@ -96,6 +97,7 @@ EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnPluginPAD)
 EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnPluginWiimote)
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
+EVT_MENU(IDM_CHEATS, OnShow_CheatsWindow)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
 EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
 EVT_MENU(IDM_TOGGLE_SKIPIDLE, CFrame::OnToggleSkipIdle)
@@ -123,6 +125,12 @@ EVT_MENU(IDM_SAVESLOT9, CFrame::OnSaveState)
 EVT_MENU(IDM_SAVESLOT10, CFrame::OnSaveState)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 END_EVENT_TABLE()
+
+// ----------------------------------------------------------------------------
+// Other Windows
+// ----------------------------------------------------------------------------
+
+wxCheatsWindow* CheatsWindow;
 
 // ----------------------------------------------------------------------------
 // implementation
@@ -252,6 +260,7 @@ void CFrame::CreateMenu()
 	miscMenu->Check(IDM_TOGGLE_STATUSBAR, true);
 	miscMenu->AppendSeparator();
 	miscMenu->Append(IDM_MEMCARD, _T("&Memcard manager"));
+	miscMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
 	m_pMenuBar->Append(miscMenu, _T("&Misc"));
 
 	// help menu
@@ -506,6 +515,11 @@ void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))
 {
 	CMemcardManager MemcardManager(this);
 	MemcardManager.ShowModal();
+}
+
+void CFrame::OnShow_CheatsWindow(wxCommandEvent& WXUNUSED (event))
+{
+	CheatsWindow = new wxCheatsWindow(this, wxDefaultPosition, wxSize(600, 390));
 }
 
 void CFrame::OnHostMessage(wxCommandEvent& event)

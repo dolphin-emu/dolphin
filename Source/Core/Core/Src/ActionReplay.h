@@ -14,6 +14,7 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #ifndef _ACTIONREPLAY_H_
 #define _ACTIONREPLAY_H_
 
@@ -33,5 +34,9 @@ struct ARCode {
 void ActionReplayRunAllActive();
 bool RunActionReplayCode(const ARCode &arcode);
 void LoadActionReplayCodes(IniFile &ini);
+size_t ActionReplay_GetCodeListSize();
+ARCode ActionReplay_GetARCode(size_t index);
+void ActionReplay_SetARCode_IsActive(bool active, size_t index);
+void ActionReplay_UpdateActiveList();
 
 #endif //_ACTIONREPLAY_H_
