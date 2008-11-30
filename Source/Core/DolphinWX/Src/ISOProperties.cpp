@@ -34,6 +34,7 @@ struct ARListCode {
 	std::vector<std::string> ops;
 	u32 uiIndex;
 };
+
 std::vector<ARListCode> ARCodes;
 
 BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
@@ -129,7 +130,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	CreateDirectoryTree(RootId, beginning, end, pos, (char *)"\\");	
 	m_Treectrl->Expand(RootId);
 
-	SetTitle(wxString::Format(_("Properties: %s - %s"), OpenISO_.GetUniqueID().c_str(), OpenISO_.GetName().c_str()));
+	std::string filename, extension;
+	SplitPath(fileName, 0, &filename, &extension);
+	SetTitle(wxString::Format(_("%s%s: %s - %s"), filename.c_str(), extension.c_str(), OpenISO_.GetUniqueID().c_str(), OpenISO_.GetName().c_str()));
 }
 
 CISOProperties::~CISOProperties()
