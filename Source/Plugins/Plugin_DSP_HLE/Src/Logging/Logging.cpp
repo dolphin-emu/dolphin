@@ -537,7 +537,7 @@ bool PrepareConditions(bool Wii, int i, ParamBlockType &PBs)
 
 	if (m_frame->gOnlyLooping) // show only looping blocks
 	{
-		Conditions = PBs[i].audio_addr.looping;
+		Conditions = PBs[i].audio_addr.looping ? true : false;
 	}
 	else if (m_frame->gShowAll) // show all blocks
 	{

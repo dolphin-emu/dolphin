@@ -51,8 +51,6 @@ int ReadOutPBs(AXParamBlock * _pPBs, int _num)
 	u32 blockAddr = m_addressPBs;
 	u32 OldblockAddr = blockAddr;
 	u32 paraAddr = blockAddr;
-	int myDifference;
-
 
 	// reading and 'halfword' swap
 	n++;
