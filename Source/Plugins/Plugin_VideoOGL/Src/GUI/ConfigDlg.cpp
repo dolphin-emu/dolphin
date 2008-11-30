@@ -123,11 +123,11 @@ void ConfigDialog::CreateGUIControls()
 	m_ForceFiltering->SetValue(g_Config.bForceFiltering);
 	wxStaticText *AnisoText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Anisotropic filter:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_MaxAnisotropyCB = new wxChoice(m_PageGeneral, ID_MAXANISOTROPY, wxDefaultPosition, wxDefaultSize, arrayStringFor_MaxAnisotropyCB, 0, wxDefaultValidator);
-	m_MaxAnisotropyCB->Append("1x");
-	m_MaxAnisotropyCB->Append("2x");
-	m_MaxAnisotropyCB->Append("4x");
-	m_MaxAnisotropyCB->Append("8x");
-	m_MaxAnisotropyCB->Append("16x");
+	m_MaxAnisotropyCB->Append(wxT("1x"));
+	m_MaxAnisotropyCB->Append(wxT("2x"));
+	m_MaxAnisotropyCB->Append(wxT("4x"));
+	m_MaxAnisotropyCB->Append(wxT("8x"));
+	m_MaxAnisotropyCB->Append(wxT("16x"));
 	m_MaxAnisotropyCB->SetSelection(g_Config.iMaxAnisotropy - 1);
 
 	wxStaticText *AAText = new wxStaticText(m_PageGeneral, ID_AATEXT, wxT("Anti-alias mode:"),  wxDefaultPosition, wxDefaultSize, 0);
