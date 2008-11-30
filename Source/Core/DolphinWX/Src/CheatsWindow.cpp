@@ -141,18 +141,18 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (e
 		if ((int)indexList[i].uiIndex == index)
 		{
 			ARCode code = ActionReplay_GetARCode(i);
-			m_Label_Codename->SetLabel("Name: " + wxString::FromAscii(code.name.c_str()));
+			m_Label_Codename->SetLabel(wxT("Name: ") + wxString::FromAscii(code.name.c_str()));
 			char text[CHAR_MAX];
 			char* numcodes = text;
 			sprintf(numcodes, "Number of Codes: %i", code.ops.size());
-			m_Label_NumCodes->SetLabel(numcodes);
+			m_Label_NumCodes->SetLabel(wxString::FromAscii(numcodes));
 			m_ListBox_CodesList->Clear();
 			for (size_t j = 0; j < code.ops.size(); j++)
 			{
 				char text2[CHAR_MAX];
 			    char* ops = text2;
 				sprintf(ops, "%08x %08x", code.ops[j].cmd_addr, code.ops[j].value);
-				m_ListBox_CodesList->Append(ops);
+				m_ListBox_CodesList->Append(wxString::FromAscii(ops));
 			}
 		}
 	}
