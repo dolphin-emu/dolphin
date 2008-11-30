@@ -211,24 +211,18 @@ void VertexLoader::CompileVertexTranslator()
 	if (m_VtxDesc.Tex6MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX6; WriteCall(TexMtx_ReadDirect_UByte); }
 	if (m_VtxDesc.Tex7MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX7; WriteCall(TexMtx_ReadDirect_UByte); }
 
-	// Position
-	if (m_VtxDesc.Position != NOT_PRESENT) {
-		nat_offset += 12;
-	}
-
 	switch (m_VtxDesc.Position) {
 	case NOT_PRESENT:	{_assert_msg_(0, "Vertex descriptor without position!", "WTF?");} break;
 	case DIRECT:
-		{
-			switch (m_VtxAttr.PosFormat) {
-	        case FORMAT_UBYTE:  m_VertexSize += m_VtxAttr.PosElements?3:2; WriteCall(Pos_ReadDirect_UByte);  break;
-			case FORMAT_BYTE:   m_VertexSize += m_VtxAttr.PosElements?3:2; WriteCall(Pos_ReadDirect_Byte);   break;
-			case FORMAT_USHORT: m_VertexSize += m_VtxAttr.PosElements?6:4; WriteCall(Pos_ReadDirect_UShort); break;
-			case FORMAT_SHORT:  m_VertexSize += m_VtxAttr.PosElements?6:4; WriteCall(Pos_ReadDirect_Short);  break;
-			case FORMAT_FLOAT:  m_VertexSize += m_VtxAttr.PosElements?12:8; WriteCall(Pos_ReadDirect_Float);  break;
-			default: _assert_(0); break;
-			}
+		switch (m_VtxAttr.PosFormat) {
+        case FORMAT_UBYTE:  m_VertexSize += m_VtxAttr.PosElements?3:2; WriteCall(Pos_ReadDirect_UByte);  break;
+		case FORMAT_BYTE:   m_VertexSize += m_VtxAttr.PosElements?3:2; WriteCall(Pos_ReadDirect_Byte);   break;
+		case FORMAT_USHORT: m_VertexSize += m_VtxAttr.PosElements?6:4; WriteCall(Pos_ReadDirect_UShort); break;
+		case FORMAT_SHORT:  m_VertexSize += m_VtxAttr.PosElements?6:4; WriteCall(Pos_ReadDirect_Short);  break;
+		case FORMAT_FLOAT:  m_VertexSize += m_VtxAttr.PosElements?12:8; WriteCall(Pos_ReadDirect_Float);  break;
+		default: _assert_(0); break;
 		}
+		nat_offset += 12;
 		break;
 	case INDEX8:		
 		switch (m_VtxAttr.PosFormat) {
@@ -240,6 +234,7 @@ void VertexLoader::CompileVertexTranslator()
 		default: _assert_(0); break;
 		}
 		m_VertexSize += 1;
+		nat_offset += 12;
 		break;
 	case INDEX16:
 		switch (m_VtxAttr.PosFormat) {
@@ -251,6 +246,7 @@ void VertexLoader::CompileVertexTranslator()
 		default: _assert_(0); break;
 		}
 		m_VertexSize += 2;
+		nat_offset += 12;
 		break;
 	}
 
@@ -324,30 +320,22 @@ void VertexLoader::CompileVertexTranslator()
 		{
 		case NOT_PRESENT: 
 			m_NativeFmt->m_components &= ~(VB_HAS_COL0 << i);
+			vtx_decl.color_offset[i] = -1;
 			break;
 		case DIRECT:
 			switch (m_VtxAttr.color[i].Comp)
 			{
-			case FORMAT_16B_565:	WriteCall(Color_ReadDirect_16b_565); break;
-			case FORMAT_24B_888:	WriteCall(Color_ReadDirect_24b_888); break;
-			case FORMAT_32B_888x:	WriteCall(Color_ReadDirect_32b_888x); break;
-			case FORMAT_16B_4444:	WriteCall(Color_ReadDirect_16b_4444); break;
-			case FORMAT_24B_6666:	WriteCall(Color_ReadDirect_24b_6666); break;
-			case FORMAT_32B_8888:	WriteCall(Color_ReadDirect_32b_8888); break;
+			case FORMAT_16B_565:	m_VertexSize += 2; WriteCall(Color_ReadDirect_16b_565); break;
+			case FORMAT_24B_888:	m_VertexSize += 3; WriteCall(Color_ReadDirect_24b_888); break;
+			case FORMAT_32B_888x:	m_VertexSize += 4; WriteCall(Color_ReadDirect_32b_888x); break;
+			case FORMAT_16B_4444:	m_VertexSize += 2; WriteCall(Color_ReadDirect_16b_4444); break;
+			case FORMAT_24B_6666:	m_VertexSize += 3; WriteCall(Color_ReadDirect_24b_6666); break;
+			case FORMAT_32B_8888:	m_VertexSize += 4; WriteCall(Color_ReadDirect_32b_8888); break;
 			default: _assert_(0); break;
 			}
-			switch (m_VtxAttr.color[i].Comp)
-			{
-			case FORMAT_16B_565:	m_VertexSize += 2; break;
-			case FORMAT_24B_888:	m_VertexSize += 3; break;
-			case FORMAT_32B_888x:	m_VertexSize += 4; break;
-			case FORMAT_16B_4444:	m_VertexSize += 2; break;
-			case FORMAT_24B_6666:	m_VertexSize += 3; break;
-			case FORMAT_32B_8888:	m_VertexSize += 4; break;
-			default: _assert_(0); break;
-			}									    
 			break;
 		case INDEX8:	
+			m_VertexSize += 1;
 			switch (m_VtxAttr.color[i].Comp)
 			{
 			case FORMAT_16B_565:	WriteCall(Color_ReadIndex8_16b_565); break;
@@ -358,9 +346,9 @@ void VertexLoader::CompileVertexTranslator()
 			case FORMAT_32B_8888:	WriteCall(Color_ReadIndex8_32b_8888); break;
 			default: _assert_(0); break;
 			}
-			m_VertexSize += 1;
 			break;
 		case INDEX16:
+			m_VertexSize += 2;
 			switch (m_VtxAttr.color[i].Comp)
 			{
 			case FORMAT_16B_565:	WriteCall(Color_ReadIndex16_16b_565); break;
@@ -371,15 +359,12 @@ void VertexLoader::CompileVertexTranslator()
 			case FORMAT_32B_8888:	WriteCall(Color_ReadIndex16_32b_8888); break;
 			default: _assert_(0); break;
 			}
-			m_VertexSize += 2;
 			break;
 		}
-
+		// Common for the three bottom cases
 		if (col[i] != NOT_PRESENT) {
 			vtx_decl.color_offset[i] = nat_offset;
 			nat_offset += 4;
-		} else {
-			vtx_decl.color_offset[i] = -1;
 		}
 	}
 
