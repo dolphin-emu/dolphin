@@ -494,9 +494,9 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			popupMenu.Append(IDM_DELETEGCM, _("&Delete ISO..."));
 
 			if (selected_iso->IsCompressed())
-				popupMenu.Append(IDM_COMPRESSGCM, _("Decompress ISO... (UNTESTED)"));
+				popupMenu.Append(IDM_COMPRESSGCM, _("Decompress ISO..."));
 			else
-				popupMenu.Append(IDM_COMPRESSGCM, _("Compress ISO... (UNTESTED)"));
+				popupMenu.Append(IDM_COMPRESSGCM, _("Compress ISO..."));
 
 			PopupMenu(&popupMenu);
 		}

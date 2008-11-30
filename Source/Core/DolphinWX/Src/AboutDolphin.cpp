@@ -46,18 +46,16 @@ void AboutDolphin::CreateGUIControls()
 	sbDolphinLogo = new wxStaticBitmap(this, ID_LOGO, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
 	sbDolphinLogo->SetBitmap(*DolphinLogo);
 	std::string Text = std::string("Dolphin SVN revision ") +  SVN_REV_STR + "\nCPU: " + cpu_info.Summarize() +  "\n\n" // Maybe add OS/arch info too?
-		"Copyright (c) by F|RES, ector, yaz0r 2003-2008\n"
-		"Additional code by Schibo and Costis.\n\n"
-		"Greets to Azimer, Caustik, Costis, Cyrus64, Desktopman, Epsilon, Hotquik, Jazzmin, mamedevs, (Lazer)Maksen, Martin64, or9, Runik, Schibo,"
-			" SculleatR, tmbinc, vEX, Zezu, Zilmar, and everyone we forget.\n\n"
+		"Copyright (c) by F|RES & ector 2003-2008\n"
+		"Additional code by zerofrog, yaz0r, Schibo, Costis, JPeterson, etc etc...\n\n"
+		"Greets to Azimer, Caustik, Costis, Desktopman, EFX, Epsilon, Falcon4Ever, Hotquik, Jazzmin, mamedevs, Masken, Martin64, or9, "
+			" tmbinc, vEX, Zezu, Zilmar, and everyone we forget.\n\n"
 		"Special thanks to Costis, CrowTRobo, Titanik, or9 and Hotquik for their reverse engineering and docs/demos.\n\n"
-		"Big thanks to Gilles Mouchard whose Microlib PPC emulator gave our development a kickstart. "
-			"Note that Dolphin no longer uses a single line of code from it, and the first release had practically nothing left from it either.\n\n"
+		"Big thanks to Gilles Mouchard whose Microlib PPC emulator gave our development a kickstart.\n\n"
 		"Thanks to Frank Wille for his PowerPC disassembler, which or9 and we modified to include Gekko specifics.\n\n"
 		"Thanks to Shinji Chiba for his GC ADPCM decoder.\n\n"
 		"We are not affiliated with Nintendo in any way. Gamecube and Wii are trademarks of Nintendo.\n"
-		"The emulator is for educational purposes only and we do not support using this emulator to play games you do not legally own.\n\n"
-                                     "Beta testers: EFX, Falcon4ever and Shadowprince (kx).";
+		"The emulator is for educational purposes only and should not be used to play games you do not legally own.\n\n";
 	Message = new wxStaticText(this, ID_MESSAGE,
 		wxString::FromAscii(Text.c_str()),
 		wxDefaultPosition, wxDefaultSize, 0);

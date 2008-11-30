@@ -331,9 +331,9 @@ void Host_SetWiiMoteConnectionState(int _State)
 
 	switch(_State)
 	{
-	case 0: event.SetString(wxString::FromAscii("not connected")); break;
-	case 1: event.SetString(wxString::FromAscii("connecting...")); break;
-	case 2: event.SetString(wxString::FromAscii("connected!")); break;
+	case 0: event.SetString(wxString::FromAscii("Not connected")); break;
+	case 1: event.SetString(wxString::FromAscii("Connecting...")); break;
+	case 2: event.SetString(wxString::FromAscii("Wiimote Connected")); break;
 	}
 
 	event.SetInt(1);
