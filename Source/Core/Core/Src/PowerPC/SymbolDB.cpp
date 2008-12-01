@@ -326,8 +326,11 @@ bool SymbolDB::SaveMap(const char *filename, bool WithCodes) const
 		// Save a map file
         const Symbol &rSymbol = itr->second;
 		if(!WithCodes)
+		{
 			fprintf(f,"%08x %08x %08x %i %s\n", rSymbol.address, rSymbol.size, rSymbol.address,
 			0, rSymbol.name.c_str());
+			itr++;
+		}
 
 		// Save a code file
 		else
