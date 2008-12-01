@@ -202,7 +202,13 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
 	return pDevice;
 }
 
-// This generates some kind of acknowledgment
+// ===================================================
+/* This generates an acknowledgment to IPC calls. This function is called from
+   IPC_CONTROL_REGISTER requests in WII_IPC.cpp. The acknowledgment _Address will
+   start with 0x033e...., it will be for the _CommandAddress 0x133e...., from
+   debugging I also noticed that the Ioctl arguments are stored temporarily in
+   0x933e.... with the same .... as in the _CommandAddress. */
+// ----------------
 bool AckCommand(u32 _Address)
 {   
 	// Debugger::PrintCallstack(LogTypes::WII_IPC_HLE);
