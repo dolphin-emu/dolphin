@@ -211,7 +211,7 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
 // ----------------
 bool AckCommand(u32 _Address)
 {   
-	// Debugger::PrintCallstack(LogTypes::WII_IPC_HLE);
+        Debugger::PrintCallstack(LogTypes::WII_IPC_HLE);
 	LOG(WII_IPC_HLE, "AckCommand: 0%08x", _Address);
 
 	std::list<u32>::iterator itr = g_Ack.begin();
