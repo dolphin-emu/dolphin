@@ -24,6 +24,7 @@
 
 #include "Common.h"
 #include "x64Emitter.h"
+#include "Config.h"
 
 #define ERROR_LOG __Log
 
