@@ -53,6 +53,7 @@ bool CreateEmptyFile(const char *filename);
 u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry);
 
 bool DeleteDirRecursively(const std::string& _Directory);
+void GetCurrentDirectory(std::string& _rDirectory);
 
 }  // namespace
 

@@ -20,10 +20,11 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#include <shlobj.h>    // for SHGetFolderPath
+#include <shlobj.h>		// for SHGetFolderPath
 #include <shellapi.h>
-#include <commdlg.h>   // for GetSaveFileName
+#include <commdlg.h>	// for GetSaveFileName
 #include <io.h>
+#include <direct.h>		// getcwd
 #else
 #include <sys/types.h>
 #include <dirent.h>
@@ -224,7 +225,7 @@ bool Rename(const char *srcFilename, const char *destFilename)
 bool Copy(const char *srcFilename, const char *destFilename)
 {
 #ifdef _WIN32 
-	return CopyFile(srcFilename, destFilename, FALSE);
+	return (CopyFile(srcFilename, destFilename, FALSE) == TRUE) ? true : false;
 #else
 
 #define BSIZE 1024
@@ -475,6 +476,18 @@ error_jmp:
 
         
         return DeleteDir(_Directory.c_str());
+#endif
+}
+
+void GetCurrentDirectory(std::string& _rDirectory)
+{
+#ifdef _WIN32
+
+	char tmpBuffer[MAX_PATH+1];
+	getcwd(tmpBuffer, MAX_PATH);
+	_rDirectory = tmpBuffer;
+#else
+	PanicAlert("Missing Linux support of GetCurrentDirectory");
 #endif
 }
 
