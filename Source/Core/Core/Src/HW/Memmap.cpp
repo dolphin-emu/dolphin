@@ -1236,7 +1236,7 @@ void SDRUpdated()
 
 u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag)
 {
-	return 0;
+	//return 0;
 	if (Core::GetStartupParameter().bWii) {
 		// TLB is never used on Wii (except linux and stuff, but we don't care about that)
 		PanicAlert("%s invalid memory region (0x%08x)\n\n"
