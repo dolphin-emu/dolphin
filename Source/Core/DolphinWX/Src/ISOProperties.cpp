@@ -598,12 +598,18 @@ void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case ID_PATCHES_LIST:
-		EditPatch->Enable();
-		RemovePatch->Enable();
+		if (Patches->GetSelection() != wxNOT_FOUND)
+		{
+			EditPatch->Enable();
+			RemovePatch->Enable();
+		}
 		break;
 	case ID_CHEATS_LIST:
-		EditCheat->Enable();
-		RemoveCheat->Enable();
+		if (Cheats->GetSelection() != wxNOT_FOUND)
+		{
+			EditCheat->Enable();
+			RemoveCheat->Enable();
+		}
 		break;
 	}
 }
@@ -611,6 +617,7 @@ void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 void CISOProperties::PatchList_Load()
 {
 	onFrame.clear();
+	Patches->Clear();
 	PatchEngine::LoadPatchSection("OnFrame", onFrame, GameIni);
 
 	u32 index = 0;
@@ -643,15 +650,83 @@ void CISOProperties::PatchList_Save()
 	lines.clear();
 }
 
+
+void CISOProperties::ChangeEditPatchEntry(wxSpinEvent& event)
+{
+	PatchEngine::PatchEntry pE = onFrame.at(Patches->GetSelection()).entries.at(event.GetPosition());
+	EditPatchOffset->SetValue(wxString::Format("%08X", pE.address));
+	EditPatchType->SetSelection(pE.type);
+	EditPatchValue->SetValue(wxString::Format("%08X", pE.value));
+}
+
 void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
 	case ID_EDITPATCH:
-		// dialog
+		{
+			int selection = Patches->GetSelection();
+			std::string currentName = onFrame.at(selection).name;
+			std::vector<PatchEngine::PatchEntry> currentEntries = onFrame.at(selection).entries;
+			wxDialog* dEditPatch = new wxDialog(this, IDD_EDITPATCH, wxString::Format("Edit Patch: %s", currentName.c_str()), wxDefaultPosition, wxSize(300, -1));
+
+			wxBoxSizer* sEditPatch = new wxBoxSizer(wxVERTICAL);
+			wxStaticText* EditPatchNameText = new wxStaticText(dEditPatch, ID_EDITPATCH_NAME_TEXT, _("Name:"), wxDefaultPosition, wxDefaultSize);
+			EditPatchName = new wxTextCtrl(dEditPatch, ID_EDITPATCH_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+			EditPatchName->SetValue(wxString::FromAscii(currentName.c_str()));
+			wxStaticText* EditPatchOffsetText = new wxStaticText(dEditPatch, ID_EDITPATCH_OFFSET_TEXT, _("Offset:"), wxDefaultPosition, wxDefaultSize);
+			EditPatchOffset = new wxTextCtrl(dEditPatch, ID_EDITPATCH_OFFSET, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+			EditPatchOffset->SetValue(wxString::Format("%08X", currentEntries.at(0).address));
+			wxSpinButton* EntrySelection = new wxSpinButton(dEditPatch, ID_ENTRY_SELECT, wxDefaultPosition, wxDefaultSize, wxVERTICAL);
+			EntrySelection->SetRange(0, currentEntries.size());
+			wxArrayString wxArrayStringFor_EditPatchType;
+			for (int i = 0; i < 3; ++i)
+				wxArrayStringFor_EditPatchType.Add(wxString::FromAscii(PatchEngine::PatchTypeStrings[i]));
+			EditPatchType = new wxRadioBox(dEditPatch, ID_EDITPATCH_TYPE, _("Type"), wxDefaultPosition, wxDefaultSize, wxArrayStringFor_EditPatchType, 3, wxRA_SPECIFY_COLS, wxDefaultValidator);
+			EditPatchType->SetSelection((int)currentEntries.at(0).type);
+			wxStaticText* EditPatchValueText = new wxStaticText(dEditPatch, ID_EDITPATCH_VALUE_TEXT, _("Value:"), wxDefaultPosition, wxDefaultSize);
+			EditPatchValue = new wxTextCtrl(dEditPatch, ID_EDITPATCH_VALUE, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
+			EditPatchValue->SetValue(wxString::Format("%08X", currentEntries.at(0).value));
+			wxBoxSizer* sEditPatchName = new wxBoxSizer(wxHORIZONTAL);
+			sEditPatchName->Add(EditPatchNameText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+			sEditPatchName->Add(EditPatchName, 1, wxEXPAND|wxALL, 5);
+			sEditPatch->Add(sEditPatchName, 0, wxEXPAND);
+			wxStaticBoxSizer* sbEntry = new wxStaticBoxSizer(wxVERTICAL, dEditPatch, _("Entry"));
+			wxGridBagSizer* sgEntry = new wxGridBagSizer(0, 0);
+			sgEntry->AddGrowableCol(1);
+			sgEntry->Add(EditPatchOffsetText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+			sgEntry->Add(EditPatchOffset, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+			sgEntry->Add(EntrySelection, wxGBPosition(0, 2), wxGBSpan(3, 1), wxEXPAND|wxALL, 5);
+			sgEntry->Add(EditPatchType, wxGBPosition(1, 0), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
+			sgEntry->Add(EditPatchValueText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+			sgEntry->Add(EditPatchValue, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+			sbEntry->Add(sgEntry, 0, wxEXPAND);
+			sEditPatch->Add(sbEntry, 0, wxEXPAND|wxALL, 5);
+			wxBoxSizer* sEditPatchButtons = new wxBoxSizer(wxHORIZONTAL);
+			wxButton* bOK = new wxButton(dEditPatch, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+			wxButton* bCancel = new wxButton(dEditPatch, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+			sEditPatchButtons->Add(0, 0, 1, wxEXPAND, 5);
+			sEditPatchButtons->Add(bOK, 0, wxALL, 5);
+			sEditPatchButtons->Add(bCancel, 0, wxALL, 5);
+			sEditPatch->Add(sEditPatchButtons, 0, wxEXPAND, 5);
+			dEditPatch->SetSizer(sEditPatch);
+			sEditPatch->Layout();
+			if (dEditPatch->ShowModal() == wxID_OK)
+			{
+				onFrame.at(selection).name = std::string(EditPatchName->GetValue().mb_str());
+				unsigned long value;
+				if (EditPatchOffset->GetValue().ToULong(&value, 16))
+					onFrame.at(selection).entries.at(0).address = value;
+				onFrame.at(selection).entries.at(0).type = (PatchEngine::PatchType)EditPatchType->GetSelection();
+				if (EditPatchValue->GetValue().ToULong(&value, 16))
+					onFrame.at(selection).entries.at(0).value = value;
+			}
+		}
 		break;
 	case ID_ADDPATCH:
-		// dialog
+		{
+		// dialog;
+		}
 		break;
 	case ID_REMOVEPATCH:
 		onFrame.erase(onFrame.begin() + Patches->GetSelection());
@@ -669,6 +744,7 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 void CISOProperties::ActionReplayList_Load()
 {
 	ARCodes.clear();
+	Cheats->Clear();
 	std::vector<std::string> lines;
 
 	if (!GameIni.GetLines("ActionReplay", lines))

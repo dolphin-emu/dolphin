@@ -70,6 +70,10 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile 
 				continue;
 			}
 
+			std::string::size_type loc = line.find_first_of('=', 0);
+			if (loc != std::string::npos)
+				line.at(loc) = ':';
+
 			std::vector<std::string> items;
 			SplitString(line, ":", items);
 			if (items.size() >= 3) {
