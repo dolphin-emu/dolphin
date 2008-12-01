@@ -5,10 +5,12 @@
 #define PLUGIN_PREFIX ""
 #define PLUGIN_SUFFIX ".dll"
 #define DIR_SEP "\\"
+#define DIR_SEP_CHR '\\'
 #else
 #define PLUGIN_PREFIX "lib"
 #define PLUGIN_SUFFIX ".so"
 #define DIR_SEP "/"
+#define DIR_SEP_CHR '/'
 #endif
 
 #define PLUGINS_DIR "Plugins"

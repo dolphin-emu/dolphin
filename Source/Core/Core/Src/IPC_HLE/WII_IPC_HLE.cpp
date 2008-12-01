@@ -234,13 +234,13 @@ bool AckCommand(u32 _Address)
 // Let the game read the setting.txt file
 void CopySettingsFile(std::string DeviceName)
 {
-	std::string Source;
+	std::string Source = FULL_WII_SYS_DIR;
 	if(Core::GetStartupParameter().bNTSC)
-		Source = "Sys/Wii/setting-usa.txt";
+		Source += "setting-usa.txt";
 	else
-		Source = "Sys/Wii/setting-eur.txt";
+		Source += "setting-eur.txt";
 
-	std::string Target = "User/Wii" + DeviceName;
+	std::string Target = FULL_WII_USER_DIR + DeviceName;
 
 	// Check if the target dir exists, otherwise create it
 	std::string TargetDir = Target.substr(0, Target.find_last_of("/"));
