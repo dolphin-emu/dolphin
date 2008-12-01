@@ -481,14 +481,9 @@ error_jmp:
 
 void GetCurrentDirectory(std::string& _rDirectory)
 {
-#ifdef _WIN32
-
 	char tmpBuffer[MAX_PATH+1];
 	getcwd(tmpBuffer, MAX_PATH);
 	_rDirectory = tmpBuffer;
-#else
-	PanicAlert("Missing Linux support of GetCurrentDirectory");
-#endif
 }
 
 } // namespace

@@ -314,12 +314,13 @@ void ExecuteCommand(u32 _Address)
 
 				// F|RES: prolly the re-open is just a mode change
 
+                LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
+                    pDevice->GetDeviceName().c_str(), DeviceID, Mode);
+
 				if(DeviceName.find("/dev/") == std::string::npos)
 				{
-					LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
-						pDevice->GetDeviceName().c_str(), DeviceID, Mode);
 
-					u32 Mode = Memory::Read_U32(_Address + 0x10);
+					u32 newMode = Memory::Read_U32(_Address + 0x10);
 
 					// We may not have a file handle at this point, in Mario Kart I got a
 					//  Open > Failed > ... other stuff > ReOpen call sequence, in that case
@@ -328,13 +329,10 @@ void ExecuteCommand(u32 _Address)
 					if(pDevice->ReturnFileHandle())
 						Memory::Write_U32(DeviceID, _Address + 4);
 					else
-						GenerateReply = pDevice->Open(_Address, Mode);						
+						GenerateReply = pDevice->Open(_Address, newMode);						
 				}
 				else
 				{
-					LOG(WII_IPC_HLE, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
-						pDevice->GetDeviceName().c_str(), pDevice->GetDeviceID(), Mode);
-
 					// We have already opened this device, return -6
 					Memory::Write_U32(u32(-6), _Address + 4);
 				}

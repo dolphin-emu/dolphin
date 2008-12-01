@@ -143,7 +143,7 @@ void VertexLoader::CompileVertexTranslator()
 {
 	m_VertexSize = 0;
 	const TVtxAttr &vtx_attr = m_VtxAttr;
-	const TVtxDesc &vtx_desc = m_VtxDesc;
+	//const TVtxDesc &vtx_desc = m_VtxDesc;
 
 #ifdef USE_JIT
 	u8 *old_code_ptr = GetWritableCodePtr();

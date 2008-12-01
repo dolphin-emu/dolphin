@@ -245,8 +245,6 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			LOG(WII_IPC_FILEIO, "    InBufferSize: %i OutBufferSize: %i", _BufferInSize, _BufferOutSize);
 
 
-			u32 Addr = _BufferOut;
-
 /*			Memory::Write_U32(Addr, a); Addr += 4;
 			Memory::Write_U32(Addr, b); Addr += 4;
 			Memory::Write_U32(Addr, c); Addr += 4;

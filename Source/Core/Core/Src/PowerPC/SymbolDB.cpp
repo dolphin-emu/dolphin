@@ -306,11 +306,11 @@ bool SymbolDB::LoadMap(const char *filename)
 bool SymbolDB::SaveMap(const char *filename, bool WithCodes) const
 {
 	// Format the name for the codes version
-	std::string Temp = filename;
-	if(WithCodes) Temp = Temp.substr(0, Temp.find_last_of(".")) + "_code.map";
+	std::string mapFile = filename;
+	if(WithCodes) mapFile = mapFile.substr(0, mapFile.find_last_of(".")) + "_code.map";
 
 	// Make a file
-	FILE *f = fopen(Temp.c_str(), "w");
+	FILE *f = fopen(mapFile.c_str(), "w");
 	if (!f) return false;
 
 
@@ -342,13 +342,13 @@ bool SymbolDB::SaveMap(const char *filename, bool WithCodes) const
 
 			/* To make nice straight lines we fill out the name with spaces, we also cut off
 			   all names longer than 25 letters */
-			std::string Temp;
-			for(int i = 0; i < 25; i++)
+			std::string TempSym;
+			for(u32 i = 0; i < 25; i++)
 			{			
 				if(i < LastSymbolName.size())
-					Temp += LastSymbolName[i];
+					TempSym += LastSymbolName[i];
 				else
-					Temp += " ";
+					TempSym += " ";
 			}
 
 			// We currently skip the last block because we don't know how long it goes
@@ -362,7 +362,7 @@ bool SymbolDB::SaveMap(const char *filename, bool WithCodes) const
 			{
 				int Address = LastAddress + i;
 				fprintf(f,"%08x %i %20s %s\n", Address,
-				0, Temp.c_str(), debugger->disasm(Address));				
+                                        0, TempSym.c_str(), debugger->disasm(Address));				
 			}
 			fprintf(f, "\n"); // Write a blank line after each block
 		}		
@@ -370,7 +370,7 @@ bool SymbolDB::SaveMap(const char *filename, bool WithCodes) const
 	// ---------------
 
 	// Show success message
-	wxMessageBox(wxString::Format("Saved %s", Temp.c_str()));
+        wxMessageBox(wxString::Format(wxT("Saved %s"), mapFile.c_str()));
 
 	// Close the file and return
 	fclose(f);

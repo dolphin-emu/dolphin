@@ -70,8 +70,8 @@ private:
 	struct Set {
 		Set() {}
 		Set(int gc_size_, TPipelineFunction function_) : gc_size(gc_size_), function(function_) {}
-		TPipelineFunction function;
 		int gc_size;
+		TPipelineFunction function;
 //		int pc_size;
 	};
 
