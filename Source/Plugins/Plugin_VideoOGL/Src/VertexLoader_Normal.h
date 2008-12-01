@@ -67,10 +67,15 @@ private:
 		NUM_NRM_INDICES
 	};
 
+	struct Set {
+		Set() {}
+		Set(int gc_size_, TPipelineFunction function_) : gc_size(gc_size_), function(function_) {}
+		TPipelineFunction function;
+		int gc_size;
+//		int pc_size;
+	};
 
-    // tables
-    static u8 m_sizeTable[NUM_NRM_TYPE][NUM_NRM_FORMAT][NUM_NRM_ELEMENTS][NUM_NRM_INDICES];
-    static TPipelineFunction m_funcTable[NUM_NRM_TYPE][NUM_NRM_FORMAT][NUM_NRM_ELEMENTS][NUM_NRM_INDICES];
+	static Set m_Table[NUM_NRM_TYPE][NUM_NRM_INDICES][NUM_NRM_ELEMENTS][NUM_NRM_FORMAT];
 
     // direct
     static void LOADERDECL Normal_DirectByte();
