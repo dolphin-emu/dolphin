@@ -26,10 +26,15 @@
 #include "SignatureDB.h"
 #include "PPCAnalyst.h"
 
+#include <wx/textdlg.h>
+#include <wx/msgdlg.h>
+
 SymbolDB g_symbolDB;
 
 SymbolDB::SymbolDB()
 {
+	// Get access to the disasm() fgnction
+	debugger = new PPCDebugInterface();
 }
 
 SymbolDB::~SymbolDB()
@@ -294,20 +299,78 @@ bool SymbolDB::LoadMap(const char *filename)
 	return true;
 }
 
-bool SymbolDB::SaveMap(const char *filename) const
-{
-	FILE *f = fopen(filename, "w");
-	if (!f)
-		return false;
 
-	fprintf(f,".text\n");
+// ===================================================
+/* Save the map file and save a code file */
+// ----------------
+bool SymbolDB::SaveMap(const char *filename, bool WithCodes) const
+{
+	// Format the name for the codes version
+	std::string Temp = filename;
+	if(WithCodes) Temp = Temp.substr(0, Temp.find_last_of(".")) + "_code.map";
+
+	// Make a file
+	FILE *f = fopen(Temp.c_str(), "w");
+	if (!f) return false;
+
+
+	// --------------------------------------------------------------------
+	// Walk through every code row
+	// -------------------------
+	fprintf(f, ".text\n"); // Write ".text" at the top
     XFuncMap::const_iterator itr = functions.begin();
+	u32 LastAddress = 0x80004000;
+	std::string LastSymbolName;
     while (itr != functions.end())
     {
+		// Save a map file
         const Symbol &rSymbol = itr->second;
-		fprintf(f,"%08x %08x %08x %i %s\n", rSymbol.address, rSymbol.size, rSymbol.address, 0, rSymbol.name.c_str());
-        itr++;
+		if(!WithCodes)
+			fprintf(f,"%08x %08x %08x %i %s\n", rSymbol.address, rSymbol.size, rSymbol.address,
+			0, rSymbol.name.c_str());
+
+		// Save a code file
+		else
+		{
+			// Get the current and next address
+			LastAddress = rSymbol.address;
+			LastSymbolName = rSymbol.name;	
+			itr++;			
+
+			/* To make nice straight lines we fill out the name with spaces, we also cut off
+			   all names longer than 25 letters */
+			std::string Temp;
+			for(int i = 0; i < 25; i++)
+			{			
+				if(i < LastSymbolName.size())
+					Temp += LastSymbolName[i];
+				else
+					Temp += " ";
+			}
+
+			// We currently skip the last block because we don't know how long it goes
+			int space;
+			if(itr != functions.end())
+				space = itr->second.address - LastAddress;
+			else
+				space = 0;
+			
+			for(int i = 0; i < space; i+=4)
+			{
+				int Address = LastAddress + i;
+				fprintf(f,"%08x %i %20s %s\n", Address,
+				0, Temp.c_str(), debugger->disasm(Address));				
+			}
+		}
+		fprintf(f, "\n"); // Write a blank line after each block	
     }
+	// ---------------
+
+	// Show success message
+	wxMessageBox(wxString::Format("Saved %s", Temp.c_str()));
+
+	// Close the file and return
 	fclose(f);
 	return true;
 }
+// ===========

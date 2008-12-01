@@ -342,6 +342,9 @@ void CCodeView::OnErase(wxEraseEvent& event)
 
 void CCodeView::OnPaint(wxPaintEvent& event)
 {
+	// --------------------------------------------------------------------
+	// General settings
+	// -------------------------
 	wxPaintDC dc(this);
 	wxRect rc = GetClientRect();
 	wxFont font(7, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_LIGHT);
@@ -357,17 +360,23 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	int width   = rc.width;
 	int numRows = (rc.height / rowHeight) / 2 + 2;
 	//numRows=(numRows&(~1)) + 1;
-	dc.SetBackgroundMode(wxTRANSPARENT);
+	// ------------
+
+
+	// --------------------------------------------------------------------
+	// Colors and brushes
+	// -------------------------	
+	dc.SetBackgroundMode(wxTRANSPARENT); // the text background
 	const wxChar* bgColor = _T("#ffffff");
 	wxPen nullPen(bgColor);
 	wxPen currentPen(_T("#000000"));
-	wxPen selPen(_T("#808080"));
+	wxPen selPen(_T("#808080")); // gray
 	nullPen.SetStyle(wxTRANSPARENT);
 	currentPen.SetStyle(wxSOLID);
+	wxBrush currentBrush(_T("#FFEfE8")); // the ... ? ... is light gray
+	wxBrush pcBrush(_T("#70FF70")); // the selected code line is green	
+	wxBrush bpBrush(_T("#FF3311")); // red
 
-	wxBrush currentBrush(_T("#FFEfE8"));
-	wxBrush pcBrush(_T("#70FF70"));
-	wxBrush bpBrush(_T("#FF3311"));
 	wxBrush bgBrush(bgColor);
 	wxBrush nullBrush(bgColor);
 	nullBrush.SetStyle(wxTRANSPARENT);
@@ -376,8 +385,12 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	dc.SetBrush(bgBrush);
 	dc.DrawRectangle(0, 0, 16, rc.height);
 	dc.DrawRectangle(0, 0, rc.width, 5);
-	// TODO - clean up this freaking mess!!!!!
+	// ------------
 
+
+	// --------------------------------------------------------------------
+	// Walk through all visible rows
+	// -------------------------
 	for (int i = -numRows; i <= numRows; i++)
 	{
 		unsigned int address = curAddress + i * align;
@@ -393,26 +406,18 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 		dc.DrawRectangle(0, rowY1, 16, rowY2 - rowY1 + 2);
 
 		if (selecting && (address == selection))
-		{
 			dc.SetPen(selPen);
-		}
 		else
-		{
 			dc.SetPen(i == 0 ? currentPen : nullPen);
-		}
 
 		if (address == debugger->getPC())
-		{
 			dc.SetBrush(pcBrush);
-		}
 		else
-		{
 			dc.SetBrush(rowBrush);
-		}
 
 		dc.DrawRectangle(16, rowY1, width, rowY2 - rowY1 + 1);
 		dc.SetBrush(currentBrush);
-		dc.SetTextForeground(_T("#600000"));
+		dc.SetTextForeground(_T("#600000")); // the address text is dark red
 		dc.DrawText(temp, 17, rowY1);
 		dc.SetTextForeground(_T("#000000"));
 
@@ -423,12 +428,16 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			char* dis2 = strchr(dis, '\t');
 			char desc[256] = "";
 
+			// If we have a code
 			if (dis2)
 			{
 				*dis2 = 0;
 				dis2++;
 				const char* mojs = strstr(dis2, "0x8");
 
+				// --------------------------------------------------------------------
+				// Colors and brushes
+				// -------------------------
 				if (mojs)
 				{
 					for (int k = 0; k < 8; k++)
@@ -449,7 +458,12 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 						}
 					}
 				}
+				// ------------
 
+			
+				// --------------------------------------------------------------------
+				// Colors and brushes
+				// -------------------------
 				if (mojs)
 				{
 					int offs;
@@ -458,7 +472,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 					branches[numBranches].srcAddr = address / align;
 					branches[numBranches++].dst = (int)(rowY1 + ((s64)(u32)offs - (s64)(u32)address) * rowHeight / align + rowHeight / 2);
 					sprintf(desc, "-->%s", debugger->getDescription(offs).c_str());
-					dc.SetTextForeground(_T("#600060"));
+					dc.SetTextForeground(_T("#600060")); // the -> arrow illustrations are purple
 				}
 				else
 				{
@@ -466,16 +480,14 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 				}
 
 				dc.DrawText(wxString::FromAscii(dis2), 126, rowY1);
+				// ------------
 			}
 
+			// Show blr as its' own color
 			if (strcmp(dis, "blr"))
-			{
-				dc.SetTextForeground(_T("#007000"));
-			}
+				dc.SetTextForeground(_T("#007000")); // dark green
 			else
-			{
-				dc.SetTextForeground(_T("#8000FF"));
-			}
+				dc.SetTextForeground(_T("#8000FF")); // purple
 
 			dc.DrawText(wxString::FromAscii(dis), 70, rowY1);
 
@@ -484,7 +496,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 				strcpy(desc, debugger->getDescription(address).c_str());
 			}
 
-			dc.SetTextForeground(_T("#0000FF"));
+			dc.SetTextForeground(_T("#0000FF")); // blue
 
 			//char temp[256];
 			//UnDecorateSymbolName(desc,temp,255,UNDNAME_COMPLETE);
@@ -493,15 +505,21 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 				dc.DrawText(wxString::FromAscii(desc), 235, rowY1);
 			}
 
+			// Show red breakpoint dot
 			if (debugger->isBreakpoint(address))
 			{
 				dc.SetBrush(bpBrush);
 				dc.DrawRectangle(2, rowY1, 7, 7);
-//				DrawIconEx(hdc, 2, rowY1, breakPoint, 32, 32, 0, 0, DI_NORMAL);
+				//DrawIconEx(hdc, 2, rowY1, breakPoint, 32, 32, 0, 0, DI_NORMAL);
 			}
 		}
-	}
+	} // end of for
+	// ------------
 
+
+	// --------------------------------------------------------------------
+	// Colors and brushes
+	// -------------------------
 	dc.SetPen(currentPen);
 	
 	for (int i = 0; i < numBranches; i++)
@@ -522,14 +540,15 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	    else
 	    {
 			_LineTo(dc, x+4, branches[i].src);
-	    //MoveToEx(hdc,x+2,branches[i].dst-4,0);
-	    //LineTo(hdc,x+6,branches[i].dst);
-	    //LineTo(hdc,x+1,branches[i].dst+5);
+			//MoveToEx(hdc,x+2,branches[i].dst-4,0);
+			//LineTo(hdc,x+6,branches[i].dst);
+			//LineTo(hdc,x+1,branches[i].dst+5);
 	    }
-	    //LineTo(hdc,x,branches[i].dst+4);
 
+	    //LineTo(hdc,x,branches[i].dst+4);
 	    //LineTo(hdc,x-2,branches[i].dst);
 	}
+	// ------------
 }
 
 

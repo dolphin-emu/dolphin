@@ -20,6 +20,8 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "../Debugger/PPCDebugInterface.h"
+#include "../Debugger/DebugInterface.h"
 
 struct SCall
 {
@@ -82,6 +84,7 @@ public:
 private:
 	XFuncMap    functions;
 	XFuncPtrMap checksumToFunction;
+	DebugInterface* debugger;
 
 public:
 	typedef void (*functionGetterCallback)(Symbol *f);
@@ -118,7 +121,7 @@ public:
 	void FillInCallers();
 
 	bool LoadMap(const char *filename);
-	bool SaveMap(const char *filename) const;
+	bool SaveMap(const char *filename, bool WithCodes = false) const;
 
 	void PrintCalls(u32 funcAddr) const;
 	void PrintCallers(u32 funcAddr) const;

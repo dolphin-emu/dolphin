@@ -250,12 +250,12 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 	const wxChar* bgColor = _T("#ffffff");
 	wxPen nullPen(bgColor);
 	wxPen currentPen(_T("#000000"));
-	wxPen selPen(_T("#808080"));
+	wxPen selPen(_T("#808080")); // gray
 	nullPen.SetStyle(wxTRANSPARENT);
 
-	wxBrush currentBrush(_T("#FFEfE8"));
-	wxBrush pcBrush(_T("#70FF70"));
-	wxBrush bpBrush(_T("#FF3311"));
+	wxBrush currentBrush(_T("#FFEfE8")); // ligh gray
+	wxBrush pcBrush(_T("#70FF70")); // green
+	wxBrush bpBrush(_T("#FF3311")); // red
 	wxBrush bgBrush(bgColor);
 	wxBrush nullBrush(bgColor);
 	nullBrush.SetStyle(wxTRANSPARENT);

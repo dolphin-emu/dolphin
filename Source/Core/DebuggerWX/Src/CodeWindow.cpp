@@ -109,6 +109,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	EVT_MENU(IDM_LOADMAPFILE,       CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_SCANFUNCTIONS,     CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_SAVEMAPFILE,       CCodeWindow::OnSymbolsMenu)
+	EVT_MENU(IDM_SAVEMAPFILEWITHCODES, CCodeWindow::OnSymbolsMenu)	
 	EVT_MENU(IDM_CREATESIGNATUREFILE, CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_USESIGNATUREFILE,  CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_PATCHHLEFUNCTIONS, CCodeWindow::OnSymbolsMenu)
@@ -401,6 +402,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		pSymbolsMenu->AppendSeparator();
 		pSymbolsMenu->Append(IDM_LOADMAPFILE, _T("&Load symbol map"));
 		pSymbolsMenu->Append(IDM_SAVEMAPFILE, _T("&Save symbol map"));
+		pSymbolsMenu->Append(IDM_SAVEMAPFILEWITHCODES, _T("Save code"));
 		pSymbolsMenu->AppendSeparator();
 		pSymbolsMenu->Append(IDM_CREATESIGNATUREFILE, _T("&Create signature file..."));
 		pSymbolsMenu->Append(IDM_USESIGNATUREFILE, _T("&Use signature file..."));
@@ -584,6 +586,9 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		break;
 	case IDM_SAVEMAPFILE:
 		g_symbolDB.SaveMap(mapfile.c_str());
+		break;
+	case IDM_SAVEMAPFILEWITHCODES:
+		g_symbolDB.SaveMap(mapfile.c_str(), true);
 		break;
 	case IDM_CREATESIGNATUREFILE:
 		{
