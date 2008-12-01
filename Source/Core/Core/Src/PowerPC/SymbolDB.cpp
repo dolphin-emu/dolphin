@@ -364,8 +364,8 @@ bool SymbolDB::SaveMap(const char *filename, bool WithCodes) const
 				fprintf(f,"%08x %i %20s %s\n", Address,
 				0, Temp.c_str(), debugger->disasm(Address));				
 			}
-		}
-		fprintf(f, "\n"); // Write a blank line after each block	
+			fprintf(f, "\n"); // Write a blank line after each block
+		}		
     }
 	// ---------------
 
