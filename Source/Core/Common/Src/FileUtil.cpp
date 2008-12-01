@@ -166,9 +166,11 @@ bool CreateDirectoryStructure(const std::string& _rFullPath)
 	size_t Position = 0;
 	while(true)
 	{
-		// find next sub path
+		// Find next sub path, support both \ and / directory separators
 		{
-			size_t nextPosition = _rFullPath.find(DIR_SEP, Position);
+			size_t nextPosition = _rFullPath.find('/', Position);
+			if (nextPosition == std::string::npos)
+				nextPosition = _rFullPath.find('\\', Position);
 			Position = nextPosition;
 
 			if (Position == std::string::npos)
@@ -177,7 +179,7 @@ bool CreateDirectoryStructure(const std::string& _rFullPath)
 			Position++;
 		}
 
-		// create next sub path
+		// Create next sub path
 		std::string SubPath = _rFullPath.substr(0, Position);
 		if (!SubPath.empty())
 		{
@@ -188,7 +190,7 @@ bool CreateDirectoryStructure(const std::string& _rFullPath)
 			}
 		}
 
-		// just a safty check...
+		// A safety check
 		PanicCounter--;
 		if (PanicCounter <= 0)
 		{
