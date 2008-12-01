@@ -27,13 +27,14 @@
 
 extern std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size);
 
-#define FS_RESULT_OK		(0)
-#define FS_INVALID_ARGUMENT	(-101)
-#define FS_FILE_EXIST		(-105)
-#define FS_FILE_NOT_EXIST	(-106)
-#define FS_RESULT_FATAL		(-128)
+#define FS_RESULT_OK			(0)
+#define FS_DIRFILE_NOT_FOUND	(-6)
+#define FS_INVALID_ARGUMENT		(-101)
+#define FS_FILE_EXIST			(-105)
+#define FS_FILE_NOT_EXIST		(-106)
+#define FS_RESULT_FATAL			(-128)
 
-#define MAX_NAME			(12)
+#define MAX_NAME				(12)
 
 
 CWII_IPC_HLE_Device_fs::CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName) 
@@ -104,15 +105,28 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 			/* Check if this is really a directory. Or a file, because it seems like Mario Kart
 			   did a IOCTL_READ_DIR on the save file to check if it existed before deleting it,
-			   and if I returned a -something it never deleted the file presumably because it
-			   thought it didn't exist. So this solution worked for Mario Kart. 
+			   and if I didn't returned a -something it never deleted the file presumably because
+			   it thought it didn't exist. So this solution worked for Mario Kart. 
 			   
-			   F|RES: i dont have mkart but -6 is a wrong return value if you try to read from a directory which doesnt exist
+			   F|RES: i dont have mkart but -6 is a wrong return value if you try to read from a 
+			   directory which doesnt exist
+			   
+			   JP: Okay, but Mario Kart calls this for files and if I return 0 here it never
+			   creates a new file in any event, it just calls a DELETE_FILE and never close
+			   the handle, so perhaps this is better
 			   */
 
-			if (!File::IsDirectory(Filename.c_str()))
+			if (!File::Exists(Filename.c_str()) && !File::IsDirectory(Filename.c_str()))
 			{
-				LOG(WII_IPC_FILEIO, "    No file and not a directory - return FS_INVALID_ARGUMENT", Filename.c_str());
+				LOG(WII_IPC_FILEIO, "    Not a file and not a directory - return FS_DIRFILE_NOT_FOUND", Filename.c_str());
+				ReturnValue = FS_DIRFILE_NOT_FOUND;
+				break;
+			}
+			/* Okay, maybe it is a file but not a directory, then we should return -101?
+			   I have not seen any example of this. */
+			else if (!File::IsDirectory(Filename.c_str()))
+			{
+				LOG(WII_IPC_FILEIO, "    Not a directory - return FS_INVALID_ARGUMENT", Filename.c_str());
 				ReturnValue = FS_INVALID_ARGUMENT;
 				break;
 			}
