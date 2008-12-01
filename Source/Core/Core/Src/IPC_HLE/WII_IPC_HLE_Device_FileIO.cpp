@@ -38,11 +38,6 @@ std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 	return Filename;
 }
 
-
-/// ----------------------------------------------------------------
-// The FileIO class
-
-
 CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std::string& _rDeviceName ) 
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
     , m_pFileHandle(NULL)
@@ -74,56 +69,50 @@ CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress)
 bool 
 CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)  
 { 
-    //LOG(WII_IPC_FILEIO, "===================================================================");
-    
-    u32 ReturnValue = 0;
-    
-    const char Modes[][128] =
+	// close the file handle if we get a reopen
+	if (m_pFileHandle != NULL)
 	{
-            { "Unk Mode" },
-            { "Read only" },
-            { "Write only" },
-            { "Read and Write" }
+		fclose(m_pFileHandle);
+		m_pFileHandle = NULL;
+	}
+	
+	const char Modes[][128] =
+	{
+		{ "Unk Mode" },
+		{ "Read only" },
+		{ "Write only" },
+		{ "Read and Write" }
 	};
 
-    m_Filename = std::string(HLE_IPC_BuildFilename(GetDeviceName().c_str(), 64));
+	LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s)", GetDeviceName().c_str(), Modes[_Mode]);	
 
-    LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s)", GetDeviceName().c_str(), Modes[_Mode]);	
-    
-   
-    if (File::Exists(m_Filename.c_str())) {
-        switch(_Mode)
-            {
-                // Do "r+b" for all writing to avoid truncating the file
-              case 0x01:
-                  m_pFileHandle = fopen(m_Filename.c_str(), "rb");
-                  break;
-              case 0x02:
-                  //m_pFileHandle = fopen(m_Filename.c_str(), "wb"); break;
-              case 0x03:
-                  m_pFileHandle = fopen(m_Filename.c_str(), "r+b");
-                  break;
-              default:
-                  PanicAlert("CWII_IPC_HLE_Device_FileIO: unknown open mode");
-                  break;
-            }
-        
-        
-        if (m_pFileHandle != NULL) {
-            m_FileLength = File::GetSize(m_Filename.c_str());
-            ReturnValue = GetDeviceID();
-        }
-        else {
-            LOG(WII_IPC_FILEIO, "Error opening file %s", m_Filename.c_str());
-            ReturnValue = -106;
-        }
-    } else {
-        LOG(WII_IPC_FILEIO, "File %s doesn't exist", m_Filename.c_str() );
+	m_Filename = std::string(HLE_IPC_BuildFilename(GetDeviceName().c_str(), 64));
+
+	if (File::Exists(m_Filename.c_str()))
+	{
+		switch(_Mode)
+		{
+		// Do "r+b" for all writing to avoid truncating the file
+		case 0x01:	m_pFileHandle = fopen(m_Filename.c_str(), "rb"); break;
+		case 0x02:	//m_pFileHandle = fopen(m_Filename.c_str(), "wb"); break;
+		case 0x03:	m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
+		default: PanicAlert("CWII_IPC_HLE_Device_FileIO: unknown open mode"); break;
+		}
+	}
+
+	u32 ReturnValue = 0;
+    if (m_pFileHandle != NULL)
+    {
+        m_FileLength = File::GetSize(m_Filename.c_str());
+        ReturnValue = GetDeviceID();
+    }
+    else
+    {
+        LOG(WII_IPC_FILEIO, "    failed - File doesn't exist");
         ReturnValue = -106;
     }
-    
+
     Memory::Write_U32(ReturnValue, _CommandAddress+4);
-    //LOG(WII_IPC_FILEIO, "===================================================================");
     return true;
 }
 

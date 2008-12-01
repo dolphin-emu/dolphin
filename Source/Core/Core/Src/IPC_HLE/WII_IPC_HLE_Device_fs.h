@@ -46,6 +46,7 @@ private:
 		GET_STATS			= 0x02,
 		CREATE_DIR			= 0x03,
 		IOCTL_READ_DIR		= 0x04,
+		SET_ATTR			= 0x05,
 		GET_ATTR			= 0x06,
 		DELETE_FILE			= 0x07,
 		RENAME_FILE			= 0x08,
