@@ -129,6 +129,7 @@ public:
 
 					// Write the Title ID to 0x00000000
                     Memory::Write_U32(TitleID, OutBuffer);
+					//Memory::Write_U32(0x00000000, OutBuffer);
 
                     LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEID: 0x%x", TitleID);
                 }
@@ -143,7 +144,7 @@ public:
 						u32 InBuffer = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
 
 					// Should we write something here?
-					Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);	
+					//Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);	
                 }
                 break;
 
@@ -155,7 +156,7 @@ public:
 						u32 InBuffer = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
 
 					// Should we write something here?
-					Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);
+					//Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);
                 }
                 break;
 

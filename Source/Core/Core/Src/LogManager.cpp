@@ -301,7 +301,8 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 				&& m_LogSettings->bWriteMaster)
 			fprintf(m_Log[ver*100 + LogTypes::MASTER_LOG]->m_pFile, "%s", Msg2);
 
-		// Write now. Is this slower than caching it?
+		/* In case it crashes write now to make sure you get the last messages.
+		   Is this slower than caching it? */
 		//fflush(m_Log[id]->m_pFile);
 		//fflush(m_Log[ver*100 + LogTypes::MASTER_LOG]->m_pFile);
 

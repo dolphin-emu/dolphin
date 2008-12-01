@@ -297,6 +297,139 @@ writeFn32 GetHWWriteFun32(const u32 _Address)
 }
 
 
+
+
+
+
+// =======================================================
+/* Functions to detect and trace memory read/write errors. Turn of JIT LoadStore to
+   make it work, and add a return 0 at the beginning of CheckDTLB to avoid closing
+   Dolphin just as it starts to get interesting. You can also try to change
+   the TitleID write in IOCTL_ES_GETTITLEID to 0x00000000, otherwise it will never even
+   get to making the bad dev/di request.
+   
+   I'm currently at (---, 8021347c) : Write32: Program wrote [0x7fd5d340] to [0x933e00f8],
+   0x8021347c seems to write the out buffer to a 0x933e.... address before it is copies
+   to the 0x133e.... address for the Ioctlv. But why does it generate this bad address
+   when it made a good one 120 milliseconds earlier?
+   */
+// -------------
+bool ValidMemory(const u32 _Address)
+{
+	switch (_Address >> 24)
+	{
+	case 0x00:
+	case 0x01:
+	case 0x80:
+	case 0x81:
+	case 0xC0:
+	case 0xC1:
+		return true;
+
+    case 0x10:
+    case 0x11:
+    case 0x12:
+    case 0x13:
+    case 0x90:
+    case 0x91:
+    case 0x92:
+    case 0x93:
+    case 0xD0:
+    case 0xD1:
+    case 0xD2:
+    case 0xD3:
+		if (Core::GetStartupParameter().bWii)
+			return true;
+		else
+			return false;
+
+	case 0xE0:
+		if (_Address < (0xE0000000 + L1_CACHE_SIZE))
+			return true;
+	case 0xCC:
+	case 0xCD:
+	case 0xC8:
+		return true;
+	}
+	return false;
+}
+
+void CheckForBadAddresses(u32 Address, u32 Data, bool Read, int Bits)
+{
+	if (!ValidMemory(Address))											
+	{		
+		if(Read)
+		{
+			LOG(CONSOLE, "Read%i: Program tried to read [%08x] from [%08x]", Bits, Address);		
+			//PanicAlert("Write_U32: Program tried to write [%08x] to [%08x]", _Address);	
+		}
+		else
+		{
+			LOGV(CONSOLE, 0, "Write%i: Program tried to write [%08x] to [%08x]", Bits, Data, Address);	
+			//PanicAlert("Read: Program tried to write [%08x] to [%08x]", Data, Address);
+		}
+	}
+
+	if (Address == 0)																		
+	{		
+		if(Read)
+		{
+			LOGV(CONSOLE, 1, "Read%i: Program read [0x%08x] from [0x%08x]     * * *   0   * * *", Bits, Data, Address);	
+			//PanicAlert("Read: Program read [%08x] from [%08x]", Data, Address);
+		}
+		else
+		{
+			LOGV(CONSOLE, 1, "Write%i: Program wrote [0x%08x] to [0x%08x]     * * *   0   * * *", Bits, Data, Address);	
+			//PanicAlert("Read: Program wrote [%08x] to [%08x]", Data, Address);
+		}
+	}
+/* Try to figure out where the dev/di Ioctl arguments are stored (including buffer out), so we can
+   find the bad one */
+	if(	
+		Data == 0x1090f4c0 // good out buffer right before it, for sound/smashbros_sound.brsar
+		|| Data == 0x10913b00 // second one
+		|| Data == 0x7fd5d340 // first bad out buffer
+		|| Data == 0x133e00f8 // the address that store the bad 0x7fd5d340, this changes every time
+		|| Data == 0x2a24aa // menu2\sc_title_en.pac byte size
+		|| (
+			(PC == 0x8021347c || PC == 0x801f6a20  || PC == 0x800202d0  || PC == 0x80229964 
+			|| PC == 0x801d88bc) /* this could be interesting, because the bad out buffer 0x7fd5d340
+			is 0x80000000 - size = 0x7fd5d340 perhaps some function read 0x80000000, I dunno */
+			&& Data == 0x80000000)
+		)																		
+	{		
+		if(Read)
+		{
+			LOGV(CONSOLE, 0, "Read%i: Program read [0x%08x] from [0x%08x]      * * * * * * * * * * * *", Bits, Data, Address);	
+			//PanicAlert("Read%i: Program read [%08x] from [%08x]", Bits, Data, Address);
+		}
+		else
+		{
+			LOGV(CONSOLE, 0, "Write%i: Program wrote [0x%08x] to [0x%08x]      * * * * * * * * * * * *", Bits,Data, Address);	
+			//PanicAlert("Write%i: Program wrote [0x%08x] to [0x%08x]", Bits, Data, Address);
+		}
+	}
+}
+
+
+void CheckForBadAddresses8(u32 Address, u8 Data, bool Read)
+{CheckForBadAddresses(Address, (u32)Data, Read, 8);}
+
+void CheckForBadAddresses16(u32 Address, u16 Data, bool Read)
+{CheckForBadAddresses(Address, (u32)Data, Read, 16);}
+
+void CheckForBadAddresses32(u32 Address, u32 Data, bool Read)
+{CheckForBadAddresses(Address, (u32)Data, Read, 32);}
+
+void CheckForBadAddresses64(u32 Address, u64 Data, bool Read)
+{CheckForBadAddresses(Address, (u32)Data, Read, 64);}
+// =============
+
+
+
+
+
+
 #define ReadFromHardware2(_var, _type, _Address, EffectiveAddress, flag)				\
 {																						\
 	if ((_Address & 0xC8000000) == 0xC8000000)											\
@@ -347,11 +480,13 @@ writeFn32 GetHWWriteFun32(const u32 _Address)
 		_var = bswap((*(u##_type*)&m_pRAM[tmpAddress & RAM_MASK]));						\
 		}                                                                               \
 	}																					\
+	/* Uncomment this: CheckForBadAddresses##_type(_Address, _var, true);*/				\
 }
 
 
 #define WriteToHardware2(_type, _Address, _Data, EffectiveAddress, flag)				\
 {																						\
+	/* Uncomment this: CheckForBadAddresses##_type(_Address, _Data, false);*/			\
 	if ((_Address & 0xC8000000) == 0xC8000000)											\
 	{																					\
 		if (_Address < 0xcc000000)														\
@@ -666,8 +801,8 @@ u32 Read_U32(const u32 _Address)
 #ifdef LOGGING
 	if (_Address == 0x00000000)
 	{
-		PanicAlert("Program tried to read from [00000000]");
-		return 0x00000000;
+		//PanicAlert("Program tried to read from [00000000]");
+		//return 0x00000000;
 	}
 #endif
 
@@ -1101,6 +1236,7 @@ void SDRUpdated()
 
 u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag)
 {
+	return 0;
 	if (Core::GetStartupParameter().bWii) {
 		// TLB is never used on Wii (except linux and stuff, but we don't care about that)
 		PanicAlert("%s invalid memory region (0x%08x)\n\n"

@@ -53,9 +53,9 @@ bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
 
 bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress) 
 {
-    LOG(WII_IPC_DVD, "*******************************");
-    LOG(WII_IPC_DVD, "CWII_IPC_DVD_Device_di::IOCtl");
-    LOG(WII_IPC_DVD, "*******************************");
+    LOGV(WII_IPC_DVD, 1, "*******************************");
+    LOGV(WII_IPC_DVD, 1, "CWII_IPC_DVD_Device_di::IOCtl");
+    LOGV(WII_IPC_DVD, 1, "*******************************");
 
 
 	u32 BufferIn =  Memory::Read_U32(_CommandAddress + 0x10);
@@ -63,7 +63,7 @@ bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
     u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
     u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
 
-    LOG(WII_IPC_DVD, "%s - BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)", GetDeviceName().c_str(), BufferIn, BufferInSize, BufferOut, BufferOutSize);
+    LOG(WII_IPC_DVD, "%s - CommandAddress(0x%08x) BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)", GetDeviceName().c_str(), _CommandAddress, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 	u32 ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);	
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
@@ -191,7 +191,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	case 0x86:
 		{
 			Memory::Memset(_BufferOut, 0, _BufferOutSize);
-			LOG(WII_IPC_DVD, "%s executes DVDLowClearCoverInterrupt (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
+			LOGV(WII_IPC_DVD, 1, "%s executes DVDLowClearCoverInterrupt (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
 		}
 		break;
 
