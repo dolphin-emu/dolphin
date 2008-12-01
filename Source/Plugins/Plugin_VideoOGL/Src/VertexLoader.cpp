@@ -149,7 +149,7 @@ void VertexLoader::CompileVertexTranslator()
 	u8 *old_code_ptr = GetWritableCodePtr();
 	SetCodePtr(m_compiledCode);
 	ABI_EmitPrologue(4);
-	MOV(32, R(EBX), M(&loop_counter));
+	// MOV(32, R(EBX), M(&loop_counter));
 	// Start loop here
 	const u8 *loop_start = GetCodePtr();
 
@@ -473,7 +473,8 @@ void VertexLoader::CompileVertexTranslator()
 
 #ifdef USE_JIT
 	// End loop here
-	SUB(32, R(EBX), Imm8(1));
+	SUB(32, M(&loop_counter), Imm8(1));
+	//SUB(32, R(EBX), Imm8(1));
 	J_CC(CC_NZ, loop_start, true);
 	ABI_EmitEpilogue(4);
 	SetCodePtr(old_code_ptr);
