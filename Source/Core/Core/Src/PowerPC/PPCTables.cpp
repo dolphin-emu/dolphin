@@ -374,13 +374,15 @@ GekkoOPTemplate table31[] =
 	{598, Interpreter::sync,    Jit64::DoNothing,   {"sync",   OPTYPE_SYSTEM, 0, 2}},
 	{982, Interpreter::icbi,    Jit64::Default,     {"icbi",   OPTYPE_SYSTEM, 0, 3}},
 
-	//Unused instructions on GC
+	// Unused instructions on GC
 	{310, Interpreter::eciwx,   Jit64::Default,    {"eciwx",   OPTYPE_INTEGER, FL_RC_BIT}},
 	{438, Interpreter::ecowx,   Jit64::Default,    {"ecowx",   OPTYPE_INTEGER, FL_RC_BIT}},
 	{854, Interpreter::eieio,   Jit64::Default,    {"eieio",   OPTYPE_INTEGER, FL_RC_BIT}},
 	{306, Interpreter::tlbie,   Jit64::Default,    {"tlbie",   OPTYPE_SYSTEM, 0}},
 	{370, Interpreter::tlbia,   Jit64::Default,    {"tlbia",   OPTYPE_SYSTEM, 0}},
 	{566, Interpreter::tlbsync, Jit64::Default,    {"tlbsync", OPTYPE_SYSTEM, 0}},
+
+	// Instructions used on Wii and thought not to be used by a Gekko
 	{150, Interpreter::stwcxd,  Jit64::Default,    {"stwcxd",  OPTYPE_STORE, 0}},
 };
 

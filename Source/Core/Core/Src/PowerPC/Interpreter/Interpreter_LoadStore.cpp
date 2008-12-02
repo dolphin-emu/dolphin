@@ -593,10 +593,13 @@ void lwarx(UGeckoInstruction _inst)
 
 void stwcxd(UGeckoInstruction _inst)
 {
-	// This instruction, to
+	// This instruction, too
 	static bool bFirst = true;
 	if (bFirst)
 		PanicAlert("stwcxd - suspicious instruction");
+
+	// TODO: Stores Word Conditional indeXed
+
 	bFirst = false;
 	u32 uAddress = Helper_Get_EA_X(_inst);
 	Memory::Write_U32(m_GPR[_inst.RS], uAddress);
