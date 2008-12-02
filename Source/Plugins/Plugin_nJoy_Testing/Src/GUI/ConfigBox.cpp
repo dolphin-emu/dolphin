@@ -374,7 +374,6 @@ void ConfigBox::SetControllerAll(int controller)
 void ConfigBox::GetControllerAll(int controller)
 {
 	wxString tmp;
-	char value[64];
 	long lvalue;
 
 	joysticks[controller].ID = m_Joyname[controller]->GetSelection();

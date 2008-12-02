@@ -244,7 +244,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			{
 				// Check if this address has been modified
 				int find = -1;				
-				for(int i = 0; i < BlrList.size(); i++)
+				for(u32 i = 0; i < BlrList.size(); i++)
 				{
 					if(BlrList.at(i).Address == selection)
 					{ find = i; break;  }					

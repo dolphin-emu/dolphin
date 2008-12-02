@@ -35,10 +35,10 @@ CPatchAddEdit::~CPatchAddEdit()
 {
 }
 
-void CPatchAddEdit::CreateGUIControls(int selection)
+void CPatchAddEdit::CreateGUIControls(int _selection)
 {
-	std::string currentName = onFrame.at(selection).name;
-	std::vector<PatchEngine::PatchEntry> currentEntries = onFrame.at(selection).entries;
+	std::string currentName = onFrame.at(_selection).name;
+	std::vector<PatchEngine::PatchEntry> currentEntries = onFrame.at(_selection).entries;
 
 	wxBoxSizer* sEditPatch = new wxBoxSizer(wxVERTICAL);
 	wxStaticText* EditPatchNameText = new wxStaticText(this, ID_EDITPATCH_NAME_TEXT, _("Name:"), wxDefaultPosition, wxDefaultSize);
