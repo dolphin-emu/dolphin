@@ -850,6 +850,14 @@
 				RelativePath=".\src\MemcardManager.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Src\PatchAddEdit.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PatchAddEdit.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Misc"

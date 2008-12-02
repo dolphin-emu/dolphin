@@ -21,7 +21,8 @@
 #include "VolumeCreator.h"
 #include "Filesystem.h"
 #include "ISOProperties.h"
-#include "PatchEngine.h"
+#include "PatchAddEdit.h"
+
 
 DiscIO::IVolume *OpenISO = NULL;
 DiscIO::IFileSystem *pFileSystem = NULL;
@@ -34,8 +35,8 @@ struct ARListCode {
 	std::vector<std::string> ops;
 	u32 uiIndex;
 };
-
 std::vector<ARListCode> ARCodes;
+
 
 BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_CLOSE(CISOProperties::OnClose)
@@ -650,77 +651,16 @@ void CISOProperties::PatchList_Save()
 	lines.clear();
 }
 
-
-void CISOProperties::ChangeEditPatchEntry(wxSpinEvent& event)
-{
-	PatchEngine::PatchEntry pE = onFrame.at(Patches->GetSelection()).entries.at(event.GetPosition());
-	EditPatchOffset->SetValue(wxString::Format(_("%08X"), pE.address));
-	EditPatchType->SetSelection(pE.type);
-	EditPatchValue->SetValue(wxString::Format(_("%08X"), pE.value));
-}
-
 void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 {
+	int selection = Patches->GetSelection();
+	
 	switch (event.GetId())
 	{
 	case ID_EDITPATCH:
 		{
-			int selection = Patches->GetSelection();
-			std::string currentName = onFrame.at(selection).name;
-			std::vector<PatchEngine::PatchEntry> currentEntries = onFrame.at(selection).entries;
-			wxDialog* dEditPatch = new wxDialog(this, IDD_EDITPATCH, wxString::Format(_("Edit Patch: %s"), currentName.c_str()), wxDefaultPosition, wxSize(300, -1));
-
-			wxBoxSizer* sEditPatch = new wxBoxSizer(wxVERTICAL);
-			wxStaticText* EditPatchNameText = new wxStaticText(dEditPatch, ID_EDITPATCH_NAME_TEXT, _("Name:"), wxDefaultPosition, wxDefaultSize);
-			EditPatchName = new wxTextCtrl(dEditPatch, ID_EDITPATCH_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
-			EditPatchName->SetValue(wxString::FromAscii(currentName.c_str()));
-			wxStaticText* EditPatchOffsetText = new wxStaticText(dEditPatch, ID_EDITPATCH_OFFSET_TEXT, _("Offset:"), wxDefaultPosition, wxDefaultSize);
-			EditPatchOffset = new wxTextCtrl(dEditPatch, ID_EDITPATCH_OFFSET, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
-			EditPatchOffset->SetValue(wxString::Format(_("%08X"), currentEntries.at(0).address));
-			wxSpinButton* EntrySelection = new wxSpinButton(dEditPatch, ID_ENTRY_SELECT, wxDefaultPosition, wxDefaultSize, wxVERTICAL);
-			EntrySelection->SetRange(0, currentEntries.size());
-			wxArrayString wxArrayStringFor_EditPatchType;
-			for (int i = 0; i < 3; ++i)
-				wxArrayStringFor_EditPatchType.Add(wxString::FromAscii(PatchEngine::PatchTypeStrings[i]));
-			EditPatchType = new wxRadioBox(dEditPatch, ID_EDITPATCH_TYPE, _("Type"), wxDefaultPosition, wxDefaultSize, wxArrayStringFor_EditPatchType, 3, wxRA_SPECIFY_COLS, wxDefaultValidator);
-			EditPatchType->SetSelection((int)currentEntries.at(0).type);
-			wxStaticText* EditPatchValueText = new wxStaticText(dEditPatch, ID_EDITPATCH_VALUE_TEXT, _("Value:"), wxDefaultPosition, wxDefaultSize);
-			EditPatchValue = new wxTextCtrl(dEditPatch, ID_EDITPATCH_VALUE, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
-			EditPatchValue->SetValue(wxString::Format(_("%08X"), currentEntries.at(0).value));
-			wxBoxSizer* sEditPatchName = new wxBoxSizer(wxHORIZONTAL);
-			sEditPatchName->Add(EditPatchNameText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
-			sEditPatchName->Add(EditPatchName, 1, wxEXPAND|wxALL, 5);
-			sEditPatch->Add(sEditPatchName, 0, wxEXPAND);
-			wxStaticBoxSizer* sbEntry = new wxStaticBoxSizer(wxVERTICAL, dEditPatch, _("Entry"));
-			wxGridBagSizer* sgEntry = new wxGridBagSizer(0, 0);
-			sgEntry->AddGrowableCol(1);
-			sgEntry->Add(EditPatchOffsetText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-			sgEntry->Add(EditPatchOffset, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-			sgEntry->Add(EntrySelection, wxGBPosition(0, 2), wxGBSpan(3, 1), wxEXPAND|wxALL, 5);
-			sgEntry->Add(EditPatchType, wxGBPosition(1, 0), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
-			sgEntry->Add(EditPatchValueText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-			sgEntry->Add(EditPatchValue, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-			sbEntry->Add(sgEntry, 0, wxEXPAND);
-			sEditPatch->Add(sbEntry, 0, wxEXPAND|wxALL, 5);
-			wxBoxSizer* sEditPatchButtons = new wxBoxSizer(wxHORIZONTAL);
-			wxButton* bOK = new wxButton(dEditPatch, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-			wxButton* bCancel = new wxButton(dEditPatch, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-			sEditPatchButtons->Add(0, 0, 1, wxEXPAND, 5);
-			sEditPatchButtons->Add(bOK, 0, wxALL, 5);
-			sEditPatchButtons->Add(bCancel, 0, wxALL, 5);
-			sEditPatch->Add(sEditPatchButtons, 0, wxEXPAND, 5);
-			dEditPatch->SetSizer(sEditPatch);
-			sEditPatch->Layout();
-			if (dEditPatch->ShowModal() == wxID_OK)
-			{
-				onFrame.at(selection).name = std::string(EditPatchName->GetValue().mb_str());
-				unsigned long value;
-				if (EditPatchOffset->GetValue().ToULong(&value, 16))
-					onFrame.at(selection).entries.at(0).address = value;
-				onFrame.at(selection).entries.at(0).type = (PatchEngine::PatchType)EditPatchType->GetSelection();
-				if (EditPatchValue->GetValue().ToULong(&value, 16))
-					onFrame.at(selection).entries.at(0).value = value;
-			}
+		CPatchAddEdit dlg(selection, this);
+		dlg.ShowModal();
 		}
 		break;
 	case ID_ADDPATCH:

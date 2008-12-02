@@ -31,6 +31,7 @@
 
 #include "Filesystem.h"
 #include "IniFile.h"
+#include "PatchEngine.h"
 
 #undef ISOPROPERTIES_STYLE
 #define ISOPROPERTIES_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX
@@ -86,10 +87,6 @@ class CISOProperties : public wxDialog
 		wxArrayString arrayStringFor_Patches;
 		wxCheckListBox *Patches;
 		wxButton *EditPatch;
-		wxTextCtrl *EditPatchName;
-		wxTextCtrl *EditPatchOffset;
-		wxRadioBox *EditPatchType;
-		wxTextCtrl *EditPatchValue;
 		wxButton *AddPatch;
 		wxButton *RemovePatch;
 		wxArrayString arrayStringFor_Cheats;
@@ -159,15 +156,6 @@ class CISOProperties : public wxDialog
 			ID_EMUSTATE,
 			ID_PATCHES_LIST,
 			ID_EDITPATCH,
-			IDD_EDITPATCH,
-			ID_EDITPATCH_NAME_TEXT,
-			ID_EDITPATCH_NAME,
-			ID_EDITPATCH_OFFSET_TEXT,
-			ID_EDITPATCH_OFFSET,
-			ID_ENTRY_SELECT,
-			ID_EDITPATCH_TYPE,
-			ID_EDITPATCH_VALUE_TEXT,
-			ID_EDITPATCH_VALUE,
 			ID_ADDPATCH,
 			ID_REMOVEPATCH,
 			ID_CHEATS_LIST,
@@ -213,7 +201,6 @@ class CISOProperties : public wxDialog
 		void OnEditConfig(wxCommandEvent& event);
 		void ListSelectionChanged(wxCommandEvent& event);
 		void PatchButtonClicked(wxCommandEvent& event);
-		void ChangeEditPatchEntry(wxSpinEvent& event);
 		void ActionReplayButtonClicked(wxCommandEvent& event);
 		void RightClickOnBanner(wxMouseEvent& event);
 		void OnBannerImageSave(wxCommandEvent& event);
@@ -225,12 +212,13 @@ class CISOProperties : public wxDialog
 		std::vector<const DiscIO::SFileInfo *> Our_Files;
 		typedef std::vector<const DiscIO::SFileInfo *>::iterator fileIter;
 
-		IniFile GameIni;
-		std::string GameIniFile;
-
 		void CreateDirectoryTree(wxTreeItemId& parent,fileIter& begin,
 								 fileIter& end,
 								 fileIter& iterPos, char *directory);
+
+		IniFile GameIni;
+		std::string GameIniFile;
+
 		void LoadGameConfig();
 		bool SaveGameConfig();
 		void PatchList_Load();
