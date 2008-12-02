@@ -33,7 +33,10 @@ public:
 private:
 	DECLARE_EVENT_TABLE()
 	bool m_CachedRegHasChanged[64];
+
+	#ifdef _WIN32
 	virtual bool MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem);
+	#endif
 };
 
 #endif

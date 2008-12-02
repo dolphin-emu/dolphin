@@ -39,7 +39,9 @@ class CRegisterView
 		u32 m_CachedRegs[32];
 		bool m_CachedRegHasChanged[32];
 
+		#ifdef _WIN32
 		virtual bool MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem);
+		#endif
 };
 
 #endif

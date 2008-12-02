@@ -240,10 +240,10 @@ void CopySettingsFile(std::string DeviceName)
 	else
 		Source += "setting-eur.txt";
 
-	std::string Target = FULL_WII_USER_DIR + DeviceName;
+	std::string Target = FULL_WII_USER_DIR + File::SanitizePath(DeviceName.c_str());
 
 	// Check if the target dir exists, otherwise create it
-	std::string TargetDir = Target.substr(0, Target.find_last_of("/"));
+	std::string TargetDir = Target.substr(0, Target.find_last_of(DIR_SEP));
 	if(!File::IsDirectory(TargetDir.c_str())) File::CreateDirectoryStructure(Target.c_str());
 
 	if (File::Copy(Source.c_str(), Target.c_str()))

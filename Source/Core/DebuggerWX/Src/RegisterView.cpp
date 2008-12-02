@@ -90,7 +90,7 @@ CRegisterView::Update()
 	Refresh();
 }
 
-
+#ifdef _WIN32
 bool
 CRegisterView::MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem)
 {
@@ -130,11 +130,7 @@ CRegisterView::MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem)
 	    }
 		    break;
 	}
-
-	//
 #endif
-
 	return(Result);
 }
-
-
+#endif

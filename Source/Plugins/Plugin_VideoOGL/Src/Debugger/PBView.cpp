@@ -60,7 +60,7 @@ void CPBView::Update()
 	Refresh();
 	
 }
-
+#ifdef _WIN32
 bool CPBView::MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem)
 {
 	bool Result = false;
@@ -121,3 +121,4 @@ bool CPBView::MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem)
 		return Result;
 	}
 }
+#endif

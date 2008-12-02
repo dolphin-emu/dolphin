@@ -700,7 +700,7 @@ void CCodeWindow::UpdateLists()
 		u32 caller_addr = symbol->callers[i].callAddress;
 		Symbol *caller_symbol = g_symbolDB.GetSymbolFromAddr(caller_addr);
 		if (caller_symbol) {
-			int idx = callers->Append(wxString::Format( _T("< %s (%08x)"), caller_symbol->name.c_str(), caller_addr));
+			int idx = callers->Append(wxString::Format( wxT("< %s (%08x)"), caller_symbol->name.c_str(), caller_addr));
 			callers->SetClientData(idx, (void*)caller_addr);
 		}
 	}
