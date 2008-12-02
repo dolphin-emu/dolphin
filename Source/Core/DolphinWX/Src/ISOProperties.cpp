@@ -654,9 +654,9 @@ void CISOProperties::PatchList_Save()
 void CISOProperties::ChangeEditPatchEntry(wxSpinEvent& event)
 {
 	PatchEngine::PatchEntry pE = onFrame.at(Patches->GetSelection()).entries.at(event.GetPosition());
-	EditPatchOffset->SetValue(wxString::Format("%08X", pE.address));
+	EditPatchOffset->SetValue(wxString::Format(_("%08X"), pE.address));
 	EditPatchType->SetSelection(pE.type);
-	EditPatchValue->SetValue(wxString::Format("%08X", pE.value));
+	EditPatchValue->SetValue(wxString::Format(_("%08X"), pE.value));
 }
 
 void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
@@ -668,7 +668,7 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 			int selection = Patches->GetSelection();
 			std::string currentName = onFrame.at(selection).name;
 			std::vector<PatchEngine::PatchEntry> currentEntries = onFrame.at(selection).entries;
-			wxDialog* dEditPatch = new wxDialog(this, IDD_EDITPATCH, wxString::Format("Edit Patch: %s", currentName.c_str()), wxDefaultPosition, wxSize(300, -1));
+			wxDialog* dEditPatch = new wxDialog(this, IDD_EDITPATCH, wxString::Format(_("Edit Patch: %s"), currentName.c_str()), wxDefaultPosition, wxSize(300, -1));
 
 			wxBoxSizer* sEditPatch = new wxBoxSizer(wxVERTICAL);
 			wxStaticText* EditPatchNameText = new wxStaticText(dEditPatch, ID_EDITPATCH_NAME_TEXT, _("Name:"), wxDefaultPosition, wxDefaultSize);
@@ -676,7 +676,7 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 			EditPatchName->SetValue(wxString::FromAscii(currentName.c_str()));
 			wxStaticText* EditPatchOffsetText = new wxStaticText(dEditPatch, ID_EDITPATCH_OFFSET_TEXT, _("Offset:"), wxDefaultPosition, wxDefaultSize);
 			EditPatchOffset = new wxTextCtrl(dEditPatch, ID_EDITPATCH_OFFSET, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
-			EditPatchOffset->SetValue(wxString::Format("%08X", currentEntries.at(0).address));
+			EditPatchOffset->SetValue(wxString::Format(_("%08X"), currentEntries.at(0).address));
 			wxSpinButton* EntrySelection = new wxSpinButton(dEditPatch, ID_ENTRY_SELECT, wxDefaultPosition, wxDefaultSize, wxVERTICAL);
 			EntrySelection->SetRange(0, currentEntries.size());
 			wxArrayString wxArrayStringFor_EditPatchType;
@@ -686,7 +686,7 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 			EditPatchType->SetSelection((int)currentEntries.at(0).type);
 			wxStaticText* EditPatchValueText = new wxStaticText(dEditPatch, ID_EDITPATCH_VALUE_TEXT, _("Value:"), wxDefaultPosition, wxDefaultSize);
 			EditPatchValue = new wxTextCtrl(dEditPatch, ID_EDITPATCH_VALUE, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
-			EditPatchValue->SetValue(wxString::Format("%08X", currentEntries.at(0).value));
+			EditPatchValue->SetValue(wxString::Format(_("%08X"), currentEntries.at(0).value));
 			wxBoxSizer* sEditPatchName = new wxBoxSizer(wxHORIZONTAL);
 			sEditPatchName->Add(EditPatchNameText, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 			sEditPatchName->Add(EditPatchName, 1, wxEXPAND|wxALL, 5);

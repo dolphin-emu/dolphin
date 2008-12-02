@@ -52,6 +52,7 @@
 #else
 #endif
 //#define USE_AA
+#define AA_AMMOUNT 16
 struct MESSAGE
 {
     MESSAGE() {}
@@ -188,7 +189,7 @@ bool Renderer::Create2()
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         #ifdef USE_AA
         glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_RenderTargets[i]);
-        glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, 4, GL_RGBA, nBackbufferWidth, nBackbufferHeight);
+        glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, AA_AMMOUNT, GL_RGBA, nBackbufferWidth, nBackbufferHeight);
         #endif
     }
     s_nCurTarget = 0;
@@ -215,7 +216,7 @@ bool Renderer::Create2()
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         #ifdef USE_AA
         glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_ZBufferTarget);
-        glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, 4, GL_RGBA, nBackbufferWidth, nBackbufferHeight);
+        glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, AA_AMMOUNT, GL_RGBA, nBackbufferWidth, nBackbufferHeight);
         #endif
     }
 
@@ -223,7 +224,7 @@ bool Renderer::Create2()
     glGenRenderbuffersEXT( 1, (GLuint *)&s_DepthTarget);
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_DepthTarget);
     #ifdef USE_AA
-    glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, 4, GL_DEPTH24_STENCIL8_EXT, nBackbufferWidth, nBackbufferHeight);
+    glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, AA_AMMOUNT, GL_DEPTH24_STENCIL8_EXT, nBackbufferWidth, nBackbufferHeight);
     #else
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8_EXT, nBackbufferWidth, nBackbufferHeight);
     #endif
