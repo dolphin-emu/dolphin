@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Plugin_nJoy_SDL"
-	ProjectGUID="{521498BE-6089-4780-8223-E67C22F4E068}"
+	Name="Plugin_nJoy_SDL_Test"
+	ProjectGUID="{ADF64291-57ED-4B7A-AB76-37B4A991504B}"
 	RootNamespace="Plugin_nJoy_SDL"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
