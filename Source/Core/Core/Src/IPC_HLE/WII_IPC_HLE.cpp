@@ -422,7 +422,9 @@ void ExecuteCommand(u32 _Address)
 		}
         else
 		{
-		    LOG(WII_IPC_HLE, "IOP: Reply to unknown device ID (DeviceID=%i)", DeviceID);
+                    // 0 is ok, as it's used for devices that wasn't created yet
+                    if (DeviceID != 0)
+                        LOG(WII_IPC_HLE, "IOP: Reply to unknown device ID (DeviceID=%i)", DeviceID);
                     g_ReplyQueue.push(std::pair<u32, std::string>(_Address, "unknown")); 
 		}
     }
