@@ -33,6 +33,17 @@ void Update();
 // Acknowledge command
 bool AckCommand(u32 _Address);
 
+enum ECommandType
+{
+	COMMAND_OPEN_DEVICE		= 1,
+	COMMAND_CLOSE_DEVICE	        = 2,
+	COMMAND_READ			= 3,
+	COMMAND_WRITE			= 4,
+	COMMAND_SEEK			= 5,
+	COMMAND_IOCTL			= 6,
+	COMMAND_IOCTLV			= 7,
+};
+
 } // end of namespace AudioInterface
 
 #endif

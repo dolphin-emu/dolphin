@@ -68,16 +68,6 @@
 namespace WII_IPC_HLE_Interface
 {
 
-enum ECommandType
-{
-	COMMAND_OPEN_DEVICE		= 1,
-	COMMAND_CLOSE_DEVICE	= 2,
-	COMMAND_READ			= 3,
-	COMMAND_WRITE			= 4,
-	COMMAND_SEEK			= 5,
-	COMMAND_IOCTL			= 6,
-	COMMAND_IOCTLV			= 7,
-};
 
 typedef std::map<u32, IWII_IPC_HLE_Device*> TDeviceMap;
 TDeviceMap g_DeviceMap;
@@ -432,7 +422,8 @@ void ExecuteCommand(u32 _Address)
 		}
         else
 		{
-            g_ReplyQueue.push(std::pair<u32, std::string>(_Address, "unknown")); 
+		    LOG(WII_IPC_HLE, "IOP: Reply to unknown device ID (DeviceID=%i)", DeviceID);
+                    g_ReplyQueue.push(std::pair<u32, std::string>(_Address, "unknown")); 
 		}
     }
 }
