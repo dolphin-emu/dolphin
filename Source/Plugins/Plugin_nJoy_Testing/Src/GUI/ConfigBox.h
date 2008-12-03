@@ -96,6 +96,7 @@ class ConfigBox : public wxDialog
 		wxButton *m_bJoyButtonY[4];
 		wxButton *m_bJoyButtonZ[4];
 		wxButton *m_bJoyButtonStart[4];
+		wxButton *m_bJoyButtonCalibrate[4];
 		wxButton *m_bJoyButtonHalfpress[4];
 
 		wxTextCtrl *m_JoyAnalogMainX[4];
@@ -209,6 +210,7 @@ class ConfigBox : public wxDialog
 			IDT_ANALOG_SUB_X,
 			IDT_ANALOG_SUB_Y,
 			IDT_WEBSITE,
+			ID_BUTTONCALIBRATE,
 
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
 		};
@@ -230,6 +232,7 @@ class ConfigBox : public wxDialog
 
 		void NotebookPageChanged(wxNotebookEvent& event);
 
+		void Calibrate(wxCommandEvent& event);
 		void GetInputs(wxCommandEvent& event);
 		void GetHats(int ID);
 

@@ -599,14 +599,12 @@ int Search_Devices()
 		joyinfo[i].NumHats		= SDL_JoystickNumHats(joyinfo[i].joy);
 		joyinfo[i].Name			= SDL_JoystickName(i);
   
-		#ifdef _DEBUG
-		fprintf(pFile, "ID: %d\n", i);
-		fprintf(pFile, "Name: %s\n", joyinfo[i].Name);
-		fprintf(pFile, "Buttons: %d\n", joyinfo[i].NumButtons);
-		fprintf(pFile, "Axes: %d\n", joyinfo[i].NumAxes);
-		fprintf(pFile, "Hats: %d\n", joyinfo[i].NumHats);
-		fprintf(pFile, "Balls: %d\n\n", joyinfo[i].NumBalls);
-		#endif	
+		printf("ID: %d\n", i);
+		printf("Name: %s\n", joyinfo[i].Name);
+		printf("Buttons: %d\n", joyinfo[i].NumButtons);
+		printf("Axises: %d\n", joyinfo[i].NumAxes);
+		printf("Hats: %d\n", joyinfo[i].NumHats);
+		printf("Balls: %d\n\n", joyinfo[i].NumBalls);
 
 		// Close if opened
 		if(SDL_JoystickOpened(i))
@@ -690,6 +688,14 @@ void SaveConfig()
 		file.Set(SectionName, "joy_id", joysticks[i].ID);
 		file.Set(SectionName, "controllertype", joysticks[i].controllertype);
 		file.Set(SectionName, "eventnum", joysticks[i].eventnum);
+		for(int a = 0; a < MAX_AXISES; a++)
+		{
+			char Section[32];
+			sprintf(Section, "SAxis%dMin", a);
+			file.Set(SectionName, Section, (int)joysticks[i].sData[a].Min);
+			sprintf(Section, "SAxis%dMax", a);
+			file.Set(SectionName, Section, (int)joysticks[i].sData[a].Max);
+		}
 	}
 
 	file.Save("nJoy.ini");
@@ -730,6 +736,18 @@ void LoadConfig()
 		file.Get(SectionName, "joy_id", &joysticks[i].ID, 0);
 		file.Get(SectionName, "controllertype", &joysticks[i].controllertype, 0);
 		file.Get(SectionName, "eventnum", &joysticks[i].eventnum, 0);
+		for(int a = 0; a < MAX_AXISES; a++)
+		{
+			char Section[32];
+			int Min;
+			int Max;
+			sprintf(Section, "SAxis%dMin", a);
+			file.Get(SectionName, Section, &Min, 0);
+			sprintf(Section, "SAxis%dMax", a);
+			file.Get(SectionName, Section, &Max, 0);
+			joysticks[i].sData[a].Min = Min;
+			joysticks[i].sData[a].Max = Max;
+		}
 	}
 }
 

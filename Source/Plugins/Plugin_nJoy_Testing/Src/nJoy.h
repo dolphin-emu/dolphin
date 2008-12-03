@@ -94,9 +94,20 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Structures
 // ¯¯¯¯¯¯¯¯¯¯
-
+#define MAX_AXISES 12 // If more than 12 is needed. Up it
+class sCalibration
+{
+	public:
+	sCalibration()
+	{
+		Min = 0;
+		Max = 0;
+	}
+	Sint16 Min;
+	Sint16 Max;
+}; // Simple Calibration Data
 struct CONTROLLER_STATE{	// GC PAD INFO/STATE
-	int buttons[12];			// Amount of buttons (A B X Y Z, L-Trigger R-Trigger Start) might need to change the triggers buttons
+	int buttons[12];		// Amount of buttons (A B X Y Z, L-Trigger R-Trigger Start) might need to change the triggers buttons
 	int dpad;				// 1 HAT (8 directions + neutral)
 	int dpad2[4];			// d-pad using buttons
 	int halfpress;			// ...
@@ -104,7 +115,8 @@ struct CONTROLLER_STATE{	// GC PAD INFO/STATE
 };
 
 struct CONTROLLER_MAPPING{	// GC PAD MAPPING
-	std::string buttons[12];			// Amount of buttons (A B X Y Z, L-Trigger R-Trigger Start) might need to change the triggers buttons
+	std::string buttons[12];// Amount of buttons (A B X Y Z, L-Trigger R-Trigger Start) might need to change the triggers buttons
+	sCalibration sData[MAX_AXISES];	// Calibration Data
 	int dpad;				// 1 HAT (8 directions + neutral)
 	int dpad2[4];			// d-pad using buttons
 	int enabled;			// Pad attached?

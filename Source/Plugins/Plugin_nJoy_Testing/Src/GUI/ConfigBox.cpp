@@ -62,6 +62,7 @@ BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
 	EVT_BUTTON(IDB_BUTTON_Y, ConfigBox::GetInputs)
 	EVT_BUTTON(IDB_BUTTON_Z, ConfigBox::GetInputs)
 	EVT_BUTTON(IDB_BUTTONSTART, ConfigBox::GetInputs)
+	EVT_BUTTON(ID_BUTTONCALIBRATE, ConfigBox::Calibrate)
 	EVT_BUTTON(IDB_BUTTONHALFPRESS, ConfigBox::GetInputs)
 	EVT_BUTTON(IDB_DPAD_UP, ConfigBox::GetInputs)
 	EVT_BUTTON(IDB_DPAD_DOWN, ConfigBox::GetInputs)
@@ -239,6 +240,7 @@ void ConfigBox::CreateGUIControls()
 		// GUI center button
 		m_JoyButtonStart[i] = new wxTextCtrl(m_Controller[i], ID_BUTTONSTART, wxT("0"), wxPoint(278, 403), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
 		m_JoyButtonStart[i]->Enable(false);
+		m_bJoyButtonCalibrate[i] = new wxButton(m_Controller[i], ID_BUTTONCALIBRATE, wxT("Calibrate"), wxPoint(297, 440), wxSize(21, 14), 0, wxDefaultValidator, wxT("Calibrate"));
 		m_JoyButtonHalfpress[i] = new wxTextCtrl(m_Controller[i], ID_BUTTONHALFPRESS, wxT("0"), wxPoint(167, 424), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
 		m_JoyButtonHalfpress[i]->Enable(false);
 		m_bJoyButtonStart[i] = new wxButton(m_Controller[i], IDB_BUTTONSTART, wxEmptyString, wxPoint(297, 385), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
@@ -321,6 +323,34 @@ void ConfigBox::CancelClick(wxCommandEvent& event)
 	}
 }
 
+void ConfigBox::Calibrate(wxCommandEvent& event)
+{
+	int controller = notebookpage;
+	
+	
+	SDL_Joystick *joy = SDL_JoystickOpen(joysticks[controller].ID);
+	int axes = SDL_JoystickNumAxes(joy);
+	Sint16 value;
+	unsigned long Started = SDL_GetTicks();
+	while(1)
+	{			
+		for(int b = 0; b < axes; b++)
+		{
+			SDL_JoystickUpdate();
+			value = SDL_JoystickGetAxis(joy, b);
+			if(value < joysticks[controller].sData[b].Min)
+				joysticks[controller].sData[b].Min = value;
+			if(value > joysticks[controller].sData[b].Max)
+				joysticks[controller].sData[b].Max = value;
+		}	
+		if(SDL_GetTicks() - Started >= 5000)
+			break;
+	}
+	for(int a = 0; a < axes;a++)
+		printf("Axis %d has a Min of %d, and a Max of %d\n", a, joysticks[controller].sData[a].Min, joysticks[controller].sData[a].Max);
+	if(SDL_JoystickOpened(joysticks[controller].ID))
+		SDL_JoystickClose(joy);
+}
 // Set dialog items
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::SetControllerAll(int controller)
@@ -613,7 +643,8 @@ void ConfigBox::GetInputs(wxCommandEvent& event)
 	sprintf(format, "[%d]", counter2);
 	SetButtonText(ID, format);
 	wxWindow::Update();	// win only? doesnt seem to work in linux...
-
+	
+	SDL_JoystickUpdate();
 	while(waiting)
 	{			
 		SDL_JoystickUpdate();
@@ -629,10 +660,12 @@ void ConfigBox::GetInputs(wxCommandEvent& event)
 			}			
 		}
 		for(int b = 0; b < axes; b++)
-		{		
+		{
 			value = SDL_JoystickGetAxis(joy, b);
-			if(value < -10000 || value > 10000)
-			{
+			if(value <= (joysticks[controller].sData[b].Min - (joysticks[controller].sData[b].Min * joysticks[controller].deadzone / 100)) || value >= (joysticks[controller].sData[b].Max - (joysticks[controller].sData[b].Max * joysticks[controller].deadzone / 100)))	// Add and subtract a small value
+			{															// It allows for some small jitter
+				printf("value %d, Min %d Max %d Removal %d\n", value, joysticks[controller].sData[b].Min,joysticks[controller].sData[b].Max, (joysticks[controller].sData[b].Min * joysticks[controller].deadzone / 100));
+				value = value <= (joysticks[controller].sData[b].Min - joysticks[controller].sData[b].Min * joysticks[controller].deadzone) ? -1 : 1; // Makes it know if the value is negative or positive
 				pressed = b;	
 				waiting = false;
 				succeed = true;
