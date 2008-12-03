@@ -250,6 +250,7 @@ void CopySettingsFile(std::string DeviceName)
 void ExecuteCommand(u32 _Address)
 {
     bool GenerateReply = false;
+    u32 erased = 0;
 
     ECommandType Command = static_cast<ECommandType>(Memory::Read_U32(_Address));
     switch (Command)
@@ -334,18 +335,18 @@ void ExecuteCommand(u32 _Address)
     case COMMAND_CLOSE_DEVICE:
         {
             u32 DeviceID = Memory::Read_U32(_Address + 8);
-
+            
             IWII_IPC_HLE_Device* pDevice = AccessDeviceByID(DeviceID);
-			if (pDevice != NULL)
-			{
+            if (pDevice != NULL)
+              {
                 pDevice->Close(_Address);
 
 				// Delete the device when CLOSE is called, this does not effect
 				// GenerateReply() for any other purpose than the logging because
 				// it's a true / false only function //
-                DeleteDeviceByID(DeviceID);
+                erased = DeviceID;
                 GenerateReply = true;
-			}            
+              }            
         }
         break;
 
@@ -411,23 +412,28 @@ void ExecuteCommand(u32 _Address)
         u32 DeviceID = Memory::Read_U32(_Address + 8);
         IWII_IPC_HLE_Device* pDevice = NULL;
 
-		// Get the device from the device map
-        if (g_DeviceMap.find(DeviceID) != g_DeviceMap.end())
-            pDevice = g_DeviceMap[DeviceID];
+        // Get the device from the device map
+        if (DeviceID != 0) {
+            if (g_DeviceMap.find(DeviceID) != g_DeviceMap.end())
+                pDevice = g_DeviceMap[DeviceID];
 
-        if (pDevice != NULL)
-		{
-			// Write reply, this will later be executed in Update()
-			g_ReplyQueue.push(std::pair<u32, std::string>(_Address, pDevice->GetDeviceName()));
-		}
-        else
-		{
-                    // 0 is ok, as it's used for devices that wasn't created yet
-                    if (DeviceID != 0)
-                        LOG(WII_IPC_HLE, "IOP: Reply to unknown device ID (DeviceID=%i)", DeviceID);
-                    g_ReplyQueue.push(std::pair<u32, std::string>(_Address, "unknown")); 
-		}
+            if (pDevice != NULL) {
+                // Write reply, this will later be executed in Update()
+                g_ReplyQueue.push(std::pair<u32, std::string>(_Address, pDevice->GetDeviceName())); 
+            } else {
+                LOG(WII_IPC_HLE, "IOP: Reply to unknown device ID (DeviceID=%i)", DeviceID);
+                g_ReplyQueue.push(std::pair<u32, std::string>(_Address, "unknown"));    
+            }
+            
+            if (erased > 0 && erased == DeviceID)
+                DeleteDeviceByID(DeviceID);
+
+        } else {
+            // 0 is ok, as it's used for devices that weren't created yet
+            g_ReplyQueue.push(std::pair<u32, std::string>(_Address, "unknown"));
+        }
     }
+
 }
 
 // This is called continuously and WII_IPCInterface::IsReady() is controlled from WII_IPC.cpp. 
