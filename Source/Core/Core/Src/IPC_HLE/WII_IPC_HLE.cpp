@@ -287,8 +287,8 @@ void ExecuteCommand(u32 _Address)
 				}
 				else
 				{
-					LOG(WII_IPC_HLE, "IOP: Open (Device=%s, Mode=%i)",
-						pDevice->GetDeviceName().c_str(), Mode);
+					LOG(WII_IPC_HLE, "IOP: Open (Device=%s, DeviceID=%08x, Mode=%i)",
+                                            pDevice->GetDeviceName().c_str(), CurrentDeviceID, Mode);
 				}
             }
             else
@@ -408,7 +408,7 @@ void ExecuteCommand(u32 _Address)
     if (GenerateReply)
     {
 		// Get device id
-		u32 DeviceID = Memory::Read_U32(_Address + 8);
+        u32 DeviceID = Memory::Read_U32(_Address + 8);
         IWII_IPC_HLE_Device* pDevice = NULL;
 
 		// Get the device from the device map
