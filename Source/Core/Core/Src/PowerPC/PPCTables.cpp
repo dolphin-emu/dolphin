@@ -320,7 +320,9 @@ GekkoOPTemplate table31[] =
 	{534, Interpreter::lwbrx, Jit64::Default,  {"lwbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 	{790, Interpreter::lhbrx, Jit64::Default,  {"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 
-	{20,  Interpreter::lwarx, Jit64::Default,  {"lwarx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0B}},
+	// Conditional load/store (Wii SMP)
+	{150, Interpreter::stwcxd,  Jit64::Default,    {"stwcxd", OPTYPE_STORE, 0}},
+	{20,  Interpreter::lwarx,   Jit64::Default,    {"lwarx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0B}},
 
 	//load string (interpret these)
 	{533, Interpreter::lswx,  Jit64::Default,   {"lswx",  OPTYPE_LOAD, FL_IN_A | FL_OUT_D}},
@@ -381,9 +383,6 @@ GekkoOPTemplate table31[] =
 	{306, Interpreter::tlbie,   Jit64::Default,    {"tlbie",   OPTYPE_SYSTEM, 0}},
 	{370, Interpreter::tlbia,   Jit64::Default,    {"tlbia",   OPTYPE_SYSTEM, 0}},
 	{566, Interpreter::tlbsync, Jit64::Default,    {"tlbsync", OPTYPE_SYSTEM, 0}},
-
-	// Instructions used on Wii and thought not to be used by a Gekko
-	{150, Interpreter::stwcxd,  Jit64::Default,    {"stwcxd",  OPTYPE_STORE, 0}},
 };
 
 GekkoOPTemplate table31_2[] = 

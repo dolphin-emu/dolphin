@@ -579,42 +579,38 @@ void stwbrx(UGeckoInstruction _inst)
 }
 
 
-// The following two instructions are for inter-cpu communications. On a single
-// CPU, they cannot
-// fail unless an interrupt happens in between, which usually won't happen with
-// the JIT.
+// The following two instructions are for SMP communications. On a single
+// CPU, they cannot fail unless an interrupt happens in between, which usually 
+// won't happen with the JIT.
 bool g_bReserve = false;
 u32  g_reserveAddr;
     
 void lwarx(UGeckoInstruction _inst)
 {
-        u32 uAddress = Helper_Get_EA_X(_inst);
+    u32 uAddress = Helper_Get_EA_X(_inst);
 
 	m_GPR[_inst.RD] = Memory::Read_U32(uAddress);
-        g_bReserve = true;
-        g_reserveAddr = uAddress;
+    g_bReserve = true;
+    g_reserveAddr = uAddress;
 }
 
 void stwcxd(UGeckoInstruction _inst)
 {
-		// This instruction, too
-        //PanicAlert("stwcxd - suspicious instruction");
+    // Stores Word Conditional indeXed
     
-        // Stores Word Conditional indeXed
-    
-        u32 uAddress;
+    u32 uAddress;
 
-        if(g_bReserve) {
-            uAddress = Helper_Get_EA_X(_inst);
-            if(uAddress == g_reserveAddr) {
-                Memory::Write_U32(m_GPR[_inst.RS], uAddress);
-                g_bReserve = false;
-				SetCRField(0, 2 | XER.SO);
-                return;
-            }
-                
-        }       
-        SetCRField(0, XER.SO);
+    if(g_bReserve) {
+		uAddress = Helper_Get_EA_X(_inst);
+        if(uAddress == g_reserveAddr) {
+			Memory::Write_U32(m_GPR[_inst.RS], uAddress);
+            g_bReserve = false;
+			SetCRField(0, 2 | XER.SO);
+            return;
+        }            
+    }    
+
+    SetCRField(0, XER.SO);
 }
 
 void stwux(UGeckoInstruction _inst)
