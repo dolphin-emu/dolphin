@@ -203,12 +203,22 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     TexMode0 &tm0 = bpmem.tex[texstage > 3].texMode0[texstage & 3];
     u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
 
-	// not very robust but this is a fast fix for MPs font issue.
-	// GX_TF_C4, GX_TF_C8, GX_TF_C14X2 use tlutaddr. 
-	// So the other cases could be needed later.
-	u32 hashseed = format!=GX_TF_C4 ? 0 : *(u32*)(u16*)(texMem + tlutaddr);
+	// Needed for texture format using tlut.
+	// TODO: Slower == Safer. Recalculate tlut lenght for each cases just to be sure.
+	u32 hashseed = 0;
+	switch (format) {
+	case GX_TF_C4:
+		hashseed = TexDecoder_GetTlutHash((u16*)(texMem + tlutaddr), 128);
+		break;
+	case GX_TF_C8:
+		hashseed = TexDecoder_GetTlutHash((u16*)(texMem + tlutaddr), 256);
+		break;
+	case GX_TF_C14X2:
+		hashseed = TexDecoder_GetTlutHash((u16*)(texMem + tlutaddr), 384);
+		break;
+	}
 
-    int palSize = TexDecoder_GetPaletteSize(format);
+	int palSize = TexDecoder_GetPaletteSize(format);
     u32 palhash = 0xc0debabe;
     
     if (palSize) {
