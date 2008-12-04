@@ -107,9 +107,9 @@ void SleepCurrentThread(int ms);
 
 void SetCurrentThreadName(const char *name);
 
-LONG LONGerlockedExchangeAdd(LONG *Addend, LONG Increment);
-LONG LONGerlockedExchange(LONG *Addend, LONG Increment);
-LONG LONGerlockedIncrement(LONG *Addend);
+LONG InterlockedExchangeAdd(LONG *Addend, LONG Increment);
+LONG InterlockedExchange(LONG *Addend, LONG Increment);
+LONG InterlockedIncrement(LONG *Addend);
 
 } // end of namespace Common
 
