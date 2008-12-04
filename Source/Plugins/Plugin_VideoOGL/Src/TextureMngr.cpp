@@ -203,6 +203,11 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     TexMode0 &tm0 = bpmem.tex[texstage > 3].texMode0[texstage & 3];
     u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
 
+	// not very robust but this is a fast fix for MPs font issue.
+	// GX_TF_C4, GX_TF_C8, GX_TF_C14X2 use tlutaddr. 
+	// So the other cases could be needed later.
+	u32 hashseed = format!=GX_TF_C4 ? 0 : *(u32*)(u16*)(texMem + tlutaddr);
+
     int palSize = TexDecoder_GetPaletteSize(format);
     u32 palhash = 0xc0debabe;
     
@@ -227,7 +232,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
 		u32 hash_value;
 		if (g_Config.bSafeTextureCache)
-			hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format);
+			hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, hashseed);
 		else
 			hash_value = ((u32 *)ptr)[entry.hashoffset];
 
@@ -271,7 +276,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     entry.paletteHash = palhash;
     entry.oldpixel = ((u32 *)ptr)[entry.hashoffset];
 	if (g_Config.bSafeTextureCache) {
-		entry.hash = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format);
+		entry.hash = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, hashseed);
 	} else {
 		entry.hash = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
 	    ((u32 *)ptr)[entry.hashoffset] = entry.hash;

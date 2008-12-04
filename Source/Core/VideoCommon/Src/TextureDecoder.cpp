@@ -62,10 +62,12 @@ int TexDecoder_GetTextureSizeInBytes(int width, int height, int format)
 	return (width * height * TexDecoder_GetTexelSizeInNibbles(format)) / 2;
 }
 
-u32 TexDecoder_GetSafeTextureHash(const u8 *src, int width, int height, int texformat)
+u32 TexDecoder_GetSafeTextureHash(const u8 *src, int width, int height, int texformat, u32 seed)
 {
 	int sz = TexDecoder_GetTextureSizeInBytes(width, height, texformat);
-	u32 hash = 0x1337c0de;
+	
+	u32 hash = seed ? seed : 0x1337c0de;
+
 	if (sz < 2048) {
 		for (int i = 0; i < sz / 4; i += 13) {
 			hash = _rotl(hash, 17) ^ ((u32 *)src)[i];
