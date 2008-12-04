@@ -59,7 +59,7 @@ int TexDecoder_GetTexelSizeInNibbles(int format)
 
 int TexDecoder_GetTextureSizeInBytes(int width, int height, int format)
 {
-	return (width * height * TexDecoder_GetTexelSizeInNibbles(format)) / 4;
+	return (width * height * TexDecoder_GetTexelSizeInNibbles(format)) / 2;
 }
 
 u32 TexDecoder_GetSafeTextureHash(const u8 *src, int width, int height, int texformat)
