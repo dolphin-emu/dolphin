@@ -237,7 +237,7 @@ env['libs_dir'] = env['prefix'] + 'Libs/'
 #TODO where should this go?
 env['data_dir'] = env['prefix']
 
-env['LINKFLAGS'] = [ '-Wl,-rpath=' + env['libs_dir'] ]
+env['LINKFLAGS'] = [ '-Wl,-rpath,' + env['libs_dir'] ]
 env['LIBPATH'] += [ env['libs_dir'] ] 
 Export('env')
 
