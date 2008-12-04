@@ -38,6 +38,7 @@ DInput dinput;
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
+#include <X11/XKBlib.h>
 
 Display* GXdsp;
 bool KeyStatus[NUMCONTROLS];
@@ -185,7 +186,8 @@ void PAD_Initialize(SPADInitialize _PADInitialize)
 #else
 	GXdsp = (Display*)g_PADInitialize.hWnd;
 #endif
-
+	XkbSetDetectableAutoRepeat(GXdsp, True, NULL);
+	
 	LoadConfig();
 }
 
@@ -409,15 +411,6 @@ void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
                 }
             }
   
-            break;
-            
-            
-        case FocusIn:
-            XAutoRepeatOff(GXdsp);
-            break;
-          
-        case FocusOut:
-            XAutoRepeatOn(GXdsp);
             break;
             
         default:
