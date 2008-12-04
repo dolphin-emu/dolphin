@@ -123,6 +123,7 @@ inline u32 _rotr(u32 x, int shift) {
     return (x >> shift) | (x << (32 - shift));
 }
 
+#define LONG int
 #ifdef __LINUX__
 typedef union _LARGE_INTEGER
 {

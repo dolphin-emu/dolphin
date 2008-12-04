@@ -343,8 +343,11 @@ void Event::Wait()
 	pthread_mutex_unlock(&mutex_);
 }
 
-int InterlockedIncrement(int *Addend)
+LONG InterlockedIncrement(LONG *Addend)
 {
+#ifdef _WIN32
+    return InterlockedIncrement(Addend);
+#else
 #if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))
   return  __sync_add_and_fetch(Addend, 1);
 #else
@@ -354,11 +357,15 @@ int InterlockedIncrement(int *Addend)
                        : "0" (Increment), "m" (1)
                        : "memory");
   return result + 1;
-#endif 
+#endif
+#endif
 }
 
-int InterlockedExchangeAdd(int *Addend, int Increment)
+LONG InterlockedExchangeAdd(LONG *Addend, LONG Increment)
 {
+#ifdef _WIN32
+    return InterlockedExchangeAdd(Addend, Increment);
+#else
 #if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))
   return  __sync_add_and_fetch(Addend, Increment);
 #else
@@ -369,14 +376,19 @@ int InterlockedExchangeAdd(int *Addend, int Increment)
                        : "memory");
   return result + Increment;
 #endif
+#endif
 }
-int InterlockedExchange(int *Addend, int Increment)
+LONG InterlockedExchange(LONG *Addend, LONG Increment)
 {
+#ifdef _WIN32
+    return InterlockedExchange(Addend, Increment);
+#else
 #if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))
   return  __sync_lock_test_and_set(Addend, Increment);
 #else
 	// TODO:
-	#warning Support older GCC Versions
+	#error Implement support older GCC Versions
+#endif
 #endif
 }
 
