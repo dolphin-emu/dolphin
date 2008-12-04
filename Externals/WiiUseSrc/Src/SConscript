@@ -20,6 +20,6 @@ env_wiiuse = env.Clone(
 	)
 
 libs = [
-    'm', 'bluetooth',
+    'm',
 ]
 env_wiiuse.SharedLibrary(env['libs_dir']+"wiiuse", files, LIBS=libs)

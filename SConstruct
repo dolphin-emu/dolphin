@@ -182,6 +182,9 @@ if not env['osx64']:
     if not conf.CheckSDL('1.0.0'):
         Exit(1)
 
+if not conf.CheckPKG('bluez'):
+    Exit(1)
+
 if not env['osx64']:
     if not conf.CheckPKG('ao'):
         Exit(1)
@@ -219,6 +222,9 @@ if not env['osx64']:
 if not env['osx64']:
     env.ParseConfig('pkg-config --cflags --libs ao')
 
+# bluetooth for wii
+env.ParseConfig('pkg-config --cflags --libs bluez')
+    
 # add methods from utils to env
 env.AddMethod(utils.filterWarnings)
 
