@@ -202,7 +202,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 	{
 		// we do it directly from videoThread because of
 		// Super Monkey Ball Advance
-        Common::InterlockedExchange((LONG*)&CommandProcessor::fifo.PEToken, _token);
+        Common::SyncInterlockedExchange((LONG*)&CommandProcessor::fifo.PEToken, _token);
 	}
 }
 

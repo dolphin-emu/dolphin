@@ -189,7 +189,21 @@ void SetCurrentThreadName(const TCHAR* szThreadName)
 	__except(EXCEPTION_CONTINUE_EXECUTION)
 	{}
 }
+// TODO: check if ever inline
+LONG SyncInterlockedIncrement(LONG *Dest)
+{
+    return InterlockedIncrement(Dest);
+}
 
+LONG SyncInterlockedExchangeAdd(LONG *Dest, LONG Val)
+{
+	return InterlockedExchangeAdd(Dest, Val);
+}
+
+LONG SyncInterlockedExchange(LONG *Dest, LONG Val)
+{
+	return InterlockedExchange(Dest, Val);
+}
 
 #elif __GNUC__
 CriticalSection::CriticalSection(int spincount_unused)
@@ -343,52 +357,41 @@ void Event::Wait()
 	pthread_mutex_unlock(&mutex_);
 }
 
-LONG InterlockedIncrement(LONG *Addend)
+LONG SyncInterlockedIncrement(LONG *Dest)
 {
-#ifdef _WIN32
-    return InterlockedIncrement(Addend);
-#else
 #if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))
-  return  __sync_add_and_fetch(Addend, 1);
+  return  __sync_add_and_fetch(Dest, 1);
 #else
   register int result;
   __asm__ __volatile__("lock; xadd %0,%1"
-                       : "=r" (result), "=m" (1)
-                       : "0" (Increment), "m" (1)
+                       : "=r" (result), "=m" (*Dest)
+                       : "0" (1), "m" (*Dest)
                        : "memory");
-  return result + 1;
-#endif
+  return result;
 #endif
 }
 
-LONG InterlockedExchangeAdd(LONG *Addend, LONG Increment)
+LONG SyncInterlockedExchangeAdd(LONG *Dest, LONG Val)
 {
-#ifdef _WIN32
-    return InterlockedExchangeAdd(Addend, Increment);
-#else
 #if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))
-  return  __sync_add_and_fetch(Addend, Increment);
+  return  __sync_add_and_fetch(Dest, Val);
 #else
   register int result;
   __asm__ __volatile__("lock; xadd %0,%1"
-                       : "=r" (result), "=m" (*Addend)
-                       : "0" (Increment), "m" (*Addend)
+                       : "=r" (result), "=m" (*Dest)
+                       : "0" (Val), "m" (*Dest)
                        : "memory");
-  return result + Increment;
-#endif
+  return result;
 #endif
 }
-LONG InterlockedExchange(LONG *Addend, LONG Increment)
+
+LONG SyncInterlockedExchange(LONG *Dest, LONG Val)
 {
-#ifdef _WIN32
-    return InterlockedExchange(Addend, Increment);
-#else
 #if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))
-  return  __sync_lock_test_and_set(Addend, Increment);
+  return  __sync_lock_test_and_set(Dest, Val);
 #else
 	// TODO:
 	#error Implement support older GCC Versions
-#endif
 #endif
 }
 

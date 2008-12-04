@@ -171,8 +171,8 @@ void UpdateInterrupts();
 
 //inline void WriteLow (u32& _reg, u16 lowbits)  {_reg = (_reg & 0xFFFF0000) | lowbits;}
 //inline void WriteHigh(u32& _reg, u16 highbits) {_reg = (_reg & 0x0000FFFF) | ((u32)highbits << 16);}
-inline void WriteLow (volatile u32& _reg, u16 lowbits)  {Common::InterlockedExchange((LONG*)&_reg,(_reg & 0xFFFF0000) | lowbits);}
-inline void WriteHigh(volatile u32& _reg, u16 highbits) {Common::InterlockedExchange((LONG*)&_reg,(_reg & 0x0000FFFF) | ((u32)highbits << 16));}
+inline void WriteLow (volatile u32& _reg, u16 lowbits)  {Common::SyncInterlockedExchange((LONG*)&_reg,(_reg & 0xFFFF0000) | lowbits);}
+inline void WriteHigh(volatile u32& _reg, u16 highbits) {Common::SyncInterlockedExchange((LONG*)&_reg,(_reg & 0x0000FFFF) | ((u32)highbits << 16));}
 
 inline u16 ReadLow  (u32 _reg)  {return (u16)(_reg & 0xFFFF);}
 inline u16 ReadHigh (u32 _reg)  {return (u16)(_reg >> 16);}
@@ -182,7 +182,7 @@ int et_UpdateInterrupts;
 // for GP watchdog hack
 void IncrementGPWDToken()
 {
-    Common::InterlockedIncrement((LONG*)&fifo.Fake_GPWDToken);
+    Common::SyncInterlockedIncrement((LONG*)&fifo.Fake_GPWDToken);
 }
 
 // Check every FAKE_GP_WATCHDOG_PERIOD if a PE-frame-finish occured
@@ -411,9 +411,9 @@ void Write16(const u16 _Value, const u32 _Address)
 		{
 			UCPCtrlReg tmpCtrl(_Value);
 
-			Common::InterlockedExchange((LONG*)&fifo.bFF_GPReadEnable,	tmpCtrl.GPReadEnable);
-			Common::InterlockedExchange((LONG*)&fifo.bFF_GPLinkEnable,	tmpCtrl.GPLinkEnable);
-			Common::InterlockedExchange((LONG*)&fifo.bFF_BPEnable,		tmpCtrl.BPEnable);
+			Common::SyncInterlockedExchange((LONG*)&fifo.bFF_GPReadEnable,	tmpCtrl.GPReadEnable);
+			Common::SyncInterlockedExchange((LONG*)&fifo.bFF_GPLinkEnable,	tmpCtrl.GPLinkEnable);
+			Common::SyncInterlockedExchange((LONG*)&fifo.bFF_BPEnable,		tmpCtrl.BPEnable);
 
 			// TOCHECK (mb2): could BP irq be cleared with w16 to STATUS_REGISTER?
 			// funny hack: eg in MP1 if we disable the clear breakpoint ability by commenting this block
@@ -576,7 +576,7 @@ void GatherPipeBursted()
 		fifo.CPWritePointer += GPFifo::GATHER_PIPE_SIZE;
 		if (fifo.CPWritePointer >= fifo.CPEnd) 
 			fifo.CPWritePointer = fifo.CPBase;
-        Common::InterlockedExchangeAdd((LONG*)&fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
+        Common::SyncInterlockedExchangeAdd((LONG*)&fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
 
 		// High watermark overflow handling (hacked way)
 		u32 ct=0;
@@ -700,7 +700,7 @@ void UpdateFifoRegister()
 	else
 		dist = (wp - fifo.CPBase) + (fifo.CPEnd - rp);
 	//fifo.CPReadWriteDistance = dist;
-	Common::InterlockedExchange((LONG*)&fifo.CPReadWriteDistance, dist);
+	Common::SyncInterlockedExchange((LONG*)&fifo.CPReadWriteDistance, dist);
 
 	if (!Core::g_CoreStartupParameter.bUseDualCore)
 		CatchUpGPU();

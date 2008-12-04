@@ -104,7 +104,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
         // check if we are able to run this buffer
         if ((_fifo.bFF_GPReadEnable) && _fifo.CPReadWriteDistance && !(_fifo.bFF_BPEnable && _fifo.bFF_Breakpoint))
         {
-			Common::InterlockedExchange((LONG*)&_fifo.CPReadIdle, 0);
+			Common::SyncInterlockedExchange((LONG*)&_fifo.CPReadIdle, 0);
 			//video_initialize.pLog("RUN...........................",FALSE);
 			int peek_counter = 0;
             while (_fifo.bFF_GPReadEnable && (_fifo.CPReadWriteDistance > 0))
@@ -125,7 +125,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 					if (readPtr == _fifo.CPBreakpoint)
                     {
 						video_initialize.pLog("!!! BP irq raised",FALSE);
-						Common::InterlockedExchange((LONG*)&_fifo.bFF_Breakpoint, 1);
+						Common::SyncInterlockedExchange((LONG*)&_fifo.bFF_Breakpoint, 1);
 
                         video_initialize.pUpdateInterrupts();
                         break;
@@ -156,11 +156,11 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 #endif
 				}
 				Video_SendFifoData(uData, distToSend);
-                Common::InterlockedExchange((LONG*)&_fifo.CPReadPointer, readPtr);
-                Common::InterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -distToSend);
+                Common::SyncInterlockedExchange((LONG*)&_fifo.CPReadPointer, readPtr);
+                Common::SyncInterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -distToSend);
 			}
 			//video_initialize.pLog("..........................IDLE",FALSE);
-			Common::InterlockedExchange((LONG*)&_fifo.CPReadIdle, 1);
+			Common::SyncInterlockedExchange((LONG*)&_fifo.CPReadIdle, 1);
         }
     }
 }
