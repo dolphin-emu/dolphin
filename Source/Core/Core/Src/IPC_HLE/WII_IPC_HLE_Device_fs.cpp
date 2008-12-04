@@ -398,7 +398,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			Offset += 64;
 
 			// try to make the basis directory
-			File::CreateDirectoryStructure(Filename);
+			File::CreateDirectoryStructure(FilenameRename);
 
 			// if there is already a filedelete it
 			if (File::Exists(FilenameRename.c_str()))
