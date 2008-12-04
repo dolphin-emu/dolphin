@@ -107,11 +107,9 @@ void SleepCurrentThread(int ms);
 
 void SetCurrentThreadName(const char *name);
 
-#ifndef _WIN32
-int InterlockedExchangeAdd(int *Addend, int Increment);
-int InterlockedExchange(int *Addend, int Increment);
-int InterlockedIncrement(int *Addend);
-#endif
+LONG LONGerlockedExchangeAdd(LONG *Addend, LONG Increment);
+LONG LONGerlockedExchange(LONG *Addend, LONG Increment);
+LONG LONGerlockedIncrement(LONG *Addend);
 
 } // end of namespace Common
 
