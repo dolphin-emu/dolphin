@@ -597,7 +597,7 @@ void lwarx(UGeckoInstruction _inst)
 
 void stwcxd(UGeckoInstruction _inst)
 {
-	// This instruction, too
+		// This instruction, too
         //PanicAlert("stwcxd - suspicious instruction");
     
         // Stores Word Conditional indeXed
@@ -609,13 +609,12 @@ void stwcxd(UGeckoInstruction _inst)
             if(uAddress == g_reserveAddr) {
                 Memory::Write_U32(m_GPR[_inst.RS], uAddress);
                 g_bReserve = false;
-                
+				SetCRField(0, 2 | XER.SO);
                 return;
             }
                 
-        }
-        
-        // TODO: Set CR0 to IS_XER_SO
+        }       
+        SetCRField(0, XER.SO);
 }
 
 void stwux(UGeckoInstruction _inst)
