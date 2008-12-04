@@ -185,8 +185,8 @@ void PAD_Initialize(SPADInitialize _PADInitialize)
 	dinput.Init((HWND)g_PADInitialize.hWnd);
 #else
 	GXdsp = (Display*)g_PADInitialize.hWnd;
-#endif
 	XkbSetDetectableAutoRepeat(GXdsp, True, NULL);
+#endif
 	
 	LoadConfig();
 }
