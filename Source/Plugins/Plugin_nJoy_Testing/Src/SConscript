@@ -5,6 +5,10 @@ import sys
 
 name = "Plugin_nJoy_Testing"
 
+if not env['HAVE_SDL']:
+    print name + " must have SDL to be build"
+    Return()
+
 files = [
 	'nJoy.cpp',
 	'GUI/AboutBox.cpp',

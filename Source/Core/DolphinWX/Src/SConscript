@@ -3,13 +3,19 @@
 Import('env')
 import sys
 
+wxenv = env.Clone()
+
 files = [
 	'BootManager.cpp',
 	'Config.cpp',
 	'cmdline.c',
 	]
 
-if not env['osx64']:
+libs = [
+	'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'common', 'z'
+	]
+
+if wxenv['HAVE_WX']:
 	files += [
 		'AboutDolphin.cpp',
 		'ConfigMain.cpp',
@@ -26,36 +32,21 @@ if not env['osx64']:
 		'stdafx.cpp',
 		]
 
-libs = [
-	'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'common', 'z'
-	]
+        CPPDEFINES = [
+                'USE_XPM_BITMAPS',
+                'wxNEEDS_CHARPP',
+                ],
 
-wxenv = env.Clone()
-if not wxenv['osx64']:
 	libs = [ 'debwx' ] + libs
-	wxenv.Append(
-		CPPDEFINES = [
-			'USE_XPM_BITMAPS',
-			'wxNEEDS_CHARPP',
-			],
-		LINKFLAGS = [
-			'-pthread',
-			],
-		LIBS = libs
-		)
-else:
-	wxenv.Append(
-		CPPDEFINES = [
-			'USE_XPM_BITMAPS',
-			'wxNEEDS_CHARPP',
-			],
-		LINKFLAGS = [
-			'-pthread',
-			'-arch',
-			'x86_64'
-			],
-		LIBS = libs
-		)
+
+
+
+wxenv.Append(
+        LINKFLAGS = [
+                '-pthread',
+                ],
+        LIBS = libs
+        )
 
 if sys.platform == 'darwin':
 	exeGUI = env['binary_dir'] + 'Dolphin.app/Contents/MacOS/Dolphin'
@@ -85,7 +76,8 @@ else:
 	exeGUI = env['binary_dir'] + 'Dolphin'
 	exeNoGUI = env['binary_dir'] + 'DolphinNoGUI'
 
-objects = [ wxenv.Object(srcFile) for srcFile in files ]
-if not wxenv['osx64']:
-	wxenv.Program(exeGUI, objects + [ 'Main.cpp' ])
-wxenv.Program(exeNoGUI, objects + [ 'MainNoGUI.cpp' ])
+#objects = [ wxenv.Object(srcFile) for srcFile in files ]
+
+if not wxenv['HAVE_WX']:
+	wxenv.Program(exeGUI, files + [ 'Main.cpp' ])
+wxenv.Program(exeNoGUI, files + [ 'MainNoGUI.cpp' ])

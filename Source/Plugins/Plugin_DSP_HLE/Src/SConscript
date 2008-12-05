@@ -5,6 +5,10 @@ import sys
 
 name = "Plugin_DSP_HLE"
 
+if not env['HAVE_AO']:
+    print name + " must have AO to be build"
+    Return()
+
 files = [
 	'DSPHandler.cpp',
 	'MailHandler.cpp',

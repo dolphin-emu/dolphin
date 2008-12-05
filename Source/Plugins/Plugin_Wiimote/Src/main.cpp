@@ -28,7 +28,10 @@
 #include "pluginspecs_wiimote.h"
 
 #include "EmuMain.h"
+
+#if HAVE_WIIUSE
 #include "wiimote_real.h"
+#endif
 
 #include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
 
@@ -128,8 +131,9 @@ extern "C" void Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize)
 	/* We will run WiiMoteReal::Initialize() even if we are not using a real wiimote,
 	   we will initiate wiiuse.dll, but we will return before creating a new thread
 	   for it in that case */
+#if HAVE_WIIUSE
 	g_UseRealWiiMote = WiiMoteReal::Initialize() > 0;
-
+#endif
 	g_Config.Load(); // load config settings
 
 	WiiMoteEmu::Initialize();	
@@ -146,13 +150,17 @@ extern "C" void Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize)
 
 extern "C" void Wiimote_DoState(void* ptr, int mode) 
 {
+#if HAVE_WIIUSE
 	WiiMoteReal::DoState(ptr, mode);
+#endif
 	WiiMoteEmu::DoState(ptr, mode);
 }
 
 extern "C" void Wiimote_Shutdown(void) 
 {
+#if HAVE_WIIUSE
 	WiiMoteReal::Shutdown();
+#endif
 	WiiMoteEmu::Shutdown();
 }
 
@@ -173,10 +181,13 @@ extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32
 		LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
 	}
 
-	if (g_UseRealWiiMote)
-		WiiMoteReal::InterruptChannel(_channelID, _pData, _Size);
+	if (! g_UseRealWiiMote)
+            WiiMoteEmu::InterruptChannel(_channelID, _pData, _Size);		
+#if HAVE_WIIUSE
 	else
-		WiiMoteEmu::InterruptChannel(_channelID, _pData, _Size);
+            WiiMoteReal::InterruptChannel(_channelID, _pData, _Size);
+#endif
+		
 	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
 }
 
@@ -192,19 +203,25 @@ extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _
 		LOGV(WII_IPC_WIIMOTE, 3, "    Data: %s", Temp.c_str());
 	}
 
-	if (g_UseRealWiiMote)
-		WiiMoteReal::ControlChannel(_channelID, _pData, _Size);
-	else
-		WiiMoteEmu::ControlChannel(_channelID, _pData, _Size);
+
+	if (! g_UseRealWiiMote)
+            WiiMoteEmu::ControlChannel(_channelID, _pData, _Size);
+#if HAVE_WIIUSE
+        else
+            WiiMoteReal::ControlChannel(_channelID, _pData, _Size);
+#endif
+		
 	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
 }
 
 extern "C" void Wiimote_Update() 
 {
-	if (g_UseRealWiiMote)
-		WiiMoteReal::Update();
-	else
-		WiiMoteEmu::Update();
+	if (! g_UseRealWiiMote)
+            WiiMoteEmu::Update();
+#if HAVE_WIIUSE
+        else
+            WiiMoteReal::Update();
+#endif
 }
 
 extern "C" unsigned int Wiimote_GetAttachedControllers() 

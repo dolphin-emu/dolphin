@@ -2,6 +2,10 @@
 
 Import('env')
 
+if not env['HAVE_BLUEZ']:
+    env['HAVE_WIIUSE'] = 0
+    Return()
+
 files = [
 	"classic.c",
         "dynamics.c",
@@ -22,4 +26,7 @@ env_wiiuse = env.Clone(
 libs = [
     'm',
 ]
+
 env_wiiuse.SharedLibrary(env['libs_dir']+"wiiuse", files, LIBS=libs)
+
+env['HAVE_WIIUSE'] = 1

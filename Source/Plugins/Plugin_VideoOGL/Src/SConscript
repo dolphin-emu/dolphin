@@ -46,12 +46,12 @@ libs = [
 
 gfxenv = env.Clone()
 
-if not gfxenv['osx64']:
+if gfxenv['HAVE_WX']:
 	files += [
-	'GUI/ConfigDlg.cpp',
-	'Debugger/Debugger.cpp',
-	'Debugger/PBView.cpp',
-	]
+                'GUI/ConfigDlg.cpp',
+                'Debugger/Debugger.cpp',
+                'Debugger/PBView.cpp',
+                ]
 
 if gfxenv['osx64']:
 	files += [ 'cocoaGL.m' ]
@@ -66,13 +66,10 @@ if gfxenv['osx64']:
 			'x86_64'
 			]
 
+useSDL = gfxenv['HAVE_SDL']
+
 if sys.platform == 'darwin':
-	# SDL is currently the only way to get video on Mac OS X.
-	if gfxenv['osx64']:
-		useSDL = False
-	else:
-		useSDL = True
-	# TODO: clean it up (use incpath and libpath)
+
 	# Use libraries from MacPorts.
 	compileFlags.append('-I/opt/local/include')
 	linkFlags.append('-L/opt/local/lib')
@@ -83,6 +80,8 @@ if sys.platform == 'darwin':
 		]
 else:
 	# By default, GLX is used on Linux to setup OpenGL, but you can select SDL
+        # TODO: build both sdl and non X
+	useSDL = False
 	# instead if you like, by changing the line below.
         tests = {'CheckPKG' : utils.CheckPKG}
 
@@ -96,7 +95,7 @@ else:
 
         gfxenv = conf.Finish()
         
-	useSDL = False
+
 	gfxenv.ParseConfig("pkg-config x11 --cflags --libs")
 	gfxenv.ParseConfig("pkg-config xxf86vm --cflags --libs")
 

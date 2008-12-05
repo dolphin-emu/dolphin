@@ -41,8 +41,7 @@ cppDefines = [
     ]
 
 
-if sys.platform == 'darwin':
-    compileFlags += [ '-I/opt/local/include' ]
+
 
 include_paths = [
     '../../../Core/Common/Src',
@@ -60,7 +59,7 @@ include_paths = [
 dirs = [
     'Externals/Bochs_disasm',
     'Externals/LZO',
-    'Externals/WiiUseSrc/Src',
+    'Externals/WiiUseSrc/Src', 
     'Source/Core/Common/Src',
     'Source/Core/Core/Src',
     'Source/Core/DiscIO/Src',
@@ -74,6 +73,7 @@ dirs = [
     'Source/Plugins/Plugin_nJoy_Testing/Src',
     'Source/Plugins/Plugin_Wiimote/Src',
     'Source/Core/DolphinWX/Src',
+    'Source/Core/DebuggerWX/Src',
     ]
 
 builders = {}
@@ -86,6 +86,7 @@ if sys.platform == 'darwin':
             for dstNode in target:
                 writePlist(properties, str(dstNode))
     builders['Plist'] = Builder(action = createPlist)
+    compileFlags += [ '-I/opt/local/include' ]
 
 lib_paths = include_paths
 
@@ -173,57 +174,60 @@ tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
          'CheckPKG' : utils.CheckPKG,
          'CheckSDL' : utils.CheckSDL}
 
-conf = env.Configure(custom_tests = tests)
+conf = env.Configure(custom_tests = tests, 
+                     config_h="Source/Core/Common/Src/Config.h")
 
 if not conf.CheckPKGConfig('0.15.0'):
-    Exit(1)
+    print "Can't find pkg-config, some tests will fail"
 
-if not env['osx64']:
-    if not conf.CheckSDL('1.0.0'):
-        Exit(1)
+env['HAVE_SDL'] = conf.CheckSDL('1.0.0')
 
-if not conf.CheckPKG('bluez'):
-    Exit(1)
+# Bluetooth for wii support
+env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 
-if not env['osx64']:
-    if not conf.CheckPKG('ao'):
-        Exit(1)
+# needed for sound
+env['HAVE_AO'] = conf.CheckPKG('ao')
 
 # handling wx flags CCFLAGS should be created before
-if not env['nowx']:
-    if not env['osx64']:
-        if not conf.CheckWXConfig(
-            '2.8', ['gl', 'adv', 'core', 'base'], env['debug']
-            ):
-            print 'gui build requires wxwidgets >= 2.8'
-            Exit(1)
-if not env['nowx']:
-    if not env['osx64']:
-        dirs += ['Source/Core/DebuggerWX/Src',]
+env['HAVE_WX'] = conf.CheckWXConfig('2.8', ['gl', 'adv', 'core', 'base'], 
+                                    env['debug'])
 
-# After all configuration tests are done
-env = conf.Finish()
-
-#wx windows flags
-if not env['nowx']:
-    if not env['osx64']:
-        wxconfig.ParseWXConfig(env)
-        compileFlags += ['-DUSE_WX',]
-
-#osx 64bit need this
+#osx 64 specifics
 if env['osx64']:
+    # SDL and WX are broken on osx 64
+    env['HAVE_SDL'] = 0
+    env['HAVE_WX'] = 0;
     compileFlags += ['-arch' , 'x86_64', '-DOSX64']
 
+# Gui less build
+if env['nowx']:
+    env['HAVE_WX'] = 0;
+
+# Creating config.h defines
+conf.Define('HAVE_SDL', env['HAVE_SDL'])
+conf.Define('HAVE_BLUEZ', env['HAVE_BLUEZ'])
+conf.Define('HAVE_AO', env['HAVE_AO'])
+conf.Define('HAVE_WX', env['HAVE_WX'])
+
+# After all configuration tests are done
+conf.Finish()
+
+#wx windows flags
+if env['HAVE_WX']:
+    wxconfig.ParseWXConfig(env)
+    compileFlags += ['-DUSE_WX']
+
 #get sdl stuff
-if not env['osx64']:
+if env['HAVE_SDL']:
     env.ParseConfig('sdl-config --cflags --libs')
 
 # lib ao (needed for sound plugins)
-if not env['osx64']:
+if env['HAVE_AO']:
     env.ParseConfig('pkg-config --cflags --libs ao')
 
 # bluetooth for wii
-env.ParseConfig('pkg-config --cflags --libs bluez')
+if env['HAVE_BLUEZ']:
+    env.ParseConfig('pkg-config --cflags --libs bluez')
     
 # add methods from utils to env
 env.AddMethod(utils.filterWarnings)
@@ -243,9 +247,10 @@ env['libs_dir'] = env['prefix'] + 'Libs/'
 #TODO where should this go?
 env['data_dir'] = env['prefix']
 
-env['LINKFLAGS'] = [ '-Wl,-rpath,' + env['libs_dir'] ]
+env['RPATH'] =  env['libs_dir']
+
 env['LIBPATH'] += [ env['libs_dir'] ] 
-Export('env')
+
 
 rev = utils.GenerateRevFile(env['flavor'], 
                             "Source/Core/Common/Src/svnrev_template.h",
@@ -261,6 +266,8 @@ if unknown:
 
 # generate help
 Help(vars.GenerateHelpText(env))
+
+Export('env')
 
 for subdir in dirs:
     SConscript(

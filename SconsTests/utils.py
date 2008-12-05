@@ -19,7 +19,7 @@ def CheckPKG(context, name):
     context.Message( 'Checking for %s... ' % name )
     ret = context.TryAction('pkg-config --exists \'%s\'' % name)[0]
     context.Result( ret )
-    return ret
+    return int(ret)
 
 
 def CheckSDL(context, version):
@@ -34,7 +34,7 @@ def CheckSDL(context, version):
         ret = (found >= required)
         
         context.Result( ret )
-        return ret
+        return int(ret)
     
 def GenerateRevFile(flavour, template, output):
 

@@ -35,8 +35,10 @@
 #endif
 
 #include "../../../PluginSpecs/CommonTypes.h"
+#define HAVE_WIIUSE 1
 #else
 #include "CommonTypes.h"
+#include "Config.h"
 #endif
 
 #include <stdlib.h>

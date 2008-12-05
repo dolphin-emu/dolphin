@@ -5,6 +5,10 @@ import sys
 
 name = "Plugin_DSP_LLE"
 
+if not env['HAVE_AO']:
+    print name + " must have AO to be build"
+    Return()
+
 files = [
 	"AOSoundStream.cpp",
 #        "DisAsmDlg.cpp",

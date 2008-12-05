@@ -3,6 +3,7 @@
 Import('env')
 import sys
 
+wmenv = env.Clone()
 name = "Plugin_Wiimote"
 
 files = [
@@ -16,21 +17,20 @@ files = [
         "Encryption.cpp",
         "FillReport.cpp",
         "main.cpp",
-        "wiimote_real.cpp",
 	]
 
-wiimoteenv = env.Clone()
+libs = [ 'common' ]
 
-if wiimoteenv['osx64']:
-    wiimoteenv.Append(
-        CXXFLAGS = [ '-arch', 'x86_64' ],
-        LINKFLAGS = [ '-arch', 'x86_64' ],
-        LIBS = [ 'common' ],
-        )
-else:
-    wiimoteenv.Append(
-        CXXFLAGS = [ '-fPIC' ],
-        LIBS = [ 'common', 'wiiuse' ],
-        )
+cxxflags = [ '-fPIC' ]
 
-wiimoteenv.SharedLibrary(env['plugin_dir']+name, files)
+if wmenv['HAVE_WIIUSE']:
+    libs  += [ 'wiiuse' ]
+    files += [ "wiimote_real.cpp" ]
+    cxxflags += ['-DHAVE_WIIUSE']
+
+wmenv.Append(
+    CXXFLAGS = cxxflags,
+    LIBS = libs,
+    )
+
+wmenv.SharedLibrary(env['plugin_dir']+name, files)

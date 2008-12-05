@@ -2,6 +2,9 @@
 
 Import('env')
 
+if not env['HAVE_WX']:
+    Return()
+
 files = ["LogWindow.cpp", 
          "BreakPointDlg.cpp",
          "BreakpointView.cpp",

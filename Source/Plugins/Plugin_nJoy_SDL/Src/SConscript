@@ -5,6 +5,10 @@ import sys
 
 name = "Plugin_nJoy_SDL"
 
+if not env['HAVE_SDL']:
+    print name + " must have SDL to be build"
+    Return()
+
 files = [
 	'nJoy.cpp',
 	'GUI/AboutBox.cpp',
@@ -16,5 +20,5 @@ padenv.Append(
 	CXXFLAGS = [ '-fPIC' ],
 	LIBS = [ 'common' ],
 	)
-if not env['osx64']:
-    padenv.SharedLibrary(env['plugin_dir']+name, files)
+
+padenv.SharedLibrary(env['plugin_dir']+name, files)
