@@ -377,6 +377,10 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			{
 				LOG(WII_IPC_FILEIO, "FS: DeleteFile %s", Filename.c_str());
 			}
+			else if (File::DeleteDir(Filename.c_str()))
+			{
+				LOG(WII_IPC_FILEIO, "FS: DeleteDir %s", Filename.c_str());
+			}
 			else
 			{
 				LOG(WII_IPC_FILEIO, "FS: DeleteFile %s - failed!!!", Filename.c_str());

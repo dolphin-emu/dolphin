@@ -4,14 +4,13 @@
 #ifdef _WIN32
 #define PLUGIN_PREFIX ""
 #define PLUGIN_SUFFIX ".dll"
-#define DIR_SEP "\\"
-#define DIR_SEP_CHR '\\'
 #else
 #define PLUGIN_PREFIX "lib"
 #define PLUGIN_SUFFIX ".so"
+#endif
+
 #define DIR_SEP "/"
 #define DIR_SEP_CHR '/'
-#endif
 
 #define PLUGINS_DIR "Plugins"
 #define ROOT_DIR "."
@@ -75,7 +74,8 @@
 //#define GC_USER_USA_DIR FULL_GC_USER_DIR USA_DIR
 //#define GC_USER_JAP_DIR FULL_GC_USER_DIR JAP_DIR
 
-#define FULL_WII_USER_DIR FULL_USERDATA_DIR WII_USER_DIR DIR_SEP // Currently this is used as the "root" for Wii fs, is that correct?
+#define FULL_WII_USER_DIR FULL_USERDATA_DIR WII_USER_DIR DIR_SEP
+#define FULL_WII_ROOT_DIR FULL_USERDATA_DIR WII_USER_DIR // This is the "root" for Wii fs, so that it may be used with created devices
 
 #define FULL_GAMECONFIG_DIR	FULL_USERDATA_DIR GAMECONFIG_DIR DIR_SEP
 #define FULL_CONFIG_DIR		FULL_USERDATA_DIR CONFIG_DIR DIR_SEP
