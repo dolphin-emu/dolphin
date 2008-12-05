@@ -30,6 +30,7 @@ class CRegisterView
 		CRegisterView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style);
 
 		void Update();
+		void Refresh();
 
 
 	private:
@@ -38,7 +39,6 @@ class CRegisterView
 
 		u32 m_CachedRegs[32];
 		bool m_CachedRegHasChanged[32];
-
 		#ifdef _WIN32
 		virtual bool MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem);
 		#endif

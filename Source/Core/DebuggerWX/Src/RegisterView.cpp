@@ -23,7 +23,6 @@ extern const char* GetGRPName(unsigned int index);
 
 
 BEGIN_EVENT_TABLE(CRegisterView, wxListCtrl)
-
 END_EVENT_TABLE()
 
 CRegisterView::CRegisterView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
@@ -90,6 +89,29 @@ CRegisterView::Update()
 	Refresh();
 }
 
+void CRegisterView::Refresh()
+{
+	for (size_t i = 0; i < 16; i++)
+	{
+		wxListItem item;
+		item.SetId(i);
+		item.SetColumn(1);
+		char temp[16];
+		sprintf(temp, "0x%08x",m_CachedRegs[i]);
+		item.SetText(wxString::FromAscii(temp));
+		SetItem(item);
+	}
+	for (size_t i = 0; i < 16; i++)
+	{
+		wxListItem item;
+		item.SetId(i);
+		item.SetColumn(3);
+		char temp[16];
+		sprintf(temp, "0x%08x",m_CachedRegs[16 + i]);
+		item.SetText(wxString::FromAscii(temp));
+		SetItem(item);
+	}
+}
 #ifdef _WIN32
 bool
 CRegisterView::MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem)

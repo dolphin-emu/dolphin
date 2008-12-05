@@ -50,7 +50,7 @@ class CRegisterWindow
 		};
 
 		CRegisterView* m_GPRListView;
-
+		void OnRefresh(wxCommandEvent& WXUNUSED (event));
 		void OnClose(wxCloseEvent& event);
 		void CreateGUIControls();
 };

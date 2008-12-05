@@ -25,6 +25,7 @@ extern const char* GetGRPName(unsigned int index);
 
 BEGIN_EVENT_TABLE(CRegisterWindow, wxDialog)
 	EVT_CLOSE(CRegisterWindow::OnClose)
+	EVT_MENU(wxID_REFRESH, CRegisterWindow::OnRefresh)
 END_EVENT_TABLE()
 
 CRegisterWindow::CRegisterWindow(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
@@ -76,6 +77,12 @@ void CRegisterWindow::CreateGUIControls()
 void CRegisterWindow::OnClose(wxCloseEvent& /*event*/)
 {
 	Hide();
+}
+
+void CRegisterWindow::OnRefresh(wxCommandEvent& WXUNUSED (event))
+{
+	m_GPRListView->Refresh();
+	m_GPRListView->Update();
 }
 
 
