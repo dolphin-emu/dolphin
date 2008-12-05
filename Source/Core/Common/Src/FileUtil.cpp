@@ -28,44 +28,47 @@
 #else
 #include <sys/types.h>
 #include <dirent.h>
-#include <sys/stat.h>
 #include <errno.h>
 #include <stdlib.h>
 #endif
 
 #include <fstream>
+#include <sys/stat.h>
 
+#ifndef S_ISDIR
+#define S_ISDIR(m)  (((m)&S_IFMT) == S_IFDIR)
+#endif
 
 namespace File
 {
 
+inline void stripTailDirSlashes(std::string& fname) {
+	while(fname.at(fname.length() - 1) == DIR_SEP_CHR)
+		fname.resize(fname.length() - 1);
+}
+
 bool Exists(const char *filename)
 {
-#ifdef _WIN32
-	return GetFileAttributes(filename) != INVALID_FILE_ATTRIBUTES;
-#else
 	struct stat file_info;
-	int result = stat(filename, &file_info);
-	return result == 0;
-#endif
+
+	std::string copy = filename;
+	stripTailDirSlashes(copy);
+
+	int result = stat(copy.c_str(), &file_info);
+	return (result == 0);
 }
 
 bool IsDirectory(const char *filename)
 {
-#ifdef _WIN32
-	DWORD Attribs = GetFileAttributes(filename);
-	if (Attribs == INVALID_FILE_ATTRIBUTES)
-		return false;
-
-	return (GetFileAttributes(filename) & FILE_ATTRIBUTE_DIRECTORY) != 0;
-#else
 	struct stat file_info;
-	int result = stat(filename, &file_info);
+	std::string copy = filename;
+	stripTailDirSlashes(copy);
+
+	int result = stat(copy.c_str(), &file_info);
 	if (result == 0)
 		return S_ISDIR(file_info.st_mode);
 	else
 		return false;
-#endif
 }
 
 bool Delete(const char *filename)
@@ -296,24 +299,17 @@ std::string GetUserDirectory()
 
 u64 GetSize(const char *filename)
 {
-#ifdef _WIN32
-    FILE *pFile = fopen(filename, "rb");
-    if (pFile)
-	{
-            fseek(pFile, 0, SEEK_END);
-            u64 pos = ftell(pFile);
-            fclose(pFile);
-            return pos;
-        }
-#else
+	if(!Exists(filename))
+		return 0;
+
     struct stat buf;
     if (stat(filename, &buf) == 0) {
         return buf.st_size;
     }
     int err = errno;
-    PanicAlert("Error stating %s: %s", filename, strerror(err));
     
-#endif
+	PanicAlert("Error accessing %s: %s", filename, strerror(err));
+    
     return 0;
 }
 

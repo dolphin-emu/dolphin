@@ -432,6 +432,7 @@ void stfdx(UGeckoInstruction _inst)
 // __________________________________________________________________________________________________
 // stfiwx
 // TODO - examine what this really does
+// Stores Floating points into Integers indeXed
 void stfiwx(UGeckoInstruction _inst)
 {
 	u32 uAddress = Helper_Get_EA_X(_inst);

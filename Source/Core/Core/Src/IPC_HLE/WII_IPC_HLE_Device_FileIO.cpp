@@ -216,7 +216,7 @@ CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
             LOG(WII_IPC_FILEIO, "FileIO: ISFS_IOCTL_GETFILESTATS");
             LOG(WII_IPC_FILEIO, "    Length: %i   Seek: %i", m_FileLength, Position);
 
-            Memory::Write_U32(m_FileLength, BufferOut);
+            Memory::Write_U32((u32)m_FileLength, BufferOut);
             Memory::Write_U32(Position, BufferOut+4);
         }
         break;

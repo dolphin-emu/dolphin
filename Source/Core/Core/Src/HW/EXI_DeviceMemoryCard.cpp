@@ -72,7 +72,7 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 	if (pFile)
 	{
 		fseek( pFile, 0L, SEEK_END );
-		long MemFileSize = ftell( pFile );
+		u64 MemFileSize = ftell( pFile );
  
 		switch ((MemFileSize / (8 * 1024))-5) // Convert the filesize in bytes to the "nintendo-size"
 		{
@@ -137,7 +137,8 @@ void CEXIMemoryCard::Flush(bool exiting)
 	{
 		std::string dir;
 		SplitPath(m_strFilename, &dir, 0, 0);
-		File::CreateDir(dir.c_str());
+		if(!File::IsDirectory(dir.c_str()))
+			File::CreateDir(dir.c_str());
 		pFile = fopen(m_strFilename.c_str(), "wb");
 	}
 	if (!pFile) //Note - pFile changed inside above if
