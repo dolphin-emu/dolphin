@@ -28,6 +28,8 @@
 #include "MemoryCards/GCMemcard.h"
 #undef MEMCARD_MANAGER_STYLE
 #define MEMCARD_MANAGER_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX | wxRESIZE_BORDER | wxMAXIMIZE_BOX
+#define ITEMSPERPAGE 16
+#define MAXPAGES (128 / ITEMSPERPAGE) - 1
 
 class CMemcardManager
 	: public wxDialog
@@ -41,8 +43,8 @@ class CMemcardManager
 
 		DECLARE_EVENT_TABLE();
 
-		int page1,
-			page2;
+		int page0,
+			page1;
 
 		wxBoxSizer *sMain;
 		wxBoxSizer *sPagesLeft;

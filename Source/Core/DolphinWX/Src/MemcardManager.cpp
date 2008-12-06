@@ -236,7 +236,7 @@ void CMemcardManager::OnPathChange(wxFileDirPickerEvent& event)
 	switch (event.GetId())
 	{
 	case ID_MEMCARD1PATH:
-		page1 = 0;
+		page0 = 0;
 		if (m_Memcard1PrevPage->IsEnabled()) m_Memcard1PrevPage->Disable();
 		if (!strcasecmp(m_Memcard1Path->GetPath().mb_str(),m_Memcard2Path->GetPath().mb_str()))
 		{
@@ -245,7 +245,7 @@ void CMemcardManager::OnPathChange(wxFileDirPickerEvent& event)
 			m_MemcardList[0]->ClearAll();
 			t_StatusLeft->SetLabel(wxEmptyString);
 		}
-		else if (ReloadMemcard(event.GetPath().mb_str(), 0, page1))
+		else if (ReloadMemcard(event.GetPath().mb_str(), 0, page0))
 		{
 			m_FixChecksumLeft->Enable();
 			m_SaveImportLeft->Enable();
@@ -264,13 +264,13 @@ void CMemcardManager::OnPathChange(wxFileDirPickerEvent& event)
 		m_Memcard1NextPage->Disable();
 		break;
 	case ID_MEMCARD2PATH:
-		page2 = 0;
+		page1 = 0;
 		if (m_Memcard2PrevPage->IsEnabled()) m_Memcard2PrevPage->Disable();
 		if (!strcasecmp(m_Memcard1Path->GetPath().mb_str(),m_Memcard2Path->GetPath().mb_str()))
 		{
 			wxMessageBox(wxT("Memcard already opened"), wxT("Error"), wxOK|wxICON_ERROR);
 		}
-		else if (ReloadMemcard(event.GetPath().mb_str(), 1, page2))
+		else if (ReloadMemcard(event.GetPath().mb_str(), 1, page1))
 		{
 			m_FixChecksumRight->Enable();
 			m_SaveImportRight->Enable();
@@ -308,28 +308,28 @@ void CMemcardManager::OnPageChange(wxCommandEvent& event)
 	case ID_MEMCARD1NEXTPAGE:
 		if (!m_Memcard1PrevPage->IsEnabled()) m_Memcard1PrevPage->Enable();
 		if (!m_Memcard1NextPage->IsEnabled()) m_Memcard1NextPage->Enable();
-		page1++;		
-		if (page1 == 7) m_Memcard1NextPage->Disable();
-		ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0, page1);
+		page0++;		
+		if (page0 == MAXPAGES) m_Memcard1NextPage->Disable();
+		ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0, page0);
 		break;
 	case ID_MEMCARD2NEXTPAGE:
 		if (!m_Memcard2PrevPage->IsEnabled()) m_Memcard2PrevPage->Enable();
 		if (!m_Memcard2NextPage->IsEnabled()) m_Memcard2NextPage->Enable();
-		page2++;		
-		if (page2 == 7) m_Memcard2NextPage->Disable();
-		ReloadMemcard(m_Memcard2Path->GetPath().mb_str(), 1, page2);
+		page1++;		
+		if (page1 == MAXPAGES) m_Memcard2NextPage->Disable();
+		ReloadMemcard(m_Memcard2Path->GetPath().mb_str(), 1, page1);
 		break;
 	case ID_MEMCARD1PREVPAGE:
 		if (!m_Memcard1NextPage->IsEnabled()) m_Memcard1NextPage->Enable();
-		page1--;		
-		if (page1 == 0) m_Memcard1PrevPage->Disable();
-		ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0, page1);
+		page0--;		
+		if (!page0) m_Memcard1PrevPage->Disable();
+		ReloadMemcard(m_Memcard1Path->GetPath().mb_str(), 0, page0);
 		break;
 	case ID_MEMCARD2PREVPAGE:
 		if (!m_Memcard2NextPage->IsEnabled()) m_Memcard2NextPage->Enable();
-		page2--;		
-		if (page2 == 0) m_Memcard2PrevPage->Disable();
-		ReloadMemcard(m_Memcard2Path->GetPath().mb_str(), 1, page2);
+		page1--;		
+		if (!page1) m_Memcard2PrevPage->Disable();
+		ReloadMemcard(m_Memcard2Path->GetPath().mb_str(), 1, page1);
 		break;
 	}
 }
@@ -342,6 +342,9 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	int index2 = index1;
 	std::string fileName2("");
 	wxString blocksOpen;
+
+	if (index0 != -1 && page0) index0 += ITEMSPERPAGE * page0;
+	if (index1 != -1 && page1) index1 += ITEMSPERPAGE * page1;
 
 	switch (event.GetId())
 	{
