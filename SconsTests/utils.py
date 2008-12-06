@@ -18,7 +18,7 @@ def CheckPKGConfig(context, version):
 def CheckPKG(context, name):
     context.Message( 'Checking for %s... ' % name )
     ret = context.TryAction('pkg-config --exists \'%s\'' % name)[0]
-    context.Result( ret )
+    context.Result(  ret )
     return int(ret)
 
 

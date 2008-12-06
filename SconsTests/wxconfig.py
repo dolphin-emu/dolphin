@@ -188,7 +188,7 @@ def CheckWXConfig(context, version, components, debug = False):
             context.Message('not all components found ['+string.join(components,',')+']... ')
 
     context.Result(res)
-    return res
+    return int(res)
 
 def ParseWXConfig(env):
 

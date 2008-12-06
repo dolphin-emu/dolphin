@@ -95,7 +95,6 @@ vars = Variables('args.cache')
 vars.AddVariables(
     BoolVariable('verbose', 'Set for compilation line', False),
     BoolVariable('bundle', 'Set to create bundle', False),
-    BoolVariable('debug', 'Set for debug build', False),
     BoolVariable('lint', 'Set for lint build (extra warnings)', False),
     BoolVariable('nowx', 'Set For Building with no WX libs (WIP)', False),
     BoolVariable('osx64', 'Set For Building for osx in 64 bits (WIP)', False),
@@ -190,7 +189,7 @@ env['HAVE_AO'] = conf.CheckPKG('ao')
 
 # handling wx flags CCFLAGS should be created before
 env['HAVE_WX'] = conf.CheckWXConfig('2.8', ['gl', 'adv', 'core', 'base'], 
-                                    env['debug'])
+                                    0) #env['flavor'] == 'debug')
 
 # X11 detection
 env['HAVE_X11'] = conf.CheckPKG('x11')
@@ -220,6 +219,8 @@ conf.Finish()
 if env['HAVE_WX']:
     wxconfig.ParseWXConfig(env)
     compileFlags += ['-DUSE_WX']
+else:
+    print "WX not found or disabled, not building GUI"
 
 #get sdl stuff
 if env['HAVE_SDL']:
