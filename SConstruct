@@ -192,6 +192,9 @@ env['HAVE_AO'] = conf.CheckPKG('ao')
 env['HAVE_WX'] = conf.CheckWXConfig('2.8', ['gl', 'adv', 'core', 'base'], 
                                     env['debug'])
 
+# X11 detection
+env['HAVE_X11'] = conf.CheckPKG('x11')
+
 #osx 64 specifics
 if env['osx64']:
     # SDL and WX are broken on osx 64
@@ -208,6 +211,7 @@ conf.Define('HAVE_SDL', env['HAVE_SDL'])
 conf.Define('HAVE_BLUEZ', env['HAVE_BLUEZ'])
 conf.Define('HAVE_AO', env['HAVE_AO'])
 conf.Define('HAVE_WX', env['HAVE_WX'])
+conf.Define('HAVE_X11', env['HAVE_X11'])
 
 # After all configuration tests are done
 conf.Finish()
@@ -229,6 +233,9 @@ if env['HAVE_AO']:
 if env['HAVE_BLUEZ']:
     env.ParseConfig('pkg-config --cflags --libs bluez')
     
+if env['HAVE_X11']:
+    env.ParseConfig("pkg-config x11 --cflags --libs")
+
 # add methods from utils to env
 env.AddMethod(utils.filterWarnings)
 

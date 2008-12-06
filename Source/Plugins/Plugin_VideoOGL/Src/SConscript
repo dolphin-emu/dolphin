@@ -66,7 +66,28 @@ if gfxenv['osx64']:
 			'x86_64'
 			]
 
-useSDL = gfxenv['HAVE_SDL']
+
+
+
+        
+tests = {'CheckPKG' : utils.CheckPKG}
+conf = gfxenv.Configure(custom_tests = tests)
+
+if not conf.CheckPKG('gl'):
+        print name + " must have opengl to be build"
+        Return()
+
+
+# check for xxf86vm
+        
+gfxenv['HAVE_XXF86VM'] =  conf.CheckPKG('xxf86vm')
+
+gfxenv = conf.Finish()
+
+if gfxenv['HAVE_XXF86VM']:
+        gfxenv.ParseConfig("pkg-config xxf86vm --cflags --libs")
+
+gfxenv.ParseConfig("pkg-config gl --cflags --libs")
 
 if sys.platform == 'darwin':
 
@@ -76,33 +97,20 @@ if sys.platform == 'darwin':
 	# Use frameworks instead of plain libs, when possible.
 	linkFlags += [
 		'-Wl,-framework,%s' % framework
-		for framework in [ 'OpenGL', 'Cg' ]
+		for framework in [ 'Cg' ]
 		]
 else:
-	# By default, GLX is used on Linux to setup OpenGL, but you can select SDL
-        # TODO: build both sdl and non X
-	useSDL = False
-	# instead if you like, by changing the line below.
-        tests = {'CheckPKG' : utils.CheckPKG}
-
-        conf = gfxenv.Configure(custom_tests = tests)
-
-        if not conf.CheckPKG('x11'):
-                Exit(1)
-                
-        if not conf.CheckPKG('xxf86vm'):
-                Exit(1)
-
-        gfxenv = conf.Finish()
-        
-
-	gfxenv.ParseConfig("pkg-config x11 --cflags --libs")
-	gfxenv.ParseConfig("pkg-config xxf86vm --cflags --libs")
-
 	# Libraries without pkg-config support.
-	libs += [ 'GL', 'Cg', 'CgGL' ]
+	libs += [ 'Cg', 'CgGL' ]
 
 
+# change to True if you want to compile with SDL
+useSDL = not (gfxenv['HAVE_X11'] and gfxenv['HAVE_XXF86VM'])
+
+
+if useSDL and not gfxenv['HAVE_SDL']:
+        print name + " must have either X11 or sdl to be build"
+        Return()
 
 if useSDL:                    
 	compileFlags += [ '-DUSE_SDL=1' ]
