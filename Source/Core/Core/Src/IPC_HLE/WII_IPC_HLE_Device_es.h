@@ -104,8 +104,9 @@ public:
 
             switch(Buffer.Parameter)
             {
-            case IOCTL_ES_GETTITLEDIR: // ES_GetDataDir in DevKitPro
+            case IOCTL_ES_GETTITLEDIR: // (0x1d) ES_GetDataDir in DevKitPro
                 {
+					u32 TitleID_ = Memory::Read_U32(Buffer.InBuffer[0].m_Address);;
                     u32 TitleID = VolumeHandler::Read32(0);
                     if (TitleID == 0)
                         TitleID = 0xF00DBEEF;
@@ -113,24 +114,27 @@ public:
                     char* pTitleID = (char*)&TitleID;
 
                     char* Path = (char*)Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
-                    sprintf(Path, "/00010000/%02x%02x%02x%02x/data", (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
+                    sprintf(Path, "/00010000/%02x%02x%02x%02x/data",
+						(u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
 
-                    LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEDIR: %s ", Path);
+					LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEDIR: %s (TitleID: %08x)", Path, TitleID_);
                 }
                 break;
 
-            case IOCTL_ES_GETTITLEID: // ES_GetTitleID in DevKitPro
+            case IOCTL_ES_GETTITLEID: // (0x20) ES_GetTitleID in DevKitPro
                 {
-                    u32 OutBuffer = Memory::Read_U32(Buffer.PayloadBuffer[0].m_Address);
-
                     u32 TitleID = VolumeHandler::Read32(0);
                     if (TitleID == 0)
                         TitleID = 0xF00DBEEF;
 
-					// Write the Title ID to 0x00000000
-                    Memory::Write_U32(TitleID, OutBuffer);
-					//Memory::Write_U32(0x00000000, OutBuffer);
-
+					/* This seems to be the right address to write the Title ID to
+					   because then it shows up in the InBuffer of IOCTL_ES_GETTITLEDIR
+					   that is called right after this. However, I have not seen that this
+					   have any effect by itself, perhaps because it's really only
+					   IOCTL_ES_GETTITLEDIR that matters, and since we ignore the InBuffer in
+					   IOCTL_ES_GETTITLEDIR and read the title from the disc instead
+					   this has no effect. */
+                    Memory::Write_U32(TitleID, Buffer.PayloadBuffer[0].m_Address);
                     LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEID: 0x%x", TitleID);
                 }
                 break;

@@ -164,16 +164,23 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
         }
         break;
 
-    // DVDLowGetCoverReg - called by "Legend of Spyro"	
+    // DVDLowGetCoverReg - Called by "Legend of Spyro" and MP3
     case 0x7a:
         {   
 			LOG(WII_IPC_DVD, "%s executes DVDLowGetCoverReg (Buffer 0x%08x, 0x%x)", GetDeviceName().c_str(), _BufferOut, _BufferOutSize);
 
-            // HACK - switching the 4th byte between 0 and 1 gets through this check
-
-			static u8 coverByte = 0;
-
+			// Write zeroes to the out buffer just in case there is some nonsense data there
 			Memory::Memset(_BufferOut, 0, _BufferOutSize);	
+
+			// --------------------------------------------------------------------
+			/* Hack for Legend of Spyro. Switching the 4th byte between 0 and 1 gets
+			   through this check. The out buffer address remains the same all the
+			   time so we don't have to bother making a global function.
+			   
+			   TODO: Make this compatible with MP3 */
+			// -------------------------
+			/*
+			static u8 coverByte = 0;
 
 			u8* buffer = Memory::GetPointer(_BufferOut);
 			buffer[3] = coverByte;
@@ -184,6 +191,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 				coverByte = 0x01;
 			
 			return 1;
+			*/
         }
         break;
 
