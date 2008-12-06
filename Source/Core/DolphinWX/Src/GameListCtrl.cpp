@@ -319,7 +319,12 @@ bool CGameListCtrl::MSWDrawSubItem(wxPaintDC& rPaintDC, int item, int subitem)
 
 wxColour blend50(const wxColour& c1, const wxColour& c2)
 {
-  return((((int)c1.GetPixel() & 0xFEFEFE) >> 1) + (((int)c2.GetPixel() & 0xFEFEFE) >> 1) + 0x010101);
+	unsigned char r,g,b,a;
+	r = c1.Red()/2   + c2.Red()/2;
+	g = c1.Green()/2 + c2.Green()/2;
+	b = c1.Blue()/2  + c2.Blue()/2;
+	a = c1.Alpha()/2 + c2.Alpha()/2;
+	return a << 24 | b << 16 | g << 8 | r;
 }
 
 void CGameListCtrl::SetBackgroundColor()
