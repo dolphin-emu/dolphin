@@ -390,8 +390,12 @@ LONG SyncInterlockedExchange(LONG *Dest, LONG Val)
 #if defined(__GNUC__) && defined (__GNUC_MINOR__) && ((4 < __GNUC__) || (4 == __GNUC__ && 1 <= __GNUC_MINOR__))
   return  __sync_lock_test_and_set(Dest, Val);
 #else
-	// TODO:
-	#error Implement support older GCC Versions
+  register int result;
+  __asm__ __volatile__("lock; xchg %0,%1"
+                       : "=r" (result), "=m" (*Dest)
+                       : "0" (Val), "m" (*Dest)
+                       : "memory");
+  return result;
 #endif
 }
 
