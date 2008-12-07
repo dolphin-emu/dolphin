@@ -37,7 +37,7 @@ public:
 	bool IsCompressed() const {return m_BlobCompressed;}
 	u64 GetFileSize() const {return m_FileSize;}
 	u64 GetVolumeSize() const {return m_VolumeSize;}
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 	const wxImage& GetImage() const {return m_Image;}
 #endif
 
@@ -55,7 +55,7 @@ private:
 
 	DiscIO::IVolume::ECountry m_Country;
 
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 	wxImage m_Image;
 #endif
 	bool m_Valid;

@@ -23,7 +23,7 @@
 #include "PadSimple.h"
 #include "IniFile.h"
 
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 #include "GUI/ConfigDlg.h"
 #endif
 
@@ -32,8 +32,10 @@
 #include "DirectInputBase.h"
 
 DInput dinput;
+//#elif defined(USE_SDL) && USE_SDL
+//#include <SDL.h>
 
-#else
+#elif defined(HAVE_X11) && HAVE_X11
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -166,7 +168,7 @@ void DllConfig(HWND _hParent)
 	ConfigDialog frame(&win);
 	frame.ShowModal();
 	win.SetHWND(0);
-#elif !defined(OSX64)
+#elif defined(HAVE_WX) && HAVE_WX
 	ConfigDialog frame(NULL);
 	frame.ShowModal();
 #endif
@@ -183,7 +185,7 @@ void PAD_Initialize(SPADInitialize _PADInitialize)
 	g_PADInitialize = _PADInitialize;
 #ifdef _WIN32
 	dinput.Init((HWND)g_PADInitialize.hWnd);
-#else
+#elif defined(HAVE_X11) && HAVE_X11
 	GXdsp = (Display*)g_PADInitialize.hWnd;
 	XkbSetDetectableAutoRepeat(GXdsp, True, NULL);
 #endif
@@ -351,7 +353,7 @@ bool XInput_Read(int XPadPlayer, SPADStatus* _pPADStatus)
 }
 #endif
 
-#if defined(__linux__)
+#if defined(HAVE_X11) && HAVE_X11
 // The graphics plugin in the PCSX2 design leaves a lot of the window processing to the pad plugin, weirdly enough.
 void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
 {
@@ -504,7 +506,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	_pPADStatus->err = PAD_ERR_NONE;
 	if (pad[_numPAD].bEnableXPad) XInput_Read(pad[_numPAD].XPadPlayer, _pPADStatus);
 	DInput_Read(_numPAD, _pPADStatus);
-#elif defined(__linux__)
+#elif defined(HAVE_X11) && HAVE_X11
 	_pPADStatus->err = PAD_ERR_NONE;
 	X11_Read(_numPAD, _pPADStatus);
 #endif
@@ -645,7 +647,7 @@ void LoadConfig()
 		{
 			file.Get(SectionName, controlNames[x], &pad[i].keyForControl[x], 
                                      (i==0)?defaultKeyForControl[x]:0);
-#ifndef _WIN32
+#if defined(HAVE_X11) && HAVE_X11
 			// In linux we have a problem assigning the upper case of the 
 			// keys because they're not being recognized
 			pad[i].keyForControl[x] = tolower(pad[i].keyForControl[x]);

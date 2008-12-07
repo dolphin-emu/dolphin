@@ -18,6 +18,7 @@
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
+#include "Common.h"
 enum
 {
 	IDM_LOADSTATE = 200,
@@ -87,7 +88,7 @@ enum
 //#include <wx/wxprec.h>
 
 //#ifndef WX_PRECOMP
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 #include <wx/wx.h>
 //#endif
 
@@ -127,5 +128,5 @@ enum
 		),
 
 extern const wxEventType wxEVT_HOST_COMMAND;
-#endif //apple 64bit
+#endif 
 #endif

@@ -114,7 +114,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	// i am not sure if this is a leak or if wxImage will release the code
 	if (m_pImage)
 	{
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 		m_Image.Create(DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT, m_pImage);
 #endif
 	}

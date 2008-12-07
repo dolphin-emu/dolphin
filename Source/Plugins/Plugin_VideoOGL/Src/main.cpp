@@ -48,7 +48,7 @@
 #include "TextureConverter.h"
 
 #include "VideoState.h"
-#if HAVE_WX || defined __WXMSW__
+#if defined(HAVE_WX) && HAVE_WX 
 #include "Debugger/Debugger.h" // for the CDebugger class
 #endif
 SVideoInitialize g_VideoInitialize;
@@ -60,7 +60,7 @@ SVideoInitialize g_VideoInitialize;
    for the purpose of the game. At that point there is no need to use the same dll instance
    as the one that is rendering the game. However, that could be done. */
 
-#if HAVE_WX || defined __WXMSW__
+#if defined(HAVE_WX) && HAVE_WX
 CDebugger* m_frame;
 void DllDebugger(HWND _hParent, bool Show)
 {

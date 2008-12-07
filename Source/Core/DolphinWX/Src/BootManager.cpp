@@ -28,7 +28,7 @@
 #include "Config.h"
 #include "ConfigMain.h"
 #include "Core.h"
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 #include "Frame.h"
 #include "CodeWindow.h"
 #endif
@@ -37,7 +37,7 @@ static std::string s_DataBasePath_EUR = "Data_EUR";
 static std::string s_DataBasePath_USA = "Data_USA";
 static std::string s_DataBasePath_JAP = "Data_JAP";
 
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 extern CFrame* main_frame;
 extern CCodeWindow* g_pCodeWindow;
 #endif
@@ -52,7 +52,7 @@ bool BootCore(const std::string& _rFilename)
 {
 	SCoreStartupParameter StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 	if (g_pCodeWindow)
 	{
 //		StartUp.bUseDualCore = code_frame->UseDualCore();
@@ -63,15 +63,15 @@ bool BootCore(const std::string& _rFilename)
 //		StartUp.bUseDualCore = false;
 //		StartUp.bUseJIT = true;
 	}
-#endif //osx 64
+#endif 
 	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
 	StartUp.m_strFilename = _rFilename;
 	SConfig::GetInstance().m_LastFilename = StartUp.m_strFilename;
 	StartUp.bRunCompareClient = false;
 	StartUp.bRunCompareServer = false;
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 	StartUp.bEnableDebugging = g_pCodeWindow ? true : false; // RUNNING_DEBUG
-#endif //osx 64
+#endif 
 	std::string BaseDataPath;
 #ifdef _WIN32
 	StartUp.hInstance = wxGetInstance();
@@ -150,7 +150,7 @@ bool BootCore(const std::string& _rFilename)
 		// ---------
 	}
 	// ---------
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 	if(main_frame)
 		StartUp.hMainWindow = main_frame->GetRenderHandle();
 #endif
@@ -161,7 +161,7 @@ bool BootCore(const std::string& _rFilename)
 		return(false);
 	}
 
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 	Core::SetState(g_pCodeWindow ? Core::CORE_PAUSE : Core::CORE_RUN);
 #else
 	Core::SetState(Core::CORE_RUN);

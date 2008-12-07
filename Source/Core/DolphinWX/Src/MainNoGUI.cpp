@@ -80,7 +80,7 @@ void Host_SysMessage(const char *fmt, ...)
 void Host_SetWiiMoteConnectionState(int _State) {}
 
 // Include SDL header so it can hijack main().
-#if !defined(OSX64)
+#if defined(USE_SDL) && USE_SDL
 #include <SDL.h>
 #endif
 int main(int argc, char* argv[])
