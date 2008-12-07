@@ -90,7 +90,7 @@ inline unsigned long timeGetTime()
 #undef I_NEED_OS2_H
 #undef BOOL
 
-#if !defined(__APPLE__)
+#if defined(HAVE_X11) && HAVE_X11
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>

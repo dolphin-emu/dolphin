@@ -21,7 +21,7 @@
 #include "OS/Win32.h"
 #endif
 
-#if defined(__APPLE__) && !defined(OSX64)
+#if defined(USE_SDL) && USE_SDL
 #include <SDL.h>
 #endif
 
@@ -48,7 +48,7 @@
 #include "TextureConverter.h"
 
 #include "VideoState.h"
-#if !defined(OSX64)
+#if HAVE_WX
 #include "Debugger/Debugger.h" // for the CDebugger class
 #endif
 SVideoInitialize g_VideoInitialize;
@@ -59,10 +59,8 @@ SVideoInitialize g_VideoInitialize;
    clsoe the window if it has auto started, and then restart it after the dll has loaded
    for the purpose of the game. At that point there is no need to use the same dll instance
    as the one that is rendering the game. However, that could be done. */
-#if defined(OSX64)
-void DllDebugger(HWND _hParent) { }
-void DoDllDebugger() { }
-#else
+
+#if HAVE_WX
 CDebugger* m_frame;
 void DllDebugger(HWND _hParent, bool Show)
 {
@@ -86,6 +84,9 @@ void DoDllDebugger()
 	//m_frame = new CDebugger(NULL);
 	//m_frame->Show();
 }
+#else
+void DllDebugger(HWND _hParent) { }
+void DoDllDebugger() { }
 #endif
 
 
