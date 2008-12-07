@@ -117,6 +117,15 @@ bool DolphinApp::OnInit()
 		{wxCMD_LINE_NONE}
 	};
 
+#if defined(__APPLE__) 
+        // HACK: Get rid of bogous osx param
+        if (argc > 1 && wxString(argv[argc - 1]).StartsWith(_("-psn_"))) {
+            delete argv[argc-1];
+            argv[argc-1] = NULL;
+            argc--;
+        }        
+#endif
+
 	//gets the passed media files from command line
 	wxCmdLineParser parser(cmdLineDesc, argc, argv);
 
