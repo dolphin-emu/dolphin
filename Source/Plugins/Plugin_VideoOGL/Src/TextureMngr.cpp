@@ -372,8 +372,8 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     entry.frameCount = frameCount;
     
     int mult = bScaleByHalf?2:1;
-    int w = (abs(source->right-source->left)/mult+7)&~7;
-    int h = (abs(source->bottom-source->top)/mult+7)&~7;
+	int w = (abs(source->right-source->left)/mult);
+    int h = (abs(source->bottom-source->top)/mult);
 
     GL_REPORT_ERRORD();
 
