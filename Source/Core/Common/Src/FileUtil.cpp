@@ -42,17 +42,28 @@
 namespace File
 {
 
-inline void stripTailDirSlashes(std::string& fname) {
-	while(fname.at(fname.length() - 1) == DIR_SEP_CHR)
-		fname.resize(fname.length() - 1);
+
+// =======================================================
+// Remove any ending forward slashes from directory paths
+// -------------
+inline void StripTailDirSlashes(std::string& fname)
+{
+	// Make sure it's not a blank string
+	if(fname.length() > 0)
+	{
+		while(fname.at(fname.length() - 1) == DIR_SEP_CHR)
+			fname.resize(fname.length() - 1);
+	}
 }
+// =============
+
 
 bool Exists(const char *filename)
 {
 	struct stat file_info;
 
 	std::string copy = filename;
-	stripTailDirSlashes(copy);
+	StripTailDirSlashes(copy);
 
 	int result = stat(copy.c_str(), &file_info);
 	return (result == 0);
@@ -62,7 +73,7 @@ bool IsDirectory(const char *filename)
 {
 	struct stat file_info;
 	std::string copy = filename;
-	stripTailDirSlashes(copy);
+	StripTailDirSlashes(copy);
 
 	int result = stat(copy.c_str(), &file_info);
 	if (result == 0)
