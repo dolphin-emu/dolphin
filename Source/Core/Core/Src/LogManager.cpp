@@ -16,9 +16,10 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <stdio.h>
-#include <wx/datetime.h> // for the timestamps
-
 #include "Common.h"
+#if defined(HAVE_WX) && HAVE_WX
+#include <wx/datetime.h> // for the timestamps
+#endif
 #include "StringUtil.h"
 #include "LogManager.h"
 #include "PowerPC/PowerPC.h"
@@ -229,8 +230,9 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	va_end(ap);
 
 	static u32 count = 0;
+#if defined(HAVE_WX) && HAVE_WX
 	wxDateTime datetime = wxDateTime::UNow(); // get timestamp
-
+#endif
 	char* Msg2 = (char*)alloca(strlen(_fmt)+512);
 
 	// Here's the old symbol request
@@ -267,7 +269,12 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 		sprintf(Msg2, "%i %02i:%02i:%03i: %x %s (%s, %08x) : %s%s", 
 			//v,
 			++count,
+#if defined(HAVE_WX) && HAVE_WX
 			datetime.GetMinute(), datetime.GetSecond(), datetime.GetMillisecond(),
+#else
+                        0, 0, 0,
+                        // TODO get proper values
+#endif
 			PowerPC::ppcState.DebugCount, 
 			m_Log[_type]->m_szShortName_, // (CONSOLE etc)		
 			symbol.c_str(), PC, // current PC location (name, address)

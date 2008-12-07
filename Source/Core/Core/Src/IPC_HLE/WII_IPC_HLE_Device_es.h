@@ -122,7 +122,7 @@ public:
 
 			// Prepare the out buffer(s) with zeroes as a safety precaution
 			// to avoid returning bad values
-			for(int i = 0; i < Buffer.NumberPayloadBuffer; i++)
+			for(u32 i = 0; i < Buffer.NumberPayloadBuffer; i++)
 			{
 				Memory::Memset(Buffer.PayloadBuffer[i].m_Address, 0,
 					Buffer.PayloadBuffer[i].m_Size);

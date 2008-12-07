@@ -26,9 +26,9 @@
 #include "Volume.h"
 #include "VolumeCreator.h"
 #include "Config.h"
-#include "ConfigMain.h"
 #include "Core.h"
 #if defined(HAVE_WX) && HAVE_WX
+#include "ConfigMain.h"
 #include "Frame.h"
 #include "CodeWindow.h"
 #endif
