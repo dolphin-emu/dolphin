@@ -116,9 +116,18 @@ CLogWindow::CLogWindow(wxWindow* parent)
 	UpdateChecks();
 	m_cmdline->SetFocus();
 	m_bCheckDirty = false;
+
+	/* Load ini from here instead of from CodeWindow.cpp to make sure that
+	   settings are loaded if the window is showing */
+	IniFile file;
+	file.Load(DEBUGGER_CONFIG_FILE);
+	Load(file);
 }
 
 
+// =======================================================
+// This is called from the CodeWindow deconstruction function.
+// -------------
 void CLogWindow::Save(IniFile& _IniFile) const
 {
 	_IniFile.Set("LogWindow", "x", GetPosition().x);
@@ -128,6 +137,9 @@ void CLogWindow::Save(IniFile& _IniFile) const
 }
 
 
+// =======================================================
+// This is called from the class construction function.
+// -------------
 void CLogWindow::Load(IniFile& _IniFile)
 {
 	int x,y,w,h;
@@ -137,13 +149,13 @@ void CLogWindow::Load(IniFile& _IniFile)
 	_IniFile.Get("LogWindow", "h", &h, GetSize().GetHeight());
 	SetSize(x, y, w, h);
 
-	// load verbosity setting
+	// Load verbosity setting
 	int v;
 	_IniFile.Get("LogWindow", "Verbosity", &v, m_RadioBox[0]->GetSelection());
 	m_RadioBox[0]->SetSelection(v);
 	LogManager::m_LogSettings->m_iVerbosity = v;
 
-	// load options
+	// Load options
 	_IniFile.Get("LogWindow", "Unify", &LogManager::m_LogSettings->bUnify, false);
 	_IniFile.Get("LogWindow", "ResolveSymbols", &LogManager::m_LogSettings->bResolve, false);
 	_IniFile.Get("LogWindow", "WriteMaster", &LogManager::m_LogSettings->bWriteMaster, false);
@@ -153,6 +165,7 @@ void CLogWindow::Load(IniFile& _IniFile)
 	m_options->Check(2, LogManager::m_LogSettings->bWriteMaster);
 	m_options->Check(3, bOnlyUnique);
 
+	// If we use the Unify option
 	if(LogManager::m_LogSettings->bUnify)
 	{
 		m_RadioBox[0]->SetSelection(LogManager::VERBOSITY_LEVELS);
@@ -333,10 +346,7 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 // ---------------
 void CLogWindow::OnLogCheck(wxCommandEvent& event)
 {
-	if (!LogManager::m_bInitialized)
-	{
-		return;
-	}
+	if (!LogManager::m_bInitialized) return;
 
 	IniFile ini;
 	ini.Load(DEBUGGER_CONFIG_FILE);

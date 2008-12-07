@@ -62,7 +62,6 @@
 #include "../HW/CPU.h"
 #include "../HW/Memmap.h"
 #include "../HW/WII_IPC.h"
-
 #include "../Debugger/Debugger_SymbolMap.h"
 
 namespace WII_IPC_HLE_Interface
@@ -202,7 +201,7 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
 bool AckCommand(u32 _Address)
 {   
         Debugger::PrintCallstack(LogTypes::WII_IPC_HLE);
-	LOG(WII_IPC_HLE, "AckCommand: 0%08x", _Address);
+	LOGV(WII_IPC_HLE, 1, "AckCommand: 0%08x", _Address);
 
 	std::list<u32>::iterator itr = g_Ack.begin();
 	while (itr != g_Ack.end())
@@ -437,7 +436,7 @@ void ExecuteCommand(u32 _Address)
 
 // This is called continuously and WII_IPCInterface::IsReady() is controlled from WII_IPC.cpp. 
 void Update()
-{    
+{
 	if (WII_IPCInterface::IsReady())    
 	{
         // check if an executed must be updated

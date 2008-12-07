@@ -14,6 +14,40 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
+
+
+// =======================================================
+// File description
+// -------------
+/*  Here we handle /dev/es requests. We have cases for these functions, the exact
+	DevKitPro name is en parenthesis:
+
+	0x20 GetTitleID (ES_GetTitleID) (Input: none, Output: 8 bytes)
+	0x1d GetDataDir (ES_GetDataDir) (Input: 8 bytes, Output: 30 bytes)
+
+	0x1b DiGetTicketView (Input: none, Output: 216 bytes) 
+	0x16 GetConsumption (Input: 8 bytes, Output: 0 bytes, 4 bytes) // there are two output buffers
+
+	0x12 GetNumTicketViews (ES_GetNumTicketViews) (Input: 8 bytes, Output: 4 bytes)
+	0x14 GetTMDViewSize (ES_GetTMDViewSize) (Input: ?, Output: ?) // I don't get this anymore,
+		it used to come after 0x12
+
+	but only the first two are correctly supported. For the other four we ignore any potential
+	input and only write zero to the out buffer. However, most games only use first two,
+	but some Nintendo developed games use the other ones to:
+	
+	0x1b: Mario Galaxy, Mario Kart, SSBB
+	0x16: Mario Galaxy, Mario Kart, SSBB
+	0x12: Mario Kart
+	0x14: Mario Kart: But only if we don't return a zeroed out buffer for the 0x12 question,
+		and instead answer for example 1 will this question appear.
+ 
+*/
+// =============
+
+
+
 #ifndef _WII_IPC_HLE_DEVICE_ES_H_
 #define _WII_IPC_HLE_DEVICE_ES_H_
 
@@ -26,51 +60,59 @@ class CWII_IPC_HLE_Device_es : public IWII_IPC_HLE_Device
 {
 public:
 
-    enum
-    {
-        IOCTL_ES_ADDTICKET				= 0x01,
-        IOCTL_ES_ADDTITLESTART			= 0x02,
-        IOCTL_ES_ADDCONTENTSTART		= 0x03,
-        IOCTL_ES_ADDCONTENTDATA			= 0x04,
-        IOCTL_ES_ADDCONTENTFINISH		= 0x05,
-        IOCTL_ES_ADDTITLEFINISH			= 0x06,
-        IOCTL_ES_LAUNCH					= 0x08,
-        IOCTL_ES_OPENCONTENT			= 0x09,
-        IOCTL_ES_READCONTENT			= 0x0A,
-        IOCTL_ES_CLOSECONTENT			= 0x0B,
-        IOCTL_ES_GETTITLECOUNT			= 0x0E,
-        IOCTL_ES_GETTITLES				= 0x0F,
-        IOCTL_ES_GETVIEWCNT				= 0x12,
-        IOCTL_ES_GETVIEWS				= 0x13,
+	enum
+	{
+		IOCTL_ES_ADDTICKET				= 0x01,
+		IOCTL_ES_ADDTITLESTART			= 0x02,
+		IOCTL_ES_ADDCONTENTSTART		= 0x03,
+		IOCTL_ES_ADDCONTENTDATA			= 0x04,
+		IOCTL_ES_ADDCONTENTFINISH		= 0x05,
+		IOCTL_ES_ADDTITLEFINISH			= 0x06,
+		IOCTL_ES_LAUNCH					= 0x08,
+		IOCTL_ES_OPENCONTENT			= 0x09,
+		IOCTL_ES_READCONTENT			= 0x0A,
+		IOCTL_ES_CLOSECONTENT			= 0x0B,
+		IOCTL_ES_GETTITLECOUNT			= 0x0E,
+		IOCTL_ES_GETTITLES				= 0x0F,
+		IOCTL_ES_GETVIEWCNT				= 0x12,
+		IOCTL_ES_GETVIEWS				= 0x13,
 		IOCTL_ES_GETTMDVIEWCNT			= 0x14,
-        IOCTL_ES_DIVERIFY				= 0x1C,
-        IOCTL_ES_GETTITLEDIR			= 0x1D,
-        IOCTL_ES_GETTITLEID				= 0x20,
-        IOCTL_ES_SEEKCONTENT			= 0x23,
-        IOCTL_ES_ADDTMD					= 0x2B,
-        IOCTL_ES_ADDTITLECANCEL			= 0x2F,
-        IOCTL_ES_GETSTOREDCONTENTCNT	= 0x32,
-        IOCTL_ES_GETSTOREDCONTENTS		= 0x33,
-        IOCTL_ES_GETSTOREDTMDSIZE		= 0x34,
-        IOCTL_ES_GETSTOREDTMD			= 0x35,
-        IOCTL_ES_GETSHAREDCONTENTCNT	= 0x36,
-        IOCTL_ES_GETSHAREDCONTENTS		= 0x37,
-    };
+		IOCTL_ES_GETCONSUMPTION			= 0x16,
+		IOCTL_ES_DIGETTICKETVIEW		= 0x1b,
+		IOCTL_ES_DIVERIFY				= 0x1C,
+		IOCTL_ES_GETTITLEDIR			= 0x1D,
+		IOCTL_ES_GETTITLEID				= 0x20,
+		IOCTL_ES_SEEKCONTENT			= 0x23,
+		IOCTL_ES_ADDTMD					= 0x2B,
+		IOCTL_ES_ADDTITLECANCEL			= 0x2F,
+		IOCTL_ES_GETSTOREDCONTENTCNT	= 0x32,
+		IOCTL_ES_GETSTOREDCONTENTS		= 0x33,
+		IOCTL_ES_GETSTOREDTMDSIZE		= 0x34,
+		IOCTL_ES_GETSTOREDTMD			= 0x35,
+		IOCTL_ES_GETSHAREDCONTENTCNT	= 0x36,
+		IOCTL_ES_GETSHAREDCONTENTS		= 0x37,
+	};
 
 
-    CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName) :
-      IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-      {}
+		CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName) :
+		IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+		{}
 
-      virtual ~CWII_IPC_HLE_Device_es()
-      {}
+		virtual ~CWII_IPC_HLE_Device_es()
+		{}
 
-      virtual bool Open(u32 _CommandAddress, u32 _Mode)
-      {
-          Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+		virtual bool Open(u32 _CommandAddress, u32 _Mode)
+		{
+			Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+			return true;
+		}
 
-          return true;
-      }
+		virtual bool Close(u32 _CommandAddress)
+		{
+			LOG(WII_IPC_ES, "ES: Close");
+			Memory::Write_U32(0, _CommandAddress + 4);
+			return true;
+		}
 
         virtual bool IOCtlV(u32 _CommandAddress) 
         {
@@ -78,69 +120,50 @@ public:
 
 			LOG(WII_IPC_ES, "%s (0x%x)", GetDeviceName().c_str(), Buffer.Parameter);
 
-			/* Extended logs 
-			//if(Buffer.Parameter == IOCTL_ES_GETTITLEDIR || Buffer.Parameter == IOCTL_ES_GETTITLEID ||
-			//	Buffer.Parameter == IOCTL_ES_GETVIEWCNT || Buffer.Parameter == IOCTL_ES_GETTMDVIEWCNT)
-			{	
-				u32 OutBuffer = Memory::Read_U32(Buffer.PayloadBuffer[0].m_Address | 0x80000000);
-				if(Buffer.NumberInBuffer > 0)
-				{					
-					u32 InBuffer = Memory::Read_U32(Buffer.InBuffer[0].m_Address | 0x80000000);
-					LOG(WII_IPC_ES, "ES Parameter: 0x%x (In: %i, Out:%i) (In 0x%08x = 0x%08x %i) (Out 0x%08x = 0x%08x  %i)",
-						Buffer.Parameter,
-						Buffer.NumberInBuffer, Buffer.NumberPayloadBuffer,
-						Buffer.InBuffer[0].m_Address, InBuffer, Buffer.InBuffer[0].m_Size,
-						Buffer.PayloadBuffer[0].m_Address, OutBuffer, Buffer.PayloadBuffer[0].m_Size);
-				}
-				else
-				{
-				LOG(WII_IPC_ES, "ES Parameter: 0x%x (In: %i, Out:%i) (Out 0x%08x = 0x%08x  %i)",
-					Buffer.Parameter,
-					Buffer.NumberInBuffer, Buffer.NumberPayloadBuffer,
-					Buffer.PayloadBuffer[0].m_Address, OutBuffer, Buffer.PayloadBuffer[0].m_Size);				
-				}
-				//DumpCommands(_CommandAddress, 8);
-			}*/
+			// Prepare the out buffer(s) with zeroes as a safety precaution
+			// to avoid returning bad values
+			for(int i = 0; i < Buffer.NumberPayloadBuffer; i++)
+			{
+				Memory::Memset(Buffer.PayloadBuffer[i].m_Address, 0,
+					Buffer.PayloadBuffer[i].m_Size);
+			}
 
             switch(Buffer.Parameter)
             {
-            case IOCTL_ES_GETTITLEDIR: // (0x1d) ES_GetDataDir in DevKitPro
+            case IOCTL_ES_GETTITLEDIR: // 0x1d
                 {
-					u32 TitleID_ = Memory::Read_U32(Buffer.InBuffer[0].m_Address);;
-                    u32 TitleID = VolumeHandler::Read32(0);
-                    if (TitleID == 0)
-                        TitleID = 0xF00DBEEF;
+					/* I changed reading the TitleID from disc to reading from the
+					   InBuffer, if it fails it's because of some kind of memory error
+					   that we would want to fix anyway */
+					u32 TitleID = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+                    if (TitleID == 0) TitleID = 0xF00DBEEF;
 
                     char* pTitleID = (char*)&TitleID;
-
                     char* Path = (char*)Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
-                    sprintf(Path, "/00010000/%02x%02x%02x%02x/data",
-						(u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
+                    sprintf(Path, "/00010000/%08x/data", TitleID);
 
-					LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEDIR: %s (TitleID: %08x)", Path, TitleID_);
+					LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEDIR: %s)", Path);
                 }
                 break;
 
-            case IOCTL_ES_GETTITLEID: // (0x20) ES_GetTitleID in DevKitPro
+            case IOCTL_ES_GETTITLEID: // 0x20
                 {
                     u32 TitleID = VolumeHandler::Read32(0);
-                    if (TitleID == 0)
-                        TitleID = 0xF00DBEEF;
+                    if (TitleID == 0) TitleID = 0xF00DBEEF;
 
 					/* This seems to be the right address to write the Title ID to
 					   because then it shows up in the InBuffer of IOCTL_ES_GETTITLEDIR
-					   that is called right after this. However, I have not seen that this
-					   have any effect by itself, perhaps because it's really only
-					   IOCTL_ES_GETTITLEDIR that matters, and since we ignore the InBuffer in
-					   IOCTL_ES_GETTITLEDIR and read the title from the disc instead
-					   this has no effect. */
+					   that is called right after this. I have not seen that this
+					   have any effect by itself, it probably only matters as an input to
+					   IOCTL_ES_GETTITLEDIR. This values is not stored in 0x3180 or anywhere
+					   else as I have seen, it's just used as an input buffer in the following
+					   IOCTL_ES_GETTITLEDIR call and then forgotten. */
                     Memory::Write_U32(TitleID, Buffer.PayloadBuffer[0].m_Address);
                     LOG(WII_IPC_ES, "ES: IOCTL_ES_GETTITLEID: 0x%x", TitleID);
                 }
                 break;
 
-			// This and 0x14 are called by Mario Kart
-            case IOCTL_ES_GETVIEWCNT: // (0x12) ES_GetNumTicketViews in DevKitPro
+            case IOCTL_ES_GETVIEWCNT: // 0x12 (Input: 8 bytes, Output: 4 bytes)
                 {
 					if(Buffer.NumberPayloadBuffer)
 						u32 OutBuffer = Memory::Read_U32(Buffer.PayloadBuffer[0].m_Address);
@@ -152,7 +175,7 @@ public:
                 }
                 break;
 
-			case IOCTL_ES_GETTMDVIEWCNT: // (0x14) ES_GetTMDViewSize in DevKitPro
+			case IOCTL_ES_GETTMDVIEWCNT: // 0x14
                 {
 					if(Buffer.NumberPayloadBuffer)
 						u32 OutBuffer = Memory::Read_U32(Buffer.PayloadBuffer[0].m_Address);
@@ -164,10 +187,8 @@ public:
                 }
                 break;
 
-            case 0x16: // Consumption
-            case 0x1B: // ES_DiGetTicketView
-
-                // Mario Galaxy
+           case IOCTL_ES_GETCONSUMPTION: // (Input: 8 bytes, Output: 0 bytes, 4 bytes)
+           case IOCTL_ES_DIGETTICKETVIEW: // (Input: none, Output: 216 bytes)
                 break;
 
 			case IOCTL_ES_GETTITLECOUNT:

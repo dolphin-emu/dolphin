@@ -165,13 +165,13 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 		wxKeyEventHandler(CCodeWindow::OnKeyDown),
 		(wxObject*)0, this);
 
-	// load ini...
+	// Load ini...
 	IniFile file;
 	file.Load(DEBUGGER_CONFIG_FILE);
 
+	// Load settings for selectable windowses, but only if they have been created
 	this->Load(file);
 	if (m_BreakpointWindow) m_BreakpointWindow->Load(file);
-	if (m_LogWindow) m_LogWindow->Load(file);
 	if (m_RegisterWindow) m_RegisterWindow->Load(file);
 	if (m_MemoryWindow) m_MemoryWindow->Load(file);
 	if (m_JitWindow) m_JitWindow->Load(file);
@@ -402,6 +402,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		pSymbolsMenu->AppendSeparator();
 		pSymbolsMenu->Append(IDM_LOADMAPFILE, _T("&Load symbol map"));
 		pSymbolsMenu->Append(IDM_SAVEMAPFILE, _T("&Save symbol map"));
+		pSymbolsMenu->AppendSeparator();
 		pSymbolsMenu->Append(IDM_SAVEMAPFILEWITHCODES, _T("Save code"));
 		pSymbolsMenu->AppendSeparator();
 		pSymbolsMenu->Append(IDM_CREATESIGNATUREFILE, _T("&Create signature file..."));

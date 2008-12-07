@@ -37,68 +37,81 @@ enum
     IOCTL_STM_READDDRREG2		= 0x4002,
 };
 
+
+// =======================================================
+// The /device/stm/immediate class
+// -------------
 class CWII_IPC_HLE_Device_stm_immediate : public IWII_IPC_HLE_Device
 {
 public:
 
-    CWII_IPC_HLE_Device_stm_immediate(u32 _DeviceID, const std::string& _rDeviceName) :
-        IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-    {}
+	CWII_IPC_HLE_Device_stm_immediate(u32 _DeviceID, const std::string& _rDeviceName) :
+		IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+		{}
 
 	virtual ~CWII_IPC_HLE_Device_stm_immediate()
-    {}
+	{}
 
-    virtual bool Open(u32 _CommandAddress, u32 _Mode)
-    {
-        Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
-        return true;
-    }
+	virtual bool Open(u32 _CommandAddress, u32 _Mode)
+	{
+		LOGV(WII_IPC_SD, 0, "STM: Open");
+		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+		return true;
+	}
 
     virtual bool IOCtl(u32 _CommandAddress) 
     {
         u32 Parameter = Memory::Read_U32(_CommandAddress +0x0C);
-#ifdef LOGGING
-        u32 Buffer1 = Memory::Read_U32(_CommandAddress +0x10);
-        u32 BufferSize1 = Memory::Read_U32(_CommandAddress +0x14);
-        u32 Buffer2 = Memory::Read_U32(_CommandAddress +0x18);
-        u32 BufferSize2 = Memory::Read_U32(_CommandAddress +0x1C);
-#endif
+		u32 BufferIn = Memory::Read_U32(_CommandAddress +0x10);
+		u32 BufferInSize = Memory::Read_U32(_CommandAddress +0x14);
+		u32 BufferOut = Memory::Read_U32(_CommandAddress +0x18);
+		u32 BufferOutSize = Memory::Read_U32(_CommandAddress +0x1C);
 
-        // write return value
-        Memory::Write_U32(1, _CommandAddress + 0x4);
+		// Prepare the out buffer(s) with zeroes as a safety precaution
+		// to avoid returning bad values
+		Memory::Memset(BufferOut, 0, BufferOutSize);
+		u32 ReturnValue = 0;
 
         switch(Parameter)
         {
-        case IOCTL_STM_VIDIMMING:
-            LOG(WII_IPC_HLE, "%s - IOCtl: \n", GetDeviceName().c_str());
-            LOG(WII_IPC_HLE, "    IOCTL_STM_VIDIMMING");
+        case IOCTL_STM_VIDIMMING: // (Input: 20 bytes, Output: 20 bytes)
+            LOG(WII_IPC_SD, "%s - IOCtl: \n", GetDeviceName().c_str());
+            LOG(WII_IPC_SD, "    IOCTL_STM_VIDIMMING");
+			//Memory::Write_U32(1, BufferOut);
+			//ReturnValue = 1;
             break;
 
-        case IOCTL_STM_LEDMODE:
-            LOG(WII_IPC_HLE, "%s - IOCtl: \n", GetDeviceName().c_str());
-            LOG(WII_IPC_HLE, "    IOCTL_STM_LEDMODE");
+        case IOCTL_STM_LEDMODE:  // (Input: 20 bytes, Output: 20 bytes)
+            LOG(WII_IPC_SD, "%s - IOCtl: \n", GetDeviceName().c_str());
+            LOG(WII_IPC_SD, "    IOCTL_STM_LEDMODE");
             break;
 
         default:
             {
-                _dbg_assert_msg_(WII_IPC_HLE, 0, "CWII_IPC_HLE_Device_stm_immediate: 0x%x", Parameter);
+                _dbg_assert_msg_(WII_IPC_SD, 0, "CWII_IPC_HLE_Device_stm_immediate: 0x%x", Parameter);
 
-                LOG(WII_IPC_HLE, "%s - IOCtl: \n", GetDeviceName().c_str());
-                LOG(WII_IPC_HLE, "    Parameter: 0x%x\n", Parameter);
-                LOG(WII_IPC_HLE, "    Buffer1: 0x%08x\n", Buffer1);
-                LOG(WII_IPC_HLE, "    BufferSize1: 0x%08x\n", BufferSize1);
-                LOG(WII_IPC_HLE, "    Buffer2: 0x%08x\n", Buffer2);
-                LOG(WII_IPC_HLE, "    BufferSize2: 0x%08x\n", BufferSize2);
+                LOG(WII_IPC_SD, "%s - IOCtl: \n", GetDeviceName().c_str());
+                LOG(WII_IPC_SD, "    Parameter: 0x%x\n", Parameter);
+                LOG(WII_IPC_SD, "    InBuffer: 0x%08x\n", BufferIn);
+                LOG(WII_IPC_SD, "    InBufferSize: 0x%08x\n", BufferInSize);
+                LOG(WII_IPC_SD, "    OutBuffer: 0x%08x\n", BufferOut);
+                LOG(WII_IPC_SD, "    OutBufferSize: 0x%08x\n", BufferOutSize);
             }
             break;
         }
 
+		// Write return value to the IPC call
+        Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
+		// Generate true or false reply for the main UpdateInterrupts() function
         return true;
     }
 };
 
 
+// =======================================================
+// The /device/stm/eventhook class
+// -------------
 class CWII_IPC_HLE_Device_stm_eventhook : public IWII_IPC_HLE_Device
 {
 public:
@@ -113,20 +126,22 @@ public:
 
     virtual bool Open(u32 _CommandAddress, u32 _Mode)
     {
-        Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
-
+        Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
         return true;
     }
 
     virtual bool IOCtl(u32 _CommandAddress) 
     {
         u32 Parameter = Memory::Read_U32(_CommandAddress +0x0C);
-        u32 Buffer1 = Memory::Read_U32(_CommandAddress +0x10);
-        u32 BufferSize1 = Memory::Read_U32(_CommandAddress +0x14);
-#ifdef LOGGING
-        u32 Buffer2 = Memory::Read_U32(_CommandAddress +0x18);
-        u32 BufferSize2 = Memory::Read_U32(_CommandAddress +0x1C);
-#endif
+        u32 BufferIn = Memory::Read_U32(_CommandAddress +0x10);
+        u32 BufferInSize = Memory::Read_U32(_CommandAddress +0x14);
+        u32 BufferOut = Memory::Read_U32(_CommandAddress +0x18);
+        u32 BufferOutSize = Memory::Read_U32(_CommandAddress +0x1C);
+
+		// Prepare the out buffer(s) with zeroes as a safety precaution
+		// to avoid returning bad values
+		Memory::Memset(BufferOut, 0, BufferOutSize);
+		u32 ReturnValue = 0;
 
         // write return value
         switch (Parameter)
@@ -135,14 +150,14 @@ public:
 			{
 				m_EventHookAddress = _CommandAddress;
 
-                LOG(WII_IPC_HLE, "%s registers event hook:\n", GetDeviceName().c_str());
-                LOG(WII_IPC_HLE, "    0x1000 - IOCTL_STM_EVENTHOOK\n", Parameter);
-                LOG(WII_IPC_HLE, "    Buffer1: 0x%08x\n", Buffer1);
-                LOG(WII_IPC_HLE, "    BufferSize1: 0x%08x\n", BufferSize1);
-                LOG(WII_IPC_HLE, "    Buffer2: 0x%08x\n", Buffer2);
-                LOG(WII_IPC_HLE, "    BufferSize2: 0x%08x\n", BufferSize2);
+                LOG(WII_IPC_SD, "%s registers event hook:\n", GetDeviceName().c_str());
+                LOG(WII_IPC_SD, "    0x1000 - IOCTL_STM_EVENTHOOK\n", Parameter);
+                LOG(WII_IPC_SD, "    BufferIn: 0x%08x\n", BufferIn);
+                LOG(WII_IPC_SD, "    BufferInSize: 0x%08x\n", BufferInSize);
+                LOG(WII_IPC_SD, "    BufferOut: 0x%08x\n", BufferOut);
+                LOG(WII_IPC_SD, "    BufferOutSize: 0x%08x\n", BufferOutSize);
 
-                DumpCommands(Buffer1, BufferSize1/4);
+				DumpCommands(BufferIn, BufferInSize/4, LogTypes::WII_IPC_SD);
 
                 return false;
             }
@@ -150,20 +165,21 @@ public:
 
         default:
             {
-                _dbg_assert_msg_(WII_IPC_HLE, 0, "CWII_IPC_HLE_Device_stm_eventhook: 0x%x", Parameter);
-                LOG(WII_IPC_HLE, "%s registers event hook:\n", GetDeviceName().c_str());
-                LOG(WII_IPC_HLE, "    Parameter: 0x%x\n", Parameter);
-                LOG(WII_IPC_HLE, "    Buffer1: 0x%08x\n", Buffer1);
-                LOG(WII_IPC_HLE, "    BufferSize1: 0x%08x\n", BufferSize1);
-                LOG(WII_IPC_HLE, "    Buffer2: 0x%08x\n", Buffer2);
-                LOG(WII_IPC_HLE, "    BufferSize2: 0x%08x\n", BufferSize2);
+                _dbg_assert_msg_(WII_IPC_SD, 0, "CWII_IPC_HLE_Device_stm_eventhook: 0x%x", Parameter);
+                LOG(WII_IPC_SD, "%s registers event hook:\n", GetDeviceName().c_str());
+                LOG(WII_IPC_SD, "    Parameter: 0x%x\n", Parameter);
+                LOG(WII_IPC_SD, "    BufferIn: 0x%08x\n", BufferIn);
+                LOG(WII_IPC_SD, "    BufferInSize: 0x%08x\n", BufferInSize);
+                LOG(WII_IPC_SD, "    BufferOut: 0x%08x\n", BufferOut);
+                LOG(WII_IPC_SD, "    BufferOutSize: 0x%08x\n", BufferOutSize);
             }
             break;
         }
 
+		// Write return value to the IPC call, 0 means success
+        Memory::Write_U32(0, _CommandAddress + 0x4);   
 
-        Memory::Write_U32(0, _CommandAddress + 0x4);
-       
+		// Generate true or false reply for the main UpdateInterrupts() function
         return false;
 	}
 

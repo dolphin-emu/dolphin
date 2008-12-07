@@ -56,13 +56,13 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 	// create home directory
 	{
 		u32 TitleID = VolumeHandler::Read32(0);
-		if (TitleID == 0)
-			TitleID = 0xF00DBEEF;
+		if (TitleID == 0) TitleID = 0xF00DBEEF;
 
 		char* pTitleID = (char*)&TitleID;
 
 		char Path[260+1];
-		sprintf(Path, FULL_WII_USER_DIR "title/00010000/%02x%02x%02x%02x/data/nocopy/", (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
+		sprintf(Path, FULL_WII_USER_DIR "title/00010000/%02x%02x%02x%02x/data/nocopy/",
+			(u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
 	
 		File::CreateDirectoryStructure(Path);
 	}
@@ -71,35 +71,30 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_fs::IOCtl(u32 _CommandAddress) 
-{ 
-	//u32 DeviceID = Memory::Read_U32(_CommandAddress + 8);
-	//LOG(WII_IPC_FILEIO, "FS: IOCtl (Device=%s, DeviceID=%08x)", GetDeviceName().c_str(), DeviceID);
 
-	u32 Parameter =  Memory::Read_U32(_CommandAddress + 0xC);
-	u32 BufferIn =  Memory::Read_U32(_CommandAddress + 0x10);
-	u32 BufferInSize =  Memory::Read_U32(_CommandAddress + 0x14);
-	u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-	u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
-
-	u32 ReturnValue = ExecuteCommand(Parameter, BufferIn, BufferInSize, BufferOut, BufferOutSize);	
-	Memory::Write_U32(ReturnValue, _CommandAddress+4);
-
-	return true; 
-}
-
+// =======================================================
+// IOCtlV calls begin here
+// -------------
 bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress) 
 { 
 	u32 ReturnValue = FS_RESULT_OK;
-
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
 	
+	// Prepare the out buffer(s) with zeroes as a safety precaution
+	// to avoid returning bad values
+	for(int i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
+	{
+		Memory::Memset(CommandBuffer.PayloadBuffer[i].m_Address, 0,
+			CommandBuffer.PayloadBuffer[i].m_Size);
+	}
+
 	switch(CommandBuffer.Parameter)
 	{
 	case IOCTL_READ_DIR:
 		{
 			// the wii uses this function to define the type (dir or file)
-			std::string Filename(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address), CommandBuffer.InBuffer[0].m_Size));
+			std::string Filename(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(
+				CommandBuffer.InBuffer[0].m_Address), CommandBuffer.InBuffer[0].m_Size));
 
 			LOG(WII_IPC_FILEIO, "FS: IOCTL_READ_DIR %s", Filename.c_str());
 
@@ -247,6 +242,36 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 	return true; 
 }
 
+
+// =======================================================
+// IOCtl calls begin here
+// -------------
+bool CWII_IPC_HLE_Device_fs::IOCtl(u32 _CommandAddress) 
+{ 
+	//u32 DeviceID = Memory::Read_U32(_CommandAddress + 8);
+	//LOG(WII_IPC_FILEIO, "FS: IOCtl (Device=%s, DeviceID=%08x)", GetDeviceName().c_str(), DeviceID);
+
+	u32 Parameter =  Memory::Read_U32(_CommandAddress + 0xC);
+	u32 BufferIn =  Memory::Read_U32(_CommandAddress + 0x10);
+	u32 BufferInSize =  Memory::Read_U32(_CommandAddress + 0x14);
+	u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
+	u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
+
+	/* Prepare the out buffer(s) with zeroes as a safety precaution
+	   to avoid returning bad values. */
+	//LOG(WII_IPC_FILEIO, "Cleared %u bytes of the out buffer", _BufferOutSize);
+	Memory::Memset(BufferOut, 0, BufferOutSize);
+
+	u32 ReturnValue = ExecuteCommand(Parameter, BufferIn, BufferInSize, BufferOut, BufferOutSize);	
+	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
+
+	return true; 
+}
+
+
+// =======================================================
+// Execute IOCtl commands
+// -------------
 s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize)
 {
 	switch(_Parameter)
@@ -257,7 +282,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 
 			LOG(WII_IPC_FILEIO, "FS: GET STATS - no idea what we have to return here, prolly the free memory etc:)");
 			LOG(WII_IPC_FILEIO, "    InBufferSize: %i OutBufferSize: %i", _BufferInSize, _BufferOutSize);
-
+			PanicAlert("GET_STATS");
 
 /*			Memory::Write_U32(Addr, a); Addr += 4;
 			Memory::Write_U32(Addr, b); Addr += 4;
@@ -266,8 +291,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			Memory::Write_U32(Addr, e); Addr += 4;
 			Memory::Write_U32(Addr, f); Addr += 4;
 			Memory::Write_U32(Addr, g); Addr += 4;
-*/
-			PanicAlert("GET_STATS");
+*/			
 			return FS_RESULT_OK;
 		}
 		break;
@@ -319,10 +343,9 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 
 	case GET_ATTR:
 		{		
-			_dbg_assert_msg_(WII_IPC_FILEIO, _BufferOutSize == 76, "    GET_ATTR needs an 76 bytes large output buffer but it is %i bytes large", _BufferOutSize);
-
-			// first clear the whole output buffer
-			memset(Memory::GetPointer(_BufferOut), 0, _BufferOutSize);
+			_dbg_assert_msg_(WII_IPC_FILEIO, _BufferOutSize == 76,
+				"    GET_ATTR needs an 76 bytes large output buffer but it is %i bytes large",
+				_BufferOutSize);
 
 			u32 OwnerID = 0;
 			u16 GroupID = 0;

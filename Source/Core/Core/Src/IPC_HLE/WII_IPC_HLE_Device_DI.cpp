@@ -83,6 +83,11 @@ bool CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize)
 {    
     u32 Command = Memory::Read_U32(_BufferIn) >> 24;
+
+	/* Set out buffer to zeroes as a safety precaution to avoid answering
+	   nonsense values */
+	Memory::Memset(_BufferOut, 0, _BufferOutSize);
+
 	switch (Command)
 	{
 	// DVDLowInquiry

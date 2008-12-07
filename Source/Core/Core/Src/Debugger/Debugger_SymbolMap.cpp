@@ -110,10 +110,10 @@ void PrintCallstack(LogTypes::LOG_TYPE _Log)
 {
 	u32 addr = Memory::ReadUnchecked_U32(PowerPC::ppcState.gpr[1]);  // SP
 
-	__Log(_Log, "\n == STACK TRACE - SP = %08x ==\n", PowerPC::ppcState.gpr[1]);
+	__Logv(_Log, 1, "\n == STACK TRACE - SP = %08x ==\n", PowerPC::ppcState.gpr[1]);
 
 	if (LR == 0) {
-		__Log(_Log, " LR = 0 - this is bad\n");	
+		__Logv(_Log, 1, " LR = 0 - this is bad\n");	
 	}
 	int count = 1;
 	if (g_symbolDB.GetDescription(PowerPC::ppcState.pc) != g_symbolDB.GetDescription(LR))

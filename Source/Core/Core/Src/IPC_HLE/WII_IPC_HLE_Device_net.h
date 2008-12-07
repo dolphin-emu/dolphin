@@ -29,7 +29,7 @@ public:
 	virtual ~CWII_IPC_HLE_Device_net_kd_request();
 
 	virtual bool Open(u32 _CommandAddress, u32 _Mode);
-
+	virtual bool Close(u32 _CommandAddress);
 	virtual bool IOCtl(u32 _CommandAddress);
 
 private:
@@ -43,42 +43,50 @@ class CWII_IPC_HLE_Device_net_kd_time : public IWII_IPC_HLE_Device
 {
 public:
 
-    CWII_IPC_HLE_Device_net_kd_time(u32 _DeviceID, const std::string& _rDeviceName) :
-	  IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-	  {}
+	CWII_IPC_HLE_Device_net_kd_time(u32 _DeviceID, const std::string& _rDeviceName) :
+		IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+		{}
 
-	  virtual ~CWII_IPC_HLE_Device_net_kd_time()
-	  {}
+	virtual ~CWII_IPC_HLE_Device_net_kd_time()
+	{}
 
-	  virtual bool Open(u32 _CommandAddress, u32 _Mode)
-	  {
-		  Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
-		  return true;
-	  }
+	virtual bool Open(u32 _CommandAddress, u32 _Mode)
+	{
+		LOG(WII_IPC_NET, "%s - IOCtl: Open",  GetDeviceName().c_str());
+		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+		return true;
+	}
 
-	  virtual bool IOCtl(u32 _CommandAddress) 
-	  {
-#ifdef LOGGING
-		  u32 Parameter = Memory::Read_U32(_CommandAddress +0x0C);
-		  u32 Buffer1 = Memory::Read_U32(_CommandAddress +0x10);
-		  u32 BufferSize1 = Memory::Read_U32(_CommandAddress +0x14);
-		  u32 Buffer2 = Memory::Read_U32(_CommandAddress +0x18);
-		  u32 BufferSize2 = Memory::Read_U32(_CommandAddress +0x1C);
-#endif
+	virtual bool Close(u32 _CommandAddress, u32 _Mode)
+	{
+		LOG(WII_IPC_NET, "%s - IOCtl: Close",  GetDeviceName().c_str());
+		Memory::Write_U32(0, _CommandAddress + 4);
+		return true;
+	}
 
-		  // write return value
-		  Memory::Write_U32(0, _CommandAddress + 0x4);
+	virtual bool IOCtl(u32 _CommandAddress) 
+	{
+		#ifdef LOGGING
+		u32 Parameter = Memory::Read_U32(_CommandAddress +0x0C);
+		u32 Buffer1 = Memory::Read_U32(_CommandAddress +0x10);
+		u32 BufferSize1 = Memory::Read_U32(_CommandAddress +0x14);
+		u32 Buffer2 = Memory::Read_U32(_CommandAddress +0x18);
+		u32 BufferSize2 = Memory::Read_U32(_CommandAddress +0x1C);
+		#endif
 
-		  LOG(WII_IPC_HLE, "%s - IOCtl:\n"
-			  "    Parameter: 0x%x   (0x17 could be some kind of Sync RTC) \n"
-			  "    Buffer1: 0x%08x\n"
-			  "    BufferSize1: 0x%08x\n"
-			  "    Buffer2: 0x%08x\n"
-			  "    BufferSize2: 0x%08x\n",
-			  GetDeviceName().c_str(), Parameter, Buffer1, BufferSize1, Buffer2, BufferSize2);
+		// write return value
+		Memory::Write_U32(0, _CommandAddress + 0x4);
 
-		  return true;
-  }
+		LOG(WII_IPC_NET, "%s - IOCtl:\n"
+			"    Parameter: 0x%x   (0x17 could be some kind of Sync RTC) \n"
+			"    Buffer1: 0x%08x\n"
+			"    BufferSize1: 0x%08x\n"
+			"    Buffer2: 0x%08x\n"
+			"    BufferSize2: 0x%08x\n",
+		GetDeviceName().c_str(), Parameter, Buffer1, BufferSize1, Buffer2, BufferSize2);
+
+		return true;
+	}
 };
 
 // **************************************************************************************
@@ -87,14 +95,14 @@ class CWII_IPC_HLE_Device_net_ip_top : public IWII_IPC_HLE_Device
 {
 public:
 	CWII_IPC_HLE_Device_net_ip_top(u32 _DeviceID, const std::string& _rDeviceName) :
-	  IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-	{}
+		IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+		{}
 
-	virtual ~CWII_IPC_HLE_Device_net_ip_top() {
-	}
+	virtual ~CWII_IPC_HLE_Device_net_ip_top() {}
 
 	virtual bool Open(u32 _CommandAddress, u32 _Mode)
 	{
+		LOG(WII_IPC_NET, "%s - IOCtl: Open",  GetDeviceName().c_str());
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 		return true;
 	}
@@ -111,7 +119,6 @@ public:
 	virtual ~CWII_IPC_HLE_Device_net_ncd_manage();
 
 	virtual bool Open(u32 _CommandAddress, u32 _Mode);
-
 	virtual bool IOCtlV(u32 _CommandAddress);
 
 };

@@ -38,7 +38,7 @@ public:
     u32 GetDeviceID() const { return m_DeviceID; } 
 
     virtual bool Open(u32 _CommandAddress, u32 _Mode)  { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Open()", m_Name.c_str()); return true; }
-    virtual bool Close(u32 _CommandAddress)  { /*_dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Close()", m_Name.c_str()); */ return true; }
+    virtual bool Close(u32 _CommandAddress)  { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Close()", m_Name.c_str()); return true; }
     virtual bool Seek(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Seek()", m_Name.c_str()); return true; }
 	virtual bool Read(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Read()", m_Name.c_str()); return true; }
 	virtual bool Write(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Write()", m_Name.c_str()); return true; }
@@ -48,7 +48,6 @@ public:
 	virtual u32 Update() { return 0; }
 
 	virtual bool ReturnFileHandle() { return false; }
-	//FILE* ReturnFileHandle() const { return m_pFileHandle; }
 
 
 private:
@@ -71,11 +70,10 @@ protected:
 			/* These are the Ioctlv parameters in the IOS communication. The BufferVector
 			   is a memory address offset at where the in and out buffer addresses are
 			   stored. */
-            Parameter = Memory::Read_U32(m_Address + 0x0C); // command 3
-            NumberInBuffer = Memory::Read_U32(m_Address + 0x10); // 4
-            NumberPayloadBuffer = Memory::Read_U32(m_Address + 0x14); // 5
-            BufferVector = Memory::Read_U32(m_Address + 0x18); // 6
-            BufferSize = Memory::Read_U32(m_Address + 0x1C); // 7
+            Parameter = Memory::Read_U32(m_Address + 0x0C); // command 3, arg0
+            NumberInBuffer = Memory::Read_U32(m_Address + 0x10); // 4, arg1
+            NumberPayloadBuffer = Memory::Read_U32(m_Address + 0x14); // 5, arg2
+            BufferVector = Memory::Read_U32(m_Address + 0x18); // 6, arg3
 
 			// The start of the out buffer
             u32 BufferVectorOffset = BufferVector;
@@ -87,9 +85,12 @@ protected:
             {
                 SBuffer Buffer;
                 Buffer.m_Address = Memory::Read_U32(BufferVectorOffset);
-						// Restore cached address, mauled by emulatee's ioctl functions.
-						Memory::Write_U32(Buffer.m_Address | 0x80000000, BufferVectorOffset);
-						BufferVectorOffset += 4;
+
+				/* Restore cached address, mauled by emulatee's ioctl functions. Why?
+				   What is the purpose of this? After we have read the values, why would
+				   anyone ned it */
+				//Memory::Write_U32(Buffer.m_Address | 0x80000000, BufferVectorOffset);
+				BufferVectorOffset += 4;
 
                 Buffer.m_Size = Memory::Read_U32(BufferVectorOffset);
 				BufferVectorOffset += 4;
@@ -103,8 +104,9 @@ protected:
             {
                 SBuffer Buffer;
                 Buffer.m_Address = Memory::Read_U32(BufferVectorOffset);
-						Memory::Write_U32(Buffer.m_Address | 0x80000000, BufferVectorOffset);
-						BufferVectorOffset += 4;
+
+				//Memory::Write_U32(Buffer.m_Address | 0x80000000, BufferVectorOffset);
+				BufferVectorOffset += 4;
 
                 Buffer.m_Size = Memory::Read_U32(BufferVectorOffset);
 				BufferVectorOffset += 4;
@@ -128,28 +130,24 @@ protected:
         std::vector<SBuffer> PayloadBuffer;
     };
 
+
 	// ===================================================
 	/* Write out the IPC struct from _CommandAddress to _NumberOfCommands numbers
 	   of 4 byte commands. */
 	// ----------------
-    void DumpCommands(u32 _CommandAddress, size_t _NumberOfCommands = 8)
+    void DumpCommands(u32 _CommandAddress, size_t _NumberOfCommands = 8,
+		int LogType = LogTypes::WII_IPC_HLE)
     {
 // Because I have to use __Logv here I add this #if
 #if defined(_DEBUG) || defined(DEBUGFAST)
-		// Select log type
-		int log;
-		if(GetDeviceName().find("dev/es") != std::string::npos)
-			log = LogTypes::WII_IPC_ES;
-		else
-			log = LogTypes::WII_IPC_HLE;
-
-		__Logv(log, 0, "CommandDump of %s", GetDeviceName().c_str());
-		for (u32 i=0; i<_NumberOfCommands; i++)
+		__Logv(LogType, 0, "CommandDump of %s", GetDeviceName().c_str());
+		for (u32 i = 0; i < _NumberOfCommands; i++)
 		{            
-			__Logv(log, 0, "    Command%02i: 0x%08x", i, Memory::Read_U32(_CommandAddress + i*4));	
+			__Logv(LogType, 0, "    Command%02i: 0x%08x", i, Memory::Read_U32(_CommandAddress + i*4));	
 		}
 #endif
     }
+
 	
     void DumpAsync( u32 BufferVector, u32 _CommandAddress, u32 NumberInBuffer, u32 NumberOutBuffer )
     {
