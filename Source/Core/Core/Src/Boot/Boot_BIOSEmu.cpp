@@ -291,7 +291,7 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		    Memory::Write_U32(0x933e0000, 0x00003130);		// IOS MEM2 low
 		    Memory::Write_U32(0x93400000, 0x00003134);		// IOS MEM2 high
 		    Memory::Write_U32(0x00000011, 0x00003138);		// Console type
-			Memory::Write_U64(0x0009020400062507, 0x00003140);	// IOS Version
+                    Memory::Write_U64(0x0009020400062507ULL, 0x00003140);	// IOS Version
 		    Memory::Write_U16(0x0113,     0x0000315e);		// Apploader
 		    Memory::Write_U32(0x0000FF16, 0x00003158);		// DDR ram vendor code
 
