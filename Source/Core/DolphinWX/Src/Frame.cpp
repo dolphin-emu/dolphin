@@ -46,15 +46,12 @@ extern "C" {
 #include "../resources/toolbar_help.c"
 #include "../resources/toolbar_pause.c"
 #include "../resources/toolbar_play.c"
-#include "../resources/toolbar_play_dis.c"
 #include "../resources/toolbar_plugin_dsp.c"
 #include "../resources/toolbar_plugin_gfx.c"
 #include "../resources/toolbar_plugin_options.c"
-#include "../resources/toolbar_plugin_options_dis.c"
 #include "../resources/toolbar_plugin_pad.c"
 #include "../resources/toolbar_refresh.c"
 #include "../resources/toolbar_stop.c"
-#include "../resources/toolbar_stop_dis.c"
 };
 
 #define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
@@ -289,13 +286,11 @@ void CFrame::PopulateToolbar(wxToolBar* toolBar)
 	toolBar->AddTool(IDM_BROWSE, _T("Browse"),   m_Bitmaps[Toolbar_Browse], _T("Browse for an ISO directory..."));
 	toolBar->AddSeparator();
 	m_pToolPlay = toolBar->AddTool(IDM_PLAY, _T("Play"),   m_Bitmaps[Toolbar_Play], _T("Play")); 
-	toolBar->SetToolDisabledBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Play_Dis]);
+
 	toolBar->AddTool(IDM_STOP, _T("Stop"),   m_Bitmaps[Toolbar_Stop], _T("Stop"));
-	toolBar->SetToolDisabledBitmap(IDM_STOP, m_Bitmaps[Toolbar_Stop_Dis]);
 	toolBar->AddTool(IDM_TOGGLE_FULLSCREEN, _T("Fullscr."),  m_Bitmaps[Toolbar_FullScreen], _T("Toggle Fullscreen"));
 	toolBar->AddSeparator();
 	toolBar->AddTool(IDM_CONFIG_MAIN, _T("Config"), m_Bitmaps[Toolbar_PluginOptions], _T("Configure..."));
-	toolBar->SetToolDisabledBitmap(IDM_CONFIG_MAIN, m_Bitmaps[Toolbar_PluginOptions_Dis]);
 	toolBar->AddTool(IDM_CONFIG_GFX_PLUGIN, _T("GFX"),  m_Bitmaps[Toolbar_PluginGFX], _T("GFX settings"));
 	toolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _T("DSP"),  m_Bitmaps[Toolbar_PluginDSP], _T("DSP settings"));
 	toolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("PAD"),  m_Bitmaps[Toolbar_PluginPAD], _T("PAD settings"));
@@ -334,12 +329,9 @@ void CFrame::InitBitmaps()
 	m_Bitmaps[Toolbar_Refresh] = wxGetBitmapFromMemory(toolbar_refresh_png);
 	m_Bitmaps[Toolbar_Browse] = wxGetBitmapFromMemory(toolbar_browse_png);
 	m_Bitmaps[Toolbar_Play] = wxGetBitmapFromMemory(toolbar_play_png);
-	m_Bitmaps[Toolbar_Play_Dis] = wxGetBitmapFromMemory(toolbar_play_dis_png);
 	m_Bitmaps[Toolbar_Stop] = wxGetBitmapFromMemory(toolbar_stop_png);
-	m_Bitmaps[Toolbar_Stop_Dis] = wxGetBitmapFromMemory(toolbar_stop_dis_png);
 	m_Bitmaps[Toolbar_Pause] = wxGetBitmapFromMemory(toolbar_pause_png);
 	m_Bitmaps[Toolbar_PluginOptions] = wxGetBitmapFromMemory(toolbar_plugin_options_png);
-	m_Bitmaps[Toolbar_PluginOptions_Dis] = wxGetBitmapFromMemory(toolbar_plugin_options_dis_png);
 	m_Bitmaps[Toolbar_PluginGFX]  = wxGetBitmapFromMemory(toolbar_plugin_gfx_png);
 	m_Bitmaps[Toolbar_PluginDSP]  = wxGetBitmapFromMemory(toolbar_plugin_dsp_png);
 	m_Bitmaps[Toolbar_PluginPAD]  = wxGetBitmapFromMemory(toolbar_plugin_pad_png);
