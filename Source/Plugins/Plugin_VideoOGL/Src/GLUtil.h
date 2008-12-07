@@ -34,7 +34,7 @@
 #define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
 #define I_NEED_OS2_H // HAXXOR
 //#include <GL/glew.h>
-#if !defined(OSX64)
+#if defined(HAVE_X11) && HAVE_X11
 #include <GL/glxew.h>
 #else
 #undef BOOL

@@ -42,7 +42,7 @@
 #include "VertexLoaderManager.h"
 #include "VertexLoader.h"
 #include "XFB.h"
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 #include "Debugger/Debugger.h" // for the CDebugger class
 #endif
 #include "Logging/Logging.h" // for Logging()
@@ -63,7 +63,7 @@ struct MESSAGE
 
 CGcontext g_cgcontext;
 CGprofile g_cgvProf, g_cgfProf;
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 extern CDebugger* m_frame; // the debugging class
 #endif
 
@@ -852,7 +852,7 @@ void Renderer::SwapBuffers()
     }
 
 	// Write logging data to debugger
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 	if(m_frame)
 	{
 		Logging(0);

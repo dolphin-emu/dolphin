@@ -25,7 +25,7 @@
 #include <SDL.h>
 #endif
 
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 #include "GUI/ConfigDlg.h"
 #endif
 
@@ -154,7 +154,7 @@ void DllConfig(HWND _hParent)
 	frame->ShowModal();
 	//win.SetHWND(0);
 
-#elif defined(__linux__)
+#elif defined(HAVE_WX) && HAVE_WX
 	ConfigDialog frame(NULL);
 	g_Config.Load();
     int glxMajorVersion, glxMinorVersion;

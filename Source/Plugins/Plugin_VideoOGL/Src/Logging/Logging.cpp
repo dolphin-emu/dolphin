@@ -33,7 +33,7 @@
 #endif
 
 
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 #include "../Debugger/Debugger.h" // for the CDebugger class
 #include "../Debugger/PBView.h"
 #include "Console.h" // open and close console, clear console window
@@ -72,7 +72,7 @@ std::vector<u16> viupd(15); // the length of the update frequency bar
 // ---------------------------------------------------------------------------------------
 // Classes
 // -------------
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 extern CDebugger* m_frame;
 #endif		
 
@@ -145,7 +145,7 @@ void Logging(int a)
 	{		
 		std::string sfbuff;
 		sfbuff = sfbuff + writeMessage(ii, 0);
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 		aprintf(ii, (char *)sfbuff.c_str());
 #endif
 	}
@@ -258,7 +258,7 @@ void Logging(int a)
 		// =======================================================================================
 		// Print
 		// ----------------
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 		ClearScreen();
 #endif
 		__Log("%s", sbuff.c_str());

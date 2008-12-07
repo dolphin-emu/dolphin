@@ -16,14 +16,14 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-#if !defined(OSX64)
-#include <wx/aboutdlg.h>
-#include "ConfigDlg.h"
-#endif
-
 #include "Common.h"
 #include "Config.h"
 #include "StringUtil.h"
+
+#if defined(HAVE_WX) && HAVE_WX
+#include <wx/aboutdlg.h>
+#include "ConfigDlg.h"
+#endif
 
 #include "pluginspecs_wiimote.h"
 
@@ -102,7 +102,7 @@ extern "C" void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 
 extern "C" void DllAbout(HWND _hParent) 
 {
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 	wxAboutDialogInfo info;
 	info.SetName(_T("Wiimote plug-in"));
 	info.AddDeveloper(_T("masken (masken3@gmail.com)"));

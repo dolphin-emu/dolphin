@@ -158,10 +158,6 @@ if env['lint']:
 # add the warnings to the compile flags
 compileFlags += [ '-W' + warning for warning in warnings ]
 
-# Handle the compilers
-CC = env['CC'],
-CXX = env['CXX'],
-
 env['CCFLAGS'] = compileFlags
 env['CXXFLAGS'] = compileFlags + [ '-fvisibility-inlines-hidden' ]
 env['CPPDEFINES'] = cppDefines

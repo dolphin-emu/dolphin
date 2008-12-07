@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#if !defined(OSX64)
+#if defined(HAVE_WX) && HAVE_WX
 #include <wx/wx.h>
 #include <wx/filepicker.h>
 #include <wx/notebook.h>

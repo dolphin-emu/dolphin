@@ -80,7 +80,7 @@ void OpenGL_SetWindowText(const char *text)
     cocoaGLSetTitle();
 #elif defined(_WIN32)
     SetWindowText(EmuWindow::GetWnd(), text);
-#else // GLX
+#elif defined(HAVE_X11) && HAVE_X11 // GLX
     /**
     * Tell X to ask the window manager to set the window title. (X
     * itself doesn't provide window title functionality.)
@@ -95,15 +95,7 @@ unsigned int  Callback_PeekMessages()
 BOOL Callback_PeekMessages()
 #endif
 {
-#if USE_SDL
-	// TODO: There is no documentation of this function and the calling code
-	//       ignores the return value, so I have no idea what would be the
-	//       proper value to return.
-    return FALSE;
-#elif defined(OSX64)
-    //TODO
-    return FALSE;
-#elif defined(_WIN32)
+#ifdef _WIN32
     //TODO: peekmessage
     MSG msg;
     while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
@@ -114,9 +106,7 @@ BOOL Callback_PeekMessages()
         DispatchMessage(&msg);
     }
     return TRUE;
-#else // GLX
-    // This is called from Outside of our video thread, from EmuThread
-    // The calls are NOT thread safe, so it breaks everything
+#else 
     return FALSE;
 #endif
 }
@@ -329,7 +319,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         return false;
     }
 
-#else // GLX
+#elif defined(HAVE_X11) && HAVE_X11
     XVisualInfo *vi;
     Colormap cmap;
     int dpyWidth, dpyHeight;
@@ -689,7 +679,8 @@ void OpenGL_Shutdown()
     {
         if (!wglMakeCurrent(NULL,NULL))                 // Are We Able To Release The DC And RC Contexts?
         {
-			// [F|RES]: if this fails i dont see the message box and cant get out of the modal state
+			// [F|RES]: if this fails i dont see the message box and
+ cant get out of the modal state
 			//          so i disable it. This function fails only if i render to main window
             // MessageBox(NULL,"Release Of DC And RC Failed.", "SHUTDOWN ERROR", MB_OK | MB_ICONINFORMATION);
         }
@@ -706,7 +697,7 @@ void OpenGL_Shutdown()
         MessageBox(NULL,"Release Device Context Failed.", "SHUTDOWN ERROR", MB_OK | MB_ICONINFORMATION);
         hDC = NULL;                                       // Set DC To NULL
     }
-#else // GLX
+#elif defined(HAVE_X11) && HAVE_X11
     if (GLWin.ctx)
     {
         if (!glXMakeCurrent(GLWin.dpy, None, NULL))
