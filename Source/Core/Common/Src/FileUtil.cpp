@@ -78,7 +78,7 @@ bool Delete(const char *filename)
 	if (IsDirectory(filename))
 		return false;
 #ifdef _WIN32
-	DeleteFile(SanitizePath(filename).c_str());
+	DeleteFile(filename);
 #else
 	unlink(filename);
 #endif
@@ -222,7 +222,7 @@ bool DeleteDir(const char *filename)
 
 bool Rename(const char *srcFilename, const char *destFilename)
 {
-	return (rename(SanitizePath(srcFilename).c_str(), SanitizePath(destFilename).c_str()) == 0);
+	return (rename(srcFilename, destFilename) == 0);
 }
 
 bool Copy(const char *srcFilename, const char *destFilename)
