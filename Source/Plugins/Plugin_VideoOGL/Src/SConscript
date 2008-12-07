@@ -73,8 +73,8 @@ if gfxenv['osx64']:
 tests = {'CheckPKG' : utils.CheckPKG}
 conf = gfxenv.Configure(custom_tests = tests)
 
-if not conf.CheckPKG('gl'):
-        print name + " must have opengl to be build"
+if not (conf.CheckPKG('gl') and conf.CheckPKG('glu')):
+        print name + " must have opengl (gl and glu) to be build"
         Return()
 
 
@@ -88,6 +88,7 @@ if gfxenv['HAVE_XXF86VM']:
         gfxenv.ParseConfig("pkg-config xxf86vm --cflags --libs")
 
 gfxenv.ParseConfig("pkg-config gl --cflags --libs")
+gfxenv.ParseConfig("pkg-config glu --cflags --libs")
 
 if sys.platform == 'darwin':
 
