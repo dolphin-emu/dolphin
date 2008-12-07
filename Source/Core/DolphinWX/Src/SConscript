@@ -78,6 +78,6 @@ else:
 
 #objects = [ wxenv.Object(srcFile) for srcFile in files ]
 
-if not wxenv['HAVE_WX']:
+if wxenv['HAVE_WX']:
 	wxenv.Program(exeGUI, files + [ 'Main.cpp' ])
 wxenv.Program(exeNoGUI, files + [ 'MainNoGUI.cpp' ])
