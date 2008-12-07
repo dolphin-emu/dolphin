@@ -680,8 +680,8 @@ void OpenGL_Shutdown()
         if (!wglMakeCurrent(NULL,NULL))                 // Are We Able To Release The DC And RC Contexts?
         {
 			// [F|RES]: if this fails i dont see the message box and
- cant get out of the modal state
-			//          so i disable it. This function fails only if i render to main window
+			// cant get out of the modal state so i disable it.
+			// This function fails only if i render to main window
             // MessageBox(NULL,"Release Of DC And RC Failed.", "SHUTDOWN ERROR", MB_OK | MB_ICONINFORMATION);
         }
 
