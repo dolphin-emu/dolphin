@@ -94,20 +94,21 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	// DVDLowInquiry
 	case 0x12:
 		{
-			Memory::Memset(_BufferOut, 0, _BufferOutSize);
-
 			u8* buffer = Memory::GetPointer(_BufferOut);
 			
-			// rev
-			buffer[0] = 0x01;
+			/* In theory this gives a game the option to use different read / write behaviors
+			   depending on which hardware revision that is used, if there have been more than
+			   one. But it's probably not used at all by any game, in any case it would be strange
+			   if it refused a certain value here if it's possible that that would make it
+			   incompatible with new DVD drives for example. From an actual Wii the code was
+			   0x0000, 0x0002, 0x20060526, I tried it in Balls of Fury that gives a DVD error
+			   message after the DVDLowInquiry, but that did't change anything, it must be
+			   something else. */
+			buffer[0] = 0x01; // rev
 			buffer[1] = 0x02;
-
-			// dev code
-			buffer[2] = 0x03;
+			buffer[2] = 0x03; // dev code
 			buffer[3] = 0x04;
-
-			// firmware date
-			buffer[4] = 0x20;
+			buffer[4] = 0x20; // firmware date
 			buffer[5] = 0x08;
 			buffer[6] = 0x08;
 			buffer[7] = 0x29;			

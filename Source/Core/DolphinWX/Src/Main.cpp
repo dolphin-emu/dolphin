@@ -196,34 +196,35 @@ bool DolphinApp::OnInit()
 	}
 	// ---------
 
-	// create debugger
+	// Create debugger
 	if (UseDebugger)
 	{
 		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, main_frame);
 		g_pCodeWindow->Show(true);
-
-		/* If we have selected Automatic Start, start the default ISO, or if no default
-		   ISO exists, start the last loaded ISO */
-		if (g_pCodeWindow->AutomaticStart())
-		{
-			if(!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty()
-				&& File::Exists(SConfig::GetInstance().m_LocalCoreStartupParameter.
-					m_strDefaultGCM.c_str()))
-			{
-				BootManager::BootCore(SConfig::GetInstance().m_LocalCoreStartupParameter.
-					m_strDefaultGCM);
-			}
-			else if(!SConfig::GetInstance().m_LastFilename.empty()
-				&& File::Exists(SConfig::GetInstance().m_LastFilename.c_str()))
-			{
-				BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
-			}
-			
-		}
 	}
 
+	// First check if we have a elf command line
 	if (LoadElf && ElfFile != wxEmptyString)
+	{
 		BootManager::BootCore(std::string(ElfFile.ToAscii()));
+	}
+	/* If we have selected Automatic Start, start the default ISO, or if no default
+	   ISO exists, start the last loaded ISO */
+	else if (UseDebugger && g_pCodeWindow->AutomaticStart())
+	{
+		if(!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty()
+			&& File::Exists(SConfig::GetInstance().m_LocalCoreStartupParameter.
+				m_strDefaultGCM.c_str()))
+		{
+			BootManager::BootCore(SConfig::GetInstance().m_LocalCoreStartupParameter.
+				m_strDefaultGCM);
+		}
+		else if(!SConfig::GetInstance().m_LastFilename.empty()
+			&& File::Exists(SConfig::GetInstance().m_LastFilename.c_str()))
+		{
+			BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
+		}		
+	}
 
 	SetTopWindow(main_frame);
 	return true;
