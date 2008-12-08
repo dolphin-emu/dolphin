@@ -407,6 +407,9 @@ void CFrame::OnHelp(wxCommandEvent& event)
 }
 
 
+// =======================================================
+// Play button
+// -------------
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
@@ -419,19 +422,28 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 		{
 			Core::SetState(Core::CORE_RUN);
 		}
-
 		UpdateGUI();
 	}
+	// Start the selected ISO
 	else if (m_GameListCtrl->GetSelectedISO() != 0)
 	{
 		BootManager::BootCore(m_GameListCtrl->GetSelectedISO()->GetFileName());
 	}
+	/* Start the default ISO, or if we don't have a default ISO, start the last
+	   started ISO */
+	else if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty() && 
+		wxFileExists(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.
+			m_strDefaultGCM.c_str(), wxConvUTF8)))
+	{
+		BootManager::BootCore(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM);
+	}
 	else if (!SConfig::GetInstance().m_LastFilename.empty() && 
-		wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
+	wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
 	{
 		BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
 	}
 }
+// =============
 
 
 void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))

@@ -558,14 +558,19 @@ void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event))
 	File::Explore(path.c_str());
 }
 
+
+// =======================================================
+// Save this file as the default file
+// -------------
 void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& WXUNUSED (event)) 
 {
 	const GameListItem *iso = GetSelectedISO();
-	if (!iso)
-		return;
+	if (!iso) return;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = iso->GetFileName();
 	SConfig::GetInstance().SaveSettings();
 }
+// =============
+
 
 void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
 {

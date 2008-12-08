@@ -56,6 +56,14 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
     {
     case BOOT_DEFAULT:
         {
+			/* Check if the file exist, we may have gotten it from a --elf command line
+			   that gave an incorrect file name */
+			if (!File::Exists(m_strFilename.c_str()))
+            {
+				PanicAlert("The file you specified (%s) does not exists", m_strFilename.c_str());
+				return false;
+			}
+
             std::string Extension;
             SplitPath(m_strFilename, NULL, NULL, &Extension);
             if (!strcasecmp(Extension.c_str(), ".gcm") || 

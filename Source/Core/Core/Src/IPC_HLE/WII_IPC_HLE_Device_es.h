@@ -165,20 +165,19 @@ public:
 
             case IOCTL_ES_GETVIEWCNT: // 0x12 (Input: 8 bytes, Output: 4 bytes)
                 {
-					if(Buffer.NumberPayloadBuffer)
-						u32 OutBuffer = Memory::Read_U32(Buffer.PayloadBuffer[0].m_Address);
 					if(Buffer.NumberInBuffer)
 						u32 InBuffer = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
 
 					// Should we write something here?
 					//Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);	
+
+					//DumpCommands(Buffer.InBuffer[0].m_Address, Buffer.InBuffer[0].m_Size / 4,
+					//	LogTypes::WII_IPC_NET);
                 }
                 break;
 
 			case IOCTL_ES_GETTMDVIEWCNT: // 0x14
                 {
-					if(Buffer.NumberPayloadBuffer)
-						u32 OutBuffer = Memory::Read_U32(Buffer.PayloadBuffer[0].m_Address);
 					if(Buffer.NumberInBuffer)
 						u32 InBuffer = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
 
@@ -188,6 +187,9 @@ public:
                 break;
 
            case IOCTL_ES_GETCONSUMPTION: // (Input: 8 bytes, Output: 0 bytes, 4 bytes)
+				//DumpCommands(Buffer.InBuffer[0].m_Address, Buffer.InBuffer[0].m_Size / 4,
+				//	LogTypes::WII_IPC_NET);
+				break;
            case IOCTL_ES_DIGETTICKETVIEW: // (Input: none, Output: 216 bytes)
                 break;
 

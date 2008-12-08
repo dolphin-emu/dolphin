@@ -50,6 +50,7 @@ class CCodeWindow
 
 		~CCodeWindow();
 
+		void Load_(IniFile &file);
 		void Load(IniFile &file);
 		void Save(IniFile &file) const;
 
@@ -58,6 +59,7 @@ class CCodeWindow
 
 
 		bool UseInterpreter();
+		bool AutomaticStart();
 		bool UseDualCore();
         void JumpToAddress(u32 _Address);
 
@@ -79,6 +81,7 @@ class CCodeWindow
 			IDM_CALLSLIST,
 			IDM_SYMBOLLIST,
 			IDM_INTERPRETER,
+			IDM_AUTOMATICSTART,
 
 			IDM_JITUNLIMITED, IDM_JITOFF, // jit
 			IDM_JITLSOFF, IDM_JITLSLXZOFF, IDM_JITLSLWZOFF, IDM_JITLSLBZXOFF,
@@ -122,6 +125,16 @@ class CCodeWindow
 			Toolbar_SetPC,
 			Bitmaps_max
 		};
+
+		// Settings
+		bool bLogWindow;
+		bool bRegisterWindow;
+		bool bBreakpointWindow;
+		bool bMemoryWindow;
+		bool bJitWindow;
+		bool bSoundWindow;
+		bool bVideoWindow;
+		bool bAutomaticStart;
 
 		// sub dialogs
 		CLogWindow* m_LogWindow;
@@ -176,6 +189,7 @@ class CCodeWindow
 		void OnProfilerMenu(wxCommandEvent& event);
 
 		void OnInterpreter(wxCommandEvent& event); // cpu mode menu
+		void OnAutomaticStart(wxCommandEvent& event);		
 		void OnJITOff(wxCommandEvent& event);	
 
 		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter);

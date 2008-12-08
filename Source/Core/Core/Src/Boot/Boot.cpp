@@ -17,6 +17,7 @@
 
 #include "Common.h"
 #include "StringUtil.h"
+#include "FileUtil.h"
 
 #include "../HLE/HLE.h"
 
@@ -221,6 +222,14 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
     // ===================================================================================
     case SCoreStartupParameter::BOOT_ELF:
         {
+			if(!File::Exists(_StartupPara.m_strFilename.c_str()))
+			{
+				PanicAlert("The file you specified (%s) does not exists",
+					_StartupPara.m_strFilename.c_str());
+				return false;
+			}
+
+			// Check if we have gotten a Wii file or not
 			bool elfWii = IsElfWii(_StartupPara.m_strFilename.c_str());
 			if (elfWii != Core::GetStartupParameter().bWii)
 			{

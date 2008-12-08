@@ -24,6 +24,8 @@
 
 bool CBoot::IsElfWii(const char *filename)
 {
+	/* We already check if filename existed before we called this function, so
+	   there is no need for another check, just read the file right away */
 	FILE *f = fopen(filename, "rb");
 	fseek(f, 0, SEEK_END);
 	u64 filesize = ftell(f);
@@ -31,12 +33,12 @@ bool CBoot::IsElfWii(const char *filename)
 	u8 *mem = new u8[(size_t)filesize];
 	fread(mem, 1, filesize, f);
 	fclose(f);
-	
-	ElfReader reader(mem);
-	
+
+	ElfReader reader(mem);			
 	// TODO: Find a more reliable way to distinguish.
 	bool isWii = reader.GetEntryPoint() >= 0x80004000;
 	delete [] mem;
+	
     return isWii;
 }
 

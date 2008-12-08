@@ -92,6 +92,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	EVT_MENU(IDM_VIDEOWINDOW,		CCodeWindow::OnToggleVideoWindow)
 
 	EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnInterpreter) // CPU Mode
+	EVT_MENU(IDM_AUTOMATICSTART,       CCodeWindow::OnAutomaticStart) // CPU Mode
 	EVT_MENU(IDM_JITUNLIMITED,			CCodeWindow::OnJITOff)	
 	EVT_MENU(IDM_JITOFF,			CCodeWindow::OnJITOff)
 	EVT_MENU(IDM_JITLSOFF,			CCodeWindow::OnJITOff)
@@ -152,6 +153,11 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	, m_MemoryWindow(NULL)
 	, m_JitWindow(NULL)
 {
+	// Load ini settings
+	IniFile file;
+	file.Load(DEBUGGER_CONFIG_FILE);
+	this->Load_(file);
+
 	InitBitmaps();
 
 	CreateGUIControls(_LocalCoreStartupParameter);
@@ -164,10 +170,6 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN,
 		wxKeyEventHandler(CCodeWindow::OnKeyDown),
 		(wxObject*)0, this);
-
-	// Load ini...
-	IniFile file;
-	file.Load(DEBUGGER_CONFIG_FILE);
 
 	// Load settings for selectable windowses, but only if they have been created
 	this->Load(file);
@@ -195,44 +197,13 @@ CCodeWindow::~CCodeWindow()
 }
 
 
-void CCodeWindow::Load( IniFile &file )
-{
-	int x,y,w,h;
-	file.Get("Code", "x", &x, GetPosition().x);
-	file.Get("Code", "y", &y, GetPosition().y);
-	file.Get("Code", "w", &w, GetSize().GetWidth());
-	file.Get("Code", "h", &h, GetSize().GetHeight());
-	this->SetSize(x, y, w, h);
-}
-
-
-void CCodeWindow::Save(IniFile &file) const
-{
-	file.Set("Code", "x", GetPosition().x);
-	file.Set("Code", "y", GetPosition().y);
-	file.Set("Code", "w", GetSize().GetWidth());
-	file.Set("Code", "h", GetSize().GetHeight());
-}
-
 // =======================================================================================
-// I don't know when you're supposed to be able to use pRegister->Check(true) so I had
-// to set these here. It kept crashing if I placed it after m_LogWindow->Show() below.
-bool bLogWindow = true;
-bool bRegisterWindow = true;
-bool bBreakpointWindow = true;
-bool bMemoryWindow = true;
-bool bJitWindow = true;
-bool bSoundWindow = false;
-bool bVideoWindow = false;
-// -------------------
-void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter)
+// Load before CreateGUIControls()
+// --------------
+void CCodeWindow::Load_( IniFile &ini )
 {
-	// =======================================================================================
-	// Decide what windows to use
-	// --------------
-	IniFile ini;
-	ini.Load(DEBUGGER_CONFIG_FILE);
 
+	// Decide what windows to use
 	ini.Get("ShowOnStart", "LogWindow", &bLogWindow, true);
 	ini.Get("ShowOnStart", "RegisterWindow", &bRegisterWindow, true);
 	ini.Get("ShowOnStart", "BreakpointWindow", &bBreakpointWindow, true);
@@ -242,6 +213,45 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 	ini.Get("ShowOnStart", "VideoWindow", &bVideoWindow, false);
 	// ===============
 
+	// Boot to pause or not
+	ini.Get("ShowOnStart", "AutomaticStart", &bAutomaticStart, false);
+}
+
+
+void CCodeWindow::Load( IniFile &ini )
+{
+	int x,y,w,h;
+	ini.Get("CodeWindow", "x", &x, GetPosition().x);
+	ini.Get("CodeWindow", "y", &y, GetPosition().y);
+	ini.Get("CodeWindow", "w", &w, GetSize().GetWidth());
+	ini.Get("CodeWindow", "h", &h, GetSize().GetHeight());
+	this->SetSize(x, y, w, h);
+}
+
+
+void CCodeWindow::Save(IniFile &ini) const
+{
+	ini.Set("CodeWindow", "x", GetPosition().x);
+	ini.Set("CodeWindow", "y", GetPosition().y);
+	ini.Set("CodeWindow", "w", GetSize().GetWidth());
+	ini.Set("CodeWindow", "h", GetSize().GetHeight());
+
+	// Boot to pause or not
+	ini.Set("ShowOnStart", "AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
+
+	// Save windows settings
+	ini.Set("ShowOnStart", "LogWindow", GetMenuBar()->IsChecked(IDM_LOGWINDOW));
+	ini.Set("ShowOnStart", "RegisterWindow", GetMenuBar()->IsChecked(IDM_REGISTERWINDOW));
+	ini.Set("ShowOnStart", "BreakpointWindow", GetMenuBar()->IsChecked(IDM_BREAKPOINTWINDOW));
+	ini.Set("ShowOnStart", "MemoryWindow", GetMenuBar()->IsChecked(IDM_MEMORYWINDOW));
+	ini.Set("ShowOnStart", "JitWindow", GetMenuBar()->IsChecked(IDM_JITWINDOW));
+	ini.Set("ShowOnStart", "SoundWindow", GetMenuBar()->IsChecked(IDM_SOUNDWINDOW));
+	ini.Set("ShowOnStart", "VideoWindow", GetMenuBar()->IsChecked(IDM_VIDEOWINDOW));
+}
+
+
+void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter)
+{
 	CreateMenu(_LocalCoreStartupParameter);
 
 	// =======================================================================================
@@ -337,6 +347,9 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 
 		wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _T("&Interpreter core"), wxEmptyString, wxITEM_CHECK);
 		interpreter->Check(!_LocalCoreStartupParameter.bUseJIT);
+		pCoreMenu->AppendSeparator();
+		wxMenuItem* automaticstart = pCoreMenu->Append(IDM_AUTOMATICSTART, _T("&Automatic start"), wxEmptyString, wxITEM_CHECK);
+		automaticstart->Check(bAutomaticStart);		
 		pCoreMenu->AppendSeparator();
 
 #ifdef JIT_OFF_OPTIONS
@@ -437,6 +450,10 @@ bool CCodeWindow::UseInterpreter()
 	return GetMenuBar()->IsChecked(IDM_INTERPRETER);
 }
 
+bool CCodeWindow::AutomaticStart()
+{
+	return GetMenuBar()->IsChecked(IDM_AUTOMATICSTART);
+}
 
 bool CCodeWindow::UseDualCore()
 {
@@ -455,6 +472,12 @@ void CCodeWindow::OnInterpreter(wxCommandEvent& event)
 		event.Skip();
 		wxMessageBox(_T("Please pause the emulator before changing mode."));
 	}
+}
+
+
+void CCodeWindow::OnAutomaticStart(wxCommandEvent& event)
+{
+	bAutomaticStart = !bAutomaticStart;
 }
 
 
@@ -631,6 +654,9 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	}
 }
 
+// =======================================================================================
+// The Play, Stop, Step, Skip, Go to PC and Show PC buttons all go here 
+// --------------
 void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -793,6 +819,10 @@ void CCodeWindow::Update()
 	}
 
 	UpdateButtonStates();
+
+	/* Automatically show the current PC position when a breakpoint is hit or
+	   when we pause */
+	codeview->Center(PC);
 }
 
 
@@ -872,17 +902,9 @@ void CCodeWindow::OnSymbolListContextMenu(wxContextMenuEvent& event)
 
 void CCodeWindow::OnToggleLogWindow(wxCommandEvent& event)
 {
-
 	if (IsLoggingActivated())
 	{
 		bool show = GetMenuBar()->IsChecked(event.GetId());
-
-		// this may be a little ugly to have these here - you're more than welcome to
-		// turn this into the same fancy class stuff like the load windows positions
-		IniFile ini;
-		ini.Load(DEBUGGER_CONFIG_FILE);
-		ini.Set("ShowOnStart", "LogWindow", show);
-		ini.Save(DEBUGGER_CONFIG_FILE);
 
 		if (show)
 		{
@@ -913,11 +935,6 @@ void CCodeWindow::OnToggleLogWindow(wxCommandEvent& event)
 void CCodeWindow::OnToggleRegisterWindow(wxCommandEvent& event)
 {
 	bool show = GetMenuBar()->IsChecked(event.GetId());
-
-	IniFile ini;
-	ini.Load(DEBUGGER_CONFIG_FILE);
-	ini.Set("ShowOnStart", "RegisterWindow", show);
-	ini.Save(DEBUGGER_CONFIG_FILE);
 
 	if (show)
 	{
@@ -951,11 +968,6 @@ void CCodeWindow::OnToggleSoundWindow(wxCommandEvent& event)
 {
 	bool show = GetMenuBar()->IsChecked(event.GetId());
 
-	IniFile ini;
-	ini.Load(DEBUGGER_CONFIG_FILE);
-	ini.Set("ShowOnStart", "SoundWindow", show);
-	ini.Save(DEBUGGER_CONFIG_FILE);
-
 	if (show)
 	{
 		// TODO: add some kind of if() check here to?
@@ -985,11 +997,6 @@ void CCodeWindow::OnToggleVideoWindow(wxCommandEvent& event)
 {
 	bool show = GetMenuBar()->IsChecked(event.GetId());
 	//GetMenuBar()->Check(event.GetId(), false); // Turn off
-	
-	IniFile ini;
-	ini.Load(DEBUGGER_CONFIG_FILE);
-	ini.Set("ShowOnStart", "VideoWindow", show);
-	ini.Save(DEBUGGER_CONFIG_FILE);
 
 	if (show)
 	{
@@ -1024,11 +1031,6 @@ void CCodeWindow::OnToggleJitWindow(wxCommandEvent& event)
 {
 	bool show = GetMenuBar()->IsChecked(event.GetId());
 
-	IniFile ini;
-	ini.Load(DEBUGGER_CONFIG_FILE);
-	ini.Set("ShowOnStart", "JitWindow", show);
-	ini.Save(DEBUGGER_CONFIG_FILE);
-
 	if (show)
 	{
 		if (!m_JitWindow)
@@ -1058,11 +1060,6 @@ void CCodeWindow::OnToggleBreakPointWindow(wxCommandEvent& event)
 {
 	bool show = GetMenuBar()->IsChecked(event.GetId());
 
-	IniFile ini;
-	ini.Load(DEBUGGER_CONFIG_FILE);
-	ini.Set("ShowOnStart", "BreakpointWindow", show);
-	ini.Save(DEBUGGER_CONFIG_FILE);
-
 	if (show)
 	{
 		if (!m_BreakpointWindow)
@@ -1090,11 +1087,6 @@ void CCodeWindow::OnToggleBreakPointWindow(wxCommandEvent& event)
 void CCodeWindow::OnToggleMemoryWindow(wxCommandEvent& event)
 {
 	bool show = GetMenuBar()->IsChecked(event.GetId());
-	
-	IniFile ini;
-	ini.Load(DEBUGGER_CONFIG_FILE);
-	ini.Set("ShowOnStart", "MemoryWindow", show);
-	ini.Save(DEBUGGER_CONFIG_FILE);
 
 	if (show)
 	{

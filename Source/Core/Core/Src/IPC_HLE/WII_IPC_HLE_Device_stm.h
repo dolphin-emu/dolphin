@@ -77,6 +77,7 @@ public:
         case IOCTL_STM_VIDIMMING: // (Input: 20 bytes, Output: 20 bytes)
             LOG(WII_IPC_SD, "%s - IOCtl: \n", GetDeviceName().c_str());
             LOG(WII_IPC_SD, "    IOCTL_STM_VIDIMMING");
+			//DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
 			//Memory::Write_U32(1, BufferOut);
 			//ReturnValue = 1;
             break;

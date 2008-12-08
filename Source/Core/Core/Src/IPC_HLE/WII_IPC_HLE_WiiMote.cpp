@@ -947,6 +947,8 @@ void CWII_IPC_HLE_WiiMote::SendL2capData(u16 scid, const void* _pData, u32 _Size
 
 namespace Core 
 {
+	/* This is called continously from the Wiimote plugin as soon as it has received
+	   a reporting mode */
 	void Callback_WiimoteInput(u16 _channelID, const void* _pData, u32 _Size) 
 	{
 		LOGV(WII_IPC_WIIMOTE, 3, "=========================================================");

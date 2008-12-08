@@ -59,17 +59,29 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 CWII_IPC_HLE_Device_usb_oh1_57e_305::~CWII_IPC_HLE_Device_usb_oh1_57e_305()
 {}
 
+
+// ===================================================
+/* Open */
+// ----------------
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Open(u32 _CommandAddress, u32 _Mode)
 {
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 	return true;
 }
 
+
+// ===================================================
+/* IOCtl */
+// ----------------
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtl(u32 _CommandAddress)
 {
 	return IOCtlV(_CommandAddress);	//hack
 }
 
+
+// ===================================================
+/* IOCtlV */
+// ----------------
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress) 
 {	
 /*
@@ -89,7 +101,6 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 	Memory::Write_U8(1, 0x80151FC8);  // DEBUGPrint */
 
 
-
 	// even it it wasn't very useful yet...
 	// Memory::Write_U8(1, 0x80151488); // WPAD_LOG
 	// Memory::Write_U8(1, 0x801514A8); // USB_LOG
@@ -97,6 +108,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 	// Memory::Write_U8(1, 0x80148E09); // HID LOG
 
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
+
 	switch(CommandBuffer.Parameter)
 	{
 	case USB_IOCTL_HCI_COMMAND_MESSAGE:
@@ -222,6 +234,13 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 
 	return true;
 }
+// ================
+
+
+
+// ===================================================
+/* Here we handle the USB_IOCTL_BLKMSG Ioctlv */
+// ----------------
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendToDevice(u16 _ConnectionHandle, u8* _pData, u32 _Size)
 {
@@ -234,11 +253,14 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendToDevice(u16 _ConnectionHandle, u8
 
 	pWiiMote->SendACLFrame(_pData, _Size);
 }
+// ================
+
 
 
 // ===================================================
-/* Here we queue the ACL frames. They will consist of header + data. The header is
-   for example 07 00 41 00 which means size 0x0007 and channel 0x0041. */
+/* Here we queue the ACL frames we receive from the Wiimote plugin. They will consist of
+   header + data. The header is for example 07 00 41 00 which means size 0x0007 and
+   channel 0x0041. */
 // ----------------
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLFrame(u16 _ConnectionHandle, u8* _pData, u32 _Size)
 {
@@ -266,6 +288,10 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLFrame(u16 _ConnectionHandle, u8
 	g_HCICount++;
 }
 
+
+// ===================================================
+/* This is called from WII_IPC_HLE_Interface::Update() */
+// ----------------
 u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 {
 	if (!m_EventQueue.empty() && m_pHCIBuffer)
@@ -356,16 +382,25 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		PluginWiimote::Wiimote_Update();
 	}
 
-	// FiRES: TODO find a good solution to do this
+	// --------------------------------------------------------------------
+	/* We wait for ScanEnable to be sent from the game through HCI_CMD_WRITE_SCAN_ENABLE
+	   before we initiate the connection. To avoid doing this for GC games we also
+	   want m_LocalName from CommandWriteLocalName() to be "Wii". 
+
+	   FiRES: TODO find a good solution to do this */
+	// -------------------------
 	static bool test = true;
+
+	// Why do we need this? 0 worked with the emulated wiimote in all games I tried
 	static int counter = 1000;
+
 	if (test && !stricmp(m_LocalName, "Wii") && (m_ScanEnable & 0x2))
 	{
 		counter--;
 		if (counter < 0)
 		{
 			test = false;
-			for (size_t i=0; i<m_WiiMotes.size(); i++)
+			for (size_t i=0; i < m_WiiMotes.size(); i++)
 			{
 				if (m_WiiMotes[i].EventPagingChanged(2))
 				{
@@ -379,11 +414,12 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	return 0; 
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//
-// --- events
-//
+// Events
+// -----------------
+// This is messages send from the Wiimote to the game, for example RequestConnection()
+// or ConnectionComplete().
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -410,6 +446,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventCommandStatus(u16 _Opcode)
 
 	return true;
 }
+
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventCommandComplete(u16 _OpCode, void* _pData, u32 _DataSize)
 {
@@ -909,10 +946,10 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventDisconnect(u16 _connectionHan
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//
-// --- command dispacther
-//
+// Command dispacther
+// -----------------
+// This is called from the USB_IOCTL_HCI_COMMAND_MESSAGE Ioctlv
+// 
 //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1235,6 +1272,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadStoredLinkKey(u8* _Input)
 	SendEventCommandComplete(HCI_CMD_READ_STORED_LINK_KEY, &Reply, sizeof(hci_read_stored_link_key_rp));
 }
 
+// ===================================================
+/* This is the last message we get from homebrew's lwbt. Why does it stop with this one? */
+// ----------------
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteUnitClass(u8* _Input)
 {
 	// command parameters
@@ -1313,6 +1353,11 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandHostBufferSize(u8* _Input)
 	SendEventCommandComplete(HCI_CMD_HOST_BUFFER_SIZE, &Reply, sizeof(hci_host_buffer_size_rp));
 }
 
+
+// ===================================================
+/* Here we normally receive the timeout interval. But not from homebrew games that use
+   lwbt. Why not? */
+// ----------------
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWritePageTimeOut(u8* _Input)
 {
 #ifdef LOGGING
@@ -1331,13 +1376,15 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWritePageTimeOut(u8* _Input)
 	SendEventCommandComplete(HCI_CMD_WRITE_PAGE_TIMEOUT, &Reply, sizeof(hci_host_buffer_size_rp));
 }
 
+
+
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
 {
-	// command parameters
+	// Command parameters
 	hci_write_scan_enable_cp* pWriteScanEnable = (hci_write_scan_enable_cp*)_Input;
 	m_ScanEnable = pWriteScanEnable->scan_enable;
 
-	// reply
+	// Reply
 	hci_write_scan_enable_rp Reply;
 	Reply.status = 0x00;
 
@@ -1351,12 +1398,14 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
 	};
 #endif
 
-	LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_WRITE_SCAN_ENABLE:");
-	LOG(WII_IPC_WIIMOTE, "write:");
-	LOG(WII_IPC_WIIMOTE, "  scan_enable: %s", Scanning[pWriteScanEnable->scan_enable]);
+	LOGV(WII_IPC_WIIMOTE, 0, "Command: HCI_CMD_WRITE_SCAN_ENABLE:");
+	LOGV(WII_IPC_WIIMOTE, 0, "write:");
+	LOGV(WII_IPC_WIIMOTE, 0, "  scan_enable: %s", Scanning[pWriteScanEnable->scan_enable]);
 
 	SendEventCommandComplete(HCI_CMD_WRITE_SCAN_ENABLE, &Reply, sizeof(hci_write_scan_enable_rp));
 }
+
+
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryMode(u8* _Input)
 {

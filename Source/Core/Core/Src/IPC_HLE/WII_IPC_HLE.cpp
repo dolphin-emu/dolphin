@@ -288,7 +288,7 @@ void ExecuteCommand(u32 _Address)
 				else
 				{
 					LOG(WII_IPC_HLE, "IOP: Open (Device=%s, DeviceID=%08x, Mode=%i)",
-                                            pDevice->GetDeviceName().c_str(), CurrentDeviceID, Mode);
+                        pDevice->GetDeviceName().c_str(), CurrentDeviceID, Mode);
 				}
             }
             else
@@ -434,7 +434,11 @@ void ExecuteCommand(u32 _Address)
     }
 }
 
-// This is called continuously and WII_IPCInterface::IsReady() is controlled from WII_IPC.cpp. 
+
+// ===================================================
+/* This is called continuously from SystemTimers.cpp and WII_IPCInterface::IsReady()
+   is controlled from WII_IPC.cpp. */
+// ----------------
 void Update()
 {
 	if (WII_IPCInterface::IsReady())    

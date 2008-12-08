@@ -62,8 +62,9 @@ bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 	u32 BufferInSize =  Memory::Read_U32(_CommandAddress + 0x14);
     u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
     u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
+	u32 Command = Memory::Read_U32(BufferIn) >> 24;
 
-    LOG(WII_IPC_DVD, "%s - CommandAddress(0x%08x) BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)", GetDeviceName().c_str(), _CommandAddress, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+    LOG(WII_IPC_DVD, "%s - Command(0x%08x) BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)", GetDeviceName().c_str(), Command, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 	u32 ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);	
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);

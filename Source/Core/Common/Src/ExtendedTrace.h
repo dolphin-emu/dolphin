@@ -28,10 +28,10 @@
 #pragma comment( lib, "imagehlp.lib" )
 
 #define EXTENDEDTRACEINITIALIZE( IniSymbolPath )	InitSymInfo( IniSymbolPath )
-#define EXTENDEDTRACEUNINITIALIZE()			         UninitSymInfo()
-#define STACKTRACE(file)							            StackTrace( GetCurrentThread(), _T(""), file)
+#define EXTENDEDTRACEUNINITIALIZE()			        UninitSymInfo()
+#define STACKTRACE(file)							StackTrace( GetCurrentThread(), _T(""), file)
 #define STACKTRACE2(file, eip, esp, ebp) StackTrace(GetCurrentThread(), _T(""), file, eip, esp, ebp)
-class File;
+//class File;
 
 BOOL InitSymInfo( PCSTR );
 BOOL UninitSymInfo();

@@ -37,7 +37,7 @@
 #include "../Logging/Console.h" // open and close console
 
 extern std::vector<std::string> sMailLog, sMailTime;
-
+extern CDebugger* m_frame;
 
 // =======================================================================================
 // Update mail window
@@ -60,7 +60,10 @@ void CDebugger::DoUpdateMail()
 void CDebugger::UpdateMail(wxNotebookEvent& event)
 {
 	DoUpdateMail();
-	if(StoreMails) ReadDir();
+	/* This may be called before m_frame is fully created through the
+	   EVT_NOTEBOOK_PAGE_CHANGED, in that case it will crash because this
+	   is accessing members of it */
+	if(StoreMails && m_frame) ReadDir();
 }
 
 // Change mail from radio button change

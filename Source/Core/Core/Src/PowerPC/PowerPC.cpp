@@ -162,6 +162,7 @@ void RunLoop()
 
 void Start()
 {
+	// Select running mode for CPU.cpp
 	state = Core::g_CoreStartupParameter.bEnableDebugging ? CPU_RUNNINGDEBUG : CPU_RUNNING;
 	if (Core::bReadTrace || Core::bWriteTrace)
 	{

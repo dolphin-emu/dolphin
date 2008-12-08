@@ -22,16 +22,21 @@
 #ifdef WIN32
 #include <crtdbg.h>
 #endif
-#include "CPUDetect.h"
-#include "Globals.h"
+
+#include "Globals.h" // Core
 #include "Host.h"
-#include "Common.h"
+
+#include "Common.h" // Common
+#include "CPUDetect.h"
 #include "IniFile.h"
-#include "Main.h"
+#include "FileUtil.h"
+
+#include "Main.h" // Local
 #include "Frame.h"
 #include "Config.h"
 #include "CodeWindow.h"
 #include "ExtendedTrace.h"
+#include "BootManager.h"
 
 IMPLEMENT_APP(DolphinApp)
 
@@ -107,14 +112,25 @@ bool DolphinApp::OnInit()
 	// ============
 	// Check for debugger
 	bool UseDebugger = false;
+	bool LoadElf = false; wxString ElfFile;
 
 #if wxUSE_CMDLINE_PARSER
 	wxCmdLineEntryDesc cmdLineDesc[] =
 	{
-		{wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("Show this help message"), wxCMD_LINE_VAL_NONE,
-		wxCMD_LINE_OPTION_HELP},
-		{wxCMD_LINE_SWITCH, _T("d"), _T("debugger"), _T("Opens the debugger")},
-		{wxCMD_LINE_NONE}
+		{
+			wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("Show this help message"),
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
+		},
+		{
+			wxCMD_LINE_SWITCH, _T("d"), _T("debugger"), _T("Opens the debugger")
+		},
+		{
+			wxCMD_LINE_OPTION, _T("e"), _T("elf"), _T("Loads an elf file"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_NONE
+		}
 	};
 
 #if defined(__APPLE__) 
@@ -126,16 +142,21 @@ bool DolphinApp::OnInit()
         }        
 #endif
 
-	//gets the passed media files from command line
+	// Gets the passed media files from command line
 	wxCmdLineParser parser(cmdLineDesc, argc, argv);
 
-	// get filenames from the command line
+	// Get filenames from the command line
 	if (parser.Parse() != 0)
 	{
 		return false;
 	} 
 
 	UseDebugger = parser.Found(_T("debugger"));
+	LoadElf = parser.Found(_T("elf"), &ElfFile);
+
+	if( LoadElf && ElfFile == wxEmptyString )
+		PanicAlert("You did not specify a file name");
+
 	// ============
 #endif
 
@@ -180,7 +201,29 @@ bool DolphinApp::OnInit()
 	{
 		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, main_frame);
 		g_pCodeWindow->Show(true);
+
+		/* If we have selected Automatic Start, start the default ISO, or if no default
+		   ISO exists, start the last loaded ISO */
+		if (g_pCodeWindow->AutomaticStart())
+		{
+			if(!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty()
+				&& File::Exists(SConfig::GetInstance().m_LocalCoreStartupParameter.
+					m_strDefaultGCM.c_str()))
+			{
+				BootManager::BootCore(SConfig::GetInstance().m_LocalCoreStartupParameter.
+					m_strDefaultGCM);
+			}
+			else if(!SConfig::GetInstance().m_LastFilename.empty()
+				&& File::Exists(SConfig::GetInstance().m_LastFilename.c_str()))
+			{
+				BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
+			}
+			
+		}
 	}
+
+	if (LoadElf && ElfFile != wxEmptyString)
+		BootManager::BootCore(std::string(ElfFile.ToAscii()));
 
 	SetTopWindow(main_frame);
 	return true;
