@@ -293,19 +293,24 @@ bool Copy(const char *srcFilename, const char *destFilename)
 
 std::string GetUserDirectory()
 {
-#ifdef _WIN32 
 	char path[MAX_PATH];
+#ifdef _WIN32 
 	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, path)))
 	{
 		return std::string(path);
 	}
 	return std::string("");
 #else
-	char *dir = getenv("HOME");
+	char *homedir = getenv("HOME");
 	if (!dir)
 		return std::string("");
-	return dir;
+#ifdef __APPLE__
+	snprintf(path, sizeof(path), "%s/Library/Application Support/Dolphin");
+#else
+	snprintf(path, sizeof(path), "%s/.dolphin"); // XXX changeme as appropriate
 #endif
+#endif
+	return std::string(path);
 }
 
 u64 GetSize(const char *filename)

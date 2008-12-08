@@ -48,7 +48,7 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 {
 	// clear tmp folder
 	{
-		std::string WiiTempFolder(FULL_WII_USER_DIR "tmp");
+		std::string WiiTempFolder = File::GetUserDirectory() + FULL_WII_USER_DIR + std::string("tmp");
 		File::DeleteDirRecursively(WiiTempFolder.c_str());
 		File::CreateDir(WiiTempFolder.c_str());
 	}
