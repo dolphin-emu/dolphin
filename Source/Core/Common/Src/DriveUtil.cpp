@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "DriveUtil.h"
 
 #ifdef _WIN32
 #include <windows.h>
