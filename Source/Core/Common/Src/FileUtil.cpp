@@ -302,12 +302,12 @@ std::string GetUserDirectory()
 	return std::string("");
 #else
 	char *homedir = getenv("HOME");
-	if (!dir)
+	if (!homedir)
 		return std::string("");
 #ifdef __APPLE__
-	snprintf(path, sizeof(path), "%s/Library/Application Support/Dolphin");
+	snprintf(path, sizeof(path), "%s/Library/Application Support/Dolphin", homedir);
 #else
-	snprintf(path, sizeof(path), "%s/.dolphin"); // XXX changeme as appropriate
+	snprintf(path, sizeof(path), "%s/.dolphin", homedir); // XXX changeme as appropriate
 #endif
 #endif
 	return std::string(path);
