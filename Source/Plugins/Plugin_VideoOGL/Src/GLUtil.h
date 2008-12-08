@@ -94,7 +94,9 @@ inline unsigned long timeGetTime()
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
+#ifndef __APPLE__
 #include <X11/extensions/xf86vmode.h>
+#endif
 //#include <gtk/gtk.h>
 #endif
 #include <sys/stat.h>
@@ -112,7 +114,9 @@ typedef struct {
     XSetWindowAttributes attr;
     Bool fs;
     Bool doubleBuffered;
+#ifndef __APPLE__
     XF86VidModeModeInfo deskMode;
+#endif
 #endif
     int x, y;
     unsigned int width, height;

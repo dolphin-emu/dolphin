@@ -376,6 +376,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     GLWin.attr.colormap = cmap;
     GLWin.attr.border_pixel = 0;
 
+#ifndef __APPLE__
     // get a connection
     XF86VidModeQueryVersion(GLWin.dpy, &vidModeMajorVersion, &vidModeMinorVersion);
 
@@ -428,7 +429,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
             GLWin.fs = 0;
         }
     }
-    
+#endif    
     
     if (!GLWin.fs) {
 
@@ -709,6 +710,7 @@ void OpenGL_Shutdown()
         XCloseDisplay(GLWin.dpy);
         GLWin.ctx = NULL;
     }
+#ifndef __APPLE__
     /* switch back to original desktop resolution if we were in fs */
     if (GLWin.dpy != NULL) {
         if (GLWin.fs) {
@@ -716,5 +718,6 @@ void OpenGL_Shutdown()
                 XF86VidModeSetViewPort(GLWin.dpy, GLWin.screen, 0, 0);
         }
     }
+#endif
 #endif
 }
