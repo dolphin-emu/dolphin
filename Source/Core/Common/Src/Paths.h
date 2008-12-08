@@ -5,8 +5,13 @@
 #define PLUGIN_PREFIX ""
 #define PLUGIN_SUFFIX ".dll"
 #else
+#ifdef __APPLE__
+#define PLUGIN_PREFIX "lib"
+#define PLUGIN_SUFFIX ".dylib"
+#else
 #define PLUGIN_PREFIX "lib"
 #define PLUGIN_SUFFIX ".so"
+#endif
 #endif
 
 #define DIR_SEP "/"
