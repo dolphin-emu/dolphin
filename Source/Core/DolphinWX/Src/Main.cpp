@@ -23,6 +23,10 @@
 #include <crtdbg.h>
 #endif
 
+#ifdef __APPLE__
+#include <sys/param.h>
+#endif
+
 #include "Globals.h" // Core
 #include "Host.h"
 
@@ -134,7 +138,26 @@ bool DolphinApp::OnInit()
 	};
 
 #if defined(__APPLE__) 
-        // HACK: Get rid of bogous osx param
+		// check to see if ~/Library/Application Support/Dolphin exists; if not, create it
+		char AppSupportDir[MAXPATHLEN];
+		snprintf(AppSupportDir, sizeof(AppSupportDir), "%s/Library/Application Support", getenv("HOME"));
+		if (!File::Exists(AppSupportDir) || !File::IsDirectory(AppSupportDir)) 
+			PanicAlert("Could not open ~/Library/Application Support");
+
+		strlcat(AppSupportDir, "/Dolphin", sizeof(AppSupportDir));
+		
+		if (!File::Exists(AppSupportDir))
+			File::CreateDir(AppSupportDir);
+		
+		if (!File::IsDirectory(AppSupportDir))
+			PanicAlert("~/Library/Application Support/Dolphin exists, but is not a directory");
+		
+		chdir(AppSupportDir);
+
+		if (!File::Exists("User")) File::CreateDir("User");
+		if (!File::Exists("User/GC")) File::CreateDir("User/GC");
+		
+        // HACK: Get rid of bogus osx param
         if (argc > 1 && wxString(argv[argc - 1]).StartsWith(_("-psn_"))) {
             delete argv[argc-1];
             argv[argc-1] = NULL;
