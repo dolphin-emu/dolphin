@@ -125,22 +125,18 @@ CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 
 	LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: %i, Mode: %i (Device=%s)", SeekPosition, Mode, GetDeviceName().c_str());	
 
-	switch(Mode)
-	{
-	case 0:
-            if (fseek(m_pFileHandle, SeekPosition, SEEK_SET) == 0) {
-		// Seek always return the seek position for success
-		ReturnValue = SeekPosition;		
-            } else {
-                LOG(WII_IPC_FILEIO, "FILEIO: Seek failed");
-            }
-		break;
+	int seek_mode[3] = {SEEK_SET, SEEK_CUR, SEEK_END};
 
-	case 1: // cur
-	case 2: // end
-	default:
-		PanicAlert("CWII_IPC_HLE_Device_FileIO unsupported seek mode");
-		break;
+	if (Mode >= 0 && Mode <= 2) {
+        if (fseek(m_pFileHandle, SeekPosition, seek_mode[Mode]) == 0) {
+			// Seek always return the seek position for success
+			// Not sure if it's right in all modes though.
+		    ReturnValue = SeekPosition;		
+        } else {
+            LOG(WII_IPC_FILEIO, "FILEIO: Seek failed");
+        }
+	} else {
+		PanicAlert("CWII_IPC_HLE_Device_FileIO unsupported seek mode %i", Mode);
 	}
 
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
