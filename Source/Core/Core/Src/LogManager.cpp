@@ -59,7 +59,7 @@ void __Logv(int log, int v, const char *format, ...)
 CDebugger_Log::CDebugger_Log(const char* _szShortName, const char* _szName, int a) :
 	m_bLogToFile(true), // write to file or not
 	m_bShowInLog(false),
-	m_bEnable(false),
+	m_bEnable(true),
 	m_pFile(NULL)
 {
 	strcpy((char*)m_szName, _szName);
@@ -217,9 +217,9 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	type = atoi(svv.substr(1, 2).c_str());
 
 	// security checks
-	if (m_Log[_type] == NULL || !m_Log[_type]->m_bEnable || PC == 0
+	if (m_Log[_type] == NULL || !m_Log[_type]->m_bEnable
 		|| _type > (LogTypes::NUMBER_OF_LOGS + LogManager::VERBOSITY_LEVELS * 100)
-		|| _type < 0)
+		|| _type < 0) 
 		return;
 
 	// prepare message
