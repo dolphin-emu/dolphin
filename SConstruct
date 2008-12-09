@@ -218,21 +218,6 @@ if env['HAVE_WX']:
 else:
     print "WX not found or disabled, not building GUI"
 
-#get sdl stuff
-if env['HAVE_SDL']:
-    env.ParseConfig('sdl-config --cflags --libs')
-
-# lib ao (needed for sound plugins)
-if env['HAVE_AO']:
-    env.ParseConfig('pkg-config --cflags --libs ao')
-
-# bluetooth for wii
-if env['HAVE_BLUEZ']:
-    env.ParseConfig('pkg-config --cflags --libs bluez')
-    
-if env['HAVE_X11']:
-    env.ParseConfig("pkg-config x11 --cflags --libs")
-
 # add methods from utils to env
 env.AddMethod(utils.filterWarnings)
 

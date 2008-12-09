@@ -19,6 +19,8 @@ def CheckPKG(context, name):
     context.Message( 'Checking for %s... ' % name )
     ret = context.TryAction('pkg-config --exists \'%s\'' % name)[0]
     context.Result(  ret )
+    if ret:
+        context.env.ParseConfig('pkg-config --cflags --libs \'%s\'' % name)
     return int(ret)
 
 
@@ -33,7 +35,9 @@ def CheckSDL(context, version):
         found  = [int(n) for n in found_ver.split(".")]
         ret = (found >= required)
         
-        context.Result( ret )
+        context.Result(ret)
+        if ret:
+            context.env.ParseConfig('sdl-config --cflags --libs')
         return int(ret)
     
 def GenerateRevFile(flavour, template, output):

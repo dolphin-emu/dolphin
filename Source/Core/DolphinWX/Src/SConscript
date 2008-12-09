@@ -30,6 +30,7 @@ if wxenv['HAVE_WX']:
                 'PatchAddEdit.cpp',
 		'CheatsWindow.cpp',
 		'stdafx.cpp',
+                'FrameWiimote.cpp',
 		]
 
         CPPDEFINES = [

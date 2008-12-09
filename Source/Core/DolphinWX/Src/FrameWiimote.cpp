@@ -351,6 +351,8 @@ wxBitmap CFrame::CreateBitmapForSpeakers(int BitmapType, bool On)
 		return bitmap;
 	}
 	}
+
+        return bitmap;
 }
 
 

@@ -73,22 +73,30 @@ if gfxenv['osx64']:
 tests = {'CheckPKG' : utils.CheckPKG}
 conf = gfxenv.Configure(custom_tests = tests)
 
-if not (conf.CheckPKG('gl') and conf.CheckPKG('glu')):
-        print name + " must have opengl (gl and glu) to be build"
-        Return()
+if not conf.CheckPKG('gl'):
+
+        if not conf.CheckLibWithHeader('gl', 'gl.h', 'c', 1):
+                print name + " must have opengl to be build"
+
+else:
+        gfxenv.ParseConfig("pkg-config gl --cflags --libs")
+        
+#if not conf.CheckPKG('glu')):
+
+#        Return()
 
 
 # check for xxf86vm
         
 gfxenv['HAVE_XXF86VM'] =  conf.CheckPKG('xxf86vm')
 
-gfxenv = conf.Finish()
+conf.Finish()
 
 if gfxenv['HAVE_XXF86VM']:
         gfxenv.ParseConfig("pkg-config xxf86vm --cflags --libs")
 
-gfxenv.ParseConfig("pkg-config gl --cflags --libs")
-gfxenv.ParseConfig("pkg-config glu --cflags --libs")
+
+#gfxenv.ParseConfig("pkg-config glu --cflags --libs")
 
 if sys.platform == 'darwin':
 
@@ -98,11 +106,11 @@ if sys.platform == 'darwin':
 	# Use frameworks instead of plain libs, when possible.
 	linkFlags += [
 		'-Wl,-framework,%s' % framework
-		for framework in [ 'Cg' ]
+		for framework in [ 'Cg', 'OpenGL' ]
 		]
 else:
 	# Libraries without pkg-config support.
-	libs += [ 'Cg', 'CgGL' ]
+	libs += [ 'Cg', 'CgGL', 'GLU' ]
 
 
 # change to True if you want to compile with SDL
