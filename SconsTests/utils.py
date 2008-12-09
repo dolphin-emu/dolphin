@@ -21,14 +21,14 @@ def CheckFramework(context, name):
     if (platform.system() == 'darwin'):
         context.Message( '\nLooking for framework %s... ' % name )
         lastLINKFLAGS = context.env['LINKFLAGS']
-        context.env.Append(LINKFLAGS = '-Wl,-framework,%s' % name)
+        context.env.Append(LINKFLAGS = [ '-framework', name ])
         ret = context.TryLink("""
               int main(int argc, char **argv) {
                 return 0;
               }
               """, '.c')
         if not ret:
-            context.env.Replace(LIBS = lastLIBS)
+            context.env.Replace(LINKFLAGS = lastLINKFLAGS)
 
     return ret
 
