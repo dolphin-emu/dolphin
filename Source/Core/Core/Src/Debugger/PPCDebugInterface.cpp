@@ -25,7 +25,6 @@
 #include "../PowerPC/PowerPC.h"
 #include "../PowerPC/SymbolDB.h"
 
-// Not thread safe.
 void PPCDebugInterface::disasm(unsigned int address, char *dest, int max_size) 
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)

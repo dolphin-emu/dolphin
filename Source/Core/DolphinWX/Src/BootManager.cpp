@@ -123,7 +123,7 @@ bool BootCore(const std::string& _rFilename)
 		ini.Get("Core", "UseDualCore", &StartUp.bUseDualCore, StartUp.bUseDualCore);
 		ini.Get("Core", "SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);
 		ini.Get("Core", "OptimizeQuantizers", &StartUp.bOptimizeQuantizers, StartUp.bOptimizeQuantizers);
-
+		ini.Get("Core", "TLBHack", &StartUp.iTLBHack, StartUp.iTLBHack);
 
 		// ------------------------------------------------
 		// Update SYSCONF with game specific settings
@@ -194,7 +194,7 @@ bool BootCore(const std::string& _rFilename)
 	if (!Core::Init(StartUp))
 	{
 		PanicAlert("Couldn't init the core.\nCheck your configuration.");
-		return(false);
+		return false;
 	}
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -204,13 +204,12 @@ bool BootCore(const std::string& _rFilename)
 #else
 	Core::SetState(Core::CORE_RUN);
 #endif
-	return(true);
+	return true;
 }
-
 
 void Stop()
 {
 	Core::Stop();
 }
-} // namespace
 
+} // namespace

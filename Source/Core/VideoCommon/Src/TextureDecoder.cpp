@@ -390,7 +390,7 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 #if (defined(_WIN32) || (defined (_M_X64) && !defined(_WIN32)))
 			__m128i Lmask = _mm_set1_epi8 (0x0F);
 			__m128i Hmask = _mm_set1_epi8 (0xF0);
-			__m128i* sseSrc  = (__m128i *)src;
+			const __m128i* sseSrc  = (const __m128i *)src;
 			__m128i* sseDst  = (__m128i *)dst;
             for (int y = 0; y < height; y += 8)
 	            for (int x = 0; x < width; x += 8)

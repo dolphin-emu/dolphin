@@ -59,6 +59,9 @@ struct SCoreStartupParameter
 
 	bool bRunCompareServer;
 	bool bRunCompareClient;
+
+	int iTLBHack;
+
 	int  SelectedLanguage;
 
 	bool bWii; bool bWiiLeds; bool bWiiSpeakers; // Wii settings

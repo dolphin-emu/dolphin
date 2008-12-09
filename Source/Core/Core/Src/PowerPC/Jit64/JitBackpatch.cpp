@@ -106,7 +106,8 @@ u8 *BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx)
 	{
 		// It's a read. Easy.
 		ABI_PushAllCallerSavedRegsAndAdjustStack();
-		MOV(32, R(ABI_PARAM1), R((X64Reg)addrReg));
+		if (addrReg != ABI_PARAM1)
+			MOV(32, R(ABI_PARAM1), R((X64Reg)addrReg));
 		if (info.displacement) {
 			ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
 		}

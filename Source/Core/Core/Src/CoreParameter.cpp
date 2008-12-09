@@ -40,6 +40,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bLockThreads = true;
 	bWii = false;
 	SelectedLanguage = 0;
+	iTLBHack = 0;
 
 	bJITOff = false; // debugger only settings
 	bJITLoadStoreOff = false;

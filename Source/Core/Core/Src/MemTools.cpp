@@ -63,17 +63,22 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 
 			//Figure out what address was hit
 			u64 badAddress = (u64)pPtrs->ExceptionRecord->ExceptionInformation[1];
+
 			//TODO: First examine the address, make sure it's within the emulated memory space
 			u64 memspaceBottom = (u64)Memory::base;
-			if (badAddress < memspaceBottom) {
-				PanicAlert("Exception handler - access below memory space. %08x%08x",
+#ifdef _M_X64
+			u64 memspaceTop = memspaceBottom + 0x100000000ULL;
+#else
+			u64 memspaceTop = memspaceBottom +  0x40000000;
+#endif
+			if (badAddress < memspaceBottom || badAddress >= memspaceTop) {
+				PanicAlert("Exception handler - access outside memory space. %08x%08x",
 					badAddress >> 32, badAddress);
 			}
+
 			u32 emAddress = (u32)(badAddress - memspaceBottom);
 
 			//Now we have the emulated address.
-			//Let's notify everyone who wants to be notified
-			//Notify(emAddress, accessType == 0 ? Read : Write);
 
 			CONTEXT *ctx = pPtrs->ContextRecord;
 			//opportunity to play with the context - we can change the debug regs!
@@ -81,9 +86,8 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			//We could emulate the memory accesses here, but then they would still be around to take up
 			//execution resources. Instead, we backpatch into a generic memory call and retry.
 			u8 *new_rip = Jit64::BackPatch(codePtr, accessType, emAddress, ctx);
-			
-			// We no longer touch Rip, since we return back to the instruction, after overwriting it with a
-			// trampoline jump and some nops
+
+			// Rip/Eip needs to be updated.
 			if (new_rip)
 #ifdef _M_X64
 				ctx->Rip = (DWORD_PTR)new_rip;

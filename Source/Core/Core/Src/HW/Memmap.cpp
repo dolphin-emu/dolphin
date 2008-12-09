@@ -49,7 +49,8 @@ namespace Memory
 
 // #define NOCHECK
 
-static const bool bFakeVMEM = false;
+// TLBHack = 1 in a patch ini will set this to true.
+static bool bFakeVMEM = false;
 
 #ifndef LOGGING
 	#define NOCHECK
@@ -293,7 +294,7 @@ void InitHWMemFuncsWii()
 
 writeFn32 GetHWWriteFun32(const u32 _Address)
 {
-	return hwWrite32[(_Address>>HWSHIFT) & (NUMHWMEMFUN-1)];
+	return hwWrite32[(_Address >> HWSHIFT) & (NUMHWMEMFUN-1)];
 }
 
 
@@ -342,10 +343,18 @@ bool ValidMemory(const u32 _Address)
 			return true;
 		else
 			return false;
+	case 0x7e:
+	case 0x7f:
+		if (bFakeVMEM)
+			return true;
+		else
+			return false;
 
 	case 0xE0:
 		if (_Address < (0xE0000000 + L1_CACHE_SIZE))
 			return true;
+		else
+			return false;
 	case 0xCC:
 	case 0xCD:
 	case 0xC8:
@@ -445,7 +454,7 @@ void CheckForBadAddresses64(u32 Address, u64 Data, bool Read)
 			hwReadWii##_type[(_Address>>HWSHIFT) & (NUMHWMEMFUN-1)](_var, _Address);	\
 		else if (((_Address & 0xFFF00000) == 0xCD800000) &&								\
 					(_Address <= 0xCD809000))											\
-			WII_IOBridge::Read##_type(_var,_Address);									\
+			WII_IOBridge::Read##_type(_var, _Address);									\
 		else																			\
 		{																				\
 			/* Disabled because the debugger makes trouble with */						\
@@ -467,7 +476,7 @@ void CheckForBadAddresses64(u32 Address, u64 Data, bool Read)
 		PanicAlert("READ: Invalid address: %08x", _Address);							\
 	else																				\
 	{																					\
-		if (bFakeVMEM && (_Address & 0xFE000000) == 0x7e000000)							\
+		if (bFakeVMEM && ((_Address & 0xFE000000) == 0x7e000000) )	                    \
 		{                                                                               \
 			_var = bswap((*(u##_type*)&m_pFakeVMEM[_Address & FAKEVMEM_MASK]));			\
 		}                                                                               \
@@ -514,16 +523,6 @@ void CheckForBadAddresses64(u32 Address, u64 Data, bool Read)
 			_dbg_assert_msg_(MEMMAP,0,"Memory - Unknown HW address %08x", _Address);	\
 		} 																				\
 	}																					\
-	else if ((_Address >= 0xE0000000) && (_Address < (0xE0000000+L1_CACHE_SIZE)))		\
-	{																					\
-		*(u##_type*)&m_pL1Cache[_Address & L1_CACHE_MASK] = bswap(_Data);				\
-		return;																			\
-	}																					\
-	else if (_Address >= 0xE0000000)													\
-	{																					\
-		LOG(MEMMAP,"WRITE: Cache address out of bounds (addr: %08x data: %08x)",_Address,_Data);	\
-/*	    PanicAlert("WRITE: Cache address %08x out of bounds", _Address);		*/		\
-	}																					\
 	else if (((_Address & 0xF0000000) == 0x80000000) ||									\
 			((_Address & 0xF0000000) == 0xC0000000) ||									\
 			((_Address & 0xF0000000) == 0x00000000))									\
@@ -538,9 +537,19 @@ void CheckForBadAddresses64(u32 Address, u64 Data, bool Read)
 		*(u##_type*)&m_pEXRAM[_Address & EXRAM_MASK] = bswap(_Data);					\
 		return;																			\
 	}																					\
+	else if ((_Address >= 0xE0000000) && (_Address < (0xE0000000+L1_CACHE_SIZE)))		\
+	{																					\
+		*(u##_type*)&m_pL1Cache[_Address & L1_CACHE_MASK] = bswap(_Data);				\
+		return;																			\
+	}																					\
+	else if (_Address >= 0xE0000000)													\
+	{																					\
+		LOG(MEMMAP,"WRITE: Cache address out of bounds (addr: %08x data: %08x)",_Address,_Data);	\
+/*	    PanicAlert("WRITE: Cache address %08x out of bounds", _Address);		*/		\
+	}																					\
 	else																				\
 	{																					\
-		if (bFakeVMEM && (_Address & 0xFE000000) == 0x7e000000)							\
+		if (bFakeVMEM && ((_Address & 0xFE000000) == 0x7e000000))	                    \
 		{                                                                               \
 			*(u##_type*)&m_pFakeVMEM[_Address & FAKEVMEM_MASK] = bswap(_Data);			\
 			return;                                                                     \
@@ -564,6 +573,7 @@ bool IsInitialized()
 bool Init()
 {
 	bool wii = Core::GetStartupParameter().bWii;
+	bFakeVMEM = Core::GetStartupParameter().iTLBHack == 1;
 
 	int totalMemSize = RAM_SIZE + EFB_SIZE + L1_CACHE_SIZE + IO_SIZE;
 	if (bFakeVMEM)
@@ -1027,7 +1037,7 @@ u8 *GetPointer(const u32 _Address)
 	case 0x81:
 	case 0xC0:
 	case 0xC1:
-		return (u8*)(((char*)m_pRAM) + (_Address&RAM_MASK));
+		return (u8*)(((char*)m_pRAM) + (_Address & RAM_MASK));
 
     case 0x10:
     case 0x11:
@@ -1042,20 +1052,25 @@ u8 *GetPointer(const u32 _Address)
     case 0xD2:
     case 0xD3:
 		if (Core::GetStartupParameter().bWii)
-			return (u8*)(((char*)m_pEXRAM) + (_Address&EXRAM_MASK));
+			return (u8*)(((char*)m_pEXRAM) + (_Address & EXRAM_MASK));
 		else
 			return 0;
 
 	case 0xE0:
 		if (_Address < (0xE0000000 + L1_CACHE_SIZE))
 			return GetCachePtr() + (_Address & L1_CACHE_MASK);
+		else
+			return 0;
 
 	case 0xC8:
 		return m_pEFB + (_Address & 0xFFFFFF);
 	case 0xCC:
 	case 0xCD:
-		_dbg_assert_msg_(MEMMAP, 0,"Memory", "GetPointer from IO Bridge doesnt work");
+		_dbg_assert_msg_(MEMMAP, 0, "Memory", "GetPointer from IO Bridge doesnt work");
 		return NULL;
+	default:
+		PanicAlert("Tried to get pointer for unknown address %08x", _Address);
+		break;
 	}
 	return NULL;
 }
@@ -1083,6 +1098,12 @@ bool IsRAMAddress(const u32 addr, bool allow_locked_cache)
 			return true;
 		else
 			return false;
+	case 0x7C:
+		if (bFakeVMEM && addr >= 0x7e000000)
+			return true;
+		else
+			return false;
+
 	default:
 		return false;
 	}

@@ -27,6 +27,7 @@
 namespace Jit64 {
 // Returns the new RIP value
 u8 *BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx);
-}
+
+}  // namespace
 
 #endif
