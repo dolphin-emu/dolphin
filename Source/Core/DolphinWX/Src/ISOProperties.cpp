@@ -585,7 +585,18 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 		SaveGameConfig();
 
 		wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_("ini"));
-		wxExecute(filetype->GetOpenCommand(wxString::FromAscii(GameIniFile.c_str())), wxEXEC_SYNC);
+		if(filetype == NULL)
+		{
+			PanicAlert("Filetype 'ini' is unknown! Will not open!");
+			return;
+		}
+		wxString OpenCommand;
+		OpenCommand = filetype->GetOpenCommand(wxString::FromAscii(GameIniFile.c_str()));
+		if(OpenCommand.IsEmpty())
+			PanicAlert("Couldn't find open command for extension 'ini'!");
+		else
+			if(wxExecute(OpenCommand, wxEXEC_SYNC) == -1)
+				PanicAlert("wxExecute returned -1 on application run!");
 
 		GameIni.Load(GameIniFile.c_str());
 		LoadGameConfig();
