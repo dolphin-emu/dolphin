@@ -148,10 +148,12 @@ class CConfigMain
 		0x1576	4		NET.CTPC	Net Content Restrictions ("Content Parental Control"?)
 		0x17E7	4		NET.WCFG	WC24 Configuration flags
 		*/
-		wxArrayString arrayStringFor_WiiSensBarPos;
+		wxArrayString arrayStringFor_WiiSensBarPos; // Wiimote Settings
 		wxStaticText* WiiSensBarPosText;
 		wxChoice* WiiSensBarPos;
-		wxCheckBox* WiiScreenSaver;
+		wxCheckBox* WiiLeds, * WiiSpeakers;
+
+		wxCheckBox* WiiScreenSaver; // IPL settings
 		wxCheckBox* WiiProgressiveScan;
 		wxCheckBox* WiiEuRGB60;
 		wxArrayString arrayStringFor_WiiAspectRatio;
@@ -202,8 +204,11 @@ class CConfigMain
 			ID_ENABLEISOCACHE,
 			ID_GC_SRAM_LNG_TEXT,
 			ID_GC_SRAM_LNG,
+
 			ID_WII_BT_BAR_TEXT,
 			ID_WII_BT_BAR,
+			ID_WII_BT_LEDS, ID_WII_BT_SPEAKERS,
+
 			ID_WII_IPL_SSV,
 			ID_WII_IPL_PGS,
 			ID_WII_IPL_E60,

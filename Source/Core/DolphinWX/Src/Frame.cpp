@@ -120,6 +120,7 @@ EVT_MENU(IDM_SAVESLOT7, CFrame::OnSaveState)
 EVT_MENU(IDM_SAVESLOT8, CFrame::OnSaveState)
 EVT_MENU(IDM_SAVESLOT9, CFrame::OnSaveState)
 EVT_MENU(IDM_SAVESLOT10, CFrame::OnSaveState)
+EVT_SIZE(CFrame::MoveIcons)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 END_EVENT_TABLE()
 
@@ -144,6 +145,7 @@ CFrame::CFrame(wxFrame* parent,
 	, m_pStatusBar(NULL)
 	, m_pMenuBar(NULL)
 	, m_pBootProcessDialog(NULL)
+	, HaveLeds(false), HaveSpeakers(false)
 {
 	InitBitmaps();
 
@@ -153,9 +155,8 @@ CFrame::CFrame(wxFrame* parent,
 	SetIcon(IconTemp);
 
 	// Give it a status line
-	m_pStatusBar = CreateStatusBar(2);
-	int StylesField[] = {wxSB_FLAT, wxSB_FLAT};
-	m_pStatusBar->SetStatusStyles(2, StylesField);
+	CreateStatusBar_();
+
 	CreateMenu();
 
 	// This panel is the parent for rendering and it holds the gamelistctrl
@@ -208,6 +209,13 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 
 #endif
 
+
+
+
+
+// =======================================================
+// Create menu items
+// -------------
 void CFrame::CreateMenu()
 {
 	delete m_pMenuBar;

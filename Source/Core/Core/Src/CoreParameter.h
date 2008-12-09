@@ -61,8 +61,8 @@ struct SCoreStartupParameter
 	bool bRunCompareClient;
 	int  SelectedLanguage;
 
-	bool bWii;
-
+	bool bWii; bool bWiiLeds; bool bWiiSpeakers; // Wii settings
+	
 	enum EBootBios
 	{
 		BOOT_DEFAULT,
@@ -105,4 +105,7 @@ struct SCoreStartupParameter
 };
 
 #endif
+
+
+
 

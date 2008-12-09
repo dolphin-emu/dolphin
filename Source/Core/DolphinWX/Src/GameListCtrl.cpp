@@ -492,8 +492,11 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			popupMenu.AppendSeparator();
 			popupMenu.Append(IDM_OPENCONTAININGFOLDER, _("Open &containing folder"));
 			popupMenu.AppendCheckItem(IDM_SETDEFAULTGCM, _("Set as &default ISO"));
-			if(selected_iso->GetFileName() == SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM)
-				popupMenu.FindItemByPosition(3)->Check();
+			
+			// First we have to decide a starting value when we append it
+			if(selected_iso->GetFileName() == SConfig::GetInstance().
+				m_LocalCoreStartupParameter.m_strDefaultGCM)
+				popupMenu.FindItem(IDM_SETDEFAULTGCM)->Check();
 
 			popupMenu.AppendSeparator();
 			popupMenu.Append(IDM_DELETEGCM, _("&Delete ISO..."));
@@ -562,12 +565,21 @@ void CGameListCtrl::OnOpenContainingFolder(wxCommandEvent& WXUNUSED (event))
 // =======================================================
 // Save this file as the default file
 // -------------
-void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& WXUNUSED (event)) 
+void CGameListCtrl::OnSetDefaultGCM(wxCommandEvent& event) 
 {
 	const GameListItem *iso = GetSelectedISO();
 	if (!iso) return;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = iso->GetFileName();
-	SConfig::GetInstance().SaveSettings();
+	
+	if (event.IsChecked()) // Write the new default value and save it the ini file
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = iso->GetFileName();
+		SConfig::GetInstance().SaveSettings();
+	}
+	else // Othwerise blank the value and save it
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM = "";
+		SConfig::GetInstance().SaveSettings();
+	}
 }
 // =============
 

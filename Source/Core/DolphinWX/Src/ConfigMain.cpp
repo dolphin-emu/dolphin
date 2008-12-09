@@ -22,6 +22,9 @@
 
 #include "ConfigMain.h"
 #include "PluginManager.h"
+#include "Frame.h"
+
+extern CFrame* main_frame;
 
 BEGIN_EVENT_TABLE(CConfigMain, wxDialog)
 
@@ -35,12 +38,16 @@ EVT_CHECKBOX(ID_OPTIMIZEQUANTIZERS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_IDLESKIP, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_ENABLECHEATS, CConfigMain::CoreSettingsChanged)
 EVT_CHOICE(ID_GC_SRAM_LNG, CConfigMain::GCSettingsChanged)
+
 EVT_CHOICE(ID_WII_BT_BAR, CConfigMain::WiiSettingsChanged)
+EVT_CHECKBOX(ID_WII_BT_LEDS, CConfigMain::WiiSettingsChanged)
+EVT_CHECKBOX(ID_WII_BT_SPEAKERS, CConfigMain::WiiSettingsChanged)
 EVT_CHECKBOX(ID_WII_IPL_SSV, CConfigMain::WiiSettingsChanged)
 EVT_CHECKBOX(ID_WII_IPL_PGS, CConfigMain::WiiSettingsChanged)
 EVT_CHECKBOX(ID_WII_IPL_E60, CConfigMain::WiiSettingsChanged)
 EVT_CHOICE(ID_WII_IPL_AR, CConfigMain::WiiSettingsChanged)
 EVT_CHOICE(ID_WII_IPL_LNG, CConfigMain::WiiSettingsChanged)
+
 EVT_LISTBOX(ID_ISOPATHS, CConfigMain::ISOPathsSelectionChanged)
 EVT_BUTTON(ID_ADDISOPATH, CConfigMain::AddRemoveISOPaths)
 EVT_BUTTON(ID_REMOVEISOPATH, CConfigMain::AddRemoveISOPaths)
@@ -174,12 +181,19 @@ void CConfigMain::CreateGUIControls()
 	GamecubePage->SetSizer(sGamecube);
 	sGamecube->Layout();
 
-	// Wii SYSCONF page
+
+	//////////////////////////////////
+	// Wii page
+	// --------
 	sbWiimoteSettings = new wxStaticBoxSizer(wxVERTICAL, WiiPage, wxT("Wiimote Settings"));
 	arrayStringFor_WiiSensBarPos.Add(wxT("Bottom")); arrayStringFor_WiiSensBarPos.Add(wxT("Top"));
 	WiiSensBarPosText = new wxStaticText(WiiPage, ID_WII_BT_BAR_TEXT, wxT("Sensor Bar Position:"), wxDefaultPosition, wxDefaultSize);
 	WiiSensBarPos = new wxChoice(WiiPage, ID_WII_BT_BAR, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiSensBarPos, 0, wxDefaultValidator);
 	WiiSensBarPos->SetSelection(m_SYSCONF[BT_BAR]);
+	WiiLeds = new wxCheckBox(WiiPage, ID_WII_BT_LEDS, wxT("Show Wiimote Leds in status bar"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	WiiLeds->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiLeds);
+	WiiSpeakers = new wxCheckBox(WiiPage, ID_WII_BT_SPEAKERS, wxT("Show Wiimote Speaker status in status bar"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	WiiSpeakers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiSpeakers);
 
 	sbWiiIPLSettings = new wxStaticBoxSizer(wxVERTICAL, WiiPage, wxT("IPL Settings"));
 	WiiScreenSaver = new wxCheckBox(WiiPage, ID_WII_IPL_SSV, wxT("Enable Screen Saver (burn-in reduction)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -198,10 +212,13 @@ void CConfigMain::CreateGUIControls()
 	WiiSystemLang = new wxChoice(WiiPage, ID_WII_IPL_LNG, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiSystemLang, 0, wxDefaultValidator);
 	WiiSystemLang->SetSelection(m_SYSCONF[IPL_LNG]);
 
+	// Populate sbWiimoteSettings
 	sWii = new wxBoxSizer(wxVERTICAL);
 	sWiimoteSettings = new wxGridBagSizer(0, 0);
 	sWiimoteSettings->Add(WiiSensBarPosText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sWiimoteSettings->Add(WiiSensBarPos, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
+	sWiimoteSettings->Add(WiiLeds, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
+	sWiimoteSettings->Add(WiiSpeakers, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 	sbWiimoteSettings->Add(sWiimoteSettings);
 	sWii->Add(sbWiimoteSettings, 0, wxEXPAND|wxALL, 5);
 
@@ -217,6 +234,7 @@ void CConfigMain::CreateGUIControls()
 	sWii->Add(sbWiiIPLSettings, 0, wxEXPAND|wxALL, 5);
 	WiiPage->SetSizer(sWii);
 	sWii->Layout();
+
 
 	// Paths page
 	sbISOPaths = new wxStaticBoxSizer(wxVERTICAL, PathsPage, wxT("ISO Directories"));
@@ -323,6 +341,9 @@ void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
 
 	// save the config... dolphin crashes by far to often to save the settings on closing only
 	SConfig::GetInstance().SaveSettings();
+	
+	// Update the status bar
+	main_frame->ModifyStatusBar(WiiLeds->IsChecked(), WiiSpeakers->IsChecked());
 }
 
 void CConfigMain::CloseClick(wxCommandEvent& WXUNUSED (event))
@@ -372,10 +393,17 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	case ID_WII_BT_BAR:
+	case ID_WII_BT_BAR: // Wiimote settings
 		m_SYSCONF[BT_BAR] = WiiSensBarPos->GetSelection();
 		break;
-	case ID_WII_IPL_AR:
+	case ID_WII_BT_LEDS:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiLeds = WiiLeds->IsChecked();
+		break;
+	case ID_WII_BT_SPEAKERS:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiSpeakers = WiiSpeakers->IsChecked();
+		break;
+
+	case ID_WII_IPL_AR: // IPL settings
 		m_SYSCONF[IPL_AR] = WiiAspectRatio->GetSelection();
 		break;
 	case ID_WII_IPL_SSV:
@@ -537,3 +565,4 @@ bool CConfigMain::GetFilename(wxChoice* _pChoice, std::string& _rFilename)
 
 	return(false);
 }
+

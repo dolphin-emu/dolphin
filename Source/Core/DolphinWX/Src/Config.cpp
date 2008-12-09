@@ -83,6 +83,9 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "SelectedLanguage", m_LocalCoreStartupParameter.SelectedLanguage);
 		ini.Set("Core", "RunCompareServer", m_LocalCoreStartupParameter.bRunCompareServer);
 		ini.Set("Core", "RunCompareClient", m_LocalCoreStartupParameter.bRunCompareClient);
+
+		ini.Set("Wii", "ShowWiimoteLeds", m_LocalCoreStartupParameter.bWiiLeds);
+		ini.Set("Wii", "ShowWiimoteSpeakers", m_LocalCoreStartupParameter.bWiiSpeakers);
 	}
 
 	ini.Save(CONFIG_FILE);
@@ -166,5 +169,9 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "SelectedLanguage", &m_LocalCoreStartupParameter.SelectedLanguage, 0);
 		ini.Get("Core", "RunCompareServer", &m_LocalCoreStartupParameter.bRunCompareServer, false);
 		ini.Get("Core", "RunCompareClient", &m_LocalCoreStartupParameter.bRunCompareClient, false);
+
+		ini.Get("Wii", "ShowWiimoteLeds", &m_LocalCoreStartupParameter.bWiiLeds, false);
+		ini.Get("Wii", "ShowWiimoteSpeakers", &m_LocalCoreStartupParameter.bWiiSpeakers, false);
+		
 	}
 }

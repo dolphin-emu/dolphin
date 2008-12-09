@@ -41,8 +41,12 @@
 
 #include <vector>
 #include <string>
-#include "Common.h"
+
+#include "Common.h" // Common
+#include "StringUtil.h"
+
 #include "wiimote_hid.h"
+#include "EmuMain.h"
 #include "EmuSubroutines.h"
 #include "EmuDefinitions.h"
 #include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
@@ -172,17 +176,10 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 	const u8* data = (const u8*)_pData;
 
 	// Debugging. Dump raw data.
-	{
-		LOGV(WII_IPC_WIIMOTE, 3, "Wiimote_Input");
-		std::string Temp;
-		for (u32 j=0; j<_Size; j++)
-		{
-			char Buffer[128];
-			sprintf(Buffer, "%02x ", data[j]);
-			Temp.append(Buffer);
-		}
-		LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
-	}
+	LOGV(WII_IPC_WIIMOTE, 3, "Wiimote_Input");
+	//std::string Temp = ArrayToString(data, sizeof(data), 0, 30);
+	//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
+
 	hid_packet* hidp = (hid_packet*) data;
 
 	switch(hidp->type)
@@ -194,7 +191,6 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 			case HID_PARAM_OUTPUT:
 				{
 					wm_report* sr = (wm_report*)hidp->data;
-
 					HidOutputReport(_channelID, sr);
 
 					/* This is the 0x22 answer to all Inputs. In most games it didn't matter

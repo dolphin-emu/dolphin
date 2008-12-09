@@ -20,7 +20,10 @@
 
 #include <vector>
 #include <string>
-#include "Common.h"
+
+#include "Common.h" // Common
+#include "StringUtil.h" // for ArrayToString
+
 #include "wiimote_hid.h"
 #include "EmuSubroutines.h"
 #include "EmuDefinitions.h"
@@ -53,7 +56,6 @@ namespace WiiMoteEmu
 // ----------------
 void HidOutputReport(u16 _channelID, wm_report* sr) {
 	LOGV(WII_IPC_WIIMOTE, 0, "===========================================================");
-
 	LOGV(WII_IPC_WIIMOTE, 0, "HidOutputReport (0x%02x)", sr->channel);
 
 	switch(sr->channel)
@@ -73,22 +75,31 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 	case WM_READ_DATA: // 0x17
 		WmReadData(_channelID, (wm_read_data*)sr->data);
 		break;
+
+	/* This enables or disables the IR lights, we update the global variable g_IR
+	   so that WmRequestStatus() knows about it */
 	case WM_IR_PIXEL_CLOCK: // 0x13
 	case WM_IR_LOGIC: // 0x1a
 		LOGV(WII_IPC_WIIMOTE, 0, "  IR Enable 0x%02x: 0x%02x", sr->channel, sr->data[0]);
 		//wprintf("IR Enable/Disable 0x%02x: 0x%02x\n", sr->channel, sr->data[0]);
-		// Update the global value so that WmRequestStatus() knows it
 		if(sr->data[0] == 0x02) g_IR = 0;
 			else if(sr->data[0] == 0x06) g_IR = 1;
 		break;
+
 	case WM_WRITE_DATA: // 0x16
 		WmWriteData(_channelID, (wm_write_data*)sr->data);
 		break;
-	case WM_SPEAKER_ENABLE:
+	case WM_SPEAKER_ENABLE: // 0x14
 		LOGV(WII_IPC_WIIMOTE, 1, "  WM Speaker Enable 0x%02x: 0x%02x", sr->channel, sr->data[0]);
+		//wprintf("Speaker Enable/Disable 0x%02x: 0x%02x\n", sr->channel, sr->data[0]);
+		if(sr->data[0] == 0x02) g_Speaker = 0;
+			else if(sr->data[0] == 0x06) g_Speaker = 1;
 		break;
 	case WM_SPEAKER_MUTE:
 		LOGV(WII_IPC_WIIMOTE, 1, "  WM Mute Enable 0x%02x: 0x%02x", sr->channel, sr->data[0]);
+		//wprintf("Speaker Mute/Unmute 0x%02x: 0x%02x\n", sr->channel, sr->data[0]);
+		if(sr->data[0] == 0x02) g_SpeakerVoice = 0;
+			else if(sr->data[0] == 0x06) g_SpeakerVoice = 1;
 		break;
 	default:
 		PanicAlert("HidOutputReport: Unknown channel 0x%02x", sr->channel);
@@ -307,7 +318,7 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 	LOG(WII_IPC_WIIMOTE, "    Address: 0x%06x", address);
 	LOG(WII_IPC_WIIMOTE, "    Size: 0x%02x", wd->size);
 	LOG(WII_IPC_WIIMOTE, "    Rumble: %x", wd->rumble);
-	//std::string Temp = WiiMoteEmu::ArrayToString(wd->data, wd->size);
+	//std::string Temp = ArrayToString(wd->data, wd->size);
 	//LOGV(WII_IPC_WIIMOTE, 0, "    Data: %s", Temp.c_str());
 
 	// Write to EEPROM
@@ -329,7 +340,10 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 			case 0xA2:
 				block = g_RegSpeaker;
 				blockSize = WIIMOTE_REG_SPEAKER_SIZE;
-				LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xa2: g_RegSpeaker");
+				LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xa2: RegSpeaker");
+				//wprintf("\n\nWrite to RegSpeaker: Size: %i, Address: %08x,  Offset: %08x\n",
+				//	wd->size, address, (address & 0xffff));
+				//wprintf("Data: %s\n", Temp.c_str());
 				break;
 			case 0xA4:
 				block = g_RegExt; // Extension Controller register
@@ -337,13 +351,13 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 				//LOGV(WII_IPC_WIIMOTE, 0, "  *******************************************************");
 				LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xa4: ExtReg");
 				//LOGV(WII_IPC_WIIMOTE, 0, "  *******************************************************");
-				wprintf("\n\nWmWriteData  Size: %i  Address: %08x  Offset: %08x \n",
-					wd->size, address, (address & 0xffff));
+				//wprintf("\n\nWmWriteData  Size: %i  Address: %08x  Offset: %08x \n",
+				//	wd->size, address, (address & 0xffff));
 				break;
 			case 0xB0:
 				block = g_RegIr;
 				blockSize = WIIMOTE_REG_IR_SIZE;
-				LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xb0: g_RegIr");
+				LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xb0: RegIr");
 				break;
 			default:
 				PanicAlert("WmWriteData: bad register block!");
@@ -479,9 +493,9 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs)
 
 	// Status values
 	pStatus->battery_low = 0; // battery is okay
-	pStatus->leds = g_Leds; // current setting
-	pStatus->ir = g_IR; // current setting
-
+	pStatus->leds = g_Leds; // leds are 4 bit
+	pStatus->ir = g_IR; // 1 bit
+	pStatus->speaker = g_Speaker; // 1 bit
 	/* Battery levels in voltage
 		  0x00 - 0x32: level 1
 		  0x33 - 0x43: level 2
@@ -500,11 +514,9 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs)
 	LOGV(WII_IPC_WIIMOTE, 0, "        Flags: 0x%02x", pStatus->padding1[2]);
 	LOGV(WII_IPC_WIIMOTE, 0, "        Battery: %d", pStatus->battery);
 
-	//std::string Temp = WiiMoteEmu::ArrayToString(DataFrame, Offset, 0);
-	//wprintf("Status Report: %s\n", Temp.c_str());
-	
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 	LOGV(WII_IPC_WIIMOTE, 0, "=================================================");
 }
 
 } // end of namespace
+

@@ -136,7 +136,8 @@ class CCodeWindow
 		bool bVideoWindow;
 		bool bAutomaticStart;
 
-		// sub dialogs
+		// Sub dialogs
+		wxMenuBar* pMenuBar;
 		CLogWindow* m_LogWindow;
 		CRegisterWindow* m_RegisterWindow;
 		CBreakPointWindow* m_BreakpointWindow;
@@ -170,7 +171,8 @@ class CCodeWindow
 		void OnCallsListChange(wxCommandEvent& event);
 		void OnCodeStep(wxCommandEvent& event);
 		void OnCodeViewChange(wxCommandEvent &event);
-
+		void OnStatusBar(wxMenuEvent &event); void OnStatusBar_(wxUpdateUIEvent &event);
+		void DoTip(wxString text);
 		void SingleCPUStep();
 
 		void OnAddrBoxChange(wxCommandEvent& event);

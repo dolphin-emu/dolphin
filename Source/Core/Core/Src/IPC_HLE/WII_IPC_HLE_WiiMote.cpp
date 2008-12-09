@@ -16,8 +16,10 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "StringUtil.h"
 #include "WII_IPC_HLE_WiiMote.h"
 
+#include "../../DolphinWX/Src/Frame.h"
 #include "../Plugins/Plugin_Wiimote.h"
 #include "../Host.h"
 
@@ -25,6 +27,8 @@
 
 #include "l2cap.h"
 #include "WiiMote_HID_Attr.h"
+
+extern CFrame* main_frame; // for the status report
 
 #if defined(_MSC_VER)
 #pragma pack(push, 1)
@@ -249,6 +253,8 @@ bool CWII_IPC_HLE_WiiMote::Update()
 		return true;
 	}
 
+	UpdateStatus();
+
 	return false;
 }
 
@@ -359,7 +365,8 @@ void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 					PluginWiimote::Wiimote_ControlChannel(rChannel.DCID, pData, DataSize);
 					break;
 
-				case HID_INTERRUPT_CHANNEL: 
+				case HID_INTERRUPT_CHANNEL:
+					ShowStatus(pData);
 					PluginWiimote::Wiimote_InterruptChannel(rChannel.DCID, pData, DataSize);
 					break;
 
@@ -372,6 +379,81 @@ void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 		break;
 	}
 }
+
+
+// ===================================================
+/* Send a status report to the status bar. */
+// ----------------
+void CWII_IPC_HLE_WiiMote::ShowStatus(const void* _pData)
+{
+	const u8* data = (const u8*)_pData;
+
+	if(data[1] == 0x11 || data[1] == 0x14 || data[1] == 0x16
+		|| data[1] == 0x19)
+	{
+		//std::string Temp = ArrayToString(data, sizeof(data));
+		//LOGV(CONSOLE, 0, "Data: %s", Temp.c_str());
+	}
+
+	// Get the last four bits with LED info
+	u8 Bits;
+	if(data[1] == 0x11)
+	{
+		Bits = (data[2] >> 4);
+
+		// Convert it to a simpler byte format
+		main_frame->g_Leds[0] = Bits >> 0;
+		main_frame->g_Leds[1] = Bits >> 1;
+		main_frame->g_Leds[2] = Bits >> 2;
+		main_frame->g_Leds[3] = Bits >> 3;
+
+		main_frame->UpdateLeds();
+	}
+
+	if(data[1] == 0x14) // Enable and disable speakers
+	{
+		// Get the value
+		if(data[2] == 0x02) Bits = 0;
+			else if(data[2] == 0x06) Bits = 1;
+		main_frame->g_Speakers[0] = Bits;
+		main_frame->UpdateSpeakers();
+	}
+
+	if(data[1] == 0x19) // Mute and unmute
+	{
+		// Get the value
+		if(data[2] == 0x02) Bits = 0;
+			else if(data[2] == 0x06) Bits = 1;
+		main_frame->g_Speakers[1] = Bits;
+		main_frame->UpdateSpeakers();
+	}
+
+	if(data[1] == 0x16) // Write to speaker registry
+	{
+		// Don't care what it does, call all activity
+		main_frame->g_Speakers[2] = 1;
+		main_frame->UpdateSpeakers();
+	}
+
+}
+// Turn off the activity icon again
+void CWII_IPC_HLE_WiiMote::UpdateStatus()
+{
+	std::string Tmp = ArrayToString(main_frame->g_Speakers, sizeof(main_frame->g_Speakers));
+	std::string Tmp2 = ArrayToString(main_frame->g_Speakers_, sizeof(main_frame->g_Speakers_));
+	LOGV(CONSOLE, 0, "Tmp: %s", Tmp.c_str());
+	LOGV(CONSOLE, 0, "Tmp2: %s", Tmp2.c_str());
+	// Don't do a lot of CreateBitmap() if we don't need to
+	if(memcmp(main_frame->g_Speakers_, main_frame->g_Speakers,
+		sizeof(main_frame->g_Speakers)))
+	{
+		main_frame->g_Speakers[2] = 0;
+		main_frame->UpdateSpeakers();
+		memcpy(main_frame->g_Speakers_, main_frame->g_Speakers, sizeof(main_frame->g_Speakers));
+	}
+}
+// ================
+
 
 void CWII_IPC_HLE_WiiMote::SignalChannel(u8* _pData, u32 _Size)
 {    

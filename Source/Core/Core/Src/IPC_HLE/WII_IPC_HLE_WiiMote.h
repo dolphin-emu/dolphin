@@ -114,9 +114,11 @@ public:
 
 	u8 GetManufactorID() const { return 0xF; }  // Broadcom Corporation
 
-	void SendACLFrame(u8* _pData, u32 _Size);	//to wiimote
+	void SendACLFrame(u8* _pData, u32 _Size);	// To wiimote
+	void ShowStatus(const void* _pData); // Show status
+	void UpdateStatus(); // Update status
 
-	void SendL2capData(u16 scid, const void* _pData, u32 _Size);	//from wiimote
+	void SendL2capData(u16 scid, const void* _pData, u32 _Size); // From wiimote
 
 	const u8* GetLinkKey() const { return m_LinkKey; }
 
@@ -203,3 +205,4 @@ private:
 };
 
 #endif
+

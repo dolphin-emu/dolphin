@@ -297,7 +297,11 @@ std::string GetUserDirectory()
 #ifdef _WIN32 
 	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, path)))
 	{
-		return std::string(path);
+		//return std::string(path);
+
+		/* I dont understand this, I got "E:\Documents and Settings\All Users\Application Data"
+		   from this */
+		return std::string("");
 	}
 	return std::string("");
 #else

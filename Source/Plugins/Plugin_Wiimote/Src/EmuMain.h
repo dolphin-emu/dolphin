@@ -31,8 +31,6 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size);
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size) ;
 void Update();
 
-std::string ArrayToString(const u8 *data, u32 size, u32 offset = 0, int line_len = 20);
-
 };
 
 #endif

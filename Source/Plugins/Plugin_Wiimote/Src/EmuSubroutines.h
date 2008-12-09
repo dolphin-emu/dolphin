@@ -41,6 +41,8 @@ namespace WiiMoteEmu
 
 
 extern u8 g_Leds;
+extern u8 g_Speaker;
+extern u8 g_SpeakerVoice;
 extern u8 g_IR;
 
 extern u8 g_Eeprom[WIIMOTE_EEPROM_SIZE];

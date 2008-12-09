@@ -17,6 +17,27 @@ class CFrame : public wxFrame
 
 		void* GetRenderHandle() {return(m_Panel->GetHandle());}
 
+		wxStatusBar* m_pStatusBar;
+
+
+		// --------------------------------
+		// Wiimote leds
+		// ---------
+		void CreateStatusBar_();
+		void ModifyStatusBar(bool LedsOn, bool SpeakerOn);
+		void CreateDestroy(int Case);
+		void CreateLeds(); void CreateSpeakers();
+		void UpdateLeds(); void UpdateSpeakers();
+		wxBitmap CreateBitmapForLeds(bool On);
+		wxBitmap CreateBitmapForSpeakers(int BitmapType, bool On);
+		void MoveIcons(wxSizeEvent& event); void DoMoveIcons(); void MoveLeds();  void MoveSpeakers();
+		bool HaveLeds; bool HaveSpeakers;
+
+		wxStaticBitmap *m_StatBmp[7];
+		u8 g_Leds[4]; u8 g_Leds_[4];
+		u8 g_Speakers[3]; u8 g_Speakers_[3];
+		// ---------
+
 
 	private:
 
@@ -38,7 +59,16 @@ class CFrame : public wxFrame
 			Toolbar_PluginPAD,
 			Toolbar_FullScreen,
 			Toolbar_Help,
-			Bitmaps_Max
+			Bitmaps_Max,
+			END
+		};
+
+		enum WiimoteBitmaps  // Wiimote speaker bitmaps
+		{
+			CREATELEDS = END, 						
+			DESTROYLEDS,
+			CREATESPEAKERS,
+			DESTROYSPEAKERS
 		};
 
 		wxBitmap m_Bitmaps[Bitmaps_Max];
@@ -80,7 +110,6 @@ class CFrame : public wxFrame
 		void OnSaveState(wxCommandEvent& event);
 		void OnClose(wxCloseEvent &event); 
 
-		wxStatusBar* m_pStatusBar;
 		wxMenuBar* m_pMenuBar;
 
 		wxMenuItem* m_pMenuItemPlay;
@@ -103,4 +132,3 @@ class CFrame : public wxFrame
 };
 
 #endif  // __FRAME_H_
-

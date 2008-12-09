@@ -177,7 +177,7 @@ extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32
 	{
 		LOGV(WII_IPC_WIIMOTE, 3, "Wiimote_Input");
 		LOGV(WII_IPC_WIIMOTE, 3, "   Channel ID: %04x", _channelID);
-		std::string Temp = WiiMoteEmu::ArrayToString(data, _Size);
+		std::string Temp = ArrayToString(data, _Size);
 		LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
 	}
 
@@ -199,7 +199,7 @@ extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _
 	// Debugging
 	{
 		LOGV(WII_IPC_WIIMOTE, 3, "Wiimote_ControlChannel");
-		std::string Temp = WiiMoteEmu::ArrayToString(data, _Size);
+		std::string Temp = ArrayToString(data, _Size);
 		LOGV(WII_IPC_WIIMOTE, 3, "    Data: %s", Temp.c_str());
 	}
 

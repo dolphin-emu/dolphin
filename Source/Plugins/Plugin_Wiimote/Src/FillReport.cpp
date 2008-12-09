@@ -40,25 +40,6 @@ namespace WiiMoteEmu
 //******************************************************************************
 
 
-// ===================================================
-/* Debugging. Read out an u8 array. */
-// ----------------
-std::string ArrayToString(const u8 *data, u32 size, u32 offset, int line_len)
-{
-	//const u8* _data = (const u8*)data;
-	std::string Temp;
-	for (u32 i = 0; i < size; i++)
-	{
-		char Buffer[128];
-		sprintf(Buffer, "%02x ", data[i + offset]);
-		if((i + 1) % line_len == 0) Temp.append("\n"); // break long lines
-		Temp.append(Buffer);
-	}	
-	return Temp;
-}
-// ================
-
-
 void FillReportInfo(wm_core& _core)
 {
 	memset(&_core, 0x00, sizeof(wm_core));

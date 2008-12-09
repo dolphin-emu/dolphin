@@ -21,6 +21,7 @@
 #include <wx/listctrl.h>
 #include <wx/thread.h>
 #include <wx/mstream.h>
+#include <wx/tipwin.h>
 
 // ugly that this lib included code from the main
 #include "../../DolphinWX/Src/Globals.h"
@@ -83,6 +84,12 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
     EVT_LISTBOX(IDM_CALLERSLIST,    CCodeWindow::OnCallersListChange)
     EVT_LISTBOX(IDM_CALLSLIST,      CCodeWindow::OnCallsListChange)
     EVT_HOST_COMMAND(wxID_ANY,      CCodeWindow::OnHostMessage)
+
+	EVT_MENU_HIGHLIGHT_ALL(			CCodeWindow::OnStatusBar)
+	/* Do this to to avoid that the ToolTips get stuck when only the wxMenu is changed
+	   and not any wxMenuItem that is required by EVT_MENU_HIGHLIGHT_ALL */
+	EVT_UPDATE_UI(wxID_ANY, CCodeWindow::OnStatusBar_)
+
     EVT_MENU(IDM_LOGWINDOW,         CCodeWindow::OnToggleLogWindow)
     EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleRegisterWindow)
     EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleBreakPointWindow)
@@ -129,7 +136,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	EVT_MENU(IDM_SETPC,				CCodeWindow::OnCodeStep)
 	EVT_MENU(IDM_GOTOPC,			CCodeWindow::OnCodeStep)
 	EVT_TEXT(IDM_ADDRBOX,           CCodeWindow::OnAddrBoxChange)
-
+	
 	EVT_COMMAND(IDM_CODEVIEW, wxEVT_CODEVIEW_CHANGE, CCodeWindow::OnCodeViewChange)
 END_EVENT_TABLE()
 
@@ -340,22 +347,37 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	// =======================================================================================
 	// Windowses
 	// ---------------
-	wxMenuBar* pMenuBar = new wxMenuBar(wxMB_DOCKABLE);
+	pMenuBar = new wxMenuBar(wxMB_DOCKABLE);
 
 	{	
 		wxMenu* pCoreMenu = new wxMenu;
 
-		wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _T("&Interpreter core"), wxEmptyString, wxITEM_CHECK);
+		wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _T("&Interpreter core")
+			, wxString::FromAscii("This is nessesary to get break points"
+			" and stepping to work as explained in the Developer Documentation. But it can be very"
+			" slow, perhaps slower than 1 fps.")
+			, wxITEM_CHECK);
 		interpreter->Check(!_LocalCoreStartupParameter.bUseJIT);
 		pCoreMenu->AppendSeparator();
-		wxMenuItem* automaticstart = pCoreMenu->Append(IDM_AUTOMATICSTART, _T("&Automatic start"), wxEmptyString, wxITEM_CHECK);
+		wxMenuItem* automaticstart = pCoreMenu->Append(IDM_AUTOMATICSTART, _T("&Automatic start")
+			, wxString::FromAscii("Start the game directly instead of booting to pause. It also"
+			" automatically loads the Default ISO when Dolphin starts, or the last game you loaded"
+			" , if you have not given it an elf file with the --elf command line. This can be"
+			" convenient if you are bugtesting with a certain game and want to rebuild"
+			" and retry it several times, either with changes to Dolphin or if you are"
+			" developing a homebrew game.")
+			, wxITEM_CHECK);
 		automaticstart->Check(bAutomaticStart);		
 		pCoreMenu->AppendSeparator();
 
 #ifdef JIT_OFF_OPTIONS
-		jitunlimited = pCoreMenu->Append(IDM_JITUNLIMITED, _T("&Unlimited JIT Cache"), wxEmptyString, wxITEM_CHECK);
+		jitunlimited = pCoreMenu->Append(IDM_JITUNLIMITED, _T("&Unlimited JIT Cache"),
+			_T("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from crashing"),
+			wxITEM_CHECK);
 		pCoreMenu->AppendSeparator();
-		jitoff = pCoreMenu->Append(IDM_JITOFF, _T("&JIT off (JIT core)"), wxEmptyString, wxITEM_CHECK);
+		jitoff = pCoreMenu->Append(IDM_JITOFF, _T("&JIT off (JIT core)"),
+			_T("Turn off all JIT functions, but still use the JIT core from Jit.cpp"),
+			wxITEM_CHECK);
 		jitlsoff = pCoreMenu->Append(IDM_JITLSOFF, _T("&JIT LoadStore off"), wxEmptyString, wxITEM_CHECK);
 			jitlslbzxoff = pCoreMenu->Append(IDM_JITLSLBZXOFF, _T("    &JIT LoadStore lbzx off"), wxEmptyString, wxITEM_CHECK);
 			jitlslxzoff = pCoreMenu->Append(IDM_JITLSLXZOFF, _T("    &JIT LoadStore lXz off"), wxEmptyString, wxITEM_CHECK);
@@ -416,7 +438,14 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		pSymbolsMenu->Append(IDM_LOADMAPFILE, _T("&Load symbol map"));
 		pSymbolsMenu->Append(IDM_SAVEMAPFILE, _T("&Save symbol map"));
 		pSymbolsMenu->AppendSeparator();
-		pSymbolsMenu->Append(IDM_SAVEMAPFILEWITHCODES, _T("Save code"));
+		pSymbolsMenu->Append(IDM_SAVEMAPFILEWITHCODES, _T("Save code"),
+			wxString::FromAscii("Save the entire disassembled code. This may take a several seconds"
+			" and may require between 50 and 100 MB of hard drive space. It will only save code"
+			" that are in the first 4 MB of memory, if you are debugging a game that load .rel"
+			" files with code to memory you may want to increase that to perhaps 8 MB, you can do"
+			" that from SymbolDB::SaveMap().")
+			);
+		
 		pSymbolsMenu->AppendSeparator();
 		pSymbolsMenu->Append(IDM_CREATESIGNATUREFILE, _T("&Create signature file..."));
 		pSymbolsMenu->Append(IDM_USESIGNATUREFILE, _T("&Use signature file..."));
@@ -900,6 +929,51 @@ void CCodeWindow::OnSymbolListContextMenu(wxContextMenuEvent& event)
 }
 
 
+// =======================================================================================
+// Show Tool Tip for menu items
+// --------------
+void CCodeWindow::DoTip(wxString text)
+{
+	// Create a blank tooltip to clear the eventual old one
+	static wxTipWindow *tw = NULL;
+	if (tw)
+	{
+		tw->SetTipWindowPtr(NULL);
+		tw->Close();
+	}
+	tw = NULL;
+
+	// Don't make a new one for blank text
+	if(text.empty()) return;
+
+	tw = new wxTipWindow(this, text, 175, &tw);
+
+	// Move it to the right
+	#ifdef _WIN32
+		POINT point;
+		GetCursorPos(&point);		
+		tw->SetPosition(wxPoint(point.x + 25, point.y));
+	#endif
+}
+
+
+void CCodeWindow::OnStatusBar(wxMenuEvent& event)
+{
+	DoTip(pMenuBar->GetHelpString(event.GetId()));
+}
+void CCodeWindow::OnStatusBar_(wxUpdateUIEvent& event)
+{
+	DoTip(pMenuBar->GetHelpString(event.GetId()));
+}
+
+// ===========
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+// Show and hide windowses
+// -----------------------
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
 void CCodeWindow::OnToggleLogWindow(wxCommandEvent& event)
 {
 	if (IsLoggingActivated())
@@ -1111,6 +1185,9 @@ void CCodeWindow::OnToggleMemoryWindow(wxCommandEvent& event)
 		}
 	}
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 {
@@ -1144,6 +1221,18 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 			if (m_BreakpointWindow)
 			{
 				m_BreakpointWindow->NotifyUpdate();
+			}
+			break;
+		case IDM_UPDATESTATUSBAR:
+			//if (main_frame->m_pStatusBar != NULL)
+			{
+				PanicAlert("");
+				//this->GetParent()->m_p
+//this->GetParent()->
+				//parent->m_pStatusBar->SetStatusText(wxT("Hi"), 0);
+				//m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
+				//this->GetParent()->m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
+				//main_frame->m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
 			}
 			break;
 

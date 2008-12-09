@@ -32,9 +32,11 @@ void ToStringFromFormat(std::string* out, const char* format, ...);
 // Expensive!
 void StringFromFormatV(std::string* out, const char* format, va_list args);
 
-
 // Cheap!
 bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list args);
+
+// Good
+std::string ArrayToString(const u8 *data, u32 size, u32 offset = 0, int line_len = 20);
 
 
 template<size_t Count>
@@ -74,4 +76,3 @@ void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _P
 
 
 #endif
-
