@@ -102,6 +102,7 @@ vars.AddVariables(
                  allowed_values = ('release', 'devel', 'debug'),
                  ignorecase = 2
                  ),
+    PathVariable('wxconfig', 'Path to the wxconfig', None),
     ('CC', 'The c compiler', 'gcc'),
     ('CXX', 'The c++ compiler', 'g++'),
     )

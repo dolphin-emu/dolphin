@@ -104,6 +104,9 @@ def CheckWXConfigPosixFind(context, debug):
     # Find a wx-config compatible pathname
     # wx*-config --> wx*-[0-9]+\.[0-9]+-config / wx<platform>-<version>-config
 
+    if (context.env['wxconfig']):
+        return context.env['wxconfig']
+
     dbglist = []
     rellist = []
     cfgre = re.compile('.*?\/wx(\w+?)(d?)-(\d+\.\d+)-config')
@@ -167,14 +170,17 @@ def CheckWXConfig(context, version, components, debug = False):
     context.env['wxconfig_postargs']= ''
 
     # Try to find it in path
-    wx_prog = context.env.WhereIs('wx-config')
-    if wx_prog == None:
-        # You could supply wx-config.exe as a fallback option.
-        #wx_prog = os.path.join('scons','wx-config')
-        context.Message('wx-config not found...')
-        return False
-    context.env['wxconfig'] = wx_prog
-
+    try:
+        context.env['wxconfig']
+    except KeyError:
+        wx_prog = context.env.WhereIs('wx-config')
+        if wx_prog == None:
+            # You could supply wx-config.exe as a fallback option.
+            #wx_prog = os.path.join('scons','wx-config')
+            context.Message('wx-config not found...')
+            return False
+        context.env['wxconfig'] = wx_prog
+    
     # Get wx-config invocation and check version
     if context.env['PLATFORM'] == 'win32':
         res = CheckWXConfigWin(context, version, debug)

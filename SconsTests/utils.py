@@ -18,7 +18,7 @@ def CheckPKGConfig(context, version):
 
 def CheckFramework(context, name):
     ret = 0
-    if (platform.system() == 'darwin'):
+    if (platform.system().lower() == 'darwin'):
         context.Message( '\nLooking for framework %s... ' % name )
         lastLINKFLAGS = context.env['LINKFLAGS']
         context.env.Append(LINKFLAGS = [ '-framework', name ])
@@ -32,18 +32,19 @@ def CheckFramework(context, name):
 
     return ret
 
+# TODO: We should use the scons one instead
 def CheckLib(context, name):
     context.Message( 'Looking for lib %s... ' % name )
     lastLIBS = context.env['LIBS']
-    context.env.Append(LIBS = name)
+    context.env.Append(LIBS = [name])
     ret = context.TryLink("""
               int main(int argc, char **argv) {
-                return 1;
+                return 0;
               }
               """,'.c')
     if not ret:
         context.env.Replace(LIBS = lastLIBS)
-            
+
     return ret
 
 def ConfigPKG(context, name):
