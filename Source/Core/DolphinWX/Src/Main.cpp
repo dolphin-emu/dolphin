@@ -367,11 +367,11 @@ void Host_UpdateSpeakerStatus(int index, int speaker_bits) {
 }
 
 void Host_UpdateStatus() {
-	// UGLINESS
-	std::string Tmp = ArrayToString(main_frame->g_Speakers, sizeof(main_frame->g_Speakers));
-	std::string Tmp2 = ArrayToString(main_frame->g_Speakers_, sizeof(main_frame->g_Speakers_));
-	LOGV(CONSOLE, 0, "Tmp: %s", Tmp.c_str());
-	LOGV(CONSOLE, 0, "Tmp2: %s", Tmp2.c_str());
+	// Debugging
+	//std::string Tmp = ArrayToString(main_frame->g_Speakers, sizeof(main_frame->g_Speakers));
+	//std::string Tmp2 = ArrayToString(main_frame->g_Speakers_, sizeof(main_frame->g_Speakers_));
+	//LOGV(CONSOLE, 0, "Tmp: %s", Tmp.c_str());
+	//LOGV(CONSOLE, 0, "Tmp2: %s", Tmp2.c_str());
 	// Don't do a lot of CreateBitmap() if we don't need to
 	if(memcmp(main_frame->g_Speakers_, main_frame->g_Speakers,
 		sizeof(main_frame->g_Speakers)))
