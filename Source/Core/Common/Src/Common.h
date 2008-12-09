@@ -34,6 +34,14 @@
 #define CHECK_HEAP_INTEGRITY() {if (!_CrtCheckMemory()) PanicAlert("memory corruption detected. see log.");}
 #endif
 
+#ifdef _WIN32
+	/* Turn on logging with debugging, _DEBUG and DEBUGFAST are still added through
+	   preprocessor definitions only */
+	#if defined(_DEBUG) || defined(DEBUGFAST)
+		#define LOGGING
+	#endif
+#endif
+
 #include "../../../PluginSpecs/CommonTypes.h"
 #define HAVE_WIIUSE 1
 #define HAVE_WX 1
@@ -240,7 +248,7 @@ void RegisterPanicAlertHandler(PanicAlertHandler handler);
 
 void Host_UpdateLogDisplay();
 
-// Logging macros
+// Logging macros. LOGGING is turned on from earlier in this file
 #ifdef LOGGING
 
 #define LOG(t, ...) __Log(LogTypes::t, __VA_ARGS__);
