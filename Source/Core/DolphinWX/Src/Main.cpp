@@ -351,6 +351,37 @@ void Host_UpdateBreakPointView()
 }
 
 
+void Host_UpdateLeds(int led_bits) {
+	// Convert it to a simpler byte format
+	main_frame->g_Leds[0] = led_bits >> 0;
+	main_frame->g_Leds[1] = led_bits >> 1;
+	main_frame->g_Leds[2] = led_bits >> 2;
+	main_frame->g_Leds[3] = led_bits >> 3;
+
+	main_frame->UpdateLeds();
+}
+
+void Host_UpdateSpeakerStatus(int index, int speaker_bits) {
+	main_frame->g_Speakers[index] = speaker_bits;
+	main_frame->UpdateSpeakers();
+}
+
+void Host_UpdateStatus() {
+	// UGLINESS
+	std::string Tmp = ArrayToString(main_frame->g_Speakers, sizeof(main_frame->g_Speakers));
+	std::string Tmp2 = ArrayToString(main_frame->g_Speakers_, sizeof(main_frame->g_Speakers_));
+	LOGV(CONSOLE, 0, "Tmp: %s", Tmp.c_str());
+	LOGV(CONSOLE, 0, "Tmp2: %s", Tmp2.c_str());
+	// Don't do a lot of CreateBitmap() if we don't need to
+	if(memcmp(main_frame->g_Speakers_, main_frame->g_Speakers,
+		sizeof(main_frame->g_Speakers)))
+	{
+		main_frame->g_Speakers[2] = 0;
+		main_frame->UpdateSpeakers();
+		memcpy(main_frame->g_Speakers_, main_frame->g_Speakers, sizeof(main_frame->g_Speakers));
+	}
+}
+
 void Host_UpdateMemoryView()
 {}
 

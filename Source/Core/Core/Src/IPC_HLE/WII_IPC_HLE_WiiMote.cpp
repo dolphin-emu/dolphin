@@ -24,12 +24,8 @@
 #include "../Host.h"
 #include "../Core.h"
 
-#include "../../DolphinWX/Src/Frame.h" // DolphinWX, for the wiimote status
-
 #include "l2cap.h" // Local 
 #include "WiiMote_HID_Attr.h"
-
-extern CFrame* main_frame; // for the status report
 
 #if defined(_MSC_VER)
 #pragma pack(push, 1)
@@ -391,79 +387,63 @@ void CWII_IPC_HLE_WiiMote::ShowStatus(const void* _pData)
 	// Check if it's enabled
 	bool LedsOn = Core::g_CoreStartupParameter.bWiiLeds;
 	bool SpeakersOn = Core::g_CoreStartupParameter.bWiiSpeakers;
-	if(! (LedsOn || SpeakersOn) ) return;	
 
 	const u8* data = (const u8*)_pData;
 
-	if(data[1] == 0x11 || data[1] == 0x14 || data[1] == 0x16
-		|| data[1] == 0x19)
-	{
-		//std::string Temp = ArrayToString(data, sizeof(data));
-		//LOGV(CONSOLE, 0, "Data: %s", Temp.c_str());
-	}
-
 	// Get the last four bits with LED info
-	u8 Bits;
-	if(data[1] == 0x11 && LedsOn)
+	if (LedsOn)
 	{
-		Bits = (data[2] >> 4);
-
-		// Convert it to a simpler byte format
-		main_frame->g_Leds[0] = Bits >> 0;
-		main_frame->g_Leds[1] = Bits >> 1;
-		main_frame->g_Leds[2] = Bits >> 2;
-		main_frame->g_Leds[3] = Bits >> 3;
-
-		main_frame->UpdateLeds();
+		if (data[1] == 0x11)
+		{
+			int led_bits = (data[2] >> 4);
+			Host_UpdateLeds(led_bits);
+		}
 	}
 
-	if(data[1] == 0x14 && SpeakersOn) // Enable and disable speakers
-	{
-		// Get the value
-		if(data[2] == 0x02) Bits = 0;
-			else if(data[2] == 0x06) Bits = 1;
-		main_frame->g_Speakers[0] = Bits;
-		main_frame->UpdateSpeakers();
-	}
+	int speaker_bits = 0;
 
-	if(data[1] == 0x19 && SpeakersOn) // Mute and unmute
-	{
-		// Get the value
-		if(data[2] == 0x02) Bits = 0;
-			else if(data[2] == 0x06) Bits = 1;
-		main_frame->g_Speakers[1] = Bits;
-		main_frame->UpdateSpeakers();
-	}
+	if (SpeakersOn) {
+		u8 Bits = 0;
+		switch (data[1]) { // Enable and disable speakers
+		case 0x14:
+			// Get the value
+			if (data[2] == 0x02)
+				Bits = 0;
+			else if (data[2] == 0x06)
+				Bits = 1;
+			Host_UpdateSpeakerStatus(0, Bits);
+			break;
 
-	if(data[1] == 0x16 && SpeakersOn) // Write to speaker registry
-	{
-		// Don't care what it does, call all activity
-		main_frame->g_Speakers[2] = 1;
-		main_frame->UpdateSpeakers();
-	}
+		case 0x19: // Mute and unmute		
+			// Get the value
+			if (data[2] == 0x02)
+				Bits = 0;
+			else if (data[2] == 0x06)
+				Bits = 1;
+			Host_UpdateSpeakerStatus(0, Bits);
+			break;
 
+		case 0x16:
+			if (data[1] == 0x16) // Write to speaker registry
+			{
+				// Don't care what it does, call all activity
+				Host_UpdateSpeakerStatus(0, 1);
+			}
+			break;
+		}
+	}
 }
+
 // Turn off the activity icon again
 void CWII_IPC_HLE_WiiMote::UpdateStatus()
 {
 	// Check if it's enabled
-	if(!Core::g_CoreStartupParameter.bWiiSpeakers) return;
-
-	std::string Tmp = ArrayToString(main_frame->g_Speakers, sizeof(main_frame->g_Speakers));
-	std::string Tmp2 = ArrayToString(main_frame->g_Speakers_, sizeof(main_frame->g_Speakers_));
-	LOGV(CONSOLE, 0, "Tmp: %s", Tmp.c_str());
-	LOGV(CONSOLE, 0, "Tmp2: %s", Tmp2.c_str());
-	// Don't do a lot of CreateBitmap() if we don't need to
-	if(memcmp(main_frame->g_Speakers_, main_frame->g_Speakers,
-		sizeof(main_frame->g_Speakers)))
-	{
-		main_frame->g_Speakers[2] = 0;
-		main_frame->UpdateSpeakers();
-		memcpy(main_frame->g_Speakers_, main_frame->g_Speakers, sizeof(main_frame->g_Speakers));
-	}
+	if (!Core::g_CoreStartupParameter.bWiiSpeakers)
+		return;
+	Host_UpdateStatus();
 }
-// ================
 
+// ================
 
 void CWII_IPC_HLE_WiiMote::SignalChannel(u8* _pData, u32 _Size)
 {    
