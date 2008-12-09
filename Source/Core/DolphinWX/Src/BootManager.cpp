@@ -15,6 +15,29 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+
+
+// =======================================================
+// File description
+// -------------
+/* Purpose of this file: Collect boot settings for Core::Init()
+
+   Call sequenc: This file has one of the first function called when a game is booted,
+   the boot sequence in the code is:
+   
+	DolphinWX:	GameListCtrl.cpp	OnActivated
+				BootManager.cpp		BootCore
+	Core		Core.cpp			Init		Thread creation
+									EmuThread	Calls CBoot::BootUp
+				Boot.cpp			
+ */
+// =============
+
+
+
+
+
 #include <string>
 #include <vector>
 
@@ -52,39 +75,40 @@ bool BootCore(const std::string& _rFilename)
 {
 	SCoreStartupParameter StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
-#if defined(HAVE_WX) && HAVE_WX
-	if (g_pCodeWindow)
-	{
-//		StartUp.bUseDualCore = code_frame->UseDualCore();
-		StartUp.bUseJIT = !g_pCodeWindow->UseInterpreter();
-		StartUp.bAutomaticStart = g_pCodeWindow->AutomaticStart();
-	}
-	else
-	{
-//		StartUp.bUseDualCore = false;
-//		StartUp.bUseJIT = true;
-	}
-#endif 
+	// Use custom settings for debugging mode
+	#if defined(HAVE_WX) && HAVE_WX		
+		if (g_pCodeWindow)
+		{
+	//		StartUp.bUseDualCore = code_frame->UseDualCore();
+			StartUp.bUseJIT = !g_pCodeWindow->UseInterpreter();
+			StartUp.bAutomaticStart = g_pCodeWindow->AutomaticStart();
+		}
+		else
+		{
+	//		StartUp.bUseDualCore = false;
+	//		StartUp.bUseJIT = true;
+		}		
+		StartUp.bEnableDebugging = g_pCodeWindow ? true : false; // RUNNING_DEBUG
+	#endif 
+
 	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
 	StartUp.m_strFilename = _rFilename;
 	SConfig::GetInstance().m_LastFilename = StartUp.m_strFilename;
 	StartUp.bRunCompareClient = false;
 	StartUp.bRunCompareServer = false;
-#if defined(HAVE_WX) && HAVE_WX
-	StartUp.bEnableDebugging = g_pCodeWindow ? true : false; // RUNNING_DEBUG
-#endif 
 	std::string BaseDataPath;
-#ifdef _WIN32
-	StartUp.hInstance = wxGetInstance();
-#ifdef _M_X64
-	StartUp.bUseFastMem = true;
-#endif
-#endif
+
+	#ifdef _WIN32
+		StartUp.hInstance = wxGetInstance();
+		#ifdef _M_X64
+			StartUp.bUseFastMem = true;
+		#endif
+	#endif
 
 	if ( !StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT) )
 	{
 		return false;
-	}
+	}	
 
 	// ------------------------------------------------
 	// Load game specific settings
@@ -151,9 +175,20 @@ bool BootCore(const std::string& _rFilename)
 		// ---------
 	}
 	// ---------
+
+	// Save some values to our local version of SCoreStartupParameter
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bWii = StartUp.bWii;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC = StartUp.bNTSC;
+
+
 #if defined(HAVE_WX) && HAVE_WX
 	if(main_frame)
+	{
 		StartUp.hMainWindow = main_frame->GetRenderHandle();
+
+		// Now that we know if we have a Wii game we can run this
+		main_frame->ModifyStatusBar();
+	}
 #endif
 	// init the core
 	if (!Core::Init(StartUp))

@@ -30,7 +30,8 @@
    include\wx\setup.h				?
    include\wx\msw\setup.h			?
    include\wx\univ\setup.h			?
-   include\wx\msw\setup0.h			- The original univ file, not used
+   include\wx\msw\setup0.h			- The original msw file, not used
+   include\wx\univ\setup0.h			- The original univ file, not used
 
    The configuration consistency check files:
    

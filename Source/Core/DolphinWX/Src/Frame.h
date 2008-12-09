@@ -23,8 +23,8 @@ class CFrame : public wxFrame
 		// --------------------------------
 		// Wiimote leds
 		// ---------
-		void CreateStatusBar_();
-		void ModifyStatusBar(bool LedsOn, bool SpeakerOn);
+
+		void ModifyStatusBar();
 		void CreateDestroy(int Case);
 		void CreateLeds(); void CreateSpeakers();
 		void UpdateLeds(); void UpdateSpeakers();

@@ -15,17 +15,18 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
+#include "Common.h" // Common
 #include "StringUtil.h"
-#include "WII_IPC_HLE_WiiMote.h"
 
-#include "../../DolphinWX/Src/Frame.h"
+#include "WII_IPC_HLE_WiiMote.h" // Core
+#include "WII_IPC_HLE_Device_usb.h"
 #include "../Plugins/Plugin_Wiimote.h"
 #include "../Host.h"
+#include "../Core.h"
 
-#include "WII_IPC_HLE_Device_usb.h"
+#include "../../DolphinWX/Src/Frame.h" // DolphinWX, for the wiimote status
 
-#include "l2cap.h"
+#include "l2cap.h" // Local 
 #include "WiiMote_HID_Attr.h"
 
 extern CFrame* main_frame; // for the status report
@@ -386,6 +387,12 @@ void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 // ----------------
 void CWII_IPC_HLE_WiiMote::ShowStatus(const void* _pData)
 {
+
+	// Check if it's enabled
+	bool LedsOn = Core::g_CoreStartupParameter.bWiiLeds;
+	bool SpeakersOn = Core::g_CoreStartupParameter.bWiiSpeakers;
+	if(! (LedsOn || SpeakersOn) ) return;	
+
 	const u8* data = (const u8*)_pData;
 
 	if(data[1] == 0x11 || data[1] == 0x14 || data[1] == 0x16
@@ -397,7 +404,7 @@ void CWII_IPC_HLE_WiiMote::ShowStatus(const void* _pData)
 
 	// Get the last four bits with LED info
 	u8 Bits;
-	if(data[1] == 0x11)
+	if(data[1] == 0x11 && LedsOn)
 	{
 		Bits = (data[2] >> 4);
 
@@ -410,7 +417,7 @@ void CWII_IPC_HLE_WiiMote::ShowStatus(const void* _pData)
 		main_frame->UpdateLeds();
 	}
 
-	if(data[1] == 0x14) // Enable and disable speakers
+	if(data[1] == 0x14 && SpeakersOn) // Enable and disable speakers
 	{
 		// Get the value
 		if(data[2] == 0x02) Bits = 0;
@@ -419,7 +426,7 @@ void CWII_IPC_HLE_WiiMote::ShowStatus(const void* _pData)
 		main_frame->UpdateSpeakers();
 	}
 
-	if(data[1] == 0x19) // Mute and unmute
+	if(data[1] == 0x19 && SpeakersOn) // Mute and unmute
 	{
 		// Get the value
 		if(data[2] == 0x02) Bits = 0;
@@ -428,7 +435,7 @@ void CWII_IPC_HLE_WiiMote::ShowStatus(const void* _pData)
 		main_frame->UpdateSpeakers();
 	}
 
-	if(data[1] == 0x16) // Write to speaker registry
+	if(data[1] == 0x16 && SpeakersOn) // Write to speaker registry
 	{
 		// Don't care what it does, call all activity
 		main_frame->g_Speakers[2] = 1;
@@ -439,6 +446,9 @@ void CWII_IPC_HLE_WiiMote::ShowStatus(const void* _pData)
 // Turn off the activity icon again
 void CWII_IPC_HLE_WiiMote::UpdateStatus()
 {
+	// Check if it's enabled
+	if(!Core::g_CoreStartupParameter.bWiiSpeakers) return;
+
 	std::string Tmp = ArrayToString(main_frame->g_Speakers, sizeof(main_frame->g_Speakers));
 	std::string Tmp2 = ArrayToString(main_frame->g_Speakers_, sizeof(main_frame->g_Speakers_));
 	LOGV(CONSOLE, 0, "Tmp: %s", Tmp.c_str());

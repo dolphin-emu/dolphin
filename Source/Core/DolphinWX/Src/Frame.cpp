@@ -154,8 +154,8 @@ CFrame::CFrame(wxFrame* parent,
 	IconTemp.CopyFromBitmap(wxGetBitmapFromMemory(dolphin_png));
 	SetIcon(IconTemp);
 
-	// Give it a status line
-	CreateStatusBar_();
+	// Give it a status bar
+	m_pStatusBar = CreateStatusBar();
 
 	CreateMenu();
 

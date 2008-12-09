@@ -42,13 +42,13 @@ struct SConfig
 	// save settings
 	void SaveSettings();
 
-
 	// load settings
 	void LoadSettings();
 
-
+	/* Return the permanent and somewhat globally used instance of this struct
+	   there is also a Core::GetStartupParameter() instance of it with almost
+	   the same values */
 	static SConfig& GetInstance() {return(m_Instance);}
-
 
 	private:
 

@@ -44,38 +44,77 @@ namespace WiimoteLeds
 	int SPEAKER_SIZE_X = 8;
 	int SPEAKER_SIZE_Y = 8;
 
-	static const int WidthsOn[] = { -1, 100, 50 + LED_SIZE_X * 4 };	
+	int ConnectionStatusWidth = 103;
+	int ConnectionStatusOnlyAdj = 7;
+	int RightmostMargin = 6;
+	int SpIconMargin = 11;
+	int LedIconMargin = 11;
+
+	// Leds only
+	static const int LdWidthsOn[] =
+	{
+		-1,
+		ConnectionStatusWidth,
+		(LedIconMargin + LED_SIZE_X) * 4 + RightmostMargin
+	};	
 	static const int StylesFieldOn[] = { wxSB_NORMAL, wxSB_NORMAL, wxSB_NORMAL };	
 	
-	static const int SpWidthsOn[] = { -1, 100, 40 + SPEAKER_SIZE_X * 3 };	
+	// Speakers only
+	static const int SpWidthsOn[] =
+	{
+		-1,
+		ConnectionStatusWidth,
+		( SpIconMargin + SPEAKER_SIZE_X ) * 3 + RightmostMargin
+	};	
 	static const int SpStylesFieldOn[] = { wxSB_NORMAL, wxSB_NORMAL, wxSB_NORMAL };	
 
-	static const int LdSpWidthsOn[] = { -1, 100, 32 + SPEAKER_SIZE_X * 3, 50 + LED_SIZE_X * 4 };	
+	// Both
+	static const int LdSpWidthsOn[] =
+	{
+		-1,
+		ConnectionStatusWidth,
+		(SpIconMargin + SPEAKER_SIZE_X) * 3,
+		(LedIconMargin + LED_SIZE_X) * 4 + RightmostMargin
+	};	
 	static const int LdSpStylesFieldOn[] = { wxSB_NORMAL, wxSB_NORMAL, wxSB_NORMAL };	
 
-	static const int WidthsOff[] = { -1, 50 + 100 };
+	// Only the Wiimote connection Status
+	static const int WidthsOff[] =
+	{
+		-1,
+		ConnectionStatusWidth + ConnectionStatusOnlyAdj + RightmostMargin
+	};
 	static const int StylesFieldOff[] = { wxSB_NORMAL, wxSB_NORMAL };
+
+	// GC mode
+	static const int WidthsOffGC[] = { -1 };
+	static const int StylesFieldOffGC[] = { wxSB_NORMAL };
 };
-
-
-// =======================================================
-// Create status bar
-// -------------
-void CFrame::CreateStatusBar_()
-{
-	// Get settings
-	bool LedsOn = SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiLeds;
-	bool SpeakersOn = SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiSpeakers;
-	m_pStatusBar = CreateStatusBar();
-	ModifyStatusBar(LedsOn, SpeakersOn);
-}
-
 
 // =======================================================
 // Modify status bar
 // -------------
-void CFrame::ModifyStatusBar(bool LedsOn, bool SpeakersOn)
+void CFrame::ModifyStatusBar()
 {
+	// Get settings
+	bool LedsOn = SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiLeds;
+	bool SpeakersOn = SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiSpeakers;
+
+	// Don't use this for GC games, or before a game is loaded
+	if(!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		{ LedsOn = false; SpeakersOn = false; }
+
+	/* For some reason the Debug build of wxWidgets can't use these bitmaps so it will
+	   produce a "assert "wxWidgets Debug Alert, bmp.Ok()" failed" message and show
+	   blank bitmaps. I check that wxUSE_STATBMP was enabled even for Debug builds so
+	   I don't see why it wouldn't work. You can uncomment this if you find the bug.
+	   
+	   In my case the same thing occured for CFrame::InitBitmaps() so it was not just
+	   thse bitmaps that failed. So even with this comment you may get that warning. */
+	#ifdef _DEBUG
+		LedsOn = false; SpeakersOn = false;
+	#endif
+
 	// Declarations
 	int Fields;
 	int *Widths;
@@ -87,7 +126,7 @@ void CFrame::ModifyStatusBar(bool LedsOn, bool SpeakersOn)
 	if(LedsOn && !SpeakersOn)
 	{
 		Fields = 3;
-		Widths = (int*)WiimoteLeds::WidthsOn;
+		Widths = (int*)WiimoteLeds::LdWidthsOn;
 		StylesFields = (int*)WiimoteLeds::StylesFieldOn;
 	}
 	// ---------------------------------------
@@ -116,6 +155,14 @@ void CFrame::ModifyStatusBar(bool LedsOn, bool SpeakersOn)
 		Fields = 2;
 		Widths = (int*)WiimoteLeds::WidthsOff;
 		StylesFields = (int*)WiimoteLeds::StylesFieldOff;
+
+		// Maybe we should even go down to one field
+		if(!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		{
+			Fields = 1;
+			Widths = (int*)WiimoteLeds::WidthsOffGC;
+			StylesFields = (int*)WiimoteLeds::StylesFieldOffGC;
+		}
 	}
 
 	/* Destroy and create all, and check for HaveLeds and HaveSpeakers in case we have
@@ -222,20 +269,15 @@ void CFrame::CreateSpeakers()
 // Update icons
 void CFrame::UpdateSpeakers()
 {
+	/*if(!SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC)
+		{ PanicAlert("Not NTSC");}
+
+	if(!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		{ PanicAlert("Not Wii");}*/
 	for(int i = 0; i < 3; i++)
 	{
 		m_StatBmp[i+4]->SetBitmap(CreateBitmapForSpeakers(i, (bool)g_Speakers[i]));
 	}
-	if(g_Leds[0] == 0)
-	{
-	//	LOGV(CONSOLE, 0, "Break");
-	}
-
-	std::string Temp = ArrayToString(g_Speakers, sizeof(g_Speakers));
-	LOGV(CONSOLE, 0, "Speakers: %s", Temp.c_str());
-
-	Temp = ArrayToString(g_Leds, sizeof(g_Leds));
-	LOGV(CONSOLE, 0, "Leds: %s", Temp.c_str());
 }
 // ==============
 

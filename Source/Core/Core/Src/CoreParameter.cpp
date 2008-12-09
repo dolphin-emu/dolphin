@@ -15,12 +15,15 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
-#include "Boot/Boot.h"
+#include "Common.h" // Common
 #include "FileUtil.h"
 #include "StringUtil.h"
+
+#include "VolumeCreator.h" // DiscIO
+
+#include "Boot/Boot.h" // Core
 #include "CoreParameter.h"
-#include "VolumeCreator.h"
+#include "Core.h" // for bWii
 
 SCoreStartupParameter::SCoreStartupParameter()
 {
@@ -79,7 +82,9 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
                 }
 				m_strName = pVolume->GetName();
 				m_strUniqueID = pVolume->GetUniqueID();
-                bWii = DiscIO::IsVolumeWiiDisc(pVolume);
+
+				// Check if we have a Wii disc
+				bWii = DiscIO::IsVolumeWiiDisc(pVolume);
 
                 switch (pVolume->GetCountry())
                 {
@@ -146,7 +151,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
         break;
     }
 
-	// setup paths
+	// Setup paths
     m_strBios = FULL_GC_SYS_DIR + Region + DIR_SEP GC_IPL;
     m_strMemoryCardA = FULL_GC_USER_DIR + Region + DIR_SEP GC_MEMCARDA;
     m_strMemoryCardB = FULL_GC_USER_DIR + Region + DIR_SEP GC_MEMCARDB;

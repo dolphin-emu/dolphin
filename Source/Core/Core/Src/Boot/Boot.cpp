@@ -15,12 +15,13 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
+
+#include "Common.h" // Common
 #include "StringUtil.h"
 #include "FileUtil.h"
+#include "MappedFile.h"
 
-#include "../HLE/HLE.h"
-
+#include "../HLE/HLE.h" // Core
 #include "../PowerPC/PowerPC.h"
 #include "../PowerPC/PPCAnalyst.h"
 #include "../Core.h"
@@ -32,7 +33,7 @@
 #include "../HW/VideoInterface.h"
 #include "../HW/CPU.h"
 
-#include "../Debugger/Debugger_SymbolMap.h"
+#include "../Debugger/Debugger_SymbolMap.h" // Debugger
 #include "../Debugger/Debugger_BreakPoints.h"
 
 #include "Boot_DOL.h"
@@ -42,11 +43,9 @@
 #include "../PatchEngine.h"
 #include "../PowerPC/SignatureDB.h"
 #include "../PowerPC/SymbolDB.h"
-
 #include "../MemTools.h"
-#include "MappedFile.h"
 
-#include "VolumeCreator.h"
+#include "VolumeCreator.h" // DiscIO
 
 void CBoot::Load_FST(bool _bIsWii)
 {
@@ -153,7 +152,7 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
     VideoInterface::PreInit(_StartupPara.bNTSC);
     switch (_StartupPara.m_BootType)
     {
-    // GCM
+    // GCM and Wii
     // ===================================================================================
     case SCoreStartupParameter::BOOT_ISO:
         {
@@ -176,6 +175,7 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
 
             DVDInterface::SetDiscInside(true);
 
+			// Use HLE BIOS or not
             if (_StartupPara.bHLEBios)
             {
                 if (!VolumeHandler::IsWii())
@@ -200,6 +200,9 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
 					}
                 }
             }
+
+			/* Try to load the symbol map if there is one, and then scan it for
+			   and eventually replace code */
             if (LoadMapFromFilename(_StartupPara.m_strFilename, gameID))
                 HLE::PatchFunctions();
         }

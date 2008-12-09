@@ -956,7 +956,7 @@ void CCodeWindow::DoTip(wxString text)
 	#endif
 }
 
-
+// See the comment under BEGIN_EVENT_TABLE for explanation of why we use these two
 void CCodeWindow::OnStatusBar(wxMenuEvent& event)
 {
 	DoTip(pMenuBar->GetHelpString(event.GetId()));
@@ -965,7 +965,6 @@ void CCodeWindow::OnStatusBar_(wxUpdateUIEvent& event)
 {
 	DoTip(pMenuBar->GetHelpString(event.GetId()));
 }
-
 // ===========
 
 

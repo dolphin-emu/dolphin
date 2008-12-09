@@ -343,7 +343,7 @@ void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
 	SConfig::GetInstance().SaveSettings();
 	
 	// Update the status bar
-	main_frame->ModifyStatusBar(WiiLeds->IsChecked(), WiiSpeakers->IsChecked());
+	main_frame->ModifyStatusBar();
 }
 
 void CConfigMain::CloseClick(wxCommandEvent& WXUNUSED (event))
