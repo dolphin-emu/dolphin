@@ -585,10 +585,14 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 		SaveGameConfig();
 
 		wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_("ini"));
-		if(filetype == NULL)
+		if(filetype == NULL) // From extension failed, trying with MIME type now
 		{
-			PanicAlert("Filetype 'ini' is unknown! Will not open!");
-			return;
+			filetype = wxTheMimeTypesManager->GetFileTypeFromMimeType(_("text/plain"));
+			if(filetype == NULL) // MIME type failed, aborting mission
+			{
+				PanicAlert("Filetype 'ini' is unknown! Will not open!");
+				return;
+			}
 		}
 		wxString OpenCommand;
 		OpenCommand = filetype->GetOpenCommand(wxString::FromAscii(GameIniFile.c_str()));
