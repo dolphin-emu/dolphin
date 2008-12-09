@@ -301,25 +301,25 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 		m_RegisterWindow->Show(true);
 	}
 
-	if(bBreakpointWindow)
+	if (bBreakpointWindow)
 	{
 		m_BreakpointWindow = new CBreakPointWindow(this, this);
 		m_BreakpointWindow->Show(true);
 	}
 
-	if(bMemoryWindow)
+	if (bMemoryWindow)
 	{
 		m_MemoryWindow = new CMemoryWindow(this);
 		m_MemoryWindow->Show(true);
 	}
 
-	if(bJitWindow)
+	if (bJitWindow)
 	{
 		m_JitWindow = new CJitWindow(this);
 		m_JitWindow->Show(true);
 	}
 
-	if(bSoundWindow)
+	if (bSoundWindow)
 	{
 		// possible todo: add some kind of if here to? can it fail?
 		CPluginManager::GetInstance().OpenDebug(
@@ -329,7 +329,7 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 		);	
 	} // don't have any else, just ignore it
 
-	if(bVideoWindow)
+	if (bVideoWindow)
 	{
 		// possible todo: add some kind of if here to? can it fail?
 		CPluginManager::GetInstance().OpenDebug(

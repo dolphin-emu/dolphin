@@ -158,7 +158,9 @@ void Run()
 void unknown_instruction(UGeckoInstruction _inst)
 {
 	CCPU::Break();
-	printf("Last PC = %08x : %s\n", last_pc, DisassembleGekko(Memory::ReadUnchecked_U32(last_pc), last_pc));
+	char disasm[256];
+	DisassembleGekko(Memory::ReadUnchecked_U32(last_pc), last_pc, disasm, 256);
+	printf("Last PC = %08x : %s\n", last_pc, disasm);
 	Debugger::PrintCallstack();
 	_dbg_assert_msg_(GEKKO, 0, "\nIntCPU: Unknown instr %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
 }

@@ -1247,61 +1247,61 @@ namespace PPCDisasm
 
 		case 19:
 			switch (PPCGETIDX2(in)) {
-		case 0:
-			mcrf(dp,in,'\0');  /* mcrf */
-			break;
+			case 0:
+				mcrf(dp,in,'\0');  /* mcrf */
+				break;
 
-		case 16:
-			branch(dp,in,"lr",0,0);  /* bclr */
-			break;
+			case 16:
+				branch(dp,in,"lr",0,0);  /* bclr */
+				break;
 
-		case 33:
-			crop(dp,in,"nor","not");  /* crnor */
-			break;
+			case 33:
+				crop(dp,in,"nor","not");  /* crnor */
+				break;
 
-		case 50:
-			nooper(dp,in,"rfi",PPCF_SUPER);
-			break;
+			case 50:
+				nooper(dp,in,"rfi",PPCF_SUPER);
+				break;
 
-		case 129:
-			crop(dp,in,"andc",NULL);  /* crandc */
-			break;
+			case 129:
+				crop(dp,in,"andc",NULL);  /* crandc */
+				break;
 
-		case 150:
-			nooper(dp,in,"isync",0);
-			break;
+			case 150:
+				nooper(dp,in,"isync",0);
+				break;
 
-		case 193:
-			crop(dp,in,"xor","clr");  /* crxor */
-			break;
+			case 193:
+				crop(dp,in,"xor","clr");  /* crxor */
+				break;
 
-		case 225:
-			crop(dp,in,"nand",NULL);  /* crnand */
-			break;
+			case 225:
+				crop(dp,in,"nand",NULL);  /* crnand */
+				break;
 
-		case 257:
-			crop(dp,in,"and",NULL);  /* crand */
-			break;
+			case 257:
+				crop(dp,in,"and",NULL);  /* crand */
+				break;
 
-		case 289:
-			crop(dp,in,"eqv","set");  /* creqv */
-			break;
+			case 289:
+				crop(dp,in,"eqv","set");  /* creqv */
+				break;
 
-		case 417:
-			crop(dp,in,"orc",NULL);  /* crorc */
-			break;
+			case 417:
+				crop(dp,in,"orc",NULL);  /* crorc */
+				break;
 
-		case 449:
-			crop(dp,in,"or","move");  /* cror */
-			break;
+			case 449:
+				crop(dp,in,"or","move");  /* cror */
+				break;
 
-		case 528:
-			branch(dp,in,"ctr",0,0);  /* bcctr */
-			break;
+			case 528:
+				branch(dp,in,"ctr",0,0);  /* bcctr */
+				break;
 
-		default:
-			ill(dp,in);
-			break;
+			default:
+				ill(dp,in);
+				break;
 			}
 			break;
 
@@ -1346,24 +1346,24 @@ namespace PPCDisasm
 
 		case 30:
 			switch (in & 0x1c) {
-		case 0:
-			rld(dp,in,"icl",0);  /* rldicl */
-			break;
-		case 1:
-			rld(dp,in,"icr",0);  /* rldicr */
-			break;
-		case 2:
-			rld(dp,in,"ic",0);   /* rldic */
-			break;
-		case 3:
-			rld(dp,in,"imi",0);  /* rldimi */
-			break;
-		case 4:
-			rld(dp,in,in&2?"cl":"cr",1);  /* rldcl, rldcr */
-			break;
-		default:
-			ill(dp,in);
-			break;
+			case 0:
+				rld(dp,in,"icl",0);  /* rldicl */
+				break;
+			case 1:
+				rld(dp,in,"icr",0);  /* rldicr */
+				break;
+			case 2:
+				rld(dp,in,"ic",0);   /* rldic */
+				break;
+			case 3:
+				rld(dp,in,"imi",0);  /* rldimi */
+				break;
+			case 4:
+				rld(dp,in,in&2?"cl":"cr",1);  /* rldcl, rldcr */
+				break;
+			default:
+				ill(dp,in);
+				break;
 			}
 			break;
 
@@ -1970,228 +1970,228 @@ namespace PPCDisasm
 
 		case 58:
 			switch (in & 3) {
-		case 0:
-			ldst(dp,in&~3,"ld",'r',PPCF_64);
-			break;
-		case 1:
-			ldst(dp,in&~3,"ldu",'r',PPCF_64);
-			break;
-		case 2:
-			ldst(dp,in&~3,"lwa",'r',PPCF_64);
-			break;
-		default:
-			ill(dp,in);
-			break;
+			case 0:
+				ldst(dp,in&~3,"ld",'r',PPCF_64);
+				break;
+			case 1:
+				ldst(dp,in&~3,"ldu",'r',PPCF_64);
+				break;
+			case 2:
+				ldst(dp,in&~3,"lwa",'r',PPCF_64);
+				break;
+			default:
+				ill(dp,in);
+				break;
 			}
 			break;
 
 		case 59:
 			switch (in & 0x3e) {
-		case 36:
-			fdabc(dp,in,"divs",6,0);
-			break;
+			case 36:
+				fdabc(dp,in,"divs",6,0);
+				break;
 
-		case 40:
-			fdabc(dp,in,"subs",6,0);
-			break;
+			case 40:
+				fdabc(dp,in,"subs",6,0);
+				break;
 
-		case 42:
-			fdabc(dp,in,"adds",6,0);
-			break;
+			case 42:
+				fdabc(dp,in,"adds",6,0);
+				break;
 
-		case 44:
-			fdabc(dp,in,"sqrts",2,0);
-			break;
+			case 44:
+				fdabc(dp,in,"sqrts",2,0);
+				break;
 
-		case 48:
-			fdabc(dp,in,"res",2,0);
-			break;
+			case 48:
+				fdabc(dp,in,"res",2,0);
+				break;
 
-		case 50:
-			fdabc(dp,in,"muls",5,0);
-			break;
+			case 50:
+				fdabc(dp,in,"muls",5,0);
+				break;
 
-		case 56:
-			fdabc(dp,in,"msubs",7,0);
-			break;
+			case 56:
+				fdabc(dp,in,"msubs",7,0);
+				break;
 
-		case 58:
-			fdabc(dp,in,"madds",7,0);
-			break;
+			case 58:
+				fdabc(dp,in,"madds",7,0);
+				break;
 
-		case 60:
-			fdabc(dp,in,"nmsubs",7,0);
-			break;
+			case 60:
+				fdabc(dp,in,"nmsubs",7,0);
+				break;
 
-		case 62:
-			fdabc(dp,in,"nmadds",7,0);
-			break;
+			case 62:
+				fdabc(dp,in,"nmadds",7,0);
+				break;
 
-		default:
-			ill(dp,in);
-			break;
+			default:
+				ill(dp,in);
+				break;
 			}
 			break;
 
 		case 62:
 			switch (in & 3) {
-		case 0:
-			ldst(dp,in&~3,"std",'r',PPCF_64);
-			break;
-		case 1:
-			ldst(dp,in&~3,"stdu",'r',PPCF_64);
-			break;
-		default:
-			ill(dp,in);
-			break;
+			case 0:
+				ldst(dp,in&~3,"std",'r',PPCF_64);
+				break;
+			case 1:
+				ldst(dp,in&~3,"stdu",'r',PPCF_64);
+				break;
+			default:
+				ill(dp,in);
+				break;
 			}
 			break;
 
 		case 63:
 			if (in & 32) {
 				switch (in & 0x1e) {
-		case 4:
-			fdabc(dp,in,"div",6,0);
-			break;
+				case 4:
+					fdabc(dp,in,"div",6,0);
+					break;
 
-		case 8:
-			fdabc(dp,in,"sub",6,0);
-			break;
+				case 8:
+					fdabc(dp,in,"sub",6,0);
+					break;
 
-		case 10:
-			fdabc(dp,in,"add",6,0);
-			break;
+				case 10:
+					fdabc(dp,in,"add",6,0);
+					break;
 
-		case 12:
-			fdabc(dp,in,"sqrt",2,0);
-			break;
+				case 12:
+					fdabc(dp,in,"sqrt",2,0);
+					break;
 
-		case 14:
-			fdabc(dp,in,"sel",7,0);
-			break;
+				case 14:
+					fdabc(dp,in,"sel",7,0);
+					break;
 
-		case 18:
-			fdabc(dp,in,"mul",5,0);
-			break;
+				case 18:
+					fdabc(dp,in,"mul",5,0);
+					break;
 
-		case 20:
-			fdabc(dp,in,"rsqrte",2,0);
-			break;
+				case 20:
+					fdabc(dp,in,"rsqrte",2,0);
+					break;
 
-		case 24:
-			fdabc(dp,in,"msub",7,0);
-			break;
+				case 24:
+					fdabc(dp,in,"msub",7,0);
+					break;
 
-		case 26:
-			fdabc(dp,in,"madd",7,0);
-			break;
+				case 26:
+					fdabc(dp,in,"madd",7,0);
+					break;
 
-		case 28:
-			fdabc(dp,in,"nmsub",7,0);
-			break;
+				case 28:
+					fdabc(dp,in,"nmsub",7,0);
+					break;
 
-		case 30:
-			fdabc(dp,in,"nmadd",7,0);
-			break;
+				case 30:
+					fdabc(dp,in,"nmadd",7,0);
+					break;
 
-		default:
-			ill(dp,in);
-			break;
+				default:
+					ill(dp,in);
+					break;
 				}
 			}
 
 			else {
 				switch (PPCGETIDX2(in)) {
-		case 0:
-			fcmp(dp,in,'u');
-			break;
+				case 0:
+					fcmp(dp,in,'u');
+					break;
 
-		case 12:
-			fdabc(dp,in,"rsp",10,0);
-			break;
+				case 12:
+					fdabc(dp,in,"rsp",10,0);
+					break;
 
-		case 14:
-			fdabc(dp,in,"ctiw",10,0);
-			break;
+				case 14:
+					fdabc(dp,in,"ctiw",10,0);
+					break;
 
-		case 15:
-			fdabc(dp,in,"ctiwz",10,0);
-			break;
+				case 15:
+					fdabc(dp,in,"ctiwz",10,0);
+					break;
 
-		case 32:
-			fcmp(dp,in,'o');
-			break;
+				case 32:
+					fcmp(dp,in,'o');
+					break;
 
-		case 38:
-			mtfsb(dp,in,1);
-			break;
+				case 38:
+					mtfsb(dp,in,1);
+					break;
 
-		case 40:
-			fdabc(dp,in,"neg",10,0);
-			break;
+				case 40:
+					fdabc(dp,in,"neg",10,0);
+					break;
 
-		case 64:
-			mcrf(dp,in,'s');  /* mcrfs */
-			break;
+				case 64:
+					mcrf(dp,in,'s');  /* mcrfs */
+					break;
 
-		case 70:
-			mtfsb(dp,in,0);
-			break;
+				case 70:
+					mtfsb(dp,in,0);
+					break;
 
-		case 72:
-			fdabc(dp,in,"mr",10,0);
-			break;
+				case 72:
+					fdabc(dp,in,"mr",10,0);
+					break;
 
-		case 134:
-			if (!(in & 0x006f0800)) {
-				sprintf(dp->opcode,"mtfsfi%s",rcsel[in&1]);
-				sprintf(dp->operands,"cr%d,%d",(int)PPCGETCRD(in),
-					(int)(in & 0xf000)>>12);
-			}
-			else
-				ill(dp,in);
-			break;
+				case 134:
+					if (!(in & 0x006f0800)) {
+						sprintf(dp->opcode,"mtfsfi%s",rcsel[in&1]);
+						sprintf(dp->operands,"cr%d,%d",(int)PPCGETCRD(in),
+							(int)(in & 0xf000)>>12);
+					}
+					else
+						ill(dp,in);
+					break;
 
-		case 136:
-			fdabc(dp,in,"nabs",10,0);
-			break;
+				case 136:
+					fdabc(dp,in,"nabs",10,0);
+					break;
 
-		case 264:
-			fdabc(dp,in,"abs",10,0);
-			break;
+				case 264:
+					fdabc(dp,in,"abs",10,0);
+					break;
 
-		case 583:
-			if (in & (PPCAMASK|PPCBMASK))
-				ill(dp,in);
-			else
-				dab(dp,in,"mffs",4,0,0,-1,0);
-			break;
+				case 583:
+					if (in & (PPCAMASK|PPCBMASK))
+						ill(dp,in);
+					else
+						dab(dp,in,"mffs",4,0,0,-1,0);
+					break;
 
-		case 711:
-			if (!(in & 0x02010000)) {
-				sprintf(dp->opcode,"mtfsf%s",rcsel[in&1]);
-				sprintf(dp->operands,"0x%x,%d",
-					(unsigned)(in & 0x01fe)>>17,(int)PPCGETB(in));
-			}
-			else
-				ill(dp,in);
-			break;
+				case 711:
+					if (!(in & 0x02010000)) {
+						sprintf(dp->opcode,"mtfsf%s",rcsel[in&1]);
+						sprintf(dp->operands,"0x%x,%d",
+							(unsigned)(in & 0x01fe)>>17,(int)PPCGETB(in));
+					}
+					else
+						ill(dp,in);
+					break;
 
-		case 814:
-			fdabc(dp,in,"fctid",10,PPCF_64);
-			break;
+				case 814:
+					fdabc(dp,in,"fctid",10,PPCF_64);
+					break;
 
-		case 815:
-			fdabc(dp,in,"fctidz",10,PPCF_64);
-			break;
+				case 815:
+					fdabc(dp,in,"fctidz",10,PPCF_64);
+					break;
 
-		case 846:
-			fdabc(dp,in,"fcfid",10,PPCF_64);
-			break;
+				case 846:
+					fdabc(dp,in,"fcfid",10,PPCF_64);
+					break;
 
-		default:
-			ill(dp,in);
-			break;
+				default:
+					ill(dp,in);
+					break;
 				}
 			}
 			break;
@@ -2204,16 +2204,17 @@ namespace PPCDisasm
 	}
 } 
 
-// ---------------------------------------------------------------------------
+// What were MS thinking?
+#ifdef _WIN32
+#define snprintf _snprintf
+#endif
 
 // simplified interface
-
-const char *DisassembleGekko(unsigned int opcode, unsigned int curInstAddr)
+void DisassembleGekko(unsigned int opcode, unsigned int curInstAddr, char *dest, int max_size)
 {
 	char opcodeStr[64], operandStr[64];
 	PPCDisasm::DisasmPara_PPC dp;
-	static char buf[128];
-	static unsigned int opc, adr;
+	unsigned int opc, adr;
 
 	opc = opcode;
 	adr = curInstAddr;
@@ -2225,9 +2226,7 @@ const char *DisassembleGekko(unsigned int opcode, unsigned int curInstAddr)
 
 	PPCDisasm::PPC_Disassemble(&dp);
 
-	//sprintf(buf, "%-10s   %s", opcodeStr, operandStr);
-	sprintf(buf, "%s\t%s", opcodeStr, operandStr);
-	return buf;
+	snprintf(dest, max_size, "%s\t%s", opcodeStr, operandStr);
 }
 
 

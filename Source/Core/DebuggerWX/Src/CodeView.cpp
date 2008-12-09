@@ -176,8 +176,9 @@ void CCodeView::OnMouseUpL(wxMouseEvent& event)
 
 u32 CCodeView::AddrToBranch(u32 addr)
 {
-	const char *temp = debugger->disasm(addr);
-	const char *mojs = strstr(temp, "->0x");
+	char disasm[256];
+	debugger->disasm(addr, disasm, 256);
+	const char *mojs = strstr(disasm, "->0x");
 	if (mojs)
 	{
 		u32 dest;
@@ -204,8 +205,12 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 		    wxTheClipboard->SetData(new wxTextDataObject(wxString::Format(_T("%08x"), selection)));
 		    break;
 
-	    case IDM_COPYCODE:
-		    wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(debugger->disasm(selection)))); //Have to manually convert from char* to wxString, don't have to in Windows?
+		case IDM_COPYCODE:
+		{
+			char disasm[256];
+			debugger->disasm(selection, disasm, 256);
+		    wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(disasm))); //Have to manually convert from char* to wxString, don't have to in Windows?
+		}
 		    break;
 
 	    case IDM_COPYHEX:
@@ -225,7 +230,9 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 				u32 start = symbol->address;
 				u32 end = start + symbol->size;
 				for (u32 addr = start; addr != end; addr += 4) {
-					text = text + StringFromFormat("%08x: ", addr) + debugger->disasm(addr) + "\r\n";
+					char disasm[256];
+					debugger->disasm(addr, disasm, 256);
+					text = text + StringFromFormat("%08x: ", addr) + disasm + "\r\n";
 				}
 				wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(text.c_str())));
 			}
@@ -423,8 +430,8 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 
 		if (debugger->isAlive())
 		{
-			char dis[256] = {0};
-			strcpy(dis, debugger->disasm(address));
+			char dis[256];
+			debugger->disasm(address, dis, 256);
 			char* dis2 = strchr(dis, '\t');
 			char desc[256] = "";
 

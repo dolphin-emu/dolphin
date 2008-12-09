@@ -327,7 +327,7 @@ bool SymbolDB::SaveMap(const char *filename, bool WithCodes) const
     {
 		// Save a map file
         const Symbol &rSymbol = itr->second;
-		if(!WithCodes)
+		if (!WithCodes)
 		{
 			fprintf(f,"%08x %08x %08x %i %s\n", rSymbol.address, rSymbol.size, rSymbol.address,
 			0, rSymbol.name.c_str());
@@ -345,9 +345,9 @@ bool SymbolDB::SaveMap(const char *filename, bool WithCodes) const
 			/* To make nice straight lines we fill out the name with spaces, we also cut off
 			   all names longer than 25 letters */
 			std::string TempSym;
-			for(u32 i = 0; i < 25; i++)
+			for (u32 i = 0; i < 25; i++)
 			{			
-				if(i < LastSymbolName.size())
+				if (i < LastSymbolName.size())
 					TempSym += LastSymbolName[i];
 				else
 					TempSym += " ";
@@ -355,16 +355,17 @@ bool SymbolDB::SaveMap(const char *filename, bool WithCodes) const
 
 			// We currently skip the last block because we don't know how long it goes
 			int space;
-			if(itr != functions.end())
+			if (itr != functions.end())
 				space = itr->second.address - LastAddress;
 			else
 				space = 0;
 			
-			for(int i = 0; i < space; i+=4)
+			for (int i = 0; i < space; i += 4)
 			{
 				int Address = LastAddress + i;
-				fprintf(f,"%08x %i %20s %s\n", Address,
-                                        0, TempSym.c_str(), debugger->disasm(Address));				
+				char disasm[256];
+				debugger->disasm(Address, disasm, 256);
+				fprintf(f,"%08x %i %20s %s\n", Address, 0, TempSym.c_str(), disasm);
 			}
 			fprintf(f, "\n"); // Write a blank line after each block
 		}		

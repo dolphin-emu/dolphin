@@ -125,9 +125,11 @@ void Console_Submit(const char *cmd)
 		u32 end;
 		TCHAR temp[256];
 		sscanf(cmd, "%s %08x %08x", temp, &start, &end);
+		char disasm[256];
 		for (u32 addr = start; addr <= end; addr += 4) {
 			u32 data = Memory::ReadUnchecked_U32(addr);
-			printf("%08x: %08x: %s\n", addr, data, DisassembleGekko(data, addr));	
+			DisassembleGekko(data, addr, disasm, 256);
+			printf("%08x: %08x: %s\n", addr, data, disasm);	
 		}
 	}
 	CASE("help")

@@ -60,6 +60,7 @@
 #ifdef _WIN32
 #define strcasecmp _stricmp
 #define unlink _unlink
+#define snprintf _snprintf
 #else
 #define _stricmp strcasecmp
 #define _unlink unlink

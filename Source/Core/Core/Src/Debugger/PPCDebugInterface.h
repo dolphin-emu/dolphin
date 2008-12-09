@@ -11,8 +11,8 @@ class PPCDebugInterface : public DebugInterface
 {
 public:
 	PPCDebugInterface(){} 
-	virtual const char *disasm(unsigned int address);
-	virtual const char *getRawMemoryString(unsigned int address);
+	virtual void disasm(unsigned int address, char *dest, int max_size);
+	virtual void getRawMemoryString(unsigned int address, char *dest, int max_size);
 	virtual int getInstructionSize(int instruction) {return 4;}
 	virtual bool isAlive();
 	virtual bool isBreakpoint(unsigned int address);

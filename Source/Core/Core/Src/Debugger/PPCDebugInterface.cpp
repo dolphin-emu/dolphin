@@ -26,39 +26,43 @@
 #include "../PowerPC/SymbolDB.h"
 
 // Not thread safe.
-const char *PPCDebugInterface::disasm(unsigned int address) 
+void PPCDebugInterface::disasm(unsigned int address, char *dest, int max_size) 
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		if (Memory::IsRAMAddress(address))
 		{
 			u32 op = Memory::Read_Instruction(address);
-			return DisassembleGekko(op, address);
+			DisassembleGekko(op, address, dest, max_size);
 		}
-		return "No RAM here - invalid";
+		else
+		{
+			strcpy(dest, "No RAM here - invalid");
+		}
 	}
-
-	static const char tmp[] = "<unknown>";
-	return tmp;
+	else
+	{
+		strcpy(dest, "<unknown>");
+	}
 }
 
-const char *PPCDebugInterface::getRawMemoryString(unsigned int address) 
+void PPCDebugInterface::getRawMemoryString(unsigned int address, char *dest, int max_size)
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		if (address < 0xE0000000)
 		{
-			static char str[256] ={0};
-			if (sprintf(str,"%08X",readMemory(address))!=8) {
-				PanicAlert("getRawMemoryString -> WTF! ( as read somewhere;) )");
-				return ":(";
-			}
-			return str;
+			snprintf(dest, max_size, "%08X", readMemory(address));
 		}
-		return "No RAM";
+		else
+		{
+			strcpy(dest, "--------");
+		}
 	}
-	static const char tmp[] = "<unknown>";
-	return tmp;
+	else
+	{
+		strcpy(dest, "<unknwn>");  // bad spelling - 8 chars
+	}
 }
 
 unsigned int PPCDebugInterface::readMemory(unsigned int address)

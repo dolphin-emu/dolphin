@@ -170,9 +170,13 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 	    }
 		    break;
 
-	    case IDM_COPYCODE:
-		    wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(debugger->disasm(selection)))); //Have to manually convert from char* to wxString, don't have to in Windows?
+		case IDM_COPYCODE:
+		{
+			char disasm[256];
+			debugger->disasm(selection, disasm, 256);
+		    wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(disasm))); //Have to manually convert from char* to wxString, don't have to in Windows?
 		    break;
+		}
 
 	    case IDM_COPYHEX:
 	    {
@@ -303,8 +307,8 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 		dc.SetBrush(currentBrush);
 		dc.SetTextForeground(_T("#600000"));
 		dc.DrawText(temp, 17, rowY1);
-		char mem[256] = {0};
-		strcpy(mem, debugger->getRawMemoryString(address));
+		char mem[256];
+		debugger->getRawMemoryString(address, mem, 256);
 		dc.SetTextForeground(_T("#000080"));
 		dc.DrawText(wxString::FromAscii(mem), 17+fontSize*(8), rowY1);
 		dc.SetTextForeground(_T("#000000"));
@@ -312,7 +316,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 		if (debugger->isAlive())
 		{
 			char dis[256] = {0};
-			strcpy(dis, debugger->disasm(address));
+			debugger->disasm(address, dis, 256);
 			char* dis2 = strchr(dis, '\t');
 			char desc[256] = "";
 
