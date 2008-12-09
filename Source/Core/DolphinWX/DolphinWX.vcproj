@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="DolphinWX"
 	ProjectGUID="{A72606EF-C5C1-4954-90AD-F0F93A8D97D9}"
 	RootNamespace="DolphinWX"
@@ -239,6 +239,7 @@
 				Name="VCPostBuildEventTool"
 				Description="Copying Data\* to $(TargetDir)"
 				CommandLine="xcopy &quot;$(SolutionDir)..\Data&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;echo Copying External .dlls&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\Cg64\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\SDL\x64\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\WiiUse\X64\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;"
+				ExcludedFromBuild="false"
 			/>
 		</Configuration>
 		<Configuration
@@ -568,6 +569,7 @@
 				Name="VCPostBuildEventTool"
 				Description="Copying Data\* to $(TargetDir)"
 				CommandLine="xcopy &quot;$(SolutionDir)..\Data&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;echo Copying External .dlls&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\Cg\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\SDL\win32\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\WiiUse\Win32\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;"
+				ExcludedFromBuild="false"
 			/>
 		</Configuration>
 		<Configuration
@@ -609,7 +611,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="..\..\..\Externals\LZO;..\Common\Src;..\Core\Src;..\DiscIO\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\DebuggerWX\src"
-				PreprocessorDefinitions="WIN32;__WXMSW__;_WINDOWS;NOPCH;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
+				PreprocessorDefinitions="DEBUGFAST;WIN32;__WXMSW__;_WINDOWS;NOPCH;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -647,6 +649,7 @@
 				AdditionalLibraryDirectories=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				GenerateMapFile="false"
 				SubSystem="2"
 				BaseAddress="0x00400000"
 				RandomizedBaseAddress="1"
@@ -677,6 +680,7 @@
 				Name="VCPostBuildEventTool"
 				Description="Copying Data\* to $(TargetDir)"
 				CommandLine="xcopy &quot;$(SolutionDir)..\Data&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;echo Copying External .dlls&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\Cg64\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\SDL\x64\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\WiiUse\X64\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;"
+				ExcludedFromBuild="false"
 			/>
 		</Configuration>
 	</Configurations>
@@ -784,6 +788,10 @@
 			</File>
 			<File
 				RelativePath=".\src\Frame.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\FrameWiimote.cpp"
 				>
 			</File>
 			<File
