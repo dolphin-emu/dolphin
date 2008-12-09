@@ -5,6 +5,7 @@ Import('env')
 import sys
 sys.path.append(env['base_dir']+'SconsTests')
 import utils
+import platform
 
 name = "Plugin_VideoOGL"
 
@@ -41,7 +42,7 @@ compileFlags = [
 linkFlags = [
 	]
 libs = [
-	'videocommon', 'common', 'GLEW',
+	'videocommon', 'common',
 	]
 
 gfxenv = env.Clone()
@@ -59,59 +60,39 @@ if gfxenv['osx64']:
 			'-x',
 			'objective-c++',
 			]
-	linkFlags += 	[
-			'-framework',
-			'cocoa',
-			'-arch',
-			'x86_64'
-			]
-
-
 
 
         
 tests = {'CheckPKG' : utils.CheckPKG}
-conf = gfxenv.Configure(custom_tests = tests)
-
-if not conf.CheckPKG('gl'):
-
-        if not conf.CheckLibWithHeader('gl', 'gl.h', 'c', 1):
-                print name + " must have opengl to be build"
-
-else:
-        gfxenv.ParseConfig("pkg-config gl --cflags --libs")
-        
-#if not conf.CheckPKG('glu')):
-
-#        Return()
-
-
-# check for xxf86vm
-        
-gfxenv['HAVE_XXF86VM'] =  conf.CheckPKG('xxf86vm')
-
-conf.Finish()
-
-if gfxenv['HAVE_XXF86VM']:
-        gfxenv.ParseConfig("pkg-config xxf86vm --cflags --libs")
-
-
-#gfxenv.ParseConfig("pkg-config glu --cflags --libs")
+conf = gfxenv.Configure(custom_tests = tests,
+                        config_h="Source/Core/Common/Src/Config.h")
 
 if sys.platform == 'darwin':
 
 	# Use libraries from MacPorts.
 	compileFlags.append('-I/opt/local/include')
 	linkFlags.append('-L/opt/local/lib')
-	# Use frameworks instead of plain libs, when possible.
-	linkFlags += [
-		'-Wl,-framework,%s' % framework
-		for framework in [ 'Cg', 'OpenGL' ]
-		]
+        conf.CheckPKG('cocoa')
+        conf.CheckPKG('OpenGL')
 else:
-	# Libraries without pkg-config support.
-	libs += [ 'Cg', 'CgGL', 'GLU' ]
+        if not (conf.CheckPKG('GL') and conf.CheckPKG('GLU')): 
+                print name + " must have opengl and glu to be build"
+                Return()
 
+if not conf.CheckPKG('Cg') or not conf.CheckPKG('CgGL'): 
+        print name + " must have cg and cggl to be build"
+        Return()
+
+if not conf.CheckPKG('GLEW'):
+        print name + " must have glew to be build"
+        Return()
+
+# check for xxf86vm
+        
+gfxenv['HAVE_XXF86VM'] =  conf.CheckPKG('xxf86vm')
+conf.Define('HAVE_XXF86VM', gfxenv['HAVE_XXF86VM'])
+
+conf.Finish()
 
 # change to True if you want to compile with SDL
 useSDL = not (gfxenv['HAVE_X11'] and gfxenv['HAVE_XXF86VM'])

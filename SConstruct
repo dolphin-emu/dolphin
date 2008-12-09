@@ -193,8 +193,8 @@ env['HAVE_X11'] = conf.CheckPKG('x11')
 #osx 64 specifics
 if env['osx64']:
     # SDL and WX are broken on osx 64
-    env['HAVE_SDL'] = 0
-    env['HAVE_WX'] = 0;
+#    env['HAVE_SDL'] = 0
+#    env['HAVE_WX'] = 0;
     compileFlags += ['-arch' , 'x86_64', '-DOSX64']
 
 # Gui less build

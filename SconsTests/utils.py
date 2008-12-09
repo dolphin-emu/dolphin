@@ -1,4 +1,5 @@
 import os
+import platform
 
 # methods that should be added to env
 def filterWarnings(self, flags):
@@ -15,13 +16,54 @@ def CheckPKGConfig(context, version):
     context.Result( ret )
     return ret
 
-def CheckPKG(context, name):
-    context.Message( 'Checking for %s... ' % name )
+def CheckFramework(context, name):
+    ret = 0
+    if (platform.system() == 'darwin'):
+        context.Message( '\nLooking for framework %s... ' % name )
+        lastLINKFLAGS = context.env['LINKFLAGS']
+        context.env.Append(LINKFLAGS = '-Wl,-framework,%s' % name)
+        ret = context.TryLink("""
+              int main(int argc, char **argv) {
+                return 0;
+              }
+              """, '.c')
+        if not ret:
+            context.env.Replace(LIBS = lastLIBS)
+
+    return ret
+
+def CheckLib(context, name):
+    context.Message( 'Looking for lib %s... ' % name )
+    lastLIBS = context.env['LIBS']
+    context.env.Append(LIBS = name)
+    ret = context.TryLink("""
+              int main(int argc, char **argv) {
+                return 1;
+              }
+              """,'.c')
+    if not ret:
+        context.env.Replace(LIBS = lastLIBS)
+            
+    return ret
+
+def ConfigPKG(context, name):
+    context.Message( '\nUsing pkg-config for %s... ' % name )
     ret = context.TryAction('pkg-config --exists \'%s\'' % name)[0]
     context.Result(  ret )
     if ret:
         context.env.ParseConfig('pkg-config --cflags --libs \'%s\'' % name)
     return int(ret)
+    
+def CheckPKG(context, name):
+    context.Message( 'Checking for %s... ' % name )
+    ret = 1
+    if not CheckFramework(context, name):
+        if not ConfigPKG(context, name.lower()):
+            ret = CheckLib(context, name) 
+
+    context.Result(ret)
+    return int(ret)
+
 
 
 def CheckSDL(context, version):
