@@ -319,17 +319,26 @@ std::string GetUserDirectory()
 
 u64 GetSize(const char *filename)
 {
-	if(!Exists(filename))
+	if (!Exists(filename))
 		return 0;
-
+#ifdef _WIN32
+	// stat doesn't support 64-bit file sizes on Win32.
+	FILE *pFile = fopen(filename, "rb");
+	if (pFile)
+	{
+		fseek(pFile, 0, SEEK_END);
+		u64 pos = ftell(pFile);
+		fclose(pFile);
+		return pos;
+	}
+#else
     struct stat buf;
     if (stat(filename, &buf) == 0) {
         return buf.st_size;
     }
     int err = errno;
-    
-	PanicAlert("Error accessing %s: %s", filename, strerror(err));
-    
+   	PanicAlert("Error accessing %s: %s", filename, strerror(err));
+#endif 
     return 0;
 }
 
