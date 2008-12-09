@@ -25,20 +25,18 @@ extern const char* GetGRPName(unsigned int index);
 
 BEGIN_EVENT_TABLE(CRegisterWindow, wxDialog)
 	EVT_CLOSE(CRegisterWindow::OnClose)
-	EVT_MENU(wxID_REFRESH, CRegisterWindow::OnRefresh)
 END_EVENT_TABLE()
 
 CRegisterWindow::CRegisterWindow(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
-	, m_GPRListView(NULL)
+	, m_GPRGridView(NULL)
 {
 	CreateGUIControls();
 }
 
-
 CRegisterWindow::~CRegisterWindow()
-{}
-
+{
+}
 
 void CRegisterWindow::Save(IniFile& _IniFile) const
 {
@@ -47,7 +45,6 @@ void CRegisterWindow::Save(IniFile& _IniFile) const
 	_IniFile.Set("RegisterWindow", "w", GetSize().GetWidth());
 	_IniFile.Set("RegisterWindow", "h", GetSize().GetHeight());
 }
-
 
 void CRegisterWindow::Load(IniFile& _IniFile)
 {
@@ -59,39 +56,30 @@ void CRegisterWindow::Load(IniFile& _IniFile)
 	SetSize(x, y, w, h);
 }
 
-
 void CRegisterWindow::CreateGUIControls()
 {
 	SetTitle(wxT("Registers"));
 	SetIcon(wxNullIcon);
-	SetSize(8, 8, 400, 370);
 	Center();
 
-	m_GPRListView = new CRegisterView(this, ID_GPR, wxDefaultPosition, GetSize(),
-			wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING);
+	wxBoxSizer *sGrid = new wxBoxSizer(wxVERTICAL);
+	m_GPRGridView = new CRegisterView(this, ID_GPR);
+	sGrid->Add(m_GPRGridView, 1, wxGROW);
+	SetSizer(sGrid);
+	sGrid->SetSizeHints(this);
 
 	NotifyUpdate();
 }
 
-
-void CRegisterWindow::OnClose(wxCloseEvent& /*event*/)
+void CRegisterWindow::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	Hide();
 }
 
-void CRegisterWindow::OnRefresh(wxCommandEvent& WXUNUSED (event))
-{
-	m_GPRListView->Refresh();
-	m_GPRListView->Update();
-}
-
-
 void CRegisterWindow::NotifyUpdate()
-{
-	if (m_GPRListView != NULL)
+{	
+	if (m_GPRGridView != NULL)
 	{
-		m_GPRListView->Update();
+		m_GPRGridView->Update();
 	}
 }
-
-

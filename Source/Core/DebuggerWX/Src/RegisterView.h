@@ -18,30 +18,35 @@
 #ifndef __REGISTERVIEW_h__
 #define __REGISTERVIEW_h__
 
-#include <wx/listctrl.h>
+#include <wx/grid.h>
 
 #include "Common.h"
 
+class CRegTable
+	: public wxGridTableBase
+{
+    public:
+		CRegTable(){;}
+        int GetNumberCols(void){return 4;}
+        int GetNumberRows(void){return 16;}
+		bool IsEmptyCell(int, int){return false;}
+        wxString GetValue(int, int);
+        void SetValue(int, int, const wxString &);
+		wxGridCellAttr *GetAttr(int, int, wxGridCellAttr::wxAttrKind);
+ 
+    private:
+        DECLARE_NO_COPY_CLASS(CRegTable);
+};
+
 class CRegisterView
-	: public wxListCtrl
+	: public wxGrid
 {
 	public:
-
-		CRegisterView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style);
+		CRegisterView(wxWindow* parent, wxWindowID id);
 
 		void Update();
-		void Refresh();
-
-
-	private:
-
-		DECLARE_EVENT_TABLE()
 
 		u32 m_CachedRegs[32];
 		bool m_CachedRegHasChanged[32];
-		#ifdef _WIN32
-		virtual bool MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem);
-		#endif
 };
-
 #endif

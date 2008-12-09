@@ -19,140 +19,59 @@
 #include "RegisterView.h"
 #include "PowerPC/PowerPC.h"
 
-extern const char* GetGRPName(unsigned int index);
+extern const char* GetGPRName(unsigned int index);
 
 
-BEGIN_EVENT_TABLE(CRegisterView, wxListCtrl)
-END_EVENT_TABLE()
-
-CRegisterView::CRegisterView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
-	: wxListCtrl(parent, id, pos, size, style)
+wxString CRegTable::GetValue(int row, int col)
 {
-	InsertColumn(1, wxT("Reg 16-31"), wxLIST_FORMAT_LEFT, 100);
-	InsertColumn(0, wxT("Value"), wxLIST_FORMAT_CENTER, 80);
-	InsertColumn(0, wxT("Reg 0-15"), wxLIST_FORMAT_LEFT, 100);
-	InsertColumn(0, wxT("Value"), wxLIST_FORMAT_CENTER, 80);
+	if (col % 2 == 0)
+		return wxString::FromAscii(GetGPRName(16*col/2 + row));
+	else
+		return wxString::Format(wxT("0x%08x"), GPR(col == 1 ? row : 16 + row));
+}
 
-	SetFont(wxFont(9, wxSWISS, wxNORMAL, wxNORMAL, false, wxT("Segoe UI")));
+void CRegTable::SetValue(int, int, const wxString &)
+{
+}
 
-	for (int i = 0; i < 16; i++)
-	{
-		// 0-15
-		int Item = InsertItem(0, wxString::FromAscii(GetGRPName(i)));
+wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
+{
+	wxGridCellAttr *attr = new wxGridCellAttr();
 
-		// 16-31
-		SetItem(Item, 2, wxString::FromAscii(GetGRPName(16 + i)));
+	attr->SetBackgroundColour(wxColour(wxT("#FFFFFF")));
+	attr->SetFont(wxFont(9, wxMODERN, wxNORMAL, wxNORMAL, false, wxT("monospace")));
+	attr->SetAlignment(col & 1 ? wxALIGN_CENTER : wxALIGN_LEFT, wxALIGN_CENTER);
 
-		// just for easy sort
+	if (col % 2 == 0)
+		attr->SetTextColour(wxColour(wxT("#000000")));
+	else
+		attr->SetTextColour(((CRegisterView*)GetView())->m_CachedRegHasChanged[col == 1 ? row : 16 + row]
+			? wxColor(wxT("#FF0000")) : wxColor(wxT("#000000")));
 
-		wxListItem item;
-		item.SetId(Item);
-		item.SetBackgroundColour(0xFFFFFF);
-		item.SetData(i);
-		SetItem(item);
-	}
-
-	Refresh();
+	attr->IncRef();
+	return attr;
 }
 
 
-void
-CRegisterView::Update()
+CRegisterView::CRegisterView(wxWindow *parent, wxWindowID id)
+	: wxGrid(parent, id)
 {
-	for (size_t i = 0; i < 16; i++)
-	{
-		// 0-15
-		if (m_CachedRegs[i] != GPR(i))
-		{
-			m_CachedRegHasChanged[i] = true;
-		}
-		else
-		{
-			m_CachedRegHasChanged[i] = false;
-		}
+	SetTable(new CRegTable(), true);
+	EnableGridLines(false);
+	SetRowLabelSize(0);
+	SetColLabelSize(0);
+	DisableDragGridSize();
 
+	AutoSizeColumns();
+}
+
+void CRegisterView::Update()
+{
+	ForceRefresh();
+
+	for (size_t i = 0; i < 32; ++i)
+	{
+		m_CachedRegHasChanged[i] = (m_CachedRegs[i] != GPR(i));
 		m_CachedRegs[i] = GPR(i);
-
-		// 16-31
-		if (m_CachedRegs[16 + i] != GPR(16 + i))
-		{
-			m_CachedRegHasChanged[16 + i] = true;
-		}
-		else
-		{
-			m_CachedRegHasChanged[16 + i] = false;
-		}
-
-		m_CachedRegs[16 + i] = GPR(16 + i);
-	}
-
-	Refresh();
-}
-
-void CRegisterView::Refresh()
-{
-	for (size_t i = 0; i < 16; i++)
-	{
-		wxListItem item;
-		item.SetId(i);
-		item.SetColumn(1);
-		char temp[16];
-		sprintf(temp, "0x%08x",m_CachedRegs[i]);
-		item.SetText(wxString::FromAscii(temp));
-		SetItem(item);
-	}
-	for (size_t i = 0; i < 16; i++)
-	{
-		wxListItem item;
-		item.SetId(i);
-		item.SetColumn(3);
-		char temp[16];
-		sprintf(temp, "0x%08x",m_CachedRegs[16 + i]);
-		item.SetText(wxString::FromAscii(temp));
-		SetItem(item);
 	}
 }
-#ifdef _WIN32
-bool
-CRegisterView::MSWDrawSubItem(wxPaintDC& rPainDC, int item, int subitem)
-{
-	bool Result = false;
-
-#ifdef __WXMSW__
-	switch (subitem)
-	{
-	    case 1:
-	    case 3:
-	    {
-		    int Register = (subitem == 1) ? item : item + 16;
-
-		    const wxChar* bgColor = _T("#ffffff");
-		    wxBrush bgBrush(bgColor);
-		    wxPen bgPen(bgColor);
-
-		    wxRect SubItemRect;
-		    this->GetSubItemRect(item, subitem, SubItemRect);
-		    rPainDC.SetBrush(bgBrush);
-		    rPainDC.SetPen(bgPen);
-		    rPainDC.DrawRectangle(SubItemRect);
-
-		    if (m_CachedRegHasChanged[Register])
-		    {
-			    rPainDC.SetTextForeground(_T("#FF0000"));
-		    }
-		    else
-		    {
-			    rPainDC.SetTextForeground(_T("#000000"));
-		    }
-
-		    wxString text;
-		    text.Printf(wxT("0x%08x"), m_CachedRegs[Register]);
-		    rPainDC.DrawText(text, SubItemRect.GetLeft() + 10, SubItemRect.GetTop() + 4);
-		    return(true);
-	    }
-		    break;
-	}
-#endif
-	return(Result);
-}
-#endif

@@ -49,8 +49,7 @@ class CRegisterWindow
 			ID_GPR = 1002
 		};
 
-		CRegisterView* m_GPRListView;
-		void OnRefresh(wxCommandEvent& WXUNUSED (event));
+		CRegisterView* m_GPRGridView;
 		void OnClose(wxCloseEvent& event);
 		void CreateGUIControls();
 };
