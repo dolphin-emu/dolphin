@@ -54,14 +54,12 @@ if gfxenv['HAVE_WX']:
                 'Debugger/PBView.cpp',
                 ]
 
-if gfxenv['osx64']:
-	files += [ 'cocoaGL.m' ]
-	compileFlags +=	[
-			'-x',
-			'objective-c++',
-			]
-
-
+if gfxenv['HAVE_COCOA']:
+        files += [ 'cocoaGL.m' ]
+        compileFlags +=	[
+                '-x',
+                'objective-c++',
+                ]
         
 tests = {'CheckPKG' : utils.CheckPKG}
 conf = gfxenv.Configure(custom_tests = tests,
@@ -72,24 +70,27 @@ if sys.platform == 'darwin':
 	# Use libraries from MacPorts.
 	compileFlags.append('-I/opt/local/include')
 	linkFlags.append('-L/opt/local/lib')
-        conf.CheckPKG('cocoa')
         conf.CheckPKG('OpenGL')
+        if not conf.CheckPKG('Cg'):
+                print name + " must have Cg from nvidia to be build"
+
 else:
         if not (conf.CheckPKG('GL') and conf.CheckPKG('GLU')): 
                 print name + " must have opengl and glu to be build"
                 Return()
 
-if not conf.CheckPKG('Cg') or not conf.CheckPKG('CgGL'): 
-        print name + " must have cg and cggl to be build"
-        Return()
+        if not conf.CheckPKG('Cg') or not conf.CheckPKG('CgGL'): 
+                print name + " must have cg and cggl to be build"
+                Return()
 
 if not conf.CheckPKG('GLEW'):
         print name + " must have glew to be build"
         Return()
 
 # check for xxf86vm
+
+gfxenv['HAVE_XXF86VM'] = gfxenv['HAVE_X11'] and conf.CheckPKG('xxf86vm')
         
-gfxenv['HAVE_XXF86VM'] =  conf.CheckPKG('xxf86vm')
 conf.Define('HAVE_XXF86VM', gfxenv['HAVE_XXF86VM'])
 
 conf.Finish()

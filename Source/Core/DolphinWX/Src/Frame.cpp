@@ -123,10 +123,11 @@ CFrame::CFrame(wxFrame* parent,
 		const wxSize& size,
 		long style)
 	: wxFrame(parent, id, title, pos, size, style)
-	, m_Panel(NULL)
 	, m_pStatusBar(NULL)
-	, m_pMenuBar(NULL)
 	, HaveLeds(false), HaveSpeakers(false)
+        , m_Panel(NULL)
+	, m_pMenuBar(NULL)
+          
 {
 	InitBitmaps();
 

@@ -20,16 +20,8 @@ files = [
 	]
 
 dspenv = env.Clone()
-if not dspenv['osx64']:
-    dspenv.Append(
-	CXXFLAGS = [ '-fPIC' ],
-        LIBS = [ 'common' ],
-	)
-else:
-    dspenv.Append(
-	CXXFLAGS = [ '-fPIC','-arch', 'x86_64' ],
-	LINKFLAGS = [ '-arch', 'x86_64' ],
-        LIBS = [ 'common' ],
-	)
-
+dspenv.Append(
+    CXXFLAGS = [ '-fPIC' ],
+    LIBS = [ 'common' ],
+    )
 dspenv.SharedLibrary(env['plugin_dir']+name, files)

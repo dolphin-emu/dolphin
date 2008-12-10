@@ -40,9 +40,6 @@ cppDefines = [
     'GCC_HASCLASSVISIBILITY',
     ]
 
-
-
-
 include_paths = [
     '../../../Core/Common/Src',
     '../../../Core/DiscIO/Src',
@@ -92,20 +89,25 @@ lib_paths = include_paths
 
 # handle command line options
 vars = Variables('args.cache')
+
 vars.AddVariables(
     BoolVariable('verbose', 'Set for compilation line', False),
     BoolVariable('bundle', 'Set to create bundle', False),
     BoolVariable('lint', 'Set for lint build (extra warnings)', False),
     BoolVariable('nowx', 'Set For Building with no WX libs (WIP)', False),
-    BoolVariable('osx64', 'Set For Building for osx in 64 bits (WIP)', False),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
                  allowed_values = ('release', 'devel', 'debug'),
+                 ignorecase = 2
+                 ),
+    EnumVariable('osx', 'Choose a backend (WIP)', '32coca',
+                 allowed_values = ('32x11', '32coca', '64coca'),
                  ignorecase = 2
                  ),
     PathVariable('wxconfig', 'Path to the wxconfig', None),
     ('CC', 'The c compiler', 'gcc'),
     ('CXX', 'The c++ compiler', 'g++'),
     )
+
 
 env = Environment(
     CPPPATH = include_paths,
@@ -188,16 +190,17 @@ env['HAVE_AO'] = conf.CheckPKG('ao')
 env['HAVE_WX'] = conf.CheckWXConfig('2.8', ['gl', 'adv', 'core', 'base'], 
                                     0) #env['flavor'] == 'debug')
 
-# X11 detection
-env['HAVE_X11'] = conf.CheckPKG('x11')
-
 #osx 64 specifics
-if env['osx64']:
-    # SDL and WX are broken on osx 64
-#    env['HAVE_SDL'] = 0
-#    env['HAVE_WX'] = 0;
-    compileFlags += ['-arch' , 'x86_64', '-DOSX64']
-
+if sys.platform == 'darwin':
+    if env['osx'] == '64coca':
+        compileFlags += ['-arch' , 'x86_64', '-DOSX64']
+    if env['osx'] == '64coca' or env['osx'] == '32coca':
+        env['HAVE_X11'] = 0
+        env['HAVE_COCOA'] = conf.CheckPKG('cocoa')
+else:
+    env['HAVE_X11'] = conf.CheckPKG('x11')
+    env['HAVE_COCOA'] = 0
+    
 # Gui less build
 if env['nowx']:
     env['HAVE_WX'] = 0;
@@ -208,6 +211,7 @@ conf.Define('HAVE_BLUEZ', env['HAVE_BLUEZ'])
 conf.Define('HAVE_AO', env['HAVE_AO'])
 conf.Define('HAVE_WX', env['HAVE_WX'])
 conf.Define('HAVE_X11', env['HAVE_X11'])
+conf.Define('HAVE_COCOA', env['HAVE_COCOA'])
 
 # After all configuration tests are done
 conf.Finish()

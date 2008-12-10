@@ -14,18 +14,12 @@ files = [
 	]
 padenv = env.Clone()
 
-if not padenv['osx64']:
+if not padenv['HAVE_WX']:
 	files += [ 
 		"GUI/ConfigDlg.cpp",
 		"XInputBase.cpp",
 		]
 
 padenv.Append(LIBS = [ 'common' ])
-
-if padenv['osx64']:
-	padenv.Append(
-		CXXFLAGS = [ '-arch', 'x86_64' ],
-		LINKFLAGS = [ '-arch', 'x86_64' ],
-		)
 
 padenv.SharedLibrary(env['plugin_dir']+name, files)
