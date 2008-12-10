@@ -151,12 +151,12 @@ void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_VIDEO;
 #ifdef DEBUGFAST 
-	sprintf_s(_PluginInfo->Name, 100, "Dolphin Video Plugin DebugFast (DX9)");
+	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 Plugin (DebugFast)");
 #else
 #ifndef _DEBUG
-	sprintf_s(_PluginInfo->Name, 100, "Dolphin Video Plugin (DX9)");
+	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 Plugin");
 #else
-	sprintf_s(_PluginInfo->Name, 100, "Dolphin Video Plugin Debug (DX9)");
+	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 Plugin (Debug)");
 #endif
 #endif
 }

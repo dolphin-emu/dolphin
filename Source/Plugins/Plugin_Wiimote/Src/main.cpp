@@ -89,12 +89,12 @@ extern "C" void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_WIIMOTE;
 #ifdef DEBUGFAST 
-	sprintf(_PluginInfo->Name, "Wiimote Plug-in (DebugFast)");
+	sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin (DebugFast)");
 #else
 #ifndef _DEBUG
-	sprintf(_PluginInfo->Name, "Wiimote Plug-in");
+	sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin");
 #else
-	sprintf(_PluginInfo->Name, "Wiimote Plug-in (Debug)");
+	sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin (Debug)");
 #endif
 #endif
 }
