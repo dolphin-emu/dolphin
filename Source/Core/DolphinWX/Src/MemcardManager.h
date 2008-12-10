@@ -25,75 +25,81 @@
 #include <wx/listctrl.h>
 #include <wx/imaglist.h>
 
+#include "IniFile.h"
 #include "MemoryCards/GCMemcard.h"
+
 #undef MEMCARD_MANAGER_STYLE
 #define MEMCARD_MANAGER_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX | wxRESIZE_BORDER | wxMAXIMIZE_BOX
-#define ITEMSPERPAGE 16
-#define MAXPAGES (128 / ITEMSPERPAGE) - 1
+#define MEMCARDMAN_TITLE "Memory Card Manager WARNING-Make backups before using, should be fixed but could mangle stuff!"
+#define FIRSTPAGE 0
+#define SLOT_A 0
+#define SLOT_B 1
 
 class CMemcardManager
 	: public wxDialog
 {
 	public:
 
-		CMemcardManager(wxWindow *parent, wxWindowID id = 1, const wxString& title = wxT("Memory Card Manager WARNING-Make backups before using, should be fixed but could mangle stuff!"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = MEMCARD_MANAGER_STYLE);
+		CMemcardManager(wxWindow *parent, wxWindowID id = 1, const wxString& title = wxT(MEMCARDMAN_TITLE),
+			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = MEMCARD_MANAGER_STYLE);
 		virtual ~CMemcardManager();
 
 	private:
-
 		DECLARE_EVENT_TABLE();
 
-		int page0,
-			page1;
+		int pageA,
+			pageB,
+			itemsPerPage,
+			maxPages;
 
 		wxBoxSizer *sMain;
-		wxBoxSizer *sPagesLeft;
-		wxBoxSizer *sPagesRight;
-		wxStaticText *t_StatusLeft;
-		wxStaticText *t_StatusRight;
-		wxButton *m_CopyToLeft;
-		wxButton *m_CopyToRight;
-		wxButton *m_FixChecksumLeft;
-		wxButton *m_FixChecksumRight;
-		wxButton *m_SaveImportLeft;
-		wxButton *m_SaveExportLeft;
-		wxButton *m_SaveImportRight;
-		wxButton *m_SaveExportRight;
+		wxBoxSizer *sPages_A;
+		wxBoxSizer *sPages_B;
+		wxStaticText *t_Status_A;
+		wxStaticText *t_Status_B;
+		wxButton *m_CopyTo_A;
+		wxButton *m_CopyTo_B;
+		wxButton *m_FixChecksum_A;
+		wxButton *m_FixChecksum_B;
+		wxButton *m_SaveImport_A;
+		wxButton *m_SaveImport_B;
+		wxButton *m_SaveExport_A;
+		wxButton *m_SaveExport_B;
 		wxButton *m_ConvertToGci;
-		wxButton *m_DeleteLeft;
-		wxButton *m_DeleteRight;
-		wxButton *m_Memcard1PrevPage;
-		wxButton *m_Memcard1NextPage;
-		wxButton *m_Memcard2PrevPage;
-		wxButton *m_Memcard2NextPage;
-		wxStaticBoxSizer *sMemcard1;
-		wxStaticBoxSizer *sMemcard2;
-		wxFilePickerCtrl *m_Memcard1Path;
-		wxFilePickerCtrl *m_Memcard2Path;
-
-		wxListCtrl *m_MemcardList[2];
+		wxButton *m_Delete_A;
+		wxButton *m_Delete_B;
+		wxButton *m_PrevPage_A;
+		wxButton *m_NextPage_A;
+		wxButton *m_PrevPage_B;
+		wxButton *m_NextPage_B;
+		wxStaticBoxSizer *sMemcard_A;
+		wxStaticBoxSizer *sMemcard_B;
+		wxFilePickerCtrl *m_MemcardPath_A;
+		wxFilePickerCtrl *m_MemcardPath_B;
+		IniFile MemcardManagerIni;
 
 		enum
 		{
-			ID_COPYTORIGHT = 1000,
-			ID_COPYTOLEFT,
-			ID_FIXCHECKSUMRIGHT,
-			ID_FIXCHECKSUMLEFT,
-			ID_DELETERIGHT,
-			ID_DELETELEFT,
-			ID_MEMCARD1PATH,
-			ID_MEMCARD2PATH,
-			ID_MEMCARD1NEXTPAGE,
-			ID_MEMCARD1PREVPAGE,
-			ID_MEMCARD2NEXTPAGE,
-			ID_MEMCARD2PREVPAGE,
-			ID_SAVEEXPORTRIGHT,
-			ID_SAVEEXPORTLEFT,
-			ID_SAVEIMPORTRIGHT,
-			ID_SAVEIMPORTLEFT,
+			ID_COPYTO_B = 1000,
+			ID_COPYTO_A,
+			ID_FIXCHECKSUM_A,
+			ID_FIXCHECKSUM_B,
+			ID_DELETE_B,
+			ID_DELETE_A,
+			ID_MEMCARDPATH_A,
+			ID_MEMCARDPATH_B,
+			ID_NEXTPAGE_A,
+			ID_PREVPAGE_A,
+			ID_NEXTPAGE_B,
+			ID_PREVPAGE_B,
+			ID_SAVEEXPORT_A,
+			ID_SAVEEXPORT_B,
+			ID_SAVEIMPORT_A,
+			ID_SAVEIMPORT_B,
 			ID_CONVERTTOGCI,
-			ID_MEMCARD1LIST,
-			ID_MEMCARD2LIST,
+			ID_MEMCARDLIST_A,
+			ID_MEMCARDLIST_B,
+			ID_USEPAGES,
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
 		};
 
@@ -114,9 +120,29 @@ class CMemcardManager
 		void OnClose(wxCloseEvent& event);
 		void CopyDeleteClick(wxCommandEvent& event);
 		bool ReloadMemcard(const char *fileName, int card, int page);
+		void OnMenuChange(wxCommandEvent& event);
 		void OnPageChange(wxCommandEvent& event);
 		void OnPathChange(wxFileDirPickerEvent& event);
 		bool ReadError(GCMemcard *memcard);
+
+		class CMemcardListCtrl : public wxListCtrl
+		{
+		public:
+			IniFile MemcardManagerIni;
+
+			CMemcardListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style);
+			~CMemcardListCtrl();
+			bool twoCardsLoaded,
+				 usePages,
+				 prevPage,
+				 nextPage,
+				 column[NUMBER_OF_COLUMN];
+		private:
+			DECLARE_EVENT_TABLE()
+			void OnRightClick(wxMouseEvent& event);	
+		};
+		
+		CMemcardListCtrl *m_MemcardList[2];
 };
 
 #endif

@@ -47,7 +47,7 @@ SConfig::~SConfig()
 void SConfig::SaveSettings()
 {
 	IniFile ini;
-        //	ini.Load(CONFIG_FILE); // yes we must load first to not kill unknown stuff
+	ini.Load(CONFIG_FILE); // yes we must load first to not kill unknown stuff
 
 	// misc
 	{
