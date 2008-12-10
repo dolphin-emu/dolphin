@@ -187,7 +187,7 @@ env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 env['HAVE_AO'] = conf.CheckPKG('ao')
 
 # handling wx flags CCFLAGS should be created before
-env['HAVE_WX'] = conf.CheckWXConfig('2.8', ['gl', 'adv', 'core', 'base'], 
+env['HAVE_WX'] = conf.CheckWXConfig('2.8', ['adv', 'core', 'base'], 
                                     0) #env['flavor'] == 'debug')
 
 #osx 64 specifics
