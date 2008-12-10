@@ -571,6 +571,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Src\HW\EXI_DeviceEthernet.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\HW\EXI_DeviceEthernet.h"
+					>
+				</File>
+				<File
 					RelativePath=".\Src\Hw\EXI_DeviceIPL.cpp"
 					>
 				</File>
