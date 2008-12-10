@@ -14,11 +14,11 @@ files = [
 	]
 padenv = env.Clone()
 
-if not padenv['HAVE_WX']:
-	files += [ 
-		"GUI/ConfigDlg.cpp",
-		"XInputBase.cpp",
-		]
+if padenv['HAVE_WX']:
+    files += [ 
+        "GUI/ConfigDlg.cpp",
+        "XInputBase.cpp",
+        ]
 
 padenv.Append(LIBS = [ 'common' ])
 
