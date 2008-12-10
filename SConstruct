@@ -95,6 +95,7 @@ vars.AddVariables(
     BoolVariable('bundle', 'Set to create bundle', False),
     BoolVariable('lint', 'Set for lint build (extra warnings)', False),
     BoolVariable('nowx', 'Set For Building with no WX libs (WIP)', False),
+    BoolVariable('wxgl', 'Set For Building with WX GL libs (WIP)', False),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
                  allowed_values = ('release', 'devel', 'debug'),
                  ignorecase = 2
@@ -187,13 +188,20 @@ env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 env['HAVE_AO'] = conf.CheckPKG('ao')
 
 # handling wx flags CCFLAGS should be created before
-env['HAVE_WX'] = conf.CheckWXConfig('2.8', ['adv', 'core', 'base'], 
-                                    0) #env['flavor'] == 'debug')
+wxmods = ['adv', 'core', 'base']
+env['USE_WX'] = 0
+if env['wxgl']:
+    wxmods.append('gl')
+    env['USE_WX'] = 1
+
+env['HAVE_WX'] = conf.CheckWXConfig('2.8', wxmods, 0) 
 
 #osx 64 specifics
 if sys.platform == 'darwin':
     if env['osx'] == '64cocoa':
-        compileFlags += ['-arch' , 'x86_64', '-DOSX64']
+        compileFlags += ['-arch' , 'x86_64' ]
+        conf.Define('MAP_32BIT', 0)
+
     if not env['osx'] == '32x11':
         env['HAVE_X11'] = 0
         env['HAVE_COCOA'] = conf.CheckPKG('cocoa')
@@ -210,6 +218,7 @@ conf.Define('HAVE_SDL', env['HAVE_SDL'])
 conf.Define('HAVE_BLUEZ', env['HAVE_BLUEZ'])
 conf.Define('HAVE_AO', env['HAVE_AO'])
 conf.Define('HAVE_WX', env['HAVE_WX'])
+conf.Define('USE_WX', env['USE_WX'])
 conf.Define('HAVE_X11', env['HAVE_X11'])
 conf.Define('HAVE_COCOA', env['HAVE_COCOA'])
 

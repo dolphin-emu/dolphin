@@ -199,7 +199,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 
 	//setup ogl to use double buffering
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-#elif defined(OSX64)
+#elif defined(HAVE_COCOA) && HAVE_COCOA
     cocoaGLCreateApp();
     GLWin.width = nBackbufferWidth;
     GLWin.height = nBackbufferHeight;
