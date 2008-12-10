@@ -125,9 +125,9 @@ CMemcardManager::CMemcardManager(wxWindow* parent, wxWindowID id, const wxString
 {
 	memoryCard[SLOT_A]=NULL;
 	memoryCard[SLOT_B]=NULL;
-	if (MemcardManagerIni.Load(wxT(CONFIG_FILE)))
+	if (MemcardManagerIni.Load(CONFIG_FILE))
 	{
-		MemcardManagerIni.Get(wxT("MemcardManager"), wxT("Items per page"),  &itemsPerPage, 16);
+		MemcardManagerIni.Get("MemcardManager", "Items per page",  &itemsPerPage, 16);
 	}
 	else itemsPerPage = 16;
 	maxPages = (128 / itemsPerPage) - 1;
@@ -146,23 +146,23 @@ CMemcardManager::~CMemcardManager()
 		delete memoryCard[SLOT_B];
 		memoryCard[SLOT_B] = NULL;
 	}
-	MemcardManagerIni.Load(wxT(CONFIG_FILE));
-	MemcardManagerIni.Set(wxT("MemcardManager"), wxT("Items per page"),  itemsPerPage);
-	MemcardManagerIni.Save(wxT(CONFIG_FILE));
+	MemcardManagerIni.Load(CONFIG_FILE);
+	MemcardManagerIni.Set("MemcardManager", "Items per page",  itemsPerPage);
+	MemcardManagerIni.Save(CONFIG_FILE);
 }
 
 CMemcardManager::CMemcardListCtrl::CMemcardListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
 	: wxListCtrl(parent, id, pos, size, style)
 {
-	if (MemcardManagerIni.Load(wxT(CONFIG_FILE)))
+	if (MemcardManagerIni.Load(CONFIG_FILE))
 	{
-		MemcardManagerIni.Get(wxT("MemcardManager"), wxT("Use Pages"), &usePages, true);
-		MemcardManagerIni.Get(wxT("MemcardManager"), wxT("cBanner"), &column[COLUMN_BANNER], true);
-		MemcardManagerIni.Get(wxT("MemcardManager"), wxT("cTitle"), &column[COLUMN_TITLE], true);
-		MemcardManagerIni.Get(wxT("MemcardManager"), wxT("cComment"), &column[COLUMN_COMMENT], true);
-		MemcardManagerIni.Get(wxT("MemcardManager"), wxT("cBlocks"), &column[COLUMN_BLOCKS], true);
-		MemcardManagerIni.Get(wxT("MemcardManager"), wxT("cBanner"), &column[COLUMN_BANNER], true);
-		MemcardManagerIni.Get(wxT("MemcardManager"), wxT("cFirst Block"), &column[COLUMN_FIRSTBLOCK], true);
+		MemcardManagerIni.Get("MemcardManager", "Use Pages", &usePages, true);
+		MemcardManagerIni.Get("MemcardManager", "cBanner", &column[COLUMN_BANNER], true);
+		MemcardManagerIni.Get("MemcardManager", "cTitle", &column[COLUMN_TITLE], true);
+		MemcardManagerIni.Get("MemcardManager", "cComment", &column[COLUMN_COMMENT], true);
+		MemcardManagerIni.Get("MemcardManager", "cBlocks", &column[COLUMN_BLOCKS], true);
+		MemcardManagerIni.Get("MemcardManager", "cBanner", &column[COLUMN_BANNER], true);
+		MemcardManagerIni.Get("MemcardManager", "cFirst Block", &column[COLUMN_FIRSTBLOCK], true);
 	}
 	else
 	{
@@ -177,15 +177,15 @@ CMemcardManager::CMemcardListCtrl::CMemcardListCtrl(wxWindow* parent, const wxWi
 
 CMemcardManager::CMemcardListCtrl::~CMemcardListCtrl()
 {
-	MemcardManagerIni.Load(wxT(CONFIG_FILE));
-	MemcardManagerIni.Set(wxT("MemcardManager"), wxT("Use Pages"), usePages);
-	MemcardManagerIni.Set(wxT("MemcardManager"), wxT("cBanner"), column[COLUMN_BANNER]);
-	MemcardManagerIni.Set(wxT("MemcardManager"), wxT("cTitle"), column[COLUMN_TITLE]);
-	MemcardManagerIni.Set(wxT("MemcardManager"), wxT("cComment"), column[COLUMN_COMMENT]);
-	MemcardManagerIni.Set(wxT("MemcardManager"), wxT("cBlocks"), column[COLUMN_BLOCKS]);
-	MemcardManagerIni.Set(wxT("MemcardManager"), wxT("cBanner"), column[COLUMN_BANNER]);
-	MemcardManagerIni.Set(wxT("MemcardManager"), wxT("cFirst Block"), column[COLUMN_FIRSTBLOCK]);
-	MemcardManagerIni.Save(wxT(CONFIG_FILE));
+	MemcardManagerIni.Load(CONFIG_FILE);
+	MemcardManagerIni.Set("MemcardManager", "Use Pages", usePages);
+	MemcardManagerIni.Set("MemcardManager", "cBanner", column[COLUMN_BANNER]);
+	MemcardManagerIni.Set("MemcardManager", "cTitle", column[COLUMN_TITLE]);
+	MemcardManagerIni.Set("MemcardManager", "cComment", column[COLUMN_COMMENT]);
+	MemcardManagerIni.Set("MemcardManager", "cBlocks", column[COLUMN_BLOCKS]);
+	MemcardManagerIni.Set("MemcardManager", "cBanner", column[COLUMN_BANNER]);
+	MemcardManagerIni.Set("MemcardManager", "cFirst Block", column[COLUMN_FIRSTBLOCK]);
+	MemcardManagerIni.Save(CONFIG_FILE);
 }
 
 void CMemcardManager::CreateGUIControls()
