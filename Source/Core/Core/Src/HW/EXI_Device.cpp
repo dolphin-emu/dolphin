@@ -22,9 +22,7 @@
 #include "EXI_DeviceMemoryCard.h"
 #include "EXI_DeviceAD16.h"
 #include "EXI_DeviceMic.h"
-#if 0
 #include "EXI_DeviceEthernet.h"
-#endif
 
 #include "../Core.h"
 
@@ -153,9 +151,7 @@ IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
 		break;
 
 	case EXIDEVICE_ETH:
-	#if 0
 		return new CEXIETHERNET();
-	#endif
 		break;
 
 	}
