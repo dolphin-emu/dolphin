@@ -44,7 +44,7 @@ namespace WiimoteLeds
 	int SPEAKER_SIZE_X = 8;
 	int SPEAKER_SIZE_Y = 8;
 
-	int ConnectionStatusWidth = 103;
+	int ConnectionStatusWidth = 103; // This needs to be wider, for vista at least
 	int ConnectionStatusOnlyAdj = 7;
 	int RightmostMargin = 6;
 	int SpIconMargin = 11;
@@ -104,17 +104,6 @@ void CFrame::ModifyStatusBar()
 	if(!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		{ LedsOn = false; SpeakersOn = false; }
 
-	/* For some reason the Debug build of wxWidgets can't use these bitmaps so it will
-	   produce a "assert "wxWidgets Debug Alert, bmp.Ok()" failed" message and show
-	   blank bitmaps. I check that wxUSE_STATBMP was enabled even for Debug builds so
-	   I don't see why it wouldn't work. You can uncomment this if you find the bug.
-	   
-	   In my case the same thing occured for CFrame::InitBitmaps() so it was not just
-	   thse bitmaps that failed. So even with this comment you may get that warning. */
-	#ifdef _DEBUG
-		LedsOn = false; SpeakersOn = false;
-	#endif
-
 	// Declarations
 	int Fields;
 	int *Widths;
@@ -165,17 +154,17 @@ void CFrame::ModifyStatusBar()
 		}
 	}
 
+	// Update the settings
+	m_pStatusBar->SetFieldsCount(Fields);
+	m_pStatusBar->SetStatusWidths(Fields, Widths);
+	m_pStatusBar->SetStatusStyles(Fields, StylesFields);
+
 	/* Destroy and create all, and check for HaveLeds and HaveSpeakers in case we have
 	   gotten a confirmed on or off setting, in which case we don't do anything */
 	if(!LedsOn && HaveLeds) CreateDestroy(DESTROYLEDS);
 	if(!SpeakersOn && HaveSpeakers) CreateDestroy(DESTROYSPEAKERS);
 	if(LedsOn && !HaveLeds) CreateDestroy(CREATELEDS);
 	if(SpeakersOn && !HaveSpeakers) CreateDestroy(CREATESPEAKERS);
-
-	// Update the settings
-	m_pStatusBar->SetFieldsCount(Fields);
-	m_pStatusBar->SetStatusWidths(Fields, Widths);
-	m_pStatusBar->SetStatusStyles(Fields, StylesFields);
 
 	DoMoveIcons();
 	m_pStatusBar->Refresh(); // avoid small glitches that can occur
@@ -192,7 +181,7 @@ void CFrame::CreateDestroy(int Case)
 	case CREATELEDS:
 		{
 			CreateLeds();
-			//UpdateLeds(g_Leds);		
+			UpdateLeds();		
 			HaveLeds = true;
 			break;
 		}

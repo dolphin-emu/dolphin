@@ -26,12 +26,6 @@ bool wxPanicAlert(const char* text, bool /*yes_no*/)
 }
 
 
-void Host_BootingStarted(){}
-
-
-void Host_BootingEnded(){}
-
-
 // OK, this thread boundary is DANGEROUS on linux
 // wxPostEvent / wxAddPendingEvent is the solution.
 void Host_NotifyMapLoaded(){}

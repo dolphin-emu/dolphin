@@ -120,8 +120,6 @@ class CFrame : public wxFrame
 		wxMenuItem* m_pMenuItemSave;
 
 		wxToolBarToolBase* m_pToolPlay;
-		
-		wxBusyInfo* m_pBootProcessDialog;
 
 		void UpdateGUI();
 

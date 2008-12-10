@@ -60,7 +60,7 @@ std::string GetLastErrorAsString()
 // ------------------------------------------------------------------
 /* Loading means loading the dll with LoadLibrary() to get an instance to the dll.
    This is done when Dolphin is started to determine which dlls are good, and
-   before opening the Config and Debugging windowses from Plugin.cpp and
+   before opening the Config and Debugging windows from Plugin.cpp and
    before opening the dll for running the emulation in Video_...cpp in Core. */
 // -----------------------
 int DynamicLibrary::Load(const char* filename)

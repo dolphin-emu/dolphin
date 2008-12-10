@@ -100,26 +100,8 @@ EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
 EVT_MENU(IDM_TOGGLE_SKIPIDLE, CFrame::OnToggleSkipIdle)
 EVT_MENU(IDM_TOGGLE_TOOLBAR, CFrame::OnToggleToolbar)
 EVT_MENU(IDM_TOGGLE_STATUSBAR, CFrame::OnToggleStatusbar)
-EVT_MENU(IDM_LOADSLOT1, CFrame::OnLoadState)
-EVT_MENU(IDM_LOADSLOT2, CFrame::OnLoadState)
-EVT_MENU(IDM_LOADSLOT3, CFrame::OnLoadState)
-EVT_MENU(IDM_LOADSLOT4, CFrame::OnLoadState)
-EVT_MENU(IDM_LOADSLOT5, CFrame::OnLoadState)
-EVT_MENU(IDM_LOADSLOT6, CFrame::OnLoadState)
-EVT_MENU(IDM_LOADSLOT7, CFrame::OnLoadState)
-EVT_MENU(IDM_LOADSLOT8, CFrame::OnLoadState)
-EVT_MENU(IDM_LOADSLOT9, CFrame::OnLoadState)
-EVT_MENU(IDM_LOADSLOT10, CFrame::OnLoadState)
-EVT_MENU(IDM_SAVESLOT1, CFrame::OnSaveState)
-EVT_MENU(IDM_SAVESLOT2, CFrame::OnSaveState)
-EVT_MENU(IDM_SAVESLOT3, CFrame::OnSaveState)
-EVT_MENU(IDM_SAVESLOT4, CFrame::OnSaveState)
-EVT_MENU(IDM_SAVESLOT5, CFrame::OnSaveState)
-EVT_MENU(IDM_SAVESLOT6, CFrame::OnSaveState)
-EVT_MENU(IDM_SAVESLOT7, CFrame::OnSaveState)
-EVT_MENU(IDM_SAVESLOT8, CFrame::OnSaveState)
-EVT_MENU(IDM_SAVESLOT9, CFrame::OnSaveState)
-EVT_MENU(IDM_SAVESLOT10, CFrame::OnSaveState)
+EVT_MENU_RANGE(IDM_LOADSLOT1, IDM_LOADSLOT10, CFrame::OnLoadState)
+EVT_MENU_RANGE(IDM_SAVESLOT1, IDM_SAVESLOT10, CFrame::OnSaveState)
 EVT_SIZE(CFrame::MoveIcons)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 END_EVENT_TABLE()
@@ -144,7 +126,6 @@ CFrame::CFrame(wxFrame* parent,
 	, m_Panel(NULL)
 	, m_pStatusBar(NULL)
 	, m_pMenuBar(NULL)
-	, m_pBootProcessDialog(NULL)
 	, HaveLeds(false), HaveSpeakers(false)
 {
 	InitBitmaps();
@@ -208,10 +189,6 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 }
 
 #endif
-
-
-
-
 
 // =======================================================
 // Create menu items
@@ -420,6 +397,12 @@ void CFrame::OnHelp(wxCommandEvent& event)
 // -------------
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 {
+	// shuffle2: wxBusyInfo is meant to be created on the stack
+	// and only stay around for the life of the scope it's in.
+	// If that is not what we want, find another solution. I don't
+	// think such a dialog is needed anyways, so maybe kill it?
+	wxBusyInfo bootingDialog(wxString::FromAscii("Booting..."), this);
+
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		if (Core::GetState() == Core::CORE_RUN)
@@ -538,43 +521,16 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	    case IDM_UPDATEGUI:
-		    UpdateGUI();
-		    break;
+	case IDM_UPDATEGUI:
+		UpdateGUI();
+		break;
 
-	    case IDM_BOOTING_STARTED:
-		    if (m_pBootProcessDialog == NULL)
-		    {
-			    /*		m_pBootProcessDialog = new wxProgressDialog
-			       	    (_T("Booting the core"),
-			       	    _T("Booting..."),
-			       	    1,    // range
-			       	    this,
-			       	    wxPD_APP_MODAL |
-			       	    // wxPD_AUTO_HIDE | -- try this as well
-			       	    wxPD_ELAPSED_TIME |
-			       	    wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-			       	    );*/
-
-			    m_pBootProcessDialog = new wxBusyInfo(wxString::FromAscii("Booting..."), this);
-		    }
-		    break;
-
-	    case IDM_BOOTING_ENDED:
-		    if (m_pBootProcessDialog != NULL)
-		    {
-			    // m_pBootProcessDialog->Destroy();
-			    delete m_pBootProcessDialog;
-			    m_pBootProcessDialog = NULL;
-		    }
-		    break;
-
-		case IDM_UPDATESTATUSBAR:
-			if (m_pStatusBar != NULL)
-			{
-				m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
-			}
-			break;
+	case IDM_UPDATESTATUSBAR:
+		if (m_pStatusBar != NULL)
+		{
+			m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
+		}
+		break;
 	}
 }
 

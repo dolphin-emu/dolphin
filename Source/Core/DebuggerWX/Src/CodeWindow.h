@@ -60,29 +60,19 @@ class CCodeWindow
 
 		bool UseInterpreter();
 		bool AutomaticStart();
-		bool UseDualCore();
+		//bool UseDualCore(); // not used
         void JumpToAddress(u32 _Address);
 
 	private:
 
 		enum
 		{
-			ID_TOOLBAR = 500,
-			IDM_CODEVIEW,
-			IDM_DEBUG_GO,
-			IDM_STEP,
-			IDM_STEPOVER,
-			IDM_SKIP,
-			IDM_SETPC,
-			IDM_GOTOPC,
-			IDM_ADDRBOX,
-			IDM_CALLSTACKLIST,
-			IDM_CALLERSLIST,
-			IDM_CALLSLIST,
-			IDM_SYMBOLLIST,
-			IDM_INTERPRETER,
+			// ==============================================================
+			// Menu Entries
+			// CPU Mode
+			IDM_INTERPRETER = 2000, // These cannot interfere with enums in Globals.h!
+			//IDM_DUALCORE, // not used
 			IDM_AUTOMATICSTART,
-
 			IDM_JITUNLIMITED, IDM_JITOFF, // jit
 			IDM_JITLSOFF, IDM_JITLSLXZOFF, IDM_JITLSLWZOFF, IDM_JITLSLBZXOFF,
 			IDM_JITLSPOFF, IDM_JITLSFOFF,
@@ -91,27 +81,52 @@ class CCodeWindow
 			IDM_JITPOFF,
 			IDM_JITSROFF,
 
-			IDM_DUALCORE,
+			// Views
 			IDM_LOGWINDOW,
 			IDM_REGISTERWINDOW,
 			IDM_BREAKPOINTWINDOW,
 			IDM_MEMORYWINDOW,
-			IDM_SOUNDWINDOW, // sound
-			IDM_VIDEOWINDOW, // video
-			IDM_JITWINDOW, // jit
+			IDM_JITWINDOW,
+			IDM_SOUNDWINDOW,
+			IDM_VIDEOWINDOW,
+
+			// Symbols
+			IDM_CLEARSYMBOLS,
+			IDM_CLEANSYMBOLS, // not used
 			IDM_SCANFUNCTIONS,
-			IDM_LOGINSTRUCTIONS,
 			IDM_LOADMAPFILE,
 			IDM_SAVEMAPFILE, IDM_SAVEMAPFILEWITHCODES,
-			IDM_CLEARSYMBOLS,
-			IDM_CLEANSYMBOLS,
 			IDM_CREATESIGNATUREFILE,
 			IDM_USESIGNATUREFILE,
-			IDM_USESYMBOLFILE,
+			//IDM_USESYMBOLFILE, // not used
 			IDM_PATCHHLEFUNCTIONS,
+
+			// JIT
 			IDM_CLEARCODECACHE,
+			IDM_LOGINSTRUCTIONS,
+
+			// Profiler
 			IDM_PROFILEBLOCKS,
 			IDM_WRITEPROFILE,
+
+			// ==============================================================
+			// Toolbar
+			ID_TOOLBAR,
+			IDM_DEBUG_GO,
+			IDM_STEP,
+			IDM_STEPOVER,
+			IDM_SKIP,
+			IDM_SETPC,
+			IDM_GOTOPC,
+			IDM_ADDRBOX,
+			
+			// ==============================================================
+			// Debugger GUI Objects
+			ID_CODEVIEW,
+			ID_CALLSTACKLIST,
+			ID_CALLERSLIST,
+			ID_CALLSLIST,
+			ID_SYMBOLLIST
 		};
 
 		enum
@@ -127,6 +142,7 @@ class CCodeWindow
 		};
 
 		// Settings
+		bool bAutomaticStart;
 		bool bLogWindow;
 		bool bRegisterWindow;
 		bool bBreakpointWindow;
@@ -134,7 +150,6 @@ class CCodeWindow
 		bool bJitWindow;
 		bool bSoundWindow;
 		bool bVideoWindow;
-		bool bAutomaticStart;
 
 		// Sub dialogs
 		wxMenuBar* pMenuBar;
@@ -171,8 +186,6 @@ class CCodeWindow
 		void OnCallsListChange(wxCommandEvent& event);
 		void OnCodeStep(wxCommandEvent& event);
 		void OnCodeViewChange(wxCommandEvent &event);
-		void OnStatusBar(wxMenuEvent &event); void OnStatusBar_(wxUpdateUIEvent &event);
-		void DoTip(wxString text);
 		void SingleCPUStep();
 
 		void OnAddrBoxChange(wxCommandEvent& event);

@@ -247,8 +247,6 @@ void Callback_DebuggerBreak()
 
 THREAD_RETURN EmuThread(void *pArg)
 {
-	Host_BootingStarted();
-
 	Common::SetCurrentThreadName("Emuthread - starting");
 	const SCoreStartupParameter& _CoreParameter = *(SCoreStartupParameter*)pArg;
 
@@ -332,7 +330,6 @@ THREAD_RETURN EmuThread(void *pArg)
     // update the window again because all stuff is initialized
     Host_UpdateDisasmDialog();
     Host_UpdateMainFrame();
-	Host_BootingEnded();
 
 	//This thread, after creating the EmuWindow, spawns a CPU thread,
 	//then takes over and becomes the graphics thread

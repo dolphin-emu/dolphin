@@ -21,7 +21,7 @@
 // File description
 // -------------
 /* This file is a simpler version of Plugin_...cpp found in Core. This file only loads
-   the config and debugging windowses and works with all plugins. */
+   the config and debugging windows and works with all plugins. */
 // =============
 
 

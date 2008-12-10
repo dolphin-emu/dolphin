@@ -267,30 +267,6 @@ bool wxPanicAlert(const char* text, bool /*yes_no*/)
 }
 
 
-void Host_BootingStarted()
-{
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_BOOTING_STARTED);
-	wxPostEvent(main_frame, event);
-
-	if (g_pCodeWindow)
-	{
-		wxPostEvent(g_pCodeWindow, event);
-	}
-}
-
-
-void Host_BootingEnded()
-{
-	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_BOOTING_ENDED);
-	wxPostEvent(main_frame, event);
-
-	if (g_pCodeWindow)
-	{
-		wxPostEvent(g_pCodeWindow, event);
-	}
-}
-
-
 // OK, this thread boundary is DANGEROUS on linux
 // wxPostEvent / wxAddPendingEvent is the solution.
 void Host_NotifyMapLoaded()
