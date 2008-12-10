@@ -89,11 +89,7 @@ void OpenGL_SetWindowText(const char *text)
 #endif
 }
 
-#if defined(OSX64)
 unsigned int  Callback_PeekMessages()
-#else
-BOOL Callback_PeekMessages()
-#endif
 {
 #ifdef _WIN32
     //TODO: peekmessage

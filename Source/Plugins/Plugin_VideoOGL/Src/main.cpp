@@ -336,11 +336,8 @@ bool ScreenShot(TCHAR *File)
     }
 	return false;
 }
-#if defined(OSX64)
+
 unsigned int Video_Screenshot(TCHAR* _szFilename)
-#else
-BOOL Video_Screenshot(TCHAR* _szFilename)
-#endif
 {
     if (ScreenShot(_szFilename))
         return TRUE;
