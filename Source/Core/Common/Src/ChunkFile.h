@@ -137,7 +137,7 @@ public:
 	template<class T>
 	void DoLinkedList(LinkedListItem<T> **list_start) {
 		// TODO
-		PanicAlert("Do(vector<>) does not yet work.");
+		PanicAlert("Do(linked list<>) does not yet work.");
 	}
 };
 

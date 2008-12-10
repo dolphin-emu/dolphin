@@ -628,7 +628,7 @@ void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event))
 
 void CGameListCtrl::MultiCompressCB(const char* text, float percent, void* arg)
 {
-    wxString textString(wxString::Format(wxT("%s (%i/%i) - %s"), m_currentFilename.c_str(), m_currentItem+1, m_numberItem, text));
+    wxString textString(wxString::Format(wxT("%s (%i/%i) - %s"), m_currentFilename.c_str(), (int)m_currentItem+1, (int)m_numberItem, text));
 
     percent = (((float)m_currentItem) + percent) / (float)m_numberItem;
     wxProgressDialog* pDialog = (wxProgressDialog*)arg;

@@ -40,9 +40,9 @@ void CEXIMemoryCard::FlushCallback(u64 userdata, int cyclesLate)
 }
 
 CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rFilename, int _card_index) :
-	m_strFilename(_rFilename)
+	m_strFilename(_rFilename),
+	card_index(_card_index)
 {
-	this->card_index = _card_index;
 	cards[_card_index] = this;
 	et_this_card = CoreTiming::RegisterEvent(_rName.c_str(), FlushCallback);
  
@@ -71,10 +71,12 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 	pFile = fopen(m_strFilename.c_str(), "rb");
 	if (pFile)
 	{
-		fseek( pFile, 0L, SEEK_END );
-		u64 MemFileSize = ftell( pFile );
- 
-		switch ((MemFileSize / (8 * 1024))-5) // Convert the filesize in bytes to the "nintendo-size"
+		// Measure size of the memcard file.
+		fseek(pFile, 0L, SEEK_END);
+		u64 MemFileSize = ftell(pFile);
+		fseek(pFile, 0L, SEEK_SET);
+  
+		switch ((MemFileSize / (8 * 1024)) - 5) // Convert the filesize in bytes to the "nintendo-size"
 		{
 		case 59:
 			nintendo_card_id = 0x00000004;
@@ -103,9 +105,6 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 			break;
 		}
  
-		// Return to start otherwise the mem card is "corrupt"
-		fseek( pFile,0L,SEEK_SET);
- 
 		memory_card_content = new u8[memory_card_size];
 		memset(memory_card_content, 0xFF, memory_card_size);
  
@@ -124,7 +123,7 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
  
 		LOG(EXPANSIONINTERFACE, "No memory card found. Will create new.");
 		Flush();
-		Core::DisplayMessage(StringFromFormat("Wrote memory card contents to %s", m_strFilename.c_str()), 4000);
+		Core::DisplayMessage(StringFromFormat("Wrote memory card %i contents to %s.", card_index + 1, m_strFilename.c_str()), 4000);
 	}
 
 }
@@ -149,8 +148,9 @@ void CEXIMemoryCard::Flush(bool exiting)
 	}
 	fwrite(memory_card_content, memory_card_size, 1, pFile);
 	fclose(pFile);
-	if (!exiting)
-		Core::DisplayMessage(StringFromFormat("Wrote memory card contents to %s", GetFileName().c_str()), 4000);
+	if (!exiting) {
+		Core::DisplayMessage(StringFromFormat("Wrote memory card %i contents to %s.", card_index, m_strFilename.c_str()).c_str(), 4000);
+	}
 }
 
 

@@ -38,10 +38,10 @@ void PanicAlert(const char* format, ...)
 
 	if (panic_handler)
 	{
-		std::string msg;
-		StringFromFormatV(&msg, format, args);
-		LOG(MASTER_LOG, "PANIC: %s", msg.c_str());
-		panic_handler(msg.c_str(), false);
+		char buffer[2048];
+		CharArrayFromFormatV(buffer, 2048, format, args);
+		LOG(MASTER_LOG, "PANIC: %s", buffer);
+		panic_handler(buffer, false);
 	}
 	else
 	{

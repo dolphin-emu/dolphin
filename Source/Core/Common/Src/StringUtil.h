@@ -28,10 +28,8 @@
 std::string StringFromFormat(const char* format, ...);
 void ToStringFromFormat(std::string* out, const char* format, ...);
 
-
-// Expensive!
+// WARNING - only call once with a set of args!
 void StringFromFormatV(std::string* out, const char* format, va_list args);
-
 // Cheap!
 bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list args);
 

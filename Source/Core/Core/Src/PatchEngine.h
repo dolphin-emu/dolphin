@@ -30,13 +30,7 @@ enum PatchType
 	PATCH_32BIT,
 };
 
-static const char *PatchTypeStrings[] = 
-{
-	"byte",
-	"word",
-	"dword",
-	0
-};
+extern const char *PatchTypeStrings[];
 
 struct PatchEntry
 {

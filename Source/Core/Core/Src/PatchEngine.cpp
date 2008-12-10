@@ -39,6 +39,14 @@ using namespace Common;
 namespace PatchEngine
 {
 
+const char *PatchTypeStrings[] = 
+{
+	"byte",
+	"word",
+	"dword",
+	0
+};
+
 std::vector<Patch> onFrame;
 std::map<u32, int> speedHacks;
 

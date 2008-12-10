@@ -85,19 +85,23 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
 
 
 // Expensive!
-void StringFromFormatV(std::string* out, const char* format, va_list args)
+void ToStringFromFormat(std::string* out, const char* format, ...)
 {
 	int writtenCount = -1;
-	size_t newSize = strlen(format) + 16;
-	char* buf = 0;
-
+	int newSize = (int)strlen(format) + 4;
+	char *buf = 0;
+	va_list args;
 	while (writtenCount < 0)
 	{
 		delete [] buf;
 		buf = new char[newSize + 1];
+	
+	    va_start(args, format);
 		writtenCount = vsnprintf(buf, newSize, format, args);
-		if (writtenCount > (int)newSize)
+		va_end(args);
+		if (writtenCount >= (int)newSize) {
 			writtenCount = -1;
+		}
 		// ARGH! vsnprintf does no longer return -1 on truncation in newer libc!
 		// WORKAROUND! let's fake the old behaviour (even though it's less efficient).
 		// TODO: figure out why the fix causes an invalid read in strlen called from vsnprintf :(
@@ -114,12 +118,32 @@ void StringFromFormatV(std::string* out, const char* format, va_list args)
 
 std::string StringFromFormat(const char* format, ...)
 {
-	std::string temp;
+	int writtenCount = -1;
+	int newSize = (int)strlen(format) + 4;
+	char *buf = 0;
 	va_list args;
-	va_start(args, format);
-	StringFromFormatV(&temp, format, args);
-	va_end(args);
-	return(temp);
+	while (writtenCount < 0)
+	{
+		delete [] buf;
+		buf = new char[newSize + 1];
+	
+	    va_start(args, format);
+		writtenCount = vsnprintf(buf, newSize, format, args);
+		va_end(args);
+		if (writtenCount >= (int)newSize) {
+			writtenCount = -1;
+		}
+		// ARGH! vsnprintf does no longer return -1 on truncation in newer libc!
+		// WORKAROUND! let's fake the old behaviour (even though it's less efficient).
+		// TODO: figure out why the fix causes an invalid read in strlen called from vsnprintf :(
+//		if (writtenCount >= (int)newSize)
+//			writtenCount = -1;
+		newSize *= 2;
+	}
+
+	buf[writtenCount] = '\0';
+	std::string temp = buf;
+	return temp;
 }
 
 
@@ -140,15 +164,6 @@ std::string ArrayToString(const u8 *data, u32 size, u32 offset, int line_len)
 	return Temp;
 }
 // ================
-
-
-void ToStringFromFormat(std::string* out, const char* format, ...)
-{
-	va_list args;
-	va_start(args, format);
-	StringFromFormatV(out, format, args);
-	va_end(args);
-}
 
 
 // Turns "  hej " into "hej". Also handles tabs.
