@@ -73,10 +73,10 @@ CUCode_AX::~CUCode_AX()
 // ----------------
 void CUCode_AX::SaveLogFile(std::string f, int resizeTo, bool type, bool Wii)
 {
-	if(gpName.length() > 0) // thios is currently off in the Release build
+	if (gpName.length() > 0) // this is currently off in the Release build
 	{
-			std::ostringstream ci;
-			std::ostringstream cType;
+		std::ostringstream ci;
+		std::ostringstream cType;
 	        
 		ci << (resizeTo - 1); // write ci
 		cType << type; // write cType
@@ -86,7 +86,7 @@ void CUCode_AX::SaveLogFile(std::string f, int resizeTo, bool type, bool Wii)
 		FileName += Wii ? "_sepWii_sep" : "_sepGC_sep"; FileName += ".log";
 
 		FILE* fhandle = fopen(FileName.c_str(), "w");
-		fprintf(fhandle, f.c_str());
+		fprintf(fhandle, "%s", f.c_str());
 		fflush(fhandle); fhandle = NULL;
 	}
 }

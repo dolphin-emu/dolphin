@@ -48,7 +48,7 @@ namespace PPCDisasm
 
 
 	/* typedefs */
-	typedef unsigned long ppc_word;
+	typedef unsigned int ppc_word;
 
 #undef BIGENDIAN
 #undef LITTTLEENDIAN
@@ -281,7 +281,7 @@ namespace PPCDisasm
 	static void ill(struct DisasmPara_PPC *dp,ppc_word in)
 	{
 		//  strcpy(dp->opcode,".word");
-		//  sprintf(dp->operands,"0x%08lx",(unsigned long)in);
+		//  sprintf(dp->operands,"0x%08lx",(unsigned int)in);
 
 		strcpy(dp->opcode,"");
 		sprintf(dp->operands,"");
@@ -480,7 +480,7 @@ namespace PPCDisasm
 
 	static void bc(struct DisasmPara_PPC *dp,ppc_word in)
 	{
-		unsigned long d = (int)(in & 0xfffc);
+		unsigned int d = (int)(in & 0xfffc);
 		int offs;
 		char *oper = dp->operands;
 
@@ -491,9 +491,9 @@ namespace PPCDisasm
 			*oper++ = ',';
 		}
 		if (in & 2)  /* AA ? */
-			sprintf(dp->operands,"->0x%.8X",(unsigned long)d);
+			sprintf(dp->operands,"->0x%.8X",(unsigned int)d);
 		else
-			sprintf(oper,"->0x%.8X",(unsigned long)(*dp->iaddr) + d);
+			sprintf(oper,"->0x%.8X",(unsigned int)(*dp->iaddr) + d);
 		dp->type = PPCINSTR_BRANCH;
 		dp->displacement = (ppc_word)d;
 	}
@@ -501,15 +501,15 @@ namespace PPCDisasm
 
 	static void bli(struct DisasmPara_PPC *dp,ppc_word in)
 	{
-		unsigned long d = (unsigned long)(in & 0x3fffffc);
+		unsigned int d = (unsigned int)(in & 0x3fffffc);
 
 		if(d & 0x02000000) d |= 0xfc000000;
 
 		sprintf(dp->opcode,"b%s",b_ext[in&3]);
 		if (in & 2)  /* AA ? */
-			sprintf(dp->operands,"->0x%.8X",(unsigned long)d);
+			sprintf(dp->operands,"->0x%.8X",(unsigned int)d);
 		else
-			sprintf(dp->operands,"->0x%.8X",(unsigned long)(*dp->iaddr) + d);
+			sprintf(dp->operands,"->0x%.8X",(unsigned int)(*dp->iaddr) + d);
 		dp->type = PPCINSTR_BRANCH;
 		dp->displacement = (ppc_word)d;
 	}
@@ -813,7 +813,7 @@ namespace PPCDisasm
 		sprintf(dp->operands,"%s, %s, %d",regnames[a],regnames[s],bsh);
 	}
 
-	static const char *ldst_offs(unsigned long val)
+	static const char *ldst_offs(unsigned int val)
 	{
 		static char buf[8];
 
