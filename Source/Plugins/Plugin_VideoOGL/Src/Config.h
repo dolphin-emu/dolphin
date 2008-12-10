@@ -17,6 +17,7 @@
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
+//#define USE_WX 1
 
 // Log in two categories, andsave three other options in the same byte
 #define CONF_LOG 1

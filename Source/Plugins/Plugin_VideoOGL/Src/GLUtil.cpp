@@ -41,6 +41,7 @@ struct RECT
 #include <SDL.h>
 #endif
 
+
 // Handles OpenGL and the window
 
 // externals
@@ -63,11 +64,13 @@ void OpenGL_SwapBuffers()
 {
 #if USE_SDL
     SDL_GL_SwapBuffers();
-#elif defined(OSX64)
+#elif defined(HAVE_COCOA) && HAVE_COCOA
     cocoaGLSwap(GLWin.cocoaCtx,GLWin.cocoaWin);
 #elif defined(_WIN32)
     SwapBuffers(hDC);
-#else // GLX
+#elif defined(USE_WX) && USE_WX
+    GLWin.Wxcs->SwapBuffers();
+#elif defined(HAVE_X11) && HAVE_X11
     glXSwapBuffers(GLWin.dpy, GLWin.win);
 #endif
 }
@@ -76,7 +79,7 @@ void OpenGL_SetWindowText(const char *text)
 {
 #if USE_SDL
     SDL_WM_SetCaption(text, NULL);
-#elif defined(OSX64)
+#elif defined(HAVE_COCOA) && HAVE_COCOA
     cocoaGLSetTitle();
 #elif defined(_WIN32)
     SetWindowText(EmuWindow::GetWnd(), text);
@@ -89,7 +92,7 @@ void OpenGL_SetWindowText(const char *text)
 #endif
 }
 
-unsigned int  Callback_PeekMessages()
+unsigned int Callback_PeekMessages()
 {
 #ifdef _WIN32
     //TODO: peekmessage
@@ -202,6 +205,17 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     GLWin.height = nBackbufferHeight;
     GLWin.cocoaWin = cocoaGLCreateWindow(GLWin.width, GLWin.height);
     GLWin.cocoaCtx = cocoaGLInit(g_Config.iMultisampleMode);
+#elif defined(USE_WX) && USE_WX
+    int attrib[2];
+    attrib[0] = WX_GL_DEPTH_SIZE;
+    attrib[1] = 32;
+    wxFrame *frame = new wxFrame((wxFrame *)NULL, -1,  _("Test frame"), wxPoint(50,50), wxSize(400,400) );
+    GLWin.Wxcs = new wxGLCanvas(frame, -1, wxPoint(0,0), wxSize(400,400), wxSUNKEN_BORDER, _("some text"));
+
+    frame->Show(TRUE);
+
+    GLWin.Wxcs->SetCurrent();
+
 #elif defined(_WIN32)
     // create the window
     if (!g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL)
@@ -372,7 +386,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     GLWin.attr.colormap = cmap;
     GLWin.attr.border_pixel = 0;
 
-#ifndef __APPLE__
+#if defined(HAVE_XXF86VM) && HAVE_XXF86VM
     // get a connection
     XF86VidModeQueryVersion(GLWin.dpy, &vidModeMajorVersion, &vidModeMinorVersion);
 
@@ -482,14 +496,14 @@ bool OpenGL_MakeCurrent()
 		SDL_Quit();
 		return false;
 	}
-#elif defined(OSX64)
+#elif defined(HAVE_COCOA) && HAVE_COCOA
     cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
 #elif defined(_WIN32)
     if (!wglMakeCurrent(hDC,hRC)) {
         MessageBox(NULL,"(5) Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
         return false;
     }
-#else  // GLX
+#elif defined(HAVE_X11) && HAVE_X11
     Window winDummy;
     unsigned int borderDummy;
     // connect the glx-context to the window
@@ -520,11 +534,14 @@ void OpenGL_Update()
     if (!surface) return;
     nBackbufferWidth = surface->w;
     nBackbufferHeight = surface->h;
-#elif defined(OSX64)
+#elif defined(HAVE_COCOA) && HAVE_COCOA
     RECT rcWindow;
-     rcWindow.right = GLWin.width;
-      rcWindow.bottom = GLWin.height;
+    rcWindow.right = GLWin.width;
+    rcWindow.bottom = GLWin.height;
 
+#elif defined(USE_WX) && USE_WX
+    RECT rcWindow;
+    // TODO fill in
 #elif defined(_WIN32)
 	RECT rcWindow;
 	if (!EmuWindow::GetParentWnd()) {
@@ -552,7 +569,7 @@ void OpenGL_Update()
     nBackbufferWidth = width;
     nBackbufferHeight = height;
 
-#else // GLX
+#elif defined(HAVE_X11) && HAVE_X11
     // We just check all of our events here
     XEvent event;
     KeySym key;
@@ -669,8 +686,8 @@ void OpenGL_Shutdown()
 {
 #if USE_SDL
 	SDL_Quit();
-#elif defined(OSX64)
-    cocoaGLDelete(GLWin.cocoaCtx);
+#elif defined(HAVE_COCOA) && HAVE_COCOA
+        cocoaGLDelete(GLWin.cocoaCtx);
 #elif defined(_WIN32)
     if (hRC)                                            // Do We Have A Rendering Context?
     {
@@ -706,7 +723,7 @@ void OpenGL_Shutdown()
         XCloseDisplay(GLWin.dpy);
         GLWin.ctx = NULL;
     }
-#ifndef __APPLE__
+#if defined(HAVE_XXF86VM) && HAVE_XXF86VM
     /* switch back to original desktop resolution if we were in fs */
     if (GLWin.dpy != NULL) {
         if (GLWin.fs) {

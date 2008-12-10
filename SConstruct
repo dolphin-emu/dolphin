@@ -99,8 +99,8 @@ vars.AddVariables(
                  allowed_values = ('release', 'devel', 'debug'),
                  ignorecase = 2
                  ),
-    EnumVariable('osx', 'Choose a backend (WIP)', '32coca',
-                 allowed_values = ('32x11', '32coca', '64coca'),
+    EnumVariable('osx', 'Choose a backend (WIP)', '32cocoa',
+                 allowed_values = ('32x11', '32cocoa', '64cocoa'),
                  ignorecase = 2
                  ),
     PathVariable('wxconfig', 'Path to the wxconfig', None),
@@ -192,9 +192,9 @@ env['HAVE_WX'] = conf.CheckWXConfig('2.8', ['adv', 'core', 'base'],
 
 #osx 64 specifics
 if sys.platform == 'darwin':
-    if env['osx'] == '64coca':
+    if env['osx'] == '64cocoa':
         compileFlags += ['-arch' , 'x86_64', '-DOSX64']
-    if env['osx'] == '64coca' or env['osx'] == '32coca':
+    if not env['osx'] == '32x11':
         env['HAVE_X11'] = 0
         env['HAVE_COCOA'] = conf.CheckPKG('cocoa')
 else:
@@ -219,7 +219,6 @@ conf.Finish()
 #wx windows flags
 if env['HAVE_WX']:
     wxconfig.ParseWXConfig(env)
-    compileFlags += ['-DUSE_WX']
 else:
     print "WX not found or disabled, not building GUI"
 

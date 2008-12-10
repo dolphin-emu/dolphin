@@ -154,7 +154,8 @@ void DllConfig(HWND _hParent)
 	frame->ShowModal();
 	//win.SetHWND(0);
 
-#elif defined(HAVE_WX) && HAVE_WX
+#elif defined(HAVE_X11) && HAVE_X11
+#if defined(HAVE_XXF86VM) && HAVE_XXF86VM
 	ConfigDialog frame(NULL);
 	g_Config.Load();
     int glxMajorVersion, glxMinorVersion;
@@ -188,6 +189,7 @@ void DllConfig(HWND _hParent)
         }    
 	XFree(modes);
 	frame.ShowModal();
+#endif
 #else
 	//TODO
 #endif
@@ -235,9 +237,9 @@ void Video_DoState(unsigned char **ptr, int mode) {
 //      PanicAlert("Can't Activate The GL Rendering Context for saving");
 //      return;
 //  }
-#elif defined(OSX64)
+#elif defined(HAVE_COCOA) && HAVE_COCOA
     cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
-#else // Linux
+#elif defined(HAVE_X11) && HAVE_X11
     glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
 #endif
         

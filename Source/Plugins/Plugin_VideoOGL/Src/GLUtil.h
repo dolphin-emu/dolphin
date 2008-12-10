@@ -18,6 +18,7 @@
 #ifndef _GLINIT_H
 #define _GLINIT_H
 
+#include "Config.h"
 #include "pluginspecs_video.h"
 
 #ifdef _WIN32
@@ -32,25 +33,25 @@
 #else // linux basic definitions
 
 #define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
+#if defined(USE_WX) && USE_WX
+#include <GL/glew.h>
+#include "wx/wx.h"
+#include "wx/glcanvas.h"
+#undef HAVE_X11
+#elif defined(HAVE_X11) && HAVE_X11
 #define I_NEED_OS2_H // HAXXOR
-//#include <GL/glew.h>
-#if defined(HAVE_X11) && HAVE_X11
 #include <GL/glxew.h>
-#else
-#undef BOOL
+#elif defined(HAVE_COCOA) && HAVE_COCOA
 #include <GL/glew.h>
 #include "cocoaGL.h"
-#endif
+#endif // end USE_WX
 
 #if defined(__APPLE__) 
 #include <OpenGL/gl.h>
-
 #else
-
 #include <GL/gl.h>
-
 #endif
-//#include <GL/glx.h>
+
 #define __inline inline
 
 #include <sys/timeb.h>    // ftime(), struct timeb
@@ -85,39 +86,40 @@ inline unsigned long timeGetTime()
 #define GL_REPORT_ERRORD()
 #endif
 
+
 #ifndef _WIN32
-
-#undef I_NEED_OS2_H
-#undef BOOL
-
 #if defined(HAVE_X11) && HAVE_X11
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
-#ifndef __APPLE__
+#if defined(HAVE_XXF86VM) && HAVE_XXF86VM
 #include <X11/extensions/xf86vmode.h>
-#endif
-//#include <gtk/gtk.h>
-#endif
+#endif // XXF86VM
+#endif // X11
+
 #include <sys/stat.h>
 #include <sys/types.h>
 
 typedef struct {
     int screen;
-#if defined(OSX64)
+#if defined(HAVE_COCOA) && HAVE_COCOA
     NSWindow *cocoaWin;
     NSOpenGLContext *cocoaCtx;
-#else //linux
+#elif defined(HAVE_X11) && HAVE_X11
     Window win;
     Display *dpy;
     GLXContext ctx;
     XSetWindowAttributes attr;
     Bool fs;
     Bool doubleBuffered;
-#ifndef __APPLE__
+#if defined(HAVE_XXF86VM) && HAVE_XXF86VM
     XF86VidModeModeInfo deskMode;
-#endif
-#endif
+#endif // XXF86VM
+#endif // X11
+#if defined(USE_WX) && USE_WX
+    wxGLCanvas *Wxcs;
+
+#endif 
     int x, y;
     unsigned int width, height;
     unsigned int depth;    
