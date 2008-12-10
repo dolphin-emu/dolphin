@@ -61,7 +61,7 @@ DWORD                   g_dwNumForceFeedbackAxis = 0;
 INT                     g_nXForce = 0;
 INT                     g_nYForce = 0;
 
-#define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=NULL; } }
+#define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p)=NULL; } }
 
 HRESULT InitDirectInput(HWND hDlg);
 VOID FreeDirectInput();
@@ -109,7 +109,7 @@ BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 			char **argv = NULL;
 			wxEntryStart(argc, argv);
 
-			if ( !wxTheApp || !wxTheApp->CallOnInit() )
+			if (!wxTheApp || !wxTheApp->CallOnInit() )
 				return FALSE;
 		}
 		break; 
@@ -154,7 +154,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 void DllConfig(HWND _hParent)
 {		
 	#ifdef _WIN32
-	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
+	if (SDL_Init(SDL_INIT_JOYSTICK ) < 0)
 	{
 		MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
 		return;
@@ -169,7 +169,7 @@ void DllConfig(HWND _hParent)
 	win.SetHWND(0);
 
 	#else
-	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
+	if (SDL_Init(SDL_INIT_JOYSTICK ) < 0)
 	{
 		printf("Could not initialize SDL! (%s)\n", SDL_GetError());
 		return;
@@ -191,7 +191,7 @@ void PAD_Initialize(SPADInitialize _PADInitialize)
 	DEBUG_INIT();
 	#endif
 	
-	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
+	if (SDL_Init(SDL_INIT_JOYSTICK ) < 0)
 	{
 		#ifdef _WIN32
 		MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
@@ -207,13 +207,13 @@ void PAD_Initialize(SPADInitialize _PADInitialize)
 
 	LoadConfig();	// Load joystick mapping
 	
-	if(joysticks[0].enabled)
+	if (joysticks[0].enabled)
 		joystate[0].joy = SDL_JoystickOpen(joysticks[0].ID);
-	if(joysticks[1].enabled)
+	if (joysticks[1].enabled)
 		joystate[1].joy = SDL_JoystickOpen(joysticks[1].ID);
-	if(joysticks[2].enabled)
+	if (joysticks[2].enabled)
 		joystate[2].joy = SDL_JoystickOpen(joysticks[2].ID);
-	if(joysticks[3].enabled)
+	if (joysticks[3].enabled)
 		joystate[3].joy = SDL_JoystickOpen(joysticks[3].ID);
 }
 
@@ -221,13 +221,13 @@ void PAD_Initialize(SPADInitialize _PADInitialize)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PAD_Shutdown()
 {
-	if(joysticks[0].enabled)
+	if (joysticks[0].enabled)
 		SDL_JoystickClose(joystate[0].joy);
-	if(joysticks[1].enabled)
+	if (joysticks[1].enabled)
 		SDL_JoystickClose(joystate[1].joy);
-	if(joysticks[2].enabled)
+	if (joysticks[2].enabled)
 		SDL_JoystickClose(joystate[2].joy);
-	if(joysticks[3].enabled)
+	if (joysticks[3].enabled)
 		SDL_JoystickClose(joystate[3].joy);
 
 	SDL_Quit();
@@ -253,7 +253,7 @@ void PAD_Shutdown()
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
-	if(!joysticks[_numPAD].enabled)
+	if (!joysticks[_numPAD].enabled)
 		return;
 		
 	// clear pad status
@@ -284,22 +284,22 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	int sub_stick_y = -(joystate[_numPAD].axis[CTL_SUB_Y]>>8);
 
 	// Quick fix
-	if(main_stick_x > 127)
+	if (main_stick_x > 127)
 		main_stick_x = 127;
-	if(main_stick_y > 127)
+	if (main_stick_y > 127)
 		main_stick_y = 127;
-	if(sub_stick_x > 127)
+	if (sub_stick_x > 127)
 		sub_stick_x = 127;
-	if(sub_stick_y > 127)
+	if (sub_stick_y > 127)
 		sub_stick_y = 127;
 
-	if(main_stick_x < -128)
+	if (main_stick_x < -128)
 		main_stick_x = -128;
-	if(main_stick_y < -128)
+	if (main_stick_y < -128)
 		main_stick_y = -128;
-	if(sub_stick_x < -128)
+	if (sub_stick_x < -128)
 		sub_stick_x = -128;
-	if(sub_stick_y < -128)
+	if (sub_stick_y < -128)
 		sub_stick_y = -128;
 
 	// Send values to Dolpin
@@ -340,22 +340,22 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	if (joystate[_numPAD].buttons[CTL_START])		_pPADStatus->button|=PAD_BUTTON_START;
 
 	// Set D-pad
-	if(joysticks[_numPAD].controllertype == CTL_TYPE_JOYSTICK)
+	if (joysticks[_numPAD].controllertype == CTL_TYPE_JOYSTICK)
 	{
-		if(joystate[_numPAD].dpad == SDL_HAT_LEFTUP		|| joystate[_numPAD].dpad == SDL_HAT_UP		|| joystate[_numPAD].dpad == SDL_HAT_RIGHTUP )		_pPADStatus->button|=PAD_BUTTON_UP;
-		if(joystate[_numPAD].dpad == SDL_HAT_LEFTUP		|| joystate[_numPAD].dpad == SDL_HAT_LEFT	|| joystate[_numPAD].dpad == SDL_HAT_LEFTDOWN )		_pPADStatus->button|=PAD_BUTTON_LEFT;
-		if(joystate[_numPAD].dpad == SDL_HAT_LEFTDOWN	|| joystate[_numPAD].dpad == SDL_HAT_DOWN	|| joystate[_numPAD].dpad == SDL_HAT_RIGHTDOWN )	_pPADStatus->button|=PAD_BUTTON_DOWN;
-		if(joystate[_numPAD].dpad == SDL_HAT_RIGHTUP	|| joystate[_numPAD].dpad == SDL_HAT_RIGHT	|| joystate[_numPAD].dpad == SDL_HAT_RIGHTDOWN )	_pPADStatus->button|=PAD_BUTTON_RIGHT;
+		if (joystate[_numPAD].dpad == SDL_HAT_LEFTUP		|| joystate[_numPAD].dpad == SDL_HAT_UP		|| joystate[_numPAD].dpad == SDL_HAT_RIGHTUP )		_pPADStatus->button|=PAD_BUTTON_UP;
+		if (joystate[_numPAD].dpad == SDL_HAT_LEFTUP		|| joystate[_numPAD].dpad == SDL_HAT_LEFT	|| joystate[_numPAD].dpad == SDL_HAT_LEFTDOWN )		_pPADStatus->button|=PAD_BUTTON_LEFT;
+		if (joystate[_numPAD].dpad == SDL_HAT_LEFTDOWN	|| joystate[_numPAD].dpad == SDL_HAT_DOWN	|| joystate[_numPAD].dpad == SDL_HAT_RIGHTDOWN )	_pPADStatus->button|=PAD_BUTTON_DOWN;
+		if (joystate[_numPAD].dpad == SDL_HAT_RIGHTUP	|| joystate[_numPAD].dpad == SDL_HAT_RIGHT	|| joystate[_numPAD].dpad == SDL_HAT_RIGHTDOWN )	_pPADStatus->button|=PAD_BUTTON_RIGHT;
 	}
 	else
 	{
-		if(joystate[_numPAD].dpad2[CTL_D_PAD_UP])
+		if (joystate[_numPAD].dpad2[CTL_D_PAD_UP])
 			_pPADStatus->button|=PAD_BUTTON_UP;
-		if(joystate[_numPAD].dpad2[CTL_D_PAD_DOWN])
+		if (joystate[_numPAD].dpad2[CTL_D_PAD_DOWN])
 			_pPADStatus->button|=PAD_BUTTON_DOWN;
-		if(joystate[_numPAD].dpad2[CTL_D_PAD_LEFT])
+		if (joystate[_numPAD].dpad2[CTL_D_PAD_LEFT])
 			_pPADStatus->button|=PAD_BUTTON_LEFT;
-		if(joystate[_numPAD].dpad2[CTL_D_PAD_RIGHT])
+		if (joystate[_numPAD].dpad2[CTL_D_PAD_RIGHT])
 			_pPADStatus->button|=PAD_BUTTON_RIGHT;
 	}
 	
@@ -364,9 +364,9 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 
 	#ifdef _WIN32
 	#ifdef USE_RUMBLE_DINPUT_HACK
-	if(joystate[_numPAD].halfpress)
-	if(!g_pDI)
-	if(FAILED(InitDirectInput(m_hWnd)))
+	if (joystate[_numPAD].halfpress)
+	if (!g_pDI)
+	if (FAILED(InitDirectInput(m_hWnd)))
 	{
 		MessageBox(NULL, SDL_GetError(), "Could not initialize DirectInput!", MB_ICONERROR);
 		g_rumbleEnable = FALSE;
@@ -379,12 +379,12 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	{
 		g_pDevice->Acquire();
 		
-		if(g_pEffect)
+		if (g_pEffect)
 			g_pEffect->Start(1, 0);
 	}
 	#endif
 	#elif defined(__linux__)
-	if(!fd)
+	if (!fd)
 	{
 		sprintf(device_file_name, "/dev/input/event%d", joysticks[_numPAD].eventnum); //TODO: Make dynamic //
 
@@ -399,7 +399,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 		if (ioctl(fd, EVIOCGEFFECTS, &n_effects) == -1) {
 			perror("Ioctl number of effects");
 		}
-		if(n_effects > 0)
+		if (n_effects > 0)
 			CanRumble = true;
 		else
 			return; // Return since we can't do any effects
@@ -423,7 +423,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 // (Stop=0, Rumble=1)
 void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
-	//if(_numPAD > 0)
+	//if (_numPAD > 0)
 	//	return;
 
 	// not supported by SDL
@@ -455,7 +455,7 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 	#endif
 	#elif defined(__linux__)
 	struct input_event event;
-	if(CanRumble)
+	if (CanRumble)
 	{
 		if (_uType == 1)
 		{
@@ -489,13 +489,13 @@ unsigned int PAD_GetAttachedPads()
 	
 	LoadConfig();
 
-	if(joysticks[0].enabled)
+	if (joysticks[0].enabled)
 		connected |= 1;		
-	if(joysticks[1].enabled)
+	if (joysticks[1].enabled)
 		connected |= 2;
-	if(joysticks[2].enabled)
+	if (joysticks[2].enabled)
 		connected |= 4;
-	if(joysticks[3].enabled)
+	if (joysticks[3].enabled)
 		connected |= 8;
 
 	return connected;
@@ -513,6 +513,13 @@ unsigned int SaveLoadState(char *ptr, BOOL save)
 // Custom Functions
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
+void ReadButton(int controller, int button) {
+	int ctl_button = joysticks[controller].buttons[button];
+	if (ctl_button < joyinfo[controller].NumButtons) {
+		joystate[controller].buttons[button] = SDL_JoystickGetButton(joystate[controller].joy, ctl_button);
+	}
+}
+
 // Request joystick state
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void GetJoyState(int controller)
@@ -523,20 +530,23 @@ void GetJoyState(int controller)
 	joystate[controller].axis[CTL_MAIN_Y] = SDL_JoystickGetAxis(joystate[controller].joy, joysticks[controller].axis[CTL_MAIN_Y]);
 	joystate[controller].axis[CTL_SUB_X] = SDL_JoystickGetAxis(joystate[controller].joy, joysticks[controller].axis[CTL_SUB_X]);
 	joystate[controller].axis[CTL_SUB_Y] = SDL_JoystickGetAxis(joystate[controller].joy, joysticks[controller].axis[CTL_SUB_Y]);
+	
+	ReadButton(controller, CTL_L_SHOULDER);
+	ReadButton(controller, CTL_R_SHOULDER);
+	ReadButton(controller, CTL_A_BUTTON);
+	ReadButton(controller, CTL_B_BUTTON);
+	ReadButton(controller, CTL_X_BUTTON);
+	ReadButton(controller, CTL_Y_BUTTON);
+	ReadButton(controller, CTL_Z_TRIGGER);
+	ReadButton(controller, CTL_START);
+	
+	if (joysticks[controller].halfpress < joyinfo[controller].NumButtons)
+		joystate[controller].halfpress = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].halfpress);
 
-	joystate[controller].buttons[CTL_L_SHOULDER] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].buttons[CTL_L_SHOULDER]);
-	joystate[controller].buttons[CTL_R_SHOULDER] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].buttons[CTL_R_SHOULDER]);
-	joystate[controller].buttons[CTL_A_BUTTON] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].buttons[CTL_A_BUTTON]);
-	joystate[controller].buttons[CTL_B_BUTTON] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].buttons[CTL_B_BUTTON]);
-	joystate[controller].buttons[CTL_X_BUTTON] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].buttons[CTL_X_BUTTON]);
-	joystate[controller].buttons[CTL_Y_BUTTON] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].buttons[CTL_Y_BUTTON]);
-	joystate[controller].buttons[CTL_Z_TRIGGER] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].buttons[CTL_Z_TRIGGER]);
-	joystate[controller].buttons[CTL_START] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].buttons[CTL_START]);
-
-	joystate[controller].halfpress = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].halfpress);
-
-	if(joysticks[controller].controllertype == CTL_TYPE_JOYSTICK)
+	if (joysticks[controller].controllertype == CTL_TYPE_JOYSTICK)
+	{
 		joystate[controller].dpad = SDL_JoystickGetHat(joystate[controller].joy, joysticks[controller].dpad);
+	}
 	else
 	{
 		joystate[controller].dpad2[CTL_D_PAD_UP] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].dpad2[CTL_D_PAD_UP]);
@@ -557,7 +567,7 @@ int Search_Devices()
 
 	int numjoy = SDL_NumJoysticks();
 
-	if(numjoy == 0)
+	if (numjoy == 0)
 	{		
 		#ifdef _WIN32
 		MessageBox(NULL, "No Joystick detected!", NULL,  MB_ICONWARNING);
@@ -567,7 +577,7 @@ int Search_Devices()
 		return 0;
 	}
 
-	if(joyinfo)
+	if (joyinfo)
 	{
 		delete [] joyinfo;
 		joyinfo = new CONTROLLER_INFO [numjoy];
@@ -602,7 +612,7 @@ int Search_Devices()
 		#endif	
 
 		// Close if opened
-		if(SDL_JoystickOpened(i))
+		if (SDL_JoystickOpened(i))
 			SDL_JoystickClose(joyinfo[i].joy);
 	}
 
@@ -613,7 +623,7 @@ int Search_Devices()
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DEBUG_INIT()
 {
-	if(pFile)
+	if (pFile)
 		return;
 
 	#ifdef _WIN32
@@ -635,7 +645,7 @@ void DEBUG_INIT()
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DEBUG_QUIT()
 {
-	if(!pFile)
+	if (!pFile)
 		return;
 
 	#ifdef _WIN32
@@ -655,7 +665,7 @@ void SaveConfig()
 	IniFile file;
 	file.Load("nJoy.ini");
 
-	for (int i=0; i<4; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		char SectionName[32];
 		sprintf(SectionName, "PAD%i", i+1);
@@ -695,7 +705,7 @@ void LoadConfig()
 	IniFile file;
 	file.Load("nJoy.ini");
 
-	for (int i=0; i<4; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		char SectionName[32];
 		sprintf(SectionName, "PAD%i", i+1);
@@ -739,18 +749,18 @@ HRESULT InitDirectInput( HWND hDlg )
     HRESULT hr;
 
     // Register with the DirectInput subsystem and get a pointer to a IDirectInput interface we can use.
-    if(FAILED(hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&g_pDI, NULL)))
+    if (FAILED(hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&g_pDI, NULL)))
     {
         return hr;
     }
 
     // Look for a force feedback device we can use
-    if(FAILED(hr = g_pDI->EnumDevices( DI8DEVCLASS_GAMECTRL, EnumFFDevicesCallback, NULL, DIEDFL_ATTACHEDONLY | DIEDFL_FORCEFEEDBACK)))
+    if (FAILED(hr = g_pDI->EnumDevices( DI8DEVCLASS_GAMECTRL, EnumFFDevicesCallback, NULL, DIEDFL_ATTACHEDONLY | DIEDFL_FORCEFEEDBACK)))
     {
         return hr;
     }
 
-    if(NULL == g_pDevice)
+    if (NULL == g_pDevice)
     {
         MessageBox(NULL, "Force feedback device not found. nJoy will now disable rumble." ,"FFConst" , MB_ICONERROR | MB_OK);
 		g_rumbleEnable = FALSE;
@@ -766,15 +776,15 @@ HRESULT InitDirectInput( HWND hDlg )
     // IDirectInputDevice8::GetDeviceState(). Even though we won't actually do
     // it in this sample. But setting the data format is important so that the
     // DIJOFS_* values work properly.
-    if(FAILED(hr = g_pDevice->SetDataFormat(&c_dfDIJoystick)))
+    if (FAILED(hr = g_pDevice->SetDataFormat(&c_dfDIJoystick)))
         return hr;
 
     // Set the cooperative level to let DInput know how this device should
     // interact with the system and with other DInput applications.
     // Exclusive access is required in order to perform force feedback.
-    //if(FAILED(hr = g_pDevice->SetCooperativeLevel(hDlg, DISCL_EXCLUSIVE | DISCL_FOREGROUND)))
+    //if (FAILED(hr = g_pDevice->SetCooperativeLevel(hDlg, DISCL_EXCLUSIVE | DISCL_FOREGROUND)))
 
-	if(FAILED(hr = g_pDevice->SetCooperativeLevel(hDlg, DISCL_EXCLUSIVE | DISCL_FOREGROUND)))	
+	if (FAILED(hr = g_pDevice->SetCooperativeLevel(hDlg, DISCL_EXCLUSIVE | DISCL_FOREGROUND)))	
     {
         return hr;
     }
@@ -787,15 +797,15 @@ HRESULT InitDirectInput( HWND hDlg )
     dipdw.diph.dwHow = DIPH_DEVICE;
     dipdw.dwData = FALSE;
 
-    if(FAILED(hr = g_pDevice->SetProperty(DIPROP_AUTOCENTER, &dipdw.diph)))
+    if (FAILED(hr = g_pDevice->SetProperty(DIPROP_AUTOCENTER, &dipdw.diph)))
         return hr;
 
     // Enumerate and count the axes of the joystick 
-    if(FAILED(hr = g_pDevice->EnumObjects(EnumAxesCallback, (VOID*)&g_dwNumForceFeedbackAxis, DIDFT_AXIS)))
+    if (FAILED(hr = g_pDevice->EnumObjects(EnumAxesCallback, (VOID*)&g_dwNumForceFeedbackAxis, DIDFT_AXIS)))
         return hr;
 
     // This simple sample only supports one or two axis joysticks
-    if(g_dwNumForceFeedbackAxis > 2)
+    if (g_dwNumForceFeedbackAxis > 2)
         g_dwNumForceFeedbackAxis = 2;
 
     // This application needs only one effect: Applying raw forces.
@@ -821,12 +831,12 @@ HRESULT InitDirectInput( HWND hDlg )
     eff.dwStartDelay = 0;
 
     // Create the prepared effect
-    if(FAILED(hr = g_pDevice->CreateEffect(GUID_ConstantForce, &eff, &g_pEffect, NULL)))
+    if (FAILED(hr = g_pDevice->CreateEffect(GUID_ConstantForce, &eff, &g_pEffect, NULL)))
     {
         return hr;
     }
 
-    if(NULL == g_pEffect)
+    if (NULL == g_pEffect)
         return E_FAIL;
 
     return S_OK;
@@ -836,7 +846,7 @@ VOID FreeDirectInput()
 {
     // Unacquire the device one last time just in case 
     // the app tried to exit while the device is still acquired.
-    if(g_pDevice)
+    if (g_pDevice)
         g_pDevice->Unacquire();
 
     // Release any DirectInput objects.
@@ -855,7 +865,7 @@ BOOL CALLBACK EnumFFDevicesCallback( const DIDEVICEINSTANCE* pInst, VOID* pConte
 
     // If it failed, then we can't use this device for some bizarre reason.  
 	// (Maybe the user unplugged it while we were in the middle of enumerating it.)  So continue enumerating
-    if( FAILED(hr))
+    if (FAILED(hr))
         return DIENUM_CONTINUE;
 
     // We successfully created an IDirectInputDevice8.  So stop looking for another one.
@@ -867,7 +877,7 @@ BOOL CALLBACK EnumFFDevicesCallback( const DIDEVICEINSTANCE* pInst, VOID* pConte
 BOOL CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pContext)
 {
     DWORD* pdwNumForceFeedbackAxis = (DWORD*)pContext;
-    if((pdidoi->dwFlags & DIDOI_FFACTUATOR) != 0)
+    if ((pdidoi->dwFlags & DIDOI_FFACTUATOR) != 0)
         (*pdwNumForceFeedbackAxis)++;
 
     return DIENUM_CONTINUE;
@@ -880,7 +890,7 @@ HRESULT SetDeviceForcesXY()
 
     DICONSTANTFORCE cf;
 
-    if( g_dwNumForceFeedbackAxis == 1 )
+    if (g_dwNumForceFeedbackAxis == 1)
     {
         // If only one force feedback axis, then apply only one direction and keep the direction at zero
         cf.lMagnitude = g_nXForce;
