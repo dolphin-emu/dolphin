@@ -392,10 +392,10 @@ void ConfigBox::SetControllerAll(int controller)
 	}
 	else
 	{
-		tmp << joysticks[controller].dpad2[CTL_D_PAD_UP]; m_JoyDpadUp[controller]->SetValue(tmp); tmp.clear();
-		tmp << joysticks[controller].dpad2[CTL_D_PAD_DOWN]; m_JoyDpadDown[controller]->SetValue(tmp); tmp.clear();
-		tmp << joysticks[controller].dpad2[CTL_D_PAD_LEFT]; m_JoyDpadLeft[controller]->SetValue(tmp); tmp.clear();
-		tmp << joysticks[controller].dpad2[CTL_D_PAD_RIGHT]; m_JoyDpadRight[controller]->SetValue(tmp); tmp.clear();
+		m_JoyDpadUp[controller]->SetValue(wxString::FromAscii(joysticks[controller].buttons[CTL_D_PAD_UP].c_str())); 
+		m_JoyDpadDown[controller]->SetValue(wxString::FromAscii(joysticks[controller].buttons[CTL_D_PAD_DOWN].c_str()));
+		m_JoyDpadLeft[controller]->SetValue(wxString::FromAscii(joysticks[controller].buttons[CTL_D_PAD_LEFT].c_str())); 
+		m_JoyDpadRight[controller]->SetValue(wxString::FromAscii(joysticks[controller].buttons[CTL_D_PAD_RIGHT].c_str())); 
 	}	
 }
 
@@ -426,10 +426,10 @@ void ConfigBox::GetControllerAll(int controller)
 	}
 	else
 	{
-		m_JoyDpadUp[controller]->GetValue().ToLong(&lvalue); joysticks[controller].dpad2[CTL_D_PAD_UP] = lvalue; tmp.clear();
-		m_JoyDpadDown[controller]->GetValue().ToLong(&lvalue); joysticks[controller].dpad2[CTL_D_PAD_DOWN] = lvalue; tmp.clear();
-		m_JoyDpadLeft[controller]->GetValue().ToLong(&lvalue); joysticks[controller].dpad2[CTL_D_PAD_LEFT] = lvalue; tmp.clear();
-		m_JoyDpadRight[controller]->GetValue().ToLong(&lvalue); joysticks[controller].dpad2[CTL_D_PAD_RIGHT] = lvalue; tmp.clear(); 	
+		joysticks[controller].buttons[CTL_D_PAD_UP] = std::string(m_JoyDpadUp[controller]->GetValue().mb_str());
+		joysticks[controller].buttons[CTL_D_PAD_DOWN] = std::string(m_JoyDpadDown[controller]->GetValue().mb_str());
+		joysticks[controller].buttons[CTL_D_PAD_LEFT] = std::string(m_JoyDpadLeft[controller]->GetValue().mb_str());
+		joysticks[controller].buttons[CTL_D_PAD_RIGHT] = std::string(m_JoyDpadRight[controller]->GetValue().mb_str());
 	}
 
 	joysticks[controller].buttons[CTL_MAIN_X] = std::string(m_JoyAnalogMainX[controller]->GetValue().mb_str()); tmp.clear();
@@ -662,10 +662,15 @@ void ConfigBox::GetInputs(wxCommandEvent& event)
 		for(int b = 0; b < axes; b++)
 		{
 			value = SDL_JoystickGetAxis(joy, b);
-			if(value <= (joysticks[controller].sData[b].Min - (joysticks[controller].sData[b].Min * joysticks[controller].deadzone / 100)) || value >= (joysticks[controller].sData[b].Max - (joysticks[controller].sData[b].Max * joysticks[controller].deadzone / 100)))	// Add and subtract a small value
+			if(joysticks[controller].sData[b].Min == 0)
+				if(value == 0)
+					continue; // Do nothing
+			if(
+				(value <= (joysticks[controller].sData[b].Min - joysticks[controller].sData[b].Min * joysticks[controller].deadzone/100.0f) ) || 
+				(value >= (joysticks[controller].sData[b].Max - joysticks[controller].sData[b].Max * joysticks[controller].deadzone/100.0f) ))	// Add and subtract a small value
 			{															// It allows for some small jitter
-				printf("value %d, Min %d Max %d Removal %d\n", value, joysticks[controller].sData[b].Min,joysticks[controller].sData[b].Max, (joysticks[controller].sData[b].Min * joysticks[controller].deadzone / 100));
-				value = value <= (joysticks[controller].sData[b].Min - joysticks[controller].sData[b].Min * joysticks[controller].deadzone) ? -1 : 1; // Makes it know if the value is negative or positive
+				printf("value %d, Min %d Max %d Removal %f %f\n", value, joysticks[controller].sData[b].Min,joysticks[controller].sData[b].Max, joysticks[controller].sData[b].Min * joysticks[controller].deadzone/100.0f, joysticks[controller].sData[b].Max * joysticks[controller].deadzone/100.0f);
+				value = value < 0 ? -1 : 1; // Makes it know if the value is negative or positive
 				pressed = b;	
 				waiting = false;
 				succeed = true;

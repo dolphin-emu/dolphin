@@ -107,18 +107,16 @@ class sCalibration
 	Sint16 Max;
 }; // Simple Calibration Data
 struct CONTROLLER_STATE{	// GC PAD INFO/STATE
-	int buttons[12];		// Amount of buttons (A B X Y Z, L-Trigger R-Trigger Start) might need to change the triggers buttons
+	int buttons[16];		// Amount of buttons (A B X Y Z, L-Trigger R-Trigger Start) might need to change the triggers buttons
 	int dpad;				// 1 HAT (8 directions + neutral)
-	int dpad2[4];			// d-pad using buttons
 	int halfpress;			// ...
 	SDL_Joystick *joy;		// SDL joystick device
 };
 
 struct CONTROLLER_MAPPING{	// GC PAD MAPPING
-	std::string buttons[12];// Amount of buttons (A B X Y Z, L-Trigger R-Trigger Start) might need to change the triggers buttons
+	std::string buttons[16];// Amount of buttons (A B X Y Z, L-Trigger R-Trigger Start) might need to change the triggers buttons
 	sCalibration sData[MAX_AXISES];	// Calibration Data
 	int dpad;				// 1 HAT (8 directions + neutral)
-	int dpad2[4];			// d-pad using buttons
 	int enabled;			// Pad attached?
 	int deadzone;			// Deadzone... what else?
 	int halfpress;			// Halfpress... you know, like not fully pressed ;)...
@@ -147,6 +145,10 @@ enum
 	CTL_Y_BUTTON,
 	CTL_Z_TRIGGER,	
 	CTL_START,
+	CTL_D_PAD_UP,
+	CTL_D_PAD_DOWN,
+	CTL_D_PAD_LEFT,
+	CTL_D_PAD_RIGHT,
 	CTL_MAIN_X,
 	CTL_MAIN_Y,
 	CTL_SUB_X,
@@ -161,15 +163,6 @@ enum
 	CTL_TYPE_JOYSTICK_XBOX360,
 	CTL_TYPE_KEYBOARD
 };
-
-enum
-{
-	CTL_D_PAD_UP = 0,
-	CTL_D_PAD_DOWN,
-	CTL_D_PAD_LEFT,
-	CTL_D_PAD_RIGHT
-};
-
 //////////////////////////////////////////////////////////////////////////////////////////
 // Custom Functions
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯

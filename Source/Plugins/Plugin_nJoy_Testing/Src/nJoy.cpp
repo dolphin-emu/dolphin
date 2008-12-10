@@ -278,10 +278,29 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// Adjust range
 	// The value returned by SDL_JoystickGetAxis is a signed integer (-32768 to 32768)
 	// The value used for the gamecube controller is an unsigned char (0 to 255)
-	int main_stick_x = (joystate[_numPAD].buttons[CTL_MAIN_X]>>8);
-	int main_stick_y = -(joystate[_numPAD].buttons[CTL_MAIN_Y]>>8);
-    int sub_stick_x = (joystate[_numPAD].buttons[CTL_SUB_X]>>8);
-	int sub_stick_y = -(joystate[_numPAD].buttons[CTL_SUB_Y]>>8);
+	int main_stick_x, main_stick_y, sub_stick_x, sub_stick_y;
+	if(joysticks[_numPAD].buttons[CTL_MAIN_X].c_str()[0] == 'A') // Axis
+	{
+		main_stick_x = (joystate[_numPAD].buttons[CTL_MAIN_X]>>8);
+		main_stick_y = -(joystate[_numPAD].buttons[CTL_MAIN_Y]>>8);
+		sub_stick_x = (joystate[_numPAD].buttons[CTL_SUB_X]>>8);
+		sub_stick_y = -(joystate[_numPAD].buttons[CTL_SUB_Y]>>8);
+	}
+	else if(joysticks[_numPAD].buttons[CTL_MAIN_X].c_str()[0] == 'B') // Button
+	{
+		PanicAlert("Buttons as Joysticks don't work yet!");
+	}
+	else if(joysticks[_numPAD].buttons[CTL_MAIN_X].c_str()[0] == 'H') // Hat
+	{
+		PanicAlert("Hats as Joysticks don't work yet!\n");
+	}
+	else if(joysticks[_numPAD].buttons[CTL_MAIN_X].c_str()[0] == 'N') // None
+	{}
+	else // Wtf?
+	{
+		//Do a panicAlert here?
+	}
+	
 
 	// Quick fix
 	if(main_stick_x > 127)
@@ -311,9 +330,104 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	int triggervalue = 255;
 	if (joystate[_numPAD].halfpress)
 		triggervalue = 100;
-
+	int ButtonArray[] = {PAD_TRIGGER_L, PAD_TRIGGER_R, PAD_BUTTON_A, PAD_BUTTON_B, PAD_BUTTON_X, PAD_BUTTON_Y, PAD_TRIGGER_Z, PAD_BUTTON_START, PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT, PAD_BUTTON_RIGHT};
+	for(int a = 0;a <= CTL_D_PAD_RIGHT;a++)
+	{
+		switch(joysticks[_numPAD].buttons[a].c_str()[0])
+		{
+			case 'A':
+			{
+				// JoyNum refers to which Joystick the button is assigned to
+				// a is the actual button we are working with
+				// _numPad is the controller we are working with
+				int JoyNum = atoi(joysticks[_numPAD].buttons[a].c_str() + 2);
+				if(joysticks[_numPAD].sData[JoyNum].Min == 0)
+					if(joystate[_numPAD].buttons[a] == 0)
+						continue; // Do nothing
+				// We use Deadzone % to detect if we have pressed the button.
+				bool Pressed = false;
+				if(a == CTL_L_SHOULDER || a == CTL_R_SHOULDER || a == CTL_A_BUTTON || a == CTL_B_BUTTON)
+					Pressed = true;
+				else
+				{
+					if(joysticks[_numPAD].buttons[a].c_str()[1] == '-')
+					{
+						if(joystate[_numPAD].buttons[a] <= (joysticks[_numPAD].sData[JoyNum].Min - joysticks[_numPAD].sData[JoyNum].Min * joysticks[_numPAD].deadzone/100.0f))
+						{
+							Pressed = true;
+						}
+					}
+					if(joysticks[_numPAD].buttons[a].c_str()[1] == '+')
+					{
+						if(joystate[_numPAD].buttons[a] >= (joysticks[_numPAD].sData[JoyNum].Max - joysticks[_numPAD].sData[JoyNum].Max * joysticks[_numPAD].deadzone/100.0f))
+						{
+							Pressed = true;
+						}
+					}
+				}
+				if(Pressed == true)
+				{
+					int TriggerValue = 0;
+					
+					if(joysticks[_numPAD].buttons[a].c_str()[1] == '+')
+					{
+						if(joystate[_numPAD].buttons[a] >= 0)
+							TriggerValue = (255.0f / joysticks[_numPAD].sData[JoyNum].Max) * joystate[_numPAD].buttons[a];
+					}
+					if(joysticks[_numPAD].buttons[a].c_str()[1] == '-')
+					{
+						if(joystate[_numPAD].buttons[a] <= 0)
+							TriggerValue = abs((255.0f / joysticks[_numPAD].sData[JoyNum].Min) * joystate[_numPAD].buttons[a]);
+					}
+					if(a == CTL_L_SHOULDER)
+					{
+						if(TriggerValue == 255)
+							_pPADStatus->button |= ButtonArray[a];
+						_pPADStatus->triggerLeft = TriggerValue;
+					}
+					else if(a == CTL_R_SHOULDER) 
+					{
+						if(TriggerValue == 255)
+							_pPADStatus->button |= ButtonArray[a];
+						_pPADStatus->triggerRight = TriggerValue;
+					}
+					// TODO: Should we do the same for A and B as the L and R trigger?
+					else if(a == CTL_A_BUTTON)
+					{
+						_pPADStatus->button |= ButtonArray[a];
+						_pPADStatus->analogA = TriggerValue;
+					}
+					else if(a == CTL_B_BUTTON)
+					{
+						_pPADStatus->button |= ButtonArray[a];
+						_pPADStatus->analogB = TriggerValue;
+					}
+					else
+						_pPADStatus->button |= ButtonArray[a];
+				}
+			}
+			break;
+			case 'B':
+				if(joystate[_numPAD].buttons[a])
+				{
+					_pPADStatus->button |= ButtonArray[a];
+					if(a == CTL_L_SHOULDER)
+						_pPADStatus->triggerLeft = 255; //TODO: Do half press with these
+					else if(a == CTL_R_SHOULDER) 
+						_pPADStatus->triggerRight = 255; //TODO: Half Press with these
+					else if(a == CTL_A_BUTTON)
+						_pPADStatus->analogA = 255;
+					else if(a == CTL_B_BUTTON)
+						_pPADStatus->analogB = 255;
+				}
+			case 'H':
+				//PanicAlert("Hats are currently not implemented!");
+			default:
+			break;
+		}
+	}
 	// Set buttons
-	if (joystate[_numPAD].buttons[CTL_L_SHOULDER])
+	/*if (joystate[_numPAD].buttons[CTL_L_SHOULDER])
 	{
 		_pPADStatus->button|=PAD_TRIGGER_L;
 		_pPADStatus->triggerLeft  = triggervalue;
@@ -337,9 +451,10 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	if (joystate[_numPAD].buttons[CTL_X_BUTTON])	_pPADStatus->button|=PAD_BUTTON_X;
 	if (joystate[_numPAD].buttons[CTL_Y_BUTTON])	_pPADStatus->button|=PAD_BUTTON_Y;
 	if (joystate[_numPAD].buttons[CTL_Z_TRIGGER])	_pPADStatus->button|=PAD_TRIGGER_Z;
-	if (joystate[_numPAD].buttons[CTL_START])		_pPADStatus->button|=PAD_BUTTON_START;
+	if (joystate[_numPAD].buttons[CTL_START])		_pPADStatus->button|=PAD_BUTTON_START;*/
 
 	// Set D-pad
+	// TODO: Currently disabled! D:>
 	if(joysticks[_numPAD].controllertype == CTL_TYPE_JOYSTICK)
 	{
 		if(joystate[_numPAD].dpad == SDL_HAT_LEFTUP		|| joystate[_numPAD].dpad == SDL_HAT_UP		|| joystate[_numPAD].dpad == SDL_HAT_RIGHTUP )		_pPADStatus->button|=PAD_BUTTON_UP;
@@ -349,14 +464,6 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	}
 	else
 	{
-		if(joystate[_numPAD].dpad2[CTL_D_PAD_UP])
-			_pPADStatus->button|=PAD_BUTTON_UP;
-		if(joystate[_numPAD].dpad2[CTL_D_PAD_DOWN])
-			_pPADStatus->button|=PAD_BUTTON_DOWN;
-		if(joystate[_numPAD].dpad2[CTL_D_PAD_LEFT])
-			_pPADStatus->button|=PAD_BUTTON_LEFT;
-		if(joystate[_numPAD].dpad2[CTL_D_PAD_RIGHT])
-			_pPADStatus->button|=PAD_BUTTON_RIGHT;
 	}
 	
 	_pPADStatus->err = PAD_ERR_NONE;
@@ -546,10 +653,6 @@ void GetJoyState(int controller)
 		joystate[controller].dpad = SDL_JoystickGetHat(joystate[controller].joy, joysticks[controller].dpad);
 	else
 	{
-		joystate[controller].dpad2[CTL_D_PAD_UP] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].dpad2[CTL_D_PAD_UP]);
-		joystate[controller].dpad2[CTL_D_PAD_DOWN] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].dpad2[CTL_D_PAD_DOWN]);
-		joystate[controller].dpad2[CTL_D_PAD_LEFT] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].dpad2[CTL_D_PAD_LEFT]);
-		joystate[controller].dpad2[CTL_D_PAD_RIGHT] = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].dpad2[CTL_D_PAD_RIGHT]);
 	}
 }
 
@@ -674,10 +777,10 @@ void SaveConfig()
 		file.Set(SectionName, "z_trigger", joysticks[i].buttons[CTL_Z_TRIGGER]);
 		file.Set(SectionName, "start_button", joysticks[i].buttons[CTL_START]);
 		file.Set(SectionName, "dpad", joysticks[i].dpad);	
-		file.Set(SectionName, "dpad_up", joysticks[i].dpad2[CTL_D_PAD_UP]);
-		file.Set(SectionName, "dpad_down", joysticks[i].dpad2[CTL_D_PAD_DOWN]);
-		file.Set(SectionName, "dpad_left", joysticks[i].dpad2[CTL_D_PAD_LEFT]);
-		file.Set(SectionName, "dpad_right", joysticks[i].dpad2[CTL_D_PAD_RIGHT]);
+		file.Set(SectionName, "dpad_up", joysticks[i].buttons[CTL_D_PAD_UP]);
+		file.Set(SectionName, "dpad_down", joysticks[i].buttons[CTL_D_PAD_DOWN]);
+		file.Set(SectionName, "dpad_left", joysticks[i].buttons[CTL_D_PAD_LEFT]);
+		file.Set(SectionName, "dpad_right", joysticks[i].buttons[CTL_D_PAD_RIGHT]);
 		file.Set(SectionName, "main_x", joysticks[i].buttons[CTL_MAIN_X]);
 		file.Set(SectionName, "main_y", joysticks[i].buttons[CTL_MAIN_Y]);
 		file.Set(SectionName, "sub_x", joysticks[i].buttons[CTL_SUB_X]);
@@ -722,10 +825,10 @@ void LoadConfig()
 		file.Get(SectionName, "z_trigger", &joysticks[i].buttons[CTL_Z_TRIGGER], "B7");
 		file.Get(SectionName, "start_button", &joysticks[i].buttons[CTL_START], "B9");	
 		file.Get(SectionName, "dpad", &joysticks[i].dpad, 0);	
-		file.Get(SectionName, "dpad_up", &joysticks[i].dpad2[CTL_D_PAD_UP], 0);
-		file.Get(SectionName, "dpad_down", &joysticks[i].dpad2[CTL_D_PAD_DOWN], 0);
-		file.Get(SectionName, "dpad_left", &joysticks[i].dpad2[CTL_D_PAD_LEFT], 0);
-		file.Get(SectionName, "dpad_right", &joysticks[i].dpad2[CTL_D_PAD_RIGHT], 0);
+		file.Get(SectionName, "dpad_up", &joysticks[i].buttons[CTL_D_PAD_UP], 0);
+		file.Get(SectionName, "dpad_down", &joysticks[i].buttons[CTL_D_PAD_DOWN], 0);
+		file.Get(SectionName, "dpad_left", &joysticks[i].buttons[CTL_D_PAD_LEFT], 0);
+		file.Get(SectionName, "dpad_right", &joysticks[i].buttons[CTL_D_PAD_RIGHT], 0);
 		file.Get(SectionName, "main_x", &joysticks[i].buttons[CTL_MAIN_X], "A0");	
 		file.Get(SectionName, "main_y", &joysticks[i].buttons[CTL_MAIN_Y], "A1");	
 		file.Get(SectionName, "sub_x", &joysticks[i].buttons[CTL_SUB_X], "A2");	
