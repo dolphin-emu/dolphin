@@ -18,7 +18,7 @@ typedef void			(*TVideoLog)(const char* _pMessage, BOOL _bBreak);
 typedef void			(*TSysMessage)(const char *fmt, ...);
 typedef void			(*TRequestWindowSize)(int _iWidth, int _iHeight, BOOL _bFullscreen);
 typedef void			(*TCopiedToXFB)(void);
-typedef BOOL			(*TPeekMessages)(void);
+typedef unsigned int	(*TPeekMessages)(void);
 typedef void			(*TUpdateInterrupts)(void);
 typedef void			(*TUpdateFPSDisplay)(const char* text); // sets the window title
 typedef void			(*TKeyPressed)(int keycode, BOOL shift, BOOL control); // sets the window title

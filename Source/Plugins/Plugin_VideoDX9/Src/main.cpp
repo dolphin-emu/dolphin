@@ -71,7 +71,7 @@ BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 	return TRUE;
 }
 
-BOOL Callback_PeekMessages()
+unsigned int Callback_PeekMessages()
 {
 	//TODO: peek message
 	MSG msg;
@@ -308,7 +308,7 @@ HRESULT ScreenShot(TCHAR *File)
 	return S_OK;
 }
 
-BOOL Video_Screenshot(TCHAR* _szFilename)
+unsigned int Video_Screenshot(TCHAR* _szFilename)
 {
 	if (ScreenShot(_szFilename) == S_OK)
 		return TRUE;

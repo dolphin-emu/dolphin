@@ -46,10 +46,10 @@ void PanicAlert(const char* format, ...)
 	else
 	{
 #ifdef _WIN32
-		std::string msg;
-		StringFromFormatV(&msg, format, args);
-		LOG(MASTER_LOG, "PANIC: %s", msg.c_str());
-		MessageBox(0, msg.c_str(), "PANIC!", MB_ICONWARNING);
+		char buffer[2048];
+		CharArrayFromFormatV(buffer, 2048, format, args);
+		LOG(MASTER_LOG, "PANIC: %s", buffer);
+		MessageBox(0, buffer, "PANIC!", MB_ICONWARNING);
 #elif __GNUC__
 		//#error Do a messagebox!
 		vprintf(format, args);
@@ -68,10 +68,10 @@ bool PanicYesNo(const char* format, ...)
 	va_start(args, format);
 	bool retval;
 #ifdef _WIN32
-	std::string msg;
-	StringFromFormatV(&msg, format, args);
-	LOG(MASTER_LOG, "PANIC: %s", msg.c_str());
-	retval = IDYES == MessageBox(0, msg.c_str(), "PANIC! Continue?", MB_ICONQUESTION | MB_YESNO);
+	char buffer[2048];
+	CharArrayFromFormatV(buffer, 2048, format, args);
+	LOG(MASTER_LOG, "PANIC: %s", buffer);
+	retval = IDYES == MessageBox(0, buffer, "PANIC! Continue?", MB_ICONQUESTION | MB_YESNO);
 #elif __GNUC__
 	//vprintf(format, args);
 	return(true); //#error Do a messagebox!
@@ -88,10 +88,10 @@ bool AskYesNo(const char* format, ...)
 	va_start(args, format);
 	bool retval;
 #ifdef _WIN32
-	std::string msg;
-	StringFromFormatV(&msg, format, args);
-	LOG(MASTER_LOG, "ASK: %s", msg.c_str());
-	retval = IDYES == MessageBox(0, msg.c_str(), "Dolphin", MB_ICONQUESTION | MB_YESNO);
+	char buffer[2048];
+	CharArrayFromFormatV(buffer, 2048, format, args);
+	LOG(MASTER_LOG, "ASK: %s", buffer);
+	retval = IDYES == MessageBox(0, buffer, "Dolphin", MB_ICONQUESTION | MB_YESNO);
 #elif __GNUC__
 	//vprintf(format, args);
 	return(true); //#error Do a messagebox!
