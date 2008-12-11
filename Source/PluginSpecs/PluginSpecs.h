@@ -32,11 +32,6 @@
 // long term, kill these
 
 // glxew defines BOOL. evil.
-#ifdef BOOL
-#undef BOOL
-#endif
-
-#define BOOL unsigned int
 #define HWND  void*
 #define HINSTANCE void*
 #endif

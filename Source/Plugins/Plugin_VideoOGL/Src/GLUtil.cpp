@@ -217,12 +217,13 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
                               wxPoint(50,50), size);
     GLWin.glCanvas = new wxGLCanvas(GLWin.frame, wxID_ANY, attrib,
                                     wxPoint(0,0), size, wxSUNKEN_BORDER);
+    GLWin.glCtxt = new wxGLContext(GLWin.glCanvas);
 
     GLWin.frame->Show(TRUE);
+    GLWin.glCanvas->Show(TRUE);
 
-    GLWin.glCtxt = new wxGLContext(GLWin.glCanvas);
-    //    GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
-    GLWin.glCtxt->SetCurrent(*GLWin.glCanvas);
+    GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
+    //    GLWin.glCtxt->SetCurrent(*GLWin.glCanvas);
 #elif defined(_WIN32)
     // create the window
     if (!g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL)

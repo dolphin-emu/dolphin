@@ -96,7 +96,8 @@ conf.Define('HAVE_XXF86VM', gfxenv['HAVE_XXF86VM'])
 conf.Finish()
 
 # change to True if you want to compile with SDL
-useSDL = not (gfxenv['HAVE_X11'] and gfxenv['HAVE_XXF86VM'])
+useSDL = not ((gfxenv['HAVE_X11'] and gfxenv['HAVE_XXF86VM']) 
+              or gfxenv['HAVE_COCOA'])
 
 
 if useSDL and not gfxenv['HAVE_SDL']:
