@@ -173,6 +173,9 @@ tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
          'CheckPKG' : utils.CheckPKG,
          'CheckSDL' : utils.CheckSDL}
 
+build_dir = os.path.join('Build', platform.system() + '-' + platform.machine() + os.sep)
+VariantDir(build_dir, '.', duplicate=0)
+
 conf = env.Configure(custom_tests = tests, 
                      config_h="Source/Core/Common/Src/Config.h")
 
@@ -274,7 +277,8 @@ Export('env')
 for subdir in dirs:
     SConscript(
         subdir + os.sep + 'SConscript',
-        duplicate = 0
+        variant_dir = build_dir + subdir + os.sep,
+        duplicate=0
         )
 
 # Data install
