@@ -69,7 +69,7 @@ void OpenGL_SwapBuffers()
 #elif defined(_WIN32)
     SwapBuffers(hDC);
 #elif defined(USE_WX) && USE_WX
-    GLWin.Wxcs->SwapBuffers();
+    GLWin.glCanvas->SwapBuffers();
 #elif defined(HAVE_X11) && HAVE_X11
     glXSwapBuffers(GLWin.dpy, GLWin.win);
 #endif
@@ -83,6 +83,8 @@ void OpenGL_SetWindowText(const char *text)
     cocoaGLSetTitle();
 #elif defined(_WIN32)
     SetWindowText(EmuWindow::GetWnd(), text);
+#elif defined(USE_WX) && USE_WX
+    GLWin.frame->SetTitle(wxString::FromAscii(text));
 #elif defined(HAVE_X11) && HAVE_X11 // GLX
     /**
     * Tell X to ask the window manager to set the window title. (X
@@ -207,15 +209,20 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     GLWin.cocoaCtx = cocoaGLInit(g_Config.iMultisampleMode);
 #elif defined(USE_WX) && USE_WX
     int attrib[2];
-    attrib[0] = WX_GL_DEPTH_SIZE;
+    attrib[0] = 16; //WX_GL_DEPTH_SIZE;
     attrib[1] = 32;
-    wxFrame *frame = new wxFrame((wxFrame *)NULL, -1,  _("Test frame"), wxPoint(50,50), wxSize(400,400) );
-    GLWin.Wxcs = new wxGLCanvas(frame, -1, wxPoint(0,0), wxSize(400,400), wxSUNKEN_BORDER, _("some text"));
 
-    frame->Show(TRUE);
+    wxSize size(_iwidth, _iheight);
+    GLWin.frame = new wxFrame((wxFrame *)NULL, -1,_ ("Dolphin"), 
+                              wxPoint(50,50), size);
+    GLWin.glCanvas = new wxGLCanvas(GLWin.frame, wxID_ANY, attrib,
+                                    wxPoint(0,0), size, wxSUNKEN_BORDER);
 
-    GLWin.Wxcs->SetCurrent();
+    GLWin.frame->Show(TRUE);
 
+    GLWin.glCtxt = new wxGLContext(GLWin.glCanvas);
+    //    GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
+    GLWin.glCtxt->SetCurrent(*GLWin.glCanvas);
 #elif defined(_WIN32)
     // create the window
     if (!g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL)
@@ -541,6 +548,9 @@ void OpenGL_Update()
 
 #elif defined(USE_WX) && USE_WX
     RECT rcWindow;
+    rcWindow.right = GLWin.width;
+    rcWindow.bottom = GLWin.height;
+    
     // TODO fill in
 #elif defined(_WIN32)
 	RECT rcWindow;
@@ -688,6 +698,9 @@ void OpenGL_Shutdown()
 	SDL_Quit();
 #elif defined(HAVE_COCOA) && HAVE_COCOA
         cocoaGLDelete(GLWin.cocoaCtx);
+#elif defined(USE_WX) && USE_WX
+        delete GLWin.glCanvas;
+        delete GLWin.frame;
 #elif defined(_WIN32)
     if (hRC)                                            // Do We Have A Rendering Context?
     {

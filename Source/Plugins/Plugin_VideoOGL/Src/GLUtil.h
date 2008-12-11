@@ -117,8 +117,9 @@ typedef struct {
 #endif // XXF86VM
 #endif // X11
 #if defined(USE_WX) && USE_WX
-    wxGLCanvas *Wxcs;
-
+    wxGLCanvas *glCanvas;
+    wxFrame *frame;
+    wxGLContext *glCtxt;
 #endif 
     int x, y;
     unsigned int width, height;
