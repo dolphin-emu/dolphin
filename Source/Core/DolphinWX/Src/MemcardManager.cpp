@@ -510,6 +510,22 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				memoryCard[SLOT_A]->Save();
 				ReloadMemcard(m_MemcardPath_A->GetPath().mb_str(), SLOT_A, FIRSTPAGE);
 				break;
+			case TITLEPRESENT:
+				wxMessageBox(wxT("Memcard already has a save for this title"),
+						wxT("Error"), wxOK|wxICON_ERROR);
+				break;
+			case INVALIDFILESIZE:
+				wxMessageBox(wxT("The save you are trying to copy has an invalid file size"),
+					wxT("Error"), wxOK|wxICON_ERROR);
+			case OUTOFBLOCKS:
+				blocksOpen.Printf(wxT("Only %d blocks available"), memoryCard[slot]->GetFreeBlocks());
+				wxMessageBox(blocksOpen, wxT("Error"), wxOK|wxICON_ERROR);
+				break;
+			case OUTOFDIRENTRIES:
+				wxMessageBox(wxT("No free dir index entries"),
+					wxT("Error"), wxOK|wxICON_ERROR);
+			default:
+				wxMessageBox(wxEmptyString, wxT("Error"), wxOK|wxICON_ERROR);
 			}
 
 		}
@@ -535,6 +551,24 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				memoryCard[SLOT_B]->Save();
 				ReloadMemcard(m_MemcardPath_B->GetPath().mb_str(), SLOT_B, FIRSTPAGE);
 				break;
+			case TITLEPRESENT:
+				wxMessageBox(wxT("Memcard already has a save for this title"),
+						wxT("Error"), wxOK|wxICON_ERROR);
+				break;
+			case INVALIDFILESIZE:
+				wxMessageBox(wxT("The save you are trying to copy has an invalid file size"),
+					wxT("Error"), wxOK|wxICON_ERROR);
+				break;
+			case OUTOFBLOCKS:
+				blocksOpen.Printf(wxT("Only %d blocks available"), memoryCard[slot]->GetFreeBlocks());
+				wxMessageBox(blocksOpen, wxT("Error"), wxOK|wxICON_ERROR);
+				break;
+			case OUTOFDIRENTRIES:
+				wxMessageBox(wxT("No free dir index entries"),
+					wxT("Error"), wxOK|wxICON_ERROR);
+				break;
+			default:
+				wxMessageBox(wxEmptyString, wxT("Error"), wxOK|wxICON_ERROR);
 			}
 		}
 		else

@@ -305,7 +305,7 @@ u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 		FixChecksums();
 		Save();
 	}
-	return fileBlocks;
+	return SUCCESS;
 }
 
 u32 GCMemcard::GetFileData(u32 index, u8* dest, bool old) //index in the directory array
@@ -665,10 +665,10 @@ u32 GCMemcard::CopyFrom(GCMemcard& source, u32 index)
 	if (!mcdFile) return NOMEMCARD;
 
 	DEntry d;
-	if (!source.GetFileInfo(index, d)) return 0;
+	if (!source.GetFileInfo(index, d)) return NOMEMCARD;
 	
 	u32 size = source.GetFileSize(index);
-	if (size == 0xFFFF) return 0;
+	if (size == 0xFFFF) return INVALIDFILESIZE;
 	u8 *t = new u8[size * 0x2000];
 
 	switch (source.GetFileData(index, t, true))
@@ -680,14 +680,10 @@ u32 GCMemcard::CopyFrom(GCMemcard& source, u32 index)
 		delete[] t;
 		return NOMEMCARD;
 	default:
-		break;
+		u32 ret = ImportFile(d,t,0);
+		delete[] t;
+		return ret;
 	}
-
-	u32 ret = ImportFile(d,t,0);
-
-	delete[] t;
-
-	return ret;
 }
 
 s32 GCMemcard::ImportGci(const char *fileName, std::string fileName2)
