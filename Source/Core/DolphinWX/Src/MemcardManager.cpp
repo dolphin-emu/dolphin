@@ -496,7 +496,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				break;
 			case OUTOFBLOCKS:
 				blocksOpen.Printf(wxT(E_OUTOFBLOCKS), memoryCard[slot]->GetFreeBlocks());
-				PanicAlert(blocksOpen.c_str());
+				PanicAlert(blocksOpen.ToAscii());
 				break;
 			case OUTOFDIRENTRIES:
 				PanicAlert(E_OUTOFDIRENTRIES);
@@ -532,7 +532,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				break;
 			case OUTOFBLOCKS:
 				blocksOpen.Printf(wxT(E_OUTOFBLOCKS), memoryCard[slot]->GetFreeBlocks());
-				PanicAlert(blocksOpen.c_str());
+				PanicAlert(blocksOpen.ToAscii());
 				break;
 			case OUTOFDIRENTRIES:
 				PanicAlert(E_OUTOFDIRENTRIES);
@@ -613,7 +613,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 					break;
 				case OUTOFBLOCKS:
 					blocksOpen.Printf(wxT(E_OUTOFBLOCKS), memoryCard[slot]->GetFreeBlocks());
-					PanicAlert(blocksOpen.c_str());
+					PanicAlert(blocksOpen.ToAscii());
 					break;
 				case OUTOFDIRENTRIES:
 					PanicAlert(E_OUTOFDIRENTRIES);
