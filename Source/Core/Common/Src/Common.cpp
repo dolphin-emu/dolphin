@@ -19,6 +19,7 @@
 
 #include "Common.h"
 #include "StringUtil.h"
+#include <wx/msgdlg.h>
 
 namespace
 {
@@ -45,17 +46,10 @@ void PanicAlert(const char* format, ...)
 	}
 	else
 	{
-#ifdef _WIN32
 		char buffer[2048];
 		CharArrayFromFormatV(buffer, 2048, format, args);
 		LOG(MASTER_LOG, "PANIC: %s", buffer);
-		MessageBox(0, buffer, "PANIC!", MB_ICONWARNING);
-#elif __GNUC__
-		//#error Do a messagebox!
-		vprintf(format, args);
-		printf("\n");
-//        asm ("int $3") ;
-#endif
+		wxMessageBox(buffer, "PANIC!", wxICON_EXCLAMATION);
 	}
 
 	va_end(args);
@@ -67,16 +61,10 @@ bool PanicYesNo(const char* format, ...)
 	va_list args;
 	va_start(args, format);
 	bool retval;
-#ifdef _WIN32
 	char buffer[2048];
 	CharArrayFromFormatV(buffer, 2048, format, args);
 	LOG(MASTER_LOG, "PANIC: %s", buffer);
-	retval = IDYES == MessageBox(0, buffer, "PANIC! Continue?", MB_ICONQUESTION | MB_YESNO);
-#elif __GNUC__
-	//vprintf(format, args);
-	return(true); //#error Do a messagebox!
-#endif
-
+	retval = wxYES == wxMessageBox(buffer, "PANIC! Continue?", wxICON_QUESTION | wxYES_NO);
 	va_end(args);
 	return(retval);
 }
@@ -87,16 +75,10 @@ bool AskYesNo(const char* format, ...)
 	va_list args;
 	va_start(args, format);
 	bool retval;
-#ifdef _WIN32
 	char buffer[2048];
 	CharArrayFromFormatV(buffer, 2048, format, args);
 	LOG(MASTER_LOG, "ASK: %s", buffer);
-	retval = IDYES == MessageBox(0, buffer, "Dolphin", MB_ICONQUESTION | MB_YESNO);
-#elif __GNUC__
-	//vprintf(format, args);
-	return(true); //#error Do a messagebox!
-#endif
-
+	retval = wxYES == wxMessageBox(buffer, "Dolphin", wxICON_QUESTION | wxYES_NO);
 	va_end(args);
 	return(retval);
 }

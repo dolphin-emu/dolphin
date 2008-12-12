@@ -593,15 +593,15 @@ bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data) // This needs more 
 					LogInfo("Write %08x to address %08x", val & 0xFF, curr_addr);
 					if (val_incr < 0)
 					{
-						val -= (u32)val_incr;
+						val -= (u32)abs(val_incr);
 					}
 					if (val_incr > 0)
 					{
-						val += (u32)(abs(val_incr));
+						val += (u32)val_incr;
 					}
 					if (addr_incr < 0)
 					{
-						curr_addr -= (u32)(abs(addr_incr));
+						curr_addr -= (u32)abs(addr_incr);
 					}
 					if (addr_incr > 0)
 					{
@@ -620,15 +620,15 @@ bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data) // This needs more 
 					LogInfo("Write %08x to address %08x", val & 0xFFFF, curr_addr);
 					if (val_incr < 0)
 					{
-						val -= (u32)val_incr;
+						val -= (u32)abs(val_incr);
 					}
 					if (val_incr > 0)
 					{
-						val += (u32)(abs(val_incr));
+						val += (u32)val_incr;
 					}
 					if (addr_incr < 0)
 					{
-						curr_addr -= (u32)(abs(addr_incr));
+						curr_addr -= (u32)abs(addr_incr);
 					}
 					if (addr_incr > 0)
 					{
@@ -647,15 +647,15 @@ bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data) // This needs more 
 					LogInfo("Write %08x to address %08x", val, curr_addr);
 					if (val_incr < 0)
 					{
-						val -= (u32)val_incr;
+						val -= (u32)abs(val_incr);
 					}
 					if (val_incr > 0)
 					{
-						val += (u32)(abs(val_incr));
+						val += (u32)val_incr;
 					}
 					if (addr_incr < 0)
 					{
-						curr_addr -= (u32)(abs(addr_incr));
+						curr_addr -= (u32)abs(addr_incr);
 					}
 					if (addr_incr > 0)
 					{
