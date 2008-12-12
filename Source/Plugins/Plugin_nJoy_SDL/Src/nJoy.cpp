@@ -206,7 +206,7 @@ void PAD_Initialize(SPADInitialize _PADInitialize)
 	#endif
 
 	LoadConfig();	// Load joystick mapping
-	
+	Search_Devices();
 	if (joysticks[0].enabled)
 		joystate[0].joy = SDL_JoystickOpen(joysticks[0].ID);
 	if (joysticks[1].enabled)
@@ -507,7 +507,7 @@ unsigned int PAD_GetAttachedPads()
 
 void ReadButton(int controller, int button) {
 	int ctl_button = joysticks[controller].buttons[button];
-	if (ctl_button < joyinfo[controller].NumButtons) {
+	if (ctl_button < joyinfo[joysticks[controller].ID].NumButtons) {
 		joystate[controller].buttons[button] = SDL_JoystickGetButton(joystate[controller].joy, ctl_button);
 	}
 }
