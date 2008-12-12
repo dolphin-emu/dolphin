@@ -28,9 +28,9 @@ typedef void (__cdecl* TDllConfig)		(HWND);
 typedef void (__cdecl* TDVD_Initialize)	(SDVDInitialize);
 typedef void (__cdecl* TDVD_Shutdown)	();
 typedef void (__cdecl* TDVD_SetISOFile)	(const char*);
-typedef BOOL (__cdecl* TDVD_GetISOName)	(TCHAR*, int);
-typedef BOOL (__cdecl* TDVD_ReadToPtr)	(LPBYTE, u64, u64);
-typedef BOOL (__cdecl* TDVD_IsValid)	();
+typedef s8 (__cdecl* TDVD_GetISOName)	(TCHAR*, int);
+typedef s8 (__cdecl* TDVD_ReadToPtr)	(LPBYTE, u64, u64);
+typedef s8 (__cdecl* TDVD_IsValid)	();
 typedef u32 (__cdecl* TDVD_Read32) (u64);
 
 //! Function Pointer
@@ -155,7 +155,7 @@ void DVD_SetISOFile(const char* _szFilename)
 	g_DVD_SetISOFile(_szFilename);
 }
 
-BOOL DVD_GetISOName(TCHAR * _szFilename, int maxlen)
+s8 DVD_GetISOName(TCHAR * _szFilename, int maxlen)
 {
 	return g_DVD_GetISOName(_szFilename, maxlen);
 }

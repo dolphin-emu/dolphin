@@ -65,8 +65,8 @@ INT                     g_nYForce = 0;
 
 HRESULT InitDirectInput(HWND hDlg);
 VOID FreeDirectInput();
-BOOL CALLBACK EnumFFDevicesCallback(const DIDEVICEINSTANCE* pInst, VOID* pContext);
-BOOL CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pContext);
+s8 CALLBACK EnumFFDevicesCallback(const DIDEVICEINSTANCE* pInst, VOID* pContext);
+s8 CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pContext);
 HRESULT SetDeviceForcesXY();
 #endif
 
@@ -503,7 +503,7 @@ unsigned int PAD_GetAttachedPads()
 
 // Savestates
 // ¯¯¯¯¯¯¯¯¯¯
-unsigned int SaveLoadState(char *ptr, BOOL save)
+unsigned int SaveLoadState(char *ptr, s8 save)
 {
 	// not used
 	return 0;
@@ -855,7 +855,7 @@ VOID FreeDirectInput()
     SAFE_RELEASE(g_pDI);
 }
 
-BOOL CALLBACK EnumFFDevicesCallback( const DIDEVICEINSTANCE* pInst, VOID* pContext )
+s8 CALLBACK EnumFFDevicesCallback( const DIDEVICEINSTANCE* pInst, VOID* pContext )
 {
     LPDIRECTINPUTDEVICE8 pDevice;
     HRESULT hr;
@@ -874,7 +874,7 @@ BOOL CALLBACK EnumFFDevicesCallback( const DIDEVICEINSTANCE* pInst, VOID* pConte
     return DIENUM_STOP;
 }
 
-BOOL CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pContext)
+s8 CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pContext)
 {
     DWORD* pdwNumForceFeedbackAxis = (DWORD*)pContext;
     if ((pdidoi->dwFlags & DIDOI_FFACTUATOR) != 0)

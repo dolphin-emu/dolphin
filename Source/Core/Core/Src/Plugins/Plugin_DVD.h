@@ -52,7 +52,7 @@ void DVD_Shutdown();
 void DVD_SetISOFile(const char* _szFilename);
 
 //! GetISOName
-BOOL DVD_GetISOName(TCHAR * _szFilename, int maxlen);
+s8 DVD_GetISOName(TCHAR * _szFilename, int maxlen);
 
 //! DVDReadToPtr
 bool DVD_ReadToPtr(LPBYTE ptr, u64 _dwOffset, u64 _dwLength);
@@ -64,7 +64,7 @@ bool DVD_IsValid();
 u32 DVD_Read32(u64 _dwOffset);
 
 //! SaveLoadState
-u32 SaveLoadState(char *ptr, BOOL save);
+u32 SaveLoadState(char *ptr, s8 save);
 
 } // end of namespace PluginDVD
 
