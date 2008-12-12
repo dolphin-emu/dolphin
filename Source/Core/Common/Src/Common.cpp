@@ -19,7 +19,6 @@
 
 #include "Common.h"
 #include "StringUtil.h"
-#include <wx/msgdlg.h>
 
 namespace
 {
@@ -31,100 +30,104 @@ void RegisterPanicAlertHandler(PanicAlertHandler handler)
 	panic_handler = handler;
 }
 
-void PanicAlert(const char* format, ...)
-{
-	va_list args;
-	va_start(args, format);
-
-	if (panic_handler)
-	{
-		char buffer[2048];
-		CharArrayFromFormatV(buffer, 2048, format, args);
-		LOG(MASTER_LOG, "PANIC: %s", buffer);
-		panic_handler(buffer, false);
-	}
-	else
-	{
-		char buffer[2048];
-		CharArrayFromFormatV(buffer, 2048, format, args);
-		LOG(MASTER_LOG, "PANIC: %s", buffer);
-#if defined(HAVE_WX) && HAVE_WX
-		wxMessageBox(wxString::FromAscii(buffer), wxT("PANIC!"), wxICON_EXCLAMATION);
-#else
-		vprintf(format, args);
-        printf("\n");
-#endif
-
-	}
-
-	va_end(args);
-}
-
 void SuccessAlert(const char* format, ...)
 {
-	va_list args;
-	va_start(args, format);
+        va_list args;
+        va_start(args, format);
 
-	if (panic_handler)
-	{
-		char buffer[2048];
-		CharArrayFromFormatV(buffer, 2048, format, args);
-		LOG(MASTER_LOG, "SUCCESS: %s", buffer);
-		panic_handler(buffer, false);
-	}
-	else
-	{
-		char buffer[2048];
-		CharArrayFromFormatV(buffer, 2048, format, args);
-		LOG(MASTER_LOG, "SUCCESS: %s", buffer);
-#if defined(HAVE_WX) && HAVE_WX
-		wxMessageBox(wxString::FromAscii(buffer), wxT("SUCCESS!"), wxICON_EXCLAMATION);
-#else
-		vprintf(format, args);
-        printf("\n");
+        if (panic_handler)
+        {
+                char buffer[2048];
+                CharArrayFromFormatV(buffer, 2048, format, args);
+                LOG(MASTER_LOG, "SUCCESS: %s", buffer);
+                panic_handler(buffer, false);
+        }
+        else
+        {
+#ifdef _WIN32
+                char buffer[2048];
+                CharArrayFromFormatV(buffer, 2048, format, args);
+                LOG(MASTER_LOG, "SUCCESS: %s", buffer);
+                MessageBox(0, buffer, "SUCCESS!", MB_ICONWARNING);
+#elif __GNUC__
+                //#error Do a messagebox!
+                vprintf(format, args);
+                printf("\n");
+//        asm ("int $3") ;
 #endif
+        }
 
-	}
+        va_end(args);
+}
 
-	va_end(args);
+void PanicAlert(const char* format, ...)
+{
+        va_list args;
+        va_start(args, format);
+
+        if (panic_handler)
+        {
+                char buffer[2048];
+                CharArrayFromFormatV(buffer, 2048, format, args);
+                LOG(MASTER_LOG, "PANIC: %s", buffer);
+                panic_handler(buffer, false);
+        }
+        else
+        {
+#ifdef _WIN32
+                char buffer[2048];
+                CharArrayFromFormatV(buffer, 2048, format, args);
+                LOG(MASTER_LOG, "PANIC: %s", buffer);
+                MessageBox(0, buffer, "PANIC!", MB_ICONWARNING);
+#elif __GNUC__
+                //#error Do a messagebox!
+                vprintf(format, args);
+                printf("\n");
+//        asm ("int $3") ;
+#endif
+        }
+
+        va_end(args);
 }
 
 
 bool PanicYesNo(const char* format, ...)
 {
-	va_list args;
-	va_start(args, format);
-	bool retval;
-	char buffer[2048];
-	CharArrayFromFormatV(buffer, 2048, format, args);
-	LOG(MASTER_LOG, "PANIC: %s", buffer);
-#if defined(HAVE_WX) && HAVE_WX
-	retval = wxYES == wxMessageBox(wxString::FromAscii(buffer), wxT("PANIC! Continue?"), wxICON_QUESTION | wxYES_NO);
-#else
-		vprintf(format, args);
-        printf("\n");
+        va_list args;
+        va_start(args, format);
+        bool retval;
+#ifdef _WIN32
+        char buffer[2048];
+        CharArrayFromFormatV(buffer, 2048, format, args);
+        LOG(MASTER_LOG, "PANIC: %s", buffer);
+        retval = IDYES == MessageBox(0, buffer, "PANIC! Continue?", MB_ICONQUESTION | MB_YESNO);
+#elif __GNUC__
+        //vprintf(format, args);
+        return(true); //#error Do a messagebox!
 #endif
-	va_end(args);
-	return(retval);
+
+        va_end(args);
+        return(retval);
 }
 
 
 bool AskYesNo(const char* format, ...)
 {
-	va_list args;
-	va_start(args, format);
-	bool retval;
-	char buffer[2048];
-	CharArrayFromFormatV(buffer, 2048, format, args);
-	LOG(MASTER_LOG, "ASK: %s", buffer);
-#if defined(HAVE_WX) && HAVE_WX
-	retval = wxYES == wxMessageBox(wxString::FromAscii(buffer), wxT("Dolphin"), wxICON_QUESTION | wxYES_NO);
-#else
-		vprintf(format, args);
-        printf("\n");
+        va_list args;
+        va_start(args, format);
+        bool retval;
+#ifdef _WIN32
+        char buffer[2048];
+        CharArrayFromFormatV(buffer, 2048, format, args);
+        LOG(MASTER_LOG, "ASK: %s", buffer);
+        retval = IDYES == MessageBox(0, buffer, "Dolphin", MB_ICONQUESTION | MB_YESNO);
+#elif __GNUC__
+        //vprintf(format, args);
+        return(true); //#error Do a messagebox!
 #endif
-	va_end(args);
-	return(retval);
+
+        va_end(args);
+        return(retval);
 }
 
 // Standard implementation of logging - simply print to standard output.

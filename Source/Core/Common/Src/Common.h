@@ -190,8 +190,8 @@ inline u64 swap64(u64 data) {return(((u64)swap32(data) << 32) | swap32(data >> 3
 
 // Utility functions
 
-void PanicAlert(const char* format, ...);
-void SuccessAlert(const char* format, ...);
+void PanicAlert(const char* text, ...);
+void SuccessAlert(const char* text, ...);
 bool PanicYesNo(const char* text, ...);
 bool AskYesNo(const char* text, ...);
 
