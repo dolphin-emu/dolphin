@@ -63,7 +63,7 @@ if gfxenv['HAVE_COCOA']:
         
 tests = {'CheckPKG' : utils.CheckPKG}
 conf = gfxenv.Configure(custom_tests = tests,
-                        config_h="Source/Core/Common/Src/Config.h")
+                        config_h=env['base_dir']+"Source/Core/Common/Src/Config.h")
 
 if sys.platform == 'darwin':
 
