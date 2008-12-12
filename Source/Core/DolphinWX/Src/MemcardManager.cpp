@@ -496,7 +496,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				break;
 			case OUTOFBLOCKS:
 				blocksOpen.Printf(wxT(E_OUTOFBLOCKS), memoryCard[slot]->GetFreeBlocks());
-				wxMessageBox(blocksOpen, wxT("Error"), wxOK|wxICON_ERROR);
+				PanicAlert(blocksOpen.c_str());
 				break;
 			case OUTOFDIRENTRIES:
 				PanicAlert(E_OUTOFDIRENTRIES);
@@ -532,7 +532,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				break;
 			case OUTOFBLOCKS:
 				blocksOpen.Printf(wxT(E_OUTOFBLOCKS), memoryCard[slot]->GetFreeBlocks());
-				PanicAlert(blocksOpen);
+				PanicAlert(blocksOpen.c_str());
 				break;
 			case OUTOFDIRENTRIES:
 				PanicAlert(E_OUTOFDIRENTRIES);
@@ -556,7 +556,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			// Fix checksums and save the changes
 			if (memoryCard[slot]->FixChecksums())
 			{
-				wxMessageBox(wxT("The checksum was successfully fixed"), wxT("Success"), wxOK);
+				SuccessAlert("The checksum was successfully fixed");
 				if (!memoryCard[slot]->Save()) PanicAlert(E_SAVEFAILED);
 			}
 			else PanicAlert(E_NOMEMCARD);
@@ -613,7 +613,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 					break;
 				case OUTOFBLOCKS:
 					blocksOpen.Printf(wxT(E_OUTOFBLOCKS), memoryCard[slot]->GetFreeBlocks());
-					PanicAlert(blocksOpen);
+					PanicAlert(blocksOpen.c_str());
 					break;
 				case OUTOFDIRENTRIES:
 					PanicAlert(E_OUTOFDIRENTRIES);
@@ -631,7 +631,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 					PanicAlert(E_SAVEFAILED);
 					break;
 				case GCS:
-					wxMessageBox(wxT("File converted to .gci"), wxT("Success"), wxOK);
+					SuccessAlert("File converted to .gci");
 					break;
 				case SUCCESS:			
 					memoryCard[slot]->FixChecksums();

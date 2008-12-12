@@ -31,7 +31,6 @@ void RegisterPanicAlertHandler(PanicAlertHandler handler)
 	panic_handler = handler;
 }
 
-
 void PanicAlert(const char* format, ...)
 {
 	va_list args;
@@ -49,7 +48,42 @@ void PanicAlert(const char* format, ...)
 		char buffer[2048];
 		CharArrayFromFormatV(buffer, 2048, format, args);
 		LOG(MASTER_LOG, "PANIC: %s", buffer);
-		wxMessageBox(buffer, "PANIC!", wxICON_EXCLAMATION);
+#if defined(HAVE_WX) && HAVE_WX
+		wxMessageBox(wxString::FromAscii(buffer), wxT("PANIC!"), wxICON_EXCLAMATION);
+#else
+		vprintf(format, args);
+        printf("\n");
+#endif
+
+	}
+
+	va_end(args);
+}
+
+void SuccessAlert(const char* format, ...)
+{
+	va_list args;
+	va_start(args, format);
+
+	if (panic_handler)
+	{
+		char buffer[2048];
+		CharArrayFromFormatV(buffer, 2048, format, args);
+		LOG(MASTER_LOG, "SUCCESS: %s", buffer);
+		panic_handler(buffer, false);
+	}
+	else
+	{
+		char buffer[2048];
+		CharArrayFromFormatV(buffer, 2048, format, args);
+		LOG(MASTER_LOG, "SUCCESS: %s", buffer);
+#if defined(HAVE_WX) && HAVE_WX
+		wxMessageBox(wxString::FromAscii(buffer), wxT("SUCCESS!"), wxICON_EXCLAMATION);
+#else
+		vprintf(format, args);
+        printf("\n");
+#endif
+
 	}
 
 	va_end(args);
@@ -64,7 +98,12 @@ bool PanicYesNo(const char* format, ...)
 	char buffer[2048];
 	CharArrayFromFormatV(buffer, 2048, format, args);
 	LOG(MASTER_LOG, "PANIC: %s", buffer);
-	retval = wxYES == wxMessageBox(buffer, "PANIC! Continue?", wxICON_QUESTION | wxYES_NO);
+#if defined(HAVE_WX) && HAVE_WX
+	retval = wxYES == wxMessageBox(wxString::FromAscii(buffer), wxT("PANIC! Continue?"), wxICON_QUESTION | wxYES_NO);
+#else
+		vprintf(format, args);
+        printf("\n");
+#endif
 	va_end(args);
 	return(retval);
 }
@@ -78,7 +117,12 @@ bool AskYesNo(const char* format, ...)
 	char buffer[2048];
 	CharArrayFromFormatV(buffer, 2048, format, args);
 	LOG(MASTER_LOG, "ASK: %s", buffer);
-	retval = wxYES == wxMessageBox(buffer, "Dolphin", wxICON_QUESTION | wxYES_NO);
+#if defined(HAVE_WX) && HAVE_WX
+	retval = wxYES == wxMessageBox(wxString::FromAscii(buffer), wxT("Dolphin"), wxICON_QUESTION | wxYES_NO);
+#else
+		vprintf(format, args);
+        printf("\n");
+#endif
 	va_end(args);
 	return(retval);
 }
