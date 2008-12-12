@@ -38,5 +38,8 @@ size_t ActionReplay_GetCodeListSize();
 ARCode ActionReplay_GetARCode(size_t index);
 void ActionReplay_SetARCode_IsActive(bool active, size_t index);
 void ActionReplay_UpdateActiveList();
+void ActionReplay_EnableSelfLogging(bool enable);
+std::vector<std::string> ActionReplay_GetSelfLog();
+bool ActionReplay_IsSelfLogging();
 
 #endif //_ACTIONREPLAY_H_

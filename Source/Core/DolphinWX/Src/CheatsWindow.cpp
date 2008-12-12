@@ -21,12 +21,14 @@
 #include "Core.h"
 
 BEGIN_EVENT_TABLE(wxCheatsWindow, wxWindow)
-	EVT_SIZE(                               wxCheatsWindow::OnEvent_Window_Resize)
-	EVT_CLOSE(                              wxCheatsWindow::OnEvent_Window_Close)
-    EVT_BUTTON(ID_BUTTON_CLOSE,              wxCheatsWindow::OnEvent_ButtonClose_Press)
+	EVT_SIZE(                                            wxCheatsWindow::OnEvent_Window_Resize)
+	EVT_CLOSE(                                           wxCheatsWindow::OnEvent_Window_Close)
+    EVT_BUTTON(ID_BUTTON_CLOSE,                          wxCheatsWindow::OnEvent_ButtonClose_Press)
 	EVT_LISTBOX(ID_CHECKLISTBOX_CHEATSLIST,              wxCheatsWindow::OnEvent_CheatsList_ItemSelected)
 	EVT_CHECKLISTBOX(ID_CHECKLISTBOX_CHEATSLIST,         wxCheatsWindow::OnEvent_CheatsList_ItemToggled)
-	EVT_BUTTON(ID_BUTTON_APPLYCODES, wxCheatsWindow::OnEvent_ButtonUpdateCodes_Press)
+	EVT_BUTTON(ID_BUTTON_APPLYCODES,                     wxCheatsWindow::OnEvent_ButtonUpdateCodes_Press)
+	EVT_BUTTON(ID_BUTTON_UPDATELOG,                      wxCheatsWindow::OnEvent_ButtonUpdateLog_Press)
+	EVT_CHECKBOX(ID_CHECKBOX_LOGAR,                      wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange)
 END_EVENT_TABLE()
 
 wxCheatsWindow::wxCheatsWindow(wxFrame* parent, const wxPoint& pos, const wxSize& size) : wxFrame(parent, wxID_ANY, _T("Action Replay"), pos, size, wxCHEATSWINDOW_STYLE)
@@ -88,6 +90,22 @@ void wxCheatsWindow::Init_ChildControls()
 
 		// $ Log Tab
 		m_Tab_Log = new wxPanel(m_Notebook_Main, ID_TAB_LOG, wxDefaultPosition, wxDefaultSize);
+
+		m_Button_UpdateLog = new wxButton(m_Tab_Log, ID_BUTTON_UPDATELOG, wxT("Update"));
+		m_CheckBox_LogAR = new wxCheckBox(m_Tab_Log, ID_CHECKBOX_LOGAR, wxT("Enable AR Logging"));
+		m_CheckBox_LogAR->SetValue(ActionReplay_IsSelfLogging());
+		m_TextCtrl_Log = new wxTextCtrl(m_Tab_Log, ID_TEXTCTRL_LOG, wxT(""), wxDefaultPosition, wxSize(100, 600), wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+
+		wxBoxSizer *HStrip1 = new wxBoxSizer(wxHORIZONTAL);
+		HStrip1->Add(m_CheckBox_LogAR, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+		HStrip1->Add(m_Button_UpdateLog, 0, wxALL, 5);
+
+		wxBoxSizer *sTabLog = new wxBoxSizer(wxVERTICAL);
+		sTabLog->Add(HStrip1, 0, wxALL, 5);
+		sTabLog->Add(m_TextCtrl_Log, 1, wxALL|wxEXPAND, 5);
+
+		m_Tab_Log->SetSizer(sTabLog);
+		m_Tab_Log->Layout();
 
 	// Add Tabs to Notebook
 	m_Notebook_Main->AddPage(m_Tab_Cheats, _T("Codes List"));
@@ -175,4 +193,19 @@ void wxCheatsWindow::OnEvent_ButtonUpdateCodes_Press(wxCommandEvent& WXUNUSED (e
 	{
 		ActionReplay_SetARCode_IsActive(m_CheckListBox_CheatsList->IsChecked(indexList[i].uiIndex), indexList[i].index);
 	}
+}
+
+void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED (event))
+{
+	m_TextCtrl_Log->Clear();
+	std::vector<std::string> arLog = ActionReplay_GetSelfLog();
+	for (int i = 0; i < arLog.size(); i++)
+	{
+		m_TextCtrl_Log->AppendText(wxString::FromAscii(arLog[i].c_str()));
+	}
+}
+
+void wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& WXUNUSED (event))
+{
+	ActionReplay_EnableSelfLogging(m_CheckBox_LogAR->IsChecked());
 }

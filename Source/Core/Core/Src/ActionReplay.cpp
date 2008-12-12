@@ -43,6 +43,8 @@ namespace
 	static bool b_RanOnce = false;
 	static std::vector<ARCode> arCodes;
 	static std::vector<ARCode> activeCodes;
+	static bool logSelf = false;
+	static std::vector<std::string> arLog;
 } // namespace
 
 void LogInfo(const char *format, ...);
@@ -162,13 +164,24 @@ void LoadActionReplayCodes(IniFile &ini)
 
 void LogInfo(const char *format, ...)
 {
-	if(!b_RanOnce && IsLoggingActivated()) {
-		char* temp = (char*)alloca(strlen(format)+512);
-		va_list args;
-		va_start(args, format);
-		CharArrayFromFormatV(temp, 512, format, args);
-		va_end(args);
-		LogManager::Log(LogTypes::ACTIONREPLAY, temp);
+	if(!b_RanOnce) 
+	{
+		if (IsLoggingActivated() || logSelf)
+		{
+			char* temp = (char*)alloca(strlen(format)+512);
+			va_list args;
+			va_start(args, format);
+			CharArrayFromFormatV(temp, 512, format, args);
+			va_end(args);
+			if (IsLoggingActivated())
+				LogManager::Log(LogTypes::ACTIONREPLAY, temp);
+			if (logSelf)
+			{
+				std::string text = temp;
+				text += "\n";
+				arLog.push_back(text.c_str());
+			}
+		}
 	}
 }
 
@@ -535,7 +548,7 @@ bool Subtype_MasterCodeAndWriteToCCXXXXXX()
 bool ZeroCode_FillAndSlide(u32 addr_last, u32 addr, u32 data) // This needs more testing
 {
 	u32 new_addr = (addr_last & 0x81FFFFFF);
-	u8 size = ((new_addr >> 25) & 0x03);
+	u8 size = ((addr_last >> 25) & 0x03);
 	int addr_incr;
 	u32 val = addr;
 	int val_incr;
@@ -576,15 +589,12 @@ bool ZeroCode_FillAndSlide(u32 addr_last, u32 addr, u32 data) // This needs more
 				LogInfo("Byte Write");
 				LogInfo("--------");
 				for (int i=0; i < write_num; i++) {
-					u8 repeat = val >> 8;
-					for(int j=0; j < repeat; j++) {
-						Memory::Write_U8(val & 0xFF, new_addr + j);
-						LogInfo("Write %08x to address %08x", val & 0xFF, new_addr + j);
-						val += val_incr;
-						curr_addr += addr_incr;
-						LogInfo("Value Update: %08x", val);
-						LogInfo("Current Hardware Address Update: %08x", curr_addr);
-					}
+					Memory::Write_U8(val & 0xFF, curr_addr);
+					LogInfo("Write %08x to address %08x", val & 0xFF, curr_addr);
+					val += val_incr;
+					curr_addr += addr_incr;
+					LogInfo("Value Update: %08x", val);
+					LogInfo("Current Hardware Address Update: %08x", curr_addr);
 				}
 				LogInfo("--------");
 				break;
@@ -594,15 +604,12 @@ bool ZeroCode_FillAndSlide(u32 addr_last, u32 addr, u32 data) // This needs more
 				LogInfo("Short Write");
 				LogInfo("--------");
 				for (int i=0; i < write_num; i++) {
-					u8 repeat = val >> 16;
-					for(int j=0; j < repeat; j++) {
-						Memory::Write_U16(val & 0xFFFF, new_addr + j * 2);
-						LogInfo("Write %08x to address %08x", val & 0xFFFF, new_addr + j * 2);
-						val += val_incr;
-					    curr_addr += addr_incr;
-						LogInfo("Value Update: %08x", val);
-						LogInfo("Current Hardware Address Update: %08x", curr_addr);
-					}
+					Memory::Write_U16(val & 0xFFFF, curr_addr);
+					LogInfo("Write %08x to address %08x", val & 0xFFFF, curr_addr);
+					val += val_incr;
+				    curr_addr += addr_incr;
+					LogInfo("Value Update: %08x", val);
+					LogInfo("Current Hardware Address Update: %08x", curr_addr);
 				}
 				LogInfo("--------");
 				break;
@@ -612,8 +619,8 @@ bool ZeroCode_FillAndSlide(u32 addr_last, u32 addr, u32 data) // This needs more
 				LogInfo("Word Write");
 				LogInfo("--------");
 				for (int i=0; i < write_num; i++) {
-					Memory::Write_U32(val, new_addr);
-					LogInfo("Write %08x to address %08x", val, new_addr);
+					Memory::Write_U32(val, curr_addr);
+					LogInfo("Write %08x to address %08x", val, curr_addr);
 					val += val_incr;
 					curr_addr += addr_incr;
 					LogInfo("Value Update: %08x", val);
@@ -982,4 +989,17 @@ void ActionReplay_UpdateActiveList()
 		if (arCodes[i].active)
 			activeCodes.push_back(arCodes[i]);
 	}
+}
+
+void ActionReplay_EnableSelfLogging(bool enable)
+{
+	logSelf = enable;
+}
+std::vector<std::string> ActionReplay_GetSelfLog()
+{
+	return arLog;
+}
+bool ActionReplay_IsSelfLogging()
+{
+	return logSelf;
 }

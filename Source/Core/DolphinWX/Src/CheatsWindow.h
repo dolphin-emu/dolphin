@@ -67,11 +67,16 @@ class wxCheatsWindow : public wxFrame
 
 		wxButton *m_Button_Close;
 		wxButton *m_Button_ApplyCodes;
+		wxButton *m_Button_UpdateLog;
+
+		wxCheckBox *m_CheckBox_LogAR;
 
 		wxStaticText *m_Label_Codename;
 		wxStaticText *m_Label_NumCodes;
 
 		wxCheckListBox *m_CheckListBox_CheatsList;
+
+		wxTextCtrl *m_TextCtrl_Log;
 
 		wxListBox *m_ListBox_CodesList;
 
@@ -93,7 +98,10 @@ class wxCheatsWindow : public wxFrame
 			ID_GROUPBOX_INFO,
 			ID_BUTTON_APPLYCODES,
 			ID_LABEL_NUMCODES,
-			ID_LISTBOX_CODESLIST
+			ID_LISTBOX_CODESLIST,
+			ID_BUTTON_UPDATELOG,
+			ID_CHECKBOX_LOGAR,
+			ID_TEXTCTRL_LOG
 		};
 
 		void Init_ChildControls();
@@ -114,6 +122,12 @@ class wxCheatsWindow : public wxFrame
 
 		// $ Update Active Codes Button
 		void OnEvent_ButtonUpdateCodes_Press(wxCommandEvent& event);
+
+		// $ Update Log Button
+		void OnEvent_ButtonUpdateLog_Press(wxCommandEvent& event);
+
+		// $ Enable Logging Checkbox
+		void OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& event);
 };
 
 #endif
