@@ -17,7 +17,7 @@
 
 #include "Globals.h"
 #include "MemcardManager.h"
-
+#include "Common.h"
 #include "wx/mstream.h"
 
 const u8 hdr[] = {
@@ -89,31 +89,13 @@ BEGIN_EVENT_TABLE(CMemcardManager, wxDialog)
 	EVT_BUTTON(ID_PREVPAGE_B, CMemcardManager::OnPageChange)
 	EVT_BUTTON(ID_NEXTPAGE_B, CMemcardManager::OnPageChange)
 
-	EVT_MENU(ID_COPYTO_A,CMemcardManager::CopyDeleteClick)
-	EVT_MENU(ID_COPYTO_B,CMemcardManager::CopyDeleteClick)
-	EVT_MENU(ID_FIXCHECKSUM_A,CMemcardManager::CopyDeleteClick)
-	EVT_MENU(ID_FIXCHECKSUM_B,CMemcardManager::CopyDeleteClick)
-	EVT_MENU(ID_DELETE_A,CMemcardManager::CopyDeleteClick)
-	EVT_MENU(ID_DELETE_B,CMemcardManager::CopyDeleteClick)
-	EVT_MENU(ID_SAVEIMPORT_B,CMemcardManager::CopyDeleteClick)
-	EVT_MENU(ID_SAVEEXPORT_B,CMemcardManager::CopyDeleteClick)
-	EVT_MENU(ID_SAVEIMPORT_A,CMemcardManager::CopyDeleteClick)
-	EVT_MENU(ID_SAVEEXPORT_A,CMemcardManager::CopyDeleteClick)
-	EVT_MENU(ID_CONVERTTOGCI,CMemcardManager::CopyDeleteClick)
-	EVT_MENU(ID_PREVPAGE_A, CMemcardManager::OnPageChange)
-	EVT_MENU(ID_NEXTPAGE_A, CMemcardManager::OnPageChange)
-	EVT_MENU(ID_PREVPAGE_B, CMemcardManager::OnPageChange)
-	EVT_MENU(ID_NEXTPAGE_B, CMemcardManager::OnPageChange)
-	EVT_MENU(COLUMN_BANNER, CMemcardManager::OnMenuChange)
-	EVT_MENU(COLUMN_TITLE, CMemcardManager::OnMenuChange)
-	EVT_MENU(COLUMN_COMMENT, CMemcardManager::OnMenuChange)
-	EVT_MENU(COLUMN_ICON, CMemcardManager::OnMenuChange)
-	EVT_MENU(COLUMN_BLOCKS, CMemcardManager::OnMenuChange)
-	EVT_MENU(COLUMN_FIRSTBLOCK, CMemcardManager::OnMenuChange)
-	EVT_MENU(ID_USEPAGES, CMemcardManager::OnMenuChange)
-
 	EVT_FILEPICKER_CHANGED(ID_MEMCARDPATH_A,CMemcardManager::OnPathChange)
 	EVT_FILEPICKER_CHANGED(ID_MEMCARDPATH_B,CMemcardManager::OnPathChange)
+
+	EVT_MENU(ID_USEPAGES, CMemcardManager::OnMenuChange)
+	EVT_MENU_RANGE(ID_COPYTO_A, ID_CONVERTTOGCI, CMemcardManager::CopyDeleteClick)
+	EVT_MENU_RANGE(ID_NEXTPAGE_A, ID_PREVPAGE_B, CMemcardManager::OnPageChange)
+	EVT_MENU_RANGE(COLUMN_BANNER, NUMBER_OF_COLUMN, CMemcardManager::OnMenuChange)
 END_EVENT_TABLE()
 
 BEGIN_EVENT_TABLE(CMemcardManager::CMemcardListCtrl, wxListCtrl)
@@ -320,7 +302,7 @@ void CMemcardManager::OnPathChange(wxFileDirPickerEvent& event)
 		}
 		if (!strcasecmp(m_MemcardPath_A->GetPath().mb_str(), m_MemcardPath_B->GetPath().mb_str()))
 		{
-			wxMessageBox(wxT("Memcard already opened"), wxT("Error"), wxOK|wxICON_ERROR);
+			PanicAlert(E_ALREADYOPENED);
 		}
 		else if (ReloadMemcard(event.GetPath().mb_str(), SLOT_A, pageA))
 		{
@@ -354,7 +336,7 @@ void CMemcardManager::OnPathChange(wxFileDirPickerEvent& event)
 		}
 		if (!strcasecmp(m_MemcardPath_A->GetPath().mb_str(), m_MemcardPath_B->GetPath().mb_str()))
 		{
-			wxMessageBox(wxT("Memcard already opened"), wxT("Error"), wxOK|wxICON_ERROR);
+			PanicAlert(E_ALREADYOPENED);
 		}
 		else if (ReloadMemcard(event.GetPath().mb_str(), SLOT_B, pageB))
 		{
@@ -496,42 +478,39 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case ID_COPYTO_A:
-		if ((index_B != wxNOT_FOUND) && (memoryCard[0] != NULL))
+		if ((index_B != wxNOT_FOUND) && (memoryCard[SLOT_A] != NULL))
 		{
 			switch (memoryCard[SLOT_A]->CopyFrom(*memoryCard[SLOT_B], index_B))
 			{
 			case FAIL:
-				wxMessageBox(wxT("Invalid bat.map or dir entry"), wxT("Failure"), wxOK);
+				PanicAlert(E_INVALID);
 				break;
 			case NOMEMCARD:
-				wxMessageBox(wxT("File is not recognized as a memcard"), wxT("Failure"), wxOK);
-				break;
-			case SUCCESS:
-				memoryCard[SLOT_A]->Save();
-				ReloadMemcard(m_MemcardPath_A->GetPath().mb_str(), SLOT_A, FIRSTPAGE);
+				PanicAlert(E_NOMEMCARD);
 				break;
 			case TITLEPRESENT:
-				wxMessageBox(wxT("Memcard already has a save for this title"),
-						wxT("Error"), wxOK|wxICON_ERROR);
+				PanicAlert(E_TITLEPRESENT);
 				break;
 			case INVALIDFILESIZE:
-				wxMessageBox(wxT("The save you are trying to copy has an invalid file size"),
-					wxT("Error"), wxOK|wxICON_ERROR);
+				PanicAlert(E_INVALIDFILESIZE);
+				break;
 			case OUTOFBLOCKS:
-				blocksOpen.Printf(wxT("Only %d blocks available"), memoryCard[slot]->GetFreeBlocks());
+				blocksOpen.Printf(wxT(E_OUTOFBLOCKS), memoryCard[slot]->GetFreeBlocks());
 				wxMessageBox(blocksOpen, wxT("Error"), wxOK|wxICON_ERROR);
 				break;
 			case OUTOFDIRENTRIES:
-				wxMessageBox(wxT("No free dir index entries"),
-					wxT("Error"), wxOK|wxICON_ERROR);
+				PanicAlert(E_OUTOFDIRENTRIES);
+				break;
+			case SUCCESS:
+				memoryCard[SLOT_A]->FixChecksums();
+				if (!memoryCard[SLOT_A]->Save()) PanicAlert(E_SAVEFAILED);
+				ReloadMemcard(m_MemcardPath_A->GetPath().mb_str(), SLOT_A, FIRSTPAGE);
+				break;
 			default:
-				wxMessageBox(wxEmptyString, wxT("Error"), wxOK|wxICON_ERROR);
+				PanicAlert(E_UNK);
+				break;
 			}
 
-		}
-		else
-		{
-			wxMessageBox(wxT("You have not selected a save to copy"), wxT("Error"), wxOK|wxICON_ERROR);
 		}
 		break;
 	case ID_COPYTO_B:
@@ -540,40 +519,33 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			switch (memoryCard[SLOT_B]->CopyFrom(*memoryCard[SLOT_A], index_A))
 			{
 			case FAIL:
-				wxMessageBox(wxT("Invalid bat.map or dir entry"),
-					wxT("Error"), wxOK|wxICON_ERROR);
+				PanicAlert(E_INVALID);
 				break;
 			case NOMEMCARD:
-				wxMessageBox(wxT("File is not recognized as a memcard"),
-					wxT("Error"), wxOK|wxICON_ERROR);
-				break;
-			case SUCCESS:
-				memoryCard[SLOT_B]->Save();
-				ReloadMemcard(m_MemcardPath_B->GetPath().mb_str(), SLOT_B, FIRSTPAGE);
+				PanicAlert(E_NOMEMCARD);
 				break;
 			case TITLEPRESENT:
-				wxMessageBox(wxT("Memcard already has a save for this title"),
-						wxT("Error"), wxOK|wxICON_ERROR);
+				PanicAlert(E_TITLEPRESENT);
 				break;
 			case INVALIDFILESIZE:
-				wxMessageBox(wxT("The save you are trying to copy has an invalid file size"),
-					wxT("Error"), wxOK|wxICON_ERROR);
+				PanicAlert(E_INVALIDFILESIZE);
 				break;
 			case OUTOFBLOCKS:
-				blocksOpen.Printf(wxT("Only %d blocks available"), memoryCard[slot]->GetFreeBlocks());
-				wxMessageBox(blocksOpen, wxT("Error"), wxOK|wxICON_ERROR);
+				blocksOpen.Printf(wxT(E_OUTOFBLOCKS), memoryCard[slot]->GetFreeBlocks());
+				PanicAlert(blocksOpen);
 				break;
 			case OUTOFDIRENTRIES:
-				wxMessageBox(wxT("No free dir index entries"),
-					wxT("Error"), wxOK|wxICON_ERROR);
+				PanicAlert(E_OUTOFDIRENTRIES);
+				break;
+			case SUCCESS:
+				memoryCard[SLOT_B]->FixChecksums();
+				if (!memoryCard[SLOT_B]->Save()) PanicAlert(E_SAVEFAILED);
+				ReloadMemcard(m_MemcardPath_B->GetPath().mb_str(), SLOT_B, FIRSTPAGE);
 				break;
 			default:
-				wxMessageBox(wxEmptyString, wxT("Error"), wxOK|wxICON_ERROR);
+				PanicAlert(E_UNK);
+				break;
 			}
-		}
-		else
-		{
-			wxMessageBox(wxT("You have not selected a save to copy"), wxT("Error"), wxOK|wxICON_ERROR);
 		}
 		break;
 	case ID_FIXCHECKSUM_A:
@@ -582,18 +554,17 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		if (memoryCard[slot] != NULL) 
 		{
 			// Fix checksums and save the changes
-			memoryCard[slot]->FixChecksums() ? wxMessageBox(wxT("The checksum was successfully fixed"), wxT("Success"), wxOK)
-				: wxMessageBox(wxT("The checksum could not be successfully fixed"), wxT("Error"), wxOK|wxICON_ERROR);
-			memoryCard[slot]->Save();
-		}
-		else
-		{
-			wxMessageBox(wxT("memorycard is not loaded"), wxT("Error"), wxOK|wxICON_ERROR);
+			if (memoryCard[slot]->FixChecksums())
+			{
+				wxMessageBox(wxT("The checksum was successfully fixed"), wxT("Success"), wxOK);
+				if (!memoryCard[slot]->Save()) PanicAlert(E_SAVEFAILED);
+			}
+			else PanicAlert(E_NOMEMCARD);
+
 		}
 		break; 
 	case ID_CONVERTTOGCI:
 		fileName2 = "convert";
-
 	case ID_SAVEIMPORT_A:
 		slot = SLOT_A;
 	case ID_SAVEIMPORT_B:
@@ -629,59 +600,50 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				switch(memoryCard[slot]->ImportGci(fileName, fileName2))
 				{
 				case LENGTHFAIL:
-					wxMessageBox(wxT("Imported file has invalid length"),
-						wxT("Error"), wxOK|wxICON_ERROR);
+					PanicAlert(E_LENGTHFAIL);
 					break;
 				case GCSFAIL:
-					wxMessageBox(wxT("Imported file has gsc extension\nbut"
-						" does not have a correct header"),
-						wxT("Error"), wxOK|wxICON_ERROR);
+					PanicAlert(E_GCSFAIL);
 					break;
 				case SAVFAIL:
-					wxMessageBox(wxT("Imported file has sav extension\nbut"
-						" does not have a correct header"),
-						wxT("Error"), wxOK|wxICON_ERROR);
+					PanicAlert(E_SAVFAIL);
 					break;
 				case OPENFAIL:
-					wxMessageBox(wxT("Imported file could not be opened\nor"
-						" does not have a valid extension"),
-						wxT("Error"), wxOK|wxICON_ERROR);
-					break;
-				case GCS:
-					wxMessageBox(wxT("File converted to .gci"),
-						wxT("Success"), wxOK);
+					PanicAlert(E_OPENFAIL);
 					break;
 				case OUTOFBLOCKS:
-					blocksOpen.Printf(wxT("Only %d blocks available"), memoryCard[slot]->GetFreeBlocks());
-					wxMessageBox(blocksOpen, wxT("Error"), wxOK|wxICON_ERROR);
+					blocksOpen.Printf(wxT(E_OUTOFBLOCKS), memoryCard[slot]->GetFreeBlocks());
+					PanicAlert(blocksOpen);
 					break;
 				case OUTOFDIRENTRIES:
-					wxMessageBox(wxT("No free dir index entries"),
-						wxT("Error"), wxOK|wxICON_ERROR);
+					PanicAlert(E_OUTOFDIRENTRIES);
 					break;
 				case NOMEMCARD:
-					wxMessageBox(wxT("File is not recognized as a memcard"),
-						wxT("Error"), wxOK|wxICON_ERROR);
+					PanicAlert(E_NOMEMCARD);
 					break;
 				case TITLEPRESENT:
-					wxMessageBox(wxT("Memcard already has a save for this title"),
-						wxT("Error"), wxOK|wxICON_ERROR);
+					PanicAlert(E_TITLEPRESENT);
 					break;
 				case FAIL:
-					wxMessageBox(wxT("Invalid bat.map or dir entry"),
-						wxT("Error"), wxOK|wxICON_ERROR);
+					PanicAlert(E_INVALID);
 					break;
-				default:
-					memoryCard[slot]->Save();
+				case WRITEFAIL:
+					PanicAlert(E_SAVEFAILED);
+					break;
+				case GCS:
+					wxMessageBox(wxT("File converted to .gci"), wxT("Success"), wxOK);
+					break;
+				case SUCCESS:			
+					memoryCard[slot]->FixChecksums();
+					if (!memoryCard[slot]->Save()) PanicAlert(E_SAVEFAILED);
 					slot == SLOT_B ? ReloadMemcard(m_MemcardPath_B->GetPath().mb_str(), SLOT_B, FIRSTPAGE)
 						: ReloadMemcard(m_MemcardPath_A->GetPath().mb_str(), SLOT_A, FIRSTPAGE);
 					break;
+				default:
+					PanicAlert(E_UNK);
+					break;
 				}
 			}
-		}
-		else
-		{
-			wxMessageBox(wxT("Memory card is not loaded"), wxT("Error"), wxOK|wxICON_ERROR);
 		}
 		break;
 	case ID_SAVEEXPORT_A:
@@ -705,26 +667,25 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				switch (memoryCard[slot]->ExportGci(index, fileName))
 				{
 				case NOMEMCARD:
-						wxMessageBox(wxT("File is not recognized as a memcard"),
-							wxT("Error"), wxOK|wxICON_ERROR);
+					PanicAlert(E_NOMEMCARD);
 					break;
 				case NOFILE:
-						wxMessageBox(wxT("Could not open gci for writing"),
-							wxT("Error"), wxOK|wxICON_ERROR);
+					PanicAlert(E_NOFILE);
 					break;
 				case FAIL:
-						//TODO: delete file if fails
-						wxMessageBox(wxT("Invalid bat.map or dir entry"),
-							wxT("Error"), wxOK|wxICON_ERROR);
+					//TODO: delete file if fails
+					PanicAlert(E_INVALID);
+					break;
+				case WRITEFAIL:
+					PanicAlert(E_SAVEFAILED);
+					break;
+				case SUCCESS:
 					break;
 				default:
+					PanicAlert(E_UNK);
 					break;
 				}
 			}
-		}
-		else
-		{
-			wxMessageBox(wxT("You have not selected a save to export"), wxT("Error"), wxOK|wxICON_ERROR);
 		}
 		break;
 	case ID_DELETE_A:
@@ -736,23 +697,18 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			switch (memoryCard[slot]->RemoveFile(index))
 			{
 			case NOMEMCARD:
-				wxMessageBox(wxT("File is not recognized as a memcard"),
-					wxT("Error"), wxOK|wxICON_ERROR);
+				PanicAlert(E_NOMEMCARD);
 				break;
 			case FAIL:
-				wxMessageBox(wxT("Invalid bat.map or dir entry"),
-					wxT("Error"), wxOK|wxICON_ERROR);
+				PanicAlert(E_INVALID);
 				break;
 			case SUCCESS:
-				memoryCard[slot]->Save();
+				memoryCard[slot]->FixChecksums();
+				if (!memoryCard[slot]->Save()) PanicAlert(E_SAVEFAILED);
 				slot == SLOT_B ? ReloadMemcard(m_MemcardPath_B->GetPath().mb_str(), SLOT_B, FIRSTPAGE)
 				: ReloadMemcard(m_MemcardPath_A->GetPath().mb_str(), SLOT_A, FIRSTPAGE);
 				break;
 			}
-		}
-		else
-		{
-			wxMessageBox(wxT("You have not selected a save to delete"), wxT("Error"), wxOK|wxICON_ERROR);
 		}
 		break;
 	}
@@ -921,33 +877,17 @@ bool CMemcardManager::ReadError(GCMemcard *memcard)
 {
 	if (!memcard->fail[0]) return false;
 	wxString wxBlock;
-	if (memcard->fail[HDR_READ_ERROR]) wxMessageBox(wxT("Failed to read header correctly\n(0x0000-0x1FFF)"),
-				wxT("Error"), wxOK|wxICON_ERROR);
-	if (memcard->fail[DIR_READ_ERROR]) wxMessageBox(wxT("Failed to read directory correctly\n(0x2000-0x3FFF)"),
-				wxT("Error"), wxOK|wxICON_ERROR);
-	if (memcard->fail[DIR_BAK_READ_ERROR]) wxMessageBox(wxT("Failed to read directory backup correctly\n(0x4000-0x5FFF)"),
-				wxT("Error"), wxOK|wxICON_ERROR);
-	if (memcard->fail[BAT_READ_ERROR]) wxMessageBox(wxT("Failed to read block allocation table correctly\n(0x6000-0x7FFF)"),
-				wxT("Error"), wxOK|wxICON_ERROR);
-	if (memcard->fail[BAT_BAK_READ_ERROR]) wxMessageBox(wxT("Failed to read block allocation table backup correctly\n(0x8000-0x9FFF)"),
-				wxT("Error"), wxOK|wxICON_ERROR);
-	if (memcard->fail[HDR_CSUM_FAIL]) wxMessageBox(wxT("Header checksum failed"),
-				wxT("Error"), wxOK|wxICON_ERROR);
-	if (memcard->fail[DIR_CSUM_FAIL])
-	{
-		wxMessageBox(wxT("Directory checksum failed"),
-			wxT("Error"), wxOK|wxICON_ERROR);
-		wxMessageBox(wxT("Directory backup checksum failed"),
-			wxT("Error"), wxOK|wxICON_ERROR);
-	}
-	if (memcard->fail[BAT_CSUM_FAIL]) wxMessageBox(wxT("Block Allocation Table checksum failed"),
-				wxT("Error"), wxOK|wxICON_ERROR);
-	if (memcard->fail[DATA_READ_FAIL]) wxMessageBox(wxT("Failed to read save data\n(0xA000-)\nMemcard may be truncated"),
-				wxT("Error"), wxOK|wxICON_ERROR);
-	if (memcard->fail[HDR_SIZE_FFFF]) wxMessageBox(wxT("Memcard failed to load\n Card size is invalid"),
-				wxT("Error"), wxOK|wxICON_ERROR);
-	if (memcard->fail[NOTRAWORGCP]) wxMessageBox(wxT("File does not have a valid extension (.raw/.gcp)"),
-				wxT("Error"), wxOK|wxICON_ERROR);
+	if (memcard->fail[HDR_READ_ERROR]) PanicAlert("Failed to read header correctly\n(0x0000-0x1FFF)");
+	if (memcard->fail[DIR_READ_ERROR]) PanicAlert("Failed to read directory correctly\n(0x2000-0x3FFF)");
+	if (memcard->fail[DIR_BAK_READ_ERROR]) PanicAlert("Failed to read directory backup correctly\n(0x4000-0x5FFF)");
+	if (memcard->fail[BAT_READ_ERROR]) PanicAlert("Failed to read block allocation table correctly\n(0x6000-0x7FFF)");
+	if (memcard->fail[BAT_BAK_READ_ERROR]) PanicAlert("Failed to read block allocation table backup correctly\n(0x8000-0x9FFF)");
+	if (memcard->fail[HDR_CSUM_FAIL]) PanicAlert("Header checksum failed");
+	if (memcard->fail[DIR_CSUM_FAIL]) PanicAlert("Directory checksum failed\n and Directory backup checksum failed");
+	if (memcard->fail[BAT_CSUM_FAIL]) PanicAlert("Block Allocation Table checksum failed");
+	if (memcard->fail[DATA_READ_FAIL]) PanicAlert("Failed to read save data\n(0xA000-)\nMemcard may be truncated");
+	if (memcard->fail[HDR_SIZE_FFFF]) PanicAlert("Memcard failed to load\n Card size is invalid");
+	if (memcard->fail[NOTRAWORGCP]) PanicAlert("File does not have a valid extension (.raw/.gcp)");
 	return true;
 }
 

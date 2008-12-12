@@ -18,7 +18,6 @@
 #ifdef _WIN32
 #include "stdafx.h"
 #endif
-#include <assert.h>
 #include <stdio.h>
 
 #include "GCMemcard.h"
@@ -195,10 +194,6 @@ u32 GCMemcard::RemoveFile(u32 index) //index in the directory array
 	int updateCtr = BE16(dir.UpdateCounter) + 1;
 	dir.UpdateCounter[0] = u8(updateCtr >> 8);
 	dir.UpdateCounter[1] = u8(updateCtr);
-	
-	
-	FixChecksums();
-	Save();
 
 	return SUCCESS;
 }
@@ -299,12 +294,6 @@ u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 		bat_backup.UpdateCounter[1] = u8(updateCtr);
 	}
 	bat = bat_backup;
-
-	if (!remove)
-	{
-		FixChecksums();
-		Save();
-	}
 	return SUCCESS;
 }
 
@@ -312,8 +301,8 @@ u32 GCMemcard::GetFileData(u32 index, u8* dest, bool old) //index in the directo
 {
 	if (!mcdFile) return NOMEMCARD;
 
-	u16 block = BE16(dir.Dir[index].FirstBlock);
-	u16 saveLength = BE16(dir.Dir[index].BlockCount);
+	u16 block = GetFirstBlock(index);
+	u16 saveLength = GetFileSize(index);
 	u16 memcardSize = BE16(hdr.Size) * 0x0010;
 
 	if ((block == 0xFFFF) || (saveLength == 0xFFFF)
@@ -328,7 +317,7 @@ u32 GCMemcard::GetFileData(u32 index, u8* dest, bool old) //index in the directo
 	}
 	else
 	{
-		assert(block > 0);
+		if (block == 0) return FAIL;
 		while (block != 0xffff) 
 		{
 			memcpy(dest,mc_data + 0x2000 * (block - 5), 0x2000);
@@ -660,6 +649,7 @@ bool GCMemcard::FixChecksums()
 
 	return true;
 }
+
 u32 GCMemcard::CopyFrom(GCMemcard& source, u32 index)
 {
 	if (!mcdFile) return NOMEMCARD;
@@ -784,15 +774,19 @@ s32 GCMemcard::ImportGci(const char *fileName, std::string fileName2)
 	if(!fileName2.empty())
 	{
 		FILE * gci2 = fopen(fileName2.c_str(), "wb");
+		bool completeWrite = true;
 		if (!gci2) return OPENFAIL;
 		fseek(gci2, 0, SEEK_SET);
-		assert(fwrite(d, 1, 0x40, gci2)==0x40);
+
+		if (fwrite(d, 1, 0x40, gci2) != 0x40) completeWrite = false;
 		int fileBlocks = BE16(d->BlockCount);
 		fseek(gci2, 0x40, SEEK_SET);
 
-		assert(fwrite(t, 1, 0x2000 * fileBlocks, gci2)==(unsigned) (0x2000*fileBlocks));
+		if (fwrite(t, 1, 0x2000 * fileBlocks, gci2) != (unsigned) (0x2000*fileBlocks))
+			completeWrite = false;
 		fclose(gci2);
-		ret = GCS;
+		if (completeWrite) ret = GCS;
+		else ret = WRITEFAIL;
 	}
 	else ret= ImportFile(*d, t,0);
 
@@ -806,14 +800,16 @@ u32 GCMemcard::ExportGci(u32 index, const char *fileName)
 {
 	FILE *gci = fopen(fileName, "wb");
 	if (!gci) return NOFILE;
+	bool completeWrite = true;
+
 	fseek(gci, 0, SEEK_SET);
 
 	DEntry d;
 	if (!GetFileInfo(index, d)) return NOMEMCARD;
-	assert(fwrite(&d, 1, 0x40, gci) == 0x40);
-	
+	if (fwrite(&d, 1, 0x40, gci) != 0x40) completeWrite = false;
+
 	u32 size = GetFileSize(index);
-	if (size == 0xFFFF)return FAIL;
+	if (size == 0xFFFF) return FAIL;
 	u8 *t = new u8[size * 0x2000];
 
 	switch(GetFileData(index, t, true))
@@ -831,25 +827,27 @@ u32 GCMemcard::ExportGci(u32 index, const char *fileName)
 	}
 
 	fseek(gci, 0x40, SEEK_SET);
-	assert(fwrite(t, 1, 0x2000 * BE16(d.BlockCount), gci)== (unsigned) (0x2000 * BE16(d.BlockCount)));
+	if (fwrite(t, 1, 0x2000 * BE16(d.BlockCount), gci) != (unsigned) (0x2000 * BE16(d.BlockCount)))
+	completeWrite = false;
 	fclose(gci);
 	delete []t;
-	return SUCCESS;
+	if (completeWrite) return SUCCESS;
+	else return WRITEFAIL;
+	
 }
 
 bool GCMemcard::Save()
 {
-	if (!mcdFile) return false;
-
+	bool completeWrite = true;
 	FILE *mcd=(FILE*)mcdFile;
 	fseek(mcd, 0, SEEK_SET);
-	assert(fwrite(&hdr, 1, 0x2000, mcd) == 0x2000);
-	assert(fwrite(&dir, 1, 0x2000, mcd) == 0x2000);
-	assert(fwrite(&dir_backup, 1, 0x2000, mcd) == 0x2000);
-	assert(fwrite(&bat, 1, 0x2000 ,mcd) == 0x2000);
-	assert(fwrite(&bat_backup, 1, 0x2000, mcd) == 0x2000);
-	assert(fwrite(mc_data, 1, mc_data_size, mcd) == mc_data_size);
-	return true;
+	if (fwrite(&hdr, 1, 0x2000, mcd) != 0x2000) completeWrite = false;
+	if (fwrite(&dir, 1, 0x2000, mcd) != 0x2000) completeWrite = false;
+	if (fwrite(&dir_backup, 1, 0x2000, mcd) != 0x2000) completeWrite = false;
+	if (fwrite(&bat, 1, 0x2000 ,mcd) != 0x2000) completeWrite = false;
+	if (fwrite(&bat_backup, 1, 0x2000, mcd) != 0x2000) completeWrite = false;
+	if (fwrite(mc_data, 1, mc_data_size, mcd) != mc_data_size) completeWrite = false;
+	return completeWrite;
 }
 
 bool GCMemcard::IsOpen()

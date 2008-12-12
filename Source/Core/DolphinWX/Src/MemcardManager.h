@@ -31,6 +31,20 @@
 #undef MEMCARD_MANAGER_STYLE
 #define MEMCARD_MANAGER_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX | wxRESIZE_BORDER | wxMAXIMIZE_BOX
 #define MEMCARDMAN_TITLE "Memory Card Manager WARNING-Make backups before using, should be fixed but could mangle stuff!"
+#define E_ALREADYOPENED "Memcard already opened"
+#define E_INVALID "Invalid bat.map or dir entry"
+#define E_NOMEMCARD "File is not recognized as a memcard"
+#define E_TITLEPRESENT "Memcard already has a save for this title"
+#define E_INVALIDFILESIZE "The save you are trying to copy has an invalid file size"
+#define E_OUTOFBLOCKS "Only %d blocks available"
+#define E_OUTOFDIRENTRIES "No free dir index entries"
+#define E_LENGTHFAIL "Imported file has invalid length"
+#define E_GCSFAIL "Imported file has gsc extension\nbut does not have a correct header"
+#define E_SAVFAIL "Imported file has sav extension\nbut does not have a correct header"
+#define E_OPENFAIL "Imported file could not be opened\nor does not have a valid extension"
+#define E_NOFILE "Could not open gci for writing"
+#define E_SAVEFAILED "File write failed"
+#define E_UNK "Unknown error"
 #define FIRSTPAGE 0
 #define SLOT_A 0
 #define SLOT_B 1
@@ -68,10 +82,10 @@ class CMemcardManager
 		wxButton *m_ConvertToGci;
 		wxButton *m_Delete_A;
 		wxButton *m_Delete_B;
-		wxButton *m_PrevPage_A;
 		wxButton *m_NextPage_A;
-		wxButton *m_PrevPage_B;
 		wxButton *m_NextPage_B;
+		wxButton *m_PrevPage_A;
+		wxButton *m_PrevPage_B;
 		wxStaticBoxSizer *sMemcard_A;
 		wxStaticBoxSizer *sMemcard_B;
 		wxFilePickerCtrl *m_MemcardPath_A;
@@ -80,25 +94,25 @@ class CMemcardManager
 
 		enum
 		{
-			ID_COPYTO_B = 1000,
-			ID_COPYTO_A,
+			ID_COPYTO_A = 1000,
+			ID_COPYTO_B,
 			ID_FIXCHECKSUM_A,
 			ID_FIXCHECKSUM_B,
-			ID_DELETE_B,
 			ID_DELETE_A,
-			ID_MEMCARDPATH_A,
-			ID_MEMCARDPATH_B,
-			ID_NEXTPAGE_A,
-			ID_PREVPAGE_A,
-			ID_NEXTPAGE_B,
-			ID_PREVPAGE_B,
+			ID_DELETE_B,
 			ID_SAVEEXPORT_A,
 			ID_SAVEEXPORT_B,
 			ID_SAVEIMPORT_A,
 			ID_SAVEIMPORT_B,
 			ID_CONVERTTOGCI,
+			ID_NEXTPAGE_A,
+			ID_NEXTPAGE_B,
+			ID_PREVPAGE_A,
+			ID_PREVPAGE_B,
 			ID_MEMCARDLIST_A,
 			ID_MEMCARDLIST_B,
+			ID_MEMCARDPATH_A,
+			ID_MEMCARDPATH_B,
 			ID_USEPAGES,
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
 		};
