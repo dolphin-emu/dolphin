@@ -30,7 +30,7 @@ class CFrame : public wxFrame
 		void UpdateLeds(); void UpdateSpeakers();
 		wxBitmap CreateBitmapForLeds(bool On);
 		wxBitmap CreateBitmapForSpeakers(int BitmapType, bool On);
-		void MoveIcons(wxSizeEvent& event); void DoMoveIcons(); void MoveLeds();  void MoveSpeakers();
+		void DoMoveIcons(); void MoveLeds();  void MoveSpeakers();
 		bool HaveLeds; bool HaveSpeakers;
 
 		wxStaticBitmap *m_StatBmp[7];
@@ -102,6 +102,7 @@ class CFrame : public wxFrame
 		void OnToggleDualCore(wxCommandEvent& event);
 		void OnToggleSkipIdle(wxCommandEvent& event);
 		void OnToggleThrottle(wxCommandEvent& event);
+		void OnResize(wxSizeEvent& event);
 		void OnToggleToolbar(wxCommandEvent& event);
 		void OnToggleStatusbar(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event);

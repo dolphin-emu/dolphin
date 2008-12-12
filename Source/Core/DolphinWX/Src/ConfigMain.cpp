@@ -341,9 +341,6 @@ void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
 
 	// save the config... dolphin crashes by far to often to save the settings on closing only
 	SConfig::GetInstance().SaveSettings();
-	
-	// Update the status bar
-	main_frame->ModifyStatusBar();
 }
 
 void CConfigMain::CloseClick(wxCommandEvent& WXUNUSED (event))

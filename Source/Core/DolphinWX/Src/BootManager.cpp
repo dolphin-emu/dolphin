@@ -146,8 +146,8 @@ bool BootCore(const std::string& _rFilename)
 
 			//wxMessageBox(wxString::Format(": %02x", m_SYSCONF[IPL_AR]));
 
-			ini.Get("Core", "EnableProgressiveScan", &bEnableProgressiveScan, (int)m_SYSCONF[IPL_PGS]);
-			ini.Get("Core", "EnableWideScreen", &bEnableWideScreen, (int)m_SYSCONF[IPL_AR]);
+			ini.Get("Core", "EnableProgressiveScan", &bEnableProgressiveScan, m_SYSCONF[IPL_PGS] != 0);
+			ini.Get("Core", "EnableWideScreen", &bEnableWideScreen, m_SYSCONF[IPL_AR] != 0);
 
 			m_SYSCONF[IPL_PGS] = bEnableProgressiveScan;
 			m_SYSCONF[IPL_AR] = bEnableWideScreen;

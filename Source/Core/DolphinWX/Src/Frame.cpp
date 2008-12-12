@@ -102,7 +102,7 @@ EVT_MENU(IDM_TOGGLE_TOOLBAR, CFrame::OnToggleToolbar)
 EVT_MENU(IDM_TOGGLE_STATUSBAR, CFrame::OnToggleStatusbar)
 EVT_MENU_RANGE(IDM_LOADSLOT1, IDM_LOADSLOT10, CFrame::OnLoadState)
 EVT_MENU_RANGE(IDM_SAVESLOT1, IDM_SAVESLOT10, CFrame::OnSaveState)
-EVT_SIZE(CFrame::MoveIcons)
+EVT_SIZE(CFrame::OnResize)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 END_EVENT_TABLE()
 
@@ -440,15 +440,8 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 {
-	// Ask for confirmation in case the user accidently clicked Stop
-  int answer = wxMessageBox(wxT("Are you sure you want to stop the current emulation?"),
-                            wxT("Confirm"), wxYES_NO);
-
-	if (answer == wxYES && Core::GetState() != Core::CORE_UNINITIALIZED)
-	{
-		Core::Stop();
-		UpdateGUI();
-	}
+	Core::Stop();
+	UpdateGUI();
 }
 
 
@@ -559,6 +552,12 @@ void CFrame::OnLoadState(wxCommandEvent& event)
 	State_Load(slot);
 }
 
+void CFrame::OnResize(wxSizeEvent& event)
+{
+	DoMoveIcons(); // In FrameWiimote.cpp
+	event.Skip();
+}
+
 void CFrame::OnSaveState(wxCommandEvent& event)
 {
 	int id = event.GetId();
@@ -579,19 +578,18 @@ void CFrame::OnToggleToolbar(wxCommandEvent& event)
 		delete toolBar;
 		SetToolBar(NULL);
 	}
+
+	this->SendSizeEvent();
 }
 
 void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 {
 	if (event.IsChecked())
-	{
-		m_pStatusBar = CreateStatusBar();
-	}
+		m_pStatusBar->Show();
 	else
-	{
-		delete m_pStatusBar;
-		m_pStatusBar = NULL;
-	}
+		m_pStatusBar->Hide();
+
+	this->SendSizeEvent();
 }
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
@@ -618,74 +616,58 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 
 void CFrame::UpdateGUI()
 {
-	// buttons
+	bool initialized = Core::GetState() != Core::CORE_UNINITIALIZED;
+	bool running = Core::GetState() == Core::CORE_RUN;
+	bool paused = Core::GetState() == Core::CORE_PAUSE;
+
+	if (GetToolBar() != NULL)
 	{
-		if (Core::GetState() == Core::CORE_UNINITIALIZED)
-		{
-			GetToolBar()->EnableTool(IDM_CONFIG_MAIN, true);
-			m_pPluginOptions->Enable(true);
-
-			GetToolBar()->EnableTool(IDM_STOP, false);
-
-			m_pToolPlay->SetNormalBitmap(m_Bitmaps[Toolbar_Play]);
-			m_pToolPlay->SetShortHelp(_T("Play"));
-			m_pToolPlay->SetLabel(_T("Play"));
-
-			m_pMenuItemPlay->SetText(_T("&Play"));
-
-			m_pMenuItemStop->Enable(false);
-			m_pMenuItemLoad->Enable(false);
-			m_pMenuItemSave->Enable(false);
-		}
-		else
-		{
-			GetToolBar()->EnableTool(IDM_CONFIG_MAIN, false);
-			m_pPluginOptions->Enable(false);
-
-			GetToolBar()->EnableTool(IDM_STOP, true);
-
-			m_pMenuItemStop->Enable(true);
-			m_pMenuItemLoad->Enable(true);
-			m_pMenuItemSave->Enable(true);
-
-			if (Core::GetState() == Core::CORE_RUN)
-			{
-				m_pToolPlay->SetNormalBitmap(m_Bitmaps[Toolbar_Pause]);
-				m_pToolPlay->SetShortHelp(_T("Pause"));
-				m_pToolPlay->SetLabel(_T("Pause"));
-
-				m_pMenuItemPlay->SetText(_T("&Pause"));
-			}
-			else
-			{
-				m_pToolPlay->SetNormalBitmap(m_Bitmaps[Toolbar_Play]);
-				m_pToolPlay->SetShortHelp(_T("Play"));
-				m_pToolPlay->SetLabel(_T("Play"));
-
-				m_pMenuItemPlay->SetText(_T("&Play"));
-			}
-		}
-		GetToolBar()->Realize();
+		GetToolBar()->EnableTool(IDM_CONFIG_MAIN, !initialized);
+		GetToolBar()->EnableTool(IDM_STOP, running || paused);
 	}
-	
-	// gamelistctrl
+	m_pMenuItemStop->Enable(running || paused);
+	m_pMenuItemLoad->Enable(initialized);
+	m_pMenuItemSave->Enable(initialized);
+	m_pPluginOptions->Enable(!running && !paused);
+
+	if (running)
 	{
-		if (Core::GetState() == Core::CORE_UNINITIALIZED)
+		if (GetToolBar() != NULL)
 		{
-			if (m_GameListCtrl && !m_GameListCtrl->IsShown())
-			{
-				m_GameListCtrl->Enable();
-				m_GameListCtrl->Show();
-				sizerPanel->FitInside(m_Panel);
-			}
+			m_pToolPlay->SetNormalBitmap(m_Bitmaps[Toolbar_Pause]);
+			m_pToolPlay->SetShortHelp(_("Pause"));
+			m_pToolPlay->SetLabel(_("Pause"));
 		}
-		else
+		m_pMenuItemPlay->SetText(_("&Pause"));
+	}
+	else
+	{
+		if (GetToolBar() != NULL)
 		{
-			if (m_GameListCtrl && m_GameListCtrl->IsShown())
-			{
-				m_GameListCtrl->Disable();
-				m_GameListCtrl->Hide();
-			}
+			m_pToolPlay->SetNormalBitmap(m_Bitmaps[Toolbar_Play]);
+			m_pToolPlay->SetShortHelp(_("Play"));
+			m_pToolPlay->SetLabel(_("Play"));
+		}
+		m_pMenuItemPlay->SetText(_("&Play"));
+	}
+	if (GetToolBar() != NULL) GetToolBar()->Realize();
+
+
+	if (!initialized)
+	{
+		if (m_GameListCtrl && !m_GameListCtrl->IsShown())
+		{
+			m_GameListCtrl->Enable();
+			m_GameListCtrl->Show();
+			sizerPanel->FitInside(m_Panel);
+		}
+	}
+	else
+	{
+		if (m_GameListCtrl && m_GameListCtrl->IsShown())
+		{
+			m_GameListCtrl->Disable();
+			m_GameListCtrl->Hide();
 		}
 	}
 }

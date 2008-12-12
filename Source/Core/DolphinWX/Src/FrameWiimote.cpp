@@ -44,7 +44,7 @@ namespace WiimoteLeds
 	int SPEAKER_SIZE_X = 8;
 	int SPEAKER_SIZE_Y = 8;
 
-	int ConnectionStatusWidth = 103; // This needs to be wider, for vista at least
+	int ConnectionStatusWidth = 103; // These widths need to be revised, for vista at least
 	int ConnectionStatusOnlyAdj = 7;
 	int RightmostMargin = 6;
 	int SpIconMargin = 11;
@@ -105,9 +105,9 @@ void CFrame::ModifyStatusBar()
 		{ LedsOn = false; SpeakersOn = false; }
 
 	// Declarations
-	int Fields;
-	int *Widths;
-	int *StylesFields;
+	int Fields = 0;
+	int *Widths = 0;
+	int *StylesFields = 0;
 
 	// ---------------------------------------
 	// Leds only
@@ -227,7 +227,7 @@ void CFrame::CreateLeds()
 	for(int i = 0; i < 4; i++)
 	{
 		m_StatBmp[i] = new wxStaticBitmap(m_pStatusBar, wxID_ANY,
-			CreateBitmapForLeds((bool)g_Leds[i]));
+			CreateBitmapForLeds(g_Leds[i] == 1));
 	}
 }
 // Update leds
@@ -235,7 +235,7 @@ void CFrame::UpdateLeds()
 {
 	for(int i = 0; i < 4; i++)
 	{
-		m_StatBmp[i]->SetBitmap(CreateBitmapForLeds((bool)g_Leds[i]));
+		m_StatBmp[i]->SetBitmap(CreateBitmapForLeds(g_Leds[i] != 0));
 	}
 }
 // ==============
@@ -252,7 +252,7 @@ void CFrame::CreateSpeakers()
 	for(int i = 0; i < 3; i++)
 	{
 		m_StatBmp[i+4] = new wxStaticBitmap(m_pStatusBar, wxID_ANY,
-			CreateBitmapForSpeakers(i, (bool)g_Speakers[i]));
+			CreateBitmapForSpeakers(i, g_Speakers[i] != 0));
 	}
 }
 // Update icons
@@ -265,7 +265,7 @@ void CFrame::UpdateSpeakers()
 		{ PanicAlert("Not Wii");}*/
 	for(int i = 0; i < 3; i++)
 	{
-		m_StatBmp[i+4]->SetBitmap(CreateBitmapForSpeakers(i, (bool)g_Speakers[i]));
+		m_StatBmp[i+4]->SetBitmap(CreateBitmapForSpeakers(i, g_Speakers[i] != 0));
 	}
 }
 // ==============
@@ -348,12 +348,6 @@ wxBitmap CFrame::CreateBitmapForSpeakers(int BitmapType, bool On)
 // =======================================================
 // Move the bitmaps
 // -------------
-void CFrame::MoveIcons(wxSizeEvent& event)
-{
-	DoMoveIcons();
-	event.Skip();
-}
-
 void CFrame::DoMoveIcons()
 {
 	if(HaveLeds) MoveLeds();
