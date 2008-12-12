@@ -111,7 +111,7 @@ IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 
-s8 APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
+BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 					  DWORD dwReason,		// reason called
 					  LPVOID lpvReserved)	// reserved
 {
@@ -568,7 +568,7 @@ unsigned int PAD_GetAttachedPads()
 }
 
 
-unsigned int SaveLoadState(char* _ptr, s8 _bSave)
+unsigned int SaveLoadState(char* _ptr, BOOL _bSave)
 {
 	return(0);
 }

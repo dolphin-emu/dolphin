@@ -39,10 +39,14 @@ typedef signed __int32 s32;
 typedef signed __int64 s64;
 
 #else
+#ifdef BOOL
+#undef BOOL
+#endif
 
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
+typedef signed char BOOL;
 typedef unsigned long long u64;
 
 typedef char s8;
