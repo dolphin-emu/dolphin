@@ -14,14 +14,14 @@
 typedef void			(*TSetPEToken)(const unsigned short _token, const int _bSetTokenAcknowledge);
 typedef void			(*TSetPEFinish)(void);
 typedef unsigned char*	(*TGetMemoryPointer)(const unsigned int  _iAddress);
-typedef void			(*TVideoLog)(const char* _pMessage, BOOL _bBreak);
+typedef void			(*TVideoLog)(const char* _pMessage, int _bBreak);
 typedef void			(*TSysMessage)(const char *fmt, ...);
-typedef void			(*TRequestWindowSize)(int _iWidth, int _iHeight, BOOL _bFullscreen);
+typedef void			(*TRequestWindowSize)(int _iWidth, int _iHeight, bool _bFullscreen);
 typedef void			(*TCopiedToXFB)(void);
 typedef unsigned int	(*TPeekMessages)(void);
 typedef void			(*TUpdateInterrupts)(void);
 typedef void			(*TUpdateFPSDisplay)(const char* text); // sets the window title
-typedef void			(*TKeyPressed)(int keycode, BOOL shift, BOOL control); // sets the window title
+typedef void			(*TKeyPressed)(int keycode, bool shift, bool control); // sets the window title
 
 typedef struct
 {
@@ -40,13 +40,13 @@ typedef struct
 	// So no possiblity to ack the Token irq by the scheduler until some sort of PPC watchdog do its mess.
 	volatile u16 PEToken;
 
-	volatile BOOL bFF_GPReadEnable;
-	volatile BOOL bFF_BPEnable;
-	volatile BOOL bFF_GPLinkEnable;
-	volatile BOOL bFF_Breakpoint;
+	volatile u32 bFF_GPReadEnable;
+	volatile u32 bFF_BPEnable;
+	volatile u32 bFF_GPLinkEnable;
+	volatile u32 bFF_Breakpoint;
 
-	volatile BOOL CPCmdIdle;
-	volatile BOOL CPReadIdle;
+	volatile u32 CPCmdIdle;
+	volatile u32 CPReadIdle;	
 
 	// for GP watchdog hack
 	volatile u32 Fake_GPWDToken; // cicular incrementer

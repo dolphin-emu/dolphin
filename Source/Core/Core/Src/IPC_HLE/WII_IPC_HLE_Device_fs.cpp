@@ -282,7 +282,9 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 
 			LOG(WII_IPC_FILEIO, "FS: GET STATS - no idea what we have to return here, prolly the free memory etc:)");
 			LOG(WII_IPC_FILEIO, "    InBufferSize: %i OutBufferSize: %i", _BufferInSize, _BufferOutSize);
-			PanicAlert("GET_STATS");
+
+			// This happens in Tatsonuko vs Capcom.
+			//PanicAlert("GET_STATS");
 
 /*			Memory::Write_U32(Addr, a); Addr += 4;
 			Memory::Write_U32(Addr, b); Addr += 4;

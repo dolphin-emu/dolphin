@@ -70,17 +70,17 @@ namespace Core
 {
 // forwarding
 //void Callback_VideoRequestWindowSize(int _iWidth, int _iHeight, BOOL _bFullscreen);
-void Callback_VideoLog(const TCHAR* _szMessage, BOOL _bDoBreak);
+void Callback_VideoLog(const TCHAR* _szMessage, int _bDoBreak);
 void Callback_VideoCopiedToXFB();
 void Callback_DSPLog(const TCHAR* _szMessage, int _v);
-char * Callback_ISOName(void);
+char *Callback_ISOName(void);
 void Callback_DSPInterrupt();
 void Callback_PADLog(const TCHAR* _szMessage);
 void Callback_WiimoteLog(const TCHAR* _szMessage, int _v);
 void Callback_WiimoteInput(u16 _channelID, const void* _pData, u32 _Size);
 
 // For keyboard shortcuts.
-void Callback_KeyPress(int key, BOOL shift, BOOL control);
+void Callback_KeyPress(int key, bool shift, bool control);
 
 TPeekMessages Callback_PeekMessages = NULL;
 TUpdateFPSDisplay g_pUpdateFPSDisplay = NULL;
@@ -474,7 +474,7 @@ void* GetWindowHandle()
 // __________________________________________________________________________________________________
 // Callback_VideoLog
 // WARNING - THIS IS EXECUTED FROM VIDEO THREAD
-void Callback_VideoLog(const TCHAR *_szMessage, BOOL _bDoBreak)
+void Callback_VideoLog(const TCHAR *_szMessage, int _bDoBreak)
 {
 	LOG(VIDEO, _szMessage);
 }
@@ -565,7 +565,7 @@ char * Callback_ISOName(void)
 
 // __________________________________________________________________________________________________
 // Called from ANY thread!
-void Callback_KeyPress(int key, BOOL shift, BOOL control)
+void Callback_KeyPress(int key, bool shift, bool control)
 {
 	// 0x70 == VK_F1
 	if (key >= 0x70 && key < 0x79) {

@@ -568,12 +568,6 @@ unsigned int PAD_GetAttachedPads()
 }
 
 
-unsigned int SaveLoadState(char* _ptr, BOOL _bSave)
-{
-	return(0);
-}
-
-
 void LoadConfig()
 {
 	// Initialize first pad to standard controls

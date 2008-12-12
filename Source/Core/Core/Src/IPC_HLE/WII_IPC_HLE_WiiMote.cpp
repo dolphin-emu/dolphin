@@ -383,7 +383,6 @@ void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 // ----------------
 void CWII_IPC_HLE_WiiMote::ShowStatus(const void* _pData)
 {
-
 	// Check if it's enabled
 	bool LedsOn = Core::g_CoreStartupParameter.bWiiLeds;
 	bool SpeakersOn = Core::g_CoreStartupParameter.bWiiSpeakers;

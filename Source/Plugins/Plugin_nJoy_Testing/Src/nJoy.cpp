@@ -608,13 +608,6 @@ unsigned int PAD_GetAttachedPads()
 	return connected;
 }
 
-// Savestates
-// ¯¯¯¯¯¯¯¯¯¯
-unsigned int SaveLoadState(char *ptr, BOOL save)
-{
-	// not used
-	return 0;
-}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Custom Functions
