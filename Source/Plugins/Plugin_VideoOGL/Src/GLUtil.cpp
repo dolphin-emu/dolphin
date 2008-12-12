@@ -208,14 +208,16 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     GLWin.cocoaWin = cocoaGLCreateWindow(GLWin.width, GLWin.height);
     GLWin.cocoaCtx = cocoaGLInit(g_Config.iMultisampleMode);
 #elif defined(USE_WX) && USE_WX
-    int attrib[2];
-    attrib[0] = 16; //WX_GL_DEPTH_SIZE;
-    attrib[1] = 32;
 
     wxSize size(_iwidth, _iheight);
-    GLWin.frame = new wxFrame((wxFrame *)NULL, -1,_ ("Dolphin"), 
-                              wxPoint(50,50), size);
-    GLWin.glCanvas = new wxGLCanvas(GLWin.frame, wxID_ANY, attrib,
+    if (!g_Config.renderToMainframe || 
+        g_VideoInitialize.pWindowHandle == NULL) {
+        GLWin.frame = new wxFrame((wxFrame *)g_VideoInitialize.pWindowHandle, 
+                                  -1, _("Dolphin"), wxPoint(0,0), size);
+    } else {
+        GLWin.frame = (wxFrame *)g_VideoInitialize.pWindowHandle;
+    }
+    GLWin.glCanvas = new wxGLCanvas(GLWin.frame, wxID_ANY, NULL,
                                     wxPoint(0,0), size, wxSUNKEN_BORDER);
     GLWin.glCtxt = new wxGLContext(GLWin.glCanvas);
 
