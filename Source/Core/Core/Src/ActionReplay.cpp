@@ -55,7 +55,7 @@ bool Subtype_WriteToPointer(u32 addr, u32 data);
 bool Subtype_AddCode(u32 addr, u32 data);
 bool Subtype_MasterCodeAndWriteToCCXXXXXX();
 // Zero Codes
-bool ZeroCode_FillAndSlide(u32 addr_last, u32 addr, u32 data);
+bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data);
 bool ZeroCode_MemoryCopy(u32 val_last, u32 addr, u32 data);
 // Normal Codes
 bool NormalCode_Type_0(u8 subtype, u32 addr, u32 data);
@@ -212,7 +212,7 @@ bool RunActionReplayCode(const ARCode &arcode) {
 	bool skip = false;
 	bool cond = false;
 	u32 addr_last = 0;
-	u32 val_last;
+	u32 val_last = 0;
 
 	code = arcode;
 
@@ -254,7 +254,7 @@ bool RunActionReplayCode(const ARCode &arcode) {
 		if (doFillNSlide) {
 			doFillNSlide = false;
 			LogInfo("Doing Fill And Slide");
-			if (!ZeroCode_FillAndSlide(addr_last, addr, data))
+			if (!ZeroCode_FillAndSlide(val_last, addr, data))
 				return false;
 			continue;
 			}
@@ -308,7 +308,7 @@ bool RunActionReplayCode(const ARCode &arcode) {
 					{
 						LogInfo("ZCode: Fill And Slide");
 						doFillNSlide = true;
-						addr_last = addr;
+						val_last = data;
 					}
 					continue;
 				default: 
@@ -545,10 +545,10 @@ bool Subtype_MasterCodeAndWriteToCCXXXXXX()
 
 
 // Zero Codes
-bool ZeroCode_FillAndSlide(u32 addr_last, u32 addr, u32 data) // This needs more testing
+bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data) // This needs more testing
 {
-	u32 new_addr = (addr_last & 0x81FFFFFF);
-	u8 size = ((addr_last >> 25) & 0x03);
+	u32 new_addr = (val_last & 0x81FFFFFF);
+	u8 size = ((val_last >> 25) & 0x03);
 	int addr_incr;
 	u32 val = addr;
 	int val_incr;
@@ -572,8 +572,8 @@ bool ZeroCode_FillAndSlide(u32 addr_last, u32 addr, u32 data) // This needs more
 		val_incr = (int)(data & 0x7F); // 000000Z1
 	}
 
-	LogInfo("Address Increment: %08x", addr_incr);
-	LogInfo("Value Increment: %08x", val_incr);
+	LogInfo("Address Increment: %i", addr_incr);
+	LogInfo("Value Increment: %i", val_incr);
 
 	// Correct?
 	if (val_incr < 0)
@@ -591,38 +591,76 @@ bool ZeroCode_FillAndSlide(u32 addr_last, u32 addr, u32 data) // This needs more
 				for (int i=0; i < write_num; i++) {
 					Memory::Write_U8(val & 0xFF, curr_addr);
 					LogInfo("Write %08x to address %08x", val & 0xFF, curr_addr);
-					val += val_incr;
-					curr_addr += addr_incr;
+					if (val_incr < 0)
+					{
+						val -= (u32)val_incr;
+					}
+					if (val_incr > 0)
+					{
+						val += (u32)(abs(val_incr));
+					}
+					if (addr_incr < 0)
+					{
+						curr_addr -= (u32)(abs(addr_incr));
+					}
+					if (addr_incr > 0)
+					{
+						curr_addr += (u32)addr_incr;
+					}
 					LogInfo("Value Update: %08x", val);
 					LogInfo("Current Hardware Address Update: %08x", curr_addr);
 				}
 				LogInfo("--------");
 				break;
 		case 0x1: // Halfword
-				addr_incr >>= 1;
-				LogInfo ("Address increment shifted right by 1: %08x", addr_incr);
 				LogInfo("Short Write");
 				LogInfo("--------");
 				for (int i=0; i < write_num; i++) {
 					Memory::Write_U16(val & 0xFFFF, curr_addr);
 					LogInfo("Write %08x to address %08x", val & 0xFFFF, curr_addr);
-					val += val_incr;
-				    curr_addr += addr_incr;
+					if (val_incr < 0)
+					{
+						val -= (u32)val_incr;
+					}
+					if (val_incr > 0)
+					{
+						val += (u32)(abs(val_incr));
+					}
+					if (addr_incr < 0)
+					{
+						curr_addr -= (u32)(abs(addr_incr));
+					}
+					if (addr_incr > 0)
+					{
+						curr_addr += (u32)addr_incr;
+					}
 					LogInfo("Value Update: %08x", val);
 					LogInfo("Current Hardware Address Update: %08x", curr_addr);
 				}
 				LogInfo("--------");
 				break;
 		case 0x2: // Word
-				addr_incr >>= 2;
-				LogInfo ("Address increment shifted right by 2: %08x", addr_incr);
 				LogInfo("Word Write");
 				LogInfo("--------");
 				for (int i=0; i < write_num; i++) {
 					Memory::Write_U32(val, curr_addr);
 					LogInfo("Write %08x to address %08x", val, curr_addr);
-					val += val_incr;
-					curr_addr += addr_incr;
+					if (val_incr < 0)
+					{
+						val -= (u32)val_incr;
+					}
+					if (val_incr > 0)
+					{
+						val += (u32)(abs(val_incr));
+					}
+					if (addr_incr < 0)
+					{
+						curr_addr -= (u32)(abs(addr_incr));
+					}
+					if (addr_incr > 0)
+					{
+						curr_addr += (u32)addr_incr;
+					}
 					LogInfo("Value Update: %08x", val);
 					LogInfo("Current Hardware Address Update: %08x", curr_addr);
 				}
