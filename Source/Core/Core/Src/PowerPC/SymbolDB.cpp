@@ -309,7 +309,7 @@ bool SymbolDB::SaveMap(const char *filename, bool WithCodes) const
 {
 	// Format the name for the codes version
 	std::string mapFile = filename;
-	if(WithCodes) mapFile = mapFile.substr(0, mapFile.find_last_of(".")) + "_code.map";
+	if (WithCodes) mapFile = mapFile.substr(0, mapFile.find_last_of(".")) + "_code.map";
 
 	// Make a file
 	FILE *f = fopen(mapFile.c_str(), "w");

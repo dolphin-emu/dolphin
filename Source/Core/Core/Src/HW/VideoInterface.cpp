@@ -511,7 +511,6 @@ void Update()
 
 		if (VerticalBeamPos == NextXFBRender)
 		{
-			
 			u8* xfbPtr = 0;
 			int yOffset = 0;
 

@@ -58,7 +58,7 @@ void CriticalSection::Enter()
 
 bool CriticalSection::TryEnter()
 {
-	return(TryEnterCriticalSection(&section) ? true : false);
+	return TryEnterCriticalSection(&section) ? true : false;
 }
 
 

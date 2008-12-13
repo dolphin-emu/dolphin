@@ -72,7 +72,6 @@ void CheckGatherPipe()
 		memcpy(Memory::GetPointer(CPeripheralInterface::Fifo_CPUWritePointer), m_gatherPipe, GATHER_PIPE_SIZE);
 
         // [F|RES]: i thought GP is forced to mem1 ... strange 
-        // memcpy(&Memory::GetMainRAMPtr()[CPeripheralInterface::Fifo_CPUWritePointer], m_gatherPipe, GATHER_PIPE_SIZE);
 
 		// move back the spill bytes
 		m_gatherPipeCount -= GATHER_PIPE_SIZE;
@@ -85,7 +84,7 @@ void CheckGatherPipe()
 		// increase the CPUWritePointer
 		CPeripheralInterface::Fifo_CPUWritePointer += GATHER_PIPE_SIZE; 
 		if (CPeripheralInterface::Fifo_CPUWritePointer > CPeripheralInterface::Fifo_CPUEnd)
-			_assert_msg_(DYNA_REC, 0, "Fifo_CPUWritePointer out of bounds");
+			_assert_msg_(DYNA_REC, 0, "Fifo_CPUWritePointer out of bounds: %08x (end = %08x)", CPeripheralInterface::Fifo_CPUWritePointer, CPeripheralInterface::Fifo_CPUEnd);
 
 		if (CPeripheralInterface::Fifo_CPUWritePointer >= CPeripheralInterface::Fifo_CPUEnd)
 			CPeripheralInterface::Fifo_CPUWritePointer = CPeripheralInterface::Fifo_CPUBase;		

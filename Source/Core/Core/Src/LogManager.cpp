@@ -197,24 +197,18 @@ void LogManager::Shutdown()
 // ==========================================================================================
 // The function that finally writes the log.
 // ---------------
-u32 lastPC;
-std::string lastSymbol;
 void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 {
+	static u32 lastPC;
+	static std::string lastSymbol;
+
 	if (m_LogSettings == NULL)
 		return;
 
-	// declarations
-	int v; // verbosity level
-	int type; // the log type, CONSOLE etc.
-	char cvv[20];
-	std::string svv;
-
 	// get the current verbosity level and type
-	sprintf(cvv, "%03i", (int)_type);
-	svv = cvv;
-	v = atoi(svv.substr(0, 1).c_str());
-	type = atoi(svv.substr(1, 2).c_str());
+	// TODO: Base 100 is bad for speed.
+	int v = _type / 100;
+	int type = _type % 100;
 
 	// security checks
 	if (m_Log[_type] == NULL || !m_Log[_type]->m_bEnable
@@ -310,7 +304,7 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 			fprintf(m_Log[ver*100 + LogTypes::MASTER_LOG]->m_pFile, "%s", Msg2);
 
 		/* In case it crashes write now to make sure you get the last messages.
-		   Is this slower than caching it? */
+		   Is this slower than caching it? Most likely yes, fflush can be really slow.*/
 		//fflush(m_Log[id]->m_pFile);
 		//fflush(m_Log[ver*100 + LogTypes::MASTER_LOG]->m_pFile);
 
@@ -320,15 +314,13 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 		m_nextMessages[ver]++;
 		if (m_nextMessages[ver] >= MAX_MESSAGES)
 			m_nextMessages[ver] = 0;		
-		// ---------------
 	}
 	else // write to separate files and structs
 	{
-		int id;
 		for (int i = VERBOSITY_LEVELS; i >= v ; i--)
 		{
 			// prepare the right id
-			id = i*100 + type;
+			int id = i*100 + type;
 
 			// write to memory
 			m_Messages[i][m_nextMessages[i]].Set((LogTypes::LOG_TYPE)id, v, Msg2);
@@ -356,13 +348,4 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 		}
 	}
 	m_bDirty = true; // tell LogWindow that the log has been updated
-}
-
-bool IsLoggingActivated()
-{
-#ifdef LOGGING
-	return true;
-#else
-	return false;
-#endif
 }

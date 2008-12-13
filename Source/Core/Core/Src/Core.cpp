@@ -73,7 +73,7 @@ namespace Core
 void Callback_VideoLog(const TCHAR* _szMessage, int _bDoBreak);
 void Callback_VideoCopiedToXFB();
 void Callback_DSPLog(const TCHAR* _szMessage, int _v);
-char *Callback_ISOName(void);
+const char *Callback_ISOName(void);
 void Callback_DSPInterrupt();
 void Callback_PADLog(const TCHAR* _szMessage);
 void Callback_WiimoteLog(const TCHAR* _szMessage, int _v);
@@ -371,16 +371,16 @@ THREAD_RETURN EmuThread(void *pArg)
 	}
 
 	// Wait for CPU thread to exit - it should have been signaled to do so by now
-	if(cpuThread)
+	if (cpuThread)
 		cpuThread->WaitForDeath();
-	if( g_pUpdateFPSDisplay != NULL )
+	if (g_pUpdateFPSDisplay != NULL)
         g_pUpdateFPSDisplay("Stopping...");
-	if(cpuThread) {
-		delete cpuThread;
+
+	if (cpuThread) {
+		delete cpuThread;  // This joins the cpu thread.
+		// Returns after game exited
 		cpuThread = NULL;
 	}
-	// Returns after game exited
-
 	g_bHwInit = false;
 
 	PluginPAD::PAD_Shutdown();
@@ -395,8 +395,8 @@ THREAD_RETURN EmuThread(void *pArg)
 	HW::Shutdown();
 
 	LOG(MASTER_LOG, "EmuThread exited");
-	//The CPU should return when a game is stopped and cleanup should be done here, 
-	//so we can restart the plugins (or load new ones) for the next game
+	// The CPU should return when a game is stopped and cleanup should be done here, 
+	// so we can restart the plugins (or load new ones) for the next game.
 	if (_CoreParameter.hMainWindow == g_pWindowHandle)
 		Host_UpdateMainFrame();
 	return 0;
@@ -514,7 +514,7 @@ void Callback_VideoCopiedToXFB()
 			(int)(idleDiff),
 			SystemTimers::GetTicksPerSecond()/1000000);
 		
-		if( g_pUpdateFPSDisplay != NULL )
+		if (g_pUpdateFPSDisplay != NULL)
             g_pUpdateFPSDisplay(temp);
 
 		Host_UpdateStatusBar(temp);
@@ -555,12 +555,12 @@ void Callback_PADLog(const TCHAR* _szMessage)
 // Callback_ISOName: Let the DSP plugin get the game name
 //
 //std::string Callback_ISOName(void)
-char * Callback_ISOName(void)
+const char *Callback_ISOName(void)
 {
-	if(g_CoreStartupParameter.m_strName.length() > 0)
-		return (char *)g_CoreStartupParameter.m_strName.c_str();
+	if (g_CoreStartupParameter.m_strName.length() > 0)
+		return (const char *)g_CoreStartupParameter.m_strName.c_str();
 	else	
-          return (char *)"";
+          return (const char *)"";
 }
 
 // __________________________________________________________________________________________________

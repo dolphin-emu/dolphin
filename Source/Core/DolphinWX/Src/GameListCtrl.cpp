@@ -592,7 +592,7 @@ void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
 		if (!iso)
 			return;
 		if (wxMessageBox(_("Are you sure you want to delete this file?\nIt will be gone forever!"),
-			wxMessageBoxCaptionStr, wxYES_NO|wxICON_EXCLAMATION) == wxYES)
+			wxMessageBoxCaptionStr, wxYES_NO | wxICON_EXCLAMATION) == wxYES)
 		{
 			File::Delete(iso->GetFileName().c_str());
 			Update();
@@ -601,7 +601,7 @@ void CGameListCtrl::OnDeleteGCM(wxCommandEvent& WXUNUSED (event))
 	else
 	{
 		if (wxMessageBox(_("Are you sure you want to delete these files?\nThey will be gone forever!"),
-			wxMessageBoxCaptionStr, wxYES_NO|wxICON_EXCLAMATION) == wxYES)
+			wxMessageBoxCaptionStr, wxYES_NO | wxICON_EXCLAMATION) == wxYES)
 		{
 			int selected = GetSelectedItemCount();
 

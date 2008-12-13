@@ -359,8 +359,9 @@ CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, 
 			code[i].branchToIndex = -1;
 			code[i].x86ptr = 0;
 			GekkoOPInfo *opinfo = GetOpInfo(inst);
-			numCycles += opinfo->numCyclesMinusOne + 1;
-			_assert_msg_(GEKKO, opinfo != 0,"Invalid Op - Error flattening %08x op %08x",address+i*4,inst);
+			if (opinfo)
+				numCycles += opinfo->numCyclesMinusOne + 1;
+			_assert_msg_(GEKKO, opinfo != 0, "Invalid Op - Error flattening %08x op %08x",address+i*4,inst);
 			int flags = opinfo->flags;
 
 			bool follow = false;

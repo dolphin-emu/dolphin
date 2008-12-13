@@ -284,11 +284,13 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 
 	// additional dialogs
-	if (IsLoggingActivated() && bLogWindow)
+#ifdef LOGGING
+	if (bLogWindow)
 	{
 		m_LogWindow = new CLogWindow(this);
 		m_LogWindow->Show(true);
 	}
+#endif
 
 	if (bRegisterWindow)
 	{
@@ -380,7 +382,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	{
 		wxMenu* pDebugDialogs = new wxMenu;
 
-		if (IsLoggingActivated())
+		if (LogManager::Enabled())
 		{
 			wxMenuItem* pLogWindow = pDebugDialogs->Append(IDM_LOGWINDOW, _T("&LogManager"), wxEmptyString, wxITEM_CHECK);
 			pLogWindow->Check(bLogWindow);
@@ -905,12 +907,11 @@ void CCodeWindow::OnSymbolListContextMenu(wxContextMenuEvent& event)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // Show and hide windows
-// -----------------------
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CCodeWindow::OnToggleLogWindow(wxCommandEvent& event)
 {
-	if (IsLoggingActivated())
+	if (LogManager::Enabled())
 	{
 		bool show = GetMenuBar()->IsChecked(event.GetId());
 

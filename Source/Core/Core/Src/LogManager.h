@@ -30,8 +30,9 @@ struct CDebugger_Log
 {
 	char m_szName[128];
 	char m_szShortName[32];
-	char m_szShortName_[32]; // save the unadjusted originals here
+	char m_szShortName_[32]; // save the unadjusted originals here    ( ???? )
 	char m_szFilename[256];
+
 	bool m_bLogToFile;
 	bool m_bShowInLog;
 	bool m_bEnable;
@@ -40,10 +41,7 @@ struct CDebugger_Log
 	void Init();
 	void Shutdown();
 
-	// constructor
 	CDebugger_Log(const char* _szShortName, const char* _szName, int a);
-
-	// destructor
 	~CDebugger_Log();
 };
 
@@ -55,10 +53,7 @@ struct CDebugger_LogSettings
 	bool bWriteMaster;
 	bool bUnify;
 
-	// constructor
 	CDebugger_LogSettings();
-
-	// destructor
 	~CDebugger_LogSettings();
 };
 
@@ -67,7 +62,6 @@ class LogManager
 	#define	MAX_MESSAGES 8000   // the old value was to large
 	#define MAX_MSGLEN  256
 public:
-
 	// Message
 	struct SMessage
 	{
@@ -103,6 +97,7 @@ public:
 		//
 		static void Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...);
 	};
+
 private:
 	enum LOG_SETTINGS
 	{
@@ -118,13 +113,17 @@ private:
 	static bool m_bInitialized;
 	static CDebugger_LogSettings* m_LogSettings;
 	static CDebugger_Log* m_Log[LogTypes::NUMBER_OF_LOGS + (VERBOSITY_LEVELS * 100)]; // make 326 of them
+
 public:
 	static void Init();
 	static void Clear(void);
 	static void Shutdown();
+#ifdef LOGGING
+	static bool Enabled() { return true; }
+#else
+	static bool Enabled() { return false; }
+#endif
 	static void Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...);
 };
-
-extern bool IsLoggingActivated();
 
 #endif

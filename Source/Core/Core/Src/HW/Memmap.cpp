@@ -623,7 +623,6 @@ bool Init()
 		position += FAKEVMEM_SIZE;
 	}
 	
-	//WriteProtectMemory(base + 24*1024*1024, 8*1024*1024);
 	if (wii)
 	{	
 		m_pPhysicalEXRAM        = (u8*)g_arena.CreateViewAt(position, EXRAM_SIZE, base + 0x10000000);
@@ -673,6 +672,7 @@ bool Init()
 	else
 		InitHWMemFuncs();
 
+	LOG(MEMMAP, "Memory system initialized. RAM at %p (0x80000000 @ %p)", base, base + 0x80000000);
 	m_IsInitialized = true;
 	return true;
 }
@@ -690,7 +690,6 @@ void DoState(PointerWrap &p)
 bool Shutdown()
 {
 	m_IsInitialized = false;
-
 	bool wii = Core::GetStartupParameter().bWii;
 
 	g_arena.ReleaseView(m_pRAM, RAM_SIZE);
@@ -728,6 +727,7 @@ bool Shutdown()
 		g_arena.ReleaseView(m_pPhysicalFakeVMEM, FAKEVMEM_SIZE);
 #endif
 	g_arena.ReleaseSpace();
+	LOG(MEMMAP, "Memory system shut down.");
 	return true;
 }
 
