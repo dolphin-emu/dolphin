@@ -25,6 +25,7 @@
 #include "../HW/VideoInterface.h"
 #include "../HW/SerialInterface.h"
 #include "../HW/CommandProcessor.h" // for DC watchdog hack
+#include "../HW/EXI_DeviceIPL.h"
 #include "../PowerPC/PowerPC.h"
 #include "../CoreTiming.h"
 #include "../Core.h"
@@ -38,6 +39,7 @@ namespace SystemTimers
 u32 CPU_CORE_CLOCK  = 486000000u;             // 486 mhz (its not 485, stop bugging me!)
 
 s64 fakeDec;
+u64 startTimeBaseTicks;
 
 // ratio of TB and Decrementer to clock cycles
 // With TB clk at 1/4 of BUS clk
@@ -160,7 +162,7 @@ void AdvanceCallback(int cyclesExecuted)
 {
 	fakeDec -= cyclesExecuted;
 	u64 timebase_ticks = CoreTiming::GetTicks() / TIMER_RATIO; //works since we are little endian and TL comes first :)
-	*(u64*)&TL = timebase_ticks;
+	*(u64*)&TL = timebase_ticks + startTimeBaseTicks;
  	if (fakeDec >= 0)
 		PowerPC::ppcState.spr[SPR_DEC] = (u32)fakeDec / TIMER_RATIO;
 }
@@ -198,6 +200,8 @@ void Init()
 		DSP_PERIOD = (int)(GetTicksPerSecond() * 0.005f);
 	}
 	Common::Timer::IncreaseResolution();
+	// store and convert localtime at boot to timebase ticks
+	startTimeBaseTicks = (u64)(CPU_CORE_CLOCK / TIMER_RATIO) * (u64)CEXIIPL::GetGCTime();
 
 	et_Dec = CoreTiming::RegisterEvent("DecCallback", DecrementerCallback);
 	et_AI = CoreTiming::RegisterEvent("AICallback", AICallback);

@@ -37,6 +37,7 @@ class Timer
 		static void IncreaseResolution();
 		static void RestoreResolution();
 		static u64 GetTimeSinceJan1970();
+		static u64 GetLocalTimeSinceJan1970();
 
 
 	public:

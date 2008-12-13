@@ -161,13 +161,14 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 
     // Bus Clock Speed
     Memory::Write_U32(0x09a7ec80, 0x800000F8);
+    // CPU Clock Speed
     Memory::Write_U32(0x1cf7c580, 0x800000FC);
 
     // fake the VI Init of the BIOS 
     Memory::Write_U32(Core::g_CoreStartupParameter.bNTSC ? 0 : 1, 0x800000CC);
 
-    // preset time
-    Memory::Write_U32(CEXIIPL::GetGCTime(), 0x800030D8);
+    // preset time base ticks
+	Memory::Write_U64( (u64)CEXIIPL::GetGCTime() * (u64)40500000, 0x800030D8);
 }
 
 

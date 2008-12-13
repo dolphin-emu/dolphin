@@ -266,6 +266,11 @@ void CEXIIPL::TransferByte(u8& _uByte)
 
 u32 CEXIIPL::GetGCTime()
 {
+    const u32 cJanuary2000 = 0x386D4380;  // Seconds between 1.1.1970 and 1.1.2000
+
+	// (mb2): I think we can get rid of the IPL bias.
+	// I know, it's another hack so I let the previous code for a while.
+#if 0
     // Get SRAM bias	
     u32 Bias;
 
@@ -275,8 +280,11 @@ u32 CEXIIPL::GetGCTime()
     }
 
     // Get the time ... 
-    const u32 cJanuary2000 = 0x386d35a1;  // Seconds between 1.1.1970 and 1.1.2000
     u64 ltime = Common::Timer::GetTimeSinceJan1970();
     return ((u32)ltime - cJanuary2000 - Bias);
+#else
+	u64 ltime = Common::Timer::GetLocalTimeSinceJan1970();
+    return ((u32)ltime - cJanuary2000);
+#endif
 }
 

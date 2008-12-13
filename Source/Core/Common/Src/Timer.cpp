@@ -96,4 +96,17 @@ u64 Timer::GetTimeSinceJan1970(void)
 	time(&ltime);
 	return((u64)ltime);
 }
+
+u64 Timer::GetLocalTimeSinceJan1970(void)
+{
+	time_t sysTime, tzDiff;
+	struct tm * gmTime;
+
+	time(&sysTime);
+	// Lazy way to get local time in sec
+	gmTime	= gmtime(&sysTime);
+	tzDiff = sysTime - mktime(gmTime);
+
+	return (u64)(sysTime + tzDiff);
+}
 } // end of namespace Common
