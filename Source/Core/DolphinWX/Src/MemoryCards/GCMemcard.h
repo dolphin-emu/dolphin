@@ -60,8 +60,6 @@ private:
 	u32 mc_data_size;
 	u8* mc_data;
 
-	void calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2);
-
 #pragma pack(push,1)
 	struct OSTime {
 		u32 low;
@@ -156,30 +154,30 @@ public:
 	~GCMemcard();
 
 	bool IsOpen();
-
+	bool Save();
+	
+	void calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2);
 	u32  TestChecksums();
 	bool FixChecksums();
 	
 	// get number of file entries in the directory
 	u32  GetNumFiles();
 
+	// get the free blocks from bat
+	u16 GetFreeBlocks(void);
+
 	// Returns true if title already on memcard
 	bool TitlePresent(DEntry d);
-	
-	// read directory entry
-	bool GetFileInfo(u32 index, DEntry& data);
 
-	// buffer needs to be a char[32] or bigger
-	bool GetFileName(u32 index, char* buffer);
-
-	// get file length in blocks
-	u16  GetFileSize(u32 index);
 
 	// get first block for file
 	u16 GetFirstBlock(u32 index);
 
-	// get the free blocks from bat
-	u16 GetFreeBlocks(void);
+	// get file length in blocks
+	u16  GetFileSize(u32 index);
+
+	// buffer needs to be a char[32] or bigger
+	bool GetFileName(u32 index, char* buffer);
 
 	// buffer needs to be a char[32] or bigger
 	bool GetComment1(u32 index, char* buffer);
@@ -187,27 +185,30 @@ public:
 	// buffer needs to be a char[32] or bigger
 	bool GetComment2(u32 index, char* buffer);
 
+	// read directory entry
+	bool GetFileInfo(u32 index, DEntry& data);
+
 	// assumes there's enough space in buffer
 	// old determines if function uses old or new method of copying data
 	// some functions only work with old way, some only work with new way
 	// TODO: find a function that works for all calls or split into 2 functions
 	u32 GetFileData(u32 index, u8* buffer, bool old);
 
-	// delete a file from the directory
-	u32 RemoveFile(u32 index);
-	
 	// adds the file to the directory and copies its contents
 	// if remove > 0 it will pad bat.map with 0's sifeof remove
 	u32  ImportFile(DEntry& direntry, u8* contents, int remove);
 
+	// delete a file from the directory
+	u32 RemoveFile(u32 index);
+
 	// reads a save from another memcard, and imports the data into this memcard
 	u32  CopyFrom(GCMemcard& source, u32 index);
 
-	// writes a .gci file to disk containing index
-	u32 ExportGci(u32 index, const char* fileName);
-
 	// reads a .gci/.gcs/.sav file and calls ImportFile or saves out a gci file
 	s32  ImportGci(const char* fileName, std::string fileName2);
+
+	// writes a .gci file to disk containing index
+	u32 ExportGci(u32 index, const char* fileName);
 
 	// reads the banner image
 	bool ReadBannerRGBA8(u32 index, u32* buffer);
@@ -215,6 +216,6 @@ public:
 	// reads the animation frames
 	u32  ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays);
 
-	bool Save();
+
 
 };
