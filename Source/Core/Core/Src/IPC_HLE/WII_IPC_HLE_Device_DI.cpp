@@ -87,7 +87,11 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 
 	/* Set out buffer to zeroes as a safety precaution to avoid answering
 	   nonsense values */
-	Memory::Memset(_BufferOut, 0, _BufferOutSize);
+
+	// TATSUNOKO VS CAPCOM: Gets here with _BufferOut == 0x0!!!
+	if (_BufferOut != 0) {
+		Memory::Memset(_BufferOut, 0, _BufferOutSize);
+	}
 
 	switch (Command)
 	{
@@ -133,11 +137,16 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 	
 	// DVDLowRead 
     case 0x71:
-        {                                 
+        {
+			if (_BufferOut == 0)
+			{
+				PanicAlert("DVDLowRead : _BufferOut == 0");
+				return 0;
+			}
             u32 Size = Memory::Read_U32(_BufferIn + 0x04);
             u64 DVDAddress = (u64)Memory::Read_U32(_BufferIn + 0x08) << 2;
 
-            const char* pFilename = m_pFileSystem->GetFileName(DVDAddress);
+            const char *pFilename = m_pFileSystem->GetFileName(DVDAddress);
             if (pFilename != NULL)
             {
                 LOG(WII_IPC_DVD, "    DVDLowRead: %s (0x%x) - (DVDAddr: 0x%x, Size: 0x%x)", pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress, Size);
@@ -243,6 +252,10 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
     case 0xab:
 		// PanicAlert("DVDLowSeek");
         break;
+
+	case 0xe0:
+		PanicAlert("DVD unknown command 0xe0, so far only seen in Tatsunoko. Don't know what to do, things will probably go wrong.");
+		break;
 
 	// DVDLowStopMotor
 	case 0xe3:
