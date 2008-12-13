@@ -220,6 +220,7 @@ GCMemcard::GCMemcard(const char *filename)
 		(size == 0x0020) || (size == 0x0010) ||
 		(size == 0x0008) || (size == 0x0004))
 	{
+		maxBlock = size * 0x10;
 		mc_data_size = (((u32)size * 16) - 5) * 0x2000;
 		mc_data = new u8[mc_data_size];
 
@@ -406,7 +407,7 @@ u16 GCMemcard::GetFirstBlock(u32 index)
 {
 	if (!mcdFile) return 0xFFFF;
 	u16 block = BE16(dir.Dir[index].FirstBlock);
-	if (block > MAXBLOCK) return 0xFFFF;
+	if (block > (u16) maxBlock) return 0xFFFF;
 	return block;
 }
 
@@ -415,7 +416,7 @@ u16 GCMemcard::GetFileSize(u32 index) //index in the directory array
 	if (!mcdFile) return 0xFFFF;
 
 	u16 blocks = BE16(dir.Dir[index].BlockCount);
-	if (blocks > (u16) MAXBLOCK) return 0xFFFF;
+	if (blocks > (u16) maxBlock) return 0xFFFF;
 	return blocks;
 }
 
@@ -434,7 +435,7 @@ bool GCMemcard::GetComment1(u32 index, char *fn) //index in the directory array
 
 	u32 Comment1 = BE32(dir.Dir[index].CommentsAddr);
 	u32 DataBlock = BE16(dir.Dir[index].FirstBlock) - 5;
-	if ((DataBlock > MAXBLOCK) || (Comment1 == 0xFFFFFFFF))
+	if ((DataBlock > maxBlock) || (Comment1 == 0xFFFFFFFF))
 	{
 		fn[0] = 0;
 		return false;
@@ -451,7 +452,7 @@ bool GCMemcard::GetComment2(u32 index, char *fn) //index in the directory array
 	u32 Comment1 = BE32(dir.Dir[index].CommentsAddr);
 	u32 Comment2 = Comment1 + 32;
 	u32 DataBlock = BE16(dir.Dir[index].FirstBlock) - 5;
-	if ((DataBlock > MAXBLOCK) || (Comment1 == 0xFFFFFFFF))
+	if ((DataBlock > maxBlock) || (Comment1 == 0xFFFFFFFF))
 	{
 		fn[0] = 0;
 		return false;
@@ -703,7 +704,7 @@ u32 GCMemcard::CopyFrom(GCMemcard& source, u32 index)
 	}
 }
 
-s32 GCMemcard::ImportGci(const char *fileName, std::string fileName2)
+u32 GCMemcard::ImportGci(const char *fileName, std::string fileName2)
 {
 	if (fileName2.empty() && !mcdFile) return OPENFAIL;
 
@@ -826,7 +827,7 @@ s32 GCMemcard::ImportGci(const char *fileName, std::string fileName2)
 u32 GCMemcard::ExportGci(u32 index, const char *fileName)
 {
 	FILE *gci = fopen(fileName, "wb");
-	if (!gci) return NOFILE;
+	if (!gci) return OPENFAIL;
 	bool completeWrite = true;
 
 	fseek(gci, 0, SEEK_SET);
@@ -877,7 +878,7 @@ bool GCMemcard::ReadBannerRGBA8(u32 index, u32* buffer)
 	u32 DataOffset = BE32(dir.Dir[index].ImageOffset);
 	u32 DataBlock = BE16(dir.Dir[index].FirstBlock) - 5;
 
-	if ((DataBlock > MAXBLOCK) || (DataOffset == 0xFFFFFFFF))
+	if ((DataBlock > maxBlock) || (DataOffset == 0xFFFFFFFF))
 	{
 		return false;
 	}
@@ -914,7 +915,7 @@ u32 GCMemcard::ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays)
 	u32 DataOffset = BE32(dir.Dir[index].ImageOffset);
 	u32 DataBlock = BE16(dir.Dir[index].FirstBlock) - 5;
 
-	if ((DataBlock > MAXBLOCK) || (DataOffset == 0xFFFFFFFF))
+	if ((DataBlock > maxBlock) || (DataOffset == 0xFFFFFFFF))
 	{
 		return 0;
 	}
@@ -983,3 +984,4 @@ u32 GCMemcard::ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays)
 
 	return frames;
 }
+

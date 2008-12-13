@@ -22,11 +22,9 @@
 
 enum
 {
-	LENGTHFAIL = -4,
-	GCSFAIL,
-	SAVFAIL,
-	OPENFAIL,
-	GCI,
+	GCI = 0,
+	SUCCESS,
+	NOMEMCARD,
 	HDR_READ_ERROR,
 	DIR_READ_ERROR,
 	DIR_BAK_READ_ERROR,
@@ -38,18 +36,18 @@ enum
 	DATA_READ_FAIL,
 	HDR_SIZE_FFFF,
 	NOTRAWORGCP,
-	SAV = 0x80,
-	GCS = 0x110,
+	OPENFAIL,
 	OUTOFBLOCKS,
 	OUTOFDIRENTRIES,
-	NOMEMCARD,
-	NOFILE,
+	LENGTHFAIL,
 	INVALIDFILESIZE,
 	TITLEPRESENT,
-	SUCCESS = 0x2000,
+	SAV = 0x80,
+	SAVFAIL,
+	GCS = 0x110,
+	GCSFAIL,	
 	FAIL,
 	WRITEFAIL,
-	MAXBLOCK = 0x2049
 };
 
 class GCMemcard 
@@ -57,6 +55,7 @@ class GCMemcard
 private:
 	void* mcdFile;
 
+	u32 maxBlock;
 	u32 mc_data_size;
 	u8* mc_data;
 
@@ -157,11 +156,11 @@ public:
 	bool Save();
 	
 	void calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2);
-	u32  TestChecksums();
+	u32 TestChecksums();
 	bool FixChecksums();
 	
 	// get number of file entries in the directory
-	u32  GetNumFiles();
+	u32 GetNumFiles();
 
 	// get the free blocks from bat
 	u16 GetFreeBlocks(void);
@@ -169,12 +168,11 @@ public:
 	// Returns true if title already on memcard
 	bool TitlePresent(DEntry d);
 
-
 	// get first block for file
 	u16 GetFirstBlock(u32 index);
 
 	// get file length in blocks
-	u16  GetFileSize(u32 index);
+	u16 GetFileSize(u32 index);
 
 	// buffer needs to be a char[32] or bigger
 	bool GetFileName(u32 index, char* buffer);
@@ -196,16 +194,16 @@ public:
 
 	// adds the file to the directory and copies its contents
 	// if remove > 0 it will pad bat.map with 0's sifeof remove
-	u32  ImportFile(DEntry& direntry, u8* contents, int remove);
+	u32 ImportFile(DEntry& direntry, u8* contents, int remove);
 
 	// delete a file from the directory
 	u32 RemoveFile(u32 index);
 
 	// reads a save from another memcard, and imports the data into this memcard
-	u32  CopyFrom(GCMemcard& source, u32 index);
+	u32 CopyFrom(GCMemcard& source, u32 index);
 
 	// reads a .gci/.gcs/.sav file and calls ImportFile or saves out a gci file
-	s32  ImportGci(const char* fileName, std::string fileName2);
+	u32 ImportGci(const char* fileName, std::string fileName2);
 
 	// writes a .gci file to disk containing index
 	u32 ExportGci(u32 index, const char* fileName);
@@ -214,8 +212,5 @@ public:
 	bool ReadBannerRGBA8(u32 index, u32* buffer);
 
 	// reads the animation frames
-	u32  ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays);
-
-
-
+	u32 ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays);
 };

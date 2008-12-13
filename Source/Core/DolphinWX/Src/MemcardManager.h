@@ -26,6 +26,7 @@
 #include <wx/imaglist.h>
 
 #include "IniFile.h"
+#include "FileUtil.h"
 #include "MemoryCards/GCMemcard.h"
 
 #undef MEMCARD_MANAGER_STYLE
@@ -41,8 +42,7 @@
 #define E_LENGTHFAIL "Imported file has invalid length"
 #define E_GCSFAIL "Imported file has gsc extension\nbut does not have a correct header"
 #define E_SAVFAIL "Imported file has sav extension\nbut does not have a correct header"
-#define E_OPENFAIL "Imported file could not be opened\nor does not have a valid extension"
-#define E_NOFILE "Could not open gci for writing"
+#define E_OPENFAIL "File could not be opened\nor does not have a valid extension"
 #define E_SAVEFAILED "File write failed"
 #define E_UNK "Unknown error"
 #define FIRSTPAGE 0
@@ -71,8 +71,8 @@ class CMemcardManager
 		wxBoxSizer *sPages_B;
 		wxStaticText *t_Status_A;
 		wxStaticText *t_Status_B;
-		wxButton *m_CopyTo_A;
-		wxButton *m_CopyTo_B;
+		wxButton *m_CopyFrom_A;
+		wxButton *m_CopyFrom_B;
 		wxButton *m_FixChecksum_A;
 		wxButton *m_FixChecksum_B;
 		wxButton *m_SaveImport_A;
@@ -94,8 +94,8 @@ class CMemcardManager
 
 		enum
 		{
-			ID_COPYTO_A = 1000,
-			ID_COPYTO_B,
+			ID_COPYFROM_A = 1000,
+			ID_COPYFROM_B,
 			ID_FIXCHECKSUM_A,
 			ID_FIXCHECKSUM_B,
 			ID_DELETE_A,
@@ -138,6 +138,7 @@ class CMemcardManager
 		void OnPageChange(wxCommandEvent& event);
 		void OnPathChange(wxFileDirPickerEvent& event);
 		bool ReadError(GCMemcard *memcard);
+		bool CopyDeleteSwitch(u32 error, int slot);
 
 		class CMemcardListCtrl : public wxListCtrl
 		{
