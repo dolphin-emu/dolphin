@@ -624,7 +624,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			if (temp.length() > 0)
 			{
 				if (!CopyDeleteSwitch(memoryCard[slot]->ExportGci(index, fileName), -1))
-					File::Delete(temp.c_str());
+					File::Delete(temp.ToAscii());
 			}
 		}
 		break;

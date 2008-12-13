@@ -199,7 +199,7 @@ void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED (eve
 {
 	m_TextCtrl_Log->Clear();
 	const std::vector<std::string> &arLog = ActionReplay_GetSelfLog();
-	for (int i = 0; i < arLog.size(); i++)
+	for (u32 i = 0; i < arLog.size(); i++)
 	{
 		m_TextCtrl_Log->AppendText(wxString::FromAscii(arLog[i].c_str()));
 	}
