@@ -212,10 +212,11 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     wxSize size(_iwidth, _iheight);
     if (!g_Config.renderToMainframe || 
         g_VideoInitialize.pWindowHandle == NULL) {
-        GLWin.frame = new wxFrame((wxFrame *)g_VideoInitialize.pWindowHandle, 
+        GLWin.frame = new wxFrame((wxWindow *)g_VideoInitialize.pWindowHandle, 
                                   -1, _("Dolphin"), wxPoint(0,0), size);
     } else {
-        GLWin.frame = (wxFrame *)g_VideoInitialize.pWindowHandle;
+        GLWin.frame = new wxFrame((wxWindow *)NULL, 
+                                  -1, _("Dolphin"), wxPoint(0,0), size);
     }
     GLWin.glCanvas = new wxGLCanvas(GLWin.frame, wxID_ANY, NULL,
                                     wxPoint(0,0), size, wxSUNKEN_BORDER);

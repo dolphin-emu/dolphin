@@ -10,12 +10,18 @@ class CFrame : public wxFrame
 
 		CFrame(wxFrame* parent,
 			wxWindowID id = wxID_ANY,
-			const wxString& title = _T("Dolphin"),
+			const wxString& title = wxT("Dolphin"),
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
 		long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
-		void* GetRenderHandle() {return(m_Panel->GetHandle());}
+		void* GetRenderHandle() {
+#ifdef _WIN32
+                    return(m_Panel->GetHandle());
+#else
+                    return this;
+#endif
+                }
 
 		wxStatusBar* m_pStatusBar;
 
