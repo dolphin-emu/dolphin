@@ -542,9 +542,14 @@ void OpenGL_Update()
 {
 #if USE_SDL
     SDL_Surface *surface = SDL_GetVideoSurface();
+    RECT rcWindow;
     if (!surface) return;
     nBackbufferWidth = surface->w;
     nBackbufferHeight = surface->h;
+
+    rcWindow.right = surface->w;
+    rcWindow.bottom = surface->h;
+
 #elif defined(HAVE_COCOA) && HAVE_COCOA
     RECT rcWindow;
     rcWindow.right = GLWin.width;

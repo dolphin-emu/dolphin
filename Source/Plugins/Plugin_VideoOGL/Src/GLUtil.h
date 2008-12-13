@@ -41,6 +41,8 @@
 #elif defined(HAVE_X11) && HAVE_X11
 #define I_NEED_OS2_H // HAXXOR
 #include <GL/glxew.h>
+#elif defined(USE_SDL) && USE_SDL
+#include <GL/glew.h>
 #elif defined(HAVE_COCOA) && HAVE_COCOA
 #include <GL/glew.h>
 #include "cocoaGL.h"

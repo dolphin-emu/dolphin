@@ -95,17 +95,14 @@ conf.Define('HAVE_XXF86VM', gfxenv['HAVE_XXF86VM'])
 
 conf.Finish()
 
-# change to True if you want to compile with SDL
-useSDL = not ((gfxenv['HAVE_X11'] and gfxenv['HAVE_XXF86VM']) 
-              or gfxenv['HAVE_COCOA'])
+# Sanity check
+if gfxenv['USE_WX'] and not gfxenv['HAVE_WX']:
+    print "Must have wx to use wxgl"
+    Return()
 
-
-if useSDL and not gfxenv['HAVE_SDL']:
-        print name + " must have either X11 or sdl to be build"
-        Return()
-
-if useSDL:                    
-	compileFlags += [ '-DUSE_SDL=1' ]
+if gfxenv['USE_SDL'] and not gfxenv['HAVE_SDL']:
+    print "Must have sdl to use SDL gl"
+    Return()
 
 gfxenv.Append(
 	CXXFLAGS = compileFlags,
