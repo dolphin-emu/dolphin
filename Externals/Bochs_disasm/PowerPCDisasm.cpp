@@ -280,11 +280,13 @@ namespace PPCDisasm
 
 	static void ill(struct DisasmPara_PPC *dp,ppc_word in)
 	{
-		//  strcpy(dp->opcode,".word");
-		//  sprintf(dp->operands,"0x%08lx",(unsigned int)in);
-
-		strcpy(dp->opcode,"");
-		sprintf(dp->operands,"");
+		if (in == 0) {
+			strcpy(dp->opcode, "");
+			strcpy(dp->operands, "---");
+		} else {
+			strcpy(dp->opcode, "( ill )");
+			sprintf(dp->operands, "%08x", in);
+		}
 
 		dp->flags |= PPCF_ILLEGAL;
 	}
