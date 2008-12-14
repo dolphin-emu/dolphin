@@ -237,6 +237,8 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	int bs = TexDecoder_GetBlockWidthInTexels(format) - 1;
     int expandedWidth = (width + bs) & (~bs);
 
+	bool skip_texture_create = false;
+
     if (iter != textures.end()) {
         TCacheEntry &entry = iter->second;
 
@@ -256,24 +258,21 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
         }
         else
         {
-            // can potentially do some caching
-
-            //TCacheEntry &entry = entry;
-			/*if (width == entry.w && height==entry.h && format==entry.fmt)
+            // Let's reload the new texture data into the same texture,
+			// instead of destroying it and having to create a new one.
+			// Might speed up movie playback very, very slightly.
+			if (width == entry.w && height == entry.h && format == entry.fmt)
             {
-                LPDIRECT3DTEXTURE9 tex = entry.texture;
-                int bs = TexDecoder_GetBlockWidthInTexels(format)-1;
-                int expandedWidth = (width+bs) & (~bs);
-                D3DFORMAT dfmt = TexDecoder_Decode(temp,ptr,expandedWidth,height,format, tlutaddr, tlutfmt);
-                ReplaceTexture2D(tex,temp,width,height,expandedWidth,dfmt);
-                dev->SetTexture(texstage, stage,tex);
-                return;
+				glBindTexture(entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
+				if (entry.mode.hex != tm0.hex)
+					entry.SetTextureParameters(tm0);
+				skip_texture_create = true;
             }
             else
-            {*/
+            {
                 entry.Destroy();
                 textures.erase(iter);
-            //}
+            }
         }
     }
     
@@ -294,12 +293,13 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
     entry.addr = address;
     entry.isRenderTarget = false;
-
     entry.isNonPow2 = ((width & (width - 1)) || (height & (height - 1)));
-    
-    glGenTextures(1, (GLuint *)&entry.texture);
-    GLenum target = entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D;
-    glBindTexture(target, entry.texture);
+
+	GLenum target = entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D;
+	if (!skip_texture_create) {
+		glGenTextures(1, (GLuint *)&entry.texture);
+		glBindTexture(target, entry.texture);
+	}
 
     if (expandedWidth != width)
         glPixelStorei(GL_UNPACK_ROW_LENGTH, expandedWidth);

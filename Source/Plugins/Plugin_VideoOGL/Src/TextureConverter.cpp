@@ -142,7 +142,7 @@ void EncodeToRam(GLuint srcTexture, const TRectangle& sourceRc,
 		TextureMngr::DisableStage(i);	
 	GL_REPORT_ERRORD();
 
-	glViewport(0, 0, dstFmtWidth, dstHeight);
+	glViewport(0, 0, (GLsizei)dstFmtWidth, (GLsizei)dstHeight);
 
 	glEnable(GL_FRAGMENT_PROGRAM_ARB);
     glBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, s_rgbToYuyvProgram.glprogid);	
