@@ -43,11 +43,10 @@ void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) {
 	char disbuf[256];
 	memset(disbuf, 0, 256);
 #ifdef _M_IX86
-	disasm.disasm32
+	disasm.disasm32(0, code_addr, codePtr, disbuf);
 #else
-	disasm.disasm64
+	disasm.disasm64(0, code_addr, codePtr, disbuf);
 #endif
-		(0, code_addr, codePtr, disbuf);
 	PanicAlert("%s\n\n"
        "Error encountered accessing emulated address %08x.\n"
 	   "Culprit instruction: \n%s\nat %08x%08x",
@@ -84,7 +83,7 @@ u8 *BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx)
 	if (info.operandSize != 4) {
 		BackPatchError(StringFromFormat("BackPatch - no support for operand size %i", info.operandSize), codePtr, emAddress);
 	}
-	u64 code_addr = (u64)codePtr;
+
 	X64Reg addrReg = (X64Reg)info.scaledReg;
 	X64Reg dataReg = (X64Reg)info.regOperandReg;
 	if (info.otherReg != RBX)
@@ -185,7 +184,7 @@ u8 *BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx)
 		SetCodePtr(oldCodePtr);
 
 		// We entered here with a BSWAP-ed EAX. We'll have to swap it back.
-		ctx->Rax = _byteswap_ulong(ctx->Rax);
+		ctx->Rax = Common::swap32(ctx->Rax);
 
 		return codePtr - 2;
 	}

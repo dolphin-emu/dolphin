@@ -16,12 +16,19 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-// TODO: create a working OS-neutral version of this file and put it in Common.
-
-
 #ifdef _WIN32
 
 #include <windows.h>
+
+#else
+
+#include <execinfo.h>
+#include <stdio.h>
+#include <signal.h>
+#include <sys/ucontext.h>   // Look in here for the context definition.
+
+#endif
+
 #include <vector>
 
 #include "Common.h"
@@ -34,6 +41,8 @@
 
 namespace EMM
 {
+
+#ifdef _WIN32
 
 LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 {
@@ -69,7 +78,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 #ifdef _M_X64
 			u64 memspaceTop = memspaceBottom + 0x100000000ULL;
 #else
-			u64 memspaceTop = memspaceBottom +  0x40000000;
+			u64 memspaceTop = memspaceBottom + 0x40000000;
 #endif
 			if (badAddress < memspaceBottom || badAddress >= memspaceTop) {
 				PanicAlert("Exception handler - access outside memory space. %08x%08x",
@@ -136,15 +145,12 @@ void InstallExceptionHandler()
 #endif
 }
 
-}
-#else
+#else  // _WIN32)
 
-namespace EMM {
-
-#if 0
 //
 // backtrace useful function
 //
+
 void print_trace(const char * msg)
 {
 	void *array[100];
@@ -160,41 +166,63 @@ void print_trace(const char * msg)
 	free(strings);
 }
 
-void sigsegv_handler(int signal, int siginfo_t *info, void *raw_context)
+void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 {
 	if (signal != SIGSEGV)
 	{
 		// We are not interested in other signals - handle it as usual.
 		return;
 	}
-	ucontext_t *context = (ucontext_t)raw_context;
+	ucontext_t *context = (ucontext_t *)raw_context;
 	int si_code = info->si_code;
-	if (si_code != SEGV_MAPERR)
+	if (si_code != SEGV_MAPERR && si_code != SEGV_ACCERR)
 	{
 		// Huh? Return.
 		return;
 	}
-	mcontext_t *ctx = &context->uc_mcontext;
 	void *fault_memory_ptr = (void *)info->si_addr;
-	void *fault_instruction_ptr = (void *)ctx->mc_rip;
 
-	if (!Jit64::IsInJitCode(fault_instruction_ptr)) {
+	// Get all the information we can out of the context.
+	mcontext_t *ctx = &context->uc_mcontext;
+	u8 *fault_instruction_ptr = (u8 *)ctx->gregs[REG_RIP];
+
+	if (!Jit64::IsInJitCode((const u8 *)fault_instruction_ptr)) {
 		// Let's not prevent debugging.
 		return;
 	}
-
-	u64 memspaceBottom = (u64)Memory::base;
-	if (badAddress < memspaceBottom) {
+	
+	u64 bad_address = (u64)fault_memory_ptr;
+	u64 memspace_bottom = (u64)Memory::base;
+	if (bad_address < memspace_bottom) {
 		PanicAlert("Exception handler - access below memory space. %08x%08x",
-			badAddress >> 32, badAddress);
+			bad_address >> 32, bad_address);
 	}
-	u32 emAddress = (u32)(badAddress - memspaceBottom);
+	u32 em_address = (u32)(bad_address - memspace_bottom);
 
 	// Backpatch time.
-	Jit64::BackPatch(fault_instruction_ptr, accessType, emAddress);
-}
+	// Seems we'll need to disassemble to get access_type - that work is probably
+	// best done and debugged on the Windows side.
+	int access_type = 0;
 
+	CONTEXT fake_ctx;
+#ifdef _M_X64
+	fake_ctx.Rax = ctx->gregs[REG_RAX];
+	fake_ctx.Rip = ctx->gregs[REG_RIP];
+#else
+	fake_ctx.Eax = ctx->gregs[REG_EAX];
+	fake_ctx.Eip = ctx->gregs[REG_EIP];
 #endif
+	u8 *new_rip = Jit64::BackPatch(fault_instruction_ptr, access_type, em_address, &fake_ctx);
+	if (new_rip) {
+#ifdef _M_X64
+		ctx->gregs[REG_RAX] = fake_ctx.Rax;
+		ctx->gregs[REG_RIP]	= (u64)new_rip;
+#else
+		ctx->gregs[REG_EAX] = fake_ctx.Rax;
+		ctx->gregs[REG_EIP]	= (u32)new_rip;
+#endif
+	}
+}
 
 void InstallExceptionHandler()
 {
@@ -203,22 +231,14 @@ void InstallExceptionHandler()
 	return;
 #endif
 
-#if 0
-	sighandler_t old_signal_handler = signal(SIGSEGV , sigsegv_handler);
 	struct sigaction sa;
-	memset(&sa, 0, sizeof(sa));
-	sa.sa_handler = sigsegv_handler;
+	sa.sa_handler = 0;
+	sa.sa_sigaction = &sigsegv_handler;
 	sa.sa_flags = SA_SIGINFO;
 	sigemptyset(&sa.sa_mask);
 	sigaction(SIGSEGV, &sa, NULL);
-#endif
-
-	/*
- * signal(xyz);
- */
-}
-
 }
 
 #endif
 
+}  // namespace
