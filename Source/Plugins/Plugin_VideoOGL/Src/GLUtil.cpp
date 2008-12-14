@@ -34,14 +34,6 @@ struct RECT
 
 #include "GLUtil.h"
 
-#ifndef USE_SDL
-#define USE_SDL 0
-#endif
-#if USE_SDL
-#include <SDL.h>
-#endif
-
-
 // Handles OpenGL and the window
 
 // externals
@@ -514,6 +506,9 @@ bool OpenGL_MakeCurrent()
         MessageBox(NULL,"(5) Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
         return false;
     }
+#elif defined(USE_WX) && USE_WX
+    GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
+    return true;
 #elif defined(HAVE_X11) && HAVE_X11
     Window winDummy;
     unsigned int borderDummy;

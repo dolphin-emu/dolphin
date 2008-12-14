@@ -43,6 +43,7 @@
 #include <GL/glxew.h>
 #elif defined(USE_SDL) && USE_SDL
 #include <GL/glew.h>
+#include <SDL.h>
 #elif defined(HAVE_COCOA) && HAVE_COCOA
 #include <GL/glew.h>
 #include "cocoaGL.h"

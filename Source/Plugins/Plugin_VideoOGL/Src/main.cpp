@@ -21,10 +21,6 @@
 #include "OS/Win32.h"
 #endif
 
-#if defined(USE_SDL) && USE_SDL
-#include <SDL.h>
-#endif
-
 #if defined(HAVE_WX) && HAVE_WX
 #include "GUI/ConfigDlg.h"
 #endif
@@ -195,8 +191,6 @@ void DllConfig(HWND _hParent)
 	XFree(modes);
 	frame.ShowModal();
 #endif
-#else
-	//TODO
 #endif
 }
 
@@ -236,17 +230,18 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 }
 
 void Video_DoState(unsigned char **ptr, int mode) {
-#ifdef _WIN32
+  //#ifdef _WIN32
 //  What is this code doing here?
 //  if (!wglMakeCurrent(hDC,hRC)) {
 //      PanicAlert("Can't Activate The GL Rendering Context for saving");
 //      return;
 //  }
-#elif defined(HAVE_COCOA) && HAVE_COCOA
-    cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
-#elif defined(HAVE_X11) && HAVE_X11
-    glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
-#endif
+//#elif defined(HAVE_COCOA) && HAVE_COCOA
+//    cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
+//#elif defined(HAVE_X11) && HAVE_X11
+//    glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
+//#endif 
+    OpenGL_MakeCurrent();
         
     // Clear all caches that touch RAM
     TextureMngr::Invalidate();
