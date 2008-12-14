@@ -2062,15 +2062,15 @@ typedef unsigned int ppc_word;
 			if (in & 32) {
 				switch (in & 0x1e) {
 				case 4:
-					fdabc(dp,in,"div",6,0);
+					fdabc(dp,in,"div",5,0);
 					break;
 
 				case 8:
-					fdabc(dp,in,"sub",6,0);
+					fdabc(dp,in,"sub",5,0);
 					break;
 
 				case 10:
-					fdabc(dp,in,"add",6,0);
+					fdabc(dp,in,"add",5,0);
 					break;
 
 				case 12:
@@ -2082,7 +2082,7 @@ typedef unsigned int ppc_word;
 					break;
 
 				case 18:
-					fdabc(dp,in,"mul",5,0);
+					fdabc(dp,in,"mul",6,0);
 					break;
 
 				case 20:
