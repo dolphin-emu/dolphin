@@ -105,7 +105,7 @@ bool BootCore(const std::string& _rFilename)
 		#endif
 	#endif
 
-	if ( !StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT) )
+	if (!StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT))
 	{
 		return false;
 	}	

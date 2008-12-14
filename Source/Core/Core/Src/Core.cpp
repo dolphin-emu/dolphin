@@ -304,12 +304,14 @@ THREAD_RETURN EmuThread(void *pArg)
 	PADInitialize.pLog = Callback_PADLog;
 	PluginPAD::PAD_Initialize(PADInitialize);
 
-	// Load and Init WiimotePlugin	
-	SWiimoteInitialize WiimoteInitialize;
-	WiimoteInitialize.hWnd = g_pWindowHandle;
-	WiimoteInitialize.pLog = Callback_WiimoteLog;
-	WiimoteInitialize.pWiimoteInput = Callback_WiimoteInput;
-	PluginWiimote::Wiimote_Initialize(WiimoteInitialize);
+	// Load and Init WiimotePlugin - only if we are booting in wii mode	
+	if (_CoreParameter.bWii) {
+		SWiimoteInitialize WiimoteInitialize;
+		WiimoteInitialize.hWnd = g_pWindowHandle;
+		WiimoteInitialize.pLog = Callback_WiimoteLog;
+		WiimoteInitialize.pWiimoteInput = Callback_WiimoteInput;
+		PluginWiimote::Wiimote_Initialize(WiimoteInitialize);
+	}
 
 	// The hardware is initialized.
 	g_bHwInit = true;
@@ -385,8 +387,11 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	PluginPAD::PAD_Shutdown();
 	PluginPAD::UnloadPlugin();
-	PluginWiimote::Wiimote_Shutdown();
-	PluginWiimote::UnloadPlugin();
+	if (_CoreParameter.bWii)
+	{
+		PluginWiimote::Wiimote_Shutdown();
+		PluginWiimote::UnloadPlugin();
+	}
 	PluginDSP::DSP_Shutdown();
 	PluginDSP::UnloadPlugin();
 	PluginVideo::Video_Shutdown();

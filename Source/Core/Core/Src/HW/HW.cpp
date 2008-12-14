@@ -64,9 +64,11 @@ namespace HW
 		ExpansionInterface::Init();
 		CCPU::Init();
 		SystemTimers::Init();
-
-        WII_IPC_HLE_Interface::Init();
-        WII_IPCInterface::Init();
+		if (Core::GetStartupParameter().bWii)
+		{
+			WII_IPC_HLE_Interface::Init();
+			WII_IPCInterface::Init();
+		}
 	}
 
 	void Shutdown()
@@ -80,8 +82,11 @@ namespace HW
 		SerialInterface::Shutdown();
 		AudioInterface::Shutdown();
 
-        WII_IPC_HLE_Interface::Shutdown();
-        WII_IPCInterface::Shutdown();
+		if (Core::GetStartupParameter().bWii)
+		{
+			WII_IPC_HLE_Interface::Shutdown();
+			WII_IPCInterface::Shutdown();
+		}
 		
 		State_Shutdown();
 		Thunk_Shutdown();
