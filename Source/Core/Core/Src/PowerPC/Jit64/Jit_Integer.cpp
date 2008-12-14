@@ -136,6 +136,9 @@ namespace Jit64
 	// unsigned
 	void cmpli(UGeckoInstruction inst)
 	{	
+		// Should check if the next intruction is a branch - if it is, merge the two. This can save
+		// a whole bunch of instructions and cycles, especially if we aggressively bubble down compares
+		// towards branches.
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger

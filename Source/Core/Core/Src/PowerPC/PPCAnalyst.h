@@ -49,7 +49,6 @@ struct CodeOp //16B
 	bool outputCR0;
 	bool outputCR1;
 	bool outputPS1;
-	const u8 *x86ptr;
 };
 
 struct BlockStats
@@ -82,7 +81,7 @@ void Shutdown();
 
 void ShuffleUp(CodeOp *code, int first, int last);
 
-CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, BlockRegStats &fpa);
+CodeOp *Flatten(u32 address, int &realsize, BlockStats &st, BlockRegStats &gpa, BlockRegStats &fpa);
 
 void LogFunctionCall(u32 addr);
 

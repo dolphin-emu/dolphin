@@ -293,7 +293,60 @@ void ShuffleUp(CodeOp *code, int first, int last)
 	code[last] = temp;
 }
 
-CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, BlockRegStats &fpa)
+// IMPORTANT - CURRENTLY ASSUMES THAT A IS A COMPARE
+bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
+{
+	// Disabled for now
+	return false;
+
+	const GekkoOPInfo *a_info = GetOpInfo(a.inst);
+	const GekkoOPInfo *b_info = GetOpInfo(b.inst);
+	int a_flags = a_info->flags;
+	int b_flags = b_info->flags;
+	if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL))
+		return false;
+	if ((b_flags & (FL_RC_BIT | FL_RC_BIT_F)) && (b.inst.hex & 1))
+		return false;
+
+	// 10 cmpi, 11 cmpli - we got a compare!
+	switch (b.inst.OPCD)
+	{
+	case 16:
+	case 18:
+		//branches. Do not swap.
+	case 17: //sc
+	case 46: //lmw
+	case 19: //table19 - lots of tricky stuff
+		return false;
+	}
+
+	// For now, only integer ops acceptable.
+	switch (b_info->type) {
+	case OPTYPE_INTEGER:
+		break;
+	default:
+		return false;
+	}
+
+	// Check that we have no register collisions.
+	bool no_swap = false;
+	for (int j = 0; j < 3; j++)
+	{
+		int regIn = a.regsIn[j];
+		if (regIn < 0)
+			continue;	
+		if (b.regsOut[0] == regIn ||
+			b.regsOut[1] == regIn)
+		{
+			// reg collision! don't swap
+			return false;
+		}
+	}
+
+	return true;
+}
+
+CodeOp *Flatten(u32 address, int &realsize, BlockStats &st, BlockRegStats &gpa, BlockRegStats &fpa)
 {
 	int numCycles = 0;
 	u32 blockstart = address;
@@ -357,7 +410,6 @@ CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, 
 			code[i].inst = inst;
 			code[i].branchTo = -1;
 			code[i].branchToIndex = -1;
-			code[i].x86ptr = 0;
 			GekkoOPInfo *opinfo = GetOpInfo(inst);
 			if (opinfo)
 				numCycles += opinfo->numCyclesMinusOne + 1;
@@ -427,6 +479,10 @@ CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, 
 		if (PPCTables::UsesFPU(inst))
 			fpa.any = true;
 
+		code[i].wantsCR0 = false;
+		code[i].wantsCR1 = false;
+		code[i].wantsPS1 = false;
+
 		const GekkoOPInfo *opinfo = GetOpInfo(code[i].inst);
 		_assert_msg_(GEKKO, opinfo != 0, "Invalid Op - Error scanning %08x op %08x",address+i*4,inst);
 		int flags = opinfo->flags;
@@ -462,36 +518,47 @@ CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, 
 
 		int numOut = 0;
 		int numIn = 0;
+		if (flags & FL_OUT_A)
+		{
+			code[i].regsOut[numOut++] = inst.RA;
+			gpa.numWrites[inst.RA]++;
+		}
+		if (flags & FL_OUT_D)
+		{
+			code[i].regsOut[numOut++] = inst.RD;
+			gpa.numWrites[inst.RD]++;
+		}
+		if (flags & FL_OUT_S)
+		{
+			code[i].regsOut[numOut++] = inst.RS;
+			gpa.numWrites[inst.RS]++;
+		}
+		if ((flags & FL_IN_A) || ((flags & FL_IN_A0) && inst.RA != 0))
+		{
+			code[i].regsIn[numIn++] = inst.RA;
+			gpa.numReads[inst.RA]++;
+		}
+		if (flags & FL_IN_B)
+		{
+			code[i].regsIn[numIn++] = inst.RB;
+			gpa.numReads[inst.RB]++;
+		}
+		if (flags & FL_IN_C)
+		{
+			code[i].regsIn[numIn++] = inst.RC;
+			gpa.numReads[inst.RC]++;
+		}
+		if (flags & FL_IN_S)
+		{
+			code[i].regsIn[numIn++] = inst.RS;
+			gpa.numReads[inst.RS]++;
+		}
+
 		switch (opinfo->type) 
 		{
 		case OPTYPE_INTEGER:
 		case OPTYPE_LOAD:
 		case OPTYPE_STORE:
-			if (flags & FL_OUT_A)
-			{
-				code[i].regsOut[numOut++] = inst.RA;
-				gpa.numWrites[inst.RA]++;
-			}
-			if (flags & FL_OUT_D)
-			{
-				code[i].regsOut[numOut++] = inst.RD;
-				gpa.numWrites[inst.RD]++;
-			}
-			if ((flags & FL_IN_A) || ((flags & FL_IN_A0) && inst.RA != 0))
-			{
-				code[i].regsIn[numIn++] = inst.RA;
-				gpa.numReads[inst.RA]++;
-			}
-			if (flags & FL_IN_B)
-			{
-				code[i].regsIn[numIn++] = inst.RB;
-				gpa.numReads[inst.RB]++;
-			}
-			if (flags & FL_IN_C)
-			{
-				code[i].regsIn[numIn++] = inst.RC;
-				gpa.numReads[inst.RC]++;
-			}
 			break;
 		case OPTYPE_FPU:
 			break;
@@ -523,7 +590,7 @@ CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, 
 		}
 
 		for (int j = 0; j < numOut; j++)
-		{
+		{ 
 			int r = code[i].regsOut[j];
 			if (r < 0 || r > 31)
 				PanicAlert("wtf");
@@ -533,6 +600,29 @@ CodeOp *Flatten(u32 address, u32 &realsize, BlockStats &st, BlockRegStats &gpa, 
 			gpa.numWrites[r]++;
 		}
 	}
+
+	// Instruction Reordering Pass
+
+	// Bubble down compares towards branches, so that they can be merged (merging not yet implemented).
+	// -2: -1 for the pair, -1 for not swapping with the final instruction which is probably the branch.
+	for (int i = 0; i < (realsize - 2); i++)
+	{
+		CodeOp &a = code[i];
+		CodeOp &b = code[i + 1];
+		// All integer compares can be reordered.
+		if ((a.inst.OPCD == 10 || a.inst.OPCD == 11) ||
+		    (a.inst.OPCD == 31 && (a.inst.SUBOP10 == 0 || a.inst.SUBOP10 == 32)))
+		{
+			// Got a compare instruction.
+			if (CanSwapAdjacentOps(a, b)) {
+				// Alright, let's bubble it down!
+				CodeOp c = a;
+				a = b;
+				b = c;
+			}
+		}
+	}
+
 
 	//Scan for CR0 dependency
 	//assume next block wants CR0 to be safe

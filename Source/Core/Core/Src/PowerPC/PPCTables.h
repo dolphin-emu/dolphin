@@ -26,6 +26,7 @@ enum
 	FL_SET_CR0 = (1<<0), //  
 	FL_SET_CR1 = (1<<1), //
 	FL_SET_CRn = (1<<2), //
+	FL_SET_CRx = FL_SET_CR0 | FL_SET_CR1 | FL_SET_CRn, //
 	FL_SET_CA  = (1<<3), //	carry
 	FL_READ_CA = (1<<4), //	carry
 	FL_RC_BIT =  (1<<5),
@@ -35,15 +36,18 @@ enum
 	FL_IN_A0 = (1<<9),
 	FL_IN_B = (1<<10),
 	FL_IN_C = (1<<11),
+	FL_IN_S = (1<<12),
 	FL_IN_AB = FL_IN_A | FL_IN_B,
+	FL_IN_SB = FL_IN_S | FL_IN_B,
 	FL_IN_A0B = FL_IN_A0 | FL_IN_B,
 	FL_IN_A0BC = FL_IN_A0 | FL_IN_B | FL_IN_C,
-	FL_OUT_D = (1<<11),
+	FL_OUT_D = (1<<13),
 	FL_OUT_S = FL_OUT_D,
-	FL_OUT_A = (1<<12),
-	FL_OUT_AD = (1<<13),
+	FL_OUT_A = (1<<14),
+	FL_OUT_AD = FL_OUT_A | FL_OUT_D,
 	FL_TIMER =    (1<<15),
 	FL_CHECKEXCEPTIONS = (1<<16),
+	FL_EVIL = (1<<17),
 };
 
 enum

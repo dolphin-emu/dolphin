@@ -309,7 +309,7 @@ namespace Jit64
 		if (emaddress == 0)
 			PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
 
-		u32 size;
+		int size;
 		js.isLastInstruction = false;
 		js.blockStart = emaddress;
 		js.fifoBytesThisBlock = 0;
