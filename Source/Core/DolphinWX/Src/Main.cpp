@@ -44,6 +44,10 @@
 
 IMPLEMENT_APP(DolphinApp)
 
+#if defined(HAVE_WX) && HAVE_WX
+bool wxPanicAlert(const char* text, bool /*yes_no*/);
+#endif
+
 CFrame* main_frame = NULL;
 CCodeWindow* g_pCodeWindow = NULL;
 
@@ -87,8 +91,8 @@ bool DolphinApp::OnInit()
 	_CrtSetDbgFlag(tmpflag);
 #endif
 
-#ifndef _WIN32
-//	RegisterPanicAlertHandler(&wxPanicAlert);
+#if defined(HAVE_WX) && HAVE_WX
+	RegisterPanicAlertHandler(&wxPanicAlert);
 #endif
 
 #ifdef _WIN32
