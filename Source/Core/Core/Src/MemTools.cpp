@@ -184,8 +184,11 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 
 	// Get all the information we can out of the context.
 	mcontext_t *ctx = &context->uc_mcontext;
+#ifdef _M_X64
 	u8 *fault_instruction_ptr = (u8 *)ctx->gregs[REG_RIP];
-
+#else
+	u8 *fault_instruction_ptr = (u8 *)ctx->gregs[REG_EIP];
+#endif
 	if (!Jit64::IsInJitCode((const u8 *)fault_instruction_ptr)) {
 		// Let's not prevent debugging.
 		return;
@@ -218,7 +221,7 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 		ctx->gregs[REG_RAX] = fake_ctx.Rax;
 		ctx->gregs[REG_RIP]	= (u64)new_rip;
 #else
-		ctx->gregs[REG_EAX] = fake_ctx.Rax;
+		ctx->gregs[REG_EAX] = fake_ctx.Eax;
 		ctx->gregs[REG_EIP]	= (u32)new_rip;
 #endif
 	}
