@@ -148,11 +148,7 @@ void CPeripheralInterface::Write32(const u32 _uValue, const u32 _iAddress)
 					PanicAlert("The game wants to go to memory card manager. BIOS is being HLE:d - so we can't do that.\n");
 					break;
 				default:
-					{
-					TCHAR szTemp[256];
-					sprintf(szTemp, "The game wants to reset the machine. PI_RESET_CODE: (%08x)", _uValue);
-					PanicAlert(szTemp);
-					}
+					_dbg_assert_msg_(PERIPHERALINTERFACE,0,"The game wants to reset the machine. PI_RESET_CODE: (%08x)", _uValue);
 					break;
 				}
             }
