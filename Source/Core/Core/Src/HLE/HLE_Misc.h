@@ -21,18 +21,18 @@
 namespace HLE_Misc
 {
     void Pass();
-    void PanicAlert();
+    void HLEPanicAlert();
     void UnimplementedFunction();
     void UnimplementedFunctionTrue();
     void UnimplementedFunctionFalse();
-	void GXPeekZ();
-	void GXPeekARGB();
-	void SMB_EvilVecCosine();
-	void SMB_EvilNormalize();
-	void SMB_sqrt_internal();
-	void SMB_rsqrt_internal();
-	void SMB_atan2();
-	void SMB_evil_vec_setlength();
+    void GXPeekZ();
+    void GXPeekARGB();
+    void SMB_EvilVecCosine();
+    void SMB_EvilNormalize();
+    void SMB_sqrt_internal();
+    void SMB_rsqrt_internal();
+    void SMB_atan2();
+    void SMB_evil_vec_setlength();
 }
 
 #endif

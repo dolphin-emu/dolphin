@@ -475,7 +475,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\Common.cpp"
+			RelativePath=".\Src\MsgHandler.cpp"
 			>
 		</File>
 		<File

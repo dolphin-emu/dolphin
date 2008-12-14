@@ -364,7 +364,6 @@ void gdsp_stop()
 #include "Mixer.h"
 
 uint16 r30 = 0, r31 = 0;
-void PanicAlert(const char* text, ...);
 extern WaveFileWriter g_wave_writer;
 
 extern uint16 dsp_swap16(uint16 x);

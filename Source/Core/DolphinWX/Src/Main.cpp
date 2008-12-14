@@ -45,7 +45,7 @@
 IMPLEMENT_APP(DolphinApp)
 
 #if defined(HAVE_WX) && HAVE_WX
-bool wxPanicAlert(const char* text, bool /*yes_no*/);
+bool wxMsgAlert(const char*, const char*, bool);
 #endif
 
 CFrame* main_frame = NULL;
@@ -92,7 +92,7 @@ bool DolphinApp::OnInit()
 #endif
 
 #if defined(HAVE_WX) && HAVE_WX
-	RegisterPanicAlertHandler(&wxPanicAlert);
+	RegisterMsgAlertHandler(&wxMsgAlert);
 #endif
 
 #ifdef _WIN32
@@ -264,10 +264,11 @@ void DolphinApp::OnEndSession()
 }
 
 
-bool wxPanicAlert(const char* text, bool /*yes_no*/)
-{
-	wxMessageBox(wxString::FromAscii(text), _T("PANIC ALERT"));
-	return(true);
+bool wxMsgAlert(const char* caption, const char* text, 
+                       bool yes_no) {
+    return wxYES == wxMessageBox(wxString::FromAscii(text), 
+                                 wxString::FromAscii(caption),
+                                 (yes_no)?wxYES_NO:wxOK);
 }
 
 

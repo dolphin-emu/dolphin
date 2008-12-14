@@ -4,7 +4,7 @@ Import('env')
 
 files = [
 	"ABI.cpp",
-	"Common.cpp",
+	"MsgHandler.cpp",
 	"ChunkFile.cpp",
 	"CPUDetect.cpp",
 	"DynamicLibrary.cpp",

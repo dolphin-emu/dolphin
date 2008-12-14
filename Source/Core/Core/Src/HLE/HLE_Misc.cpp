@@ -66,7 +66,7 @@ void GXPeekARGB()
     NPC = LR;
 }
 
-void PanicAlert()
+void HLEPanicAlert()
 {
 	::PanicAlert("HLE: PanicAlert %08x", LR);
 	NPC = LR;

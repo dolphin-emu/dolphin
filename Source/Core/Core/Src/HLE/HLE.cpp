@@ -69,7 +69,7 @@ static const SPatch OSPatches[] =
 	{ ".evil_vec_cosine",           HLE_Misc::SMB_EvilVecCosine },
 	{ ".evil_normalize",            HLE_Misc::SMB_EvilNormalize },
 	{ ".evil_vec_setlength",        HLE_Misc::SMB_evil_vec_setlength },
-	{ "PanicAlert",			        HLE_Misc::PanicAlert },
+	{ "PanicAlert",			        HLE_Misc::HLEPanicAlert },
 	{ ".sqrt_internal_needs_cr1",   HLE_Misc::SMB_sqrt_internal },
 	{ ".rsqrt_internal_needs_cr1",  HLE_Misc::SMB_rsqrt_internal },
 	{ ".atan2",						HLE_Misc::SMB_atan2},
