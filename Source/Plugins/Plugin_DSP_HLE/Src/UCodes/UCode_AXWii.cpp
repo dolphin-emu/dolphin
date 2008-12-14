@@ -22,7 +22,10 @@
 
 #ifdef _WIN32
 #include "../PCHW/DSoundStream.h"
+#else
+#include "../PCHW/AOSoundStream.h"
 #endif
+
 #include "../PCHW/Mixer.h"
 #include "../MailHandler.h"
 

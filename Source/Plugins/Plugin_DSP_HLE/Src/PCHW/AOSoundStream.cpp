@@ -1,5 +1,24 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
 #include <ao/ao.h>
 #include <pthread.h>
+#include <string.h>
+
 #include "AOSoundStream.h"
 
 namespace AOSound
@@ -7,101 +26,24 @@ namespace AOSound
 	pthread_t thread;
 	StreamCallback callback;
 
-	char *buffer;
 	int buf_size;
 	
 	ao_device *device;
 	ao_sample_format format;
 	int default_driver;
 	
-	int bufferSize;     
-	int totalRenderedBytes;
 	int sampleRate;
 	volatile int threadData;
-	int currentPos;
-	int lastPos;
+
 	short realtimeBuffer[1024 * 1024];
+
 	int AOSound_GetSampleRate()
 	{
 		return sampleRate;
 	}
-	bool WriteDataToBuffer(int dwOffset, char* soundData, uint_32 numSoundBytes)
+
+	void *soundThread(void *)
 	{
-		//void* ptr1, * ptr2;
-		//DWORD numBytes1, numBytes2;
-		// Obtain memory address of write block. This will be in two parts if the block wraps around.
-		//HRESULT hr = dsBuffer->Lock(dwOffset, dwSoundBytes, &ptr1, &numBytes1, &ptr2, &numBytes2, 0);
-
-		// If the buffer was lost, restore and retry lock.
-		/*if (DSERR_BUFFERLOST == hr)
-		{
-			dsBuffer->Restore();
-			hr = dsBuffer->Lock(dwOffset, dwSoundBytes, &ptr1, &numBytes1, &ptr2, &numBytes2, 0);
-		}
-
-		if (SUCCEEDED(hr))
-		{
-			memcpy(ptr1, soundData, numBytes1);
-
-			if (ptr2 != 0)
-			{
-				memcpy(ptr2, soundData + numBytes1, numBytes2);
-			}
-
-			// Release the data back to DirectSound.
-			dsBuffer->Unlock(ptr1, numBytes1, ptr2, numBytes2);
-			return(true);
-		}
-
-		return(false);*/
-		//if(soundData[0] != 0)
-		if(device)
-			ao_play(device, soundData, numSoundBytes);
-		return true;
-		
-	}
-
-	void* soundThread(void*)
-	{
-		currentPos = 0;
-		lastPos = 0;
-
-		// Prefill buffer?
-		//writeDataToBuffer(0,realtimeBuffer,bufferSize);
-		//  dsBuffer->Lock(0, bufferSize, (void **)&p1, &num1, (void **)&p2, &num2, 0);
-		//dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
-
-		while (!threadData)
-		{                    
-			// No blocking inside the csection
-			//dsBuffer->GetCurrentPosition((DWORD*)&currentPos, 0);
-			uint_32 numBytesToRender = 256;
-
-			if (numBytesToRender >= 256)
-			{
-				(*callback)(realtimeBuffer, numBytesToRender >> 2, 16, 44100, 2);
-
-				WriteDataToBuffer(0, (char*)realtimeBuffer, numBytesToRender);
-				//currentPos = ModBufferSize(lastPos + numBytesToRender);
-				//totalRenderedBytes += numBytesToRender;
-
-				//lastPos = currentPos;
-			}
-
-			//WaitForSingleObject(soundSyncEvent, MAXWAIT);
-		}
-
-		//dsBuffer->Stop();
-		return(0); //hurra!
-	}
-	bool AOSound_StartSound(int _sampleRate, StreamCallback _callback)
-	{
-		callback   = _callback;
-		threadData = 0;
-		sampleRate = _sampleRate;
-
-		//no security attributes, automatic resetting, init state nonset, untitled
-		//soundSyncEvent = CreateEvent(0, false, false, 0);
 		ao_initialize();
 		default_driver = ao_default_driver_id();
 		format.bits = 16;
@@ -109,22 +51,42 @@ namespace AOSound
 		format.rate = sampleRate;
 		format.byte_format = AO_FMT_LITTLE;
 		
-		//vi vill ha access till DSOUND så...
 		device = ao_open_live(default_driver, &format, NULL /* no options */);
-		if (device == NULL) {
+		if (device == NULL)
+		{
 			fprintf(stderr, "Error opening device.\n");
 			return false;
 		}   
 		buf_size = format.bits/8 * format.channels * format.rate;
-		buffer = (char*)calloc(buf_size, sizeof(char));
-		pthread_create(&thread, NULL, soundThread, (void *)NULL);
-		return(true);
+
+		while (!threadData)
+		{                    
+			uint_32 numBytesToRender = 256;
+			(*callback)(realtimeBuffer, numBytesToRender >> 2, 16, sampleRate, 2);
+			ao_play(device, (char*)realtimeBuffer, numBytesToRender);
+		}
+
+		ao_close(device);
+		device = 0;
+		ao_shutdown();
+
+		return 0;
 	}
+
+	bool AOSound_StartSound(int _sampleRate, StreamCallback _callback)
+	{
+		callback   = _callback;
+		threadData = 0;
+		sampleRate = _sampleRate;
+		memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
+		pthread_create(&thread, NULL, soundThread, (void *)NULL);
+		return true;
+	}
+
 	void AOSound_StopSound()
 	{
-                threadData = 1;
-		ao_close(device);
-		ao_shutdown();
-		free(buffer);
+		threadData = 1;
+		void *retval;
+		pthread_join(thread, &retval);
 	}
 }

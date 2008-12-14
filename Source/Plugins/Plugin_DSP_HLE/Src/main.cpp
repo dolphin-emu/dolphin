@@ -69,7 +69,6 @@ DSPState g_dspState;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // wxWidgets - Some kind of stuff wx needs
-// ¯¯¯¯¯¯¯¯¯
 class wxDLLApp : public wxApp
 {
 	bool OnInit()

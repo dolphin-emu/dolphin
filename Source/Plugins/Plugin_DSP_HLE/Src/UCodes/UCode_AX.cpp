@@ -19,10 +19,13 @@
 #include "StringUtil.h" // for StringFromFormat
 #include "../Debugger/Debugger.h"
 #include "../Logging/Console.h" // for aprintf
+
 #include <sstream>
 
 #ifdef _WIN32
 #include "../PCHW/DSoundStream.h"
+#else
+#include "../PCHW/AOSoundStream.h"
 #endif
 #include "../PCHW/Mixer.h"
 #include "../MailHandler.h"
