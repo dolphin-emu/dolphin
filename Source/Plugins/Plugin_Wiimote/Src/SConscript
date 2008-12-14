@@ -8,16 +8,19 @@ name = "Plugin_Wiimote"
 
 files = [
         "Config.cpp",
-        "ConfigDlg.cpp",
-        "Console.cpp",
         "DataReports.cpp",
         "EmuDefinitions.cpp",
         "EmuMain.cpp",
         "EmuSubroutines.cpp",
         "Encryption.cpp",
-        "FillReport.cpp",
         "main.cpp",
 	]
+if wmenv['HAVE_WX']:
+    files += [
+        "ConfigDlg.cpp",
+        "Console.cpp",
+        "FillReport.cpp",
+        ]
 
 libs = [ 'common' ]
 

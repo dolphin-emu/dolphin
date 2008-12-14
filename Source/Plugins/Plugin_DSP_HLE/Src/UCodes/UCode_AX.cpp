@@ -17,9 +17,11 @@
 
 #include "FileUtil.h" // for IsDirectory
 #include "StringUtil.h" // for StringFromFormat
+#if defined(HAVE_WX) && HAVE_WX
 #include "../Debugger/Debugger.h"
 #include "../Logging/Console.h" // for aprintf
-
+extern CDebugger* m_frame;
+#endif
 #include <sstream>
 
 #ifdef _WIN32
@@ -46,7 +48,7 @@ extern bool gSequenced;
 extern bool gVolume;
 extern bool gReset;
 extern std::string gpName;
-extern CDebugger* m_frame;
+
 std::vector<std::string> sMailLog, sMailTime;
 // -----------
 
@@ -100,10 +102,12 @@ void CUCode_AX::SaveLogFile(std::string f, int resizeTo, bool type, bool Wii)
 // ----------------
 void CUCode_AX::SaveLog_(bool Wii, const char* _fmt, va_list ap)
 {
+    char Msg[512];
+    vsprintf(Msg, _fmt, ap);
+
+#if defined(HAVE_WX) && HAVE_WX
 if(m_frame->ScanMails)
 {	
-	char Msg[512];
-	vsprintf(Msg, _fmt, ap);
 
 	//wxMessageBox( wxString::Format("SaveLog_ again: %s\n", Msg) );
 	
@@ -146,11 +150,14 @@ if(m_frame->ScanMails)
 	}
 	else
 	{
+#endif
 		TmpMailLog += Msg;
 		TmpMailLog += "\n";
 		LOG_(1, Msg); // also write it to the log
+#if defined(HAVE_WX) && HAVE_WX
 	}
 }
+#endif
 }
 // ----------------
 
@@ -160,6 +167,7 @@ if(m_frame->ScanMails)
 // ----------------
 void CUCode_AX::SaveMail(bool Wii, u32 _uMail)
 {
+#if defined(HAVE_WX) && HAVE_WX
 if(m_frame->ScanMails)
 {
 	int i = 0;
@@ -248,6 +256,7 @@ if(m_frame->ScanMails)
 	sTemp = "";
 	sTempEnd = "";
 }
+#endif
 }
 // ----------------
 
@@ -319,12 +328,14 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 	memset(templbuffer, 0, _iSize * sizeof(int));
 	memset(temprbuffer, 0, _iSize * sizeof(int));
 
+#if defined(HAVE_WX) && HAVE_WX
 	// write logging data to debugger
 	if (m_frame)
 	{
 		CUCode_AX::Logging(_pBuffer, _iSize, 0, false);
 	}
 	
+#endif
 	// ---------------------------------------------------------------------------------------
 	/* Make the updates we are told to do. When there are multiple updates for a block they
 	   are placed in memory directly following updaddr. They are mostly for initial time
@@ -389,11 +400,13 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		*_pBuffer++ = right;
 	}
 
+#if defined(HAVE_WX) && HAVE_WX
 	// write logging data to debugger again after the update
 	if (m_frame)
 	{
 		CUCode_AX::Logging(_pBuffer, _iSize, 1, false);
 	}
+#endif
 }
 
 
@@ -433,7 +446,11 @@ void CUCode_AX::Update()
 // Shortcut to avoid having to write SaveLog(false, ...) every time
 void CUCode_AX::SaveLog(const char* _fmt, ...)
 {
-	va_list ap; va_start(ap, _fmt); if(m_frame) SaveLog_(false, _fmt, ap); va_end(ap);
+#if defined(HAVE_WX) && HAVE_WX
+	va_list ap; va_start(ap, _fmt); 
+	if(m_frame) SaveLog_(false, _fmt, ap); 
+	va_end(ap);
+#endif
 }
 
 
@@ -465,8 +482,9 @@ bool CUCode_AX::AXTask(u32& _uMail)
 
 	bool bExecuteList = true;
 
+#if defined(HAVE_WX) && HAVE_WX
 	if(m_frame) SaveMail(false, _uMail); // Save mail for debugging
-
+#endif
 	while (bExecuteList)
 	{
 		static int last_valid_command = 0;

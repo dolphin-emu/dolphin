@@ -23,6 +23,7 @@
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "GUI/ConfigDlg.h"
+#include "Debugger/Debugger.h" // for the CDebugger class
 #endif
 
 #include "Config.h"
@@ -44,9 +45,7 @@
 #include "TextureConverter.h"
 
 #include "VideoState.h"
-#if defined(HAVE_WX) && HAVE_WX 
-#include "Debugger/Debugger.h" // for the CDebugger class
-#endif
+
 SVideoInitialize g_VideoInitialize;
 
 
@@ -155,8 +154,9 @@ void DllConfig(HWND _hParent)
         g_Config.Load();
         frame.ShowModal()
 ;
-#elif defined(HAVE_X11) && HAVE_X11
-#if defined(HAVE_XXF86VM) && HAVE_XXF86VM
+#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XXF86VM) &&\ 
+        HAVE_XXF86VM && defined(HAVE_WX) && HAVE_WX
+ 
 	ConfigDialog frame(NULL);
 	g_Config.Load();
     int glxMajorVersion, glxMinorVersion;
@@ -190,7 +190,6 @@ void DllConfig(HWND _hParent)
         }    
 	XFree(modes);
 	frame.ShowModal();
-#endif
 #endif
 }
 

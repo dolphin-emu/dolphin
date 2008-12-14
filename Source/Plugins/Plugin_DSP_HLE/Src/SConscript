@@ -17,11 +17,6 @@ files = [
 	'Globals.cpp',
 	'PCHW/AOSoundStream.cpp',
 	'PCHW/Mixer.cpp',
-        'Debugger/Debugger.cpp',
-        'Debugger/PBView.cpp',
-        'Debugger/Mails.cpp',
-        'Debugger/Blocks.cpp',
-        'Logging/Logging.cpp',
         'Logging/Console.cpp',
 	'UCodes/UCode_AX.cpp',
         'UCodes/UCode_AXWii.cpp',
@@ -34,6 +29,17 @@ files = [
 	]
 
 dspenv = env.Clone()
+
+if dspenv['HAVE_WX']:
+    files += [
+        'Debugger/Debugger.cpp',
+        'Debugger/PBView.cpp',
+        'Debugger/Mails.cpp',
+        'Debugger/Blocks.cpp',
+        'Logging/Logging.cpp',
+
+        ]
+
 dspenv.Append(
 	CXXFLAGS = [ '-fPIC' ],
 	LIBS = [ 'common' ],

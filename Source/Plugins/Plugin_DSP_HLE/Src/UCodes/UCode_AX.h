@@ -19,6 +19,7 @@
 #define _UCODE_AX
 
 #include <iostream>
+#include "pluginspecs_dsp.h"
 #include "UCode_AXStructs.h"
 
 enum

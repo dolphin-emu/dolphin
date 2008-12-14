@@ -71,12 +71,17 @@ HRESULT SetDeviceForcesXY();
 #endif
 
 #elif defined(__linux__)
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 	int fd;
 	char device_file_name[64];
 	struct ff_effect effect;
 	bool CanRumble = false;
 #endif
 
+#if defined(HAVE_WX) && HAVE_WX
 //////////////////////////////////////////////////////////////////////////////////////////
 // wxWidgets
 // ¯¯¯¯¯¯¯¯¯
@@ -90,7 +95,7 @@ class wxDLLApp : public wxApp
 
 IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-
+#endif
 //////////////////////////////////////////////////////////////////////////////////////////
 // DllMain 
 // ¯¯¯¯¯¯¯
@@ -176,9 +181,10 @@ void DllConfig(HWND _hParent)
 	}
 
 	LoadConfig();	// load settings
-
+#if defined(HAVE_WX) && HAVE_WX
 	ConfigBox frame(NULL);
 	frame.ShowModal();
+#endif
 	#endif	
 }
 

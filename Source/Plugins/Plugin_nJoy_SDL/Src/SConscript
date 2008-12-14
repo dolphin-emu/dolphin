@@ -4,6 +4,7 @@ Import('env')
 import sys
 
 name = "Plugin_nJoy_SDL"
+padenv = env.Clone()
 
 if not env['HAVE_SDL']:
     print name + " must have SDL to be build"
@@ -11,11 +12,13 @@ if not env['HAVE_SDL']:
 
 files = [
 	'nJoy.cpp',
-	'GUI/AboutBox.cpp',
-	'GUI/ConfigBox.cpp',
 	]
+if padenv['HAVE_WX']:
+    files += [
+        'GUI/AboutBox.cpp',
+        'GUI/ConfigBox.cpp',
+        ]
 
-padenv = env.Clone()
 padenv.Append(
 	CXXFLAGS = [ '-fPIC' ],
 	LIBS = [ 'common' ],

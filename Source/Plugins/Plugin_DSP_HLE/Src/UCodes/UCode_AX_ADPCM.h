@@ -17,6 +17,7 @@
 
 #ifndef _UCODE_AX_ADPCM_H
 #define _UCODE_AX_ADPCM_H
+#include "../Globals.h"
 
 inline s16 ADPCM_Step(PBADPCMInfo &adpcm, u32& samplePos, u32 newSamplePos, u16 frac)
 {

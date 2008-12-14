@@ -17,8 +17,11 @@
 
 #include "StringUtil.h"
 
+#if defined(HAVE_WX) && HAVE_WX
 #include "../Debugger/Debugger.h"
 #include "../Logging/Console.h" // for aprintf
+extern CDebugger * m_frame;
+#endif 
 
 #ifdef _WIN32
 #include "../PCHW/DSoundStream.h"
@@ -40,7 +43,7 @@
 // Declarations
 // -----------
 extern bool gSequenced;
-extern CDebugger * m_frame;
+
 // -----------
 
 
@@ -112,6 +115,7 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 
 	// -------------------------------------------
 	// write logging data to debugger
+#if defined(HAVE_WX) && HAVE_WX
 	if (m_frame)
 	{
 		lCUCode_AX->Logging(_pBuffer, _iSize, 0, true);
@@ -151,7 +155,7 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 		}
 	}
 	// -----------------
-
+#endif
 
 	// ---------------------------------------------------------------------------------------
 	/* Make the updates we are told to do. See comments to the GC version in UCode_AX.cpp */
@@ -214,11 +218,13 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 		*_pBuffer++ = right;
 	}
 
+#if defined(HAVE_WX) && HAVE_WX
 	// write logging data to debugger again after the update
 	if (m_frame)
 	{
 		lCUCode_AX->Logging(_pBuffer, _iSize, 1, true);
 	}
+#endif
 }
 
 
@@ -235,7 +241,13 @@ void CUCode_AXWii::Update()
 // Shortcut
 void CUCode_AXWii::SaveLog(const char* _fmt, ...)
 {
-	va_list ap; va_start(ap, _fmt); if(m_frame) lCUCode_AX->SaveLog_(true, _fmt, ap); va_end(ap);
+#if defined(HAVE_WX) && HAVE_WX
+	va_list ap; 
+	va_start(ap, _fmt); 
+	if(m_frame) 
+	    lCUCode_AX->SaveLog_(true, _fmt, ap); 
+	va_end(ap);
+#endif
 }
 
 
@@ -261,9 +273,9 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
         //	u32 Addr__9;
 
 	bool bExecuteList = true;
-
+#if defined(HAVE_WX) && HAVE_WX
 	if(m_frame) lCUCode_AX->SaveMail(true, uAddress); // Save mail for debugging
-
+#endif
 	if (false) 
 	{
 		// PanicAlert("%i", sizeof(AXParamBlockWii));  // 252 ??

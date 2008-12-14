@@ -15,7 +15,13 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "Globals.h"
+#if defined(HAVE_WX) && HAVE_WX
+#include "Logging/Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
 #include "Debugger/Debugger.h" // for the CDebugger class
+CDebugger* m_frame;
+#endif
+
 #include "ChunkFile.h"
 #include "WaveFile.h"
 #include "resource.h"
@@ -32,7 +38,6 @@
 #include "DSPHandler.h"
 #include "Config.h"
 
-#include "Logging/Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
 
 DSPInitialize g_dspInitialize;
 u8* g_pMemory;
@@ -67,6 +72,7 @@ DSPState g_dspState;
 // ====================
 
 
+#if defined(HAVE_WX) && HAVE_WX
 //////////////////////////////////////////////////////////////////////////////////////////
 // wxWidgets - Some kind of stuff wx needs
 class wxDLLApp : public wxApp
@@ -80,7 +86,7 @@ class wxDLLApp : public wxApp
 IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 ///////////////////
-
+#endif
 
 #ifdef _WIN32
 HINSTANCE g_hInstance = NULL;
@@ -147,9 +153,10 @@ void CloseConsole()
 // know why it would be better. - There's a lockup problem with ShowModal(), but Show() doesn't work
 // because then DLL_PROCESS_DETACH is called immediately after DLL_PROCESS_ATTACH.
 // -------------------
-CDebugger* m_frame;
 void DllDebugger(HWND _hParent, bool Show)
 {
+#if defined(HAVE_WX) && HAVE_WX
+
 	if(m_frame && Show) // if we have created it, let us show it again
 	{
 		m_frame->DoShow();
@@ -163,6 +170,7 @@ void DllDebugger(HWND _hParent, bool Show)
 	{
 		m_frame->DoHide();
 	}
+#endif
 }
 // ===================
 
@@ -241,6 +249,7 @@ void DSP_Shutdown()
 #endif
 	CDSPHandler::Destroy();
 
+#if defined(HAVE_WX) && HAVE_WX
 	// Reset mails
 	if(m_frame)
 	{
@@ -249,6 +258,7 @@ void DSP_Shutdown()
 		m_frame->sMail.clear();
 		m_frame->sMailEnd.clear();
 	}
+#endif
 }
 
 void DSP_DoState(unsigned char **ptr, int mode) {

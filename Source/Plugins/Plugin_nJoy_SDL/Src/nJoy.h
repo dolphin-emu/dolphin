@@ -32,6 +32,7 @@
 // Set this if you want to use the rumble 'hack' for controller one
 //#define USE_RUMBLE_DINPUT_HACK
 
+#include "Common.h"
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS
 #define DIRECTINPUT_VERSION 0x0800
@@ -61,8 +62,10 @@
 #include <linux/input.h>
 #endif
 
+#if defined(HAVE_WX) && HAVE_WX
 #include "GUI/AboutBox.h"
 #include "GUI/ConfigBox.h"
+#endif
 
 #include "Common.h"
 #include "pluginspecs_pad.h"

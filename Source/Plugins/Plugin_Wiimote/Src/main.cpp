@@ -41,6 +41,7 @@ bool g_UseRealWiiMote = false;
 
 HINSTANCE g_hInstance;
 
+#if defined(HAVE_WX) && HAVE_WX
 class wxDLLApp : public wxApp
 {
 	bool OnInit()
@@ -51,6 +52,7 @@ class wxDLLApp : public wxApp
 IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
 
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+#endif
 
 #ifdef _WIN32
 BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
@@ -113,6 +115,7 @@ extern "C" void DllAbout(HWND _hParent)
 
 extern "C" void DllConfig(HWND _hParent)
 {
+#if defined(HAVE_WX) && HAVE_WX
 	wxWindow win;
 #ifdef _WIN32
 	win.SetHWND(_hParent);
@@ -121,6 +124,7 @@ extern "C" void DllConfig(HWND _hParent)
 	frame.ShowModal();
 #ifdef _WIN32
 	win.SetHWND(0);
+#endif
 #endif
 }
 

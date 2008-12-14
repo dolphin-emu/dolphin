@@ -33,8 +33,6 @@ files = [
 	'VertexShaderManager.cpp',
 	'TextureConverter.cpp',
 	'XFB.cpp',
-	'Logging/Console.cpp',
-	'Logging/Logging.cpp',
 	]
 compileFlags = [
 	'-fPIC',
@@ -52,6 +50,8 @@ if gfxenv['HAVE_WX']:
                 'GUI/ConfigDlg.cpp',
                 'Debugger/Debugger.cpp',
                 'Debugger/PBView.cpp',
+                'Logging/Console.cpp',
+                'Logging/Logging.cpp',
                 ]
 
 if gfxenv['HAVE_COCOA']:

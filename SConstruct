@@ -67,7 +67,7 @@ dirs = [
     'Source/Plugins/Plugin_DSP_NULL/Src',
     'Source/Plugins/Plugin_PadSimple/Src',
     'Source/Plugins/Plugin_nJoy_SDL/Src',
-    'Source/Plugins/Plugin_nJoy_Testing/Src',
+#    'Source/Plugins/Plugin_nJoy_Testing/Src',
     'Source/Plugins/Plugin_Wiimote/Src',
     'Source/Core/DolphinWX/Src',
     'Source/Core/DebuggerWX/Src',
