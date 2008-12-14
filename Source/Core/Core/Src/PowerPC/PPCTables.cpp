@@ -645,20 +645,28 @@ void PPCTables::InitTables()
 	}
 }
 
+// #define OPLOG
+
+#ifdef OPLOG
 namespace {
 	std::vector<u32> rsplocations;
 }
+#endif
 
 void PPCTables::CompileInstruction(UGeckoInstruction _inst)
 {
 	dynaOpTable[_inst.OPCD](_inst);	
 	GekkoOPInfo *info = GetOpInfo(_inst);
 	if (info) {
+#ifdef OPLOG
 		if (!strcmp(info->opname, "mcrfs")) {
 			rsplocations.push_back(Jit64::js.compilerPC);
 		}
+#endif
 		info->compileCount++;
 		info->lastUse = Jit64::js.compilerPC;
+	} else {
+		PanicAlert("Tried to compile illegal (or unknown) instruction %08x, at %08x", _inst.hex, Jit64::js.compilerPC);
 	}
 }
 
@@ -688,7 +696,6 @@ struct inf
 void PPCTables::PrintInstructionRunCounts()
 {
 	std::vector<inf> temp;
-
 	for (int i = 0; i < m_numInstructions; i++)
 	{
 		inf x;
@@ -697,7 +704,6 @@ void PPCTables::PrintInstructionRunCounts()
 		temp.push_back(x);
 	}
 	std::sort(temp.begin(), temp.end());
-	
 	for (int i = 0; i < m_numInstructions; i++)
 	{
         LOG(GEKKO, "%s : %i", temp[i].name,temp[i].count);
@@ -724,10 +730,12 @@ void PPCTables::LogCompiledInstructions()
 		}
 	}
 	fclose(f);
+#ifdef OPLOG
 	f = fopen(StringFromFormat(FULL_LOGS_DIR "mcrfs_at.txt", time).c_str(), "w");
 	for (size_t i = 0; i < rsplocations.size(); i++) {
 		fprintf(f, "mcrfs: %08x\n", rsplocations[i]);
 	}
 	fclose(f);
+#endif
 	time++;
 }

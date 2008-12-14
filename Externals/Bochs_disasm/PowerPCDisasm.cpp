@@ -42,21 +42,21 @@
 namespace PPCDisasm
 {
 
-	/* version/revision */
+/* version/revision */
 #define PPCDISASM_VER 1
 #define PPCDISASM_REV 1
 
 
-	/* typedefs */
-	typedef unsigned int ppc_word;
+/* typedefs */
+typedef unsigned int ppc_word;
 
 #undef BIGENDIAN
 #undef LITTTLEENDIAN
-	/* endianess */
+/* endianess */
 #define LITTLEENDIAN 0
 
 
-	/* general defines */
+/* general defines */
 #define PPCIDXMASK      0xfc000000
 #define PPCIDX2MASK     0x000007fe
 #define PPCDMASK        0x03e00000
@@ -125,9 +125,9 @@ namespace PPCDisasm
 
 	static const char *trap_condition[32] = {
 		NULL,"lgt","llt",NULL,"eq","lge","lle",NULL,
-			"gt",NULL,NULL,NULL,"ge",NULL,NULL,NULL,
-			"lt",NULL,NULL,NULL,"le",NULL,NULL,NULL,
-			"ne",NULL,NULL,NULL,NULL,NULL,NULL,NULL
+		"gt",NULL,NULL,NULL,"ge",NULL,NULL,NULL,
+		"lt",NULL,NULL,NULL,"le",NULL,NULL,NULL,
+		"ne",NULL,NULL,NULL,NULL,NULL,NULL,NULL
 	};
 
 	static const char *cmpname[4] = {
@@ -144,7 +144,7 @@ namespace PPCDisasm
 
 	static const char *b_decr[16] = {
 		"nzf","zf",NULL,NULL,"nzt","zt",NULL,NULL,
-			"nz","z",NULL,NULL,"nz","z",NULL,NULL
+		"nz","z",NULL,NULL,"nz","z",NULL,NULL
 	};
 
 	static const char *regsel[2] = {
@@ -176,7 +176,7 @@ namespace PPCDisasm
 	{
 		static char def[8];
 
-		switch(i)
+		switch (i)
 		{
 		case 1: return "XER";
 		case 8: return "LR";
@@ -315,7 +315,7 @@ namespace PPCDisasm
 		sprintf(dp->operands,"%s, %s, %d",regnames[(int)PPCGETD(in)],regnames[(int)PPCGETA(in)],i);
 		break;
 	case 1:
-		if(hex)
+		if (hex)
 			sprintf(dp->operands,"%s, %s, 0x%.4X",regnames[(int)PPCGETA(in)],regnames[(int)PPCGETD(in)],i);
 		else
 			sprintf(dp->operands,"%s, %s, %d",regnames[(int)PPCGETA(in)],regnames[(int)PPCGETD(in)],i);
@@ -324,7 +324,7 @@ namespace PPCDisasm
 		sprintf(dp->operands,"%s, %d",regnames[(int)PPCGETA(in)],i);
 		break;
 	case 3:
-		if(hex)
+		if (hex)
 			sprintf(dp->operands,"%s, 0x%.4X",regnames[(int)PPCGETD(in)],i);
 		else
 			sprintf(dp->operands,"%s, %d",regnames[(int)PPCGETD(in)],i);
@@ -421,7 +421,7 @@ namespace PPCDisasm
 	{
 		if ((in&0x08000000) && !PPCGETA(in)) {
 			sprintf(dp->opcode,"l%s",ext);  /* li, lis */
-			if(!strcmp(ext, "i"))
+			if (!strcmp(ext, "i"))
 				imm(dp,in,0,3,0);
 			else
 				imm(dp,in,1,3,1);
@@ -486,7 +486,7 @@ namespace PPCDisasm
 		int offs;
 		char *oper = dp->operands;
 
-		if(d & 0x8000) d |= 0xffff0000;
+		if (d & 0x8000) d |= 0xffff0000;
 
 		if (offs = branch(dp,in,"",(in&2)?1:0,d)) {
 			oper += offs;
@@ -505,7 +505,7 @@ namespace PPCDisasm
 	{
 		unsigned int d = (unsigned int)(in & 0x3fffffc);
 
-		if(d & 0x02000000) d |= 0xfc000000;
+		if (d & 0x02000000) d |= 0xfc000000;
 
 		sprintf(dp->opcode,"b%s",b_ext[in&3]);
 		if (in & 2)  /* AA ? */
@@ -559,20 +559,20 @@ namespace PPCDisasm
 	}
 
 
-    static unsigned int Helper_Mask(int mb, int me)
-    {
-        //first make 001111111111111 part
-        unsigned int begin = 0xFFFFFFFF >> mb;
-        //then make 000000000001111 part, which is used to flip the bits of the first one
-        unsigned int end = me < 31 ? (0xFFFFFFFF >> (me + 1)) : 0;
-        //do the bitflip
-        unsigned int mask = begin ^ end;
-        //and invert if backwards
-        if (me < mb) 
-            return ~mask;
-        else
-            return mask;
-    }
+	static unsigned int Helper_Mask(int mb, int me)
+	{
+		//first make 001111111111111 part
+		unsigned int begin = 0xFFFFFFFF >> mb;
+		//then make 000000000001111 part, which is used to flip the bits of the first one
+		unsigned int end = me < 31 ? (0xFFFFFFFF >> (me + 1)) : 0;
+		//do the bitflip
+		unsigned int mask = begin ^ end;
+		//and invert if backwards
+		if (me < mb) 
+			return ~mask;
+		else
+			return mask;
+	}
 
 
 	static void rlw(struct DisasmPara_PPC *dp,ppc_word in,const char *name,int i)
@@ -582,11 +582,8 @@ namespace PPCDisasm
 		int bsh = (int)PPCGETB(in);
 		int mb = (int)PPCGETC(in);
 		int me = (int)PPCGETM(in);
-
-        
-
 		sprintf(dp->opcode,"rlw%s%c",name,in&1?'.':'\0');
-        sprintf(dp->operands,"%s, %s, %s%d, %d, %d (%08x)",regnames[a],regnames[s],regsel[i],bsh,mb,me,Helper_Mask(mb, me));
+		sprintf(dp->operands,"%s, %s, %s%d, %d, %d (%08x)",regnames[a],regnames[s],regsel[i],bsh,mb,me,Helper_Mask(mb, me));
 	}
 
 
@@ -819,13 +816,13 @@ namespace PPCDisasm
 	{
 		static char buf[8];
 
-		if(val == 0)
+		if (val == 0)
 		{
 			return "0";
 		}
 		else
 		{
-			if(val & 0x8000)
+			if (val & 0x8000)
 			{
 				sprintf(buf, "-0x%.4X", ((~val) & 0xffff) + 1);
 			}
@@ -852,7 +849,7 @@ namespace PPCDisasm
 		//    d -= 0x10000;
 		dp->displacement = (ppc_word)d;
 		strcpy(dp->opcode,name);
-		if(reg == 'r')
+		if (reg == 'r')
 		{
 			sprintf(dp->operands,"%s, %s (%s)", regnames[s], ldst_offs(d), regnames[a]);
 		}
@@ -978,6 +975,7 @@ namespace PPCDisasm
 #define SPR ((inst >> 11) & 0x3ff)
 #define TBR ((inst >> 11) & 0x3ff)
 #define CRM ((inst >> 12) & 0xff)
+
 	inline int SEX12(unsigned int x)
 	{
 		return x & 0x800 ? (x|0xFFFFF000) : x;
@@ -988,7 +986,7 @@ namespace PPCDisasm
 		ppc_word pc = *dp->iaddr;
 		char *op = dp->opcode;
 		char *pr = dp->operands;
-		switch((inst>>1)&0x1F) 
+		switch ((inst>>1)&0x1F) 
 		{
 		case 6:
 			strcpy(op, "ps_lux");
@@ -1067,7 +1065,7 @@ namespace PPCDisasm
 			return;
 		}
 
-		switch((inst>>1)&0x3FF) 
+		switch ((inst>>1)&0x3FF) 
 		{
 			//10-bit suckers  (?)
 		case 40: //nmadd
@@ -1135,7 +1133,7 @@ namespace PPCDisasm
 		ppc_word pc = *dp->iaddr;
 		char *op = dp->opcode;
 		char *pr = dp->operands;
-		switch(PPCGETIDX(inst)) 
+		switch (PPCGETIDX(inst)) 
 		{
 		case 56:
 			strcpy(op,"psq_l");
@@ -1162,20 +1160,31 @@ namespace PPCDisasm
 		/* instruction, or NULL if an error occured. */
 	{
 		ppc_word in = *(dp->instr);
+		if (!dp->opcode || !dp->operands)
+			return NULL;  /* no buffers */
 
-		if (dp->opcode==NULL || dp->operands==NULL)
-			return (NULL);  /* no buffers */
-
-#if LITTLEENDIAN
+	#if LITTLEENDIAN
 		in = (in & 0xff)<<24 | (in & 0xff00)<<8 | (in & 0xff0000)>>8 |
 			(in & 0xff000000)>>24;
-#endif
+	#endif
 		dp->type = PPCINSTR_OTHER;
 		dp->flags = 0;
 		*(dp->operands) = 0;
 
 		switch (PPCGETIDX(in)) 
 		{
+		case 0:
+			{
+				int block = in & 0x3FFFFFF;
+				if (block) {
+					sprintf(dp->opcode, "JITblock");
+					sprintf(dp->operands, "%i", block);
+				} else {
+					strcpy(dp->opcode, "");
+					strcpy(dp->operands, "---");
+				}
+			}
+			break;
 		case 1:
 			sprintf(dp->opcode,"HLE");
 			//HLE call
@@ -1371,572 +1380,572 @@ namespace PPCDisasm
 
 		case 31:
 			switch (PPCGETIDX2(in)) {
-		case 0:
-		case 32:
-			if (in & 1)
+			case 0:
+			case 32:
+				if (in & 1)
+					ill(dp,in);
+				else
+					cmp(dp,in);  /* cmp, cmpl */
+				break;
+
+			case 4:
+				if (in & 1)
+					ill(dp,in);
+				else
+					trap(dp,in,0);  /* tw */
+				break;
+
+			case 8:
+			case (PPCOE>>1)+8:
+				dab(dp,swapab(in),"subc",7,0,1,-1,0);
+				break;
+
+			case 9:
+				dab(dp,in,"mulhdu",7,0,0,-1,PPCF_64);
+				break;
+
+			case 10:
+			case (PPCOE>>1)+10:
+				dab(dp,in,"addc",7,0,1,-1,0);
+				break;
+
+			case 11:
+				dab(dp,in,"mulhwu",7,0,0,-1,0);
+				break;
+
+			case 19:
+				if (in & (PPCAMASK|PPCBMASK))
+					ill(dp,in);
+				else
+					dab(dp,in,"mfcr",4,0,0,0,0);
+				break;
+
+			case 20:
+				dab(dp,in,"lwarx",7,0,0,0,0);
+				break;
+
+			case 21:
+				dab(dp,in,"ldx",7,0,0,0,PPCF_64);
+				break;
+
+			case 23:
+				dab(dp,in,"lwzx",7,0,0,0,0);
+				break;
+
+			case 24:
+				dab(dp,in,"slw",7,1,0,-1,0);
+				break;
+
+			case 26:
+				if (in & PPCBMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"cntlzw",6,1,0,-1,0);
+				break;
+
+			case 27:
+				dab(dp,in,"sld",7,1,0,-1,PPCF_64);
+				break;
+
+			case 28:
+				dab(dp,in,"and",7,1,0,-1,0);
+				break;
+
+			case 40:
+			case (PPCOE>>1)+40:
+				dab(dp,swapab(in),"sub",7,0,1,-1,0);
+				break;
+
+			case 53:
+				dab(dp,in,"ldux",7,0,0,0,PPCF_64);
+				break;
+
+			case 54:
+				if (in & PPCDMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"dcbst",3,0,0,0,0);
+				break;
+
+			case 55:
+				dab(dp,in,"lwzux",7,0,0,0,0);
+				break;
+
+			case 58:
+				if (in & PPCBMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"cntlzd",6,1,0,-1,PPCF_64);
+				break;
+
+			case 60:
+				dab(dp,in,"andc",7,1,0,-1,0);
+				break;
+
+			case 68:
+				trap(dp,in,PPCF_64);  /* td */
+				break;
+
+			case 73:
+				dab(dp,in,"mulhd",7,0,0,-1,PPCF_64);
+				break;
+
+			case 75:
+				dab(dp,in,"mulhw",7,0,0,-1,0);
+				break;
+
+			case 83:
+				if (in & (PPCAMASK|PPCBMASK))
+					ill(dp,in);
+				else
+					dab(dp,in,"mfmsr",4,0,0,0,PPCF_SUPER);
+				break;
+
+			case 84:
+				dab(dp,in,"ldarx",7,0,0,0,PPCF_64);
+				break;
+
+			case 86:
+				if (in & PPCDMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"dcbf",3,0,0,0,0);
+				break;
+
+			case 87:
+				dab(dp,in,"lbzx",7,0,0,0,0);
+				break;
+
+			case 104:
+			case (PPCOE>>1)+104:
+				if (in & PPCBMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"neg",6,0,1,-1,0);
+				break;
+
+			case 119:
+				dab(dp,in,"lbzux",7,0,0,0,0);
+				break;
+
+			case 124:
+				if (PPCGETD(in) == PPCGETB(in))
+					dab(dp,in,"not",6,1,0,-1,0);
+				else
+					dab(dp,in,"nor",7,1,0,-1,0);
+				break;
+
+			case 136:
+			case (PPCOE>>1)+136:
+				dab(dp,in,"subfe",7,0,1,-1,0);
+				break;
+
+			case 138:
+			case (PPCOE>>1)+138:
+				dab(dp,in,"adde",7,0,1,-1,0);
+				break;
+
+			case 144:
+				mtcr(dp,in);
+				break;
+
+			case 146:
+				if (in & (PPCAMASK|PPCBMASK))
+					ill(dp,in);
+				else
+					dab(dp,in,"mtmsr",4,0,0,0,PPCF_SUPER);
+				break;
+
+			case 149:
+				dab(dp,in,"stdx",7,0,0,0,PPCF_64);
+				break;
+
+			case 150:
+				dab(dp,in,"stwcx.",7,0,0,1,0);
+				break;
+
+			case 151:
+				dab(dp,in,"stwx",7,0,0,0,0);
+				break;
+
+			case 181:
+				dab(dp,in,"stdux",7,0,0,0,PPCF_64);
+				break;
+
+			case 183:
+				dab(dp,in,"stwux",7,0,0,0,0);
+				break;
+
+			case 200:
+			case (PPCOE>>1)+200:
+				if (in & PPCBMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"subfze",6,0,1,-1,0);
+				break;
+
+			case 202:
+			case (PPCOE>>1)+202:
+				if (in & PPCBMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"addze",6,0,1,-1,0);
+				break;
+
+			case 210:
+				msr(dp,in,1);  /* mfsr */
+				break;
+
+			case 214:
+				dab(dp,in,"stdcx.",7,0,0,1,PPCF_64);
+				break;
+
+			case 215:
+				dab(dp,in,"stbx",7,0,0,0,0);
+				break;
+
+			case 232:
+			case (PPCOE>>1)+232:
+				if (in & PPCBMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"subfme",6,0,1,-1,0);
+				break;
+
+			case 233:
+			case (PPCOE>>1)+233:
+				dab(dp,in,"mulld",7,0,1,-1,PPCF_64);
+				break;
+
+			case 234:
+			case (PPCOE>>1)+234:
+				if (in & PPCBMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"addme",6,0,1,-1,0);
+				break;
+
+			case 235:
+			case (PPCOE>>1)+235:
+				dab(dp,in,"mullw",7,0,1,-1,0);
+				break;
+
+			case 242:
+				if (in & PPCAMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"mtsrin",5,0,0,0,PPCF_SUPER);
+				break;
+
+			case 246:
+				if (in & PPCDMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"dcbtst",3,0,0,0,0);
+				break;
+
+			case 247:
+				dab(dp,in,"stbux",7,0,0,0,0);
+				break;
+
+			case 266:
+			case (PPCOE>>1)+266:
+				dab(dp,in,"add",7,0,1,-1,0);
+				break;
+
+			case 278:
+				if (in & PPCDMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"dcbt",3,0,0,0,0);
+				break;
+
+			case 279:
+				dab(dp,in,"lhzx",7,0,0,0,0);
+				break;
+
+			case 284:
+				dab(dp,in,"eqv",7,1,0,-1,0);
+				break;
+
+			case 306:
+				if (in & (PPCDMASK|PPCAMASK))
+					ill(dp,in);
+				else
+					dab(dp,in,"tlbie",1,0,0,0,PPCF_SUPER);
+				break;
+
+			case 310:
+				dab(dp,in,"eciwx",7,0,0,0,0);
+				break;
+
+			case 311:
+				dab(dp,in,"lhzux",7,0,0,0,0);
+				break;
+
+			case 316:
+				dab(dp,in,"xor",7,1,0,-1,0);
+				break;
+
+			case 339:
+				mspr(dp,in,0);  /* mfspr */
+				break;
+
+			case 341:
+				dab(dp,in,"lwax",7,0,0,0,PPCF_64);
+				break;
+
+			case 343:
+				dab(dp,in,"lhax",7,0,0,0,0);
+				break;
+
+			case 370:
+				nooper(dp,in,"tlbia",PPCF_SUPER);
+				break;
+
+			case 371:
+				mtb(dp,in);  /* mftb */
+				break;
+
+			case 373:
+				dab(dp,in,"lwaux",7,0,0,0,PPCF_64);
+				break;
+
+			case 375:
+				dab(dp,in,"lhaux",7,0,0,0,0);
+				break;
+
+			case 407:
+				dab(dp,in,"sthx",7,0,0,0,0);
+				break;
+
+			case 412:
+				dab(dp,in,"orc",7,1,0,-1,0);
+				break;
+
+			case 413:
+				sradi(dp,in);  /* sradi */
+				break;
+
+			case 434:
+				if (in & (PPCDMASK|PPCAMASK))
+					ill(dp,in);
+				else
+					dab(dp,in,"slbie",1,0,0,0,PPCF_SUPER|PPCF_64);
+				break;
+
+			case 438:
+				dab(dp,in,"ecowx",7,0,0,0,0);
+				break;
+
+			case 439:
+				dab(dp,in,"sthux",7,0,0,0,0);
+				break;
+
+			case 444:
+				if (PPCGETD(in) == PPCGETB(in))
+					dab(dp,in,"mr",6,1,0,-1,0);
+				else
+					dab(dp,in,"or",7,1,0,-1,0);
+				break;
+
+			case 457:
+			case (PPCOE>>1)+457:
+				dab(dp,in,"divdu",7,0,1,-1,PPCF_64);
+				break;
+
+			case 459:
+			case (PPCOE>>1)+459:
+				dab(dp,in,"divwu",7,0,1,-1,0);
+				break;
+
+			case 467:
+				mspr(dp,in,1);  /* mtspr */
+				break;
+
+			case 470:
+				if (in & PPCDMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"dcbi",3,0,0,0,0);
+				break;
+
+			case 476:
+				dab(dp,in,"nand",7,1,0,-1,0);
+				break;
+
+			case 489:
+			case (PPCOE>>1)+489:
+				dab(dp,in,"divd",7,0,1,-1,PPCF_64);
+				break;
+
+			case 491:
+			case (PPCOE>>1)+491:
+				dab(dp,in,"divw",7,0,1,-1,0);
+				break;
+
+			case 498:
+				nooper(dp,in,"slbia",PPCF_SUPER|PPCF_64);
+				break;
+
+			case 512:
+				if (in & 0x007ff801)
+					ill(dp,in);
+				else {
+					strcpy(dp->opcode,"mcrxr");
+					sprintf(dp->operands,"cr%d",(int)PPCGETCRD(in));
+				}
+				break;
+
+			case 533:
+				dab(dp,in,"lswx",7,0,0,0,0);
+				break;
+
+			case 534:
+				dab(dp,in,"lwbrx",7,0,0,0,0);
+				break;
+
+			case 535:
+				fdab(dp,in,"lfsx",7);
+				break;
+
+			case 536:
+				dab(dp,in,"srw",7,1,0,-1,0);
+				break;
+
+			case 539:
+				dab(dp,in,"srd",7,1,0,-1,PPCF_64);
+				break;
+
+			case 566:
+				nooper(dp,in,"tlbsync",PPCF_SUPER);
+				break;
+
+			case 567:
+				fdab(dp,in,"lfsux",7);
+				break;
+
+			case 595:
+				msr(dp,in,0);  /* mfsr */
+				break;
+
+			case 597:
+				rrn(dp,in,"lswi",0,0,0,0);
+				break;
+
+			case 598:
+				nooper(dp,in,"sync",PPCF_SUPER);
+				break;
+
+			case 599:
+				fdab(dp,in,"lfdx",7);
+				break;
+
+			case 631:
+				fdab(dp,in,"lfdux",7);
+				break;
+
+			case 659:
+				if (in & PPCAMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"mfsrin",5,0,0,0,PPCF_SUPER);
+				break;
+
+			case 661:
+				dab(dp,in,"stswx",7,0,0,0,0);
+				break;
+
+			case 662:
+				dab(dp,in,"stwbrx",7,0,0,0,0);
+				break;
+
+			case 663:
+				fdab(dp,in,"stfsx",7);
+				break;
+
+			case 695:
+				fdab(dp,in,"stfsux",7);
+				break;
+
+			case 725:
+				rrn(dp,in,"stswi",0,0,0,0);
+				break;
+
+			case 727:
+				fdab(dp,in,"stfdx",7);
+				break;
+
+			case 759:
+				fdab(dp,in,"stfdux",7);
+				break;
+
+			case 790:
+				dab(dp,in,"lhbrx",7,0,0,0,0);
+				break;
+
+			case 792:
+				dab(dp,in,"sraw",7,1,0,-1,0);
+				break;
+
+			case 794:
+				dab(dp,in,"srad",7,1,0,-1,PPCF_64);
+				break;
+
+			case 824:
+				rrn(dp,in,"srawi",1,0,-1,0);
+				break;
+
+			case 854:
+				nooper(dp,in,"eieio",PPCF_SUPER);
+				break;
+
+			case 918:
+				dab(dp,in,"sthbrx",7,0,0,0,0);
+				break;
+
+			case 922:
+				if (in & PPCBMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"extsh",6,1,0,-1,0);
+				break;
+
+			case 954:
+				if (in & PPCBMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"extsb",6,1,0,-1,0);
+				break;
+
+			case 982:
+				if (in & PPCDMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"icbi",3,0,0,0,0);
+				break;
+
+			case 983:
+				fdab(dp,in,"stfiwx",7);
+				break;
+
+			case 986:
+				if (in & PPCBMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"extsw",6,1,0,-1,PPCF_64);
+				break;
+
+			case 1014:
+				if (in & PPCDMASK)
+					ill(dp,in);
+				else
+					dab(dp,in,"dcbz",3,0,0,0,0);
+				break;
+
+			default:
 				ill(dp,in);
-			else
-				cmp(dp,in);  /* cmp, cmpl */
-			break;
-
-		case 4:
-			if (in & 1)
-				ill(dp,in);
-			else
-				trap(dp,in,0);  /* tw */
-			break;
-
-		case 8:
-		case (PPCOE>>1)+8:
-			dab(dp,swapab(in),"subc",7,0,1,-1,0);
-			break;
-
-		case 9:
-			dab(dp,in,"mulhdu",7,0,0,-1,PPCF_64);
-			break;
-
-		case 10:
-		case (PPCOE>>1)+10:
-			dab(dp,in,"addc",7,0,1,-1,0);
-			break;
-
-		case 11:
-			dab(dp,in,"mulhwu",7,0,0,-1,0);
-			break;
-
-		case 19:
-			if (in & (PPCAMASK|PPCBMASK))
-				ill(dp,in);
-			else
-				dab(dp,in,"mfcr",4,0,0,0,0);
-			break;
-
-		case 20:
-			dab(dp,in,"lwarx",7,0,0,0,0);
-			break;
-
-		case 21:
-			dab(dp,in,"ldx",7,0,0,0,PPCF_64);
-			break;
-
-		case 23:
-			dab(dp,in,"lwzx",7,0,0,0,0);
-			break;
-
-		case 24:
-			dab(dp,in,"slw",7,1,0,-1,0);
-			break;
-
-		case 26:
-			if (in & PPCBMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"cntlzw",6,1,0,-1,0);
-			break;
-
-		case 27:
-			dab(dp,in,"sld",7,1,0,-1,PPCF_64);
-			break;
-
-		case 28:
-			dab(dp,in,"and",7,1,0,-1,0);
-			break;
-
-		case 40:
-		case (PPCOE>>1)+40:
-			dab(dp,swapab(in),"sub",7,0,1,-1,0);
-			break;
-
-		case 53:
-			dab(dp,in,"ldux",7,0,0,0,PPCF_64);
-			break;
-
-		case 54:
-			if (in & PPCDMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"dcbst",3,0,0,0,0);
-			break;
-
-		case 55:
-			dab(dp,in,"lwzux",7,0,0,0,0);
-			break;
-
-		case 58:
-			if (in & PPCBMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"cntlzd",6,1,0,-1,PPCF_64);
-			break;
-
-		case 60:
-			dab(dp,in,"andc",7,1,0,-1,0);
-			break;
-
-		case 68:
-			trap(dp,in,PPCF_64);  /* td */
-			break;
-
-		case 73:
-			dab(dp,in,"mulhd",7,0,0,-1,PPCF_64);
-			break;
-
-		case 75:
-			dab(dp,in,"mulhw",7,0,0,-1,0);
-			break;
-
-		case 83:
-			if (in & (PPCAMASK|PPCBMASK))
-				ill(dp,in);
-			else
-				dab(dp,in,"mfmsr",4,0,0,0,PPCF_SUPER);
-			break;
-
-		case 84:
-			dab(dp,in,"ldarx",7,0,0,0,PPCF_64);
-			break;
-
-		case 86:
-			if (in & PPCDMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"dcbf",3,0,0,0,0);
-			break;
-
-		case 87:
-			dab(dp,in,"lbzx",7,0,0,0,0);
-			break;
-
-		case 104:
-		case (PPCOE>>1)+104:
-			if (in & PPCBMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"neg",6,0,1,-1,0);
-			break;
-
-		case 119:
-			dab(dp,in,"lbzux",7,0,0,0,0);
-			break;
-
-		case 124:
-			if (PPCGETD(in) == PPCGETB(in))
-				dab(dp,in,"not",6,1,0,-1,0);
-			else
-				dab(dp,in,"nor",7,1,0,-1,0);
-			break;
-
-		case 136:
-		case (PPCOE>>1)+136:
-			dab(dp,in,"subfe",7,0,1,-1,0);
-			break;
-
-		case 138:
-		case (PPCOE>>1)+138:
-			dab(dp,in,"adde",7,0,1,-1,0);
-			break;
-
-		case 144:
-			mtcr(dp,in);
-			break;
-
-		case 146:
-			if (in & (PPCAMASK|PPCBMASK))
-				ill(dp,in);
-			else
-				dab(dp,in,"mtmsr",4,0,0,0,PPCF_SUPER);
-			break;
-
-		case 149:
-			dab(dp,in,"stdx",7,0,0,0,PPCF_64);
-			break;
-
-		case 150:
-			dab(dp,in,"stwcx.",7,0,0,1,0);
-			break;
-
-		case 151:
-			dab(dp,in,"stwx",7,0,0,0,0);
-			break;
-
-		case 181:
-			dab(dp,in,"stdux",7,0,0,0,PPCF_64);
-			break;
-
-		case 183:
-			dab(dp,in,"stwux",7,0,0,0,0);
-			break;
-
-		case 200:
-		case (PPCOE>>1)+200:
-			if (in & PPCBMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"subfze",6,0,1,-1,0);
-			break;
-
-		case 202:
-		case (PPCOE>>1)+202:
-			if (in & PPCBMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"addze",6,0,1,-1,0);
-			break;
-
-		case 210:
-			msr(dp,in,1);  /* mfsr */
-			break;
-
-		case 214:
-			dab(dp,in,"stdcx.",7,0,0,1,PPCF_64);
-			break;
-
-		case 215:
-			dab(dp,in,"stbx",7,0,0,0,0);
-			break;
-
-		case 232:
-		case (PPCOE>>1)+232:
-			if (in & PPCBMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"subfme",6,0,1,-1,0);
-			break;
-
-		case 233:
-		case (PPCOE>>1)+233:
-			dab(dp,in,"mulld",7,0,1,-1,PPCF_64);
-			break;
-
-		case 234:
-		case (PPCOE>>1)+234:
-			if (in & PPCBMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"addme",6,0,1,-1,0);
-			break;
-
-		case 235:
-		case (PPCOE>>1)+235:
-			dab(dp,in,"mullw",7,0,1,-1,0);
-			break;
-
-		case 242:
-			if (in & PPCAMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"mtsrin",5,0,0,0,PPCF_SUPER);
-			break;
-
-		case 246:
-			if (in & PPCDMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"dcbtst",3,0,0,0,0);
-			break;
-
-		case 247:
-			dab(dp,in,"stbux",7,0,0,0,0);
-			break;
-
-		case 266:
-		case (PPCOE>>1)+266:
-			dab(dp,in,"add",7,0,1,-1,0);
-			break;
-
-		case 278:
-			if (in & PPCDMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"dcbt",3,0,0,0,0);
-			break;
-
-		case 279:
-			dab(dp,in,"lhzx",7,0,0,0,0);
-			break;
-
-		case 284:
-			dab(dp,in,"eqv",7,1,0,-1,0);
-			break;
-
-		case 306:
-			if (in & (PPCDMASK|PPCAMASK))
-				ill(dp,in);
-			else
-				dab(dp,in,"tlbie",1,0,0,0,PPCF_SUPER);
-			break;
-
-		case 310:
-			dab(dp,in,"eciwx",7,0,0,0,0);
-			break;
-
-		case 311:
-			dab(dp,in,"lhzux",7,0,0,0,0);
-			break;
-
-		case 316:
-			dab(dp,in,"xor",7,1,0,-1,0);
-			break;
-
-		case 339:
-			mspr(dp,in,0);  /* mfspr */
-			break;
-
-		case 341:
-			dab(dp,in,"lwax",7,0,0,0,PPCF_64);
-			break;
-
-		case 343:
-			dab(dp,in,"lhax",7,0,0,0,0);
-			break;
-
-		case 370:
-			nooper(dp,in,"tlbia",PPCF_SUPER);
-			break;
-
-		case 371:
-			mtb(dp,in);  /* mftb */
-			break;
-
-		case 373:
-			dab(dp,in,"lwaux",7,0,0,0,PPCF_64);
-			break;
-
-		case 375:
-			dab(dp,in,"lhaux",7,0,0,0,0);
-			break;
-
-		case 407:
-			dab(dp,in,"sthx",7,0,0,0,0);
-			break;
-
-		case 412:
-			dab(dp,in,"orc",7,1,0,-1,0);
-			break;
-
-		case 413:
-			sradi(dp,in);  /* sradi */
-			break;
-
-		case 434:
-			if (in & (PPCDMASK|PPCAMASK))
-				ill(dp,in);
-			else
-				dab(dp,in,"slbie",1,0,0,0,PPCF_SUPER|PPCF_64);
-			break;
-
-		case 438:
-			dab(dp,in,"ecowx",7,0,0,0,0);
-			break;
-
-		case 439:
-			dab(dp,in,"sthux",7,0,0,0,0);
-			break;
-
-		case 444:
-			if (PPCGETD(in) == PPCGETB(in))
-				dab(dp,in,"mr",6,1,0,-1,0);
-			else
-				dab(dp,in,"or",7,1,0,-1,0);
-			break;
-
-		case 457:
-		case (PPCOE>>1)+457:
-			dab(dp,in,"divdu",7,0,1,-1,PPCF_64);
-			break;
-
-		case 459:
-		case (PPCOE>>1)+459:
-			dab(dp,in,"divwu",7,0,1,-1,0);
-			break;
-
-		case 467:
-			mspr(dp,in,1);  /* mtspr */
-			break;
-
-		case 470:
-			if (in & PPCDMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"dcbi",3,0,0,0,0);
-			break;
-
-		case 476:
-			dab(dp,in,"nand",7,1,0,-1,0);
-			break;
-
-		case 489:
-		case (PPCOE>>1)+489:
-			dab(dp,in,"divd",7,0,1,-1,PPCF_64);
-			break;
-
-		case 491:
-		case (PPCOE>>1)+491:
-			dab(dp,in,"divw",7,0,1,-1,0);
-			break;
-
-		case 498:
-			nooper(dp,in,"slbia",PPCF_SUPER|PPCF_64);
-			break;
-
-		case 512:
-			if (in & 0x007ff801)
-				ill(dp,in);
-			else {
-				strcpy(dp->opcode,"mcrxr");
-				sprintf(dp->operands,"cr%d",(int)PPCGETCRD(in));
-			}
-			break;
-
-		case 533:
-			dab(dp,in,"lswx",7,0,0,0,0);
-			break;
-
-		case 534:
-			dab(dp,in,"lwbrx",7,0,0,0,0);
-			break;
-
-		case 535:
-			fdab(dp,in,"lfsx",7);
-			break;
-
-		case 536:
-			dab(dp,in,"srw",7,1,0,-1,0);
-			break;
-
-		case 539:
-			dab(dp,in,"srd",7,1,0,-1,PPCF_64);
-			break;
-
-		case 566:
-			nooper(dp,in,"tlbsync",PPCF_SUPER);
-			break;
-
-		case 567:
-			fdab(dp,in,"lfsux",7);
-			break;
-
-		case 595:
-			msr(dp,in,0);  /* mfsr */
-			break;
-
-		case 597:
-			rrn(dp,in,"lswi",0,0,0,0);
-			break;
-
-		case 598:
-			nooper(dp,in,"sync",PPCF_SUPER);
-			break;
-
-		case 599:
-			fdab(dp,in,"lfdx",7);
-			break;
-
-		case 631:
-			fdab(dp,in,"lfdux",7);
-			break;
-
-		case 659:
-			if (in & PPCAMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"mfsrin",5,0,0,0,PPCF_SUPER);
-			break;
-
-		case 661:
-			dab(dp,in,"stswx",7,0,0,0,0);
-			break;
-
-		case 662:
-			dab(dp,in,"stwbrx",7,0,0,0,0);
-			break;
-
-		case 663:
-			fdab(dp,in,"stfsx",7);
-			break;
-
-		case 695:
-			fdab(dp,in,"stfsux",7);
-			break;
-
-		case 725:
-			rrn(dp,in,"stswi",0,0,0,0);
-			break;
-
-		case 727:
-			fdab(dp,in,"stfdx",7);
-			break;
-
-		case 759:
-			fdab(dp,in,"stfdux",7);
-			break;
-
-		case 790:
-			dab(dp,in,"lhbrx",7,0,0,0,0);
-			break;
-
-		case 792:
-			dab(dp,in,"sraw",7,1,0,-1,0);
-			break;
-
-		case 794:
-			dab(dp,in,"srad",7,1,0,-1,PPCF_64);
-			break;
-
-		case 824:
-			rrn(dp,in,"srawi",1,0,-1,0);
-			break;
-
-		case 854:
-			nooper(dp,in,"eieio",PPCF_SUPER);
-			break;
-
-		case 918:
-			dab(dp,in,"sthbrx",7,0,0,0,0);
-			break;
-
-		case 922:
-			if (in & PPCBMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"extsh",6,1,0,-1,0);
-			break;
-
-		case 954:
-			if (in & PPCBMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"extsb",6,1,0,-1,0);
-			break;
-
-		case 982:
-			if (in & PPCDMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"icbi",3,0,0,0,0);
-			break;
-
-		case 983:
-			fdab(dp,in,"stfiwx",7);
-			break;
-
-		case 986:
-			if (in & PPCBMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"extsw",6,1,0,-1,PPCF_64);
-			break;
-
-		case 1014:
-			if (in & PPCDMASK)
-				ill(dp,in);
-			else
-				dab(dp,in,"dcbz",3,0,0,0,0);
-			break;
-
-		default:
-			ill(dp,in);
-			break;
+				break;
 			}
 			break;
 
@@ -1990,27 +1999,27 @@ namespace PPCDisasm
 		case 59:
 			switch (in & 0x3e) {
 			case 36:
-				fdabc(dp,in,"divs",6,0);
+				fdabc(dp,in,"divs",5,0);
 				break;
 
 			case 40:
-				fdabc(dp,in,"subs",6,0);
+				fdabc(dp,in,"subs",5,0);
 				break;
 
 			case 42:
-				fdabc(dp,in,"adds",6,0);
+				fdabc(dp,in,"adds",5,0);
 				break;
 
 			case 44:
 				fdabc(dp,in,"sqrts",2,0);
-				break;
+				break; 
 
 			case 48:
 				fdabc(dp,in,"res",2,0);
 				break;
 
 			case 50:
-				fdabc(dp,in,"muls",5,0);
+				fdabc(dp,in,"muls",6,0);
 				break;
 
 			case 56:
@@ -2077,7 +2086,7 @@ namespace PPCDisasm
 					break;
 
 				case 20:
-					fdabc(dp,in,"rsqrte",2,0);
+					fdabc(dp,in,"rsqrte",3,0);
 					break;
 
 				case 24:
@@ -2096,12 +2105,15 @@ namespace PPCDisasm
 					fdabc(dp,in,"nmadd",7,0);
 					break;
 
+				case 52:
+					sprintf(dp->opcode, "XXX dp 52");
+					break;
+
 				default:
 					ill(dp,in);
 					break;
 				}
 			}
-
 			else {
 				switch (PPCGETIDX2(in)) {
 				case 0:
@@ -2204,7 +2216,8 @@ namespace PPCDisasm
 		}
 		return (dp->instr + 1);
 	}
-} 
+
+}  // namespace
 
 // What were MS thinking?
 #ifdef _WIN32

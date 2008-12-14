@@ -51,7 +51,6 @@
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				WarnAsError="false"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
 				ForcedIncludeFiles="stdafx.h"
 			/>
@@ -116,7 +115,6 @@
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				WarnAsError="false"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
@@ -179,7 +177,6 @@
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				WarnAsError="false"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
@@ -245,7 +242,6 @@
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				WarnAsError="false"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
@@ -308,7 +304,6 @@
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				WarnAsError="false"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
@@ -374,7 +369,6 @@
 				UsePrecompiledHeader="2"
 				WarningLevel="3"
 				WarnAsError="false"
-				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				ForcedIncludeFiles="stdafx.h"
 			/>
