@@ -230,7 +230,6 @@ void InstallExceptionHandler()
 	PanicAlert("InstallExceptionHandler called, but this platform does not yet support it.");
 	return;
 #endif
-
 	struct sigaction sa;
 	sa.sa_handler = 0;
 	sa.sa_sigaction = &sigsegv_handler;
