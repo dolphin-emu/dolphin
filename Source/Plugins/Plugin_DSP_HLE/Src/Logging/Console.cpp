@@ -20,6 +20,7 @@
 // Includes
 #include <string>
 #include <stdio.h>
+#include "Common.h"
 #ifdef _WIN32
 #include <windows.h>
 #endif
