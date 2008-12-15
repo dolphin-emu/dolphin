@@ -226,8 +226,9 @@ void mtfsfx(UGeckoInstruction _inst)
 
 void mcrxr(UGeckoInstruction _inst)
 {
-	SetCRField(_inst.CRFD, XER.Hex >> 28); 
-	XER.Hex &= ~0xF0000000; // clear 0-3
+	// USES_XER
+	SetCRField(_inst.CRFD, PowerPC::ppcState.spr[SPR_XER] >> 28); 
+	PowerPC::ppcState.spr[SPR_XER] &= ~0xF0000000; // clear 0-3
 }
 
 void mfcr(UGeckoInstruction _inst)

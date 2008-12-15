@@ -385,6 +385,7 @@ namespace Jit64
 			js.instructionNumber = i;
 			if (i == (int)size - 1) {
 				js.isLastInstruction = true;
+				js.next_inst = 0;
 				if (Profiler::g_ProfileBlocks) {
 					// CAUTION!!! push on stack regs you use, do your stuff, then pop
 					PROFILER_VPUSH;
@@ -394,6 +395,9 @@ namespace Jit64
 					PROFILER_ADD_DIFF_LARGE_INTEGER(&b.ticCounter, &b.ticStop, &b.ticStart);
 					PROFILER_VPOP;
 				}
+			} else {
+				// help peephole optimizations
+				js.next_inst = ops[i + 1].inst;
 			}
 			
 			// const GekkoOpInfo *info = GetOpInfo();

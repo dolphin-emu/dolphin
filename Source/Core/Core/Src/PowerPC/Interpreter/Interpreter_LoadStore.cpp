@@ -28,6 +28,11 @@
 namespace Interpreter
 {
 
+// TODO: These should really be in the save state, although it's unlikely to matter much.
+// They are for lwarx and its friend stwcxd.
+static bool g_bReserve = false;
+static u32  g_reserveAddr;
+
 u32 Helper_Get_EA(const UGeckoInstruction _inst)
 {
 	return _inst.RA ? (m_GPR[_inst.RA] + _inst.SIMM_16) : _inst.SIMM_16;
@@ -581,37 +586,32 @@ void stwbrx(UGeckoInstruction _inst)
 
 
 // The following two instructions are for SMP communications. On a single
-// CPU, they cannot fail unless an interrupt happens in between, which usually 
-// won't happen with the JIT.
-bool g_bReserve = false;
-u32  g_reserveAddr;
+// CPU, they cannot fail unless an interrupt happens in between.
     
 void lwarx(UGeckoInstruction _inst)
 {
-    u32 uAddress = Helper_Get_EA_X(_inst);
-
+	u32 uAddress = Helper_Get_EA_X(_inst);
 	m_GPR[_inst.RD] = Memory::Read_U32(uAddress);
-    g_bReserve = true;
-    g_reserveAddr = uAddress;
+
+	g_bReserve = true;
+	g_reserveAddr = uAddress;
 }
 
 void stwcxd(UGeckoInstruction _inst)
 {
-    // Stores Word Conditional indeXed
-    
-    u32 uAddress;
-
-    if(g_bReserve) {
+	// Stores Word Conditional indeXed
+	u32 uAddress;
+	if (g_bReserve) {
 		uAddress = Helper_Get_EA_X(_inst);
-        if(uAddress == g_reserveAddr) {
+		if (uAddress == g_reserveAddr) {
 			Memory::Write_U32(m_GPR[_inst.RS], uAddress);
-            g_bReserve = false;
-			SetCRField(0, 2 | XER.SO);
-            return;
-        }            
-    }    
+			g_bReserve = false;
+			SetCRField(0, 2 | GetXER_SO());
+			return;
+		}
+	}
 
-    SetCRField(0, XER.SO);
+	SetCRField(0, GetXER_SO());
 }
 
 void stwux(UGeckoInstruction _inst)

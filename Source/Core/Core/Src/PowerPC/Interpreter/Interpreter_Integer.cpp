@@ -117,7 +117,7 @@ void andis_rc(UGeckoInstruction _inst)
 
 void cmpi(UGeckoInstruction _inst)
 {
-	Helper_UpdateCRx(_inst.CRFD, m_GPR[_inst.RA]-_inst.SIMM_16);
+	Helper_UpdateCRx(_inst.CRFD, m_GPR[_inst.RA] - _inst.SIMM_16);
 }
 
 void cmpli(UGeckoInstruction _inst)
@@ -128,7 +128,7 @@ void cmpli(UGeckoInstruction _inst)
 	if (a < b)      f = 0x8;
 	else if (a > b) f = 0x4;
 	else            f = 0x2; //equals
-	if (XER.SO)     f = 0x1;
+	if (GetXER_SO()) f |= 0x1;
 	SetCRField(_inst.CRFD, f);
 }
 
@@ -151,13 +151,12 @@ void subfic(UGeckoInstruction _inst)
 {
 /*	u32 rra = ~m_GPR[_inst.RA];
 	s32 immediate = (s16)_inst.SIMM_16 + 1;
-	
 
 //	#define CALC_XER_CA(X,Y) (((X) + (Y) < X) ? SET_XER_CA : CLEAR_XER_CA)
 	if ((rra + immediate) < rra)
-		XER.CA = 1;
+		SetCarry(1);
 	else 
-		XER.CA = 0;
+		SetCarry(0);
 
 	m_GPR[_inst.RD] = rra - immediate;
 */
@@ -227,11 +226,10 @@ void cmp(UGeckoInstruction _inst)
 	s32 a = (s32)m_GPR[_inst.RA];
 	s32 b = (s32)m_GPR[_inst.RB];
 	int fTemp = 0x8; // a < b 
-
-        //	if (a < b)  fTemp = 0x8; else 
-        if (a > b)  fTemp = 0x4;
+		//	if (a < b)  fTemp = 0x8; else 
+	if (a > b)  fTemp = 0x4;
 	else if (a == b) fTemp = 0x2;
-	if (XER.SO) PanicAlert("cmp getting overflow flag"); // fTemp |= 0x1
+	if (GetXER_SO()) PanicAlert("cmp getting overflow flag"); // fTemp |= 0x1
 	SetCRField(_inst.CRFD, fTemp);
 }
 
@@ -241,10 +239,10 @@ void cmpl(UGeckoInstruction _inst)
 	u32 b = m_GPR[_inst.RB];
 	u32 fTemp = 0x8; // a < b
 
-        //	if (a < b)  fTemp = 0x8;else 
-        if (a > b)  fTemp = 0x4;
+		//	if (a < b)  fTemp = 0x8;else 
+	if (a > b)  fTemp = 0x4;
 	else if (a == b) fTemp = 0x2;
-	if (XER.SO) PanicAlert("cmpl getting overflow flag"); // fTemp |= 0x1;
+	if (GetXER_SO()) PanicAlert("cmpl getting overflow flag"); // fTemp |= 0x1;
 	SetCRField(_inst.CRFD, fTemp);
 }
 

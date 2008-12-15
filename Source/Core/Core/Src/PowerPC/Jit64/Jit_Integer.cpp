@@ -24,6 +24,7 @@
 #include "JitCache.h"
 #include "JitRegCache.h"
 #include "JitAsm.h"
+#include "Jit_Util.h"
 
 // #define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
@@ -32,10 +33,11 @@ namespace Jit64
 {
 	// Assumes that the flags were just set through an addition.
 	void GenerateCarry(X64Reg temp_reg) {
+		// USES_XER
 		SETcc(CC_C, R(temp_reg));
-		AND(32, M(&XER), Imm32(~(1 << 29)));
+		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~(1 << 29)));
 		SHL(32, R(temp_reg), Imm8(29));
-		OR(32, M(&XER), R(temp_reg));
+		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), R(temp_reg));
 	}
 
 	typedef u32 (*Operation)(u32 a, u32 b);
@@ -133,26 +135,49 @@ namespace Jit64
 		}
 	}
 
+	/*
+	
+		if (js.next_inst.OPCD == 16) {  // bcx
+			if (!js.next_inst.LK && (js.next_inst.BO & BO_DONT_DECREMENT_FLAG))
+			{
+				// it's clear there's plenty of opportunity.
+				//PanicAlert("merge");
+			}
+		}
+	*/
+
 	// unsigned
-	void cmpli(UGeckoInstruction inst)
+	void cmpXi(UGeckoInstruction inst)
 	{	
-		// Should check if the next intruction is a branch - if it is, merge the two. This can save
-		// a whole bunch of instructions and cycles, especially if we aggressively bubble down compares
-		// towards branches.
+		// USES_CR
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
 #endif
+		// Should check if the next intruction is a branch - if it is, merge the two. This can save
+		// a whole bunch of instructions and cycles, especially if we aggressively bubble down compares
+		// towards branches.
 		INSTRUCTION_START;
 		int a = inst.RA;
-		u32 uimm = inst.UIMM;
 		int crf = inst.CRFD;
 		int shift = crf * 4;
+		Gen::CCFlags less_than, greater_than;
+		OpArg comparand;
+		if (inst.OPCD == 10) {
+			less_than = CC_B;
+			greater_than = CC_A;
+			comparand = Imm32(inst.UIMM);
+		} else {
+			less_than = CC_L;
+			greater_than = CC_G;
+			comparand = Imm32((s32)(s16)inst.UIMM);
+		}
+
 		gpr.KillImmediate(a); // todo, optimize instead, but unlikely to make a difference
-		AND(32, M(&CR), Imm32(~(0xF0000000 >> (crf*4))));
-		CMP(32, gpr.R(a), Imm32(uimm));
-		FixupBranch pLesser  = J_CC(CC_B);
-		FixupBranch pGreater = J_CC(CC_A);
+		AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xF0000000 >> (crf*4))));
+		CMP(32, gpr.R(a), comparand);
+		FixupBranch pLesser  = J_CC(less_than);
+		FixupBranch pGreater = J_CC(greater_than);
 		
 		MOV(32, R(EAX), Imm32(0x20000000 >> shift)); // _x86Reg == 0
 		FixupBranch continue1 = J();
@@ -165,44 +190,17 @@ namespace Jit64
 		MOV(32, R(EAX), Imm32(0x80000000 >> shift));// _x86Reg < 0
 		SetJumpTarget(continue1);
 		SetJumpTarget(continue2);
-		OR(32, M(&CR), R(EAX));
+		OR(32, M(&PowerPC::ppcState.cr), R(EAX));
+
+		// TODO: Add extra code at the end for the "taken" case. Jump to it from the matching branches.
+		// Since it's the last block, some liberties can be taken.
+		// don't forget to flush registers AFTER the cmp BEFORE the jmp. Flushing doesn't affect flags.
 	}
 
 	// signed
-	void cmpi(UGeckoInstruction inst)
+	void cmpX(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
-			{Default(inst); return;} // turn off from debugger
-#endif
-		INSTRUCTION_START;
-		int a = inst.RA;
-		s32 simm = (s32)(s16)inst.UIMM;
-		int crf = inst.CRFD;
-		int shift = crf * 4;
-		gpr.KillImmediate(a); // todo, optimize instead, but unlikely to make a difference
-		AND(32, M(&CR), Imm32(~(0xF0000000 >> (crf*4))));
-		CMP(32, gpr.R(a), Imm32(simm));
-		FixupBranch pLesser  = J_CC(CC_L);
-		FixupBranch pGreater = J_CC(CC_G);
-		// _x86Reg == 0
-		MOV(32, R(EAX), Imm32(0x20000000 >> shift));
-		FixupBranch continue1 = J();
-		// _x86Reg > 0
-		SetJumpTarget(pGreater);
-		MOV(32, R(EAX), Imm32(0x40000000 >> shift));
-		FixupBranch continue2 = J();
-		// _x86Reg < 0
-		SetJumpTarget(pLesser);
-		MOV(32, R(EAX), Imm32(0x80000000 >> shift));
-		SetJumpTarget(continue1);
-		SetJumpTarget(continue2);
-		OR(32, M(&CR), R(EAX));	
-	}
-
-	// signed
-	void cmp(UGeckoInstruction inst)
-	{
+		// USES_CR
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
@@ -212,12 +210,21 @@ namespace Jit64
 		int b = inst.RB;
 		int crf = inst.CRFD;
 		int shift = crf * 4;
+		Gen::CCFlags less_than, greater_than;
+		Gen::OpArg comparand = gpr.R(b);
+		if (inst.SUBOP10 == 32) {
+			less_than = CC_B;
+			greater_than = CC_A;
+		} else {
+			less_than = CC_L;
+			greater_than = CC_G;
+		}
 		gpr.Lock(a, b);
 		gpr.LoadToX64(a, true, false);
-		AND(32, M(&CR), Imm32(~(0xF0000000 >> (crf*4))));
-		CMP(32, gpr.R(a), gpr.R(b));
-		FixupBranch pLesser  = J_CC(CC_L);
-		FixupBranch pGreater = J_CC(CC_G);
+		AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xF0000000 >> (crf*4))));
+		CMP(32, gpr.R(a), comparand);
+		FixupBranch pLesser  = J_CC(less_than);
+		FixupBranch pGreater = J_CC(greater_than);
 		// _x86Reg == 0
 		MOV(32, R(EAX), Imm32(0x20000000 >> shift));
 		FixupBranch continue1 = J();
@@ -230,41 +237,7 @@ namespace Jit64
 		MOV(32, R(EAX), Imm32(0x80000000 >> shift));
 		SetJumpTarget(continue1);
 		SetJumpTarget(continue2);
-		OR(32, M(&CR), R(EAX));	
-		gpr.UnlockAll();
-	}
-
-	// unsigned
-	void cmpl(UGeckoInstruction inst)
-	{
-#ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
-			{Default(inst); return;} // turn off from debugger
-#endif
-		INSTRUCTION_START;
-		int a = inst.RA;
-		int b = inst.RB;
-		int crf = inst.CRFD;
-		int shift = crf * 4;
-		gpr.Lock(a, b);
-		gpr.LoadToX64(a, true, false);
-		AND(32, M(&CR), Imm32(~(0xF0000000 >> (crf*4))));
-		CMP(32, gpr.R(a), gpr.R(b));
-		FixupBranch pLesser  = J_CC(CC_B);
-		FixupBranch pGreater = J_CC(CC_A);
-		// _x86Reg == 0
-		MOV(32, R(EAX), Imm32(0x20000000 >> shift));
-		FixupBranch continue1 = J();
-		// _x86Reg > 0
-		SetJumpTarget(pGreater);
-		MOV(32, R(EAX), Imm32(0x40000000 >> shift));
-		FixupBranch continue2 = J();
-		// _x86Reg < 0
-		SetJumpTarget(pLesser);
-		MOV(32, R(EAX), Imm32(0x80000000 >> shift));
-		SetJumpTarget(continue1);
-		SetJumpTarget(continue2);
-		OR(32, M(&CR), R(EAX));	
+		OR(32, M(&PowerPC::ppcState.cr), R(EAX));	
 		gpr.UnlockAll();
 	}
 	
@@ -652,6 +625,7 @@ namespace Jit64
 	// This can be optimized
 	void addex(UGeckoInstruction inst)
 	{
+		// USES_XER
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
@@ -664,7 +638,7 @@ namespace Jit64
 			gpr.LoadToX64(d, false);
 		else
 			gpr.LoadToX64(d, true);
-		MOV(32, R(EAX), M(&XER));
+		MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
 		SHR(32, R(EAX), Imm8(30)); // shift the carry flag out into the x86 carry flag
 		MOV(32, R(EAX), gpr.R(a));
 		ADC(32, R(EAX), gpr.R(b));
@@ -895,6 +869,7 @@ namespace Jit64
 
 	void srawx(UGeckoInstruction inst)
 	{
+		// USES_XER
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
@@ -919,17 +894,17 @@ namespace Jit64
 		CMP(32, R(EAX), Imm32(-1));
 		SETcc(CC_L, R(EAX));
 		SAR(32, gpr.R(a), R(ECX));
-		AND(32, M(&XER), Imm32(~(1 << 29)));
+		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~(1 << 29)));
 		SHL(32, R(EAX), Imm8(29));
-		OR(32, M(&XER), R(EAX));
+		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), R(EAX));
 		FixupBranch end = J();
 		SetJumpTarget(topBitSet);
 		MOV(32, R(EAX), gpr.R(s));
 		SAR(32, R(EAX), Imm8(31));
 		MOV(32, gpr.R(a), R(EAX));
-		AND(32, M(&XER), Imm32(~(1 << 29)));
+		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~(1 << 29)));
 		AND(32, R(EAX), Imm32(1<<29));
-		OR(32, M(&XER), R(EAX));
+		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), R(EAX));
 		SetJumpTarget(end);
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
@@ -961,11 +936,11 @@ namespace Jit64
 			FixupBranch nocarry1 = J_CC(CC_GE);
 			TEST(32, R(EAX), Imm32((u32)0xFFFFFFFF >> (32 - amount))); // were any 1s shifted out?
 			FixupBranch nocarry2 = J_CC(CC_Z);
-			OR(32, M(&XER), Imm32(XER_CA_MASK)); //XER.CA = 1
+			JitSetCA();
 			FixupBranch carry = J(false);
 			SetJumpTarget(nocarry1);
 			SetJumpTarget(nocarry2);
-			AND(32, M(&XER), Imm32(~XER_CA_MASK)); //XER.CA = 0
+			JitClearCA();
 			SetJumpTarget(carry);
 			gpr.UnlockAll();
 		}
@@ -973,7 +948,7 @@ namespace Jit64
 		{
 			Default(inst); return;
 			gpr.Lock(a, s);
-			AND(32, M(&XER), Imm32(~XER_CA_MASK)); //XER.CA = 0
+			JitClearCA();
 			gpr.LoadToX64(a, a == s, true);
 			if (a != s)
 				MOV(32, gpr.R(a), gpr.R(s));

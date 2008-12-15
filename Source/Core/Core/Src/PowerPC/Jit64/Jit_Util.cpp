@@ -37,6 +37,16 @@
 namespace Jit64
 {
 
+void JitClearCA()
+{
+	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_CA_MASK)); //XER.CA = 0
+}
+
+void JitSetCA()
+{
+	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_CA_MASK)); //XER.CA = 1
+}
+
 void UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
 {
 #ifdef _M_IX86

@@ -33,4 +33,7 @@ void WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address);
 void ForceSinglePrecisionS(X64Reg xmm);
 void ForceSinglePrecisionP(X64Reg xmm);
 
+void JitClearCA();
+void JitSetCA();
+
 }  // namespace

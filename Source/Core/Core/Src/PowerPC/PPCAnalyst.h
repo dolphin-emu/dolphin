@@ -79,8 +79,6 @@ struct BlockRegStats
 void Init();
 void Shutdown();
 
-void ShuffleUp(CodeOp *code, int first, int last);
-
 CodeOp *Flatten(u32 address, int &realsize, BlockStats &st, BlockRegStats &gpa, BlockRegStats &fpa);
 
 void LogFunctionCall(u32 addr);

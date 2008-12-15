@@ -205,8 +205,8 @@ namespace Jit64
 		{
 			fpr.LoadToX64(a, true);
 		}
-
-		AND(32, M(&CR), Imm32(~(0xF0000000 >> shift)));
+		// USES_CR
+		AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xF0000000 >> shift)));
 		if (ordered)
 			COMISD(fpr.R(a).GetSimpleReg(), fpr.R(b));
 		else
@@ -226,7 +226,7 @@ namespace Jit64
 		SetJumpTarget(continue1);
 		SetJumpTarget(continue2);
 		SHR(32, R(EAX), Imm8(shift));
-		OR(32, M(&CR), R(EAX));	
+		OR(32, M(&PowerPC::ppcState.cr), R(EAX));	
 		fpr.UnlockAll();
 	}
 	

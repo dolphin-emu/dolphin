@@ -324,18 +324,19 @@ void GenFifoXmm64Write()
 
 void GenerateCommon()
 {
+	// USES_CR
 	computeRc = AlignCode16();
-	AND(32, M(&CR), Imm32(0x0FFFFFFF));
+	AND(32, M(&PowerPC::ppcState.cr), Imm32(0x0FFFFFFF));
 	CMP(32, R(EAX), Imm8(0));
 	FixupBranch pLesser  = J_CC(CC_L);
 	FixupBranch pGreater = J_CC(CC_G);
-	OR(32, M(&CR), Imm32(0x20000000)); // _x86Reg == 0
+	OR(32, M(&PowerPC::ppcState.cr), Imm32(0x20000000)); // _x86Reg == 0
 	RET();
 	SetJumpTarget(pGreater);
-	OR(32, M(&CR), Imm32(0x40000000)); // _x86Reg > 0
+	OR(32, M(&PowerPC::ppcState.cr), Imm32(0x40000000)); // _x86Reg > 0
 	RET();
 	SetJumpTarget(pLesser);
-	OR(32, M(&CR), Imm32(0x80000000));	// _x86Reg < 0
+	OR(32, M(&PowerPC::ppcState.cr), Imm32(0x80000000));	// _x86Reg < 0
 	RET();
 
 	fifoDirectWrite8 = AlignCode4();

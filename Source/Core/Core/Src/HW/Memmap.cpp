@@ -672,7 +672,8 @@ bool Init()
 	else
 		InitHWMemFuncs();
 
-	LOG(MEMMAP, "Memory system initialized. RAM at %p (0x80000000 @ %p)", base, base + 0x80000000);
+	LOG(MEMMAP, "Memory system initialized. RAM at %p (mirrors at 0 @ %p, 0x80000000 @ %p , 0xC0000000 @ %p)",
+		m_pRAM, m_pPhysicalRAM, m_pVirtualCachedRAM, m_pVirtualUncachedRAM);
 	m_IsInitialized = true;
 	return true;
 }

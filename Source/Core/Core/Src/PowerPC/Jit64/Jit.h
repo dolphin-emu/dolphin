@@ -49,6 +49,7 @@ namespace Jit64
 	{
 		u32 compilerPC;
 		u32 blockStart;
+		UGeckoInstruction next_inst;  // for easy peephole opt.
 		int blockSize;
 		int instructionNumber;
 		int downcountAmount;
@@ -142,10 +143,8 @@ namespace Jit64
 	void fcmpx(UGeckoInstruction inst);
 	void fmrx(UGeckoInstruction inst);
 
-	void cmpli(UGeckoInstruction inst);
-	void cmpi(UGeckoInstruction inst);
-	void cmpl(UGeckoInstruction inst);
-	void cmp(UGeckoInstruction inst);
+	void cmpXi(UGeckoInstruction inst);
+	void cmpX(UGeckoInstruction inst);
 
 	void cntlzwx(UGeckoInstruction inst);
 

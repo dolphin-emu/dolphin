@@ -229,7 +229,6 @@ void ps_cmpu1(UGeckoInstruction _inst)
 	if (fa < fb)		compareResult = 8; 
 	else if (fa > fb)	compareResult = 4; 
 	else				compareResult = 2;
-
 	SetCRField(_inst.CRFD, compareResult);
 }
 

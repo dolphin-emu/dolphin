@@ -108,6 +108,7 @@ namespace Jit64
 	// variants of this instruction.
 	void bcx(UGeckoInstruction inst)
 	{
+		// USES_CR
 		_assert_msg_(DYNA_REC, js.isLastInstruction, "bcx not last instruction of block");
 
 		gpr.Flush(FLUSH_ALL);
@@ -124,7 +125,7 @@ namespace Jit64
 
 		if ((inst.BO & 16) == 0)  // Test a CR bit
 		{
-			TEST(32, M(&CR), Imm32(0x80000000 >> inst.BI));
+			TEST(32, M(&PowerPC::ppcState.cr), Imm32(0x80000000 >> inst.BI));
 			if (inst.BO & 8)  // Conditional branch 
 				branch = CC_NZ;
 			else
@@ -181,14 +182,14 @@ namespace Jit64
 		{
 			skip = J_CC(branch);
 		}
-			u32 destination;
-			if (inst.LK)
-				MOV(32, M(&LR), Imm32(js.compilerPC + 4));
-			if(inst.AA)
-				destination = SignExt16(inst.BD << 2);
-			else
-				destination = js.compilerPC + SignExt16(inst.BD << 2);
-			WriteExit(destination, 0);
+		u32 destination;
+		if (inst.LK)
+			MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+		if(inst.AA)
+			destination = SignExt16(inst.BD << 2);
+		else
+			destination = js.compilerPC + SignExt16(inst.BD << 2);
+		WriteExit(destination, 0);
 		if (inst.BO != 20)
 		{
 			SetJumpTarget(skip);

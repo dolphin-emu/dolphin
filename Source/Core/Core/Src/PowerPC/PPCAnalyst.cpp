@@ -285,19 +285,10 @@ void FixUpInternalBranches(CodeOp *code, int begin, int end)
 	}
 }
 
-void ShuffleUp(CodeOp *code, int first, int last)
-{
-	CodeOp temp = code[first];
-	for (int i = first; i < last; i++)
-		code[i] = code[i + 1];
-	code[last] = temp;
-}
-
 // IMPORTANT - CURRENTLY ASSUMES THAT A IS A COMPARE
 bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 {
-	// Disabled for now
-	return false;
+	return false;  // Currently deactivated in SVN.
 
 	const GekkoOPInfo *a_info = GetOpInfo(a.inst);
 	const GekkoOPInfo *b_info = GetOpInfo(b.inst);
@@ -308,7 +299,6 @@ bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 	if ((b_flags & (FL_RC_BIT | FL_RC_BIT_F)) && (b.inst.hex & 1))
 		return false;
 
-	// 10 cmpi, 11 cmpli - we got a compare!
 	switch (b.inst.OPCD)
 	{
 	case 16:
@@ -323,20 +313,34 @@ bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 	// For now, only integer ops acceptable.
 	switch (b_info->type) {
 	case OPTYPE_INTEGER:
+	case OPTYPE_LOAD:
+	case OPTYPE_STORE:
+	case OPTYPE_LOADFP:
+	case OPTYPE_STOREFP:
 		break;
 	default:
 		return false;
 	}
 
 	// Check that we have no register collisions.
+	// That is, check that none of b's outputs matches any of a's inputs,
+	// and that none of a's outputs matches any of b's inputs.
+	// The latter does not apply if a is a cmp, of course, but doesn't hurt to check.
 	bool no_swap = false;
 	for (int j = 0; j < 3; j++)
 	{
-		int regIn = a.regsIn[j];
-		if (regIn < 0)
-			continue;	
-		if (b.regsOut[0] == regIn ||
-			b.regsOut[1] == regIn)
+		int regInA = a.regsIn[j];
+		int regInB = b.regsIn[j];
+		if (regInA >= 0 &&
+			b.regsOut[0] == regInA ||
+			b.regsOut[1] == regInA)
+		{
+			// reg collision! don't swap
+			return false;
+		}
+		if (regInB >= 0 &&
+			a.regsOut[0] == regInB ||
+			a.regsOut[1] == regInB)
 		{
 			// reg collision! don't swap
 			return false;
@@ -346,6 +350,7 @@ bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 	return true;
 }
 
+// Does not yet perform inlining - although there are plans for that.
 CodeOp *Flatten(u32 address, int &realsize, BlockStats &st, BlockRegStats &gpa, BlockRegStats &fpa)
 {
 	int numCycles = 0;
@@ -623,9 +628,8 @@ CodeOp *Flatten(u32 address, int &realsize, BlockStats &st, BlockRegStats &gpa, 
 		}
 	}
 
-
-	//Scan for CR0 dependency
-	//assume next block wants CR0 to be safe
+	// Scan for CR0 dependency
+	// assume next block wants CR0 to be safe
 	bool wantsCR0 = true;
 	bool wantsCR1 = true;
 	bool wantsPS1 = true;
