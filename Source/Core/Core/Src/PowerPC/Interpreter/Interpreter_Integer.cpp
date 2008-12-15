@@ -23,33 +23,30 @@ namespace Interpreter
 
 void Helper_UpdateCR0(u32 _uValue)
 {
-	u32 Flags = 0;
+	u32 new_cr0;
 	int sValue = (int)_uValue;
 	if (sValue > 0)
-		Flags |= 0x40000000;
+		new_cr0 = 0x4;
 	else if (sValue < 0)
-		Flags |= 0x80000000;
+		new_cr0 = 0x8;
 	else
-		Flags |= 0x20000000;
-	Flags |= PowerPC::ppcState.spr[SPR_XER*4] & 0x10000000;
-	PowerPC::ppcState.cr = (PowerPC::ppcState.cr & 0xFFFFFFF) | Flags;
+		new_cr0 = 0x2;
+	new_cr0 |= GetXER_SO();
+	SetCRField(0, new_cr0);
 }
 
 void Helper_UpdateCRx(int _x, u32 _uValue)
 {
-	int shiftamount = _x*4;
-	int crmask = 0xFFFFFFFF ^ (0xF0000000 >> shiftamount);
-
-	u32 Flags = 0;
+	u32 new_crX;
 	int sValue = (int)_uValue;
 	if (sValue > 0)
-		Flags |= 0x40000000;
+		new_crX = 0x4;
 	else if (sValue < 0)
-		Flags |= 0x80000000;
+		new_crX = 0x8;
 	else
-		Flags |= 0x20000000;
-	Flags |= PowerPC::ppcState.spr[SPR_XER*4] & 0x10000000;
-	PowerPC::ppcState.cr = (PowerPC::ppcState.cr & crmask) | (Flags >> shiftamount);
+		new_crX = 0x2;
+	new_crX |= GetXER_SO();
+	SetCRField(_x, new_crX);
 }
 
 u32 Helper_Carry(u32 _uValue1, u32 _uValue2)

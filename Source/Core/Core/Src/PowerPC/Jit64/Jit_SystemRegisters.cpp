@@ -160,6 +160,7 @@ namespace Jit64
 
 	void mfcr(UGeckoInstruction inst)
 	{
+		// USES_CR
 		int d = inst.RD;
 		gpr.LoadToX64(d, false, true);
 		MOV(32, gpr.R(d), M(&PowerPC::ppcState.cr));
@@ -167,6 +168,7 @@ namespace Jit64
 
 	void mtcrf(UGeckoInstruction inst)
 	{
+		// USES_CR
 		u32 mask = 0;
 		u32 crm = inst.CRM;
 		gpr.FlushLockX(ECX);

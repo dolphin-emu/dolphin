@@ -97,7 +97,7 @@ int SyncTrace()
 			}
 		}*/
 		/*
-		if (PowerPC::ppcState.cr != state.cr)
+		if (GetCR() != state.cr)
 		{
 			LOG(GEKKO, "DIFFERENCE - CR (local %08x, remote %08x)", PowerPC::ppcState.cr, state.cr);
 			difference = true;
