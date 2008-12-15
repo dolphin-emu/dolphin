@@ -302,7 +302,7 @@ GekkoOPTemplate table31[] =
 	{1014, Interpreter::dcbz,   Jit64::dcbz,     {"dcbz",   OPTYPE_DCACHE, 0, 4}},
 
 	//load word
-	{23,  Interpreter::lwzx,  Jit64::lwzx,   {"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{23,  Interpreter::lwzx,  Jit64::lwzx,      {"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 	{55,  Interpreter::lwzux, Jit64::Default,   {"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load halfword
@@ -310,7 +310,7 @@ GekkoOPTemplate table31[] =
 	{311, Interpreter::lhzux, Jit64::Default,   {"lhzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load halfword signextend
-	{343, Interpreter::lhax,  Jit64::lhax,   {"lhax",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{343, Interpreter::lhax,  Jit64::lhax,      {"lhax",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 	{375, Interpreter::lhaux, Jit64::Default,   {"lhaux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load byte
@@ -322,12 +322,12 @@ GekkoOPTemplate table31[] =
 	{790, Interpreter::lhbrx, Jit64::Default,  {"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 
 	// Conditional load/store (Wii SMP)
-	{150, Interpreter::stwcxd,  Jit64::Default,    {"stwcxd", OPTYPE_STORE, 0}},
-	{20,  Interpreter::lwarx,   Jit64::Default,    {"lwarx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0B}},
+	{150, Interpreter::stwcxd,  Jit64::Default,    {"stwcxd", OPTYPE_STORE, FL_EVIL}},
+	{20,  Interpreter::lwarx,   Jit64::Default,    {"lwarx",  OPTYPE_LOAD, FL_EVIL | FL_OUT_D | FL_IN_A0B}},
 
 	//load string (interpret these)
-	{533, Interpreter::lswx,  Jit64::Default,   {"lswx",  OPTYPE_LOAD, FL_IN_A | FL_OUT_D}},
-	{597, Interpreter::lswi,  Jit64::Default,   {"lswi",  OPTYPE_LOAD, FL_IN_AB | FL_OUT_D}},
+	{533, Interpreter::lswx,  Jit64::Default,   {"lswx",  OPTYPE_LOAD, FL_EVIL | FL_IN_A | FL_OUT_D}},
+	{597, Interpreter::lswi,  Jit64::Default,   {"lswi",  OPTYPE_LOAD, FL_EVIL | FL_IN_AB | FL_OUT_D}},
 
 	//store word
 	{151, Interpreter::stwx,   Jit64::Default,    {"stwx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
@@ -345,8 +345,8 @@ GekkoOPTemplate table31[] =
 	{662, Interpreter::stwbrx, Jit64::Default,   {"stwbrx", OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
 	{918, Interpreter::sthbrx, Jit64::Default,   {"sthbrx", OPTYPE_STORE, FL_IN_A | FL_IN_B}},
 
-	{661, Interpreter::stswx,  Jit64::Default,   {"stswx",  OPTYPE_STORE, 0}},
-	{725, Interpreter::stswi,  Jit64::Default,   {"stswi",  OPTYPE_STORE, 0}},
+	{661, Interpreter::stswx,  Jit64::Default,   {"stswx",  OPTYPE_STORE, FL_EVIL}},
+	{725, Interpreter::stswi,  Jit64::Default,   {"stswi",  OPTYPE_STORE, FL_EVIL}},
 
 	// fp load/store	
 	{535, Interpreter::lfsx,  Jit64::lfsx,      {"lfsx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},

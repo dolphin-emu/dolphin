@@ -288,8 +288,6 @@ void FixUpInternalBranches(CodeOp *code, int begin, int end)
 // IMPORTANT - CURRENTLY ASSUMES THAT A IS A COMPARE
 bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 {
-	return false;  // Currently deactivated in SVN.
-
 	const GekkoOPInfo *a_info = GetOpInfo(a.inst);
 	const GekkoOPInfo *b_info = GetOpInfo(b.inst);
 	int a_flags = a_info->flags;
@@ -315,8 +313,8 @@ bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 	case OPTYPE_INTEGER:
 	case OPTYPE_LOAD:
 	case OPTYPE_STORE:
-	case OPTYPE_LOADFP:
-	case OPTYPE_STOREFP:
+	//case OPTYPE_LOADFP:
+	//case OPTYPE_STOREFP:
 		break;
 	default:
 		return false;
