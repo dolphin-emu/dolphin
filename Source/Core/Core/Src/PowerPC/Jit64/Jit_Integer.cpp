@@ -147,7 +147,7 @@ namespace Jit64
 	*/
 
 	// unsigned
-	void cmpXi(UGeckoInstruction inst)
+	void cmpXX(UGeckoInstruction inst)
 	{	
 		// USES_CR
 #ifdef JIT_OFF_OPTIONS
@@ -159,21 +159,40 @@ namespace Jit64
 		// towards branches.
 		INSTRUCTION_START;
 		int a = inst.RA;
+		int b = inst.RB;
 		int crf = inst.CRFD;
 		int shift = crf * 4;
 		Gen::CCFlags less_than, greater_than;
 		OpArg comparand;
-		if (inst.OPCD == 10) {
-			less_than = CC_B;
-			greater_than = CC_A;
-			comparand = Imm32(inst.UIMM);
-		} else {
-			less_than = CC_L;
-			greater_than = CC_G;
-			comparand = Imm32((s32)(s16)inst.UIMM);
+		if (inst.OPCD == 31) {
+			gpr.Lock(a, b);
+			gpr.LoadToX64(a, true, false);
+			comparand = gpr.R(b);
+			if (inst.SUBOP10 == 32) {
+				//cmpl
+				less_than = CC_B;
+				greater_than = CC_A;
+			} else {
+				//cmp
+				less_than = CC_L;
+				greater_than = CC_G;
+			}
+		}
+		else {
+			gpr.KillImmediate(a); // todo, optimize instead, but unlikely to make a difference
+			if (inst.OPCD == 10) {
+				//cmpli
+				less_than = CC_B;
+				greater_than = CC_A;
+				comparand = Imm32(inst.UIMM);
+			} else if (inst.OPCD == 11) {
+				//cmpi
+				less_than = CC_L;
+				greater_than = CC_G;
+				comparand = Imm32((s32)(s16)inst.UIMM);
+			}
 		}
 
-		gpr.KillImmediate(a); // todo, optimize instead, but unlikely to make a difference
 		CMP(32, gpr.R(a), comparand);
 		FixupBranch pLesser  = J_CC(less_than);
 		FixupBranch pGreater = J_CC(greater_than);
@@ -189,54 +208,14 @@ namespace Jit64
 		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8)); // _x86Reg < 0
 		SetJumpTarget(continue1);
 		SetJumpTarget(continue2);
+
+		gpr.UnlockAll();
 
 		// TODO: Add extra code at the end for the "taken" case. Jump to it from the matching branches.
 		// Since it's the last block, some liberties can be taken.
 		// don't forget to flush registers AFTER the cmp BEFORE the jmp. Flushing doesn't affect flags.
 	}
 
-	// signed
-	void cmpX(UGeckoInstruction inst)
-	{
-		// USES_CR
-#ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
-			{Default(inst); return;} // turn off from debugger
-#endif
-		INSTRUCTION_START;
-		int a = inst.RA;
-		int b = inst.RB;
-		int crf = inst.CRFD;
-		int shift = crf * 4;
-		Gen::CCFlags less_than, greater_than;
-		Gen::OpArg comparand = gpr.R(b);
-		if (inst.SUBOP10 == 32) {
-			less_than = CC_B;
-			greater_than = CC_A;
-		} else {
-			less_than = CC_L;
-			greater_than = CC_G;
-		}
-		gpr.Lock(a, b);
-		gpr.LoadToX64(a, true, false);
-		CMP(32, gpr.R(a), comparand);
-		FixupBranch pLesser  = J_CC(less_than);
-		FixupBranch pGreater = J_CC(greater_than);
-		// _x86Reg == 0
-		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2)); // _x86Reg == 0
-		FixupBranch continue1 = J();
-		
-		SetJumpTarget(pGreater);
-		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4)); // _x86Reg > 0
-		FixupBranch continue2 = J();
-		
-		SetJumpTarget(pLesser);
-		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8)); // _x86Reg < 0
-		SetJumpTarget(continue1);
-		SetJumpTarget(continue2);
-		gpr.UnlockAll();
-	}
-	
 	void orx(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS

@@ -143,7 +143,7 @@ inline u32 GetCRBit(int bit) {
 	return (PowerPC::ppcState.cr_fast[bit >> 2] >> (3 - (bit & 3))) & 1;
 }
 
-// SetCR and GetCR may become fairly slow soon. Should be avoided if possible.
+// SetCR and GetCR are fairly slow. Should be avoided if possible.
 inline void SetCR(u32 new_cr) {
 	PowerPC::ppcState.cr = new_cr;
 	PowerPC::ExpandCR();

@@ -143,8 +143,7 @@ namespace Jit64
 	void fcmpx(UGeckoInstruction inst);
 	void fmrx(UGeckoInstruction inst);
 
-	void cmpXi(UGeckoInstruction inst);
-	void cmpX(UGeckoInstruction inst);
+	void cmpXX(UGeckoInstruction inst);
 
 	void cntlzwx(UGeckoInstruction inst);
 
