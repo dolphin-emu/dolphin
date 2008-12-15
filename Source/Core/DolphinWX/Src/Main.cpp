@@ -266,9 +266,14 @@ void DolphinApp::OnEndSession()
 
 bool wxMsgAlert(const char* caption, const char* text, 
                        bool yes_no) {
+#ifdef _WIN32
+	// I like parentless messageboxes - don't block the debug window.
+	return IDYES == MessageBox(0, text, caption, yes_no?MB_YESNO:MB_OK);
+#else
     return wxYES == wxMessageBox(wxString::FromAscii(text), 
                                  wxString::FromAscii(caption),
                                  (yes_no)?wxYES_NO:wxOK);
+#endif
 }
 
 

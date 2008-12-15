@@ -185,7 +185,6 @@ namespace Jit64
 		jo.assumeFPLoadFromMem = true;
 		jo.fpAccurateFlags = true;
 		jo.optimizeGatherPipe = true;
-		jo.interpretFPU = false;
 		jo.fastInterrupts = false;
 	}
 
@@ -316,6 +315,7 @@ namespace Jit64
 		js.curBlock = &b;
 		js.blockSetsQuantizers = false;
 		js.block_flags = 0;
+		js.cancel = false;
 
 		//Analyze the block, collect all instructions it is made of (including inlining,
 		//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
@@ -384,6 +384,7 @@ namespace Jit64
 			js.op = &ops[i];
 			js.instructionNumber = i;
 			if (i == (int)size - 1) {
+				// WARNING - cmp->branch merging will screw this up.
 				js.isLastInstruction = true;
 				js.next_inst = 0;
 				if (Profiler::g_ProfileBlocks) {
@@ -398,27 +399,25 @@ namespace Jit64
 			} else {
 				// help peephole optimizations
 				js.next_inst = ops[i + 1].inst;
+				js.next_compilerPC = ops[i + 1].address;
 			}
-			
-			// const GekkoOpInfo *info = GetOpInfo();
-			if (jo.interpretFPU && PPCTables::UsesFPU(ops[i].inst))
-				Default(ops[i].inst);
-			else
-				PPCTables::CompileInstruction(ops[i].inst);
 
-			gpr.SanityCheck();
-			fpr.SanityCheck();
 			if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
 			{
 				js.fifoBytesThisBlock -= 32;
 				CALL(ProtectFunction((void *)&GPFifo::CheckGatherPipe, 0));
 			}
+
+			PPCTables::CompileInstruction(ops[i].inst);
+
+			gpr.SanityCheck();
+			fpr.SanityCheck();
+			if (js.cancel) break;
 		}
-		js.compilerPC += 4;
 
 		b.flags = js.block_flags;
 		b.codeSize = (u32)(GetCodePtr() - start);
-		b.originalSize = js.compilerPC - emaddress;
+		b.originalSize = size;
 		return normalEntry;
 	}
 }

@@ -154,14 +154,24 @@ namespace Jit64
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
 #endif
-		// Should check if the next intruction is a branch - if it is, merge the two. This can save
-		// a whole bunch of instructions and cycles, especially if we aggressively bubble down compares
-		// towards branches.
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int b = inst.RB;
 		int crf = inst.CRFD;
 		int shift = crf * 4;
+	
+		bool merge_branch = false;
+		int test_crf = js.next_inst.BI >> 2;
+		// Check if the next intruction is a branch - if it is, merge the two.
+		if (js.next_inst.OPCD == 16 && (js.next_inst.BO & BO_DONT_DECREMENT_FLAG) &&
+			!(js.next_inst.BO & 16) && (js.next_inst.BO & 4) && !js.next_inst.LK) {
+			// Looks like a decent conditional branch that we can merge with.
+			// It only test CR, not CTR.
+			if (test_crf == crf) {
+				merge_branch = true;
+			}
+		}
+
 		Gen::CCFlags less_than, greater_than;
 		OpArg comparand;
 		if (inst.OPCD == 31) {
@@ -193,27 +203,64 @@ namespace Jit64
 			}
 		}
 
-		CMP(32, gpr.R(a), comparand);
-		FixupBranch pLesser  = J_CC(less_than);
-		FixupBranch pGreater = J_CC(greater_than);
-		
-		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2)); // _x86Reg == 0
-		FixupBranch continue1 = J();
-		
-		SetJumpTarget(pGreater);
-		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4)); // _x86Reg > 0
-		FixupBranch continue2 = J();
-		
-		SetJumpTarget(pLesser);
-		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8)); // _x86Reg < 0
-		SetJumpTarget(continue1);
-		SetJumpTarget(continue2);
+		if (!merge_branch) {
+			// Keep the normal code separate for clarity.
+			CMP(32, gpr.R(a), comparand);
+			FixupBranch pLesser  = J_CC(less_than);
+			FixupBranch pGreater = J_CC(greater_than);
+			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2)); // _x86Reg == 0
+			FixupBranch continue1 = J();
+			SetJumpTarget(pGreater);
+			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4)); // _x86Reg > 0
+			FixupBranch continue2 = J();
+			SetJumpTarget(pLesser);
+			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8)); // _x86Reg < 0
+			SetJumpTarget(continue1);
+			SetJumpTarget(continue2);
+		} else {
+			int test_bit = 8 >> (js.next_inst.BI & 3);
+			bool condition = (js.next_inst.BO & 8) ? false : true;
+
+			u32 destination;
+			if (js.next_inst.AA)
+				destination = SignExt16(js.next_inst.BD << 2);
+			else
+				destination = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
+
+			CMP(32, gpr.R(a), comparand);
+			gpr.UnlockAll();
+			gpr.Flush(FLUSH_ALL);
+			fpr.Flush(FLUSH_ALL);
+			FixupBranch pLesser  = J_CC(less_than);
+			FixupBranch pGreater = J_CC(greater_than);
+			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2)); // _x86Reg == 0
+			FixupBranch continue1 = J();
+
+			SetJumpTarget(pGreater);
+			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4)); // _x86Reg > 0
+			FixupBranch continue2 = J();
+
+			SetJumpTarget(pLesser);
+			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8)); // _x86Reg < 0
+			FixupBranch continue3;
+			if (!!(8 & test_bit) == condition) continue3 = J();
+			
+			//if (!!(8 & test_bit) != condition) SetJumpTarget(continue3);
+			if (!!(4 & test_bit) != condition) SetJumpTarget(continue2);
+			if (!!(2 & test_bit) != condition) SetJumpTarget(continue1);
+
+			WriteExit(destination, 0);
+
+			if (!!(8 & test_bit) == condition) SetJumpTarget(continue3);
+			if (!!(4 & test_bit) == condition) SetJumpTarget(continue2);
+			if (!!(2 & test_bit) == condition) SetJumpTarget(continue1);
+			
+			WriteExit(js.next_compilerPC + 4, 1);
+			
+			js.cancel = true;
+		}
 
 		gpr.UnlockAll();
-
-		// TODO: Add extra code at the end for the "taken" case. Jump to it from the matching branches.
-		// Since it's the last block, some liberties can be taken.
-		// don't forget to flush registers AFTER the cmp BEFORE the jmp. Flushing doesn't affect flags.
 	}
 
 	void orx(UGeckoInstruction inst)

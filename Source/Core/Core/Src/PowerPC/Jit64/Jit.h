@@ -48,7 +48,9 @@ namespace Jit64
 	struct JitState
 	{
 		u32 compilerPC;
+		u32 next_compilerPC;
 		u32 blockStart;
+		bool cancel;
 		UGeckoInstruction next_inst;  // for easy peephole opt.
 		int blockSize;
 		int instructionNumber;
@@ -76,7 +78,6 @@ namespace Jit64
 		bool fpAccurateFlags;
 		bool enableFastMem;
 		bool optimizeGatherPipe;
-		bool interpretFPU;
 		bool fastInterrupts;
 	};
 
