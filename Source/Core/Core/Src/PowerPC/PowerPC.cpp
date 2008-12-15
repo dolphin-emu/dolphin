@@ -42,6 +42,22 @@ volatile CPUState state = CPU_STEPPING;
 
 static CoreMode mode;
 
+void CompactCR()
+{
+	ppcState.cr = 0;
+	for (int i = 0; i < 8; i++) {
+		ppcState.cr |= ppcState.cr_fast[i] << (28 - i * 4);
+	}
+}
+
+void ExpandCR()
+{
+	for (int i = 0; i < 8; i++) {
+		ppcState.cr_fast[i] = (ppcState.cr >> (28 - i * 4)) & 0xF;
+	}
+}
+
+
 void DoState(PointerWrap &p)
 {
 	p.Do(ppcState);

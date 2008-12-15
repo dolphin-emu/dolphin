@@ -202,11 +202,9 @@ namespace Jit64
 
 		fpr.Lock(a,b);
 		if (a != b)
-		{
 			fpr.LoadToX64(a, true);
-		}
+
 		// USES_CR
-		AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xF0000000 >> shift)));
 		if (ordered)
 			COMISD(fpr.R(a).GetSimpleReg(), fpr.R(b));
 		else
@@ -214,19 +212,17 @@ namespace Jit64
 		FixupBranch pLesser  = J_CC(CC_B);
 		FixupBranch pGreater = J_CC(CC_A);
 		// _x86Reg == 0
-		MOV(32, R(EAX), Imm32(0x20000000));
+		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2));
 		FixupBranch continue1 = J();
 		// _x86Reg > 0
 		SetJumpTarget(pGreater);
-		MOV(32, R(EAX), Imm32(0x40000000));
+		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4));
 		FixupBranch continue2 = J();
 		// _x86Reg < 0
 		SetJumpTarget(pLesser);
-		MOV(32, R(EAX), Imm32(0x80000000));
+		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8));
 		SetJumpTarget(continue1);
 		SetJumpTarget(continue2);
-		SHR(32, R(EAX), Imm8(shift));
-		OR(32, M(&PowerPC::ppcState.cr), R(EAX));	
 		fpr.UnlockAll();
 	}
 	

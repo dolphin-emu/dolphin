@@ -46,7 +46,9 @@ struct GC_ALIGNED64(PowerPCState)
 	u32 pc;     // program counter
 	u32 npc;
 
-	u32 cr;     // flags
+	u32 cr;            // flags
+	u8 cr_fast[8];     // Possibly reorder to 0, 2, 4, 8, 1, 3, 5, 7 so that we can make Compact and Expand super fast?
+
 	u32 msr;    // machine specific register
 	u32 fpscr;  // floating point flags/status bits
 
@@ -85,6 +87,9 @@ void RunLoop();
 void Start();
 void Pause();
 void Stop();
+
+void CompactCR();
+void ExpandCR();
 
 void OnIdle(u32 _uThreadAddr);
 
@@ -127,23 +132,25 @@ void OnIdle(u32 _uThreadAddr);
 
 // These are intended to stay fast, probably become faster, and are not likely to slow down much if at all.
 inline void SetCRField(int cr_field, int value) {
-	PowerPC::ppcState.cr = (PowerPC::ppcState.cr & (~(0xF0000000 >> (cr_field * 4)))) | (value << ((7 - cr_field) * 4));
+	PowerPC::ppcState.cr_fast[cr_field] = value;
 }
 
 inline u32 GetCRField(int cr_field) {
-	return (PowerPC::ppcState.cr >> (4 * cr_field)) & 0xF;
+	return PowerPC::ppcState.cr_fast[cr_field];
 }
 
 inline u32 GetCRBit(int bit) {
-	return (PowerPC::ppcState.cr >> (31 - bit)) & 1;
+	return (PowerPC::ppcState.cr_fast[bit >> 2] >> (3 - (bit & 3))) & 1;
 }
 
 // SetCR and GetCR may become fairly slow soon. Should be avoided if possible.
 inline void SetCR(u32 new_cr) {
 	PowerPC::ppcState.cr = new_cr;
+	PowerPC::ExpandCR();
 }
 
 inline u32 GetCR() {
+	PowerPC::CompactCR();
 	return PowerPC::ppcState.cr;
 }
 

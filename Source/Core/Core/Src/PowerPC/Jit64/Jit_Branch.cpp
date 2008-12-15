@@ -125,7 +125,7 @@ namespace Jit64
 
 		if ((inst.BO & 16) == 0)  // Test a CR bit
 		{
-			TEST(32, M(&PowerPC::ppcState.cr), Imm32(0x80000000 >> inst.BI));
+			TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
 			if (inst.BO & 8)  // Conditional branch 
 				branch = CC_NZ;
 			else

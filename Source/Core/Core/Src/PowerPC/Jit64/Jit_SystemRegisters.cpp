@@ -163,20 +163,39 @@ namespace Jit64
 		// USES_CR
 		int d = inst.RD;
 		gpr.LoadToX64(d, false, true);
-		MOV(32, gpr.R(d), M(&PowerPC::ppcState.cr));
+		MOV(8, R(EAX), M(&PowerPC::ppcState.cr_fast[0]));
+		SHL(32, R(EAX), Imm8(4));
+		for (int i = 1; i < 7; i++) {
+			OR(8, R(EAX), M(&PowerPC::ppcState.cr_fast[i]));
+			SHL(32, R(EAX), Imm8(4));
+		}
+		OR(8, R(EAX), M(&PowerPC::ppcState.cr_fast[7]));
+		MOV(32, gpr.R(d), R(EAX));
 	}
 
 	void mtcrf(UGeckoInstruction inst)
 	{
+		//Default(inst);
+		//return;
+
 		// USES_CR
 		u32 mask = 0;
 		u32 crm = inst.CRM;
-		gpr.FlushLockX(ECX);
 		if (crm == 0xFF) {
+			gpr.FlushLockX(ECX);			
 			MOV(32, R(EAX), gpr.R(inst.RS));
-			MOV(32, M(&PowerPC::ppcState.cr), R(EAX));
+			for (int i = 0; i < 8; i++) {
+				MOV(32, R(ECX), R(EAX));
+				SHR(32, R(ECX), Imm8(28 - (i * 4)));
+				AND(32, R(ECX), Imm32(0xF));
+				MOV(8, M(&PowerPC::ppcState.cr_fast[i]), R(ECX));
+			}
+			gpr.UnlockAllX();
 		} else {
-			//TODO: use lookup table? probably not worth it
+			Default(inst);
+			return;
+
+			// TODO: translate this to work in new CR model.
 			for (int i = 0; i < 8; i++) {
 				if (crm & (1 << i))
 					mask |= 0xF << (i*4);
@@ -188,9 +207,6 @@ namespace Jit64
 			OR(32, R(EAX), R(ECX));
 			MOV(32, M(&PowerPC::ppcState.cr), R(EAX));
 		}
-		gpr.UnlockAllX();
 	}
 
-
-}
-
+}  // namespace

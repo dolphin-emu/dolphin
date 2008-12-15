@@ -174,23 +174,21 @@ namespace Jit64
 		}
 
 		gpr.KillImmediate(a); // todo, optimize instead, but unlikely to make a difference
-		AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xF0000000 >> (crf*4))));
 		CMP(32, gpr.R(a), comparand);
 		FixupBranch pLesser  = J_CC(less_than);
 		FixupBranch pGreater = J_CC(greater_than);
 		
-		MOV(32, R(EAX), Imm32(0x20000000 >> shift)); // _x86Reg == 0
+		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2)); // _x86Reg == 0
 		FixupBranch continue1 = J();
 		
 		SetJumpTarget(pGreater);
-		MOV(32, R(EAX), Imm32(0x40000000 >> shift)); // _x86Reg > 0
+		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4)); // _x86Reg > 0
 		FixupBranch continue2 = J();
 		
 		SetJumpTarget(pLesser);
-		MOV(32, R(EAX), Imm32(0x80000000 >> shift));// _x86Reg < 0
+		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8)); // _x86Reg < 0
 		SetJumpTarget(continue1);
 		SetJumpTarget(continue2);
-		OR(32, M(&PowerPC::ppcState.cr), R(EAX));
 
 		// TODO: Add extra code at the end for the "taken" case. Jump to it from the matching branches.
 		// Since it's the last block, some liberties can be taken.
@@ -221,23 +219,21 @@ namespace Jit64
 		}
 		gpr.Lock(a, b);
 		gpr.LoadToX64(a, true, false);
-		AND(32, M(&PowerPC::ppcState.cr), Imm32(~(0xF0000000 >> (crf*4))));
 		CMP(32, gpr.R(a), comparand);
 		FixupBranch pLesser  = J_CC(less_than);
 		FixupBranch pGreater = J_CC(greater_than);
 		// _x86Reg == 0
-		MOV(32, R(EAX), Imm32(0x20000000 >> shift));
+		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2)); // _x86Reg == 0
 		FixupBranch continue1 = J();
-		// _x86Reg > 0
+		
 		SetJumpTarget(pGreater);
-		MOV(32, R(EAX), Imm32(0x40000000 >> shift));
+		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4)); // _x86Reg > 0
 		FixupBranch continue2 = J();
-		// _x86Reg < 0
+		
 		SetJumpTarget(pLesser);
-		MOV(32, R(EAX), Imm32(0x80000000 >> shift));
+		MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8)); // _x86Reg < 0
 		SetJumpTarget(continue1);
 		SetJumpTarget(continue2);
-		OR(32, M(&PowerPC::ppcState.cr), R(EAX));	
 		gpr.UnlockAll();
 	}
 	
