@@ -240,8 +240,10 @@ void Video_DoState(unsigned char **ptr, int mode) {
 //#elif defined(HAVE_X11) && HAVE_X11
 //    glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
 //#endif 
-    OpenGL_MakeCurrent();
-        
+#ifndef _WIN32
+	// WHY is this here??
+	OpenGL_MakeCurrent();
+#endif
     // Clear all caches that touch RAM
     TextureMngr::Invalidate();
     // DisplayListManager::Invalidate();
