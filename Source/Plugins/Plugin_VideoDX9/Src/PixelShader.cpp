@@ -444,7 +444,7 @@ void WriteStage(char *&p, int n)
         case TEVCMP_GR16_EQ:
         case TEVCMP_BGR24_EQ:
             WRITE(p,"   %s + (abs(dot(%s.rgb - %s.rgb, comp%s))<%f ? %s : 0)\n",
-                tevAInputTable[ac.d],tevAInputTable2[ac.a], tevAInputTable2[ac.b],cmp==TEVCMP_GR16_GT?"16":"24",epsilon,tevAInputTable[ac.c]);
+                tevAInputTable[ac.d],tevAInputTable2[ac.a], tevAInputTable2[ac.b],cmp==TEVCMP_GR16_EQ?"16":"24",epsilon,tevAInputTable[ac.c]);
             break;
         default:
             WRITE(p,"0)\n");

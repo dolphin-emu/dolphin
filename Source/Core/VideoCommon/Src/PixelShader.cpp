@@ -698,7 +698,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
         case TEVCMP_GR16_EQ:
         case TEVCMP_BGR24_EQ:
             WRITE(p, "   %s + (abs(dot(%s.rgb - %s.rgb, comp%s))<%f ? %s : float3(0.0f,0.0f,0.0f));\n",
-                tevCInputTable[cc.d], tevCInputTable2[cc.a], tevCInputTable2[cc.b], cmp==TEVCMP_GR16_GT?"16":"24", epsilon8bit, tevCInputTable[cc.c]);
+                tevCInputTable[cc.d], tevCInputTable2[cc.a], tevCInputTable2[cc.b], cmp==TEVCMP_GR16_EQ?"16":"24", epsilon8bit, tevCInputTable[cc.c]);
             break;
         default:
             WRITE(p, "float3(0.0f,0.0f,0.0f);\n");
@@ -742,7 +742,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask)
         case TEVCMP_GR16_EQ:
         case TEVCMP_BGR24_EQ:
             WRITE(p, "   %s + (abs(dot(%s.rgb - %s.rgb, comp%s))<%f ? %s : 0)\n",
-                tevAInputTable[ac.d],tevAInputTable2[ac.a], tevAInputTable2[ac.b],cmp==TEVCMP_GR16_GT?"16":"24",epsilon8bit,tevAInputTable[ac.c]);
+                tevAInputTable[ac.d],tevAInputTable2[ac.a], tevAInputTable2[ac.b],cmp==TEVCMP_GR16_EQ?"16":"24",epsilon8bit,tevAInputTable[ac.c]);
             break;
         default:
             WRITE(p, "0)\n");
