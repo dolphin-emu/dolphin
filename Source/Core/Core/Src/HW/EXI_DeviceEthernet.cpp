@@ -29,11 +29,12 @@ unsigned int Expecting;
 CEXIETHERNET::CEXIETHERNET() :
 	m_uPosition(0),
 	m_uCommand(0),
-	mWriteBuffer(2000)
+	mWriteBuffer(2048)
 {
 	ID = 0x04020200;
 	mWriteP = INVALID_P;
 	mReadP = INVALID_P;
+	mReadyToSend = false;
 	
 	mExpectSpecialImmRead = false;
 	
@@ -47,12 +48,13 @@ void CEXIETHERNET::SetCS(int cs)
 	{
 		m_uPosition = 0;
 		Expecting = EXPECT_NONE;
+		mReadyToSend = true;
 	}
 }
 
 bool CEXIETHERNET::IsPresent()
 {
-	return false;
+	return true;
 }
 
 void CEXIETHERNET::Update()
@@ -86,10 +88,11 @@ inline u32 getbitsh(u32 hword, int start, int end) {
 inline u32 getbitsw(u32 dword, int start, int end) {
 	return (dword & makemaskw(start, end)) >> (31 - end);
 }
+#define MAKE(type, arg) (*(type *)&(arg))
 
 void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 {
-	printf("IMM Write, size 0x%x, data 0x%x\n", _uSize, _uData);
+	printf("IMM Write, size 0x%x, data 0x%x mWriteP 0x%x\n", _uSize, _uData, mWriteP);
 	if(mExpectVariableLengthImmWrite) 
 	{
 		printf("Not doing expecting variable length imm write!\n");
@@ -108,33 +111,42 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		{
 			case 0x09:
 				printf("mWriteP is %x\n", mWriteP);
-				exit(0);
 				//BBADEGUB("BBA Interrupt reset 0x%02X & ~(0x%02X) => 0x%02X\n", mBbaMem[0x09], MAKE(BYTE, data), mBbaMem[0x09] & ~MAKE(BYTE, data));
-				//MYASSERT(_uSize == 1);
-				//mBbaMem[0x09] &= ~MAKE(BYTE, data);
+				//assert(_uSize == 1);
+				// TODO: Should we swap our data?
+				mBbaMem[0x09] &= ~MAKE(u8, _uData);
+				exit(0);
 				break;
 			case BBA_NCRA:
-				printf("mWriteP is %x\n", mWriteP);
-				exit(0);
-				/*#define RISE(flags) ((data & (flags)) && !(mBbaMem[0x00] & (flags)))
+				// TODO: Should we swap our data?
+				#define RISE(flags) ((_uData & (flags)) && !(mBbaMem[0x00] & (flags)))
 				if(RISE(BBA_NCRA_RESET)) 
 				{
 					printf("BBA Reset\n");
+					exit(0);
 				}
-				if(RISE(BBA_NCRA_SR) && isActivated()) 
+				if(RISE(BBA_NCRA_SR) )/*&& isActivated()) */
 				{
-					BBADEGUB("BBA Start Recieve\n");
-					HWGLE(startRecv());
+					printf("BBA Start Recieve\n");
+					exit(0);
+					//HWGLE(startRecv());
 				}
 				if(RISE(BBA_NCRA_ST1)) 
 				{
-					BBADEGUB("BBA Start Transmit\n");
+					printf("BBA Start Transmit\n");
 					if(!mReadyToSend)
-						throw hardware_fatal_exception("BBA Transmit without a packet!");
-					HWGLE(sendPacket(mWriteBuffer.p(), mWriteBuffer.size()));
+					{
+						printf("Not ready to send!\n");
+						exit(0);
+					}
+						//throw hardware_fatal_exception("BBA Transmit without a packet!");
+					//HWGLE(sendPacket(mWriteBuffer.p(), mWriteBuffer.size()));
 					mReadyToSend = false;
+					exit(0);
 				}
-				mBbaMem[0x00] = MAKE(BYTE, data);*/
+				// TODO: Swap here?
+				_uData = Common::swap32(_uData);
+				mBbaMem[0x00] = MAKE(u8, _uData);
 				break;
 			case BBA_NWAYC:
 				printf("mWriteP is %x\n", mWriteP);
@@ -163,7 +175,8 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				MYASSERT(data == DWORD((WORD)mCbw.p_write() + CB_OFFSET) >> 8);*/
 				break;
 			default:
-				printf("Default one!\n");
+				printf("Default one!Size 0x%x _uData: 0x%08x Swapped 0x%08x to 0x%x\n", _uSize, _uData, Common::swap32(_uData),mWriteP);
+				_uData = Common::swap32(_uData);
 				memcpy(mBbaMem + mWriteP, &_uData, _uSize);
 				mWriteP = mWriteP + _uSize;
 		}
@@ -179,9 +192,9 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 	{ // Write to BBA Register
 		printf("Write to BBA register!\n");
 		if(_uSize == 4)
-			mWriteP = (u8)getbitsw(_uData, 16, 23);
+			mWriteP = (u8)getbitsw(Common::swap32(_uData), 16, 23);
 		else  //size == 2
-			mWriteP = (u8)getbitsw(_uData & ~0x4000, 16, 23);  //Dunno about this...
+			mWriteP = (u8)getbitsw(Common::swap32(_uData) & ~0x4000, 16, 23);  //Whinecube : Dunno about this...
 		if(mWriteP == 0x48) 
 		{
 			mWriteBuffer.clear();
@@ -190,7 +203,9 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		} 
 		else 
 		{
-			//BBADEGUB("BBA Write pointer set to 0x%0*X\n", size, mWriteP);
+			
+			printf("BBA Write pointer set to 0x%0*X\n", _uSize, mWriteP);
+			//exit(0);
 		}
 		return;
 	}
@@ -242,9 +257,13 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				//mBbaMem[mReadP] = 0x00;
 				//if(!sendInProgress())
 				mBbaMem[mReadP] &= ~(0x06);
+				printf("mBbaMem[0x%x] &= ~(0x06);! Now %x\n", mReadP, mBbaMem[mReadP]);
+				//exit(0);
 				break;
 			case 0x03:
 				mBbaMem[mReadP] = 0x80;
+				printf("mBbaMem[0x%x] = 0x80;! Now %x\n", mReadP, mBbaMem[mReadP]);
+				exit(0);
 				break;
 		}
 		//BBADEGUB("BBA Read pointer set to 0x%0*X\n", size, mReadP);
@@ -270,8 +289,8 @@ u32 CEXIETHERNET::ImmRead(u32 _uSize)
 		}
 		u32 uResult = 0;
 		memcpy(&uResult, mBbaMem + mReadP, _uSize);
-		// We do as well?
-		//data = swapw(data); //we have a byteswap problem...
+		// TODO: We do as well?
+		uResult = Common::swap32(uResult); //Whinecube : we have a byteswap problem...
 		printf("Read from BBA address 0x%0*X, %i byte%s: 0x%0*X\n",mReadP >= CB_OFFSET ? 4 : 2, mReadP, _uSize, (_uSize==1?"":"s"),_uSize*2, getbitsw(uResult, 0, _uSize * 8 - 1));
 		mReadP = mReadP + _uSize;
 		return uResult;
