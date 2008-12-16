@@ -321,8 +321,8 @@ namespace Jit64
 			// TODO - faster version for when regs are different
 			MOVAPD(XMM0, fpr.R(c));
 			MOVAPD(XMM1, fpr.R(a));
-			SHUFPD(XMM1, R(XMM1), 5); // copy higher to lower
-			MULPD(XMM0, R(XMM1)); // sum lowers
+			SHUFPD(XMM1, R(XMM1), 3); // copy higher to lower
+			MULPD(XMM0, R(XMM1));
 			MOVAPD(fpr.R(d), XMM0);
 			break;
 		default:
@@ -398,6 +398,17 @@ namespace Jit64
 		MOVAPD(XMM0, fpr.R(a));
 		switch (inst.SUBOP5)
 		{
+		case 14: //madds0
+			MOVDDUP(XMM1, fpr.R(c));
+			MULPD(XMM0, R(XMM1));
+			ADDPD(XMM0, fpr.R(b));
+			break;
+		case 15: //madds1
+			MOVAPD(XMM1, fpr.R(c));
+			SHUFPD(XMM1, R(XMM1), 3); // copy higher to lower
+			MULPD(XMM0, R(XMM1));
+			ADDPD(XMM0, fpr.R(b));
+			break;
 		case 28: //msub
 			MULPD(XMM0, fpr.R(c));
 			SUBPD(XMM0, fpr.R(b));
@@ -426,26 +437,5 @@ namespace Jit64
 		MOVAPD(fpr.RX(d), Gen::R(XMM0));
 		ForceSinglePrecisionP(fpr.RX(d));
 		fpr.UnlockAll();
-	}
-
-	void ps_mulsX(UGeckoInstruction inst)
-	{
-#ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
-			{Default(inst); return;} // turn off from debugger
-#endif
-		INSTRUCTION_START;
-		Default(inst);
-		return;
-		if (inst.Rc) {
-			Default(inst); return;
-		}
-
-		switch (inst.SUBOP5)
-		{
-		case 12:
-		case 13:
-			break;
-		}
 	}
 }
