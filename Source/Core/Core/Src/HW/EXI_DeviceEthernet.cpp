@@ -118,17 +118,21 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				exit(0);
 				break;
 			case BBA_NCRA:
+			{
+				u32 SwappedData = Common::swap32(_uData);
 				// TODO: Should we swap our data?
-				#define RISE(flags) ((_uData & (flags)) && !(mBbaMem[0x00] & (flags)))
+				#define RISE(flags) ((SwappedData & (flags)) && !(mBbaMem[0x00] & (flags)))
 				if(RISE(BBA_NCRA_RESET)) 
 				{
+					// Normal
+					// Whinecube did nothing else as well
 					printf("BBA Reset\n");
-					exit(0);
 				}
 				if(RISE(BBA_NCRA_SR) )/*&& isActivated()) */
 				{
 					printf("BBA Start Recieve\n");
-					exit(0);
+					//exit(0);
+					// TODO: Need to make our virtual network device start receiving
 					//HWGLE(startRecv());
 				}
 				if(RISE(BBA_NCRA_ST1)) 
@@ -138,15 +142,15 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 					{
 						printf("Not ready to send!\n");
 						exit(0);
-					}
 						//throw hardware_fatal_exception("BBA Transmit without a packet!");
+					}
+					// TODO: Actually Make it send a packet
 					//HWGLE(sendPacket(mWriteBuffer.p(), mWriteBuffer.size()));
 					mReadyToSend = false;
-					exit(0);
-				}
-				// TODO: Swap here?
-				_uData = Common::swap32(_uData);
-				mBbaMem[0x00] = MAKE(u8, _uData);
+					//exit(0);
+				};
+				mBbaMem[0x00] = MAKE(u8, SwappedData);
+			}
 				break;
 			case BBA_NWAYC:
 				printf("mWriteP is %x\n", mWriteP);
@@ -254,6 +258,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 				//mBbaMem[mReadP] = !mRBEmpty;
 				break;
 			case 0x00:
+				// These Two lines were commented out in Whinecube
 				//mBbaMem[mReadP] = 0x00;
 				//if(!sendInProgress())
 				mBbaMem[mReadP] &= ~(0x06);
