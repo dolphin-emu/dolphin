@@ -46,8 +46,6 @@
 #include <wx/panel.h>
 #include <wx/statbmp.h>
 
-#undef ConfigBox_STYLE
-#define ConfigBox_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX
 
 class ConfigBox : public wxDialog
 {
@@ -55,7 +53,8 @@ class ConfigBox : public wxDialog
 		DECLARE_EVENT_TABLE();
 		
 	public:
-		ConfigBox(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("Configure: nJoy Input Plugin"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = ConfigBox_STYLE);
+		ConfigBox(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("Configure: nJoy Input Plugin"),
+			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE);
 		virtual ~ConfigBox();
 		
 	private:

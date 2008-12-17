@@ -25,13 +25,15 @@
 #include <wx/mstream.h>
 #include <wx/statbmp.h>
 
-#undef ABOUTDOLPHIN_STYLE
-#define ABOUTDOLPHIN_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX
-
 class AboutDolphin : public wxDialog
 {
 	public:
-		AboutDolphin(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("About Dolphin"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = ABOUTDOLPHIN_STYLE);
+		AboutDolphin(wxWindow *parent,
+			wxWindowID id = 1,
+			const wxString &title = wxT("About Dolphin"),
+			const wxPoint& pos = wxDefaultPosition,
+			const wxSize& size = wxDefaultSize,
+			long style = wxDEFAULT_DIALOG_STYLE);
 		virtual ~AboutDolphin();
 		void CloseClick(wxCommandEvent& event);
 

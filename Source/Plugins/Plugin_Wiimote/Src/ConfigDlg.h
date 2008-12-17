@@ -31,17 +31,13 @@
 #include <wx/gbsizer.h>
 
 
-#undef ConfigDialog_STYLE
-#define ConfigDialog_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX
-
-
 class ConfigDialog : public wxDialog
 {
 	public:
 		ConfigDialog(wxWindow *parent, wxWindowID id = 1,
 			const wxString &title = wxT("Wii Remote Plugin Configuration"),
 			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-			long style = ConfigDialog_STYLE);
+			long style = wxDEFAULT_DIALOG_STYLE);
 		virtual ~ConfigDialog();
 		void CloseClick(wxCommandEvent& event);
 

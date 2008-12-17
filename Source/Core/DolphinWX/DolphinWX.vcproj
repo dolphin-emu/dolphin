@@ -769,6 +769,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\ARCodeAddEdit.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ARCodeAddEdit.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\CheatsWindow.cpp"
 				>
 			</File>

@@ -32,9 +32,6 @@
 #ifndef _WIN32
 #include "../XInputBase.h"
 #endif
-#undef CONFIGDIALOG_STYLE
-#define CONFIGDIALOG_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX
-
 
 class ConfigDialog : public wxDialog
 {
@@ -42,7 +39,7 @@ class ConfigDialog : public wxDialog
 		
 	public:
 		ConfigDialog(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("Pad Configuration"),
-			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = CONFIGDIALOG_STYLE);
+			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE);
 		
 		virtual ~ConfigDialog();
 

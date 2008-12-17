@@ -603,10 +603,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\PortableSockets.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\SConscript"
 			>
 		</File>

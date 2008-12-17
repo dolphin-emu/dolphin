@@ -22,18 +22,19 @@
 #include <wx/gbsizer.h>
 #include <wx/notebook.h>
 #include <wx/filepicker.h>
-//#include <wx/listbox.h>
 #include "Config.h"
-
-#undef CONFIG_MAIN_STYLE
-#define CONFIG_MAIN_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX
 
 class CConfigMain
 	: public wxDialog
 {
 	public:
 
-		CConfigMain(wxWindow* parent, wxWindowID id = 1, const wxString& title = wxT("Dolphin Configuration"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = CONFIG_MAIN_STYLE);
+		CConfigMain(wxWindow* parent,
+			wxWindowID id = 1,
+			const wxString& title = wxT("Dolphin Configuration"),
+			const wxPoint& pos = wxDefaultPosition,
+			const wxSize& size = wxDefaultSize,
+			long style = wxDEFAULT_DIALOG_STYLE);
 		virtual ~CConfigMain();
 		void CloseClick(wxCommandEvent& event);
 		void OnSelectionChanged(wxCommandEvent& event);

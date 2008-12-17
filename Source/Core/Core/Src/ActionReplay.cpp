@@ -24,6 +24,8 @@
 // It probably is Turing complete - but what does that matter when AR codes can write
 // actual PowerPC code...
 
+// THIS FILE IS GROSS!!!
+
 #include <string>
 #include <vector>
 
@@ -35,16 +37,17 @@
 #include "ARDecrypt.h"
 #include "LogManager.h"
 
-namespace
+namespace ActionReplay
 {
-	static std::vector<AREntry>::const_iterator iter;
-	static ARCode code;
-	static bool b_RanOnce = false;
-	static std::vector<ARCode> arCodes;
-	static std::vector<ARCode> activeCodes;
-	static bool logSelf = false;
-	static std::vector<std::string> arLog;
-} // namespace
+
+static std::vector<AREntry>::const_iterator iter;
+static ARCode code;
+static bool b_RanOnce = false;
+static std::vector<ARCode> arCodes;
+static std::vector<ARCode> activeCodes;
+static bool logSelf = false;
+static std::vector<std::string> arLog;
+
 
 void LogInfo(const char *format, ...);
 // --- Codes ---
@@ -66,11 +69,11 @@ bool NormalCode_Type_5(u8 subtype, u32 addr, u32 data, int *count, bool *skip);
 bool NormalCode_Type_6(u8 subtype, u32 addr, u32 data, int *count, bool *skip);
 bool NormalCode_Type_7(u8 subtype, u32 addr, u32 data, int *count, bool *skip);
 
-void LoadActionReplayCodes(IniFile &ini) 
+void LoadCodes(IniFile &ini, bool forceLoad)
 {
 	// Parses the Action Replay section of a game ini file.
-	if (!Core::GetStartupParameter().bEnableCheats) 
-		return; // If cheats are off, do not load them
+	if (!Core::GetStartupParameter().bEnableCheats && !forceLoad) 
+		return;
 
 	std::vector<std::string> lines;
 	std::vector<std::string> encryptedLines;
@@ -158,7 +161,13 @@ void LoadActionReplayCodes(IniFile &ini)
 		arCodes.push_back(currentCode);
 	}
 
-	ActionReplay_UpdateActiveList();
+	UpdateActiveList();
+}
+
+void LoadCodes(std::vector<ARCode> &_arCodes, IniFile &ini)
+{
+	LoadCodes(ini, true);
+	_arCodes = arCodes;
 }
 
 void LogInfo(const char *format, ...)
@@ -184,14 +193,14 @@ void LogInfo(const char *format, ...)
 	}
 }
 
-void ActionReplayRunAllActive()
+void RunAllActive()
 {
 	if (Core::GetStartupParameter().bEnableCheats) {
 		for (std::vector<ARCode>::iterator iter = activeCodes.begin(); iter != activeCodes.end(); ++iter) 
 		{
 			if (iter->active)
 			{
-				if (!RunActionReplayCode(*iter))
+				if (!RunCode(*iter))
 					iter->active = false;
 				LogInfo("\n");
 			}
@@ -201,7 +210,7 @@ void ActionReplayRunAllActive()
 	}
 }
 
-bool RunActionReplayCode(const ARCode &arcode) {
+bool RunCode(const ARCode &arcode) {
 	// The mechanism is different than what the real AR uses, so there may be compatibility problems.
 	u8 cmd;
 	u32 addr;
@@ -999,33 +1008,33 @@ bool NormalCode_Type_7(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
 	return true;
 }
 
-size_t ActionReplay_GetCodeListSize()
+size_t GetCodeListSize()
 {
 	return arCodes.size();
 }
 
-ARCode ActionReplay_GetARCode(size_t index)
+ARCode GetARCode(size_t index)
 {
 	if (index > arCodes.size())
 	{
-		PanicAlert("ActionReplay_GetARCode: Index is greater than ar code list size %i", index);
+		PanicAlert("GetARCode: Index is greater than ar code list size %i", index);
 		return ARCode();
 	}
 	return arCodes[index];
 }
 
-void ActionReplay_SetARCode_IsActive(bool active, size_t index)
+void SetARCode_IsActive(bool active, size_t index)
 {
 	if (index > arCodes.size())
 	{
-		PanicAlert("ActionReplay_SetARCode_IsActive: Index is greater than ar code list size %i", index);
+		PanicAlert("SetARCode_IsActive: Index is greater than ar code list size %i", index);
 		return;
 	}
 	arCodes[index].active = active;
-	ActionReplay_UpdateActiveList();
+	UpdateActiveList();
 }
 
-void ActionReplay_UpdateActiveList()
+void UpdateActiveList()
 {
 	b_RanOnce = false;
 	activeCodes.clear();
@@ -1036,17 +1045,19 @@ void ActionReplay_UpdateActiveList()
 	}
 }
 
-void ActionReplay_EnableSelfLogging(bool enable)
+void EnableSelfLogging(bool enable)
 {
 	logSelf = enable;
 }
 
-const std::vector<std::string> &ActionReplay_GetSelfLog()
+const std::vector<std::string> &GetSelfLog()
 {
 	return arLog;
 }
 
-bool ActionReplay_IsSelfLogging()
+bool IsSelfLogging()
 {
 	return logSelf;
 }
+
+} // namespace ActionReplay

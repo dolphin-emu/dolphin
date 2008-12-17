@@ -20,6 +20,8 @@
 #include "ActionReplay.h"
 #include "Core.h"
 
+using namespace ActionReplay;
+
 BEGIN_EVENT_TABLE(wxCheatsWindow, wxWindow)
 	EVT_SIZE(                                            wxCheatsWindow::OnEvent_Window_Resize)
 	EVT_CLOSE(                                           wxCheatsWindow::OnEvent_Window_Close)
@@ -31,7 +33,8 @@ BEGIN_EVENT_TABLE(wxCheatsWindow, wxWindow)
 	EVT_CHECKBOX(ID_CHECKBOX_LOGAR,                      wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange)
 END_EVENT_TABLE()
 
-wxCheatsWindow::wxCheatsWindow(wxFrame* parent, const wxPoint& pos, const wxSize& size) : wxFrame(parent, wxID_ANY, _T("Action Replay"), pos, size, wxCHEATSWINDOW_STYLE)
+wxCheatsWindow::wxCheatsWindow(wxFrame* parent, const wxPoint& pos, const wxSize& size) :
+	wxFrame(parent, wxID_ANY, _T("Action Replay"), pos, size, wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE)
 {
 	// Create the GUI controls
 	Init_ChildControls();
@@ -93,7 +96,7 @@ void wxCheatsWindow::Init_ChildControls()
 
 		m_Button_UpdateLog = new wxButton(m_Tab_Log, ID_BUTTON_UPDATELOG, wxT("Update"));
 		m_CheckBox_LogAR = new wxCheckBox(m_Tab_Log, ID_CHECKBOX_LOGAR, wxT("Enable AR Logging"));
-		m_CheckBox_LogAR->SetValue(ActionReplay_IsSelfLogging());
+		m_CheckBox_LogAR->SetValue(IsSelfLogging());
 		m_TextCtrl_Log = new wxTextCtrl(m_Tab_Log, ID_TEXTCTRL_LOG, wxT(""), wxDefaultPosition, wxSize(100, 600), wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
 
 		wxBoxSizer *HStrip1 = new wxBoxSizer(wxHORIZONTAL);
@@ -139,10 +142,10 @@ void wxCheatsWindow::OnEvent_Window_Close(wxCloseEvent& WXUNUSED (event))
 void wxCheatsWindow::Load_ARCodes()
 {
 	indexList.clear();
-	size_t size = ActionReplay_GetCodeListSize();
+	size_t size = GetCodeListSize();
 	for (size_t i = 0; i < size; i++)
 	{
-		ARCode code = ActionReplay_GetARCode(i);
+		ARCode code = GetARCode(i);
 		ARCodeIndex ind;
 		u32 index = m_CheckListBox_CheatsList->Append(wxString::FromAscii(code.name.c_str()));
 		m_CheckListBox_CheatsList->Check(index, code.active);
@@ -158,7 +161,7 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (e
 	{
 		if ((int)indexList[i].uiIndex == index)
 		{
-			ARCode code = ActionReplay_GetARCode(i);
+			ARCode code = GetARCode(i);
 			m_Label_Codename->SetLabel(wxT("Name: ") + wxString::FromAscii(code.name.c_str()));
 			char text[CHAR_MAX];
 			char* numcodes = text;
@@ -183,7 +186,7 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemToggled(wxCommandEvent& WXUNUSED (ev
 	{
 		if ((int)indexList[i].uiIndex == index)
 		{
-			ActionReplay_SetARCode_IsActive(m_CheckListBox_CheatsList->IsChecked(index), indexList[i].index);
+			SetARCode_IsActive(m_CheckListBox_CheatsList->IsChecked(index), indexList[i].index);
 		}
 	}
 }
@@ -191,14 +194,14 @@ void wxCheatsWindow::OnEvent_ButtonUpdateCodes_Press(wxCommandEvent& WXUNUSED (e
 {
 	for (size_t i = 0; i < indexList.size(); i++)
 	{
-		ActionReplay_SetARCode_IsActive(m_CheckListBox_CheatsList->IsChecked(indexList[i].uiIndex), indexList[i].index);
+		SetARCode_IsActive(m_CheckListBox_CheatsList->IsChecked(indexList[i].uiIndex), indexList[i].index);
 	}
 }
 
 void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED (event))
 {
 	m_TextCtrl_Log->Clear();
-	const std::vector<std::string> &arLog = ActionReplay_GetSelfLog();
+	const std::vector<std::string> &arLog = GetSelfLog();
 	for (u32 i = 0; i < arLog.size(); i++)
 	{
 		m_TextCtrl_Log->AppendText(wxString::FromAscii(arLog[i].c_str()));
@@ -207,5 +210,5 @@ void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED (eve
 
 void wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& WXUNUSED (event))
 {
-	ActionReplay_EnableSelfLogging(m_CheckBox_LogAR->IsChecked());
+	EnableSelfLogging(m_CheckBox_LogAR->IsChecked());
 }

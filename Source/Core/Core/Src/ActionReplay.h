@@ -20,6 +20,9 @@
 
 #include "IniFile.h"
 
+namespace ActionReplay
+{
+
 struct AREntry {
 	u32 cmd_addr;
 	u32 value;
@@ -31,15 +34,17 @@ struct ARCode {
 	bool active;
 };
 
-void ActionReplayRunAllActive();
-bool RunActionReplayCode(const ARCode &arcode);
-void LoadActionReplayCodes(IniFile &ini);
-size_t ActionReplay_GetCodeListSize();
-ARCode ActionReplay_GetARCode(size_t index);
-void ActionReplay_SetARCode_IsActive(bool active, size_t index);
-void ActionReplay_UpdateActiveList();
-void ActionReplay_EnableSelfLogging(bool enable);
-const std::vector<std::string> &ActionReplay_GetSelfLog();
-bool ActionReplay_IsSelfLogging();
+void RunAllActive();
+bool RunCode(const ARCode &arcode);
+void LoadCodes(IniFile &ini, bool forceLoad);
+void LoadCodes(std::vector<ARCode> &_arCodes, IniFile &ini);
+size_t GetCodeListSize();
+ARCode GetARCode(size_t index);
+void SetARCode_IsActive(bool active, size_t index);
+void UpdateActiveList();
+void EnableSelfLogging(bool enable);
+const std::vector<std::string> &GetSelfLog();
+bool IsSelfLogging();
+}  // namespace
 
 #endif //_ACTIONREPLAY_H_

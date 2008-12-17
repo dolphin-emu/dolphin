@@ -22,20 +22,14 @@
 #include "Filesystem.h"
 #include "ISOProperties.h"
 #include "PatchAddEdit.h"
+#include "ARCodeAddEdit.h"
 
 
 DiscIO::IVolume *OpenISO = NULL;
 DiscIO::IFileSystem *pFileSystem = NULL;
 
 std::vector<PatchEngine::Patch> onFrame;
-
-struct ARListCode {
-	std::string name;
-	bool enabled;
-	std::vector<std::string> ops;
-	u32 uiIndex;
-};
-std::vector<ARListCode> ARCodes;
+std::vector<ActionReplay::ARCode> arCodes;
 
 
 BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
@@ -698,86 +692,58 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 
 void CISOProperties::ActionReplayList_Load()
 {
-	ARCodes.clear();
+	arCodes.clear();
 	Cheats->Clear();
-	std::vector<std::string> lines;
+	ActionReplay::LoadCodes(arCodes, GameIni);
 
-	if (!GameIni.GetLines("ActionReplay", lines))
-		return;
-
-	ARListCode code;
-
-	for (std::vector<std::string>::const_iterator it = lines.begin(); it != lines.end(); ++it)
+	u32 index = 0;
+	for (std::vector<ActionReplay::ARCode>::const_iterator it = arCodes.begin(); it != arCodes.end(); ++it)
 	{
-		std::string line = *it;
-
-		if (line[0] == '+' || line[0] == '$')
-		{
-			// Take care of the previous code
-			if (code.ops.size())
-			{
-				code.uiIndex = Cheats->Append(wxString::FromAscii(code.name.c_str()));
-				ARCodes.push_back(code);
-				Cheats->Check(code.uiIndex, code.enabled);
-				code.ops.clear();
-			}
-
-			// Give name and enabled to current code
-			if(line.size() > 1)
-			{
-				if (line[0] == '+')
-				{
-					code.enabled = true;
-					code.name = line.substr(2, line.size() - 2);
-				}
-				else
-				{
-					code.enabled = false;
-					code.name = line.substr(1, line.size() - 1);
-				}
-			}
-			continue;
-		}
-		code.ops.push_back(line);
-	}
-
-	if (code.ops.size())
-	{
-		code.uiIndex = Cheats->Append(wxString::FromAscii(code.name.c_str()));
-		ARCodes.push_back(code);
-		Cheats->Check(code.uiIndex, code.enabled);
+		ActionReplay::ARCode arCode = *it;
+		Cheats->Append(wxString::FromAscii(arCode.name.c_str()));
+		Cheats->Check(index, arCode.active);
+		++index;
 	}
 }
 
 void CISOProperties::ActionReplayList_Save()
 {
 	std::vector<std::string> lines;
-	for (std::vector<ARListCode>::const_iterator iter = ARCodes.begin(); iter != ARCodes.end(); ++iter)
+	u32 index = 0;
+	for (std::vector<ActionReplay::ARCode>::const_iterator iter = arCodes.begin(); iter != arCodes.end(); ++iter)
 	{
-		ARListCode code = *iter;
+		ActionReplay::ARCode code = *iter;
 
-		lines.push_back(Cheats->IsChecked(code.uiIndex) ? "+$" + code.name : "$" + code.name);
+		lines.push_back(Cheats->IsChecked(index) ? "+$" + code.name : "$" + code.name);
 
-		for (std::vector<std::string>::const_iterator iter2 = code.ops.begin(); iter2 != code.ops.end(); ++iter2)
+		for (std::vector<ActionReplay::AREntry>::const_iterator iter2 = code.ops.begin(); iter2 != code.ops.end(); ++iter2)
 		{
-			lines.push_back(*iter2);
+			lines.push_back(wxString::Format("%08X %08X", iter2->cmd_addr, iter2->value).mb_str());
 		}
+		++index;
 	}
 	GameIni.SetLines("ActionReplay", lines);
 }
 
 void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 {
+	int selection = Cheats->GetSelection();
+	
 	switch (event.GetId())
 	{
 	case ID_EDITCHEAT:
-		// dialog
+		{
+		CARCodeAddEdit dlg(selection, this);
+		dlg.ShowModal();
+		}
 		break;
 	case ID_ADDCHEAT:
+		{
 		// dialog
+		}
 		break;
 	case ID_REMOVECHEAT:
-		ARCodes.erase(ARCodes.begin() + Cheats->GetSelection());
+		arCodes.erase(arCodes.begin() + Cheats->GetSelection());
 		break;
 	}
 

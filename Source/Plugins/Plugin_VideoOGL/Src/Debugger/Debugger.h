@@ -43,11 +43,6 @@
 class CPBView;
 class IniFile;
 
-// Window settings - I'm not sure what these do. I just copied them gtom elsewhere basically.
-#undef CDebugger_STYLE
-
-#define CDebugger_STYLE wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE
-
 class CDebugger : public wxDialog
 {
 	private:
@@ -56,7 +51,7 @@ class CDebugger : public wxDialog
 	public:
 		CDebugger(wxWindow *parent, wxWindowID id = 1, const wxString &title = _("Sound Debugger"),
 			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-			long style = CDebugger_STYLE);
+			long style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE);
 
 		virtual ~CDebugger();
 

@@ -22,6 +22,9 @@
 #include "ARDecrypt.h"
 #include <algorithm>
 
+namespace ActionReplay
+{
+
 int total;
 
 // Alphanumeric filter for text<->bin conversion
@@ -509,3 +512,4 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry> &ops)
 		}
 	}
 }
+} //namespace ActionReplay

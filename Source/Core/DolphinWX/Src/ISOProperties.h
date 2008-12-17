@@ -32,15 +32,19 @@
 #include "Filesystem.h"
 #include "IniFile.h"
 #include "PatchEngine.h"
-
-#undef ISOPROPERTIES_STYLE
-#define ISOPROPERTIES_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX
+#include "ActionReplay.h"
 
 class CISOProperties : public wxDialog
 {
 	public:
 
-		CISOProperties(const std::string fileName, wxWindow* parent, wxWindowID id = 1, const wxString& title = wxT("Properties"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = ISOPROPERTIES_STYLE);
+		CISOProperties(const std::string fileName,
+			wxWindow* parent,
+			wxWindowID id = 1,
+			const wxString& title = wxT("Properties"),
+			const wxPoint& pos = wxDefaultPosition,
+			const wxSize& size = wxDefaultSize,
+			long style = wxDEFAULT_DIALOG_STYLE);
 		virtual ~CISOProperties();
 
 		bool bRefreshList;

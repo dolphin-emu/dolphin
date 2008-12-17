@@ -28,9 +28,13 @@
 #include "Common.h"
 #include "ActionReplay.h"
 
+namespace ActionReplay
+{
+
 extern int total;
 extern const char *filter;
 
 void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry> &ops);
+} //namespace
 
 #endif //_ARDECRYPT_H_

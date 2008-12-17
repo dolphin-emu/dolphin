@@ -44,8 +44,6 @@
 #include <wx/statbox.h>
 #include <wx/statbmp.h>
 
-#undef AboutBox_STYLE
-#define AboutBox_STYLE wxCAPTION | wxSYSTEM_MENU | wxDIALOG_NO_PARENT | wxCLOSE_BOX
 
 class AboutBox : public wxDialog
 {
@@ -53,7 +51,8 @@ class AboutBox : public wxDialog
 		DECLARE_EVENT_TABLE();
 		
 	public:
-		AboutBox(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("About: nJoy Input Plugin"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = AboutBox_STYLE);
+		AboutBox(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("About: nJoy Input Plugin"),
+			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE);
 		virtual ~AboutBox();
 		void OKClick(wxCommandEvent& event);
 

@@ -36,9 +36,6 @@
 #include "Filesystem.h"
 #include "IniFile.h"
 
-#undef wxCHEATSWINDOW_STYLE
-#define wxCHEATSWINDOW_STYLE wxCAPTION | wxSYSTEM_MENU | wxCLOSE_BOX | wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE
-
 class wxCheatsWindow : public wxFrame
 {
 	public:

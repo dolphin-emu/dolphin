@@ -136,7 +136,7 @@ void LoadPatches(const char *gameID)
 	std::string filename = std::string(FULL_GAMECONFIG_DIR) + gameID + ".ini";
 	if (ini.Load(filename.c_str())) {
 		LoadPatchSection("OnFrame", onFrame, ini);
-		LoadActionReplayCodes(ini);
+		ActionReplay::LoadCodes(ini, false);
 		LoadSpeedhacks("Speedhacks", speedHacks, ini);
 	}
 }
@@ -178,6 +178,6 @@ void ApplyFramePatches()
 
 void ApplyARPatches()
 {
-	ActionReplayRunAllActive();
+	ActionReplay::RunAllActive();
 }
 }  // namespace

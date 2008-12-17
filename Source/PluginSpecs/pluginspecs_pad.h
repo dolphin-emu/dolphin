@@ -15,6 +15,7 @@
 #define PAD_ERR_TRANSFER        -3
 
 #define PAD_USE_ORIGIN          0x0080
+
 #define PAD_BUTTON_LEFT         0x0001
 #define PAD_BUTTON_RIGHT        0x0002
 #define PAD_BUTTON_DOWN         0x0004
@@ -32,13 +33,13 @@ typedef void (*TLog)(const char* _pMessage);
 
 typedef struct
 {
-	HWND hWnd;
-	TLog				pLog;	
+	HWND			hWnd;
+	TLog			pLog;
 } SPADInitialize;
 
 typedef struct
 {
-	unsigned short	button;                 // Or-ed PAD_BUTTON_* bits
+	unsigned short	button;                 // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
 	unsigned char	stickX;                 // 0 <= stickX       <= 255
 	unsigned char	stickY;                 // 0 <= stickY       <= 255
 	unsigned char	substickX;              // 0 <= substickX    <= 255
@@ -47,7 +48,7 @@ typedef struct
 	unsigned char	triggerRight;           // 0 <= triggerRight <= 255
 	unsigned char	analogA;                // 0 <= analogA      <= 255
 	unsigned char	analogB;                // 0 <= analogB      <= 255
-	bool			MicButton;
+	bool			MicButton;				// HAX
 	signed char		err;                    // one of PAD_ERR_* number
 } SPADStatus;
 
@@ -59,7 +60,7 @@ typedef struct
 // Function: GetDllInfo
 // Purpose:  This function allows the emulator to gather information
 //           about the DLL by filling in the PluginInfo structure.
-// input:    a pointer to a PLUGIN_INFO structure that needs to be
+// input:    A pointer to a PLUGIN_INFO structure that needs to be
 //           filled by the function. (see def above)
 // output:   none
 //
@@ -69,7 +70,7 @@ EXPORT void CALL GetDllInfo(PLUGIN_INFO* _pPluginInfo);
 // Function: DllConfig
 // Purpose:  This function is optional function that is provided
 //           to allow the user to configure the DLL
-// input:    a handle to the window that calls this function
+// input:    A handle to the window that calls this function
 // output:   none
 //
 EXPORT void CALL DllConfig(HWND _hParent);
