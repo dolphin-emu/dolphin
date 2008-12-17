@@ -26,6 +26,17 @@
 #include <stdio.h>
 #include <signal.h>
 #include <sys/ucontext.h>   // Look in here for the context definition.
+#ifdef __LINUX__
+#define CREG_RAX(ctx) (ctx)->gregs[REG_RAX]
+#define CREG_RIP(ctx) (ctx)->gregs[REG_RIP]
+#define CREG_EAX(ctx) (ctx)->gregs[REG_EAX]
+#define CREG_EIP(ctx) (ctx)->gregs[REG_EIP]
+#else
+#define CREG_RAX(ctx) (*(ctx))->__ss.__rax
+#define CREG_RIP(ctx) (*(ctx))->__ss.__rip
+#define CREG_EAX(ctx) (*(ctx))->__ss.__eax
+#define CREG_EIP(ctx) (*(ctx))->__ss.__eip
+#endif
 
 #endif
 
@@ -185,9 +196,9 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 	// Get all the information we can out of the context.
 	mcontext_t *ctx = &context->uc_mcontext;
 #ifdef _M_X64
-	u8 *fault_instruction_ptr = (u8 *)ctx->gregs[REG_RIP];
+	u8 *fault_instruction_ptr = (u8 *)CREG_RIP(ctx);
 #else
-	u8 *fault_instruction_ptr = (u8 *)ctx->gregs[REG_EIP];
+	u8 *fault_instruction_ptr = (u8 *)CREG_EIP(ctx);
 #endif
 	if (!Jit64::IsInJitCode((const u8 *)fault_instruction_ptr)) {
 		// Let's not prevent debugging.
@@ -208,21 +219,22 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 	int access_type = 0;
 
 	CONTEXT fake_ctx;
+
 #ifdef _M_X64
-	fake_ctx.Rax = ctx->gregs[REG_RAX];
-	fake_ctx.Rip = ctx->gregs[REG_RIP];
+	fake_ctx.Rax = CREG_RAX(ctx);
+	fake_ctx.Rip = CREG_RIP(ctx);
 #else
-	fake_ctx.Eax = ctx->gregs[REG_EAX];
-	fake_ctx.Eip = ctx->gregs[REG_EIP];
+	fake_ctx.Eax = CREG_EAX(ctx);
+	fake_ctx.Eip = CREG_EIP(ctx);
 #endif
 	u8 *new_rip = Jit64::BackPatch(fault_instruction_ptr, access_type, em_address, &fake_ctx);
 	if (new_rip) {
 #ifdef _M_X64
-		ctx->gregs[REG_RAX] = fake_ctx.Rax;
-		ctx->gregs[REG_RIP]	= (u64)new_rip;
+		CREG_RAX(ctx) = fake_ctx.Rax;
+		CREG_RIP(ctx) = fake_ctx.Rip;
 #else
-		ctx->gregs[REG_EAX] = fake_ctx.Eax;
-		ctx->gregs[REG_EIP]	= (u32)new_rip;
+		CREG_EAX(ctx) = fake_ctx.Eax;
+		CREG_EIP(ctx) = fake_ctx.Eip;
 #endif
 	}
 }
