@@ -26,7 +26,6 @@
 #include "Common.h"
 #include "StringUtil.h"
 #include "DynamicLibrary.h"
-#include "../../Core/Src/PowerPC/PowerPC.h"
 
 DynamicLibrary::DynamicLibrary()
 {
@@ -116,13 +115,7 @@ int DynamicLibrary::Unload()
 
         
 #ifdef _WIN32
-	/* TEMPORARY SOLUTION: To prevent that Dolphin hangs when a game is stopped
-	   or when we try to close Dolphin. It's possible that it only occur when we render
-	   to the main window. And sometimes FreeLibrary works without any problem, so
-	   don't remove this just because it doesn't hang once. I could not find the
-	   actual cause of it. */
-    if( ! (library_file.find("OGL.") != std::string::npos) && !PowerPC::CPU_POWERDOWN)
-        retval = FreeLibrary(library);
+	retval = FreeLibrary(library);
 #else
     retval = dlclose(library)?0:1;
 #endif
