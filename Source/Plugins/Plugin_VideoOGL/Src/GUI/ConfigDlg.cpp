@@ -110,13 +110,20 @@ void ConfigDialog::CreateGUIControls()
 	m_KeepAR->SetValue(g_Config.bKeepAR);
 	m_HideCursor = new wxCheckBox(m_PageGeneral, ID_HIDECURSOR, wxT("Hide mouse cursor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_HideCursor->SetValue(g_Config.bHideCursor);
+
 	wxStaticText *FSText = new wxStaticText(m_PageGeneral, ID_FSTEXT, wxT("Fullscreen video mode:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_FullscreenCB = new wxComboBox(m_PageGeneral, ID_FULLSCREENCB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, 0, wxDefaultValidator);
 	m_FullscreenCB->SetValue(wxString::FromAscii(g_Config.iFSResolution));
+
 	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Windowed resolution:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, 0, wxDefaultValidator);
 	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.iWindowedRes));
 
+	wxStaticText *BEText = new wxStaticText(m_PageGeneral, ID_BETEXT, wxT("Rendering backend:"), wxDefaultPosition, wxDefaultSize, 0);
+	m_RenderBackend = new wxComboBox(m_PageGeneral, ID_RENDERBACKEND, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_RenderBackend, 0, wxDefaultValidator);
+	m_RenderBackend->SetValue(wxString::FromAscii(g_Config.iBackend));
+
+	
 	// Enhancements
 	sbEnhancements = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Enhancements"));
 	m_ForceFiltering = new wxCheckBox(m_PageGeneral, ID_FORCEFILTERING, wxT("Force bi/trilinear filtering (May cause small glitches)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -149,6 +156,8 @@ void ConfigDialog::CreateGUIControls()
 	sBasic->Add(m_FullscreenCB, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
 	sBasic->Add(WMText, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sBasic->Add(m_WindowResolutionCB, wxGBPosition(6, 1), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(BEText, wxGBPosition(7, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBasic->Add(m_RenderBackend, wxGBPosition(7, 1), wxGBSpan(1, 1), wxALL, 5);
 	sbBasic->Add(sBasic);
 	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
 
@@ -294,6 +303,12 @@ void ConfigDialog::AddWindowReso(char *reso)
 	m_WindowResolutionCB->Append(wxString::FromAscii(reso));
 }
 
+void ConfigDialog::AddRenderBackend(char *backend)
+{
+	m_RenderBackend->Append(wxString::FromAscii(backend));
+}
+
+
 void ConfigDialog::AddAAMode(int mode)
 {
 	wxString tmp;
@@ -333,6 +348,9 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_WINDOWRESOLUTIONCB:
 		strcpy(g_Config.iWindowedRes, m_WindowResolutionCB->GetValue().mb_str() );
+		break;
+	case ID_RENDERBACKEND:
+	  	strcpy(g_Config.iBackend, m_RenderBackend->GetValue().mb_str() );
 		break;
 	case ID_FORCEFILTERING:
 		g_Config.bForceFiltering = m_ForceFiltering->IsChecked();

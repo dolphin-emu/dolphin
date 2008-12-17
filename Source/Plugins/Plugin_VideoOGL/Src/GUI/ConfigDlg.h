@@ -42,6 +42,7 @@ class ConfigDialog : public wxDialog
 
 		void AddFSReso(char *reso);
 		void AddWindowReso(char *reso);
+		void AddRenderBackend(char *backend);
 		void AddAAMode(int mode);
 
 	private:
@@ -76,6 +77,8 @@ class ConfigDialog : public wxDialog
 		wxComboBox *m_FullscreenCB;
 		wxArrayString arrayStringFor_WindowResolutionCB;
 		wxComboBox *m_WindowResolutionCB;
+		wxArrayString arrayStringFor_RenderBackend;
+		wxComboBox *m_RenderBackend;
 
 		wxCheckBox *m_ForceFiltering; // advanced
 		wxChoice *m_MaxAnisotropyCB;
@@ -115,6 +118,8 @@ class ConfigDialog : public wxDialog
 			ID_FULLSCREENCB,
 			ID_WMTEXT,
 			ID_WINDOWRESOLUTIONCB,
+			ID_BETEXT,
+			ID_RENDERBACKEND,
 
 			ID_FORCEFILTERING,
 			ID_MAXANISOTROPY,

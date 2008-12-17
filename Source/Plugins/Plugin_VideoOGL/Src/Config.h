@@ -32,46 +32,47 @@ struct Config
     void Save();
 
     // General
-	bool bFullscreen;
-	bool renderToMainframe;
-	char iFSResolution[16];
-	char iWindowedRes[16];
-	bool bStretchToFit;
-	bool bKeepAR;
-	bool bHideCursor;
-	bool bSafeTextureCache;
-
+    bool bFullscreen;
+    bool renderToMainframe;
+    char iFSResolution[16];
+    char iWindowedRes[16];
+    char iBackend[10];
+    bool bStretchToFit;
+    bool bKeepAR;
+    bool bHideCursor;
+    bool bSafeTextureCache;
+    
 	// Enhancements
-	int iMultisampleMode;
+    int iMultisampleMode;
     bool bForceFiltering;
     int iMaxAnisotropy;
 
 	// Information
     bool bShowFPS;
-	bool bOverlayStats;
+    bool bOverlayStats;
     bool bTexFmtOverlayEnable;
-	bool bTexFmtOverlayCenter;
-
-	// Render
-	bool bUseXFB;
-	bool bWireFrame;
-	bool bDisableLighting;
-	bool bDisableTexturing;
-
-	// Utility
-	char texDumpPath[280];
-	bool bDumpTextures;
-
-	// Hacks
-	bool bEFBToTextureDisable;
-	bool bEFBToTextureDisableHotKey;
-	bool bProjectionHax1;
-	bool bProjectionHax2;
-
-	int iLog; // CONF_ bits
-	int iSaveTargetId;
-
-	//currently unused:
+    bool bTexFmtOverlayCenter;
+    
+    // Render
+    bool bUseXFB;
+    bool bWireFrame;
+    bool bDisableLighting;
+    bool bDisableTexturing;
+    
+    // Utility
+    char texDumpPath[280];
+    bool bDumpTextures;
+    
+    // Hacks
+    bool bEFBToTextureDisable;
+    bool bEFBToTextureDisableHotKey;
+    bool bProjectionHax1;
+    bool bProjectionHax2;
+    
+    int iLog; // CONF_ bits
+    int iSaveTargetId;
+    
+    //currently unused:
     int iCompileDLsLevel;
     bool bShowShaderErrors;
 };
