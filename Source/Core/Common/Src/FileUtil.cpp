@@ -149,7 +149,7 @@ bool CreateDir(const char *path)
 	DWORD error = GetLastError();
 	if (error == ERROR_ALREADY_EXISTS)
 	{
-		PanicAlert("%s already exists", path);
+	//	PanicAlert("%s already exists", path);
 		return true;
 	}
 	PanicAlert("Error creating directory %s: %i", path, error);
@@ -162,7 +162,7 @@ bool CreateDir(const char *path)
 
 	if (err == EEXIST)
 	{
-		PanicAlert("%s already exists", path);
+	//	PanicAlert("%s already exists", path);
 		return true;
 	}
 
