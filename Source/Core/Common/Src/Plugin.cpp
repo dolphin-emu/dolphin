@@ -32,7 +32,6 @@ namespace Common
 DynamicLibrary CPlugin::m_hInstLib;
 
 void(__cdecl * CPlugin::m_GetDllInfo)   (PLUGIN_INFO * _PluginInfo) = 0;
-//void(__cdecl * CPlugin::m_DllAbout)     (HWND _hParent) = 0;
 void(__cdecl * CPlugin::m_DllConfig)    (HWND _hParent) = 0;
 void(__cdecl * CPlugin::m_DllDebugger)    (HWND _hParent, bool Show) = 0;
 
@@ -40,7 +39,6 @@ void
 CPlugin::Release(void)
 {
 	m_GetDllInfo = 0;
-	//m_DllAbout  = 0;
 	m_DllConfig = 0;
 	m_DllDebugger = 0;
 
@@ -81,14 +79,6 @@ void CPlugin::Config(HWND _hwnd)
 		m_DllConfig(_hwnd);
 	}
 }
-
-//void CPlugin::About(HWND _hwnd)
-//{
-//	if (m_DllAbout != 0)
-//	{
-//		m_DllAbout(_hwnd);
-//	}
-//}
 
 void CPlugin::Debug(HWND _hwnd, bool Show)
 {

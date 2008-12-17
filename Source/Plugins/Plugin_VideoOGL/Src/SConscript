@@ -72,7 +72,8 @@ if sys.platform == 'darwin':
 	linkFlags.append('-L/opt/local/lib')
         conf.CheckPKG('OpenGL')
         if not conf.CheckPKG('Cg'):
-                print name + " must have Cg from nvidia to be build"
+                print name + " must have Cg framework from nvidia to be build"
+                Return()
 
 else:
         if not (conf.CheckPKG('GL') and conf.CheckPKG('GLU')): 

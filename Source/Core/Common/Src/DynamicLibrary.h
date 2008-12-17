@@ -30,7 +30,7 @@ class DynamicLibrary
 
 		DynamicLibrary();
 		int Load(const char* filename);
-		void Unload();
+		int Unload();
 		void* Get(const char* funcname) const;
 
 		bool IsLoaded() const {return(library != 0);}

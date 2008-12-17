@@ -124,19 +124,15 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 
 	// load plugins
 	if (!PluginDSP::LoadPlugin(g_CoreStartupParameter.m_strDSPPlugin.c_str())) {
-		PanicAlert("Failed to load DSP plugin %s", g_CoreStartupParameter.m_strDSPPlugin.c_str());
 		return false;
 	}
 	if (!PluginPAD::LoadPlugin(g_CoreStartupParameter.m_strPadPlugin.c_str())) {
-		PanicAlert("Failed to load PAD plugin %s", g_CoreStartupParameter.m_strPadPlugin.c_str());
 		return false;
 	}
 	if (!PluginVideo::LoadPlugin(g_CoreStartupParameter.m_strVideoPlugin.c_str())) {
-		PanicAlert("Failed to load video plugin %s", g_CoreStartupParameter.m_strVideoPlugin.c_str());
 		return false;
 	}
-	if (!PluginWiimote::LoadPlugin(g_CoreStartupParameter.m_strWiimotePlugin.c_str())) {
-		PanicAlert("Failed to load Wiimote plugin %s", g_CoreStartupParameter.m_strWiimotePlugin.c_str());
+        if (_CoreParameter.bWii && !PluginWiimote::LoadPlugin(g_CoreStartupParameter.m_strWiimotePlugin.c_str())) {
 		return false;
 	}
 
@@ -153,8 +149,6 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 	DisplayMessage(_CoreParameter.m_strFilename, 3000);
 
 	//PluginVideo::DllDebugger(NULL);
-
-	//RegisterPanicAlertHandler(PanicAlertToVideo);
 
 	return true;
 }

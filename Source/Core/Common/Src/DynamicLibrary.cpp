@@ -33,10 +33,11 @@ DynamicLibrary::DynamicLibrary()
 	library = 0;
 }
 
-#ifdef _WIN32
+
 std::string GetLastErrorAsString()
 {
-	LPVOID lpMsgBuf = 0;
+#ifdef _WIN32
+        LPVOID lpMsgBuf = 0;
 	DWORD error = GetLastError();
 	FormatMessage( 
 		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
@@ -54,6 +55,13 @@ std::string GetLastErrorAsString()
 		s = StringFromFormat("(unknown error %08x)", error);
 	}
 	return s;
+#else
+        static std::string errstr;
+        char *tmp = dlerror();
+        if (tmp)
+            errstr = tmp;
+        
+        return errstr;
 }
 #endif
 
@@ -68,6 +76,7 @@ int DynamicLibrary::Load(const char* filename)
 	if (!filename || strlen(filename) == 0)
 	{
 		LOG(MASTER_LOG, "Missing filename of dynamic library to load");
+                PanicAlert("Missing filename of dynamic library to load");
 		return 0;
 	}
 	LOG(MASTER_LOG, "Trying to load library %s", filename);
@@ -80,71 +89,72 @@ int DynamicLibrary::Load(const char* filename)
 
 #ifdef _WIN32
 	library = LoadLibrary(filename);
-	if (!library) {
-		LOG(MASTER_LOG, "Error loading DLL %s: %s", filename, GetLastErrorAsString().c_str());
-		return 0;
-	}
 #else
 	library = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
-	if (!library)
-	{
-		#ifdef LOGGING
-		LOG(MASTER_LOG, "Error loading DLL %s: %s", filename, dlerror());
-		#else
-		printf("Error loading DLL %s: %s", filename, dlerror());
-		#endif
-		return false;
-	}
 #endif
+        
+	if (!library) {
+		LOG(MASTER_LOG, "Error loading DLL %s: %s", filename, GetLastErrorAsString().c_str());
+		PanicAlert("Error loading DLL %s: %s\n", filename, GetLastErrorAsString().c_str());
+		return 0;
+	}
+
 	library_file = filename;
 	return 1;
 }
 
 
-void DynamicLibrary::Unload()
+int DynamicLibrary::Unload()
 {
-	if (!IsLoaded())
-	{
-		PanicAlert("Trying to unload non-loaded library");
-		return;
-	}
+    int retval;
+    if (!IsLoaded()) {
+        LOG(MASTER_LOG, "Error unloading DLL %s: not loaded", library_file.c_str());
+        PanicAlert("Error unloading DLL %s: not loaded", library_file.c_str());
+        return 0;
+    }
 
+        
 #ifdef _WIN32
 	/* TEMPORARY SOLUTION: To prevent that Dolphin hangs when a game is stopped
 	   or when we try to close Dolphin. It's possible that it only occur when we render
 	   to the main window. And sometimes FreeLibrary works without any problem, so
 	   don't remove this just because it doesn't hang once. I could not find the
 	   actual cause of it. */
-	if( ! (library_file.find("OGL.") != std::string::npos) && !PowerPC::CPU_POWERDOWN)
-	FreeLibrary(library);
+    if( ! (library_file.find("OGL.") != std::string::npos) && !PowerPC::CPU_POWERDOWN)
+        retval = FreeLibrary(library);
 #else
-	dlclose(library);
+    retval = dlclose(library);
 #endif
-	library = 0;
+    if (!retval) {
+        LOG(MASTER_LOG, "Error unloading DLL %s: %s", library_file.c_str(),
+            GetLastErrorAsString().c_str());
+        PanicAlert("Error unloading DLL %s: %s", library_file.c_str(),
+                   GetLastErrorAsString().c_str());
+    }
+    library = 0;
+    return retval;
 }
 
 
 void* DynamicLibrary::Get(const char* funcname) const
 {
 	void* retval;
-#ifdef _WIN32
 	if (!library)
 	{
-		PanicAlert("Can't find function %s - Library not loaded.");
+            LOG(MASTER_LOG, "Can't find function %s - Library not loaded.");
+            PanicAlert("Can't find function %s - Library not loaded.");
 	}
+#ifdef _WIN32
 	retval = GetProcAddress(library, funcname);
-	//if (!retval)
-	//{
-	//	PanicAlert("Did not find function %s in library %s.", funcname, library_file.c_str());
-	//}
 #else
 	retval = dlsym(library, funcname);
-
-	if (!retval)
-	{
-		printf("Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), dlerror());
-	}
 #endif
+
+	if (!retval) {
+            LOG(MASTER_LOG, "Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), GetLastErrorAsString().c_str());
+            PanicAlert("Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), GetLastErrorAsString().c_str());
+	}
+
 	return retval;
 }
 
