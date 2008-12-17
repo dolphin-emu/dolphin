@@ -288,9 +288,7 @@ void FixUpInternalBranches(CodeOp *code, int begin, int end)
 // IMPORTANT - CURRENTLY ASSUMES THAT A IS A COMPARE
 bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 {
-	const GekkoOPInfo *a_info = GetOpInfo(a.inst);
 	const GekkoOPInfo *b_info = GetOpInfo(b.inst);
-	int a_flags = a_info->flags;
 	int b_flags = b_info->flags;
 	if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL))
 		return false;
@@ -324,21 +322,20 @@ bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 	// That is, check that none of b's outputs matches any of a's inputs,
 	// and that none of a's outputs matches any of b's inputs.
 	// The latter does not apply if a is a cmp, of course, but doesn't hurt to check.
-	bool no_swap = false;
 	for (int j = 0; j < 3; j++)
 	{
 		int regInA = a.regsIn[j];
 		int regInB = b.regsIn[j];
-		if (regInA >= 0 &&
-			b.regsOut[0] == regInA ||
-			b.regsOut[1] == regInA)
+		if (regInA >= 0 && 
+		    (b.regsOut[0] == regInA ||
+		     b.regsOut[1] == regInA))
 		{
 			// reg collision! don't swap
 			return false;
 		}
 		if (regInB >= 0 &&
-			a.regsOut[0] == regInB ||
-			a.regsOut[1] == regInB)
+		    (a.regsOut[0] == regInB ||
+		     a.regsOut[1] == regInB))
 		{
 			// reg collision! don't swap
 			return false;

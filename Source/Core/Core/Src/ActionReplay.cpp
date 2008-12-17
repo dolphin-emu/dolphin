@@ -196,12 +196,12 @@ void LogInfo(const char *format, ...)
 void RunAllActive()
 {
 	if (Core::GetStartupParameter().bEnableCheats) {
-		for (std::vector<ARCode>::iterator iter = activeCodes.begin(); iter != activeCodes.end(); ++iter) 
+		for (std::vector<ARCode>::iterator i = activeCodes.begin(); i != activeCodes.end(); ++i) 
 		{
-			if (iter->active)
+			if (i->active)
 			{
-				if (!RunCode(*iter))
-					iter->active = false;
+				if (!RunCode(*i))
+					i->active = false;
 				LogInfo("\n");
 			}
 		}

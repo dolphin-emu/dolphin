@@ -132,12 +132,6 @@ inline u32 _rotr(u32 x, int shift) {
 }
 
 #define LONG int
-#ifdef __LINUX__
-typedef union _LARGE_INTEGER
-{
-	long long QuadPart;
-} LARGE_INTEGER;
-#endif
 
 #ifndef __forceinline
 #define __forceinline inline

@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <sys/ucontext.h>   // Look in here for the context definition.
-#ifdef __LINUX__
+#ifdef __linux__
 #define CREG_RAX(ctx) (ctx)->gregs[REG_RAX]
 #define CREG_RIP(ctx) (ctx)->gregs[REG_RIP]
 #define CREG_EAX(ctx) (ctx)->gregs[REG_EAX]
