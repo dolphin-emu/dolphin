@@ -718,7 +718,7 @@ void CISOProperties::ActionReplayList_Save()
 
 		for (std::vector<ActionReplay::AREntry>::const_iterator iter2 = code.ops.begin(); iter2 != code.ops.end(); ++iter2)
 		{
-			lines.push_back(wxString::Format("%08X %08X", iter2->cmd_addr, iter2->value).mb_str());
+			lines.push_back(std::string(wxString::Format(wxT("%08X %08X"), iter2->cmd_addr, iter2->value).mb_str()));
 		}
 		++index;
 	}

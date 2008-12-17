@@ -86,5 +86,5 @@ void CARCodeAddEdit::UpdateTextCtrl(ActionReplay::ARCode arCode)
 	EditCheatCode->Clear();
 
 	for (int i = 0; i < arCode.ops.size(); i++)
-		EditCheatCode->AppendText(wxString::Format("%08X %08X\n", arCode.ops.at(i).cmd_addr, arCode.ops.at(i).value));
+		EditCheatCode->AppendText(wxString::Format(wxT("%08X %08X\n"), arCode.ops.at(i).cmd_addr, arCode.ops.at(i).value));
 }
