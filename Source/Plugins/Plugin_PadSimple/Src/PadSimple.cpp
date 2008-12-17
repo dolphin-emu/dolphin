@@ -175,6 +175,8 @@ void DllConfig(HWND _hParent)
 	SaveConfig();
 }
 
+void DllDebugger(HWND _hParent, bool Show) {
+}
 
 void PAD_Initialize(SPADInitialize _PADInitialize)
 {

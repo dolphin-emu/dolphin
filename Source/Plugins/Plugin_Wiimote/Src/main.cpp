@@ -101,16 +101,7 @@ extern "C" void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 #endif
 }
 
-
-extern "C" void DllAbout(HWND _hParent) 
-{
-#if defined(HAVE_WX) && HAVE_WX
-	wxAboutDialogInfo info;
-	info.SetName(_T("Wiimote plug-in"));
-	info.AddDeveloper(_T("masken (masken3@gmail.com)"));
-	info.SetDescription(_T("Wiimote plug-in"));
-	wxAboutBox(info);
-#endif
+void DllDebugger(HWND _hParent, bool Show) {
 }
 
 extern "C" void DllConfig(HWND _hParent)

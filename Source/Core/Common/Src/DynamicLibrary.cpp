@@ -124,7 +124,7 @@ int DynamicLibrary::Unload()
     if( ! (library_file.find("OGL.") != std::string::npos) && !PowerPC::CPU_POWERDOWN)
         retval = FreeLibrary(library);
 #else
-    retval = dlclose(library);
+    retval = dlclose(library)?0:1;
 #endif
     if (!retval) {
         LOG(MASTER_LOG, "Error unloading DLL %s: %s", library_file.c_str(),

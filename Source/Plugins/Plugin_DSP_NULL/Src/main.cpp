@@ -71,9 +71,8 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
 
 #endif
 
-void DllDebugger(HWND _hParent)
-{
-    // TODO: implement
+
+void DllDebugger(HWND _hParent, bool Show) {
 }
 
 void GetDllInfo(PLUGIN_INFO* _PluginInfo)

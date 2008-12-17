@@ -188,6 +188,9 @@ void DllConfig(HWND _hParent)
 	#endif	
 }
 
+void DllDebugger(HWND _hParent, bool Show) {
+}
+
 // Init PAD (start emulation)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PAD_Initialize(SPADInitialize _PADInitialize)
