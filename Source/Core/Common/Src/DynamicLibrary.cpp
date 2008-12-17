@@ -62,8 +62,9 @@ std::string GetLastErrorAsString()
             errstr = tmp;
         
         return errstr;
-}
 #endif
+}
+
 
 // ------------------------------------------------------------------
 /* Loading means loading the dll with LoadLibrary() to get an instance to the dll.
