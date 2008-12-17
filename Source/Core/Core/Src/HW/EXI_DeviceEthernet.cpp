@@ -35,6 +35,7 @@ CEXIETHERNET::CEXIETHERNET() :
 	mWriteP = INVALID_P;
 	mReadP = INVALID_P;
 	mReadyToSend = false;
+	Activated = false;
 	
 	mExpectSpecialImmRead = false;
 	
@@ -65,10 +66,10 @@ bool CEXIETHERNET::IsInterruptSet()
 {
 	return false;
 }
-bool isActivated()
+bool CEXIETHERNET::isActivated()
 {
 	// Todo: Return actual check
-	return true;
+	return Activated;
 }
 inline u8 makemaskb(int start, int end) {
 	return (u8)_rotl((2 << (end - start)) - 1, 7 - end);
@@ -128,7 +129,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 					// Whinecube did nothing else as well
 					printf("BBA Reset\n");
 				}
-				if(RISE(BBA_NCRA_SR) )/*&& isActivated()) */
+				if(RISE(BBA_NCRA_SR) && isActivated())
 				{
 					printf("BBA Start Recieve\n");
 					//exit(0);
@@ -188,6 +189,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 	}else if(_uSize == 2 && _uData == 0) 
 	{
 		// Device ID Request
+		// 100% this returns correctly
 		mSpecialImmData = EXI_DEVTYPE_ETHER;
 		mExpectSpecialImmRead = true;
 		return;
@@ -199,6 +201,8 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 			mWriteP = (u8)getbitsw(Common::swap32(_uData), 16, 23);
 		else  //size == 2
 			mWriteP = (u8)getbitsw(Common::swap32(_uData) & ~0x4000, 16, 23);  //Whinecube : Dunno about this...
+		// With Size of 4 and data of 0xc0006000 unswapped
+		// mWriteP will be 0x0060 unswapped and 0x0000 swapped. Which is correct?
 		if(mWriteP == 0x48) 
 		{
 			mWriteBuffer.clear();
@@ -216,11 +220,11 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 	else if((_uSize == 4 && (_uData & 0xC0000000) == 0x80000000) || (_uSize == 2 && (_uData & 0x4000) == 0x0000))
 	{	
 		printf("Read from BBA register!\n");
+		u32 SwappedData = Common::swap32(_uData);
 		// Read from BBA Register!
 		if(_uSize == 4) 
 		{
-			//Holy Fuck that's crazy
-			mReadP = (u32)getbitsw(_uData, 8, 23);
+			mReadP = (u32)getbitsw(SwappedData, 8, 23);
 			if(mReadP >= BBAMEM_SIZE)
 			{
 				printf("Illegal BBA address: 0x%04X\n", mReadP);
@@ -231,7 +235,7 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 		} 
 		else 
 		{  //size == 2
-			mReadP = (u8)getbitsw(_uData, 16, 23);
+			mReadP = (u8)getbitsw(SwappedData, 16, 23);
 		}
 		switch(mReadP) 
 		{
@@ -280,7 +284,9 @@ void CEXIETHERNET::ImmWrite(u32 _uData,  u32 _uSize)
 u32 CEXIETHERNET::ImmRead(u32 _uSize)
 {
 	printf("IMM Read, size 0x%x\n", _uSize);
-	if(mExpectSpecialImmRead) {
+	if(mExpectSpecialImmRead) 
+	{
+		// 100% that this returns correctly
 		printf("special IMMRead\n");
 		mExpectSpecialImmRead = false;
 		return mSpecialImmData;

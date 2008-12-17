@@ -52,6 +52,7 @@ public:
 	bool IsPresent();
 	void Update();
 	bool IsInterruptSet();
+	bool isActivated();
 	void ImmWrite(u32 _uData,  u32 _uSize);
 	u32  ImmRead(u32 _uSize);
 	void DMAWrite(u32 _uAddr, u32 _uSize);
@@ -67,6 +68,7 @@ private:
 	
 	bool mExpectSpecialImmRead;	//reset to false on deselect
 	u32 mSpecialImmData;
+	bool Activated;
 	
 	#define BBAMEM_SIZE 0x1000
 	u8 mBbaMem[BBAMEM_SIZE];
