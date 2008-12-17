@@ -96,6 +96,11 @@ conf.Define('HAVE_XXF86VM', gfxenv['HAVE_XXF86VM'])
 
 conf.Finish()
 
+if gfxenv['HAVE_XXF86VM']:
+	files += [ 
+		'X11Window.cpp',
+		]
+	
 # Sanity check
 if gfxenv['USE_WX'] and not gfxenv['HAVE_WX']:
     print "Must have wx to use wxgl"

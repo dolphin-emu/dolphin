@@ -108,9 +108,6 @@ void UpdateFPSDisplay(const char *text)
 {
     char temp[512];
     sprintf(temp, "SVN R%s: GL: %s", SVN_REV_STR, text);
-#if defined(_WIN32)
-    SetWindowText(EmuWindow::GetWnd(), temp);
-#endif
     OpenGL_SetWindowText(temp);
 
 }

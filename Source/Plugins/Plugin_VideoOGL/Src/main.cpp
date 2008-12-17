@@ -152,8 +152,8 @@ void DllConfig(HWND _hParent)
 
 	ConfigDialog frame(NULL);
         g_Config.Load();
-        frame.ShowModal()
-;
+        frame.ShowModal();
+
 #elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XXF86VM) &&\ 
         HAVE_XXF86VM && defined(HAVE_WX) && HAVE_WX
  
