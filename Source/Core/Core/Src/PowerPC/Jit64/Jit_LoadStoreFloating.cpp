@@ -282,7 +282,7 @@ void stfsx(UGeckoInstruction inst)
 	INSTRUCTION_START;
 #ifdef _M_X64
 	Default(inst); return;
-#endif
+#else
 	gpr.FlushLockX(ABI_PARAM1);
 	fpr.Lock(inst.RS);
 	MOV(32, R(ABI_PARAM1), gpr.R(inst.RB));
@@ -295,7 +295,7 @@ void stfsx(UGeckoInstruction inst)
 	MOV(32, MDisp(ABI_PARAM1, (u32)Memory::base), R(EAX));
 	gpr.UnlockAllX();
 	fpr.UnlockAll();
-	return;
+#endif
 }
 
 
