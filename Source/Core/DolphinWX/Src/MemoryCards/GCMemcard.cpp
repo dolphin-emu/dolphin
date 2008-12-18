@@ -110,7 +110,7 @@ GCMemcard::GCMemcard(const char *filename)
 	fail[0] = true;
 	if (!mcd) return;
 
-	for(int i=0;i<12;i++)fail[i]=false;
+	for(int i=0;i<FAILLAST;i++)fail[i]=false;
 
 	//This function can be removed once more about hdr is known and we can check for a valid header
 	std::string fileType;

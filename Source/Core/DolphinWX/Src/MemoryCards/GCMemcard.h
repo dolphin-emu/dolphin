@@ -48,6 +48,7 @@ enum
 	GCSFAIL,	
 	FAIL,
 	WRITEFAIL,
+	FAILLAST,
 };
 
 class GCMemcard 
@@ -144,7 +145,7 @@ private:
 #pragma pack(pop)
 
 public:
-	bool fail[12];
+	bool fail[FAILLAST];
 
 	// constructor
 	GCMemcard(const char* fileName);
