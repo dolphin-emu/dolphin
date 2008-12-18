@@ -105,7 +105,10 @@ if gfxenv['HAVE_SDL']:
 	files += [
 		'SDLWindow.cpp',
 		]
-
+if gfxenv['USE_WX']:
+	files += [
+		'WXGLWindow.cpp',
+		]
 # Sanity check
 if gfxenv['USE_WX'] and not gfxenv['HAVE_WX']:
     print "Must have wx to use wxgl"
