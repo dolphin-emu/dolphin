@@ -65,10 +65,13 @@ NSWindow *cocoaGLCreateWindow(int w,int h)
 	return window;
 }
 
-void cocoaGLSetTitle()
+void cocoaGLSetTitle(NSWindow *win, const char *title)
 {
-	//todo
+    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    
+    [win setTitle: [[[NSString alloc] initWithCString: title encoding: NSASCIIStringEncoding] autorelease]];
 
+    [pool release];
 }
 
 void cocoaGLMakeCurrent(NSOpenGLContext *ctx, NSWindow *win)

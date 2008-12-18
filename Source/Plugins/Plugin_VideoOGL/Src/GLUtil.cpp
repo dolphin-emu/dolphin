@@ -72,7 +72,7 @@ void OpenGL_SetWindowText(const char *text)
 #if USE_SDL
     SDL_WM_SetCaption(text, NULL);
 #elif defined(HAVE_COCOA) && HAVE_COCOA
-    cocoaGLSetTitle();
+    cocoaGLSetTitle(GLWin.cocoaWin, text);
 #elif defined(_WIN32)
     SetWindowText(EmuWindow::GetWnd(), text);
 #elif defined(USE_WX) && USE_WX

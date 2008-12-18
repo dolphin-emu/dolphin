@@ -6,6 +6,14 @@
 #include "Config.h"
 #include "pluginspecs_video.h"
 
+#include <GL/glew.h>
+
+#if defined(__APPLE__) 
+#include <OpenGL/gl.h>
+#else
+#include <GL/gl.h>
+#endif
+
 class GLWindow {
  private:
     u32 width, height;

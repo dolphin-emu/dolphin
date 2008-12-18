@@ -2,9 +2,7 @@
 #define _SDLWINDOW_H
 
 #include "GLWindow.h"
-#include <GL/glxew.h>
 #include <SDL.h>
-#include <GL/gl.h>
 
 class SDLWindow : public GLWindow 
 {

@@ -11,7 +11,7 @@ void cocoaGLCreateApp();
 
 NSWindow *cocoaGLCreateWindow(int w,int h);
 
-void cocoaGLSetTitle();
+void cocoaGLSetTitle(NSWindow *win, const char *title);
 
 void cocoaGLMakeCurrent(NSOpenGLContext *ctx, NSWindow *win);
 

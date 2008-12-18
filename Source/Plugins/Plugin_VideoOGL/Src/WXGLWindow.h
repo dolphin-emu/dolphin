@@ -2,11 +2,8 @@
 #define _WXGLWINDOW_H
 
 #include "GLWindow.h"
-#include <GL/glew.h>
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
-
-#include <GL/gl.h>
 
 class WXGLWindow : public GLWindow 
 {
