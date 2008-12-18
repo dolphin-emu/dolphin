@@ -40,12 +40,6 @@
 // #define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
 
-#ifdef _M_IX86
-#define DISABLE_32BIT Default(inst); return;
-#else
-#define DISABLE_32BIT ;
-#endif
-
 namespace Jit64
 {
 
@@ -109,9 +103,6 @@ void lfd(UGeckoInstruction inst)
 			{Default(inst); return;} // turn off from debugger	
 #endif
 	INSTRUCTION_START;
-	if (!cpu_info.bSSSE3) {
-		DISABLE_32BIT;
-	}
 	int d = inst.RD;
 	int a = inst.RA;
 	if (!a) 
@@ -126,27 +117,46 @@ void lfd(UGeckoInstruction inst)
 	// TODO - optimize. This has to load the previous value - upper double should stay unmodified.
 	fpr.LoadToX64(d, true);
 	fpr.Lock(d);
+	X64Reg xd = fpr.RX(d);
 	if (cpu_info.bSSSE3) {
-		X64Reg xd = fpr.RX(d);
 #ifdef _M_X64
 		MOVQ_xmm(XMM0, MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
 #else
-		MOV(32, R(EAX), R(ABI_PARAM1));
-		AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
-		MOVQ_xmm(XMM0, MDisp(EAX, (u32)Memory::base + offset));
+		AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
+		MOVQ_xmm(XMM0, MDisp(ABI_PARAM1, (u32)Memory::base + offset));
 #endif
 		PSHUFB(XMM0, M((void *)bswapShuffle1x8Dupe));
 		MOVSD(xd, R(XMM0));
 	} else {
-#ifndef _M_X64
-		PanicAlert("lfd - wtf");
-#endif
-		X64Reg xd = fpr.RX(d);
+#ifdef _M_X64
 		MOV(64, R(EAX), MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
 		BSWAP(64, EAX);
 		MOV(64, M(&temp64), R(EAX));
 		MOVSD(XMM0, M(&temp64));
 		MOVSD(xd, R(XMM0));
+#else
+		AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
+		MOV(32, R(EAX), MDisp(ABI_PARAM1, (u32)Memory::base + offset));
+		BSWAP(32, EAX);
+		MOV(32, M((void*)((u32)&temp64+4)), R(EAX));
+		MOV(32, R(EAX), MDisp(ABI_PARAM1, (u32)Memory::base + offset + 4));
+		BSWAP(32, EAX);
+		MOV(32, M(&temp64), R(EAX));
+		MOVSD(XMM0, M(&temp64));
+		MOVSD(xd, R(XMM0));
+#if 0
+		// Alternate implementation; possibly faster
+		AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
+		MOVQ_xmm(XMM0, MDisp(ABI_PARAM1, (u32)Memory::base + offset));
+		PSHUFLW(XMM0, R(XMM0), 0x1B);
+		PSRLW(XMM0, 8);
+		MOVSD(xd, R(XMM0));
+		MOVQ_xmm(XMM0, MDisp(ABI_PARAM1, (u32)Memory::base + offset));
+		PSHUFLW(XMM0, R(XMM0), 0x1B);
+		PSLLW(XMM0, 8);
+		POR(xd, R(XMM0));
+#endif
+#endif
 	}
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
@@ -161,10 +171,6 @@ void stfd(UGeckoInstruction inst)
 			{Default(inst); return;} // turn off from debugger	
 #endif
 	INSTRUCTION_START;
-	if (!cpu_info.bSSSE3)
-	{
-		DISABLE_32BIT;
-	}
 	int s = inst.RS;
 	int a = inst.RA;
 	if (!a)
@@ -189,11 +195,22 @@ void stfd(UGeckoInstruction inst)
 		MOVQ_xmm(MDisp(ABI_PARAM1, (u32)Memory::base + offset), XMM0);
 #endif
 	} else {
+#ifdef _M_X64
 		fpr.LoadToX64(s, true, false);
 		MOVSD(M(&temp64), fpr.RX(s));
 		MOV(64, R(EAX), M(&temp64));
 		BSWAP(64, EAX);
 		MOV(64, MComplex(RBX, ABI_PARAM1, SCALE_1, offset), R(EAX));
+#else
+		fpr.LoadToX64(s, true, false);
+		MOVSD(M(&temp64), fpr.RX(s));
+		MOV(32, R(EAX), M(&temp64));
+		BSWAP(32, EAX);
+		MOV(32, MDisp(ABI_PARAM1, (u32)Memory::base + offset + 4), R(EAX));
+		MOV(32, R(EAX), M((void*)((u32)&temp64 + 4)));
+		BSWAP(32, EAX);
+		MOV(32, MDisp(ABI_PARAM1, (u32)Memory::base + offset), R(EAX));
+#endif
 	}
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
@@ -263,8 +280,22 @@ void stfsx(UGeckoInstruction inst)
 {
 	// We can take a shortcut here - it's not likely that a hardware access would use this instruction.
 	INSTRUCTION_START;
-	// TODO
+#ifdef _M_X64
 	Default(inst); return;
+#endif
+	gpr.FlushLockX(ABI_PARAM1);
+	fpr.Lock(inst.RS);
+	MOV(32, R(ABI_PARAM1), gpr.R(inst.RB));
+	if (inst.RA)
+		ADD(32, R(ABI_PARAM1), gpr.R(inst.RA));
+	AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
+	CVTSD2SS(XMM0, fpr.R(inst.RS));
+	MOVD_xmm(R(EAX), XMM0);
+	BSWAP(32, EAX);
+	MOV(32, MDisp(ABI_PARAM1, (u32)Memory::base), R(EAX));
+	gpr.UnlockAllX();
+	fpr.UnlockAll();
+	return;
 }
 
 
