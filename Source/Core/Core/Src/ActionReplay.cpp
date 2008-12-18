@@ -110,7 +110,8 @@ void LoadCodes(IniFile &ini, bool forceLoad)
 				{
 					currentCode.active = true;
 					currentCode.name = line.substr(2, line.size() - 2);;
-					Core::DisplayMessage("AR code active: " + currentCode.name, 5000);
+					if (!forceLoad)
+						Core::DisplayMessage("AR code active: " + currentCode.name, 5000);
 				}
 				else
 				{

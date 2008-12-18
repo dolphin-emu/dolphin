@@ -47,7 +47,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="../../PluginSpecs"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_SECURE_SCL=0;LOGGING"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -341,7 +341,7 @@
 				Optimization="3"
 				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="../../PluginSpecs"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;LOGGING"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				EnableEnhancedInstructionSet="2"
@@ -475,10 +475,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\MsgHandler.cpp"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\Common.h"
 			>
 		</File>
@@ -588,6 +584,10 @@
 		</File>
 		<File
 			RelativePath=".\Src\MemoryUtil.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\MsgHandler.cpp"
 			>
 		</File>
 		<File

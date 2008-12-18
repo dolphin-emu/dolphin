@@ -30,12 +30,10 @@
 #define CHECK_HEAP_INTEGRITY() {if (!_CrtCheckMemory()) PanicAlert("memory corruption detected. see log.");}
 #endif
 
-#ifdef _WIN32
-	/* Turn on logging with debugging, _DEBUG and DEBUGFAST are still added through
-	   preprocessor definitions only */
-	#if defined(_DEBUG) || defined(DEBUGFAST)
-		#define LOGGING
-	#endif
+/* Turn on logging with debugging, _DEBUG and DEBUGFAST are still added through
+   preprocessor definitions only */
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	#define LOGGING
 #endif
 
 #include "../../../PluginSpecs/CommonTypes.h"
