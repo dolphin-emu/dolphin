@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <algorithm>
+#include <vector>
 
 #include "Common.h"
 #include "PPCTables.h"
@@ -39,6 +40,16 @@ struct GekkoOPTemplate
 
 	GekkoOPInfo opinfo;
 	int runCount;
+};
+
+struct inf
+{
+    const char *name;
+    int count;
+    bool operator < (const inf &o) const
+    {
+	return count > o.count;
+    }
 };
 
 static GekkoOPInfo *m_infoTable[64];
@@ -656,7 +667,7 @@ namespace {
 }
 #endif
 
-void PPCTables::CompileInstruction(UGeckoInstruction _inst)
+void CompileInstruction(UGeckoInstruction _inst)
 {
 	dynaOpTable[_inst.OPCD](_inst);	
 	GekkoOPInfo *info = GetOpInfo(_inst);
@@ -688,15 +699,7 @@ void CountInstruction(UGeckoInstruction _inst)
 
 void PrintInstructionRunCounts()
 {
-	struct inf
-	{
-		const char *name;
-		int count;
-		bool operator < (const inf &o) const
-		{
-			return count > o.count;
-		}
-	};
+
 	std::vector<inf> temp;
 	for (int i = 0; i < m_numInstructions; i++)
 	{
