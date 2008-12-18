@@ -87,8 +87,7 @@ public:
 	int size_;
 };
 
-void Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, BlockRegStats *fpa, CodeBuffer *buffer);
-
+bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, BlockRegStats *fpa, CodeBuffer *buffer);
 void LogFunctionCall(u32 addr);
 void FindFunctions(u32 startAddr, u32 endAddr, SymbolDB *func_db);
 bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size = 0);

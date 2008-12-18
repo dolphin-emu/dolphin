@@ -283,7 +283,7 @@ bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 }
 
 // Does not yet perform inlining - although there are plans for that.
-void Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, BlockRegStats *fpa, CodeBuffer *buffer)
+bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, BlockRegStats *fpa, CodeBuffer *buffer)
 {
 	int numCycles = 0;
 	u32 blockstart = address;
@@ -537,6 +537,7 @@ void Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Blo
 
 	*realsize = num_inst;
 	// ...
+	return true;
 }
 
 

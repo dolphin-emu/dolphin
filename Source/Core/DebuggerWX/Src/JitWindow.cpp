@@ -29,6 +29,8 @@
 #include "PowerPC/PowerPC.h"
 #include "PowerPC/Jit64/Jit.h"
 #include "PowerPC/Jit64/JitCache.h"
+#include "PowerPC/PPCAnalyst.h"
+#include "PowerPCDisasm.h"
 #include "Host.h"
 #include "disasm.h"
 
@@ -142,9 +144,34 @@ void CJitWindow::Compare(u32 em_address)
 		return;
 	}
 	Jit64::JitBlock *block = Jit64::GetBlock(block_num);
+	
+	// == Fill in ppc box
+	u32 ppc_addr = block->originalAddress;
+	PPCAnalyst::CodeBuffer code_buffer(32000);
+	int size;
+	PPCAnalyst::BlockStats st;
+	PPCAnalyst::BlockRegStats gpa;
+	PPCAnalyst::BlockRegStats fpa;
+	if (PPCAnalyst::Flatten(ppc_addr, &size, &st, &gpa, &fpa, &code_buffer)) {
+		char *sptr = (char*)xDis;
+		for (int i = 0; i < size; i++)
+		{
+			const PPCAnalyst::CodeOp &op = code_buffer.codebuffer[i];
+			char temp[256];
+			DisassembleGekko(op.inst.hex, op.address, temp, 256);
+			sptr += sprintf(sptr, "%08x %s\n", op.address, temp);
+		}
+		ppc_box->SetValue(wxString::FromAscii((char*)xDis));
+	} else {
+		// hmmm
+	}
+	
+	// == Fill in x86 box
+
+	memset(xDis, 0, 65536);
 	const u8 *code = (const u8 *)Jit64::GetCompiledCodeFromBlock(block_num);
 	u64 disasmPtr = (u64)code;
-	int size = block->codeSize;
+	size = block->codeSize;
 	const u8 *end = code + size;
 	char *sptr = (char*)xDis;
 
