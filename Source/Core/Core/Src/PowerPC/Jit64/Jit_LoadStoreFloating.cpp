@@ -60,11 +60,10 @@ u32 GC_ALIGNED16(temp32);
 
 void lfs(UGeckoInstruction inst)
 {
-#ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-			{Default(inst); return;} // turn off from debugger	
-#endif
+	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
+		{Default(inst); return;} // turn off from debugger	
 	INSTRUCTION_START;
+
 	int d = inst.RD;
 	int a = inst.RA;
 	if (!a) 
@@ -98,11 +97,10 @@ void lfs(UGeckoInstruction inst)
 
 void lfd(UGeckoInstruction inst)
 {
-#ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-			{Default(inst); return;} // turn off from debugger	
-#endif
+	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
+		{Default(inst); return;} // turn off from debugger	
 	INSTRUCTION_START;
+
 	int d = inst.RD;
 	int a = inst.RA;
 	if (!a) 
@@ -166,11 +164,10 @@ void lfd(UGeckoInstruction inst)
 
 void stfd(UGeckoInstruction inst)
 {
-#ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-			{Default(inst); return;} // turn off from debugger	
-#endif
+	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
+		{Default(inst); return;} // turn off from debugger	
 	INSTRUCTION_START;
+
 	int s = inst.RS;
 	int a = inst.RA;
 	if (!a)
@@ -220,11 +217,10 @@ void stfd(UGeckoInstruction inst)
 
 void stfs(UGeckoInstruction inst)
 {
-#ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-			{Default(inst); return;} // turn off from debugger	
-#endif
+	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
+		{Default(inst); return;} // turn off from debugger	
 	INSTRUCTION_START;
+
 	bool update = inst.OPCD & 1;
 	int s = inst.RS;
 	int a = inst.RA;
@@ -278,13 +274,13 @@ void stfs(UGeckoInstruction inst)
 
 void stfsx(UGeckoInstruction inst)
 {
-#ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-			{Default(inst); return;} // turn off from debugger	
-#endif
-	// We can take a shortcut here - it's not likely that a hardware access would use this instruction.
+	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
+		{Default(inst); return;} // turn off from debugger	
 	INSTRUCTION_START;
+
+	// We can take a shortcut here - it's not likely that a hardware access would use this instruction.
 #ifdef _M_X64
+	// TODO
 	Default(inst); return;
 #else
 	gpr.FlushLockX(ABI_PARAM1);
@@ -305,11 +301,10 @@ void stfsx(UGeckoInstruction inst)
 
 void lfsx(UGeckoInstruction inst)
 {
-#ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-			{Default(inst); return;} // turn off from debugger	
-#endif
+	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
+		{Default(inst); return;} // turn off from debugger	
 	INSTRUCTION_START;
+
 	fpr.Lock(inst.RS);
 	fpr.LoadToX64(inst.RS, false, true);
 	MOV(32, R(EAX), gpr.R(inst.RB));

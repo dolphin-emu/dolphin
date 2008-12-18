@@ -39,6 +39,7 @@
 // Zelda and many more games seem to pass the Acid Test. 
 
 using namespace Gen;
+
 namespace Jit64
 {
 	void sc(UGeckoInstruction _inst)
@@ -260,4 +261,4 @@ namespace Jit64
 		WriteExitDestInEAX(0);
 	}
 
-}
+}  // namespace

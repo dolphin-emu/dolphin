@@ -38,6 +38,7 @@
 #include "JitRegCache.h"
 
 #define INSTRUCTION_START
+// #define INSTRUCTION_START Default(inst); return;
 
 namespace Jit64 {
 
@@ -98,10 +99,8 @@ const double GC_ALIGNED16(m_dequantizeTableD[]) =
 // We will have to break block after quantizers are written to.
 void psq_st(UGeckoInstruction inst)
 {
-#ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStorePairedOff)
-			{Default(inst); return;} // turn off from debugger	
-#endif
+	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStorePairedOff)
+		{Default(inst); return;} // turn off from debugger	
 	INSTRUCTION_START;
 	js.block_flags |= BLOCK_USE_GQR0 << inst.I;
 
@@ -312,11 +311,10 @@ void psq_st(UGeckoInstruction inst)
 
 void psq_l(UGeckoInstruction inst)
 {
-#ifdef JIT_OFF_OPTIONS
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStorePairedOff)
-			{Default(inst); return;} // turn off from debugger	
-#endif
+	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStorePairedOff)
+		{Default(inst); return;} // turn off from debugger	
 	INSTRUCTION_START;
+
 	js.block_flags |= BLOCK_USE_GQR0 << inst.I;
 
 	if (js.blockSetsQuantizers || !Core::GetStartupParameter().bOptimizeQuantizers)

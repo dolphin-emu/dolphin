@@ -40,25 +40,13 @@
 // #define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
 
-#ifdef _M_IX86
-#define DISABLE_32BIT Default(inst); return;
-#else
-#define DISABLE_32BIT ;
-#endif
-
 namespace Jit64
 {
-	namespace {
-          //	u64 GC_ALIGNED16(temp64);
-          //	u32 GC_ALIGNED16(temp32);
-	}
 	void lbzx(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff
 			|| Core::g_CoreStartupParameter.bJITLoadStorelbzxOff)
 			{Default(inst); return;} // turn off from debugger	
-#endif
 		INSTRUCTION_START;
 
 		int a = inst.RA, b = inst.RB, d = inst.RD;
@@ -83,10 +71,8 @@ namespace Jit64
 
 	void lwzx(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
 			{Default(inst); return;} // turn off from debugger	
-#endif
 		INSTRUCTION_START;
 
 		int a = inst.RA, b = inst.RB, d = inst.RD;
@@ -111,10 +97,8 @@ namespace Jit64
 
 	void lhax(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
 			{Default(inst); return;} // turn off from debugger	
-#endif
 		INSTRUCTION_START;
 
 		int a = inst.RA, b = inst.RB, d = inst.RD;
@@ -127,23 +111,20 @@ namespace Jit64
 		MOV(32, R(ABI_PARAM1), gpr.R(b));
 		if (a)
 			ADD(32, R(ABI_PARAM1), gpr.R(a));
-#if 1
+
+		// Some homebrew actually loads from a hw reg with this instruction
 		SafeLoadRegToEAX(ABI_PARAM1, 16, 0, true);
 		MOV(32, gpr.R(d), R(EAX));
-#else
-		UnsafeLoadRegToReg(ABI_PARAM1, gpr.RX(d), 16, 0, true);
-#endif
+
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
 	}
 
 	void lXz(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff
 			|| Core::g_CoreStartupParameter.bJITLoadStorelXzOff)
 			{Default(inst); return;} // turn off from debugger	
-#endif
 		INSTRUCTION_START;
 		
 		int d = inst.RD;
@@ -233,10 +214,8 @@ namespace Jit64
 
 	void lha(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
 			{Default(inst); return;} // turn off from debugger	
-#endif
 		INSTRUCTION_START;
 
 		int d = inst.RD;
@@ -257,10 +236,8 @@ namespace Jit64
 	// Zero cache line.
 	void dcbz(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
 			{Default(inst); return;} // turn off from debugger	
-#endif
 		INSTRUCTION_START;
 
 		MOV(32, R(EAX), gpr.R(inst.RB));
@@ -280,10 +257,8 @@ namespace Jit64
 
 	void stX(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
 			{Default(inst); return;} // turn off from debugger	
-#endif
 		INSTRUCTION_START;
 
 		int s = inst.RS;
@@ -422,7 +397,6 @@ namespace Jit64
 	// A few games use these heavily in video codecs.
 	void lmw(UGeckoInstruction inst)
 	{
-		INSTRUCTION_START;
 		Default(inst);
 		return;
 
@@ -449,7 +423,6 @@ namespace Jit64
 
 	void stmw(UGeckoInstruction inst)
 	{
-		INSTRUCTION_START;
 		Default(inst);
 		return;
 		/*
