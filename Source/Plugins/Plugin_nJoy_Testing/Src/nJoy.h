@@ -32,23 +32,36 @@
 // Set this if you want to use the rumble 'hack' for controller one
 //#define USE_RUMBLE_DINPUT_HACK
 
-#ifdef _WIN32
-#define _CRT_SECURE_NO_WARNINGS
-#define DIRECTINPUT_VERSION 0x0800
-#define WIN32_LEAN_AND_MEAN
-#include <tchar.h>
-#include <math.h>
-
-#ifdef USE_RUMBLE_DINPUT_HACK
-#include <dinput.h>		// used for rumble
-#endif
-
-#endif
-
 #include <vector>
 #include <stdio.h>
 #include <time.h>
 #include <SDL.h>
+
+#include "Common.h"
+#include "pluginspecs_pad.h"
+#include "IniFile.h"
+
+#if defined(HAVE_WX) && HAVE_WX
+#include "GUI/AboutBox.h"
+#include "GUI/ConfigBox.h"
+#endif
+
+#ifdef _WIN32
+#pragma comment(lib, "SDL.lib")
+#pragma comment(lib, "comctl32.lib")
+#include <tchar.h>
+#include <math.h>
+#define _CRT_SECURE_NO_WARNINGS
+#define DIRECTINPUT_VERSION 0x0800
+#define WIN32_LEAN_AND_MEAN
+
+#ifdef USE_RUMBLE_DINPUT_HACK
+#pragma comment(lib, "dxguid.lib")
+#pragma comment(lib, "dinput8.lib")
+#pragma comment(lib, "winmm.lib")
+#include <dinput.h>
+#endif
+#endif // _WIN32
 
 #ifdef _WIN32
 #define SLEEP(x) Sleep(x)
@@ -57,27 +70,9 @@
 #include <sys/ioctl.h>
 #define SLEEP(x) usleep(x*1000)
 #endif
+
 #ifdef __linux__
 #include <linux/input.h>
-#endif
-
-#include "GUI/AboutBox.h"
-#include "GUI/ConfigBox.h"
-
-#include "Common.h"
-#include "pluginspecs_pad.h"
-#include "IniFile.h"
-
-#ifdef _WIN32
-#pragma comment(lib, "SDL.lib")
-#pragma comment(lib, "comctl32.lib")
-
-// Required for the rumble part
-#ifdef USE_RUMBLE_DINPUT_HACK
-#pragma comment(lib, "dxguid.lib")
-#pragma comment(lib, "dinput8.lib")
-#pragma comment(lib, "winmm.lib")
-#endif
 #endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
