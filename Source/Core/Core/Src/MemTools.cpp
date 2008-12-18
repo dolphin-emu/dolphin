@@ -199,7 +199,7 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 #else
 	u8 *fault_instruction_ptr = (u8 *)CREG_EIP(ctx);
 #endif
-	if (!Jit64::IsInJitCode((const u8 *)fault_instruction_ptr)) {
+	if (!jit.IsInJitCode((const u8 *)fault_instruction_ptr)) {
 		// Let's not prevent debugging.
 		return;
 	}
@@ -226,7 +226,7 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 	fake_ctx.Eax = CREG_EAX(ctx);
 	fake_ctx.Eip = CREG_EIP(ctx);
 #endif
-	u8 *new_rip = Jit64::BackPatch(fault_instruction_ptr, access_type, em_address, &fake_ctx);
+	u8 *new_rip = jit.BackPatch(fault_instruction_ptr, access_type, em_address, &fake_ctx);
 	if (new_rip) {
 #ifdef _M_X64
 		CREG_RAX(ctx) = fake_ctx.Rax;
