@@ -26,11 +26,6 @@
 #include "SignatureDB.h"
 #include "PPCAnalyst.h"
 
-#if defined(HAVE_WX) && HAVE_WX
-#include <wx/textdlg.h>
-#include <wx/msgdlg.h>
-#endif
-
 SymbolDB g_symbolDB;
 
 SymbolDB::SymbolDB()
@@ -371,14 +366,8 @@ bool SymbolDB::SaveMap(const char *filename, bool WithCodes) const
 		}		
     }
 	// ---------------
-#if defined(HAVE_WX) && HAVE_WX
-	// Show success message
-        wxMessageBox(wxString::Format(wxT("Saved %s"), mapFile.c_str()));
-#else
-        // Show message somewhere
-#endif
-	// Close the file and return
-	fclose(f);
-	return true;
+    SuccessAlert("Saved %s", mapFile.c_str());
+    fclose(f);
+    return true;
 }
 // ===========

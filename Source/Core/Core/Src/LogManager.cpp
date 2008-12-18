@@ -17,23 +17,19 @@
 
 #include <stdio.h>
 #include "Common.h"
-#if defined(HAVE_WX) && HAVE_WX
-#include <wx/datetime.h> // for the timestamps
-#endif
 #include "StringUtil.h"
 #include "LogManager.h"
 #include "PowerPC/PowerPC.h"
 #include "PowerPC/SymbolDB.h" // for g_symbolDB
 #include "Debugger/Debugger_SymbolMap.h"
-
+#include "Timer.h"
 
 LogManager::SMessage	(*LogManager::m_Messages)[MAX_MESSAGES];
-int						LogManager::m_nextMessages[LogManager::VERBOSITY_LEVELS + 1];
-
-CDebugger_Log*			LogManager::m_Log[LogTypes::NUMBER_OF_LOGS + (LogManager::VERBOSITY_LEVELS * 100)];
-int						LogManager::m_activeLog = LogTypes::MASTER_LOG;
-bool					LogManager::m_bDirty = true;
-bool					LogManager::m_bInitialized = false;
+int LogManager::m_nextMessages[LogManager::VERBOSITY_LEVELS + 1];
+CDebugger_Log* 	LogManager::m_Log[LogTypes::NUMBER_OF_LOGS + (LogManager::VERBOSITY_LEVELS * 100)];
+int LogManager::m_activeLog = LogTypes::MASTER_LOG;
+bool LogManager::m_bDirty = true;
+bool LogManager::m_bInitialized = false;
 
 
 void __Log(int log, const char *format, ...)
@@ -224,9 +220,6 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	va_end(ap);
 
 	static u32 count = 0;
-#if defined(HAVE_WX) && HAVE_WX
-	wxDateTime datetime = wxDateTime::UNow(); // get timestamp
-#endif
 	char* Msg2 = (char*)alloca(strlen(_fmt)+512);
 
 	// Here's the old symbol request
@@ -260,15 +253,10 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	if (Index > 0)
 	{		
 		//sprintf(Msg2, "%i | %i %02i:%02i:%03i: %x %s (%s, %08x) : %s%s", 
-		sprintf(Msg2, "%i %02i:%02i:%03i: %x %s (%s, %08x) : %s%s", 
-			//v,
+		sprintf(Msg2, "%i %llu: %x %s (%s, %08x) : %s%s", 
+			//v, 
 			++count,
-#if defined(HAVE_WX) && HAVE_WX
-			datetime.GetMinute(), datetime.GetSecond(), datetime.GetMillisecond(),
-#else
-                        0, 0, 0,
-                        // TODO get proper values
-#endif
+			Common::Timer::GetTimeSinceJan1970(),
 			PowerPC::ppcState.DebugCount, 
 			m_Log[_type]->m_szShortName_, // (CONSOLE etc)		
 			symbol.c_str(), PC, // current PC location (name, address)
