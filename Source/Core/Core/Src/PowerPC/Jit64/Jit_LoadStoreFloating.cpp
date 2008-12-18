@@ -278,6 +278,10 @@ void stfs(UGeckoInstruction inst)
 
 void stfsx(UGeckoInstruction inst)
 {
+#ifdef JIT_OFF_OPTIONS
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
+			{Default(inst); return;} // turn off from debugger	
+#endif
 	// We can take a shortcut here - it's not likely that a hardware access would use this instruction.
 	INSTRUCTION_START;
 #ifdef _M_X64

@@ -21,6 +21,7 @@
 // dependency is a little inconvenient and this is possibly a slight
 // performance hit, it's not enabled by default, but it's useful for
 // locating performance issues.
+
 //#define OPROFILE_REPORT
 
 #include <map>
@@ -71,10 +72,10 @@ namespace Jit64
 		TRAMPOLINE_SIZE = 1024*1024,
 		//MAX_NUM_BLOCKS = 65536,
 	};
-	int CODE_SIZE = 1024*1024*16; // nonconstant to be able to have an option for it
+	int CODE_SIZE = 1024*1024*16;
 	int MAX_NUM_BLOCKS = 65536*2;
 
-	static u8 **blockCodePointers; // cut these in half and force below 2GB?
+	static u8 **blockCodePointers;
 
 	static std::multimap<u32, int> links_to;
 
@@ -133,8 +134,8 @@ namespace Jit64
 #endif
 	}
 	
-	/* This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
-	   is full and when saving and loading states */
+	// This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
+	// is full and when saving and loading states.
 	void ClearCache()
 	{
 		Core::DisplayMessage("Cleared code cache.", 3000);
@@ -348,13 +349,6 @@ namespace Jit64
 		}
 	}
 
-	/*
-					if ((b.exitAddress[0] == INVALID_EXIT || b.linkStatus[0]) &&
-					(b.exitAddress[1] == INVALID_EXIT || b.linkStatus[1])) {
-					unlinked.erase(iter);
-					if (unlinked.size() > 4000) PanicAlert("Removed from unlinked. Size = %i", unlinked.size());
-				}
-*/
 	using namespace std;
 	void LinkBlock(int i)
 	{
@@ -408,7 +402,6 @@ namespace Jit64
 		SetCodePtr(prev_code);  // reset code pointer
 	}
 
-#define BLR_OP 0x4e800020
 
 	void InvalidateCodeRange(u32 address, u32 length)
 	{
@@ -418,7 +411,7 @@ namespace Jit64
 		//This is slow but should be safe (zelda needs it for block linking)
 		for (int i = 0; i < numBlocks; i++)
 		{
-			if (RangeIntersect(blocks[i].originalAddress, blocks[i].originalAddress+blocks[i].originalSize,
+			if (RangeIntersect(blocks[i].originalAddress, blocks[i].originalAddress + blocks[i].originalSize,
 				               address, address + length))
 			{
 				DestroyBlock(i, true);

@@ -172,6 +172,7 @@ namespace Jit64
 {
 	JitState js;
 	JitOptions jo;
+	PPCAnalyst::CodeBuffer code_buffer(32000);
 
 	void Init()
 	{
@@ -319,7 +320,10 @@ namespace Jit64
 
 		//Analyze the block, collect all instructions it is made of (including inlining,
 		//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-		PPCAnalyst::CodeOp *ops = PPCAnalyst::Flatten(emaddress, size, js.st, js.gpa, js.fpa);
+		
+		PPCAnalyst::Flatten(emaddress, &size, &js.st, &js.gpa, &js.fpa, &code_buffer);
+		PPCAnalyst::CodeOp *ops = code_buffer.codebuffer;
+
 		const u8 *start = AlignCode4(); //TODO: Test if this or AlignCode16 make a difference from GetCodePtr
 		b.checkedEntry = start;
 		b.runCount = 0;

@@ -182,7 +182,7 @@ void psq_st(UGeckoInstruction inst)
 	{
 		if (gpr.R(a).IsImm() && !update && cpu_info.bSSSE3)
 		{
-			u32 addr = gpr.R(a).offset + offset;
+			u32 addr = (u32)(gpr.R(a).offset + offset);
 			if (addr == 0xCC008000) {
 				// Writing to FIFO. Let's do fast method.
 				CVTPD2PS(XMM0, fpr.R(s));

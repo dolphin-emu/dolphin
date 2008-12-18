@@ -45,7 +45,6 @@ namespace HW
 	void Init()
 	{
 		CoreTiming::Init();
-		PPCAnalyst::Init();
 
 		Thunk_Init(); // not really hw, but this way we know it's inited early :P
 		State_Init();
@@ -91,7 +90,6 @@ namespace HW
 		State_Shutdown();
 		Thunk_Shutdown();
 		CoreTiming::Shutdown();
-		PPCAnalyst::Shutdown();
 	}
 
 	void DoState(PointerWrap &p)

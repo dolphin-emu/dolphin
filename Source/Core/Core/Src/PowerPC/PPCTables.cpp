@@ -122,8 +122,7 @@ Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst)
 	}
 }
 
-
-GekkoOPTemplate primarytable[] = 
+static GekkoOPTemplate primarytable[] = 
 {
 	{4,  Interpreter::RunTable4,     DynaRunTable4,  {"RunTable4",  OPTYPE_SUBTABLE | (4<<24), 0}},
 	{19, Interpreter::RunTable19,    DynaRunTable19, {"RunTable19", OPTYPE_SUBTABLE | (19<<24), 0}},
@@ -204,7 +203,7 @@ GekkoOPTemplate primarytable[] =
 	{58, Interpreter::unknown_instruction, Jit64::Default,  {"unknown_instruction", OPTYPE_UNKNOWN, 0}},
 };
 
-GekkoOPTemplate table4[] = 
+static GekkoOPTemplate table4[] = 
 {    //SUBOP10
 	{0,    Interpreter::ps_cmpu0,   Jit64::Default,     {"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn}},
 	{32,   Interpreter::ps_cmpo0,   Jit64::Default,     {"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn}},
@@ -222,7 +221,7 @@ GekkoOPTemplate table4[] =
 	{1014, Interpreter::dcbz_l,     Jit64::Default,     {"dcbz_l",     OPTYPE_SYSTEM, 0}},
 };		
 
-GekkoOPTemplate table4_2[] = 
+static GekkoOPTemplate table4_2[] = 
 {
 	{10, Interpreter::ps_sum0,   Jit64::ps_sum,    {"ps_sum0",   OPTYPE_PS, 0}},
 	{11, Interpreter::ps_sum1,   Jit64::ps_sum,    {"ps_sum1",   OPTYPE_PS, 0}},
@@ -244,7 +243,7 @@ GekkoOPTemplate table4_2[] =
 };
 
 
-GekkoOPTemplate table4_3[] = 
+static GekkoOPTemplate table4_3[] = 
 {
 	{6,  Interpreter::psq_lx,   Jit64::Default, {"psq_lx",   OPTYPE_PS, 0}},
 	{7,  Interpreter::psq_stx,  Jit64::Default, {"psq_stx",  OPTYPE_PS, 0}},
@@ -252,7 +251,7 @@ GekkoOPTemplate table4_3[] =
 	{39, Interpreter::psq_stux, Jit64::Default, {"psq_stux", OPTYPE_PS, 0}}, 
 };
 
-GekkoOPTemplate table19[] = 
+static GekkoOPTemplate table19[] = 
 {
 	{528, Interpreter::bcctrx, Jit64::bcctrx,    {"bcctrx", OPTYPE_BRANCH, FL_ENDBLOCK}},
 	{16,  Interpreter::bclrx,  Jit64::bclrx,     {"bclrx",  OPTYPE_BRANCH, FL_ENDBLOCK}},
@@ -273,7 +272,7 @@ GekkoOPTemplate table19[] =
 };
 
 
-GekkoOPTemplate table31[] = 
+static GekkoOPTemplate table31[] = 
 {
 	{28,  Interpreter::andx,    Jit64::andx,     {"andx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
 	{60,  Interpreter::andcx,   Jit64::Default,  {"andcx",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
@@ -386,7 +385,7 @@ GekkoOPTemplate table31[] =
 	{566, Interpreter::tlbsync, Jit64::Default,    {"tlbsync", OPTYPE_SYSTEM, 0}},
 };
 
-GekkoOPTemplate table31_2[] = 
+static GekkoOPTemplate table31_2[] = 
 {	
 	{266, Interpreter::addx,    Jit64::addx,         {"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
 	{10,  Interpreter::addcx,   Jit64::Default,      {"addcx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
@@ -406,7 +405,7 @@ GekkoOPTemplate table31_2[] =
 	{200, Interpreter::subfzex, Jit64::Default,      {"subfzex", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
 };
 
-GekkoOPTemplate table59[] = 
+static GekkoOPTemplate table59[] = 
 {
 	{18, Interpreter::fdivsx,   Jit64::fp_arith_s,    {"fdivsx",   OPTYPE_FPU, FL_RC_BIT_F, 16}}, 
 	{20, Interpreter::fsubsx,   Jit64::fp_arith_s,    {"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
@@ -420,7 +419,7 @@ GekkoOPTemplate table59[] =
 	{31, Interpreter::fnmaddsx, Jit64::fmaddXX,       {"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F}}, 
 };							    
 
-GekkoOPTemplate table63[] = 
+static GekkoOPTemplate table63[] = 
 {
 	{264, Interpreter::fabsx,   Jit64::Default,    {"fabsx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{32,  Interpreter::fcmpo,   Jit64::fcmpx,      {"fcmpo",   OPTYPE_FPU, FL_RC_BIT_F}},
@@ -440,7 +439,7 @@ GekkoOPTemplate table63[] =
 	{711, Interpreter::mtfsfx,  Jit64::Default,    {"mtfsfx",  OPTYPE_SYSTEMFP, 0, 2}},
 };
 
-GekkoOPTemplate table63_2[] = 
+static GekkoOPTemplate table63_2[] = 
 {
 	{18, Interpreter::fdivx,   Jit64::Default,     {"fdivx",    OPTYPE_FPU, FL_RC_BIT_F, 30}},
 	{20, Interpreter::fsubx,   Jit64::Default,     {"fsubx",    OPTYPE_FPU, FL_RC_BIT_F}},
@@ -455,7 +454,10 @@ GekkoOPTemplate table63_2[] =
 	{31, Interpreter::fnmaddx, Jit64::fmaddXX,     {"fnmaddx",  OPTYPE_FPU, FL_RC_BIT_F}},
 };
 
-bool PPCTables::UsesFPU(UGeckoInstruction _inst)
+namespace PPCTables
+{
+
+bool UsesFPU(UGeckoInstruction _inst)
 {
 	switch (_inst.OPCD)
 	{
@@ -500,7 +502,7 @@ bool PPCTables::UsesFPU(UGeckoInstruction _inst)
 	}
 }
 
-void PPCTables::InitTables()
+void InitTables()
 {
 	//clear
 	for (int i = 0; i < 32; i++) 
@@ -671,31 +673,30 @@ void PPCTables::CompileInstruction(UGeckoInstruction _inst)
 	}
 }
 
-bool PPCTables::IsValidInstruction(UGeckoInstruction _instCode)
+bool IsValidInstruction(UGeckoInstruction _instCode)
 {
 	const GekkoOPInfo *info = GetOpInfo(_instCode);
 	return info != 0;
 }
 
-void PPCTables::CountInstruction(UGeckoInstruction _inst)
+void CountInstruction(UGeckoInstruction _inst)
 {
 	GekkoOPInfo *info = GetOpInfo(_inst);
 	if (info)
 		info->runCount++;
 }
 
-struct inf
+void PrintInstructionRunCounts()
 {
-	const char *name;
-	int count;
-	bool operator < (const inf &o) const
+	struct inf
 	{
-		return count > o.count;
-	}
-};
-
-void PPCTables::PrintInstructionRunCounts()
-{
+		const char *name;
+		int count;
+		bool operator < (const inf &o) const
+		{
+			return count > o.count;
+		}
+	};
 	std::vector<inf> temp;
 	for (int i = 0; i < m_numInstructions; i++)
 	{
@@ -712,7 +713,7 @@ void PPCTables::PrintInstructionRunCounts()
 }
 
 //TODO move to LogManager
-void PPCTables::LogCompiledInstructions()
+void LogCompiledInstructions()
 {
 	static int time = 0;
 	FILE *f = fopen(StringFromFormat(FULL_LOGS_DIR "inst_log%i.txt", time).c_str(), "w");
@@ -740,3 +741,5 @@ void PPCTables::LogCompiledInstructions()
 #endif
 	time++;
 }
+
+}  // namespace

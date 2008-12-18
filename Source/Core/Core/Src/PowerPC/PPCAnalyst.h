@@ -76,13 +76,20 @@ struct BlockRegStats
 			   min(firstRead[reg], firstWrite[reg]);}
 };
 
-void Init();
-void Shutdown();
 
-CodeOp *Flatten(u32 address, int &realsize, BlockStats &st, BlockRegStats &gpa, BlockRegStats &fpa);
+class CodeBuffer
+{
+public:
+	CodeBuffer(int size);
+	~CodeBuffer();
+
+	PPCAnalyst::CodeOp *codebuffer;
+	int size_;
+};
+
+void Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, BlockRegStats *fpa, CodeBuffer *buffer);
 
 void LogFunctionCall(u32 addr);
-
 void FindFunctions(u32 startAddr, u32 endAddr, SymbolDB *func_db);
 bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size = 0);
 

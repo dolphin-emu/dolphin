@@ -71,6 +71,18 @@ enum
 	OPTYPE_UNKNOWN ,
 };
 
+enum {
+	OPCD_HLEFUNCTION = 1,
+	OPCD_COMPILEDBLOCK = 2,
+	OPCD_BCx = 16,
+	OPCD_SC = 17,
+	OPCD_Bx = 18,
+};
+
+enum {
+	OP_BLR = 0x4e800020,
+};
+
 struct GekkoOPInfo
 {
 	const char *opname;
@@ -85,21 +97,21 @@ struct GekkoOPInfo
 GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst);
 Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst);
 
-class PPCTables
+namespace PPCTables
 {
-public:
-	typedef void (*_recompilerInstruction) (UGeckoInstruction instCode);
-	typedef void (*_interpreterInstruction)(UGeckoInstruction instCode);
 
-	static void InitTables();
-	static bool IsValidInstruction(UGeckoInstruction _instCode);
-	static bool UsesFPU(UGeckoInstruction _inst);
+typedef void (*_recompilerInstruction) (UGeckoInstruction instCode);
+typedef void (*_interpreterInstruction)(UGeckoInstruction instCode);
 
-	static void CountInstruction(UGeckoInstruction _inst);
-	static void PrintInstructionRunCounts();
-	static void LogCompiledInstructions();
+void InitTables();
+bool IsValidInstruction(UGeckoInstruction _instCode);
+bool UsesFPU(UGeckoInstruction _inst);
 
-	static void CompileInstruction(UGeckoInstruction _inst);
-};
+void CountInstruction(UGeckoInstruction _inst);
+void PrintInstructionRunCounts();
+void LogCompiledInstructions();
+void CompileInstruction(UGeckoInstruction _inst);
+
+}  // namespace
 
 #endif
