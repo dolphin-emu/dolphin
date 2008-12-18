@@ -33,21 +33,17 @@
 #include "JitAsm.h"
 #include "JitRegCache.h"
 
-
-namespace Jit64
-{
-
-void JitClearCA()
+void Jit64::JitClearCA()
 {
 	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_CA_MASK)); //XER.CA = 0
 }
 
-void JitSetCA()
+void Jit64::JitSetCA()
 {
 	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_CA_MASK)); //XER.CA = 1
 }
 
-void UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
+void Jit64::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
 {
 #ifdef _M_IX86
 	AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
@@ -72,7 +68,7 @@ void UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 o
 	}
 }
 
-void SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset, bool signExtend)
+void Jit64::SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset, bool signExtend)
 {
 	if (offset)
 		ADD(32, R(reg), Imm32((u32)offset));
@@ -94,7 +90,7 @@ void SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset, bool signExtend)
 	SetJumpTarget(arg2);
 }
 
-void UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset)
+void Jit64::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset)
 {
 	if (accessSize != 32) {
 		PanicAlert("UnsafeWriteRegToReg can't handle %i byte accesses", accessSize);
@@ -109,7 +105,7 @@ void UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 
 }
 
 // Destroys both arg registers
-void SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset)
+void Jit64::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset)
 {
 	if (offset)
 		ADD(32, R(reg_addr), Imm32(offset));
@@ -122,7 +118,7 @@ void SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 of
 	SetJumpTarget(skip_call);
 }
 
-void WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address)
+void Jit64::WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address)
 {
 #ifdef _M_X64
  	MOV(accessSize, MDisp(RBX, address & 0x3FFFFFFF), arg);
@@ -131,7 +127,7 @@ void WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address)
 #endif
 }
 
-void WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address)
+void Jit64::WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address)
 {
 #ifdef _M_X64
 	MOV(32, R(RAX), Imm32(address));
@@ -141,15 +137,13 @@ void WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address)
 #endif
 }
 
-void ForceSinglePrecisionS(X64Reg xmm) {
+void Jit64::ForceSinglePrecisionS(X64Reg xmm) {
 	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
 	CVTSD2SS(xmm, R(xmm));
 	CVTSS2SD(xmm, R(xmm));
 }
-void ForceSinglePrecisionP(X64Reg xmm) {
+void Jit64::ForceSinglePrecisionP(X64Reg xmm) {
 	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
 	CVTPD2PS(xmm, R(xmm));
 	CVTPS2PD(xmm, R(xmm));
 }
-
-}  // namespace

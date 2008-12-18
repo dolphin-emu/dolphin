@@ -23,6 +23,7 @@
 #include "Memmap.h"
 #include "../Core.h"
 #include "../PowerPC/PowerPC.h"
+#include "../PowerPC/Jit64/Jit.h"
 #include "../PowerPC/Jit64/JitCache.h"
 #include "CPU.h"
 #include "PeripheralInterface.h"
@@ -758,7 +759,7 @@ bool AreMemoryBreakpointsActivated()
 
 u32 Read_Instruction(const u32 _Address)
 {
-	return Jit64::GetOriginalCode(_Address);
+	return jit.GetOriginalCode(_Address);
 }
 
 u32 Read_Opcode(const u32 _Address)

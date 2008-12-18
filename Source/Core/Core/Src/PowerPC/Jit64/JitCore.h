@@ -17,16 +17,13 @@
 #ifndef _JITCORE_H
 #define _JITCORE_H
 
-namespace Jit64
+namespace JitCore
 {	
-	namespace Core
-	{
-		void Init();
-		void Shutdown();
-		void Reset();
-		void SingleStep();
-		void Run();
-	};
+	void Init();
+	void Shutdown();
+	void Reset();
+	void SingleStep();
+	void Run();
 }
 
 #endif

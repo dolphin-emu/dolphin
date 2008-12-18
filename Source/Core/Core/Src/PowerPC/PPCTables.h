@@ -97,10 +97,14 @@ struct GekkoOPInfo
 GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst);
 Interpreter::_interpreterInstruction GetInterpreterOp(UGeckoInstruction _inst);
 
+class Jit64;
+
 namespace PPCTables
 {
 
-typedef void (*_recompilerInstruction) (UGeckoInstruction instCode);
+
+
+typedef void (Jit64::*_recompilerInstruction) (UGeckoInstruction instCode);
 typedef void (*_interpreterInstruction)(UGeckoInstruction instCode);
 
 void InitTables();

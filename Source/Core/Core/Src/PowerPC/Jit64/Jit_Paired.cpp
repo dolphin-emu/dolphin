@@ -26,7 +26,6 @@
 #include "Jit.h"
 #include "JitCache.h"
 #include "JitRegCache.h"
-#include "Jit_Util.h"
 
 // TODO
 // ps_madds0
@@ -39,20 +38,12 @@
 // #define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
 
-#ifdef _M_IX86
-#define DISABLE_32BIT Default(inst); return;
-#else
-#define DISABLE_32BIT ;
-#endif
-
-namespace Jit64
-{
 	const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
 	const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
 	const double GC_ALIGNED16(psOneOne[2])  = {1.0, 1.0};
 	const double GC_ALIGNED16(psZeroZero[2]) = {0.0, 0.0};
 
-	void ps_mr(UGeckoInstruction inst)
+	void Jit64::ps_mr(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
 			{Default(inst); return;} // turn off from debugger
@@ -68,7 +59,7 @@ namespace Jit64
 		MOVAPD(fpr.RX(d), fpr.R(b));
 	}
 
-	void ps_sel(UGeckoInstruction inst)
+	void Jit64::ps_sel(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
 			{Default(inst); return;} // turn off from debugger
@@ -101,7 +92,7 @@ namespace Jit64
 		fpr.UnlockAllX();
 	}
 
-	void ps_sign(UGeckoInstruction inst)
+	void Jit64::ps_sign(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
 			{Default(inst); return;} // turn off from debugger
@@ -139,7 +130,7 @@ namespace Jit64
 		fpr.UnlockAll();
 	}
 
-	void ps_rsqrte(UGeckoInstruction inst)
+	void Jit64::ps_rsqrte(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
 			{Default(inst); return;} // turn off from debugger
@@ -172,7 +163,7 @@ namespace Jit64
 	*/
 
 	//There's still a little bit more optimization that can be squeezed out of this
-	void tri_op(int d, int a, int b, bool reversible, void (*op)(X64Reg, OpArg))
+	void Jit64::tri_op(int d, int a, int b, bool reversible, void (*op)(X64Reg, OpArg))
 	{
 		fpr.Lock(d, a, b);
 		
@@ -212,7 +203,7 @@ namespace Jit64
 		fpr.UnlockAll();
 	}
 
-	void ps_arith(UGeckoInstruction inst)
+	void Jit64::ps_arith(UGeckoInstruction inst)
 	{	
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
 			{Default(inst); return;} // turn off from debugger
@@ -237,7 +228,7 @@ namespace Jit64
 		}
 	}
 
-	void ps_sum(UGeckoInstruction inst)
+	void Jit64::ps_sum(UGeckoInstruction inst)
 	{	
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
 			{Default(inst); return;} // turn off from debugger
@@ -279,7 +270,7 @@ namespace Jit64
 	}
 
 
-	void ps_muls(UGeckoInstruction inst)
+	void Jit64::ps_muls(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
 			{Default(inst); return;} // turn off from debugger
@@ -319,7 +310,7 @@ namespace Jit64
 
 
 	//TODO: find easy cases and optimize them, do a breakout like ps_arith
-	void ps_mergeXX(UGeckoInstruction inst)
+	void Jit64::ps_mergeXX(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
 			{Default(inst); return;} // turn off from debugger
@@ -355,14 +346,9 @@ namespace Jit64
 		fpr.UnlockAll();
 	}
 
-	//one op is assumed to be add
-	void quad_op(int d, int a, int b, int c, void (*op)(X64Reg, OpArg))
-	{
-		
-	}
 
 	//TODO: add optimized cases
-	void ps_maddXX(UGeckoInstruction inst)
+	void Jit64::ps_maddXX(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
 			{Default(inst); return;} // turn off from debugger
@@ -419,4 +405,3 @@ namespace Jit64
 		ForceSinglePrecisionP(fpr.RX(d));
 		fpr.UnlockAll();
 	}
-}

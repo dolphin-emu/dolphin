@@ -125,7 +125,9 @@ void CJitWindow::OnRefresh(wxCommandEvent& /*event*/) {
 
 void CJitWindow::ViewAddr(u32 em_address)
 {
+	the_jit_window->Show(true);
 	the_jit_window->Compare(em_address);
+	the_jit_window->SetFocus();	
 }
 
 void CJitWindow::Compare(u32 em_address)
@@ -136,14 +138,14 @@ void CJitWindow::Compare(u32 em_address)
 	disassembler x64disasm;
 	x64disasm.set_syntax_intel();
 
-	int block_num = Jit64::GetBlockNumberFromAddress(em_address);
+	int block_num = jit.GetBlockNumberFromAddress(em_address);
 	if (block_num < 0)
 	{
 		ppc_box->SetValue(wxString::FromAscii(StringFromFormat("(non-code address: %08x)", em_address).c_str()));
 		x86_box->SetValue(wxString::FromAscii(StringFromFormat("(no translation)").c_str()));
 		return;
 	}
-	Jit64::JitBlock *block = Jit64::GetBlock(block_num);
+	Jit64::JitBlock *block = jit.GetBlock(block_num);
 	
 	// == Fill in ppc box
 	u32 ppc_addr = block->originalAddress;
@@ -152,7 +154,8 @@ void CJitWindow::Compare(u32 em_address)
 	PPCAnalyst::BlockStats st;
 	PPCAnalyst::BlockRegStats gpa;
 	PPCAnalyst::BlockRegStats fpa;
-	if (PPCAnalyst::Flatten(ppc_addr, &size, &st, &gpa, &fpa, &code_buffer)) {
+	if (PPCAnalyst::Flatten(ppc_addr, &size, &st, &gpa, &fpa, &code_buffer))
+	{
 		char *sptr = (char*)xDis;
 		for (int i = 0; i < size; i++)
 		{
@@ -169,7 +172,7 @@ void CJitWindow::Compare(u32 em_address)
 	// == Fill in x86 box
 
 	memset(xDis, 0, 65536);
-	const u8 *code = (const u8 *)Jit64::GetCompiledCodeFromBlock(block_num);
+	const u8 *code = (const u8 *)jit.GetCompiledCodeFromBlock(block_num);
 	u64 disasmPtr = (u64)code;
 	size = block->codeSize;
 	const u8 *end = code + size;

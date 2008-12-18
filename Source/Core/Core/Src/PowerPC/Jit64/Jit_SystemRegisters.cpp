@@ -33,9 +33,7 @@
 #define INSTRUCTION_START
 // #define INSTRUCTION_START Default(inst); return;
 
-namespace Jit64
-{
-	void mtspr(UGeckoInstruction inst)
+	void Jit64::mtspr(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
 			{Default(inst); return;} // turn off from debugger
@@ -86,7 +84,7 @@ namespace Jit64
 		gpr.UnlockAll();
 	}
 
-	void mfspr(UGeckoInstruction inst)
+	void Jit64::mfspr(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
 			{Default(inst); return;} // turn off from debugger
@@ -103,7 +101,7 @@ namespace Jit64
 			//break;
 		case SPR_TL:
 		case SPR_TU:
-			//CALL((void *)&CoreTiming::Advance);
+			//CALL((void Jit64::*)&CoreTiming::Advance);
 			// fall through
 		default:
 			gpr.Lock(d);
@@ -118,7 +116,7 @@ namespace Jit64
 	// =======================================================================================
 	// Don't interpret this, if we do we get thrown out
 	// --------------
-	void mtmsr(UGeckoInstruction inst)
+	void Jit64::mtmsr(UGeckoInstruction inst)
 	{
 		//if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
 		//	{Default(inst); return;} // turn off from debugger
@@ -132,7 +130,7 @@ namespace Jit64
 	// ==============
 
 
-	void mfmsr(UGeckoInstruction inst)
+	void Jit64::mfmsr(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
 			{Default(inst); return;} // turn off from debugger
@@ -142,7 +140,7 @@ namespace Jit64
 		MOV(32, gpr.R(inst.RD), M(&MSR));
 	}
 
-	void mftb(UGeckoInstruction inst)
+	void Jit64::mftb(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
 			{Default(inst); return;} // turn off from debugger
@@ -150,7 +148,7 @@ namespace Jit64
 		mfspr(inst);
 	}
 
-	void mfcr(UGeckoInstruction inst)
+	void Jit64::mfcr(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
 			{Default(inst); return;} // turn off from debugger
@@ -168,7 +166,7 @@ namespace Jit64
 		MOV(32, gpr.R(d), R(EAX));
 	}
 
-	void mtcrf(UGeckoInstruction inst)
+	void Jit64::mtcrf(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
 			{Default(inst); return;} // turn off from debugger
@@ -204,5 +202,3 @@ namespace Jit64
 			MOV(32, M(&PowerPC::ppcState.cr), R(EAX));
 		}
 	}
-
-}  // namespace

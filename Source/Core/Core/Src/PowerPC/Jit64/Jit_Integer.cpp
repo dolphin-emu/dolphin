@@ -24,15 +24,12 @@
 #include "JitCache.h"
 #include "JitRegCache.h"
 #include "JitAsm.h"
-#include "Jit_Util.h"
 
 // #define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
 
-namespace Jit64
-{
 	// Assumes that the flags were just set through an addition.
-	void GenerateCarry(X64Reg temp_reg) {
+	void Jit64::GenerateCarry(Gen::X64Reg temp_reg) {
 		// USES_XER
 		SETcc(CC_C, R(temp_reg));
 		AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~(1 << 29)));
@@ -40,13 +37,12 @@ namespace Jit64
 		OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), R(temp_reg));
 	}
 
-	typedef u32 (*Operation)(u32 a, u32 b);
 	u32 Add(u32 a, u32 b) {return a + b;}
 	u32 Or (u32 a, u32 b) {return a | b;}
 	u32 And(u32 a, u32 b) {return a & b;}
 	u32 Xor(u32 a, u32 b) {return a ^ b;}
 
-	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void(*op)(int, const OpArg&, const OpArg&), bool Rc = false, bool carry = false)
+	void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void(*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc, bool carry)
 	{
 		gpr.Lock(d, a);
 		if (a || binary || carry)  // yeh nasty special case addic
@@ -93,7 +89,7 @@ namespace Jit64
 		gpr.UnlockAll();
 	}
 
-	void reg_imm(UGeckoInstruction inst)
+	void Jit64::reg_imm(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -147,7 +143,7 @@ namespace Jit64
 	*/
 
 	// unsigned
-	void cmpXX(UGeckoInstruction inst)
+	void Jit64::cmpXX(UGeckoInstruction inst)
 	{	
 		// USES_CR
 #ifdef JIT_OFF_OPTIONS
@@ -263,7 +259,7 @@ namespace Jit64
 		gpr.UnlockAll();
 	}
 
-	void orx(UGeckoInstruction inst)
+	void Jit64::orx(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -305,7 +301,7 @@ namespace Jit64
 
 	
 	// m_GPR[_inst.RA] = m_GPR[_inst.RS] ^ m_GPR[_inst.RB];
-	void xorx(UGeckoInstruction inst)
+	void Jit64::xorx(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -336,7 +332,7 @@ namespace Jit64
 		}
 	}
 
-	void andx(UGeckoInstruction inst)
+	void Jit64::andx(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -361,7 +357,7 @@ namespace Jit64
 		}
 	}
 
-	void extsbx(UGeckoInstruction inst)
+	void Jit64::extsbx(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -382,7 +378,7 @@ namespace Jit64
 		}
 	}
 
-	void extshx(UGeckoInstruction inst)
+	void Jit64::extshx(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -402,7 +398,7 @@ namespace Jit64
 		}
 	}
 
-	void subfic(UGeckoInstruction inst)
+	void Jit64::subfic(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -424,7 +420,7 @@ namespace Jit64
 		// This instruction has no RC flag
 	}
 
-	void subfcx(UGeckoInstruction inst) 
+	void Jit64::subfcx(UGeckoInstruction inst) 
 	{
 		INSTRUCTION_START;
 		Default(inst);
@@ -440,7 +436,7 @@ namespace Jit64
 		*/
 	}
 
-	void subfex(UGeckoInstruction inst) 
+	void Jit64::subfex(UGeckoInstruction inst) 
 	{
 		INSTRUCTION_START;
 		Default(inst);
@@ -457,7 +453,7 @@ namespace Jit64
 		*/
 	}
 
-	void subfx(UGeckoInstruction inst)
+	void Jit64::subfx(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -482,7 +478,7 @@ namespace Jit64
 		}
 	}
 
-	void mulli(UGeckoInstruction inst)
+	void Jit64::mulli(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -497,7 +493,7 @@ namespace Jit64
  		gpr.UnlockAll();
 	}
 
-	void mullwx(UGeckoInstruction inst)
+	void Jit64::mullwx(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -522,7 +518,7 @@ namespace Jit64
 		}
 	}
 
-	void mulhwux(UGeckoInstruction inst)
+	void Jit64::mulhwux(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -555,7 +551,7 @@ namespace Jit64
 	}
 
 	// skipped some of the special handling in here - if we get crashes, let the interpreter handle this op
-	void divwux(UGeckoInstruction inst) {
+	void Jit64::divwux(UGeckoInstruction inst) {
 		Default(inst); return;
 
 		int a = inst.RA, b = inst.RB, d = inst.RD;
@@ -587,7 +583,7 @@ namespace Jit64
 			);
 	}
 
-	void addx(UGeckoInstruction inst)
+	void Jit64::addx(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -645,7 +641,7 @@ namespace Jit64
 	}
 
 	// This can be optimized
-	void addex(UGeckoInstruction inst)
+	void Jit64::addex(UGeckoInstruction inst)
 	{
 		// USES_XER
 #ifdef JIT_OFF_OPTIONS
@@ -674,7 +670,7 @@ namespace Jit64
 		}
 	}
 
-	void rlwinmx(UGeckoInstruction inst)
+	void Jit64::rlwinmx(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -739,7 +735,7 @@ namespace Jit64
 	}
 
 
-	void rlwimix(UGeckoInstruction inst)
+	void Jit64::rlwimix(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -775,7 +771,7 @@ namespace Jit64
 		}
 	}
 
-	void rlwnmx(UGeckoInstruction inst)
+	void Jit64::rlwnmx(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -807,7 +803,7 @@ namespace Jit64
 		}
 	}
 
-	void negx(UGeckoInstruction inst)
+	void Jit64::negx(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -829,7 +825,7 @@ namespace Jit64
 		}
 	}
 
-	void srwx(UGeckoInstruction inst)
+	void Jit64::srwx(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -859,7 +855,7 @@ namespace Jit64
 		}
 	}
 
-	void slwx(UGeckoInstruction inst)
+	void Jit64::slwx(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -889,7 +885,7 @@ namespace Jit64
 		}
 	}
 
-	void srawx(UGeckoInstruction inst)
+	void Jit64::srawx(UGeckoInstruction inst)
 	{
 		// USES_XER
 #ifdef JIT_OFF_OPTIONS
@@ -937,7 +933,7 @@ namespace Jit64
 		}
 	}
 
-	void srawix(UGeckoInstruction inst)
+	void Jit64::srawix(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -984,7 +980,7 @@ namespace Jit64
 	}
 
 	// count leading zeroes
-	void cntlzwx(UGeckoInstruction inst)
+	void Jit64::cntlzwx(UGeckoInstruction inst)
 	{
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
@@ -1014,5 +1010,3 @@ namespace Jit64
 			// TODO: Check PPC manual too
 		}
 	}
-
-}

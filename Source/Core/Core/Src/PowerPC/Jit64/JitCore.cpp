@@ -28,21 +28,19 @@
 #include "../../HW/SerialInterface.h"	
 #include "../../Core.h"
 
-namespace Jit64
-{
-namespace Core
+namespace JitCore
 {
 
 void Init()
 {
-	::Jit64::Init();
-	InitCache();
+	jit.Init();
+	jit.InitCache();
 	Asm::compareEnabled = ::Core::g_CoreStartupParameter.bRunCompareClient;
 }
 
 void Shutdown()
 {
-	ShutdownCache();
+	jit.ShutdownCache();
 }
 
 void SingleStep()
@@ -52,8 +50,7 @@ void SingleStep()
 
 void Run()
 {
-	EnterFastRun();		
+	jit.EnterFastRun();		
 }
 
-}  // namespace
 }  // namespace

@@ -26,20 +26,71 @@
 #include "JitCache.h"
 #include "x64Emitter.h"
 
-namespace Jit64
+#ifdef _WIN32
+
+#include <windows.h>
+
+#else
+
+// A bit of a hack to get things building under linux. We manually fill in this structure as needed
+// from the real context.
+struct CONTEXT
 {
-	struct JitStats
+#ifdef _M_X64
+	u64 Rip;
+	u64 Rax;
+#else
+	u32 Eip;
+	u32 Eax;
+#endif 
+};
+
+#endif
+
+class Jit64
+{
+public:
+	typedef void (*CompiledCode)();
+
+	void unknown_instruction(UGeckoInstruction _inst);
+
+	//Code pointers are stored separately, they will be accessed much more frequently
+
+	enum BlockFlag
 	{
-		u32 compiledBlocks;
-		float averageCodeExpansion;
-		float ratioOpsCompiled; //how many really were compiled, how many became "call interpreter"?
+		BLOCK_USE_GQR0 = 0x1,
+		BLOCK_USE_GQR1 = 0x2,
+		BLOCK_USE_GQR2 = 0x4,
+		BLOCK_USE_GQR3 = 0x8,
+		BLOCK_USE_GQR4 = 0x10,
+		BLOCK_USE_GQR5 = 0x20,
+		BLOCK_USE_GQR6 = 0x40,
+		BLOCK_USE_GQR7 = 0x80,
 	};
 
-#define JIT_OPCODE 0
+	// TODO(ector) - optimize this struct for size
+	struct JitBlock
+	{
+		u32 exitAddress[2];  // 0xFFFFFFFF == unknown
+		u8 *exitPtrs[2];     // to be able to rewrite the exit jump
+		bool linkStatus[2];
 
-	struct JitBlock;
-	const u8* DoJit(u32 emaddress, JitBlock &b);
-	bool IsInJitCode(const u8 *codePtr);
+		u32 originalAddress;
+		u32 originalFirstOpcode; //to be able to restore
+		u32 codeSize; 
+		u32 originalSize;
+		int runCount;  // for profiling.
+#ifdef _WIN32
+		// we don't really need to save start and stop
+		// TODO (mb2): ticStart and ticStop -> "local var" mean "in block" ... low priority ;)
+		LARGE_INTEGER ticStart;		// for profiling - time.
+		LARGE_INTEGER ticStop;		// for profiling - time.
+		LARGE_INTEGER ticCounter;	// for profiling - time.
+#endif
+		const u8 *checkedEntry;
+		bool invalid;
+		int flags;
+	};
 
 	struct JitState
 	{
@@ -77,20 +128,83 @@ namespace Jit64
 		bool fastInterrupts;
 	};
 
-	extern JitState js;
-	extern JitOptions jo;
+	JitState js;
+	JitOptions jo;
+
+	void PrintStats();
+	void EnterFastRun();
+
+	// Code Cache
+
+	u32 GetOriginalCode(u32 address);
+	JitBlock *GetBlock(int no);
+	void InvalidateCodeRange(u32 address, u32 length);
+	int GetBlockNumberFromAddress(u32 address);
+	CompiledCode GetCompiledCode(u32 address);
+	CompiledCode GetCompiledCodeFromBlock(int blockNumber);
+	int GetCodeSize();
+	int GetNumBlocks();
+	u8 **GetCodePointers();
+	void DestroyBlocksWithFlag(BlockFlag death_flag);
+	void LinkBlocks();
+	void LinkBlockExits(int i);
+	void LinkBlock(int i);
+	void ClearCache();
+	void InitCache();
+	void ShutdownCache();
+	void ResetCache();
+	void DestroyBlock(int blocknum, bool invalidate);
+	bool RangeIntersect(int s1, int e1, int s2, int e2) const;
+	bool IsInJitCode(const u8 *codePtr);
+	
+	u8 *BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx);
+
+#define JIT_OPCODE 0
+
+	const u8* Jit(u32 emaddress);
+	const u8* DoJit(u32 emaddress, JitBlock &b);
 
 	void Init();
 
-	void Default(UGeckoInstruction _inst);
-	void DoNothing(UGeckoInstruction _inst);
-	
+	// Utilities for use by opcodes
+
 	void WriteExit(u32 destination, int exit_num);
 	void WriteExitDestInEAX(int exit_num);
 	void WriteExceptionExit(u32 exception);
 	void WriteRfiExitDestInEAX();
+	void WriteCallInterpreter(UGeckoInstruction _inst);
+	void Cleanup();
+	
+	void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset = 0, bool signExtend = false);
+	void UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0);
+	void SafeLoadRegToEAX(Gen::X64Reg reg, int accessSize, s32 offset, bool signExtend = false);
+	void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset);
 
+	void WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address);
+	void WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address);
+	void GenerateCarry(Gen::X64Reg temp_reg);
+
+	void ForceSinglePrecisionS(Gen::X64Reg xmm);
+	void ForceSinglePrecisionP(Gen::X64Reg xmm);
+	void JitClearCA();
+	void JitSetCA();
+	void tri_op(int d, int a, int b, bool reversible, void (*op)(Gen::X64Reg, Gen::OpArg));
+	typedef u32 (*Operation)(u32 a, u32 b);
+	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void(*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc = false, bool carry = false);
+	void fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (*op)(Gen::X64Reg, Gen::OpArg));
+
+
+	// OPCODES
+
+	void Default(UGeckoInstruction _inst);
+	void DoNothing(UGeckoInstruction _inst);
 	void HLEFunction(UGeckoInstruction _inst);
+
+	void DynaRunTable4(UGeckoInstruction _inst);
+	void DynaRunTable19(UGeckoInstruction _inst);
+	void DynaRunTable31(UGeckoInstruction _inst);
+	void DynaRunTable59(UGeckoInstruction _inst);
+	void DynaRunTable63(UGeckoInstruction _inst);
 
 	void addx(UGeckoInstruction inst);
 	void orx(UGeckoInstruction inst);
@@ -176,7 +290,11 @@ namespace Jit64
 
 	void lmw(UGeckoInstruction inst);
 	void stmw(UGeckoInstruction inst);
-}
+};
+
+extern Jit64 jit;
+
+const u8 *Jit(u32 emaddress);
 
 #endif
 

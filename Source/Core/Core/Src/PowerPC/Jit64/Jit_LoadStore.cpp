@@ -35,14 +35,11 @@
 #include "JitCache.h"
 #include "JitAsm.h"
 #include "JitRegCache.h"
-#include "Jit_Util.h"
 
 // #define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
 
-namespace Jit64
-{
-	void lbzx(UGeckoInstruction inst)
+	void Jit64::lbzx(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff
 			|| Core::g_CoreStartupParameter.bJITLoadStorelbzxOff)
@@ -69,7 +66,7 @@ namespace Jit64
 		gpr.UnlockAllX();
 	}
 
-	void lwzx(UGeckoInstruction inst)
+	void Jit64::lwzx(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
 			{Default(inst); return;} // turn off from debugger	
@@ -95,7 +92,7 @@ namespace Jit64
 		gpr.UnlockAllX();
 	}
 
-	void lhax(UGeckoInstruction inst)
+	void Jit64::lhax(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
 			{Default(inst); return;} // turn off from debugger	
@@ -120,7 +117,7 @@ namespace Jit64
 		gpr.UnlockAllX();
 	}
 
-	void lXz(UGeckoInstruction inst)
+	void Jit64::lXz(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff
 			|| Core::g_CoreStartupParameter.bJITLoadStorelXzOff)
@@ -212,7 +209,7 @@ namespace Jit64
 		gpr.UnlockAll();
 	}
 
-	void lha(UGeckoInstruction inst)
+	void Jit64::lha(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
 			{Default(inst); return;} // turn off from debugger	
@@ -234,7 +231,7 @@ namespace Jit64
 	}
 
 	// Zero cache line.
-	void dcbz(UGeckoInstruction inst)
+	void Jit64::dcbz(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
 			{Default(inst); return;} // turn off from debugger	
@@ -255,7 +252,7 @@ namespace Jit64
 #endif
 	}
 
-	void stX(UGeckoInstruction inst)
+	void Jit64::stX(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
 			{Default(inst); return;} // turn off from debugger	
@@ -395,7 +392,7 @@ namespace Jit64
 	}
 
 	// A few games use these heavily in video codecs.
-	void lmw(UGeckoInstruction inst)
+	void Jit64::lmw(UGeckoInstruction inst)
 	{
 		Default(inst);
 		return;
@@ -421,7 +418,7 @@ namespace Jit64
 		gpr.UnlockAllX();*/
 	}
 
-	void stmw(UGeckoInstruction inst)
+	void Jit64::stmw(UGeckoInstruction inst)
 	{
 		Default(inst);
 		return;
@@ -434,5 +431,3 @@ namespace Jit64
 				return;
 		}*/
 	}
-}
-

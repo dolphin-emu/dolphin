@@ -40,16 +40,14 @@
 
 using namespace Gen;
 
-namespace Jit64
-{
-	void sc(UGeckoInstruction _inst)
+	void Jit64::sc(UGeckoInstruction _inst)
 	{
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
 		WriteExceptionExit(EXCEPTION_SYSCALL);
 	}
 
-	void rfi(UGeckoInstruction _inst)
+	void Jit64::rfi(UGeckoInstruction _inst)
 	{
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
@@ -70,7 +68,7 @@ namespace Jit64
 		WriteRfiExitDestInEAX();
 	}
 
-	void bx(UGeckoInstruction inst)
+	void Jit64::bx(UGeckoInstruction inst)
 	{
 		if (inst.LK)
 			MOV(32, M(&LR), Imm32(js.compilerPC + 4));
@@ -107,7 +105,7 @@ namespace Jit64
 	// TODO - optimize to hell and beyond
 	// TODO - make nice easy to optimize special cases for the most common
 	// variants of this instruction.
-	void bcx(UGeckoInstruction inst)
+	void Jit64::bcx(UGeckoInstruction inst)
 	{
 		// USES_CR
 		_assert_msg_(DYNA_REC, js.isLastInstruction, "bcx not last instruction of block");
@@ -198,7 +196,7 @@ namespace Jit64
 		}
 	}
 
-	void bcctrx(UGeckoInstruction inst)
+	void Jit64::bcctrx(UGeckoInstruction inst)
 	{
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
@@ -237,7 +235,7 @@ namespace Jit64
 	}
 
 
-	void bclrx(UGeckoInstruction inst)
+	void Jit64::bclrx(UGeckoInstruction inst)
 	{
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
@@ -260,5 +258,3 @@ namespace Jit64
 		MOV(32, R(EAX), M(&NPC));
 		WriteExitDestInEAX(0);
 	}
-
-}  // namespace

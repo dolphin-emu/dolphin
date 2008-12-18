@@ -23,7 +23,7 @@
 #include "CoreTiming.h"
 #include "HW/HW.h"
 #include "PowerPC/PowerPC.h"
-#include "PowerPC/Jit64/JitCache.h"
+#include "PowerPC/Jit64/Jit.h"
 
 #include "Plugins/Plugin_Video.h"
 #include "Plugins/Plugin_DSP.h"
@@ -87,7 +87,7 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 		return;
 	}
 
-	Jit64::ClearCache();
+	jit.ClearCache();
 	u8 *ptr = 0;
 	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 	DoState(p);
@@ -154,7 +154,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 		return;
 	}
 	
-	Jit64::ClearCache();
+	jit.ClearCache();
 
 	u8 *buffer = NULL;
 

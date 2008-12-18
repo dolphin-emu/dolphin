@@ -503,8 +503,8 @@ void CCodeWindow::OnJITOff(wxCommandEvent& event)
 			{
 			case IDM_JITUNLIMITED:
 				Core::g_CoreStartupParameter.bJITUnlimitedCache = event.IsChecked();
-				Jit64::ClearCache(); // allow InitCache() even after the game has started
-				Jit64::InitCache();
+				jit.ClearCache(); // allow InitCache() even after the game has started
+				jit.InitCache();
 				GetMenuBar()->Enable(event.GetId(),!event.IsChecked());
 				break;
 			case IDM_JITOFF:
@@ -530,7 +530,7 @@ void CCodeWindow::OnJITOff(wxCommandEvent& event)
 			case IDM_JITSROFF:
 				Core::g_CoreStartupParameter.bJITSystemRegistersOff = event.IsChecked(); break;
 			}
-			Jit64::ClearCache();			
+			jit.ClearCache();			
 		} else {
 			//event.Skip(); // this doesn't work
 			GetMenuBar()->Check(event.GetId(),!event.IsChecked());
@@ -546,7 +546,7 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case IDM_CLEARCODECACHE:
-		Jit64::ClearCache();
+		jit.ClearCache();
 		break;
 	case IDM_LOGINSTRUCTIONS:
 		PPCTables::LogCompiledInstructions();
@@ -563,7 +563,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case IDM_PROFILEBLOCKS:
-		Jit64::ClearCache();
+		jit.ClearCache();
 		Profiler::g_ProfileBlocks = GetMenuBar()->IsChecked(IDM_PROFILEBLOCKS);
 		break;
 	case IDM_WRITEPROFILE:

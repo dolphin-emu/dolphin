@@ -26,8 +26,7 @@
 using namespace Gen;
 using namespace PowerPC;
 
-namespace Jit64
-{
+
 	GPRRegCache gpr;
 	FPURegCache fpr;
 	
@@ -165,7 +164,7 @@ namespace Jit64
 				if (regs[i].location.IsSimpleReg()) {
 					Gen::X64Reg simple = regs[i].location.GetSimpleReg();
 					if (xlocks[simple]) {
-						PanicAlert("%08x : PPC Reg %i is in locked x64 register %i", js.compilerPC, i, regs[i].location.GetSimpleReg());
+						PanicAlert("%08x : PPC Reg %i is in locked x64 register %i", /*js.compilerPC*/ 0, i, regs[i].location.GetSimpleReg());
 					}
 					if (xregs[simple].ppcReg != i) {
 						PanicAlert("%08x : Xreg/ppcreg mismatch");
@@ -394,4 +393,3 @@ namespace Jit64
 			}
 		}
 	}
-}

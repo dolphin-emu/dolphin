@@ -26,6 +26,7 @@
 #include "../CoreTiming.h"
 
 #include "Interpreter/Interpreter.h"
+#include "Jit64/Jit.h"
 #include "Jit64/JitCore.h"
 #include "Jit64/JitCache.h"
 #include "PowerPC.h"
@@ -117,7 +118,7 @@ void Init()
 
 	// Initialize both execution engines ... 
 	Interpreter::Init();
-	Jit64::Core::Init();
+	JitCore::Init();
 	// ... but start as interpreter by default.
 	mode = MODE_INTERPRETER;
 	state = CPU_STEPPING;
@@ -126,7 +127,7 @@ void Init()
 void Shutdown()
 {
 	// Shutdown both execution engines. Doesn't matter which one is active.
-	Jit64::Core::Shutdown();
+	JitCore::Shutdown();
 	Interpreter::Shutdown();
 }
 
@@ -139,7 +140,7 @@ void SetMode(CoreMode new_mode)
 	switch (mode)
 	{
 	case MODE_INTERPRETER:  // Switching from JIT to interpreter
-		Jit64::ClearCache();  // Remove all those nasty JIT patches.
+		jit.ClearCache();  // Remove all those nasty JIT patches.
 		break;
 
 	case MODE_JIT:  // Switching from interpreter to JIT.
@@ -156,7 +157,7 @@ void SingleStep()
 		Interpreter::SingleStep();
 		break;
 	case MODE_JIT:
-		Jit64::Core::SingleStep();
+		JitCore::SingleStep();
 		break;
 	}
 }
@@ -170,7 +171,7 @@ void RunLoop()
 		Interpreter::Run();
 		break;
 	case MODE_JIT:
-		Jit64::Core::Run();
+		JitCore::Run();
 		break;
 	}
     Host_UpdateDisasmDialog();

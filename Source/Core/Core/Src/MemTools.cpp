@@ -47,7 +47,6 @@
 #include "HW/Memmap.h"
 #include "PowerPC/PowerPC.h"
 #include "PowerPC/Jit64/Jit.h"
-#include "PowerPC/Jit64/JitBackpatch.h"
 #include "x64Analyzer.h"
 
 namespace EMM
@@ -76,7 +75,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			PVOID codeAddr = pPtrs->ExceptionRecord->ExceptionAddress;
 			unsigned char *codePtr = (unsigned char*)codeAddr;
 			
-			if (!Jit64::IsInJitCode(codePtr)) {
+			if (!jit.IsInJitCode(codePtr)) {
 				// Let's not prevent debugging.
 				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
 			}
@@ -105,7 +104,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 
 			//We could emulate the memory accesses here, but then they would still be around to take up
 			//execution resources. Instead, we backpatch into a generic memory call and retry.
-			u8 *new_rip = Jit64::BackPatch(codePtr, accessType, emAddress, ctx);
+			u8 *new_rip = jit.BackPatch(codePtr, accessType, emAddress, ctx);
 
 			// Rip/Eip needs to be updated.
 			if (new_rip)

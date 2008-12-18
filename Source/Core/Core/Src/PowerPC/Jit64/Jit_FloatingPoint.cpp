@@ -25,18 +25,15 @@
 #include "Jit.h"
 #include "JitCache.h"
 #include "JitRegCache.h"
-#include "Jit_Util.h"
 
 #define INSTRUCTION_START
 // #define INSTRUCTION_START Default(inst); return;
 
-namespace Jit64
-{
 	const u64 GC_ALIGNED16(psSignBits2[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
 	const u64 GC_ALIGNED16(psAbsMask2[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
 	const double GC_ALIGNED16(psOneOne2[2]) = {1.0, 1.0};
 
-	void fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (*op)(X64Reg, OpArg))
+	void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (*op)(Gen::X64Reg, Gen::OpArg))
 	{
 		fpr.Lock(d, a, b);
 		if (d == a)
@@ -78,7 +75,7 @@ namespace Jit64
 		fpr.UnlockAll();
 	}
 
-	void fp_arith_s(UGeckoInstruction inst)
+	void Jit64::fp_arith_s(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITFloatingPointOff)
 			{Default(inst); return;} // turn off from debugger
@@ -104,7 +101,7 @@ namespace Jit64
 		}
 	}
 
-	void fmaddXX(UGeckoInstruction inst)
+	void Jit64::fmaddXX(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITFloatingPointOff)
 			{Default(inst); return;} // turn off from debugger		
@@ -155,7 +152,7 @@ namespace Jit64
 		fpr.UnlockAll();
 	}
 	
-	void fmrx(UGeckoInstruction inst)
+	void Jit64::fmrx(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITFloatingPointOff)
 			{Default(inst); return;} // turn off from debugger
@@ -169,7 +166,7 @@ namespace Jit64
 		MOVSD(fpr.RX(d), fpr.R(b));
 	}
 
-	void fcmpx(UGeckoInstruction inst)
+	void Jit64::fcmpx(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITFloatingPointOff)
 			{Default(inst); return;} // turn off from debugger
@@ -225,6 +222,3 @@ namespace Jit64
 		SetJumpTarget(continue2);
 		fpr.UnlockAll();
 	}
-	
-}
-

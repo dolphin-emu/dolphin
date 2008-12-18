@@ -25,7 +25,7 @@
 #include "PowerPC/PPCTables.h"
 #include "CoreTiming.h"
 #include "Core.h"
-#include "PowerPC/Jit64/JitCache.h"
+#include "PowerPC/Jit64/Jit.h"
 #include "PowerPC/SymbolDB.h"
 #include "PowerPCDisasm.h"
 #include "Console.h"
@@ -38,7 +38,7 @@ void Console_Submit(const char *cmd)
 	CASE1("jits")
 	{
 #ifdef _M_X64
-		Jit64::PrintStats();
+		jit.PrintStats();
 #endif
 	}
 	CASE1("r")

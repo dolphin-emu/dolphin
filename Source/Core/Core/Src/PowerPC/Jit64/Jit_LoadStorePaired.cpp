@@ -40,8 +40,6 @@
 #define INSTRUCTION_START
 // #define INSTRUCTION_START Default(inst); return;
 
-namespace Jit64 {
-
 const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
 const u8 GC_ALIGNED16(pbswapShuffleNoop[16]) = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
@@ -49,7 +47,7 @@ static double GC_ALIGNED16(psTemp[2]) = {1.0, 1.0};
 static u64 GC_ALIGNED16(temp64);
 
 // TODO(ector): Improve 64-bit version
-void WriteDual32(u64 value, u32 address)
+static void WriteDual32(u64 value, u32 address)
 {
 	Memory::Write_U32((u32)(value >> 32), address);
 	Memory::Write_U32((u32)value, address + 4);
@@ -97,7 +95,7 @@ const double GC_ALIGNED16(m_dequantizeTableD[]) =
 
 // The big problem is likely instructions that set the quantizers in the same block.
 // We will have to break block after quantizers are written to.
-void psq_st(UGeckoInstruction inst)
+void Jit64::psq_st(UGeckoInstruction inst)
 {
 	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStorePairedOff)
 		{Default(inst); return;} // turn off from debugger	
@@ -309,7 +307,7 @@ void psq_st(UGeckoInstruction inst)
 	}
 }
 
-void psq_l(UGeckoInstruction inst)
+void Jit64::psq_l(UGeckoInstruction inst)
 {
 	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStorePairedOff)
 		{Default(inst); return;} // turn off from debugger	
@@ -459,5 +457,3 @@ void psq_l(UGeckoInstruction inst)
 
 	//u32 EA = (m_GPR[_inst.RA] + _inst.SIMM_12) : _inst.SIMM_12;
 }
-
-}  // namespace

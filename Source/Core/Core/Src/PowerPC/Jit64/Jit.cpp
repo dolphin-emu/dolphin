@@ -161,20 +161,15 @@ ps_adds1
 
 */
 
+Jit64 jit;
+PPCAnalyst::CodeBuffer code_buffer(32000);
 
 namespace CPUCompare
 {
 	extern u32 m_BlockStart;
 }
 
-
-namespace Jit64
-{
-	JitState js;
-	JitOptions jo;
-	PPCAnalyst::CodeBuffer code_buffer(32000);
-
-	void Init()
+	void Jit64::Init()
 	{
 		jo.optimizeStack = true;
 		jo.enableBlocklink = true;  // Speed boost, but not 100% safe
@@ -189,7 +184,7 @@ namespace Jit64
 		jo.fastInterrupts = false;
 	}
 
-	void WriteCallInterpreter(UGeckoInstruction _inst)
+	void Jit64::WriteCallInterpreter(UGeckoInstruction _inst)
 	{
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
@@ -202,12 +197,12 @@ namespace Jit64
 		ABI_CallFunctionC((void*)instr, _inst.hex);
 	}
 
-	void Default(UGeckoInstruction _inst)
+	void Jit64::Default(UGeckoInstruction _inst)
 	{
 		WriteCallInterpreter(_inst.hex);
 	}
 
-	void HLEFunction(UGeckoInstruction _inst)
+	void Jit64::HLEFunction(UGeckoInstruction _inst)
 	{
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
@@ -216,7 +211,7 @@ namespace Jit64
 		WriteExitDestInEAX(0);
 	}
 
-	void DoNothing(UGeckoInstruction _inst)
+	void Jit64::DoNothing(UGeckoInstruction _inst)
 	{
 		// Yup, just don't do anything.
 	}
@@ -249,13 +244,13 @@ namespace Jit64
 		been_here[PC] = 1;
 	}
 
-	void Cleanup()
+	void Jit64::Cleanup()
 	{
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 			CALL((void *)&GPFifo::CheckGatherPipe);
 	}
 
-	void WriteExit(u32 destination, int exit_num)
+	void Jit64::WriteExit(u32 destination, int exit_num)
 	{
 		Cleanup();
 		SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
@@ -280,7 +275,7 @@ namespace Jit64
 		}
 	}
 
-	void WriteExitDestInEAX(int exit_num) 
+	void Jit64::WriteExitDestInEAX(int exit_num) 
 	{
 		MOV(32, M(&PC), R(EAX));
 		Cleanup();
@@ -288,7 +283,7 @@ namespace Jit64
 		JMP(Asm::dispatcher, true);
 	}
 
-	void WriteRfiExitDestInEAX() 
+	void Jit64::WriteRfiExitDestInEAX() 
 	{
 		MOV(32, M(&PC), R(EAX));
 		Cleanup();
@@ -296,7 +291,7 @@ namespace Jit64
 		JMP(Asm::testExceptions, true);
 	}
 
-	void WriteExceptionExit(u32 exception)
+	void Jit64::WriteExceptionExit(u32 exception)
 	{
 		Cleanup();
 		OR(32, M(&PowerPC::ppcState.Exceptions), Imm32(exception));
@@ -304,7 +299,7 @@ namespace Jit64
 		JMP(Asm::testExceptions, true);
 	}
 
-	const u8* DoJit(u32 emaddress, JitBlock &b)
+	const u8* Jit64::DoJit(u32 emaddress, JitBlock &b)
 	{
 		if (emaddress == 0)
 			PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
@@ -424,4 +419,3 @@ namespace Jit64
 		b.originalSize = size;
 		return normalEntry;
 	}
-}

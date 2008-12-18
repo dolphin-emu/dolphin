@@ -35,9 +35,6 @@
 using namespace Gen;
 int blocksExecuted;
 
-namespace Jit64
-{
-
 namespace Asm
 {
 const u8 *enterCode;
@@ -133,7 +130,7 @@ void Generate()
 				}
 				//grab from list and jump to it
 				//INT3();
-				MOV(32, R(EDX), ImmPtr(GetCodePointers()));
+				MOV(32, R(EDX), ImmPtr(jit.GetCodePointers()));
 				JMPptr(MComplex(EDX, EAX, 4, 0));
 			SetJumpTarget(notfound);
 
@@ -190,7 +187,7 @@ void Generate()
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
 
 	MOV(64, R(RBX), Imm64((u64)Memory::base));
-	MOV(64, R(R15), Imm64((u64)GetCodePointers())); //It's below 2GB so 32 bits are good enough
+	MOV(64, R(R15), Imm64((u64)jit.GetCodePointers())); //It's below 2GB so 32 bits are good enough
 	const u8 *outerLoop = GetCodePtr();
 
 		CALL((void *)&CoreTiming::Advance);
@@ -369,6 +366,3 @@ void GenerateCommon()
 }
 
 }  // namespace Asm
-
-}  // namespace Jit64
-

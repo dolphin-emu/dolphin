@@ -17,33 +17,29 @@
 #ifndef _JITASM_H
 #define _JITASM_H
 
-
-namespace Jit64
+namespace Asm
 {
-	namespace Asm
-	{
-		extern const u8 *enterCode;
+	extern const u8 *enterCode;
 
-		extern const u8 *dispatcher;
-		extern const u8 *dispatcherNoCheck;
-		extern const u8 *dispatcherPcInEAX;
+	extern const u8 *dispatcher;
+	extern const u8 *dispatcherNoCheck;
+	extern const u8 *dispatcherPcInEAX;
 
-		extern const u8 *fpException;
-		extern const u8 *computeRc;
-		extern const u8 *computeRcFp;
-		extern const u8 *testExceptions;
-		extern const u8 *dispatchPcInEAX;
-		extern const u8 *doTiming;
+	extern const u8 *fpException;
+	extern const u8 *computeRc;
+	extern const u8 *computeRcFp;
+	extern const u8 *testExceptions;
+	extern const u8 *dispatchPcInEAX;
+	extern const u8 *doTiming;
 
-		extern const u8 *fifoDirectWrite8;
-		extern const u8 *fifoDirectWrite16;
-		extern const u8 *fifoDirectWrite32;
-		extern const u8 *fifoDirectWriteFloat;
-		extern const u8 *fifoDirectWriteXmm64;
+	extern const u8 *fifoDirectWrite8;
+	extern const u8 *fifoDirectWrite16;
+	extern const u8 *fifoDirectWrite32;
+	extern const u8 *fifoDirectWriteFloat;
+	extern const u8 *fifoDirectWriteXmm64;
 
-		extern bool compareEnabled;
-		void Generate();
-	}
+	extern bool compareEnabled;
+	void Generate();
 }
 
 #endif

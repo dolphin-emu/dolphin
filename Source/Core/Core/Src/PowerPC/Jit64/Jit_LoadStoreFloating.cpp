@@ -35,13 +35,9 @@
 #include "JitCache.h"
 #include "JitAsm.h"
 #include "JitRegCache.h"
-#include "Jit_Util.h"
 
 // #define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
-
-namespace Jit64
-{
 
 // pshufb todo: MOVQ
 const u8 GC_ALIGNED16(bswapShuffle1x4[16]) = {3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
@@ -58,7 +54,7 @@ u32 GC_ALIGNED16(temp32);
 // and pshufb could help a lot.
 // Also add hacks for things like lfs/stfs the same reg consecutively, that is, simple memory moves.
 
-void lfs(UGeckoInstruction inst)
+void Jit64::lfs(UGeckoInstruction inst)
 {
 	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
 		{Default(inst); return;} // turn off from debugger	
@@ -95,7 +91,7 @@ void lfs(UGeckoInstruction inst)
 }
 
 
-void lfd(UGeckoInstruction inst)
+void Jit64::lfd(UGeckoInstruction inst)
 {
 	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
 		{Default(inst); return;} // turn off from debugger	
@@ -162,7 +158,7 @@ void lfd(UGeckoInstruction inst)
 }
 
 
-void stfd(UGeckoInstruction inst)
+void Jit64::stfd(UGeckoInstruction inst)
 {
 	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
 		{Default(inst); return;} // turn off from debugger	
@@ -215,7 +211,7 @@ void stfd(UGeckoInstruction inst)
 }
 
 
-void stfs(UGeckoInstruction inst)
+void Jit64::stfs(UGeckoInstruction inst)
 {
 	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
 		{Default(inst); return;} // turn off from debugger	
@@ -272,7 +268,7 @@ void stfs(UGeckoInstruction inst)
 }
 
 
-void stfsx(UGeckoInstruction inst)
+void Jit64::stfsx(UGeckoInstruction inst)
 {
 	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
 		{Default(inst); return;} // turn off from debugger	
@@ -299,7 +295,7 @@ void stfsx(UGeckoInstruction inst)
 }
 
 
-void lfsx(UGeckoInstruction inst)
+void Jit64::lfsx(UGeckoInstruction inst)
 {
 	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
 		{Default(inst); return;} // turn off from debugger	
@@ -330,4 +326,3 @@ void lfsx(UGeckoInstruction inst)
 	fpr.UnlockAll();
 }
 
-}  // namespace

@@ -41,16 +41,16 @@ struct BlockStat
 
 void WriteProfileResults(const char *filename) {
 	std::vector<BlockStat> stats;
-	stats.reserve(Jit64::GetNumBlocks());
+	stats.reserve(jit.GetNumBlocks());
 	u64 cost_sum = 0;
 #ifdef _WIN32
 	u64 timecost_sum = 0;
 	LARGE_INTEGER countsPerSec;
 	QueryPerformanceFrequency(&countsPerSec);
 #endif
-	for (int i = 0; i < Jit64::GetNumBlocks(); i++)
+	for (int i = 0; i < jit.GetNumBlocks(); i++)
 	{
-		const Jit64::JitBlock *block = Jit64::GetBlock(i);
+		const Jit64::JitBlock *block = jit.GetBlock(i);
 		u64 cost = (block->originalSize / 4) * block->runCount;		// rough heuristic. mem instructions should cost more.
 #ifdef _WIN32
 		u64 timecost = block->ticCounter.QuadPart;					// Indeed ;)
@@ -73,7 +73,7 @@ void WriteProfileResults(const char *filename) {
 	fprintf(f, "origAddr\tblkName\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime(ms)\tblkCodeSize\n");
 	for (unsigned int i = 0; i < stats.size(); i++)
 	{
-		const Jit64::JitBlock *block = Jit64::GetBlock(stats[i].blockNum);
+		const Jit64::JitBlock *block = jit.GetBlock(stats[i].blockNum);
 		if (block) {
 			std::string name = g_symbolDB.GetDescription(block->originalAddress);
 			double percent = 100.0 * (double)stats[i].cost / (double)cost_sum;

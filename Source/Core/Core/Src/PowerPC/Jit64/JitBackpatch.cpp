@@ -20,7 +20,6 @@
 #include "Common.h"
 #include "disasm.h"
 #include "JitAsm.h"
-#include "JitBackpatch.h"
 #include "../../HW/Memmap.h"
 
 #include "x64Emitter.h"
@@ -32,8 +31,6 @@
 #include "Jit.h"
 
 using namespace Gen;
-
-namespace Jit64 {
 
 extern u8 *trampolineCodePtr;
 	
@@ -58,7 +55,7 @@ void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) {
 // 1) It's really necessary. We don't know anything about the context.
 // 2) It doesn't really hurt. Only instructions that access I/O will get these, and there won't be 
 //    that many of them in a typical program/game.
-u8 *BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx)
+u8 *Jit64::BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx)
 {
 #ifdef _M_X64
 	if (!IsInJitCode(codePtr))
@@ -194,4 +191,3 @@ u8 *BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx)
 #endif
 }
 
-}  // namespace

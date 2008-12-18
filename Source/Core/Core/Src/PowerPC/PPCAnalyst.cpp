@@ -364,7 +364,7 @@ bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Blo
 	}
 
 	gpa->any = true;
-	for (size_t i = 0; i < num_inst; i++)
+	for (int i = 0; i < num_inst; i++)
 	{
 		UGeckoInstruction inst = code[i].inst;
 		if (PPCTables::UsesFPU(inst))

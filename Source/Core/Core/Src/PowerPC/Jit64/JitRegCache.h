@@ -20,12 +20,9 @@
 
 #include "x64Emitter.h"
 
-namespace Jit64
-{
 	using namespace Gen;
 	enum FlushMode
 	{
-		//		FLUSH_ALLNONSTATIC,
 		FLUSH_ALL
 	};
 
@@ -36,11 +33,10 @@ namespace Jit64
 		M_READWRITE = 3,
 	};
 
-	//Regcache sketch
 	struct PPCCachedReg
 	{
 		OpArg location;
-		bool away; //not in source register
+		bool away;  // value not in source register
 	};
 
 	struct X64CachedReg
@@ -65,6 +61,7 @@ namespace Jit64
 		bool locks[32];
 		bool saved_locks[32];
 		bool saved_xlocks[NUMXREGS];
+
 	protected:
 		bool xlocks[NUMXREGS];
 		PPCCachedReg regs[32];
@@ -72,6 +69,10 @@ namespace Jit64
 
 		PPCCachedReg saved_regs[32];
 		X64CachedReg saved_xregs[NUMXREGS];
+
+		void DiscardRegContentsIfCached(int preg);
+		virtual const int *GetAllocationOrder(int &count) = 0;
+
 	public:
 		virtual ~RegCache() {}
 		virtual void Start(PPCAnalyst::BlockRegStats &stats) = 0;
@@ -90,8 +91,6 @@ namespace Jit64
 		void SanityCheck() const;
 		void KillImmediate(int preg);
 
-		virtual const int *GetAllocationOrder(int &count) = 0;
-
 		//TODO - instead of doload, use "read", "write"
 		//read only will not set dirty flag
 		virtual void LoadToX64(int preg, bool doLoad = true, bool makeDirty = true) = 0;
@@ -107,11 +106,12 @@ namespace Jit64
 		}
 		virtual OpArg GetDefaultLocation(int reg) const = 0;
 
-		void DiscardRegContentsIfCached(int preg);
+		// Register locking.
 		void Lock(int p1, int p2=0xff, int p3=0xff, int p4=0xff);
 		void LockX(int x1, int x2=0xff, int x3=0xff, int x4=0xff);
 		void UnlockAll();
 		void UnlockAllX();
+
 		bool IsFreeX(int xreg) const;
 
 		X64Reg GetFreeXReg();
@@ -144,7 +144,6 @@ namespace Jit64
 
 	extern GPRRegCache gpr;
 	extern FPURegCache fpr;
-}
 
 #endif
 
