@@ -42,7 +42,10 @@ char Msg[512];
 	if(sMsg.find("Mail") != -1 || sMsg.find("AX") != -1)
 		// no match = -1
 	{
+
+#ifdef _WIN32
 		OutputDebugString(Msg);
+#endif
 		g_dspInitialize.pLog(Msg,0);
 	}
 

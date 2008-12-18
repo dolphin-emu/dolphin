@@ -149,8 +149,13 @@ flavour = ARGUMENTS.get('flavor')
 if (flavour == 'debug'):
     compileFlags.append('-g')
     cppDefines.append('LOGGING')
+    cppDefines.append('_DEBUG')
 elif (flavour == 'devel'):
     compileFlags.append('-g')
+    cppDefines.append('DEBUGFAST')
+elif (flavour == 'fastlog'):
+    compileFlags.append('-O3')
+    cppDefines.append('LOGGING')
 else:
     compileFlags.append('-O3')
 

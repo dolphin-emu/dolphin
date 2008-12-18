@@ -42,6 +42,7 @@
 #define HAVE_WIIUSE 1
 #define HAVE_WX 1
 #else
+#define NDEBUG 1 // FIXME: this disable wx debugging how do we make it work?
 #include "CommonTypes.h"
 #include "Config.h"
 #endif

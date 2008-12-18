@@ -19,6 +19,7 @@
 #define _VERTEXSHADERMANAGER_H
 
 #include <map>
+#include <string>
 
 #include "GLUtil.h"
 

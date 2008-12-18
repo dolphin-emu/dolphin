@@ -85,7 +85,7 @@ bool DolphinApp::OnInit()
 {
 	DetectCPU();
 
-#ifdef _DEBUG
+#if defined _DEBUG && defined _WIN32
 	int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
 	tmpflag |= _CRTDBG_DELAY_FREE_MEM_DF;
 	_CrtSetDbgFlag(tmpflag);

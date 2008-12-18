@@ -19,6 +19,7 @@
 #define _PIXELSHADERMANAGER_H
 
 #include <map>
+#include <string>
 
 #include "BPMemory.h"
 
