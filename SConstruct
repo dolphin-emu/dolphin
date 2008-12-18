@@ -98,7 +98,7 @@ vars.AddVariables(
     BoolVariable('wxgl', 'Set For Building with WX GL libs (WIP)', False),
     BoolVariable('sdlgl', 'Set For Building with SDL GL libs (WIP)', False),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
-                 allowed_values = ('release', 'devel', 'debug'),
+                 allowed_values = ('release', 'devel', 'debug', 'fastlog'),
                  ignorecase = 2
                  ),
     EnumVariable('osx', 'Choose a backend (WIP)', '32cocoa',
