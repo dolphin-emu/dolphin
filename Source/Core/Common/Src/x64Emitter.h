@@ -520,6 +520,12 @@ namespace Gen
 	void PMOVMSKB(X64Reg dest, OpArg arg);
 	void PSHUFB(X64Reg dest, OpArg arg);
 
+	void PSHUFLW(X64Reg dest, OpArg arg, u8 shuffle);
+
+	void PSRLW(X64Reg reg, int shift);
+	void PSLLW(X64Reg reg, int shift);
+	void PSRAW(X64Reg reg, int shift);
+
 	void RTDSC();
 
 void CallCdeclFunction3(void* fnptr, u32 arg0, u32 arg1, u32 arg2);

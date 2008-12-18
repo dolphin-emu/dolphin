@@ -1230,7 +1230,17 @@ namespace Gen
 		Write8(0xE0 | reg);
 		Write8(shift);
 	}
-	
+
+	void PSRLW(X64Reg reg, int shift) {
+		WriteSSEOp(64, 0x71, true, (X64Reg)2, R(reg));
+		Write8(shift);
+	}
+
+	void PSLLW(X64Reg reg, int shift) {
+		WriteSSEOp(64, 0x71, true, (X64Reg)6, R(reg));
+		Write8(shift);
+	}
+
 	// WARNING not REX compatible
 	void PSRAD(X64Reg reg, int shift) {
 		if (reg > 7)
@@ -1303,6 +1313,8 @@ namespace Gen
 	void PMINUB(X64Reg dest, OpArg arg)   {WriteSSEOp(64, 0xDA, true, dest, arg); }
 
 	void PMOVMSKB(X64Reg dest, OpArg arg)    {WriteSSEOp(64, 0xD7, true, dest, arg); }
+
+	void PSHUFLW(X64Reg regOp, OpArg arg, u8 shuffle)   {WriteSSEOp(64, 0x70, false, regOp, arg, 1); Write8(shuffle);}
 
 	// Prefixes
 
