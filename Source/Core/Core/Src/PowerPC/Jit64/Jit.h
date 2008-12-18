@@ -152,6 +152,7 @@ namespace Jit64
 	void lfd(UGeckoInstruction inst);
 	void stfd(UGeckoInstruction inst);
 	void stfs(UGeckoInstruction inst);
+	void stfsx(UGeckoInstruction inst);
 	void psq_l(UGeckoInstruction inst);
 	void psq_st(UGeckoInstruction inst);
 

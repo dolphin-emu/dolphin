@@ -354,7 +354,7 @@ GekkoOPTemplate table31[] =
 	{599, Interpreter::lfdx,  Jit64::Default,   {"lfdx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
 	{631, Interpreter::lfdux, Jit64::Default,   {"lfdux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
 
-	{663, Interpreter::stfsx,  Jit64::Default,   {"stfsx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
+	{663, Interpreter::stfsx,  Jit64::stfsx,     {"stfsx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
 	{695, Interpreter::stfsux, Jit64::Default,   {"stfsux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B}},
 	{727, Interpreter::stfdx,  Jit64::Default,   {"stfdx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
 	{759, Interpreter::stfdux, Jit64::Default,   {"stfdux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B}},
@@ -447,12 +447,12 @@ GekkoOPTemplate table63_2[] =
 	{21, Interpreter::faddx,   Jit64::Default,     {"faddx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{22, Interpreter::fsqrtx,  Jit64::Default,     {"fsqrtx",   OPTYPE_FPU, FL_RC_BIT_F}},
 	{23, Interpreter::fselx,   Jit64::Default,     {"fselx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{25, Interpreter::fmulx,   Jit64::Default,     {"fmulx",    OPTYPE_FPU, FL_RC_BIT_F}},
+	{25, Interpreter::fmulx,   Jit64::fp_arith_s,  {"fmulx",    OPTYPE_FPU, FL_RC_BIT_F}},
 	{26, Interpreter::frsqrtex,Jit64::Default,     {"frsqrtex", OPTYPE_FPU, FL_RC_BIT_F}},
-	{28, Interpreter::fmsubx,  Jit64::Default,     {"fmsubx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{29, Interpreter::fmaddx,  Jit64::Default,     {"fmaddx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{30, Interpreter::fnmsubx, Jit64::Default,     {"fnmsubx",  OPTYPE_FPU, FL_RC_BIT_F}},
-	{31, Interpreter::fnmaddx, Jit64::Default,     {"fnmaddx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{28, Interpreter::fmsubx,  Jit64::fmaddXX,     {"fmsubx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{29, Interpreter::fmaddx,  Jit64::fmaddXX,     {"fmaddx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{30, Interpreter::fnmsubx, Jit64::fmaddXX,     {"fnmsubx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{31, Interpreter::fnmaddx, Jit64::fmaddXX,     {"fnmaddx",  OPTYPE_FPU, FL_RC_BIT_F}},
 };
 
 bool PPCTables::UsesFPU(UGeckoInstruction _inst)
