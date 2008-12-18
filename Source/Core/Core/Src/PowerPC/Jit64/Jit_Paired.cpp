@@ -293,7 +293,6 @@ namespace Jit64
 
 	void ps_muls(UGeckoInstruction inst)
 	{
-		Default(inst); return;
 #ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
 			{Default(inst); return;} // turn off from debugger
@@ -312,15 +311,15 @@ namespace Jit64
 		case 12:
 			// Single multiply scalar high
 			// TODO - faster version for when regs are different
-			MOVAPD(XMM0, fpr.R(c));
-			MOVDDUP(XMM1, fpr.R(a));
-			MULPS(XMM0, R(XMM1));
+			MOVAPD(XMM0, fpr.R(a));
+			MOVDDUP(XMM1, fpr.R(c));
+			MULPD(XMM0, R(XMM1));
 			MOVAPD(fpr.R(d), XMM0);
 			break;
 		case 13:
 			// TODO - faster version for when regs are different
-			MOVAPD(XMM0, fpr.R(c));
-			MOVAPD(XMM1, fpr.R(a));
+			MOVAPD(XMM0, fpr.R(a));
+			MOVAPD(XMM1, fpr.R(c));
 			SHUFPD(XMM1, R(XMM1), 3); // copy higher to lower
 			MULPD(XMM0, R(XMM1));
 			MOVAPD(fpr.R(d), XMM0);
