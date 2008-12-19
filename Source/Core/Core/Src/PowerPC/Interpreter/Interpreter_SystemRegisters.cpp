@@ -430,75 +430,42 @@ void mtspr(UGeckoInstruction _inst)
 
 void crand(UGeckoInstruction _inst)
 {
-	u32 cr = GetCR();
-	u32 a = cr << _inst.CRBA;
-	u32 b = cr << _inst.CRBB;
-	u32 d = ((a & b) & 0x80000000) >> _inst.CRBD;
-	SetCR(d | (cr & ~(0x80000000 >> _inst.CRBD)));
+	SetCRBit(_inst.CRBD, GetCRBit(_inst.CRBA) & GetCRBit(_inst.CRBB));
 }
 
 void crandc(UGeckoInstruction _inst)
 {
-	u32 cr = GetCR();
-	u32 a = cr << _inst.CRBA;
-	u32 b = cr << _inst.CRBB;
-	u32 d = ((a & ~b) & 0x80000000) >> _inst.CRBD;
-	SetCR(d | (cr & ~(0x80000000 >> _inst.CRBD)));
+	SetCRBit(_inst.CRBD, GetCRBit(_inst.CRBA) & (1 ^ GetCRBit(_inst.CRBB)));
 }
-
 
 void creqv(UGeckoInstruction _inst)
 {
-	u32 cr = GetCR();
-	u32 a = cr << _inst.CRBA;
-	u32 b = cr << _inst.CRBB;
-	u32 d = ((~(a ^ b)) & 0x80000000) >> _inst.CRBD;
-	SetCR(d | (cr & ~(0x80000000 >> _inst.CRBD)));
+	SetCRBit(_inst.CRBD, 1 ^ (GetCRBit(_inst.CRBA) ^ GetCRBit(_inst.CRBB)));
 }
 
 void crnand(UGeckoInstruction _inst)
 {
-	u32 cr = GetCR();
-	u32 a = cr << _inst.CRBA;
-	u32 b = cr << _inst.CRBB;
-	u32 d = ((~(a & b)) & 0x80000000) >>_inst.CRBD;
-	SetCR(d | (cr & ~(0x80000000 >> _inst.CRBD)));
+	SetCRBit(_inst.CRBD, 1 ^ (GetCRBit(_inst.CRBA) & GetCRBit(_inst.CRBB)));
 }
 
 void crnor(UGeckoInstruction _inst)
 {
-	u32 cr = GetCR();
-	u32 a = cr << _inst.CRBA;
-	u32 b = cr << _inst.CRBB;
-	u32 d = ((~(a | b)) & 0x80000000) >> _inst.CRBD;
-	SetCR(d | (cr & ~(0x80000000 >> _inst.CRBD)));
+	SetCRBit(_inst.CRBD, 1 ^ (GetCRBit(_inst.CRBA) | GetCRBit(_inst.CRBB)));
 }
 
 void cror(UGeckoInstruction _inst)
 {
-	u32 cr = GetCR();
-	u32 a = cr << _inst.CRBA;
-	u32 b = cr << _inst.CRBB;
-	u32 d = ((a | b) & 0x80000000) >> _inst.CRBD;
-	SetCR(d | (cr & ~(0x80000000 >> _inst.CRBD)));
+	SetCRBit(_inst.CRBD, (GetCRBit(_inst.CRBA) | GetCRBit(_inst.CRBB)));
 }
 
 void crorc(UGeckoInstruction _inst)
 {
-	u32 cr = GetCR();
-	u32 a = cr << _inst.CRBA;
-	u32 b = cr << _inst.CRBB;
-	u32 d = ((a | ~b) & 0x80000000) >> _inst.CRBD;
-	SetCR(d | (cr & ~(0x80000000 >> _inst.CRBD)));
+	SetCRBit(_inst.CRBD, (GetCRBit(_inst.CRBA) | (1 ^ GetCRBit(_inst.CRBB))));
 }
 
 void crxor(UGeckoInstruction _inst)
 {
-	u32 cr = GetCR();
-	u32 a = cr << _inst.CRBA;
-	u32 b = cr << _inst.CRBB;
-	u32 d = ((a ^ b) & 0x80000000) >> _inst.CRBD;
-	SetCR(d | (cr & ~(0x80000000 >> _inst.CRBD)));
+	SetCRBit(_inst.CRBD, (GetCRBit(_inst.CRBA) ^ GetCRBit(_inst.CRBB)));
 }
 
 void mcrf(UGeckoInstruction _inst)
