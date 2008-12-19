@@ -147,10 +147,29 @@ void CJitWindow::Compare(u32 em_address)
 	}
 	Jit64::JitBlock *block = jit.GetBlock(block_num);
 	
+	// == Fill in x86 box
+
+	memset(xDis, 0, 65536);
+	const u8 *code = (const u8 *)jit.GetCompiledCodeFromBlock(block_num);
+	u64 disasmPtr = (u64)code;
+	int size = block->codeSize;
+	const u8 *end = code + size;
+	char *sptr = (char*)xDis;
+
+	int num_x86_instructions = 0;
+	while ((u8*)disasmPtr < end)
+	{
+		disasmPtr += x64disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
+		sptr += strlen(sptr);
+		*sptr++ = 13;
+		*sptr++ = 10;
+		num_x86_instructions++;
+	}
+	x86_box->SetValue(wxString::FromAscii((char*)xDis));
+
 	// == Fill in ppc box
 	u32 ppc_addr = block->originalAddress;
 	PPCAnalyst::CodeBuffer code_buffer(32000);
-	int size;
 	PPCAnalyst::BlockStats st;
 	PPCAnalyst::BlockRegStats gpa;
 	PPCAnalyst::BlockRegStats fpa;
@@ -164,28 +183,27 @@ void CJitWindow::Compare(u32 em_address)
 			DisassembleGekko(op.inst.hex, op.address, temp, 256);
 			sptr += sprintf(sptr, "%08x %s\n", op.address, temp);
 		}
+
+		// Add stats to the end of the ppc box since it's generally the shortest.
+		sptr += sprintf(sptr, "\n");
+
+		// Add some generic analysis
+		if (st.isFirstBlockOfFunction)
+			sptr += sprintf(sptr, "(first block of function)\n");
+		if (st.isLastBlockOfFunction)
+			sptr += sprintf(sptr, "(first block of function)\n");
+
+		sptr += sprintf(sptr, "%i estimated cycles\n", st.numCycles);
+
+		sptr += sprintf(sptr, "Num instr: PPC: %i  x86: %i  (blowup: %i%%)\n", size, num_x86_instructions, 100 * num_x86_instructions / size);
+		sptr += sprintf(sptr, "Num bytes: PPC: %i  x86: %i  (blowup: %i%%)\n", size * 4, block->codeSize, 100 * block->codeSize / (4 * size));
+
 		ppc_box->SetValue(wxString::FromAscii((char*)xDis));
 	} else {
 		// hmmm
 	}
 	
-	// == Fill in x86 box
 
-	memset(xDis, 0, 65536);
-	const u8 *code = (const u8 *)jit.GetCompiledCodeFromBlock(block_num);
-	u64 disasmPtr = (u64)code;
-	size = block->codeSize;
-	const u8 *end = code + size;
-	char *sptr = (char*)xDis;
-
-	while ((u8*)disasmPtr < end)
-	{
-		disasmPtr += x64disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
-		sptr += strlen(sptr);
-		*sptr++ = 13;
-		*sptr++ = 10;
-	}
-	x86_box->SetValue(wxString::FromAscii((char*)xDis));
 	delete [] xDis;
 }
 
