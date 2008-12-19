@@ -42,6 +42,7 @@
 #include "VertexLoaderManager.h"
 #include "VertexLoader.h"
 #include "XFB.h"
+#include "Timer.h"
 #if defined(HAVE_WX) && HAVE_WX
 #include "Debugger/Debugger.h" // for the CDebugger class
 #endif

@@ -2,6 +2,7 @@
 #define _WXGLWINDOW_H
 
 #include "GLWindow.h"
+#if defined USE_WX && USE_WX
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
 
@@ -28,4 +29,10 @@ public:
     WXGLWindow(int _iwidth, int _iheight);
 
 };
+#else 
+class WXGLWindow : public GLWindow 
+{
+    WXGLWindow(int _iwidth, int _iheight) {}
+};
+#endif
 #endif

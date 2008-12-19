@@ -18,6 +18,9 @@
 #ifndef _GLINIT_H
 #define _GLINIT_H
 
+#if defined GLTEST && GLTEST
+#include "nGLUtil.h"
+#else
 #include "Config.h"
 #include "pluginspecs_video.h"
 
@@ -32,7 +35,6 @@
 
 #else // linux basic definitions
 
-#define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
 #if defined(USE_WX) && USE_WX
 #include <GL/glew.h>
 #include "wx/wx.h"
@@ -54,23 +56,6 @@
 #else
 #include <GL/gl.h>
 #endif
-
-#define __inline inline
-
-#include <sys/timeb.h>    // ftime(), struct timeb
-
-inline unsigned long timeGetTime()
-{
-#ifdef _WIN32
-    _timeb t;
-    _ftime(&t);
-#else
-    timeb t;
-    ftime(&t);
-#endif
-
-    return (unsigned long)(t.time*1000+t.millitm);
-}
 
 #endif // linux basic definitions
 
@@ -143,5 +128,5 @@ void OpenGL_SwapBuffers();
 void OpenGL_SetWindowText(const char *text);
 void OpenGL_Shutdown();
 void OpenGL_Update();
-
+#endif
 #endif

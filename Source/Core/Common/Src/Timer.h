@@ -47,4 +47,7 @@ class Timer
 };
 } // end of namespace Common
 
+#ifdef __GNUC__
+u32 timeGetTime();
+#endif
 #endif

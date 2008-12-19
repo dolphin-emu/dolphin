@@ -35,6 +35,7 @@ class GLWindow {
     u32 GetWidth() {return width;}
     u32 GetHeight() {return height;}
     
+    virtual bool valid() { return false; }
     //   bool GLwindow(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight) {};
     // setResolution
     // resolution iter

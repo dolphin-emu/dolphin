@@ -2,6 +2,7 @@
 #define _X11WINDOW_H
 
 #include "GLWindow.h"
+#if defined HAVE_X11 && HAVE_X11
 #include <GL/glxew.h>
 #include <GL/gl.h>
 
@@ -36,5 +37,11 @@ public:
     ~X11Window();
     X11Window(int _iwidth, int _iheight);
 };
-
+#else 
+class X11Window : public GLWindow 
+{
+public:
+    X11Window(int _iwidth, int _iheight) {}
+};
+#endif
 #endif

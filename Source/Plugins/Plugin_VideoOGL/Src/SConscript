@@ -12,8 +12,6 @@ name = "Plugin_VideoOGL"
 files = [
 	'BPStructs.cpp',
 	'Globals.cpp',
-	'GLUtil.cpp',
-	'main.cpp',
 	'Config.cpp',
 	'memcpy_amd.cpp',
 	'OpcodeDecoding.cpp',
@@ -45,6 +43,16 @@ libs = [
 
 gfxenv = env.Clone()
 
+if gfxenv['GLTEST']:
+	files += [
+		'nmain.cpp',
+		'nGLUtil.cpp',
+		]
+else:
+	files += [
+		'main.cpp',
+		'GLUtil.cpp',
+		]	
 if gfxenv['HAVE_WX']:
 	files += [
                 'GUI/ConfigDlg.cpp',

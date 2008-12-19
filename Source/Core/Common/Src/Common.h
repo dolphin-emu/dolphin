@@ -58,6 +58,7 @@
 #else
 #define _stricmp strcasecmp
 #define _unlink unlink
+#define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
 #endif
 
 #ifdef _WIN32
