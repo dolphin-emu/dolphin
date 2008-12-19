@@ -33,7 +33,7 @@
 using namespace Gen;
 
 extern u8 *trampolineCodePtr;
-	
+
 void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) {
 	u64 code_addr = (u64)codePtr;
 	disassembler disasm;
@@ -51,17 +51,105 @@ void BackPatchError(const std::string &text, u8 *codePtr, u32 emAddress) {
 	return;
 }
 
+
+void TrampolineCache::Init()
+{
+	AllocCodeSpace(1024 * 1024);
+}
+
+void TrampolineCache::Shutdown()
+{
+	AllocCodeSpace(1024 * 1024);
+}
+
+// Extremely simplistic - just generate the requested trampoline. May reuse them in the future.
+const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info)
+{
+	if (GetSpaceLeft() < 1024)
+		PanicAlert("Trampoline cache full");
+
+	X64Reg addrReg = (X64Reg)info.scaledReg;
+	X64Reg dataReg = (X64Reg)info.regOperandReg;
+	const u8 *trampoline = GetCodePtr();
+#ifdef _M_X64
+	// It's a read. Easy.
+	ABI_PushAllCallerSavedRegsAndAdjustStack();
+	if (addrReg != ABI_PARAM1)
+		MOV(32, R(ABI_PARAM1), R((X64Reg)addrReg));
+	if (info.displacement) {
+		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
+	}
+	switch (info.operandSize) {
+	case 4:
+		CALL(thunks.ProtectFunction((void *)&Memory::Read_U32, 1));
+		break;
+	}
+	ABI_PopAllCallerSavedRegsAndAdjustStack();
+	MOV(32, R(dataReg), R(EAX));
+	RET();
+#endif
+	return trampoline;
+}
+
+// Extremely simplistic - just generate the requested trampoline. May reuse them in the future.
+const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info)
+{
+	if (GetSpaceLeft() < 1024)
+		PanicAlert("Trampoline cache full");
+
+	X64Reg addrReg = (X64Reg)info.scaledReg;
+	X64Reg dataReg = (X64Reg)info.regOperandReg;
+	if (dataReg != EAX)
+		PanicAlert("Backpatch write - not through EAX");
+
+	const u8 *trampoline = GetCodePtr();
+
+#ifdef _M_X64
+
+	// It's a write. Yay. Remember that we don't have to be super efficient since it's "just" a 
+	// hardware access - we can take shortcuts.
+	//if (emAddress == 0xCC008000)
+	//	PanicAlert("caught a fifo write");
+	CMP(32, R(addrReg), Imm32(0xCC008000));
+	FixupBranch skip_fast = J_CC(CC_NE, false);
+	MOV(32, R(ABI_PARAM1), R((X64Reg)dataReg));
+	CALL((void*)asm_routines.fifoDirectWrite32);
+	RET();
+	SetJumpTarget(skip_fast);
+	ABI_PushAllCallerSavedRegsAndAdjustStack();
+	if (addrReg != ABI_PARAM1) {
+		MOV(32, R(ABI_PARAM1), R((X64Reg)dataReg));
+		MOV(32, R(ABI_PARAM2), R((X64Reg)addrReg));
+	} else {
+		MOV(32, R(ABI_PARAM2), R((X64Reg)addrReg));
+		MOV(32, R(ABI_PARAM1), R((X64Reg)dataReg));
+	}
+	if (info.displacement) {
+		ADD(32, R(ABI_PARAM2), Imm32(info.displacement));
+	}
+	switch (info.operandSize) {
+	case 4:
+		CALL(thunks.ProtectFunction((void *)&Memory::Write_U32, 2));
+		break;
+	}
+	ABI_PopAllCallerSavedRegsAndAdjustStack();
+	RET();
+#endif
+
+	return trampoline;
+}
+
+
 // This generates some fairly heavy trampolines, but:
 // 1) It's really necessary. We don't know anything about the context.
 // 2) It doesn't really hurt. Only instructions that access I/O will get these, and there won't be 
 //    that many of them in a typical program/game.
-u8 *Jit64::BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx)
+const u8 *Jit64::BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx)
 {
 #ifdef _M_X64
 	if (!IsInJitCode(codePtr))
 		return 0;  // this will become a regular crash real soon after this
 	
-	u8 *oldCodePtr = GetWritableCodePtr();
 	InstructionInfo info;
 	if (!DisassembleMov(codePtr, info, accessType)) {
 		BackPatchError("BackPatch - failed to disassemble MOV instruction", codePtr, emAddress);
@@ -81,108 +169,42 @@ u8 *Jit64::BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx)
 		BackPatchError(StringFromFormat("BackPatch - no support for operand size %i", info.operandSize), codePtr, emAddress);
 	}
 
-	X64Reg addrReg = (X64Reg)info.scaledReg;
-	X64Reg dataReg = (X64Reg)info.regOperandReg;
 	if (info.otherReg != RBX)
 		PanicAlert("BackPatch : Base reg not RBX."
 		           "\n\nAttempted to access %08x.", emAddress);
-	//if (accessType == OP_ACCESS_WRITE)
-	//	PanicAlert("BackPatch : Currently only supporting reads."
-	//	           "\n\nAttempted to write to %08x.", emAddress);
-
-	// OK, let's write a trampoline, and a jump to it.
-	// Later, let's share trampolines.
+	
+	if (accessType == OP_ACCESS_WRITE)
+		PanicAlert("BackPatch : Currently only supporting reads."
+		           "\n\nAttempted to write to %08x.", emAddress);
 
 	// In the first iteration, we assume that all accesses are 32-bit. We also only deal with reads.
-	// Next step - support writes, special case FIFO writes. Also, support 32-bit mode.
-	u8 *trampoline = trampolineCodePtr;
-	SetCodePtr(trampolineCodePtr);
-
 	if (accessType == 0)
 	{
-		// It's a read. Easy.
-		ABI_PushAllCallerSavedRegsAndAdjustStack();
-		if (addrReg != ABI_PARAM1)
-			MOV(32, R(ABI_PARAM1), R((X64Reg)addrReg));
-		if (info.displacement) {
-			ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
-		}
-		switch (info.operandSize) {
-		case 4:
-			CALL(ProtectFunction((void *)&Memory::Read_U32, 1));
-			break;
-		default:
-			BackPatchError(StringFromFormat("We don't handle the size %i yet in backpatch", info.operandSize), codePtr, emAddress);
-			break;
-		}
-		ABI_PopAllCallerSavedRegsAndAdjustStack();
-		MOV(32, R(dataReg), R(EAX));
-		RET();
-		trampolineCodePtr = GetWritableCodePtr();
-
-		SetCodePtr(codePtr);
+		XEmitter emitter(codePtr);
 		int bswapNopCount;
 		// Check the following BSWAP for REX byte
-		if ((GetCodePtr()[info.instructionSize] & 0xF0) == 0x40)
+		if ((codePtr[info.instructionSize] & 0xF0) == 0x40)
 			bswapNopCount = 3;
 		else
 			bswapNopCount = 2;
-		CALL(trampoline);
-		NOP((int)info.instructionSize + bswapNopCount - 5);
-		SetCodePtr(oldCodePtr);
-
+		const u8 *trampoline = trampolines.GetReadTrampoline(info);
+		emitter.CALL((void *)trampoline);
+		emitter.NOP((int)info.instructionSize + bswapNopCount - 5);
 		return codePtr;
 	}
 	else if (accessType == 1)
 	{
-		// It's a write. Yay. Remember that we don't have to be super efficient since it's "just" a 
-		// hardware access - we can take shortcuts.
-		//if (emAddress == 0xCC008000)
-		//	PanicAlert("caught a fifo write");
-		if (dataReg != EAX)
-			PanicAlert("Backpatch write - not through EAX");
-		CMP(32, R(addrReg), Imm32(0xCC008000));
-		FixupBranch skip_fast = J_CC(CC_NE, false);
-		MOV(32, R(ABI_PARAM1), R((X64Reg)dataReg));
-		CALL((void*)Asm::fifoDirectWrite32);
-		RET();
-		SetJumpTarget(skip_fast);
-		ABI_PushAllCallerSavedRegsAndAdjustStack();
-		if (addrReg != ABI_PARAM1) {
-			//INT3();
-			MOV(32, R(ABI_PARAM1), R((X64Reg)dataReg));
-			MOV(32, R(ABI_PARAM2), R((X64Reg)addrReg));
-		} else {
-			MOV(32, R(ABI_PARAM2), R((X64Reg)addrReg));
-			MOV(32, R(ABI_PARAM1), R((X64Reg)dataReg));
-		}
-		if (info.displacement) {
-			ADD(32, R(ABI_PARAM2), Imm32(info.displacement));
-		}
-		switch (info.operandSize) {
-		case 4:
-			CALL(ProtectFunction((void *)&Memory::Write_U32, 2));
-			break;
-		default:
-			BackPatchError(StringFromFormat("We don't handle the size %i yet in backpatch", info.operandSize), codePtr, emAddress);
-			break;
-		}
-		ABI_PopAllCallerSavedRegsAndAdjustStack();
-		RET();
-
-		trampolineCodePtr = GetWritableCodePtr();
-
+		// TODO: special case FIFO writes. Also, support 32-bit mode.
+		// Also, debug this so that it actually works correctly :P
+		XEmitter emitter(codePtr - 2);
 		// We know it's EAX so the BSWAP before will be two byte. Overwrite it.
-		SetCodePtr(codePtr - 2);
-		CALL(trampoline);
-		NOP((int)info.instructionSize - 3);
+		const u8 *trampoline = trampolines.GetWriteTrampoline(info);
+		emitter.CALL((void *)trampoline);
+		emitter.NOP((int)info.instructionSize - 3);
 		if (info.instructionSize < 3)
 			PanicAlert("instruction too small");
-		SetCodePtr(oldCodePtr);
-
 		// We entered here with a BSWAP-ed EAX. We'll have to swap it back.
 		ctx->Rax = Common::swap32(ctx->Rax);
-
 		return codePtr - 2;
 	}
 	return 0;

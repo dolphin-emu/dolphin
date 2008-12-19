@@ -104,7 +104,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 
 			//We could emulate the memory accesses here, but then they would still be around to take up
 			//execution resources. Instead, we backpatch into a generic memory call and retry.
-			u8 *new_rip = jit.BackPatch(codePtr, accessType, emAddress, ctx);
+			const u8 *new_rip = jit.BackPatch(codePtr, accessType, emAddress, ctx);
 
 			// Rip/Eip needs to be updated.
 			if (new_rip)

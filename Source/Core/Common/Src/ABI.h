@@ -18,8 +18,6 @@
 #ifndef _JIT_ABI_H
 #define _JIT_ABI_H
 
-#include "x64Emitter.h"
-
 // x86/x64 ABI:s, and helpers to help follow them when JIT-ing code.
 // All convensions return values in EAX (+ possibly EDX).
 
@@ -79,43 +77,6 @@
 
 #endif
 
-#endif
-
-// Utility functions
-// These only support u32 parameters, but that's enough for a lot of uses.
-// These will destroy the 1 or 2 first "parameter regs".
-void ABI_CallFunctionC(void *func, u32 param1);
-void ABI_CallFunctionCC(void *func, u32 param1, u32 param2);
-void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2);
-
-// Pass a register as a paremeter.
-void ABI_CallFunctionR(void *func, Gen::X64Reg reg1);
-void ABI_CallFunctionRR(void *func, Gen::X64Reg reg1, Gen::X64Reg reg2);
-
-// A function that doesn't have any control over what it will do to regs,
-// such as the dispatcher, should be surrounded by these.
-void ABI_PushAllCalleeSavedRegsAndAdjustStack();
-void ABI_PopAllCalleeSavedRegsAndAdjustStack();
-
-// A function that doesn't know anything about it's surroundings, should
-// be surrounded by these to establish a safe environment, where it can roam free.
-// An example is a backpatch injected function.
-void ABI_PushAllCallerSavedRegsAndAdjustStack();
-void ABI_PopAllCallerSavedRegsAndAdjustStack();
-
-unsigned int ABI_GetAlignedFrameSize(unsigned int frameSize);
-void ABI_AlignStack(unsigned int frameSize);
-void ABI_RestoreStack(unsigned int frameSize);
-
-// Sets up a __cdecl function.
-// Only x64 really needs the parameter.
-void ABI_EmitPrologue(int maxCallParams);
-void ABI_EmitEpilogue(int maxCallParams);
-
-#ifdef _M_IX86
-inline int ABI_GetNumXMMRegs() { return 8; }
-#else
-inline int ABI_GetNumXMMRegs() { return 16; }
 #endif
 
 #endif  // _JIT_ABI_H

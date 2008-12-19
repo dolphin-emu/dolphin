@@ -25,7 +25,7 @@ using namespace Gen;
 // ====================================
 
 // Sets up a __cdecl function.
-void ABI_EmitPrologue(int maxCallParams)
+void XEmitter::ABI_EmitPrologue(int maxCallParams)
 {
 #ifdef _M_IX86
 	// Don't really need to do anything
@@ -40,7 +40,8 @@ void ABI_EmitPrologue(int maxCallParams)
 #error Arch not supported
 #endif
 }
-void ABI_EmitEpilogue(int maxCallParams)
+
+void XEmitter::ABI_EmitEpilogue(int maxCallParams)
 {
 #ifdef _M_IX86
 	RET();
@@ -60,14 +61,14 @@ void ABI_EmitEpilogue(int maxCallParams)
 // Shared code between Win32 and Unix32
 // ====================================
 
-void ABI_CallFunctionC(void *func, u32 param1) {
+void XEmitter::ABI_CallFunctionC(void *func, u32 param1) {
 	ABI_AlignStack(1 * 4);
 	PUSH(32, Imm32(param1));
 	CALL(func);
 	ABI_RestoreStack(1 * 4);
 }
 
-void ABI_CallFunctionCC(void *func, u32 param1, u32 param2) {
+void XEmitter::ABI_CallFunctionCC(void *func, u32 param1, u32 param2) {
 	ABI_AlignStack(2 * 4);
 	PUSH(32, Imm32(param2));
 	PUSH(32, Imm32(param1));
@@ -76,14 +77,14 @@ void ABI_CallFunctionCC(void *func, u32 param1, u32 param2) {
 }
 
 // Pass a register as a paremeter.
-void ABI_CallFunctionR(void *func, X64Reg reg1) {
+void XEmitter::ABI_CallFunctionR(void *func, X64Reg reg1) {
 	ABI_AlignStack(1 * 4);
 	PUSH(32, R(reg1));
 	CALL(func);
 	ABI_RestoreStack(1 * 4);
 }
 
-void ABI_CallFunctionRR(void *func, Gen::X64Reg reg1, Gen::X64Reg reg2)
+void XEmitter::ABI_CallFunctionRR(void *func, Gen::X64Reg reg1, Gen::X64Reg reg2)
 {
 	ABI_AlignStack(2 * 4);
 	PUSH(32, R(reg2));
@@ -92,7 +93,7 @@ void ABI_CallFunctionRR(void *func, Gen::X64Reg reg1, Gen::X64Reg reg2)
 	ABI_RestoreStack(2 * 4);
 }
 
-void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2)
+void XEmitter::ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2)
 {
 	ABI_AlignStack(2 * 4);
 	PUSH(32, arg1);
@@ -101,7 +102,7 @@ void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2)
 	ABI_RestoreStack(2 * 4);
 }
 
-void ABI_PushAllCalleeSavedRegsAndAdjustStack() {
+void XEmitter::ABI_PushAllCalleeSavedRegsAndAdjustStack() {
 	// Note: 4 * 4 = 16 bytes, so alignment is preserved.
 	PUSH(EBP);
 	PUSH(EBX);
@@ -109,14 +110,14 @@ void ABI_PushAllCalleeSavedRegsAndAdjustStack() {
 	PUSH(EDI);
 }
 
-void ABI_PopAllCalleeSavedRegsAndAdjustStack() {
+void XEmitter::ABI_PopAllCalleeSavedRegsAndAdjustStack() {
 	POP(EDI);
 	POP(ESI);
 	POP(EBX);
 	POP(EBP);
 }
 
-unsigned int ABI_GetAlignedFrameSize(unsigned int frameSize) {
+unsigned int XEmitter::ABI_GetAlignedFrameSize(unsigned int frameSize) {
 	frameSize += 4; // reserve space for return address
 	unsigned int alignedSize =
 #ifdef __GNUC__
@@ -128,7 +129,7 @@ unsigned int ABI_GetAlignedFrameSize(unsigned int frameSize) {
 }
 
 
-void ABI_AlignStack(unsigned int frameSize) {
+void XEmitter::ABI_AlignStack(unsigned int frameSize) {
 // Mac OS X requires the stack to be 16-byte aligned before every call.
 // Linux requires the stack to be 16-byte aligned before calls that put SSE
 // vectors on the stack, but since we do not keep track of which calls do that,
@@ -145,7 +146,7 @@ void ABI_AlignStack(unsigned int frameSize) {
 #endif
 }
 
-void ABI_RestoreStack(unsigned int frameSize) {
+void XEmitter::ABI_RestoreStack(unsigned int frameSize) {
 	unsigned int alignedSize = ABI_GetAlignedFrameSize(frameSize);
 	alignedSize -= 4; // return address is POPped at end of call
 	if (alignedSize != 0) {
@@ -155,26 +156,26 @@ void ABI_RestoreStack(unsigned int frameSize) {
 
 #else
 
-void ABI_CallFunctionC(void *func, u32 param1) {
+void XEmitter::ABI_CallFunctionC(void *func, u32 param1) {
 	MOV(32, R(ABI_PARAM1), Imm32(param1));
 	CALL(func);
 }
 
-void ABI_CallFunctionCC(void *func, u32 param1, u32 param2) {
+void XEmitter::ABI_CallFunctionCC(void *func, u32 param1, u32 param2) {
 	MOV(32, R(ABI_PARAM1), Imm32(param1));
 	MOV(32, R(ABI_PARAM2), Imm32(param2));
 	CALL(func);
 }
 
 // Pass a register as a paremeter.
-void ABI_CallFunctionR(void *func, X64Reg reg1) {
+void XEmitter::ABI_CallFunctionR(void *func, X64Reg reg1) {
 	if (reg1 != ABI_PARAM1)
 		MOV(32, R(ABI_PARAM1), R(reg1));
 	CALL(func);
 }
 
 // Pass a register as a paremeter.
-void ABI_CallFunctionRR(void *func, X64Reg reg1, X64Reg reg2) {
+void XEmitter::ABI_CallFunctionRR(void *func, X64Reg reg1, X64Reg reg2) {
 	if (reg1 != ABI_PARAM1)
 		MOV(32, R(ABI_PARAM1), R(reg1));
 	if (reg2 != ABI_PARAM2)
@@ -182,7 +183,7 @@ void ABI_CallFunctionRR(void *func, X64Reg reg1, X64Reg reg2) {
 	CALL(func);
 }
 
-void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2)
+void XEmitter::ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2)
 {
 	if (!arg1.IsSimpleReg(ABI_PARAM1))
 		MOV(32, R(ABI_PARAM1), arg1);
@@ -190,21 +191,21 @@ void ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2)
 	CALL(func);
 }
 
-unsigned int ABI_GetAlignedFrameSize(unsigned int frameSize) {
+unsigned int XEmitter::ABI_GetAlignedFrameSize(unsigned int frameSize) {
 	return frameSize;
 }
 
-void ABI_AlignStack(unsigned int /*frameSize*/) {
+void XEmitter::ABI_AlignStack(unsigned int /*frameSize*/) {
 }
 
-void ABI_RestoreStack(unsigned int /*frameSize*/) {
+void XEmitter::ABI_RestoreStack(unsigned int /*frameSize*/) {
 }
 
 #ifdef _WIN32
 
 // Win64 Specific Code
 // ====================================
-void ABI_PushAllCalleeSavedRegsAndAdjustStack() {
+void XEmitter::ABI_PushAllCalleeSavedRegsAndAdjustStack() {
 	//we only want to do this once
 	PUSH(RBX); 
 	PUSH(RSI); 
@@ -218,7 +219,7 @@ void ABI_PushAllCalleeSavedRegsAndAdjustStack() {
 	SUB(64, R(RSP), Imm8(0x28));
 }
 
-void ABI_PopAllCalleeSavedRegsAndAdjustStack() {
+void XEmitter::ABI_PopAllCalleeSavedRegsAndAdjustStack() {
 	ADD(64, R(RSP), Imm8(0x28));
 	POP(R15);
 	POP(R14); 
@@ -232,7 +233,7 @@ void ABI_PopAllCalleeSavedRegsAndAdjustStack() {
 
 // Win64 Specific Code
 // ====================================
-void ABI_PushAllCallerSavedRegsAndAdjustStack() {
+void XEmitter::ABI_PushAllCallerSavedRegsAndAdjustStack() {
 	PUSH(RCX);
 	PUSH(RDX);
 	PUSH(RSI); 
@@ -245,7 +246,7 @@ void ABI_PushAllCallerSavedRegsAndAdjustStack() {
 	SUB(64, R(RSP), Imm8(0x28));
 }
 
-void ABI_PopAllCallerSavedRegsAndAdjustStack() {
+void XEmitter::ABI_PopAllCallerSavedRegsAndAdjustStack() {
 	ADD(64, R(RSP), Imm8(0x28));
 	POP(R11);
 	POP(R10);
@@ -260,7 +261,7 @@ void ABI_PopAllCallerSavedRegsAndAdjustStack() {
 #else
 // Unix64 Specific Code
 // ====================================
-void ABI_PushAllCalleeSavedRegsAndAdjustStack() {
+void XEmitter::ABI_PushAllCalleeSavedRegsAndAdjustStack() {
 	PUSH(RBX); 
 	PUSH(RBP);
 	PUSH(R12); 
@@ -270,7 +271,7 @@ void ABI_PushAllCalleeSavedRegsAndAdjustStack() {
 	PUSH(R15); //just to align stack. duped push/pop doesn't hurt.
 }
 
-void ABI_PopAllCalleeSavedRegsAndAdjustStack() {
+void XEmitter::ABI_PopAllCalleeSavedRegsAndAdjustStack() {
 	POP(R15);
 	POP(R15);
 	POP(R14); 
@@ -280,7 +281,7 @@ void ABI_PopAllCalleeSavedRegsAndAdjustStack() {
 	POP(RBX); 
 }
 
-void ABI_PushAllCallerSavedRegsAndAdjustStack() {
+void XEmitter::ABI_PushAllCallerSavedRegsAndAdjustStack() {
 	PUSH(RCX);
 	PUSH(RDX);
 	PUSH(RSI); 
@@ -292,7 +293,7 @@ void ABI_PushAllCallerSavedRegsAndAdjustStack() {
 	PUSH(R11);
 }
 
-void ABI_PopAllCallerSavedRegsAndAdjustStack() {
+void XEmitter::ABI_PopAllCallerSavedRegsAndAdjustStack() {
 	POP(R11);
 	POP(R11);
 	POP(R10);

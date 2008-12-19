@@ -18,6 +18,11 @@
 #ifndef _THUNK_H
 #define _THUNK_H
 
+#include <map>
+
+#include "Common.h"
+#include "x64Emitter.h"
+
 // This simple class creates a wrapper around a C/C++ function that saves all fp state
 // before entering it, and restores it upon exit. This is required to be able to selectively
 // call functions from generated code, without inflicting the performance hit and increase
@@ -30,10 +35,21 @@
 // NOT THREAD SAFE. This may only be used from the CPU thread.
 // Any other thread using this stuff will be FATAL.
 
-void Thunk_Init();
-void Thunk_Reset();
-void Thunk_Shutdown();
+class ThunkManager : public Gen::XCodeBlock
+{
+	std::map<void *, const u8 *> thunks;
 
-void *ProtectFunction(void *function, int num_params);
+	const u8 *save_regs;
+	const u8 *load_regs;
+
+public:
+	void Init();
+	void Reset();
+	void Shutdown();
+
+	void *ProtectFunction(void *function, int num_params);
+};
+
+extern ThunkManager thunks;
 
 #endif

@@ -18,33 +18,29 @@
 #include <map>
 
 #include "Common.h"
-#include "Thunk.h"
 #include "x64Emitter.h"
 #include "MemoryUtil.h"
 #include "ABI.h"
+#include "Thunk.h"
 
-using namespace Gen;
+ThunkManager thunks;
 
 #define THUNK_ARENA_SIZE 1024*1024*1
 
-namespace {
-static std::map<void *, const u8 *> thunks;
-u8 GC_ALIGNED32(saved_fp_state[16 * 4 * 4]);
-u8 GC_ALIGNED32(saved_gpr_state[16 * 8]);
-
-static u8 *thunk_memory;
-static u8 *thunk_code;
-static const u8 *save_regs;
-static const u8 *load_regs;
-static u16 saved_mxcsr;
-}
-
-void Thunk_Init()
+namespace
 {
-	thunk_memory = (u8 *)AllocateExecutableMemory(THUNK_ARENA_SIZE);
-	thunk_code = thunk_memory;
 
-	GenContext ctx(&thunk_code);
+static u8 GC_ALIGNED32(saved_fp_state[16 * 4 * 4]);
+static u8 GC_ALIGNED32(saved_gpr_state[16 * 8]);
+static u16 saved_mxcsr;
+
+}  // namespace
+
+using namespace Gen;
+
+void ThunkManager::Init()
+{
+	AllocCodeSpace(THUNK_ARENA_SIZE);
 	save_regs = GetCodePtr();
 	for (int i = 2; i < ABI_GetNumXMMRegs(); i++)
 		MOVAPS(M(saved_fp_state + i * 16), (X64Reg)(XMM0 + i));
@@ -89,31 +85,27 @@ void Thunk_Init()
 	RET();
 }
 
-void Thunk_Reset()
+void ThunkManager::Reset()
 {
 	thunks.clear();
-	thunk_code = thunk_memory;
+	ResetCodePtr();
 }
 
-void Thunk_Shutdown()
+void ThunkManager::Shutdown()
 {
-	Thunk_Reset();
-	FreeMemoryPages(thunk_memory, THUNK_ARENA_SIZE);
-	thunk_memory = 0;
-	thunk_code = 0;
+	Reset();
+	FreeCodeSpace();
 }
 
-void *ProtectFunction(void *function, int num_params)
+void *ThunkManager::ProtectFunction(void *function, int num_params)
 {
 	std::map<void *, const u8 *>::iterator iter;
 	iter = thunks.find(function);
 	if (iter != thunks.end())
 		return (void *)iter->second;
-
-	if (!thunk_memory)
+	if (!region)
 		PanicAlert("Trying to protect functions before the emu is started. Bad bad bad.");
 
-	GenContext gen(&thunk_code);
 	const u8 *call_point = GetCodePtr();
 	// Make sure to align stack.
 #ifdef _M_X64

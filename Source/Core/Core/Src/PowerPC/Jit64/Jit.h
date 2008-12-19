@@ -24,7 +24,9 @@
 
 #include "../PPCAnalyst.h"
 #include "JitCache.h"
+#include "JitRegCache.h"
 #include "x64Emitter.h"
+#include "x64Analyzer.h"
 
 #ifdef _WIN32
 
@@ -47,8 +49,24 @@ struct CONTEXT
 
 #endif
 
-class Jit64
+
+class TrampolineCache : public Gen::XCodeBlock
 {
+public:
+	void Init();
+	void Shutdown();
+
+	const u8 *GetReadTrampoline(const InstructionInfo &info);
+	const u8 *GetWriteTrampoline(const InstructionInfo &info);
+};
+
+
+class Jit64 : public Gen::XCodeBlock
+{
+	TrampolineCache trampolines;
+	GPRRegCache gpr;
+	FPURegCache fpr;
+
 public:
 	typedef void (*CompiledCode)();
 
@@ -157,7 +175,7 @@ public:
 	bool RangeIntersect(int s1, int e1, int s2, int e2) const;
 	bool IsInJitCode(const u8 *codePtr);
 	
-	u8 *BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx);
+	const u8 *BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx);
 
 #define JIT_OPCODE 0
 
@@ -165,6 +183,7 @@ public:
 	const u8* DoJit(u32 emaddress, JitBlock &b);
 
 	void Init();
+	void Shutdown();
 
 	// Utilities for use by opcodes
 
@@ -188,10 +207,10 @@ public:
 	void ForceSinglePrecisionP(Gen::X64Reg xmm);
 	void JitClearCA();
 	void JitSetCA();
-	void tri_op(int d, int a, int b, bool reversible, void (*op)(Gen::X64Reg, Gen::OpArg));
+	void tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
 	typedef u32 (*Operation)(u32 a, u32 b);
-	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void(*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc = false, bool carry = false);
-	void fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (*op)(Gen::X64Reg, Gen::OpArg));
+	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void (XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc = false, bool carry = false);
+	void fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
 
 
 	// OPCODES

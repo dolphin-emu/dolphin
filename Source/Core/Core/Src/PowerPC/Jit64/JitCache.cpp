@@ -56,19 +56,15 @@ using namespace Gen;
 	op_agent_t agent;
 #endif
 	static u8 *codeCache;
-	static u8 *genFunctions;
 	static u8 *trampolineCache;
 	u8 *trampolineCodePtr;
 #define INVALID_EXIT 0xFFFFFFFF
 
 	enum 
 	{
-		//CODE_SIZE = 1024*1024*8,
-		GEN_SIZE = 4096,
 		TRAMPOLINE_SIZE = 1024*1024,
-		//MAX_NUM_BLOCKS = 65536,
 	};
-	int CODE_SIZE = 1024*1024*16;
+
 	int MAX_NUM_BLOCKS = 65536*2;
 
 	static u8 **blockCodePointers;
@@ -89,36 +85,22 @@ using namespace Gen;
 
 	void Jit64::InitCache()
 	{
-		if(Core::g_CoreStartupParameter.bJITUnlimitedCache)
+		if (Core::g_CoreStartupParameter.bJITUnlimitedCache)
 		{
-			CODE_SIZE = 1024*1024*8*8;
 			MAX_NUM_BLOCKS = 65536*8;
 		}
-
-		codeCache    = (u8*)AllocateExecutableMemory(CODE_SIZE);
-		genFunctions = (u8*)AllocateExecutableMemory(GEN_SIZE);
-		trampolineCache = (u8*)AllocateExecutableMemory(TRAMPOLINE_SIZE);
-		trampolineCodePtr = trampolineCache;
 
 #ifdef OPROFILE_REPORT
 		agent = op_open_agent();
 #endif
 		blocks = new JitBlock[MAX_NUM_BLOCKS];
 		blockCodePointers = new u8*[MAX_NUM_BLOCKS];
+
 		ClearCache();
-		SetCodePtr(genFunctions);
-		Asm::Generate();
-		// Protect the generated functions
-		WriteProtectMemory(genFunctions, GEN_SIZE, true);
-		SetCodePtr(codeCache);
 	}
 
 	void Jit64::ShutdownCache()
 	{
-		UnWriteProtectMemory(genFunctions, GEN_SIZE, true);
-		FreeMemoryPages(codeCache, CODE_SIZE);
-		FreeMemoryPages(genFunctions, GEN_SIZE);
-		FreeMemoryPages(trampolineCache, TRAMPOLINE_SIZE);
 		delete [] blocks;
 		delete [] blockCodePointers;
 		blocks = 0;
@@ -135,21 +117,23 @@ using namespace Gen;
 	{
 		Core::DisplayMessage("Cleared code cache.", 3000);
 		// Is destroying the blocks really necessary?
-		for (int i = 0; i < numBlocks; i++) {
+		for (int i = 0; i < numBlocks; i++)
+		{
 			DestroyBlock(i, false);
 		}
 		links_to.clear();
-		trampolineCodePtr = trampolineCache;
 		numBlocks = 0;
 		memset(blockCodePointers, 0, sizeof(u8*)*MAX_NUM_BLOCKS);
-		memset(codeCache, 0xCC, CODE_SIZE);
-		SetCodePtr(codeCache);
+
+		trampolines.ClearCodeSpace();
 	}
 
 	void Jit64::DestroyBlocksWithFlag(BlockFlag death_flag)
 	{
-		for (int i = 0; i < numBlocks; i++) {
-			if (blocks[i].flags & death_flag) {
+		for (int i = 0; i < numBlocks; i++)
+		{
+			if (blocks[i].flags & death_flag)
+			{
 				DestroyBlock(i, false);
 			}
 		}
@@ -190,10 +174,10 @@ using namespace Gen;
 
 	const u8 *Jit64::Jit(u32 emAddress)
 	{
-		if (GetCodePtr() >= codeCache + CODE_SIZE - 0x10000 || numBlocks >= MAX_NUM_BLOCKS - 1)
+		if (GetSpaceLeft() < 0x10000 || numBlocks >= MAX_NUM_BLOCKS - 1)
 		{
 			LOG(DYNA_REC, "JIT cache full - clearing.")
-			if(Core::g_CoreStartupParameter.bJITUnlimitedCache)
+			if (Core::g_CoreStartupParameter.bJITUnlimitedCache)
 			{
 				PanicAlert("What? JIT cache still full - clearing.");
 			}
@@ -221,10 +205,8 @@ using namespace Gen;
 				}
 			}
 			
-			u8 *oldCodePtr = GetWritableCodePtr();
 			LinkBlock(numBlocks);
 			LinkBlockExits(numBlocks);
-			SetCodePtr(oldCodePtr);
 		}
 
 #ifdef OPROFILE_REPORT
@@ -257,7 +239,7 @@ using namespace Gen;
 
 	void Jit64::EnterFastRun()
 	{
-		CompiledCode pExecAddr = (CompiledCode)Asm::enterCode;
+		CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
 		pExecAddr();
 		//Will return when PowerPC::state changes
 	}
@@ -336,8 +318,8 @@ using namespace Gen;
 				int destinationBlock = GetBlockNumberFromAddress(b.exitAddress[e]);
 				if (destinationBlock != -1)
 				{
-					SetCodePtr(b.exitPtrs[e]);
-					JMP(blocks[destinationBlock].checkedEntry, true);
+					XEmitter emit(b.exitPtrs[e]);
+					emit.JMP(blocks[destinationBlock].checkedEntry, true);
 					b.linkStatus[e] = true;
 				}
 			}
@@ -345,6 +327,7 @@ using namespace Gen;
 	}
 
 	using namespace std;
+
 	void Jit64::LinkBlock(int i)
 	{
 		LinkBlockExits(i);
@@ -386,15 +369,15 @@ using namespace Gen;
 		// Not entirely ideal, but .. pretty good.
 
 		// TODO - make sure that the below stuff really is safe.
-		u8 *prev_code = GetWritableCodePtr();
+
 		// Spurious entrances from previously linked blocks can only come through checkedEntry
-		SetCodePtr((u8*)b.checkedEntry);
-		MOV(32, M(&PC), Imm32(b.originalAddress));
-		JMP(Asm::dispatcher, true);
-		SetCodePtr(blockCodePointers[blocknum]);
-		MOV(32, M(&PC), Imm32(b.originalAddress));
-		JMP(Asm::dispatcher, true);
-		SetCodePtr(prev_code);  // reset code pointer
+		XEmitter emit((u8*)b.checkedEntry);
+		emit.MOV(32, M(&PC), Imm32(b.originalAddress));
+		emit.JMP(asm_routines.dispatcher, true);
+
+		emit.SetCodePtr(blockCodePointers[blocknum]);
+		emit.MOV(32, M(&PC), Imm32(b.originalAddress));
+		emit.JMP(asm_routines.dispatcher, true);
 	}
 
 

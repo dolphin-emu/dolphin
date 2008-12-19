@@ -22,8 +22,9 @@
 
 #include "CPMemory.h"
 #include "DataReader.h"
-
 #include "NativeVertexFormat.h"
+
+#include "x64Emitter.h"
 
 class VertexLoaderUID
 {
@@ -52,7 +53,7 @@ public:
 	}
 };
 
-class VertexLoader
+class VertexLoader : public Gen::XCodeBlock
 {
 public:
 	VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr);
@@ -86,7 +87,7 @@ private:
 	TPipelineFunction m_PipelineStages[64];  // TODO - figure out real max. it's lower.
 	int m_numPipelineStages;
 
-	u8 *m_compiledCode;
+	const u8 *m_compiledCode;
 
 	int m_numLoadedVertices;
 

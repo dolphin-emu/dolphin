@@ -163,40 +163,40 @@
 	*/
 
 	//There's still a little bit more optimization that can be squeezed out of this
-	void Jit64::tri_op(int d, int a, int b, bool reversible, void (*op)(X64Reg, OpArg))
+	void Jit64::tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(X64Reg, OpArg))
 	{
 		fpr.Lock(d, a, b);
 		
 		if (d == a)
 		{
 			fpr.LoadToX64(d, true);
-			op(fpr.RX(d), fpr.R(b));
+			(this->*op)(fpr.RX(d), fpr.R(b));
 		}
 		else if (d == b && reversible)
 		{
 			fpr.LoadToX64(d, true);
-			op(fpr.RX(d), fpr.R(a));
+			(this->*op)(fpr.RX(d), fpr.R(a));
 		}
 		else if (a != d && b != d) 
 		{
 			//sources different from d, can use rather quick solution
 			fpr.LoadToX64(d, false);
 			MOVAPD(fpr.RX(d), fpr.R(a));
-			op(fpr.RX(d), fpr.R(b));
+			(this->*op)(fpr.RX(d), fpr.R(b));
 		}
 		else if (b != d)
 		{
 			fpr.LoadToX64(d, false);
 			MOVAPD(XMM0, fpr.R(b));
 			MOVAPD(fpr.RX(d), fpr.R(a));
-			op(fpr.RX(d), Gen::R(XMM0));
+			(this->*op)(fpr.RX(d), Gen::R(XMM0));
 		}
 		else //Other combo, must use two temps :(
 		{
 			MOVAPD(XMM0, fpr.R(a));
 			MOVAPD(XMM1, fpr.R(b));
 			fpr.LoadToX64(d, false);
-			op(XMM0, Gen::R(XMM1));
+			(this->*op)(XMM0, Gen::R(XMM1));
 			MOVAPD(fpr.RX(d), Gen::R(XMM0));
 		}
 		ForceSinglePrecisionP(fpr.RX(d));
@@ -213,16 +213,16 @@
 		}
 		switch (inst.SUBOP5)
 		{
-		case 18: tri_op(inst.FD, inst.FA, inst.FB, false, &DIVPD); break; //div
-		case 20: tri_op(inst.FD, inst.FA, inst.FB, false, &SUBPD); break; //sub
-		case 21: tri_op(inst.FD, inst.FA, inst.FB, true,  &ADDPD); break; //add
+		case 18: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::DIVPD); break; //div
+		case 20: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::SUBPD); break; //sub 
+		case 21: tri_op(inst.FD, inst.FA, inst.FB, true,  &XEmitter::ADDPD); break; //add
 		case 23://sel
 			Default(inst);
 			break;
 		case 24://res
 			Default(inst);
 			break;
-		case 25: tri_op(inst.FD, inst.FA, inst.FC, true, &MULPD); break; //mul
+		case 25: tri_op(inst.FD, inst.FA, inst.FC, true, &XEmitter::MULPD); break; //mul
 		default:
 			_assert_msg_(DYNA_REC, 0, "ps_arith WTF!!!");
 		}

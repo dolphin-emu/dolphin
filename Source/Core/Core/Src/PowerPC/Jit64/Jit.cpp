@@ -164,6 +164,8 @@ ps_adds1
 Jit64 jit;
 PPCAnalyst::CodeBuffer code_buffer(32000);
 
+int CODE_SIZE = 1024*1024*16;
+
 namespace CPUCompare
 {
 	extern u32 m_BlockStart;
@@ -171,6 +173,11 @@ namespace CPUCompare
 
 	void Jit64::Init()
 	{
+		if (Core::g_CoreStartupParameter.bJITUnlimitedCache)
+		{
+			CODE_SIZE = 1024*1024*8*8;
+		}
+
 		jo.optimizeStack = true;
 		jo.enableBlocklink = true;  // Speed boost, but not 100% safe
 #ifdef _M_X64
@@ -182,6 +189,23 @@ namespace CPUCompare
 		jo.fpAccurateFlags = true;
 		jo.optimizeGatherPipe = true;
 		jo.fastInterrupts = false;
+
+		gpr.SetEmitter(this);
+		fpr.SetEmitter(this);
+
+		trampolines.Init();
+		AllocCodeSpace(CODE_SIZE);
+		InitCache();
+		asm_routines.Init();
+	}
+
+	void Jit64::Shutdown()
+	{
+		FreeCodeSpace();
+		ShutdownCache();
+
+		trampolines.Shutdown();
+		asm_routines.Shutdown();
 	}
 
 	void Jit64::WriteCallInterpreter(UGeckoInstruction _inst)
@@ -271,7 +295,7 @@ namespace CPUCompare
 		else 
 		{
 			MOV(32, M(&PC), Imm32(destination));
-			JMP(Asm::dispatcher, true);
+			JMP(asm_routines.dispatcher, true);
 		}
 	}
 
@@ -280,7 +304,7 @@ namespace CPUCompare
 		MOV(32, M(&PC), R(EAX));
 		Cleanup();
 		SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
-		JMP(Asm::dispatcher, true);
+		JMP(asm_routines.dispatcher, true);
 	}
 
 	void Jit64::WriteRfiExitDestInEAX() 
@@ -288,7 +312,7 @@ namespace CPUCompare
 		MOV(32, M(&PC), R(EAX));
 		Cleanup();
 		SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
-		JMP(Asm::testExceptions, true);
+		JMP(asm_routines.testExceptions, true);
 	}
 
 	void Jit64::WriteExceptionExit(u32 exception)
@@ -296,7 +320,7 @@ namespace CPUCompare
 		Cleanup();
 		OR(32, M(&PowerPC::ppcState.Exceptions), Imm32(exception));
 		MOV(32, M(&PC), Imm32(js.compilerPC + 4));
-		JMP(Asm::testExceptions, true);
+		JMP(asm_routines.testExceptions, true);
 	}
 
 	const u8* Jit64::DoJit(u32 emaddress, JitBlock &b)
@@ -326,11 +350,13 @@ namespace CPUCompare
 		// Downcount flag check. The last block decremented downcounter, and the flag should still be available.
 		FixupBranch skip = J_CC(CC_NBE);
 		MOV(32, M(&PC), Imm32(js.blockStart));
-		JMP(Asm::doTiming, true);  // downcount hit zero - go doTiming.
+		JMP(asm_routines.doTiming, true);  // downcount hit zero - go doTiming.
 		SetJumpTarget(skip);
 
 		const u8 *normalEntry = GetCodePtr();
-		if (ImHereDebug) CALL((void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
+		
+		if (ImHereDebug)
+			CALL((void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
 		
 		if (js.fpa.any)
 		{
@@ -338,7 +364,7 @@ namespace CPUCompare
 			TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); //Test FP enabled bit
 			FixupBranch b1 = J_CC(CC_NZ);
 			MOV(32, M(&PC), Imm32(js.blockStart));
-			JMP(Asm::fpException, true);
+			JMP(asm_routines.fpException, true);
 			SetJumpTarget(b1);
 		}
 
@@ -348,7 +374,7 @@ namespace CPUCompare
 			TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(0xFFFFFFFF));
 			FixupBranch b1 = J_CC(CC_Z);
 			MOV(32, M(&PC), Imm32(js.blockStart));
-			JMP(Asm::testExceptions, true);
+			JMP(asm_routines.testExceptions, true);
 			SetJumpTarget(b1);
 		}
 
@@ -404,7 +430,7 @@ namespace CPUCompare
 			if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
 			{
 				js.fifoBytesThisBlock -= 32;
-				CALL(ProtectFunction((void *)&GPFifo::CheckGatherPipe, 0));
+				CALL(thunks.ProtectFunction((void *)&GPFifo::CheckGatherPipe, 0));
 			}
 
 			PPCTables::CompileInstruction(ops[i].inst);

@@ -34,13 +34,12 @@ namespace JitCore
 void Init()
 {
 	jit.Init();
-	jit.InitCache();
-	Asm::compareEnabled = ::Core::g_CoreStartupParameter.bRunCompareClient;
+	asm_routines.compareEnabled = ::Core::g_CoreStartupParameter.bRunCompareClient;
 }
 
 void Shutdown()
 {
-	jit.ShutdownCache();
+	jit.Shutdown();
 }
 
 void SingleStep()

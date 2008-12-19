@@ -18,14 +18,14 @@
 #ifndef _MEMORYUTIL_H
 #define _MEMORYUTIL_H
 
-void* AllocateExecutableMemory(int size, bool low = true);
-void* AllocateMemoryPages(int size);
-void FreeMemoryPages(void* ptr, int size);
-void WriteProtectMemory(void* ptr, int size, bool executable = false);
-void UnWriteProtectMemory(void* ptr, int size, bool allowExecute);
+void* AllocateExecutableMemory(size_t size, bool low = true);
+void* AllocateMemoryPages(size_t size);
+void FreeMemoryPages(void* ptr, size_t size);
+void WriteProtectMemory(void* ptr, size_t size, bool executable = false);
+void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute);
 
 
-inline int GetPageSize() {return(4096);}
+inline int GetPageSize() {return 4096;}
 
 
 #endif

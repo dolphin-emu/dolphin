@@ -31,27 +31,12 @@
 #include "../../HW/CPUCompare.h"
 #include "../../HW/GPFifo.h"
 #include "../../Core.h"
+#include "JitAsm.h"
 
 using namespace Gen;
 int blocksExecuted;
 
-namespace Asm
-{
-const u8 *enterCode;
-const u8 *testExceptions;
-const u8 *fpException;
-const u8 *doTiming;
-const u8 *dispatcher;
-const u8 *dispatcherNoCheck;
-const u8 *dispatcherPcInEAX;
-const u8 *computeRc;
-const u8 *computeRcFp;
-
-const u8 *fifoDirectWrite8;
-const u8 *fifoDirectWrite16;
-const u8 *fifoDirectWrite32;
-const u8 *fifoDirectWriteFloat;
-const u8 *fifoDirectWriteXmm64;
+static int temp32;
 
 bool compareEnabled = false;
 
@@ -72,16 +57,15 @@ static bool enableStatistics = false;
 //RBX - Base pointer of memory
 //R15 - Pointer to array of block pointers 
 
+AsmRoutineManager asm_routines;
 
 // PLAN: no more block numbers - crazy opcodes just contain offset within
 // dynarec buffer
 // At this offset - 4, there is an int specifying the block number.
 
 
-void GenerateCommon();
-
 #ifdef _M_IX86
-void Generate()
+void AsmRoutineManager::Generate()
 {
 	enterCode = AlignCode16();
 	PUSH(EBP);
@@ -129,7 +113,6 @@ void Generate()
 					ADD(32, M(&PowerPC::ppcState.DebugCount), Imm8(1));
 				}
 				//grab from list and jump to it
-				//INT3();
 				MOV(32, R(EDX), ImmPtr(jit.GetCodePointers()));
 				JMPptr(MComplex(EDX, EAX, 4, 0));
 			SetJumpTarget(notfound);
@@ -180,12 +163,14 @@ void Generate()
 
 #elif defined(_M_X64)
 
-void Generate()
+void AsmRoutineManager::Generate()
 {
 	enterCode = AlignCode16();
 
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
 
+	if (!jit.GetCodePointers() || !Memory::base)
+		PanicAlert("Memory::base and jit.GetCodePointers() must return valid values");
 	MOV(64, R(RBX), Imm64((u64)Memory::base));
 	MOV(64, R(R15), Imm64((u64)jit.GetCodePointers())); //It's below 2GB so 32 bits are good enough
 	const u8 *outerLoop = GetCodePtr();
@@ -264,7 +249,7 @@ void Generate()
 }
 #endif
 
-void GenFifoWrite(int size) 
+void AsmRoutineManager::GenFifoWrite(int size) 
 {
 	// Assume value in ABI_PARAM1
 	PUSH(ESI);
@@ -287,8 +272,7 @@ void GenFifoWrite(int size)
 	RET();
 }
 
-static int temp32;
-void GenFifoFloatWrite() 
+void AsmRoutineManager::GenFifoFloatWrite() 
 {
 	// Assume value in XMM0
 	PUSH(ESI);
@@ -306,7 +290,7 @@ void GenFifoFloatWrite()
 	RET();
 }
 
-void GenFifoXmm64Write() 
+void AsmRoutineManager::GenFifoXmm64Write() 
 {
 	// Assume value in XMM0. Assume pre-byteswapped (unlike the others here!)
 	PUSH(ESI);
@@ -319,7 +303,7 @@ void GenFifoXmm64Write()
 	RET();
 }
 
-void GenerateCommon()
+void AsmRoutineManager::GenerateCommon()
 {
 	// USES_CR
 	computeRc = AlignCode16();
@@ -364,5 +348,3 @@ void GenerateCommon()
 	SetJumpTarget(skip_fast_write);
 	CALL((void *)&Memory::Write_U8);*/
 }
-
-}  // namespace Asm

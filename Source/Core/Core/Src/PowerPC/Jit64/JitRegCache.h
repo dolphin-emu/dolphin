@@ -72,10 +72,15 @@
 
 		void DiscardRegContentsIfCached(int preg);
 		virtual const int *GetAllocationOrder(int &count) = 0;
+		
+		XEmitter *emit;
 
 	public:
 		virtual ~RegCache() {}
 		virtual void Start(PPCAnalyst::BlockRegStats &stats) = 0;
+
+		void SetEmitter(XEmitter *emitter) {emit = emitter;}
+
 		void FlushR(X64Reg reg); 
 		void FlushR(X64Reg reg, X64Reg reg2) {FlushR(reg); FlushR(reg2);}
 		void FlushLockX(X64Reg reg) {
@@ -141,9 +146,6 @@
 		const int *GetAllocationOrder(int &count);
 		OpArg GetDefaultLocation(int reg) const;
 	};
-
-	extern GPRRegCache gpr;
-	extern FPURegCache fpr;
 
 #endif
 

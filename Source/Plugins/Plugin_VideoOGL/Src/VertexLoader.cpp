@@ -44,7 +44,7 @@
 
 #define USE_JIT
 
-#define COMPILED_CODE_SIZE 4096*4
+#define COMPILED_CODE_SIZE 4096
 
 NativeVertexFormat *g_nativeVertexFmt;
 
@@ -116,6 +116,7 @@ void LOADERDECL TexMtx_Write_Short3()
 
 VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr) 
 {
+	m_compiledCode = NULL;
 	m_numLoadedVertices = 0;
 	m_VertexSize = 0;
 	m_numPipelineStages = 0;
@@ -126,16 +127,14 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	m_VtxDesc = vtx_desc;
 	SetVAT(vtx_attr.g0.Hex, vtx_attr.g1.Hex, vtx_attr.g2.Hex);
 
-	m_compiledCode = (u8 *)AllocateExecutableMemory(COMPILED_CODE_SIZE, false);
-	if (m_compiledCode) {
-		memset(m_compiledCode, 0, COMPILED_CODE_SIZE);
-	}
+	AllocCodeSpace(COMPILED_CODE_SIZE);
 	CompileVertexTranslator();
+	WriteProtect();
 }
 
 VertexLoader::~VertexLoader() 
 {
-	FreeMemoryPages(m_compiledCode, COMPILED_CODE_SIZE);
+	FreeCodeSpace();
 	delete m_NativeFmt;
 }
 
@@ -143,13 +142,14 @@ void VertexLoader::CompileVertexTranslator()
 {
 	m_VertexSize = 0;
 	const TVtxAttr &vtx_attr = m_VtxAttr;
-	//const TVtxDesc &vtx_desc = m_VtxDesc;
 
 #ifdef USE_JIT
-	u8 *old_code_ptr = GetWritableCodePtr();
-	SetCodePtr(m_compiledCode);
+	if (m_compiledCode)
+		PanicAlert("trying to recompile a vtx translator");
+
+	m_compiledCode = GetCodePtr();
 	ABI_EmitPrologue(4);
-	// MOV(32, R(EBX), M(&loop_counter));
+
 	// Start loop here
 	const u8 *loop_start = GetCodePtr();
 
@@ -477,7 +477,6 @@ void VertexLoader::CompileVertexTranslator()
 	//SUB(32, R(EBX), Imm8(1));
 	J_CC(CC_NZ, loop_start, true);
 	ABI_EmitEpilogue(4);
-	SetCodePtr(old_code_ptr);
 #endif
 	m_NativeFmt->Initialize(vtx_decl);
 }

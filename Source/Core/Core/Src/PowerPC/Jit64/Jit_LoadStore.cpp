@@ -144,7 +144,7 @@
 			fpr.Flush(FLUSH_ALL);
 			ABI_CallFunctionC((void *)&PowerPC::OnIdle, PowerPC::ppcState.gpr[a] + (s32)(s16)inst.SIMM_16);
 			MOV(32, M(&PowerPC::ppcState.pc), Imm32(js.compilerPC + 12));
-			JMP(Asm::testExceptions, true);
+			JMP(asm_routines.testExceptions, true);
 			js.compilerPC += 8;
 			return;
 		}
@@ -287,14 +287,13 @@
 						gpr.SetImmediate32(a, addr);
 					gpr.FlushLockX(ABI_PARAM1);
 					MOV(32, R(ABI_PARAM1), gpr.R(s));
-					// INT3();
 					switch (accessSize)
 					{	
 					// No need to protect these, they don't touch any state
 					// question - should we inline them instead? Pro: Lose a CALL   Con: Code bloat
-					case 8:  CALL((void *)Asm::fifoDirectWrite8);  break;
-					case 16: CALL((void *)Asm::fifoDirectWrite16); break;
-					case 32: CALL((void *)Asm::fifoDirectWrite32); break;
+					case 8:  CALL((void *)asm_routines.fifoDirectWrite8);  break;
+					case 16: CALL((void *)asm_routines.fifoDirectWrite16); break;
+					case 32: CALL((void *)asm_routines.fifoDirectWrite32); break;
 					}
 					js.fifoBytesThisBlock += accessSize >> 3;
 					gpr.UnlockAllX();
@@ -377,9 +376,9 @@
 			SetJumpTarget(unsafe_addr);
 			switch (accessSize)
 			{
-			case 32: ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); break;
-			case 16: ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U16, 2), ABI_PARAM1, ABI_PARAM2); break;
-			case 8:  ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U8,  2), ABI_PARAM1, ABI_PARAM2); break;
+			case 32: ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); break;
+			case 16: ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U16, 2), ABI_PARAM1, ABI_PARAM2); break;
+			case 8:  ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U8,  2), ABI_PARAM1, ABI_PARAM2); break;
 			}
 			SetJumpTarget(skip_call);
 			gpr.UnlockAll();
@@ -402,7 +401,6 @@
 		//return _inst.RA ? (m_GPR[_inst.RA] + _inst.SIMM_16) : _inst.SIMM_16;
 		gpr.FlushLockX(ECX, EDX);
 		gpr.FlushLockX(ESI);
-		//INT3();
 		MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
 		if (inst.RA)
 			ADD(32, R(EAX), gpr.R(inst.RA));

@@ -242,7 +242,7 @@ void Jit64::stfs(UGeckoInstruction inst)
 		{
 			// Float directly to write gather pipe! Fun!
 			CVTSD2SS(XMM0, fpr.R(s));
-			CALL((void*)Asm::fifoDirectWriteFloat);
+			CALL((void*)asm_routines.fifoDirectWriteFloat);
 			// TODO
 			js.fifoBytesThisBlock += 4;
 			return;

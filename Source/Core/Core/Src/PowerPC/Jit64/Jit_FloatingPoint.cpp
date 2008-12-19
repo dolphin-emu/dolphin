@@ -33,39 +33,39 @@
 	const u64 GC_ALIGNED16(psAbsMask2[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
 	const double GC_ALIGNED16(psOneOne2[2]) = {1.0, 1.0};
 
-	void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (*op)(Gen::X64Reg, Gen::OpArg))
+	void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg))
 	{
 		fpr.Lock(d, a, b);
 		if (d == a)
 		{
 			fpr.LoadToX64(d, true);
-			op(fpr.RX(d), fpr.R(b));
+			(this->*op)(fpr.RX(d), fpr.R(b));
 		}
 		else if (d == b && reversible)
 		{
 			fpr.LoadToX64(d, true);
-			op(fpr.RX(d), fpr.R(a));
+			(this->*op)(fpr.RX(d), fpr.R(a));
 		}
 		else if (a != d && b != d) 
 		{
 			// Sources different from d, can use rather quick solution
 			fpr.LoadToX64(d, !dupe);
 			MOVSD(fpr.RX(d), fpr.R(a));
-			op(fpr.RX(d), fpr.R(b));
+			(this->*op)(fpr.RX(d), fpr.R(b));
 		}
 		else if (b != d)
 		{
 			fpr.LoadToX64(d, !dupe);
 			MOVSD(XMM0, fpr.R(b));
 			MOVSD(fpr.RX(d), fpr.R(a));
-			op(fpr.RX(d), Gen::R(XMM0));
+			(this->*op)(fpr.RX(d), Gen::R(XMM0));
 		}
 		else // Other combo, must use two temps :(
 		{
 			MOVSD(XMM0, fpr.R(a));
 			MOVSD(XMM1, fpr.R(b));
 			fpr.LoadToX64(d, !dupe);
-			op(XMM0, Gen::R(XMM1));
+			(this->*op)(XMM0, Gen::R(XMM1));
 			MOVSD(fpr.RX(d), Gen::R(XMM0));
 		}
 		if (dupe) {
@@ -86,16 +86,16 @@
 		bool dupe = inst.OPCD == 59;
 		switch (inst.SUBOP5)
 		{
-		case 18: fp_tri_op(inst.FD, inst.FA, inst.FB, false, dupe, &DIVSD); break; //div
-		case 20: fp_tri_op(inst.FD, inst.FA, inst.FB, false, dupe, &SUBSD); break; //sub
-		case 21: fp_tri_op(inst.FD, inst.FA, inst.FB, true,  dupe, &ADDSD); break; //add
+		case 18: fp_tri_op(inst.FD, inst.FA, inst.FB, false, dupe, &XEmitter::DIVSD); break; //div
+		case 20: fp_tri_op(inst.FD, inst.FA, inst.FB, false, dupe, &XEmitter::SUBSD); break; //sub
+		case 21: fp_tri_op(inst.FD, inst.FA, inst.FB, true,  dupe, &XEmitter::ADDSD); break; //add
 		case 23: //sel
 			Default(inst);
 			break;
 		case 24: //res
 			Default(inst);
 			break;
-		case 25: fp_tri_op(inst.FD, inst.FA, inst.FC, true, dupe, &MULSD); break; //mul
+		case 25: fp_tri_op(inst.FD, inst.FA, inst.FC, true, dupe, &XEmitter::MULSD); break; //mul
 		default:
 			_assert_msg_(DYNA_REC, 0, "fp_arith_s WTF!!!");
 		}

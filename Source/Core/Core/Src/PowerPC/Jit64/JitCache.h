@@ -19,6 +19,6 @@
 
 #include "../Gekko.h"
 
-// Will soon introduced the JitBlockCache class here.
+// Will soon introduce the JitBlockCache class here.
 
 #endif

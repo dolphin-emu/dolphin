@@ -161,7 +161,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 #endif
 			FixupBranch skip_call = J();
 			SetJumpTarget(argh);
-			ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
+			ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
 			SetJumpTarget(skip_call);
 			gpr.UnlockAll();
 			gpr.UnlockAllX();
@@ -184,7 +184,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 				// Writing to FIFO. Let's do fast method.
 				CVTPD2PS(XMM0, fpr.R(s));
 				PSHUFB(XMM0, M((void*)&pbswapShuffle2x4));
-				CALL((void*)Asm::fifoDirectWriteXmm64);
+				CALL((void*)asm_routines.fifoDirectWriteXmm64);
 				js.fifoBytesThisBlock += 8;
 				return;
 			}
@@ -211,7 +211,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 		MOV(64, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
 		FixupBranch arg2 = J();
 		SetJumpTarget(argh);
-		CALL(ProtectFunction((void *)&WriteDual32, 0));
+		CALL(thunks.ProtectFunction((void *)&WriteDual32, 0));
 #else
 		FixupBranch argh = J_CC(CC_NZ);
 		MOV(32, R(ABI_PARAM1), M(((char*)&temp64) + 4));
@@ -224,10 +224,10 @@ void Jit64::psq_st(UGeckoInstruction inst)
 		FixupBranch arg2 = J();
 		SetJumpTarget(argh);
 		MOV(32, R(ABI_PARAM1), M(((char*)&temp64) + 4));
-		ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
+		ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
 		MOV(32, R(ABI_PARAM1), M(((char*)&temp64)));
 		ADD(32, R(ABI_PARAM2), Imm32(4));
-		ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
+		ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
 #endif
 		SetJumpTarget(arg2);
 		gpr.UnlockAll();
@@ -424,7 +424,6 @@ void Jit64::psq_l(UGeckoInstruction inst)
 #endif
 			BSWAP(32, EAX);
 			MOV(32, M(&temp64), R(EAX));
-			//INT3();
 			fpr.LoadToX64(inst.RS, false, true);
 			X64Reg r = fpr.R(inst.RS).GetSimpleReg();
 			MOVD_xmm(XMM0, M(&temp64));

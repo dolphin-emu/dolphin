@@ -14,33 +14,71 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #ifndef _JITASM_H
 #define _JITASM_H
 
-namespace Asm
+#include "x64Emitter.h"
+
+// In Dolphin, we don't use inline assembly. Instead, we generate all machine-near
+// code at runtime. In the case of fixed code like this, after writing it, we write
+// protect the memory, essentially making it work just like precompiled code.
+
+// There are some advantages to this approach:
+//   1) No need to setup an external assembler in the build.
+//   2) Cross platform, as long as it's x86/x64.
+//   3) Can optimize code at runtime for the specific CPU model.
+// There aren't really any disadvantages other than having to maintain a x86 emitter,
+// which we have to do anyway :)
+// 
+// To add a new asm routine, just add another const here, and add the code to Generate.
+// Also, possibly increase the size of the code buffer.
+
+class AsmRoutineManager : public Gen::XCodeBlock
 {
-	extern const u8 *enterCode;
-
-	extern const u8 *dispatcher;
-	extern const u8 *dispatcherNoCheck;
-	extern const u8 *dispatcherPcInEAX;
-
-	extern const u8 *fpException;
-	extern const u8 *computeRc;
-	extern const u8 *computeRcFp;
-	extern const u8 *testExceptions;
-	extern const u8 *dispatchPcInEAX;
-	extern const u8 *doTiming;
-
-	extern const u8 *fifoDirectWrite8;
-	extern const u8 *fifoDirectWrite16;
-	extern const u8 *fifoDirectWrite32;
-	extern const u8 *fifoDirectWriteFloat;
-	extern const u8 *fifoDirectWriteXmm64;
-
-	extern bool compareEnabled;
+private:
 	void Generate();
-}
+	void GenerateCommon();
+	void GenFifoWrite(int size);
+	void GenFifoFloatWrite();
+	void GenFifoXmm64Write();
+
+public:
+	void Init() {
+		AllocCodeSpace(8192);
+		Generate();
+		WriteProtect();
+	}
+
+	void Shutdown() {
+		FreeCodeSpace();
+	}
+
+
+	// Public generated functions. Just CALL(M((void*)func)) them.
+
+	const u8 *enterCode;
+
+	const u8 *dispatcher;
+	const u8 *dispatcherNoCheck;
+	const u8 *dispatcherPcInEAX;
+
+	const u8 *fpException;
+	const u8 *computeRc;
+	const u8 *computeRcFp;
+	const u8 *testExceptions;
+	const u8 *dispatchPcInEAX;
+	const u8 *doTiming;
+
+	const u8 *fifoDirectWrite8;
+	const u8 *fifoDirectWrite16;
+	const u8 *fifoDirectWrite32;
+	const u8 *fifoDirectWriteFloat;
+	const u8 *fifoDirectWriteXmm64;
+
+	bool compareEnabled;
+};
+
+extern AsmRoutineManager asm_routines;
 
 #endif
-

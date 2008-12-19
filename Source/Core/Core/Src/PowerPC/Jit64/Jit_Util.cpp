@@ -76,9 +76,9 @@ void Jit64::SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset, bool signEx
 	FixupBranch argh = J_CC(CC_Z);
 	switch (accessSize)
 	{
-	case 32: ABI_CallFunctionR(ProtectFunction((void *)&Memory::Read_U32, 1), reg); break;
-	case 16: ABI_CallFunctionR(ProtectFunction((void *)&Memory::Read_U16, 1), reg); break;
-	case 8:  ABI_CallFunctionR(ProtectFunction((void *)&Memory::Read_U8, 1), reg);  break;
+	case 32: ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U32, 1), reg); break;
+	case 16: ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U16, 1), reg); break;
+	case 8:  ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U8, 1), reg);  break;
 	}
 	if (signExtend && accessSize < 32) {
 		// Need to sign extend values coming from the Read_U* functions.
@@ -114,7 +114,7 @@ void Jit64::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize,
 	UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0);
 	FixupBranch skip_call = J();
 	SetJumpTarget(unsafe_addr);
-	ABI_CallFunctionRR(ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
+	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
 	SetJumpTarget(skip_call);
 }
 

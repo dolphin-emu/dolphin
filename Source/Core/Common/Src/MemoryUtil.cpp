@@ -38,7 +38,7 @@
 // This is purposedely not a full wrapper for virtualalloc/mmap, but it
 // provides exactly the primitive operations that Dolphin needs.
 
-void* AllocateExecutableMemory(int size, bool low)
+void* AllocateExecutableMemory(size_t size, bool low)
 {
 #ifdef _WIN32
 	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
@@ -71,7 +71,7 @@ void* AllocateExecutableMemory(int size, bool low)
 }
 
 
-void* AllocateMemoryPages(int size)
+void* AllocateMemoryPages(size_t size)
 {
 #ifdef _WIN32
 	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_READWRITE);
@@ -99,7 +99,7 @@ void* AllocateMemoryPages(int size)
 }
 
 
-void FreeMemoryPages(void* ptr, int size)
+void FreeMemoryPages(void* ptr, size_t size)
 {
 #ifdef _WIN32
 	if (ptr)
@@ -113,7 +113,7 @@ void FreeMemoryPages(void* ptr, int size)
 }
 
 
-void WriteProtectMemory(void* ptr, int size, bool allowExecute)
+void WriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 {
 #ifdef _WIN32
 	VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READ : PAGE_READONLY, 0);
@@ -123,7 +123,7 @@ void WriteProtectMemory(void* ptr, int size, bool allowExecute)
 }
 
 
-void UnWriteProtectMemory(void* ptr, int size, bool allowExecute)
+void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 {
 #ifdef _WIN32
 	VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READWRITE : PAGE_READONLY, 0);

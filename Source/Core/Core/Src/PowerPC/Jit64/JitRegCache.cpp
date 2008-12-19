@@ -27,8 +27,6 @@ using namespace Gen;
 using namespace PowerPC;
 
 
-	GPRRegCache gpr;
-	FPURegCache fpr;
 	
 	void RegCache::Start(PPCAnalyst::BlockRegStats &stats)
 	{
@@ -267,7 +265,7 @@ using namespace PowerPC;
 			xregs[xr].dirty = makeDirty || regs[i].location.IsImm();
 			OpArg newloc = ::Gen::R(xr);
 			if (doLoad || regs[i].location.IsImm())
-				MOV(32, newloc, regs[i].location);
+				emit->MOV(32, newloc, regs[i].location);
 			for (int j = 0; j < 32; j++)
 			{
 				if (i != j && regs[j].location.IsSimpleReg() && regs[j].location.GetSimpleReg() == xr)
@@ -309,7 +307,7 @@ using namespace PowerPC;
 			}
 			OpArg newLoc = GetDefaultLocation(i);
 			// if (doStore) //<-- Breaks JIT compilation
-				MOV(32, newLoc, regs[i].location);
+				emit->MOV(32, newLoc, regs[i].location);
 			regs[i].location = newLoc;
 			regs[i].away = false;
 		}
@@ -327,11 +325,13 @@ using namespace PowerPC;
 			xregs[xr].free = false;
 			xregs[xr].dirty = makeDirty;
 			OpArg newloc = ::Gen::R(xr);
-			if (doLoad) {
-				if (!regs[i].location.IsImm() && (regs[i].location.offset & 0xF)) {
+			if (doLoad)
+			{
+				if (!regs[i].location.IsImm() && (regs[i].location.offset & 0xF))
+				{
 					PanicAlert("WARNING - misaligned fp register location %i", i);
 				}
-				MOVAPD(xr, regs[i].location);
+				emit->MOVAPD(xr, regs[i].location);
 			}
 			regs[i].location = newloc;
 			regs[i].away = true;
@@ -352,7 +352,7 @@ using namespace PowerPC;
 			xregs[xr].dirty = false;
 			xregs[xr].ppcReg = -1;
 			OpArg newLoc = GetDefaultLocation(i);
-			MOVAPD(newLoc, xr);
+			emit->MOVAPD(newLoc, xr);
 			regs[i].location = newLoc;
 			regs[i].away = false;
 		}

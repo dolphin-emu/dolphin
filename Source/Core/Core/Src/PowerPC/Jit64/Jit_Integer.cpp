@@ -42,7 +42,7 @@
 	u32 And(u32 a, u32 b) {return a & b;}
 	u32 Xor(u32 a, u32 b) {return a ^ b;}
 
-	void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void(*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc, bool carry)
+	void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void (XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc, bool carry)
 	{
 		gpr.Lock(d, a);
 		if (a || binary || carry)  // yeh nasty special case addic
@@ -57,7 +57,7 @@
 				{
 					if (gpr.R(d).IsImm())
 						gpr.LoadToX64(d, false);
-					op(32, gpr.R(d), Imm32(value)); //m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
+					(this->*op)(32, gpr.R(d), Imm32(value)); //m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
 					if (carry)
 						GenerateCarry(EAX);
 				}
@@ -66,7 +66,7 @@
 			{
 				gpr.LoadToX64(d, false);
 				MOV(32, gpr.R(d), gpr.R(a));
-				op(32, gpr.R(d), Imm32(value)); //m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
+				(this->*op)(32, gpr.R(d), Imm32(value)); //m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
 				if (carry)
 					GenerateCarry(EAX);
 			}
@@ -84,7 +84,7 @@
 		{
 			// Todo - special case immediates.
 			MOV(32, R(EAX), gpr.R(d));
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 		gpr.UnlockAll();
 	}
@@ -109,22 +109,22 @@
 				MOV(32, gpr.R(d), gpr.R(a));
 				gpr.UnlockAll();
 			} else {
-				regimmop(d, a, false, (u32)(s32)inst.SIMM_16,  Add, ADD); //addi
+				regimmop(d, a, false, (u32)(s32)inst.SIMM_16,  Add, &XEmitter::ADD); //addi
 			}
 			break;
-		case 15: regimmop(d, a, false, (u32)inst.SIMM_16 << 16, Add, ADD); break; //addis
+		case 15: regimmop(d, a, false, (u32)inst.SIMM_16 << 16, Add, &XEmitter::ADD); break; //addis
 		case 24: 
 			if (a == 0 && s == 0 && inst.UIMM == 0 && !inst.Rc)  //check for nop
 				{NOP(); return;} //make the nop visible in the generated code. not much use but interesting if we see one.
-			regimmop(a, s, true, inst.UIMM, Or, OR); 
+			regimmop(a, s, true, inst.UIMM, Or, &XEmitter::OR); 
 			break; //ori
-		case 25: regimmop(a, s, true, inst.UIMM << 16, Or,  OR, false); break;//oris
-		case 28: regimmop(a, s, true, inst.UIMM,       And, AND, true); break;
-		case 29: regimmop(a, s, true, inst.UIMM << 16, And, AND, true); break;
-		case 26: regimmop(a, s, true, inst.UIMM,       Xor, XOR, false); break; //xori
-		case 27: regimmop(a, s, true, inst.UIMM << 16, Xor, XOR, false); break; //xoris
-		case 12: //regimmop(d, a, false, (u32)(s32)inst.SIMM_16, Add, ADD, false, true); //addic
-		case 13: //regimmop(d, a, true, (u32)(s32)inst.SIMM_16, Add, ADD, true, true); //addic_rc
+		case 25: regimmop(a, s, true, inst.UIMM << 16, Or,  &XEmitter::OR, false); break;//oris
+		case 28: regimmop(a, s, true, inst.UIMM,       And, &XEmitter::AND, true); break;
+		case 29: regimmop(a, s, true, inst.UIMM << 16, And, &XEmitter::AND, true); break;
+		case 26: regimmop(a, s, true, inst.UIMM,       Xor, &XEmitter::XOR, false); break; //xori
+		case 27: regimmop(a, s, true, inst.UIMM << 16, Xor, &XEmitter::XOR, false); break; //xoris
+		case 12: //regimmop(d, a, false, (u32)(s32)inst.SIMM_16, Add, XEmitter::ADD, false, true); //addic
+		case 13: //regimmop(d, a, true, (u32)(s32)inst.SIMM_16, Add, XEmitter::ADD, true, true); //addic_rc
 		default:
 			Default(inst);
 			break;
@@ -295,7 +295,7 @@
 		if (inst.Rc)
 		{
 			MOV(32, R(EAX), gpr.R(a));
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 	}
 
@@ -328,7 +328,7 @@
 		if (inst.Rc)
 		{
 			MOV(32, R(EAX), gpr.R(a));
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 	}
 
@@ -353,7 +353,7 @@
 
 		if (inst.Rc) {
 			// result is already in eax
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 	}
 
@@ -374,7 +374,7 @@
 		MOVSX(32, 8, gpr.RX(a), R(AL)); // watch out for ah and friends
 		if (inst.Rc) {
 			MOV(32, R(EAX), gpr.R(a));
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 	}
 
@@ -394,7 +394,7 @@
 		MOVSX(32, 16, gpr.RX(a), gpr.R(s));
 		if (inst.Rc) {
 			MOV(32, R(EAX), gpr.R(a));
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 	}
 
@@ -474,7 +474,7 @@
 		if (inst.OE) PanicAlert("OE: subfx");
 		if (inst.Rc) {
 			// result is already in eax
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 	}
 
@@ -514,7 +514,7 @@
 		gpr.UnlockAll();
 		if (inst.Rc) {
 			MOV(32, R(EAX), gpr.R(d));
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 	}
 
@@ -544,7 +544,7 @@
 			MOV(32, R(EAX), R(EDX));
 			MOV(32, gpr.R(d), R(EDX));
 			// result is already in eax
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		} else {
 			MOV(32, gpr.R(d), R(EDX));
 		}
@@ -570,7 +570,7 @@
 		gpr.UnlockAll();
 		gpr.UnlockAllX();
 		if (inst.Rc) {
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 	}
 
@@ -606,7 +606,7 @@
 			if (inst.Rc)
 			{
 				MOV(32, R(EAX), gpr.R(d));
-				CALL((u8*)Asm::computeRc);
+				CALL((u8*)asm_routines.computeRc);
 			}
 			gpr.UnlockAll();
 		}
@@ -618,7 +618,7 @@
 			if (inst.Rc)
 			{
 				MOV(32, R(EAX), gpr.R(d));
-				CALL((u8*)Asm::computeRc);
+				CALL((u8*)asm_routines.computeRc);
 			}
 			gpr.UnlockAll();
 		}
@@ -630,7 +630,7 @@
 			if (inst.Rc)
 			{
 				MOV(32, R(EAX), gpr.R(d));
-				CALL((u8*)Asm::computeRc);
+				CALL((u8*)asm_routines.computeRc);
 			}
 			gpr.UnlockAll();
 		}
@@ -666,7 +666,7 @@
 		gpr.UnlockAllX();
 		if (inst.Rc)
 		{
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 	}
 
@@ -730,7 +730,7 @@
 		if (inst.Rc)
 		{
 			MOV(32, R(EAX), gpr.R(a));
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 	}
 
@@ -767,7 +767,7 @@
 		if (inst.Rc)
 		{
 			MOV(32, R(EAX), gpr.R(a));
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 	}
 
@@ -799,7 +799,7 @@
 		if (inst.Rc)
 		{
 			MOV(32, R(EAX), gpr.R(a));
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 	}
 
@@ -821,7 +821,7 @@
 		if (inst.Rc)
 		{
 			MOV(32, R(EAX), gpr.R(a));
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 	}
 
@@ -851,7 +851,7 @@
 		if (inst.Rc) 
 		{
 			MOV(32, R(EAX), gpr.R(a));
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 	}
 
@@ -881,7 +881,7 @@
 		if (inst.Rc) 
 		{
 			MOV(32, R(EAX), gpr.R(a));
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 	}
 
@@ -929,7 +929,7 @@
 
 		if (inst.Rc) {
 			MOV(32, R(EAX), gpr.R(a));
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 	}
 
@@ -975,7 +975,7 @@
 
 		if (inst.Rc) {
 			MOV(32, R(EAX), gpr.R(a));
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 		}
 	}
 
@@ -1006,7 +1006,7 @@
 		if (inst.Rc)
 		{
 			MOV(32, R(EAX), gpr.R(a));
-			CALL((u8*)Asm::computeRc);
+			CALL((u8*)asm_routines.computeRc);
 			// TODO: Check PPC manual too
 		}
 	}
