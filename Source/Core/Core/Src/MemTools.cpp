@@ -63,10 +63,8 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			int accessType = (int)pPtrs->ExceptionRecord->ExceptionInformation[0];
 			if (accessType == 8) //Rule out DEP
 			{
-				if(PowerPC::state == PowerPC::CPU_POWERDOWN) // Access violation during
-															 // violent shutdown is fine
-					return EXCEPTION_CONTINUE_EXECUTION;
-
+				if (PowerPC::state == PowerPC::CPU_POWERDOWN)
+					return EXCEPTION_CONTINUE_SEARCH;
 				MessageBox(0, _T("Tried to execute code that's not marked executable. This is likely a JIT bug.\n"), 0, 0);
 				return EXCEPTION_CONTINUE_SEARCH;
 			}
@@ -75,7 +73,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			PVOID codeAddr = pPtrs->ExceptionRecord->ExceptionAddress;
 			unsigned char *codePtr = (unsigned char*)codeAddr;
 			
-			if (!jit.IsInJitCode(codePtr)) {
+			if (!jit.IsInCodeSpace(codePtr)) {
 				// Let's not prevent debugging.
 				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
 			}
@@ -91,8 +89,9 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			u64 memspaceTop = memspaceBottom + 0x40000000;
 #endif
 			if (badAddress < memspaceBottom || badAddress >= memspaceTop) {
-				PanicAlert("Exception handler - access outside memory space. %08x%08x",
-					badAddress >> 32, badAddress);
+				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
+				//PanicAlert("Exception handler - access outside memory space. %08x%08x",
+				//	badAddress >> 32, badAddress);
 			}
 
 			u32 emAddress = (u32)(badAddress - memspaceBottom);
@@ -199,7 +198,7 @@ void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 #else
 	u8 *fault_instruction_ptr = (u8 *)CREG_EIP(ctx);
 #endif
-	if (!jit.IsInJitCode((const u8 *)fault_instruction_ptr)) {
+	if (!jit.IsInCodeSpace((const u8 *)fault_instruction_ptr)) {
 		// Let's not prevent debugging.
 		return;
 	}

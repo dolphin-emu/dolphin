@@ -55,9 +55,7 @@ using namespace Gen;
 #ifdef OPROFILE_REPORT
 	op_agent_t agent;
 #endif
-	static u8 *codeCache;
-	static u8 *trampolineCache;
-	u8 *trampolineCodePtr;
+
 #define INVALID_EXIT 0xFFFFFFFF
 
 	enum 
@@ -66,13 +64,6 @@ using namespace Gen;
 	};
 
 	int MAX_NUM_BLOCKS = 65536*2;
-
-	static u8 **blockCodePointers;
-
-	static std::multimap<u32, int> links_to;
-
-	static Jit64::JitBlock *blocks;
-	static int numBlocks;
 
 
 	void Jit64::PrintStats()
@@ -233,10 +224,6 @@ using namespace Gen;
 		return blockCodePointers;
 	}
 
-	bool Jit64::IsInJitCode(const u8 *codePtr) {
-		return codePtr >= codeCache && codePtr <= GetCodePtr();
-	}
-
 	void Jit64::EnterFastRun()
 	{
 		CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
@@ -291,10 +278,6 @@ using namespace Gen;
 	Jit64::CompiledCode Jit64::GetCompiledCodeFromBlock(int blockNumber)
 	{
 		return (CompiledCode)blockCodePointers[blockNumber];
-	}
-
-	int Jit64::GetCodeSize() {
-		return (int)(GetCodePtr() - codeCache);
 	}
 
 	//Block linker

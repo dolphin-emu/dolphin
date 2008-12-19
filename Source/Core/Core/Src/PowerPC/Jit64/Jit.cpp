@@ -179,7 +179,7 @@ namespace CPUCompare
 		}
 
 		jo.optimizeStack = true;
-		jo.enableBlocklink = true;  // Speed boost, but not 100% safe
+		jo.enableBlocklink = false;  // Speed boost, but not 100% safe
 #ifdef _M_X64
 		jo.enableFastMem = Core::GetStartupParameter().bUseFastMem;
 #else
@@ -437,11 +437,12 @@ namespace CPUCompare
 
 			gpr.SanityCheck();
 			fpr.SanityCheck();
-			if (js.cancel) break;
+			if (js.cancel)
+				break;
 		}
 
 		b.flags = js.block_flags;
-		b.codeSize = (u32)(GetCodePtr() - start);
+		b.codeSize = (u32)(GetCodePtr() - normalEntry);
 		b.originalSize = size;
 		return normalEntry;
 	}

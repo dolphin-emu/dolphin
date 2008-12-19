@@ -147,7 +147,7 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info)
 const u8 *Jit64::BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx)
 {
 #ifdef _M_X64
-	if (!IsInJitCode(codePtr))
+	if (!jit.IsInCodeSpace(codePtr))
 		return 0;  // this will become a regular crash real soon after this
 	
 	InstructionInfo info;

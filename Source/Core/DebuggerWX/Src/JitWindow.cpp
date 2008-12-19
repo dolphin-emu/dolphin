@@ -141,12 +141,26 @@ void CJitWindow::Compare(u32 em_address)
 	int block_num = jit.GetBlockNumberFromAddress(em_address);
 	if (block_num < 0)
 	{
-		ppc_box->SetValue(wxString::FromAscii(StringFromFormat("(non-code address: %08x)", em_address).c_str()));
-		x86_box->SetValue(wxString::FromAscii(StringFromFormat("(no translation)").c_str()));
-		return;
+		for (int i = 0; i < 500; i++) {
+			block_num = jit.GetBlockNumberFromAddress(em_address - 4 * i);
+			if (block_num >= 0)
+				break;
+		}
+		if (block_num >= 0) {
+			Jit64::JitBlock *block = jit.GetBlock(block_num);
+			if (!(block->originalAddress <= em_address && block->originalSize + block->originalAddress >= em_address))
+				block_num = -1;
+		}
+		// Do not merge this "if" with the above - block_num changes inside it.
+		if (block_num < 0) {
+			ppc_box->SetValue(wxString::FromAscii(StringFromFormat("(non-code address: %08x)", em_address).c_str()));
+			x86_box->SetValue(wxString::FromAscii(StringFromFormat("(no translation)").c_str()));
+			return;
+		}
 	}
 	Jit64::JitBlock *block = jit.GetBlock(block_num);
 	
+	// 800031f0
 	// == Fill in x86 box
 
 	memset(xDis, 0, 65536);

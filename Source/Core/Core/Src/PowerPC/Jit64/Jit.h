@@ -63,29 +63,7 @@ public:
 
 class Jit64 : public Gen::XCodeBlock
 {
-	TrampolineCache trampolines;
-	GPRRegCache gpr;
-	FPURegCache fpr;
-
 public:
-	typedef void (*CompiledCode)();
-
-	void unknown_instruction(UGeckoInstruction _inst);
-
-	//Code pointers are stored separately, they will be accessed much more frequently
-
-	enum BlockFlag
-	{
-		BLOCK_USE_GQR0 = 0x1,
-		BLOCK_USE_GQR1 = 0x2,
-		BLOCK_USE_GQR2 = 0x4,
-		BLOCK_USE_GQR3 = 0x8,
-		BLOCK_USE_GQR4 = 0x10,
-		BLOCK_USE_GQR5 = 0x20,
-		BLOCK_USE_GQR6 = 0x40,
-		BLOCK_USE_GQR7 = 0x80,
-	};
-
 	// TODO(ector) - optimize this struct for size
 	struct JitBlock
 	{
@@ -109,7 +87,13 @@ public:
 		bool invalid;
 		int flags;
 	};
-
+private:
+	enum BlockFlag
+	{
+		BLOCK_USE_GQR0 = 0x1, BLOCK_USE_GQR1 = 0x2, BLOCK_USE_GQR2 = 0x4, BLOCK_USE_GQR3 = 0x8,
+		BLOCK_USE_GQR4 = 0x10, BLOCK_USE_GQR5 = 0x20, BLOCK_USE_GQR6 = 0x40, BLOCK_USE_GQR7 = 0x80,
+	};
+	
 	struct JitState
 	{
 		u32 compilerPC;
@@ -146,11 +130,40 @@ public:
 		bool fastInterrupts;
 	};
 
+
+	TrampolineCache trampolines;
+	GPRRegCache gpr;
+	FPURegCache fpr;
+
+	u8 **blockCodePointers;
+
+	std::multimap<u32, int> links_to;
+
+	JitBlock *blocks;
+	int numBlocks;
+
+public:
+	typedef void (*CompiledCode)();
+
 	JitState js;
 	JitOptions jo;
 
+	// Initialization, etc
+
+	void Init();
+	void Shutdown();
+
 	void PrintStats();
+
+	// Jit!
+
+	const u8* Jit(u32 emaddress);
+	const u8* DoJit(u32 emaddress, JitBlock &b);
+
+	// Run!
+
 	void EnterFastRun();
+	const u8 *BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx);
 
 	// Code Cache
 
@@ -173,17 +186,8 @@ public:
 	void ResetCache();
 	void DestroyBlock(int blocknum, bool invalidate);
 	bool RangeIntersect(int s1, int e1, int s2, int e2) const;
-	bool IsInJitCode(const u8 *codePtr);
-	
-	const u8 *BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx);
 
 #define JIT_OPCODE 0
-
-	const u8* Jit(u32 emaddress);
-	const u8* DoJit(u32 emaddress, JitBlock &b);
-
-	void Init();
-	void Shutdown();
 
 	// Utilities for use by opcodes
 
@@ -214,7 +218,7 @@ public:
 
 
 	// OPCODES
-
+	void unknown_instruction(UGeckoInstruction _inst);
 	void Default(UGeckoInstruction _inst);
 	void DoNothing(UGeckoInstruction _inst);
 	void HLEFunction(UGeckoInstruction _inst);
