@@ -150,6 +150,9 @@ if (flavour == 'debug'):
     compileFlags.append('-g')
     cppDefines.append('LOGGING')
     cppDefines.append('_DEBUG')
+    # FIXME: this disable wx debugging how do we make it work?
+    cppDefines.append('NDEBUG') 
+
 elif (flavour == 'devel'):
     compileFlags.append('-g')
     cppDefines.append('DEBUGFAST')
