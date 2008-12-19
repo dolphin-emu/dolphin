@@ -56,6 +56,7 @@ void XFB_Shutdown()
 
 void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt)
 {
+    u32 nBackbufferHeight = OpenGL_GetHeight();
 	TRectangle renderSrcRc;
 	renderSrcRc.left = sourceRc.left;
 	renderSrcRc.right = sourceRc.right;
@@ -79,7 +80,8 @@ void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfb_decoded_texture);
 
-	glViewport(nXoff, nYoff, nBackbufferWidth, nBackbufferHeight);
+	glViewport(OpenGL_GetXoff(), OpenGL_GetYoff(),
+		   (int)OpenGL_GetWidth(), (int)OpenGL_GetHeight);
 	GL_REPORT_ERRORD();
 
 	float w = (float)width;

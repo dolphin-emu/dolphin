@@ -67,6 +67,28 @@ void OpenGL_SwapBuffers()
 #endif
 }
 
+int OpenGL_GetXoff() {
+    return nXoff;
+}
+
+int OpenGL_GetYoff() {
+    return nYoff;
+}
+
+u32 OpenGL_GetWidth() {
+    return nBackbufferWidth;
+}
+
+u32 OpenGL_GetHeight() {
+    return nBackbufferHeight;
+}
+
+void OpenGL_SetSize(u32 width, u32 height) {
+    nBackbufferWidth = width;
+    nBackbufferHeight = height;
+}
+
+
 void OpenGL_SetWindowText(const char *text) 
 {
 #if USE_SDL

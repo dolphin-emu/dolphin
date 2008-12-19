@@ -97,7 +97,7 @@ vars.AddVariables(
     BoolVariable('nowx', 'Set For Building with no WX libs (WIP)', False),
     BoolVariable('wxgl', 'Set For Building with WX GL libs (WIP)', False),
     BoolVariable('sdlgl', 'Set For Building with SDL GL libs (WIP)', False),
-    BoolVariable('gltext', 'temp don\'t use (WIP)', False),
+    BoolVariable('gltest', 'temp don\'t use (WIP)', False),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
                  allowed_values = ('release', 'devel', 'debug', 'fastlog'),
                  ignorecase = 2
@@ -234,7 +234,7 @@ if env['sdlgl']:
     env['USE_WX'] = 0
 
 env['GLTEST'] = 0
-if env['gltext']:
+if env['gltest']:
     env['GLTEST'] = 1
 
 conf.Define('GLTEST', env['GLTEST'])

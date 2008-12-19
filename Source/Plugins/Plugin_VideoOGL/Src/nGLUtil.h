@@ -40,11 +40,18 @@
 #else
 #define GL_REPORT_ERRORD()
 #endif
-// OLD interface todo remove
+
+// TODO old interface removal
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _width, int _height);
 bool OpenGL_MakeCurrent();
 void OpenGL_SwapBuffers();
 void OpenGL_SetWindowText(const char *text);
 void OpenGL_Shutdown();
 void OpenGL_Update();
+u32 OpenGL_GetWidth();
+u32 OpenGL_GetHeight();
+void OpenGL_SetSize(u32 width, u32 height);
+int OpenGL_GetXoff();
+int OpenGL_GetYoff();
+
 #endif

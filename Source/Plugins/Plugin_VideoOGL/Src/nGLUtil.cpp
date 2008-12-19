@@ -86,5 +86,24 @@ void OpenGL_Update()
 // ----------------
 void OpenGL_Shutdown()
 {
-    glWin->Shutdown();
+    delete glWin;
+}
+
+u32 OpenGL_GetWidth() {
+    return glWin->GetHeight();
+}
+
+u32 OpenGL_GetHeight() {
+    return glWin->GetWidth();
+
+void OpenGL_SetSize(u32 width, u32 height) {
+    glWin->SetSize(width, height);
+}
+
+int OpenGL_GetXoff() {
+    return glWin->GetXoff();
+}
+
+int OpenGL_GetYoff() {
+    return glWin->GetYoff();
 }

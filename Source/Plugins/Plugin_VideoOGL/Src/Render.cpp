@@ -172,6 +172,9 @@ bool Renderer::Create2()
     _assert_( glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT );
     glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, s_uFramebuffer );
 
+    int nBackbufferWidth = (int)OpenGL_GetWidth();
+    int nBackbufferHeight = (int)OpenGL_GetHeight();
+    
     // create the framebuffer targets
     glGenTextures(ARRAYSIZE(s_RenderTargets), (GLuint *)s_RenderTargets);
     for(u32 i = 0; i < ARRAYSIZE(s_RenderTargets); ++i) {
@@ -378,7 +381,7 @@ bool Renderer::Initialize()
     
     glDisable(GL_STENCIL_TEST);
     glEnable(GL_SCISSOR_TEST);
-    glScissor(0, 0, nBackbufferWidth, nBackbufferHeight);
+    glScissor(0, 0, (int)OpenGL_GetWidth(), (int)OpenGL_GetHeight());
     glBlendColorEXT(0, 0, 0, 0.5f);
     glClearDepth(1.0f);
 
@@ -442,6 +445,8 @@ void Renderer::ProcessMessages()
 
 void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
 {
+    int nBackbufferWidth = (int)OpenGL_GetWidth();
+    int nBackbufferHeight = (int)OpenGL_GetHeight();
     glColor4f(
 		((color>>16) & 0xff)/255.0f,
 		((color>> 8) & 0xff)/255.0f,
@@ -461,7 +466,8 @@ void Renderer::ReinitView(int nNewWidth, int nNewHeight)
     int oldscreen = s_bFullscreen;
 
 	OpenGL_Shutdown();
-    int oldwidth = nBackbufferWidth, oldheight = nBackbufferHeight;
+	int oldwidth = (int)OpenGL_GetWidth, 
+	    oldheight = (int)OpenGL_GetHeight();
     if (!OpenGL_Create(g_VideoInitialize, nNewWidth, nNewHeight)) {//nNewWidth&~7, nNewHeight&~7) ) {
         ERROR_LOG("Failed to recreate, reverting to old settings\n");
         if (!OpenGL_Create(g_VideoInitialize, oldwidth, oldheight)) {
@@ -491,23 +497,17 @@ void Renderer::ReinitView(int nNewWidth, int nNewHeight)
 #endif
     }
 
-    nBackbufferWidth = nNewWidth > 16 ? nNewWidth : 16;
-    nBackbufferHeight = nNewHeight > 16 ? nNewHeight : 16;
+    OpenGL_SetSize(nNewWidth > 16 ? nNewWidth : 16,
+		   nNewHeight > 16 ? nNewHeight : 16);
 }
 int Renderer::GetTargetWidth()
 {
-	if(g_Config.bStretchToFit)
-		return 640;
-	else
-		return nBackbufferWidth; // return the actual window width
+    return (g_Config.bStretchToFit?640:(int)OpenGL_GetWidth());
 }
 
 int Renderer::GetTargetHeight()
 {
-	if(g_Config.bStretchToFit)
-		return 480;
-	else
-		return nBackbufferHeight; // return the actual window height
+    return (g_Config.bStretchToFit?480:(int)OpenGL_GetHeight());
 }
 
 bool Renderer::CanBlendLogicOp()
@@ -673,8 +673,8 @@ void Renderer::FlushZBufferAlphaToTarget()
 	if(g_Config.bStretchToFit)
 	{
 		//TODO: Do Correctly in a bit
-		float FactorW = (float)640 / (float)nBackbufferWidth;
-		float FactorH = (float)480 / (float)nBackbufferHeight;
+                float FactorW = (float)640 / (float)OpenGL_GetWidth();
+		float FactorH = (float)480 / (float)OpenGL_GetHeight();
 
 		float Max = (FactorW < FactorH) ? FactorH : FactorW;
 		float Temp = 1 / Max;
@@ -793,7 +793,7 @@ void Renderer::Swap(const TRectangle& rc)
     #else
     glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 ); // switch to the backbuffer
     #endif
-    glViewport(nXoff, nYoff, nBackbufferWidth, nBackbufferHeight);
+    glViewport(OpenGL_GetXoff(),OpenGL_GetYoff() , (int)OpenGL_GetWidth(), (int)OpenGL_GetHeight());
 
     ResetGLState();
 
@@ -951,6 +951,9 @@ void Renderer::SwapBuffers()
 bool Renderer::SaveRenderTarget(const char* filename, int jpeg)
 {
     bool bflip = true;
+    int nBackbufferHeight = (int)OpenGL_GetHeight();
+    int nBackbufferWidth = (int)OpenGL_GetWidth();
+
     std::vector<u32> data(nBackbufferWidth * nBackbufferHeight);
     glReadPixels(0, 0, nBackbufferWidth, nBackbufferHeight, GL_BGRA, GL_UNSIGNED_BYTE, &data[0]);
     if (glGetError() != GL_NO_ERROR)

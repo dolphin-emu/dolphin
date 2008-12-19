@@ -17,6 +17,7 @@
 class GLWindow {
  private:
     u32 width, height;
+    int yOffset, xOffset;
  public:
     /*    int screen;
 	  int x, y;
@@ -30,11 +31,18 @@ class GLWindow {
     virtual void SetSize(u32 newWidth, u32 newHeight) {
 	width = newWidth; 
 	height = newHeight; 
-    };
-    
+    }
+
+    void SetOffset(int x, int y) {
+	yOffset = y;
+	xOffset = x;
+    }
+
     u32 GetWidth() {return width;}
     u32 GetHeight() {return height;}
-    
+    int GetYoff() {return yOffset;}
+    int GetXoff() {return xOffset;}
+
     virtual bool valid() { return false; }
     //   bool GLwindow(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight) {};
     // setResolution
