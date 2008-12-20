@@ -22,6 +22,7 @@
 #include "HW/Memmap.h"
 #include "BreakPointDlg.h"
 #include "MemoryCheckDlg.h"
+#include "Host.h"
 #include "IniFile.h"
 #include "Debugger/Debugger_BreakPoints.h" // for TMemCheck
 
@@ -205,7 +206,7 @@ CBreakPointWindow::OnDelete(wxCommandEvent& event)
 void 
 CBreakPointWindow::OnClear(wxCommandEvent& event)
 {
-	CBreakPoints::ClearAllBreakPoints();
+	BreakPoints::Clear();
 }
 // ============
 
@@ -244,11 +245,11 @@ CBreakPointWindow::OnAddBreakPointMany(wxCommandEvent& event)
 			u32 Address = 0;
 			if (AsciiToHex(line.c_str(), Address))
 			{
-				CBreakPoints::AddBreakPoint(Address);
+				BreakPoints::Add(Address);
 			}
 		}
 		// only update after we are done with the loop
-		CBreakPoints::UpdateBreakPointView();
+		Host_UpdateBreakPointView();
 	}
 	else
 	{
@@ -338,7 +339,7 @@ CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
 				MemCheck.Break = true;
 			}
 
-			if(doCommon)
+			if (doCommon)
 			{
 				// settings for the memory check	
 				MemCheck.OnRead = true;
@@ -346,11 +347,11 @@ CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
 				MemCheck.Log = true;
 				//MemCheck.Break = false; // this is also what sets Active "on" in the breakpoint window
 				// so don't think it's off because we are only writing this to the log
-				CBreakPoints::AddMemoryCheck(MemCheck);	
+				MemChecks::Add(MemCheck);	
 			}
 		}
 		// update after we are done with the loop
-		CBreakPoints::UpdateBreakPointView();
+		Host_UpdateBreakPointView();
 	}
 	else
 	{

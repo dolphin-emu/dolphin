@@ -81,24 +81,27 @@ bool PPCDebugInterface::isAlive()
 
 bool PPCDebugInterface::isBreakpoint(unsigned int address) 
 {
-	return CBreakPoints::IsAddressBreakPoint(address);
+	return BreakPoints::IsAddressBreakPoint(address);
 }
 
 void PPCDebugInterface::setBreakpoint(unsigned int address)
 {
-	CBreakPoints::AddBreakPoint(address);
+	BreakPoints::Add(address);
 }
 
 void PPCDebugInterface::clearBreakpoint(unsigned int address)
 {
-	CBreakPoints::RemoveBreakPoint(address);
+	BreakPoints::Remove(address);
 }
 
 void PPCDebugInterface::clearAllBreakpoints() {}
 
 void PPCDebugInterface::toggleBreakpoint(unsigned int address)
 {
-	CBreakPoints::IsAddressBreakPoint(address) ? CBreakPoints::RemoveBreakPoint(address) : CBreakPoints::AddBreakPoint(address);
+	if (BreakPoints::IsAddressBreakPoint(address))
+		BreakPoints::Remove(address);
+	else
+		BreakPoints::Add(address);
 }
 
 void PPCDebugInterface::insertBLR(unsigned int address) 

@@ -115,7 +115,7 @@ void PatchFunctions()
 		Symbol *symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
 		if (symbol > 0)
 		{
-			CBreakPoints::AddBreakPoint(symbol->address, false);
+			BreakPoints::Add(symbol->address, false);
 			LOG(HLE,"Adding BP to %s %08x", OSBreakPoints[i].m_szPatchName, symbol->address);
 		}
 	}

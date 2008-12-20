@@ -17,6 +17,7 @@
 
 #include "BreakPointDlg.h"
 #include "Common.h"
+#include "Host.h"
 #include "Debugger.h"
 #include "StringUtil.h"
 #include "Debugger/Debugger_BreakPoints.h"
@@ -76,8 +77,8 @@ void BreakPointDlg::OnOK(wxCommandEvent& /*event*/)
 	u32 Address = 0;
 	if (AsciiToHex(AddressString.mb_str(), Address))
 	{
-		CBreakPoints::AddBreakPoint(Address);
-		CBreakPoints::UpdateBreakPointView();
+		BreakPoints::Add(Address);
+		Host_UpdateBreakPointView();
 		Close();		
 	}
 }

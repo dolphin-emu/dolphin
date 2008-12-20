@@ -31,14 +31,9 @@
 #include "../PowerPC/Jit64/Jit.h"
 #include "Debugger_BreakPoints.h"
 
-CBreakPoints::TBreakPoints CBreakPoints::m_BreakPoints;
-CBreakPoints::TMemChecks CBreakPoints::m_MemChecks;
-u32 CBreakPoints::m_iBreakOnCount = 0;
+BreakPoints::TBreakPoints BreakPoints::m_BreakPoints;
 
-TMemCheck::TMemCheck()
-{
-	numHits = 0;
-}
+MemChecks::TMemChecks MemChecks::m_MemChecks;
 
 void TMemCheck::Action(u32 iValue, u32 addr, bool write, int size, u32 pc)
 {
@@ -57,7 +52,7 @@ void TMemCheck::Action(u32 iValue, u32 addr, bool write, int size, u32 pc)
 	}
 }
 
-bool CBreakPoints::IsAddressBreakPoint(u32 _iAddress)
+bool BreakPoints::IsAddressBreakPoint(u32 _iAddress)
 {
 	std::vector<TBreakPoint>::iterator iter;
 
@@ -68,7 +63,7 @@ bool CBreakPoints::IsAddressBreakPoint(u32 _iAddress)
 	return false;
 }
 
-bool CBreakPoints::IsTempBreakPoint(u32 _iAddress)
+bool BreakPoints::IsTempBreakPoint(u32 _iAddress)
 {
 	std::vector<TBreakPoint>::iterator iter;
 
@@ -79,7 +74,82 @@ bool CBreakPoints::IsTempBreakPoint(u32 _iAddress)
 	return false;
 }
 
-TMemCheck *CBreakPoints::GetMemCheck(u32 address)
+void BreakPoints::Add(u32 em_address, bool temp)
+{
+	if (!IsAddressBreakPoint(em_address)) // only add new addresses
+	{
+		TBreakPoint pt; // breakpoint settings
+		pt.bOn = true;
+		pt.bTemporary = temp;
+		pt.iAddress = em_address;
+
+		m_BreakPoints.push_back(pt);
+		// jit.NotifyBreakpoint(em_address, true);
+	}
+}
+
+void BreakPoints::Remove(u32 _iAddress)
+{
+	std::vector<TBreakPoint>::iterator iter;
+
+	for (iter = m_BreakPoints.begin(); iter != m_BreakPoints.end(); ++iter)
+	{
+		if ((*iter).iAddress == _iAddress)
+		{
+			m_BreakPoints.erase(iter);
+			// jit.NotifyBreakpoint(em_address, false);
+			break;
+		}
+	}
+}
+
+void BreakPoints::Clear()
+{
+	m_BreakPoints.clear();
+	Host_UpdateBreakPointView();
+}
+
+void BreakPoints::AddAutoBreakpoints()
+{
+#if defined(_DEBUG) || defined(DEBUGFAST)
+#if 1
+	const char *bps[] = {
+		"PPCHalt",
+	};
+
+	for (int i = 0; i < sizeof(bps) / sizeof(const char *); i++)
+	{
+		Symbol *symbol = g_symbolDB.GetSymbolFromName(bps[i]);
+		if (symbol)
+			AddBreakPoint(symbol->address, false);
+	}
+#endif
+#endif
+}
+
+void BreakPoints::DeleteByAddress(u32 _Address)
+{
+    // first check breakpoints
+    {
+        std::vector<TBreakPoint>::iterator iter;
+        for (iter = m_BreakPoints.begin(); iter != m_BreakPoints.end(); ++iter)
+        {
+            if ((*iter).iAddress == _Address)
+            {
+                m_BreakPoints.erase(iter);
+                return;
+            } 
+        }
+    }
+}
+
+void MemChecks::Add(const TMemCheck& _rMemoryCheck)
+{
+	m_MemChecks.push_back(_rMemoryCheck);
+}
+
+
+TMemCheck *MemChecks::GetMemCheck(u32 address)
 {
 	std::vector<TMemCheck>::iterator iter;
 	for (iter = m_MemChecks.begin(); iter != m_MemChecks.end(); ++iter)
@@ -100,89 +170,13 @@ TMemCheck *CBreakPoints::GetMemCheck(u32 address)
 	return 0;
 }
 
-void CBreakPoints::AddBreakPoint(u32 em_address, bool temp)
+void MemChecks::Clear()
 {
-	if (!IsAddressBreakPoint(em_address)) // only add new addresses
-	{
-		TBreakPoint pt; // breakpoint settings
-		pt.bOn = true;
-		pt.bTemporary = temp;
-		pt.iAddress = em_address;
-
-		m_BreakPoints.push_back(pt);
-		// jit.NotifyBreakpoint(em_address, true);
-	}
-}
-
-void CBreakPoints::RemoveBreakPoint(u32 _iAddress)
-{
-	std::vector<TBreakPoint>::iterator iter;
-
-	for (iter = m_BreakPoints.begin(); iter != m_BreakPoints.end(); ++iter)
-	{
-		if ((*iter).iAddress == _iAddress)
-		{
-			m_BreakPoints.erase(iter);
-			// jit.NotifyBreakpoint(em_address, false);
-			break;
-		}
-	}
-}
-
-void CBreakPoints::ClearAllBreakPoints()
-{
-	m_BreakPoints.clear();
 	m_MemChecks.clear();
-	Host_UpdateBreakPointView();
 }
 
-// update breakpoint window
-void CBreakPoints::UpdateBreakPointView()
+void MemChecks::DeleteByAddress(u32 _Address)
 {
-	Host_UpdateBreakPointView();
-}
-
-void CBreakPoints::AddMemoryCheck(const TMemCheck& _rMemoryCheck)
-{
-	m_MemChecks.push_back(_rMemoryCheck);
-}
-
-void CBreakPoints::AddAutoBreakpoints()
-{
-#if defined(_DEBUG) || defined(DEBUGFAST)
-#if 1
-	const char *bps[] = {
-		"PPCHalt",
-	};
-
-	for (int i = 0; i < sizeof(bps) / sizeof(const char *); i++)
-	{
-		Symbol *symbol = g_symbolDB.GetSymbolFromName(bps[i]);
-		if (symbol)
-			AddBreakPoint(symbol->address, false);
-	}
-    Host_UpdateBreakPointView();
-#endif
-#endif
-}
-
-void CBreakPoints::DeleteElementByAddress(u32 _Address)
-{
-    // first check breakpoints
-    {
-        std::vector<TBreakPoint>::iterator iter;
-        for (iter = m_BreakPoints.begin(); iter != m_BreakPoints.end(); ++iter)
-        {
-            if ((*iter).iAddress == _Address)
-            {
-                m_BreakPoints.erase(iter);
-                Host_UpdateBreakPointView();
-                return;
-            }
-        }
-    }
-
-    // second memory check checkpoint
     std::vector<TMemCheck>::iterator iter;
     for (iter = m_MemChecks.begin(); iter != m_MemChecks.end(); ++iter)
     {

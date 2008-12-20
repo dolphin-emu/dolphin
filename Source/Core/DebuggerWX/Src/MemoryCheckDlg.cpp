@@ -19,6 +19,7 @@
 #include "Common.h"
 #include "Debugger.h"
 #include "StringUtil.h"
+#include "Host.h"
 #include "Debugger/Debugger_BreakPoints.h"
 
 BEGIN_EVENT_TABLE(MemoryCheckDlg,wxDialog)
@@ -100,8 +101,8 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& /*event*/)
 		MemCheck.Log = true;
 		MemCheck.Break = true;
 
-		CBreakPoints::AddMemoryCheck(MemCheck);
-		CBreakPoints::UpdateBreakPointView();
+		MemChecks::Add(MemCheck);
+		Host_UpdateBreakPointView();
 		Close();
 	}
 }

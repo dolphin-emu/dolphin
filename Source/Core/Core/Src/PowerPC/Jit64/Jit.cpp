@@ -25,6 +25,7 @@
 #include "../../Core.h"
 #include "../../PatchEngine.h"
 #include "../../CoreTiming.h"
+#include "../../Debugger/Debugger_Breakpoints.h"
 #include "../PowerPC.h"
 #include "../Profiler.h"
 #include "../PPCTables.h"
@@ -42,15 +43,14 @@ using namespace PowerPC;
 extern int blocksExecuted;
 
 // Dolphin's PowerPC->x86 JIT dynamic recompiler
-// All code by ector (hrydgard)
+// (Nearly) all code by ector (hrydgard)
 // Features:
 // * x86 & x64 support, lots of shared code.
 // * Basic block linking
 // * Fast dispatcher
 
 // Unfeatures:
-// * Does not recompile all instructions. Often falls back to inserting a CALL to the corresponding JIT function.
-
+// * Does not recompile all instructions - sometimes falls back to inserting a CALL to the corresponding JIT function.
 
 // Various notes below
 
@@ -74,22 +74,22 @@ extern int blocksExecuted;
 //   This can even be seen in one homebrew Wii demo - RayTracer.elf
 
 // Other considerations
-
-//Many instructions have shorter forms for EAX. However, I believe their performance boost
-//will be as small to be negligble, so I haven't dirtied up the code with that. AMD recommends it in their
-//optimization manuals, though.
-
+//
+// Many instructions have shorter forms for EAX. However, I believe their performance boost
+// will be as small to be negligble, so I haven't dirtied up the code with that. AMD recommends it in their
+// optimization manuals, though.
+//
 // We support block linking. Reserve space at the exits of every block for a full 5-byte jmp. Save 16-bit offsets 
 // from the starts of each block, marking the exits so that they can be nicely patched at any time.
-
-// * Blocks do NOT use call/ret, they only jmp to each other and to the dispatcher when necessary.
-
+//
+// Blocks do NOT use call/ret, they only jmp to each other and to the dispatcher when necessary.
+//
 // All blocks that can be precompiled will be precompiled. Code will be memory protected - any write will mark
 // the region as non-compilable, and all links to the page will be torn out and replaced with dispatcher jmps.
-
+//
 // Alternatively, icbi instruction SHOULD mark where we can't compile
-
-// Seldom-happening events will be handled by adding a decrement of a counter to all blr instructions (which are
+//
+// Seldom-happening events is handled by adding a decrement of a counter to all blr instructions (which are
 // expensive anyway since we need to return to dispatcher, except when they can be predicted).
 
 // TODO: SERIOUS synchronization problem with the video plugin setting tokens and breakpoints in dual core mode!!!
@@ -113,10 +113,6 @@ extern int blocksExecuted;
     CR2-CR4 are non-volatile, rest of CR is volatile -> dropped on blr.
 	R5-R12 are volatile -> dropped on blr.
   * classic inlining across calls.
-
-Metroid wants
-subc
-subfe
   
 Low hanging fruit:
 stfd -- guaranteed in memory
@@ -381,7 +377,6 @@ namespace CPUCompare
 
 		//Analyze the block, collect all instructions it is made of (including inlining,
 		//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-		
 		PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, &code_buffer);
 		PPCAnalyst::CodeOp *ops = code_buffer.codebuffer;
 

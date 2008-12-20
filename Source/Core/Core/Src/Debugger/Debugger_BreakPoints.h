@@ -32,7 +32,9 @@ struct TBreakPoint
 
 struct TMemCheck
 {
-	TMemCheck();
+	TMemCheck() {
+		numHits = 0;
+	}
 	u32 StartAddress;
 	u32 EndAddress;
 
@@ -49,51 +51,51 @@ struct TMemCheck
 	void Action(u32 _iValue, u32 addr, bool write, int size, u32 pc);
 };
 
-class CBreakPoints
+
+// Code breakpoints.
+class BreakPoints
 {
 public:
-
 	typedef std::vector<TBreakPoint> TBreakPoints;
-	typedef std::vector<TMemCheck> TMemChecks;
 
 	static const TBreakPoints& GetBreakPoints() { return m_BreakPoints; }
-	static const TMemChecks& GetMemChecks()		{ return m_MemChecks; }
 
 	// is address breakpoint
 	static bool IsAddressBreakPoint(u32 _iAddress);
-
-	//memory breakpoint
-	static TMemCheck *GetMemCheck(u32 address);
-					
-	// is break on count
-	static void SetBreakCount(u32 count) { m_iBreakOnCount = count; }
-	static u32 GetBreakCount() { return m_iBreakOnCount; }
-
 	static bool IsTempBreakPoint(u32 _iAddress);
 
 	// AddBreakPoint
-	static void AddBreakPoint(u32 em_address, bool temp=false);
+	static void Add(u32 em_address, bool temp=false);
 
 	// Remove Breakpoint
-	static void RemoveBreakPoint(u32 _iAddress);
+	static void Remove(u32 _iAddress);
+	static void Clear();
 
-	static void AddMemoryCheck(const TMemCheck& _rMemoryCheck);
-
-	static void ClearAllBreakPoints();
 	static void UpdateBreakPointView();
 
 	static void AddAutoBreakpoints();
-
-    static void DeleteElementByAddress(u32 _Address);
+    static void DeleteByAddress(u32 _Address);
 
 private:
-
 	static TBreakPoints m_BreakPoints;
-
-	static TMemChecks m_MemChecks;
-
 	static u32	m_iBreakOnCount;
+};
 
+
+// Memory breakpoints
+class MemChecks
+{
+public:
+	typedef std::vector<TMemCheck> TMemChecks;
+	static TMemChecks m_MemChecks;
+	static const TMemChecks& GetMemChecks()		{ return m_MemChecks; }
+	static void Add(const TMemCheck& _rMemoryCheck);
+
+	//memory breakpoint
+	static TMemCheck *GetMemCheck(u32 address);
+    static void DeleteByAddress(u32 _Address);
+
+	void Clear();
 };
 
 #endif

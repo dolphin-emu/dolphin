@@ -69,19 +69,19 @@ void CCPU::Run()
 			}*/
 
 			//2: check for breakpoint
-			if (CBreakPoints::IsAddressBreakPoint(PC))
+			if (BreakPoints::IsAddressBreakPoint(PC))
 			{
 				LOG(GEKKO, "Hit Breakpoint - %08x", PC);
 				EnableStepping(true);
-				if (CBreakPoints::IsTempBreakPoint(PC))
-					CBreakPoints::RemoveBreakPoint(PC);
+				if (BreakPoints::IsTempBreakPoint(PC))
+					BreakPoints::Remove(PC);
 
                 Host_UpdateDisasmDialog();
 
 				break;                
 			}
 
-/*			if (!Core::g_CoreStartupParameter.bUseJIT && CBreakPoints::GetBreakCount() == PowerPC::ppcState.DebugCount)
+/*			if (!Core::g_CoreStartupParameter.bUseJIT && BreakPoints::GetBreakCount() == PowerPC::ppcState.DebugCount)
 			{
 				LOG(GEKKO, "Hit DebugCount breakpoint - %i", PowerPC::ppcState.DebugCount);
 				EnableStepping(true);
@@ -183,19 +183,12 @@ void CCPU::SingleStep()
 			}
 
 			//2: check for breakpoint
-			if (CBreakPoints::IsAddressBreakPoint(PC))
+			if (BreakPoints::IsAddressBreakPoint(PC))
 			{
 				LOG(GEKKO, "Hit Breakpoint - %08x", PC);
 				EnableStepping(true);
-				if (CBreakPoints::IsTempBreakPoint(PC))
-					CBreakPoints::RemoveBreakPoint(PC);
-				break;
-			}
-
-			if (!Core::g_CoreStartupParameter.bUseJIT && CBreakPoints::GetBreakCount() == PowerPC::ppcState.DebugCount)
-			{
-				LOG(GEKKO, "Hit DebugCount breakpoint - %i", PowerPC::ppcState.DebugCount);
-				EnableStepping(true);
+				if (BreakPoints::IsTempBreakPoint(PC))
+					BreakPoints::Remove(PC);
 				break;
 			}
 

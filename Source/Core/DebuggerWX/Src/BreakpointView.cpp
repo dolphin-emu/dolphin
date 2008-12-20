@@ -47,7 +47,7 @@ void CBreakPointView::Update()
     InsertColumn(4, wxT("Flags"), wxLIST_FORMAT_CENTER, 100);
 
     char szBuffer[64];
-	const CBreakPoints::TBreakPoints& rBreakPoints = CBreakPoints::GetBreakPoints();
+	const BreakPoints::TBreakPoints& rBreakPoints = BreakPoints::GetBreakPoints();
 	for (size_t i = 0; i < rBreakPoints.size(); i++)
 	{
 		const TBreakPoint& rBP = rBreakPoints[i];
@@ -74,7 +74,7 @@ void CBreakPointView::Update()
 		}
 	}
 
-	const CBreakPoints::TMemChecks& rMemChecks = CBreakPoints::GetMemChecks();
+	const MemChecks::TMemChecks& rMemChecks = MemChecks::GetMemChecks();
 	for (size_t i = 0; i < rMemChecks.size(); i++)
 	{
 		const TMemCheck& rMemCheck = rMemChecks[i];
@@ -106,7 +106,6 @@ void CBreakPointView::Update()
 		SetItemData(Item, rMemCheck.StartAddress);
 	}
 
-
 	Refresh();
 }
 
@@ -116,6 +115,8 @@ void CBreakPointView::DeleteCurrentSelection()
     if (Item >= 0)
     {
         u32 Address = (u32)GetItemData(Item);
-        CBreakPoints::DeleteElementByAddress(Address);
+        BreakPoints::DeleteByAddress(Address);
+        MemChecks::DeleteByAddress(Address);
+		Update();
     }
 }

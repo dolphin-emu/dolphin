@@ -119,6 +119,7 @@ void CCodeView::OnMouseDown(wxMouseEvent& event)
 	{
 		debugger->toggleBreakpoint(YToAddress(y));
 		redraw();
+		Host_UpdateBreakPointView();
 	}
 
 	event.Skip(true);

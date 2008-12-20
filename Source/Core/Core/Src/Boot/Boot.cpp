@@ -269,7 +269,7 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
 			
             Boot_ELF(_StartupPara.m_strFilename.c_str()); 
             UpdateDebugger_MapLoaded();
-			CBreakPoints::AddAutoBreakpoints();
+			BreakPoints::AddAutoBreakpoints();
         }
         break;
 
