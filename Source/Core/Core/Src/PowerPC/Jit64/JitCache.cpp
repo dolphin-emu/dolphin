@@ -194,7 +194,7 @@ using namespace Gen;
 		return blockCodePointers;
 	}
 
-	int JitBlockCache::GetBlockNumberFromAddress(u32 addr)
+	int JitBlockCache::GetBlockNumberFromStartAddress(u32 addr)
 	{
 		if (!blocks)
 			return -1;
@@ -222,21 +222,12 @@ using namespace Gen;
 
 	u32 JitBlockCache::GetOriginalCode(u32 address)
 	{
-		int num = GetBlockNumberFromAddress(address);
+		int num = GetBlockNumberFromStartAddress(address);
 		if (num == -1)
 			return Memory::ReadUnchecked_U32(address);
 		else
 			return blocks[num].originalFirstOpcode;
 	} 
-
-	CompiledCode JitBlockCache::GetCompiledCode(u32 address)
-	{
-		int num = GetBlockNumberFromAddress(address);
-		if (num == -1)
-			return 0;
-		else
-			return (CompiledCode)blockCodePointers[num];
-	}
 
 	CompiledCode JitBlockCache::GetCompiledCodeFromBlock(int blockNumber)
 	{
@@ -261,7 +252,7 @@ using namespace Gen;
 		{
 			if (b.exitAddress[e] != INVALID_EXIT && !b.linkStatus[e])
 			{
-				int destinationBlock = GetBlockNumberFromAddress(b.exitAddress[e]);
+				int destinationBlock = GetBlockNumberFromStartAddress(b.exitAddress[e]);
 				if (destinationBlock != -1)
 				{
 					XEmitter emit(b.exitPtrs[e]);

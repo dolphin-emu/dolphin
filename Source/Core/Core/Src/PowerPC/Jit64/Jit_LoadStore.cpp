@@ -393,6 +393,9 @@
 // A few games use these heavily in video codecs.
 void Jit64::lmw(UGeckoInstruction inst)
 {
+#ifdef _M_IX86
+	Default(inst); return;
+#else
 	gpr.FlushLockX(ECX);
 	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
 	if (inst.RA)
@@ -407,10 +410,14 @@ void Jit64::lmw(UGeckoInstruction inst)
 		MOV(32, gpr.R(i), R(ECX));
 	}
 	gpr.UnlockAllX();
+#endif
 }
 
 void Jit64::stmw(UGeckoInstruction inst)
 {
+#ifdef _M_IX86
+	Default(inst); return;
+#else
 	gpr.FlushLockX(ECX);
 	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
 	if (inst.RA)
@@ -424,4 +431,5 @@ void Jit64::stmw(UGeckoInstruction inst)
 		MOV(32, MComplex(EBX, EAX, SCALE_1, (i - inst.RD) * 4), R(ECX));
 	}
 	gpr.UnlockAllX();
+#endif
 }

@@ -14,6 +14,7 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #ifndef _JITCACHE_H
 #define _JITCACHE_H
 
@@ -70,34 +71,41 @@ class JitBlockCache
 	std::multimap<u32, int> links_to;
 
 	int MAX_NUM_BLOCKS;
+	bool RangeIntersect(int s1, int e1, int s2, int e2) const;
+	void LinkBlockExits(int i);
+	void LinkBlock(int i);
 
 public:
 	JitBlockCache() {}
-
 	void SetJit(Jit64 *jit_) { jit = jit_; }
-
 	const u8* Jit(u32 emaddress);
+
 	void Clear();
 	void Init();
 	void Shutdown();
 	void Reset();
 
 	bool IsFull() const;
+
 	// Code Cache
-	u32 GetOriginalCode(u32 address);
 	JitBlock *GetBlock(int no);
-	void InvalidateCodeRange(u32 address, u32 length);
-	int GetBlockNumberFromAddress(u32 address);
-	CompiledCode GetCompiledCode(u32 address);
-	CompiledCode GetCompiledCodeFromBlock(int blockNumber);
 	int GetNumBlocks() const;
 	u8 **GetCodePointers();
-	void DestroyBlocksWithFlag(BlockFlag death_flag);
-	void LinkBlocks();
-	void LinkBlockExits(int i);
-	void LinkBlock(int i);
+
+	// Fast way to get a block. Only works on the first ppc instruction of a block.
+	int GetBlockNumberFromStartAddress(u32 address);
+    // slower, but can get numbers from within blocks, not just the first instruction. WARNING! DOES NOT WORK WITH INLINING ENABLED (not yet a feature but will be soon)
+	int GetBlockNumberFromInternalAddress(u32 address);
+
+	u32 GetOriginalCode(u32 address);
+	CompiledCode GetCompiledCodeFromBlock(int blockNumber);
+
+	// DOES NOT WORK CORRECTLY WITH INLINING
+	void InvalidateCodeRange(u32 address, u32 length);
 	void DestroyBlock(int blocknum, bool invalidate);
-	bool RangeIntersect(int s1, int e1, int s2, int e2) const;
+
+	// Not currently used
+	void DestroyBlocksWithFlag(BlockFlag death_flag);
 };
 
 #endif

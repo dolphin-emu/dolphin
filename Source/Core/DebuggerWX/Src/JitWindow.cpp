@@ -138,11 +138,11 @@ void CJitWindow::Compare(u32 em_address)
 	disassembler x64disasm;
 	x64disasm.set_syntax_intel();
 
-	int block_num = jit.GetBlockCache()->GetBlockNumberFromAddress(em_address);
+	int block_num = jit.GetBlockCache()->GetBlockNumberFromStartAddress(em_address);
 	if (block_num < 0)
 	{
 		for (int i = 0; i < 500; i++) {
-			block_num = jit.GetBlockCache()->GetBlockNumberFromAddress(em_address - 4 * i);
+			block_num = jit.GetBlockCache()->GetBlockNumberFromStartAddress(em_address - 4 * i);
 			if (block_num >= 0)
 				break;
 		}

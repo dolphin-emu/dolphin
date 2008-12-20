@@ -255,6 +255,15 @@ namespace CPUCompare
 		// Yup, just don't do anything.
 	}
 
+	void Jit64::NotifyBreakpoint(u32 em_address, bool set)
+	{
+		int block_num = blocks.GetBlockNumberFromStartAddress(em_address);
+		if (block_num >= 0)
+		{
+			blocks.DestroyBlock(block_num, false);
+		}
+	}
+
 	static const bool ImHereDebug = false;
 	static const bool ImHereLog = false;
 	static std::map<u32, int> been_here;
@@ -300,7 +309,7 @@ namespace CPUCompare
 		b->exitPtrs[exit_num] = GetWritableCodePtr();
 		
 		// Link opportunity!
-		int block = blocks.GetBlockNumberFromAddress(destination);
+		int block = blocks.GetBlockNumberFromStartAddress(destination);
 		if (block >= 0 && jo.enableBlocklink) 
 		{
 			// It exists! Joy of joy!
@@ -353,17 +362,17 @@ namespace CPUCompare
 		return blocks.Jit(em_address);
 	}
 
-	const u8* Jit64::DoJit(u32 emaddress, JitBlock &b)
+	const u8* Jit64::DoJit(u32 em_address, JitBlock &b)
 	{
-		if (emaddress == 0)
+		if (em_address == 0)
 			PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
 
-//		if (emaddress == 0x800aa278)
+//		if (em_address == 0x800aa278)
 //			DebugBreak();
 
 		int size;
 		js.isLastInstruction = false;
-		js.blockStart = emaddress;
+		js.blockStart = em_address;
 		js.fifoBytesThisBlock = 0;
 		js.curBlock = &b;
 		js.blockSetsQuantizers = false;
@@ -373,7 +382,7 @@ namespace CPUCompare
 		//Analyze the block, collect all instructions it is made of (including inlining,
 		//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
 		
-		PPCAnalyst::Flatten(emaddress, &size, &js.st, &js.gpa, &js.fpa, &code_buffer);
+		PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, &code_buffer);
 		PPCAnalyst::CodeOp *ops = code_buffer.codebuffer;
 
 		const u8 *start = AlignCode4(); //TODO: Test if this or AlignCode16 make a difference from GetCodePtr
@@ -430,7 +439,7 @@ namespace CPUCompare
 		gpr.Start(js.gpa);
 		fpr.Start(js.fpa);
 
-		js.downcountAmount = js.st.numCycles + PatchEngine::GetSpeedhackCycles(emaddress);
+		js.downcountAmount = js.st.numCycles + PatchEngine::GetSpeedhackCycles(em_address);
 		js.blockSize = size;
 		// Translate instructions
 		for (int i = 0; i < (int)size; i++)

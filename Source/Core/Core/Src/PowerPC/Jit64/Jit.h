@@ -128,10 +128,12 @@ public:
 
 	// Jit!
 
-	const u8 *Jit(u32 emAddress);  // calls blocks.Jit, which in turn calls DoJit below after setting up a block.
-	const u8* DoJit(u32 emaddress, JitBlock &b);
+	const u8 *Jit(u32 em_address);  // calls blocks.Jit, which in turn calls DoJit below after setting up a block.
+	const u8* DoJit(u32 em_address, JitBlock &b);
 
 	JitBlockCache *GetBlockCache() { return &blocks; }
+
+	void NotifyBreakpoint(u32 em_address, bool set);
 
 	void ClearCache() 
 	{
@@ -142,7 +144,7 @@ public:
 	// Run!
 
 	void EnterFastRun();
-	const u8 *BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx);
+	const u8 *BackPatch(u8 *codePtr, int accessType, u32 em_address, CONTEXT *ctx);
 
 #define JIT_OPCODE 0
 
@@ -274,7 +276,7 @@ public:
 
 extern Jit64 jit;
 
-const u8 *Jit(u32 emaddress);
+const u8 *Jit(u32 em_address);
 
 #endif
 

@@ -7,8 +7,9 @@ class DebugInterface
 {
 protected:
 	virtual ~DebugInterface() {}
+
 public:
-	virtual void disasm(unsigned int /*address*/, char *dest, int max_size) {strcpy(dest, "NODEBUGGER");}
+	virtual void disasm(unsigned int /*address*/, char *dest, int /*max_size*/) {strcpy(dest, "NODEBUGGER");}
 	virtual void getRawMemoryString(unsigned int /*address*/, char *dest, int /*max_size*/) {strcpy(dest, "NODEBUGGER");}
 	virtual int getInstructionSize(int /*instruction*/) {return 1;}
 
