@@ -30,7 +30,7 @@
 #define MC_STATUS_ERASEERROR			0x10
 #define MC_STATUS_PROGRAMEERROR			0x08
 #define MC_STATUS_READY					0x01
-#define SIZE_TO_Mb 1024 * 8 * 16
+#define SIZE_TO_Mb (1024 * 8 * 16)
 
 static CEXIMemoryCard *cards[2];
 
@@ -78,8 +78,9 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 		fseek(pFile, 0L, SEEK_SET);
 
 		memory_card_size = (int)MemFileSize;
+		PanicAlert("%X", memory_card_size);
 		nintendo_card_id = memory_card_size / SIZE_TO_Mb;
-
+		PanicAlert("%X", nintendo_card_id);
 		memory_card_content = new u8[memory_card_size];
 		memset(memory_card_content, 0xFF, memory_card_size);
  

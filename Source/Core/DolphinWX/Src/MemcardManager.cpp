@@ -92,7 +92,7 @@ BEGIN_EVENT_TABLE(CMemcardManager, wxDialog)
 	EVT_FILEPICKER_CHANGED(ID_MEMCARDPATH_A,CMemcardManager::OnPathChange)
 	EVT_FILEPICKER_CHANGED(ID_MEMCARDPATH_B,CMemcardManager::OnPathChange)
 
-	EVT_MENU(ID_USEPAGES, CMemcardManager::OnMenuChange)
+	EVT_MENU_RANGE(ID_MEMCARDPATH_A, ID_USEPAGES, CMemcardManager::OnMenuChange)
 	EVT_MENU_RANGE(ID_COPYFROM_A, ID_CONVERTTOGCI, CMemcardManager::CopyDeleteClick)
 	EVT_MENU_RANGE(ID_NEXTPAGE_A, ID_PREVPAGE_B, CMemcardManager::OnPageChange)
 	EVT_MENU_RANGE(COLUMN_BANNER, NUMBER_OF_COLUMN, CMemcardManager::OnMenuChange)
@@ -401,8 +401,9 @@ void CMemcardManager::OnPageChange(wxCommandEvent& event)
 
 void CMemcardManager::OnMenuChange(wxCommandEvent& event)
 {
-	if (event.GetId() == ID_USEPAGES)
+	switch(event.GetId())
 	{
+	case ID_USEPAGES:
 		m_MemcardList[SLOT_A]->usePages = !m_MemcardList[SLOT_A]->usePages;
 		m_MemcardList[SLOT_B]->usePages = !m_MemcardList[SLOT_B]->usePages;
 		if (!m_MemcardList[SLOT_A]->usePages)
@@ -413,15 +414,20 @@ void CMemcardManager::OnMenuChange(wxCommandEvent& event)
 			m_NextPage[SLOT_B]->Disable();
 			page[SLOT_A] = page[SLOT_B] = FIRSTPAGE;
 		}
-	}
-	else
-	{
+		break;
+	case ID_MEMCARDPATH_A:
+		DefaultMemcard[SLOT_A] = m_MemcardPath[SLOT_A]->GetPath();
+		break;
+	case ID_MEMCARDPATH_B:
+		DefaultMemcard[SLOT_B] = m_MemcardPath[SLOT_B]->GetPath();
+		break;
+	default:
 		m_MemcardList[SLOT_A]->column[event.GetId()] = !m_MemcardList[SLOT_A]->column[event.GetId()];
 		m_MemcardList[SLOT_B]->column[event.GetId()] = !m_MemcardList[SLOT_B]->column[event.GetId()];
+		if (memoryCard[SLOT_A])	ReloadMemcard(m_MemcardPath[SLOT_A]->GetPath().mb_str(), SLOT_A);
+		if (memoryCard[SLOT_B])	ReloadMemcard(m_MemcardPath[SLOT_B]->GetPath().mb_str(), SLOT_B);
+		break;
 	}
-	if (memoryCard[SLOT_A])	ReloadMemcard(m_MemcardPath[SLOT_A]->GetPath().mb_str(), SLOT_A);
-	if (memoryCard[SLOT_B])	ReloadMemcard(m_MemcardPath[SLOT_B]->GetPath().mb_str(), SLOT_B);
-
 }
 bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 {
@@ -760,6 +766,7 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
 			popupMenu.Append(ID_FIXCHECKSUM_A, wxT("Fix Checksum"));
 			popupMenu.Append(ID_PREVPAGE_A, wxT("Previous Page"));
 			popupMenu.Append(ID_NEXTPAGE_A, wxT("Next Page"));
+			popupMenu.Append(ID_MEMCARDPATH_A, wxT("Set as default Memcard A"));
 			if (!prevPage || !usePages)
 			popupMenu.FindItem(ID_PREVPAGE_A)->Enable(false);
 			if (!nextPage || !usePages)
@@ -777,6 +784,7 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
 			popupMenu.Append(ID_FIXCHECKSUM_B, wxT("Fix Checksum"));
 			popupMenu.Append(ID_PREVPAGE_B, wxT("Previous Page"));
 			popupMenu.Append(ID_NEXTPAGE_B, wxT("Next Page"));
+			popupMenu.Append(ID_MEMCARDPATH_B, wxT("Set as default Memcard B"));
 			if (!prevPage || !usePages)
 			popupMenu.FindItem(ID_PREVPAGE_B)->Enable(false);
 			if (!nextPage || !usePages)

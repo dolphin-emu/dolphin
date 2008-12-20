@@ -440,7 +440,7 @@ namespace CPUCompare
 //TODO
 #endif
 			// get start tic
-			PROFILER_QUERY_PERFORMACE_COUNTER(&b.ticStart);
+			PROFILER_QUERY_PERFORMACE_COUNTER(&b->ticStart);
 		}
 
 		//Start up the register allocators
@@ -468,9 +468,9 @@ namespace CPUCompare
 					// CAUTION!!! push on stack regs you use, do your stuff, then pop
 					PROFILER_VPUSH;
 					// get end tic
-					PROFILER_QUERY_PERFORMACE_COUNTER(&b.ticStop);
+					PROFILER_QUERY_PERFORMACE_COUNTER(&b->ticStop);
 					// tic counter += (end tic - start tic)
-					PROFILER_ADD_DIFF_LARGE_INTEGER(&b.ticCounter, &b.ticStop, &b.ticStart);
+					PROFILER_ADD_DIFF_LARGE_INTEGER(&b->ticCounter, &b->ticStop, &b->ticStart);
 					PROFILER_VPOP;
 				}
 			}
