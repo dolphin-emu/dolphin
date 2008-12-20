@@ -61,13 +61,14 @@ bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data);
 bool ZeroCode_MemoryCopy(u32 val_last, u32 addr, u32 data);
 // Normal Codes
 bool NormalCode_Type_0(u8 subtype, u32 addr, u32 data);
-bool NormalCode_Type_1(u8 subtype, u32 addr, u32 data, int *count, bool *skip);
-bool NormalCode_Type_2(u8 subtype, u32 addr, u32 data, int *count, bool *skip);
-bool NormalCode_Type_3(u8 subtype, u32 addr, u32 data, int *count, bool *skip);
-bool NormalCode_Type_4(u8 subtype, u32 addr, u32 data, int *count, bool *skip);
-bool NormalCode_Type_5(u8 subtype, u32 addr, u32 data, int *count, bool *skip);
-bool NormalCode_Type_6(u8 subtype, u32 addr, u32 data, int *count, bool *skip);
-bool NormalCode_Type_7(u8 subtype, u32 addr, u32 data, int *count, bool *skip);
+bool NormalCode_Type_1(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip);
+bool NormalCode_Type_2(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip);
+bool NormalCode_Type_3(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip);
+bool NormalCode_Type_4(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip);
+bool NormalCode_Type_5(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip);
+bool NormalCode_Type_6(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip);
+bool NormalCode_Type_7(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip);
+bool SetLineSkip(int codetype, u8 subtype, bool *pSkip, bool skip, int *pCount);
 
 void LoadCodes(IniFile &ini, bool forceLoad)
 {
@@ -599,22 +600,10 @@ bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data) // This needs more 
 			for (int i=0; i < write_num; i++) {
 				Memory::Write_U8(val & 0xFF, curr_addr);
 				LogInfo("Write %08x to address %08x", val & 0xFF, curr_addr);
-				if (val_incr < 0)
-				{
-					val -= (u32)abs(val_incr);
-				}
-				if (val_incr > 0)
-				{
-					val += (u32)val_incr;
-				}
-				if (addr_incr < 0)
-				{
-					curr_addr -= (u32)abs(addr_incr);
-				}
-				if (addr_incr > 0)
-				{
-					curr_addr += (u32)addr_incr;
-				}
+				if (val_incr != 0) 
+					val_incr > 0 ? val += (u32)val_incr : val -= (u32)(val_incr * -1);
+				if (addr_incr != 0) 
+					addr_incr > 0 ? curr_addr += (u32)addr_incr : curr_addr -= (u32)(addr_incr * -1);
 				LogInfo("Value Update: %08x", val);
 				LogInfo("Current Hardware Address Update: %08x", curr_addr);
 			}
@@ -626,22 +615,10 @@ bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data) // This needs more 
 			for (int i=0; i < write_num; i++) {
 				Memory::Write_U16(val & 0xFFFF, curr_addr);
 				LogInfo("Write %08x to address %08x", val & 0xFFFF, curr_addr);
-				if (val_incr < 0)
-				{
-					val -= (u32)abs(val_incr);
-				}
-				if (val_incr > 0)
-				{
-					val += (u32)val_incr;
-				}
-				if (addr_incr < 0)
-				{
-					curr_addr -= (u32)abs(addr_incr);
-				}
-				if (addr_incr > 0)
-				{
-					curr_addr += (u32)addr_incr;
-				}
+				if (val_incr != 0) 
+					val_incr > 0 ? val += (u32)val_incr : val -= (u32)(val_incr * -1);
+				if (addr_incr != 0) 
+					addr_incr > 0 ? curr_addr += (u32)addr_incr : curr_addr -= (u32)(addr_incr * -1);
 				LogInfo("Value Update: %08x", val);
 				LogInfo("Current Hardware Address Update: %08x", curr_addr);
 			}
@@ -653,22 +630,10 @@ bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data) // This needs more 
 			for (int i = 0; i < write_num; i++) {
 				Memory::Write_U32(val, curr_addr);
 				LogInfo("Write %08x to address %08x", val, curr_addr);
-				if (val_incr < 0)
-				{
-					val -= (u32)abs(val_incr);
-				}
-				if (val_incr > 0)
-				{
-					val += (u32)val_incr;
-				}
-				if (addr_incr < 0)
-				{
-					curr_addr -= (u32)abs(addr_incr);
-				}
-				if (addr_incr > 0)
-				{
-					curr_addr += (u32)addr_incr;
-				}
+				if (val_incr != 0) 
+					val_incr > 0 ? val += (u32)val_incr : val -= (u32)(val_incr * -1);
+				if (addr_incr != 0) 
+					addr_incr > 0 ? curr_addr += (u32)addr_incr : curr_addr -= (u32)(addr_incr * -1);
 				LogInfo("Value Update: %08x", val);
 				LogInfo("Current Hardware Address Update: %08x", curr_addr);
 			}
@@ -757,7 +722,7 @@ bool NormalCode_Type_0(u8 subtype, u32 addr, u32 data)
 	return true;
 }
 // Conditional Codes
-bool NormalCode_Type_1(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
+bool NormalCode_Type_1(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip)
 {
 	u8 size = (addr >> 25) & 0x03;
 	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000);
@@ -776,24 +741,10 @@ bool NormalCode_Type_1(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
 		return false;
 	}
 
-	*skip = !con; // set skip
-	LogInfo("Skip set to %s", !con ? "False" : "True");
-
-	switch (subtype)
-	{
-	case 0x0: *count = 1; break; // 1 line
-	case 0x1: *count = 2; break; // 2 lines
-	case 0x2: *count = -2; break; // all lines
-	case 0x3: *count = -2; break; // While != : skip all codes ("infinite loop on the code" ?)
-	default:
-		LogInfo("Bad Subtype");
-		PanicAlert("Action Replay: Normal Code 1: Invalid subtype %08x (%s)", subtype, code.name.c_str());
-		return false;
-	}
-	return true;
+	return SetLineSkip(1, subtype, pSkip, con, pCount);
 }
 
-bool NormalCode_Type_2(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
+bool NormalCode_Type_2(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip)
 {
 	u8 size = (addr >> 25) & 0x03;
 	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000);
@@ -812,24 +763,10 @@ bool NormalCode_Type_2(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
 		return false;
 	}
 
-	*skip = !con; // set skip
-	LogInfo("Skip set to %s", !con ? "False" : "True");
-
-	switch (subtype)
-	{
-	case 0x0: *count = 1; break; // 1 line
-	case 0x1: *count = 2; break; // 2 lines
-	case 0x2: *count = -2; break; // all lines
-	case 0x3: *count = -2; break; // While != : skip all codes ("infinite loop on the code" ?)
-	default:
-		LogInfo("Bad Subtype");
-		PanicAlert("Action Replay: Normal Code 2: Invalid subtype %08x (%s)", subtype, code.name.c_str());
-		return false;
-	}
-	return true;
+	return SetLineSkip(2, subtype, pSkip, con, pCount);
 }
 
-bool NormalCode_Type_3(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
+bool NormalCode_Type_3(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip)
 {
 	u8 size = (addr >> 25) & 0x03;
 	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000);
@@ -848,24 +785,10 @@ bool NormalCode_Type_3(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
 		return false;
 	}
 
-	*skip = !con; // set skip
-	LogInfo("Skip set to %s", !con ? "False" : "True");
-
-	switch (subtype)
-	{
-	case 0x0: *count = 1; break; // 1 line
-	case 0x1: *count = 2; break; // 2 lines
-	case 0x2: *count = -2; break; // all lines
-	case 0x3: *count = -2; break; // While != : skip all codes ("infinite loop on the code" ?)
-	default:
-		LogInfo("Bad Subtype");
-		PanicAlert("Action Replay: Normal Code 3: Invalid subtype %08x (%s)", subtype, code.name.c_str());
-		return false;
-	}
-	return true;
+	return SetLineSkip(3, subtype, pSkip, con, pCount);
 }
 
-bool NormalCode_Type_4(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
+bool NormalCode_Type_4(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip)
 {
 	u8 size = (addr >> 25) & 0x03;
 	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000);
@@ -884,24 +807,10 @@ bool NormalCode_Type_4(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
 		return false;
 	}
 
-	*skip = !con; // set skip
-	LogInfo("Skip set to %s", !con ? "False" : "True");
-
-	switch (subtype)
-	{
-	case 0x0: *count = 1; break; // 1 line
-	case 0x1: *count = 2; break; // 2 lines
-	case 0x2: *count = -2; break; // all lines
-	case 0x3: *count = -2; break; // While != : skip all codes ("infinite loop on the code" ?)
-	default:
-		LogInfo("Bad Subtype");
-		PanicAlert("Action Replay: Normal Code 4: Invalid subtype %08x (%s)", subtype, code.name.c_str());
-		return false;
-	}
-	return true;
+	return SetLineSkip(4, subtype, pSkip, con, pCount);
 }
 
-bool NormalCode_Type_5(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
+bool NormalCode_Type_5(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip)
 {
 	u8 size = (addr >> 25) & 0x03;
 	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000);
@@ -920,24 +829,10 @@ bool NormalCode_Type_5(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
 		return false;
 	}
 
-	*skip = !con; // set skip
-	LogInfo("Skip set to %s", !con ? "False" : "True");
-
-	switch (subtype)
-	{
-	case 0x0: *count = 1; break; // 1 line
-	case 0x1: *count = 2; break; // 2 lines
-	case 0x2: *count = -2; break; // all lines
-	case 0x3: *count = -2; break; // While != : skip all codes ("infinite loop on the code" ?)
-	default:
-		LogInfo("Bad Subtype");
-		PanicAlert("Action Replay: Normal Code 5: Invalid subtype %08x (%s)", subtype, code.name.c_str());
-		return false;
-	}
-	return true;
+	return SetLineSkip(5, subtype, pSkip, con, pCount);
 }
 
-bool NormalCode_Type_6(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
+bool NormalCode_Type_6(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip)
 {
 	u8 size = (addr >> 25) & 0x03;
 	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000);
@@ -956,24 +851,10 @@ bool NormalCode_Type_6(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
 		return false;
 	}
 
-	*skip = !con; // set skip
-	LogInfo("Skip set to %s", !con ? "False" : "True");
-
-	switch (subtype)
-	{
-	case 0x0: *count = 1; break; // 1 line
-	case 0x1: *count = 2; break; // 2 lines
-	case 0x2: *count = -2; break; // all lines
-	case 0x3: *count = -2; break; // While != : skip all codes ("infinite loop on the code" ?)
-	default:
-		LogInfo("Bad Subtype");
-		PanicAlert("Action Replay: Normal Code 6: Invalid subtype %08x (%s)", subtype, code.name.c_str());
-		return false;
-	}
-	return true;
+	return SetLineSkip(6, subtype, pSkip, con, pCount);
 }
 
-bool NormalCode_Type_7(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
+bool NormalCode_Type_7(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip)
 {
 	u8 size = (addr >> 25) & 0x03;
 	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000);
@@ -992,21 +873,7 @@ bool NormalCode_Type_7(u8 subtype, u32 addr, u32 data, int *count, bool *skip)
 		return false;
 	}
 
-	*skip = !con; // set skip
-	LogInfo("Skip set to %s", !con ? "False" : "True");
-
-	switch (subtype)
-	{
-	case 0x0: *count = 1; break; // 1 line
-	case 0x1: *count = 2; break; // 2 lines
-	case 0x2: *count = -2; break; // all lines
-	case 0x3: *count = -2; break; // While != : skip all codes ("infinite loop on the code" ?)
-	default:
-		LogInfo("Bad Subtype");
-		PanicAlert("Action Replay: Normal Code 7: Invalid subtype %08x (%s)", subtype, code.name.c_str());
-		return false;
-	}
-	return true;
+	return SetLineSkip(7, subtype, pSkip, con, pCount);
 }
 
 size_t GetCodeListSize()
@@ -1061,4 +928,23 @@ bool IsSelfLogging()
 	return logSelf;
 }
 
+bool SetLineSkip(int codetype, u8 subtype, bool *pSkip, bool skip, int *pCount)
+{
+	*pSkip = !skip; // set skip
+	LogInfo("Skip set to %s", !skip ? "True" : "False");
+
+	switch (subtype)
+	{
+	case 0x0: *pCount = 1; break; // 1 line
+	case 0x1: *pCount = 2; break; // 2 lines
+	case 0x2: *pCount = -2; break; // all lines
+	case 0x3: *pCount = -2; break; // While != : skip all codes ("infinite loop on the code" ?)
+	default:
+		LogInfo("Bad Subtype");
+		PanicAlert("Action Replay: Normal Code %i: Invalid subtype %08x (%s)", codetype, subtype, code.name.c_str());
+		return false;
+	}
+
+	return true;
+}
 } // namespace ActionReplay
