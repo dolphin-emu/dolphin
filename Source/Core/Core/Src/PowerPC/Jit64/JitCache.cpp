@@ -24,8 +24,6 @@
 
 //#define OPROFILE_REPORT
 
-#include <map>
-
 #include "Common.h"
 #include "../../Core.h"
 #include "MemoryUtil.h"
@@ -50,31 +48,23 @@
 #include <opagent.h>
 #endif
 
-using namespace Gen;
-
 #ifdef OPROFILE_REPORT
 	op_agent_t agent;
 #endif
 
+using namespace Gen;
+
 #define INVALID_EXIT 0xFFFFFFFF
 
-	enum 
+
+	bool JitBlockCache::IsFull() const 
 	{
-		TRAMPOLINE_SIZE = 1024*1024,
-	};
-
-	int MAX_NUM_BLOCKS = 65536*2;
-
-
-	void Jit64::PrintStats()
-	{
-		LOG(DYNA_REC, "JIT Statistics =======================");
-		LOG(DYNA_REC, "Number of blocks currently: %i", numBlocks);
-		LOG(DYNA_REC, "======================================");
+		return GetNumBlocks() >= MAX_NUM_BLOCKS - 1;
 	}
 
-	void Jit64::InitCache()
+	void JitBlockCache::Init()
 	{
+		MAX_NUM_BLOCKS = 65536*2;
 		if (Core::g_CoreStartupParameter.bJITUnlimitedCache)
 		{
 			MAX_NUM_BLOCKS = 65536*8;
@@ -86,10 +76,10 @@ using namespace Gen;
 		blocks = new JitBlock[MAX_NUM_BLOCKS];
 		blockCodePointers = new u8*[MAX_NUM_BLOCKS];
 
-		ClearCache();
+		Clear();
 	}
 
-	void Jit64::ShutdownCache()
+	void JitBlockCache::Shutdown()
 	{
 		delete [] blocks;
 		delete [] blockCodePointers;
@@ -103,7 +93,7 @@ using namespace Gen;
 	
 	// This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
 	// is full and when saving and loading states.
-	void Jit64::ClearCache()
+	void JitBlockCache::Clear()
 	{
 		Core::DisplayMessage("Cleared code cache.", 3000);
 		// Is destroying the blocks really necessary?
@@ -114,11 +104,9 @@ using namespace Gen;
 		links_to.clear();
 		numBlocks = 0;
 		memset(blockCodePointers, 0, sizeof(u8*)*MAX_NUM_BLOCKS);
-
-		trampolines.ClearCodeSpace();
 	}
 
-	void Jit64::DestroyBlocksWithFlag(BlockFlag death_flag)
+	void JitBlockCache::DestroyBlocksWithFlag(BlockFlag death_flag)
 	{
 		for (int i = 0; i < numBlocks; i++)
 		{
@@ -129,23 +117,23 @@ using namespace Gen;
 		}
 	}
 
-	void Jit64::ResetCache()
+	void JitBlockCache::Reset()
 	{
-		ShutdownCache();
-		InitCache();
+		Shutdown();
+		Init();
 	}
 
-	Jit64::JitBlock *Jit64::GetBlock(int no)
+	JitBlock *JitBlockCache::GetBlock(int no)
 	{
 		return &blocks[no];
 	}
 
-	int Jit64::GetNumBlocks()
+	int JitBlockCache::GetNumBlocks() const
 	{
 		return numBlocks;
 	}
 
-	bool Jit64::RangeIntersect(int s1, int e1, int s2, int e2) const
+	bool JitBlockCache::RangeIntersect(int s1, int e1, int s2, int e2) const
 	{
 		// check if any endpoint is inside the other range
 		if ( (s1 >= s2 && s1 <= e2) ||
@@ -162,18 +150,8 @@ using namespace Gen;
 		return jit.Jit(emAddress);
 	}
 
-	const u8 *Jit64::Jit(u32 emAddress)
+	const u8 *JitBlockCache::Jit(u32 emAddress)
 	{
-		if (GetSpaceLeft() < 0x10000 || numBlocks >= MAX_NUM_BLOCKS - 1)
-		{
-			LOG(DYNA_REC, "JIT cache full - clearing.")
-			if (Core::g_CoreStartupParameter.bJITUnlimitedCache)
-			{
-				PanicAlert("What? JIT cache still full - clearing.");
-			}
-			ClearCache();
-		}
-
 		JitBlock &b = blocks[numBlocks];
 		b.invalid = false;
 		b.originalAddress = emAddress;
@@ -185,10 +163,10 @@ using namespace Gen;
 		b.linkStatus[0] = false;
 		b.linkStatus[1] = false;
 		
-		blockCodePointers[numBlocks] = (u8*)DoJit(emAddress, b);  //cast away const
+		blockCodePointers[numBlocks] = (u8*)jit->DoJit(emAddress, b);  //cast away const
 		Memory::WriteUnchecked_U32((JIT_OPCODE << 26) | numBlocks, emAddress);
 
-		if (jo.enableBlocklink) {
+		if (jit->jo.enableBlocklink) {
 			for (int i = 0; i < 2; i++) {
 				if (b.exitAddress[i] != INVALID_EXIT) {
 					links_to.insert(std::pair<u32, int>(b.exitAddress[i], numBlocks));
@@ -211,26 +189,12 @@ using namespace Gen;
 		return 0;
 	}
 
-	void Jit64::unknown_instruction(UGeckoInstruction _inst)
-	{
-		//	CCPU::Break();
-		PanicAlert("unknown_instruction Jit64 - Fix me ;)");
-		_dbg_assert_(DYNA_REC, 0);
-	}
-	
-	u8 **Jit64::GetCodePointers()
+	u8 **JitBlockCache::GetCodePointers()
 	{
 		return blockCodePointers;
 	}
 
-	void Jit64::EnterFastRun()
-	{
-		CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
-		pExecAddr();
-		//Will return when PowerPC::state changes
-	}
-
-	int Jit64::GetBlockNumberFromAddress(u32 addr)
+	int JitBlockCache::GetBlockNumberFromAddress(u32 addr)
 	{
 		if (!blocks)
 			return -1;
@@ -256,7 +220,7 @@ using namespace Gen;
 		}
 	}
 
-	u32 Jit64::GetOriginalCode(u32 address)
+	u32 JitBlockCache::GetOriginalCode(u32 address)
 	{
 		int num = GetBlockNumberFromAddress(address);
 		if (num == -1)
@@ -265,7 +229,7 @@ using namespace Gen;
 			return blocks[num].originalFirstOpcode;
 	} 
 
-	Jit64::CompiledCode Jit64::GetCompiledCode(u32 address)
+	CompiledCode JitBlockCache::GetCompiledCode(u32 address)
 	{
 		int num = GetBlockNumberFromAddress(address);
 		if (num == -1)
@@ -274,7 +238,7 @@ using namespace Gen;
 			return (CompiledCode)blockCodePointers[num];
 	}
 
-	Jit64::CompiledCode Jit64::GetCompiledCodeFromBlock(int blockNumber)
+	CompiledCode JitBlockCache::GetCompiledCodeFromBlock(int blockNumber)
 	{
 		return (CompiledCode)blockCodePointers[blockNumber];
 	}
@@ -285,7 +249,7 @@ using namespace Gen;
 	//Can be faster by doing a queue for blocks to link up, and only process those
 	//Should probably be done
 
-	void Jit64::LinkBlockExits(int i)
+	void JitBlockCache::LinkBlockExits(int i)
 	{
 		JitBlock &b = blocks[i];
 		if (b.invalid)
@@ -310,10 +274,10 @@ using namespace Gen;
 
 	using namespace std;
 
-	void Jit64::LinkBlock(int i)
+	void JitBlockCache::LinkBlock(int i)
 	{
 		LinkBlockExits(i);
-		Jit64::JitBlock &b = blocks[i];
+		JitBlock &b = blocks[i];
 		std::map<u32, int>::iterator iter;
 		pair<multimap<u32, int>::iterator, multimap<u32, int>::iterator> ppp;
 		// equal_range(b) returns pair<iterator,iterator> representing the range
@@ -327,10 +291,10 @@ using namespace Gen;
 		}
 	}
 
-	void Jit64::DestroyBlock(int blocknum, bool invalidate)
+	void JitBlockCache::DestroyBlock(int blocknum, bool invalidate)
 	{
 		u32 codebytes = (JIT_OPCODE << 26) | blocknum; //generate from i
-		Jit64::JitBlock &b = blocks[blocknum];
+		JitBlock &b = blocks[blocknum];
 		b.invalid = 1;
 		if (codebytes == Memory::ReadFast32(b.originalAddress))
 		{
@@ -363,9 +327,9 @@ using namespace Gen;
 	}
 
 
-	void Jit64::InvalidateCodeRange(u32 address, u32 length)
+	void JitBlockCache::InvalidateCodeRange(u32 address, u32 length)
 	{
-		if (!jo.enableBlocklink)
+		if (!jit->jo.enableBlocklink)
 			return;
 		return;
 		//This is slow but should be safe (zelda needs it for block linking)

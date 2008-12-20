@@ -496,7 +496,9 @@ void CCodeWindow::OnJITOff(wxCommandEvent& event)
 		// creates the SCoreStartupParameter as a game is loaded
 		GetMenuBar()->Check(event.GetId(),!event.IsChecked());
 		wxMessageBox(_T("Please start a game before changing mode."));	
-	} else {
+	}
+	else
+	{
 		if (Core::GetState() != Core::CORE_RUN)
 		{
 			switch (event.GetId())
@@ -504,9 +506,8 @@ void CCodeWindow::OnJITOff(wxCommandEvent& event)
 			case IDM_JITUNLIMITED:
 				Core::g_CoreStartupParameter.bJITUnlimitedCache = event.IsChecked();
 				jit.ClearCache(); // allow InitCache() even after the game has started
-				jit.InitCache();
 				GetMenuBar()->Enable(event.GetId(),!event.IsChecked());
-				break;
+				return;  // avoid a second jit.ClearCache
 			case IDM_JITOFF:
 				Core::g_CoreStartupParameter.bJITOff = event.IsChecked(); break;
 			case IDM_JITLSOFF:
@@ -531,15 +532,15 @@ void CCodeWindow::OnJITOff(wxCommandEvent& event)
 				Core::g_CoreStartupParameter.bJITSystemRegistersOff = event.IsChecked(); break;
 			}
 			jit.ClearCache();			
-		} else {
+		}
+		else
+		{
 			//event.Skip(); // this doesn't work
 			GetMenuBar()->Check(event.GetId(),!event.IsChecked());
 			wxMessageBox(_T("Please pause the emulator before changing mode."));		
 		}
 	}
 }
-// ==============
-
 
 void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 {

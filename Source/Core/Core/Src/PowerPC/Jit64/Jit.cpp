@@ -196,20 +196,28 @@ namespace CPUCompare
 
 		trampolines.Init();
 		AllocCodeSpace(CODE_SIZE);
-		InitCache();
+
+		blocks.Init();
 		asm_routines.Init();
 	}
 
 	void Jit64::Shutdown()
 	{
 		FreeCodeSpace();
-		ShutdownCache();
 
+		blocks.Shutdown();
 		trampolines.Shutdown();
 		asm_routines.Shutdown();
 	}
 
-	void Jit64::WriteCallInterpreter(UGeckoInstruction _inst)
+	void Jit64::EnterFastRun()
+	{
+		CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
+		pExecAddr();
+		//Will return when PowerPC::state changes
+	}
+
+	void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 	{
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
@@ -218,8 +226,14 @@ namespace CPUCompare
 			MOV(32, M(&PC), Imm32(js.compilerPC));
 			MOV(32, M(&NPC), Imm32(js.compilerPC + 4));
 		}
-		Interpreter::_interpreterInstruction instr = GetInterpreterOp(_inst);
-		ABI_CallFunctionC((void*)instr, _inst.hex);
+		Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
+		ABI_CallFunctionC((void*)instr, inst.hex);
+	}
+
+	void Jit64::unknown_instruction(UGeckoInstruction inst)
+	{
+		//	CCPU::Break();
+		PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
 	}
 
 	void Jit64::Default(UGeckoInstruction _inst)
@@ -286,11 +300,11 @@ namespace CPUCompare
 		b->exitPtrs[exit_num] = GetWritableCodePtr();
 		
 		// Link opportunity!
-		int block = GetBlockNumberFromAddress(destination);
+		int block = blocks.GetBlockNumberFromAddress(destination);
 		if (block >= 0 && jo.enableBlocklink) 
 		{
 			// It exists! Joy of joy!
-			JMP(GetBlock(block)->checkedEntry, true);
+			JMP(blocks.GetBlock(block)->checkedEntry, true);
 			b->linkStatus[exit_num] = true;
 		}
 		else 
@@ -322,6 +336,21 @@ namespace CPUCompare
 		OR(32, M(&PowerPC::ppcState.Exceptions), Imm32(exception));
 		MOV(32, M(&PC), Imm32(js.compilerPC + 4));
 		JMP(asm_routines.testExceptions, true);
+	}
+	
+	const u8 *Jit64::Jit(u32 em_address)
+	{
+		if (GetSpaceLeft() < 0x10000 || blocks.IsFull())
+		{
+			LOG(DYNA_REC, "JIT cache full - clearing.")
+			if (Core::g_CoreStartupParameter.bJITUnlimitedCache)
+			{
+				PanicAlert("What? JIT cache still full - clearing.");
+			}
+			ClearCache();
+		}
+
+		return blocks.Jit(em_address);
 	}
 
 	const u8* Jit64::DoJit(u32 emaddress, JitBlock &b)

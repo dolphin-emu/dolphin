@@ -138,16 +138,16 @@ void CJitWindow::Compare(u32 em_address)
 	disassembler x64disasm;
 	x64disasm.set_syntax_intel();
 
-	int block_num = jit.GetBlockNumberFromAddress(em_address);
+	int block_num = jit.GetBlockCache()->GetBlockNumberFromAddress(em_address);
 	if (block_num < 0)
 	{
 		for (int i = 0; i < 500; i++) {
-			block_num = jit.GetBlockNumberFromAddress(em_address - 4 * i);
+			block_num = jit.GetBlockCache()->GetBlockNumberFromAddress(em_address - 4 * i);
 			if (block_num >= 0)
 				break;
 		}
 		if (block_num >= 0) {
-			Jit64::JitBlock *block = jit.GetBlock(block_num);
+			JitBlock *block = jit.GetBlockCache()->GetBlock(block_num);
 			if (!(block->originalAddress <= em_address && block->originalSize + block->originalAddress >= em_address))
 				block_num = -1;
 		}
@@ -158,13 +158,13 @@ void CJitWindow::Compare(u32 em_address)
 			return;
 		}
 	}
-	Jit64::JitBlock *block = jit.GetBlock(block_num);
+	JitBlock *block = jit.GetBlockCache()->GetBlock(block_num);
 	
 	// 800031f0
 	// == Fill in x86 box
 
 	memset(xDis, 0, 65536);
-	const u8 *code = (const u8 *)jit.GetCompiledCodeFromBlock(block_num);
+	const u8 *code = (const u8 *)jit.GetBlockCache()->GetCompiledCodeFromBlock(block_num);
 	u64 disasmPtr = (u64)code;
 	int size = block->codeSize;
 	const u8 *end = code + size;

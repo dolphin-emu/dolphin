@@ -35,12 +35,6 @@
 
 void Console_Submit(const char *cmd)
 {
-	CASE1("jits")
-	{
-#ifdef _M_X64
-		jit.PrintStats();
-#endif
-	}
 	CASE1("r")
 	{
 		Core::StartTrace(false);
@@ -57,7 +51,7 @@ void Console_Submit(const char *cmd)
 		u32 addr;
 		sscanf(cmd, "%s %08x", temp, &addr);
 		
-		if (addr!=0)
+		if (addr)
 		{
 #ifdef LOGGING
 			u32 EA =
@@ -75,7 +69,7 @@ void Console_Submit(const char *cmd)
 		TCHAR temp[256];
 		u32 addr;
 		sscanf(cmd, "%s %08x", temp, &addr);
-		if (addr!=0)
+		if (addr)
 		{
 			g_symbolDB.PrintCalls(addr);
 		}
@@ -89,7 +83,7 @@ void Console_Submit(const char *cmd)
 		TCHAR temp[256];
 		u32 addr;
 		sscanf(cmd, "%s %08x", temp, &addr);
-		if (addr!=0)
+		if (addr)
 		{
 			g_symbolDB.PrintCallers(addr);
 		}
@@ -111,7 +105,7 @@ void Console_Submit(const char *cmd)
 		sscanf(cmd, "%s %08x %08x %s", temp, &start, &end, filename);
 
 		FILE *f = fopen(filename, "wb");
-		for (u32 i=start; i<end; i++)
+		for (u32 i = start; i < end; i++)
 		{
 			u8 b = Memory::ReadUnchecked_U8(i);
 			fputc(b,f);

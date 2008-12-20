@@ -204,7 +204,7 @@ const u8 *Jit64::BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *
 		if (info.instructionSize < 3)
 			PanicAlert("instruction too small");
 		// We entered here with a BSWAP-ed EAX. We'll have to swap it back.
-		ctx->Rax = Common::swap32(ctx->Rax);
+		ctx->Rax = Common::swap32((u32)ctx->Rax);
 		return codePtr - 2;
 	}
 	return 0;

@@ -72,7 +72,7 @@ public:
 	static bool IsTempBreakPoint(u32 _iAddress);
 
 	// AddBreakPoint
-	static void AddBreakPoint(u32 _iAddress, bool temp=false);
+	static void AddBreakPoint(u32 em_address, bool temp=false);
 
 	// Remove Breakpoint
 	static void RemoveBreakPoint(u32 _iAddress);

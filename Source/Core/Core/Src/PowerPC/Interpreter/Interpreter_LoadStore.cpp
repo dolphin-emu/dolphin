@@ -340,7 +340,7 @@ void icbi(UGeckoInstruction _inst)
 	// VERY IMPORTANT when we start linking blocks
 	// There are a TON of these so hopefully we can make this mechanism
 	// fast in the JIT
-	jit.InvalidateCodeRange(address, 0x20);
+	jit.GetBlockCache()->InvalidateCodeRange(address, 0x20);
 }
 
 void lbzux(UGeckoInstruction _inst)

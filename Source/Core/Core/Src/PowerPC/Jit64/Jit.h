@@ -71,37 +71,7 @@ public:
 
 class Jit64 : public Gen::XCodeBlock
 {
-public:
-	// TODO(ector) - optimize this struct for size
-	struct JitBlock
-	{
-		u32 exitAddress[2];  // 0xFFFFFFFF == unknown
-		u8 *exitPtrs[2];     // to be able to rewrite the exit jump
-		bool linkStatus[2];
-
-		u32 originalAddress;
-		u32 originalFirstOpcode; //to be able to restore
-		u32 codeSize; 
-		u32 originalSize;
-		int runCount;  // for profiling.
-#ifdef _WIN32
-		// we don't really need to save start and stop
-		// TODO (mb2): ticStart and ticStop -> "local var" mean "in block" ... low priority ;)
-		LARGE_INTEGER ticStart;		// for profiling - time.
-		LARGE_INTEGER ticStop;		// for profiling - time.
-		LARGE_INTEGER ticCounter;	// for profiling - time.
-#endif
-		const u8 *checkedEntry;
-		bool invalid;
-		int flags;
-	};
 private:
-	enum BlockFlag
-	{
-		BLOCK_USE_GQR0 = 0x1, BLOCK_USE_GQR1 = 0x2, BLOCK_USE_GQR2 = 0x4, BLOCK_USE_GQR3 = 0x8,
-		BLOCK_USE_GQR4 = 0x10, BLOCK_USE_GQR5 = 0x20, BLOCK_USE_GQR6 = 0x40, BLOCK_USE_GQR7 = 0x80,
-	};
-	
 	struct JitState
 	{
 		u32 compilerPC;
@@ -139,20 +109,14 @@ private:
 		bool accurateSinglePrecision;
 	};
 
-
+	JitBlockCache blocks;
 	TrampolineCache trampolines;
 	GPRRegCache gpr;
 	FPURegCache fpr;
 
-	u8 **blockCodePointers;
-
-	std::multimap<u32, int> links_to;
-
-	JitBlock *blocks;
-	int numBlocks;
-
 public:
-	typedef void (*CompiledCode)();
+	Jit64() {blocks.SetJit(this);}
+	~Jit64() {}
 
 	JitState js;
 	JitOptions jo;
@@ -162,39 +126,23 @@ public:
 	void Init();
 	void Shutdown();
 
-	void PrintStats();
-
 	// Jit!
 
-	const u8* Jit(u32 emaddress);
+	const u8 *Jit(u32 emAddress);  // calls blocks.Jit, which in turn calls DoJit below after setting up a block.
 	const u8* DoJit(u32 emaddress, JitBlock &b);
+
+	JitBlockCache *GetBlockCache() { return &blocks; }
+
+	void ClearCache() 
+	{
+		blocks.Clear();
+		trampolines.ClearCodeSpace();
+	}
 
 	// Run!
 
 	void EnterFastRun();
 	const u8 *BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx);
-
-	// Code Cache
-
-	u32 GetOriginalCode(u32 address);
-	JitBlock *GetBlock(int no);
-	void InvalidateCodeRange(u32 address, u32 length);
-	int GetBlockNumberFromAddress(u32 address);
-	CompiledCode GetCompiledCode(u32 address);
-	CompiledCode GetCompiledCodeFromBlock(int blockNumber);
-	int GetCodeSize();
-	int GetNumBlocks();
-	u8 **GetCodePointers();
-	void DestroyBlocksWithFlag(BlockFlag death_flag);
-	void LinkBlocks();
-	void LinkBlockExits(int i);
-	void LinkBlock(int i);
-	void ClearCache();
-	void InitCache();
-	void ShutdownCache();
-	void ResetCache();
-	void DestroyBlock(int blocknum, bool invalidate);
-	bool RangeIntersect(int s1, int e1, int s2, int e2) const;
 
 #define JIT_OPCODE 0
 

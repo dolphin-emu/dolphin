@@ -28,6 +28,7 @@
 #include "../HW/CPU.h"
 #include "../Host.h"
 #include "../PowerPC/SymbolDB.h"
+#include "../PowerPC/Jit64/Jit.h"
 #include "Debugger_BreakPoints.h"
 
 CBreakPoints::TBreakPoints CBreakPoints::m_BreakPoints;
@@ -90,7 +91,7 @@ TMemCheck *CBreakPoints::GetMemCheck(u32 address)
 		}
 		else
 		{
-			if ((*iter).StartAddress==address)
+			if ((*iter).StartAddress == address)
 				return &(*iter);
 		}
 	}
@@ -99,16 +100,17 @@ TMemCheck *CBreakPoints::GetMemCheck(u32 address)
 	return 0;
 }
 
-void CBreakPoints::AddBreakPoint(u32 _iAddress, bool temp)
+void CBreakPoints::AddBreakPoint(u32 em_address, bool temp)
 {
-	if (!IsAddressBreakPoint(_iAddress)) // only add new addresses
+	if (!IsAddressBreakPoint(em_address)) // only add new addresses
 	{
 		TBreakPoint pt; // breakpoint settings
 		pt.bOn = true;
 		pt.bTemporary = temp;
-		pt.iAddress = _iAddress;
+		pt.iAddress = em_address;
 
 		m_BreakPoints.push_back(pt);
+		// jit.NotifyBreakpoint(em_address, true);
 	}
 }
 
@@ -121,11 +123,10 @@ void CBreakPoints::RemoveBreakPoint(u32 _iAddress)
 		if ((*iter).iAddress == _iAddress)
 		{
 			m_BreakPoints.erase(iter);
+			// jit.NotifyBreakpoint(em_address, false);
 			break;
 		}
 	}
-
-	Host_UpdateBreakPointView();
 }
 
 void CBreakPoints::ClearAllBreakPoints()

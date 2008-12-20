@@ -131,18 +131,6 @@
 		}
 	}
 
-	/*
-	
-		if (js.next_inst.OPCD == 16) {  // bcx
-			if (!js.next_inst.LK && (js.next_inst.BO & BO_DONT_DECREMENT_FLAG))
-			{
-				// it's clear there's plenty of opportunity.
-				//PanicAlert("merge");
-			}
-		}
-	*/
-
-	// unsigned
 	void Jit64::cmpXX(UGeckoInstruction inst)
 	{	
 		// USES_CR

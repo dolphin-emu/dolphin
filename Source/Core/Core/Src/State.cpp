@@ -97,7 +97,7 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 	p.SetMode(PointerWrap::MODE_WRITE);
 	DoState(p);
 
-	if(bCompressed) {
+	if (bCompressed) {
 		fwrite(&sz, sizeof(int), 1, f);
 	} else {
 		int zero = 0;
@@ -105,7 +105,7 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 	}
 
 
-	if(bCompressed) {
+	if (bCompressed) {
 		if (lzo_init() != LZO_E_OK)
 			PanicAlert("Internal LZO Error - lzo_init() failed");
 		else {
@@ -163,15 +163,15 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 
 	bCompressedState = (sz != 0);
 
-	if(bCompressedState) {
+	if (bCompressedState) {
 		if (lzo_init() != LZO_E_OK)
 			PanicAlert("Internal LZO Error - lzo_init() failed");
 		else {
 			lzo_uint i = 0;
 			buffer = new u8[sz];
 			
-			for(;;) {
-				if(fread(&cur_len, 1, sizeof(int), f) == 0)
+			for (;;) {
+				if (fread(&cur_len, 1, sizeof(int), f) == 0)
 					break;
 				fread(out, 1, cur_len, f);
 
@@ -216,7 +216,8 @@ void State_Shutdown()
 	// nothing to do, here for consistency.
 }
 
-std::string MakeStateFilename(int state_number) {
+std::string MakeStateFilename(int state_number)
+{
 	return StringFromFormat(FULL_STATESAVES_DIR "%s.s%02i", Core::GetStartupParameter().GetUniqueID().c_str(), state_number);
 }
 

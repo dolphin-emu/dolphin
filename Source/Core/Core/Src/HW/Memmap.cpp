@@ -757,9 +757,9 @@ bool AreMemoryBreakpointsActivated()
 }
 
 
-u32 Read_Instruction(const u32 _Address)
+u32 Read_Instruction(const u32 em_address)
 {
-	return jit.GetOriginalCode(_Address);
+	return jit.GetBlockCache()->GetOriginalCode(em_address);
 }
 
 u32 Read_Opcode(const u32 _Address)

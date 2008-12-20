@@ -169,10 +169,8 @@ void AsmRoutineManager::Generate()
 
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
 
-	if (!jit.GetCodePointers() || !Memory::base)
-		PanicAlert("Memory::base and jit.GetCodePointers() must return valid values");
 	MOV(64, R(RBX), Imm64((u64)Memory::base));
-	MOV(64, R(R15), Imm64((u64)jit.GetCodePointers())); //It's below 2GB so 32 bits are good enough
+	MOV(64, R(R15), Imm64((u64)jit.GetBlockCache()->GetCodePointers())); //It's below 2GB so 32 bits are good enough
 	const u8 *outerLoop = GetCodePtr();
 
 		CALL((void *)&CoreTiming::Advance);
