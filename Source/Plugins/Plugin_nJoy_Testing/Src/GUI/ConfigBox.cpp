@@ -240,7 +240,7 @@ void ConfigBox::CreateGUIControls()
 		// GUI center button
 		m_JoyButtonStart[i] = new wxTextCtrl(m_Controller[i], ID_BUTTONSTART, wxT("0"), wxPoint(278, 403), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
 		m_JoyButtonStart[i]->Enable(false);
-		m_bJoyButtonCalibrate[i] = new wxButton(m_Controller[i], ID_BUTTONCALIBRATE, wxT("Calibrate"), wxPoint(297, 440), wxSize(21, 14), 0, wxDefaultValidator, wxT("Calibrate"));
+		m_bJoyButtonCalibrate[i] = new wxButton(m_Controller[i], ID_BUTTONCALIBRATE, wxT("Calibrate"), wxPoint(283, 430), wxSize(50, 20), 0, wxDefaultValidator, wxT("Calibrate"));
 		m_JoyButtonHalfpress[i] = new wxTextCtrl(m_Controller[i], ID_BUTTONHALFPRESS, wxT("0"), wxPoint(167, 424), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
 		m_JoyButtonHalfpress[i]->Enable(false);
 		m_bJoyButtonStart[i] = new wxButton(m_Controller[i], IDB_BUTTONSTART, wxEmptyString, wxPoint(297, 385), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);

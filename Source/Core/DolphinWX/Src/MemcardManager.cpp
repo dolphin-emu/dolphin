@@ -174,10 +174,10 @@ void CMemcardManager::CreateGUIControls()
 {
 	// Create the controls for both memcards
 	// Loading invalid .raw files should no longer crash the app
-	m_MemcardPath_A = new wxFilePickerCtrl(this, ID_MEMCARDPATH_A, wxEmptyString, wxT("Choose a memory card:"),
-		wxT("Raw memcards (*.raw)|*.raw"), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_FILE_MUST_EXIST|wxFLP_OPEN);
-	m_MemcardPath_B = new wxFilePickerCtrl(this, ID_MEMCARDPATH_B, wxEmptyString, wxT("Choose a memory card:"),
-		wxT("Raw memcards (*.raw)|*.raw"), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_FILE_MUST_EXIST|wxFLP_OPEN);
+	m_MemcardPath[SLOT_A] = new wxFilePickerCtrl(this, ID_MEMCARDPATH_A, wxEmptyString, wxT("Choose a memory card:"),
+		wxT("Raw memcards (*.raw)|*.raw"), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
+	m_MemcardPath[SLOT_B] = new wxFilePickerCtrl(this, ID_MEMCARDPATH_B, wxEmptyString, wxT("Choose a memory card:"),
+		wxT("Raw memcards (*.raw)|*.raw"), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
 
 	m_MemcardList[SLOT_A] = new CMemcardListCtrl(this, ID_MEMCARDLIST_A, wxDefaultPosition, wxSize(350,400),
 		wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL);
@@ -187,32 +187,32 @@ void CMemcardManager::CreateGUIControls()
 	m_MemcardList[SLOT_A]->AssignImageList(new wxImageList(96,32),wxIMAGE_LIST_SMALL);
 	m_MemcardList[SLOT_B]->AssignImageList(new wxImageList(96,32),wxIMAGE_LIST_SMALL);
 
-	t_Status_A = new wxStaticText(this, 0, wxEmptyString, wxDefaultPosition,wxDefaultSize, 0, wxEmptyString);
-	t_Status_B = new wxStaticText(this, 0, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxEmptyString);
+	t_Status[SLOT_A] = new wxStaticText(this, 0, wxEmptyString, wxDefaultPosition,wxDefaultSize, 0, wxEmptyString);
+	t_Status[SLOT_B] = new wxStaticText(this, 0, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxEmptyString);
 
 	// buttons
-	m_CopyFrom_A = new wxButton(this, ID_COPYFROM_A, wxT("->Copy->"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_CopyFrom_B = new wxButton(this, ID_COPYFROM_B, wxT("<-Copy<-"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_CopyFrom[SLOT_A] = new wxButton(this, ID_COPYFROM_A, wxT("->Copy->"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_CopyFrom[SLOT_B] = new wxButton(this, ID_COPYFROM_B, wxT("<-Copy<-"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	
-	m_FixChecksum_A = new wxButton(this, ID_FIXCHECKSUM_A, wxT("<-Fix Checksum"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_FixChecksum_B = new wxButton(this, ID_FIXCHECKSUM_B, wxT("Fix Checksum->"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_FixChecksum[SLOT_A] = new wxButton(this, ID_FIXCHECKSUM_A, wxT("<-Fix Checksum"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_FixChecksum[SLOT_B] = new wxButton(this, ID_FIXCHECKSUM_B, wxT("Fix Checksum->"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	m_SaveImport_A = new wxButton(this, ID_SAVEIMPORT_A, wxT("<-Import GCI"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_SaveImport_B = new wxButton(this, ID_SAVEIMPORT_B, wxT("Import GCI->"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_SaveImport[SLOT_A] = new wxButton(this, ID_SAVEIMPORT_A, wxT("<-Import GCI"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_SaveImport[SLOT_B] = new wxButton(this, ID_SAVEIMPORT_B, wxT("Import GCI->"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	
-	m_SaveExport_A = new wxButton(this, ID_SAVEEXPORT_A, wxT("<-Export GCI"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_SaveExport_B = new wxButton(this, ID_SAVEEXPORT_B, wxT("Export GCI->"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_SaveExport[SLOT_A] = new wxButton(this, ID_SAVEEXPORT_A, wxT("<-Export GCI"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_SaveExport[SLOT_B] = new wxButton(this, ID_SAVEEXPORT_B, wxT("Export GCI->"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	m_ConvertToGci = new wxButton(this, ID_CONVERTTOGCI, wxT("Convert to GCI"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	m_Delete_A = new wxButton(this, ID_DELETE_A, wxT("<-Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Delete_B = new wxButton(this, ID_DELETE_B, wxT("Delete->"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Delete[SLOT_A] = new wxButton(this, ID_DELETE_A, wxT("<-Delete"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Delete[SLOT_B] = new wxButton(this, ID_DELETE_B, wxT("Delete->"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	m_PrevPage_A = new wxButton(this, ID_PREVPAGE_A, wxT("Prev Page"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_PrevPage_B = new wxButton(this, ID_PREVPAGE_B, wxT("Prev Page"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_PrevPage[SLOT_A] = new wxButton(this, ID_PREVPAGE_A, wxT("Prev Page"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_PrevPage[SLOT_B] = new wxButton(this, ID_PREVPAGE_B, wxT("Prev Page"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	m_NextPage_A = new wxButton(this, ID_NEXTPAGE_A, wxT("Next Page"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_NextPage_B = new wxButton(this, ID_NEXTPAGE_B, wxT("Next Page"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_NextPage[SLOT_A] = new wxButton(this, ID_NEXTPAGE_A, wxT("Next Page"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_NextPage[SLOT_B] = new wxButton(this, ID_NEXTPAGE_B, wxT("Next Page"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	
 	// Sizers that double as wxStaticBoxes
 	sMemcard_A = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Memory Card A"));
@@ -222,40 +222,40 @@ void CMemcardManager::CreateGUIControls()
 	wxBoxSizer* sButtons;
 	sButtons = new wxBoxSizer(wxVERTICAL);
 	sButtons->AddStretchSpacer(2);
-	sButtons->Add(m_CopyFrom_B, 0, wxEXPAND, 5);
-	sButtons->Add(m_CopyFrom_A, 0, wxEXPAND, 5);
+	sButtons->Add(m_CopyFrom[SLOT_B], 0, wxEXPAND, 5);
+	sButtons->Add(m_CopyFrom[SLOT_A], 0, wxEXPAND, 5);
 	sButtons->AddStretchSpacer(1);
-	sButtons->Add(m_FixChecksum_A, 0, wxEXPAND, 5);
-	sButtons->Add(m_FixChecksum_B, 0, wxEXPAND, 5);
+	sButtons->Add(m_FixChecksum[SLOT_A], 0, wxEXPAND, 5);
+	sButtons->Add(m_FixChecksum[SLOT_B], 0, wxEXPAND, 5);
 	sButtons->AddStretchSpacer(1);
-	sButtons->Add(m_SaveImport_A, 0, wxEXPAND, 5);
-	sButtons->Add(m_SaveExport_A, 0, wxEXPAND, 5);
+	sButtons->Add(m_SaveImport[SLOT_A], 0, wxEXPAND, 5);
+	sButtons->Add(m_SaveExport[SLOT_A], 0, wxEXPAND, 5);
 	sButtons->AddStretchSpacer(1);
 	sButtons->Add(m_ConvertToGci, 0, wxEXPAND, 5);
 	sButtons->AddStretchSpacer(1);
-	sButtons->Add(m_SaveImport_B, 0, wxEXPAND, 5);
-	sButtons->Add(m_SaveExport_B, 0, wxEXPAND, 5);
+	sButtons->Add(m_SaveImport[SLOT_B], 0, wxEXPAND, 5);
+	sButtons->Add(m_SaveExport[SLOT_B], 0, wxEXPAND, 5);
 	sButtons->AddStretchSpacer(1);
-	sButtons->Add(m_Delete_A, 0, wxEXPAND, 5);
-	sButtons->Add(m_Delete_B, 0, wxEXPAND, 5);
+	sButtons->Add(m_Delete[SLOT_A], 0, wxEXPAND, 5);
+	sButtons->Add(m_Delete[SLOT_B], 0, wxEXPAND, 5);
 	sButtons->AddStretchSpacer(1);
 
 	sPages_A = new wxBoxSizer(wxHORIZONTAL);
 	sPages_B = new wxBoxSizer(wxHORIZONTAL);
 	
-	sPages_A->Add(m_PrevPage_A, 0, wxEXPAND|wxALL, 1);
-	sPages_A->Add(t_Status_A,0, wxEXPAND|wxALL, 5);
+	sPages_A->Add(m_PrevPage[SLOT_A], 0, wxEXPAND|wxALL, 1);
+	sPages_A->Add(t_Status[SLOT_A],0, wxEXPAND|wxALL, 5);
 	sPages_A->Add(0, 0, 1, wxEXPAND|wxALL, 0);
-	sPages_A->Add(m_NextPage_A, 0, wxEXPAND|wxALL, 1);
-	sPages_B->Add(m_PrevPage_B, 0, wxEXPAND|wxALL, 1);
-	sPages_B->Add(t_Status_B, 0, wxEXPAND|wxALL, 5);
+	sPages_A->Add(m_NextPage[SLOT_A], 0, wxEXPAND|wxALL, 1);
+	sPages_B->Add(m_PrevPage[SLOT_B], 0, wxEXPAND|wxALL, 1);
+	sPages_B->Add(t_Status[SLOT_B], 0, wxEXPAND|wxALL, 5);
 	sPages_B->Add(0, 0, 1, wxEXPAND|wxALL, 0);
-	sPages_B->Add(m_NextPage_B, 0, wxEXPAND|wxALL, 1);
+	sPages_B->Add(m_NextPage[SLOT_B], 0, wxEXPAND|wxALL, 1);
 
-	sMemcard_A->Add(m_MemcardPath_A, 0, wxEXPAND|wxALL, 5);
+	sMemcard_A->Add(m_MemcardPath[SLOT_A], 0, wxEXPAND|wxALL, 5);
 	sMemcard_A->Add(m_MemcardList[SLOT_A], 1, wxEXPAND|wxALL, 5);
 	sMemcard_A->Add(sPages_A, 0, wxEXPAND|wxALL, 1);
-	sMemcard_B->Add(m_MemcardPath_B, 0, wxEXPAND|wxALL, 5);
+	sMemcard_B->Add(m_MemcardPath[SLOT_B], 0, wxEXPAND|wxALL, 5);
 	sMemcard_B->Add(m_MemcardList[SLOT_B], 1, wxEXPAND|wxALL, 5);
 	sMemcard_B->Add(sPages_B, 0, wxEXPAND|wxALL, 1);
 
@@ -268,20 +268,21 @@ void CMemcardManager::CreateGUIControls()
 	sMain->SetSizeHints(this);
 	Fit();
 
-	m_PrevPage_A->Disable();
-	m_NextPage_A->Disable();
-	m_PrevPage_B->Disable();
-	m_NextPage_B->Disable();
-	m_CopyFrom_A->Disable();
-	m_CopyFrom_B->Disable();
-	m_FixChecksum_A->Disable();
-	m_FixChecksum_B->Disable();
-	m_SaveImport_A->Disable();
-	m_SaveExport_A->Disable();
-	m_SaveImport_B->Disable();
-	m_SaveExport_B->Disable();
-	m_Delete_A->Disable();
-	m_Delete_B->Disable();
+	m_PrevPage[SLOT_A]->Disable();
+	m_NextPage[SLOT_A]->Disable();
+	m_PrevPage[SLOT_B]->Disable();
+	m_NextPage[SLOT_B]->Disable();
+	m_CopyFrom[SLOT_A]->Disable();
+	m_CopyFrom[SLOT_B]->Disable();
+	m_FixChecksum[SLOT_A]->Disable();
+	m_FixChecksum[SLOT_B]->Disable();
+	m_SaveImport[SLOT_A]->Disable();
+	m_SaveExport[SLOT_A]->Disable();
+	m_SaveImport[SLOT_B]->Disable();
+	m_SaveExport[SLOT_B]->Disable();
+	m_Delete[SLOT_A]->Disable();
+	m_Delete[SLOT_B]->Disable();
+
 }
 
 void CMemcardManager::OnClose(wxCloseEvent& WXUNUSED (event))
@@ -291,158 +292,101 @@ void CMemcardManager::OnClose(wxCloseEvent& WXUNUSED (event))
 
 void CMemcardManager::OnPathChange(wxFileDirPickerEvent& event)
 {
+	int slot = SLOT_B;
+	int slot2 = SLOT_A;
 	switch (event.GetId())
 	{
 	case ID_MEMCARDPATH_A:
-		pageA = FIRSTPAGE;
-		if (m_MemcardList[SLOT_A]->usePages && m_PrevPage_A->IsEnabled())
-		{
-			m_PrevPage_A->Disable();
-			m_MemcardList[SLOT_A]->prevPage = false;
-		}
-		if (!strcasecmp(m_MemcardPath_A->GetPath().mb_str(), m_MemcardPath_B->GetPath().mb_str()))
-		{
-			PanicAlert(E_ALREADYOPENED);
-		}
-		else if (ReloadMemcard(event.GetPath().mb_str(), SLOT_A, pageA))
-		{
-			m_MemcardList[SLOT_B]->twoCardsLoaded = true;
-			m_FixChecksum_A->Enable();
-			m_SaveImport_A->Enable();
-			m_SaveExport_A->Enable();
-			m_Delete_A->Enable();
-			break;
-		}
-		if (memoryCard[SLOT_A])
-		{
-			delete memoryCard[SLOT_A];
-			memoryCard[SLOT_A] = NULL;
-		}
-		m_MemcardList[SLOT_B]->twoCardsLoaded = false;
-		m_MemcardPath_A->SetPath(wxEmptyString);
-		m_MemcardList[SLOT_A]->ClearAll();
-		t_Status_A->SetLabel(wxEmptyString);
-		m_FixChecksum_A->Disable();
-		m_SaveImport_A->Disable();
-		m_SaveExport_A->Disable();
-		m_Delete_A->Disable();
-		if (m_MemcardList[SLOT_A]->usePages)
-		{
-			m_PrevPage_A->Disable();
-			m_NextPage_A->Disable();
-		}
-		break;
+		slot = SLOT_A;
+		slot2 = SLOT_B;
 	case ID_MEMCARDPATH_B:
-		pageB = FIRSTPAGE;
-		if (m_MemcardList[SLOT_B]->usePages && m_PrevPage_B->IsEnabled())
+		page[slot] = FIRSTPAGE;
+		if (m_MemcardList[slot]->usePages && m_PrevPage[slot]->IsEnabled())
 		{
-			m_PrevPage_B->Disable();
-			m_MemcardList[SLOT_B]->prevPage = false;
+			m_PrevPage[slot]->Disable();
+			m_MemcardList[slot]->prevPage = false;
 		}
-		if (!strcasecmp(m_MemcardPath_A->GetPath().mb_str(), m_MemcardPath_B->GetPath().mb_str()))
+		if (!strcasecmp(m_MemcardPath[slot2]->GetPath().mb_str(), m_MemcardPath[slot]->GetPath().mb_str()))
 		{
 			PanicAlert(E_ALREADYOPENED);
 		}
-		else if (ReloadMemcard(event.GetPath().mb_str(), SLOT_B, pageB))
+		else if (ReloadMemcard(event.GetPath().mb_str(), slot))
 		{
-			m_MemcardList[SLOT_A]->twoCardsLoaded = true;
-			m_FixChecksum_B->Enable();
-			m_SaveImport_B->Enable();
-			m_SaveExport_B->Enable();
-			m_Delete_B->Enable();
+			m_MemcardList[slot2]->twoCardsLoaded = true;
+			m_FixChecksum[slot]->Enable();
+			m_SaveImport[slot]->Enable();
+			m_SaveExport[slot]->Enable();
+			m_Delete[slot]->Enable();
 			break;
 		}
-		if (memoryCard[SLOT_B])
+		if (memoryCard[slot])
 		{
-			delete memoryCard[SLOT_B];
-			memoryCard[SLOT_B] = NULL;
+			delete memoryCard[slot];
+			memoryCard[slot] = NULL;
 		}
-		m_MemcardList[SLOT_A]->twoCardsLoaded = false;
-		m_MemcardPath_B->SetPath(wxEmptyString);
-		m_MemcardList[SLOT_B]->ClearAll();
-		t_Status_B->SetLabel(wxEmptyString);
-		m_FixChecksum_B->Disable();
-		m_SaveImport_B->Disable();
-		m_SaveExport_B->Disable();
-		m_Delete_B->Disable();
-		if (m_MemcardList[SLOT_B]->usePages)
+		m_MemcardList[slot2]->twoCardsLoaded = false;
+		m_MemcardPath[slot]->SetPath(wxEmptyString);
+		m_MemcardList[slot]->ClearAll();
+		t_Status[slot]->SetLabel(wxEmptyString);
+		m_FixChecksum[slot]->Disable();
+		m_SaveImport[slot]->Disable();
+		m_SaveExport[slot]->Disable();
+		m_Delete[slot]->Disable();
+		if (m_MemcardList[slot]->usePages)
 		{
-			m_PrevPage_B->Disable();
-			m_NextPage_B->Disable();
+			m_PrevPage[slot]->Disable();
+			m_NextPage[slot]->Disable();
 		}
 		break;
 	}
-	if (m_Delete_B->IsEnabled() && m_Delete_A->IsEnabled())
+	if (m_Delete[slot]->IsEnabled() && m_Delete[slot2]->IsEnabled())
 	{
-		m_CopyFrom_A->Enable();
-		m_CopyFrom_B->Enable();
+		m_CopyFrom[SLOT_A]->Enable();
+		m_CopyFrom[SLOT_B]->Enable();
 	}
 	else
 	{
-		m_CopyFrom_A->Disable();
-		m_CopyFrom_B->Disable();
+		m_CopyFrom[SLOT_A]->Disable();
+		m_CopyFrom[SLOT_B]->Disable();
 	}
 }
 
 void CMemcardManager::OnPageChange(wxCommandEvent& event)
 {
+	int slot = SLOT_B;
 	switch (event.GetId())
 	{
 	case ID_NEXTPAGE_A:
-		if (!m_PrevPage_A->IsEnabled())
-		{
-			m_PrevPage_A->Enable();
-			m_MemcardList[SLOT_A]->prevPage = true;
-		}
-		pageA++;
-		if (pageA == maxPages)
-		{
-			m_NextPage_A->Disable();
-			m_MemcardList[SLOT_A]->nextPage = false;
-		}
-		ReloadMemcard(m_MemcardPath_A->GetPath().mb_str(), SLOT_A, pageA);
-		break;
+		slot = SLOT_A;
 	case ID_NEXTPAGE_B:
-		if (!m_PrevPage_B->IsEnabled())
+		if (!m_PrevPage[slot]->IsEnabled())
 		{
-			m_PrevPage_B->Enable();
-			m_MemcardList[SLOT_B]->prevPage = true;
+			m_PrevPage[slot]->Enable();
+			m_MemcardList[slot]->prevPage = true;
 		}
-		pageB++;
-		if (pageB == maxPages)
+		page[slot]++;
+		if (page[slot] == maxPages)
 		{
-			m_NextPage_B->Disable();
-			m_MemcardList[SLOT_B]->nextPage = false;
+			m_NextPage[slot]->Disable();
+			m_MemcardList[slot]->nextPage = false;
 		}
-		ReloadMemcard(m_MemcardPath_B->GetPath().mb_str(), SLOT_B, pageB);
+		ReloadMemcard(m_MemcardPath[slot]->GetPath().mb_str(), slot);
 		break;
 	case ID_PREVPAGE_A:
-		if (!m_NextPage_A->IsEnabled())
-		{
-			m_NextPage_A->Enable();
-			m_MemcardList[SLOT_A]->nextPage = true;
-		}
-		pageA--;
-		if (!pageA)
-		{
-			m_PrevPage_A->Disable();
-			m_MemcardList[SLOT_A]->prevPage = false;
-		}
-		ReloadMemcard(m_MemcardPath_A->GetPath().mb_str(), SLOT_A, pageA);
-		break;
+		slot = SLOT_A;
 	case ID_PREVPAGE_B:
-		if (!m_NextPage_B->IsEnabled())
+		if (!m_NextPage[slot]->IsEnabled())
 		{
-			m_NextPage_B->Enable();
-			m_MemcardList[SLOT_B]->nextPage = true;
+			m_NextPage[slot]->Enable();
+			m_MemcardList[slot]->nextPage = true;
 		}
-		pageB--;
-		if (!pageB)
+		page[slot]--;
+		if (!page[slot])
 		{
-			m_PrevPage_B->Disable();
-			m_MemcardList[SLOT_B]->prevPage = false;
+			m_PrevPage[slot]->Disable();
+			m_MemcardList[slot]->prevPage = false;
 		}
-		ReloadMemcard(m_MemcardPath_B->GetPath().mb_str(), SLOT_B, pageB);
+		ReloadMemcard(m_MemcardPath[slot]->GetPath().mb_str(), slot);
 		break;
 	}
 }
@@ -455,11 +399,11 @@ void CMemcardManager::OnMenuChange(wxCommandEvent& event)
 		m_MemcardList[SLOT_B]->usePages = !m_MemcardList[SLOT_B]->usePages;
 		if (!m_MemcardList[SLOT_A]->usePages)
 		{
-			m_PrevPage_A->Disable();
-			m_PrevPage_B->Disable();
-			m_NextPage_A->Disable();
-			m_NextPage_B->Disable();
-			pageA = pageB = FIRSTPAGE;
+			m_PrevPage[SLOT_A]->Disable();
+			m_PrevPage[SLOT_B]->Disable();
+			m_NextPage[SLOT_A]->Disable();
+			m_NextPage[SLOT_B]->Disable();
+			page[SLOT_A] = page[SLOT_B] = FIRSTPAGE;
 		}
 	}
 	else
@@ -467,13 +411,12 @@ void CMemcardManager::OnMenuChange(wxCommandEvent& event)
 		m_MemcardList[SLOT_A]->column[event.GetId()] = !m_MemcardList[SLOT_A]->column[event.GetId()];
 		m_MemcardList[SLOT_B]->column[event.GetId()] = !m_MemcardList[SLOT_B]->column[event.GetId()];
 	}
-	if (memoryCard[SLOT_A])	ReloadMemcard(m_MemcardPath_A->GetPath().mb_str(), SLOT_A, pageA);
-	if (memoryCard[SLOT_B])	ReloadMemcard(m_MemcardPath_B->GetPath().mb_str(), SLOT_B, pageB);
+	if (memoryCard[SLOT_A])	ReloadMemcard(m_MemcardPath[SLOT_A]->GetPath().mb_str(), SLOT_A);
+	if (memoryCard[SLOT_B])	ReloadMemcard(m_MemcardPath[SLOT_B]->GetPath().mb_str(), SLOT_B);
 
 }
 bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 {
-	wxString blocksOpen;
 	switch (error)
 	{
 	case GCS:
@@ -484,8 +427,8 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 		{
 			memoryCard[slot]->FixChecksums();
 			if (!memoryCard[slot]->Save()) PanicAlert(E_SAVEFAILED);
-			slot == SLOT_B ? ReloadMemcard(m_MemcardPath_B->GetPath().mb_str(), slot, FIRSTPAGE)
-				: ReloadMemcard(m_MemcardPath_A->GetPath().mb_str(), slot, FIRSTPAGE);
+			page[slot] = FIRSTPAGE;
+			ReloadMemcard(m_MemcardPath[slot]->GetPath().mb_str(), slot);
 		}
 		break;
 	case NOMEMCARD:
@@ -500,8 +443,7 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 			PanicAlert(E_UNK);
 			break;
 		}
-		blocksOpen.Printf(wxT(E_OUTOFBLOCKS), memoryCard[slot]->GetFreeBlocks());
-		PanicAlert(blocksOpen.ToAscii());
+		PanicAlert(wxString::Format(wxT(E_OUTOFBLOCKS), memoryCard[slot]->GetFreeBlocks()));
 		break;
 	case OUTOFDIRENTRIES:
 		PanicAlert(E_OUTOFDIRENTRIES);
@@ -545,8 +487,8 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	int index = index_B;
 	std::string fileName2("");
 
-	if (index_A != wxNOT_FOUND && pageA) index_A += itemsPerPage * pageA;
-	if (index_B != wxNOT_FOUND && pageB) index_B += itemsPerPage * pageB;
+	if (index_A != wxNOT_FOUND && page[SLOT_A]) index_A += itemsPerPage * page[SLOT_A];
+	if (index_B != wxNOT_FOUND && page[SLOT_B]) index_B += itemsPerPage * page[SLOT_B];
 
 	switch (event.GetId())
 	{
@@ -640,7 +582,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	}
 }
 
-bool CMemcardManager::ReloadMemcard(const char *fileName, int card, int page)
+bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 {	
 	wxString wxBlock;
 	wxString wxFirstBlock;
@@ -652,7 +594,7 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card, int page)
 	// TODO: add error checking and animate icons
 	memoryCard[card] = new GCMemcard(fileName);
 
-	if (ReadError(memoryCard[card])) return false;
+	if (memoryCard[card]->fail) return false;
 
 	m_MemcardList[card]->Hide();
 	m_MemcardList[card]->ClearAll();
@@ -719,8 +661,8 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card, int page)
 		}
 	}
 	int pagesMax = 128;
-	if (m_MemcardList[card]->usePages) pagesMax = (page + 1) * itemsPerPage;
-	for (j = page * itemsPerPage;(j < nFiles) && (j < pagesMax);j++)
+	if (m_MemcardList[card]->usePages) pagesMax = (page[card] + 1) * itemsPerPage;
+	for (j = page[card] * itemsPerPage;(j < nFiles) && (j < pagesMax);j++)
 	{
 		char title[32];
 		char comment[32];
@@ -755,29 +697,13 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card, int page)
 	{
 		if ((j == nFiles))
 		{
-			if (card)
-			{
-				m_NextPage_B->Disable();
-				m_MemcardList[SLOT_B]->nextPage = false;
-			}
-			else
-			{
-				m_NextPage_A->Disable();
-				m_MemcardList[SLOT_A]->nextPage = false;
-			}
+			m_NextPage[card]->Disable();
+			m_MemcardList[card]->nextPage = false;
 		}
 		else
 		{
-			if (card)
-			{
-				m_NextPage_B->Enable();
-				m_MemcardList[SLOT_B]->nextPage = true;
-			}
-			else
-			{
-				m_NextPage_A->Enable();
-				m_MemcardList[SLOT_A]->nextPage = true;
-			}
+			m_NextPage[card]->Enable();
+			m_MemcardList[card]->nextPage = true;
 		}
 	}
 
@@ -794,26 +720,8 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card, int page)
 	m_MemcardList[card]->Show();
 	wxLabel.Printf(wxT("%d Free Blocks; %d Free Dir Entries"),
 		memoryCard[card]->GetFreeBlocks(), 127 - nFiles);
-	card ? t_Status_B->SetLabel(wxLabel) : t_Status_A->SetLabel(wxLabel);
+	t_Status[card]->SetLabel(wxLabel);
 
-	return true;
-}
-
-bool CMemcardManager::ReadError(GCMemcard *memcard)
-{
-	if (!memcard->fail[0]) return false;
-	wxString wxBlock;
-	if (memcard->fail[HDR_READ_ERROR]) PanicAlert("Failed to read header correctly\n(0x0000-0x1FFF)");
-	if (memcard->fail[DIR_READ_ERROR]) PanicAlert("Failed to read directory correctly\n(0x2000-0x3FFF)");
-	if (memcard->fail[DIR_BAK_READ_ERROR]) PanicAlert("Failed to read directory backup correctly\n(0x4000-0x5FFF)");
-	if (memcard->fail[BAT_READ_ERROR]) PanicAlert("Failed to read block allocation table correctly\n(0x6000-0x7FFF)");
-	if (memcard->fail[BAT_BAK_READ_ERROR]) PanicAlert("Failed to read block allocation table backup correctly\n(0x8000-0x9FFF)");
-	if (memcard->fail[HDR_CSUM_FAIL]) PanicAlert("Header checksum failed");
-	if (memcard->fail[DIR_CSUM_FAIL]) PanicAlert("Directory checksum failed\n and Directory backup checksum failed");
-	if (memcard->fail[BAT_CSUM_FAIL]) PanicAlert("Block Allocation Table checksum failed");
-	if (memcard->fail[DATA_READ_FAIL]) PanicAlert("Failed to read save data\n(0xA000-)\nMemcard may be truncated");
-	if (memcard->fail[HDR_SIZE_FFFF]) PanicAlert("Memcard failed to load\n Card size is invalid");
-	if (memcard->fail[NOTRAWORGCP]) PanicAlert("File does not have a valid extension (.raw/.gcp)");
 	return true;
 }
 

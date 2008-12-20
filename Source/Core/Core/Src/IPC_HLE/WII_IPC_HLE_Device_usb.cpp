@@ -394,7 +394,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	// Why do we need this? 0 worked with the emulated wiimote in all games I tried
 	static int counter = 1000;
 
-	if (test && !stricmp(m_LocalName, "Wii") && (m_ScanEnable & 0x2))
+	if (test && !strcasecmp(m_LocalName, "Wii") && (m_ScanEnable & 0x2))
 	{
 		counter--;
 		if (counter < 0)

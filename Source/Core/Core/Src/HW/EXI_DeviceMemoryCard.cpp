@@ -30,6 +30,7 @@
 #define MC_STATUS_ERASEERROR			0x10
 #define MC_STATUS_PROGRAMEERROR			0x08
 #define MC_STATUS_READY					0x01
+#define SIZE_TO_Mb 1024 * 8 * 16
 
 static CEXIMemoryCard *cards[2];
 
@@ -75,36 +76,10 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 		fseek(pFile, 0L, SEEK_END);
 		u64 MemFileSize = ftell(pFile);
 		fseek(pFile, 0L, SEEK_SET);
-  
-		switch ((MemFileSize / (8 * 1024)) - 5) // Convert the filesize in bytes to the "nintendo-size"
-		{
-		case 59:
-			nintendo_card_id = 0x00000004;
-			memory_card_size = 512 * 1024;
-			break;
-		case 123:
-			nintendo_card_id = 0x00000008;
-			memory_card_size = 1024 * 1024;
-			break;
-		case 251:
-			nintendo_card_id = 0x00000010;
-			memory_card_size = 2 * 1024 * 1024;
-			break;
-		case 507:
-			nintendo_card_id = 0x00000020;
-			memory_card_size = 4 * 1024 * 1024;
-			break;
-		case 1019:
-			nintendo_card_id = 0x00000040;
-			memory_card_size = 8 * 1024 * 1024;
-			break;
-		case 2043:
-		default:
-			nintendo_card_id = 0x00000080;
-			memory_card_size = 16 * 1024 * 1024;
-			break;
-		}
- 
+
+		memory_card_size = (int)MemFileSize;
+		nintendo_card_id = memory_card_size / SIZE_TO_Mb;
+
 		memory_card_content = new u8[memory_card_size];
 		memset(memory_card_content, 0xFF, memory_card_size);
  
@@ -116,7 +91,7 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 	{
 		// Create a new 128Mb memcard
 		nintendo_card_id = 0x00000080;
-		memory_card_size = 16 * 1024 * 1024;
+		memory_card_size = nintendo_card_id * SIZE_TO_Mb;
 
 		memory_card_content = new u8[memory_card_size];
 		memset(memory_card_content, 0xFF, memory_card_size);

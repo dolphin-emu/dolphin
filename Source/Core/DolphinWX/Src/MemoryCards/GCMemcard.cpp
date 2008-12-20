@@ -29,16 +29,6 @@ void ByteSwap(u8 *valueA, u8 *valueB)
 	*valueB = tmp;
 }
 
-u16 __inline bswap16(u16 s)
-{
-	return (s>>8) | (s<<8);
-}
-
-u32 __inline bswap32(u32 s)
-{
-	return (u32)bswap16((u16)(s>>16)) | ((u32)bswap16((u16)s)<<16);
-}
-
 u32 decode5A3(u16 val)
 {
 	const int lut5to8[] = { 0x00,0x08,0x10,0x18,0x20,0x29,0x31,0x39,
@@ -77,7 +67,7 @@ void decode5A3image(u32* dst, u16* src, int width, int height)
 			{
 				for (int ix = 0; ix < 4; ix++)
 				{
-					u32 RGBA = decode5A3(bswap16(src[ix]));
+					u32 RGBA = decode5A3(Common::swap16(src[ix]));
 					dst[(y + iy) * width + (x + ix)] = RGBA;
 				}
 			}
@@ -96,7 +86,7 @@ void decodeCI8image(u32* dst, u8* src, u16* pal, int width, int height)
 				u32 *tdst = dst+(y+iy)*width+x;
 				for (int ix = 0; ix < 8; ix++)
 				{
-					tdst[ix] = decode5A3(bswap16(pal[src[ix]]));
+					tdst[ix] = decode5A3(Common::swap16(pal[src[ix]]));
 				}
 			}
 		}
@@ -105,52 +95,69 @@ void decodeCI8image(u32* dst, u8* src, u16* pal, int width, int height)
 
 GCMemcard::GCMemcard(const char *filename)
 {
-	FILE *mcd = fopen(filename,"r+b");
+	FILE *mcd = fopen(filename, "r+b");
 	mcdFile = mcd;
-	fail[0] = true;
-	if (!mcd) return;
-
-	for(int i=0;i<FAILLAST;i++)fail[i]=false;
-
-	//This function can be removed once more about hdr is known and we can check for a valid header
-	std::string fileType;
-	SplitPath(filename, NULL, NULL, &fileType);
-	if (strcasecmp(fileType.c_str(), ".raw") && strcasecmp(fileType.c_str(), ".gcp"))
+	fail = false;
+	if (!mcd)
 	{
-		fail[0] = true;
-		fail[NOTRAWORGCP] = true;
-		return;
+		if (!PanicYesNo("File does not exist.\n Create a new 16MB Memcard?"))
+		{
+			fail = true;
+			return;
+		}
+		mcd = fopen(filename, "wb");
+		if (!mcd)
+		{
+			fail = true;
+			return;
+		}
+		mcdFile = mcd;
+		format(true);
+		fclose(mcd);
+		mcd = fopen(filename, "r+b");
+	}
+	else
+	{
+	//This function can be removed once more about hdr is known and we can check for a valid header
+		std::string fileType;
+		SplitPath(filename, NULL, NULL, &fileType);
+		if (strcasecmp(fileType.c_str(), ".raw") && strcasecmp(fileType.c_str(), ".gcp"))
+		{
+			fail = true;
+			PanicAlert("File does not have a valid extension (.raw/.gcp)");
+			return;
+		}
 	}
 
 	fseek(mcd, 0x0000, SEEK_SET);
 	if (fread(&hdr, 1, 0x2000, mcd) != 0x2000)
 	{
-		fail[0] = true;
-		fail[HDR_READ_ERROR] = true;
+		fail = true;
+		PanicAlert("Failed to read header correctly\n(0x0000-0x1FFF)");
 		return;
 	}
 	if (fread(&dir, 1, 0x2000, mcd) != 0x2000)
 	{
-		fail[0] = true;
-		fail[DIR_READ_ERROR] = true;
+		fail = true;
+		PanicAlert("Failed to read directory correctly\n(0x2000-0x3FFF)");
 		return;
 	}
 	if (fread(&dir_backup, 1, 0x2000, mcd) != 0x2000)
 	{
-		fail[0] = true;
-		fail[DIR_BAK_READ_ERROR] = true;
+		fail = true;
+		PanicAlert("Failed to read directory backup correctly\n(0x4000-0x5FFF)");
 		return;
 	}
 	if (fread(&bat, 1, 0x2000, mcd) != 0x2000)
 	{
-		fail[0] = true;
-		fail[BAT_READ_ERROR] = true;
+		fail = true;
+		PanicAlert("Failed to read block allocation table correctly\n(0x6000-0x7FFF)");
 		return;
 	}
 	if (fread(&bat_backup, 1, 0x2000, mcd) != 0x2000)
 	{
-		fail[0] = true;
-		fail[BAT_BAK_READ_ERROR] = true;
+		fail = true;
+		PanicAlert("Failed to read block allocation table backup correctly\n(0x8000-0x9FFF)");
 		return;
 	}
 
@@ -160,8 +167,8 @@ GCMemcard::GCMemcard(const char *filename)
 	{
 		// header checksum error!
 		// invalid files do not always get here
-		fail[0] = true;
-		fail[HDR_CSUM_FAIL] = true;
+		fail = true;
+		PanicAlert("Header checksum failed");
 		return;
 	}
 
@@ -170,8 +177,8 @@ GCMemcard::GCMemcard(const char *filename)
 		if (csums&4)
 		{
 			// backup is also wrong!
-			fail[0] = true;
-			fail[DIR_CSUM_FAIL] = true;
+			fail = true;
+			PanicAlert("Directory checksum failed\n and Directory backup checksum failed");
 			return;
 		}
 		else
@@ -190,8 +197,8 @@ GCMemcard::GCMemcard(const char *filename)
 		if (csums&16)
 		{
 			// backup is also wrong!
-			fail[0] = true;
-			fail[BAT_CSUM_FAIL] = true;
+			fail = true;
+			PanicAlert("Block Allocation Table checksum failed");
 			return;
 		}
 		else
@@ -227,14 +234,14 @@ GCMemcard::GCMemcard(const char *filename)
 		size_t read = fread(mc_data, 1, mc_data_size, mcd);
 		if (mc_data_size != read)
 		{
-			fail[0] = true;
-			fail[DATA_READ_FAIL] = true;
+			fail = true;
+			PanicAlert("Failed to read save data\n(0xA000-)\nMemcard may be truncated");
 		}
 	}
 	else
 	{
-		fail[0] = true;
-		fail[HDR_SIZE_FFFF] = true;
+		fail = true;
+		PanicAlert("Memcard failed to load\n Card size is invalid");
 	}
 }
 
@@ -269,8 +276,8 @@ void GCMemcard::calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2)
 	for (u32 i = 0; i < num; ++i)
 	{
 		//weird warnings here
-		*c1 += bswap16(buf[i]);
-		*c2 += bswap16((u16)(buf[i] ^ 0xffff));
+		*c1 += Common::swap16(buf[i]);
+		*c2 += Common::swap16((u16)(buf[i] ^ 0xffff));
 	}
 	if (*c1 == 0xffff)
 	{
@@ -496,7 +503,7 @@ u32 GCMemcard::GetFileData(u32 index, u8* dest, bool old) //index in the directo
 			memcpy(dest,mc_data + 0x2000 * (block - 5), 0x2000);
 			dest+=0x2000;
 
-			u16 nextblock = bswap16(bat.Map[block - 5]);
+			u16 nextblock = Common::swap16(bat.Map[block - 5]);
 			if (block + saveLength != memcardSize && nextblock > 0)
 			{//Fixes for older memcards that were not initialized with FF
 				block = nextblock;
@@ -570,7 +577,7 @@ u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 	int j = 2;
 	while(j < BE16(direntry.BlockCount) + 1)
 	{
-		bat_backup.Map[i] = bswap16(last + (u16)j);
+		bat_backup.Map[i] = Common::swap16(last + (u16)j);
 		i++;
 		j++;
 	}
@@ -985,3 +992,84 @@ u32 GCMemcard::ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays)
 	return frames;
 }
 
+
+bool GCMemcard::format(bool New)
+{
+	u32 data_size = 0x2000 * (0x80 * 0x10 - 5);
+	if (New)
+	{
+		mc_data_size = data_size;
+		mc_data = new u8[mc_data_size];
+	}
+	// Only Format 16MB memcards for now
+	if (data_size != mc_data_size) return false;
+	// TODO:Once more is known about the header we can
+	// correct this function
+	memset(&hdr, 0xFF, 0x2000);
+	memset(&dir, 0xFF, 0x2000);
+	memset(&dir_backup, 0xFF, 0x2000);
+	memset(&bat, 0, 0x2000);
+	memset(&bat_backup, 0, 0x2000);
+	memset(mc_data, 0xFF, mc_data_size);
+	hdr.Unk1[0] = 0xE3;
+	hdr.Unk1[1] = 0x63;
+	hdr.Unk1[2] = 0x27;
+	hdr.Unk1[3] = 0xC1;
+	hdr.Unk1[4] = 0x6B;
+	hdr.Unk1[5] = 0x11;
+	hdr.Unk1[6] = 0xEC;
+	hdr.Unk1[7] = 0x47;
+	hdr.Unk1[8] = 0xF0;
+	hdr.Unk1[9] = 0x12;
+	hdr.Unk1[10] = 0x99;
+	hdr.Unk1[11] = 0x13;
+	hdr.fmtTime.low = 0x5CB62800;
+	hdr.fmtTime.high = 0xA665E7A3;
+	hdr.SramBias[3] = 0x40;
+	hdr.Unk2[0] = 0;
+	hdr.Unk2[1] = 0;
+	hdr.Unk2[2] = 0;
+	hdr.Unk2[3] = 0;
+	hdr.Unk2[4] = 0;
+	hdr.Unk2[5] = 0;
+	hdr.Unk2[6] = 0;
+	hdr.Unk2[7] = 0x01;
+	hdr.Pad1[0] = 0;
+	hdr.Pad1[1] = 0;
+	hdr.Size[0] = 0;
+	hdr.Size[1] = 0x80;
+	hdr.Encoding[0] = 0;
+	hdr.Encoding[1] = 0;
+	//hdr.CheckSum1[0] = 0xAA;
+	//hdr.CheckSum1[1] = 0x87;
+	//hdr.CheckSum2[0] = 0x54;
+	//hdr.CheckSum2[1] = 0x7B;
+	dir.UpdateCounter[0] = 0; 
+	dir.UpdateCounter[1] = 0;
+	//dir.CheckSum1[0] = 0xF0;
+	//dir.CheckSum1[1] = 0x03;
+	//dir.CheckSum2[0] = 0;
+	//dir.CheckSum2[1] = 0;
+	dir_backup.UpdateCounter[0] = 0; 
+	dir_backup.UpdateCounter[1] = 0x01;
+	//dir_backup.CheckSum1[0] = 0xF0;
+	//dir_backup.CheckSum1[1] = 0x04;
+	//dir_backup.CheckSum2[1] = 0xFE;
+	//bat.CheckSum1[0] = 0x07;
+	//bat.CheckSum1[1] = 0xFF;
+	//bat.CheckSum2[0] = 0xE8;
+	//bat.CheckSum2[1] = 0x03;
+	bat.FreeBlocks[0] = 0x07;
+	bat.FreeBlocks[1] = 0xFB;
+	bat.LastAllocated[1] = 0x04;
+	//bat_backup.CheckSum1[0] = 0x08;
+	//bat_backup.CheckSum2[0] = 0xE8;
+	//bat_backup.CheckSum2[1] = 0x02;
+	bat_backup.UpdateCounter[1] = 0x01;
+	bat_backup.FreeBlocks[0] = 0x07;
+	bat_backup.FreeBlocks[1] = 0xFB;
+	bat_backup.LastAllocated[1] = 0x04;
+	FixChecksums();
+	Save();
+	return true;
+}

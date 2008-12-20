@@ -25,17 +25,6 @@ enum
 	GCI = 0,
 	SUCCESS,
 	NOMEMCARD,
-	HDR_READ_ERROR,
-	DIR_READ_ERROR,
-	DIR_BAK_READ_ERROR,
-	BAT_READ_ERROR,
-	BAT_BAK_READ_ERROR,
-	HDR_CSUM_FAIL,
-	DIR_CSUM_FAIL,
-	BAT_CSUM_FAIL,
-	DATA_READ_FAIL,
-	HDR_SIZE_FFFF,
-	NOTRAWORGCP,
 	OPENFAIL,
 	OUTOFBLOCKS,
 	OUTOFDIRENTRIES,
@@ -48,7 +37,6 @@ enum
 	GCSFAIL,	
 	FAIL,
 	WRITEFAIL,
-	FAILLAST,
 };
 
 class GCMemcard 
@@ -145,7 +133,7 @@ private:
 #pragma pack(pop)
 
 public:
-	bool fail[FAILLAST];
+	bool fail;
 
 	// constructor
 	GCMemcard(const char* fileName);
@@ -155,6 +143,7 @@ public:
 
 	bool IsOpen();
 	bool Save();
+	bool format(bool New);
 	
 	void calc_checksumsBE(u16 *buf, u32 num, u16 *c1, u16 *c2);
 	u32 TestChecksums();
@@ -164,7 +153,7 @@ public:
 	u32 GetNumFiles();
 
 	// get the free blocks from bat
-	u16 GetFreeBlocks(void);
+	u16 GetFreeBlocks();
 
 	// Returns true if title already on memcard
 	bool TitlePresent(DEntry d);

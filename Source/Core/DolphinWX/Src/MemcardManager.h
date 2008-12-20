@@ -61,36 +61,27 @@ class CMemcardManager
 	private:
 		DECLARE_EVENT_TABLE();
 
-		int pageA,
-			pageB,
+		int page[2],
 			itemsPerPage,
 			maxPages;
-
-		wxBoxSizer *sMain;
-		wxBoxSizer *sPages_A;
-		wxBoxSizer *sPages_B;
-		wxStaticText *t_Status_A;
-		wxStaticText *t_Status_B;
-		wxButton *m_CopyFrom_A;
-		wxButton *m_CopyFrom_B;
-		wxButton *m_FixChecksum_A;
-		wxButton *m_FixChecksum_B;
-		wxButton *m_SaveImport_A;
-		wxButton *m_SaveImport_B;
-		wxButton *m_SaveExport_A;
-		wxButton *m_SaveExport_B;
-		wxButton *m_ConvertToGci;
-		wxButton *m_Delete_A;
-		wxButton *m_Delete_B;
-		wxButton *m_NextPage_A;
-		wxButton *m_NextPage_B;
-		wxButton *m_PrevPage_A;
-		wxButton *m_PrevPage_B;
-		wxStaticBoxSizer *sMemcard_A;
-		wxStaticBoxSizer *sMemcard_B;
-		wxFilePickerCtrl *m_MemcardPath_A;
-		wxFilePickerCtrl *m_MemcardPath_B;
+		std::string DefaultMemcard[2];
 		IniFile MemcardManagerIni;
+
+		wxBoxSizer *sMain,
+				   *sPages_A,
+				   *sPages_B;
+		wxButton *m_CopyFrom[2],
+				 *m_FixChecksum[2],
+				 *m_SaveImport[2],
+				 *m_SaveExport[2],
+				 *m_Delete[2],
+				 *m_NextPage[2],
+				 *m_PrevPage[2],
+				 *m_ConvertToGci;
+		wxFilePickerCtrl *m_MemcardPath[2];
+		wxStaticBoxSizer *sMemcard_A,
+						 *sMemcard_B;
+		wxStaticText *t_Status[2];
 
 		enum
 		{
@@ -133,11 +124,10 @@ class CMemcardManager
 		void CreateGUIControls();
 		void OnClose(wxCloseEvent& event);
 		void CopyDeleteClick(wxCommandEvent& event);
-		bool ReloadMemcard(const char *fileName, int card, int page);
+		bool ReloadMemcard(const char *fileName, int card);
 		void OnMenuChange(wxCommandEvent& event);
 		void OnPageChange(wxCommandEvent& event);
 		void OnPathChange(wxFileDirPickerEvent& event);
-		bool ReadError(GCMemcard *memcard);
 		bool CopyDeleteSwitch(u32 error, int slot);
 
 		class CMemcardListCtrl : public wxListCtrl
