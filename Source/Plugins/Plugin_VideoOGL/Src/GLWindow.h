@@ -23,11 +23,11 @@ class GLWindow {
 	  int x, y;
 	  unsigned int depth;*/    
     
-    virtual void SwapBuffers() = 0;
-    virtual void SetWindowText(const char *text) = 0;
-    virtual bool PeekMessages() = 0;
-    virtual void Update() = 0;
-    virtual bool MakeCurrent() = 0;
+    virtual void SwapBuffers() {};
+    virtual void SetWindowText(const char *text) {};
+    virtual bool PeekMessages() {return false;};
+    virtual void Update() {};;
+    virtual bool MakeCurrent() {return false;};
     virtual void SetSize(u32 newWidth, u32 newHeight) {
 	width = newWidth; 
 	height = newHeight; 

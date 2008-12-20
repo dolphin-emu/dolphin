@@ -117,11 +117,11 @@ void BreakPoints::AddAutoBreakpoints()
 		"PPCHalt",
 	};
 
-	for (int i = 0; i < sizeof(bps) / sizeof(const char *); i++)
+	for (u32 i = 0; i < sizeof(bps) / sizeof(const char *); i++)
 	{
 		Symbol *symbol = g_symbolDB.GetSymbolFromName(bps[i]);
 		if (symbol)
-			AddBreakPoint(symbol->address, false);
+		    BreakPoints::Add(symbol->address, false);
 	}
 #endif
 #endif

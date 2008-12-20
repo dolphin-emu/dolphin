@@ -783,7 +783,7 @@ u8 Read_U8(const u32 _Address)
 	u8 _var = (u8)0xAFFEAFFE;
 	ReadFromHardware2(_var, 8, _Address, _Address, FLAG_READ);
 #ifndef NOCHECK
-    TMemCheck *mc = CBreakPoints::GetMemCheck(_Address);
+    TMemCheck *mc = MemChecks::GetMemCheck(_Address);
 	if (mc)
 	{
 		mc->numHits++;
@@ -798,7 +798,7 @@ u16 Read_U16(const u32 _Address)
 	u16 _var = 0;
 	ReadFromHardware2(_var, 16, _Address, _Address, FLAG_READ);
 #ifndef NOCHECK
-	TMemCheck *mc = CBreakPoints::GetMemCheck(_Address);
+	TMemCheck *mc = MemChecks::GetMemCheck(_Address);
 	if (mc)
 	{
 		mc->numHits++;
@@ -821,7 +821,7 @@ u32 Read_U32(const u32 _Address)
 	u32 _var = 0;	
 	ReadFromHardware2(_var, 32, _Address, _Address, FLAG_READ);
 #ifndef NOCHECK
-	TMemCheck *mc = CBreakPoints::GetMemCheck(_Address);
+	TMemCheck *mc = MemChecks::GetMemCheck(_Address);
 	if (mc)
 	{
 		mc->numHits++;
@@ -837,7 +837,7 @@ u64 Read_U64(const u32 _Address)
 	u64 _var = 0;
 	ReadFromHardware2(_var, 64, _Address, _Address, FLAG_READ);
 #ifndef NOCHECK
-	TMemCheck *mc = CBreakPoints::GetMemCheck(_Address);
+	TMemCheck *mc = MemChecks::GetMemCheck(_Address);
 	if (mc)
 	{
 		mc->numHits++;
@@ -851,7 +851,7 @@ u64 Read_U64(const u32 _Address)
 void Write_U8(const u8 _Data, const u32 _Address)	
 {
 #ifndef NOCHECK
-	TMemCheck *mc = CBreakPoints::GetMemCheck(_Address);
+	TMemCheck *mc = MemChecks::GetMemCheck(_Address);
 	if (mc)
 	{
 		mc->numHits++;
@@ -865,7 +865,7 @@ void Write_U8(const u8 _Data, const u32 _Address)
 void Write_U16(const u16 _Data, const u32 _Address)
 {
 #ifndef NOCHECK
-	TMemCheck *mc = CBreakPoints::GetMemCheck(_Address);
+	TMemCheck *mc = MemChecks::GetMemCheck(_Address);
 	if (mc)
 	{
 		mc->numHits++;
@@ -880,7 +880,7 @@ void Write_U16(const u16 _Data, const u32 _Address)
 void Write_U32(const u32 _Data, const u32 _Address)
 {	
 #ifndef NOCHECK
-	TMemCheck *mc = CBreakPoints::GetMemCheck(_Address);
+	TMemCheck *mc = MemChecks::GetMemCheck(_Address);
 	if (mc)
 	{
 		mc->numHits++;
@@ -900,7 +900,7 @@ void WriteHW_U32(const u32 _Data, const u32 _Address)
 void Write_U64(const u64 _Data, const u32 _Address)
 {
 #ifndef NOCHECK
-    TMemCheck *mc = CBreakPoints::GetMemCheck(_Address);
+    TMemCheck *mc = MemChecks::GetMemCheck(_Address);
 	if (mc)
 	{
 		mc->numHits++;

@@ -282,7 +282,7 @@ void CMemcardManager::CreateGUIControls()
 		m_Delete[i]->Disable();
 		if (strcasecmp(DefaultMemcard[i].c_str(), "."))
 		{
-			m_MemcardPath[i]->SetPath(wxT(DefaultMemcard[i]));
+		    m_MemcardPath[i]->SetPath(wxString::FromAscii(DefaultMemcard[i].c_str()));
 			i?ChangePath(ID_MEMCARDPATH_B):ChangePath(ID_MEMCARDPATH_A);
 		}
 	}
@@ -416,10 +416,10 @@ void CMemcardManager::OnMenuChange(wxCommandEvent& event)
 		}
 		break;
 	case ID_MEMCARDPATH_A:
-		DefaultMemcard[SLOT_A] = m_MemcardPath[SLOT_A]->GetPath();
+		DefaultMemcard[SLOT_A] = m_MemcardPath[SLOT_A]->GetPath().mb_str();
 		break;
 	case ID_MEMCARDPATH_B:
-		DefaultMemcard[SLOT_B] = m_MemcardPath[SLOT_B]->GetPath();
+		DefaultMemcard[SLOT_B] = m_MemcardPath[SLOT_B]->GetPath().mb_str();
 		break;
 	default:
 		m_MemcardList[SLOT_A]->column[event.GetId()] = !m_MemcardList[SLOT_A]->column[event.GetId()];
@@ -457,7 +457,7 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
 			PanicAlert(E_UNK);
 			break;
 		}
-		PanicAlert(wxString::Format(wxT(E_OUTOFBLOCKS), memoryCard[slot]->GetFreeBlocks()));
+		PanicAlert(E_OUTOFBLOCKS, memoryCard[slot]->GetFreeBlocks());
 		break;
 	case OUTOFDIRENTRIES:
 		PanicAlert(E_OUTOFDIRENTRIES);

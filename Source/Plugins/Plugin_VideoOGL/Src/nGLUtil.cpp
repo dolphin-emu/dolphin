@@ -18,7 +18,7 @@
 #include "Globals.h"
 #include "IniFile.h"
 #include "svnrev.h"
-
+#include "Config.h"
 #include "Render.h"
 #include "nGLUtil.h"
 
@@ -55,11 +55,11 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize,
     g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
     g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
 
-    if (strncmp(iBackend, "sdl") == 0)
+    if (strncmp(g_Config.iBackend, "sdl") == 0)
 	glWin = new SDLWindow(width, height);
-    else if (strncmp(iBackend, "x11") == 0)
+    else if (strncmp(g_Config.iBackend, "x11") == 0)
 	glWin = new X11Window(width, height);
-    else if (strncmp(iBackend, "wxgl") == 0)
+    else if (strncmp(g_Config.iBackend, "wxgl") == 0)
 	glWin = new WXGLWindow(width, height);
 
     return (glWin?true:false);
@@ -95,6 +95,7 @@ u32 OpenGL_GetWidth() {
 
 u32 OpenGL_GetHeight() {
     return glWin->GetWidth();
+}
 
 void OpenGL_SetSize(u32 width, u32 height) {
     glWin->SetSize(width, height);

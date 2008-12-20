@@ -32,6 +32,7 @@ public:
 #else 
 class WXGLWindow : public GLWindow 
 {
+ public:
     WXGLWindow(int _iwidth, int _iheight) {}
 };
 #endif
