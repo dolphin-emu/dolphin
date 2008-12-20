@@ -76,6 +76,8 @@ public:
 	const u8 *fifoDirectWriteFloat;
 	const u8 *fifoDirectWriteXmm64;
 
+	const u8 *breakpointBailout;
+
 	bool compareEnabled;
 };
 

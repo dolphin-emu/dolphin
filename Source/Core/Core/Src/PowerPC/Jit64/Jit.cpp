@@ -158,7 +158,6 @@ ps_adds1
 */
 
 Jit64 jit;
-PPCAnalyst::CodeBuffer code_buffer(32000);
 
 int CODE_SIZE = 1024*1024*16;
 
@@ -166,6 +165,11 @@ namespace CPUCompare
 {
 	extern u32 m_BlockStart;
 }
+
+	void Jit(u32 em_address)
+	{
+		jit.Jit(em_address);
+	}
 
 	void Jit64::Init()
 	{
@@ -206,12 +210,6 @@ namespace CPUCompare
 		asm_routines.Shutdown();
 	}
 
-	void Jit64::EnterFastRun()
-	{
-		CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
-		pExecAddr();
-		//Will return when PowerPC::state changes
-	}
 
 	void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 	{
@@ -343,7 +341,25 @@ namespace CPUCompare
 		JMP(asm_routines.testExceptions, true);
 	}
 	
-	const u8 *Jit64::Jit(u32 em_address)
+	void Jit64::Run()
+	{
+		CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
+		pExecAddr();
+		//Will return when PowerPC::state changes
+	}
+
+	void Jit64::SingleStep()
+	{
+		// NOT USED, NOT TESTED, PROBABLY NOT WORKING YET
+
+		JitBlock temp_block;
+		PPCAnalyst::CodeBuffer temp_codebuffer(1);  // Only room for one instruction! Single step!
+		const u8 *code = DoJit(PowerPC::ppcState.pc, &temp_codebuffer, &temp_block);
+		CompiledCode pExecAddr = (CompiledCode)code;
+		pExecAddr();
+	}
+
+	void Jit64::Jit(u32 em_address)
 	{
 		if (GetSpaceLeft() < 0x10000 || blocks.IsFull())
 		{
@@ -354,35 +370,33 @@ namespace CPUCompare
 			}
 			ClearCache();
 		}
-
-		return blocks.Jit(em_address);
+		int block_num = blocks.AllocateBlock(em_address);
+		JitBlock *b = blocks.GetBlock(block_num);
+		blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b));
 	}
 
-	const u8* Jit64::DoJit(u32 em_address, JitBlock &b)
+	const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b)
 	{
 		if (em_address == 0)
 			PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
-
-//		if (em_address == 0x800aa278)
-//			DebugBreak();
 
 		int size;
 		js.isLastInstruction = false;
 		js.blockStart = em_address;
 		js.fifoBytesThisBlock = 0;
-		js.curBlock = &b;
+		js.curBlock = b;
 		js.blockSetsQuantizers = false;
 		js.block_flags = 0;
 		js.cancel = false;
 
 		//Analyze the block, collect all instructions it is made of (including inlining,
 		//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-		PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, &code_buffer);
-		PPCAnalyst::CodeOp *ops = code_buffer.codebuffer;
+		PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, code_buffer);
+		PPCAnalyst::CodeOp *ops = code_buffer->codebuffer;
 
 		const u8 *start = AlignCode4(); //TODO: Test if this or AlignCode16 make a difference from GetCodePtr
-		b.checkedEntry = start;
-		b.runCount = 0;
+		b->checkedEntry = start;
+		b->runCount = 0;
 
 		// Downcount flag check. The last block decremented downcounter, and the flag should still be available.
 		FixupBranch skip = J_CC(CC_NBE);
@@ -417,11 +431,11 @@ namespace CPUCompare
 
 		// Conditionally add profiling code.
 		if (Profiler::g_ProfileBlocks) {
-			ADD(32, M(&b.runCount), Imm8(1));
+			ADD(32, M(&b->runCount), Imm8(1));
 #ifdef _WIN32
-			b.ticCounter.QuadPart = 0;
-			b.ticStart.QuadPart = 0;
-			b.ticStop.QuadPart = 0;
+			b->ticCounter.QuadPart = 0;
+			b->ticStart.QuadPart = 0;
+			b->ticStop.QuadPart = 0;
 #else
 //TODO
 #endif
@@ -445,7 +459,8 @@ namespace CPUCompare
 			js.compilerPC = ops[i].address;
 			js.op = &ops[i];
 			js.instructionNumber = i;
-			if (i == (int)size - 1) {
+			if (i == (int)size - 1)
+			{
 				// WARNING - cmp->branch merging will screw this up.
 				js.isLastInstruction = true;
 				js.next_inst = 0;
@@ -458,7 +473,9 @@ namespace CPUCompare
 					PROFILER_ADD_DIFF_LARGE_INTEGER(&b.ticCounter, &b.ticStop, &b.ticStart);
 					PROFILER_VPOP;
 				}
-			} else {
+			}
+			else
+			{
 				// help peephole optimizations
 				js.next_inst = ops[i + 1].inst;
 				js.next_compilerPC = ops[i + 1].address;
@@ -470,6 +487,12 @@ namespace CPUCompare
 				CALL(thunks.ProtectFunction((void *)&GPFifo::CheckGatherPipe, 0));
 			}
 
+			// If starting from the breakpointed instruction, we don't break.
+			if (em_address != ops[i].address && BreakPoints::IsAddressBreakPoint(ops[i].address))
+			{
+				
+			}
+
 			if (!ops[i].skip)
 				PPCTables::CompileInstruction(ops[i].inst);
 
@@ -479,8 +502,8 @@ namespace CPUCompare
 				break;
 		}
 
-		b.flags = js.block_flags;
-		b.codeSize = (u32)(GetCodePtr() - normalEntry);
-		b.originalSize = size;
+		b->flags = js.block_flags;
+		b->codeSize = (u32)(GetCodePtr() - normalEntry);
+		b->originalSize = size;
 		return normalEntry;
 	}

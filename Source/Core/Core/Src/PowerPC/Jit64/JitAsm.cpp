@@ -170,9 +170,20 @@ void AsmRoutineManager::Generate()
 #else
 	//Landing pad for drec space
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
-	RET();
 #endif
-	RET(); 
+	RET();
+
+	breakpointBailout = GetCodePtr();
+#ifdef _M_IX86
+	POP(EDI);
+	POP(ESI);
+	POP(EBX);
+	POP(EBP);
+#else
+	//Landing pad for drec space
+	ABI_PopAllCalleeSavedRegsAndAdjustStack();
+#endif
+	RET();
 
 	GenerateCommon();
 }

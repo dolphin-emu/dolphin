@@ -49,7 +49,7 @@ void SingleStep()
 
 void Run()
 {
-	jit.EnterFastRun();		
+	jit.Run();		
 }
 
 }  // namespace

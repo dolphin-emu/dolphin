@@ -19,8 +19,10 @@
 #define _JITCACHE_H
 
 #include <map>
+#include <vector>
 
 #include "../Gekko.h"
+#include "../PPCAnalyst.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -55,30 +57,29 @@ struct JitBlock
 	const u8 *checkedEntry;
 	bool invalid;
 	int flags;
-};
 
-class Jit64;
+	bool ContainsAddress(u32 em_address);
+};
 
 typedef void (*CompiledCode)();
 
 class JitBlockCache
 {
-	Jit64 *jit;
-
-	u8 **blockCodePointers;
+	const u8 **blockCodePointers;
 	JitBlock *blocks;
-	int numBlocks;
+	int num_blocks;
 	std::multimap<u32, int> links_to;
-
 	int MAX_NUM_BLOCKS;
+
 	bool RangeIntersect(int s1, int e1, int s2, int e2) const;
 	void LinkBlockExits(int i);
 	void LinkBlock(int i);
 
 public:
 	JitBlockCache() {}
-	void SetJit(Jit64 *jit_) { jit = jit_; }
-	const u8* Jit(u32 emaddress);
+
+	int AllocateBlock(u32 em_address);
+	void FinalizeBlock(int block_num, bool block_link, const u8 *code_ptr);
 
 	void Clear();
 	void Init();
@@ -88,20 +89,24 @@ public:
 	bool IsFull() const;
 
 	// Code Cache
-	JitBlock *GetBlock(int no);
+	JitBlock *GetBlock(int block_num);
 	int GetNumBlocks() const;
-	u8 **GetCodePointers();
+	const u8 **GetCodePointers();
 
 	// Fast way to get a block. Only works on the first ppc instruction of a block.
-	int GetBlockNumberFromStartAddress(u32 address);
-    // slower, but can get numbers from within blocks, not just the first instruction. WARNING! DOES NOT WORK WITH INLINING ENABLED (not yet a feature but will be soon)
-	int GetBlockNumberFromInternalAddress(u32 address);
+	int GetBlockNumberFromStartAddress(u32 em_address);
+
+    // slower, but can get numbers from within blocks, not just the first instruction.
+	// WARNING! WILL NOT WORK WITH INLINING ENABLED (not yet a feature but will be soon)
+	// Returns a list of block numbers - only one block can start at a particular address, but they CAN overlap.
+	// This one is slow so should only be used for one-shots from the debugger UI, not for anything during runtime.
+	void GetBlockNumbersFromAddress(u32 em_address, std::vector<int> *block_numbers);
 
 	u32 GetOriginalCode(u32 address);
 	CompiledCode GetCompiledCodeFromBlock(int blockNumber);
 
 	// DOES NOT WORK CORRECTLY WITH INLINING
-	void InvalidateCodeRange(u32 address, u32 length);
+	void InvalidateCodeRange(u32 em_address, u32 length);
 	void DestroyBlock(int blocknum, bool invalidate);
 
 	// Not currently used

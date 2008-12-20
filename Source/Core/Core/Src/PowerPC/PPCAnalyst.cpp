@@ -48,6 +48,7 @@ enum
 CodeBuffer::CodeBuffer(int size)
 {
 	codebuffer = new PPCAnalyst::CodeOp[size];
+	size_ = size;
 }
 
 CodeBuffer::~CodeBuffer()
@@ -285,20 +286,20 @@ bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 // Does not yet perform inlining - although there are plans for that.
 bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, BlockRegStats *fpa, CodeBuffer *buffer)
 {
-	int numCycles = 0;
-	u32 blockstart = address;
 	memset(st, 0, sizeof(st));
+
 	UGeckoInstruction previnst = Memory::Read_Instruction(address - 4);
 	if (previnst.hex == 0x4e800020)
-	{
 		st->isFirstBlockOfFunction = true;
-	}
+
 	gpa->any = true;
 	fpa->any = false;
 
-	int maxsize = CODEBUFFER_SIZE;
+	u32 blockstart = address;
+	int maxsize = buffer->GetSize();
 	int num_inst = 0;
 	int numFollows = 0;
+	int numCycles = 0;
 
 	CodeOp *code = buffer->codebuffer;
 	bool foundExit = false;

@@ -57,6 +57,12 @@ using namespace Gen;
 #define INVALID_EXIT 0xFFFFFFFF
 
 
+bool JitBlock::ContainsAddress(u32 em_address)
+{
+	// WARNING - THIS DOES NOT WORK WITH INLINING ENABLED.
+	return (em_address >= originalAddress && em_address < originalAddress + originalSize);
+}
+
 	bool JitBlockCache::IsFull() const 
 	{
 		return GetNumBlocks() >= MAX_NUM_BLOCKS - 1;
@@ -74,7 +80,7 @@ using namespace Gen;
 		agent = op_open_agent();
 #endif
 		blocks = new JitBlock[MAX_NUM_BLOCKS];
-		blockCodePointers = new u8*[MAX_NUM_BLOCKS];
+		blockCodePointers = new const u8*[MAX_NUM_BLOCKS];
 
 		Clear();
 	}
@@ -85,7 +91,7 @@ using namespace Gen;
 		delete [] blockCodePointers;
 		blocks = 0;
 		blockCodePointers = 0;
-		numBlocks = 0;
+		num_blocks = 0;
 #ifdef OPROFILE_REPORT
 		op_close_agent(agent);
 #endif
@@ -97,18 +103,18 @@ using namespace Gen;
 	{
 		Core::DisplayMessage("Cleared code cache.", 3000);
 		// Is destroying the blocks really necessary?
-		for (int i = 0; i < numBlocks; i++)
+		for (int i = 0; i < num_blocks; i++)
 		{
 			DestroyBlock(i, false);
 		}
 		links_to.clear();
-		numBlocks = 0;
+		num_blocks = 0;
 		memset(blockCodePointers, 0, sizeof(u8*)*MAX_NUM_BLOCKS);
 	}
 
 	void JitBlockCache::DestroyBlocksWithFlag(BlockFlag death_flag)
 	{
-		for (int i = 0; i < numBlocks; i++)
+		for (int i = 0; i < num_blocks; i++)
 		{
 			if (blocks[i].flags & death_flag)
 			{
@@ -130,66 +136,64 @@ using namespace Gen;
 
 	int JitBlockCache::GetNumBlocks() const
 	{
-		return numBlocks;
+		return num_blocks;
 	}
 
 	bool JitBlockCache::RangeIntersect(int s1, int e1, int s2, int e2) const
 	{
 		// check if any endpoint is inside the other range
-		if ( (s1 >= s2 && s1 <= e2) ||
-			 (e1 >= s2 && e1 <= e2) ||
-			 (s2 >= s1 && s2 <= e1) ||
-			 (e2 >= s1 && e2 <= e1)) 
+		if ((s1 >= s2 && s1 <= e2) ||
+			(e1 >= s2 && e1 <= e2) ||
+			(s2 >= s1 && s2 <= e1) ||
+			(e2 >= s1 && e2 <= e1)) 
 			return true;
 		else
 			return false;
 	}
 
-	const u8 *Jit(u32 emAddress)
+	int JitBlockCache::AllocateBlock(u32 em_address)
 	{
-		return jit.Jit(emAddress);
-	}
-
-	const u8 *JitBlockCache::Jit(u32 emAddress)
-	{
-		JitBlock &b = blocks[numBlocks];
+		JitBlock &b = blocks[num_blocks];
 		b.invalid = false;
-		b.originalAddress = emAddress;
-		b.originalFirstOpcode = Memory::ReadFast32(emAddress);
+		b.originalAddress = em_address;
+		b.originalFirstOpcode = Memory::ReadFast32(em_address);
 		b.exitAddress[0] = INVALID_EXIT;
 		b.exitAddress[1] = INVALID_EXIT;
 		b.exitPtrs[0] = 0;
 		b.exitPtrs[1] = 0;
 		b.linkStatus[0] = false;
 		b.linkStatus[1] = false;
-		
-		blockCodePointers[numBlocks] = (u8*)jit->DoJit(emAddress, b);  //cast away const
-		Memory::WriteUnchecked_U32((JIT_OPCODE << 26) | numBlocks, emAddress);
+		num_blocks++; //commit the current block
+		return num_blocks - 1;
+	}
 
-		if (jit->jo.enableBlocklink) {
-			for (int i = 0; i < 2; i++) {
-				if (b.exitAddress[i] != INVALID_EXIT) {
-					links_to.insert(std::pair<u32, int>(b.exitAddress[i], numBlocks));
-				}
+	void JitBlockCache::FinalizeBlock(int block_num, bool block_link, const u8 *code_ptr)
+	{
+		blockCodePointers[block_num] = code_ptr;
+		JitBlock &b = blocks[block_num];
+		Memory::WriteUnchecked_U32((JIT_OPCODE << 26) | block_num, blocks[block_num].originalAddress);
+		if (block_link)
+		{
+			for (int i = 0; i < 2; i++)
+			{
+				if (b.exitAddress[i] != INVALID_EXIT) 
+					links_to.insert(std::pair<u32, int>(b.exitAddress[i], block_num));
 			}
 			
-			LinkBlock(numBlocks);
-			LinkBlockExits(numBlocks);
+			LinkBlock(block_num);
+			LinkBlockExits(block_num);
 		}
 
 #ifdef OPROFILE_REPORT
 		char buf[100];
 		sprintf(buf, "EmuCode%x", emAddress);
-		u8* blockStart = blockCodePointers[numBlocks], *blockEnd = GetWritableCodePtr();
+		u8* blockStart = blockCodePointers[block_num], *blockEnd = GetWritableCodePtr();
 		op_write_native_code(agent, buf, (uint64_t)blockStart,
 		                     blockStart, blockEnd - blockStart);
 #endif
-
-		numBlocks++; //commit the current block
-		return 0;
 	}
 
-	u8 **JitBlockCache::GetCodePointers()
+	const u8 **JitBlockCache::GetCodePointers()
 	{
 		return blockCodePointers;
 	}
@@ -201,24 +205,31 @@ using namespace Gen;
 		u32 code = Memory::ReadFast32(addr);
 		if ((code >> 26) == JIT_OPCODE)
 		{
-			//jitted code
-			unsigned int blockNum = code & 0x03FFFFFF;
-			if (blockNum >= (unsigned int)numBlocks) {
+			// Jitted code.
+			unsigned int block = code & 0x03FFFFFF;
+			if (block >= (unsigned int)num_blocks) {
 				return -1;
 			}
 
-			if (blocks[blockNum].originalAddress != addr)
+			if (blocks[block].originalAddress != addr)
 			{
 				//_assert_msg_(DYNA_REC, 0, "GetBlockFromAddress %08x - No match - This is BAD", addr);
 				return -1;
 			}
-			return blockNum;
+			return block;
 		}
 		else
 		{
 			return -1;
 		}
 	}
+
+void JitBlockCache::GetBlockNumbersFromAddress(u32 em_address, std::vector<int> *block_numbers)
+{
+	for (int i = 0; i < num_blocks; i++)
+		if (blocks[i].ContainsAddress(em_address))
+			block_numbers->push_back(i);
+}
 
 	u32 JitBlockCache::GetOriginalCode(u32 address)
 	{
@@ -308,11 +319,11 @@ using namespace Gen;
 		// TODO - make sure that the below stuff really is safe.
 
 		// Spurious entrances from previously linked blocks can only come through checkedEntry
-		XEmitter emit((u8*)b.checkedEntry);
+		XEmitter emit((u8 *)b.checkedEntry);
 		emit.MOV(32, M(&PC), Imm32(b.originalAddress));
 		emit.JMP(asm_routines.dispatcher, true);
 
-		emit.SetCodePtr(blockCodePointers[blocknum]);
+		emit.SetCodePtr((u8 *)blockCodePointers[blocknum]);
 		emit.MOV(32, M(&PC), Imm32(b.originalAddress));
 		emit.JMP(asm_routines.dispatcher, true);
 	}
@@ -320,11 +331,11 @@ using namespace Gen;
 
 	void JitBlockCache::InvalidateCodeRange(u32 address, u32 length)
 	{
-		if (!jit->jo.enableBlocklink)
+		if (!jit.jo.enableBlocklink)
 			return;
 		return;
 		//This is slow but should be safe (zelda needs it for block linking)
-		for (int i = 0; i < numBlocks; i++)
+		for (int i = 0; i < num_blocks; i++)
 		{
 			if (RangeIntersect(blocks[i].originalAddress, blocks[i].originalAddress + blocks[i].originalSize,
 				               address, address + length))

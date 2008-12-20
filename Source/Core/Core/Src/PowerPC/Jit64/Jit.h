@@ -114,8 +114,12 @@ private:
 	GPRRegCache gpr;
 	FPURegCache fpr;
 
+	// The default code buffer. We keep it around to not have to alloc/dealloc a
+	// large chunk of memory for each recompiled block.
+	PPCAnalyst::CodeBuffer code_buffer;
+
 public:
-	Jit64() {blocks.SetJit(this);}
+	Jit64() : code_buffer(32000) {}
 	~Jit64() {}
 
 	JitState js;
@@ -128,8 +132,8 @@ public:
 
 	// Jit!
 
-	const u8 *Jit(u32 em_address);  // calls blocks.Jit, which in turn calls DoJit below after setting up a block.
-	const u8* DoJit(u32 em_address, JitBlock &b);
+	void Jit(u32 em_address);
+	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b);
 
 	JitBlockCache *GetBlockCache() { return &blocks; }
 
@@ -143,7 +147,9 @@ public:
 
 	// Run!
 
-	void EnterFastRun();
+	void Run();
+	void SingleStep();
+
 	const u8 *BackPatch(u8 *codePtr, int accessType, u32 em_address, CONTEXT *ctx);
 
 #define JIT_OPCODE 0
@@ -276,7 +282,7 @@ public:
 
 extern Jit64 jit;
 
-const u8 *Jit(u32 em_address);
+void Jit(u32 em_address);
 
 #endif
 

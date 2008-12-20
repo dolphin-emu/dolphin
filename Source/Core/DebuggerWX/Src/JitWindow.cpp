@@ -214,7 +214,8 @@ void CJitWindow::Compare(u32 em_address)
 
 		ppc_box->SetValue(wxString::FromAscii((char*)xDis));
 	} else {
-		// hmmm
+		ppc_box->SetValue(wxString::FromAscii(StringFromFormat("(non-code address: %08x)", em_address).c_str()));
+		x86_box->SetValue(wxString::FromAscii("---"));
 	}
 	
 

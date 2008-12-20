@@ -80,12 +80,16 @@ struct BlockRegStats
 
 class CodeBuffer
 {
+	int size_;
 public:
 	CodeBuffer(int size);
 	~CodeBuffer();
 
+	int GetSize() const { return size_; }
+
 	PPCAnalyst::CodeOp *codebuffer;
-	int size_;
+
+
 };
 
 bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, BlockRegStats *fpa, CodeBuffer *buffer);
