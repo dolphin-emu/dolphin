@@ -65,7 +65,7 @@ CARCFile::GetFileSize(const std::string& _rFullPath)
 
 	if (pFileInfo != NULL)
 	{
-		return(pFileInfo->m_FileSize);
+		return((size_t) pFileInfo->m_FileSize);
 	}
 
 	return(0);
@@ -93,7 +93,7 @@ CARCFile::ReadFile(const std::string& _rFullPath, u8* _pBuffer, size_t _MaxBuffe
 	}
 
 	memcpy(_pBuffer, &m_pBuffer[pFileInfo->m_Offset], pFileInfo->m_FileSize);
-	return(pFileInfo->m_FileSize);
+	return((size_t) pFileInfo->m_FileSize);
 }
 
 
@@ -119,7 +119,7 @@ CARCFile::ExportFile(const std::string& _rFullPath, const std::string& _rExportF
 		return(false);
 	}
 
-	fwrite(&m_pBuffer[pFileInfo->m_Offset], pFileInfo->m_FileSize, 1, pFile);
+	fwrite(&m_pBuffer[pFileInfo->m_Offset], (size_t) pFileInfo->m_FileSize, 1, pFile);
 	fclose(pFile);
 	return(true);
 }
@@ -199,7 +199,7 @@ CARCFile::BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, cons
 				sprintf(rFileInfo.m_FullPath, "%s\\", &_szNameTable[uOffset]);
 			}
 
-			CurrentIndex = BuildFilenames(CurrentIndex + 1, rFileInfo.m_FileSize, rFileInfo.m_FullPath, _szNameTable);
+			CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t) rFileInfo.m_FileSize, rFileInfo.m_FullPath, _szNameTable);
 		}
 		else
 		{

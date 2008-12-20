@@ -31,7 +31,7 @@ bool CBoot::IsElfWii(const char *filename)
 	u64 filesize = ftell(f);
 	fseek(f, 0, SEEK_SET);
 	u8 *mem = new u8[(size_t)filesize];
-	fread(mem, 1, filesize, f);
+	fread(mem, 1, (size_t)filesize, f);
 	fclose(f);
 
 	ElfReader reader(mem);			
@@ -50,7 +50,7 @@ bool CBoot::Boot_ELF(const char *filename)
 	u64 filesize = ftell(f);
 	fseek(f, 0, SEEK_SET);
 	u8 *mem = new u8[(size_t)filesize];
-	fread(mem, 1, filesize, f);
+	fread(mem, 1, (size_t)filesize, f);
 	fclose(f);
 	
 	ElfReader reader(mem);

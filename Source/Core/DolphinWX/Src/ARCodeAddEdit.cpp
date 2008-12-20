@@ -45,7 +45,7 @@ void CARCodeAddEdit::CreateGUIControls(int _selection)
 	EditCheatName = new wxTextCtrl(this, ID_EDITCHEAT_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
 	EditCheatName->SetValue(wxString::FromAscii(currentCode.name.c_str()));
 	EntrySelection = new wxSpinButton(this, ID_ENTRY_SELECT, wxDefaultPosition, wxDefaultSize, wxVERTICAL);
-	EntrySelection->SetRange(0, (int)arCodes.size()-1);
+	EntrySelection->SetRange((int)arCodes.size()-1, 0);
 	EntrySelection->SetValue(_selection);
 	EditCheatCode = new wxTextCtrl(this, ID_EDITCHEAT_CODE, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
 	UpdateTextCtrl(currentCode);

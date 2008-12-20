@@ -38,7 +38,7 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IFileSystem& _rFileSystem)
 	sprintf(Filename, FULL_WII_USER_DIR "title/00010000/%02x%02x%02x%02x/data/banner.bin", (u8)TitleID[0], (u8)TitleID[1], (u8)TitleID[2], (u8)TitleID[3]);
 
 	// load the opening.bnr
-	size_t FileSize = File::GetSize(Filename);
+	size_t FileSize = (size_t) File::GetSize(Filename);
 
 	if (FileSize > 0)
 	{

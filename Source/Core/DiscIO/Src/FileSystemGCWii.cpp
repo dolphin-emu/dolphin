@@ -88,7 +88,7 @@ u64 CFileSystemGCWii::ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _Max
 
 bool CFileSystemGCWii::ExportFile(const char* _rFullPath, const char* _rExportFilename) const
 {
-	size_t filesize = GetFileSize(_rFullPath);
+	size_t filesize = (size_t) GetFileSize(_rFullPath);
 
 	if (filesize == 0)
 		return false;
@@ -229,7 +229,7 @@ size_t CFileSystemGCWii::BuildFilenames(const size_t _FirstIndex, const size_t _
 			else
 				CharArrayFromFormat(rFileInfo->m_FullPath, "%s\\", filename);
 
-			CurrentIndex = BuildFilenames(CurrentIndex + 1, rFileInfo->m_FileSize, rFileInfo->m_FullPath, _NameTableOffset);
+			CurrentIndex = BuildFilenames(CurrentIndex + 1, (size_t) rFileInfo->m_FileSize, rFileInfo->m_FullPath, _NameTableOffset);
 		}
 		else
 		{

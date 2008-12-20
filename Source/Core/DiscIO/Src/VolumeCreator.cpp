@@ -150,7 +150,7 @@ IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _VolumeType)
 				for(int i=0;i<16;i++)
 				{
 					char h[3]={*(t++),*(t++),0};
-					binkey[i] = strtol(h,NULL,16);
+					binkey[i] = (char) strtol(h,NULL,16);
 				}
 
 				pT = fopen(WII_MASTERKEY_FILE, "wb");

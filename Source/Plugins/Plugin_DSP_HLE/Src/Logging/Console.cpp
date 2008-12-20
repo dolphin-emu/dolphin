@@ -83,7 +83,7 @@ void startConsoleWin(int width, int height, char* fname)
 			// Edit the log file name
 			std::string FileEnding = ".log";
 			std::string FileName = fname;
-			char buffer[33]; itoa(i, buffer, 10); // convert number to string
+			char buffer[33]; _itoa(i, buffer, 10); // convert number to string
 			std::string FullFilename = (FileName + buffer + FileEnding);
 			__fStdOut[i] = fopen(FullFilename.c_str(), "w");
 		}

@@ -42,7 +42,7 @@ CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem)
 	}
 
 	// load the opening.bnr
-	size_t FileSize = _rFileSystem.GetFileSize("opening.bnr");
+	size_t FileSize = (size_t) _rFileSystem.GetFileSize("opening.bnr");
 
 	if (FileSize > 0)
 	{

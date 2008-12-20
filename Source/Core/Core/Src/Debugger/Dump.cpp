@@ -27,7 +27,7 @@ CDump::CDump(const char* _szFilename) :
 	if (pStream != NULL)
 	{
 		fseek(pStream, 0, SEEK_END);
-		m_size = ftell(pStream);
+		m_size = (size_t) ftell(pStream);
 		fseek(pStream, 0, SEEK_SET);
 
 		m_pData = new u8[m_size];
