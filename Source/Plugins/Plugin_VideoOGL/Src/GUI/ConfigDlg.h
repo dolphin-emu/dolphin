@@ -42,7 +42,7 @@ class ConfigDialog : public wxDialog
 
 		void AddFSReso(char *reso);
 		void AddWindowReso(char *reso);
-		void AddRenderBackend(char *backend);
+		void AddRenderBackend(const char *backend);
 		void AddAAMode(int mode);
 
 	private:

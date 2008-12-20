@@ -55,13 +55,15 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize,
     g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
     g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
 
-    if (strncmp(g_Config.iBackend, "sdl") == 0)
+    if (strncasecmp(g_Config.iBackend, "sdl", 10) == 0)
 	glWin = new SDLWindow(width, height);
-    else if (strncmp(g_Config.iBackend, "x11") == 0)
+    else if (strncasecmp(g_Config.iBackend, "x11", 10) == 0)
 	glWin = new X11Window(width, height);
-    else if (strncmp(g_Config.iBackend, "wxgl") == 0)
+    else if (strncasecmp(g_Config.iBackend, "wxgl", 10) == 0)
 	glWin = new WXGLWindow(width, height);
-
+    else
+	PanicAlert("Invalid backend %s", g_Config.iBackend);
+    
     return (glWin?true:false);
 }
 

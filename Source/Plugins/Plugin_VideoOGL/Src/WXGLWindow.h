@@ -15,8 +15,6 @@ private:
 
 public:
 
-    int nXoff, nYoff; // screen offset
-    // Since it can Stretch to fit Window, we need two different multiplication values
     float MValueX, MValueY; 
 
     virtual void SwapBuffers();

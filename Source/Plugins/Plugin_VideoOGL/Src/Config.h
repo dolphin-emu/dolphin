@@ -36,7 +36,7 @@ struct Config
     bool renderToMainframe;
     char iFSResolution[16];
     char iWindowedRes[16];
-    char iBackend[10];
+    char iBackend[16];
     bool bStretchToFit;
     bool bKeepAR;
     bool bHideCursor;

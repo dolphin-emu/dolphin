@@ -16,13 +16,7 @@ bool SDLWindow::PeekMessages() {
 void SDLWindow::Update() {
 
     SDL_Surface *surface = SDL_GetVideoSurface();
-    //    RECT rcWindow;
     if (!surface) return;
-    //nBackbufferWidth = surface->w;
-    //nBackbufferHeight = surface->h;
-
-    //    rcWindow.right = surface->w;
-    //    rcWindow.bottom = surface->h;  
 
     float FactorW  = 640.0f / (float)surface->w;
     float FactorH  = 480.0f / (float)surface->h;
@@ -32,18 +26,15 @@ void SDLWindow::Update() {
     if (g_Config.bStretchToFit) {
 	MValueX = 1;
 	MValueY = 1;
-        nXoff = 0;
-        nYoff = 0;
+	SetOffset(0,0);
     } else {
         MValueX = 1.0f / Max;
         MValueY = 1.0f / Max;
-        nXoff = (int)((surface->w - (640 * MValueX)) / 2);
-        nYoff = (int)((surface->h - (480 * MValueY)) / 2);
+	SetOffset((int)((surface->w - (640 * MValueX)) / 2),
+		  (int)((surface->h - (480 * MValueY)) / 2));
     }
+    SetSize(surface->w, surface->h);
     
-    // tell the debugger
-    //   gleft = rcWindow.left; gright = rcWindow.right;
-    //    gtop = rcWindow.top; gbottom = rcWindow.bottom;
 }
 
 bool SDLWindow::MakeCurrent() {
@@ -110,13 +101,12 @@ SDLWindow::SDLWindow(int _iwidth, int _iheight) {
     if(g_Config.bStretchToFit) {
 	MValueX = 1.0f / FactorW;
 	MValueY = 1.0f / FactorH;
-	nXoff = 0;
-	nYoff = 0;
+	SetOffset(0,0);
     } else {
 	MValueX = 1.0f / Max;
 	MValueY = 1.0f / Max;
-	nXoff = (int)((_twidth - (640 * MValueX)) / 2);
-	nYoff = (int)((_theight - (480 * MValueY)) / 2);
+	SetOffset((int)((_twidth - (640 * MValueX)) / 2),
+		  (int)((_theight - (480 * MValueY)) / 2));
     }
 
     //init sdl video

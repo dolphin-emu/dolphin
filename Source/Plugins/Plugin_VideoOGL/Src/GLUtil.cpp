@@ -689,7 +689,7 @@ void OpenGL_Update()
     float FactorW  = 640.0f / (float)nBackbufferWidth;
     float FactorH  = 480.0f / (float)nBackbufferHeight;
     float Max = (FactorW < FactorH) ? FactorH : FactorW;
-	AR = (float)nBackbufferWidth / (float)nBackbufferHeight;
+    AR = (float)nBackbufferWidth / (float)nBackbufferHeight;
 
     if (g_Config.bStretchToFit)
     {

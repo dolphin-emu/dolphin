@@ -42,8 +42,6 @@ VERTEXSHADER* VertexShaderMngr::pShaderLast = NULL;
 float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
 extern int A, B;
-extern float AR;
-extern int nBackbufferWidth, nBackbufferHeight;
 
 // Internal Variables
 static int s_nMaxVertexInstructions;
@@ -360,14 +358,14 @@ void VertexShaderMngr::SetConstants()
 		int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
 		int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
 		float fourThree = 4.0f / 3.0f;
-		float ratio = AR /  fourThree;
 		float wAdj, hAdj;
 		float actualRatiow, actualRatioh;
 		int overfl;
 		int xoffs = 0, yoffs = 0;
 		int wid, hei, actualWid, actualHei;
-		int winw = nBackbufferWidth;
-		int winh = nBackbufferHeight;
+		int winw = OpenGL_GetWidth();
+		int winh = OpenGL_GetHeight();
+		float ratio = (float)winw / (float)winh /  fourThree;
 		if (g_Config.bKeepAR)
 		{
 			// Check if height or width is the limiting factor

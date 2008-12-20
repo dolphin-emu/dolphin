@@ -32,7 +32,7 @@
 	#include <windows.h>
 #endif
 
-
+#include "../GLUtil.h"
 #if defined(HAVE_WX) && HAVE_WX
 #include "../Debugger/Debugger.h" // for the CDebugger class
 #include "../Debugger/PBView.h"
@@ -57,7 +57,7 @@ extern bool gReset;
 bool gOnlyLooping = false;
 extern int gSaveFile;
 
-extern int gleft, gright, gtop, gbottom; // from BPStructs.cpp
+//extern int gleft, gright, gtop, gbottom; // from BPStructs.cpp
 
 
 // ---------------------------------------------------------------------------------------
@@ -106,13 +106,13 @@ std::string writeMessage(int a, int i)
 	/*
 	PRESET 0
 	"lef rig top bot | xof yof\n";
-	"000 000 000 000 | 000 000
+	"000 000 000 000 | 000 00
 	*/
 	if(a == 0)
 	{
 	sprintf(buf,"%03i %03i %03i %03i | %03i %03i",
-		gleft, gright, gtop, gbottom, gright-gleft, gbottom-gtop
-		);
+		0, OpenGL_GetWidth(), OpenGL_GetHeight(), 0, 
+		OpenGL_GetXoff(), OpenGL_GetYoff());
 	}
 
 	sbuf = buf;

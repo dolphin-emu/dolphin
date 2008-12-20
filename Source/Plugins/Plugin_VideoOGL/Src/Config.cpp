@@ -34,31 +34,32 @@ void Config::Load()
     iniFile.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
 
 	// get resolution
-    iniFile.Get("Hardware", "WindowedRes", &temp, 0);
-	if(temp.empty())
-		temp = "640x480";
-    strcpy(iWindowedRes, temp.c_str());
-    iniFile.Get("Hardware", "FullscreenRes", &temp, 0);
-	if(temp.empty())
-		temp = "640x480";
-    strcpy(iFSResolution, temp.c_str());
+    iniFile.Get("Hardware", "WindowedRes", &temp, "640x480");
+    strncpy(iWindowedRes, temp.c_str(), 16);
 
+    iniFile.Get("Hardware", "FullscreenRes", &temp, "640x480");
+    strncpy(iFSResolution, temp.c_str(), 16);
+    
+    iniFile.Get("Settings", "Backend", &temp, "");
+    strncpy(iBackend, temp.c_str(), 16);
+    
     iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
-	iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, 0);
-	iniFile.Get("Settings", "StretchToFit", &bStretchToFit, false);
-	iniFile.Get("Settings", "KeepAR", &bKeepAR, false);
-	iniFile.Get("Settings", "HideCursor", &bHideCursor, false);
-
+    iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, 0);
+    iniFile.Get("Settings", "StretchToFit", &bStretchToFit, false);
+    iniFile.Get("Settings", "KeepAR", &bKeepAR, false);
+    iniFile.Get("Settings", "HideCursor", &bHideCursor, false);
+    
+    
     iniFile.Get("Settings", "SafeTextureCache", &bSafeTextureCache, false); // Settings
     iniFile.Get("Settings", "ShowFPS", &bShowFPS, false); // Settings
-	iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
+    iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
     iniFile.Get("Settings", "DLOptimize", &iCompileDLsLevel, 0);
     iniFile.Get("Settings", "DumpTextures", &bDumpTextures, 0);
     iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
     iniFile.Get("Settings", "Multisample", &iMultisampleMode, 0);
     if (iMultisampleMode == 0)
         iMultisampleMode = 1;
-	std::string s;
+    std::string s;
     iniFile.Get("Settings", "TexDumpPath", &s, 0);
     if (s.size() < sizeof(texDumpPath) )
         strcpy(texDumpPath, s.c_str());
@@ -66,21 +67,21 @@ void Config::Load()
         strncpy(texDumpPath, s.c_str(), sizeof(texDumpPath)-1);
         texDumpPath[sizeof(texDumpPath)-1] = 0;
     }
-
-	iniFile.Get("Settings", "TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
-	iniFile.Get("Settings", "TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
-	iniFile.Get("Settings", "UseXFB", &bUseXFB, 0);
-	iniFile.Get("Settings", "WireFrame", &bWireFrame, 0);
-	iniFile.Get("Settings", "DisableLighting", &bDisableLighting, 0);
-	iniFile.Get("Settings", "DisableTexturing", &bDisableTexturing, 0);
-
+    
+    iniFile.Get("Settings", "TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
+    iniFile.Get("Settings", "TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
+    iniFile.Get("Settings", "UseXFB", &bUseXFB, 0);
+    iniFile.Get("Settings", "WireFrame", &bWireFrame, 0);
+    iniFile.Get("Settings", "DisableLighting", &bDisableLighting, 0);
+    iniFile.Get("Settings", "DisableTexturing", &bDisableTexturing, 0);
+    
     iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
     iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 3);  // NOTE - this is x in (1 << x)
-
-	iniFile.Get("Hacks", "EFBToTextureDisable", &bEFBToTextureDisable, 0);
-	iniFile.Get("Hacks", "EFBToTextureDisableHotKey", &bEFBToTextureDisableHotKey, 0);	
-	iniFile.Get("Hacks", "ProjectionHax1", &bProjectionHax1, 0);
-	iniFile.Get("Hacks", "ProjectionHax2", &bProjectionHax2, 0);
+    
+    iniFile.Get("Hacks", "EFBToTextureDisable", &bEFBToTextureDisable, 0);
+    iniFile.Get("Hacks", "EFBToTextureDisableHotKey", &bEFBToTextureDisableHotKey, 0);	
+    iniFile.Get("Hacks", "ProjectionHax1", &bProjectionHax1, 0);
+    iniFile.Get("Hacks", "ProjectionHax2", &bProjectionHax2, 0);
 }
 
 void Config::Save()
@@ -90,33 +91,35 @@ void Config::Save()
     iniFile.Set("Hardware", "WindowedRes", iWindowedRes);
     iniFile.Set("Hardware", "FullscreenRes", iFSResolution);
     iniFile.Set("Hardware", "Fullscreen", bFullscreen);
-	iniFile.Set("Hardware", "RenderToMainframe", renderToMainframe);
-	iniFile.Set("Settings", "StretchToFit", bStretchToFit);
-	iniFile.Set("Settings", "KeepAR", bKeepAR);
-	iniFile.Set("Settings", "HideCursor", bHideCursor);
+    iniFile.Set("Hardware", "RenderToMainframe", renderToMainframe);
+    iniFile.Set("Settings", "StretchToFit", bStretchToFit);
+    iniFile.Set("Settings", "KeepAR", bKeepAR);
+    iniFile.Set("Settings", "HideCursor", bHideCursor);
+    iniFile.Set("Settings", "Backend", iBackend);
+    
 
     iniFile.Set("Settings", "SafeTextureCache", bSafeTextureCache);
     iniFile.Set("Settings", "ShowFPS", bShowFPS);
-	iniFile.Set("Settings", "OverlayStats", bOverlayStats);
+    iniFile.Set("Settings", "OverlayStats", bOverlayStats);
     iniFile.Set("Settings", "DLOptimize", iCompileDLsLevel);
     iniFile.Set("Settings", "DumpTextures", bDumpTextures);
     iniFile.Set("Settings", "ShowShaderErrors", bShowShaderErrors);
     iniFile.Set("Settings", "Multisample", iMultisampleMode);
     iniFile.Set("Settings", "TexDumpPath", texDumpPath);
-	iniFile.Set("Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);
-	iniFile.Set("Settings", "TexFmtOverlayCenter", bTexFmtOverlayCenter);
-	iniFile.Set("Settings", "UseXFB", bUseXFB);
-	iniFile.Set("Settings", "Wireframe", bWireFrame);
-	iniFile.Set("Settings", "DisableLighting", bDisableLighting);
-	iniFile.Set("Settings", "DisableTexturing", bDisableTexturing);
-
+    iniFile.Set("Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);
+    iniFile.Set("Settings", "TexFmtOverlayCenter", bTexFmtOverlayCenter);
+    iniFile.Set("Settings", "UseXFB", bUseXFB);
+    iniFile.Set("Settings", "Wireframe", bWireFrame);
+    iniFile.Set("Settings", "DisableLighting", bDisableLighting);
+    iniFile.Set("Settings", "DisableTexturing", bDisableTexturing);
+    
     iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
     iniFile.Set("Enhancements", "MaxAnisotropy", iMaxAnisotropy);
-
-	iniFile.Set("Hacks", "EFBToTextureDisable", bEFBToTextureDisable);
-	iniFile.Set("Hacks", "EFBToTextureDisableHotKey", bEFBToTextureDisableHotKey);
-	iniFile.Set("Hacks", "ProjectionHax1", bProjectionHax1);
-	iniFile.Set("Hacks", "ProjectionHax2", bProjectionHax2);
-
+    
+    iniFile.Set("Hacks", "EFBToTextureDisable", bEFBToTextureDisable);
+    iniFile.Set("Hacks", "EFBToTextureDisableHotKey", bEFBToTextureDisableHotKey);
+    iniFile.Set("Hacks", "ProjectionHax1", bProjectionHax1);
+    iniFile.Set("Hacks", "ProjectionHax2", bProjectionHax2);
+    
     iniFile.Save(FULL_CONFIG_DIR "gfx_opengl.ini");
 }

@@ -303,7 +303,7 @@ void ConfigDialog::AddWindowReso(char *reso)
 	m_WindowResolutionCB->Append(wxString::FromAscii(reso));
 }
 
-void ConfigDialog::AddRenderBackend(char *backend)
+void ConfigDialog::AddRenderBackend(const char *backend)
 {
 	m_RenderBackend->Append(wxString::FromAscii(backend));
 }

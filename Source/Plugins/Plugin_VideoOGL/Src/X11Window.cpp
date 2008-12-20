@@ -22,32 +22,21 @@ X11Window::X11Window(int _iwidth, int _iheight) {
     
     SetSize(_twidth, _theight);
 
-
-    // ---------------------------------------------------------------------------------------
-    // Control window size and picture scaling
-    // ------------------
-    // nBackbufferWidth and nBackbufferHeight = Screen resolution from ini, or 640x480
-    // See OpenGL_Update() for documentation of the other variables
-    // ------------------
-    nBackbufferWidth = _twidth;
-    nBackbufferHeight = _theight;
-    
-    float FactorW  = 640.0f / (float)nBackbufferWidth;
-    float FactorH  = 480.0f / (float)nBackbufferHeight;
+    float FactorW  = 640.0f / (float)_twidth;
+    float FactorH  = 480.0f / (float)_theight;
     float Max = (FactorW < FactorH) ? FactorH : FactorW;
     
     if(g_Config.bStretchToFit) {
 	MValueX = 1.0f / FactorW;
 	MValueY = 1.0f / FactorH;
-	nXoff = 0;
-	nYoff = 0;
+	SetOffset(0,0);
     } else {
 	MValueX = 1.0f / Max;
 	MValueY = 1.0f / Max;
-	nXoff = (int)((nBackbufferWidth - (640 * MValueX)) / 2);
-	nYoff = (int)((nBackbufferHeight - (480 * MValueY)) / 2);
+	SetOffset((int)((_twidth - (640 * MValueX)) / 2),
+		  (int)((_theight - (480 * MValueY)) / 2));
     }
-    
+
     XVisualInfo *vi;
     Colormap cmap;
     int dpyWidth, dpyHeight;
@@ -263,8 +252,6 @@ void X11Window::Update() {
 	    XGetGeometry(dpy, win, &winDummy, &x, &y,
 			 &w, &h, &borderDummy, &depth);
 	    SetSize(w, h);
-	    nBackbufferWidth = w;
-	    nBackbufferHeight = h;
 	    break;
 	case ClientMessage: //TODO: We aren't reading this correctly, It could be anything, highest chance is that it's a close event though
 	    Video_Shutdown(); // Calling from here since returning false does nothing

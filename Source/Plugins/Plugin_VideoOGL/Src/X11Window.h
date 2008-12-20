@@ -23,9 +23,6 @@ public:
     Bool fs;
     Bool doubleBuffered;
     XF86VidModeModeInfo deskMode;
-    int nBackbufferWidth, nBackbufferHeight;
-    int nXoff, nYoff; // screen offset
-    // Since it can Stretch to fit Window, we need two different multiplication values
     float MValueX, MValueY; 
 
     virtual void SwapBuffers();

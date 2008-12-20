@@ -19,16 +19,15 @@ void WXGLWindow::Update() {
     float Max = (FactorW < FactorH) ? FactorH : FactorW;
     //AR = (float)nBackbufferWidth / (float)nBackbufferHeight;
 
-    if (g_Config.bStretchToFit) {
+   if (g_Config.bStretchToFit) {
 	MValueX = 1;
 	MValueY = 1;
-        nXoff = 0;
-        nYoff = 0;
+	SetOffset(0,0);
     } else {
         MValueX = 1.0f / Max;
         MValueY = 1.0f / Max;
-        nXoff = (int)((GetWidth() - (640 * MValueX)) / 2);
-        nYoff = (int)((GetHeight() - (480 * MValueY)) / 2);
+	SetOffset((int)((surface->w - (640 * MValueX)) / 2),
+		  (int)((surface->h - (480 * MValueY)) / 2));
     }
 }
 
@@ -66,16 +65,15 @@ WXGLWindow::WXGLWindow(int _iwidth, int _iheight) {
     float FactorH  = 480.0f / (float)_theight;
     float Max = (FactorW < FactorH) ? FactorH : FactorW;
     
-    if(g_Config.bStretchToFit) {
+   if(g_Config.bStretchToFit) {
 	MValueX = 1.0f / FactorW;
 	MValueY = 1.0f / FactorH;
-	nXoff = 0;
-	nYoff = 0;
+	SetOffset(0,0);
     } else {
 	MValueX = 1.0f / Max;
 	MValueY = 1.0f / Max;
-	nXoff = (int)((_twidth - (640 * MValueX)) / 2);
-	nYoff = (int)((_theight - (480 * MValueY)) / 2);
+	SetOffset((int)((_twidth - (640 * MValueX)) / 2),
+		  (int)((_theight - (480 * MValueY)) / 2));
     }
 
     int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
