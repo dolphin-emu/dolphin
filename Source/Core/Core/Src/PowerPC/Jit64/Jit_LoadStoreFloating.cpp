@@ -47,6 +47,7 @@ const u8 GC_ALIGNED16(bswapShuffle1x8Dupe[16]) = {7, 6, 5, 4, 3, 2, 1, 0, 7, 6, 
 const u8 GC_ALIGNED16(bswapShuffle2x8[16]) = {7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8};
 
 namespace {
+
 u64 GC_ALIGNED16(temp64);
 u32 GC_ALIGNED16(temp32);
 }
@@ -275,23 +276,16 @@ void Jit64::stfsx(UGeckoInstruction inst)
 	INSTRUCTION_START;
 
 	// We can take a shortcut here - it's not likely that a hardware access would use this instruction.
-#ifdef _M_X64
-	// TODO
-	Default(inst); return;
-#else
 	gpr.FlushLockX(ABI_PARAM1);
 	fpr.Lock(inst.RS);
 	MOV(32, R(ABI_PARAM1), gpr.R(inst.RB));
 	if (inst.RA)
 		ADD(32, R(ABI_PARAM1), gpr.R(inst.RA));
-	AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
 	CVTSD2SS(XMM0, fpr.R(inst.RS));
 	MOVD_xmm(R(EAX), XMM0);
-	BSWAP(32, EAX);
-	MOV(32, MDisp(ABI_PARAM1, (u32)Memory::base), R(EAX));
+	UnsafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0);
 	gpr.UnlockAllX();
 	fpr.UnlockAll();
-#endif
 }
 
 
