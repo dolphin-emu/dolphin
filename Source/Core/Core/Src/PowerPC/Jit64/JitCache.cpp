@@ -70,7 +70,6 @@ using namespace Gen;
 	{
 		LOG(DYNA_REC, "JIT Statistics =======================");
 		LOG(DYNA_REC, "Number of blocks currently: %i", numBlocks);
-		LOG(DYNA_REC, "Code cache size: %i b", GetCodePtr() - codeCache);
 		LOG(DYNA_REC, "======================================");
 	}
 

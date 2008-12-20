@@ -49,6 +49,7 @@ struct CodeOp //16B
 	bool outputCR0;
 	bool outputCR1;
 	bool outputPS1;
+	bool skip;  // followed BL-s for example
 };
 
 struct BlockStats

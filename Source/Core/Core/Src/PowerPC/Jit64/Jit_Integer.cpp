@@ -202,6 +202,7 @@
 		if (!merge_branch) {
 			// Keep the normal code separate for clarity.
 			CMP(32, gpr.R(a), comparand);
+
 			FixupBranch pLesser  = J_CC(less_than);
 			FixupBranch pGreater = J_CC(greater_than);
 			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2)); // _x86Reg == 0
@@ -216,42 +217,45 @@
 		} else {
 			int test_bit = 8 >> (js.next_inst.BI & 3);
 			bool condition = (js.next_inst.BO & 8) ? false : true;
-
-			u32 destination;
-			if (js.next_inst.AA)
-				destination = SignExt16(js.next_inst.BD << 2);
-			else
-				destination = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
-
 			CMP(32, gpr.R(a), comparand);
 			gpr.UnlockAll();
+
+			u32 destination1;
+			if (js.next_inst.AA)
+				destination1 = SignExt16(js.next_inst.BD << 2);
+			else
+				destination1 = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
+			u32 destination2 = js.next_compilerPC + 4;
+			
+			// Test swapping (in the future, will be used to inline across branches the right way)
+			// if (rand() & 1)
+			//     std::swap(destination1, destination2), condition = !condition;
+
 			gpr.Flush(FLUSH_ALL);
 			fpr.Flush(FLUSH_ALL);
 			FixupBranch pLesser  = J_CC(less_than);
 			FixupBranch pGreater = J_CC(greater_than);
-			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2)); // _x86Reg == 0
+			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x2));  //  == 0
 			FixupBranch continue1 = J();
 
 			SetJumpTarget(pGreater);
-			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4)); // _x86Reg > 0
+			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x4));  //  > 0
 			FixupBranch continue2 = J();
 
 			SetJumpTarget(pLesser);
-			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8)); // _x86Reg < 0
+			MOV(8, M(&PowerPC::ppcState.cr_fast[crf]), Imm8(0x8));  //  < 0
 			FixupBranch continue3;
 			if (!!(8 & test_bit) == condition) continue3 = J();
-			
-			//if (!!(8 & test_bit) != condition) SetJumpTarget(continue3);
 			if (!!(4 & test_bit) != condition) SetJumpTarget(continue2);
 			if (!!(2 & test_bit) != condition) SetJumpTarget(continue1);
 
-			WriteExit(destination, 0);
+			WriteExit(destination1, 0);
 
 			if (!!(8 & test_bit) == condition) SetJumpTarget(continue3);
 			if (!!(4 & test_bit) == condition) SetJumpTarget(continue2);
 			if (!!(2 & test_bit) == condition) SetJumpTarget(continue1);
 			
-			WriteExit(js.next_compilerPC + 4, 1);
+			WriteExit(destination2, 1);
 			
 			js.cancel = true;
 		}

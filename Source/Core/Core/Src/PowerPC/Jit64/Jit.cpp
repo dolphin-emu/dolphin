@@ -189,6 +189,7 @@ namespace CPUCompare
 		jo.fpAccurateFlags = true;
 		jo.optimizeGatherPipe = true;
 		jo.fastInterrupts = false;
+		jo.accurateSinglePrecision = true;
 
 		gpr.SetEmitter(this);
 		fpr.SetEmitter(this);
@@ -328,6 +329,9 @@ namespace CPUCompare
 		if (emaddress == 0)
 			PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
 
+//		if (emaddress == 0x800aa278)
+//			DebugBreak();
+
 		int size;
 		js.isLastInstruction = false;
 		js.blockStart = emaddress;
@@ -433,7 +437,8 @@ namespace CPUCompare
 				CALL(thunks.ProtectFunction((void *)&GPFifo::CheckGatherPipe, 0));
 			}
 
-			PPCTables::CompileInstruction(ops[i].inst);
+			if (!ops[i].skip)
+				PPCTables::CompileInstruction(ops[i].inst);
 
 			gpr.SanityCheck();
 			fpr.SanityCheck();

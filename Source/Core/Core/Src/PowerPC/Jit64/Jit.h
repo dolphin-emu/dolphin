@@ -19,6 +19,14 @@
 // See comments in Jit.cpp.
 // ========================
 
+// Mystery: Capcom vs SNK 800aa278
+
+// CR flags approach:
+//   * Store that "N+Z flag contains CR0" or "S+Z flag contains CR3".
+//   * All flag altering instructions flush this
+//   * A flush simply does a conditional write to the appropriate CRx.
+//   * If flag available, branch code can become absolutely trivial.
+
 #ifndef _JIT_H
 #define _JIT_H
 
@@ -128,6 +136,7 @@ private:
 		bool enableFastMem;
 		bool optimizeGatherPipe;
 		bool fastInterrupts;
+		bool accurateSinglePrecision;
 	};
 
 

@@ -313,6 +313,7 @@ bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Blo
 		code[i].inst = inst;
 		code[i].branchTo = -1;
 		code[i].branchToIndex = -1;
+		code[i].skip = false;
 		GekkoOPInfo *opinfo = GetOpInfo(inst);
 		if (opinfo)
 			numCycles += opinfo->numCyclesMinusOne + 1;
@@ -345,6 +346,7 @@ bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Blo
 		}
 		else
 		{
+			code[i].skip = true;
 			address = destination;
 		}
 	}
