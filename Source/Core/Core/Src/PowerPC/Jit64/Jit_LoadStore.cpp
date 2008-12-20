@@ -390,42 +390,38 @@
 		}
 	}
 
-	// A few games use these heavily in video codecs.
-	void Jit64::lmw(UGeckoInstruction inst)
+// A few games use these heavily in video codecs.
+void Jit64::lmw(UGeckoInstruction inst)
+{
+	gpr.FlushLockX(ECX);
+	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
+	if (inst.RA)
+		ADD(32, R(EAX), gpr.R(inst.RA));
+	else
+		XOR(32, R(EAX), R(EAX));
+	for (int i = inst.RD; i < 32; i++)
 	{
-		Default(inst);
-		return;
-
-		/*
-		/// BUGGY
-		//return _inst.RA ? (m_GPR[_inst.RA] + _inst.SIMM_16) : _inst.SIMM_16;
-		gpr.FlushLockX(ECX, EDX);
-		gpr.FlushLockX(ESI);
-		MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
-		if (inst.RA)
-			ADD(32, R(EAX), gpr.R(inst.RA));
-		MOV(32, R(ECX), Imm32(inst.RD));
-		MOV(32, R(ESI), Imm32(static_cast<u32>((u64)&PowerPC::ppcState.gpr[0])));
-		const u8 *loopPtr = GetCodePtr();
-		MOV(32, R(EDX), MComplex(RBX, EAX, SCALE_1, 0));
-		MOV(32, MComplex(ESI, ECX, SCALE_4, 0), R(EDX));
-		ADD(32, R(EAX), Imm8(4));
-		ADD(32, R(ESI), Imm8(4));
-		ADD(32, R(ECX), Imm8(1));
-		CMP(32, R(ECX), Imm8(32));
-		gpr.UnlockAllX();*/
+		MOV(32, R(ECX), MComplex(EBX, EAX, SCALE_1, (i - inst.RD) * 4));
+		BSWAP(32, ECX);
+		gpr.LoadToX64(i, false, true);
+		MOV(32, gpr.R(i), R(ECX));
 	}
+	gpr.UnlockAllX();
+}
 
-	void Jit64::stmw(UGeckoInstruction inst)
+void Jit64::stmw(UGeckoInstruction inst)
+{
+	gpr.FlushLockX(ECX);
+	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
+	if (inst.RA)
+		ADD(32, R(EAX), gpr.R(inst.RA));
+	else
+		XOR(32, R(EAX), R(EAX));
+	for (int i = inst.RD; i < 32; i++)
 	{
-		Default(inst);
-		return;
-		/*
-		u32 uAddress = Helper_Get_EA(_inst);
-		for (int iReg = _inst.RS; iReg <= 31; iReg++, uAddress+=4)
-		{		
-			Memory::Write_U32(m_GPR[iReg], uAddress);
-			if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
-				return;
-		}*/
+		MOV(32, R(ECX), gpr.R(i));
+		BSWAP(32, ECX);
+		MOV(32, MComplex(EBX, EAX, SCALE_1, (i - inst.RD) * 4), R(ECX));
 	}
+	gpr.UnlockAllX();
+}
