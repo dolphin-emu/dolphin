@@ -110,3 +110,16 @@ int OpenGL_GetXoff() {
 int OpenGL_GetYoff() {
     return glWin->GetYoff();
 }
+
+void OpenGL_AddBackends(ConfigDialog *frame) {
+    if(SDLWindow::valid())
+	frame->AddRenderBackend("SDL");
+    if(X11Window::valid())
+	frame->AddRenderBackend("X11");
+    if(WXGLWindow::valid())
+	frame->AddRenderBackend("WXGL");
+}
+
+void OpenGL_AddResolutions(ConfigDialog *frame) {
+    // TODO get resolution iter
+}

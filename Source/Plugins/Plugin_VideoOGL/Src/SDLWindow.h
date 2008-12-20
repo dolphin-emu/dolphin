@@ -15,7 +15,8 @@ public:
     virtual bool PeekMessages();
     virtual void Update();
     virtual bool MakeCurrent();
-    
+
+    static bool valid() { return true; }
     ~SDLWindow();
     SDLWindow(int _iwidth, int _iheight);
 

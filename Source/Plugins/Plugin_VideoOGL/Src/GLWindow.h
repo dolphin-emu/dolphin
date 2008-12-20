@@ -43,7 +43,7 @@ class GLWindow {
     int GetYoff() {return yOffset;}
     int GetXoff() {return xOffset;}
 
-    virtual bool valid() { return false; }
+    static bool valid() { return false; }
     //   bool GLwindow(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight) {};
     // setResolution
     // resolution iter

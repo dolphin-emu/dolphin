@@ -23,6 +23,7 @@ public:
     virtual void Update();
     virtual bool MakeCurrent();
     
+    static bool valid() { return true; }
     ~WXGLWindow();
     WXGLWindow(int _iwidth, int _iheight);
 

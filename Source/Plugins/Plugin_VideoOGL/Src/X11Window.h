@@ -30,7 +30,8 @@ public:
     virtual bool PeekMessages();
     virtual void Update();
     virtual bool MakeCurrent();
-    
+
+    static bool valid() { return true; }
     ~X11Window();
     X11Window(int _iwidth, int _iheight);
 };

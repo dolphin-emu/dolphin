@@ -20,6 +20,7 @@
 
 #include "Config.h"
 #include "pluginspecs_video.h"
+#include "GUI/ConfigDlg.h"
 #include "GLWindow.h"
 // backends
 #include "SDLWindow.h"
@@ -40,6 +41,9 @@
 #else
 #define GL_REPORT_ERRORD()
 #endif
+
+void OpenGL_AddBackends(ConfigDialog *frame);
+void OpenGL_AddResolutions(ConfigDialog *frame);
 
 // TODO old interface removal
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _width, int _height);

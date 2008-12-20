@@ -30,6 +30,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_RENDERTOMAINWINDOW, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_FULLSCREENCB, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_WINDOWRESOLUTIONCB, ConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(ID_RENDERBACKEND, ConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_ALIASMODECB, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHOICE(ID_MAXANISOTROPY, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_FORCEFILTERING, ConfigDialog::GeneralSettingsChanged)
@@ -350,7 +351,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		strcpy(g_Config.iWindowedRes, m_WindowResolutionCB->GetValue().mb_str() );
 		break;
 	case ID_RENDERBACKEND:
-	  	strcpy(g_Config.iBackend, m_RenderBackend->GetValue().mb_str() );
+	  	strcpy(g_Config.iBackend, m_RenderBackend->GetValue().mb_str());
 		break;
 	case ID_FORCEFILTERING:
 		g_Config.bForceFiltering = m_ForceFiltering->IsChecked();
