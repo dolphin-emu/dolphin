@@ -110,6 +110,8 @@ CMemcardManager::CMemcardManager(wxWindow* parent, wxWindowID id, const wxString
 	if (MemcardManagerIni.Load(CONFIG_FILE))
 	{
 		MemcardManagerIni.Get("MemcardManager", "Items per page",  &itemsPerPage, 16);
+		MemcardManagerIni.Get("MemcardManager", "DefaultMemcardA", &(DefaultMemcard[SLOT_A]), ".");
+		MemcardManagerIni.Get("MemcardManager", "DefaultMemcardB", &(DefaultMemcard[SLOT_B]), ".");
 	}
 	else itemsPerPage = 16;
 	maxPages = (128 / itemsPerPage) - 1;
@@ -130,6 +132,8 @@ CMemcardManager::~CMemcardManager()
 	}
 	MemcardManagerIni.Load(CONFIG_FILE);
 	MemcardManagerIni.Set("MemcardManager", "Items per page",  itemsPerPage);
+	MemcardManagerIni.Set("MemcardManager", "DefaultMemcardA", DefaultMemcard[SLOT_A]);
+	MemcardManagerIni.Set("MemcardManager", "DefaultMemcardB", DefaultMemcard[SLOT_B]);
 	MemcardManagerIni.Save(CONFIG_FILE);
 }
 
@@ -267,22 +271,21 @@ void CMemcardManager::CreateGUIControls()
 	this->SetSizer(sMain);
 	sMain->SetSizeHints(this);
 	Fit();
-
-	m_PrevPage[SLOT_A]->Disable();
-	m_NextPage[SLOT_A]->Disable();
-	m_PrevPage[SLOT_B]->Disable();
-	m_NextPage[SLOT_B]->Disable();
-	m_CopyFrom[SLOT_A]->Disable();
-	m_CopyFrom[SLOT_B]->Disable();
-	m_FixChecksum[SLOT_A]->Disable();
-	m_FixChecksum[SLOT_B]->Disable();
-	m_SaveImport[SLOT_A]->Disable();
-	m_SaveExport[SLOT_A]->Disable();
-	m_SaveImport[SLOT_B]->Disable();
-	m_SaveExport[SLOT_B]->Disable();
-	m_Delete[SLOT_A]->Disable();
-	m_Delete[SLOT_B]->Disable();
-
+	for (int i = 0; i < 2; i++)
+	{
+		m_PrevPage[i]->Disable();
+		m_NextPage[i]->Disable();
+		m_CopyFrom[i]->Disable();
+		m_FixChecksum[i]->Disable();
+		m_SaveImport[i]->Disable();
+		m_SaveExport[i]->Disable();
+		m_Delete[i]->Disable();
+		if (strcasecmp(DefaultMemcard[i].c_str(), "."))
+		{
+			m_MemcardPath[i]->SetPath(wxT(DefaultMemcard[i]));
+			i?ChangePath(ID_MEMCARDPATH_B):ChangePath(ID_MEMCARDPATH_A);
+		}
+	}
 }
 
 void CMemcardManager::OnClose(wxCloseEvent& WXUNUSED (event))
@@ -292,9 +295,14 @@ void CMemcardManager::OnClose(wxCloseEvent& WXUNUSED (event))
 
 void CMemcardManager::OnPathChange(wxFileDirPickerEvent& event)
 {
+	ChangePath(event.GetId());
+}
+
+void CMemcardManager::ChangePath(int id)
+{
 	int slot = SLOT_B;
 	int slot2 = SLOT_A;
-	switch (event.GetId())
+	switch (id)
 	{
 	case ID_MEMCARDPATH_A:
 		slot = SLOT_A;
@@ -310,7 +318,7 @@ void CMemcardManager::OnPathChange(wxFileDirPickerEvent& event)
 		{
 			PanicAlert(E_ALREADYOPENED);
 		}
-		else if (ReloadMemcard(event.GetPath().mb_str(), slot))
+		else if (ReloadMemcard(m_MemcardPath[slot]->GetPath().mb_str(), slot))
 		{
 			m_MemcardList[slot2]->twoCardsLoaded = true;
 			m_FixChecksum[slot]->Enable();

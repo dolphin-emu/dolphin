@@ -100,7 +100,7 @@ GCMemcard::GCMemcard(const char *filename)
 	fail = false;
 	if (!mcd)
 	{
-		if (!PanicYesNo("File does not exist.\n Create a new 16MB Memcard?"))
+		if (!PanicYesNo("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename))
 		{
 			fail = true;
 			return;
@@ -124,7 +124,7 @@ GCMemcard::GCMemcard(const char *filename)
 		if (strcasecmp(fileType.c_str(), ".raw") && strcasecmp(fileType.c_str(), ".gcp"))
 		{
 			fail = true;
-			PanicAlert("File does not have a valid extension (.raw/.gcp)");
+			PanicAlert("File has the extension \"%s\"\nvalid extensions are (.raw/.gcp)", fileType.c_str());
 			return;
 		}
 	}
@@ -241,7 +241,7 @@ GCMemcard::GCMemcard(const char *filename)
 	else
 	{
 		fail = true;
-		PanicAlert("Memcard failed to load\n Card size is invalid");
+		PanicAlert("Memcard failed to load\n Card size is invalid (%04X)", size);
 	}
 }
 

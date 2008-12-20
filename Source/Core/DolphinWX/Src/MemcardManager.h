@@ -128,6 +128,7 @@ class CMemcardManager
 		void OnMenuChange(wxCommandEvent& event);
 		void OnPageChange(wxCommandEvent& event);
 		void OnPathChange(wxFileDirPickerEvent& event);
+		void ChangePath(int id);
 		bool CopyDeleteSwitch(u32 error, int slot);
 
 		class CMemcardListCtrl : public wxListCtrl
