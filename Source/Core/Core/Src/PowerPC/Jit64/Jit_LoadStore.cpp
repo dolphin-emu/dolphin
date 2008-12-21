@@ -400,8 +400,6 @@ void Jit64::lmw(UGeckoInstruction inst)
 	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
 	if (inst.RA)
 		ADD(32, R(EAX), gpr.R(inst.RA));
-	else
-		XOR(32, R(EAX), R(EAX));
 	for (int i = inst.RD; i < 32; i++)
 	{
 		MOV(32, R(ECX), MComplex(EBX, EAX, SCALE_1, (i - inst.RD) * 4));
@@ -422,8 +420,6 @@ void Jit64::stmw(UGeckoInstruction inst)
 	MOV(32, R(EAX), Imm32((u32)(s32)inst.SIMM_16));
 	if (inst.RA)
 		ADD(32, R(EAX), gpr.R(inst.RA));
-	else
-		XOR(32, R(EAX), R(EAX));
 	for (int i = inst.RD; i < 32; i++)
 	{
 		MOV(32, R(ECX), gpr.R(i));
