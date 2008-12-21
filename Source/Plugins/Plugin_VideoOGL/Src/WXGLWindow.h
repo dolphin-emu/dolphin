@@ -15,8 +15,6 @@ private:
 
 public:
 
-    float MValueX, MValueY; 
-
     virtual void SwapBuffers();
     virtual void SetWindowText(const char *text);
     virtual bool PeekMessages();

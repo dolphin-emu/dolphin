@@ -111,6 +111,14 @@ int OpenGL_GetYoff() {
     return glWin->GetYoff();
 }
 
+float OpenGL_GetXmax() {
+    return glWin->GetXmax();
+}
+
+float OpenGL_GetYmax() {
+    return glWin->GetYmax();
+}
+
 void OpenGL_AddBackends(ConfigDialog *frame) {
     if(SDLWindow::valid())
 	frame->AddRenderBackend("SDL");

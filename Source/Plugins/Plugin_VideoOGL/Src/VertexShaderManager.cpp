@@ -415,8 +415,10 @@ void VertexShaderMngr::SetConstants()
 		}
 		else
 		{
-			glViewport((int)(xfregs.rawViewport[3]-xfregs.rawViewport[0]-342-scissorXOff) * MValueX,
-				Renderer::GetTargetHeight()-((int)(xfregs.rawViewport[4]-xfregs.rawViewport[1]-342-scissorYOff))  * MValueY,
+		    float MValueX = OpenGL_GetXmax();
+		    float MValueY = OpenGL_GetYmax();
+		    glViewport((int)(xfregs.rawViewport[3]-xfregs.rawViewport[0]-342-scissorXOff) * MValueX,
+			       Renderer::GetTargetHeight()-((int)(xfregs.rawViewport[4]-xfregs.rawViewport[1]-342-scissorYOff))  * MValueY,
 				abs((int)(2 * xfregs.rawViewport[0])) * MValueX, abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
 		}
 		glDepthRange((xfregs.rawViewport[5]- xfregs.rawViewport[2])/16777215.0f, xfregs.rawViewport[5]/16777215.0f);

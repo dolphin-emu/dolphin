@@ -57,5 +57,7 @@ u32 OpenGL_GetHeight();
 void OpenGL_SetSize(u32 width, u32 height);
 int OpenGL_GetXoff();
 int OpenGL_GetYoff();
+float OpenGL_GetXmax();
+float OpenGL_GetYmax();
 
 #endif

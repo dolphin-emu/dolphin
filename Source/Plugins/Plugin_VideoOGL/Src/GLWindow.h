@@ -18,31 +18,37 @@ class GLWindow {
  private:
     u32 width, height;
     int yOffset, xOffset;
+    float xMax, yMax;
  public:
-    /*    int screen;
-	  int x, y;
-	  unsigned int depth;*/    
-    
+ 
     virtual void SwapBuffers() {};
     virtual void SetWindowText(const char *text) {};
     virtual bool PeekMessages() {return false;};
     virtual void Update() {};;
     virtual bool MakeCurrent() {return false;};
-    virtual void SetSize(u32 newWidth, u32 newHeight) {
+
+
+    u32 GetWidth() {return width;}
+    u32 GetHeight() {return height;}
+    void SetSize(u32 newWidth, u32 newHeight) {
 	width = newWidth; 
 	height = newHeight; 
     }
 
+    int GetYoff() {return yOffset;}
+    int GetXoff() {return xOffset;}
     void SetOffset(int x, int y) {
 	yOffset = y;
 	xOffset = x;
     }
 
-    u32 GetWidth() {return width;}
-    u32 GetHeight() {return height;}
-    int GetYoff() {return yOffset;}
-    int GetXoff() {return xOffset;}
-
+    void SetMax(float x, float y) {
+	yMax = y;
+	xMax = x;
+    }
+    float GetXmax() {return xMax;}
+    float GetYmax() {return yMax;}
+ 
     static bool valid() { return false; }
     //   bool GLwindow(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight) {};
     // setResolution

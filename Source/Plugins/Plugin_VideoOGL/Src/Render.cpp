@@ -83,7 +83,6 @@ static Renderer::RenderMode s_RenderMode = Renderer::RM_Normal;
 static int s_nCurTarget = 0;
 bool g_bBlendLogicOp = false;
 
-float MValueX, MValueY; // Since it can Stretch to fit Window, we need two different multiplication values
 int frameCount;
 
 void HandleCgError(CGcontext ctx, CGerror err, void* appdata);
@@ -587,7 +586,8 @@ bool Renderer::SetScissorRect()
 {
     int xoff = bpmem.scissorOffset.x * 2 - 342;
     int yoff = bpmem.scissorOffset.y * 2 - 342;
-
+    float MValueX = OpenGL_GetXmax();
+    float MValueY = OpenGL_GetYmax();
 	float rc_left = bpmem.scissorTL.x - xoff - 342; // left = 0
 	rc_left *= MValueX;
 	if (rc_left < 0) rc_left = 0;

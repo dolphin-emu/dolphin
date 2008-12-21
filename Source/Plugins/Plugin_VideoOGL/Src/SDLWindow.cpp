@@ -24,14 +24,12 @@ void SDLWindow::Update() {
     //    AR = (float)surface->w / (float)surface->h;;
     
     if (g_Config.bStretchToFit) {
-	MValueX = 1;
-	MValueY = 1;
+	SetMax(1,1);
 	SetOffset(0,0);
     } else {
-        MValueX = 1.0f / Max;
-        MValueY = 1.0f / Max;
-	SetOffset((int)((surface->w - (640 * MValueX)) / 2),
-		  (int)((surface->h - (480 * MValueY)) / 2));
+	SetMax(1.0f / Max, 1.0f / Max);
+	SetOffset((int)((surface->w - (640 * GetXmax())) / 2),
+		  (int)((surface->h - (480 * GetYmax())) / 2));
     }
     SetSize(surface->w, surface->h);
     
@@ -49,7 +47,7 @@ bool SDLWindow::MakeCurrent() {
     // Fetch video info.
     const SDL_VideoInfo *videoInfo = SDL_GetVideoInfo();
     if (!videoInfo) {
-	// TODO: Display an error message.
+	PanicAlert("Couldn't get video info");
 	SDL_Quit();
 	return false;
     }
@@ -62,7 +60,7 @@ bool SDLWindow::MakeCurrent() {
     SDL_Surface *screen = SDL_SetVideoMode(GetWidth(), GetHeight(), 
 					   0, videoFlags);
     if (!screen) {
-	//TODO : Display an error message
+	PanicAlert("Couldn't set video mode");
 	SDL_Quit();
 	return false;
     }
@@ -99,18 +97,17 @@ SDLWindow::SDLWindow(int _iwidth, int _iheight) {
     float Max = (FactorW < FactorH) ? FactorH : FactorW;
     
     if(g_Config.bStretchToFit) {
-	MValueX = 1.0f / FactorW;
-	MValueY = 1.0f / FactorH;
+	SetMax(1.0f / FactorW, 1.0f / FactorH);
 	SetOffset(0,0);
     } else {
-	MValueX = 1.0f / Max;
-	MValueY = 1.0f / Max;
-	SetOffset((int)((_twidth - (640 * MValueX)) / 2),
-		  (int)((_theight - (480 * MValueY)) / 2));
+	SetMax(1.0f / Max, 1.0f / Max);
+	SetOffset((int)((_twidth - (640 * GetXmax())) / 2),
+		  (int)((_theight - (480 * GetYmax())) / 2));
     }
 
     //init sdl video
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+	PanicAlert("Failed to init SDL");
 	//TODO : Display an error message
 	SDL_Quit();
 	//	return NULL;

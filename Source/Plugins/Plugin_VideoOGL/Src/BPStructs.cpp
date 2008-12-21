@@ -434,7 +434,9 @@ void BPWritten(int addr, int changes, int newval)
                 (int)((bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x)),
                 (int)((bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y))
             };
-            //Need another rc here to get it to scale.
+			float MValueX = OpenGL_GetXmax();
+			float MValueY = OpenGL_GetYmax();
+			//Need another rc here to get it to scale.
 			//Here the bottom right is the out of the rectangle.
             TRectangle multirc = {
                 (int)(bpmem.copyTexSrcXY.x * MValueX),

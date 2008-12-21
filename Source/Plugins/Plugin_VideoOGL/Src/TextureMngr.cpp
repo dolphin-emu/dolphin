@@ -583,6 +583,8 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     GL_REPORT_ERRORD();
     
     glBegin(GL_QUADS);
+    float MValueX = OpenGL_GetXmax();
+    float MValueY = OpenGL_GetYmax();
     glTexCoord2f((float)source->left * MValueX, Renderer::GetTargetHeight()-(float)source->bottom * MValueY); glVertex2f(-1,1);
     glTexCoord2f((float)source->left * MValueX, Renderer::GetTargetHeight()-(float)source->top * MValueY); glVertex2f(-1,-1);
     glTexCoord2f((float)source->right * MValueX, Renderer::GetTargetHeight()-(float)source->top * MValueY); glVertex2f(1,-1);

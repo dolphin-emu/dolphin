@@ -23,7 +23,6 @@ public:
     Bool fs;
     Bool doubleBuffered;
     XF86VidModeModeInfo deskMode;
-    float MValueX, MValueY; 
 
     virtual void SwapBuffers();
     virtual void SetWindowText(const char *text);

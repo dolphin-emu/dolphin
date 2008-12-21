@@ -118,6 +118,8 @@ extern GLWindow GLWin;
 
 #endif
 
+float OpenGL_GetXmax();
+float OpenGL_GetYmax();
 int OpenGL_GetXoff();
 int OpenGL_GetYoff();
 u32 OpenGL_GetWidth();

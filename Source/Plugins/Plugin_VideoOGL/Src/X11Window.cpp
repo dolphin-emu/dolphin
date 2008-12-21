@@ -27,14 +27,12 @@ X11Window::X11Window(int _iwidth, int _iheight) {
     float Max = (FactorW < FactorH) ? FactorH : FactorW;
     
     if(g_Config.bStretchToFit) {
-	MValueX = 1.0f / FactorW;
-	MValueY = 1.0f / FactorH;
+	SetMax(1.0f / FactorW, 1.0f / FactorH);
 	SetOffset(0,0);
     } else {
-	MValueX = 1.0f / Max;
-	MValueY = 1.0f / Max;
-	SetOffset((int)((_twidth - (640 * MValueX)) / 2),
-		  (int)((_theight - (480 * MValueY)) / 2));
+	SetMax(1.0f / Max, 1.0f / Max);
+	SetOffset((int)((_twidth - (640 * GetXmax())) / 2),
+		  (int)((_theight - (480 * GetYmax())) / 2));
     }
 
     XVisualInfo *vi;

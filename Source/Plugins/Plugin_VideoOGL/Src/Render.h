@@ -26,7 +26,6 @@
 extern CGcontext g_cgcontext;
 extern CGprofile g_cgvProf, g_cgfProf;
 
-extern float MValueX, MValueY;
 extern int frameCount;
 
 class Renderer

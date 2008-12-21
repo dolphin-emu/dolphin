@@ -40,6 +40,7 @@ struct RECT
 int gleft, gright, gtop, gbottom;
 int nBackbufferWidth, nBackbufferHeight; // screen width
 int nXoff, nYoff; // screen offset
+float MValueX, MValueY;
 float AR; // aspect ratio
 
 #ifndef _WIN32
@@ -65,6 +66,14 @@ void OpenGL_SwapBuffers()
 #elif defined(HAVE_X11) && HAVE_X11
     glXSwapBuffers(GLWin.dpy, GLWin.win);
 #endif
+}
+
+float OpenGL_GetXmax() {
+    return MValueX;
+}
+
+float OpenGL_GetYmax() {
+    return MValueY;
 }
 
 int OpenGL_GetXoff() {
