@@ -173,10 +173,9 @@ namespace CPUCompare
 
 	void Jit64::Init()
 	{
+		asm_routines.compareEnabled = ::Core::g_CoreStartupParameter.bRunCompareClient;
 		if (Core::g_CoreStartupParameter.bJITUnlimitedCache)
-		{
 			CODE_SIZE = 1024*1024*8*8;
-		}
 
 		jo.optimizeStack = true;
 		jo.enableBlocklink = false;  // Speed boost, but not 100% safe
@@ -351,12 +350,13 @@ namespace CPUCompare
 	void Jit64::SingleStep()
 	{
 		// NOT USED, NOT TESTED, PROBABLY NOT WORKING YET
-
+		// PanicAlert("Single");
+		/*
 		JitBlock temp_block;
 		PPCAnalyst::CodeBuffer temp_codebuffer(1);  // Only room for one instruction! Single step!
 		const u8 *code = DoJit(PowerPC::ppcState.pc, &temp_codebuffer, &temp_block);
 		CompiledCode pExecAddr = (CompiledCode)code;
-		pExecAddr();
+		pExecAddr();*/
 	}
 
 	void Jit64::Jit(u32 em_address)

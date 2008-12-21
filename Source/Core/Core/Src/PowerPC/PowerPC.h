@@ -67,7 +67,6 @@ struct GC_ALIGNED64(PowerPCState)
 enum CPUState
 {
 	CPU_RUNNING = 0,
-	CPU_RUNNINGDEBUG = 1,
 	CPU_STEPPING = 2,
 	CPU_POWERDOWN = 3,
 };

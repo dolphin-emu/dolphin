@@ -1011,14 +1011,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\Src\PowerPC\Jit64\JitCore.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\PowerPC\Jit64\JitCore.h"
-					>
-				</File>
-				<File
 					RelativePath=".\Src\PowerPC\Jit64\JitRegCache.cpp"
 					>
 				</File>

@@ -27,7 +27,6 @@
 
 #include "Interpreter/Interpreter.h"
 #include "Jit64/Jit.h"
-#include "Jit64/JitCore.h"
 #include "Jit64/JitCache.h"
 #include "PowerPC.h"
 #include "PPCTables.h"
@@ -118,7 +117,7 @@ void Init()
 
 	// Initialize both execution engines ... 
 	Interpreter::Init();
-	JitCore::Init();
+	jit.Init();
 	// ... but start as interpreter by default.
 	mode = MODE_INTERPRETER;
 	state = CPU_STEPPING;
@@ -127,7 +126,7 @@ void Init()
 void Shutdown()
 {
 	// Shutdown both execution engines. Doesn't matter which one is active.
-	JitCore::Shutdown();
+	jit.Shutdown();
 	Interpreter::Shutdown();
 }
 
@@ -157,7 +156,7 @@ void SingleStep()
 		Interpreter::SingleStep();
 		break;
 	case MODE_JIT:
-		JitCore::SingleStep();
+		jit.SingleStep();
 		break;
 	}
 }
@@ -171,7 +170,7 @@ void RunLoop()
 		Interpreter::Run();
 		break;
 	case MODE_JIT:
-		JitCore::Run();
+		jit.Run();
 		break;
 	}
     Host_UpdateDisasmDialog();
@@ -180,11 +179,7 @@ void RunLoop()
 void Start()
 {
 	// Select running mode for CPU.cpp
-	state = Core::g_CoreStartupParameter.bEnableDebugging ? CPU_RUNNINGDEBUG : CPU_RUNNING;
-	if (Core::bReadTrace || Core::bWriteTrace)
-	{
-		state = CPU_RUNNING;
-	}
+	state = CPU_RUNNING;
     Host_UpdateDisasmDialog();
 }
 

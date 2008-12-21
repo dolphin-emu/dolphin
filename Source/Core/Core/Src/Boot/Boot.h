@@ -44,7 +44,7 @@ public:
 private:
 	enum { BIOS_SIZE = 2*1024*1024 };
 
-	static void RunFunction(u32 _iAddr, bool _bUseDebugger);
+	static void RunFunction(u32 _iAddr);
 
 	static void UpdateDebugger_MapLoaded(const char* _gameID = NULL);
 

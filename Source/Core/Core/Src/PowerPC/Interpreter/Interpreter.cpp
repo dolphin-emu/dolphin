@@ -17,9 +17,11 @@
 
 #include "../../HW/Memmap.h"
 #include "../../HW/CPU.h"
+#include "../../Host.h"
 #include "../PPCTables.h"
 #include "Interpreter.h"
 #include "../../Debugger/Debugger_SymbolMap.h"
+#include "../../Debugger/Debugger_Breakpoints.h"
 #include "../../CoreTiming.h"
 #include "../../Core.h"
 #include "PowerPCDisasm.h"
@@ -134,15 +136,46 @@ void Run()
 	while (!PowerPC::state)
 	{
 		//we have to check exceptions at branches apparently (or maybe just rfi?)
-		while (CoreTiming::downcount > 0)
+		if (Core::GetStartupParameter().bEnableDebugging)
 		{
-			m_EndBlock = false;
-			int i;
-			for (i = 0; !m_EndBlock; i++)
+			// Debugging friendly version of inner loop. Tries to do the timing as similarly to the
+			// JIT as possible. Does not take into account that some instructions take multiple cycles.
+			while (CoreTiming::downcount > 0)
 			{
-				SingleStepInner();
+				m_EndBlock = false;
+				int i;
+				for (i = 0; !m_EndBlock; i++)
+				{
+					//2: check for breakpoint
+					if (BreakPoints::IsAddressBreakPoint(PC))
+					{
+						LOG(GEKKO, "Hit Breakpoint - %08x", PC);
+						CCPU::EnableStepping(true);
+						if (BreakPoints::IsTempBreakPoint(PC))
+							BreakPoints::Remove(PC);
+
+						Host_UpdateDisasmDialog();
+						return;
+					}
+
+					SingleStepInner();
+				}
+				CoreTiming::downcount -= i;
 			}
-			CoreTiming::downcount -= i;
+		}
+		else
+		{
+			// "fast" version of inner loop. well, it's not so fast.
+			while (CoreTiming::downcount > 0)
+			{
+				m_EndBlock = false;
+				int i;
+				for (i = 0; !m_EndBlock; i++)
+				{
+					SingleStepInner();
+				}
+				CoreTiming::downcount -= i;
+			}
 		}
 
 		CoreTiming::Advance();

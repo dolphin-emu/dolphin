@@ -32,30 +32,18 @@
 #include "VolumeCreator.h"
 #include "Boot.h"
 
-void CBoot::RunFunction(u32 _iAddr, bool _bUseDebugger)
+void CBoot::RunFunction(u32 _iAddr)
 {
 	PC = _iAddr;
 	LR = 0x00;
 
-	if (_bUseDebugger)
-	{
-		CCPU::Break();
-		while (PC != 0x00)
-			CCPU::SingleStep();
-	}
-	else
-	{
-		while (PC != 0x00)
-			PowerPC::SingleStep();
-	}
+	while (PC != 0x00)
+		PowerPC::SingleStep();
 }
 
-// __________________________________________________________________________________________________
-//
 // BIOS HLE: 
 // copy the apploader to 0x81200000
-// execute the apploader
-//
+// execute the apploader, function by function, using the above utility.
 void CBoot::EmulatedBIOS(bool _bDebug)
 {
 	LOG(BOOT, "Faking GC BIOS...");
@@ -102,24 +90,22 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	VolumeHandler::ReadToPtr(Memory::GetPointer(0x81200000), iAppLoaderOffset + 0x20, iAppLoaderSize);
 	// =======================================================================================
 
-
-	//call iAppLoaderEntry
+	// Call iAppLoaderEntry.
 	LOG(MASTER_LOG, "Call iAppLoaderEntry");
 
 	u32 iAppLoaderFuncAddr = 0x80003100;
 	PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
 	PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
 	PowerPC::ppcState.gpr[5] = iAppLoaderFuncAddr + 8;	
-	RunFunction(iAppLoaderEntry, _bDebug);
-	u32 iAppLoaderInit = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr+0);
-	u32 iAppLoaderMain = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr+4);
-	u32 iAppLoaderClose = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr+8);
+	RunFunction(iAppLoaderEntry);
+	u32 iAppLoaderInit = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr + 0);
+	u32 iAppLoaderMain = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr + 4);
+	u32 iAppLoaderClose = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr + 8);
 	
 	// iAppLoaderInit
 	LOG(MASTER_LOG, "Call iAppLoaderInit");
 	PowerPC::ppcState.gpr[3] = 0x81300000; 
-	RunFunction(iAppLoaderInit, _bDebug);
-
+	RunFunction(iAppLoaderInit);
 	
 	// =======================================================================================
 	/* iAppLoaderMain - Here we load the apploader, the DOL (the exe) and the FST (filesystem).
@@ -133,7 +119,7 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 		PowerPC::ppcState.gpr[4] = 0x81300008;
 		PowerPC::ppcState.gpr[5] = 0x8130000c;
 
-		RunFunction(iAppLoaderMain, _bDebug);
+		RunFunction(iAppLoaderMain);
 
 		u32 iRamAddress	= Memory::ReadUnchecked_U32(0x81300004);
 		u32 iLength		= Memory::ReadUnchecked_U32(0x81300008);
@@ -145,10 +131,9 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	} while(PowerPC::ppcState.gpr[3] != 0x00);
 	// =======================================================================================
 
-
 	// iAppLoaderClose
 	LOG(MASTER_LOG, "call iAppLoaderClose");
-	RunFunction(iAppLoaderClose, _bDebug);
+	RunFunction(iAppLoaderClose);
 
 	// Load patches
 	std::string gameID = VolumeHandler::GetVolume()->GetUniqueID();
@@ -354,7 +339,7 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
 		PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
 		PowerPC::ppcState.gpr[5] = iAppLoaderFuncAddr + 8;	
-		RunFunction(iAppLoaderEntry, _bDebug);
+		RunFunction(iAppLoaderEntry);
 		u32 iAppLoaderInit = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr+0);
 		u32 iAppLoaderMain = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr+4);
 		u32 iAppLoaderClose = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr+8);
@@ -362,7 +347,7 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		// iAppLoaderInit
 		LOG(BOOT, "Call iAppLoaderInit");
 		PowerPC::ppcState.gpr[3] = 0x81300000; 
-		RunFunction(iAppLoaderInit, _bDebug);
+		RunFunction(iAppLoaderInit);
 
 		// iAppLoaderMain
 		LOG(BOOT, "Call iAppLoaderMain");
@@ -372,7 +357,7 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 			PowerPC::ppcState.gpr[4] = 0x81300008;
 			PowerPC::ppcState.gpr[5] = 0x8130000c;
 
-			RunFunction(iAppLoaderMain, _bDebug);
+			RunFunction(iAppLoaderMain);
 
 			u32 iRamAddress	= Memory::ReadUnchecked_U32(0x81300004);
 			u32 iLength		= Memory::ReadUnchecked_U32(0x81300008);
@@ -384,7 +369,7 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 
 		// iAppLoaderClose
 		LOG(BOOT, "call iAppLoaderClose");
-		RunFunction(iAppLoaderClose, _bDebug);
+		RunFunction(iAppLoaderClose);
 
 		// Load patches and run startup patches
 		std::string gameID = VolumeHandler::GetVolume()->GetUniqueID();

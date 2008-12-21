@@ -690,7 +690,6 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 
 	    case IDM_STEP:
 			SingleCPUStep();
-
 		    break;
 
 	    case IDM_STEPOVER:

@@ -27,7 +27,9 @@
 #include "../Debugger/Debugger_BreakPoints.h"
 
 using namespace PowerPC;
-namespace {
+
+namespace
+{
 	static bool g_Branch;
 	static Common::Event m_StepEvent;
 	static Common::Event *m_SyncEvent;
@@ -53,52 +55,22 @@ void CCPU::Run()
 
 	while (true)
 	{
-		switch(PowerPC::state) {
+reswitch:
+		switch (PowerPC::state)
+		{
 		case CPU_RUNNING:
 			//1: enter a fast runloop
 			PowerPC::RunLoop();
 			break;
 
-		case CPU_RUNNINGDEBUG:
-			//1: check for cpucompare
-			/*
-			if (CPUCompare::IsEnabled() && g_Branch)
-			{
-				g_Branch = false;
-				CPUCompare::Sync();
-			}*/
-
-			//2: check for breakpoint
-			if (BreakPoints::IsAddressBreakPoint(PC))
-			{
-				LOG(GEKKO, "Hit Breakpoint - %08x", PC);
-				EnableStepping(true);
-				if (BreakPoints::IsTempBreakPoint(PC))
-					BreakPoints::Remove(PC);
-
-                Host_UpdateDisasmDialog();
-
-				break;                
-			}
-
-/*			if (!Core::g_CoreStartupParameter.bUseJIT && BreakPoints::GetBreakCount() == PowerPC::ppcState.DebugCount)
-			{
-				LOG(GEKKO, "Hit DebugCount breakpoint - %i", PowerPC::ppcState.DebugCount);
-				EnableStepping(true);
-				break;
-			}*/
-
-			//3: do a step
-			PowerPC::SingleStep();
-			break;
-
 		case CPU_STEPPING:
-			//1: wait for step command..
-
 			m_StepEvent.Wait();
+			//1: wait for step command..
 			if (state == CPU_POWERDOWN)
 				return;
-	
+			if (state != CPU_STEPPING)
+				goto reswitch;
+
 			//2: check for cpu compare
 			if (CPUCompare::IsEnabled() && g_Branch)
 			{
@@ -162,65 +134,6 @@ void CCPU::EnableStepping(const bool _bStepping)
 		Host_SetDebugMode(false);
 		PowerPC::Start();
 		m_StepEvent.Set();
-	}
-}
-
-void CCPU::SingleStep()
-{
-	switch (PowerPC::state) 
-	{
-		case CPU_RUNNING:
-			//1: enter a fast runloop
-			PowerPC::RunLoop();
-			break;
-
-		case CPU_RUNNINGDEBUG:
-			//1: check for cpucompare
-			if (CPUCompare::IsEnabled() && g_Branch)
-			{
-				g_Branch = false;
-				CPUCompare::Sync();
-			}
-
-			//2: check for breakpoint
-			if (BreakPoints::IsAddressBreakPoint(PC))
-			{
-				LOG(GEKKO, "Hit Breakpoint - %08x", PC);
-				EnableStepping(true);
-				if (BreakPoints::IsTempBreakPoint(PC))
-					BreakPoints::Remove(PC);
-				break;
-			}
-
-			//3: do a step
-			PowerPC::SingleStep();
-			break;
-
-		case CPU_STEPPING:
-			//1: wait for step command..
-			m_StepEvent.Wait();
-			
-			//2: check for cpu compare
-			if (CPUCompare::IsEnabled() && g_Branch)
-			{
-				g_Branch = false;
-				CPUCompare::Sync();
-			}
-
-			//3: do a step
-			PowerPC::SingleStep();
-			
-			//4: update disasm dialog
-			if (m_SyncEvent) {
-				m_SyncEvent->Set();
-				m_SyncEvent = 0;
-			}
-			Host_UpdateDisasmDialog();
-			break;
-
-		case CPU_POWERDOWN:
-			//1: Exit loop!!
-			return; 
 	}
 }
 
