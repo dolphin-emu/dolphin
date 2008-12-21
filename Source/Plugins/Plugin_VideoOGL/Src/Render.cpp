@@ -466,7 +466,7 @@ void Renderer::ReinitView(int nNewWidth, int nNewHeight)
     int oldscreen = s_bFullscreen;
 
 	OpenGL_Shutdown();
-	int oldwidth = (int)OpenGL_GetWidth, 
+	int oldwidth = (int)OpenGL_GetWidth(), 
 	    oldheight = (int)OpenGL_GetHeight();
     if (!OpenGL_Create(g_VideoInitialize, nNewWidth, nNewHeight)) {//nNewWidth&~7, nNewHeight&~7) ) {
         ERROR_LOG("Failed to recreate, reverting to old settings\n");

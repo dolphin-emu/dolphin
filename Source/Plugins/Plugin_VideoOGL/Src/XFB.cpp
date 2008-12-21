@@ -81,7 +81,7 @@ void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset)
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfb_decoded_texture);
 
 	glViewport(OpenGL_GetXoff(), OpenGL_GetYoff(),
-		   (int)OpenGL_GetWidth(), (int)OpenGL_GetHeight);
+		   (int)OpenGL_GetWidth(), (int)OpenGL_GetHeight());
 	GL_REPORT_ERRORD();
 
 	float w = (float)width;
