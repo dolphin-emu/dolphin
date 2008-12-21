@@ -21,7 +21,7 @@
 #include "../PPCTables.h"
 #include "Interpreter.h"
 #include "../../Debugger/Debugger_SymbolMap.h"
-#include "../../Debugger/Debugger_Breakpoints.h"
+#include "../../Debugger/Debugger_BreakPoints.h"
 #include "../../CoreTiming.h"
 #include "../../Core.h"
 #include "PowerPCDisasm.h"
