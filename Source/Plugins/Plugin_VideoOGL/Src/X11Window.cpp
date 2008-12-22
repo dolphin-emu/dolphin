@@ -57,7 +57,9 @@ X11Window::X11Window(int _iwidth, int _iheight) {
                           GLX_GREEN_SIZE, 8, 
                           GLX_BLUE_SIZE, 8, 
                           GLX_DEPTH_SIZE, 24,
-                          GLX_SAMPLE_BUFFERS_ARB, g_Config.iMultisampleMode, GLX_SAMPLES_ARB, 1, None };
+                          GLX_SAMPLE_BUFFERS_ARB, 
+			  g_Config.iMultisampleMode, 
+			  GLX_SAMPLES_ARB, 1, None };
     dpy = XOpenDisplay(0);
     g_VideoInitialize.pWindowHandle = (HWND)dpy;
     screen = DefaultScreen(dpy);

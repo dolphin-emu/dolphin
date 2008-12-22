@@ -107,8 +107,7 @@ SDLWindow::SDLWindow(int _iwidth, int _iheight) {
 
     //init sdl video
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-	PanicAlert("Failed to init SDL");
-	//TODO : Display an error message
+	PanicAlert("Failed to init SDL: %s", SDL_GetError());
 	SDL_Quit();
 	//	return NULL;
     }
