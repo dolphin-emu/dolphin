@@ -16,10 +16,15 @@ bool SDLWindow::PeekMessages() {
 void SDLWindow::Update() {
 
     SDL_Surface *surface = SDL_GetVideoSurface();
-    if (!surface) return;
+    if (!surface) {
+	PanicAlert("Can't ge t surface to update");
+	return;
+    }
+    
+    SetSize(surface->w, surface->h);
 
-    float FactorW  = 640.0f / (float)surface->w;
-    float FactorH  = 480.0f / (float)surface->h;
+    float FactorW  = 640.0f / (float)GetWidth();
+    float FactorH  = 480.0f / (float)GetHeight();
     float Max = (FactorW < FactorH) ? FactorH : FactorW;
     //    AR = (float)surface->w / (float)surface->h;;
     
@@ -28,11 +33,10 @@ void SDLWindow::Update() {
 	SetOffset(0,0);
     } else {
 	SetMax(1.0f / Max, 1.0f / Max);
-	SetOffset((int)((surface->w - (640 * GetXmax())) / 2),
-		  (int)((surface->h - (480 * GetYmax())) / 2));
+	SetOffset((int)((GetWidth() - (640 * GetXmax())) / 2),
+		  (int)((GetHeight() - (480 * GetYmax())) / 2));
     }
-    SetSize(surface->w, surface->h);
-    
+	
 }
 
 bool SDLWindow::MakeCurrent() {

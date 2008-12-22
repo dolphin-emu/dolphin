@@ -265,7 +265,21 @@ void X11Window::Update() {
 	    break;
 	}
     }
-    return;
+
+    float FactorW  = 640.0f / (float)GetWidth();
+    float FactorH  = 480.0f / (float)GetHeight();
+    float Max = (FactorW < FactorH) ? FactorH : FactorW;
+    //    AR = (float)surface->w / (float)surface->h;;
+    
+    if (g_Config.bStretchToFit) {
+	SetMax(1,1);
+	SetOffset(0,0);
+    } else {
+	SetMax(1.0f / Max, 1.0f / Max);
+	SetOffset((int)((GetWidth() - (640 * GetXmax())) / 2),
+		  (int)((GetHeight() - (480 * GetYmax())) / 2));
+    }
+    
 }
 
 bool X11Window::MakeCurrent() {
