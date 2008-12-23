@@ -98,6 +98,7 @@ EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnPluginWiimote)
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_CHEATS, CFrame::OnShow_CheatsWindow)
+EVT_MENU(IDM_SWAPDISC, CFrame::OnSwapDisc)
 EVT_MENU(IDM_TOGGLECOVER, CFrame::OnSwapDisc)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
 EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
@@ -250,7 +251,8 @@ void CFrame::CreateMenu()
 	miscMenu->AppendSeparator();
 	miscMenu->Append(IDM_MEMCARD, _T("&Memcard manager"));
 	miscMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
-	miscMenu->Append(IDM_TOGGLECOVER, _T("Toggle DVD co&ver is open"));
+	miscMenu->Append(IDM_SWAPDISC, _T("S&wap Disc"));
+	//miscMenu->Append(IDM_TOGGLECOVER, _T("Toggle DVD co&ver is open"));
 	m_pMenuBar->Append(miscMenu, _T("&Misc"));
 
 	// help menu
@@ -681,7 +683,27 @@ void CFrame::UpdateGUI()
 	}
 }
 
-void CFrame::OnSwapDisc(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnSwapDisc(wxCommandEvent& event)
 {
-	SetLidOpen(!IsLidOpen());
+	switch (event.GetId())
+	{
+	case IDM_SWAPDISC:
+	{
+		wxString path = wxFileSelector(
+			_T("Select the Disc to swap"),
+			wxEmptyString, wxEmptyString, wxEmptyString,
+			wxString::Format
+			(
+					_T("All GC/Wii files (elf, dol, gcm, iso)|*.elf;*.dol;*.gcm;*.iso;*.gcz|All files (%s)|%s"),
+					wxFileSelectorDefaultWildcardStr,
+					wxFileSelectorDefaultWildcardStr
+			),
+			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
+			this);
+		SwapDisc(path.c_str());
+		break;
+	}
+	default:
+		SetLidOpen(!IsLidOpen());
+	}
 }

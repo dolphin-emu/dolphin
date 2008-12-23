@@ -27,6 +27,7 @@
 #include "Thread.h"
 
 #include "../VolumeHandler.h"
+#include "VolumeCreator.h" // DiscIO
 
 namespace DVDInterface
 {
@@ -220,7 +221,21 @@ void SetDiscInside(bool _DiscInside)
 {
     g_bDiscInside = _DiscInside;
 }
-
+void SwapDisc(const char * fileName)
+{
+	dvdMem.CoverReg.CVRINT = 1;
+	dvdMem.CoverReg.CVRINTMASK = 1;
+	dvdMem.CoverReg.CVR = 1;
+	UpdateInterrupts();
+	// I don't think this is needed, but I am not certain
+	//DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename("F:/Documents/Games/GameCube/GCM/Super Monkey Ball 2.gcm");
+	VolumeHandler::SetVolumeName(fileName);
+	DVDInterface::SetDiscInside(VolumeHandler::IsValid());
+	dvdMem.CoverReg.CVRINT = 0;
+	dvdMem.CoverReg.CVRINTMASK = 0;
+	dvdMem.CoverReg.CVR = 0;
+	UpdateInterrupts();
+}
 void SetLidOpen(bool _bOpen)
 {
 	if (_bOpen)

@@ -283,7 +283,7 @@ void CMemcardManager::CreateGUIControls()
 		if (strcasecmp(DefaultMemcard[i].c_str(), "."))
 		{
 		    m_MemcardPath[i]->SetPath(wxString::FromAscii(DefaultMemcard[i].c_str()));
-			i?ChangePath(ID_MEMCARDPATH_B):ChangePath(ID_MEMCARDPATH_A);
+			ChangePath(ID_MEMCARDPATH_A + i);
 		}
 	}
 }
@@ -585,7 +585,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 		}
 		break;
 	case ID_DELETE_A:
-		slot=SLOT_A;
+		slot = SLOT_A;
 		index = index_A;
 	case ID_DELETE_B:
 		if (index != wxNOT_FOUND)

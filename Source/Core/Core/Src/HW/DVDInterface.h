@@ -29,6 +29,7 @@ void Shutdown();
 void DoState(PointerWrap &p);
 
 void SetDiscInside(bool _DiscInside);
+void SwapDisc(const char * fileName);
 
 // Lid Functions
 void SetLidOpen(bool open);
