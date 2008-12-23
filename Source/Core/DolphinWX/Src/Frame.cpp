@@ -397,12 +397,12 @@ void CFrame::DoOpen(bool Boot)
 
 			// Warn the user if he's selecting a completely different game
 			if(OldID != NewID)
-				wxMessageBox(wxString::Format(
+				PanicAlert(
 				"The new game ID '%s' is not the same as the old game ID '%s'."
 				" It is not recommended that you change the disc to another game this way."
 				" It may crash your game. If you want to play another game you"
 				" have to Stop this game and Start a new game."
-				, NewID.c_str(), OldID.c_str())
+				, NewID.c_str(), OldID.c_str()
 				);
 
 			// Save the new ISO file name
@@ -509,7 +509,7 @@ void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 	int answer;
 	if(SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
 	{
-		answer = wxMessageBox("Are you sure you want to stop the current emulation?",
+		answer = AskYesNo("Are you sure you want to stop the current emulation?",
 		"Confirm", wxYES_NO);
 	}
 	else
@@ -767,4 +767,4 @@ void CFrame::UpdateGUI()
 		}
 	}
 }
-// =============
+
