@@ -25,7 +25,7 @@
 #include "Common.h"
 #include "Config.h"
 #include "Core.h"
-#include "HW\DVDInterface.h"
+#include "HW/DVDInterface.h"
 #include "State.h"
 #include "ConfigMain.h"
 #include "PluginManager.h"
@@ -700,7 +700,7 @@ void CFrame::OnSwapDisc(wxCommandEvent& event)
 			),
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
-		SwapDisc(path.c_str());
+		SwapDisc(path.mb_str());
 		break;
 	}
 	default:
