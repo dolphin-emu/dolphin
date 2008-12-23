@@ -673,20 +673,18 @@
 		int s = inst.RS;
 		if (gpr.R(s).IsImm() && !inst.Rc)
 		{
-			unsigned mask = Helper_Mask(inst.MB, inst.ME);
 			unsigned result = gpr.R(s).offset;
 			if (inst.SH != 0)
-				result = (result << inst.SH) |
-				         (result >> (32 - inst.SH));
-			result &= mask;
+				result = _rotl(result, inst.SH);
+			result &= Helper_Mask(inst.MB, inst.ME);
 			gpr.SetImmediate32(a, result);
 			return;
 		}
 
+		gpr.Lock(a, s);
+		gpr.LoadToX64(a, a == s);
 		if (a != s)
 		{
-			gpr.Lock(a, s);
-			gpr.LoadToX64(a, false);
 			MOV(32, gpr.R(a), gpr.R(s));
 		}
 
