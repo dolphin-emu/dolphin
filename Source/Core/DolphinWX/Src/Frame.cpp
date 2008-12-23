@@ -98,7 +98,7 @@ EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnPluginWiimote)
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_CHEATS, CFrame::OnShow_CheatsWindow)
-EVT_MENU(IDM_SWAPDISC, CFrame::OnSwapDisc)
+EVT_MENU(IDM_TOGGLECOVER, CFrame::OnSwapDisc)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
 EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
 EVT_MENU(IDM_TOGGLE_SKIPIDLE, CFrame::OnToggleSkipIdle)
@@ -250,7 +250,7 @@ void CFrame::CreateMenu()
 	miscMenu->AppendSeparator();
 	miscMenu->Append(IDM_MEMCARD, _T("&Memcard manager"));
 	miscMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
-	// miscMenu->Append(IDM_SWAPDISC, _T("S&wap Disc"));
+	miscMenu->Append(IDM_TOGGLECOVER, _T("Toggle DVD co&ver is open"));
 	m_pMenuBar->Append(miscMenu, _T("&Misc"));
 
 	// help menu
@@ -683,6 +683,5 @@ void CFrame::UpdateGUI()
 
 void CFrame::OnSwapDisc(wxCommandEvent& WXUNUSED (event))
 {
-	PanicAlert("Omega: I opened the lid");
-	SetLidOpen(true);
+	SetLidOpen(!IsLidOpen());
 }

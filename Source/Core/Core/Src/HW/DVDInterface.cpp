@@ -224,11 +224,11 @@ void SetDiscInside(bool _DiscInside)
 void SetLidOpen(bool _bOpen)
 {
 	if (_bOpen)
-		dvdMem.CoverReg.CVR = 1;
+		dvdMem.CoverReg.Hex = 0x7;
 	else
-		dvdMem.CoverReg.CVR = 0;
+		dvdMem.CoverReg.Hex = 0x0;
 
-	UpdateInterrupts();
+	CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_DI, true);
 }
 
 bool IsLidOpen()
