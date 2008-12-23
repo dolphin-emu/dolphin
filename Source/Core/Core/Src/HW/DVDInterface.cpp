@@ -223,10 +223,8 @@ void SetDiscInside(bool _DiscInside)
 }
 void SwapDisc(const char * fileName)
 {
-	SetLidOpen(true);
 	VolumeHandler::SetVolumeName(fileName);
 	DVDInterface::SetDiscInside(VolumeHandler::IsValid());
-	SetLidOpen(false);
 }
 void SetLidOpen(bool _bOpen)
 {

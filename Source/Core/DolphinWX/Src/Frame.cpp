@@ -242,6 +242,12 @@ void CFrame::CreateMenu()
 #endif			
 	m_pMenuBar->Append(pOptionsMenu, _T("&Options"));
 
+	//DVD menu
+	wxMenu* dvdMenu = new wxMenu;
+	dvdMenu->Append(IDM_SWAPDISC, _T("S&wap Disc"));
+	dvdMenu->Append(IDM_TOGGLECOVER, _T("Toggle \"DVD co&ver is open\""));
+	m_pMenuBar->Append(dvdMenu, _T("&DVD"));
+
 	// misc menu
 	wxMenu* miscMenu = new wxMenu;
 	miscMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _T("View &toolbar"));
@@ -251,8 +257,6 @@ void CFrame::CreateMenu()
 	miscMenu->AppendSeparator();
 	miscMenu->Append(IDM_MEMCARD, _T("&Memcard manager"));
 	miscMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
-	miscMenu->Append(IDM_SWAPDISC, _T("S&wap Disc"));
-	//miscMenu->Append(IDM_TOGGLECOVER, _T("Toggle DVD co&ver is open"));
 	m_pMenuBar->Append(miscMenu, _T("&Misc"));
 
 	// help menu
@@ -689,6 +693,7 @@ void CFrame::OnSwapDisc(wxCommandEvent& event)
 	{
 	case IDM_SWAPDISC:
 	{
+		SetLidOpen(true);
 		wxString path = wxFileSelector(
 			_T("Select the Disc to swap"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
@@ -701,6 +706,7 @@ void CFrame::OnSwapDisc(wxCommandEvent& event)
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
 		SwapDisc(path.mb_str());
+		SetLidOpen(false);
 		break;
 	}
 	default:
