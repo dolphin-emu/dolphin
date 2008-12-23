@@ -39,6 +39,7 @@
 #include "Frame.h"
 #include "Config.h"
 #include "CodeWindow.h"
+#include "LogWindow.h"
 #include "ExtendedTrace.h"
 #include "BootManager.h"
 
@@ -120,6 +121,7 @@ bool DolphinApp::OnInit()
 	// ============
 	// Check for debugger
 	bool UseDebugger = false;
+	bool UseLogger = false;
 	bool LoadElf = false; wxString ElfFile;
 
 #if wxUSE_CMDLINE_PARSER
@@ -131,6 +133,9 @@ bool DolphinApp::OnInit()
 		},
 		{
 			wxCMD_LINE_SWITCH, _T("d"), _T("debugger"), _T("Opens the debugger")
+		},
+		{
+			wxCMD_LINE_SWITCH, _T("l"), _T("logger"), _T("Opens The Logger")
 		},
 		{
 			wxCMD_LINE_OPTION, _T("e"), _T("elf"), _T("Loads an elf file"),
@@ -179,6 +184,7 @@ bool DolphinApp::OnInit()
 	} 
 
 	UseDebugger = parser.Found(_T("debugger"));
+	UseLogger = parser.Found(_T("logger"));
 	LoadElf = parser.Found(_T("elf"), &ElfFile);
 
 	if( LoadElf && ElfFile == wxEmptyString )
@@ -229,6 +235,15 @@ bool DolphinApp::OnInit()
 		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, main_frame);
 		g_pCodeWindow->Show(true);
 	}
+	if(!UseDebugger && UseLogger)
+	{
+	#ifdef LOGGING
+		// We aren't using debugger, just logger
+		// Should be fine for a local copy
+		CLogWindow* m_LogWindow = new CLogWindow(main_frame);
+		m_LogWindow->Show(true);
+	#endif
+	} 
 
 	// First check if we have a elf command line
 	if (LoadElf && ElfFile != wxEmptyString)

@@ -36,7 +36,6 @@
 // ¯¯¯¯¯¯¯¯¯
 
 FILE *pFile;
-HINSTANCE nJoy_hInst = NULL;
 CONTROLLER_INFO	*joyinfo = 0;
 CONTROLLER_STATE joystate[4];
 CONTROLLER_MAPPING joysticks[4];
@@ -55,7 +54,7 @@ bool g_rumbleEnable = FALSE;
 
 // Rumble in windows
 #ifdef _WIN32
-
+HINSTANCE nJoy_hInst = NULL;
 #ifdef USE_RUMBLE_DINPUT_HACK
 LPDIRECTINPUT8          g_pDI = NULL;
 LPDIRECTINPUTDEVICE8    g_pDevice = NULL;
@@ -80,7 +79,7 @@ HRESULT SetDeviceForcesXY();
 	struct ff_effect effect;
 	bool CanRumble = false;
 #endif
-
+#ifdef _WIN32
 //////////////////////////////////////////////////////////////////////////////////////////
 // wxWidgets
 // ¯¯¯¯¯¯¯¯¯
@@ -98,7 +97,7 @@ WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 //////////////////////////////////////////////////////////////////////////////////////////
 // DllMain 
 // ¯¯¯¯¯¯¯
-#ifdef _WIN32
+
 BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 						DWORD dwReason,		// reason called
 						LPVOID lpvReserved)	// reserved
@@ -285,7 +284,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// Adjust range
 	// The value returned by SDL_JoystickGetAxis is a signed integer (-32768 to 32768)
 	// The value used for the gamecube controller is an unsigned char (0 to 255)
-	int main_stick_x, main_stick_y, sub_stick_x, sub_stick_y;
+	int main_stick_x = 0, main_stick_y = 0, sub_stick_x = 0, sub_stick_y = 0;
 	if(joysticks[_numPAD].buttons[CTL_MAIN_X].c_str()[0] == 'A') // Axis
 	{
 		main_stick_x = (joystate[_numPAD].buttons[CTL_MAIN_X]>>8);
@@ -678,14 +677,8 @@ int Search_Devices()
 	}
 
 	if(joyinfo)
-	{
 		delete [] joyinfo;
-		joyinfo = new CONTROLLER_INFO [numjoy];
-	}
-	else
-	{
-		joyinfo = new CONTROLLER_INFO [numjoy];
-	}
+	joyinfo = new CONTROLLER_INFO [numjoy];
 
 	#ifdef _DEBUG
 	fprintf(pFile, "Scanning for devices\n");

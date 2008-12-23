@@ -70,8 +70,7 @@ CLogWindow::CLogWindow(wxWindow* parent)
 
 	// I could not find any transparency setting and it would not automatically space correctly
 	m_options->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-	m_options->SetMinSize(wxSize(m_options->GetSize().GetWidth() - 40,
-		m_options->GetCount() * 15));
+	//m_options->SetMinSize(wxSize(m_options->GetSize().GetWidth() - 40,m_options->GetCount() * 15));
 	#ifdef _WIN32
 	for (unsigned int i = 0; i < m_options->GetCount(); ++i)
 		m_options->GetItem(i)->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
