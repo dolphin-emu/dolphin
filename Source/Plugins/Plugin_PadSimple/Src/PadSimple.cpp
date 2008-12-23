@@ -189,7 +189,6 @@ void PAD_Initialize(SPADInitialize _PADInitialize)
 	dinput.Init((HWND)g_PADInitialize.hWnd);
 #elif defined(HAVE_X11) && HAVE_X11
 	GXdsp = (Display*)g_PADInitialize.hWnd;
-	XkbSetDetectableAutoRepeat(GXdsp, True, NULL);
 #endif
 	
 	LoadConfig();

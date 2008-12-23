@@ -11,6 +11,7 @@
 #include <X11/keysym.h>
 
 #include <X11/extensions/xf86vmode.h>
+#include <X11/XKBlib.h>
 
 class X11Window : public GLWindow 
 {

@@ -386,7 +386,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
                           GLX_DEPTH_SIZE, 24,
                           GLX_SAMPLE_BUFFERS_ARB, g_Config.iMultisampleMode, GLX_SAMPLES_ARB, 1, None };
     GLWin.dpy = XOpenDisplay(0);
-	g_VideoInitialize.pWindowHandle = (HWND)GLWin.dpy;
+    g_VideoInitialize.pWindowHandle = (HWND)GLWin.dpy;
     GLWin.screen = DefaultScreen(GLWin.dpy);
 
     GLWin.fs = g_Config.bFullscreen; //Set to setting in Options
@@ -417,6 +417,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
                            vi->visual, AllocNone);
     GLWin.attr.colormap = cmap;
     GLWin.attr.border_pixel = 0;
+    XkbSetDetectableAutoRepeat(GLWin.dpy, True, NULL);
 
 #if defined(HAVE_XXF86VM) && HAVE_XXF86VM
     // get a connection

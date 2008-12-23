@@ -92,6 +92,8 @@ X11Window::X11Window(int _iwidth, int _iheight) {
     attr.colormap = cmap;
     attr.border_pixel = 0;
 
+    XkbSetDetectableAutoRepeat(dpy, True, NULL);
+
     // get a connection
     XF86VidModeQueryVersion(dpy, &vidModeMajorVersion, &vidModeMinorVersion);
 
