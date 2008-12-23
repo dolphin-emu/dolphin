@@ -38,6 +38,7 @@ EVT_CHECKBOX(ID_OPTIMIZEQUANTIZERS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_IDLESKIP, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_ENABLECHEATS, CConfigMain::CoreSettingsChanged)
 EVT_CHOICE(ID_GC_SRAM_LNG, CConfigMain::GCSettingsChanged)
+EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::CoreSettingsChanged)
 
 EVT_CHOICE(ID_WII_BT_BAR, CConfigMain::WiiSettingsChanged)
 EVT_CHECKBOX(ID_WII_BT_LEDS, CConfigMain::WiiSettingsChanged)
@@ -126,7 +127,14 @@ void CConfigMain::CreateGUIControls()
 	this->SetSizer(sMain);
 	this->Layout();
 
-	// Core page
+
+	//////////////////////////////////
+	// Core page (sGeneral)
+	// -----------
+
+	sGeneral = new wxBoxSizer(wxVERTICAL);
+
+	// Basic Settings
 	sbBasic = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Basic Settings"));
 	UseDualCore = new wxCheckBox(GeneralPage, ID_USEDUALCORE, wxT("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UseDualCore->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);
@@ -135,6 +143,11 @@ void CConfigMain::CreateGUIControls()
 	EnableCheats = new wxCheckBox(GeneralPage, ID_ENABLECHEATS, wxT("Enable Cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	EnableCheats->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);
 
+	sbBasic->Add(UseDualCore, 0, wxALL, 5);
+	sbBasic->Add(SkipIdle, 0, wxALL, 5);
+	sbBasic->Add(EnableCheats, 0, wxALL, 5);
+
+	// Advanced Settings
 	sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Advanced Settings"));
 	AllwaysHLEBIOS = new wxCheckBox(GeneralPage, ID_ALLWAYS_HLEBIOS, wxT("HLE the BIOS all the time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	AllwaysHLEBIOS->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios);
@@ -145,22 +158,30 @@ void CConfigMain::CreateGUIControls()
 	OptimizeQuantizers = new wxCheckBox(GeneralPage, ID_OPTIMIZEQUANTIZERS, wxT("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	OptimizeQuantizers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bOptimizeQuantizers);
 
-	sGeneral = new wxBoxSizer(wxVERTICAL);
-	sbBasic->Add(UseDualCore, 0, wxALL, 5);
-	sbBasic->Add(SkipIdle, 0, wxALL, 5);
-	sbBasic->Add(EnableCheats, 0, wxALL, 5);
-	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
-	sGeneral->AddStretchSpacer();
-
 	sbAdvanced->Add(AllwaysHLEBIOS, 0, wxALL, 5);
 	sbAdvanced->Add(UseDynaRec, 0, wxALL, 5);
 	sbAdvanced->Add(LockThreads, 0, wxALL, 5);
 	sbAdvanced->Add(OptimizeQuantizers, 0, wxALL, 5);
+
+	// Interface Settings
+	sbInterface = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Interface Settings"));
+	ConfirmStop = new wxCheckBox(GeneralPage, ID_INTERFACE_CONFIRMSTOP, wxT("Show confirmation box before Stopping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	ConfirmStop->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop);
+
+	sbInterface->Add(ConfirmStop, 0, wxALL, 5);
+	
+	// Populate sGeneral
+	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
+	//sGeneral->AddStretchSpacer();
 	sGeneral->Add(sbAdvanced, 0, wxEXPAND|wxALL, 5);
+	sGeneral->Add(sbInterface, 0, wxEXPAND|wxALL, 5);
 	GeneralPage->SetSizer(sGeneral);
 	sGeneral->Layout();
 
+
+	//////////////////////////////////
 	// Gamecube page
+	// --------
 	sbGamecubeIPLSettings = new wxStaticBoxSizer(wxVERTICAL, GamecubePage, wxT("IPL Settings"));
 	arrayStringFor_GCSystemLang.Add(wxT("English"));
 	arrayStringFor_GCSystemLang.Add(wxT("German"));
@@ -348,6 +369,11 @@ void CConfigMain::CloseClick(wxCommandEvent& WXUNUSED (event))
 	Close();
 }
 
+
+
+// ====================================================================
+// Core settings
+// -------------
 void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -373,6 +399,9 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	case ID_ENABLECHEATS:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = EnableCheats->IsChecked();
 		break;
+	case ID_INTERFACE_CONFIRMSTOP:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop = ConfirmStop->IsChecked();
+		break;
 	}
 }
 
@@ -385,7 +414,13 @@ void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 		break;
 	}
 }
+// ==========================
 
+
+
+// ====================================================================
+// Wii settings
+// -------------
 void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -417,7 +452,13 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 		break;
 	}
 }
+// ==========================
 
+
+
+// ====================================================================
+// Paths settings
+// -------------
 void CConfigMain::ISOPathsSelectionChanged(wxCommandEvent& WXUNUSED (event))
 {
 	if (!ISOPaths->GetStringSelection().empty())
@@ -504,7 +545,13 @@ void CConfigMain::OnConfig(wxCommandEvent& event)
 		    break;
 	}
 }
+// ==========================
 
+
+
+// =======================================================
+// Plugins settings
+// -------------
 void CConfigMain::FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::string& _SelectFilename)
 {
 	_pChoice->Clear();
@@ -562,4 +609,4 @@ bool CConfigMain::GetFilename(wxChoice* _pChoice, std::string& _rFilename)
 
 	return(false);
 }
-
+// ==========================

@@ -46,13 +46,25 @@ class CConfigMain
 
 		DECLARE_EVENT_TABLE();
 		
-		wxBoxSizer* sGeneral;
-		wxStaticBoxSizer* sbBasic;
-		wxStaticBoxSizer* sbAdvanced;
-		wxBoxSizer* sGamecube;
+		wxBoxSizer* sGeneral; // Core settings
+		wxStaticBoxSizer* sbBasic, *sbAdvanced, *sbInterface;
+		wxCheckBox* AllwaysHLEBIOS;
+		wxCheckBox* UseDynaRec;
+		wxCheckBox* UseDualCore;
+		wxCheckBox* LockThreads;
+		wxCheckBox* OptimizeQuantizers;
+		wxCheckBox* SkipIdle;
+		wxCheckBox* EnableCheats;
+		wxCheckBox* ConfirmStop;
+
+		wxBoxSizer* sGamecube; // GC settings
 		wxStaticBoxSizer* sbGamecubeIPLSettings;
 		wxGridBagSizer* sGamecubeIPLSettings;
-		wxBoxSizer* sWii;
+		wxArrayString arrayStringFor_GCSystemLang;
+		wxStaticText* GCSystemLangText;
+		wxChoice* GCSystemLang;		
+
+		wxBoxSizer* sWii; // Wii settings
 		wxStaticBoxSizer* sbWiimoteSettings;
 		wxGridBagSizer* sWiimoteSettings;
 		wxStaticBoxSizer* sbWiiIPLSettings;
@@ -76,16 +88,6 @@ class CConfigMain
 
 		wxButton* m_Close;
 
-		wxCheckBox* AllwaysHLEBIOS;
-		wxCheckBox* UseDynaRec;
-		wxCheckBox* UseDualCore;
-		wxCheckBox* LockThreads;
-		wxCheckBox* OptimizeQuantizers;
-		wxCheckBox* SkipIdle;
-		wxCheckBox* EnableCheats;
-		wxArrayString arrayStringFor_GCSystemLang;
-		wxStaticText* GCSystemLangText;
-		wxChoice* GCSystemLang;
 
 		FILE* pStream;
 		u8 m_SYSCONF[0x4000];
@@ -205,6 +207,8 @@ class CConfigMain
 			ID_ENABLEISOCACHE,
 			ID_GC_SRAM_LNG_TEXT,
 			ID_GC_SRAM_LNG,
+
+			ID_INTERFACE_CONFIRMSTOP, // Interface settings
 
 			ID_WII_BT_BAR_TEXT,
 			ID_WII_BT_BAR,

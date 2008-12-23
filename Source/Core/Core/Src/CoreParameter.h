@@ -65,6 +65,8 @@ struct SCoreStartupParameter
 	int  SelectedLanguage;
 
 	bool bWii; bool bWiiLeds; bool bWiiSpeakers; // Wii settings
+
+	bool bConfirmStop; // Interface settings
 	
 	enum EBootBios
 	{

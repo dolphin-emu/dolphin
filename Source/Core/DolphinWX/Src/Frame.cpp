@@ -342,7 +342,7 @@ void CFrame::InitBitmaps()
 
 
 // =======================================================
-// Open file
+// Open file to boot or for changing disc
 // -------------
 void CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 {
@@ -505,8 +505,23 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 {
-	Core::Stop();
-	UpdateGUI();
+	// Ask for confirmation in case the user accidently clicked Stop
+	int answer;
+	if(SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
+	{
+		answer = wxMessageBox("Are you sure you want to stop the current emulation?",
+		"Confirm", wxYES_NO);
+	}
+	else
+	{
+		answer = wxYES;
+	}
+
+	if (answer == wxYES && Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		Core::Stop();
+		UpdateGUI();
+	}
 }
 
 
