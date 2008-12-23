@@ -223,18 +223,10 @@ void SetDiscInside(bool _DiscInside)
 }
 void SwapDisc(const char * fileName)
 {
-	dvdMem.CoverReg.CVRINT = 1;
-	dvdMem.CoverReg.CVRINTMASK = 1;
-	dvdMem.CoverReg.CVR = 1;
-	UpdateInterrupts();
-	// I don't think this is needed, but I am not certain
-	//DiscIO::IVolume* pVolume = DiscIO::CreateVolumeFromFilename("F:/Documents/Games/GameCube/GCM/Super Monkey Ball 2.gcm");
+	SetLidOpen(true);
 	VolumeHandler::SetVolumeName(fileName);
 	DVDInterface::SetDiscInside(VolumeHandler::IsValid());
-	dvdMem.CoverReg.CVRINT = 0;
-	dvdMem.CoverReg.CVRINTMASK = 0;
-	dvdMem.CoverReg.CVR = 0;
-	UpdateInterrupts();
+	SetLidOpen(false);
 }
 void SetLidOpen(bool _bOpen)
 {
@@ -348,8 +340,8 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 		}
 		break;
 
-	//case DI_COVER_REGISTER:	
-	//	{
+	case DI_COVER_REGISTER:	
+		{
 	//		UDICVR tmpCoverReg(_iValue);
 
 	//		dvdMem.CoverReg.CVR = 0;
@@ -359,8 +351,8 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 	//		UpdateInterrupts();
 
 	//		_dbg_assert_(DVDINTERFACE, (tmpCoverReg.CVR == 0));
-	//	}
-	//	break;
+		}
+		break;
 
 	case DI_COMMAND_0:				dvdMem.Command[0] = _iValue; break;
 	case DI_COMMAND_1:				dvdMem.Command[1] = _iValue; break;
