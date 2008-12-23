@@ -262,7 +262,7 @@ void GPRRegCache::LoadToX64(int i, bool doLoad, bool makeDirty)
 		xregs[xr].ppcReg = i;
 		xregs[xr].dirty = makeDirty || regs[i].location.IsImm();
 		OpArg newloc = ::Gen::R(xr);
-		if (doLoad || regs[i].location.IsImm())
+		if (doLoad)
 			emit->MOV(32, newloc, regs[i].location);
 		for (int j = 0; j < 32; j++)
 		{
