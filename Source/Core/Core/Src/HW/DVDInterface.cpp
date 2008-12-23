@@ -333,19 +333,19 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 		}
 		break;
 
-	case DI_COVER_REGISTER:	
-		{
-			UDICVR tmpCoverReg(_iValue);
+	//case DI_COVER_REGISTER:	
+	//	{
+	//		UDICVR tmpCoverReg(_iValue);
 
-			dvdMem.CoverReg.CVR = 0;
-			dvdMem.CoverReg.CVRINTMASK = tmpCoverReg.CVRINTMASK;
-			if (tmpCoverReg.CVRINT) dvdMem.CoverReg.CVRINT = 0;
-			
-			UpdateInterrupts();
+	//		dvdMem.CoverReg.CVR = 0;
+	//		dvdMem.CoverReg.CVRINTMASK = tmpCoverReg.CVRINTMASK;
+	//		if (tmpCoverReg.CVRINT) dvdMem.CoverReg.CVRINT = 0;
+	//		
+	//		UpdateInterrupts();
 
-			_dbg_assert_(DVDINTERFACE, (tmpCoverReg.CVR == 0));
-		}
-		break;
+	//		_dbg_assert_(DVDINTERFACE, (tmpCoverReg.CVR == 0));
+	//	}
+	//	break;
 
 	case DI_COMMAND_0:				dvdMem.Command[0] = _iValue; break;
 	case DI_COMMAND_1:				dvdMem.Command[1] = _iValue; break;

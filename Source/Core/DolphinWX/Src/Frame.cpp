@@ -25,6 +25,7 @@
 #include "Common.h"
 #include "Config.h"
 #include "Core.h"
+#include "HW\DVDInterface.h"
 #include "State.h"
 #include "ConfigMain.h"
 #include "PluginManager.h"
@@ -53,6 +54,8 @@ extern "C" {
 #include "../resources/toolbar_refresh.c"
 #include "../resources/toolbar_stop.c"
 };
+
+using namespace DVDInterface;
 
 #define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
 inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
@@ -95,6 +98,7 @@ EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnPluginWiimote)
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_CHEATS, CFrame::OnShow_CheatsWindow)
+EVT_MENU(IDM_SWAPDISC, CFrame::OnSwapDisc)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
 EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
 EVT_MENU(IDM_TOGGLE_SKIPIDLE, CFrame::OnToggleSkipIdle)
@@ -246,6 +250,7 @@ void CFrame::CreateMenu()
 	miscMenu->AppendSeparator();
 	miscMenu->Append(IDM_MEMCARD, _T("&Memcard manager"));
 	miscMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
+	// miscMenu->Append(IDM_SWAPDISC, _T("S&wap Disc"));
 	m_pMenuBar->Append(miscMenu, _T("&Misc"));
 
 	// help menu
@@ -674,4 +679,10 @@ void CFrame::UpdateGUI()
 			m_GameListCtrl->Hide();
 		}
 	}
+}
+
+void CFrame::OnSwapDisc(wxCommandEvent& WXUNUSED (event))
+{
+	PanicAlert("Omega: I opened the lid");
+	SetLidOpen(true);
 }

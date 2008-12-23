@@ -115,7 +115,8 @@ class CFrame : public wxFrame
 		void OnHostMessage(wxCommandEvent& event);
 		void OnLoadState(wxCommandEvent& event);
 		void OnSaveState(wxCommandEvent& event);
-		void OnClose(wxCloseEvent &event); 
+		void OnClose(wxCloseEvent &event);
+		void OnSwapDisc(wxCommandEvent& event);
 
 		wxMenuBar* m_pMenuBar;
 
