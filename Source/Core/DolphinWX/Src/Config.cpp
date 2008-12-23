@@ -64,13 +64,9 @@ void SConfig::SaveSettings()
 		}
 	}
 
-	// core
+	
 	{
-		ini.Set("Core", "GFXPlugin",  m_LocalCoreStartupParameter.m_strVideoPlugin);
-		ini.Set("Core", "DSPPlugin",  m_LocalCoreStartupParameter.m_strDSPPlugin);
-		ini.Set("Core", "PadPlugin",  m_LocalCoreStartupParameter.m_strPadPlugin);
-		ini.Set("Core", "WiiMotePlugin",  m_LocalCoreStartupParameter.m_strWiimotePlugin);
-
+		// Core
 		ini.Set("Core", "HLEBios",        m_LocalCoreStartupParameter.bHLEBios);
 		ini.Set("Core", "UseDynarec",     m_LocalCoreStartupParameter.bUseJIT);
 		ini.Set("Core", "UseDualCore",    m_LocalCoreStartupParameter.bUseDualCore);
@@ -81,11 +77,20 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "OptimizeQuantizers", m_LocalCoreStartupParameter.bOptimizeQuantizers);
 		ini.Set("Core", "EnableCheats", m_LocalCoreStartupParameter.bEnableCheats);
 		ini.Set("Core", "SelectedLanguage", m_LocalCoreStartupParameter.SelectedLanguage);
+		ini.Set("Interface", "ConfirmStop", m_LocalCoreStartupParameter.bConfirmStop);
+
 		ini.Set("Core", "RunCompareServer", m_LocalCoreStartupParameter.bRunCompareServer);
 		ini.Set("Core", "RunCompareClient", m_LocalCoreStartupParameter.bRunCompareClient);
 
+		// Wii
 		ini.Set("Wii", "ShowWiimoteLeds", m_LocalCoreStartupParameter.bWiiLeds);
 		ini.Set("Wii", "ShowWiimoteSpeakers", m_LocalCoreStartupParameter.bWiiSpeakers);
+
+		// Plugins
+		ini.Set("Core", "GFXPlugin",  m_LocalCoreStartupParameter.m_strVideoPlugin);
+		ini.Set("Core", "DSPPlugin",  m_LocalCoreStartupParameter.m_strDSPPlugin);
+		ini.Set("Core", "PadPlugin",  m_LocalCoreStartupParameter.m_strPadPlugin);
+		ini.Set("Core", "WiiMotePlugin",  m_LocalCoreStartupParameter.m_strWiimotePlugin);
 	}
 
 	ini.Save(CONFIG_FILE);
@@ -123,15 +128,15 @@ void SConfig::LoadSettings()
 	m_DefaultWiiMotePlugin = PluginsDir + DEFAULT_WIIMOTE_PLUGIN;
 	
 #else
-	// hard coded default plugin
+	// Hard coded default plugin
 	{
-            m_DefaultGFXPlugin = PLUGINS_DIR DIR_SEP DEFAULT_GFX_PLUGIN;
-            m_DefaultDSPPlugin = PLUGINS_DIR DIR_SEP DEFAULT_DSP_PLUGIN; 
-            m_DefaultPADPlugin = PLUGINS_DIR DIR_SEP DEFAULT_PAD_PLUGIN; 
-            m_DefaultWiiMotePlugin = PLUGINS_DIR DIR_SEP DEFAULT_WIIMOTE_PLUGIN;  
+		m_DefaultGFXPlugin = PLUGINS_DIR DIR_SEP DEFAULT_GFX_PLUGIN;
+		m_DefaultDSPPlugin = PLUGINS_DIR DIR_SEP DEFAULT_DSP_PLUGIN; 
+		m_DefaultPADPlugin = PLUGINS_DIR DIR_SEP DEFAULT_PAD_PLUGIN; 
+		m_DefaultWiiMotePlugin = PLUGINS_DIR DIR_SEP DEFAULT_WIIMOTE_PLUGIN;  
 	}
 #endif
-	// misc
+	// Misc
 	{
 		ini.Get("General", "LastFilename",	&m_LastFilename);
 
@@ -151,12 +156,8 @@ void SConfig::LoadSettings()
 		}
 	}
 
-	// core
 	{
-		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin, m_DefaultGFXPlugin.c_str());
-		ini.Get("Core", "DSPPlugin",  &m_LocalCoreStartupParameter.m_strDSPPlugin, m_DefaultDSPPlugin.c_str());
-		ini.Get("Core", "PadPlugin",  &m_LocalCoreStartupParameter.m_strPadPlugin, m_DefaultPADPlugin.c_str());
-		ini.Get("Core", "WiiMotePlugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin, m_DefaultWiiMotePlugin.c_str());
+		// Core
 		ini.Get("Core", "HLEBios",     &m_LocalCoreStartupParameter.bHLEBios,		true);
 		ini.Get("Core", "UseDynarec",  &m_LocalCoreStartupParameter.bUseJIT,		true);
 		ini.Get("Core", "UseDualCore", &m_LocalCoreStartupParameter.bUseDualCore,	false);
@@ -167,11 +168,19 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "OptimizeQuantizers", &m_LocalCoreStartupParameter.bOptimizeQuantizers, true);
 		ini.Get("Core", "EnableCheats", &m_LocalCoreStartupParameter.bEnableCheats, false);
 		ini.Get("Core", "SelectedLanguage", &m_LocalCoreStartupParameter.SelectedLanguage, 0);
+		ini.Get("Interface", "ConfirmStop", &m_LocalCoreStartupParameter.bConfirmStop, false);
+
 		ini.Get("Core", "RunCompareServer", &m_LocalCoreStartupParameter.bRunCompareServer, false);
 		ini.Get("Core", "RunCompareClient", &m_LocalCoreStartupParameter.bRunCompareClient, false);
 
+		// Wii
 		ini.Get("Wii", "ShowWiimoteLeds", &m_LocalCoreStartupParameter.bWiiLeds, false);
 		ini.Get("Wii", "ShowWiimoteSpeakers", &m_LocalCoreStartupParameter.bWiiSpeakers, false);
-		
+
+		// Plugins
+		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin, m_DefaultGFXPlugin.c_str());
+		ini.Get("Core", "DSPPlugin",  &m_LocalCoreStartupParameter.m_strDSPPlugin, m_DefaultDSPPlugin.c_str());
+		ini.Get("Core", "PadPlugin",  &m_LocalCoreStartupParameter.m_strPadPlugin, m_DefaultPADPlugin.c_str());
+		ini.Get("Core", "WiiMotePlugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin, m_DefaultWiiMotePlugin.c_str());
 	}
 }
