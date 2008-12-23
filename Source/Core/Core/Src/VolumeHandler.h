@@ -28,7 +28,7 @@
 namespace VolumeHandler
 {
 
-void SetVolumeName(const std::string& _rFullPath);
+bool SetVolumeName(const std::string& _rFullPath);
 void SetVolumeDirectory(const std::string& _rFullPath, bool _bIsWii);
 
 u32 Read32(u64 _Offset);

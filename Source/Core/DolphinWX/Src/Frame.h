@@ -89,21 +89,27 @@ class CFrame : public wxFrame
 		// Override window proc for tricks like screensaver disabling
 		WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
 #endif
-		// event handler
+		// Event functions
 		void OnQuit(wxCommandEvent& event);
 		void OnHelp(wxCommandEvent& event);
+
+		void OnOpen(wxCommandEvent& event); void DoOpen(bool Boot); // File
 		void OnRefresh(wxCommandEvent& event);
-		void OnConfigMain(wxCommandEvent& event);
+		void OnBrowse(wxCommandEvent& event);
+
+		void OnPlay(wxCommandEvent& event); // Emulation
+		void OnChangeDisc(wxCommandEvent& event);
+		void OnStop(wxCommandEvent& event);
+		void OnClose(wxCloseEvent &event);	
+		void OnLoadState(wxCommandEvent& event);
+		void OnSaveState(wxCommandEvent& event);
+		
+		void OnConfigMain(wxCommandEvent& event); // Options
 		void OnPluginGFX(wxCommandEvent& event);
 		void OnPluginDSP(wxCommandEvent& event);
 		void OnPluginPAD(wxCommandEvent& event);
 		void OnPluginWiimote(wxCommandEvent& event);
-		void OnOpen(wxCommandEvent& event);
-		void OnPlay(wxCommandEvent& event);
-		void OnStop(wxCommandEvent& event);
-		void OnBrowse(wxCommandEvent& event);
-		void OnMemcard(wxCommandEvent& event);
-		void OnShow_CheatsWindow(wxCommandEvent& event);
+
 		void OnToggleFullscreen(wxCommandEvent& event);
 		void OnToggleDualCore(wxCommandEvent& event);
 		void OnToggleSkipIdle(wxCommandEvent& event);
@@ -113,26 +119,26 @@ class CFrame : public wxFrame
 		void OnToggleStatusbar(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event);
 		void OnHostMessage(wxCommandEvent& event);
-		void OnLoadState(wxCommandEvent& event);
-		void OnSaveState(wxCommandEvent& event);
-		void OnClose(wxCloseEvent &event);
-		void OnSwapDisc(wxCommandEvent& event);
 
+		void OnMemcard(wxCommandEvent& event); // Misc
+		void OnShow_CheatsWindow(wxCommandEvent& event);
+
+		// Menu items
 		wxMenuBar* m_pMenuBar;
 
-		wxMenuItem* m_pMenuItemPlay;
-		wxMenuItem* m_pMenuItemStop;
-		wxMenuItem* m_pPluginOptions;
+		wxMenuItem* m_pMenuItemOpen; // File
 
+		wxMenuItem* m_pMenuItemPlay; // Emulation
+		wxMenuItem* m_pMenuItemStop;
+		wxMenuItem* m_pMenuChangeDisc;
+		wxMenuItem* m_pPluginOptions;
 		wxMenuItem* m_pMenuItemLoad;
 		wxMenuItem* m_pMenuItemSave;
-
 		wxToolBarToolBase* m_pToolPlay;
 
 		void UpdateGUI();
 
-
-		// old function that could be cool
+		// Old function that could be cool
 
 		DECLARE_EVENT_TABLE();
 };

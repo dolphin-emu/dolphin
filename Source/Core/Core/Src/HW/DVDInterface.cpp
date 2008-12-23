@@ -15,19 +15,16 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
+#include "Common.h" // Common
 #include "ChunkFile.h"
 
-#include "StreamADPCM.H"
+#include "StreamADPCM.H" // Core
 #include "DVDInterface.h"
-
 #include "../PowerPC/PowerPC.h"
 #include "PeripheralInterface.h"
 #include "Memmap.h"
 #include "Thread.h"
-
 #include "../VolumeHandler.h"
-#include "VolumeCreator.h" // DiscIO
 
 namespace DVDInterface
 {
@@ -221,11 +218,7 @@ void SetDiscInside(bool _DiscInside)
 {
     g_bDiscInside = _DiscInside;
 }
-void SwapDisc(const char * fileName)
-{
-	VolumeHandler::SetVolumeName(fileName);
-	DVDInterface::SetDiscInside(VolumeHandler::IsValid());
-}
+
 void SetLidOpen(bool _bOpen)
 {
 	if (_bOpen)
@@ -234,6 +227,16 @@ void SetLidOpen(bool _bOpen)
 		dvdMem.CoverReg.Hex = 0x0;
 
 	CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_DI, true);
+
+	/*
+	Todo: Make this work perhaps?
+	if (_bOpen)
+		dvdMem.CoverReg.CVR = 1;
+	else
+		dvdMem.CoverReg.CVR = 0;
+
+	UpdateInterrupts();
+	*/
 }
 
 bool IsLidOpen()
@@ -340,15 +343,20 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 
 	case DI_COVER_REGISTER:	
 		{
-	//		UDICVR tmpCoverReg(_iValue);
+			/*
+			// Todo: fix this, it doesn't work properly
 
-	//		dvdMem.CoverReg.CVR = 0;
-	//		dvdMem.CoverReg.CVRINTMASK = tmpCoverReg.CVRINTMASK;
-	//		if (tmpCoverReg.CVRINT) dvdMem.CoverReg.CVRINT = 0;
-	//		
-	//		UpdateInterrupts();
+			UDICVR tmpCoverReg(_iValue);
 
-	//		_dbg_assert_(DVDINTERFACE, (tmpCoverReg.CVR == 0));
+			dvdMem.CoverReg.CVR = 0;
+			dvdMem.CoverReg.CVRINTMASK = tmpCoverReg.CVRINTMASK;
+			if (tmpCoverReg.CVRINT) dvdMem.CoverReg.CVRINT = 0;
+			
+			UpdateInterrupts();
+
+			_dbg_assert_(DVDINTERFACE, (tmpCoverReg.CVR == 0));
+			*/
+
 		}
 		break;
 

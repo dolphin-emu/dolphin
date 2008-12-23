@@ -15,25 +15,26 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Globals.h"
+#include "Globals.h" // Local
 #include "Frame.h"
-#include "FileUtil.h"
-
-#include "GameListCtrl.h"
-#include "BootManager.h"
-
-#include "Common.h"
-#include "Config.h"
-#include "Core.h"
-#include "HW/DVDInterface.h"
-#include "State.h"
 #include "ConfigMain.h"
 #include "PluginManager.h"
 #include "MemcardManager.h"
 #include "CheatsWindow.h"
 #include "AboutDolphin.h"
+#include "GameListCtrl.h"
+#include "BootManager.h"
 
-#include <wx/mstream.h>
+#include "FileUtil.h" // Common
+#include "Common.h"
+
+#include "Config.h" // Core
+#include "Core.h"
+#include "HW/DVDInterface.h"
+#include "State.h"
+#include "VolumeHandler.h"
+
+#include <wx/mstream.h> // wxWidgets
 
 // ----------------------------------------------------------------------------
 // resources
@@ -55,7 +56,6 @@ extern "C" {
 #include "../resources/toolbar_stop.c"
 };
 
-using namespace DVDInterface;
 
 #define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
 inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
@@ -98,8 +98,7 @@ EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnPluginWiimote)
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_CHEATS, CFrame::OnShow_CheatsWindow)
-EVT_MENU(IDM_SWAPDISC, CFrame::OnSwapDisc)
-EVT_MENU(IDM_TOGGLECOVER, CFrame::OnSwapDisc)
+EVT_MENU(IDM_CHANGEDISC, CFrame::OnChangeDisc)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
 EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
 EVT_MENU(IDM_TOGGLE_SKIPIDLE, CFrame::OnToggleSkipIdle)
@@ -206,7 +205,7 @@ void CFrame::CreateMenu()
 
 	// file menu
 	wxMenu* fileMenu = new wxMenu;
-	fileMenu->Append(wxID_OPEN, _T("&Open...\tCtrl+O"));
+	m_pMenuItemOpen = fileMenu->Append(wxID_OPEN, _T("&Open...\tCtrl+O"));
 	fileMenu->Append(wxID_REFRESH, _T("&Refresh"));
 	fileMenu->Append(IDM_BROWSE, _T("&Browse for ISOs..."));
 
@@ -214,9 +213,10 @@ void CFrame::CreateMenu()
 	fileMenu->Append(wxID_EXIT, _T("E&xit"), _T("Alt+F4"));
 	m_pMenuBar->Append(fileMenu, _T("&File"));
 
-	// emulation menu
+	// Emulation menu
 	wxMenu* emulationMenu = new wxMenu;
 	m_pMenuItemPlay = emulationMenu->Append(IDM_PLAY, _T("&Play"));
+	m_pMenuChangeDisc = emulationMenu->Append(IDM_CHANGEDISC, _T("Change disc"));
 	m_pMenuItemStop = emulationMenu->Append(IDM_STOP, _T("&Stop"));
 	emulationMenu->AppendSeparator();
 	wxMenu *saveMenu = new wxMenu;
@@ -229,7 +229,7 @@ void CFrame::CreateMenu()
 	}
 	m_pMenuBar->Append(emulationMenu, _T("&Emulation"));
 
-	// options menu
+	// Options menu
 	wxMenu* pOptionsMenu = new wxMenu;
 	m_pPluginOptions = pOptionsMenu->Append(IDM_CONFIG_MAIN, _T("Co&nfigure..."));
 	pOptionsMenu->AppendSeparator();
@@ -242,13 +242,7 @@ void CFrame::CreateMenu()
 #endif			
 	m_pMenuBar->Append(pOptionsMenu, _T("&Options"));
 
-	//DVD menu
-	wxMenu* dvdMenu = new wxMenu;
-	dvdMenu->Append(IDM_SWAPDISC, _T("S&wap Disc"));
-	dvdMenu->Append(IDM_TOGGLECOVER, _T("Toggle \"DVD co&ver is open\""));
-	m_pMenuBar->Append(dvdMenu, _T("&DVD"));
-
-	// misc menu
+	// Misc menu
 	wxMenu* miscMenu = new wxMenu;
 	miscMenu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _T("View &toolbar"));
 	miscMenu->Check(IDM_TOGGLE_TOOLBAR, true);
@@ -256,10 +250,10 @@ void CFrame::CreateMenu()
 	miscMenu->Check(IDM_TOGGLE_STATUSBAR, true);
 	miscMenu->AppendSeparator();
 	miscMenu->Append(IDM_MEMCARD, _T("&Memcard manager"));
-	miscMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
+	miscMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));	
 	m_pMenuBar->Append(miscMenu, _T("&Misc"));
 
-	// help menu
+	// Help menu
 	wxMenu* helpMenu = new wxMenu;
 	/*helpMenu->Append(wxID_HELP, _T("&Help"));
 	re-enable when there's something useful to display*/
@@ -347,10 +341,20 @@ void CFrame::InitBitmaps()
 }
 
 
+// =======================================================
+// Open file
+// -------------
 void CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
-		return;
+	// Don't allow this for an initialized core
+	//if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	//	return;
+
+	DoOpen(true);
+}
+
+void CFrame::DoOpen(bool Boot)
+{
 	wxString path = wxFileSelector(
 			_T("Select the file to load"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
@@ -366,8 +370,40 @@ void CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 	{
 		return;
 	}
-	BootManager::BootCore(std::string(path.ToAscii()));
+
+	// Should we boot a new game or just change the disc?
+	if(Boot)
+	{
+		BootManager::BootCore(std::string(path.ToAscii()));
+	}
+	else
+	{
+		// Get the current ISO name
+		std::string OldName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename;
+
+		// Change the iso and make sure it's a valid file
+		if(!VolumeHandler::SetVolumeName(std::string(path.ToAscii())))
+		{
+			PanicAlert("The file you selected is not a valid ISO file. Please try again.");
+
+			// Put back the old one
+			VolumeHandler::SetVolumeName(OldName);
+		}	
+		else
+		{
+			// Save the current ISO file name
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename = std::string(path.ToAscii());
+		}
+	}
 }
+
+void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
+{
+	DVDInterface::SetLidOpen(true);
+	DoOpen(false);
+	DVDInterface::SetLidOpen(false);
+}
+// =============
 
 
 void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
@@ -629,21 +665,37 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 	}
 }
 
+
+// =======================================================
+// Update the enabled/disabled status
+// -------------
 void CFrame::UpdateGUI()
 {
+	// Save status
 	bool initialized = Core::GetState() != Core::CORE_UNINITIALIZED;
 	bool running = Core::GetState() == Core::CORE_RUN;
 	bool paused = Core::GetState() == Core::CORE_PAUSE;
 
+	// Make sure that we have a toolbar
 	if (GetToolBar() != NULL)
 	{
+		// Enable/disable the Config and Stop buttons
 		GetToolBar()->EnableTool(IDM_CONFIG_MAIN, !initialized);
+		GetToolBar()->EnableTool(wxID_OPEN, !initialized);
 		GetToolBar()->EnableTool(IDM_STOP, running || paused);
 	}
+
+	// File
+	m_pMenuItemOpen->Enable(!initialized);
+
+	// Emulation
 	m_pMenuItemStop->Enable(running || paused);
 	m_pMenuItemLoad->Enable(initialized);
 	m_pMenuItemSave->Enable(initialized);
 	m_pPluginOptions->Enable(!running && !paused);
+
+	// Misc
+	m_pMenuChangeDisc->Enable(initialized);
 
 	if (running)
 	{
@@ -686,30 +738,4 @@ void CFrame::UpdateGUI()
 		}
 	}
 }
-
-void CFrame::OnSwapDisc(wxCommandEvent& event)
-{
-	switch (event.GetId())
-	{
-	case IDM_SWAPDISC:
-	{
-		SetLidOpen(true);
-		wxString path = wxFileSelector(
-			_T("Select the Disc to swap"),
-			wxEmptyString, wxEmptyString, wxEmptyString,
-			wxString::Format
-			(
-					_T("All GC/Wii files (elf, dol, gcm, iso)|*.elf;*.dol;*.gcm;*.iso;*.gcz|All files (%s)|%s"),
-					wxFileSelectorDefaultWildcardStr,
-					wxFileSelectorDefaultWildcardStr
-			),
-			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
-			this);
-		SwapDisc(path.mb_str());
-		SetLidOpen(false);
-		break;
-	}
-	default:
-		SetLidOpen(!IsLidOpen());
-	}
-}
+// =============

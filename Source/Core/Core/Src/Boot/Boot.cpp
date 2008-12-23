@@ -205,6 +205,9 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
 			   and eventually replace code */
             if (LoadMapFromFilename(_StartupPara.m_strFilename, gameID))
                 HLE::PatchFunctions();
+
+			// We don't need the volume any more
+			delete pVolume;
         }
         break;
 

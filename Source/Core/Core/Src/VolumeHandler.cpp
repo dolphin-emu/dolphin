@@ -27,7 +27,7 @@ DiscIO::IVolume *GetVolume() {
 	return g_pVolume;
 }
 
-void SetVolumeName(const std::string& _rFullPath)
+bool SetVolumeName(const std::string& _rFullPath)
 {
     if (g_pVolume)
     {
@@ -40,6 +40,8 @@ void SetVolumeName(const std::string& _rFullPath)
     }
 
     g_pVolume = DiscIO::CreateVolumeFromFilename(_rFullPath);
+
+	return g_pVolume != NULL;
 }
 
 void SetVolumeDirectory(const std::string& _rFullPath, bool _bIsWii)
