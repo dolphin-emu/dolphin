@@ -388,10 +388,24 @@ void CFrame::DoOpen(bool Boot)
 
 			// Put back the old one
 			VolumeHandler::SetVolumeName(OldName);
-		}	
+		}
+		// Yes it is a valid ISO file
 		else
 		{
-			// Save the current ISO file name
+			std::string OldID = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID;
+			std::string NewID = VolumeHandler::GetVolume()->GetUniqueID();
+
+			// Warn the user if he's selecting a completely different game
+			if(OldID != NewID)
+				wxMessageBox(wxString::Format(
+				"The new game ID '%s' is not the same as the old game ID '%s'."
+				" It is not recommended that you change the disc to another game this way."
+				" It may crash your game. If you want to play another game you"
+				" have to Stop this game and Start a new game."
+				, NewID.c_str(), OldID.c_str())
+				);
+
+			// Save the new ISO file name
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strFilename = std::string(path.ToAscii());
 		}
 	}

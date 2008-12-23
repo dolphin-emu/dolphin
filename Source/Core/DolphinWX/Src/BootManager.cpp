@@ -179,7 +179,7 @@ bool BootCore(const std::string& _rFilename)
 	// Save some values to our local version of SCoreStartupParameter
 	SConfig::GetInstance().m_LocalCoreStartupParameter.bWii = StartUp.bWii;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC = StartUp.bNTSC;
-
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID = StartUp.m_strUniqueID;
 
 #if defined(HAVE_WX) && HAVE_WX
 	if(main_frame)

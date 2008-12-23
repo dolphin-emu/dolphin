@@ -1163,9 +1163,11 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 		case IDM_UPDATESTATUSBAR:
 			//if (main_frame->m_pStatusBar != NULL)
 			{
-				PanicAlert("");
+				// What is this PanicAlert() for?
+				//PanicAlert("");
+
 				//this->GetParent()->m_p
-//this->GetParent()->
+				//this->GetParent()->
 				//parent->m_pStatusBar->SetStatusText(wxT("Hi"), 0);
 				//m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
 				//this->GetParent()->m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
