@@ -1,0 +1,1 @@
+<Project name="template"><MagicFolder excludeFolders="CVS;.svn" filter="*.c;*.cpp;*.h" name="source" path="source\"><File path="template.c"></File></MagicFolder><MagicFolder excludeFolders="CVS;.svn" filter="*.h" name="include" path="include\"></MagicFolder><File path="Makefile"></File></Project>
