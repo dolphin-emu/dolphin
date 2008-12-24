@@ -92,11 +92,11 @@ void OpenGL_Shutdown()
 }
 
 u32 OpenGL_GetWidth() {
-    return glWin->GetHeight();
+    return glWin->GetWidth();
 }
 
 u32 OpenGL_GetHeight() {
-    return glWin->GetWidth();
+    return glWin->GetHeight();
 }
 
 void OpenGL_SetSize(u32 width, u32 height) {
