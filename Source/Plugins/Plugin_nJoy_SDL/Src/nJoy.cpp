@@ -568,16 +568,6 @@ int Search_Devices()
 
 	int numjoy = SDL_NumJoysticks();
 
-	if (numjoy == 0)
-	{		
-		#ifdef _WIN32
-		MessageBox(NULL, "No Joystick detected!", NULL,  MB_ICONWARNING);
-		#else	
-		printf("No Joystick detected!\n");	
-		#endif
-		return 0;
-	}
-
 	if (joyinfo)
 	{
 		delete [] joyinfo;
@@ -586,6 +576,16 @@ int Search_Devices()
 	else
 	{
 		joyinfo = new CONTROLLER_INFO [numjoy];
+	}
+
+	if (numjoy == 0)
+	{		
+		#ifdef _WIN32
+		MessageBox(NULL, "No Joystick detected!", NULL,  MB_ICONWARNING);
+		#else	
+		printf("No Joystick detected!\n");	
+		#endif
+		return 0;
 	}
 
 	#ifdef _DEBUG
