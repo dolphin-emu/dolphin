@@ -55,7 +55,6 @@ int main() {
 
 		gc_time = time(NULL);
 		VIDEO_ClearFrameBuffer(rmode, xfb, 0);
-		DrawPixel(0,0, 255, 0, 0);
 		PAD_Read(pad);
 		for(int a = 0; a < 4;a ++)
 		{
