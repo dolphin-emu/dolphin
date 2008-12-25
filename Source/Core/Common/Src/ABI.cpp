@@ -61,6 +61,12 @@ void XEmitter::ABI_EmitEpilogue(int maxCallParams)
 // Shared code between Win32 and Unix32
 // ====================================
 
+void XEmitter::ABI_CallFunction(void *func) {
+	ABI_AlignStack(0);
+	CALL(func);
+	ABI_RestoreStack(0);
+}
+
 void XEmitter::ABI_CallFunctionC(void *func, u32 param1) {
 	ABI_AlignStack(1 * 4);
 	PUSH(32, Imm32(param1));
@@ -155,6 +161,10 @@ void XEmitter::ABI_RestoreStack(unsigned int frameSize) {
 }
 
 #else
+
+void XEmitter::ABI_CallFunction(void *func) {
+	CALL(func);
+}
 
 void XEmitter::ABI_CallFunctionC(void *func, u32 param1) {
 	MOV(32, R(ABI_PARAM1), Imm32(param1));

@@ -574,6 +574,9 @@ public:
 	void RTDSC();
 
 	// Utility functions
+	// The difference between this and CALL is that this aligns the stack
+	// where appropriate.
+	void ABI_CallFunction(void *func);
 	// These only support u32 parameters, but that's enough for a lot of uses.
 	// These will destroy the 1 or 2 first "parameter regs".
 	void ABI_CallFunctionC(void *func, u32 param1);
