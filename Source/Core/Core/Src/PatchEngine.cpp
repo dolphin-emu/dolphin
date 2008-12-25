@@ -49,7 +49,8 @@ const char *PatchTypeStrings[] =
 
 std::vector<Patch> onFrame;
 std::map<u32, int> speedHacks;
-
+std::vector<std::string> discList;
+    
 void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile &ini)
 {
 	std::vector<std::string> lines;
@@ -98,6 +99,20 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile 
 	}
 	if (currentPatch.name.size()) patches.push_back(currentPatch);
 }
+    
+static void LoadDiscList(const char *section, std::vector<std::string> &_discList, IniFile &ini) {
+
+    std::vector<std::string> lines;
+    if (!ini.GetLines(section, lines))
+	return;
+    
+    for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
+	{
+	    std::string line = *iter;
+	    if (line.size())
+		_discList.push_back(line);
+	}	    
+}
 
 static void LoadSpeedhacks(const char *section, std::map<u32, int> &hacks, IniFile &ini) {
 	std::vector<std::string> keys;
@@ -138,6 +153,7 @@ void LoadPatches(const char *gameID)
 		LoadPatchSection("OnFrame", onFrame, ini);
 		ActionReplay::LoadCodes(ini, false);
 		LoadSpeedhacks("Speedhacks", speedHacks, ini);
+		LoadDiscList("DiscList", discList, ini);
 	}
 }
 
