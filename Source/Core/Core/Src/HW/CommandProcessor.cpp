@@ -564,7 +564,7 @@ void Write32(const u32 _Data, const u32 _Address)
 	_dbg_assert_msg_(COMMANDPROCESSOR, 0, "Write32 at CommandProccessor at 0x%08x", _Address);
 }
 
-void GatherPipeBursted()
+void STACKALIGN GatherPipeBursted()
 {
 	// if we aren't linked, we don't care about gather pipe data
 	if (!fifo.bFF_GPLinkEnable)

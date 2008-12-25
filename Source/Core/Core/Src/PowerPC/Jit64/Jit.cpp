@@ -340,7 +340,7 @@ namespace CPUCompare
 		JMP(asm_routines.testExceptions, true);
 	}
 	
-	void Jit64::Run()
+	void STACKALIGN Jit64::Run()
 	{
 		CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
 		pExecAddr();
@@ -359,7 +359,7 @@ namespace CPUCompare
 		pExecAddr();*/
 	}
 
-	void Jit64::Jit(u32 em_address)
+	void STACKALIGN Jit64::Jit(u32 em_address)
 	{
 		if (GetSpaceLeft() < 0x10000 || blocks.IsFull())
 		{

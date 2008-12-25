@@ -50,6 +50,14 @@
 
 #include "Paths.h"
 
+// Darwin ABI requires that stack frames be aligned to 16-byte boundaries.
+// This probably wouldn't break anyone either, but hey
+#ifdef __APPLE__
+#define STACKALIGN __attribute__((__force_align_arg_pointer__))
+#else
+#define STACKALIGN
+#endif
+
 // Function Cross-Compatibility
 #ifdef _WIN32
 #define strcasecmp _stricmp

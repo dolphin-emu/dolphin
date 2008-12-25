@@ -64,7 +64,7 @@ void ResetGatherPipe()
 	m_gatherPipeCount = 0;
 }
 
-void CheckGatherPipe()
+void STACKALIGN CheckGatherPipe()
 {
 	while (m_gatherPipeCount >= GATHER_PIPE_SIZE)
 	{	
@@ -75,16 +75,15 @@ void CheckGatherPipe()
 
 		// move back the spill bytes
 		m_gatherPipeCount -= GATHER_PIPE_SIZE;
-		// This could be dangerous, memmove or ?
-		// Assuming that memcpy does its thing in the ordinary direction, there should be no problem.
-		// Actually, this shouldn't ever be necessary. If we're above 2 "blocks" of data,
-		// the above memcpy could take care of that easily. TODO
-		memmove(m_gatherPipe, m_gatherPipe + GATHER_PIPE_SIZE, m_gatherPipeCount);
-
+		for (u32 i=0; i < m_gatherPipeCount; i++) 
+			m_gatherPipe[i] = m_gatherPipe[i + GATHER_PIPE_SIZE];
+		
 		// increase the CPUWritePointer
 		CPeripheralInterface::Fifo_CPUWritePointer += GATHER_PIPE_SIZE; 
+
 		if (CPeripheralInterface::Fifo_CPUWritePointer > CPeripheralInterface::Fifo_CPUEnd)
-			_assert_msg_(DYNA_REC, 0, "Fifo_CPUWritePointer out of bounds: %08x (end = %08x)", CPeripheralInterface::Fifo_CPUWritePointer, CPeripheralInterface::Fifo_CPUEnd);
+			_assert_msg_(DYNA_REC, 0, "Fifo_CPUWritePointer out of bounds: %08x (end = %08x)", 
+						CPeripheralInterface::Fifo_CPUWritePointer, CPeripheralInterface::Fifo_CPUEnd);
 
 		if (CPeripheralInterface::Fifo_CPUWritePointer >= CPeripheralInterface::Fifo_CPUEnd)
 			CPeripheralInterface::Fifo_CPUWritePointer = CPeripheralInterface::Fifo_CPUBase;		
