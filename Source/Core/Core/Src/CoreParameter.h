@@ -46,6 +46,7 @@ struct SCoreStartupParameter
 	bool bJITIntegerOff;
 	bool bJITPairedOff;
 	bool bJITSystemRegistersOff;
+	bool bJITBranchOff;
 
 	bool bUseDualCore;
 	bool bSkipIdle;

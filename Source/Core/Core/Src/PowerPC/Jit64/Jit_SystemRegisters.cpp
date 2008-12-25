@@ -118,8 +118,8 @@
 	// --------------
 	void Jit64::mtmsr(UGeckoInstruction inst)
 	{
-		//if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
-		//	{Default(inst); return;} // turn off from debugger
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
+			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
 		gpr.LoadToX64(inst.RS, true, false);
 		MOV(32, M(&MSR), gpr.R(inst.RS));

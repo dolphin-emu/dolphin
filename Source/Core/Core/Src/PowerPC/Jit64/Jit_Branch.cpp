@@ -17,6 +17,7 @@
 #include "Common.h"
 #include "Thunk.h"
 
+#include "../../Core.h"
 #include "../PowerPC.h"
 #include "../../CoreTiming.h"
 #include "../PPCTables.h"
@@ -40,15 +41,21 @@
 
 using namespace Gen;
 
-	void Jit64::sc(UGeckoInstruction _inst)
+	void Jit64::sc(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
+			{Default(inst); return;} // turn off from debugger
+
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
 		WriteExceptionExit(EXCEPTION_SYSCALL);
 	}
 
-	void Jit64::rfi(UGeckoInstruction _inst)
+	void Jit64::rfi(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
+			{Default(inst); return;} // turn off from debugger
+
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
 		//Bits SRR1[0, 5-9, 16-23, 25-27, 30-31] are placed into the corresponding bits of the MSR.
@@ -70,6 +77,9 @@ using namespace Gen;
 
 	void Jit64::bx(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
+			{Default(inst); return;} // turn off from debugger
+
 		if (inst.LK)
 			MOV(32, M(&LR), Imm32(js.compilerPC + 4));
 		gpr.Flush(FLUSH_ALL);
@@ -107,6 +117,9 @@ using namespace Gen;
 	// variants of this instruction.
 	void Jit64::bcx(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
+			{Default(inst); return;} // turn off from debugger
+
 		// USES_CR
 		_assert_msg_(DYNA_REC, js.isLastInstruction, "bcx not last instruction of block");
 
@@ -198,6 +211,9 @@ using namespace Gen;
 
 	void Jit64::bcctrx(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
+			{Default(inst); return;} // turn off from debugger
+
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
 
@@ -237,6 +253,9 @@ using namespace Gen;
 
 	void Jit64::bclrx(UGeckoInstruction inst)
 	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
+			{Default(inst); return;} // turn off from debugger
+
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
 		//Special case BLR
@@ -255,6 +274,4 @@ using namespace Gen;
 		}
 		// Call interpreter
 		Default(inst);
-		MOV(32, R(EAX), M(&NPC));
-		WriteExitDestInEAX(0);
 	}

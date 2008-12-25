@@ -221,6 +221,11 @@ namespace CPUCompare
 		}
 		Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
 		ABI_CallFunctionC((void*)instr, inst.hex);
+		if (js.isLastInstruction)
+		{
+			MOV(32, R(EAX), M(&NPC));
+			WriteRfiExitDestInEAX();
+		}
 	}
 
 	void Jit64::unknown_instruction(UGeckoInstruction inst)
@@ -377,6 +382,8 @@ namespace CPUCompare
 
 	const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b)
 	{
+		Core::g_CoreStartupParameter.bJITOff = true;
+
 		if (em_address == 0)
 			PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
 
