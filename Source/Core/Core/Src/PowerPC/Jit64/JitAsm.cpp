@@ -67,13 +67,8 @@ AsmRoutineManager asm_routines;
 void AsmRoutineManager::Generate()
 {
 	enterCode = AlignCode16();
-#ifdef _M_IX86
-	PUSH(EBP);
-	PUSH(EBX);
-	PUSH(ESI);
-	PUSH(EDI);
-#else
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
+#ifndef _M_IX86
 	// Two statically allocated registers.
 	MOV(64, R(RBX), Imm64((u64)Memory::base));
 	MOV(64, R(R15), Imm64((u64)jit.GetBlockCache()->GetCodePointers())); //It's below 2GB so 32 bits are good enough
@@ -162,27 +157,13 @@ void AsmRoutineManager::Generate()
 		TEST(32, M((void*)&PowerPC::state), Imm32(0xFFFFFFFF));
 		J_CC(CC_Z, outerLoop, true);
 
-#ifdef _M_IX86
-	POP(EDI);
-	POP(ESI);
-	POP(EBX);
-	POP(EBP);
-#else
 	//Landing pad for drec space
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
-#endif
 	RET();
 
 	breakpointBailout = GetCodePtr();
-#ifdef _M_IX86
-	POP(EDI);
-	POP(ESI);
-	POP(EBX);
-	POP(EBP);
-#else
 	//Landing pad for drec space
 	ABI_PopAllCalleeSavedRegsAndAdjustStack();
-#endif
 	RET();
 
 	GenerateCommon();

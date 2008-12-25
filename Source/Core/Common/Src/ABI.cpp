@@ -103,6 +103,7 @@ void XEmitter::ABI_CallFunctionAC(void *func, const Gen::OpArg &arg1, u32 param2
 }
 
 void XEmitter::ABI_PushAllCalleeSavedRegsAndAdjustStack() {
+	ABI_AlignStack(0);
 	// Note: 4 * 4 = 16 bytes, so alignment is preserved.
 	PUSH(EBP);
 	PUSH(EBX);
@@ -115,6 +116,7 @@ void XEmitter::ABI_PopAllCalleeSavedRegsAndAdjustStack() {
 	POP(ESI);
 	POP(EBX);
 	POP(EBP);
+	ABI_RestoreStack(0);
 }
 
 unsigned int XEmitter::ABI_GetAlignedFrameSize(unsigned int frameSize) {
