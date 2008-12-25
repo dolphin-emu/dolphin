@@ -6,6 +6,7 @@ files = [
 	"BPMemory.cpp",
 	"CPMemory.cpp",
 	"LookUpTables.cpp",
+	'OpcodeDecoding.cpp',
 	"TextureDecoder.cpp",
 	"XFMemory.cpp",
 	"XFBConvert.cpp",

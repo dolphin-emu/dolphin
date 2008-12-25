@@ -29,9 +29,7 @@
 #include "Profiler.h"
 #include "OpcodeDecoding.h"
 
-#include "VertexLoader.h"
 #include "VertexLoaderManager.h"
-#include "VertexManager.h"
 
 #include "Statistics.h"
 

@@ -733,10 +733,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\OpcodeDecoding.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\VertexLoader.cpp"
 				>
 				<FileConfiguration

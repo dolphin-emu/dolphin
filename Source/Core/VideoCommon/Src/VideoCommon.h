@@ -19,7 +19,6 @@
 #define _VIDEOCOMMON_H
 
 #include "Common.h"
-#include "main.h"
 #include "pluginspecs_video.h"
 
 extern SVideoInitialize g_VideoInitialize;

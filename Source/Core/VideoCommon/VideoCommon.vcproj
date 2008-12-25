@@ -484,6 +484,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\OpcodeDecoding.cpp"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\OpcodeDecoding.h"
 			>
 		</File>

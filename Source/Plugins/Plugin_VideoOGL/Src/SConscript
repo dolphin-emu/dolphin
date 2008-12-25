@@ -14,7 +14,6 @@ files = [
 	'Globals.cpp',
 	'Config.cpp',
 	'memcpy_amd.cpp',
-	'OpcodeDecoding.cpp',
 	'PixelShaderManager.cpp',
 	'rasterfont.cpp',
 	'Render.cpp',
