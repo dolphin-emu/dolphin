@@ -382,8 +382,6 @@ namespace CPUCompare
 
 	const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b)
 	{
-		Core::g_CoreStartupParameter.bJITOff = true;
-
 		if (em_address == 0)
 			PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
 
