@@ -91,10 +91,9 @@
 
 	void Jit64::reg_imm(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int d = inst.RD, a = inst.RA, s = inst.RS;
 		switch (inst.OPCD)
@@ -134,10 +133,9 @@
 	void Jit64::cmpXX(UGeckoInstruction inst)
 	{	
 		// USES_CR
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int b = inst.RB;
@@ -253,10 +251,9 @@
 
 	void Jit64::orx(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int s = inst.RS;
@@ -295,10 +292,9 @@
 	// m_GPR[_inst.RA] = m_GPR[_inst.RS] ^ m_GPR[_inst.RB];
 	void Jit64::xorx(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int s = inst.RS;
@@ -326,10 +322,9 @@
 
 	void Jit64::andx(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA, s = inst.RS, b = inst.RB;
 		if (a != s && a != b) {
@@ -351,10 +346,9 @@
 
 	void Jit64::extsbx(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA,
 			s = inst.RS;
@@ -372,10 +366,9 @@
 
 	void Jit64::extshx(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA, s = inst.RS;
 		gpr.KillImmediate(s);
@@ -392,10 +385,9 @@
 
 	void Jit64::subfic(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA, d = inst.RD;
 		gpr.FlushLockX(ECX);
@@ -447,10 +439,9 @@
 
 	void Jit64::subfx(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		gpr.Lock(a, b, d);
@@ -472,10 +463,9 @@
 
 	void Jit64::mulli(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA, d = inst.RD;
  		gpr.Lock(a, d);
@@ -487,10 +477,9 @@
 
 	void Jit64::mullwx(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
  		gpr.Lock(a, b, d);
@@ -512,10 +501,9 @@
 
 	void Jit64::mulhwux(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		gpr.FlushLockX(EDX);
@@ -577,10 +565,9 @@
 
 	void Jit64::addx(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		_assert_msg_(DYNA_REC, !inst.OE, "Add - OE enabled :(");
@@ -636,10 +623,9 @@
 	void Jit64::addex(UGeckoInstruction inst)
 	{
 		// USES_XER
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		gpr.FlushLockX(ECX);
@@ -664,10 +650,9 @@
 
 	void Jit64::rlwinmx(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int s = inst.RS;
@@ -723,10 +708,9 @@
 
 	void Jit64::rlwimix(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int s = inst.RS;
@@ -759,10 +743,9 @@
 
 	void Jit64::rlwnmx(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA, b = inst.RB, s = inst.RS;
 		if (gpr.R(a).IsImm())
@@ -791,10 +774,9 @@
 
 	void Jit64::negx(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int d = inst.RD;
@@ -813,10 +795,9 @@
 
 	void Jit64::srwx(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int b = inst.RB;
@@ -843,10 +824,9 @@
 
 	void Jit64::slwx(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int b = inst.RB;
@@ -874,10 +854,9 @@
 	void Jit64::srawx(UGeckoInstruction inst)
 	{
 		// USES_XER
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int b = inst.RB;
@@ -921,10 +900,9 @@
 
 	void Jit64::srawix(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int s = inst.RS;
@@ -968,10 +946,9 @@
 	// count leading zeroes
 	void Jit64::cntlzwx(UGeckoInstruction inst)
 	{
-#ifdef JIT_OFF_OPTIONS
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
-#endif
+
 		INSTRUCTION_START;
 		int a = inst.RA;
 		int s = inst.RS;
