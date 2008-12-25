@@ -789,10 +789,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\VertexLoaderManager.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\VertexManager.cpp"
 				>
 			</File>

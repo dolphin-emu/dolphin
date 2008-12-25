@@ -32,12 +32,6 @@ namespace VertexLoaderManager
 
 	// For debugging
 	void AppendListToString(std::string *dest);
-	
-	// TODO - don't expose these like this.
-    //    static u8* s_pCurBufferPointer;
 };
-
-// Might move this into its own file later.
-void LoadCPReg(u32 SubCmd, u32 Value);
 
 #endif  // _VERTEXLOADERMANAGER_H

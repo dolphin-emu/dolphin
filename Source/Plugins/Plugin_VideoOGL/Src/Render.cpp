@@ -81,7 +81,7 @@ static int nZBufferRender = 0; // if > 0, then use zbuffer render, and count dow
 // A framebuffer is a set of render targets: a color and a z buffer. They can be either RenderBuffers or Textures.
 static GLuint s_uFramebuffer = 0;
 
-// The size of these should be a (not necessarily even) multiple of the EFB size, 640x528, but isn't.
+// The size of these should be a (not necessarily even) multiple of the EFB size, 640x528, but isn'.t
 static GLuint s_RenderTarget = 0;
 static GLuint s_DepthTarget = 0;
 static GLuint s_ZBufferTarget = 0;

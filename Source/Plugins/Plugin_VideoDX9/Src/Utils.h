@@ -21,43 +21,11 @@
 #include "Common.h"
 #include "main.h"
 #include "LookUpTables.h"
+#include "VideoCommon.h"
 
 extern int frameCount;
 
 LRESULT CALLBACK AboutProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
-//#define RAM_MASK 0x1FFFFFF
-
-inline u8 *Memory_GetPtr(u32 _uAddress)
-{
-    return g_VideoInitialize.pGetMemoryPointer(_uAddress);
-}
-
-inline u8 Memory_Read_U8(u32 _uAddress)
-{    
-	return *g_VideoInitialize.pGetMemoryPointer(_uAddress);
-}
-
-inline u16 Memory_Read_U16(u32 _uAddress)
-{
-    return _byteswap_ushort(*(u16*)g_VideoInitialize.pGetMemoryPointer(_uAddress));
-//	return _byteswap_ushort(*(u16*)&g_pMemory[_uAddress & RAM_MASK]);
-}
-
-inline u32 Memory_Read_U32(u32 _uAddress)
-{
-    if (_uAddress == 0x020143a8)
-    {
-        int i =0;
-    }
-    return _byteswap_ulong(*(u32*)g_VideoInitialize.pGetMemoryPointer(_uAddress));
-//	return _byteswap_ulong(*(u32*)&g_pMemory[_uAddress & RAM_MASK]);
-}
-
-inline float Memory_Read_Float(u32 _uAddress)
-{
-	u32 uTemp = Memory_Read_U32(_uAddress);
-	return *(float*)&uTemp;
-}
 
 #endif

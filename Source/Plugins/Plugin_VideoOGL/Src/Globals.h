@@ -64,35 +64,6 @@ unsigned char memcmp_mmx(const void* src1, const void* src2, int cmpsize);
 #define memcmp_gc memcmp
 #endif
 
-#include "main.h"
-
-inline u8 *Memory_GetPtr(u32 _uAddress)
-{
-    return g_VideoInitialize.pGetMemoryPointer(_uAddress);//&g_pMemory[_uAddress & RAM_MASK];
-}
-
-inline u8 Memory_Read_U8(u32 _uAddress)
-{
-    return *(u8*)g_VideoInitialize.pGetMemoryPointer(_uAddress);//g_pMemory[_uAddress & RAM_MASK];
-}
-
-inline u16 Memory_Read_U16(u32 _uAddress)
-{
-    return Common::swap16(*(u16*)g_VideoInitialize.pGetMemoryPointer(_uAddress));
-    //return _byteswap_ushort(*(u16*)&g_pMemory[_uAddress & RAM_MASK]);
-}
-
-inline u32 Memory_Read_U32(u32 _uAddress)
-{
-    return Common::swap32(*(u32*)g_VideoInitialize.pGetMemoryPointer(_uAddress));
-    //return _byteswap_ulong(*(u32*)&g_pMemory[_uAddress & RAM_MASK]);
-}
-
-inline float Memory_Read_Float(u32 _uAddress)
-{
-    union {u32 i; float f;} temp;
-	temp.i = Memory_Read_U32(_uAddress);
-    return temp.f;
-}
+#include "VideoCommon.h"
 
 #endif

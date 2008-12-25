@@ -24,18 +24,21 @@
 // and hope that the vertex format doesn't change, though, if you do it just when they are 
 // called. The reason is that the vertex format affects the sizes of the vertices.
 
-#include "Globals.h"
+#include "Common.h"
+#include "VideoCommon.h"
 #include "Profiler.h"
 #include "OpcodeDecoding.h"
 
 #include "VertexLoader.h"
 #include "VertexLoaderManager.h"
 #include "VertexManager.h"
-#include "VertexShaderManager.h"
 
 #include "Statistics.h"
 
-#include "BPStructs.h"
+#include "XFMemory.h"
+#include "CPMemory.h"
+#include "BPMemory.h"
+
 #include "Fifo.h"
 #include "DataReader.h"
 

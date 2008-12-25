@@ -191,5 +191,4 @@ public:
 extern VertexLoader g_VertexLoaders[8];
 extern DecodedVArray* varray;
 
-
 #endif

@@ -30,6 +30,7 @@
 #include "TextureCache.h"
 #include "BPStructs.h"
 #include "VertexManager.h"
+#include "VertexLoaderManager.h"
 #include "TransformEngine.h"
 #include "DlgSettings.h"
 #include "D3DPostprocess.h"
@@ -90,7 +91,7 @@ void UpdateFPSDisplay(const char *text)
 {
 	char temp[512];
 	sprintf_s(temp, 512, "SVN R%i: DX9: %s", SVN_REV, text);
-    SetWindowText( EmuWindow::GetWnd(), temp);
+    SetWindowText(EmuWindow::GetWnd(), temp);
 }
 
 
@@ -101,7 +102,7 @@ bool Init()
 	if (initCount == 0)
 	{
         // create the window
-        if ( !g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL ) // ignore parent for this plugin
+        if (!g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL) // ignore parent for this plugin
         {
             g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, "Loading - Please wait.");
         }
@@ -110,7 +111,7 @@ bool Init()
 			g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, "Loading - Please wait.");
 		}
 
-		if ( g_VideoInitialize.pWindowHandle == NULL )
+		if (g_VideoInitialize.pWindowHandle == NULL)
 		{
 			MessageBox(GetActiveWindow(), "An error has occurred while trying to create the window.", "Fatal Error", MB_OK);
 			return false;
@@ -133,30 +134,27 @@ bool Init()
 	return true;
 }
 
-
 void DeInit()
 {
 	initCount--;
-	if (initCount==0)
+	if (initCount == 0)
 	{
 		D3D::Shutdown();
         EmuWindow::Close();
 	}
 }
 
-// ====================================================================================
-
 void GetDllInfo (PLUGIN_INFO* _PluginInfo) 
 {
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_VIDEO;
 #ifdef DEBUGFAST 
-	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 Plugin (DebugFast)");
+	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 (DebugFast)");
 #else
 #ifndef _DEBUG
-	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 Plugin");
+	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9");
 #else
-	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 Plugin (Debug)");
+	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 (Debug)");
 #endif
 #endif
 }
@@ -215,16 +213,18 @@ void Video_Prepare(void)
 	BPInit();
 	VertexManager::Init();
 	Fifo_Init();
+	VertexLoaderManager::Init();
 	OpcodeDecoder_Init();
 }
 
 void Video_Shutdown(void) 
 {
 	Fifo_Shutdown();
+	OpcodeDecoder_Shutdown();
 	VertexManager::Shutdown();
 	TextureCache::Shutdown();
 	Renderer::Shutdown();
-	OpcodeDecoder_Shutdown();
+	VertexLoaderManager::Shutdown();
 	DeInit();
 }
 
@@ -256,9 +256,9 @@ void DebugLog(const char* _fmt, ...)
 	char Msg[512];
 	va_list ap;
 
-	va_start( ap, _fmt );
-	vsprintf( Msg, _fmt, ap );
-	va_end( ap );
+	va_start(ap, _fmt);
+	vsprintf(Msg, _fmt, ap);
+	va_end(ap);
 
 	g_VideoInitialize.pLog(Msg, FALSE);
 #endif

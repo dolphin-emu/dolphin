@@ -24,26 +24,25 @@
 // and hope that the vertex format doesn't change, though, if you do it just when they are 
 // called. The reason is that the vertex format affects the sizes of the vertices.
 
-#include "D3DBase.h"
-
 #include "Common.h"
-#include "Statistics.h"
+#include "VideoCommon.h"
 #include "Profiler.h"
-#include "VertexManager.h"
-#include "TransformEngine.h"
 #include "OpcodeDecoding.h"
-#include "TextureCache.h"
-#include "VertexShaderManager.h"
-#include "PixelShaderManager.h"
 
-#include "BPStructs.h"
-#include "XFStructs.h"
-#include "Utils.h"
+#include "VertexLoader.h"
+#include "VertexLoaderManager.h"
+#include "VertexManager.h"
+
+#include "Statistics.h"
+
+#include "XFMemory.h"
+#include "CPMemory.h"
+#include "BPMemory.h"
+
 #include "Fifo.h"
 #include "DataReader.h"
 
-DecodedVArray tempvarray;
-u8 *g_pVideoData = 0;
+u8* g_pVideoData = 0;
 
 extern u8* FAKE_GetFifoStartPtr();
 extern u8* FAKE_GetFifoEndPtr();
@@ -53,7 +52,7 @@ static void Decode();
 static void ExecuteDisplayList(u32 address, u32 size)
 {
 	u8* old_pVideoData = g_pVideoData;
-	
+
 	u8* startAddress = Memory_GetPtr(address);
 
 	//Avoid the crash if Memory_GetPtr failed ..
@@ -61,10 +60,10 @@ static void ExecuteDisplayList(u32 address, u32 size)
 	{
 		g_pVideoData = startAddress;
 
-		// temporarily swap dl and non-dl(small "hack" for the stats)
+		// temporarily swap dl and non-dl (small "hack" for the stats)
 		Statistics::SwapDL();
 
-		while((u32)(g_pVideoData - startAddress) < size)
+		while ((u32)(g_pVideoData - startAddress) < size)
 		{
 			Decode();
 		}
@@ -73,22 +72,22 @@ static void ExecuteDisplayList(u32 address, u32 size)
 
 		// un-swap
 		Statistics::SwapDL();
-
-		// reset to the old pointer
-		g_pVideoData = old_pVideoData;
 	}
+
+	// reset to the old pointer
+	g_pVideoData = old_pVideoData;
 }
 
 bool FifoCommandRunnable()
 {
-	u32 iBufferSize = (u32)(FAKE_GetFifoEndPtr()-g_pVideoData);
+	u32 iBufferSize = (u32)(FAKE_GetFifoEndPtr() - g_pVideoData);
 	if (iBufferSize == 0)
 		return false;  // can't peek
 
-	u8 Cmd = DataPeek8(0);
+	u8 Cmd = DataPeek8(0);	
 	u32 iCommandSize = 0;
 
-	switch(Cmd)
+	switch (Cmd)
 	{
 	case GX_NOP:
 		// Hm, this means that we scan over nop streams pretty slowly...
@@ -131,7 +130,7 @@ bool FifoCommandRunnable()
 				iCommandSize = 1 + 4;
 				u32 Cmd2 = DataPeek32(1);
 				int dwTransferSize = ((Cmd2 >> 16) & 15) + 1;
-				iCommandSize += dwTransferSize * 4;				
+				iCommandSize += dwTransferSize * 4;
 			}
 			else
 			{
@@ -141,17 +140,14 @@ bool FifoCommandRunnable()
 		break;
 
 	default:
-		if (Cmd&0x80)
+		if (Cmd & 0x80)
 		{				
 			// check if we can read the header
 			if (iBufferSize >= 3)
 			{
 				iCommandSize = 1 + 2;
 				u16 numVertices = DataPeek16(1);
-				VertexLoader& vtxLoader = g_VertexLoaders[Cmd & GX_VAT_MASK];
-				vtxLoader.Setup();
-				int vsize = vtxLoader.GetVertexSize();
-				iCommandSize += numVertices * vsize;				
+				iCommandSize += numVertices * VertexLoaderManager::GetVertexSize(Cmd & GX_VAT_MASK);
 			}
 			else
 			{				
@@ -160,17 +156,16 @@ bool FifoCommandRunnable()
 		}
 		else
 		{
-            char szTemp[1024];
-            sprintf(szTemp, "GFX: Unknown Opcode (0x%x).\n"
+			char szTemp[1024];
+			sprintf(szTemp, "GFX: Unknown Opcode (0x%x).\n"
 				"This means one of the following:\n"
 				"* The emulated GPU got desynced, disabling dual core can help\n"
 				"* Command stream corrupted by some spurious memory bug\n"
-				"* This really is an unknown opcode (unlikely)\n\n"
+				"* This really is an unknown opcode (unlikely)\n"
 				"* Some other sort of bug\n\n"
-				"Dolphin will now likely crash or hang. Enjoy.", Cmd);
-			MessageBox(NULL, szTemp, "Video-Plugin", MB_OK);			
+				"Dolphin will now likely crash or hang. Enjoy." , Cmd);
+			g_VideoInitialize.pSysMessage(szTemp);
 			g_VideoInitialize.pLog(szTemp, TRUE);
-
 			{
 				SCPFifoStruct &fifo = *g_VideoInitialize.pCPFifo;
 
@@ -194,67 +189,65 @@ bool FifoCommandRunnable()
 					,fifo.bFF_BPEnable ? "true" : "false" ,fifo.bFF_GPLinkEnable ? "true" : "false"
 					,fifo.bFF_Breakpoint ? "true" : "false");
 
+				g_VideoInitialize.pSysMessage(szTmp);
 				g_VideoInitialize.pLog(szTmp, TRUE);
-				MessageBox(0,szTmp,"GFX ERROR",0);
 				// _assert_msg_(0,szTmp,"");
-			
+
 			}
 		}
 		break;
 	}
-	
+
 	if (iCommandSize > iBufferSize)
 		return false;
 
-#ifdef _DEBUG
-	char temp[256];
-	sprintf(temp, "OP detected: Cmd 0x%x  size %i  buffer %i",Cmd, iCommandSize, iBufferSize);
-	g_VideoInitialize.pLog(temp, FALSE);
-#endif
+	// INFO_LOG("OP detected: Cmd 0x%x  size %i  buffer %i",Cmd, iCommandSize, iBufferSize);
 
 	return true;
 }
 
-static void Decode(void)
+static void Decode()
 {
-    int Cmd = DataReadU8();
-	switch (Cmd)
+	int Cmd = DataReadU8();
+	switch(Cmd)
 	{
 	case GX_NOP:
 		break;
 
-	case GX_LOAD_CP_REG:
+	case GX_LOAD_CP_REG: //0x08
 		{
 			u32 SubCmd = DataReadU8();
 			u32 Value = DataReadU32();
-			LoadCPReg(SubCmd,Value);
+			LoadCPReg(SubCmd, Value);
+			INCSTAT(stats.thisFrame.numCPLoads);
 		}
 		break;
 
 	case GX_LOAD_XF_REG:
 		{
 			u32 Cmd2 = DataReadU32();
-			
-			int dwTransferSize = ((Cmd2>>16)&15) + 1;
+			int dwTransferSize = ((Cmd2 >> 16) & 15) + 1;
 			u32 dwAddress = Cmd2 & 0xFFFF;
+			// TODO - speed this up. pshufb?
 			static u32 pData[16];
-			for (int i=0; i<dwTransferSize; i++)
+			for (int i = 0; i < dwTransferSize; i++)
 				pData[i] = DataReadU32();
-			LoadXFReg(dwTransferSize,dwAddress,pData);
+			LoadXFReg(dwTransferSize, dwAddress, pData);
+			INCSTAT(stats.thisFrame.numXFLoads);
 		}
 		break;
 
 	case GX_LOAD_INDX_A: //used for position matrices
-		LoadIndexedXF(DataReadU32(),0xC);
+		LoadIndexedXF(DataReadU32(), 0xC);
 		break;
 	case GX_LOAD_INDX_B: //used for normal matrices
-		LoadIndexedXF(DataReadU32(),0xD);
+		LoadIndexedXF(DataReadU32(), 0xD);
 		break;
 	case GX_LOAD_INDX_C: //used for postmatrices
-		LoadIndexedXF(DataReadU32(),0xE);
+		LoadIndexedXF(DataReadU32(), 0xE);
 		break;
 	case GX_LOAD_INDX_D: //used for lights
-		LoadIndexedXF(DataReadU32(),0xF);
+		LoadIndexedXF(DataReadU32(), 0xF);
 		break;
 
 	case GX_CMD_CALL_DL:
@@ -277,53 +270,27 @@ static void Decode(void)
 		{
 			u32 cmd = DataReadU32();
 			LoadBPReg(cmd);
+			INCSTAT(stats.thisFrame.numBPLoads);
 		}
 		break;
 
-	// draw primitives 
+		// draw primitives 
 	default:
-		if (Cmd&0x80)
-		{			
-			// load vertices
-			u16 numVertices = DataReadU16();			
-			tempvarray.Reset();
-			VertexLoader::SetVArray(&tempvarray);
-			VertexLoader& vtxLoader = g_VertexLoaders[Cmd & GX_VAT_MASK];
-			vtxLoader.Setup();
-			vtxLoader.PrepareRun();
-			int vsize = vtxLoader.GetVertexSize();
-			vtxLoader.RunVertices(numVertices);
-
-			// add vertices
-			int primitive = (Cmd & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT;
-			VertexManager::AddVertices(primitive, numVertices, &tempvarray);
+		if (Cmd & 0x80)
+		{
+			// load vertices (use computed vertex size from FifoCommandRunnable above)
+			u16 numVertices = DataReadU16();
+			VertexLoaderManager::RunVertices(
+				Cmd & GX_VAT_MASK,   // Vertex loader index (0 - 7)
+				(Cmd & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
+				numVertices);
 		}
 		else
 		{
-			SCPFifoStruct &fifo = *g_VideoInitialize.pCPFifo;
-
-			char szTmp[256];
-			// sprintf(szTmp, "Illegal command %02x (at %08x)",Cmd,g_pDataReader->GetPtr());
-            sprintf(szTmp, "Illegal command %02x\n"
-				"CPBase: 0x%08x\n"
-				"CPEnd: 0x%08x\n"
-				"CPHiWatermark: 0x%08x\n"
-				"CPLoWatermark: 0x%08x\n"
-				"CPReadWriteDistance: 0x%08x\n"
-				"CPWritePointer: 0x%08x\n"
-				"CPReadPointer: 0x%08x\n"
-				"CPBreakpoint: 0x%08x\n"
-				"bFF_GPReadEnable: %s\n"
-				"bFF_BPEnable: %s\n"
-				"bFF_GPLinkEnable: %s\n"
-				"bFF_Breakpoint: %s\n"
-				,Cmd, fifo.CPBase, fifo.CPEnd, fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance
-				,fifo.CPWritePointer, fifo.CPReadPointer, fifo.CPBreakpoint, fifo.bFF_GPReadEnable ? "true" : "false"
-				,fifo.bFF_BPEnable ? "true" : "false" ,fifo.bFF_GPLinkEnable ? "true" : "false"
-				,fifo.bFF_Breakpoint ? "true" : "false");
-
-			g_VideoInitialize.pLog(szTmp, TRUE);
-			MessageBox(0,szTmp,"GFX ERROR",0);
+			// char szTmp[256];
+			//sprintf(szTmp, "Illegal command %02x (at %08x)",Cmd,g_pDataReader->GetPtr());
+			//g_VideoInitialize.pLog(szTmp);
+			//MessageBox(0,szTmp,"GFX ERROR",0);
 			// _assert_msg_(0,szTmp,"");
 			break;
 		}
@@ -334,22 +301,20 @@ static void Decode(void)
 void OpcodeDecoder_Init()
 {	
 	g_pVideoData = FAKE_GetFifoStartPtr();
-	tempvarray.Create(65536*3, 1, 8, 3, 2, 8);
 }
 
 
 void OpcodeDecoder_Shutdown()
 {
-	//VirtualFree((LPVOID)buffer,0,MEM_RELEASE);
-	tempvarray.Destroy();
 }
 
 void OpcodeDecoder_Run()
 {
-    DVSTARTPROFILE();
-
+	DVSTARTPROFILE();
 	while (FifoCommandRunnable())
 	{
+		//TODO?: if really needed, do something like this: "InterlockedExchange((LONG*)&_fifo.CPCmdIdle, 0);"
 		Decode();
 	}
+	//TODO?: if really needed, do something like this: "InterlockedExchange((LONG*)&_fifo.CPCmdIdle, 1);"
 }

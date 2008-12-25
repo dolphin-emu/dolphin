@@ -258,4 +258,7 @@ struct VAT
 extern TVtxDesc g_VtxDesc;
 extern VAT g_VtxAttr[8];
 
+// Might move this into its own file later.
+void LoadCPReg(u32 SubCmd, u32 Value);
+
 #endif

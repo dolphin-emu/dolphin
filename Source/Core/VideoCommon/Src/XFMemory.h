@@ -200,5 +200,7 @@ struct Viewport
 extern XFRegisters xfregs;
 extern u32 xfmem[XFMEM_SIZE];
 
-#endif
+void LoadXFReg(u32 transferSize, u32 address, u32 *pData);
+void LoadIndexedXF(u32 val, int array);
 
+#endif

@@ -361,3 +361,39 @@ void VertexLoader::RunVertices(int count)
 		((void (*)())((void*)&m_compiledCode[0]))();
 	}*/
 }
+
+DecodedVArray tempvarray;
+
+namespace VertexLoaderManager
+{
+
+void Init()
+{
+	tempvarray.Create(65536*3, 1, 8, 3, 2, 8);
+}
+
+void Shutdown()
+{
+	tempvarray.Destroy();
+}
+
+int GetVertexSize(int vat)
+{
+	VertexLoader& vtxLoader = g_VertexLoaders[vat];
+	vtxLoader.Setup();
+	return vtxLoader.GetVertexSize();
+}
+
+void RunVertices(int vat, int primitive, int num_vertices)
+{
+	tempvarray.Reset();
+	VertexLoader::SetVArray(&tempvarray);
+	VertexLoader& vtxLoader = g_VertexLoaders[vat];
+	vtxLoader.Setup();
+	vtxLoader.PrepareRun();
+	int vsize = vtxLoader.GetVertexSize();
+	vtxLoader.RunVertices(num_vertices);
+	VertexManager::AddVertices(primitive, num_vertices, &tempvarray);
+}
+
+}

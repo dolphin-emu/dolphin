@@ -516,6 +516,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\VertexLoaderManager.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\VideoCommon.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\VideoState.cpp"
 			>
 		</File>

@@ -837,4 +837,6 @@ struct BPMemory
 
 extern BPMemory bpmem;
 
+void LoadBPReg(u32 value0);
+
 #endif
