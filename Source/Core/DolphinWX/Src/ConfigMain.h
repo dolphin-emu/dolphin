@@ -45,8 +45,11 @@ class CConfigMain
 	private:
 
 		DECLARE_EVENT_TABLE();
+
+		wxBoxSizer* sGeneralPage; // General Settings
+		wxCheckBox* ConfirmStop;
 		
-		wxBoxSizer* sGeneral; // Core settings
+		wxBoxSizer* sCore; // Core settings
 		wxStaticBoxSizer* sbBasic, *sbAdvanced, *sbInterface;
 		wxCheckBox* AllwaysHLEBIOS;
 		wxCheckBox* UseDynaRec;
@@ -55,7 +58,6 @@ class CConfigMain
 		wxCheckBox* OptimizeQuantizers;
 		wxCheckBox* SkipIdle;
 		wxCheckBox* EnableCheats;
-		wxCheckBox* ConfirmStop;
 
 		wxBoxSizer* sGamecube; // GC settings
 		wxStaticBoxSizer* sbGamecubeIPLSettings;
@@ -81,6 +83,7 @@ class CConfigMain
 
 		wxNotebook *Notebook;
 		wxPanel *GeneralPage;
+		wxPanel *CorePage;
 		wxPanel *GamecubePage;
 		wxPanel *WiiPage;
 		wxPanel *PathsPage;
@@ -192,6 +195,7 @@ class CConfigMain
 		{
 			ID_NOTEBOOK = 1000,
 			ID_GENERALPAGE,
+			ID_COREPAGE,
 			ID_GAMECUBEPAGE,
 			ID_WIIPAGE,
 			ID_PATHSPAGE,
