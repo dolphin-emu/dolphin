@@ -75,7 +75,7 @@ void AsmRoutineManager::Generate()
 #endif
 
 	const u8 *outerLoop = GetCodePtr();
-		CALL(reinterpret_cast<void *>(&CoreTiming::Advance));
+		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
 		FixupBranch skipToRealDispatch = J(); //skip the sync and compare first time
 	
 		dispatcher = GetCodePtr();
@@ -134,7 +134,7 @@ void AsmRoutineManager::Generate()
 			MOV(32, R(EAX), M(&PC));
 			MOV(32, M(&NPC), R(EAX));
 			OR(32, M(&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_FPU_UNAVAILABLE));
-			CALL(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
+			ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 			MOV(32, R(EAX), M(&NPC));
 			MOV(32, M(&PC), R(EAX));
 			JMP(dispatcher);
@@ -142,14 +142,14 @@ void AsmRoutineManager::Generate()
 		SetJumpTarget(bail);
 		doTiming = GetCodePtr();
 
-		CALL(reinterpret_cast<void *>(&CoreTiming::Advance));
+		ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
 		
 		testExceptions = GetCodePtr();
 		TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(0xFFFFFFFF));
 		FixupBranch skipExceptions = J_CC(CC_Z);
 			MOV(32, R(EAX), M(&PC));
 			MOV(32, M(&NPC), R(EAX));
-			CALL(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
+			ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExceptions));
 			MOV(32, R(EAX), M(&NPC));
 			MOV(32, M(&PC), R(EAX));
 		SetJumpTarget(skipExceptions);

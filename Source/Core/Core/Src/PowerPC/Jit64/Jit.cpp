@@ -293,7 +293,7 @@ namespace CPUCompare
 	void Jit64::Cleanup()
 	{
 		if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
-			CALL((void *)&GPFifo::CheckGatherPipe);
+			ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
 	}
 
 	void Jit64::WriteExit(u32 destination, int exit_num)
@@ -412,7 +412,7 @@ namespace CPUCompare
 		const u8 *normalEntry = GetCodePtr();
 		
 		if (ImHereDebug)
-			CALL((void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
+			ABI_CallFunction((void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
 		
 		if (js.fpa.any)
 		{
@@ -489,7 +489,7 @@ namespace CPUCompare
 			if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
 			{
 				js.fifoBytesThisBlock -= 32;
-				CALL(thunks.ProtectFunction((void *)&GPFifo::CheckGatherPipe, 0));
+				ABI_CallFunction(thunks.ProtectFunction((void *)&GPFifo::CheckGatherPipe, 0));
 			}
 
 			// If starting from the breakpointed instruction, we don't break.
