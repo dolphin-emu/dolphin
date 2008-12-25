@@ -125,7 +125,7 @@ public:
     static void SetAlpha(const AlphaFunc& alpha);
     static void SetDestAlpha(const ConstantAlpha& alpha);
     static void SetTexDims(int texmapid, u32 width, u32 height, u32 wraps, u32 wrapt);
-    static void SetZTetureBias(u32 bias);
+    static void SetZTextureBias(u32 bias);
     static void SetIndTexScaleChanged();
     static void SetIndMatrixChanged(int matrixidx);
 
@@ -134,7 +134,7 @@ public:
     static void SetTevKSelChanged(int id);
     static void SetTevOrderChanged(int id);
     static void SetTevIndirectChanged(int id);
-    static void SetZTetureOpChanged();
+    static void SetZTextureOpChanged();
     static void SetTexturesUsed(u32 nonpow2tex);
     static void SetTexDimsChanged(int texmapid);
 

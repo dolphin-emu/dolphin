@@ -31,10 +31,8 @@
 #include "Statistics.h"
 #include "VertexManager.h"
 #include "VertexLoaderManager.h"
-#include "VertexShaderManager.h"
-#include "VertexManager.h"
 #include "VertexLoader.h"
-#include "BPStructs.h"
+#include "BPMemory.h"
 #include "DataReader.h"
 
 #include "VertexLoader_Position.h"
@@ -48,18 +46,18 @@
 
 NativeVertexFormat *g_nativeVertexFmt;
 
-//these don't need to be saved
 #ifndef _WIN32
 	#undef inline
 	#define inline
 #endif
 
-// Direct
-// ==============================================================================
+// Matrix components are first in GC format but later in PC format - we need to store it temporarily
+// when decoding each vertex.
 static u8 s_curposmtx;
 static u8 s_curtexmtx[8];
 static int s_texmtxwrite = 0;
 static int s_texmtxread = 0;
+
 static int loop_counter;
 
 // Vertex loaders read these. Although the scale ones should be baked into the shader.
@@ -514,8 +512,6 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	VertexManager::EnableComponents(m_NativeFmt->m_components);
 
 	// Load position and texcoord scale factors.
-	// TODO - figure out if we should leave these independent, or compile them into
-	// the vertexloaders.
 	m_VtxAttr.PosFrac				= g_VtxAttr[vtx_attr_group].g0.PosFrac;
 	m_VtxAttr.texCoord[0].Frac		= g_VtxAttr[vtx_attr_group].g0.Tex0Frac;
 	m_VtxAttr.texCoord[1].Frac		= g_VtxAttr[vtx_attr_group].g1.Tex1Frac;
@@ -528,10 +524,9 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 
 	pVtxAttr = &m_VtxAttr;
 	posScale = shiftLookup[m_VtxAttr.PosFrac];
-	if (m_NativeFmt->m_components & VB_HAS_UVALL) {
+	if (m_NativeFmt->m_components & VB_HAS_UVALL)
 		for (int i = 0; i < 8; i++)
 			tcScale[i] = shiftLookup[m_VtxAttr.texCoord[i].Frac];
-	}
 	for (int i = 0; i < 2; i++)
 		colElements[i] = m_VtxAttr.color[i].Elements;
 
@@ -604,7 +599,6 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 		if (count - v < remainingVerts)
 			remainingVerts = count - v;
 
-		// Clean tight loader loop. Todo - build the loop into the JIT code.
 	#ifdef USE_JIT
 		if (remainingVerts > 0) {
 			loop_counter = remainingVerts;

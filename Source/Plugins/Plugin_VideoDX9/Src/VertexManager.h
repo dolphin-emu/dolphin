@@ -18,13 +18,13 @@
 
 #pragma once
 
-#include "CPStructs.h"
+#include "CPMemory.h"
 #include "VertexLoader.h"
 #include "DecodedVArray.h"
 
 struct UV
 {
-	float u,v,w;
+	float u, v, w;
 };
 
 struct D3DVertex {
@@ -34,26 +34,13 @@ struct D3DVertex {
 	UV uv[8];
 };
 
-enum Collection
-{
-	C_NOTHING=0,
-	C_TRIANGLES=1,
-	C_LINES=2,
-	C_POINTS=3
-};
-
 namespace VertexManager
 {
-
-extern const Collection collectionTypeLUT[8];
 
 bool Init();
 void Shutdown();
 
 void BeginFrame();
-
-void CreateDeviceObjects();
-void DestroyDeviceObjects();
 
 void AddVertices(int _primitive, int _numVertices, const DecodedVArray *varray);
 void Flush();

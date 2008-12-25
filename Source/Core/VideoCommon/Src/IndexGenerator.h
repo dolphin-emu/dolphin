@@ -15,13 +15,18 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#pragma once
+// This is currently only used by the DX plugin, but it may make sense to
+// use it in the GL plugin or a future DX10 plugin too.
+
+#ifndef _INDEXGENERATOR_H
+#define _INDEXGENERATOR_H
 
 class IndexGenerator
 {
 	unsigned short *ptr;
 	int numPrims;
 	int index;
+
 public:
 	void Start(unsigned short *startptr);
 	void AddList(int numVerts);
@@ -34,3 +39,5 @@ public:
 	int GetNumPrims() {return numPrims;} //returns numprimitives
 	int GetNumVerts() {return index;} //returns numprimitives
 };
+
+#endif  // _INDEXGENERATOR_H

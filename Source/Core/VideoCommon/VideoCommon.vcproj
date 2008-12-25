@@ -472,6 +472,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\IndexGenerator.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\IndexGenerator.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\LookUpTables.cpp"
 			>
 		</File>

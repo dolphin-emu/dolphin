@@ -37,6 +37,14 @@ using namespace D3D;
 namespace VertexManager
 {
 
+enum Collection
+{
+	C_NOTHING=0,
+	C_TRIANGLES=1,
+	C_LINES=2,
+	C_POINTS=3
+};
+
 static IndexGenerator indexGen;
 static Collection collection;
 
@@ -65,6 +73,23 @@ const D3DVERTEXELEMENT9 decl[] =
     D3DDECL_END()
 };
 
+const Collection collectionTypeLUT[8] =
+{
+	C_TRIANGLES,//quads
+	C_NOTHING,  //nothing
+	C_TRIANGLES,//triangles
+	C_TRIANGLES,//strip
+	C_TRIANGLES,//fan
+	C_LINES,    //lines
+	C_LINES,    //linestrip
+	C_POINTS    //guess :P
+};
+
+
+D3DVertex *vbufferwrite;
+
+void CreateDeviceObjects();
+void DestroyDeviceObjects();
 
 bool Init()
 {
@@ -105,12 +130,11 @@ void DestroyDeviceObjects()
 	vDecl = 0;
 }
 
-
 void AddIndices(int _primitive, int _numVertices)
 {
-	switch(_primitive) {
-	case GX_DRAW_QUADS:          indexGen.AddQuads(_numVertices); return;    
-	case GX_DRAW_TRIANGLES:      indexGen.AddList(_numVertices);  return;    
+	switch (_primitive) {
+	case GX_DRAW_QUADS:          indexGen.AddQuads(_numVertices);     return;    
+	case GX_DRAW_TRIANGLES:      indexGen.AddList(_numVertices);      return;    
 	case GX_DRAW_TRIANGLE_STRIP: indexGen.AddStrip(_numVertices);     return;
 	case GX_DRAW_TRIANGLE_FAN:   indexGen.AddFan(_numVertices);       return;
 	case GX_DRAW_LINE_STRIP:     indexGen.AddLineStrip(_numVertices); return;
@@ -118,20 +142,6 @@ void AddIndices(int _primitive, int _numVertices)
 	case GX_DRAW_POINTS:         indexGen.AddPointList(_numVertices); return;
 	}
 }
-
-const Collection collectionTypeLUT[8] =
-{
-	C_TRIANGLES,//quads
-	C_NOTHING,  //nothing
-	C_TRIANGLES,//triangles
-	C_TRIANGLES,//strip
-	C_TRIANGLES,//fan
-	C_LINES,    //lines
-	C_LINES,    //linestrip
-	C_POINTS    //guess :P
-};
-
-D3DVertex *vbufferwrite;
 
 void AddVertices(int _primitive, int _numVertices, const DecodedVArray *varray)
 {

@@ -41,7 +41,9 @@ PIXELSHADERUID PixelShaderMngr::s_curuid;
 static int s_nMaxPixelInstructions;
 static int s_nColorsChanged[2]; // 0 - regular colors, 1 - k colors
 static int s_nIndTexMtxChanged = 0;
-static bool s_bAlphaChanged, s_bZBiasChanged, s_bIndTexScaleChanged;
+static bool s_bAlphaChanged;
+static bool s_bZBiasChanged;
+static bool s_bIndTexScaleChanged;
 static float lastRGBAfull[2][4][4];
 static u8 s_nTexDimsChanged;
 static u32 lastAlpha = 0;
@@ -54,9 +56,9 @@ static u32 lastZBias = 0;
 u32 s_texturemask = 0;
 
 static int maptocoord[8]; // indexed by texture map, holds the texcoord associated with the map
-static u32 maptocoord_mask=0;
+static u32 maptocoord_mask = 0;
     
-static GLuint s_ColorMatrixProgram=0;
+static GLuint s_ColorMatrixProgram = 0;
 
 void PixelShaderMngr::SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4) {
     glProgramEnvParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f1, f2, f3, f4);
@@ -216,8 +218,6 @@ bool PixelShaderMngr::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpro
         }
     }
 
-    //ERROR_LOG(pcompiledprog);
-    //ERROR_LOG(pstrprogram);
     glGenProgramsARB( 1, &ps.glprogid );
     glBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, ps.glprogid );
     glProgramStringARB( GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
@@ -348,9 +348,15 @@ void PixelShaderMngr::SetConstants()
                 // xyz - static matrix
                 //TODO w - dynamic matrix scale / 256...... somehow / 4 works better
                 SetPSConstant4f(C_INDTEXMTX+2*i,
-                    bpmem.indmtx[i].col0.ma * fscale, bpmem.indmtx[i].col1.mc * fscale, bpmem.indmtx[i].col2.me * fscale, fscale * 256.0f);
+                    bpmem.indmtx[i].col0.ma * fscale,
+					bpmem.indmtx[i].col1.mc * fscale,
+					bpmem.indmtx[i].col2.me * fscale,
+					fscale * 256.0f);
                 SetPSConstant4f(C_INDTEXMTX+2*i+1,
-                    bpmem.indmtx[i].col0.mb * fscale, bpmem.indmtx[i].col1.md * fscale, bpmem.indmtx[i].col2.mf * fscale, fscale * 256.0f);
+                    bpmem.indmtx[i].col0.mb * fscale,
+					bpmem.indmtx[i].col1.md * fscale,
+					bpmem.indmtx[i].col2.mf * fscale,
+					fscale * 256.0f);
 
                 PRIM_LOG("indmtx%d: scale=%f, mat=(%f %f %f; %f %f %f)\n", i,
                     1024.0f*fscale, bpmem.indmtx[i].col0.ma * fscale, bpmem.indmtx[i].col1.mc * fscale, bpmem.indmtx[i].col2.me * fscale,
@@ -439,7 +445,7 @@ void PixelShaderMngr::SetTexDims(int texmapid, u32 width, u32 height, u32 wraps,
     }
 }
 
-void PixelShaderMngr::SetZTetureBias(u32 bias)
+void PixelShaderMngr::SetZTextureBias(u32 bias)
 {
     if (lastZBias != bias) {
         s_bZBiasChanged = true;
@@ -477,7 +483,7 @@ void PixelShaderMngr::SetTevIndirectChanged(int id)
 {
 }
 
-void PixelShaderMngr::SetZTetureOpChanged()
+void PixelShaderMngr::SetZTextureOpChanged()
 {
     s_bZBiasChanged = true;
 }
@@ -546,7 +552,7 @@ void PixelShaderMngr::GetPixelShaderId(PIXELSHADERUID &uid)
     s_curuid.values[0] = (s_curuid.values[0] & ~0x0ff00000) | (projtexcoords << 20);
     // swap table
     for (int i = 0; i < 8; i += 2)
-        ((u8*)&uid.values[1])[i/2] = (bpmem.tevksel[i].hex & 0xf) | ((bpmem.tevksel[i + 1].hex & 0xf)<<4);
+        ((u8*)&uid.values[1])[i/2] = (bpmem.tevksel[i].hex & 0xf) | ((bpmem.tevksel[i + 1].hex & 0xf) << 4);
 
     uid.values[2] = s_texturemask;
     int hdr = 3;

@@ -363,7 +363,7 @@ void BPWritten(int addr, int changes, int newval)
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
             PRIM_LOG("ztex bias=0x%x\n", bpmem.ztex1.bias);
-            PixelShaderMngr::SetZTetureBias(bpmem.ztex1.bias);
+            PixelShaderMngr::SetZTextureBias(bpmem.ztex1.bias);
         }
         break;
     case BPMEM_ZTEX2:

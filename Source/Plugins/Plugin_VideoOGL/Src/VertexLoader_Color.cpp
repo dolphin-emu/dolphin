@@ -117,7 +117,7 @@ void LOADERDECL Color_ReadDirect_24b_6666()
 	_SetCol6666(val);
 }
 
-// F|RES: i am not 100 percent show, but the colElements seems to be important for rendering only
+// F|RES: i am not 100 percent sure, but the colElements seems to be important for rendering only
 // at least it fixes mario party 4
 //
 //	if (colElements[colIndex])	
