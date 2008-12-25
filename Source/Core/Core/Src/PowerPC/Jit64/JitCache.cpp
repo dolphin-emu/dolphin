@@ -186,10 +186,10 @@ bool JitBlock::ContainsAddress(u32 em_address)
 
 #ifdef OPROFILE_REPORT
 		char buf[100];
-		sprintf(buf, "EmuCode%x", emAddress);
-		u8* blockStart = blockCodePointers[block_num], *blockEnd = GetWritableCodePtr();
+		sprintf(buf, "EmuCode%x", b.originalAddress);
+		const u8* blockStart = blockCodePointers[block_num];
 		op_write_native_code(agent, buf, (uint64_t)blockStart,
-		                     blockStart, blockEnd - blockStart);
+		                     blockStart, b.codeSize);
 #endif
 	}
 
