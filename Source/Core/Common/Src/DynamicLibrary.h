@@ -24,23 +24,23 @@
 
 #include <string>
 
+// Abstracts the (few) differences between dynamically loading DLLs under Windows
+// and .so / .dylib under Linux/MacOSX.
 class DynamicLibrary
 {
-	public:
+public:
+	DynamicLibrary();
+	int Load(const char *filename);
+	int Unload();
+	void *Get(const char *funcname) const;
+	bool IsLoaded() const { return library != 0; }
 
-		DynamicLibrary();
-		int Load(const char* filename);
-		int Unload();
-		void* Get(const char* funcname) const;
-
-		bool IsLoaded() const {return(library != 0);}
-
-	private:
-		std::string library_file;
+private:
+	std::string library_file;
 #ifdef _WIN32
-		HINSTANCE library;
+	HINSTANCE library;
 #else
-		void* library;
+	void *library;
 #endif
 };
 

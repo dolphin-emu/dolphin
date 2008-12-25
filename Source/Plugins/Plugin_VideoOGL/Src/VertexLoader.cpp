@@ -120,7 +120,7 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	m_numLoadedVertices = 0;
 	m_VertexSize = 0;
 	m_numPipelineStages = 0;
-	m_NativeFmt = new NativeVertexFormat();
+	m_NativeFmt = NativeVertexFormat::Create();
 	loop_counter = 0;
 	VertexLoader_Normal::Init();
 

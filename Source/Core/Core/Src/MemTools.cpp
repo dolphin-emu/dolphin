@@ -63,10 +63,7 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 			int accessType = (int)pPtrs->ExceptionRecord->ExceptionInformation[0];
 			if (accessType == 8) //Rule out DEP
 			{
-				if (PowerPC::state == PowerPC::CPU_POWERDOWN)
-					return EXCEPTION_CONTINUE_SEARCH;
-				MessageBox(0, _T("Tried to execute code that's not marked executable. This is likely a JIT bug.\n"), 0, 0);
-				return EXCEPTION_CONTINUE_SEARCH;
+				return (DWORD)EXCEPTION_CONTINUE_SEARCH;
 			}
 			
 			//Where in the x86 code are we?

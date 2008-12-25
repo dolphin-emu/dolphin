@@ -140,7 +140,6 @@ void UpdateFPSDisplay(const char *text)
     char temp[512];
     sprintf(temp, "SVN R%s: GL: %s", SVN_REV_STR, text);
     OpenGL_SetWindowText(temp);
-
 }
 
 // =======================================================================================
@@ -148,9 +147,9 @@ void UpdateFPSDisplay(const char *text)
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight) 
 {
     int _twidth,  _theight;
-    if(g_Config.bFullscreen)
+    if (g_Config.bFullscreen)
     {
-        if(strlen(g_Config.iFSResolution) > 1)
+        if (strlen(g_Config.iFSResolution) > 1)
         {
             sscanf(g_Config.iFSResolution, "%dx%d", &_twidth, &_theight);
         }
@@ -162,7 +161,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     }
     else // Going Windowed
     {
-        if(strlen(g_Config.iWindowedRes) > 1)
+        if (strlen(g_Config.iWindowedRes) > 1)
         {
             sscanf(g_Config.iWindowedRes, "%dx%d", &_twidth, &_theight);
         }
@@ -189,7 +188,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	float FactorH  = 480.0f / (float)nBackbufferHeight;
 	float Max = (FactorW < FactorH) ? FactorH : FactorW;
 
-	if(g_Config.bStretchToFit)
+	if (g_Config.bStretchToFit)
 	{
 		MValueX = 1.0f / FactorW;
 		MValueY = 1.0f / FactorH;
@@ -608,7 +607,7 @@ void OpenGL_Update()
     int height = rcWindow.bottom - rcWindow.top;
 
 	if (EmuWindow::GetParentWnd() != 0)
-		::MoveWindow(EmuWindow::GetWnd(), 0,0,width,height, FALSE);
+		::MoveWindow(EmuWindow::GetWnd(), 0, 0, width, height, FALSE);
 
     nBackbufferWidth = width;
     nBackbufferHeight = height;

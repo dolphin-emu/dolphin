@@ -89,14 +89,16 @@ struct PortableVertexDeclaration
 // all the data loading code must always be made compatible.
 class NativeVertexFormat
 {
-	u8* m_compiledCode;
-	PortableVertexDeclaration vtx_decl;
-public:
-	NativeVertexFormat();
-	~NativeVertexFormat();
+protected:
+	NativeVertexFormat() {}
 
-	void Initialize(const PortableVertexDeclaration &vtx_decl);
-	void SetupVertexPointers() const;
+public:
+	virtual ~NativeVertexFormat() {}
+
+	virtual void Initialize(const PortableVertexDeclaration &vtx_decl) = 0;
+	virtual void SetupVertexPointers() const = 0;
+
+	static NativeVertexFormat *Create();
 
 	// TODO: move these in under private:
 	u32 m_components;  // VB_HAS_X. Bitmask telling what vertex components are present.

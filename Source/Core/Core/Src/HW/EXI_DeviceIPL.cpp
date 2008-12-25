@@ -74,7 +74,7 @@ CEXIIPL::CEXIIPL() :
 	}
 	else
 	{
-		PanicAlert("Error: failed to load font_ansi.bin. Fonts may bug");
+		PanicAlert("Error: failed to load font_ansi.bin.\nFonts in a few games may not work, or crash the game.");
 	}
 
 	pStream = fopen(FONT_SJIS_FILE, "rb");
@@ -89,7 +89,8 @@ CEXIIPL::CEXIIPL() :
 	}
 	else
 	{
-		PanicAlert("Error: failed to load font_sjis.bin. Fonts may bug");
+		// Heh, BIOS fonts don't really work in JAP games anyway ... we get bogus characters.
+		PanicAlert("Error: failed to load font_sjis.bin.\nFonts in a few Japanese games may not work or crash the game.");
 	}
 
 	memcpy(m_pIPL, iplver, sizeof(iplver));
@@ -120,7 +121,6 @@ CEXIIPL::~CEXIIPL()
 	if (m_count > 0)
 	{
 		m_szBuffer[m_count] = 0x00;
-		//MessageBox(NULL, m_szBuffer, "last message", MB_OK);
 	}
 
 	if (m_pIPL != NULL)
@@ -130,19 +130,19 @@ CEXIIPL::~CEXIIPL()
 	}	
 
     // SRAM
-    FILE* pStream = NULL;
-    pStream = fopen(Core::GetStartupParameter().m_strSRAM.c_str(), "wb");
-    if (pStream != NULL)
+    FILE *file = fopen(Core::GetStartupParameter().m_strSRAM.c_str(), "wb");
+    if (file)
     {
-        fwrite(m_SRAM, 1, 64, pStream);
-        fclose(pStream);
+        fwrite(m_SRAM, 1, 64, file);
+        fclose(file);
     }
 }
 
 void CEXIIPL::SetCS(int _iCS)
 {
 	if (_iCS)
-	{	// cs transition to high
+	{
+		// cs transition to high
 		m_uPosition = 0;
 	}
 }

@@ -44,17 +44,15 @@ public:
 	static void Init(SVideoInitialize &_VideoInitialize);
 	static void Shutdown();
 
-	// initialize opengl standard values (like view port)
 	static void Initialize(void);
+
 	// must be called if the window size has changed
 	static void ReinitView(void);
-	//
-	// --- Render Functions ---
-	//
+
 	static void SwapBuffers(void);
-	static void Flush(void);
-	static float GetXScale(){return xScale;}
-	static float GetYScale(){return yScale;}
+
+	static float GetXScale() {return xScale;}
+	static float GetYScale() {return yScale;}
 
 	static void SetScissorBox(RECT &rc);
 	static void SetViewport(float* _Viewport);
@@ -108,8 +106,8 @@ public:
 	 * @param pVertexStreamZeroData User memory pointer to the vertex data.
 	 * @param VertexStreamZeroStride The number of bytes of data for each vertex.
 	 */
-	static void DrawPrimitiveUP( D3DPRIMITIVETYPE PrimitiveType, UINT PrimitiveCount,
-		const void* pVertexStreamZeroData, UINT VertexStreamZeroStride );
+	static void DrawPrimitiveUP(D3DPRIMITIVETYPE PrimitiveType, UINT PrimitiveCount,
+		const void* pVertexStreamZeroData, UINT VertexStreamZeroStride);
 
 	/**
 	 * Renders a sequence of non indexed, geometric primitives of the specified type from the current set of data input streams.
@@ -117,7 +115,7 @@ public:
 	 * @param StartVertex Index of the first vertex to load.
 	 * @param PrimitiveCount Number of primitives to render.
 	 */
-	static void DrawPrimitive( D3DPRIMITIVETYPE PrimitiveType, UINT StartVertex, UINT PrimitiveCount );
+	static void DrawPrimitive(D3DPRIMITIVETYPE PrimitiveType, UINT StartVertex, UINT PrimitiveCount);
 };
 
 #endif	// __H_RENDER__

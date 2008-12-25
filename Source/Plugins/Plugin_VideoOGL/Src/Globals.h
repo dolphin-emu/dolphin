@@ -38,6 +38,17 @@
 #define DEBUG_LOG(...)
 #endif
 
+enum {
+	EFB_WIDTH = 640,
+	EFB_HEIGHT = 528,
+};
+
+enum {
+	XFB_WIDTH = 640,
+	XFB_HEIGHT = 480, // 528 is max height ... ? or 538?
+	// TODO: figure out what to do with PAL
+};
+
 void DebugLog(const char* _fmt, ...);
 void __Log(const char *format, ...);
 void __Log(int type, const char *format, ...);

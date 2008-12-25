@@ -24,44 +24,44 @@ bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no);
 
 static MsgAlertHandler msg_handler = DefaultMsgHandler;
 
-void RegisterMsgAlertHandler(MsgAlertHandler handler) {
-    msg_handler = handler;
+void RegisterMsgAlertHandler(MsgAlertHandler handler)
+{
+	msg_handler = handler;
 }
 
-bool MsgAlert(const char* caption, bool yes_no, 
-              const char* format, ...) {
-    
-    char buffer[2048];
-    va_list args;
-    bool ret = false;
+bool MsgAlert(const char* caption, bool yes_no, const char* format, ...)
+{  
+	char buffer[2048];
+	va_list args;
+	bool ret = false;
 
-    va_start(args, format);
-    CharArrayFromFormatV(buffer, 2048, format, args);
+	va_start(args, format);
+	CharArrayFromFormatV(buffer, 2048, format, args);
 
-    LOG(MASTER_LOG, "%s: %s", caption, buffer);
+	LOG(MASTER_LOG, "%s: %s", caption, buffer);
 
-     if (msg_handler) {
-         ret = msg_handler(caption, buffer, yes_no);
-     }
-     
-     va_end(args);
-     return ret;
+	if (msg_handler)
+	{
+		ret = msg_handler(caption, buffer, yes_no);
+	}
+
+	va_end(args);
+	return ret;
 }
 
-bool DefaultMsgHandler(const char* caption, const char* text, 
-                       bool yes_no) {
-
+bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no)
+{
 #ifdef _WIN32
-    if (yes_no)
-        return IDYES == MessageBox(0, text, caption, 
-                                   MB_ICONQUESTION | MB_YESNO);
-    else {
-        MessageBox(0, text, caption, MB_ICONWARNING);
-        return true;
-    }
+   if (yes_no)
+	   return IDYES == MessageBox(0, text, caption, 
+	   MB_ICONQUESTION | MB_YESNO);
+   else {
+	   MessageBox(0, text, caption, MB_ICONWARNING);
+	   return true;
+   }
 #else
-    printf("%s\n", text);
-    return true;
+	printf("%s\n", text);
+	return true;
 #endif
 }
 

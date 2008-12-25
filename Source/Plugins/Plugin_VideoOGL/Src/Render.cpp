@@ -43,17 +43,17 @@
 #include "VertexLoader.h"
 #include "XFB.h"
 #include "Timer.h"
+#include "Logging/Logging.h" // for Logging()
+
 #if defined(HAVE_WX) && HAVE_WX
 #include "Debugger/Debugger.h" // for the CDebugger class
 #endif
-#include "Logging/Logging.h" // for Logging()
 
 #ifdef _WIN32
 #include "OS/Win32.h"
 #else
 #endif
-//#define USE_AA
-#define AA_AMMOUNT 16
+
 struct MESSAGE
 {
     MESSAGE() {}
@@ -63,31 +63,39 @@ struct MESSAGE
 };	
 
 CGcontext g_cgcontext;
-CGprofile g_cgvProf, g_cgfProf;
+CGprofile g_cgvProf;
+CGprofile g_cgfProf;
+
 #if defined(HAVE_WX) && HAVE_WX
 extern CDebugger* m_frame; // the debugging class
 #endif
 
-static int g_MaxTexWidth = 0, g_MaxTexHeight = 0;
 static RasterFont* s_pfont = NULL;
 static std::list<MESSAGE> s_listMsgs;
+
 static bool s_bFullscreen = false;
 static bool s_bOutputCgErrors = true;
 
-static int nZBufferRender = 0; // if > 0, then using zbuffer render
-static u32 s_uFramebuffer = 0;
-static u32 s_RenderTargets[1] = {0}, s_DepthTarget = 0, s_ZBufferTarget = 0;
+static int nZBufferRender = 0; // if > 0, then use zbuffer render, and count down.
 
-static bool s_bATIDrawBuffers = false, s_bHaveStencilBuffer = false;
+// A framebuffer is a set of render targets: a color and a z buffer. They can be either RenderBuffers or Textures.
+static GLuint s_uFramebuffer = 0;
+
+// The size of these should be a (not necessarily even) multiple of the EFB size, 640x528, but isn't.
+static GLuint s_RenderTarget = 0;
+static GLuint s_DepthTarget = 0;
+static GLuint s_ZBufferTarget = 0;
+
+static bool s_bATIDrawBuffers = false;
+static bool s_bHaveStencilBuffer = false;
+
 static Renderer::RenderMode s_RenderMode = Renderer::RM_Normal;
-static int s_nCurTarget = 0;
 bool g_bBlendLogicOp = false;
-
 int frameCount;
 
-void HandleCgError(CGcontext ctx, CGerror err, void* appdata);
+void HandleCgError(CGcontext ctx, CGerror err, void *appdata);
 
-bool Renderer::Create2() 
+bool Renderer::Init()
 {
     bool bSuccess = true;
     GLenum err = GL_NO_ERROR;
@@ -96,16 +104,16 @@ bool Renderer::Create2()
     cgSetErrorHandler(HandleCgError, NULL);
 
     // fill the opengl extension map
-    const char* ptoken = (const char*)glGetString( GL_EXTENSIONS );
+    const char* ptoken = (const char*)glGetString(GL_EXTENSIONS);
     if (ptoken == NULL) return false;
 
     __Log("Supported OpenGL Extensions:\n");
     __Log(ptoken);     // write to the log file
     __Log("\n");
 
-    if( strstr(ptoken, "GL_EXT_blend_logic_op") != NULL )
+    if (strstr(ptoken, "GL_EXT_blend_logic_op") != NULL)
         g_bBlendLogicOp = true;
-    if( strstr(ptoken, "ATI_draw_buffers") != NULL  && strstr(ptoken, "ARB_draw_buffers") == NULL)
+    if (strstr(ptoken, "ATI_draw_buffers") != NULL  && strstr(ptoken, "ARB_draw_buffers") == NULL)
         //Checks if it ONLY has the ATI_draw_buffers extension, some have both
         s_bATIDrawBuffers = true;
 
@@ -154,8 +162,11 @@ bool Renderer::Create2()
 #endif
 
     // check the max texture width and height
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&g_MaxTexWidth);
-    g_MaxTexHeight = g_MaxTexWidth;
+	GLint max_texture_size;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&max_texture_size);
+	if (max_texture_size < 1024) {
+		ERROR_LOG("GL_MAX_TEXTURE_SIZE too small at %i - must be at least 1024", max_texture_size);
+	}
 
     GL_REPORT_ERROR();
     if (err != GL_NO_ERROR) bSuccess = false;
@@ -163,44 +174,40 @@ bool Renderer::Create2()
     if (glDrawBuffers == NULL && !GLEW_ARB_draw_buffers)
         glDrawBuffers = glDrawBuffersARB;
 
-    glGenFramebuffersEXT( 1, (GLuint *)&s_uFramebuffer);
+    glGenFramebuffersEXT(1, (GLuint *)&s_uFramebuffer);
     if (s_uFramebuffer == 0) {
         ERROR_LOG("failed to create the renderbuffer\n");
     }
 
-    _assert_( glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT );
-    glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, s_uFramebuffer );
+    _assert_(glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT);
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
 
+	// The size of the framebuffer targets should really NOT be the size of the OpenGL viewport.
+	// The EFB is larger than 640x480 - in fact, it's 640x528, give or take a couple of lines.
+	// So the below is wrong.
     int nBackbufferWidth = (int)OpenGL_GetWidth();
     int nBackbufferHeight = (int)OpenGL_GetHeight();
     
-    // create the framebuffer targets
-    glGenTextures(ARRAYSIZE(s_RenderTargets), (GLuint *)s_RenderTargets);
-    for(u32 i = 0; i < ARRAYSIZE(s_RenderTargets); ++i) {
-        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTargets[i]);
-        // initialize to default
-        glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, nBackbufferWidth, nBackbufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        if( glGetError() != GL_NO_ERROR) {
-            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
-            glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
-            GL_REPORT_ERROR();
-        }
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        #ifdef USE_AA
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_RenderTargets[i]);
-        glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, AA_AMMOUNT, GL_RGBA, nBackbufferWidth, nBackbufferHeight);
-        #endif
+    // Create the framebuffer target
+    glGenTextures(1, (GLuint *)&s_RenderTarget);
+
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
+    // initialize to default
+    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, nBackbufferWidth, nBackbufferHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    if (glGetError() != GL_NO_ERROR) {
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
+        GL_REPORT_ERROR();
     }
-    s_nCurTarget = 0;
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
     GL_REPORT_ERROR();
 
     int nMaxMRT = 0;
     glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS_EXT, (GLint *)&nMaxMRT);
-
     if (nMaxMRT > 1) {
         // create zbuffer target
         glGenTextures(1, (GLuint *)&s_ZBufferTarget);
@@ -209,27 +216,19 @@ bool Renderer::Create2()
 
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        if( glGetError() != GL_NO_ERROR) {
+        if (glGetError() != GL_NO_ERROR) {
             glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
             glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
             GL_REPORT_ERROR();
         }
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        #ifdef USE_AA
-        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_ZBufferTarget);
-        glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, AA_AMMOUNT, GL_RGBA, nBackbufferWidth, nBackbufferHeight);
-        #endif
     }
 
     // create the depth buffer
-    glGenRenderbuffersEXT( 1, (GLuint *)&s_DepthTarget);
+    glGenRenderbuffersEXT(1, (GLuint *)&s_DepthTarget);
     glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_DepthTarget);
-    #ifdef USE_AA
-    glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, AA_AMMOUNT, GL_DEPTH24_STENCIL8_EXT, nBackbufferWidth, nBackbufferHeight);
-    #else
     glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH24_STENCIL8_EXT, nBackbufferWidth, nBackbufferHeight);
-    #endif
     
     if (glGetError() != GL_NO_ERROR) {
         glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, nBackbufferWidth, nBackbufferHeight);
@@ -241,24 +240,18 @@ bool Renderer::Create2()
     GL_REPORT_ERROR();
 
     // set as render targets
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, s_RenderTargets[s_nCurTarget], 0 );
-    glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthTarget );
-    
-    #ifdef USE_AA
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_RenderTargets[s_nCurTarget]);
-    glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, s_RenderTargets[s_nCurTarget]);
-    
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget, 0);
     glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthTarget);
-    #endif
-    GL_REPORT_ERROR();
+    
+	GL_REPORT_ERROR();
 
     if (s_ZBufferTarget != 0) {
         // test to make sure it works
-        glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget, 0);
+        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget, 0);
         bool bFailed = glGetError() != GL_NO_ERROR || glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT;
-        glFramebufferTexture2DEXT( GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
+        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
             
-        if( bFailed ) {
+        if (bFailed) {
             glDeleteTextures(1, (GLuint *)&s_ZBufferTarget);
             s_ZBufferTarget = 0;
         }
@@ -267,7 +260,7 @@ bool Renderer::Create2()
     if (s_ZBufferTarget == 0)
         ERROR_LOG("disabling ztarget mrt feature (max mrt=%d)\n", nMaxMRT);
 
-    //glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthTarget );
+    //glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_STENCIL_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, s_DepthTarget);
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
     nZBufferRender = 0;
@@ -277,9 +270,6 @@ bool Renderer::Create2()
 		bSuccess = false;
 
     s_pfont = new RasterFont();
-
-	SetAA(g_Config.iMultisampleMode);
-    GL_REPORT_ERROR();
 
     // load the effect, find the best profiles (if any)
     if (cgGLIsProfileSupported(CG_PROFILE_ARBVP1) != CG_TRUE) {
@@ -292,7 +282,7 @@ bool Renderer::Create2()
     }
 
     g_cgvProf = cgGLGetLatestProfile(CG_GL_VERTEX);
-    g_cgfProf = cgGLGetLatestProfile(CG_GL_FRAGMENT);//CG_PROFILE_ARBFP1;
+    g_cgfProf = cgGLGetLatestProfile(CG_GL_FRAGMENT);
     cgGLSetOptimalOptions(g_cgvProf);
     cgGLSetOptimalOptions(g_cgfProf);
 
@@ -305,22 +295,21 @@ bool Renderer::Create2()
     __Log("max program env parameters: vert=%d, frag=%d\n", nenvvertparams, nenvfragparams);
     __Log("max program address register parameters: vert=%d, frag=%d\n", naddrregisters[0], naddrregisters[1]);
 
-    if( nenvvertparams < 238 )
+    if (nenvvertparams < 238)
         ERROR_LOG("not enough vertex shader environment constants!!\n");
 
 #ifndef _DEBUG
     cgGLSetDebugMode(GL_FALSE);
 #endif
 
-    if( cgGetError() != CG_NO_ERROR ) {
+    if (cgGetError() != CG_NO_ERROR) {
         ERROR_LOG("cg error\n");
         return false;
     }
     
-    //glEnable(GL_POLYGON_OFFSET_FILL);
-    //glEnable(GL_POLYGON_OFFSET_LINE);
-    //glPolygonOffset(0, 1);
-    if (!Initialize())
+    s_RenderMode = Renderer::RM_Normal;
+
+    if (!InitializeGL())
         return false;
 
 	XFB_Init();
@@ -334,26 +323,25 @@ void Renderer::Shutdown(void)
 
 	XFB_Shutdown();
 
-    if (g_cgcontext != 0) {
+    if (g_cgcontext) {
         cgDestroyContext(g_cgcontext);
         g_cgcontext = 0;
     }
-
-    if (s_RenderTargets[0]) {
-        glDeleteTextures(ARRAYSIZE(s_RenderTargets), (GLuint *)s_RenderTargets);
-        memset(s_RenderTargets, 0, sizeof(s_RenderTargets));
+    if (s_RenderTarget) {
+        glDeleteTextures(1, &s_RenderTarget);
+        s_RenderTarget = 0;
     }
     if (s_DepthTarget) {
-        glDeleteRenderbuffersEXT(1, (GLuint *)&s_DepthTarget); s_DepthTarget = 0;
+        glDeleteRenderbuffersEXT(1, &s_DepthTarget);
+		s_DepthTarget = 0;
     }
-    if (s_uFramebuffer != 0) {
-        glDeleteFramebuffersEXT( 1, (GLuint *)&s_uFramebuffer);
+    if (s_uFramebuffer) {
+        glDeleteFramebuffersEXT(1, &s_uFramebuffer);
         s_uFramebuffer = 0;
     }
 }
 
-
-bool Renderer::Initialize()
+bool Renderer::InitializeGL()
 {
     glStencilFunc(GL_ALWAYS, 0, 0);
     glBlendFunc(GL_ONE, GL_ONE);
@@ -393,8 +381,6 @@ bool Renderer::Initialize()
     glActiveTexture(GL_TEXTURE0);
     glClientActiveTexture(GL_TEXTURE0);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-    s_RenderMode = Renderer::RM_Normal;
 
     GLenum err = GL_NO_ERROR;
     GL_REPORT_ERROR();
@@ -439,7 +425,7 @@ void Renderer::ProcessMessages()
         }
     }
 
-	if(!wasEnabled) glDisable(GL_BLEND);
+	if (!wasEnabled) glDisable(GL_BLEND);
 }
 
 void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
@@ -455,11 +441,6 @@ void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
     s_pfont->printMultilineText(pstr, left * 2.0f / (float)nBackbufferWidth - 1, 1 - top * 2.0f / (float)nBackbufferHeight,0,nBackbufferWidth,nBackbufferHeight);
 }
 
-void Renderer::SetAA(int aa)
-{
-
-}
-
 void Renderer::ReinitView(int nNewWidth, int nNewHeight)
 {
     int oldscreen = s_bFullscreen;
@@ -467,7 +448,7 @@ void Renderer::ReinitView(int nNewWidth, int nNewHeight)
 	OpenGL_Shutdown();
 	int oldwidth = (int)OpenGL_GetWidth(), 
 	    oldheight = (int)OpenGL_GetHeight();
-    if (!OpenGL_Create(g_VideoInitialize, nNewWidth, nNewHeight)) {//nNewWidth&~7, nNewHeight&~7) ) {
+    if (!OpenGL_Create(g_VideoInitialize, nNewWidth, nNewHeight)) {//nNewWidth&~7, nNewHeight&~7)) {
         ERROR_LOG("Failed to recreate, reverting to old settings\n");
         if (!OpenGL_Create(g_VideoInitialize, oldwidth, oldheight)) {
             g_VideoInitialize.pSysMessage("Failed to revert, exiting...\n");
@@ -487,7 +468,7 @@ void Renderer::ReinitView(int nNewWidth, int nNewHeight)
         RECT rcdesktop;
         GetWindowRect(GetDesktopWindow(), &rcdesktop);
 
-        SetWindowLong( EmuWindow::GetWnd(), GWL_STYLE, EmuWindow::g_winstyle );
+        SetWindowLong(EmuWindow::GetWnd(), GWL_STYLE, EmuWindow::g_winstyle);
         SetWindowPos(EmuWindow::GetWnd(), HWND_TOP, ((rcdesktop.right-rcdesktop.left)-(rc.right-rc.left))/2,
             ((rcdesktop.bottom-rcdesktop.top)-(rc.bottom-rc.top))/2,
             rc.right-rc.left, rc.bottom-rc.top, SWP_SHOWWINDOW);
@@ -499,39 +480,48 @@ void Renderer::ReinitView(int nNewWidth, int nNewHeight)
     OpenGL_SetSize(nNewWidth > 16 ? nNewWidth : 16,
 		   nNewHeight > 16 ? nNewHeight : 16);
 }
+
 int Renderer::GetTargetWidth()
 {
-    return (g_Config.bStretchToFit?640:(int)OpenGL_GetWidth());
+    return (g_Config.bStretchToFit ? 640 : (int)OpenGL_GetWidth());
 }
 
 int Renderer::GetTargetHeight()
 {
-    return (g_Config.bStretchToFit?480:(int)OpenGL_GetHeight());
+    return (g_Config.bStretchToFit ? 480 : (int)OpenGL_GetHeight());
 }
 
 bool Renderer::CanBlendLogicOp()
 {
-    return g_bBlendLogicOp;
+	return g_bBlendLogicOp;
 }
 
-void Renderer::SetRenderTarget(u32 targ)
+void Renderer::SetRenderTarget(GLuint targ)
 {
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, targ!=0?targ:s_RenderTargets[s_nCurTarget], 0 );
+	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB,
+		targ != 0 ? targ : s_RenderTarget, 0);
 }
 
-void Renderer::SetDepthTarget(u32 targ)
+void Renderer::SetDepthTarget(GLuint targ)
 {
-    glFramebufferRenderbufferEXT( GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, targ != 0 ? targ : s_DepthTarget );
+	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT,
+		targ != 0 ? targ : s_DepthTarget);
 }
 
-void Renderer::SetFramebuffer(u32 fb)
+void Renderer::SetFramebuffer(GLuint fb)
 {
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb != 0 ? fb : s_uFramebuffer);
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,
+		fb != 0 ? fb : s_uFramebuffer);
 }
 
-u32 Renderer::GetRenderTarget()
+GLuint Renderer::GetRenderTarget()
 {
-    return s_RenderTargets[s_nCurTarget];
+	return s_RenderTarget;
+}
+
+GLuint Renderer::GetZBufferTarget()
+{
+	return nZBufferRender > 0 ? s_ZBufferTarget : 0;
 }
 
 void Renderer::ResetGLState()
@@ -554,7 +544,7 @@ void Renderer::RestoreGLState()
     if (bpmem.genMode.cullmode > 0) glEnable(GL_CULL_FACE);
     if (bpmem.zmode.testenable) glEnable(GL_DEPTH_TEST);
     if (bpmem.blendmode.blendenable) glEnable(GL_BLEND);
-    if(bpmem.zmode.updateenable) glDepthMask(GL_TRUE);
+    if (bpmem.zmode.updateenable) glDepthMask(GL_TRUE);
 
     glEnable(GL_VERTEX_PROGRAM_ARB);
     glEnable(GL_FRAGMENT_PROGRAM_ARB);
@@ -571,8 +561,6 @@ void Renderer::SetColorMask()
         glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_FALSE);
 }
 
-
-// =======================================================================================
 // Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
 //		case 0x52 > SetScissorRect()
 // ---------------
@@ -581,7 +569,6 @@ void Renderer::SetColorMask()
 // bpmem.scissorTL.x, y = 342x342
 // bpmem.scissorBR.x, y = 981x821
 // Renderer::GetTargetHeight() = the fixed ini file setting
-// ---------------
 bool Renderer::SetScissorRect()
 {
     int xoff = bpmem.scissorOffset.x * 2 - 342;
@@ -610,11 +597,11 @@ bool Renderer::SetScissorRect()
 		xoff, yoff
 		);*/
 
-    if (rc_right >= rc_left && rc_bottom >= rc_top )
+    if (rc_right >= rc_left && rc_bottom >= rc_top)
 	{
         glScissor(
 			(int)rc_left, // x = 0
-			Renderer::GetTargetHeight()-(int)(rc_bottom), // y = 0
+			Renderer::GetTargetHeight() - (int)(rc_bottom), // y = 0
 			(int)(rc_right-rc_left), // y = 0
 			(int)(rc_bottom-rc_top) // y = 0
 			); 
@@ -623,7 +610,6 @@ bool Renderer::SetScissorRect()
 
     return false;
 }
-
 
 bool Renderer::IsUsingATIDrawBuffers()
 {
@@ -662,7 +648,7 @@ void Renderer::FlushZBufferAlphaToTarget()
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_ZBufferTarget);
     TextureMngr::EnableTexRECT(0);
     // disable all other stages
-    for(int i = 1; i < 8; ++i)
+    for (int i = 1; i < 8; ++i)
 		TextureMngr::DisableStage(i);
     GL_REPORT_ERRORD();
 
@@ -670,14 +656,17 @@ void Renderer::FlushZBufferAlphaToTarget()
 	glStencilFunc(GL_EQUAL, 1, 0xff);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
-	if(g_Config.bStretchToFit)
+	// TODO: This code should not have to bother with stretchtofit checking - 
+	// all necessary scale initialization should be done elsewhere.
+	// TODO: Investigate BlitFramebufferEXT.
+	if (g_Config.bStretchToFit)
 	{
 		//TODO: Do Correctly in a bit
-                float FactorW = (float)640 / (float)OpenGL_GetWidth();
-		float FactorH = (float)480 / (float)OpenGL_GetHeight();
+        float FactorW = 640.f / (float)OpenGL_GetWidth();
+		float FactorH = 480.f / (float)OpenGL_GetHeight();
 
 		float Max = (FactorW < FactorH) ? FactorH : FactorW;
-		float Temp = 1 / Max;
+		float Temp = 1.0f / Max;
 		FactorW *= Temp;
 		FactorH *= Temp;
 
@@ -686,8 +675,7 @@ void Renderer::FlushZBufferAlphaToTarget()
 		glTexCoord2f(0, (float)GetTargetHeight()); glVertex2f(-FactorW,FactorH);
 		glTexCoord2f((float)GetTargetWidth(), (float)GetTargetHeight()); glVertex2f(FactorW,FactorH);
 		glTexCoord2f((float)GetTargetWidth(), 0); glVertex2f(FactorW,-FactorH);
-
-		__Log("%d, %d", FactorW, FactorH);
+	    glEnd();
 	}
 	else
 	{		
@@ -696,8 +684,8 @@ void Renderer::FlushZBufferAlphaToTarget()
 		glTexCoord2f(0, (float)(GetTargetHeight())); glVertex2f(-1,1);
 		glTexCoord2f((float)(GetTargetWidth()), (float)(GetTargetHeight())); glVertex2f(1,1);
 		glTexCoord2f((float)(GetTargetWidth()), 0); glVertex2f(1,-1);
+	    glEnd();
 	}
-    glEnd();
     
     GL_REPORT_ERRORD();
 
@@ -715,7 +703,7 @@ void Renderer::SetRenderMode(RenderMode mode)
 
     if (mode == RM_Normal) {
         // flush buffers
-        if( s_RenderMode == RM_ZBufferAlpha ) {
+        if (s_RenderMode == RM_ZBufferAlpha) {
             FlushZBufferAlphaToTarget();
             glDisable(GL_STENCIL_TEST);
         }
@@ -728,7 +716,7 @@ void Renderer::SetRenderMode(RenderMode mode)
         // setup buffers
         _assert_(GetZBufferTarget() && bpmem.zmode.updateenable);
 
-        if( mode == RM_ZBufferAlpha ) {
+        if (mode == RM_ZBufferAlpha) {
             glEnable(GL_STENCIL_TEST);
             glClearStencil(0);
             glClear(GL_STENCIL_BUFFER_BIT);
@@ -744,7 +732,7 @@ void Renderer::SetRenderMode(RenderMode mode)
         _assert_(GetZBufferTarget());
         _assert_(s_bHaveStencilBuffer);
 
-        if( mode == RM_ZBufferOnly ) {
+        if (mode == RM_ZBufferOnly) {
             // flush and remove stencil
             _assert_(s_RenderMode==RM_ZBufferAlpha);
             FlushZBufferAlphaToTarget();
@@ -755,7 +743,7 @@ void Renderer::SetRenderMode(RenderMode mode)
             GL_REPORT_ERRORD();
         }
         else {
-            _assert_(mode == RM_ZBufferAlpha&&s_RenderMode==RM_ZBufferOnly);
+            _assert_(mode == RM_ZBufferAlpha && s_RenderMode == RM_ZBufferOnly);
             
             // setup stencil
             glEnable(GL_STENCIL_TEST);
@@ -774,11 +762,6 @@ Renderer::RenderMode Renderer::GetRenderMode()
     return s_RenderMode;
 }
 
-u32 Renderer::GetZBufferTarget()
-{
-    return nZBufferRender > 0 ? s_ZBufferTarget : 0;
-}
-
 void Renderer::Swap(const TRectangle& rc)
 {
     OpenGL_Update(); // just updates the render window position and the backbuffer size
@@ -787,30 +770,35 @@ void Renderer::Swap(const TRectangle& rc)
 
     Renderer::SetRenderMode(Renderer::RM_Normal);
 
-    // render to the real buffer now 
-    #ifdef USE_AA
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_RenderTargets[0]);
-    #else
-    glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, 0 ); // switch to the backbuffer
-    #endif
-    glViewport(OpenGL_GetXoff(),OpenGL_GetYoff() , (int)OpenGL_GetWidth(), (int)OpenGL_GetHeight());
+#if 0
+	// Not working?
+	glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_uFramebuffer); 
+	glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
+	glBlitFramebufferEXT(0, 0, 640, 480, 0, 0, OpenGL_GetWidth(), OpenGL_GetHeight(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer); 
+
+#else
+	// render to the real buffer now 
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the backbuffer
+    glViewport(OpenGL_GetXoff(), OpenGL_GetYoff(), (int)OpenGL_GetWidth(), (int)OpenGL_GetHeight());
 
     ResetGLState();
 
     // texture map s_RenderTargets[s_curtarget] onto the main buffer
     glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTargets[s_nCurTarget]);
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_RenderTarget);
     TextureMngr::EnableTexRECT(0);
     // disable all other stages
-    for(int i = 1; i < 8; ++i) TextureMngr::DisableStage(i);
+    for (int i = 1; i < 8; ++i)
+		TextureMngr::DisableStage(i);
     GL_REPORT_ERRORD();
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glBegin(GL_QUADS);
-    glTexCoord2f(0, 0);                                             glVertex2f(-1,-1);
-    glTexCoord2f(0, (float)GetTargetHeight());                        glVertex2f(-1,1);
-    glTexCoord2f((float)GetTargetWidth(), (float)GetTargetHeight());    glVertex2f(1,1);
-    glTexCoord2f((float)GetTargetWidth(), 0);                         glVertex2f(1,-1);
+    glTexCoord2f(0, 0);                                              glVertex2f(-1,-1);
+    glTexCoord2f(0, (float)GetTargetHeight());                       glVertex2f(-1,1);
+    glTexCoord2f((float)GetTargetWidth(), (float)GetTargetHeight()); glVertex2f(1,1);
+    glTexCoord2f((float)GetTargetWidth(), 0);                        glVertex2f(1,-1);
     glEnd();
 
 	if (g_Config.bWireFrame)
@@ -822,14 +810,8 @@ void Renderer::Swap(const TRectangle& rc)
     SwapBuffers();
 
     RestoreGLState();
-    #ifdef USE_AA
-	glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_RenderTargets[s_nCurTarget]);
-	glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, 0);
-	glBlitFramebufferEXT(0, 0, nBackbufferWidth, nBackbufferHeight, 0, 0, nBackbufferWidth, nBackbufferHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-	
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-	#endif
-    GL_REPORT_ERRORD();
+#endif
+	GL_REPORT_ERRORD();
 
     g_Config.iSaveTargetId = 0;
 
@@ -844,7 +826,7 @@ void Renderer::SwapBuffers()
     static int s_fps;
     static unsigned long lasttime;
     ++fpscount;
-    if( timeGetTime() - lasttime > 1000 ) 
+    if (timeGetTime() - lasttime > 1000) 
     {
         lasttime = timeGetTime();
         s_fps = fpscount;
@@ -853,41 +835,38 @@ void Renderer::SwapBuffers()
 
 	// Write logging data to debugger
 #if defined(HAVE_WX) && HAVE_WX
-	if(m_frame)
-	{
+	if (m_frame)
 		Logging(0);
-	}
 #endif	
     if (g_Config.bOverlayStats) {
         char st[2048];
         char *p = st;
-        if(g_Config.bShowFPS)
+        if (g_Config.bShowFPS)
             p+=sprintf(p, "FPS: %d\n", s_fps); // So it shows up before the stats and doesn't make anyting ugly
-        p+=sprintf(p,"Num textures created: %i\n",stats.numTexturesCreated);
-        p+=sprintf(p,"Num textures alive:   %i\n",stats.numTexturesAlive);
-        p+=sprintf(p,"Num pshaders created: %i\n",stats.numPixelShadersCreated);
-        p+=sprintf(p,"Num pshaders alive:   %i\n",stats.numPixelShadersAlive);
-        p+=sprintf(p,"Num vshaders created: %i\n",stats.numVertexShadersCreated);
-        p+=sprintf(p,"Num vshaders alive:   %i\n",stats.numVertexShadersAlive);
-        p+=sprintf(p,"Num dlists called:         %i\n",stats.numDListsCalled);
-        p+=sprintf(p,"Num dlists called (frame): %i\n",stats.thisFrame.numDListsCalled);
+        p+=sprintf(p,"textures created: %i\n",stats.numTexturesCreated);
+        p+=sprintf(p,"textures alive:   %i\n",stats.numTexturesAlive);
+        p+=sprintf(p,"pshaders created: %i\n",stats.numPixelShadersCreated);
+        p+=sprintf(p,"pshaders alive:   %i\n",stats.numPixelShadersAlive);
+        p+=sprintf(p,"vshaders created: %i\n",stats.numVertexShadersCreated);
+        p+=sprintf(p,"vshaders alive:   %i\n",stats.numVertexShadersAlive);
+        p+=sprintf(p,"dlists called:    %i\n",stats.numDListsCalled);
+        p+=sprintf(p,"dlists called(f): %i\n",stats.thisFrame.numDListsCalled);
 		// not used.
-        //p+=sprintf(p,"Num dlists created:  %i\n",stats.numDListsCreated);
-        //p+=sprintf(p,"Num dlists alive:    %i\n",stats.numDListsAlive);
-        //p+=sprintf(p,"Num strip joins:     %i\n",stats.numJoins);
-        p+=sprintf(p,"Num primitives:       %i\n",stats.thisFrame.numPrims);
-		p+=sprintf(p,"Num primitive joins:  %i\n",stats.thisFrame.numPrimitiveJoins);
-		p+=sprintf(p,"Num buffer splits:    %i\n",stats.thisFrame.numBufferSplits);
-		p+=sprintf(p,"Num draw calls:       %i\n",stats.thisFrame.numDrawCalls);
-        p+=sprintf(p,"Num primitives (DL):  %i\n",stats.thisFrame.numDLPrims);
-        p+=sprintf(p,"Num XF loads:      %i\n",stats.thisFrame.numXFLoads);
-        p+=sprintf(p,"Num XF loads (DL): %i\n",stats.thisFrame.numXFLoadsInDL);
-        p+=sprintf(p,"Num CP loads:      %i\n",stats.thisFrame.numCPLoads);
-        p+=sprintf(p,"Num CP loads (DL): %i\n",stats.thisFrame.numCPLoadsInDL);
-        p+=sprintf(p,"Num BP loads:      %i\n",stats.thisFrame.numBPLoads);
-        p+=sprintf(p,"Num BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
-        p+=sprintf(p,"Num vertex loaders:       %i\n",stats.numVertexLoaders);
-
+        //p+=sprintf(p,"dlists created:  %i\n",stats.numDListsCreated);
+        //p+=sprintf(p,"dlists alive:    %i\n",stats.numDListsAlive);
+        //p+=sprintf(p,"strip joins:     %i\n",stats.numJoins);
+        p+=sprintf(p,"primitives:       %i\n",stats.thisFrame.numPrims);
+		p+=sprintf(p,"primitive joins:  %i\n",stats.thisFrame.numPrimitiveJoins);
+		p+=sprintf(p,"buffer splits:    %i\n",stats.thisFrame.numBufferSplits);
+		p+=sprintf(p,"draw calls:       %i\n",stats.thisFrame.numDrawCalls);
+        p+=sprintf(p,"primitives (DL):  %i\n",stats.thisFrame.numDLPrims);
+        p+=sprintf(p,"XF loads:         %i\n",stats.thisFrame.numXFLoads);
+        p+=sprintf(p,"XF loads (DL):    %i\n",stats.thisFrame.numXFLoadsInDL);
+        p+=sprintf(p,"CP loads:         %i\n",stats.thisFrame.numCPLoads);
+        p+=sprintf(p,"CP loads (DL):    %i\n",stats.thisFrame.numCPLoadsInDL);
+        p+=sprintf(p,"BP loads:         %i\n",stats.thisFrame.numBPLoads);
+        p+=sprintf(p,"BP loads (DL):    %i\n",stats.thisFrame.numBPLoadsInDL);
+        p+=sprintf(p,"vertex loaders:   %i\n",stats.numVertexLoaders);
 
 		std::string text = st;
 		VertexLoaderManager::AppendListToString(&text);
@@ -896,7 +875,7 @@ void Renderer::SwapBuffers()
     }
     else
     {
-        if(g_Config.bShowFPS)
+        if (g_Config.bShowFPS)
         {
             char strfps[25];
             sprintf(strfps, "%d\n", s_fps);
@@ -928,14 +907,15 @@ void Renderer::SwapBuffers()
     GL_REPORT_ERRORD();
 
     //clean out old stuff from caches
-    frameCount++;
     PixelShaderMngr::Cleanup();
     TextureMngr::Cleanup();
 
+    frameCount++;
     // New frame
     stats.ResetFrame();
-    
-    glBindFramebufferEXT( GL_FRAMEBUFFER_EXT, s_uFramebuffer );
+
+	// Render to the framebuffer.
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, s_uFramebuffer);
    
     if (nZBufferRender > 0) {
         if (--nZBufferRender == 0) {
@@ -962,7 +942,7 @@ bool Renderer::SaveRenderTarget(const char* filename, int jpeg)
     if (bflip) {
         // swap scanlines
         std::vector<u32> scanline(nBackbufferWidth);
-        for(int i = 0; i < nBackbufferHeight/2; ++i) {
+        for (int i = 0; i < nBackbufferHeight/2; ++i) {
             memcpy(&scanline[0], &data[i*nBackbufferWidth], nBackbufferWidth*4);
             memcpy(&data[i*nBackbufferWidth], &data[(nBackbufferHeight-i-1)*nBackbufferWidth], nBackbufferWidth*4);
             memcpy(&data[(nBackbufferHeight-i-1)*nBackbufferWidth], &scanline[0], nBackbufferWidth*4);

@@ -20,7 +20,15 @@
 
 #include "Common.h"
 
+// This must be called once before calling the two conversion functions
+// below.
 void InitXFBConvTables();
+
+// These implementations could likely be made considerably faster by
+// reducing precision so that intermediate calculations are done in
+// 15-bit precision instead of 32-bit. However, this would complicate
+// the code and since we have a GPU implementation too, there really
+// isn't much point.
 
 // Converts 4:2:2 YUV (YUYV) data to 32-bit RGBA data.
 void ConvertFromXFB(u32 *dst, const u8* _pXFB, int width, int height);

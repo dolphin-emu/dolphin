@@ -29,7 +29,8 @@
 #include "XFStructs.h"
 #include "D3DPostprocess.h"
 #include "D3DUtil.h"
-#include "ShaderManager.h"
+#include "VertexShaderManager.h"
+#include "PixelShaderManager.h"
 #include "TextureCache.h"
 #include "Utils.h"
 #include "EmuWindow.h"
@@ -171,7 +172,8 @@ void Renderer::ReinitView()
 	xScale = width/640.0f;
 	yScale = height/480.0f;
 
-	RECT rc = {
+	RECT rc =
+	{
 		(LONG)(m_x*xScale), (LONG)(m_y*yScale), (LONG)(m_width*xScale), (LONG)(m_height*yScale)
 	};
 }
@@ -198,24 +200,24 @@ void Renderer::SwapBuffers(void)
 	{
 		char st[2048];
 		char *p = st;
-		p+=sprintf(p,"Num textures created: %i\n",stats.numTexturesCreated);
-		p+=sprintf(p,"Num textures alive: %i\n",stats.numTexturesAlive);
-		p+=sprintf(p,"Num pshaders created: %i\n",stats.numPixelShadersCreated);
-		p+=sprintf(p,"Num pshaders alive: %i\n",stats.numPixelShadersAlive);
-		p+=sprintf(p,"Num vshaders created: %i\n",stats.numVertexShadersCreated);
-		p+=sprintf(p,"Num vshaders alive: %i\n",stats.numVertexShadersAlive);
-		p+=sprintf(p,"Num dlists called: %i\n",stats.numDListsCalled);
-		p+=sprintf(p,"Num dlists created: %i\n",stats.numDListsCreated);
-		p+=sprintf(p,"Num dlists alive: %i\n",stats.numDListsAlive);
-		p+=sprintf(p,"Num primitives: %i\n",stats.thisFrame.numPrims);
-		p+=sprintf(p,"Num primitive joins: %i\n",stats.thisFrame.numPrimitiveJoins);
-		p+=sprintf(p,"Num primitives (DL): %i\n",stats.thisFrame.numDLPrims);
-		p+=sprintf(p,"Num XF loads: %i\n",stats.thisFrame.numXFLoads);
-		p+=sprintf(p,"Num XF loads (DL): %i\n",stats.thisFrame.numXFLoadsInDL);
-		p+=sprintf(p,"Num CP loads: %i\n",stats.thisFrame.numCPLoads);
-		p+=sprintf(p,"Num CP loads (DL): %i\n",stats.thisFrame.numCPLoadsInDL);
-		p+=sprintf(p,"Num BP loads: %i\n",stats.thisFrame.numBPLoads);
-		p+=sprintf(p,"Num BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
+		p+=sprintf(p,"textures created: %i\n",stats.numTexturesCreated);
+		p+=sprintf(p,"textures alive: %i\n",stats.numTexturesAlive);
+		p+=sprintf(p,"pshaders created: %i\n",stats.numPixelShadersCreated);
+		p+=sprintf(p,"pshaders alive: %i\n",stats.numPixelShadersAlive);
+		p+=sprintf(p,"vshaders created: %i\n",stats.numVertexShadersCreated);
+		p+=sprintf(p,"vshaders alive: %i\n",stats.numVertexShadersAlive);
+		p+=sprintf(p,"dlists called: %i\n",stats.numDListsCalled);
+		p+=sprintf(p,"dlists created: %i\n",stats.numDListsCreated);
+		p+=sprintf(p,"dlists alive: %i\n",stats.numDListsAlive);
+		p+=sprintf(p,"primitives: %i\n",stats.thisFrame.numPrims);
+		p+=sprintf(p,"primitive joins: %i\n",stats.thisFrame.numPrimitiveJoins);
+		p+=sprintf(p,"primitives (DL): %i\n",stats.thisFrame.numDLPrims);
+		p+=sprintf(p,"XF loads: %i\n",stats.thisFrame.numXFLoads);
+		p+=sprintf(p,"XF loads (DL): %i\n",stats.thisFrame.numXFLoadsInDL);
+		p+=sprintf(p,"CP loads: %i\n",stats.thisFrame.numCPLoads);
+		p+=sprintf(p,"CP loads (DL): %i\n",stats.thisFrame.numCPLoadsInDL);
+		p+=sprintf(p,"BP loads: %i\n",stats.thisFrame.numBPLoads);
+		p+=sprintf(p,"BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
 
 		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,st,false);
 
@@ -270,7 +272,7 @@ void Renderer::SwapBuffers(void)
 	u32 clearColor = (bpmem.clearcolorAR<<16)|bpmem.clearcolorGB;
 //	clearColor |= 0x003F003F;
 //	D3D::BeginFrame(true,clearColor,1.0f);
-	D3D::BeginFrame(false,clearColor,1.0f);
+	D3D::BeginFrame(false, clearColor, 1.0f);
 	// D3D::EnableAlphaToCoverage();
 
 	Postprocess::BeginFrame();
@@ -278,15 +280,6 @@ void Renderer::SwapBuffers(void)
 
 	if (g_Config.bOldCard)
 		D3D::font.SetRenderStates(); //compatibility with low end cards
-}
-
-void Renderer::Flush(void)
-{
-	// render the rest of the vertex buffer
-	//only to be used for debugging purposes
-	//D3D::EndFrame();
-
-	//D3D::BeginFrame(false,0);
 }
 
 void Renderer::SetViewport(float* _Viewport)

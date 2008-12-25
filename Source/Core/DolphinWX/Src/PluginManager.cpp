@@ -58,7 +58,7 @@ CPluginManager::~CPluginManager()
 
 
 // ----------------------------------------
-// Create list of avaliable plugins
+// Create list of available plugins
 // -------------
 void CPluginManager::ScanForPlugins(wxWindow* _wxWindow)
 {
@@ -145,10 +145,11 @@ void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, bool Type,
 	//int ret = PluginVideo::LoadPlugin(_rFilename);
 	//int ret = PluginDSP::LoadPlugin(_rFilename);
 
-		if(Type)
+		if (Type)
 		{
 			//Common::CPlugin::Debug((HWND)_Parent);
-			if(!PluginVideo::IsLoaded()) PluginVideo::LoadPlugin(_rFilename);
+			if (!PluginVideo::IsLoaded())
+				PluginVideo::LoadPlugin(_rFilename);
 			PluginVideo::Debug((HWND)_Parent, Show);
 		}
 		else
@@ -161,7 +162,6 @@ void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, bool Type,
 		//m_DllDebugger = (void (__cdecl*)(HWND))PluginVideo::plugin.Get("DllDebugger");
 		//m_DllDebugger(NULL);
 }
-
 
 // ----------------------------------------
 // Get dll info
@@ -179,6 +179,9 @@ CPluginInfo::CPluginInfo(const char *_rFileName)
 
 		Common::CPlugin::Release();
 	}
+	/*
+	The DLL loading code provides enough error messages already. Possibly make some return codes
+	and handle messages here instead?
 	else
 	{
 		if (!File::Exists(_rFileName)) {
@@ -186,7 +189,7 @@ CPluginInfo::CPluginInfo(const char *_rFileName)
 		} else {
 			PanicAlert("Failed to load plugin %s - unknown error.\n", _rFileName);
 		}
-	}
+	}*/
 }
 
 

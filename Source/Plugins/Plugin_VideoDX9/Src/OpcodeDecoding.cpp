@@ -33,7 +33,8 @@
 #include "TransformEngine.h"
 #include "OpcodeDecoding.h"
 #include "TextureCache.h"
-#include "ShaderManager.h"
+#include "VertexShaderManager.h"
+#include "PixelShaderManager.h"
 
 #include "BPStructs.h"
 #include "XFStructs.h"

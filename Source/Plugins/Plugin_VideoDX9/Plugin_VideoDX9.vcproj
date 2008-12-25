@@ -1202,6 +1202,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\NativeVertexFormat.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\OpcodeDecoding.cpp"
 				>
 			</File>
@@ -1274,19 +1278,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\PixelShaderManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PixelShaderManager.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\Render.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\Src\Render.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ShaderManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ShaderManager.h"
 				>
 			</File>
 			<File
@@ -1315,6 +1319,14 @@
 			</File>
 			<File
 				RelativePath=".\Src\VertexShader.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexShaderManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexShaderManager.h"
 				>
 			</File>
 		</Filter>

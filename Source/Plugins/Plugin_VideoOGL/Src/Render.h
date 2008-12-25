@@ -15,6 +15,55 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+// How the non-true-XFB mode COULD work:
+//
+// The game renders to the EFB:
+//  
+// ----------------------+
+// |                     |
+// |                     |
+// |                     |
+// |                     |
+// |                     |
+// |                     |   efb_height
+// |                     |
+// |                     |
+// | - - - - - - - - - - |
+// |                     |
+// +---------------------+
+//        efb_width
+//
+// At XFB blit time, the top 640-xxx X XXX part of the above buffer (size dotted below),
+// should be stretch blitted into the inner rectangle of the window:
+// +-----------------------------------------+
+// |       |                        |        |
+// |       |                     .  |        |
+// |       |                        |        |
+// |       |                     .  |        |
+// |       |                        |        |
+// |       |                     .  |        |  OpenGL_Height()
+// |       |                        |        |
+// |       |                     .  |        |
+// |       | - - - - - - - - - -    |        |
+// |       |                      \ |        |
+// +-------+---------------------------------+
+//                OpenGL_Width()
+//
+//
+// efb_width and efb_height can even be adjusted so that the last blit will result
+// in a 1:1 rather than a stretch. That would require creating a bigger efb from the
+// start though.
+//
+// The above is not how it works today.
+
+/*
+int win_w = OpenGL_Width();
+int win_h = OpenGL_Height();
+
+int blit_w_640 = last_xfb_specified_width;
+int blit_h_640 = last_xfb_specified_height;
+*/
+
 #ifndef GCOGL_RENDER
 #define GCOGL_RENDER
 
@@ -35,22 +84,21 @@ class Renderer
 public:
     enum RenderMode
     {
-        RM_Normal=0, // normal target as color0, ztarget as color1
-        RM_ZBufferOnly, // zbuffer as color 0
-        RM_ZBufferAlpha // zbuffer as color0, also will dump alpha info to regular target once mode is switched
-                            // use stencil buffer to indicate what pixels were written
+        RM_Normal=0,     // normal target as color0, ztarget as color1
+        RM_ZBufferOnly,  // zbuffer as color0
+        RM_ZBufferAlpha, // zbuffer as color0, also will dump alpha info to regular target once mode is switched
+                         // use stencil buffer to indicate what pixels were written
     };
 
-	static bool Create2();
+	static bool Init();
     static void Shutdown();
 
     // initialize opengl standard values (like viewport)
-    static bool Initialize();
+    static bool InitializeGL();
 
     static void AddMessage(const char* str, u32 ms);
     static void ProcessMessages(); // draw the current messages on the screen
     static void RenderText(const char* pstr, int left, int top, u32 color);
-    static void SetAA(int aa); // sets the anti-aliasing level
 
     static void ReinitView(int nNewWidth, int nNewHeight);
 
@@ -65,7 +113,7 @@ public:
     static bool HaveStencilBuffer();
 
     static void SetZBufferRender(); // sets rendering of the zbuffer using MRTs
-    static u32 GetZBufferTarget();
+    static GLuint GetZBufferTarget();
 
     static void SetColorMask();
 	static bool SetScissorRect();
@@ -73,10 +121,12 @@ public:
     static void SetRenderMode(RenderMode mode);
     static RenderMode GetRenderMode();
 
-    static void SetRenderTarget(u32 targ); // if targ is 0, sets to original render target
-    static void SetDepthTarget(u32 targ);
-    static void SetFramebuffer(u32 fb);
-    static u32 GetRenderTarget();
+    static void SetRenderTarget(GLuint targ); // if targ is 0, sets to original render target
+    static void SetDepthTarget(GLuint targ);
+
+    static void SetFramebuffer(GLuint fb);
+    
+	static GLuint GetRenderTarget();
 
     // Finish up the current frame, print some stats
     static void Swap(const TRectangle& rc);

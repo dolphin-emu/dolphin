@@ -461,12 +461,12 @@ void BPWritten(int addr, int changes, int newval)
             }
             else {
                 // EFB to XFB
-				if(g_Config.bUseXFB)
+				if (g_Config.bUseXFB)
 				{
 					// the number of lines copied is determined by the y scale * source efb height
 					float yScale = bpmem.dispcopyyscale / 256.0f;
 					float xfbLines = bpmem.copyTexSrcWH.y + 1.0f * yScale;
-					XFB_Write(Memory_GetPtr(bpmem.copyTexDest<<5), multirc, (bpmem.copyMipMapStrideChannels << 4), (int)xfbLines);
+					XFB_Write(Memory_GetPtr(bpmem.copyTexDest << 5), multirc, (bpmem.copyMipMapStrideChannels << 4), (int)xfbLines);
 				}
 				else
 				{

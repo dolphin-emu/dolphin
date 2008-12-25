@@ -344,10 +344,11 @@ void VertexShaderMngr::SetConstants()
         // reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
         // [0] = width/2
         // [1] = height/2
-        // [2] = 16777215 * (farz-nearz)
+        // [2] = 16777215 * (farz - nearz)
         // [3] = xorig + width/2 + 342
         // [4] = yorig + height/2 + 342
         // [5] = 16777215 * farz
+
 		/*INFO_LOG("view: topleft=(%f,%f), wh=(%f,%f), z=(%f,%f)\n",
 			rawViewport[3]-rawViewport[0]-342, rawViewport[4]+rawViewport[1]-342,
 			2 * rawViewport[0], 2 * rawViewport[1],
@@ -363,9 +364,10 @@ void VertexShaderMngr::SetConstants()
 		int overfl;
 		int xoffs = 0, yoffs = 0;
 		int wid, hei, actualWid, actualHei;
+
 		int winw = OpenGL_GetWidth();
 		int winh = OpenGL_GetHeight();
-		float ratio = (float)winw / (float)winh /  fourThree;
+		float ratio = (float)winw / (float)winh / fourThree;
 		if (g_Config.bKeepAR)
 		{
 			// Check if height or width is the limiting factor
@@ -421,6 +423,7 @@ void VertexShaderMngr::SetConstants()
 			       Renderer::GetTargetHeight()-((int)(xfregs.rawViewport[4]-xfregs.rawViewport[1]-342-scissorYOff))  * MValueY,
 				abs((int)(2 * xfregs.rawViewport[0])) * MValueX, abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
 		}
+
 		glDepthRange((xfregs.rawViewport[5]- xfregs.rawViewport[2])/16777215.0f, xfregs.rawViewport[5]/16777215.0f);
     }
 
@@ -448,11 +451,11 @@ void VertexShaderMngr::SetConstants()
 				g_fProjectionMatrix[11] = -(0.0f - xfregs.rawProjection[5]);
 
 			// Before R945 Hack
-			if(g_Config.bProjectionHax1 && !g_Config.bProjectionHax2)
+			if (g_Config.bProjectionHax1 && !g_Config.bProjectionHax2)
 				g_fProjectionMatrix[11] = -(1.0f -  xfregs.rawProjection[5]); 
 
 			// R844 Hack
-			if(!g_Config.bProjectionHax1 && g_Config.bProjectionHax2)
+			if (!g_Config.bProjectionHax1 && g_Config.bProjectionHax2)
 				g_fProjectionMatrix[11] =  xfregs.rawProjection[5];
 			//--------------------------------
  			
@@ -802,9 +805,9 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
                 }
                 break;
             case 0x1012: // dual tex transform
-                if (xfregs.bEnableDualTexTransform != (data&1)) {
+                if (xfregs.bEnableDualTexTransform != (data & 1)) {
                     VertexManager::Flush();
-                    xfregs.bEnableDualTexTransform = data&1;
+                    xfregs.bEnableDualTexTransform = data & 1;
                 }
                 break;
 

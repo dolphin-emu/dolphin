@@ -48,7 +48,25 @@ DECLARE_IMPORT(glColorPointer);
 DECLARE_IMPORT(glTexCoordPointer);
 #endif
 
-NativeVertexFormat::NativeVertexFormat()
+class GLVertexFormat : public NativeVertexFormat
+{
+	u8 *m_compiledCode;
+	PortableVertexDeclaration vtx_decl;
+
+public:
+	GLVertexFormat();
+	~GLVertexFormat();
+	virtual void Initialize(const PortableVertexDeclaration &_vtx_decl);
+	virtual void SetupVertexPointers() const;
+};
+
+
+NativeVertexFormat *NativeVertexFormat::Create()
+{
+	return new GLVertexFormat();
+}
+
+GLVertexFormat::GLVertexFormat()
 {
 #ifdef USE_JIT
 	m_compiledCode = (u8 *)AllocateExecutableMemory(COMPILED_CODE_SIZE, false);
@@ -58,7 +76,7 @@ NativeVertexFormat::NativeVertexFormat()
 #endif
 }
 
-NativeVertexFormat::~NativeVertexFormat()
+GLVertexFormat::~GLVertexFormat()
 {
 #ifdef USE_JIT
 	FreeMemoryPages(m_compiledCode, COMPILED_CODE_SIZE);
@@ -72,7 +90,7 @@ inline GLuint VarToGL(VarType t)
 	return lookup[t];
 }
 
-void NativeVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
+void GLVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 {
 	using namespace Gen;
 
@@ -148,7 +166,7 @@ void NativeVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 	this->vtx_decl = _vtx_decl;
 }
 
-void NativeVertexFormat::SetupVertexPointers() const {
+void GLVertexFormat::SetupVertexPointers() const {
 	// Cast a pointer to compiled code to a pointer to a function taking no parameters, through a (void *) cast first to
 	// get around type checking errors, and call it.
 #ifdef USE_JIT

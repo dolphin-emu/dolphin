@@ -30,8 +30,6 @@
 #define XFB_USE_SHADERS 1
 
 enum {
-	XFB_WIDTH = 640,
-	XFB_HEIGHT = 480, // 528 is max height.
 	XFB_BUF_HEIGHT = 538, //480,
 	// TODO: figure out what to do with PAL
 };
@@ -121,7 +119,7 @@ void XFB_Init()
     glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, XFB_WIDTH, XFB_HEIGHT, 0, GL_BGRA, GL_UNSIGNED_BYTE, xfb_buffer);
 
 	// used to render EFB
-	glGenFramebuffersEXT( 1, &s_xfbFrameBuffer);
+	glGenFramebuffersEXT(1, &s_xfbFrameBuffer);
 	glGenRenderbuffersEXT(1, &s_xfbRenderBuffer);
 	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_xfbRenderBuffer);
 	glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA, nBackbufferWidth, nBackbufferHeight);
@@ -145,10 +143,9 @@ void XFB_Shutdown()
 void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt)
 {
 	Renderer::SetRenderMode(Renderer::RM_Normal);
-
 	Renderer::ResetGLState();
 
-	 // switch to XFB frame buffer
+	// Switch to XFB frame buffer.
 	Renderer::SetFramebuffer(s_xfbFrameBuffer);
 	glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, s_xfbRenderBuffer);
 	glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, s_xfbRenderBuffer);
@@ -172,7 +169,7 @@ void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt)
 	GL_REPORT_ERRORD();
 
 	int width = sourceRc.right - sourceRc.left;
-	int height = sourceRc.bottom - sourceRc.top;	
+	int height = sourceRc.bottom - sourceRc.top;
 	glReadPixels(sourceRc.left, sourceRc.top, width, height, GL_RGBA, GL_UNSIGNED_BYTE, efb_buffer);
 	GL_REPORT_ERRORD();
 
@@ -215,10 +212,10 @@ void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset)
 	GL_REPORT_ERRORD();
 
     glBegin(GL_QUADS);
-	glTexCoord2f(width, height + yOffset); glVertex2f(1,-1);
-	glTexCoord2f(width, 0 + yOffset); glVertex2f(1,1);
-	glTexCoord2f(0, 0 + yOffset); glVertex2f(-1,1);
-	glTexCoord2f(0, height + yOffset); glVertex2f(-1,-1);
+	glTexCoord2f(width, height + yOffset); glVertex2f( 1,-1);
+	glTexCoord2f(width, 0 + yOffset);      glVertex2f( 1, 1);
+	glTexCoord2f(0, 0 + yOffset);          glVertex2f(-1, 1);
+	glTexCoord2f(0, height + yOffset);     glVertex2f(-1,-1);
     glEnd();
 
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
