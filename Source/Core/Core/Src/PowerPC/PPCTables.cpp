@@ -311,7 +311,7 @@ static GekkoOPTemplate table31[] =
 
 	//load word
 	{23,  Interpreter::lwzx,  &Jit64::lwzx,      {"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{55,  Interpreter::lwzux, &Jit64::Default,   {"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{55,  Interpreter::lwzux, &Jit64::lwzux,     {"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//load halfword
 	{279, Interpreter::lhzx,  &Jit64::Default,   {"lhzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
@@ -339,7 +339,7 @@ static GekkoOPTemplate table31[] =
 
 	//store word
 	{151, Interpreter::stwx,   &Jit64::Default,    {"stwx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
-	{183, Interpreter::stwux,  &Jit64::Default,    {"stwux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{183, Interpreter::stwux,  &Jit64::stwux,      {"stwux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//store halfword
 	{407, Interpreter::sthx,   &Jit64::Default,    {"sthx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},

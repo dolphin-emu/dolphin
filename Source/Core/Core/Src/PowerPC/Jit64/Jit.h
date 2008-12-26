@@ -275,6 +275,10 @@ public:
 	void lbzx(UGeckoInstruction inst);
 	void lwzx(UGeckoInstruction inst);
 	void lhax(UGeckoInstruction inst);
+	
+	void lwzux(UGeckoInstruction inst);
+
+	void stwux(UGeckoInstruction inst);
 
 	void lmw(UGeckoInstruction inst);
 	void stmw(UGeckoInstruction inst);

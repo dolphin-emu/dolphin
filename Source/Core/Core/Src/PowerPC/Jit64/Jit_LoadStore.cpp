@@ -230,6 +230,31 @@
 		return;
 	}
 
+	void Jit64::lwzux(UGeckoInstruction inst)
+	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger	
+		INSTRUCTION_START;
+
+		int a = inst.RA, b = inst.RB, d = inst.RD;
+		if (!a || a == d || a == b)
+		{
+			Default(inst);
+			return;
+		}
+		gpr.Lock(a, b, d);
+
+		gpr.LoadToX64(d, b == d, true);
+		gpr.LoadToX64(a, true, true);
+		ADD(32, gpr.R(a), gpr.R(b));
+		MOV(32, R(EAX), gpr.R(a));
+		SafeLoadRegToEAX(EAX, 32, 0, false);
+		MOV(32, gpr.R(d), R(EAX));
+
+		gpr.UnlockAll();
+		return;
+	}
+
 	// Zero cache line.
 	void Jit64::dcbz(UGeckoInstruction inst)
 	{
@@ -388,6 +413,32 @@
 		{
 			Default(inst);
 		}
+	}
+
+	void Jit64::stwux(UGeckoInstruction inst)
+	{
+		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
+			{Default(inst); return;} // turn off from debugger	
+		INSTRUCTION_START;
+
+		int a = inst.RA, b = inst.RB, s = inst.RS;
+		if (!a || a == s || a == b)
+		{
+			Default(inst);
+			return;
+		}
+		gpr.Lock(a, b, s);
+		gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
+
+		gpr.LoadToX64(a, true, true);
+		ADD(32, gpr.R(a), gpr.R(b));
+		MOV(32, R(ABI_PARAM2), gpr.R(a));
+		MOV(32, R(ABI_PARAM1), gpr.R(s));
+		SafeWriteRegToReg(ABI_PARAM1, ABI_PARAM2, 32, 0);
+
+		gpr.UnlockAll();
+		gpr.UnlockAllX();
+		return;
 	}
 
 // A few games use these heavily in video codecs.
