@@ -15,11 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Globals.h"
-#include "Config.h"
+#include "Common.h"
+#include "VideoCommon.h"
 #include "VertexLoader.h"
-#include "VertexManager.h"
 #include "VertexLoader_Normal.h"
+#include "NativeVertexWriter.h"
 
 #define LOG_NORM8() PRIM_LOG("norm: %f %f %f, ", ((s8*)VertexManager::s_pCurBufferPointer)[-3]/127.0f, ((s8*)VertexManager::s_pCurBufferPointer)[-2]/127.0f, ((s8*)VertexManager::s_pCurBufferPointer)[-1]/127.0f);
 #define LOG_NORM16() PRIM_LOG("norm: %f %f %f, ", ((s16*)VertexManager::s_pCurBufferPointer)[-3]/32767.0f, ((s16*)VertexManager::s_pCurBufferPointer)[-2]/32767.0f, ((s16*)VertexManager::s_pCurBufferPointer)[-1]/32767.0f);

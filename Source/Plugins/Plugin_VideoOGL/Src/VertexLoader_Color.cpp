@@ -18,11 +18,12 @@
 #ifndef _VERTEXLOADERCOLOR_H
 #define _VERTEXLOADERCOLOR_H
 
-#include "Globals.h"
+#include "Common.h"
+#include "VideoCommon.h"
 #include "LookUpTables.h"
 #include "VertexLoader.h"
-#include "VertexManager.h"
 #include "VertexLoader_Color.h"
+#include "NativeVertexWriter.h"
 
 #define RSHIFT 0
 #define GSHIFT 8

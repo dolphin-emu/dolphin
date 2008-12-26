@@ -18,10 +18,11 @@
 #ifndef VERTEXLOADER_POSITION_H
 #define VERTEXLOADER_POSITION_H
 
-#include "Globals.h"
+#include "Common.h"
+#include "VideoCommon.h"
 #include "VertexLoader.h"
-#include "VertexManager.h"
 #include "VertexLoader_Position.h"
+#include "NativeVertexWriter.h"
 
 extern float posScale;
 extern TVtxAttr *pVtxAttr;

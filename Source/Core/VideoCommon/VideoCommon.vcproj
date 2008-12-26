@@ -459,6 +459,98 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="ShaderManagers"
+			>
+			<File
+				RelativePath=".\Src\PixelShaderManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PixelShaderManager.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Util"
+			>
+			<File
+				RelativePath=".\Src\ImageWrite.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ImageWrite.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\IndexGenerator.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\IndexGenerator.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\LookUpTables.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\LookUpTables.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Profiler.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Profiler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Statistics.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Statistics.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VideoState.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VideoState.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\XFBConvert.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerOutput="4"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						AssemblerOutput="4"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\Src\XFBConvert.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="VertexLoading"
+			>
+		</Filter>
 		<File
 			RelativePath=".\Src\DataReader.h"
 			>
@@ -469,30 +561,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\Fifo.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\ImageWrite.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\ImageWrite.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\IndexGenerator.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\IndexGenerator.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\LookUpTables.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\LookUpTables.h"
 			>
 		</File>
 		<File
@@ -516,31 +584,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\PixelShaderManager.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\PixelShaderManager.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\Profiler.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\Profiler.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\SConscript"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\Statistics.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\Statistics.h"
 			>
 		</File>
 		<File
@@ -565,38 +609,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\VideoCommon.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\VideoState.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\VideoState.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\XFBConvert.cpp"
-			>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					AssemblerOutput="4"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					AssemblerOutput="4"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath=".\Src\XFBConvert.h"
 			>
 		</File>
 	</Files>
