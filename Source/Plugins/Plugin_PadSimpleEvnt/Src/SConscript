@@ -1,0 +1,24 @@
+# -*- python -*- 
+
+Import('env')
+import sys
+
+name = "Plugin_PadSimpleEvnt"
+
+if not env['GLTEST']:
+    print name + " Doesn't work without testgl"
+    Return()
+
+files = [
+	"PadSimple.cpp",
+	]
+padenv = env.Clone()
+
+if padenv['HAVE_WX']:
+    files += [ 
+#        "GUI/ConfigDlg.cpp",
+        ]
+
+padenv.Append(LIBS = [ 'common' ])
+
+padenv.SharedLibrary(env['plugin_dir']+name, files)

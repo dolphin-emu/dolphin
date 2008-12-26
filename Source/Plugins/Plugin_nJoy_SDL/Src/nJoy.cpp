@@ -50,6 +50,10 @@ CONTROLLER_MAPPING joysticks[4];
 bool emulator_running = FALSE;
 HWND m_hWnd; // Handle to window
 
+// TODO: fix this dirty hack to stop missing symbols
+void __Log(int log, const char *format, ...) {}
+void __Logv(int log, int v, const char *format, ...) {}
+
 // Rumble
 #ifdef _WIN32
 
