@@ -235,10 +235,9 @@ void CMemoryView::OnErase(wxEraseEvent& event)
 void CMemoryView::OnPaint(wxPaintEvent& event)
 {
 	wxPaintDC dc(this);
-	int fontSize = 8;
+	int fontSize = 9;
 	wxRect rc = GetClientRect();
-	wxFont font(fontSize, wxFONTFAMILY_MODERN, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_LIGHT);
-	dc.SetFont(font);
+	dc.SetFont(DefaultFont);
 	struct branch
 	{
 		int src, dst, srcAddr;

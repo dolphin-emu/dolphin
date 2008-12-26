@@ -30,7 +30,7 @@ END_EVENT_TABLE()
 CBreakPointView::CBreakPointView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
 	: wxListCtrl(parent, id, pos, size, style)
 {
-	SetFont(wxFont(9, wxSWISS, wxNORMAL, wxNORMAL, false, wxT("Segoe UI")));
+	SetFont(DefaultFont);
 
 	Refresh();
 }

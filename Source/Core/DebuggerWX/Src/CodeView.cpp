@@ -355,8 +355,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	// -------------------------
 	wxPaintDC dc(this);
 	wxRect rc = GetClientRect();
-	wxFont font(7, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_LIGHT);
-	dc.SetFont(font);
+	dc.SetFont(DefaultFont);
 	struct branch
 	{
 		int src, dst, srcAddr;

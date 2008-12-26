@@ -39,7 +39,7 @@ wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 	wxGridCellAttr *attr = new wxGridCellAttr();
 
 	attr->SetBackgroundColour(wxColour(wxT("#FFFFFF")));
-	attr->SetFont(wxFont(9, wxMODERN, wxNORMAL, wxNORMAL, false, wxT("monospace")));
+	attr->SetFont(DefaultFont);
 	attr->SetAlignment(col & 1 ? wxALIGN_CENTER : wxALIGN_LEFT, wxALIGN_CENTER);
 
 	if (col % 2 == 0)
