@@ -36,12 +36,11 @@
 #include "BPMemory.h"
 #include "XFMemory.h"
 
-VertexShaderMngr::VSCache VertexShaderMngr::vshaders;
-VERTEXSHADER* VertexShaderMngr::pShaderLast = NULL;
+VertexShaderCache::VSCache VertexShaderCache::vshaders;
 
-float GC_ALIGNED16(g_fProjectionMatrix[16]);
+static VERTEXSHADER *pShaderLast = NULL;
 
-extern int A, B;
+static float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
 // Internal Variables
 static int s_nMaxVertexInstructions;
@@ -56,15 +55,15 @@ static int nNormalMatricesChanged[2]; // min,max
 static int nPostTransformMatricesChanged[2]; // min,max
 static int nLightsChanged[2]; // min,max
 
-void VertexShaderMngr::SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4) {
+void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4) {
     glProgramEnvParameter4fARB(GL_VERTEX_PROGRAM_ARB, const_number, f1, f2, f3, f4);
 }
 
-void VertexShaderMngr::SetVSConstant4fv(int const_number, const float *f) {
+void SetVSConstant4fv(int const_number, const float *f) {
 	glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number, f);
 }
 
-void VertexShaderMngr::Init()
+void VertexShaderManager::Init()
 {
     nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
     nNormalMatricesChanged[0] = nNormalMatricesChanged[1] = -1;
@@ -76,26 +75,31 @@ void VertexShaderMngr::Init()
 
     memset(&xfregs, 0, sizeof(xfregs));
     memset(xfmem, 0, sizeof(xfmem));
+}
 
+void VertexShaderCache::Init()
+{
     glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);
 }
 
-void VertexShaderMngr::Shutdown()
+void VertexShaderCache::Shutdown()
 {
     for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end(); iter++)
         iter->second.Destroy();
     vshaders.clear();
 }
 
-float VertexShaderMngr::GetPixelAspectRatio() {
-	return xfregs.rawViewport[0] != 0 ? (float)Renderer::GetTargetWidth() / 640.0f : 1.0f;
+void VertexShaderManager::Shutdown()
+{
+
 }
 
-VERTEXSHADER* VertexShaderMngr::GetShader(u32 components)
+VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 {
     DVSTARTPROFILE();
     VERTEXSHADERUID uid;
-    GetVertexShaderId(uid, components);
+	u32 zbufrender = (bpmem.ztex2.op == ZTEXTURE_ADD) || Renderer::GetZBufferTarget() != 0;
+    GetVertexShaderId(uid, components, zbufrender);
 
     VSCache::iterator iter = vshaders.find(uid);
 
@@ -109,7 +113,7 @@ VERTEXSHADER* VertexShaderMngr::GetShader(u32 components)
     }
 
     VSCacheEntry& entry = vshaders[uid];
-    char *code = GenerateVertexShader(components, Renderer::GetZBufferTarget() != 0);
+    const char *code = GenerateVertexShader(components, Renderer::GetZBufferTarget() != 0);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
     if (g_Config.iLog & CONF_SAVESHADERS && code) {
@@ -121,26 +125,25 @@ VERTEXSHADER* VertexShaderMngr::GetShader(u32 components)
     }
 #endif
 
-    if (!code || !VertexShaderMngr::CompileVertexShader(entry.shader, code)) {
+    if (!code || !VertexShaderCache::CompileVertexShader(entry.shader, code)) {
         ERROR_LOG("failed to create vertex shader\n");
 		return NULL;
 	}
 
     //Make an entry in the table
-    entry.frameCount=frameCount;
-
+    entry.frameCount = frameCount;
     pShaderLast = &entry.shader;
     INCSTAT(stats.numVertexShadersCreated);
-    SETSTAT(stats.numVertexShadersAlive,vshaders.size());
+    SETSTAT(stats.numVertexShadersAlive, vshaders.size());
     return pShaderLast;
 }
 
-void VertexShaderMngr::Cleanup()
+void VertexShaderCache::Cleanup()
 {
-    VSCache::iterator iter=vshaders.begin();
+    VSCache::iterator iter = vshaders.begin();
     while (iter != vshaders.end()) {
         VSCacheEntry &entry = iter->second;
-        if (entry.frameCount < frameCount-200) {
+        if (entry.frameCount < frameCount - 200) {
             entry.Destroy();
 #ifdef _WIN32
             iter = vshaders.erase(iter);
@@ -153,20 +156,10 @@ void VertexShaderMngr::Cleanup()
 		}
     }
 
-//    static int frame = 0;
-//    if( frame++ > 30 ) {
-//        VSCache::iterator iter=vshaders.begin();
-//        while(iter!=vshaders.end()) {
-//            iter->second.Destroy();
-//            ++iter;
-//        }
-//        vshaders.clear();
-//    }
-
-    SETSTAT(stats.numPixelShadersAlive,vshaders.size());
+    SETSTAT(stats.numVertexShadersAlive, vshaders.size());
 }
 
-bool VertexShaderMngr::CompileVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
+bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
 {
     char stropt[64];
     sprintf(stropt, "MaxLocalParams=256,MaxInstructions=%d", s_nMaxVertexInstructions);
@@ -211,16 +204,10 @@ bool VertexShaderMngr::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpro
     return true;
 }
 
-const u16 s_mtrltable[16][2] = {{0, 0}, {0, 1}, {1, 1}, {0, 2},
-                                {2, 1}, {0, 3}, {1, 2}, {0, 3},
-                                {3, 1}, {0, 4}, {1, 3}, {0, 4},
-                                {2, 2}, {0, 4}, {1, 3}, {0, 4}};
-
-
 // =======================================================================================
 // Syncs the shader constant buffers with xfmem
 // ----------------
-void VertexShaderMngr::SetConstants()
+void VertexShaderManager::SetConstants()
 {
     //nTransformMatricesChanged[0] = 0; nTransformMatricesChanged[1] = 256;
     //nNormalMatricesChanged[0] = 0; nNormalMatricesChanged[1] = 96;
@@ -510,7 +497,7 @@ void VertexShaderMngr::SetConstants()
     }
 }
 
-void VertexShaderMngr::InvalidateXFRange(int start, int end)
+void VertexShaderManager::InvalidateXFRange(int start, int end)
 {
     if (((u32)start >= (u32)MatrixIndexA.PosNormalMtxIdx*4 &&
 		 (u32)start <  (u32)MatrixIndexA.PosNormalMtxIdx*4 + 12) ||
@@ -587,7 +574,7 @@ void VertexShaderMngr::InvalidateXFRange(int start, int end)
     }
 }
 
-void VertexShaderMngr::SetTexMatrixChangedA(u32 Value)
+void VertexShaderManager::SetTexMatrixChangedA(u32 Value)
 {
     if (MatrixIndexA.Hex != Value) {
         VertexManager::Flush();
@@ -598,7 +585,7 @@ void VertexShaderMngr::SetTexMatrixChangedA(u32 Value)
     }
 }
 
-void VertexShaderMngr::SetTexMatrixChangedB(u32 Value)
+void VertexShaderManager::SetTexMatrixChangedB(u32 Value)
 {
     if (MatrixIndexB.Hex != Value) {
         VertexManager::Flush();
@@ -607,7 +594,7 @@ void VertexShaderMngr::SetTexMatrixChangedB(u32 Value)
     }
 }
 
-void VertexShaderMngr::SetViewport(float* _Viewport)
+void VertexShaderManager::SetViewport(float* _Viewport)
 {
     // Workaround for paper mario, yep this is bizarre.
     for (size_t i = 0; i < ARRAYSIZE(xfregs.rawViewport); ++i) {
@@ -618,67 +605,20 @@ void VertexShaderMngr::SetViewport(float* _Viewport)
     bViewportChanged = true;
 }
 
-void VertexShaderMngr::SetViewportChanged()
+void VertexShaderManager::SetViewportChanged()
 {
     bViewportChanged = true;
 }
 
-void VertexShaderMngr::SetProjection(float* _pProjection, int constantIndex)
+void VertexShaderManager::SetProjection(float* _pProjection, int constantIndex)
 {
     memcpy(xfregs.rawProjection, _pProjection, sizeof(xfregs.rawProjection));
     bProjectionChanged = true;
 }
 
-float* VertexShaderMngr::GetPosNormalMat()
+float* VertexShaderManager::GetPosNormalMat()
 {
     return (float*)xfmem + MatrixIndexA.PosNormalMtxIdx * 4;
-}
-
-// Mash together all the inputs that contribute to the code of a generated vertex shader into
-// a unique identifier, basically containing all the bits. Yup, it's a lot ....
-void VertexShaderMngr::GetVertexShaderId(VERTEXSHADERUID& vid, u32 components)
-{
-	u32 zbufrender = (bpmem.ztex2.op == ZTEXTURE_ADD) || Renderer::GetZBufferTarget() != 0;
-	vid.values[0] = components |
-		(xfregs.numTexGens << 23) |
-		(xfregs.nNumChans << 27) |
-		((u32)xfregs.bEnableDualTexTransform << 29) |
-		(zbufrender << 30);
-
-	for (int i = 0; i < 2; ++i) {
-		vid.values[1+i] = xfregs.colChans[i].color.enablelighting ?
-			(u32)xfregs.colChans[i].color.hex :
-			(u32)xfregs.colChans[i].color.matsource;
-		vid.values[1+i] |= (xfregs.colChans[i].alpha.enablelighting ?
-			(u32)xfregs.colChans[i].alpha.hex :
-			(u32)xfregs.colChans[i].alpha.matsource) << 15;
-	}
-
-	// fog
-	vid.values[1] |= (((u32)bpmem.fog.c_proj_fsel.fsel & 3) << 30);
-	vid.values[2] |= (((u32)bpmem.fog.c_proj_fsel.fsel >> 2) << 30);
-
-	u32* pcurvalue = &vid.values[3];
-	for (int i = 0; i < xfregs.numTexGens; ++i) {
-		TexMtxInfo tinfo = xfregs.texcoords[i].texmtxinfo;
-		if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP)
-			tinfo.hex &= 0x7ff;
-		if (tinfo.texgentype != XF_TEXGEN_REGULAR)
-			tinfo.projection = 0;
-
-		u32 val = ((tinfo.hex >> 1) & 0x1ffff);
-		if (xfregs.bEnableDualTexTransform && tinfo.texgentype == XF_TEXGEN_REGULAR) {
-			// rewrite normalization and post index
-			val |= ((u32)xfregs.texcoords[i].postmtxinfo.index << 17) | ((u32)xfregs.texcoords[i].postmtxinfo.normalize << 23);
-		}
-
-		switch (i & 3) {
-			case 0: pcurvalue[0] |= val; break;
-			case 1: pcurvalue[0] |= val << 24; pcurvalue[1] = val >> 8; ++pcurvalue; break;
-			case 2: pcurvalue[0] |= val << 16; pcurvalue[1] = val >> 16; ++pcurvalue; break;
-			case 3: pcurvalue[0] |= val << 8; ++pcurvalue; break;
-		}
-	}
 }
 
 
@@ -694,7 +634,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
         if (address < 0x1000)
         {
             VertexManager::Flush();
-			VertexShaderMngr::InvalidateXFRange(address, address + transferSize);
+			VertexShaderManager::InvalidateXFRange(address, address + transferSize);
             //PRIM_LOG("xfmem write: 0x%x-0x%x\n", address, address+transferSize);
 
             u32* p1 = &xfmem[address];
@@ -820,16 +760,16 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
                 break;
             case 0x1018:
                 //_assert_msg_(GX_XF, 0, "XF matrixindex0");
-				VertexShaderMngr::SetTexMatrixChangedA(data); //?
+				VertexShaderManager::SetTexMatrixChangedA(data); //?
                 break;
             case 0x1019:
                 //_assert_msg_(GX_XF, 0, "XF matrixindex1");
-                VertexShaderMngr::SetTexMatrixChangedB(data); //?
+                VertexShaderManager::SetTexMatrixChangedB(data); //?
                 break;
 
             case 0x101a:
                 VertexManager::Flush();
-                VertexShaderMngr::SetViewport((float*)&pData[i]);
+                VertexShaderManager::SetViewport((float*)&pData[i]);
                 i += 6;
                 break;
 
@@ -840,7 +780,7 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 
             case 0x1020:
                 VertexManager::Flush();
-                VertexShaderMngr::SetProjection((float*)&pData[i]);
+                VertexShaderManager::SetProjection((float*)&pData[i]);
                 i += 7;
                 return;
 
@@ -901,7 +841,7 @@ void LoadIndexedXF(u32 val, int array)
     //load stuff from array to address in xf mem
 
     VertexManager::Flush();
-    VertexShaderMngr::InvalidateXFRange(address, address+size);
+    VertexShaderManager::InvalidateXFRange(address, address+size);
     //PRIM_LOG("xfmem iwrite: 0x%x-0x%x\n", address, address+size);
 
     for (int i = 0; i < size; i++)

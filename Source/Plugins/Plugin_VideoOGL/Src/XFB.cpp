@@ -175,7 +175,7 @@ void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt)
 
 	Renderer::SetFramebuffer(0);
     Renderer::RestoreGLState();
-    VertexShaderMngr::SetViewportChanged();
+    VertexShaderManager::SetViewportChanged();
 	
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
     TextureMngr::DisableStage(0);

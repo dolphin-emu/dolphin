@@ -46,6 +46,55 @@
 #define C_POSTTRANSFORMMATRICES (C_NORMALMATRICES+32)
 #define C_FOGPARAMS (C_POSTTRANSFORMMATRICES+64)
 
+
+class VERTEXSHADERUID
+{
+public:
+	u32 values[9];
+
+	VERTEXSHADERUID() {
+		memset(values, 0, sizeof(values));		
+	}
+
+	VERTEXSHADERUID(const VERTEXSHADERUID& r) {
+		for (size_t i = 0; i < sizeof(values) / sizeof(u32); ++i) 
+			values[i] = r.values[i]; 
+	}
+
+	int GetNumValues() const {
+		return (((values[0] >> 23) & 0xf)*3 + 3)/4 + 3; // numTexGens*3/4+1
+	}
+
+	bool operator <(const VERTEXSHADERUID& _Right) const
+	{
+		if (values[0] < _Right.values[0])
+			return true;
+		else if (values[0] > _Right.values[0])
+			return false;
+		int N = GetNumValues();
+		for (int i = 1; i < N; ++i) {
+			if (values[i] < _Right.values[i])
+				return true;
+			else if (values[i] > _Right.values[i])
+				return false;
+		}
+		return false;
+	}
+
+	bool operator ==(const VERTEXSHADERUID& _Right) const
+	{
+		if (values[0] != _Right.values[0])
+			return false;
+		int N = GetNumValues();
+		for (int i = 1; i < N; ++i) {
+			if (values[i] != _Right.values[i])
+				return false;
+		}
+		return true;
+	}
+};
+
 char *GenerateVertexShader(u32 components, bool has_zbuffer_target);
+void GetVertexShaderId(VERTEXSHADERUID& vid, u32 components, u32 zbufrender);
 
 #endif

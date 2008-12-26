@@ -39,6 +39,57 @@
 
 #define C_COLORMATRIX (C_INDTEXMTX+6)
 
+class PIXELSHADERUID
+{
+public:
+	u32 values[4+32+6+11];
+	u16 tevstages, indstages;
+
+	PIXELSHADERUID() {
+		memset(values, 0, (4+32+6+11) * 4);
+		tevstages = indstages = 0;
+	}
+	PIXELSHADERUID(const PIXELSHADERUID& r)
+	{
+		tevstages = r.tevstages;
+		indstages = r.indstages;
+		int N = tevstages + indstages + 3;
+		_assert_(N <= 4+32+6+11);
+		for (int i = 0; i < N; ++i) 
+			values[i] = r.values[i];
+	}
+	int GetNumValues() const {
+		return tevstages + indstages + 3; // numTevStages*3/2+1
+	}
+	bool operator <(const PIXELSHADERUID& _Right) const
+	{
+		if (values[0] < _Right.values[0])
+			return true;
+		else if (values[0] > _Right.values[0])
+			return false;
+		int N = GetNumValues();
+		for (int i = 1; i < N; ++i) {
+			if (values[i] < _Right.values[i])
+				return true;
+			else if (values[i] > _Right.values[i])
+				return false;
+		}
+		return false;
+	}
+	bool operator ==(const PIXELSHADERUID& _Right) const
+	{
+		if (values[0] != _Right.values[0])
+			return false;
+		int N = GetNumValues();
+		for (int i = 1; i < N; ++i) {
+			if (values[i] != _Right.values[i])
+				return false;
+		}
+		return true;
+	}
+};
+
 char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRenderZToCol0);
+void GetPixelShaderId(PIXELSHADERUID &, u32 s_texturemask, u32 zbufrender, u32 zBufRenderToCol0);
 
 #endif

@@ -193,7 +193,7 @@ void Flush()
 				if (tentry != NULL) {
 					// texture loaded fine, set dims for pixel shader
 					if (tentry->isNonPow2) {
-						PixelShaderMngr::SetTexDims(i, tentry->w, tentry->h, tentry->mode.wrap_s, tentry->mode.wrap_t);
+						PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, tentry->mode.wrap_s, tentry->mode.wrap_t);
 						nonpow2tex |= 1 << i;
 						if (tentry->mode.wrap_s > 0) nonpow2tex |= 1 << (8 + i);
 						if (tentry->mode.wrap_t > 0) nonpow2tex |= 1 << (16 + i);
@@ -202,7 +202,7 @@ void Flush()
 					// if texture is power of two, set to ones (since don't need scaling)
 					else 
 					{
-						PixelShaderMngr::SetTexDims(i, tentry->w, tentry->h, 0, 0);
+						PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, 0, 0);
 						TextureMngr::EnableTex2D(i);
 					}
 					if (g_Config.iLog & CONF_PRIMLOG) {
@@ -222,11 +222,11 @@ void Flush()
 			}
 		}
 
-		PixelShaderMngr::SetTexturesUsed(nonpow2tex);
+		PixelShaderManager::SetTexturesUsed(nonpow2tex);
 	}
 
-	FRAGMENTSHADER* ps = PixelShaderMngr::GetShader();
-	VERTEXSHADER* vs = VertexShaderMngr::GetShader(s_prevcomponents);
+	FRAGMENTSHADER* ps = PixelShaderCache::GetShader();
+	VERTEXSHADER* vs = VertexShaderCache::GetShader(s_prevcomponents);
 
 	bool bRestoreBuffers = false;
 	if (Renderer::GetZBufferTarget()) {
@@ -246,8 +246,8 @@ void Flush()
 	}
 
 	// set global constants
-	VertexShaderMngr::SetConstants();
-	PixelShaderMngr::SetConstants();
+	VertexShaderManager::SetConstants();
+	PixelShaderManager::SetConstants();
 
 	// finally bind
 

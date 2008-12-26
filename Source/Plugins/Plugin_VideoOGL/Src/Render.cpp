@@ -907,7 +907,7 @@ void Renderer::SwapBuffers()
     GL_REPORT_ERRORD();
 
     //clean out old stuff from caches
-    PixelShaderMngr::Cleanup();
+    PixelShaderCache::Cleanup();
     TextureMngr::Cleanup();
 
     frameCount++;

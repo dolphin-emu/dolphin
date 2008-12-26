@@ -578,8 +578,8 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     glViewport(0, 0, w, h);
 
     glEnable(GL_FRAGMENT_PROGRAM_ARB);
-    glBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, PixelShaderMngr::GetColorMatrixProgram());
-    PixelShaderMngr::SetColorMatrix(colmat, fConstAdd); // set transformation
+    glBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, PixelShaderManager::GetColorMatrixProgram());
+    PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
     GL_REPORT_ERRORD();
     
     glBegin(GL_QUADS);
@@ -595,7 +595,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     Renderer::SetFramebuffer(0);
     Renderer::RestoreGLState();
-    VertexShaderMngr::SetViewportChanged();
+    VertexShaderManager::SetViewportChanged();
 
     TextureMngr::DisableStage(0);
 

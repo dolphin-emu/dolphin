@@ -274,8 +274,10 @@ void Video_Prepare(void)
     VertexManager::Init();
     Fifo_Init(); // must be done before OpcodeDecoder_Init()
     OpcodeDecoder_Init();
-    VertexShaderMngr::Init();
-    PixelShaderMngr::Init();
+    VertexShaderCache::Init();
+    VertexShaderManager::Init();
+    PixelShaderCache::Init();
+    PixelShaderManager::Init();
     GL_REPORT_ERRORD();
     VertexLoaderManager::Init();
     TextureConverter::Init();
@@ -285,8 +287,10 @@ void Video_Shutdown(void)
 {
     TextureConverter::Shutdown();
     VertexLoaderManager::Shutdown();
-    VertexShaderMngr::Shutdown();
-    PixelShaderMngr::Shutdown();
+    VertexShaderCache::Shutdown();
+    VertexShaderManager::Shutdown();
+    PixelShaderManager::Shutdown();
+    PixelShaderCache::Shutdown();
     Fifo_Shutdown();
     VertexManager::Shutdown();
     TextureMngr::Shutdown();

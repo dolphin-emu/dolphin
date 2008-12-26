@@ -32,12 +32,11 @@
 #include "Render.h"
 #include "VertexShader.h"
 #include "PixelShaderManager.h"
-#include "PixelShader.h"
 
-PixelShaderMngr::PSCache PixelShaderMngr::pshaders;
-FRAGMENTSHADER* PixelShaderMngr::pShaderLast = NULL;
-PIXELSHADERUID PixelShaderMngr::s_curuid;
+PixelShaderCache::PSCache PixelShaderCache::pshaders;
+PIXELSHADERUID PixelShaderCache::s_curuid;
 
+static FRAGMENTSHADER* pShaderLast = NULL;
 static int s_nMaxPixelInstructions;
 static int s_nColorsChanged[2]; // 0 - regular colors, 1 - k colors
 static int s_nIndTexMtxChanged = 0;
@@ -53,31 +52,24 @@ static u32 lastZBias = 0;
 // lower byte describes if a texture is nonpow2 or pow2
 // next byte describes whether the repeat wrap mode is enabled for the s channel
 // next byte is for t channel
-u32 s_texturemask = 0;
+static u32 s_texturemask = 0;
 
 static int maptocoord[8]; // indexed by texture map, holds the texcoord associated with the map
 static u32 maptocoord_mask = 0;
     
 static GLuint s_ColorMatrixProgram = 0;
 
-void PixelShaderMngr::SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4) {
+void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4) {
     glProgramEnvParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f1, f2, f3, f4);
 }
 
-void PixelShaderMngr::SetPSConstant4fv(int const_number, const float *f) {
+void SetPSConstant4fv(int const_number, const float *f) {
 	glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f);
 }
 
-void PixelShaderMngr::Init()
+void PixelShaderCache::Init()
 {
-    s_nColorsChanged[0] = s_nColorsChanged[1] = 0;
-    s_nTexDimsChanged = 0;
-    s_nIndTexMtxChanged = 15;
-    s_bAlphaChanged = s_bZBiasChanged = s_bIndTexScaleChanged = true;
     GL_REPORT_ERRORD();
-    for (int i = 0; i < 8; ++i) maptocoord[i] = -1;
-    maptocoord_mask = 0;
-    memset(lastRGBAfull, 0, sizeof(lastRGBAfull));
 
     glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ALU_INSTRUCTIONS_ARB, (GLint *)&s_nMaxPixelInstructions);
     
@@ -110,7 +102,7 @@ void PixelShaderMngr::Init()
     }
 }
 
-void PixelShaderMngr::Shutdown()
+void PixelShaderCache::Shutdown()
 {
     glDeleteProgramsARB(1, &s_ColorMatrixProgram);
 	s_ColorMatrixProgram = 0;
@@ -120,11 +112,13 @@ void PixelShaderMngr::Shutdown()
     pshaders.clear();
 }
 
-FRAGMENTSHADER* PixelShaderMngr::GetShader()
+FRAGMENTSHADER* PixelShaderCache::GetShader()
 {
     DVSTARTPROFILE();
     PIXELSHADERUID uid;
-    GetPixelShaderId(uid);
+    u32 zbufrender = (Renderer::GetZBufferTarget() && bpmem.zmode.updateenable) ? 1 : 0;
+    u32 zBufRenderToCol0 = Renderer::GetRenderMode() != Renderer::RM_Normal;
+    GetPixelShaderId(uid, s_texturemask, zbufrender, zBufRenderToCol0);
 
     PSCache::iterator iter = pshaders.find(uid);
 
@@ -168,7 +162,7 @@ FRAGMENTSHADER* PixelShaderMngr::GetShader()
     return pShaderLast;
 }
 
-void PixelShaderMngr::Cleanup()
+void PixelShaderCache::Cleanup()
 {
     PSCache::iterator iter = pshaders.begin();
     while (iter != pshaders.end()) {
@@ -187,7 +181,7 @@ void PixelShaderMngr::Cleanup()
     SETSTAT(stats.numPixelShadersAlive,(int)pshaders.size());
 }
 
-bool PixelShaderMngr::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
+bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
 {
     char stropt[64];
     sprintf(stropt, "MaxLocalParams=32,NumInstructionSlots=%d", s_nMaxPixelInstructions);
@@ -238,7 +232,24 @@ bool PixelShaderMngr::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpro
     return true;
 }
 
-void PixelShaderMngr::SetConstants()
+void PixelShaderManager::Init()
+{
+    s_nColorsChanged[0] = s_nColorsChanged[1] = 0;
+    s_nTexDimsChanged = 0;
+    s_nIndTexMtxChanged = 15;
+    s_bAlphaChanged = s_bZBiasChanged = s_bIndTexScaleChanged = true;
+    for (int i = 0; i < 8; ++i)
+		maptocoord[i] = -1;
+	maptocoord_mask = 0;
+    memset(lastRGBAfull, 0, sizeof(lastRGBAfull));
+}
+
+void PixelShaderManager::Shutdown()
+{
+
+}
+
+void PixelShaderManager::SetConstants()
 {
     for (int i = 0; i < 2; ++i) {
         if (s_nColorsChanged[i]) {
@@ -278,7 +289,7 @@ void PixelShaderMngr::SetConstants()
     if (s_nTexDimsChanged) {
         for (int i = 0; i < 8; ++i) {
             if (s_nTexDimsChanged & (1<<i)) {
-				SetPSTextureDims(i);				
+				SetPSTextureDims(i);
 			}            
         }
         s_nTexDimsChanged = 0;
@@ -367,7 +378,7 @@ void PixelShaderMngr::SetConstants()
     }
 }
 
-void PixelShaderMngr::SetPSTextureDims(int texid)
+void PixelShaderManager::SetPSTextureDims(int texid)
 {
 	float fdims[4];
 	if (s_texturemask & (1<<texid)) {
@@ -405,7 +416,7 @@ void PixelShaderMngr::SetPSTextureDims(int texid)
 	SetPSConstant4fv(C_TEXDIMS + texid, fdims);
 }
 
-void PixelShaderMngr::SetColorChanged(int type, int num)
+void PixelShaderManager::SetColorChanged(int type, int num)
 {
     int r = bpmem.tevregs[num].low.a;
 	int a = bpmem.tevregs[num].low.b;
@@ -420,7 +431,7 @@ void PixelShaderMngr::SetColorChanged(int type, int num)
     PRIM_LOG("pixel %scolor%d: %f %f %f %f\n", type?"k":"", num, pf[0], pf[1], pf[2], pf[3]);
 }
 
-void PixelShaderMngr::SetAlpha(const AlphaFunc& alpha)
+void PixelShaderManager::SetAlpha(const AlphaFunc& alpha)
 {
     if ((alpha.hex & 0xffff) != lastAlpha) {
         lastAlpha = (lastAlpha & ~0xffff) | (alpha.hex & 0xffff);
@@ -428,7 +439,7 @@ void PixelShaderMngr::SetAlpha(const AlphaFunc& alpha)
     }
 }
 
-void PixelShaderMngr::SetDestAlpha(const ConstantAlpha& alpha)
+void PixelShaderManager::SetDestAlpha(const ConstantAlpha& alpha)
 {
     if (alpha.alpha != (lastAlpha >> 16)) {
         lastAlpha = (lastAlpha & ~0xff0000) | ((alpha.hex & 0xff) << 16);
@@ -436,7 +447,7 @@ void PixelShaderMngr::SetDestAlpha(const ConstantAlpha& alpha)
     }
 }
 
-void PixelShaderMngr::SetTexDims(int texmapid, u32 width, u32 height, u32 wraps, u32 wrapt)
+void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height, u32 wraps, u32 wrapt)
 {
     u32 wh = width | (height << 16) | (wraps << 28) | (wrapt << 30);
     if (lastTexDims[texmapid] != wh) {
@@ -445,7 +456,7 @@ void PixelShaderMngr::SetTexDims(int texmapid, u32 width, u32 height, u32 wraps,
     }
 }
 
-void PixelShaderMngr::SetZTextureBias(u32 bias)
+void PixelShaderManager::SetZTextureBias(u32 bias)
 {
     if (lastZBias != bias) {
         s_bZBiasChanged = true;
@@ -453,42 +464,42 @@ void PixelShaderMngr::SetZTextureBias(u32 bias)
     }
 }
 
-void PixelShaderMngr::SetIndTexScaleChanged()
+void PixelShaderManager::SetIndTexScaleChanged()
 {
     s_bIndTexScaleChanged = true;
 }
 
-void PixelShaderMngr::SetIndMatrixChanged(int matrixidx)
+void PixelShaderManager::SetIndMatrixChanged(int matrixidx)
 {
     s_nIndTexMtxChanged |= 1 << matrixidx;
 }
 
-void PixelShaderMngr::SetGenModeChanged()
+void PixelShaderManager::SetGenModeChanged()
 {
 }
 
-void PixelShaderMngr::SetTevCombinerChanged(int id)
+void PixelShaderManager::SetTevCombinerChanged(int id)
 {
 }
 
-void PixelShaderMngr::SetTevKSelChanged(int id)
+void PixelShaderManager::SetTevKSelChanged(int id)
 {
 }
 
-void PixelShaderMngr::SetTevOrderChanged(int id)
+void PixelShaderManager::SetTevOrderChanged(int id)
 {
 }
 
-void PixelShaderMngr::SetTevIndirectChanged(int id)
+void PixelShaderManager::SetTevIndirectChanged(int id)
 {
 }
 
-void PixelShaderMngr::SetZTextureOpChanged()
+void PixelShaderManager::SetZTextureOpChanged()
 {
     s_bZBiasChanged = true;
 }
 
-void PixelShaderMngr::SetTexturesUsed(u32 nonpow2tex)
+void PixelShaderManager::SetTexturesUsed(u32 nonpow2tex)
 {
     if (s_texturemask != nonpow2tex) {
         for (int i = 0; i < 8; ++i) {
@@ -502,7 +513,7 @@ void PixelShaderMngr::SetTexturesUsed(u32 nonpow2tex)
     }
 }
 
-void PixelShaderMngr::SetTexDimsChanged(int texmapid)
+void PixelShaderManager::SetTexDimsChanged(int texmapid)
 {
     // this check was previously implicit, but should it be here?
 	if (s_nTexDimsChanged)
@@ -511,7 +522,7 @@ void PixelShaderMngr::SetTexDimsChanged(int texmapid)
     SetIndTexScaleChanged();
 }
 
-void PixelShaderMngr::SetColorMatrix(const float* pmatrix, const float* pfConstAdd)
+void PixelShaderManager::SetColorMatrix(const float* pmatrix, const float* pfConstAdd)
 {
     SetPSConstant4fv(C_COLORMATRIX, pmatrix);
     SetPSConstant4fv(C_COLORMATRIX+1, pmatrix+4);
@@ -520,102 +531,8 @@ void PixelShaderMngr::SetColorMatrix(const float* pmatrix, const float* pfConstA
     SetPSConstant4fv(C_COLORMATRIX+4, pfConstAdd);
 }
 
-GLuint PixelShaderMngr::GetColorMatrixProgram()
+GLuint PixelShaderManager::GetColorMatrixProgram()
 {
     return s_ColorMatrixProgram;
 }
 
-// Mash together all the inputs that contribute to the code of a generated pixel shader into
-// a unique identifier, basically containing all the bits. Yup, it's a lot ....
-void PixelShaderMngr::GetPixelShaderId(PIXELSHADERUID &uid)
-{
-    u32 projtexcoords = 0;
-    for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; i++) {
-        if (bpmem.tevorders[i/2].getEnable(i&1)) {
-            int texcoord = bpmem.tevorders[i/2].getTexCoord(i&1);
-            if (xfregs.texcoords[texcoord].texmtxinfo.projection )
-                projtexcoords |= 1 << texcoord;
-        }
-    }
-    u32 zbufrender = (Renderer::GetZBufferTarget() && bpmem.zmode.updateenable) ? 1 : 0;
-    u32 zBufRenderToCol0 = Renderer::GetRenderMode() != Renderer::RM_Normal;
-    uid.values[0] = (u32)bpmem.genMode.numtevstages |
-		           ((u32)bpmem.genMode.numindstages << 4) |
-				   ((u32)bpmem.genMode.numtexgens << 7) |
-				   ((u32)bpmem.dstalpha.enable << 11) |
-				   ((u32)((bpmem.alphaFunc.hex >> 16) & 0xff) << 12) |
-				   (projtexcoords << 20) |
-				   ((u32)bpmem.ztex2.op << 28) |
-				   (zbufrender << 30) |
-				   (zBufRenderToCol0 << 31);
-
-    s_curuid.values[0] = (s_curuid.values[0] & ~0x0ff00000) | (projtexcoords << 20);
-    // swap table
-    for (int i = 0; i < 8; i += 2)
-        ((u8*)&uid.values[1])[i/2] = (bpmem.tevksel[i].hex & 0xf) | ((bpmem.tevksel[i + 1].hex & 0xf) << 4);
-
-    uid.values[2] = s_texturemask;
-    int hdr = 3;
-    u32* pcurvalue = &uid.values[hdr];
-    for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages+1; ++i) {
-        TevStageCombiner::ColorCombiner &cc = bpmem.combiners[i].colorC;
-        TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[i].alphaC;
-
-        u32 val0 = cc.hex&0xffffff;
-        u32 val1 = ac.hex&0xffffff;
-        val0 |= bpmem.tevksel[i/2].getKC(i&1)<<24;
-        val1 |= bpmem.tevksel[i/2].getKA(i&1)<<24;
-        pcurvalue[0] = val0;
-        pcurvalue[1] = val1;
-        pcurvalue += 2;
-    }
-
-    for (u32 i = 0; i < ((u32)bpmem.genMode.numtevstages+1)/2; ++i) {
-        u32 val0, val1;
-        if (bpmem.tevorders[i].hex & 0x40)
-			val0 = bpmem.tevorders[i].hex & 0x3ff;
-        else
-			val0 = bpmem.tevorders[i].hex & 0x380;
-        if (bpmem.tevorders[i].hex & 0x40000)
-			val1 = (bpmem.tevorders[i].hex & 0x3ff000) >> 12;
-        else
-			val1 = (bpmem.tevorders[i].hex & 0x380000) >> 12;
-
-        switch (i % 3) {
-            case 0: pcurvalue[0] = val0|(val1<<10); break;
-            case 1: pcurvalue[0] |= val0<<20; pcurvalue[1] = val1; pcurvalue++; break;
-            case 2: pcurvalue[1] |= (val0<<10)|(val1<<20); pcurvalue++; break;
-        }
-    }
-
-    if ((bpmem.genMode.numtevstages + 1) & 1) { // odd
-        u32 val0;
-        if (bpmem.tevorders[bpmem.genMode.numtevstages/2].hex & 0x40)
-			val0 = bpmem.tevorders[bpmem.genMode.numtevstages/2].hex&0x3ff;
-        else
-			val0 = bpmem.tevorders[bpmem.genMode.numtevstages/2].hex & 0x380;
-
-        switch (bpmem.genMode.numtevstages % 3) {
-            case 0: pcurvalue[0] = val0; break;
-            case 1: pcurvalue[0] |= val0 << 20; break;
-            case 2: pcurvalue[1] |= val0 << 10; pcurvalue++; break;
-        }
-    }
-
-    if ((bpmem.genMode.numtevstages % 3) != 2)
-        ++pcurvalue;
-
-    uid.tevstages = (u32)(pcurvalue-&uid.values[0]-hdr);
-
-    for (u32 i = 0; i < bpmem.genMode.numindstages; ++i) {
-        u32 val = bpmem.tevind[i].hex & 0x1fffff; // 21 bits
-        switch (i%3) {
-            case 0: pcurvalue[0] = val; break;
-            case 1: pcurvalue[0] |= val << 21; pcurvalue[1] = val >> 11; ++pcurvalue; break;
-            case 2: pcurvalue[0] |= val << 10; ++pcurvalue; break;
-        }
-    }
-
-	// yeah, well ....
-    uid.indstages = (u32)(pcurvalue - &uid.values[0] - 2 - uid.tevstages);
-}

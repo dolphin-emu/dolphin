@@ -56,7 +56,7 @@ void CreateRgbToYuyvProgram()
 	"  ocol0 = float4(y1, u0, y0, v1);\n"
 	"}\n";
 
-	if (!PixelShaderMngr::CompilePixelShader(s_rgbToYuyvProgram, FProgram)) {
+	if (!PixelShaderCache::CompilePixelShader(s_rgbToYuyvProgram, FProgram)) {
         ERROR_LOG("Failed to create RGB to YUYV fragment program\n");
     }
 }
@@ -83,7 +83,7 @@ void CreateYuyvToRgbProgram()
 	"                 1.0f);\n"
 	"}\n";
 
-	if (!PixelShaderMngr::CompilePixelShader(s_yuyvToRgbProgram, FProgram)) {
+	if (!PixelShaderCache::CompilePixelShader(s_yuyvToRgbProgram, FProgram)) {
         ERROR_LOG("Failed to create YUYV to RGB fragment program\n");
     }
 }
@@ -161,7 +161,7 @@ void EncodeToRam(GLuint srcTexture, const TRectangle& sourceRc,
 
 	Renderer::SetFramebuffer(0);
     Renderer::RestoreGLState();
-    VertexShaderMngr::SetViewportChanged();
+    VertexShaderManager::SetViewportChanged();
 	
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
     TextureMngr::DisableStage(0);
@@ -215,7 +215,7 @@ void DecodeToTexture(u8* srcAddr, int srcWidth, int srcHeight, GLuint destTextur
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
     TextureMngr::DisableStage(0);
 
-	VertexShaderMngr::SetViewportChanged();
+	VertexShaderManager::SetViewportChanged();
 
 	Renderer::RestoreGLState();
     GL_REPORT_ERRORD();

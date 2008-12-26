@@ -24,6 +24,99 @@
 #include "XFMemory.h"  // for texture projection mode
 #include "BPMemory.h"
 
+// Mash together all the inputs that contribute to the code of a generated pixel shader into
+// a unique identifier, basically containing all the bits. Yup, it's a lot ....
+void GetPixelShaderId(PIXELSHADERUID &uid, u32 s_texturemask, u32 zbufrender, u32 zBufRenderToCol0)
+{
+	u32 projtexcoords = 0;
+	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; i++) {
+		if (bpmem.tevorders[i/2].getEnable(i&1)) {
+			int texcoord = bpmem.tevorders[i/2].getTexCoord(i&1);
+			if (xfregs.texcoords[texcoord].texmtxinfo.projection )
+				projtexcoords |= 1 << texcoord;
+		}
+	}
+	uid.values[0] = (u32)bpmem.genMode.numtevstages |
+				   ((u32)bpmem.genMode.numindstages << 4) |
+				   ((u32)bpmem.genMode.numtexgens << 7) |
+				   ((u32)bpmem.dstalpha.enable << 11) |
+				   ((u32)((bpmem.alphaFunc.hex >> 16) & 0xff) << 12) |
+				   (projtexcoords << 20) |
+				   ((u32)bpmem.ztex2.op << 28) |
+				   (zbufrender << 30) |
+				   (zBufRenderToCol0 << 31);
+
+	uid.values[0] = (uid.values[0] & ~0x0ff00000) | (projtexcoords << 20);
+	// swap table
+	for (int i = 0; i < 8; i += 2)
+		((u8*)&uid.values[1])[i/2] = (bpmem.tevksel[i].hex & 0xf) | ((bpmem.tevksel[i + 1].hex & 0xf) << 4);
+
+	uid.values[2] = s_texturemask;
+	int hdr = 3;
+	u32* pcurvalue = &uid.values[hdr];
+	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages+1; ++i) {
+		TevStageCombiner::ColorCombiner &cc = bpmem.combiners[i].colorC;
+		TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[i].alphaC;
+
+		u32 val0 = cc.hex&0xffffff;
+		u32 val1 = ac.hex&0xffffff;
+		val0 |= bpmem.tevksel[i/2].getKC(i&1)<<24;
+		val1 |= bpmem.tevksel[i/2].getKA(i&1)<<24;
+		pcurvalue[0] = val0;
+		pcurvalue[1] = val1;
+		pcurvalue += 2;
+	}
+
+	for (u32 i = 0; i < ((u32)bpmem.genMode.numtevstages+1)/2; ++i) {
+		u32 val0, val1;
+		if (bpmem.tevorders[i].hex & 0x40)
+			val0 = bpmem.tevorders[i].hex & 0x3ff;
+		else
+			val0 = bpmem.tevorders[i].hex & 0x380;
+		if (bpmem.tevorders[i].hex & 0x40000)
+			val1 = (bpmem.tevorders[i].hex & 0x3ff000) >> 12;
+		else
+			val1 = (bpmem.tevorders[i].hex & 0x380000) >> 12;
+
+		switch (i % 3) {
+			case 0: pcurvalue[0] = val0|(val1<<10); break;
+			case 1: pcurvalue[0] |= val0<<20; pcurvalue[1] = val1; pcurvalue++; break;
+			case 2: pcurvalue[1] |= (val0<<10)|(val1<<20); pcurvalue++; break;
+		}
+	}
+
+	if ((bpmem.genMode.numtevstages + 1) & 1) { // odd
+		u32 val0;
+		if (bpmem.tevorders[bpmem.genMode.numtevstages/2].hex & 0x40)
+			val0 = bpmem.tevorders[bpmem.genMode.numtevstages/2].hex&0x3ff;
+		else
+			val0 = bpmem.tevorders[bpmem.genMode.numtevstages/2].hex & 0x380;
+
+		switch (bpmem.genMode.numtevstages % 3) {
+			case 0: pcurvalue[0] = val0; break;
+			case 1: pcurvalue[0] |= val0 << 20; break;
+			case 2: pcurvalue[1] |= val0 << 10; pcurvalue++; break;
+		}
+	}
+
+	if ((bpmem.genMode.numtevstages % 3) != 2)
+		++pcurvalue;
+
+	uid.tevstages = (u32)(pcurvalue-&uid.values[0]-hdr);
+
+	for (u32 i = 0; i < bpmem.genMode.numindstages; ++i) {
+		u32 val = bpmem.tevind[i].hex & 0x1fffff; // 21 bits
+		switch (i%3) {
+			case 0: pcurvalue[0] = val; break;
+			case 1: pcurvalue[0] |= val << 21; pcurvalue[1] = val >> 11; ++pcurvalue; break;
+			case 2: pcurvalue[0] |= val << 10; ++pcurvalue; break;
+		}
+	}
+
+	// yeah, well ....
+	uid.indstages = (u32)(pcurvalue - &uid.values[0] - 2 - uid.tevstages);
+}
+
 //   old tev->pixelshader notes
 //
 //   color for this stage (alpha, color) is given by bpmem.tevorders[0].colorchan0

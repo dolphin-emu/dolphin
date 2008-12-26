@@ -23,6 +23,52 @@
 #include "BPMemory.h"
 #include "VertexShader.h"
 
+// Mash together all the inputs that contribute to the code of a generated vertex shader into
+// a unique identifier, basically containing all the bits. Yup, it's a lot ....
+void GetVertexShaderId(VERTEXSHADERUID& vid, u32 components, u32 zbufrender)
+{
+	vid.values[0] = components |
+		(xfregs.numTexGens << 23) |
+		(xfregs.nNumChans << 27) |
+		((u32)xfregs.bEnableDualTexTransform << 29) |
+		(zbufrender << 30);
+
+	for (int i = 0; i < 2; ++i) {
+		vid.values[1+i] = xfregs.colChans[i].color.enablelighting ?
+			(u32)xfregs.colChans[i].color.hex :
+			(u32)xfregs.colChans[i].color.matsource;
+		vid.values[1+i] |= (xfregs.colChans[i].alpha.enablelighting ?
+			(u32)xfregs.colChans[i].alpha.hex :
+			(u32)xfregs.colChans[i].alpha.matsource) << 15;
+	}
+
+	// fog
+	vid.values[1] |= (((u32)bpmem.fog.c_proj_fsel.fsel & 3) << 30);
+	vid.values[2] |= (((u32)bpmem.fog.c_proj_fsel.fsel >> 2) << 30);
+
+	u32* pcurvalue = &vid.values[3];
+	for (int i = 0; i < xfregs.numTexGens; ++i) {
+		TexMtxInfo tinfo = xfregs.texcoords[i].texmtxinfo;
+		if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP)
+			tinfo.hex &= 0x7ff;
+		if (tinfo.texgentype != XF_TEXGEN_REGULAR)
+			tinfo.projection = 0;
+
+		u32 val = ((tinfo.hex >> 1) & 0x1ffff);
+		if (xfregs.bEnableDualTexTransform && tinfo.texgentype == XF_TEXGEN_REGULAR) {
+			// rewrite normalization and post index
+			val |= ((u32)xfregs.texcoords[i].postmtxinfo.index << 17) | ((u32)xfregs.texcoords[i].postmtxinfo.normalize << 23);
+		}
+
+		switch (i & 3) {
+			case 0: pcurvalue[0] |= val; break;
+			case 1: pcurvalue[0] |= val << 24; pcurvalue[1] = val >> 8; ++pcurvalue; break;
+			case 2: pcurvalue[0] |= val << 16; pcurvalue[1] = val >> 16; ++pcurvalue; break;
+			case 3: pcurvalue[0] |= val << 8; ++pcurvalue; break;
+		}
+	}
+}
+
 static char text[16384];
 
 #define WRITE p+=sprintf

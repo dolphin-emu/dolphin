@@ -582,7 +582,7 @@ enum NormalSSEOps
 		}
 		else if (bits == 8)
 		{
-
+			// Do nothing - can't bswap a single byte...
 		}
 		else
 		{

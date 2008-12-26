@@ -96,7 +96,7 @@ void BPWritten(int addr, int changes, int newval)
             else if(glIsEnabled(GL_CULL_FACE) == GL_TRUE)
                    glDisable(GL_CULL_FACE);
 
-            PixelShaderMngr::SetGenModeChanged();
+            PixelShaderManager::SetGenModeChanged();
         }
         break;
 
@@ -112,7 +112,7 @@ void BPWritten(int addr, int changes, int newval)
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            PixelShaderMngr::SetIndMatrixChanged((addr-BPMEM_IND_MTX)/3);
+            PixelShaderManager::SetIndMatrixChanged((addr-BPMEM_IND_MTX)/3);
         }
         break;
     case BPMEM_RAS1_SS0:
@@ -120,7 +120,7 @@ void BPWritten(int addr, int changes, int newval)
         if (changes) {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            PixelShaderMngr::SetIndTexScaleChanged();
+            PixelShaderManager::SetIndTexScaleChanged();
         }
         break;
     case BPMEM_ZMODE:
@@ -152,7 +152,7 @@ void BPWritten(int addr, int changes, int newval)
             ((u32*)&bpmem)[addr] = newval;
             PRIM_LOG("alphacmp: ref0=%d, ref1=%d, comp0=%d, comp1=%d, logic=%d\n", bpmem.alphaFunc.ref0,
 				bpmem.alphaFunc.ref1, bpmem.alphaFunc.comp0, bpmem.alphaFunc.comp1, bpmem.alphaFunc.logic);
-            PixelShaderMngr::SetAlpha(bpmem.alphaFunc);
+            PixelShaderManager::SetAlpha(bpmem.alphaFunc);
         }
         break;
         
@@ -161,13 +161,13 @@ void BPWritten(int addr, int changes, int newval)
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
             PRIM_LOG("constalpha: alp=%d, en=%d\n", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
-            PixelShaderMngr::SetDestAlpha(bpmem.dstalpha);
+            PixelShaderManager::SetDestAlpha(bpmem.dstalpha);
         }
         break;
 
     case BPMEM_LINEPTWIDTH:
         {
-			float fratio = VertexShaderMngr::GetPixelAspectRatio();
+			float fratio = xfregs.rawViewport[0] != 0 ? (float)Renderer::GetTargetWidth() / 640.0f : 1.0f;
 			if (bpmem.lineptwidth.linesize > 0)
 				glLineWidth((float)bpmem.lineptwidth.linesize * fratio / 6.0f); // scale by ratio of widths
 			if (bpmem.lineptwidth.pointsize > 0)
@@ -363,7 +363,7 @@ void BPWritten(int addr, int changes, int newval)
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
             PRIM_LOG("ztex bias=0x%x\n", bpmem.ztex1.bias);
-            PixelShaderMngr::SetZTextureBias(bpmem.ztex1.bias);
+            PixelShaderManager::SetZTextureBias(bpmem.ztex1.bias);
         }
         break;
     case BPMEM_ZTEX2:
@@ -390,7 +390,7 @@ void BPWritten(int addr, int changes, int newval)
         {
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
-            PixelShaderMngr::SetTevKSelChanged(addr-0xf6);
+            PixelShaderManager::SetTevKSelChanged(addr-0xf6);
         }
         break;
     case 0x45: //GXSetDrawDone
@@ -488,7 +488,7 @@ void BPWritten(int addr, int changes, int newval)
                 glScissor(multirc.left, (Renderer::GetTargetHeight() - multirc.bottom), 
                     (multirc.right - multirc.left), (multirc.bottom - multirc.top)); 
 
-                VertexShaderMngr::SetViewportChanged();
+                VertexShaderManager::SetViewportChanged();
 
                 // Since clear operations use the source rectangle, we have to do
 				// regular renders (glClear clears the entire buffer)
@@ -572,7 +572,7 @@ void BPWritten(int addr, int changes, int newval)
             {
                 VertexManager::Flush();
                 ((u32*)&bpmem)[addr] = newval;
-                PixelShaderMngr::SetTevOrderChanged(addr - 0x28);
+                PixelShaderManager::SetTevOrderChanged(addr - 0x28);
             }
             break;
 
@@ -643,7 +643,7 @@ void BPWritten(int addr, int changes, int newval)
                 VertexManager::Flush();
                 ((u32*)&bpmem)[addr] = newval;
                 int num = (addr>>1)&0x3;
-                PixelShaderMngr::SetColorChanged(bpmem.tevregs[num].high.type, num);
+                PixelShaderManager::SetColorChanged(bpmem.tevregs[num].high.type, num);
             }
             else
                 ((u32*)&bpmem)[addr] = newval;
@@ -655,7 +655,7 @@ void BPWritten(int addr, int changes, int newval)
                 if (changes) {
                     VertexManager::Flush();
                     ((u32*)&bpmem)[addr] = newval;
-                    PixelShaderMngr::SetTevIndirectChanged(addr-0x10);
+                    PixelShaderManager::SetTevIndirectChanged(addr-0x10);
                 }
                 break;
 
@@ -663,7 +663,7 @@ void BPWritten(int addr, int changes, int newval)
                 if (changes) {
                     VertexManager::Flush();
                     ((u32*)&bpmem)[addr] = newval;
-                    PixelShaderMngr::SetTexDimsChanged((addr>>1)&0x7);
+                    PixelShaderManager::SetTexDimsChanged((addr>>1)&0x7);
                 }
                 break;
 
@@ -673,7 +673,7 @@ void BPWritten(int addr, int changes, int newval)
                 {
                     VertexManager::Flush();
                     ((u32*)&bpmem)[addr] = newval;
-                    PixelShaderMngr::SetTevCombinerChanged((addr&0x1f)/2);
+                    PixelShaderManager::SetTevCombinerChanged((addr&0x1f)/2);
                 }
                 break;
 

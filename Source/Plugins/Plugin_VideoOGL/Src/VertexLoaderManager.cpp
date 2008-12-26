@@ -106,11 +106,11 @@ void LoadCPReg(u32 sub_cmd, u32 value)
 	switch (sub_cmd & 0xF0)
 	{
 	case 0x30:
-		VertexShaderMngr::SetTexMatrixChangedA(value);
+		VertexShaderManager::SetTexMatrixChangedA(value);
 		break;
 
 	case 0x40:
-		VertexShaderMngr::SetTexMatrixChangedB(value);
+		VertexShaderManager::SetTexMatrixChangedB(value);
 		break;
 
 	case 0x50:
