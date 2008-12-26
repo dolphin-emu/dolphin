@@ -28,7 +28,9 @@
 #include "BPStructs.h"
 #include "XFStructs.h"
 #include "VertexShaderManager.h"
+#include "VertexShaderCache.h"
 #include "PixelShaderManager.h"
+#include "PixelShaderCache.h"
 #include "Utils.h"
 
 using namespace D3D;

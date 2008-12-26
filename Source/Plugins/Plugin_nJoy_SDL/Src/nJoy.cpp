@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Project description
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// 
 // Name: nJoy 
 // Description: A Dolphin Compatible Input Plugin
 //
@@ -32,13 +32,13 @@
 
 ////////////////////////
 // Include
-// ¯¯¯¯¯¯¯¯¯
+// 
 #include "nJoy.h"
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Variables
-// ¯¯¯¯¯¯¯¯¯
+// 
 
 // Rumble in windows
 #define _CONTROLLER_STATE_H // avoid certain declarations in nJoy.h
@@ -64,7 +64,7 @@ void __Logv(int log, int v, const char *format, ...) {}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // wxWidgets
-// ¯¯¯¯¯¯¯¯¯
+// 
 #if defined(HAVE_WX) && HAVE_WX
 	class wxDLLApp : public wxApp
 	{
@@ -81,7 +81,7 @@ void __Logv(int log, int v, const char *format, ...) {}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // DllMain 
-// ¯¯¯¯¯¯¯
+// 
 #ifdef _WIN32
 BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 						DWORD dwReason,		// reason called
@@ -117,10 +117,10 @@ BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Input Plugin Functions (from spec's)
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// 
 
 // Get properties of plugin
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// 
 void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
@@ -138,7 +138,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 }
 
 // Call config dialog
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// 
 void DllConfig(HWND _hParent)
 {		
 	#ifdef _WIN32
@@ -177,7 +177,7 @@ void DllDebugger(HWND _hParent, bool Show) {
 }
 
 // Init PAD (start emulation)
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// 
 void PAD_Initialize(SPADInitialize _PADInitialize)
 {	
 	emulator_running = TRUE;
@@ -212,7 +212,7 @@ void PAD_Initialize(SPADInitialize _PADInitialize)
 }
 
 // Shutdown PAD (stop emulation)
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// 
 void PAD_Shutdown()
 {
 	if (joysticks[0].enabled)
@@ -245,7 +245,7 @@ void PAD_Shutdown()
 
 
 // Set PAD status
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// 
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
 	if (!joysticks[_numPAD].enabled)
@@ -365,7 +365,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 
 
 // Set PAD attached pads
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// 
 unsigned int PAD_GetAttachedPads()
 {
 	unsigned int connected = 0;
@@ -388,10 +388,10 @@ unsigned int PAD_GetAttachedPads()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Custom Functions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// 
 
 // Read buttons status. Called from GetJoyState().
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// 
 void ReadButton(int controller, int button)
 {
 	int ctl_button = joysticks[controller].buttons[button];
@@ -402,7 +402,7 @@ void ReadButton(int controller, int button)
 }
 
 // Request joystick state
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// 
 void GetJoyState(int controller)
 {
 	SDL_JoystickUpdate();
@@ -420,8 +420,8 @@ void GetJoyState(int controller)
 	ReadButton(controller, CTL_Y_BUTTON);
 	ReadButton(controller, CTL_Z_TRIGGER);
 	ReadButton(controller, CTL_START);
-
-	PanicAlert("%i", CTL_A_BUTTON);
+	// Is there a purpose to this alert?
+	// PanicAlert("%i", CTL_A_BUTTON);
 	
 	//
 	if (joysticks[controller].halfpress < joyinfo[controller].NumButtons)
@@ -442,7 +442,7 @@ void GetJoyState(int controller)
 }
 
 // Search attached devices
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// 
 int Search_Devices()
 {
 	// load config
@@ -475,7 +475,7 @@ int Search_Devices()
 
 	#ifdef _DEBUG
 	fprintf(pFile, "Scanning for devices\n");
-	fprintf(pFile, "¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯\n");
+	fprintf(pFile, "\n");
 	#endif
 	
 	for(int i = 0; i < numjoy; i++ )
