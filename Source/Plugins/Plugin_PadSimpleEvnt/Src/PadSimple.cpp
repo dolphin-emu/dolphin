@@ -23,8 +23,6 @@
 #include "PadSimple.h"
 #include "IniFile.h"
 
-// FIXME
-#undef HAVE_WX
 #if defined(HAVE_WX) && HAVE_WX
 #include "GUI/ConfigDlg.h"
 #endif
@@ -150,12 +148,15 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Type = PLUGIN_TYPE_PAD;
 
 #ifdef DEBUGFAST 
-	sprintf(_PluginInfo->Name, "Dolphin Pad Event (DebugFast)");
-#elif defined _DEBUG
-	sprintf(_PluginInfo->Name, "Dolphin Pad Event");
+	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad (DebugFast)");
 #else
-	sprintf(_PluginInfo->Name, "Dolphin Pad Event (Debug)");
+#ifndef _DEBUG
+	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad");
+#else
+	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad (Debug)");
 #endif
+#endif
+
 }
 
 void DllConfig(HWND _hParent)

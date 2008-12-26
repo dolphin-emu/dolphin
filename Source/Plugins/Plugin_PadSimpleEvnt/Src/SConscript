@@ -3,10 +3,14 @@
 Import('env')
 import sys
 
-name = "Plugin_PadSimpleEvnt"
+name = "Plugin_PadSimple"
 
-if not env['GLTEST']:
-    print name + " Doesn't work without testgl"
+if not env['HAVE_X11']:
+    print name + " must have X11 to be build"
+    Return()
+
+if env['GLTEST']:
+    print name + " Doesn't work with testgl"
     Return()
 
 files = [
@@ -16,7 +20,8 @@ padenv = env.Clone()
 
 if padenv['HAVE_WX']:
     files += [ 
-#        "GUI/ConfigDlg.cpp",
+        "GUI/ConfigDlg.cpp",
+        "XInputBase.cpp",
         ]
 
 padenv.Append(LIBS = [ 'common' ])
