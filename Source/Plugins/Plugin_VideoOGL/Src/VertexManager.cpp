@@ -33,9 +33,6 @@ static u8 *s_pBaseBufferPointer = NULL;
 static std::vector< std::pair<u32, u32> > s_vStoredPrimitives; // every element, mode and count to be passed to glDrawArrays
 static u32 s_prevcomponents; // previous state set
 
-u8* s_pCurBufferPointer = NULL;
-
-
 static const GLenum c_primitiveType[8] =
 {
     GL_QUADS,

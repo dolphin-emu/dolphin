@@ -15,11 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
 #ifndef _VERTEXMANAGER_H
 #define _VERTEXMANAGER_H
 
 #include "CPMemory.h"
+#include "NativeVertexWriter.h"
 
 // Handles the OpenGL details of drawing lots of vertices quickly.
 // Other functionality is moving out.
@@ -30,16 +30,6 @@ bool Init();
 void Shutdown();
 
 void ResetBuffer();
-
-void AddVertices(int primitive, int numvertices);
-void Flush(); // flushes the current buffer
-
-int GetRemainingSize();  // remaining space in the current buffer.
-
-void EnableComponents(u32 components);  // very implementation specific - D3D9 won't need this one.
-
-// TODO: move, rename.
-extern u8* s_pCurBufferPointer;
 
 };
 

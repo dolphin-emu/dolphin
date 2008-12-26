@@ -15,6 +15,7 @@ files = [
 	"VertexShader.cpp",
 	"VertexShaderManager.cpp",
 	"ImageWrite.cpp",
+	"NativeVertexWriter.cpp",
 	"Statistics.cpp",
 	"Fifo.cpp",
 	"VideoState.cpp",

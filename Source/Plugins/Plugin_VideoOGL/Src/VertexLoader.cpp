@@ -29,11 +29,11 @@
 
 #include "LookUpTables.h"
 #include "Statistics.h"
-#include "VertexManager.h"
 #include "VertexLoaderManager.h"
 #include "VertexLoader.h"
 #include "BPMemory.h"
 #include "DataReader.h"
+#include "NativeVertexWriter.h"
 
 #include "VertexLoader_Position.h"
 #include "VertexLoader_Normal.h"

@@ -500,6 +500,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\NativeVertexWriter.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\NativeVertexWriter.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\OpcodeDecoding.cpp"
 			>
 		</File>
