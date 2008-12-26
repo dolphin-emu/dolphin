@@ -40,6 +40,7 @@
 #include "BPStructs.h"
 #include "TextureDecoder.h"
 #include "TextureMngr.h"
+#include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
 #include "VertexShaderManager.h"
 
@@ -578,7 +579,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     glViewport(0, 0, w, h);
 
     glEnable(GL_FRAGMENT_PROGRAM_ARB);
-    glBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, PixelShaderManager::GetColorMatrixProgram());
+    glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, PixelShaderCache::GetColorMatrixProgram());
     PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
     GL_REPORT_ERRORD();
     

@@ -38,6 +38,7 @@
 #include "TextureMngr.h"
 #include "rasterfont.h"
 #include "VertexShader.h"
+#include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
 #include "VertexLoaderManager.h"
 #include "VertexLoader.h"

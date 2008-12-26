@@ -285,7 +285,9 @@ public:
 	void JMP(OpArg arg);
 	void JMPptr(const OpArg &arg);
 	void JMPself(); //infinite loop!
-
+#ifdef CALL
+#undef CALL
+#endif
 	void CALL(const void *fnptr);
 	void CALLptr(OpArg arg);
 

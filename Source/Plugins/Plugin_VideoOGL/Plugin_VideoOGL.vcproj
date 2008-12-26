@@ -792,10 +792,26 @@
 				RelativePath=".\Src\VertexManager.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Src\XFStructs.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\XFStructs.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Render"
 			>
+			<File
+				RelativePath=".\Src\PixelShaderCache.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PixelShaderCache.h"
+				>
+			</File>
 			<File
 				RelativePath=".\Src\PixelShaderManager.cpp"
 				>
@@ -842,6 +858,14 @@
 			</File>
 			<File
 				RelativePath=".\Src\TextureMngr.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexShaderCache.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexShaderCache.h"
 				>
 			</File>
 			<File

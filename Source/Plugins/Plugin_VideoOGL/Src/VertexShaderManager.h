@@ -18,48 +18,7 @@
 #ifndef _VERTEXSHADERMANAGER_H
 #define _VERTEXSHADERMANAGER_H
 
-#include <map>
-#include <string>
-
-#include "GLUtil.h"
 #include "VertexShader.h"
-
-struct VERTEXSHADER
-{
-    VERTEXSHADER() : glprogid(0) {}
-    GLuint glprogid; // opengl program id
-
-#if defined(_DEBUG) || defined(DEBUGFAST) 
-	std::string strprog;
-#endif
-};
-
-class VertexShaderCache
-{
-    struct VSCacheEntry
-    { 
-        VERTEXSHADER shader;
-        int frameCount;
-        VSCacheEntry() : frameCount(0) {}
-        void Destroy() {
-			// printf("Destroying vs %i\n", shader.glprogid);
-            glDeleteProgramsARB(1, &shader.glprogid);
-			shader.glprogid = 0;
-        }
-    };
-
-    typedef std::map<VERTEXSHADERUID, VSCacheEntry> VSCache;
-
-    static VSCache vshaders;
-
-public:
-    static void Init();
-    static void Cleanup();
-    static void Shutdown();
-
-	static VERTEXSHADER* GetShader(u32 components);
-    static bool CompileVertexShader(VERTEXSHADER& ps, const char* pstrprogram);
-};
 
 // The non-API dependent parts.
 class VertexShaderManager
@@ -77,8 +36,10 @@ public:
     static void InvalidateXFRange(int start, int end);
     static void SetTexMatrixChangedA(u32 Value);
     static void SetTexMatrixChangedB(u32 Value);
-
-    static float* GetPosNormalMat();
+	static void SetMaterialColor(int index, u32 data);
 };
+
+void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4);
+void SetVSConstant4fv(int const_number, const float *f);
 
 #endif

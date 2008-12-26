@@ -14,7 +14,6 @@ files = [
 	'Globals.cpp',
 	'Config.cpp',
 	'memcpy_amd.cpp',
-	'PixelShaderManager.cpp',
 	'rasterfont.cpp',
 	'Render.cpp',
 	'TextureMngr.cpp',
@@ -27,7 +26,10 @@ files = [
 	'VertexLoader_Position.cpp',
 	'VertexLoader_TextCoord.cpp',
 	'VertexLoaderManager.cpp',
+	'PixelShaderManager.cpp',
 	'VertexShaderManager.cpp',
+	'PixelShaderCache.cpp',
+	'VertexShaderCache.cpp',
 	'TextureConverter.cpp',
 	'XFB.cpp',
 	]

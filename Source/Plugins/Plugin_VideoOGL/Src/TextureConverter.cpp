@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "TextureConverter.h"
-#include "PixelShaderManager.h"
+#include "PixelShaderCache.h"
 #include "VertexShaderManager.h"
 #include "Globals.h"
 #include "GLUtil.h"

@@ -18,50 +18,8 @@
 #ifndef _PIXELSHADERMANAGER_H
 #define _PIXELSHADERMANAGER_H
 
-#include <map>
-#include <string>
-
 #include "BPMemory.h"
 #include "PixelShader.h"
-
-struct FRAGMENTSHADER
-{
-	FRAGMENTSHADER() : glprogid(0) { }
-	GLuint glprogid; // opengl program id
-#if defined(_DEBUG) || defined(DEBUGFAST) 
-	std::string strprog;
-#endif
-};
-
-class PixelShaderCache
-{
-	struct PSCacheEntry
-	{
-		FRAGMENTSHADER shader;
-		int frameCount;
-		PSCacheEntry() : frameCount(0) {}
-		~PSCacheEntry() {}
-		void Destroy() {
-			// printf("Destroying ps %i\n", shader.glprogid);
-			glDeleteProgramsARB(1, &shader.glprogid);
-			shader.glprogid = 0;
-		}
-	};
-
-	typedef std::map<PIXELSHADERUID, PSCacheEntry> PSCache;
-
-	static PSCache pshaders;
-
-	static PIXELSHADERUID s_curuid; // the current pixel shader uid (progressively changed as memory is written)
-
-public:
-	static void Init();
-	static void Cleanup();
-	static void Shutdown();
-
-	static FRAGMENTSHADER* GetShader();
-	static bool CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram);
-};
 
 void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4);
 void SetPSConstant4fv(int const_number, const float *f);
@@ -96,7 +54,8 @@ public:
 	static void SetTexDimsChanged(int texmapid);
 
 	static void SetColorMatrix(const float* pmatrix, const float* pfConstAdd);
-	static GLuint GetColorMatrixProgram();
+
+	static u32 GetTextureMask();
 };
 
 

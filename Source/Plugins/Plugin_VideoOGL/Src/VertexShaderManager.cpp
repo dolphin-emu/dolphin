@@ -15,35 +15,21 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "Common.h"
 #include "Globals.h"
 #include "Profiler.h"
-#include "Config.h"
 
-#include "GLUtil.h"
-
-#include <Cg/cg.h>
-#include <Cg/cgGL.h>
-
-#include <math.h>
+#include <cmath>
 
 #include "Statistics.h"
-#include "ImageWrite.h"
+#include "Config.h"
+
 #include "Render.h"
 #include "VertexShader.h"
 #include "VertexShaderManager.h"
 #include "VertexManager.h"
 #include "VertexLoader.h"
-#include "BPMemory.h"
 #include "XFMemory.h"
-
-VertexShaderCache::VSCache VertexShaderCache::vshaders;
-
-static VERTEXSHADER *pShaderLast = NULL;
-
-static float GC_ALIGNED16(g_fProjectionMatrix[16]);
-
-// Internal Variables
-static int s_nMaxVertexInstructions;
 
 static float s_fMaterials[16];
 
@@ -55,13 +41,6 @@ static int nNormalMatricesChanged[2]; // min,max
 static int nPostTransformMatricesChanged[2]; // min,max
 static int nLightsChanged[2]; // min,max
 
-void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4) {
-    glProgramEnvParameter4fARB(GL_VERTEX_PROGRAM_ARB, const_number, f1, f2, f3, f4);
-}
-
-void SetVSConstant4fv(int const_number, const float *f) {
-	glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number, f);
-}
 
 void VertexShaderManager::Init()
 {
@@ -77,131 +56,9 @@ void VertexShaderManager::Init()
     memset(xfmem, 0, sizeof(xfmem));
 }
 
-void VertexShaderCache::Init()
-{
-    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);
-}
-
-void VertexShaderCache::Shutdown()
-{
-    for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end(); iter++)
-        iter->second.Destroy();
-    vshaders.clear();
-}
-
 void VertexShaderManager::Shutdown()
 {
 
-}
-
-VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
-{
-    DVSTARTPROFILE();
-    VERTEXSHADERUID uid;
-	u32 zbufrender = (bpmem.ztex2.op == ZTEXTURE_ADD) || Renderer::GetZBufferTarget() != 0;
-    GetVertexShaderId(uid, components, zbufrender);
-
-    VSCache::iterator iter = vshaders.find(uid);
-
-    if (iter != vshaders.end()) {
-        iter->second.frameCount = frameCount;
-        VSCacheEntry &entry = iter->second;
-        if (&entry.shader != pShaderLast) {
-            pShaderLast = &entry.shader;
-        }
-        return pShaderLast;
-    }
-
-    VSCacheEntry& entry = vshaders[uid];
-    const char *code = GenerateVertexShader(components, Renderer::GetZBufferTarget() != 0);
-
-#if defined(_DEBUG) || defined(DEBUGFAST)
-    if (g_Config.iLog & CONF_SAVESHADERS && code) {
-        static int counter = 0;
-        char szTemp[MAX_PATH];
-		sprintf(szTemp, "%s/vs_%04i.txt", g_Config.texDumpPath, counter++);
-
-        SaveData(szTemp, code);
-    }
-#endif
-
-    if (!code || !VertexShaderCache::CompileVertexShader(entry.shader, code)) {
-        ERROR_LOG("failed to create vertex shader\n");
-		return NULL;
-	}
-
-    //Make an entry in the table
-    entry.frameCount = frameCount;
-    pShaderLast = &entry.shader;
-    INCSTAT(stats.numVertexShadersCreated);
-    SETSTAT(stats.numVertexShadersAlive, vshaders.size());
-    return pShaderLast;
-}
-
-void VertexShaderCache::Cleanup()
-{
-    VSCache::iterator iter = vshaders.begin();
-    while (iter != vshaders.end()) {
-        VSCacheEntry &entry = iter->second;
-        if (entry.frameCount < frameCount - 200) {
-            entry.Destroy();
-#ifdef _WIN32
-            iter = vshaders.erase(iter);
-#else
-			vshaders.erase(iter++);
-#endif
-        }
-        else {
-            ++iter;
-		}
-    }
-
-    SETSTAT(stats.numVertexShadersAlive, vshaders.size());
-}
-
-bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
-{
-    char stropt[64];
-    sprintf(stropt, "MaxLocalParams=256,MaxInstructions=%d", s_nMaxVertexInstructions);
-    const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
-    CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgvProf, "main", opts);
-    if (!cgIsProgram(tempprog) || cgGetError() != CG_NO_ERROR) {
-        ERROR_LOG("Failed to load vs %s:\n", cgGetLastListing(g_cgcontext));
-        ERROR_LOG(pstrprogram);
-        return false;
-    }
-
-    //ERROR_LOG(pstrprogram);
-    //ERROR_LOG("id: %d\n", g_Config.iSaveTargetId);
-
-    char* pcompiledprog = (char*)cgGetProgramString(tempprog, CG_COMPILED_PROGRAM);
-    char* plocal = strstr(pcompiledprog, "program.local");
-
-    while (plocal != NULL) {
-        const char* penv = "  program.env";
-        memcpy(plocal, penv, 13);
-        plocal = strstr(plocal+13, "program.local");
-    }
-
-    glGenProgramsARB(1, &vs.glprogid);
-    glBindProgramARB(GL_VERTEX_PROGRAM_ARB, vs.glprogid);
-    glProgramStringARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
-
-    GLenum err = GL_NO_ERROR;
-    GL_REPORT_ERROR();
-    if( err != GL_NO_ERROR ) {
-        ERROR_LOG(pstrprogram);
-        ERROR_LOG(pcompiledprog);
-    }
-
-    cgDestroyProgram(tempprog);
-	// printf("Compiled vertex shader %i\n", vs.glprogid);
-
-#if defined(_DEBUG) || defined(DEBUGFAST) 
-    vs.strprog = pstrprogram;
-#endif
-
-    return true;
 }
 
 // =======================================================================================
@@ -416,6 +273,7 @@ void VertexShaderManager::SetConstants()
 
     if (bProjectionChanged) {
         bProjectionChanged = false;
+		static float GC_ALIGNED16(g_fProjectionMatrix[16]);
 
         if (xfregs.rawProjection[6] == 0) {
             g_fProjectionMatrix[0] = xfregs.rawProjection[0];
@@ -616,234 +474,38 @@ void VertexShaderManager::SetProjection(float* _pProjection, int constantIndex)
     bProjectionChanged = true;
 }
 
-float* VertexShaderManager::GetPosNormalMat()
+void VertexShaderManager::SetMaterialColor(int index, u32 data)
 {
-    return (float*)xfmem + MatrixIndexA.PosNormalMtxIdx * 4;
-}
-
-
-// LoadXFReg 0x10
-void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
-{
-    u32 address = baseAddress;
-    for (int i = 0; i < (int)transferSize; i++)
-    {
-        address = baseAddress + i;
-
-        // Setup a Matrix
-        if (address < 0x1000)
-        {
-            VertexManager::Flush();
-			VertexShaderManager::InvalidateXFRange(address, address + transferSize);
-            //PRIM_LOG("xfmem write: 0x%x-0x%x\n", address, address+transferSize);
-
-            u32* p1 = &xfmem[address];
-            memcpy_gc(p1, &pData[i], transferSize*4);
-            i += transferSize;
-        }
-        else if (address<0x2000)
-        {
-            u32 data = pData[i];
-            switch (address)
-            {
-            case 0x1000: // error
-                break;
-            case 0x1001: // diagnostics
-                break;
-            case 0x1002: // internal state 0
-                break;
-            case 0x1003: // internal state 1
-                break;
-            case 0x1004: // xf_clock
-                break;
-            case 0x1005: // clipdisable
-                if (data & 1) { // disable clipping detection
-                }
-                if (data & 2) { // disable trivial rejection
-                }
-                if (data & 4) { // disable cpoly clipping acceleration
-                }
-                break;
-            case 0x1006: //SetGPMetric
-                break;
-            case 0x1008: //__GXXfVtxSpecs, wrote 0004
-                xfregs.hostinfo = *(INVTXSPEC*)&data;
-                break;
-            case 0x1009: //GXSetNumChans (no)
-				if ((u32)xfregs.nNumChans != (data&3)) {
-                    VertexManager::Flush();
-                    xfregs.nNumChans = data&3;
-                }
-                break;
-            case 0x100a: //GXSetChanAmbientcolor
-                if (xfregs.colChans[0].ambColor != data) {
-                    VertexManager::Flush();
-                    nMaterialsChanged |= 1;
-                    xfregs.colChans[0].ambColor = data;
-                    s_fMaterials[0] = ((data>>24)&0xFF)/255.0f;
-                    s_fMaterials[1] = ((data>>16)&0xFF)/255.0f;
-                    s_fMaterials[2] = ((data>>8)&0xFF)/255.0f;
-                    s_fMaterials[3] = ((data)&0xFF)/255.0f;
-                }
-                break;
-            case 0x100b: //GXSetChanAmbientcolor
-                if (xfregs.colChans[1].ambColor != data) {
-                    VertexManager::Flush();
-                    nMaterialsChanged |= 2;
-                    xfregs.colChans[1].ambColor = data;
-                    s_fMaterials[4] = ((data>>24)&0xFF)/255.0f;
-                    s_fMaterials[5] = ((data>>16)&0xFF)/255.0f;
-                    s_fMaterials[6] = ((data>>8)&0xFF)/255.0f;
-                    s_fMaterials[7] = ((data)&0xFF)/255.0f;
-                }
-                break;
-            case 0x100c: //GXSetChanMatcolor (rgba)
-                if (xfregs.colChans[0].matColor != data) {
-                    VertexManager::Flush();
-                    nMaterialsChanged |= 4;
-                    xfregs.colChans[0].matColor = data;
-                    s_fMaterials[8] = ((data>>24)&0xFF)/255.0f;
-                    s_fMaterials[9] = ((data>>16)&0xFF)/255.0f;
-                    s_fMaterials[10] = ((data>>8)&0xFF)/255.0f;
-                    s_fMaterials[11] = ((data)&0xFF)/255.0f;
-                }
-                break;
-            case 0x100d: //GXSetChanMatcolor (rgba)
-                if (xfregs.colChans[1].matColor != data) {
-                    VertexManager::Flush();
-                    nMaterialsChanged |= 8;
-                    xfregs.colChans[1].matColor = data;
-                    s_fMaterials[12] = ((data>>24)&0xFF)/255.0f;
-                    s_fMaterials[13] = ((data>>16)&0xFF)/255.0f;
-                    s_fMaterials[14] = ((data>>8)&0xFF)/255.0f;
-                    s_fMaterials[15] = ((data)&0xFF)/255.0f;
-                }
-                break;
-
-            case 0x100e: // color0
-                if (xfregs.colChans[0].color.hex != (data&0x7fff) ) {
-                    VertexManager::Flush();
-                    xfregs.colChans[0].color.hex = data;
-                }
-                break;
-            case 0x100f: // color1
-                if (xfregs.colChans[1].color.hex != (data&0x7fff) ) {
-                    VertexManager::Flush();
-                    xfregs.colChans[1].color.hex = data;
-                }
-                break;
-            case 0x1010: // alpha0
-                if (xfregs.colChans[0].alpha.hex != (data&0x7fff) ) {
-                    VertexManager::Flush();
-                    xfregs.colChans[0].alpha.hex = data;
-                }
-                break;
-            case 0x1011: // alpha1
-                if (xfregs.colChans[1].alpha.hex != (data&0x7fff) ) {
-                    VertexManager::Flush();
-                    xfregs.colChans[1].alpha.hex = data;
-                }
-                break;
-            case 0x1012: // dual tex transform
-                if (xfregs.bEnableDualTexTransform != (data & 1)) {
-                    VertexManager::Flush();
-                    xfregs.bEnableDualTexTransform = data & 1;
-                }
-                break;
-
-            case 0x1013:
-            case 0x1014:
-            case 0x1015:
-            case 0x1016:
-            case 0x1017:
-                DEBUG_LOG("xf addr: %x=%x\n", address, data);
-                break;
-            case 0x1018:
-                //_assert_msg_(GX_XF, 0, "XF matrixindex0");
-				VertexShaderManager::SetTexMatrixChangedA(data); //?
-                break;
-            case 0x1019:
-                //_assert_msg_(GX_XF, 0, "XF matrixindex1");
-                VertexShaderManager::SetTexMatrixChangedB(data); //?
-                break;
-
-            case 0x101a:
-                VertexManager::Flush();
-                VertexShaderManager::SetViewport((float*)&pData[i]);
-                i += 6;
-                break;
-
-            case 0x101c: // paper mario writes 16777216.0f, 1677721.75
-                break;
-            case 0x101f: // paper mario writes 16777216.0f, 5033165.0f
-                break;
-
-            case 0x1020:
-                VertexManager::Flush();
-                VertexShaderManager::SetProjection((float*)&pData[i]);
-                i += 7;
-                return;
-
-            case 0x103f: // GXSetNumTexGens
-                if ((u32)xfregs.numTexGens != data) {
-                    VertexManager::Flush();
-                    xfregs.numTexGens = data;
-                }
-                break;
-
-            case 0x1040: xfregs.texcoords[0].texmtxinfo.hex = data; break;
-            case 0x1041: xfregs.texcoords[1].texmtxinfo.hex = data; break;
-            case 0x1042: xfregs.texcoords[2].texmtxinfo.hex = data; break;
-            case 0x1043: xfregs.texcoords[3].texmtxinfo.hex = data; break;
-            case 0x1044: xfregs.texcoords[4].texmtxinfo.hex = data; break;
-            case 0x1045: xfregs.texcoords[5].texmtxinfo.hex = data; break;
-            case 0x1046: xfregs.texcoords[6].texmtxinfo.hex = data; break;
-            case 0x1047: xfregs.texcoords[7].texmtxinfo.hex = data; break;
-
-            case 0x1048:
-            case 0x1049:
-            case 0x104a:
-            case 0x104b:
-            case 0x104c:
-            case 0x104d:
-            case 0x104e:
-            case 0x104f:
-                DEBUG_LOG("xf addr: %x=%x\n", address, data);
-                break;
-            case 0x1050: xfregs.texcoords[0].postmtxinfo.hex = data; break;
-            case 0x1051: xfregs.texcoords[1].postmtxinfo.hex = data; break;
-            case 0x1052: xfregs.texcoords[2].postmtxinfo.hex = data; break;
-            case 0x1053: xfregs.texcoords[3].postmtxinfo.hex = data; break;
-            case 0x1054: xfregs.texcoords[4].postmtxinfo.hex = data; break;
-            case 0x1055: xfregs.texcoords[5].postmtxinfo.hex = data; break;
-            case 0x1056: xfregs.texcoords[6].postmtxinfo.hex = data; break;
-            case 0x1057: xfregs.texcoords[7].postmtxinfo.hex = data; break;
-
-            default:
-                DEBUG_LOG("xf addr: %x=%x\n", address, data);
-                break;
-            }
-        }
-        else if (address >= 0x4000)
-        {
-            // MessageBox(NULL, "1", "1", MB_OK);
-            //4010 __GXSetGenMode
-        }
-    }
-}
-
-// TODO - verify that it is correct. Seems to work, though.
-void LoadIndexedXF(u32 val, int array)
-{
-    int index = val >> 16;
-    int address = val & 0xFFF; //check mask
-    int size = ((val >> 12) & 0xF) + 1;
-    //load stuff from array to address in xf mem
-
-    VertexManager::Flush();
-    VertexShaderManager::InvalidateXFRange(address, address+size);
-    //PRIM_LOG("xfmem iwrite: 0x%x-0x%x\n", address, address+size);
-
-    for (int i = 0; i < size; i++)
-        xfmem[address + i] = Memory_Read_U32(arraybases[array] + arraystrides[array]*index + i*4);
+	// TODO: collapse
+	switch (index)
+	{
+	case 0:
+        nMaterialsChanged |= 1;
+        s_fMaterials[0] = ((data>>24)&0xFF)/255.0f;
+        s_fMaterials[1] = ((data>>16)&0xFF)/255.0f;
+        s_fMaterials[2] = ((data>>8)&0xFF)/255.0f;
+        s_fMaterials[3] = ((data)&0xFF)/255.0f;
+		break;
+	case 1:
+        nMaterialsChanged |= 2;
+        s_fMaterials[4] = ((data>>24)&0xFF)/255.0f;
+        s_fMaterials[5] = ((data>>16)&0xFF)/255.0f;
+        s_fMaterials[6] = ((data>>8)&0xFF)/255.0f;
+        s_fMaterials[7] = ((data)&0xFF)/255.0f;
+		break;
+	case 2:
+        nMaterialsChanged |= 4;
+        s_fMaterials[8] = ((data>>24)&0xFF)/255.0f;
+        s_fMaterials[9] = ((data>>16)&0xFF)/255.0f;
+        s_fMaterials[10] = ((data>>8)&0xFF)/255.0f;
+        s_fMaterials[11] = ((data)&0xFF)/255.0f;
+		break;
+	case 3:
+        nMaterialsChanged |= 8;
+        s_fMaterials[12] = ((data>>24)&0xFF)/255.0f;
+        s_fMaterials[13] = ((data>>16)&0xFF)/255.0f;
+        s_fMaterials[14] = ((data>>8)&0xFF)/255.0f;
+        s_fMaterials[15] = ((data)&0xFF)/255.0f;
+		break;
+	}
 }
