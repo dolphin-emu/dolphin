@@ -338,7 +338,7 @@ void PixelShaderManager::SetTexDimsChanged(int texmapid)
 
 void PixelShaderManager::SetColorMatrix(const float* pmatrix, const float* pfConstAdd)
 {
-    SetPSConstant4fv(C_COLORMATRIX, pmatrix);
+    SetPSConstant4fv(C_COLORMATRIX,   pmatrix);
     SetPSConstant4fv(C_COLORMATRIX+1, pmatrix+4);
     SetPSConstant4fv(C_COLORMATRIX+2, pmatrix+8);
     SetPSConstant4fv(C_COLORMATRIX+3, pmatrix+12);
