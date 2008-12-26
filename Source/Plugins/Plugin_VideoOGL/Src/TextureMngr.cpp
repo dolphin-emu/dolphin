@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <vector>
+
 #include "Globals.h"
 
 #ifdef _WIN32
@@ -66,7 +68,27 @@ const GLint c_MinLinearFilter[8] = {
 	GL_LINEAR
 };
 
-const GLint c_WrapSettings[4] = { GL_CLAMP_TO_EDGE, GL_REPEAT, GL_MIRRORED_REPEAT, GL_REPEAT };
+const GLint c_WrapSettings[4] = {
+	GL_CLAMP_TO_EDGE,
+	GL_REPEAT,
+	GL_MIRRORED_REPEAT,
+	GL_REPEAT
+};
+
+bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height)
+{
+    GL_REPORT_ERRORD();
+	std::vector<u32> data(width * height);
+    glBindTexture(textarget, tex);
+    glGetTexImage(textarget, 0, GL_BGRA, GL_UNSIGNED_BYTE, &data[0]);
+    GLenum err;
+    GL_REPORT_ERROR();
+    if (err != GL_NO_ERROR)
+	{
+        return false;
+    }
+    return SaveTGA(filename, width, height, &data[0]);
+}
 
 void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode)
 {
@@ -103,13 +125,13 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode)
     
     if (g_Config.iMaxAnisotropy >= 1)
     {
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1 << g_Config.iMaxAnisotropy);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, (float)(1 << g_Config.iMaxAnisotropy));
     }
 }
 
 void TextureMngr::TCacheEntry::Destroy()
 {
-    if(!texture)
+    if (!texture)
         return;
     glDeleteTextures(1, &texture);
     if (!isRenderTarget) {

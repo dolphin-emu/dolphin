@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Globals.h"
-#include "GLUtil.h"
 
 #include <stdio.h>
 #include <list>
@@ -72,21 +71,6 @@ bool SaveTGA(const char* filename, int width, int height, void* pdata)
     fwrite(pdata, width * height * 4, 1, f);
     fclose(f);
     return true;
-}
-
-bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height)
-{
-    GL_REPORT_ERRORD();
-	std::vector<u32> data(width * height);
-    glBindTexture(textarget, tex);
-    glGetTexImage(textarget, 0, GL_BGRA, GL_UNSIGNED_BYTE, &data[0]);
-    GLenum err;
-    GL_REPORT_ERROR();
-    if (err != GL_NO_ERROR)
-	{
-        return false;
-    }
-    return SaveTGA(filename, width, height, &data[0]);
 }
 
 bool SaveData(const char* filename, const char* data)

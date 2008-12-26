@@ -52,4 +52,9 @@ inline float Memory_Read_Float(u32 _uAddress)
 	return temp.f;
 }
 
+struct TRectangle
+{ 
+	int left, top, right, bottom;
+};
+
 #endif  // _VIDEOCOMMON_H

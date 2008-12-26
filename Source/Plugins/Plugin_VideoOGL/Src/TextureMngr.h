@@ -20,13 +20,9 @@
 
 #include <map>
 
+#include "VideoCommon.h"
 #include "GLUtil.h"
 #include "BPStructs.h"
-
-struct TRectangle
-{ 
-	int left, top, right, bottom;
-};
 
 class TextureMngr
 {
@@ -73,7 +69,6 @@ private:
     static int nTex2DEnabled, nTexRECTEnabled;
 
 public:
-
     static void Init();
     static void Cleanup();
     static void Shutdown();
@@ -86,5 +81,6 @@ public:
     static void DisableStage(int stage); // sets active texture
 };
 
-#endif
+bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height);
 
+#endif

@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
-#include "Globals.h"
 #include "Profiler.h"
 
 #include <cmath>
@@ -24,8 +23,10 @@
 #include "Statistics.h"
 #include "Config.h"
 
-#include "Render.h"
 #include "PixelShaderManager.h"
+
+// TODO: move logging to VideoCommon. Until then -
+#define PRIM_LOG(x, ...)
 
 static int s_nColorsChanged[2]; // 0 - regular colors, 1 - k colors
 static int s_nIndTexMtxChanged = 0;

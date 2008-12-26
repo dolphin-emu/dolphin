@@ -18,7 +18,8 @@
 #ifndef _TEXTURECONVERTER_H
 #define _TEXTURECONVERTER_H
 
-#include "TextureMngr.h"
+#include "VideoCommon.h"
+#include "GLutil.h"
 
 // Converts textures between formats
 // TODO: support multiple texture formats

@@ -27,7 +27,6 @@ void SetPSConstant4fv(int const_number, const float *f);
 // The non-API dependent parts.
 class PixelShaderManager
 {
-
 	static void SetPSTextureDims(int texid);
 public:
 	static void Init();
