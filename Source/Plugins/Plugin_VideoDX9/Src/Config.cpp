@@ -39,7 +39,6 @@ void Config::Load()
 
 	iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
 	iniFile.Get("Settings", "Postprocess", &iPostprocessEffect, 0);
-	iniFile.Get("Settings", "DLOptimize", &iCompileDLsLevel, 0);
 	iniFile.Get("Settings", "DumpTextures", &bDumpTextures, 0);
 	iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
 	iniFile.Get("Settings", "Multisample", &iMultisampleMode, 0);
@@ -67,7 +66,6 @@ void Config::Save()
 	iniFile.Set("Settings", "OverlayStats", bOverlayStats);
 	iniFile.Set("Settings", "OverlayStats", bOverlayStats);
 	iniFile.Set("Settings", "Postprocess", iPostprocessEffect);
-	iniFile.Set("Settings", "DLOptimize", iCompileDLsLevel);
 	iniFile.Set("Settings", "DumpTextures", bDumpTextures);
 	iniFile.Set("Settings", "ShowShaderErrors", bShowShaderErrors);
 	iniFile.Set("Settings", "Multisample", iMultisampleMode);

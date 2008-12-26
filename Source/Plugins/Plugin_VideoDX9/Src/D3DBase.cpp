@@ -21,10 +21,11 @@
 
 namespace D3D
 {
-	bool fullScreen = false, nextFullScreen=false;
-	LPDIRECT3D9             D3D = NULL; // Used to create the D3DDevice
-	LPDIRECT3DDEVICE9       dev = NULL; // Our rendering device
-	LPDIRECT3DSURFACE9      backBuffer;
+	bool fullScreen = false;
+	bool nextFullScreen = false;
+	LPDIRECT3D9        D3D = NULL; // Used to create the D3DDevice
+	LPDIRECT3DDEVICE9  dev = NULL; // Our rendering device
+	LPDIRECT3DSURFACE9 backBuffer;
 	D3DCAPS9 caps;
 	int multisample;
 	int resolution;
@@ -163,7 +164,7 @@ namespace D3D
 				{
 					if (qlevels > 2)
 					{
-						// 8x, 8xQ are available
+						// 16x, 16xQ are available
 						// See http://developer.nvidia.com/object/coverage-sampled-aa.html
 						a.aa_levels.push_back(AALevel("16x CSAA", D3DMULTISAMPLE_4_SAMPLES, 4));
 						a.aa_levels.push_back(AALevel("16xQ CSAA", D3DMULTISAMPLE_8_SAMPLES, 2));
@@ -337,10 +338,12 @@ namespace D3D
 	{
 		return xres;
 	}
+
 	int GetDisplayHeight()
 	{
 		return yres;
 	}
+
 	void SwitchFullscreen(bool fullscreen)
 	{
 		nextFullScreen = fullscreen;
@@ -386,4 +389,4 @@ namespace D3D
 		}
 	}
 
-}
+}  // namespace

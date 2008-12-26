@@ -31,7 +31,6 @@ struct Config
 	int iMultisampleMode;
 
 	int iPostprocessEffect;
-	int iCompileDLsLevel;
 
 	bool renderToMainframe;
 	bool bFullscreen;

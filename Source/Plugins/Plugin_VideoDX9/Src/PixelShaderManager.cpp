@@ -24,7 +24,6 @@
 #include "BPMemory.h"
 #include "XFMemory.h"
 
-
 PShaderCache::PSCache PShaderCache::pshaders;
 
 //I hope we don't get too many hash collisions :p

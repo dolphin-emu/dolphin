@@ -112,12 +112,12 @@ struct TabAdvanced : public W32Util::Tab
 {
 	void Init(HWND hDlg)
 	{
-		HWND opt = GetDlgItem(hDlg,IDC_DLOPTLEVEL);
-		ComboBox_AddString(opt,"0: Interpret (slowest, most compatible)");
-		ComboBox_AddString(opt,"1: Compile lists and decode vertex lists");
+//		HWND opt = GetDlgItem(hDlg,IDC_DLOPTLEVEL);
+//		ComboBox_AddString(opt,"0: Interpret (slowest, most compatible)");
+//		ComboBox_AddString(opt,"1: Compile lists and decode vertex lists");
 		//ComboBox_AddString(opt,"2: Compile+decode to vbufs and use hw xform");
 		//ComboBox_AddString(opt,"Recompile to vbuffers and shaders");
-		ComboBox_SetCurSel(opt,g_Config.iCompileDLsLevel);
+//		ComboBox_SetCurSel(opt,g_Config.iCompileDLsLevel);
 
 		Button_SetCheck(GetDlgItem(hDlg,IDC_OVERLAYSTATS), g_Config.bOverlayStats);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_WIREFRAME), g_Config.bWireFrame);
@@ -158,31 +158,10 @@ struct TabAdvanced : public W32Util::Tab
 		g_Config.bOverlayStats = Button_GetCheck(GetDlgItem(hDlg,IDC_OVERLAYSTATS)) ? true : false;
 		g_Config.bWireFrame    = Button_GetCheck(GetDlgItem(hDlg,IDC_WIREFRAME)) ? true : false;
 		g_Config.bDumpTextures = Button_GetCheck(GetDlgItem(hDlg,IDC_TEXDUMP)) ? true : false;
-		g_Config.iCompileDLsLevel = (int)ComboBox_GetCurSel(GetDlgItem(hDlg,IDC_DLOPTLEVEL));
 		g_Config.bShowShaderErrors = Button_GetCheck(GetDlgItem(hDlg,IDC_SHOWSHADERERRORS)) ? true : false;
 		char temp[MAX_PATH];
 		GetWindowText(GetDlgItem(hDlg,IDC_TEXDUMPPATH), temp, MAX_PATH);
 		g_Config.texDumpPath = temp;
-	}
-};
-
-struct TabDebug : public W32Util::Tab
-{
-	void Init(HWND hDlg)
-	{
-	}
-	void Command(HWND hDlg,WPARAM wParam)
-	{
-		/*
-		switch (LOWORD(wParam))
-		{
-		default:
-			break;
-		}
-		*/
-	}
-	void Apply(HWND hDlg)
-	{
 	}
 };
 
@@ -234,7 +213,6 @@ void DlgSettings_Show(HINSTANCE hInstance, HWND _hParent)
 	sheet.Add(new TabDirect3D,(LPCTSTR)IDD_SETTINGS,"Direct3D");
 	sheet.Add(new TabEnhancements,(LPCTSTR)IDD_ENHANCEMENTS,"Enhancements");
 	sheet.Add(new TabAdvanced,(LPCTSTR)IDD_ADVANCED,"Advanced");
-	//sheet.Add(new TabDebug,(LPCTSTR)IDD_DEBUGGER,"Debugger");
 	sheet.Show(hInstance,_hParent,"Graphics Plugin");
 	g_Config.Save();
 

@@ -25,9 +25,8 @@ namespace VertexManager
 void AddVertices(int primitive, int numvertices);
 void Flush(); // flushes the current buffer
 
-// These two don't really belong here and are not relevant for D3D - TODO, find better place to put them.
+// This doesn't really belong here and are not relevant for D3D - TODO, find better place to put them.
 int GetRemainingSize();  // remaining space in the current buffer.
-void EnableComponents(u32 components);  // very implementation specific - D3D9 won't need this one.
 
 // TODO: move, rename.
 extern u8* s_pCurBufferPointer;

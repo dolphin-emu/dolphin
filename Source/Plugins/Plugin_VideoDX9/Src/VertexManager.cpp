@@ -230,12 +230,7 @@ void Flush()
 			else
 			{
 				D3D::dev->SetIndices(0);
-
-				// D3D::dev->DrawPrimitiveUP(D3DPT_POINTLIST,
-				//	                      numVertices,
-				//						  fakeVBuffer,
-				//						  sizeof(D3DVertex));
-				Renderer::DrawPrimitiveUP( D3DPT_POINTLIST, numVertices, fakeVBuffer, sizeof(D3DVertex) );
+				D3D::dev->DrawPrimitiveUP(D3DPT_POINTLIST, numVertices, fakeVBuffer, sizeof(D3DVertex));
 			}
 		}
 		collection = C_NOTHING;

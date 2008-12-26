@@ -31,7 +31,6 @@ static GLuint s_vboBuffers[0x40] = {0};
 static int s_nCurVBOIndex = 0; // current free buffer
 static u8 *s_pBaseBufferPointer = NULL;
 static std::vector< std::pair<u32, u32> > s_vStoredPrimitives; // every element, mode and count to be passed to glDrawArrays
-static u32 s_prevcomponents; // previous state set
 
 static const GLenum c_primitiveType[8] =
 {
@@ -47,7 +46,6 @@ static const GLenum c_primitiveType[8] =
 
 bool Init()
 {
-	s_prevcomponents = 0;
 	s_pBaseBufferPointer = (u8*)AllocateMemoryPages(MAX_BUFFER_SIZE);
 	s_pCurBufferPointer = s_pBaseBufferPointer;
 
@@ -91,7 +89,8 @@ int GetRemainingSize()
 
 void AddVertices(int primitive, int numvertices)
 {
-	_assert_( numvertices > 0 );
+	_assert_(numvertices > 0);
+	_assert_(g_nativeVertexFmt != NULL);
 
 	ADDSTAT(stats.thisFrame.numPrims, numvertices);
 	if (s_vStoredPrimitives.size() && s_vStoredPrimitives[s_vStoredPrimitives.size() - 1].first == c_primitiveType[primitive]) {
@@ -137,8 +136,8 @@ void Flush()
 
 	for (int i = 0; i < xfregs.numTexGens; ++i) {
 		TexMtxInfo tinfo = xfregs.texcoords[i].texmtxinfo;
-		if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP ) tinfo.hex &= 0x7ff;
-		if (tinfo.texgentype != XF_TEXGEN_REGULAR ) tinfo.projection = 0;
+		if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP) tinfo.hex &= 0x7ff;
+		if (tinfo.texgentype != XF_TEXGEN_REGULAR) tinfo.projection = 0;
 
 		PRIM_LOG("txgen%d: proj=%d, input=%d, gentype=%d, srcrow=%d, embsrc=%d, emblght=%d, postmtx=%d, postnorm=%d\n",
 			i, tinfo.projection, tinfo.inputform, tinfo.texgentype, tinfo.sourcerow, tinfo.embosssourceshift, tinfo.embosslightshift,
@@ -199,6 +198,7 @@ void Flush()
 						TextureMngr::EnableTexRECT(i);
 					}
 					// if texture is power of two, set to ones (since don't need scaling)
+					// (the above seems to have changed - we set the width and height here too.
 					else 
 					{
 						PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, 0, 0);
@@ -225,13 +225,13 @@ void Flush()
 	}
 
 	FRAGMENTSHADER* ps = PixelShaderCache::GetShader();
-	VERTEXSHADER* vs = VertexShaderCache::GetShader(s_prevcomponents);
+	VERTEXSHADER* vs = VertexShaderCache::GetShader(g_nativeVertexFmt->m_components);
 
 	bool bRestoreBuffers = false;
 	if (Renderer::GetZBufferTarget()) {
 		if (bpmem.zmode.updateenable) {
 			if (!bpmem.blendmode.colorupdate) {
-				Renderer::SetRenderMode(bpmem.blendmode.alphaupdate?Renderer::RM_ZBufferAlpha:Renderer::RM_ZBufferOnly);    
+				Renderer::SetRenderMode(bpmem.blendmode.alphaupdate ? Renderer::RM_ZBufferAlpha : Renderer::RM_ZBufferOnly);    
 			}
 		}
 		else {
@@ -296,83 +296,6 @@ void Flush()
 	}
 
 	ResetBuffer();
-}
-
-// This should move into NativeVertexFormat
-void EnableComponents(u32 components)
-{
-    if (s_prevcomponents != components) {
-		if (s_vStoredPrimitives.size() != 0)
-			VertexManager::Flush();
-
-        // matrices
-        if ((components & VB_HAS_POSMTXIDX) != (s_prevcomponents & VB_HAS_POSMTXIDX)) {
-            if (components & VB_HAS_POSMTXIDX)
-                glEnableVertexAttribArray(SHADER_POSMTX_ATTRIB);
-            else
-                glDisableVertexAttribArray(SHADER_POSMTX_ATTRIB);
-        }
-
-        // normals
-        if ((components & VB_HAS_NRM0) != (s_prevcomponents & VB_HAS_NRM0)) {
-            if (components & VB_HAS_NRM0)
-                glEnableClientState(GL_NORMAL_ARRAY);
-            else
-                glDisableClientState(GL_NORMAL_ARRAY);
-        }
-        if ((components & VB_HAS_NRM1) != (s_prevcomponents & VB_HAS_NRM1)) {
-            if (components & VB_HAS_NRM1) {
-                glEnableVertexAttribArray(SHADER_NORM1_ATTRIB);
-                glEnableVertexAttribArray(SHADER_NORM2_ATTRIB);
-            }
-            else {
-                glDisableVertexAttribArray(SHADER_NORM1_ATTRIB);
-                glDisableVertexAttribArray(SHADER_NORM2_ATTRIB);
-            }
-        }
-
-        // color
-        for (int i = 0; i < 2; ++i) {
-            if ((components & (VB_HAS_COL0 << i)) != (s_prevcomponents & (VB_HAS_COL0 << i))) {
-                if (components & (VB_HAS_COL0 << 0))
-                    glEnableClientState(i ? GL_SECONDARY_COLOR_ARRAY : GL_COLOR_ARRAY);
-                else
-                    glDisableClientState(i ? GL_SECONDARY_COLOR_ARRAY : GL_COLOR_ARRAY);
-            }
-        }
-
-        // tex
-		if (!g_Config.bDisableTexturing) {
-			for (int i = 0; i < 8; ++i) {
-				if ((components & (VB_HAS_UV0 << i)) != (s_prevcomponents & (VB_HAS_UV0 << i))) {
-					glClientActiveTexture(GL_TEXTURE0 + i);
-					if (components & (VB_HAS_UV0 << i))
-						glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-					else
-						glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-				}
-			}
-		}
-		else // Disable Texturing
-		{
-			for (int i = 0; i < 8; ++i) {
-				glClientActiveTexture(GL_TEXTURE0 + i);
-			    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-			}
-		}
-
-
-		// Disable Lighting	
-		// TODO - move to better spot
-		if (g_Config.bDisableLighting) {
-			for (int i = 0; i < xfregs.nNumChans; i++)
-			{
-				xfregs.colChans[i].alpha.enablelighting = false;
-				xfregs.colChans[i].color.enablelighting = false;
-			}
-		}
-		s_prevcomponents = components;
-	}
 }
 
 }  // namespace

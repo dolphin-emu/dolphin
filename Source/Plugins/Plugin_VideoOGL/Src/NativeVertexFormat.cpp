@@ -24,8 +24,11 @@
 
 #include "CPMemory.h"
 #include "NativeVertexFormat.h"
+#include "NativeVertexWriter.h"
 
 #define COMPILED_CODE_SIZE 4096
+
+u32 s_prevcomponents; // previous state set
 
 #ifdef _WIN32
 #define USE_JIT
@@ -56,8 +59,10 @@ class GLVertexFormat : public NativeVertexFormat
 public:
 	GLVertexFormat();
 	~GLVertexFormat();
+
 	virtual void Initialize(const PortableVertexDeclaration &_vtx_decl);
 	virtual void SetupVertexPointers() const;
+	virtual void EnableComponents(u32 components);
 };
 
 
@@ -203,4 +208,78 @@ void GLVertexFormat::SetupVertexPointers() const {
 		glVertexAttribPointer(SHADER_POSMTX_ATTRIB, 4, GL_UNSIGNED_BYTE, GL_FALSE, vtx_decl.stride, (void *)vtx_decl.posmtx_offset);
 	}
 #endif
+}
+
+void GLVertexFormat::EnableComponents(u32 components)
+{
+	if (s_prevcomponents != components) {
+		VertexManager::Flush();
+
+		// matrices
+		if ((components & VB_HAS_POSMTXIDX) != (s_prevcomponents & VB_HAS_POSMTXIDX)) {
+			if (components & VB_HAS_POSMTXIDX)
+				glEnableVertexAttribArray(SHADER_POSMTX_ATTRIB);
+			else
+				glDisableVertexAttribArray(SHADER_POSMTX_ATTRIB);
+		}
+
+		// normals
+		if ((components & VB_HAS_NRM0) != (s_prevcomponents & VB_HAS_NRM0)) {
+			if (components & VB_HAS_NRM0)
+				glEnableClientState(GL_NORMAL_ARRAY);
+			else
+				glDisableClientState(GL_NORMAL_ARRAY);
+		}
+		if ((components & VB_HAS_NRM1) != (s_prevcomponents & VB_HAS_NRM1)) {
+			if (components & VB_HAS_NRM1) {
+				glEnableVertexAttribArray(SHADER_NORM1_ATTRIB);
+				glEnableVertexAttribArray(SHADER_NORM2_ATTRIB);
+			}
+			else {
+				glDisableVertexAttribArray(SHADER_NORM1_ATTRIB);
+				glDisableVertexAttribArray(SHADER_NORM2_ATTRIB);
+			}
+		}
+
+		// color
+		for (int i = 0; i < 2; ++i) {
+			if ((components & (VB_HAS_COL0 << i)) != (s_prevcomponents & (VB_HAS_COL0 << i))) {
+				if (components & (VB_HAS_COL0 << 0))
+					glEnableClientState(i ? GL_SECONDARY_COLOR_ARRAY : GL_COLOR_ARRAY);
+				else
+					glDisableClientState(i ? GL_SECONDARY_COLOR_ARRAY : GL_COLOR_ARRAY);
+			}
+		}
+
+		// tex
+		if (!g_Config.bDisableTexturing) {
+			for (int i = 0; i < 8; ++i) {
+				if ((components & (VB_HAS_UV0 << i)) != (s_prevcomponents & (VB_HAS_UV0 << i))) {
+					glClientActiveTexture(GL_TEXTURE0 + i);
+					if (components & (VB_HAS_UV0 << i))
+						glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+					else
+						glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+				}
+			}
+		}
+		else // Disable Texturing
+		{
+			for (int i = 0; i < 8; ++i) {
+				glClientActiveTexture(GL_TEXTURE0 + i);
+				glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			}
+		}
+
+		// Disable Lighting	
+		// TODO - move to better spot
+		if (g_Config.bDisableLighting) {
+			for (int i = 0; i < xfregs.nNumChans; i++)
+			{
+				xfregs.colChans[i].alpha.enablelighting = false;
+				xfregs.colChans[i].color.enablelighting = false;
+			}
+		}
+		s_prevcomponents = components;
+	}
 }

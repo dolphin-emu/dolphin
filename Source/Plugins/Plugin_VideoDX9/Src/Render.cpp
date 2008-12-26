@@ -39,7 +39,8 @@
 
 float Renderer::m_x,Renderer::m_y,Renderer::m_width, Renderer::m_height, Renderer::xScale,Renderer::yScale;
 std::vector<LPDIRECT3DBASETEXTURE9> Renderer::m_Textures;
-DWORD Renderer::m_RenderStates[MaxRenderStates];
+
+DWORD Renderer::m_RenderStates[MaxRenderStates+46];
 DWORD Renderer::m_TextureStageStates[MaxTextureStages][MaxTextureTypes];
 DWORD Renderer::m_SamplerStates[MaxSamplerSize][MaxSamplerTypes];
 DWORD Renderer::m_FVF;
@@ -429,16 +430,4 @@ void Renderer::SetSamplerState( DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD V
 		m_SamplerStates[Sampler][Type] = Value;
 		D3D::dev->SetSamplerState( Sampler, Type, Value );
 	}
-}
-
-
-void Renderer::DrawPrimitiveUP( D3DPRIMITIVETYPE PrimitiveType, UINT PrimitiveCount, const void* pVertexStreamZeroData, UINT VertexStreamZeroStride )
-{
-	D3D::dev->DrawPrimitiveUP( PrimitiveType, PrimitiveCount, pVertexStreamZeroData, VertexStreamZeroStride );
-}
-
-
-void Renderer::DrawPrimitive( D3DPRIMITIVETYPE PrimitiveType, UINT StartVertex, UINT PrimitiveCount )
-{
-	D3D::dev->DrawPrimitive( PrimitiveType, StartVertex, PrimitiveCount );
 }

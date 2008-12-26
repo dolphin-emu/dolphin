@@ -507,7 +507,7 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 		return;
 	}
 
-	VertexManager::EnableComponents(m_NativeFmt->m_components);
+	m_NativeFmt->EnableComponents(m_NativeFmt->m_components);
 
 	// Load position and texcoord scale factors.
 	m_VtxAttr.PosFrac				= g_VtxAttr[vtx_attr_group].g0.PosFrac;

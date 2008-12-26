@@ -97,6 +97,7 @@ public:
 
 	virtual void Initialize(const PortableVertexDeclaration &vtx_decl) = 0;
 	virtual void SetupVertexPointers() const = 0;
+	virtual void EnableComponents(u32 components) {}
 
 	static NativeVertexFormat *Create();
 

@@ -18,8 +18,6 @@
 #ifndef _BPSTRUCTS_H
 #define _BPSTRUCTS_H
 
-#pragma pack(4)
-
 #include "BPMemory.h"
 
 void BPInit();

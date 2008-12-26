@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-#pragma once
+#ifndef _VERTEXMANAGER_H
+#define _VERTEXMANAGER_H
 
 #include "CPMemory.h"
 #include "VertexLoader.h"
@@ -46,3 +46,5 @@ void AddVertices(int _primitive, int _numVertices, const DecodedVArray *varray);
 void Flush();
 
 }  // namespace
+
+#endif
