@@ -85,9 +85,13 @@ void HandleGLError();
 
 #define ERROR_LOG __Log
 
+
 #if defined(_DEBUG) || defined(DEBUGFAST)
-#define INFO_LOG if( g_Config.iLog & CONF_LOG ) __Log
-#define PRIM_LOG if( g_Config.iLog & CONF_PRIMLOG ) __Log
+// FIXME ugly hack for debug to build should use logmanager
+//#define INFO_LOG if( g_Config.iLog & CONF_LOG ) __Log
+//#define PRIM_LOG if( g_Config.iLog & CONF_PRIMLOG ) __Log
+#define INFO_LOG __Log
+#define PRIM_LOG __Log
 #define DEBUG_LOG __Log
 #else
 #define INFO_LOG(...)
