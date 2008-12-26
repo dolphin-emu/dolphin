@@ -25,16 +25,6 @@
 #include "Common.h"
 #include "Config.h"
 
-#if defined(_MSC_VER) && !defined(__x86_64__) && !defined(_M_X64)
-void * memcpy_amd(void *dest, const void *src, size_t n);
-unsigned char memcmp_mmx(const void* src1, const void* src2, int cmpsize);
-#define memcpy_gc memcpy_amd
-#define memcmp_gc memcmp_mmx
-#else
-#define memcpy_gc memcpy
-#define memcmp_gc memcmp
-#endif
-
 #include "VideoCommon.h"
 
 #endif

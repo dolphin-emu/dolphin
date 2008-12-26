@@ -733,54 +733,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\VertexLoader.cpp"
-				>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						AssemblerOutput="4"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoader.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoader_Color.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoader_Color.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoader_Normal.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoader_Normal.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoader_Position.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoader_Position.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoader_TextCoord.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexLoader_TextCoord.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\VertexLoaderManager.cpp"
 				>
 			</File>
@@ -992,60 +944,6 @@
 		<File
 			RelativePath=".\Src\main.h"
 			>
-		</File>
-		<File
-			RelativePath=".\Src\memcpy_amd.cpp"
-			>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="0"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="0"
-					PrecompiledHeaderThrough=""
-					PrecompiledHeaderFile=""
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="0"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="0"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="DebugFast|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="0"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="DebugFast|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					UsePrecompiledHeader="0"
-				/>
-			</FileConfiguration>
 		</File>
 		<File
 			RelativePath=".\Src\Render.cpp"

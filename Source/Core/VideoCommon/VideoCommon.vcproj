@@ -550,6 +550,46 @@
 		<Filter
 			Name="VertexLoading"
 			>
+			<File
+				RelativePath=".\Src\VertexLoader.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexLoader.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexLoader_Color.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexLoader_Color.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexLoader_Normal.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexLoader_Normal.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexLoader_Position.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexLoader_Position.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexLoader_TextCoord.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\VertexLoader_TextCoord.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\Src\DataReader.h"
@@ -561,6 +601,10 @@
 		</File>
 		<File
 			RelativePath=".\Src\Fifo.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\memcpy_amd.cpp"
 			>
 		</File>
 		<File
