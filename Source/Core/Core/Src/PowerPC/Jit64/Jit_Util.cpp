@@ -92,10 +92,10 @@ void Jit64::SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset, bool signEx
 
 void Jit64::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset)
 {
-	if (accessSize != 32) {
-		PanicAlert("UnsafeWriteRegToReg can't handle %i byte accesses", accessSize);
+	if (accessSize == 8 && reg_value >= 4) {
+		PanicAlert("WARNING: likely incorrect use of UnsafeWriteRegToReg!");
 	}
-	BSWAP(32, reg_value);
+	BSWAP(accessSize, reg_value);
 #ifdef _M_IX86
 	AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
 	MOV(accessSize, MDisp(reg_addr, (u32)Memory::base + offset), R(reg_value));
