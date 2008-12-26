@@ -11,11 +11,14 @@ if not env['HAVE_SDL']:
     Return()
 
 files = [
+	'Config.cpp',
 	'nJoy.cpp',
+	'Rumble.cpp',
 	]
 if padenv['HAVE_WX']:
     files += [
         'GUI/AboutBox.cpp',
+        'GUI/ConfigAdvanced.cpp',
         'GUI/ConfigBox.cpp',
         ]
 

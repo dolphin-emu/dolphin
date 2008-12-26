@@ -213,12 +213,12 @@ SetTitle(wxT("Sound Debugging"));
 
 	// Basic settings
 	SetIcon(wxNullIcon);
-	SetSize(8, 8, 200, 100); // these will become the minimin sizes allowed by resizing
+	SetSize(8, 8, 200, 100); // These will become the minimin sizes allowed by resizing
 	Center();
 
 
 	// Declarations	
-	wxBoxSizer * sMAIN, * sMain, *_sMail, * sBlock;
+	wxBoxSizer * m_MainSizer, * sMain, *_sMail, * sBlock;
 
 	wxButton* m_Upd;
 	wxButton* m_SelC;
@@ -511,16 +511,16 @@ SetTitle(wxT("Sound Debugging"));
 	// --------------------------------------------------------------------
 	// Main containers
 	// -----------------------------
-	sMAIN = new wxBoxSizer(wxVERTICAL);
-	sMAIN->Add(m_Notebook, 1, wxEXPAND | wxALL, 5);
-	//sMAIN->SetSizeHints(this);
+	m_MainSizer = new wxBoxSizer(wxVERTICAL);
+	m_MainSizer->Add(m_Notebook, 1, wxEXPAND | wxALL, 5);
+	//m_MainSizer->SetSizeHints(this);
 
 	m_PageMain->SetSizer(sMain);
 	m_PageMail->SetSizer(_sMail);
 	m_PageBlock->SetSizer(sBlock);
 	//sMain->Layout();	
 
-	this->SetSizer(sMAIN);
+	this->SetSizer(m_MainSizer);
 	//this->Layout();
 
 	NotifyUpdate();

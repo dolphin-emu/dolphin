@@ -29,12 +29,16 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// ¯¯¯¯¯¯¯¯¯
 #include "ConfigBox.h"
 #include "../nJoy.h"
 #include "Images/controller.xpm"
 
 extern CONTROLLER_INFO	*joyinfo;
-extern CONTROLLER_MAPPING joysticks[4];
+//extern CONTROLLER_MAPPING joysticks[4];
 extern bool emulator_running;
 
 static const char* ControllerType[] =
@@ -44,7 +48,12 @@ static const char* ControllerType[] =
 //	"Joytstick (xbox360)",	// Shoulder buttons -> axis
 //	"Keyboard"				// Not supported yet, sorry F|RES ;( ...
 };
+////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// The wxWidgets class
+// ¯¯¯¯¯¯¯
 BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
 	EVT_CLOSE(ConfigBox::OnClose)
 	EVT_BUTTON(ID_ABOUT, ConfigBox::AboutClick)
@@ -72,21 +81,50 @@ BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
 	EVT_BUTTON(IDB_ANALOG_MAIN_Y, ConfigBox::GetAxis)
 	EVT_BUTTON(IDB_ANALOG_SUB_X, ConfigBox::GetAxis)
 	EVT_BUTTON(IDB_ANALOG_SUB_Y, ConfigBox::GetAxis)
+
+	#if wxUSE_TIMER
+		EVT_TIMER(wxID_ANY, ConfigBox::OnTimer)
+	#endif
 END_EVENT_TABLE()
 
-ConfigBox::ConfigBox(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
-: wxDialog(parent, id, title, position, size, style)
+ConfigBox::ConfigBox(wxWindow *parent, wxWindowID id, const wxString &title,
+					 const wxPoint &position, const wxSize& size, long style)
+	: wxDialog(parent, id, title, position, size, style)
+	#if wxUSE_TIMER
+	, m_timer(this)
+	#endif
 {
 	notebookpage = 0;
 	CreateGUIControls();
+
+	#if wxUSE_TIMER
+		m_timer.Start(1000);
+	#endif
 }
 
 ConfigBox::~ConfigBox()
 {
 	// empty
 } 
+//////////////////////////////////
 
-// Warning: horrible code below proceed at own risk!
+
+// Populate the config window
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void ConfigBox::OnPaint( wxPaintEvent &event )
+{
+	event.Skip();
+
+	for(int i=0; i<4 ;i++)
+	{	
+		wxPaintDC dcWin(m_pKeys[i]);
+		PrepareDC( dcWin );
+		dcWin.DrawBitmap( WxStaticBitmap1_BITMAP, 94, 0, true );
+	}
+}
+
+// Populate the config window
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::CreateGUIControls()
 {
 	#ifndef _DEBUG		
@@ -95,9 +133,13 @@ void ConfigBox::CreateGUIControls()
 		SetTitle(wxT("Configure: nJoy v"INPUT_VERSION" (Debug) Input Plugin"));
 	#endif
 	
-	SetIcon(wxNullIcon);	
-	SetClientSize(637, 527);
-	Center();
+	SetIcon(wxNullIcon);
+
+	//WxStaticBitmap1_BITMAP(ConfigBox_WxStaticBitmap1_XPM);
+
+	
+
+	//WxStaticBitmap1_BITMAP = new WxStaticBitmap1_BITMAP(ConfigBox_WxStaticBitmap1_XPM);
 
 #ifndef _WIN32
 	// Force a 8pt font so that it looks more or less "correct" regardless of the default font setting
@@ -106,28 +148,28 @@ void ConfigBox::CreateGUIControls()
 #endif
 
 	// Buttons
-	m_About = new wxButton(this, ID_ABOUT, wxT("About"), wxPoint(5, 497), wxSize(75, 25), 0, wxDefaultValidator, wxT("About"));
-	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxPoint(475, 497), wxSize(75, 25), 0, wxDefaultValidator, wxT("OK"));
-	m_Cancel = new wxButton(this, ID_CANCEL, wxT("Cancel"), wxPoint(556, 497), wxSize(75, 25), 0, wxDefaultValidator, wxT("Cancel"));
+	m_About = new wxButton(this, ID_ABOUT, wxT("About"), wxDefaultPosition, wxSize(75, 25), 0, wxDefaultValidator, wxT("About"));
+	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxDefaultPosition, wxSize(75, 25), 0, wxDefaultValidator, wxT("OK"));
+	m_Cancel = new wxButton(this, ID_CANCEL, wxT("Cancel"), wxDefaultPosition, wxSize(75, 25), 0, wxDefaultValidator, wxT("Cancel"));
 
 	// Notebook
-	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxPoint(6, 7),wxSize(625, 484));
+	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 	
 	// Controller pages
-	m_Controller[0] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE1, wxPoint(0, 0), wxSize(600, 400));
+	m_Controller[0] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE1, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_Controller[0], wxT("Controller 1"));
-	m_Controller[1] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE2, wxPoint(0, 0), wxSize(600, 400));
+	m_Controller[1] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE2, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_Controller[1], wxT("Controller 2"));
-	m_Controller[2] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE3, wxPoint(0, 0), wxSize(600, 400));
+	m_Controller[2] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE3, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_Controller[2], wxT("Controller 3"));
-	m_Controller[3] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE4, wxPoint(0, 0), wxSize(600, 400));
+	m_Controller[3] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE4, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_Controller[3], wxT("Controller 4"));
 	
 	// Add controls
 	wxArrayString arrayStringFor_Joyname;
 	wxArrayString arrayStringFor_Controltype;
 	wxArrayString arrayStringFor_Deadzone;
-	
+
 	// Search for devices and add the to the device list	
 	if(Search_Devices())
 	{
@@ -152,118 +194,204 @@ void ConfigBox::CreateGUIControls()
 		sprintf (buffer, "%d %%", x);
 		arrayStringFor_Deadzone.Add(wxString::FromAscii(buffer));
 	}
+	
+	// Define bitmap for EVT_PAINT
+	WxStaticBitmap1_BITMAP = wxBitmap(ConfigBox_WxStaticBitmap1_XPM);
+	
 
-	wxBitmap WxStaticBitmap1_BITMAP(ConfigBox_WxStaticBitmap1_XPM);
-
+	// Populate all four pages
 	for(int i=0; i<4 ;i++)
 	{	
+		// --------------------------------------------------------------------
+		// Populate keys sizer
+		// -----------------------------
+		// Set relative values for the keys
+		int t = -75; // Top
+		int l = -4; // Left
+		m_sKeys[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Keys"));
+		m_pKeys[i] = new wxPanel(m_Controller[i], ID_KEYSPANEL1 + i, wxDefaultPosition, wxSize(600, 400));
+		//m_sKeys[i] = new wxStaticBox (m_Controller[i], IDG_JOYSTICK, wxT("Keys"), wxDefaultPosition, wxSize(608, 500));
+		m_sKeys[i]->Add(m_pKeys[i], 0, (wxALL), 0); // margin = 0
 
-		// Groups
-		m_gJoyname[i] = new wxStaticBox(m_Controller[i], IDG_JOYSTICK, wxT("Controller:"), wxPoint(5, 11), wxSize(608, 46));
-		
-		#ifdef _WIN32
-		m_Joyattach[i] = new wxCheckBox(m_Controller[i], IDC_JOYATTACH, wxT("Controller attached"), wxPoint(495, 26), wxSize(109, 25), 0, wxDefaultValidator, wxT("Controller attached"));
-		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, wxEmptyString, wxPoint(12, 29), wxSize(476, 21), arrayStringFor_Joyname, 0, wxDefaultValidator, wxT("m_Joyname"));
-		m_gExtrasettings[i] = new wxStaticBox(m_Controller[i], IDG_EXTRASETTINGS, wxT("Extra settings:"), wxPoint(104, 385), wxSize(155, 69));
-		m_Deadzone[i] = new wxComboBox(m_Controller[i], IDC_DEADZONE, wxEmptyString, wxPoint(167, 400), wxSize(59, 21), arrayStringFor_Deadzone, 0, wxDefaultValidator, wxT("m_Deadzone"));
-		m_gControllertype[i] = new wxStaticBox(m_Controller[i], IDG_CONTROLLERTYPE, wxT("Controller type:"), wxPoint(359, 383), wxSize(143, 44));
-		m_Controltype[i] = new wxComboBox(m_Controller[i], IDC_CONTROLTYPE, wxEmptyString, wxPoint(366, 401), wxSize(131, 21), arrayStringFor_Controltype, 0, wxDefaultValidator, wxT("m_Controltype"));
-		#else
-		m_Joyattach[i] = new wxCheckBox(m_Controller[i], IDC_JOYATTACH, wxT("Controller attached"), wxPoint(470, 26), wxSize(140, 25), 0, wxDefaultValidator, wxT("Controller attached"));
-		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, wxEmptyString, wxPoint(10, 25), wxSize(450, 25), arrayStringFor_Joyname, 0, wxDefaultValidator, wxT("m_Joyname"));
-		m_gExtrasettings[i] = new wxStaticBox(m_Controller[i], IDG_EXTRASETTINGS, wxT("Extra settings:"), wxPoint(100, 385), wxSize(155, 65));
-		m_Deadzone[i] = new wxComboBox(m_Controller[i], IDC_DEADZONE, wxEmptyString, wxPoint(167, 398), wxSize(80, 25), arrayStringFor_Deadzone, 0, wxDefaultValidator, wxT("m_Deadzone"));
-		m_gControllertype[i] = new wxStaticBox(m_Controller[i], IDG_CONTROLLERTYPE, wxT("Controller type:"), wxPoint(359, 383), wxSize(160, 44));
-		m_Controltype[i] = new wxComboBox(m_Controller[i], IDC_CONTROLTYPE, wxEmptyString, wxPoint(364, 396), wxSize(150, 25), arrayStringFor_Controltype, 0, wxDefaultValidator, wxT("m_Controltype"));
-		#endif
-					
-		// GUI left side buttons
-		m_JoyShoulderL[i] = new wxTextCtrl(m_Controller[i], ID_SHOULDER_L, wxT("0"), wxPoint(6, 80), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
-		m_JoyShoulderL[i]->Enable(false);
-		m_JoyAnalogMainX[i] = new wxTextCtrl(m_Controller[i], ID_ANALOG_MAIN_X, wxT("0"), wxPoint(6, 218), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
-		m_JoyAnalogMainX[i]->Enable(false);
-		m_JoyAnalogMainY[i] = new wxTextCtrl(m_Controller[i], ID_ANALOG_MAIN_Y, wxT("0"), wxPoint(6, 255), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
-		m_JoyAnalogMainY[i]->Enable(false);
-		m_JoyDpadUp[i] = new wxTextCtrl(m_Controller[i], ID_DPAD_UP, wxT("0"), wxPoint(6, 296), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
-		m_JoyDpadUp[i]->Enable(false);
-		m_JoyDpadDown[i] = new wxTextCtrl(m_Controller[i], ID_DPAD_DOWN, wxT("0"), wxPoint(6, 333), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
-		m_JoyDpadDown[i]->Enable(false);
-		m_JoyDpadLeft[i] = new wxTextCtrl(m_Controller[i], ID_DPAD_LEFT, wxT("0"), wxPoint(6, 369), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
-		m_JoyDpadLeft[i]->Enable(false);
-		m_JoyDpadRight[i] = new wxTextCtrl(m_Controller[i], ID_DPAD_RIGHT, wxT("0"), wxPoint(6, 406), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
-		m_JoyDpadRight[i]->Enable(false);
-		m_bJoyShoulderL[i] = new wxButton(m_Controller[i], IDB_SHOULDER_L, wxEmptyString, wxPoint(70, 82), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		m_bJoyAnalogMainX[i] = new wxButton(m_Controller[i], IDB_ANALOG_MAIN_X, wxEmptyString, wxPoint(70, 220), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		m_bJoyAnalogMainY[i] = new wxButton(m_Controller[i], IDB_ANALOG_MAIN_Y, wxEmptyString, wxPoint(70, 257), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		m_bJoyDpadUp[i] = new wxButton(m_Controller[i], IDB_DPAD_UP, wxEmptyString, wxPoint(70, 298), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		m_bJoyDpadDown[i] = new wxButton(m_Controller[i], IDB_DPAD_DOWN, wxEmptyString, wxPoint(70, 335), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		m_bJoyDpadLeft[i] = new wxButton(m_Controller[i], IDB_DPAD_LEFT, wxEmptyString, wxPoint(70, 371), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		m_bJoyDpadRight[i] = new wxButton(m_Controller[i], IDB_DPAD_RIGHT, wxEmptyString, wxPoint(70, 408), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		
-		m_textMainX[i] = new wxStaticText(m_Controller[i], IDT_ANALOG_MAIN_X, wxT("X-axis"), wxPoint(6, 204), wxDefaultSize, 0, wxT("X-axis"));
-		m_textMainY[i] = new wxStaticText(m_Controller[i], IDT_ANALOG_MAIN_Y, wxT("Y-axis"), wxPoint(6, 241), wxDefaultSize, 0, wxT("Y-axis"));
-		m_textDpadUp[i] = new wxStaticText(m_Controller[i], IDT_DPAD_UP, wxT("Up"), wxPoint(6, 282), wxDefaultSize, 0, wxT("Up"));
-		m_textDpadDown[i] = new wxStaticText(m_Controller[i], IDT_DPAD_DOWN, wxT("Down"), wxPoint(6, 319), wxDefaultSize, 0, wxT("Down"));
-		m_textDpadLeft[i] = new wxStaticText(m_Controller[i], IDT_DPAD_LEFT, wxT("Left"), wxPoint(6, 354), wxDefaultSize, 0, wxT("Left"));
-		m_textDpadRight[i] = new wxStaticText(m_Controller[i], IDT_DPAD_RIGHT, wxT("Right"), wxPoint(6, 391), wxDefaultSize, 0, wxT("Right"));
-		
-		// GUI right side buttons
-		m_JoyShoulderR[i] = new wxTextCtrl(m_Controller[i], ID_SHOULDER_R, wxT("0"), wxPoint(552, 106), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
-		m_JoyShoulderR[i]->Enable(false);
-		m_JoyButtonA[i] = new wxTextCtrl(m_Controller[i], ID_BUTTON_A, wxT("0"), wxPoint(552, 280), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
-		m_JoyButtonA[i]->Enable(false);
-		m_JoyButtonB[i] = new wxTextCtrl(m_Controller[i], ID_BUTTON_B, wxT("0"), wxPoint(552, 80), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
-		m_JoyButtonB[i]->Enable(false);
-		m_JoyButtonX[i] = new wxTextCtrl(m_Controller[i], ID_BUTTON_X, wxT("0"), wxPoint(552, 242), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
-		m_JoyButtonX[i]->Enable(false);
-		m_JoyButtonY[i] = new wxTextCtrl(m_Controller[i], ID_BUTTON_Y, wxT("0"), wxPoint(552, 171), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
-		m_JoyButtonY[i]->Enable(false);
-		m_JoyButtonZ[i] = new wxTextCtrl(m_Controller[i], ID_BUTTON_Z, wxT("0"), wxPoint(552, 145), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
-		m_JoyButtonZ[i]->Enable(false);
-		m_JoyAnalogSubX[i] = new wxTextCtrl(m_Controller[i], ID_ANALOG_SUB_X, wxT("0"), wxPoint(552, 351), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
-		m_JoyAnalogSubX[i]->Enable(false);
-		m_JoyAnalogSubY[i] = new wxTextCtrl(m_Controller[i], ID_ANALOG_SUB_Y, wxT("0"), wxPoint(552, 388), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
-		m_JoyAnalogSubY[i]->Enable(false);
-		m_bJoyShoulderR[i] = new wxButton(m_Controller[i], IDB_SHOULDER_R, wxEmptyString, wxPoint(526, 108), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		m_bJoyButtonA[i] = new wxButton(m_Controller[i], IDB_BUTTON_A, wxEmptyString, wxPoint(526, 282), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		m_bJoyButtonB[i] = new wxButton(m_Controller[i], IDB_BUTTON_B, wxEmptyString, wxPoint(526, 82), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		m_bJoyButtonX[i] = new wxButton(m_Controller[i], IDB_BUTTON_X, wxEmptyString, wxPoint(526, 244), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		m_bJoyButtonY[i] = new wxButton(m_Controller[i], IDB_BUTTON_Y, wxEmptyString, wxPoint(526, 173), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		m_bJoyButtonZ[i] = new wxButton(m_Controller[i], IDB_BUTTON_Z, wxEmptyString, wxPoint(526, 147), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		m_bJoyAnalogSubX[i] = new wxButton(m_Controller[i], IDB_ANALOG_SUB_X, wxEmptyString, wxPoint(526, 353), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		m_bJoyAnalogSubY[i] = new wxButton(m_Controller[i], IDB_ANALOG_SUB_Y, wxEmptyString, wxPoint(526, 390), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		
-		m_textSubX[i] = new wxStaticText(m_Controller[i], IDT_ANALOG_SUB_X, wxT("X-axis"), wxPoint(552, 336), wxDefaultSize, 0, wxT("X-axis"));
-		m_textSubY[i] = new wxStaticText(m_Controller[i], IDT_ANALOG_SUB_Y, wxT("Y-axis"), wxPoint(552, 373), wxDefaultSize, 0, wxT("Y-axis"));
-		
-		// GUI center button
-		m_JoyButtonStart[i] = new wxTextCtrl(m_Controller[i], ID_BUTTONSTART, wxT("0"), wxPoint(278, 403), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
-		m_JoyButtonStart[i]->Enable(false);
-		m_JoyButtonHalfpress[i] = new wxTextCtrl(m_Controller[i], ID_BUTTONHALFPRESS, wxT("0"), wxPoint(167, 424), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
-		m_JoyButtonHalfpress[i]->Enable(false);
-		m_bJoyButtonStart[i] = new wxButton(m_Controller[i], IDB_BUTTONSTART, wxEmptyString, wxPoint(297, 385), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		m_bJoyButtonHalfpress[i] = new wxButton(m_Controller[i], IDB_BUTTONHALFPRESS, wxEmptyString, wxPoint(231, 426), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
-		
-		#ifdef _WIN32
-		m_textDeadzone[i] = new wxStaticText(m_Controller[i], IDT_DEADZONE, wxT("Deadzone"), wxPoint(116, 404), wxDefaultSize, 0, wxT("Deadzone"));		
-		m_textHalfpress[i] = new wxStaticText(m_Controller[i], IDT_BUTTONHALFPRESS, wxT("Half press"), wxPoint(116, 428), wxDefaultSize, 0, wxT("Half press"));
-		m_textWebsite[i] = new wxStaticText(m_Controller[i], IDT_WEBSITE, wxT("www.multigesture.net"), wxPoint(500, 438), wxDefaultSize, 0, wxT("www.multigesture.net"));
-		#else
-		m_textDeadzone[i] = new wxStaticText(m_Controller[i], IDT_DEADZONE, wxT("Deadzone"), wxPoint(105, 404), wxDefaultSize, 0, wxT("Deadzone"));		
-		m_textHalfpress[i] = new wxStaticText(m_Controller[i], IDT_BUTTONHALFPRESS, wxT("Half press"), wxPoint(105, 428), wxDefaultSize, 0, wxT("Half press"));
-		m_textWebsite[i] = new wxStaticText(m_Controller[i], IDT_WEBSITE, wxT("www.multigesture.net"), wxPoint(480, 438), wxDefaultSize, 0, wxT("www.multigesture.net"));
-		#endif		
-		
+		// --------------------------------------------------------------------
+		// GameCube controller picture
+		// -----------------------------
 		// TODO: Controller image
 		// Placeholder instead of bitmap
 		// m_PlaceholderBMP[i] = new wxTextCtrl(m_Controller[i], ID_CONTROLLERPICTURE, wxT("BITMAP HERE PLZ KTHX!"), wxPoint(98, 75), wxSize(423, 306), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("BITMAP HERE PLZ KTHX!"));
 		// m_PlaceholderBMP[i]->Enable(false);
 		
-		// You can enable the bitmap here:
-		// But it loads überslow on init... (only in windows, linux seems to load it fast!)
-		// AAaaand the XPM file (256 colours) looks crappier than the real bitmap... so maybe we can find a way to use a bitmap?	
-		m_controllerimage[i] = new wxStaticBitmap(m_Controller[i], ID_CONTROLLERPICTURE, WxStaticBitmap1_BITMAP, wxPoint(98, 75), wxSize(421,304));		
+		/* You can enable the bitmap here. But it loads überslow on init... (only in windows, linux
+		seems to load it fast!) AAaaand the XPM file (256 colours) looks crappier than the real bitmap...
+		so maybe we can find a way to use a bitmap?	*/
+		//m_controllerimage[i] = new wxStaticBitmap(m_pKeys[i], ID_CONTROLLERPICTURE, WxStaticBitmap1_BITMAP, wxPoint(l + 98, t + 75), wxSize(421,304));		
+		//m_controllerimage[i] = new wxBitmap( WxStaticBitmap1_BITMAP );		
+
+		 // Paint background. This allows objects to be visible on top of the picture
+		m_pKeys[i]->Connect(wxID_ANY, wxEVT_PAINT,
+			wxPaintEventHandler(ConfigBox::OnPaint),
+			(wxObject*)0, this);
+
+
+		// --------------------------------------------------------------------
+		// Keys objects
+		// -----------------------------
+		// Left shoulder
+		m_JoyShoulderL[i] = new wxTextCtrl(m_pKeys[i], ID_SHOULDER_L, wxT("0"), wxPoint(l + 6, t + 80), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+		m_JoyShoulderL[i]->Enable(false);
+		m_bJoyShoulderL[i] = new wxButton(m_pKeys[i], IDB_SHOULDER_L, wxEmptyString, wxPoint(l + 70, t + 82), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+
+		// Left analog
+		int ALt = 170; int ALw = ALt + 14; int ALb = ALw + 2; // Set offset
+		m_JoyAnalogMainX[i] = new wxTextCtrl(m_pKeys[i], ID_ANALOG_MAIN_X, wxT("0"), wxPoint(l + 6, t + ALw), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+		m_JoyAnalogMainX[i]->Enable(false);
+		m_JoyAnalogMainY[i] = new wxTextCtrl(m_pKeys[i], ID_ANALOG_MAIN_Y, wxT("0"), wxPoint(l + 6, t + ALw + 36), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+		m_JoyAnalogMainY[i]->Enable(false);		
+		m_bJoyAnalogMainX[i] = new wxButton(m_pKeys[i], IDB_ANALOG_MAIN_X, wxEmptyString, wxPoint(l + 70, t + ALb), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		m_bJoyAnalogMainY[i] = new wxButton(m_pKeys[i], IDB_ANALOG_MAIN_Y, wxEmptyString, wxPoint(l + 70, t + ALb + 36), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		m_textMainX[i] = new wxStaticText(m_pKeys[i], IDT_ANALOG_MAIN_X, wxT("X-axis"), wxPoint(l + 6, t + ALt), wxDefaultSize, 0, wxT("X-axis"));
+		m_textMainY[i] = new wxStaticText(m_pKeys[i], IDT_ANALOG_MAIN_Y, wxT("Y-axis"), wxPoint(l + 6, t + ALt + 36), wxDefaultSize, 0, wxT("Y-axis"));
 		
+		// D-Pad
+		int DPt = 255; int DPw = DPt + 14; int DPb = DPw + 2; // Set offset
+		m_JoyDpadUp[i] = new wxTextCtrl(m_pKeys[i], ID_DPAD_UP, wxT("0"), wxPoint(l + 6, t + DPw), wxSize(59, t + 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+		m_JoyDpadUp[i]->Enable(false);
+		m_JoyDpadDown[i] = new wxTextCtrl(m_pKeys[i], ID_DPAD_DOWN, wxT("0"), wxPoint(l + 6, t + DPw + 36*1), wxSize(59, t + 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+		m_JoyDpadDown[i]->Enable(false);
+		m_JoyDpadLeft[i] = new wxTextCtrl(m_pKeys[i], ID_DPAD_LEFT, wxT("0"), wxPoint(l + 6, t + DPw + 36*2), wxSize(59, t + 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+		m_JoyDpadLeft[i]->Enable(false);
+		m_JoyDpadRight[i] = new wxTextCtrl(m_pKeys[i], ID_DPAD_RIGHT, wxT("0"), wxPoint(l + 6, t + DPw + 36*3), wxSize(59, t + 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+		m_JoyDpadRight[i]->Enable(false);
+		m_bJoyDpadUp[i] = new wxButton(m_pKeys[i], IDB_DPAD_UP, wxEmptyString, wxPoint(l + 70, t + DPb + 36*0), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		m_bJoyDpadDown[i] = new wxButton(m_pKeys[i], IDB_DPAD_DOWN, wxEmptyString, wxPoint(l + 70, t + DPb + 36*1), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		m_bJoyDpadLeft[i] = new wxButton(m_pKeys[i], IDB_DPAD_LEFT, wxEmptyString, wxPoint(l + 70, t + DPb + 36*2), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		m_bJoyDpadRight[i] = new wxButton(m_pKeys[i], IDB_DPAD_RIGHT, wxEmptyString, wxPoint(l + 70, t + DPb + 36*3), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		m_textDpadUp[i] = new wxStaticText(m_pKeys[i], IDT_DPAD_UP, wxT("Up"), wxPoint(l + 6, t + DPt + 36*0), wxDefaultSize, 0, wxT("Up"));
+		m_textDpadDown[i] = new wxStaticText(m_pKeys[i], IDT_DPAD_DOWN, wxT("Down"), wxPoint(l + 6, t + DPt + 36*1), wxDefaultSize, 0, wxT("Down"));
+		m_textDpadLeft[i] = new wxStaticText(m_pKeys[i], IDT_DPAD_LEFT, wxT("Left"), wxPoint(l + 6, t + DPt + 36*2), wxDefaultSize, 0, wxT("Left"));
+		m_textDpadRight[i] = new wxStaticText(m_pKeys[i], IDT_DPAD_RIGHT, wxT("Right"), wxPoint(l + 6, t + DPt + 36*3), wxDefaultSize, 0, wxT("Right"));
+		
+		// Right side buttons
+		m_JoyShoulderR[i] = new wxTextCtrl(m_pKeys[i], ID_SHOULDER_R, wxT("0"), wxPoint(l + 552, t + 106), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+		m_JoyShoulderR[i]->Enable(false);
+		m_JoyButtonA[i] = new wxTextCtrl(m_pKeys[i], ID_BUTTON_A, wxT("0"), wxPoint(l + 552, t + 280), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+		m_JoyButtonA[i]->Enable(false);
+		m_JoyButtonB[i] = new wxTextCtrl(m_pKeys[i], ID_BUTTON_B, wxT("0"), wxPoint(l + 552, t + 80), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+		m_JoyButtonB[i]->Enable(false);
+		m_JoyButtonX[i] = new wxTextCtrl(m_pKeys[i], ID_BUTTON_X, wxT("0"), wxPoint(l + 552, t + 242), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+		m_JoyButtonX[i]->Enable(false);
+		m_JoyButtonY[i] = new wxTextCtrl(m_pKeys[i], ID_BUTTON_Y, wxT("0"), wxPoint(l + 552, t + 171), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+		m_JoyButtonY[i]->Enable(false);
+		m_JoyButtonZ[i] = new wxTextCtrl(m_pKeys[i], ID_BUTTON_Z, wxT("0"), wxPoint(l + 552, t + 145), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+		m_JoyButtonZ[i]->Enable(false);
+		m_bJoyShoulderR[i] = new wxButton(m_pKeys[i], IDB_SHOULDER_R, wxEmptyString, wxPoint(l + 526, t + 108), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		m_bJoyButtonA[i] = new wxButton(m_pKeys[i], IDB_BUTTON_A, wxEmptyString, wxPoint(l + 526, t + 282), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		m_bJoyButtonB[i] = new wxButton(m_pKeys[i], IDB_BUTTON_B, wxEmptyString, wxPoint(l + 526, t + 82), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		m_bJoyButtonX[i] = new wxButton(m_pKeys[i], IDB_BUTTON_X, wxEmptyString, wxPoint(l + 526, t + 244), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		m_bJoyButtonY[i] = new wxButton(m_pKeys[i], IDB_BUTTON_Y, wxEmptyString, wxPoint(l + 526, t + 173), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		m_bJoyButtonZ[i] = new wxButton(m_pKeys[i], IDB_BUTTON_Z, wxEmptyString, wxPoint(l + 526, t + 147), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+
+		// C-buttons
+		m_JoyAnalogSubX[i] = new wxTextCtrl(m_pKeys[i], ID_ANALOG_SUB_X, wxT("0"), wxPoint(l + 552, t + 336), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+		m_JoyAnalogSubX[i]->Enable(false);
+		m_JoyAnalogSubY[i] = new wxTextCtrl(m_pKeys[i], ID_ANALOG_SUB_Y, wxT("0"), wxPoint(l + 552, t + 373), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+		m_JoyAnalogSubY[i]->Enable(false);
+		m_bJoyAnalogSubX[i] = new wxButton(m_pKeys[i], IDB_ANALOG_SUB_X, wxEmptyString, wxPoint(l + 526, t + 338), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		m_bJoyAnalogSubY[i] = new wxButton(m_pKeys[i], IDB_ANALOG_SUB_Y, wxEmptyString, wxPoint(l + 526, t + 375), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		m_textSubX[i] = new wxStaticText(m_pKeys[i], IDT_ANALOG_SUB_X, wxT("X-axis"), wxPoint(l + 552, t + 321), wxDefaultSize, 0, wxT("X-axis"));
+		m_textSubY[i] = new wxStaticText(m_pKeys[i], IDT_ANALOG_SUB_Y, wxT("Y-axis"), wxPoint(l + 552, t + 358), wxDefaultSize, 0, wxT("Y-axis"));
+		
+		// Start button
+		m_bJoyButtonStart[i] = new wxButton(m_pKeys[i], IDB_BUTTONSTART, wxEmptyString, wxPoint(l + 284, t + 365), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		m_JoyButtonStart[i] = new wxTextCtrl(m_pKeys[i], ID_BUTTONSTART, wxT("0"), wxPoint(l + 220, t + 363), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+		m_JoyButtonStart[i]->Enable(false);
+		
+		// Website text
+		#ifdef _WIN32
+		m_textWebsite[i] = new wxStaticText(m_pKeys[i], IDT_WEBSITE, wxT("www.multigesture.net"), wxPoint(l + 400, t + 380), wxDefaultSize, 0, wxT("www.multigesture.net"));
+		#else
+		m_textWebsite[i] = new wxStaticText(m_Controller[i], IDT_WEBSITE, wxT("www.multigesture.net"), wxPoint(l + 480, t + 418), wxDefaultSize, 0, wxT("www.multigesture.net"));
+		#endif
+
+
+		// --------------------------------------------------------------------
+		// Populate Controller sizer
+		// -----------------------------
+		// Groups
+		#ifdef _WIN32
+		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, wxEmptyString, wxDefaultPosition, wxSize(476, 21), arrayStringFor_Joyname, 0, wxDefaultValidator, wxT("m_Joyname"));
+		m_Joyattach[i] = new wxCheckBox(m_Controller[i], IDC_JOYATTACH, wxT("Controller attached"), wxDefaultPosition, wxSize(109, 25), 0, wxDefaultValidator, wxT("Controller attached"));
+		#else
+		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, wxEmptyString, wxDefaultPosition, wxSize(450, 25), arrayStringFor_Joyname, 0, wxDefaultValidator, wxT("m_Joyname"));
+		m_Joyattach[i] = new wxCheckBox(m_Controller[i], IDC_JOYATTACH, wxT("Controller attached"), wxDefaultPosition, wxSize(140, 25), 0, wxDefaultValidator, wxT("Controller attached"));
+		#endif
+
+		m_gJoyname[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Controller:"));
+		m_gJoyname[i]->Add(m_Joyname[i], 0, (wxLEFT | wxRIGHT), 5);
+		m_gJoyname[i]->Add(m_Joyattach[i], 0, (wxRIGHT | wxLEFT | wxBOTTOM), 1);
+
+		// --------------------------------------------------------------------
+		// Populate settings sizer
+		// -----------------------------
+		
+		// Extra settings members
+		m_gGBExtrasettings[i] = new wxGridBagSizer(0, 0);
+		m_JoyButtonHalfpress[i] = new wxTextCtrl(m_Controller[i], ID_BUTTONHALFPRESS, wxT("0"), wxDefaultPosition, wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
+		m_JoyButtonHalfpress[i]->Enable(false);
+		m_bJoyButtonHalfpress[i] = new wxButton(m_Controller[i], IDB_BUTTONHALFPRESS, wxEmptyString, wxPoint(231, 426), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		#ifdef _WIN32
+		m_Deadzone[i] = new wxComboBox(m_Controller[i], IDC_DEADZONE, wxEmptyString, wxDefaultPosition, wxSize(59, 21), arrayStringFor_Deadzone, 0, wxDefaultValidator, wxT("m_Deadzone"));
+		m_textDeadzone[i] = new wxStaticText(m_Controller[i], IDT_DEADZONE, wxT("Deadzone"), wxDefaultPosition, wxDefaultSize, 0, wxT("Deadzone"));		
+		m_textHalfpress[i] = new wxStaticText(m_Controller[i], IDT_BUTTONHALFPRESS, wxT("Half press"), wxDefaultPosition, wxDefaultSize, 0, wxT("Half press"));
+		#else
+		m_Deadzone[i] = new wxComboBox(m_Controller[i], IDC_DEADZONE, wxEmptyString, wxPoint(167, 398), wxSize(80, 25), arrayStringFor_Deadzone, 0, wxDefaultValidator, wxT("m_Deadzone"));
+		m_textDeadzone[i] = new wxStaticText(m_Controller[i], IDT_DEADZONE, wxT("Deadzone"), wxPoint(105, 404), wxDefaultSize, 0, wxT("Deadzone"));		
+		m_textHalfpress[i] = new wxStaticText(m_Controller[i], IDT_BUTTONHALFPRESS, wxT("Half press"), wxPoint(105, 428), wxDefaultSize, 0, wxT("Half press"));
+		#endif
+
+		// Populate extra settings
+		m_gExtrasettings[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Extra settings"));
+		m_gGBExtrasettings[i]->Add(m_textDeadzone[i], wxGBPosition(0, 0), wxGBSpan(1, 1), (wxRIGHT | wxTOP), 2);
+		m_gGBExtrasettings[i]->Add(m_Deadzone[i], wxGBPosition(0, 1), wxGBSpan(1, 1), (wxBOTTOM), 2);
+		m_gGBExtrasettings[i]->Add(m_textHalfpress[i], wxGBPosition(1, 0), wxGBSpan(1, 1), (wxRIGHT | wxTOP), 2);
+		m_gGBExtrasettings[i]->Add(m_JoyButtonHalfpress[i], wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL, 0);
+		m_gGBExtrasettings[i]->Add(m_bJoyButtonHalfpress[i], wxGBPosition(1, 2), wxGBSpan(1, 1), (wxLEFT | wxTOP), 2);
+		m_gExtrasettings[i]->Add(m_gGBExtrasettings[i], 0, wxEXPAND | wxALL, 3);
+
+		// Populate controller typ
+		m_gControllertype[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Controller type"));
+		#ifdef _WIN32
+		m_Controltype[i] = new wxComboBox(m_Controller[i], IDC_CONTROLTYPE, wxEmptyString, wxDefaultPosition, wxSize(131, 21), arrayStringFor_Controltype, 0, wxDefaultValidator, wxT("m_Controltype"));
+		#else
+		m_Controltype[i] = new wxComboBox(m_Controller[i], IDC_CONTROLTYPE, wxEmptyString, wxDefaultPosition, wxSize(150, 25), arrayStringFor_Controltype, 0, wxDefaultValidator, wxT("m_Controltype"));
+		#endif
+		m_gControllertype[i]->Add(m_Controltype[i], 0, wxEXPAND | wxALL, 3);
+
+		// Populate input status
+		/*
+		m_gStatusIn[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("In"));
+		CreateAdvancedControls(i);
+		m_gStatusIn[i]->Add(m_pInStatus[i], 0, wxALL, 0);
+		*/
+		
+		// Populate settings
+		m_sSettings[i] = new wxBoxSizer ( wxHORIZONTAL );
+		m_sSettings[i]->Add(m_gExtrasettings[i], 0, wxEXPAND | wxALL, 0);
+		m_sSettings[i]->Add(m_gControllertype[i], 0, wxEXPAND | wxLEFT, 5);
+		//m_sSettings[i]->Add(m_gStatusIn[i], 0, wxLEFT, 5);
+		
+
+		// --------------------------------------------------------------------
+		// Populate main sizer
+		// -----------------------------
+		m_sMain[i] = new wxBoxSizer(wxVERTICAL);
+		m_sMain[i]->Add(m_gJoyname[i], 0, wxEXPAND | (wxALL), 5);
+		m_sMain[i]->Add(m_sKeys[i], 1, wxEXPAND | (wxLEFT | wxRIGHT), 5);
+		m_sMain[i]->Add(m_sSettings[i], 0, wxEXPAND | (wxALL), 5);
+		m_Controller[i]->SetSizer(m_sMain[i]); // Set the main sizer
+
+
+		// Disable when running
 		if(emulator_running)
 		{
 			m_Joyname[i]->Enable(false);
@@ -271,34 +399,63 @@ void ConfigBox::CreateGUIControls()
 			m_Controltype[i]->Enable(false);			
 		}
 		
+		// Set dialog items
 		SetControllerAll(i);
-	}
+	} // end of loop
+
+	
+	// --------------------------------------------------------------------
+	// Populate buttons sizer.
+	// -----------------------------
+	wxBoxSizer * m_sButtons = new wxBoxSizer(wxHORIZONTAL);
+	m_sButtons->Add(m_About, 0, (wxBOTTOM), 0);
+	m_sButtons->AddStretchSpacer(1);
+	m_sButtons->Add(m_OK, 0, wxALIGN_RIGHT | (wxBOTTOM), 0);
+	m_sButtons->Add(m_Cancel, 0, wxALIGN_RIGHT | (wxLEFT), 5);
+
+
+	// --------------------------------------------------------------------
+	// Populate master sizer.
+	// -----------------------------
+	wxBoxSizer * m_MainSizer = new wxBoxSizer(wxVERTICAL);
+	m_MainSizer->Add(m_Notebook, 0, wxEXPAND | wxALL, 5);
+	m_MainSizer->Add(m_sButtons, 1, wxEXPAND | ( wxLEFT | wxRIGHT | wxBOTTOM), 5);
+	this->SetSizer(m_MainSizer);
+
+	// Set window size
+	SetClientSize(m_MainSizer->GetMinSize().GetWidth(), m_MainSizer->GetMinSize().GetHeight());
+	Center();
 }
 
+
+// Close window
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::OnClose(wxCloseEvent& /*event*/)
 {
 	EndModal(0);
 }
 
-void ConfigBox::AboutClick(wxCommandEvent& event)
-{
+
 // Call about dialog
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-#ifdef _WIN32
-	wxWindow win;
-	win.SetHWND((WXHWND)this->GetHWND());
-	win.Enable(false);  
+void ConfigBox::AboutClick(wxCommandEvent& event)
+{
+	#ifdef _WIN32
+		wxWindow win;
+		win.SetHWND((WXHWND)this->GetHWND());
+		win.Enable(false);  
 
-	AboutBox frame(&win);
-	frame.ShowModal();
+		AboutBox frame(&win);
+		frame.ShowModal();
 
-	win.Enable(true);
-	win.SetHWND(0); 
-#else
-	AboutBox frame(NULL);
-	frame.ShowModal();
-#endif	
+		win.Enable(true);
+		win.SetHWND(0); 
+	#else
+		AboutBox frame(NULL);
+		frame.ShowModal();
+	#endif	
 }
+
 
 void ConfigBox::OKClick(wxCommandEvent& event)
 {
@@ -370,7 +527,7 @@ void ConfigBox::SetControllerAll(int controller)
 	}	
 }
 
-// Get dialog items
+// Get dialog items. Collect button identification.
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::GetControllerAll(int controller)
 {
@@ -413,6 +570,7 @@ void ConfigBox::GetControllerAll(int controller)
 	joysticks[controller].controllertype = m_Controltype[controller]->GetSelection();
 	joysticks[controller].deadzone = m_Deadzone[controller]->GetSelection();
 }
+
 
 void ConfigBox::UpdateVisibleItems(int controller)
 {	
@@ -463,8 +621,7 @@ void ConfigBox::ChangeControllertype(wxCommandEvent& event)
 	joysticks[2].controllertype = m_Controltype[2]->GetSelection();
 	joysticks[3].controllertype = m_Controltype[3]->GetSelection();
 
-	for(int i=0; i<4 ;i++)
-		UpdateVisibleItems(i);	
+	for(int i=0; i<4 ;i++) UpdateVisibleItems(i);	
 }
 	
 void ConfigBox::NotebookPageChanged(wxNotebookEvent& event)
@@ -584,6 +741,7 @@ void ConfigBox::SetButtonText(int id, char text[128])
 			break;
 	}
 }
+
 
 // Wait for button press
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯

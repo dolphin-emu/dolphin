@@ -29,6 +29,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
+
 #ifndef __CONFIGBOX_h__
 #define __CONFIGBOX_h__
 
@@ -45,6 +46,7 @@
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/statbmp.h>
+#include <wx/gbsizer.h>
 
 
 class ConfigBox : public wxDialog
@@ -53,9 +55,16 @@ class ConfigBox : public wxDialog
 		DECLARE_EVENT_TABLE();
 		
 	public:
-		ConfigBox(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("Configure: nJoy Input Plugin"),
-			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE);
+		ConfigBox(wxWindow *parent, wxWindowID id = 1,
+			const wxString &title = wxT("Configure: nJoy Input Plugin"),
+			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
+			long style = wxDEFAULT_DIALOG_STYLE);
 		virtual ~ConfigBox();
+
+	#if wxUSE_TIMER
+		void OnTimer(wxTimerEvent& WXUNUSED(event)) { Update(); }
+		wxTimer m_timer;
+	#endif
 		
 	private:
 		wxButton *m_About;
@@ -65,15 +74,21 @@ class ConfigBox : public wxDialog
 		wxPanel *m_Controller[4];		
 		wxNotebook *m_Notebook;
 
+		wxPanel * m_pKeys[4], * m_pInStatus[4];
+		wxBitmap WxStaticBitmap1_BITMAP;
+		wxStaticBoxSizer * m_sKeys[4];
+		wxBoxSizer * m_sMain[4], * m_sSettings[4];
+
 		wxComboBox *m_Joyname[4];
 		wxComboBox *m_Controltype[4];
 		wxComboBox *m_Deadzone[4];
 		
 		wxCheckBox *m_Joyattach[4];
+		wxStaticBoxSizer *m_gJoyname[4];
 
-		wxStaticBox *m_gJoyname[4];
-		wxStaticBox *m_gExtrasettings[4];
-		wxStaticBox *m_gControllertype[4];
+		wxStaticBoxSizer *m_gExtrasettings[4]; wxGridBagSizer * m_gGBExtrasettings[4]; // Settings
+		wxStaticBoxSizer *m_gControllertype[4];
+		wxStaticBoxSizer *m_gStatusIn[4];
 
 		wxTextCtrl *m_JoyShoulderL[4];
 		wxTextCtrl *m_JoyShoulderR[4];
@@ -130,7 +145,7 @@ class ConfigBox : public wxDialog
 		wxStaticText *m_textWebsite[4];
 		
 		wxTextCtrl *m_PlaceholderBMP[4];
-		wxStaticBitmap *m_controllerimage[4];
+		wxStaticBitmap *m_controllerimage[4], *m_bmpSquare[4], *m_bmpDot[4];
 		
 		int notebookpage;		
 	private:
@@ -145,6 +160,10 @@ class ConfigBox : public wxDialog
 			ID_CONTROLLERPAGE3,
 			ID_CONTROLLERPAGE4,
 
+			ID_INSTATUS1, ID_INSTATUS2, ID_INSTATUS3, ID_INSTATUS4, // Advanced status
+
+			ID_KEYSPANEL1, ID_KEYSPANEL2, ID_KEYSPANEL3, ID_KEYSPANEL4,
+
 			IDC_JOYNAME,
 			IDC_CONTROLTYPE,
 			IDC_DEADZONE,
@@ -154,6 +173,8 @@ class ConfigBox : public wxDialog
 			IDG_EXTRASETTINGS,
 			IDG_CONTROLLERTYPE,
 			ID_CONTROLLERPICTURE,
+			ID_STATUSBMP1, ID_STATUSBMP2, ID_STATUSBMP3, ID_STATUSBMP4,
+			ID_STATUSDOTBMP1, ID_STATUSDOTBMP2, ID_STATUSDOTBMP3, ID_STATUSDOTBMP4,
 
 			ID_SHOULDER_L = 2000,
 			ID_SHOULDER_R,
@@ -221,8 +242,10 @@ class ConfigBox : public wxDialog
 		void ChangeControllertype(wxCommandEvent& event);
 
 		void OnClose(wxCloseEvent& event);
-		void CreateGUIControls();
-
+		void CreateGUIControls(); void CreateAdvancedControls(int i);
+		wxBitmap CreateBitmap(); wxBitmap CreateBitmapDot();
+		void PadGetStatus(); void Update();
+ 
 		void SetControllerAll(int controller);
 		void UpdateVisibleItems(int controller);
 		void GetControllerAll(int controller);
@@ -232,6 +255,8 @@ class ConfigBox : public wxDialog
 		void GetButtons(wxCommandEvent& event);
 		void GetHats(int ID);
 		void GetAxis(wxCommandEvent& event);
+
+		void OnPaint(wxPaintEvent &event);
 
 		void SetButtonText(int id, char text[128]);
 };

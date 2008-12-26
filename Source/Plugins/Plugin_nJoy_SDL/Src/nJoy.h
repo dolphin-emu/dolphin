@@ -47,20 +47,21 @@
 #endif
 
 #ifdef _WIN32
-#pragma comment(lib, "SDL.lib")
-#pragma comment(lib, "comctl32.lib")
-#include <tchar.h>
-#include <math.h>
-#define _CRT_SECURE_NO_WARNINGS
-#define DIRECTINPUT_VERSION 0x0800
-#define WIN32_LEAN_AND_MEAN
+	#pragma comment(lib, "SDL.lib")
+	#pragma comment(lib, "comctl32.lib")
+	#include <tchar.h>
+	#include <math.h>
+	#define _CRT_SECURE_NO_WARNINGS
+	#define DIRECTINPUT_VERSION 0x0800
+	#define WIN32_LEAN_AND_MEAN
 
-#ifdef USE_RUMBLE_DINPUT_HACK
-#pragma comment(lib, "dxguid.lib")
-#pragma comment(lib, "dinput8.lib")
-#pragma comment(lib, "winmm.lib")
-#include <dinput.h>
-#endif
+	#ifdef USE_RUMBLE_DINPUT_HACK
+		#pragma comment(lib, "dxguid.lib")
+		#pragma comment(lib, "dinput8.lib")
+		#pragma comment(lib, "winmm.lib")
+		#include <dinput.h>
+		VOID FreeDirectInput(); // Needed in both nJoy.cpp and Rumble.cpp
+	#endif
 #endif // _WIN32
 
 #ifdef _WIN32
@@ -75,6 +76,7 @@
 #include <linux/input.h>
 #endif
 
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Define
 // ¯¯¯¯¯¯
@@ -85,6 +87,7 @@
 #define RELMONTH		"07"
 #define RELYEAR			"2008"
 #define THANKYOU		"`plot`, Absolute0, Aprentice, Bositman, Brice, ChaosCode, CKemu, CoDeX, Dave2001, dn, drk||Raziel, Florin, Gent, Gigaherz, Hacktarux, JegHegy, Linker, Linuzappz, Martin64, Muad, Knuckles, Raziel, Refraction, Rudy_x, Shadowprince, Snake785, Saqib, vEX, yaz0r, Zilmar, Zenogais and ZeZu."
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Structures
@@ -158,6 +161,18 @@ enum
 	CTL_D_PAD_RIGHT
 };
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Variables
+// ¯¯¯¯¯¯¯¯¯
+#ifndef _CONTROLLER_STATE_H
+	extern FILE *pFile;
+	extern CONTROLLER_STATE joystate[4];
+	extern CONTROLLER_MAPPING joysticks[4];
+	extern HWND m_hWnd; // Handle to window
+#endif
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Custom Functions
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -166,6 +181,8 @@ void GetJoyState(int controller);
 int Search_Devices();
 void DEBUG_INIT();
 void DEBUG_QUIT();
+
+void PAD_Use_Rumble(u8 _numPAD, SPADStatus* _pPADStatus); // Rumble
 
 void SaveConfig();
 void LoadConfig();
