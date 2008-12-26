@@ -18,7 +18,7 @@
 #ifndef _VERTEXSHADERMANAGER_H
 #define _VERTEXSHADERMANAGER_H
 
-#include "VertexShader.h"
+#include "VertexShaderGen.h"
 
 // The non-API dependent parts.
 class VertexShaderManager

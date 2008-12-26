@@ -28,7 +28,7 @@
 #include <Cg/cgGL.h>
 
 #include "Render.h"
-#include "VertexShader.h"
+#include "VertexShaderGen.h"
 #include "VertexShaderManager.h"
 #include "VertexShaderCache.h"
 #include "VertexManager.h"

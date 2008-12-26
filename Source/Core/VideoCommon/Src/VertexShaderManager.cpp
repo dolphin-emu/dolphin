@@ -22,7 +22,7 @@
 
 #include "Statistics.h"
 
-#include "VertexShader.h"
+#include "VertexShaderGen.h"
 #include "VertexShaderManager.h"
 #include "BPMemory.h"
 #include "CPMemory.h"

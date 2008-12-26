@@ -19,7 +19,7 @@
 #include <string>
 
 #include "BPMemory.h"
-#include "PixelShader.h"
+#include "PixelShaderGen.h"
 
 struct FRAGMENTSHADER
 {

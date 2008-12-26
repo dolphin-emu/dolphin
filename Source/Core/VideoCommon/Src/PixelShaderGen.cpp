@@ -20,7 +20,7 @@
 #include <assert.h>
 
 #include "Profiler.h"
-#include "PixelShader.h"
+#include "PixelShaderGen.h"
 #include "XFMemory.h"  // for texture projection mode
 #include "BPMemory.h"
 

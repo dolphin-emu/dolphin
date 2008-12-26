@@ -37,7 +37,7 @@
 #include "BPStructs.h"
 #include "TextureMngr.h"
 #include "rasterfont.h"
-#include "VertexShader.h"
+#include "VertexShaderGen.h"
 #include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
 #include "VertexLoaderManager.h"

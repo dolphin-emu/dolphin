@@ -15,7 +15,7 @@
 #include "PixelShaderManager.h"
 #include "VertexShaderCache.h"
 #include "VertexShaderManager.h"
-#include "VertexShader.h"
+#include "VertexShaderGen.h"
 #include "VertexLoader.h"
 #include "VertexManager.h"
 

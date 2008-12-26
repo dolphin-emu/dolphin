@@ -21,7 +21,7 @@
 #include "NativeVertexFormat.h"
 
 #include "BPMemory.h"
-#include "VertexShader.h"
+#include "VertexShaderGen.h"
 
 // Mash together all the inputs that contribute to the code of a generated vertex shader into
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....

@@ -19,7 +19,7 @@
 #include <string>
 
 #include "BPMemory.h"
-#include "VertexShader.h"
+#include "VertexShaderGen.h"
 
 struct VERTEXSHADER
 {

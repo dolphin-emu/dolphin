@@ -415,19 +415,19 @@
 			Name="ShaderGenerators"
 			>
 			<File
-				RelativePath=".\Src\PixelShader.cpp"
+				RelativePath=".\Src\PixelShaderGen.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\PixelShader.h"
+				RelativePath=".\Src\PixelShaderGen.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\VertexShader.cpp"
+				RelativePath=".\Src\VertexShaderGen.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\VertexShader.h"
+				RelativePath=".\Src\VertexShaderGen.h"
 				>
 			</File>
 		</Filter>

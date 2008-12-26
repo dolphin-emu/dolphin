@@ -30,7 +30,7 @@
 #include "ImageWrite.h"
 #include "Common.h"
 #include "Render.h"
-#include "VertexShader.h"
+#include "VertexShaderGen.h"
 #include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
 
