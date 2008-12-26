@@ -1030,3 +1030,93 @@ void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
     //    printf("pos: %d\n", loc);
     }
 }
+
+
+// Called from VertexShaderManager
+void UpdateViewport()
+{
+    // reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
+    // [0] = width/2
+    // [1] = height/2
+    // [2] = 16777215 * (farz - nearz)
+    // [3] = xorig + width/2 + 342
+    // [4] = yorig + height/2 + 342
+    // [5] = 16777215 * farz
+
+	/*INFO_LOG("view: topleft=(%f,%f), wh=(%f,%f), z=(%f,%f)\n",
+		rawViewport[3]-rawViewport[0]-342, rawViewport[4]+rawViewport[1]-342,
+		2 * rawViewport[0], 2 * rawViewport[1],
+		(rawViewport[5] - rawViewport[2]) / 16777215.0f, rawViewport[5] / 16777215.0f);*/
+
+	// Keep aspect ratio at 4:3
+	// rawViewport[0] = 320, rawViewport[1] = -240
+	int scissorXOff = bpmem.scissorOffset.x * 2 - 342;
+	int scissorYOff = bpmem.scissorOffset.y * 2 - 342;
+	float fourThree = 4.0f / 3.0f;
+	float wAdj, hAdj;
+	float actualRatiow, actualRatioh;
+	int overfl;
+	int xoffs = 0, yoffs = 0;
+	int wid, hei, actualWid, actualHei;
+
+	int winw = OpenGL_GetWidth();
+	int winh = OpenGL_GetHeight();
+	float ratio = (float)winw / (float)winh / fourThree;
+	if (g_Config.bKeepAR)
+	{
+		// Check if height or width is the limiting factor
+		if (ratio > 1) // then we are to wide and have to limit the width
+		{
+			wAdj = ratio;
+			hAdj = 1;
+
+			wid = ceil(fabs(2 * xfregs.rawViewport[0]) / wAdj);
+			hei = ceil(fabs(2 * xfregs.rawViewport[1]) / hAdj);
+
+			actualWid = ceil((float)winw / ratio);
+			actualRatiow = (float)actualWid / (float)wid; // the picture versus the screen
+			overfl = (winw - actualWid) / actualRatiow;
+			xoffs = overfl / 2;
+		}
+		else // the window is to high, we have to limit the height
+		{
+			ratio = 1 / ratio;
+
+			wAdj = 1;
+			hAdj = ratio;
+
+			wid = ceil(fabs(2 * xfregs.rawViewport[0]) / wAdj);
+			hei = ceil(fabs(2 * xfregs.rawViewport[1]) / hAdj);
+
+			actualHei = ceil((float)winh / ratio);
+			actualRatioh = (float)actualHei / (float)hei; // the picture versus the screen
+			overfl = (winh - actualHei) / actualRatioh;
+			yoffs = overfl / 2;
+		}
+	}
+	else
+	{
+		wid = ceil(fabs(2 * xfregs.rawViewport[0]));
+		hei = ceil(fabs(2 * xfregs.rawViewport[1]));
+	}
+
+	if (g_Config.bStretchToFit)
+	{
+		glViewport(
+			(int)(xfregs.rawViewport[3]-xfregs.rawViewport[0]-342-scissorXOff) + xoffs,
+			Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4]-xfregs.rawViewport[1]-342-scissorYOff)) + yoffs,
+			wid, // width
+			hei // height
+			);
+	}
+	else
+	{
+	    float MValueX = OpenGL_GetXmax();
+	    float MValueY = OpenGL_GetYmax();
+	    glViewport((int)(xfregs.rawViewport[3]-xfregs.rawViewport[0]-342-scissorXOff) * MValueX,
+		       Renderer::GetTargetHeight()-((int)(xfregs.rawViewport[4]-xfregs.rawViewport[1]-342-scissorYOff))  * MValueY,
+			abs((int)(2 * xfregs.rawViewport[0])) * MValueX, abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
+	}
+
+	glDepthRange((xfregs.rawViewport[5]- xfregs.rawViewport[2])/16777215.0f, xfregs.rawViewport[5]/16777215.0f);
+}

@@ -860,14 +860,6 @@
 				RelativePath=".\Src\VertexShaderCache.h"
 				>
 			</File>
-			<File
-				RelativePath=".\Src\VertexShaderManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VertexShaderManager.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="GUI"

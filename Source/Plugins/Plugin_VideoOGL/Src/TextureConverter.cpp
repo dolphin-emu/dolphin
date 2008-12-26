@@ -156,7 +156,7 @@ void EncodeToRam(GLuint srcTexture, const TRectangle& sourceRc,
 	GL_REPORT_ERRORD();
 
 	// TODO: this is real slow. try using a pixel buffer object.
-	glReadPixels(0, 0, dstFmtWidth, dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
+	glReadPixels(0, 0, (GLsizei)dstFmtWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
 	GL_REPORT_ERRORD();
 
 	Renderer::SetFramebuffer(0);
@@ -191,7 +191,7 @@ void DecodeToTexture(u8* srcAddr, int srcWidth, int srcHeight, GLuint destTextur
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_srcTexture);
 
 	// TODO: this is slow. try using a pixel buffer object.
-    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA8, srcFmtWidth, srcHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);	
+    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA8, (GLsizei)srcFmtWidth, (GLsizei)srcHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);	
 
     TextureMngr::EnableTexRECT(0);
     for (int i = 1; i < 8; ++i)
@@ -205,10 +205,10 @@ void DecodeToTexture(u8* srcAddr, int srcWidth, int srcHeight, GLuint destTextur
 	GL_REPORT_ERRORD();
 
     glBegin(GL_QUADS);
-	glTexCoord2f(srcFmtWidth, srcHeight); glVertex2f(1,-1);
+	glTexCoord2f(srcFmtWidth, (float)srcHeight); glVertex2f(1,-1);
 	glTexCoord2f(srcFmtWidth, 0); glVertex2f(1,1);
 	glTexCoord2f(0, 0); glVertex2f(-1,1);
-	glTexCoord2f(0, srcHeight); glVertex2f(-1,-1);
+	glTexCoord2f(0, (float)srcHeight); glVertex2f(-1,-1);
     glEnd();	
 
 	// reset state

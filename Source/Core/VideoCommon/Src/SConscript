@@ -13,6 +13,7 @@ files = [
 	"PixelShader.cpp",
 	"PixelShaderManager.cpp",
 	"VertexShader.cpp",
+	"VertexShaderManager.cpp",
 	"ImageWrite.cpp",
 	"Statistics.cpp",
 	"Fifo.cpp",

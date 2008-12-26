@@ -21,6 +21,17 @@
 #include "Common.h"
 #include "pluginspecs_video.h"
 
+enum {
+	EFB_WIDTH = 640,
+	EFB_HEIGHT = 528,
+};
+
+enum {
+	XFB_WIDTH = 640,
+	XFB_HEIGHT = 480, // 528 is max height ... ? or 538?
+	// TODO: figure out what to do with PAL
+};
+
 extern SVideoInitialize g_VideoInitialize;
 
 void DebugLog(const char* _fmt, ...);
@@ -56,5 +67,22 @@ struct TRectangle
 { 
 	int left, top, right, bottom;
 };
+
+void DebugLog(const char* _fmt, ...);
+void __Log(const char *format, ...);
+void __Log(int type, const char *format, ...);
+void HandleGLError();
+
+#define ERROR_LOG __Log
+
+#if defined(_DEBUG) || defined(DEBUGFAST)
+#define INFO_LOG if( g_Config.iLog & CONF_LOG ) __Log
+#define PRIM_LOG if( g_Config.iLog & CONF_PRIMLOG ) __Log
+#define DEBUG_LOG __Log
+#else
+#define INFO_LOG(...)
+#define PRIM_LOG(...)
+#define DEBUG_LOG(...)
+#endif
 
 #endif  // _VIDEOCOMMON_H

@@ -25,7 +25,6 @@ files = [
 	'VertexLoader_Position.cpp',
 	'VertexLoader_TextCoord.cpp',
 	'VertexLoaderManager.cpp',
-	'VertexShaderManager.cpp',
 	'PixelShaderCache.cpp',
 	'VertexShaderCache.cpp',
 	'TextureConverter.cpp',

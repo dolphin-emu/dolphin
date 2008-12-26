@@ -548,6 +548,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\VertexShaderManager.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\VertexShaderManager.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\VideoCommon.h"
 			>
 		</File>
