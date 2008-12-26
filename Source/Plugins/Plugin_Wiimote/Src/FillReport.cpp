@@ -127,7 +127,6 @@ void FillReportAcc(wm_accel& _acc)
 		}
 	}
 
-
 	/* Single shake of Wiimote while holding it sideways (Wario Land pound ground)	
 	if(GetAsyncKeyState('S'))
 		z = 0;
@@ -140,7 +139,9 @@ void FillReportAcc(wm_accel& _acc)
 		y = 0;
 		shake = 2;
 	}
-	else if(shake == 2)
+	else
+#endif
+	    if(shake == 2)
 	{
 		z = 128;
 		y = 0;
@@ -164,11 +165,13 @@ void FillReportAcc(wm_accel& _acc)
 	// ----------
 	bool ypressed = false;
 
+#ifdef _WIN32
 	yhist[yhist.size() - 1] = (
 		GetAsyncKeyState('3') ? true : false
 		|| GetAsyncKeyState('4') ? true : false
 		|| shake > 0
 		);	
+#endif
 	if(yhistsize > yhist.size()) yhistsize = yhist.size();
 	for (int i = 1; i < yhistsize; i++)
 	{
@@ -182,10 +185,10 @@ void FillReportAcc(wm_accel& _acc)
 		//a = 0; // for debugging
 		//b = 0;
 	}
-	else if(!GetAsyncKeyState('3') && !GetAsyncKeyState('4'))
-	{
+	//	else if(!GetAsyncKeyState('3') && !GetAsyncKeyState('4'))
+	//	{
 		// perhaps start dropping acceleration back?
-	}
+	//	}
 	// ----------
 
 
@@ -271,9 +274,6 @@ void FillReportAcc(wm_accel& _acc)
 		X, Y, Z,
 		AX, AY, AZ
 		);*/	
-#else 
-        // TODO port to linux
-#endif
 }
 
 
@@ -575,6 +575,7 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 	if(GetAsyncKeyState('F')) // down
 		Ry = 0x28;
 
+#endif
 	_ext.Lx = (Lx >> 2);
 	_ext.Ly = (Ly >> 2);
 	_ext.Rx = (Rx >> 3); // this may be wrong
@@ -586,7 +587,7 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 	_ext.lT2 = (Ry >> 3);
 	_ext.rT = (Ry >> 4);
 	// --------------
-
+#ifdef _WIN32
 
 
 
