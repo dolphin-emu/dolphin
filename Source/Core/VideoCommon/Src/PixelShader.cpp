@@ -337,12 +337,12 @@ static const char *alphaRef[2] =
 
 static const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
 static const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
-static const char* tevIndAlphaSel[]   = {"", "x", "y", "z"};
-static const char* tevIndAlphaScale[] = {"", "*32","*16","*8"};
-static const char* tevIndBiasField[]  = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
-static const char* tevIndBiasAdd[]    = {"-128.0f", "1.0f", "1.0f", "1.0f" }; // indexed by fmt
-static const char* tevIndWrapStart[]  = {"0", "256", "128", "64", "32", "16", "0.001" };
-static const char* tevIndFmtScale[]   = {"255.0f", "31.0f", "15.0f", "8.0f" };
+static const char *tevIndAlphaSel[]   = {"", "x", "y", "z"};
+static const char *tevIndAlphaScale[] = {"", "*32","*16","*8"};
+static const char *tevIndBiasField[]  = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
+static const char *tevIndBiasAdd[]    = {"-128.0f", "1.0f", "1.0f", "1.0f" }; // indexed by fmt
+static const char *tevIndWrapStart[]  = {"0", "256", "128", "64", "32", "16", "0.001" };
+static const char *tevIndFmtScale[]   = {"255.0f", "31.0f", "15.0f", "8.0f" };
 
 #define WRITE p+=sprintf
 
@@ -364,7 +364,7 @@ static void BuildSwapModeTable()
     }
 }
 
-char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRenderZToCol0)
+const char *GeneratePixelShader(u32 texture_mask, bool has_zbuffer_target, bool bRenderZToCol0)
 {
 	text[sizeof(text) - 1] = 0x7C;  // canary
     DVSTARTPROFILE();

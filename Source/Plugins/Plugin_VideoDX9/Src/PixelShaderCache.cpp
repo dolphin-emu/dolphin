@@ -19,7 +19,7 @@
 #include "Statistics.h"
 #include "Utils.h"
 #include "Profiler.h"
-#include "PixelShaderManager.h"
+#include "PixelShaderCache.h"
 #include "VertexLoader.h"
 #include "BPMemory.h"
 #include "XFMemory.h"

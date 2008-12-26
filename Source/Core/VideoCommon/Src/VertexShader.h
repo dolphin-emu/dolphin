@@ -94,7 +94,7 @@ public:
 	}
 };
 
-char *GenerateVertexShader(u32 components, bool has_zbuffer_target);
+const char *GenerateVertexShader(u32 components, bool has_zbuffer_target);
 void GetVertexShaderId(VERTEXSHADERUID& vid, u32 components, u32 zbufrender);
 
 #endif

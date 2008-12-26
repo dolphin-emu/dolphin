@@ -123,9 +123,9 @@ FRAGMENTSHADER* PixelShaderCache::GetShader()
 	}
 
 	PSCacheEntry& newentry = pshaders[uid];
-	char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(),
-									 Renderer::GetZBufferTarget() != 0,
-									 Renderer::GetRenderMode() != Renderer::RM_Normal);
+	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(),
+										   Renderer::GetZBufferTarget() != 0,
+										   Renderer::GetRenderMode() != Renderer::RM_Normal);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_Config.iLog & CONF_SAVESHADERS && code) {	

@@ -251,12 +251,17 @@ namespace D3D
 			}
 		}
 		dev->GetDeviceCaps(&caps);
-		dev->GetRenderTarget(0,&backBuffer);
+		dev->GetRenderTarget(0, &backBuffer);
 
 		Ps.Major = (D3D::caps.PixelShaderVersion >> 8) & 0xFF;
 		Ps.Minor = (D3D::caps.PixelShaderVersion) & 0xFF;
 		Vs.Major = (D3D::caps.VertexShaderVersion >>8) & 0xFF;
 		Vs.Minor = (D3D::caps.VertexShaderVersion) & 0xFF;
+
+		if (caps.NumSimultaneousRTs < 2)
+		{
+			MessageBox(0, "Warning - your graphics card does not support multiple render targets.", 0, 0);
+		}
 
 		// Device state would normally be set here
 		return S_OK;

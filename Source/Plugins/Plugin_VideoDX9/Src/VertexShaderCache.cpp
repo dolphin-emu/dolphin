@@ -21,7 +21,7 @@
 #include "Statistics.h"
 #include "Utils.h"
 #include "Profiler.h"
-#include "VertexShaderManager.h"
+#include "VertexShaderCache.h"
 #include "VertexLoader.h"
 #include "BPMemory.h"
 #include "XFMemory.h"
@@ -93,7 +93,7 @@ void VShaderCache::SetShader()
 
 void VShaderCache::Cleanup()
 {
-	for (VSCache::iterator iter=vshaders.begin(); iter!=vshaders.end();)
+	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end();)
 	{
 		VSCacheEntry &entry = iter->second;
 		if (entry.frameCount < frameCount - 30)

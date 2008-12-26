@@ -15,12 +15,13 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _PIXELSHADERMANAGER_H
-#define _PIXELSHADERMANAGER_H
+#ifndef _PIXELSHADERCACHE_H
+#define _PIXELSHADERCACHE_H
 
 #include "D3DBase.h"
 
 #include <map>
+
 #include "PixelShader.h"
 #include "VertexShader.h"
 
@@ -33,7 +34,6 @@ class PShaderCache
 	struct PSCacheEntry
 	{
 		LPDIRECT3DPIXELSHADER9 shader;
-		//CGPShader shader;
 
 		int frameCount;
 		PSCacheEntry()
@@ -48,7 +48,6 @@ class PShaderCache
 		}
 	};
 
-
 	typedef std::map<tevhash, PSCacheEntry> PSCache;
 
 	static PSCache pshaders;
@@ -61,4 +60,4 @@ public:
 };
 
 
-#endif  // _PIXELSHADERMANAGER_H
+#endif  // _PIXELSHADERCACHE_H

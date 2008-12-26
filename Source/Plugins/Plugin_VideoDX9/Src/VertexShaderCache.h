@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _VERTEXSHADERMANAGER_H
-#define _VERTEXSHADERMANAGER_H
+#ifndef _VERTEXSHADERCACHE_H
+#define _VERTEXSHADERCACHE_H
 
 #include "D3DBase.h"
 
@@ -54,4 +54,4 @@ public:
 	static void SetShader();
 };
 
-#endif  // _VERTEXSHADERMANAGER_H
+#endif  // _VERTEXSHADERCACHE_H

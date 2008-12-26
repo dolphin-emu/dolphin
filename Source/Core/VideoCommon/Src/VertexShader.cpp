@@ -77,7 +77,7 @@ static char text[16384];
 
 char *GenerateLightShader(char* p, int index, const LitChannel& chan, const char* dest, int coloralpha);
 
-char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
+const char *GenerateVertexShader(u32 components, bool has_zbuffer_target)
 {
 	text[sizeof(text) - 1] = 0x7C;  // canary
     DVSTARTPROFILE();

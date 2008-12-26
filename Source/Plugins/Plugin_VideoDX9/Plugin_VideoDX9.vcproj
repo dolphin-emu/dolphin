@@ -1206,6 +1206,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\TransformEngine.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\TransformEngine.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\VertexLoader.cpp"
 				>
 			</File>
@@ -1270,11 +1278,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\PixelShaderManager.cpp"
+				RelativePath=".\Src\PixelShaderCache.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\PixelShaderManager.h"
+				RelativePath=".\Src\PixelShaderCache.h"
 				>
 			</File>
 			<File
@@ -1294,18 +1302,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\TransformEngine.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\TransformEngine.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Transformer.hlsl"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\VertexShader.cpp"
 				>
 			</File>
@@ -1314,11 +1310,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\VertexShaderManager.cpp"
+				RelativePath=".\Src\VertexShaderCache.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\VertexShaderManager.h"
+				RelativePath=".\Src\VertexShaderCache.h"
 				>
 			</File>
 		</Filter>

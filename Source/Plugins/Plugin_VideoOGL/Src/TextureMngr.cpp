@@ -227,7 +227,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
 
 	// Needed for texture format using tlut.
-	// TODO: Slower == Safer. Recalculate tlut lenght for each cases just to be sure.
+	// TODO: Slower == Safer. Recalculate tlut length for each cases just to be sure.
 	u32 hashseed = 0;
 	switch (format) {
 	case GX_TF_C4:
@@ -237,7 +237,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		hashseed = TexDecoder_GetTlutHash((u16*)(texMem + tlutaddr), 256);
 		break;
 	case GX_TF_C14X2:
-		hashseed = TexDecoder_GetTlutHash((u16*)(texMem + tlutaddr), 384);
+		hashseed = TexDecoder_GetTlutHash((u16*)(texMem + tlutaddr), 512);
 		break;
 	}
 
@@ -386,7 +386,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     // Z16,GB8,RG8,Z16L,IA8,RA8 - IA8
     bool bIsInit = textures.find(address) != textures.end();
 
-    PRIM_LOG("copytarg: addr=0x%x, fromz=%d, intfmt=%d, copyfmt=%d\n", address, (int)bFromZBuffer,(int)bIsIntensityFmt,copyfmt);
+    PRIM_LOG("copytarg: addr=0x%x, fromz=%d, intfmt=%d, copyfmt=%d\n", address, (int)bFromZBuffer, (int)bIsIntensityFmt,copyfmt);
 
     TCacheEntry& entry = textures[address];
     entry.isNonPow2 = true;
@@ -415,7 +415,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
             // for some reason mario sunshine errors here...
             GLenum err = GL_NO_ERROR;
             GL_REPORT_ERROR();
-            if (err == GL_NO_ERROR )
+            if (err == GL_NO_ERROR)
                 bReInit = false;
         }
 
@@ -551,7 +551,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
     }
 
 //    if (bCopyToTarget) {
-//        _assert_( glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT );
+//        _assert_(glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) == GL_FRAMEBUFFER_COMPLETE_EXT);
 //        glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
 //        GL_REPORT_ERRORD();
 //        glCopyTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 0, 0, source->left, source->top, source->right-source->left, source->bottom-source->top);
@@ -567,8 +567,8 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     Renderer::ResetGLState(); // reset any game specific settings
 
-    if (s_TempFramebuffer == 0 )
-        glGenFramebuffersEXT( 1, (GLuint *)&s_TempFramebuffer);
+    if (s_TempFramebuffer == 0)
+        glGenFramebuffersEXT(1, (GLuint *)&s_TempFramebuffer);
 
     Renderer::SetFramebuffer(s_TempFramebuffer);
     Renderer::SetRenderTarget(entry.texture);
@@ -622,7 +622,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     TextureMngr::DisableStage(0);
 
-    if (bFromZBuffer )
+    if (bFromZBuffer)
         Renderer::SetZBufferRender(); // notify for future settings
 
     GL_REPORT_ERRORD();
