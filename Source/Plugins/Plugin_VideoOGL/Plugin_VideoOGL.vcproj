@@ -813,14 +813,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\PixelShaderManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\PixelShaderManager.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\rasterfont.cpp"
 				>
 				<FileConfiguration
@@ -966,14 +958,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\Logging\Console.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ImageWrite.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ImageWrite.h"
 				>
 			</File>
 			<File

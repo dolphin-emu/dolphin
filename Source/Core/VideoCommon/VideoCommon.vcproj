@@ -472,6 +472,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\ImageWrite.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\ImageWrite.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\IndexGenerator.cpp"
 			>
 		</File>
@@ -497,6 +505,14 @@
 		</File>
 		<File
 			RelativePath=".\Src\OpcodeDecoding.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\PixelShaderManager.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\PixelShaderManager.h"
 			>
 		</File>
 		<File

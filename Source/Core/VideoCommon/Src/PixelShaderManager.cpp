@@ -21,7 +21,6 @@
 #include <cmath>
 
 #include "Statistics.h"
-#include "Config.h"
 
 #include "PixelShaderManager.h"
 

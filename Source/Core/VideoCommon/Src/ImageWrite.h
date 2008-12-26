@@ -18,6 +18,8 @@
 #ifndef _IMAGEWRITE_H
 #define _IMAGEWRITE_H
 
+#include "Common.h"
+
 bool SaveTGA(const char* filename, int width, int height, void* pdata);
 bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height);
 bool SaveData(const char* filename, const char* pdata);
