@@ -110,12 +110,17 @@ void Jit64::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize,
 	if (offset)
 		ADD(32, R(reg_addr), Imm32(offset));
 	TEST(32, R(reg_addr), Imm32(0x0C000000));
-	FixupBranch unsafe_addr = J_CC(CC_NZ);	
+	FixupBranch argh = J_CC(CC_Z);
+	switch (accessSize)
+	{
+	case 32: ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), reg_value, reg_addr); break;
+	case 16: ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U16, 2), reg_value, reg_addr); break;
+	case 8:  ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U8, 2), reg_value, reg_addr);  break;
+	}
+	FixupBranch arg2 = J();
+	SetJumpTarget(argh);
 	UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0);
-	FixupBranch skip_call = J();
-	SetJumpTarget(unsafe_addr);
-	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
-	SetJumpTarget(skip_call);
+	SetJumpTarget(arg2);
 }
 
 void Jit64::WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address)
