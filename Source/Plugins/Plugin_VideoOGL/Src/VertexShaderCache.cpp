@@ -34,6 +34,7 @@
 #include "VertexManager.h"
 #include "VertexLoader.h"
 #include "XFMemory.h"
+#include "ImageWrite.h"
 
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 

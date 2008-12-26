@@ -22,6 +22,11 @@
 #include "Debugger/Debugger.h" // for the CDebugger class
 #endif
 
+#if defined(HAVE_WX) && HAVE_WX
+#include "GUI/ConfigDlg.h"
+#include "Debugger/Debugger.h" // for the CDebugger class
+#endif
+
 #include "Config.h"
 #include "LookUpTables.h"
 #include "ImageWrite.h"
@@ -34,7 +39,9 @@
 #include "VertexLoader.h"
 #include "VertexLoaderManager.h"
 #include "VertexManager.h"
+#include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
+#include "VertexShaderCache.h"
 #include "VertexShaderManager.h"
 #include "XFB.h"
 #include "XFBConvert.h"
@@ -146,7 +153,6 @@ void Video_DoState(unsigned char **ptr, int mode) {
 void Video_Prepare(void)
 {
     OpenGL_MakeCurrent();
-
     if (!Renderer::Init()) {
         g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
         PanicAlert("Can't create opengl renderer. You might be missing some required opengl extensions, check the logs for more info");
@@ -159,7 +165,9 @@ void Video_Prepare(void)
     VertexManager::Init();
     Fifo_Init(); // must be done before OpcodeDecoder_Init()
     OpcodeDecoder_Init();
+    VertexShaderCache::Init();
     VertexShaderManager::Init();
+    PixelShaderCache::Init();
     PixelShaderManager::Init();
     GL_REPORT_ERRORD();
     VertexLoaderManager::Init();
@@ -170,8 +178,10 @@ void Video_Shutdown(void)
 {
     TextureConverter::Shutdown();
     VertexLoaderManager::Shutdown();
+    VertexShaderCache::Shutdown();
     VertexShaderManager::Shutdown();
     PixelShaderManager::Shutdown();
+    PixelShaderCache::Shutdown();
     Fifo_Shutdown();
     VertexManager::Shutdown();
     TextureMngr::Shutdown();
