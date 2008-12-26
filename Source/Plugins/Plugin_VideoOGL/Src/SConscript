@@ -32,6 +32,7 @@ files = [
 	'VertexShaderCache.cpp',
 	'TextureConverter.cpp',
 	'XFB.cpp',
+	'XFStructs.cpp',
 	]
 compileFlags = [
 	'-fPIC',
