@@ -124,7 +124,7 @@ void Flush()
 	_assert_(s_pCurBufferPointer != s_pBaseBufferPointer);
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
-	PRIM_LOG("frame%d:\ncomps=0x%x, texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d\n", g_Config.iSaveTargetId, s_prevcomponents, xfregs.numTexGens,
+	PRIM_LOG("frame%d:\ncomps=0x%x, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d\n", g_Config.iSaveTargetId, xfregs.numTexGens,
 		xfregs.nNumChans, (int)xfregs.bEnableDualTexTransform, bpmem.ztex2.op,
 		bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate, bpmem.zmode.updateenable);
 	for (int i = 0; i < xfregs.nNumChans; ++i) {
