@@ -143,7 +143,7 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 
 // Use PAD rumble
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void PAD_Use_Rumble(u8 _numPAD, SPADStatus* _pPADStatus)
+void Pad_Use_Rumble(u8 _numPAD, SPADStatus* _pPADStatus)
 {
 	#ifdef _WIN32
 	#ifdef USE_RUMBLE_DINPUT_HACK

@@ -19,6 +19,7 @@ if padenv['HAVE_WX']:
     files += [
         'GUI/AboutBox.cpp',
         'GUI/ConfigAdvanced.cpp',
+        'GUI/ConfigJoypad.cpp',
         'GUI/ConfigBox.cpp',
         ]
 

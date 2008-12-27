@@ -65,19 +65,31 @@ class ConfigBox : public wxDialog
 		void OnTimer(wxTimerEvent& WXUNUSED(event)) { Update(); }
 		wxTimer m_timer;
 	#endif
+
+		// Debugging
+		wxStaticText* m_pStatusBar, * m_pStatusBar2;
+
+		// Status window
+		int BoxW, BoxH;
 		
 	private:
 		wxButton *m_About;
 		wxButton *m_OK;
 		wxButton *m_Cancel;
 				
-		wxPanel *m_Controller[4];		
+		wxPanel *m_Controller[4]; // Main containers	
 		wxNotebook *m_Notebook;
+		wxBoxSizer * m_MainSizer;
 
-		wxPanel * m_pKeys[4], * m_pInStatus[4];
-		wxBitmap WxStaticBitmap1_BITMAP;
+		wxPanel * m_pKeys[4], * m_pInStatus[4], * m_pOutStatus[4];
+		wxBitmap WxStaticBitmap1_BITMAP, WxStaticBitmap1_BITMAPGray;
 		wxStaticBoxSizer * m_sKeys[4];
-		wxBoxSizer * m_sMain[4], * m_sSettings[4];
+		wxBoxSizer *m_sMain[4], *m_sMainLeft[4], *m_sMainRight[4];
+
+
+		/////////////////////////////
+		// Settings
+		// ¯¯¯¯¯¯¯¯¯
 
 		wxComboBox *m_Joyname[4];
 		wxComboBox *m_Controltype[4];
@@ -86,9 +98,24 @@ class ConfigBox : public wxDialog
 		wxCheckBox *m_Joyattach[4];
 		wxStaticBoxSizer *m_gJoyname[4];
 
-		wxStaticBoxSizer *m_gExtrasettings[4]; wxGridBagSizer * m_gGBExtrasettings[4]; // Settings
+		wxBoxSizer* m_sSettings[4]; // Settings
+		
+		wxStaticBoxSizer *m_gExtrasettings[4]; wxGridBagSizer * m_gGBExtrasettings[4]; // Extra settings
 		wxStaticBoxSizer *m_gControllertype[4];
-		wxStaticBoxSizer *m_gStatusIn[4];
+
+		wxStaticBoxSizer *m_gGenSettings[4]; // General settings
+		wxCheckBox *m_CBSaveByID[4], *m_CBShowAdvanced[4];
+
+		wxStaticBoxSizer *m_gStatusIn[4], *m_gStatusInSettings[4];  // Advanced settings
+		wxBoxSizer *m_gStatusInSettingsH[4];
+		wxGridBagSizer * m_GBAdvancedMainStick[4];
+		wxStaticText *m_TStatusIn[4], *m_TStatusOut[4];
+		wxComboBox *m_CoBDiagonal[4]; wxCheckBox *m_CBS_to_C[4]; wxStaticText *m_STDiagonal[4];
+
+
+		/////////////////////////////
+		// Keys
+		// ¯¯¯¯¯¯¯¯¯
 
 		wxTextCtrl *m_JoyShoulderL[4];
 		wxTextCtrl *m_JoyShoulderR[4];
@@ -145,7 +172,8 @@ class ConfigBox : public wxDialog
 		wxStaticText *m_textWebsite[4];
 		
 		wxTextCtrl *m_PlaceholderBMP[4];
-		wxStaticBitmap *m_controllerimage[4], *m_bmpSquare[4], *m_bmpDot[4];
+		wxStaticBitmap *m_controllerimage[4],
+			*m_bmpSquare[4], *m_bmpDot[4], *m_bmpSquareOut[4], *m_bmpDotOut[4];
 		
 		int notebookpage;		
 	private:
@@ -159,23 +187,32 @@ class ConfigBox : public wxDialog
 			ID_CONTROLLERPAGE2,
 			ID_CONTROLLERPAGE3,
 			ID_CONTROLLERPAGE4,
-
-			ID_INSTATUS1, ID_INSTATUS2, ID_INSTATUS3, ID_INSTATUS4, // Advanced status
+			ID_CONTROLLERPICTURE, // Background picture
 
 			ID_KEYSPANEL1, ID_KEYSPANEL2, ID_KEYSPANEL3, ID_KEYSPANEL4,
 
-			IDC_JOYNAME,
-			IDC_CONTROLTYPE,
-			IDC_DEADZONE,
+			IDG_JOYSTICK, IDC_JOYNAME, IDC_JOYATTACH, // Controller attached
 
-			IDC_JOYATTACH,
-			IDG_JOYSTICK,
-			IDG_EXTRASETTINGS,
-			IDG_CONTROLLERTYPE,
-			ID_CONTROLLERPICTURE,
+			IDG_EXTRASETTINGS, IDC_DEADZONE, // Extra settings
+
+			IDG_CONTROLLERTYPE,	IDC_CONTROLTYPE, // Controller type		
+
+			IDC_SAVEBYID, IDC_SHOWADVANCED, // Settings
+			
+			ID_INSTATUS1, ID_INSTATUS2, ID_INSTATUS3, ID_INSTATUS4, // Advanced status
 			ID_STATUSBMP1, ID_STATUSBMP2, ID_STATUSBMP3, ID_STATUSBMP4,
 			ID_STATUSDOTBMP1, ID_STATUSDOTBMP2, ID_STATUSDOTBMP3, ID_STATUSDOTBMP4,
+			IDT_STATUS_IN, IDT_STATUS_OUT,
 
+			// Advaced settings
+			IDCB_MAINSTICK_DIAGONAL, IDCB_MAINSTICK_S_TO_C, IDT_MAINSTICK_DIAGONAL,
+
+
+			// --------------------------------------------------------------------
+			// Keys objects
+			// -----------------------------
+
+			// Text controls
 			ID_SHOULDER_L = 2000,
 			ID_SHOULDER_R,
 			
@@ -197,6 +234,7 @@ class ConfigBox : public wxDialog
 			ID_DPAD_LEFT,
 			ID_DPAD_RIGHT,
 
+			// Buttons controls
 			IDB_SHOULDER_L = 3000,
 			IDB_SHOULDER_R,
 
@@ -218,6 +256,7 @@ class ConfigBox : public wxDialog
 			IDB_DPAD_LEFT,
 			IDB_DPAD_RIGHT,
 
+			// Text controls
 			IDT_ANALOG_MAIN_X = 4000,
 			IDT_ANALOG_MAIN_Y,
 			IDT_DPAD_UP,
@@ -229,6 +268,7 @@ class ConfigBox : public wxDialog
 			IDT_ANALOG_SUB_X,
 			IDT_ANALOG_SUB_Y,
 			IDT_WEBSITE,
+			IDT_DEBUGGING, IDT_DEBUGGING2,
 
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
 		};
@@ -240,9 +280,14 @@ class ConfigBox : public wxDialog
 
 		void ChangeJoystick(wxCommandEvent& event);
 		void ChangeControllertype(wxCommandEvent& event);
+		void EnableDisable(wxCommandEvent& event); void DoEnableDisable(int _notebookpage);
+
+		void ChangeSettings(wxCommandEvent& event); // Settings
+		void ComboChange(wxCommandEvent& event);
 
 		void OnClose(wxCloseEvent& event);
 		void CreateGUIControls(); void CreateAdvancedControls(int i);
+		void SizeWindow();
 		wxBitmap CreateBitmap(); wxBitmap CreateBitmapDot();
 		void PadGetStatus(); void Update();
  

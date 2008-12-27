@@ -41,71 +41,96 @@ extern CONTROLLER_INFO	*joyinfo;
 extern bool emulator_running;
 ////////////////////////
 
-int main_stick_x = 0;
+/* If we don't use this hack m_MainSizer->GetMinSize().GetWidth() will not change
+   when we enable and disable bShowAdvanced */
+bool StrangeHack = true;
 
 // Set PAD status
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::PadGetStatus()
 {
-	//
-	int _numPAD = 0;
-
-	if (!joysticks[_numPAD].enabled)
+	// Return if it's not enabled
+	if (!joysticks[notebookpage].enabled)
+	{
+		m_TStatusIn[notebookpage]->SetLabel(wxT("Not enabled"));
 		return;
-		
-	// Clear pad status
-	//memset(_pPADStatus, 0, sizeof(SPADStatus));
-
+	}
 
 	// Get pad status
-	GetJoyState(_numPAD);
-	
-	// Reset!
-	/*
-	int base = 0x80;
-	_pPADStatus->stickY = base;
-	_pPADStatus->stickX = base;
-	_pPADStatus->substickX = base;
-	_pPADStatus->substickY = base;
-	_pPADStatus->button |= PAD_USE_ORIGIN;
-	*/
+	GetJoyState(notebookpage);
 
-	// Set analog controllers
 	// Set Deadzones perhaps out of function
 	//int deadzone = (int)(((float)(128.00/100.00)) * (float)(joysticks[_numPAD].deadzone+1));
 	//int deadzone2 = (int)(((float)(-128.00/100.00)) * (float)(joysticks[_numPAD].deadzone+1));
 
-	// Adjust range
-	// The value returned by SDL_JoystickGetAxis is a signed integer (-32768 to 32768)
-	// The value used for the gamecube controller is an unsigned char (0 to 255)
-	int main_stick_x = (joystate[_numPAD].axis[CTL_MAIN_X] >> 8);
-	int main_stick_y = -(joystate[_numPAD].axis[CTL_MAIN_Y] >> 8);
-    //int sub_stick_x = (joystate[_numPAD].axis[CTL_SUB_X] >> 8);
-	//int sub_stick_y = -(joystate[_numPAD].axis[CTL_SUB_Y] >> 8);
+	// Get original values
+	int main_x = joystate[notebookpage].axis[CTL_MAIN_X];
+	int main_y = joystate[notebookpage].axis[CTL_MAIN_Y];
+    //int sub_x = (joystate[_numPAD].axis[CTL_SUB_X];
+	//int sub_y = -(joystate[_numPAD].axis[CTL_SUB_Y];
 
-
-	if (joystate[_numPAD].buttons[CTL_A_BUTTON])
+	// Get adjusted values
+	int main_x_after = main_x, main_y_after = main_y;
+	if(g_Config.bSquareToCircle)
 	{
-		PanicAlert("");
-		//_pPADStatus->button |= PAD_BUTTON_A;
-		//_pPADStatus->analogA = 255;			// Perhaps support pressure?
-		for(int i=0; i<4 ;i++)
-		{
-			m_bmpDot[i]->SetPosition(wxPoint(main_stick_x += 3, main_stick_y));
-		}
+		std::vector<int> main_xy = Pad_Square_to_Circle(main_x, main_y);
+		main_x_after = main_xy.at(0);
+		main_y_after = main_xy.at(1);
 	}
 
-	for(int i=0; i<4 ;i++)
-	{
-		//m_bmpDot[i]->SetPosition(wxPoint(main_stick_x / 4, main_stick_y / 4));
-	}
+	// 
+	float f_x = main_x / 32767.0;
+	float f_y = main_y / 32767.0;
+	float f_x_aft = main_x_after / 32767.0;
+	float f_y_aft = main_y_after / 32767.0;
+
+	/*
+	m_pStatusBar->SetLabel(wxString::Format(
+		"ID:%i  | %i %i = %1.2f %1.2f  |  %i %i = %1.2f %1.2f",
+		ID,
+		main_x, main_y,
+		f_x, f_y,		
+		main_x_after, main_y_after,
+		f_x_aft, f_y_aft
+		));*/
+
+	m_TStatusIn[notebookpage]->SetLabel(wxString::Format(
+		wxT("x:%1.2f y:%1.2f"),
+		f_x, f_y	
+		));
+
+	m_TStatusOut[notebookpage]->SetLabel(wxString::Format(
+		wxT("x:%1.2f y:%1.2f"),
+		f_x_aft, f_y_aft
+		));
+
+	// Adjust the values for the plot
+	int BoxW_ = BoxW - 2; int BoxH_ = BoxH - 2; // Border adjustment
+
+	main_x = (BoxW_ / 2) + (main_x * BoxW_ / (32767 * 2));
+	main_y = (BoxH_ / 2) + (main_y * BoxH_ / (32767 * 2));
+
+	int main_x_out = (BoxW_ / 2) + (main_x_after * BoxW_ / (32767 * 2));
+	int main_y_out = (BoxH_ / 2) + (main_y_after * BoxH_ / (32767 * 2));
+	
+	// Adjust the dot
+	m_bmpDot[notebookpage]->SetPosition(wxPoint(main_x, main_y));
+	m_bmpDotOut[notebookpage]->SetPosition(wxPoint(main_x_out, main_y_out));
+	
 }
 
 // Populate the advanced tab
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::Update()
 {
-	//PadGetStatus();
+	if(StrangeHack) PadGetStatus();
+	if(!g_Config.bShowAdvanced) StrangeHack = false; else StrangeHack = true;
+
+	/*
+	m_pStatusBar->SetLabel(wxString::Format(
+		"ID: %i  %i  %i",
+		m_Joyname[0]->GetSelection(), (int)StrangeHack, (int)g_Config.bShowAdvanced
+		));*/
 }
 
 
@@ -113,33 +138,43 @@ void ConfigBox::Update()
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::CreateAdvancedControls(int i)
 {
-	m_pInStatus[i] = new wxPanel(m_Notebook, ID_INSTATUS1 + i, wxDefaultPosition, wxDefaultSize);
+	m_pInStatus[i] = new wxPanel(m_Controller[i], ID_INSTATUS1 + i, wxDefaultPosition, wxDefaultSize);
 	m_bmpSquare[i] = new wxStaticBitmap(m_pInStatus[i], ID_STATUSBMP1 + i, CreateBitmap(),
 		//wxPoint(4, 15), wxSize(70,70));
 		//wxPoint(4, 20), wxDefaultSize);
 		wxDefaultPosition, wxDefaultSize);
 
 	m_bmpDot[i] = new wxStaticBitmap(m_pInStatus[i], ID_STATUSDOTBMP1 + i, CreateBitmapDot(),
-		wxPoint(40, 40), wxDefaultSize);
+		wxPoint(BoxW / 2, BoxH / 2), wxDefaultSize);
+
+	m_pOutStatus[i] = new wxPanel(m_Controller[i], ID_INSTATUS1 + i, wxDefaultPosition, wxDefaultSize);
+	m_bmpSquareOut[i] = new wxStaticBitmap(m_pOutStatus[i], ID_STATUSBMP1 + i, CreateBitmap(),
+		//wxPoint(4, 15), wxSize(70,70));
+		//wxPoint(4, 20), wxDefaultSize);
+		wxDefaultPosition, wxDefaultSize);
+
+	m_bmpDotOut[i] = new wxStaticBitmap(m_pOutStatus[i], ID_STATUSDOTBMP1 + i, CreateBitmapDot(),
+		wxPoint(BoxW / 2, BoxH / 2), wxDefaultSize);
 }
 
 
 wxBitmap ConfigBox::CreateBitmap() // Create box
 {
-	int w = 70, h = 70;
-	wxBitmap bitmap(w, h);
+	BoxW = 70, BoxH = 70;
+	wxBitmap bitmap(BoxW, BoxH);
 	wxMemoryDC dc;
 	dc.SelectObject(bitmap);
 
 	// Set outline and fill colors
-	wxBrush LightBlueBrush(_T("#0383f0"));
-	wxPen LightBluePen(_T("#80c5fd"));
-	wxPen LightGrayPen(_T("#909090"));
-	dc.SetPen(LightGrayPen);
+	//wxBrush LightBlueBrush(_T("#0383f0"));
+	//wxPen LightBluePen(_T("#80c5fd"));
+	//wxPen LightGrayPen(_T("#909090"));
+	wxPen LightBluePen(_T("#7f9db9")); // Windows XP color	
+	dc.SetPen(LightBluePen);
 	dc.SetBrush(*wxWHITE_BRUSH);
 
 	dc.Clear();
-	dc.DrawRectangle(0, 0, w, h);
+	dc.DrawRectangle(0, 0, BoxW, BoxH);
 	dc.SelectObject(wxNullBitmap);
 	return bitmap;
 }
@@ -152,11 +187,11 @@ wxBitmap ConfigBox::CreateBitmapDot() // Create dot
 	dc.SelectObject(bitmap);
 
 	// Set outline and fill colors
-	wxBrush LightBlueBrush(_T("#0383f0"));
-	wxPen LightBluePen(_T("#80c5fd"));
-	wxPen LightGrayPen(_T("#909090"));
-	dc.SetPen(LightGrayPen);
-	dc.SetBrush(*wxWHITE_BRUSH);
+	//wxBrush RedBrush(_T("#0383f0"));	
+	//wxPen RedPen(_T("#80c5fd"));
+	//wxPen LightGrayPen(_T("#909090"));
+	dc.SetPen(*wxRED_PEN);
+	dc.SetBrush(*wxRED_BRUSH);
 
 	dc.Clear();
 	dc.DrawRectangle(0, 0, w, h);

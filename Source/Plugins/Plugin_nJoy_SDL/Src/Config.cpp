@@ -35,6 +35,12 @@
 // ¯¯¯¯¯¯¯¯¯
 #include "nJoy.h"
 
+Config g_Config;
+
+Config::Config()
+{
+    memset(this, 0, sizeof(Config)); // Clear the memory
+}
 
 
 // Enable output log
@@ -76,41 +82,90 @@ void DEBUG_QUIT()
 	fclose(pFile);
 }
 
+
+/* Check for duplicate Joypad names. An alternative to this would be to only notify the user
+   that he has multiple virtual controllers assigned to the same physical controller
+   and that only one of them will be saved if he has attached settings to a controller ID */
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+std::string Config::CheckForDuplicateNames(std::string _Name, std::vector<std::string> &Duplicates)
+{
+	// Count the number of duplicate names
+	int NumDuplicates = 0;
+	for(int i = 0; i < Duplicates.size(); i++)
+		if(_Name == Duplicates.at(i)) NumDuplicates++;
+
+	Duplicates.push_back(_Name); // Add the name
+
+	// Return an amended name if we found a duplicate
+	if(NumDuplicates > 0)
+		return StringFromFormat("%s (%i)", _Name.c_str(), NumDuplicates);
+	else
+		return _Name;
+}
+
+
 // Save settings to file
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void SaveConfig()
+void Config::Save()
 {
 	IniFile file;
 	file.Load("nJoy.ini");
+	std::vector<std::string> Duplicates;
+
+	file.Set("General", "SaveByID", g_Config.bSaveByID);
+	file.Set("General", "ShowAdvanced", g_Config.bShowAdvanced);
 
 	for (int i = 0; i < 4; i++)
 	{
-		char SectionName[32];
-		sprintf(SectionName, "PAD%i", i+1);
+		std::string SectionName = StringFromFormat("PAD%i", i+1);
+		file.Set(SectionName.c_str(), "joy_id", joysticks[i].ID);
+		file.Set(SectionName.c_str(), "enabled", joysticks[i].enabled);		
+		
+		//////////////////////////////////////
+		// Save joypad specific settings
+		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+			// Current joypad device ID: joysticks[i].ID
+			// Current joypad name: joyinfo[joysticks[i].ID].Name
+		if(g_Config.bSaveByID)
+		{
+			/* Save joypad specific settings. Check for "joysticks[i].ID < SDL_NumJoysticks()" to
+			   avoid reading a joyinfo that does't exist */
+			if(joysticks[i].ID >= SDL_NumJoysticks()) continue;
+			
+			//PanicAlert("%i", m_frame->m_Joyname[0]->GetSelection());
+			//if(i == 0) PanicAlert("%i", joysticks[i].buttons[CTL_START]);
+			//PanicAlert("%s", joyinfo[joysticks[i].ID].Name);
 
-		file.Set(SectionName, "l_shoulder", joysticks[i].buttons[CTL_L_SHOULDER]);
-		file.Set(SectionName, "r_shoulder", joysticks[i].buttons[CTL_R_SHOULDER]);
-		file.Set(SectionName, "a_button", joysticks[i].buttons[CTL_A_BUTTON]);
-		file.Set(SectionName, "b_button", joysticks[i].buttons[CTL_B_BUTTON]);
-		file.Set(SectionName, "x_button", joysticks[i].buttons[CTL_X_BUTTON]);
-		file.Set(SectionName, "y_button", joysticks[i].buttons[CTL_Y_BUTTON]);
-		file.Set(SectionName, "z_trigger", joysticks[i].buttons[CTL_Z_TRIGGER]);
-		file.Set(SectionName, "start_button", joysticks[i].buttons[CTL_START]);
-		file.Set(SectionName, "dpad", joysticks[i].dpad);	
-		file.Set(SectionName, "dpad_up", joysticks[i].dpad2[CTL_D_PAD_UP]);
-		file.Set(SectionName, "dpad_down", joysticks[i].dpad2[CTL_D_PAD_DOWN]);
-		file.Set(SectionName, "dpad_left", joysticks[i].dpad2[CTL_D_PAD_LEFT]);
-		file.Set(SectionName, "dpad_right", joysticks[i].dpad2[CTL_D_PAD_RIGHT]);
-		file.Set(SectionName, "main_x", joysticks[i].axis[CTL_MAIN_X]);
-		file.Set(SectionName, "main_y", joysticks[i].axis[CTL_MAIN_Y]);
-		file.Set(SectionName, "sub_x", joysticks[i].axis[CTL_SUB_X]);
-		file.Set(SectionName, "sub_y", joysticks[i].axis[CTL_SUB_Y]);
-		file.Set(SectionName, "enabled", joysticks[i].enabled);
-		file.Set(SectionName, "deadzone", joysticks[i].deadzone);
-		file.Set(SectionName, "halfpress", joysticks[i].halfpress);
-		file.Set(SectionName, "joy_id", joysticks[i].ID);
-		file.Set(SectionName, "controllertype", joysticks[i].controllertype);
-		file.Set(SectionName, "eventnum", joysticks[i].eventnum);
+			// Create a section name
+			SectionName = CheckForDuplicateNames(joyinfo[joysticks[i].ID].Name, Duplicates);
+		}
+
+		file.Set(SectionName.c_str(), "l_shoulder", joysticks[i].buttons[CTL_L_SHOULDER]);
+		file.Set(SectionName.c_str(), "r_shoulder", joysticks[i].buttons[CTL_R_SHOULDER]);
+		file.Set(SectionName.c_str(), "a_button", joysticks[i].buttons[CTL_A_BUTTON]);
+		file.Set(SectionName.c_str(), "b_button", joysticks[i].buttons[CTL_B_BUTTON]);
+		file.Set(SectionName.c_str(), "x_button", joysticks[i].buttons[CTL_X_BUTTON]);
+		file.Set(SectionName.c_str(), "y_button", joysticks[i].buttons[CTL_Y_BUTTON]);
+		file.Set(SectionName.c_str(), "z_trigger", joysticks[i].buttons[CTL_Z_TRIGGER]);
+		file.Set(SectionName.c_str(), "start_button", joysticks[i].buttons[CTL_START]);
+		file.Set(SectionName.c_str(), "dpad", joysticks[i].dpad);	
+		file.Set(SectionName.c_str(), "dpad_up", joysticks[i].dpad2[CTL_D_PAD_UP]);
+		file.Set(SectionName.c_str(), "dpad_down", joysticks[i].dpad2[CTL_D_PAD_DOWN]);
+		file.Set(SectionName.c_str(), "dpad_left", joysticks[i].dpad2[CTL_D_PAD_LEFT]);
+		file.Set(SectionName.c_str(), "dpad_right", joysticks[i].dpad2[CTL_D_PAD_RIGHT]);
+		file.Set(SectionName.c_str(), "main_x", joysticks[i].axis[CTL_MAIN_X]);
+		file.Set(SectionName.c_str(), "main_y", joysticks[i].axis[CTL_MAIN_Y]);
+		file.Set(SectionName.c_str(), "sub_x", joysticks[i].axis[CTL_SUB_X]);
+		file.Set(SectionName.c_str(), "sub_y", joysticks[i].axis[CTL_SUB_Y]);
+		
+		file.Set(SectionName.c_str(), "deadzone", joysticks[i].deadzone);
+		file.Set(SectionName.c_str(), "halfpress", joysticks[i].halfpress);
+		
+		file.Set(SectionName.c_str(), "controllertype", joysticks[i].controllertype);
+		file.Set(SectionName.c_str(), "eventnum", joysticks[i].eventnum);
+
+		file.Set(SectionName.c_str(), "Diagonal", g_Config.SDiagonal);
+		file.Set(SectionName.c_str(), "SquareToCircle", g_Config.bSquareToCircle);		
 	}
 
 	file.Save("nJoy.ini");
@@ -118,39 +173,69 @@ void SaveConfig()
 
 // Load settings from file
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void LoadConfig()
+void Config::Load(bool Config)
 {
 	IniFile file;
 	file.Load("nJoy.ini");
+	std::vector<std::string> Duplicates;
+
+	file.Get("General", "SaveByID", &g_Config.bSaveByID, false);
+	file.Get("General", "ShowAdvanced", &g_Config.bShowAdvanced, false);
+	
 
 	for (int i = 0; i < 4; i++)
 	{
-		char SectionName[32];
-		sprintf(SectionName, "PAD%i", i+1);
+		std::string SectionName = StringFromFormat("PAD%i", i+1);
 
-		file.Get(SectionName, "l_shoulder", &joysticks[i].buttons[CTL_L_SHOULDER], 4);
-		file.Get(SectionName, "r_shoulder", &joysticks[i].buttons[CTL_R_SHOULDER], 5);
-		file.Get(SectionName, "a_button", &joysticks[i].buttons[CTL_A_BUTTON], 0);
-		file.Get(SectionName, "b_button", &joysticks[i].buttons[CTL_B_BUTTON], 1);	
-		file.Get(SectionName, "x_button", &joysticks[i].buttons[CTL_X_BUTTON], 3);
-		file.Get(SectionName, "y_button", &joysticks[i].buttons[CTL_Y_BUTTON], 2);	
-		file.Get(SectionName, "z_trigger", &joysticks[i].buttons[CTL_Z_TRIGGER], 7);
-		file.Get(SectionName, "start_button", &joysticks[i].buttons[CTL_START], 9);	
-		file.Get(SectionName, "dpad", &joysticks[i].dpad, 0);	
-		file.Get(SectionName, "dpad_up", &joysticks[i].dpad2[CTL_D_PAD_UP], 0);
-		file.Get(SectionName, "dpad_down", &joysticks[i].dpad2[CTL_D_PAD_DOWN], 0);
-		file.Get(SectionName, "dpad_left", &joysticks[i].dpad2[CTL_D_PAD_LEFT], 0);
-		file.Get(SectionName, "dpad_right", &joysticks[i].dpad2[CTL_D_PAD_RIGHT], 0);
-		file.Get(SectionName, "main_x", &joysticks[i].axis[CTL_MAIN_X], 0);	
-		file.Get(SectionName, "main_y", &joysticks[i].axis[CTL_MAIN_Y], 1);	
-		file.Get(SectionName, "sub_x", &joysticks[i].axis[CTL_SUB_X], 2);	
-		file.Get(SectionName, "sub_y", &joysticks[i].axis[CTL_SUB_Y], 3);	
-		file.Get(SectionName, "enabled", &joysticks[i].enabled, 1);	
-		file.Get(SectionName, "deadzone", &joysticks[i].deadzone, 9);	
-		file.Get(SectionName, "halfpress", &joysticks[i].halfpress, 6);	
-		file.Get(SectionName, "joy_id", &joysticks[i].ID, 0);
-		file.Get(SectionName, "controllertype", &joysticks[i].controllertype, 0);
-		file.Get(SectionName, "eventnum", &joysticks[i].eventnum, 0);
+		// Don't update this when we are loading settings from the ConfigBox
+		if(!Config)
+		{
+			file.Get(SectionName.c_str(), "joy_id", &joysticks[i].ID, 0);
+			file.Get(SectionName.c_str(), "enabled", &joysticks[i].enabled, 1);
+		}
+		
+		//////////////////////////////////////
+		// Load joypad specific settings
+		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+			// Current joypad device ID: joysticks[i].ID
+			// Current joypad name: joyinfo[joysticks[i].ID].Name
+		if(g_Config.bSaveByID)
+		{
+			/* Prevent a crash from illegal access to joyinfo that will only have values for
+			   the current amount of connected joysticks */
+			if(joysticks[i].ID >= SDL_NumJoysticks()) continue;
+
+			//PanicAlert("%i  %i",joysticks[i].ID, SDL_NumJoysticks());
+			//PanicAlert("%s", joyinfo[joysticks[i].ID].Name);
+
+			// Create a section name			
+			SectionName = CheckForDuplicateNames(joyinfo[joysticks[i].ID].Name, Duplicates);
+		}
+
+		file.Get(SectionName.c_str(), "l_shoulder", &joysticks[i].buttons[CTL_L_SHOULDER], 4);
+		file.Get(SectionName.c_str(), "r_shoulder", &joysticks[i].buttons[CTL_R_SHOULDER], 5);
+		file.Get(SectionName.c_str(), "a_button", &joysticks[i].buttons[CTL_A_BUTTON], 0);
+		file.Get(SectionName.c_str(), "b_button", &joysticks[i].buttons[CTL_B_BUTTON], 1);	
+		file.Get(SectionName.c_str(), "x_button", &joysticks[i].buttons[CTL_X_BUTTON], 3);
+		file.Get(SectionName.c_str(), "y_button", &joysticks[i].buttons[CTL_Y_BUTTON], 2);	
+		file.Get(SectionName.c_str(), "z_trigger", &joysticks[i].buttons[CTL_Z_TRIGGER], 7);
+		file.Get(SectionName.c_str(), "start_button", &joysticks[i].buttons[CTL_START], 9);	
+		file.Get(SectionName.c_str(), "dpad", &joysticks[i].dpad, 0);	
+		file.Get(SectionName.c_str(), "dpad_up", &joysticks[i].dpad2[CTL_D_PAD_UP], 0);
+		file.Get(SectionName.c_str(), "dpad_down", &joysticks[i].dpad2[CTL_D_PAD_DOWN], 0);
+		file.Get(SectionName.c_str(), "dpad_left", &joysticks[i].dpad2[CTL_D_PAD_LEFT], 0);
+		file.Get(SectionName.c_str(), "dpad_right", &joysticks[i].dpad2[CTL_D_PAD_RIGHT], 0);
+		file.Get(SectionName.c_str(), "main_x", &joysticks[i].axis[CTL_MAIN_X], 0);	
+		file.Get(SectionName.c_str(), "main_y", &joysticks[i].axis[CTL_MAIN_Y], 1);	
+		file.Get(SectionName.c_str(), "sub_x", &joysticks[i].axis[CTL_SUB_X], 2);	
+		file.Get(SectionName.c_str(), "sub_y", &joysticks[i].axis[CTL_SUB_Y], 3);
+		file.Get(SectionName.c_str(), "deadzone", &joysticks[i].deadzone, 9);	
+		file.Get(SectionName.c_str(), "halfpress", &joysticks[i].halfpress, 6);	
+		file.Get(SectionName.c_str(), "controllertype", &joysticks[i].controllertype, 0);
+		file.Get(SectionName.c_str(), "eventnum", &joysticks[i].eventnum, 0);
+
+		file.Get(SectionName.c_str(), "Diagonal", &g_Config.SDiagonal, "100%");
+		file.Get(SectionName.c_str(), "SquareToCircle", &g_Config.bSquareToCircle, false);
 	}
 }
 

@@ -207,7 +207,7 @@
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="true"
+				WarnAsError="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -364,7 +364,7 @@
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="true"
+				WarnAsError="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -506,6 +506,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\Config.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\nJoy.cpp"
 				>
 			</File>
@@ -539,6 +543,10 @@
 			</File>
 			<File
 				RelativePath=".\Src\GUI\ConfigBox.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\GUI\ConfigJoypad.cpp"
 				>
 			</File>
 		</Filter>

@@ -32,18 +32,21 @@
 // Set this if you want to use the rumble 'hack' for controller one
 //#define USE_RUMBLE_DINPUT_HACK
 
-#include <vector>
+#include <vector> // System
 #include <stdio.h>
 #include <time.h>
 #include <SDL.h>
 
-#include "Common.h"
+#include "Common.h" // Common
 #include "pluginspecs_pad.h"
 #include "IniFile.h"
 
+#include "Config.h" // Local
+
 #if defined(HAVE_WX) && HAVE_WX
-#include "GUI/AboutBox.h"
-#include "GUI/ConfigBox.h"
+	#include "GUI/AboutBox.h"
+	#include "GUI/ConfigBox.h"
+	//extern ConfigBox* m_frame;
 #endif
 
 #ifdef _WIN32
@@ -167,6 +170,7 @@ enum
 // ¯¯¯¯¯¯¯¯¯
 #ifndef _CONTROLLER_STATE_H
 	extern FILE *pFile;
+	extern CONTROLLER_INFO *joyinfo;
 	extern CONTROLLER_STATE joystate[4];
 	extern CONTROLLER_MAPPING joysticks[4];
 	extern HWND m_hWnd; // Handle to window
@@ -182,7 +186,9 @@ int Search_Devices();
 void DEBUG_INIT();
 void DEBUG_QUIT();
 
-void PAD_Use_Rumble(u8 _numPAD, SPADStatus* _pPADStatus); // Rumble
+void Pad_Use_Rumble(u8 _numPAD, SPADStatus* _pPADStatus); // Rumble
+u8 Pad_Convert(int _val); // Value conversion
+std::vector<int> Pad_Square_to_Circle(int _x, int _y); // Value conversion
 
-void SaveConfig();
-void LoadConfig();
+//void SaveConfig();
+//void LoadConfig();
