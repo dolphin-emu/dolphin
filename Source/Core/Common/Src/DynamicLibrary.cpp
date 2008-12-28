@@ -93,14 +93,7 @@ int DynamicLibrary::Load(const char* filename)
 	if (!library)
 	{
 		LOG(MASTER_LOG, "Error loading DLL %s: %s", filename, GetLastErrorAsString().c_str());
-		if (File::Exists(filename))
-		{
-			PanicAlert("Error loading DLL %s: %s\n\nAre you missing SDL.DLL or another file that this plugin may depend on?", filename, GetLastErrorAsString().c_str());
-		}
-		else
-		{
-			PanicAlert("Error loading DLL %s: %s\n", filename, GetLastErrorAsString().c_str());
-		}
+		PanicAlert("Error loading DLL %s: %s\n", filename, GetLastErrorAsString().c_str());
 		return 0;
 	}
 
