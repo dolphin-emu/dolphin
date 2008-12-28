@@ -184,7 +184,7 @@ tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
          'CheckPKG' : utils.CheckPKG,
          'CheckSDL' : utils.CheckSDL}
 
-build_dir = os.path.join('Build', platform.system() + '-' + platform.machine() + os.sep)
+build_dir = os.path.join('Build', platform.system() + '-' + platform.machine() + '-' + env['flavor'] + os.sep)
 VariantDir(build_dir, '.', duplicate=0)
 
 conf = env.Configure(custom_tests = tests, 
@@ -270,8 +270,12 @@ env.AddMethod(utils.filterWarnings)
 env['base_dir'] = os.getcwd()+ '/';
 
 # install paths
+extra=''
+if env['flavor'] == 'debug':
+    extra = '-debug'
+
 # TODO: support global install
-env['prefix'] = os.path.join(env['base_dir'] + 'Binary', platform.system() + '-' + platform.machine() + '/')
+env['prefix'] = os.path.join(env['base_dir'] + 'Binary', platform.system() + '-' + platform.machine() + extra +os.sep)
 #TODO add lib
 env['plugin_dir'] = env['prefix'] + 'Plugins/' 
 #TODO add bin
