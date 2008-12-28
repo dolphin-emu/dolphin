@@ -31,6 +31,7 @@
 #include "Config.h" // Core
 #include "Core.h"
 #include "HW/DVDInterface.h"
+#include "Plugins/Plugin_PAD.h"
 #include "State.h"
 #include "VolumeHandler.h"
 
@@ -171,6 +172,10 @@ CFrame::CFrame(wxFrame* parent,
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN,
 			wxKeyEventHandler(CFrame::OnKeyDown),
 			(wxObject*)0, this);
+
+	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_UP,
+		wxKeyEventHandler(CFrame::OnKeyUp),
+		(wxObject*)0, this);
 
 	UpdateGUI();
 }
@@ -506,7 +511,7 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 {
 	// Ask for confirmation in case the user accidently clicked Stop
-	int answer;
+	bool answer;
 	if(SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
 	{
 		answer = AskYesNo("Are you sure you want to stop the current emulation?",
@@ -514,10 +519,10 @@ void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 	}
 	else
 	{
-		answer = wxYES;
+		answer = true;
 	}
 
-	if (answer == wxYES && Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (answer && Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		Core::Stop();
 		UpdateGUI();
@@ -690,8 +695,18 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 #endif
 	else
 	{
+		if(Core::GetState() != Core::CORE_UNINITIALIZED)
+			PluginPAD::PAD_Input(event.GetKeyCode(), 1); // 1 = Down
 		event.Skip();
 	}
+	//if(event.GetKeyCode() == 80) PanicAlert("Core 80");
+}
+
+void CFrame::OnKeyUp(wxKeyEvent& event)
+{
+	if(Core::GetState() != Core::CORE_UNINITIALIZED)
+		PluginPAD::PAD_Input(event.GetKeyCode(), 0); // 0 = Up
+	event.Skip();
 }
 
 

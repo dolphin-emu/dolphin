@@ -117,7 +117,7 @@ class CFrame : public wxFrame
 		void OnResize(wxSizeEvent& event);
 		void OnToggleToolbar(wxCommandEvent& event);
 		void OnToggleStatusbar(wxCommandEvent& event);
-		void OnKeyDown(wxKeyEvent& event);
+		void OnKeyDown(wxKeyEvent& event); void OnKeyUp(wxKeyEvent& event);
 		void OnHostMessage(wxCommandEvent& event);
 
 		void OnMemcard(wxCommandEvent& event); // Misc

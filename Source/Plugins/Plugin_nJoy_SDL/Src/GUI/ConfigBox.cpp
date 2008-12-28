@@ -67,6 +67,7 @@ BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
 	EVT_NOTEBOOK_PAGE_CHANGED(ID_NOTEBOOK, ConfigBox::NotebookPageChanged)
 
 	EVT_CHECKBOX(IDC_SAVEBYID, ConfigBox::ChangeSettings) // Settings
+	EVT_CHECKBOX(IDC_SAVEBYIDNOTICE, ConfigBox::ChangeSettings)
 	EVT_CHECKBOX(IDC_SHOWADVANCED, ConfigBox::ChangeSettings)
 	EVT_COMBOBOX(IDCB_MAINSTICK_DIAGONAL, ConfigBox::ChangeSettings)	
 	EVT_CHECKBOX(IDCB_MAINSTICK_S_TO_C, ConfigBox::ChangeSettings)	
@@ -102,20 +103,34 @@ ConfigBox::ConfigBox(wxWindow *parent, wxWindowID id, const wxString &title,
 	, m_timer(this)
 	#endif
 {
-
+	// Define values
 	notebookpage = 0;
+	g_Pressed = 0;
+
+	// Create controls
 	CreateGUIControls();
 
 	#if wxUSE_TIMER
 		m_timer.Start( floor((double)(1000 / 30)) );
 	#endif
 
+	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN,
+			wxKeyEventHandler(ConfigBox::OnKeyDown),
+			(wxObject*)0, this);
 
 }
 
 ConfigBox::~ConfigBox()
 {
 	// empty
+}
+
+void ConfigBox::OnKeyDown(wxKeyEvent& event)
+{
+	/*m_pStatusBar->SetLabel(wxString::Format(
+		"Key: %i", event.GetKeyCode()
+		));*/
+	g_Pressed = event.GetKeyCode();
 }
 
 // Close window
@@ -152,8 +167,15 @@ void ConfigBox::OKClick(wxCommandEvent& event)
 {
 	if (event.GetId() == ID_OK)
 	{
+		// Check for duplicate joypads
+		if(g_Config.bSaveByIDNotice)
+		{
+			int Tmp = g_Config.CheckForDuplicateJoypads(true);
+			if (Tmp == wxOK) return; else if (Tmp == wxNO) g_Config.bSaveByIDNotice = false;
+		}
+
 		for(int i=0; i<4 ;i++) GetControllerAll(i); // Update joysticks array
-		g_Config.Save();	// Save settings
+		g_Config.Save(true);	// Save settings
 		g_Config.Load();	// Reload settings
 		Close(); // Call OnClose()
 	}
@@ -179,8 +201,11 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 	switch(event.GetId())
 	{
 		case IDC_SAVEBYID:
-			g_Config.bSaveByID = m_CBSaveByID[notebookpage]->IsChecked();
+			g_Config.bSaveByID.at(notebookpage) = m_CBSaveByID[notebookpage]->IsChecked();
 			break;
+		case IDC_SAVEBYIDNOTICE:
+			g_Config.bSaveByIDNotice = m_CBSaveByIDNotice[notebookpage]->IsChecked();
+			break;			
 
 		case IDC_SHOWADVANCED: 
 			g_Config.bShowAdvanced = m_CBShowAdvanced[notebookpage]->IsChecked();			
@@ -205,16 +230,20 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::EnableDisable(wxCommandEvent& event)
 {
+	// First save the settings as they are now, disabled controls will not be saved later
+	g_Config.Save();
+	
 	// Update the enable / disable status
 	DoEnableDisable(notebookpage);
 
 }
 void ConfigBox::DoEnableDisable(int _notebookpage)
 {
-#ifdef _WIN32 // There is no FindItem in linux so this doesn't work
+
 	// Update the enable / disable status
 	joysticks[_notebookpage].enabled = m_Joyattach[_notebookpage]->GetValue();
 
+#ifdef _WIN32 // There is no FindItem in linux so this doesn't work
 	// Enable or disable all buttons
 	for(int i = IDB_SHOULDER_L; i < (IDB_SHOULDER_L + 13 + 4); i++)
 	{
@@ -224,9 +253,11 @@ void ConfigBox::DoEnableDisable(int _notebookpage)
 	// Enable or disable settings controls
 	m_Controller[_notebookpage]->FindItem(IDC_DEADZONE)->Enable(joysticks[_notebookpage].enabled);
 	m_Controller[_notebookpage]->FindItem(IDC_CONTROLTYPE)->Enable(joysticks[_notebookpage].enabled);
+#endif
 
 	// General settings
-	m_CBSaveByID[_notebookpage]->SetValue(g_Config.bSaveByID);
+	m_CBSaveByID[_notebookpage]->SetValue(g_Config.bSaveByID.at(_notebookpage));
+	m_CBSaveByIDNotice[_notebookpage]->SetValue(g_Config.bSaveByIDNotice);
 	m_CBShowAdvanced[_notebookpage]->SetValue(g_Config.bShowAdvanced);
 
 	// Advanced settings
@@ -234,7 +265,7 @@ void ConfigBox::DoEnableDisable(int _notebookpage)
 	m_CBS_to_C[notebookpage]->SetValue(g_Config.bSquareToCircle);
 
 	m_Controller[_notebookpage]->Refresh(); // Repaint the background
-#endif
+
 }
 
 
@@ -250,14 +281,11 @@ void ConfigBox::NotebookPageChanged(wxNotebookEvent& event)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::ChangeJoystick(wxCommandEvent& event)
 {
-	 // Save potential changes
-	if(g_Config.bSaveByID)
-	{
-		int Tmp = joysticks[notebookpage].ID; // Don't update the ID
-		GetControllerAll(notebookpage);
-		joysticks[notebookpage].ID = Tmp;
-		g_Config.Save();
-	}
+	 // Save potential changes to support SaveByID
+	int Tmp = joysticks[notebookpage].ID; // Don't update the ID
+	GetControllerAll(notebookpage);
+	joysticks[notebookpage].ID = Tmp;
+	g_Config.Save();
 
 	//PanicAlert("%i", m_Joyname[notebookpage]->GetSelection());
 
@@ -266,12 +294,10 @@ void ConfigBox::ChangeJoystick(wxCommandEvent& event)
 
 	//PanicAlert("%i  %i", joysticks[notebookpage].ID, notebookpage);
 
-	// Load device settings
-	if(g_Config.bSaveByID)
-	{
-		g_Config.Load(true); // Then load the current
-		SetControllerAll(notebookpage);
-	}
+	// Load device settings to support SaveByID
+	g_Config.Load(true); // Then load the current
+	SetControllerAll(notebookpage); // Update joystick dialog items
+	DoEnableDisable(notebookpage); // Update other dialog items
 
 	// Remap the controller to
 	if (joysticks[notebookpage].enabled)
@@ -279,7 +305,6 @@ void ConfigBox::ChangeJoystick(wxCommandEvent& event)
 		if (SDL_JoystickOpened(notebookpage)) SDL_JoystickClose(joystate[notebookpage].joy);
 		joystate[notebookpage].joy = SDL_JoystickOpen(joysticks[notebookpage].ID);
 	}
-
 }
 
 
@@ -322,6 +347,12 @@ void ConfigBox::CreateGUIControls()
 	m_About = new wxButton(this, ID_ABOUT, wxT("About"), wxDefaultPosition, wxSize(75, 25), 0, wxDefaultValidator, wxT("About"));
 	m_OK = new wxButton(this, ID_OK, wxT("OK"), wxDefaultPosition, wxSize(75, 25), 0, wxDefaultValidator, wxT("OK"));
 	m_Cancel = new wxButton(this, ID_CANCEL, wxT("Cancel"), wxDefaultPosition, wxSize(75, 25), 0, wxDefaultValidator, wxT("Cancel"));
+	m_OK->SetToolTip(
+		wxT("Save your settings and close this window.")
+		);
+	m_Cancel->SetToolTip(
+		wxT("Close this window without saving your changes.")
+		);
 
 	// Notebook
 	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
@@ -515,6 +546,9 @@ void ConfigBox::CreateGUIControls()
 		m_gJoyname[i]->Add(m_Joyname[i], 0, (wxLEFT | wxRIGHT), 5);
 		m_gJoyname[i]->Add(m_Joyattach[i], 0, (wxRIGHT | wxLEFT | wxBOTTOM), 1);
 
+		m_Joyname[i]->SetToolTip(wxT("Save your settings and configure another joypad"));
+
+
 		// --------------------------------------------------------------------
 		// Populate settings sizer
 		// -----------------------------
@@ -525,11 +559,11 @@ void ConfigBox::CreateGUIControls()
 		m_JoyButtonHalfpress[i]->Enable(false);
 		m_bJoyButtonHalfpress[i] = new wxButton(m_Controller[i], IDB_BUTTONHALFPRESS, wxEmptyString, wxPoint(231, 426), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
 		#ifdef _WIN32
-		m_Deadzone[i] = new wxComboBox(m_Controller[i], IDC_DEADZONE, wxEmptyString, wxDefaultPosition, wxSize(59, 21), arrayStringFor_Deadzone, 0, wxDefaultValidator, wxT("m_Deadzone"));
+		m_Deadzone[i] = new wxComboBox(m_Controller[i], IDC_DEADZONE, wxEmptyString, wxDefaultPosition, wxSize(59, 21), arrayStringFor_Deadzone, wxCB_READONLY, wxDefaultValidator, wxT("m_Deadzone"));
 		m_textDeadzone[i] = new wxStaticText(m_Controller[i], IDT_DEADZONE, wxT("Deadzone"), wxDefaultPosition, wxDefaultSize, 0, wxT("Deadzone"));		
 		m_textHalfpress[i] = new wxStaticText(m_Controller[i], IDT_BUTTONHALFPRESS, wxT("Half press"), wxDefaultPosition, wxDefaultSize, 0, wxT("Half press"));
 		#else
-		m_Deadzone[i] = new wxComboBox(m_Controller[i], IDC_DEADZONE, wxEmptyString, wxPoint(167, 398), wxSize(80, 25), arrayStringFor_Deadzone, 0, wxDefaultValidator, wxT("m_Deadzone"));
+		m_Deadzone[i] = new wxComboBox(m_Controller[i], IDC_DEADZONE, wxEmptyString, wxPoint(167, 398), wxSize(80, 25), arrayStringFor_Deadzone, wxCB_READONLY, wxDefaultValidator, wxT("m_Deadzone"));
 		m_textDeadzone[i] = new wxStaticText(m_Controller[i], IDT_DEADZONE, wxT("Deadzone"), wxPoint(105, 404), wxDefaultSize, 0, wxT("Deadzone"));		
 		m_textHalfpress[i] = new wxStaticText(m_Controller[i], IDT_BUTTONHALFPRESS, wxT("Half press"), wxPoint(105, 428), wxDefaultSize, 0, wxT("Half press"));
 		#endif
@@ -548,17 +582,28 @@ void ConfigBox::CreateGUIControls()
 		m_Controltype[i] = new wxComboBox(m_Controller[i], IDC_CONTROLTYPE, arrayStringFor_Controltype[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_Controltype, wxCB_READONLY);
 		m_gControllertype[i]->Add(m_Controltype[i], 0, wxEXPAND | wxALL, 3);
 
-		// Populate general settings
+		// Create objects for general settings
 		m_gGenSettings[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Settings") );
 		m_CBSaveByID[i] = new wxCheckBox(m_Controller[i], IDC_SAVEBYID, wxT("Save by ID"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_CBSaveByIDNotice[i] = new wxCheckBox(m_Controller[i], IDC_SAVEBYIDNOTICE, wxT("Notice"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		m_CBShowAdvanced[i] = new wxCheckBox(m_Controller[i], IDC_SHOWADVANCED, wxT("Show advanced settings"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_gGenSettings[i]->Add(m_CBSaveByID[i], 0, wxEXPAND | wxALL, 3);
+		
+		// Populate general settings
+		m_sSaveByID[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_sSaveByID[i]->Add(m_CBSaveByID[i], 0, wxEXPAND | wxALL, 0);
+		m_sSaveByID[i]->Add(m_CBSaveByIDNotice[i], 0, wxEXPAND | wxLEFT, 2);
+		m_gGenSettings[i]->Add(m_sSaveByID[i], 0, wxEXPAND | wxALL, 3);
 		m_gGenSettings[i]->Add(m_CBShowAdvanced[i], 0, wxEXPAND | wxALL, 3);
+		
+		// Create tooltips
 		m_CBSaveByID[i]->SetToolTip(wxString::Format(wxT(
 			"Map these settings to the selected controller device instead of to the"
 			"\nselected controller number (%i). This may be a more convenient way"
 			"\nto save your settings if you have multiple controllers.")
 			, i+1
+			));
+		m_CBSaveByIDNotice[i]->SetToolTip(wxString::Format(wxT(
+			"Show a notification message if you have selected this option for multiple identical joypads.")
 			));
 
 		// Populate settings
@@ -618,7 +663,6 @@ void ConfigBox::CreateGUIControls()
 		m_gStatusInSettingsH[i]->Add(m_STDiagonal[i], 0, wxTOP, 3);
 		m_gStatusInSettingsH[i]->Add(m_CoBDiagonal[i], 0, wxLEFT, 3);
 		
-
 		
 
 		//////////////////////////////////////
@@ -688,8 +732,8 @@ void ConfigBox::CreateGUIControls()
 	// --------------------------------------------------------------------
 	// Debugging
 	// -----------------------------
-	//m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(100, 510), wxDefaultSize);	
-	//m_pStatusBar2 = new wxStaticText(this, IDT_DEBUGGING2, wxT("Debugging2"), wxPoint(100, 530), wxDefaultSize);	
+	m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(100, 510), wxDefaultSize);	
+	m_pStatusBar2 = new wxStaticText(this, IDT_DEBUGGING2, wxT("Debugging2"), wxPoint(100, 530), wxDefaultSize);	
 	//m_pStatusBar->SetLabel(wxString::Format("Debugging text"));
 
 	// --------------------------------------------------------------------

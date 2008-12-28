@@ -255,6 +255,14 @@ void PAD_Shutdown()
 	#endif
 }
 
+
+
+// Set buttons status from wxWidgets in the main application
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void PAD_Input(u8 _Key, u8 _UpDown) {}
+
+
+
 // Set PAD status
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
@@ -336,8 +344,12 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	int triggervalue = 255;
 	if (joystate[_numPAD].halfpress)
 		triggervalue = 100;
-	int ButtonArray[] = {PAD_TRIGGER_L, PAD_TRIGGER_R, PAD_BUTTON_A, PAD_BUTTON_B, PAD_BUTTON_X, PAD_BUTTON_Y, PAD_TRIGGER_Z, PAD_BUTTON_START, PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT, PAD_BUTTON_RIGHT};
-	for(int a = 0;a <= CTL_D_PAD_RIGHT;a++)
+	int ButtonArray[] = {PAD_TRIGGER_L, PAD_TRIGGER_R,
+		PAD_BUTTON_A, PAD_BUTTON_B,
+		PAD_BUTTON_X, PAD_BUTTON_Y, PAD_TRIGGER_Z,
+		PAD_BUTTON_START,
+		PAD_BUTTON_UP, PAD_BUTTON_DOWN, PAD_BUTTON_LEFT, PAD_BUTTON_RIGHT};
+	for(int a = 0; a <= CTL_D_PAD_RIGHT; a++)
 	{
 		switch(joysticks[_numPAD].buttons[a].c_str()[0])
 		{
@@ -385,6 +397,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 						if(joystate[_numPAD].buttons[a] <= 0)
 							TriggerValue = abs((255.0f / joysticks[_numPAD].sData[JoyNum].Min) * joystate[_numPAD].buttons[a]);
 					}
+					// Analog L and R
 					if(a == CTL_L_SHOULDER)
 					{
 						if(TriggerValue == 255)
@@ -417,6 +430,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 				if(joystate[_numPAD].buttons[a])
 				{
 					_pPADStatus->button |= ButtonArray[a];
+					// Digital L and R
 					if(a == CTL_L_SHOULDER)
 						_pPADStatus->triggerLeft = 255; //TODO: Do half press with these
 					else if(a == CTL_R_SHOULDER) 

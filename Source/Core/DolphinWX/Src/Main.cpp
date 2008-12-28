@@ -46,7 +46,7 @@
 IMPLEMENT_APP(DolphinApp)
 
 #if defined(HAVE_WX) && HAVE_WX
-bool wxMsgAlert(const char*, const char*, bool);
+	bool wxMsgAlert(const char*, const char*, bool, int);
 #endif
 
 CFrame* main_frame = NULL;
@@ -278,18 +278,27 @@ void DolphinApp::OnEndSession()
 	SConfig::GetInstance().SaveSettings();
 }
 
+/////////////////////////////////////////////////////////////
+/* We declare this here instead of in Common/MsgHandler.cpp because we want to keep Common
+   free of wxWidget functions */
+// ¯¯¯¯¯¯¯¯¯
+bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int Style)
+{
+	#ifdef _WIN32
+		/* In Windows we use a MessageBox isntead of a wxMessageBox to don't block
+		   the debug window */
+		int STYLE = MB_ICONINFORMATION;
+		if(Style == QUESTION) STYLE = MB_ICONQUESTION;
+		if(Style == WARNING) STYLE = MB_ICONWARNING;
 
-bool wxMsgAlert(const char* caption, const char* text, 
-                       bool yes_no) {
-#ifdef _WIN32
-	// I like parentless messageboxes - don't block the debug window.
-	return IDYES == MessageBox(0, text, caption, yes_no?MB_YESNO:MB_OK);
-#else
-    return wxYES == wxMessageBox(wxString::FromAscii(text), 
-                                 wxString::FromAscii(caption),
-                                 (yes_no)?wxYES_NO:wxOK);
-#endif
+		return IDYES == MessageBox(0, text, caption, STYLE | (yes_no ? MB_YESNO : MB_OK));
+	#else
+		return wxYES == wxMessageBox(wxString::FromAscii(text), 
+									 wxString::FromAscii(caption),
+									 (yes_no)?wxYES_NO:wxOK);
+	#endif
 }
+//////////////////////////////////
 
 
 // OK, this thread boundary is DANGEROUS on linux

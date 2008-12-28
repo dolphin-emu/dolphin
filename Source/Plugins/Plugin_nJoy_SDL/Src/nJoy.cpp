@@ -32,6 +32,18 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
+// Issues
+/* ¯¯¯¯¯¯¯¯¯
+
+   The StrangeHack in ConfigAdvanced.cpp doesn't work in Linux, it still wont resize the
+   window correctly. So currently in Linux you have to have advanced controls enabled when
+   you open the window to see them.
+
+////////////////////////*/
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////
 // Variables guide
 /* ¯¯¯¯¯¯¯¯¯
 
@@ -164,7 +176,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 // Call config dialog
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllConfig(HWND _hParent)
-{		
+{	
 	#ifdef _WIN32
 	if (SDL_Init(SDL_INIT_JOYSTICK ) < 0)
 	{
@@ -345,6 +357,22 @@ void PAD_Shutdown()
 	#elif defined(__linux__)
 		close(fd);
 	#endif
+}
+
+
+// Set buttons status from wxWidgets in the main application
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void PAD_Input(u8 _Key, u8 _UpDown)
+{
+	// Check if the keys are interesting, and then update it
+	for(int i = 0; i < 4; i++)
+	{
+		for(int j = CTL_L_SHOULDER; j <= CTL_START; j++)
+		{
+			if (joysticks[i].buttons[j] == _Key)
+				{ joystate[i].buttons[j] = _UpDown; break; }
+		}
+	}
 }
 
 
@@ -590,7 +618,9 @@ unsigned int PAD_GetAttachedPads()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Read current joystick status
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	The value joystate[].buttons[] is first the number of the assigned joupad button
+	then it becomes 0 (no pressed) or 1 (pressed) */
 
 // Read buttons status. Called from GetJoyState().
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯

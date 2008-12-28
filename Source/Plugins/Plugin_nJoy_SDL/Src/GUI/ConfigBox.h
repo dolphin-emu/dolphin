@@ -103,8 +103,8 @@ class ConfigBox : public wxDialog
 		wxStaticBoxSizer *m_gExtrasettings[4]; wxGridBagSizer * m_gGBExtrasettings[4]; // Extra settings
 		wxStaticBoxSizer *m_gControllertype[4];
 
-		wxStaticBoxSizer *m_gGenSettings[4]; // General settings
-		wxCheckBox *m_CBSaveByID[4], *m_CBShowAdvanced[4];
+		wxBoxSizer *m_sSaveByID[4]; wxStaticBoxSizer *m_gGenSettings[4]; // General settings
+		wxCheckBox *m_CBSaveByID[4], *m_CBSaveByIDNotice[4], *m_CBShowAdvanced[4];
 
 		wxStaticBoxSizer *m_gStatusIn[4], *m_gStatusInSettings[4];  // Advanced settings
 		wxBoxSizer *m_gStatusInSettingsH[4];
@@ -116,6 +116,7 @@ class ConfigBox : public wxDialog
 		/////////////////////////////
 		// Keys
 		// ¯¯¯¯¯¯¯¯¯
+		int g_Pressed; // Keyboard input
 
 		wxTextCtrl *m_JoyShoulderL[4];
 		wxTextCtrl *m_JoyShoulderR[4];
@@ -197,7 +198,7 @@ class ConfigBox : public wxDialog
 
 			IDG_CONTROLLERTYPE,	IDC_CONTROLTYPE, // Controller type		
 
-			IDC_SAVEBYID, IDC_SHOWADVANCED, // Settings
+			IDC_SAVEBYID, IDC_SAVEBYIDNOTICE, IDC_SHOWADVANCED, // Settings
 			
 			ID_INSTATUS1, ID_INSTATUS2, ID_INSTATUS3, ID_INSTATUS4, // Advanced status
 			ID_STATUSBMP1, ID_STATUSBMP2, ID_STATUSBMP3, ID_STATUSBMP4,
@@ -304,6 +305,7 @@ class ConfigBox : public wxDialog
 		void OnPaint(wxPaintEvent &event);
 
 		void SetButtonText(int id, char text[128]);
+		void OnKeyDown(wxKeyEvent& event);
 };
 
 #endif

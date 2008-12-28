@@ -51,7 +51,7 @@
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="true"
+				WarnAsError="false"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -360,7 +360,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_NJOY_SDL_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
+				PreprocessorDefinitions="WIN32;NDEBUG;DEBUGFAST;_WINDOWS;_USRDLL;PLUGIN_NJOY_SDL_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -440,7 +440,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_NJOY_SDL_EXPORTS;_SECURE_SCL=0"
+				PreprocessorDefinitions="WIN32;NDEBUG;DEBUGFAST;_WINDOWS;_USRDLL;PLUGIN_NJOY_SDL_EXPORTS;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"

@@ -49,10 +49,19 @@ bool StrangeHack = true;
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::PadGetStatus()
 {
+	// Return if it's not detected
+	if(joysticks[notebookpage].ID >= SDL_NumJoysticks())
+	{
+		m_TStatusIn[notebookpage]->SetLabel(wxT("Not connected"));
+		m_TStatusOut[notebookpage]->SetLabel(wxT("Not connected"));
+		return;
+	}
+
 	// Return if it's not enabled
 	if (!joysticks[notebookpage].enabled)
 	{
 		m_TStatusIn[notebookpage]->SetLabel(wxT("Not enabled"));
+		m_TStatusOut[notebookpage]->SetLabel(wxT("Not enabled"));
 		return;
 	}
 
@@ -128,8 +137,8 @@ void ConfigBox::Update()
 
 	/*
 	m_pStatusBar->SetLabel(wxString::Format(
-		"ID: %i  %i  %i",
-		m_Joyname[0]->GetSelection(), (int)StrangeHack, (int)g_Config.bShowAdvanced
+		"Id: %i",
+		joysticks[0].ID
 		));*/
 }
 

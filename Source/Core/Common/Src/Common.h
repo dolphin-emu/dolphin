@@ -189,24 +189,45 @@ inline u64 swap64(u64 data) {return(((u64)swap32(data) << 32) | swap32(data >> 3
 
 } // end of namespace Common
 
-// Utility functions
 
-// Msg Alert
+//////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+// ¯¯¯¯¯¯¯¯¯
+
+
+///////////////////////////
+// Message alerts
+// ¯¯¯¯¯¯¯¯¯
+enum MSG_TYPE
+{
+	INFORMATION,
+	QUESTION,
+	WARNING,
+};
+
 typedef bool (*MsgAlertHandler)(const char* caption, const char* text, 
-                                bool yes_no);
+                                bool yes_no, int Style);
 void RegisterMsgAlertHandler(MsgAlertHandler handler);
-extern bool MsgAlert(const char* caption, bool yes_no, const char* format, ...);
+extern bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, ...);
+
 #ifdef _WIN32
-#define SuccessAlert(format, ...) MsgAlert("SUCCESS", false, format, __VA_ARGS__) 
-#define PanicAlert(format, ...) MsgAlert("PANIC", false, format, __VA_ARGS__) 
-#define PanicYesNo(format, ...) MsgAlert("PANIC", true, format, __VA_ARGS__) 
-#define AskYesNo(format, ...) MsgAlert("ASK", true, format, __VA_ARGS__) 
+	#define SuccessAlert(format, ...) MsgAlert("Information", false, INFORMATION, format, __VA_ARGS__) 
+	#define PanicAlert(format, ...) MsgAlert("Warning", false, WARNING, format, __VA_ARGS__) 
+	#define PanicYesNo(format, ...) MsgAlert("Warning", true, WARNING, format, __VA_ARGS__) 
+	#define AskYesNo(format, ...) MsgAlert("Question", true, QUESTION, format, __VA_ARGS__) 
 #else
-#define SuccessAlert(format, ...) MsgAlert("SUCCESS", false, format, ##__VA_ARGS__) 
-#define PanicAlert(format, ...) MsgAlert("PANIC", false, format, ##__VA_ARGS__) 
-#define PanicYesNo(format, ...) MsgAlert("PANIC", true, format, ##__VA_ARGS__) 
-#define AskYesNo(format, ...) MsgAlert("ASK", true, format, ##__VA_ARGS__) 
+	#define SuccessAlert(format, ...) MsgAlert("SUCCESS", false, INFORMATION, format, ##__VA_ARGS__) 
+	#define PanicAlert(format, ...) MsgAlert("PANIC", false, WARNING, format, ##__VA_ARGS__) 
+	#define PanicYesNo(format, ...) MsgAlert("PANIC", true, WARNING, format, ##__VA_ARGS__) 
+	#define AskYesNo(format, ...) MsgAlert("ASK", true, QUESTION, format, ##__VA_ARGS__) 
 #endif
+
+
+
+///////////////////////////
+// Logging
+// ¯¯¯¯¯¯¯¯¯
+
 extern void __Log(int logNumber, const char* text, ...);
 extern void __Logv(int log, int v, const char *format, ...);
 
@@ -298,7 +319,10 @@ void Host_UpdateLogDisplay();
 #define _assert_msg_(...)
 #endif
 
-// compile time asserts
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Compile time asserts
+// ¯¯¯¯¯¯¯¯¯
 namespace 
 {
 
@@ -313,8 +337,9 @@ namespace
 		CompileTimeAssert<_SECURE_SCL==0> x;
 	#endif
 #endif
-
 }
+//////////////////////////////////
+
 
 #endif	// #ifndef _COMMON_H
 

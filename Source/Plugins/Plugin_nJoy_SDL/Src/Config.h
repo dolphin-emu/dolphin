@@ -22,12 +22,12 @@ struct Config
 {
     Config();
     void Load(bool Config = false);
-    void Save();
-	std::string CheckForDuplicateNames(std::string _Name, std::vector<std::string> &Duplicates);
+    void Save(bool CheckedForDuplicates = false);
+	int CheckForDuplicateJoypads(bool OK);
 
     // General
 	bool bShowAdvanced; // Only allow one of these
-	bool bSaveByID;
+	std::vector<bool> bSaveByID; bool bSaveByIDNotice;
 
 	// Joystick
 	std::string SDiagonal;

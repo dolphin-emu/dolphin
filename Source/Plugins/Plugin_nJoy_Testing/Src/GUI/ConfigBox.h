@@ -55,7 +55,7 @@ class ConfigBox : public wxDialog
 	public:
 		ConfigBox(wxWindow *parent, wxWindowID id = 1, const wxString &title = wxT("Configure: nJoy Input Plugin"),
 			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize, long style = wxDEFAULT_DIALOG_STYLE);
-		virtual ~ConfigBox();
+		virtual ~ConfigBox();		
 		
 	private:
 		wxButton *m_About;
@@ -235,7 +235,7 @@ class ConfigBox : public wxDialog
 		void GetInputs(wxCommandEvent& event);
 		void GetHats(int ID);
 
-		void SetButtonText(int id, char text[128]);
+		void SetButtonText(int id, char text[128]);		
 };
 
 #endif

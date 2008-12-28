@@ -94,7 +94,7 @@ void ConfigBox::SetControllerAll(int controller)
 	}	
 }
 
-/* Populate the CONTROLLER_MAPPING joysticks array with the dialog items settings, for example
+/* Populate the joysticks array with the dialog items settings, for example
    selected joystick, enabled or disabled status and so on */
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::GetControllerAll(int controller)
@@ -331,7 +331,7 @@ void ConfigBox::GetButtons(wxCommandEvent& event)
 	bool succeed = false;
 	int pressed = 0;
 	int counter1 = 0; // Waiting limits
-	int counter2 = 10;
+	int counter2 = 30; // Iterations to wait for
 		
 	sprintf(format, "[%d]", counter2);
 	SetButtonText(ID, format);
@@ -339,6 +339,7 @@ void ConfigBox::GetButtons(wxCommandEvent& event)
 
 	while(waiting)
 	{			
+		// Go through all axes and read out their values
 		SDL_JoystickUpdate();
 		for(int b = 0; b < buttons; b++)
 		{			
@@ -351,29 +352,66 @@ void ConfigBox::GetButtons(wxCommandEvent& event)
 			}			
 		}
 
+		// Check for keyboard action
+		if (g_Pressed)
+		{
+			// Todo: Add a separate keyboard vector to remove this restriction
+			if(g_Pressed >= buttons)
+			{
+				pressed = g_Pressed;
+				waiting = false;
+				succeed = true;
+				g_Pressed = 0;
+				break;				
+			}
+			else
+			{
+				wxMessageBox(wxString::Format(wxT(
+					"You selected a key with a to low key code (%i), please"
+					" select another key with a higher key code."), g_Pressed)
+					, wxT("Notice"), wxICON_INFORMATION);
+
+				pressed = g_Pressed;
+				waiting = false;
+				succeed = false;
+				g_Pressed = 0;
+				break;			
+			}
+		}
+
 		// Stop waiting for a button
 		counter1++;
-		if(counter1 == 100)
+		if(counter1 == 25)
 		{
-			counter1=0;
+			counter1 = 0;
 			counter2--;
 			
 			sprintf(format, "[%d]", counter2);
 			SetButtonText(ID, format);
 			wxWindow::Update();	// win only? doesnt seem to work in linux...
-			
-			if(counter2<0)
-				waiting = false;
-		}	
+			wxYieldIfNeeded(); // Let through the keyboard input event
+			if(counter2 < 0) waiting = false;
+		}
+
+		// Sleep for 10 ms then poll for keys again
 		SLEEP(10);
+		
+		// Debugging
+		/*
+		m_pStatusBar->SetLabel(wxString::Format(
+			"ID: %i  %i",
+			counter1, NumKeys
+			));
+			*/
 	}
 
 	// Write the number of the pressed button to the text box
 	sprintf(format, "%d", succeed ? pressed : -1);
 	SetButtonText(ID, format);
-	
-	if(SDL_JoystickOpened(joysticks[controller].ID))
-		SDL_JoystickClose(joy);
+
+	// We don't need this any more
+	if(SDL_JoystickOpened(joysticks[controller].ID)) SDL_JoystickClose(joy);
+
 }
 
 // Wait for D-Pad
@@ -383,7 +421,7 @@ void ConfigBox::GetHats(int ID)
 	int controller = notebookpage;
 
 	SDL_Joystick *joy;
-	joy=SDL_JoystickOpen(joysticks[controller].ID);
+	joy = SDL_JoystickOpen(joysticks[controller].ID);
 
 	char format[128];
 	int hats = SDL_JoystickNumHats(joy);

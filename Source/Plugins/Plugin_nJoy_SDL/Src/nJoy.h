@@ -94,7 +94,10 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Structures
-// ¯¯¯¯¯¯¯¯¯¯
+/* ¯¯¯¯¯¯¯¯¯¯
+	CONTROLLER_STATE buttons (joystate) = 0 or 1
+	CONTROLLER_MAPPING buttons (joystick) = 0 or 1, 2, 3, 4, a certain joypad button
+	*/
 
 struct CONTROLLER_STATE{	// GC PAD INFO/STATE
 	int buttons[8];			// Amount of buttons (A B X Y Z, L-Trigger R-Trigger Start) might need to change the triggers buttons
@@ -163,6 +166,17 @@ enum
 	CTL_D_PAD_LEFT,
 	CTL_D_PAD_RIGHT
 };
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Input vector. Todo: Save the configured keys here instead of in joystick
+// ¯¯¯¯¯¯¯¯¯
+/*
+#ifndef _CONTROLLER_STATE_H
+extern std::vector<u8> Keys;
+#endif
+*/
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

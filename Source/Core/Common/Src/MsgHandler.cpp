@@ -15,53 +15,71 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <stdio.h>
 
-#include "Common.h"
+//////////////////////////////////////////////////////////////////////////////////////
+// Include and declarations
+// ¯¯¯¯¯¯¯¯¯
+#include <stdio.h> // System
+
+#include "Common.h" // Local
 #include "StringUtil.h"
 
-bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no);
-
+bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int Style);
 static MsgAlertHandler msg_handler = DefaultMsgHandler;
+/////////////////////////////
 
+
+/* Select which of these functions that are used for message boxes. If wxWidgets is enabled
+   we will use wxMsgAlert() that is defined in main.cpp */
 void RegisterMsgAlertHandler(MsgAlertHandler handler)
 {
-	msg_handler = handler;
+    msg_handler = handler;
 }
 
-bool MsgAlert(const char* caption, bool yes_no, const char* format, ...)
-{  
-	char buffer[2048];
-	va_list args;
-	bool ret = false;
-
-	va_start(args, format);
-	CharArrayFromFormatV(buffer, 2048, format, args);
-
-	LOG(MASTER_LOG, "%s: %s", caption, buffer);
-
-	if (msg_handler)
-	{
-		ret = msg_handler(caption, buffer, yes_no);
-	}
-
-	va_end(args);
-	return ret;
-}
-
-bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no)
+/////////////////////////////////////////////////////////////
+/* This is the first stop for messages where the log is updated and the correct windows
+   is shown */
+// ¯¯¯¯¯¯¯¯¯
+bool MsgAlert(const char* caption, bool yes_no, int Style, const char* format, ...)
 {
-#ifdef _WIN32
-   if (yes_no)
-	   return IDYES == MessageBox(0, text, caption, 
-	   MB_ICONQUESTION | MB_YESNO);
-   else {
-	   MessageBox(0, text, caption, MB_ICONWARNING);
-	   return true;
-   }
-#else
-	printf("%s\n", text);
-	return true;
-#endif
+	// ---------------------------------
+	// Read message and write it to the log
+	// -----------
+    char buffer[2048];
+    va_list args;
+    bool ret = false;
+
+    va_start(args, format);
+    CharArrayFromFormatV(buffer, 2048, format, args);
+
+    LOG(MASTER_LOG, "%s: %s", caption, buffer);
+	// -----------
+
+     if (msg_handler) {
+         ret = msg_handler(caption, buffer, yes_no, Style);
+     }
+     
+     va_end(args);
+     return ret;
+}
+
+/////////////////////////////////////////////////////////////
+/* This is used in the No-GUI build */
+// ¯¯¯¯¯¯¯¯¯
+bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int Style)
+{
+	#ifdef _WIN32
+		if (yes_no)
+			// Return true for IDYES 
+			return IDYES == MessageBox(0, "Why is there no icon", caption, 
+									   MB_ICONQUESTION | MB_YESNO);
+		else {
+			MessageBox(0, text, caption, MB_ICONWARNING);
+			return true;
+		}
+	#else
+		printf("%s\n", text);
+		return true;
+	#endif
 }
 

@@ -109,6 +109,14 @@ EXPORT void CALL PAD_Shutdown();
 EXPORT void CALL PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus);
 
 // __________________________________________________________________________________________________
+// Function: Send keyboard input to the plugin
+// Purpose:  
+// input:   The key and if it's pressed or released
+// output:  None
+//
+EXPORT void CALL PAD_Input(u8 _Key, u8 _UpDown);
+
+// __________________________________________________________________________________________________
 // Function: PAD_Rumble
 // Purpose:  Pad rumble!
 // input:	 PAD number, Command type (Stop=0, Rumble=1, Stop Hard=2) and strength of Rumble 

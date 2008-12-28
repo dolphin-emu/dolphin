@@ -33,6 +33,7 @@ typedef void (__cdecl* TDllConfig)(HWND);
 typedef void (__cdecl* TPAD_Initialize)(SPADInitialize);
 typedef void (__cdecl* TPAD_Shutdown)();
 typedef void (__cdecl* TPAD_GetStatus)(u8, SPADStatus*);
+typedef void (__cdecl* TPAD_Input)(u8, u8);
 typedef void (__cdecl* TPAD_Rumble)(u8, unsigned int, unsigned int);
 typedef unsigned int (__cdecl* TPAD_GetAttachedPads)();
 
@@ -42,6 +43,7 @@ extern TPAD_Shutdown PAD_Shutdown;
 extern TDllConfig DllConfig;
 extern TPAD_Initialize PAD_Initialize;
 extern TPAD_GetStatus PAD_GetStatus;
+extern TPAD_Input PAD_Input;
 extern TPAD_Rumble PAD_Rumble;
 extern TPAD_GetAttachedPads PAD_GetAttachedPads;
 

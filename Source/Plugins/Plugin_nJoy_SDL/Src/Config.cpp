@@ -39,7 +39,8 @@ Config g_Config;
 
 Config::Config()
 {
-    //memset(this, 0, sizeof(Config)); // Clear the memory
+	//memset(this, 0, sizeof(Config)); // Clear the memory
+	bSaveByID.resize(4); // Set vector size
 }
 
 
@@ -83,50 +84,115 @@ void DEBUG_QUIT()
 }
 
 
-/* Check for duplicate Joypad names. An alternative to this would be to only notify the user
-   that he has multiple virtual controllers assigned to the same physical controller
-   and that only one of them will be saved if he has attached settings to a controller ID */
+/* Check for duplicate Joypad names. If we find a duplicate notify the user about it. */
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-std::string Config::CheckForDuplicateNames(std::string _Name, std::vector<std::string> &Duplicates)
+int Config::CheckForDuplicateJoypads(bool OK)
 {
 	// Count the number of duplicate names
-	int NumDuplicates = 0;
-	for(u32 i = 0; i < Duplicates.size(); i++)
-		if(_Name == Duplicates.at(i)) NumDuplicates++;
+	int NumDuplicates = 0, Duplicate;
+	for(u32 i = 0; i < 4; i++)
+	{
+		for(int j = 0; j < 4; j++)
+		{
+			// Avoid potential crash
+			if(joysticks[i].ID >= SDL_NumJoysticks() || joysticks[j].ID >= SDL_NumJoysticks()) continue;
 
-	Duplicates.push_back(_Name); // Add the name
+			if (i == j) continue; // Don't compare to itself
+			if (! memcmp(&joyinfo[joysticks[i].ID], &joyinfo[joysticks[j].ID], sizeof(joyinfo)))
+			{
+				// If one of them is not enabled, then there is no problem
+				if(!joysticks[i].enabled || !joysticks[j].enabled) continue;
 
-	// Return an amended name if we found a duplicate
+				// If oen of them don't save by ID, then there is no problem
+				if(!g_Config.bSaveByID.at(i) || !g_Config.bSaveByID.at(j)) continue;
+
+				//PanicAlert("%i  %i", i, j);
+				NumDuplicates++;
+				Duplicate = i;
+			}
+		}
+	}
+	
+	/////////////////////////////////////////////////////////////////////////
+	// Notify the user about the multiple devices
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	int ReturnMessage;
 	if(NumDuplicates > 0)
-		return StringFromFormat("%s (%i)", _Name.c_str(), NumDuplicates);
+	{
+		wxString ExtendedText;
+		wxString MainText = wxString::Format(wxT(
+				"You have selected SaveByID for several identical joypads with the name '%s', because nJoy"
+				" has no way of separating between them the settings for the last one will now be saved."
+				" This may not be the settings you have intended to save. It is therefore recommended"
+				" that you either unselect SaveByID for all but one of the identical joypads"
+				" or disable them entirely."
+				" If you are aware of this issue and want to keep the same settings for the identical"
+				" pads you can ignore this message.")
+				, joyinfo[joysticks[Duplicate].ID].Name);
+		if (OK) // We got here from the OK button
+		{
+			ExtendedText = wxString::Format(wxT(
+			"\n\n[Select 'OK' to return to the configuration window. Select 'Cancel' to ignore this"
+			" message and close the configuration window and don't show this message again.]"));
+
+			ReturnMessage = wxMessageBox(wxString::Format
+			(wxT("%s%s"), MainText , ExtendedText), wxT("Notice"),
+			(wxOK | wxCANCEL) | wxICON_INFORMATION, 0, 100);				
+			if (ReturnMessage == wxCANCEL) g_Config.bSaveByIDNotice = false;
+		}
+		else
+		{
+			ExtendedText = wxString::Format(wxT(
+			"\n\n[Select 'Cancel' if you don't want to see this information again.]"));
+
+			ReturnMessage = wxMessageBox(wxString::Format
+			(wxT("%s%s"), MainText , ExtendedText), wxT("Notice"),
+			(wxOK | wxCANCEL) | wxICON_INFORMATION, 0, 100);				
+			if (ReturnMessage == wxCANCEL) g_Config.bSaveByIDNotice = false;
+		}
+	}
 	else
-		return _Name;
+	{
+		ReturnMessage = -1;
+	}
+
+	return ReturnMessage;
+	//////////////////////////////////////
 }
 
 
 // Save settings to file
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void Config::Save()
+void Config::Save(bool CheckedForDuplicates)
 {
 	IniFile file;
 	file.Load("nJoy.ini");
-	std::vector<std::string> Duplicates;
 
-	file.Set("General", "SaveByID", g_Config.bSaveByID);
+	// Show potential warning
+	if(!CheckedForDuplicates && g_Config.bSaveByIDNotice) CheckForDuplicateJoypads(false);
+
 	file.Set("General", "ShowAdvanced", g_Config.bShowAdvanced);
+	file.Set("General", "SaveByIDNotice", g_Config.bSaveByIDNotice);
 
 	for (int i = 0; i < 4; i++)
 	{
 		std::string SectionName = StringFromFormat("PAD%i", i+1);
-		file.Set(SectionName.c_str(), "joy_id", joysticks[i].ID);
-		file.Set(SectionName.c_str(), "enabled", joysticks[i].enabled);		
+		file.Set(SectionName.c_str(), "enabled", joysticks[i].enabled);
+
+		// Save the physical device ID
+		file.Set(SectionName.c_str(), "joy_id", joysticks[i].ID);			
+		file.Set(SectionName.c_str(), "SaveByID", g_Config.bSaveByID.at(i));
+
+		/* Don't save anything more from the disabled joypads, if a joypad is enabled we can run
+		   this again after any settings are changed for it */
+		if(!joysticks[i].enabled) continue;
 		
 		//////////////////////////////////////
 		// Save joypad specific settings
 		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 			// Current joypad device ID: joysticks[i].ID
-			// Current joypad name: joyinfo[joysticks[i].ID].Name
-		if(g_Config.bSaveByID)
+			// Current joypad name: joyinfo[joysticks[i].ID].Name		
+		if(g_Config.bSaveByID.at(i))
 		{
 			/* Save joypad specific settings. Check for "joysticks[i].ID < SDL_NumJoysticks()" to
 			   avoid reading a joyinfo that does't exist */
@@ -136,8 +202,8 @@ void Config::Save()
 			//if(i == 0) PanicAlert("%i", joysticks[i].buttons[CTL_START]);
 			//PanicAlert("%s", joyinfo[joysticks[i].ID].Name);
 
-			// Create a section name
-			SectionName = CheckForDuplicateNames(joyinfo[joysticks[i].ID].Name, Duplicates);
+			// Create a new section name after the joypad name
+			SectionName = joyinfo[joysticks[i].ID].Name;
 		}
 
 		file.Set(SectionName.c_str(), "l_shoulder", joysticks[i].buttons[CTL_L_SHOULDER]);
@@ -179,9 +245,8 @@ void Config::Load(bool config)
 	file.Load("nJoy.ini");
 	std::vector<std::string> Duplicates;
 
-	file.Get("General", "SaveByID", &g_Config.bSaveByID, false);
 	file.Get("General", "ShowAdvanced", &g_Config.bShowAdvanced, false);
-	
+	file.Get("General", "SaveByIDNotice", &g_Config.bSaveByIDNotice, true);
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -193,13 +258,17 @@ void Config::Load(bool config)
 			file.Get(SectionName.c_str(), "joy_id", &joysticks[i].ID, 0);
 			file.Get(SectionName.c_str(), "enabled", &joysticks[i].enabled, 1);
 		}
-		
+
+		bool Tmp;
+		file.Get(SectionName.c_str(), "SaveByID", &Tmp, false);
+		g_Config.bSaveByID.at(i) = Tmp;
+
 		//////////////////////////////////////
 		// Load joypad specific settings
 		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 			// Current joypad device ID: joysticks[i].ID
 			// Current joypad name: joyinfo[joysticks[i].ID].Name
-		if(g_Config.bSaveByID)
+		if(g_Config.bSaveByID.at(i))
 		{
 			/* Prevent a crash from illegal access to joyinfo that will only have values for
 			   the current amount of connected joysticks */
@@ -209,7 +278,7 @@ void Config::Load(bool config)
 			//PanicAlert("%s", joyinfo[joysticks[i].ID].Name);
 
 			// Create a section name			
-			SectionName = CheckForDuplicateNames(joyinfo[joysticks[i].ID].Name, Duplicates);
+			SectionName = joyinfo[joysticks[i].ID].Name;
 		}
 
 		file.Get(SectionName.c_str(), "l_shoulder", &joysticks[i].buttons[CTL_L_SHOULDER], 4);
