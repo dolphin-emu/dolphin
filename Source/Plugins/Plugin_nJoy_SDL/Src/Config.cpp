@@ -39,7 +39,7 @@ Config g_Config;
 
 Config::Config()
 {
-    memset(this, 0, sizeof(Config)); // Clear the memory
+    //memset(this, 0, sizeof(Config)); // Clear the memory
 }
 
 
