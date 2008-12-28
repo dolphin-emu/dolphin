@@ -91,7 +91,7 @@ std::string Config::CheckForDuplicateNames(std::string _Name, std::vector<std::s
 {
 	// Count the number of duplicate names
 	int NumDuplicates = 0;
-	for(int i = 0; i < Duplicates.size(); i++)
+	for(u32 i = 0; i < Duplicates.size(); i++)
 		if(_Name == Duplicates.at(i)) NumDuplicates++;
 
 	Duplicates.push_back(_Name); // Add the name
@@ -173,7 +173,7 @@ void Config::Save()
 
 // Load settings from file
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void Config::Load(bool Config)
+void Config::Load(bool config)
 {
 	IniFile file;
 	file.Load("nJoy.ini");
@@ -188,7 +188,7 @@ void Config::Load(bool Config)
 		std::string SectionName = StringFromFormat("PAD%i", i+1);
 
 		// Don't update this when we are loading settings from the ConfigBox
-		if(!Config)
+		if(!config)
 		{
 			file.Get(SectionName.c_str(), "joy_id", &joysticks[i].ID, 0);
 			file.Get(SectionName.c_str(), "enabled", &joysticks[i].enabled, 1);
