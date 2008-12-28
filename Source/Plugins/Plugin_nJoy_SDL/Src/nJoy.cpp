@@ -50,8 +50,8 @@
    The arrays joysticks[] and joystate[] are numbered 0 to 3 for the four different virtual
    controllers. Joysticks[].ID will have the number of the inputs device mapped to that controller,
    this value can be between 0 and the total number of connected physical devices. The mapping
-   is done by PAD_Initialize(), if we want to change that we have to run PAD_Shutdown() and then
-   run PAD_Initialize() again.
+   is initially done by PAD_Initialize(), but for the configuration we can remap them, like in
+   ConfigBox::ChangeJoystick().
 
    The joyinfo[] array is for a certain physical device. It's therefore used as
    joyinfo[joysticks[controller].ID].
