@@ -1,0 +1,34 @@
+XX:
+00-Viridia
+01-Greenil
+02-Skyly
+03-Blueful
+04-Purplenum
+05-Pinkal
+06-Redria
+07-Oran
+08-Yellowboze
+09-Whitill
+
+YY:
+00-HUmar
+01-HUnewearl
+02-HUcast
+03-RAmar
+04-RAcast
+05-RAcaseal
+06-FOmarl
+07-FOnewm
+08-FOnewearl
+09-HUcaseal
+0A-FOmar
+0B-RAmarl
+
+NPC list:
+00 = ninja
+01 = rico
+02 = sonic
+03 = knuckles
+04 = Tails
+05 = Flowen
+06 = Elly
