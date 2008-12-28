@@ -619,8 +619,8 @@ unsigned int PAD_GetAttachedPads()
 //////////////////////////////////////////////////////////////////////////////////////////
 // Read current joystick status
 /* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-	The value joystate[].buttons[] is first the number of the assigned joupad button
-	then it becomes 0 (no pressed) or 1 (pressed) */
+	The value joysticks[].buttons[] is the number of the assigned joypad button,
+	joystate[].buttons[] is the status of the button, it becomes 0 (no pressed) or 1 (pressed) */
 
 // Read buttons status. Called from GetJoyState().
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
