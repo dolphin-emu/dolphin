@@ -110,7 +110,7 @@ namespace AOSound
 		//vi vill ha access till DSOUND så...
 		device = ao_open_live(default_driver, &format, NULL /* no options */);
 		if (device == NULL) {
-			fprintf(stderr, "Error opening device.\n");
+			fprintf(stderr, "DSP_LLE: Error opening AO device.\n");
 			return 1;
 		}   
 		buf_size = format.bits/8 * format.channels * format.rate;
