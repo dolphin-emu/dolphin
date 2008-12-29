@@ -403,9 +403,34 @@ u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry)
 #else
 u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry)
 {
-    PanicAlert("Scan directory not implemanted yet\n");
-    // TODO - Insert linux stuff here
-    return 0;
+	u32 foundEntries = 0;
+
+	struct dirent dirent, *result = NULL;
+
+	// Find the first file in the directory.
+	DIR *dirp = opendir(_Directory.c_str());
+	
+	while (!readdir_r(dirp, &dirent, &result) && result) {
+		FSTEntry entry;
+		if (result->d_name[0]=='.') continue;
+		entry.virtualName = result->d_name;
+		entry.physicalName = _Directory + "/" + entry.virtualName;
+		if (IsDirectory(entry.physicalName.c_str())) {
+			entry.isDirectory = true;
+			entry.size = ScanDirectoryTree(entry.physicalName, entry);
+			foundEntries += entry.size;
+		} else {
+			entry.isDirectory = false;
+			entry.size = GetSize(entry.physicalName.c_str());
+		}
+
+		++foundEntries;
+
+		parentEntry.children.push_back(entry);
+	}
+	closedir(dirp);
+	
+	return foundEntries;
 }
 #endif
 
