@@ -17,7 +17,7 @@ bool EventHandler::TestEvent (Keys k, sf::Event e)
 }
  
 // Taken from wxw source code
-int wxCharCodeWXToX(int id)
+int EventHandler::wxCharCodeWXToSF(int id)
 {
     int sfKey;
 

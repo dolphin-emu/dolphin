@@ -18,6 +18,7 @@
 #ifndef __PADSIMPLE_H__
 #define __PADSIMPLE_H__  
 
+#include "EventHandler.h"
 // Controls
 enum
 {

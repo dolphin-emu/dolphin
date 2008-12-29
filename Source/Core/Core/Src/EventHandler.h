@@ -22,16 +22,16 @@ struct Keys
 class EventHandler {
 
 private:
-    listenFuncPtr keys[100][6];
-    listenFuncPtr mouse[6];
-    listenFuncPtr joys[10];
+    listenFuncPtr keys[sf::Key::Count][6];
+    listenFuncPtr mouse[sf::Mouse::Count];
+    listenFuncPtr joys[sf::Joy::Count];
     std::queue<Keys> eventQueue;
 public:
     bool RegisterEventListener(listenFuncPtr func, int event, int type);
     void Update();
     bool addEvent(sf::Event *);
     static bool TestEvent (Keys k, sf::Event e);
-    static int wxCharCodeWXToX(int id);
+    static int wxCharCodeWXToSF(int id);
     static void SFKeyToString(unsigned int keycode, char *keyStr);
 };
 
