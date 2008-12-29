@@ -74,7 +74,10 @@ CEXIIPL::CEXIIPL() :
 	}
 	else
 	{
-		PanicAlert("Error: failed to load font_ansi.bin.\nFonts in a few games may not work, or crash the game.");
+/*		This is a poor way to handle failure.  We should either not display this message unless fonts
+		are actually accessed, or better yet, emulate them using a system font.  -bushing */
+
+//		PanicAlert("Error: failed to load font_ansi.bin.\nFonts in a few games may not work, or crash the game.");
 	}
 
 	pStream = fopen(FONT_SJIS_FILE, "rb");
@@ -90,7 +93,7 @@ CEXIIPL::CEXIIPL() :
 	else
 	{
 		// Heh, BIOS fonts don't really work in JAP games anyway ... we get bogus characters.
-		PanicAlert("Error: failed to load font_sjis.bin.\nFonts in a few Japanese games may not work or crash the game.");
+//		PanicAlert("Error: failed to load font_sjis.bin.\nFonts in a few Japanese games may not work or crash the game.");
 	}
 
 	memcpy(m_pIPL, iplver, sizeof(iplver));
