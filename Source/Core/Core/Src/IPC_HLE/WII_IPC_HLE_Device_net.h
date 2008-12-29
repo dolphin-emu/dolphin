@@ -94,19 +94,17 @@ public:
 class CWII_IPC_HLE_Device_net_ip_top : public IWII_IPC_HLE_Device
 {
 public:
-	CWII_IPC_HLE_Device_net_ip_top(u32 _DeviceID, const std::string& _rDeviceName) :
-		IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-		{}
+	CWII_IPC_HLE_Device_net_ip_top(u32 _DeviceID, const std::string& _rDeviceName);
 
-	virtual ~CWII_IPC_HLE_Device_net_ip_top() {}
+	virtual ~CWII_IPC_HLE_Device_net_ip_top();
 
-	virtual bool Open(u32 _CommandAddress, u32 _Mode)
-	{
-		LOG(WII_IPC_NET, "%s - IOCtl: Open",  GetDeviceName().c_str());
-		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
-		return true;
-	}
-
+	virtual bool Open(u32 _CommandAddress, u32 _Mode);
+	virtual bool Close(u32 _CommandAddress);
+	virtual bool IOCtl(u32 _CommandAddress);
+	virtual bool IOCtlV(u32 _CommandAddress);
+	
+private:
+	s32 ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);
 };
 
 // **************************************************************************************
@@ -119,6 +117,7 @@ public:
 	virtual ~CWII_IPC_HLE_Device_net_ncd_manage();
 
 	virtual bool Open(u32 _CommandAddress, u32 _Mode);
+	virtual bool Close(u32 _CommandAddress);
 	virtual bool IOCtlV(u32 _CommandAddress);
 
 };

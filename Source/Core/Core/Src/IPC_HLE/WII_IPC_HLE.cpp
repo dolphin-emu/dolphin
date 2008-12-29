@@ -164,6 +164,10 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
 		{
 			pDevice = new CWII_IPC_HLE_Device_net_ncd_manage(_DeviceID, _rDeviceName);			
 		}
+		else if (_rDeviceName.c_str() == std::string("/dev/net/ip/top"))
+		{
+			pDevice = new CWII_IPC_HLE_Device_net_ip_top(_DeviceID, _rDeviceName);			
+		}
         else if (_rDeviceName.c_str() == std::string("/dev/es"))
         {
             pDevice = new CWII_IPC_HLE_Device_es(_DeviceID, _rDeviceName);			

@@ -37,6 +37,7 @@ public:
 	virtual ~CWII_IPC_HLE_Device_sdio_slot0();
 
     bool Open(u32 _CommandAddress, u32 _Mode);
+    bool Close(u32 _CommandAddress);
 	bool IOCtl(u32 _CommandAddress); 
 	bool IOCtlV(u32 _CommandAddress);
 

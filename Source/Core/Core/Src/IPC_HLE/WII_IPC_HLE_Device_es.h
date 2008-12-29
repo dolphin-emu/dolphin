@@ -204,6 +204,18 @@ public:
 				}
 				break;
 
+			case IOCTL_ES_GETSTOREDTMDSIZE:
+				{
+					u64	TitleId = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+					u32 OutBuffer = Memory::Read_U32(Buffer.PayloadBuffer[0].m_Address);
+
+					Memory::Write_U32(0, OutBuffer);
+					printf("ES_GetStoredTmdSize(%llx)\n", TitleId);
+					LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es command:"
+							"      IOCTL_ES_GETSTOREDTMDSIZE: 0x%x", OutBuffer);
+					}
+					break;
+
             default:
 
                 _dbg_assert_msg_(WII_IPC_HLE, 0, "CWII_IPC_HLE_Device_es: 0x%x", Buffer.Parameter);

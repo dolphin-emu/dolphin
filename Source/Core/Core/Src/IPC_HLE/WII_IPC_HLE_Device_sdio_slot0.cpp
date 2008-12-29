@@ -48,6 +48,13 @@ CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
     return true;
 }
 
+bool 
+CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress)
+{
+	LOG(WII_IPC_SD, "SD: Close");
+    Memory::Write_U32(0, _CommandAddress + 0x4);
+    return true;
+}
 
 // __________________________________________________________________________________________________
 // The front SD slot

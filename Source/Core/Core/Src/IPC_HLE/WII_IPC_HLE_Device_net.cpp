@@ -54,6 +54,45 @@
 
 #include "WII_IPC_HLE_Device_net.h"
 
+#define IOCTL_NWC24_STARTUP                     0x06
+enum {
+        IOCTL_SO_ACCEPT = 1,
+        IOCTL_SO_BIND,   
+        IOCTL_SO_CLOSE, 
+        IOCTL_SO_CONNECT, 
+        IOCTL_SO_FCNTL,
+        IOCTL_SO_GETPEERNAME, // todo
+        IOCTL_SO_GETSOCKNAME, // todo
+        IOCTL_SO_GETSOCKOPT,  // todo    8
+        IOCTL_SO_SETSOCKOPT,  
+        IOCTL_SO_LISTEN,
+        IOCTL_SO_POLL,        // todo    b
+        IOCTLV_SO_RECVFROM,
+        IOCTLV_SO_SENDTO,
+        IOCTL_SO_SHUTDOWN,    // todo    e
+        IOCTL_SO_SOCKET,
+        IOCTL_SO_GETHOSTID,
+        IOCTL_SO_GETHOSTBYNAME,
+        IOCTL_SO_GETHOSTBYADDR,// todo
+        IOCTLV_SO_GETNAMEINFO, // todo   13
+        IOCTL_SO_UNK14,        // todo
+        IOCTL_SO_INETATON,     // todo
+        IOCTL_SO_INETPTON,     // todo
+        IOCTL_SO_INETNTOP,     // todo
+        IOCTLV_SO_GETADDRINFO, // todo
+        IOCTL_SO_SOCKATMARK,   // todo
+        IOCTLV_SO_UNK1A,       // todo
+        IOCTLV_SO_UNK1B,       // todo
+        IOCTLV_SO_GETINTERFACEOPT, // todo
+        IOCTLV_SO_SETINTERFACEOPT, // todo
+        IOCTL_SO_SETINTERFACE,     // todo
+        IOCTL_SO_STARTUP,           // 0x1f
+        IOCTL_SO_ICMPSOCKET =   0x30, // todo
+        IOCTLV_SO_ICMPPING,         // todo
+        IOCTL_SO_ICMPCANCEL,        // todo
+        IOCTL_SO_ICMPCLOSE          // todo
+};
+
 
 // **********************************************************************************
 // Handle /dev/net/kd/request requests
@@ -119,6 +158,9 @@ s32 CWII_IPC_HLE_Device_net_kd_request::ExecuteCommand(u32 _Parameter, u32 _Buff
 		//Memory::Write_U32(0, _BufferOut);
 		return -1;
 		break;
+	case IOCTL_NWC24_STARTUP:
+		return 0;
+	
 	case 0xf: // NWC24iRequestGenerateUserId (Input: none, Output: 32 bytes)
 		//Memory::Write_U32(0, _BufferOut);
 		return -1;
@@ -150,6 +192,11 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::Open(u32 _CommandAddress, u32 _Mode)
 	return true;
 }
 
+bool CWII_IPC_HLE_Device_net_ncd_manage::Close(u32 _CommandAddress)
+{
+	Memory::Write_U32(0, _CommandAddress + 4);
+	return true;
+}
 
 bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress) 
 { 
@@ -162,6 +209,81 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 	default:
 		LOG(WII_IPC_NET, "NET_NCD_MANAGE IOCtlV: %i", CommandBuffer.Parameter);
 		_dbg_assert_msg_(WII_IPC_NET, 0, "NET_NCD_MANAGE IOCtlV: %i", CommandBuffer.Parameter);
+		break;
+	}
+
+	Memory::Write_U32(ReturnValue, _CommandAddress+4);
+
+	return true; 
+}
+
+// **********************************************************************************
+// Handle /dev/net/ip/top requests
+
+CWII_IPC_HLE_Device_net_ip_top::CWII_IPC_HLE_Device_net_ip_top(u32 _DeviceID, const std::string& _rDeviceName) 
+	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+{}
+
+CWII_IPC_HLE_Device_net_ip_top::~CWII_IPC_HLE_Device_net_ip_top() 
+{}
+
+bool CWII_IPC_HLE_Device_net_ip_top::Open(u32 _CommandAddress, u32 _Mode)
+{
+	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+	return true;
+}
+
+bool CWII_IPC_HLE_Device_net_ip_top::Close(u32 _CommandAddress)
+{
+	Memory::Write_U32(0, _CommandAddress + 4);
+	return true;
+}
+
+bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress) 
+{ 
+	u32 BufferIn =  Memory::Read_U32(_CommandAddress + 0x10);
+	u32 BufferInSize =  Memory::Read_U32(_CommandAddress + 0x14);
+    u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
+    u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
+	u32 Command = Memory::Read_U32(_CommandAddress + 0x0C);
+
+    printf("%s - Command(0x%08x) BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)\n", GetDeviceName().c_str(), Command, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+
+	u32 ReturnValue = ExecuteCommand(Command, BufferIn, BufferInSize, BufferOut, BufferOutSize);	
+    Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
+
+    return true;
+}
+
+s32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize)
+{
+	// Clean the location of the output buffer to zeroes as a safety precaution */
+	Memory::Memset(_BufferOut, 0, _BufferOutSize);
+
+	switch(_Command)
+	{
+	case IOCTL_SO_GETHOSTID: return 127 << 24 | 1;
+
+	default:
+		_dbg_assert_msg_(WII_IPC_NET, 0, "/dev/net/ip/top::IOCtl request 0x%x (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+			_Command, _BufferIn, _BufferInSize, _BufferOut, _BufferOutSize);
+		break;
+	}
+
+	// We return a success for any potential unknown requests
+	return 0;
+}
+
+bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 _CommandAddress) 
+{ 
+	u32 ReturnValue = 0;
+
+	SIOCtlVBuffer CommandBuffer(_CommandAddress);
+
+	switch(CommandBuffer.Parameter)
+	{
+	default:
+		LOG(WII_IPC_NET, "NET_IP_TOP IOCtlV: %i", CommandBuffer.Parameter);
 		break;
 	}
 

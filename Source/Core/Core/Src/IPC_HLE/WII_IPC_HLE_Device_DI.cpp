@@ -51,6 +51,12 @@ bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
     return true;
 }
 
+bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress)
+{
+    Memory::Write_U32(0, _CommandAddress+4);
+    return true;
+}
+
 bool CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress) 
 {
     LOGV(WII_IPC_DVD, 1, "*******************************");
