@@ -18,6 +18,11 @@
 #include "EXI_Channel.h"
 #include "EXI.h"
 
+#define EXI_READ		0
+#define EXI_WRITE		1
+#define EXI_READWRITE	2
+
+
 #include "PeripheralInterface.h"
 #include "../PowerPC/PowerPC.h"
 
@@ -250,8 +255,14 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 				// immediate data
 				switch (m_Control.RW)
 				{
-					case 0: m_ImmData = pDevice->ImmRead(m_Control.TLEN + 1); break;
-					case 1: pDevice->ImmWrite(m_ImmData, m_Control.TLEN + 1); break;
+					case EXI_READ: m_ImmData = pDevice->ImmRead(m_Control.TLEN + 1); break;
+					case EXI_WRITE: pDevice->ImmWrite(m_ImmData, m_Control.TLEN + 1); break;
+					case EXI_READWRITE:
+/*						Only used by USBGecko?
+						pDevice->ImmWrite(m_ImmData, m_Control.TLEN + 1);
+						m_ImmData = pDevice->ImmRead(m_Control.TLEN + 1); */
+						break;
+					
 					default: _dbg_assert_msg_(EXPANSIONINTERFACE,0,"EXI Imm: Unknown transfer type %i", m_Control.RW);
 				}
 				m_Control.TSTART = 0;
@@ -261,8 +272,8 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 				// DMA
 				switch (m_Control.RW)
 				{
-					case 0: pDevice->DMARead (m_DMAMemoryAddress, m_DMALength); break;
-					case 1: pDevice->DMAWrite(m_DMAMemoryAddress, m_DMALength); break;
+					case EXI_READ: pDevice->DMARead (m_DMAMemoryAddress, m_DMALength); break;
+					case EXI_WRITE: pDevice->DMAWrite(m_DMAMemoryAddress, m_DMALength); break;
 					default: _dbg_assert_msg_(EXPANSIONINTERFACE,0,"EXI DMA: Unknown transfer type %i", m_Control.RW);
 				}
 				m_Control.TSTART = 0;
