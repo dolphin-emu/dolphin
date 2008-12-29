@@ -132,8 +132,8 @@ void CJitWindow::ViewAddr(u32 em_address)
 
 void CJitWindow::Compare(u32 em_address)
 {
-	u8 *xDis = new u8[65536];
-	memset(xDis, 0, 65536);
+	u8 *xDis = new u8[1<<18];
+	memset(xDis, 0, 1<<18);
 
 	disassembler x64disasm;
 	x64disasm.set_syntax_intel();
@@ -163,7 +163,6 @@ void CJitWindow::Compare(u32 em_address)
 	// 800031f0
 	// == Fill in x86 box
 
-	memset(xDis, 0, 65536);
 	const u8 *code = (const u8 *)jit.GetBlockCache()->GetCompiledCodeFromBlock(block_num);
 	u64 disasmPtr = (u64)code;
 	int size = block->codeSize;
