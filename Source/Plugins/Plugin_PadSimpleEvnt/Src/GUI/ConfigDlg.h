@@ -29,10 +29,6 @@
 #include <wx/panel.h>
 #include <wx/gbsizer.h>
 
-#ifndef _WIN32
-#include "../XInputBase.h"
-#endif
-
 class ConfigDialog : public wxDialog
 {
 

@@ -16,7 +16,7 @@ padeenv = env.Clone()
 
 if padeenv['HAVE_WX']:
     files += [ 
-        "GUI/ConfigDlg.cpp",
+#        "GUI/ConfigDlg.cpp",
         ]
 
 padeenv.Append(LIBS = [ 'common' ])
