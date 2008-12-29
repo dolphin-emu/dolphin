@@ -101,34 +101,109 @@ int wxCharCodeWXToX(int id)
 
 void EventHandler::SFKeyToString(unsigned int keycode, char *keyStr) {
     switch (keycode) {
+/*  case sf::Key::A = 'a': sprintf(keyStr, "UP"); break;
+    case sf::Key::B = 'b': sprintf(keyStr, "UP"); break;
+    case sf::Key::C = 'c': sprintf(keyStr, "UP"); break;
+    case sf::Key::D = 'd': sprintf(keyStr, "UP"); break;
+    case sf::Key::E = 'e': sprintf(keyStr, "UP"); break;
+    case sf::Key::F = 'f': sprintf(keyStr, "UP"); break;
+    case sf::Key::G = 'g': sprintf(keyStr, "UP"); break;
+    case sf::Key::H = 'h': sprintf(keyStr, "UP"); break;
+    case sf::Key::I = 'i': sprintf(keyStr, "UP"); break;
+    case sf::Key::J = 'j': sprintf(keyStr, "UP"); break;
+    case sf::Key::K = 'k': sprintf(keyStr, "UP"); break;
+    case sf::Key::L = 'l': sprintf(keyStr, "UP"); break;
+    case sf::Key::M = 'm': sprintf(keyStr, "UP"); break;
+    case sf::Key::N = 'n': sprintf(keyStr, "UP"); break;
+    case sf::Key::O = 'o': sprintf(keyStr, "UP"); break;
+    case sf::Key::P = 'p': sprintf(keyStr, "UP"); break;
+    case sf::Key::Q = 'q': sprintf(keyStr, "UP"); break;
+    case sf::Key::R = 'r': sprintf(keyStr, "UP"); break;
+    case sf::Key::S = 's': sprintf(keyStr, "UP"); break;
+    case sf::Key::T = 't': sprintf(keyStr, "UP"); break;
+    case sf::Key::U = 'u': sprintf(keyStr, "UP"); break;
+    case sf::Key::V = 'v': sprintf(keyStr, "UP"); break;
+    case sf::Key::W = 'w': sprintf(keyStr, "UP"); break;
+    case sf::Key::X = 'x': sprintf(keyStr, "UP"); break;
+    case sf::Key::Y = 'y': sprintf(keyStr, "UP"); break;
+    case sf::Key::Z = 'z': sprintf(keyStr, "UP"); break;
+    case sf::Key::Num0 = '0': sprintf(keyStr, "UP"); break;
+    case sf::Key::Num1 = '1': sprintf(keyStr, "UP"); break;
+    case sf::Key::Num2 = '2': sprintf(keyStr, "UP"); break;
+    case sf::Key::Num3 = '3': sprintf(keyStr, "UP"); break;
+    case sf::Key::Num4 = '4': sprintf(keyStr, "UP"); break;
+    case sf::Key::Num5 = '5': sprintf(keyStr, "UP"); break;
+    case sf::Key::Num6 = '6': sprintf(keyStr, "UP"); break;
+    case sf::Key::Num7 = '7': sprintf(keyStr, "UP"); break;
+    case sf::Key::Num8 = '8': sprintf(keyStr, "UP"); break;
+    case sf::Key::Num9 = '9': sprintf(keyStr, "UP"); break;*/ 
+    case sf::Key::Escape: sprintf(keyStr, "Escape"); break;
+    case sf::Key::LControl: sprintf(keyStr, "LControl"); break;
+    case sf::Key::LShift: sprintf(keyStr, "LShift"); break;
+    case sf::Key::LAlt: sprintf(keyStr, "LAlt"); break;
+    case sf::Key::LSystem: sprintf(keyStr, "LSystem"); break;
+    case sf::Key::RControl: sprintf(keyStr, "RControl"); break;
+    case sf::Key::RShift: sprintf(keyStr, "RShift"); break;
+    case sf::Key::RAlt: sprintf(keyStr, "RAlt"); break;
+    case sf::Key::RSystem: sprintf(keyStr, "RSystem"); break;
+    case sf::Key::Menu: sprintf(keyStr, "Menu"); break;
+    case sf::Key::LBracket: sprintf(keyStr, "LBracket"); break;
+    case sf::Key::RBracket: sprintf(keyStr, "RBracket"); break;
+    case sf::Key::SemiColon: sprintf(keyStr, ";"); break;
+    case sf::Key::Comma: sprintf(keyStr, ","); break;
+    case sf::Key::Period: sprintf(keyStr, "."); break;
+    case sf::Key::Quote: sprintf(keyStr, "\'"); break;
+    case sf::Key::Slash: sprintf(keyStr, "/"); break;
+    case sf::Key::BackSlash: sprintf(keyStr, "\\"); break;
+    case sf::Key::Tilde: sprintf(keyStr, "~"); break;
+    case sf::Key::Equal: sprintf(keyStr, "="); break;
+    case sf::Key::Dash: sprintf(keyStr, "-"); break;
+    case sf::Key::Space: sprintf(keyStr, "Space"); break;
+    case sf::Key::Return: sprintf(keyStr, "Return"); break;
+    case sf::Key::Back: sprintf(keyStr, "Back"); break;
+    case sf::Key::Tab: sprintf(keyStr, "Tab"); break;
+    case sf::Key::PageUp: sprintf(keyStr, "Page Up"); break;
+    case sf::Key::PageDown: sprintf(keyStr, "Page Down"); break;
+    case sf::Key::End: sprintf(keyStr, "End"); break;
+    case sf::Key::Home: sprintf(keyStr, "Home"); break;
+    case sf::Key::Insert: sprintf(keyStr, "Insert"); break;
+    case sf::Key::Delete: sprintf(keyStr, "Delete"); break;
+    case sf::Key::Add: sprintf(keyStr, "+"); break;
+    case sf::Key::Subtract: sprintf(keyStr, "-"); break;
+    case sf::Key::Multiply: sprintf(keyStr, "*"); break;
+    case sf::Key::Divide: sprintf(keyStr, "/"); break;
+    case sf::Key::Left: sprintf(keyStr, "Left"); break;
+    case sf::Key::Right: sprintf(keyStr, "Right"); break;
+    case sf::Key::Up: sprintf(keyStr, "UP"); break;
+    case sf::Key::Down: sprintf(keyStr, "Down"); break;
+    case sf::Key::Numpad0: sprintf(keyStr, "NP 0"); break;
+    case sf::Key::Numpad1: sprintf(keyStr, "NP 1"); break;
+    case sf::Key::Numpad2: sprintf(keyStr, "NP 2"); break;
+    case sf::Key::Numpad3: sprintf(keyStr, "NP 3"); break;
+    case sf::Key::Numpad4: sprintf(keyStr, "NP 4"); break;
+    case sf::Key::Numpad5: sprintf(keyStr, "NP 5"); break;
+    case sf::Key::Numpad6: sprintf(keyStr, "NP 6"); break;
+    case sf::Key::Numpad7: sprintf(keyStr, "NP 7"); break;
+    case sf::Key::Numpad8: sprintf(keyStr, "NP 8"); break;
+    case sf::Key::Numpad9: sprintf(keyStr, "NP 9"); break;
+    case sf::Key::F1: sprintf(keyStr, "F1"); break;
+    case sf::Key::F2: sprintf(keyStr, "F2"); break;
+    case sf::Key::F3: sprintf(keyStr, "F3"); break;
+    case sf::Key::F4: sprintf(keyStr, "F4"); break;
+    case sf::Key::F5: sprintf(keyStr, "F5"); break;
+    case sf::Key::F6: sprintf(keyStr, "F6"); break;
+    case sf::Key::F7: sprintf(keyStr, "F7"); break;
+    case sf::Key::F8: sprintf(keyStr, "F8"); break;
+    case sf::Key::F9: sprintf(keyStr, "F9"); break;
+    case sf::Key::F10: sprintf(keyStr, "F10"); break;
+    case sf::Key::F11: sprintf(keyStr, "F11"); break;
+    case sf::Key::F12: sprintf(keyStr, "F12"); break;
+    case sf::Key::F13: sprintf(keyStr, "F13"); break;
+    case sf::Key::F14: sprintf(keyStr, "F14"); break;
+    case sf::Key::F15: sprintf(keyStr, "F15"); break;
+    case sf::Key::Pause: sprintf(keyStr, "Paues"); break;
 	
-    case sf::Key::Return:
-	sprintf(keyStr, "RETURN");
-	break;
-    case sf::Key::Left:
-	sprintf(keyStr, "LEFT");
-	break;
-    case sf::Key::Up: 
-	sprintf(keyStr, "UP");
-	break;
-    case sf::Key::Right: 
-	sprintf(keyStr, "RIGHT");
-	break;
-    case sf::Key::Down:
-	sprintf(keyStr, "DOWN");
-	break;
-    case sf::Key::LShift:
-    case sf::Key::RShift:
-	sprintf(keyStr, "Shift");
-	break;
-    case sf::Key::LControl:
-    case sf::Key::RControl:
-	sprintf(keyStr, "Control");
-    case sf::Key::LAlt:
-    case sf::Key::RAlt:
-	sprintf(keyStr, "Alt");
-	break;
     default:
-	sprintf(keyStr, "%c", toupper(keycode));
+	sprintf(keyStr, "%c", keycode);
     }
 }
