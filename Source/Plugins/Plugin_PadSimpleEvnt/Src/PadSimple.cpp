@@ -305,12 +305,8 @@ void LoadConfig()
 	    char SectionName[32];
 	    sprintf(SectionName, "PAD%i", i+1);
 	    
-	    file.Get(SectionName, "UseXPad", &pad[i].bEnableXPad, i==0);
 	    file.Get(SectionName, "Attached", &pad[i].bAttached, i==0);
 	    file.Get(SectionName, "DisableOnBackground", &pad[i].bDisable, false);
-	    file.Get(SectionName, "Rumble", &pad[i].bRumble, true);
-	    file.Get(SectionName, "XPad#", &pad[i].XPadPlayer);
-	    
 	    for (int x = 0; x < NUMCONTROLS; x++) {
 		file.Get(SectionName, controlNames[x], 
 			 &pad[i].keyForControl[x], 
@@ -330,11 +326,8 @@ void SaveConfig()
 		char SectionName[32];
 		sprintf(SectionName, "PAD%i", i+1);
 
-		file.Set(SectionName, "UseXPad", pad[i].bEnableXPad);
 		file.Set(SectionName, "Attached", pad[i].bAttached);
 		file.Set(SectionName, "DisableOnBackground", pad[i].bDisable);
-		file.Set(SectionName, "Rumble", pad[i].bRumble);
-		file.Set(SectionName, "XPad#", pad[i].XPadPlayer);
 		
 		for (int x = 0; x < NUMCONTROLS; x++)
 		{
