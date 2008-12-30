@@ -532,8 +532,7 @@ error_jmp:
 void GetCurrentDirectory(std::string& _rDirectory)
 {
 	char tmpBuffer[MAX_PATH+1];
-	getcwd(tmpBuffer, MAX_PATH);
-	_rDirectory = tmpBuffer;
+	_rDirectory = getcwd(tmpBuffer, MAX_PATH);
 }
 
 } // namespace
