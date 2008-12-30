@@ -392,6 +392,8 @@
 			FixupBranch unsafe_addr = J_CC(CC_NZ);
 			BSWAP(accessSize, ABI_PARAM1);
 #ifdef _M_X64
+			// FIXME: On Linux x64, when accessSize == 8, R(ABI_PARAM1)
+			// refers to BH when we want DIL!
 			MOV(accessSize, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
 #else
 			AND(32, R(ABI_PARAM2), Imm32(Memory::MEMVIEW32_MASK));
