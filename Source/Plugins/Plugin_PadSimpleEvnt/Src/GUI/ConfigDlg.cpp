@@ -18,13 +18,7 @@
 
 #include "ConfigDlg.h"
 #include "../PadSimple.h"
-
-#ifdef _WIN32
-#include "XInput.h"
-#include "../DirectInputBase.h"
-
-DInput m_dinput;
-#endif
+#include "EventHandler.h"
 
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
@@ -61,9 +55,6 @@ END_EVENT_TABLE()
 ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
-#ifdef _WIN32
-	m_dinput.Init((HWND)parent);
-#endif
 	clickedButton = NULL;
 	CreateGUIControls();
 	Fit();
@@ -82,11 +73,7 @@ inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
 	hButton->Add(new wxStaticText(pan, 0, wxString::FromAscii(name), 
 				 wxDefaultPosition, wxDefaultSize), 0,
 				 wxALIGN_CENTER_VERTICAL|wxALL);
-#ifdef _WIN32
-	DInput::DIKToString(pad[controller].keyForControl[ctl], keyStr);	
-#else
-	XKeyToString(pad[controller].keyForControl[ctl], keyStr);
-#endif
+	EventHandler::SFKeyToString(pad[controller].keyForControl[ctl], keyStr);
 
 	*button = new wxButton(pan, ctl, wxString::FromAscii(keyStr), 
 		                   wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
@@ -130,61 +117,17 @@ void ConfigDialog::CreateGUIControls()
 	this->SetSizer(sMain);
 	this->Layout();
 
-#ifdef _WIN32
-	// Add connected XPads
-	for (int x = 0; x < 4; x++)
-	{
-		XINPUT_STATE xstate;
-		DWORD xresult = XInputGetState(x, &xstate);
-
-		if (xresult == ERROR_SUCCESS)
-		{
-			arrayStringFor_X360Pad.Add(wxString::Format("%i", x+1));
-		}
-	}
-#endif
-	
 	for(int i = 0; i < 4; i++)
 	{
 		sbDevice[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Controller Settings"));
 		sDevice[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_Attached[i] = new wxCheckBox(m_Controller[i], ID_ATTACHED, wxT("Controller attached"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-#ifdef _WIN32
-		m_X360Pad[i] = new wxCheckBox(m_Controller[i], ID_X360PAD, wxT("Enable X360Pad"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_X360PadC[i] = new wxChoice(m_Controller[i], ID_X360PAD_CHOICE, wxDefaultPosition, wxDefaultSize, arrayStringFor_X360Pad, 0, wxDefaultValidator);
-		m_Rumble[i] = new wxCheckBox(m_Controller[i], ID_RUMBLE, wxT("Enable rumble"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-#endif
 		m_Disable[i] = new wxCheckBox(m_Controller[i], ID_DISABLE, wxT("Disable when Dolphin is not in focus"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		m_Attached[i]->SetValue(pad[i].bAttached);
-#ifdef _WIN32
-		if (arrayStringFor_X360Pad.IsEmpty())
-		{
-			m_X360Pad[i]->SetLabel(wxT("Enable X360Pad - No pad connected"));
-			m_X360Pad[i]->SetValue(false);
-			m_X360Pad[i]->Enable(false);
-			pad[i].bEnableXPad = false;
-			m_X360PadC[i]->Hide();
-			m_Rumble[i]->Hide();
-		}
-		else
-		{
-			m_X360Pad[i]->SetValue(pad[i].bEnableXPad);
-			m_X360PadC[i]->SetSelection(pad[i].XPadPlayer);
-			m_X360PadC[i]->Enable(m_X360Pad[i]->IsChecked());
-			m_Rumble[i]->SetValue(pad[i].bRumble);
-			m_Rumble[i]->Enable(m_X360Pad[i]->IsChecked());
-		}
-#endif
 		m_Disable[i]->SetValue(pad[i].bDisable);
 
 		sDevice[i]->Add(m_Attached[i], 0, wxEXPAND|wxALL, 1);
 		sDevice[i]->AddStretchSpacer();
-#ifdef _WIN32
-		sDevice[i]->Add(m_X360Pad[i], 0, wxEXPAND|wxALL, 1);
-		sDevice[i]->Add(m_X360PadC[i], 0, wxEXPAND|wxALL, 1);
-		sDevice[i]->Add(m_Rumble[i], 0, wxEXPAND|wxALL, 1);
-		sDevice[i]->AddStretchSpacer();
-#endif
 		sDevice[i]->Add(m_Disable[i], 0, wxEXPAND|wxALL, 1);
 		sbDevice[i]->Add(sDevice[i], 0, wxEXPAND|wxALL, 1);
 
@@ -244,9 +187,6 @@ void ConfigDialog::CreateGUIControls()
 
 void ConfigDialog::OnClose(wxCloseEvent& event)
 {
-#ifdef _WIN32
-	m_dinput.Free();
-#endif
 	EndModal(0);
 }
 
@@ -256,23 +196,9 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 	{
 		int page = m_Notebook->GetSelection();
 
-#ifdef _WIN32
-		m_dinput.Read();
-		for(int i = 0; i < 255; i++)
-		{
-			if(m_dinput.diks[i])
-			{
-				char keyStr[10] = {0};
-				pad[page].keyForControl[clickedButton->GetId()] = i;
-				DInput::DIKToString(i, keyStr);
-				clickedButton->SetLabel(wxString::FromAscii(keyStr));
-				break;
-			}
-		}
-#else
-		pad[page].keyForControl[clickedButton->GetId()] = wxCharCodeWXToX(event.GetKeyCode());
+		pad[page].keyForControl[clickedButton->GetId()] = 
+		    EventHandler::wxCharCodeWXToSF(event.GetKeyCode());
 		clickedButton->SetLabel(wxString::Format(_T("%c"), event.GetKeyCode()));
-#endif
 		clickedButton->Disconnect();
 	}
 
@@ -293,17 +219,6 @@ void ConfigDialog::ControllerSettingsChanged(wxCommandEvent& event)
 	{
 	case ID_ATTACHED:
 		pad[page].bAttached = m_Attached[page]->GetValue();
-		break;
-	case ID_X360PAD:
-		pad[page].bEnableXPad = event.IsChecked();
-		m_Rumble[page]->Enable(event.IsChecked());
-		m_X360PadC[page]->Enable(event.IsChecked());
-		break;
-	case ID_X360PAD_CHOICE:
-		pad[page].XPadPlayer = event.GetSelection();
-		break;		
-	case ID_RUMBLE:
-		pad[page].bRumble = m_Rumble[page]->GetValue();
 		break;
 	case ID_DISABLE:
 		pad[page].bDisable = m_Disable[page]->GetValue();
@@ -328,12 +243,8 @@ void ConfigDialog::OnButtonClick(wxCommandEvent& event)
 void ConfigDialog::DllAbout(wxCommandEvent& event)
 {
 	wxString message;
-#ifdef _WIN32
-	message = _("A simple keyboard and XInput plugin for dolphin.");
-#else
 	message = _("A simple keyboard plugin for dolphin.");
-#endif
 
-	wxMessageBox(_T("Dolphin PadSimple Plugin\nBy ector and F|RES\n\n" + message),
-		_T("Dolphin PadSimple"), wxOK, this);
+	wxMessageBox(_T("Dolphin PadSimple Event Plugin\nBy ector and F|RES\n\n" + message),
+		_T("Dolphin PadSimple Event"), wxOK, this);
 }

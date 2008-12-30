@@ -47,32 +47,6 @@ enum
 	NUMCONTROLS
 };
 
-// Control names
-static const char* controlNames[] =
-{
-	"A_button",
-	"B_button",
-	"X_button",
-	"Y_button",
-	"Z_trigger",
-	"Start",
-	"L_button",
-	"R_button",
-	"Main_stick_up",
-	"Main_stick_down",
-	"Main_stick_left",
-	"Main_stick_right",
-	"Sub_stick_up",
-	"Sub_stick_down",
-	"Sub_stick_left",
-	"Sub_stick_right",
-	"D-Pad_up",
-	"D-Pad_down",
-	"D-Pad_left",
-	"D-Pad_right",
-	"half_press_toggle",
-	"Mic-button",
-};
 
 struct SPads {
 	bool bAttached;		// Pad is "attached" to the gamecube/wii

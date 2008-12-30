@@ -27,6 +27,33 @@
 #include "GUI/ConfigDlg.h"
 #endif
 
+// Control names
+static const char* controlNames[] =
+{
+	"A_button",
+	"B_button",
+	"X_button",
+	"Y_button",
+	"Z_trigger",
+	"Start",
+	"L_button",
+	"R_button",
+	"Main_stick_up",
+	"Main_stick_down",
+	"Main_stick_left",
+	"Main_stick_right",
+	"Sub_stick_up",
+	"Sub_stick_down",
+	"Sub_stick_left",
+	"Sub_stick_right",
+	"D-Pad_up",
+	"D-Pad_down",
+	"D-Pad_left",
+	"D-Pad_right",
+	"half_press_toggle",
+	"Mic-button",
+};
+
 SPads pad[4];
 bool KeyStatus[NUMCONTROLS];
 
@@ -168,9 +195,37 @@ void PAD_Shutdown()
 	SaveConfig();
 }
 
-
-void ParseKeyEvent(SPADStatus* _pPADStatus)
+void ParseKeyEvent(sf::Event ev)
 {
+
+}
+
+
+void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
+{
+	// Check if all is okay
+	if ((_pPADStatus == NULL))
+	{
+		return;
+	}
+
+#ifdef RECORD_REPLAY
+	*_pPADStatus = PlayRecord();
+	return;
+#endif
+
+	const int base = 0x80;
+	// Clear pad
+	memset(_pPADStatus, 0, sizeof(SPADStatus));
+
+	_pPADStatus->stickY = base;
+	_pPADStatus->stickX = base;
+	_pPADStatus->substickX = base;
+	_pPADStatus->substickY = base;
+	_pPADStatus->button |= PAD_USE_ORIGIN;
+
+	_pPADStatus->err = PAD_ERR_NONE;
+
     int stickvalue = (KeyStatus[CTL_HALFPRESS]) ? 40 : 100;
     int triggervalue = (KeyStatus[CTL_HALFPRESS]) ? 100 : 255;
 
@@ -218,39 +273,16 @@ void ParseKeyEvent(SPADStatus* _pPADStatus)
     	_pPADStatus->MicButton = true;
     else
     	_pPADStatus->MicButton = false;
-}
-
-
-void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
-{
-	// Check if all is okay
-	if ((_pPADStatus == NULL))
-	{
-		return;
-	}
-
-#ifdef RECORD_REPLAY
-	*_pPADStatus = PlayRecord();
-	return;
-#endif
-
-	const int base = 0x80;
-	// Clear pad
-	memset(_pPADStatus, 0, sizeof(SPADStatus));
-
-	_pPADStatus->stickY = base;
-	_pPADStatus->stickX = base;
-	_pPADStatus->substickX = base;
-	_pPADStatus->substickY = base;
-	_pPADStatus->button |= PAD_USE_ORIGIN;
-
-	_pPADStatus->err = PAD_ERR_NONE;
-
 #ifdef RECORD_STORE
 	RecordInput(*_pPADStatus);
 #endif
 }
 
+void PAD_Input(u8 _Key, u8 _UpDown) {
+}
+
+void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength) {
+}
 
 unsigned int PAD_GetAttachedPads()
 {
