@@ -576,9 +576,7 @@ enum NormalSSEOps
 		}
 		else if (bits == 16)
 		{
-			//fake 16-bit bswap, TODO replace with xchg ah, al where appropriate
-			WriteSimple2Byte(false, 0x0F, 0xC8, reg);
-			SHR(32, R(reg), Imm8(16));
+			ROL(16, R(reg), Imm8(8));
 		}
 		else if (bits == 8)
 		{
