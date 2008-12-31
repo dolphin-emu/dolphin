@@ -30,11 +30,12 @@
 #include "JitCache.h"
 #include "JitRegCache.h"
 
+//#define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
-// #define INSTRUCTION_START Default(inst); return;
 
 	void Jit64::mtspr(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 		switch(iIndex) {
 			case SPR_LR:
@@ -44,7 +45,6 @@
 				ibuild.EmitStoreCTR(ibuild.EmitLoadGReg(inst.RD));
 				return;
 			default:
-				printf("mtspr case %d", iIndex);
 				Default(inst);
 				return;
 		}
@@ -52,6 +52,7 @@
 
 	void Jit64::mfspr(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 		switch (iIndex)
 		{
@@ -62,7 +63,6 @@
 			ibuild.EmitStoreGReg(ibuild.EmitLoadCTR(), inst.RD);
 			return;
 		default:
-			printf("mfspr case %d", iIndex);
 			Default(inst);
 			return;
 		}
@@ -82,6 +82,7 @@
 
 	void Jit64::mfmsr(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		ibuild.EmitStoreGReg(ibuild.EmitLoadMSR(), inst.RD);
 	}
 

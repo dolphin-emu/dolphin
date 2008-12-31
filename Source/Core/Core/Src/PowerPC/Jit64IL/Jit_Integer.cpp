@@ -25,7 +25,7 @@
 #include "JitRegCache.h"
 #include "JitAsm.h"
 
-// #define INSTRUCTION_START Default(inst); return;
+//#define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
 
 	static void ComputeRC(IREmitter::IRBuilder& ibuild,
@@ -37,6 +37,7 @@
 
 	void Jit64::reg_imm(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		int d = inst.RD, a = inst.RA, s = inst.RS;
 		IREmitter::InstLoc val, test, c;
 		switch (inst.OPCD)
@@ -103,6 +104,7 @@
 
 	void Jit64::cmpXX(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		IREmitter::InstLoc lhs, rhs, res;
 		lhs = ibuild.EmitLoadGReg(inst.RA);
 		if (inst.OPCD == 31) {
@@ -125,6 +127,7 @@
 
 	void Jit64::orx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RB);
 		val = ibuild.EmitOr(ibuild.EmitLoadGReg(inst.RS), val);
 		ibuild.EmitStoreGReg(val, inst.RA);
@@ -136,6 +139,7 @@
 	// m_GPR[_inst.RA] = m_GPR[_inst.RS] ^ m_GPR[_inst.RB];
 	void Jit64::xorx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RB);
 		val = ibuild.EmitXor(ibuild.EmitLoadGReg(inst.RS), val);
 		ibuild.EmitStoreGReg(val, inst.RA);
@@ -145,6 +149,7 @@
 
 	void Jit64::andx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RB);
 		val = ibuild.EmitAnd(ibuild.EmitLoadGReg(inst.RS), val);
 		ibuild.EmitStoreGReg(val, inst.RA);
@@ -154,6 +159,7 @@
 
 	void Jit64::extsbx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS);
 		val = ibuild.EmitSExt8(val);
 		ibuild.EmitStoreGReg(val, inst.RA);
@@ -163,6 +169,7 @@
 
 	void Jit64::extshx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS);
 		val = ibuild.EmitSExt16(val);
 		ibuild.EmitStoreGReg(val, inst.RA);
@@ -226,6 +233,7 @@
 
 	void Jit64::subfx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		if (inst.OE) PanicAlert("OE: subfx");
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RB);
 		val = ibuild.EmitSub(val, ibuild.EmitLoadGReg(inst.RA));
@@ -236,6 +244,7 @@
 
 	void Jit64::mulli(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RA);
 		val = ibuild.EmitMul(val, ibuild.EmitIntConst(inst.SIMM_16));
 		ibuild.EmitStoreGReg(val, inst.RD);
@@ -243,6 +252,7 @@
 
 	void Jit64::mullwx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RB);
 		val = ibuild.EmitMul(ibuild.EmitLoadGReg(inst.RA), val);
 		ibuild.EmitStoreGReg(val, inst.RD);
@@ -316,6 +326,7 @@
 
 	void Jit64::addx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RB);
 		val = ibuild.EmitAdd(ibuild.EmitLoadGReg(inst.RA), val);
 		ibuild.EmitStoreGReg(val, inst.RD);
@@ -355,6 +366,7 @@
 
 	void Jit64::rlwinmx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		unsigned mask = Helper_Mask(inst.MB, inst.ME);
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS);
 		val = ibuild.EmitRol(val, ibuild.EmitIntConst(inst.SH));
@@ -367,6 +379,7 @@
 
 	void Jit64::rlwimix(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		unsigned mask = Helper_Mask(inst.MB, inst.ME);
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS);
 		val = ibuild.EmitRol(val, ibuild.EmitIntConst(inst.SH));
@@ -412,6 +425,7 @@
 
 	void Jit64::negx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RA);
 		val = ibuild.EmitSub(ibuild.EmitIntConst(0), val);
 		ibuild.EmitStoreGReg(val, inst.RD);
@@ -421,6 +435,7 @@
 
 	void Jit64::srwx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS),
 			           samt = ibuild.EmitLoadGReg(inst.RB),
 			           corr;
@@ -438,6 +453,7 @@
 
 	void Jit64::slwx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS),
 			           samt = ibuild.EmitLoadGReg(inst.RB),
 			           corr;
@@ -455,6 +471,7 @@
 
 	void Jit64::srawx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		// FIXME: We can do a lot better on 64-bit
 		IREmitter::InstLoc val, samt, mask, mask2, test;
 		val = ibuild.EmitLoadGReg(inst.RS);
@@ -476,6 +493,7 @@
 
 	void Jit64::srawix(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS), test;
 		val = ibuild.EmitSarl(val, ibuild.EmitIntConst(inst.SH));
 		ibuild.EmitStoreGReg(val, inst.RA);

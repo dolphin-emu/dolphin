@@ -73,6 +73,8 @@ namespace IREmitter {
 		ICmpCRUnsigned, // CR for unsigned int compare
 		ICmpEq,         // One if equal, zero otherwise
 		ICmpUgt,	// One if op1 > op2, zero otherwise
+		ICmpSgt,	// One if op1 > op2, zero otherwise
+		ICmpSle,	// Opposite of sgt
 		// Memory store operators
 		Store8,
 		Store16,
@@ -86,6 +88,11 @@ namespace IREmitter {
 		// Integer constants
 		CInt16,
 		CInt32,
+
+		// Funny PPC "branches"
+		SystemCall,
+		RFIExit,
+		InterpreterBranch,
 
 		// "Opcode" representing a register too far away to
 		// reference directly; this is a size optimization
@@ -159,6 +166,7 @@ namespace IREmitter {
 		InstLoc FoldShl(InstLoc Op1, InstLoc Op2);
 		InstLoc FoldShrl(InstLoc Op1, InstLoc Op2);
 		InstLoc FoldXor(InstLoc Op1, InstLoc Op2);
+		InstLoc FoldBranchCond(InstLoc Op1, InstLoc Op2);
 
 		InstLoc FoldInterpreterFallback(InstLoc Op1, InstLoc Op2);
 
@@ -166,6 +174,8 @@ namespace IREmitter {
 		InstLoc FoldUOp(unsigned OpCode, InstLoc Op1,
 				unsigned extra = 0);
 		InstLoc FoldBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2);
+
+		unsigned ComputeKnownZeroBits(InstLoc I);
 
 		public:
 		InstLoc EmitIntConst(unsigned value);
@@ -241,6 +251,12 @@ namespace IREmitter {
 		InstLoc EmitICmpUgt(InstLoc op1, InstLoc op2) {
 			return FoldBiOp(ICmpUgt, op1, op2);
 		}
+		InstLoc EmitICmpSgt(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(ICmpSgt, op1, op2);
+		}
+		InstLoc EmitICmpSle(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(ICmpSle, op1, op2);
+		}
 		InstLoc EmitLoad8(InstLoc op1) {
 			return FoldUOp(Load8, op1);
 		}
@@ -274,8 +290,17 @@ namespace IREmitter {
 		InstLoc EmitInterpreterFallback(InstLoc op1, InstLoc op2) {
 			return FoldBiOp(InterpreterFallback, op1, op2);
 		}
+		InstLoc EmitInterpreterBranch() {
+			return FoldZeroOp(InterpreterBranch, 0);
+		}
 		InstLoc EmitStoreCarry(InstLoc op1) {
 			return FoldUOp(StoreCarry, op1);
+		}
+		InstLoc EmitSystemCall(InstLoc pc) {
+			return FoldUOp(SystemCall, pc);
+		}
+		InstLoc EmitRFIExit() {
+			return FoldZeroOp(RFIExit, 0);
 		}
 
 		void StartBackPass() { curReadPtr = &InstList[InstList.size()]; }

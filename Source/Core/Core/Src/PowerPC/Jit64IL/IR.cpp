@@ -81,12 +81,10 @@ edge over the current JIT mostly due to the fast memory optimization.
 TODO (in no particular order):
 Floating-point JIT (both paired and unpaired): currently falls back
 	to the interpreter
-Improve register allocator to deal with long live intervals.
 Optimize conditions for conditional branches.
 Inter-block dead register elimination, especially for CR0.
 Inter-block inlining.
 Track down a few correctness bugs.
-Known zero bits: eliminate unneeded AND instructions for rlwinm/rlwimi
 Implement a select instruction
 64-bit compat (it should only be a few tweaks to register allocation and
 	the load/store code)
@@ -95,7 +93,7 @@ Scheduling to reduce register pressure: PowerPC	compilers like to push
 	x86 processors, which are short on registers and extremely good at
 	instruction reordering.
 Common subexpression elimination
-Optimize load of sum using complex addressing
+Optimize load of sum using complex addressing (partially implemented)
 Implement idle-skipping
 
 */
@@ -179,6 +177,40 @@ InstLoc IRBuilder::EmitTriOp(unsigned Opcode, InstLoc Op1, InstLoc Op2,
 	return curIndex;
 }
 #endif
+
+unsigned IRBuilder::ComputeKnownZeroBits(InstLoc I) {
+	switch (getOpcode(*I)) {
+	case Load8:
+		return 0xFFFFFF00;
+	case Or:
+		return ComputeKnownZeroBits(getOp1(I)) &
+		       ComputeKnownZeroBits(getOp2(I));
+	case And:
+		return ComputeKnownZeroBits(getOp1(I)) |
+		       ComputeKnownZeroBits(getOp2(I));
+	case Shl:
+		if (isImm(*getOp2(I))) {
+			unsigned samt = GetImmValue(getOp2(I)) & 31;
+			return (ComputeKnownZeroBits(getOp1(I)) << samt) |
+			        ~(-1U << samt);
+		}
+		return 0;
+	case Shrl:
+		if (isImm(*getOp2(I))) {
+			unsigned samt = GetImmValue(getOp2(I)) & 31;
+			return (ComputeKnownZeroBits(getOp1(I)) >> samt) |
+			        ~(-1U >> samt);
+		}
+		return 0;
+	case Rol:
+		if (isImm(*getOp2(I))) {
+			return _rotl(ComputeKnownZeroBits(getOp1(I)),
+			             GetImmValue(getOp2(I)));
+		}
+	default:
+		return 0;
+	}
+}
 
 InstLoc IRBuilder::FoldZeroOp(unsigned Opcode, unsigned extra) {
 	if (Opcode == LoadGReg) {
@@ -275,6 +307,9 @@ InstLoc IRBuilder::FoldAnd(InstLoc Op1, InstLoc Op2) {
 				return FoldShrl(getOp1(Op1), EmitIntConst(shiftAmt2));
 			}
 		}
+		if (!(~ComputeKnownZeroBits(Op1) & ~GetImmValue(Op2))) {
+			return Op1;
+		}
 	}
 	if (Op1 == Op2) return Op1;
 
@@ -348,6 +383,35 @@ InstLoc IRBuilder::FoldRol(InstLoc Op1, InstLoc Op2) {
 	return EmitBiOp(Rol, Op1, Op2);
 }
 
+InstLoc IRBuilder::FoldBranchCond(InstLoc Op1, InstLoc Op2) {
+	if (getOpcode(*Op1) == And &&
+	    isImm(*getOp2(Op1)) &&
+	    getOpcode(*getOp1(Op1)) == ICmpCRSigned) {
+		unsigned branchValue = GetImmValue(getOp2(Op1));
+		if (branchValue == 2)
+			return FoldBranchCond(EmitICmpEq(getOp1(getOp1(Op1)),
+					      getOp2(getOp1(Op1))), Op2);
+	}
+	if (getOpcode(*Op1) == Xor &&
+	    isImm(*getOp2(Op1))) {
+		InstLoc XOp1 = getOp1(Op1);
+		unsigned branchValue = GetImmValue(getOp2(Op1));
+		if (getOpcode(*XOp1) == And &&
+		    isImm(*getOp2(XOp1)) &&
+		    getOpcode(*getOp1(XOp1)) == ICmpCRSigned) {
+			unsigned innerBranchValue = 
+				GetImmValue(getOp2(XOp1));
+			if (branchValue == innerBranchValue) {
+				if (branchValue == 4) {
+					return FoldBranchCond(EmitICmpSle(getOp1(getOp1(XOp1)),
+						      getOp2(getOp1(XOp1))), Op2);
+				}
+			}
+		}
+	}
+	return EmitBiOp(BranchCond, Op1, Op2);
+}
+
 InstLoc IRBuilder::FoldInterpreterFallback(InstLoc Op1, InstLoc Op2) {
 	for (unsigned i = 0; i < 32; i++) {
 		GRegCache[i] = 0;
@@ -371,6 +435,7 @@ InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2) {
 		case Shl: return FoldShl(Op1, Op2);
 		case Shrl: return FoldShrl(Op1, Op2);
 		case Rol: return FoldRol(Op1, Op2);
+		case BranchCond: return FoldBranchCond(Op1, Op2);
 		case InterpreterFallback: return FoldInterpreterFallback(Op1, Op2);
 		default: return EmitBiOp(Opcode, Op1, Op2);
 	}
@@ -473,9 +538,12 @@ static X64Reg regFindFreeReg(RegInfo& RI) {
 	if (RI.regs[EBX] == 0) return EBX;
 	if (RI.regs[EDX] == 0) return EDX;
 	if (RI.regs[EAX] == 0) return EAX;
-	// ECX is scratch; never allocate it!
-	regSpill(RI, EDI);
-	return EDI;
+	// ECX is scratch, so we don't allocate it
+	static X64Reg regs[] = {EDI, ESI, EBP, EBX, EDX, EAX};
+	static unsigned nextReg = 0;
+	X64Reg reg = regs[nextReg++ % 6];
+	regSpill(RI, reg);
+	return reg;
 }
 
 static OpArg regLocForInst(RegInfo& RI, InstLoc I) {
@@ -532,6 +600,15 @@ static void regSpillCallerSaved(RegInfo& RI) {
 	regSpill(RI, EAX);
 }
 
+static X64Reg regUReg(RegInfo& RI, InstLoc I) {
+	if (RI.IInfo[I - RI.FirstI] & 4 &&
+	    regLocForInst(RI, getOp1(I)).IsSimpleReg()) {
+		return regLocForInst(RI, getOp1(I)).GetSimpleReg();
+	}
+	X64Reg reg = regFindFreeReg(RI);
+	return reg;
+}
+
 static X64Reg regBinLHSReg(RegInfo& RI, InstLoc I) {
 	if (RI.IInfo[I - RI.FirstI] & 4) {
 		return regEnsureInReg(RI, getOp1(I));
@@ -559,18 +636,34 @@ static void regEmitBinInst(RegInfo& RI, InstLoc I,
 }
 
 static void regEmitMemLoad(RegInfo& RI, InstLoc I, unsigned Size) {
-	X64Reg reg = regBinLHSReg(RI, I);
+	X64Reg reg;
+	unsigned offset;
+				
+	if (getOpcode(*getOp1(I)) == Add && isImm(*getOp2(getOp1(I)))) {
+		offset = RI.Build->GetImmValue(getOp2(getOp1(I)));
+		reg = regBinLHSReg(RI, getOp1(I));
+		if (RI.IInfo[I - RI.FirstI] & 4)
+			regClearInst(RI, getOp1(getOp1(I)));
+	} else {
+		offset = 0;
+		reg = regBinLHSReg(RI, I);
+		if (RI.IInfo[I - RI.FirstI] & 4)
+			regClearInst(RI, getOp1(I));
+	}
 	if (RI.UseProfile) {
 		unsigned curLoad = ProfiledLoads[RI.numProfiledLoads++];
 		if (!(curLoad & 0x0C000000)) {
 			if (regReadUse(RI, I)) {
-				unsigned addr = (u32)Memory::base - (curLoad & 0xC0000000);
+				unsigned addr = (u32)Memory::base - (curLoad & 0xC0000000) + offset;
 				RI.Jit->MOVZX(32, Size, reg, MDisp(reg, addr));
 				RI.Jit->BSWAP(Size, reg);
 				RI.regs[reg] = I;
 			}
 			return;
 		}
+	}
+	if (offset) {
+		RI.Jit->ADD(32, R(reg), Imm32(offset));
 	}
 	if (RI.MakeProfile) {
 		RI.Jit->MOV(32, M(&ProfiledLoads[RI.numProfiledLoads++]), R(reg));
@@ -638,7 +731,6 @@ static void regEmitShiftInst(RegInfo& RI, InstLoc I,
 		RI.regs[reg] = I;
 		return;
 	}
-	// FIXME: prevent regBinLHSReg from finding ecx!
 	RI.Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
 	(RI.Jit->*op)(32, R(reg), R(ECX));
 	RI.regs[reg] = I;
@@ -695,10 +787,8 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 	RI.Build = ibuild;
 	RI.UseProfile = UseProfile;
 	RI.MakeProfile = !RI.UseProfile;
+	unsigned bs = Jit->js.blockStart;
 	// Pass to compute liveness
-	// Note that despite this marking, we never materialize immediates;
-	// on x86, they almost always fold into the instruction, and it's at
-	// best a code-size reduction in the cases where they don't.
 	ibuild->StartBackPass();
 	for (unsigned index = RI.IInfo.size() - 1; index != -1U; --index) {
 		InstLoc I = ibuild->ReadBackward();
@@ -719,6 +809,9 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case BlockEnd:
 		case BlockStart:
 		case InterpreterFallback:
+		case SystemCall:
+		case RFIExit:
+		case InterpreterBranch:
 			// No liveness effects
 			break;
 		case Tramp:
@@ -732,13 +825,18 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			if (thisUsed)
 				regMarkUse(RI, I, getOp1(I), 1);
 			break;
+		case StoreCR:
+		case StoreCarry:
 		case Load8:
 		case Load16:
 		case Load32:
+			if (getOpcode(*getOp1(I)) == Add &&
+			    isImm(*getOp2(getOp1(I)))) {
+				regMarkUse(RI, I, getOp1(getOp1(I)), 1);
+				break;
+			}
 		case StoreGReg:
-		case StoreCR:
 		case StoreLink:
-		case StoreCarry:
 		case StoreCTR:
 		case StoreMSR:
 			regMarkUse(RI, I, getOp1(I), 1);
@@ -757,6 +855,8 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case ICmpCRSigned:
 		case ICmpEq:
 		case ICmpUgt:
+		case ICmpSle:
+		case ICmpSgt:
 			if (thisUsed) {
 				regMarkUse(RI, I, getOp1(I), 1);
 				if (!isImm(*getOp2(I)))
@@ -773,11 +873,19 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			if (!isImm(*getOp1(I)))
 				regMarkUse(RI, I, getOp1(I), 1);
 			break;
-		case BranchCond:
-			regMarkUse(RI, I, getOp1(I), 1);
+		case BranchCond: {
+			unsigned CondOpcode = getOpcode(*getOp1(I));
+			if ((CondOpcode == ICmpEq ||
+			     CondOpcode == ICmpSle) &&
+			    isImm(*getOp2(getOp1(I)))) {
+				regMarkUse(RI, I, getOp1(getOp1(I)), 1);
+			} else {
+				regMarkUse(RI, I, getOp1(I), 1);
+			}
 			if (!isImm(*getOp2(I)))
 				regMarkUse(RI, I, getOp2(I), 2);
 			break;
+		}
 		}
 	}
 
@@ -902,7 +1010,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		}
 		case SExt16: {
 			if (!thisUsed) break;
-			X64Reg reg = regFindFreeReg(RI);
+			X64Reg reg = regUReg(RI, I);
 			Jit->MOVSX(32, 16, reg, regLocForInst(RI, getOp1(I)));
 			RI.regs[reg] = I;
 			break;
@@ -987,6 +1095,15 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			RI.regs[reg] = I;
 			break;
 		}
+		case ICmpSle: {
+			if (!thisUsed) break;
+			regEmitCmp(RI, I);
+			Jit->SETcc(CC_LE, R(ECX)); // Caution: SETCC uses 8-bit regs!
+			X64Reg reg = regFindFreeReg(RI);
+			Jit->MOVZX(32, 8, reg, R(ECX));
+			RI.regs[reg] = I;
+			break;
+		}
 		case ICmpCRUnsigned: {
 			if (!thisUsed) break;
 			regEmitCmp(RI, I);
@@ -1035,14 +1152,70 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case BlockEnd:
 			break;
 		case BranchCond: {
-			Jit->CMP(32, regLocForInst(RI, getOp1(I)), Imm8(0));
-			FixupBranch cont = Jit->J_CC(CC_NZ);
-			regWriteExit(RI, getOp2(I));
-			Jit->SetJumpTarget(cont);
+			if (getOpcode(*getOp1(I)) == ICmpEq &&
+			    isImm(*getOp2(getOp1(I)))) {
+				Jit->CMP(32, regLocForInst(RI, getOp1(getOp1(I))),
+					 Imm32(RI.Build->GetImmValue(getOp2(getOp1(I)))));
+				FixupBranch cont = Jit->J_CC(CC_Z);
+				regWriteExit(RI, getOp2(I));
+				Jit->SetJumpTarget(cont);
+				if (RI.IInfo[I - RI.FirstI] & 4)
+					regClearInst(RI, getOp1(getOp1(I)));
+			} else if (getOpcode(*getOp1(I)) == ICmpSle &&
+				   isImm(*getOp2(getOp1(I)))) {
+				Jit->CMP(32, regLocForInst(RI, getOp1(getOp1(I))),
+					 Imm32(RI.Build->GetImmValue(getOp2(getOp1(I)))));
+				FixupBranch cont = Jit->J_CC(CC_LE);
+				regWriteExit(RI, getOp2(I));
+				Jit->SetJumpTarget(cont);
+				if (RI.IInfo[I - RI.FirstI] & 4)
+					regClearInst(RI, getOp1(getOp1(I)));
+			} else {
+				Jit->CMP(32, regLocForInst(RI, getOp1(I)), Imm8(0));
+				FixupBranch cont = Jit->J_CC(CC_NZ);
+				regWriteExit(RI, getOp2(I));
+				Jit->SetJumpTarget(cont);
+				if (RI.IInfo[I - RI.FirstI] & 4)
+					regClearInst(RI, getOp1(I));
+			}
+			if (RI.IInfo[I - RI.FirstI] & 8)
+				regClearInst(RI, getOp2(I));
 			break;
 		}
 		case BranchUncond: {
 			regWriteExit(RI, getOp1(I));
+			break;
+		}
+		case SystemCall: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
+			Jit->Cleanup();
+			Jit->OR(32, M(&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_SYSCALL));
+			Jit->MOV(32, M(&PC), Imm32(InstLoc + 4));
+			Jit->JMP(asm_routines.testExceptions, true);
+			break;
+		}
+		case InterpreterBranch: {
+			Jit->MOV(32, R(EAX), M(&NPC));
+			Jit->WriteExitDestInEAX(0);
+			break;
+		}
+		case RFIExit: {
+			// Bits SRR1[0, 5-9, 16-23, 25-27, 30-31] are placed
+			// into the corresponding bits of the MSR.
+			// MSR[13] is set to 0.
+			const u32 mask = 0x87C0FF73;
+			// MSR = (MSR & ~mask) | (SRR1 & mask);
+			Jit->MOV(32, R(EAX), M(&MSR));
+			Jit->MOV(32, R(ECX), M(&SRR1));
+			Jit->AND(32, R(EAX), Imm32(~mask));
+			Jit->AND(32, R(ECX), Imm32(mask));
+			Jit->OR(32, R(EAX), R(ECX));       
+			// MSR &= 0xFFFDFFFF; //TODO: VERIFY
+			Jit->AND(32, R(EAX), Imm32(0xFFFDFFFF));
+			Jit->MOV(32, M(&MSR), R(EAX));
+			// NPC = SRR0; 
+			Jit->MOV(32, R(EAX), M(&SRR0));
+			Jit->WriteRfiExitDestInEAX();
 			break;
 		}
 		case Tramp: {
@@ -1061,7 +1234,11 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			PanicAlert("Unknown JIT instruction; aborting!");
 			exit(1);
 		}
-		if (getOpcode(*I) != Tramp) {
+		if (getOpcode(*I) != Tramp &&
+		    getOpcode(*I) != BranchCond &&
+		    getOpcode(*I) != Load8 && 
+		    getOpcode(*I) != Load16 && 
+		    getOpcode(*I) != Load32) {
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				regClearInst(RI, getOp1(I));
 			if (RI.IInfo[I - RI.FirstI] & 8)
@@ -1075,10 +1252,9 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		}
 	}
 
-	printf("Block: %x, numspills %d\n", Jit->js.blockStart, RI.numSpills);
+	if (RI.numSpills)
+		printf("Block: %x, numspills %d\n", Jit->js.blockStart, RI.numSpills);
 
-	Jit->MOV(32, R(EAX), M(&NPC));
-	Jit->WriteRfiExitDestInEAX();
 	Jit->UD2();
 }
 

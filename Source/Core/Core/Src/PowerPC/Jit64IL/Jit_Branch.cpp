@@ -43,36 +43,12 @@ using namespace Gen;
 
 	void Jit64::sc(UGeckoInstruction inst)
 	{
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
-			{Default(inst); return;} // turn off from debugger
-
-		gpr.Flush(FLUSH_ALL);
-		fpr.Flush(FLUSH_ALL);
-		WriteExceptionExit(EXCEPTION_SYSCALL);
+		ibuild.EmitSystemCall(ibuild.EmitIntConst(js.compilerPC));
 	}
 
 	void Jit64::rfi(UGeckoInstruction inst)
 	{
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
-			{Default(inst); return;} // turn off from debugger
-
-		gpr.Flush(FLUSH_ALL);
-		fpr.Flush(FLUSH_ALL);
-		//Bits SRR1[0, 5-9, 16-23, 25-27, 30-31] are placed into the corresponding bits of the MSR.
-		//MSR[13] is set to 0.
-		const u32 mask = 0x87C0FF73;
-		// MSR = (MSR & ~mask) | (SRR1 & mask);
-		MOV(32, R(EAX), M(&MSR));
-		MOV(32, R(ECX), M(&SRR1));
-		AND(32, R(EAX), Imm32(~mask));
-		AND(32, R(ECX), Imm32(mask));
-		OR(32, R(EAX), R(ECX));       
-		// MSR &= 0xFFFDFFFF; //TODO: VERIFY
-		AND(32, R(EAX), Imm32(0xFFFDFFFF));
-		MOV(32, M(&MSR), R(EAX));
-		// NPC = SRR0; 
-		MOV(32, R(EAX), M(&SRR0));
-		WriteRfiExitDestInEAX();
+		ibuild.EmitRFIExit();
 	}
 
 	void Jit64::bx(UGeckoInstruction inst)
@@ -89,9 +65,6 @@ using namespace Gen;
 		ibuild.EmitBranchUncond(ibuild.EmitIntConst(destination));
 	}
 
-	// TODO - optimize to hell and beyond
-	// TODO - make nice easy to optimize special cases for the most common
-	// variants of this instruction.
 	void Jit64::bcx(UGeckoInstruction inst)
 	{
 		if (inst.LK)
@@ -148,45 +121,10 @@ using namespace Gen;
 
 	void Jit64::bcctrx(UGeckoInstruction inst)
 	{
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
-			{Default(inst); return;} // turn off from debugger
-
-		gpr.Flush(FLUSH_ALL);
-		fpr.Flush(FLUSH_ALL);
-
-		// bool fastway = true;
-
-		if ((inst.BO & 16) == 0)				
-		{
-			PanicAlert("Bizarro bcctrx %08x, not supported.", inst.hex);
-			_assert_msg_(DYNA_REC, 0, "Bizarro bcctrx");
-			/*
-			fastway = false;
-			MOV(32, M(&PC), Imm32(js.compilerPC+4));
-			MOV(32, R(EAX), M(&CR));
-			XOR(32, R(ECX), R(ECX));
-			AND(32, R(EAX), Imm32(0x80000000 >> inst.BI));
-
-			CCFlags branch;
-			if(inst.BO & 8)
-				branch = CC_NZ;
-			else
-				branch = CC_Z;
-				*/
-			// TODO(ector): Why is this commented out?
-			//SETcc(branch, R(ECX));
-			// check for EBX
-			//TEST(32, R(ECX), R(ECX));
-			//linkEnd = J_CC(branch);
-		}
-		// NPC = CTR & 0xfffffffc;
-		MOV(32, R(EAX), M(&CTR));
-		if (inst.LK)
-			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
-		AND(32, R(EAX), Imm32(0xFFFFFFFC));
-		WriteExitDestInEAX(0);
+		Default(inst);
+		ibuild.EmitInterpreterBranch();
+		return;
 	}
-
 
 	void Jit64::bclrx(UGeckoInstruction inst)
 	{
@@ -195,6 +133,7 @@ using namespace Gen;
 			return;
 		}
 		Default(inst);
+		ibuild.EmitInterpreterBranch();
 		return;
 	}
 
