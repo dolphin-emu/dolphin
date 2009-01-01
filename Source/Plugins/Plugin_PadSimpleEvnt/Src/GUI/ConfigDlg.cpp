@@ -192,18 +192,20 @@ void ConfigDialog::OnClose(wxCloseEvent& event)
 
 void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 {
-	if(clickedButton != NULL)
-	{
-		int page = m_Notebook->GetSelection();
+    if(clickedButton != NULL) {
+	int page = m_Notebook->GetSelection();
+	
+	int sfcode = EventHandler::wxCharCodeWXToSF(event.GetKeyCode());
+	char sfstr[100];
+	EventHandler::SFKeyToString(sfcode, sfstr);
 
-		pad[page].keyForControl[clickedButton->GetId()] = 
-		    EventHandler::wxCharCodeWXToSF(event.GetKeyCode());
-		clickedButton->SetLabel(wxString::Format(_T("%c"), event.GetKeyCode()));
-		clickedButton->Disconnect();
-	}
-
-	clickedButton = NULL;
-	event.Skip();
+	pad[page].keyForControl[clickedButton->GetId()] = sfcode;	
+	clickedButton->SetLabel(wxString::FromAscii(sfstr));
+	clickedButton->Disconnect();
+    }
+    
+    clickedButton = NULL;
+    event.Skip();
 }
 
 void ConfigDialog::OnCloseClick(wxCommandEvent& event)

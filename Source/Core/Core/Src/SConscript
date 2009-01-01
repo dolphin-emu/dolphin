@@ -103,4 +103,6 @@ libs = [
 	'bdisasm'
 	]
 
-env.StaticLibrary("core", files, LIBS=libs)
+env_core = env.Clone();
+env_core.Append(CXXFLAGS = [ '-fPIC' ])
+env_core.StaticLibrary("core", files, LIBS=libs)

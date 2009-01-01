@@ -331,7 +331,7 @@ void LoadConfig()
 	};
 
 	IniFile file;
-	file.Load(FULL_CONFIG_DIR "pad.ini");
+	file.Load(FULL_CONFIG_DIR EPAD_CONFIG_FILE);
 
 	for(int i = 0; i < 4; i++) {
 	    char SectionName[32];
@@ -351,7 +351,7 @@ void LoadConfig()
 void SaveConfig()
 {
 	IniFile file;
-	file.Load(FULL_CONFIG_DIR "pad.ini");
+	file.Load(FULL_CONFIG_DIR EPAD_CONFIG_FILE);
 
 	for(int i = 0; i < 4; i++)
 	{
@@ -366,7 +366,7 @@ void SaveConfig()
 			file.Set(SectionName, controlNames[x], pad[i].keyForControl[x]);
 		}
 	}
-	file.Save(FULL_CONFIG_DIR "pad.ini");
+	file.Save(FULL_CONFIG_DIR EPAD_CONFIG_FILE);
 }
 
 
