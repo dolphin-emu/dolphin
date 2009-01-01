@@ -89,10 +89,10 @@ void DEBUG_QUIT()
 int Config::CheckForDuplicateJoypads(bool OK)
 {
 	// Count the number of duplicate names
-	int NumDuplicates = 0, Duplicate;
+	int NumDuplicates = 0, Duplicate = 0;
 	for(u32 i = 0; i < 4; i++)
 	{
-		for(int j = 0; j < 4; j++)
+		for(u32 j = 0; j < 4; j++)
 		{
 			// Avoid potential crash
 			if(joysticks[i].ID >= SDL_NumJoysticks() || joysticks[j].ID >= SDL_NumJoysticks()) continue;
@@ -136,7 +136,7 @@ int Config::CheckForDuplicateJoypads(bool OK)
 			" message and close the configuration window and don't show this message again.]"));
 
 			ReturnMessage = wxMessageBox(wxString::Format
-			(wxT("%s%s"), MainText , ExtendedText), wxT("Notice"),
+			(MainText + ExtendedText), wxT("Notice"),
 			(wxOK | wxCANCEL) | wxICON_INFORMATION, 0, 100);				
 			if (ReturnMessage == wxCANCEL) g_Config.bSaveByIDNotice = false;
 		}
@@ -146,7 +146,7 @@ int Config::CheckForDuplicateJoypads(bool OK)
 			"\n\n[Select 'Cancel' if you don't want to see this information again.]"));
 
 			ReturnMessage = wxMessageBox(wxString::Format
-			(wxT("%s%s"), MainText , ExtendedText), wxT("Notice"),
+			(MainText  + ExtendedText), wxT("Notice"),
 			(wxOK | wxCANCEL) | wxICON_INFORMATION, 0, 100);				
 			if (ReturnMessage == wxCANCEL) g_Config.bSaveByIDNotice = false;
 		}
