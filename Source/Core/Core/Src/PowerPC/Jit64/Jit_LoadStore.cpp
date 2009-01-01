@@ -369,43 +369,33 @@
 #endif*/
 
 			//Still here? Do regular path.
-			
-			// NOTE: stb and stbu are broken under 64bit Linux
-			#ifndef _WIN32
-			#ifdef _M_X64
-				Default(inst);
-				return;
-			#endif
-			#endif
 			gpr.Lock(s, a);
-			gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
-			MOV(32, R(ABI_PARAM2), gpr.R(a));
-			MOV(32, R(ABI_PARAM1), gpr.R(s));
+			gpr.FlushLockX(ECX, EDX);
+			MOV(32, R(EDX), gpr.R(a));
+			MOV(32, R(ECX), gpr.R(s));
 			if (offset)
-				ADD(32, R(ABI_PARAM2), Imm32((u32)offset));
+				ADD(32, R(EDX), Imm32((u32)offset));
 			if (update && offset)
 			{
 				gpr.LoadToX64(a, true, true);
-				MOV(32, gpr.R(a), R(ABI_PARAM2));
+				MOV(32, gpr.R(a), R(EDX));
 			}
-			TEST(32, R(ABI_PARAM2), Imm32(0x0C000000));
+			TEST(32, R(EDX), Imm32(0x0C000000));
 			FixupBranch unsafe_addr = J_CC(CC_NZ);
-			BSWAP(accessSize, ABI_PARAM1);
+			BSWAP(accessSize, ECX);
 #ifdef _M_X64
-			// FIXME: On Linux x64, when accessSize == 8, R(ABI_PARAM1)
-			// refers to BH when we want DIL!
-			MOV(accessSize, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
+			MOV(accessSize, MComplex(RBX, EDX, SCALE_1, 0), R(ECX));
 #else
-			AND(32, R(ABI_PARAM2), Imm32(Memory::MEMVIEW32_MASK));
-			MOV(accessSize, MDisp(ABI_PARAM2, (u32)Memory::base), R(ABI_PARAM1));
+			AND(32, R(EDX), Imm32(Memory::MEMVIEW32_MASK));
+			MOV(accessSize, MDisp(EDX, (u32)Memory::base), R(ECX));
 #endif
 			FixupBranch skip_call = J();
 			SetJumpTarget(unsafe_addr);
 			switch (accessSize)
 			{
-			case 32: ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); break;
-			case 16: ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U16, 2), ABI_PARAM1, ABI_PARAM2); break;
-			case 8:  ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U8,  2), ABI_PARAM1, ABI_PARAM2); break;
+			case 32: ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), ECX, EDX); break;
+			case 16: ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U16, 2), ECX, EDX); break;
+			case 8:  ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U8,  2), ECX, EDX); break;
 			}
 			SetJumpTarget(skip_call);
 			gpr.UnlockAll();
@@ -417,7 +407,7 @@
 		}
 	}
 
-	void Jit64::stwux(UGeckoInstruction inst)
+	void Jit64::stXx(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
 			{Default(inst); return;} // turn off from debugger	
@@ -430,13 +420,25 @@
 			return;
 		}
 		gpr.Lock(a, b, s);
-		gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
+		gpr.FlushLockX(ECX, EDX);
 
-		gpr.LoadToX64(a, true, true);
-		ADD(32, gpr.R(a), gpr.R(b));
-		MOV(32, R(ABI_PARAM2), gpr.R(a));
-		MOV(32, R(ABI_PARAM1), gpr.R(s));
-		SafeWriteRegToReg(ABI_PARAM1, ABI_PARAM2, 32, 0);
+		if (inst.SUBOP10 & 32) {
+			gpr.LoadToX64(a, true, true);
+			ADD(32, gpr.R(a), gpr.R(b));
+			MOV(32, R(EDX), gpr.R(a));
+		} else {
+			MOV(32, R(EDX), gpr.R(a));
+			ADD(32, R(EDX), gpr.R(b));
+		}
+		unsigned accessSize;
+		switch (inst.SUBOP10 & ~32) {
+		case 151: accessSize = 32; break;
+		case 407: accessSize = 16; break;
+		case 215: accessSize = 8; break;
+		}
+		
+		MOV(32, R(ECX), gpr.R(s));
+		SafeWriteRegToReg(ECX, EDX, accessSize, 0);
 
 		gpr.UnlockAll();
 		gpr.UnlockAllX();

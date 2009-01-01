@@ -278,7 +278,7 @@ public:
 	
 	void lwzux(UGeckoInstruction inst);
 
-	void stwux(UGeckoInstruction inst);
+	void stXx(UGeckoInstruction inst);
 
 	void lmw(UGeckoInstruction inst);
 	void stmw(UGeckoInstruction inst);

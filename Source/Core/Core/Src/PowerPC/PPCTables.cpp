@@ -338,16 +338,16 @@ static GekkoOPTemplate table31[] =
 	{597, Interpreter::lswi,  &Jit64::Default,   {"lswi",  OPTYPE_LOAD, FL_EVIL | FL_IN_AB | FL_OUT_D}},
 
 	//store word
-	{151, Interpreter::stwx,   &Jit64::Default,    {"stwx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
-	{183, Interpreter::stwux,  &Jit64::stwux,      {"stwux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{151, Interpreter::stwx,   &Jit64::stXx,      {"stwx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
+	{183, Interpreter::stwux,  &Jit64::stXx,      {"stwux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//store halfword
-	{407, Interpreter::sthx,   &Jit64::Default,    {"sthx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
-	{439, Interpreter::sthux,  &Jit64::Default,    {"sthux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{407, Interpreter::sthx,   &Jit64::stXx,      {"sthx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
+	{439, Interpreter::sthux,  &Jit64::stXx,      {"sthux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//store byte
-	{215, Interpreter::stbx,   &Jit64::Default,    {"stbx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
-	{247, Interpreter::stbux,  &Jit64::Default,    {"stbux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
+	{215, Interpreter::stbx,   &Jit64::stXx,      {"stbx",   OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
+	{247, Interpreter::stbux,  &Jit64::stXx,      {"stbux",  OPTYPE_STORE, FL_OUT_A | FL_IN_A | FL_IN_B}},
 
 	//store bytereverse
 	{662, Interpreter::stwbrx, &Jit64::Default,   {"stwbrx", OPTYPE_STORE, FL_IN_A0 | FL_IN_B}},
