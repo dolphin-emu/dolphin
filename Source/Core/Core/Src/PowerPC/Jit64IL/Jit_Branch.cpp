@@ -81,14 +81,10 @@ using namespace Gen;
 				CRTest = ibuild.EmitXor(CRTest, CRCmp);
 		}
 
-		if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0) {
+		if ((inst.BO & 4) == 0) {
 			IREmitter::InstLoc c = ibuild.EmitLoadCTR();
 			c = ibuild.EmitSub(c, ibuild.EmitIntConst(1));
 			ibuild.EmitStoreCTR(c);
-		}
-
-		if ((inst.BO & 4) == 0) {
-			IREmitter::InstLoc c = ibuild.EmitLoadCTR();
 			if (!(inst.BO & 2)) {
 				CTRTest = ibuild.EmitICmpEq(c,
 						ibuild.EmitIntConst(0));

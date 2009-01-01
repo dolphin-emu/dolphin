@@ -80,6 +80,69 @@ namespace IREmitter {
 		Store16,
 		Store32,
 		BranchCond,
+		// Floating-point
+		// There are three floating-point formats: single, double,
+		// and packed.  For any operation where the format of the
+		// operand isn't known, the ForceTo* operations are used;
+		// these are folded into the appropriate conversion
+		// (or no conversion) depending on the type of the operand.
+		// The "mreg" format is a pair of doubles; this is the
+		// most general possible represenation which is used
+		// in the register state.
+		// This might seem like overkill, but it's a huge advantage
+		// to keep operands in the right format because extra
+		// precision can screw up games.
+		// FIXME: Does the slight loss of precision due to not
+		// having a madd instruction matter?  It would be a
+		// performance loss for singles because the operations
+		// would have to be done in double precision, and a completely 
+		// accurate double madd would require an extremely expensive
+		// fallback.
+		FDAdd,
+		FDSub,
+		FDMul,
+		FDDiv,
+		FDNeg,
+		FSAdd,
+		FSSub,
+		FSMul,
+		FSDiv,
+		FSNeg,
+		FPSAdd,
+		FPSSub,
+		FPSMul,
+		FPSDiv,
+		FPSNeg,
+		// FP Loads
+		LoadSingle,
+		LoadDouble,
+		// LoadPacked, // FIXME: Work out how this instruction should
+				// be implemented
+		// FP Stores
+		StoreSingle,
+		StoreDouble,
+		// StorePacked, // FIXME: Work out how this instruction should
+				// be implemented
+		PackedToSingle, // Extract PS0 from packed (type-pun)
+		// PackedToDouble == PackedToSingle+SingleToDouble
+		PackedToMReg,   // Convert from packed format to mreg format (CVTPS2PD)
+		SingleToDouble, // Widen single to double (CVTSS2SD)
+		SingleToPacked, // Duplicate single to packed
+		// SingleToMReg == SingleToPacked+PackedToMReg
+		MRegToPacked,   // Convert from mreg format to packed format (CVTPD2PS)
+		MRegToDouble,   // Extract bottom half from mreg format. (type-pun)
+		// MRegToSingle == MRegToDouble + DoubleToSingle
+		DoubleToMReg,   // Convert from double format to mreg format
+		DoubleToSingle, // Convert from double to single format (CVTSD2SS)
+		// DoubleToPacked should never be needed
+
+		ForceToPacked,  // ForceTo* are "virtual"; they should be
+				// folded into the above conversions.
+		ForceToSingle,
+		ForceToDouble,
+		ForceToMReg,
+		LoadFPReg,
+		StoreFPReg,
 
 		// "Trinary" operators
 		// FIXME: Need to change representation!
@@ -330,6 +393,7 @@ namespace IREmitter {
 		IRBuilder() { Reset(); }
 
 		private:
+		IRBuilder(IRBuilder&); // DO NOT IMPLEMENT
 		std::vector<Inst> InstList; // FIXME: We must ensure this is 
 					    // continuous!
 		std::vector<unsigned> ConstList;
