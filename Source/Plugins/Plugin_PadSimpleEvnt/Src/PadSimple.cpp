@@ -83,6 +83,37 @@ const SPADStatus& PlayRecord()
 }
 
 
+bool registerKey(int nPad, int id, sf::Key::Code code, int mods) {
+
+    Keys key, oldKey;
+    
+    key.inputType = KeyboardInput;
+    key.keyCode = code;
+    key.mods = mods;
+    
+    if (!eventHandler->EventHandler::RegisterEventListener(ParseKeyEvent, key)) {
+	char codestr[100];
+	EventHandler::SFKeyToString(code, codestr);
+	PanicAlert("Failed to register %s, might be already in use", codestr);
+	return false;
+    }
+
+    
+    if (pad[nPad].keyForControl[id] != 0) {
+
+	oldKey.inputType = KeyboardInput;
+	oldKey.keyCode = pad[nPad].keyForControl[id];
+	oldKey.mods = mods;
+
+	// Might be not be registered yet
+	eventHandler->EventHandler::RemoveEventListener(oldKey); 
+    }
+
+    pad[nPad].keyForControl[id] = code;
+
+    return true;
+}
+
 void LoadRecord()
 {
 	FILE* pStream = fopen("c:\\pad-record.bin", "rb");
@@ -195,39 +226,39 @@ void PAD_Shutdown()
 	SaveConfig();
 }
 
-void ParseKeyEvent(sf::Event ev)
-{
+bool ParseKeyEvent(sf::Event ev) {
+    return true;
 
 }
 
 
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
-	// Check if all is okay
-	if ((_pPADStatus == NULL))
-	{
-		return;
-	}
+    // Check if all is okay
+    if ((_pPADStatus == NULL)) {
+	return;
+    }
 
 #ifdef RECORD_REPLAY
-	*_pPADStatus = PlayRecord();
-	return;
+    *_pPADStatus = PlayRecord();
+    return;
 #endif
-
-	const int base = 0x80;
-	// Clear pad
-	memset(_pPADStatus, 0, sizeof(SPADStatus));
-
-	_pPADStatus->stickY = base;
-	_pPADStatus->stickX = base;
-	_pPADStatus->substickX = base;
-	_pPADStatus->substickY = base;
-	_pPADStatus->button |= PAD_USE_ORIGIN;
-
-	_pPADStatus->err = PAD_ERR_NONE;
-
+    
+    const int base = 0x80;
+    // Clear pad
+    memset(_pPADStatus, 0, sizeof(SPADStatus));
+    
+    _pPADStatus->stickY = base;
+    _pPADStatus->stickX = base;
+    _pPADStatus->substickX = base;
+    _pPADStatus->substickY = base;
+    _pPADStatus->button |= PAD_USE_ORIGIN;
+    
+    _pPADStatus->err = PAD_ERR_NONE;
+    
     int stickvalue = (KeyStatus[CTL_HALFPRESS]) ? 40 : 100;
     int triggervalue = (KeyStatus[CTL_HALFPRESS]) ? 100 : 255;
+    int sensevalue = (KeyStatus[CTL_HALFPRESS]) ? 100 : 255;
 
     if (KeyStatus[CTL_MAINLEFT]){_pPADStatus->stickX -= stickvalue;}
     if (KeyStatus[CTL_MAINUP]){_pPADStatus->stickY += stickvalue;}
@@ -246,12 +277,12 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 
     if (KeyStatus[CTL_A]) {
         _pPADStatus->button |= PAD_BUTTON_A;
-        _pPADStatus->analogA = 255;
+        _pPADStatus->analogA = sensevalue;
     }
     
     if (KeyStatus[CTL_B]) {
         _pPADStatus->button |= PAD_BUTTON_B;
-        _pPADStatus->analogB = 255;
+        _pPADStatus->analogB = sensevalue;
     }
     
     if (KeyStatus[CTL_X]){_pPADStatus->button |= PAD_BUTTON_X;}
@@ -327,7 +358,7 @@ void LoadConfig()
           sf::Key::F,
           sf::Key::H,
 	  sf::Key::LShift, //halfpress
-	  sf::Key::P
+	  sf::Key::P // mic
 	};
 
 	IniFile file;
@@ -340,9 +371,12 @@ void LoadConfig()
 	    file.Get(SectionName, "Attached", &pad[i].bAttached, i==0);
 	    file.Get(SectionName, "DisableOnBackground", &pad[i].bDisable, false);
 	    for (int x = 0; x < NUMCONTROLS; x++) {
-		file.Get(SectionName, controlNames[x], 
-			 &pad[i].keyForControl[x], 
-			 (i==0)?defaultKeyForControl[x]:0);
+		int key;
+		file.Get(SectionName, controlNames[x],
+			 &key, (i==0)?defaultKeyForControl[x]:0);
+		
+		pad[i].keyForControl[x] = (sf::Key::Code)key;
+
 	    }
 	}
 }

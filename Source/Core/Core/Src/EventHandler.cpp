@@ -15,6 +15,20 @@ bool EventHandler::RegisterEventListener(listenFuncPtr func, Keys key) {
     return true;
 }
 
+bool EventHandler::RemoveEventListener(Keys key) {
+    if (key.inputType == KeyboardInput) {
+	if (! keys[key.keyCode][key.mods])
+	    return false;
+	keys[key.keyCode][key.mods] = NULL;
+    } else if (key.inputType == MouseInput) {
+	if (! mouse[key.mouseButton])
+	    return false;
+	mouse[key.mouseButton] = NULL;
+    }
+    
+    return true; 
+}
+
 void EventHandler::Update() {
     for (unsigned int i = 0; i < eventQueue.size();i++) {
 	sf::Event ev = eventQueue.front();
@@ -45,9 +59,9 @@ bool EventHandler::TestEvent (Keys k, sf::Event e)
 }
  
 // Taken from wxw source code
-int EventHandler::wxCharCodeWXToSF(int id)
+sf::Key::Code EventHandler::wxCharCodeToSF(int id)
 {
-    int sfKey;
+    sf::Key::Code sfKey;
 
     switch (id) {
 //  case WXK_CANCEL:          sfKey = sf::Key::Cancel; break;
@@ -121,13 +135,18 @@ int EventHandler::wxCharCodeWXToSF(int id)
     case WXK_F15:             sfKey = sf::Key::F15; break;
 //  case WXK_NUMLOCK:         sfKey = sf::Key::Num_Lock; break;
 //  case WXK_SCROLL:          sfKey = sf::Key::Scroll_Lock; break;
-    default:                  sfKey = id <= 255 ? id : 0;
+    default:
+	if ((id >= 'a' && id <= 'z') || 
+	    (id  >= '0' && id <= '9'))
+	    sfKey = (sf::Key::Code)id;
+	else
+	    sfKey = sf::Key::Count; // Invalid key
     }
 
     return sfKey;
 }
 
-void EventHandler::SFKeyToString(unsigned int keycode, char *keyStr) {
+void EventHandler::SFKeyToString(sf::Key::Code keycode, char *keyStr) {
     switch (keycode) {
 /*  case sf::Key::A = 'a': sprintf(keyStr, "UP"); break;
     case sf::Key::B = 'b': sprintf(keyStr, "UP"); break;

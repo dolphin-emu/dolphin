@@ -52,12 +52,14 @@ enum
 struct SPads {
 	bool bAttached;		// Pad is "attached" to the gamecube/wii
 	bool bDisable;		// Disabled when dolphin isn't in focus
-	unsigned int keyForControl[NUMCONTROLS];// Keyboard mapping
+	sf::Key::Code  keyForControl[NUMCONTROLS];// Keyboard mapping
 };
 
 extern SPads pad[];
 
 void LoadConfig();
 void SaveConfig();
+bool registerKey(int nPad, int id, sf::Key::Code code, int mods = 0);
+bool ParseKeyEvent(sf::Event ev);
 
 #endif

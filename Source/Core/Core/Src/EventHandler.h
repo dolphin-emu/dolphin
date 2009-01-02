@@ -35,11 +35,14 @@ private:
     std::queue<sf::Event> eventQueue;
 public:
     bool RegisterEventListener(listenFuncPtr func, Keys key);
+    bool RemoveEventListener(Keys key);
     void Update();
     bool addEvent(sf::Event *e);
     static bool TestEvent (Keys k, sf::Event e);
-    static int wxCharCodeWXToSF(int id);
-    static void SFKeyToString(unsigned int keycode, char *keyStr);
+    static sf::Key::Code wxCharCodeToSF(int id);
+    static void SFKeyToString(sf::Key::Code keycode, char *keyStr);
 };
+
+extern EventHandler *eventHandler;
 
 #endif

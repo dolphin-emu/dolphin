@@ -195,12 +195,13 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
     if(clickedButton != NULL) {
 	int page = m_Notebook->GetSelection();
 	
-	int sfcode = EventHandler::wxCharCodeWXToSF(event.GetKeyCode());
+	sf::Key::Code sfcode = EventHandler::wxCharCodeToSF(event.GetKeyCode());
 	char sfstr[100];
 	EventHandler::SFKeyToString(sfcode, sfstr);
 
-	pad[page].keyForControl[clickedButton->GetId()] = sfcode;	
-	clickedButton->SetLabel(wxString::FromAscii(sfstr));
+	//	pad[page].keyForControl[clickedButton->GetId()] = sfcode;	
+	if (registerKey(page, clickedButton->GetId(), sfcode))
+	    clickedButton->SetLabel(wxString::FromAscii(sfstr));
 	clickedButton->Disconnect();
     }
     
