@@ -832,7 +832,7 @@ enum NormalSSEOps
                                  (operand.scale == SCALE_IMM32 && bits == 64))
 			{
 				emit->Write8(nops[op].imm32);
-				immToWrite = 32;
+				immToWrite = bits == 16 ? 16 : 32;
 			}
 			else if ((operand.scale == SCALE_IMM8 && bits == 16) ||
                                  (operand.scale == SCALE_IMM8 && bits == 32) ||
@@ -880,6 +880,9 @@ enum NormalSSEOps
 			break;
 		case 8:
 			emit->Write8((u8)operand.offset);
+			break;
+		case 16:
+			emit->Write16((u16)operand.offset);
 			break;
 		case 32:
 			emit->Write32((u32)operand.offset);
