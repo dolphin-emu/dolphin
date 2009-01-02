@@ -82,12 +82,18 @@ void GetStringVA(std::string& _rOutBuffer)
 		//PanicAlert("Invalid GetStringVA call");
 		return;
 	}
+
 	while(*pString)
 	{
 		if (*pString == '%')
 		{
 			char* pArgument = ArgumentBuffer;
 			*pArgument++ = *pString++;
+			if(*pString == '%') {
+				_rOutBuffer += "%";
+				pString++;
+				continue;
+			}
 			while(*pString < 'A' || *pString > 'z' || *pString == 'l' || *pString == '-')
 				*pArgument++ = *pString++;
 
