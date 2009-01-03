@@ -385,8 +385,6 @@ void CGameListCtrl::ScanForISOs()
 			{
 				m_ISOFiles.push_back(ISOFile);
 			}
-			else
-				PanicAlert("Invalid ISO file %s", rFilenames[i].c_str());
 		}
 	}
 	std::sort(m_ISOFiles.begin(), m_ISOFiles.end());
