@@ -366,10 +366,10 @@ void CFrame::InitBitmaps()
 	#endif
 
 	// Scale to 24x24 for toolbar. Toolbar_Log is already 24x24
-	for (size_t n = Toolbar_FileOpen; n <= Toolbar_Help; n++)
+	for (size_t n = Toolbar_FileOpen; n < WXSIZEOF(m_Bitmaps); n++)
 	{
 		m_Bitmaps[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(24, 24));
-	}	
+	}
 }
 
 

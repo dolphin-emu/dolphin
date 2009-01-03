@@ -94,16 +94,16 @@ class CFrame : public wxFrame
 			Toolbar_Refresh,
 			Toolbar_Browse,
 			Toolbar_Play,
-			Toolbar_Stop, Toolbar_Stop_Dis,
+			Toolbar_Stop,
 			Toolbar_Pause,
 			Toolbar_PluginOptions,
 			Toolbar_PluginGFX,
-			Toolbar_PluginDSP, Toolbar_PluginDSP_Dis,
+			Toolbar_PluginDSP,
 			Toolbar_PluginPAD,
 			Toolbar_FullScreen,
 			Toolbar_Help,
 			#ifdef MUSICMOD
-				Toolbar_Log, Toolbar_Log_Dis,
+				Toolbar_Log,
 			#endif
 			Bitmaps_Max,
 			END
