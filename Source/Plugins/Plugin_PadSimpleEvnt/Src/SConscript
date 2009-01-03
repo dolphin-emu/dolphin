@@ -19,6 +19,6 @@ if padeenv['HAVE_WX']:
         "GUI/ConfigDlg.cpp",
         ]
 
-padeenv.Append(LIBS = [ 'common', 'core' ])
+padeenv.Append(LIBS = [ 'core', 'common' ])
 
 padeenv.SharedLibrary(env['plugin_dir']+name, files)

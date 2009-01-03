@@ -41,7 +41,7 @@ CPatchAddEdit::~CPatchAddEdit()
 
 void CPatchAddEdit::CreateGUIControls(int _selection)
 {
-	std::string currentName = _("<Insert name here>");
+	wxString currentName = wxT("<Insert name here>");
 
 	if (_selection == -1)
 	{
@@ -49,14 +49,14 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	}
 	else
 	{
-		currentName = onFrame.at(_selection).name;
-		tempEntries = onFrame.at(_selection).entries;
+	    currentName = wxString::FromAscii(onFrame.at(_selection).name.c_str());
+	    tempEntries = onFrame.at(_selection).entries;
 	}
 
 	wxBoxSizer* sEditPatch = new wxBoxSizer(wxVERTICAL);
 	wxStaticText* EditPatchNameText = new wxStaticText(this, ID_EDITPATCH_NAME_TEXT, _("Name:"), wxDefaultPosition, wxDefaultSize);
 	EditPatchName = new wxTextCtrl(this, ID_EDITPATCH_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
-	EditPatchName->SetValue(wxString::FromAscii(currentName.c_str()));
+	EditPatchName->SetValue(currentName);
 	wxStaticText* EditPatchOffsetText = new wxStaticText(this, ID_EDITPATCH_OFFSET_TEXT, _("Offset:"), wxDefaultPosition, wxDefaultSize);
 	EditPatchOffset = new wxTextCtrl(this, ID_EDITPATCH_OFFSET, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
 	EditPatchOffset->SetValue(wxString::Format(wxT("%08X"), tempEntries.at(0).address));
