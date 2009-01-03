@@ -29,7 +29,7 @@ class CPatchAddEdit : public wxDialog
 			wxWindowID id = 1,
 			const wxString& title = wxT("Edit Patch"),
 			const wxPoint& pos = wxDefaultPosition,
-			const wxSize& size = wxSize(300, -1),
+			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE);
 		virtual ~CPatchAddEdit();
 
@@ -41,6 +41,7 @@ class CPatchAddEdit : public wxDialog
 		wxRadioBox *EditPatchType;
 		wxTextCtrl *EditPatchValue;
 		wxSpinButton *EntrySelection;
+		wxButton *EntryRemove;
 
 		enum {
 			ID_EDITPATCH_NAME_TEXT = 4500,
@@ -50,14 +51,22 @@ class CPatchAddEdit : public wxDialog
 			ID_ENTRY_SELECT,
 			ID_EDITPATCH_TYPE,
 			ID_EDITPATCH_VALUE_TEXT,
-			ID_EDITPATCH_VALUE
+			ID_EDITPATCH_VALUE,
+			ID_ENTRY_ADD,
+			ID_ENTRY_REMOVE
 		};
 
 		void CreateGUIControls(int selection);
 		void OnClose(wxCloseEvent& event);
 		void ChangeEntry(wxSpinEvent& event);
-
+		void SavePatchData(wxCommandEvent& event);
+		void AddRemoveEntry(wxCommandEvent& event);
+		void UpdateEntryCtrls(PatchEngine::PatchEntry pE);
+		void SaveEntryData();
+		
 		int selection;
+		int curEntry;
+		std::vector<PatchEngine::PatchEntry> tempEntries;
 
 };
 #endif // __PATCH_ADDEDIT_h__

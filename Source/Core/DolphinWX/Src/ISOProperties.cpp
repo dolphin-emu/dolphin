@@ -643,16 +643,14 @@ void CISOProperties::PatchList_Load()
 void CISOProperties::PatchList_Save()
 {
 	std::vector<std::string> lines;
-	u32 index = 0;
 	for (std::vector<PatchEngine::Patch>::const_iterator onFrame_it = onFrame.begin(); onFrame_it != onFrame.end(); ++onFrame_it)
 	{
-		lines.push_back(Patches->IsChecked(index) ? "+$" + onFrame_it->name : "$" + onFrame_it->name);
+		lines.push_back(onFrame_it->active ? "+$" + onFrame_it->name : "$" + onFrame_it->name);
 
 		for (std::vector<PatchEngine::PatchEntry>::const_iterator iter2 = onFrame_it->entries.begin(); iter2 != onFrame_it->entries.end(); ++iter2)
 		{
 			lines.push_back(std::string(wxString::Format(wxT("0x%08X:%s:0x%08X"), iter2->address, PatchEngine::PatchTypeStrings[iter2->type], iter2->value).mb_str()));
 		}
-		++index;
 	}
 	GameIni.SetLines("OnFrame", lines);
 	lines.clear();
@@ -672,7 +670,8 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 		break;
 	case ID_ADDPATCH:
 		{
-		// dialog;
+		CPatchAddEdit dlg(-1, this, 1, _("Add Patch"));
+		dlg.ShowModal();
 		}
 		break;
 	case ID_REMOVEPATCH:
