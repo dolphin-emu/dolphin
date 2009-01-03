@@ -35,9 +35,6 @@
 //   cmppd, andpd, andnpd, or
 //   lfsx, ps_merge01 etc
 
-// #define INSTRUCTION_START Default(inst); return;
-#define INSTRUCTION_START
-
 	const u64 GC_ALIGNED16(psSignBits[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
 	const u64 GC_ALIGNED16(psAbsMask[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
 	const double GC_ALIGNED16(psOneOne[2])  = {1.0, 1.0};

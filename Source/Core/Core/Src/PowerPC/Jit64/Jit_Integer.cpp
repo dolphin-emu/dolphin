@@ -25,9 +25,6 @@
 #include "JitRegCache.h"
 #include "JitAsm.h"
 
-// #define INSTRUCTION_START Default(inst); return;
-#define INSTRUCTION_START
-
 	// Assumes that the flags were just set through an addition.
 	void Jit64::GenerateCarry(Gen::X64Reg temp_reg) {
 		// USES_XER

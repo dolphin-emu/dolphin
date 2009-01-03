@@ -46,6 +46,8 @@ using namespace Gen;
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
 			{Default(inst); return;} // turn off from debugger
 
+		INSTRUCTION_START;
+
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
 		WriteExceptionExit(EXCEPTION_SYSCALL);
@@ -55,6 +57,8 @@ using namespace Gen;
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
 			{Default(inst); return;} // turn off from debugger
+
+		INSTRUCTION_START;
 
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
@@ -79,6 +83,8 @@ using namespace Gen;
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
 			{Default(inst); return;} // turn off from debugger
+
+		INSTRUCTION_START;
 
 		if (inst.LK)
 			MOV(32, M(&LR), Imm32(js.compilerPC + 4));
@@ -119,6 +125,8 @@ using namespace Gen;
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
 			{Default(inst); return;} // turn off from debugger
+
+		INSTRUCTION_START;
 
 		// USES_CR
 		_assert_msg_(DYNA_REC, js.isLastInstruction, "bcx not last instruction of block");
@@ -214,6 +222,8 @@ using namespace Gen;
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
 			{Default(inst); return;} // turn off from debugger
 
+		INSTRUCTION_START;
+
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);
 
@@ -255,6 +265,8 @@ using namespace Gen;
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
 			{Default(inst); return;} // turn off from debugger
+
+		INSTRUCTION_START;
 
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);

@@ -707,7 +707,7 @@ void PrintInstructionRunCounts()
 		temp.push_back(x);
 	}
 	std::sort(temp.begin(), temp.end());
-	for (int i = 0; i < m_numInstructions; i++)
+	for (int i = m_numInstructions; i > 1; i--)
 	{
         LOG(GEKKO, "%s : %i", temp[i].name,temp[i].count);
 	}

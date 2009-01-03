@@ -30,9 +30,6 @@
 #include "JitCache.h"
 #include "JitRegCache.h"
 
-#define INSTRUCTION_START
-// #define INSTRUCTION_START Default(inst); return;
-
 	void Jit64::mtspr(UGeckoInstruction inst)
 	{
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)

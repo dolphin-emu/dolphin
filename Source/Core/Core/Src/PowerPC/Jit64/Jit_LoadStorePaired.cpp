@@ -37,9 +37,6 @@
 #include "JitAsm.h"
 #include "JitRegCache.h"
 
-#define INSTRUCTION_START
-// #define INSTRUCTION_START Default(inst); return;
-
 const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
 const u8 GC_ALIGNED16(pbswapShuffleNoop[16]) = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 

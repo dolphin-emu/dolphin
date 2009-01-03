@@ -57,6 +57,9 @@ struct CONTEXT
 
 #endif
 
+// #define INSTRUCTION_START Default(inst); return;
+// #define INSTRUCTION_START PPCTables::CountInstruction(inst);
+#define INSTRUCTION_START
 
 class TrampolineCache : public Gen::XCodeBlock
 {

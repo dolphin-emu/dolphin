@@ -26,9 +26,6 @@
 #include "JitCache.h"
 #include "JitRegCache.h"
 
-#define INSTRUCTION_START
-// #define INSTRUCTION_START Default(inst); return;
-
 	const u64 GC_ALIGNED16(psSignBits2[2]) = {0x8000000000000000ULL, 0x8000000000000000ULL};
 	const u64 GC_ALIGNED16(psAbsMask2[2])  = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
 	const double GC_ALIGNED16(psOneOne2[2]) = {1.0, 1.0};
