@@ -62,11 +62,11 @@ class CPatchAddEdit : public wxDialog
 		void SavePatchData(wxCommandEvent& event);
 		void AddRemoveEntry(wxCommandEvent& event);
 		void UpdateEntryCtrls(PatchEngine::PatchEntry pE);
-		void SaveEntryData();
-		
+		void SaveEntryData(std::vector<PatchEngine::PatchEntry>::iterator iterEntry);
+
 		int selection;
-		int curEntry;
 		std::vector<PatchEngine::PatchEntry> tempEntries;
+		std::vector<PatchEngine::PatchEntry>::iterator itCurEntry;
 
 };
 #endif // __PATCH_ADDEDIT_h__

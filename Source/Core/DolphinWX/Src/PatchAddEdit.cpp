@@ -31,7 +31,6 @@ CPatchAddEdit::CPatchAddEdit(int _selection, wxWindow* parent, wxWindowID id, co
 	: wxDialog(parent, id, title, position, size, style)
 {
 	selection = _selection;
-	curEntry = 0;
 	CreateGUIControls(selection);
 }
 
@@ -45,6 +44,7 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 
 	if (_selection == -1)
 	{
+		tempEntries.clear();
 		tempEntries.push_back(PatchEngine::PatchEntry(PatchEngine::PATCH_8BIT, 0x00000000, 0x00000000));
 	}
 	else
@@ -52,6 +52,8 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	    currentName = wxString::FromAscii(onFrame.at(_selection).name.c_str());
 	    tempEntries = onFrame.at(_selection).entries;
 	}
+
+	itCurEntry = tempEntries.begin();
 
 	wxBoxSizer* sEditPatch = new wxBoxSizer(wxVERTICAL);
 	wxStaticText* EditPatchNameText = new wxStaticText(this, ID_EDITPATCH_NAME_TEXT, _("Name:"), wxDefaultPosition, wxDefaultSize);
@@ -89,14 +91,11 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	sgEntry->Add(EditPatchValueText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sgEntry->Add(EditPatchValue, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sgEntry->Add(EntrySelection, wxGBPosition(0, 2), wxGBSpan(3, 1), wxEXPAND|wxALL, 5);
-
 	wxBoxSizer* sEntryAddRemove = new wxBoxSizer(wxHORIZONTAL);
 	sEntryAddRemove->Add(EntryAdd, 0, wxALL, 5);
 	sEntryAddRemove->Add(EntryRemove, 0, wxALL, 5);
-
 	sbEntry->Add(sgEntry, 0, wxEXPAND);
 	sbEntry->Add(sEntryAddRemove, 0, wxEXPAND);
-
 	sEditPatch->Add(sbEntry, 0, wxEXPAND|wxALL, 5);
 	wxBoxSizer* sEditPatchButtons = new wxBoxSizer(wxHORIZONTAL);
 	wxButton* bOK = new wxButton(this, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -117,16 +116,15 @@ void CPatchAddEdit::OnClose(wxCloseEvent& WXUNUSED (event))
 
 void CPatchAddEdit::ChangeEntry(wxSpinEvent& event)
 {
-	SaveEntryData();
-
-	curEntry = ((int)tempEntries.size()-1 - event.GetPosition());
-	PatchEngine::PatchEntry pE = tempEntries.at(curEntry);
-	UpdateEntryCtrls(pE);
+	SaveEntryData(itCurEntry);
+	
+	itCurEntry = tempEntries.end() - event.GetPosition() - 1;
+	UpdateEntryCtrls(*itCurEntry);
 }
 
 void CPatchAddEdit::SavePatchData(wxCommandEvent& WXUNUSED (event))
 {
-	SaveEntryData();	
+	SaveEntryData(itCurEntry);
 
 	if (selection == -1)
 	{
@@ -148,47 +146,38 @@ void CPatchAddEdit::SavePatchData(wxCommandEvent& WXUNUSED (event))
 
 void CPatchAddEdit::AddRemoveEntry(wxCommandEvent& event)
 {
-	int currentPos = (int)tempEntries.size() - EntrySelection->GetValue();
 	switch (event.GetId())
 	{
 	case ID_ENTRY_ADD:
 		{
-			SaveEntryData();
+			SaveEntryData(itCurEntry);
 
 			PatchEngine::PatchEntry peEmptyEntry(PatchEngine::PATCH_8BIT, 0x00000000, 0x00000000);
-			std::vector<PatchEngine::PatchEntry>::iterator iterWhere(tempEntries.begin() + currentPos);
-
-			tempEntries.insert(iterWhere, peEmptyEntry);
+			itCurEntry++;
+			itCurEntry = tempEntries.insert(itCurEntry, peEmptyEntry);
 
 			EntrySelection->SetRange(EntrySelection->GetMin(), EntrySelection->GetMax() + 1);
-			EntrySelection->SetValue(EntrySelection->GetMax() - currentPos);
-
-			iterWhere = tempEntries.begin() + currentPos;
-			UpdateEntryCtrls(*iterWhere);
+			UpdateEntryCtrls(*itCurEntry);
 
 			EntryRemove->Enable();
 			EntrySelection->Enable();
 		}
 		break;
 	case ID_ENTRY_REMOVE:
-		{
-			currentPos--;
-			std::vector<PatchEngine::PatchEntry>::iterator iterWhere(tempEntries.begin() + currentPos);
-			tempEntries.erase(iterWhere);
-
-			if (currentPos != 0)
+		{		
+			itCurEntry = tempEntries.erase(itCurEntry);
+			
+			if (itCurEntry != tempEntries.begin())
 			{
-				iterWhere = tempEntries.begin() + currentPos;
+				itCurEntry--;
 			}
-			else if (tempEntries.size() > 0)
+			else
 			{
-				iterWhere = tempEntries.begin();
+				EntrySelection->SetValue(EntrySelection->GetValue() - 1);
 			}
-
-			EntrySelection->SetRange(EntrySelection->GetMin(), EntrySelection->GetMax() - 1);
-			EntrySelection->SetValue(EntrySelection->GetMax() - currentPos);
-
-			UpdateEntryCtrls(*iterWhere);
+			
+			EntrySelection->SetRange(EntrySelection->GetMin(), EntrySelection->GetMax() - 1);			
+			UpdateEntryCtrls(*itCurEntry);
 
 			if ((int)tempEntries.size() <= 1)
 			{
@@ -198,7 +187,6 @@ void CPatchAddEdit::AddRemoveEntry(wxCommandEvent& event)
 		}
 		break;
 	}
-	curEntry = currentPos;
 }
 
 void CPatchAddEdit::UpdateEntryCtrls(PatchEngine::PatchEntry pE)
@@ -208,12 +196,13 @@ void CPatchAddEdit::UpdateEntryCtrls(PatchEngine::PatchEntry pE)
 	EditPatchValue->SetValue(wxString::Format(wxT("%08X"), pE.value));
 }
 
-void CPatchAddEdit::SaveEntryData()
+void CPatchAddEdit::SaveEntryData(std::vector<PatchEngine::PatchEntry>::iterator iterEntry)
 {
 	unsigned long value;
+
 	if (EditPatchOffset->GetValue().ToULong(&value, 16))
-		tempEntries.at(curEntry).address = value;
-	tempEntries.at(curEntry).type = (PatchEngine::PatchType) EditPatchType->GetSelection();
+		(*iterEntry).address = value;
+	(*iterEntry).type = (PatchEngine::PatchType) EditPatchType->GetSelection();
 	if (EditPatchValue->GetValue().ToULong(&value, 16))
-		tempEntries.at(curEntry).value = value;
+		(*iterEntry).value = value;
 }

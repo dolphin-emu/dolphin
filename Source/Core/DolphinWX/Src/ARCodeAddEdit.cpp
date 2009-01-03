@@ -45,8 +45,8 @@ void CARCodeAddEdit::CreateGUIControls(int _selection)
 	EditCheatName = new wxTextCtrl(this, ID_EDITCHEAT_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0);
 	EditCheatName->SetValue(wxString::FromAscii(currentCode.name.c_str()));
 	EntrySelection = new wxSpinButton(this, ID_ENTRY_SELECT, wxDefaultPosition, wxDefaultSize, wxVERTICAL);
-	EntrySelection->SetRange((int)arCodes.size()-1, 0);
-	EntrySelection->SetValue(_selection);
+	EntrySelection->SetRange(0, (int)arCodes.size()-1);
+	EntrySelection->SetValue((int)arCodes.size()-1 - _selection);
 	EditCheatCode = new wxTextCtrl(this, ID_EDITCHEAT_CODE, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE);
 	UpdateTextCtrl(currentCode);
 	wxGridBagSizer* sgEntry = new wxGridBagSizer(0, 0);
@@ -76,7 +76,7 @@ void CARCodeAddEdit::OnClose(wxCloseEvent& WXUNUSED (event))
 
 void CARCodeAddEdit::ChangeEntry(wxSpinEvent& event)
 {
-	ActionReplay::ARCode currentCode = arCodes.at(event.GetPosition());
+	ActionReplay::ARCode currentCode = arCodes.at((int)arCodes.size()-1 - event.GetPosition());
 	EditCheatName->SetValue(wxString::FromAscii(currentCode.name.c_str()));
 	UpdateTextCtrl(currentCode);
 }
