@@ -1,5 +1,8 @@
 #include "EventHandler.h"
+
+#if defined HAVE_WX && HAVE_WX
 #include <wx/wx.h>
+#endif
 
 bool EventHandler::RegisterEventListener(listenFuncPtr func, Keys key) {
     if (key.inputType == KeyboardInput) {
@@ -57,7 +60,8 @@ bool EventHandler::TestEvent (Keys k, sf::Event e)
     }
     return (false);
 }
- 
+
+#if defined HAVE_WX && HAVE_WX 
 // Taken from wxw source code
 sf::Key::Code EventHandler::wxCharCodeToSF(int id)
 {
@@ -145,6 +149,7 @@ sf::Key::Code EventHandler::wxCharCodeToSF(int id)
 
     return sfKey;
 }
+#endif
 
 void EventHandler::SFKeyToString(sf::Key::Code keycode, char *keyStr) {
     switch (keycode) {

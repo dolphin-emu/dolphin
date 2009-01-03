@@ -23,6 +23,7 @@
 
 #include "Thread.h"
 #include "Timer.h"
+#include "Common.h"
 
 #include "Console.h"
 #include "Core.h"
@@ -55,6 +56,7 @@
 #include "MemTools.h"
 #include "Host.h"
 #include "LogManager.h"
+#include "EventHandler.h"
 
 #include "State.h"
 
@@ -65,6 +67,8 @@
 // The idea behind the recent restructure is to fix various stupid problems.
 // glXMakeCurrent/ wglMakeCurrent takes a context and makes it current on the current thread.
 // So it's fine to init ogl on one thread, and then make it current and start blasting on another.
+
+EventHandler *eventHandler = NULL;;
 
 namespace Core
 {
@@ -100,6 +104,7 @@ SCoreStartupParameter g_CoreStartupParameter; //uck
 
 Common::Event emuThreadGoing;
 
+
 bool PanicAlertToVideo(const char* text, bool yes_no)
 {
 	DisplayMessage(text, 3000);
@@ -118,6 +123,11 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 	Host_SetWaitCursor(true);
 
 	g_CoreStartupParameter = _CoreParameter;
+	
+#if defined GLTEST && GLTEST
+	// init the event handler
+	eventHandler = new EventHandler();
+#endif
 
 	// start the thread again
 	_dbg_assert_(HLE, g_pThread == NULL);
@@ -390,6 +400,9 @@ THREAD_RETURN EmuThread(void *pArg)
 	PluginDSP::UnloadPlugin();
 	PluginVideo::Video_Shutdown();
 	PluginVideo::UnloadPlugin();
+
+	if (eventHandler)
+	    delete eventHandler;
 
 	HW::Shutdown();
 

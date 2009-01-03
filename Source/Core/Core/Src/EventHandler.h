@@ -1,5 +1,6 @@
 #ifndef EVENTHANDER_H
 #define EVENTHANDER_H 1
+#include "Common.h"
 #include <queue>
 #include "Event.hpp"
 
@@ -39,7 +40,9 @@ public:
     void Update();
     bool addEvent(sf::Event *e);
     static bool TestEvent (Keys k, sf::Event e);
+#if defined HAVE_WX && HAVE_WX
     static sf::Key::Code wxCharCodeToSF(int id);
+#endif
     static void SFKeyToString(sf::Key::Code keycode, char *keyStr);
 };
 
