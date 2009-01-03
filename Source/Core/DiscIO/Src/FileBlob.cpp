@@ -20,18 +20,6 @@
 #include "Blob.h"
 #include "FileBlob.h"
 
-
-//////////////////////////////////////////////////
-// Music mod
-// ¯¯¯¯¯¯¯¯¯¯
-#include "../../../../Branches/MusicMod/Main/Src/Setup.h" // Define MUSICMOD here
-#ifdef MUSICMOD
-	#include "../../../../Branches/MusicMod/Main/Src/Main.h" 
-#endif
-///////////////////////
-
-
-
 #ifdef _WIN32
 	#include <windows.h>
 #endif
@@ -67,15 +55,6 @@ PlainFileReader::~PlainFileReader()
 
 bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 {
-	//////////////////////////////////////////////////
-	// Music mod
-	// ¯¯¯¯¯¯¯¯¯¯
-	#ifdef MUSICMOD
-		MusicMod::CheckFile(offset, size);
-	#endif
-	///////////////////////
-
-
 	LONG offset_high = (LONG)(offset >> 32);
 	SetFilePointer(hFile, (DWORD)(offset & 0xFFFFFFFF), &offset_high, FILE_BEGIN);
 

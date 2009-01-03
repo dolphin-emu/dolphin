@@ -156,7 +156,8 @@ bool CheckFileEnding(std::string FileName)
 		|| (FileName.find(".dsp") != std::string::npos) // Metroid Prime
 		|| (FileName.find(".hps") != std::string::npos) // SSB Melee
 		)
-	return true;
+		return true;
+	return false;
 }
 // =======================================================================================
 
