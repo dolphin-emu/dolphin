@@ -71,6 +71,20 @@ void Jit64::lhax(UGeckoInstruction inst)
 void Jit64::lXz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
+
+	if (Core::GetStartupParameter().bSkipIdle &&
+		inst.OPCD == 32 && 
+		(inst.hex & 0xFFFF0000) == 0x800D0000 &&
+		(Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
+		(Core::GetStartupParameter().bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
+		Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
+	{
+		ibuild.EmitIdleLoop(ibuild.EmitIntConst(PowerPC::ppcState.gpr[inst.RA] + (s32)(s16)inst.SIMM_16),
+				    ibuild.EmitIntConst(js.compilerPC));
+		js.compilerPC += 8;
+		return;
+	}
+
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));

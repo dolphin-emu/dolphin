@@ -39,6 +39,9 @@
 
 // Zelda and many more games seem to pass the Acid Test. 
 
+//#define NORMALBRANCH_START Default(inst); ibuild.EmitInterpreterBranch(); return;
+#define NORMALBRANCH_START
+
 using namespace Gen;
 
 	void Jit64::sc(UGeckoInstruction inst)
@@ -53,6 +56,7 @@ using namespace Gen;
 
 	void Jit64::bx(UGeckoInstruction inst)
 	{
+		NORMALBRANCH_START
 		if (inst.LK)
 			ibuild.EmitStoreLink(ibuild.EmitIntConst(js.compilerPC + 4));
 
@@ -67,6 +71,7 @@ using namespace Gen;
 
 	void Jit64::bcx(UGeckoInstruction inst)
 	{
+		NORMALBRANCH_START
 		if (inst.LK)
 			ibuild.EmitStoreLink(
 				ibuild.EmitIntConst(js.compilerPC + 4));
@@ -117,6 +122,7 @@ using namespace Gen;
 
 	void Jit64::bcctrx(UGeckoInstruction inst)
 	{
+		NORMALBRANCH_START
 		Default(inst);
 		ibuild.EmitInterpreterBranch();
 		return;
@@ -124,6 +130,7 @@ using namespace Gen;
 
 	void Jit64::bclrx(UGeckoInstruction inst)
 	{
+		NORMALBRANCH_START
 		if (inst.hex == 0x4e800020) {
 			ibuild.EmitBranchUncond(ibuild.EmitLoadLink());
 			return;

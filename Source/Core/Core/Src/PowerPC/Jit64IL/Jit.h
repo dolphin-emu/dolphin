@@ -95,7 +95,7 @@ private:
 		PPCAnalyst::BlockRegStats gpa;
 		PPCAnalyst::BlockRegStats fpa;
 		PPCAnalyst::CodeOp *op;
-		u8* normalEntry;
+		u8* rewriteStart;
 
 		JitBlock *curBlock;
 	};

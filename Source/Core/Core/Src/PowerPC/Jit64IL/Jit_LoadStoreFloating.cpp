@@ -57,38 +57,12 @@ u32 GC_ALIGNED16(temp32);
 
 void Jit64::lfs(UGeckoInstruction inst)
 {
-	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-		{Default(inst); return;} // turn off from debugger	
-	INSTRUCTION_START;
-
-	int d = inst.RD;
-	int a = inst.RA;
-	if (!a) 
-	{
-		Default(inst);
-		return;
-	}
-	s32 offset = (s32)(s16)inst.SIMM_16;
-	gpr.FlushLockX(ABI_PARAM1);
-	gpr.Lock(a);
-	MOV(32, R(ABI_PARAM1), gpr.R(a));
-	if (jo.assumeFPLoadFromMem)
-	{
-		UnsafeLoadRegToReg(ABI_PARAM1, EAX, 32, offset, false);
-	}
-	else
-	{
-		SafeLoadRegToEAX(ABI_PARAM1, 32, offset);
-	}
-
-	MOV(32, M(&temp32), R(EAX));
-	fpr.Lock(d);
-	fpr.LoadToX64(d, false);
-	CVTSS2SD(fpr.RX(d), M(&temp32));
-	MOVDDUP(fpr.RX(d), fpr.R(d));
-	gpr.UnlockAll();
-	gpr.UnlockAllX();
-	fpr.UnlockAll();
+	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16), val;
+	if (inst.RA)
+		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+	val = ibuild.EmitDupSingleToMReg(ibuild.EmitLoadSingle(addr));
+	ibuild.EmitStoreFReg(val, inst.RD);
+	return;
 }
 
 
@@ -291,32 +265,10 @@ void Jit64::stfsx(UGeckoInstruction inst)
 
 void Jit64::lfsx(UGeckoInstruction inst)
 {
-	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-		{Default(inst); return;} // turn off from debugger	
-	INSTRUCTION_START;
-
-	fpr.Lock(inst.RS);
-	fpr.LoadToX64(inst.RS, false, true);
-	MOV(32, R(EAX), gpr.R(inst.RB));
+	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB), val;
 	if (inst.RA)
-		ADD(32, R(EAX), gpr.R(inst.RA));
-	if (cpu_info.bSSSE3) {
-		X64Reg r = fpr.R(inst.RS).GetSimpleReg();
-#ifdef _M_IX86
-		AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
-		MOVD_xmm(r, MDisp(EAX, (u32)Memory::base));
-#else
-		MOVD_xmm(r, MComplex(RBX, EAX, SCALE_1, 0));
-#endif
-		PSHUFB(r, M((void *)bswapShuffle1x4));
-		CVTSS2SD(r, R(r));
-		MOVDDUP(r, R(r));
-	} else {
-		UnsafeLoadRegToReg(EAX, EAX, 32, false);
-		MOV(32, M(&temp32), R(EAX));
-		CVTSS2SD(XMM0, M(&temp32));
-		MOVDDUP(fpr.R(inst.RS).GetSimpleReg(), R(XMM0));
-	}
-	fpr.UnlockAll();
+		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+	val = ibuild.EmitDupSingleToMReg(ibuild.EmitLoadSingle(addr));
+	ibuild.EmitStoreFReg(val, inst.RD);
 }
 

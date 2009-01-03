@@ -80,6 +80,7 @@ namespace IREmitter {
 		Store16,
 		Store32,
 		BranchCond,
+#if 0
 		// Floating-point
 		// There are three floating-point formats: single, double,
 		// and packed.  For any operation where the format of the
@@ -141,8 +142,18 @@ namespace IREmitter {
 		ForceToSingle,
 		ForceToDouble,
 		ForceToMReg,
-		LoadFPReg,
-		StoreFPReg,
+#endif
+		LoadSingle,
+		LoadDouble,
+		LoadPaired, // This handles quantizers itself
+		DoubleToSingle,
+		DupSingleToMReg,
+		InsertDoubleInMReg,
+		ExpandPackedToMReg,
+		LoadFReg,
+		StoreFReg,
+		FSMul,
+		FSAdd,
 
 		// "Trinary" operators
 		// FIXME: Need to change representation!
@@ -156,6 +167,7 @@ namespace IREmitter {
 		SystemCall,
 		RFIExit,
 		InterpreterBranch,
+		IdleLoop,
 
 		// "Opcode" representing a register too far away to
 		// reference directly; this is a size optimization
@@ -364,6 +376,42 @@ namespace IREmitter {
 		}
 		InstLoc EmitRFIExit() {
 			return FoldZeroOp(RFIExit, 0);
+		}
+		InstLoc EmitIdleLoop(InstLoc idleParam, InstLoc pc) {
+			return FoldBiOp(IdleLoop, idleParam, pc);
+		}
+		InstLoc EmitLoadSingle(InstLoc addr) {
+			return FoldUOp(LoadSingle, addr);
+		}
+		InstLoc EmitLoadDouble(InstLoc addr) {
+			return FoldUOp(LoadDouble, addr);
+		}
+		InstLoc EmitLoadPaired(InstLoc addr, unsigned quantReg) {
+			return FoldUOp(LoadPaired, addr, quantReg);
+		}
+		InstLoc EmitLoadFReg(unsigned freg) {
+			return FoldZeroOp(LoadFReg, freg);
+		}
+		InstLoc EmitStoreFReg(InstLoc val, unsigned freg) {
+			return FoldUOp(StoreFReg, val, freg);
+		}
+		InstLoc EmitDupSingleToMReg(InstLoc val) {
+			return FoldUOp(DupSingleToMReg, val);
+		}
+		InstLoc EmitInsertDoubleInMReg(InstLoc val, InstLoc reg) {
+			return FoldBiOp(InsertDoubleInMReg, val, reg);
+		}
+		InstLoc EmitExpandPackedToMReg(InstLoc val) {
+			return FoldUOp(ExpandPackedToMReg, val);
+		}
+		InstLoc EmitFSMul(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(FSMul, op1, op2);
+		}
+		InstLoc EmitFSAdd(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(FSAdd, op1, op2);
+		}
+		InstLoc EmitDoubleToSingle(InstLoc op1) {
+			return FoldUOp(DoubleToSingle, op1);
 		}
 
 		void StartBackPass() { curReadPtr = &InstList[InstList.size()]; }

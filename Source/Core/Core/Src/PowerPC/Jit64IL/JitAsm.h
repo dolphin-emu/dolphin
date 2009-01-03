@@ -42,6 +42,7 @@ private:
 	void GenFifoWrite(int size);
 	void GenFifoFloatWrite();
 	void GenFifoXmm64Write();
+	void GenQuantizedLoads();
 
 public:
 	void Init() {
@@ -79,6 +80,8 @@ public:
 	const u8 *breakpointBailout;
 
 	const u8 *doReJit;
+
+	const u8 *pairedLoadQuantized[8];
 
 	bool compareEnabled;
 };

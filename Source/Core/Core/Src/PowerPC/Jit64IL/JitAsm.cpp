@@ -23,6 +23,7 @@
 #include "../PowerPC.h"
 #include "../../CoreTiming.h"
 #include "MemoryUtil.h"
+#include "CPUDetect.h"
 
 #include "ABI.h"
 #include "Jit.h"
@@ -168,6 +169,176 @@ void AsmRoutineManager::Generate()
 	GenerateCommon();
 }
 
+const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
+
+const float m_quantizeTableS[] =
+{
+	(1 <<  0),	(1 <<  1),	(1 <<  2),	(1 <<  3),
+	(1 <<  4),	(1 <<  5),	(1 <<  6),	(1 <<  7),
+	(1 <<  8),	(1 <<  9),	(1 << 10),	(1 << 11),
+	(1 << 12),	(1 << 13),	(1 << 14),	(1 << 15),
+	(1 << 16),	(1 << 17),	(1 << 18),	(1 << 19),
+	(1 << 20),	(1 << 21),	(1 << 22),	(1 << 23),
+	(1 << 24),	(1 << 25),	(1 << 26),	(1 << 27),
+	(1 << 28),	(1 << 29),	(1 << 30),	(1 << 31),
+	1.0 / (1ULL << 32),	1.0 / (1 << 31),	1.0 / (1 << 30),	1.0 / (1 << 29),
+	1.0 / (1 << 28),	1.0 / (1 << 27),	1.0 / (1 << 26),	1.0 / (1 << 25),
+	1.0 / (1 << 24),	1.0 / (1 << 23),	1.0 / (1 << 22),	1.0 / (1 << 21),
+	1.0 / (1 << 20),	1.0 / (1 << 19),	1.0 / (1 << 18),	1.0 / (1 << 17),
+	1.0 / (1 << 16),	1.0 / (1 << 15),	1.0 / (1 << 14),	1.0 / (1 << 13),
+	1.0 / (1 << 12),	1.0 / (1 << 11),	1.0 / (1 << 10),	1.0 / (1 <<  9),
+	1.0 / (1 <<  8),	1.0 / (1 <<  7),	1.0 / (1 <<  6),	1.0 / (1 <<  5),
+	1.0 / (1 <<  4),	1.0 / (1 <<  3),	1.0 / (1 <<  2),	1.0 / (1 <<  1),
+}; 
+
+const float m_dequantizeTableS[] =
+{
+	1.0 / (1 <<  0),	1.0 / (1 <<  1),	1.0 / (1 <<  2),	1.0 / (1 <<  3),
+	1.0 / (1 <<  4),	1.0 / (1 <<  5),	1.0 / (1 <<  6),	1.0 / (1 <<  7),
+	1.0 / (1 <<  8),	1.0 / (1 <<  9),	1.0 / (1 << 10),	1.0 / (1 << 11),
+	1.0 / (1 << 12),	1.0 / (1 << 13),	1.0 / (1 << 14),	1.0 / (1 << 15),
+	1.0 / (1 << 16),	1.0 / (1 << 17),	1.0 / (1 << 18),	1.0 / (1 << 19),
+	1.0 / (1 << 20),	1.0 / (1 << 21),	1.0 / (1 << 22),	1.0 / (1 << 23),
+	1.0 / (1 << 24),	1.0 / (1 << 25),	1.0 / (1 << 26),	1.0 / (1 << 27),
+	1.0 / (1 << 28),	1.0 / (1 << 29),	1.0 / (1 << 30),	1.0 / (1 << 31),
+	(1ULL << 32),	(1 << 31),		(1 << 30),		(1 << 29),
+	(1 << 28),		(1 << 27),		(1 << 26),		(1 << 25),
+	(1 << 24),		(1 << 23),		(1 << 22),		(1 << 21),
+	(1 << 20),		(1 << 19),		(1 << 18),		(1 << 17),
+	(1 << 16),		(1 << 15),		(1 << 14),		(1 << 13),
+	(1 << 12),		(1 << 11),		(1 << 10),		(1 <<  9),
+	(1 <<  8),		(1 <<  7),		(1 <<  6),		(1 <<  5),
+	(1 <<  4),		(1 <<  3),		(1 <<  2),		(1 <<  1),
+};  
+
+float psTemp[2];
+
+void AsmRoutineManager::GenQuantizedLoads() {
+	const u8* loadPairedIllegal = AlignCode4();
+	UD2();
+	const u8* loadPairedFloat = AlignCode4();
+	if (cpu_info.bSSSE3) {
+#ifdef _M_X64
+		MOVQ_xmm(XMM0, MComplex(RBX, RCX, 1, 0));
+#else
+		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
+		MOVQ_xmm(XMM0, MDisp(ECX, (u32)Memory::base));
+#endif
+		PSHUFB(XMM0, M((void *)pbswapShuffle2x4));
+	} else {
+#ifdef _M_X64
+		MOV(64, R(RCX), MComplex(RBX, RCX, 1, 0));
+		BSWAP(64, RCX);
+		ROL(64, RCX, Imm8(32));
+		MOVQ_xmm(XMM0, R(RCX));
+#else
+#if 0
+		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
+		MOVQ_xmm(XMM0, MDisp(ECX, (u32)Memory::base));
+		PXOR(XMM1, R(XMM1));
+		PSHUFLW(XMM0, R(XMM0), 0xB1);
+		MOVAPD(XMM1, R(XMM0));
+		PSRLW(XMM0, 8);
+		PSLLW(XMM1, 8);
+		POR(XMM0, R(XMM1));
+#else
+		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
+		MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base));
+		BSWAP(32, EAX);
+		MOV(32, M(&psTemp[0]), R(RAX));
+		MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base + 4));
+		BSWAP(32, EAX);
+		MOV(32, M(((float *)&psTemp[0]) + 1), R(RAX));
+		MOVQ_xmm(XMM0, M(&psTemp[0]));
+#endif
+#endif
+	}
+	RET();
+
+	const u8* loadPairedU8 = AlignCode4();
+#ifdef _M_X64
+	MOVZX(32, 16, ECX, MComplex(RBX, RCX, 1, 0));
+#else
+	AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
+	MOVZX(32, 16, ECX, MDisp(ECX, (u32)Memory::base));
+#endif
+	MOVD_xmm(XMM0, R(ECX));
+	PXOR(XMM1, R(XMM1));
+	PUNPCKLBW(XMM0, R(XMM1));
+	PUNPCKLWD(XMM0, R(XMM1));
+	CVTDQ2PS(XMM0, R(XMM0));
+	SHR(32, R(EAX), Imm8(6));
+	MOVSS(XMM1, MDisp(EAX, (u32)m_dequantizeTableS));
+	PUNPCKLDQ(XMM1, R(XMM1));
+	MULPS(XMM0, R(XMM1));
+	RET();
+
+	const u8* loadPairedS8 = AlignCode4();
+#ifdef _M_X64
+	MOVZX(32, 16, ECX, MComplex(RBX, RCX, 1, 0));
+#else
+	AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
+	MOVZX(32, 16, ECX, MDisp(ECX, (u32)Memory::base));
+#endif
+	MOVD_xmm(XMM0, R(ECX));
+	PUNPCKLBW(XMM0, R(XMM0));
+	PUNPCKLWD(XMM0, R(XMM0));
+	PSRAD(XMM0, 24);
+	CVTDQ2PS(XMM0, R(XMM0));
+	SHR(32, R(EAX), Imm8(6));
+	MOVSS(XMM1, MDisp(EAX, (u32)m_dequantizeTableS));
+	PUNPCKLDQ(XMM1, R(XMM1));
+	MULPS(XMM0, R(XMM1));
+	RET();
+
+	const u8* loadPairedU16 = AlignCode4();
+#ifdef _M_X64
+	MOV(32, R(ECX), MComplex(RBX, RCX, 1, 0));
+#else
+	AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
+	MOV(32, R(ECX), MDisp(ECX, (u32)Memory::base));
+#endif
+	BSWAP(32, ECX);
+	ROL(32, R(ECX), Imm8(16));
+	MOVD_xmm(XMM0, R(ECX));
+	PXOR(XMM1, R(XMM1));
+	PUNPCKLWD(XMM0, R(XMM1));
+	CVTDQ2PS(XMM0, R(XMM0));
+	SHR(32, R(EAX), Imm8(6));
+	MOVSS(XMM1, MDisp(EAX, (u32)m_dequantizeTableS));
+	PUNPCKLDQ(XMM1, R(XMM1));
+	MULPS(XMM0, R(XMM1));
+	RET();
+
+	const u8* loadPairedS16 = AlignCode4();
+#ifdef _M_X64
+	MOV(32, R(ECX), MComplex(RBX, RCX, 1, 0));
+#else
+	AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
+	MOV(32, R(ECX), MDisp(ECX, (u32)Memory::base));
+#endif
+	BSWAP(32, ECX);
+	ROL(32, R(ECX), Imm8(16));
+	MOVD_xmm(XMM0, R(ECX));
+	PUNPCKLWD(XMM0, R(XMM0));
+	PSRAD(XMM0, 16);
+	CVTDQ2PS(XMM0, R(XMM0));
+	SHR(32, R(EAX), Imm8(6));
+	AND(32, R(EAX), Imm32(0xFC));
+	MOVSS(XMM1, MDisp(EAX, (u32)m_dequantizeTableS));
+	PUNPCKLDQ(XMM1, R(XMM1));
+	MULPS(XMM0, R(XMM1));
+	RET();
+
+	pairedLoadQuantized[0] = loadPairedFloat;
+	pairedLoadQuantized[1] = loadPairedIllegal;
+	pairedLoadQuantized[2] = loadPairedIllegal;
+	pairedLoadQuantized[3] = loadPairedIllegal;
+	pairedLoadQuantized[4] = loadPairedU8;
+	pairedLoadQuantized[5] = loadPairedU16;
+	pairedLoadQuantized[6] = loadPairedS8;
+	pairedLoadQuantized[7] = loadPairedS16;
+}
 
 void AsmRoutineManager::GenFifoWrite(int size) 
 {
@@ -256,6 +427,8 @@ void AsmRoutineManager::GenerateCommon()
 	ABI_RestoreStack(0);
 	SUB(32, M(&CoreTiming::downcount), Imm8(0));
 	JMP(dispatcher, true);
+
+	GenQuantizedLoads();
 
 	computeRcFp = AlignCode16();
 	//CMPSD(R(XMM0), M(&zero), 

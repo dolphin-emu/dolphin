@@ -420,12 +420,11 @@ namespace CPUCompare
 		SetJumpTarget(skip);
 
 		const u8 *normalEntry = GetCodePtr();
-		js.normalEntry = (u8*)normalEntry;
 		
 		if (ImHereDebug)
 			ABI_CallFunction((void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
 		
-		if (false && js.fpa.any)
+		if (js.fpa.any)
 		{
 			//This block uses FPU - needs to add FP exception bailout
 			TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); //Test FP enabled bit
@@ -445,24 +444,10 @@ namespace CPUCompare
 			SetJumpTarget(b1);
 		}
 
-		// Conditionally add profiling code.
-		if (Profiler::g_ProfileBlocks) {
-			ADD(32, M(&b->runCount), Imm8(1));
-#ifdef _WIN32
-			b->ticCounter.QuadPart = 0;
-			b->ticStart.QuadPart = 0;
-			b->ticStop.QuadPart = 0;
-#else
-//TODO
-#endif
-			// get start tic
-			PROFILER_QUERY_PERFORMACE_COUNTER(&b->ticStart);
-		}
+		js.rewriteStart = (u8*)GetCodePtr();
 
-		//Start up the register allocators
-		//They use the information in gpa/fpa to preload commonly used registers.
-		//gpr.Start(js.gpa);
-		//fpr.Start(js.fpa);
+		// Start up IR builder (structure that collects the
+		// instruction processed by the JIT routines)
 		ibuild.Reset();
 
 		js.downcountAmount = js.st.numCycles + PatchEngine::GetSpeedhackCycles(em_address);
@@ -519,6 +504,7 @@ namespace CPUCompare
 				break;
 		}
 
+		// Perform actual code generation
 		WriteCode();
 
 		b->flags = js.block_flags;
