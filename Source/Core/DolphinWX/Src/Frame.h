@@ -103,7 +103,7 @@ class CFrame : public wxFrame
 			Toolbar_FullScreen,
 			Toolbar_Help,
 			#ifdef MUSICMOD
-				Toolbar_Log,
+				Toolbar_Log, Toolbar_PluginDSP_Dis, Toolbar_Log_Dis,
 			#endif
 			Bitmaps_Max,
 			END
