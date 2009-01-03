@@ -30,7 +30,7 @@
 #include "../../../../Source/Core/DiscIO/Src/VolumeCreator.h"
 
 #include "../../Player/Src/PlayerExport.h" // Local player
-#include "../../Common/Console.h" // Local common
+#include "../../Common/Src/Console.h" // Local common
 //////////////////////////////////
 
 

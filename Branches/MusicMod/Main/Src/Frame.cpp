@@ -28,7 +28,7 @@
 #include "../../../../Source/Core/DolphinWX/Src/Globals.h" // DolphinWX
 #include "../../../../Source/Core/DolphinWX/Src/Frame.h"
 
-#include "../../Common/Console.h" // Local
+#include "../../Common/Src/Console.h" // Local
 #include "../../Player/Src/PlayerExport.h" // Player
 //////////////////////////////////
 
