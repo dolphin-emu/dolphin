@@ -51,9 +51,12 @@
 #include "Config.h"
 #include "Core.h"
 #if defined(HAVE_WX) && HAVE_WX
-#include "ConfigMain.h"
-#include "Frame.h"
-#include "CodeWindow.h"
+	#include "ConfigMain.h"
+	#include "Frame.h"
+	#include "CodeWindow.h"
+	#ifdef MUSICMOD
+		#include "../../../Branches/MusicMod/Main/Src/Main.h"  // MusicMod
+	#endif
 #endif
 
 static std::string s_DataBasePath_EUR = "Data_EUR";
@@ -204,6 +207,16 @@ bool BootCore(const std::string& _rFilename)
 #else
 	Core::SetState(Core::CORE_RUN);
 #endif
+
+	//////////////////////////////////////////////////////////////////////////////////////////
+	// Music mod
+	// ¯¯¯¯¯¯¯¯¯¯
+	#ifdef MUSICMOD
+		MusicMod::Main(StartUp.m_strFilename);
+	#endif
+	///////////////////////////////////
+	
+
 	return true;
 }
 

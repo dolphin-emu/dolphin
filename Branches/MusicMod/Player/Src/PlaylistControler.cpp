@@ -13,6 +13,7 @@
 #include "PlaylistControler.h"
 #include "Config.h"
 #include "Font.h"
+#include "Console.h" 
 
 bool bPlaylistFollow;
 ConfBool cbPlaylistFollow( &bPlaylistFollow, TEXT( "PlaylistFollow" ), CONF_MODE_PUBLIC, true );
@@ -131,6 +132,9 @@ void PlaylistControler::SetCurIndex( int iIndex )
 	const int iCurIndexBefore = _database.GetCurIndex();
 	_database.SetCurIndex( iIndex );
 
+	// ---------------------------------------------------------------------------------------
+	// We disable the windows management
+	/*
 	if( bPlaylistFollow )
 	{
 		ListView_SetItemState( _hView, ( UINT )-1, 0, LVIS_SELECTED | LVIS_FOCUSED );
@@ -140,6 +144,8 @@ void PlaylistControler::SetCurIndex( int iIndex )
 	if( iCurIndexBefore != -1 )
 		ListView_RedrawItems( _hView, iCurIndexBefore, iCurIndexBefore );
 	ListView_RedrawItems( _hView, iIndex, iIndex );
+	*/
+	// ---------------------------------------------------------------------------------------
 }
 
 // Returns <true> on digit count change
@@ -196,6 +202,8 @@ PlaylistControler::PlaylistControler( HWND hView, bool bEnableZeroPadding, int *
 	
 	_database.SetCurIndexSlave( piIndexSlave );
 	
+	printf("PlaylistControler::PlaylistControler was called\n");
+
 	Refresh();
 	
 	// TODO clear list view here???
@@ -207,9 +215,13 @@ void PlaylistControler::PushBack( TCHAR * szText )
 	const int iSize = _database.GetMaxIndex();
 
 	_database.PushBack( szText );
-	ListView_SetItemCount( _hView, _database.GetSize() );
+
+	// ---------------------------------------------------------------------------------------
+	// Disabled windows function
+	//ListView_SetItemCount( _hView, _database.GetSize() );
 	
-	if( FixDigitsMore() ) Refresh();
+	//if( FixDigitsMore() ) Refresh();
+	// ---------------------------------------------------------------------------------------
 }
 
 void PlaylistControler::Insert( int i, TCHAR * szText )
@@ -225,7 +237,9 @@ void PlaylistControler::Insert( int i, TCHAR * szText )
 void PlaylistControler::RemoveAll()
 {
 	_database.Clear();
-	ListView_DeleteAllItems( _hView );
+
+	// This is for the windows playlist, we don't use that
+	//ListView_DeleteAllItems( _hView );
 	
 	if( FixDigitsLess() ) Refresh();
 }
@@ -333,6 +347,8 @@ void PlaylistControler::SelectInvert()
 
 const TCHAR * PlaylistControler::Get( int i )
 {
+	Console::Append( TEXT("We are in PlaylistControler::Get()") );
+
 	return _database.Get( i );
 }
 

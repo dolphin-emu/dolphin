@@ -42,7 +42,7 @@ extern HMENU main_context_menu;
 
 
 
-bool BuildMainWindow();
+bool BuildMainWindow(); 
 void About( HWND hParent );
 LRESULT CALLBACK WndprocMain( HWND hwnd, UINT message, WPARAM wp, LPARAM lp );
 

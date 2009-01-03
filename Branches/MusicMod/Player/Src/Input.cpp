@@ -25,7 +25,9 @@
 #include "kiss_fft/kiss_fftr.h"
 */
 
-#include "fftw3/fftw3.h"
+// =======================================================================================
+//#include "fftw3/fftw3.h"
+// =======================================================================================
 #include <math.h>
 
 
@@ -234,7 +236,8 @@ void VSAAddPCMData( void * PCMData, int nch, int bps, int timestamp )
 
 		// TODO: Much to optimize!
 
-
+		// =======================================================================================
+		/*
 		// Spectrum
 		static unsigned char spec_left[ 576 ];
 		static unsigned char spec_right[ 576 ];
@@ -311,10 +314,13 @@ void VSAAddPCMData( void * PCMData, int nch, int bps, int timestamp )
 			}
 			VisCache::PutSpecRight( spec_right );
 		}
-
+		// =======================================================================================
+		*/
 
 		// Cleanup FFT
-		fftw_destroy_plan( p );
+		// =======================================================================================
+		//fftw_destroy_plan( p );
+		// =======================================================================================
 
 		// fftw_free(in);
 		// fftw_free(out);

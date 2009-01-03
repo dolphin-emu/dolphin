@@ -1,3 +1,13 @@
+
+
+// =======================================================================================
+// WndprocRebar is called once every second during playback
+// =======================================================================================
+// In Toolbar::Create() the progress bar is called the Seekbar
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Plainamp, Open source Winamp core
 // 
@@ -20,7 +30,7 @@
 #include "Config.h"
 
 #include "Winamp/wa_ipc.h"
-#include "resrc1.h"
+#include "Resources/resrc1.h"
 
 
 
@@ -240,10 +250,12 @@ bool Toolbar::Create()
 	}
 
 	// Exchange window procedure
-	WndprocRebarBackup = ( WNDPROC )GetWindowLong( WindowRebar, GWL_WNDPROC );
+	WndprocRebarBackup = ( WNDPROC )GetWindowLong( WindowRebar, GWL_WNDPROC ); 
+	//WndprocRebarBackup = ( WNDPROC )GetWindowLongPtr( WindowRebar, GWLP_WNDPROC ); // 64 bit
 	if( WndprocRebarBackup != NULL )
 	{
 		SetWindowLong( WindowRebar, GWL_WNDPROC, ( LONG )WndprocRebar );
+		//SetWindowLongPtr( WindowRebar, GWLP_WNDPROC, ( LONG )WndprocRebar );
 	}
 
 	rebar_menu = CreatePopupMenu();
@@ -1030,13 +1042,15 @@ void ContextMenuRebar( POINT * p )
 ////////////////////////////////////////////////////////////////////////////////
 LRESULT CALLBACK WndprocRebar( HWND hwnd, UINT message, WPARAM wp, LPARAM lp )
 {
+	//Console::Append( TEXT("Rebar.cpp: WndprocRebar called") );
+
 	switch( message )
 	{
-	case WM_CONTEXTMENU:
+	case WM_CONTEXTMENU: // This affects the placement of the progress bar
 		{
-			POINT p;
-			GetCursorPos( &p );
-			ContextMenuRebar( &p );
+			//POINT p;
+			//GetCursorPos( &p );
+			//ContextMenuRebar( &p );
 			return 0;
 		}
 
@@ -1070,6 +1084,8 @@ LRESULT CALLBACK WndprocSeek( HWND hwnd, UINT message, WPARAM wp, LPARAM lp )
 {
 	static bool bDown = false;
 	static int iLastVal = 0;
+
+	//Console::Append( TEXT("Rebar.cpp: WndprocSeek called") );
 
 	switch( message )
 	{

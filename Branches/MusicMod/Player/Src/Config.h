@@ -22,7 +22,8 @@
 
 namespace Conf
 {
-	void Init( HINSTANCE hInstance );
+	//void Init( HINSTANCE hInstance );
+	void Init( );
 	void Write();
 };
 
@@ -71,7 +72,9 @@ protected:
 private:
 	bool      m_bCopyKey;  ///< Keyname is copy (has to be freed on destruction)
 
-	friend void Conf::Init( HINSTANCE hInstance );
+	//friend void Conf::Init( HINSTANCE hInstance );
+	friend void Conf::Init( );
+
 	friend void Conf::Write();
 };
 

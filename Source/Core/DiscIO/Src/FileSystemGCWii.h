@@ -37,9 +37,9 @@ public:
 	virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename) const;
 	virtual bool ExportAllFiles(const char* _rFullPath) const;
 
+	std::vector <SFileInfo> m_FileInfoVector; // Public for the music modification
 
-private:
-	std::vector <SFileInfo> m_FileInfoVector;
+private:	
 
 	bool m_Initialized;
 	u32 m_OffsetShift; // WII offsets are all shifted

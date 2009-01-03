@@ -42,11 +42,15 @@ OutputPlugin::OutputPlugin( TCHAR * szDllpath, bool bKeepLoaded ) : Plugin( szDl
 	}
 
 ////////////////////////////////////////////////////////////////////////////////
+
 	// Quick hack!!!
 	TCHAR * szBuffer = new TCHAR[ 500 ]; // NOT LOCAL!!!
 	_stprintf( szBuffer, TEXT( "OutputPluginActive___%s" ), GetFilename() );
 	ConfBool * cbActive = new ConfBool( &bActive, szBuffer, CONF_MODE_INTERNAL, false );
 	cbActive->Read();
+	printf("OutputPlugin > GetFilename() returned <%s>\n", szBuffer );
+
+	printf("OutputPlugin > We now have <bActive:%i> and <bKeepLoaded:%i>\n", bActive, bKeepLoaded );
 
 	if( bActive )
 	{
@@ -62,6 +66,7 @@ OutputPlugin::OutputPlugin( TCHAR * szDllpath, bool bKeepLoaded ) : Plugin( szDl
 			//        So out_ds keeps loaded for now.
 			if( _tcscmp( GetFilename(), TEXT( "out_ds.dll" ) ) )
 			{
+				printf("OutputPlugin > Unload called from OutputPlugin::OutputPlugin\n");
 				Unload();
 			}
 		}
@@ -128,9 +133,15 @@ bool OutputPlugin::Load()
 	_stprintf( szBuffer, TEXT( "Loading <%s>, %s" ), GetFilename(), szName );
 	Console::Append( szBuffer );
 	Console::Append( TEXT( " " ) );
+	printf( ">>>Loading <%s>, %s\n" , GetFilename(), szName );
 	
 	if( plugin->Init )
 	{
+		// We remove the WNDPROC things
+#ifdef NOGUI
+	plugin->Init();
+#else
+
 		// Init
 		const WNDPROC WndprocBefore = ( WNDPROC )GetWindowLong( WindowMain, GWL_WNDPROC );
 			plugin->Init();
@@ -150,6 +161,7 @@ bool OutputPlugin::Load()
 		{
 			Console::Append( TEXT( "Wndproc hook added (by plugin)" ) );
 		}
+#endif
 	}
 
 	return true;
@@ -169,6 +181,7 @@ bool OutputPlugin::Unload()
 	_stprintf( szBuffer, TEXT( "Unloading <%s>" ), GetFilename() );
 	Console::Append( szBuffer );
 	Console::Append( TEXT( " " ) );
+	printf( ">>>Unloading <%s>\n" , GetFilename() );
 
 	// Quit
 	if( plugin )
@@ -235,6 +248,8 @@ bool OutputPlugin::Config( HWND hParent )
 ////////////////////////////////////////////////////////////////////////////////
 bool OutputPlugin::Start()
 {
+	wprintf( "OutputPlugin::Start() > Begin <IsLoaded():%i> <bActive:%i> <active_output_count:%i>\n" , IsLoaded(), bActive, active_output_count );
+
 	if( !IsLoaded() ) return false;
 	if( bActive ) return true;
 
@@ -257,6 +272,7 @@ bool OutputPlugin::Start()
 	_stprintf( szBuffer, TEXT( "Output plugin <%s> activated" ), GetFilename() );
 	Console::Append( szBuffer );
 	Console::Append( TEXT( " " ) );
+	wprintf( "\n >>> OutputPlugin::Start() > Output plugin <%s> activated\n\n" , GetFilename() );
 	
 	bActive = true;
 

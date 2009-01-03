@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////
-// Name:        wx/msw/setup.h
+// Name:        wx/setup.h
 // Purpose:     Configuration for the library
 // Author:      Julian Smart
 // Modified by:

@@ -1,3 +1,7 @@
+// =======================================================================================
+// WndprocWinamp is called repeatedly when the cursor is moved over the main window
+// =======================================================================================
+
 ////////////////////////////////////////////////////////////////////////////////
 // Plainamp, Open source Winamp core
 // 
@@ -39,6 +43,8 @@ int IPC_GETPLAINBARTARGET = 0;
 ////////////////////////////////////////////////////////////////////////////////
 LRESULT CALLBACK WndprocWinamp( HWND hwnd, UINT message, WPARAM wp, LPARAM lp )
 {
+	//Console::Append( TEXT( "Winamp.cc:WndprocWinamp was called" ) );
+
 	switch( message )
 	{
 	case WM_COMMAND:
@@ -648,6 +654,9 @@ LRESULT CALLBACK WndprocWinamp( HWND hwnd, UINT message, WPARAM wp, LPARAM lp )
 		case IPC_WRITE_EXTENDED_FILE_INFO: break;
 		case IPC_FORMAT_TITLE: break;
 */
+// =======================================================================================
+// Let's remove this
+/*
 		case IPC_GETUNCOMPRESSINTERFACE:
 			if( wp == 0x10100000 )
 			{
@@ -662,6 +671,8 @@ LRESULT CALLBACK WndprocWinamp( HWND hwnd, UINT message, WPARAM wp, LPARAM lp )
 				return ( LRESULT )uncompress;
 			}
 			break;
+*/
+// =======================================================================================
 
 		case IPC_ADD_PREFS_DLG:
 			Prefs::AddPage( ( prefsDlgRec * )wp );

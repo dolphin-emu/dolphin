@@ -58,10 +58,12 @@ public:
 	bool Start();
 	bool Stop();
 
+	Out_Module *  plugin;  // Moved to public
+
 private:
 	bool          bActive;
 	int           iArrayIndex;
-	Out_Module *  plugin;
+	
 
 	
 	// TODO

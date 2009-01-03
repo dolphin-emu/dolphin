@@ -9,6 +9,11 @@
 // See GPL.txt for details. Any non-GPL usage is strictly forbidden.
 ////////////////////////////////////////////////////////////////////////////////
 
+// =======================================================================================
+#include "Console.h" 
+#include "Global.h" 
+// =======================================================================================
+
 
 #ifndef PLAYLIST_MODEL_H
 #define PLAYLIST_MODEL_H 1
@@ -17,7 +22,6 @@
 #include <tchar.h>
 #include <vector>
 using namespace std;
-
 
 
 class PlaylistModel
@@ -43,13 +47,20 @@ public:
 		_piCurIndex = piIndexSlave;
 	}
 
+	// =======================================================================================
+	// This is where the _database is populated
+	// =======================================================================================
 	void PushBack( TCHAR * szText )
 	{
-		_database.push_back( szText );
+		Console::Append( TEXT( "PlaylistModel.h:_database.PushBack() was called " ) ); 
+
+		_database.push_back( szText ); // this is a <vector> API call
 	}
 	
 	void Insert( int i, TCHAR * szText )
 	{
+		Console::Append( TEXT( "PlaylistModel.h:_database.Insert() was called " ) ); 
+
 		if( i <= *_piCurIndex ) ( *_piCurIndex )++;
 		_database.insert( _database.begin() + i, szText );
 	}
@@ -62,6 +73,8 @@ public:
 	
 	const TCHAR * Get( int i )
 	{
+		//Console::Append( TEXT( "PlaylistModel.h:_database.Get() was called " ) ); 
+
 		if( 0 > i || i >= ( int )_database.size() )
 		{
 			static const TCHAR * szError = TEXT( "INDEX OUT OF RANGE" );
@@ -89,7 +102,13 @@ public:
 
 	void SetCurIndex( int iIndex )
 	{
-		if( 0 > iIndex || iIndex >= ( int )_database.size() ) return;
+
+		if( 0 > iIndex || iIndex >= ( int )_database.size() )
+		{
+			wprintf("SetCurIndex > Return"); 
+			return;
+		}
+
 		*_piCurIndex = iIndex;
 	}
 

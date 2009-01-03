@@ -96,9 +96,12 @@ bool Playlist::Create()
 {
 	if( WindowPlaylist ) return false;
 	
+	// If this is not called a crash occurs
 	PlaylistView::Create();
-		
-/*
+
+
+	#ifndef NOGUI
+
 	RECT ClientMain;
 	GetClientRect( WindowMain, &ClientMain );
 
@@ -134,14 +137,21 @@ bool Playlist::Create()
 	{
 		SetWindowLong( WindowPlaylist, GWL_WNDPROC, ( LONG )WndprocPlaylist );
 	}
-*/	
+		
 	Font::Apply( WindowPlaylist );
+
+	#endif NOGUI
+	
 
 
 	TCHAR * szPlaylistMind = new TCHAR[ iHomeDirLen + 12 + 1 ];
 	memcpy( szPlaylistMind, szHomeDir, iHomeDirLen * sizeof( TCHAR ) );
 	memcpy( szPlaylistMind + iHomeDirLen, TEXT( "Plainamp.m3u" ), 12 * sizeof( TCHAR ) );
+
+	
+
 	szPlaylistMind[ iHomeDirLen + 12 ] = TEXT( '\0' );
+
 
 	Playlist::AppendPlaylistFile( szPlaylistMind );
 
@@ -920,6 +930,10 @@ bool Playlist_DialogBoth( bool bOpenOrSave )
 			playlist->RemoveAll();
 			Playlist::AppendPlaylistFile( szFilename );
 			Playback::Play();
+
+			
+			Console::Append( TEXT( "Playlist.cpp:Playlist_DialogBoth() called Playback::Play()" ) );
+			Console::Append( TEXT( " " ) );
 		}
 	}
 	else
@@ -960,6 +974,9 @@ bool Playlist::DialogSaveAs()
 ////////////////////////////////////////////////////////////////////////////////
 bool Playlist::AppendPlaylistFile( TCHAR * szFilename )
 {
+
+
+
 	// Open playlist file
 	HANDLE hFile = CreateFile(
 		szFilename,             // LPCTSTR lpFileName
@@ -971,15 +988,20 @@ bool Playlist::AppendPlaylistFile( TCHAR * szFilename )
 		NULL                    // HANDLE hTemplateFile
 	);
 
+	// This will happen if there is no Playlist.m3u
+	/*
 	if( hFile == INVALID_HANDLE_VALUE )
 	{
 		// MessageBox( 0, TEXT( "Could not read playlist file" ), TEXT( "Error" ), MB_ICONERROR );
+		//Console::Append( "We got INVALID_HANDLE_VALUE" );
 		return false;
 	}
-	
-	const bool bEmptyBefore = ( playlist->GetSize() == 0 );
+	*/
+	// Disable this
+	//const bool bEmptyBefore = ( playlist->GetSize() == 0 );
 
 
+// =======================================================================================
 	// Remove filename from <szFilename> so we can
 	// use it as relative directory root
 	TCHAR * szWalk = szFilename + _tcslen( szFilename ) - 1;
@@ -1002,6 +1024,7 @@ bool Playlist::AppendPlaylistFile( TCHAR * szFilename )
 	char * rawdata = new char[ iSizeBytes + 1 ]; // One more so we can write '\0' on EOF
 	DWORD iBytesRead;
 
+	// =======================================================================================
 	// Read whole file
 	ReadFile(
 		hFile,        // HANDLE hFile
@@ -1040,20 +1063,32 @@ bool Playlist::AppendPlaylistFile( TCHAR * szFilename )
 		
 		if( ( end - beg > 2 ) && ( *beg != '#' ) )
 		{
+
 			TCHAR * szKeep;
 			if( beg[ 1 ] == ':' )
 			{
 				// TODO: Better detection, network path?
 				
-				// Absolute path
+				// Absolute path, skip this
+				/*
 				const int iLen = end - beg;
+
+				TCHAR szBuffer[ 5000 ];
+				_stprintf( szBuffer, TEXT( "iLen <%i>" ), iLen );
+				Console::Append( szBuffer );
+
 				szKeep = new TCHAR[ iLen + 1 ];
 				ToTchar( szKeep, beg, iLen );
 				szKeep[ iLen ] = TEXT( '\0' );
+				*/
+				
 			}
 			else
 			{
 				// Skip initial so we don't get a double backslash in between
+
+
+
 				while( ( beg[ 0 ] == '\\' ) && ( beg < end ) ) beg++;
 				
 				// Relative path
@@ -1220,7 +1255,8 @@ TCHAR * Playlist::GetFilename( int iIndex )
 	
 	return ( entry ? entry->szFilename : NULL );
 	*/
-	
+	//TCHAR * szFilename = "C:\Files\Spel och spelfusk\Console\Gamecube\Code\vgmstream (isolate ast)\Music\demo36_02.ast";
+	//return szFilename;
 	return ( TCHAR * )playlist->Get( iIndex );
 }
 

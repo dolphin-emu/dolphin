@@ -60,10 +60,12 @@ public:
 	bool About( HWND hParent );
 	bool Config( HWND hParent );
 
+	In_Module *  plugin;  // I moved this from private to public
+
 private:
 	TCHAR *      szFilters;
 	int          iFiltersLen;
-	In_Module *  plugin;
+	
 
 	bool Integrate();
 	bool DisIntegrate();
@@ -75,7 +77,7 @@ private:
 	friend bool Playback::Play();
 	friend bool Playback::Pause();
 	friend bool Playback::Stop();
-	friend bool Playback::UpdateSeek();
+	friend bool Playback::UpdateSeek(); // this one calls some plugin-> members
 	friend int  Playback::PercentToMs( float fPercent );
 	friend bool Playback::SeekPercent( float fPercent );
 	friend bool SeekRelative( int ms );

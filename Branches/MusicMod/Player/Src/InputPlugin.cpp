@@ -9,6 +9,9 @@
 // See GPL.txt for details. Any non-GPL usage is strictly forbidden.
 ////////////////////////////////////////////////////////////////////////////////
 
+// =======================================================================================
+#include "Global.h"
+// =======================================================================================
 
 #include "InputPlugin.h"
 #include "Console.h"
@@ -24,9 +27,8 @@ InputPlugin * active_input_plugin = NULL; // extern
 
 
 
-////////////////////////////////////////////////////////////////////////////////
-// 
-////////////////////////////////////////////////////////////////////////////////
+// =======================================================================================
+// The InputPlugin class is inherited from the Plugin class
 InputPlugin::InputPlugin( TCHAR * szDllpath, bool bKeepLoaded ) : Plugin( szDllpath )
 {
 	iHookerIndex   = -1;
@@ -35,6 +37,8 @@ InputPlugin::InputPlugin( TCHAR * szDllpath, bool bKeepLoaded ) : Plugin( szDllp
 	iFiltersLen    = 0;
 	plugin         = NULL;
 	
+	wprintf("\InputPlugin::InputPlugin > Begin\n");
+
 	if( !Load() )
 	{
 		return;
@@ -65,6 +69,8 @@ InputPlugin::~InputPlugin()
 ////////////////////////////////////////////////////////////////////////////////
 bool InputPlugin::Load()
 {
+	printf("InputPlugin::Load() was called. IsLoaded: %i\n", IsLoaded());
+
 	if( IsLoaded() ) return true;
 
 
@@ -144,13 +150,15 @@ bool InputPlugin::Load()
 	}
 	
 
-
+#ifdef NOGUI
+	printf( "Loading <%s>, %s\n" , GetFilename(), szName );
+#else
 	TCHAR szBuffer[ 5000 ];
 	_stprintf( szBuffer, TEXT( "Loading <%s>, %s" ), GetFilename(), szName );
 	Console::Append( szBuffer );
+#endif
 	
-	
-	Integrate();
+	Integrate(); // This function is just below
 	
 
 	// Note:  Plugins that use a wndproc hook need
@@ -226,10 +234,15 @@ bool InputPlugin::Integrate()
 			
 		// Append filter name
 		ToTchar( walk_out, start_display, len_display );
+
+// =======================================================================================
+// Print used filetypes
 		TCHAR szBuffer[ 5000 ];
 		*(walk_out + len_display) = TEXT( '\0' );
 		_stprintf( szBuffer, TEXT( "   %s" ), walk_out );
 		Console::Append( szBuffer );
+		//printf( szBuffer, TEXT( "   %s\n" ), walk_out );
+// =======================================================================================
 		walk_out += len_display;
 
 		// Convert and append extensions
@@ -312,6 +325,7 @@ bool InputPlugin::Unload()
 	_stprintf( szBuffer, TEXT( "Unloading <%s>" ), GetFilename() );
 	Console::Append( szBuffer );
 	Console::Append( TEXT( " " ) );
+	printf( ">>>Unloading <%s>\n" , GetFilename() );
 
 	// Quit
 	if( plugin )

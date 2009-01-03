@@ -15,10 +15,31 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+// File description
+/* ¯¯¯¯¯¯¯¯¯
+
+   This file is global in the DolphinWX and DebuggerWX projects.
+
+////////////////////////*/
+
+
+
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
 #include "Common.h"
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+// Build with music modification
+// ¯¯¯¯¯¯¯¯¯
+#include "../../../Branches/MusicMod/Main/Src/Setup.h" // Define MUSICMOD here
+//////////////////////////
+
+
 enum
 {
 	IDM_LOADSTATE = 200, // File
@@ -55,6 +76,13 @@ enum
 	IDM_HELPABOUT,
 	IDM_HELPWEBSITE,
 	IDM_HELPGOOGLECODE,
+
+	#ifdef MUSICMOD // Music modification
+		IDM_MUTE,
+		IDM_MUSIC_PLAY,
+		IDS_VOLUME, IDS_VOLUME_LABEL, IDS_VOLUME_PANEL,
+		IDT_LOG,
+	#endif
 
 	IDM_CONFIG_MAIN,
 	IDM_CONFIG_GFX_PLUGIN,
@@ -93,44 +121,43 @@ enum
 
 //#ifndef WX_PRECOMP
 #if defined(HAVE_WX) && HAVE_WX
-#include <wx/wx.h>
-//#endif
+	#include <wx/wx.h>
+	//#endif
 
-#include <wx/toolbar.h>
-#include <wx/log.h>
-#include <wx/image.h>
-#include <wx/aboutdlg.h>
-#include <wx/filedlg.h>
-#include <wx/spinctrl.h>
-#include <wx/srchctrl.h>
-#include <wx/listctrl.h>
-#include <wx/progdlg.h>
-#include <wx/imagpng.h>
-#include <wx/button.h>
-#include <wx/stattext.h>
-#include <wx/choice.h>
-#include <wx/cmdline.h>
-#include <wx/busyinfo.h>
+	#include <wx/toolbar.h>
+	#include <wx/log.h>
+	#include <wx/image.h>
+	#include <wx/aboutdlg.h>
+	#include <wx/filedlg.h>
+	#include <wx/spinctrl.h>
+	#include <wx/srchctrl.h>
+	#include <wx/listctrl.h>
+	#include <wx/progdlg.h>
+	#include <wx/imagpng.h>
+	#include <wx/button.h>
+	#include <wx/stattext.h>
+	#include <wx/choice.h>
+	#include <wx/cmdline.h>
+	#include <wx/busyinfo.h>
 
-// define this to use XPMs everywhere (by default, BMPs are used under Win)
-// BMPs use less space, but aren't compiled into the executable on other platforms
+	// Define this to use XPMs everywhere (by default, BMPs are used under Win)
+	// BMPs use less space, but aren't compiled into the executable on other platforms
+	#if USE_XPM_BITMAPS && defined (__WXMSW__) && !wxUSE_XPM_IN_MSW
+	#error You need to enable XPM support to use XPM bitmaps with toolbar!
+	#endif // USE_XPM_BITMAPS
 
-#if USE_XPM_BITMAPS && defined (__WXMSW__) && !wxUSE_XPM_IN_MSW
-#error You need to enable XPM support to use XPM bitmaps with toolbar!
-#endif // USE_XPM_BITMAPS
 
+	//
+	// custom message macro
+	//
+	#define EVT_HOST_COMMAND(id, fn) \
+		DECLARE_EVENT_TABLE_ENTRY(\
+			wxEVT_HOST_COMMAND, id, wxID_ANY, \
+			(wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent(wxCommandEventFunction, &fn), \
+			(wxObject*) NULL \
+			),
 
-//
-// custom message macro
-//
+	extern const wxEventType wxEVT_HOST_COMMAND;
 
-#define EVT_HOST_COMMAND(id, fn) \
-	DECLARE_EVENT_TABLE_ENTRY(\
-		wxEVT_HOST_COMMAND, id, wxID_ANY, \
-		(wxObjectEventFunction)(wxEventFunction) wxStaticCastEvent(wxCommandEventFunction, &fn), \
-		(wxObject*) NULL \
-		),
-
-extern const wxEventType wxEVT_HOST_COMMAND;
-#endif 
-#endif
+#endif // HAVE_WX
+#endif // _GLOBALS_H

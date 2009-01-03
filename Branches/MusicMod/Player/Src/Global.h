@@ -10,6 +10,37 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// ¯¯¯¯¯¯¯¯¯¯
+#include "../../Common/Src/Console.h" // Local common
+/////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// ¯¯¯¯¯¯¯¯¯¯
+
+// This will build Plainamp without the GUI
+#define NOGUI
+
+
+// =======================================================================================
+// Because there are undefined in 64 bit it's easy to redefine them in case we use 64 bit
+// ---------------------
+#ifdef _M_X64
+	#define GWL_WNDPROC        (-4)
+	#define GetWindowLong  GetWindowLongPtrA // or GetWindowLongPtr
+#endif
+// =======================================================================================
+
+////////////////////////////////////
+
+
+// =======================================================================================
+// Back to Plainamp code
+// ---------------------
 #ifndef PA_GLOBAL_H
 #define PA_GLOBAL_H
 
@@ -115,3 +146,4 @@ struct TextCompare
 
 
 #endif // PA_GLOBAL_H
+

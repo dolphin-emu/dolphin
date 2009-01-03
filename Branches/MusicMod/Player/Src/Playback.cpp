@@ -50,49 +50,70 @@ TCHAR * szCurrentFilename = NULL;
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ////////////////////////////////////////////////////////////////////////////////
+// =======================================================================================
+// The timer that calls WndprocMain every second
 void EnableTimer( bool bEnabled )
 {
+	// Return if the timer is already activated
 	if( bEnabled == bTimerRunning ) return;
 	
 	if( bEnabled )
 	{
 		SetTimer( WindowMain, TIMER_SEEK_UPDATE, 1000, NULL );
+		wprintf( "EnableTimer > Activated\n" );
 	}
 	else
 	{
 		KillTimer( WindowMain, TIMER_SEEK_UPDATE );
 		StatusReset();
+
+		wprintf( "EnableTimer > Killed\n" );
 	}
 	
 	bTimerRunning = bEnabled;
 }
-
+// =======================================================================================
 
 
 ////////////////////////////////////////////////////////////////////////////////
-///
+//
 ////////////////////////////////////////////////////////////////////////////////
 bool OpenPlay( TCHAR * szFilename, int iNumber )
 {
-	// TODO: cleanup!!!
-	
+	// =======================================================================================
+	#ifdef NOGUI
+		wprintf( "Playback.cpp: OpenPlay > Begin <%i> <%s>\n" , iNumber, szFilename );
+	#else
+		TCHAR sszBuffer[ 5000 ];
+		_stprintf( sszBuffer, TEXT( "Playback.cpp: OpenPlay was called <%i> <%s>" ), iNumber, szFilename );
+		Console::Append( sszBuffer ); 
+	#endif
+	// =======================================================================================
+
+
+	// =======================================================================================
+	// Get the right input plugin
+	// ---------------------------------------------------------------------------------------
 	if( !szFilename ) return false;
 	szCurrentFilename = szFilename;
 
+	// ---------------------------------------------------------------------------------------
 	// TODO: non-file support
-
-	// Get extension
+	// ---------------------------------------------------------------------------------------
+	// Get file extension
 	const int iLen = ( int )_tcslen( szFilename );
 	TCHAR * walk = szFilename + iLen - 1;
 	while( ( walk >= szFilename ) && ( *walk != TEXT( '.' ) ) ) walk--;
 	walk++;
 
+	// ---------------------------------------------------------------------------------------
 	const int iExtLen = ( int )_tcslen( walk );
 	TCHAR * szExt = new TCHAR[ iExtLen + 1 ];
 	memcpy( szExt, walk, iExtLen * sizeof( TCHAR ) );
 	szExt[ iExtLen ] = TEXT( '\0' );
-	
-	// Get input plugin from extension map
+
+	// ---------------------------------------------------------------------------------------
+	// Compare the extension to the supported extension by the current input plugins
 	map <TCHAR *, InputPlugin *, TextCompare>::iterator iter =
 		ext_map.find( szExt );
 	delete [] szExt;
@@ -100,11 +121,15 @@ bool OpenPlay( TCHAR * szFilename, int iNumber )
 	{
 		Console::Append( TEXT( "ERROR: Extension not supported" ) );
 		Console::Append( " " );
+		wprintf("OpenPlay > ERROR: Extension not supported\n");
 		return false;
-	}
-	
-	InputPlugin * old_input = active_input_plugin;
+	}	
+	// ---------------------------------------------------------------------------------------
+	// Now that we know which input pugin to use we set that one as active
+	InputPlugin * old_input = active_input_plugin; // Save the last one, if any
 	active_input_plugin = iter->second;
+	wprintf("OpenPlay > Input plugin '%s' activated\n", active_input_plugin->GetName());
+	// =======================================================================================
 
 	if( old_input )
 	{
@@ -120,17 +145,21 @@ bool OpenPlay( TCHAR * szFilename, int iNumber )
 	{
 		Console::Append( TEXT( "ERROR: Input plugin is NULL" ) );
 		Console::Append( " " );
+		wprintf("OpenPlay > ERROR: Input plugin is NULL\n");
 		return false;
 	}
 	
 	// Connect
+	wprintf( "OpenPlay > OutMod\n" );
 	active_input_plugin->plugin->outMod = &output_server; // output->plugin;
 	
+	// =======================================================================================
 	// Re-apply volume and panning
-	active_input_plugin->plugin->SetVolume( iCurVol );
-	active_input_plugin->plugin->SetPan( iCurPan );
-	Playback::Eq::Reapply();
-	
+	//active_input_plugin->plugin->SetVolume( iCurVol );
+	//active_input_plugin->plugin->SetPan( iCurPan );
+	//Playback::Eq::Reapply();
+	// =======================================================================================
+
 	// Play
 
 #ifdef PA_UNICODE
@@ -153,31 +182,43 @@ bool OpenPlay( TCHAR * szFilename, int iNumber )
 
 	active_input_plugin->plugin->Play( szTemp );
 	delete [] szTemp;
-#else	
+#else
+	// =======================================================================================
+	// Play the file
+	// ---------------------------------------------------------------------------------------
 	// Title
 	TCHAR szTitle[ 2000 ] = TEXT( "\0" );
 	int length_in_ms;
+
+	wprintf( "OpenPlay > GetFileInfo\n" );
 	active_input_plugin->plugin->GetFileInfo( szFilename, szTitle, &length_in_ms );
 
+	wprintf( "OpenPlay > Play\n" );
 	active_input_plugin->plugin->Play( szFilename );
+	// =======================================================================================
 #endif
 
 	bPlaying  = true;
 	bPaused   = false;
-	
-	// Title
-	TCHAR szBuffer[ 5000 ];
-	_stprintf( szBuffer, TEXT( "%i. %s - Plainamp" ), iNumber, szTitle );
-	SetWindowText( WindowMain, szBuffer );
 
-/*
+	// =======================================================================================
+	// Title
+
+	//TCHAR szBuffer[ 5000 ];
+	//_stprintf( szBuffer, TEXT( "%i. %s - Plainamp" ), iNumber, szTitle );
+	//SetWindowText( WindowMain, szBuffer );
+	// =======================================================================================
+
+	/*
 	TCHAR * szBasename = szFilename + uLen - 1;
 	while( ( szBasename > szFilename ) && ( *szBasename != TEXT( '\\' ) ) ) szBasename--;
 	szBasename++;
-*/	
+	*/	
 
 	// Timer ON
-	EnableTimer( true );
+	//EnableTimer( true );
+
+	wprintf( "OpenPlay > End\n" );
 
 	return true;
 }
@@ -243,12 +284,23 @@ bool Playback::Prev()
 
 
 ////////////////////////////////////////////////////////////////////////////////
-///
+// Play the file
 ////////////////////////////////////////////////////////////////////////////////
 bool Playback::Play()
 {
 	static int iLastIndex = -1;
-	if( bPlaying )
+
+	// ---------------------------------------------------------------------------------------
+	
+ 	TCHAR sszBuffer[ 5000 ];
+	_stprintf( sszBuffer, TEXT( "Playback::Play() with bPlaying <%i>\n" ), bPlaying );
+	Console::Append( sszBuffer );
+	Console::Append( TEXT( " " ) );
+	wprintf( "Playback::Play() > Begin <%i>\n" , bPlaying );
+	// ---------------------------------------------------------------------------------------
+
+	// ---------------------------------------------------------------------------------------
+	if( bPlaying ) // If we are currently playing a file
 	{
 		if( !active_input_plugin ) return false;
 		if( !active_input_plugin->plugin ) return false;
@@ -256,14 +308,14 @@ bool Playback::Play()
 		const int iIndex = playlist->GetCurIndex();
 		if( iIndex < 0 ) return false;
 
-/*
-	TCHAR szBuffer[ 5000 ];
-	_stprintf( szBuffer, TEXT( "OLD [%i] NEW [%i]" ), iLastIndex, iIndex );
-	SetWindowText( WindowMain, szBuffer );
-*/
+		/*
+		TCHAR szBuffer[ 5000 ];
+		_stprintf( szBuffer, TEXT( "OLD [%i] NEW [%i]" ), iLastIndex, iIndex );
+		SetWindowText( WindowMain, szBuffer );
+		*/
 
-		// Same track/file as before?
-		TCHAR * szFilename = Playlist::GetFilename( iIndex );		
+		// If we are not playing the same track/file as before
+		TCHAR * szFilename = Playlist::GetFilename( iIndex );
 		if( szFilename != szCurrentFilename )
 		{
 			// New track!
@@ -272,7 +324,7 @@ bool Playback::Play()
 			// NOT TWICE active_input_plugin->plugin->Stop();
 			
 			// Timer OFF
-			EnableTimer( false );
+			//EnableTimer( false );
 			
 			// Get filename
 			if( !szFilename )
@@ -297,7 +349,7 @@ bool Playback::Play()
 				bPaused = false;
 				
 				// Timer ON
-				EnableTimer( true );
+				//EnableTimer( true );
 			}
 			else
 			{
@@ -306,19 +358,38 @@ bool Playback::Play()
 			}
 		}
 	}
-	else
+	// =======================================================================================
+	else // we are not currently playing
 	{
 		const int iIndex = playlist->GetCurIndex();
 		if( iIndex < 0 ) return false;
 
 		// Get filename
 		TCHAR * szFilename = Playlist::GetFilename( iIndex );
+
+		// =======================================================================================
+		
+
+		//bool bPlaying  = false;
+		//TCHAR * szFilename = TEXT("C:\Files\Spel och spelfusk\Console\Gamecube\Code\vgmstream (isolate ast)\Music\demo36_02.ast");
+		//bPlaying  = OpenPlay( szFilename, 1 );
+			//bPlaying  = OpenPlay( szFilename, iIndex + 1 );
+		//Console::Append( TEXT( "Playback.cpp:Playback::Play() called OpenPlay" ) );	
+
+		// =======================================================================================
+
 		if( !szFilename )
 		{
 			Console::Append( TEXT( "ERROR: Could not resolve filename" ) );
 			Console::Append( " " );
 			return false;
 		}
+
+		 	TCHAR szBuffer[ 5000 ];
+			_stprintf( szBuffer, TEXT( "Playback.cpp: Play() got the filename <%s>" ), szFilename);
+			Console::Append( szBuffer );
+		//	Console::Append( TEXT( " " ) );
+			wprintf(  "Playback::Play() > Filename <%s>\n", szFilename);
 
 		// Play
 		iLastIndex = iIndex;
@@ -327,7 +398,7 @@ bool Playback::Play()
 	}
 	return true;
 }
-
+// =======================================================================================
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -346,7 +417,7 @@ bool Playback::Pause()
 		bPaused = false;
 		
 		// Timer ON
-		EnableTimer( true );
+		//EnableTimer( true );
 	}
 	else
 	{
@@ -355,7 +426,7 @@ bool Playback::Pause()
 		bPaused = true;
 
 		// Timer OFF
-		EnableTimer( false );
+		//EnableTimer( false );
 	}
 	
 //	Console::Append( TEXT( "Playback::Pause" ) );	
@@ -371,21 +442,23 @@ bool Playback::Stop()
 {
 	if( !bPlaying ) return false;
 
+	// ---------------------------------------------------------------------------------------
 	// Stop
 	if( active_input_plugin && active_input_plugin->plugin )
 	{
 		active_input_plugin->plugin->Stop();
 	}
 	active_input_plugin = NULL; // QUICK FIX
+	// ---------------------------------------------------------------------------------------
 
 	bPlaying  = false;
 	bPaused   = false;
 	
-	// Timer OFF
-	EnableTimer( false );
+	// Timer OFF > It was never turned on
+	//EnableTimer( false );
 	
-	// Reset seekbar
-	Playback::UpdateSeek();
+	// Reset seekbar > We don't need this
+	//Playback::UpdateSeek();
 
 	return true;
 }
@@ -425,15 +498,35 @@ bool Playback::IsPaused()
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ////////////////////////////////////////////////////////////////////////////////
+//int getlength();
+//int getoutputtime();
+
 bool Playback::UpdateSeek()
 {
+#ifdef NOGUI
+	printf( "Playback::UpdateSeek > Begin\n" );
+	if( active_input_plugin  )
+	{
+		printf( "GetLength() > Begin\n" );
+			const int ms_len = active_input_plugin->plugin->GetLength();
+			//const int ms_cur = active_input_plugin->plugin->GetOutputTime();
+
+			//const int ms_len = getlength();
+			//const int ms_cur = getoutputtime();
+
+			//printf( "Current position is <%i of %i>\n", ms_cur, ms_len );
+	}
+	return true;
+#else
 	static bool bSliderEnabledBefore = false;
 	bool bSliderEnabledAfter;
-	
-	if( !WindowSeek ) return false;
+
+
+	//if( !WindowSeek ) return false;
 
 	int iVal = 0;
 	
+	// If it has not been set
 	if( !active_input_plugin || !active_input_plugin->plugin )
 	{
 		if( bSliderEnabledBefore )
@@ -455,8 +548,18 @@ bool Playback::UpdateSeek()
 			iVal = ( ms_cur * 1000 ) / ms_len;
 			
 			if( iVal > 1000 ) iVal = 0;
+
+// =======================================================================================
+//TCHAR szBuffer[ 5000 ];
+//_stprintf( szBuffer, TEXT( "Current position is <%i of %i>" ), ms_cur, ms_len );
+//Console::Append( szBuffer );
+//Console::Append( TEXT( " " ) );
+printf( "Current position is <%i of %i>\n", ms_cur, ms_len );
+// =======================================================================================
 		}
+
 		
+
 		if( !bSliderEnabledBefore )
 		{
 			EnableWindow( WindowSeek, TRUE );
@@ -468,6 +571,7 @@ bool Playback::UpdateSeek()
 	}
 	
 	return true;
+#endif
 }
 
 

@@ -1,3 +1,21 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
+
 #ifndef __FRAME_H_
 #define __FRAME_H_
 
@@ -50,6 +68,25 @@ class CFrame : public wxFrame
 		wxBoxSizer* sizerPanel;
 		CGameListCtrl* m_GameListCtrl;
 		wxPanel* m_Panel;
+		wxToolBar* theToolBar;
+		wxToolBarToolBase* m_ToolPlay;
+
+
+		//////////////////////////////////////////////////////////////////////////////////////////
+		// Music mod
+		// ¯¯¯¯¯¯¯¯¯¯
+		#ifdef MUSICMOD
+			wxToolBarToolBase* mm_ToolMute, * mm_ToolPlay, * mm_ToolLog;
+
+			void MM_UpdateGUI(); void MM_PopulateGUI(); void MM_InitBitmaps();
+			void MM_OnPlay();
+			void MM_OnMute(wxCommandEvent& event);
+			void MM_OnPause(wxCommandEvent& event);
+			void MM_OnVolume(wxScrollEvent& event);
+			void MM_OnLog(wxCommandEvent& event);
+		#endif
+		///////////////////////////////////
+
 
 		enum EBitmaps
 		{
@@ -57,14 +94,17 @@ class CFrame : public wxFrame
 			Toolbar_Refresh,
 			Toolbar_Browse,
 			Toolbar_Play,
-			Toolbar_Stop,
+			Toolbar_Stop, Toolbar_Stop_Dis,
 			Toolbar_Pause,
 			Toolbar_PluginOptions,
 			Toolbar_PluginGFX,
-			Toolbar_PluginDSP,
+			Toolbar_PluginDSP, Toolbar_PluginDSP_Dis,
 			Toolbar_PluginPAD,
 			Toolbar_FullScreen,
 			Toolbar_Help,
+			#ifdef MUSICMOD
+				Toolbar_Log, Toolbar_Log_Dis,
+			#endif
 			Bitmaps_Max,
 			END
 		};

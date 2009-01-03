@@ -256,10 +256,25 @@ int Output_Pause( int pause )
 ////////////////////////////////////////////////////////////////////////////////
 void Output_SetVolume( int volume )
 {
-	for( int i = 0; i < active_output_count; i++ )
+	/* There was a call here with the volume value -666 that I could not see the source of,
+	   so I added this check to see that we got a positive volume. */
+	if(volume >= 0)
 	{
-		active_output_plugins[ i ]->plugin->SetVolume( volume );
+		// =======================================================================================
+		// The volume goes from 0 to 255
+		//TCHAR szBuffer[ 5000 ];
+		//_stprintf( szBuffer, TEXT( "DLL > Output_SetVolume <%i>" ), volume );
+		//Console::Append( szBuffer );
+		//Console::Append( TEXT( " " ) );
+		//wprintf( "DLL > Output_SetVolume <%i>\n", volume );
+		// =======================================================================================
+
+		for( int i = 0; i < active_output_count; i++ )
+		{
+			active_output_plugins[ i ]->plugin->SetVolume( volume );
+		}
 	}
+
 }
 
 

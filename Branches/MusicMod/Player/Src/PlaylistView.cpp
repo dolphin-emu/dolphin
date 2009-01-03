@@ -9,7 +9,7 @@
 // See GPL.txt for details. Any non-GPL usage is strictly forbidden.
 ////////////////////////////////////////////////////////////////////////////////
 
-
+// =======================================================================================
 #include "Playlist.h"
 #include "Main.h"
 #include "Status.h"
@@ -20,8 +20,12 @@
 
 WNDPROC WndprocPlaylistBackup = NULL;
 LRESULT CALLBACK WndprocPlaylist( HWND hwnd, UINT message, WPARAM wp, LPARAM lp );
+// =======================================================================================
 
 
+// =======================================================================================
+// This gives the values from the ini file.
+// ConfBool = class 
 PlaylistControler * playlist = NULL; // extern
 
 bool bPlaylistEntryNumberZeroPadding;
@@ -32,10 +36,15 @@ ConfInt ciCurPlaylistPosition( &iCurPlaylistPosition, TEXT( "CurPlaylistPosition
 
 bool bInfinitePlaylist;
 ConfBool cbInfinitePlaylist( &bInfinitePlaylist, TEXT( "InfinitePlaylist" ), CONF_MODE_PUBLIC, false );
+// =======================================================================================
 
+
+// =======================================================================================
 
 void PlaylistView::Create()
 {
+	#ifndef NOGUI
+
 	RECT ClientMain;
 	GetClientRect( WindowMain, &ClientMain );
 
@@ -44,8 +53,7 @@ void PlaylistView::Create()
 	const int iPlaylistHeight  = iClientHeight - iRebarHeight - iStatusHeight;
 
 
-
-	LoadCommonControls();
+	//LoadCommonControls();
 
 
 	DWORD       dwStyle;
@@ -65,10 +73,10 @@ void PlaylistView::Create()
 									 WC_LISTVIEW,               // class name - defined in commctrl.h
 									 TEXT( "" ),                        // dummy text
 									 dwStyle,                   // style
-		0,
-		iRebarHeight, //  + -2,
-		iClientWidth,
-		iPlaylistHeight,
+										0,
+										iRebarHeight, //  + -2,
+										iClientWidth,
+										iPlaylistHeight,
 									 WindowMain,                // parent
 									 NULL,        // ID
 									 g_hInstance,                   // instance
@@ -76,95 +84,97 @@ void PlaylistView::Create()
 
 	if(!WindowPlaylist) return; // TODO
 
-	   
-playlist = new PlaylistControler( WindowPlaylist, bPlaylistEntryNumberZeroPadding, &iCurPlaylistPosition );
+	// This calls PlaylistControler::PlaylistControler()
+	playlist = new PlaylistControler( WindowPlaylist, bPlaylistEntryNumberZeroPadding, &iCurPlaylistPosition );
 
+	#else
+
+	HWND WindowPlaylist = NULL;
+	playlist = new PlaylistControler( WindowPlaylist, bPlaylistEntryNumberZeroPadding, &iCurPlaylistPosition );
+
+	#endif
 
 	// Exchange window procedure
-	WndprocPlaylistBackup = ( WNDPROC )GetWindowLong( WindowPlaylist, GWL_WNDPROC );
-	if( WndprocPlaylistBackup != NULL )
+	//WndprocPlaylistBackup = ( WNDPROC )GetWindowLong( WindowPlaylist, GWL_WNDPROC );
+	//if( WndprocPlaylistBackup != NULL )
+	//{
+	//	SetWindowLong( WindowPlaylist, GWL_WNDPROC, ( LONG )WndprocPlaylist );
+	//}
+
+
+	//ListView_SetExtendedListViewStyle( WindowPlaylist, LVS_EX_FULLROWSELECT ); // | LVS_EX_GRIDLINES );
+	//playlist->Resize( WindowMain );
+
+	/*
+	 * http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/commctls/listview/structures/lvcolumn.asp
+	 *
+	 * Remarks:
+	 * If a column is added to a list-view control with index 0 (the leftmost column)
+	 * and with LVCFMT_RIGHT or LVCFMT_CENTER specified, the text is not right-aligned
+	 * or centered. The text in the index 0 column is left-aligned. Therefore if you
+	 * keep inserting columns with index 0, the text in all columns are left-aligned.
+	 * If you want the first column to be right-aligned or centered you can make a dummy
+	 * column, then insert one or more columns with index 1 or higher and specify the
+	 * alignment you require. Finally delete the dummy column.
+	 */
+
+	//LV_COLUMN lvColumn;
+	//memset( &lvColumn, 0, sizeof( LV_COLUMN ) );
+	//lvColumn.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT;
+	//
+	//// Number column (with dummy hack)
+	//lvColumn.fmt      = LVCFMT_LEFT;
+	//lvColumn.cx       = 0;
+	//lvColumn.pszText  = TEXT( "" );
+	//ListView_InsertColumn( WindowPlaylist, 0, &lvColumn );
+	//lvColumn.fmt      = LVCFMT_RIGHT;
+	//lvColumn.cx       = 120;
+	//lvColumn.pszText  = TEXT( "" );
+	//ListView_InsertColumn( WindowPlaylist, 1, &lvColumn );
+	//ListView_DeleteColumn( WindowPlaylist, 0 );
+
+	// Entry
+	//lvColumn.fmt      = LVCFMT_LEFT;
+	//lvColumn.cx       = 120;
+	//lvColumn.pszText  = TEXT( "Filename" );
+	//ListView_InsertColumn(WindowPlaylist, 1, &lvColumn);
+
+
+
+	/*
+	stupid test code
+
+	SCROLLINFO scrollinfo;
+	ZeroMemory( &scrollinfo, sizeof( SCROLLINFO ) );
+	scrollinfo.cbSize = sizeof( SCROLLINFO );
+	scrollinfo.fMask = 0; // SIF_DISABLENOSCROLL;
+
+	if( !GetScrollInfo( WindowPlaylist, SB_VERT, &scrollinfo ) )
 	{
-		SetWindowLong( WindowPlaylist, GWL_WNDPROC, ( LONG )WndprocPlaylist );
+		MessageBox( 0, "ERROR", "", 0 );
+	}
+	else
+	{
+		MessageBox( 0, "OKAY", "", 0 );
+		scrollinfo.fMask = SIF_DISABLENOSCROLL;
+		SetScrollInfo( WindowPlaylist, SB_VERT, &scrollinfo, TRUE );   	
+	}
+
+	if( !ShowScrollBar( WindowPlaylist, SB_VERT, TRUE ) )
+	{
+		MessageBox( 0, "ERROR ShowScrollBar", "", 0 );
 	}
 
 
-	ListView_SetExtendedListViewStyle( WindowPlaylist, LVS_EX_FULLROWSELECT ); // | LVS_EX_GRIDLINES );
-	playlist->Resize( WindowMain );
-
-/*
- * http://msdn.microsoft.com/library/default.asp?url=/library/en-us/shellcc/platform/commctls/listview/structures/lvcolumn.asp
- *
- * Remarks:
- * If a column is added to a list-view control with index 0 (the leftmost column)
- * and with LVCFMT_RIGHT or LVCFMT_CENTER specified, the text is not right-aligned
- * or centered. The text in the index 0 column is left-aligned. Therefore if you
- * keep inserting columns with index 0, the text in all columns are left-aligned.
- * If you want the first column to be right-aligned or centered you can make a dummy
- * column, then insert one or more columns with index 1 or higher and specify the
- * alignment you require. Finally delete the dummy column.
- */
-
-LV_COLUMN lvColumn;
-memset( &lvColumn, 0, sizeof( LV_COLUMN ) );
-lvColumn.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT;
-
-// Number column (with dummy hack)
-lvColumn.fmt      = LVCFMT_LEFT;
-lvColumn.cx       = 0;
-lvColumn.pszText  = TEXT( "" );
-ListView_InsertColumn( WindowPlaylist, 0, &lvColumn );
-lvColumn.fmt      = LVCFMT_RIGHT;
-lvColumn.cx       = 120;
-lvColumn.pszText  = TEXT( "" );
-ListView_InsertColumn( WindowPlaylist, 1, &lvColumn );
-ListView_DeleteColumn( WindowPlaylist, 0 );
-
-// Entry
-lvColumn.fmt      = LVCFMT_LEFT;
-lvColumn.cx       = 120;
-lvColumn.pszText  = TEXT( "Filename" );
-ListView_InsertColumn(WindowPlaylist, 1, &lvColumn);
-
-
-
-/*
-stupid test code
-
-SCROLLINFO scrollinfo;
-ZeroMemory( &scrollinfo, sizeof( SCROLLINFO ) );
-scrollinfo.cbSize = sizeof( SCROLLINFO );
-scrollinfo.fMask = 0; // SIF_DISABLENOSCROLL;
-
-if( !GetScrollInfo( WindowPlaylist, SB_VERT, &scrollinfo ) )
-{
-	MessageBox( 0, "ERROR", "", 0 );
-}
-else
-{
-	MessageBox( 0, "OKAY", "", 0 );
-	scrollinfo.fMask = SIF_DISABLENOSCROLL;
-	SetScrollInfo( WindowPlaylist, SB_VERT, &scrollinfo, TRUE );   	
-}
-
-if( !ShowScrollBar( WindowPlaylist, SB_VERT, TRUE ) )
-{
-	MessageBox( 0, "ERROR ShowScrollBar", "", 0 );
-}
-
-
-SCROLLBARINFO scrollbarinfo;
-scrollbarinfo.cbSize = sizeof( SCROLLBARINFO );
-if( !GetScrollBarInfo( WindowPlaylist, OBJID_VSCROLL, &scrollbarinfo ) )
-{
-	MessageBox( 0, "ERROR GetScrollBarInfo", "", 0 );
-}
-*/
+	SCROLLBARINFO scrollbarinfo;
+	scrollbarinfo.cbSize = sizeof( SCROLLBARINFO );
+	if( !GetScrollBarInfo( WindowPlaylist, OBJID_VSCROLL, &scrollbarinfo ) )
+	{
+		MessageBox( 0, "ERROR GetScrollBarInfo", "", 0 );
+	}
+	*/
 
 }
-
-
-
-
 
 
 

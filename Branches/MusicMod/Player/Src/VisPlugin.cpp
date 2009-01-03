@@ -148,6 +148,7 @@ bool VisPlugin::Unload()
 	_stprintf( szBuffer, TEXT( "Unloading <%s>" ), GetFilename() );
 	Console::Append( szBuffer );
 	Console::Append( TEXT( " " ) );
+	printf(  ">>>Unloading <%s>\n" , GetFilename() );
 
 	header = NULL;
 

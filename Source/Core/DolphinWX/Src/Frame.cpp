@@ -55,6 +55,7 @@ extern "C" {
 #include "../resources/toolbar_plugin_pad.c"
 #include "../resources/toolbar_refresh.c"
 #include "../resources/toolbar_stop.c"
+#include "../resources/Boomy.h"
 };
 
 
@@ -96,6 +97,14 @@ EVT_MENU(IDM_CONFIG_GFX_PLUGIN, CFrame::OnPluginGFX)
 EVT_MENU(IDM_CONFIG_DSP_PLUGIN, CFrame::OnPluginDSP)
 EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnPluginPAD)
 EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnPluginWiimote)
+
+#ifdef MUSICMOD
+EVT_MENU(IDM_MUTE, CFrame::MM_OnMute)
+EVT_MENU(IDM_MUSIC_PLAY, CFrame::MM_OnPause)
+EVT_COMMAND_SCROLL(IDS_VOLUME, CFrame::MM_OnVolume)
+EVT_MENU(IDT_LOG, CFrame::MM_OnLog)
+#endif
+
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_CHEATS, CFrame::OnShow_CheatsWindow)
@@ -283,7 +292,9 @@ void CFrame::PopulateToolbar(wxToolBar* toolBar)
 	toolBar->AddTool(wxID_REFRESH, _T("Refresh"), m_Bitmaps[Toolbar_Refresh], _T("Refresh"));
 	toolBar->AddTool(IDM_BROWSE, _T("Browse"),   m_Bitmaps[Toolbar_Browse], _T("Browse for an ISO directory..."));
 	toolBar->AddSeparator();
+	
 	m_pToolPlay = toolBar->AddTool(IDM_PLAY, _T("Play"),   m_Bitmaps[Toolbar_Play], _T("Play")); 
+
 
 	toolBar->AddTool(IDM_STOP, _T("Stop"),   m_Bitmaps[Toolbar_Stop], _T("Stop"));
 #ifdef _WIN32
@@ -297,6 +308,16 @@ void CFrame::PopulateToolbar(wxToolBar* toolBar)
 	toolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _T("Wiimote"),  m_Bitmaps[Toolbar_PluginPAD], _T("Wiimote settings"));
 	toolBar->AddSeparator();
 	toolBar->AddTool(IDM_HELPABOUT, _T("About"), m_Bitmaps[Toolbar_Help], _T("About Dolphin"));
+
+
+	//////////////////////////////////////////////////
+	// Music mod
+	// ¯¯¯¯¯¯¯¯¯¯
+	#ifdef MUSICMOD
+		MM_PopulateGUI();
+	#endif
+	///////////////////////
+
 
 	// after adding the buttons to the toolbar, must call Realize() to reflect
 	// the changes
@@ -314,12 +335,13 @@ void CFrame::RecreateToolbar()
 	SetToolBar(NULL);
 
 	style &= ~(wxTB_HORIZONTAL | wxTB_VERTICAL | wxTB_BOTTOM | wxTB_RIGHT | wxTB_HORZ_LAYOUT | wxTB_TOP);
-	wxToolBar* theToolBar = CreateToolBar(style, ID_TOOLBAR);
+	theToolBar = CreateToolBar(style, ID_TOOLBAR);
 
 	PopulateToolbar(theToolBar);
 	SetToolBar(theToolBar);
 	UpdateGUI();
 }
+
 
 
 void CFrame::InitBitmaps()
@@ -337,12 +359,17 @@ void CFrame::InitBitmaps()
 	m_Bitmaps[Toolbar_PluginPAD]  = wxGetBitmapFromMemory(toolbar_plugin_pad_png);
 	m_Bitmaps[Toolbar_FullScreen] = wxGetBitmapFromMemory(toolbar_fullscreen_png);
 	m_Bitmaps[Toolbar_Help] = wxGetBitmapFromMemory(toolbar_help_png);
+	
+	#ifdef MUSICMOD
+		m_Bitmaps[Toolbar_Log] = wxGetBitmapFromMemory(Toolbar_Log_png);
+		MM_InitBitmaps();
+	#endif
 
-	// scale to 24x24 for toolbar
-	for (size_t n = Toolbar_FileOpen; n < WXSIZEOF(m_Bitmaps); n++)
+	// Scale to 24x24 for toolbar. Toolbar_Log is already 24x24
+	for (size_t n = Toolbar_FileOpen; n <= Toolbar_Help; n++)
 	{
 		m_Bitmaps[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(24, 24));
-	}
+	}	
 }
 
 
@@ -468,6 +495,11 @@ void CFrame::OnHelp(wxCommandEvent& event)
 // -------------
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 {
+	#ifdef MUSICMOD // Music modification
+		MM_OnPlay();
+	#endif
+
+
 	// shuffle2: wxBusyInfo is meant to be created on the stack
 	// and only stay around for the life of the scope it's in.
 	// If that is not what we want, find another solution. I don't
@@ -715,6 +747,10 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 // -------------
 void CFrame::UpdateGUI()
 {
+	#ifdef MUSICMOD
+		MM_UpdateGUI();
+	#endif
+
 	// Save status
 	bool initialized = Core::GetState() != Core::CORE_UNINITIALIZED;
 	bool running = Core::GetState() == Core::CORE_RUN;
@@ -750,6 +786,7 @@ void CFrame::UpdateGUI()
 			m_pToolPlay->SetLabel(_("Pause"));
 		}
 		m_pMenuItemPlay->SetText(_("&Pause"));
+		
 	}
 	else
 	{
@@ -760,6 +797,7 @@ void CFrame::UpdateGUI()
 			m_pToolPlay->SetLabel(_("Play"));
 		}
 		m_pMenuItemPlay->SetText(_("&Play"));
+		
 	}
 	if (GetToolBar() != NULL) GetToolBar()->Realize();
 
@@ -781,5 +819,7 @@ void CFrame::UpdateGUI()
 			m_GameListCtrl->Hide();
 		}
 	}
+
+	theToolBar->Realize();
 }
 

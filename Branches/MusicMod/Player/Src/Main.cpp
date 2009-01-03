@@ -10,6 +10,19 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Documentation
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+/* ---- The Seekbar ----
+   Rebar.cpp handle the progress (playback position) bar. WndprocMain() is called every
+   second during playback. And several times a second when the cursor is moving over the
+   main window. If WM_TIMER called WndprocMain it calls Playback::UpdateSeek(); */
+
+
+///////////////////////////////////
+
+
 #include "Main.h"
 #include "GlobalVersion.h"
 #include "Playlist.h"
@@ -29,7 +42,6 @@
 #include "Winamp/wa_ipc.h"
 #include "Config.h"
 #include <shellapi.h>
-
 
 #define CLASSNAME_MAIN      TEXT( "Winamp v1.x" )
 #define MAIN_TITLE          PLAINAMP_LONG_TITLE
@@ -87,45 +99,68 @@ ConfBool cbMinimizeToTray( &bMinimizeToTray, TEXT( "MinimizeToTray" ), CONF_MODE
 ////////////////////////////////////////////////////////////////////////////////
 bool BuildMainWindow()
 {
-	// Register class
-	WNDCLASS wc = {
-		0,                                             // UINT style
-		WndprocMain,                                   // WNDPROC lpfnWndProc
-    	0,                                             // int cbClsExtra
-    	0,                                             // int cbWndExtra
-    	g_hInstance,                                   // HINSTANCE hInstance
-    	LoadIcon( g_hInstance, TEXT( "IDI_ICON1" ) ),  // HICON hIcon
-    	LoadCursor( NULL, IDC_ARROW ),                 // HCURSOR hCursor
-    	( HBRUSH )COLOR_WINDOW,                        // HBRUSH hbrBackground
-    	NULL,                                          // LPCTSTR lpszMenuName
-    	CLASSNAME_MAIN                                 // LPCTSTR lpszClassName
-	};
-		
-	if( !RegisterClass( &wc ) ) return false;
+
+	//#ifndef NOGUI
+
+		// =======================================================================================
+		/* Disabling this window creation cause continuous "Error setting DirectSound cooperative level"
+		   messages for some reason. So I leave it here for now. */
+
+		// Register class
+		WNDCLASS wc = {
+			0,                                             // UINT style
+			WndprocMain,                                   // WNDPROC lpfnWndProc
+    		0,                                             // int cbClsExtra
+    		0,                                             // int cbWndExtra
+    		g_hInstance,                                   // HINSTANCE hInstance
+    		LoadIcon( g_hInstance, TEXT( "IDI_ICON1" ) ),  // HICON hIcon
+    		LoadCursor( NULL, IDC_ARROW ),                 // HCURSOR hCursor
+    		( HBRUSH )COLOR_WINDOW,                        // HBRUSH hbrBackground
+    		NULL,                                          // LPCTSTR lpszMenuName
+    		CLASSNAME_MAIN                                 // LPCTSTR lpszClassName
+		};
+			
+		if( !RegisterClass( &wc ) ) return false;
+
+
+		// Create WindowMain
+		WindowMain = CreateWindowEx(
+			WS_EX_WINDOWEDGE,                        // DWORD dwExStyle
+			CLASSNAME_MAIN,                          // LPCTSTR lpClassName
+			MAIN_TITLE,                              // LPCTSTR lpWindowName
+			WS_OVERLAPPED |                          // DWORD dwStyle
+	//			WS_VISIBLE |                         //
+				WS_CLIPCHILDREN |                    //
+				WS_BORDER |                          //
+				WS_SYSMENU |                         //
+				WS_THICKFRAME |                      //
+				WS_MINIMIZEBOX |                     //
+				WS_MAXIMIZEBOX,                      //
+			rMainDefault.left,                       // int x
+			rMainDefault.top,                        // int y
+			rMainDefault.right - rMainDefault.left,  // int nWidth
+			rMainDefault.bottom - rMainDefault.top,  // int nHeight
+			NULL,                                    // HWND hWndParent
+			NULL,                                    // HMENU hMenu
+			g_hInstance,                             // HINSTANCE hInstance
+			NULL                                     // LPVOID lpParam
+		);
+		// =======================================================================================
 	
-	// Create window
-	WindowMain = CreateWindowEx(
-		WS_EX_WINDOWEDGE,                        // DWORD dwExStyle
-		CLASSNAME_MAIN,                          // LPCTSTR lpClassName
-		MAIN_TITLE,                              // LPCTSTR lpWindowName
-		WS_OVERLAPPED |                          // DWORD dwStyle
-//			WS_VISIBLE |                         //
-			WS_CLIPCHILDREN |                    //
-			WS_BORDER |                          //
-			WS_SYSMENU |                         //
-			WS_THICKFRAME |                      //
-			WS_MINIMIZEBOX |                     //
-			WS_MAXIMIZEBOX,                      //
-		rMainDefault.left,                       // int x
-		rMainDefault.top,                        // int y
-		rMainDefault.right - rMainDefault.left,  // int nWidth
-		rMainDefault.bottom - rMainDefault.top,  // int nHeight
-		NULL,                                    // HWND hWndParent
-		NULL,                                    // HMENU hMenu
-		g_hInstance,                             // HINSTANCE hInstance
-		NULL                                     // LPVOID lpParam
-	);
-	
+	//#endif
+
+	// =======================================================================================
+	#ifdef NOGUI
+
+		// If this is not called a crash occurs
+		PlaylistView::Create();
+
+		// We have now done what we wanted so we skip the rest of the file
+		return true;
+
+	#else
+	// =======================================================================================
+
 
 	if( !WindowMain )
 	{
@@ -142,6 +177,7 @@ bool BuildMainWindow()
 	HMENU playback_menu  = CreatePopupMenu();
 	HMENU playlist_menu  = CreatePopupMenu();
 	HMENU windows_menu   = CreatePopupMenu();
+
 
 	// Plainamp
 	AppendMenu( plainamp_menu, MF_STRING, WINAMP_OPTIONS_PREFS, TEXT( "Preferences   \tCtrl+P" ) );
@@ -183,7 +219,7 @@ bool BuildMainWindow()
 
 	SetMenu( WindowMain, main_menu );
 	
-////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////
 
 	main_context_menu = CreatePopupMenu();
 	AppendMenu( main_context_menu, MF_STRING, WINAMP_HELP_ABOUT, TEXT( "Plainamp" ) );
@@ -205,10 +241,11 @@ bool BuildMainWindow()
 	AppendMenu( main_context_menu, MF_STRING, PLAINAMP_TOGGLE_MANAGER, TEXT( "Plugin Manager" ) );
 	
 	
-/*	
+	/*	
 	AppendMenu( main_context_menu, MF_STRING | MF_DISABLED | MF_GRAYED, MENU_MAIN_CONTEXT_MANAGER, TEXT( "Plugin Manager" ) );
 	AppendMenu( main_context_menu, MF_STRING | MF_DISABLED | MF_GRAYED, MENU_MAIN_CONTEXT_CONSOLE, TEXT( "Console" ) );
-*/
+	*/
+
 	AppendMenu( main_context_menu, MF_SEPARATOR | MF_DISABLED | MF_GRAYED, ( UINT_PTR )-1, NULL );
 	
 		opts_context_menu = CreatePopupMenu();
@@ -228,8 +265,14 @@ bool BuildMainWindow()
 	AppendMenu( main_context_menu, MF_STRING, WINAMP_FILE_QUIT, TEXT( "Exit" ) );
 
 
-	Toolbar::Create();
-	BuildMainStatus();
+	Toolbar::Create(); // This removes all buttons and status bars
+	//BuildMainStatus();
+
+
+	// =======================================================================================
+	// If this is not created a crash occurs
+	PlaylistView::Create();
+	
 	Playlist::Create();
 
 
@@ -237,6 +280,7 @@ bool BuildMainWindow()
 
 	
 	return true;
+#endif
 }
 
 
@@ -324,11 +368,22 @@ LRESULT CALLBACK WndprocMain( HWND hwnd, UINT message, WPARAM wp, LPARAM lp )
 	// Tool windows are hidden on minimize/re-shown on restore
 	static bool bConsoleTodo = false;
 	static bool bManagerTodo = false;
-
 	static bool bRemoveIcon = false;
+
+	#ifdef NOGUI
+		wprintf("DLL > Main.cpp:WndprocMain() was called. But nothing will be done. \n");
+	#else
+		Console::Append( TEXT( "Main.cpp:WndprocMain was called" ) );
+	#endif	
+
 
 	switch( message )
 	{
+
+	#ifdef NOGUI
+		//printf(" > WndprocMain message: %i\n", message);
+	#else
+
 	case WM_SETFOCUS:
 		// To re-"blue"
 		SetFocus( WindowPlaylist );
@@ -336,8 +391,8 @@ LRESULT CALLBACK WndprocMain( HWND hwnd, UINT message, WPARAM wp, LPARAM lp )
 
 	case WM_CREATE:
 		// Note: [WindowMain] is not valid yet but [hwnd] is!
-		Console::Create();
-		PluginManager::Build();
+		Console::Create(); // make the console window
+		PluginManager::Build(); // make the plugin window
 		break;
 
 	case WM_NOTIFY:
@@ -496,7 +551,7 @@ LRESULT CALLBACK WndprocMain( HWND hwnd, UINT message, WPARAM wp, LPARAM lp )
 			}
 			break;
 		}
-
+	
 	case WM_SYSKEYDOWN:
 		switch( wp ) // [Alt]+[...]
 		{
@@ -636,7 +691,9 @@ LRESULT CALLBACK WndprocMain( HWND hwnd, UINT message, WPARAM wp, LPARAM lp )
 
 	case WM_DESTROY:
 		{
+			// =======================================================================================
 			// Save playlist
+			/*
 			TCHAR * szPlaylistMind = new TCHAR[ iHomeDirLen + 12 + 1 ];
 			memcpy( szPlaylistMind, szHomeDir, iHomeDirLen * sizeof( TCHAR ) );
 			memcpy( szPlaylistMind + iHomeDirLen, TEXT( "Plainamp.m3u" ), 12 * sizeof( TCHAR ) );
@@ -645,7 +702,8 @@ LRESULT CALLBACK WndprocMain( HWND hwnd, UINT message, WPARAM wp, LPARAM lp )
 			Playlist::ExportPlaylistFile( szPlaylistMind );
 
 			delete [] szPlaylistMind;
-
+			*/
+			// =======================================================================================
 
 			cwpcWinPlaceMain.TriggerCallback();
 			cwpcWinPlaceMain.RemoveCallback();
@@ -726,7 +784,7 @@ LRESULT CALLBACK WndprocMain( HWND hwnd, UINT message, WPARAM wp, LPARAM lp )
 			}
 		}
 		break;
-
+	
 	case TRAY_MSG:
 		switch( lp )
 		{
@@ -749,9 +807,10 @@ LRESULT CALLBACK WndprocMain( HWND hwnd, UINT message, WPARAM wp, LPARAM lp )
 
 		}
 		return 0;
-		
+	#endif
 	default:
 		return WndprocWinamp( hwnd, message, wp, lp );
 	}
 	return DefWindowProc( hwnd, message, wp, lp );
+
 }
