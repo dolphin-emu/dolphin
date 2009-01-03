@@ -15,21 +15,37 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <stdio.h>
-#include "Common.h"
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+#include <stdio.h> // System
+
+#include "Common.h" // Common
 #include "StringUtil.h"
 #include "LogManager.h"
-#include "PowerPC/PowerPC.h"
-#include "PowerPC/SymbolDB.h" // for g_symbolDB
-#include "Debugger/Debugger_SymbolMap.h"
 #include "Timer.h"
 
+#include "PowerPC/PowerPC.h" // Core
+#include "PowerPC/SymbolDB.h" // for g_symbolDB
+#include "Debugger/Debugger_SymbolMap.h"
+
+#if defined(HAVE_WX) && HAVE_WX // wxWidgets
+	#include <wx/datetime.h> // for the timestamps
+#endif
+/////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 LogManager::SMessage	(*LogManager::m_Messages)[MAX_MESSAGES];
 int LogManager::m_nextMessages[LogManager::VERBOSITY_LEVELS + 1];
 CDebugger_Log* 	LogManager::m_Log[LogTypes::NUMBER_OF_LOGS + (LogManager::VERBOSITY_LEVELS * 100)];
 int LogManager::m_activeLog = LogTypes::MASTER_LOG;
 bool LogManager::m_bDirty = true;
 bool LogManager::m_bInitialized = false;
+/////////////////////////
 
 
 void __Log(int log, const char *format, ...)
@@ -222,6 +238,10 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	static u32 count = 0;
 	char* Msg2 = (char*)alloca(strlen(_fmt)+512);
 
+	#if defined(HAVE_WX) && HAVE_WX
+		wxDateTime datetime = wxDateTime::UNow(); // get timestamp
+	#endif 
+
 	// Here's the old symbol request
 	//Debugger::FindSymbol(PC);
 	// const Debugger::Symbol& symbol = Debugger::GetSymbol(Index);
@@ -252,11 +272,17 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	const char *eol = "\n";
 	if (Index > 0)
 	{		
-		//sprintf(Msg2, "%i | %i %02i:%02i:%03i: %x %s (%s, %08x) : %s%s", 
-		sprintf(Msg2, "%i %llu: %x %s (%s, %08x) : %s%s", 
-			//v, 
+		#if defined(HAVE_WX) && HAVE_WX
+			sprintf(Msg2, "%i %02i:%02i:%03i: %x %s (%s, %08x) : %s%s", 
+		#else
+			sprintf(Msg2, "%i %llu: %x %s (%s, %08x) : %s%s",
+		#endif
 			++count,
-			Common::Timer::GetTimeSinceJan1970(),
+			#if defined(HAVE_WX) && HAVE_WX
+				datetime.GetMinute(), datetime.GetSecond(), datetime.GetMillisecond(),
+			#else
+				Common::Timer::GetTimeSinceJan1970(),
+			#endif			
 			PowerPC::ppcState.DebugCount, 
 			m_Log[_type]->m_szShortName_, // (CONSOLE etc)		
 			symbol.c_str(), PC, // current PC location (name, address)
