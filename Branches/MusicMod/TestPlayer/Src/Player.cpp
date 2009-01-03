@@ -26,7 +26,7 @@
 
 #include <iostream> // System
 
-#include "../Player/Src/PlayerExport.h" // Local player
+#include "../../Player/Src/PlayerExport.h" // Local player
 
 
 void main()
