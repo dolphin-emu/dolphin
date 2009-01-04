@@ -2,7 +2,8 @@
 
 extern EventHandler *eventHandler;
 
-namespace InputCommon {
-    void Init(); 
-    void Shutdown();
+namespace InputCommon
+{
+	void Init(); 
+	void Shutdown();
 }

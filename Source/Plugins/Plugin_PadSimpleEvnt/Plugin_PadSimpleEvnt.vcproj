@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Plugin_PadSimple"
-	ProjectGUID="{9A183B48-ECC2-4121-876A-9B3793686073}"
+	Name="Plugin_PadSimpleEvnt"
+	ProjectGUID="{58E81545-241B-416E-8088-E62452EB25FA}"
 	RootNamespace="Plugin_PadSimpleEvnt"
 	TargetFrameworkVersion="131072"
 	>
@@ -53,7 +53,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="../../PluginSpecs;..\..\Core\InputCommon\Src;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -61,7 +61,7 @@
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="2"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				PrecompiledHeaderThrough="stdafx.h"
 				PrecompiledHeaderFile="$(IntDir)\$(TargetName).pch"
 				AssemblerListingLocation="$(IntDir)\"
@@ -87,7 +87,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib"
-				OutputFile="..\..\..\Binary\Win32\plugins\Plugin_PadSimple.dll"
+				OutputFile="..\..\..\Binary\Win32\plugins\Plugin_PadSimpleEvnt.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
@@ -155,7 +155,7 @@
 				Optimization="3"
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="../../PluginSpecs;..\..\Core\InputCommon\Src;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="_SECURE_SCL=0;WIN32;NDEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;__WXMSW__;NOPCH"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -163,7 +163,7 @@
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="0"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				PrecompiledHeaderThrough="stdafx.h"
 				PrecompiledHeaderFile="$(IntDir)\$(TargetName).pch"
 				AssemblerListingLocation="$(IntDir)\"
@@ -188,7 +188,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib"
-				OutputFile="..\..\..\Binary\x64\plugins\Plugin_PadSimple.dll"
+				OutputFile="..\..\..\Binary\x64\plugins\Plugin_PadSimpleEvnt.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
@@ -254,12 +254,12 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="../../PluginSpecs;..\..\Core\InputCommon\Src;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				PrecompiledHeaderThrough="stdafx.h"
 				PrecompiledHeaderFile="$(IntDir)\$(TargetName).pch"
 				AssemblerListingLocation="$(IntDir)\"
@@ -285,7 +285,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib rpcrt4.lib"
-				OutputFile="..\..\..\Binary\Win32/plugins\Plugin_PadSimpleD.dll"
+				OutputFile="..\..\..\Binary\Win32/plugins\Plugin_PadSimpleEvntD.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
@@ -352,12 +352,12 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="../../PluginSpecs;..\..\Core\InputCommon\Src;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="_SECURE_SCL=0;WIN32;_DEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				PrecompiledHeaderThrough="stdafx.h"
 				PrecompiledHeaderFile="$(IntDir)\$(TargetName).pch"
 				AssemblerListingLocation="$(IntDir)\"
@@ -383,7 +383,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib rpcrt4.lib"
-				OutputFile="..\..\..\Binary\x64\plugins\Plugin_PadSimpleD.dll"
+				OutputFile="..\..\..\Binary\x64\plugins\Plugin_PadSimpleEvntD.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
@@ -451,7 +451,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="3"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="../../PluginSpecs;..\..\Core\InputCommon\Src;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;DEBUGFAST;_SECURE_SCL=0"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -459,7 +459,7 @@
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="2"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				PrecompiledHeaderThrough="stdafx.h"
 				PrecompiledHeaderFile="$(IntDir)\$(TargetName).pch"
 				AssemblerListingLocation="$(IntDir)\"
@@ -485,7 +485,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib"
-				OutputFile="..\..\..\Binary\Win32\plugins\Plugin_PadSimpleDF.dll"
+				OutputFile="..\..\..\Binary\Win32\plugins\Plugin_PadSimpleEvntDF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
@@ -553,7 +553,7 @@
 				Optimization="3"
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="../../PluginSpecs;..\..\Core\InputCommon\Src;../../Core/Common/Src;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="_SECURE_SCL=0;WIN32;NDEBUG;_WINDOWS;_USRDLL;PAD_SIMPLE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;DEBUGFAST"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -561,7 +561,7 @@
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="0"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				PrecompiledHeaderThrough="stdafx.h"
 				PrecompiledHeaderFile="$(IntDir)\$(TargetName).pch"
 				AssemblerListingLocation="$(IntDir)\"
@@ -586,7 +586,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib "
-				OutputFile="..\..\..\Binary\x64\plugins\Plugin_PadSimpleDF.dll"
+				OutputFile="..\..\..\Binary\x64\plugins\Plugin_PadSimpleEvntDF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
@@ -634,196 +634,16 @@
 				>
 			</File>
 		</Filter>
-		<Filter
-			Name="DirectInputBase"
-			>
-			<File
-				RelativePath=".\Src\DirectInputBase.cpp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						BasicRuntimeChecks="3"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="0"
-						BasicRuntimeChecks="3"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="DebugFast|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						Optimization="2"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\Src\DirectInputBase.h"
-				>
-			</File>
-		</Filter>
 		<File
 			RelativePath=".\Src\PadSimple.cpp"
 			>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					BasicRuntimeChecks="3"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					BasicRuntimeChecks="3"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="DebugFast|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="DebugFast|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-				/>
-			</FileConfiguration>
 		</File>
 		<File
 			RelativePath=".\Src\PadSimple.h"
 			>
 		</File>
 		<File
-			RelativePath="..\..\PluginSpecs\pluginspecs_pad.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\SConscript"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\stdafx.cpp"
-			>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					BasicRuntimeChecks="3"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Debug|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="0"
-					BasicRuntimeChecks="3"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="DebugFast|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="DebugFast|x64"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					Optimization="2"
-					UsePrecompiledHeader="1"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath=".\Src\stdafx.h"
 			>
 		</File>
 	</Files>

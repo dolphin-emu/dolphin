@@ -4,43 +4,54 @@
 #include <wx/wx.h>
 #endif
 
-bool EventHandler::RegisterEventListener(listenFuncPtr func, Keys key) {
-    if (key.inputType == KeyboardInput) {
-	if (keys[key.keyCode][key.mods])
-	    return false;
-	keys[key.keyCode][key.mods] = func;
-    } else if (key.inputType == MouseInput) {
-	if (mouse[key.mouseButton])
-	    return false;
-	mouse[key.mouseButton] = func;
+bool EventHandler::RegisterEventListener(listenFuncPtr func, Keys key)
+{
+    if (key.inputType == KeyboardInput)
+	{
+		if (keys[key.keyCode][key.mods])
+			return false;
+		keys[key.keyCode][key.mods] = func;
     }
-    
+	else if (key.inputType == MouseInput)
+	{
+		if (mouse[key.mouseButton])
+			return false;
+		mouse[key.mouseButton] = func;
+    }
+
     return true;
 }
 
-bool EventHandler::RemoveEventListener(Keys key) {
-    if (key.inputType == KeyboardInput) {
-	if (! keys[key.keyCode][key.mods])
-	    return false;
-	keys[key.keyCode][key.mods] = NULL;
-    } else if (key.inputType == MouseInput) {
-	if (! mouse[key.mouseButton])
-	    return false;
-	mouse[key.mouseButton] = NULL;
+bool EventHandler::RemoveEventListener(Keys key)
+{
+    if (key.inputType == KeyboardInput)
+	{
+		if (! keys[key.keyCode][key.mods])
+			return false;
+		keys[key.keyCode][key.mods] = NULL;
     }
-    
+	else if (key.inputType == MouseInput)
+	{
+		if (! mouse[key.mouseButton])
+			return false;
+		mouse[key.mouseButton] = NULL;
+    }
+
     return true; 
 }
 
-void EventHandler::Update() {
-    for (unsigned int i = 0; i < eventQueue.size();i++) {
-	sf::Event ev = eventQueue.front();
-	eventQueue.pop();
-	keys[ev.Key.Code][ev.Key.Alt+2*ev.Key.Shift+4*ev.Key.Control](ev);
+void EventHandler::Update()
+{
+    for (unsigned int i = 0; i < eventQueue.size();i++)
+	{
+		sf::Event ev = eventQueue.front();
+		eventQueue.pop();
+		keys[ev.Key.Code][ev.Key.Alt+2*ev.Key.Shift+4*ev.Key.Control](ev);
     }
 }
 
-bool EventHandler::addEvent(sf::Event *ev) {
+bool EventHandler::addEvent(sf::Event *ev)
+{
     eventQueue.push(*ev);
     return true;
 }
@@ -151,7 +162,8 @@ sf::Key::Code EventHandler::wxCharCodeToSF(int id)
 }
 #endif
 
-void EventHandler::SFKeyToString(sf::Key::Code keycode, char *keyStr) {
+void EventHandler::SFKeyToString(sf::Key::Code keycode, char *keyStr)
+{
     switch (keycode) {
 /*  case sf::Key::A = 'a': sprintf(keyStr, "UP"); break;
     case sf::Key::B = 'b': sprintf(keyStr, "UP"); break;

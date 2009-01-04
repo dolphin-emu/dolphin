@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #ifndef __PADSIMPLE_H__
-#define __PADSIMPLE_H__  
+#define __PADSIMPLE_H__
 
 #include "InputCommon.h"
 #define EPAD_CONFIG_FILE "epad.ini"
