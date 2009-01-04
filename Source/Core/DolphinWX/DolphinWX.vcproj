@@ -30,7 +30,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				CommandLine="&quot;$(ProjectDir)..\Common\SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)..\Common\src\svnrev_template.h&quot; &quot;$(ProjectDir)..\Common\src\svnrev.h&quot;"
-				ExcludedFromBuild="false"
+				ExcludedFromBuild="true"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -131,7 +131,7 @@
 				Name="VCPostBuildEventTool"
 				Description="Copying Data\* to $(TargetDir)"
 				CommandLine="xcopy &quot;$(SolutionDir)..\Data&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;echo Copying External .dlls&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\Cg\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\SDL\win32\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\WiiUse\Win32\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;"
-				ExcludedFromBuild="false"
+				ExcludedFromBuild="true"
 			/>
 		</Configuration>
 		<Configuration
@@ -370,6 +370,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				CommandLine="&quot;$(ProjectDir)..\Common\SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)..\Common\src\svnrev_template.h&quot; &quot;$(ProjectDir)..\Common\src\svnrev.h&quot;"
+				ExcludedFromBuild="true"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -465,7 +466,7 @@
 				Name="VCPostBuildEventTool"
 				Description="Copying Data\* to $(TargetDir)"
 				CommandLine="xcopy &quot;$(SolutionDir)..\Data&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;echo Copying External .dlls&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\Cg64\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\SDL\x64\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\WiiUse\X64\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;"
-				ExcludedFromBuild="false"
+				ExcludedFromBuild="true"
 			/>
 		</Configuration>
 		<Configuration
@@ -480,6 +481,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				CommandLine="&quot;$(ProjectDir)..\Common\SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)..\Common\src\svnrev_template.h&quot; &quot;$(ProjectDir)..\Common\src\svnrev.h&quot;"
+				ExcludedFromBuild="true"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -577,7 +579,7 @@
 				Name="VCPostBuildEventTool"
 				Description="Copying Data\* to $(TargetDir)"
 				CommandLine="xcopy &quot;$(SolutionDir)..\Data&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;echo Copying External .dlls&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\Cg\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\SDL\win32\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\WiiUse\Win32\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;"
-				ExcludedFromBuild="false"
+				ExcludedFromBuild="true"
 			/>
 		</Configuration>
 		<Configuration
@@ -592,6 +594,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				CommandLine="&quot;$(ProjectDir)..\Common\SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)..\Common\src\svnrev_template.h&quot; &quot;$(ProjectDir)..\Common\src\svnrev.h&quot;"
+				ExcludedFromBuild="true"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -816,6 +819,10 @@
 			</File>
 			<File
 				RelativePath=".\src\Frame.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\FrameTools.cpp"
 				>
 			</File>
 			<File
