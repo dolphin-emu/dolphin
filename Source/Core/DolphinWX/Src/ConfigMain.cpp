@@ -30,6 +30,7 @@ BEGIN_EVENT_TABLE(CConfigMain, wxDialog)
 
 EVT_CLOSE(CConfigMain::OnClose)
 EVT_BUTTON(ID_CLOSE, CConfigMain::CloseClick)
+
 EVT_CHECKBOX(ID_ALLWAYS_HLEBIOS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_USEDYNAREC, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_USEDUALCORE, CConfigMain::CoreSettingsChanged)
@@ -37,8 +38,9 @@ EVT_CHECKBOX(ID_LOCKTHREADS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_OPTIMIZEQUANTIZERS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_IDLESKIP, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_ENABLECHEATS, CConfigMain::CoreSettingsChanged)
-EVT_CHOICE(ID_GC_SRAM_LNG, CConfigMain::GCSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::CoreSettingsChanged)
+
+EVT_CHOICE(ID_GC_SRAM_LNG, CConfigMain::GCSettingsChanged)
 
 EVT_CHOICE(ID_WII_BT_BAR, CConfigMain::WiiSettingsChanged)
 EVT_CHECKBOX(ID_WII_BT_LEDS, CConfigMain::WiiSettingsChanged)
@@ -100,67 +102,48 @@ CConfigMain::~CConfigMain()
 void CConfigMain::CreateGUIControls()
 {
 	Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
-	GeneralPage = new wxPanel(Notebook, ID_GENERALPAGE, wxDefaultPosition, wxDefaultSize);
-	CorePage = new wxPanel(Notebook, ID_COREPAGE, wxDefaultPosition, wxDefaultSize);
+	MainPage = new wxPanel(Notebook, ID_COREPAGE, wxDefaultPosition, wxDefaultSize);
 	GamecubePage = new wxPanel(Notebook, ID_GAMECUBEPAGE, wxDefaultPosition, wxDefaultSize);
 	WiiPage = new wxPanel(Notebook, ID_WIIPAGE, wxDefaultPosition, wxDefaultSize);
 	PathsPage = new wxPanel(Notebook, ID_PATHSPAGE, wxDefaultPosition, wxDefaultSize);
 	PluginPage = new wxPanel(Notebook, ID_PLUGINPAGE, wxDefaultPosition, wxDefaultSize);
 
-	Notebook->AddPage(GeneralPage, wxT("General"));
-	Notebook->AddPage(CorePage, wxT("Core"));
+	Notebook->AddPage(MainPage, wxT("Main"));
 	Notebook->AddPage(GamecubePage, wxT("Gamecube"));
 	Notebook->AddPage(WiiPage, wxT("Wii"));
 	Notebook->AddPage(PathsPage, wxT("Paths"));
 	Notebook->AddPage(PluginPage, wxT("Plugins"));
-	
 
 		//////////////////////////////////
-		// General page
-		// --------
-
-		// Interface Settings
-		ConfirmStop = new wxCheckBox(GeneralPage, ID_INTERFACE_CONFIRMSTOP, wxT("Confirm On Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-
-		ConfirmStop->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop);
-
-		sbInterface = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Interface Settings"));
-		sbInterface->Add(ConfirmStop, 0, wxALL, 5);
-
-		sGeneralPage = new wxBoxSizer(wxVERTICAL);
-		sGeneralPage->Add(sbInterface, 0, wxALL|wxEXPAND, 5);
-
-		GeneralPage->SetSizer(sGeneralPage);
-		sGeneralPage->Layout();
-
-
-		//////////////////////////////////
-		// Core page
+		// Main page
 		// --------
 		sCore = new wxBoxSizer(wxVERTICAL);
 
 		// Basic Settings
-		sbBasic = new wxStaticBoxSizer(wxVERTICAL, CorePage, wxT("Basic Settings"));
-		UseDualCore = new wxCheckBox(CorePage, ID_USEDUALCORE, wxT("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		sbBasic = new wxStaticBoxSizer(wxVERTICAL, MainPage, wxT("Basic Settings"));
+		UseDualCore = new wxCheckBox(MainPage, ID_USEDUALCORE, wxT("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		UseDualCore->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);
-		SkipIdle = new wxCheckBox(CorePage, ID_IDLESKIP, wxT("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		SkipIdle = new wxCheckBox(MainPage, ID_IDLESKIP, wxT("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		SkipIdle->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);
-		EnableCheats = new wxCheckBox(CorePage, ID_ENABLECHEATS, wxT("Enable Cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		EnableCheats = new wxCheckBox(MainPage, ID_ENABLECHEATS, wxT("Enable Cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		EnableCheats->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);
+		ConfirmStop = new wxCheckBox(MainPage, ID_INTERFACE_CONFIRMSTOP, wxT("Confirm On Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		ConfirmStop->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop);
 
 		sbBasic->Add(UseDualCore, 0, wxALL, 5);
 		sbBasic->Add(SkipIdle, 0, wxALL, 5);
 		sbBasic->Add(EnableCheats, 0, wxALL, 5);
+		sbBasic->Add(ConfirmStop, 0, wxALL, 5);
 
 		// Advanced Settings
-		sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, CorePage, wxT("Advanced Settings"));
-		AllwaysHLEBIOS = new wxCheckBox(CorePage, ID_ALLWAYS_HLEBIOS, wxT("HLE the BIOS all the time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, MainPage, wxT("Advanced Settings"));
+		AllwaysHLEBIOS = new wxCheckBox(MainPage, ID_ALLWAYS_HLEBIOS, wxT("HLE the BIOS all the time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		AllwaysHLEBIOS->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios);
-		UseDynaRec = new wxCheckBox(CorePage, ID_USEDYNAREC, wxT("Enable Dynamic Recompilation"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		UseDynaRec = new wxCheckBox(MainPage, ID_USEDYNAREC, wxT("Enable Dynamic Recompilation"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		UseDynaRec->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT);
-		LockThreads = new wxCheckBox(CorePage, ID_LOCKTHREADS, wxT("Lock threads to cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		LockThreads = new wxCheckBox(MainPage, ID_LOCKTHREADS, wxT("Lock threads to cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		LockThreads->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads);
-		OptimizeQuantizers = new wxCheckBox(CorePage, ID_OPTIMIZEQUANTIZERS, wxT("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		OptimizeQuantizers = new wxCheckBox(MainPage, ID_OPTIMIZEQUANTIZERS, wxT("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		OptimizeQuantizers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bOptimizeQuantizers);
 
 		sbAdvanced->Add(AllwaysHLEBIOS, 0, wxALL, 5);
@@ -172,7 +155,7 @@ void CConfigMain::CreateGUIControls()
 		sCore->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
 		//sCore->AddStretchSpacer();
 		sCore->Add(sbAdvanced, 0, wxEXPAND|wxALL, 5);
-		CorePage->SetSizer(sCore);
+		MainPage->SetSizer(sCore);
 		sCore->Layout();
 
 
