@@ -88,8 +88,10 @@ void Jit64::lXz(UGeckoInstruction inst)
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+	if (inst.OPCD & 1)
+		ibuild.EmitStoreGReg(addr, inst.RA);
 	IREmitter::InstLoc val;
-	switch (inst.OPCD)
+	switch (inst.OPCD & -2)
 	{
 	case 32: val = ibuild.EmitLoad32(addr); break; //lwz	
 	case 40: val = ibuild.EmitLoad16(addr); break; //lhz

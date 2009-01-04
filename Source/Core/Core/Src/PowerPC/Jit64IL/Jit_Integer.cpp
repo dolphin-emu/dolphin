@@ -179,39 +179,32 @@
 
 	void Jit64::subfic(UGeckoInstruction inst)
 	{
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
-			{Default(inst); return;} // turn off from debugger
-
-		INSTRUCTION_START;
-		int a = inst.RA, d = inst.RD;
-		gpr.FlushLockX(ECX);
-		gpr.Lock(a, d);
-		gpr.LoadToX64(d, a == d, true);
-		int imm = inst.SIMM_16;
-		MOV(32, R(EAX), gpr.R(a));
-		NOT(32, R(EAX));
-		ADD(32, R(EAX), Imm32(imm + 1));
-		MOV(32, gpr.R(d), R(EAX));
-		//GenerateCarry(ECX);
-		gpr.UnlockAll();
-		gpr.UnlockAllX();
-		// This instruction has no RC flag
+		Default(inst);
+		return;
+		// FIXME: Disabling until I figure out subfcx
+		IREmitter::InstLoc val, test, c;
+		c = ibuild.EmitIntConst(inst.SIMM_16);
+		val = ibuild.EmitSub(c, ibuild.EmitLoadGReg(inst.RA));
+		ibuild.EmitStoreGReg(val, inst.RD);
+		test = ibuild.EmitICmpUgt(val, c);
+		ibuild.EmitStoreCarry(test);
 	}
 
 	void Jit64::subfcx(UGeckoInstruction inst) 
 	{
-		INSTRUCTION_START;
 		Default(inst);
 		return;
-		/*
-		u32 a = m_GPR[_inst.RA];
-		u32 b = m_GPR[_inst.RB];
-		m_GPR[_inst.RD] = b - a;
-		SetCarry(a == 0 || Helper_Carry(b, 0-a));
-
-		if (_inst.OE) PanicAlert("OE: subfcx");
-		if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
-		*/
+		// FIXME: Figure out what the heck is going wrong here...
+		if (inst.OE) PanicAlert("OE: subfcx");
+		IREmitter::InstLoc val, test, lhs, rhs;
+		lhs = ibuild.EmitLoadGReg(inst.RB);
+		rhs = ibuild.EmitLoadGReg(inst.RA);
+		val = ibuild.EmitSub(lhs, rhs);
+		ibuild.EmitStoreGReg(val, inst.RD);
+		test = ibuild.EmitICmpUgt(rhs, lhs);
+		ibuild.EmitStoreCarry(test);
+		if (inst.Rc)
+			ComputeRC(ibuild, val);
 	}
 
 	void Jit64::subfex(UGeckoInstruction inst) 
@@ -394,33 +387,14 @@
 
 	void Jit64::rlwnmx(UGeckoInstruction inst)
 	{
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
-			{Default(inst); return;} // turn off from debugger
-
-		INSTRUCTION_START;
-		int a = inst.RA, b = inst.RB, s = inst.RS;
-		if (gpr.R(a).IsImm())
-		{
-			Default(inst);
-			return;
-		}
-
-		u32 mask = Helper_Mask(inst.MB, inst.ME);
-		gpr.FlushLockX(ECX);
-		gpr.Lock(a, b, s);
-		MOV(32, R(EAX), gpr.R(s));
-		MOV(32, R(ECX), gpr.R(b));
-		AND(32, R(ECX), Imm32(0x1f));
-		ROL(32, R(EAX), R(ECX));
-		AND(32, R(EAX), Imm32(mask));
-		MOV(32, gpr.R(a), R(EAX));
-		gpr.UnlockAll();
-		gpr.UnlockAllX();
+		INSTRUCTION_START
+		unsigned mask = Helper_Mask(inst.MB, inst.ME);
+		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS);
+		val = ibuild.EmitRol(val, ibuild.EmitLoadGReg(inst.RB));
+		val = ibuild.EmitAnd(val, ibuild.EmitIntConst(mask));
+		ibuild.EmitStoreGReg(val, inst.RA);
 		if (inst.Rc)
-		{
-			MOV(32, R(EAX), gpr.R(a));
-			CALL((u8*)asm_routines.computeRc);
-		}
+			ComputeRC(ibuild, val);
 	}
 
 	void Jit64::negx(UGeckoInstruction inst)
@@ -509,30 +483,9 @@
 	// count leading zeroes
 	void Jit64::cntlzwx(UGeckoInstruction inst)
 	{
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
-			{Default(inst); return;} // turn off from debugger
-
-		INSTRUCTION_START;
-		int a = inst.RA;
-		int s = inst.RS;
-		if (gpr.R(a).IsImm() || gpr.R(s).IsImm() || s == a)
-		{
-			Default(inst);
-			return;
-		}
-		gpr.Lock(a,s);
-		gpr.LoadToX64(a,false);
-		BSR(32, gpr.R(a).GetSimpleReg(), gpr.R(s));
-		FixupBranch gotone = J_CC(CC_NZ);
-		MOV(32, gpr.R(a), Imm32(63));
-		SetJumpTarget(gotone);
-		XOR(32, gpr.R(a), Imm8(0x1f));  // flip order
-		gpr.UnlockAll();
-
+		IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS);
+		val = ibuild.EmitCntlzw(val);
+		ibuild.EmitStoreGReg(val, inst.RA);
 		if (inst.Rc)
-		{
-			MOV(32, R(EAX), gpr.R(a));
-			CALL((u8*)asm_routines.computeRc);
-			// TODO: Check PPC manual too
-		}
+			ComputeRC(ibuild, val);
 	}

@@ -159,70 +159,31 @@
 	add a,b,a
 	*/
 
-	//There's still a little bit more optimization that can be squeezed out of this
-	void Jit64::tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(X64Reg, OpArg))
-	{
-		fpr.Lock(d, a, b);
-		
-		if (d == a)
-		{
-			fpr.LoadToX64(d, true);
-			(this->*op)(fpr.RX(d), fpr.R(b));
-		}
-		else if (d == b && reversible)
-		{
-			fpr.LoadToX64(d, true);
-			(this->*op)(fpr.RX(d), fpr.R(a));
-		}
-		else if (a != d && b != d) 
-		{
-			//sources different from d, can use rather quick solution
-			fpr.LoadToX64(d, false);
-			MOVAPD(fpr.RX(d), fpr.R(a));
-			(this->*op)(fpr.RX(d), fpr.R(b));
-		}
-		else if (b != d)
-		{
-			fpr.LoadToX64(d, false);
-			MOVAPD(XMM0, fpr.R(b));
-			MOVAPD(fpr.RX(d), fpr.R(a));
-			(this->*op)(fpr.RX(d), Gen::R(XMM0));
-		}
-		else //Other combo, must use two temps :(
-		{
-			MOVAPD(XMM0, fpr.R(a));
-			MOVAPD(XMM1, fpr.R(b));
-			fpr.LoadToX64(d, false);
-			(this->*op)(XMM0, Gen::R(XMM1));
-			MOVAPD(fpr.RX(d), Gen::R(XMM0));
-		}
-		ForceSinglePrecisionP(fpr.RX(d));
-		fpr.UnlockAll();
-	}
-
 	void Jit64::ps_arith(UGeckoInstruction inst)
-	{	
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
-			{Default(inst); return;} // turn off from debugger
-		INSTRUCTION_START;
-		if (inst.Rc) {
+	{
+		if (inst.Rc || (inst.SUBOP5 != 21 && inst.SUBOP5 != 20 && inst.SUBOP5 != 25)) {
 			Default(inst); return;
 		}
+		IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA), rhs;
+		if (inst.SUBOP5 == 25)
+			rhs = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FC));
+		else
+			rhs = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FB));
+		val = ibuild.EmitCompactMRegToPacked(val);
+		
 		switch (inst.SUBOP5)
 		{
-		case 18: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::DIVPD); break; //div
-		case 20: tri_op(inst.FD, inst.FA, inst.FB, false, &XEmitter::SUBPD); break; //sub 
-		case 21: tri_op(inst.FD, inst.FA, inst.FB, true,  &XEmitter::ADDPD); break; //add
-		case 23://sel
-			Default(inst);
+		case 20:
+			val = ibuild.EmitFPSub(val, rhs);
 			break;
-		case 24://res
-			Default(inst);
+		case 21:
+			val = ibuild.EmitFPAdd(val, rhs);
 			break;
-		case 25: tri_op(inst.FD, inst.FA, inst.FC, true, &XEmitter::MULPD); break; //mul
-		default:
-			_assert_msg_(DYNA_REC, 0, "ps_arith WTF!!!");
+		case 25:
+			val = ibuild.EmitFPMul(val, rhs);
 		}
+		val = ibuild.EmitExpandPackedToMReg(val);
+		ibuild.EmitStoreFReg(val, inst.FD);
 	}
 
 	void Jit64::ps_sum(UGeckoInstruction inst)
@@ -347,58 +308,37 @@
 	//TODO: add optimized cases
 	void Jit64::ps_maddXX(UGeckoInstruction inst)
 	{
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
-			{Default(inst); return;} // turn off from debugger
-		INSTRUCTION_START;
-		if (inst.Rc) {
+		if (inst.Rc || (inst.SUBOP5 != 28 && inst.SUBOP5 != 29 && inst.SUBOP5 != 30)) {
 			Default(inst); return;
 		}
-		int a = inst.FA;
-		int b = inst.FB;
-		int c = inst.FC;
-		int d = inst.FD;
-		fpr.Lock(a,b,c,d);
-
-		MOVAPD(XMM0, fpr.R(a));
+		
+		IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA), op2, op3;
+		val = ibuild.EmitCompactMRegToPacked(val);
 		switch (inst.SUBOP5)
 		{
-		case 14: //madds0
-			MOVDDUP(XMM1, fpr.R(c));
-			MULPD(XMM0, R(XMM1));
-			ADDPD(XMM0, fpr.R(b));
+		case 28: {//msub
+			op2 = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FC));
+			val = ibuild.EmitFPMul(val, op2);
+			op3 = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FB));
+			val = ibuild.EmitFPSub(val, op3);
 			break;
-		case 15: //madds1
-			MOVAPD(XMM1, fpr.R(c));
-			SHUFPD(XMM1, R(XMM1), 3); // copy higher to lower
-			MULPD(XMM0, R(XMM1));
-			ADDPD(XMM0, fpr.R(b));
-			break;
-		case 28: //msub
-			MULPD(XMM0, fpr.R(c));
-			SUBPD(XMM0, fpr.R(b));
-			break;
-		case 29: //madd
-			MULPD(XMM0, fpr.R(c));
-			ADDPD(XMM0, fpr.R(b));
-			break;
-		case 30: //nmsub
-			MULPD(XMM0, fpr.R(c));
-			SUBPD(XMM0, fpr.R(b));
-			XORPD(XMM0, M((void*)&psSignBits));
-			break;
-		case 31: //nmadd
-			MULPD(XMM0, fpr.R(c));
-			ADDPD(XMM0, fpr.R(b));
-			XORPD(XMM0, M((void*)&psSignBits));
-			break;
-		default:
-			_assert_msg_(DYNA_REC, 0, "ps_maddXX WTF!!!");
-			//Default(inst);
-			//fpr.UnlockAll();
-			return;
 		}
-		fpr.LoadToX64(d, false);
-		MOVAPD(fpr.RX(d), Gen::R(XMM0));
-		ForceSinglePrecisionP(fpr.RX(d));
-		fpr.UnlockAll();
+		case 29: {//madd
+			op2 = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FC));
+			val = ibuild.EmitFPMul(val, op2);
+			op3 = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FB));
+			val = ibuild.EmitFPAdd(val, op3);
+			break;
+		}
+		case 30: {//nmsub
+			op2 = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FC));
+			val = ibuild.EmitFPMul(val, op2);
+			op3 = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FB));
+			val = ibuild.EmitFPSub(val, op3);
+			val = ibuild.EmitFPNeg(val);
+			break;
+		}
+		}
+		val = ibuild.EmitExpandPackedToMReg(val);
+		ibuild.EmitStoreFReg(val, inst.FD);
 	}

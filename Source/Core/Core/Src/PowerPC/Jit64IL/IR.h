@@ -41,6 +41,7 @@ namespace IREmitter {
 		SExt16,
 		BSwap32,
 		BSwap16,
+		Cntlzw, // Count leading zeros
 		Load8,  // These loads zext
 		Load16,
 		Load32,
@@ -143,19 +144,26 @@ namespace IREmitter {
 		ForceToDouble,
 		ForceToMReg,
 #endif
+		FResult_Start,
 		LoadSingle,
 		LoadDouble,
 		LoadPaired, // This handles quantizers itself
-		StorePaired,
 		DoubleToSingle,
 		DupSingleToMReg,
+		DupSingleToPacked,
 		InsertDoubleInMReg,
 		ExpandPackedToMReg,
 		CompactMRegToPacked,
 		LoadFReg,
-		StoreFReg,
 		FSMul,
 		FSAdd,
+		FPAdd,
+		FPMul,
+		FPSub,
+		FPNeg,
+		FResult_End,
+		StorePaired,
+		StoreFReg,
 
 		// "Trinary" operators
 		// FIXME: Need to change representation!
@@ -189,37 +197,9 @@ namespace IREmitter {
 		return getOpcode(i) >= CInt16 && getOpcode(i) <= CInt32;
 	}
 
-	unsigned inline isUnary(Inst i) {
-		return getOpcode(i) >= SExt8 && getOpcode(i) <= BSwap16;
-	}
-
-	unsigned inline isBinary(Inst i) {
-		return getOpcode(i) >= Add && getOpcode(i) <= ICmpCRUnsigned;
-	}
-
-	unsigned inline isMemLoad(Inst i) {
-		return getOpcode(i) >= Load8 && getOpcode(i) <= Load32;
-	}
-
-	unsigned inline isMemStore(Inst i) {
-		return getOpcode(i) >= Store8 && getOpcode(i) <= Store32;
-	}
-
-	unsigned inline isRegLoad(Inst i) {
-		return getOpcode(i) >= LoadGReg && getOpcode(i) <= LoadCR;
-	}
-
-	unsigned inline isRegStore(Inst i) {
-		return getOpcode(i) >= LoadGReg && getOpcode(i) <= LoadCR;
-	}
-
-	unsigned inline isBranch(Inst i) {
-		return getOpcode(i) >= BranchUncond &&
-		       getOpcode(i) <= BranchCond;
-	}
-
-	unsigned inline isInterpreterFallback(Inst i) {
-		return getOpcode(i) == InterpreterFallback;
+	unsigned inline isFResult(Inst i) {
+		return getOpcode(i) > FResult_Start && 
+		       getOpcode(i) < FResult_End;
 	}
 
 	InstLoc inline getOp1(InstLoc i) {
@@ -360,6 +340,9 @@ namespace IREmitter {
 		InstLoc EmitSExt8(InstLoc op1) {
 			return FoldUOp(SExt8, op1);
 		}
+		InstLoc EmitCntlzw(InstLoc op1) {
+			return FoldUOp(Cntlzw, op1);
+		}
 		InstLoc EmitICmpCRSigned(InstLoc op1, InstLoc op2) {
 			return FoldBiOp(ICmpCRSigned, op1, op2);
 		}
@@ -405,6 +388,9 @@ namespace IREmitter {
 		InstLoc EmitDupSingleToMReg(InstLoc val) {
 			return FoldUOp(DupSingleToMReg, val);
 		}
+		InstLoc EmitDupSingleToPacked(InstLoc val) {
+			return FoldUOp(DupSingleToPacked, val);
+		}
 		InstLoc EmitInsertDoubleInMReg(InstLoc val, InstLoc reg) {
 			return FoldBiOp(InsertDoubleInMReg, val, reg);
 		}
@@ -419,6 +405,18 @@ namespace IREmitter {
 		}
 		InstLoc EmitFSAdd(InstLoc op1, InstLoc op2) {
 			return FoldBiOp(FSAdd, op1, op2);
+		}
+		InstLoc EmitFPAdd(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(FPAdd, op1, op2);
+		}
+		InstLoc EmitFPMul(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(FPMul, op1, op2);
+		}
+		InstLoc EmitFPSub(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(FPSub, op1, op2);
+		}
+		InstLoc EmitFPNeg(InstLoc op1) {
+			return FoldUOp(FPNeg, op1);
 		}
 		InstLoc EmitDoubleToSingle(InstLoc op1) {
 			return FoldUOp(DoubleToSingle, op1);
@@ -439,6 +437,8 @@ namespace IREmitter {
 			for (unsigned i = 0; i < 32; i++) {
 				GRegCache[i] = 0;
 				GRegCacheStore[i] = 0;
+				FRegCache[i] = 0;
+				FRegCacheStore[i] = 0;
 			}
 			CarryCache = 0;
 			CarryCacheStore = 0;
@@ -458,6 +458,8 @@ namespace IREmitter {
 		InstLoc curReadPtr;
 		InstLoc GRegCache[32];
 		InstLoc GRegCacheStore[32];
+		InstLoc FRegCache[32];
+		InstLoc FRegCacheStore[32];
 		InstLoc CarryCache;
 		InstLoc CarryCacheStore;
 		InstLoc CRCache[8];

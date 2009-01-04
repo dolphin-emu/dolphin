@@ -245,6 +245,13 @@ InstLoc IRBuilder::FoldZeroOp(unsigned Opcode, unsigned extra) {
 			GRegCache[extra] = EmitZeroOp(LoadGReg, extra);
 		return GRegCache[extra];
 	}
+	if (Opcode == LoadFReg) {
+		// Reg load folding: if we already loaded the value,
+		// load it again
+		if (!FRegCache[extra])
+			FRegCache[extra] = EmitZeroOp(LoadFReg, extra);
+		return FRegCache[extra];
+	}
 	if (Opcode == LoadCarry) {
 		if (!CarryCache)
 			CarryCache = EmitZeroOp(LoadGReg, extra);
@@ -270,6 +277,14 @@ InstLoc IRBuilder::FoldUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 		GRegCacheStore[extra] = EmitUOp(StoreGReg, Op1, extra);
 		return GRegCacheStore[extra];
 	}
+	if (Opcode == StoreFReg) {
+		FRegCache[extra] = Op1;
+		if (FRegCacheStore[extra]) {
+			*FRegCacheStore[extra] = 0;
+		}
+		FRegCacheStore[extra] = EmitUOp(StoreFReg, Op1, extra);
+		return FRegCacheStore[extra];
+	}
 	if (Opcode == StoreCarry) {
 		CarryCache = Op1;
 		if (CarryCacheStore) {
@@ -285,6 +300,10 @@ InstLoc IRBuilder::FoldUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 		}
 		CRCacheStore[extra] = EmitUOp(StoreCR, Op1, extra);
 		return CRCacheStore[extra];
+	}
+	if (Opcode == CompactMRegToPacked) {
+		if (getOpcode(*Op1) == ExpandPackedToMReg)
+			return getOp1(Op1);
 	}
 
 	return EmitUOp(Opcode, Op1, extra);
@@ -441,6 +460,8 @@ InstLoc IRBuilder::FoldInterpreterFallback(InstLoc Op1, InstLoc Op2) {
 	for (unsigned i = 0; i < 32; i++) {
 		GRegCache[i] = 0;
 		GRegCacheStore[i] = 0;
+		FRegCache[i] = 0;
+		FRegCacheStore[i] = 0;
 	}
 	CarryCache = 0;
 	CarryCacheStore = 0;
@@ -610,9 +631,10 @@ static X64Reg fregFindFreeReg(RegInfo& RI) {
 	for (unsigned i = 0; i < FRegAllocSize; i++)
 		if (RI.fregs[FRegAllocOrder[i]] == 0)
 			return FRegAllocOrder[i];
-	// XMM0/1 are scratch, so we don't allocate it
-	fregSpill(RI, XMM7);
-	return XMM7;
+	static unsigned nextReg = 0;
+	X64Reg reg = FRegAllocOrder[nextReg++ % FRegAllocSize];
+	fregSpill(RI, reg);
+	return reg;
 }
 
 static OpArg regLocForInst(RegInfo& RI, InstLoc I) {
@@ -1016,10 +1038,12 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case SExt16:
 		case BSwap32:
 		case BSwap16:
+		case Cntlzw:
 		case DupSingleToMReg:
 		case DoubleToSingle:
 		case ExpandPackedToMReg:
 		case CompactMRegToPacked:
+		case FPNeg:
 			if (thisUsed)
 				regMarkUse(RI, I, getOp1(I), 1);
 			break;
@@ -1062,6 +1086,9 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case ICmpSgt:
 		case FSMul:
 		case FSAdd:
+		case FPAdd:
+		case FPMul:
+		case FPSub:
 		case InsertDoubleInMReg:
 			if (thisUsed) {
 				regMarkUse(RI, I, getOp1(I), 1);
@@ -1233,6 +1260,17 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			if (!thisUsed) break;
 			X64Reg reg = regUReg(RI, I);
 			Jit->MOVSX(32, 16, reg, regLocForInst(RI, getOp1(I)));
+			RI.regs[reg] = I;
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case Cntlzw: {
+			if (!thisUsed) break;
+			X64Reg reg = regUReg(RI, I);
+			Jit->MOV(32, R(ECX), Imm32(63));
+			Jit->BSR(32, reg, regLocForInst(RI, getOp1(I)));
+			Jit->CMOVcc(32, reg, R(ECX), CC_Z);
+			Jit->XOR(32, R(reg), Imm8(31));
 			RI.regs[reg] = I;
 			regNormalRegClear(RI, I);
 			break;
@@ -1447,6 +1485,17 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			fregNormalRegClear(RI, I);
 			break;
 		}
+		case FPNeg: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			static const u32 GC_ALIGNED16(psSignBits[4]) = 
+				{0x80000000, 0x80000000};
+			Jit->PXOR(reg, M((void*)&psSignBits));
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
 		case LoadFReg: {
 			if (!thisUsed) break;
 			X64Reg reg = fregFindFreeReg(RI);
@@ -1484,6 +1533,33 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			X64Reg reg = fregFindFreeReg(RI);
 			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
 			Jit->ADDSS(reg, fregLocForInst(RI, getOp2(I)));
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
+		case FPAdd: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			Jit->ADDPS(reg, fregLocForInst(RI, getOp2(I)));
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
+		case FPMul: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			Jit->MULPS(reg, fregLocForInst(RI, getOp2(I)));
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
+		case FPSub: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			Jit->SUBPS(reg, fregLocForInst(RI, getOp2(I)));
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
 			break;
@@ -1579,11 +1655,19 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			if (!thisUsed) break;
 			// FIXME: Optimize!
 			InstLoc Op = I - 1 - (*I >> 8);
-			X64Reg reg = regFindFreeReg(RI);
-			Jit->MOV(32, R(reg), regLocForInst(RI, Op));
-			RI.regs[reg] = I;
-			if (RI.IInfo[I - RI.FirstI] & 4)
-				regClearInst(RI, Op);
+			if (isFResult(*Op)) {
+				X64Reg reg = fregFindFreeReg(RI);
+				Jit->MOVAPD(reg, fregLocForInst(RI, Op));
+				RI.fregs[reg] = I;
+				if (RI.IInfo[I - RI.FirstI] & 4)
+					fregClearInst(RI, Op);
+			} else {
+				X64Reg reg = regFindFreeReg(RI);
+				Jit->MOV(32, R(reg), regLocForInst(RI, Op));
+				RI.regs[reg] = I;
+				if (RI.IInfo[I - RI.FirstI] & 4)
+					regClearInst(RI, Op);
+			}
 			break;
 		}
 		case Nop: break;
