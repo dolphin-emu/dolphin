@@ -72,6 +72,9 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_RenderToMainWindow;
 		wxCheckBox *m_StretchToFit;
 		wxCheckBox *m_KeepAR;
+		#ifndef _WIN32
+			wxCheckBox *m_HideCursor;
+		#endif
 		wxArrayString arrayStringFor_FullscreenCB;
 		wxComboBox *m_FullscreenCB;
 		wxArrayString arrayStringFor_WindowResolutionCB;

@@ -36,6 +36,9 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_FORCEFILTERING, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_STRETCHTOFIT, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_KEEPAR, ConfigDialog::GeneralSettingsChanged)
+	#ifndef _WIN32
+		EVT_CHECKBOX(ID_HIDECURSOR, ConfigDialog::GeneralSettingsChanged)
+	#endif
 	EVT_CHECKBOX(ID_WIREFRAME, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SHOWFPS, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_STATISTICS, ConfigDialog::AdvancedSettingsChanged)
@@ -109,6 +112,11 @@ void ConfigDialog::CreateGUIControls()
 	m_KeepAR = new wxCheckBox(m_PageGeneral, ID_KEEPAR, wxT("Keep 4:3 aspect ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_KeepAR->SetValue(g_Config.bKeepAR);
 
+	#ifndef _WIN32
+		m_HideCursor = new wxCheckBox(m_PageGeneral, ID_HIDECURSOR, wxT("Hide mouse cursor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_HideCursor->SetValue(g_Config.bHideCursor); 
+	#endif
+
 	wxStaticText *FSText = new wxStaticText(m_PageGeneral, ID_FSTEXT, wxT("Fullscreen video mode:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_FullscreenCB = new wxComboBox(m_PageGeneral, ID_FULLSCREENCB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, 0, wxDefaultValidator);
 	m_FullscreenCB->SetValue(wxString::FromAscii(g_Config.iFSResolution));
@@ -149,12 +157,22 @@ void ConfigDialog::CreateGUIControls()
 	sBasic->Add(m_RenderToMainWindow, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasic->Add(m_StretchToFit, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasic->Add(m_KeepAR, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasic->Add(FSText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sBasic->Add(m_FullscreenCB, wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(WMText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sBasic->Add(m_WindowResolutionCB, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(BEText, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sBasic->Add(m_RenderBackend, wxGBPosition(6, 1), wxGBSpan(1, 1), wxALL, 5);
+	#ifndef _WIN32
+		sBasic->Add(m_HideCursor, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
+		sBasic->Add(FSText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+		sBasic->Add(m_FullscreenCB, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
+		sBasic->Add(WMText, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+		sBasic->Add(m_WindowResolutionCB, wxGBPosition(6, 1), wxGBSpan(1, 1), wxALL, 5);
+		sBasic->Add(BEText, wxGBPosition(7, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+		sBasic->Add(m_RenderBackend, wxGBPosition(7, 1), wxGBSpan(1, 1), wxALL, 5);
+	#else
+		sBasic->Add(FSText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+		sBasic->Add(m_FullscreenCB, wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
+		sBasic->Add(WMText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+		sBasic->Add(m_WindowResolutionCB, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
+		sBasic->Add(BEText, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+		sBasic->Add(m_RenderBackend, wxGBPosition(6, 1), wxGBSpan(1, 1), wxALL, 5);
+	#endif
 	sbBasic->Add(sBasic);
 	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
 
@@ -337,6 +355,11 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_KEEPAR:		
 		g_Config.bKeepAR = m_KeepAR->IsChecked();
 		break;
+	#ifndef _WIN32
+		case ID_HIDECURSOR:
+			g_Config.bHideCursor = m_HideCursor->IsChecked();
+			break; 
+	#endif
 	case ID_FULLSCREENCB:
 		strcpy(g_Config.iFSResolution, m_FullscreenCB->GetValue().mb_str() );
 		break;
