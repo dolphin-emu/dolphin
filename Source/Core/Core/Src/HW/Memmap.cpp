@@ -31,7 +31,7 @@
 #include "DVDInterface.h"
 #include "GPFifo.h"
 #include "VideoInterface.h"
-#include "SerialInterface.h"
+#include "SI.h"
 #include "EXI.h"
 #include "PixelEngine.h"
 #include "CommandProcessor.h"

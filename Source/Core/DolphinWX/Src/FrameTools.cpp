@@ -134,9 +134,10 @@ void CFrame::CreateMenu()
 	wxMenu* pOptionsMenu = new wxMenu;
 	m_pPluginOptions = pOptionsMenu->Append(IDM_CONFIG_MAIN, _T("Co&nfigure..."));
 	pOptionsMenu->AppendSeparator();
-	pOptionsMenu->Append(IDM_CONFIG_GFX_PLUGIN, _T("&Toolbar_PluginGFX settings"));
-	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _T("&Toolbar_PluginDSP settings"));
-	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _T("&Toolbar_PluginPAD settings"));
+	pOptionsMenu->Append(IDM_CONFIG_GFX_PLUGIN, _T("&GFX settings"));
+	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _T("&DSP settings"));
+	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _T("&PAD settings"));
+	pOptionsMenu->Append(IDM_CONFIG_WIIMOTE_PLUGIN, _T("&Wiimote settings"));
 #ifdef _WIN32
 	pOptionsMenu->AppendSeparator();
 	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tAlt+Enter"));

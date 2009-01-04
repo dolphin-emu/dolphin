@@ -29,7 +29,7 @@
 #include "Memmap.h"
 #include "PeripheralInterface.h"
 #include "PixelEngine.h"
-#include "SerialInterface.h"
+#include "SI.h"
 #include "AudioInterface.h"
 #include "VideoInterface.h"
 #include "WII_IPC.h"

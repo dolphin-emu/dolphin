@@ -23,7 +23,7 @@
 #include "../HW/DSP.h"
 #include "../HW/AudioInterface.h"
 #include "../HW/VideoInterface.h"
-#include "../HW/SerialInterface.h"
+#include "../HW/SI.h"
 #include "../HW/CommandProcessor.h" // for DC watchdog hack
 #include "../HW/EXI_DeviceIPL.h"
 #include "../PowerPC/PowerPC.h"

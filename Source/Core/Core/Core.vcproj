@@ -607,19 +607,35 @@
 				Name="SI - Serial Interface"
 				>
 				<File
-					RelativePath=".\Src\Hw\SerialInterface.cpp"
+					RelativePath=".\Src\HW\SI.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\Src\Hw\SerialInterface.h"
+					RelativePath=".\Src\HW\SI.h"
 					>
 				</File>
 				<File
-					RelativePath=".\Src\Hw\SerialInterface_Devices.cpp"
+					RelativePath=".\Src\HW\SI_Device.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\Src\Hw\SerialInterface_Devices.h"
+					RelativePath=".\Src\HW\SI_Device.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\HW\SI_DeviceGBA.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\HW\SI_DeviceGBA.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\HW\SI_DeviceGCController.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\HW\SI_DeviceGCController.h"
 					>
 				</File>
 			</Filter>
