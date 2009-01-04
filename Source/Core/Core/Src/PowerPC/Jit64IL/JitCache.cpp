@@ -22,7 +22,7 @@
 // performance hit, it's not enabled by default, but it's useful for
 // locating performance issues.
 
-#define OPROFILE_REPORT
+//#define OPROFILE_REPORT
 
 #include "Common.h"
 #include "../../Core.h"
