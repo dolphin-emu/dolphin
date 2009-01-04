@@ -153,7 +153,7 @@ InstLoc IRBuilder::EmitUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 	return curIndex;
 }
 
-InstLoc IRBuilder::EmitBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2) {
+InstLoc IRBuilder::EmitBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned extra) {
 	InstLoc curIndex = &InstList[InstList.size()];
 	unsigned backOp1 = curIndex - 1 - Op1;
 	if (backOp1 >= 255) {
@@ -168,7 +168,7 @@ InstLoc IRBuilder::EmitBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2) {
 		backOp1++;
 		curIndex++;
 	}
-	InstList.push_back(Opcode | backOp1 << 8 | backOp2 << 16);
+	InstList.push_back(Opcode | (backOp1 << 8) | (backOp2 << 16) | (extra << 24));
 	return curIndex;
 }
 
@@ -451,7 +451,7 @@ InstLoc IRBuilder::FoldInterpreterFallback(InstLoc Op1, InstLoc Op2) {
 	return EmitBiOp(InterpreterFallback, Op1, Op2);
 }
 
-InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2) {
+InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned extra) {
 	switch (Opcode) {
 		case Add: return FoldAdd(Op1, Op2);
 		case And: return FoldAnd(Op1, Op2);
@@ -462,7 +462,7 @@ InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2) {
 		case Rol: return FoldRol(Op1, Op2);
 		case BranchCond: return FoldBranchCond(Op1, Op2);
 		case InterpreterFallback: return FoldInterpreterFallback(Op1, Op2);
-		default: return EmitBiOp(Opcode, Op1, Op2);
+		default: return EmitBiOp(Opcode, Op1, Op2, extra);
 	}
 }
 
@@ -1019,6 +1019,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case DupSingleToMReg:
 		case DoubleToSingle:
 		case ExpandPackedToMReg:
+		case CompactMRegToPacked:
 			if (thisUsed)
 				regMarkUse(RI, I, getOp1(I), 1);
 			break;
@@ -1074,6 +1075,10 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			if (!isImm(*getOp1(I)))
 				regMarkUse(RI, I, getOp1(I), 1);
 			regMarkMemAddress(RI, I, getOp2(I), 2);
+			break;
+		case StorePaired:
+			regMarkUse(RI, I, getOp1(I), 1);
+			regMarkUse(RI, I, getOp2(I), 2);
 			break;
 		case BranchUncond:
 			if (!isImm(*getOp1(I)))
@@ -1390,6 +1395,23 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			regNormalRegClear(RI, I);
 			break;
 		}
+		case StorePaired: {
+			regSpill(RI, EAX);
+			regSpill(RI, EDX);
+			unsigned quantreg = *I >> 24;
+			Jit->MOVZX(32, 16, EAX, M(&PowerPC::ppcState.spr[SPR_GQR0 + quantreg]));
+			Jit->MOVZX(32, 8, EDX, R(AL));
+			// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32]!
+			Jit->SHL(32, R(EDX), Imm8(2));
+			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
+			Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
+			Jit->CALLptr(MDisp(EDX, (u32)asm_routines.pairedStoreQuantized));
+			if (RI.IInfo[I - RI.FirstI] & 4)
+				fregClearInst(RI, getOp1(I));
+			if (RI.IInfo[I - RI.FirstI] & 8)
+				regClearInst(RI, getOp2(I));
+			break;
+		}
 		case DupSingleToMReg: {
 			if (!thisUsed) break;
 			X64Reg reg = fregFindFreeReg(RI);
@@ -1413,6 +1435,14 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			if (!thisUsed) break;
 			X64Reg reg = fregFindFreeReg(RI);
 			Jit->CVTPS2PD(reg, fregLocForInst(RI, getOp1(I)));
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
+		case CompactMRegToPacked: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->CVTPD2PS(reg, fregLocForInst(RI, getOp1(I)));
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
 			break;

@@ -26,9 +26,6 @@
 #include "JitCache.h"
 #include "JitRegCache.h"
 
-#define INSTRUCTION_START
-// #define INSTRUCTION_START Default(inst); return;
-
 	void Jit64::fp_arith_s(UGeckoInstruction inst)
 	{
 		if (inst.Rc || inst.OPCD != 59 || inst.SUBOP5 != 25) {

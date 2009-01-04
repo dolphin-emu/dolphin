@@ -146,10 +146,12 @@ namespace IREmitter {
 		LoadSingle,
 		LoadDouble,
 		LoadPaired, // This handles quantizers itself
+		StorePaired,
 		DoubleToSingle,
 		DupSingleToMReg,
 		InsertDoubleInMReg,
 		ExpandPackedToMReg,
+		CompactMRegToPacked,
 		LoadFReg,
 		StoreFReg,
 		FSMul,
@@ -232,7 +234,8 @@ namespace IREmitter {
 		InstLoc EmitZeroOp(unsigned Opcode, unsigned extra);
 		InstLoc EmitUOp(unsigned OpCode, InstLoc Op1,
 				unsigned extra = 0);
-		InstLoc EmitBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2);
+		InstLoc EmitBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2,
+				 unsigned extra = 0);
 
 		InstLoc FoldAdd(InstLoc Op1, InstLoc Op2);
 		InstLoc FoldAnd(InstLoc Op1, InstLoc Op2);
@@ -248,7 +251,8 @@ namespace IREmitter {
 		InstLoc FoldZeroOp(unsigned Opcode, unsigned extra);
 		InstLoc FoldUOp(unsigned OpCode, InstLoc Op1,
 				unsigned extra = 0);
-		InstLoc FoldBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2);
+		InstLoc FoldBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2,
+				 unsigned extra = 0);
 
 		unsigned ComputeKnownZeroBits(InstLoc I);
 
@@ -389,6 +393,9 @@ namespace IREmitter {
 		InstLoc EmitLoadPaired(InstLoc addr, unsigned quantReg) {
 			return FoldUOp(LoadPaired, addr, quantReg);
 		}
+		InstLoc EmitStorePaired(InstLoc value, InstLoc addr, unsigned quantReg) {
+			return FoldBiOp(StorePaired, value, addr, quantReg);
+		}
 		InstLoc EmitLoadFReg(unsigned freg) {
 			return FoldZeroOp(LoadFReg, freg);
 		}
@@ -403,6 +410,9 @@ namespace IREmitter {
 		}
 		InstLoc EmitExpandPackedToMReg(InstLoc val) {
 			return FoldUOp(ExpandPackedToMReg, val);
+		}
+		InstLoc EmitCompactMRegToPacked(InstLoc val) {
+			return FoldUOp(CompactMRegToPacked, val);
 		}
 		InstLoc EmitFSMul(InstLoc op1, InstLoc op2) {
 			return FoldBiOp(FSMul, op1, op2);

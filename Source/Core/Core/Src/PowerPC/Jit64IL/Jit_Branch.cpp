@@ -57,6 +57,8 @@ using namespace Gen;
 	void Jit64::bx(UGeckoInstruction inst)
 	{
 		NORMALBRANCH_START
+		INSTRUCTION_START;
+
 		if (inst.LK)
 			ibuild.EmitStoreLink(ibuild.EmitIntConst(js.compilerPC + 4));
 
