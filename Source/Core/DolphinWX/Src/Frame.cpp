@@ -87,8 +87,8 @@ extern "C" {
 /* Windows functions. Setting the cursor with wxSetCursor() did not work in this instance.
    Probably because it's somehow reset from the WndProc() in the child window */
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-
-// Declare a blank and one that will be the normal cursor
+#ifdef _WIN32
+// Declare a blank icon and one that will be the normal cursor
 HCURSOR hCursor = NULL, hCursorBlank = NULL;
 
 // Create the default cursor
@@ -113,6 +113,7 @@ HWND MSWGetParent_(HWND Parent)
 {
 	return GetParent(Parent);
 }
+#endif
 /////////////////////////////////////////////////
 
 
@@ -312,8 +313,10 @@ CFrame::CFrame(wxFrame* parent,
 	//sizerPanel->SetSizeHints(m_Panel);
 
 	// Create cursors
-	CreateCursor();
-	
+	#ifdef _WIN32
+		CreateCursor();
+	#endif
+
 	// -------------------------
 	// Connect event handlers
 	// ----------
@@ -340,7 +343,7 @@ CFrame::CFrame(wxFrame* parent,
 // Destructor
 CFrame::~CFrame()
 {
-/* The statbar sample has this so I add this to, but I guess it will be deleted after
+/* The statbar sample has this so I add this to, but I guess timer will be deleted after
    this anyway */
 #if wxUSE_TIMER
     if (m_timer.IsRunning()) m_timer.Stop();
@@ -478,7 +481,9 @@ void CFrame::OnDoubleClick(wxMouseEvent& event)
 	if (Elapsed < DoubleClickTime)
 	{
 		ShowFullScreen(!IsFullScreen());
-		MSWSetCursor(true); // Show the cursor again, in case it was hidden
+		#ifdef _WIN32
+			MSWSetCursor(true); // Show the cursor again, in case it was hidden
+		#endif
 		m_fLastClickTime -= 10; // Don't treat repeated clicks as double clicks
 	}			
 	// --------------------------
@@ -510,27 +515,34 @@ void CFrame::OnMotion(wxMouseEvent& event)
 	if(IsFullScreen() && SConfig::GetInstance().m_LocalCoreStartupParameter.bAutoHideCursor)
 	{
 		m_iLastMotionTime = GetDoubleTime();
-		MSWSetCursor(true);
+		#ifdef _WIN32
+				MSWSetCursor(true);
+		#endif
 		return;
 	}
 
 	if(SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor && event.GetId() == IDM_MPANEL)
 	{
-		if(bRenderToMain) MSWSetCursor(false);
+		#ifdef _WIN32
+			if(bRenderToMain) MSWSetCursor(false);
 
-		/* We only need to use this if we are rendering to a separate window. It does work
-		   for rendering to the main window to, but in that case our MSWSetCursor() works to
-		   so we can use that instead. If we one day determine that the separate window
-		   rendering is superfluous we could do without this */
-		else PostMessage((HWND)Core::GetWindowHandle(), WM_USER, 10, 0);
+			/* We only need to use this if we are rendering to a separate window. It does work
+			   for rendering to the main window to, but in that case our MSWSetCursor() works to
+			   so we can use that instead. If we one day determine that the separate window
+			   rendering is superfluous we could do without this */
+			else PostMessage((HWND)Core::GetWindowHandle(), WM_USER, 10, 0);
+		#endif
 	}
 
 	// For some reason we need this to, otherwise the cursor can get stuck with the resizing arrows
 	else
 	{
-		if(bRenderToMain) MSWSetCursor(true);
-		else PostMessage((HWND)Core::GetWindowHandle(), WM_USER, 10, 1);
+		#ifdef _WIN32
+			if(bRenderToMain) MSWSetCursor(true);
+			else PostMessage((HWND)Core::GetWindowHandle(), WM_USER, 10, 1);
+		#endif
 	}
+	
 }
 
 // Check for mouse status a couple of times per second for the auto hide option
@@ -549,7 +561,11 @@ void CFrame::Update()
 		double CompareTime = TmpSeconds - HideDelay; // Compare it
 
 		if(m_iLastMotionTime < CompareTime) // Update cursor
+		#ifdef _WIN32
 			MSWSetCursor(false);
+		#else
+			{}
+		#endif
 	}
 }
 #endif
