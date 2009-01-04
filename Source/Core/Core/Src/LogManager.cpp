@@ -30,7 +30,7 @@
 #include "PowerPC/SymbolDB.h" // for g_symbolDB
 #include "Debugger/Debugger_SymbolMap.h"
 
-#if defined(HAVE_WX) && HAVE_WX // wxWidgets
+#if defined(HAVE_WX) && HAVE_WX && defined(WX_CORE) // wxWidgets
 	#include <wx/datetime.h> // for the timestamps
 #endif
 /////////////////////////
@@ -238,7 +238,7 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	static u32 count = 0;
 	char* Msg2 = (char*)alloca(strlen(_fmt)+512);
 
-	#if defined(HAVE_WX) && HAVE_WX
+	#if defined(HAVE_WX) && HAVE_WX && defined(WX_CORE)
 		wxDateTime datetime = wxDateTime::UNow(); // get timestamp
 	#endif 
 
@@ -272,13 +272,13 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	const char *eol = "\n";
 	if (Index > 0)
 	{		
-		#if defined(HAVE_WX) && HAVE_WX
+		#if defined(HAVE_WX) && HAVE_WX && defined(WX_CORE)
 			sprintf(Msg2, "%i %02i:%02i:%03i: %x %s (%s, %08x) : %s%s", 
 		#else
 			sprintf(Msg2, "%i %llu: %x %s (%s, %08x) : %s%s",
 		#endif
 			++count,
-			#if defined(HAVE_WX) && HAVE_WX
+			#if defined(HAVE_WX) && HAVE_WX && defined(WX_CORE)
 				datetime.GetMinute(), datetime.GetSecond(), datetime.GetMillisecond(),
 			#else
 				Common::Timer::GetTimeSinceJan1970(),

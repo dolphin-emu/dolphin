@@ -24,24 +24,27 @@
 #define CHECK_HEAP_INTEGRITY()
 
 #ifdef _WIN32
-#ifdef _DEBUG
-#include <crtdbg.h>
-#undef CHECK_HEAP_INTEGRITY
-#define CHECK_HEAP_INTEGRITY() {if (!_CrtCheckMemory()) PanicAlert("memory corruption detected. see log.");}
-#endif
+	#ifdef _DEBUG
+	#include <crtdbg.h>
+	#undef CHECK_HEAP_INTEGRITY
+	#define CHECK_HEAP_INTEGRITY() {if (!_CrtCheckMemory()) PanicAlert("memory corruption detected. see log.");}
+	#endif
 
-/* Turn on logging with debugging, _DEBUG and DEBUGFAST are still added through
-   preprocessor definitions only */
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	#define LOGGING
-#endif
+	/* Turn on logging with debugging, _DEBUG and DEBUGFAST are still added through
+	   preprocessor definitions only */
+	#if defined(_DEBUG) || defined(DEBUGFAST)
+		#define LOGGING
+	#endif
 
-#include "../../../PluginSpecs/CommonTypes.h"
-#define HAVE_WIIUSE 1
-#define HAVE_WX 1
+	// Allow wxWidgets in Core
+	//#define WX_CORE
+
+	#include "../../../PluginSpecs/CommonTypes.h"
+	#define HAVE_WIIUSE 1
+	#define HAVE_WX 1
 #else
-#include "CommonTypes.h"
-#include "Config.h"
+	#include "CommonTypes.h"
+	#include "Config.h"
 #endif
 
 #include <stdlib.h>
