@@ -16,11 +16,33 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+//////////////////////////////////////////////////////////////////////////
+// Includes
+// ¯¯¯¯¯¯¯¯¯¯
 #ifndef __FRAME_H_
 #define __FRAME_H_
 
-#include <wx/wx.h>
+#include <wx/wx.h> // wxWidgets
 #include <wx/busyinfo.h>
+#include <wx/mstream.h>
+////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////
+// A shortcut to access the bitmaps
+// ¯¯¯¯¯¯¯¯¯¯
+#define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
+inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
+{
+	wxMemoryInputStream is(data, length);
+	return(wxBitmap(wxImage(is, wxBITMAP_TYPE_ANY, -1), -1));
+}
+////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////
+// Class declarations
+// ¯¯¯¯¯¯¯¯¯¯
 class CGameListCtrl;
 class CFrame : public wxFrame
 {
@@ -33,21 +55,26 @@ class CFrame : public wxFrame
 		const wxSize& size = wxDefaultSize,
 		long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
-		void* GetRenderHandle() {
-#ifdef _WIN32
-                    return(m_Panel->GetHandle());
-#else
-                    return this;
-#endif
-                }
+		void* GetRenderHandle()
+		{
+			#ifdef _WIN32
+				return(m_Panel->GetHandle());
+			#else
+				return this;
+			#endif
+		}
 
+		virtual ~CFrame();
+
+		// These have to be public
 		wxStatusBar* m_pStatusBar;
+		void InitBitmaps();
+		void DoStop();
+		bool bRenderToMain;
 
-
-		// --------------------------------
+		// ---------------------------------------
 		// Wiimote leds
-		// ---------
-
+		// ---------------
 		void ModifyStatusBar();
 		void CreateDestroy(int Case);
 		void CreateLeds(); void CreateSpeakers();
@@ -60,25 +87,24 @@ class CFrame : public wxFrame
 		wxStaticBitmap *m_StatBmp[7];
 		u8 g_Leds[4]; u8 g_Leds_[4];
 		u8 g_Speakers[3]; u8 g_Speakers_[3];
-		// ---------
-
+		// ---------------
 
 	private:
 
 		wxBoxSizer* sizerPanel;
 		CGameListCtrl* m_GameListCtrl;
 		wxPanel* m_Panel;
-		wxToolBar* theToolBar;
+		wxToolBar* TheToolBar;
 		wxToolBarToolBase* m_ToolPlay;
 
 
-		//////////////////////////////////////////////////////////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////////////////
 		// Music mod
 		// ¯¯¯¯¯¯¯¯¯¯
 		#ifdef MUSICMOD
 			wxToolBarToolBase* mm_ToolMute, * mm_ToolPlay, * mm_ToolLog;
 
-			void MM_UpdateGUI(); void MM_PopulateGUI(); void MM_InitBitmaps();
+			void MM_UpdateGUI(); void MM_PopulateGUI(); void MM_InitBitmaps(int Theme);
 			void MM_OnPlay();
 			void MM_OnMute(wxCommandEvent& event);
 			void MM_OnPause(wxCommandEvent& event);
@@ -88,7 +114,7 @@ class CFrame : public wxFrame
 		///////////////////////////////////
 
 
-		enum EBitmaps
+		enum EToolbar
 		{
 			Toolbar_FileOpen,
 			Toolbar_Refresh,
@@ -96,31 +122,41 @@ class CFrame : public wxFrame
 			Toolbar_Play,
 			Toolbar_Stop,
 			Toolbar_Pause,
+			Toolbar_FullScreen,
 			Toolbar_PluginOptions,
 			Toolbar_PluginGFX,
 			Toolbar_PluginDSP,
 			Toolbar_PluginPAD,
-			Toolbar_FullScreen,
+			Toolbar_Wiimote,			
 			Toolbar_Help,
-			#ifdef MUSICMOD
+
+			#ifdef MUSICMOD  // Music modification
 				Toolbar_Log, Toolbar_PluginDSP_Dis, Toolbar_Log_Dis,
 			#endif
-			Bitmaps_Max,
-			END
+
+			EToolbar_Max
+		};
+
+		enum EBitmapsThemes
+		{
+			BOOMY,
+			VISTA,
+			XPLASTIK,
+			KDE,
+			THEMES_MAX
 		};
 
 		enum WiimoteBitmaps  // Wiimote speaker bitmaps
 		{
-			CREATELEDS = END, 						
+			CREATELEDS, 						
 			DESTROYLEDS,
 			CREATESPEAKERS,
 			DESTROYSPEAKERS
 		};
 
-		wxBitmap m_Bitmaps[Bitmaps_Max];
-		wxBitmap m_BitmapsMenu[Bitmaps_Max];
+		wxBitmap m_Bitmaps[EToolbar_Max];
+		wxBitmap m_BitmapsMenu[EToolbar_Max];
 
-		void InitBitmaps();
 		void PopulateToolbar(wxToolBar* toolBar);
 		void RecreateToolbar();
 		void CreateMenu();
@@ -158,6 +194,8 @@ class CFrame : public wxFrame
 		void OnToggleToolbar(wxCommandEvent& event);
 		void OnToggleStatusbar(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event); void OnKeyUp(wxKeyEvent& event);
+		void OnDoubleClick(wxMouseEvent& event); void OnMotion(wxMouseEvent& event);
+		
 		void OnHostMessage(wxCommandEvent& event);
 
 		void OnMemcard(wxCommandEvent& event); // Misc
@@ -178,9 +216,18 @@ class CFrame : public wxFrame
 
 		void UpdateGUI();
 
-		// Old function that could be cool
+		// Double click and mouse move options
+		double m_fLastClickTime, m_iLastMotionTime; int LastMouseX, LastMouseY;
 
+		#if wxUSE_TIMER
+			void Update();
+			void OnTimer(wxTimerEvent& WXUNUSED(event)) { Update(); }
+			wxTimer m_timer;
+		#endif
+
+		// Event table
 		DECLARE_EVENT_TABLE();
 };
+////////////////////////////////
 
 #endif  // __FRAME_H_

@@ -67,7 +67,8 @@ struct SCoreStartupParameter
 
 	bool bWii; bool bWiiLeds; bool bWiiSpeakers; // Wii settings
 
-	bool bConfirmStop; // Interface settings
+	bool bConfirmStop, bHideCursor, bAutoHideCursor; // Interface settings
+	int iTheme; 
 	
 	enum EBootBios
 	{

@@ -111,7 +111,8 @@ ConfigBox::ConfigBox(wxWindow *parent, wxWindowID id, const wxString &title,
 	CreateGUIControls();
 
 	#if wxUSE_TIMER
-		m_timer.Start( floor((double)(1000 / 30)) );
+		int TimesPerSecond = 30;
+		m_timer.Start( floor((double)(1000 / TimesPerSecond)) );
 	#endif
 
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN,
@@ -122,7 +123,10 @@ ConfigBox::ConfigBox(wxWindow *parent, wxWindowID id, const wxString &title,
 
 ConfigBox::~ConfigBox()
 {
-	// empty
+// The statbar sample has this so I add this to
+#if wxUSE_TIMER
+    if (m_timer.IsRunning()) m_timer.Stop();
+#endif
 }
 
 void ConfigBox::OnKeyDown(wxKeyEvent& event)
@@ -339,7 +343,7 @@ void ConfigBox::CreateGUIControls()
 
 #ifndef _WIN32
 	// Force a 8pt font so that it looks more or less "correct" regardless of the default font setting
-	wxFont f(8,wxFONTFAMILY_DEFAULT,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL);
+	wxFont f(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 	SetFont(f);
 #endif
 

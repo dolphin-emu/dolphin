@@ -16,6 +16,10 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <windows.h>
 
 #include <wx/wx.h>
@@ -24,15 +28,19 @@
 #include <wx/dialog.h>
 #include <wx/aboutdlg.h>
 
-#include "../Globals.h"
+#include "../Globals.h" // Local
 #include "../Config.h"
 #include "main.h"
-
 #include "Win32.h"
 #include "Render.h" // for AddMessage
 
-#include "StringUtil.h" // for StringFromFormat
+#include "StringUtil.h" // Common: For StringFromFormat
+//////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// ¯¯¯¯¯¯¯¯¯¯
 void OpenConsole();
 void CloseConsole();
 
@@ -81,14 +89,23 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 
 void DoDllDebugger();
 extern bool gShowDebugger;
+//////////////////////////////////
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// The rendering window
+// ¯¯¯¯¯¯¯¯¯¯
 namespace EmuWindow
 {
-	HWND m_hWnd = NULL;
-    HWND m_hParent = NULL;
+	HWND m_hWnd = NULL; // The new window that is created here
+    HWND m_hParent = NULL, m_hMain = NULL; // The main CPanel
 	HINSTANCE m_hInstance = NULL;
 	WNDCLASSEX wndClass;
 	const TCHAR m_szClassName[] = "DolphinEmuWnd";
     int g_winstyle;
+	
 
 	// ------------------------------------------
 	/* Invisible cursor option. In the lack of a predefined IDC_BLANK we make
@@ -116,11 +133,15 @@ namespace EmuWindow
     }
 
 	LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
-	{
+	{		
 		HDC         hdc;
 		PAINTSTRUCT ps;
 		switch( iMsg )
 		{
+		case WM_CREATE:
+			PostMessage(m_hMain, WM_USER, 15, (int)m_hParent); // 15 = WM_USER_CREATE, make enum table if it's confusing
+			break;
+
 		case WM_PAINT:
 			hdc = BeginPaint( hWnd, &ps );
 			EndPaint( hWnd, &ps );
@@ -129,12 +150,26 @@ namespace EmuWindow
 		case WM_KEYDOWN:
 			switch( LOWORD( wParam ))
 			{
-			case VK_ESCAPE:     /*  Pressing esc quits */
+			case VK_ESCAPE: // Pressing Esc Stop or Maximize
 				//DestroyWindow(hWnd);
 				//PostQuitMessage(0);
+
+				/* The fullscreen option for Windows users is not very user friendly. With this the user
+				   can only get out of the fullscreen mode by pressing Esc or Alt + F4. But that also
+				   closes*/
+				//if(m_hParent == NULL) ExitProcess(0);
+				if(m_hParent == NULL)
+				{
+					if (g_Config.bFullscreen)
+						PostMessage(m_hMain, WM_USER, 5, 0); // Stop
+					else
+						// Toggle maximize and restore
+						if (IsZoomed(hWnd)) ShowWindow(hWnd, SW_RESTORE); else ShowWindow(hWnd, SW_MAXIMIZE);
+					return 0;
+				}				
 				break;
 				/*
-				case MY_KEYS:
+			case MY_KEYS:
 				hypotheticalScene->sendMessage(KEYDOWN...);
 				*/
 			case 'E': // EFB hotkey
@@ -155,23 +190,65 @@ namespace EmuWindow
 		   because SetCursor is not supposed to actually change the cursor if it's the
 		   same as the one before. */
 		case WM_MOUSEMOVE:
-			if(g_Config.bHideCursor)
-				SetCursor(hCursorBlank);
+			/* Check rendering mode; child or parent. Then post the mouse moves to the main window
+			   it's nessesary for both the chil dwindow and separate rendering window because
+			   moves over the rendering window do not reach the main program then. */
+			if (GetParentWnd() == NULL) // Separate rendering window
+				PostMessage(m_hMain, iMsg, wParam, -1);			
 			else
-				SetCursor(hCursor);
+				PostMessage(GetParentWnd(), iMsg, wParam, lParam);
 			break;
 
-		case WM_CLOSE:
-			ExitProcess(0);
+		/* To support the separate window rendering we get the message back here. So we basically
+		    only let it pass through DolphinWX > Frame.cpp to determine if it should be on or off
+			and coordinate it with the other settings if nessesary */
+		case WM_USER:
+			/* I set wParam to 10 just in case there are other WM_USER events. If we want more
+			   WM_USER cases we would start making wParam or lParam cases */
+			if(wParam == 10)
+			{
+				if(lParam)
+					SetCursor(hCursor);
+				else
+					SetCursor(hCursorBlank);
+			}
+			break;
 
-			//Core::SetState(Core::CORE_UNINITIALIZED);
-			return 0;
+		/* Post thes mouse events to the main window, it's nessesary becase in difference to the
+		   keyboard inputs these events only appear here, not in the main WndProc() */
+		case WM_LBUTTONDOWN:
+		case WM_LBUTTONUP:
+		case WM_LBUTTONDBLCLK:
+			PostMessage(GetParentWnd(), iMsg, wParam, lParam);
+		break;
+
+		// This is called when we close the window when we render to a separate window
+		case WM_CLOSE:	
+			if(m_hParent == NULL)
+			{
+				ExitProcess(0);
+				//Core::SetState(Core::CORE_UNINITIALIZED);
+
+				/* Attempt to only Stop when we close the separate window. But it didn't work, it hanged.
+				  It may need some more coordination with the Stop code in the Core */
+				//PostMessage(m_hMain, WM_USER, 5, 0);
+
+				return 0;
+			}
+
+		/* This is called from the Core when we Stop, but currently we only use DefWindowProc(),
+		   whatever that does with it, if any */
+		//case WM_QUIT:
+			//Video_Shutdown();
+		//	ExitProcess(0);			
+		//	return 0;
 
 		case WM_DESTROY:
 			//Shutdown();
-			//PostQuitMessage( 0 );
+			//PostQuitMessage( 0 ); // Call WM_QUIT
 			break;
 
+		// Called when a screensaver wants to show up while this window is active
 		case WM_SYSCOMMAND:
 			switch (wParam) 
 			{
@@ -186,6 +263,7 @@ namespace EmuWindow
 	}
 
 
+	// This is called from 
 	HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const TCHAR *title)
 	{
 		wndClass.cbSize = sizeof( wndClass );
@@ -196,7 +274,7 @@ namespace EmuWindow
 		wndClass.hInstance = hInstance;
 		wndClass.hIcon = LoadIcon( NULL, IDI_APPLICATION );
 		//wndClass.hCursor = LoadCursor( NULL, IDC_ARROW );
-		wndClass.hCursor = NULL; // to interfer less with SetCursor() later
+		wndClass.hCursor = NULL; // To interfer less with SetCursor() later
 		wndClass.hbrBackground = (HBRUSH)GetStockObject( BLACK_BRUSH );
 		wndClass.lpszMenuName = NULL;
 		wndClass.lpszClassName = m_szClassName;
@@ -207,17 +285,20 @@ namespace EmuWindow
 
 		CreateCursors(m_hInstance);
 
+		// Create child window
         if (parent)
         {
+			m_hParent = m_hMain = parent;
+
             m_hWnd = CreateWindow(m_szClassName, title,
                 WS_CHILD,
                 CW_USEDEFAULT, CW_USEDEFAULT,CW_USEDEFAULT, CW_USEDEFAULT,
                 parent, NULL, hInstance, NULL );
 
-            m_hParent = parent;
-
             ShowWindow(m_hWnd, SW_SHOWMAXIMIZED);            
         }
+
+		// Create new separate window
         else
         {
 			DWORD style = g_Config.bFullscreen ? WS_POPUP : WS_OVERLAPPEDWINDOW;
@@ -233,6 +314,8 @@ namespace EmuWindow
             rc.top = (1024 - h)/2;
             rc.bottom = rc.top + h;
 
+			// I save this to m_hMain instead of m_hParent because it casused problems otherwise
+			m_hMain = (HWND)g_VideoInitialize.pWindowHandle;
 
             m_hWnd = CreateWindow(m_szClassName, title,
                 style,
@@ -241,7 +324,6 @@ namespace EmuWindow
 
             g_winstyle = GetWindowLong( m_hWnd, GWL_STYLE );
             g_winstyle &= ~WS_MAXIMIZE & ~WS_MINIMIZE; // remove minimize/maximize style
-
         }
 
 		return m_hWnd;
@@ -290,4 +372,6 @@ namespace EmuWindow
 		rc.bottom = rc.top + h;
 		::MoveWindow(m_hWnd, rc.left,rc.top,rc.right-rc.left,rc.bottom-rc.top, TRUE);
 	}
-}
+
+} // EmuWindow
+////////////////////////////////////

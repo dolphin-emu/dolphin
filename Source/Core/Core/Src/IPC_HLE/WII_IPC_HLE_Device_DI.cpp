@@ -41,8 +41,11 @@ CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string&
 
 CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
 {
-    delete m_pFileSystem;
-    delete m_pVolume;
+	if(m_pFileSystem) { delete m_pFileSystem; m_pFileSystem = NULL; }
+	/* This caused the crash in VolumeHandler.cpp, setting m_pVolume = NULL; didn't help
+	   it still makes VolumeHandler.cpp have a  non-NULL pointer with no content so that
+	   delete crashes */
+	//if(m_pVolume) { delete m_pVolume; m_pVolume = NULL; }
 }
 
 bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)

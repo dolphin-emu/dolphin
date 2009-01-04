@@ -36,6 +36,7 @@ class CConfigMain
 			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE);
 		virtual ~CConfigMain();
+		void OnClick(wxMouseEvent& event);
 		void CloseClick(wxCommandEvent& event);
 		void OnSelectionChanged(wxCommandEvent& event);
 		void OnConfig(wxCommandEvent& event);
@@ -44,18 +45,21 @@ class CConfigMain
 
 	private:
 
-		DECLARE_EVENT_TABLE();		
+		DECLARE_EVENT_TABLE();
 
+		wxBoxSizer* sGeneralPage; // General Settings
+		wxCheckBox* ConfirmStop, * AutoHideCursor, *HideCursor;
+		wxRadioBox* Theme;
+		
 		wxBoxSizer* sCore; // Core settings
 		wxStaticBoxSizer* sbBasic, *sbAdvanced, *sbInterface;
-		wxCheckBox* UseDualCore;
-		wxCheckBox* SkipIdle;
-		wxCheckBox* EnableCheats;
-		wxCheckBox* ConfirmStop;
 		wxCheckBox* AllwaysHLEBIOS;
 		wxCheckBox* UseDynaRec;
+		wxCheckBox* UseDualCore;
 		wxCheckBox* LockThreads;
 		wxCheckBox* OptimizeQuantizers;
+		wxCheckBox* SkipIdle;
+		wxCheckBox* EnableCheats;
 
 		wxBoxSizer* sGamecube; // GC settings
 		wxStaticBoxSizer* sbGamecubeIPLSettings;
@@ -81,7 +85,7 @@ class CConfigMain
 
 		wxNotebook *Notebook;
 		wxPanel *GeneralPage;
-		wxPanel *MainPage;
+		wxPanel *CorePage;
 		wxPanel *GamecubePage;
 		wxPanel *WiiPage;
 		wxPanel *PathsPage;
@@ -210,7 +214,8 @@ class CConfigMain
 			ID_GC_SRAM_LNG_TEXT,
 			ID_GC_SRAM_LNG,
 
-			ID_INTERFACE_CONFIRMSTOP, // Interface settings
+			ID_INTERFACE_CONFIRMSTOP, ID_INTERFACE_HIDECURSOR, ID_INTERFACE_AUTOHIDECURSOR,
+			ID_INTERFACE_THEME, // Interface settings
 
 			ID_WII_BT_BAR_TEXT,
 			ID_WII_BT_BAR,
@@ -248,7 +253,7 @@ class CConfigMain
 			ID_GRAPHIC_CB
 		};
 
-		void CreateGUIControls();
+		void CreateGUIControls(); void UpdateGUI();
 		void OnClose(wxCloseEvent& event);
 		void CoreSettingsChanged(wxCommandEvent& event);
 		void GCSettingsChanged(wxCommandEvent& event);

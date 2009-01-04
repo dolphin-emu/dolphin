@@ -102,10 +102,15 @@ CEXIMemoryCard::CEXIMemoryCard(const std::string& _rName, const std::string& _rF
 
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Create new memory card
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CEXIMemoryCard::Flush(bool exiting)
 {
 	FILE* pFile = NULL;
 	pFile = fopen(m_strFilename.c_str(), "wb");
+
 	if (!pFile)
 	{
 		std::string dir;
@@ -114,18 +119,23 @@ void CEXIMemoryCard::Flush(bool exiting)
 			File::CreateDir(dir.c_str());
 		pFile = fopen(m_strFilename.c_str(), "wb");
 	}
-	if (!pFile) //Note - pFile changed inside above if
+
+	if (!pFile) // Note - pFile changed inside above if
 	{
 		PanicAlert("Could not write memory card file %s.\n\n"
 			       "Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?", m_strFilename.c_str());
 		return;
 	}
+
 	fwrite(memory_card_content, memory_card_size, 1, pFile);
 	fclose(pFile);
-	if (!exiting) {
+
+	if (!exiting)
+	{
 		Core::DisplayMessage(StringFromFormat("Wrote memory card %i contents to %s.", card_index, m_strFilename.c_str()).c_str(), 4000);
 	}
 }
+//////////////////////////////////////
 
 
 CEXIMemoryCard::~CEXIMemoryCard()

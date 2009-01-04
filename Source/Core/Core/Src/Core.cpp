@@ -15,6 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// ¯¯¯¯¯¯¯¯¯¯
 #ifdef _WIN32
 #include <windows.h>
 #else
@@ -63,6 +67,8 @@
 #ifndef _WIN32
 #define WINAPI
 #endif
+////////////////////////////////////////
+
 
 // The idea behind the recent restructure is to fix various stupid problems.
 // glXMakeCurrent/ wglMakeCurrent takes a context and makes it current on the current thread.
@@ -71,7 +77,12 @@
 
 namespace Core
 {
-// forwarding
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// ¯¯¯¯¯¯¯¯¯¯
+
+// Function forwarding
 //void Callback_VideoRequestWindowSize(int _iWidth, int _iHeight, BOOL _bFullscreen);
 void Callback_VideoLog(const TCHAR* _szMessage, int _bDoBreak);
 void Callback_VideoCopiedToXFB();
@@ -89,9 +100,9 @@ TPeekMessages Callback_PeekMessages = NULL;
 TUpdateFPSDisplay g_pUpdateFPSDisplay = NULL;
 
 #ifdef _WIN32
-DWORD WINAPI EmuThread(void *pArg);
+	DWORD WINAPI EmuThread(void *pArg);
 #else
-void *EmuThread(void *pArg);
+	void *EmuThread(void *pArg);
 #endif
 void Stop();
 
@@ -102,6 +113,7 @@ Common::Thread* g_pThread = NULL;
 SCoreStartupParameter g_CoreStartupParameter; //uck
 
 Common::Event emuThreadGoing;
+//////////////////////////////////////
 
 
 bool PanicAlertToVideo(const char* text, bool yes_no)
@@ -184,19 +196,45 @@ void Stop() // - Hammertime!
 
 	// The quit is to get it out of its message loop
 	// Should be moved inside the plugin.
-#ifdef _WIN32
-	PostMessage((HWND)g_pWindowHandle, WM_QUIT, 0, 0);
-#else
-        PluginVideo::Video_Stop();
-#endif
+	#ifdef _WIN32
+		PostMessage((HWND)g_pWindowHandle, WM_QUIT, 0, 0);
+	#else
+		PluginVideo::Video_Stop();
+	#endif
 
-	delete g_pThread; //Wait for emuthread to close
+	#ifdef _WIN32
+		/* I have to use this to avoid the hangings, it seems harmless and it works so I'm
+		   okay with it */
+		if (GetParent((HWND)g_pWindowHandle) == NULL)
+			delete g_pThread; // Wait for emuthread to close
+	#else
+		delete g_pThread;
+	#endif
 	g_pThread = 0;
 	Core::StopTrace();
 	LogManager::Shutdown();
 	Host_SetWaitCursor(false);
 }
 
+void Callback_DebuggerBreak()
+{
+	CCPU::EnableStepping(true);
+}
+
+const SCoreStartupParameter& GetStartupParameter()
+{
+	return g_CoreStartupParameter;
+}
+
+void* GetWindowHandle()
+{
+    return g_pWindowHandle;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Create the CPU thread
+// ¯¯¯¯¯¯¯¯¯¯
 THREAD_RETURN CpuThread(void *pArg)
 {
     Common::SetCurrentThreadName("CPU thread");
@@ -239,19 +277,21 @@ THREAD_RETURN CpuThread(void *pArg)
 	}
 	return 0;
 }
+//////////////////////////////////////////
 
-void Callback_DebuggerBreak()
-{
-	CCPU::EnableStepping(true);
-}
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Initalize plugins and create emulation thread
+// ¯¯¯¯¯¯¯¯¯¯
+	/* Call browser: Init():g_pThread(). See the BootManager.cpp file description for a completel
+		call schedule. */
 THREAD_RETURN EmuThread(void *pArg)
 {
 	Common::SetCurrentThreadName("Emuthread - starting");
 	const SCoreStartupParameter& _CoreParameter = *(SCoreStartupParameter*)pArg;
 
 	if (_CoreParameter.bLockThreads)
-		Common::Thread::SetCurrentThreadAffinity(2); //Force to second core
+		Common::Thread::SetCurrentThreadAffinity(2); // Force to second core
 	
 	LOG(OSREPORT, "Starting core = %s mode", _CoreParameter.bWii ? "Wii" : "Gamecube");
 	LOG(OSREPORT, "Dualcore = %s", _CoreParameter.bUseDualCore ? "Yes" : "No");
@@ -265,7 +305,8 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pGetMemoryPointer	= Memory::GetPointer;
 	VideoInitialize.pSetPEToken			= PixelEngine::SetToken;
 	VideoInitialize.pSetPEFinish		= PixelEngine::SetFinish;
-	VideoInitialize.pWindowHandle		= _CoreParameter.hMainWindow; //      NULL; // filled by video_initialize
+	// This is first the m_Panel handle, then it is updated to have the new window handle
+	VideoInitialize.pWindowHandle		= _CoreParameter.hMainWindow;
 	VideoInitialize.pLog				= Callback_VideoLog;
 	VideoInitialize.pSysMessage			= Host_SysMessage;
 	VideoInitialize.pRequestWindowSize	= NULL; //Callback_VideoRequestWindowSize;
@@ -278,7 +319,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pMemoryBase         = Memory::base;
 	VideoInitialize.pKeyPress           = Callback_KeyPress;
 	VideoInitialize.bWii                = _CoreParameter.bWii;
-	PluginVideo::Video_Initialize(&VideoInitialize);
+	PluginVideo::Video_Initialize(&VideoInitialize); // Call the dll
 
 	// Under linux, this is an X11 Display, not an HWND!
 	g_pWindowHandle = (HWND)VideoInitialize.pWindowHandle;
@@ -339,30 +380,31 @@ THREAD_RETURN EmuThread(void *pArg)
 	//In single core mode, the CPU thread does the graphics. In fact, the
 	//CPU thread should in this case also create the emuwindow...
 
-	//Spawn the CPU thread
+	// Spawn the CPU thread
 	Common::Thread *cpuThread = NULL;
+
 	//////////////////////////////////////////////////////////////////////////
 	// ENTER THE VIDEO THREAD LOOP
 	//////////////////////////////////////////////////////////////////////////
 	
 	if (!Core::GetStartupParameter().bUseDualCore)
 	{
-#ifdef _WIN32
-		cpuThread = new Common::Thread(CpuThread, pArg);
-		//Common::SetCurrentThreadName("Idle thread");
-		//TODO(ector) : investigate using GetMessage instead .. although
-		//then we lose the powerdown check. ... unless powerdown sends a message :P
-		while (PowerPC::state != PowerPC::CPU_POWERDOWN)
-		{
-			if (Callback_PeekMessages) {
-				Callback_PeekMessages();
+		#ifdef _WIN32
+			cpuThread = new Common::Thread(CpuThread, pArg);
+			//Common::SetCurrentThreadName("Idle thread");
+			//TODO(ector) : investigate using GetMessage instead .. although
+			//then we lose the powerdown check. ... unless powerdown sends a message :P
+			while (PowerPC::state != PowerPC::CPU_POWERDOWN)
+			{
+				if (Callback_PeekMessages) {
+					Callback_PeekMessages();
+				}
+				Common::SleepCurrentThread(20);
 			}
-			Common::SleepCurrentThread(20);
-		}
-#else
-		// In single-core mode, the Emulation main thread is also the CPU thread
-		CpuThread(pArg);
-#endif
+		#else
+			// In single-core mode, the Emulation main thread is also the CPU thread
+			CpuThread(pArg);
+		#endif
 	}
 	else
 	{
@@ -378,7 +420,8 @@ THREAD_RETURN EmuThread(void *pArg)
 	if (g_pUpdateFPSDisplay != NULL)
         g_pUpdateFPSDisplay("Stopping...");
 
-	if (cpuThread) {
+	if (cpuThread)
+	{
 		delete cpuThread;  // This joins the cpu thread.
 		// Returns after game exited
 		cpuThread = NULL;
@@ -408,6 +451,10 @@ THREAD_RETURN EmuThread(void *pArg)
 	return 0;
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Set or get the running state
+// ¯¯¯¯¯¯¯¯¯¯
 bool SetState(EState _State)
 {
 	switch(_State)
@@ -442,7 +489,12 @@ EState GetState()
 	}
 	return CORE_UNINITIALIZED;
 }
+///////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Save or recreate the emulation state
+// ¯¯¯¯¯¯¯¯¯¯
 void SaveState() {
     State_Save(0);
 }
@@ -450,11 +502,8 @@ void SaveState() {
 void LoadState() {
     State_Load(0);
 }
+///////////////////////////////////////
 
-const SCoreStartupParameter& GetStartupParameter()
-{
-	return g_CoreStartupParameter;
-}
 
 bool MakeScreenshot(const std::string &filename)
 {
@@ -468,10 +517,6 @@ bool MakeScreenshot(const std::string &filename)
 	return bResult;
 }
 
-void* GetWindowHandle()
-{
-    return g_pWindowHandle;
-}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // --- Callbacks for plugins / engine ---

@@ -142,10 +142,16 @@ void UpdateFPSDisplay(const char *text)
     OpenGL_SetWindowText(temp);
 }
 
+
 // =======================================================================================
-// Create window. Called from main.cpp
+// Create rendering window.
+//		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
+// ------------------
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight) 
 {
+	// --------------------------------------------
+	// Check for fullscreen mode
+	// ---------------
     int _twidth,  _theight;
     if (g_Config.bFullscreen)
     {
@@ -171,9 +177,12 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
             _theight = _iheight;
         }
     }
-#if defined(_WIN32)
-    EmuWindow::SetSize(_twidth, _theight);
-#endif
+
+	#if defined(_WIN32)
+		EmuWindow::SetSize(_twidth, _theight);
+	#endif
+	// ----------------------------
+
 
 	// ---------------------------------------------------------------------------------------
 	// Control window size and picture scaling
@@ -247,8 +256,14 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 
     GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
     //    GLWin.glCtxt->SetCurrent(*GLWin.glCanvas);
+
+
 #elif defined(_WIN32)
-    // create the window
+	// ---------------------------------------------------------------------------------------
+	// Create rendering window in Windows
+	// ----------------------
+
+    // Create the window
     if (!g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL)
 	{
 		g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, "Please wait...");
@@ -257,6 +272,8 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     {
         g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, "Please wait...");
     }
+
+	// Show the window
 	EmuWindow::Show();
 
 	if (g_VideoInitialize.pWindowHandle == NULL)
@@ -359,6 +376,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         MessageBox(NULL,"(4) Can't Create A GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION);
         return false;
     }
+	// --------------------------------------
 
 #elif defined(HAVE_X11) && HAVE_X11
     XVisualInfo *vi;

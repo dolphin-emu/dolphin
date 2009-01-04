@@ -109,11 +109,9 @@ ConfBool cbLoop( &bLoop, TEXT( "Loop" ), CONF_MODE_PUBLIC, false );
 
 
 
-
 ////////////////////////////////////////////////////////////////////////////////
-//
+// The first function that is called by the exe
 ////////////////////////////////////////////////////////////////////////////////
-//int WINAPI WinMain( HINSTANCE hInstance, HINSTANCE, LPSTR lpCmdLine, int nCmdShow )
 void Player_Main(bool Console)
 {
 	// =======================================================================================

@@ -28,6 +28,12 @@
 #include "../../../../Source/Core/DolphinWX/Src/Globals.h" // DolphinWX
 #include "../../../../Source/Core/DolphinWX/Src/Frame.h"
 
+#include "../../../../Source/Core/DolphinWX/resources/toolbar_plugin_dsp.c" // Icons
+#include "../../../../Source/Core/DolphinWX/resources/Boomy.h"
+#include "../../../../Source/Core/DolphinWX/resources/Vista.h"
+#include "../../../../Source/Core/DolphinWX/resources/KDE.h"
+#include "../../../../Source/Core/DolphinWX/resources/X-Plastik.h"
+
 #include "../../Common/Src/Console.h" // Local
 #include "../../Player/Src/PlayerExport.h" // Player
 //////////////////////////////////
@@ -127,15 +133,33 @@ void ShowConsole()
 
 #ifdef MUSICMOD
 void
-CFrame::MM_InitBitmaps()
+CFrame::MM_InitBitmaps(int Theme)
 {
-	// Gray version
+	// Define the log bitmaps
+	switch (Theme)
+	{
+	case BOOMY:
+		m_Bitmaps[Toolbar_Log] = wxGetBitmapFromMemory(Toolbar_Log_png);
+		break;
+	case VISTA:
+		m_Bitmaps[Toolbar_Log] = wxGetBitmapFromMemory(Toolbar_Log1_png);
+		break;
+	case XPLASTIK:
+		m_Bitmaps[Toolbar_Log] = wxGetBitmapFromMemory(Toolbar_Log2_png);
+		break;
+	case KDE:
+		m_Bitmaps[Toolbar_Log] = wxGetBitmapFromMemory(Toolbar_Log3_png);
+		break;
+	default: PanicAlert("Theme selection went wrong");
+	}	
 
-	//m_Bitmaps[Toolbar_PluginDSP_Dis] = wxBitmap(SetBrightness(m_Bitmaps[Toolbar_PluginDSP], 165, true));
+	// Create a gray version
 	m_Bitmaps[Toolbar_PluginDSP_Dis] = wxBitmap(SetBrightness(m_Bitmaps[Toolbar_PluginDSP], 165, true));
 	m_Bitmaps[Toolbar_Log_Dis] = wxBitmap(SetBrightness(m_Bitmaps[Toolbar_Log], 165, true));
-}
 
+	// Update in case the bitmap has been updated
+	//if (GetToolBar() != NULL) TheToolBar->FindById(Toolbar_Log)->SetNormalBitmap(m_Bitmaps[Toolbar_Log]);
+}
 
 
 void
@@ -164,7 +188,7 @@ CFrame::MM_PopulateGUI()
 	// -----------
 
 
-	wxToolBar* toolBar = theToolBar; // Shortcut
+	wxToolBar* toolBar = TheToolBar; // Shortcut
 
 	toolBar->AddSeparator();
 
@@ -195,7 +219,7 @@ CFrame::MM_PopulateGUI()
 
 
 
-	mm_ToolMute = toolBar->AddTool(IDM_MUTE, _T("Mute"),   m_Bitmaps[Toolbar_Play], _T("Mute music"));
+	mm_ToolMute = toolBar->AddTool(IDM_MUTE, _T("Mute"),   m_Bitmaps[Toolbar_PluginDSP], _T("Mute music"));
 	mm_ToolPlay = toolBar->AddTool(IDM_MUSIC_PLAY, _T("Play"),   m_Bitmaps[Toolbar_Play], _T("Play or pause music without pausing the game"));
 
 	// This cause the disabled tool bitmap to become some kind of monochrome version
@@ -232,34 +256,30 @@ CFrame::MM_PopulateGUI()
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Update GUI
+// ¯¯¯¯¯¯¯¯¯¯
 void
 CFrame::MM_UpdateGUI()
 {
-		// ---------------------------------------------------------------------------------------
 		if(MusicMod::GlobalMute)
 		{
-			//m_pMenuItemMute->SetText(_T("Play"));
-			//GetToolBar()->SetToolNormalBitmap(IDM_MUTE, m_Bitmaps[Toolbar_Pause]);
 			mm_ToolMute->SetLabel("Unmute");
 			mm_ToolMute->SetNormalBitmap(m_Bitmaps[Toolbar_PluginDSP_Dis]);
-			//m_ToolMute->SetToggle(true);
 		}
 		else
 		{
-			//GetToolBar()->SetToolNormalBitmap(IDM_MUTE, m_Bitmaps[Toolbar_PluginDSP]);
 			mm_ToolMute->SetLabel("Mute");
 			mm_ToolMute->SetNormalBitmap(m_Bitmaps[Toolbar_PluginDSP]);
 		}
 
 		if(MusicMod::GlobalPause)
 		{
-			//GetToolBar()->SetToolNormalBitmap(IDM_PAUSE, m_Bitmaps[Toolbar_Pause]);
 			mm_ToolPlay->SetLabel("Play");
 			mm_ToolPlay->SetNormalBitmap(m_Bitmaps[Toolbar_Play]);
 		}
 		else
 		{
-			//GetToolBar()->SetToolNormalBitmap(IDM_PAUSE, m_Bitmaps[Toolbar_PluginDSP]);
 			mm_ToolPlay->SetLabel("Pause");
 			mm_ToolPlay->SetNormalBitmap(m_Bitmaps[Toolbar_Pause]);
 		}
@@ -272,9 +292,8 @@ CFrame::MM_UpdateGUI()
 		{
 			mm_ToolLog->SetNormalBitmap(m_Bitmaps[Toolbar_Log_Dis]);
 		}
-		// ---------------------------------------------------------------------------------------
 }
-
+//////////////////////////////////
 
 
 
@@ -435,7 +454,7 @@ void CFrame::MM_OnLog(wxCommandEvent& event)
 	MusicMod::bShowConsole = !MusicMod::bShowConsole;
 
 	if(MusicMod::bShowConsole)
-		{ ShowConsole(); Player_Console(true); }
+		{ ShowConsole(); /*Player_Console(true);*/ }
 	else
 	{
 		#if defined (_WIN32)

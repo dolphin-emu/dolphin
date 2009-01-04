@@ -66,6 +66,12 @@ void SConfig::SaveSettings()
 
 	
 	{
+		// General		
+		ini.Set("Interface", "ConfirmStop", m_LocalCoreStartupParameter.bConfirmStop);
+		ini.Set("Interface", "HideCursor", m_LocalCoreStartupParameter.bHideCursor);
+		ini.Set("Interface", "AutoHideCursor", m_LocalCoreStartupParameter.bAutoHideCursor);
+		ini.Set("Interface", "Theme", m_LocalCoreStartupParameter.iTheme);
+
 		// Core
 		ini.Set("Core", "HLEBios",        m_LocalCoreStartupParameter.bHLEBios);
 		ini.Set("Core", "UseDynarec",     m_LocalCoreStartupParameter.bUseJIT);
@@ -77,7 +83,6 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "OptimizeQuantizers", m_LocalCoreStartupParameter.bOptimizeQuantizers);
 		ini.Set("Core", "EnableCheats", m_LocalCoreStartupParameter.bEnableCheats);
 		ini.Set("Core", "SelectedLanguage", m_LocalCoreStartupParameter.SelectedLanguage);
-		ini.Set("Interface", "ConfirmStop", m_LocalCoreStartupParameter.bConfirmStop);
 
 		ini.Set("Core", "RunCompareServer", m_LocalCoreStartupParameter.bRunCompareServer);
 		ini.Set("Core", "RunCompareClient", m_LocalCoreStartupParameter.bRunCompareClient);
@@ -157,6 +162,12 @@ void SConfig::LoadSettings()
 	}
 
 	{
+		// General interfance
+		ini.Get("Interface", "ConfirmStop", &m_LocalCoreStartupParameter.bConfirmStop, false);
+		ini.Get("Interface", "HideCursor", &m_LocalCoreStartupParameter.bHideCursor, false);
+		ini.Get("Interface", "AutoHideCursor", &m_LocalCoreStartupParameter.bAutoHideCursor, false);
+		ini.Get("Interface", "Theme", &m_LocalCoreStartupParameter.iTheme, 0);
+
 		// Core
 		ini.Get("Core", "HLEBios",     &m_LocalCoreStartupParameter.bHLEBios,		true);
 		ini.Get("Core", "UseDynarec",  &m_LocalCoreStartupParameter.bUseJIT,		true);
@@ -168,7 +179,6 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "OptimizeQuantizers", &m_LocalCoreStartupParameter.bOptimizeQuantizers, true);
 		ini.Get("Core", "EnableCheats", &m_LocalCoreStartupParameter.bEnableCheats, false);
 		ini.Get("Core", "SelectedLanguage", &m_LocalCoreStartupParameter.SelectedLanguage, 0);
-		ini.Get("Interface", "ConfirmStop", &m_LocalCoreStartupParameter.bConfirmStop, false);
 
 		ini.Get("Core", "RunCompareServer", &m_LocalCoreStartupParameter.bRunCompareServer, false);
 		ini.Get("Core", "RunCompareClient", &m_LocalCoreStartupParameter.bRunCompareClient, false);

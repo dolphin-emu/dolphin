@@ -191,14 +191,18 @@ void LogManager::Shutdown()
 {
 	m_bInitialized = false;
 
-	// delete all loggers
+	// Delete all loggers
 	for (int i=0; i<LogTypes::NUMBER_OF_LOGS; i++)
 	{
-		if (m_Log[i] != NULL)
+		for (int j = 0; j < VERBOSITY_LEVELS; j++)
 		{
-			m_Log[i]->Shutdown();
-			delete m_Log[i];
-			m_Log[i] = NULL;
+			int id = i + j*100;
+			if (m_Log[id] != NULL)
+			{
+				m_Log[id]->Shutdown();
+				delete m_Log[id];
+				m_Log[id] = NULL;
+			}
 		}
 	}
 

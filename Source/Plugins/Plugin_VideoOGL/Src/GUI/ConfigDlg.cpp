@@ -36,7 +36,6 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_FORCEFILTERING, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_STRETCHTOFIT, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_KEEPAR, ConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_HIDECURSOR, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_WIREFRAME, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SHOWFPS, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_STATISTICS, ConfigDialog::AdvancedSettingsChanged)
@@ -109,8 +108,6 @@ void ConfigDialog::CreateGUIControls()
 	m_StretchToFit->SetValue(g_Config.bStretchToFit);
 	m_KeepAR = new wxCheckBox(m_PageGeneral, ID_KEEPAR, wxT("Keep 4:3 aspect ratio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_KeepAR->SetValue(g_Config.bKeepAR);
-	m_HideCursor = new wxCheckBox(m_PageGeneral, ID_HIDECURSOR, wxT("Hide mouse cursor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_HideCursor->SetValue(g_Config.bHideCursor);
 
 	wxStaticText *FSText = new wxStaticText(m_PageGeneral, ID_FSTEXT, wxT("Fullscreen video mode:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_FullscreenCB = new wxComboBox(m_PageGeneral, ID_FULLSCREENCB, wxEmptyString, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, 0, wxDefaultValidator);
@@ -152,13 +149,12 @@ void ConfigDialog::CreateGUIControls()
 	sBasic->Add(m_RenderToMainWindow, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasic->Add(m_StretchToFit, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasic->Add(m_KeepAR, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasic->Add(m_HideCursor, wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasic->Add(FSText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sBasic->Add(m_FullscreenCB, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(WMText, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sBasic->Add(m_WindowResolutionCB, wxGBPosition(6, 1), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(BEText, wxGBPosition(7, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sBasic->Add(m_RenderBackend, wxGBPosition(7, 1), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(FSText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBasic->Add(m_FullscreenCB, wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(WMText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBasic->Add(m_WindowResolutionCB, wxGBPosition(5, 1), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(BEText, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sBasic->Add(m_RenderBackend, wxGBPosition(6, 1), wxGBSpan(1, 1), wxALL, 5);
 	sbBasic->Add(sBasic);
 	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
 
@@ -219,7 +215,7 @@ void ConfigDialog::CreateGUIControls()
 	m_EFBToTextureDisable->Enable(true);
 	m_EFBToTextureDisable->SetValue(g_Config.bEFBToTextureDisable);
 	m_EFBToTextureDisableHotKey = new wxCheckBox(m_PageAdvanced,
-		ID_EFBTOTEXTUREDISABLEHOTKEY, wxT("with hotkey E"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		ID_EFBTOTEXTUREDISABLEHOTKEY, wxT("With hotkey E"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_EFBToTextureDisableHotKey->SetToolTip(wxT("Use the E key to turn this option on and off"));
 #ifndef _WIN32
 	// JPeterson set the hot key to be Win32-specific
@@ -340,9 +336,6 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_KEEPAR:		
 		g_Config.bKeepAR = m_KeepAR->IsChecked();
-		break;
-	case ID_HIDECURSOR:
-		g_Config.bHideCursor = m_HideCursor->IsChecked();
 		break;
 	case ID_FULLSCREENCB:
 		strcpy(g_Config.iFSResolution, m_FullscreenCB->GetValue().mb_str() );

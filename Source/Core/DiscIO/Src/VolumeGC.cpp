@@ -38,6 +38,7 @@ CVolumeGC::CVolumeGC(IBlobReader* _pReader)
 CVolumeGC::~CVolumeGC()
 {
 	delete m_pReader;
+	m_pReader = NULL; // I don't think this makes any difference, but anyway
 }
 
 bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const

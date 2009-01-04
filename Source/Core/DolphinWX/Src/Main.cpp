@@ -15,6 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <vector>
 #include <string>
 #include "svnrev.h"
@@ -42,7 +46,12 @@
 #include "LogWindow.h"
 #include "ExtendedTrace.h"
 #include "BootManager.h"
+////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 IMPLEMENT_APP(DolphinApp)
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -79,134 +88,150 @@ LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
 	return EXCEPTION_CONTINUE_SEARCH;
 }
 #endif
+///////////////////////////////////
 
-// The `main program' equivalent, creating the windows and returning the
-// main frame
+
+/////////////////////////////////////////////////////////////
+/* The `main program' equivalent that creates the mai nwindow and return the main frame */
+// ¯¯¯¯¯¯¯¯¯
 bool DolphinApp::OnInit()
 {
-	DetectCPU();
-
-#if defined _DEBUG && defined _WIN32
-	int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
-	tmpflag |= _CRTDBG_DELAY_FREE_MEM_DF;
-	_CrtSetDbgFlag(tmpflag);
-#endif
-
-#if defined(HAVE_WX) && HAVE_WX
-	RegisterMsgAlertHandler(&wxMsgAlert);
-#endif
-
-#ifdef _WIN32
-	EXTENDEDTRACEINITIALIZE(".");
-	SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
-
-	// TODO: if First Boot
-	if (!cpu_info.bSSE2) 
-	{
-		MessageBox(0, _T("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
-			             "Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
-						 "Sayonara!\n"), "Dolphin", MB_ICONINFORMATION);
-		return false;
-	}
-#else
-	if (!cpu_info.bSSE2)
-	{
-		printf("%s", "Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
-               "Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
-    		   "Sayonara!\n");
-		exit(0);
-	}
-#endif
-
-	// ============
-	// Check for debugger
+	// Declarations and definitions
 	bool UseDebugger = false;
 	bool UseLogger = false;
 	bool LoadElf = false; wxString ElfFile;
 
-#if wxUSE_CMDLINE_PARSER
-	wxCmdLineEntryDesc cmdLineDesc[] =
-	{
+	// Detect CPU info and write it to the cpu_info struct
+	DetectCPU();
+	//
+	#if defined _DEBUG && defined _WIN32
+		int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+		tmpflag |= _CRTDBG_DELAY_FREE_MEM_DF;
+		_CrtSetDbgFlag(tmpflag);
+	#endif
+
+	// Register message box handler
+	#if defined(HAVE_WX) && HAVE_WX
+		RegisterMsgAlertHandler(&wxMsgAlert);
+	#endif
+
+
+	// ------------------------------------------
+	// Show CPU message
+	// ---------------
+	#ifdef _WIN32
+		EXTENDEDTRACEINITIALIZE(".");
+		SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
+
+		// TODO: if First Boot
+		if (!cpu_info.bSSE2) 
 		{
-			wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("Show this help message"),
-			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
-		},
-		{
-			wxCMD_LINE_SWITCH, _T("d"), _T("debugger"), _T("Opens the debugger")
-		},
-		{
-			wxCMD_LINE_SWITCH, _T("l"), _T("logger"), _T("Opens The Logger")
-		},
-		{
-			wxCMD_LINE_OPTION, _T("e"), _T("elf"), _T("Loads an elf file"),
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
-			wxCMD_LINE_NONE
+			MessageBox(0, _T("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
+							 "Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
+							 "Sayonara!\n"), "Dolphin", MB_ICONINFORMATION);
+			return false;
 		}
-	};
+	#else
+		if (!cpu_info.bSSE2)
+		{
+			printf("%s", "Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
+				   "Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
+				   "Sayonara!\n");
+			exit(0);
+		}
+	#endif
+	// ---------------
 
-#if defined(__APPLE__) 
-		// check to see if ~/Library/Application Support/Dolphin exists; if not, create it
-		char AppSupportDir[MAXPATHLEN];
-		snprintf(AppSupportDir, sizeof(AppSupportDir), "%s/Library/Application Support", getenv("HOME"));
-		if (!File::Exists(AppSupportDir) || !File::IsDirectory(AppSupportDir)) 
-			PanicAlert("Could not open ~/Library/Application Support");
 
-		strlcat(AppSupportDir, "/Dolphin", sizeof(AppSupportDir));
-		
-		if (!File::Exists(AppSupportDir))
-			File::CreateDir(AppSupportDir);
-		
-		if (!File::IsDirectory(AppSupportDir))
-			PanicAlert("~/Library/Application Support/Dolphin exists, but is not a directory");
-		
-		chdir(AppSupportDir);
+	// ------------------------------------------
+	// Parse command lines
+	// ---------------
+	#if wxUSE_CMDLINE_PARSER
+		wxCmdLineEntryDesc cmdLineDesc[] =
+		{
+			{
+				wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("Show this help message"),
+				wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
+			},
+			{
+				wxCMD_LINE_SWITCH, _T("d"), _T("debugger"), _T("Opens the debugger")
+			},
+			{
+				wxCMD_LINE_SWITCH, _T("l"), _T("logger"), _T("Opens The Logger")
+			},
+			{
+				wxCMD_LINE_OPTION, _T("e"), _T("elf"), _T("Loads an elf file"),
+				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+			},
+			{
+				wxCMD_LINE_NONE
+			}
+		};
 
-		if (!File::Exists("User")) File::CreateDir("User");
-		if (!File::Exists("User/GC")) File::CreateDir("User/GC");
-		
-        // HACK: Get rid of bogus osx param
-        if (argc > 1 && wxString(argv[argc - 1]).StartsWith(_("-psn_"))) {
-            delete argv[argc-1];
-            argv[argc-1] = NULL;
-            argc--;
-        }        
-#endif
+		#if defined(__APPLE__) 
+			// check to see if ~/Library/Application Support/Dolphin exists; if not, create it
+			char AppSupportDir[MAXPATHLEN];
+			snprintf(AppSupportDir, sizeof(AppSupportDir), "%s/Library/Application Support", getenv("HOME"));
+			if (!File::Exists(AppSupportDir) || !File::IsDirectory(AppSupportDir)) 
+				PanicAlert("Could not open ~/Library/Application Support");
 
-	// Gets the passed media files from command line
-	wxCmdLineParser parser(cmdLineDesc, argc, argv);
+			strlcat(AppSupportDir, "/Dolphin", sizeof(AppSupportDir));
+			
+			if (!File::Exists(AppSupportDir))
+				File::CreateDir(AppSupportDir);
+			
+			if (!File::IsDirectory(AppSupportDir))
+				PanicAlert("~/Library/Application Support/Dolphin exists, but is not a directory");
+			
+			chdir(AppSupportDir);
 
-	// Get filenames from the command line
-	if (parser.Parse() != 0)
-	{
-		return false;
-	} 
+			if (!File::Exists("User")) File::CreateDir("User");
+			if (!File::Exists("User/GC")) File::CreateDir("User/GC");
+			
+			// HACK: Get rid of bogus osx param
+			if (argc > 1 && wxString(argv[argc - 1]).StartsWith(_("-psn_"))) {
+				delete argv[argc-1];
+				argv[argc-1] = NULL;
+				argc--;
+			}        
+		#endif
 
-	UseDebugger = parser.Found(_T("debugger"));
-	UseLogger = parser.Found(_T("logger"));
-	LoadElf = parser.Found(_T("elf"), &ElfFile);
+		// Gets the passed media files from command line
+		wxCmdLineParser parser(cmdLineDesc, argc, argv);
 
-	if( LoadElf && ElfFile == wxEmptyString )
-		PanicAlert("You did not specify a file name");
+		// Get filenames from the command line
+		if (parser.Parse() != 0)
+		{
+			return false;
+		} 
 
-	// ============
-#endif
+		UseDebugger = parser.Found(_T("debugger"));
+		UseLogger = parser.Found(_T("logger"));
+		LoadElf = parser.Found(_T("elf"), &ElfFile);
 
+		if( LoadElf && ElfFile == wxEmptyString )
+			PanicAlert("You did not specify a file name");
+
+		// ============
+	#endif
+
+	// Load CONFIG_FILE settings
 	SConfig::GetInstance().LoadSettings();
-	wxInitAllImageHandlers();
-	// Create the main frame window
 
-#ifdef _DEBUG
-        const char *title = "Dolphin Debug SVN R " SVN_REV_STR;
-#else
-        const char *title = "Dolphin SVN R " SVN_REV_STR;
-#endif
+	// Enable the PNG image handler
+	wxInitAllImageHandlers(); 
+
+	// Create the window title
+	#ifdef _DEBUG
+			const char *title = "Dolphin Debug SVN R " SVN_REV_STR;
+	#else
+			const char *title = "Dolphin SVN R " SVN_REV_STR;
+	#endif
 
 	// ---------------------------------------------------------------------------------------
 	// If we are debugging let use save the main window position and size
 	// TODO: Save position and size on exit
-	// ---------
+	// ------------
 	IniFile ini;
 	ini.Load(DEBUGGER_CONFIG_FILE);
 
@@ -216,7 +241,7 @@ bool DolphinApp::OnInit()
 	ini.Get("MainWindow", "y", &y, 100);
 	ini.Get("MainWindow", "w", &w, 600);
 	ini.Get("MainWindow", "h", &h, 800);
-	// ---------
+	// -------------------
 	if(UseDebugger)
 	{
 		main_frame = new CFrame((wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
@@ -227,9 +252,10 @@ bool DolphinApp::OnInit()
 		main_frame = new CFrame((wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
 				wxPoint(100, 100), wxSize(800, 600));
 	}
-	// ---------
+	// ------------------
 
-	// Create debugger
+
+	// Create debugging window
 	if (UseDebugger)
 	{
 		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, main_frame);
@@ -237,15 +263,19 @@ bool DolphinApp::OnInit()
 	}
 	if(!UseDebugger && UseLogger)
 	{
-	#ifdef LOGGING
-		// We aren't using debugger, just logger
-		// Should be fine for a local copy
-		CLogWindow* m_LogWindow = new CLogWindow(main_frame);
-		m_LogWindow->Show(true);
-	#endif
-	} 
+		#ifdef LOGGING
+			// We aren't using debugger, just logger
+			// Should be fine for a local copy
+			CLogWindow* m_LogWindow = new CLogWindow(main_frame);
+			m_LogWindow->Show(true);
+		#endif
+	}
 
-	// First check if we have a elf command line
+
+	// ---------------------------------------------------
+	// Check the autoboot options. 
+	// ---------------------
+	// First check if we have a elf command line. Todo: Should we place this under #if wxUSE_CMDLINE_PARSER?
 	if (LoadElf && ElfFile != wxEmptyString)
 	{
 		BootManager::BootCore(std::string(ElfFile.ToAscii()));
@@ -267,7 +297,9 @@ bool DolphinApp::OnInit()
 			BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
 		}		
 	}
+	// ---------------------
 
+	// Set main parent window
 	SetTopWindow(main_frame);
 	return true;
 }
@@ -277,6 +309,8 @@ void DolphinApp::OnEndSession()
 {
 	SConfig::GetInstance().SaveSettings();
 }
+///////////////////////////////////////  Main window created
+
 
 /////////////////////////////////////////////////////////////
 /* We declare this here instead of in Common/MsgHandler.cpp because we want to keep Common
@@ -361,6 +395,9 @@ void Host_UpdateBreakPointView()
 }
 
 
+/////////////////////////////////////////////////////////////
+/* Update Wiimote status bar */
+// ¯¯¯¯¯¯¯¯¯
 void Host_UpdateLeds(int led_bits) {
 	// Convert it to a simpler byte format
 	main_frame->g_Leds[0] = led_bits >> 0;
@@ -376,7 +413,8 @@ void Host_UpdateSpeakerStatus(int index, int speaker_bits) {
 	main_frame->UpdateSpeakers();
 }
 
-void Host_UpdateStatus() {
+void Host_UpdateStatus()
+{
 	// Debugging
 	//std::string Tmp = ArrayToString(main_frame->g_Speakers, sizeof(main_frame->g_Speakers));
 	//std::string Tmp2 = ArrayToString(main_frame->g_Speakers_, sizeof(main_frame->g_Speakers_));
@@ -391,6 +429,8 @@ void Host_UpdateStatus() {
 		memcpy(main_frame->g_Speakers_, main_frame->g_Speakers, sizeof(main_frame->g_Speakers));
 	}
 }
+///////////////////////////
+
 
 void Host_UpdateMemoryView()
 {}

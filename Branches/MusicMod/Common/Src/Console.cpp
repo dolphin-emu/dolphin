@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <windows.h>
 //#include <tchar.h>
-
+/////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -36,30 +36,14 @@
 // Enable or disable logging to screen and file
 #define MM_DEBUG
 //#define MM_DEBUG_FILEONLY
-// ---------------------------------------------------------------------------------------
 
-// _T
-/*
-#ifdef _UNICODE
-#define _T(x)      L ## x
-#else // _UNICODE
-#define _T(x)      x
-#endif // _UNICODE
-
-To be used with
-	//wprintf(_T("Please enter a number:"));
-	//wprintf("Please enter a number");
-	//wprintf(L"Please enter a number");
-*/
-// ---------------------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------------------
 #ifdef MM_DEBUG
     FILE* __fStdOut = NULL;
 #endif
 #ifndef MM_DEBUG_FILEONLY
 	HANDLE __hStdOut = NULL;
 #endif
+
 /////////////////////////////
 
 
@@ -70,7 +54,6 @@ To be used with
 // Width and height is the size of console window, if you specify fname,
 // the output will also be writton to this file. The file pointer is automatically closed
 // when you close the app
-//void startConsoleWin(int width=80, int height=2225, char* fname = NULL);
 void StartConsoleWin(int width, int height, char* fname)
 {
 #ifdef MM_DEBUG
@@ -103,10 +86,12 @@ void StartConsoleWin(int width, int height, char* fname)
 
 #endif
 }
+/////////////////////////////
 
 
-// Use wprintf like TRACE0, TRACE1, ... (The arguments are the same as printf)
-//int wprintf(char *fmt, ...)
+//////////////////////////////////////////////////////////////////////////////////////////
+// Printf function
+// ¯¯¯¯¯¯¯¯¯¯
 int wprintf(char *fmt, ...)
 {
 #ifdef MM_DEBUG
@@ -120,14 +105,12 @@ int wprintf(char *fmt, ...)
 
 	DWORD cCharsWritten;
 
-	// ---------------------------------------------------------------------------------------
+	// ---------------------------------------------------------------------------------
 #ifndef MM_DEBUG_FILEONLY
 	if(__hStdOut)
-	{
 		WriteConsole(__hStdOut, s, strlen(s), &cCharsWritten, NULL);
-	}
 #endif
-	// ---------------------------------------------------------------------------------------
+	// ---------------------------------------------------------------------------------
 
 		if(__fStdOut)
 		{
@@ -140,3 +123,4 @@ int wprintf(char *fmt, ...)
 	return 0;
 #endif
 }
+/////////////////////////////

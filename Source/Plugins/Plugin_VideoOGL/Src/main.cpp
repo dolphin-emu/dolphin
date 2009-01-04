@@ -55,7 +55,9 @@ SVideoInitialize g_VideoInitialize;
    if the OpenGL plugin was loaded before. I'll try to fix that. Currently you may have to
    clsoe the window if it has auto started, and then restart it after the dll has loaded
    for the purpose of the game. At that point there is no need to use the same dll instance
-   as the one that is rendering the game. However, that could be done. */
+   as the one that is rendering the game. However, that could be done.
+   
+   Update: This crash seems to be gone for now. */
 
 #if defined(HAVE_WX) && HAVE_WX
 CDebugger* m_frame;
@@ -195,36 +197,43 @@ void DllConfig(HWND _hParent)
 #endif
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Initialize video
+// ¯¯¯¯¯¯¯¯¯¯
 void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 {
-    if (_pVideoInitialize == NULL)
-        return;
+	// When will this happen?
+    if (_pVideoInitialize == NULL) return;
 
-#ifdef _WIN32
-//    OpenConsole();
-#endif
-
-	/* Dolphin currently crashes if the dll is loaded when a game is started so we clsoe the
-	   debugger and open it again after loading */
+	// --------------------------------------------------
+	/* Dolphin currently crashes if the dll is loaded when a game is started so we close the
+	   debugger and open it again after loading
+	   
+	   Status: Currently it's working so no need for this */
 	/*
 	if(m_frame)
 	{
 		m_frame->EndModal(0); wxEntryCleanup();
 	}//use wxUninitialize() if you don't want GUI 
 	*/
+	// --------------------------------------------------	
 
     frameCount = 0;
-    g_VideoInitialize = *_pVideoInitialize;
+    g_VideoInitialize = *_pVideoInitialize; // Create a shortcut to _pVideoInitialize that can also update it
     InitLUTs();
 	InitXFBConvTables();
     g_Config.Load();
     
-    if (!OpenGL_Create(g_VideoInitialize, 640, 480)) { //640x480 will be the default if all else fails//
+    if (!OpenGL_Create(g_VideoInitialize, 640, 480)) // 640x480 will be the default if all else fails
+	{
         g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
         return;
     }
     _pVideoInitialize->pPeekMessages = g_VideoInitialize.pPeekMessages;
     _pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
+
+	// Now the window handle is written
     _pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
 
 	Renderer::AddMessage("Dolphin OpenGL Video Plugin" ,5000);

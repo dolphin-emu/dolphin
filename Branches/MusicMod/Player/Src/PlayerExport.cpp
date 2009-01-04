@@ -146,8 +146,7 @@ void Player_Volume(int a)
 
 void ShowConsole()
 {
-	//startConsoleWin(130, 10000, "Console Window"); // give room for 2000 rows
-	StartConsoleWin(100, 2000, "ConsoleDLL"); // give room for 2000 rows
+	StartConsoleWin(100, 2000, "MusicMod"); // give room for 2000 rows
 }
 
 
