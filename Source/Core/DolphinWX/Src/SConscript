@@ -12,7 +12,8 @@ files = [
 	]
 
 libs = [
-	'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'common', 'z'
+	'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'inputcommon', 
+	'common', 'z'
 	]
 
 if wxenv['HAVE_WX']:

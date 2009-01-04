@@ -1,0 +1,12 @@
+# -*- python -*- 
+
+Import('env')
+
+files = [
+	'EventHandler.cpp',
+	'InputCommon.cpp',
+	]
+
+env_inputcommon = env.Clone()
+env_inputcommon.Append(CXXFLAGS = [ '-fPIC' ])
+env_inputcommon.StaticLibrary("inputcommon", files)

@@ -82,6 +82,9 @@ const SPADStatus& PlayRecord()
 	return(recordBuffer[count++]);
 }
 
+// TODO: fix this dirty hack to stop missing symbols
+void __Log(int log, const char *format, ...) {}
+void __Logv(int log, int v, const char *format, ...) {}
 
 bool registerKey(int nPad, int id, sf::Key::Code code, int mods) {
 

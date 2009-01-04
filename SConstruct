@@ -51,6 +51,7 @@ include_paths = [
     '../../../../Externals/LZO',
     '../../../../Externals/WiiUseSrc/Src',
     '../../../Core/VideoCommon/Src',
+    '../../../Core/InputCommon/Src',
     ]
 
 dirs = [
@@ -61,6 +62,7 @@ dirs = [
     'Source/Core/Core/Src',
     'Source/Core/DiscIO/Src',
     'Source/Core/VideoCommon/Src',
+    'Source/Core/InputCommon/Src',
     'Source/Plugins/Plugin_VideoOGL/Src',
     'Source/Plugins/Plugin_DSP_HLE/Src',
     'Source/Plugins/Plugin_DSP_LLE/Src',
@@ -311,9 +313,9 @@ env['libs_dir'] = env['prefix'] + 'Libs/'
 #TODO where should this go?
 env['data_dir'] = env['prefix']
 
-env['RPATH'] +=  env['libs_dir']
+env['RPATH'].append(env['libs_dir'])
 
-env['LIBPATH'] += [ env['libs_dir'] ] 
+env['LIBPATH'].append(env['libs_dir']) 
 
 
 rev = utils.GenerateRevFile(env['flavor'], 

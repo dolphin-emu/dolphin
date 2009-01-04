@@ -18,7 +18,7 @@
 #ifndef __PADSIMPLE_H__
 #define __PADSIMPLE_H__  
 
-#include "EventHandler.h"
+#include "InputCommon.h"
 #define EPAD_CONFIG_FILE "epad.ini"
 // Controls
 enum

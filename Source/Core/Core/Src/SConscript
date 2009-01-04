@@ -15,7 +15,6 @@ files = ["Console.cpp",
          "State.cpp",
          "Tracer.cpp",
          "VolumeHandler.cpp",
-         "EventHandler.cpp",
          "Boot/Boot.cpp",
          "Boot/Boot_BIOSEmu.cpp",
          "Boot/Boot_DOL.cpp",
@@ -120,9 +119,10 @@ else:
              ]
 
 libs = [
-	'bdisasm'
+	'bdisasm',
+        'inputcommon',
 	]
 
 env_core = env.Clone();
 env_core.Append(CXXFLAGS = [ '-fPIC' ])
-env_core.StaticLibrary("core", files, LIBS=libs)
+env_core.StaticLibrary('core', files, LIBS=libs)

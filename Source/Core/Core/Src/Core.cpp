@@ -56,7 +56,7 @@
 #include "MemTools.h"
 #include "Host.h"
 #include "LogManager.h"
-#include "EventHandler.h"
+#include "InputCommon.h"
 
 #include "State.h"
 
@@ -68,7 +68,6 @@
 // glXMakeCurrent/ wglMakeCurrent takes a context and makes it current on the current thread.
 // So it's fine to init ogl on one thread, and then make it current and start blasting on another.
 
-EventHandler *eventHandler = NULL;;
 
 namespace Core
 {
@@ -124,11 +123,8 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 
 	g_CoreStartupParameter = _CoreParameter;
 	
-#if defined GLTEST && GLTEST
-	// init the event handler
-	eventHandler = new EventHandler();
-#endif
-
+	InputCommon::Init();
+	
 	// start the thread again
 	_dbg_assert_(HLE, g_pThread == NULL);
 
@@ -285,9 +281,9 @@ THREAD_RETURN EmuThread(void *pArg)
 	PluginVideo::Video_Initialize(&VideoInitialize);
 
 	// Under linux, this is an X11 Display, not an HWND!
-    g_pWindowHandle = (HWND)VideoInitialize.pWindowHandle;
-    Callback_PeekMessages = VideoInitialize.pPeekMessages;
-    g_pUpdateFPSDisplay = VideoInitialize.pUpdateFPSDisplay;
+	g_pWindowHandle = (HWND)VideoInitialize.pWindowHandle;
+	Callback_PeekMessages = VideoInitialize.pPeekMessages;
+	g_pUpdateFPSDisplay = VideoInitialize.pUpdateFPSDisplay;
 
     // Load and init DSPPlugin	
 	DSPInitialize dspInit;
@@ -401,9 +397,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	PluginVideo::Video_Shutdown();
 	PluginVideo::UnloadPlugin();
 
-	if (eventHandler)
-	    delete eventHandler;
-
+	InputCommon::Shutdown();
 	HW::Shutdown();
 
 	LOG(MASTER_LOG, "EmuThread exited");

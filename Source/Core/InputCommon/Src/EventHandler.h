@@ -46,6 +46,4 @@ public:
     static void SFKeyToString(sf::Key::Code keycode, char *keyStr);
 };
 
-extern EventHandler *eventHandler;
-
 #endif
