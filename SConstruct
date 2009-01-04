@@ -269,8 +269,9 @@ conf.Define('HAVE_COCOA', env['HAVE_COCOA'])
 # profile
 env['USE_OPROFILE'] = 0
 if (flavour == 'prof'): 
-    env['LIBPATH'] += [ '/usr/lib/oprofile' ]
-    env['RPATH'] += [ '/usr/lib/oprofile' ]
+    proflibs = [ '/usr/lib/oprofile', '/usr/local/lib/oprofile' ]
+    env['LIBPATH'].append(proflibs)
+    env['RPATH'].append(proflibs)
     if conf.CheckPKG('opagent'):
         env['USE_OPROFILE'] = 1
     else:
