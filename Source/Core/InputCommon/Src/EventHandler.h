@@ -12,8 +12,7 @@ enum InputType
     JoystickInput
 };
  
-enum Modifiers
-{
+enum Modifiers {
     UseAlt = 1,
     UseShift = 2,
     UseCtrl = 4
@@ -28,15 +27,15 @@ struct Keys
     sf::Mouse::Button mouseButton;
 };
 
-class EventHandler
-{
-private:
-    listenFuncPtr keys[sf::Key::Count][8];
-    listenFuncPtr mouse[sf::Mouse::Count];
-    listenFuncPtr joys[sf::Joy::Count];
-    std::queue<sf::Event> eventQueue;
+class EventHandler {
 
-public:
+private:
+    listenFuncPtr keys[sf::Key::Escape+1][8];
+    listenFuncPtr mouse[sf::Mouse::Count+1];
+    listenFuncPtr joys[sf::Joy::Count+1];
+    std::queue<sf::Event> eventQueue;
+ public:
+    EventHandler();
     bool RegisterEventListener(listenFuncPtr func, Keys key);
     bool RemoveEventListener(Keys key);
     void Update();

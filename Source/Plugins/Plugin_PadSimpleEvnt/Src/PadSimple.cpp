@@ -378,8 +378,8 @@ void LoadConfig()
 		file.Get(SectionName, controlNames[x],
 			 &key, (i==0)?defaultKeyForControl[x]:0);
 		
-		pad[i].keyForControl[x] = (sf::Key::Code)key;
-
+		//	pad[i].keyForControl[x] = (sf::Key::Code)key;
+		registerKey(i, x, (sf::Key::Code)key);
 	    }
 	}
 }

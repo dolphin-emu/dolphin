@@ -4,54 +4,51 @@
 #include <wx/wx.h>
 #endif
 
-bool EventHandler::RegisterEventListener(listenFuncPtr func, Keys key)
-{
-    if (key.inputType == KeyboardInput)
-	{
-		if (keys[key.keyCode][key.mods])
-			return false;
-		keys[key.keyCode][key.mods] = func;
-    }
-	else if (key.inputType == MouseInput)
-	{
-		if (mouse[key.mouseButton])
-			return false;
-		mouse[key.mouseButton] = func;
-    }
+EventHandler::EventHandler() {
+    memset(keys, sizeof(listenFuncPtr) * (sf::Key::Escape+1)*8, 0);
+    memset(mouse, sizeof(listenFuncPtr) * (sf::Mouse::Count+1), 0);
+    memset(joys, sizeof(listenFuncPtr) * (sf::Joy::Count+1), 0);
+ }
 
+bool EventHandler::RegisterEventListener(listenFuncPtr func, Keys key) {
+    if (key.inputType == KeyboardInput) {
+	fprintf(stderr, "Registering %d\n", key.keyCode);
+	if (key.keyCode == sf::Key::Count || 
+	    key.keyCode >= sf::Key::Escape || keys[key.keyCode][key.mods])
+	    return false;
+	keys[key.keyCode][key.mods] = func;
+    } else if (key.inputType == MouseInput) {
+	if (mouse[key.mouseButton])
+	    return false;
+	mouse[key.mouseButton] = func;
+    }
+    
     return true;
 }
 
-bool EventHandler::RemoveEventListener(Keys key)
-{
-    if (key.inputType == KeyboardInput)
-	{
-		if (! keys[key.keyCode][key.mods])
-			return false;
-		keys[key.keyCode][key.mods] = NULL;
+bool EventHandler::RemoveEventListener(Keys key) {
+    if (key.inputType == KeyboardInput) {
+	if ((key.keyCode == sf::Key::Count || key.keyCode >= sf::Key::Escape) &&  ! keys[key.keyCode][key.mods])
+	    return false;
+	keys[key.keyCode][key.mods] = NULL;
+    } else if (key.inputType == MouseInput) {
+	if (! mouse[key.mouseButton])
+	    return false;
+	mouse[key.mouseButton] = NULL;
     }
-	else if (key.inputType == MouseInput)
-	{
-		if (! mouse[key.mouseButton])
-			return false;
-		mouse[key.mouseButton] = NULL;
-    }
-
+    
     return true; 
 }
 
-void EventHandler::Update()
-{
-    for (unsigned int i = 0; i < eventQueue.size();i++)
-	{
-		sf::Event ev = eventQueue.front();
-		eventQueue.pop();
-		keys[ev.Key.Code][ev.Key.Alt+2*ev.Key.Shift+4*ev.Key.Control](ev);
+void EventHandler::Update() {
+    for (unsigned int i = 0; i < eventQueue.size();i++) {
+	sf::Event ev = eventQueue.front();
+	eventQueue.pop();
+	keys[ev.Key.Code][ev.Key.Alt+2*ev.Key.Shift+4*ev.Key.Control](ev);
     }
 }
 
-bool EventHandler::addEvent(sf::Event *ev)
-{
+bool EventHandler::addEvent(sf::Event *ev) {
     eventQueue.push(*ev);
     return true;
 }
@@ -162,8 +159,7 @@ sf::Key::Code EventHandler::wxCharCodeToSF(int id)
 }
 #endif
 
-void EventHandler::SFKeyToString(sf::Key::Code keycode, char *keyStr)
-{
+void EventHandler::SFKeyToString(sf::Key::Code keycode, char *keyStr) {
     switch (keycode) {
 /*  case sf::Key::A = 'a': sprintf(keyStr, "UP"); break;
     case sf::Key::B = 'b': sprintf(keyStr, "UP"); break;
@@ -266,6 +262,11 @@ void EventHandler::SFKeyToString(sf::Key::Code keycode, char *keyStr)
     case sf::Key::F14:         sprintf(keyStr, "F14"); break;
     case sf::Key::F15:         sprintf(keyStr, "F15"); break;
     case sf::Key::Pause:       sprintf(keyStr, "Paues"); break;
-    default:                   sprintf(keyStr, "%c", keycode);
+    default:                   
+	if (keycode > sf::Key::Escape)
+	    sprintf(keyStr, "Invalid Key");
+	else
+	    sprintf(keyStr, "%c", keycode);
+	break;
     }
 }

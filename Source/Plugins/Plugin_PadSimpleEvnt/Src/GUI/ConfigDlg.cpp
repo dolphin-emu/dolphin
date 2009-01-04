@@ -65,140 +65,135 @@ ConfigDialog::~ConfigDialog()
 }
 
 inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
-					   const char *name, int ctl, int controller)
-{
-	wxBoxSizer *hButton = new wxBoxSizer(wxHORIZONTAL);
-	char keyStr[10] = {0};
-
-	hButton->Add(new wxStaticText(pan, 0, wxString::FromAscii(name), 
-				 wxDefaultPosition, wxDefaultSize), 0,
-				 wxALIGN_CENTER_VERTICAL|wxALL);
-	EventHandler::SFKeyToString(pad[controller].keyForControl[ctl], keyStr);
-
-	*button = new wxButton(pan, ctl, wxString::FromAscii(keyStr), 
-		                   wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
-
-	hButton->Add(*button, 0, wxALIGN_RIGHT|wxALL);
-
-	sizer->Add(hButton, 0, wxALIGN_RIGHT|wxALL);
+		       const char *name, int ctl, int controller) {
+    wxBoxSizer *hButton = new wxBoxSizer(wxHORIZONTAL);
+    char keyStr[10] = {0};
+    
+    hButton->Add(new wxStaticText(pan, 0, wxString::FromAscii(name), 
+				  wxDefaultPosition, wxDefaultSize), 0,
+		 wxALIGN_CENTER_VERTICAL|wxALL);
+    EventHandler::SFKeyToString(pad[controller].keyForControl[ctl], keyStr);
+    
+    *button = new wxButton(pan, ctl, wxString::FromAscii(keyStr), 
+			   wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
+    
+    hButton->Add(*button, 0, wxALIGN_RIGHT|wxALL);
+    
+    sizer->Add(hButton, 0, wxALIGN_RIGHT|wxALL);
 }
 
-void ConfigDialog::CreateGUIControls()
-{
-	// Notebook
-	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
+void ConfigDialog::CreateGUIControls() {
+    // Notebook
+    m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
+    
+    // Controller pages
+    m_Controller[0] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE1, wxDefaultPosition, wxDefaultSize);
+    m_Notebook->AddPage(m_Controller[0], wxT("Controller 1"));
+    m_Controller[1] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE2, wxDefaultPosition, wxDefaultSize);
+    m_Notebook->AddPage(m_Controller[1], wxT("Controller 2"));
+    m_Controller[2] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE3, wxDefaultPosition, wxDefaultSize);
+    m_Notebook->AddPage(m_Controller[2], wxT("Controller 3"));
+    m_Controller[3] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE4, wxDefaultPosition, wxDefaultSize);
+    m_Notebook->AddPage(m_Controller[3], wxT("Controller 4"));
+    
+    // Standard buttons
+    m_Close = new wxButton(this, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+    m_About = new wxButton(this, ID_PAD_ABOUT, wxT("About"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+    
+    // Put notebook and standard buttons in sizers
+    wxBoxSizer* sSButtons;
+    sSButtons = new wxBoxSizer(wxHORIZONTAL);
+    sSButtons->Add(m_About,0,wxALL, 5);
+    sSButtons->Add(0, 0, 1, wxEXPAND, 5);
+    sSButtons->Add(m_Close, 0, wxALL, 5);
+    
+    wxBoxSizer* sMain;
+    sMain = new wxBoxSizer(wxVERTICAL);
+    sMain->Add(m_Notebook, 1, wxEXPAND|wxALL, 5);
+    sMain->Add(sSButtons, 0, wxEXPAND, 5);
+    
+    this->SetSizer(sMain);
+    this->Layout();
 	
-	// Controller pages
-	m_Controller[0] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE1, wxDefaultPosition, wxDefaultSize);
-	m_Notebook->AddPage(m_Controller[0], wxT("Controller 1"));
-	m_Controller[1] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE2, wxDefaultPosition, wxDefaultSize);
-	m_Notebook->AddPage(m_Controller[1], wxT("Controller 2"));
-	m_Controller[2] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE3, wxDefaultPosition, wxDefaultSize);
-	m_Notebook->AddPage(m_Controller[2], wxT("Controller 3"));
-	m_Controller[3] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE4, wxDefaultPosition, wxDefaultSize);
-	m_Notebook->AddPage(m_Controller[3], wxT("Controller 4"));
+    for(int i = 0; i < 4; i++) {
+	sbDevice[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Controller Settings"));
+	sDevice[i] = new wxBoxSizer(wxHORIZONTAL);
+	m_Attached[i] = new wxCheckBox(m_Controller[i], ID_ATTACHED, wxT("Controller attached"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Disable[i] = new wxCheckBox(m_Controller[i], ID_DISABLE, wxT("Disable when Dolphin is not in focus"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Attached[i]->SetValue(pad[i].bAttached);
+	m_Disable[i]->SetValue(pad[i].bDisable);
 	
-	// Standard buttons
-	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_About = new wxButton(this, ID_PAD_ABOUT, wxT("About"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	sDevice[i]->Add(m_Attached[i], 0, wxEXPAND|wxALL, 1);
+	sDevice[i]->AddStretchSpacer();
+	sDevice[i]->Add(m_Disable[i], 0, wxEXPAND|wxALL, 1);
+	sbDevice[i]->Add(sDevice[i], 0, wxEXPAND|wxALL, 1);
 	
-	// Put notebook and standard buttons in sizers
-	wxBoxSizer* sSButtons;
-	sSButtons = new wxBoxSizer(wxHORIZONTAL);
-	sSButtons->Add(m_About,0,wxALL, 5);
-	sSButtons->Add(0, 0, 1, wxEXPAND, 5);
-	sSButtons->Add(m_Close, 0, wxALL, 5);
+	sButtons[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Buttons"));
 	
-	wxBoxSizer* sMain;
-	sMain = new wxBoxSizer(wxVERTICAL);
-	sMain->Add(m_Notebook, 1, wxEXPAND|wxALL, 5);
-	sMain->Add(sSButtons, 0, wxEXPAND, 5);
+	AddControl(m_Controller[i], &(m_ButtonA[i]), sButtons[i], "A: ", CTL_A, i);
+	AddControl(m_Controller[i], &(m_ButtonB[i]), sButtons[i], "B: ", CTL_B, i);
+	AddControl(m_Controller[i], &(m_ButtonX[i]), sButtons[i], "X: ", CTL_X, i);
+	AddControl(m_Controller[i], &(m_ButtonY[i]), sButtons[i], "Y: ", CTL_Y, i);
+	AddControl(m_Controller[i], &(m_ButtonZ[i]), sButtons[i], "Z: ", CTL_Z, i);
+	AddControl(m_Controller[i], &(m_ButtonStart[i]), sButtons[i], "Start: ", CTL_START, i);
 	
-	this->SetSizer(sMain);
-	this->Layout();
-
-	for(int i = 0; i < 4; i++)
-	{
-		sbDevice[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Controller Settings"));
-		sDevice[i] = new wxBoxSizer(wxHORIZONTAL);
-		m_Attached[i] = new wxCheckBox(m_Controller[i], ID_ATTACHED, wxT("Controller attached"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_Disable[i] = new wxCheckBox(m_Controller[i], ID_DISABLE, wxT("Disable when Dolphin is not in focus"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_Attached[i]->SetValue(pad[i].bAttached);
-		m_Disable[i]->SetValue(pad[i].bDisable);
-
-		sDevice[i]->Add(m_Attached[i], 0, wxEXPAND|wxALL, 1);
-		sDevice[i]->AddStretchSpacer();
-		sDevice[i]->Add(m_Disable[i], 0, wxEXPAND|wxALL, 1);
-		sbDevice[i]->Add(sDevice[i], 0, wxEXPAND|wxALL, 1);
-
-		sButtons[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Buttons"));
-
-		AddControl(m_Controller[i], &(m_ButtonA[i]), sButtons[i], "A: ", CTL_A, i);
-		AddControl(m_Controller[i], &(m_ButtonB[i]), sButtons[i], "B: ", CTL_B, i);
-		AddControl(m_Controller[i], &(m_ButtonX[i]), sButtons[i], "X: ", CTL_X, i);
-		AddControl(m_Controller[i], &(m_ButtonY[i]), sButtons[i], "Y: ", CTL_Y, i);
-		AddControl(m_Controller[i], &(m_ButtonZ[i]), sButtons[i], "Z: ", CTL_Z, i);
-		AddControl(m_Controller[i], &(m_ButtonStart[i]), sButtons[i], "Start: ", CTL_START, i);
-
-		sTriggers[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Triggers"));
-
-		AddControl(m_Controller[i], &(m_ButtonL[i]), sTriggers[i], "        L: ", CTL_L, i);
-		AddControl(m_Controller[i], &(m_ButtonR[i]), sTriggers[i], "        R: ", CTL_R, i);
-
-		sModifiers[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Modifiers"));
-
-		AddControl(m_Controller[i], &(m_HalfPress[i]), sModifiers[i], "1/2 Press: ", CTL_HALFPRESS, i);
-
-		sStick[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Main Stick"));
-
-		AddControl(m_Controller[i], &(m_StickUp[i]), sStick[i], "Up: ", CTL_MAINUP, i);
-		AddControl(m_Controller[i], &(m_StickDown[i]), sStick[i], "Down: ", CTL_MAINDOWN, i);
-		AddControl(m_Controller[i], &(m_StickLeft[i]), sStick[i], "Left: ", CTL_MAINLEFT, i);
-		AddControl(m_Controller[i], &(m_StickRight[i]), sStick[i], "Right: ", CTL_MAINRIGHT, i);
-
-		sDPad[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("D-Pad"));
-
-		AddControl(m_Controller[i], &(m_DPadUp[i]), sDPad[i], "Up: ", CTL_DPADUP, i);
-		AddControl(m_Controller[i], &(m_DPadDown[i]), sDPad[i], "Down: ", CTL_DPADDOWN, i);
-		AddControl(m_Controller[i], &(m_DPadLeft[i]), sDPad[i], "Left: ", CTL_DPADLEFT, i);
-		AddControl(m_Controller[i], &(m_DPadRight[i]), sDPad[i], "Right: ", CTL_DPADRIGHT, i);
-
-		sCStick[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("C-Stick"));
-
-		AddControl(m_Controller[i], &(m_CStickUp[i]), sCStick[i], "Up: ", CTL_SUBUP, i);
-		AddControl(m_Controller[i], &(m_CStickDown[i]), sCStick[i], "Down: ", CTL_SUBDOWN, i);
-		AddControl(m_Controller[i], &(m_CStickLeft[i]), sCStick[i], "Left: ", CTL_SUBLEFT, i);
-		AddControl(m_Controller[i], &(m_CStickRight[i]), sCStick[i], "Right: ", CTL_SUBRIGHT, i);
-
-		sPage[i] = new wxGridBagSizer(0, 0);
-		sPage[i]->SetFlexibleDirection(wxBOTH);
-		sPage[i]->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
-		sPage[i]->Add(sbDevice[i], wxGBPosition(0, 0), wxGBSpan(1, 5), wxEXPAND|wxALL, 1);
-		sPage[i]->Add(sButtons[i], wxGBPosition(1, 0), wxGBSpan(2, 1), wxALL, 1);
-		sPage[i]->Add(sTriggers[i], wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 1);
-		sPage[i]->Add(sModifiers[i], wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 1);
-		sPage[i]->Add(sStick[i], wxGBPosition(1, 2), wxGBSpan(2, 1), wxALL, 1);
-		sPage[i]->Add(sDPad[i], wxGBPosition(1, 3), wxGBSpan(2, 1), wxALL, 1);
-		sPage[i]->Add(sCStick[i], wxGBPosition(1, 4), wxGBSpan(2, 1), wxALL, 1);
-		m_Controller[i]->SetSizer(sPage[i]);
-		sPage[i]->Layout();
-	}
+	sTriggers[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Triggers"));
+	
+	AddControl(m_Controller[i], &(m_ButtonL[i]), sTriggers[i], "        L: ", CTL_L, i);
+	AddControl(m_Controller[i], &(m_ButtonR[i]), sTriggers[i], "        R: ", CTL_R, i);
+	
+	sModifiers[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Modifiers"));
+	
+	AddControl(m_Controller[i], &(m_HalfPress[i]), sModifiers[i], "1/2 Press: ", CTL_HALFPRESS, i);
+	
+	sStick[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Main Stick"));
+	
+	AddControl(m_Controller[i], &(m_StickUp[i]), sStick[i], "Up: ", CTL_MAINUP, i);
+	AddControl(m_Controller[i], &(m_StickDown[i]), sStick[i], "Down: ", CTL_MAINDOWN, i);
+	AddControl(m_Controller[i], &(m_StickLeft[i]), sStick[i], "Left: ", CTL_MAINLEFT, i);
+	AddControl(m_Controller[i], &(m_StickRight[i]), sStick[i], "Right: ", CTL_MAINRIGHT, i);
+	
+	sDPad[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("D-Pad"));
+	
+	AddControl(m_Controller[i], &(m_DPadUp[i]), sDPad[i], "Up: ", CTL_DPADUP, i);
+	AddControl(m_Controller[i], &(m_DPadDown[i]), sDPad[i], "Down: ", CTL_DPADDOWN, i);
+	AddControl(m_Controller[i], &(m_DPadLeft[i]), sDPad[i], "Left: ", CTL_DPADLEFT, i);
+	AddControl(m_Controller[i], &(m_DPadRight[i]), sDPad[i], "Right: ", CTL_DPADRIGHT, i);
+	
+	sCStick[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("C-Stick"));
+	
+	AddControl(m_Controller[i], &(m_CStickUp[i]), sCStick[i], "Up: ", CTL_SUBUP, i);
+	AddControl(m_Controller[i], &(m_CStickDown[i]), sCStick[i], "Down: ", CTL_SUBDOWN, i);
+	AddControl(m_Controller[i], &(m_CStickLeft[i]), sCStick[i], "Left: ", CTL_SUBLEFT, i);
+	AddControl(m_Controller[i], &(m_CStickRight[i]), sCStick[i], "Right: ", CTL_SUBRIGHT, i);
+	
+	sPage[i] = new wxGridBagSizer(0, 0);
+	sPage[i]->SetFlexibleDirection(wxBOTH);
+	sPage[i]->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
+	sPage[i]->Add(sbDevice[i], wxGBPosition(0, 0), wxGBSpan(1, 5), wxEXPAND|wxALL, 1);
+	sPage[i]->Add(sButtons[i], wxGBPosition(1, 0), wxGBSpan(2, 1), wxALL, 1);
+	sPage[i]->Add(sTriggers[i], wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 1);
+	sPage[i]->Add(sModifiers[i], wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 1);
+	sPage[i]->Add(sStick[i], wxGBPosition(1, 2), wxGBSpan(2, 1), wxALL, 1);
+	sPage[i]->Add(sDPad[i], wxGBPosition(1, 3), wxGBSpan(2, 1), wxALL, 1);
+	sPage[i]->Add(sCStick[i], wxGBPosition(1, 4), wxGBSpan(2, 1), wxALL, 1);
+	m_Controller[i]->SetSizer(sPage[i]);
+	sPage[i]->Layout();
+    }
 }
 
-void ConfigDialog::OnClose(wxCloseEvent& event)
-{
-	EndModal(0);
+void ConfigDialog::OnClose(wxCloseEvent& event) {
+    EndModal(0);
 }
 
-void ConfigDialog::OnKeyDown(wxKeyEvent& event)
-{
+void ConfigDialog::OnKeyDown(wxKeyEvent& event) {
     if(clickedButton != NULL) {
 	int page = m_Notebook->GetSelection();
 	
 	sf::Key::Code sfcode = EventHandler::wxCharCodeToSF(event.GetKeyCode());
 	char sfstr[100];
 	EventHandler::SFKeyToString(sfcode, sfstr);
-
+	
 	//	pad[page].keyForControl[clickedButton->GetId()] = sfcode;	
 	if (registerKey(page, clickedButton->GetId(), sfcode))
 	    clickedButton->SetLabel(wxString::FromAscii(sfstr));
@@ -211,37 +206,35 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 
 void ConfigDialog::OnCloseClick(wxCommandEvent& event)
 {
-	Close();
+    Close();
 }
 
 void ConfigDialog::ControllerSettingsChanged(wxCommandEvent& event)
 {
-	int page = m_Notebook->GetSelection();
-
-	switch (event.GetId())
-	{
-	case ID_ATTACHED:
-		pad[page].bAttached = m_Attached[page]->GetValue();
-		break;
-	case ID_DISABLE:
-		pad[page].bDisable = m_Disable[page]->GetValue();
-		break;
-	}
+    int page = m_Notebook->GetSelection();
+    
+    switch (event.GetId()) {
+    case ID_ATTACHED:
+	pad[page].bAttached = m_Attached[page]->GetValue();
+	break;
+    case ID_DISABLE:
+	pad[page].bDisable = m_Disable[page]->GetValue();
+	break;
+    }
 }
 
 void ConfigDialog::OnButtonClick(wxCommandEvent& event)
 {
-	if(clickedButton)
-	{
-		clickedButton->SetLabel(oldLabel);
-	}
-	clickedButton = (wxButton *)event.GetEventObject();
-	oldLabel = clickedButton->GetLabel();
-	clickedButton->SetLabel(_("Press Key"));
-
+    if(clickedButton) {
+	clickedButton->SetLabel(oldLabel);
+    }
+    clickedButton = (wxButton *)event.GetEventObject();
+    oldLabel = clickedButton->GetLabel();
+    clickedButton->SetLabel(_("Press Key"));
+    
     clickedButton->Connect(wxID_ANY, wxEVT_KEY_DOWN,
-                           wxKeyEventHandler(ConfigDialog::OnKeyDown),
-                           (wxObject*)NULL, this);
+			   wxKeyEventHandler(ConfigDialog::OnKeyDown),
+			   (wxObject*)NULL, this);
 }
 void ConfigDialog::DllAbout(wxCommandEvent& event)
 {
