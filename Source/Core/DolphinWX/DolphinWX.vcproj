@@ -96,7 +96,7 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\..\Externals\wxWidgets\lib;..\..\..\Externals\LZO\win32\$(ConfigurationName)"
 				IgnoreAllDefaultLibraries="false"
-				IgnoreDefaultLibraryNames="msvcprt msvcrt libcmt libcpmt"
+				IgnoreDefaultLibraryNames="msvcrt"
 				GenerateDebugInformation="false"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
 				GenerateMapFile="false"
