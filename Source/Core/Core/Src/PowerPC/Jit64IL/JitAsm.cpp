@@ -218,56 +218,37 @@ void AsmRoutineManager::GenQuantizedStores() {
 	const u8* storePairedIllegal = AlignCode4();
 	UD2();
 	const u8* storePairedFloat = AlignCode4();
-	if (cpu_info.bSSSE3) {
-		PSHUFB(XMM0, M((void *)pbswapShuffle2x4));
 #ifdef _M_X64
-		MOVQ_xmm(MComplex(RBX, RCX, 1, 0), XMM0);
+	MOVQ_xmm(R(RAX), XMM0);
+	ROL(64, RAX, Imm8(32));
+	TEST(32, R(ECX), Imm32(0x0C000000));
+	FixupBranch argh = J_CC(CC_NZ);
+	BSWAP(64, RAX);
+	MOV(64, MComplex(RBX, RCX, 1, 0), R(RAX));
+	FixupBranch arg2 = J();
+	SetJumpTarget(argh);
+	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U64, 2), RAX, RCX); 
+	SetJumpTarget(arg2);
 #else
-		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-		MOVQ_xmm(MDisp(ECX, (u32)Memory::base), XMM0);
+	MOVQ_xmm(M(&psTemp[0]), XMM0);
+	TEST(32, R(ECX), Imm32(0x0C000000));
+	FixupBranch argh = J_CC(CC_NZ);
+	MOV(32, R(EAX), M(&psTemp));
+	BSWAP(32, EAX);
+	AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
+	MOV(32, MDisp(ECX, (u32)Memory::base), R(EAX));
+	MOV(32, R(EAX), M(((char*)&psTemp) + 4));
+	BSWAP(32, EAX);
+	MOV(32, MDisp(ECX, 4+(u32)Memory::base), R(EAX));
+	FixupBranch arg2 = J();
+	SetJumpTarget(argh);
+	MOV(32, R(EAX), M(((char*)&psTemp)));
+	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), EAX, ECX); 
+	MOV(32, R(EAX), M(((char*)&psTemp)+4));
+	ADD(32, R(ECX), Imm32(4));
+	ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), EAX, ECX); 
+	SetJumpTarget(arg2);
 #endif
-	} else {
-#ifdef _M_X64
-		MOVQ_xmm(R(RCX), XMM0);
-		ROL(64, RCX, Imm8(32));
-		BSWAP(64, RCX);
-		MOV(64, MComplex(RBX, RCX, 1, 0), R(RCX));
-#else
-#if 0
-		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-		MOVQ_xmm(XMM0, MDisp(ECX, (u32)Memory::base));
-		PXOR(XMM1, R(XMM1));
-		PSHUFLW(XMM0, R(XMM0), 0xB1);
-		MOVAPD(XMM1, R(XMM0));
-		PSRLW(XMM0, 8);
-		PSLLW(XMM1, 8);
-		POR(XMM0, R(XMM1));
-#else
-		MOVQ_xmm(M(&psTemp[0]), XMM0);
-#if 0
-		TEST(32, R(ECX), Imm32(0x0C000000));
-		FixupBranch argh = J_CC(CC_NZ);
-		MOV(32, R(EAX), M(&psTemp));
-		BSWAP(32, EAX);
-		AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-		MOV(32, MDisp(ECX, (u32)Memory::base), R(EAX));
-		MOV(32, R(EAX), M(((char*)&psTemp) + 4));
-		BSWAP(32, EAX);
-		MOV(32, MDisp(ECX, 4+(u32)Memory::base), R(EAX));
-		FixupBranch arg2 = J();
-		SetJumpTarget(argh);
-#endif
-		MOV(32, R(EAX), M(((char*)&psTemp)));
-		ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), EAX, ECX); 
-		MOV(32, R(EAX), M(((char*)&psTemp)+4));
-		ADD(32, R(ECX), Imm32(4));
-		ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), EAX, ECX); 
-#if 0
-		SetJumpTarget(arg2);
-#endif
-#endif
-#endif
-	}
 	RET();
 
 	const u8* storePairedU8 = AlignCode4();
