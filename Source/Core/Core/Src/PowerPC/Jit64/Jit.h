@@ -27,6 +27,9 @@
 //   * A flush simply does a conditional write to the appropriate CRx.
 //   * If flag available, branch code can become absolutely trivial.
 
+#ifdef JITTEST
+#include "../Jit64IL/Jit.h"
+#else
 #ifndef _JIT_H
 #define _JIT_H
 
@@ -292,4 +295,4 @@ extern Jit64 jit;
 void Jit(u32 em_address);
 
 #endif
-
+#endif

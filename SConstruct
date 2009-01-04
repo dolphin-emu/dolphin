@@ -99,6 +99,7 @@ vars.AddVariables(
     BoolVariable('wxgl', 'Set For Building with WX GL libs (WIP)', False),
     BoolVariable('sdlgl', 'Set For Building with SDL GL libs (WIP)', False),
     BoolVariable('gltest', 'temp don\'t use (WIP)', False),
+    BoolVariable('jittest', 'temp don\'t use (WIP)', False),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
                  allowed_values = ('release', 'devel', 'debug', 'fastlog'),
                  ignorecase = 2
@@ -239,6 +240,12 @@ if env['gltest']:
     env['GLTEST'] = 1
 
 conf.Define('GLTEST', env['GLTEST'])
+
+env['JITTEST'] = 0
+if env['jittest']:
+    env['JITTEST'] = 1
+
+conf.Define('JITTEST', env['JITTEST'])
 
 # Gui less build
 if env['nowx']:
