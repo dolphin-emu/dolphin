@@ -454,7 +454,7 @@ void CFrame::MM_OnLog(wxCommandEvent& event)
 	MusicMod::bShowConsole = !MusicMod::bShowConsole;
 
 	if(MusicMod::bShowConsole)
-		{ ShowConsole(); /*Player_Console(true);*/ }
+		{ ShowConsole(); Player_Console(true); }
 	else
 	{
 		#if defined (_WIN32)
