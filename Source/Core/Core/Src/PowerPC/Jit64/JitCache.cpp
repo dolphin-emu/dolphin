@@ -22,8 +22,6 @@
 // performance hit, it's not enabled by default, but it's useful for
 // locating performance issues.
 
-//#define OPROFILE_REPORT
-
 #include "Common.h"
 #include "../../Core.h"
 #include "MemoryUtil.h"
@@ -44,11 +42,11 @@
 
 #include "disasm.h"
 
-#ifdef OPROFILE_REPORT
+#if defined USE_OPROFILE && USE_OPROFILE
 #include <opagent.h>
 #endif
 
-#ifdef OPROFILE_REPORT
+#if defined USE_OPROFILE && USE_OPROFILE
 	op_agent_t agent;
 #endif
 
@@ -76,7 +74,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 			MAX_NUM_BLOCKS = 65536*8;
 		}
 
-#ifdef OPROFILE_REPORT
+#if defined USE_OPROFILE && USE_OPROFILE
 		agent = op_open_agent();
 #endif
 		blocks = new JitBlock[MAX_NUM_BLOCKS];
@@ -92,7 +90,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		blocks = 0;
 		blockCodePointers = 0;
 		num_blocks = 0;
-#ifdef OPROFILE_REPORT
+#if defined USE_OPROFILE && USE_OPROFILE
 		op_close_agent(agent);
 #endif
 	}
@@ -184,7 +182,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 			LinkBlockExits(block_num);
 		}
 
-#ifdef OPROFILE_REPORT
+#if defined USE_OPROFILE && USE_OPROFILE
 		char buf[100];
 		sprintf(buf, "EmuCode%x", b.originalAddress);
 		const u8* blockStart = blockCodePointers[block_num];

@@ -101,7 +101,7 @@ vars.AddVariables(
     BoolVariable('gltest', 'temp don\'t use (WIP)', False),
     BoolVariable('jittest', 'temp don\'t use (WIP)', False),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
-                 allowed_values = ('release', 'devel', 'debug', 'fastlog'),
+                 allowed_values = ('release', 'devel', 'debug', 'fastlog', 'prof'),
                  ignorecase = 2
                  ),
     EnumVariable('osx', 'Choose a backend (WIP)', '32cocoa',
@@ -117,6 +117,7 @@ vars.AddVariables(
 env = Environment(
     CPPPATH = include_paths,
     LIBPATH = lib_paths,
+    RPATH = [],
     variables = vars,
     ENV = {
         'PATH' : os.environ['PATH'],
@@ -147,6 +148,7 @@ if not env['verbose']:
     env['RANLIBCOMSTR'] = "Indexing $TARGET"
 
 
+
 # build falvuor
 flavour = ARGUMENTS.get('flavor')
 if (flavour == 'debug'):
@@ -155,14 +157,16 @@ if (flavour == 'debug'):
     cppDefines.append('_DEBUG')
     # FIXME: this disable wx debugging how do we make it work?
     cppDefines.append('NDEBUG') 
-
 elif (flavour == 'devel'):
     compileFlags.append('-g')
     cppDefines.append('DEBUGFAST')
 elif (flavour == 'fastlog'):
     compileFlags.append('-O3')
     cppDefines.append('LOGGING')
-else:
+elif (flavour == 'prof'):
+    compileFlags.append('-O3')
+    compileFlags.append('-g')
+elif (flavour == 'release'):
     compileFlags.append('-O3')
 
 # more warnings
@@ -261,6 +265,18 @@ conf.Define('USE_WX', env['USE_WX'])
 conf.Define('HAVE_X11', env['HAVE_X11'])
 conf.Define('HAVE_COCOA', env['HAVE_COCOA'])
 
+
+# profile
+env['USE_OPROFILE'] = 0
+if (flavour == 'prof'): 
+    env['LIBPATH'] += [ '/usr/lib/oprofile' ]
+    env['RPATH'] += [ '/usr/lib/oprofile' ]
+    if conf.CheckPKG('opagent'):
+        env['USE_OPROFILE'] = 1
+    else:
+        print "Can't build prof without oprofile, disabling"
+
+conf.Define('USE_OPROFILE', env['USE_OPROFILE'])
 # After all configuration tests are done
 conf.Finish()
 
@@ -278,8 +294,10 @@ env['base_dir'] = os.getcwd()+ '/';
 
 # install paths
 extra=''
-if env['flavor'] == 'debug':
+if flavour == 'debug':
     extra = '-debug'
+elif flavour == 'prof':
+    extra = '-prof'
 
 # TODO: support global install
 env['prefix'] = os.path.join(env['base_dir'] + 'Binary', platform.system() + '-' + platform.machine() + extra +os.sep)
@@ -292,7 +310,7 @@ env['libs_dir'] = env['prefix'] + 'Libs/'
 #TODO where should this go?
 env['data_dir'] = env['prefix']
 
-env['RPATH'] =  env['libs_dir']
+env['RPATH'] +=  env['libs_dir']
 
 env['LIBPATH'] += [ env['libs_dir'] ] 
 
