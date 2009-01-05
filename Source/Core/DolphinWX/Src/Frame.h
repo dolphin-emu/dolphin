@@ -105,7 +105,7 @@ class CFrame : public wxFrame
 			wxToolBarToolBase* mm_ToolMute, * mm_ToolPlay, * mm_ToolLog;
 
 			void MM_UpdateGUI(); void MM_PopulateGUI(); void MM_InitBitmaps(int Theme);
-			void MM_OnPlay();
+			void MM_OnPlay(); void MM_OnStop();
 			void MM_OnMute(wxCommandEvent& event);
 			void MM_OnPause(wxCommandEvent& event);
 			void MM_OnVolume(wxScrollEvent& event);
@@ -169,7 +169,7 @@ class CFrame : public wxFrame
 		void OnQuit(wxCommandEvent& event);
 		void OnHelp(wxCommandEvent& event);
 
-		void OnOpen(wxCommandEvent& event); void DoOpen(bool Boot); // File
+		void OnOpen(wxCommandEvent& event); void DoOpen(bool Boot); // File menu
 		void OnRefresh(wxCommandEvent& event);
 		void OnBrowse(wxCommandEvent& event);
 

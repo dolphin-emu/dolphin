@@ -87,6 +87,18 @@ void Player_Play(char * FileName)
 	GlobalPause = false;
 }
 
+void Player_Stop()
+{
+	Playback::Stop();
+	//wprintf("Stop\n");
+	playlist->RemoveAll();
+
+	CurrentlyPlayingFile = "";
+
+	GlobalPause = false;
+}
+
+
 void Player_Pause()
 {
 	if (!GlobalPause)
@@ -146,7 +158,7 @@ void Player_Volume(int a)
 
 void ShowConsole()
 {
-	StartConsoleWin(100, 2000, "MusicMod"); // give room for 2000 rows
+	//StartConsoleWin(100, 2000, "MusicMod"); // give room for 2000 rows
 }
 
 

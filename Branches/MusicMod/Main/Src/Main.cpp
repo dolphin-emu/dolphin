@@ -79,7 +79,6 @@ void StructSort (std::vector <MyFilesStructure> &MyFiles)
      {
           for (int j = i + 1; j < MyFiles.size(); j++)
           {
-               //if (printerStock[ i ].brand > printerStock[ j ].brand)  //comparing brands 
 				if (MyFiles[ i ].offset > MyFiles[ j ].offset)  //comparing cost 
                {
                      temp = MyFiles[ i ]; // Swapping entire struct
@@ -92,7 +91,6 @@ void StructSort (std::vector <MyFilesStructure> &MyFiles)
 
 	for (long i=1; i<(long)MyFiles.size(); ++i)
 	{
-		//cout << printerStock.at(i).brand.c_str() << printerStock.at(i).cost << "\n";
 		std::cout << i << " " << MyFiles[i].path.c_str() << "#" << MyFiles[i].offset << "\n";
 	}
 
@@ -122,19 +120,21 @@ void Main(std::string FileName)
 		MyFiles.at(i).path = my_pFileSystem->m_FileInfoVector.at(i).m_FullPath;
 	}		
 
+	// Sort the files by offset
 	StructSort(MyFiles);
 
 	// These things below will not need to be updated after a new game is started
 	if (dllloaded) return;
 
-	Player_Main(bShowConsole); // Call the DLL for the first time
+	// Call the DLL for the first time
+	Player_Main(bShowConsole);
 	//play_file("c:\\demo36_02.ast");
 	wprintf("DLL loaded\n");
 	dllloaded = true; // Do this once
 
-
 	// ---------------------------------------------------------------------------------------
 	// Make Music directory
+	// -------------------------
 	LPSECURITY_ATTRIBUTES attr;
 	attr = NULL;
 	MusicPath = "Music\\";
@@ -272,11 +272,8 @@ void CheckFile(u64 offset, u64 size)
 				// ---------------------------------------------------------------------------------------
 			}
 		}
-
-		//wprintf("Blob.cpp:Read <%i> <%i> <%i> <%i>\n", offset, size, out_ptr);
 	} // This ends the entire filescan
 	// =======================================================================================
-
 
 
 }

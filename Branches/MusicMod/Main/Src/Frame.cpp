@@ -297,18 +297,19 @@ CFrame::MM_UpdateGUI()
 
 
 
+// =======================================================================================
+// Play and stop music
+// ---------------------------------------------------------------------------------------
 void
 CFrame::MM_OnPlay()
 {
-	//MessageBox(0, "CFrame::OnPlay > Begin", "", 0);
-	wprintf("\nCFrame::OnPlayMusicMod > Begin\n");
-
+	//wprintf("\nCFrame::OnPlayMusicMod > Begin\n");
 	
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		if (Core::GetState() == Core::CORE_RUN)
 		{
-			wprintf("CFrame::OnPlayMusicMod > Pause\n");
+			//wprintf("CFrame::OnPlayMusicMod > Pause\n");
 			if(!MusicMod::GlobalPause) // we may has set this elsewhere
 			{
 				MusicMod::GlobalPause = true;
@@ -316,12 +317,11 @@ CFrame::MM_OnPlay()
 				{
 					Player_Pause();
 				}
-
 			}
 		}
 		else
 		{
-			wprintf("CFrame::OnPlayMusicMod > Play\n");
+			//wprintf("CFrame::OnPlayMusicMod > Play\n");
 			if(MusicMod::GlobalPause) // we may has set this elsewhere
 			{
 				MusicMod::GlobalPause = false;
@@ -332,9 +332,15 @@ CFrame::MM_OnPlay()
 			}
 		}
 	}
-	
 }
 
+void
+CFrame::MM_OnStop()
+{
+	Player_Stop();
+	MusicMod::GlobalPause = false;
+}
+// =======================================================================================
 
 
 // =======================================================================================

@@ -41,6 +41,7 @@ void MakeTime();
 EXPORT void Player_Main(bool Console);
 EXPORT void Player_Console(bool Console);
 EXPORT void Player_Play(char *);
+EXPORT void Player_Stop();
 EXPORT void Player_Pause();
 EXPORT void Player_Unpause();
 EXPORT void Player_Mute();

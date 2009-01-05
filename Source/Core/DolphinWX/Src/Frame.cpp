@@ -246,9 +246,11 @@ EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 	EVT_TIMER(wxID_ANY, CFrame::OnTimer)
 #endif
 END_EVENT_TABLE()
+/////////////////////////////////////////////////
+
 
 // ----------------------------------------------------------------------------
-// implementation
+// Creation and close, quit functions
 // ----------------------------------------------------------------------------
 
 CFrame::CFrame(wxFrame* parent,
@@ -349,6 +351,24 @@ CFrame::~CFrame()
     if (m_timer.IsRunning()) m_timer.Stop();
 #endif
 }
+
+void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
+{
+	Close(true);
+}
+
+void CFrame::OnClose(wxCloseEvent& event)
+{
+	// Don't forget the skip of the window won't be destroyed
+	event.Skip();
+
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		Core::Stop();
+		UpdateGUI();
+	}
+}
+/////////////////////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////////////////////

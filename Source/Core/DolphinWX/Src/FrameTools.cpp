@@ -138,10 +138,10 @@ void CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _T("&DSP settings"));
 	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _T("&Pad settings"));
 	pOptionsMenu->Append(IDM_CONFIG_WIIMOTE_PLUGIN, _T("&Wiimote settings"));
-#ifdef _WIN32
-	pOptionsMenu->AppendSeparator();
-	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tAlt+Enter"));
-#endif			
+	#ifdef _WIN32
+		pOptionsMenu->AppendSeparator();
+		pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tAlt+Enter"));
+	#endif			
 	m_pMenuBar->Append(pOptionsMenu, _T("&Options"));
 
 	// Misc menu
@@ -422,41 +422,18 @@ void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
 // =============
 
 
-void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
 {
-	Close(true);
-}
-
-
-void CFrame::OnClose(wxCloseEvent& event)
-{
-	// Don't forget the skip of the window won't be destroyed
-	event.Skip();
-
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (m_GameListCtrl)
 	{
-		Core::Stop();
-		UpdateGUI();
+		m_GameListCtrl->Update();
 	}
 }
 
-void CFrame::OnHelp(wxCommandEvent& event)
+
+void CFrame::OnBrowse(wxCommandEvent& WXUNUSED (event))
 {
-	switch (event.GetId())
-	{
-	case IDM_HELPABOUT:
-		{
-		AboutDolphin frame(this);
-		frame.ShowModal();
-		break;
-		}
-	case IDM_HELPWEBSITE:
-		File::Launch("http://www.dolphin-emu.com/");
-		break;
-	case IDM_HELPGOOGLECODE:
-		File::Launch("http://code.google.com/p/dolphin-emu/");
-		break;
-	}
+	m_GameListCtrl->BrowseForDirectory();
 }
 
 
@@ -509,8 +486,13 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 }
 // =============
 
+
 void CFrame::DoStop()
 {
+	#ifdef MUSICMOD // Music modification
+		MM_OnStop();
+	#endif
+
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		Core::Stop();
@@ -542,15 +524,6 @@ void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 	}
 
 	if (answer) DoStop();
-}
-
-
-void CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
-{
-	if (m_GameListCtrl)
-	{
-		m_GameListCtrl->Update();
-	}
 }
 
 
@@ -595,10 +568,31 @@ void CFrame::OnPluginWiimote(wxCommandEvent& WXUNUSED (event))
 			);
 }
 
-void CFrame::OnBrowse(wxCommandEvent& WXUNUSED (event))
+
+void CFrame::OnHelp(wxCommandEvent& event)
 {
-	m_GameListCtrl->BrowseForDirectory();
+	switch (event.GetId())
+	{
+	case IDM_HELPABOUT:
+		{
+		AboutDolphin frame(this);
+		frame.ShowModal();
+		break;
+		}
+	case IDM_HELPWEBSITE:
+		File::Launch("http://www.dolphin-emu.com/");
+		break;
+	case IDM_HELPGOOGLECODE:
+		File::Launch("http://code.google.com/p/dolphin-emu/");
+		break;
+	}
 }
+// ========= // Toolbar
+
+
+// =======================================================
+// Miscellaneous menu
+// -------------
 
 void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))
 {
@@ -610,6 +604,8 @@ void CFrame::OnShow_CheatsWindow(wxCommandEvent& WXUNUSED (event))
 {
 	CheatsWindow = new wxCheatsWindow(this, wxDefaultPosition, wxSize(600, 390));
 }
+// =============
+
 
 
 // =======================================================

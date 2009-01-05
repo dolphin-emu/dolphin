@@ -50,10 +50,11 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Start console window
-// ¯¯¯¯¯¯¯¯¯¯
-// Width and height is the size of console window, if you specify fname,
-// the output will also be writton to this file. The file pointer is automatically closed
-// when you close the app
+/* ¯¯¯¯¯¯¯¯¯¯
+   Width and height is the size of console window, if you specify fname, the output will
+   also be writton to this file. The file pointer is automatically closed
+   when you close the application. */
+// ---------------------
 void StartConsoleWin(int width, int height, char* fname)
 {
 #ifdef MM_DEBUG
@@ -64,13 +65,19 @@ void StartConsoleWin(int width, int height, char* fname)
 	AllocConsole();
 	// ---------------------------------------------------------------------------------------
 
-	//SetConsoleTitle("Debug Window");
+	// Set console window title
 	SetConsoleTitle(fname);
+
+	// Get window handle to write to
 	__hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
-	COORD co = {width,height};
+	// Create coordinates table
+	COORD co = {width, height};
+
+	// Set the innteral letter space
 	SetConsoleScreenBufferSize(__hStdOut, co);
 
+	// Set the window width and height
 	SMALL_RECT coo = {0,0, (width - 1),50}; // Top, left, right, bottom
 	SetConsoleWindowInfo(__hStdOut, TRUE, &coo);
 #endif
@@ -94,33 +101,36 @@ void StartConsoleWin(int width, int height, char* fname)
 // ¯¯¯¯¯¯¯¯¯¯
 int wprintf(char *fmt, ...)
 {
-#ifdef MM_DEBUG
-	char s[300];
-	va_list argptr;
-	int cnt;
+	#ifdef MM_DEBUG
+		char s[500]; // Bigget message size
+		va_list argptr;
+		int cnt;
 
-	va_start(argptr, fmt);
-	cnt = vsprintf(s, fmt, argptr);
-	va_end(argptr);
+		va_start(argptr, fmt);
+		cnt = vsprintf(s, fmt, argptr);
+		va_end(argptr);
 
-	DWORD cCharsWritten;
+		DWORD cCharsWritten;
 
-	// ---------------------------------------------------------------------------------
-#ifndef MM_DEBUG_FILEONLY
-	if(__hStdOut)
-		WriteConsole(__hStdOut, s, strlen(s), &cCharsWritten, NULL);
-#endif
-	// ---------------------------------------------------------------------------------
+		// ---------------------------------------------------
+		// Write to console
+		// --------------
+		#ifndef MM_DEBUG_FILEONLY
+			if(__hStdOut)
+				WriteConsole(__hStdOut, s, strlen(s), &cCharsWritten, NULL);
+		#endif
+		// ----------------------------
 
+		// Write to file
 		if(__fStdOut)
 		{
 			fprintf(__fStdOut, s);
-			fflush(__fStdOut); // Write file now
+			//fflush(__fStdOut); // Write file now, don't wait
 		}
 
-	return(cnt);
-#else
-	return 0;
-#endif
+		return(cnt);
+	#else
+		return 0;
+	#endif
 }
 /////////////////////////////
