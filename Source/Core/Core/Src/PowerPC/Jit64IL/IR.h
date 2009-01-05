@@ -163,6 +163,7 @@ namespace IREmitter {
 		FPNeg,
 		FResult_End,
 		StorePaired,
+		StoreSingle,
 		StoreFReg,
 
 		// "Trinary" operators
@@ -375,6 +376,9 @@ namespace IREmitter {
 		}
 		InstLoc EmitLoadPaired(InstLoc addr, unsigned quantReg) {
 			return FoldUOp(LoadPaired, addr, quantReg);
+		}
+		InstLoc EmitStoreSingle(InstLoc value, InstLoc addr) {
+			return FoldBiOp(StoreSingle, value, addr);
 		}
 		InstLoc EmitStorePaired(InstLoc value, InstLoc addr, unsigned quantReg) {
 			return FoldBiOp(StorePaired, value, addr, quantReg);

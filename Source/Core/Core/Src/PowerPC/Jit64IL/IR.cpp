@@ -1103,6 +1103,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 				regMarkUse(RI, I, getOp1(I), 1);
 			regMarkMemAddress(RI, I, getOp2(I), 2);
 			break;
+		case StoreSingle:
 		case StorePaired:
 			regMarkUse(RI, I, getOp1(I), 1);
 			regMarkUse(RI, I, getOp2(I), 2);
@@ -1431,6 +1432,21 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			Jit->MOVAPD(reg, R(XMM0));
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
+			break;
+		}
+		case StoreSingle: {
+			regSpill(RI, EAX);
+			if (fregLocForInst(RI, getOp1(I)).IsSimpleReg()) {
+				Jit->MOVD_xmm(R(EAX), fregLocForInst(RI, getOp1(I)).GetSimpleReg());
+			} else {
+				Jit->MOV(32, R(EAX), fregLocForInst(RI, getOp1(I)));
+			}
+			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
+			RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 0);
+			if (RI.IInfo[I - RI.FirstI] & 4)
+				fregClearInst(RI, getOp1(I));
+			if (RI.IInfo[I - RI.FirstI] & 8)
+				regClearInst(RI, getOp2(I));
 			break;
 		}
 		case StorePaired: {

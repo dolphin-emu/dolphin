@@ -185,78 +185,27 @@ void Jit64::stfd(UGeckoInstruction inst)
 
 void Jit64::stfs(UGeckoInstruction inst)
 {
-	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-		{Default(inst); return;} // turn off from debugger	
-	INSTRUCTION_START;
-
-	bool update = inst.OPCD & 1;
-	int s = inst.RS;
-	int a = inst.RA;
-	s32 offset = (s32)(s16)inst.SIMM_16;
-	if (!a || update) {
-		Default(inst);
-		return;
-	}
-
-	if (gpr.R(a).IsImm())
-	{
-		u32 addr = (u32)(gpr.R(a).offset + offset);
-		if (Memory::IsRAMAddress(addr))
-		{
-			if (cpu_info.bSSSE3) {
-				CVTSD2SS(XMM0, fpr.R(s));
-				PSHUFB(XMM0, M((void *)bswapShuffle1x4));
-				WriteFloatToConstRamAddress(XMM0, addr);
-				return;
-			}
-		}
-		else if (addr == 0xCC008000)
-		{
-			// Float directly to write gather pipe! Fun!
-			CVTSD2SS(XMM0, fpr.R(s));
-			CALL((void*)asm_routines.fifoDirectWriteFloat);
-			// TODO
-			js.fifoBytesThisBlock += 4;
-			return;
-		}
-	}
-
-	gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
-	gpr.Lock(a);
-	fpr.Lock(s);
-	MOV(32, R(ABI_PARAM2), gpr.R(a));
-	ADD(32, R(ABI_PARAM2), Imm32(offset));
-	if (update && offset)
-	{
-		MOV(32, gpr.R(a), R(ABI_PARAM2));
-	}
-	CVTSD2SS(XMM0, fpr.R(s));
-	MOVSS(M(&temp32), XMM0);
-	MOV(32, R(ABI_PARAM1), M(&temp32));
-	SafeWriteRegToReg(ABI_PARAM1, ABI_PARAM2, 32, 0);
-	gpr.UnlockAll();
-	gpr.UnlockAllX();
-	fpr.UnlockAll();
+	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16),
+			   val  = ibuild.EmitLoadFReg(inst.RS);
+	if (inst.RA)
+		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+	if (inst.OPCD & 1)
+		ibuild.EmitStoreGReg(addr, inst.RA);
+	val = ibuild.EmitDoubleToSingle(val);
+	ibuild.EmitStoreSingle(val, addr);
+	return;
 }
 
 
 void Jit64::stfsx(UGeckoInstruction inst)
 {
-	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-		{Default(inst); return;} // turn off from debugger	
-	INSTRUCTION_START;
-
-	// We can take a shortcut here - it's not likely that a hardware access would use this instruction.
-	gpr.FlushLockX(ABI_PARAM1);
-	fpr.Lock(inst.RS);
-	MOV(32, R(ABI_PARAM1), gpr.R(inst.RB));
+	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB),
+			   val  = ibuild.EmitLoadFReg(inst.RS);
 	if (inst.RA)
-		ADD(32, R(ABI_PARAM1), gpr.R(inst.RA));
-	CVTSD2SS(XMM0, fpr.R(inst.RS));
-	MOVD_xmm(R(EAX), XMM0);
-	UnsafeWriteRegToReg(EAX, ABI_PARAM1, 32, 0);
-	gpr.UnlockAllX();
-	fpr.UnlockAll();
+		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+	val = ibuild.EmitDoubleToSingle(val);
+	ibuild.EmitStoreSingle(val, addr);
+	return;
 }
 
 
