@@ -129,7 +129,7 @@ wxBitmap SetBrightness(wxBitmap _Bitmap, int _Brightness, bool Gray)
 //////////////////////////////////
 
 
-//#ifdef MUSICMOD
+#ifdef MUSICMOD
 void
 CFrame::MM_InitBitmaps(int Theme)
 {
@@ -459,4 +459,4 @@ void CFrame::MM_OnLog(wxCommandEvent& event)
 }
 //=======================================================================================
 
-//#endif // MUSICMOD
+#endif // MUSICMOD
