@@ -967,6 +967,8 @@ void CCodeWindow::DoTip(wxString text)
 // See the comment under BEGIN_EVENT_TABLE for an explanation of why we use both these events.
 void CCodeWindow::OnStatusBar(wxMenuEvent& event)
 {
+	event.Skip(); // This doesn't hurt right?
+
 	/* We assume the debug build user don't need to see this all the time. And these tooltips
 	   may not be entirely stable. So we leave them out of debug builds. I could for example
 	   get it to crash at wxWindowBase::DoHitTest(), that may be fixed in wxWidgets 2.9.0. */
@@ -976,6 +978,8 @@ void CCodeWindow::OnStatusBar(wxMenuEvent& event)
 }
 void CCodeWindow::OnStatusBar_(wxUpdateUIEvent& event)
 {
+	event.Skip();
+
 	#if !defined(_DEBUG) || defined(DEBUGFAST)
 		// The IDM_ADDRBOX id seems to come with this outside the toolbar
 		if(event.GetId() != IDM_ADDRBOX) DoTip(wxEmptyString);
