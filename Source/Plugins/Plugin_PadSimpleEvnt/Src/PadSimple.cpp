@@ -115,7 +115,7 @@ bool registerKey(int nPad, int id, sf::Key::Code code, int mods) {
 	oldKey.mods = mods;
 
 	// Might be not be registered yet
-	eventHandler->RemoveEventListener(oldKey); 
+        //	eventHandler->RemoveEventListener(oldKey); 
     }
 
     pad[nPad].keyForControl[id] = code;
@@ -373,7 +373,7 @@ void LoadConfig()
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR EPAD_CONFIG_FILE);
 
-	for(int i = 0; i < 4; i++) {
+	for(int i = 0; i < 1; i++) {
 	    char SectionName[32];
 	    sprintf(SectionName, "PAD%i", i+1);
 	    
@@ -395,19 +395,17 @@ void SaveConfig()
 {
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR EPAD_CONFIG_FILE);
-
-	for(int i = 0; i < 4; i++)
-	{
-		char SectionName[32];
-		sprintf(SectionName, "PAD%i", i+1);
-
-		file.Set(SectionName, "Attached", pad[i].bAttached);
-		file.Set(SectionName, "DisableOnBackground", pad[i].bDisable);
-		
-		for (int x = 0; x < NUMCONTROLS; x++)
-		{
-			file.Set(SectionName, controlNames[x], pad[i].keyForControl[x]);
-		}
+        
+	for(int i = 0; i < 4; i++) {
+            char SectionName[32];
+            sprintf(SectionName, "PAD%i", i+1);
+            
+            file.Set(SectionName, "Attached", pad[i].bAttached);
+            file.Set(SectionName, "DisableOnBackground", pad[i].bDisable);
+            
+            for (int x = 0; x < NUMCONTROLS; x++) {
+                file.Set(SectionName, controlNames[x], pad[i].keyForControl[x]);
+            }
 	}
 	file.Save(FULL_CONFIG_DIR EPAD_CONFIG_FILE);
 }

@@ -4,6 +4,9 @@
 #include <queue>
 #include "Event.hpp"
 
+#define NUMKEYS 300
+#define NUMMODS 8
+
 typedef bool (*listenFuncPtr) (sf::Event);
 enum InputType
 {
@@ -18,8 +21,7 @@ enum Modifiers {
     UseCtrl = 4
 };
 
-struct Keys
-{
+struct Keys {
     InputType inputType;
     sf::Event::EventType eventType; 
     sf::Key::Code keyCode;
@@ -30,20 +32,21 @@ struct Keys
 class EventHandler {
 
 private:
-    listenFuncPtr keys[sf::Key::Escape+1][8];
+    listenFuncPtr keys[NUMKEYS][NUMMODS];
     listenFuncPtr mouse[sf::Mouse::Count+1];
     listenFuncPtr joys[sf::Joy::Count+1];
     std::queue<sf::Event> eventQueue;
- public:
     static EventHandler *m_Instance;
-
-    // protected:
+    
+protected:
     EventHandler(const EventHandler&);
     EventHandler& operator= (const EventHandler&);
-
+    
     EventHandler();
     ~EventHandler();
-
+    
+public:
+    
     bool RegisterEventListener(listenFuncPtr func, Keys key);
     bool RemoveEventListener(Keys key);
     void Update();

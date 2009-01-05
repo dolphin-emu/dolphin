@@ -7,33 +7,37 @@
 EventHandler *EventHandler::m_Instance = 0;
 
 EventHandler::EventHandler() {
-    memset(keys, sizeof(listenFuncPtr) * (sf::Key::Escape+1)*8, 0);
+    for (int i=0; i<NUMKEYS; i++)
+        for (int j=0; j<NUMMODS; j++)
+            keys[i][j] = NULL;
+    //    memset(keys, sizeof(listenFuncPtr) * NUMKEYS*NUMMODS, 0);
     memset(mouse, sizeof(listenFuncPtr) * (sf::Mouse::Count+1), 0);
     memset(joys, sizeof(listenFuncPtr) * (sf::Joy::Count+1), 0);
+
  }
 
 EventHandler::~EventHandler() {
 }
 
-EventHandler::EventHandler *GetInstance() {
-    if (! EventHandler::m_Instance)
-	EventHandler::m_Instance = new EventHandler();
+EventHandler *EventHandler::GetInstance() {
+    if (! m_Instance)
+	m_Instance = new EventHandler();
 
-    return EventHandler::m_Instance;
+    return m_Instance;
 }
 
 void EventHandler::Destroy() {
-    if (EventHandler::m_Instance)
-	delete EventHandler::m_Instance;
+    if (m_Instance)
+	delete m_Instance;
 
-    EventHandler::m_Instance = 0;
+    m_Instance = 0;
 }
 
 bool EventHandler::RegisterEventListener(listenFuncPtr func, Keys key) {
     if (key.inputType == KeyboardInput) {
-	fprintf(stderr, "Registering %d\n", key.keyCode);
-	if (key.keyCode == sf::Key::Count || 
-	    key.keyCode >= sf::Key::Escape || keys[key.keyCode][key.mods])
+        //	fprintf(stderr, "Registering %d:%d  %p\n", key.keyCode, key.mods, func);
+	if (key.keyCode == sf::Key::Count || key.mods >= NUMMODS ||  
+	    key.keyCode >= NUMKEYS || keys[key.keyCode][key.mods])
 	    return false;
 	keys[key.keyCode][key.mods] = func;
     } else if (key.inputType == MouseInput) {
@@ -47,7 +51,8 @@ bool EventHandler::RegisterEventListener(listenFuncPtr func, Keys key) {
 
 bool EventHandler::RemoveEventListener(Keys key) {
     if (key.inputType == KeyboardInput) {
-	if ((key.keyCode == sf::Key::Count || key.keyCode >= sf::Key::Escape) &&  ! keys[key.keyCode][key.mods])
+	if ((key.keyCode == sf::Key::Count || key.keyCode >= NUMKEYS
+             || key.mods >= NUMMODS) && ! keys[key.keyCode][key.mods])
 	    return false;
 	keys[key.keyCode][key.mods] = NULL;
     } else if (key.inputType == MouseInput) {
@@ -167,13 +172,19 @@ sf::Key::Code EventHandler::wxCharCodeToSF(int id)
 //  case WXK_NUMLOCK:         sfKey = sf::Key::Num_Lock; break;
 //  case WXK_SCROLL:          sfKey = sf::Key::Scroll_Lock; break;
     default:
-	if ((id >= 'a' && id <= 'z') || 
-	    (id  >= '0' && id <= '9'))
-	    sfKey = (sf::Key::Code)id;
-	else
-	    sfKey = sf::Key::Count; // Invalid key
-    }
 
+        // To lower (will tolower work on windows?)
+        if (id >= 'A' && id <= 'Z') 
+            id = id - 'A' + 'a';
+        
+	if ((id >= 'a' && id <= 'z') || 
+	    (id  >= '0' && id <= '9')) 
+	    sfKey = (sf::Key::Code)id;   
+	else 
+	    sfKey = sf::Key::Count; // Invalid key
+        
+    }
+    
     return sfKey;
 }
 #endif

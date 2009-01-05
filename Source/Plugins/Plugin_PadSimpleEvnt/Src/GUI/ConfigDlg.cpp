@@ -189,7 +189,8 @@ void ConfigDialog::OnClose(wxCloseEvent& event) {
 void ConfigDialog::OnKeyDown(wxKeyEvent& event) {
     if(clickedButton != NULL) {
 	int page = m_Notebook->GetSelection();
-	
+
+        fprintf(stderr, "Got key code %d\n",event.GetKeyCode()); 
 	sf::Key::Code sfcode = EventHandler::wxCharCodeToSF(event.GetKeyCode());
 	char sfstr[100];
 	EventHandler::SFKeyToString(sfcode, sfstr);
