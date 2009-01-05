@@ -35,7 +35,7 @@ struct SCoreStartupParameter
 	void* hMainWindow;
 
 	// flags
-	bool bEnableDebugging; bool bAutomaticStart;
+	bool bEnableDebugging; bool bAutomaticStart; bool bBootToPause;
 	bool bUseJIT;
 
 	bool bJITUnlimitedCache, bJITOff; // JIT

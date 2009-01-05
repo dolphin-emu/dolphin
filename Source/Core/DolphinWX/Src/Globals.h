@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-
 ////////////////////////////////////////////////////////////////////////////////////////
 // File description
 /* ¯¯¯¯¯¯¯¯¯
@@ -26,23 +25,22 @@
 ////////////////////////*/
 
 
+////////////////////////////////////////////////////////////////////////////////////////
+// Settings
+// ¯¯¯¯¯¯¯¯¯
+// Build with music modification. Define MUSICMOD here.
+#include "../../../Branches/MusicMod/Main/Src/Setup.h"
+//////////////////////////
+
 
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
 #include "Common.h"
 
-
-////////////////////////////////////////////////////////////////////////////////////////
-// Build with music modification
-// ¯¯¯¯¯¯¯¯¯
-#include "../../../Branches/MusicMod/Main/Src/Setup.h" // Define MUSICMOD here
-//////////////////////////
-
-
 enum
 {
-	IDM_LOADSTATE = 200, // File
+	IDM_LOADSTATE = 200, // File menu
 	IDM_SAVESTATE,
 	IDM_SAVESLOT1,
 	IDM_SAVESLOT2,
@@ -68,12 +66,12 @@ enum
 	IDM_STOP,
 	IDM_BROWSE,
 
-	IDM_MEMCARD, // Misc
+	IDM_MEMCARD, // Misc menu
 	IDM_CHEATS,
 	IDM_CHANGEDISC,
 	IDM_PROPERTIES,
 
-	IDM_HELPABOUT,
+	IDM_HELPABOUT, // Help menu
 	IDM_HELPWEBSITE,
 	IDM_HELPGOOGLECODE,
 

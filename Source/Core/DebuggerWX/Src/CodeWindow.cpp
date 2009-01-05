@@ -15,6 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// ¯¯¯¯¯¯¯¯¯¯
 #include "Common.h"
 
 #include <wx/button.h>
@@ -64,28 +68,53 @@
 #include "../../DolphinWX/Src/PluginManager.h"
 #include "../../DolphinWX/Src/Config.h"
 
-// and here are the classes
-class CPluginInfo;
-class CPluginManager;
-//extern DynamicLibrary Common::CPlugin;
-//extern CPluginManager CPluginManager::m_Instance;
 
-extern "C" {
+extern "C"  // Bitmaps
+{
 	#include "../resources/toolbar_play.c"
 	#include "../resources/toolbar_pause.c"
 	#include "../resources/toolbar_add_memorycheck.c"
 	#include "../resources/toolbar_delete.c"
 	#include "../resources/toolbar_add_breakpoint.c"
 }
+///////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// ¯¯¯¯¯¯¯¯¯¯
+// and here are the classes
+class CPluginInfo;
+class CPluginManager;
+//extern DynamicLibrary Common::CPlugin;
+//extern CPluginManager CPluginManager::m_Instance;
 
 static const long TOOLBAR_STYLE = wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
 
+
+#define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
+inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
+{
+	wxMemoryInputStream is(data, length);
+	return(wxBitmap(wxImage(is, wxBITMAP_TYPE_ANY, -1), -1));
+}
+///////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Event table
+// ¯¯¯¯¯¯¯¯¯¯
 BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)   
     EVT_LISTBOX(ID_SYMBOLLIST,     CCodeWindow::OnSymbolListChange)
     EVT_LISTBOX(ID_CALLSTACKLIST,  CCodeWindow::OnCallstackListChange)
     EVT_LISTBOX(ID_CALLERSLIST,    CCodeWindow::OnCallersListChange)
     EVT_LISTBOX(ID_CALLSLIST,      CCodeWindow::OnCallsListChange)
     EVT_HOST_COMMAND(wxID_ANY,      CCodeWindow::OnHostMessage)
+
+	EVT_MENU_HIGHLIGHT_ALL(			CCodeWindow::OnStatusBar)
+	/* Do this to to avoid that the ToolTips get stuck when only the wxMenu is changed
+	   and not any wxMenuItem that is required by EVT_MENU_HIGHLIGHT_ALL */
+	EVT_UPDATE_UI(wxID_ANY, CCodeWindow::OnStatusBar_)
 
     EVT_MENU(IDM_LOGWINDOW,         CCodeWindow::OnToggleLogWindow)
     EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleRegisterWindow)
@@ -136,21 +165,18 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	
 	EVT_COMMAND(ID_CODEVIEW, wxEVT_CODEVIEW_CHANGE, CCodeWindow::OnCodeViewChange)
 END_EVENT_TABLE()
+///////////////////////////////
 
-#define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
-inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
-{
-	wxMemoryInputStream is(data, length);
-	return(wxBitmap(wxImage(is, wxBITMAP_TYPE_ANY, -1), -1));
-}
 
-// =======================================================================================
-// WARNING: If you create a new dialog window you must add m_dialog(NULL) below otherwise
-// m_dialog = true and things will crash.
-// ----------------
+//////////////////////////////////////////////////////////////////////////////////////////
+// Class, input event handler and host message handler
+// ¯¯¯¯¯¯¯¯¯¯
 CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent, wxWindowID id,
 		const wxString& title, const wxPoint& pos, const wxSize& size, long style)
 	: wxFrame(parent, id, title, pos, size, style)
+
+	 /* Remember to initialize potential new controls with NULL there, otherwise m_dialog = true and
+	    things may crash */
 	, m_LogWindow(NULL)
 	, m_RegisterWindow(NULL)
 	, m_BreakpointWindow(NULL)
@@ -169,8 +195,10 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	// Create the toolbar
 	RecreateToolbar();
 
+	// Update bitmap buttons
 	UpdateButtonStates();
 
+	// Connect keyboard
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN,
 		wxKeyEventHandler(CCodeWindow::OnKeyDown),
 		(wxObject*)0, this);
@@ -182,8 +210,6 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	if (m_MemoryWindow) m_MemoryWindow->Load(file);
 	if (m_JitWindow) m_JitWindow->Load(file);
 }
-// ===============
-
 
 CCodeWindow::~CCodeWindow()
 {
@@ -200,9 +226,75 @@ CCodeWindow::~CCodeWindow()
 	file.Save(DEBUGGER_CONFIG_FILE);
 }
 
+void CCodeWindow::OnKeyDown(wxKeyEvent& event)
+{
+	if ((event.GetKeyCode() == WXK_SPACE) && IsActive())
+	{
+		SingleCPUStep();	
+	}
+	else
+	{
+		event.Skip();
+	}
+}
+
+void CCodeWindow::OnHostMessage(wxCommandEvent& event)
+{
+	switch (event.GetId())
+	{
+	    case IDM_NOTIFYMAPLOADED:
+		    NotifyMapLoaded();
+		    break;
+
+	    case IDM_UPDATELOGDISPLAY:
+
+		    if (m_LogWindow)
+		    {
+			    m_LogWindow->NotifyUpdate();
+		    }
+
+		    break;
+
+	    case IDM_UPDATEDISASMDIALOG:
+		    Update();
+
+		    if (m_RegisterWindow)
+		    {
+			    m_RegisterWindow->NotifyUpdate();
+		    }
+		    break;
+
+		case IDM_UPDATEBREAKPOINTS:
+            Update();
+
+			if (m_BreakpointWindow)
+			{
+				m_BreakpointWindow->NotifyUpdate();
+			}
+			break;
+		case IDM_UPDATESTATUSBAR:
+			//if (main_frame->m_pStatusBar != NULL)
+			{
+				// What is this PanicAlert() for?
+				//PanicAlert("");
+
+				//this->GetParent()->m_p
+				//this->GetParent()->
+				//parent->m_pStatusBar->SetStatusText(wxT("Hi"), 0);
+				//m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
+				//this->GetParent()->m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
+				//main_frame->m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
+			}
+			break;
+
+	}
+}
+////////////////////////////////////////////////
+
+
 
 // =======================================================================================
-// Load before CreateGUIControls()
+// Load these settings before CreateGUIControls()
 // --------------
 void CCodeWindow::Load_( IniFile &ini )
 {
@@ -219,6 +311,7 @@ void CCodeWindow::Load_( IniFile &ini )
 
 	// Boot to pause or not
 	ini.Get("ShowOnStart", "AutomaticStart", &bAutomaticStart, false);
+	ini.Get("ShowOnStart", "BootToPause", &bBootToPause, true);
 }
 
 
@@ -242,6 +335,7 @@ void CCodeWindow::Save(IniFile &ini) const
 
 	// Boot to pause or not
 	ini.Set("ShowOnStart", "AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
+	ini.Set("ShowOnStart", "BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
 
 	// Save windows settings
 	ini.Set("ShowOnStart", "LogWindow", GetMenuBar()->IsChecked(IDM_LOGWINDOW));
@@ -285,7 +379,7 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 	// =================
 
 
-	// additional dialogs
+	// Additional dialogs
 #ifdef LOGGING
 	if (bLogWindow)
 	{
@@ -320,11 +414,11 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 	if (bSoundWindow)
 	{
-		// possible todo: add some kind of if here to? can it fail?
+		// Possible todo: add some kind of if here to? can it fail?
 		CPluginManager::GetInstance().OpenDebug(
-		GetHandle(),
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
-		false, true
+			GetHandle(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
+			false, true
 		);	
 	} // don't have any else, just ignore it
 
@@ -332,9 +426,9 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 	{
 		// possible todo: add some kind of if here to? can it fail?
 		CPluginManager::GetInstance().OpenDebug(
-		GetHandle(),
-		_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
-		true, true
+			GetHandle(),
+			_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
+			true, true
 		);
 	} // don't have any else, just ignore it
 }
@@ -351,17 +445,37 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	{	
 		wxMenu* pCoreMenu = new wxMenu;
 
-		wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _T("&Interpreter core"), wxEmptyString, wxITEM_CHECK);
+		wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _T("&Interpreter core")
+			, wxString::FromAscii("This is nessesary to get break points"
+			" and stepping to work as explained in the Developer Documentation. But it can be very"
+			" slow, perhaps slower than 1 fps.")
+			, wxITEM_CHECK);
 		interpreter->Check(!_LocalCoreStartupParameter.bUseJIT);
 		pCoreMenu->AppendSeparator();
-		wxMenuItem* automaticstart = pCoreMenu->Append(IDM_AUTOMATICSTART, _T("&Automatic start"), wxEmptyString, wxITEM_CHECK);
+
+		wxMenuItem* boottopause = pCoreMenu->Append(IDM_BOOTTOPAUSE, _T("Boot to pause"),
+			wxT("Start the game directly instead of booting to pause"), wxITEM_CHECK);
+		boottopause->Check(bBootToPause);
+
+		wxMenuItem* automaticstart = pCoreMenu->Append(IDM_AUTOMATICSTART, _T("&Automatic start")
+			, wxString::FromAscii(
+			"Automatically load the Default ISO when Dolphin starts, or the last game you loaded,"
+			" if you have not given it an elf file with the --elf command line. [This can be"
+			" convenient if you are bugtesting with a certain game and want to rebuild"
+			" and retry it several times, either with changes to Dolphin or if you are"
+			" developing a homebrew game.]")
+			, wxITEM_CHECK);
 		automaticstart->Check(bAutomaticStart);		
-		pCoreMenu->AppendSeparator();
 
 #ifdef JIT_OFF_OPTIONS
-		jitunlimited = pCoreMenu->Append(IDM_JITUNLIMITED, _T("&Unlimited JIT Cache"), wxEmptyString, wxITEM_CHECK);
 		pCoreMenu->AppendSeparator();
-		jitoff = pCoreMenu->Append(IDM_JITOFF, _T("&JIT off (JIT core)"), wxEmptyString, wxITEM_CHECK);
+		jitunlimited = pCoreMenu->Append(IDM_JITUNLIMITED, _T("&Unlimited JIT Cache"),
+			_T("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from crashing"),
+			wxITEM_CHECK);
+		pCoreMenu->AppendSeparator();
+		jitoff = pCoreMenu->Append(IDM_JITOFF, _T("&JIT off (JIT core)"),
+			_T("Turn off all JIT functions, but still use the JIT core from Jit.cpp"),
+			wxITEM_CHECK);
 		jitlsoff = pCoreMenu->Append(IDM_JITLSOFF, _T("&JIT LoadStore off"), wxEmptyString, wxITEM_CHECK);
 			jitlslbzxoff = pCoreMenu->Append(IDM_JITLSLBZXOFF, _T("    &JIT LoadStore lbzx off"), wxEmptyString, wxITEM_CHECK);
 			jitlslxzoff = pCoreMenu->Append(IDM_JITLSLXZOFF, _T("    &JIT LoadStore lXz off"), wxEmptyString, wxITEM_CHECK);
@@ -374,11 +488,10 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		jitsroff = pCoreMenu->Append(IDM_JITSROFF, _T("&JIT SystemRegisters off"), wxEmptyString, wxITEM_CHECK);
 #endif
 
-		//wxMenuItem* dualcore = pDebugMenu->Append(IDM_DUALCORE, _T("&DualCore"), wxEmptyString, wxITEM_CHECK);
-		//dualcore->Check(_LocalCoreStartupParameter.bUseDualCore);
+//		wxMenuItem* dualcore = pDebugMenu->Append(IDM_DUALCORE, _T("&DualCore"), wxEmptyString, wxITEM_CHECK);
+//		dualcore->Check(_LocalCoreStartupParameter.bUseDualCore);
 		
-		pMenuBar->Append(pCoreMenu, _T("&CPU Mode"));		
-
+		pMenuBar->Append(pCoreMenu, _T("&CPU Mode"));
 	}
 
 	{
@@ -412,60 +525,76 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	}
 	// ===============
 
-
-	{
-		wxMenu *pSymbolsMenu = new wxMenu;
-		pSymbolsMenu->Append(IDM_CLEARSYMBOLS, _T("&Clear symbols"));
-		// pSymbolsMenu->Append(IDM_CLEANSYMBOLS, _T("&Clean symbols (zz)"));
-		pSymbolsMenu->Append(IDM_SCANFUNCTIONS, _T("&Generate symbol map"));
-		pSymbolsMenu->AppendSeparator();
-		pSymbolsMenu->Append(IDM_LOADMAPFILE, _T("&Load symbol map"));
-		pSymbolsMenu->Append(IDM_SAVEMAPFILE, _T("&Save symbol map"));
-		pSymbolsMenu->AppendSeparator();
-		pSymbolsMenu->Append(IDM_SAVEMAPFILEWITHCODES, _T("Save code"));
-		
-		pSymbolsMenu->AppendSeparator();
-		pSymbolsMenu->Append(IDM_CREATESIGNATUREFILE, _T("&Create signature file..."));
-		pSymbolsMenu->Append(IDM_USESIGNATUREFILE, _T("&Use signature file..."));
-		pSymbolsMenu->AppendSeparator();
-		pSymbolsMenu->Append(IDM_PATCHHLEFUNCTIONS, _T("&Patch HLE functions"));
-		pMenuBar->Append(pSymbolsMenu, _T("&Symbols"));
-	}
-
-	{
-		wxMenu *pJitMenu = new wxMenu;
-		pJitMenu->Append(IDM_CLEARCODECACHE, _T("&Clear code cache"));
-		pJitMenu->Append(IDM_LOGINSTRUCTIONS, _T("&Log JIT instruction coverage"));
-		pMenuBar->Append(pJitMenu, _T("&JIT"));
-	}
-
-	{
-		wxMenu *pProfilerMenu = new wxMenu;
-		pProfilerMenu->Append(IDM_PROFILEBLOCKS, _T("&Profile blocks"), wxEmptyString, wxITEM_CHECK);
-		pProfilerMenu->AppendSeparator();
-		pProfilerMenu->Append(IDM_WRITEPROFILE, _T("&Write to profile.txt, show"));
-		pMenuBar->Append(pProfilerMenu, _T("&Profiler"));
-	}
-
+	CreateSymbolsMenu();
 
 	SetMenuBar(pMenuBar);
 }
 
 
+// =======================================================================================
+// Toolbar and bitmaps for the toolbar
+// --------------
+void CCodeWindow::InitBitmaps()
+{
+	// load original size 48x48
+	m_Bitmaps[Toolbar_DebugGo] = wxGetBitmapFromMemory(toolbar_play_png);
+	m_Bitmaps[Toolbar_Step] = wxGetBitmapFromMemory(toolbar_add_breakpoint_png);
+	m_Bitmaps[Toolbar_StepOver] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
+	m_Bitmaps[Toolbar_Skip] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
+	m_Bitmaps[Toolbar_GotoPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
+	m_Bitmaps[Toolbar_SetPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
+	m_Bitmaps[Toolbar_Pause] = wxGetBitmapFromMemory(toolbar_pause_png);
+
+
+	// scale to 16x16 for toolbar
+	for (size_t n = Toolbar_DebugGo; n < Bitmaps_max; n++)
+	{
+		m_Bitmaps[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(16, 16));
+	}
+}
+
+
+void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)
+{
+	int w = m_Bitmaps[Toolbar_DebugGo].GetWidth(),
+		h = m_Bitmaps[Toolbar_DebugGo].GetHeight();
+
+	toolBar->SetToolBitmapSize(wxSize(w, h));
+	toolBar->AddTool(IDM_DEBUG_GO,	_T("Play"),			m_Bitmaps[Toolbar_DebugGo]);
+	toolBar->AddTool(IDM_STEP,		_T("Step"),			m_Bitmaps[Toolbar_Step]);
+	toolBar->AddTool(IDM_STEPOVER,	_T("Step Over"),    m_Bitmaps[Toolbar_StepOver]);
+	toolBar->AddTool(IDM_SKIP,		_T("Skip"),			m_Bitmaps[Toolbar_Skip]);
+	toolBar->AddSeparator();
+	toolBar->AddTool(IDM_GOTOPC,    _T("Show PC"),		m_Bitmaps[Toolbar_GotoPC]);
+	toolBar->AddTool(IDM_SETPC,		_T("Set PC"),		m_Bitmaps[Toolbar_SetPC]);
+	toolBar->AddSeparator();
+	toolBar->AddControl(new wxTextCtrl(toolBar, IDM_ADDRBOX, _T("")));
+
+	// after adding the buttons to the toolbar, must call Realize() to reflect
+	// the changes
+	toolBar->Realize();
+}
+// ===================================
+
+
+// =======================================================================================
+// Shortcuts
+// --------------
 bool CCodeWindow::UseInterpreter()
 {
 	return GetMenuBar()->IsChecked(IDM_INTERPRETER);
+}
+
+bool CCodeWindow::BootToPause()
+{
+	return GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE);
 }
 
 bool CCodeWindow::AutomaticStart()
 {
 	return GetMenuBar()->IsChecked(IDM_AUTOMATICSTART);
 }
-
-//bool CCodeWindow::UseDualCore()
-//{
-//	return GetMenuBar()->IsChecked(IDM_DUALCORE);
-//}
+// =========================
 
 
 // =======================================================================================
@@ -483,8 +612,15 @@ void CCodeWindow::OnInterpreter(wxCommandEvent& event)
 
 
 void CCodeWindow::OnAutomaticStart(wxCommandEvent& event)
-{
-	bAutomaticStart = !bAutomaticStart;
+{	switch(event.GetId())
+	{
+	case IDM_BOOTTOPAUSE:
+		bBootToPause = !bBootToPause;
+		break;
+	case IDM_AUTOMATICSTART:
+		bAutomaticStart = !bAutomaticStart;
+		break;
+	}
 }
 
 
@@ -554,113 +690,13 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 		break;
 	}
 }
+// =====================================
 
-void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
-{
-	if (Core::GetState() == Core::CORE_RUN) {
-		event.Skip();
-		return;
-	}
-	switch (event.GetId())
-	{
-	case IDM_PROFILEBLOCKS:
-		jit.ClearCache();
-		Profiler::g_ProfileBlocks = GetMenuBar()->IsChecked(IDM_PROFILEBLOCKS);
-		break;
-	case IDM_WRITEPROFILE:
-		Profiler::WriteProfileResults("profiler.txt");
-		File::Launch("profiler.txt");
-		break;
-	}
-}
 
-void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event) 
-{
-	if (Core::GetState() == Core::CORE_UNINITIALIZED)
-	{
-		// TODO: disable menu items instead :P
-		return;
-	}
-	std::string mapfile = CBoot::GenerateMapFilename();
-	switch (event.GetId())
-	{
-	case IDM_CLEARSYMBOLS:
-		g_symbolDB.Clear();
-		Host_NotifyMapLoaded();
-		break;
-	case IDM_CLEANSYMBOLS:
-		g_symbolDB.Clear("zz");
-		Host_NotifyMapLoaded();
-		break;
-	case IDM_SCANFUNCTIONS:
-		{
-		PPCAnalyst::FindFunctions(0x80000000, 0x80400000, &g_symbolDB);
-		SignatureDB db;
-		if (db.Load(TOTALDB_FILE))
-			db.Apply(&g_symbolDB);
 
-		// HLE::PatchFunctions();
-		NotifyMapLoaded();
-		break;
-		}
-	case IDM_LOADMAPFILE:
-		if (!File::Exists(mapfile.c_str()))
-		{
-			g_symbolDB.Clear();
-			PPCAnalyst::FindFunctions(0x80000000, 0x80400000, &g_symbolDB);
-			SignatureDB db;
-			if (db.Load(TOTALDB_FILE))
-				db.Apply(&g_symbolDB);
-		} else {
-			g_symbolDB.LoadMap(mapfile.c_str());
-		}
-		NotifyMapLoaded();
-		break;
-	case IDM_SAVEMAPFILE:
-		g_symbolDB.SaveMap(mapfile.c_str());
-		break;
-	case IDM_SAVEMAPFILEWITHCODES:
-		g_symbolDB.SaveMap(mapfile.c_str(), true);
-		break;
-	case IDM_CREATESIGNATUREFILE:
-		{
-		wxTextEntryDialog input_prefix(this, wxString::FromAscii("Only export symbols with prefix:"), wxGetTextFromUserPromptStr, _T("."));
-		if (input_prefix.ShowModal() == wxID_OK) {
-			std::string prefix(input_prefix.GetValue().mb_str());
-
-			wxString path = wxFileSelector(
-					_T("Save signature as"), wxEmptyString, wxEmptyString, wxEmptyString,
-					_T("Dolphin Signature File (*.dsy)|*.dsy;"), wxFD_SAVE,
-					this);
-			if (path) {
-				SignatureDB db;
-				db.Initialize(&g_symbolDB, prefix.c_str());
-				std::string filename(path.ToAscii());		// PPCAnalyst::SaveSignatureDB(
-				db.Save(path.ToAscii());
-			}
-		}
-		}
-		break;
-	case IDM_USESIGNATUREFILE:
-		{
-		wxString path = wxFileSelector(
-				_T("Apply signature file"), wxEmptyString, wxEmptyString, wxEmptyString,
-				_T("Dolphin Signature File (*.dsy)|*.dsy;"), wxFD_OPEN | wxFD_FILE_MUST_EXIST,
-				this);
-		if (path) {
-			SignatureDB db;
-			db.Load(path.ToAscii());
-			db.Apply(&g_symbolDB);
-		}
-		}
-		NotifyMapLoaded();
-		break;
-	case IDM_PATCHHLEFUNCTIONS:
-		HLE::PatchFunctions();
-		Update();
-		break;
-	}
-}
+//////////////////////////////////////////////////////////////////////////////////////////
+// Events
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 // =======================================================================================
 // The Play, Stop, Step, Skip, Go to PC and Show PC buttons all go here 
@@ -805,6 +841,18 @@ void CCodeWindow::OnCallsListChange(wxCommandEvent& event)
 	}
 }
 
+void CCodeWindow::SingleCPUStep()
+{
+	CCPU::StepOpcode(&sync_event);
+	//            if (CCPU::IsStepping())
+	//	            sync_event.Wait();
+	wxThread::Sleep(20);
+	// need a short wait here
+	JumpToAddress(PC);
+	Update();
+	Host_UpdateLogDisplay();
+}
+
 void CCodeWindow::Update()
 {
 	codeview->Refresh();
@@ -831,23 +879,13 @@ void CCodeWindow::Update()
 	   when we pause */
 	codeview->Center(PC);
 }
+/////////////////////////////////////////////////
 
 
-void CCodeWindow::NotifyMapLoaded()
-{
-	g_symbolDB.FillInCallers();
-	symbols->Show(false); // hide it for faster filling
-	symbols->Clear();
-	for (SymbolDB::XFuncMap::iterator iter = g_symbolDB.GetIterator(); iter != g_symbolDB.End(); iter++)
-	{
-		int idx = symbols->Append(wxString::FromAscii(iter->second.name.c_str()));
-		symbols->SetClientData(idx, (void*)&iter->second);
-	}
-	symbols->Show(true);
-	Update();
-}
 
-
+// =======================================================================================
+// Update GUI
+// --------------
 void CCodeWindow::UpdateButtonStates()
 {
 	wxToolBar* toolBar = GetToolBar();
@@ -881,325 +919,6 @@ void CCodeWindow::UpdateButtonStates()
 	}
 }
 
-
-void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
-{
-	int index = symbols->GetSelection();
-	if (index >= 0) {
-		Symbol* pSymbol = static_cast<Symbol *>(symbols->GetClientData(index));
-		if (pSymbol != NULL)
-		{
-			if(pSymbol->type == Symbol::SYMBOL_DATA)
-			{
-				if(m_MemoryWindow && m_MemoryWindow->IsVisible())
-					m_MemoryWindow->JumpToAddress(pSymbol->address);
-			}
-			else
-			{
-				JumpToAddress(pSymbol->address);
-			}
-		}
-	}
-}
-
-void CCodeWindow::OnSymbolListContextMenu(wxContextMenuEvent& event)
-{
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-// Show and hide windows
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-void CCodeWindow::OnToggleLogWindow(wxCommandEvent& event)
-{
-	if (LogManager::Enabled())
-	{
-		bool show = GetMenuBar()->IsChecked(event.GetId());
-
-		if (show)
-		{
-			if (!m_LogWindow)
-			{
-				m_LogWindow = new CLogWindow(this);
-			}
-
-			m_LogWindow->Show(true);
-		}
-		else // hide
-		{
-			// If m_dialog is NULL, then possibly the system
-			// didn't report the checked menu item status correctly.
-			// It should be true just after the menu item was selected,
-			// if there was no modeless dialog yet.
-			wxASSERT(m_LogWindow != NULL);
-
-			if (m_LogWindow)
-			{
-				m_LogWindow->Hide();
-			}
-		}
-	}
-}
-
-
-void CCodeWindow::OnToggleRegisterWindow(wxCommandEvent& event)
-{
-	bool show = GetMenuBar()->IsChecked(event.GetId());
-
-	if (show)
-	{
-		if (!m_RegisterWindow)
-		{
-			m_RegisterWindow = new CRegisterWindow(this);
-		}
-
-		m_RegisterWindow->Show(true);
-	}
-	else // hide
-	{
-		// If m_dialog is NULL, then possibly the system
-		// didn't report the checked menu item status correctly.
-		// It should be true just after the menu item was selected,
-		// if there was no modeless dialog yet.
-		wxASSERT(m_RegisterWindow != NULL);
-
-		if (m_RegisterWindow)
-		{
-			m_RegisterWindow->Hide();
-		}
-	}
-}
-
-
-// =======================================================================================
-// Toggle Sound Debugging Window
-// ------------
-void CCodeWindow::OnToggleSoundWindow(wxCommandEvent& event)
-{
-	bool show = GetMenuBar()->IsChecked(event.GetId());
-
-	if (show)
-	{
-		// TODO: add some kind of if() check here to?
-		CPluginManager::GetInstance().OpenDebug(
-			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
-			false, true // DSP, show
-			);
-	}
-	else // hide
-	{
-		// Close the sound dll that has an open debugger
-		CPluginManager::GetInstance().OpenDebug(
-			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
-			false, false // DSP, hide
-			);
-	}
-}
-// ===========
-
-
-// =======================================================================================
-// Toggle Video Debugging Window
-// ------------
-void CCodeWindow::OnToggleVideoWindow(wxCommandEvent& event)
-{
-	bool show = GetMenuBar()->IsChecked(event.GetId());
-	//GetMenuBar()->Check(event.GetId(), false); // Turn off
-
-	if (show)
-	{
-		// It works now, but I'll keep this message in case the problem reappears
-		/*if(Core::GetState() == Core::CORE_UNINITIALIZED)
-		{
-			wxMessageBox(_T("Warning, opening this window before a game is started \n\
-may cause a crash when a game is later started. Todo: figure out why and fix it."), wxT("OpenGL Debugging Window"));	
-		}*/
-
-		// TODO: add some kind of if() check here to?
-		CPluginManager::GetInstance().OpenDebug(
-		GetHandle(),
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
-		true, true // Video, show
-		);
-	}
-	else // hide
-	{
-		// Close the video dll that has an open debugger
-		CPluginManager::GetInstance().OpenDebug(
-			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
-			true, false // Video, hide
-			);
-	}
-}
-// ===========
-
-
-void CCodeWindow::OnToggleJitWindow(wxCommandEvent& event)
-{
-	bool show = GetMenuBar()->IsChecked(event.GetId());
-
-	if (show)
-	{
-		if (!m_JitWindow)
-		{
-			m_JitWindow = new CJitWindow(this);
-		}
-
-		m_JitWindow->Show(true);
-	}
-	else // hide
-	{
-		// If m_dialog is NULL, then possibly the system
-		// didn't report the checked menu item status correctly.
-		// It should be true just after the menu item was selected,
-		// if there was no modeless dialog yet.
-		wxASSERT(m_JitWindow != NULL);
-
-		if (m_JitWindow)
-		{
-			m_JitWindow->Hide();
-		}
-	}
-}
-
-
-void CCodeWindow::OnToggleBreakPointWindow(wxCommandEvent& event)
-{
-	bool show = GetMenuBar()->IsChecked(event.GetId());
-
-	if (show)
-	{
-		if (!m_BreakpointWindow)
-		{
-			m_BreakpointWindow = new CBreakPointWindow(this, this);
-		}
-
-		m_BreakpointWindow->Show(true);
-	}
-	else // hide
-	{
-		// If m_dialog is NULL, then possibly the system
-		// didn't report the checked menu item status correctly.
-		// It should be true just after the menu item was selected,
-		// if there was no modeless dialog yet.
-		wxASSERT(m_BreakpointWindow != NULL);
-
-		if (m_BreakpointWindow)
-		{
-			m_BreakpointWindow->Hide();
-		}
-	}
-}
-
-void CCodeWindow::OnToggleMemoryWindow(wxCommandEvent& event)
-{
-	bool show = GetMenuBar()->IsChecked(event.GetId());
-
-	if (show)
-	{
-		if (!m_MemoryWindow)
-		{
-			m_MemoryWindow = new CMemoryWindow(this);
-		}
-
-		m_MemoryWindow->Show(true);
-	}
-	else // hide
-	{
-		// If m_dialog is NULL, then possibly the system
-		// didn't report the checked menu item status correctly.
-		// It should be true just after the menu item was selected,
-		// if there was no modeless dialog yet.
-		wxASSERT(m_MemoryWindow != NULL);
-
-		if (m_MemoryWindow)
-		{
-			m_MemoryWindow->Hide();
-		}
-	}
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-void CCodeWindow::OnHostMessage(wxCommandEvent& event)
-{
-	switch (event.GetId())
-	{
-	    case IDM_NOTIFYMAPLOADED:
-		    NotifyMapLoaded();
-		    break;
-
-	    case IDM_UPDATELOGDISPLAY:
-
-		    if (m_LogWindow)
-		    {
-			    m_LogWindow->NotifyUpdate();
-		    }
-
-		    break;
-
-	    case IDM_UPDATEDISASMDIALOG:
-		    Update();
-
-		    if (m_RegisterWindow)
-		    {
-			    m_RegisterWindow->NotifyUpdate();
-		    }
-		    break;
-
-		case IDM_UPDATEBREAKPOINTS:
-            Update();
-
-			if (m_BreakpointWindow)
-			{
-				m_BreakpointWindow->NotifyUpdate();
-			}
-			break;
-		case IDM_UPDATESTATUSBAR:
-			//if (main_frame->m_pStatusBar != NULL)
-			{
-				// What is this PanicAlert() for?
-				//PanicAlert("");
-
-				//this->GetParent()->m_p
-				//this->GetParent()->
-				//parent->m_pStatusBar->SetStatusText(wxT("Hi"), 0);
-				//m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
-				//this->GetParent()->m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
-				//main_frame->m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
-			}
-			break;
-
-	}
-}
-
-void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)
-{
-	int w = m_Bitmaps[Toolbar_DebugGo].GetWidth(),
-		h = m_Bitmaps[Toolbar_DebugGo].GetHeight();
-
-	toolBar->SetToolBitmapSize(wxSize(w, h));
-	toolBar->AddTool(IDM_DEBUG_GO,	_T("Play"),			m_Bitmaps[Toolbar_DebugGo]);
-	toolBar->AddTool(IDM_STEP,		_T("Step"),			m_Bitmaps[Toolbar_Step]);
-	toolBar->AddTool(IDM_STEPOVER,	_T("Step Over"),    m_Bitmaps[Toolbar_StepOver]);
-	toolBar->AddTool(IDM_SKIP,		_T("Skip"),			m_Bitmaps[Toolbar_Skip]);
-	toolBar->AddSeparator();
-	toolBar->AddTool(IDM_GOTOPC,    _T("Show PC"),		m_Bitmaps[Toolbar_GotoPC]);
-	toolBar->AddTool(IDM_SETPC,		_T("Set PC"),		m_Bitmaps[Toolbar_SetPC]);
-	toolBar->AddSeparator();
-	toolBar->AddControl(new wxTextCtrl(toolBar, IDM_ADDRBOX, _T("")));
-
-	// after adding the buttons to the toolbar, must call Realize() to reflect
-	// the changes
-	toolBar->Realize();
-}
-
-
 void CCodeWindow::RecreateToolbar()
 {
 	// delete and recreate the toolbar
@@ -1215,48 +934,51 @@ void CCodeWindow::RecreateToolbar()
 	SetToolBar(theToolBar);
 }
 
+// =============
 
-void CCodeWindow::InitBitmaps()
+
+// =======================================================================================
+// Show Tool Tip for menu items
+// --------------
+void CCodeWindow::DoTip(wxString text)
 {
-	// load original size 48x48
-	m_Bitmaps[Toolbar_DebugGo] = wxGetBitmapFromMemory(toolbar_play_png);
-	m_Bitmaps[Toolbar_Step] = wxGetBitmapFromMemory(toolbar_add_breakpoint_png);
-	m_Bitmaps[Toolbar_StepOver] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
-	m_Bitmaps[Toolbar_Skip] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
-	m_Bitmaps[Toolbar_GotoPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
-	m_Bitmaps[Toolbar_SetPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
-	m_Bitmaps[Toolbar_Pause] = wxGetBitmapFromMemory(toolbar_pause_png);
-
-
-	// scale to 16x16 for toolbar
-	for (size_t n = Toolbar_DebugGo; n < Bitmaps_max; n++)
+	// Create a blank tooltip to clear the eventual old one
+	static wxTipWindow *tw = NULL;
+	if (tw)
 	{
-		m_Bitmaps[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(16, 16));
+		tw->SetTipWindowPtr(NULL);
+		tw->Close();
 	}
+	tw = NULL;
+
+	// Don't make a new one for blank text
+	if(text.empty()) return;
+
+	tw = new wxTipWindow(this, text, 175, &tw);
+
+	// Move it to the right
+	#ifdef _WIN32
+		POINT point;
+		GetCursorPos(&point);		
+		tw->SetPosition(wxPoint(point.x + 25, point.y));
+	#endif
 }
 
-
-void CCodeWindow::OnKeyDown(wxKeyEvent& event)
+// See the comment under BEGIN_EVENT_TABLE for an explanation of why we use both these events.
+void CCodeWindow::OnStatusBar(wxMenuEvent& event)
 {
-	if ((event.GetKeyCode() == WXK_SPACE) && IsActive())
-	{
-		SingleCPUStep();	
-	}
-	else
-	{
-		event.Skip();
-	}
+	/* We assume the debug build user don't need to see this all the time. And these tooltips
+	   may not be entirely stable. So we leave them out of debug builds. I could for example
+	   get it to crash at wxWindowBase::DoHitTest(), that may be fixed in wxWidgets 2.9.0. */
+	#if !defined(_DEBUG) || defined(DEBUGFAST)
+		DoTip(pMenuBar->GetHelpString(event.GetId()));
+	#endif
 }
-
-
-void CCodeWindow::SingleCPUStep()
+void CCodeWindow::OnStatusBar_(wxUpdateUIEvent& event)
 {
-	CCPU::StepOpcode(&sync_event);
-	//            if (CCPU::IsStepping())
-	//	            sync_event.Wait();
-	wxThread::Sleep(20);
-	// need a short wait here
-	JumpToAddress(PC);
-	Update();
-	Host_UpdateLogDisplay();
+	#if !defined(_DEBUG) || defined(DEBUGFAST)
+		// The IDM_ADDRBOX id seems to come with this outside the toolbar
+		if(event.GetId() != IDM_ADDRBOX) DoTip(wxEmptyString);
+	#endif
 }
+// =============

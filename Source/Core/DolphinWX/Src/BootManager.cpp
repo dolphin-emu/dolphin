@@ -84,6 +84,7 @@ bool BootCore(const std::string& _rFilename)
 		{
 	//		StartUp.bUseDualCore = code_frame->UseDualCore();
 			StartUp.bUseJIT = !g_pCodeWindow->UseInterpreter();
+			StartUp.bBootToPause = g_pCodeWindow->BootToPause();
 			StartUp.bAutomaticStart = g_pCodeWindow->AutomaticStart();
 		}
 		else
@@ -202,7 +203,7 @@ bool BootCore(const std::string& _rFilename)
 
 #if defined(HAVE_WX) && HAVE_WX
 	// Boot to pause or not
-	Core::SetState((g_pCodeWindow && !StartUp.bAutomaticStart)
+	Core::SetState((g_pCodeWindow && StartUp.bBootToPause)
 		? Core::CORE_PAUSE : Core::CORE_RUN);
 #else
 	Core::SetState(Core::CORE_RUN);

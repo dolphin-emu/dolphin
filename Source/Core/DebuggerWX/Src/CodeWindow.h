@@ -59,7 +59,8 @@ class CCodeWindow
 
 
 		bool UseInterpreter();
-		bool AutomaticStart();
+		bool BootToPause();
+		bool AutomaticStart();		
 		//bool UseDualCore(); // not used
         void JumpToAddress(u32 _Address);
 
@@ -72,7 +73,7 @@ class CCodeWindow
 			// CPU Mode
 			IDM_INTERPRETER = 2000, // These cannot interfere with enums in Globals.h!
 			//IDM_DUALCORE, // not used
-			IDM_AUTOMATICSTART,
+			IDM_AUTOMATICSTART, IDM_BOOTTOPAUSE,
 			IDM_JITUNLIMITED, IDM_JITOFF, // jit
 			IDM_JITLSOFF, IDM_JITLSLXZOFF, IDM_JITLSLWZOFF, IDM_JITLSLBZXOFF,
 			IDM_JITLSPOFF, IDM_JITLSFOFF,
@@ -142,7 +143,7 @@ class CCodeWindow
 		};
 
 		// Settings
-		bool bAutomaticStart;
+		bool bAutomaticStart; bool bBootToPause;
 		bool bLogWindow;
 		bool bRegisterWindow;
 		bool bBreakpointWindow;
@@ -208,15 +209,18 @@ class CCodeWindow
 		void OnJITOff(wxCommandEvent& event);	
 
 		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter);
+		void CreateSymbolsMenu();
 
 		void UpdateButtonStates();
 		void UpdateLists();
-
 		void RecreateToolbar();
 		void PopulateToolbar(wxToolBar* toolBar);
-		void InitBitmaps();
-		void CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter);
+		void OnStatusBar(wxMenuEvent& event); void OnStatusBar_(wxUpdateUIEvent& event);
+		void DoTip(wxString text);
 		void OnKeyDown(wxKeyEvent& event);
+
+		void InitBitmaps();
+		void CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter);		
 };
 
 #endif /*CODEWINDOW_*/
