@@ -111,10 +111,17 @@ void CGameListCtrl::BrowseForDirectory()
 
 	if (dialog.ShowModal() == wxID_OK)
 	{
-		SConfig::GetInstance().m_ISOFolder.push_back(
-			std::string(dialog.GetPath().ToAscii())
+		std::string sPath(dialog.GetPath().ToAscii());
+		std::vector<std::string>::iterator itResult = std::find(
+			SConfig::GetInstance().m_ISOFolder.begin(), SConfig::GetInstance().m_ISOFolder.end(), sPath
 			);
-		SConfig::GetInstance().SaveSettings();
+
+		if (itResult == SConfig::GetInstance().m_ISOFolder.end())
+		{
+			SConfig::GetInstance().m_ISOFolder.push_back(sPath);
+			SConfig::GetInstance().SaveSettings();
+		}
+		
 		Update();
 	}
 }
