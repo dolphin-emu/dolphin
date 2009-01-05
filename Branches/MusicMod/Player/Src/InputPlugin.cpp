@@ -37,7 +37,7 @@ InputPlugin::InputPlugin( TCHAR * szDllpath, bool bKeepLoaded ) : Plugin( szDllp
 	iFiltersLen    = 0;
 	plugin         = NULL;
 	
-	wprintf("\InputPlugin::InputPlugin > Begin\n");
+	//wprintf("\InputPlugin::InputPlugin > Begin\n");
 
 	if( !Load() )
 	{
@@ -235,14 +235,14 @@ bool InputPlugin::Integrate()
 		// Append filter name
 		ToTchar( walk_out, start_display, len_display );
 
-// =======================================================================================
-// Print used filetypes
-		TCHAR szBuffer[ 5000 ];
-		*(walk_out + len_display) = TEXT( '\0' );
-		_stprintf( szBuffer, TEXT( "   %s" ), walk_out );
-		Console::Append( szBuffer );
-		//printf( szBuffer, TEXT( "   %s\n" ), walk_out );
-// =======================================================================================
+		// =======================================================================================
+		// Print used filetypes
+			TCHAR szBuffer[ 5000 ];
+			*(walk_out + len_display) = TEXT( '\0' );
+			_stprintf( szBuffer, TEXT( "   %s" ), walk_out );
+			Console::Append( szBuffer );
+			//printf( szBuffer, TEXT( "   %s\n" ), walk_out );
+		// =======================================================================================
 		walk_out += len_display;
 
 		// Convert and append extensions
@@ -317,15 +317,16 @@ bool InputPlugin::Unload()
 {
 	if( !IsLoaded() ) return true;
 
-
 	DisIntegrate();
 
-
-	TCHAR szBuffer[ 5000 ];
-	_stprintf( szBuffer, TEXT( "Unloading <%s>" ), GetFilename() );
-	Console::Append( szBuffer );
-	Console::Append( TEXT( " " ) );
-	printf( ">>>Unloading <%s>\n" , GetFilename() );
+	#ifndef NOGUI
+		TCHAR szBuffer[ 5000 ];
+		_stprintf( szBuffer, TEXT( "Unloading '%s'" ), GetFilename() );
+		Console::Append( szBuffer );
+		Console::Append( TEXT( " " ) );
+	#else
+		printf( ">>> Unloading '%s'\n" , GetFilename() );
+	#endif
 
 	// Quit
 	if( plugin )

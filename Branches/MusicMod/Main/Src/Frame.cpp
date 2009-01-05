@@ -48,8 +48,11 @@ namespace MusicMod
 	bool GlobalMute = false;
 	bool GlobalPause = false;
 	bool bShowConsole = false;
-	int GlobalVolume = 255;
+	int GlobalVolume = 125;
 	extern bool dllloaded;
+
+	void ShowConsole();
+	void Init();
 }
 //////////////////////////////////
 
@@ -126,12 +129,7 @@ wxBitmap SetBrightness(wxBitmap _Bitmap, int _Brightness, bool Gray)
 //////////////////////////////////
 
 
-void ShowConsole()
-{
-	StartConsoleWin(100, 2000, "Console"); // Give room for 2000 rows
-}
-
-#ifdef MUSICMOD
+//#ifdef MUSICMOD
 void
 CFrame::MM_InitBitmaps(int Theme)
 {
@@ -165,33 +163,11 @@ CFrame::MM_InitBitmaps(int Theme)
 void
 CFrame::MM_PopulateGUI()
 {	
-	// ---------------------------------------
-	// Load config
-	// ---------------------
-	IniFile file;
-	file.Load("Plainamp.ini");
-	file.Get("Interface", "ShowConsole", &MusicMod::bShowConsole, false);
-	// -------
-
-
-	// ---------------------------------------
-	// Make a debugging window
-	// ---------------------
-	if(MusicMod::bShowConsole) ShowConsole();
-
-	// Write version
-	#ifdef _M_X64
-		wprintf("64 bit version\n");
-	#else
-		wprintf("32 bit version\n");
-	#endif
-	// -----------
-
-
 	wxToolBar* toolBar = TheToolBar; // Shortcut
 
 	toolBar->AddSeparator();
 
+	MusicMod::Init();
 
 	// ---------------------------------------
 	// Draw a rotated music label
@@ -239,8 +215,10 @@ CFrame::MM_PopulateGUI()
 	   this code can be simplified a lot */
 	// ---------
 	wxPanel * mm_SliderPanel = new wxPanel(toolBar, IDS_VOLUME_PANEL, wxDefaultPosition, wxDefaultSize);
-	wxSlider * mm_Slider = new wxSlider(mm_SliderPanel, IDS_VOLUME, 125, 0, 255, wxDefaultPosition, wxDefaultSize);
-	//m_Slider->SetToolTip("Change the music volume");
+	mm_Slider = new wxSlider(mm_SliderPanel, IDS_VOLUME, 125, 0, 255, wxDefaultPosition, wxDefaultSize);
+	//mm_Slider->SetToolTip("Change the music volume");
+	mm_Slider->SetValue(MusicMod::GlobalVolume);
+
 	wxStaticText * mm_SliderText = new wxStaticText(mm_SliderPanel, IDS_VOLUME_LABEL, _T("Volume"), wxDefaultPosition, wxDefaultSize);
 	wxBoxSizer * mm_VolSizer = new wxBoxSizer(wxVERTICAL);
 	mm_VolSizer->Add(mm_Slider, 0, wxEXPAND | wxALL, 0);
@@ -252,7 +230,8 @@ CFrame::MM_PopulateGUI()
 	toolBar->AddControl((wxControl*)mm_SliderPanel);
 	// ---------
 
-	mm_ToolLog = toolBar->AddTool(IDT_LOG, _T("Log"),   m_Bitmaps[Toolbar_Log], _T("Show or hide log"));
+	mm_ToolLog = toolBar->AddTool(IDT_LOG, _T("Log"),   m_Bitmaps[Toolbar_Log],
+		wxT("Show or hide log. Enable the log window and restart Dolphin to show the DLL status."));
 }
 
 
@@ -304,6 +283,14 @@ void
 CFrame::MM_OnPlay()
 {
 	//wprintf("\nCFrame::OnPlayMusicMod > Begin\n");
+
+	// Save the volume
+	MusicMod::GlobalVolume = mm_Slider->GetValue();	
+
+	IniFile file;
+	file.Load("Plainamp.ini");
+	file.Set("Plainamp", "Volume", MusicMod::GlobalVolume);
+	file.Save("Plainamp.ini");
 	
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
@@ -349,29 +336,26 @@ CFrame::MM_OnStop()
 void
 CFrame::MM_OnMute(wxCommandEvent& WXUNUSED (event))
 {
-	wprintf("CFrame::OnMute > Begin\n");
+	//wprintf("CFrame::OnMute > Begin\n");
 	//MessageBox(0, "", "", 0);
 
 	if(!MusicMod::GlobalMute)
 	{
 		if(MusicMod::dllloaded) // avoid crash
 		{
-			Player_Mute();
+			Player_Mute(MusicMod::GlobalVolume);
 		}
 
-		MusicMod::GlobalMute = true;		
-		//m_ToolMute->Enable(false);
-		//GetToolBar()->EnableTool(IDT_LOG, false);
+		MusicMod::GlobalMute = true;
 		UpdateGUI();
 	}
 	else
 	{
 		if(MusicMod::dllloaded) // avoid crash
 		{
-			Player_Mute();
+			Player_Mute(MusicMod::GlobalVolume);
 		}
 		MusicMod::GlobalMute = false;
-		//m_ToolMute->Enable(true);
 		UpdateGUI();
 	}
 }
@@ -430,6 +414,7 @@ void CFrame::MM_OnVolume(wxScrollEvent& event)
 		MusicMod::GlobalMute = false; // Unmute to
 		mm_ToolMute->Toggle(false);		
 		
+		
 		if(event.GetEventType() == wxEVT_SCROLL_CHANGED)
 		{
 			// Only update this on release, to avoid major flickering when changing volume
@@ -437,8 +422,7 @@ void CFrame::MM_OnVolume(wxScrollEvent& event)
 
 			/* Use this to avoid that the focus get stuck on the slider when the main
 			window has been replaced */
-			this->SetFocus();}
-		
+			this->SetFocus();}		
 	}
 }
 //=======================================================================================
@@ -453,14 +437,12 @@ void CFrame::MM_OnLog(wxCommandEvent& event)
 	//wprintf("CFrame::OnLog > Begin\n");
 	//MessageBox(0, "", "", 0);
 
-	if(MusicMod::dllloaded) // Avoid crash
-	{
-	}
+	if(!MusicMod::dllloaded) return; // Avoid crash
 
 	MusicMod::bShowConsole = !MusicMod::bShowConsole;
 
 	if(MusicMod::bShowConsole)
-		{ ShowConsole(); Player_Console(true); }
+		{ MusicMod::ShowConsole(); Player_Console(true); }
 	else
 	{
 		#if defined (_WIN32)
@@ -476,4 +458,5 @@ void CFrame::MM_OnLog(wxCommandEvent& event)
 	UpdateGUI();
 }
 //=======================================================================================
-#endif // MUSICMOD
+
+//#endif // MUSICMOD

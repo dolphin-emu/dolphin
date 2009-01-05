@@ -4,6 +4,8 @@
 // ¯¯¯¯¯¯¯¯¯¯
 #include <iostream>  // System
 
+#include "../../../../Source/Core/Common/Src/Common.h" // Global common
+
 #include "../../Common/Src/Console.h" // Local common
 
 #include "OutputPlugin.h" // Local
@@ -19,8 +21,8 @@
 // Declarations and definitions
 // ¯¯¯¯¯¯¯¯¯¯
 std::string CurrentlyPlayingFile;
-int GlobalVolume;
-int GlobalCurrentVolume;
+int GlobalVolume = -1;
+bool GlobalMute = false;
 bool GlobalPause;
 bool TimerCreated = false;
 bool Initialized = false;
@@ -122,38 +124,43 @@ void Player_Unpause()
 	GlobalPause = false;
 }
 
-void Player_Mute()
-{
-	wprintf("DLL > Mute <%i> <%i>\n", GlobalVolume, GlobalCurrentVolume);
 
-	// ---------------------------------------------------------------------------------------
-	// Set volume. For some reason Playback::Volume::Get() is not updated when we run Output_SetVolume()
-	// I probably disabled it by mistake, so we only keep track of the volume with GlobalVolume from now on
-	if(GlobalCurrentVolume > 0)
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+/* About the volume: The colume is normally update for the output plugin in Output.cpp and for the
+   inout plugin (why?) in Playback.cpp with Playback::Volume::Set(). But I don't know how that works
+   so I only use GlobalVolume to keep track of the volume */
+// ------------------------------
+void Player_Mute(int Vol)
+{
+	if(GlobalVolume == -1) GlobalVolume = Vol;
+	wprintf("DLL > Mute <%i> <%i>\n", GlobalVolume, GlobalMute);
+
+	GlobalMute = !GlobalMute;
+
+	// Set volume
+	if(GlobalMute)
 	{
 		Output_SetVolume( 0 );
-		GlobalCurrentVolume = 0;
-		wprintf("DLL > Volume <%i>\n", GlobalCurrentVolume);
+		wprintf("DLL > Volume <%i>\n", GlobalMute);
 	}
 	else
 	{
-		//Output_SetVolume( GlobalVolume );
 		Output_SetVolume( GlobalVolume );
-		GlobalCurrentVolume = GlobalVolume;
-		wprintf("DLL > Volume <%i>\n", GlobalCurrentVolume);
+		wprintf("DLL > Volume <%i>\n", GlobalMute);
 	}
 
 	//wprintf("Volume(%i)\n", Playback::Volume::Get());
-	// ---------------------------------------------------------------------------------------
 }
+///////////////////////////////////////
 
 
-
-void Player_Volume(int a)
+void Player_Volume(int Vol)
 {
-	GlobalVolume = a;
+	GlobalVolume = Vol;
 	Output_SetVolume( GlobalVolume );
-	wprintf("DLL > Volume <%i> <%i>\n", GlobalVolume, GlobalCurrentVolume);
+	//wprintf("DLL > Volume <%i> <%i>\n", GlobalVolume, GlobalCurrentVolume);
 }
 
 void ShowConsole()

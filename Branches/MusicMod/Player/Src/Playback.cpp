@@ -82,7 +82,7 @@ bool OpenPlay( TCHAR * szFilename, int iNumber )
 {
 	// =======================================================================================
 	#ifdef NOGUI
-		wprintf( "Playback.cpp: OpenPlay > Begin <%i> <%s>\n" , iNumber, szFilename );
+		//wprintf( "Playback.cpp: OpenPlay > Begin <%i> <%s>\n" , iNumber, szFilename );
 	#else
 		TCHAR sszBuffer[ 5000 ];
 		_stprintf( sszBuffer, TEXT( "Playback.cpp: OpenPlay was called <%i> <%s>" ), iNumber, szFilename );
@@ -128,7 +128,7 @@ bool OpenPlay( TCHAR * szFilename, int iNumber )
 	// Now that we know which input pugin to use we set that one as active
 	InputPlugin * old_input = active_input_plugin; // Save the last one, if any
 	active_input_plugin = iter->second;
-	wprintf("OpenPlay > Input plugin '%s' activated\n", active_input_plugin->GetName());
+	wprintf("OpenPlay > Input plugin '%s' activated\n", active_input_plugin->GetFilename());
 	// =======================================================================================
 
 	if( old_input )
@@ -150,7 +150,7 @@ bool OpenPlay( TCHAR * szFilename, int iNumber )
 	}
 	
 	// Connect
-	wprintf( "OpenPlay > OutMod\n" );
+	//wprintf( "OpenPlay > OutMod\n" );
 	active_input_plugin->plugin->outMod = &output_server; // output->plugin;
 	
 	// =======================================================================================
@@ -190,10 +190,10 @@ bool OpenPlay( TCHAR * szFilename, int iNumber )
 	TCHAR szTitle[ 2000 ] = TEXT( "\0" );
 	int length_in_ms;
 
-	wprintf( "OpenPlay > GetFileInfo\n" );
+	//wprintf( "OpenPlay > GetFileInfo\n" );
 	active_input_plugin->plugin->GetFileInfo( szFilename, szTitle, &length_in_ms );
 
-	wprintf( "OpenPlay > Play\n" );
+	//wprintf( "OpenPlay > Play\n" );
 	active_input_plugin->plugin->Play( szFilename );
 	// =======================================================================================
 #endif
@@ -218,7 +218,7 @@ bool OpenPlay( TCHAR * szFilename, int iNumber )
 	// Timer ON
 	//EnableTimer( true );
 
-	wprintf( "OpenPlay > End\n" );
+	//wprintf( "OpenPlay > End\n" );
 
 	return true;
 }
@@ -292,11 +292,14 @@ bool Playback::Play()
 
 	// ---------------------------------------------------------------------------------------
 	
- 	TCHAR sszBuffer[ 5000 ];
-	_stprintf( sszBuffer, TEXT( "Playback::Play() with bPlaying <%i>\n" ), bPlaying );
-	Console::Append( sszBuffer );
-	Console::Append( TEXT( " " ) );
-	wprintf( "Playback::Play() > Begin <%i>\n" , bPlaying );
+	#ifndef NOGUI
+ 		TCHAR sszBuffer[ 5000 ];
+		_stprintf( sszBuffer, TEXT( "Playback::Play() with bPlaying <%i>\n" ), bPlaying );
+		Console::Append( sszBuffer );
+		Console::Append( TEXT( " " ) );
+	#else
+		//wprintf( "Playback::Play() > Begin <%i>\n" , bPlaying );
+	#endif
 	// ---------------------------------------------------------------------------------------
 
 	// ---------------------------------------------------------------------------------------
@@ -384,12 +387,14 @@ bool Playback::Play()
 			Console::Append( " " );
 			return false;
 		}
-
-		 	TCHAR szBuffer[ 5000 ];
-			_stprintf( szBuffer, TEXT( "Playback.cpp: Play() got the filename <%s>" ), szFilename);
-			Console::Append( szBuffer );
-		//	Console::Append( TEXT( " " ) );
-			wprintf(  "Playback::Play() > Filename <%s>\n", szFilename);
+			#ifndef NOGUI
+		 		TCHAR szBuffer[ 5000 ];
+				_stprintf( szBuffer, TEXT( "Playback.cpp: Play() got the filename <%s>" ), szFilename);
+				Console::Append( szBuffer );
+				//Console::Append( TEXT( " " ) );
+			#else
+				//wprintf(  "Playback::Play() > Filename <%s>\n", szFilename);
+			#endif
 
 		// Play
 		iLastIndex = iIndex;
@@ -549,13 +554,13 @@ bool Playback::UpdateSeek()
 			
 			if( iVal > 1000 ) iVal = 0;
 
-// =======================================================================================
-//TCHAR szBuffer[ 5000 ];
-//_stprintf( szBuffer, TEXT( "Current position is <%i of %i>" ), ms_cur, ms_len );
-//Console::Append( szBuffer );
-//Console::Append( TEXT( " " ) );
-printf( "Current position is <%i of %i>\n", ms_cur, ms_len );
-// =======================================================================================
+			// =======================================================================================
+			//TCHAR szBuffer[ 5000 ];
+			//_stprintf( szBuffer, TEXT( "Current position is <%i of %i>" ), ms_cur, ms_len );
+			//Console::Append( szBuffer );
+			//Console::Append( TEXT( " " ) );
+			printf( "Current position is <%i of %i>\n", ms_cur, ms_len );
+			// =======================================================================================
 		}
 
 		

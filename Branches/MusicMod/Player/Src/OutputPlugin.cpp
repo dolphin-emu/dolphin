@@ -41,7 +41,7 @@ OutputPlugin::OutputPlugin( TCHAR * szDllpath, bool bKeepLoaded ) : Plugin( szDl
 		return;
 	}
 
-////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////
 
 	// Quick hack!!!
 	TCHAR * szBuffer = new TCHAR[ 500 ]; // NOT LOCAL!!!
@@ -72,7 +72,7 @@ OutputPlugin::OutputPlugin( TCHAR * szDllpath, bool bKeepLoaded ) : Plugin( szDl
 		}
 	}
 	// Quick hack!!!
-////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////
 	
 	
 	output_plugins.push_back( this );
@@ -248,7 +248,8 @@ bool OutputPlugin::Config( HWND hParent )
 ////////////////////////////////////////////////////////////////////////////////
 bool OutputPlugin::Start()
 {
-	wprintf( "OutputPlugin::Start() > Begin <IsLoaded():%i> <bActive:%i> <active_output_count:%i>\n" , IsLoaded(), bActive, active_output_count );
+	//wprintf( "OutputPlugin::Start() > Begin <IsLoaded():%i> <bActive:%i> <active_output_count:%i>\n",
+	//	IsLoaded(), bActive, active_output_count );
 
 	if( !IsLoaded() ) return false;
 	if( bActive ) return true;
@@ -268,11 +269,14 @@ bool OutputPlugin::Start()
 		active_output_count = 1;
 	}
 	
-	TCHAR szBuffer[ 5000 ];
-	_stprintf( szBuffer, TEXT( "Output plugin <%s> activated" ), GetFilename() );
-	Console::Append( szBuffer );
-	Console::Append( TEXT( " " ) );
-	wprintf( "\n >>> OutputPlugin::Start() > Output plugin <%s> activated\n\n" , GetFilename() );
+	#ifndef NOGUI
+		TCHAR szBuffer[ 5000 ];
+		_stprintf( szBuffer, TEXT( "Output plugin <%s> activated" ), GetFilename() );
+		Console::Append( szBuffer );
+		Console::Append( TEXT( " " ) );
+	#else
+		wprintf( "\n >>> Output plugin '%s' activated\n\n" , GetFilename() );
+	#endif
 	
 	bActive = true;
 

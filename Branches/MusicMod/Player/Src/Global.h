@@ -10,6 +10,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Settings
+// ¯¯¯¯¯¯¯¯¯¯
+/* This will build Plainamp without the GUI. Todo: Fix this, I disabled a little to much
+   to make the regular GUI version build */
+#define NOGUI
+////////////////////////////////
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Include
@@ -21,10 +29,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Declarations and definitions
 // ¯¯¯¯¯¯¯¯¯¯
-
-// This will build Plainamp without the GUI
-#define NOGUI
-
 
 // =======================================================================================
 // Because there are undefined in 64 bit it's easy to redefine them in case we use 64 bit
@@ -45,9 +49,7 @@
 #define PA_GLOBAL_H
 
 
-
 // #include "ide_devcpp/Plainamp_Private.h"
-
 
 
 #ifdef UNICODE

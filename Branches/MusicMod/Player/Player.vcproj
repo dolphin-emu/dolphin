@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Player"
 	ProjectGUID="{0B72B5D6-5D72-4391-84A7-9CCA5392668A}"
 	RootNamespace="Plainamp"
@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG"
+				PreprocessorDefinitions="WIN32;_WINDOWS;_DEBUG;_SECURE_SCL=0"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="0"
 				RuntimeLibrary="0"
@@ -211,7 +211,7 @@
 				Name="VCCLCompilerTool"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -351,12 +351,6 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Source Files"
-			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
-			>
-		</Filter>
-		<Filter
 			Name="Externals"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
@@ -365,192 +359,52 @@
 				Name="fftw3"
 				>
 				<File
-					RelativePath="..\..\Source\fftw3\fftw3.h"
+					RelativePath=".\Src\fftw3\fftw3.h"
 					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
 				</File>
 			</Filter>
 			<Filter
 				Name="Winamp"
 				>
 				<File
-					RelativePath="..\..\Source\Winamp\Dsp.h"
+					RelativePath=".\Src\Winamp\Dsp.h"
 					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\Source\Winamp\Gen.h"
+					RelativePath=".\Src\Winamp\Gen.h"
 					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\Source\Winamp\In2.h"
+					RelativePath=".\Src\Winamp\In2.h"
 					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\Source\Winamp\Out.h"
+					RelativePath=".\Src\Winamp\Out.h"
 					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\Source\Winamp\Vis.h"
+					RelativePath=".\Src\Winamp\Vis.h"
 					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\Source\Winamp\wa_ipc.h"
+					RelativePath=".\Src\Winamp\wa_ipc.h"
 					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\Source\Winamp\wa_msgids.h"
+					RelativePath=".\Src\Winamp\wa_msgids.h"
 					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
 				</File>
 			</Filter>
 			<Filter
 				Name="zlib"
 				>
 				<File
-					RelativePath="..\..\Source\zlib\zconf.h"
+					RelativePath=".\Src\zlib\zconf.h"
 					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\Source\zlib\zlib.h"
+					RelativePath=".\Src\zlib\zlib.h"
 					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
 				</File>
 			</Filter>
 		</Filter>
@@ -611,6 +465,38 @@
 		<Filter
 			Name="Plugins"
 			>
+			<File
+				RelativePath=".\Src\DspPlugin.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\DspPlugin.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\GenPlugin.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\GenPlugin.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\InputPlugin.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\InputPlugin.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\OutputPlugin.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\OutputPlugin.h"
+				>
+			</File>
 			<File
 				RelativePath=".\Src\Plugin.cpp"
 				>
@@ -708,14 +594,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\Config.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Config.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\Console.cpp"
 				>
 			</File>
@@ -729,14 +607,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\DspModule.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DspPlugin.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\DspPlugin.h"
 				>
 			</File>
 			<File
@@ -756,14 +626,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\GenPlugin.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\GenPlugin.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\GlobalVersion.h"
 				>
 			</File>
@@ -773,14 +635,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\Input.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\InputPlugin.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\InputPlugin.h"
 				>
 			</File>
 			<File
@@ -797,14 +651,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\Output.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\OutputPlugin.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\OutputPlugin.h"
 				>
 			</File>
 			<File
@@ -893,6 +739,18 @@
 			</File>
 			<File
 				RelativePath=".\Src\Winamp.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Config"
+			>
+			<File
+				RelativePath=".\Src\Config.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Config.h"
 				>
 			</File>
 		</Filter>

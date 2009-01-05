@@ -44,6 +44,6 @@ EXPORT void Player_Play(char *);
 EXPORT void Player_Stop();
 EXPORT void Player_Pause();
 EXPORT void Player_Unpause();
-EXPORT void Player_Mute();
-EXPORT void Player_Volume(int);
+EXPORT void Player_Mute(int Vol);
+EXPORT void Player_Volume(int Vol);
 

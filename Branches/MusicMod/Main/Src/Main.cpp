@@ -24,6 +24,8 @@
 #include <string>
 #include <windows.h>
 
+#include "IniFile.h"	// Common
+
 #include "PowerPC/PowerPc.h" // Core
 
 #include "../../../../Source/Core/DiscIO/Src/FileSystemGCWii.h" // This file has #include "Filesystem.h"
@@ -59,10 +61,12 @@ std::string MusicPath;
 
 DiscIO::CFileSystemGCWii* my_pFileSystem;
 
-extern bool bShowConsole;
 int WritingFile = false;
 bool dllloaded = false;
 std::string CurrentPlayFile;
+
+extern bool bShowConsole; // Externally define
+extern int GlobalVolume;
 //////////////////////////////////
 
 
@@ -97,11 +101,57 @@ void StructSort (std::vector <MyFilesStructure> &MyFiles)
 	//wprintf("StructSort > Done\n");
 }
 
+// =======================================================================================
+/* Run these things once */
+// ------------------------
+void ShowConsole()
+{
+	StartConsoleWin(100, 2000, "Console"); // Give room for 2000 rows
+}
+
+void Init()
+{
+	// These things below will not need to be updated after a new game is started
+	if (dllloaded) return;
+
+	// ---------------------------------------
+	// Load config
+	// ---------------------
+	IniFile file;
+	file.Load("Plainamp.ini");
+	file.Get("Interface", "ShowConsole", &MusicMod::bShowConsole, false);
+	file.Get("Plainamp", "Volume", &MusicMod::GlobalVolume, 125);	
+	// -------
+
+	// ---------------------------------------
+	// Make a debugging window
+	// ---------------------
+	if(MusicMod::bShowConsole) ShowConsole();
+
+	// Write version
+	#ifdef _M_X64
+		wprintf("64 bit version\n");
+	#else
+		wprintf("32 bit version\n");
+	#endif
+	// -----------
+
+	// Set volume
+	Player_Volume(MusicMod::GlobalVolume);
+
+	// Show DLL status
+	Player_Main(MusicMod::bShowConsole);
+	//play_file("c:\\demo36_02.ast");
+	//wprintf("DLL loaded\n");
+
+	dllloaded = true; // Do this once
+}
 
 
 // =======================================================================================
 /* This will load Plainamp.dll. It's the original Plainamp.exe with removed GUI and some small
    modifications. */
+// ------------------------
 void Main(std::string FileName)
 {
 	//
@@ -122,15 +172,6 @@ void Main(std::string FileName)
 
 	// Sort the files by offset
 	StructSort(MyFiles);
-
-	// These things below will not need to be updated after a new game is started
-	if (dllloaded) return;
-
-	// Call the DLL for the first time
-	Player_Main(bShowConsole);
-	//play_file("c:\\demo36_02.ast");
-	wprintf("DLL loaded\n");
-	dllloaded = true; // Do this once
 
 	// ---------------------------------------------------------------------------------------
 	// Make Music directory

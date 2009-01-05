@@ -103,6 +103,7 @@ class CFrame : public wxFrame
 		// ¯¯¯¯¯¯¯¯¯¯
 		#ifdef MUSICMOD
 			wxToolBarToolBase* mm_ToolMute, * mm_ToolPlay, * mm_ToolLog;
+			wxSlider * mm_Slider;
 
 			void MM_UpdateGUI(); void MM_PopulateGUI(); void MM_InitBitmaps(int Theme);
 			void MM_OnPlay(); void MM_OnStop();

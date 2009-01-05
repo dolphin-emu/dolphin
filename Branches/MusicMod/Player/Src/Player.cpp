@@ -125,7 +125,8 @@ void Player_Main(bool Console)
 
 	//MessageBox(0, "main() opened", "", 0);
 	//printf( "main() opened\n" );
-	wprintf( "DLL > main_dll() > Begin\n" );
+	wprintf( "\n=========================================================\n\n" );
+	wprintf( "DLL > Player_Main() > Begin\n" );
 
 		
 	// =======================================================================================
@@ -134,8 +135,9 @@ void Player_Main(bool Console)
 	Conf::Init( );
 
 	// ---------------------------------------------------------------------------------------
-	wprintf( "DLL > bLoop <%i>\n", bLoop);
-	wprintf( "DLL > bWarnPluginsMissing <%i>\n", bWarnPluginsMissing);	
+	wprintf( "\n\nDLL > Settings:\n", bLoop);
+	wprintf( "DLL > Loop: %i\n", bLoop);
+	wprintf( "DLL > WarnPluginsMissing: %i\n", bWarnPluginsMissing);	
 	// ---------------------------------------------------------------------------------------
 
 	// =======================================================================================
@@ -167,12 +169,22 @@ void Player_Main(bool Console)
 	memcpy( szPluginDir, szHomeDir, iHomeDirLen * sizeof( TCHAR ) );
 	memcpy( szPluginDir + iHomeDirLen, TEXT( "PluginsMusic" ), 12 * sizeof( TCHAR ) );
 	szPluginDir[ iHomeDirLen + 12 ] = TEXT( '\0' );
-	wprintf("DLL > Plugindir: %s\n\n", szPluginDir);
+	wprintf("DLL > Plugindir: %s\n", szPluginDir);
 	// =======================================================================================
 	#ifndef NOGUI
 		Font::Create();
 		//Console::Append( TEXT( "Winmain.cpp called Font::Create()" ) );
 	#endif
+
+
+	// ---------------------------------------------------------------------------------------
+	// Set volume. This must probably be done after the dll is loaded.
+	//GlobalVolume = Playback::Volume::Get(); // Don't bother with this for now
+	//GlobalCurrentVolume = GlobalVolume;
+	//Output_SetVolume( GlobalVolume );
+	wprintf("DLL > Volume: %i\n\n", GlobalVolume);
+	// ---------------------------------------------------------------------------------------
+
 
 	// =======================================================================================
 	// The only thing this function currently does is creating the Playlist.
@@ -186,25 +198,18 @@ void Player_Main(bool Console)
 	//Prefs::Create(); // This creates windows preferences
 	//Console::Append( TEXT( "Winmain.cpp called Prefs::Create()" ) );
 
-	// Show window
-
+	// Find plugins
 	Plugin::FindAll<InputPlugin> ( szPluginDir, TEXT( "in_*.dll"  ), true  );
 	Plugin::FindAll<OutputPlugin>( szPluginDir, TEXT( "out_*.dll" ), false );	
 	Plugin::FindAll<VisPlugin>   ( szPluginDir, TEXT( "vis_*.dll" ), false );	
 	Plugin::FindAll<DspPlugin>   ( szPluginDir, TEXT( "dsp_*.dll" ), false );	
 	Plugin::FindAll<GenPlugin>   ( szPluginDir, TEXT( "gen_*.dll" ), true  );	
 
+	//wprintf( "Winmain.cpp > PluginManager::Fill()\n" );
 	PluginManager::Fill();
 
-	wprintf( "Winmain.cpp > PluginManager::Fill()\n" );
+	//wprintf( "Winmain.cpp > PluginManager::Fill()\n" );
 
-	// ---------------------------------------------------------------------------------------
-	// Set volume. This must probably be done after the dll is loaded.
-	GlobalVolume = Playback::Volume::Get();
-	GlobalCurrentVolume = GlobalVolume;
-	Output_SetVolume( GlobalVolume );
-	wprintf("\n >>> Volume(%i)\n\n", GlobalVolume);
-	// ---------------------------------------------------------------------------------------
 
 
 	// =======================================================================================
@@ -245,12 +250,20 @@ void Player_Main(bool Console)
 	// Check the plugins
 	if( input_plugins.empty() )
 	{
-		wprintf("\n***Warning: The input plugin is not working\n\n");
+		wprintf("\n *** Warning: No valid input plugins found\n\n");
+	}
+	else
+	{
+		wprintf(" >>> These valid input plugins were found:\n");
+		for(int i = 0; i < input_plugins.size(); i++)
+			wprintf("       %i: %s\n", (i + 1), input_plugins.at(i)->GetFilename());
+		wprintf("\n");
 	}
 
+	// The input plugins are never activated here, they are activate for each file
 	if( !active_input_plugin || !active_input_plugin->plugin )
 	{
-		wprintf("The input plugin is not activated yet\n");
+		// wprintf("The input plugin is not activated yet\n");
 	}
 	else
 	{
@@ -261,72 +274,32 @@ void Player_Main(bool Console)
 	// ---------------------------------------------------------------------------------------
 	if( active_output_count > 0 )
 	{
-		// Minimum
-		int res_temp;
+		// Show current playback progress
+		/*int res_temp;
 		for( int i = 0; i < active_output_count; i++ )
 		{
 			res_temp = active_output_plugins[ i ]->plugin->GetOutputTime();
 		}
-		wprintf("Playback progress <%i>\n", res_temp);
+		wprintf("Playback progress <%i>\n", res_temp);*/
 	}
 	else
 	{
-		wprintf("\n***Warning: The output plugin is not working\n\n");
+		wprintf("\n *** Warning: The output plugin is not working\n\n");
 	}
 	// =======================================================================================
-
-
-	// =======================================================================================
-	// Current playlist items
-	wprintf("Size & index <%i> <%i>\n", playlist->GetSize(), playlist->GetCurIndex());
-	// =======================================================================================
-
-
-	// =======================================================================================
-	//This worked
-		//Sleep(2000);
-		//Playback::Stop();
-		//playlist->RemoveAll();
-		//play_file("C:\\demo36_02.ast");
-	// =======================================================================================
-
-	// =======================================================================================
-	// Current playlist items
-	wprintf("Size & index <%i> <%i>\n", playlist->GetSize(), playlist->GetCurIndex());
-	// =======================================================================================
-
-
-	// =======================================================================================
-	// This worked
-		//Sleep(5000);
-		//Playback::Stop();
-		//Playback::Play();
-	// =======================================================================================
-
-
-	// =======================================================================================
-	
-	//bool bPlaying  = false;
-	//TCHAR * szFilename = TEXT("C:\Files\Spel och spelfusk\Console\Gamecube\Code\vgmstream (isolate ast)\Music\demo36_02.ast");
-
-		//bPlaying  = OpenPlay( szFilename, 1 );
-		//bPlaying  = OpenPlay( szFilename, iIndex + 1 );
-	//Console::Append( TEXT( "Playback.cpp:Playback::Play() called OpenPlay" ) );	
-
-	// =======================================================================================
-
 
 	// =======================================================================================
 	// Start the timer
 	if(!TimerCreated && bLoop) // Only create this the first time
 	{
-		wprintf("Created the timer\n");
+		//wprintf("Created the timer\n");
 		MakeTime();
 		TimerCreated = true;
 	}
 	// =======================================================================================
 
-	wprintf( "DLL > main_dll() > End\n\n\n" );
+	wprintf( "\n=========================================================\n\n" );
+	//wprintf( "DLL > main_dll() > End\n\n\n" );
 
 	//std::cin.get();
 }

@@ -59,28 +59,26 @@ void StartConsoleWin(int width, int height, char* fname)
 {
 #ifdef MM_DEBUG
 
-#ifndef MM_DEBUG_FILEONLY
-	// ---------------------------------------------------------------------------------------
-	// Allocate console
-	AllocConsole();
-	// ---------------------------------------------------------------------------------------
+	#ifndef MM_DEBUG_FILEONLY
+		// Allocate console
+		AllocConsole();
 
-	// Set console window title
-	SetConsoleTitle(fname);
+		// Set console window title
+		SetConsoleTitle(fname);
 
-	// Get window handle to write to
-	__hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
+		// Get window handle to write to
+		__hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
-	// Create coordinates table
-	COORD co = {width, height};
+		// Create coordinates table
+		COORD co = {width, height};
 
-	// Set the innteral letter space
-	SetConsoleScreenBufferSize(__hStdOut, co);
+		// Set the innteral letter space
+		SetConsoleScreenBufferSize(__hStdOut, co);
 
-	// Set the window width and height
-	SMALL_RECT coo = {0,0, (width - 1),50}; // Top, left, right, bottom
-	SetConsoleWindowInfo(__hStdOut, TRUE, &coo);
-#endif
+		// Set the window width and height
+		SMALL_RECT coo = {0,0, (width - 1),50}; // Top, left, right, bottom
+		SetConsoleWindowInfo(__hStdOut, true, &coo);
+	#endif
 
 	if(fname)
 	{

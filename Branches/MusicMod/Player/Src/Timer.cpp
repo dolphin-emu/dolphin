@@ -56,7 +56,7 @@ extern bool GlobalPause;
 	// Check if the input plugin is activated
 	if(!active_input_plugin || !active_input_plugin->plugin)
 	{
-		wprintf("The input plugin is not activated yet\n");
+		//wprintf("The input plugin is not activated yet\n");
 	}
 	else
 	{
@@ -73,7 +73,7 @@ extern bool GlobalPause;
 		if (  progress > 0.7 ) // Only show this if we are getting close to the end, for bugtesting
 									// basically
 		{
-			wprintf("Playback progress <%i of %i>\n", ms_cur, ms_len);
+			//wprintf("Playback progress <%i of %i>\n", ms_cur, ms_len);
 		}
 
 		// Because cur never go all the way to len we can't use a == comparison. Insted of this
