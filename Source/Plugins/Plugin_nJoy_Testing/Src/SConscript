@@ -11,9 +11,12 @@ if not env['HAVE_SDL']:
 
 files = [
 	'nJoy.cpp',
-	'GUI/AboutBox.cpp',
-	'GUI/ConfigBox.cpp',
 	]
+	
+if not env['HAVE_WX']
+	files.Append('GUI/AboutBox.cpp',
+		'GUI/ConfigBox.cpp',
+		)
 
 padenv = env.Clone()
 padenv.Append(

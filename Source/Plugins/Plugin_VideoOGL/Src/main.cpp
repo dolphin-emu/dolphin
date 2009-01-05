@@ -84,7 +84,7 @@ void DoDllDebugger()
 	//m_frame->Show();
 }
 #else
-void DllDebugger(HWND _hParent) { }
+void DllDebugger(HWND _hParent, bool Show) { }
 void DoDllDebugger() { }
 #endif
 

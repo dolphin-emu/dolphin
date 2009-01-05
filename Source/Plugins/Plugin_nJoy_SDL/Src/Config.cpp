@@ -34,6 +34,7 @@
 // Include
 // ¯¯¯¯¯¯¯¯¯
 #include "nJoy.h"
+#include "Common.h"
 
 Config g_Config;
 
@@ -117,48 +118,39 @@ int Config::CheckForDuplicateJoypads(bool OK)
 	/////////////////////////////////////////////////////////////////////////
 	// Notify the user about the multiple devices
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-	int ReturnMessage;
 	if(NumDuplicates > 0)
 	{
-		wxString ExtendedText;
-		wxString MainText = wxString::Format(wxT(
+		std::string ExtendedText;
+		std::string MainText =
 				"You have selected SaveByID for several identical joypads with the name '%s', because nJoy"
 				" has no way of separating between them the settings for the last one will now be saved."
 				" This may not be the settings you have intended to save. It is therefore recommended"
 				" that you either unselect SaveByID for all but one of the identical joypads"
 				" or disable them entirely."
 				" If you are aware of this issue and want to keep the same settings for the identical"
-				" pads you can ignore this message.")
-				, joyinfo[joysticks[Duplicate].ID].Name);
+				" pads you can ignore this message.";
+				
 		if (OK) // We got here from the OK button
 		{
-			ExtendedText = wxString::Format(wxT(
+			ExtendedText =
 			"\n\n[Select 'OK' to return to the configuration window. Select 'Cancel' to ignore this"
-			" message and close the configuration window and don't show this message again.]"));
-
-			ReturnMessage = wxMessageBox(wxString::Format
-			(MainText + ExtendedText), wxT("Notice"),
-			(wxOK | wxCANCEL) | wxICON_INFORMATION, 0, 100);				
-			if (ReturnMessage == wxCANCEL) g_Config.bSaveByIDNotice = false;
+			" message and close the configuration window and don't show this message again.]";
 		}
 		else
 		{
-			ExtendedText = wxString::Format(wxT(
-			"\n\n[Select 'Cancel' if you don't want to see this information again.]"));
-
-			ReturnMessage = wxMessageBox(wxString::Format
-			(MainText  + ExtendedText), wxT("Notice"),
-			(wxOK | wxCANCEL) | wxICON_INFORMATION, 0, 100);				
-			if (ReturnMessage == wxCANCEL) g_Config.bSaveByIDNotice = false;
+			ExtendedText =
+			"\n\n[Select 'Cancel' if you don't want to see this information again.]";
 		}
-	}
-	else
-	{
-		ReturnMessage = -1;
-	}
 
-	return ReturnMessage;
-	//////////////////////////////////////
+		bool ret = PanicYesNo((MainText + ExtendedText).c_str(), joyinfo[joysticks[Duplicate].ID].Name);
+
+		if (ret)
+			g_Config.bSaveByIDNotice = false;
+
+		return ret ? 4 : 16;
+	}
+	
+	return -1;
 }
 
 

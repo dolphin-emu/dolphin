@@ -67,6 +67,7 @@
 #define SLEEP(x) Sleep(x)
 #else
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/ioctl.h>
 #define SLEEP(x) usleep(x*1000)
 #endif

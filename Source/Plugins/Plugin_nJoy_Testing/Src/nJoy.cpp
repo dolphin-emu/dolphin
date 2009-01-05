@@ -80,6 +80,7 @@ HRESULT SetDeviceForcesXY();
 	bool CanRumble = false;
 #endif
 #ifdef _WIN32
+#if defined(HAVE_WX) && HAVE_WX
 //////////////////////////////////////////////////////////////////////////////////////////
 // wxWidgets
 // ¯¯¯¯¯¯¯¯¯
@@ -93,6 +94,7 @@ class wxDLLApp : public wxApp
 
 IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+#endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // DllMain 
@@ -106,6 +108,7 @@ BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 	{
 		case DLL_PROCESS_ATTACH:
 		{       
+#if defined(HAVE_WX) && HAVE_WX
 			//use wxInitialize() if you don't want GUI instead of the following 12 lines
 			wxSetInstance((HINSTANCE)hinstDLL);
 			int argc = 0;
@@ -114,11 +117,14 @@ BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 
 			if ( !wxTheApp || !wxTheApp->CallOnInit() )
 				return FALSE;
+#endif
 		}
 		break; 
 
 		case DLL_PROCESS_DETACH:		
+#if defined(HAVE_WX) && HAVE_WX
 			wxEntryCleanup(); //use wxUninitialize() if you don't want GUI 
+#endif
 		break;
 
 		default:
@@ -165,12 +171,13 @@ void DllConfig(HWND _hParent)
 
 	LoadConfig();	// load settings
 
+#if defined(HAVE_WX) && HAVE_WX
 	wxWindow win;
 	win.SetHWND(_hParent);
 	ConfigBox frame(&win);
 	frame.ShowModal();
 	win.SetHWND(0);
-
+#endif
 	#else
 	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
 	{
@@ -180,8 +187,10 @@ void DllConfig(HWND _hParent)
 
 	LoadConfig();	// load settings
 
+#if defined(HAVE_WX) && HAVE_WX
 	ConfigBox frame(NULL);
 	frame.ShowModal();
+#endif
 	#endif	
 }
 

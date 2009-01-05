@@ -18,6 +18,7 @@
 #include "Globals.h"
 #include <list>
 #include <vector>
+#include <cmath>
 
 #include "GLUtil.h"
 

@@ -33,8 +33,9 @@
 //#define USE_RUMBLE_DINPUT_HACK
 
 #include <vector> // System
-#include <stdio.h>
-#include <time.h>
+#include <cstdio>
+#include <ctime>
+#include <cmath>
 #include <SDL.h>
 
 #include "Common.h" // Common
@@ -53,7 +54,6 @@
 	#pragma comment(lib, "SDL.lib")
 	#pragma comment(lib, "comctl32.lib")
 	#include <tchar.h>
-	#include <math.h>
 	#define _CRT_SECURE_NO_WARNINGS
 	#define DIRECTINPUT_VERSION 0x0800
 	#define WIN32_LEAN_AND_MEAN
