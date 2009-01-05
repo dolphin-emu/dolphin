@@ -4,11 +4,30 @@
 #include <wx/wx.h>
 #endif
 
+EventHandler *EventHandler::m_Instance = 0;
+
 EventHandler::EventHandler() {
     memset(keys, sizeof(listenFuncPtr) * (sf::Key::Escape+1)*8, 0);
     memset(mouse, sizeof(listenFuncPtr) * (sf::Mouse::Count+1), 0);
     memset(joys, sizeof(listenFuncPtr) * (sf::Joy::Count+1), 0);
  }
+
+EventHandler::~EventHandler() {
+}
+
+EventHandler::EventHandler *GetInstance() {
+    if (! EventHandler::m_Instance)
+	EventHandler::m_Instance = new EventHandler();
+
+    return EventHandler::m_Instance;
+}
+
+void EventHandler::Destroy() {
+    if (EventHandler::m_Instance)
+	delete EventHandler::m_Instance;
+
+    EventHandler::m_Instance = 0;
+}
 
 bool EventHandler::RegisterEventListener(listenFuncPtr func, Keys key) {
     if (key.inputType == KeyboardInput) {
@@ -270,3 +289,12 @@ void EventHandler::SFKeyToString(sf::Key::Code keycode, char *keyStr) {
 	break;
     }
 }
+
+class EventHandlerCleaner
+{
+public:
+    ~EventHandlerCleaner()
+    {
+	EventHandler::Destroy();
+    }
+} EventHandlerCleanerInst;

@@ -1,16 +1,16 @@
 #include "EventHandler.h"
 
-EventHandler *eventHandler = NULL;
+//EventHandler *eventHandler = NULL;
 
 namespace InputCommon
 {
     void Init() {
 	// init the event handler
-	eventHandler = new EventHandler();
+	//EventHandler::GetInstance();
     }
     
     void Shutdown() {
-	if (eventHandler)
-	    delete eventHandler;
+	//if (eventHandler)
+	//    delete eventHandler;
     }
 }

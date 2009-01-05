@@ -35,10 +35,20 @@ private:
     listenFuncPtr joys[sf::Joy::Count+1];
     std::queue<sf::Event> eventQueue;
  public:
+    static EventHandler *m_Instance;
+
+    // protected:
+    EventHandler(const EventHandler&);
+    EventHandler& operator= (const EventHandler&);
+
     EventHandler();
+    ~EventHandler();
+
     bool RegisterEventListener(listenFuncPtr func, Keys key);
     bool RemoveEventListener(Keys key);
     void Update();
+    static EventHandler *GetInstance();
+    static void Destroy();
     bool addEvent(sf::Event *e);
     static bool TestEvent (Keys k, sf::Event e);
 #if defined HAVE_WX && HAVE_WX

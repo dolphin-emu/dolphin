@@ -89,7 +89,8 @@ void __Logv(int log, int v, const char *format, ...) {}
 bool registerKey(int nPad, int id, sf::Key::Code code, int mods) {
 
     Keys key, oldKey;
-    
+    EventHandler *eventHandler = EventHandler::GetInstance();
+
     key.inputType = KeyboardInput;
     key.keyCode = code;
     key.mods = mods;

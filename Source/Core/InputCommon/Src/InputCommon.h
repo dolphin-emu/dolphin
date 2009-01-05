@@ -1,6 +1,6 @@
 #include "EventHandler.h"
 
-extern EventHandler *eventHandler;
+//extern EventHandler *eventHandler;
 
 namespace InputCommon
 {
