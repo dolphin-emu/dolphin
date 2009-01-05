@@ -41,6 +41,7 @@ Config::Config()
 {
 	//memset(this, 0, sizeof(Config)); // Clear the memory
 	bSaveByID.resize(4); // Set vector size
+	bSquareToCircle.resize(4); // Set vector size
 }
 
 
@@ -231,7 +232,7 @@ void Config::Save(bool CheckedForDuplicates)
 		file.Set(SectionName.c_str(), "eventnum", joysticks[i].eventnum);
 
 		file.Set(SectionName.c_str(), "Diagonal", g_Config.SDiagonal);
-		file.Set(SectionName.c_str(), "SquareToCircle", g_Config.bSquareToCircle);		
+		file.Set(SectionName.c_str(), "SquareToCircle", g_Config.bSquareToCircle.at(i));		
 	}
 
 	file.Save("nJoy.ini");
@@ -304,7 +305,7 @@ void Config::Load(bool config)
 		file.Get(SectionName.c_str(), "eventnum", &joysticks[i].eventnum, 0);
 
 		file.Get(SectionName.c_str(), "Diagonal", &g_Config.SDiagonal, "100%");
-		file.Get(SectionName.c_str(), "SquareToCircle", &g_Config.bSquareToCircle, false);
+		file.Get(SectionName.c_str(), "SquareToCircle", &Tmp, false); g_Config.bSquareToCircle.at(i) = Tmp;
 	}
 }
 

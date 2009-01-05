@@ -80,7 +80,7 @@ void ConfigBox::PadGetStatus()
 
 	// Get adjusted values
 	int main_x_after = main_x, main_y_after = main_y;
-	if(g_Config.bSquareToCircle)
+	if(g_Config.bSquareToCircle.at(notebookpage))
 	{
 		std::vector<int> main_xy = Pad_Square_to_Circle(main_x, main_y);
 		main_x_after = main_xy.at(0);

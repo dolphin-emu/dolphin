@@ -225,7 +225,7 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 			g_Config.SDiagonal = m_CoBDiagonal[notebookpage]->GetLabel().mb_str();
 
 		case IDCB_MAINSTICK_S_TO_C:
-			g_Config.bSquareToCircle = m_CBS_to_C[notebookpage]->IsChecked();
+			g_Config.bSquareToCircle.at(notebookpage) = m_CBS_to_C[notebookpage]->IsChecked();
 	}
 }
 
@@ -265,8 +265,8 @@ void ConfigBox::DoEnableDisable(int _notebookpage)
 	m_CBShowAdvanced[_notebookpage]->SetValue(g_Config.bShowAdvanced);
 
 	// Advanced settings
-	m_CoBDiagonal[notebookpage]->SetValue(wxString::FromAscii(g_Config.SDiagonal.c_str()));
-	m_CBS_to_C[notebookpage]->SetValue(g_Config.bSquareToCircle);
+	m_CoBDiagonal[_notebookpage]->SetValue(wxString::FromAscii(g_Config.SDiagonal.c_str()));
+	m_CBS_to_C[_notebookpage]->SetValue(g_Config.bSquareToCircle.at(_notebookpage));
 
 	m_Controller[_notebookpage]->Refresh(); // Repaint the background
 

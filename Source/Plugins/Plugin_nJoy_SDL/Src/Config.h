@@ -31,7 +31,7 @@ struct Config
 
 	// Joystick
 	std::string SDiagonal;
-	bool bSquareToCircle;
+	std::vector<bool> bSquareToCircle;
 };
 
 extern Config g_Config;

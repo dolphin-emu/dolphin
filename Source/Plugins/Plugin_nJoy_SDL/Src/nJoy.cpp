@@ -401,7 +401,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	int i_sub_stick_y = -joystate[_numPAD].axis[CTL_SUB_Y];
 
 	// Check if we should make adjustments
-	if(g_Config.bSquareToCircle)
+	if(g_Config.bSquareToCircle.at(_numPAD))
 	{
 		std::vector<int> main_xy = Pad_Square_to_Circle(i_main_stick_x, i_main_stick_y);
 		i_main_stick_x = main_xy.at(0);
