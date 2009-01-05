@@ -108,12 +108,16 @@ bool registerKey(int nPad, int id, sf::Key::Code code, int mods) {
     }
 
     
+    // FIXME: unregister old event 
+    // We need to handle mod change
+    // and double registers
     if (pad[nPad].keyForControl[id] != 0) {
 
 	oldKey.inputType = KeyboardInput;
 	oldKey.keyCode = pad[nPad].keyForControl[id];
 	oldKey.mods = mods;
 
+	
 	// Might be not be registered yet
         //	eventHandler->RemoveEventListener(oldKey); 
     }
@@ -236,6 +240,16 @@ void PAD_Shutdown()
 }
 
 bool ParseKeyEvent(sf::Event ev) {
+    fprintf(stderr, "parsing type %d code %d\n", ev.Type, ev.Key.Code);
+    
+    // FIXME: should we support more than one control?
+    for (int i = 0; i < NUMCONTROLS; i++) {
+	if (ev.Key.Code == pad[0].keyForControl[i]) {
+	    KeyStatus[i] = (ev.Type == sf::Event::KeyPressed);
+	    break;
+	}
+    }
+            
     return true;
 
 }
@@ -384,7 +398,6 @@ void LoadConfig()
 		file.Get(SectionName, controlNames[x],
 			 &key, (i==0)?defaultKeyForControl[x]:0);
 		
-		//	pad[i].keyForControl[x] = (sf::Key::Code)key;
 		registerKey(i, x, (sf::Key::Code)key);
 	    }
 	}

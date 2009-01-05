@@ -34,6 +34,10 @@ public:
     static bool valid() { return true; }
     ~X11Window();
     X11Window(int _iwidth, int _iheight);
+    static sf::Key::Code KeysymToSF(KeySym Sym);
+private:
+    void ProcessEvent(XEvent WinEvent);
+
 };
 #else 
 class X11Window : public GLWindow 

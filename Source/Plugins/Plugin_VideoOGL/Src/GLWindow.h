@@ -2,6 +2,7 @@
 #define _GLWINDOW_H
 
 #include "Common.h"
+#include "EventHandler.h"
 #include "Globals.h"
 #include "Config.h"
 #include "pluginspecs_video.h"

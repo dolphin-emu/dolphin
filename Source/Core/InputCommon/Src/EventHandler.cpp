@@ -8,8 +8,8 @@ EventHandler *EventHandler::m_Instance = 0;
 
 EventHandler::EventHandler() {
     for (int i=0; i<NUMKEYS; i++)
-        for (int j=0; j<NUMMODS; j++)
-            keys[i][j] = NULL;
+	for (int j=0; j<NUMMODS; j++)
+	    keys[i][j] = NULL;
     //    memset(keys, sizeof(listenFuncPtr) * NUMKEYS*NUMMODS, 0);
     memset(mouse, sizeof(listenFuncPtr) * (sf::Mouse::Count+1), 0);
     memset(joys, sizeof(listenFuncPtr) * (sf::Joy::Count+1), 0);
@@ -20,25 +20,29 @@ EventHandler::~EventHandler() {
 }
 
 EventHandler *EventHandler::GetInstance() {
+    fprintf(stderr, "handler instance %p\n", m_Instance);
+
     if (! m_Instance)
 	m_Instance = new EventHandler();
-
     return m_Instance;
 }
 
 void EventHandler::Destroy() {
     if (m_Instance)
 	delete m_Instance;
-
+    fprintf(stderr, "deleting instance %p\n", m_Instance);
     m_Instance = 0;
 }
 
 bool EventHandler::RegisterEventListener(listenFuncPtr func, Keys key) {
     if (key.inputType == KeyboardInput) {
-        //	fprintf(stderr, "Registering %d:%d  %p\n", key.keyCode, key.mods, func);
+	fprintf(stderr, "Registering %d:%d  %p\n", key.keyCode, key.mods, func);
 	if (key.keyCode == sf::Key::Count || key.mods >= NUMMODS ||  
-	    key.keyCode >= NUMKEYS || keys[key.keyCode][key.mods])
+	    key.keyCode >= NUMKEYS) 
 	    return false;
+	if (keys[key.keyCode][key.mods] && keys[key.keyCode][key.mods] != func)
+	    return false
+;
 	keys[key.keyCode][key.mods] = func;
     } else if (key.inputType == MouseInput) {
 	if (mouse[key.mouseButton])
@@ -68,12 +72,15 @@ void EventHandler::Update() {
     for (unsigned int i = 0; i < eventQueue.size();i++) {
 	sf::Event ev = eventQueue.front();
 	eventQueue.pop();
-	keys[ev.Key.Code][ev.Key.Alt+2*ev.Key.Shift+4*ev.Key.Control](ev);
+	fprintf(stderr, "Updating event type %d code %d mod %d func %p\n", ev.Type, ev.Key.Code, ev.Key.Alt+2*ev.Key.Shift+4*ev.Key.Control, keys[ev.Key.Code][ev.Key.Alt+2*ev.Key.Shift+4*ev.Key.Control]);
+	if(keys[ev.Key.Code][ev.Key.Alt+2*ev.Key.Shift+4*ev.Key.Control])
+	    keys[ev.Key.Code][ev.Key.Alt+2*ev.Key.Shift+4*ev.Key.Control](ev);
     }
 }
 
 bool EventHandler::addEvent(sf::Event *ev) {
     eventQueue.push(*ev);
+    fprintf(stderr, "Got event type %d code %d\n", ev->Type, ev->Key.Code); 
     return true;
 }
 

@@ -60,7 +60,6 @@
 #include "MemTools.h"
 #include "Host.h"
 #include "LogManager.h"
-#include "InputCommon.h"
 
 #include "State.h"
 
@@ -134,8 +133,6 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 	Host_SetWaitCursor(true);
 
 	g_CoreStartupParameter = _CoreParameter;
-	
-	InputCommon::Init();
 	
 	// start the thread again
 	_dbg_assert_(HLE, g_pThread == NULL);
@@ -238,44 +235,44 @@ void* GetWindowHandle()
 THREAD_RETURN CpuThread(void *pArg)
 {
     Common::SetCurrentThreadName("CPU thread");
-	
-	const SCoreStartupParameter& _CoreParameter = g_CoreStartupParameter;
+    
+    const SCoreStartupParameter& _CoreParameter = g_CoreStartupParameter;
     if (!g_CoreStartupParameter.bUseDualCore)
-    {
-        PluginVideo::Video_Prepare(); //wglMakeCurrent
-    }
-
-	if (_CoreParameter.bRunCompareServer)
 	{
-		CPUCompare::StartServer();
-		PowerPC::state = PowerPC::CPU_RUNNING;
+	    PluginVideo::Video_Prepare(); //wglMakeCurrent
 	}
-	else if (_CoreParameter.bRunCompareClient)
+    
+    if (_CoreParameter.bRunCompareServer)
 	{
-		PanicAlert("Compare Debug : Press OK when ready.");
-		CPUCompare::ConnectAsClient();
+	    CPUCompare::StartServer();
+	    PowerPC::state = PowerPC::CPU_RUNNING;
 	}
-
-	if (_CoreParameter.bLockThreads)
-		Common::Thread::SetCurrentThreadAffinity(1); //Force to first core
-
-	if (_CoreParameter.bUseFastMem)
+    else if (_CoreParameter.bRunCompareClient)
+	{
+	    PanicAlert("Compare Debug : Press OK when ready.");
+	    CPUCompare::ConnectAsClient();
+	}
+    
+    if (_CoreParameter.bLockThreads)
+	Common::Thread::SetCurrentThreadAffinity(1); //Force to first core
+    
+    if (_CoreParameter.bUseFastMem)
 	{
 #ifdef _M_X64
-		// Let's run under memory watch
-		EMM::InstallExceptionHandler();
+	    // Let's run under memory watch
+	    EMM::InstallExceptionHandler();
 #else
-		PanicAlert("32-bit platforms do not support fastmem yet. Report this bug.");
+	    PanicAlert("32-bit platforms do not support fastmem yet. Report this bug.");
 #endif
 	}
-
-	CCPU::Run();
-
-	if (_CoreParameter.bRunCompareServer || _CoreParameter.bRunCompareClient)
+    
+    CCPU::Run();
+    
+    if (_CoreParameter.bRunCompareServer || _CoreParameter.bRunCompareClient)
 	{
-		CPUCompare::Stop();
+	    CPUCompare::Stop();
 	}
-	return 0;
+    return 0;
 }
 //////////////////////////////////////////
 
@@ -370,55 +367,55 @@ THREAD_RETURN EmuThread(void *pArg)
 	else
 		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
 
-    // update the window again because all stuff is initialized
-    Host_UpdateDisasmDialog();
-    Host_UpdateMainFrame();
+	// update the window again because all stuff is initialized
+	Host_UpdateDisasmDialog();
+	Host_UpdateMainFrame();
 
 	//This thread, after creating the EmuWindow, spawns a CPU thread,
 	//then takes over and becomes the graphics thread
 
 	//In single core mode, the CPU thread does the graphics. In fact, the
 	//CPU thread should in this case also create the emuwindow...
-
+	
 	// Spawn the CPU thread
 	Common::Thread *cpuThread = NULL;
-
+	
 	//////////////////////////////////////////////////////////////////////////
 	// ENTER THE VIDEO THREAD LOOP
 	//////////////////////////////////////////////////////////////////////////
 	
 	if (!Core::GetStartupParameter().bUseDualCore)
 	{
-		#ifdef _WIN32
-			cpuThread = new Common::Thread(CpuThread, pArg);
-			//Common::SetCurrentThreadName("Idle thread");
-			//TODO(ector) : investigate using GetMessage instead .. although
-			//then we lose the powerdown check. ... unless powerdown sends a message :P
-			while (PowerPC::state != PowerPC::CPU_POWERDOWN)
-			{
-				if (Callback_PeekMessages) {
-					Callback_PeekMessages();
-				}
-				Common::SleepCurrentThread(20);
-			}
-		#else
-			// In single-core mode, the Emulation main thread is also the CPU thread
-			CpuThread(pArg);
-		#endif
+#ifdef _WIN32
+	    cpuThread = new Common::Thread(CpuThread, pArg);
+	    //Common::SetCurrentThreadName("Idle thread");
+	    //TODO(ector) : investigate using GetMessage instead .. although
+	    //then we lose the powerdown check. ... unless powerdown sends a message :P
+	    while (PowerPC::state != PowerPC::CPU_POWERDOWN)
+		{
+		    if (Callback_PeekMessages) {
+			Callback_PeekMessages();
+		    }
+		    Common::SleepCurrentThread(20);
+		}
+#else
+	    // In single-core mode, the Emulation main thread is also the CPU thread
+	    CpuThread(pArg);
+#endif
 	}
 	else
 	{
-		cpuThread = new Common::Thread(CpuThread, pArg);
-        PluginVideo::Video_Prepare(); //wglMakeCurrent
-		Common::SetCurrentThreadName("Video thread");
-		PluginVideo::Video_EnterLoop();
+	    cpuThread = new Common::Thread(CpuThread, pArg);
+	    PluginVideo::Video_Prepare(); //wglMakeCurrent
+	    Common::SetCurrentThreadName("Video thread");
+	    PluginVideo::Video_EnterLoop();
 	}
 
 	// Wait for CPU thread to exit - it should have been signaled to do so by now
 	if (cpuThread)
-		cpuThread->WaitForDeath();
+	    cpuThread->WaitForDeath();
 	if (g_pUpdateFPSDisplay != NULL)
-        g_pUpdateFPSDisplay("Stopping...");
+	    g_pUpdateFPSDisplay("Stopping...");
 
 	if (cpuThread)
 	{
@@ -427,20 +424,19 @@ THREAD_RETURN EmuThread(void *pArg)
 		cpuThread = NULL;
 	}
 	g_bHwInit = false;
-
+	
 	PluginPAD::PAD_Shutdown();
 	PluginPAD::UnloadPlugin();
 	if (_CoreParameter.bWii)
 	{
-		PluginWiimote::Wiimote_Shutdown();
-		PluginWiimote::UnloadPlugin();
+	    PluginWiimote::Wiimote_Shutdown();
+	    PluginWiimote::UnloadPlugin();
 	}
 	PluginDSP::DSP_Shutdown();
 	PluginDSP::UnloadPlugin();
 	PluginVideo::Video_Shutdown();
 	PluginVideo::UnloadPlugin();
 
-	InputCommon::Shutdown();
 	HW::Shutdown();
 
 	LOG(MASTER_LOG, "EmuThread exited");
