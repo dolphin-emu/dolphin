@@ -20,12 +20,11 @@ EventHandler::~EventHandler() {
 }
 
 EventHandler *EventHandler::GetInstance() {
-    static EventHandler* m_Instance2 = 0;
-    fprintf(stderr, "handler instance %p\n", m_Instance2);
+    fprintf(stderr, "handler instance %p\n", m_Instance);
 
-    if (! m_Instance2)
-	m_Instance2 = new EventHandler();
-    return m_Instance2;
+    if (! m_Instance)
+	m_Instance = new EventHandler();
+    return m_Instance;
 }
 
 void EventHandler::Destroy() {
