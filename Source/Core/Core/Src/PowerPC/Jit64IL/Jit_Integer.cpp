@@ -179,29 +179,31 @@
 
 	void Jit64::subfic(UGeckoInstruction inst)
 	{
-		Default(inst);
-		return;
-		// FIXME: Disabling until I figure out subfcx
-		IREmitter::InstLoc val, test, c;
-		c = ibuild.EmitIntConst(inst.SIMM_16);
-		val = ibuild.EmitSub(c, ibuild.EmitLoadGReg(inst.RA));
+		IREmitter::InstLoc nota, lhs, val, test;
+		nota = ibuild.EmitXor(ibuild.EmitLoadGReg(inst.RA),
+				      ibuild.EmitIntConst(-1));
+		if (inst.SIMM_16 == -1) {
+			val = nota;
+			test = ibuild.EmitIntConst(1);
+		} else {
+			lhs = ibuild.EmitIntConst(inst.SIMM_16 + 1);
+			val = ibuild.EmitAdd(nota, lhs);
+			test = ibuild.EmitICmpUgt(lhs, val);
+		}
 		ibuild.EmitStoreGReg(val, inst.RD);
-		test = ibuild.EmitICmpUgt(val, c);
 		ibuild.EmitStoreCarry(test);
 	}
 
 	void Jit64::subfcx(UGeckoInstruction inst) 
 	{
-		Default(inst);
-		return;
-		// FIXME: Figure out what the heck is going wrong here...
 		if (inst.OE) PanicAlert("OE: subfcx");
 		IREmitter::InstLoc val, test, lhs, rhs;
 		lhs = ibuild.EmitLoadGReg(inst.RB);
 		rhs = ibuild.EmitLoadGReg(inst.RA);
 		val = ibuild.EmitSub(lhs, rhs);
 		ibuild.EmitStoreGReg(val, inst.RD);
-		test = ibuild.EmitICmpUgt(rhs, lhs);
+		test = ibuild.EmitICmpEq(rhs, ibuild.EmitIntConst(0));
+		test = ibuild.EmitOr(test, ibuild.EmitICmpUgt(lhs, val));
 		ibuild.EmitStoreCarry(test);
 		if (inst.Rc)
 			ComputeRC(ibuild, val);
