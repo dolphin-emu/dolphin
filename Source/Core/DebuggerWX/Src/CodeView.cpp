@@ -486,7 +486,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 					dc.SetTextForeground(_T("#000000"));
 				}
 
-				dc.DrawText(wxString::FromAscii(dis2), 126, rowY1);
+				dc.DrawText(wxString::FromAscii(dis2), 140, rowY1);
 				// ------------
 			}
 
@@ -496,7 +496,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			else
 				dc.SetTextForeground(_T("#8000FF")); // purple
 
-			dc.DrawText(wxString::FromAscii(dis), 70, rowY1);
+			dc.DrawText(wxString::FromAscii(dis), 80, rowY1);
 
 			if (desc[0] == 0)
 			{
@@ -509,14 +509,14 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			//UnDecorateSymbolName(desc,temp,255,UNDNAME_COMPLETE);
 			if (strlen(desc))
 			{
-				dc.DrawText(wxString::FromAscii(desc), 235, rowY1);
+				dc.DrawText(wxString::FromAscii(desc), 270, rowY1);
 			}
 
 			// Show red breakpoint dot
 			if (debugger->isBreakpoint(address))
 			{
 				dc.SetBrush(bpBrush);
-				dc.DrawRectangle(2, rowY1, 7, 7);
+				dc.DrawRectangle(2, rowY1 + 1, 11, 11);
 				//DrawIconEx(hdc, 2, rowY1, breakPoint, 32, 32, 0, 0, DI_NORMAL);
 			}
 		}
@@ -531,7 +531,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	
 	for (int i = 0; i < numBranches; i++)
 	{
-	    int x = 300 + (branches[i].srcAddr % 9) * 8;
+	    int x = 370 + (branches[i].srcAddr % 9) * 8;
 	    _MoveTo(x-2, branches[i].src);
 
 		if (branches[i].dst < rc.height + 400 && branches[i].dst > -400)
@@ -544,16 +544,19 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			_LineTo(dc, x-4, branches[i].dst);
 			_LineTo(dc, x+1, branches[i].dst+5);
 	    }
-	    else
-	    {
-			_LineTo(dc, x+4, branches[i].src);
-			//MoveToEx(hdc,x+2,branches[i].dst-4,0);
-			//LineTo(hdc,x+6,branches[i].dst);
-			//LineTo(hdc,x+1,branches[i].dst+5);
-	    }
+		//else
+		//{
+			// This can be re-enabled when there is a scrollbar or
+			// something on the codeview (the lines are too long)
 
-	    //LineTo(hdc,x,branches[i].dst+4);
-	    //LineTo(hdc,x-2,branches[i].dst);
+			//_LineTo(dc, x+4, branches[i].src);
+			//_MoveTo(x+2, branches[i].dst-4);
+			//_LineTo(dc, x+6, branches[i].dst);
+			//_LineTo(dc, x+1, branches[i].dst+5);
+		//}
+
+		//_LineTo(dc, x, branches[i].dst+4);
+		//_LineTo(dc, x-2, branches[i].dst);
 	}
 	// ------------
 }

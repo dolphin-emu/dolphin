@@ -256,7 +256,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 	wxPen selPen(_T("#808080")); // gray
 	nullPen.SetStyle(wxTRANSPARENT);
 
-	wxBrush currentBrush(_T("#FFEfE8")); // ligh gray
+	wxBrush currentBrush(_T("#FFEfE8")); // light gray
 	wxBrush pcBrush(_T("#70FF70")); // green
 	wxBrush bpBrush(_T("#FF3311")); // red
 	wxBrush bgBrush(bgColor);
@@ -394,7 +394,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 			if (debugger->isBreakpoint(address))
 			{
 				dc.SetBrush(bpBrush);
-				dc.DrawRectangle(2, rowY1, 7, 7);
+				dc.DrawRectangle(2, rowY1 + 1, 11, 11);
 //				DrawIconEx(hdc, 2, rowY1, breakPoint, 32, 32, 0, 0, DI_NORMAL);
 			}
 		}
