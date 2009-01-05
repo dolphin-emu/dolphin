@@ -94,7 +94,12 @@ bool registerKey(int nPad, int id, sf::Key::Code code, int mods) {
     key.keyCode = code;
     key.mods = mods;
     
-    if (!eventHandler->EventHandler::RegisterEventListener(ParseKeyEvent, key)) {
+    if (!eventHandler) {
+	PanicAlert("Can't get event handler");
+	return false;
+    }
+
+    if (!eventHandler->RegisterEventListener(ParseKeyEvent, key)) {
 	char codestr[100];
 	EventHandler::SFKeyToString(code, codestr);
 	PanicAlert("Failed to register %s, might be already in use", codestr);
@@ -109,7 +114,7 @@ bool registerKey(int nPad, int id, sf::Key::Code code, int mods) {
 	oldKey.mods = mods;
 
 	// Might be not be registered yet
-	eventHandler->EventHandler::RemoveEventListener(oldKey); 
+	eventHandler->RemoveEventListener(oldKey); 
     }
 
     pad[nPad].keyForControl[id] = code;
