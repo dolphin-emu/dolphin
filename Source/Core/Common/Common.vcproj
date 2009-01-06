@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Common"
 	ProjectGUID="{C573CAF7-EE6A-458E-8049-16C0BF34C2E9}"
 	RootNamespace="Common"
@@ -341,7 +341,7 @@
 				Optimization="3"
 				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="../../PluginSpecs"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;DEBUGFAST"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
 				EnableEnhancedInstructionSet="2"
@@ -413,7 +413,7 @@
 				Optimization="3"
 				FavorSizeOrSpeed="1"
 				AdditionalIncludeDirectories="../../PluginSpecs"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;DEBUGFAST"
 				RuntimeLibrary="0"
 				FloatingPointModel="0"
 				UsePrecompiledHeader="2"
