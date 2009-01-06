@@ -123,15 +123,27 @@ CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	u32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
 	u32 Mode = Memory::Read_U32(_CommandAddress +0x10);  
 
-	LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: %i, Mode: %i (Device=%s)", SeekPosition, Mode, GetDeviceName().c_str());	
+	/* Zelda - TP Fix: It doesn't make much sense but it works in Zelda - TP and
+	   it's probably better than trying to read outside the file (it seeks to 0x6000 instead
+	   of the correct 0x2000 for the second half of the file). Could this be right
+	   or has it misunderstood the filesize somehow? My guess is that the filesize is
+	   hardcoded in to the game, and it never checks the filesize, so I don't know.
+	   Maybe it's wrong to return the seekposition when it's zero? Perhaps it wants
+	   the filesize then? - No, that didn't work either, it seeks to 0x6000 even if I return
+	   0x4000 from the first seek. */
+	if (SeekPosition > m_FileLength && Mode == 0)
+		SeekPosition = SeekPosition % m_FileLength;
 
+	LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%04x, Mode: %i (Device=%s)", SeekPosition, Mode, GetDeviceName().c_str());	
+
+	// Set seek mode
 	int seek_mode[3] = {SEEK_SET, SEEK_CUR, SEEK_END};
 
 	if (Mode >= 0 && Mode <= 2) {
         if (fseek(m_pFileHandle, SeekPosition, seek_mode[Mode]) == 0) {
 			// Seek always return the seek position for success
 			// Not sure if it's right in all modes though.
-		    ReturnValue = SeekPosition;		
+		    ReturnValue = SeekPosition;
         } else {
             LOG(WII_IPC_FILEIO, "FILEIO: Seek failed");
         }
