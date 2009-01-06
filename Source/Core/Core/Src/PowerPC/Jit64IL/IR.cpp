@@ -1063,6 +1063,8 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case ExpandPackedToMReg:
 		case CompactMRegToPacked:
 		case FPNeg:
+		case FPDup0:
+		case FPDup1:
 		case FSNeg:
 		case FDNeg:
 			if (thisUsed)
@@ -1600,6 +1602,24 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			static const u32 GC_ALIGNED16(psSignBits[4]) = 
 				{0x80000000, 0x80000000};
 			Jit->PXOR(reg, M((void*)&psSignBits));
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
+		case FPDup0: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			Jit->PUNPCKLDQ(reg, R(reg));
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
+		case FPDup1: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			Jit->SHUFPS(reg, R(reg), 0xE5);
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
 			break;

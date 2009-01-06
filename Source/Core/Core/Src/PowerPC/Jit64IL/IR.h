@@ -171,6 +171,8 @@ namespace IREmitter {
 		FPMerge01,
 		FPMerge10,
 		FPMerge11,
+		FPDup0,
+		FPDup1,
 		FResult_End,
 		StorePaired,
 		StoreSingle,
@@ -462,6 +464,12 @@ namespace IREmitter {
 		}
 		InstLoc EmitFPMerge11(InstLoc op1, InstLoc op2) {
 			return FoldBiOp(FPMerge11, op1, op2);
+		}
+		InstLoc EmitFPDup0(InstLoc op1) {
+			return FoldUOp(FPDup0, op1);
+		}
+		InstLoc EmitFPDup1(InstLoc op1) {
+			return FoldUOp(FPDup1, op1);
 		}
 		InstLoc EmitFPNeg(InstLoc op1) {
 			return FoldUOp(FPNeg, op1);

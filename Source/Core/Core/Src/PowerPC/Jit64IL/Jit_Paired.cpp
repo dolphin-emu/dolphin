@@ -230,40 +230,23 @@
 
 	void Jit64::ps_muls(UGeckoInstruction inst)
 	{
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
-			{Default(inst); return;} // turn off from debugger
-		INSTRUCTION_START;
 		if (inst.Rc) {
 			Default(inst); return;
 		}
-		int d = inst.FD;
-		int a = inst.FA;
-		int c = inst.FC;
-		fpr.Lock(a, c, d);
-		fpr.LoadToX64(d, d == a || d == c, true);
-		switch (inst.SUBOP5)
-		{
-		case 12:
-			// Single multiply scalar high
-			// TODO - faster version for when regs are different
-			MOVAPD(XMM0, fpr.R(a));
-			MOVDDUP(XMM1, fpr.R(c));
-			MULPD(XMM0, R(XMM1));
-			MOVAPD(fpr.R(d), XMM0);
-			break;
-		case 13:
-			// TODO - faster version for when regs are different
-			MOVAPD(XMM0, fpr.R(a));
-			MOVAPD(XMM1, fpr.R(c));
-			SHUFPD(XMM1, R(XMM1), 3); // copy higher to lower
-			MULPD(XMM0, R(XMM1));
-			MOVAPD(fpr.R(d), XMM0);
-			break;
-		default:
-			PanicAlert("ps_muls WTF!!!");
-		}
-		ForceSinglePrecisionP(fpr.RX(d));
-		fpr.UnlockAll();
+		IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA),
+		                   rhs = ibuild.EmitLoadFReg(inst.FC);
+
+		val = ibuild.EmitCompactMRegToPacked(val);
+		rhs = ibuild.EmitCompactMRegToPacked(rhs);
+
+		if (inst.SUBOP5 == 12)
+			rhs = ibuild.EmitFPDup0(rhs);
+		else
+			rhs = ibuild.EmitFPDup1(rhs);
+
+		val = ibuild.EmitFPMul(val, rhs);
+		val = ibuild.EmitExpandPackedToMReg(val);
+		ibuild.EmitStoreFReg(val, inst.FD);
 	}
 
 
@@ -301,7 +284,7 @@
 
 	void Jit64::ps_maddXX(UGeckoInstruction inst)
 	{
-		if (inst.Rc || (inst.SUBOP5 != 28 && inst.SUBOP5 != 29 && inst.SUBOP5 != 30)) {
+		if (inst.Rc) {
 			Default(inst); return;
 		}
 		
@@ -309,6 +292,22 @@
 		val = ibuild.EmitCompactMRegToPacked(val);
 		switch (inst.SUBOP5)
 		{
+		case 14: {//madds0
+			op2 = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FC));
+			op2 = ibuild.EmitFPDup0(op2);
+			val = ibuild.EmitFPMul(val, op2);
+			op3 = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FB));
+			val = ibuild.EmitFPAdd(val, op3);
+			break;
+		}
+		case 15: {//madds1
+			op2 = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FC));
+			op2 = ibuild.EmitFPDup1(op2);
+			val = ibuild.EmitFPMul(val, op2);
+			op3 = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FB));
+			val = ibuild.EmitFPAdd(val, op3);
+			break;
+		}
 		case 28: {//msub
 			op2 = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FC));
 			val = ibuild.EmitFPMul(val, op2);
@@ -328,6 +327,14 @@
 			val = ibuild.EmitFPMul(val, op2);
 			op3 = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FB));
 			val = ibuild.EmitFPSub(val, op3);
+			val = ibuild.EmitFPNeg(val);
+			break;
+		}
+		case 31: {//nmadd
+			op2 = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FC));
+			val = ibuild.EmitFPMul(val, op2);
+			op3 = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FB));
+			val = ibuild.EmitFPAdd(val, op3);
 			val = ibuild.EmitFPNeg(val);
 			break;
 		}
