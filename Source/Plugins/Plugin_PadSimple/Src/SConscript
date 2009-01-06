@@ -5,8 +5,8 @@ import sys
 
 name = "Plugin_PadSimple"
 
-if not (env['HAVE_X11'] or env['HAVE_WX']):
-    print name + " must have X11 or WX to be build"
+if not env['HAVE_X11']:
+    print name + " must have X11 to be built"
     Return()
 
 if env['GLTEST']:
