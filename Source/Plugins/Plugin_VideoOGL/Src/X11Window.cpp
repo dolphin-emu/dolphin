@@ -1,5 +1,7 @@
 #include "X11Window.h"
 
+ static EventHandler *eventHandler = EventHandler::GetInstance();
+
 X11Window::X11Window(int _iwidth, int _iheight) {
     int _twidth,  _theight;
     if(g_Config.bFullscreen) {
@@ -206,6 +208,7 @@ bool X11Window::PeekMessages() {
 
 // Taken from sfml code
 void X11Window::ProcessEvent(XEvent WinEvent) {
+    //    static EventHandler *eventHandler = EventHandler::GetInstance();
     switch (WinEvent.type) {
 	
     case KeyPress :
@@ -223,7 +226,7 @@ void X11Window::ProcessEvent(XEvent WinEvent) {
 	Evt.Key.Alt     = WinEvent.xkey.state & Mod1Mask;
 	Evt.Key.Control = WinEvent.xkey.state & ControlMask;
 	Evt.Key.Shift   = WinEvent.xkey.state & ShiftMask;
-	EventHandler::GetInstance()->addEvent(&Evt);
+	eventHandler->addEvent(&Evt);
 	break;
 	}
 	// Key up event
@@ -241,7 +244,7 @@ void X11Window::ProcessEvent(XEvent WinEvent) {
 	Evt.Key.Alt     = WinEvent.xkey.state & Mod1Mask;
 	Evt.Key.Control = WinEvent.xkey.state & ControlMask;
 	Evt.Key.Shift   = WinEvent.xkey.state & ShiftMask;
-	EventHandler::GetInstance()->addEvent(&Evt);
+	eventHandler->addEvent(&Evt);
 	break;
 	}
     }
@@ -282,7 +285,7 @@ void X11Window::Update() {
 	    }*/
     }
 
-    EventHandler::GetInstance()->Update();
+    eventHandler->Update();
 
     float FactorW  = 640.0f / (float)GetWidth();
     float FactorH  = 480.0f / (float)GetHeight();

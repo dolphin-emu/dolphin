@@ -29,14 +29,14 @@ EventHandler *EventHandler::GetInstance() {
 
 void EventHandler::Destroy() {
     if (m_Instance)
-	delete m_Instance;
+       	delete m_Instance;
     fprintf(stderr, "deleting instance %p\n", m_Instance);
     m_Instance = 0;
 }
 
 bool EventHandler::RegisterEventListener(listenFuncPtr func, Keys key) {
     if (key.inputType == KeyboardInput) {
-	fprintf(stderr, "Registering %d:%d  %p\n", key.keyCode, key.mods, func);
+	fprintf(stderr, "Registering %d:%d  %p %p \n", key.keyCode, key.mods, func, this);
 	if (key.keyCode == sf::Key::Count || key.mods >= NUMMODS ||  
 	    key.keyCode >= NUMKEYS) 
 	    return false;
@@ -72,7 +72,7 @@ void EventHandler::Update() {
     for (unsigned int i = 0; i < eventQueue.size();i++) {
 	sf::Event ev = eventQueue.front();
 	eventQueue.pop();
-	fprintf(stderr, "Updating event type %d code %d mod %d func %p\n", ev.Type, ev.Key.Code, ev.Key.Alt+2*ev.Key.Shift+4*ev.Key.Control, keys[ev.Key.Code][ev.Key.Alt+2*ev.Key.Shift+4*ev.Key.Control]);
+	fprintf(stderr, "Updating event type %d code %d mod %d func %p %p\n", ev.Type, ev.Key.Code, ev.Key.Alt+2*ev.Key.Shift+4*ev.Key.Control, keys[ev.Key.Code][ev.Key.Alt+2*ev.Key.Shift+4*ev.Key.Control], this);
 	if(keys[ev.Key.Code][ev.Key.Alt+2*ev.Key.Shift+4*ev.Key.Control])
 	    keys[ev.Key.Code][ev.Key.Alt+2*ev.Key.Shift+4*ev.Key.Control](ev);
     }
@@ -80,7 +80,7 @@ void EventHandler::Update() {
 
 bool EventHandler::addEvent(sf::Event *ev) {
     eventQueue.push(*ev);
-    fprintf(stderr, "Got event type %d code %d\n", ev->Type, ev->Key.Code); 
+    fprintf(stderr, "Got event type %d code %d %p\n", ev->Type, ev->Key.Code, this); 
     return true;
 }
 
@@ -313,6 +313,6 @@ class EventHandlerCleaner
 public:
     ~EventHandlerCleaner()
     {
-	EventHandler::Destroy();
+	//EventHandler::Destroy();
     }
 } EventHandlerCleanerInst;

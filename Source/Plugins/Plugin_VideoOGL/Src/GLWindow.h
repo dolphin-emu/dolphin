@@ -14,13 +14,20 @@
 #else
 #include <GL/gl.h>
 #endif
+enum OGL_Props {
+    OGL_FULLSCREEN,
+    OGL_STRETCHTOFIT,
+    OGL_KEEPRATIO,
+    OGL_PROP_COUNT
+};
 
 class GLWindow {
  private:
     u32 width, height;
     int yOffset, xOffset;
     float xMax, yMax;
- public:
+    bool properties[OGL_PROP_COUNT];
+public:
  
     virtual void SwapBuffers() {};
     virtual void SetWindowText(const char *text) {};
@@ -28,7 +35,9 @@ class GLWindow {
     virtual void Update() {};;
     virtual bool MakeCurrent() {return false;};
 
-
+    bool getProperty(OGL_Props prop) {return properties[prop];}
+    virtual bool setProperty(OGL_Props prop, bool value) 
+    {return properties[prop] = value;}
     u32 GetWidth() {return width;}
     u32 GetHeight() {return height;}
     void SetSize(u32 newWidth, u32 newHeight) {

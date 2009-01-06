@@ -6,7 +6,7 @@ namespace InputCommon
 {
     void Init() {
 	// init the event handler
-	EventHandler::GetInstance();
+	//EventHandler::GetInstance();
     }
     
     void Shutdown() {
