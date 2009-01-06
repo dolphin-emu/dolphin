@@ -270,42 +270,35 @@
 	//TODO: find easy cases and optimize them, do a breakout like ps_arith
 	void Jit64::ps_mergeXX(UGeckoInstruction inst)
 	{
-		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITPairedOff)
-			{Default(inst); return;} // turn off from debugger
-		INSTRUCTION_START;
 		if (inst.Rc) {
 			Default(inst); return;
 		}
-		int d = inst.FD;
-		int a = inst.FA;
-		int b = inst.FB;
-		fpr.Lock(a,b,d);
 
-		MOVAPD(XMM0, fpr.R(a));
+		IREmitter::InstLoc val = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FA)),
+				   rhs = ibuild.EmitCompactMRegToPacked(ibuild.EmitLoadFReg(inst.FB));
+
 		switch (inst.SUBOP10)
 		{
 		case 528: 
-			UNPCKLPD(XMM0, fpr.R(b)); //unpck is faster than shuf
+			val = ibuild.EmitFPMerge00(val, rhs);
 			break; //00
 		case 560:
-			SHUFPD(XMM0, fpr.R(b), 2); //must use shuf here
+			val = ibuild.EmitFPMerge01(val, rhs);
 			break; //01
 		case 592:
-			SHUFPD(XMM0, fpr.R(b), 1);
+			val = ibuild.EmitFPMerge10(val, rhs);
 			break; //10
 		case 624:
-			UNPCKHPD(XMM0, fpr.R(b));
+			val = ibuild.EmitFPMerge11(val, rhs);
 			break; //11
 		default:
 			_assert_msg_(DYNA_REC, 0, "ps_merge - invalid op");
 		}
-		fpr.LoadToX64(d, false);
-		MOVAPD(fpr.RX(d), Gen::R(XMM0));
-		fpr.UnlockAll();
+		val = ibuild.EmitExpandPackedToMReg(val);
+		ibuild.EmitStoreFReg(val, inst.FD);
 	}
 
 
-	//TODO: add optimized cases
 	void Jit64::ps_maddXX(UGeckoInstruction inst)
 	{
 		if (inst.Rc || (inst.SUBOP5 != 28 && inst.SUBOP5 != 29 && inst.SUBOP5 != 30)) {

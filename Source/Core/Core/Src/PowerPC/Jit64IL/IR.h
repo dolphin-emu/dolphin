@@ -157,13 +157,24 @@ namespace IREmitter {
 		LoadFReg,
 		FSMul,
 		FSAdd,
+		FSSub,
+		FSNeg,
 		FPAdd,
 		FPMul,
 		FPSub,
 		FPNeg,
+		FDMul,
+		FDAdd,
+		FDSub,
+		FDNeg,
+		FPMerge00,
+		FPMerge01,
+		FPMerge10,
+		FPMerge11,
 		FResult_End,
 		StorePaired,
 		StoreSingle,
+		StoreDouble,
 		StoreFReg,
 
 		// "Trinary" operators
@@ -380,6 +391,9 @@ namespace IREmitter {
 		InstLoc EmitStoreSingle(InstLoc value, InstLoc addr) {
 			return FoldBiOp(StoreSingle, value, addr);
 		}
+		InstLoc EmitStoreDouble(InstLoc value, InstLoc addr) {
+			return FoldBiOp(StoreDouble, value, addr);
+		}
 		InstLoc EmitStorePaired(InstLoc value, InstLoc addr, unsigned quantReg) {
 			return FoldBiOp(StorePaired, value, addr, quantReg);
 		}
@@ -410,6 +424,24 @@ namespace IREmitter {
 		InstLoc EmitFSAdd(InstLoc op1, InstLoc op2) {
 			return FoldBiOp(FSAdd, op1, op2);
 		}
+		InstLoc EmitFSSub(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(FSSub, op1, op2);
+		}
+		InstLoc EmitFSNeg(InstLoc op1) {
+			return FoldUOp(FSNeg, op1);
+		}
+		InstLoc EmitFDMul(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(FDMul, op1, op2);
+		}
+		InstLoc EmitFDAdd(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(FDAdd, op1, op2);
+		}
+		InstLoc EmitFDSub(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(FDSub, op1, op2);
+		}
+		InstLoc EmitFDNeg(InstLoc op1) {
+			return FoldUOp(FDNeg, op1);
+		}
 		InstLoc EmitFPAdd(InstLoc op1, InstLoc op2) {
 			return FoldBiOp(FPAdd, op1, op2);
 		}
@@ -418,6 +450,18 @@ namespace IREmitter {
 		}
 		InstLoc EmitFPSub(InstLoc op1, InstLoc op2) {
 			return FoldBiOp(FPSub, op1, op2);
+		}
+		InstLoc EmitFPMerge00(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(FPMerge00, op1, op2);
+		}
+		InstLoc EmitFPMerge01(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(FPMerge01, op1, op2);
+		}
+		InstLoc EmitFPMerge10(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(FPMerge10, op1, op2);
+		}
+		InstLoc EmitFPMerge11(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(FPMerge11, op1, op2);
 		}
 		InstLoc EmitFPNeg(InstLoc op1) {
 			return FoldUOp(FPNeg, op1);

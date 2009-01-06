@@ -305,6 +305,10 @@ InstLoc IRBuilder::FoldUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 		if (getOpcode(*Op1) == ExpandPackedToMReg)
 			return getOp1(Op1);
 	}
+	if (Opcode == DoubleToSingle) {
+		if (getOpcode(*Op1) == DupSingleToMReg)
+			return getOp1(Op1);
+	}
 
 	return EmitUOp(Opcode, Op1, extra);
 }
@@ -590,6 +594,11 @@ static OpArg fregLocForSlot(RegInfo& RI, unsigned slot) {
 	return M(&FSlotSet[slot*16]);
 }
 
+// Used for accessing the top half of a spilled double
+static OpArg fregLocForSlotPlusFour(RegInfo& RI, unsigned slot) {
+	return M(&FSlotSet[slot*16+4]);
+}
+
 static unsigned fregCreateSpill(RegInfo& RI, InstLoc I) {
 	unsigned newSpill = ++RI.numFSpills;
 	RI.IInfo[I - RI.FirstI] |= newSpill << 16;
@@ -674,6 +683,16 @@ static X64Reg regEnsureInReg(RegInfo& RI, InstLoc I) {
 	if (!loc.IsSimpleReg()) {
 		X64Reg newReg = regFindFreeReg(RI);
 		RI.Jit->MOV(32, R(newReg), loc);
+		loc = R(newReg);
+	}
+	return loc.GetSimpleReg();
+}
+
+static X64Reg fregEnsureInReg(RegInfo& RI, InstLoc I) {
+	OpArg loc = fregLocForInst(RI, I);
+	if (!loc.IsSimpleReg()) {
+		X64Reg newReg = fregFindFreeReg(RI);
+		RI.Jit->MOVAPD(newReg, loc);
 		loc = R(newReg);
 	}
 	return loc.GetSimpleReg();
@@ -1044,6 +1063,8 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case ExpandPackedToMReg:
 		case CompactMRegToPacked:
 		case FPNeg:
+		case FSNeg:
+		case FDNeg:
 			if (thisUsed)
 				regMarkUse(RI, I, getOp1(I), 1);
 			break;
@@ -1052,6 +1073,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case Load32:
 			regMarkMemAddress(RI, I, getOp1(I), 1);
 			break;
+		case LoadDouble:
 		case LoadSingle:
 		case LoadPaired:
 			regMarkUse(RI, I, getOp1(I), 1);
@@ -1086,9 +1108,17 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case ICmpSgt:
 		case FSMul:
 		case FSAdd:
+		case FSSub:
+		case FDMul:
+		case FDAdd:
+		case FDSub:
 		case FPAdd:
 		case FPMul:
 		case FPSub:
+		case FPMerge00:
+		case FPMerge01:
+		case FPMerge10:
+		case FPMerge11:
 		case InsertDoubleInMReg:
 			if (thisUsed) {
 				regMarkUse(RI, I, getOp1(I), 1);
@@ -1104,6 +1134,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			regMarkMemAddress(RI, I, getOp2(I), 2);
 			break;
 		case StoreSingle:
+		case StoreDouble:
 		case StorePaired:
 			regMarkUse(RI, I, getOp1(I), 1);
 			regMarkUse(RI, I, getOp2(I), 2);
@@ -1417,6 +1448,21 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			regNormalRegClear(RI, I);
 			break;
 		}
+		case LoadDouble: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
+			Jit->ADD(32, R(ECX), Imm8(4));
+			RI.Jit->UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
+			Jit->MOVD_xmm(reg, R(ECX));
+			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
+			RI.Jit->UnsafeLoadRegToReg(ECX, ECX, 32, 0, false);
+			Jit->MOVD_xmm(XMM0, R(ECX));
+			Jit->PUNPCKLDQ(reg, R(XMM0));
+			RI.fregs[reg] = I;
+			regNormalRegClear(RI, I);
+			break;
+		}
 		case LoadPaired: {
 			if (!thisUsed) break;
 			regSpill(RI, EAX);
@@ -1443,6 +1489,30 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			}
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
 			RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 0);
+			if (RI.IInfo[I - RI.FirstI] & 4)
+				fregClearInst(RI, getOp1(I));
+			if (RI.IInfo[I - RI.FirstI] & 8)
+				regClearInst(RI, getOp2(I));
+			break;
+		}
+		case StoreDouble: {
+			regSpill(RI, EAX);
+			// FIXME: Use 64-bit where possible
+			// FIXME: Use unsafe write with pshufb where possible
+			unsigned fspill = fregGetSpill(RI, getOp1(I));
+			if (!fspill) {
+				// Force the value to spill, so we can use
+				// memory operations to load it
+				fspill = fregCreateSpill(RI, getOp1(I));
+				X64Reg reg = fregLocForInst(RI, getOp1(I)).GetSimpleReg();
+				RI.Jit->MOVAPD(fregLocForSlot(RI, fspill), reg);
+			}
+			Jit->MOV(32, R(EAX), fregLocForSlotPlusFour(RI, fspill));
+			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
+			RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 0);
+			Jit->MOV(32, R(EAX), fregLocForSlot(RI, fspill));
+			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
+			RI.Jit->SafeWriteRegToReg(EAX, ECX, 32, 4);
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				fregClearInst(RI, getOp1(I));
 			if (RI.IInfo[I - RI.FirstI] & 8)
@@ -1501,6 +1571,28 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			fregNormalRegClear(RI, I);
 			break;
 		}
+		case FSNeg: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			static const u32 GC_ALIGNED16(ssSignBits[4]) = 
+				{0x80000000};
+			Jit->PXOR(reg, M((void*)&ssSignBits));
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
+		case FDNeg: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			static const u64 GC_ALIGNED16(ssSignBits[2]) = 
+				{0x8000000000000000ULL};
+			Jit->PXOR(reg, M((void*)&ssSignBits));
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
 		case FPNeg: {
 			if (!thisUsed) break;
 			X64Reg reg = fregFindFreeReg(RI);
@@ -1522,8 +1614,8 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		}
 		case StoreFReg: {
 			unsigned ppcreg = *I >> 16;
-			Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
-			Jit->MOVAPD(M(&PowerPC::ppcState.ps[ppcreg]), XMM0);
+			Jit->MOVAPD(M(&PowerPC::ppcState.ps[ppcreg]),
+				      fregEnsureInReg(RI, getOp1(I)));
 			fregNormalRegClear(RI, I);
 			break;
 		}
@@ -1553,6 +1645,42 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			fregNormalRegClear(RI, I);
 			break;
 		}
+		case FSSub: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			Jit->SUBSS(reg, fregLocForInst(RI, getOp2(I)));
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
+		case FDMul: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			Jit->MULSD(reg, fregLocForInst(RI, getOp2(I)));
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
+		case FDAdd: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			Jit->ADDSD(reg, fregLocForInst(RI, getOp2(I)));
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
+		case FDSub: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			Jit->SUBSD(reg, fregLocForInst(RI, getOp2(I)));
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
 		case FPAdd: {
 			if (!thisUsed) break;
 			X64Reg reg = fregFindFreeReg(RI);
@@ -1576,6 +1704,47 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			X64Reg reg = fregFindFreeReg(RI);
 			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
 			Jit->SUBPS(reg, fregLocForInst(RI, getOp2(I)));
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
+		case FPMerge00: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			Jit->PUNPCKLDQ(reg, fregLocForInst(RI, getOp2(I)));
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
+		case FPMerge01: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			// Note reversed operands!
+			Jit->MOVAPD(reg, fregLocForInst(RI, getOp2(I)));
+			Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
+			Jit->MOVSS(reg, R(XMM0));
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
+		case FPMerge10: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp2(I)));
+			Jit->MOVSS(reg, R(XMM0));
+			Jit->SHUFPS(reg, R(reg), 0xF1);
+			RI.fregs[reg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
+		case FPMerge11: {
+			if (!thisUsed) break;
+			X64Reg reg = fregFindFreeReg(RI);
+			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+			Jit->PUNPCKLDQ(reg, fregLocForInst(RI, getOp2(I)));
+			Jit->SHUFPD(reg, R(reg), 0x1);
 			RI.fregs[reg] = I;
 			fregNormalRegClear(RI, I);
 			break;

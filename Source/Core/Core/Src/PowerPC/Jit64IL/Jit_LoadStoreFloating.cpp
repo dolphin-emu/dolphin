@@ -65,121 +65,26 @@ void Jit64::lfs(UGeckoInstruction inst)
 
 void Jit64::lfd(UGeckoInstruction inst)
 {
-	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-		{Default(inst); return;} // turn off from debugger	
-	INSTRUCTION_START;
-
-	int d = inst.RD;
-	int a = inst.RA;
-	if (!a) 
-	{
-		Default(inst);
-		return;
-	}
-	s32 offset = (s32)(s16)inst.SIMM_16;
-	gpr.FlushLockX(ABI_PARAM1);
-	gpr.Lock(a);
-	MOV(32, R(ABI_PARAM1), gpr.R(a));
-	// TODO - optimize. This has to load the previous value - upper double should stay unmodified.
-	fpr.LoadToX64(d, true);
-	fpr.Lock(d);
-	X64Reg xd = fpr.RX(d);
-	if (cpu_info.bSSSE3) {
-#ifdef _M_X64
-		MOVQ_xmm(XMM0, MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
-#else
-		AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
-		MOVQ_xmm(XMM0, MDisp(ABI_PARAM1, (u32)Memory::base + offset));
-#endif
-		PSHUFB(XMM0, M((void *)bswapShuffle1x8Dupe));
-		MOVSD(xd, R(XMM0));
-	} else {
-#ifdef _M_X64
-		MOV(64, R(EAX), MComplex(RBX, ABI_PARAM1, SCALE_1, offset));
-		BSWAP(64, EAX);
-		MOV(64, M(&temp64), R(EAX));
-		MOVSD(XMM0, M(&temp64));
-		MOVSD(xd, R(XMM0));
-#else
-		AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
-		MOV(32, R(EAX), MDisp(ABI_PARAM1, (u32)Memory::base + offset));
-		BSWAP(32, EAX);
-		MOV(32, M((void*)((u32)&temp64+4)), R(EAX));
-		MOV(32, R(EAX), MDisp(ABI_PARAM1, (u32)Memory::base + offset + 4));
-		BSWAP(32, EAX);
-		MOV(32, M(&temp64), R(EAX));
-		MOVSD(XMM0, M(&temp64));
-		MOVSD(xd, R(XMM0));
-#if 0
-		// Alternate implementation; possibly faster
-		AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
-		MOVQ_xmm(XMM0, MDisp(ABI_PARAM1, (u32)Memory::base + offset));
-		PSHUFLW(XMM0, R(XMM0), 0x1B);
-		PSRLW(XMM0, 8);
-		MOVSD(xd, R(XMM0));
-		MOVQ_xmm(XMM0, MDisp(ABI_PARAM1, (u32)Memory::base + offset));
-		PSHUFLW(XMM0, R(XMM0), 0x1B);
-		PSLLW(XMM0, 8);
-		POR(xd, R(XMM0));
-#endif
-#endif
-	}
-	gpr.UnlockAll();
-	gpr.UnlockAllX();
-	fpr.UnlockAll();
+	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16), val;
+	if (inst.RA)
+		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+	val = ibuild.EmitLoadFReg(inst.RD);
+	val = ibuild.EmitInsertDoubleInMReg(ibuild.EmitLoadDouble(addr), val);
+	ibuild.EmitStoreFReg(val, inst.RD);
+	return;
 }
 
 
 void Jit64::stfd(UGeckoInstruction inst)
 {
-	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-		{Default(inst); return;} // turn off from debugger	
-	INSTRUCTION_START;
-
-	int s = inst.RS;
-	int a = inst.RA;
-	if (!a)
-	{
-		Default(inst);
-		return;
-	}
-	s32 offset = (s32)(s16)inst.SIMM_16;
-	gpr.FlushLockX(ABI_PARAM1);
-	gpr.Lock(a);
-	fpr.Lock(s);
-	MOV(32, R(ABI_PARAM1), gpr.R(a));
-#ifdef _M_IX86
-	AND(32, R(ABI_PARAM1), Imm32(Memory::MEMVIEW32_MASK));
-#endif
-	if (cpu_info.bSSSE3) {
-		MOVAPD(XMM0, fpr.R(s));
-		PSHUFB(XMM0, M((void *)bswapShuffle1x8));
-#ifdef _M_X64
-		MOVQ_xmm(MComplex(RBX, ABI_PARAM1, SCALE_1, offset), XMM0);
-#else
-		MOVQ_xmm(MDisp(ABI_PARAM1, (u32)Memory::base + offset), XMM0);
-#endif
-	} else {
-#ifdef _M_X64
-		fpr.LoadToX64(s, true, false);
-		MOVSD(M(&temp64), fpr.RX(s));
-		MOV(64, R(EAX), M(&temp64));
-		BSWAP(64, EAX);
-		MOV(64, MComplex(RBX, ABI_PARAM1, SCALE_1, offset), R(EAX));
-#else
-		fpr.LoadToX64(s, true, false);
-		MOVSD(M(&temp64), fpr.RX(s));
-		MOV(32, R(EAX), M(&temp64));
-		BSWAP(32, EAX);
-		MOV(32, MDisp(ABI_PARAM1, (u32)Memory::base + offset + 4), R(EAX));
-		MOV(32, R(EAX), M((void*)((u32)&temp64 + 4)));
-		BSWAP(32, EAX);
-		MOV(32, MDisp(ABI_PARAM1, (u32)Memory::base + offset), R(EAX));
-#endif
-	}
-	gpr.UnlockAll();
-	gpr.UnlockAllX();
-	fpr.UnlockAll();
+	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16),
+			   val  = ibuild.EmitLoadFReg(inst.RS);
+	if (inst.RA)
+		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+	if (inst.OPCD & 1)
+		ibuild.EmitStoreGReg(addr, inst.RA);
+	ibuild.EmitStoreDouble(val, addr);
+	return;
 }
 
 
