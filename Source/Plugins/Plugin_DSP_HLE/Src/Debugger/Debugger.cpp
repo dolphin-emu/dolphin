@@ -37,15 +37,6 @@
 #include "../Logging/Console.h" // open and close console
 
 
-// externals that are needed even in Release builds
-bool gSSBM = true;
-bool gSSBMremedy1 = true;
-bool gSSBMremedy2 = true;
-bool gSequenced = true;
-bool gVolume = true;
-bool gReset = false;
-
-
 // =======================================================================================
 // Declare events
 BEGIN_EVENT_TABLE(CDebugger,wxDialog)	

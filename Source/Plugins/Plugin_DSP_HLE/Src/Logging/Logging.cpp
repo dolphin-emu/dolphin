@@ -45,15 +45,7 @@
 #include "../UCodes/UCode_AX_Voice.h"
 
 // Externals
-
-extern bool gSSBM;
-extern bool gSSBMremedy1;
-extern bool gSSBMremedy2;
-extern bool gSequenced;
-extern bool gVolume;
-extern bool gReset;
 extern int nFiles;
-float ratioFactor; // a global to get the ratio factor from MixAdd
 extern CDebugger* m_frame;
 //int PBSize = 128;
 

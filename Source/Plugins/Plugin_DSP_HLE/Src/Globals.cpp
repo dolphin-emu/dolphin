@@ -57,6 +57,15 @@ void DebugLog(const char* _fmt, ...)
 
 extern u8* g_pMemory;
 
+// debugger externals that are needed even in Release builds
+bool gSSBM = true;
+bool gSSBMremedy1 = true;
+bool gSSBMremedy2 = true;
+bool gSequenced = true;
+bool gVolume = true;
+bool gReset = false;
+float ratioFactor; // a global to get the ratio factor from MixAdd
+
 // TODO: Wii support? Most likely audio data still must be in the old 24MB TRAM.
 #define RAM_MASK 0x1FFFFFF
 

@@ -45,6 +45,7 @@ CDebugger_Log* 	LogManager::m_Log[LogTypes::NUMBER_OF_LOGS + (LogManager::VERBOS
 int LogManager::m_activeLog = LogTypes::MASTER_LOG;
 bool LogManager::m_bDirty = true;
 bool LogManager::m_bInitialized = false;
+CDebugger_LogSettings*   LogManager::m_LogSettings = NULL;
 /////////////////////////
 
 

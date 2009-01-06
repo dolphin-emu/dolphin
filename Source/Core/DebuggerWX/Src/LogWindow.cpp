@@ -28,9 +28,6 @@
 #include "Console.h"
 #include "IniFile.h"
 
-// declare this now to be able to use it in Load()
-CDebugger_LogSettings*	LogManager::m_LogSettings;
-
 BEGIN_EVENT_TABLE(CLogWindow, wxDialog)
 	EVT_BUTTON(IDM_SUBMITCMD, CLogWindow::OnSubmit)
 	EVT_BUTTON(IDM_UPDATELOG, CLogWindow::OnUpdateLog)

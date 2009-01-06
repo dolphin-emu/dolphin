@@ -31,6 +31,14 @@ void __Log_(int v, const char *fmt, ...);
 	#define LOG_(_v_, ...)
 #endif
 
+extern bool gSSBM;
+extern bool gSSBMremedy1;
+extern bool gSSBMremedy2;
+extern bool gSequenced;
+extern bool gVolume;
+extern bool gReset;
+extern float ratioFactor; // a global to get the ratio factor from MixAdd
+
 u8 Memory_Read_U8(u32 _uAddress);
 u16 Memory_Read_U16(u32 _uAddress);
 u32 Memory_Read_U32(u32 _uAddress);
