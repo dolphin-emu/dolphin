@@ -25,7 +25,7 @@ namespace MusicMod
 {
 
 void Main(std::string FileName);
-void CheckFile(u64 offset, u64 size);
-
+void FindFilename(u64 offset, u64 size);
+void CheckFile(std::string File, int FileNumber = 0);
 
 }

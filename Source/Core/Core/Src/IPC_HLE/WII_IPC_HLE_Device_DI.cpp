@@ -15,6 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// ¯¯¯¯¯¯¯¯¯¯
 #include "Common.h"
 
 #include "WII_IPC_HLE_Device_DI.h"
@@ -27,6 +31,17 @@
 
 #include "VolumeCreator.h"
 #include "Filesystem.h"
+///////////////////////////////////
+
+
+//////////////////////////////////////////////////
+// Music mod
+// ¯¯¯¯¯¯¯¯¯¯
+#include "../../../../Branches/MusicMod/Main/Src/Setup.h" // Define MUSICMOD here
+#ifdef MUSICMOD
+#include "../../../../Branches/MusicMod/Main/Src/Main.h" 
+#endif
+///////////////////////
 
 
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName )
@@ -175,6 +190,15 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
             {
                 PanicAlert("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
             }	
+
+			//////////////////////////////////////////////////
+			// Music mod
+			// ¯¯¯¯¯¯¯¯¯¯
+			#ifdef MUSICMOD
+				std::string Tmp = pFilename;
+				MusicMod::CheckFile(Tmp);
+			#endif
+			///////////////////////			
 
             return 0x1;			
         }

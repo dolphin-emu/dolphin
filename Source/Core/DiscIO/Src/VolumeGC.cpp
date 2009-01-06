@@ -48,9 +48,9 @@ bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 	//////////////////////////////////////////////////
 	// Music mod
 	// ¯¯¯¯¯¯¯¯¯¯
-#ifdef MUSICMOD
-	MusicMod::CheckFile(_Offset, _Length);
-#endif
+	#ifdef MUSICMOD
+		MusicMod::FindFilename(_Offset, _Length);
+	#endif
 	///////////////////////
 	return m_pReader->Read(_Offset, _Length, _pBuffer);
 }

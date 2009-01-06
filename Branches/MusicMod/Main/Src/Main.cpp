@@ -71,8 +71,9 @@ extern int GlobalVolume;
 
 
 
-// ---------------------------------------------------------------------------------------
+// =======================================================================================
 // A function to sort the filelist table after offset
+// ------------------------
 void StructSort (std::vector <MyFilesStructure> &MyFiles)
 {
 	MyFilesStructure temp;
@@ -100,6 +101,8 @@ void StructSort (std::vector <MyFilesStructure> &MyFiles)
 
 	//wprintf("StructSort > Done\n");
 }
+// ============================
+
 
 // =======================================================================================
 /* Run these things once */
@@ -149,8 +152,7 @@ void Init()
 
 
 // =======================================================================================
-/* This will load Plainamp.dll. It's the original Plainamp.exe with removed GUI and some small
-   modifications. */
+/* This will read the GC file system. */
 // ------------------------
 void Main(std::string FileName)
 {
@@ -205,8 +207,81 @@ bool CheckFileEnding(std::string FileName)
 
 
 // =======================================================================================
-//
-void CheckFile(u64 offset, u64 size)
+// Check if we should play this file
+// ---------------------------------------------------------------------------------------
+void CheckFile(std::string File, int FileNumber)
+{
+	// Do nothing if we found the same file again
+	if (currentfile == File) return;
+
+	//wprintf(">>>> (%i)Current read %s <%u = %ux%i> <block %u>\n", i, CurrentFiles[i].path.c_str(), offset, CurrentFiles[i].offset, size);
+
+	if (CheckFileEnding(File.c_str()))
+	{
+		wprintf("\n >>> (%i/%i) Match %s\n\n", FileNumber,
+			MyFiles.size(), File.c_str());
+
+		currentfile = File; // save the found file
+
+		// ---------------------------------------------------------------------------------------
+		// We will now save the file to the PC hard drive
+		// ---------------------------------------------------------------------------------------
+		// Get the filename
+		std::size_t pointer = File.find_last_of("\\");
+		std::string fragment = File.substr (0, (pointer-0));
+		int compare = File.length() - fragment.length(); // Get the length of the filename
+		fragment = File.substr ((pointer+1), compare); // Now we have the filename
+		
+		// ---------------------------------------------------------------------------------------
+		// Create the file path
+		std::string FilePath = (MusicPath + fragment);
+		// ---------------------------------------------------------------------------------------
+		WritingFile = true; // Avoid detecting the file we are writing
+		wprintf("Writing <%s> to <%s>\n", File.c_str(), FilePath.c_str());
+		my_pFileSystem->ExportFile(File.c_str(), FilePath.c_str());
+		WritingFile = false;
+		
+		// ---------------------------------------------------------------------------------------
+		// Play the file we found
+		if(dllloaded)
+		{
+			Player_Play((char*)FilePath.c_str()); // retype it from const char* to char*
+		} else {
+			wprintf("Warning > Music DLL is not loaded");
+		}
+
+		// ---------------------------------------------------------------------------------------
+		// Remove the last file, if any
+		if(CurrentPlayFile.length() > 0)
+		{
+			if(!remove(CurrentPlayFile.c_str()))
+			{
+				wprintf("The program failed to remove <%s>\n", CurrentPlayFile.c_str());
+			} else {
+				wprintf("The program removed <%s>\n", CurrentPlayFile.c_str());
+			}
+		}
+
+		// ---------------------------------------------------------------------------------------
+		// Save the current playing file
+		CurrentPlayFile = FilePath; // Save the filename so we can remove it later
+		return;
+		// ---------------------
+
+	}
+
+	// Tell about the files we ignored
+	wprintf("(%i/%i) Ignored %s\n", FileNumber, MyFiles.size(), File.c_str());
+	
+	// Update the current file
+	currentfile = File;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Find the current filename for a certain offset on the GC fileystem
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+void FindFilename(u64 offset, u64 size)
 {
 	// =======================================================================================
 	/* Only do this test:
@@ -217,7 +292,6 @@ void CheckFile(u64 offset, u64 size)
 	if(PowerPC::state == PowerPC::CPUState::CPU_RUNNING && offset != 0 && !WritingFile)
 	{
 
-	
 		//////////////////////////////////////////////////////////////////////////////////////////
 		/* Get the filename. Here we go through all files until we come to the file that has
 		   the matching offset. Before MyFiles has data this loop will go nowhere. We have to
@@ -244,79 +318,16 @@ void CheckFile(u64 offset, u64 size)
 			if (MyFiles[i + 1].offset >= offset || offset > MyFiles[MyFiles.size() - 1].offset)
 			{
 				// Now we know that the game is reading from MyFiles[i].path
+				CheckFile(MyFiles[i].path, i);
 
-				// Break if we found the same file again
-				if (currentfile == MyFiles[i].path) break;
-	
-				//wprintf(">>>> (%i)Current read %s <%u = %ux%i> <block %u>\n", i, CurrentFiles[i].path.c_str(), offset, CurrentFiles[i].offset, size);
-
-				if (CheckFileEnding(MyFiles[i].path.c_str()))
-				{
-					//u64 myoffset2 = (u32)offset;
-					wprintf("\n >>> (%i/%i) Match %s <%u = %ux%i> <block %u>\n\n", i,
-						MyFiles.size(), MyFiles[i].path.c_str(), offset, MyFiles[i].offset, size);
-					//wprintf(">>>> [i + 1].offset %i", MyFiles[i + 1].offset);
-					currentfile = MyFiles[i].path; // save the found file
-
-					// ---------------------------------------------------------------------------------------
-					// We will now save the file to the PC hard drive
-					// ---------------------------------------------------------------------------------------
-					// Get the filename
-					std::size_t pointer = MyFiles[i].path.find_last_of("\\");
-					std::string fragment = MyFiles[i].path.substr (0, (pointer-0));
-					int compare = MyFiles[i].path.length() - fragment.length(); // get the length of the filename
-					fragment = MyFiles[i].path.substr ((pointer+1), compare); // now we have the filename
-					
-					// ---------------------------------------------------------------------------------------
-					// Create the file path
-					std::string FilePath = (MusicPath + fragment);
-					// ---------------------------------------------------------------------------------------
-					WritingFile = true; // Avoid detecting the file we are writing
-					wprintf("Writing <%s> to <%s>\n", MyFiles[i].path.c_str(), FilePath.c_str());
-					my_pFileSystem->ExportFile(MyFiles[i].path.c_str(), FilePath.c_str());
-					WritingFile = false;
-					
-					// ---------------------------------------------------------------------------------------
-					// Play the file we found
-					if(dllloaded)
-					{
-						Player_Play((char*)FilePath.c_str()); // retype it from const char* to char*
-					} else {
-						wprintf("Warning > Music DLL is not loaded");
-					}
-
-					// ---------------------------------------------------------------------------------------
-					// Remove the last file, if any
-					if(CurrentPlayFile.length() > 0)
-					{
-						if(!remove(CurrentPlayFile.c_str()))
-						{
-							wprintf("The program failed to remove <%s>\n", CurrentPlayFile.c_str());
-						} else {
-							wprintf("The program removed <%s>\n", CurrentPlayFile.c_str());
-						}
-					}
-
-					// ---------------------------------------------------------------------------------------
-					// Save the current playing file
-					CurrentPlayFile = FilePath; // Save the filename so we can remove it later
-					break;
-					// ---------------------------------------------------------------------------------------
-
-				}
-
-				// ---------------------------------------------------------------------------------------
-				// Tell about the files we ignored
-				wprintf("(%i/%i) Ignored %s <%u = %ux%i> <block %u>\n", i, MyFiles.size(), MyFiles[i].path.c_str(), offset, MyFiles[i].offset, size);
-				currentfile = MyFiles[i].path;
+				// Stop checking
 				break;
-				// ---------------------------------------------------------------------------------------
 			}
 		}
 	} // This ends the entire filescan
 	// =======================================================================================
-
-
 }
+/////////////////////////////////
+
 
 } // end of namespace
