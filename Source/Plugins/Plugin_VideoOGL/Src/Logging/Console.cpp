@@ -16,15 +16,21 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-// --------------------
+//////////////////////////////////////////////////////////////////////////////////////////
 // Includes
+// ¯¯¯¯¯¯¯¯¯¯
 #include "../Globals.h"
 #include <string>
 #include <stdio.h>
 #ifdef _WIN32
 #include <windows.h>
 #endif
+//////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// ¯¯¯¯¯¯¯¯¯¯
 
 // --------------------
 // On and off
@@ -47,6 +53,7 @@ FILE* __fStdOut[1]; // you have to update this manually, we can't place a nFiles
 #ifdef _WIN32
 HANDLE __hStdOut = NULL;
 #endif
+///////////////////////////////////
 
 
 // =======================================================================================
@@ -159,6 +166,9 @@ void OpenConsole()
 }
 #endif
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Get the window handle of the console
+// ¯¯¯¯¯¯¯¯¯¯
 #if defined(DEBUGG) && defined(_WIN32)
 HWND GetConsoleHwnd(void)
 {
@@ -200,3 +210,4 @@ HWND GetConsoleHwnd(void)
 
 }
 #endif // win32
+////////////////////////////////////

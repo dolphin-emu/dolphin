@@ -145,9 +145,9 @@ void Logging(int a)
 	{		
 		std::string sfbuff;
 		sfbuff = sfbuff + writeMessage(ii, 0);
-#if defined(HAVE_WX) && HAVE_WX
-		aprintf(ii, (char *)sfbuff.c_str());
-#endif
+		#if defined(HAVE_WX) && HAVE_WX
+			aprintf(ii, (char *)sfbuff.c_str());
+		#endif
 	}
 	// --------------
 
@@ -258,9 +258,10 @@ void Logging(int a)
 		// =======================================================================================
 		// Print
 		// ----------------
-#if defined(HAVE_WX) && HAVE_WX
-		ClearScreen();
-#endif
+		#if defined(HAVE_WX) && HAVE_WX
+			ClearScreen();
+		#endif
+
 		__Log("%s", sbuff.c_str());
 		sbuff.clear(); strcpy(buffer, "");
 		// ================
