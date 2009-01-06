@@ -313,25 +313,17 @@ void DolphinApp::OnEndSession()
 
 
 /////////////////////////////////////////////////////////////
-/* We declare this here instead of in Common/MsgHandler.cpp because we want to keep Common
-   free of wxWidget functions */
+/* We declare this here instead of in Common/MsgHandler.cpp because we want 
+   to keep Common free of wxWidget functions */
 // ¯¯¯¯¯¯¯¯¯
-bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int Style)
+#if defined HAVE_WX && HAVE_WX 
+bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int Style) 
 {
-	#ifdef _WIN32
-		/* In Windows we use a MessageBox isntead of a wxMessageBox to don't block
-		   the debug window */
-		int STYLE = MB_ICONINFORMATION;
-		if(Style == QUESTION) STYLE = MB_ICONQUESTION;
-		if(Style == WARNING) STYLE = MB_ICONWARNING;
-
-		return IDYES == MessageBox(0, text, caption, STYLE | (yes_no ? MB_YESNO : MB_OK));
-	#else
-		return wxYES == wxMessageBox(wxString::FromAscii(text), 
-									 wxString::FromAscii(caption),
-									 (yes_no)?wxYES_NO:wxOK);
-	#endif
+    return wxYES == wxMessageBox(wxString::FromAscii(text), 
+				 wxString::FromAscii(caption),
+				 (yes_no)?wxYES_NO:wxOK);
 }
+#endif
 //////////////////////////////////
 
 
