@@ -56,15 +56,18 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize,
     g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
 
     if (strncasecmp(g_Config.iBackend, "sdl", 10) == 0)
-	glWin = new SDLWindow(width, height);
+	glWin = new SDLWindow();
     else if (strncasecmp(g_Config.iBackend, "x11", 10) == 0)
-	glWin = new X11Window(width, height);
+	glWin = new X11Window();
     else if (strncasecmp(g_Config.iBackend, "wxgl", 10) == 0)
-	glWin = new WXGLWindow(width, height);
+	glWin = new WXGLWindow();
     else
 	PanicAlert("Invalid backend %s", g_Config.iBackend);
     
-    return (glWin?true:false);
+    if (! glWin)
+	return false;
+
+    return true;
 }
 
 bool OpenGL_MakeCurrent()
@@ -92,15 +95,15 @@ void OpenGL_Shutdown()
 }
 
 u32 OpenGL_GetWidth() {
-    return glWin->GetWidth();
+    return glWin->GetXwin();
 }
 
 u32 OpenGL_GetHeight() {
-    return glWin->GetHeight();
+    return glWin->GetYwin();
 }
 
 void OpenGL_SetSize(u32 width, u32 height) {
-    glWin->SetSize(width, height);
+    glWin->SetWinSize(width, height);
 }
 
 int OpenGL_GetXoff() {

@@ -33,7 +33,7 @@ public:
 
     static bool valid() { return true; }
     ~X11Window();
-    X11Window(int _iwidth, int _iheight);
+    X11Window();
     static sf::Key::Code KeysymToSF(KeySym Sym);
 private:
     void ProcessEvent(XEvent WinEvent);
@@ -43,7 +43,7 @@ private:
 class X11Window : public GLWindow 
 {
 public:
-    X11Window(int _iwidth, int _iheight) {}
+    X11Window() {}
 };
 #endif
 #endif

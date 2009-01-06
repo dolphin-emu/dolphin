@@ -1,42 +1,9 @@
 #include "X11Window.h"
 
- static EventHandler *eventHandler = EventHandler::GetInstance();
+static EventHandler *eventHandler = EventHandler::GetInstance();
 
-X11Window::X11Window(int _iwidth, int _iheight) {
-    int _twidth,  _theight;
-    if(g_Config.bFullscreen) {
-	if(strlen(g_Config.iFSResolution) > 1) {
-	    sscanf(g_Config.iFSResolution, "%dx%d", &_twidth, &_theight);
-        }
-        else { // No full screen reso set, fall back to default {
-            _twidth = _iwidth;
-            _theight = _iheight;
-        }
-    } else  {// Going Windowed
-        if(strlen(g_Config.iWindowedRes) > 1) {
-	    sscanf(g_Config.iWindowedRes, "%dx%d", &_twidth, &_theight);
-        }
-        else { // No Window reso set, fall back to default
-            _twidth = _iwidth;
-            _theight = _iheight;
-        }
-    }
-    
-    SetSize(_twidth, _theight);
-
-    float FactorW  = 640.0f / (float)_twidth;
-    float FactorH  = 480.0f / (float)_theight;
-    float Max = (FactorW < FactorH) ? FactorH : FactorW;
-    
-    if(g_Config.bStretchToFit) {
-	SetMax(1.0f / FactorW, 1.0f / FactorH);
-	SetOffset(0,0);
-    } else {
-	SetMax(1.0f / Max, 1.0f / Max);
-	SetOffset((int)((_twidth - (640 * GetXmax())) / 2),
-		  (int)((_theight - (480 * GetYmax())) / 2));
-    }
-
+X11Window::X11Window() : GLWindow() {
+ 
     XVisualInfo *vi;
     Colormap cmap;
     int dpyWidth, dpyHeight;
@@ -115,8 +82,8 @@ X11Window::X11Window(int _iwidth, int _iheight) {
             deskMode = *modes[0];
             /* look for mode with requested resolution */
             for (int i = 0; i < modeNum; i++) {
-                if ((modes[i]->hdisplay == _twidth) && 
-		    (modes[i]->vdisplay == _theight)) {
+                if ((modes[i]->hdisplay == GetXwin()) && 
+		    (modes[i]->vdisplay == GetYwin())) {
                     bestMode = i;
                 }
             }    
@@ -158,8 +125,8 @@ X11Window::X11Window(int _iwidth, int _iheight) {
         attr.event_mask = ExposureMask | KeyPressMask | ButtonPressMask | 
 	    KeyReleaseMask | ButtonReleaseMask |
             StructureNotifyMask  | ResizeRedirectMask;
-        win = XCreateWindow(dpy, RootWindow(dpy, vi->screen), 0, 0, _twidth, 
-			    _theight, 0, vi->depth, InputOutput, vi->visual,
+        win = XCreateWindow(dpy, RootWindow(dpy, vi->screen), 0, 0, GetXwin(), 
+			    GetYwin(), 0, vi->depth, InputOutput, vi->visual,
 			    CWBorderPixel | CWColormap | CWEventMask, &attr);
         // only set window title and handle wm_delete_events if in windowed mode
         wmDelete = XInternAtom(dpy, "WM_DELETE_WINDOW", True);
@@ -286,21 +253,7 @@ void X11Window::Update() {
     }
 
     eventHandler->Update();
-
-    float FactorW  = 640.0f / (float)GetWidth();
-    float FactorH  = 480.0f / (float)GetHeight();
-    float Max = (FactorW < FactorH) ? FactorH : FactorW;
-    //    AR = (float)surface->w / (float)surface->h;;
-    
-    if (g_Config.bStretchToFit) {
-	SetMax(1,1);
-	SetOffset(0,0);
-    } else {
-	SetMax(1.0f / Max, 1.0f / Max);
-	SetOffset((int)((GetWidth() - (640 * GetXmax())) / 2),
-		  (int)((GetHeight() - (480 * GetYmax())) / 2));
-    }
-    
+    updateDim();
 }
 
 bool X11Window::MakeCurrent() {
@@ -313,7 +266,7 @@ bool X11Window::MakeCurrent() {
     glXMakeCurrent(dpy, win, ctx);
     XGetGeometry(dpy, win, &winDummy, &x, &y,
                  &w, &h, &borderDummy, &depth);
-    SetSize(w, h);
+
     ERROR_LOG("GLWin Depth %d", depth);
     if (glXIsDirect(dpy, ctx)) 
         ERROR_LOG("you have Direct Rendering!");

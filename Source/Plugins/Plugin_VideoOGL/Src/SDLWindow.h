@@ -16,14 +16,14 @@ public:
 
     static bool valid() { return true; }
     ~SDLWindow();
-    SDLWindow(int _iwidth, int _iheight);
+    SDLWindow();
 
 };
 #else
 class SDLWindow : public GLWindow 
 {
  public:
-    SDLWindow(int _iwidth, int _iheight) {}
+    SDLWindow() {}
 };
 #endif
 #endif

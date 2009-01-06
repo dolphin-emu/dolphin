@@ -21,21 +21,8 @@ void SDLWindow::Update() {
 	return;
     }
     
-    SetSize(surface->w, surface->h);
-
-    float FactorW  = 640.0f / (float)GetWidth();
-    float FactorH  = 480.0f / (float)GetHeight();
-    float Max = (FactorW < FactorH) ? FactorH : FactorW;
-    //    AR = (float)surface->w / (float)surface->h;;
-    
-    if (g_Config.bStretchToFit) {
-	SetMax(1,1);
-	SetOffset(0,0);
-    } else {
-	SetMax(1.0f / Max, 1.0f / Max);
-	SetOffset((int)((GetWidth() - (640 * GetXmax())) / 2),
-		  (int)((GetHeight() - (480 * GetYmax())) / 2));
-    }
+    //    SetSize(surface->w, surface->h);
+    updateDim();
 	
 }
 
@@ -61,7 +48,7 @@ bool SDLWindow::MakeCurrent() {
 	| ( g_Config.bFullscreen ? SDL_FULLSCREEN : 0);
     // Set vide mode.
     // TODO: Can we use this field or is a separate field needed?
-    SDL_Surface *screen = SDL_SetVideoMode(GetWidth(), GetHeight(), 
+    SDL_Surface *screen = SDL_SetVideoMode(GetXwin(), GetYwin(), 
 					   0, videoFlags);
     if (!screen) {
 	PanicAlert("Couldn't set video mode");
@@ -76,38 +63,7 @@ SDLWindow::~SDLWindow() {
     SDL_Quit();
 }
 
-SDLWindow::SDLWindow(int _iwidth, int _iheight) {
-    int _twidth,  _theight;
-    if(g_Config.bFullscreen) {
-	if(strlen(g_Config.iFSResolution) > 1) {
-            sscanf(g_Config.iFSResolution, "%dx%d", &_twidth, &_theight);
-        } else { // No full screen reso set, fall back to default reso
-            _twidth = _iwidth;
-            _theight = _iheight;
-        }
-    } else { // Going Windowed
-        if(strlen(g_Config.iWindowedRes) > 1) {
-            sscanf(g_Config.iWindowedRes, "%dx%d", &_twidth, &_theight);
-        } else {// No Window reso set, fall back to default
-            _twidth = _iwidth;
-            _theight = _iheight;
-        }
-    }
-
-    SetSize(_iwidth, _theight);
-
-    float FactorW  = 640.0f / (float)_twidth;
-    float FactorH  = 480.0f / (float)_theight;
-    float Max = (FactorW < FactorH) ? FactorH : FactorW;
-    
-    if(g_Config.bStretchToFit) {
-	SetMax(1.0f / FactorW, 1.0f / FactorH);
-	SetOffset(0,0);
-    } else {
-	SetMax(1.0f / Max, 1.0f / Max);
-	SetOffset((int)((_twidth - (640 * GetXmax())) / 2),
-		  (int)((_theight - (480 * GetYmax())) / 2));
-    }
+SDLWindow::SDLWindow() : GLWindow() {
 
     //init sdl video
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {

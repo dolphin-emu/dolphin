@@ -23,14 +23,14 @@ public:
     
     static bool valid() { return true; }
     ~WXGLWindow();
-    WXGLWindow(int _iwidth, int _iheight);
+    WXGLWindow();
 
 };
 #else 
 class WXGLWindow : public GLWindow 
 {
  public:
-    WXGLWindow(int _iwidth, int _iheight) {}
+    WXGLWindow() {}
 };
 #endif
 #endif
