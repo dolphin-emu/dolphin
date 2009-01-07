@@ -23,19 +23,20 @@ namespace PluginDSP
 {
 
 // Function Pointer
-TGetDllInfo                    GetDllInfo = 0;
-TDllConfig                    DllConfig = 0;
+TGetDllInfo                 GetDllInfo = 0;
+TSetDllGlobals              SetDllGlobals = 0;
+TDllConfig                  DllConfig = 0;
 TDllDebugger                DllDebugger = 0;
-TDSP_Initialize                DSP_Initialize = 0;
-TDSP_Shutdown                DSP_Shutdown = 0;
+TDSP_Initialize             DSP_Initialize = 0;
+TDSP_Shutdown               DSP_Shutdown = 0;
 TDSP_ReadMailBox            DSP_ReadMailboxHigh = 0;
 TDSP_ReadMailBox            DSP_ReadMailboxLow = 0;
-TDSP_WriteMailBox            DSP_WriteMailboxHigh = 0;
+TDSP_WriteMailBox           DSP_WriteMailboxHigh = 0;
 TDSP_WriteMailBox           DSP_WriteMailboxLow = 0;
 TDSP_ReadControlRegister    DSP_ReadControlRegister = 0;
 TDSP_WriteControlRegister   DSP_WriteControlRegister = 0;
-TDSP_Update                    DSP_Update = 0;
-TDSP_SendAIBuffer            DSP_SendAIBuffer = 0;
+TDSP_Update                 DSP_Update = 0;
+TDSP_SendAIBuffer           DSP_SendAIBuffer = 0;
 TDSP_DoState                DSP_DoState = 0;
 
 //! Library Instance
@@ -57,6 +58,7 @@ void UnloadPlugin()
 
     // Set Functions to NULL
     GetDllInfo = 0;
+    SetDllGlobals = 0;
     DllConfig = 0;
     DllDebugger = 0;
     DSP_Initialize = 0;
@@ -79,6 +81,7 @@ bool LoadPlugin(const char *_Filename)
     if (ret == 1) 
     {
         GetDllInfo               = reinterpret_cast<TGetDllInfo>               (plugin.Get("GetDllInfo"));
+        SetDllGlobals            = reinterpret_cast<TSetDllGlobals>            (plugin.Get("SetDllGlobals"));
         DllConfig                = reinterpret_cast<TDllConfig>                (plugin.Get("DllConfig"));
         DllDebugger              = reinterpret_cast<TDllDebugger>              (plugin.Get("DllDebugger"));        
         DSP_Initialize           = reinterpret_cast<TDSP_Initialize>           (plugin.Get("DSP_Initialize"));
@@ -104,7 +107,7 @@ bool LoadPlugin(const char *_Filename)
             (DSP_WriteControlRegister != 0) &&
             (DSP_Update != 0) &&
             (DSP_SendAIBuffer != 0) &&
-			(DSP_DoState != 0))
+	    (DSP_DoState != 0))
         {			
 			//PanicAlert("return true: %i", ret);
             return true;

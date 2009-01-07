@@ -23,15 +23,16 @@ namespace PluginWiimote
 {
 
 	// Function Pointer
-	TGetDllInfo GetDllInfo = 0;
-	TDllConfig DllConfig = 0;
-	TWiimote_Initialize Wiimote_Initialize = 0;
-	TWiimote_Shutdown Wiimote_Shutdown = 0;
-	TWiimote_Output Wiimote_ControlChannel = 0;
-	TWiimote_Input Wiimote_InterruptChannel = 0;
-	TWiimote_Update Wiimote_Update = 0;
+	TGetDllInfo                     GetDllInfo = 0;
+        TSetDllGlobals                  SetDllGlobals = 0;
+	TDllConfig                      DllConfig = 0;
+	TWiimote_Initialize             Wiimote_Initialize = 0;
+	TWiimote_Shutdown               Wiimote_Shutdown = 0;
+	TWiimote_Output                 Wiimote_ControlChannel = 0;
+	TWiimote_Input                  Wiimote_InterruptChannel = 0;
+	TWiimote_Update                 Wiimote_Update = 0;
 	TWiimote_GetAttachedControllers Wiimote_GetAttachedControllers = 0;
-	TWiimote_DoState Wiimote_DoState = 0;
+	TWiimote_DoState                Wiimote_DoState = 0;
 
 	//! Library Instance
 	DynamicLibrary plugin;
@@ -47,6 +48,7 @@ namespace PluginWiimote
 
 		// Set Functions to NULL
 		GetDllInfo = 0;
+		SetDllGlobals = 0;
 		DllConfig = 0;
 		Wiimote_Initialize = 0;
 		Wiimote_Shutdown = 0;
@@ -61,26 +63,18 @@ namespace PluginWiimote
 	{
 		if (plugin.Load(_Filename)) 
 		{
-			LOG(MASTER_LOG, "getting Wiimote Plugin function pointers...");
-			GetDllInfo = reinterpret_cast<TGetDllInfo> (plugin.Get("GetDllInfo"));
-			DllConfig = reinterpret_cast<TDllConfig> (plugin.Get("DllConfig"));
-			Wiimote_Initialize = reinterpret_cast<TWiimote_Initialize> (plugin.Get("Wiimote_Initialize"));
-			Wiimote_Shutdown = reinterpret_cast<TWiimote_Shutdown> (plugin.Get("Wiimote_Shutdown"));
-			Wiimote_ControlChannel = reinterpret_cast<TWiimote_Output> (plugin.Get("Wiimote_ControlChannel"));
-			Wiimote_InterruptChannel = reinterpret_cast<TWiimote_Input> (plugin.Get("Wiimote_InterruptChannel"));
-			Wiimote_Update = reinterpret_cast<TWiimote_Update> (plugin.Get("Wiimote_Update"));
+			GetDllInfo               = reinterpret_cast<TGetDllInfo>         (plugin.Get("GetDllInfo"));
+			SetDllGlobals            = reinterpret_cast<TSetDllGlobals>      (plugin.Get("SetDllGlobals"));
+			DllConfig                = reinterpret_cast<TDllConfig>          (plugin.Get("DllConfig"));
+			Wiimote_Initialize       = reinterpret_cast<TWiimote_Initialize> (plugin.Get("Wiimote_Initialize"));
+			Wiimote_Shutdown         = reinterpret_cast<TWiimote_Shutdown>   (plugin.Get("Wiimote_Shutdown"));
+			Wiimote_ControlChannel   = reinterpret_cast<TWiimote_Output>     (plugin.Get("Wiimote_ControlChannel"));
+			Wiimote_InterruptChannel = reinterpret_cast<TWiimote_Input>      (plugin.Get("Wiimote_InterruptChannel"));
+			Wiimote_Update           = reinterpret_cast<TWiimote_Update>     (plugin.Get("Wiimote_Update"));
 			Wiimote_GetAttachedControllers = reinterpret_cast<TWiimote_GetAttachedControllers> (plugin.Get("Wiimote_GetAttachedControllers"));
-			Wiimote_DoState = reinterpret_cast<TWiimote_DoState> (plugin.Get("Wiimote_DoState"));
+			Wiimote_DoState          = reinterpret_cast<TWiimote_DoState>    (plugin.Get("Wiimote_DoState"));
 
-			LOG(MASTER_LOG, "%s: 0x%p", "GetDllInfo", GetDllInfo);
-			LOG(MASTER_LOG, "%s: 0x%p", "DllConfig", DllConfig);
-			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_Initialize", Wiimote_Initialize);
-			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_Shutdown", Wiimote_Shutdown);
-			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_ControlChannel", Wiimote_ControlChannel);
-			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_InterruptChannel", Wiimote_InterruptChannel);
-			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_Update", Wiimote_Update);
-			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_GetAttachedControllers", Wiimote_GetAttachedControllers);
-			LOG(MASTER_LOG, "%s: 0x%p", "Wiimote_DoState", Wiimote_DoState);
+
 			if ((GetDllInfo != 0) &&
 				(Wiimote_Initialize != 0) &&
 				(Wiimote_Shutdown != 0) &&

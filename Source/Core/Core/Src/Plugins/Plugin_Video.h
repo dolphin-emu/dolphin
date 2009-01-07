@@ -32,6 +32,7 @@ void UnloadPlugin();
 
 // Function Types
 typedef void (__cdecl* TGetDllInfo)(PLUGIN_INFO*);
+typedef void (__cdecl* TSetDllGlobals)(PLUGIN_GLOBALS*);
 typedef void (__cdecl* TDllConfig)(HWND);
 typedef void (__cdecl* TDllDebugger)(HWND, bool);
 typedef void (__cdecl* TVideo_Initialize)(SVideoInitialize*);
@@ -47,8 +48,9 @@ typedef void (__cdecl* TVideo_Stop)();
  
 // Function Pointers
 extern TGetDllInfo         GetDllInfo;
+extern TSetDllGlobals	   SetDllGlobals;
 extern TDllConfig          DllConfig;
-extern TDllDebugger		   DllDebugger;
+extern TDllDebugger	   DllDebugger;
 extern TVideo_Initialize   Video_Initialize;
 extern TVideo_Prepare      Video_Prepare;
 extern TVideo_Shutdown     Video_Shutdown;

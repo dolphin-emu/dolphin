@@ -22,13 +22,14 @@ namespace PluginPAD
 {
 
 // Function Pointers
-TGetDllInfo		GetDllInfo = 0;
-TPAD_Shutdown	PAD_Shutdown = 0;
-TDllConfig		DllConfig = 0;
-TPAD_Initialize PAD_Initialize = 0;
-TPAD_GetStatus	PAD_GetStatus = 0;
-TPAD_Input		PAD_Input = 0;
-TPAD_Rumble		PAD_Rumble = 0;
+TGetDllInfo	     GetDllInfo = 0;
+TSetDllGlobals       SetDllGlobals = 0;
+TPAD_Shutdown	     PAD_Shutdown = 0;
+TDllConfig	     DllConfig = 0;
+TPAD_Initialize      PAD_Initialize = 0;
+TPAD_GetStatus	     PAD_GetStatus = 0;
+TPAD_Input           PAD_Input = 0;
+TPAD_Rumble	     PAD_Rumble = 0;
 TPAD_GetAttachedPads PAD_GetAttachedPads = 0;
 
 // Library Instance
@@ -44,6 +45,7 @@ void UnloadPlugin()
 	plugin.Unload();
 	// Set Functions to 0
 	GetDllInfo = 0;
+	SetDllGlobals = 0;
 	PAD_Shutdown = 0;
 	DllConfig = 0;
 	PAD_Initialize = 0;
@@ -57,11 +59,12 @@ bool LoadPlugin(const char *_Filename)
 	if (plugin.Load(_Filename))
 	{
 		GetDllInfo      = reinterpret_cast<TGetDllInfo>     (plugin.Get("GetDllInfo"));
+		SetDllGlobals   = reinterpret_cast<TSetDllGlobals>  (plugin.Get("SetDllGlobals"));
 		DllConfig       = reinterpret_cast<TDllConfig>      (plugin.Get("DllConfig"));
 		PAD_Initialize  = reinterpret_cast<TPAD_Initialize> (plugin.Get("PAD_Initialize"));
 		PAD_Shutdown    = reinterpret_cast<TPAD_Shutdown>   (plugin.Get("PAD_Shutdown"));
 		PAD_GetStatus   = reinterpret_cast<TPAD_GetStatus>  (plugin.Get("PAD_GetStatus"));
-		PAD_Input	   = reinterpret_cast<TPAD_Input>		(plugin.Get("PAD_Input"));
+		PAD_Input	= reinterpret_cast<TPAD_Input>	    (plugin.Get("PAD_Input"));
 		PAD_Rumble      = reinterpret_cast<TPAD_Rumble>     (plugin.Get("PAD_Rumble"));
 		PAD_GetAttachedPads = reinterpret_cast<TPAD_GetAttachedPads>(plugin.Get("PAD_GetAttachedPads"));
 

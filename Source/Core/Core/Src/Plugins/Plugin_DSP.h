@@ -28,6 +28,7 @@ void UnloadPlugin();
 
 // Function Types
 typedef void (__cdecl* TGetDllInfo)(PLUGIN_INFO*);
+typedef void (__cdecl* TSetDllGlobals)(PLUGIN_GLOBALS*);
 typedef void (__cdecl* TDllConfig)(HWND);
 typedef void (__cdecl* TDllDebugger)(HWND, bool);
 typedef void (__cdecl* TDSP_Initialize)(DSPInitialize);
@@ -41,19 +42,20 @@ typedef void (__cdecl* TDSP_SendAIBuffer)(unsigned int address, int sample_rate)
 typedef void (__cdecl* TDSP_DoState)(unsigned char **ptr, int mode);
 
 // Function Pointers
-extern TGetDllInfo					GetDllInfo;
-extern TDllConfig					DllConfig;
-extern TDllDebugger				    DllDebugger;
-extern TDSP_Initialize				DSP_Initialize;
-extern TDSP_Shutdown				DSP_Shutdown;
-extern TDSP_ReadMailBox			    DSP_ReadMailboxHigh;
-extern TDSP_ReadMailBox			    DSP_ReadMailboxLow;
-extern TDSP_WriteMailBox			DSP_WriteMailboxHigh;
+extern TGetDllInfo	            GetDllInfo;
+extern TSetDllGlobals	            SetDllGlobals;
+extern TDllConfig		    DllConfig;
+extern TDllDebugger		    DllDebugger;
+extern TDSP_Initialize		    DSP_Initialize;
+extern TDSP_Shutdown		    DSP_Shutdown;
+extern TDSP_ReadMailBox		    DSP_ReadMailboxHigh;
+extern TDSP_ReadMailBox		    DSP_ReadMailboxLow;
+extern TDSP_WriteMailBox	    DSP_WriteMailboxHigh;
 extern TDSP_WriteMailBox            DSP_WriteMailboxLow;
 extern TDSP_ReadControlRegister     DSP_ReadControlRegister;
 extern TDSP_WriteControlRegister    DSP_WriteControlRegister;
 extern TDSP_Update                  DSP_Update;
-extern TDSP_SendAIBuffer			DSP_SendAIBuffer;
+extern TDSP_SendAIBuffer	    DSP_SendAIBuffer;
 extern TDSP_DoState                 DSP_DoState;
 
 }  // end of namespace PluginDSP

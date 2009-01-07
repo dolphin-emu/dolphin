@@ -28,6 +28,7 @@ void UnloadPlugin();
 
 // Function Types
 typedef void (__cdecl* TGetDllInfo)(PLUGIN_INFO*);
+typedef void (__cdecl* TSetDllGlobals)(PLUGIN_GLOBALS*);
 typedef void (__cdecl* TDllConfig)(HWND);
 typedef bool (__cdecl* TWiimote_Initialize)(SWiimoteInitialize);
 typedef void (__cdecl* TWiimote_Shutdown)();
@@ -38,15 +39,16 @@ typedef unsigned int (__cdecl* TWiimote_GetAttachedControllers)();
 typedef void (__cdecl* TWiimote_DoState)(void *ptr, int mode);
 
 // Function Pointers
-extern TGetDllInfo							GetDllInfo;
-extern TDllConfig							DllConfig;
-extern TWiimote_Initialize					Wiimote_Initialize;
-extern TWiimote_Shutdown					Wiimote_Shutdown;
-extern TWiimote_Output						Wiimote_ControlChannel;
-extern TWiimote_Input						Wiimote_InterruptChannel;
-extern TWiimote_Update						Wiimote_Update;
-extern TWiimote_GetAttachedControllers	    Wiimote_GetAttachedControllers;
-extern TWiimote_DoState						Wiimote_DoState;
+extern TGetDllInfo		       GetDllInfo;
+extern TSetDllGlobals	               SetDllGlobals;
+extern TDllConfig		       DllConfig;
+extern TWiimote_Initialize	       Wiimote_Initialize;
+extern TWiimote_Shutdown	       Wiimote_Shutdown;
+extern TWiimote_Output		       Wiimote_ControlChannel;
+extern TWiimote_Input		       Wiimote_InterruptChannel;
+extern TWiimote_Update		       Wiimote_Update;
+extern TWiimote_GetAttachedControllers Wiimote_GetAttachedControllers;
+extern TWiimote_DoState		       Wiimote_DoState;
 
 }  // end of namespace PluginWiimote
 

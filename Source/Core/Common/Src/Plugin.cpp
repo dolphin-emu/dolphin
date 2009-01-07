@@ -31,9 +31,10 @@ namespace Common
 {
 DynamicLibrary CPlugin::m_hInstLib;
 
-void(__cdecl * CPlugin::m_GetDllInfo)   (PLUGIN_INFO * _PluginInfo) = 0;
-void(__cdecl * CPlugin::m_DllConfig)    (HWND _hParent) = 0;
-void(__cdecl * CPlugin::m_DllDebugger)    (HWND _hParent, bool Show) = 0;
+void(__cdecl * CPlugin::m_GetDllInfo)    (PLUGIN_INFO * _PluginInfo) = 0;
+void(__cdecl * CPlugin::m_DllConfig)     (HWND _hParent) = 0;
+void(__cdecl * CPlugin::m_DllDebugger)   (HWND _hParent, bool Show) = 0;
+void(__cdecl * CPlugin::m_SetDllGlobals) (PLUGIN_GLOBALS* _PluginGlobals) = 0;
 
 void
 CPlugin::Release(void)
@@ -41,7 +42,8 @@ CPlugin::Release(void)
 	m_GetDllInfo = 0;
 	m_DllConfig = 0;
 	m_DllDebugger = 0;
-
+	m_SetDllGlobals = 0;
+	
 	m_hInstLib.Unload();
 }
 
@@ -53,6 +55,7 @@ CPlugin::Load(const char* _szName)
 		m_GetDllInfo = (void (__cdecl*)(PLUGIN_INFO*)) m_hInstLib.Get("GetDllInfo");
 		m_DllConfig = (void (__cdecl*)(HWND)) m_hInstLib.Get("DllConfig");
 		m_DllDebugger = (void (__cdecl*)(HWND, bool)) m_hInstLib.Get("DllDebugger");
+		m_SetDllGlobals = (void (__cdecl*)(PLUGIN_GLOBALS*)) m_hInstLib.Get("SetDllGlobals");
 		return(true);
 	}
 
@@ -87,4 +90,13 @@ void CPlugin::Debug(HWND _hwnd, bool Show)
 		m_DllDebugger(_hwnd, Show);
 	}
 }
+
+void CPlugin::SetGlobals(PLUGIN_GLOBALS& _pluginGlobals)
+{
+	if (m_SetDllGlobals != 0)
+	{
+		m_SetDllGlobals(&_pluginGlobals);
+	}
+}
+
 } // end of namespace Common

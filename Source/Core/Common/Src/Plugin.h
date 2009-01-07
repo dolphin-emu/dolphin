@@ -32,6 +32,7 @@ class CPlugin
 		static bool Load(const char* _szName);
 
 		static bool GetInfo(PLUGIN_INFO& _pluginInfo);
+		static void SetGlobals(PLUGIN_GLOBALS& _PluginGlobals);
 
 		static void Config(HWND _hwnd);
 		static void About(HWND _hwnd);
@@ -45,6 +46,8 @@ class CPlugin
 		static void (__cdecl * m_GetDllInfo)(PLUGIN_INFO* _PluginInfo);
 		static void (__cdecl * m_DllConfig)(HWND _hParent);
 		static void (__cdecl * m_DllDebugger)(HWND _hParent, bool Show);
+		static void (__cdecl * m_SetDllGlobals)(PLUGIN_GLOBALS* _PluginGlobals);
+
 };
 } // end of namespace Common
 

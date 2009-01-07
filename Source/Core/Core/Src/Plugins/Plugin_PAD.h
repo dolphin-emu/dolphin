@@ -29,6 +29,7 @@ void UnloadPlugin();
 
 // Function Types
 typedef void (__cdecl* TGetDllInfo)(PLUGIN_INFO*);
+typedef void (__cdecl* TSetDllGlobals)(PLUGIN_GLOBALS*);
 typedef void (__cdecl* TDllConfig)(HWND);
 typedef void (__cdecl* TPAD_Initialize)(SPADInitialize);
 typedef void (__cdecl* TPAD_Shutdown)();
@@ -39,6 +40,7 @@ typedef unsigned int (__cdecl* TPAD_GetAttachedPads)();
 
 // Function Pointers
 extern TGetDllInfo GetDllInfo;
+extern TSetDllGlobals	            SetDllGlobals;
 extern TPAD_Shutdown PAD_Shutdown;
 extern TDllConfig DllConfig;
 extern TPAD_Initialize PAD_Initialize;
