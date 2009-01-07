@@ -24,7 +24,6 @@
 #include "FileSearch.h"
 #include "FileUtil.h"
 #include "StringUtil.h"
-#include "BootManager.h"
 #include "Config.h"
 #include "GameListCtrl.h"
 #include "Blob.h"
@@ -62,7 +61,6 @@ BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 EVT_SIZE(CGameListCtrl::OnSize)
 EVT_RIGHT_DOWN(CGameListCtrl::OnRightClick)
 EVT_LIST_COL_BEGIN_DRAG(LIST_CTRL, CGameListCtrl::OnColBeginDrag)
-EVT_LIST_ITEM_ACTIVATED(LIST_CTRL, CGameListCtrl::OnActivated)
 EVT_LIST_COL_CLICK(LIST_CTRL, CGameListCtrl::OnColumnClick)
 EVT_MENU(IDM_PROPERTIES, CGameListCtrl::OnProperties)
 EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
@@ -522,23 +520,6 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 		popupMenu.Append(IDM_MULTICOMPRESSGCM, _("Compress selected ISOs..."));
 		popupMenu.Append(IDM_MULTIDECOMPRESSGCM, _("Decompress selected ISOs..."));
 		PopupMenu(&popupMenu);
-	}
-}
-
-void CGameListCtrl::OnActivated(wxListEvent& event)
-{
-	if (m_ISOFiles.size() == 0)
-	{
-		BrowseForDirectory();
-	}
-	else
-	{
-		size_t Index = event.GetData();
-		if (Index < m_ISOFiles.size())
-		{
-			const GameListItem& rISOFile = m_ISOFiles[Index];
-			BootManager::BootCore(rISOFile.GetFileName());
-		}
 	}
 }
 

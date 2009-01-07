@@ -67,7 +67,6 @@ private:
 	void OnRightClick(wxMouseEvent& event);
 	void OnColumnClick(wxListEvent& event);
 	void OnColBeginDrag(wxListEvent& event);
-	void OnActivated(wxListEvent& event);
 	void OnSize(wxSizeEvent& event);
 	void OnProperties(wxCommandEvent& event);
 	void OnOpenContainingFolder(wxCommandEvent& event);

@@ -202,6 +202,8 @@ class CFrame : public wxFrame
 		void OnMemcard(wxCommandEvent& event); // Misc
 		void OnShow_CheatsWindow(wxCommandEvent& event);
 
+		void OnEvent_ListCtrl_ItemActivated(wxListEvent& event);
+
 		// Menu items
 		wxMenuBar* m_pMenuBar;
 
@@ -216,6 +218,8 @@ class CFrame : public wxFrame
 		wxToolBarToolBase* m_pToolPlay;
 
 		void UpdateGUI();
+
+		void BootGame();
 
 		// Double click and mouse move options
 		double m_fLastClickTime, m_iLastMotionTime; int LastMouseX, LastMouseY;
