@@ -11,6 +11,7 @@
 #define EXPORT	__declspec(dllexport)
 #define CALL	__cdecl
 #else
+#define __cdecl
 #define EXPORT	__attribute__ ((visibility("default")))
 #define CALL
 #endif
@@ -26,7 +27,6 @@
 #define FALSE 0 
 #endif
 
-#define __cdecl
 
 // simulate something that looks like win32
 // long term, kill these
@@ -67,6 +67,35 @@ typedef struct
     void *messageLogger;
 } PLUGIN_GLOBALS;
 
+///////////////////////////////////////////////////////////////////////////////
+// GLOBAL I N T E R F A C E ///////////////////////////////////////////////////
+// ____________________________________________________________________________
+// Function: GetDllInfo
+// Purpose:  This function allows the emulator to gather information
+//           about the DLL by filling in the PluginInfo structure.
+// input:    A pointer to a PLUGIN_INFO structure that needs to be
+//           filled by the function. (see def above)
+// output:   none
+//
+EXPORT void CALL GetDllInfo(PLUGIN_INFO* _pPluginInfo);
+
+// ___________________________________________________________________________
+// Function: DllConfig
+// Purpose:  This function is optional function that is provided
+//           to allow the user to configure the DLL
+// input:    A handle to the window that calls this function
+// output:   none
+//
+EXPORT void CALL DllConfig(void *_hParent);
+
+// ___________________________________________________________________________
+// Function: DllDebugger
+// Purpose:  Open the debugger
+// input:    a handle to the window that calls this function
+// output:   none
+//
+EXPORT void CALL DllDebugger(void *_hParent, bool Show);
+    
 #if defined(__cplusplus)
 }
 #endif

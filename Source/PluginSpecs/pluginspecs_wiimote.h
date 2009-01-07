@@ -47,33 +47,6 @@ typedef struct
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // __________________________________________________________________________________________________
-// Function: GetDllInfo
-// Purpose:  This function allows the emulator to gather information
-//           about the DLL by filling in the PluginInfo structure.
-// input:    a pointer to a PLUGIN_INFO structure that needs to be
-//           filled by the function. (see def above)
-// output:   none
-//
-EXPORT void CALL GetDllInfo(PLUGIN_INFO* _pPluginInfo);
-
-// __________________________________________________________________________________________________
-// Function: DllConfig
-// Purpose:  This function is optional function that is provided
-//           to allow the user to configure the DLL
-// input:    a handle to the window that calls this function
-// output:   none
-//
-EXPORT void CALL DllConfig(HWND _hParent);
-
-// __________________________________________________________________________________________________
-// Function: DllDebugger
-// Purpose:  Open the debugger
-// input:    a handle to the window that calls this function
-// output:   none
-//
-EXPORT void CALL DllDebugger(HWND _hParent, bool Show);
-
-// __________________________________________________________________________________________________
 // Function: 
 // Purpose:  
 // input:    WiimoteInitialize
