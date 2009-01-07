@@ -523,13 +523,6 @@ void FillReportExtension(wm_extension& _ext)
 	   by 0x08 */
 	memcpy(g_RegExtTmpReport + 0x08, &_ext, sizeof(_ext));
 
-#ifdef _WIN32
-	/**/if(GetAsyncKeyState('V')) // Log
-	{
-		std::string Temp = ArrayToString(g_RegExtTmpReport, sizeof(_ext), 0x08);
-		wprintf("Nunchuck DataFrame: %s\n", Temp.c_str());
-	}
-#endif
 	// Encrypt it
 	wiimote_encrypt(&g_ExtKey, &g_RegExtTmpReport[0x08], 0x08, sizeof(_ext));
 
