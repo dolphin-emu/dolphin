@@ -29,7 +29,7 @@
 // Defines
 // ------------
 #ifndef _WIN32
-#define Sleep(x) usleep(*1000)
+#define Sleep(x) usleep(x*1000)
 #endif
 /////////////////////////
 
