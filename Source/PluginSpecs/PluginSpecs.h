@@ -11,10 +11,11 @@
 #define EXPORT	__declspec(dllexport)
 #define CALL	__cdecl
 #else
-#define __cdecl
 #define EXPORT	__attribute__ ((visibility("default")))
 #define CALL
 #endif
+
+#define __cdecl
 
 #ifdef _WIN32
 
@@ -52,7 +53,6 @@ extern "C" {
 #define STATE_MODE_WRITE   2
 #define STATE_MODE_MEASURE 3
 
-
 typedef struct 
 {
 	u16 Version;		// Set to 0x0100
@@ -86,7 +86,7 @@ EXPORT void CALL GetDllInfo(PLUGIN_INFO* _pPluginInfo);
 // input:    A handle to the window that calls this function
 // output:   none
 //
-EXPORT void CALL DllConfig(void *_hParent);
+EXPORT void CALL DllConfig(HWND _hParent);
 
 // ___________________________________________________________________________
 // Function: DllDebugger
@@ -94,8 +94,15 @@ EXPORT void CALL DllConfig(void *_hParent);
 // input:    a handle to the window that calls this function
 // output:   none
 //
-EXPORT void CALL DllDebugger(void *_hParent, bool Show);
-    
+EXPORT void CALL DllDebugger(HWND _hParent, bool Show);
+
+// ___________________________________________________________________________
+// Function: DllSetGlobals
+// Purpose:  Set the pointer for globals variables
+// input:    a pointer to the global struct
+// output:   none
+//
+EXPORT void CALL SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals);
 #if defined(__cplusplus)
 }
 #endif

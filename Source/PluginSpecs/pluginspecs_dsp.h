@@ -31,6 +31,14 @@ typedef struct
 } DSPInitialize;
 
 // __________________________________________________________________________________________________
+
+// Function: DSP_Initialize
+// Purpose:
+// input:    DSPInitialize
+// output:   none
+//
+EXPORT void CALL DSP_Initialize(DSPInitialize _dspInitialize);
+// __________________________________________________________________________________________________
 // Function: DSP_Shutdown
 // Purpose:  This function is called when the emulator is shutting down
 //           a game allowing the dll to de-initialise.
