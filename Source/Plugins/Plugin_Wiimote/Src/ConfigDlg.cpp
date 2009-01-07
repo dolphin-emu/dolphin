@@ -15,12 +15,20 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+/////////////////////////////////////////////////////////////////////////
+// Include
+// ------------
 //#include "Common.h" // for u16
 #include "ConfigDlg.h"
 #include "Config.h"
 #include "EmuSubroutines.h" // for WmRequestStatus
+/////////////////////////////
 
 
+/////////////////////////////////////////////////////////////////////////
+// Event table
+// ------------
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
 	EVT_BUTTON(ID_CLOSE, ConfigDialog::CloseClick)
@@ -30,6 +38,8 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_NUNCHUCKCONNECTED, ConfigDialog::GeneralSettingsChanged)	
 	EVT_CHECKBOX(ID_CLASSICCONTROLLERCONNECTED, ConfigDialog::GeneralSettingsChanged)
 END_EVENT_TABLE()
+/////////////////////////////
+
 
 ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
@@ -42,6 +52,10 @@ ConfigDialog::~ConfigDialog()
 {
 }
 
+
+/////////////////////////////////////////////////////////////////////////
+// Create GUI
+// ------------
 void ConfigDialog::CreateGUIControls()
 {
 	// Notebook
@@ -120,6 +134,7 @@ void ConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
 {
 
 }
+//////////////////////////
 
 
 // ===================================================
@@ -159,8 +174,12 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 			g_Config.bClassicControllerConnected = false;
 			// Disconnect the extension so that the game recognize the change
 			DoExtensionConnectedDisconnected();
+			/* It doesn't seem to be needed but shouldn't it at least take 25 ms to
+			   reconnect an extension after we disconnected another? */
+			Sleep(25);
 		}
 
+		// Update status
 		g_Config.bNunchuckConnected = m_NunchuckConnected->IsChecked();
 
 		// Generate connect/disconnect status event

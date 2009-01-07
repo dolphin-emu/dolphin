@@ -1,3 +1,21 @@
+// Copyright (C) 2003-2008 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
+
+
 //__________________________________________________________________________________________________
 // Common wiimote plugin spec, unversioned
 //
@@ -8,9 +26,10 @@
 #include "PluginSpecs.h"
 #include "ExportProlog.h"
 
+
 typedef void (*TLogv)(const char* _pMessage, int _v);
 
-// Called when the Wiimote sends input reports to the Core.
+// This is called when the Wiimote sends input reports to the Core.
 // Payload: an L2CAP packet.
 typedef void (*TWiimoteInput)(u16 _channelID, const void* _pData, u32 _Size);
 
@@ -21,6 +40,7 @@ typedef struct
 	TLogv pLog;
 	TWiimoteInput pWiimoteInput;
 } SWiimoteInitialize;
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // I N T E R F A C E ////////////////////////////////////////////////////////////////////////////////
@@ -57,9 +77,9 @@ EXPORT void CALL DllDebugger(HWND _hParent, bool Show);
 // Function: 
 // Purpose:  
 // input:    WiimoteInitialize
-// output:   none
+// output:   If at least one real Wiimote was found or not
 //
-EXPORT void CALL Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize);
+EXPORT bool CALL Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize);
 
 // __________________________________________________________________________________________________
 // Function: Wiimote_Shutdown

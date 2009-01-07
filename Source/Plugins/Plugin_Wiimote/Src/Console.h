@@ -15,7 +15,19 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#ifndef WIIMOTE_CONSOLE_H
+#define WIIMOTE_CONSOLE_H
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+#include <iostream>
+//////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+std::string Tm(bool Ms = false);
 void startConsoleWin(int width, int height, char* fname);
 int wprintf(const char *fmt, ...);
 int aprintf(int a, const char *fmt, ...);
@@ -24,3 +36,6 @@ void ClearScreen();
 #ifdef _WIN32
 	HWND GetConsoleHwnd(void);
 #endif
+///////////////////////////////
+
+#endif // WIIMOTE_CONSOLE_H

@@ -29,7 +29,7 @@ void UnloadPlugin();
 // Function Types
 typedef void (__cdecl* TGetDllInfo)(PLUGIN_INFO*);
 typedef void (__cdecl* TDllConfig)(HWND);
-typedef void (__cdecl* TWiimote_Initialize)(SWiimoteInitialize);
+typedef bool (__cdecl* TWiimote_Initialize)(SWiimoteInitialize);
 typedef void (__cdecl* TWiimote_Shutdown)();
 typedef void (__cdecl* TWiimote_Update)();
 typedef void (__cdecl* TWiimote_Output)(u16 _channelID, const void* _pData, u32 _Size);

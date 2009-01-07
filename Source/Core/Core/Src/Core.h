@@ -51,13 +51,14 @@ namespace Core
 	void SaveState();
 	void LoadState();
 
-    // get core parameters
+    // Get core parameters
 	extern SCoreStartupParameter g_CoreStartupParameter; //uck
     const SCoreStartupParameter& GetStartupParameter();
 
-    // make a screen shot
+    // Make a screen shot
     bool MakeScreenshot(const std::string& _rFilename);
     void* GetWindowHandle();
+	bool GetRealWiimote();
 
 	extern bool bReadTrace;
 	extern bool bWriteTrace;

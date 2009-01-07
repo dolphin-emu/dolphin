@@ -16,21 +16,27 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <wx/msgdlg.h>
-
-#include "pluginspecs_wiimote.h"
 
 #include <vector>
 #include <string>
-#include "Common.h"
+
+#include "Common.h" // Common
+#include "pluginspecs_wiimote.h"
+#include "StringUtil.h" // For ArrayToString
+
 #include "wiimote_hid.h"
+#include "EmuMain.h"
 #include "EmuSubroutines.h"
 #include "EmuDefinitions.h"
-#include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
-#include "Config.h" // for g_Config
+#include "Console.h" // For startConsoleWin, wprintf, GetConsoleHwnd
+#include "Config.h" // For g_Config
+//////////////////////////////////
 
 extern SWiimoteInitialize g_WiimoteInitialize;
-
 
 namespace WiiMoteEmu
 {
@@ -42,10 +48,12 @@ namespace WiiMoteEmu
 
 void FillReportInfo(wm_core& _core)
 {
+	/* This has to be filled with zeroes because when no buttons are pressed the
+	   value is 00 00 */
 	memset(&_core, 0x00, sizeof(wm_core));
 
 #ifdef _WIN32
-	// allow both mouse buttons and keyboard to press a and b
+	// Allow both mouse buttons and keyboard to press a and b
 	if(GetAsyncKeyState(VK_LBUTTON) ? 1 : 0 || GetAsyncKeyState('A') ? 1 : 0)
 		_core.a = 1;
 
@@ -295,9 +303,9 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 		Bottom = BOTTOM; SensorBarRadius = SENSOR_BAR_RADIUS;		
 	}
 
-	// Fill with 0xff if empty
-	memset(&_ir0, 0xFF, sizeof(wm_ir_extended));
-	memset(&_ir1, 0xFF, sizeof(wm_ir_extended));
+	// Fill with 0xff (0r 0x00?) if empty
+	memset(&_ir0, 0x00, sizeof(wm_ir_extended));
+	memset(&_ir1, 0x00, sizeof(wm_ir_extended));
 
 	float MouseX, MouseY;
 	GetMousePos(MouseX, MouseY);
@@ -378,9 +386,9 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 		Bottom = BOTTOM; SensorBarRadius = SENSOR_BAR_RADIUS;		
 	}
 
-	// Fill with 0xff if empty
-	memset(&_ir0, 0xff, sizeof(wm_ir_basic));
-	memset(&_ir1, 0xff, sizeof(wm_ir_basic));
+	// Fill with 0x00 if empty
+	memset(&_ir0, 0x00, sizeof(wm_ir_basic));
+	memset(&_ir1, 0x00, sizeof(wm_ir_basic));
 
 	float MouseX, MouseY;
 	GetMousePos(MouseX, MouseY);
@@ -449,7 +457,7 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 		);*/
 }
 
-
+int abc = 0;
 // ===================================================
 /* Generate the 6 byte extension report, encrypted. The bytes are JX JY AX AY AZ BT. */
 // ----------------
@@ -461,6 +469,12 @@ void FillReportExtension(wm_extension& _ext)
 	_ext.ax = 0x80;
 	_ext.ay = 0x80;
 	_ext.az = 0xb3;
+
+
+	_ext.ax += abc;
+
+	abc ++;
+	if (abc > 50) abc = 0;
 
 
 	_ext.jx = 0x80; // these are the default values unless we use them
@@ -496,19 +510,30 @@ void FillReportExtension(wm_extension& _ext)
         // TODO linux port
 #endif
 
-	// Clear g_RegExtTmp by copying zeroes to it
-	memset(g_RegExtTmp, 0, sizeof(g_RegExtTmp));
+	/* Here we use g_RegExtTmpReport as a temporary storage for the enryption function because
+	   the type if array may have some importance for wiimote_encrypt(). We avoid using
+	   g_RegExtTmp that is used in EmuMain.cpp because if this runs on a different thread
+	   there is a small chance that they may interfer with each other. */
+
+	// Clear g_RegExtTmpReport by copying zeroes to it, this may not be needed
+	memset(g_RegExtTmpReport, 0, sizeof(g_RegExtTmp));
 
 	/* Write the nunchuck inputs to it. We begin writing at 0x08, but it could also be
 	   0x00, the important thing is that we begin at an address evenly divisible
 	   by 0x08 */
-	memcpy(g_RegExtTmp + 0x08, &_ext, sizeof(_ext));
+	memcpy(g_RegExtTmpReport + 0x08, &_ext, sizeof(_ext));
+
+	/**/if(GetAsyncKeyState('V')) // Log
+	{
+		std::string Temp = ArrayToString(g_RegExtTmpReport, sizeof(_ext), 0x08);
+		wprintf("Nunchuck DataFrame: %s\n", Temp.c_str());
+	}
 
 	// Encrypt it
-	wiimote_encrypt(&g_ExtKey, &g_RegExtTmp[0x08], 0x08, sizeof(_ext));
+	wiimote_encrypt(&g_ExtKey, &g_RegExtTmpReport[0x08], 0x08, sizeof(_ext));
 
-	// Write it back
-	memcpy(&_ext, &g_RegExtTmp[0x08], sizeof(_ext));
+	// Write it back to the extension
+	memcpy(&_ext, &g_RegExtTmpReport[0x08], sizeof(_ext));
 }
 
 
@@ -675,18 +700,17 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
         // TODO linux port
 #endif
 
-
 	// Clear g_RegExtTmp by copying zeroes to it
-	memset(g_RegExtTmp, 0, sizeof(g_RegExtTmp));
+	memset(g_RegExtTmpReport, 0, sizeof(g_RegExtTmp));
 
 	/* Write the nunchuck inputs to it. We begin writing at 0x08, see comment above. */
-	memcpy(g_RegExtTmp + 0x08, &_ext, sizeof(_ext));
+	memcpy(g_RegExtTmpReport + 0x08, &_ext, sizeof(_ext));
 
 	// Encrypt it
-	wiimote_encrypt(&g_ExtKey, &g_RegExtTmp[0x08], 0x08, 0x06);
+	wiimote_encrypt(&g_ExtKey, &g_RegExtTmpReport[0x08], 0x08, 0x06);
 
 	// Write it back
-	memcpy(&_ext, &g_RegExtTmp[0x08], sizeof(_ext));
+	memcpy(&_ext, &g_RegExtTmpReport[0x08], sizeof(_ext));
 }
 
 

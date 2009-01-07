@@ -214,6 +214,8 @@ namespace WiiMoteReal
     int Initialize()
     {
         memset(g_WiiMotes, 0, sizeof(CWiiMote*) * MAX_WIIMOTES);
+
+		// Call Wiiuse.dll
         g_WiiMotesFromWiiUse = wiiuse_init(MAX_WIIMOTES);
         g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, MAX_WIIMOTES, 5);
 

@@ -30,7 +30,8 @@
 				BootManager.cpp		BootCore
 	Core		Core.cpp			Init		Thread creation
 									EmuThread	Calls CBoot::BootUp
-				Boot.cpp			
+				Boot.cpp			CBoot::BootUp()
+									CBoot::EmulatedBIOS_Wii() / GC() or Load_BIOS()
  */
 // =============
 
@@ -54,6 +55,7 @@
 	#include "ConfigMain.h"
 	#include "Frame.h"
 	#include "CodeWindow.h"
+	#include "../../../../Branches/MusicMod/Common/Src/Console.h" 
 	#ifdef MUSICMOD
 		#include "../../../Branches/MusicMod/Main/Src/Main.h"  // MusicMod
 	#endif

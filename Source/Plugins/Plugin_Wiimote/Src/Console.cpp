@@ -16,36 +16,74 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-// --------------------
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // Includes
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <string>
 #include <stdio.h>
 #ifdef _WIN32
-#include <windows.h>
+	#include <windows.h>
 #endif
 
+#include "StringUtil.h"
 
-// --------------------
+#define HAVE_WX 1
+#if defined(HAVE_WX) && HAVE_WX // wxWidgets
+	#include <wx/datetime.h> // for the timestamps
+#endif
+///////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Settings
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 // On and off
 bool g_consoleEnable = true;
-int gSaveFile = 0;
-#define DEBUG_WIIMOTE
+bool gSaveFile = true;
+#define DEBUG_WIIMOTE // On or off
+const int nFiles = 1;
 
-
-// --------------------
-// Settings
-int nFiles = 1;
-
-
-// --------------------
 // Create handles
-
 #ifdef DEBUG_WIIMOTE
-	FILE* __fStdOut[1]; // you have to update this manually, we can't place a nFiles in there
+	FILE* __fStdOut[nFiles];
 #endif
 #ifdef _WIN32
 	HANDLE __hStdOut = NULL;
 #endif
+
+//////////////////////////////
+
+
+// =======================================================================================
+/* Get Timestamp */
+// -------------
+std::string Tm(bool Ms)
+{
+	#if defined(HAVE_WX) && HAVE_WX
+		std::string Tmp;
+		if(Ms)
+		{
+			wxDateTime datetime = wxDateTime::UNow(); // Get timestamp
+			Tmp = StringFromFormat("%02i:%02i:%03i",
+			datetime.GetMinute(), datetime.GetSecond(), datetime.GetMillisecond());
+		}
+		else
+		{
+			wxDateTime datetime = wxDateTime::Now(); // Get timestamp
+			Tmp = StringFromFormat("%02i:%02i",
+			datetime.GetMinute(), datetime.GetSecond());
+		}
+		return Tmp;
+	#else
+		std::string Tmp = "";
+		return Tmp;
+	#endif
+}
+// ===========================
+
+
 
 
 // =======================================================================================
@@ -69,7 +107,7 @@ void startConsoleWin(int width, int height, char* fname)
 	SetConsoleWindowInfo(__hStdOut, TRUE, &coo);
 
 	// ---------------------------------------------------------------------------------------
-	// Write to a file
+	// Create a file for this
 	if(fname)
 	{
 		for(int i = 0; i < nFiles; i++)
@@ -107,6 +145,7 @@ int aprintf(int a, char *fmt, ...)
 		if(__fStdOut[a]) // TODO: make this work, we have to set all default values to NULL
 			//to make it work
 			fprintf(__fStdOut[a], s);
+			fflush(__fStdOut[0]); // Write file now, don't wait
 		// -------------
 
 		return(cnt);
@@ -135,14 +174,20 @@ int wprintf(const char *fmt, ...)
 	cnt = vsnprintf(s, 500, fmt, argptr);
 	va_end(argptr);
 
-	DWORD cCharsWritten;
+	DWORD cCharsWritten; // We will get a value back here
 
-	// ---------------------------------------------------------------------------------------
+	// ------------------------------------------
+	// Write to console
+	// ----------------
 	if(__hStdOut)
 	{
 		WriteConsole(__hStdOut, s, strlen(s), &cCharsWritten, NULL);
 	}
-	// -------------
+
+	// ----------------------------------------
+	// Write to file
+	// ----------------
+	aprintf(0, s);
 
 	return(cnt);
 #else

@@ -123,7 +123,7 @@ int wprintf(char *fmt, ...)
 		if(__fStdOut)
 		{
 			fprintf(__fStdOut, s);
-			//fflush(__fStdOut); // Write file now, don't wait
+			fflush(__fStdOut); // Write file now, don't wait
 		}
 
 		return(cnt);

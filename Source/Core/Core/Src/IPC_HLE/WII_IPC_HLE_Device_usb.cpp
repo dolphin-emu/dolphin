@@ -15,16 +15,28 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "WII_IPC_HLE_Device_usb.h"
 #include "../Plugins/Plugin_Wiimote.h"
 
+#include "../Core.h" // Local core functions
 #include "../Debugger/Debugger_SymbolMap.h"
 #include "../Host.h"
+#include "../../../../Branches/MusicMod/Common/Src/Console.h"
+///////////////////////
 
-// ugly hacks for "SendEventNumberOfCompletedPackets"
+
+// Ugly hacks for "SendEventNumberOfCompletedPackets"
 int g_HCICount = 0;
 int g_GlobalHandle = 0;
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// The device class
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
         , m_PINType(0)
@@ -58,6 +70,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 
 CWII_IPC_HLE_Device_usb_oh1_57e_305::~CWII_IPC_HLE_Device_usb_oh1_57e_305()
 {}
+///////////////////////////
 
 
 // ===================================================
@@ -290,7 +303,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLFrame(u16 _ConnectionHandle, u8
 
 
 // ===================================================
-/* This is called from WII_IPC_HLE_Interface::Update() */
+/* See IPC_HLE_PERIOD in SystemTimers.cpp for a documentation of this update. */
 // ----------------
 u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 {
@@ -387,19 +400,27 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	   before we initiate the connection. To avoid doing this for GC games we also
 	   want m_LocalName from CommandWriteLocalName() to be "Wii". 
 
-	   FiRES: TODO find a good solution to do this */
+	   FiRES: TODO find a good solution to do this
+	   JP: Solution to what? When to run SendEventRequestConnection()?
+	   */
 	// -------------------------
-	static bool test = true;
 
-	// Why do we need this? 0 worked with the emulated wiimote in all games I tried
-	static int counter = 1000;
+	/* I disabled this and disable m_ScanEnable instead to avoid running SendEventRequestConnection()
+	   again. */
+	//static bool test = true;
 
-	if (test && !strcasecmp(m_LocalName, "Wii") && (m_ScanEnable & 0x2))
+	/* Why do we need this? 0 worked with the emulated wiimote in all games I tried. Do we have to
+	   wait for wiiuse_init() and wiiuse_find() for a real Wiimote here? I'm testing
+	   this new method of not waiting at all if there are no real Wiimotes. Please let me know
+	   if it doesn't work. */
+	static int counter = (Core::GetRealWiimote() ? 1000 : 0);
+
+	if (!strcasecmp(m_LocalName, "Wii") && (m_ScanEnable & 0x2))
 	{
 		counter--;
 		if (counter < 0)
 		{
-			test = false;
+			//test = false;
 			for (size_t i=0; i < m_WiiMotes.size(); i++)
 			{
 				if (m_WiiMotes[i].EventPagingChanged(2))
@@ -564,8 +585,15 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRemoteNameReq(bdaddr_t _bd)
 	return true;
 }
 
+
+/////////////////////////////////////////////////////////////
+/* This is called from Update() after ScanEnable has been enabled. */
+// ¯¯¯¯¯¯¯¯¯
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HLE_WiiMote& _rWiiMote)
 {
+	// We have to disable scan now to avoid running this function over and over again
+	m_ScanEnable = 0;
+
 	SQueuedEvent Event(sizeof(SHCIEventRequestConnection), 0);
 
 	SHCIEventRequestConnection* pEventRequestConnection = (SHCIEventRequestConnection*)Event.m_buffer;
@@ -601,6 +629,8 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HL
 
 	return true;
 };
+//////////////////////////////
+
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestLinkKey(bdaddr_t _bd)
 {
@@ -1377,7 +1407,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWritePageTimeOut(u8* _Input)
 }
 
 
-
+/////////////////////////////////////////////////////////////
+/* This will enable ScanEnable so that Update() can start the Wiimote. */
+// ¯¯¯¯¯¯¯¯¯
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
 {
 	// Command parameters
@@ -1404,7 +1436,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
 
 	SendEventCommandComplete(HCI_CMD_WRITE_SCAN_ENABLE, &Reply, sizeof(hci_write_scan_enable_rp));
 }
-
+/////////////////////////////
 
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryMode(u8* _Input)

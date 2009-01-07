@@ -15,6 +15,19 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// File description
+/* ¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+All plugins from Core > Plugins are loaded and unloaded with this class when Dolpin is started
+and stopped.
+//////////////////////////////////////*/
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <string.h>
 #ifdef _WIN32
 #include <windows.h>
@@ -27,6 +40,9 @@
 #include "FileUtil.h"
 #include "StringUtil.h"
 #include "DynamicLibrary.h"
+#include "../../../../Branches/MusicMod/Common/Src/Console.h" 
+///////////////////////////////////
+
 
 DynamicLibrary::DynamicLibrary()
 {
@@ -138,9 +154,10 @@ void* DynamicLibrary::Get(const char* funcname) const
 	retval = dlsym(library, funcname);
 #endif
 
-	if (!retval) {
+	if (!retval)
+	{
 		LOG(MASTER_LOG, "Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), GetLastErrorAsString().c_str());
-		PanicAlert("Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), GetLastErrorAsString().c_str());
+		//PanicAlert("Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), GetLastErrorAsString().c_str());
 	}
 
 	return retval;

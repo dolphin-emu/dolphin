@@ -41,7 +41,9 @@ void CBoot::RunFunction(u32 _iAddr)
 		PowerPC::SingleStep();
 }
 
-// BIOS HLE: 
+// __________________________________________________________________________________________________
+//
+// GameCube BIOS HLE: 
 // copy the apploader to 0x81200000
 // execute the apploader, function by function, using the above utility.
 void CBoot::EmulatedBIOS(bool _bDebug)
@@ -159,7 +161,7 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 
 // __________________________________________________________________________________________________
 //
-// BIOS HLE: 
+// Wii BIOS HLE: 
 // copy the apploader to 0x81200000
 // execute the apploader
 //
@@ -167,6 +169,7 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 {	
 	LOG(BOOT, "Faking Wii BIOS...");
 
+	// See if we have a memory dump to boot
     FILE* pDump = fopen(FULL_WII_SYS_DIR "dump_0x0000_0x4000.bin", "rb");
     if (pDump != NULL)
     {
@@ -301,10 +304,11 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 			   after this check during booting. */
 		    VolumeHandler::ReadToPtr(Memory::GetPointer(0x3180), 0, 4);
 		    Memory::Write_U8(0x80, 0x00003184);
+			// ================
 	    }
     }
 
-	// apploader
+	// Execute the apploader
     if (VolumeHandler::IsValid() && VolumeHandler::IsWii())	
 	{
 		UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
@@ -345,12 +349,16 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		u32 iAppLoaderClose = Memory::ReadUnchecked_U32(iAppLoaderFuncAddr+8);
 
 		// iAppLoaderInit
-		LOG(BOOT, "Call iAppLoaderInit");
+		LOG(BOOT, "Run iAppLoaderInit");
 		PowerPC::ppcState.gpr[3] = 0x81300000; 
 		RunFunction(iAppLoaderInit);
 
-		// iAppLoaderMain
-		LOG(BOOT, "Call iAppLoaderMain");
+		/* Let the apploader load the exe to memory. At this point I get an unknwon IPC command
+		   (command zero) when I load Wii Sports or other games a second time. I don't notice
+		   any side effects however. It's a little disconcerning however that Start after Stop
+		   behaves differently than the first Start after starting Dolphin. It means something
+		   was not reset correctly. */
+		LOG(BOOT, "Run iAppLoaderMain");
 		do
 		{
 			PowerPC::ppcState.gpr[3] = 0x81300004;
@@ -368,7 +376,7 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		} while(PowerPC::ppcState.gpr[3] != 0x00);
 
 		// iAppLoaderClose
-		LOG(BOOT, "call iAppLoaderClose");
+		LOG(BOOT, "Run iAppLoaderClose");
 		RunFunction(iAppLoaderClose);
 
 		// Load patches and run startup patches

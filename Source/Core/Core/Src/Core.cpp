@@ -94,7 +94,6 @@ void Callback_WiimoteInput(u16 _channelID, const void* _pData, u32 _Size);
 
 // For keyboard shortcuts.
 void Callback_KeyPress(int key, bool shift, bool control);
-
 TPeekMessages Callback_PeekMessages = NULL;
 TUpdateFPSDisplay g_pUpdateFPSDisplay = NULL;
 
@@ -106,6 +105,7 @@ TUpdateFPSDisplay g_pUpdateFPSDisplay = NULL;
 void Stop();
 
 bool g_bHwInit = false;
+bool g_bRealWiimote = false;
 HWND g_pWindowHandle = NULL;
 Common::Thread* g_pThread = NULL;
 
@@ -115,13 +115,50 @@ Common::Event emuThreadGoing;
 //////////////////////////////////////
 
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Display messages and return values
+// ¯¯¯¯¯¯¯¯¯¯
 bool PanicAlertToVideo(const char* text, bool yes_no)
 {
 	DisplayMessage(text, 3000);
 	return true;
 }
 
-// Called from GUI thread
+void DisplayMessage(const std::string &message, int time_in_ms)
+{
+	PluginVideo::Video_AddMessage(message.c_str(), time_in_ms);
+}
+
+void DisplayMessage(const char *message, int time_in_ms)
+{
+	PluginVideo::Video_AddMessage(message, time_in_ms);
+}
+
+void Callback_DebuggerBreak()
+{
+	CCPU::EnableStepping(true);
+}
+
+const SCoreStartupParameter& GetStartupParameter()
+{
+	return g_CoreStartupParameter;
+}
+
+void* GetWindowHandle()
+{
+    return g_pWindowHandle;
+}
+
+bool GetRealWiimote()
+{
+    return g_bRealWiimote;
+}
+/////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// This is called from the GUI thread. See the booting call schedule in BootManager.cpp
+// ¯¯¯¯¯¯¯¯¯¯
 bool Init(const SCoreStartupParameter _CoreParameter)
 {
 	if (g_pThread != NULL) {
@@ -153,6 +190,7 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 
 	emuThreadGoing.Init();
 
+	// This will execute EmuThread() further down in this file
 	g_pThread = new Common::Thread(EmuThread, (void*)&g_CoreStartupParameter);
 	
 	emuThreadGoing.Wait();
@@ -166,16 +204,6 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 	//PluginVideo::DllDebugger(NULL);
 
 	return true;
-}
-
-void DisplayMessage(const std::string &message, int time_in_ms)
-{
-	PluginVideo::Video_AddMessage(message.c_str(), time_in_ms);
-}
-
-void DisplayMessage(const char *message, int time_in_ms)
-{
-	PluginVideo::Video_AddMessage(message, time_in_ms);
 }
 
 
@@ -211,21 +239,6 @@ void Stop() // - Hammertime!
 	Core::StopTrace();
 	LogManager::Shutdown();
 	Host_SetWaitCursor(false);
-}
-
-void Callback_DebuggerBreak()
-{
-	CCPU::EnableStepping(true);
-}
-
-const SCoreStartupParameter& GetStartupParameter()
-{
-	return g_CoreStartupParameter;
-}
-
-void* GetWindowHandle()
-{
-    return g_pWindowHandle;
 }
 
 
@@ -280,7 +293,7 @@ THREAD_RETURN CpuThread(void *pArg)
 //////////////////////////////////////////////////////////////////////////////////////////
 // Initalize plugins and create emulation thread
 // ¯¯¯¯¯¯¯¯¯¯
-	/* Call browser: Init():g_pThread(). See the BootManager.cpp file description for a completel
+	/* Call browser: Init():g_pThread(). See the BootManager.cpp file description for a complete
 		call schedule. */
 THREAD_RETURN EmuThread(void *pArg)
 {
@@ -348,7 +361,8 @@ THREAD_RETURN EmuThread(void *pArg)
 		WiimoteInitialize.hWnd = g_pWindowHandle;
 		WiimoteInitialize.pLog = Callback_WiimoteLog;
 		WiimoteInitialize.pWiimoteInput = Callback_WiimoteInput;
-		PluginWiimote::Wiimote_Initialize(WiimoteInitialize);
+		// Wait for Wiiuse to find the number of connected Wiimotes
+		g_bRealWiimote = PluginWiimote::Wiimote_Initialize(WiimoteInitialize);
 	}
 
 	// The hardware is initialized.

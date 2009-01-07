@@ -16,6 +16,9 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "Common.h"
 #include "Config.h"
 #include "StringUtil.h"
@@ -34,7 +37,12 @@
 #endif
 
 #include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
+///////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 SWiimoteInitialize g_WiimoteInitialize;
 
 bool g_UseRealWiiMote = false;
@@ -53,7 +61,12 @@ IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
+////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Main function and WxWidgets initialization
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef _WIN32
 BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 					  DWORD dwReason,		// reason called
@@ -83,6 +96,9 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 	return TRUE;
 }
 #endif
+/////////////////////////////////////
+
+
 //******************************************************************************
 // Exports
 //******************************************************************************
@@ -119,27 +135,34 @@ extern "C" void DllConfig(HWND _hParent)
 #endif
 }
 
-extern "C" void Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize)
+extern "C" bool Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize)
 {
+	// ----------------------------------------
+	// Debugging window
+	// ----------
+	/*startConsoleWin(100, 750, "Wiimote"); // give room for 20 rows
+	wprintf("Wiimote console opened\n");
+
+	// Move window, TODO: make this
+	//MoveWindow(GetConsoleHwnd(), 0,400, 100*8,10*14, true); // small window
+	MoveWindow(GetConsoleHwnd(), 400,0, 100*8,70*14, true); // big window*/
+	// ---------------
+
 	g_WiimoteInitialize = _WiimoteInitialize;
 
 	/* We will run WiiMoteReal::Initialize() even if we are not using a real wiimote,
 	   we will initiate wiiuse.dll, but we will return before creating a new thread
-	   for it in that case */
+	   for it if we find no real Wiimotes. Then g_UseRealWiiMote will also be false
+	   This function call will be done instantly if there is no real Wiimote connected.
+	   I'm not sure how long time it takes if a Wiimote is connected. */
 #if HAVE_WIIUSE
 	g_UseRealWiiMote = WiiMoteReal::Initialize() > 0;
 #endif
 	g_Config.Load(); // load config settings
 
-	WiiMoteEmu::Initialize();	
+	WiiMoteEmu::Initialize();
 
-	// Debugging window
-	/*startConsoleWin(100, 750, "Wiimote"); // give room for 20 rows
-	wprintf("Wiimote console opened\n");
-
-	 // move window, TODO: make this
-	//MoveWindow(GetConsoleHwnd(), 0,400, 100*8,10*14, true); // small window
-	MoveWindow(GetConsoleHwnd(), 400,0, 100*8,70*14, true); // big window*/
+	return g_UseRealWiiMote;
 }
 
 
@@ -176,6 +199,7 @@ extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32
 		LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
 	}
 
+	// Decice where to send the message
 	if (! g_UseRealWiiMote)
             WiiMoteEmu::InterruptChannel(_channelID, _pData, _Size);		
 #if HAVE_WIIUSE
@@ -209,6 +233,11 @@ extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _
 	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
 }
 
+
+// ===================================================
+/* This sends a Data Report from the Wiimote. See SystemTimers.cpp for the documentation of this
+   update. */
+// ----------------
 extern "C" void Wiimote_Update() 
 {
 	if (! g_UseRealWiiMote)
@@ -223,6 +252,7 @@ extern "C" unsigned int Wiimote_GetAttachedControllers()
 {
 	return 1;
 }
+// ================
 
 
 // ===================================================

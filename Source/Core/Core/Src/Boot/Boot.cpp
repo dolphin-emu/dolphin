@@ -121,6 +121,10 @@ bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_game
 	return success;
 }
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Load a GC or Wii BIOS file
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 bool CBoot::Load_BIOS(const std::string& _rBiosFilename)
 {
     bool bResult = false;
@@ -129,6 +133,7 @@ bool CBoot::Load_BIOS(const std::string& _rBiosFilename)
     {
         if (pFile->GetSize() >= 1024*1024*2)
         {
+			// Write it to memory
             u32 CopySize = (u32)pFile->GetSize() - 0x820;
             u8* pData = pFile->Lock(0x820, CopySize);
             Memory::WriteBigEData(pData, 0x81300000, CopySize);
@@ -143,7 +148,12 @@ bool CBoot::Load_BIOS(const std::string& _rBiosFilename)
     delete pFile;
     return bResult;
 }
+/////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Third boot step after BootManager and Core. See Call schedule in BootManager.cpp
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
 {
     const bool bDebugIsoBootup = false;
@@ -188,6 +198,7 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
             } 
             else
             {
+				// If we can't load the BIOS file we use the HLE BIOS instead
                 if (!Load_BIOS(_StartupPara.m_strBios))
                 {
                     // fails to load a BIOS so HLE it

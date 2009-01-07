@@ -399,8 +399,11 @@ void ExecuteCommand(u32 _Address)
         break;
 
     default:
-        _dbg_assert_msg_(WII_IPC_HLE, 0, "Unknown Command %i (0x%08x)", Command, _Address);
-        CCPU::Break();
+        _dbg_assert_msg_(WII_IPC_HLE, 0, "Unknown IPC Command %i (0x%08x)", Command, _Address);
+		// Break on the same terms as the _dbg_assert_msg_, if LOGGING was defined
+		#ifdef LOGGING
+			CCPU::Break();
+		#endif
         break;
     }
 

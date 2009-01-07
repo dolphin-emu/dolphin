@@ -442,7 +442,11 @@ void CFrame::MM_OnLog(wxCommandEvent& event)
 	MusicMod::bShowConsole = !MusicMod::bShowConsole;
 
 	if(MusicMod::bShowConsole)
-		{ MusicMod::ShowConsole(); Player_Console(true); }
+		/* What we do here is run StartConsoleWin() in Common directly after each
+		   other first in the exe then in the DLL, sometimes this would give me a rampant memory
+		   usage increase until the exe crashed at 700 MB memory usage or something like that.
+		   For that reason I'm trying to sleep for a moment between them here. */
+		{ MusicMod::ShowConsole(); Sleep(100); Player_Console(true); }
 	else
 	{
 		#if defined (_WIN32)

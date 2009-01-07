@@ -70,6 +70,23 @@ extern int GlobalVolume;
 //////////////////////////////////
 
 
+// =======================================================================================
+// Supported music files
+// ---------------------------------------------------------------------------------------
+bool CheckFileEnding(std::string FileName)
+{
+	if (  
+		   (FileName.find(".adp") != std::string::npos) // 1080 Avalanche, Crash Bandicoot etc
+		|| (FileName.find(".afc") != std::string::npos) // Zelda WW
+		|| (FileName.find(".ast") != std::string::npos) // Zelda TP, Mario Kart
+		|| (FileName.find(".dsp") != std::string::npos) // Metroid Prime
+		|| (FileName.find(".hps") != std::string::npos) // SSB Melee
+		)
+		return true;
+	return false;
+}
+// =======================================================================================
+
 
 // =======================================================================================
 // A function to sort the filelist table after offset
@@ -185,25 +202,6 @@ void Main(std::string FileName)
 	CreateDirectory(MusicPath.c_str(), attr);
 	// ----------------------------------------------------------------------------------------
 }
-
-
-// =======================================================================================
-// Supported music files
-// ---------------------------------------------------------------------------------------
-bool CheckFileEnding(std::string FileName)
-{
-	if (  
-		   (FileName.find(".adp") != std::string::npos) // 1080 Avalanche, Crash Bandicoot etc
-		|| (FileName.find(".afc") != std::string::npos) // Zelda WW
-		|| (FileName.find(".ast") != std::string::npos) // Zelda TP, Mario Kart
-		|| (FileName.find(".dsp") != std::string::npos) // Metroid Prime
-		|| (FileName.find(".hps") != std::string::npos) // SSB Melee
-		)
-		return true;
-	return false;
-}
-// =======================================================================================
-
 
 
 // =======================================================================================

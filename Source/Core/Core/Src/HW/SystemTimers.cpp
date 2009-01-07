@@ -15,6 +15,51 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+/////////////////////////////////////////////////////////////////////////////
+// File description: This file control all system timers
+/* -------------
+   "Time" is measured in frames, not time: These update frequencies are determined by the passage
+   of frames. So if a game runs slow, on a slow computer for example, these updates will occur
+   less frequently. This makes sense because almost all console games are controlled by frames
+   rather than time, so if a game can't keep up with the normal framerate all animations and
+   actions slows down and the game runs to slow. This is different from PC games that are are
+   often controlled by time instead and may not have maximum framerates.
+
+   However, I'm not sure if the Bluetooth communication for the Wiimote is entirely frame
+   dependent, the timing problems with the ack command in Zelda - TP may be related to
+   time rather than frames? For now the IPC_HLE_PERIOD is frame dependet, but bcause of
+   different conditions on the way to PluginWiimote::Wiimote_Update() the updates may actually
+   be time related after all, or not?
+
+   I'm not sure about this but the text below seems to assume that 60 fps means that the game
+   runs in the normal intended speed. In that case an update time of [GetTicksPerSecond() / 60]
+   would mean one update per frame and [GetTicksPerSecond() / 60] would mean four updates per
+   frame.
+   
+   
+   IPC_HLE_PERIOD: For the Wiimote this is the call scedule: 
+		IPC_HLE_UpdateCallback() // In this file
+
+			// This function seems to call all devices' Update() function four times per frame
+			WII_IPC_HLE_Interface::Update()
+
+				// If the AclFrameQue is empty this will call Wiimote_Update() and make it send
+				the current input status to the game. I'm not sure if this occurs approximately
+				once every frame or if the frequency is not exactly tied to rendered frames
+				CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
+					PluginWiimote::Wiimote_Update()
+
+				// This is also a device updated by WII_IPC_HLE_Interface::Update() but it doesn't
+				seem to ultimately call PluginWiimote::Wiimote_Update(). However it can be called
+				by the /dev/usb/oh1 device if the AclFrameQue is empty.
+				CWII_IPC_HLE_WiiMote::Update()
+//////////////////////////*/
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Inlude
+// -------------
 #include "Common.h"
 #include "../PatchEngine.h"
 #include "SystemTimers.h"
@@ -32,10 +77,15 @@
 #include "../IPC_HLE/WII_IPC_HLE.h"
 #include "Thread.h"
 #include "Timer.h"
+/////////////////////////////
+
 
 namespace SystemTimers
 {
 
+/////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// -------------
 u32 CPU_CORE_CLOCK  = 486000000u;             // 486 mhz (its not 485, stop bugging me!)
 
 s64 fakeDec;
@@ -85,6 +135,8 @@ int
 	// Once every 2 frame-period should be enough.
 	// Assuming game's frame-finish-watchdog wait more than 2 emulated frame-period before starting its mess.
 	FAKE_GP_WATCHDOG_PERIOD = GetTicksPerSecond() / 30;
+///////////////////////////////////
+
 
 u32 GetTicksPerSecond()
 {

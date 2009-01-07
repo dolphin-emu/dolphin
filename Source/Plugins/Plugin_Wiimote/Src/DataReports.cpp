@@ -20,14 +20,18 @@
 
 // ===================================================
 /* Data reports guide. The different structures location in the Input reports. The ? in
-   the IR coordinates is the High coordinates that are four in one byte. */
+   the IR coordinates is the High coordinates that are four in one byte.
+   
+   0x37: For the data reportingmode 0x37 there are five unused IR bytes in the end (represented)
+   by "..." below, it seems like they can be set to either 0xff or 0x00 without affecting the
+   IR emulation. */
 // ----------------
 
 /* 0x33
    [c.left etc] [c.a etc]   acc.x y z   ir0.x y ? ir1.x y ? ir2.x y ? ir3.x y ?
 
    0x37
-   [c.left etc] [c.a etc]   acc.x y z   ir0.x1 y1 ? x2 y2 ir1.x1 y1 ? x2 y2   ext.jx jy ax ay az bt
+   [c.left etc] [c.a etc]   acc.x y z   ir0.x1 y1 ? x2 y2 ir1.x1 y1 ? x2 y2 ...  ext.jx jy ax ay az bt
 
 
    The Data Report's path from here is
@@ -43,23 +47,32 @@
 
 
 
-
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "pluginspecs_wiimote.h"
 
 #include <vector>
 #include <string>
-#include "Common.h"
-#include "wiimote_hid.h"
+
+#include "Common.h" // Common
+#include "StringUtil.h" // for ArrayToString
+
+#include "wiimote_hid.h" // Local
 #include "EmuMain.h"
 #include "EmuSubroutines.h"
 #include "EmuDefinitions.h"
 #include "Encryption.h" // for extension encryption
 #include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
 #include "Config.h" // for g_Config
+///////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 extern SWiimoteInitialize g_WiimoteInitialize;
-//extern void __Log(int log, const char *format, ...);
-//extern void __Log(int log, int v, const char *format, ...);
+///////////////////////////////
 
 
 namespace WiiMoteEmu
@@ -78,13 +91,13 @@ void WmDataReporting(u16 _channelID, wm_data_reporting* dr)
 	LOG(WII_IPC_WIIMOTE, "  Continuous: %x", dr->continuous);
 	LOG(WII_IPC_WIIMOTE, "  All The Time: %x (not only on data change)", dr->all_the_time);
 	LOG(WII_IPC_WIIMOTE, "  Mode: 0x%02x", dr->mode);
-	wprintf("\nData reporting mode: 0x%02x", dr->mode);
-	wprintf("\nData reporting channel: 0x%04x\n", _channelID);
+	//wprintf("Data reporting mode: 0x%02x\n", dr->mode);
+	//wprintf("Data reporting channel: 0x%04x\n", _channelID);
 	
-
 	g_ReportingMode = dr->mode;
 	g_ReportingChannel = _channelID;
-	switch(dr->mode) {	//see Wiimote_Update()
+	switch(dr->mode) // See Wiimote_Update()
+	{
 	case WM_REPORT_CORE:
 	case WM_REPORT_CORE_ACCEL:
 	case WM_REPORT_CORE_ACCEL_IR12:
@@ -270,7 +283,7 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 #ifdef _WIN32
 	/*if(GetAsyncKeyState('V'))
 	{
-		std::string Temp = WiiMoteEmu::ArrayToString(DataFrame, Offset, 0, 30);
+		std::string Temp = ArrayToString(DataFrame, Offset, 0, 30);
 		wprintf("DataFrame: %s\n", Temp.c_str());
 	}*/
 #endif

@@ -16,11 +16,14 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+#ifndef MM_COMMON_H
+#define MM_COMMON_H
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Declarations and definitions
 // ¯¯¯¯¯¯¯¯¯¯
-void StartConsoleWin(int width, int height, char* fname);
+void StartConsoleWin(int width = 100, int height = 2000, char* fname = "Console");
 int wprintf(char *fmt, ...);
 //////////////////////////////////
 
-
+#endif // MM_COMMON_H

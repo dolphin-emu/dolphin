@@ -101,7 +101,7 @@ struct wm_write_data
 struct wm_acknowledge 
 {
 	u8 Channel;
-	u8 unk0;
+	u8 unk0; // Core buttons state (wm_core), can be zero
 	u8 unk1;
 	u8 reportID;
 	u8 errorID;
