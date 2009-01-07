@@ -88,6 +88,7 @@ bool BootCore(const std::string& _rFilename)
 			StartUp.bUseJIT = !g_pCodeWindow->UseInterpreter();
 			StartUp.bBootToPause = g_pCodeWindow->BootToPause();
 			StartUp.bAutomaticStart = g_pCodeWindow->AutomaticStart();
+			StartUp.bJITUnlimitedCache = g_pCodeWindow->UnlimitedJITCache();
 		}
 		else
 		{

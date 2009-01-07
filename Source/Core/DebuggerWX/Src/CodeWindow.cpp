@@ -111,33 +111,34 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
     EVT_LISTBOX(ID_CALLSLIST,      CCodeWindow::OnCallsListChange)
     EVT_HOST_COMMAND(wxID_ANY,      CCodeWindow::OnHostMessage)
 
+	// Menu tooltips
 	EVT_MENU_HIGHLIGHT_ALL(			CCodeWindow::OnStatusBar)
 	/* Do this to to avoid that the ToolTips get stuck when only the wxMenu is changed
 	   and not any wxMenuItem that is required by EVT_MENU_HIGHLIGHT_ALL */
 	EVT_UPDATE_UI(wxID_ANY, CCodeWindow::OnStatusBar_)
 
-    EVT_MENU(IDM_LOGWINDOW,         CCodeWindow::OnToggleLogWindow)
+	// Menu bar
+	EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnCPUMode) // CPU Mode
+	EVT_MENU(IDM_AUTOMATICSTART,       CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITOFF,			CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITLSOFF,			CCodeWindow::OnCPUMode)
+		EVT_MENU(IDM_JITLSLXZOFF,		CCodeWindow::OnCPUMode)
+			EVT_MENU(IDM_JITLSLWZOFF,		CCodeWindow::OnCPUMode)
+		EVT_MENU(IDM_JITLSLBZXOFF,		CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITLSFOFF,			CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITLSPOFF,			CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITFPOFF,			CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITIOFF,			CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITPOFF,			CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITSROFF,			CCodeWindow::OnCPUMode)
+
+    EVT_MENU(IDM_LOGWINDOW,         CCodeWindow::OnToggleLogWindow) // Views
     EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleRegisterWindow)
     EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleBreakPointWindow)
     EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleMemoryWindow)
 	EVT_MENU(IDM_JITWINDOW,			CCodeWindow::OnToggleJitWindow)
 	EVT_MENU(IDM_SOUNDWINDOW,		CCodeWindow::OnToggleSoundWindow)
 	EVT_MENU(IDM_VIDEOWINDOW,		CCodeWindow::OnToggleVideoWindow)
-
-	EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnInterpreter) // CPU Mode
-	EVT_MENU(IDM_AUTOMATICSTART,       CCodeWindow::OnAutomaticStart) // CPU Mode
-	EVT_MENU(IDM_JITUNLIMITED,			CCodeWindow::OnJITOff)	
-	EVT_MENU(IDM_JITOFF,			CCodeWindow::OnJITOff)
-	EVT_MENU(IDM_JITLSOFF,			CCodeWindow::OnJITOff)
-		EVT_MENU(IDM_JITLSLXZOFF,		CCodeWindow::OnJITOff)
-			EVT_MENU(IDM_JITLSLWZOFF,		CCodeWindow::OnJITOff)
-		EVT_MENU(IDM_JITLSLBZXOFF,		CCodeWindow::OnJITOff)
-	EVT_MENU(IDM_JITLSFOFF,			CCodeWindow::OnJITOff)
-	EVT_MENU(IDM_JITLSPOFF,			CCodeWindow::OnJITOff)
-	EVT_MENU(IDM_JITFPOFF,			CCodeWindow::OnJITOff)
-	EVT_MENU(IDM_JITIOFF,			CCodeWindow::OnJITOff)
-	EVT_MENU(IDM_JITPOFF,			CCodeWindow::OnJITOff)
-	EVT_MENU(IDM_JITSROFF,			CCodeWindow::OnJITOff)
 
 	EVT_MENU(IDM_CLEARSYMBOLS,      CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_LOADMAPFILE,       CCodeWindow::OnSymbolsMenu)
@@ -154,7 +155,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	EVT_MENU(IDM_PROFILEBLOCKS,     CCodeWindow::OnProfilerMenu)
 	EVT_MENU(IDM_WRITEPROFILE,      CCodeWindow::OnProfilerMenu)
 
-	// toolbar
+	// Toolbar
 	EVT_MENU(IDM_DEBUG_GO,			CCodeWindow::OnCodeStep)
 	EVT_MENU(IDM_STEP,				CCodeWindow::OnCodeStep)
 	EVT_MENU(IDM_STEPOVER,			CCodeWindow::OnCodeStep)
@@ -433,44 +434,47 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 	} // don't have any else, just ignore it
 }
 
-
+// ===================================================================
+// Create CPU Mode and Views menus
+// ---------------
 void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter)
 {
-
-	// =======================================================================================
-	// Windows
-	// ---------------
+	// Create menu
 	pMenuBar = new wxMenuBar(wxMB_DOCKABLE);
 
-	{	
-		wxMenu* pCoreMenu = new wxMenu;
+	// --------------------------------
+	// CPU Mode 
+	// -------------
+	wxMenu* pCoreMenu = new wxMenu;
 
-		wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _T("&Interpreter core")
-			, wxString::FromAscii("This is nessesary to get break points"
-			" and stepping to work as explained in the Developer Documentation. But it can be very"
-			" slow, perhaps slower than 1 fps.")
-			, wxITEM_CHECK);
-		interpreter->Check(!_LocalCoreStartupParameter.bUseJIT);
-		pCoreMenu->AppendSeparator();
+	wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _T("&Interpreter core")
+		, wxString::FromAscii("This is nessesary to get break points"
+		" and stepping to work as explained in the Developer Documentation. But it can be very"
+		" slow, perhaps slower than 1 fps.")
+		, wxITEM_CHECK);
+	interpreter->Check(!_LocalCoreStartupParameter.bUseJIT);
+	pCoreMenu->AppendSeparator();
 
-		wxMenuItem* boottopause = pCoreMenu->Append(IDM_BOOTTOPAUSE, _T("Boot to pause"),
-			wxT("Start the game directly instead of booting to pause"), wxITEM_CHECK);
-		boottopause->Check(bBootToPause);
+	wxMenuItem* boottopause = pCoreMenu->Append(IDM_BOOTTOPAUSE, _T("Boot to pause"),
+		wxT("Start the game directly instead of booting to pause"), wxITEM_CHECK);
+	boottopause->Check(bBootToPause);
 
-		wxMenuItem* automaticstart = pCoreMenu->Append(IDM_AUTOMATICSTART, _T("&Automatic start")
-			, wxString::FromAscii(
-			"Automatically load the Default ISO when Dolphin starts, or the last game you loaded,"
-			" if you have not given it an elf file with the --elf command line. [This can be"
-			" convenient if you are bugtesting with a certain game and want to rebuild"
-			" and retry it several times, either with changes to Dolphin or if you are"
-			" developing a homebrew game.]")
-			, wxITEM_CHECK);
-		automaticstart->Check(bAutomaticStart);		
+	wxMenuItem* automaticstart = pCoreMenu->Append(IDM_AUTOMATICSTART, _T("&Automatic start")
+		, wxString::FromAscii(
+		"Automatically load the Default ISO when Dolphin starts, or the last game you loaded,"
+		" if you have not given it an elf file with the --elf command line. [This can be"
+		" convenient if you are bugtesting with a certain game and want to rebuild"
+		" and retry it several times, either with changes to Dolphin or if you are"
+		" developing a homebrew game.]")
+		, wxITEM_CHECK);
+	automaticstart->Check(bAutomaticStart);		
 
-#ifdef JIT_OFF_OPTIONS
+	#ifdef JIT_OFF_OPTIONS
 		pCoreMenu->AppendSeparator();
 		jitunlimited = pCoreMenu->Append(IDM_JITUNLIMITED, _T("&Unlimited JIT Cache"),
-			_T("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from crashing"),
+			_T("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from crashing."
+			" [This option must be selected before a game is started.]"
+			),
 			wxITEM_CHECK);
 		pCoreMenu->AppendSeparator();
 		jitoff = pCoreMenu->Append(IDM_JITOFF, _T("&JIT off (JIT core)"),
@@ -486,44 +490,45 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		jitioff = pCoreMenu->Append(IDM_JITIOFF, _T("&JIT Integer off"), wxEmptyString, wxITEM_CHECK);
 		jitpoff = pCoreMenu->Append(IDM_JITPOFF, _T("&JIT Paired off"), wxEmptyString, wxITEM_CHECK);
 		jitsroff = pCoreMenu->Append(IDM_JITSROFF, _T("&JIT SystemRegisters off"), wxEmptyString, wxITEM_CHECK);
-#endif
+	#endif
 
 //		wxMenuItem* dualcore = pDebugMenu->Append(IDM_DUALCORE, _T("&DualCore"), wxEmptyString, wxITEM_CHECK);
 //		dualcore->Check(_LocalCoreStartupParameter.bUseDualCore);
-		
-		pMenuBar->Append(pCoreMenu, _T("&CPU Mode"));
-	}
+	
+	pMenuBar->Append(pCoreMenu, _T("&CPU Mode"));
+	// -----------------
 
+	// --------------------------------
+	// Views
+	// ---------------
+	wxMenu* pDebugDialogs = new wxMenu;
+
+	if (LogManager::Enabled())
 	{
-		wxMenu* pDebugDialogs = new wxMenu;
-
-		if (LogManager::Enabled())
-		{
-			wxMenuItem* pLogWindow = pDebugDialogs->Append(IDM_LOGWINDOW, _T("&LogManager"), wxEmptyString, wxITEM_CHECK);
-			pLogWindow->Check(bLogWindow);
-		}
-
-		wxMenuItem* pRegister = pDebugDialogs->Append(IDM_REGISTERWINDOW, _T("&Registers"), wxEmptyString, wxITEM_CHECK);
-		pRegister->Check(bRegisterWindow);
-
-		wxMenuItem* pBreakPoints = pDebugDialogs->Append(IDM_BREAKPOINTWINDOW, _T("&BreakPoints"), wxEmptyString, wxITEM_CHECK);
-		pBreakPoints->Check(bBreakpointWindow);
-
-		wxMenuItem* pMemory = pDebugDialogs->Append(IDM_MEMORYWINDOW, _T("&Memory"), wxEmptyString, wxITEM_CHECK);
-		pMemory->Check(bMemoryWindow);
-
-		wxMenuItem* pJit = pDebugDialogs->Append(IDM_JITWINDOW, _T("&Jit"), wxEmptyString, wxITEM_CHECK);
-		pJit->Check(bJitWindow);
-
-		wxMenuItem* pSound = pDebugDialogs->Append(IDM_SOUNDWINDOW, _T("&Sound"), wxEmptyString, wxITEM_CHECK);
-		pSound->Check(bSoundWindow);
-
-		wxMenuItem* pVideo = pDebugDialogs->Append(IDM_VIDEOWINDOW, _T("&Video"), wxEmptyString, wxITEM_CHECK);
-		pVideo->Check(bVideoWindow);
-
-		pMenuBar->Append(pDebugDialogs, _T("&Views"));
+		wxMenuItem* pLogWindow = pDebugDialogs->Append(IDM_LOGWINDOW, _T("&LogManager"), wxEmptyString, wxITEM_CHECK);
+		pLogWindow->Check(bLogWindow);
 	}
-	// ===============
+
+	wxMenuItem* pRegister = pDebugDialogs->Append(IDM_REGISTERWINDOW, _T("&Registers"), wxEmptyString, wxITEM_CHECK);
+	pRegister->Check(bRegisterWindow);
+
+	wxMenuItem* pBreakPoints = pDebugDialogs->Append(IDM_BREAKPOINTWINDOW, _T("&BreakPoints"), wxEmptyString, wxITEM_CHECK);
+	pBreakPoints->Check(bBreakpointWindow);
+
+	wxMenuItem* pMemory = pDebugDialogs->Append(IDM_MEMORYWINDOW, _T("&Memory"), wxEmptyString, wxITEM_CHECK);
+	pMemory->Check(bMemoryWindow);
+
+	wxMenuItem* pJit = pDebugDialogs->Append(IDM_JITWINDOW, _T("&Jit"), wxEmptyString, wxITEM_CHECK);
+	pJit->Check(bJitWindow);
+
+	wxMenuItem* pSound = pDebugDialogs->Append(IDM_SOUNDWINDOW, _T("&Sound"), wxEmptyString, wxITEM_CHECK);
+	pSound->Check(bSoundWindow);
+
+	wxMenuItem* pVideo = pDebugDialogs->Append(IDM_VIDEOWINDOW, _T("&Video"), wxEmptyString, wxITEM_CHECK);
+	pVideo->Check(bVideoWindow);
+
+	pMenuBar->Append(pDebugDialogs, _T("&Views"));
+	// -----------------
 
 	CreateSymbolsMenu();
 
@@ -594,100 +599,66 @@ bool CCodeWindow::AutomaticStart()
 {
 	return GetMenuBar()->IsChecked(IDM_AUTOMATICSTART);
 }
+
+bool CCodeWindow::UnlimitedJITCache()
+{
+	return GetMenuBar()->IsChecked(IDM_JITUNLIMITED);
+}
 // =========================
 
 
 // =======================================================================================
-// CPU Mode
+// CPU Mode and JIT Menu
 // --------------
-void CCodeWindow::OnInterpreter(wxCommandEvent& event)
+void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 {
-	if (Core::GetState() != Core::CORE_RUN) {
-		PowerPC::SetMode(UseInterpreter() ? PowerPC::MODE_INTERPRETER : PowerPC::MODE_JIT);
-	} else {
-		event.Skip();
-		wxMessageBox(_T("Please pause the emulator before changing mode."));
-	}
-}
-
-
-void CCodeWindow::OnAutomaticStart(wxCommandEvent& event)
-{	switch(event.GetId())
+	switch (event.GetId())
 	{
-	case IDM_BOOTTOPAUSE:
-		bBootToPause = !bBootToPause;
-		break;
-	case IDM_AUTOMATICSTART:
-		bAutomaticStart = !bAutomaticStart;
-		break;
-	}
-}
+		case IDM_INTERPRETER:
+			PowerPC::SetMode(UseInterpreter() ? PowerPC::MODE_INTERPRETER : PowerPC::MODE_JIT); break;
 
+		case IDM_BOOTTOPAUSE:
+			bBootToPause = !bBootToPause; return;
+		case IDM_AUTOMATICSTART:
+			bAutomaticStart = !bAutomaticStart; return;
 
-void CCodeWindow::OnJITOff(wxCommandEvent& event)
-{
-	if (Core::GetState() == Core::CORE_UNINITIALIZED)
-	{
-		// we disallow changing the status here because it will be reset to the defult when BootCore()
-		// creates the SCoreStartupParameter as a game is loaded
-		GetMenuBar()->Check(event.GetId(),!event.IsChecked());
-		wxMessageBox(_T("Please start a game before changing mode."));	
+		case IDM_JITOFF:
+			Core::g_CoreStartupParameter.bJITOff = event.IsChecked(); break;
+		case IDM_JITLSOFF:
+			Core::g_CoreStartupParameter.bJITLoadStoreOff = event.IsChecked(); break;
+			case IDM_JITLSLXZOFF:
+				Core::g_CoreStartupParameter.bJITLoadStorelXzOff = event.IsChecked(); break;
+				case IDM_JITLSLWZOFF:
+					Core::g_CoreStartupParameter.bJITLoadStorelwzOff = event.IsChecked(); break;
+			case IDM_JITLSLBZXOFF:
+				Core::g_CoreStartupParameter.bJITLoadStorelbzxOff = event.IsChecked(); break;
+		case IDM_JITLSFOFF:
+			Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff = event.IsChecked(); break;
+		case IDM_JITLSPOFF:
+			Core::g_CoreStartupParameter.bJITLoadStorePairedOff = event.IsChecked(); break;
+		case IDM_JITFPOFF:
+			Core::g_CoreStartupParameter.bJITFloatingPointOff = event.IsChecked(); break;
+		case IDM_JITIOFF:
+			Core::g_CoreStartupParameter.bJITIntegerOff = event.IsChecked(); break;
+		case IDM_JITPOFF:
+			Core::g_CoreStartupParameter.bJITPairedOff = event.IsChecked(); break;
+		case IDM_JITSROFF:
+			Core::g_CoreStartupParameter.bJITSystemRegistersOff = event.IsChecked(); break;		
 	}
-	else
-	{
-		if (Core::GetState() != Core::CORE_RUN)
-		{
-			switch (event.GetId())
-			{
-			case IDM_JITUNLIMITED:
-				Core::g_CoreStartupParameter.bJITUnlimitedCache = event.IsChecked();
-				jit.ClearCache(); // allow InitCache() even after the game has started
-				GetMenuBar()->Enable(event.GetId(),!event.IsChecked());
-				return;  // avoid a second jit.ClearCache
-			case IDM_JITOFF:
-				Core::g_CoreStartupParameter.bJITOff = event.IsChecked(); break;
-			case IDM_JITLSOFF:
-				Core::g_CoreStartupParameter.bJITLoadStoreOff = event.IsChecked(); break;
-				case IDM_JITLSLXZOFF:
-					Core::g_CoreStartupParameter.bJITLoadStorelXzOff = event.IsChecked(); break;
-					case IDM_JITLSLWZOFF:
-						Core::g_CoreStartupParameter.bJITLoadStorelwzOff = event.IsChecked(); break;
-				case IDM_JITLSLBZXOFF:
-					Core::g_CoreStartupParameter.bJITLoadStorelbzxOff = event.IsChecked(); break;
-			case IDM_JITLSFOFF:
-				Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff = event.IsChecked(); break;
-			case IDM_JITLSPOFF:
-				Core::g_CoreStartupParameter.bJITLoadStorePairedOff = event.IsChecked(); break;
-			case IDM_JITFPOFF:
-				Core::g_CoreStartupParameter.bJITFloatingPointOff = event.IsChecked(); break;
-			case IDM_JITIOFF:
-				Core::g_CoreStartupParameter.bJITIntegerOff = event.IsChecked(); break;
-			case IDM_JITPOFF:
-				Core::g_CoreStartupParameter.bJITPairedOff = event.IsChecked(); break;
-			case IDM_JITSROFF:
-				Core::g_CoreStartupParameter.bJITSystemRegistersOff = event.IsChecked(); break;
-			}
-			jit.ClearCache();			
-		}
-		else
-		{
-			//event.Skip(); // this doesn't work
-			GetMenuBar()->Check(event.GetId(),!event.IsChecked());
-			wxMessageBox(_T("Please pause the emulator before changing mode."));		
-		}
-	}
+
+	// Clear the JIT cache to enable these changes
+	jit.ClearCache();	
 }
 
 void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	case IDM_CLEARCODECACHE:
-		jit.ClearCache();
-		break;
-	case IDM_LOGINSTRUCTIONS:
-		PPCTables::LogCompiledInstructions();
-		break;
+		case IDM_LOGINSTRUCTIONS:
+			PPCTables::LogCompiledInstructions(); break;
+
+		case IDM_CLEARCODECACHE:
+			jit.ClearCache(); break;
 	}
 }
 // =====================================
@@ -888,7 +859,11 @@ void CCodeWindow::Update()
 // --------------
 void CCodeWindow::UpdateButtonStates()
 {
+	bool Initialized = (Core::GetState() != Core::CORE_UNINITIALIZED);
+	bool Running = (Core::GetState() == Core::CORE_RUN);
+	bool Pause = (Core::GetState() == Core::CORE_PAUSE);
 	wxToolBar* toolBar = GetToolBar();
+
 	if (Core::GetState() == Core::CORE_UNINITIALIZED)
 	{
 		toolBar->EnableTool(IDM_DEBUG_GO, false);
@@ -917,6 +892,24 @@ void CCodeWindow::UpdateButtonStates()
 			toolBar->EnableTool(IDM_SKIP, true);
 		}
 	}
+
+	// Enabled or disable menu items
+	GetMenuBar()->Enable(IDM_INTERPRETER, Pause); // CPU Mode
+
+	GetMenuBar()->Enable(IDM_JITUNLIMITED, !Initialized);
+	GetMenuBar()->Enable(IDM_JITOFF, Pause);
+	GetMenuBar()->Enable(IDM_JITLSOFF, Pause);
+	GetMenuBar()->Enable(IDM_JITLSLXZOFF, Pause);
+	GetMenuBar()->Enable(IDM_JITLSLWZOFF, Pause);
+	GetMenuBar()->Enable(IDM_JITLSLBZXOFF, Pause);
+	GetMenuBar()->Enable(IDM_JITLSFOFF, Pause);
+	GetMenuBar()->Enable(IDM_JITLSPOFF, Pause);
+	GetMenuBar()->Enable(IDM_JITFPOFF, Pause);
+	GetMenuBar()->Enable(IDM_JITIOFF, Pause);
+	GetMenuBar()->Enable(IDM_JITPOFF, Pause);
+	GetMenuBar()->Enable(IDM_JITSROFF, Pause);
+
+	GetMenuBar()->Enable(IDM_CLEARCODECACHE, Pause); // JIT Menu
 }
 
 void CCodeWindow::RecreateToolbar()
@@ -933,7 +926,6 @@ void CCodeWindow::RecreateToolbar()
 	PopulateToolbar(theToolBar);
 	SetToolBar(theToolBar);
 }
-
 // =============
 
 
@@ -973,7 +965,7 @@ void CCodeWindow::OnStatusBar(wxMenuEvent& event)
 	   may not be entirely stable. So we leave them out of debug builds. I could for example
 	   get it to crash at wxWindowBase::DoHitTest(), that may be fixed in wxWidgets 2.9.0. */
 	#if !defined(_DEBUG) || defined(DEBUGFAST)
-		DoTip(pMenuBar->GetHelpString(event.GetId()));
+		//DoTip(pMenuBar->GetHelpString(event.GetId()));
 	#endif
 }
 void CCodeWindow::OnStatusBar_(wxUpdateUIEvent& event)
@@ -982,7 +974,7 @@ void CCodeWindow::OnStatusBar_(wxUpdateUIEvent& event)
 
 	#if !defined(_DEBUG) || defined(DEBUGFAST)
 		// The IDM_ADDRBOX id seems to come with this outside the toolbar
-		if(event.GetId() != IDM_ADDRBOX) DoTip(wxEmptyString);
+		//if(event.GetId() != IDM_ADDRBOX) DoTip(wxEmptyString);
 	#endif
 }
 // =============

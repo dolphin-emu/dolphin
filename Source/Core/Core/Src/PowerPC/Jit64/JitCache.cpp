@@ -71,6 +71,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		MAX_NUM_BLOCKS = 65536*2;
 		if (Core::g_CoreStartupParameter.bJITUnlimitedCache)
 		{
+			SuccessAlert("Your game was started with an unlimited JIT cache");
 			MAX_NUM_BLOCKS = 65536*8;
 		}
 

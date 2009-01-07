@@ -60,7 +60,8 @@ class CCodeWindow
 
 		bool UseInterpreter();
 		bool BootToPause();
-		bool AutomaticStart();		
+		bool AutomaticStart();
+		bool UnlimitedJITCache();
 		//bool UseDualCore(); // not used
         void JumpToAddress(u32 _Address);
 
@@ -204,8 +205,7 @@ class CCodeWindow
 		void OnJitMenu(wxCommandEvent& event);
 		void OnProfilerMenu(wxCommandEvent& event);
 
-		void OnInterpreter(wxCommandEvent& event); // cpu mode menu
-		void OnAutomaticStart(wxCommandEvent& event);		
+		void OnCPUMode(wxCommandEvent& event); // CPU Mode menu	
 		void OnJITOff(wxCommandEvent& event);	
 
 		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter);
