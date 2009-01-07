@@ -31,7 +31,6 @@
 // simulate something that looks like win32
 // long term, kill these
 
-// glxew defines BOOL. evil.
 #define HWND  void*
 #define HINSTANCE void*
 #endif
@@ -45,7 +44,7 @@ extern "C" {
 #define PLUGIN_TYPE_DVD			2
 #define PLUGIN_TYPE_PAD			3
 #define PLUGIN_TYPE_AUDIO		4
-#define PLUGIN_TYPE_COMPILER	5
+#define PLUGIN_TYPE_COMPILER            5
 #define PLUGIN_TYPE_DSP			6
 #define PLUGIN_TYPE_WIIMOTE		7
 
@@ -61,12 +60,12 @@ typedef struct
 	char Name[100];		// Name of the DLL
 } PLUGIN_INFO;
 
-typedef struct
+typedef struct 
 {
-	HWND mainWindow;
-	HWND displayWindow;
-	HINSTANCE hInstance;
-} OSData;
+    void *eventHandler;
+    void *config;
+    void *messageLogger;
+} PLUGIN_GLOBALS;
 
 #if defined(__cplusplus)
 }
