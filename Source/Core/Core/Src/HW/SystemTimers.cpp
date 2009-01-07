@@ -34,7 +34,7 @@
 
    I'm not sure about this but the text below seems to assume that 60 fps means that the game
    runs in the normal intended speed. In that case an update time of [GetTicksPerSecond() / 60]
-   would mean one update per frame and [GetTicksPerSecond() / 60] would mean four updates per
+   would mean one update per frame and [GetTicksPerSecond() / 250] would mean four updates per
    frame.
    
    
