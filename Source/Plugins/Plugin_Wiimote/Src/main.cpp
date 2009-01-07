@@ -120,7 +120,7 @@ extern "C" void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 void DllDebugger(HWND _hParent, bool Show) {
 }
 
-extern "C" void DllConfig(HWND _hParent)
+void DllConfig(HWND _hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
 	wxWindow win;

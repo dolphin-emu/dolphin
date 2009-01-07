@@ -25,6 +25,13 @@
 #include "EmuSubroutines.h" // for WmRequestStatus
 /////////////////////////////
 
+/////////////////////////////////////////////////////////////////////////
+// Defines
+// ------------
+#ifndef _WIN32
+#define Sleep(x) usleep(*1000)
+#endif
+/////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
 // Event table
@@ -176,7 +183,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 			DoExtensionConnectedDisconnected();
 			/* It doesn't seem to be needed but shouldn't it at least take 25 ms to
 			   reconnect an extension after we disconnected another? */
-			sleep(25);
+			Sleep(25);
 		}
 
 		// Update status
