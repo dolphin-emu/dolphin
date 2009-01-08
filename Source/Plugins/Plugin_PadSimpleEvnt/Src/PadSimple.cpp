@@ -19,7 +19,7 @@
 #include <math.h>
 
 #include "Common.h"
-#include "pluginspecs_pad.h"
+
 #include "PadSimple.h"
 #include "IniFile.h"
 
@@ -54,6 +54,8 @@ static const char* controlNames[] =
 	"Mic-button",
 };
 
+PLUGIN_GLOBALS* globals;
+
 SPads pad[4];
 bool KeyStatus[NUMCONTROLS];
 
@@ -63,6 +65,11 @@ SPADInitialize g_PADInitialize;
 #define RECORD_SIZE (1024 * 128)
 SPADStatus recordBuffer[RECORD_SIZE];
 int count = 0;
+
+// TODO: fix this dirty hack to stop missing symbols
+void __Log(int log, const char *format, ...) {}
+void __Logv(int log, int v, const char *format, ...) {}
+
 
 void RecordInput(const SPADStatus& _rPADStatus)
 {
@@ -82,14 +89,10 @@ const SPADStatus& PlayRecord()
 	return(recordBuffer[count++]);
 }
 
-// TODO: fix this dirty hack to stop missing symbols
-void __Log(int log, const char *format, ...) {}
-void __Logv(int log, int v, const char *format, ...) {}
-
 bool registerKey(int nPad, int id, sf::Key::Code code, int mods) {
 
     Keys key, oldKey;
-    static EventHandler *eventHandler = EventHandler::GetInstance();
+    static EventHandler *eventHandler = (EventHandler *)globals->eventHandler;
 
     key.inputType = KeyboardInput;
     key.keyCode = code;
@@ -102,7 +105,7 @@ bool registerKey(int nPad, int id, sf::Key::Code code, int mods) {
 
     if (!eventHandler->RegisterEventListener(ParseKeyEvent, key)) {
 	char codestr[100];
-	EventHandler::SFKeyToString(code, codestr);
+	eventHandler->SFKeyToString(code, codestr);
 	PanicAlert("Failed to register %s, might be already in use", codestr);
 	return false;
     }
@@ -165,27 +168,27 @@ IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 
 BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
-					  DWORD dwReason,		// reason called
-					  LPVOID lpvReserved)	// reserved
+		      DWORD dwReason,		// reason called
+		      LPVOID lpvReserved)	// reserved
 {
-	switch (dwReason)
+    switch (dwReason)
 	{
 	case DLL_PROCESS_ATTACH:
-		{       //use wxInitialize() if you don't want GUI instead of the following 12 lines
-			wxSetInstance((HINSTANCE)hinstDLL);
-			int argc = 0;
-			char **argv = NULL;
-			wxEntryStart(argc, argv);
-			if ( !wxTheApp || !wxTheApp->CallOnInit() )
-				return FALSE;
-		}
-		break; 
-
+	    {       //use wxInitialize() if you don't want GUI instead of the following 12 lines
+		wxSetInstance((HINSTANCE)hinstDLL);
+		int argc = 0;
+		char **argv = NULL;
+		wxEntryStart(argc, argv);
+		if ( !wxTheApp || !wxTheApp->CallOnInit() )
+		    return FALSE;
+	    }
+	    break; 
+	    
 	case DLL_PROCESS_DETACH:
-		wxEntryCleanup(); //use wxUninitialize() if you don't want GUI 
-		break;
+	    wxEntryCleanup(); //use wxUninitialize() if you don't want GUI 
+	    break;
 	default:
-		break;
+	    break;
 	}
 
 	g_hInstance = hinstDLL;
@@ -211,6 +214,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 }
 
 void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
+    globals = _pPluginGlobals;
 }
 
 void DllConfig(HWND _hParent)

@@ -72,7 +72,8 @@ inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
     hButton->Add(new wxStaticText(pan, 0, wxString::FromAscii(name), 
 				  wxDefaultPosition, wxDefaultSize), 0,
 		 wxALIGN_CENTER_VERTICAL|wxALL);
-    EventHandler::SFKeyToString(pad[controller].keyForControl[ctl], keyStr);
+    ((EventHandler *)globals->eventHandler)->SFKeyToString
+	(pad[controller].keyForControl[ctl], keyStr);
     
     *button = new wxButton(pan, ctl, wxString::FromAscii(keyStr), 
 			   wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
@@ -189,11 +190,11 @@ void ConfigDialog::OnClose(wxCloseEvent& event) {
 void ConfigDialog::OnKeyDown(wxKeyEvent& event) {
     if(clickedButton != NULL) {
 	int page = m_Notebook->GetSelection();
-
+	static EventHandler *eventHandler = (EventHandler *)globals->eventHandler;
         fprintf(stderr, "Got key code %d\n",event.GetKeyCode()); 
-	sf::Key::Code sfcode = EventHandler::wxCharCodeToSF(event.GetKeyCode());
+	sf::Key::Code sfcode = eventHandler->wxCharCodeToSF(event.GetKeyCode());
 	char sfstr[100];
-	EventHandler::SFKeyToString(sfcode, sfstr);
+	eventHandler->SFKeyToString(sfcode, sfstr);
 	
 	//	pad[page].keyForControl[clickedButton->GetId()] = sfcode;	
 	if (registerKey(page, clickedButton->GetId(), sfcode))

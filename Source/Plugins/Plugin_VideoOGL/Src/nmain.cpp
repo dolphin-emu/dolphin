@@ -22,11 +22,6 @@
 #include "Debugger/Debugger.h" // for the CDebugger class
 #endif
 
-#if defined(HAVE_WX) && HAVE_WX
-#include "GUI/ConfigDlg.h"
-#include "Debugger/Debugger.h" // for the CDebugger class
-#endif
-
 #include "Config.h"
 #include "LookUpTables.h"
 #include "ImageWrite.h"
@@ -50,7 +45,7 @@
 #include "VideoState.h"
 
 SVideoInitialize g_VideoInitialize;
-
+PLUGIN_GLOBALS* globals;
 
 /* Create debugging window. There's currently a strange crash that occurs whe a game is loaded
    if the OpenGL plugin was loaded before. I'll try to fix that. Currently you may have to
@@ -102,7 +97,7 @@ void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 }
 
 void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
-
+    globals = _pPluginGlobals;
 }
 
 void DllConfig(HWND _hParent)

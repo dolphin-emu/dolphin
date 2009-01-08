@@ -20,11 +20,13 @@
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
-// #define LOGGING
-
 #include "Common.h"
 #include "Config.h"
 
 #include "VideoCommon.h"
+#include "pluginspecs_video.h"
+
+extern PLUGIN_GLOBALS* globals;
+
 
 #endif

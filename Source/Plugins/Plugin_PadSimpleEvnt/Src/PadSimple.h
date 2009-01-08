@@ -19,6 +19,8 @@
 #define __PADSIMPLE_H__
 
 #include "InputCommon.h"
+#include "pluginspecs_pad.h"
+
 #define EPAD_CONFIG_FILE "epad.ini"
 // Controls
 enum
@@ -56,6 +58,7 @@ struct SPads {
 };
 
 extern SPads pad[];
+extern PLUGIN_GLOBALS* globals;
 
 void LoadConfig();
 void SaveConfig();

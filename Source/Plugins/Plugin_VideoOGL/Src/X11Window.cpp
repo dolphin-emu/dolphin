@@ -1,6 +1,6 @@
 #include "X11Window.h"
 
-static EventHandler *eventHandler = EventHandler::GetInstance();
+static EventHandler *eventHandler = (EventHandler *)globals->eventHandler;
 
 X11Window::X11Window() : GLWindow() {
  
