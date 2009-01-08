@@ -104,6 +104,9 @@ void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 #endif
 }
 
+void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
+}
+
 void DllConfig(HWND _hParent)
 {
 #if defined(_WIN32)

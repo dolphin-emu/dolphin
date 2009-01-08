@@ -117,6 +117,9 @@ extern "C" void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 #endif
 }
 
+void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
+}
+
 void DllDebugger(HWND _hParent, bool Show) {
 }
 

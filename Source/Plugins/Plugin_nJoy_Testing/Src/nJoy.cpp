@@ -158,6 +158,9 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 #endif
 }
 
+void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
+}
+
 // Call config dialog
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllConfig(HWND _hParent)

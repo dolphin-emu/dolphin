@@ -210,6 +210,9 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 
 }
 
+void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
+}
+
 void DllConfig(HWND _hParent)
 {
 	LoadConfig();
