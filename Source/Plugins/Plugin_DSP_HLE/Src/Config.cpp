@@ -30,7 +30,6 @@ void CConfig::LoadDefaults()
 {
 	m_EnableHLEAudio = true;
 	m_EnableDTKMusic = true;
-	m_Interpolation = true;
 }
 
 void CConfig::Load()
@@ -43,7 +42,6 @@ void CConfig::Load()
 	file.Get("Config", "EnableHLEAudio", &m_EnableHLEAudio, true); // Sound Settings
 	file.Get("Config", "EnableDTKMusic", &m_EnableDTKMusic, true);
 	file.Get("Config", "EnableThrottle", &m_EnableThrottle, true);
-	file.Get("Config", "Interpolation", &m_Interpolation, true);
 }
 
 void CConfig::Save()
@@ -53,7 +51,6 @@ void CConfig::Save()
 	file.Set("Config", "EnableHLEAudio", m_EnableHLEAudio); // Sound Settings
 	file.Set("Config", "EnableDTKMusic", m_EnableDTKMusic);
 	file.Set("Config", "EnableThrottle", m_EnableThrottle);
-	file.Set("Config", "Interpolation", m_Interpolation);
 
 	file.Save(FULL_CONFIG_DIR "DSP.ini");
 }

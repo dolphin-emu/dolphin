@@ -34,15 +34,11 @@ CConfigDlg::OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BO
 	m_buttonEnableHLEAudio = GetDlgItem(IDC_ENABLE_HLE_AUDIO);
 	m_buttonEnableDTKMusic = GetDlgItem(IDC_ENABLE_DTK_MUSIC);
 	m_buttonEnableThrottle = GetDlgItem(IDC_ENABLE_THROTTLE);
-	m_comboSampleRate = GetDlgItem(IDC_SAMPLERATE);
 
 	// Update checkboxes
 	m_buttonEnableHLEAudio.SetCheck(g_Config.m_EnableHLEAudio ? BST_CHECKED : BST_UNCHECKED);
 	m_buttonEnableDTKMusic.SetCheck(g_Config.m_EnableDTKMusic ? BST_CHECKED : BST_UNCHECKED);
 	m_buttonEnableThrottle.SetCheck(g_Config.m_EnableThrottle ? BST_CHECKED : BST_UNCHECKED);
-	m_comboSampleRate.AddString("44100");
-	m_comboSampleRate.AddString("48000");
-	m_comboSampleRate.SetCurSel(g_Config.m_SampleRate == 44100 ? 0 : 1);
 
 	// Add tooltips
 	CToolTipCtrl ToolTips;
@@ -75,7 +71,6 @@ CConfigDlg::OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL& /
 		g_Config.m_EnableHLEAudio = (m_buttonEnableHLEAudio.GetCheck() == BST_CHECKED) ? true : false;
 		g_Config.m_EnableDTKMusic = (m_buttonEnableDTKMusic.GetCheck() == BST_CHECKED) ? true : false;
 		g_Config.m_EnableThrottle = (m_buttonEnableThrottle.GetCheck() == BST_CHECKED) ? true : false;
-		g_Config.m_SampleRate = (m_comboSampleRate.GetCurSel() == 0 ? 44100 : 48000);
 		g_Config.Save();
 	}
 

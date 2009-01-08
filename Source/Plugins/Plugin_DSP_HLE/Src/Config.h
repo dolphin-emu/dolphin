@@ -25,8 +25,6 @@ struct CConfig
 	bool m_EnableHLEAudio;
 	bool m_EnableDTKMusic;
 	bool m_EnableThrottle;
-	bool m_Interpolation;
-	int m_SampleRate;
 
 	CConfig();
 

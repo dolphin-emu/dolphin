@@ -35,10 +35,6 @@ class CConfigDlg
 		CButton m_buttonEnableHLEAudio;
 		CButton m_buttonEnableDTKMusic;
 		CButton m_buttonEnableThrottle;
-		CButton m_buttonDumpSamples;
-		CButton m_buttonAntiGap;
-		CEdit m_editDumpSamplePath;
-		CComboBox m_comboSampleRate;
 
 		// Handler prototypes (uncomment arguments if needed):
 		//	LRESULT MessageHandler(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
