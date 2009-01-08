@@ -230,7 +230,11 @@ if env['wxgl']:
     env['HAVE_X11'] = 0
     env['HAVE_COCOA'] = 0
 
-env['HAVE_WX'] = conf.CheckWXConfig('2.8', wxmods, 0) 
+# Gui less build
+if env['nowx']:
+    env['HAVE_WX'] = 0;
+else:
+    env['HAVE_WX'] = conf.CheckWXConfig('2.8', wxmods, 0) 
 
 # SDL backend
 env['USE_SDL'] = 0
@@ -252,10 +256,6 @@ if env['jittest']:
     env['JITTEST'] = 1
 
 conf.Define('JITTEST', env['JITTEST'])
-
-# Gui less build
-if env['nowx']:
-    env['HAVE_WX'] = 0;
 
 # Creating config.h defines
 conf.Define('HAVE_SDL', env['HAVE_SDL'])
