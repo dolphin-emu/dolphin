@@ -26,8 +26,6 @@
 #include "disassemble.h"
 
 #ifdef _WIN32
-	#include "DisAsmDlg.h"
-	#include "DSoundStream.h"
 	#include "Logging/Console.h" // For wprintf, ClearScreen
 	#include "Logging/Logging.h" // For Logging
 
