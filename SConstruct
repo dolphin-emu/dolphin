@@ -216,7 +216,7 @@ if sys.platform == 'darwin':
 
     if not env['osx'] == '32x11':
         env['HAVE_X11'] = 0
-        env['HAVE_COCOA'] = conf.CheckPKG('cocoa')
+        env['HAVE_COCOA'] = 1
 else:
     env['HAVE_X11'] = conf.CheckPKG('x11')
     env['HAVE_COCOA'] = 0
@@ -305,7 +305,10 @@ elif flavour == 'prof':
 # TODO: support global install
 env['prefix'] = os.path.join(env['base_dir'] + 'Binary', platform.system() + '-' + platform.machine() + extra +os.sep)
 #TODO add lib
-env['plugin_dir'] = env['prefix'] + 'Plugins/' 
+if sys.platform == 'darwin':
+    env['plugin_dir'] = env['prefix'] + 'Dolphin.app/Contents/PlugIns/'
+else:
+    env['plugin_dir'] = env['prefix'] + 'Plugins/' 
 #TODO add bin
 env['binary_dir'] = env['prefix']
 #TODO add bin
