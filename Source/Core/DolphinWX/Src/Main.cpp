@@ -44,6 +44,7 @@
 #include "Config.h"
 #include "CodeWindow.h"
 #include "LogWindow.h"
+#include "ExtendedTrace.h"
 #include "BootManager.h"
 ////////////////////////////////////
 
@@ -69,11 +70,11 @@ LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
 	FILE* file=NULL;
 	fopen_s(&file, "exceptioninfo.txt", "a");
 	fseek(file, 0, SEEK_END);
-	fprint(file, "\n");
-	//fprint(file, g_buildtime);
-	//fprint(file, "\n");
+	etfprint(file, "\n");
+	//etfprint(file, g_buildtime);
+	//etfprint(file, "\n");
 	//dumpCurrentDate(file);
-	fprintf(file, "Unhandled Exception\n  Code: 0x%08X\n",
+	etfprintf(file, "Unhandled Exception\n  Code: 0x%08X\n",
 		e->ExceptionRecord->ExceptionCode);
 #ifndef _M_X64
 	STACKTRACE2(file, e->ContextRecord->Eip, e->ContextRecord->Esp, e->ContextRecord->Ebp);
