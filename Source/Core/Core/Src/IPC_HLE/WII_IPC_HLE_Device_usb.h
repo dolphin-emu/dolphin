@@ -216,5 +216,20 @@ private:
 	void LOG_LinkKey(const u8* _pLinkKey);
 };
 
+class CWII_IPC_HLE_Device_usb_oh0 : public IWII_IPC_HLE_Device
+{
+public:
+
+	CWII_IPC_HLE_Device_usb_oh0(u32 _DeviceID, const std::string& _rDeviceName);
+
+	virtual ~CWII_IPC_HLE_Device_usb_oh0();
+
+	virtual bool Open(u32 _CommandAddress, u32 _Mode);
+
+	virtual bool IOCtlV(u32 _CommandAddress);
+	virtual bool IOCtl(u32 _CommandAddress);
+
+//	virtual u32 Update();
 #endif
+};
 

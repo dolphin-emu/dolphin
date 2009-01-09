@@ -1886,3 +1886,45 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::LOG_LinkKey(const u8* _pLinkKey)
 				 , _pLinkKey[8], _pLinkKey[9], _pLinkKey[10], _pLinkKey[11], _pLinkKey[12], _pLinkKey[13], _pLinkKey[14], _pLinkKey[15]);
 
 }
+
+CWII_IPC_HLE_Device_usb_oh0::CWII_IPC_HLE_Device_usb_oh0(u32 _DeviceID, const std::string& _rDeviceName)
+	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+{
+}
+
+CWII_IPC_HLE_Device_usb_oh0::~CWII_IPC_HLE_Device_usb_oh0()
+{}
+///////////////////////////
+
+
+// ===================================================
+/* Open */
+// ----------------
+bool CWII_IPC_HLE_Device_usb_oh0::Open(u32 _CommandAddress, u32 _Mode)
+{
+	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+	return true;
+}
+
+
+// ===================================================
+/* IOCtl */
+// ----------------
+bool CWII_IPC_HLE_Device_usb_oh0::IOCtl(u32 _CommandAddress)
+{
+	return IOCtlV(_CommandAddress);	//hack
+}
+
+
+// ===================================================
+/* IOCtlV */
+// ----------------
+bool CWII_IPC_HLE_Device_usb_oh0::IOCtlV(u32 _CommandAddress) 
+{	
+	// write return value
+	Memory::Write_U32(0, _CommandAddress + 0x4);
+
+	return true;
+}
+// ================
+
