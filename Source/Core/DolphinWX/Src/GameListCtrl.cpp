@@ -52,6 +52,7 @@ bool operator < (const GameListItem &one, const GameListItem &other)
 	case CGameListCtrl::COLUMN_NOTES:   return strcasecmp(one.GetDescription().c_str(), other.GetDescription().c_str()) < 0;
 	case CGameListCtrl::COLUMN_COUNTRY: return (one.GetCountry() < other.GetCountry());
 	case CGameListCtrl::COLUMN_SIZE:    return (one.GetFileSize() < other.GetFileSize());
+	case CGameListCtrl::COLUMN_ISSUES:  return strcasecmp(one.GetIssues().c_str(), other.GetIssues().c_str()) < 0;
 	default:                            return strcasecmp(one.GetName().c_str(), other.GetName().c_str()) < 0;
 	}
 }
@@ -147,18 +148,21 @@ void CGameListCtrl::Update()
 		InsertColumn(COLUMN_BANNER, _("Banner"));
 		InsertColumn(COLUMN_TITLE, _("Title"));
 		InsertColumn(COLUMN_COMPANY, _("Company"));
-		InsertColumn(COLUMN_NOTES, _("Notes"));
+		InsertColumn(COLUMN_ISSUES, wxT("Issues"));
 		InsertColumn(COLUMN_COUNTRY, _(""));
 		InsertColumn(COLUMN_SIZE, _("Size"));
 		InsertColumn(COLUMN_EMULATION_STATE, _("Emulation"));
+		InsertColumn(COLUMN_NOTES, _("Notes"));
+		
 
 		// set initial sizes for columns
 		SetColumnWidth(COLUMN_BANNER, 106);
 		SetColumnWidth(COLUMN_TITLE, 150);
 		SetColumnWidth(COLUMN_COMPANY, 100);
-		SetColumnWidth(COLUMN_NOTES, 200);
+		SetColumnWidth(COLUMN_NOTES, 150);
 		SetColumnWidth(COLUMN_COUNTRY, 32);
 		SetColumnWidth(COLUMN_EMULATION_STATE, 75);
+		SetColumnWidth(COLUMN_ISSUES, 200);
 
 		// add all items
 		for (int i = 0; i < (int)m_ISOFiles.size(); i++)
@@ -234,18 +238,19 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	SetItem(_Index, COLUMN_NOTES, wxString::FromAscii(rISOFile.GetDescription().c_str()), -1);
 	SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
 
+	// Load the INI file for columns that read from it
+	IniFile ini;
+	std::string GameIni = FULL_GAMECONFIG_DIR + (rISOFile.GetUniqueID()) + ".ini";
+	ini.Load(GameIni.c_str());
+
 	// Emulation status = COLUMN_EMULATION_STATE
 	{
 		wxListItem item;
 		item.SetId(_Index);
-		IniFile ini;
 		std::string EmuState;
-		std::string GameIni;
 		item.SetColumn(COLUMN_EMULATION_STATE);
 		//NOTE (Daco): i dont like the fact of having so much ini's just to have 
 		//the game emulation state of every game you have. but 1 huge ini is no option
-		GameIni = FULL_GAMECONFIG_DIR + (rISOFile.GetUniqueID()) + ".ini";
-		ini.Load(GameIni.c_str());
 		ini.Get("EmuState","EmulationStateId",&EmuState);
 		if (!EmuState.empty())
 		{
@@ -274,6 +279,18 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 			}
 		}
 		SetItem(item);
+
+		// Issues Column
+		{
+			wxListItem item;
+			item.SetId(_Index);
+			item.SetColumn(COLUMN_ISSUES);
+			std::string issues;
+			ini.Get("EmuState","Issues",&issues);
+			item.SetText(wxString::FromAscii(issues.c_str()));
+			SetItem(item);
+		}
+
 	}
 
 #ifndef __WXMSW__
@@ -432,6 +449,8 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 		return strcasecmp(iso1->GetCompany().c_str(),iso2->GetCompany().c_str()) *t;
 	case CGameListCtrl::COLUMN_NOTES:
 		return strcasecmp(iso1->GetDescription().c_str(),iso2->GetDescription().c_str()) *t;
+	case CGameListCtrl::COLUMN_ISSUES:
+		return strcasecmp(iso1->GetIssues().c_str(),iso2->GetIssues().c_str()) *t;
 	case CGameListCtrl::COLUMN_COUNTRY:
 		if(iso1->GetCountry() > iso2->GetCountry()) return  1 *t;
 		if(iso1->GetCountry() < iso2->GetCountry()) return -1 *t;
@@ -791,6 +810,7 @@ void CGameListCtrl::AutomaticColumnWidth()
 		SetColumnWidth(COLUMN_TITLE, wxMax(0.3*resizable, 100));
 		SetColumnWidth(COLUMN_COMPANY, wxMax(0.2*resizable, 100));
 		SetColumnWidth(COLUMN_NOTES, wxMax(0.5*resizable, 100));
+		SetColumnWidth(COLUMN_ISSUES, wxMax(0.5*resizable, 100));
 	}
 }
 

@@ -34,6 +34,7 @@ public:
 	const std::string& GetDescription() const {return m_Description;}
 	const std::string& GetUniqueID() const {return m_UniqueID;}
 	DiscIO::IVolume::ECountry GetCountry() const {return m_Country;}
+	const std::string& GetIssues() const {return m_Issues;}
 	bool IsCompressed() const {return m_BlobCompressed;}
 	u64 GetFileSize() const {return m_FileSize;}
 	u64 GetVolumeSize() const {return m_VolumeSize;}
@@ -49,6 +50,7 @@ private:
 	std::string m_Company;
 	std::string m_Description;
 	std::string m_UniqueID;
+	std::string m_Issues;
 
 	u64 m_FileSize;
 	u64 m_VolumeSize;
