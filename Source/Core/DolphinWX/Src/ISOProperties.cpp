@@ -71,10 +71,10 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	{
 		FILE *f = fopen(GameIniFile.c_str(), "w");
 		fprintf(f, "# %s - %s\n", OpenISO->GetUniqueID().c_str(), OpenISO->GetName().c_str());
-		fprintf(f, "[Core]\n#Values set here will override the main dolphin settings.\n");
-		fprintf(f, "[EmuState]\n#The Emulation State. 1 is worst, 5 is best, 0 is not set.\n");
-		fprintf(f, "[OnFrame]\n#Add memory patches to be applied every frame here.\n");
-		fprintf(f, "[ActionReplay]\n#Add action replay cheats here.\n");
+		fprintf(f, "[Core] Values set here will override the main dolphin settings.\n");
+		fprintf(f, "[EmuState] The Emulation State. 1 is worst, 5 is best, 0 is not set.\n");
+		fprintf(f, "[OnFrame] Add memory patches to be applied every frame here.\n");
+		fprintf(f, "[ActionReplay] Add action replay cheats here.\n");
 		fclose(f);
 		if (GameIni.Load(GameIniFile.c_str()))
 			LoadGameConfig();
