@@ -40,7 +40,7 @@ class CPluginManager
 {
 public:
 	static CPluginManager& GetInstance() {return(m_Instance);}
-	void ScanForPlugins(wxWindow* _wxWindow);
+	void ScanForPlugins();
 	void OpenConfig(void* _Parent, const char *_rFilename);
 	void OpenDebug(void* _Parent, const char *_rFilename, bool Type, bool Show);
 	const CPluginInfos& GetPluginInfos() {return(m_PluginInfos);}

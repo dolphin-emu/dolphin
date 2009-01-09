@@ -308,7 +308,7 @@ CFrame::CFrame(wxFrame* parent,
 	
 	Show(); // Show the window
 
-	CPluginManager::GetInstance().ScanForPlugins(this);
+	CPluginManager::GetInstance().ScanForPlugins();
 
 	//if we are ever going back to optional iso caching: 
 	//m_GameListCtrl->Update(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache);

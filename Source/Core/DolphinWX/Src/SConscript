@@ -29,7 +29,7 @@ if wxenv['HAVE_WX']:
 		'ISOProperties.cpp',
 		'MemcardManager.cpp',
 		'MemoryCards/GCMemcard.cpp',
-		'PluginManager.cpp',
+#		'PluginManager.cpp',
 		'PatchAddEdit.cpp',
 		'CheatsWindow.cpp',
 		'stdafx.cpp',

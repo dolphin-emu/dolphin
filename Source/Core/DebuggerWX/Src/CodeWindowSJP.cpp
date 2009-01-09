@@ -65,7 +65,7 @@
 
 #include "Plugins/Plugin_DSP.h" // new stuff, to let us open the DLLDebugger
 #include "Plugins/Plugin_Video.h" // new stuff, to let us open the DLLDebugger
-#include "../../DolphinWX/Src/PluginManager.h"
+#include "PluginManager.h"
 #include "../../DolphinWX/Src/Config.h"
 
 
