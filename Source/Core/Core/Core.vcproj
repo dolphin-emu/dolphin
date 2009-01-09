@@ -1293,6 +1293,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\PluginManager.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\PluginManager.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\SConscript"
 			>
 		</File>

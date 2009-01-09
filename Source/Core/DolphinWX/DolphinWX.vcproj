@@ -929,14 +929,6 @@
 				RelativePath=".\src\ISOFile.h"
 				>
 			</File>
-			<File
-				RelativePath=".\src\PluginManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\PluginManager.h"
-				>
-			</File>
 		</Filter>
 		<File
 			RelativePath=".\src\main.cpp"
