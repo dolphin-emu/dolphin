@@ -15,18 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
-
-#ifdef _WIN32
-#include <windows.h>
-#elif __GNUC__
-#include <unistd.h>
-#include <pthread.h>
-#else
-#error unsupported platform
-#endif
-
 #include "Thread.h"
+
+#define THREAD_DEBUG 1
 
 namespace Common
 {
@@ -205,10 +196,13 @@ LONG SyncInterlockedExchange(LONG *Dest, LONG Val)
 	return InterlockedExchange(Dest, Val);
 }
 
-#elif __GNUC__
+#else // !WIN32, so must be POSIX threads
+
+pthread_key_t threadname_key;
+
 CriticalSection::CriticalSection(int spincount_unused)
 {
-	pthread_mutex_init(&mutex, 0);
+	pthread_mutex_init(&mutex, NULL);
 }
 
 
@@ -220,7 +214,9 @@ CriticalSection::~CriticalSection()
 
 void CriticalSection::Enter()
 {
-	pthread_mutex_lock(&mutex);
+	int ret = pthread_mutex_lock(&mutex);
+	if (ret) fprintf(stderr, "%s: pthread_mutex_lock(%p) failed: %s\n", 
+					__FUNCTION__, &mutex, strerror(ret));
 }
 
 
@@ -232,7 +228,9 @@ bool CriticalSection::TryEnter()
 
 void CriticalSection::Leave()
 {
-	pthread_mutex_unlock(&mutex);
+	int ret = pthread_mutex_unlock(&mutex);
+	if (ret) fprintf(stderr, "%s: pthread_mutex_unlock(%p) failed: %s\n", 
+					__FUNCTION__, &mutex, strerror(ret));
 }
 
 
@@ -242,7 +240,13 @@ Thread::Thread(ThreadFunc function, void* arg)
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_attr_setstacksize(&attr, 1024 * 1024);
-	pthread_create(&thread_id, &attr, function, arg);
+	int ret = pthread_create(&thread_id, &attr, function, arg);
+	if (ret) fprintf(stderr, "%s: pthread_create(%p, %p, %p, %p) failed: %s\n", 
+		__FUNCTION__, &thread_id, &attr, function, arg, strerror(ret));
+	
+#ifdef THREAD_DEBUG
+	fprintf(stderr, "created new thread %d (func=%p, arg=%p)\n", thread_id, function, arg);
+#endif	
 }
 
 
@@ -257,9 +261,10 @@ void Thread::WaitForDeath()
 	if (thread_id)
 	{
 		void* exit_status;
-		pthread_join(thread_id, &exit_status);
-                if (exit_status)
-                  fprintf(stderr, "error %d joining thread\n", *(int *)exit_status);
+		int ret = pthread_join(thread_id, &exit_status);
+		if (ret) fprintf(stderr, "error joining thread %d: %s\n", thread_id, strerror(ret));
+        if (exit_status)
+                  fprintf(stderr, "thread %d exited with status %d\n", thread_id, *(int *)exit_status);
 		thread_id = 0;
 	}
 }
@@ -297,6 +302,15 @@ void Thread::SetCurrentThreadAffinity(int mask)
 #endif
 }
 
+void InitThreading() {
+	static int thread_init_done = 0;
+	if (thread_init_done) return;
+	thread_init_done++;
+	
+	if (pthread_key_create(&threadname_key, NULL/*free*/) != 0)
+		perror("Unable to create thread name key: ");
+   
+}
 
 void SleepCurrentThread(int ms)
 {
@@ -306,7 +320,10 @@ void SleepCurrentThread(int ms)
 
 void SetCurrentThreadName(const TCHAR* szThreadName)
 {
-	// noop
+	pthread_setspecific(threadname_key, strdup(szThreadName));
+#ifdef THREAD_DEBUG
+	fprintf(stderr, "%s(%s)\n", __FUNCTION__, szThreadName);
+#endif
 }
 
 

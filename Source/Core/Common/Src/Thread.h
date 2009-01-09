@@ -19,19 +19,18 @@
 #define _THREAD_H
 
 #ifdef _WIN32
-#include <windows.h>
-#else
-#include <pthread.h>
-#endif
-
-#ifdef _WIN32
 #define THREAD_RETURN DWORD WINAPI
 #else
 #define THREAD_RETURN void*
+#include <unistd.h>
+#ifdef _POSIX_THREADS
+#include <pthread.h>
+#else
+#error unsupported platform (no pthreads?)
+#endif
 #endif
 
 #include "Common.h"
-
 
 namespace Common
 {
@@ -39,7 +38,7 @@ class CriticalSection
 {
 #ifdef _WIN32
 	CRITICAL_SECTION section;
-#elif __GNUC__
+#else
 	pthread_mutex_t mutex;
 #endif
 public:
@@ -53,7 +52,7 @@ public:
 
 #ifdef _WIN32
 typedef DWORD (WINAPI * ThreadFunc)(void* arg);
-#elif __GNUC__
+#else
 typedef void* (*ThreadFunc)(void* arg);
 #endif
 
@@ -73,7 +72,7 @@ private:
 #ifdef _WIN32
 	HANDLE m_hThread;
 	DWORD m_threadId;
-#elif __GNUC__
+#else
 	pthread_t thread_id;
 #endif
 };
@@ -96,13 +95,14 @@ class Event
 
 #ifdef _WIN32
 		HANDLE m_hEvent;
-#elif __GNUC__
+#else
 		bool is_set_;
 		pthread_cond_t event_;
 		pthread_mutex_t mutex_;
 #endif
 };
 
+void InitThreading(void);
 void SleepCurrentThread(int ms);
 
 void SetCurrentThreadName(const char *name);
