@@ -666,6 +666,8 @@ void GetJoyState(int controller)
 			case 'H':
 				printf("We aren't Expecting Hat here!\n");
 			break;
+			case '\0': // When no button is being pressed
+			break;
 			default:
 				printf("Unknown button type %c, number %d, Full %s\n", Type, a, joysticks[controller].buttons[a].c_str());
 			break;
