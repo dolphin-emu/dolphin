@@ -96,6 +96,10 @@ private:
 	void CompileVertexTranslator();
 
 	void WriteCall(TPipelineFunction);
+
+	void WriteGetVariable(int bits, Gen::OpArg, void*);
+
+	void WriteSetVariable(int bits, void*, Gen::OpArg);
 };									  
 
 #endif

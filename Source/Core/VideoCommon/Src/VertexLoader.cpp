@@ -152,15 +152,15 @@ void VertexLoader::CompileVertexTranslator()
 	// Reset component counters if present in vertex format only.
 	if (m_VtxDesc.Tex0Coord || m_VtxDesc.Tex1Coord || m_VtxDesc.Tex2Coord || m_VtxDesc.Tex3Coord ||
 		m_VtxDesc.Tex4Coord || m_VtxDesc.Tex5Coord || m_VtxDesc.Tex6Coord || m_VtxDesc.Tex7Coord) {
-		MOV(32, M(&tcIndex), Imm32(0));
+		WriteSetVariable(32, &tcIndex, Imm32(0));
 	}
 	if (m_VtxDesc.Color0 || m_VtxDesc.Color1) {
-		MOV(32, M(&colIndex), Imm32(0));
+		WriteSetVariable(32, &colIndex, Imm32(0));
 	}
 	if (m_VtxDesc.Tex0MatIdx || m_VtxDesc.Tex1MatIdx || m_VtxDesc.Tex2MatIdx || m_VtxDesc.Tex3MatIdx ||
 		m_VtxDesc.Tex4MatIdx || m_VtxDesc.Tex5MatIdx || m_VtxDesc.Tex6MatIdx || m_VtxDesc.Tex7MatIdx) {
-		MOV(32, M(&s_texmtxwrite), Imm32(0));
-		MOV(32, M(&s_texmtxread), Imm32(0));
+		WriteSetVariable(32, &s_texmtxwrite, Imm32(0));
+		WriteSetVariable(32, &s_texmtxread, Imm32(0));
 	}
 #endif
 
@@ -469,8 +469,13 @@ void VertexLoader::CompileVertexTranslator()
 
 #ifdef USE_JIT
 	// End loop here
+#ifdef _M_X64
+	MOV(64, R(RAX), Imm64((u64)&loop_counter));
+	SUB(32, MatR(RAX), Imm8(1));
+#else
 	SUB(32, M(&loop_counter), Imm8(1));
-	//SUB(32, R(EBX), Imm8(1));
+#endif
+
 	J_CC(CC_NZ, loop_start, true);
 	ABI_EmitEpilogue(4);
 #endif
@@ -480,9 +485,38 @@ void VertexLoader::CompileVertexTranslator()
 void VertexLoader::WriteCall(TPipelineFunction func)
 {
 #ifdef USE_JIT
+#ifdef _M_X64
+	MOV(64, R(RAX), Imm64((u64)func));
+	CALLptr(R(RAX));
+#else
 	CALL((void*)func);
+#endif
 #else
 	m_PipelineStages[m_numPipelineStages++] = func;
+#endif
+}
+
+void VertexLoader::WriteGetVariable(int bits, OpArg dest, void *address)
+{
+#ifdef USE_JIT
+#ifdef _M_X64
+	MOV(64, R(RAX), Imm64((u64)address));
+	MOV(bits, dest, MatR(RAX));
+#else
+	MOV(bits, dest, M(address));
+#endif
+#endif
+}
+
+void VertexLoader::WriteSetVariable(int bits, void *address, OpArg value)
+{
+#ifdef USE_JIT
+#ifdef _M_X64
+	MOV(64, R(RAX), Imm64((u64)address));
+	MOV(bits, MatR(RAX), value);
+#else
+	MOV(bits, M(address), value);
+#endif
 #endif
 }
 
