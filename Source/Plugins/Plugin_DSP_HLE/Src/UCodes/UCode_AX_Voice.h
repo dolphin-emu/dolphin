@@ -62,9 +62,11 @@ inline int ReadOutPBsWii(u32 pbs_address, ParamBlockType& _pPBs, int _num)
 				if(p == 6 || p == 7) pDest[p] = pSrc[p]; // control for the u32
 				else pDest[p] = Common::swap16(pSrc[p]);
 
+#if defined(HAVE_WX) && HAVE_WX
 				#if defined(_DEBUG) || defined(DEBUGFAST)
 					if(m_frame) m_frame->gLastBlock = blockAddr + p*2 + 2;  // save last block location
 				#endif
+#endif
 			}
 
 			_pPBs[i].mixer_control = Common::swap32(_pPBs[i].mixer_control);

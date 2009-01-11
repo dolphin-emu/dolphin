@@ -17,6 +17,8 @@
 
 #include "Globals.h"
 
+#include <cstdarg>
+
 #ifdef _WIN32
 #include "OS/Win32.h"
 #endif

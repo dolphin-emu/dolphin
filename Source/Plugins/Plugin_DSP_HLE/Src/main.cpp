@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <iostream>
+
 #include "Globals.h"
 #if defined(HAVE_WX) && HAVE_WX
 #include "Logging/Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
@@ -214,11 +216,11 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 	gpName = g_dspInitialize.pName(); // save the game name globally
 	for (int i = 0; i < gpName.length(); ++i) // and fix it
 	{
-		wprintf("%c", gpName[i]);
+                wprintf(L"%c", gpName[i]);
 		std::cout << gpName[i];
 		if (gpName[i] == ':') gpName[i] = ' ';
 	}
-	wprintf("\n");
+	wprintf(L"\n");
 #endif
 
 	CDSPHandler::CreateInstance();
