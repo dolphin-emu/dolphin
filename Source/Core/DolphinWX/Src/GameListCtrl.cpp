@@ -291,7 +291,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 			ini.Get("EmuState","Issues",&issues);
 			if (!issues.empty())
 			{
-				item.SetText(issues);
+				item.SetText(wxString::FromAscii(issues.c_str()));
 			}
 			SetItem(item);
 		}
