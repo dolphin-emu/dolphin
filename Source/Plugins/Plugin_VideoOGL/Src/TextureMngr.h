@@ -79,6 +79,8 @@ public:
     static void EnableTex2D(int stage);
     static void EnableTexRECT(int stage);
     static void DisableStage(int stage); // sets active texture
+
+	static void ClearRenderTargets(); // sets render target value of all textures to false
 };
 
 bool SaveTexture(const char* filename, u32 textarget, u32 tex, int width, int height);

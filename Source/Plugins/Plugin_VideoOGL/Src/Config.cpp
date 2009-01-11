@@ -78,10 +78,11 @@ void Config::Load()
     iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
     iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 3);  // NOTE - this is x in (1 << x)
     
-    iniFile.Get("Hacks", "EFBToTextureDisable", &bEFBToTextureDisable, 0);
-    iniFile.Get("Hacks", "EFBToTextureDisableHotKey", &bEFBToTextureDisableHotKey, 0);	
+    iniFile.Get("Hacks", "EFBCopyDisable", &bEFBCopyDisable, 0);
+    iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bEFBCopyDisableHotKey, 0);	
     iniFile.Get("Hacks", "ProjectionHax1", &bProjectionHax1, 0);
     iniFile.Get("Hacks", "ProjectionHax2", &bProjectionHax2, 0);
+	iniFile.Get("Hacks", "EFBToTextureEnable", &bEFBToTextureEnable, 1);
 }
 
 void Config::Save()
@@ -116,10 +117,11 @@ void Config::Save()
     iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
     iniFile.Set("Enhancements", "MaxAnisotropy", iMaxAnisotropy);
     
-    iniFile.Set("Hacks", "EFBToTextureDisable", bEFBToTextureDisable);
-    iniFile.Set("Hacks", "EFBToTextureDisableHotKey", bEFBToTextureDisableHotKey);
+    iniFile.Set("Hacks", "EFBCopyDisable", bEFBCopyDisable);
+    iniFile.Set("Hacks", "EFBCopyDisableHotKey", bEFBCopyDisableHotKey);
     iniFile.Set("Hacks", "ProjectionHax1", bProjectionHax1);
     iniFile.Set("Hacks", "ProjectionHax2", bProjectionHax2);
+	iniFile.Set("Hacks", "EFBToTextureEnable", bEFBToTextureEnable);
     
     iniFile.Save(FULL_CONFIG_DIR "gfx_opengl.ini");
 }

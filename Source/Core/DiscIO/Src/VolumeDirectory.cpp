@@ -332,7 +332,7 @@ void CVolumeDirectory::BuildFST()
 	}
 
 	// overflow check
-	_dbg_assert_(DVDINTERFACE, nameOffset == m_fstSize);
+	_dbg_assert_(DVDINTERFACE, nameOffset == m_totalNameSize);
 
 	// write FST size and location
 	_dbg_assert_(DVDINTERFACE, m_diskHeader);
@@ -344,6 +344,9 @@ void CVolumeDirectory::BuildFST()
 void CVolumeDirectory::WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, u8* _Src,
 									 u64& _Address, u64& _Length, u8*& _pBuffer) const
 {
+	if(_Length == 0)
+		return;
+
 	_dbg_assert_(DVDINTERFACE, _Address >= _SrcStartAddress);
 
 	u64 srcOffset = _Address - _SrcStartAddress;

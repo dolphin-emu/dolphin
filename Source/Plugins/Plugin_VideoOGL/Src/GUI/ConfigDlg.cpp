@@ -49,11 +49,12 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_DUMPTEXTURES, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLELIGHTING, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLETEXTURING, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_EFBTOTEXTUREDISABLE, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_EFBTOTEXTUREDISABLEHOTKEY, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_EFBCOPYDISABLE, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_EFBCOPYDISABLEHOTKEY, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJECTIONHACK1,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJECTIONHACK2,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SAFETEXTURECACHE,ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_EFBTOTEXTUREENABLE, ConfigDialog::AdvancedSettingsChanged)
 	EVT_DIRPICKER_CHANGED(ID_TEXTUREPATH, ConfigDialog::TexturePathChange)
 END_EVENT_TABLE()
 
@@ -226,25 +227,30 @@ void ConfigDialog::CreateGUIControls()
 
 	// Hacks
 	sbHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
-	m_EFBToTextureDisable = new wxCheckBox(m_PageAdvanced,
-		ID_EFBTOTEXTUREDISABLE, wxT("Disable copy EFB to texture"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_EFBToTextureDisable->SetToolTip(wxT("Do not copy the Embedded Framebuffer (EFB)"
-		" to the\nTexture. This may result in a speed increase."));
-	m_EFBToTextureDisable->Enable(true);
-	m_EFBToTextureDisable->SetValue(g_Config.bEFBToTextureDisable);
-	m_EFBToTextureDisableHotKey = new wxCheckBox(m_PageAdvanced,
-		ID_EFBTOTEXTUREDISABLEHOTKEY, wxT("With hotkey E"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_EFBToTextureDisableHotKey->SetToolTip(wxT("Use the E key to turn this option on and off"));
+	m_EFBCopyDisable = new wxCheckBox(m_PageAdvanced,
+		ID_EFBCOPYDISABLE, wxT("Disable copy EFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_EFBCopyDisable->SetToolTip(wxT("Do not copy the Embedded Framebuffer (EFB)."
+		" This may result in a speed increase."));
+	m_EFBCopyDisable->Enable(true);
+	m_EFBCopyDisable->SetValue(g_Config.bEFBCopyDisable);
+	m_EFBCopyDisableHotKey = new wxCheckBox(m_PageAdvanced,
+		ID_EFBCOPYDISABLEHOTKEY, wxT("With hotkey E"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_EFBCopyDisableHotKey->SetToolTip(wxT("Use the E key to turn this option on and off"));
 #ifndef _WIN32
 	// JPeterson set the hot key to be Win32-specific
-	m_EFBToTextureDisableHotKey->Enable(false);
+	m_EFBCopyDisableHotKey->Enable(false);
 #endif
-	m_EFBToTextureDisableHotKey->SetValue(g_Config.bEFBToTextureDisableHotKey);
+	m_EFBCopyDisableHotKey->SetValue(g_Config.bEFBCopyDisableHotKey);
 
 	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_SafeTextureCache->SetToolTip(wxT("This is useful to prevent Metroid Prime from crashing, but can cause problems in other games."));
 	m_SafeTextureCache->Enable(true);
 	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);
+
+	m_EFBToTextureEnable = new wxCheckBox(m_PageAdvanced, ID_EFBTOTEXTUREENABLE, wxT("Copy EFB to texture"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_EFBToTextureEnable->SetToolTip(wxT("This is faster than copying the EFB to RAM, but may cause missing/corrupt textures or effects."));
+	m_EFBToTextureEnable->Enable(true);
+	m_EFBToTextureEnable->SetValue(g_Config.bEFBToTextureEnable);
 
 	m_ProjectionHax1 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK1, wxT("Projection before R945"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ProjectionHax1->SetToolTip(wxT("This may reveal otherwise invisible graphics"
@@ -281,11 +287,12 @@ void ConfigDialog::CreateGUIControls()
 	sAdvanced->Add(sbUtilities, 0, wxEXPAND|wxALL, 5);
 
 	sHacks = new wxGridBagSizer(0, 0);
-	sHacks->Add(m_EFBToTextureDisable, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
-	sHacks->Add(m_EFBToTextureDisableHotKey, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
+	sHacks->Add(m_EFBCopyDisable, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
+	sHacks->Add(m_EFBCopyDisableHotKey, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
 	sHacks->Add(m_ProjectionHax1, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
 	sHacks->Add(m_ProjectionHax2, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 	sHacks->Add(m_SafeTextureCache, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
+	sHacks->Add(m_EFBToTextureEnable, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL, 5);
 	sbHacks->Add(sHacks);
 	sAdvanced->Add(sbHacks, 0, wxEXPAND|wxALL, 5);
 	m_PageAdvanced->SetSizer(sAdvanced);
@@ -421,11 +428,11 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_TEXTUREPATH:
 		break;
-	case ID_EFBTOTEXTUREDISABLE:
-		g_Config.bEFBToTextureDisable = m_EFBToTextureDisable->IsChecked();
+	case ID_EFBCOPYDISABLE:
+		g_Config.bEFBCopyDisable = m_EFBCopyDisable->IsChecked();
 		break;
-	case ID_EFBTOTEXTUREDISABLEHOTKEY:
-		g_Config.bEFBToTextureDisableHotKey = m_EFBToTextureDisableHotKey->IsChecked();
+	case ID_EFBCOPYDISABLEHOTKEY:
+		g_Config.bEFBCopyDisableHotKey = m_EFBCopyDisableHotKey->IsChecked();
 		break;
 	case ID_PROJECTIONHACK1:
 		g_Config.bProjectionHax1 = m_ProjectionHax1->IsChecked();
@@ -435,6 +442,14 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_SAFETEXTURECACHE:
 		g_Config.bSafeTextureCache = m_SafeTextureCache->IsChecked();
+		break;
+	case ID_EFBTOTEXTUREENABLE:
+		{
+			bool wasEnabled = g_Config.bEFBToTextureEnable;
+			g_Config.bEFBToTextureEnable = m_EFBToTextureEnable->IsChecked();
+			if(wasEnabled && !g_Config.bEFBToTextureEnable)
+				TextureMngr::ClearRenderTargets();
+		}
 		break;
 	default:
 		break;

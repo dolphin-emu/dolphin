@@ -64,10 +64,11 @@ struct Config
     bool bDumpTextures;
     
     // Hacks
-    bool bEFBToTextureDisable;
-    bool bEFBToTextureDisableHotKey;
+    bool bEFBCopyDisable;
+    bool bEFBCopyDisableHotKey;
     bool bProjectionHax1;
     bool bProjectionHax2;
+	bool bEFBToTextureEnable;
     
     int iLog; // CONF_ bits
     int iSaveTargetId;

@@ -97,10 +97,11 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_DisableTexturing;
 		wxCheckBox *m_DumpTextures;
 		wxDirPickerCtrl *m_TexturePath;
-		wxCheckBox *m_EFBToTextureDisable, *m_EFBToTextureDisableHotKey;
+		wxCheckBox *m_EFBCopyDisable, *m_EFBCopyDisableHotKey;
 		wxCheckBox *m_ProjectionHax1;
 		wxCheckBox *m_ProjectionHax2;
 		wxCheckBox *m_SafeTextureCache;
+		wxCheckBox *m_EFBToTextureEnable;
 
 		enum
 		{
@@ -143,9 +144,10 @@ class ConfigDialog : public wxDialog
 			ID_DUMPTEXTURES,
 			ID_TEXTUREPATH,
 
-			ID_EFBTOTEXTUREDISABLE, ID_EFBTOTEXTUREDISABLEHOTKEY,
+			ID_EFBCOPYDISABLE, ID_EFBCOPYDISABLEHOTKEY,
 			ID_PROJECTIONHACK1,
-			ID_PROJECTIONHACK2
+			ID_PROJECTIONHACK2,
+			ID_EFBTOTEXTUREENABLE
 		};
 
 		void OnClose(wxCloseEvent& event);

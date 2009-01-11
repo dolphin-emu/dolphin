@@ -16,9 +16,12 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "TextureConverter.h"
+#include "TextureConversionShader.h"
 #include "PixelShaderCache.h"
 #include "VertexShaderManager.h"
 #include "Globals.h"
+#include "Config.h"
+#include "ImageWrite.h"
 #include "GLUtil.h"
 #include "Render.h"
 
@@ -35,6 +38,11 @@ const int renderBufferHeight = 1024;
 static FRAGMENTSHADER s_rgbToYuyvProgram;
 static FRAGMENTSHADER s_yuyvToRgbProgram;
 
+// todo - store shaders in a smarter way - there are not 64 different copy texture formats
+const u32 NUM_ENCODING_PROGRAMS = 64;
+static FRAGMENTSHADER s_encodingPrograms[NUM_ENCODING_PROGRAMS];
+
+
 void CreateRgbToYuyvProgram()
 {
 	// output is BGRA because that is slightly faster than RGBA
@@ -50,10 +58,12 @@ void CreateRgbToYuyvProgram()
 
 	"  float y0 = (0.257f * c0.r) + (0.504f * c0.g) + (0.098f * c0.b) + 0.0625f;\n"
 	"  float u0 =-(0.148f * c0.r) - (0.291f * c0.g) + (0.439f * c0.b) + 0.5f;\n"
+	"  float v0 = (0.439f * c0.r) - (0.368f * c0.g) - (0.071f * c0.b) + 0.5f;\n"
 	"  float y1 = (0.257f * c1.r) + (0.504f * c1.g) + (0.098f * c1.b) + 0.0625f;\n"
-	"  float v1 = (0.439f * c1.r) - (0.368f * c1.g) - (0.071f * c1.b) + 0.5f;\n"	
+	"  float u1 =-(0.148f * c1.r) - (0.291f * c1.g) + (0.439f * c1.b) + 0.5f;\n"
+	"  float v1 = (0.439f * c1.r) - (0.368f * c1.g) - (0.071f * c1.b) + 0.5f;\n"
 
-	"  ocol0 = float4(y1, u0, y0, v1);\n"
+	"  ocol0 = float4(y1, (u0 + u1) / 2, y0, (v0 + v1) / 2);\n"
 	"}\n";
 
 	if (!PixelShaderCache::CompilePixelShader(s_rgbToYuyvProgram, FProgram)) {
@@ -88,6 +98,39 @@ void CreateYuyvToRgbProgram()
     }
 }
 
+FRAGMENTSHADER& GetOrCreateEncodingShader(u32 format)
+{
+	if(format > NUM_ENCODING_PROGRAMS)
+	{
+		PanicAlert("Unknown texture copy format: 0x%x\n", format);
+		return s_encodingPrograms[0];
+	}
+
+	// todo - this does not handle the case that an application is using RGB555/4443
+	// and switches EFB formats between a format that does and does not support alpha
+	if(s_encodingPrograms[format].glprogid == 0)
+	{
+		char* shader = TextureConversionShader::GenerateEncodingShader(format);
+
+#if defined(_DEBUG) || defined(DEBUGFAST)
+    if (g_Config.iLog & CONF_SAVESHADERS && shader) {
+        static int counter = 0;
+        char szTemp[MAX_PATH];
+		sprintf(szTemp, "%s/enc_%04i.txt", g_Config.texDumpPath, counter++);
+        
+        SaveData(szTemp, shader);
+    }
+#endif
+
+		if (!PixelShaderCache::CompilePixelShader(s_encodingPrograms[format], shader)) {
+			const char* error = cgGetLastListing(g_cgcontext);
+			ERROR_LOG("Failed to create encoding fragment program\n");
+		}
+    }
+
+	return s_encodingPrograms[format];
+}
+
 void Init()
 {
 	glGenFramebuffersEXT( 1, &s_frameBuffer);
@@ -114,16 +157,14 @@ void Shutdown()
 	glDeleteFramebuffersEXT(1, &s_frameBuffer);	
 }
 
+
 void EncodeToRam(GLuint srcTexture, const TRectangle& sourceRc,
-				 u8* destAddr, int dstWidth, int dstHeight)
+				 u8* destAddr, int dstWidth, int dstHeight, bool linearFilter, FRAGMENTSHADER& shader)
 {
 	Renderer::SetRenderMode(Renderer::RM_Normal);
 
 	Renderer::ResetGLState();
-
-	float dstFormatFactor = 0.5f;
-	float dstFmtWidth = dstWidth * dstFormatFactor;
-
+	
 	// switch to texture converter frame buffer
 	// attach render buffer as color destination
 	Renderer::SetFramebuffer(s_frameBuffer);
@@ -134,18 +175,28 @@ void EncodeToRam(GLuint srcTexture, const TRectangle& sourceRc,
 	// set source texture
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, srcTexture);
-	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	if(linearFilter)
+	{
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	}
+	else
+	{
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	}
+	//
 
     TextureMngr::EnableTexRECT(0);
 	for (int i = 1; i < 8; ++i)
 		TextureMngr::DisableStage(i);	
 	GL_REPORT_ERRORD();
 
-	glViewport(0, 0, (GLsizei)dstFmtWidth, (GLsizei)dstHeight);
+	glViewport(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight);
 
 	glEnable(GL_FRAGMENT_PROGRAM_ARB);
-    glBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, s_rgbToYuyvProgram.glprogid);	
+	glBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, shader.glprogid);	
 
 	glBegin(GL_QUADS);
     glTexCoord2f((float)sourceRc.left, (float)sourceRc.top);     glVertex2f(-1,-1);
@@ -155,8 +206,8 @@ void EncodeToRam(GLuint srcTexture, const TRectangle& sourceRc,
     glEnd();
 	GL_REPORT_ERRORD();
 
-	// TODO: this is real slow. try using a pixel buffer object.
-	glReadPixels(0, 0, (GLsizei)dstFmtWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
+	// TODO: make this less slow.
+	glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
 	GL_REPORT_ERRORD();
 
 	Renderer::SetFramebuffer(0);
@@ -169,6 +220,74 @@ void EncodeToRam(GLuint srcTexture, const TRectangle& sourceRc,
 	Renderer::RestoreGLState();
     GL_REPORT_ERRORD();
 }
+
+void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, bool bScaleByHalf, const TRectangle& source)
+{
+	u32 format = copyfmt;
+
+	if(bFromZBuffer)
+	{
+		format |= _GX_TF_ZTF;
+		if(copyfmt == 11)
+			format = GX_TF_Z16;
+		else if(format < GX_TF_Z8 || format > GX_TF_Z24X8)
+			format |= _GX_TF_CTF;
+	}
+	else
+	{
+		if(copyfmt > GX_TF_RGBA8 || (copyfmt < GX_TF_RGB565 && !bIsIntensityFmt))
+			format |= _GX_TF_CTF;
+	}
+
+	FRAGMENTSHADER& fs = GetOrCreateEncodingShader(format);
+
+	if(fs.glprogid == 0)
+		return;
+
+	u8* ptr = Memory_GetPtr(address);
+
+	u32 target = bFromZBuffer?Renderer::GetZBufferTarget():Renderer::GetRenderTarget();
+
+	s32 width = source.right - source.left;
+	s32 height = source.bottom - source.top;	
+
+	if(bScaleByHalf)
+	{
+		width /= 2;
+		height /= 2;
+	}
+	
+	u16 blkW = TextureConversionShader::GetBlockWidthInTexels(format) - 1;
+	u16 blkH = TextureConversionShader::GetBlockHeightInTexels(format) - 1;	
+	u16 samples = TextureConversionShader::GetEncodedSampleCount(format);	
+
+	// only copy on cache line boundaries
+	// extra pixels are copied but not displayed in the resulting texture
+	s32 expandedWidth = (width + blkW) & (~blkW);
+	s32 expandedHeight = (height + blkH) & (~blkH);		
+
+	u32 top = Renderer::GetTargetHeight() - (source.top + expandedHeight);
+
+	TextureConversionShader::SetShaderParameters(expandedWidth, expandedHeight, source.left, top, bScaleByHalf?2.0f:1.0f, format);
+
+	TRectangle scaledSource;
+	scaledSource.top = 0;
+	scaledSource.bottom = expandedHeight;
+	scaledSource.left = 0;
+	scaledSource.right = expandedWidth / samples;	
+
+	EncodeToRam(target, scaledSource, ptr, expandedWidth / samples, expandedHeight, bScaleByHalf, fs);
+
+	if (bFromZBuffer )
+        Renderer::SetZBufferRender(); // notify for future settings
+}
+
+void EncodeToRam(GLuint srcTexture, const TRectangle& sourceRc,
+				 u8* destAddr, int dstWidth, int dstHeight)
+{
+	EncodeToRam(srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, false, s_rgbToYuyvProgram);	
+}
+
 
 void DecodeToTexture(u8* srcAddr, int srcWidth, int srcHeight, GLuint destTexture)
 {
@@ -190,7 +309,7 @@ void DecodeToTexture(u8* srcAddr, int srcWidth, int srcHeight, GLuint destTextur
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_srcTexture);
 
-	// TODO: this is slow. try using a pixel buffer object.
+	// TODO: make this less slow.
     glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA8, (GLsizei)srcFmtWidth, (GLsizei)srcHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);	
 
     TextureMngr::EnableTexRECT(0);

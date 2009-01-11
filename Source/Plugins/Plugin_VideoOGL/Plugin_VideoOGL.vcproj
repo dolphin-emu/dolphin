@@ -1014,6 +1014,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\TextureConversionShader.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\TextureConversionShader.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\TextureConverter.cpp"
 			>
 		</File>

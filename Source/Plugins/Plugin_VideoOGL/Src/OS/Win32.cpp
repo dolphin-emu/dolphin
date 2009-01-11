@@ -173,11 +173,11 @@ namespace EmuWindow
 				hypotheticalScene->sendMessage(KEYDOWN...);
 				*/
 			case 'E': // EFB hotkey
-				if(g_Config.bEFBToTextureDisableHotKey)
+				if(g_Config.bEFBCopyDisableHotKey)
 				{
-					g_Config.bEFBToTextureDisable = !g_Config.bEFBToTextureDisable;
+					g_Config.bEFBCopyDisable = !g_Config.bEFBCopyDisable;
 					Renderer::AddMessage(StringFromFormat("Copy EFB was turned %s",
-						g_Config.bEFBToTextureDisable ? "off" : "on").c_str(), 5000);
+						g_Config.bEFBCopyDisable ? "off" : "on").c_str(), 5000);
 				}
 				break;
 			}

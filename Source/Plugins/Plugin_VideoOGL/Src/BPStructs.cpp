@@ -30,6 +30,7 @@
 #include "OpcodeDecoding.h"
 #include "TextureMngr.h"
 #include "TextureDecoder.h"
+#include "TextureConverter.h"
 #include "VertexShaderManager.h"
 #include "PixelShaderManager.h"
 #include "XFB.h"
@@ -431,8 +432,8 @@ void BPWritten(int addr, int changes, int newval)
 			TRectangle rc = {
                 (int)(bpmem.copyTexSrcXY.x),
                 (int)(bpmem.copyTexSrcXY.y),
-                (int)((bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x)),
-                (int)((bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y))
+                (int)((bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1)),
+                (int)((bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1))
             };
 			float MValueX = OpenGL_GetXmax();
 			float MValueY = OpenGL_GetYmax();
@@ -449,16 +450,21 @@ void BPWritten(int addr, int changes, int newval)
 			PE_copy.Hex = bpmem.triggerEFBCopy;
 
             if (PE_copy.copy_to_xfb == 0) {
-				if(g_Config.bEFBToTextureDisable) {
+				// EFB to texture 
+                // for some reason it sets bpmem.zcontrol.pixel_format to PIXELFMT_Z24 every time a zbuffer format is given as a dest to GXSetTexCopyDst
+				if (g_Config.bEFBCopyDisable) {
 					glViewport(rc.left,rc.bottom,rc.right,rc.top);
 					glScissor(rc.left,rc.bottom,rc.right,rc.top);
 				}
-				else
-                // EFB to texture 
-                // for some reason it sets bpmem.zcontrol.pixel_format to PIXELFMT_Z24 every time a zbuffer format is given as a dest to GXSetTexCopyDst
-				TextureMngr::CopyRenderTargetToTexture(bpmem.copyTexDest<<5, bpmem.zcontrol.pixel_format==PIXELFMT_Z24, PE_copy.intensity_fmt>0,
+				else if (g_Config.bEFBToTextureEnable) {
+					TextureMngr::CopyRenderTargetToTexture(bpmem.copyTexDest<<5, bpmem.zcontrol.pixel_format==PIXELFMT_Z24, PE_copy.intensity_fmt>0,
                     (PE_copy.target_pixel_format/2)+((PE_copy.target_pixel_format&1)*8), PE_copy.half_scale>0, &rc);
-            }
+				}
+				else {
+					TextureConverter::EncodeToRam(bpmem.copyTexDest<<5, bpmem.zcontrol.pixel_format==PIXELFMT_Z24, PE_copy.intensity_fmt>0,
+                    (PE_copy.target_pixel_format/2)+((PE_copy.target_pixel_format&1)*8), PE_copy.half_scale>0, rc);
+				}
+			}
             else {
                 // EFB to XFB
 				if (g_Config.bUseXFB)

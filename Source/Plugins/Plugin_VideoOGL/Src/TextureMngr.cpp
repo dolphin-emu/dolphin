@@ -627,7 +627,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     GL_REPORT_ERRORD();
     //SaveTexture("frame.tga", GL_TEXTURE_RECTANGLE_ARB, entry.texture, entry.w, entry.h);
-    //SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, Renderer::GetZBufferTarget(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
+    //SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, bFromZBuffer?Renderer::GetZBufferTarget():Renderer::GetRenderTarget(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
 }
 
 void TextureMngr::EnableTex2D(int stage)
@@ -669,4 +669,11 @@ void TextureMngr::DisableStage(int stage)
 			glActiveTexture(GL_TEXTURE0 + stage);
         glDisable(GL_TEXTURE_RECTANGLE_ARB);
     }
+}
+
+void TextureMngr::ClearRenderTargets()
+{
+	TexCache::iterator iter = textures.begin();
+    for (; iter!=textures.end(); iter++)
+        iter->second.isRenderTarget = false;
 }

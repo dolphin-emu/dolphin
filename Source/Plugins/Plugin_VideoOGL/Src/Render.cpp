@@ -571,6 +571,8 @@ void Renderer::SetColorMask()
 // bpmem.scissorTL.x, y = 342x342
 // bpmem.scissorBR.x, y = 981x821
 // Renderer::GetTargetHeight() = the fixed ini file setting
+// donkopunchstania - it appears scissorBR is the bottom right pixel inside the scissor box
+// therefore the width and height are (scissorBR + 1) - scissorTL
 bool Renderer::SetScissorRect()
 {
     int xoff = bpmem.scissorOffset.x * 2 - 342;
@@ -585,11 +587,11 @@ bool Renderer::SetScissorRect()
 	rc_top *= MValueY;
 	if (rc_top < 0) rc_top = 0;
     
-	float rc_right = bpmem.scissorBR.x - xoff - 342; // right = 640
+	float rc_right = bpmem.scissorBR.x - xoff - 341; // right = 640
 	rc_right *= MValueX;
 	if (rc_right > 640 * MValueX) rc_right = 640 * MValueX;
 
-	float rc_bottom = bpmem.scissorBR.y - yoff - 342; // bottom = 480
+	float rc_bottom = bpmem.scissorBR.y - yoff - 341; // bottom = 480
 	rc_bottom *= MValueY;
 	if (rc_bottom > 480 * MValueY) rc_bottom = 480 * MValueY;
 
