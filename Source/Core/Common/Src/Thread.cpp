@@ -264,7 +264,7 @@ void Thread::WaitForDeath()
 		int ret = pthread_join(thread_id, &exit_status);
 		if (ret) fprintf(stderr, "error joining thread %lu: %s\n", thread_id, strerror(ret));
         if (exit_status)
-                  fprintf(stderr, "thread %d exited with status %lu\n", thread_id, *(int *)exit_status);
+                  fprintf(stderr, "thread %lu exited with status %d\n", thread_id, *(int *)exit_status);
 		thread_id = 0;
 	}
 }
