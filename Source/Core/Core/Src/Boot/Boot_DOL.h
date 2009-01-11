@@ -26,6 +26,7 @@ public:
 	CDolLoader(const char* _szFilename);
 	u32 GetEntryPoint();
 	
+	static bool IsDolWii(const char* filename);
 private:
 	enum
 	{

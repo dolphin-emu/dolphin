@@ -22,6 +22,7 @@
 #include "VolumeCreator.h" // DiscIO
 
 #include "Boot/Boot.h" // Core
+#include "Boot/Boot_DOL.h"
 #include "CoreParameter.h"
 #include "Core.h" // for bWii
 
@@ -114,13 +115,14 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
             }
             else if (!strcasecmp(Extension.c_str(), ".elf"))
             {
-				bWii = CBoot::IsElfWii(m_strFilename.c_str());
+                bWii = CBoot::IsElfWii(m_strFilename.c_str());
                 Region = USA_DIR; 
                 m_BootType = BOOT_ELF;
                 bNTSC = true;
             }
             else if (!strcasecmp(Extension.c_str(), ".dol"))
             {
+                bWii = CDolLoader::IsDolWii(m_strFilename.c_str());
                 Region = USA_DIR; 
                 m_BootType = BOOT_DOL;
                 bNTSC = true;

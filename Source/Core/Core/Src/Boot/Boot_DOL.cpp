@@ -78,3 +78,19 @@ u32 CDolLoader::GetEntryPoint()
 {
 	return m_dolheader.entryPoint;
 }
+
+bool CDolLoader::IsDolWii(const char* filename)
+{
+	// try to open file
+	FILE* pStream = fopen(filename, "rb");
+	if (pStream)
+	{
+		fseek(pStream, 0xe0, SEEK_SET);
+		u32 entrypt = fgetc(pStream) << 24 | fgetc(pStream) << 16 |
+			fgetc(pStream) << 8 | fgetc(pStream);
+
+		fclose(pStream);
+		return entrypt >= 0x80004000;
+	}
+	return 0;
+}
