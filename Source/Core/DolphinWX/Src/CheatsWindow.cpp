@@ -165,7 +165,7 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (e
 			m_Label_Codename->SetLabel(wxT("Name: ") + wxString::FromAscii(code.name.c_str()));
 			char text[CHAR_MAX];
 			char* numcodes = text;
-			sprintf(numcodes, "Number of Codes: %i", code.ops.size());
+			sprintf(numcodes, "Number of Codes: %lu", code.ops.size());
 			m_Label_NumCodes->SetLabel(wxString::FromAscii(numcodes));
 			m_ListBox_CodesList->Clear();
 			for (size_t j = 0; j < code.ops.size(); j++)

@@ -245,7 +245,7 @@ Thread::Thread(ThreadFunc function, void* arg)
 		__FUNCTION__, &thread_id, &attr, function, arg, strerror(ret));
 	
 #ifdef THREAD_DEBUG
-	fprintf(stderr, "created new thread %d (func=%p, arg=%p)\n", thread_id, function, arg);
+	fprintf(stderr, "created new thread %lu (func=%p, arg=%p)\n", thread_id, function, arg);
 #endif	
 }
 
@@ -262,9 +262,9 @@ void Thread::WaitForDeath()
 	{
 		void* exit_status;
 		int ret = pthread_join(thread_id, &exit_status);
-		if (ret) fprintf(stderr, "error joining thread %d: %s\n", thread_id, strerror(ret));
+		if (ret) fprintf(stderr, "error joining thread %lu: %s\n", thread_id, strerror(ret));
         if (exit_status)
-                  fprintf(stderr, "thread %d exited with status %d\n", thread_id, *(int *)exit_status);
+                  fprintf(stderr, "thread %d exited with status %lu\n", thread_id, *(int *)exit_status);
 		thread_id = 0;
 	}
 }
