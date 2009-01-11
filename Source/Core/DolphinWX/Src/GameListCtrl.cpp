@@ -148,11 +148,11 @@ void CGameListCtrl::Update()
 		InsertColumn(COLUMN_BANNER, _("Banner"));
 		InsertColumn(COLUMN_TITLE, _("Title"));
 		InsertColumn(COLUMN_COMPANY, _("Company"));
-		InsertColumn(COLUMN_ISSUES, wxT("Issues"));
+		InsertColumn(COLUMN_NOTES, _("Notes"));
 		InsertColumn(COLUMN_COUNTRY, _(""));
 		InsertColumn(COLUMN_SIZE, _("Size"));
 		InsertColumn(COLUMN_EMULATION_STATE, _("Emulation"));
-		InsertColumn(COLUMN_NOTES, _("Notes"));
+		InsertColumn(COLUMN_ISSUES, _("Issues"));
 		
 
 		// set initial sizes for columns
@@ -249,33 +249,35 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		item.SetId(_Index);
 		std::string EmuState;
 		item.SetColumn(COLUMN_EMULATION_STATE);
-		//NOTE (Daco): i dont like the fact of having so much ini's just to have 
-		//the game emulation state of every game you have. but 1 huge ini is no option
 		ini.Get("EmuState","EmulationStateId",&EmuState);
 		if (!EmuState.empty())
 		{
-			if(EmuState == "5")
+			switch(atoi(EmuState.c_str()))
+			{
+			case 5:
 				item.SetText(_("Perfect"));
-			else if(EmuState == "4")
+				break;
+			case 4:
 				item.SetText(_("In Game"));
-			else if(EmuState == "3")
+				break;
+			case 3:
 				item.SetText(_("Intro"));
-			else if(EmuState == "2")
-			{
+				break;
+			case 2:
+				//NOTE (Daco): IMO under 2 goes problems like music and games that only work with specific settings
 				item.SetText(_("Problems: Other"));
-				//NOTE (Daco): IMO under 2 i see problems like music and games that only work 
-				//with GL or only with DX9
-				//TODO (Daco): maybe 2 should get a function to present more info... o.o
-			}
-			else if(EmuState == "1")
+				//TODO (Daco): maybe 2 should get a function to present more info instead of the notes column... o.o
+				break;
+			case 1:
 				item.SetText(_("Broken"));
-			else if(EmuState == "0")
+				break;
+			case 0:
 				item.SetText(_("Not Set"));
-			else 
-			{
-				//if the EmuState isn't a number between 0 & 5 we dont know the state 
-				//hence why it should say unknown
+				break;
+			default:
+				//if the EmuState isn't a number between 0 & 5 we dont know the state D:
 				item.SetText(_("unknown emu ID"));
+				break;
 			}
 		}
 		SetItem(item);
@@ -287,7 +289,10 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 			item.SetColumn(COLUMN_ISSUES);
 			std::string issues;
 			ini.Get("EmuState","Issues",&issues);
-			item.SetText(wxString::FromAscii(issues.c_str()));
+			if (!issues.empty())
+			{
+				item.SetText(issues);
+			}
 			SetItem(item);
 		}
 
@@ -810,7 +815,7 @@ void CGameListCtrl::AutomaticColumnWidth()
 		SetColumnWidth(COLUMN_TITLE, wxMax(0.3*resizable, 100));
 		SetColumnWidth(COLUMN_COMPANY, wxMax(0.2*resizable, 100));
 		SetColumnWidth(COLUMN_NOTES, wxMax(0.5*resizable, 100));
-		SetColumnWidth(COLUMN_ISSUES, wxMax(0.5*resizable, 100));
+		SetColumnWidth(COLUMN_ISSUES, wxMax(0.2*resizable, 100));
 	}
 }
 
