@@ -84,7 +84,7 @@ using namespace Gen;
 			IREmitter::InstLoc CRReg = ibuild.EmitLoadCR(inst.BI >> 2);
 			IREmitter::InstLoc CRCmp = ibuild.EmitIntConst(8 >> (inst.BI & 3));
 			CRTest = ibuild.EmitAnd(CRReg, CRCmp);
-			if (inst.BO & 8)
+			if (!(inst.BO & 8))
 				CRTest = ibuild.EmitXor(CRTest, CRCmp);
 		}
 
@@ -92,7 +92,7 @@ using namespace Gen;
 			IREmitter::InstLoc c = ibuild.EmitLoadCTR();
 			c = ibuild.EmitSub(c, ibuild.EmitIntConst(1));
 			ibuild.EmitStoreCTR(c);
-			if (!(inst.BO & 2)) {
+			if (inst.BO & 2) {
 				CTRTest = ibuild.EmitICmpEq(c,
 						ibuild.EmitIntConst(0));
 			} else {
@@ -103,7 +103,7 @@ using namespace Gen;
 		IREmitter::InstLoc Test = CRTest;
 		if (CTRTest) {
 			if (Test)
-				Test = ibuild.EmitOr(Test, CTRTest);
+				Test = ibuild.EmitAnd(Test, CTRTest);
 			else
 				Test = CTRTest;
 		}

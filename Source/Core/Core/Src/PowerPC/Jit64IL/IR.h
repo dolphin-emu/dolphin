@@ -73,8 +73,14 @@ namespace IREmitter {
 		ICmpCRSigned,   // CR for signed int compare
 		ICmpCRUnsigned, // CR for unsigned int compare
 		ICmpEq,         // One if equal, zero otherwise
+		ICmpNe,
 		ICmpUgt,	// One if op1 > op2, zero otherwise
+		ICmpUlt,
+		ICmpUge,
+		ICmpUle,
 		ICmpSgt,	// One if op1 > op2, zero otherwise
+		ICmpSlt,
+		ICmpSge,
 		ICmpSle,	// Opposite of sgt
 		// Memory store operators
 		Store8,
@@ -232,6 +238,7 @@ namespace IREmitter {
 				 unsigned extra = 0);
 
 		InstLoc FoldAdd(InstLoc Op1, InstLoc Op2);
+		InstLoc FoldSub(InstLoc Op1, InstLoc Op2);
 		InstLoc FoldAnd(InstLoc Op1, InstLoc Op2);
 		InstLoc FoldOr(InstLoc Op1, InstLoc Op2);
 		InstLoc FoldRol(InstLoc Op1, InstLoc Op2);
@@ -239,6 +246,7 @@ namespace IREmitter {
 		InstLoc FoldShrl(InstLoc Op1, InstLoc Op2);
 		InstLoc FoldXor(InstLoc Op1, InstLoc Op2);
 		InstLoc FoldBranchCond(InstLoc Op1, InstLoc Op2);
+		InstLoc FoldICmp(unsigned Opcode, InstLoc Op1, InstLoc Op2);
 
 		InstLoc FoldInterpreterFallback(InstLoc Op1, InstLoc Op2);
 
@@ -502,6 +510,8 @@ namespace IREmitter {
 				CRCache[i] = 0;
 				CRCacheStore[i] = 0;
 			}
+			CTRCache = 0;
+			CTRCacheStore = 0;
 		}
 
 		IRBuilder() { Reset(); }
@@ -518,6 +528,8 @@ namespace IREmitter {
 		InstLoc FRegCacheStore[32];
 		InstLoc CarryCache;
 		InstLoc CarryCacheStore;
+		InstLoc CTRCache;
+		InstLoc CTRCacheStore;
 		InstLoc CRCache[8];
 		InstLoc CRCacheStore[8];
 	};

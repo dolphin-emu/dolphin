@@ -262,6 +262,11 @@ InstLoc IRBuilder::FoldZeroOp(unsigned Opcode, unsigned extra) {
 			CRCache[extra] = EmitZeroOp(LoadCR, extra);
 		return CRCache[extra];
 	}
+	if (Opcode == LoadCTR) {
+		if (!CTRCache)
+			CTRCache = EmitZeroOp(LoadCTR, extra);
+		return CTRCache;
+	}
 
 	return EmitZeroOp(Opcode, extra);
 }
@@ -301,6 +306,14 @@ InstLoc IRBuilder::FoldUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 		CRCacheStore[extra] = EmitUOp(StoreCR, Op1, extra);
 		return CRCacheStore[extra];
 	}
+	if (Opcode == StoreCTR) {
+		CTRCache = Op1;
+		if (CTRCacheStore) {
+			*CTRCacheStore = 0;
+		}
+		CTRCacheStore = EmitUOp(StoreCTR, Op1, extra);
+		return CTRCacheStore;
+	}
 	if (Opcode == CompactMRegToPacked) {
 		if (getOpcode(*Op1) == ExpandPackedToMReg)
 			return getOp1(Op1);
@@ -329,6 +342,13 @@ InstLoc IRBuilder::FoldAdd(InstLoc Op1, InstLoc Op2) {
 		}
 	}
 	return EmitBiOp(Add, Op1, Op2);
+}
+
+InstLoc IRBuilder::FoldSub(InstLoc Op1, InstLoc Op2) {
+	if (isImm(*Op2)) {
+		return FoldAdd(Op1, EmitIntConst(-GetImmValue(Op2)));
+	}
+	return EmitBiOp(Sub, Op1, Op2);
 }
 
 InstLoc IRBuilder::FoldAnd(InstLoc Op1, InstLoc Op2) {
@@ -432,6 +452,11 @@ InstLoc IRBuilder::FoldRol(InstLoc Op1, InstLoc Op2) {
 }
 
 InstLoc IRBuilder::FoldBranchCond(InstLoc Op1, InstLoc Op2) {
+	if (isImm(*Op1)) {
+		if (GetImmValue(Op1))
+			return EmitBranchUncond(Op2);
+		return 0;
+	}
 	if (getOpcode(*Op1) == And &&
 	    isImm(*getOp2(Op1)) &&
 	    getOpcode(*getOp1(Op1)) == ICmpCRSigned) {
@@ -460,6 +485,71 @@ InstLoc IRBuilder::FoldBranchCond(InstLoc Op1, InstLoc Op2) {
 	return EmitBiOp(BranchCond, Op1, Op2);
 }
 
+InstLoc IRBuilder::FoldICmp(unsigned Opcode, InstLoc Op1, InstLoc Op2) {
+	if (isImm(*Op1)) {
+		if (isImm(*Op2)) {
+			unsigned result = 0;
+			switch (Opcode) {
+			case ICmpEq:
+				result = GetImmValue(Op1) == GetImmValue(Op2);
+				break;
+			case ICmpUgt:
+				result = GetImmValue(Op1) > GetImmValue(Op2);
+				break;
+			case ICmpUlt:
+				result = GetImmValue(Op1) < GetImmValue(Op2);
+				break;
+			case ICmpUge:
+				result = GetImmValue(Op1) >= GetImmValue(Op2);
+				break;
+			case ICmpUle:
+				result = GetImmValue(Op1) <= GetImmValue(Op2);
+				break;
+			case ICmpSgt:
+				result = (signed)GetImmValue(Op1) >
+					 (signed)GetImmValue(Op2);
+				break;
+			case ICmpSlt:
+				result = (signed)GetImmValue(Op1) <
+					 (signed)GetImmValue(Op2);
+				break;
+			case ICmpSge:
+				result = (signed)GetImmValue(Op1) >=
+					 (signed)GetImmValue(Op2);
+				break;
+			case ICmpSle:
+				result = (signed)GetImmValue(Op1) <=
+					 (signed)GetImmValue(Op2);
+				break;
+			}
+			return EmitIntConst(result);
+		}
+		switch (Opcode) {
+		case ICmpEq:
+			return FoldICmp(ICmpEq, Op2, Op1);
+		case ICmpNe:
+			return FoldICmp(ICmpNe, Op2, Op1);
+		case ICmpUlt:
+			return FoldICmp(ICmpUgt, Op2, Op1);
+		case ICmpUgt:
+			return FoldICmp(ICmpUlt, Op2, Op1);
+		case ICmpUle:
+			return FoldICmp(ICmpUge, Op2, Op1);
+		case ICmpUge:
+			return FoldICmp(ICmpUle, Op2, Op1);
+		case ICmpSlt:
+			return FoldICmp(ICmpSgt, Op2, Op1);
+		case ICmpSgt:
+			return FoldICmp(ICmpSlt, Op2, Op1);
+		case ICmpSle:
+			return FoldICmp(ICmpSge, Op2, Op1);
+		case ICmpSge:
+			return FoldICmp(ICmpSle, Op2, Op1);
+		}
+	}
+	return EmitBiOp(Opcode, Op1, Op2);
+}
+
 InstLoc IRBuilder::FoldInterpreterFallback(InstLoc Op1, InstLoc Op2) {
 	for (unsigned i = 0; i < 32; i++) {
 		GRegCache[i] = 0;
@@ -473,12 +563,15 @@ InstLoc IRBuilder::FoldInterpreterFallback(InstLoc Op1, InstLoc Op2) {
 		CRCache[i] = 0;
 		CRCacheStore[i] = 0;
 	}
+	CTRCache = 0;
+	CTRCacheStore = 0;	
 	return EmitBiOp(InterpreterFallback, Op1, Op2);
 }
 
 InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned extra) {
 	switch (Opcode) {
 		case Add: return FoldAdd(Op1, Op2);
+		case Sub: return FoldSub(Op1, Op2);
 		case And: return FoldAnd(Op1, Op2);
 		case Or: return FoldOr(Op1, Op2);
 		case Xor: return FoldXor(Op1, Op2);
@@ -486,6 +579,10 @@ InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 		case Shrl: return FoldShrl(Op1, Op2);
 		case Rol: return FoldRol(Op1, Op2);
 		case BranchCond: return FoldBranchCond(Op1, Op2);
+		case ICmpEq: case ICmpNe:
+		case ICmpUgt: case ICmpUlt: case ICmpUge: case ICmpUle:
+		case ICmpSgt: case ICmpSlt: case ICmpSge: case ICmpSle:
+			return FoldICmp(Opcode, Op1, Op2);
 		case InterpreterFallback: return FoldInterpreterFallback(Op1, Op2);
 		default: return EmitBiOp(Opcode, Op1, Op2, extra);
 	}
@@ -738,8 +835,19 @@ static void fregNormalRegClear(RegInfo& RI, InstLoc I) {
 
 static void regEmitBinInst(RegInfo& RI, InstLoc I,
 			   void (Jit64::*op)(int, const OpArg&,
-			                     const OpArg&)) {
-	X64Reg reg = regBinLHSReg(RI, I);
+			                     const OpArg&),
+			   bool commutable = false) {
+	X64Reg reg;
+	bool commuted = false;
+	if (RI.IInfo[I - RI.FirstI] & 4) {
+		reg = regEnsureInReg(RI, getOp1(I));
+	} else if (commutable && (RI.IInfo[I - RI.FirstI] & 8)) {
+		reg = regEnsureInReg(RI, getOp2(I));
+		commuted = true;
+	} else {
+		reg = regFindFreeReg(RI);
+		RI.Jit->MOV(32, R(reg), regLocForInst(RI, getOp1(I)));
+	}
 	if (isImm(*getOp2(I))) {
 		unsigned RHS = RI.Build->GetImmValue(getOp2(I));
 		if (RHS + 128 < 256) {
@@ -747,11 +855,27 @@ static void regEmitBinInst(RegInfo& RI, InstLoc I,
 		} else {
 			(RI.Jit->*op)(32, R(reg), Imm32(RHS));
 		}
+	} else if (commuted) {
+		(RI.Jit->*op)(32, R(reg), regLocForInst(RI, getOp1(I)));
 	} else {
 		(RI.Jit->*op)(32, R(reg), regLocForInst(RI, getOp2(I)));
 	}
 	RI.regs[reg] = I;
 	regNormalRegClear(RI, I);
+}
+
+static void fregEmitBinInst(RegInfo& RI, InstLoc I,
+			    void (Jit64::*op)(X64Reg, OpArg)) {
+	X64Reg reg;
+	if (RI.IInfo[I - RI.FirstI] & 4) {
+		reg = fregEnsureInReg(RI, getOp1(I));
+	} else {
+		reg = fregFindFreeReg(RI);
+		RI.Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
+	}
+	(RI.Jit->*op)(reg, fregLocForInst(RI, getOp2(I)));
+	RI.fregs[reg] = I;
+	fregNormalRegClear(RI, I);
 }
 
 // Mark and calculation routines for profiled load/store addresses
@@ -994,6 +1118,15 @@ static void regEmitCmp(RegInfo& RI, InstLoc I) {
 	}
 }
 
+static void regEmitICmpInst(RegInfo& RI, InstLoc I, CCFlags flag) {
+	regEmitCmp(RI, I);
+	RI.Jit->SETcc(flag, R(ECX)); // Caution: SETCC uses 8-bit regs!
+	X64Reg reg = regFindFreeReg(RI);
+	RI.Jit->MOVZX(32, 8, reg, R(ECX));
+	RI.regs[reg] = I;
+	regNormalRegClear(RI, I);
+}
+
 static void regWriteExit(RegInfo& RI, InstLoc dest) {
 	if (RI.MakeProfile) {
 		if (isImm(*dest)) {
@@ -1105,9 +1238,15 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case ICmpCRUnsigned:
 		case ICmpCRSigned:
 		case ICmpEq:
+		case ICmpNe:
 		case ICmpUgt:
-		case ICmpSle:
+		case ICmpUlt:
+		case ICmpUge:
+		case ICmpUle:
 		case ICmpSgt:
+		case ICmpSlt:
+		case ICmpSge:
+		case ICmpSle:
 		case FSMul:
 		case FSAdd:
 		case FSSub:
@@ -1311,12 +1450,12 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		}
 		case And: {
 			if (!thisUsed) break;
-			regEmitBinInst(RI, I, &Jit64::AND);
+			regEmitBinInst(RI, I, &Jit64::AND, true);
 			break;
 		}
 		case Xor: {
 			if (!thisUsed) break;
-			regEmitBinInst(RI, I, &Jit64::XOR);
+			regEmitBinInst(RI, I, &Jit64::XOR, true);
 			break;
 		}
 		case Sub: {
@@ -1326,12 +1465,12 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		}
 		case Or: {
 			if (!thisUsed) break;
-			regEmitBinInst(RI, I, &Jit64::OR);
+			regEmitBinInst(RI, I, &Jit64::OR, true);
 			break;
 		}
 		case Add: {
 			if (!thisUsed) break;
-			regEmitBinInst(RI, I, &Jit64::ADD);
+			regEmitBinInst(RI, I, &Jit64::ADD, true);
 			break;
 		}
 		case Mul: {
@@ -1374,32 +1513,52 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		}
 		case ICmpEq: {
 			if (!thisUsed) break;
-			regEmitCmp(RI, I);
-			Jit->SETcc(CC_Z, R(ECX)); // Caution: SETCC uses 8-bit regs!
-			X64Reg reg = regFindFreeReg(RI);
-			Jit->MOVZX(32, 8, reg, R(ECX));
-			RI.regs[reg] = I;
-			regNormalRegClear(RI, I);
+			regEmitICmpInst(RI, I, CC_E);
+			break;
+		}
+		case ICmpNe: {
+			if (!thisUsed) break;
+			regEmitICmpInst(RI, I, CC_NE);
 			break;
 		}
 		case ICmpUgt: {
 			if (!thisUsed) break;
-			regEmitCmp(RI, I);
-			Jit->SETcc(CC_A, R(ECX)); // Caution: SETCC uses 8-bit regs!
-			X64Reg reg = regFindFreeReg(RI);
-			Jit->MOVZX(32, 8, reg, R(ECX));
-			RI.regs[reg] = I;
-			regNormalRegClear(RI, I);
+			regEmitICmpInst(RI, I, CC_A);
+			break;
+		}
+		case ICmpUlt: {
+			if (!thisUsed) break;
+			regEmitICmpInst(RI, I, CC_B);
+			break;
+		}
+		case ICmpUge: {
+			if (!thisUsed) break;
+			regEmitICmpInst(RI, I, CC_AE);
+			break;
+		}
+		case ICmpUle: {
+			if (!thisUsed) break;
+			regEmitICmpInst(RI, I, CC_BE);
+			break;
+		}
+		case ICmpSgt: {
+			if (!thisUsed) break;
+			regEmitICmpInst(RI, I, CC_G);
+			break;
+		}
+		case ICmpSlt: {
+			if (!thisUsed) break;
+			regEmitICmpInst(RI, I, CC_L);
+			break;
+		}
+		case ICmpSge: {
+			if (!thisUsed) break;
+			regEmitICmpInst(RI, I, CC_GE);
 			break;
 		}
 		case ICmpSle: {
 			if (!thisUsed) break;
-			regEmitCmp(RI, I);
-			Jit->SETcc(CC_LE, R(ECX)); // Caution: SETCC uses 8-bit regs!
-			X64Reg reg = regFindFreeReg(RI);
-			Jit->MOVZX(32, 8, reg, R(ECX));
-			RI.regs[reg] = I;
-			regNormalRegClear(RI, I);
+			regEmitICmpInst(RI, I, CC_LE);
 			break;
 		}
 		case ICmpCRUnsigned: {
@@ -1649,83 +1808,47 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		}
 		case FSMul: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
-			Jit->MULSS(reg, fregLocForInst(RI, getOp2(I)));
-			RI.fregs[reg] = I;
-			fregNormalRegClear(RI, I);
+			fregEmitBinInst(RI, I, &Jit64::MULSS);
 			break;
 		}
 		case FSAdd: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
-			Jit->ADDSS(reg, fregLocForInst(RI, getOp2(I)));
-			RI.fregs[reg] = I;
-			fregNormalRegClear(RI, I);
+			fregEmitBinInst(RI, I, &Jit64::ADDSS);
 			break;
 		}
 		case FSSub: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
-			Jit->SUBSS(reg, fregLocForInst(RI, getOp2(I)));
-			RI.fregs[reg] = I;
-			fregNormalRegClear(RI, I);
+			fregEmitBinInst(RI, I, &Jit64::SUBSS);
 			break;
 		}
 		case FDMul: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
-			Jit->MULSD(reg, fregLocForInst(RI, getOp2(I)));
-			RI.fregs[reg] = I;
-			fregNormalRegClear(RI, I);
+			fregEmitBinInst(RI, I, &Jit64::MULSD);
 			break;
 		}
 		case FDAdd: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
-			Jit->ADDSD(reg, fregLocForInst(RI, getOp2(I)));
-			RI.fregs[reg] = I;
-			fregNormalRegClear(RI, I);
+			fregEmitBinInst(RI, I, &Jit64::ADDSD);
 			break;
 		}
 		case FDSub: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
-			Jit->SUBSD(reg, fregLocForInst(RI, getOp2(I)));
-			RI.fregs[reg] = I;
-			fregNormalRegClear(RI, I);
+			fregEmitBinInst(RI, I, &Jit64::SUBSD);
 			break;
 		}
 		case FPAdd: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
-			Jit->ADDPS(reg, fregLocForInst(RI, getOp2(I)));
-			RI.fregs[reg] = I;
-			fregNormalRegClear(RI, I);
+			fregEmitBinInst(RI, I, &Jit64::ADDPS);
 			break;
 		}
 		case FPMul: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
-			Jit->MULPS(reg, fregLocForInst(RI, getOp2(I)));
-			RI.fregs[reg] = I;
-			fregNormalRegClear(RI, I);
+			fregEmitBinInst(RI, I, &Jit64::MULPS);
 			break;
 		}
 		case FPSub: {
 			if (!thisUsed) break;
-			X64Reg reg = fregFindFreeReg(RI);
-			Jit->MOVAPD(reg, fregLocForInst(RI, getOp1(I)));
-			Jit->SUBPS(reg, fregLocForInst(RI, getOp2(I)));
-			RI.fregs[reg] = I;
-			fregNormalRegClear(RI, I);
+			fregEmitBinInst(RI, I, &Jit64::SUBPS);
 			break;
 		}
 		case FPMerge00: {
@@ -1785,7 +1908,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			    isImm(*getOp2(getOp1(I)))) {
 				Jit->CMP(32, regLocForInst(RI, getOp1(getOp1(I))),
 					 Imm32(RI.Build->GetImmValue(getOp2(getOp1(I)))));
-				FixupBranch cont = Jit->J_CC(CC_Z);
+				FixupBranch cont = Jit->J_CC(CC_NZ);
 				regWriteExit(RI, getOp2(I));
 				Jit->SetJumpTarget(cont);
 				if (RI.IInfo[I - RI.FirstI] & 4)
@@ -1794,14 +1917,14 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 				   isImm(*getOp2(getOp1(I)))) {
 				Jit->CMP(32, regLocForInst(RI, getOp1(getOp1(I))),
 					 Imm32(RI.Build->GetImmValue(getOp2(getOp1(I)))));
-				FixupBranch cont = Jit->J_CC(CC_LE);
+				FixupBranch cont = Jit->J_CC(CC_G);
 				regWriteExit(RI, getOp2(I));
 				Jit->SetJumpTarget(cont);
 				if (RI.IInfo[I - RI.FirstI] & 4)
 					regClearInst(RI, getOp1(getOp1(I)));
 			} else {
 				Jit->CMP(32, regLocForInst(RI, getOp1(I)), Imm8(0));
-				FixupBranch cont = Jit->J_CC(CC_NZ);
+				FixupBranch cont = Jit->J_CC(CC_Z);
 				regWriteExit(RI, getOp2(I));
 				Jit->SetJumpTarget(cont);
 				if (RI.IInfo[I - RI.FirstI] & 4)

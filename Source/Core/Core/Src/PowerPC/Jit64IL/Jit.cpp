@@ -434,16 +434,6 @@ namespace CPUCompare
 			SetJumpTarget(b1);
 		}
 
-		if (false && jo.fastInterrupts)
-		{
-			// This does NOT yet work.
-			TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(0xFFFFFFFF));
-			FixupBranch b1 = J_CC(CC_Z);
-			MOV(32, M(&PC), Imm32(js.blockStart));
-			JMP(asm_routines.testExceptions, true);
-			SetJumpTarget(b1);
-		}
-
 		js.rewriteStart = (u8*)GetCodePtr();
 
 		// Start up IR builder (structure that collects the
@@ -455,26 +445,13 @@ namespace CPUCompare
 		// Translate instructions
 		for (int i = 0; i < (int)size; i++)
 		{
-			// gpr.Flush(FLUSH_ALL);
-			// if (PPCTables::UsesFPU(_inst))
-			// fpr.Flush(FLUSH_ALL);
 			js.compilerPC = ops[i].address;
 			js.op = &ops[i];
 			js.instructionNumber = i;
 			if (i == (int)size - 1)
 			{
-				// WARNING - cmp->branch merging will screw this up.
 				js.isLastInstruction = true;
 				js.next_inst = 0;
-				if (Profiler::g_ProfileBlocks) {
-					// CAUTION!!! push on stack regs you use, do your stuff, then pop
-					PROFILER_VPUSH;
-					// get end tic
-					PROFILER_QUERY_PERFORMACE_COUNTER(&b->ticStop);
-					// tic counter += (end tic - start tic)
-					PROFILER_ADD_DIFF_LARGE_INTEGER(&b->ticCounter, &b->ticStop, &b->ticStart);
-					PROFILER_VPOP;
-				}
 			}
 			else
 			{
@@ -483,25 +460,8 @@ namespace CPUCompare
 				js.next_compilerPC = ops[i + 1].address;
 			}
 
-			if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
-			{
-				js.fifoBytesThisBlock -= 32;
-				ABI_CallFunction(thunks.ProtectFunction((void *)&GPFifo::CheckGatherPipe, 0));
-			}
-
-			// If starting from the breakpointed instruction, we don't break.
-			if (em_address != ops[i].address && BreakPoints::IsAddressBreakPoint(ops[i].address))
-			{
-				
-			}
-
 			if (!ops[i].skip)
 				PPCTables::CompileInstruction(ops[i].inst);
-
-			gpr.SanityCheck();
-			fpr.SanityCheck();
-			if (js.cancel)
-				break;
 		}
 
 		// Perform actual code generation
