@@ -216,6 +216,10 @@ namespace IREmitter {
 	unsigned inline isImm(Inst i) {
 		return getOpcode(i) >= CInt16 && getOpcode(i) <= CInt32;
 	}
+	
+	unsigned inline isICmp(Inst i) {
+		return getOpcode(i) >= ICmpEq && getOpcode(i) <= ICmpSle;
+	}
 
 	unsigned inline isFResult(Inst i) {
 		return getOpcode(i) > FResult_Start && 
@@ -329,11 +333,20 @@ namespace IREmitter {
 		InstLoc EmitICmpEq(InstLoc op1, InstLoc op2) {
 			return FoldBiOp(ICmpEq, op1, op2);
 		}
+		InstLoc EmitICmpNe(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(ICmpNe, op1, op2);
+		}
 		InstLoc EmitICmpUgt(InstLoc op1, InstLoc op2) {
 			return FoldBiOp(ICmpUgt, op1, op2);
 		}
 		InstLoc EmitICmpSgt(InstLoc op1, InstLoc op2) {
 			return FoldBiOp(ICmpSgt, op1, op2);
+		}
+		InstLoc EmitICmpSlt(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(ICmpSlt, op1, op2);
+		}
+		InstLoc EmitICmpSge(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(ICmpSge, op1, op2);
 		}
 		InstLoc EmitICmpSle(InstLoc op1, InstLoc op2) {
 			return FoldBiOp(ICmpSle, op1, op2);
