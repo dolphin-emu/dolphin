@@ -96,7 +96,6 @@ void Callback_WiimoteInput(u16 _channelID, const void* _pData, u32 _Size);
 void Callback_KeyPress(int key, bool shift, bool control);
 TPeekMessages Callback_PeekMessages = NULL;
 TUpdateFPSDisplay g_pUpdateFPSDisplay = NULL;
-SVideoInitialize VideoInitialize;
 
 #ifdef _WIN32
 	DWORD WINAPI EmuThread(void *pArg);
@@ -188,27 +187,6 @@ bool Init(const SCoreStartupParameter _CoreParameter)
         if (_CoreParameter.bWii && !PluginWiimote::LoadPlugin(g_CoreStartupParameter.m_strWiimotePlugin.c_str())) {
 		return false;
 	}
-
-    // Load the VideoPlugin	
-	VideoInitialize.pGetMemoryPointer	= Memory::GetPointer;
-	VideoInitialize.pSetPEToken			= PixelEngine::SetToken;
-	VideoInitialize.pSetPEFinish		= PixelEngine::SetFinish;
-	// This is first the m_Panel handle, then it is updated to have the new window handle
-	VideoInitialize.pWindowHandle		= _CoreParameter.hMainWindow;
-	VideoInitialize.pLog				= Callback_VideoLog;
-	VideoInitialize.pSysMessage			= Host_SysMessage;
-	VideoInitialize.pRequestWindowSize	= NULL; //Callback_VideoRequestWindowSize;
-	VideoInitialize.pCopiedToXFB		= Callback_VideoCopiedToXFB;
-	VideoInitialize.pVIRegs             = VideoInterface::m_UVIUnknownRegs;
-	VideoInitialize.pPeekMessages       = NULL;
-    VideoInitialize.pUpdateFPSDisplay   = NULL;
-	VideoInitialize.pCPFifo             = (SCPFifoStruct*)&CommandProcessor::fifo;
-	VideoInitialize.pUpdateInterrupts   = &(CommandProcessor::UpdateInterruptsFromVideoPlugin);
-	VideoInitialize.pMemoryBase         = Memory::base;
-	VideoInitialize.pKeyPress           = Callback_KeyPress;
-	VideoInitialize.bWii                = _CoreParameter.bWii;
-	PluginVideo::Video_Initialize(&VideoInitialize); // Call the dll
-
 
 	emuThreadGoing.Init();
 
@@ -331,6 +309,27 @@ THREAD_RETURN EmuThread(void *pArg)
 	HW::Init();	
 	
     emuThreadGoing.Set();
+
+	// Load the VideoPlugin
+ 	SVideoInitialize VideoInitialize;
+	VideoInitialize.pGetMemoryPointer	= Memory::GetPointer;
+	VideoInitialize.pSetPEToken			= PixelEngine::SetToken;
+	VideoInitialize.pSetPEFinish		= PixelEngine::SetFinish;
+	// This is first the m_Panel handle, then it is updated to have the new window handle
+	VideoInitialize.pWindowHandle		= _CoreParameter.hMainWindow;
+	VideoInitialize.pLog				= Callback_VideoLog;
+	VideoInitialize.pSysMessage			= Host_SysMessage;
+	VideoInitialize.pRequestWindowSize	= NULL; //Callback_VideoRequestWindowSize;
+	VideoInitialize.pCopiedToXFB		= Callback_VideoCopiedToXFB;
+	VideoInitialize.pVIRegs             = VideoInterface::m_UVIUnknownRegs;
+	VideoInitialize.pPeekMessages       = NULL;
+    VideoInitialize.pUpdateFPSDisplay   = NULL;
+	VideoInitialize.pCPFifo             = (SCPFifoStruct*)&CommandProcessor::fifo;
+	VideoInitialize.pUpdateInterrupts   = &(CommandProcessor::UpdateInterruptsFromVideoPlugin);
+	VideoInitialize.pMemoryBase         = Memory::base;
+	VideoInitialize.pKeyPress           = Callback_KeyPress;
+	VideoInitialize.bWii                = _CoreParameter.bWii;
+	PluginVideo::Video_Initialize(&VideoInitialize); // Call the dll
 
 	// Under linux, this is an X11 Display, not an HWND!
 	g_pWindowHandle = (HWND)VideoInitialize.pWindowHandle;
