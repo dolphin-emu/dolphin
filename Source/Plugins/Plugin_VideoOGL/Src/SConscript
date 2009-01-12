@@ -24,6 +24,7 @@ files = [
 	'VertexLoaderManager.cpp',
 	'XFB.cpp',
 	'XFStructs.cpp',
+	'TextureConversionShader.cpp',
 	]
 compileFlags = [
 	'-fPIC',
