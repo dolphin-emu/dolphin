@@ -68,7 +68,7 @@ struct Config
     bool bEFBCopyDisableHotKey;
     bool bProjectionHax1;
     bool bProjectionHax2;
-	bool bEFBToTextureEnable;
+	bool bCopyEFBToRAM;
     
     int iLog; // CONF_ bits
     int iSaveTargetId;

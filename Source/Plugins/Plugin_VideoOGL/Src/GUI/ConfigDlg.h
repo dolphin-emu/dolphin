@@ -101,7 +101,7 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_ProjectionHax1;
 		wxCheckBox *m_ProjectionHax2;
 		wxCheckBox *m_SafeTextureCache;
-		wxCheckBox *m_EFBToTextureEnable;
+		wxCheckBox *m_CopyEFBToRAM;
 
 		enum
 		{
@@ -147,7 +147,7 @@ class ConfigDialog : public wxDialog
 			ID_EFBCOPYDISABLE, ID_EFBCOPYDISABLEHOTKEY,
 			ID_PROJECTIONHACK1,
 			ID_PROJECTIONHACK2,
-			ID_EFBTOTEXTUREENABLE
+			ID_COPYEFBTORAM
 		};
 
 		void OnClose(wxCloseEvent& event);

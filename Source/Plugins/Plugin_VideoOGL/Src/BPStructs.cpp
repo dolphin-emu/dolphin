@@ -456,13 +456,13 @@ void BPWritten(int addr, int changes, int newval)
 					glViewport(rc.left,rc.bottom,rc.right,rc.top);
 					glScissor(rc.left,rc.bottom,rc.right,rc.top);
 				}
-				else if (g_Config.bEFBToTextureEnable) {
-					TextureMngr::CopyRenderTargetToTexture(bpmem.copyTexDest<<5, bpmem.zcontrol.pixel_format==PIXELFMT_Z24, PE_copy.intensity_fmt>0,
-                    (PE_copy.target_pixel_format/2)+((PE_copy.target_pixel_format&1)*8), PE_copy.half_scale>0, &rc);
-				}
-				else {
+				else if (g_Config.bCopyEFBToRAM) {
 					TextureConverter::EncodeToRam(bpmem.copyTexDest<<5, bpmem.zcontrol.pixel_format==PIXELFMT_Z24, PE_copy.intensity_fmt>0,
                     (PE_copy.target_pixel_format/2)+((PE_copy.target_pixel_format&1)*8), PE_copy.half_scale>0, rc);
+				}
+				else {
+					TextureMngr::CopyRenderTargetToTexture(bpmem.copyTexDest<<5, bpmem.zcontrol.pixel_format==PIXELFMT_Z24, PE_copy.intensity_fmt>0,
+                    (PE_copy.target_pixel_format/2)+((PE_copy.target_pixel_format&1)*8), PE_copy.half_scale>0, &rc);
 				}
 			}
             else {

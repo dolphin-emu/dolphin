@@ -54,7 +54,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_PROJECTIONHACK1,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJECTIONHACK2,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SAFETEXTURECACHE,ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_EFBTOTEXTUREENABLE, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_COPYEFBTORAM, ConfigDialog::AdvancedSettingsChanged)
 	EVT_DIRPICKER_CHANGED(ID_TEXTUREPATH, ConfigDialog::TexturePathChange)
 END_EVENT_TABLE()
 
@@ -228,8 +228,8 @@ void ConfigDialog::CreateGUIControls()
 	// Hacks
 	sbHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
 	m_EFBCopyDisable = new wxCheckBox(m_PageAdvanced,
-		ID_EFBCOPYDISABLE, wxT("Disable copy EFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_EFBCopyDisable->SetToolTip(wxT("Do not copy the Embedded Framebuffer (EFB)."
+		ID_EFBCOPYDISABLE, wxT("Disable copy EFB to texture"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_EFBCopyDisable->SetToolTip(wxT("Do not copy the Extended Framebuffer (EFB) to texture."
 		" This may result in a speed increase."));
 	m_EFBCopyDisable->Enable(true);
 	m_EFBCopyDisable->SetValue(g_Config.bEFBCopyDisable);
@@ -242,15 +242,15 @@ void ConfigDialog::CreateGUIControls()
 #endif
 	m_EFBCopyDisableHotKey->SetValue(g_Config.bEFBCopyDisableHotKey);
 
-	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Use Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_SafeTextureCache->SetToolTip(wxT("This is useful to prevent Metroid Prime from crashing, but can cause problems in other games."));
 	m_SafeTextureCache->Enable(true);
 	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);
 
-	m_EFBToTextureEnable = new wxCheckBox(m_PageAdvanced, ID_EFBTOTEXTUREENABLE, wxT("Copy EFB to texture"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_EFBToTextureEnable->SetToolTip(wxT("This is faster than copying the EFB to RAM, but may cause missing/corrupt textures or effects."));
-	m_EFBToTextureEnable->Enable(true);
-	m_EFBToTextureEnable->SetValue(g_Config.bEFBToTextureEnable);
+	m_CopyEFBToRAM = new wxCheckBox(m_PageAdvanced, ID_COPYEFBTORAM, wxT("Copy EFB to system RAM"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_CopyEFBToRAM->SetToolTip(wxT("Copies the EFB to RAM instead of a GL texture, this might cause some slowdown but fixes some graphical issues and game issues like broken MP2 scanner issue"));
+	m_CopyEFBToRAM->Enable(true);
+	m_CopyEFBToRAM->SetValue(g_Config.bCopyEFBToRAM);
 
 	m_ProjectionHax1 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK1, wxT("Projection before R945"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ProjectionHax1->SetToolTip(wxT("This may reveal otherwise invisible graphics"
@@ -292,7 +292,7 @@ void ConfigDialog::CreateGUIControls()
 	sHacks->Add(m_ProjectionHax1, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
 	sHacks->Add(m_ProjectionHax2, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 	sHacks->Add(m_SafeTextureCache, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
-	sHacks->Add(m_EFBToTextureEnable, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL, 5);
+	sHacks->Add(m_CopyEFBToRAM, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
 	sbHacks->Add(sHacks);
 	sAdvanced->Add(sbHacks, 0, wxEXPAND|wxALL, 5);
 	m_PageAdvanced->SetSizer(sAdvanced);
@@ -443,12 +443,11 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 	case ID_SAFETEXTURECACHE:
 		g_Config.bSafeTextureCache = m_SafeTextureCache->IsChecked();
 		break;
-	case ID_EFBTOTEXTUREENABLE:
+	case ID_COPYEFBTORAM:
 		{
-			bool wasEnabled = g_Config.bEFBToTextureEnable;
-			g_Config.bEFBToTextureEnable = m_EFBToTextureEnable->IsChecked();
-			if(wasEnabled && !g_Config.bEFBToTextureEnable)
+			if(g_Config.bCopyEFBToRAM)
 				TextureMngr::ClearRenderTargets();
+			g_Config.bCopyEFBToRAM = m_CopyEFBToRAM->IsChecked();
 		}
 		break;
 	default:
