@@ -44,13 +44,29 @@ if wxenv['HAVE_WX']:
 	libs = [ 'debwx' ] + libs
 
 
+if wxenv['HAVE_COCOA']:
+    files += [ 'cocoaApp.m', ]
+    compileFlags = [
+            '-x',
+            'objective-c++',
+            ]
+    wxenv.Append(
+	CXXFLAGS = compileFlags,
+       	LINKFLAGS = [
+               	'-pthread',
+               	],
+       	LIBS = libs
+       	)
+else:
+    wxenv.Append(
+       	LINKFLAGS = [
+               	'-pthread',
+               	],
+       	LIBS = libs
+       	)
 
-wxenv.Append(
-        LINKFLAGS = [
-                '-pthread',
-                ],
-        LIBS = libs
-        )
+
+
 
 if sys.platform == 'darwin':
 	exeGUI = env['binary_dir'] + 'Dolphin.app/Contents/MacOS/Dolphin'

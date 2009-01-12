@@ -17,6 +17,10 @@
 #include "Thread.h"
 #include "PowerPC/PowerPC.h"
 
+#if defined(HAVE_COCOA) && HAVE_COCOA
+#include "cocoaApp.h"
+#endif
+
 #include "BootManager.h"
 void* g_pCodeWindow = NULL;
 void* main_frame = NULL;
@@ -86,11 +90,28 @@ void Host_UpdateStatus()
 
 void Host_SetWiiMoteConnectionState(int _State) {}
 
+
+//for cocoa we need to hijack the main to get event
+#if defined(HAVE_COCOA) && HAVE_COCOA
+int appleMain(int argc, char *argv[]);
+
+int main(int argc, char *argv[])
+{
+
+	cocoaCreateApp();
+	return appleMain(argc, argv);
+
+}
+
+
+int appleMain(int argc, char *argv[])
+#else
 // Include SDL header so it can hijack main().
 #if defined(USE_SDL) && USE_SDL
 #include <SDL.h>
 #endif
 int main(int argc, char* argv[])
+#endif
 {
 	gengetopt_args_info args_info;
 
