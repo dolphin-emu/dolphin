@@ -1,5 +1,4 @@
 #import "cocoaApp.h"
-#import <Cocoa/Cocoa.h>
 
 @implementation NSApplication(i)
 - (void)appRunning
@@ -46,4 +45,47 @@ void cocoaCreateApp()
         [pool release];
 
 }
+
+void cocoaKeyCode(NSEvent *event)
+{
+
+	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+
+	NSConnection *connec = [NSConnection defaultConnection];
+
+        [connec setRootObject: event];
+        if ([connec registerName: @"DolphinCocoaEvent"] == NO)
+        {
+                printf("error creating nsconnection\n");
+        }
+
+	[pool release];
+
+
+}
+
+void cocoaSendEvent(NSEvent *event)
+{
+
+	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+	
+	if ( event != nil ) {
+		switch ([event type]) {
+			case NSKeyDown:
+				cocoaKeyCode(event);
+				break;
+			case NSKeyUp:
+				cocoaKeyCode(nil);
+				break;
+			default:
+				[NSApp sendEvent:event];
+				break;
+			}
+	}
+
+
+	[pool release];
+
+}
+
 

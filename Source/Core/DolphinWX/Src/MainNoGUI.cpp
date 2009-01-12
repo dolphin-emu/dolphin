@@ -7,19 +7,20 @@
 #else
 #endif
 
+#include "Common.h"
+
+#if defined(HAVE_COCOA) && HAVE_COCOA
+#import "cocoaApp.h"
+#endif
 
 #include "Globals.h"
 #include "Host.h"
-#include "Common.h"
 #include "ISOFile.h"
 #include "CPUDetect.h"
 #include "cmdline.h"
 #include "Thread.h"
 #include "PowerPC/PowerPC.h"
 
-#if defined(HAVE_COCOA) && HAVE_COCOA
-#include "cocoaApp.h"
-#endif
 
 #include "BootManager.h"
 void* g_pCodeWindow = NULL;
@@ -93,14 +94,83 @@ void Host_SetWiiMoteConnectionState(int _State) {}
 
 //for cocoa we need to hijack the main to get event
 #if defined(HAVE_COCOA) && HAVE_COCOA
+
+@interface CocoaThread : NSObject
+{
+}
+- (void)cocoaThreadStart;
+- (void)cocoaThreadRun:(id)sender;
+- (void)cocoaThreadQuit:(NSNotification*)note;
+@end
+
+static NSString *CocoaThreadHaveFinish = @"CocoaThreadHaveFinish";
+
+int cocoaArgc;
+char **cocoaArgv;
 int appleMain(int argc, char *argv[]);
+
+@implementation CocoaThread
+
+- (void)cocoaThreadStart
+{
+
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(cocoaThreadQuit:) name:CocoaThreadHaveFinish object:nil];
+	[NSThread detachNewThreadSelector:@selector(cocoaThreadRun:) toTarget:self withObject:nil];
+
+}
+
+- (void)cocoaThreadRun:(id)sender
+{
+
+	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
+
+	//launch main
+	appleMain(cocoaArgc,cocoaArgv);
+	
+	[[NSNotificationCenter defaultCenter] postNotificationName:CocoaThreadHaveFinish object:nil];
+
+	[pool release];
+
+}
+
+- (void)cocoaThreadQuit:(NSNotification*)note
+{
+
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+
+}
+
+
+@end
+
+
 
 int main(int argc, char *argv[])
 {
 
-	cocoaCreateApp();
-	return appleMain(argc, argv);
+	cocoaArgc = argc;
+	cocoaArgv = argv;
 
+	cocoaCreateApp();
+
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	CocoaThread *thread = [[CocoaThread alloc] init];
+	NSEvent *event = [[NSEvent alloc] init];	
+	
+	[thread cocoaThreadStart];
+	
+	//cocoa event loop
+	while(true)
+	{
+		event = [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES ];
+		cocoaSendEvent(event);
+	}	
+
+
+	[event release];
+	[thread release];
+	[pool release];
 }
 
 
