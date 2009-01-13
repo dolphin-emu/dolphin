@@ -48,6 +48,7 @@ Display* GXdsp;
 bool KeyStatus[NUMCONTROLS];
 #elif defined(HAVE_COCOA) && HAVE_COCOA
 #include <Cocoa/Cocoa.h>
+bool KeyStatus[NUMCONTROLS];
 #endif
 
 SPads pad[4];
@@ -508,8 +509,77 @@ void cocoa_Read(int _numPAD, SPADStatus* _pPADStatus)
                 //printf("error prox client\n");
         }
 
-	if ([proxy keyCode] != 0)
-		printf("evt recevied : %d\n",[proxy keyCode]);
+	int cocoaKey = (int)[proxy keyCode];
+
+	int i;
+        if ((int)[proxy type] == 10)
+	{
+		for (i = 0; i < NUMCONTROLS; i++) {
+        		if (cocoaKey == pad[_numPAD].keyForControl[i]) {
+                		KeyStatus[i] = true;
+                		break;
+                	}
+        	}
+	}
+        else
+	{
+		for (i = 0; i < NUMCONTROLS; i++) {
+        		if (cocoaKey == pad[_numPAD].keyForControl[i]) {
+                		KeyStatus[i] = false;
+                		break;
+                	}
+        	}
+
+	}
+
+
+    int stickvalue =   (KeyStatus[CTL_HALFPRESS]) ? 40 : 100;
+    int triggervalue = (KeyStatus[CTL_HALFPRESS]) ? 100 : 255;
+
+    if (KeyStatus[CTL_MAINLEFT]){_pPADStatus->stickX -= stickvalue;}
+    if (KeyStatus[CTL_MAINUP]){_pPADStatus->stickY += stickvalue;}
+    if (KeyStatus[CTL_MAINRIGHT]){_pPADStatus->stickX += stickvalue;}
+    if (KeyStatus[CTL_MAINDOWN]){_pPADStatus->stickY -= stickvalue;}
+
+    if (KeyStatus[CTL_SUBLEFT]){_pPADStatus->substickX -= stickvalue;}
+    if (KeyStatus[CTL_SUBUP]){_pPADStatus->substickY += stickvalue;}
+    if (KeyStatus[CTL_SUBRIGHT]){_pPADStatus->substickX += stickvalue;}
+    if (KeyStatus[CTL_SUBDOWN]){_pPADStatus->substickY -= stickvalue;}
+
+    if (KeyStatus[CTL_DPADLEFT]){_pPADStatus->button |= PAD_BUTTON_LEFT;}
+    if (KeyStatus[CTL_DPADUP]){_pPADStatus->button |= PAD_BUTTON_UP;}
+    if (KeyStatus[CTL_DPADRIGHT]){_pPADStatus->button |= PAD_BUTTON_RIGHT;}
+    if (KeyStatus[CTL_DPADDOWN]){_pPADStatus->button |= PAD_BUTTON_DOWN;}
+
+    if (KeyStatus[CTL_A]) {
+        _pPADStatus->button |= PAD_BUTTON_A;
+        _pPADStatus->analogA = 255;
+    }
+    
+    if (KeyStatus[CTL_B]) {
+        _pPADStatus->button |= PAD_BUTTON_B;
+        _pPADStatus->analogB = 255;
+    }
+    
+    if (KeyStatus[CTL_X]){_pPADStatus->button |= PAD_BUTTON_X;}
+    if (KeyStatus[CTL_Y]){_pPADStatus->button |= PAD_BUTTON_Y;}
+    if (KeyStatus[CTL_Z]){_pPADStatus->button |= PAD_TRIGGER_Z;}
+	
+    if (KeyStatus[CTL_L]) {
+        _pPADStatus->button |= PAD_TRIGGER_L;
+        _pPADStatus->triggerLeft = triggervalue;
+    }
+    
+    if (KeyStatus[CTL_R]) {
+        _pPADStatus->button |= PAD_TRIGGER_R;
+        _pPADStatus->triggerRight = triggervalue;
+    }
+    
+    if (KeyStatus[CTL_START]){_pPADStatus->button |= PAD_BUTTON_START;}
+    if (KeyStatus[CTL_MIC])
+    	_pPADStatus->MicButton = true;
+    else
+    	_pPADStatus->MicButton = false;
 
 	[pool release];
 

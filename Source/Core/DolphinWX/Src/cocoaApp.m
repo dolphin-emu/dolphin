@@ -72,10 +72,8 @@ void cocoaSendEvent(NSEvent *event)
 	if ( event != nil ) {
 		switch ([event type]) {
 			case NSKeyDown:
-				cocoaKeyCode(event);
-				break;
 			case NSKeyUp:
-				cocoaKeyCode(nil);
+				cocoaKeyCode(event);
 				break;
 			default:
 				[NSApp sendEvent:event];
