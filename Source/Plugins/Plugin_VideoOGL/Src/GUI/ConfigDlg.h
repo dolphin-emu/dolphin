@@ -96,12 +96,14 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_DisableLighting;
 		wxCheckBox *m_DisableTexturing;
 		wxCheckBox *m_DumpTextures;
+		wxStaticBox * m_StaticBox_EFB;
+		wxCheckBox *m_CheckBox_DisableCopyEFB;
+		wxRadioButton *m_Radio_CopyEFBToRAM, *m_Radio_CopyEFBToGL;
 		wxDirPickerCtrl *m_TexturePath;
-		wxCheckBox *m_EFBCopyDisable, *m_EFBCopyDisableHotKey;
+		wxCheckBox *m_EFBCopyDisableHotKey;
 		wxCheckBox *m_ProjectionHax1;
 		wxCheckBox *m_ProjectionHax2;
 		wxCheckBox *m_SafeTextureCache;
-		wxCheckBox *m_CopyEFBToRAM;
 
 		enum
 		{
@@ -139,15 +141,18 @@ class ConfigDialog : public wxDialog
 			ID_WIREFRAME,
 			ID_DISABLELIGHTING,
 			ID_DISABLETEXTURING,
+			ID_STATICBOX_EFB,
 			ID_SAFETEXTURECACHE,
 
 			ID_DUMPTEXTURES,
 			ID_TEXTUREPATH,
 
-			ID_EFBCOPYDISABLE, ID_EFBCOPYDISABLEHOTKEY,
+			ID_CHECKBOX_DISABLECOPYEFB, 
+			ID_EFBCOPYDISABLEHOTKEY,
 			ID_PROJECTIONHACK1,
 			ID_PROJECTIONHACK2,
-			ID_COPYEFBTORAM
+			ID_RADIO_COPYEFBTORAM,
+			ID_RADIO_COPYEFBTOGL
 		};
 
 		void OnClose(wxCloseEvent& event);

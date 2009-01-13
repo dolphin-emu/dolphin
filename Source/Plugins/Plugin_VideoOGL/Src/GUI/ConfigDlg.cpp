@@ -49,13 +49,14 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_DUMPTEXTURES, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLELIGHTING, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLETEXTURING, ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_EFBCOPYDISABLE, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_EFBCOPYDISABLEHOTKEY, ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJECTIONHACK1,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJECTIONHACK2,ConfigDialog::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SAFETEXTURECACHE,ConfigDialog::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_COPYEFBTORAM, ConfigDialog::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_CHECKBOX_DISABLECOPYEFB, ConfigDialog::AdvancedSettingsChanged)
 	EVT_DIRPICKER_CHANGED(ID_TEXTUREPATH, ConfigDialog::TexturePathChange)
+	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTORAM, ConfigDialog::AdvancedSettingsChanged)
+	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTOGL, ConfigDialog::AdvancedSettingsChanged)
 END_EVENT_TABLE()
 
 ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
@@ -216,6 +217,19 @@ void ConfigDialog::CreateGUIControls()
 	m_DisableTexturing = new wxCheckBox(m_PageAdvanced, ID_DISABLETEXTURING, wxT("Disable Texturing"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_DisableTexturing->SetValue(g_Config.bDisableTexturing);
 	m_DisableTexturing->Enable(true);
+	m_StaticBox_EFB = new wxStaticBox(m_PageAdvanced, ID_STATICBOX_EFB, wxT("EFB Copy"));
+	m_CheckBox_DisableCopyEFB = new wxCheckBox(m_PageAdvanced, ID_CHECKBOX_DISABLECOPYEFB, wxT("Disable"));
+	m_CheckBox_DisableCopyEFB->SetValue(g_Config.bEFBCopyDisable);
+	m_Radio_CopyEFBToRAM = new wxRadioButton(m_PageAdvanced, ID_RADIO_COPYEFBTORAM, wxT("Copy EFB to system RAM (real)"));
+	m_Radio_CopyEFBToGL = new wxRadioButton(m_PageAdvanced, ID_RADIO_COPYEFBTOGL, wxT("Copy EFB to GL texture (hack)"));
+	g_Config.bCopyEFBToRAM ? m_Radio_CopyEFBToRAM->SetValue(true) : m_Radio_CopyEFBToGL->SetValue(true);
+	m_EFBCopyDisableHotKey = new wxCheckBox(m_PageAdvanced, ID_EFBCOPYDISABLEHOTKEY, wxT("With hotkey E"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_EFBCopyDisableHotKey->SetToolTip(wxT("Use the E key to turn this option on and off"));
+	#ifndef _WIN32
+	// JPeterson set the hot key to be Win32-specific
+	m_EFBCopyDisableHotKey->Enable(false);
+	#endif
+	m_EFBCopyDisableHotKey->SetValue(g_Config.bEFBCopyDisableHotKey);
 
 	// Utility
 	sbUtilities = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Utilities"));
@@ -227,30 +241,11 @@ void ConfigDialog::CreateGUIControls()
 
 	// Hacks
 	sbHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
-	m_EFBCopyDisable = new wxCheckBox(m_PageAdvanced,
-		ID_EFBCOPYDISABLE, wxT("Disable copy EFB to texture"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_EFBCopyDisable->SetToolTip(wxT("Do not copy the Extended Framebuffer (EFB) to texture."
-		" This may result in a speed increase."));
-	m_EFBCopyDisable->Enable(true);
-	m_EFBCopyDisable->SetValue(g_Config.bEFBCopyDisable);
-	m_EFBCopyDisableHotKey = new wxCheckBox(m_PageAdvanced,
-		ID_EFBCOPYDISABLEHOTKEY, wxT("With hotkey E"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_EFBCopyDisableHotKey->SetToolTip(wxT("Use the E key to turn this option on and off"));
-#ifndef _WIN32
-	// JPeterson set the hot key to be Win32-specific
-	m_EFBCopyDisableHotKey->Enable(false);
-#endif
-	m_EFBCopyDisableHotKey->SetValue(g_Config.bEFBCopyDisableHotKey);
 
 	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Use Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_SafeTextureCache->SetToolTip(wxT("This is useful to prevent Metroid Prime from crashing, but can cause problems in other games."));
 	m_SafeTextureCache->Enable(true);
 	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);
-
-	m_CopyEFBToRAM = new wxCheckBox(m_PageAdvanced, ID_COPYEFBTORAM, wxT("Copy EFB to system RAM"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_CopyEFBToRAM->SetToolTip(wxT("Copies the EFB to RAM instead of a GL texture, this might cause some slowdown but fixes some graphical issues and game issues like broken MP2 scanner issue"));
-	m_CopyEFBToRAM->Enable(true);
-	m_CopyEFBToRAM->SetValue(g_Config.bCopyEFBToRAM);
 
 	m_ProjectionHax1 = new wxCheckBox(m_PageAdvanced, ID_PROJECTIONHACK1, wxT("Projection before R945"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ProjectionHax1->SetToolTip(wxT("This may reveal otherwise invisible graphics"
@@ -272,12 +267,22 @@ void ConfigDialog::CreateGUIControls()
 	sbInfo->Add(sInfo);
 	sAdvanced->Add(sbInfo, 0, wxEXPAND|wxALL, 5);
 
+	wxBoxSizer *sRenderBoxRow1 = new wxBoxSizer(wxHORIZONTAL);
 	sRendering = new wxGridBagSizer(0, 0);
 	sRendering->Add(m_UseXFB, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
 	sRendering->Add(m_Wireframe, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
 	sRendering->Add(m_DisableLighting, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
 	sRendering->Add(m_DisableTexturing, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
-	sbRendering->Add(sRendering);
+	sRenderBoxRow1->Add(sRendering, 0, wxALL|wxEXPAND, 5);
+				wxStaticBoxSizer *sSBox = new wxStaticBoxSizer(m_StaticBox_EFB, wxVERTICAL);
+					wxBoxSizer *sStrip1 = new wxBoxSizer(wxHORIZONTAL);
+					sStrip1->Add(m_CheckBox_DisableCopyEFB, 0, wxALL|wxEXPAND, 5);
+					sStrip1->Add(m_EFBCopyDisableHotKey, 0, wxALL|wxEXPAND, 5);
+				sSBox->Add(sStrip1, 0, wxALL|wxEXPAND, 0);
+				sSBox->Add(m_Radio_CopyEFBToRAM, 0, wxALL|wxEXPAND, 5);
+				sSBox->Add(m_Radio_CopyEFBToGL, 0, wxALL|wxEXPAND, 5);
+	sRenderBoxRow1->Add(sSBox, 0, wxALL|wxEXPAND, 5);
+	sbRendering->Add(sRenderBoxRow1);
 	sAdvanced->Add(sbRendering, 0, wxEXPAND|wxALL, 5);
 
 	sUtilities = new wxGridBagSizer(0, 0);
@@ -287,12 +292,9 @@ void ConfigDialog::CreateGUIControls()
 	sAdvanced->Add(sbUtilities, 0, wxEXPAND|wxALL, 5);
 
 	sHacks = new wxGridBagSizer(0, 0);
-	sHacks->Add(m_EFBCopyDisable, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
-	sHacks->Add(m_EFBCopyDisableHotKey, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
-	sHacks->Add(m_ProjectionHax1, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
-	sHacks->Add(m_ProjectionHax2, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
-	sHacks->Add(m_SafeTextureCache, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
-	sHacks->Add(m_CopyEFBToRAM, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
+	sHacks->Add(m_ProjectionHax1, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
+	sHacks->Add(m_ProjectionHax2, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
+	sHacks->Add(m_SafeTextureCache, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 5);
 	sbHacks->Add(sHacks);
 	sAdvanced->Add(sbHacks, 0, wxEXPAND|wxALL, 5);
 	m_PageAdvanced->SetSizer(sAdvanced);
@@ -428,8 +430,8 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_TEXTUREPATH:
 		break;
-	case ID_EFBCOPYDISABLE:
-		g_Config.bEFBCopyDisable = m_EFBCopyDisable->IsChecked();
+	case ID_CHECKBOX_DISABLECOPYEFB:
+		g_Config.bEFBCopyDisable = m_CheckBox_DisableCopyEFB->IsChecked();
 		break;
 	case ID_EFBCOPYDISABLEHOTKEY:
 		g_Config.bEFBCopyDisableHotKey = m_EFBCopyDisableHotKey->IsChecked();
@@ -443,12 +445,12 @@ void ConfigDialog::AdvancedSettingsChanged(wxCommandEvent& event)
 	case ID_SAFETEXTURECACHE:
 		g_Config.bSafeTextureCache = m_SafeTextureCache->IsChecked();
 		break;
-	case ID_COPYEFBTORAM:
-		{
-			if(g_Config.bCopyEFBToRAM)
-				TextureMngr::ClearRenderTargets();
-			g_Config.bCopyEFBToRAM = m_CopyEFBToRAM->IsChecked();
-		}
+	case ID_RADIO_COPYEFBTORAM:
+		TextureMngr::ClearRenderTargets();
+		g_Config.bCopyEFBToRAM = true;
+		break;
+	case ID_RADIO_COPYEFBTOGL:
+		g_Config.bCopyEFBToRAM = false;
 		break;
 	default:
 		break;
