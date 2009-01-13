@@ -84,7 +84,7 @@ inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
 				 wxALIGN_CENTER_VERTICAL|wxALL);
 #ifdef _WIN32
 	DInput::DIKToString(pad[controller].keyForControl[ctl], keyStr);	
-#else
+#elif defined(HAVE_X11) && HAVE_X11
 	XKeyToString(pad[controller].keyForControl[ctl], keyStr);
 #endif
 
@@ -269,7 +269,7 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 				break;
 			}
 		}
-#else
+#elif defined(HAVE_X11) && HAVE_X11
 		pad[page].keyForControl[clickedButton->GetId()] = wxCharCodeWXToX(event.GetKeyCode());
 		clickedButton->SetLabel(wxString::Format(_T("%c"), event.GetKeyCode()));
 #endif

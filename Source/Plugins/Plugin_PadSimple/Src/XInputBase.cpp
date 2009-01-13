@@ -1,3 +1,4 @@
+
 #include "XInputBase.h"
 
 // Taken from wxw source code

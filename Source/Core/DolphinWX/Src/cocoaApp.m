@@ -56,7 +56,7 @@ void cocoaKeyCode(NSEvent *event)
         [connec setRootObject: event];
         if ([connec registerName: @"DolphinCocoaEvent"] == NO)
         {
-                printf("error creating nsconnection\n");
+                //printf("error creating nsconnection\n");
         }
 
 	[pool release];

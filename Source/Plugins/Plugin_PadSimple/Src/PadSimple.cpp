@@ -23,6 +23,8 @@
 #include "PadSimple.h"
 #include "IniFile.h"
 
+
+
 #if defined(HAVE_WX) && HAVE_WX
 #include "GUI/ConfigDlg.h"
 #endif
@@ -44,6 +46,8 @@ DInput dinput;
 
 Display* GXdsp;
 bool KeyStatus[NUMCONTROLS];
+#elif defined(HAVE_COCOA) && HAVE_COCOA
+#include <Cocoa/Cocoa.h>
 #endif
 
 SPads pad[4];
@@ -174,6 +178,9 @@ void DllConfig(HWND _hParent)
 #elif defined(HAVE_WX) && HAVE_WX
 	ConfigDialog frame(NULL);
 	frame.ShowModal();
+#elif defined(HAVE_COCOA) && HAVE_COCOA
+	ConfigDialog frame(NULL);
+	frame.ShowModal();
 #endif
 	SaveConfig();
 }
@@ -192,6 +199,7 @@ void PAD_Initialize(SPADInitialize _PADInitialize)
 	dinput.Init((HWND)g_PADInitialize.hWnd);
 #elif defined(HAVE_X11) && HAVE_X11
 	GXdsp = (Display*)g_PADInitialize.hWnd;
+#elif defined(HAVE_COCOA) && HAVE_COCOA
 #endif
 	
 	LoadConfig();
@@ -476,7 +484,38 @@ void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
 
 #endif
 
+#if defined(HAVE_COCOA) && HAVE_COCOA
+void cocoa_Read(int _numPAD, SPADStatus* _pPADStatus)
+{
+    // Do all the stuff we need to do once per frame here
+    if (_numPAD != 0) {
+        return;
+    }
 
+	//get event from main thread
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+        NSConnection *conn;
+        NSDistantObject *proxy;
+
+	conn = [NSConnection connectionWithRegisteredName:@"DolphinCocoaEvent" host:nil];
+        if (!conn) {
+                //printf("error creating cnx event client\n");
+        }
+
+        proxy = [conn rootProxy];
+
+        if (!proxy) {
+                //printf("error prox client\n");
+        }
+
+	if ([proxy keyCode] != 0)
+		printf("evt recevied : %d\n",[proxy keyCode]);
+
+	[pool release];
+
+}
+
+#endif
 // Set buttons status from wxWidgets in the main application
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PAD_Input(u8 _Key, u8 _UpDown) {}
@@ -519,6 +558,9 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 #elif defined(HAVE_X11) && HAVE_X11
 	_pPADStatus->err = PAD_ERR_NONE;
 	X11_Read(_numPAD, _pPADStatus);
+#elif defined(HAVE_COCOA) && HAVE_COCOA
+	_pPADStatus->err = PAD_ERR_NONE;
+	cocoa_Read(_numPAD, _pPADStatus);
 #endif
 
 #ifdef RECORD_STORE
@@ -606,7 +648,7 @@ void LoadConfig()
 		DIK_H,
 		DIK_LSHIFT
 	};
-#else
+#elif defined(HAVE_X11) && HAVE_X11
 	const int defaultKeyForControl[NUMCONTROLS] =
 	{
           XK_x, //A
@@ -632,6 +674,32 @@ void LoadConfig()
 		  XK_Shift_L, //halfpress
 		  XK_p
 	};
+#elif defined(HAVE_COCOA) && HAVE_COCOA
+        const int defaultKeyForControl[NUMCONTROLS] =
+        {
+          7, //A
+          6,
+          1,
+          8,
+          2,
+          36,
+          12,
+          13,
+          126, //mainstick
+          125,
+          123,
+          124,
+          34, //substick
+          40,
+          38,
+          37,
+          17, //dpad
+          5,
+          3,
+          4,
+          56, //halfpress
+          35
+        };
 #endif
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR "pad.ini");

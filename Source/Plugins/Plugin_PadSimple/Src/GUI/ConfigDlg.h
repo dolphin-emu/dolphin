@@ -29,7 +29,7 @@
 #include <wx/panel.h>
 #include <wx/gbsizer.h>
 
-#ifndef _WIN32
+#if defined(HAVE_X11) && HAVE_X11
 #include "../XInputBase.h"
 #endif
 

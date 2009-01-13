@@ -30,9 +30,17 @@ if padenv['HAVE_COCOA']:
 if padenv['HAVE_WX']:
     files += [ 
         "GUI/ConfigDlg.cpp",
+        ]
+
+if env['HAVE_X11']:
+    files += [ 
         "XInputBase.cpp",
         ]
 
-padenv.Append(LIBS = [ 'common' ])
+if padenv['HAVE_COCOA']:
+	padenv.Append(	CXXFLAGS = compileFlags,
+			LIBS = [ 'common' ])
+else:
+	padenv.Append(LIBS = [ 'common' ])
 
 padenv.SharedLibrary(env['plugin_dir']+name, files)
