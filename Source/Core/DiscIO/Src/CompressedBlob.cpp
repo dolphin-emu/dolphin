@@ -19,7 +19,6 @@
 
 #ifdef _WIN32
 #include <io.h>
-#include <windows.h>
 #else
 #include <unistd.h>
 #endif

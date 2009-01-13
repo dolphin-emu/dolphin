@@ -29,9 +29,7 @@ and stopped.
 // Includes
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <string.h>
-#ifdef _WIN32
-#include <windows.h>
-#else
+#ifndef _WIN32
 #include <dlfcn.h>
 #include <stdio.h>
 #endif

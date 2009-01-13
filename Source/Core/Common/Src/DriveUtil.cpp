@@ -19,7 +19,6 @@
 #include "DriveUtil.h"
 
 #ifdef _WIN32
-#include <windows.h>
 #include <winioctl.h>
 #endif
 

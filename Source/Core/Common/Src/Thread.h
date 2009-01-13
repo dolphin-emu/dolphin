@@ -19,7 +19,6 @@
 #define _THREAD_H
 
 #ifdef _WIN32
-#include <windows.h>
 #define THREAD_RETURN DWORD WINAPI
 #else
 #define THREAD_RETURN void*

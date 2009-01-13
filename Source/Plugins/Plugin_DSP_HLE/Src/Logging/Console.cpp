@@ -21,9 +21,6 @@
 #include <string>
 #include <stdio.h>
 #include "Common.h"
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "../Debugger/Debugger.h"

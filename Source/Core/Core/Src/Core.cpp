@@ -19,12 +19,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Include
 // ¯¯¯¯¯¯¯¯¯¯
-#ifdef _WIN32
-#include <windows.h>
-#else
-
-#endif
-
 #include "Thread.h"
 #include "Timer.h"
 #include "Common.h"

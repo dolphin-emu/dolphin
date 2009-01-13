@@ -25,7 +25,6 @@
 #include <iostream>
 #include <vector>
 #include <string> // So that we can test if std::string == abc
-#include <windows.h>
 
 #include "Common.h"
 

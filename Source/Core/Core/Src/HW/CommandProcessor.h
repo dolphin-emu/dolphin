@@ -22,10 +22,6 @@
 #include "pluginspecs_video.h"
 class PointerWrap;
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 extern bool MT;
 namespace CommandProcessor
 {

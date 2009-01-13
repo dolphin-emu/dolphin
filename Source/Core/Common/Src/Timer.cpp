@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #ifdef _WIN32
-#include <windows.h>
 #include <mmsystem.h>
 #endif
 

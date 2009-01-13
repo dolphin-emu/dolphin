@@ -18,10 +18,6 @@
 #ifndef _MEMARENA_H
 #define _MEMARENA_H
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include "Common.h"
 
 // This class lets you create a block of anonymous RAM, and then arbitrarily map views into it.
