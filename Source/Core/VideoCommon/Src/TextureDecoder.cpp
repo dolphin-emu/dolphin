@@ -387,7 +387,7 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
         {
         	// TODO: SSSE3 variant (pshufb), THP videos use this format.
         	// SSSE3 variant could bring even more speed
-#if (defined(_WIN32) || (defined (_M_X64) && !defined(_WIN32)))
+#if 1
 			__m128i Lmask = _mm_set1_epi8 (0x0F);
 			__m128i Hmask = _mm_set1_epi8 (0xF0);
 			const __m128i* sseSrc  = (const __m128i *)src;
@@ -459,7 +459,7 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
         return PC_TEX_FMT_BGRA32;
     case GX_TF_I8:  // speed critical
 		{
-#if (defined(_WIN32) || (defined (_M_X64) && !defined(_WIN32)))
+#if 1
 			__m128i *sseSrc  = (__m128i *)src;
 			__m128i *sseDst  = (__m128i *)dst;
             for (int y = 0; y < height; y += 4)
