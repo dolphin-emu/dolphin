@@ -17,9 +17,11 @@
 
 #include "Common.h"
 
+#include "CPUDetect.h"
 #include "TextureDecoder.h"
 #include "LookUpTables.h"
 #include <emmintrin.h>
+#include <tmmintrin.h>
 
 //Uncomment this to enable Texture Format ID overlays
 #define OVERLAY_TEXFMT
@@ -181,6 +183,126 @@ inline void decodebytesI4(u32 *dst, const u8 *src)
         int val = src[x];
 		*dst++ = expand8888(lut4to8[val>>4]);
 		*dst++ = expand8888(lut4to8[val&15]);
+    }
+}
+
+inline void sseDecodebytesI4(u32* dst, const __m128i* sseSrc, int height,
+                             int width) {
+    __m128i* sseDst;
+
+    // SSSE3 variant
+    if(cpu_info.bSSSE3) {
+
+        // TODO(XK): Increase Loop Jump?
+        
+        __m128i s, m[8];
+        unsigned char *umask;
+
+        for(int i = 0; i < 8; i++) {
+            umask = (unsigned char *)&(m[i]);
+            for(int j = 0; j < 14; j += 4) {
+                umask[j]   = 0x00 + (i * 4);
+                umask[j+1] = 0x01 + (i * 4);
+                umask[j+2] = 0x02 + (i * 4);
+                umask[j+3] = 0x03 + (i * 4);
+            }
+        }
+
+        for (int y = 0; y < height; y += 8) {
+            for (int x = 0; x < width; x += 8) {
+                for (int iy = 0; iy < 8; iy++, sseSrc++) {
+                    s = _mm_load_si128 (sseSrc);
+
+                    // TODO: Supplemental Value Lazyness v3
+                    sseDst = (__m128i*)(dst+((y+iy)*width+x)*4);
+                    _mm_store_si128 (sseDst++, _mm_shuffle_epi8(s, m[1]));
+                    _mm_store_si128 (sseDst, _mm_shuffle_epi8(s, m[0]));
+                    iy++;
+
+                    sseDst = (__m128i*)(dst+((y+iy)*width+x)*4);
+                    _mm_store_si128 (sseDst++, _mm_shuffle_epi8(s, m[3]));
+                    _mm_store_si128 (sseDst, _mm_shuffle_epi8(s, m[2]));
+                    iy++;
+
+                    sseDst = (__m128i*)(dst+((y+iy)*width+x)*4);
+                    _mm_store_si128 (sseDst++, _mm_shuffle_epi8(s, m[5]));
+                    _mm_store_si128 (sseDst, _mm_shuffle_epi8(s, m[4]));
+                    iy++;
+
+                    sseDst = (__m128i*)(dst+((y+iy)*width+x)*4);
+                    _mm_store_si128 (sseDst++, _mm_shuffle_epi8(s, m[7]));
+                    _mm_store_si128 (sseDst, _mm_shuffle_epi8(s, m[6]));
+                    iy++;
+
+                }
+            }
+        }
+
+        return;
+        
+    }
+
+    __m128i Lmask = _mm_set1_epi8 (0x0F);
+    __m128i Hmask = _mm_set1_epi8 (0xF0);
+
+    for (int y = 0; y < height; y += 8) {
+        for (int x = 0; x < width; x += 8) {
+            for (int iy = 0; iy < 8; iy++, sseSrc++) {
+                // TODO (mb2): Don't let the optimizer perform all the clean up by itself
+                // (XK): Huh? What clean up? Where? Who? :)
+                
+                __m128i s = _mm_load_si128 (sseSrc);		// ab cd ef gh ...
+                __m128i sl = _mm_and_si128 (s, Lmask);		// 0b 0d 0f 0h ...
+                __m128i sls = _mm_slli_epi16 (sl, 4);		// b0 d0 f0 h0 ...
+                __m128i sl_ = _mm_or_si128 (sl, sls);		// bb dd ff ff ...
+                        
+                __m128i sh = _mm_and_si128 (s, Hmask);		// a0 c0 e0 g0 ...
+                __m128i shs = _mm_srli_epi16 (sh, 4);		// 0a 0c 0e g0 ...
+                __m128i sh_ = _mm_or_si128 (sh, shs);		// aa cc ee gg ...
+                __m128i rl = _mm_unpacklo_epi8 (sh_, sl_);	// bb aa dd cc ...
+                __m128i rh = _mm_unpackhi_epi8 (sh_, sl_);	// ff ee hh gg ...
+                        
+                // result part a
+                __m128i ral = _mm_unpacklo_epi8 (rl, rl);	// bb bb aa aa ...
+                __m128i rah = _mm_unpackhi_epi8 (rl, rl);	// dd dd cc cc ...
+                
+                __m128i rall = _mm_unpacklo_epi16 (ral, ral);	// bb bb bb bb ...	-> done
+                __m128i ralh = _mm_unpackhi_epi16 (ral, ral);	// aa aa aa aa ...	-> done
+                __m128i rahl = _mm_unpacklo_epi16 (rah, rah);	// dd dd dd dd ...	-> done
+                __m128i rahh = _mm_unpackhi_epi16 (rah, rah);	// cc cc cc cc ...	-> done
+                        
+                // result part b
+                __m128i rbl = _mm_unpacklo_epi8 (rh, rh);	// ff ff ee ee ...
+                __m128i rbh = _mm_unpackhi_epi8 (rh, rh);	// hh hh gg gg ...
+
+                __m128i rbll = _mm_unpacklo_epi16 (rbl, rbl);	// ff ff ff ff ...	-> done
+                __m128i rblh = _mm_unpackhi_epi16 (rbl, rbl);	// ee ee ee ee ...	-> done
+                __m128i rbhl = _mm_unpacklo_epi16 (rbh, rbh);	// hh hh hh hh ...	-> done
+                __m128i rbhh = _mm_unpackhi_epi16 (rbh, rbh);	// gg gg gg gg ...	-> done
+                
+                // Store
+                // TODO: Value lazyness
+                sseDst = (__m128i*)(dst+((y+iy)*width+x)*4);
+                _mm_store_si128 (sseDst++, rall); 
+                _mm_store_si128 (sseDst, ralh);
+                iy++;
+                
+                sseDst = (__m128i*)(dst+((y+iy)*width+x)*4);
+                _mm_store_si128 (sseDst++, rahl);
+                _mm_store_si128 (sseDst, rahh);
+                iy++;
+                
+                sseDst = (__m128i*)(dst+((y+iy)*width+x)*4);
+                _mm_store_si128 (sseDst++, rbll);
+                _mm_store_si128 (sseDst, rblh);
+                iy++;
+                
+                
+                sseDst = (__m128i*)(dst+((y+iy)*width+x)*4);
+                _mm_store_si128 (sseDst++, rbhl);
+                _mm_store_si128 (sseDst, rbhh);
+            }
+        }
     }
 }
 
@@ -385,67 +507,16 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
         return PC_TEX_FMT_BGRA32;
     case GX_TF_I4:
         {
-        	// TODO: SSSE3 variant (pshufb), THP videos use this format.
-        	// SSSE3 variant could bring even more speed
-#if 1
-			__m128i Lmask = _mm_set1_epi8 (0x0F);
-			__m128i Hmask = _mm_set1_epi8 (0xF0);
-			const __m128i* sseSrc  = (const __m128i *)src;
-			__m128i* sseDst  = (__m128i *)dst;
-            for (int y = 0; y < height; y += 8)
-	            for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 8; iy++, sseSrc++) {
-						// TODO (mb2): func and don't let the optimizer perform all the clean up by itself
-						__m128i s = _mm_load_si128 (sseSrc);			// ab cd ef gh ...
-						__m128i sl = _mm_and_si128 (s, Lmask);			// 0b 0d 0f 0h ...
-						__m128i sls = _mm_slli_epi16 (sl, 4);			// b0 d0 f0 h0 ...
-						__m128i sl_ = _mm_or_si128 (sl, sls);			// bb dd ff ff ...
-
-						__m128i sh = _mm_and_si128 (s, Hmask);			// a0 c0 e0 g0 ...
-						__m128i shs = _mm_srli_epi16 (sh, 4);			// 0a 0c 0e g0 ...
-						__m128i sh_ = _mm_or_si128 (sh, shs);			// aa cc ee gg ...
-						__m128i rl = _mm_unpacklo_epi8 (sh_, sl_);		// bb aa dd cc ...
-						__m128i rh = _mm_unpackhi_epi8 (sh_, sl_);		// 
-
-						__m128i ral = _mm_unpacklo_epi8 (rl, rl);		// bb bb aa aa ...
-						__m128i rah = _mm_unpackhi_epi8 (rl, rl);		// 
-						// result part a
-						__m128i rall = _mm_unpacklo_epi16 (ral, ral);	// bb bb bb bb ...	-> done
-						__m128i ralh = _mm_unpackhi_epi16 (ral, ral);	//					-> done
-						__m128i rahl = _mm_unpacklo_epi16 (rah, rah);	//					-> done
-						__m128i rahh = _mm_unpackhi_epi16 (rah, rah);	//					-> done
-
-						__m128i rbl = _mm_unpacklo_epi8 (rh, rh);		// 
-						__m128i rbh = _mm_unpackhi_epi8 (rh, rh);		// 
-						// result part b
-						__m128i rbll = _mm_unpacklo_epi16 (rbl, rbl);	//					-> done
-						__m128i rblh = _mm_unpackhi_epi16 (rbl, rbl);	//					-> done
-						__m128i rbhl = _mm_unpacklo_epi16 (rbh, rbh);	//					-> done
-						__m128i rbhh = _mm_unpackhi_epi16 (rbh, rbh);	//					-> done
-						// store
-						sseDst = (__m128i*)(dst+((y+iy)*width+x)*4);	// that sucks... too lazy 
-						_mm_store_si128 (sseDst++, rall); 
-						_mm_store_si128 (sseDst, ralh);
-						iy++;
-						sseDst = (__m128i*)(dst+((y+iy)*width+x)*4);
-						_mm_store_si128 (sseDst++, rahl);
-						_mm_store_si128 (sseDst, rahh);
-						iy++;
-						sseDst = (__m128i*)(dst+((y+iy)*width+x)*4);
-						_mm_store_si128 (sseDst++, rbll);
-						_mm_store_si128 (sseDst, rblh);
-						iy++;
-						sseDst = (__m128i*)(dst+((y+iy)*width+x)*4);
-						_mm_store_si128 (sseDst++, rbhl);
-						_mm_store_si128 (sseDst, rbhh);
-					}
-#else
+            sseDecodebytesI4((u32 *)dst, (const __m128i *)src, height,
+                             width);
+            
+            /* Old non-SSE way
             for (int y = 0; y < height; y += 8)
                 for (int x = 0; x < width; x += 8)
                     for (int iy = 0; iy < 8; iy++, src += 4)
                         //decodebytesI4((u32*)dst+(y+iy)*width+x, src, 4);
                         decodebytesI4((u32*)dst+(y+iy)*width+x, src);
-#endif
+            */
         }
         return PC_TEX_FMT_BGRA32;
     case GX_TF_C8:

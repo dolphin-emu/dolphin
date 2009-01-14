@@ -30,4 +30,5 @@ files = [
 
 env_common = env.Clone()
 env_common.Append(CXXFLAGS = [ '-fPIC' ])
+env_common.Append(CXXFLAGS = [ '-mssse3' ]) # For TextureDecoder
 env_common.StaticLibrary("videocommon", files)
