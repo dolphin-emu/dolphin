@@ -49,7 +49,7 @@ void SConfig::SaveSettings()
 	IniFile ini;
 	ini.Load(CONFIG_FILE); // yes we must load first to not kill unknown stuff
 
-	// misc
+	// General
 	{
 		ini.Set("General", "LastFilename",	m_LastFilename);
 
@@ -66,11 +66,13 @@ void SConfig::SaveSettings()
 
 	
 	{
-		// General		
+		// Interface		
 		ini.Set("Interface", "ConfirmStop", m_LocalCoreStartupParameter.bConfirmStop);
 		ini.Set("Interface", "HideCursor", m_LocalCoreStartupParameter.bHideCursor);
 		ini.Set("Interface", "AutoHideCursor", m_LocalCoreStartupParameter.bAutoHideCursor);
 		ini.Set("Interface", "Theme", m_LocalCoreStartupParameter.iTheme);
+		ini.Set("Interface", "ShowWiimoteLeds", m_LocalCoreStartupParameter.bWiiLeds);
+		ini.Set("Interface", "ShowWiimoteSpeakers", m_LocalCoreStartupParameter.bWiiSpeakers);
 
 		// Core
 		ini.Set("Core", "HLEBios",        m_LocalCoreStartupParameter.bHLEBios);
@@ -86,10 +88,6 @@ void SConfig::SaveSettings()
 
 		ini.Set("Core", "RunCompareServer", m_LocalCoreStartupParameter.bRunCompareServer);
 		ini.Set("Core", "RunCompareClient", m_LocalCoreStartupParameter.bRunCompareClient);
-
-		// Wii
-		ini.Set("Wii", "ShowWiimoteLeds", m_LocalCoreStartupParameter.bWiiLeds);
-		ini.Set("Wii", "ShowWiimoteSpeakers", m_LocalCoreStartupParameter.bWiiSpeakers);
 
 		// Plugins
 		ini.Set("Core", "GFXPlugin",  m_LocalCoreStartupParameter.m_strVideoPlugin);
@@ -141,7 +139,7 @@ void SConfig::LoadSettings()
 		m_DefaultWiiMotePlugin = PLUGINS_DIR DIR_SEP DEFAULT_WIIMOTE_PLUGIN;  
 	}
 #endif
-	// Misc
+	// General
 	{
 		ini.Get("General", "LastFilename",	&m_LastFilename);
 
@@ -162,11 +160,13 @@ void SConfig::LoadSettings()
 	}
 
 	{
-		// General interfance
+		// Interface
 		ini.Get("Interface", "ConfirmStop", &m_LocalCoreStartupParameter.bConfirmStop, false);
 		ini.Get("Interface", "HideCursor", &m_LocalCoreStartupParameter.bHideCursor, false);
 		ini.Get("Interface", "AutoHideCursor", &m_LocalCoreStartupParameter.bAutoHideCursor, false);
 		ini.Get("Interface", "Theme", &m_LocalCoreStartupParameter.iTheme, 0);
+		ini.Get("Interface", "ShowWiimoteLeds", &m_LocalCoreStartupParameter.bWiiLeds, false);
+		ini.Get("Interface", "ShowWiimoteSpeakers", &m_LocalCoreStartupParameter.bWiiSpeakers, false);
 
 		// Core
 		ini.Get("Core", "HLEBios",     &m_LocalCoreStartupParameter.bHLEBios,		true);
@@ -182,10 +182,6 @@ void SConfig::LoadSettings()
 
 		ini.Get("Core", "RunCompareServer", &m_LocalCoreStartupParameter.bRunCompareServer, false);
 		ini.Get("Core", "RunCompareClient", &m_LocalCoreStartupParameter.bRunCompareClient, false);
-
-		// Wii
-		ini.Get("Wii", "ShowWiimoteLeds", &m_LocalCoreStartupParameter.bWiiLeds, false);
-		ini.Get("Wii", "ShowWiimoteSpeakers", &m_LocalCoreStartupParameter.bWiiSpeakers, false);
 
 		// Plugins
 		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin, m_DefaultGFXPlugin.c_str());

@@ -49,9 +49,10 @@ class CConfigMain
 
 		wxBoxSizer* sGeneralPage; // General Settings
 		wxCheckBox* ConfirmStop, * AutoHideCursor, *HideCursor;
+		wxCheckBox* WiimoteStatusLEDs, * WiimoteStatusSpeakers;
 		wxRadioBox* Theme;
 		
-		wxBoxSizer* sCore; // Core settings
+		wxBoxSizer* sCore;
 		wxStaticBoxSizer* sbBasic, *sbAdvanced, *sbInterface;
 		wxCheckBox* AllwaysHLEBIOS;
 		wxCheckBox* UseDynaRec;
@@ -159,7 +160,6 @@ class CConfigMain
 		wxArrayString arrayStringFor_WiiSensBarPos; // Wiimote Settings
 		wxStaticText* WiiSensBarPosText;
 		wxChoice* WiiSensBarPos;
-		wxCheckBox* WiiLeds, * WiiSpeakers;
 
 		wxCheckBox* WiiScreenSaver; // IPL settings
 		wxCheckBox* WiiProgressiveScan;
@@ -214,12 +214,13 @@ class CConfigMain
 			ID_GC_SRAM_LNG_TEXT,
 			ID_GC_SRAM_LNG,
 
-			ID_INTERFACE_CONFIRMSTOP, ID_INTERFACE_HIDECURSOR, ID_INTERFACE_AUTOHIDECURSOR,
-			ID_INTERFACE_THEME, // Interface settings
+			ID_INTERFACE_CONFIRMSTOP, // Interface settings
+			ID_INTERFACE_HIDECURSOR_TEXT, ID_INTERFACE_HIDECURSOR, ID_INTERFACE_AUTOHIDECURSOR,
+			ID_INTERFACE_WIIMOTE_TEXT, ID_INTERFACE_WIIMOTE_LEDS, ID_INTERFACE_WIIMOTE_SPEAKERS,
+			ID_INTERFACE_THEME,
 
 			ID_WII_BT_BAR_TEXT,
 			ID_WII_BT_BAR,
-			ID_WII_BT_LEDS, ID_WII_BT_SPEAKERS,
 
 			ID_WII_IPL_SSV,
 			ID_WII_IPL_PGS,

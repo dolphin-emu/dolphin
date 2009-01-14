@@ -112,13 +112,12 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
 void DllConfig(HWND _hParent)
 {
 #if defined(_WIN32)
-	//wxWindow win;
-	//win.SetHWND(_hParent);
-	//ConfigDialog frame(&win);
-	//ConfigDialog frame(NULL);
+	wxWindow * win = new wxWindow();
+	win->SetHWND((WXHWND)_hParent);
+	win->AdoptAttributesFromHWND();
+//	win->Reparent(wxGetApp().GetTopWindow());
 
-	ConfigDialog *frame;
-	frame = new ConfigDialog(NULL);
+	ConfigDialog *frame = new ConfigDialog(win);
 
 	DWORD iModeNum = 0;
 	DEVMODE dmi;
@@ -131,32 +130,27 @@ void DllConfig(HWND _hParent)
 	{	
 		char szBuffer[100];
 		sprintf(szBuffer,"%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
-		//making a string cause char*[] to char was a baaad idea
 		std::string strBuffer(szBuffer);
-		//create a check loop to check every pointer of resos to see if the res is added or not
+		// Create a check loop to check every pointer of resos to see if the res is added or not
 		int b = 0;
 		bool resFound = false;
 		while (b < i && !resFound)
 		{
-			//is the res already added?
+			// Is the res already added?
 			resFound = (resos[b] == strBuffer);
 			b++;
 		}
 		if (!resFound)
-		//and add the res
+		// Add the res
 		{
 			resos[i] = strBuffer;
 			i++;
-			//frame.AddFSReso(szBuffer);			
-			//frame.AddWindowReso(szBuffer);
-			frame->AddFSReso(szBuffer);			
+			frame->AddFSReso(szBuffer);
 			frame->AddWindowReso(szBuffer);
 		}
         ZeroMemory(&dmi, sizeof(dmi));
 	}
-	//frame.ShowModal();
 	frame->ShowModal();
-	//win.SetHWND(0);
 #elif defined(USE_WX) && USE_WX
 
 	ConfigDialog frame(NULL);

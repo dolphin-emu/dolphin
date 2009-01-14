@@ -18,7 +18,7 @@
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Windowses
+// Windows
 /* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 CFrame is the main parent window. Inside CFrame there is an m_Panel that is the parent for

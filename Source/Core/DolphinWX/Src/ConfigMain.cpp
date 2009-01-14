@@ -49,6 +49,8 @@ EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_HIDECURSOR, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_AUTOHIDECURSOR, CConfigMain::CoreSettingsChanged)
 EVT_RADIOBOX(ID_INTERFACE_THEME, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_LEDS, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_SPEAKERS, CConfigMain::CoreSettingsChanged)
 
 EVT_CHECKBOX(ID_ALLWAYS_HLEBIOS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_USEDYNAREC, CConfigMain::CoreSettingsChanged)
@@ -57,11 +59,10 @@ EVT_CHECKBOX(ID_LOCKTHREADS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_OPTIMIZEQUANTIZERS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_IDLESKIP, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_ENABLECHEATS, CConfigMain::CoreSettingsChanged)
+
 EVT_CHOICE(ID_GC_SRAM_LNG, CConfigMain::GCSettingsChanged)
 
 EVT_CHOICE(ID_WII_BT_BAR, CConfigMain::WiiSettingsChanged)
-EVT_CHECKBOX(ID_WII_BT_LEDS, CConfigMain::WiiSettingsChanged)
-EVT_CHECKBOX(ID_WII_BT_SPEAKERS, CConfigMain::WiiSettingsChanged)
 EVT_CHECKBOX(ID_WII_IPL_SSV, CConfigMain::WiiSettingsChanged)
 EVT_CHECKBOX(ID_WII_IPL_PGS, CConfigMain::WiiSettingsChanged)
 EVT_CHECKBOX(ID_WII_IPL_E60, CConfigMain::WiiSettingsChanged)
@@ -73,6 +74,7 @@ EVT_BUTTON(ID_ADDISOPATH, CConfigMain::AddRemoveISOPaths)
 EVT_BUTTON(ID_REMOVEISOPATH, CConfigMain::AddRemoveISOPaths)
 EVT_FILEPICKER_CHANGED(ID_DEFAULTISO, CConfigMain::DefaultISOChanged)
 EVT_DIRPICKER_CHANGED(ID_DVDROOT, CConfigMain::DVDRootChanged)
+
 EVT_CHOICE(ID_GRAPHIC_CB, CConfigMain::OnSelectionChanged)
 EVT_BUTTON(ID_GRAPHIC_CONFIG, CConfigMain::OnConfig)
 EVT_CHOICE(ID_DSP_CB, CConfigMain::OnSelectionChanged)
@@ -146,14 +148,12 @@ void CConfigMain::CreateGUIControls()
 {
 	Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 	GeneralPage = new wxPanel(Notebook, ID_GENERALPAGE, wxDefaultPosition, wxDefaultSize);
-	CorePage = new wxPanel(Notebook, ID_COREPAGE, wxDefaultPosition, wxDefaultSize);
 	GamecubePage = new wxPanel(Notebook, ID_GAMECUBEPAGE, wxDefaultPosition, wxDefaultSize);
 	WiiPage = new wxPanel(Notebook, ID_WIIPAGE, wxDefaultPosition, wxDefaultSize);
 	PathsPage = new wxPanel(Notebook, ID_PATHSPAGE, wxDefaultPosition, wxDefaultSize);
 	PluginPage = new wxPanel(Notebook, ID_PLUGINPAGE, wxDefaultPosition, wxDefaultSize);
 
 	Notebook->AddPage(GeneralPage, wxT("General"));
-	Notebook->AddPage(CorePage, wxT("Core"));
 	Notebook->AddPage(GamecubePage, wxT("Gamecube"));
 	Notebook->AddPage(WiiPage, wxT("Wii"));
 	Notebook->AddPage(PathsPage, wxT("Paths"));
@@ -164,43 +164,63 @@ void CConfigMain::CreateGUIControls()
 	// General page
 	// --------
 
+	// -----------------------------------
+	// Core Settings
+	// -----------
+	// Basic Settings
+	UseDualCore = new wxCheckBox(GeneralPage, ID_USEDUALCORE, wxT("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	UseDualCore->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);
+	SkipIdle = new wxCheckBox(GeneralPage, ID_IDLESKIP, wxT("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	SkipIdle->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);
+	EnableCheats = new wxCheckBox(GeneralPage, ID_ENABLECHEATS, wxT("Enable Cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	EnableCheats->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);
+	// Advanced Settings
+	AllwaysHLEBIOS = new wxCheckBox(GeneralPage, ID_ALLWAYS_HLEBIOS, wxT("HLE the BIOS all the time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	AllwaysHLEBIOS->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios);
+	UseDynaRec = new wxCheckBox(GeneralPage, ID_USEDYNAREC, wxT("Enable the JIT dynarec"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	UseDynaRec->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT);
+	LockThreads = new wxCheckBox(GeneralPage, ID_LOCKTHREADS, wxT("Lock threads to cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	LockThreads->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads);
+	OptimizeQuantizers = new wxCheckBox(GeneralPage, ID_OPTIMIZEQUANTIZERS, wxT("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	OptimizeQuantizers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bOptimizeQuantizers);
+
+	// -----------------------------------
+	// Interface settings
+	// -----------
 	// Confirm on stop
 	ConfirmStop = new wxCheckBox(GeneralPage, ID_INTERFACE_CONFIRMSTOP, wxT("Confirm On Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	ConfirmStop->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop);
-	
-	AutoHideCursor = new wxCheckBox(GeneralPage, ID_INTERFACE_AUTOHIDECURSOR, wxT("Auto Hide Cursor"));
+	// Hide Cursor
+	wxStaticText *HideCursorText = new wxStaticText(GeneralPage, ID_INTERFACE_HIDECURSOR_TEXT, wxT("Hide Cursor:"), wxDefaultPosition, wxDefaultSize);
+	AutoHideCursor = new wxCheckBox(GeneralPage, ID_INTERFACE_AUTOHIDECURSOR, wxT("Auto"));
 	AutoHideCursor->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bAutoHideCursor);
-	
-	HideCursor = new wxCheckBox(GeneralPage, ID_INTERFACE_HIDECURSOR, wxT("Always Hide Cursor"));
+	HideCursor = new wxCheckBox(GeneralPage, ID_INTERFACE_HIDECURSOR, wxT("Always"));
 	HideCursor->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor);
-
-	// Populate the settings
-	sbInterface = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Interface Settings"));
-	sbInterface->Add(ConfirmStop, 0, wxALL, 5);
-	sbInterface->Add(AutoHideCursor, 0, wxALL, 5);
-	sbInterface->Add(HideCursor, 0, wxALL, 5);	
-	
-	// ToolTips
-	ConfirmStop->SetToolTip(wxT("Show a confirmation box before stopping a game."));
-	AutoHideCursor->SetToolTip(wxT("This will auto hide the cursor in fullscreen mode."));
-	HideCursor->SetToolTip(wxT("This will always hide the cursor when it's over the rendering window."
-		" It can be convenient in a Wii game that already has a cursor."
-		));
-
-
-	// -----------------------------------
+	// Wiimote status in statusbar
+	wxStaticText *WiimoteStatusText = new wxStaticText(GeneralPage, ID_INTERFACE_WIIMOTE_TEXT, wxT("Show wiimote status:"), wxDefaultPosition, wxDefaultSize);
+	WiimoteStatusLEDs = new wxCheckBox(GeneralPage, ID_INTERFACE_WIIMOTE_LEDS, wxT("LEDs"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	WiimoteStatusLEDs->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiLeds);
+	WiimoteStatusSpeakers = new wxCheckBox(GeneralPage, ID_INTERFACE_WIIMOTE_SPEAKERS, wxT("Speakers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	WiimoteStatusSpeakers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiSpeakers);
 	// Themes
-	// -----------
 	wxArrayString ThemeChoices;
 	ThemeChoices.Add(wxT("Boomy"));
 	ThemeChoices.Add(wxT("Vista"));
 	ThemeChoices.Add(wxT("X-Plastik"));
 	ThemeChoices.Add(wxT("KDE"));
-	Theme = new wxRadioBox(GeneralPage, ID_INTERFACE_THEME, wxT("Theme"),
-		wxDefaultPosition, wxDefaultSize, ThemeChoices, 1, wxRA_SPECIFY_COLS);
-
+	Theme = new wxRadioBox(GeneralPage, ID_INTERFACE_THEME, wxT("Theme"),wxDefaultPosition, wxDefaultSize, ThemeChoices, 1, wxRA_SPECIFY_ROWS);
 	// Set selected
 	Theme->SetSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.iTheme);
+
+	// ToolTips
+	UseDynaRec->SetToolTip(wxT("Disabling this will cause Dolphin to run in interpreter mode,"
+		"\nwhich can be more accurate, but is MUCH slower"));
+	ConfirmStop->SetToolTip(wxT("Show a confirmation box before stopping a game."));
+	AutoHideCursor->SetToolTip(wxT("This will auto hide the cursor in fullscreen mode."));
+	HideCursor->SetToolTip(wxT("This will always hide the cursor when it's over the rendering window."
+		"\nIt can be convenient in a Wii game that already has a cursor."));
+	WiimoteStatusLEDs->SetToolTip(wxT("Show which wiimotes are connected in the statusbar."));
+	WiimoteStatusSpeakers->SetToolTip(wxT("Show wiimote speaker status in the statusbar."));
 
 	// Copyright notice
 	Theme->SetItemToolTip(0, wxT("Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"));
@@ -208,55 +228,42 @@ void CConfigMain::CreateGUIControls()
 	Theme->SetItemToolTip(2, wxT("Created by black_rider and published on ForumW.org > Web Developments"));
 	Theme->SetItemToolTip(3, wxT("Created by KDE-Look.org"));
 
-	// Populate the entire page
-	sGeneralPage = new wxBoxSizer(wxVERTICAL);
-	sGeneralPage->Add(sbInterface, 0, wxEXPAND | wxALL, 5);
-	sGeneralPage->Add(Theme, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxBOTTOM), 5);
-
-	GeneralPage->SetSizer(sGeneralPage);
-	sGeneralPage->Layout();
-
-
-	//////////////////////////////////
-	// Core page
-	// --------
-	sCore = new wxBoxSizer(wxVERTICAL);
-
-	// Basic Settings
-	sbBasic = new wxStaticBoxSizer(wxVERTICAL, CorePage, wxT("Basic Settings"));
-	UseDualCore = new wxCheckBox(CorePage, ID_USEDUALCORE, wxT("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	UseDualCore->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);
-	SkipIdle = new wxCheckBox(CorePage, ID_IDLESKIP, wxT("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	SkipIdle->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);
-	EnableCheats = new wxCheckBox(CorePage, ID_ENABLECHEATS, wxT("Enable Cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	EnableCheats->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);
-
+	// Populate the settings
+	sCore = new wxBoxSizer(wxHORIZONTAL);
+	sbBasic = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Basic Settings"));
 	sbBasic->Add(UseDualCore, 0, wxALL, 5);
 	sbBasic->Add(SkipIdle, 0, wxALL, 5);
 	sbBasic->Add(EnableCheats, 0, wxALL, 5);
-
-	// Advanced Settings
-	sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, CorePage, wxT("Advanced Settings"));
-	AllwaysHLEBIOS = new wxCheckBox(CorePage, ID_ALLWAYS_HLEBIOS, wxT("HLE the BIOS all the time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	AllwaysHLEBIOS->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios);
-	UseDynaRec = new wxCheckBox(CorePage, ID_USEDYNAREC, wxT("Enable Dynamic Recompilation"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	UseDynaRec->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT);
-	LockThreads = new wxCheckBox(CorePage, ID_LOCKTHREADS, wxT("Lock threads to cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	LockThreads->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads);
-	OptimizeQuantizers = new wxCheckBox(CorePage, ID_OPTIMIZEQUANTIZERS, wxT("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	OptimizeQuantizers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bOptimizeQuantizers);
-
+	sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Advanced Settings"));
 	sbAdvanced->Add(AllwaysHLEBIOS, 0, wxALL, 5);
 	sbAdvanced->Add(UseDynaRec, 0, wxALL, 5);
 	sbAdvanced->Add(LockThreads, 0, wxALL, 5);
 	sbAdvanced->Add(OptimizeQuantizers, 0, wxALL, 5);
-	
-	// Populate sCore
-	sCore->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
-	//sCore->AddStretchSpacer();
-	sCore->Add(sbAdvanced, 0, wxEXPAND|wxALL, 5);
-	CorePage->SetSizer(sCore);
-	sCore->Layout();
+	sCore->Add(sbBasic, 0, wxEXPAND);
+	sCore->AddStretchSpacer();
+	sCore->Add(sbAdvanced, 0, wxEXPAND);
+
+	sbInterface = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Interface Settings"));
+	sbInterface->Add(ConfirmStop, 0, wxALL, 5);
+	wxBoxSizer *sHideCursor = new wxBoxSizer(wxHORIZONTAL);
+	sHideCursor->Add(HideCursorText);
+	sHideCursor->Add(AutoHideCursor, 0, wxLEFT, 5);
+	sHideCursor->Add(HideCursor, 0, wxLEFT, 5);
+	sbInterface->Add(sHideCursor, 0, wxALL, 5);
+	wxBoxSizer *sWiimoteStatus = new wxBoxSizer(wxHORIZONTAL);
+	sWiimoteStatus->Add(WiimoteStatusText);
+	sWiimoteStatus->Add(WiimoteStatusLEDs, 0, wxLEFT, 5);
+	sWiimoteStatus->Add(WiimoteStatusSpeakers, 0, wxLEFT, 5);
+	sbInterface->Add(sWiimoteStatus, 0, wxALL, 5);
+	sbInterface->Add(Theme, 0, wxEXPAND | wxALL, 5);
+
+	// Populate the entire page
+	sGeneralPage = new wxBoxSizer(wxVERTICAL);
+	sGeneralPage->Add(sCore, 0, wxEXPAND | wxALL, 5);
+	sGeneralPage->Add(sbInterface, 0, wxEXPAND | wxALL, 5);
+
+	GeneralPage->SetSizer(sGeneralPage);
+	sGeneralPage->Layout();
 
 
 	//////////////////////////////////
@@ -291,10 +298,6 @@ void CConfigMain::CreateGUIControls()
 	WiiSensBarPosText = new wxStaticText(WiiPage, ID_WII_BT_BAR_TEXT, wxT("Sensor Bar Position:"), wxDefaultPosition, wxDefaultSize);
 	WiiSensBarPos = new wxChoice(WiiPage, ID_WII_BT_BAR, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiSensBarPos, 0, wxDefaultValidator);
 	WiiSensBarPos->SetSelection(m_SYSCONF[BT_BAR]);
-	WiiLeds = new wxCheckBox(WiiPage, ID_WII_BT_LEDS, wxT("Show Wiimote Leds in status bar"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	WiiLeds->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiLeds);
-	WiiSpeakers = new wxCheckBox(WiiPage, ID_WII_BT_SPEAKERS, wxT("Show Wiimote Speaker status in status bar"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	WiiSpeakers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiSpeakers);
 
 	sbWiiIPLSettings = new wxStaticBoxSizer(wxVERTICAL, WiiPage, wxT("IPL Settings"));
 	WiiScreenSaver = new wxCheckBox(WiiPage, ID_WII_IPL_SSV, wxT("Enable Screen Saver (burn-in reduction)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -318,8 +321,6 @@ void CConfigMain::CreateGUIControls()
 	sWiimoteSettings = new wxGridBagSizer(0, 0);
 	sWiimoteSettings->Add(WiiSensBarPosText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sWiimoteSettings->Add(WiiSensBarPos, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
-	sWiimoteSettings->Add(WiiLeds, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
-	sWiimoteSettings->Add(WiiSpeakers, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 	sbWiimoteSettings->Add(sWiimoteSettings);
 	sWii->Add(sbWiimoteSettings, 0, wxEXPAND|wxALL, 5);
 
@@ -497,6 +498,12 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iTheme = Theme->GetSelection();
 		main_frame->InitBitmaps();
 		break;
+	case ID_INTERFACE_WIIMOTE_LEDS:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiLeds = WiimoteStatusLEDs->IsChecked();
+		break;
+	case ID_INTERFACE_WIIMOTE_SPEAKERS:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiSpeakers = WiimoteStatusSpeakers->IsChecked();
+		break;
 
 	case ID_ALLWAYS_HLEBIOS: // Core
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios = AllwaysHLEBIOS->IsChecked();
@@ -544,12 +551,6 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 	{
 	case ID_WII_BT_BAR: // Wiimote settings
 		m_SYSCONF[BT_BAR] = WiiSensBarPos->GetSelection();
-		break;
-	case ID_WII_BT_LEDS:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiLeds = WiiLeds->IsChecked();
-		break;
-	case ID_WII_BT_SPEAKERS:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiSpeakers = WiiSpeakers->IsChecked();
 		break;
 
 	case ID_WII_IPL_AR: // IPL settings
