@@ -21,8 +21,9 @@
 #include "TextureDecoder.h"
 #include "LookUpTables.h"
 #include <emmintrin.h>
+#ifdef __SSSE3__
 #include <tmmintrin.h>
-
+#endif
 //Uncomment this to enable Texture Format ID overlays
 #define OVERLAY_TEXFMT
 
@@ -186,10 +187,11 @@ inline void decodebytesI4(u32 *dst, const u8 *src)
     }
 }
 
-inline void sseDecodebytesI4(u32* dst, const __m128i* sseSrc, int height,
+inline void sseDecodebytesI4(u8* dst, const __m128i* sseSrc, int height,
                              int width) {
     __m128i* sseDst;
 
+#ifdef __SSSE3__
     // SSSE3 variant
     if(cpu_info.bSSSE3) {
 
@@ -241,7 +243,7 @@ inline void sseDecodebytesI4(u32* dst, const __m128i* sseSrc, int height,
         return;
         
     }
-
+#endif
     __m128i Lmask = _mm_set1_epi8 (0x0F);
     __m128i Hmask = _mm_set1_epi8 (0xF0);
 
@@ -507,7 +509,7 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
         return PC_TEX_FMT_BGRA32;
     case GX_TF_I4:
         {
-            sseDecodebytesI4((u32 *)dst, (const __m128i *)src, height,
+            sseDecodebytesI4(dst, (const __m128i *)src, height,
                              width);
             
             /* Old non-SSE way
