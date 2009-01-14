@@ -219,65 +219,50 @@ void TextureMngr::Cleanup()
 
 TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt)
 {
+	// TODO: - clean this up when ready to kill old "unsafe texture cache"
+	//		 - fix pokemun coloseum font for bSafeTextureCache (works with !bSafeTextureCache)
+	// TODO (mb2): get why other fmt needs a tlut hash too (pokemon coloseum font -> fmt 1 or 8 or 14 iirc)
     if (address == 0)
         return NULL;
 
-    TexCache::iterator iter = textures.find(address);
     TexMode0 &tm0 = bpmem.tex[texstage > 3].texMode0[texstage & 3];
     u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
 
+	u32 hash_value;
 	// Needed for texture format using tlut.
-	// TODO: Slower == Safer. Recalculate tlut length for each cases just to be sure.
-	u32 hashseed = 0;
-	switch (format) {
-	case GX_TF_C4:
-		hashseed = TexDecoder_GetTlutHash((u16*)(texMem + tlutaddr), 128);
-		break;
-	case GX_TF_C8:
-		hashseed = TexDecoder_GetTlutHash((u16*)(texMem + tlutaddr), 256);
-		break;
-	case GX_TF_C14X2:
-		hashseed = TexDecoder_GetTlutHash((u16*)(texMem + tlutaddr), 512);
-		break;
-	}
-
-	int palSize = TexDecoder_GetPaletteSize(format);
-    u32 palhash = 0xc0debabe;
-    
-    if (palSize) {
-        if (palSize > 32) 
-            palSize = 32; //let's not do excessive amount of checking
-        u8 *pal = g_VideoInitialize.pGetMemoryPointer(tlutaddr);
-        if (pal != 0) {
-            for (int i = 0; i < palSize; i++) {
-                palhash = _rotl(palhash,13);
-                palhash ^= pal[i];
-                palhash += 31;
-            }
-        }
-    }
+	u32 hashseed;
+	//if ( (format == GX_TF_C4) || (format == GX_TF_C8) || (format == GX_TF_C14X2) )
+		// tlut size mask can be up to 0x3FFF (GX_TF_C14X2) but Safer == Slower.
+		//hashseed = TexDecoder_GetTlutHash(&texMem[tlutaddr], TexDecoder_GetPaletteSize(format)&0x7FFF);
+		hashseed = TexDecoder_GetTlutHash(texMem + tlutaddr, 32);
+	//else
+	//	hashseed = address;
 
 	int bs = TexDecoder_GetBlockWidthInTexels(format) - 1;
     int expandedWidth = (width + bs) & (~bs);
 
+	if (g_Config.bSafeTextureCache)
+		hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, hashseed);
+
 	bool skip_texture_create = false;
 
-    if (iter != textures.end()) {
+    TexCache::iterator iter = textures.find(g_Config.bSafeTextureCache ? hash_value : address);
+
+	if (iter != textures.end()) {
         TCacheEntry &entry = iter->second;
 
-		u32 hash_value;
-		if (g_Config.bSafeTextureCache)
-			hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, hashseed);
-		else
+		if (!g_Config.bSafeTextureCache)
 			hash_value = ((u32 *)ptr)[entry.hashoffset];
 
-        if (entry.isRenderTarget || (hash_value == entry.hash && palhash == entry.paletteHash)) {
+        if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash))) {
             entry.frameCount = frameCount;
             //glEnable(entry.isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D);
             glBindTexture(entry.isNonPow2 ? GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D, entry.texture);
             if (entry.mode.hex != tm0.hex)
                 entry.SetTextureParameters(tm0);
-            return &entry;
+			//DebugLog("%cC addr: %08x | fmt: %i | e.hash: %08x | w:%04i h:%04i", g_Config.bSafeTextureCache ? 'S' : 'U'
+ 			//		, address, format, entry.hash, width, height);
+			return &entry;
         }
         else
         {
@@ -302,17 +287,20 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     PC_TexFormat dfmt = TexDecoder_Decode(temp, ptr, expandedWidth, height, format, tlutaddr, tlutfmt);
 
     //Make an entry in the table
-    TCacheEntry& entry = textures[address];
+	TCacheEntry& entry = textures[ g_Config.bSafeTextureCache ? hash_value : address ];
 
 	entry.hashoffset = 0;
-    entry.paletteHash = palhash;
+    entry.paletteHash = hashseed;
     entry.oldpixel = ((u32 *)ptr)[entry.hashoffset];
 	if (g_Config.bSafeTextureCache) {
-		entry.hash = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, hashseed);
+		entry.hash = hash_value;
 	} else {
 		entry.hash = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
 	    ((u32 *)ptr)[entry.hashoffset] = entry.hash;
 	}
+	//DebugLog("%c  addr: %08x | fmt: %i | e.hash: %08x | w:%04i h:%04i", g_Config.bSafeTextureCache ? 'S' : 'U'
+ 	//		, address, format, entry.hash, width, height);
+	
 
     entry.addr = address;
     entry.isRenderTarget = false;
