@@ -132,9 +132,11 @@ int
     IPC_HLE_PERIOD = GetTicksPerSecond() / 250,
 
 	// For DC watchdog hack
-	// Once every 2 frame-period should be enough.
-	// Assuming game's frame-finish-watchdog wait more than 2 emulated frame-period before starting its mess.
-	FAKE_GP_WATCHDOG_PERIOD = GetTicksPerSecond() / 30;
+	// Once every 10 frame-period seems to be enough (arbitrary taking 60fps as the ref).
+	// TODO: make it VI output frame rate compliant (30/60 and 25/50)
+	// Assuming game's frame-finish-watchdog wait more than 10 emulated frame-period before starting its mess.
+	// Note: 1/4 sec is the very maximum for ZTP to work in DC... 1/6 for safety.
+	FAKE_GP_WATCHDOG_PERIOD = GetTicksPerSecond() / 6;
 ///////////////////////////////////
 
 

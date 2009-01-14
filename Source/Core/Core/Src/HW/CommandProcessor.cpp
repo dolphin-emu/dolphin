@@ -190,7 +190,7 @@ void IncrementGPWDToken()
 void WaitForFrameFinish()
 {
 	while ((fake_GPWatchdogLastToken == fifo.Fake_GPWDToken) && fifo.bFF_GPReadEnable && (fifo.CPReadWriteDistance > 0) && !(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
-		;
+		Common::SleepCurrentThread(1);
 	fake_GPWatchdogLastToken = fifo.Fake_GPWDToken; 
 }
 
