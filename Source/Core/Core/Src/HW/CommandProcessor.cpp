@@ -372,6 +372,8 @@ void Write16(const u16 _Value, const u32 _Address)
                         */
 			LOG(COMMANDPROCESSOR, "*********************** GXSetGPFifo very soon? ***********************");
 			u32 ct=0;
+			// (mb2) We don't sleep here since it could be a perf issue for super monkey ball (yup only this game IIRC)
+			// Touching that game is a no-go so I don't want to take the risk :p
 			while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance > 0 )
 				ct++;
 			if (ct) {LOG(COMMANDPROCESSOR, "(Write16): %lu cycles for nothing :[ ", ct);}
@@ -603,10 +605,9 @@ void STACKALIGN GatherPipeBursted()
 			while (!(fifo.bFF_BPEnable && fifo.bFF_Breakpoint) && fifo.CPReadWriteDistance > fifo.CPLoWatermark)
 			{
 				ct++;
-				// dunno if others threads (like the audio thread) really need a forced context switch here
-				//Common::SleepCurrentThread(1);
+				Common::SleepCurrentThread(1);
 			}
-			if (ct) {LOG(COMMANDPROCESSOR, "(GatherPipeBursted): %lu cycles for nothing :[", ct);}
+			if (ct) {LOG(COMMANDPROCESSOR, "(GatherPipeBursted): %lu ms for nothing :[", ct);}
 			/**/
 		}
 		// check if we are in sync
