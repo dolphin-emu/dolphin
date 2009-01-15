@@ -1,11 +1,11 @@
-# -*- python -*- 
+# -*- python -*-
 
 Import('env')
 
 if not env['HAVE_WX']:
     Return()
 
-files = ["LogWindow.cpp", 
+files = ["LogWindow.cpp",
          "BreakPointDlg.cpp",
          "BreakpointView.cpp",
          "CodeView.cpp",
@@ -13,7 +13,7 @@ files = ["LogWindow.cpp",
          "CodeWindow.cpp",
          "CodeWindowSJP.cpp",
          "CodeView.cpp",
-         "Debugger.cpp", 
+         "Debugger.cpp",
          "MemoryCheckDlg.cpp",
          "MemoryView.cpp",
          "MemoryWindow.cpp",

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Plugin_VideoOGL"
 	ProjectGUID="{CFDCEE0E-FA45-4F72-9FCC-0B88F5A75160}"
 	RootNamespace="Plugin_VideoOGL"
@@ -165,7 +165,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="false"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew"
+				AdditionalIncludeDirectories="../../Core/InputCommon/Src;../../PluginSpecs;../../Core/Common/Src;../../Core/VideoCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				ExceptionHandling="1"
@@ -935,6 +935,10 @@
 		</File>
 		<File
 			RelativePath=".\Src\GLUtil.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\GLWindow.h"
 			>
 		</File>
 		<File

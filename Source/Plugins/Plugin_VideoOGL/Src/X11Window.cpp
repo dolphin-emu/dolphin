@@ -1,7 +1,5 @@
 #include "X11Window.h"
 
-static EventHandler *eventHandler = (EventHandler *)globals->eventHandler;
-
 X11Window::X11Window() : GLWindow() {
  
     XVisualInfo *vi;
@@ -175,7 +173,6 @@ bool X11Window::PeekMessages() {
 
 // Taken from sfml code
 void X11Window::ProcessEvent(XEvent WinEvent) {
-    //    static EventHandler *eventHandler = EventHandler::GetInstance();
     switch (WinEvent.type) {
 	
     case KeyPress :

@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Project description
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-// Name: nJoy 
+// Name: nJoy
 // Description: A Dolphin Compatible Input Plugin
 //
 // Author: Falcon4ever (nJoy@falcon4ever.com)
@@ -69,8 +69,8 @@ BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
 	EVT_CHECKBOX(IDC_SAVEBYID, ConfigBox::ChangeSettings) // Settings
 	EVT_CHECKBOX(IDC_SAVEBYIDNOTICE, ConfigBox::ChangeSettings)
 	EVT_CHECKBOX(IDC_SHOWADVANCED, ConfigBox::ChangeSettings)
-	EVT_COMBOBOX(IDCB_MAINSTICK_DIAGONAL, ConfigBox::ChangeSettings)	
-	EVT_CHECKBOX(IDCB_MAINSTICK_S_TO_C, ConfigBox::ChangeSettings)	
+	EVT_COMBOBOX(IDCB_MAINSTICK_DIAGONAL, ConfigBox::ChangeSettings)
+	EVT_CHECKBOX(IDCB_MAINSTICK_S_TO_C, ConfigBox::ChangeSettings)
 
 	EVT_BUTTON(IDB_SHOULDER_L, ConfigBox::GetButtons)
 	EVT_BUTTON(IDB_SHOULDER_R, ConfigBox::GetButtons)
@@ -142,7 +142,7 @@ void ConfigBox::OnKeyDown(wxKeyEvent& event)
 void ConfigBox::OnClose(wxCloseEvent& /*event*/)
 {
 	EndModal(0);
-	if(!emulator_running) PAD_Shutdown(); // Close pads, unless we are running a game
+	if(!emulator_running) Shutdown(); // Close pads, unless we are running a game
 }
 
 // Call about dialog
@@ -158,11 +158,11 @@ void ConfigBox::AboutClick(wxCommandEvent& event)
 		frame.ShowModal();
 
 		win.Enable(true);
-		win.SetHWND(0); 
+		win.SetHWND(0);
 	#else
 		AboutBox frame(NULL);
 		frame.ShowModal();
-	#endif	
+	#endif
 }
 
 // Click OK
@@ -211,7 +211,7 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 			g_Config.bSaveByIDNotice = m_CBSaveByIDNotice[notebookpage]->IsChecked();
 			break;			
 
-		case IDC_SHOWADVANCED: 
+		case IDC_SHOWADVANCED:
 			g_Config.bShowAdvanced = m_CBShowAdvanced[notebookpage]->IsChecked();			
 			for(int i = 0; i < 4; i++)
 			{
@@ -236,7 +236,7 @@ void ConfigBox::EnableDisable(wxCommandEvent& event)
 {
 	// First save the settings as they are now, disabled controls will not be saved later
 	g_Config.Save();
-	
+
 	// Update the enable / disable status
 	DoEnableDisable(notebookpage);
 
@@ -276,7 +276,7 @@ void ConfigBox::DoEnableDisable(int _notebookpage)
 // Notebook page changed
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::NotebookPageChanged(wxNotebookEvent& event)
-{	
+{
 	notebookpage = event.GetSelection();
 }
 
@@ -335,7 +335,7 @@ void ConfigBox::CreateGUIControls()
 	#else			
 		SetTitle(wxT("Configure: nJoy v"INPUT_VERSION" (Debug) Input Plugin"));
 	#endif
-	
+
 	SetIcon(wxNullIcon);
 
 	//WxStaticBitmap1_BITMAP(ConfigBox_WxStaticBitmap1_XPM);
@@ -360,7 +360,7 @@ void ConfigBox::CreateGUIControls()
 
 	// Notebook
 	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
-	
+
 	// Controller pages
 	m_Controller[0] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE1, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_Controller[0], wxT("Controller 1"));
@@ -381,7 +381,7 @@ void ConfigBox::CreateGUIControls()
 	WxStaticBitmap1_BITMAPGray = wxBitmap(WxImageGray);
 
 	// --------------------------------------------------------------------
-	// Search for devices and add them to the device list	
+	// Search for devices and add them to the device list
 	// -----------------------------
 	wxArrayString arrayStringFor_Joyname; // The string array
 	if(SDL_NumJoysticks() > 0)
@@ -405,7 +405,7 @@ void ConfigBox::CreateGUIControls()
 	// arrayStringFor_Controltype.Add(wxString::FromAscii(ControllerType[CTL_TYPE_JOYSTICK_XBOX360]));
 	// arrayStringFor_Controltype.Add(wxString::FromAscii(ControllerType[CTL_TYPE_KEYBOARD]));
 
-	
+
 	// --------------------------------------------------------------------
 	// Populate the deadzone list
 	// -----------------------------
@@ -420,7 +420,7 @@ void ConfigBox::CreateGUIControls()
 
 	// Populate all four pages
 	for(int i=0; i<4 ;i++)
-	{	
+	{
 		// --------------------------------------------------------------------
 		// Populate keys sizer
 		// -----------------------------
@@ -614,7 +614,7 @@ void ConfigBox::CreateGUIControls()
 		m_sSettings[i] = new wxBoxSizer ( wxHORIZONTAL );
 		m_sSettings[i]->Add(m_gExtrasettings[i], 0, wxEXPAND | wxALL, 0);
 		m_sSettings[i]->Add(m_gControllertype[i], 0, wxEXPAND | wxLEFT, 5);
-		m_sSettings[i]->Add(m_gGenSettings[i], 0, wxEXPAND | wxLEFT, 5);	
+		m_sSettings[i]->Add(m_gGenSettings[i], 0, wxEXPAND | wxLEFT, 5);
 
 
 		//////////////////////////////////////
@@ -714,7 +714,7 @@ void ConfigBox::CreateGUIControls()
 		DoEnableDisable(i);
 	} // end of loop
 
-	
+
 	// --------------------------------------------------------------------
 	// Populate buttons sizer.
 	// -----------------------------
@@ -736,8 +736,8 @@ void ConfigBox::CreateGUIControls()
 	// --------------------------------------------------------------------
 	// Debugging
 	// -----------------------------
-	//m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(100, 510), wxDefaultSize);	
-	//m_pStatusBar2 = new wxStaticText(this, IDT_DEBUGGING2, wxT("Debugging2"), wxPoint(100, 530), wxDefaultSize);	
+	//m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(100, 510), wxDefaultSize);
+	//m_pStatusBar2 = new wxStaticText(this, IDT_DEBUGGING2, wxT("Debugging2"), wxPoint(100, 530), wxDefaultSize);
 	//m_pStatusBar->SetLabel(wxString::Format("Debugging text"));
 
 	// --------------------------------------------------------------------

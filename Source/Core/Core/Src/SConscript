@@ -1,11 +1,11 @@
-# -*- python -*- 
+# -*- python -*-
 
 Import('env')
 
 files = ["Console.cpp",
          "Core.cpp",
-         "CoreTiming.cpp", 
-         "CoreParameter.cpp", 
+         "CoreTiming.cpp",
+         "CoreParameter.cpp",
          "Host.cpp",
          "LogManager.cpp",
          "MemTools.cpp",
@@ -64,10 +64,10 @@ files = ["Console.cpp",
          "IPC_HLE/WII_IPC_HLE_WiiMote.cpp",
          "IPC_HLE/WII_IPC_HLE_Device_usb.cpp",
          "IPC_HLE/WiiMote_HID_Attr.cpp",
-         "Plugins/Plugin_DSP.cpp",
-         "Plugins/Plugin_PAD.cpp",
-         "Plugins/Plugin_Video.cpp",
-         "Plugins/Plugin_Wiimote.cpp",
+#         "Plugins/Plugin_DSP.cpp",
+#         "Plugins/Plugin_PAD.cpp",
+#         "Plugins/Plugin_Video.cpp",
+#         "Plugins/Plugin_Wiimote.cpp",
          "PowerPC/PowerPC.cpp",
          "PowerPC/PPCAnalyst.cpp",
          "PowerPC/PPCTables.cpp",

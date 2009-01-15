@@ -29,10 +29,6 @@
 #include "PowerPC/PowerPC.h" // Core
 #include "PowerPC/SymbolDB.h" // for g_symbolDB
 #include "Debugger/Debugger_SymbolMap.h"
-
-#if defined(HAVE_WX) && HAVE_WX && defined(WX_CORE) // wxWidgets
-	#include <wx/datetime.h> // for the timestamps
-#endif
 /////////////////////////
 
 
@@ -103,7 +99,7 @@ void CDebugger_Log::Init()
 #endif
 }
 
-void CDebugger_Log::Shutdown() 
+void CDebugger_Log::Shutdown()
 {
 #ifdef LOGGING
 	if (m_pFile != NULL)
@@ -143,7 +139,7 @@ void LogManager::Init()
 		m_Log[LogTypes::VIDEO + i*100]			    = new CDebugger_Log("Video", "Video Plugin", i);
 		m_Log[LogTypes::AUDIO + i*100]			    = new CDebugger_Log("Audio", "Audio Plugin", i);
 		m_Log[LogTypes::DYNA_REC + i*100]			= new CDebugger_Log("DYNA", "Dynamic Recompiler", i);
-		m_Log[LogTypes::CONSOLE + i*100]			= new CDebugger_Log("CONSOLE", "Dolphin Console", i);	
+		m_Log[LogTypes::CONSOLE + i*100]			= new CDebugger_Log("CONSOLE", "Dolphin Console", i);
 		m_Log[LogTypes::OSREPORT + i*100]			= new CDebugger_Log("OSREPORT", "OSReport", i);			
 		m_Log[LogTypes::WII_IOB + i*100]			= new CDebugger_Log("WII_IOB",			"WII IO Bridge", i);
 		m_Log[LogTypes::WII_IPC + i*100]			= new CDebugger_Log("WII_IPC",			"WII IPC", i);
@@ -166,7 +162,7 @@ void LogManager::Init()
 		{
 			m_Log[j*100 + i]->Init();
 		}
-	}	
+	}
 	m_bInitialized = true;
 }
 
@@ -230,7 +226,7 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	// security checks
 	if (m_Log[_type] == NULL || !m_Log[_type]->m_bEnable
 		|| _type > (LogTypes::NUMBER_OF_LOGS + LogManager::VERBOSITY_LEVELS * 100)
-		|| _type < 0) 
+		|| _type < 0)
 		return;
 
 	// prepare message
@@ -243,9 +239,6 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	static u32 count = 0;
 	char* Msg2 = (char*)alloca(strlen(_fmt)+512);
 
-	#if defined(HAVE_WX) && HAVE_WX && defined(WX_CORE)
-		wxDateTime datetime = wxDateTime::UNow(); // get timestamp
-	#endif 
 
 	// Here's the old symbol request
 	//Debugger::FindSymbol(PC);
@@ -257,7 +250,7 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	// added a simple caching function so that we don't search again if we get the same
 	// question again.
 	std::string symbol;
-	
+
 	if ((v == 0 || v == 1) && lastPC != PC && LogManager::m_LogSettings->bResolve)
 	{
 		symbol = g_symbolDB.GetDescription(PC);
@@ -276,21 +269,13 @@ void LogManager::Log(LogTypes::LOG_TYPE _type, const char *_fmt, ...)
 	int Index = 1;
 	const char *eol = "\n";
 	if (Index > 0)
-	{		
-		#if defined(HAVE_WX) && HAVE_WX && defined(WX_CORE)
-			sprintf(Msg2, "%i %02i:%02i:%03i: %x %s (%s, %08x) : %s%s", 
-		#else
-			sprintf(Msg2, "%i %llu: %x %s (%s, %08x) : %s%s",
-		#endif
+	{
+		sprintf(Msg2, "%i %s: %x %s (%s, %08x) : %s%s",
 			++count,
-			#if defined(HAVE_WX) && HAVE_WX && defined(WX_CORE)
-				datetime.GetMinute(), datetime.GetSecond(), datetime.GetMillisecond(),
-			#else
-				Common::Timer::GetTimeSinceJan1970(),
-			#endif			
-			PowerPC::ppcState.DebugCount, 
-			m_Log[_type]->m_szShortName_, // (CONSOLE etc)		
-			symbol.c_str(), PC, // current PC location (name, address)
+			Common::Timer::GetTimeFormatted().c_str(),
+			PowerPC::ppcState.DebugCount,
+			m_Log[_type]->m_szShortName_, // (CONSOLE etc)
+			symbol.c_str(),	PC, // current PC location (name, address)
 			Msg, eol);
 	}
 

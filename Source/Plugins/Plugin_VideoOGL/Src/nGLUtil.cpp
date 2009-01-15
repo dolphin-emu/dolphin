@@ -67,6 +67,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize,
     if (! glWin)
 	return false;
 
+    glWin->SetEventHandler((EventHandler *)globals->eventHandler);
     return true;
 }
 

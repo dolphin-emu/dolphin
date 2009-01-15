@@ -1,4 +1,4 @@
-# -*- python -*- 
+# -*- python -*-
 
 Import('env')
 
@@ -17,6 +17,10 @@ files = [
 	"MemArena.cpp",
 	"MemoryUtil.cpp",
 	"Plugin.cpp",
+        "PluginDSP.cpp",
+        "PluginWiimote.cpp",
+        "PluginVideo.cpp",
+        "PluginPAD.cpp",
 	"StringUtil.cpp",
 	"TestFramework.cpp",
 	"Thunk.cpp",

@@ -1,4 +1,4 @@
-# -*- python -*- 
+# -*- python -*-
 
 Import('env')
 import sys
@@ -9,10 +9,6 @@ if not env['HAVE_X11']:
     if not env['HAVE_COCOA']:
         print name + " must have X11 to be built"
         Return()
-
-if env['GLTEST']:
-    print name + " Doesn't work with testgl"
-    Return()
 
 
 files = [
@@ -28,12 +24,12 @@ if padenv['HAVE_COCOA']:
         ]
 
 if padenv['HAVE_WX']:
-    files += [ 
+    files += [
         "GUI/ConfigDlg.cpp",
         ]
 
 if env['HAVE_X11']:
-    files += [ 
+    files += [
         "XInputBase.cpp",
         ]
 

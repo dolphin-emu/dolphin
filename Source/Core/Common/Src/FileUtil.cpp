@@ -237,7 +237,7 @@ bool Rename(const char *srcFilename, const char *destFilename)
 
 bool Copy(const char *srcFilename, const char *destFilename)
 {
-#ifdef _WIN32 
+#ifdef _WIN32
 	return (CopyFile(srcFilename, destFilename, FALSE) == TRUE) ? true : false;
 #else
 
@@ -259,7 +259,7 @@ bool Copy(const char *srcFilename, const char *destFilename)
             return false;
         }
 
-	while(! feof(input)) {	
+	while(! feof(input)) {
             if((rnum = fread(buffer, sizeof(char), BSIZE, input)) != BSIZE) {
 		if(ferror(input) != 0){
                     PanicAlert("can't read source file\n");
@@ -293,7 +293,7 @@ bool Copy(const char *srcFilename, const char *destFilename)
 std::string GetUserDirectory()
 {
 	char path[MAX_PATH];
-#ifdef _WIN32 
+#ifdef _WIN32
 	if (SUCCEEDED(SHGetFolderPath(NULL, CSIDL_COMMON_APPDATA, NULL, 0, path)))
 	{
 		//return std::string(path);
@@ -337,7 +337,7 @@ u64 GetSize(const char *filename)
     }
     int err = errno;
    	PanicAlert("Error accessing %s: %s", filename, strerror(err));
-#endif 
+#endif
     return 0;
 }
 
@@ -408,7 +408,7 @@ u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry)
 
 	// Find the first file in the directory.
 	DIR *dirp = opendir(_Directory.c_str());
-	
+
 	while (!readdir_r(dirp, &dirent, &result) && result) {
 		FSTEntry entry;
 		if (result->d_name[0]=='.') continue;
@@ -428,7 +428,7 @@ u32 ScanDirectoryTree(const std::string& _Directory, FSTEntry& parentEntry)
 		parentEntry.children.push_back(entry);
 	}
 	closedir(dirp);
-	
+
 	return foundEntries;
 }
 #endif
@@ -494,29 +494,29 @@ error_jmp:
 	return Result;
 #else
         // taken from http://www.dreamincode.net/code/snippet2700.htm
-        DIR *pdir = NULL; 
+        DIR *pdir = NULL;
         pdir = opendir (_Directory.c_str());
         struct dirent *pent = NULL;
         
-        if (pdir == NULL) { 
-            return false; 
-        } 
+        if (pdir == NULL) {
+            return false;
+        }
 
         char file[256];
 
         int counter = 1;
         
-        while ((pent = readdir(pdir))) { 
+        while ((pent = readdir(pdir))) {
             if (counter > 2) {
                 for (int i = 0; i < 256; i++) file[i] = '\0';
                 strcat(file, _Directory.c_str());
-                if (pent == NULL) { 
-                    return false; 
-                } 
-                strcat(file, pent->d_name); 
+                if (pent == NULL) {
+                    return false;
+                }
+                strcat(file, pent->d_name);
                 if (IsDirectory(file) == true) {
                     DeleteDir(file);
-                } else { 
+                } else {
                     remove(file);
                 }
             }

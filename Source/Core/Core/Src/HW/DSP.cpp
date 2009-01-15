@@ -27,7 +27,7 @@
 // it will automatically relatch and fire a new interrupt.
 
 // Then there's the DSP... what likely happens is that the fifo-latched-interrupt handler
-// kicks off the DSP, requesting it to fill up the just used buffer through the AXList (or 
+// kicks off the DSP, requesting it to fill up the just used buffer through the AXList (or
 // whatever it might be called in Nintendo games).
 
 #include "DSP.h"
@@ -40,7 +40,7 @@
 #include "PeripheralInterface.h"
 #include "AudioInterface.h"
 #include "../PowerPC/PowerPC.h"
-#include "../Plugins/Plugin_DSP.h"
+#include "../PluginManager.h"
 
 namespace DSP
 {
@@ -63,7 +63,7 @@ enum
 	AR_DMA_ARADDR_H			= 0x5024,
 	AR_DMA_ARADDR_L			= 0x5026,
 	AR_DMA_CNT_H			= 0x5028,
-	AR_DMA_CNT_L			= 0x502A	
+	AR_DMA_CNT_L			= 0x502A
 };
 
 // aram size and mask
@@ -79,7 +79,7 @@ enum
 union UARAMCount
 {
 	u32 Hex;
-	struct 
+	struct
 	{
 		unsigned count	: 31;
 		unsigned dir	: 1;
@@ -93,7 +93,7 @@ union UDSPControl
 	u16 Hex;
 	struct  
 	{
-		unsigned DSPReset		: 1;	// Write 1 to reset and waits for 0 
+		unsigned DSPReset		: 1;	// Write 1 to reset and waits for 0
 		unsigned DSPAssertInt	: 1;
 		unsigned DSPHalt		: 1;
 
@@ -122,7 +122,7 @@ struct DSPState
 		IntControl = 0;
 		DSPControl.Hex = 0;
 	}
-};	
+};
 
 // Blocks are 32 bytes.
 union UAudioDMAControl
@@ -189,7 +189,7 @@ void DoState(PointerWrap &p)
 
 
 void UpdateInterrupts();
-void Update_ARAM_DMA();	
+void Update_ARAM_DMA();
 void WriteARAM(u8 _iValue, u32 _iAddress);
 bool Update_DSP_ReadRegister();
 void Update_DSP_WriteRegister();
@@ -233,31 +233,31 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		if (_iAddress != 0xCC005004) {
 			LOGV(DSPINTERFACE, 3, "DSPInterface(r16) 0x%08x", _iAddress);
 		}
-
+		Common::PluginDSP *dsp = CPluginManager::GetInstance().GetDSP();
 		switch (_iAddress & 0xFFFF)
 		{
 		// ==================================================================================
 		// AI_REGS 0x5000+
 		// ==================================================================================
 		case DSP_MAIL_TO_DSP_HI:
-			_uReturnValue = PluginDSP::DSP_ReadMailboxHigh(true);
+			_uReturnValue = dsp->DSP_ReadMailboxHigh(true);
 			return;
 
 		case DSP_MAIL_TO_DSP_LO:
-			_uReturnValue = PluginDSP::DSP_ReadMailboxLow(true);
+			_uReturnValue = dsp->DSP_ReadMailboxLow(true);
 			return;
 
 		case DSP_MAIL_FROM_DSP_HI:
-			_uReturnValue = PluginDSP::DSP_ReadMailboxHigh(false);
+			_uReturnValue = dsp->DSP_ReadMailboxHigh(false);
 			return;
 
 		case DSP_MAIL_FROM_DSP_LO:
-			_uReturnValue = PluginDSP::DSP_ReadMailboxLow(false);
+			_uReturnValue = dsp->DSP_ReadMailboxLow(false);
 			return;
 
 		case DSP_CONTROL:
-			_uReturnValue = (g_dspState.DSPControl.Hex & ~DSP_CONTROL_MASK) | 
-							(PluginDSP::DSP_ReadControlRegister() & DSP_CONTROL_MASK);
+			_uReturnValue = (g_dspState.DSPControl.Hex & ~DSP_CONTROL_MASK) |
+							(dsp->DSP_ReadControlRegister() & DSP_CONTROL_MASK);
 			return;
 
 		// ==================================================================================
@@ -317,7 +317,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 void Write16(const u16 _Value, const u32 _Address)
 {
 	LOGV(DSPINTERFACE, 3, "DSPInterface(w16) 0x%04x 0x%08x", _Value, _Address);
-
+	Common::PluginDSP *dsp = CPluginManager::GetInstance().GetDSP();
 	switch(_Address & 0xFFFF)
 	{
 	// ==================================================================================
@@ -325,18 +325,18 @@ void Write16(const u16 _Value, const u32 _Address)
 	// ==================================================================================
 
 	case DSP_MAIL_TO_DSP_HI:
-		PluginDSP::DSP_WriteMailboxHigh(true, _Value);
+		dsp->DSP_WriteMailboxHigh(true, _Value);
 		break;
 
-	case DSP_MAIL_TO_DSP_LO:	
-		PluginDSP::DSP_WriteMailboxLow(true, _Value);
+	case DSP_MAIL_TO_DSP_LO:
+		dsp->DSP_WriteMailboxLow(true, _Value);
 		break;
 
-	case DSP_MAIL_FROM_DSP_HI:	
+	case DSP_MAIL_FROM_DSP_HI:
 		_dbg_assert_msg_(DSPINTERFACE, 0, "W16: DSP_MAIL_FROM_DSP_HI");
 		break;
 
-	case DSP_MAIL_FROM_DSP_LO:	
+	case DSP_MAIL_FROM_DSP_LO:
 		_dbg_assert_msg_(DSPINTERFACE, 0, "W16: DSP_MAIL_FROM_DSP_LO");
 		break;
 
@@ -346,8 +346,8 @@ void Write16(const u16 _Value, const u32 _Address)
 	case DSP_CONTROL:
 		{
 			UDSPControl tmpControl;
-			tmpControl.Hex = (_Value& ~DSP_CONTROL_MASK) | 
-							(PluginDSP::DSP_WriteControlRegister(_Value) & DSP_CONTROL_MASK);
+			tmpControl.Hex = (_Value& ~DSP_CONTROL_MASK) |
+							(dsp->DSP_WriteControlRegister(_Value) & DSP_CONTROL_MASK);
 
 			// Update DSP related flags
 			g_dspState.DSPControl.DSPReset		= tmpControl.DSPReset;
@@ -379,7 +379,7 @@ void Write16(const u16 _Value, const u32 _Address)
 
 			UpdateInterrupts();
 		}			
-		break; 
+		break;
 
 	// ==================================================================================
 	// AR_REGS 0x501x+
@@ -397,9 +397,9 @@ void Write16(const u16 _Value, const u32 _Address)
 	case 0x501a:
 		break;
 
-	case AR_DMA_MMADDR_H: 
+	case AR_DMA_MMADDR_H:
 		g_arDMA.MMAddr = (g_arDMA.MMAddr & 0xFFFF) | (_Value<<16); break;
-	case AR_DMA_MMADDR_L: 
+	case AR_DMA_MMADDR_L:
 		g_arDMA.MMAddr = (g_arDMA.MMAddr & 0xFFFF0000) | (_Value); break;
 
 	case AR_DMA_ARADDR_H:
@@ -408,7 +408,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		g_arDMA.ARAddr = (g_arDMA.ARAddr & 0xFFFF0000) | (_Value); break;
 
 	case AR_DMA_CNT_H:  
-		g_arDMA.Cnt.Hex = (g_arDMA.Cnt.Hex & 0xFFFF) | (_Value<<16); 
+		g_arDMA.Cnt.Hex = (g_arDMA.Cnt.Hex & 0xFFFF) | (_Value<<16);
 		g_arDMA.CntValid[0] = true;
 		Update_ARAM_DMA();
 		break;
@@ -421,7 +421,7 @@ void Write16(const u16 _Value, const u32 _Address)
 
 	// ==================================================================================
 	// Audio DMA_REGS 0x5030+
-	// This is the DMA that goes straight out the speaker. 
+	// This is the DMA that goes straight out the speaker.
 	// ==================================================================================
 	case AUDIO_DMA_START_HI:
 		g_audioDMA.SourceAddress = (g_audioDMA.SourceAddress & 0xFFFF) | (_Value<<16);
@@ -462,9 +462,9 @@ void UpdateAudioDMA()
 	if (g_audioDMA.AudioDMAControl.Enabled && g_audioDMA.BlocksLeft) {
 		// Read audio at g_audioDMA.ReadAddress in RAM and push onto an external audio fifo in the emulator,
 		// to be mixed with the disc streaming output. If that audio queue fills up, we delay the emulator.
-
+	    Common::PluginDSP *dsp = CPluginManager::GetInstance().GetDSP();
 		// TO RESTORE OLD BEHAVIOUR, COMMENT OUT THIS LINE
-		PluginDSP::DSP_SendAIBuffer(g_audioDMA.ReadAddress, AudioInterface::GetDSPSampleRate());
+		dsp->DSP_SendAIBuffer(g_audioDMA.ReadAddress, AudioInterface::GetDSPSampleRate());
 
 		g_audioDMA.ReadAddress += 32;
 		g_audioDMA.BlocksLeft--;
@@ -506,19 +506,19 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 	switch (_iAddress & 0xFFFF)
 	{
 	// ==================================================================================
-	// AR_REGS - i dont know why they are accessed 32 bit too ... 
+	// AR_REGS - i dont know why they are accessed 32 bit too ...
 	// ==================================================================================
 
-	case AR_DMA_MMADDR_H: 
-		g_arDMA.MMAddr = _iValue; 
+	case AR_DMA_MMADDR_H:
+		g_arDMA.MMAddr = _iValue;
 		break;
 
 	case AR_DMA_ARADDR_H:
-		g_arDMA.ARAddr = _iValue; 
+		g_arDMA.ARAddr = _iValue;
 		break;
 
 	case AR_DMA_CNT_H:   
-		g_arDMA.Cnt.Hex = _iValue; 
+		g_arDMA.Cnt.Hex = _iValue;
 		g_arDMA.CntValid[0] = g_arDMA.CntValid[1] = true;		
 		Update_ARAM_DMA();
 		break;
@@ -531,7 +531,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 
 // __________________________________________________________________________________________________
 // UpdateInterrupts
-//	
+//
 void UpdateInterrupts()
 {
 	if ((g_dspState.DSPControl.AID  & g_dspState.DSPControl.AID_mask) ||
@@ -648,7 +648,7 @@ u8 ReadARAM(u32 _iAddress)
 		return g_ARAM[_iAddress & ARAM_MASK];
 }
 
-u8* GetARAMPtr() 
+u8* GetARAMPtr()
 {
 	return g_ARAM;
 }

@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Project description
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-// Name: nJoy 
+// Name: nJoy
 // Description: A Dolphin Compatible Input Plugin
 //
 // Author: Falcon4ever (nJoy@falcon4ever.com)
@@ -92,18 +92,18 @@ class wxDLLApp : public wxApp
 	}
 };
 
-IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// DllMain 
+// DllMain
 // ¯¯¯¯¯¯¯
 
 BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 						DWORD dwReason,		// reason called
 						LPVOID lpvReserved)	// reserved
-{	
+{
 	switch (dwReason)
 	{
 		case DLL_PROCESS_ATTACH:
@@ -119,19 +119,19 @@ BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 				return FALSE;
 #endif
 		}
-		break; 
+		break;
 
 		case DLL_PROCESS_DETACH:		
 #if defined(HAVE_WX) && HAVE_WX
-			wxEntryCleanup(); //use wxUninitialize() if you don't want GUI 
+			wxEntryCleanup(); //use wxUninitialize() if you don't want GUI
 #endif
 		break;
 
 		default:
 			break;
 	}
-	
-	nJoy_hInst = hinstDLL;	
+
+	nJoy_hInst = hinstDLL;
 	return TRUE;
 }
 #endif
@@ -147,7 +147,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_PAD;
 
-#ifdef DEBUGFAST 
+#ifdef DEBUGFAST
 	sprintf(_PluginInfo->Name, "nJoy v"INPUT_VERSION" (DebugFast) by Falcon4ever");
 #else
 #ifndef _DEBUG
@@ -194,7 +194,7 @@ void DllConfig(HWND _hParent)
 	ConfigBox frame(NULL);
 	frame.ShowModal();
 #endif
-	#endif	
+	#endif
 }
 
 void DllDebugger(HWND _hParent, bool Show) {
@@ -202,29 +202,30 @@ void DllDebugger(HWND _hParent, bool Show) {
 
 // Init PAD (start emulation)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void PAD_Initialize(SPADInitialize _PADInitialize)
-{	
+void Initialize(void *init)
+{
+    SPADInitialize _PADInitialize  = *(SPADInitialize*)init;
 	emulator_running = TRUE;
 	#ifdef _DEBUG
 	DEBUG_INIT();
 	#endif
-	
+
 	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
 	{
 		#ifdef _WIN32
 		MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
-		#else	
-		printf("Could not initialize SDL! (%s)\n", SDL_GetError());	
+		#else
+		printf("Could not initialize SDL! (%s)\n", SDL_GetError());
 		#endif
 		return;
 	}
-	
+
 	#ifdef _WIN32
-	m_hWnd = (HWND)_PADInitialize.hWnd;	
+	m_hWnd = (HWND)_PADInitialize.hWnd;
 	#endif
 
 	LoadConfig();	// Load joystick mapping
-	
+
 	if(joysticks[0].enabled)
 		joystate[0].joy = SDL_JoystickOpen(joysticks[0].ID);
 	if(joysticks[1].enabled)
@@ -237,7 +238,7 @@ void PAD_Initialize(SPADInitialize _PADInitialize)
 
 // Shutdown PAD (stop emulation)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void PAD_Shutdown()
+void Shutdown()
 {
 	if(joysticks[0].enabled)
 		SDL_JoystickClose(joystate[0].joy);
@@ -249,15 +250,15 @@ void PAD_Shutdown()
 		SDL_JoystickClose(joystate[3].joy);
 
 	SDL_Quit();
-	
+
 	#ifdef _DEBUG
 	DEBUG_QUIT();
 	#endif
 
-	delete [] joyinfo;	
+	delete [] joyinfo;
 
 	emulator_running = FALSE;
-	
+
 	#ifdef _WIN32
 	#ifdef USE_RUMBLE_DINPUT_HACK
 	FreeDirectInput();
@@ -267,13 +268,14 @@ void PAD_Shutdown()
 	#endif
 }
 
-
+void DoState(unsigned char **ptr, int mode) {
+}
 
 // Set buttons status from wxWidgets in the main application
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PAD_Input(u8 _Key, u8 _UpDown) {}
 
-
+ 
 
 // Set PAD status
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -281,13 +283,13 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
 	if(!joysticks[_numPAD].enabled)
 		return;
-		
+
 	// clear pad status
 	memset(_pPADStatus, 0, sizeof(SPADStatus));
 
 	// get pad status
 	GetJoyState(_numPAD);
-	
+
 	// Reset!
 	int base = 0x80;
 	_pPADStatus->stickY = base;
@@ -326,8 +328,8 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	{
 		//Do a panicAlert here?
 	}
-	
 
+ 
 	// Quick fix
 	if(main_stick_x > 127)
 		main_stick_x = 127;
@@ -398,7 +400,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 				if(Pressed == true)
 				{
 					int TriggerValue = 0;
-					
+
 					if(joysticks[_numPAD].buttons[a].c_str()[1] == '+')
 					{
 						if(joystate[_numPAD].buttons[a] >= 0)
@@ -416,7 +418,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 							_pPADStatus->button |= ButtonArray[a];
 						_pPADStatus->triggerLeft = TriggerValue;
 					}
-					else if(a == CTL_R_SHOULDER) 
+					else if(a == CTL_R_SHOULDER)
 					{
 						if(TriggerValue == 255)
 							_pPADStatus->button |= ButtonArray[a];
@@ -445,7 +447,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 					// Digital L and R
 					if(a == CTL_L_SHOULDER)
 						_pPADStatus->triggerLeft = 255; //TODO: Do half press with these
-					else if(a == CTL_R_SHOULDER) 
+					else if(a == CTL_R_SHOULDER)
 						_pPADStatus->triggerRight = 255; //TODO: Half Press with these
 					else if(a == CTL_A_BUTTON)
 						_pPADStatus->analogA = 255;
@@ -464,7 +466,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 		_pPADStatus->button|=PAD_TRIGGER_L;
 		_pPADStatus->triggerLeft  = triggervalue;
 	}
-	if (joystate[_numPAD].buttons[CTL_R_SHOULDER])	
+	if (joystate[_numPAD].buttons[CTL_R_SHOULDER])
 	{
 		_pPADStatus->button|=PAD_TRIGGER_R;
 		_pPADStatus->triggerRight = triggervalue;
@@ -497,10 +499,10 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	else
 	{
 	}
-	
+
 	_pPADStatus->err = PAD_ERR_NONE;
 
-
+ 
 	#ifdef _WIN32
 	#ifdef USE_RUMBLE_DINPUT_HACK
 	if(joystate[_numPAD].halfpress)
@@ -517,7 +519,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	if (g_rumbleEnable)
 	{
 		g_pDevice->Acquire();
-		
+
 		if(g_pEffect)
 			g_pEffect->Start(1, 0);
 	}
@@ -625,7 +627,7 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 unsigned int PAD_GetAttachedPads()
 {
 	unsigned int connected = 0;
-	
+
 	LoadConfig();
 
 	if(joysticks[0].enabled)
@@ -640,7 +642,7 @@ unsigned int PAD_GetAttachedPads()
 	return connected;
 }
 
-
+ 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Custom Functions
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -698,8 +700,8 @@ int Search_Devices()
 	{		
 		#ifdef _WIN32
 		MessageBox(NULL, "No Joystick detected!", NULL,  MB_ICONWARNING);
-		#else	
-		printf("No Joystick detected!\n");	
+		#else
+		printf("No Joystick detected!\n");
 		#endif
 		return 0;
 	}
@@ -712,7 +714,7 @@ int Search_Devices()
 	fprintf(pFile, "Scanning for devices\n");
 	fprintf(pFile, "¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯\n");
 	#endif
-	
+
 	for(int i = 0; i < numjoy; i++ )
 	{
 		joyinfo[i].joy			= SDL_JoystickOpen(i);
@@ -722,7 +724,7 @@ int Search_Devices()
 		joyinfo[i].NumBalls		= SDL_JoystickNumBalls(joyinfo[i].joy);
 		joyinfo[i].NumHats		= SDL_JoystickNumHats(joyinfo[i].joy);
 		joyinfo[i].Name			= SDL_JoystickName(i);
-  
+
 		printf("ID: %d\n", i);
 		printf("Name: %s\n", joyinfo[i].Name);
 		printf("Buttons: %d\n", joyinfo[i].NumButtons);
@@ -746,9 +748,9 @@ void DEBUG_INIT()
 		return;
 
 	#ifdef _WIN32
-	char dateStr [9]; 
+	char dateStr [9];
 	_strdate( dateStr);
-	char timeStr [9]; 
+	char timeStr [9];
 	_strtime( timeStr );
 	#endif
 
@@ -768,7 +770,7 @@ void DEBUG_QUIT()
 		return;
 
 	#ifdef _WIN32
-	char timeStr [9]; 
+	char timeStr [9];
 	_strtime(timeStr);
 
 	fprintf(pFile, "_______________\n");
@@ -797,7 +799,7 @@ void SaveConfig()
 		file.Set(SectionName, "y_button", joysticks[i].buttons[CTL_Y_BUTTON]);
 		file.Set(SectionName, "z_trigger", joysticks[i].buttons[CTL_Z_TRIGGER]);
 		file.Set(SectionName, "start_button", joysticks[i].buttons[CTL_START]);
-		file.Set(SectionName, "dpad", joysticks[i].dpad);	
+		file.Set(SectionName, "dpad", joysticks[i].dpad);
 		file.Set(SectionName, "dpad_up", joysticks[i].buttons[CTL_D_PAD_UP]);
 		file.Set(SectionName, "dpad_down", joysticks[i].buttons[CTL_D_PAD_DOWN]);
 		file.Set(SectionName, "dpad_left", joysticks[i].buttons[CTL_D_PAD_LEFT]);
@@ -840,23 +842,23 @@ void LoadConfig()
 		file.Get(SectionName, "l_shoulder", &joysticks[i].buttons[CTL_L_SHOULDER], "B4");
 		file.Get(SectionName, "r_shoulder", &joysticks[i].buttons[CTL_R_SHOULDER], "B5");
 		file.Get(SectionName, "a_button", &joysticks[i].buttons[CTL_A_BUTTON], "B0");
-		file.Get(SectionName, "b_button", &joysticks[i].buttons[CTL_B_BUTTON], "B1");	
+		file.Get(SectionName, "b_button", &joysticks[i].buttons[CTL_B_BUTTON], "B1");
 		file.Get(SectionName, "x_button", &joysticks[i].buttons[CTL_X_BUTTON], "B3");
-		file.Get(SectionName, "y_button", &joysticks[i].buttons[CTL_Y_BUTTON], "B2");	
+		file.Get(SectionName, "y_button", &joysticks[i].buttons[CTL_Y_BUTTON], "B2");
 		file.Get(SectionName, "z_trigger", &joysticks[i].buttons[CTL_Z_TRIGGER], "B7");
-		file.Get(SectionName, "start_button", &joysticks[i].buttons[CTL_START], "B9");	
-		file.Get(SectionName, "dpad", &joysticks[i].dpad, 0);	
+		file.Get(SectionName, "start_button", &joysticks[i].buttons[CTL_START], "B9");
+		file.Get(SectionName, "dpad", &joysticks[i].dpad, 0);
 		file.Get(SectionName, "dpad_up", &joysticks[i].buttons[CTL_D_PAD_UP], 0);
 		file.Get(SectionName, "dpad_down", &joysticks[i].buttons[CTL_D_PAD_DOWN], 0);
 		file.Get(SectionName, "dpad_left", &joysticks[i].buttons[CTL_D_PAD_LEFT], 0);
 		file.Get(SectionName, "dpad_right", &joysticks[i].buttons[CTL_D_PAD_RIGHT], 0);
-		file.Get(SectionName, "main_x", &joysticks[i].buttons[CTL_MAIN_X], "A0");	
-		file.Get(SectionName, "main_y", &joysticks[i].buttons[CTL_MAIN_Y], "A1");	
-		file.Get(SectionName, "sub_x", &joysticks[i].buttons[CTL_SUB_X], "A2");	
-		file.Get(SectionName, "sub_y", &joysticks[i].buttons[CTL_SUB_Y], "A3");	
-		file.Get(SectionName, "enabled", &joysticks[i].enabled, 1);	
-		file.Get(SectionName, "deadzone", &joysticks[i].deadzone, 9);	
-		file.Get(SectionName, "halfpress", &joysticks[i].halfpress, 6);	
+		file.Get(SectionName, "main_x", &joysticks[i].buttons[CTL_MAIN_X], "A0");
+		file.Get(SectionName, "main_y", &joysticks[i].buttons[CTL_MAIN_Y], "A1");
+		file.Get(SectionName, "sub_x", &joysticks[i].buttons[CTL_SUB_X], "A2");
+		file.Get(SectionName, "sub_y", &joysticks[i].buttons[CTL_SUB_Y], "A3");
+		file.Get(SectionName, "enabled", &joysticks[i].enabled, 1);
+		file.Get(SectionName, "deadzone", &joysticks[i].deadzone, 9);
+		file.Get(SectionName, "halfpress", &joysticks[i].halfpress, 6);
 		file.Get(SectionName, "joy_id", &joysticks[i].ID, 0);
 		file.Get(SectionName, "controllertype", &joysticks[i].controllertype, 0);
 		file.Get(SectionName, "eventnum", &joysticks[i].eventnum, 0);
@@ -875,7 +877,7 @@ void LoadConfig()
 	}
 }
 
-
+ 
 #ifdef _WIN32
 //////////////////////////////////////////////////////////////////////////////////////////
 // Rumble stuff :D!
@@ -903,7 +905,7 @@ HRESULT InitDirectInput( HWND hDlg )
     {
         MessageBox(NULL, "Force feedback device not found. nJoy will now disable rumble." ,"FFConst" , MB_ICONERROR | MB_OK);
 		g_rumbleEnable = FALSE;
-        
+
         return S_OK;
     }
 
@@ -923,7 +925,7 @@ HRESULT InitDirectInput( HWND hDlg )
     // Exclusive access is required in order to perform force feedback.
     //if(FAILED(hr = g_pDevice->SetCooperativeLevel(hDlg, DISCL_EXCLUSIVE | DISCL_FOREGROUND)))
 
-	if(FAILED(hr = g_pDevice->SetCooperativeLevel(hDlg, DISCL_EXCLUSIVE | DISCL_FOREGROUND)))	
+	if(FAILED(hr = g_pDevice->SetCooperativeLevel(hDlg, DISCL_EXCLUSIVE | DISCL_FOREGROUND)))
     {
         return hr;
     }
@@ -939,7 +941,7 @@ HRESULT InitDirectInput( HWND hDlg )
     if(FAILED(hr = g_pDevice->SetProperty(DIPROP_AUTOCENTER, &dipdw.diph)))
         return hr;
 
-    // Enumerate and count the axes of the joystick 
+    // Enumerate and count the axes of the joystick
     if(FAILED(hr = g_pDevice->EnumObjects(EnumAxesCallback, (VOID*)&g_dwNumForceFeedbackAxis, DIDFT_AXIS)))
         return hr;
 
@@ -983,7 +985,7 @@ HRESULT InitDirectInput( HWND hDlg )
 
 VOID FreeDirectInput()
 {
-    // Unacquire the device one last time just in case 
+    // Unacquire the device one last time just in case
     // the app tried to exit while the device is still acquired.
     if(g_pDevice)
         g_pDevice->Unacquire();
@@ -1037,7 +1039,7 @@ HRESULT SetDeviceForcesXY()
     }
     else
     {
-        // If two force feedback axis, then apply magnitude from both directions 
+        // If two force feedback axis, then apply magnitude from both directions
         rglDirection[0] = g_nXForce;
         rglDirection[1] = g_nYForce;
         cf.lMagnitude = (DWORD)sqrt((double)g_nXForce * (double)g_nXForce + (double)g_nYForce * (double)g_nYForce );

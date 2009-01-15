@@ -38,7 +38,7 @@ and stopped.
 #include "FileUtil.h"
 #include "StringUtil.h"
 #include "DynamicLibrary.h"
-#include "../../../../Branches/MusicMod/Common/Src/Console.h" 
+#include "../../../../Branches/MusicMod/Common/Src/Console.h"
 ///////////////////////////////////
 
 
@@ -52,7 +52,7 @@ std::string GetLastErrorAsString()
 #ifdef _WIN32
 	LPVOID lpMsgBuf = 0;
 	DWORD error = GetLastError();
-	FormatMessage( 
+	FormatMessage(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
 		NULL,
 		error,
@@ -155,7 +155,7 @@ void* DynamicLibrary::Get(const char* funcname) const
 	if (!retval)
 	{
 		LOG(MASTER_LOG, "Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), GetLastErrorAsString().c_str());
-		//PanicAlert("Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), GetLastErrorAsString().c_str());
+		PanicAlert("Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), GetLastErrorAsString().c_str());
 	}
 
 	return retval;

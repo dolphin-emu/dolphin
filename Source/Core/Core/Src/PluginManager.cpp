@@ -24,38 +24,85 @@
 #include "PluginManager.h"
 #include "StringUtil.h"
 
-/* Why does it crash if we try to open the debugger in the same instance like this? */
-namespace PluginVideo
-{
-	extern DynamicLibrary plugin;
-	extern bool IsLoaded();
-	extern bool LoadPlugin(const char *_Filename);
-	extern void Debug(HWND _hwnd, bool Show);
-}
-
-
-namespace PluginDSP
-{
-	extern DynamicLibrary plugin;
-	extern bool IsLoaded();
-	extern bool LoadPlugin(const char *_Filename);
-	extern void Debug(HWND _hwnd, bool Show);
-}
-
-
-//void(__cdecl * m_DllDebugger)    (HWND _hParent) = 0;
-
 
 CPluginManager CPluginManager::m_Instance;
 
 
 CPluginManager::CPluginManager()
-{}
+{
+    m_PluginGlobals = new PLUGIN_GLOBALS;
+    m_PluginGlobals->eventHandler = EventHandler::GetInstance();
+    m_PluginGlobals->config = NULL;
+    m_PluginGlobals->messageLogger = NULL;
+}
 
 
 CPluginManager::~CPluginManager()
-{}
+{
+    if (m_PluginGlobals)
+	delete m_PluginGlobals;
 
+    if (m_dsp)
+	delete m_dsp;
+
+    if (m_video)
+	delete m_video;
+    
+    for (int i=0;i<1;i++) {
+	if (m_pad[i])
+	    delete m_pad[i];
+
+	if (m_wiimote[i])
+	    delete m_wiimote[i];
+}
+}
+
+bool CPluginManager::InitPlugins(SCoreStartupParameter scsp) {
+
+    // TODO error checking
+    m_dsp = (Common::PluginDSP*)LoadPlugin(scsp.m_strDSPPlugin.c_str());
+    if (!m_dsp) {
+	return false;
+    }
+
+    m_video = (Common::PluginVideo*)LoadPlugin(scsp.m_strVideoPlugin.c_str());
+    if (!m_video)
+	return false;
+
+    for (int i=0;i<1;i++) {
+	m_pad[i] = (Common::PluginPAD*)LoadPlugin(scsp.m_strPadPlugin.c_str());
+	if (m_pad[i] == NULL)
+	    return false;
+
+	if (scsp.bWii) {
+	    m_wiimote[i] = (Common::PluginWiimote*)LoadPlugin
+		(scsp.m_strWiimotePlugin.c_str());
+	    if (m_wiimote[i] == NULL)
+		return false;
+	}
+    }
+
+    return true;
+}
+
+void CPluginManager::ShutdownPlugins() {
+   for (int i=0;i<1;i++) {
+       if (m_pad[i])
+	   m_pad[i]->Shutdown();
+       if (m_wiimote[i])
+	   m_wiimote[i]->Shutdown();
+   }
+
+   if (m_video)
+       m_video->Shutdown();
+
+   if (m_dsp)
+       m_dsp->Shutdown();
+}
+
+PLUGIN_GLOBALS* CPluginManager::GetGlobals() {
+    return m_PluginGlobals;
+}
 
 // ----------------------------------------
 // Create list of available plugins
@@ -95,40 +142,119 @@ void CPluginManager::ScanForPlugins()
 	}
 }
 
+Common::PluginPAD *CPluginManager::GetPAD(int controller) {
+    //    if (m_pad[controller] == NULL)
+    //	InitPlugins();
+
+    return m_pad[controller];
+}
+
+Common::PluginWiimote *CPluginManager::GetWiimote(int controller) {
+    //    if (m_wiimote[controller] == NULL)
+    //	InitPlugins();
+    
+    return m_wiimote[controller];
+}
+
+Common::PluginDSP *CPluginManager::GetDSP() {
+    //    if (m_dsp == NULL)
+    //	InitPlugins();
+    
+    return m_dsp;
+}
+
+Common::PluginVideo *CPluginManager::GetVideo() {
+    //    if (m_video == NULL)
+    //	InitPlugins();
+
+    return m_video;
+}
+
+void *CPluginManager::LoadPlugin(const char *_rFilename)//, PLUGIN_TYPE type)
+{
+    CPluginInfo info(_rFilename);
+    PLUGIN_TYPE type = info.GetPluginInfo().Type;
+    Common::CPlugin *plugin = NULL;
+    switch (type) {
+    case PLUGIN_TYPE_VIDEO:
+	plugin = new Common::PluginVideo(_rFilename);
+	break;
+
+    case PLUGIN_TYPE_PAD:
+	plugin = new Common::PluginPAD(_rFilename);
+	break;
+
+    case PLUGIN_TYPE_DSP:
+	plugin = new Common::PluginDSP(_rFilename);
+	break;
+
+    case PLUGIN_TYPE_WIIMOTE:
+	plugin = new Common::PluginWiimote(_rFilename);
+	break;
+    default:
+	PanicAlert("Trying to load unsupported type %d", type);
+    }
+
+    if (!plugin->IsValid()) {
+	PanicAlert("Can't open %s", _rFilename);
+	return NULL;
+    }
+    
+    plugin->SetGlobals(m_PluginGlobals);
+
+
+    return plugin;
+}
 
 // ----------------------------------------
 // Open config window. _rFilename = plugin filename ,ret = the dll slot number
 // -------------
 void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename)
 {
-	Common::CPlugin::Load(_rFilename);
 
-	Common::CPlugin::Config((HWND)_Parent);
-	Common::CPlugin::Release();	
+    Common::CPlugin *plugin = new Common::CPlugin(_rFilename);
+    plugin->SetGlobals(m_PluginGlobals);
+    plugin->Config((HWND)_Parent);
+    delete plugin;
 }
 
 // ----------------------------------------
 // Open debugging window. Type = Video or DSP. Show = Show or hide window.
 // -------------
-void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, bool Type, bool Show)
+void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show)
 {
 	//int ret = 1;
 	//int ret = Common::CPlugin::Load(_rFilename, true);
 	//int ret = PluginVideo::LoadPlugin(_rFilename);
 	//int ret = PluginDSP::LoadPlugin(_rFilename);
 
-		if (Type)
+    
+    if (Type == PLUGIN_TYPE_VIDEO) {
+	if(!m_video)
+	    m_video = (Common::PluginVideo*)LoadPlugin(_rFilename);
+	m_video->Debug((HWND)_Parent, Show);
+    } else if (Type == PLUGIN_TYPE_DSP) {
+	if (!m_dsp)
+	    m_dsp = (Common::PluginDSP*)LoadPlugin(_rFilename);
+	m_dsp->Debug((HWND)_Parent, Show);
+    }
+    /*		if (Type)
 		{
 			//Common::CPlugin::Debug((HWND)_Parent);
 			if (!PluginVideo::IsLoaded())
 				PluginVideo::LoadPlugin(_rFilename);
+
+			//PluginVideo::SetDllGlobals(m_PluginGlobals);
 			PluginVideo::Debug((HWND)_Parent, Show);
 		}
 		else
 		{
-			if(!PluginDSP::IsLoaded()) PluginDSP::LoadPlugin(_rFilename);
+			if(!PluginDSP::IsLoaded())
+			    PluginDSP::LoadPlugin(_rFilename);
+
+			//PluginDSP::SetDllGlobals(m_PluginGlobals);
 			PluginDSP::Debug((HWND)_Parent, Show);
-		}
+			}*/
 		//Common::CPlugin::Release(); // this is only if the wx dialog is called with ShowModal()
 
 		//m_DllDebugger = (void (__cdecl*)(HWND))PluginVideo::plugin.Get("DllDebugger");
@@ -142,14 +268,15 @@ CPluginInfo::CPluginInfo(const char *_rFileName)
 	: m_FileName(_rFileName)
 	, m_Valid(false)
 {
-	if (Common::CPlugin::Load(_rFileName))
+    Common::CPlugin *plugin = new Common::CPlugin(_rFileName);
+    if (plugin->IsValid())
 	{
-		if (Common::CPlugin::GetInfo(m_PluginInfo))
+	    if (plugin->GetInfo(m_PluginInfo))
 			m_Valid = true;
 		else
 			PanicAlert("Could not get info about plugin %s", _rFileName);
 
-		Common::CPlugin::Release();
+	    delete plugin;
 	}
 	/*
 	The DLL loading code provides enough error messages already. Possibly make some return codes

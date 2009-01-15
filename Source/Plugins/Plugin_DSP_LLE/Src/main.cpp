@@ -99,7 +99,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_DSP;
 
-#ifdef DEBUGFAST 
+#ifdef DEBUGFAST
 	sprintf(_PluginInfo->Name, "Dolphin DSP-LLE Plugin (DebugFast)");
 #else
 #ifndef _DEBUG
@@ -121,7 +121,7 @@ void DllConfig(HWND _hParent)
 {}
 
 
-void DSP_DoState(unsigned char **ptr, int mode) {
+void DoState(unsigned char **ptr, int mode) {
 	PointerWrap p(ptr, mode);
 }
 
@@ -196,7 +196,7 @@ void* dsp_thread_debug(void* lpParameter)
 			Sleep(100);
 		}
 	}
-#endif 
+#endif
         return NULL;
 }
 // ==============
@@ -217,11 +217,10 @@ void dspi_req_dsp_irq()
 	g_dspInitialize.pGenerateDSPInterrupt();
 }
 
-
-void DSP_Initialize(DSPInitialize _dspInitialize)
+void Initialize(void *init)
 {
     bCanWork = true;
-	g_dspInitialize = _dspInitialize;
+    g_dspInitialize = *(DSPInitialize*)init;
 
 	gdsp_init();
 	g_dsp.step_counter = 0;
@@ -247,7 +246,7 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
             return; // TODO: Don't let it work
 
 // ---------------------------------------------------------------------------------------
-// First create DSP_UCode.bin by setting "#define DUMP_DSP_IMEM   1" in Globals.h. Then 
+// First create DSP_UCode.bin by setting "#define DUMP_DSP_IMEM   1" in Globals.h. Then
 // make the disassembled file here.
 // --------------
 //		Dump UCode to file...
@@ -289,7 +288,7 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 }
 
 
-void DSP_Shutdown(void)
+void Shutdown(void)
 {
 	if (log_ai)
 		g_wave_writer.Stop();

@@ -1,4 +1,4 @@
-# -*- python -*- 
+# -*- python -*-
 
 Import('env')
 # can we import path in one place?
@@ -47,7 +47,7 @@ else:
 	files += [
 		'main.cpp',
 		'GLUtil.cpp',
-		]	
+		]
 if gfxenv['HAVE_WX']:
 	files += [
                 'GUI/ConfigDlg.cpp',
@@ -79,11 +79,11 @@ if sys.platform == 'darwin':
                 Return()
 
 else:
-        if not (conf.CheckPKG('GL') and conf.CheckPKG('GLU')): 
+        if not (conf.CheckPKG('GL') and conf.CheckPKG('GLU')):
                 print name + " must have opengl and glu to be build"
                 Return()
 
-        if not conf.CheckPKG('Cg') or not conf.CheckPKG('CgGL'): 
+        if not conf.CheckPKG('Cg') or not conf.CheckPKG('CgGL'):
                 print name + " must have cg and cggl to be build"
                 Return()
 
@@ -101,7 +101,7 @@ conf.Finish()
 
 if gfxenv['GLTEST']:
 	if gfxenv['HAVE_XXF86VM']:
-		files += [ 
+		files += [
 			'X11Window.cpp',
 			]
 		

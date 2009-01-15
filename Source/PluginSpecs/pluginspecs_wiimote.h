@@ -47,23 +47,6 @@ typedef struct
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // __________________________________________________________________________________________________
-// Function: 
-// Purpose:  
-// input:    WiimoteInitialize
-// output:   If at least one real Wiimote was found or not
-//
-EXPORT bool CALL Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize);
-
-// __________________________________________________________________________________________________
-// Function: Wiimote_Shutdown
-// Purpose:  This function is called when the emulator is closing
-//           down allowing the DLL to de-initialise.
-// input:    none
-// output:   none
-//
-EXPORT void CALL Wiimote_Shutdown();
-
-// __________________________________________________________________________________________________
 // Function: Wiimote_Output
 // Purpose:  An L2CAP packet is passed from the Core to the Wiimote,
 //           on the HID CONTROL channel.
@@ -96,14 +79,6 @@ EXPORT void CALL Wiimote_Update();
 // output:   number of pads
 //
 EXPORT unsigned int CALL Wiimote_GetAttachedControllers();
-
-// __________________________________________________________________________________________________
-// Function: Wiimote_DoState
-// Purpose:  Saves/load state
-// input/output: ptr
-// input: mode
-//
-EXPORT void CALL Wiimote_DoState(void *ptr, int mode);
 
 #include "ExportEpilog.h"
 

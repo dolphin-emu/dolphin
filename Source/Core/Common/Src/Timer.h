@@ -39,6 +39,8 @@ class Timer
 		static u64 GetTimeSinceJan1970();
 		static u64 GetLocalTimeSinceJan1970();
 
+		static std::string GetTimeFormatted();
+
 
 	public:
 

@@ -79,14 +79,6 @@ typedef struct
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // __________________________________________________________________________________________________
-// Function: Video_Initialize
-// Purpose:
-// input:    SVideoInitialize* - pointer because window data will be passed back
-// output:   none
-//
-EXPORT void CALL Video_Initialize(SVideoInitialize* _pvideoInitialize);
-
-// __________________________________________________________________________________________________
 // Function: Video_Prepare
 // Purpose:  This function is called from the EmuThread before the
 // 		     emulation has started. It is just for threadsensitive 
@@ -95,15 +87,6 @@ EXPORT void CALL Video_Initialize(SVideoInitialize* _pvideoInitialize);
 // output:   none
 //
 EXPORT void CALL Video_Prepare(void);
-
-// __________________________________________________________________________________________________
-// Function: Video_Shutdown
-// Purpose:  This function is called when the emulator is shutting down
-//  		 a game allowing the dll to de-initialise.
-// input:    none
-// output:   none
-//
-EXPORT void CALL Video_Shutdown(void);
 
 // __________________________________________________________________________________________________
 // Function: Video_ExecuteFifoBuffer
@@ -146,14 +129,6 @@ EXPORT void CALL Video_EnterLoop(void);
 // output:   none
 //
 EXPORT void CALL Video_AddMessage(const char* pstr, unsigned int milliseconds);
-
-// __________________________________________________________________________________________________
-// Function: Video_DoState
-// Purpose:  Saves/Loads the current video data state (depends on mode parameter)
-// input/output: ptr
-// input: mode
-//
-EXPORT void CALL Video_DoState(unsigned char **ptr, int mode);
 
 // __________________________________________________________________________________________________
 // Function: Video_Stop

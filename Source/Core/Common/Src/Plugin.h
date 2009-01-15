@@ -19,35 +19,52 @@
 #define _PLUGIN_H
 
 #include "Common.h"
-#include "../../../PluginSpecs/PluginSpecs.h"
+#include "PluginSpecs.h"
 #include "DynamicLibrary.h"
 
 namespace Common
 {
+    typedef void (__cdecl * TGetDllInfo)(PLUGIN_INFO*);
+    typedef void (__cdecl * TDllConfig)(HWND);
+    typedef void (__cdecl * TDllDebugger)(HWND, bool);
+    typedef void (__cdecl * TSetDllGlobals)(PLUGIN_GLOBALS*);
+    typedef void (__cdecl * TInitialize)(void *);
+    typedef void (__cdecl * TShutdown)();
+    typedef void (__cdecl * TDoState)(unsigned char**, int);
+
 class CPlugin
 {
 	public:
 
-		static void Release(void);
-		static bool Load(const char* _szName);
+	CPlugin(const char* _szName);
+	~CPlugin();
 
-		static bool GetInfo(PLUGIN_INFO& _pluginInfo);
-		static void SetGlobals(PLUGIN_GLOBALS& _PluginGlobals);
+	virtual bool IsValid() {return valid;};
 
-		static void Config(HWND _hwnd);
-		static void About(HWND _hwnd);
-		static void Debug(HWND _hwnd, bool Show);
+	bool GetInfo(PLUGIN_INFO& _pluginInfo);
+	void SetGlobals(PLUGIN_GLOBALS* _PluginGlobals);
+	void *LoadSymbol(const char *sym);
 
+	void Config(HWND _hwnd);
+	void About(HWND _hwnd);
+	void Debug(HWND _hwnd, bool Show);
+	void DoState(unsigned char **ptr, int mode);
+	void Initialize(void *init);
+	void Shutdown();
 
 	private:
 
-		static DynamicLibrary m_hInstLib;
+	DynamicLibrary m_hInstLib;
+	bool valid;
 
-		static void (__cdecl * m_GetDllInfo)(PLUGIN_INFO* _PluginInfo);
-		static void (__cdecl * m_DllConfig)(HWND _hParent);
-		static void (__cdecl * m_DllDebugger)(HWND _hParent, bool Show);
-		static void (__cdecl * m_SetDllGlobals)(PLUGIN_GLOBALS* _PluginGlobals);
-
+	// Functions
+	TGetDllInfo m_GetDllInfo;
+	TDllConfig m_DllConfig;
+	TDllDebugger m_DllDebugger;
+	TSetDllGlobals m_SetDllGlobals;
+	TInitialize m_Initialize;
+	TShutdown m_Shutdown;
+	TDoState m_DoState;
 };
 } // end of namespace Common
 

@@ -63,8 +63,6 @@
 #include "PowerPC/Jit64/Jit.h"
 #include "PowerPC/Jit64/JitCache.h" // for ClearCache()
 
-#include "Plugins/Plugin_DSP.h" // new stuff, to let us open the DLLDebugger
-#include "Plugins/Plugin_Video.h" // new stuff, to let us open the DLLDebugger
 #include "PluginManager.h"
 #include "../../DolphinWX/Src/Config.h"
 
@@ -144,7 +142,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	EVT_MENU(IDM_LOADMAPFILE,       CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_SCANFUNCTIONS,     CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_SAVEMAPFILE,       CCodeWindow::OnSymbolsMenu)
-	EVT_MENU(IDM_SAVEMAPFILEWITHCODES, CCodeWindow::OnSymbolsMenu)	
+	EVT_MENU(IDM_SAVEMAPFILEWITHCODES, CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_CREATESIGNATUREFILE, CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_USESIGNATUREFILE,  CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_PATCHHLEFUNCTIONS, CCodeWindow::OnSymbolsMenu)
@@ -163,7 +161,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxFrame)
 	EVT_MENU(IDM_SETPC,				CCodeWindow::OnCodeStep)
 	EVT_MENU(IDM_GOTOPC,			CCodeWindow::OnCodeStep)
 	EVT_TEXT(IDM_ADDRBOX,           CCodeWindow::OnAddrBoxChange)
-	
+
 	EVT_COMMAND(ID_CODEVIEW, wxEVT_CODEVIEW_CHANGE, CCodeWindow::OnCodeViewChange)
 END_EVENT_TABLE()
 ///////////////////////////////
@@ -231,7 +229,7 @@ void CCodeWindow::OnKeyDown(wxKeyEvent& event)
 {
 	if ((event.GetKeyCode() == WXK_SPACE) && IsActive())
 	{
-		SingleCPUStep();	
+		SingleCPUStep();
 	}
 	else
 	{
@@ -419,8 +417,8 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 		CPluginManager::GetInstance().OpenDebug(
 			GetHandle(),
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
-			false, true
-		);	
+			PLUGIN_TYPE_DSP, true
+		);
 	} // don't have any else, just ignore it
 
 	if (bVideoWindow)
@@ -429,7 +427,7 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 		CPluginManager::GetInstance().OpenDebug(
 			GetHandle(),
 			_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
-			true, true
+			PLUGIN_TYPE_VIDEO, true
 		);
 	} // don't have any else, just ignore it
 }
@@ -443,7 +441,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	pMenuBar = new wxMenuBar(wxMB_DOCKABLE);
 
 	// --------------------------------
-	// CPU Mode 
+	// CPU Mode
 	// -------------
 	wxMenu* pCoreMenu = new wxMenu;
 
@@ -494,7 +492,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 
 //		wxMenuItem* dualcore = pDebugMenu->Append(IDM_DUALCORE, _T("&DualCore"), wxEmptyString, wxITEM_CHECK);
 //		dualcore->Check(_LocalCoreStartupParameter.bUseDualCore);
-	
+
 	pMenuBar->Append(pCoreMenu, _T("&CPU Mode"));
 	// -----------------
 
@@ -647,7 +645,7 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 	}
 
 	// Clear the JIT cache to enable these changes
-	jit.ClearCache();	
+	jit.ClearCache();
 }
 
 void CCodeWindow::OnJitMenu(wxCommandEvent& event)
@@ -670,7 +668,7 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 // =======================================================================================
-// The Play, Stop, Step, Skip, Go to PC and Show PC buttons all go here 
+// The Play, Stop, Step, Skip, Go to PC and Show PC buttons all go here
 // --------------
 void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 {

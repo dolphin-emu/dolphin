@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Common"
 	ProjectGUID="{C573CAF7-EE6A-458E-8049-16C0BF34C2E9}"
 	RootNamespace="Common"
@@ -600,6 +600,38 @@
 		</File>
 		<File
 			RelativePath=".\Src\Plugin.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\PluginDSP.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\PluginDSP.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\PluginPAD.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\PluginPAD.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\PluginVideo.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\PluginVideo.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\PluginWiimote.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\PluginWiimote.h"
 			>
 		</File>
 		<File

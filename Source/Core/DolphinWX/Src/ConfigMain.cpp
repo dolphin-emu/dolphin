@@ -96,7 +96,7 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 {
 	// Control refreshing of the ISOs list
 	bRefreshList = false;
-	
+
 	// Load Wii SYSCONF
 	FullSYSCONFPath = FULL_WII_USER_DIR "shared2/sys/SYSCONF";
 	pStream = NULL;
@@ -135,7 +135,15 @@ void CConfigMain::UpdateGUI()
 {
 	if(Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
-		CorePage->Disable();
+		// Disable the Core stuff on GeneralPage
+		AllwaysHLEBIOS->Disable();
+		UseDynaRec->Disable();
+		UseDualCore->Disable();
+		LockThreads->Disable();
+		OptimizeQuantizers->Disable();
+		SkipIdle->Disable();
+		EnableCheats->Disable();
+		// --------
 		GamecubePage->Disable();
 		WiiPage->Disable();
 		PathsPage->Disable();
@@ -158,7 +166,7 @@ void CConfigMain::CreateGUIControls()
 	Notebook->AddPage(WiiPage, wxT("Wii"));
 	Notebook->AddPage(PathsPage, wxT("Paths"));
 	Notebook->AddPage(PluginPage, wxT("Plugins"));
-	
+
 
 	//////////////////////////////////
 	// General page
@@ -396,7 +404,7 @@ void CConfigMain::CreateGUIControls()
 	sbWiimotePlugin = new wxStaticBoxSizer(wxHORIZONTAL, PluginPage, wxT("Wiimote"));
 	WiimoteSelection = new wxChoice(PluginPage, ID_WIIMOTE_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
 	WiimoteConfig = new wxButton(PluginPage, ID_WIIMOTE_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	
+
 	FillChoiceBox(GraphicSelection, PLUGIN_TYPE_VIDEO, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
 	FillChoiceBox(DSPSelection, PLUGIN_TYPE_DSP, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin);
 	FillChoiceBox(PADSelection, PLUGIN_TYPE_PAD, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin);
@@ -428,11 +436,11 @@ void CConfigMain::CreateGUIControls()
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
 	sButtons->Add(0, 0, 1, wxEXPAND, 5);
 	sButtons->Add(m_Close, 0, wxALL, 5);
-	
+
 	wxBoxSizer* sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(Notebook, 1, wxEXPAND|wxALL, 5);
 	sMain->Add(sButtons, 0, wxEXPAND, 5);
-	
+
 	UpdateGUI();
 
 	this->SetSizer(sMain);
@@ -446,7 +454,7 @@ void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	Destroy();
 
-	/* First check that we did successfully populate m_SYSCONF earlier, otherwise don't 
+	/* First check that we did successfully populate m_SYSCONF earlier, otherwise don't
        save anything, it will be a corrupted file */
 	if(m_bSysconfOK)
 	{

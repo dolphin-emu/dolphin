@@ -86,7 +86,6 @@ class CConfigMain
 
 		wxNotebook *Notebook;
 		wxPanel *GeneralPage;
-		wxPanel *CorePage;
 		wxPanel *GamecubePage;
 		wxPanel *WiiPage;
 		wxPanel *PathsPage;
@@ -197,7 +196,6 @@ class CConfigMain
 		{
 			ID_NOTEBOOK = 1000,
 			ID_GENERALPAGE,
-			ID_COREPAGE,
 			ID_GAMECUBEPAGE,
 			ID_WIIPAGE,
 			ID_PATHSPAGE,

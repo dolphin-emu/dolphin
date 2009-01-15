@@ -56,24 +56,7 @@ typedef struct
 // I N T E R F A C E ///////////////////////////////////////////////////////////
 
 // __________________________________________________________________________________________________
-// Function: 
-// Purpose:  
-// input:    SPADInitialize
-// output:   none
-//
-EXPORT void CALL PAD_Initialize(SPADInitialize _PADInitialize);
-
-// __________________________________________________________________________________________________
-// Function: PAD_Shutdown
-// Purpose:  This function is called when the emulator is closing
-//           down allowing the DLL to de-initialise.
-// input:    none
-// output:   none
-//
-EXPORT void CALL PAD_Shutdown();
-
-// __________________________________________________________________________________________________
-// Function: 
+// Function:
 // Purpose:  
 // input:   
 // output:   
@@ -91,7 +74,7 @@ EXPORT void CALL PAD_Input(u8 _Key, u8 _UpDown);
 // __________________________________________________________________________________________________
 // Function: PAD_Rumble
 // Purpose:  Pad rumble!
-// input:	 PAD number, Command type (Stop=0, Rumble=1, Stop Hard=2) and strength of Rumble 
+// input:	 PAD number, Command type (Stop=0, Rumble=1, Stop Hard=2) and strength of Rumble
 // output:   none
 //
 EXPORT void CALL PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength);
@@ -103,14 +86,6 @@ EXPORT void CALL PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStre
 // output:   number of pads
 //
 EXPORT unsigned int CALL PAD_GetAttachedPads();
-
-// __________________________________________________________________________________________________
-// Function: PAD_DoState
-// Purpose:  Saves/load state
-// input/output: ptr
-// input: mode
-//
-EXPORT void CALL PAD_DoState(void *ptr, int mode);
 
 #include "ExportEpilog.h"
 #endif

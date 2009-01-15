@@ -57,7 +57,7 @@ class wxDLLApp : public wxApp
 		return true;
 	}
 };
-IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
@@ -83,10 +83,10 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 			if ( !wxTheApp || !wxTheApp->CallOnInit() )
 				return FALSE;
 		}
-		break; 
+		break;
 
 	case DLL_PROCESS_DETACH:
-		wxEntryCleanup(); //use wxUninitialize() if you don't want GUI 
+		wxEntryCleanup(); //use wxUninitialize() if you don't want GUI
 		break;
 	default:
 		break;
@@ -102,11 +102,11 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 //******************************************************************************
 // Exports
 //******************************************************************************
-extern "C" void GetDllInfo (PLUGIN_INFO* _PluginInfo) 
+extern "C" void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_WIIMOTE;
-#ifdef DEBUGFAST 
+#ifdef DEBUGFAST
 	sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin (DebugFast)");
 #else
 #ifndef _DEBUG
@@ -138,8 +138,9 @@ void DllConfig(HWND _hParent)
 #endif
 }
 
-extern "C" bool Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize)
+extern "C" void Initialize(void *init)
 {
+    SWiimoteInitialize _WiimoteInitialize = *(SWiimoteInitialize *)init;
 	// ----------------------------------------
 	// Debugging window
 	// ----------
@@ -153,11 +154,12 @@ extern "C" bool Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize)
 
 	g_WiimoteInitialize = _WiimoteInitialize;
 
-	/* We will run WiiMoteReal::Initialize() even if we are not using a real wiimote,
-	   we will initiate wiiuse.dll, but we will return before creating a new thread
-	   for it if we find no real Wiimotes. Then g_UseRealWiiMote will also be false
-	   This function call will be done instantly if there is no real Wiimote connected.
-	   I'm not sure how long time it takes if a Wiimote is connected. */
+	/* We will run WiiMoteReal::Initialize() even if we are not using a
+	   real wiimote, we will initiate wiiuse.dll, but we will return before
+	   creating a new thread for it if we find no real Wiimotes. Then
+	   g_UseRealWiiMote will also be false This function call will be done
+	   instantly if there is no real Wiimote connected.  I'm not sure how
+	   long time it takes if a Wiimote is connected. */
 #if HAVE_WIIUSE
 	g_UseRealWiiMote = WiiMoteReal::Initialize() > 0;
 #endif
@@ -165,11 +167,10 @@ extern "C" bool Wiimote_Initialize(SWiimoteInitialize _WiimoteInitialize)
 
 	WiiMoteEmu::Initialize();
 
-	return g_UseRealWiiMote;
 }
 
 
-extern "C" void Wiimote_DoState(void* ptr, int mode) 
+extern "C" void DoState(unsigned char **ptr, int mode)
 {
 #if HAVE_WIIUSE
 	WiiMoteReal::DoState(ptr, mode);
@@ -177,7 +178,7 @@ extern "C" void Wiimote_DoState(void* ptr, int mode)
 	WiiMoteEmu::DoState(ptr, mode);
 }
 
-extern "C" void Wiimote_Shutdown(void) 
+extern "C" void Shutdown(void)
 {
 #if HAVE_WIIUSE
 	WiiMoteReal::Shutdown();
@@ -189,8 +190,8 @@ extern "C" void Wiimote_Shutdown(void)
 /* This function produce Wiimote Input (reports from the Wiimote) in response
    to Output from the Wii. It's called from WII_IPC_HLE_WiiMote.cpp. */
 // ----------------
-extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size) 
-{	
+extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
+{
 	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
 	const u8* data = (const u8*)_pData;
 
@@ -213,7 +214,7 @@ extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32
 	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
 }
 
-extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size) 
+extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 {
 	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
 	const u8* data = (const u8*)_pData;
@@ -241,7 +242,7 @@ extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _
 /* This sends a Data Report from the Wiimote. See SystemTimers.cpp for the documentation of this
    update. */
 // ----------------
-extern "C" void Wiimote_Update() 
+extern "C" void Wiimote_Update()
 {
 	if (! g_UseRealWiiMote)
             WiiMoteEmu::Update();
@@ -251,7 +252,7 @@ extern "C" void Wiimote_Update()
 #endif
 }
 
-extern "C" unsigned int Wiimote_GetAttachedControllers() 
+extern "C" unsigned int Wiimote_GetAttachedControllers()
 {
 	return 1;
 }
@@ -270,7 +271,7 @@ void __Log(int log, const char *_fmt, ...)
 	vsprintf( Msg, _fmt, ap );
 	va_end( ap );
 
-	g_WiimoteInitialize.pLog(Msg, 0);	
+	g_WiimoteInitialize.pLog(Msg, 0);
 }
 
 
@@ -283,6 +284,6 @@ void __Logv(int log, int v, const char *_fmt, ...)
 	vsprintf( Msg, _fmt, ap );
 	va_end( ap );
 
-	g_WiimoteInitialize.pLog(Msg, v);	
+	g_WiimoteInitialize.pLog(Msg, v);
 }
 // ================

@@ -1,4 +1,4 @@
-# -*- python -*- 
+# -*- python -*-
 
 Import('env')
 import sys
@@ -15,7 +15,7 @@ files = [
 padeenv = env.Clone()
 
 if padeenv['HAVE_WX']:
-    files += [ 
+    files += [
         "GUI/ConfigDlg.cpp",
         ]
 

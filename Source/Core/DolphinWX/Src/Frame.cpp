@@ -51,7 +51,6 @@ be accessed from Core::GetWindowHandle().
 #include "Config.h" // Core
 #include "Core.h"
 #include "HW/DVDInterface.h"
-#include "Plugins/Plugin_PAD.h"
 #include "State.h"
 #include "VolumeHandler.h"
 
@@ -305,12 +304,12 @@ CFrame::CFrame(wxFrame* parent,
 
 	// Create the toolbar
 	RecreateToolbar();
-	
+
 	Show(); // Show the window
 
 	CPluginManager::GetInstance().ScanForPlugins();
 
-	//if we are ever going back to optional iso caching: 
+	//if we are ever going back to optional iso caching:
 	//m_GameListCtrl->Update(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache);
 	m_GameListCtrl->Update();
 	//sizerPanel->SetSizeHints(m_Panel);
@@ -339,7 +338,7 @@ CFrame::CFrame(wxFrame* parent,
 			(wxObject*)0, this);
 	#endif
 	// ----------
-	
+
 	UpdateGUI();
 }
 
@@ -381,7 +380,7 @@ void CFrame::OnClose(wxCloseEvent& event)
 		switch (nMsg)
 		{
 		case WM_SYSCOMMAND:
-			switch (wParam) 
+			switch (wParam)
 			{
 			case SC_SCREENSAVE:
 			case SC_MONITORPOWER:
@@ -436,7 +435,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 	else
 	{
 		if(Core::GetState() != Core::CORE_UNINITIALIZED)
-			PluginPAD::PAD_Input(event.GetKeyCode(), 1); // 1 = Down
+		    CPluginManager::GetInstance().GetPAD(0)->PAD_Input(event.GetKeyCode(), 1); // 1 = Down
 		event.Skip();
 	}
 }
@@ -444,7 +443,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 void CFrame::OnKeyUp(wxKeyEvent& event)
 {
 	if(Core::GetState() != Core::CORE_UNINITIALIZED)
-		PluginPAD::PAD_Input(event.GetKeyCode(), 0); // 0 = Up
+		CPluginManager::GetInstance().GetPAD(0)->PAD_Input(event.GetKeyCode(), 0); // 0 = Up
 	event.Skip();
 }
 
@@ -455,7 +454,7 @@ double GetDoubleTime()
 {
 	wxDateTime datetime = wxDateTime::UNow(); // Get timestamp
 	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970(); // Get continous timestamp
-	
+
 	/* Remove a few years. We only really want enough seconds to make sure that we are
 	   detecting actual actions, perhaps 60 seconds is enough really, but I leave a
 	   year of seconds anyway, in case the user's clock is incorrect or something like that */
@@ -518,7 +517,7 @@ void CFrame::OnDoubleClick(wxMouseEvent& event)
 // Check for mouse motion. Here we process the bHideCursor setting.
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void CFrame::OnMotion(wxMouseEvent& event)
-{	
+{
 	event.Skip();
 
 	// The following is only interesting when a game is running
@@ -567,7 +566,7 @@ void CFrame::OnMotion(wxMouseEvent& event)
 			else PostMessage((HWND)Core::GetWindowHandle(), WM_USER, 10, 1);
 		#endif
 	}
-	
+
 }
 
 // Check for mouse status a couple of times per second for the auto hide option
@@ -603,13 +602,13 @@ void CFrame::BootGame()
 	}
 
 	// Start the default ISO, or if we don't have a default ISO, start the last started ISO
-	else if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty() && 
+	else if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty() &&
 		wxFileExists(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.c_str(), wxConvUTF8)))
 	{
 		BootManager::BootCore(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM);
 	}
 
-	else if (!SConfig::GetInstance().m_LastFilename.empty() && 
+	else if (!SConfig::GetInstance().m_LastFilename.empty() &&
 		wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
 	{
 		BootManager::BootCore(SConfig::GetInstance().m_LastFilename);

@@ -20,21 +20,18 @@
 #endif
 
 #include <time.h>
+#include <sys/timeb.h>
 
 #include "Common.h"
 #include "Timer.h"
 
 #ifdef __GNUC__
-#include <sys/timeb.h>
-
 u32 timeGetTime()
 {
 	struct timeb t;
 	ftime(&t);
 	return((u32)(t.time * 1000 + t.millitm));
 }
-
-
 #endif
 
 
@@ -88,7 +85,6 @@ void _time64(u64* t)
 #endif
 
 
-
 u64 Timer::GetTimeSinceJan1970(void)
 {
 	time_t ltime;
@@ -107,5 +103,15 @@ u64 Timer::GetLocalTimeSinceJan1970(void)
 	tzDiff = sysTime - mktime(gmTime);
 
 	return (u64)(sysTime + tzDiff);
+}
+
+std::string Timer::GetTimeFormatted(void)
+{
+	struct timeb tp;
+	(void)::ftime(&tp);
+	char temp[32];
+	sprintf(temp, "%02hi:%02i:%03i", tp.time/60, tp.time%60, tp.millitm);
+
+	return std::string(temp);
 }
 } // end of namespace Common

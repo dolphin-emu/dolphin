@@ -25,8 +25,7 @@
 #include "PowerPC/PowerPC.h"
 #include "PowerPC/Jit64/Jit.h"
 
-#include "Plugins/Plugin_Video.h"
-#include "Plugins/Plugin_DSP.h"
+#include "PluginManager.h"
 
 #include <string>
 
@@ -70,8 +69,9 @@ void DoState(PointerWrap &p)
 		return;
 	}
 	// Begin with video plugin, so that it gets a chance to clear it's caches and writeback modified things to RAM
-        PluginVideo::Video_DoState(p.GetPPtr(), p.GetMode());
-        PluginDSP::DSP_DoState(p.GetPPtr(), p.GetMode());
+	CPluginManager &pm = CPluginManager::GetInstance();
+        pm.GetVideo()->DoState(p.GetPPtr(), p.GetMode());
+        pm.GetDSP()->DoState(p.GetPPtr(), p.GetMode());
 	PowerPC::DoState(p);
 	HW::DoState(p);
 	CoreTiming::DoState(p);
@@ -137,7 +137,7 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 
 	delete [] buffer;
 
-	Core::DisplayMessage(StringFromFormat("Saved State to %s", 
+	Core::DisplayMessage(StringFromFormat("Saved State to %s",
 		                 cur_filename.c_str()).c_str(), 2000);
 }
 
@@ -153,7 +153,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 		Core::DisplayMessage("State not found", 2000);
 		return;
 	}
-	
+
 	jit.ClearCache();
 
 	u8 *buffer = NULL;

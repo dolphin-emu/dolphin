@@ -85,7 +85,7 @@ class wxDLLApp : public wxApp
 	}
 };
 
-IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 ///////////////////
 #endif
@@ -163,7 +163,7 @@ void DllDebugger(HWND _hParent, bool Show)
 	{
 		m_frame->DoShow();
 	}
-	else if(!m_frame && Show) 
+	else if(!m_frame && Show)
 	{
 		m_frame = new CDebugger(NULL);
 		m_frame->Show();
@@ -181,7 +181,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_DSP;
-#ifdef DEBUGFAST 
+#ifdef DEBUGFAST
 	sprintf(_PluginInfo->Name, "Dolphin DSP-HLE Plugin (DebugFast) ");
 #else
 #ifndef _DEBUG
@@ -203,18 +203,18 @@ void DllConfig(HWND _hParent)
 #endif
 }
 
-void DSP_Initialize(DSPInitialize _dspInitialize)
+void Initialize(void *init)
 {
 	g_Config.LoadDefaults();
 	g_Config.Load();
 
-	g_dspInitialize = _dspInitialize;
+	g_dspInitialize = *(DSPInitialize*)init;
 
 	g_pMemory = g_dspInitialize.pGetMemoryPointer(0);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	gpName = g_dspInitialize.pName(); // save the game name globally
-	for (int i = 0; i < gpName.length(); ++i) // and fix it
+	for (u32 i = 0; i < gpName.length(); ++i) // and fix it
 	{
                 wprintf(L"%c", gpName[i]);
 		std::cout << gpName[i];
@@ -242,7 +242,7 @@ void DSP_Initialize(DSPInitialize _dspInitialize)
 #endif
 }
 
-void DSP_Shutdown()
+void Shutdown()
 {
 	if (log_ai)
 		g_wave_writer.Stop();
@@ -266,7 +266,7 @@ void DSP_Shutdown()
 #endif
 }
 
-void DSP_DoState(unsigned char **ptr, int mode) {
+void DoState(unsigned char **ptr, int mode) {
 	PointerWrap p(ptr, mode);
 }
 

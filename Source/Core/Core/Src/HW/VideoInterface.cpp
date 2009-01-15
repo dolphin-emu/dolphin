@@ -23,7 +23,7 @@
 #include "PeripheralInterface.h"
 #include "VideoInterface.h"
 #include "Memmap.h"
-#include "../Plugins/Plugin_Video.h"
+#include "../PluginManager.h"
 #include "../CoreTiming.h"
 #include "../HW/SystemTimers.h"
 
@@ -66,7 +66,7 @@ union UVIVerticalTimingRegister
 union UVIDisplayControlRegister
 {
 	u16 Hex;
-	struct 
+	struct
 	{
 		unsigned ENB	:	1;
 		unsigned RST	:	1;
@@ -85,7 +85,7 @@ union UVIDisplayControlRegister
 union UVIInterruptRegister
 {
 	u32 Hex;
-	struct 
+	struct
 	{
 		u16 Lo;
 		u16 Hi;
@@ -129,7 +129,7 @@ union UVIHorizontalScaling
 union UVIFrameBufferAddress
 {
 	u32 Hex;
-	struct 
+	struct
 	{
 		u16 Lo;
 		u16 Hi;
@@ -172,9 +172,9 @@ void DoState(PointerWrap &p)
 	p.Do(m_VIVerticalTimingRegister);
 	p.Do(m_VIDisplayControlRegister);
 	p.Do(m_FrameBufferTop);
-	p.Do(m_FrameBufferBottom);	
+	p.Do(m_FrameBufferBottom);
 	p.Do(m_VIInterruptRegister);
-	p.DoArray(m_UVIUnknownRegs, 0x1000);	
+	p.DoArray(m_UVIUnknownRegs, 0x1000);
 	p.Do(HorizontalBeamPos);
 	p.Do(VerticalBeamPos);
 	p.Do(TicksPerFrame);
@@ -233,7 +233,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
         _uReturnValue = HorizontalBeamPos;
 		return;
 
-	// RETRACE STUFF ... 
+	// RETRACE STUFF ...
 	case VI_PRERETRACE:
 		_uReturnValue =	m_VIInterruptRegister[0].Hi;
 		return;
@@ -273,7 +273,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 void Write16(const u16 _iValue, const u32 _iAddress)
 {
 	LOGV(VIDEOINTERFACE, 3, "(w16): 0x%04x, 0x%08x",_iValue,_iAddress);
-	
+
 	//Somewhere it sets screen width.. we need to communicate this to the gfx plugin...
 
 	switch (_iAddress & 0xFFF)
@@ -307,7 +307,7 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
 	case VI_FRAMEBUFFER_TOP_LO:
 		m_FrameBufferTop.Lo = _iValue;
-		break;	
+		break;
 
 	case VI_FRAMEBUFFER_BOTTOM_HI:
 		m_FrameBufferBottom.Hi = _iValue;
@@ -325,7 +325,7 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		_dbg_assert_(VIDEOINTERFACE,0);
 		break;
 
-		// RETRACE STUFF ... 
+		// RETRACE STUFF ...
 	case VI_PRERETRACE:
 		m_VIInterruptRegister[0].Hi = _iValue;
 		UpdateInterrupts();
@@ -392,12 +392,12 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
 	LOG(VIDEOINTERFACE, "(w32): 0x%08x, 0x%08x",_iValue,_iAddress);
-	
+
 	// Allow 32-bit writes to the VI: although this is officially not
 	// allowed, the hardware seems to accept it (for example, DesktopMan GC
 	// Tetris uses it).
 	Write16(_iValue >> 16, _iAddress);
-	Write16(_iValue & 0xFFFF, _iAddress + 2);	
+	Write16(_iValue & 0xFFFF, _iAddress + 2);
 }
 
 void UpdateInterrupts()
@@ -417,7 +417,7 @@ void UpdateInterrupts()
 
 void GenerateVIInterrupt(VIInterruptType _VIInterrupt)
 {
-	switch(_VIInterrupt) 
+	switch(_VIInterrupt)
 	{
 	case INT_PRERETRACE:	m_VIInterruptRegister[0].IR_INT = 1; break;
 	case INT_POSTRETRACE:	m_VIInterruptRegister[1].IR_INT = 1; break;
@@ -432,7 +432,7 @@ void GenerateVIInterrupt(VIInterruptType _VIInterrupt)
 		(m_VIInterruptRegister[3].IR_MASK == 1))
 	{
 		PanicAlert("m_VIInterruptRegister[2 and 3] activated - Tell F|RES :)");
-	}	
+	}
 }
 
 u8* GetFrameBufferPointer()
@@ -455,7 +455,7 @@ void PreInit(bool _bNTSC)
 	Write16(0x0005, 0xcc00200c);
 	Write16(0x01f7, 0xcc002012);
 	Write16(0x0004, 0xcc002010);
-	Write16(0x410c, 0xcc002016);	
+	Write16(0x410c, 0xcc002016);
 	Write16(0x410c, 0xcc002014);
 	Write16(0x40ed, 0xcc00201a);
 	Write16(0x40ed, 0xcc002018);
@@ -470,7 +470,7 @@ void PreInit(bool _bNTSC)
     if (_bNTSC)
         Write16(0x0001, 0xcc002002);	// STATUS REG
     else
-        Write16(0x0101, 0xcc002002);	// STATUS REG	
+        Write16(0x0101, 0xcc002002);	// STATUS REG
 }
 
 void UpdateTiming()
@@ -519,7 +519,7 @@ void Update()
 				NextXFBRender = LinesPerField;
 				// The & mask is a hack for mario kart
 				u32 addr = (VideoInterface::m_FrameBufferTop.Hex & 0xFFFFFFF) | 0x80000000;
-				if (addr >= 0x80000000 && 
+				if (addr >= 0x80000000 &&
 					addr <= (0x81800000-640*480*2))
 					xfbPtr = Memory::GetPointer(addr);
 			}
@@ -527,20 +527,20 @@ void Update()
 			{
 				NextXFBRender = 1;
 				u32 addr = (VideoInterface::m_FrameBufferBottom.Hex & 0xFFFFFFF) | 0x80000000;
-				if (addr >= 0x80000000 && 
+				if (addr >= 0x80000000 &&
 					addr <= (0x81800000-640*480*2))
 					xfbPtr = Memory::GetPointer(addr);
 				yOffset = -1;
 			}
-
-			if (xfbPtr && PluginVideo::IsLoaded())
+			Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
+			if (xfbPtr && video->IsValid())
 			{
 				int fbWidth = m_VIHorizontalStepping.FieldSteps * 16;
 				int fbHeight = (m_VIHorizontalStepping.FbSteps / m_VIHorizontalStepping.FieldSteps) * m_VIVerticalTimingRegister.ACV;				
-				PluginVideo::Video_UpdateXFB(xfbPtr, fbWidth, fbHeight, yOffset);
+				video->Video_UpdateXFB(xfbPtr, fbWidth, fbHeight, yOffset);
 			}
 		}
-        
+
         // check INT_PRERETRACE
         if (m_VIInterruptRegister[0].VCT == VerticalBeamPos)
         {
@@ -556,6 +556,5 @@ void Update()
         }
     }
 }
- 
-}
 
+}

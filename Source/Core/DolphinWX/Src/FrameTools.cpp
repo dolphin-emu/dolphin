@@ -51,7 +51,6 @@ be accessed from Core::GetWindowHandle().
 #include "Config.h" // Core
 #include "Core.h"
 #include "HW/DVDInterface.h"
-#include "Plugins/Plugin_PAD.h"
 #include "State.h"
 #include "VolumeHandler.h"
 
@@ -152,7 +151,7 @@ void CFrame::CreateMenu()
 	miscMenu->Check(IDM_TOGGLE_STATUSBAR, true);
 	miscMenu->AppendSeparator();
 	miscMenu->Append(IDM_MEMCARD, _T("&Memcard manager"));
-	miscMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));	
+	miscMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
 	m_pMenuBar->Append(miscMenu, _T("&Misc"));
 
 	// Help menu
@@ -183,8 +182,8 @@ void CFrame::PopulateToolbar(wxToolBar* toolBar)
 	toolBar->AddTool(wxID_REFRESH, _T("Refresh"), m_Bitmaps[Toolbar_Refresh], _T("Refresh"));
 	toolBar->AddTool(IDM_BROWSE, _T("Browse"),   m_Bitmaps[Toolbar_Browse], _T("Browse for an ISO directory..."));
 	toolBar->AddSeparator();
-	
-	m_pToolPlay = toolBar->AddTool(IDM_PLAY, _T("Play"),   m_Bitmaps[Toolbar_Play], _T("Play")); 
+
+	m_pToolPlay = toolBar->AddTool(IDM_PLAY, _T("Play"),   m_Bitmaps[Toolbar_Play], _T("Play"));
 
 
 	toolBar->AddTool(IDM_STOP, _T("Stop"),   m_Bitmaps[Toolbar_Stop], _T("Stop"));
@@ -221,7 +220,7 @@ void CFrame::PopulateToolbar(wxToolBar* toolBar)
 // ¯¯¯¯¯¯¯¯¯¯
 void CFrame::RecreateToolbar()
 {
-	
+
 	wxToolBarBase* toolBar = GetToolBar();
 	long style = toolBar ? toolBar->GetWindowStyle() : TOOLBAR_STYLE;
 
@@ -472,13 +471,13 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 	}
 	/* Start the default ISO, or if we don't have a default ISO, start the last
 	   started ISO */
-	else if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty() && 
+	else if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty() &&
 		wxFileExists(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.
 			m_strDefaultGCM.c_str(), wxConvUTF8)))
 	{
 		BootManager::BootCore(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM);
 	}
-	else if (!SConfig::GetInstance().m_LastFilename.empty() && 
+	else if (!SConfig::GetInstance().m_LastFilename.empty() &&
 	wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
 	{
 		BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
@@ -497,7 +496,7 @@ void CFrame::DoStop()
 	{
 		Core::Stop();
 
-		/* This is needed to let GetState() == CORE_UNINITIALIZED together with the 
+		/* This is needed to let GetState() == CORE_UNINITIALIZED together with the
 		   "delete g_pThread" in Core.cpp. Todo: Please feel free to fix it some other way. */
 		//PanicAlert("%i", (int)bRenderToMain);
 		#ifdef _WIN32
@@ -657,7 +656,7 @@ void CFrame::OnSaveState(wxCommandEvent& event)
 void CFrame::OnToggleToolbar(wxCommandEvent& event)
 {
 	wxToolBarBase* toolBar = GetToolBar();
-	
+
 	if (event.IsChecked())
 	{
 		CFrame::RecreateToolbar();

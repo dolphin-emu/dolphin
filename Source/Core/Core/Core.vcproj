@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Core"
 	ProjectGUID="{F0B874CB-4476-4199-9315-8343D05AE684}"
 	RootNamespace="Core"
@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\LZO;..\Common\Src;..\DiscIO\Src;..\..\PluginSpecs;..\Debugger\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -116,7 +116,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\LZO;..\Common\Src;..\DiscIO\Src;..\..\PluginSpecs;..\Debugger\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -191,7 +191,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories="..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\LZO;..\Common\Src;..\DiscIO\Src;..\..\PluginSpecs;..\Debugger\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -268,7 +268,7 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
 				WholeProgramOptimization="false"
-				AdditionalIncludeDirectories="..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\LZO;..\Common\Src;..\DiscIO\Src;..\..\PluginSpecs;..\Debugger\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -343,7 +343,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories="..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\LZO;..\Common\Src;..\DiscIO\Src;..\..\PluginSpecs;..\Debugger\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib"
 				PreprocessorDefinitions="NDEBUG;_LIB;DEBUGFAST;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="true"
@@ -418,7 +418,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="false"
-				AdditionalIncludeDirectories="..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\LZO;..\Common\Src;..\DiscIO\Src;..\..\PluginSpecs;..\Debugger\Src;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib"
+				AdditionalIncludeDirectories=".\Core\Core\Src\Debugger;..\Common\Src;..\DiscIO\Src;..\..\Core\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\LZO;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\zlib"
 				PreprocessorDefinitions="NDEBUG;_LIB;DEBUGFAST;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -768,74 +768,6 @@
 				</File>
 				<File
 					RelativePath=".\Src\HW\WII_IPC.h"
-					>
-				</File>
-			</Filter>
-		</Filter>
-		<Filter
-			Name="Plugins"
-			>
-			<File
-				RelativePath=".\Src\Plugins\Plugin_DSP.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Plugins\Plugin_DSP.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Plugins\Plugin_PAD.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Plugins\Plugin_PAD.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Plugins\Plugin_Video.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Plugins\Plugin_Video.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Plugins\Plugin_Wiimote.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Plugins\Plugin_Wiimote.h"
-				>
-			</File>
-			<Filter
-				Name="Specs"
-				>
-				<File
-					RelativePath="..\..\PluginSpecs\CommonTypes.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\PluginSpecs\ExportProlog.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\PluginSpecs\PluginSpecs.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\PluginSpecs\pluginspecs_dsp.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\PluginSpecs\pluginspecs_pad.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\PluginSpecs\pluginspecs_video.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\PluginSpecs\pluginspecs_wiimote.h"
 					>
 				</File>
 			</Filter>

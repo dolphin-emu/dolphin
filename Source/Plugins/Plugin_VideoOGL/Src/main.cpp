@@ -69,7 +69,7 @@ void DllDebugger(HWND _hParent, bool Show)
 	{
 		m_frame->DoShow();
 	}
-	else if(!m_frame && Show) 
+	else if(!m_frame && Show)
 	{		
 		m_frame = new CDebugger(NULL);
 		m_frame->Show();
@@ -91,11 +91,11 @@ void DoDllDebugger() { }
 #endif
 
 
-void GetDllInfo (PLUGIN_INFO* _PluginInfo) 
+void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 {
     _PluginInfo->Version = 0x0100;
     _PluginInfo->Type = PLUGIN_TYPE_VIDEO;
-#ifdef DEBUGFAST 
+#ifdef DEBUGFAST
     sprintf(_PluginInfo->Name, "Dolphin OpenGL (DebugFast)");
 #else
 #ifndef _DEBUG
@@ -125,9 +125,9 @@ void DllConfig(HWND _hParent)
 	dmi.dmSize = sizeof(dmi);
 	std::string resos[100];
 	int i = 0;
-	
+
 	while (EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
-	{	
+	{
 		char szBuffer[100];
 		sprintf(szBuffer,"%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
 		std::string strBuffer(szBuffer);
@@ -157,9 +157,9 @@ void DllConfig(HWND _hParent)
         g_Config.Load();
         frame.ShowModal();
 
-#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XXF86VM) &&\ 
+#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XXF86VM) &&\
         HAVE_XXF86VM && defined(HAVE_WX) && HAVE_WX
- 
+
 	ConfigDialog frame(NULL);
 	g_Config.Load();
     int glxMajorVersion, glxMinorVersion;
@@ -176,9 +176,9 @@ void DllConfig(HWND _hParent)
 	bestMode = 0;
 	XF86VidModeGetAllModeLines(GLWin.dpy, GLWin.screen, &modeNum, &modes);
 	int px = 0, py = 0;
-	if (modeNum > 0 && modes != NULL) 
+	if (modeNum > 0 && modes != NULL)
 	{
-		for (int i = 0; i < modeNum; i++) 
+		for (int i = 0; i < modeNum; i++)
 		{
 			if(px != modes[i]->hdisplay && py != modes[i]->vdisplay)
 			{
@@ -200,11 +200,8 @@ void DllConfig(HWND _hParent)
 //////////////////////////////////////////////////////////////////////////////////////////
 // Initialize video
 // ¯¯¯¯¯¯¯¯¯¯
-void Video_Initialize(SVideoInitialize* _pVideoInitialize)
+void Initialize(void *init)
 {
-	// When will this happen?
-    if (_pVideoInitialize == NULL) return;
-
 	// --------------------------------------------------
 	/* Dolphin currently crashes if the dll is loaded when a game is started so we close the
 	   debugger and open it again after loading
@@ -214,12 +211,13 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 	if(m_frame)
 	{
 		m_frame->EndModal(0); wxEntryCleanup();
-	}//use wxUninitialize() if you don't want GUI 
+	}//use wxUninitialize() if you don't want GUI
 	*/
-	// --------------------------------------------------	
+	// --------------------------------------------------
 
     frameCount = 0;
-    g_VideoInitialize = *_pVideoInitialize; // Create a shortcut to _pVideoInitialize that can also update it
+    SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
+    g_VideoInitialize = *(_pVideoInitialize); // Create a shortcut to _pVideoInitialize that can also update it
     InitLUTs();
 	InitXFBConvTables();
     g_Config.Load();
@@ -238,7 +236,7 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 	Renderer::AddMessage("Dolphin OpenGL Video Plugin" ,5000);
 }
 
-void Video_DoState(unsigned char **ptr, int mode) {
+void DoState(unsigned char **ptr, int mode) {
   //#ifdef _WIN32
 //  What is this code doing here?
 //  if (!wglMakeCurrent(hDC,hRC)) {
@@ -249,7 +247,7 @@ void Video_DoState(unsigned char **ptr, int mode) {
 //    cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
 //#elif defined(HAVE_X11) && HAVE_X11
 //    glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
-//#endif 
+//#endif
 #ifndef _WIN32
 	// WHY is this here??
 	OpenGL_MakeCurrent();
@@ -293,7 +291,7 @@ void Video_Prepare(void)
     TextureConverter::Init();
 }
 
-void Video_Shutdown(void) 
+void Shutdown(void)
 {
     TextureConverter::Shutdown();
     VertexLoaderManager::Shutdown();
@@ -309,7 +307,7 @@ void Video_Shutdown(void)
     OpenGL_Shutdown();
 }
 
-void Video_Stop(void) 
+void Video_Stop(void)
 {
     Fifo_Stop();
 }
@@ -334,7 +332,7 @@ void DebugLog(const char* _fmt, ...)
 #endif
 }
 
-bool ScreenShot(TCHAR *File) 
+bool ScreenShot(TCHAR *File)
 {
     char str[64];
     int left = 200, top = 15;

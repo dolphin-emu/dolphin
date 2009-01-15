@@ -30,22 +30,6 @@ typedef struct
 	TAudioGetStreaming		pGetAudioStreaming;
 } DSPInitialize;
 
-// __________________________________________________________________________________________________
-
-// Function: DSP_Initialize
-// Purpose:
-// input:    DSPInitialize
-// output:   none
-//
-EXPORT void CALL DSP_Initialize(DSPInitialize _dspInitialize);
-// __________________________________________________________________________________________________
-// Function: DSP_Shutdown
-// Purpose:  This function is called when the emulator is shutting down
-//           a game allowing the dll to de-initialise.
-// input:    none
-// output:   none
-//
-EXPORT void CALL DSP_Shutdown(void);
 
 // __________________________________________________________________________________________________
 // Function: DSP_ReadMailboxHigh
@@ -110,13 +94,6 @@ EXPORT void CALL DSP_Update(int cycles);
 // 
 EXPORT void CALL DSP_SendAIBuffer(unsigned int address, int sample_rate);
 
-// __________________________________________________________________________________________________
-// Function: DSP_DoState
-// Purpose:  Saves/load state
-// input/output: ptr
-// input: mode
-//
-EXPORT void CALL DSP_DoState(unsigned char **ptr, int mode);
 
 #include "ExportEpilog.h"
 #endif

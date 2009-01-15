@@ -33,7 +33,7 @@
 #include "AudioInterface.h"
 #include "VideoInterface.h"
 #include "WII_IPC.h"
-#include "../Plugins/Plugin_Video.h"
+#include "../PluginManager.h"
 #include "../CoreTiming.h"
 #include "SystemTimers.h"
 #include "../IPC_HLE/WII_IPC_HLE.h"

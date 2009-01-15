@@ -79,7 +79,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_DSP;
-#ifdef DEBUGFAST 
+#ifdef DEBUGFAST
 	sprintf(_PluginInfo->Name, "Dolphin DSP-NULL Plugin (DebugFast) ");
 #else
 #ifndef _DEBUG
@@ -101,22 +101,22 @@ void DllConfig(HWND _hParent)
 {
 }
 
-void DSP_Initialize(DSPInitialize _dspInitialize)
+void Initialize(void *init)
 {
-    g_dspInitialize = _dspInitialize;
+    g_dspInitialize = *(DSPInitialize*)init;
 
     g_pMemory = g_dspInitialize.pGetMemoryPointer(0);
 
     CDSPHandler::CreateInstance();
 }
 
-void DSP_Shutdown()
+void Shutdown()
 {
 
 	CDSPHandler::Destroy();
 }
 
-void DSP_DoState(unsigned char **ptr, int mode) {
+void DoState(unsigned char **ptr, int mode) {
 	PointerWrap p(ptr, mode);
 }
 

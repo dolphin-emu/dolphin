@@ -54,7 +54,7 @@ static const char* controlNames[] =
 	"Mic-button",
 };
 
-PLUGIN_GLOBALS* globals;
+PLUGIN_GLOBALS* globals = NULL;
 
 SPads pad[4];
 bool KeyStatus[NUMCONTROLS];
@@ -92,7 +92,7 @@ const SPADStatus& PlayRecord()
 bool registerKey(int nPad, int id, sf::Key::Code code, int mods) {
 
     Keys key, oldKey;
-    static EventHandler *eventHandler = (EventHandler *)globals->eventHandler;
+    EventHandler *eventHandler = (EventHandler *)globals->eventHandler;
 
     key.inputType = KeyboardInput;
     key.keyCode = code;
@@ -111,7 +111,7 @@ bool registerKey(int nPad, int id, sf::Key::Code code, int mods) {
     }
 
     
-    // FIXME: unregister old event 
+    // FIXME: unregister old event
     // We need to handle mod change
     // and double registers
     if (pad[nPad].keyForControl[id] != 0) {
@@ -120,9 +120,9 @@ bool registerKey(int nPad, int id, sf::Key::Code code, int mods) {
 	oldKey.keyCode = pad[nPad].keyForControl[id];
 	oldKey.mods = mods;
 
-	
+
 	// Might be not be registered yet
-        //	eventHandler->RemoveEventListener(oldKey); 
+        //	eventHandler->RemoveEventListener(oldKey);
     }
 
     pad[nPad].keyForControl[id] = code;
@@ -182,10 +182,10 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 		if ( !wxTheApp || !wxTheApp->CallOnInit() )
 		    return FALSE;
 	    }
-	    break; 
+	    break;
 	    
 	case DLL_PROCESS_DETACH:
-	    wxEntryCleanup(); //use wxUninitialize() if you don't want GUI 
+	    wxEntryCleanup(); //use wxUninitialize() if you don't want GUI
 	    break;
 	default:
 	    break;
@@ -203,7 +203,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_PAD;
 
-#ifdef DEBUGFAST 
+#ifdef DEBUGFAST
 	sprintf(_PluginInfo->Name, "Dolphin event pad (DebugFast)");
 #elif defined _DEBUG
 	sprintf(_PluginInfo->Name, "Dolphin event pad (Debug)");
@@ -228,17 +228,20 @@ void DllConfig(HWND _hParent)
 void DllDebugger(HWND _hParent, bool Show) {
 }
 
-void PAD_Initialize(SPADInitialize _PADInitialize)
+void DoState(unsigned char **ptr, int mode) {
+}
+
+void Initialize(void *init)
 {
 #ifdef RECORD_REPLAY
 	LoadRecord();
 #endif
-
+	g_PADInitialize = *(SPADInitialize*)init;
 	LoadConfig();
 }
 
 
-void PAD_Shutdown()
+void Shutdown()
 {
 #ifdef RECORD_STORE
 	SaveRecord();
@@ -318,7 +321,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
     if (KeyStatus[CTL_X]){_pPADStatus->button |= PAD_BUTTON_X;}
     if (KeyStatus[CTL_Y]){_pPADStatus->button |= PAD_BUTTON_Y;}
     if (KeyStatus[CTL_Z]){_pPADStatus->button |= PAD_TRIGGER_Z;}
-	
+
     if (KeyStatus[CTL_L]) {
         _pPADStatus->button |= PAD_TRIGGER_L;
         _pPADStatus->triggerLeft = triggervalue;
@@ -348,7 +351,7 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength) {
 unsigned int PAD_GetAttachedPads()
 {
 	unsigned int connected = 0;
-	
+
 	LoadConfig();
 
 	if(pad[0].bAttached)
@@ -377,7 +380,7 @@ void LoadConfig()
           sf::Key::W,
           sf::Key::Up, //mainstick
           sf::Key::Down,
-          sf::Key::Left, 
+          sf::Key::Left,
           sf::Key::Right,
           sf::Key::I, //substick
           sf::Key::K,

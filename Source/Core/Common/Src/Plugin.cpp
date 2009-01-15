@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
+ 
 
 // =======================================================
 // File description
@@ -24,79 +24,91 @@
    the config and debugging windows and works with all plugins. */
 // =============
 
-
+ 
 #include "Plugin.h"
 
 namespace Common
 {
-DynamicLibrary CPlugin::m_hInstLib;
 
-void(__cdecl * CPlugin::m_GetDllInfo)    (PLUGIN_INFO * _PluginInfo) = 0;
-void(__cdecl * CPlugin::m_DllConfig)     (HWND _hParent) = 0;
-void(__cdecl * CPlugin::m_DllDebugger)   (HWND _hParent, bool Show) = 0;
-void(__cdecl * CPlugin::m_SetDllGlobals) (PLUGIN_GLOBALS* _PluginGlobals) = 0;
-
-void
-CPlugin::Release(void)
-{
-	m_GetDllInfo = 0;
-	m_DllConfig = 0;
-	m_DllDebugger = 0;
-	m_SetDllGlobals = 0;
-	
-	m_hInstLib.Unload();
+CPlugin::~CPlugin() {
+    m_hInstLib.Unload();
 }
 
-bool
-CPlugin::Load(const char* _szName)
-{
-	if (m_hInstLib.Load(_szName))
-	{
-		m_GetDllInfo = (void (__cdecl*)(PLUGIN_INFO*)) m_hInstLib.Get("GetDllInfo");
-		m_DllConfig = (void (__cdecl*)(HWND)) m_hInstLib.Get("DllConfig");
-		m_DllDebugger = (void (__cdecl*)(HWND, bool)) m_hInstLib.Get("DllDebugger");
-		m_SetDllGlobals = (void (__cdecl*)(PLUGIN_GLOBALS*)) m_hInstLib.Get("SetDllGlobals");
-		return(true);
+CPlugin::CPlugin(const char* _szName) : valid(false) {
+    if (m_hInstLib.Load(_szName)) {
+
+	m_GetDllInfo = reinterpret_cast<TGetDllInfo>
+	    (m_hInstLib.Get("GetDllInfo"));
+	m_DllConfig = reinterpret_cast<TDllConfig>
+	    (m_hInstLib.Get("DllConfig"));
+	m_DllDebugger = reinterpret_cast<TDllDebugger>
+	    (m_hInstLib.Get("DllDebugger"));
+	m_SetDllGlobals = reinterpret_cast<TSetDllGlobals>
+	    (m_hInstLib.Get("SetDllGlobals"));
+	m_Initialize = reinterpret_cast<TInitialize>
+	    (m_hInstLib.Get("Initialize"));
+	m_Shutdown = reinterpret_cast<TShutdown>
+	    (m_hInstLib.Get("Shutdown"));
+	m_DoState = reinterpret_cast<TDoState>
+	    (m_hInstLib.Get("DoState"));
 	}
 
-	return(false);
+    if (m_GetDllInfo != 0 &&
+	m_DllConfig != 0 &&
+	m_DllDebugger != 0 &&
+	m_SetDllGlobals != 0 &&
+	m_Initialize != 0 &&
+	m_Shutdown != 0 &&
+	m_DoState != 0)
+	valid = true;
+
 }
 
-
-bool CPlugin::GetInfo(PLUGIN_INFO& _pluginInfo)
-{
-	if (m_GetDllInfo != 0)
-	{
-		m_GetDllInfo(&_pluginInfo);
-		return(true);
-	}
-
-	return(false);
+void *CPlugin::LoadSymbol(const char *sym) {
+    return m_hInstLib.Get(sym);
 }
 
+bool CPlugin::GetInfo(PLUGIN_INFO& _pluginInfo) {
+    if (m_GetDllInfo != 0) {
+	m_GetDllInfo(&_pluginInfo);
+	return(true);
+    }
 
-void CPlugin::Config(HWND _hwnd)
-{
-	if (m_DllConfig != 0)
-	{
-		m_DllConfig(_hwnd);
-	}
+    return(false);
 }
 
-void CPlugin::Debug(HWND _hwnd, bool Show)
-{
-	if (m_DllDebugger != 0)
-	{
-		m_DllDebugger(_hwnd, Show);
-	}
+ 
+void CPlugin::Config(HWND _hwnd) {
+    if (m_DllConfig != 0)
+	m_DllConfig(_hwnd);
+
 }
 
-void CPlugin::SetGlobals(PLUGIN_GLOBALS& _pluginGlobals)
-{
-	if (m_SetDllGlobals != 0)
-	{
-		m_SetDllGlobals(&_pluginGlobals);
-	}
+void CPlugin::Debug(HWND _hwnd, bool Show) {
+    if (m_DllDebugger != 0)
+	m_DllDebugger(_hwnd, Show);
+
+}
+
+void CPlugin::SetGlobals(PLUGIN_GLOBALS* _pluginGlobals) {
+    if (m_SetDllGlobals != 0)
+	m_SetDllGlobals(_pluginGlobals);
+
+}
+
+void CPlugin::DoState(unsigned char **ptr, int mode) {
+    if (m_DoState != 0)
+	m_DoState(ptr, mode);
+}
+
+void CPlugin::Initialize(void *init) {
+    if (m_Initialize != 0)
+	m_Initialize(init);
+}
+
+void CPlugin::Shutdown() {
+    if (m_Shutdown != 0)
+	m_Shutdown();
 }
 
 } // end of namespace Common

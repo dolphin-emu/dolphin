@@ -24,7 +24,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
 	EVT_BUTTON(ID_CLOSE,ConfigDialog::OnCloseClick)
 	EVT_BUTTON(ID_PAD_ABOUT,ConfigDialog::DllAbout)
-	EVT_CHECKBOX(ID_ATTACHED,ConfigDialog::ControllerSettingsChanged)	
+	EVT_CHECKBOX(ID_ATTACHED,ConfigDialog::ControllerSettingsChanged)
 	EVT_CHECKBOX(ID_X360PAD,ConfigDialog::ControllerSettingsChanged)
 	EVT_CHOICE(ID_X360PAD_CHOICE,ConfigDialog::ControllerSettingsChanged)
 	EVT_CHECKBOX(ID_RUMBLE,ConfigDialog::ControllerSettingsChanged)
@@ -69,13 +69,13 @@ inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
     wxBoxSizer *hButton = new wxBoxSizer(wxHORIZONTAL);
     char keyStr[10] = {0};
     
-    hButton->Add(new wxStaticText(pan, 0, wxString::FromAscii(name), 
+    hButton->Add(new wxStaticText(pan, 0, wxString::FromAscii(name),
 				  wxDefaultPosition, wxDefaultSize), 0,
 		 wxALIGN_CENTER_VERTICAL|wxALL);
     ((EventHandler *)globals->eventHandler)->SFKeyToString
 	(pad[controller].keyForControl[ctl], keyStr);
     
-    *button = new wxButton(pan, ctl, wxString::FromAscii(keyStr), 
+    *button = new wxButton(pan, ctl, wxString::FromAscii(keyStr),
 			   wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
     
     hButton->Add(*button, 0, wxALIGN_RIGHT|wxALL);
@@ -115,7 +115,7 @@ void ConfigDialog::CreateGUIControls() {
     
     this->SetSizer(sMain);
     this->Layout();
-	
+
     for(int i = 0; i < 4; i++) {
 	sbDevice[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Controller Settings"));
 	sDevice[i] = new wxBoxSizer(wxHORIZONTAL);
@@ -123,51 +123,51 @@ void ConfigDialog::CreateGUIControls() {
 	m_Disable[i] = new wxCheckBox(m_Controller[i], ID_DISABLE, wxT("Disable when Dolphin is not in focus"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Attached[i]->SetValue(pad[i].bAttached);
 	m_Disable[i]->SetValue(pad[i].bDisable);
-	
+
 	sDevice[i]->Add(m_Attached[i], 0, wxEXPAND|wxALL, 1);
 	sDevice[i]->AddStretchSpacer();
 	sDevice[i]->Add(m_Disable[i], 0, wxEXPAND|wxALL, 1);
 	sbDevice[i]->Add(sDevice[i], 0, wxEXPAND|wxALL, 1);
-	
+
 	sButtons[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Buttons"));
-	
+
 	AddControl(m_Controller[i], &(m_ButtonA[i]), sButtons[i], "A: ", CTL_A, i);
 	AddControl(m_Controller[i], &(m_ButtonB[i]), sButtons[i], "B: ", CTL_B, i);
 	AddControl(m_Controller[i], &(m_ButtonX[i]), sButtons[i], "X: ", CTL_X, i);
 	AddControl(m_Controller[i], &(m_ButtonY[i]), sButtons[i], "Y: ", CTL_Y, i);
 	AddControl(m_Controller[i], &(m_ButtonZ[i]), sButtons[i], "Z: ", CTL_Z, i);
 	AddControl(m_Controller[i], &(m_ButtonStart[i]), sButtons[i], "Start: ", CTL_START, i);
-	
+
 	sTriggers[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Triggers"));
-	
+
 	AddControl(m_Controller[i], &(m_ButtonL[i]), sTriggers[i], "        L: ", CTL_L, i);
 	AddControl(m_Controller[i], &(m_ButtonR[i]), sTriggers[i], "        R: ", CTL_R, i);
-	
+
 	sModifiers[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Modifiers"));
-	
+
 	AddControl(m_Controller[i], &(m_HalfPress[i]), sModifiers[i], "1/2 Press: ", CTL_HALFPRESS, i);
-	
+
 	sStick[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Main Stick"));
-	
+
 	AddControl(m_Controller[i], &(m_StickUp[i]), sStick[i], "Up: ", CTL_MAINUP, i);
 	AddControl(m_Controller[i], &(m_StickDown[i]), sStick[i], "Down: ", CTL_MAINDOWN, i);
 	AddControl(m_Controller[i], &(m_StickLeft[i]), sStick[i], "Left: ", CTL_MAINLEFT, i);
 	AddControl(m_Controller[i], &(m_StickRight[i]), sStick[i], "Right: ", CTL_MAINRIGHT, i);
-	
+
 	sDPad[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("D-Pad"));
-	
+
 	AddControl(m_Controller[i], &(m_DPadUp[i]), sDPad[i], "Up: ", CTL_DPADUP, i);
 	AddControl(m_Controller[i], &(m_DPadDown[i]), sDPad[i], "Down: ", CTL_DPADDOWN, i);
 	AddControl(m_Controller[i], &(m_DPadLeft[i]), sDPad[i], "Left: ", CTL_DPADLEFT, i);
 	AddControl(m_Controller[i], &(m_DPadRight[i]), sDPad[i], "Right: ", CTL_DPADRIGHT, i);
-	
+
 	sCStick[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("C-Stick"));
-	
+
 	AddControl(m_Controller[i], &(m_CStickUp[i]), sCStick[i], "Up: ", CTL_SUBUP, i);
 	AddControl(m_Controller[i], &(m_CStickDown[i]), sCStick[i], "Down: ", CTL_SUBDOWN, i);
 	AddControl(m_Controller[i], &(m_CStickLeft[i]), sCStick[i], "Left: ", CTL_SUBLEFT, i);
 	AddControl(m_Controller[i], &(m_CStickRight[i]), sCStick[i], "Right: ", CTL_SUBRIGHT, i);
-	
+
 	sPage[i] = new wxGridBagSizer(0, 0);
 	sPage[i]->SetFlexibleDirection(wxBOTH);
 	sPage[i]->SetNonFlexibleGrowMode(wxFLEX_GROWMODE_SPECIFIED);
@@ -190,13 +190,12 @@ void ConfigDialog::OnClose(wxCloseEvent& event) {
 void ConfigDialog::OnKeyDown(wxKeyEvent& event) {
     if(clickedButton != NULL) {
 	int page = m_Notebook->GetSelection();
-	static EventHandler *eventHandler = (EventHandler *)globals->eventHandler;
-        fprintf(stderr, "Got key code %d\n",event.GetKeyCode()); 
+	EventHandler *eventHandler = (EventHandler *)globals->eventHandler;
+        fprintf(stderr, "Got key code %d\n",event.GetKeyCode());
 	sf::Key::Code sfcode = eventHandler->wxCharCodeToSF(event.GetKeyCode());
 	char sfstr[100];
 	eventHandler->SFKeyToString(sfcode, sfstr);
-	
-	//	pad[page].keyForControl[clickedButton->GetId()] = sfcode;	
+
 	if (registerKey(page, clickedButton->GetId(), sfcode))
 	    clickedButton->SetLabel(wxString::FromAscii(sfstr));
 	clickedButton->Disconnect();

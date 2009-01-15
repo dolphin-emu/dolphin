@@ -63,8 +63,6 @@
 #include "PowerPC/Jit64/Jit.h"
 #include "PowerPC/Jit64/JitCache.h" // for ClearCache()
 
-#include "Plugins/Plugin_DSP.h" // new stuff, to let us open the DLLDebugger
-#include "Plugins/Plugin_Video.h" // new stuff, to let us open the DLLDebugger
 #include "PluginManager.h"
 #include "../../DolphinWX/Src/Config.h"
 
@@ -110,7 +108,7 @@ void CCodeWindow::CreateSymbolsMenu()
 		" files with code to memory you may want to increase that to perhaps 8 MB, you can do"
 		" that from SymbolDB::SaveMap().")
 		);
-	
+
 	pSymbolsMenu->AppendSeparator();
 	pSymbolsMenu->Append(IDM_CREATESIGNATUREFILE, _T("&Create signature file..."));
 	pSymbolsMenu->Append(IDM_USESIGNATUREFILE, _T("&Use signature file..."));
@@ -152,7 +150,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 	}
 }
 
-void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event) 
+void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED)
 	{
@@ -360,7 +358,7 @@ void CCodeWindow::OnToggleSoundWindow(wxCommandEvent& event)
 		CPluginManager::GetInstance().OpenDebug(
 			GetHandle(),
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
-			false, true // DSP, show
+			PLUGIN_TYPE_DSP, true // DSP, show
 			);
 	}
 	else // hide
@@ -369,7 +367,7 @@ void CCodeWindow::OnToggleSoundWindow(wxCommandEvent& event)
 		CPluginManager::GetInstance().OpenDebug(
 			GetHandle(),
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
-			false, false // DSP, hide
+			PLUGIN_TYPE_DSP, false // DSP, hide
 			);
 	}
 }
@@ -390,14 +388,14 @@ void CCodeWindow::OnToggleVideoWindow(wxCommandEvent& event)
 		/*if(Core::GetState() == Core::CORE_UNINITIALIZED)
 		{
 			wxMessageBox(_T("Warning, opening this window before a game is started \n\
-may cause a crash when a game is later started. Todo: figure out why and fix it."), wxT("OpenGL Debugging Window"));	
+may cause a crash when a game is later started. Todo: figure out why and fix it."), wxT("OpenGL Debugging Window"));
 		}*/
 
 		// TODO: add some kind of if() check here to?
 		CPluginManager::GetInstance().OpenDebug(
 		GetHandle(),
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
-		true, true // Video, show
+		PLUGIN_TYPE_VIDEO, true // Video, show
 		);
 	}
 	else // hide
@@ -406,7 +404,7 @@ may cause a crash when a game is later started. Todo: figure out why and fix it.
 		CPluginManager::GetInstance().OpenDebug(
 			GetHandle(),
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
-			true, false // Video, hide
+			PLUGIN_TYPE_VIDEO, false // Video, hide
 			);
 	}
 }

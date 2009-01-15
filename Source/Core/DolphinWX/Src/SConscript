@@ -1,4 +1,4 @@
-# -*- python -*- 
+# -*- python -*-
 
 Import('env')
 import sys
@@ -12,7 +12,7 @@ files = [
 	]
 
 libs = [
-	'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'inputcommon', 
+	'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'inputcommon',
 	'common', 'z'
 	]
 

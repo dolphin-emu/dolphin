@@ -20,7 +20,7 @@
 
 #include "PeripheralInterface.h"
 
-#include "../Plugins/Plugin_PAD.h"
+#include "../PluginManager.h"
 
 #include "SI.h"
 #include "SI_Device.h"
@@ -111,13 +111,13 @@ struct SSIChannel
 	USIChannelIn_Hi m_InHi;
 	USIChannelIn_Lo m_InLo;
 	ISIDevice*		m_pDevice;
-};	
+};
 
 // SI Poll: Controls how often a device is polled
-union USIPoll	
+union USIPoll
 {
 	u32 Hex;
-	struct 
+	struct
 	{
 		unsigned VBCPY3		:	1;
 		unsigned VBCPY2		:	1;
@@ -137,7 +137,7 @@ union USIPoll
 union USIComCSR
 {
 	u32 Hex;
-	struct 
+	struct
 	{
 		unsigned TSTART		:	1;
 		unsigned CHANNEL    :	2;		// determines which SI channel will be used the communication interface.
@@ -200,7 +200,7 @@ union USIStatusReg
 union USIEXIClockCount
 {
 	u32 Hex;
-	struct 
+	struct
 	{
 		unsigned LOCK	:	1;
 		unsigned		:  30;
@@ -225,7 +225,7 @@ void DoState(PointerWrap &p)
 	p.Do(g_SIBuffer);
 }
 
-static void GenerateSIInterrupt(SIInterruptType _SIInterrupt);	
+static void GenerateSIInterrupt(SIInterruptType _SIInterrupt);
 void RunSIBuffer();
 void UpdateInterrupts();		
 
@@ -236,9 +236,16 @@ void Init()
 		g_Channel[i].m_Out.Hex = 0;
 		g_Channel[i].m_InHi.Hex = 0;
 		g_Channel[i].m_InLo.Hex = 0;		
-	}	
+	}
 
-	unsigned int AttachedPadMask = PluginPAD::PAD_GetAttachedPads ? PluginPAD::PAD_GetAttachedPads() : 1;
+	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPAD(0);
+
+	unsigned int AttachedPadMask;
+	if (pad != NULL)
+	    AttachedPadMask = pad->PAD_GetAttachedPads();
+	else  
+	    AttachedPadMask = 1;
+
 	for (int i = 0; i < 4; i++)
 	{
 		if (AttachedPadMask & (1 << i))
@@ -285,13 +292,13 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 			_uReturnValue = g_Channel[0].m_Out.Hex;
 			return;
 
-		case SI_CHANNEL_0_IN_HI:	
+		case SI_CHANNEL_0_IN_HI:
 			g_StatusReg.RDST0 = 0;
 			UpdateInterrupts();
 			_uReturnValue = g_Channel[0].m_InHi.Hex;
 			return;
 
-		case SI_CHANNEL_0_IN_LO:	
+		case SI_CHANNEL_0_IN_LO:
 			g_StatusReg.RDST0 = 0;
 			UpdateInterrupts();
 			_uReturnValue = g_Channel[0].m_InLo.Hex;
@@ -304,13 +311,13 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 			_uReturnValue = g_Channel[1].m_Out.Hex;
 			return;
 
-		case SI_CHANNEL_1_IN_HI:	
+		case SI_CHANNEL_1_IN_HI:
 			g_StatusReg.RDST1 = 0;
 			UpdateInterrupts();
 			_uReturnValue = g_Channel[1].m_InHi.Hex;
 			return;
 
-		case SI_CHANNEL_1_IN_LO:	
+		case SI_CHANNEL_1_IN_LO:
 			g_StatusReg.RDST1 = 0;
 			UpdateInterrupts();
 			_uReturnValue = g_Channel[1].m_InLo.Hex;
@@ -323,13 +330,13 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 			_uReturnValue = g_Channel[2].m_Out.Hex;
 			return;
 
-		case SI_CHANNEL_2_IN_HI:	
+		case SI_CHANNEL_2_IN_HI:
 			g_StatusReg.RDST2 = 0;
 			UpdateInterrupts();
 			_uReturnValue = g_Channel[2].m_InHi.Hex;
 			return;
 
-		case SI_CHANNEL_2_IN_LO:	
+		case SI_CHANNEL_2_IN_LO:
 			g_StatusReg.RDST2 = 0;
 			UpdateInterrupts();
 			_uReturnValue = g_Channel[2].m_InLo.Hex;
@@ -348,7 +355,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 			_uReturnValue = g_Channel[3].m_InHi.Hex;
 			return;
 
-		case SI_CHANNEL_3_IN_LO:	
+		case SI_CHANNEL_3_IN_LO:
 			g_StatusReg.RDST3 = 0;
 			UpdateInterrupts();
 			_uReturnValue = g_Channel[3].m_InLo.Hex;
@@ -364,7 +371,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 			LOG(SERIALINTERFACE, "(r32-unk): 0x%08x", _iAddress);
 			_dbg_assert_(SERIALINTERFACE,0);			
 			break;
-	}	
+	}
 
 	// error
 	_uReturnValue = 0xdeadbeef;
@@ -399,7 +406,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 		case SI_CHANNEL_3_IN_LO:	g_Channel[3].m_InLo.Hex = _iValue; break;
 
 		case SI_POLL:				
-			g_Poll.Hex = _iValue; 
+			g_Poll.Hex = _iValue;
 			break;
 
 		case SI_COM_CSR:			
@@ -423,7 +430,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 			}
 			break;
 
-		case SI_STATUS_REG:	
+		case SI_STATUS_REG:
 			{
 				USIStatusReg tmpStatus(_iValue);
 				
@@ -465,8 +472,8 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 			}
 			break;
 
-		case SI_EXI_CLOCK_COUNT:	
-			g_EXIClockCount.Hex = _iValue; 
+		case SI_EXI_CLOCK_COUNT:
+			g_EXIClockCount.Hex = _iValue;
 			break;
 
 		case 0x80:
@@ -476,7 +483,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 		default:
 			_dbg_assert_(SERIALINTERFACE,0);
 			break;
-	}	
+	}
 }
 
 void UpdateInterrupts()
@@ -502,7 +509,7 @@ void UpdateInterrupts()
 
 void GenerateSIInterrupt(SIInterruptType _SIInterrupt)
 {
-	switch(_SIInterrupt) 
+	switch(_SIInterrupt)
 	{
 	case INT_RDSTINT:	g_ComCSR.RDSTINT = 1; break;
 	case INT_TCINT:		g_ComCSR.TCINT = 1; break;
@@ -524,23 +531,23 @@ void UpdateDevices()
 }
 
 void RunSIBuffer()
-{	
+{
 	// math inLength
 	int inLength = g_ComCSR.INLNGTH;
-	if (inLength == 0) 
+	if (inLength == 0)
 		inLength = 128;
-	else 
+	else
 		inLength++;
 
 	// math outLength
 	int outLength = g_ComCSR.OUTLNGTH;
-	if (outLength == 0) 
+	if (outLength == 0)
 		outLength = 128;
-	else 
+	else
 		outLength++;
 
 #ifdef LOGGING
-	int numOutput = 
+	int numOutput =
 #endif
 		g_Channel[g_ComCSR.CHANNEL].m_pDevice->RunBuffer(g_SIBuffer, inLength);
 	LOGV(SERIALINTERFACE, 2, "RunSIBuffer     (intLen: %i    outLen: %i) (processed: %i)", inLength, outLength, numOutput);

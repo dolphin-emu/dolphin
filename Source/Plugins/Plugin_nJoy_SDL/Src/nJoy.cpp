@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Project description
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-// Name: nJoy 
+// Name: nJoy
 // Description: A Dolphin Compatible Input Plugin
 //
 // Author: Falcon4ever (nJoy@falcon4ever.com)
@@ -29,7 +29,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
-
+ 
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Issues
@@ -41,7 +41,7 @@
 
 ////////////////////////*/
 
-
+ 
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Variables guide
@@ -58,7 +58,7 @@
 
 ////////////////////////*/
 
-
+ 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Include
@@ -71,7 +71,7 @@
 #endif
 /////////////////////////
 
-
+ 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Variables
 // ¯¯¯¯¯¯¯¯¯
@@ -97,7 +97,7 @@ void __Logv(int log, int v, const char *format, ...) {}
 	extern int fd;
 #endif
 
-
+ 
 //////////////////////////////////////////////////////////////////////////////////////////
 // wxWidgets
 // ¯¯¯¯¯¯¯¯¯
@@ -110,19 +110,19 @@ void __Logv(int log, int v, const char *format, ...) {}
 		}
 	};
 
-	IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+	IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
 
-
+ 
 //////////////////////////////////////////////////////////////////////////////////////////
-// DllMain 
+// DllMain
 // ¯¯¯¯¯¯¯
 #ifdef _WIN32
 BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 						DWORD dwReason,		// reason called
 						LPVOID lpvReserved)	// reserved
-{	
+{
 	switch (dwReason)
 	{
 		case DLL_PROCESS_ATTACH:
@@ -136,17 +136,17 @@ BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
 			if (!wxTheApp || !wxTheApp->CallOnInit() )
 				return FALSE;
 		}
-		break; 
+		break;
 
 		case DLL_PROCESS_DETACH:		
-			wxEntryCleanup(); //use wxUninitialize() if you don't want GUI 
+			wxEntryCleanup(); //use wxUninitialize() if you don't want GUI
 		break;
 
 		default:
 			break;
 	}
-	
-	nJoy_hInst = hinstDLL;	
+
+	nJoy_hInst = hinstDLL;
 	return TRUE;
 }
 #endif
@@ -162,7 +162,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_PAD;
 
-#ifdef DEBUGFAST 
+#ifdef DEBUGFAST
 	sprintf(_PluginInfo->Name, "nJoy v"INPUT_VERSION" (DebugFast) by Falcon4ever");
 #else
 #ifndef _DEBUG
@@ -179,7 +179,7 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
 // Call config dialog
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllConfig(HWND _hParent)
-{	
+{
 	#ifdef _WIN32
 	if (SDL_Init(SDL_INIT_JOYSTICK ) < 0)
 	{
@@ -193,7 +193,7 @@ void DllConfig(HWND _hParent)
 		SPADInitialize _PADInitialize;
 		_PADInitialize.hWnd = NULL;
 		_PADInitialize.pLog = NULL;
-		PAD_Initialize(_PADInitialize);
+		Initialize((void*)&_PADInitialize);
 		emulator_running = FALSE; // Set it back to false
 	}
 
@@ -206,7 +206,7 @@ void DllConfig(HWND _hParent)
 	//win.SetHWND(0);
 
 	m_frame = new ConfigBox(NULL);
-	m_frame->ShowModal();	
+	m_frame->ShowModal();
 
 	#else
 	if (SDL_Init(SDL_INIT_JOYSTICK ) < 0)
@@ -222,34 +222,35 @@ void DllConfig(HWND _hParent)
 		frame.ShowModal();
 	#endif
 
-	#endif	
+	#endif
 }
 
 void DllDebugger(HWND _hParent, bool Show) {
 }
 
-
+ 
 // Init PAD (start emulation)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void PAD_Initialize(SPADInitialize _PADInitialize)
-{	
+void Initialize(void *init)
+{
+    SPADInitialize _PADInitialize  = *(SPADInitialize*)init;
 	emulator_running = TRUE;
 	#ifdef _DEBUG
 	DEBUG_INIT();
 	#endif
-	
+
 	if (SDL_Init(SDL_INIT_JOYSTICK) < 0)
 	{
 		#ifdef _WIN32
 		MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
-		#else	
-		printf("Could not initialize SDL! (%s)\n", SDL_GetError());	
+		#else
+		printf("Could not initialize SDL! (%s)\n", SDL_GetError());
 		#endif
 		return;
 	}
-	
+
 	#ifdef _WIN32
-	m_hWnd = (HWND)_PADInitialize.hWnd;	
+	m_hWnd = (HWND)_PADInitialize.hWnd;
 	#endif
 
 	Search_Devices(); // Populate joyinfo for all attached devices
@@ -264,7 +265,7 @@ void PAD_Initialize(SPADInitialize _PADInitialize)
 		joystate[3].joy = SDL_JoystickOpen(joysticks[3].ID);
 }
 
-
+ 
 // Search attached devices. Populate joyinfo for all attached physical devices.
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 int Search_Devices()
@@ -291,8 +292,8 @@ int Search_Devices()
 	{		
 		#ifdef _WIN32
 		//MessageBox(NULL, "No Joystick detected!", NULL,  MB_ICONWARNING);
-		#else	
-		printf("No Joystick detected!\n");	
+		#else
+		printf("No Joystick detected!\n");
 		#endif
 		return 0;
 	}
@@ -301,7 +302,7 @@ int Search_Devices()
 	fprintf(pFile, "Scanning for devices\n");
 	fprintf(pFile, "¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯\n");
 	#endif
-	
+
 	for(int i = 0; i < numjoy; i++ )
 	{
 		// Open the device to be able to read the values
@@ -312,7 +313,7 @@ int Search_Devices()
 		joyinfo[i].NumBalls		= SDL_JoystickNumBalls(joyinfo[i].joy);
 		joyinfo[i].NumHats		= SDL_JoystickNumHats(joyinfo[i].joy);
 		joyinfo[i].Name			= SDL_JoystickName(i);
-  
+
 		#ifdef _DEBUG
 		fprintf(pFile, "ID: %d\n", i);
 		fprintf(pFile, "Name: %s\n", joyinfo[i].Name);
@@ -320,7 +321,7 @@ int Search_Devices()
 		fprintf(pFile, "Axes: %d\n", joyinfo[i].NumAxes);
 		fprintf(pFile, "Hats: %d\n", joyinfo[i].NumHats);
 		fprintf(pFile, "Balls: %d\n\n", joyinfo[i].NumBalls);
-		#endif	
+		#endif
 
 		// We have now read the values we need so we close the device
 		if (SDL_JoystickOpened(i)) SDL_JoystickClose(joyinfo[i].joy);
@@ -329,10 +330,10 @@ int Search_Devices()
 	return numjoy;
 }
 
-
+ 
 // Shutdown PAD (stop emulation)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void PAD_Shutdown()
+void Shutdown()
 {
 	if (joysticks[0].enabled)
 		SDL_JoystickClose(joystate[0].joy);
@@ -344,15 +345,15 @@ void PAD_Shutdown()
 		SDL_JoystickClose(joystate[3].joy);
 
 	SDL_Quit();
-	
+
 	#ifdef _DEBUG
 		DEBUG_QUIT();
 	#endif
 
-	delete [] joyinfo;	
+	delete [] joyinfo;
 
 	emulator_running = FALSE;
-	
+
 	#ifdef _WIN32
 		#ifdef USE_RUMBLE_DINPUT_HACK
 		FreeDirectInput();
@@ -362,6 +363,7 @@ void PAD_Shutdown()
 	#endif
 }
 
+ 
 
 // Set buttons status from wxWidgets in the main application
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -378,6 +380,8 @@ void PAD_Input(u8 _Key, u8 _UpDown)
 	}
 }
 
+void DoState(unsigned char **ptr, int mode) {
+}
 
 // Set PAD status. This is called from SerialInterface_Devices.cpp
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -385,14 +389,14 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
 	if (!joysticks[_numPAD].enabled)
 		return;
-		
+
 	// Clear pad status
 	memset(_pPADStatus, 0, sizeof(SPADStatus));
 
 	// Get pad status
 	GetJoyState(_numPAD);
-	
 
+ 
 	///////////////////////////////////////////////////
 	// Set analog controllers
 	// -----------
@@ -427,7 +431,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	if ((sub_stick_x < deadzone2)	|| (sub_stick_x > deadzone))	_pPADStatus->substickX = sub_stick_x;
 	if ((sub_stick_y < deadzone2)	|| (sub_stick_y > deadzone))	_pPADStatus->substickY = sub_stick_y;
 
-
+ 
 	///////////////////////////////////////////////////
 	// Set buttons
 	// -----------
@@ -444,7 +448,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 		_pPADStatus->button|=PAD_TRIGGER_L;
 		_pPADStatus->triggerLeft  = triggervalue;
 	}
-	if (joystate[_numPAD].buttons[CTL_R_SHOULDER])	
+	if (joystate[_numPAD].buttons[CTL_R_SHOULDER])
 	{
 		_pPADStatus->button|=PAD_TRIGGER_R;
 		_pPADStatus->triggerRight = triggervalue;
@@ -484,7 +488,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 		if (joystate[_numPAD].dpad2[CTL_D_PAD_RIGHT])
 			_pPADStatus->button |= PAD_BUTTON_RIGHT;
 	}
-	
+
 	//
 	_pPADStatus->err = PAD_ERR_NONE;
 
@@ -492,7 +496,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	Pad_Use_Rumble(_numPAD, _pPADStatus);
 }
 
-
+ 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Convert stick values, for example from circle to square analog stick radius
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -500,7 +504,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 /* Convert stick values.
 
    The value returned by SDL_JoystickGetAxis is a signed integer s16
-   (-32768 to 32767). The value used for the gamecube controller is an unsigned 
+   (-32768 to 32767). The value used for the gamecube controller is an unsigned
    char u8 (0 to 255) with neutral at 0x80 (128), so that it's equivalent to a signed
    -128 to 127. */
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -520,7 +524,7 @@ u8 Pad_Convert(int _val)
 	return val;
 }
 
-
+ 
 /* Convert the stick raidus from a circular to a square. I don't know what input values
    the actual GC controller produce for the GC, it may be a square, a circle or something
    in between. But one thing that is certain is that PC pads differ in their output (as
@@ -600,13 +604,13 @@ std::vector<int> Pad_Square_to_Circle(int _x, int _y)
 }
 //////////////////////////////////////////////////////////////////////////////////////////
 
-
+ 
 // Set PAD attached pads
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 unsigned int PAD_GetAttachedPads()
 {
 	unsigned int connected = 0;
-	
+
 	g_Config.Load();
 
 	if (joysticks[0].enabled) connected |= 1;		
@@ -617,7 +621,7 @@ unsigned int PAD_GetAttachedPads()
 	return connected;
 }
 
-
+ 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Read current joystick status
@@ -646,7 +650,7 @@ void GetJoyState(int controller)
 	joystate[controller].axis[CTL_MAIN_Y] = SDL_JoystickGetAxis(joystate[controller].joy, joysticks[controller].axis[CTL_MAIN_Y]);
 	joystate[controller].axis[CTL_SUB_X] = SDL_JoystickGetAxis(joystate[controller].joy, joysticks[controller].axis[CTL_SUB_X]);
 	joystate[controller].axis[CTL_SUB_Y] = SDL_JoystickGetAxis(joystate[controller].joy, joysticks[controller].axis[CTL_SUB_Y]);
-	
+
 	ReadButton(controller, CTL_L_SHOULDER);
 	ReadButton(controller, CTL_R_SHOULDER);
 	ReadButton(controller, CTL_A_BUTTON);
@@ -655,7 +659,7 @@ void GetJoyState(int controller)
 	ReadButton(controller, CTL_Y_BUTTON);
 	ReadButton(controller, CTL_Z_TRIGGER);
 	ReadButton(controller, CTL_START);
-	
+
 	//
 	if (joysticks[controller].halfpress < joyinfo[controller].NumButtons)
 		joystate[controller].halfpress = SDL_JoystickGetButton(joystate[controller].joy, joysticks[controller].halfpress);

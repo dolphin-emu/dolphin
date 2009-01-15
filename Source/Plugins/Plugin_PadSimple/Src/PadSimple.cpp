@@ -131,10 +131,10 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 			if ( !wxTheApp || !wxTheApp->CallOnInit() )
 				return FALSE;
 		}
-		break; 
+		break;
 
 	case DLL_PROCESS_DETACH:
-		wxEntryCleanup(); //use wxUninitialize() if you don't want GUI 
+		wxEntryCleanup(); //use wxUninitialize() if you don't want GUI
 		break;
 	default:
 		break;
@@ -152,7 +152,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_PAD;
 
-#ifdef DEBUGFAST 
+#ifdef DEBUGFAST
 	sprintf(_PluginInfo->Name, "Dolphin KB/X360pad (DebugFast)");
 #else
 #ifndef _DEBUG
@@ -189,25 +189,27 @@ void DllConfig(HWND _hParent)
 void DllDebugger(HWND _hParent, bool Show) {
 }
 
-void PAD_Initialize(SPADInitialize _PADInitialize)
+void Initialize(void *init)
 {
 #ifdef RECORD_REPLAY
 	LoadRecord();
 #endif
 
-	g_PADInitialize = _PADInitialize;
+	g_PADInitialize = *(SPADInitialize*)init;
 #ifdef _WIN32
 	dinput.Init((HWND)g_PADInitialize.hWnd);
 #elif defined(HAVE_X11) && HAVE_X11
 	GXdsp = (Display*)g_PADInitialize.hWnd;
 #elif defined(HAVE_COCOA) && HAVE_COCOA
 #endif
-	
+
 	LoadConfig();
 }
 
+void DoState(unsigned char **ptr, int mode) {
+}
 
-void PAD_Shutdown()
+void Shutdown()
 {
 #ifdef RECORD_STORE
 	SaveRecord();
@@ -267,7 +269,7 @@ void DInput_Read(int _numPAD, SPADStatus* _pPADStatus)
 
 	int stickvalue =    (dinput.diks[pad[_numPAD].keyForControl[CTL_HALFPRESS]] & 0xFF) ? 40 : 100;
 	int triggervalue = (dinput.diks[pad[_numPAD].keyForControl[CTL_HALFPRESS]] & 0xFF) ? 100 : 255;
-	
+
 	// get the new keys
 	if (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINLEFT]] & 0xFF){_pPADStatus->stickX -= stickvalue;}
 	if (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINRIGHT]] & 0xFF){_pPADStatus->stickX += stickvalue;}
@@ -389,7 +391,7 @@ void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
 
             key = XLookupKeysym((XKeyEvent*)&E, 0);
             
-            if((key >= XK_F1 && key <= XK_F9) || 
+            if((key >= XK_F1 && key <= XK_F9) ||
                key == XK_Shift_L || key == XK_Shift_R ||
                key == XK_Control_L || key == XK_Control_R) {
                 XPutBackEvent(GXdsp, &E);
@@ -411,7 +413,7 @@ void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
 
             key = XLookupKeysym((XKeyEvent*)&E, 0);
             
-            if((key >= XK_F1 && key <= XK_F9) || 
+            if((key >= XK_F1 && key <= XK_F9) ||
                key == XK_Shift_L || key == XK_Shift_R ||
                key == XK_Control_L || key == XK_Control_R) {
                 XPutBackEvent(GXdsp, &E);
@@ -464,7 +466,7 @@ void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
     if (KeyStatus[CTL_X]){_pPADStatus->button |= PAD_BUTTON_X;}
     if (KeyStatus[CTL_Y]){_pPADStatus->button |= PAD_BUTTON_Y;}
     if (KeyStatus[CTL_Z]){_pPADStatus->button |= PAD_TRIGGER_Z;}
-	
+
     if (KeyStatus[CTL_L]) {
         _pPADStatus->button |= PAD_TRIGGER_L;
         _pPADStatus->triggerLeft = triggervalue;
@@ -564,7 +566,7 @@ void cocoa_Read(int _numPAD, SPADStatus* _pPADStatus)
     if (KeyStatus[CTL_X]){_pPADStatus->button |= PAD_BUTTON_X;}
     if (KeyStatus[CTL_Y]){_pPADStatus->button |= PAD_BUTTON_Y;}
     if (KeyStatus[CTL_Z]){_pPADStatus->button |= PAD_TRIGGER_Z;}
-	
+
     if (KeyStatus[CTL_L]) {
         _pPADStatus->button |= PAD_TRIGGER_L;
         _pPADStatus->triggerLeft = triggervalue;
@@ -674,7 +676,7 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 unsigned int PAD_GetAttachedPads()
 {
 	unsigned int connected = 0;
-	
+
 	LoadConfig();
 
 	if(pad[0].bAttached)
@@ -693,7 +695,7 @@ unsigned int PAD_GetAttachedPads()
 void LoadConfig()
 {
 	// Initialize first pad to standard controls
-#ifdef _WIN32	
+#ifdef _WIN32
 	const int defaultKeyForControl[NUMCONTROLS] =
 	{
 		DIK_X,	//A
@@ -731,7 +733,7 @@ void LoadConfig()
           XK_w,
           XK_Up, //mainstick
           XK_Down,
-          XK_Left, 
+          XK_Left,
           XK_Right,
           XK_i, //substick
           XK_K,
@@ -785,12 +787,12 @@ void LoadConfig()
 		file.Get(SectionName, "Rumble", &pad[i].bRumble, true);
 		file.Get(SectionName, "XPad#", &pad[i].XPadPlayer);
 		
-		for (int x = 0; x < NUMCONTROLS; x++) 
+		for (int x = 0; x < NUMCONTROLS; x++)
 		{
-			file.Get(SectionName, controlNames[x], &pad[i].keyForControl[x], 
+			file.Get(SectionName, controlNames[x], &pad[i].keyForControl[x],
                                      (i==0)?defaultKeyForControl[x]:0);
 #if defined(HAVE_X11) && HAVE_X11
-			// In linux we have a problem assigning the upper case of the 
+			// In linux we have a problem assigning the upper case of the
 			// keys because they're not being recognized
 			pad[i].keyForControl[x] = tolower(pad[i].keyForControl[x]);
 #endif

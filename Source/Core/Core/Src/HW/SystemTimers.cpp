@@ -17,7 +17,7 @@
 
 
 /////////////////////////////////////////////////////////////////////////////
-// File description: This file control all system timers
+// File description: This file controls all system timers
 /* -------------
    "Time" is measured in frames, not time: These update frequencies are determined by the passage
    of frames. So if a game runs slow, on a slow computer for example, these updates will occur
@@ -38,7 +38,7 @@
    frame.
    
    
-   IPC_HLE_PERIOD: For the Wiimote this is the call scedule: 
+   IPC_HLE_PERIOD: For the Wiimote this is the call scedule:
 		IPC_HLE_UpdateCallback() // In this file
 
 			// This function seems to call all devices' Update() function four times per frame
@@ -63,8 +63,7 @@
 #include "Common.h"
 #include "../PatchEngine.h"
 #include "SystemTimers.h"
-#include "../Plugins/Plugin_DSP.h"
-#include "../Plugins/Plugin_Video.h"
+#include "../PluginManager.h"
 #include "../HW/DSP.h"
 #include "../HW/AudioInterface.h"
 #include "../HW/VideoInterface.h"
@@ -113,14 +112,14 @@ int et_FakeGPWD; // for DC watchdog hack
 // Feel free to experiment
 int
 	// update VI often to let it go through its scanlines with decent accuracy
-	// Maybe should actually align this with the scanline update? Current method in 
+	// Maybe should actually align this with the scanline update? Current method in
 	// VideoInterface::Update is stupid!
-	VI_PERIOD = GetTicksPerSecond() / (60*120), 
+	VI_PERIOD = GetTicksPerSecond() / (60*120),
 
 	// TODO: The SI interfact actually has a register that determines the polling frequency.
 	// We should obey that instead of arbitrarly checking at 60fps.
 	SI_PERIOD = GetTicksPerSecond() / 60, //once a frame is good for controllers
-	
+
 	// This one should simply be determined by the increasing counter in AI.
 	AI_PERIOD = GetTicksPerSecond() / 80,
 
@@ -160,12 +159,12 @@ void AICallback(u64 userdata, int cyclesLate)
 void DSPCallback(u64 userdata, int cyclesLate)
 {
 	// ~1/6th as many cycles as the period PPC-side.
-	PluginDSP::DSP_Update(DSP_PERIOD / 6);
+    CPluginManager::GetInstance().GetDSP()->DSP_Update(DSP_PERIOD / 6);
 	CoreTiming::ScheduleEvent(DSP_PERIOD-cyclesLate, et_DSP);
 }
 
 void AudioFifoCallback(u64 userdata, int cyclesLate)
-{	
+{
 	int period = CPU_CORE_CLOCK / (AudioInterface::GetDSPSampleRate() * 4 / 32);
 	DSP::UpdateAudioDMA();  // Push audio to speakers.
 
@@ -173,7 +172,7 @@ void AudioFifoCallback(u64 userdata, int cyclesLate)
 }
 
 void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
-{	
+{
     WII_IPC_HLE_Interface::Update();
     CoreTiming::ScheduleEvent(IPC_HLE_PERIOD-cyclesLate, et_IPC_HLE);
 }
@@ -233,7 +232,7 @@ void Init()
 	if (Core::GetStartupParameter().bWii)
 	{
 		CPU_CORE_CLOCK = 721000000;
-		VI_PERIOD = GetTicksPerSecond() / (60*120); 
+		VI_PERIOD = GetTicksPerSecond() / (60*120);
 		SI_PERIOD = GetTicksPerSecond() / 60; // once a frame is good for controllers
 		
 		// These are the big question marks IMHO :)

@@ -20,7 +20,7 @@
 
 #include "SI_Device.h"
 #include "SI_DeviceGCController.h"
-#include "../Plugins/Plugin_PAD.h"
+#include "../PluginManager.h"
 
 #include "EXI_Device.h"
 #include "EXI_DeviceMic.h"
@@ -50,7 +50,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 
 	int iPosition = 0;
 	while(iPosition < _iLength)
-	{	
+	{
 		// read the command
 		EBufferCommands command = static_cast<EBufferCommands>(_pBuffer[iPosition ^ 3]);
 		iPosition++;
@@ -114,12 +114,13 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 //
 // return true on new data (max 7 Bytes and 6 bits ;)
 //
-bool 
+bool
 CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 {
 	SPADStatus PadStatus;
 	memset(&PadStatus, 0 ,sizeof(PadStatus));
-	PluginPAD::PAD_GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
+	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPAD(0);
+	pad->PAD_GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 
 	_Hi  = (u32)((u8)PadStatus.stickY);
 	_Hi |= (u32)((u8)PadStatus.stickX << 8);
@@ -141,11 +142,13 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 
 // __________________________________________________________________________________________________
 // SendCommand
-//	
+//
 void
 CSIDevice_GCController::SendCommand(u32 _Cmd)
 {
+	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPAD(0);
 	UCommand command(_Cmd);
+
 	switch(command.Command)
 	{
 	// Costis sent it in some demos :)
@@ -156,8 +159,8 @@ CSIDevice_GCController::SendCommand(u32 _Cmd)
 		{
 			unsigned int uType = command.Parameter1;  // 0 = stop, 1 = rumble, 2 = stop hard
 			unsigned int uStrength = command.Parameter2;
-			if (PluginPAD::PAD_Rumble)
-				PluginPAD::PAD_Rumble(ISIDevice::m_iDeviceNumber, uType, uStrength);
+			if (pad->PAD_Rumble)
+				pad->PAD_Rumble(ISIDevice::m_iDeviceNumber, uType, uStrength);
 		}
 		break;
 

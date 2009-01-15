@@ -41,13 +41,15 @@ extern "C" {
 #endif
 
 // plugin types
-#define PLUGIN_TYPE_VIDEO		1
-#define PLUGIN_TYPE_DVD			2
-#define PLUGIN_TYPE_PAD			3
-#define PLUGIN_TYPE_AUDIO		4
-#define PLUGIN_TYPE_COMPILER            5
-#define PLUGIN_TYPE_DSP			6
-#define PLUGIN_TYPE_WIIMOTE		7
+enum PLUGIN_TYPE {
+    PLUGIN_TYPE_VIDEO = 1,
+    PLUGIN_TYPE_DVD,
+    PLUGIN_TYPE_PAD,
+    PLUGIN_TYPE_AUDIO,
+    PLUGIN_TYPE_COMPILER,
+    PLUGIN_TYPE_DSP,
+    PLUGIN_TYPE_WIIMOTE,
+};
 
 #define STATE_MODE_READ    1
 #define STATE_MODE_WRITE   2
@@ -56,7 +58,7 @@ extern "C" {
 typedef struct 
 {
 	u16 Version;		// Set to 0x0100
-	u16 Type;			// Set to PLUGIN_TYPE_DVD
+	PLUGIN_TYPE Type;	// Set to PLUGIN_TYPE_DVD
 	char Name[100];		// Name of the DLL
 } PLUGIN_INFO;
 
@@ -103,6 +105,31 @@ EXPORT void CALL DllDebugger(HWND _hParent, bool Show);
 // output:   none
 //
 EXPORT void CALL SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals);
+// __________________________________________________________________________________________________
+
+// Function: Initialize
+// Purpose: Initialize the plugin
+// input:    Init
+// output:   none
+//
+EXPORT void CALL Initialize(void *init);
+// __________________________________________________________________________________________________
+// Function: Shutdown
+// Purpose:  This function is called when the emulator is shutting down
+//           a game allowing the dll to de-initialise.
+// input:    none
+// output:   none
+//
+EXPORT void CALL Shutdown(void);
+
+// __________________________________________________________________________________________________
+// Function: DoState
+// Purpose:  Saves/load state
+// input/output: ptr
+// input: mode
+//
+EXPORT void CALL DoState(unsigned char **ptr, int mode);
+
 #if defined(__cplusplus)
 }
 #endif

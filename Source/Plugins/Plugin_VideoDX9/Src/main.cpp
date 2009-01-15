@@ -143,11 +143,11 @@ void DeInit()
 	}
 }
 
-void GetDllInfo (PLUGIN_INFO* _PluginInfo) 
+void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_VIDEO;
-#ifdef DEBUGFAST 
+#ifdef DEBUGFAST
 	sprintf_s(_PluginInfo->Name, 100, "Dolphin Direct3D9 (DebugFast)");
 #else
 #ifndef _DEBUG
@@ -161,7 +161,7 @@ void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
 }
 
-void DllAbout(HWND _hParent) 
+void DllAbout(HWND _hParent)
 {
 	DialogBox(g_hInstance,(LPCSTR)IDD_ABOUT,_hParent,(DLGPROC)AboutProc);
 }
@@ -175,11 +175,10 @@ void DllConfig(HWND _hParent)
 	}
 }
 
-void Video_Initialize(SVideoInitialize* _pVideoInitialize)
+void Initialize(void *init)
 {
-    if (_pVideoInitialize == NULL)
-        return;
 
+    SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
 	frameCount = 0;
 	g_VideoInitialize = *_pVideoInitialize;
 	Init();
@@ -191,7 +190,7 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
 
 }
 
-void Video_DoState(unsigned char **ptr, int mode) {
+void DoState(unsigned char **ptr, int mode) {
 	// Clear all caches
 	TextureCache::Invalidate();
 
@@ -219,7 +218,7 @@ void Video_Prepare(void)
 	OpcodeDecoder_Init();
 }
 
-void Video_Shutdown(void) 
+void Shutdown(void)
 {
 	Fifo_Shutdown();
 	OpcodeDecoder_Shutdown();
@@ -230,7 +229,7 @@ void Video_Shutdown(void)
 	DeInit();
 }
 
-void Video_Stop(void) 
+void Video_Stop(void)
 {
 }
 
@@ -278,7 +277,7 @@ void __Log(int log, const char *format, ...)
 }
 
 
-HRESULT ScreenShot(TCHAR *File) 
+HRESULT ScreenShot(TCHAR *File)
 {
 	if (D3D::dev == NULL)
 		return S_FALSE;
@@ -293,13 +292,13 @@ HRESULT ScreenShot(TCHAR *File)
 
 	if (FAILED(D3D::dev->GetFrontBufferData(0, surf)))
 	{
-		surf->Release(); 
+		surf->Release();
 		return S_FALSE;
 	}
 
 	RECT rect;
     ::GetWindowRect(EmuWindow::GetWnd(), &rect);
-	if (FAILED(D3DXSaveSurfaceToFile(File, D3DXIFF_JPG, surf, NULL, &rect))) 
+	if (FAILED(D3DXSaveSurfaceToFile(File, D3DXIFF_JPG, surf, NULL, &rect)))
 	{
 		surf->Release();
 		return S_FALSE;

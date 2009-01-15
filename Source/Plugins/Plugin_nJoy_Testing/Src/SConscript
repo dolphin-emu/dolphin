@@ -1,4 +1,4 @@
-# -*- python -*- 
+# -*- python -*-
 
 Import('env')
 import sys
@@ -12,7 +12,7 @@ if not env['HAVE_SDL']:
 files = [
 	'nJoy.cpp',
 	]
-	
+
 if env['HAVE_WX']:
 	files +=[ 'GUI/AboutBox.cpp',
 		  'GUI/ConfigBox.cpp',

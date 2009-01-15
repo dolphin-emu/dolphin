@@ -98,7 +98,7 @@ void OpenGL_SetSize(u32 width, u32 height) {
 }
 
 
-void OpenGL_SetWindowText(const char *text) 
+void OpenGL_SetWindowText(const char *text)
 {
 #if USE_SDL
     SDL_WM_SetCaption(text, NULL);
@@ -113,7 +113,7 @@ void OpenGL_SetWindowText(const char *text)
     * Tell X to ask the window manager to set the window title. (X
     * itself doesn't provide window title functionality.)
     */
-    XStoreName(GLWin.dpy, GLWin.win, text); 
+    XStoreName(GLWin.dpy, GLWin.win, text);
 #endif
 }
 
@@ -130,7 +130,7 @@ unsigned int Callback_PeekMessages()
         DispatchMessage(&msg);
     }
     return TRUE;
-#else 
+#else
     return FALSE;
 #endif
 }
@@ -147,7 +147,7 @@ void UpdateFPSDisplay(const char *text)
 // Create rendering window.
 //		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 // ------------------
-bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight) 
+bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight)
 {
 	// --------------------------------------------
 	// Check for fullscreen mode
@@ -238,12 +238,12 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
     wxSize size(_iwidth, _iheight);
-    if (!g_Config.renderToMainframe || 
+    if (!g_Config.renderToMainframe ||
         g_VideoInitialize.pWindowHandle == NULL) {
-        GLWin.frame = new wxFrame((wxWindow *)g_VideoInitialize.pWindowHandle, 
+        GLWin.frame = new wxFrame((wxWindow *)g_VideoInitialize.pWindowHandle,
                                   -1, _("Dolphin"), wxPoint(0,0), size);
     } else {
-        GLWin.frame = new wxFrame((wxWindow *)NULL, 
+        GLWin.frame = new wxFrame((wxWindow *)NULL,
                                   -1, _("Dolphin"), wxPoint(0,0), size);
     }
     GLWin.glCanvas = new wxGLCanvas(GLWin.frame, wxID_ANY, args,
@@ -280,7 +280,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 		g_VideoInitialize.pSysMessage("failed to create window");
 		return false;
 	}
-	
+
     GLuint      PixelFormat;            // Holds The Results After Searching For A Match
     DWORD       dwExStyle;              // Window Extended Style
     DWORD       dwStyle;                // Window Style
@@ -387,18 +387,18 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 
     // attributes for a single buffered visual in RGBA format with at least
     // 8 bits per color and a 24 bit depth buffer
-    int attrListSgl[] = {GLX_RGBA, GLX_RED_SIZE, 8, 
-                         GLX_GREEN_SIZE, 8, 
-                         GLX_BLUE_SIZE, 8, 
+    int attrListSgl[] = {GLX_RGBA, GLX_RED_SIZE, 8,
+                         GLX_GREEN_SIZE, 8,
+                         GLX_BLUE_SIZE, 8,
                          GLX_DEPTH_SIZE, 24,
                          None};
 
-    // attributes for a double buffered visual in RGBA format with at least 
+    // attributes for a double buffered visual in RGBA format with at least
     // 8 bits per color and a 24 bit depth buffer
-    int attrListDbl[] = { GLX_RGBA, GLX_DOUBLEBUFFER, 
-                          GLX_RED_SIZE, 8, 
-                          GLX_GREEN_SIZE, 8, 
-                          GLX_BLUE_SIZE, 8, 
+    int attrListDbl[] = { GLX_RGBA, GLX_DOUBLEBUFFER,
+                          GLX_RED_SIZE, 8,
+                          GLX_GREEN_SIZE, 8,
+                          GLX_BLUE_SIZE, 8,
                           GLX_DEPTH_SIZE, 24,
                           GLX_SAMPLE_BUFFERS_ARB, g_Config.iMultisampleMode, GLX_SAMPLES_ARB, 1, None };
     GLWin.dpy = XOpenDisplay(0);
@@ -563,7 +563,7 @@ bool OpenGL_MakeCurrent()
     XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
                  &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
     ERROR_LOG("GLWin Depth %d", GLWin.depth);
-    if (glXIsDirect(GLWin.dpy, GLWin.ctx)) 
+    if (glXIsDirect(GLWin.dpy, GLWin.ctx))
         ERROR_LOG("you have Direct Rendering!");
     else
         ERROR_LOG("no Direct Rendering possible!");
@@ -657,10 +657,10 @@ void OpenGL_Update()
                 break;
             case KeyPress:
                 key = XLookupKeysym((XKeyEvent*)&event, 0);
-                if(key >= XK_F1 && key <= XK_F9) 
+                if(key >= XK_F1 && key <= XK_F9)
                     FKeyPressed = key - 0xff4e;
                 else {
-                    if(key == XK_Shift_L || key == XK_Shift_R) 
+                    if(key == XK_Shift_L || key == XK_Shift_R)
                         ShiftPressed = true;
                     else if(key == XK_Control_L || key == XK_Control_R)
                         ControlPressed = true;
@@ -685,8 +685,8 @@ void OpenGL_Update()
                 rcWindow.bottom = GLWin.height;
                 break;
             case ClientMessage: //TODO: We aren't reading this correctly, It could be anything, highest chance is that it's a close event though
-                Video_Shutdown(); // Calling from here since returning false does nothing
-                return; 
+		Shutdown(); // Calling from here since returning false does nothing
+                return;
                 break;
             default:
                 //TODO: Should we put the event back if we don't handle it?
@@ -709,7 +709,7 @@ void OpenGL_Update()
 	// ------------------
 	/* MValueX and MValueY will be used in
 		TextureMngr and VertexShaderManager: Rescale textures on resolution changes
-		BPStructs.cpp: Control glScissor() 
+		BPStructs.cpp: Control glScissor()
 		*/
 	// ------------------
     float FactorW  = 640.0f / (float)nBackbufferWidth;
@@ -731,7 +731,7 @@ void OpenGL_Update()
         nXoff = (int)((nBackbufferWidth - (640 * MValueX)) / 2);
         nYoff = (int)((nBackbufferHeight - (480 * MValueY)) / 2);
     }
-	
+
 	// tell the debugger
 	gleft = rcWindow.left; gright = rcWindow.right;
 	gtop = rcWindow.top; gbottom = rcWindow.bottom;
