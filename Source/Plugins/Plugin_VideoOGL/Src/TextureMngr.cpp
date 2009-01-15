@@ -246,7 +246,10 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
 	bool skip_texture_create = false;
 
-    TexCache::iterator iter = textures.find(address);
+    TexCache::iterator iter = textures.find(g_Config.bSafeTextureCache ? hash_value : address);
+
+    if (g_Config.bSafeTextureCache && iter == textures.end())
+        iter = textures.find(address);
 
 	if (iter != textures.end()) {
         TCacheEntry &entry = iter->second;
@@ -287,7 +290,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     PC_TexFormat dfmt = TexDecoder_Decode(temp, ptr, expandedWidth, height, format, tlutaddr, tlutfmt);
 
     //Make an entry in the table
-	TCacheEntry& entry = textures[ address ];
+    TCacheEntry& entry = textures[ g_Config.bSafeTextureCache ? hash_value : address ];
 
 	entry.hashoffset = 0;
     entry.paletteHash = hashseed;
