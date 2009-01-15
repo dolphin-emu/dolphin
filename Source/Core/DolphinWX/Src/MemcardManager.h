@@ -116,6 +116,17 @@ class CMemcardManager
 			COLUMN_ICON,
 			COLUMN_BLOCKS,
 			COLUMN_FIRSTBLOCK,
+			COLUMN_GAMECODE,
+			COLUMN_MAKERCODE,
+			COLUMN_FILENAME,
+			COLUMN_BIFLAGS,
+			COLUMN_MODTIME,
+			COLUMN_IMAGEADD,
+			COLUMN_ICONFMT,
+			COLUMN_ANIMSPEED,
+			COLUMN_PERMISSIONS,
+			COLUMN_COPYCOUNTER,
+			COLUMN_COMMENTSADDRESS,
 			NUMBER_OF_COLUMN
 		};
 		
@@ -142,7 +153,7 @@ class CMemcardManager
 				 usePages,
 				 prevPage,
 				 nextPage,
-				 column[NUMBER_OF_COLUMN];
+				 column[NUMBER_OF_COLUMN+1];
 		private:
 			DECLARE_EVENT_TABLE()
 			void OnRightClick(wxMouseEvent& event);	

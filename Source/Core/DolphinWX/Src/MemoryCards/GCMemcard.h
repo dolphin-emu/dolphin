@@ -19,6 +19,9 @@
 
 #include "Common.h"
 #include "StringUtil.h"
+#define BE32(x) ((u32((x)[0])<<24) | (u32((x)[1])<<16) | (u32((x)[2])<<8) | u32((x)[3]))
+#define BE16(x) ((u16((x)[0])<<8) | u16((x)[1]))
+#define ArrayByteSwap(a) (ByteSwap(a, a+sizeof(u8)));
 
 enum
 {
@@ -158,49 +161,59 @@ public:
 	// Returns true if title already on memcard
 	bool TitlePresent(DEntry d);
 
+	bool DEntry_GameCode(u8 index, char* fn);
+	bool DEntry_Markercode(u8 index, char* fn);
+	bool DEntry_BIFlags(u8 index, char* fn);
+	// fn needs to be a char[32] or bigger
+	bool DEntry_FileName(u8 index, char* fn);
+
+	u32 DEntry_ModTime(u8 index);
+	u32 DEntry_ImageOffset(u8 index);
+	u16 DEntry_IconFmt(u8 index);
+	u16 DEntry_AnimSpeed(u8 index);
+	bool DEntry_Permissions(u8 index, char* fn);
+	u8 DEntry_CopyCounter(u8 index);
 	// get first block for file
-	u16 GetFirstBlock(u32 index);
-
+	u16 DEntry_FirstBlock(u8 index);
 	// get file length in blocks
-	u16 GetFileSize(u32 index);
+	u16 DEntry_BlockCount(u8 index);
+	u32 DEntry_CommentsAddress(u8 index);
+
 
 	// buffer needs to be a char[32] or bigger
-	bool GetFileName(u32 index, char* buffer);
+	bool DEntry_Comment1(u8 index, char* buffer);
 
 	// buffer needs to be a char[32] or bigger
-	bool GetComment1(u32 index, char* buffer);
-
-	// buffer needs to be a char[32] or bigger
-	bool GetComment2(u32 index, char* buffer);
+	bool DEntry_Comment2(u8 index, char* buffer);
 
 	// read directory entry
-	bool GetFileInfo(u32 index, DEntry& data);
+	bool GetFileInfo(u8 index, DEntry& data);
 
 	// assumes there's enough space in buffer
 	// old determines if function uses old or new method of copying data
 	// some functions only work with old way, some only work with new way
 	// TODO: find a function that works for all calls or split into 2 functions
-	u32 GetFileData(u32 index, u8* buffer, bool old);
+	u32 GetFileData(u8 index, u8* buffer, bool old);
 
 	// adds the file to the directory and copies its contents
 	// if remove > 0 it will pad bat.map with 0's sifeof remove
 	u32 ImportFile(DEntry& direntry, u8* contents, int remove);
 
 	// delete a file from the directory
-	u32 RemoveFile(u32 index);
+	u32 RemoveFile(u8 index);
 
 	// reads a save from another memcard, and imports the data into this memcard
-	u32 CopyFrom(GCMemcard& source, u32 index);
+	u32 CopyFrom(GCMemcard& source, u8 index);
 
 	// reads a .gci/.gcs/.sav file and calls ImportFile or saves out a gci file
 	u32 ImportGci(const char* fileName, std::string fileName2);
 
 	// writes a .gci file to disk containing index
-	u32 ExportGci(u32 index, const char* fileName);
+	u32 ExportGci(u8 index, const char* fileName);
 
 	// reads the banner image
-	bool ReadBannerRGBA8(u32 index, u32* buffer);
+	bool ReadBannerRGBA8(u8 index, u32* buffer);
 
 	// reads the animation frames
-	u32 ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays);
+	u32 ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays);
 };

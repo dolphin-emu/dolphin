@@ -17,9 +17,6 @@
 #include "GCMemcard.h"
 
 // i think there is support for this stuff in the common lib... if not there should be support
-#define BE16(x) ((u16((x)[0])<<8) | u16((x)[1]))
-#define BE32(x) ((u32((x)[0])<<24) | (u32((x)[1])<<16) | (u32((x)[2])<<8) | u32((x)[3]))
-#define ArrayByteSwap(a) (ByteSwap(a, a+sizeof(u8)));
 
 // undefined functions... prolly it means something like that
 void ByteSwap(u8 *valueA, u8 *valueB)
@@ -381,44 +378,92 @@ u16 GCMemcard::GetFreeBlocks()
 
 bool GCMemcard::TitlePresent(DEntry d)
 {
-	//TODO: Clean up this function
-	bool equal = false;
 	if (!mcdFile) return false;
 
 	for (int i = 0; i < 127; i++)
 	{
-		if (BE32(dir.Dir[i].Gamecode) == BE32(d.Gamecode))
+		if ((BE32(dir.Dir[i].Gamecode) == BE32(d.Gamecode)) &&
+			(!memcmp(dir.Dir[i].Filename, d.Filename, 32)))
 		{
-			for ( int j = 0; j < 32; j++)
-			{
-				if (dir.Dir[i].Filename[j] != d.Filename[j])
-				{
-					equal = false;
-					break;
-				}
-				else
-				{
-					equal = true;
-				}
-			}
-			if (equal)
-			{
-				return true;
-			}
+			return true;
 		}
 	}
 	return false;
 }
 
-u16 GCMemcard::GetFirstBlock(u32 index)
+bool GCMemcard::DEntry_GameCode(u8 index, char *fn)
+{
+	if (!mcdFile) return false;
+	memcpy(fn, dir.Dir[index].Gamecode, 4);
+	fn[4] = 0;
+	return true;
+}
+bool GCMemcard::DEntry_Markercode(u8 index, char *fn)
+{
+	if (!mcdFile) return false;
+	memcpy(fn, dir.Dir[index].Markercode, 2);
+	fn[2] = 0;
+	return true;
+}
+bool GCMemcard::DEntry_BIFlags(u8 index, char *fn)
+{
+	if (!mcdFile) return false;
+
+	int x = dir.Dir[index].BIFlags;
+	for(int n=0; n<8; n++)
+	{
+		fn[n] = (x & 0x80) ? '1' : '0';
+		x = x<<1;
+	}
+	fn[8]= 0;
+	return true;
+}
+
+bool GCMemcard::DEntry_FileName(u8 index, char *fn) //index in the directory array
+{
+	if (!mcdFile) return false;
+	memcpy (fn, (const char*)dir.Dir[index].Filename, 32);
+	fn[31] = 0;
+	return true;
+}
+
+u32 GCMemcard::DEntry_ModTime(u8 index)
+{
+	return BE32(dir.Dir[index].ModTime);
+}
+u32 GCMemcard::DEntry_ImageOffset(u8 index)
+{
+	return BE32(dir.Dir[index].ImageOffset);
+}
+u16 GCMemcard::DEntry_IconFmt(u8 index)
+{
+	return BE16(dir.Dir[index].IconFmt);
+}
+u16 GCMemcard::DEntry_AnimSpeed(u8 index)
+{
+	return BE16(dir.Dir[index].AnimSpeed);
+}
+bool GCMemcard::DEntry_Permissions(u8 index, char *fn)
+{
+	if (!mcdFile) return false;
+	fn[0] = (dir.Dir[index].Permissions & 16) ? 'x' : 'M';
+	fn[1] = (dir.Dir[index].Permissions & 8) ? 'x' : 'C';
+	fn[2] = (dir.Dir[index].Permissions & 4) ? 'P' : 'x';
+	fn[3] = 0;
+	return true;
+}
+u8 GCMemcard::DEntry_CopyCounter(u8 index)
+{
+	return dir.Dir[index].CopyCounter;
+}
+u16 GCMemcard::DEntry_FirstBlock(u8 index)
 {
 	if (!mcdFile) return 0xFFFF;
 	u16 block = BE16(dir.Dir[index].FirstBlock);
 	if (block > (u16) maxBlock) return 0xFFFF;
 	return block;
 }
-
-u16 GCMemcard::GetFileSize(u32 index) //index in the directory array
+u16 GCMemcard::DEntry_BlockCount(u8 index)
 {
 	if (!mcdFile) return 0xFFFF;
 
@@ -426,17 +471,12 @@ u16 GCMemcard::GetFileSize(u32 index) //index in the directory array
 	if (blocks > (u16) maxBlock) return 0xFFFF;
 	return blocks;
 }
-
-bool GCMemcard::GetFileName(u32 index, char *fn) //index in the directory array
+u32 GCMemcard::DEntry_CommentsAddress(u8 index)
 {
-	if (!mcdFile) return false;
-
-	memcpy (fn, (const char*)dir.Dir[index].Filename, 32);
-	fn[31] = 0;
-	return true;
+	return BE32(dir.Dir[index].CommentsAddr);
 }
 
-bool GCMemcard::GetComment1(u32 index, char *fn) //index in the directory array
+bool GCMemcard::DEntry_Comment1(u8 index, char* fn)
 {
 	if (!mcdFile) return false;
 
@@ -451,8 +491,7 @@ bool GCMemcard::GetComment1(u32 index, char *fn) //index in the directory array
 	fn[31] = 0;
 	return true;
 }
-
-bool GCMemcard::GetComment2(u32 index, char *fn) //index in the directory array
+bool GCMemcard::DEntry_Comment2(u8 index, char* fn)
 {
 	if (!mcdFile) return false;
 
@@ -469,7 +508,7 @@ bool GCMemcard::GetComment2(u32 index, char *fn) //index in the directory array
 	return true;
 }
 
-bool GCMemcard::GetFileInfo(u32 index, GCMemcard::DEntry& info) //index in the directory array
+bool GCMemcard::GetFileInfo(u8 index, GCMemcard::DEntry& info) //index in the directory array
 {
 	if (!mcdFile) return false;
 
@@ -477,12 +516,12 @@ bool GCMemcard::GetFileInfo(u32 index, GCMemcard::DEntry& info) //index in the d
 	return true;
 }
 
-u32 GCMemcard::GetFileData(u32 index, u8* dest, bool old) //index in the directory array
+u32 GCMemcard::GetFileData(u8 index, u8* dest, bool old) //index in the directory array
 {
 	if (!mcdFile) return NOMEMCARD;
 
-	u16 block = GetFirstBlock(index);
-	u16 saveLength = GetFileSize(index);
+	u16 block = DEntry_FirstBlock(index);
+	u16 saveLength = DEntry_BlockCount(index);
 	u16 memcardSize = BE16(hdr.Size) * 0x0010;
 
 	if ((block == 0xFFFF) || (saveLength == 0xFFFF)
@@ -613,7 +652,7 @@ u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 	return SUCCESS;
 }
 
-u32 GCMemcard::RemoveFile(u32 index) //index in the directory array
+u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 {
 	if (!mcdFile) return NOMEMCARD;
 
@@ -627,7 +666,7 @@ u32 GCMemcard::RemoveFile(u32 index) //index in the directory array
 	bat.LastAllocated[0] = (u8)(block  >> 8);
 	bat.LastAllocated[1] = (u8)block;
 
-	int i = index + 1;
+	u8 i = index + 1;
 	memset(&(dir.Dir[index]), 0xFF, 0x40);
 
 	while (i < 127)
@@ -642,7 +681,7 @@ u32 GCMemcard::RemoveFile(u32 index) //index in the directory array
 			bat.FreeBlocks[0] = u8(freeBlock >> 8);
 			bat.FreeBlocks[1] = u8(freeBlock);
 
-			u16 size = GetFileSize(i);
+			u16 size = DEntry_BlockCount(i);
 			if (size != 0xFFFF)
 			{
 				t = new u8[size * 0x2000];
@@ -685,14 +724,14 @@ u32 GCMemcard::RemoveFile(u32 index) //index in the directory array
 	return SUCCESS;
 }
 
-u32 GCMemcard::CopyFrom(GCMemcard& source, u32 index)
+u32 GCMemcard::CopyFrom(GCMemcard& source, u8 index)
 {
 	if (!mcdFile) return NOMEMCARD;
 
 	DEntry d;
 	if (!source.GetFileInfo(index, d)) return NOMEMCARD;
 	
-	u32 size = source.GetFileSize(index);
+	u32 size = source.DEntry_BlockCount(index);
 	if (size == 0xFFFF) return INVALIDFILESIZE;
 	u8 *t = new u8[size * 0x2000];
 
@@ -831,7 +870,7 @@ u32 GCMemcard::ImportGci(const char *fileName, std::string fileName2)
 	return ret;
 }
 
-u32 GCMemcard::ExportGci(u32 index, const char *fileName)
+u32 GCMemcard::ExportGci(u8 index, const char *fileName)
 {
 	FILE *gci = fopen(fileName, "wb");
 	if (!gci) return OPENFAIL;
@@ -843,7 +882,7 @@ u32 GCMemcard::ExportGci(u32 index, const char *fileName)
 	if (!GetFileInfo(index, d)) return NOMEMCARD;
 	if (fwrite(&d, 1, 0x40, gci) != 0x40) completeWrite = false;
 
-	u32 size = GetFileSize(index);
+	u32 size = DEntry_BlockCount(index);
 	if (size == 0xFFFF) return FAIL;
 	u8 *t = new u8[size * 0x2000];
 
@@ -871,7 +910,7 @@ u32 GCMemcard::ExportGci(u32 index, const char *fileName)
 	
 }
 
-bool GCMemcard::ReadBannerRGBA8(u32 index, u32* buffer)
+bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer)
 {
 	if (!mcdFile) return false;
 
@@ -908,7 +947,7 @@ bool GCMemcard::ReadBannerRGBA8(u32 index, u32* buffer)
 	return true;
 }
 
-u32 GCMemcard::ReadAnimRGBA8(u32 index, u32* buffer, u8 *delays)
+u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays)
 {
 	if (!mcdFile) return 0;
 
