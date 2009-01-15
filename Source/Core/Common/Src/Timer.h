@@ -19,6 +19,7 @@
 #define _TIMER_H
 
 #include "Common.h"
+#include <string>
 
 namespace Common
 {

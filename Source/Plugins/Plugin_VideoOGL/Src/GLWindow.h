@@ -8,7 +8,11 @@
 #include "Config.h"
 #include "pluginspecs_video.h"
 
+#ifdef _WIN32
 #include <GLew/glew.h>
+#else
+#include <GL/glew.h>
+#endif
 
 #if defined(__APPLE__)
 #include <OpenGL/gl.h>

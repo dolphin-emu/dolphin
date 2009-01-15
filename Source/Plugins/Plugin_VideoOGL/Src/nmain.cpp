@@ -109,12 +109,12 @@ void DllConfig(HWND _hParent)
     frame.ShowModal();
 }
 
-void Video_Initialize(SVideoInitialize* _pVideoInitialize)
+void Initialize(void *init)
 {
-    if (_pVideoInitialize == NULL)
-        return;
     frameCount = 0;
-    g_VideoInitialize = *_pVideoInitialize;
+    SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
+    g_VideoInitialize = *(_pVideoInitialize); // Create a shortcut to _pVideoInitialize that can also update it
+
     InitLUTs();
     InitXFBConvTables();
     g_Config.Load();
@@ -130,7 +130,7 @@ void Video_Initialize(SVideoInitialize* _pVideoInitialize)
     Renderer::AddMessage("Dolphin OpenGL Video Plugin" ,5000);
 }
 
-void Video_DoState(unsigned char **ptr, int mode) {
+void DoState(unsigned char **ptr, int mode) {
 #ifndef _WIN32
 	OpenGL_MakeCurrent();
 #endif
@@ -173,7 +173,7 @@ void Video_Prepare(void)
     TextureConverter::Init();
 }
 
-void Video_Shutdown(void) 
+void Shutdown(void) 
 {
     TextureConverter::Shutdown();
     VertexLoaderManager::Shutdown();
