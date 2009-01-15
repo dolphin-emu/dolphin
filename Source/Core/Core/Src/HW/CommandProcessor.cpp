@@ -23,10 +23,10 @@
 // - ZWW as Crazy Taxi: PEfinish (GXSetDrawDone)
 // - SMS: BP, PEToken, PEfinish
 // - ZTP: seems to use PEfinish only
-// - Animal Crossing: PEfinish at start but there's a bug... 
+// - Animal Crossing: PEfinish at start but there's a bug...
 //		There's tons of HiWmk/LoWmk ping pong -> Another sync fashion?
 // - Super Monkey Ball Adventures: PEToken. Oddity: read&check-PEToken-value-loop stays
-//		in its JITed block (never fall in Advance() until the game-watchdog's stuff). 
+//		in its JITed block (never fall in Advance() until the game-watchdog's stuff).
 //		That's why we can't let perform the AdvanceCallBack as usual.
 //		The PEToken is volatile now and in the fifo struct.
 // - Super Monkey Ball: PEFinish. This game has the lamest way to deal with fifo sync for our MT's stuff.
@@ -34,8 +34,8 @@
 
 // *What I guess (thx to asynchronous DualCore mode):
 // PPC have a frame-finish watchdog. Handled by system timming stuff like the decrementer.
-// (DualCore mode): I have observed, after ZTP logos, a fifo-recovery start when DECREMENTER_EXCEPTION is throwned. 
-// The frame setting (by GP) took too much time and didn't finish properly due to this watchdog. 
+// (DualCore mode): I have observed, after ZTP logos, a fifo-recovery start when DECREMENTER_EXCEPTION is throwned.
+// The frame setting (by GP) took too much time and didn't finish properly due to this watchdog.
 // Faster GX plugins required, indeed :p
 
 // * BPs are needed for some game GP/CPU sync.
@@ -68,9 +68,9 @@
 // * Cleanup of messy now unnecessary safety code in jit
 
 #include "Common.h"
-#include "../Plugins/Plugin_Video.h"
 #include "../PowerPC/PowerPC.h"
 #include "../CoreTiming.h"
+#include "../PluginManager.h"
 
 #include "MathUtil.h"
 #include "Thread.h"
@@ -90,7 +90,7 @@ namespace CommandProcessor
 // Fifo Status Register
 union UCPStatusReg
 {
-	struct 
+	struct
 	{
 		unsigned OverflowHiWatermark	:	1;
 		unsigned UnderflowLoWatermark	:	1;
@@ -107,7 +107,7 @@ union UCPStatusReg
 // Fifo Control Register
 union UCPCtrlReg
 {
-	struct 
+	struct
 	{
 		unsigned GPReadEnable			:	1;
 		unsigned CPIntEnable			:	1;
@@ -125,7 +125,7 @@ union UCPCtrlReg
 // Fifo Control Register
 union UCPClearReg
 {
-	struct 
+	struct
 	{
 		unsigned ClearFifoOverflow		:	1;
 		unsigned ClearFifoUnderflow		:	1;
@@ -191,7 +191,7 @@ void WaitForFrameFinish()
 {
 	while ((fake_GPWatchdogLastToken == fifo.Fake_GPWDToken) && fifo.bFF_GPReadEnable && (fifo.CPReadWriteDistance > 0) && !(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
 		Common::SleepCurrentThread(1);
-	fake_GPWatchdogLastToken = fifo.Fake_GPWDToken; 
+	fake_GPWatchdogLastToken = fifo.Fake_GPWDToken;
 }
 
 
@@ -275,36 +275,36 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 	case FIFO_LO_WATERMARK_HI:	_rReturnValue = ReadHigh(fifo.CPLoWatermark); return;
 
 	// TODO: cases cleanup
-	case FIFO_RW_DISTANCE_LO:	
-		//_rReturnValue = ReadLow (fifo.CPReadWriteDistance); 
+	case FIFO_RW_DISTANCE_LO:
+		//_rReturnValue = ReadLow (fifo.CPReadWriteDistance);
 		// hack: CPU will always believe fifo is empty and on idle
-		_rReturnValue = 0; 
+		_rReturnValue = 0;
 		LOG(COMMANDPROCESSOR,"read FIFO_RW_DISTANCE_LO : %04x", _rReturnValue);
 		return;
-	case FIFO_RW_DISTANCE_HI:	
-		//_rReturnValue = ReadHigh(fifo.CPReadWriteDistance); 
+	case FIFO_RW_DISTANCE_HI:
+		//_rReturnValue = ReadHigh(fifo.CPReadWriteDistance);
 		// hack: CPU will always believe fifo is empty and on idle
-		_rReturnValue = 0; 
+		_rReturnValue = 0;
 		LOG(COMMANDPROCESSOR,"read FIFO_RW_DISTANCE_HI : %04x", _rReturnValue);
 		return;
-	case FIFO_WRITE_POINTER_LO: 
-		_rReturnValue = ReadLow (fifo.CPWritePointer); 
+	case FIFO_WRITE_POINTER_LO:
+		_rReturnValue = ReadLow (fifo.CPWritePointer);
 		LOG(COMMANDPROCESSOR,"read FIFO_WRITE_POINTER_LO : %04x", _rReturnValue);
 		return;
-	case FIFO_WRITE_POINTER_HI: 
-		_rReturnValue = ReadHigh(fifo.CPWritePointer); 
+	case FIFO_WRITE_POINTER_HI:
+		_rReturnValue = ReadHigh(fifo.CPWritePointer);
 		LOG(COMMANDPROCESSOR,"read FIFO_WRITE_POINTER_HI : %04x", _rReturnValue);
 		return;
-	case FIFO_READ_POINTER_LO:	
-		//_rReturnValue = ReadLow (fifo.CPReadPointer); 
+	case FIFO_READ_POINTER_LO:
+		//_rReturnValue = ReadLow (fifo.CPReadPointer);
 		// hack: CPU will always believe fifo is empty and on idle
-		_rReturnValue = ReadLow (fifo.CPWritePointer); 
+		_rReturnValue = ReadLow (fifo.CPWritePointer);
 		LOG(COMMANDPROCESSOR,"read FIFO_READ_POINTER_LO : %04x", _rReturnValue);
 		return;
-	case FIFO_READ_POINTER_HI:	
-		//_rReturnValue = ReadHigh(fifo.CPReadPointer); 
+	case FIFO_READ_POINTER_HI:
+		//_rReturnValue = ReadHigh(fifo.CPReadPointer);
 		// hack: CPU will always believe fifo is empty and on idle
-		_rReturnValue = ReadHigh(fifo.CPWritePointer); 
+		_rReturnValue = ReadHigh(fifo.CPWritePointer);
 		LOG(COMMANDPROCESSOR,"read FIFO_READ_POINTER_HI : %04x", _rReturnValue);
 		return;
 	case FIFO_BP_LO:			_rReturnValue = ReadLow (fifo.CPBreakpoint); return;
@@ -421,7 +421,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			// funny hack: eg in MP1 if we disable the clear breakpoint ability by commenting this block
 			// the game is of course faster but looks stable too.
 			// Well, the hack is more stable than the "proper" way actualy :p ... it breaks MP2 when ship lands
-			// So I let the hack for now. 
+			// So I let the hack for now.
 			// TODO (mb2): fix this!
 			
 			// BP interrupt is cleared here
@@ -464,75 +464,75 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 
 	// Fifo Registers
-	case FIFO_TOKEN_REGISTER:	
-		m_tokenReg = _Value; 
+	case FIFO_TOKEN_REGISTER:
+		m_tokenReg = _Value;
 		LOG(COMMANDPROCESSOR,"\t write to FIFO_TOKEN_REGISTER : %04x", _Value);
 		break;
 
 	case FIFO_BASE_LO:			
-		WriteLow ((u32 &)fifo.CPBase, _Value); 
-		fifo.CPBase &= 0xFFFFFFE0; 
+		WriteLow ((u32 &)fifo.CPBase, _Value);
+		fifo.CPBase &= 0xFFFFFFE0;
 		LOG(COMMANDPROCESSOR,"\t write to FIFO_BASE_LO : %04x", _Value);
 		break;
 	case FIFO_BASE_HI:			
-		WriteHigh((u32 &)fifo.CPBase, _Value); 
-		fifo.CPBase &= 0xFFFFFFE0; 
+		WriteHigh((u32 &)fifo.CPBase, _Value);
+		fifo.CPBase &= 0xFFFFFFE0;
 		LOG(COMMANDPROCESSOR,"\t write to FIFO_BASE_HI : %04x", _Value);
 		break;
 	case FIFO_END_LO:			
-		WriteLow ((u32 &)fifo.CPEnd,  _Value); 
-		fifo.CPEnd &= 0xFFFFFFE0; 
+		WriteLow ((u32 &)fifo.CPEnd,  _Value);
+		fifo.CPEnd &= 0xFFFFFFE0;
 		LOG(COMMANDPROCESSOR,"\t write to FIFO_END_LO : %04x", _Value);
 		break;
 	case FIFO_END_HI:			
-		WriteHigh((u32 &)fifo.CPEnd,  _Value); 
-		fifo.CPEnd &= 0xFFFFFFE0; 
+		WriteHigh((u32 &)fifo.CPEnd,  _Value);
+		fifo.CPEnd &= 0xFFFFFFE0;
 		LOG(COMMANDPROCESSOR,"\t write to FIFO_END_HI : %04x", _Value);
 		break;
 
 	// Hm. Should we really & these with FFFFFFE0?
 	// (mb2): never seen 32B not aligned values for those following regs.
 	// fifo.CPEnd is the only value that could be not 32B aligned so far.
-	case FIFO_WRITE_POINTER_LO: 
-		WriteLow ((u32 &)fifo.CPWritePointer, _Value); fifo.CPWritePointer &= 0xFFFFFFE0; 
+	case FIFO_WRITE_POINTER_LO:
+		WriteLow ((u32 &)fifo.CPWritePointer, _Value); fifo.CPWritePointer &= 0xFFFFFFE0;
 		LOG(COMMANDPROCESSOR,"\t write to FIFO_WRITE_POINTER_LO : %04x", _Value);
 		break;
-	case FIFO_WRITE_POINTER_HI: 
-		WriteHigh((u32 &)fifo.CPWritePointer, _Value); fifo.CPWritePointer &= 0xFFFFFFE0; 
+	case FIFO_WRITE_POINTER_HI:
+		WriteHigh((u32 &)fifo.CPWritePointer, _Value); fifo.CPWritePointer &= 0xFFFFFFE0;
 		LOG(COMMANDPROCESSOR,"\t write to FIFO_WRITE_POINTER_HI : %04x", _Value);
 		break;
-	case FIFO_READ_POINTER_LO:	
-		WriteLow ((u32 &)fifo.CPReadPointer, _Value); fifo.CPReadPointer &= 0xFFFFFFE0; 
+	case FIFO_READ_POINTER_LO:
+		WriteLow ((u32 &)fifo.CPReadPointer, _Value); fifo.CPReadPointer &= 0xFFFFFFE0;
 		LOG(COMMANDPROCESSOR,"\t write to FIFO_READ_POINTER_LO : %04x", _Value);
 		break;
-	case FIFO_READ_POINTER_HI:	
-		WriteHigh((u32 &)fifo.CPReadPointer, _Value); fifo.CPReadPointer &= 0xFFFFFFE0; 
+	case FIFO_READ_POINTER_HI:
+		WriteHigh((u32 &)fifo.CPReadPointer, _Value); fifo.CPReadPointer &= 0xFFFFFFE0;
 		LOG(COMMANDPROCESSOR,"\t write to FIFO_READ_POINTER_HI : %04x", _Value);
 		break;
 
-	case FIFO_HI_WATERMARK_LO:	
-		WriteLow ((u32 &)fifo.CPHiWatermark, _Value); 
+	case FIFO_HI_WATERMARK_LO:
+		WriteLow ((u32 &)fifo.CPHiWatermark, _Value);
 		LOG(COMMANDPROCESSOR,"\t write to FIFO_HI_WATERMARK_LO : %04x", _Value);
 		break;
-	case FIFO_HI_WATERMARK_HI:	
-		WriteHigh((u32 &)fifo.CPHiWatermark, _Value); 
+	case FIFO_HI_WATERMARK_HI:
+		WriteHigh((u32 &)fifo.CPHiWatermark, _Value);
 		LOG(COMMANDPROCESSOR,"\t write to FIFO_HI_WATERMARK_HI : %04x", _Value);
 		break;
-	case FIFO_LO_WATERMARK_LO:	
-		WriteLow ((u32 &)fifo.CPLoWatermark, _Value); 
+	case FIFO_LO_WATERMARK_LO:
+		WriteLow ((u32 &)fifo.CPLoWatermark, _Value);
 		LOG(COMMANDPROCESSOR,"\t write to FIFO_LO_WATERMARK_LO : %04x", _Value);
 		break;
-	case FIFO_LO_WATERMARK_HI:	
-		WriteHigh((u32 &)fifo.CPLoWatermark, _Value); 
+	case FIFO_LO_WATERMARK_HI:
+		WriteHigh((u32 &)fifo.CPLoWatermark, _Value);
 		LOG(COMMANDPROCESSOR,"\t write to FIFO_LO_WATERMARK_HI : %04x", _Value);
 		break;
 
 	case FIFO_BP_LO:			
-		WriteLow ((u32 &)fifo.CPBreakpoint,	_Value); 
+		WriteLow ((u32 &)fifo.CPBreakpoint,	_Value);
 		LOG(COMMANDPROCESSOR,"write to FIFO_BP_LO : %04x", _Value);
 		break;
 	case FIFO_BP_HI:			
-		WriteHigh((u32 &)fifo.CPBreakpoint,	_Value); 
+		WriteHigh((u32 &)fifo.CPBreakpoint,	_Value);
 		LOG(COMMANDPROCESSOR,"write to FIFO_BP_HI : %04x", _Value);
 		break;
 
@@ -541,10 +541,10 @@ void Write16(const u16 _Value, const u32 _Address)
 	// When we fall here CPReadWriteDistance should be always null and the game should always want to overwrite it by 0.
 	// So, we can skip it.
 	case FIFO_RW_DISTANCE_HI:
-		//WriteHigh((u32 &)fifo.CPReadWriteDistance, _Value); 
+		//WriteHigh((u32 &)fifo.CPReadWriteDistance, _Value);
 		LOG(COMMANDPROCESSOR,"try to write to FIFO_RW_DISTANCE_HI : %04x", _Value);
 		break;
-	case FIFO_RW_DISTANCE_LO:	
+	case FIFO_RW_DISTANCE_LO:
 		//WriteLow((u32 &)fifo.CPReadWriteDistance, _Value);
 		LOG(COMMANDPROCESSOR,"try to write to FIFO_RW_DISTANCE_LO : %04x", _Value);
 		break;
@@ -576,7 +576,7 @@ void STACKALIGN GatherPipeBursted()
 	{
 		// update the fifo-pointer
 		fifo.CPWritePointer += GPFifo::GATHER_PIPE_SIZE;
-		if (fifo.CPWritePointer >= fifo.CPEnd) 
+		if (fifo.CPWritePointer >= fifo.CPEnd)
 			fifo.CPWritePointer = fifo.CPBase;
         Common::SyncInterlockedExchangeAdd((LONG*)&fifo.CPReadWriteDistance, GPFifo::GATHER_PIPE_SIZE);
 
@@ -594,7 +594,7 @@ void STACKALIGN GatherPipeBursted()
 			// - @ game start -> watermark init: Overflow enabled, Underflow disabled
 			// - if (OV is raised)
 			//		- CPU stop to write to fifo
-			//		- enable Underflow interrupt (this only happens if OV is raised) 
+			//		- enable Underflow interrupt (this only happens if OV is raised)
 			//		- do other things
 			// - if (Underflow is raised (implicite: AND if an OV has been raised))
 			//		- CPU can write to fifo
@@ -618,7 +618,7 @@ void STACKALIGN GatherPipeBursted()
 	else
 	{
 		fifo.CPWritePointer += GPFifo::GATHER_PIPE_SIZE;
-		if (fifo.CPWritePointer >= fifo.CPEnd) 
+		if (fifo.CPWritePointer >= fifo.CPEnd)
 			fifo.CPWritePointer = fifo.CPBase;
 		// check if we are in sync
 		_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== CPeripheralInterface::Fifo_CPUWritePointer, "FIFOs linked but out of sync");
@@ -646,7 +646,7 @@ void CatchUpGPU()
 				{
 					//_assert_msg_(GEKKO,0,"BP: %08x",fifo.CPBreakpoint);
 					//LOG(COMMANDPROCESSOR,"!!! BP irq raised");
-					fifo.bFF_Breakpoint = 1; 
+					fifo.bFF_Breakpoint = 1;
 					m_CPStatusReg.Breakpoint = 1;
 					UpdateInterrupts();
 					break;
@@ -660,7 +660,7 @@ void CatchUpGPU()
 			// We are going to do FP math on the main thread so have to save the current state
 			SaveSSEState();
 			LoadDefaultSSEState();
-			PluginVideo::Video_SendFifoData(ptr,32);
+			CPluginManager::GetInstance().GetVideo()->Video_SendFifoData(ptr,32);
 			LoadSSEState();
 
 			fifo.CPReadWriteDistance -= 32;
