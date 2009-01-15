@@ -228,17 +228,14 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     TexMode0 &tm0 = bpmem.tex[texstage > 3].texMode0[texstage & 3];
     u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
 
-	u32 hash_value;
-	// Needed for texture format using tlut.
-	u32 hashseed;
-	//if ( (format == GX_TF_C4) || (format == GX_TF_C8) || (format == GX_TF_C14X2) )
-		// tlut size mask can be up to 0x3FFF (GX_TF_C14X2) but Safer == Slower.
-		//hashseed = TexDecoder_GetTlutHash(&texMem[tlutaddr], TexDecoder_GetPaletteSize(format)&0x7FFF);
-		hashseed = TexDecoder_GetTlutHash(texMem + tlutaddr, 32);
-	//else
-	//	hashseed = address;
+    u32 hash_value;
+    u32 hashseed = address;
+    if ( (format == GX_TF_C4) || (format == GX_TF_C8) || (format == GX_TF_C14X2) )
+        // tlut size mask can be up to 0x3FFF (GX_TF_C14X2) but Safer == Slower.
+        //hashseed = TexDecoder_GetTlutHash(&texMem[tlutaddr], TexDecoder_GetPaletteSize(format)&0x7FFF);
+        hashseed += TexDecoder_GetTlutHash(texMem + tlutaddr, 32);
 
-	int bs = TexDecoder_GetBlockWidthInTexels(format) - 1;
+    int bs = TexDecoder_GetBlockWidthInTexels(format) - 1;
     int expandedWidth = (width + bs) & (~bs);
 
 	if (g_Config.bSafeTextureCache)
