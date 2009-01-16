@@ -1,3 +1,4 @@
+#Someone who would use this, please fix it :)
 SUBDIRS:= `ls | egrep -v '^(CVS)$$'`
 
 all:

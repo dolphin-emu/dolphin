@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="9.00"
+	Name="RTC"
+	ProjectGUID="{62989D24-DB3F-4BD1-A11D-26F0487CD9AF}"
+	RootNamespace="TestSuite"
+	Keyword="MakeFileProj"
+	TargetFrameworkVersion="196613"
+	>
+	<Platforms>
+		<Platform
+			Name="Win32"
+		/>
+	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
+	<Configurations>
+		<Configuration
+			Name="Debug|Win32"
+			OutputDirectory="build"
+			IntermediateDirectory="build"
+			ConfigurationType="0"
+			BuildLogFile="build\BuildLog.htm"
+			>
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="make -r 2&gt;&amp;1 | sed -e &apos;s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/’"
+				ReBuildCommandLine="make clean &amp;&amp; make -r 2&gt;&amp;1 | sed -e &apos;s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/’"
+				CleanCommandLine="make clean"
+				Output="dolphintest_rtc.dol"
+				PreprocessorDefinitions="WIN32;_DEBUG"
+				IncludeSearchPath="$(ProjectDir)\include;C:\devkitPro\libogc\include"
+				ForcedIncludes=""
+				AssemblySearchPath=""
+				ForcedUsingAssemblies=""
+				CompileAsManaged=""
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="build"
+			IntermediateDirectory="build"
+			ConfigurationType="0"
+			BuildLogFile="build\BuildLog.htm"
+			>
+			<Tool
+				Name="VCNMakeTool"
+				BuildCommandLine="make -r 2&gt;&amp;1 | sed -e &apos;s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/’"
+				ReBuildCommandLine="make clean &amp;&amp; make -r 2&gt;&amp;1 | sed -e &apos;s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/’"
+				CleanCommandLine="make clean"
+				Output="dolphintest_rtc.dol"
+				PreprocessorDefinitions="WIN32;NDEBUG"
+				IncludeSearchPath="$(ProjectDir)\include;C:\devkitPro\libogc\include"
+				ForcedIncludes=""
+				AssemblySearchPath=""
+				ForcedUsingAssemblies=""
+				CompileAsManaged=""
+			/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			>
+			<File
+				RelativePath=".\source\dolphintest_rtc.cpp"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			>
+		</Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>
