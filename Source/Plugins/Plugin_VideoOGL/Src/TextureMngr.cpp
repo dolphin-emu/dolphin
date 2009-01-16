@@ -217,36 +217,63 @@ void TextureMngr::Cleanup()
     }
 }
 
+//int dbgTexIdx=0;
+
 TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt)
 {
-	// TODO: - clean this up when ready to kill old "unsafe texture cache"
-	//		 - fix pokemun coloseum font for bSafeTextureCache (works with !bSafeTextureCache)
-	// TODO (mb2): get why other fmt needs a tlut hash too (pokemon coloseum font -> fmt 1 or 8 or 14 iirc)
+	/* notes (about "UNsafe texture cache"):
+	*	Have to be removed soon.
+	*	But we keep it until the "safe" way became rock solid
+	*	pros: it has an unique ID held by the texture data itself (@address) once cached.
+	*	cons: it writes this unique ID in the gc RAM <- very dangerous (break MP1) and ugly 
+	*/
+	/* notes (about "safe texture cache"):
+	*	Metroids text issue (character table):
+	*	Same addr, same GX_TF_C4 texture data but different TLUT (hence different outputs).
+	*	That's why we have to hash the TLUT too for TLUT format dependent textures (ie. GX_TF_C4, GX_TF_C8, GX_TF_C14X2).
+	*	And since the address and tex data don't change, the key index in the cacheEntry map can't be the address and 
+	*	have to be a hash value (or address + few bits if address is really always aligned). This hash value takes count 
+	*	of address, texture data @ address and if TLUT dependent fmt then the tlut @ tlutaddr.
+	*	TODO: for small TLUT (ie. GX_TF_C4 => 16B) we have to hash on the whole TLUT because diff can be tiny. 
+	*	
+	*	Pokemon Colosseum text issue (plain text):
+	*	Use a GX_TF_I4 512x512 text-flush-texture at a const address.
+	*	The problem here was just the sparse hash on the texture. This texture is partly overwrited (what is needed only) 
+	*	so lot's of remaning old text. 	Thin white chars on black bg too.
+	*/
+
+	// TODO:	- clean this up when ready to kill old "unsafe texture cache"
+	//			- fix the key index situation with CopyRenderTargetToTexture. 
+	//			Could happen only for GX_TF_C4, GX_TF_C8 and GX_TF_C14X2 fmt.
+	//			Wonder if we can't use tex width&height to know if EFB might be copied to it...
+	//			raw idea:  TOCHECK if addresses are aligned we have few bits left...
+
+
     if (address == 0)
         return NULL;
 
     TexMode0 &tm0 = bpmem.tex[texstage > 3].texMode0[texstage & 3];
     u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
-
-    u32 hash_value;
-    u32 hashseed = address;
-    if ( (format == GX_TF_C4) || (format == GX_TF_C8) || (format == GX_TF_C14X2) )
-        // tlut size mask can be up to 0x3FFF (GX_TF_C14X2) but Safer == Slower.
-        //hashseed = TexDecoder_GetTlutHash(&texMem[tlutaddr], TexDecoder_GetPaletteSize(format)&0x7FFF);
-        hashseed += TexDecoder_GetTlutHash(texMem + tlutaddr, 32);
-
-    int bs = TexDecoder_GetBlockWidthInTexels(format) - 1;
+	int bs = TexDecoder_GetBlockWidthInTexels(format) - 1;
     int expandedWidth = (width + bs) & (~bs);
 
+	u32 hash_value;
+    u32 texID = address;
 	if (g_Config.bSafeTextureCache)
-		hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, hashseed);
+	{
+		hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, 0); // remove last arg 
+		if ( (format == GX_TF_C4) || (format == GX_TF_C8) || (format == GX_TF_C14X2) )
+		{
+			// WARNING! texID != address now => may break CopyRenderTargetToTexture (cf. TODO up)
+			// tlut size (in bytes) mask can be up to 0x7FFF (GX_TF_C14X2) but Safer == Slower.
+			texID ^= TexDecoder_GetTlutHash(&texMem[tlutaddr], TexDecoder_GetPaletteSize(format)&0x7F);
+			//DebugLog("addr: %08x | texID: %08x | texHash: %08x", address, texID, hash_value);
+		}
+	}
 
 	bool skip_texture_create = false;
 
-    TexCache::iterator iter = textures.find(g_Config.bSafeTextureCache ? hash_value : address);
-
-    if (g_Config.bSafeTextureCache && iter == textures.end())
-        iter = textures.find(address);
+    TexCache::iterator iter = textures.find(texID);
 
 	if (iter != textures.end()) {
         TCacheEntry &entry = iter->second;
@@ -287,10 +314,10 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     PC_TexFormat dfmt = TexDecoder_Decode(temp, ptr, expandedWidth, height, format, tlutaddr, tlutfmt);
 
     //Make an entry in the table
-    TCacheEntry& entry = textures[ g_Config.bSafeTextureCache ? hash_value : address ];
+	TCacheEntry& entry = textures[texID];
 
 	entry.hashoffset = 0;
-    entry.paletteHash = hashseed;
+    //entry.paletteHash = hashseed;
     entry.oldpixel = ((u32 *)ptr)[entry.hashoffset];
 	if (g_Config.bSafeTextureCache) {
 		entry.hash = hash_value;
@@ -353,7 +380,21 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     SETSTAT(stats.numTexturesAlive, textures.size());
 
     //glEnable(entry.isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D);
-
+	/*
+	if ( 1
+		//&& (entry.w != 640  && entry.h != 480)
+		//&& (entry.w != 320  && entry.h != 240)
+		&& (entry.w ==512 && entry.h == 512) 
+		//&& (entry.w > 200  && entry.h > 200)
+		//&& (format!=1)
+		)
+	{
+		char fn[256];
+		sprintf(fn, "z_%i_%i_%ix%i_%08x.tga", dbgTexIdx, format, entry.w, entry.h, entry.addr);
+		SaveTexture(fn, target, entry.texture, entry.w, entry.h);
+		dbgTexIdx++;
+	}
+	*/
     //SaveTexture("tex.tga", target, entry.texture, entry.w, entry.h);
     return &entry;
 }

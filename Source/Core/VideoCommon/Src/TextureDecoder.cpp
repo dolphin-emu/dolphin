@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+//#include "VideoCommon.h" // to get debug logs
 
 #include "CPUDetect.h"
 #include "TextureDecoder.h"
@@ -67,29 +68,42 @@ int TexDecoder_GetTextureSizeInBytes(int width, int height, int format)
 
 u32 TexDecoder_GetTlutHash(const u8* src, int len)
 {
+	//char str[40000], st[20]; str[0]='\0';for (int i=0;i<len;i++){sprintf(st,"%02x ",src[i]);strcat(str,st);}
+	//DebugLog("tlut: %s", str);
 	u32 hash = 0xbeefbabe;
-	for (int i = 0; i < len ; i++) {
-		hash = _rotl(hash, 7) ^ src[i];
-		hash += 7;
+	for (int i = 0; i < len / 4; i ++) {
+		hash = _rotl(hash, 7) ^ ((u32 *)src)[i];
+		hash += 7;	// to add a bit more entropy/mess in here
+		//DebugLog("%02i | hash: %08x | src: %08x", i, hash, ((u32 *)src)[i]);
 	}
 	return hash;
 }
 
 u32 TexDecoder_GetSafeTextureHash(const u8 *src, int width, int height, int texformat, u32 seed)
 {
-	int sz = TexDecoder_GetTextureSizeInBytes(width, height, texformat);
-	
+	// Notes (mb2): A relative important mess in data is needed for a good hash. The safest way to satisfy this would be 
+	// to perform the hash on the whole texture. But since it kills perf we use some assuptions for speed:
+	// -First assumption: texture borders don't carry more different data than the rest of the texture. We skip few 
+	// texels on the edges.
+	// -Second assumption: consecutives lines may not differ that much. We skip some lines regularly.
+	// -Third assumption: User info (messy datas), in textures, should be either always centered or at the beginning.
+	// So we can stop hashing near the center.
+
+	// very tweakable (Pokemon Colesseum texts are pretty good test cases, especially short ones)
+	const int edgeSkip	= 3;
+	const int colSkip	= 3;
+	const int rowSkip	= 5;
+
+	const int rowEnd = (width - edgeSkip)/4;
+	const int byteWidth = TexDecoder_GetTextureSizeInBytes(width, 1, texformat);
+	const int colEnd = height / 2 - edgeSkip;
 	u32 hash = seed ? seed : 0x1337c0de;
 
-	if (sz < 2048) {
-		for (int i = 0; i < sz / 4; i += 13) {
-			hash = _rotl(hash, 17) ^ ((u32 *)src)[i];
-		}
-		return hash;
-	} else {
-		int step = sz / 13 / 4;
-		for (int i = 0; i < sz / 4; i += step) {
-			hash = _rotl(hash, 17) ^ ((u32 *)src)[i];
+	for (int y = edgeSkip; y < colEnd; y += colSkip)
+	{
+		for (int x = edgeSkip; x < rowEnd; x += rowSkip)
+		{
+			hash = _rotl(hash, 17) ^ ((u32 *)src)[x+byteWidth*y];
 		}
 	}
 	return hash;
@@ -117,7 +131,7 @@ int TexDecoder_GetBlockWidthInTexels(int format)
 int TexDecoder_GetPaletteSize(int format)
 {
     switch (format) {
-    case GX_TF_C4: return 16*2;
+	case GX_TF_C4: return 16*2;
     case GX_TF_C8: return 256*2;
     case GX_TF_C14X2: return 16384*2;
     default:
