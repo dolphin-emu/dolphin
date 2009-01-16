@@ -19,6 +19,8 @@
 #ifndef _WIN32
 #include <sys/types.h>
 #include <dirent.h>
+#else
+#include <windows.h>
 #endif
 
 #include <string>

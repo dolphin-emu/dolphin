@@ -18,7 +18,7 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // File description
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯
+/* 
 
 All plugins from Core > Plugins are loaded and unloaded with this class when Dolpin is started
 and stopped.
@@ -27,9 +27,11 @@ and stopped.
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+// 
 #include <string.h>
-#ifndef _WIN32
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <dlfcn.h>
 #include <stdio.h>
 #endif
@@ -38,7 +40,7 @@ and stopped.
 #include "FileUtil.h"
 #include "StringUtil.h"
 #include "DynamicLibrary.h"
-#include "../../../../Branches/MusicMod/Common/Src/Console.h"
+#include "../../../../Branches/MusicMod/Common/Src/Console.h" 
 ///////////////////////////////////
 
 

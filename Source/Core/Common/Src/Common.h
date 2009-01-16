@@ -24,7 +24,6 @@
 #define CHECK_HEAP_INTEGRITY()
 
 #ifdef _WIN32
-#include <windows.h>
 	#ifdef _DEBUG
 	#include <crtdbg.h>
 	#undef CHECK_HEAP_INTEGRITY

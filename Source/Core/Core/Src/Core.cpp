@@ -18,7 +18,13 @@
  
 //////////////////////////////////////////////////////////////////////////////////////////
 // Include
-// ¯¯¯¯¯¯¯¯¯¯
+// 
+#ifdef _WIN32
+#include <windows.h>
+#else
+
+#endif
+
 #include "Thread.h"
 #include "Timer.h"
 #include "Common.h"
@@ -70,7 +76,7 @@ namespace Core
  
 //////////////////////////////////////////////////////////////////////////////////////////
 // Declarations and definitions
-// ¯¯¯¯¯¯¯¯¯¯
+// 
  
 // Function forwarding
 //void Callback_VideoRequestWindowSize(int _iWidth, int _iHeight, BOOL _bFullscreen);
@@ -108,7 +114,7 @@ Common::Event emuThreadGoing;
  
 //////////////////////////////////////////////////////////////////////////////////////////
 // Display messages and return values
-// ¯¯¯¯¯¯¯¯¯¯
+// 
 bool PanicAlertToVideo(const char* text, bool yes_no)
 {
 	DisplayMessage(text, 3000);
@@ -151,7 +157,7 @@ bool GetRealWiimote()
  
 //////////////////////////////////////////////////////////////////////////////////////////
 // This is called from the GUI thread. See the booting call schedule in BootManager.cpp
-// ¯¯¯¯¯¯¯¯¯¯
+// 
 bool Init(const SCoreStartupParameter _CoreParameter)
 {
 	if (g_pThread != NULL) {
@@ -225,7 +231,7 @@ void Stop() // - Hammertime!
  
 //////////////////////////////////////////////////////////////////////////////////////////
 // Create the CPU thread
-// ¯¯¯¯¯¯¯¯¯¯
+// 
 THREAD_RETURN CpuThread(void *pArg)
 {
     Common::SetCurrentThreadName("CPU thread");
@@ -274,7 +280,7 @@ THREAD_RETURN CpuThread(void *pArg)
  
 //////////////////////////////////////////////////////////////////////////////////////////
 // Initalize plugins and create emulation thread
-// ¯¯¯¯¯¯¯¯¯¯
+// 
 	/* Call browser: Init():g_pThread(). See the BootManager.cpp file description for a complete
 		call schedule. */
 THREAD_RETURN EmuThread(void *pArg)
@@ -436,7 +442,7 @@ THREAD_RETURN EmuThread(void *pArg)
  
 //////////////////////////////////////////////////////////////////////////////////////////
 // Set or get the running state
-// ¯¯¯¯¯¯¯¯¯¯
+// 
 bool SetState(EState _State)
 {
 	switch(_State)
@@ -476,7 +482,7 @@ EState GetState()
  
 //////////////////////////////////////////////////////////////////////////////////////////
 // Save or recreate the emulation state
-// ¯¯¯¯¯¯¯¯¯¯
+// 
 void SaveState() {
     State_Save(0);
 }

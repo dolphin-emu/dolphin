@@ -18,7 +18,9 @@
 #include "Common.h"
 #include "MemoryUtil.h"
 
-#ifdef __GNUC__
+#ifdef _WIN32
+#include <windows.h>
+#elif __GNUC__
 #include <sys/mman.h>
 #include <errno.h>
 #include <stdio.h>

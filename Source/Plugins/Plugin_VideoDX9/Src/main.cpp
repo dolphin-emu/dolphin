@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <tchar.h>
+#include <windows.h>
 #include <d3dx9.h>
 
 #include "Common.h"
