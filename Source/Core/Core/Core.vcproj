@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Core"
 	ProjectGUID="{F0B874CB-4476-4199-9315-8343D05AE684}"
 	RootNamespace="Core"
@@ -1001,6 +1001,70 @@
 			</File>
 		</Filter>
 		<Filter
+			Name="Boot"
+			>
+			<File
+				RelativePath=".\Src\Boot\Boot.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\Boot.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\Boot_BIOSEmu.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\Boot_DOL.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\Boot_DOL.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\Boot_ELF.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\Boot_ELF.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\ElfReader.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\ElfReader.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Boot\ElfTypes.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="ActionReplay"
+			>
+			<File
+				RelativePath=".\Src\ActionReplay.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ActionReplay.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ARDecrypt.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ARDecrypt.h"
+				>
+			</File>
+		</Filter>
+		<Filter
 			Name="IPC HLE"
 			>
 			<File
@@ -1097,70 +1161,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\IPC_HLE\WiiMote_HID_Attr.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Boot"
-			>
-			<File
-				RelativePath=".\Src\Boot\Boot.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Boot\Boot.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Boot\Boot_BIOSEmu.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Boot\Boot_DOL.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Boot\Boot_DOL.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Boot\Boot_ELF.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Boot\Boot_ELF.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Boot\ElfReader.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Boot\ElfReader.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Boot\ElfTypes.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="ActionReplay"
-			>
-			<File
-				RelativePath=".\Src\ActionReplay.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ActionReplay.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ARDecrypt.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ARDecrypt.h"
 				>
 			</File>
 		</Filter>

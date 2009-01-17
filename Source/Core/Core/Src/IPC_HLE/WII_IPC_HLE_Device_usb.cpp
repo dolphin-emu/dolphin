@@ -25,7 +25,6 @@
 #include "../Core.h" // Local core functions
 #include "../Debugger/Debugger_SymbolMap.h"
 #include "../Host.h"
-#include "../../../../Branches/MusicMod/Common/Src/Console.h"
 ///////////////////////
 
 

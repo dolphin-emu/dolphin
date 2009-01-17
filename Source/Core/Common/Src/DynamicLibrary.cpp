@@ -40,7 +40,6 @@ and stopped.
 #include "FileUtil.h"
 #include "StringUtil.h"
 #include "DynamicLibrary.h"
-#include "../../../../Branches/MusicMod/Common/Src/Console.h" 
 ///////////////////////////////////
 
 
@@ -157,7 +156,7 @@ void* DynamicLibrary::Get(const char* funcname) const
 	if (!retval)
 	{
 		LOG(MASTER_LOG, "Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), GetLastErrorAsString().c_str());
-		PanicAlert("Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), GetLastErrorAsString().c_str());
+		//PanicAlert("Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), GetLastErrorAsString().c_str());
 	}
 
 	return retval;

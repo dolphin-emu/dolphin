@@ -32,7 +32,7 @@
 #include "EmuDefinitions.h"
 #include "EmuMain.h"
 #include "Encryption.h" // for extension encryption
-#include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
+#include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
 #include "Config.h" // for g_Config
 ////////////////////////////////////
 
@@ -184,7 +184,7 @@ void CheckAckDelay()
 			}
 			AckDelay.at(i).Delay--;
 
-			//wprintf("%i  0x%04x  0x%02x", i, AckDelay.at(i).ChannelID, AckDelay.at(i).ReportID);
+			//Console::Print("%i  0x%04x  0x%02x", i, AckDelay.at(i).ChannelID, AckDelay.at(i).ReportID);
 		}
 	}
 }
@@ -238,7 +238,7 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 	}
 	std::string Temp = ArrayToString(data, size + 2, 0, 30);
 	//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
-	wprintf("\n%s: InterruptChannel: %s\n", Tm(true).c_str(), Temp.c_str());*/
+	Console::Print("\n%s: InterruptChannel: %s\n", Tm(true).c_str(), Temp.c_str());*/
 	// -----------------------------------
 
 	hid_packet* hidp = (hid_packet*) data;
@@ -300,7 +300,7 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 	{
 		LOG(WII_IPC_WIIMOTE, "Wiimote_ControlChannel");
 		std::string Temp = ArrayToString(data, 0, _Size);
-		wprintf("\n%s: ControlChannel: %s\n", Tm().c_str(), Temp.c_str());
+		Console::Print("\n%s: ControlChannel: %s\n", Tm().c_str(), Temp.c_str());
 		LOG(WII_IPC_WIIMOTE, "   Data: %s", Temp.c_str());
 	}
 

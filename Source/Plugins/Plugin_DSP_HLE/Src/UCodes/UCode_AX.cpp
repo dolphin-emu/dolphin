@@ -15,11 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "FileUtil.h" // for IsDirectory
-#include "StringUtil.h" // for StringFromFormat
+#include "FileUtil.h" // For IsDirectory()
+#include "StringUtil.h" // For StringFromFormat()
 #if defined(HAVE_WX) && HAVE_WX
 #include "../Debugger/Debugger.h"
-#include "../Logging/Console.h" // for aprintf
+//#include "../Logging/File.h" // For PrintFile()
 extern CDebugger* m_frame;
 #endif
 #include <sstream>
@@ -119,7 +119,7 @@ if(m_frame->ScanMails)
 	{
 		if(saveNext && saveNext < 100) // limit because saveNext is not initialized
 		{		
-			//wprintf("End");
+			//Console::Print("End");
 
 			// Save the timestamps and comment
                         std::ostringstream ci;
@@ -217,7 +217,7 @@ if(m_frame->ScanMails)
 	// In case the mail didn't match any saved mail, save it
 	if(addnew == m_frame->sMail.size())
 	{		
-		//wprintf("%i  |  %i\n", addnew, m_frame->sMail.size());
+		//Console::Print("%i  |  %i\n", addnew, m_frame->sMail.size());
 		u32 resizeTo = m_frame->sMail.size() + 1;		
 
 		// ------------------------------------
@@ -248,7 +248,7 @@ if(m_frame->ScanMails)
 		// Save as file
 		if(m_frame->StoreMails)
 		{
-			//wprintf("m_frame->sMail.size(): %i  |  resizeTo:%i\n", m_frame->sMail.size(), resizeTo);
+			//Console::Print("m_frame->sMail.size(): %i  |  resizeTo:%i\n", m_frame->sMail.size(), resizeTo);
 			SaveLogFile(lMail, resizeTo, 0, Wii);
 		}
 		
@@ -377,7 +377,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		if (on > 0 && off > 0) pDest[7] = 1;
 	}
 
-	//aprintf(1, "%08x %04x %04x\n", updaddr, updpar, upddata);
+	//PrintFile(1, "%08x %04x %04x\n", updaddr, updpar, upddata);
 	// ------------
 
 	for (int i = 0; i < numberOfPBs; i++)

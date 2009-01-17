@@ -32,7 +32,7 @@
 #include "wiimote_hid.h" // Local
 #include "EmuDefinitions.h"
 #include "Encryption.h"
-#include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
+#include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
 ////////////////////////////
 
 

@@ -4,9 +4,10 @@
 // ¯¯¯¯¯¯¯¯¯¯
 #include <iostream>  // System
 
-#include "../../../../Source/Core/Common/Src/Common.h" // Global common
+#include "Common.h" // Global common
+#include "ConsoleWindow.h"
 
-#include "../../Common/Src/Console.h" // Local common
+//#include "../../Common/Src/Console.h" // Local common
 
 #include "OutputPlugin.h" // Local
 #include "Playback.h"
@@ -30,7 +31,7 @@ bool Initialized = false;
 
 
 // -------------------------
-/* We keep the file in the playlist, even though we currently only every have one file here
+/* We keep the file in the playlist, even though we currently only ever have one file here
    at a time */
 // ---------
 void AddFileToPlaylist(char * a)
@@ -59,21 +60,21 @@ void AddFileToPlaylist(char * a)
 
 void Player_Play(char * FileName)
 {
-	wprintf("Play file <%s>\n", FileName);
+	Console::Print("Play file <%s>\n", FileName);
 
 	// Check if the file exists
 	if(GetFileAttributes(FileName) == INVALID_FILE_ATTRIBUTES)
 	{
-		wprintf("Warning: The file <%s> does not exist. Something is wrong.\n", FileName);
+		Console::Print("Warning: The file <%s> does not exist. Something is wrong.\n", FileName);
 		return;
 	}
 
 	Playback::Stop();
-	//wprintf("Stop\n");
+	//Console::Print("Stop\n");
 	playlist->RemoveAll();
-	//wprintf("RemoveAll\n");
+	//Console::Print("RemoveAll\n");
 	AddFileToPlaylist(FileName);
-	//wprintf("addfiletoplaylist\n");
+	//Console::Print("addfiletoplaylist\n");
 
 	// Play the file
 	Playback::Play();
@@ -83,7 +84,7 @@ void Player_Play(char * FileName)
 	// ---------------------------------------------------------------------------------------
 	// Set volume. This must probably be done after the dll is loaded.
 	//Output_SetVolume( Playback::Volume::Get() );
-	//wprintf("Volume(%i)\n", Playback::Volume::Get());
+	//Console::Print("Volume(%i)\n", Playback::Volume::Get());
 	// ---------------------------------------------------------------------------------------
 
 	GlobalPause = false;
@@ -92,7 +93,7 @@ void Player_Play(char * FileName)
 void Player_Stop()
 {
 	Playback::Stop();
-	//wprintf("Stop\n");
+	//Console::Print("Stop\n");
 	playlist->RemoveAll();
 
 	CurrentlyPlayingFile = "";
@@ -105,13 +106,13 @@ void Player_Pause()
 {
 	if (!GlobalPause)
 	{
-		wprintf("DLL > Pause\n");
+		Console::Print("DLL > Pause\n");
 		Playback::Pause();
 		GlobalPause = true;
 	}
 	else
 	{
-		wprintf("DLL > UnPause from Pause\n");
+		Console::Print("DLL > UnPause from Pause\n");
 		Player_Unpause();
 		GlobalPause = false;
 	}
@@ -119,7 +120,7 @@ void Player_Pause()
 
 void Player_Unpause()
 {
-	wprintf("DLL > UnPause\n");
+	Console::Print("DLL > UnPause\n");
 	Playback::Play();
 	GlobalPause = false;
 }
@@ -135,7 +136,7 @@ void Player_Unpause()
 void Player_Mute(int Vol)
 {
 	if(GlobalVolume == -1) GlobalVolume = Vol;
-	wprintf("DLL > Mute <%i> <%i>\n", GlobalVolume, GlobalMute);
+	Console::Print("DLL > Mute <%i> <%i>\n", GlobalVolume, GlobalMute);
 
 	GlobalMute = !GlobalMute;
 
@@ -143,15 +144,15 @@ void Player_Mute(int Vol)
 	if(GlobalMute)
 	{
 		Output_SetVolume( 0 );
-		wprintf("DLL > Volume <%i>\n", GlobalMute);
+		Console::Print("DLL > Volume <%i>\n", GlobalMute);
 	}
 	else
 	{
 		Output_SetVolume( GlobalVolume );
-		wprintf("DLL > Volume <%i>\n", GlobalMute);
+		Console::Print("DLL > Volume <%i>\n", GlobalMute);
 	}
 
-	//wprintf("Volume(%i)\n", Playback::Volume::Get());
+	//Console::Print("Volume(%i)\n", Playback::Volume::Get());
 }
 ///////////////////////////////////////
 
@@ -160,12 +161,12 @@ void Player_Volume(int Vol)
 {
 	GlobalVolume = Vol;
 	Output_SetVolume( GlobalVolume );
-	//wprintf("DLL > Volume <%i> <%i>\n", GlobalVolume, GlobalCurrentVolume);
+	//Console::Print("DLL > Volume <%i> <%i>\n", GlobalVolume, GlobalCurrentVolume);
 }
 
 void ShowConsole()
 {
-	StartConsoleWin(100, 2000, "MusicMod"); // give room for 2000 rows
+	Console::Open(100, 2000, "MusicMod", true); // give room for 2000 rows
 }
 
 

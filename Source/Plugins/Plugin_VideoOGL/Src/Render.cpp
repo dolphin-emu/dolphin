@@ -15,6 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// -------------
 #include "Globals.h"
 #include <list>
 #include <vector>
@@ -45,17 +49,22 @@
 #include "VertexLoader.h"
 #include "XFB.h"
 #include "Timer.h"
-#include "Logging/Logging.h" // for Logging()
+#include "Debugger/Logging.h" // for Logging()
 
 #if defined(HAVE_WX) && HAVE_WX
-#include "Debugger/Debugger.h" // for the CDebugger class
+	#include "Debugger/Debugger.h" // for the CDebugger class
 #endif
 
 #ifdef _WIN32
-#include "OS/Win32.h"
+	#include "OS/Win32.h"
 #else
 #endif
+/////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// -------------
 struct MESSAGE
 {
     MESSAGE() {}
@@ -69,7 +78,7 @@ CGprofile g_cgvProf;
 CGprofile g_cgfProf;
 
 #if defined(HAVE_WX) && HAVE_WX
-extern CDebugger* m_frame; // the debugging class
+	extern CDebugger* m_frame; // the debugging class
 #endif
 
 static RasterFont* s_pfont = NULL;
@@ -96,6 +105,8 @@ bool g_bBlendLogicOp = false;
 int frameCount;
 
 void HandleCgError(CGcontext ctx, CGerror err, void *appdata);
+/////////////////////////////
+
 
 bool Renderer::Init()
 {

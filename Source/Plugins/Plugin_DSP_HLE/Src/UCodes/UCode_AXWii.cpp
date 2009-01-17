@@ -19,7 +19,7 @@
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "../Debugger/Debugger.h"
-#include "../Logging/Console.h" // for aprintf
+//#include "../Logging/File.h" // For PrintFile
 extern CDebugger * m_frame;
 #endif 
 
@@ -194,7 +194,7 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 		if (on > 0 && off > 0) pDest[7] = 1;
 	}
 
-	//aprintf(1, "%08x %04x %04x\n", updaddr, updpar, upddata);
+	//PrintFile(1, "%08x %04x %04x\n", updaddr, updpar, upddata);
 	// ------------
 
 

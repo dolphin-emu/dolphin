@@ -105,7 +105,7 @@ public:
 
 		if( 0 > iIndex || iIndex >= ( int )_database.size() )
 		{
-			wprintf("SetCurIndex > Return"); 
+			Console::Print("SetCurIndex > Return"); 
 			return;
 		}
 

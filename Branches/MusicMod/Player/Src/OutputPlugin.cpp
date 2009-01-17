@@ -248,7 +248,7 @@ bool OutputPlugin::Config( HWND hParent )
 ////////////////////////////////////////////////////////////////////////////////
 bool OutputPlugin::Start()
 {
-	//wprintf( "OutputPlugin::Start() > Begin <IsLoaded():%i> <bActive:%i> <active_output_count:%i>\n",
+	//Console::Print( "OutputPlugin::Start() > Begin <IsLoaded():%i> <bActive:%i> <active_output_count:%i>\n",
 	//	IsLoaded(), bActive, active_output_count );
 
 	if( !IsLoaded() ) return false;
@@ -275,7 +275,7 @@ bool OutputPlugin::Start()
 		Console::Append( szBuffer );
 		Console::Append( TEXT( " " ) );
 	#else
-		wprintf( "\n >>> Output plugin '%s' activated\n\n" , GetFilename() );
+		Console::Print( "\n >>> Output plugin '%s' activated\n\n" , GetFilename() );
 	#endif
 	
 	bActive = true;

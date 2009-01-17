@@ -65,7 +65,7 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 	switch (dwReason)
 	{
 	case DLL_PROCESS_ATTACH:
-		{       //use wxInitialize() if you don't want GUI instead of the following 12 lines
+		{       // Use wxInitialize() if you don't want GUI instead of the following 12 lines
 			wxSetInstance((HINSTANCE)hinstDLL);
 			int argc = 0;
 			char **argv = NULL;
@@ -76,8 +76,7 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 		break; 
 
 	case DLL_PROCESS_DETACH:
-		CloseConsole();
-		wxEntryCleanup(); //use wxUninitialize() if you don't want GUI 
+		wxEntryCleanup(); // Use wxUninitialize() if you don't want GUI 
 		break;
 	default:
 		break;

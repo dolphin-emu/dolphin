@@ -125,8 +125,9 @@ void Player_Main(bool Console)
 
 	//MessageBox(0, "main() opened", "", 0);
 	//printf( "main() opened\n" );
-	wprintf( "\n=========================================================\n\n" );
-	wprintf( "DLL > Player_Main() > Begin\n" );
+	Console::Print( "\n=========================================================\n\n\n" );
+	//Console::Print( "DLL > Player_Main() > Begin\n" );
+	Console::Print( "DLL > Settings:\n", bLoop);
 
 		
 	// =======================================================================================
@@ -135,9 +136,9 @@ void Player_Main(bool Console)
 	Conf::Init( );
 
 	// ---------------------------------------------------------------------------------------
-	wprintf( "\n\nDLL > Settings:\n", bLoop);
-	wprintf( "DLL > Loop: %i\n", bLoop);
-	wprintf( "DLL > WarnPluginsMissing: %i\n", bWarnPluginsMissing);	
+	
+	Console::Print( "DLL > Loop: %i\n", bLoop);
+	Console::Print( "DLL > WarnPluginsMissing: %i\n", bWarnPluginsMissing);	
 	// ---------------------------------------------------------------------------------------
 
 	// =======================================================================================
@@ -169,7 +170,7 @@ void Player_Main(bool Console)
 	memcpy( szPluginDir, szHomeDir, iHomeDirLen * sizeof( TCHAR ) );
 	memcpy( szPluginDir + iHomeDirLen, TEXT( "PluginsMusic" ), 12 * sizeof( TCHAR ) );
 	szPluginDir[ iHomeDirLen + 12 ] = TEXT( '\0' );
-	wprintf("DLL > Plugindir: %s\n", szPluginDir);
+	Console::Print("DLL > Plugindir: %s\n", szPluginDir);
 	// =======================================================================================
 	#ifndef NOGUI
 		Font::Create();
@@ -182,7 +183,7 @@ void Player_Main(bool Console)
 	//GlobalVolume = Playback::Volume::Get(); // Don't bother with this for now
 	//GlobalCurrentVolume = GlobalVolume;
 	//Output_SetVolume( GlobalVolume );
-	wprintf("DLL > Volume: %i\n\n", GlobalVolume);
+	Console::Print("DLL > Volume: %i\n\n", GlobalVolume);
 	// ---------------------------------------------------------------------------------------
 
 
@@ -205,10 +206,10 @@ void Player_Main(bool Console)
 	Plugin::FindAll<DspPlugin>   ( szPluginDir, TEXT( "dsp_*.dll" ), false );	
 	Plugin::FindAll<GenPlugin>   ( szPluginDir, TEXT( "gen_*.dll" ), true  );	
 
-	//wprintf( "Winmain.cpp > PluginManager::Fill()\n" );
+	//Console::Print( "Winmain.cpp > PluginManager::Fill()\n" );
 	PluginManager::Fill();
 
-	//wprintf( "Winmain.cpp > PluginManager::Fill()\n" );
+	//Console::Print( "Winmain.cpp > PluginManager::Fill()\n" );
 
 
 
@@ -250,26 +251,26 @@ void Player_Main(bool Console)
 	// Check the plugins
 	if( input_plugins.empty() )
 	{
-		wprintf("\n *** Warning: No valid input plugins found\n\n");
+		Console::Print("\n *** Warning: No valid input plugins found\n\n");
 	}
 	else
 	{
-		wprintf(" >>> These valid input plugins were found:\n");
+		Console::Print(" >>> These valid input plugins were found:\n");
 		for(int i = 0; i < input_plugins.size(); i++)
-			wprintf("       %i: %s\n", (i + 1), input_plugins.at(i)->GetFilename());
-		wprintf("\n");
+			Console::Print("       %i: %s\n", (i + 1), input_plugins.at(i)->GetFilename());
+		Console::Print("\n");
 	}
 
 	// The input plugins are never activated here, they are activate for each file
 	if( !active_input_plugin || !active_input_plugin->plugin )
 	{
-		// wprintf("The input plugin is not activated yet\n");
+		// Console::Print("The input plugin is not activated yet\n");
 	}
 	else
 	{
 		//const int ms_len = active_input_plugin->plugin->GetLength();
 		//const int ms_cur = active_input_plugin->plugin->GetOutputTime();
-		//wprintf("We are at <%i of %i>\n", ms_cur, ms_len);
+		//Console::Print("We are at <%i of %i>\n", ms_cur, ms_len);
 	}
 	// ---------------------------------------------------------------------------------------
 	if( active_output_count > 0 )
@@ -280,11 +281,11 @@ void Player_Main(bool Console)
 		{
 			res_temp = active_output_plugins[ i ]->plugin->GetOutputTime();
 		}
-		wprintf("Playback progress <%i>\n", res_temp);*/
+		Console::Print("Playback progress <%i>\n", res_temp);*/
 	}
 	else
 	{
-		wprintf("\n *** Warning: The output plugin is not working\n\n");
+		Console::Print("\n *** Warning: The output plugin is not working\n\n");
 	}
 	// =======================================================================================
 
@@ -292,14 +293,14 @@ void Player_Main(bool Console)
 	// Start the timer
 	if(!TimerCreated && bLoop) // Only create this the first time
 	{
-		//wprintf("Created the timer\n");
+		//Console::Print("Created the timer\n");
 		MakeTime();
 		TimerCreated = true;
 	}
 	// =======================================================================================
 
-	wprintf( "\n=========================================================\n\n" );
-	//wprintf( "DLL > main_dll() > End\n\n\n" );
+	Console::Print( "\n=========================================================\n\n" );
+	//Console::Print( "DLL > main_dll() > End\n\n\n" );
 
 	//std::cin.get();
 }

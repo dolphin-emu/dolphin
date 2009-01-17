@@ -24,7 +24,9 @@
 #include <string>
 #include <windows.h>
 
-#include "IniFile.h"	// Common
+#include "Common.h"	// Common
+#include "IniFile.h"
+#include "ConsoleWindow.h"
 
 #include "PowerPC/PowerPc.h" // Core
 
@@ -32,7 +34,6 @@
 #include "../../../../Source/Core/DiscIO/Src/VolumeCreator.h"
 
 #include "../../Player/Src/PlayerExport.h" // Local player
-#include "../../Common/Src/Console.h" // Local common
 //////////////////////////////////
 
 
@@ -54,7 +55,7 @@ void StructSort (std::vector <MyFilesStructure> &MyFiles);
 
 
 // Playback
-std::string currentfile;
+std::string CurrentFile;
 std::string unique_gameid;
 
 std::string MusicPath;
@@ -95,7 +96,7 @@ void StructSort (std::vector <MyFilesStructure> &MyFiles)
 {
 	MyFilesStructure temp;
 
-	//wprintf("StructSort > Begin\n");
+	//Console::Print("StructSort > Begin\n");
 
      for(int i = 0; i < MyFiles.size() - 1; i++)
      {
@@ -116,7 +117,7 @@ void StructSort (std::vector <MyFilesStructure> &MyFiles)
 		std::cout << i << " " << MyFiles[i].path.c_str() << "#" << MyFiles[i].offset << "\n";
 	}
 
-	//wprintf("StructSort > Done\n");
+	//Console::Print("StructSort > Done\n");
 }
 // ============================
 
@@ -126,7 +127,7 @@ void StructSort (std::vector <MyFilesStructure> &MyFiles)
 // ------------------------
 void ShowConsole()
 {
-	StartConsoleWin(100, 2000, "Console"); // Give room for 2000 rows
+	Console::Open(100, 2000, "MusicMod", true); // Give room for 2000 rows
 }
 
 void Init()
@@ -150,9 +151,9 @@ void Init()
 
 	// Write version
 	#ifdef _M_X64
-		wprintf("64 bit version\n");
+		Console::Print("64 bit version\n");
 	#else
-		wprintf("32 bit version\n");
+		Console::Print("32 bit version\n");
 	#endif
 	// -----------
 
@@ -162,10 +163,11 @@ void Init()
 	// Show DLL status
 	Player_Main(MusicMod::bShowConsole);
 	//play_file("c:\\demo36_02.ast");
-	//wprintf("DLL loaded\n");
+	//Console::Print("DLL loaded\n");
 
 	dllloaded = true; // Do this once
 }
+// ============================
 
 
 // =======================================================================================
@@ -198,7 +200,7 @@ void Main(std::string FileName)
 	LPSECURITY_ATTRIBUTES attr;
 	attr = NULL;
 	MusicPath = "Music\\";
-	wprintf("Created a Music directory\n");
+	Console::Print("Created a Music directory\n");
 	CreateDirectory(MusicPath.c_str(), attr);
 	// ----------------------------------------------------------------------------------------
 }
@@ -210,16 +212,16 @@ void Main(std::string FileName)
 void CheckFile(std::string File, int FileNumber)
 {
 	// Do nothing if we found the same file again
-	if (currentfile == File) return;
+	if (CurrentFile == File) return;
 
-	//wprintf(">>>> (%i)Current read %s <%u = %ux%i> <block %u>\n", i, CurrentFiles[i].path.c_str(), offset, CurrentFiles[i].offset, size);
+	//Console::Print(">>>> (%i)Current read %s <%u = %ux%i> <block %u>\n", i, CurrentFiles[i].path.c_str(), offset, CurrentFiles[i].offset, size);
 
 	if (CheckFileEnding(File.c_str()))
 	{
-		wprintf("\n >>> (%i/%i) Match %s\n\n", FileNumber,
+		Console::Print("\n >>> (%i/%i) Match %s\n\n", FileNumber,
 			MyFiles.size(), File.c_str());
 
-		currentfile = File; // save the found file
+		CurrentFile = File; // Save the found file
 
 		// ---------------------------------------------------------------------------------------
 		// We will now save the file to the PC hard drive
@@ -235,7 +237,7 @@ void CheckFile(std::string File, int FileNumber)
 		std::string FilePath = (MusicPath + fragment);
 		// ---------------------------------------------------------------------------------------
 		WritingFile = true; // Avoid detecting the file we are writing
-		wprintf("Writing <%s> to <%s>\n", File.c_str(), FilePath.c_str());
+		Console::Print("Writing <%s> to <%s>\n", File.c_str(), FilePath.c_str());
 		my_pFileSystem->ExportFile(File.c_str(), FilePath.c_str());
 		WritingFile = false;
 		
@@ -245,7 +247,7 @@ void CheckFile(std::string File, int FileNumber)
 		{
 			Player_Play((char*)FilePath.c_str()); // retype it from const char* to char*
 		} else {
-			wprintf("Warning > Music DLL is not loaded");
+			Console::Print("Warning > Music DLL is not loaded");
 		}
 
 		// ---------------------------------------------------------------------------------------
@@ -254,9 +256,9 @@ void CheckFile(std::string File, int FileNumber)
 		{
 			if(!remove(CurrentPlayFile.c_str()))
 			{
-				wprintf("The program failed to remove <%s>\n", CurrentPlayFile.c_str());
+				Console::Print("The program failed to remove <%s>\n", CurrentPlayFile.c_str());
 			} else {
-				wprintf("The program removed <%s>\n", CurrentPlayFile.c_str());
+				Console::Print("The program removed <%s>\n", CurrentPlayFile.c_str());
 			}
 		}
 
@@ -268,11 +270,11 @@ void CheckFile(std::string File, int FileNumber)
 
 	}
 
-	// Tell about the files we ignored
-	wprintf("(%i/%i) Ignored %s\n", FileNumber, MyFiles.size(), File.c_str());
+	// Tell the user about the files we ignored
+	Console::Print("(%i/%i) Ignored %s\n", FileNumber, MyFiles.size(), File.c_str());
 	
 	// Update the current file
-	currentfile = File;
+	CurrentFile = File;
 }
 
 

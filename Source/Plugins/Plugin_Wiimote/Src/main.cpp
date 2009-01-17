@@ -19,9 +19,10 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Includes
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
-#include "Common.h"
+#include "Common.h" // Common
 #include "Config.h"
 #include "StringUtil.h"
+#include "ConsoleWindow.h" // For Start, Print, GetHwnd
 
 #if defined(HAVE_WX) && HAVE_WX
 #include <wx/aboutdlg.h>
@@ -35,8 +36,6 @@
 #if HAVE_WIIUSE
 #include "wiimote_real.h"
 #endif
-
-#include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
 ///////////////////////////////////
 
 
@@ -144,25 +143,25 @@ extern "C" void Initialize(void *init)
 	// ----------------------------------------
 	// Debugging window
 	// ----------
-	/*startConsoleWin(100, 750, "Wiimote"); // give room for 20 rows
-	wprintf("Wiimote console opened\n");
+	/*Console::Open(100, 750, "Wiimote"); // give room for 20 rows
+	Console::Print("Wiimote console opened\n");
 
-	// Move window, TODO: make this
-	//MoveWindow(GetConsoleHwnd(), 0,400, 100*8,10*14, true); // small window
-	MoveWindow(GetConsoleHwnd(), 400,0, 100*8,70*14, true); // big window*/
+	// Move window
+	//MoveWindow(Console::GetHwnd(), 0,400, 100*8,10*14, true); // small window
+	MoveWindow(Console::GetHwnd(), 400,0, 100*8,70*14, true); // big window*/
 	// ---------------
 
 	g_WiimoteInitialize = _WiimoteInitialize;
 
-	/* We will run WiiMoteReal::Initialize() even if we are not using a
-	   real wiimote, we will initiate wiiuse.dll, but we will return before
-	   creating a new thread for it if we find no real Wiimotes. Then
-	   g_UseRealWiiMote will also be false This function call will be done
-	   instantly if there is no real Wiimote connected.  I'm not sure how
-	   long time it takes if a Wiimote is connected. */
-#if HAVE_WIIUSE
-	g_UseRealWiiMote = WiiMoteReal::Initialize() > 0;
-#endif
+	/* We will run WiiMoteReal::Initialize() even if we are not using a real wiimote,
+	   to check if there is a real wiimote connected. We will initiate wiiuse.dll, but
+	   we will return before creating a new thread for it if we find no real Wiimotes.
+	   Then g_UseRealWiiMote will also be false. This function call will be done
+	   instantly if there is no real Wiimote connected.  I'm not sure how long time
+	   it takes if a Wiimote is connected. */
+	#if HAVE_WIIUSE
+		g_UseRealWiiMote = WiiMoteReal::Initialize() > 0;
+	#endif
 	g_Config.Load(); // load config settings
 
 	WiiMoteEmu::Initialize();

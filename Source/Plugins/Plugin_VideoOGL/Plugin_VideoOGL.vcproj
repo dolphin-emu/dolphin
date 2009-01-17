@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_VideoOGL"
 	ProjectGUID="{CFDCEE0E-FA45-4F72-9FCC-0B88F5A75160}"
 	RootNamespace="Plugin_VideoOGL"
@@ -865,19 +865,11 @@
 			Name="Logging"
 			>
 			<File
-				RelativePath=".\Src\Logging\Console.cpp"
+				RelativePath=".\Src\Debugger\Logging.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\Logging\Console.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Logging\Logging.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Logging\Logging.h"
+				RelativePath=".\Src\Debugger\Logging.h"
 				>
 			</File>
 			<File

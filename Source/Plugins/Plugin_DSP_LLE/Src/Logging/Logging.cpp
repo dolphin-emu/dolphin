@@ -30,16 +30,20 @@
 #include "Common.h"
 
 #include "UCode_AXStructs.h" // they are only in a virtual dir called UCodes AX
-#include "Console.h" // For wprintf, ClearScreen
+#include "ConsoleWindow.h" // For Console::Print, Console::ClearScreen
+// =====================
 
-// ---------------------------------------------------------------------------------------
-// Declarations
+
+// =======================================================================================
+// Declarations and definitions
+// --------------
+
+// ----------------------------------
+// Settings
 // --------------
 #define NUMBER_OF_PBS 64 // Todo: move this to a logging class
 
-
-
-// ---------------------------------------------------------------------------------------
+// -----------------------------------
 // Externals
 // --------------
 extern u32 m_addressPBs;
@@ -49,9 +53,8 @@ short globalpBuffer;
 u32 gLastBlock;
 // --------------
 
-
-// ---------------------------------------------------------------------------------------
-// Vectors and other stuff
+// -----------------------------------
+// Vectors and other things
 // --------------
 std::vector<u32> gloopPos(64);
 std::vector<u32> gsampleEnd(64);
@@ -91,7 +94,7 @@ std::vector<u32> gsamplePos(64);
 	std::vector<u16> gupdates5(64);
 	std::vector<u32> gupdates_addr(64);
 
-// other stuff
+// Other things
 std::vector<u16> Jump(64); // this is 1 or 0
 std::vector<int> musicLength(64);
 std::vector< std::vector<int> > vector1(64, std::vector<int>(100,0)); 
@@ -110,7 +113,7 @@ std::vector<u16> vector62(vectorLength);
 std::vector<u16> vector63(vectorLength);
 
 int ReadOutPBs(AXParamBlock * _pPBs, int _num);
-// ===========
+// =====================
 
 
 // =======================================================================================
@@ -359,8 +362,8 @@ void Logging()
 		// =======================================================================================
 		// Print
 		// ---------------
-		ClearScreen();
-		wprintf("%s", sbuff.c_str());
+		Console::ClearScreen();
+		Console::Print("%s", sbuff.c_str());
 		sbuff.clear(); strcpy(buffer, "");		
 		// ---------------
 		k=0;

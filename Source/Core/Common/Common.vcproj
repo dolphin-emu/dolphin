@@ -567,6 +567,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\ConsoleWindow.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\ConsoleWindow.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\CPUDetect.cpp"
 			>
 		</File>

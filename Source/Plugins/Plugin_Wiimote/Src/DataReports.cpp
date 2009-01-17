@@ -63,7 +63,7 @@
 #include "EmuSubroutines.h"
 #include "EmuDefinitions.h"
 #include "Encryption.h" // for extension encryption
-#include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
+#include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
 #include "Config.h" // for g_Config
 ///////////////////////////////////
 
@@ -91,8 +91,8 @@ void WmDataReporting(u16 _channelID, wm_data_reporting* dr)
 	LOG(WII_IPC_WIIMOTE, "  Continuous: %x", dr->continuous);
 	LOG(WII_IPC_WIIMOTE, "  All The Time: %x (not only on data change)", dr->all_the_time);
 	LOG(WII_IPC_WIIMOTE, "  Mode: 0x%02x", dr->mode);
-	//wprintf("Data reporting mode: 0x%02x\n", dr->mode);
-	//wprintf("Data reporting channel: 0x%04x\n", _channelID);
+	//Console::Print("Data reporting mode: 0x%02x\n", dr->mode);
+	//Console::Print("Data reporting channel: 0x%04x\n", _channelID);
 	
 	g_ReportingMode = dr->mode;
 	g_ReportingChannel = _channelID;
@@ -159,7 +159,7 @@ void SendReportCoreAccel(u16 _channelID)
 	/*if(GetAsyncKeyState('V'))
 	{
 		std::string Temp = WiiMoteEmu::ArrayToString(DataFrame, Offset, 0, 30);
-		wprintf("DataFrame: %s\n", Temp.c_str());
+		Console::Print("DataFrame: %s\n", Temp.c_str());
 	}*/
 #endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
@@ -191,7 +191,7 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 	/*if(GetAsyncKeyState('V'))
 	{
 		std::string Temp = WiiMoteEmu::ArrayToString(DataFrame, Offset, 0, 30);
-		wprintf("DataFrame: %s\n", Temp.c_str());
+		Console::Print("DataFrame: %s\n", Temp.c_str());
 	}*/
 #endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
@@ -239,7 +239,7 @@ void SendReportCoreAccelExt16(u16 _channelID)
 	/*if(GetAsyncKeyState('V'))
 	{
 		std::string Temp = WiiMoteEmu::ArrayToString(DataFrame, Offset, 0, 30);
-		wprintf("DataFrame: %s\n", Temp.c_str());
+		Console::Print("DataFrame: %s\n", Temp.c_str());
 	}*/
 #endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
@@ -284,7 +284,7 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 	/*if(GetAsyncKeyState('V'))
 	{
 		std::string Temp = ArrayToString(DataFrame, Offset, 0, 30);
-		wprintf("DataFrame: %s\n", Temp.c_str());
+		Console::Print("DataFrame: %s\n", Temp.c_str());
 	}*/
 #endif
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);

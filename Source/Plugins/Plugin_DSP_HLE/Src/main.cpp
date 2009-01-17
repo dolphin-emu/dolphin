@@ -15,32 +15,42 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// -------------
 #include <iostream>
 
-#include "Globals.h"
+#include "Globals.h" // Local
 #if defined(HAVE_WX) && HAVE_WX
-#include "Logging/Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
-#include "Debugger/Debugger.h" // for the CDebugger class
-CDebugger* m_frame;
+	#include "Debugger/File.h" // For file logging
+	#include "Debugger/Debugger.h" // For the CDebugger class
+	CDebugger* m_frame;
 #endif
 
+#include "ConsoleWindow.h" // Common: For the Windows console
 #include "ChunkFile.h"
 #include "WaveFile.h"
+
 #include "resource.h"
-
 #ifdef _WIN32
-#include "PCHW/DSoundStream.h"
-#include "ConfigDlg.h"
+	#include "PCHW/DSoundStream.h"
+	#include "ConfigDlg.h"
 #else
-#include "PCHW/AOSoundStream.h"
+	#include "PCHW/AOSoundStream.h"
 #endif
-
 #include "PCHW/Mixer.h"
-
 #include "DSPHandler.h"
 #include "Config.h"
 
 
+
+///////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 DSPInitialize g_dspInitialize;
 u8* g_pMemory;
 extern std::vector<std::string> sMailLog, sMailTime;
@@ -50,6 +60,11 @@ std::string gpName;
 static bool log_ai = false;
 static WaveFileWriter g_wave_writer;
 
+
+
+// --------------------------------------
+// Mailbox utility
+// ----------
 struct DSPState
 {
 	u32 CPUMailbox;
@@ -69,14 +84,15 @@ struct DSPState
 		DSPMailbox_Read[1] = true;
 	}
 };
-
 DSPState g_dspState;
-// ====================
+// -------------------
+///////////////////////////////
 
 
-#if defined(HAVE_WX) && HAVE_WX
 //////////////////////////////////////////////////////////////////////////////////////////
-// wxWidgets - Some kind of stuff wx needs
+// wxWidgets: Create the wxApp
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+#if defined(HAVE_WX) && HAVE_WX
 class wxDLLApp : public wxApp
 {
 	bool OnInit()
@@ -87,9 +103,13 @@ class wxDLLApp : public wxApp
 
 IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-///////////////////
 #endif
+///////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// DllMain
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef _WIN32
 HINSTANCE g_hInstance = NULL;
 
@@ -126,6 +146,7 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
 	return(TRUE);
 }
 #endif
+///////////////////
 
 
 // =======================================================================================
@@ -134,9 +155,9 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, // DLL module handle
 void OpenConsole()
 {
 	#if defined (_WIN32)
-		startConsoleWin(155, 100, "Sound Debugging"); // give room for 100 rows
-		wprintf("OpenConsole > Console opened\n");
-		MoveWindow(GetConsoleHwnd(), 0,400, 1280,550, true); // move window, TODO: make this
+		Console::Open(155, 100, "Sound Debugging"); // give room for 100 rows
+		Console::Print("OpenConsole > Console opened\n");
+		MoveWindow(Console::GetHwnd(), 0,400, 1280,550, true); // move window, TODO: make this
 			// adjustable from the debugging window
 	#endif
 }
@@ -149,6 +170,10 @@ void CloseConsole()
 }
 // ===================
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Exported fuctions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 // =======================================================================================
 // Create debugging window - We could use use wxWindow win; new CDebugger(win) like nJoy but I don't
@@ -216,11 +241,11 @@ void Initialize(void *init)
 	gpName = g_dspInitialize.pName(); // save the game name globally
 	for (u32 i = 0; i < gpName.length(); ++i) // and fix it
 	{
-                wprintf(L"%c", gpName[i]);
+                Console::Print(L"%c", gpName[i]);
 		std::cout << gpName[i];
 		if (gpName[i] == ':') gpName[i] = ' ';
 	}
-	wprintf(L"\n");
+	Console::Print(L"\n");
 #endif
 
 	CDSPHandler::CreateInstance();
@@ -269,7 +294,13 @@ void Shutdown()
 void DoState(unsigned char **ptr, int mode) {
 	PointerWrap p(ptr, mode);
 }
+///////////////////////////////
 
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Mailbox fuctions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 unsigned short DSP_ReadMailboxHigh(bool _CPUMailbox)
 {
 	if (_CPUMailbox)
@@ -334,7 +365,12 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, unsigned short _Value)
 		PanicAlert("CPU can't write %08x to DSP mailbox", _Value);
 	}
 }
+///////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Other DSP fuctions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 unsigned short DSP_WriteControlRegister(unsigned short _Value)
 {
 	return CDSPHandler::GetInstance().WriteControlRegister(_Value);
@@ -369,3 +405,4 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 		DSound::DSound_UpdateSound();
 #endif
 }
+///////////////////////////////

@@ -48,7 +48,7 @@ extern bool GlobalPause;
 	void CALLBACK Update(unsigned int,unsigned int,unsigned long,unsigned long,unsigned long)
 #endif
 {
-	//wprintf("DLL > Update() > Begin (%i)\n", active_input_plugin);
+	//Console::Print("DLL > Update() > Begin (%i)\n", active_input_plugin);
 
 	// --------------------------------
 	// Manage restart when playback for a file has reached the end of the file
@@ -56,7 +56,7 @@ extern bool GlobalPause;
 	// Check if the input plugin is activated
 	if(!active_input_plugin || !active_input_plugin->plugin)
 	{
-		//wprintf("The input plugin is not activated yet\n");
+		//Console::Print("The input plugin is not activated yet\n");
 	}
 	else
 	{
@@ -73,20 +73,20 @@ extern bool GlobalPause;
 		if (  progress > 0.7 ) // Only show this if we are getting close to the end, for bugtesting
 									// basically
 		{
-			//wprintf("Playback progress <%i of %i>\n", ms_cur, ms_len);
+			//Console::Print("Playback progress <%i of %i>\n", ms_cur, ms_len);
 		}
 
 		// Because cur never go all the way to len we can't use a == comparison. Insted of this
 		// we could also check if the location is the same as right before.
 		if(ms_cur > ms_len - 1000 && !GlobalPause) // avoid restarting in cases where we just pressed pause
 		{
-			wprintf("Restart <%s>\n", CurrentlyPlayingFile.c_str());
+			Console::Print("Restart <%s>\n", CurrentlyPlayingFile.c_str());
 			Player_Play((char *)CurrentlyPlayingFile.c_str());
 		}
 	}
 	// --------------
 	
-	//wprintf("Make new time\n");
+	//Console::Print("Make new time\n");
 	MakeTime(); // Make a new one
 }
 
@@ -119,7 +119,7 @@ int MainTimer()
 	//	cout << ".";
 	//}
 
-	//wprintf("MakeTime\n");
+	//Console::Print("MakeTime\n");
 
 	return 0;
 }

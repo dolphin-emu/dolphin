@@ -15,20 +15,29 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// This queue solution is temporary. I'll implement something more efficient later.
 
-#include <queue>
-#include "../Config.h"
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// -------------
+// This queue solution is temporary. I'll implement something more efficient later.
+#include <queue> // System
+
+#include "Thread.h" // Common
+#include "ConsoleWindow.h"
+
+#include "../Config.h" // Local
 #include "../Globals.h"
 #include "../DSPHandler.h"
-#include "../Logging/Console.h"
-#include "Thread.h"
+#include "../Debugger/File.h"
+
 #include "Mixer.h"
 #include "FixedSizeQueue.h"
 
 #ifdef _WIN32
 #include "../PCHW/DSoundStream.h"
 #endif
+///////////////////////
+
 
 namespace {
 Common::CriticalSection push_sync;

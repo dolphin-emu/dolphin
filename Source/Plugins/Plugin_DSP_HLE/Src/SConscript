@@ -17,7 +17,7 @@ files = [
 	'Globals.cpp',
 	'PCHW/AOSoundStream.cpp',
 	'PCHW/Mixer.cpp',
-        'Logging/Console.cpp',
+        'Debugger/File.cpp',
 	'UCodes/UCode_AX.cpp',
         'UCodes/UCode_AXWii.cpp',
 	'UCodes/UCode_CARD.cpp',

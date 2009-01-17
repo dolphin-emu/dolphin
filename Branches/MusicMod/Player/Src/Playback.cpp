@@ -60,14 +60,14 @@ void EnableTimer( bool bEnabled )
 	if( bEnabled )
 	{
 		SetTimer( WindowMain, TIMER_SEEK_UPDATE, 1000, NULL );
-		wprintf( "EnableTimer > Activated\n" );
+		Console::Print( "EnableTimer > Activated\n" );
 	}
 	else
 	{
 		KillTimer( WindowMain, TIMER_SEEK_UPDATE );
 		StatusReset();
 
-		wprintf( "EnableTimer > Killed\n" );
+		Console::Print( "EnableTimer > Killed\n" );
 	}
 	
 	bTimerRunning = bEnabled;
@@ -82,7 +82,7 @@ bool OpenPlay( TCHAR * szFilename, int iNumber )
 {
 	// =======================================================================================
 	#ifdef NOGUI
-		//wprintf( "Playback.cpp: OpenPlay > Begin <%i> <%s>\n" , iNumber, szFilename );
+		//Console::Print( "Playback.cpp: OpenPlay > Begin <%i> <%s>\n" , iNumber, szFilename );
 	#else
 		TCHAR sszBuffer[ 5000 ];
 		_stprintf( sszBuffer, TEXT( "Playback.cpp: OpenPlay was called <%i> <%s>" ), iNumber, szFilename );
@@ -121,14 +121,14 @@ bool OpenPlay( TCHAR * szFilename, int iNumber )
 	{
 		Console::Append( TEXT( "ERROR: Extension not supported" ) );
 		Console::Append( " " );
-		wprintf("OpenPlay > ERROR: Extension not supported\n");
+		Console::Print("OpenPlay > ERROR: Extension not supported\n");
 		return false;
 	}	
 	// ---------------------------------------------------------------------------------------
 	// Now that we know which input pugin to use we set that one as active
 	InputPlugin * old_input = active_input_plugin; // Save the last one, if any
 	active_input_plugin = iter->second;
-	wprintf("OpenPlay > Input plugin '%s' activated\n", active_input_plugin->GetFilename());
+	Console::Print("OpenPlay > Input plugin '%s' activated\n", active_input_plugin->GetFilename());
 	// =======================================================================================
 
 	if( old_input )
@@ -145,12 +145,12 @@ bool OpenPlay( TCHAR * szFilename, int iNumber )
 	{
 		Console::Append( TEXT( "ERROR: Input plugin is NULL" ) );
 		Console::Append( " " );
-		wprintf("OpenPlay > ERROR: Input plugin is NULL\n");
+		Console::Print("OpenPlay > ERROR: Input plugin is NULL\n");
 		return false;
 	}
 	
 	// Connect
-	//wprintf( "OpenPlay > OutMod\n" );
+	//Console::Print( "OpenPlay > OutMod\n" );
 	active_input_plugin->plugin->outMod = &output_server; // output->plugin;
 	
 	// =======================================================================================
@@ -190,10 +190,10 @@ bool OpenPlay( TCHAR * szFilename, int iNumber )
 	TCHAR szTitle[ 2000 ] = TEXT( "\0" );
 	int length_in_ms;
 
-	//wprintf( "OpenPlay > GetFileInfo\n" );
+	//Console::Print( "OpenPlay > GetFileInfo\n" );
 	active_input_plugin->plugin->GetFileInfo( szFilename, szTitle, &length_in_ms );
 
-	//wprintf( "OpenPlay > Play\n" );
+	//Console::Print( "OpenPlay > Play\n" );
 	active_input_plugin->plugin->Play( szFilename );
 	// =======================================================================================
 #endif
@@ -218,7 +218,7 @@ bool OpenPlay( TCHAR * szFilename, int iNumber )
 	// Timer ON
 	//EnableTimer( true );
 
-	//wprintf( "OpenPlay > End\n" );
+	//Console::Print( "OpenPlay > End\n" );
 
 	return true;
 }
@@ -298,7 +298,7 @@ bool Playback::Play()
 		Console::Append( sszBuffer );
 		Console::Append( TEXT( " " ) );
 	#else
-		//wprintf( "Playback::Play() > Begin <%i>\n" , bPlaying );
+		//Console::Print( "Playback::Play() > Begin <%i>\n" , bPlaying );
 	#endif
 	// ---------------------------------------------------------------------------------------
 
@@ -393,7 +393,7 @@ bool Playback::Play()
 				Console::Append( szBuffer );
 				//Console::Append( TEXT( " " ) );
 			#else
-				//wprintf(  "Playback::Play() > Filename <%s>\n", szFilename);
+				//Console::Print(  "Playback::Play() > Filename <%s>\n", szFilename);
 			#endif
 
 		// Play

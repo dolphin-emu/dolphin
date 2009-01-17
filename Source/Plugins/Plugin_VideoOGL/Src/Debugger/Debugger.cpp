@@ -15,24 +15,34 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "../Globals.h"
 
-#include "IniFile.h" // Common files
+// =======================================================================================
+// Includes
+// ---------------
+#include "../Globals.h" // The precompiled header
+
+#include "IniFile.h" // Common
+#include "ConsoleWindow.h" // Move console window
 
 #include "../Config.h" // Config settings
 
 #include "PBView.h" // Debugger files
 #include "Debugger.h"
-#include "../Logging/Console.h" // open and close console
-
-// externals
-extern int gSaveFile; // make this an int to allow multiple save file options
-extern int gPreset;
-int A, B;
+#include "Logging.h" // Open and close console
+// ========================
 
 
 // =======================================================================================
-// Declare events
+// Declarations and definitions
+// ---------------
+extern int gPreset;
+int A, B;
+// ========================
+
+
+// =======================================================================================
+// Event table and class
+// ---------------
 BEGIN_EVENT_TABLE(CDebugger,wxDialog)
 	EVT_SHOW(CDebugger::OnShow)
 	EVT_CLOSE(CDebugger::OnClose)
@@ -48,7 +58,6 @@ BEGIN_EVENT_TABLE(CDebugger,wxDialog)
 	EVT_BUTTON(ID_BP,CDebugger::Bp)
 	EVT_BUTTON(ID_BM,CDebugger::Bm)
 END_EVENT_TABLE()
-// =======================================================================================
 
 
 CDebugger::CDebugger(wxWindow *parent, wxWindowID id, const wxString &title,
@@ -72,7 +81,61 @@ CDebugger::~CDebugger()
 	this->Save(file);
 	file.Save(DEBUGGER_CONFIG_FILE);
 } 
+// =========================
 
+
+// ==========================================================================
+// System functions
+// --------------
+void CDebugger::OnShow(wxShowEvent& /*event*/)
+{	
+	// bring the console back to
+	if(m_Check[2]->IsChecked())
+	{
+		OpenConsole();
+		#ifdef _WIN32
+		MoveWindow(Console::GetHwnd(), 0,400, 1280,500, true); // Move window  TODO: make this
+		// adjustable from the debugging window
+		#endif
+	}
+}
+
+void CDebugger::OnClose(wxCloseEvent& /*event*/)
+{
+	// save the window position when we hide the window to
+	IniFile file;
+	file.Load(DEBUGGER_CONFIG_FILE);
+	this->Save(file);
+	file.Save(DEBUGGER_CONFIG_FILE);
+
+	EndModal(0); // it seems like this works for Show() to, not just ShowModal();
+	CloseConsole(); // The console goes with the wx window
+}
+
+
+void CDebugger::DoHide()
+{
+	Hide();
+	CloseConsole(); // The console goes with the wx window
+}
+
+void CDebugger::DoShow()
+{
+	Show();
+	DoShowHideConsole(); // The console goes with the wx window
+}
+
+
+void CDebugger::OnUpdate(wxCommandEvent& /*event*/)
+{
+	this->NotifyUpdate();
+}
+// ===============
+
+
+// ==========================================================================
+// Save and load settings
+// --------------
 void CDebugger::Save(IniFile& _IniFile) const
 {
 	// TODO1: make this work when we close the entire program to, currently on total close we get
@@ -87,7 +150,8 @@ void CDebugger::Save(IniFile& _IniFile) const
 		_IniFile.Set("VideoWindow", "w", GetSize().GetWidth());
 		_IniFile.Set("VideoWindow", "h", GetSize().GetHeight());
 	}		
-	_IniFile.Set("VideoWindow", "Console", m_Check[2]->IsChecked()); // save settings
+	_IniFile.Set("VideoWindow", "Console", m_Check[2]->IsChecked()); // Save settings
+	_IniFile.Set("VideoWindow", "WriteToFile", m_Check[0]->IsChecked());
 	_IniFile.Set("VideoWindow", "UpdateFrequency", m_RadioBox[1]->GetSelection());
 	_IniFile.Set("VideoWindow", "LogLevel", g_Config.iLog);
 }
@@ -102,11 +166,14 @@ void CDebugger::Load(IniFile& _IniFile)
 	_IniFile.Get("VideoWindow", "h", &h, GetSize().GetHeight());
 	SetSize(x, y, w, h);
 
-	// saved settings
+	// Saved settings
 	bool Console;
 	_IniFile.Get("VideoWindow", "Console", &Console, m_Check[2]->IsChecked());
 	m_Check[2]->SetValue(Console);
 	DoShowHideConsole();
+
+	_IniFile.Get("VideoWindow", "WriteToFile", &LocalLogFile, m_Check[0]->IsChecked());
+	 m_Check[0]->SetValue(LocalLogFile);
 
 	_IniFile.Get("VideoWindow", "UpdateFrequency", &gUpdFreq, m_RadioBox[1]->GetSelection());
 	m_RadioBox[1]->SetSelection(gUpdFreq);
@@ -115,6 +182,8 @@ void CDebugger::Load(IniFile& _IniFile)
 	_IniFile.Get("VideoWindow", "LogLevel", &g_Config.iLog, 0);
 	m_settings->Check(g_Config.iLog - 1, true);
 }
+// ===============
+
 
 void CDebugger::CreateGUIControls()
 {
@@ -183,6 +252,9 @@ void CDebugger::CreateGUIControls()
 	// checkboxes
 	m_Check[0] = new wxCheckBox(m_PageMain, ID_SAVETOFILE, wxT("Save to file"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	//m_Check[0]->SetToolTip(wxT("This will write the console output to" FULL_LOGS_DIR "oglgfx.txt"));
+	m_Check[0]->SetToolTip(wxT("This will write the console output to" FULL_LOGS_DIR "oglgfx.txt"));
+
 	m_Check[2] = new wxCheckBox(m_PageMain, ID_SHOWCONSOLE, wxT("Show console"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	
@@ -297,55 +369,6 @@ void CDebugger::CreateGUIControls()
 }
 
 
-// ==========================================================================
-// System functions
-// --------------
-void CDebugger::OnShow(wxShowEvent& /*event*/)
-{	
-	// bring the console back to
-	if(m_Check[2]->IsChecked())
-	{
-		OpenConsole();
-		#ifdef _WIN32
-		MoveWindow(GetConsoleHwnd(), 0,400, 1280,500, true); // Move window  TODO: make this
-		// adjustable from the debugging window
-		#endif
-	}
-}
-
-void CDebugger::OnClose(wxCloseEvent& /*event*/)
-{
-	// save the window position when we hide the window to
-	IniFile file;
-	file.Load(DEBUGGER_CONFIG_FILE);
-	this->Save(file);
-	file.Save(DEBUGGER_CONFIG_FILE);
-
-	EndModal(0); // it seems like this works for Show() to, not just ShowModal();
-	CloseConsole(); // The console goes with the wx window
-}
-
-
-void CDebugger::DoHide()
-{
-	Hide();
-	CloseConsole(); // The console goes with the wx window
-}
-
-void CDebugger::DoShow()
-{
-	Show();
-	DoShowHideConsole(); // The console goes with the wx window
-}
-
-
-void CDebugger::OnUpdate(wxCommandEvent& /*event*/)
-{
-	this->NotifyUpdate();
-}
-// ===============
-
-
 // =======================================================================================
 // Change preset
 // --------------
@@ -422,7 +445,7 @@ void CDebugger::GeneralSettings(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 		case ID_SAVETOFILE: // Save to file
-			gSaveFile = m_Check[0]->IsChecked();
+			LocalLogFile = m_Check[0]->IsChecked();
 			break;
 		case ID_SHOWCONSOLE:
 			DoShowHideConsole();
@@ -441,8 +464,8 @@ void CDebugger::DoShowHideConsole()
 	{
 		OpenConsole();
 		#ifdef _WIN32
-		MoveWindow(GetConsoleHwnd(), 0,400, 1280,500, true); // move window, TODO: make this
-		// adjustable from the debugging window
+		MoveWindow(Console::GetHwnd(), 0,400, 1280,500, true); // Move window. TODO: make this
+			// adjustable from the debugging window
 		#endif
 	}
 	else

@@ -36,9 +36,6 @@
 		#define LOGGING
 	#endif
 
-	// Allow wxWidgets in Core
-	//#define WX_CORE
-
 	#include "../../../PluginSpecs/CommonTypes.h"
 	#define HAVE_WIIUSE 1
 	#define HAVE_WX 1

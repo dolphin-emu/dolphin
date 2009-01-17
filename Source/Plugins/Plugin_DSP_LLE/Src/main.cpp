@@ -15,12 +15,17 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
-#include "Globals.h"
+
+// =======================================================================================
+// Includes
+// --------------
+#include "Common.h" // Common
 #include "WaveFile.h"
 #include "CommonTypes.h"
 #include "Mixer.h"
+#include "ConsoleWindow.h" // For Console::Open, Console::Print
 
+#include "Globals.h" // Local
 #include "gdsp_interpreter.h"
 #include "gdsp_interface.h"
 #include "disassemble.h"
@@ -28,7 +33,6 @@
 #ifdef _WIN32
 	#include "DisAsmDlg.h"
 	#include "DSoundStream.h"
-	#include "Logging/Console.h" // For wprintf, ClearScreen
 	#include "Logging/Logging.h" // For Logging
 
 	HINSTANCE g_hInstance = NULL;
@@ -47,10 +51,11 @@
 #endif
 
 #include "ChunkFile.h"
+// ==============
 
 
 // =======================================================================================
-// Globals
+// Global declarations and definitions
 // --------------
 DSPInitialize g_dspInitialize;
 
@@ -68,7 +73,6 @@ bool bCanWork = false;
 // Set this if you want to log audio. search for log_ai in this file to see the filename.
 static bool log_ai = false;
 WaveFileWriter g_wave_writer;
-
 // ==============
 
 
@@ -134,12 +138,12 @@ void DllDebugger(HWND _hParent, bool Show)
 		MoveWindow(g_Dialog.m_hWnd, 450,0, 780,530, true);
 		
 		// Open the console window
-		startConsoleWin(155, 100, "Sound Debugging"); // give room for 100 rows
-		wprintf("DllDebugger > Console opened\n");
-		// TODO: Make this adjustable from the Debugging window
-		MoveWindow(GetConsoleHwnd(), 0,400, 1280,500, true);
+		Console::Open(155, 100, "Sound Debugging"); // give room for 100 rows
+		Console::Print("DllDebugger > Console opened\n");
+		// Todo: Make this adjustable from the Debugging window
+		MoveWindow(Console::GetHwnd(), 0,400, 1280,500, true);
 	#else
-		MessageBox(0, "Can't open debugging window in Release build of this plugin.", "DSP LLE", 0);
+		MessageBox(0, "Can't open debugging window in the Release build of this plugin.", "DSP LLE", 0);
 	#endif
 #endif
 }

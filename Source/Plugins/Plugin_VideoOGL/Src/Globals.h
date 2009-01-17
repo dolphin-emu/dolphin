@@ -15,18 +15,31 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// This file should DIE.
-
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// -------------
 #include "Common.h"
 #include "Config.h"
 
 #include "VideoCommon.h"
 #include "pluginspecs_video.h"
+//////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// -------------
+
+// Turns file logging on and off
+extern bool LocalLogFile;
+
+// A global plugin specification
 extern PLUGIN_GLOBALS* globals;
+//////////////////////////////
 
 
-#endif
+#endif // _GLOBALS_H

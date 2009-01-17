@@ -19,7 +19,10 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
-// includes
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// -------------
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -28,13 +31,16 @@
 #include <stdlib.h>
 #endif
 
+#include "ConsoleWindow.h" // Open and close console
+
 #include "Debugger.h"
 #include "PBView.h"
 #include "IniFile.h"
 #include "FileUtil.h"
 #include "StringUtil.h"
 #include "FileSearch.h"
-#include "../Logging/Console.h" // open and close console
+//#include "../Logging/File.h" // Write to file
+///////////////////////////////
 
 
 // Make the wxTextCtrls scroll with each other
@@ -55,7 +61,7 @@ void CDebugger::DoScrollBlocks()
 	else if(GetAsyncKeyState(VK_NUMPAD2))
 		A += 0.11;
 
-	wprintf("GetScrollPos:%i GetScrollRange:%i GetPosition:%i GetLastPosition:%i GetMaxWidth:%i \
+	Console::Print("GetScrollPos:%i GetScrollRange:%i GetPosition:%i GetLastPosition:%i GetMaxWidth:%i \
 			GetLineLength:%i XYToPosition:%i\n \
 			GetScrollPos * GetLineLength + GetScrollRange:%i A:%f\n",
 		m_bl95->GetScrollPos(wxVERTICAL), m_bl95->GetScrollRange(wxVERTICAL),

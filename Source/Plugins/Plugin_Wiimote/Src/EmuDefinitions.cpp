@@ -29,7 +29,7 @@
 #include "wiimote_hid.h"
 #include "EmuDefinitions.h"
 #include "Encryption.h"
-#include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
+#include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
 //////////////////////////
 
 extern SWiimoteInitialize g_WiimoteInitialize;

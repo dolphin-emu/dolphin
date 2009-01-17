@@ -19,14 +19,19 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// -------------
 // includes
-#include <iostream>
+#include <iostream> // System
 #include <fstream>
 #include <sstream>
-
 #ifndef _WIN32
-#include <stdlib.h>
+	#include <stdlib.h>
 #endif
+
+#include "ConsoleWindow.h" // Open and close console
 
 #include "Debugger.h"
 #include "PBView.h"
@@ -34,11 +39,11 @@
 #include "FileUtil.h"
 #include "StringUtil.h"
 #include "FileSearch.h"
-#include "../Logging/Console.h" // open and close console
-
+#include "../Debugger/File.h" // Write to file
+//////////////////////////////
 
 // =======================================================================================
-// Declare events
+// Event table and class
 BEGIN_EVENT_TABLE(CDebugger,wxDialog)	
 	EVT_CLOSE(CDebugger::OnClose) // on close event
 
@@ -69,8 +74,6 @@ BEGIN_EVENT_TABLE(CDebugger,wxDialog)
 	//EVT_SCROLL(CDebugger::ScrollBlocks)
 	//EVT_SCROLLWIN(CDebugger::ScrollBlocks)
 END_EVENT_TABLE()
-// =======================================================================================
-
 
 CDebugger::CDebugger(wxWindow *parent, wxWindowID id, const wxString &title,
 				   const wxPoint &position, const wxSize& size, long style)
@@ -147,7 +150,50 @@ CDebugger::~CDebugger()
 	this->Save(file);
 	file.Save(DEBUGGER_CONFIG_FILE);
 } 
+// ====================
 
+
+// ========================================================================
+// System functions
+// --------------
+void CDebugger::OnClose(wxCloseEvent& /*event*/)
+{	
+	// Save the window position when we hide the window to
+	IniFile file;
+	file.Load(DEBUGGER_CONFIG_FILE);
+	this->Save(file);
+	file.Save(DEBUGGER_CONFIG_FILE);
+
+	EndModal(0);
+#ifdef _WIN32
+	Console::Close(); // Take the console window with it
+#endif
+}
+
+void CDebugger::DoHide()
+{
+	Hide();
+#ifdef _WIN32
+	Console::Close(); // The console goes with the wx window
+#endif
+}
+
+void CDebugger::DoShow()
+{
+	Show();
+	DoShowHideConsole(); // The console goes with the wx window
+}
+
+void CDebugger::OnUpdate(wxCommandEvent& /*event*/)
+{
+	this->NotifyUpdate();
+}
+// ===============
+
+
+// ==========================================================================
+// Save and load settings
+// --------------
 void CDebugger::Save(IniFile& _IniFile) const
 {
 	// TODO2: get the screen resolution and make limits from that
@@ -197,7 +243,12 @@ void CDebugger::Load(IniFile& _IniFile)
 	_IniFile.Get("SoundWindow", "StoreMails", &StoreMails, m_gcwiiset->IsChecked(1));
 	m_gcwiiset->Check(1, StoreMails);	
 }
+// ===================
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Create GUI controls
+// -------------
 void CDebugger::CreateGUIControls()
 {
 SetTitle(wxT("Sound Debugging"));
@@ -517,39 +568,7 @@ SetTitle(wxT("Sound Debugging"));
 	NotifyUpdate();
 	// --------------------------------------------------------------------
 }
-
-// ========================================================================
-// System functions
-// --------------
-void CDebugger::OnClose(wxCloseEvent& /*event*/)
-{	
-	// save the window position when we hide the window to
-	IniFile file;
-	file.Load(DEBUGGER_CONFIG_FILE);
-	this->Save(file);
-	file.Save(DEBUGGER_CONFIG_FILE);
-
-	EndModal(0);
-	CloseConsole(); // Take the console window with it
-}
-
-void CDebugger::DoHide()
-{
-	Hide();
-	CloseConsole(); // The console goes with the wx window
-}
-
-void CDebugger::DoShow()
-{
-	Show();
-	DoShowHideConsole(); // The console goes with the wx window
-}
-
-void CDebugger::OnUpdate(wxCommandEvent& /*event*/)
-{
-	this->NotifyUpdate();
-}
-// ===============
+/////////////////////////////
 
 
 // =======================================================================================
@@ -663,11 +682,13 @@ void CDebugger::ShowHideConsole(wxCommandEvent& event)
 }
 
 void CDebugger::DoShowHideConsole()
-{	
+{
+#ifdef _WIN32
 	if(m_options->IsChecked(3))
 		OpenConsole();
 	else
 		CloseConsole();
+#endif
 }
 // ==============
 

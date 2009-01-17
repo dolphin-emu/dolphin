@@ -51,7 +51,7 @@
 #include "EmuMain.h"
 #include "EmuSubroutines.h"
 #include "EmuDefinitions.h"
-#include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
+#include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
 #include "Config.h" // for g_Config
 /////////////////////////////////
 
@@ -99,7 +99,7 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 	case WM_REQUEST_STATUS: // 0x15
 		WmRequestStatus(_channelID, (wm_request_status*)sr->data);
 		//Temp = ArrayToString(sr->data, sizeof(wm_request_status), 0);
-		//wprintf("\n%s: InterruptChannel: %s\n", Tm().c_str(), Temp.c_str());
+		//Console::Print("\n%s: InterruptChannel: %s\n", Tm().c_str(), Temp.c_str());
 		break;
 	case WM_READ_DATA: // 0x17
 		WmReadData(_channelID, (wm_read_data*)sr->data);
@@ -110,7 +110,7 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 	case WM_IR_PIXEL_CLOCK: // 0x13
 	case WM_IR_LOGIC: // 0x1a
 		LOGV(WII_IPC_WIIMOTE, 0, "  IR Enable 0x%02x: 0x%02x", sr->channel, sr->data[0]);
-		wprintf("IR Enable/Disable 0x%02x: 0x%02x\n", sr->channel, sr->data[0]);
+		Console::Print("IR Enable/Disable 0x%02x: 0x%02x\n", sr->channel, sr->data[0]);
 		if(sr->data[0] == 0x02) g_IR = 0;
 			else if(sr->data[0] == 0x06) g_IR = 1;
 		break;
@@ -120,13 +120,13 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 		break;
 	case WM_SPEAKER_ENABLE: // 0x14
 		LOGV(WII_IPC_WIIMOTE, 1, "  WM Speaker Enable 0x%02x: 0x%02x", sr->channel, sr->data[0]);
-		wprintf("Speaker Enable/Disable 0x%02x: 0x%02x\n", sr->channel, sr->data[0]);
+		Console::Print("Speaker Enable/Disable 0x%02x: 0x%02x\n", sr->channel, sr->data[0]);
 		if(sr->data[0] == 0x02) g_Speaker = 0;
 			else if(sr->data[0] == 0x06) g_Speaker = 1;
 		break;
 	case WM_SPEAKER_MUTE:
 		LOGV(WII_IPC_WIIMOTE, 1, "  WM Mute Enable 0x%02x: 0x%02x", sr->channel, sr->data[0]);
-		wprintf("Speaker Mute/Unmute 0x%02x: 0x%02x\n", sr->channel, sr->data[0]);
+		Console::Print("Speaker Mute/Unmute 0x%02x: 0x%02x\n", sr->channel, sr->data[0]);
 		if(sr->data[0] == 0x02) g_SpeakerVoice = 0; // g_SpeakerVoice
 			else if(sr->data[0] == 0x06) g_SpeakerVoice = 1;
 		break;
@@ -198,13 +198,13 @@ void WmSendAck(u16 _channelID, u8 _reportID, u32 address)
 	LOGV(WII_IPC_WIIMOTE, 2, "      Report ID: %02x", _reportID);
 	//std::string Temp = ArrayToString(DataFrame, Offset, 0);
 	//LOGV(WII_IPC_WIIMOTE, 2, "      Data: %s", Temp.c_str());
-	//wprintf("%s: WMSendAck: %s\n", Tm(true).c_str(), Temp.c_str());
+	//Console::Print("%s: WMSendAck: %s\n", Tm(true).c_str(), Temp.c_str());
 
 	/* Debug. Write the report for extension registry writes.
 	if((_reportID == 0x16 || _reportID == 0x17)  &&  ((address >> 16) & 0xfe) == 0xa4)
 	{
-		wprintf("\nWMSendAck  Report ID: %02x  Encryption: %02x\n", _reportID, g_RegExt[0xf0]);		
-		wprintf("Data: %s\n", Temp.c_str());
+		Console::Print("\nWMSendAck  Report ID: %02x  Encryption: %02x\n", _reportID, g_RegExt[0xf0]);		
+		Console::Print("Data: %s\n", Temp.c_str());
 	}*/
 
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
@@ -252,7 +252,7 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 			LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xa2: g_RegSpeaker");
 			//Tmp = ArrayToString(g_RegSpeaker, size, (address & 0xffff));
 			//LOGV(WII_IPC_WIIMOTE, 0, "    Data: %s", Temp.c_str());
-			//wprintf("Read RegSpkr:   Size %i  Address %08x  Offset %08x\nData %s\n",
+			//Console::Print("Read RegSpkr:   Size %i  Address %08x  Offset %08x\nData %s\n",
 			//	size, address, (address & 0xffff), Tmp.c_str());
 			break;
 		case 0xA4:
@@ -261,7 +261,7 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 			LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xa4: Read ExtReg ****************************");
 			//Tmp = ArrayToString(g_RegExt, size, (address & 0xffff));
 			//LOGV(WII_IPC_WIIMOTE, 0, "    Data: %s", Temp.c_str());		
-			//wprintf("Read RegExt: Size %i Address %08x  Offset %08x\nData %s\n",
+			//Console::Print("Read RegExt: Size %i Address %08x  Offset %08x\nData %s\n",
 			//		size, address, (address & 0xffff), Tmp.c_str());
 			break;
 		case 0xB0:
@@ -270,7 +270,7 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 			LOGV(WII_IPC_WIIMOTE, 0, "    Case: 0xb0 g_RegIr");
 			//Tmp = ArrayToString(g_RegIr, size, (address & 0xffff));
 			//LOGV(WII_IPC_WIIMOTE, 0, "    Data: %s", Temp.c_str());
-			//wprintf("Read RegIR: Size %i Address %08x  Offset %08x\nData %s\n",
+			//Console::Print("Read RegIR: Size %i Address %08x  Offset %08x\nData %s\n",
 			//		size, address, (address & 0xffff), Tmp.c_str());
 			break;
 		default:
@@ -285,12 +285,12 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 		if(((address >> 16) & 0xfe) == 0xa4)
 		{
 			/* Debugging
-			wprintf("\n\nWmReadData  Address: %08x Offset: %08x Size: %i byte\n",
+			Console::Print("\n\nWmReadData  Address: %08x Offset: %08x Size: %i byte\n",
 				address, address & 0xffff, (u8)size);			
 			// Debugging 
 			u32 offset = address & 0xffff;
 			std::string Temp = ArrayToString(g_RegExt, size, offset);
-			wprintf("Unencrypted data:\n%s\n", Temp.c_str());*/
+			Console::Print("Unencrypted data:\n%s\n", Temp.c_str());*/
 
 			// Check if encrypted reads is on
 			if(g_RegExt[0xf0] == 0xaa)
@@ -304,7 +304,7 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 
 				/* Debugging: Show the encrypted data
 				std::string Temp = ArrayToString(g_RegExtTmp, size, offset);
-				wprintf("Encrypted data:\n%s\n", Temp.c_str());*/
+				Console::Print("Encrypted data:\n%s\n", Temp.c_str());*/
 
 				// Update the block that SendReadDataReply will eventually send to the Wii
 				block = g_RegExtTmp;
@@ -372,9 +372,9 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 				block = g_RegSpeaker;
 				blockSize = WIIMOTE_REG_SPEAKER_SIZE;
 				LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xa2: RegSpeaker");
-				//wprintf("Write RegSpeaker: Size: %i, Address: %08x,  Offset: %08x\n",
+				//Console::Print("Write RegSpeaker: Size: %i, Address: %08x,  Offset: %08x\n",
 				//	wd->size, address, (address & 0xffff));
-				//wprintf("Data: %s\n", Temp.c_str());
+				//Console::Print("Data: %s\n", Temp.c_str());
 				break;
 			case 0xA4:
 				block = g_RegExt; // Extension Controller register
@@ -382,17 +382,17 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 				//LOGV(WII_IPC_WIIMOTE, 0, "  *******************************************************");
 				LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xa4: ExtReg");
 				//LOGV(WII_IPC_WIIMOTE, 0, "  *******************************************************");
-				/*wprintf("Write RegExt  Size: %i  Address: %08x  Offset: %08x \n",
+				/*Console::Print("Write RegExt  Size: %i  Address: %08x  Offset: %08x \n",
 					wd->size, address, (address & 0xffff));
-				wprintf("Data: %s\n", Temp.c_str());*/
+				Console::Print("Data: %s\n", Temp.c_str());*/
 				break;
 			case 0xB0:
 				block = g_RegIr;
 				blockSize = WIIMOTE_REG_IR_SIZE;
 				LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xb0: RegIr");
-				/*wprintf("Write RegIR   Size: %i  Address: %08x  Offset: %08x \n",
+				/*Console::Print("Write RegIR   Size: %i  Address: %08x  Offset: %08x \n",
 					wd->size, address, (address & 0xffff));
-				wprintf("Data: %s\n", Temp.c_str());*/
+				Console::Print("Data: %s\n", Temp.c_str());*/
 				break;
 			default:
 				PanicAlert("WmWriteData: bad register block!");
@@ -419,8 +419,8 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 		if(blockSize == WIIMOTE_REG_EXT_SIZE)
 		{
 			/* Debugging. Write the data. 
-			wprintf("Data: %s\n", Temp.c_str());
-			wprintf("Current address: %08x\n", address); */
+			Console::Print("Data: %s\n", Temp.c_str());
+			Console::Print("Current address: %08x\n", address); */
 
 			/* Run the key generation on all writes in the key area, it doesn't matter 
 			   that we send it parts of a key, only the last full key will have an

@@ -742,15 +742,15 @@
 			Name="Logging"
 			>
 			<File
-				RelativePath=".\Src\Logging\Console.cpp"
+				RelativePath=".\Src\Debugger\File.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\Logging\Console.h"
+				RelativePath=".\Src\Debugger\File.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\Logging\Logging.cpp"
+				RelativePath=".\Src\Debugger\Logging.cpp"
 				>
 			</File>
 		</Filter>

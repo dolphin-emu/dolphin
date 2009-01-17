@@ -15,15 +15,38 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-#ifndef MM_COMMON_H
-#define MM_COMMON_H
+#ifndef _CONSOLE_H
+#define _CONSOLE_H
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Declarations and definitions
-// ¯¯¯¯¯¯¯¯¯¯
-void StartConsoleWin(int width = 100, int height = 2000, char* fname = "Console");
-int wprintf(char *fmt, ...);
-//////////////////////////////////
+// Includes
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+#include <iostream>
+#ifdef _WIN32
+	#include <windows.h>
+#endif
+//////////////////////////////
 
-#endif // MM_COMMON_H
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+namespace Console
+{
+
+// Settings
+extern bool WriteToFile;
+
+// Functions
+void Open(int Width = 80, int Height = 100, char * Name = "Console", bool File = false);
+void Close();
+int Print(const char *fmt, ...);
+void ClearScreen();
+#ifdef _WIN32
+	HWND GetHwnd(void);
+#endif
+
+} // Console
+///////////////////////////////
+
+
+#endif // _CONSOLE_H

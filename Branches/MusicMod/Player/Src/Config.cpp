@@ -34,7 +34,7 @@ const TCHAR * SECTION = TEXT( "Plainamp" );
 ConfVar::ConfVar( TCHAR * szKey, ConfMode mode )
 {
 	// MessageBox( 0, TEXT( "no const @ ConfVar" ), TEXT( "" ), 0 );
-	//wprintf("ConfVar::ConfVar(TCHAR) > Got <%s>\n", szKey);
+	//Console::Print("ConfVar::ConfVar(TCHAR) > Got <%s>\n", szKey);
 
 	// Init
 	const int iLen = ( int )_tcslen( szKey );
@@ -59,7 +59,7 @@ ConfVar::ConfVar( TCHAR * szKey, ConfMode mode )
 ////////////////////////////////////////////////////////////////////////////////
 ConfVar::ConfVar( const TCHAR * szKey, ConfMode mode )
 {
-	//wprintf("ConfVar::ConfVar(const TCHAR) > Got <%s>\n", szKey);
+	//Console::Print("ConfVar::ConfVar(const TCHAR) > Got <%s>\n", szKey);
 
 	// Init
 	m_szKey     = ( TCHAR * )szKey;
@@ -73,7 +73,7 @@ ConfVar::ConfVar( const TCHAR * szKey, ConfMode mode )
 	if( !conf_map ) conf_map = new map<TCHAR *, ConfVar *>;
 	conf_map->insert( pair<TCHAR *, ConfVar *>( m_szKey, this ) );
 
-	//wprintf("ConfVar::ConfVar(const TCHAR) > Insert <%s>\n", ConfVar::m_szKey);
+	//Console::Print("ConfVar::ConfVar(const TCHAR) > Insert <%s>\n", ConfVar::m_szKey);
 }
 
 
@@ -96,7 +96,7 @@ ConfVar::~ConfVar()
 ConfBool::ConfBool( bool * pbData, TCHAR * szKey, ConfMode mode, bool bDefault ) : ConfVar( szKey, mode )
 {
 	// MessageBox( 0, TEXT( "no const @ ConfBool" ), TEXT( "" ), 0 );
-	//wprintf("ConfBool(TCHAR) > Get <%s>\n", szKey);
+	//Console::Print("ConfBool(TCHAR) > Get <%s>\n", szKey);
 
 	m_pbData    = pbData;
 	m_bDefault  = bDefault;
@@ -112,7 +112,7 @@ ConfBool::ConfBool( bool * pbData, TCHAR * szKey, ConfMode mode, bool bDefault )
 ////////////////////////////////////////////////////////////////////////////////
 ConfBool::ConfBool( bool * pbData, const TCHAR * szKey, ConfMode mode, bool bDefault ) : ConfVar( szKey, mode )
 {
-	//wprintf("ConfBool(TCHAR) > Get <%s>\n", szKey);
+	//Console::Print("ConfBool(TCHAR) > Get <%s>\n", szKey);
 
 	m_pbData    = pbData;
 	m_bDefault  = bDefault;
@@ -127,7 +127,7 @@ ConfBool::ConfBool( bool * pbData, const TCHAR * szKey, ConfMode mode, bool bDef
 ////////////////////////////////////////////////////////////////////////////////
 void ConfBool::Read()
 {
-	//wprintf("ConfBool::Read() > Begin <m_bRead:%i> and <szIniPath:%s>\n", m_bRead, szIniPath);
+	//Console::Print("ConfBool::Read() > Begin <m_bRead:%i> and <szIniPath:%s>\n", m_bRead, szIniPath);
 
 	if( m_bRead || !szIniPath ) return;
 
@@ -507,13 +507,13 @@ ConfString::ConfString( TCHAR * szData, const TCHAR * szKey, ConfMode mode, TCHA
 ////////////////////////////////////////////////////////////////////////////////
 void ConfString::Read()
 {
-	//wprintf( "ConfString::Read() > Begin\n");
+	//Console::Print( "ConfString::Read() > Begin\n");
 
 	if( m_bRead || !szIniPath ) return;
 
 	GetPrivateProfileString( SECTION, m_szKey, m_szDefault, m_szData, m_iMaxLen, szIniPath );
 
-	//wprintf( "ConfString::Read() > GetPrivateProfileString <%s> <%s> <%s>\n", m_szKey, m_szData, szIniPath);
+	//Console::Print( "ConfString::Read() > GetPrivateProfileString <%s> <%s> <%s>\n", m_szKey, m_szData, szIniPath);
 
 	m_bRead = true;
 }
@@ -567,7 +567,7 @@ void ConfCurDir::Read()
 	// Apply
 	//SetCurrentDirectory( m_szData );
 
-	//wprintf("ConfCurDir::Read > End <%s>\n", m_szData); 
+	//Console::Print("ConfCurDir::Read > End <%s>\n", m_szData); 
 }
 // ==============================================================================
 
@@ -581,7 +581,7 @@ void ConfCurDir::Write()
 	GetCurrentDirectory( MAX_PATH, m_szData ); // Note: without trailing slash
 
 	// MessageBox( 0, m_szData, TEXT( "CurDir" ), 0 );
-	//wprintf("ConfCurDir::Read <%s>\n", m_szData); 
+	//Console::Print("ConfCurDir::Read <%s>\n", m_szData); 
 
 	ConfString::Write();
 }
@@ -645,7 +645,7 @@ void Conf::Init()
 	//_sntprintf( szIniPath, _MAX_PATH, TEXT( "%s%s%s" ), szDrive, szDir, fd.cFileName );
 	_sntprintf( szIniPath, _MAX_PATH, TEXT( "%s%s%s" ), szDrive, szDir, TEXT( "Plainamp.ini" ) );
 
-	wprintf("DLL > We got the ini path <%s>\n", szIniPath);
+	Console::Print("DLL > Ini path <%s>\n", szIniPath);
 	// =======================================================================================
 
 

@@ -32,7 +32,7 @@
 #include "EmuMain.h"
 #include "EmuSubroutines.h"
 #include "EmuDefinitions.h"
-#include "Console.h" // For startConsoleWin, wprintf, GetConsoleHwnd
+#include "Logging.h" // For startConsoleWin, Console::Print, GetConsoleHwnd
 #include "Config.h" // For g_Config
 //////////////////////////////////
 
@@ -271,13 +271,13 @@ void FillReportAcc(wm_accel& _acc)
 
 	
 	//if(consoleDisplay == 0)
-	wprintf("x: %03i | y: %03i | z: %03i  |  A:%i B:%i C:%i  a:%i b:%i c:%i d:%i  X:%i Y:%i Z:%i\n",
+	Console::Print("x: %03i | y: %03i | z: %03i  |  A:%i B:%i C:%i  a:%i b:%i c:%i d:%i  X:%i Y:%i Z:%i\n",
 		_acc.x, _acc.y, _acc.z,
 		A, B, C,
 		a, b, c, d,
 		X, Y, Z
 		);
-	wprintf("x: %03i | y: %03i | z: %03i  |  X:%i Y:%i Z:%i  | AX:%i AY:%i AZ:%i \n",
+	Console::Print("x: %03i | y: %03i | z: %03i  |  X:%i Y:%i Z:%i  | AX:%i AY:%i AZ:%i \n",
 		_acc.x, _acc.y, _acc.z,
 		X, Y, Z,
 		AX, AY, AZ
@@ -358,11 +358,11 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 
 	//ClearScreen();
 	//if(consoleDisplay == 1)
-		wprintf("x0:%03i x1:%03i  y0:%03i y1:%03i   irx0:%03i y0:%03i  x1:%03i y1:%03i | T:%i L:%i R:%i B:%i S:%i\n",
+		Console::Print("x0:%03i x1:%03i  y0:%03i y1:%03i   irx0:%03i y0:%03i  x1:%03i y1:%03i | T:%i L:%i R:%i B:%i S:%i\n",
 		x0, x1, y0, y1, _ir0.x, _ir0.y, _ir1.x, _ir1.y, Top, Left, Right, Bottom, SensorBarRadius
 		);	
-	wprintf("\n");
-	wprintf("ir0.x:%02x xHi:%02x  ir1.x:%02x xHi:%02x  |  ir0.y:%02x yHi:%02x  ir1.y:%02x yHi:%02x  |  1.s:%02x 2:%02x\n",
+	Console::Print("\n");
+	Console::Print("ir0.x:%02x xHi:%02x  ir1.x:%02x xHi:%02x  |  ir0.y:%02x yHi:%02x  ir1.y:%02x yHi:%02x  |  1.s:%02x 2:%02x\n",
 		_ir0.x, _ir0.xHi, _ir1.x, _ir1.xHi,
 		_ir0.y, _ir0.yHi, _ir1.y, _ir1.yHi,
 		_ir0.size, _ir1.size
@@ -445,11 +445,11 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	//ClearScreen();
 	//if(consoleDisplay == 1)
 		
-		wprintf("x1:%03i x2:%03i  y1:%03i y2:%03i   irx1:%02x y1:%02x  x2:%02x y2:%02x | T:%i L:%i R:%i B:%i S:%i\n",
+		Console::Print("x1:%03i x2:%03i  y1:%03i y2:%03i   irx1:%02x y1:%02x  x2:%02x y2:%02x | T:%i L:%i R:%i B:%i S:%i\n",
 		x1, x2, y1, y2, _ir0.x1, _ir0.y1, _ir1.x2, _ir1.y2, Top, Left, Right, Bottom, SensorBarRadius
 		);
-		wprintf("\n");
-		wprintf("ir0.x1:%02x x1h:%02x x2:%02x x2h:%02x  |  ir0.y1:%02x y1h:%02x y2:%02x y2h:%02x  |  ir1.x1:%02x x1h:%02x x2:%02x x2h:%02x  |  ir1.y1:%02x y1h:%02x y2:%02x y2h:%02x\n",
+		Console::Print("\n");
+		Console::Print("ir0.x1:%02x x1h:%02x x2:%02x x2h:%02x  |  ir0.y1:%02x y1h:%02x y2:%02x y2h:%02x  |  ir1.x1:%02x x1h:%02x x2:%02x x2h:%02x  |  ir1.y1:%02x y1h:%02x y2:%02x y2h:%02x\n",
 		_ir0.x1, _ir0.x1Hi, _ir0.x2, _ir0.x2Hi,
 		_ir0.y1, _ir0.y1Hi, _ir0.y2, _ir0.y2Hi,
 		_ir1.x1, _ir1.x1Hi, _ir1.x2, _ir1.x2Hi,

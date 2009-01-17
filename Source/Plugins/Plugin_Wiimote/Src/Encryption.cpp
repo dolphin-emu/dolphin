@@ -19,7 +19,7 @@
 
 #include "pluginspecs_wiimote.h"
 #include "Common.h"
-#include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
+#include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
 #include "Encryption.h"
 
 
@@ -262,8 +262,8 @@ void wiimote_gen_key(wiimote_key *key, u8 *keydata)
 	for(int i=0;i<6;i++)
 		skey[5-i] = keydata[i+10];
 	
-	wprintf("rand: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n", rand[0], rand[1], rand[2], rand[3], rand[4], rand[5], rand[6], rand[7], rand[8], rand[9]);
-	wprintf("key:  %02x %02x %02x %02x %02x %02x\n", skey[0], skey[1], skey[2], skey[3], skey[4], skey[5]);
+	Console::Print("rand: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n", rand[0], rand[1], rand[2], rand[3], rand[4], rand[5], rand[6], rand[7], rand[8], rand[9]);
+	Console::Print("key:  %02x %02x %02x %02x %02x %02x\n", skey[0], skey[1], skey[2], skey[3], skey[4], skey[5]);
 	
 	for(idx=0;idx<7;idx++)
 	{
@@ -272,12 +272,12 @@ void wiimote_gen_key(wiimote_key *key, u8 *keydata)
 			break;
 	}
 	// default case is idx = 7 which is valid (homebrew uses it for the 0x17 case)
-	wprintf("idx:  %d\n", idx);
+	Console::Print("idx:  %d\n", idx);
 	
 	gentabs(rand, skey, idx, key->ft, key->sb);
 	
-	wprintf("ft:   %02x %02x %02x %02x %02x %02x %02x %02x\n", key->ft[0], key->ft[1], key->ft[2], key->ft[3], key->ft[4], key->ft[5], key->ft[6], key->ft[7]);
-	wprintf("sb:   %02x %02x %02x %02x %02x %02x %02x %02x\n", key->sb[0], key->sb[1], key->sb[2], key->sb[3], key->sb[4], key->sb[5], key->sb[6], key->sb[7]);
+	Console::Print("ft:   %02x %02x %02x %02x %02x %02x %02x %02x\n", key->ft[0], key->ft[1], key->ft[2], key->ft[3], key->ft[4], key->ft[5], key->ft[6], key->ft[7]);
+	Console::Print("sb:   %02x %02x %02x %02x %02x %02x %02x %02x\n", key->sb[0], key->sb[1], key->sb[2], key->sb[3], key->sb[4], key->sb[5], key->sb[6], key->sb[7]);
 	
 	// for homebrew, ft and sb are all 0x97 which is equivalent to 0x17
 }
@@ -290,8 +290,8 @@ void wiimote_encrypt(wiimote_key *key, u8 *data, int addr, u8 len)
 {
 	for(int i = 0; i < len; i++, addr++)
 	{		
-		//wprintf("data[%i] from %02x ", i, data[i]);
+		//Console::Print("data[%i] from %02x ", i, data[i]);
 		data[i] = (data[i] - key->ft[addr%8]) ^ key->sb[addr%8];
-		//wprintf("to %02x\n", data[i]);
+		//Console::Print("to %02x\n", data[i]);
 	}
 }

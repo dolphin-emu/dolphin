@@ -19,7 +19,10 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
-// includes
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// -------------
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -28,23 +31,31 @@
 #include <stdlib.h>
 #endif
 
+//#include "ConsoleWindow.h" // Open and close console
+
 #include "Debugger.h"
 #include "PBView.h"
 #include "IniFile.h"
 #include "FileUtil.h"
 #include "StringUtil.h"
 #include "FileSearch.h"
-#include "../Logging/Console.h" // open and close console
+///////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// -------------
 extern std::vector<std::string> sMailLog, sMailTime;
 extern CDebugger* m_frame;
+///////////////////////////////
+
 
 // =======================================================================================
 // Update mail window
 // --------------
 void CDebugger::DoUpdateMail()
 {
-	//wprintf("i  %i  %i\n", sFullMail.size(), sMailLog.size());
+	//Console::Print("i  %i  %i\n", sFullMail.size(), sMailLog.size());
 
 	if(sFullMail.size() > 0 && sMailLog.size() > 0)
 	{
@@ -69,7 +80,7 @@ void CDebugger::UpdateMail(wxNotebookEvent& event)
 // Change mail from radio button change
 void CDebugger::ChangeMail(wxCommandEvent& event)
 {
-	//wprintf("abc");
+	//Console::Print("abc");
 	DoUpdateMail();
 	//if(StoreMails) ReadDir();
 }
@@ -120,7 +131,7 @@ void CDebugger::ReadDir()
 			else
 				cut = pieces[0];
 
-			//wprintf("%s  %s  %s\n",  pieces[0].c_str(), pieces[1].c_str(),
+			//Console::Print("%s  %s  %s\n",  pieces[0].c_str(), pieces[1].c_str(),
 			//	pieces[2].c_str(), pieces[3].c_str());
 
 			if (NoDuplicate(pieces[0]) && pieces.size() >= 3)
@@ -163,11 +174,11 @@ u32 CDebugger::CountFiles(std::string FileName)
 
 	for (u32 i = 0; i < all_all_files.size(); i++)
 	{
-		//wprintf("CountFiles  %i  %s\n", i, all_all_files[i].c_str());
+		//Console::Print("CountFiles  %i  %s\n", i, all_all_files[i].c_str());
 		if(all_all_files[i] == FileName)
 		match++;
 	}
-	//wprintf("We found  %i  files for this game\n", match);
+	//Console::Print("We found  %i  files for this game\n", match);
 	return match;
 }
 // ==============
@@ -219,13 +230,13 @@ void CDebugger::Readfile(std::string FileName, bool GC)
 		if(m_RadioBox[3]->IsItemEnabled(i)) curr_n++;
 		m_RadioBox[3]->Enable(i, false); // disable all
 	}
-	//wprintf("Disabled all: n %i\n", n);
+	//Console::Print("Disabled all: n %i\n", n);
 
 
 	for (u32 i = 0; i < n; i++)
 	{
 		m_RadioBox[3]->Enable(i, true); // then anble the right ones
-		//wprintf("m_RadioBox[3] enabled:  %i\n", i);
+		//Console::Print("m_RadioBox[3] enabled:  %i\n", i);
 
 		std::string sz = "";
                 std::ostringstream ci;
@@ -233,7 +244,7 @@ void CDebugger::Readfile(std::string FileName, bool GC)
 		std::string f0 = FULL_MAIL_LOGS_DIR + FileName + "_sep" + ci.str() + "_sep" + "0_sep" + (GC ? "GC" : "Wii") +  "_sep.log";
 		std::string f1 = FULL_MAIL_LOGS_DIR + FileName + "_sep" + ci.str() + "_sep" + "1_sep" + (GC ? "GC" : "Wii") +  "_sep.log";
 
-		//wprintf("ifstream  %s  %s\n", f0.c_str(), f1.c_str());
+		//Console::Print("ifstream  %s  %s\n", f0.c_str(), f1.c_str());
 
 		if(sFullMail.size() <= i) sFullMail.resize(sFullMail.size() + 1);
 		if(sMailLog.size() <= i) sMailLog.resize(sMailLog.size() + 1);
@@ -244,7 +255,7 @@ void CDebugger::Readfile(std::string FileName, bool GC)
 			else sMailLog.at(i) = "";
 	}
 	if(n < curr_n) m_RadioBox[3]->Select(n - 1);
-	//wprintf("Select: %i  | n %i  curr_n %i\n", n - 1, n, curr_n);
+	//Console::Print("Select: %i  | n %i  curr_n %i\n", n - 1, n, curr_n);
 	DoUpdateMail();
 }
 // ==============
@@ -278,7 +289,7 @@ void CDebugger::OnGameChange(wxCommandEvent& event)
 void CDebugger::MailSettings(wxCommandEvent& event)
 {
 	//for (int i = 0; i < all_all_files.size(); ++i)
-		//wprintf("s: %s \n", all_all_files.at(i).c_str());
+		//Console::Print("s: %s \n", all_all_files.at(i).c_str());
 
 	ScanMails = m_gcwiiset->IsChecked(0);
 	StoreMails = m_gcwiiset->IsChecked(1);

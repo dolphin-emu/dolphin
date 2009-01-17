@@ -27,7 +27,7 @@
 
 #include "wiimote_hid.h"
 #include "Encryption.h"
-#include "Console.h" // for startConsoleWin, wprintf, GetConsoleHwnd
+#include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
 
 extern SWiimoteInitialize g_WiimoteInitialize;
 //extern void __Log(int log, const char *format, ...);

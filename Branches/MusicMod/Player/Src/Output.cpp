@@ -266,7 +266,7 @@ void Output_SetVolume( int volume )
 		//_stprintf( szBuffer, TEXT( "DLL > Output_SetVolume <%i>" ), volume );
 		//Console::Append( szBuffer );
 		//Console::Append( TEXT( " " ) );
-		//wprintf( "DLL > Output_SetVolume <%i>\n", volume );
+		//Console::Print( "DLL > Output_SetVolume <%i>\n", volume );
 		// =======================================================================================
 
 		for( int i = 0; i < active_output_count; i++ )

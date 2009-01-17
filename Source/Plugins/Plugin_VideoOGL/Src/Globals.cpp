@@ -33,56 +33,41 @@
 #include "main.h"
 
 #include "IniFile.h"
+#include "ConsoleWindow.h"
 #include <assert.h>
 /////////////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Declarations and definitions
+// Open and close the Windows console window
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef _WIN32
-
-// The Windows console handle. The one for Linux is in Linux/Linux.cpp
-static HANDLE hConsole = NULL;
-//////////////////////////////////
-
-
 void OpenConsole()
 {
-	COORD csize;
-	CONSOLE_SCREEN_BUFFER_INFO csbiInfo; 
-	SMALL_RECT srect;
-
-	if (hConsole)
-		return;
-	AllocConsole();
-	SetConsoleTitle("Opengl Plugin Output");
-
-	// set width and height
-	csize.X = 155; // this fits on 1280 pixels TODO: make it adjustable from the wx debugging window
-	csize.Y = 300; // 300 rows
-	SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), csize);
-
-	// make the internal buffer match the width we set
-	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbiInfo);
-	srect = csbiInfo.srWindow;
-	srect.Right = srect.Left + csize.X - 1; // match
-	srect.Bottom = srect.Top + 44;
-	SetConsoleWindowInfo(GetStdHandle(STD_OUTPUT_HANDLE), TRUE, &srect);
-
-	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	Console::Open(100, 300, "OpenGL Plugin Output"); // give room for 300 rows
+	Console::Print("OpenGL console opened\n");
+	MoveWindow(Console::GetHwnd(), 0,400, 1280,550, true); // Move window. Todo: make this
+			// adjustable from the debugging window
 }
 
 void CloseConsole()
 {
-	if (hConsole == NULL)
-		return;
-	FreeConsole();
-	hConsole = NULL;
+	Console::Close();
 }
 #endif
+//////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Write logs
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+// The log file handle
 static FILE* pfLog = NULL;
+
+// This is on by default, but can be controlled from the debugging window
+bool LocalLogFile = true;
+
 void __Log(const char *fmt, ...)
 {
     char* Msg = (char*)alloca(strlen(fmt)+512);
@@ -94,17 +79,20 @@ void __Log(const char *fmt, ...)
 
     g_VideoInitialize.pLog(Msg, FALSE);
 
-    if (pfLog == NULL)
+	// If we have no file to write to, create one
+    if (pfLog == NULL && LocalLogFile)
 		pfLog = fopen(FULL_LOGS_DIR "oglgfx.txt", "w");
 
-    if (pfLog != NULL)
+	// Write to file
+    if (pfLog != NULL && LocalLogFile)
         fwrite(Msg, strlen(Msg), 1, pfLog);
+
 	#ifdef _WIN32
-		DWORD tmp;
-		WriteConsole(hConsole, Msg, (DWORD)strlen(Msg), &tmp, 0);
+		// Write to the console screen, if one exists
+		Console::Print(Msg);
 	#else
-	//printf("%s", Msg);
-#endif
+		//printf("%s", Msg);
+	#endif
 }
 
 void __Log(int type, const char *fmt, ...)
@@ -119,7 +107,8 @@ void __Log(int type, const char *fmt, ...)
     g_VideoInitialize.pLog(Msg, FALSE);
 
 #ifdef _WIN32
-    DWORD tmp;
-    WriteConsole(hConsole, Msg, (DWORD)strlen(Msg), &tmp, 0);
+	// Write to the console screen, if one exists
+    Console::Print(Msg);
 #endif
 }
+//////////////////////////////////
