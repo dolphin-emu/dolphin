@@ -30,4 +30,6 @@ void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset);
 
 void XFB_Shutdown();
 
+int XFB_isInit();
+
 #endif

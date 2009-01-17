@@ -38,19 +38,26 @@ enum {
 #if XFB_USE_SHADERS
 
 static GLuint xfb_decoded_texture;
+static int XFBInitStatus = 0;
 
 void XFB_Init()
 {
 	glGenTextures(1, &xfb_decoded_texture);
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfb_decoded_texture);
 	glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, XFB_WIDTH, XFB_BUF_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	XFBInitStatus = 1;
 }
 
 void XFB_Shutdown()
 {
 	glDeleteTextures(1, &xfb_decoded_texture);
+	XFBInitStatus = 0;
 }
 
+int XFB_isInit()
+{
+	return XFBInitStatus;
+}
 
 void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt)
 {

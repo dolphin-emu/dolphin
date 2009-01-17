@@ -364,7 +364,8 @@ void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset)
 {
 	if(g_Config.bUseXFB)
 	{
-		XFB_Draw(_pXFB, _dwWidth, _dwHeight, _dwYOffset);
+		if (XFB_isInit())
+			XFB_Draw(_pXFB, _dwWidth, _dwHeight, _dwYOffset);
 	}
 }
 
