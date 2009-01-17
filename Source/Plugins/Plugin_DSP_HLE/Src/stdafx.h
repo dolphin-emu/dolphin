@@ -26,10 +26,4 @@
 #include <windows.h>
 #include <tchar.h>
 
-// WTL
-#include <atlbase.h>
-#include <atlapp.h>
-#include <atldlgs.h>
-#include <atlctrls.h>
-
 #endif

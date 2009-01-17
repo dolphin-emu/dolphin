@@ -32,6 +32,7 @@ dspenv = env.Clone()
 
 if dspenv['HAVE_WX']:
     files += [
+		'ConfigDlg.cpp',
         'Debugger/Debugger.cpp',
         'Debugger/PBView.cpp',
         'Debugger/Mails.cpp',

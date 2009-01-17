@@ -22,7 +22,15 @@
 #include <iostream>
 
 #include "Globals.h" // Local
+
+#ifdef _WIN32
+	#include "PCHW/DSoundStream.h"
+#else
+	#include "PCHW/AOSoundStream.h"
+#endif
+
 #if defined(HAVE_WX) && HAVE_WX
+	#include "ConfigDlg.h"
 	#include "Debugger/File.h" // For file logging
 	#include "Debugger/Debugger.h" // For the CDebugger class
 	CDebugger* m_frame;
@@ -31,20 +39,9 @@
 #include "ConsoleWindow.h" // Common: For the Windows console
 #include "ChunkFile.h"
 #include "WaveFile.h"
-
-#include "resource.h"
-#ifdef _WIN32
-	#include "PCHW/DSoundStream.h"
-	#include "ConfigDlg.h"
-#else
-	#include "PCHW/AOSoundStream.h"
-#endif
 #include "PCHW/Mixer.h"
 #include "DSPHandler.h"
 #include "Config.h"
-
-
-
 ///////////////////////////////
 
 
@@ -222,9 +219,10 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
 
 void DllConfig(HWND _hParent)
 {
-#ifdef _WIN32
-	CConfigDlg configDlg;
-	configDlg.DoModal(_hParent);
+#if defined(HAVE_WX) && HAVE_WX
+	// (shuffle2) TODO: reparent dlg with DolphinApp
+	ConfigDialog dlg(NULL);
+	dlg.ShowModal();
 #endif
 }
 
@@ -241,11 +239,11 @@ void Initialize(void *init)
 	gpName = g_dspInitialize.pName(); // save the game name globally
 	for (u32 i = 0; i < gpName.length(); ++i) // and fix it
 	{
-                Console::Print(L"%c", gpName[i]);
+		Console::Print("%c", gpName[i]);
 		std::cout << gpName[i];
 		if (gpName[i] == ':') gpName[i] = ' ';
 	}
-	Console::Print(L"\n");
+	Console::Print("\n");
 #endif
 
 	CDSPHandler::CreateInstance();

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Plugin_DSP_HLE"
 	ProjectGUID="{D6E56527-BBB9-4EAD-A6EC-49D4BF6AFCD8}"
 	RootNamespace="Plugin_DSP"
@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -69,7 +69,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib Rpcrt4.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib Rpcrt4.lib comctl32.lib"
 				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLED.dll"
 				LinkIncremental="2"
 				GenerateManifest="false"
@@ -130,7 +130,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include; ..\..\..\Externals\wxWidgets\Include\msvc;../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="LOGGING;WIN32;_DEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -154,7 +154,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib Rpcrt4.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib Rpcrt4.lib comctl32.lib"
 				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_HLED.dll"
 				LinkIncremental="2"
 				GenerateManifest="false"
@@ -218,7 +218,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -242,7 +242,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib comctl32.lib"
 				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLE.dll"
 				LinkIncremental="1"
 				GenerateManifest="false"
@@ -308,7 +308,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -331,7 +331,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib comctl32.lib"
 				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_HLE.dll"
 				LinkIncremental="1"
 				GenerateManifest="false"
@@ -396,7 +396,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="DEBUGFAST;WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -420,7 +420,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib comctl32.lib"
 				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLEDF.dll"
 				LinkIncremental="1"
 				GenerateManifest="false"
@@ -486,7 +486,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;../../../Externals/WTL80;../../Core/Common/Src;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="LOGGING;WIN32;NDEBUG;_WINDOWS;_USRDLL;DSP_HLE_EXPORTS;DEBUGFAST;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -509,7 +509,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib comctl32.lib"
 				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_HLEDF.dll"
 				LinkIncremental="1"
 				GenerateManifest="false"
@@ -548,20 +548,6 @@
 	<References>
 	</References>
 	<Files>
-		<Filter
-			Name="Resource Files"
-			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx"
-			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
-			>
-			<File
-				RelativePath=".\Src\resource.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\resource.rc"
-				>
-			</File>
-		</Filter>
 		<Filter
 			Name="PCHW"
 			>
@@ -747,10 +733,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\Debugger\File.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Debugger\Logging.cpp"
 				>
 			</File>
 		</Filter>

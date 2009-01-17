@@ -143,7 +143,7 @@ class CDebugger : public wxDialog
 
 		std::vector<std::string> all_all_files, all_files, gc_files, wii_files;
 
-		// WARNING: Make sure these are not also elsewhere, for example in resource.h.
+		// WARNING: Make sure these are not also elsewhere
 		enum
 		{
 			IDC_CHECK0 = 2000,

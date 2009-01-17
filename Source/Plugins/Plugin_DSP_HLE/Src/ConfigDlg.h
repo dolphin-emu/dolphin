@@ -15,32 +15,43 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#pragma once
+#ifndef __DSP_HLE_CONFIGDIALOG_h__
+#define __DSP_HLE_CONFIGDIALOG_h__
 
-class CConfigDlg
-	: public CDialogImpl<CConfigDlg>
+#include <wx/wx.h>
+#include <wx/dialog.h>
+#include <wx/button.h>
+#include <wx/statbox.h>
+
+class ConfigDialog : public wxDialog
 {
-	public:
+public:
+	ConfigDialog(wxWindow *parent,
+		wxWindowID id = 1,
+		const wxString &title = wxT("Dolphin DSP-HLE Plugin Settings"),
+		const wxPoint& pos = wxDefaultPosition,
+		const wxSize& size = wxDefaultSize,
+		long style = wxDEFAULT_DIALOG_STYLE);
+	virtual ~ConfigDialog();
 
-		enum { IDD = IDD_SETTINGS };
+private:
+	DECLARE_EVENT_TABLE();
 
-		BEGIN_MSG_MAP(CConfigDlg)
-		MESSAGE_HANDLER(WM_INITDIALOG,  OnInitDialog)
-		COMMAND_ID_HANDLER(IDOK,        OnCloseCmd)
-		COMMAND_ID_HANDLER(IDCANCEL,    OnCloseCmd)
-		END_MSG_MAP()
+	wxButton *m_OK;
+	wxCheckBox *m_buttonEnableHLEAudio;
+	wxCheckBox *m_buttonEnableDTKMusic;
+	wxCheckBox *m_buttonEnableThrottle;
 
-	private:
+	enum
+	{
+		wxID_OK,
+		ID_ENABLE_HLE_AUDIO,
+		ID_ENABLE_DTK_MUSIC,
+		ID_ENABLE_THROTTLE
+	};
 
-		CButton m_buttonEnableHLEAudio;
-		CButton m_buttonEnableDTKMusic;
-		CButton m_buttonEnableThrottle;
-
-		// Handler prototypes (uncomment arguments if needed):
-		//	LRESULT MessageHandler(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL& /*bHandled*/)
-		//	LRESULT CommandHandler(WORD /*wNotifyCode*/, WORD /*wID*/, HWND /*hWndCtl*/, BOOL& /*bHandled*/)
-		//	LRESULT NotifyHandler(int /*idCtrl*/, LPNMHDR /*pnmh*/, BOOL& /*bHandled*/)
-
-		LRESULT OnInitDialog(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, BOOL & /*bHandled*/);
-		LRESULT OnCloseCmd(WORD /*wNotifyCode*/, WORD wID, HWND /*hWndCtl*/, BOOL & /*bHandled*/);
+	void OnOK(wxCommandEvent& event);
+	void SettingsChanged(wxCommandEvent& event);
 };
+
+#endif //__DSP_HLE_CONFIGDIALOG_h__
