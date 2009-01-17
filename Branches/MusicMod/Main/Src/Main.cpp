@@ -56,6 +56,8 @@ void StructSort (std::vector <MyFilesStructure> &MyFiles);
 
 // Playback
 std::string CurrentFile;
+std::string CurrentPlayFile;
+std::string CurrentPlayFilePath;
 std::string unique_gameid;
 
 std::string MusicPath;
@@ -64,7 +66,6 @@ DiscIO::CFileSystemGCWii* my_pFileSystem;
 
 int WritingFile = false;
 bool dllloaded = false;
-std::string CurrentPlayFile;
 
 extern bool bShowConsole; // Externally define
 extern int GlobalVolume;
@@ -84,6 +85,7 @@ bool CheckFileEnding(std::string FileName)
 		|| (FileName.find(".hps") != std::string::npos) // SSB Melee
 		)
 		return true;
+
 	return false;
 }
 // =======================================================================================
@@ -216,26 +218,32 @@ void CheckFile(std::string File, int FileNumber)
 
 	//Console::Print(">>>> (%i)Current read %s <%u = %ux%i> <block %u>\n", i, CurrentFiles[i].path.c_str(), offset, CurrentFiles[i].offset, size);
 
+	// Check if it's a music file
 	if (CheckFileEnding(File.c_str()))
 	{
-		Console::Print("\n >>> (%i/%i) Match %s\n\n", FileNumber,
-			MyFiles.size(), File.c_str());
+		/* Don't restart the playback if we find the same music file again. If the game is playing
+		   a streaming music file it may read from it once in a while, after it has read other
+		   files in between, if did not do this check we would restart the playback in those cases */
+		if (CurrentPlayFile == File) return;
 
-		CurrentFile = File; // Save the found file
+		// Notify the user
+		Console::Print("\n >>> (%i/%i) Match %s\n\n", FileNumber, MyFiles.size(), File.c_str());
+
+		 // Save the matched file
+		CurrentPlayFile = File;
 
 		// ---------------------------------------------------------------------------------------
 		// We will now save the file to the PC hard drive
-		// ---------------------------------------------------------------------------------------
+		// ------------------
 		// Get the filename
 		std::size_t pointer = File.find_last_of("\\");
 		std::string fragment = File.substr (0, (pointer-0));
 		int compare = File.length() - fragment.length(); // Get the length of the filename
 		fragment = File.substr ((pointer+1), compare); // Now we have the filename
 		
-		// ---------------------------------------------------------------------------------------
-		// Create the file path
+		// Create the target file path
 		std::string FilePath = (MusicPath + fragment);
-		// ---------------------------------------------------------------------------------------
+
 		WritingFile = true; // Avoid detecting the file we are writing
 		Console::Print("Writing <%s> to <%s>\n", File.c_str(), FilePath.c_str());
 		my_pFileSystem->ExportFile(File.c_str(), FilePath.c_str());
@@ -243,6 +251,7 @@ void CheckFile(std::string File, int FileNumber)
 		
 		// ---------------------------------------------------------------------------------------
 		// Play the file we found
+		// ------------------
 		if(dllloaded)
 		{
 			Player_Play((char*)FilePath.c_str()); // retype it from const char* to char*
@@ -252,22 +261,21 @@ void CheckFile(std::string File, int FileNumber)
 
 		// ---------------------------------------------------------------------------------------
 		// Remove the last file, if any
-		if(CurrentPlayFile.length() > 0)
+		// ------------------
+		if(CurrentPlayFilePath.length() > 0)
 		{
-			if(!remove(CurrentPlayFile.c_str()))
+			if(!remove(CurrentPlayFilePath.c_str()))
 			{
-				Console::Print("The program failed to remove <%s>\n", CurrentPlayFile.c_str());
+				Console::Print("The program failed to remove <%s>\n", CurrentPlayFilePath.c_str());
 			} else {
-				Console::Print("The program removed <%s>\n", CurrentPlayFile.c_str());
+				Console::Print("The program removed <%s>\n", CurrentPlayFilePath.c_str());
 			}
 		}
 
 		// ---------------------------------------------------------------------------------------
 		// Save the current playing file
-		CurrentPlayFile = FilePath; // Save the filename so we can remove it later
-		return;
-		// ---------------------
-
+		// ------------------
+		CurrentPlayFilePath = FilePath; // Save the filename so we can remove it later
 	}
 
 	// Tell the user about the files we ignored
