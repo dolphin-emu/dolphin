@@ -96,7 +96,7 @@ u32 TexDecoder_GetSafeTextureHash(const u8 *src, int width, int height, int texf
 
 	const int rowEnd = (width - edgeSkip)/4;
 	const int byteWidth = TexDecoder_GetTextureSizeInBytes(width, 1, texformat);
-	const int colEnd = height / 2 - edgeSkip;
+	const int colEnd = height - edgeSkip;
 	u32 hash = seed ? seed : 0x1337c0de;
 
 	for (int y = edgeSkip; y < colEnd; y += colSkip)
