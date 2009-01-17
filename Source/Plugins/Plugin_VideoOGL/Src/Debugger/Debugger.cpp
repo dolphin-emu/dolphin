@@ -252,7 +252,6 @@ void CDebugger::CreateGUIControls()
 	// checkboxes
 	m_Check[0] = new wxCheckBox(m_PageMain, ID_SAVETOFILE, wxT("Save to file"),
 		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	//m_Check[0]->SetToolTip(wxT("This will write the console output to" FULL_LOGS_DIR "oglgfx.txt"));
 	m_Check[0]->SetToolTip(wxT("This will write the console output to" FULL_LOGS_DIR "oglgfx.txt"));
 
 	m_Check[2] = new wxCheckBox(m_PageMain, ID_SHOWCONSOLE, wxT("Show console"),
