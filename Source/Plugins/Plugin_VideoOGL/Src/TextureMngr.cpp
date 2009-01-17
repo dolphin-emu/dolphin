@@ -231,11 +231,10 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	*	Metroids text issue (character table):
 	*	Same addr, same GX_TF_C4 texture data but different TLUT (hence different outputs).
 	*	That's why we have to hash the TLUT too for TLUT format dependent textures (ie. GX_TF_C4, GX_TF_C8, GX_TF_C14X2).
-	*	And since the address and tex data don't change, the key index in the cacheEntry map can't be the address and 
-	*	have to be a hash value (or address + few bits if address is really always aligned). This hash value takes count 
-	*	of address, texture data @ address and if TLUT dependent fmt then the tlut @ tlutaddr.
-	*	TODO: for small TLUT (ie. GX_TF_C4 => 16B) we have to hash on the whole TLUT because diff can be tiny. 
-	*	
+	*	And since the address and tex data don't change, the key index in the cacheEntry map can't be the address but 
+	*	have to be a real unique ID. 
+	*	DONE but not satifiying yet -> may break copyEFBToTexture sometimes.
+	*
 	*	Pokemon Colosseum text issue (plain text):
 	*	Use a GX_TF_I4 512x512 text-flush-texture at a const address.
 	*	The problem here was just the sparse hash on the texture. This texture is partly overwrited (what is needed only) 
@@ -265,8 +264,9 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		if ( (format == GX_TF_C4) || (format == GX_TF_C8) || (format == GX_TF_C14X2) )
 		{
 			// WARNING! texID != address now => may break CopyRenderTargetToTexture (cf. TODO up)
-			// tlut size (in bytes) mask can be up to 0x7FFF (GX_TF_C14X2) but Safer == Slower.
-			texID ^= TexDecoder_GetTlutHash(&texMem[tlutaddr], TexDecoder_GetPaletteSize(format)&0x7F);
+			// tlut size can be up to 32768B (GX_TF_C14X2) but Safer == Slower.
+			//texID ^= TexDecoder_GetTlutHash(&texMem[tlutaddr], TexDecoder_GetPaletteSize(format));
+			texID ^= TexDecoder_GetTlutHash(&texMem[tlutaddr], (format == GX_TF_C4) ? 32 : 128);
 			//DebugLog("addr: %08x | texID: %08x | texHash: %08x", address, texID, hash_value);
 		}
 	}
