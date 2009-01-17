@@ -48,7 +48,7 @@ be accessed from Core::GetWindowHandle().
 #include "FileUtil.h"
 #include "Timer.h"
 
-#include "Config.h" // Core
+#include "ConfigManager.h" // Core
 #include "Core.h"
 #include "HW/DVDInterface.h"
 #include "State.h"

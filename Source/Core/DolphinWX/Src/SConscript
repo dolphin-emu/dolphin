@@ -7,7 +7,7 @@ wxenv = env.Clone()
 
 files = [
 	'BootManager.cpp',
-	'Config.cpp',
+#	'Config.cpp',
 	'cmdline.c',
 	]
 

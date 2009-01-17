@@ -41,7 +41,7 @@
 
 #include "Main.h" // Local
 #include "Frame.h"
-#include "Config.h"
+#include "ConfigManager.h"
 #include "CodeWindow.h"
 #include "LogWindow.h"
 #include "ExtendedTrace.h"

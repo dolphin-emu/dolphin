@@ -122,7 +122,7 @@ bool registerKey(int nPad, int id, sf::Key::Code code, int mods) {
 
 
 	// Might be not be registered yet
-        //	eventHandler->RemoveEventListener(oldKey);
+        eventHandler->RemoveEventListener(oldKey);
     }
 
     pad[nPad].keyForControl[id] = code;

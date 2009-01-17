@@ -3,6 +3,7 @@
 Import('env')
 
 files = ["Console.cpp",
+         "ConfigManager.cpp",
          "Core.cpp",
          "CoreTiming.cpp",
          "CoreParameter.cpp",

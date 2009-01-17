@@ -19,7 +19,7 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Windows
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+/* Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯
 
 CFrame is the main parent window. Inside CFrame there is m_Panel which is the parent for
 the rendering window (when we render to the main window). In Windows the rendering window is
@@ -48,7 +48,7 @@ be accessed from Core::GetWindowHandle().
 #include "FileUtil.h"
 #include "Timer.h"
 
-#include "Config.h" // Core
+#include "ConfigManager.h" // Core
 #include "Core.h"
 #include "HW/DVDInterface.h"
 #include "State.h"
@@ -202,7 +202,7 @@ void CFrame::PopulateToolbar(wxToolBar* toolBar)
 
 	//////////////////////////////////////////////////
 	// Music mod
-	// ¯¯¯¯¯¯¯¯¯¯
+	// Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯
 	#ifdef MUSICMOD
 		MM_PopulateGUI();
 	#endif
@@ -217,7 +217,7 @@ void CFrame::PopulateToolbar(wxToolBar* toolBar)
 
 //////////////////////////////////////////////////
 // Delete and recreate the toolbar
-// ¯¯¯¯¯¯¯¯¯¯
+// Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯
 void CFrame::RecreateToolbar()
 {
 
@@ -556,14 +556,14 @@ void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
 			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin.c_str()
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[0].c_str()
 			);
 }
 void CFrame::OnPluginWiimote(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
 			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin.c_str()
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin[0].c_str()
 			);
 }
 

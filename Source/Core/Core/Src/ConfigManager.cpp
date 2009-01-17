@@ -17,10 +17,9 @@
 
 #include <string>
 
-#include "Globals.h"
 #include "Common.h"
 #include "IniFile.h"
-#include "Config.h"
+#include "ConfigManager.h"
 #ifdef __APPLE__
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFUrl.h>
@@ -92,8 +91,14 @@ void SConfig::SaveSettings()
 		// Plugins
 		ini.Set("Core", "GFXPlugin",  m_LocalCoreStartupParameter.m_strVideoPlugin);
 		ini.Set("Core", "DSPPlugin",  m_LocalCoreStartupParameter.m_strDSPPlugin);
-		ini.Set("Core", "PadPlugin",  m_LocalCoreStartupParameter.m_strPadPlugin);
-		ini.Set("Core", "WiiMotePlugin",  m_LocalCoreStartupParameter.m_strWiimotePlugin);
+		ini.Set("Core", "Pad1Plugin",  m_LocalCoreStartupParameter.m_strPadPlugin[0]);
+		ini.Set("Core", "Pad2Plugin",  m_LocalCoreStartupParameter.m_strPadPlugin[1]);
+		ini.Set("Core", "Pad3Plugin",  m_LocalCoreStartupParameter.m_strPadPlugin[2]);
+		ini.Set("Core", "Pad4Plugin",  m_LocalCoreStartupParameter.m_strPadPlugin[3]);
+		ini.Set("Core", "WiiMote1Plugin",  m_LocalCoreStartupParameter.m_strWiimotePlugin[0]);
+		ini.Set("Core", "WiiMote2Plugin",  m_LocalCoreStartupParameter.m_strWiimotePlugin[1]);
+		ini.Set("Core", "WiiMote3Plugin",  m_LocalCoreStartupParameter.m_strWiimotePlugin[2]);
+		ini.Set("Core", "WiiMote4Plugin",  m_LocalCoreStartupParameter.m_strWiimotePlugin[3]);
 	}
 
 	ini.Save(CONFIG_FILE);
@@ -186,7 +191,13 @@ void SConfig::LoadSettings()
 		// Plugins
 		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin, m_DefaultGFXPlugin.c_str());
 		ini.Get("Core", "DSPPlugin",  &m_LocalCoreStartupParameter.m_strDSPPlugin, m_DefaultDSPPlugin.c_str());
-		ini.Get("Core", "PadPlugin",  &m_LocalCoreStartupParameter.m_strPadPlugin, m_DefaultPADPlugin.c_str());
-		ini.Get("Core", "WiiMotePlugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin, m_DefaultWiiMotePlugin.c_str());
+		ini.Get("Core", "Pad1Plugin",  &m_LocalCoreStartupParameter.m_strPadPlugin[0], m_DefaultPADPlugin.c_str());
+		ini.Get("Core", "Pad2Plugin",  &m_LocalCoreStartupParameter.m_strPadPlugin[1], m_DefaultPADPlugin.c_str());
+		ini.Get("Core", "Pad3Plugin",  &m_LocalCoreStartupParameter.m_strPadPlugin[2], m_DefaultPADPlugin.c_str());
+		ini.Get("Core", "Pad4Plugin",  &m_LocalCoreStartupParameter.m_strPadPlugin[3], m_DefaultPADPlugin.c_str());
+		ini.Get("Core", "WiiMote1Plugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin[0], m_DefaultWiiMotePlugin.c_str());
+		ini.Get("Core", "WiiMote2Plugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin[1], m_DefaultWiiMotePlugin.c_str());
+		ini.Get("Core", "WiiMote3Plugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin[2], m_DefaultWiiMotePlugin.c_str());
+		ini.Get("Core", "WiiMote4Plugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin[3], m_DefaultWiiMotePlugin.c_str());
 	}
 }

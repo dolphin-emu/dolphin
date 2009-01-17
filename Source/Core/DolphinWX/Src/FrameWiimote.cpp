@@ -25,7 +25,7 @@
 #include "BootManager.h"
 
 #include "Common.h"
-#include "Config.h"
+#include "ConfigManager.h"
 #include "Core.h"
 #include "State.h"
 #include "ConfigMain.h"

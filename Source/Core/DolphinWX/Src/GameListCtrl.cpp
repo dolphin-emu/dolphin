@@ -24,7 +24,7 @@
 #include "FileSearch.h"
 #include "FileUtil.h"
 #include "StringUtil.h"
-#include "Config.h"
+#include "ConfigManager.h"
 #include "GameListCtrl.h"
 #include "Blob.h"
 #include "ISOProperties.h"

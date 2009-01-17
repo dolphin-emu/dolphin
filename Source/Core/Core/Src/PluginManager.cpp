@@ -69,17 +69,33 @@ bool CPluginManager::InitPlugins(SCoreStartupParameter scsp) {
     if (!m_video)
 	return false;
 
-    for (int i=0;i<1;i++) {
-	m_pad[i] = (Common::PluginPAD*)LoadPlugin(scsp.m_strPadPlugin.c_str());
-	if (m_pad[i] == NULL)
-	    return false;
+    bool pad = false;
+    bool wiimote = false;
 
-	if (scsp.bWii) {
-	    m_wiimote[i] = (Common::PluginWiimote*)LoadPlugin
-		(scsp.m_strWiimotePlugin.c_str());
+    for (int i=0;i<MAXPADS;i++) {
+	if (! scsp.m_strPadPlugin[i].empty())
+	    m_pad[i] = 
+		(Common::PluginPAD*)LoadPlugin(scsp.m_strPadPlugin[i].c_str());
+
+	if (m_pad[i] != NULL)
+	    pad = true;
+    }
+
+    if (! pad)
+	return false;
+
+    if (scsp.bWii) {
+	for (int i=0;i<MAXWIIMOTES;i++) {
+	    if (! scsp.m_strWiimotePlugin[i].empty())
+		m_wiimote[i] = (Common::PluginWiimote*)LoadPlugin
+		    (scsp.m_strWiimotePlugin[i].c_str());
+
 	    if (m_wiimote[i] == NULL)
-		return false;
+		wiimote = true;
 	}
+
+	if (! wiimote)
+	    return false;
     }
 
     return true;

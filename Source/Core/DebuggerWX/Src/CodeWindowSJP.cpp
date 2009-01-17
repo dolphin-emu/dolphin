@@ -18,7 +18,7 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Include
-// ¯¯¯¯¯¯¯¯¯¯
+// Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯
 #include "Common.h"
 
 #include <wx/button.h>
@@ -64,7 +64,7 @@
 #include "PowerPC/Jit64/JitCache.h" // for ClearCache()
 
 #include "PluginManager.h"
-#include "../../DolphinWX/Src/Config.h"
+#include "ConfigManager.h"
 
 
 extern "C"  // Bitmaps
@@ -80,7 +80,7 @@ extern "C"  // Bitmaps
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Declarations and definitions
-// ¯¯¯¯¯¯¯¯¯¯
+// Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯Â¯
 // and here are the classes
 class CPluginInfo;
 class CPluginManager;

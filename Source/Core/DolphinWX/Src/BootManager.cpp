@@ -49,7 +49,7 @@
 #include "ISOFile.h"
 #include "Volume.h"
 #include "VolumeCreator.h"
-#include "Config.h"
+#include "ConfigManager.h"
 #include "Core.h"
 #if defined(HAVE_WX) && HAVE_WX
 	#include "ConfigMain.h"
