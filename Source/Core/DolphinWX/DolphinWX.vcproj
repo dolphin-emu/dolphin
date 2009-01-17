@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="DolphinWX"
 	ProjectGUID="{A72606EF-C5C1-4954-90AD-F0F93A8D97D9}"
 	RootNamespace="DolphinWX"
@@ -911,14 +911,6 @@
 			</File>
 			<File
 				RelativePath=".\src\BootManager.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\Config.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\Config.h"
 				>
 			</File>
 			<File

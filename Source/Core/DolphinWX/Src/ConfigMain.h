@@ -22,7 +22,7 @@
 #include <wx/gbsizer.h>
 #include <wx/notebook.h>
 #include <wx/filepicker.h>
-#include "Config.h"
+#include "ConfigManager.h"
 
 class CConfigMain
 	: public wxDialog
