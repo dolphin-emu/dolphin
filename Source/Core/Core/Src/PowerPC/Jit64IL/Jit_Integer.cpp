@@ -211,19 +211,21 @@
 
 	void Jit64::subfex(UGeckoInstruction inst) 
 	{
-		INSTRUCTION_START;
-		Default(inst);
-		return;
-		/*
-		u32 a = m_GPR[_inst.RA];
-		u32 b = m_GPR[_inst.RB];
-		int carry = GetCarry();
-		m_GPR[_inst.RD] = (~a) + b + carry;
-		SetCarry(Helper_Carry(~a, b) || Helper_Carry((~a) + b, carry));
-
-		if (_inst.OE) PanicAlert("OE: subfcx");
-		if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
-		*/
+		if (inst.OE) PanicAlert("OE: subfex");
+		IREmitter::InstLoc val, test, lhs, rhs, carry;
+		rhs = ibuild.EmitLoadGReg(inst.RA);
+		carry = ibuild.EmitLoadCarry();
+		rhs = ibuild.EmitXor(rhs, ibuild.EmitIntConst(-1));
+		rhs = ibuild.EmitAdd(rhs, carry);
+		test = ibuild.EmitICmpEq(rhs, ibuild.EmitIntConst(0));
+		test = ibuild.EmitAnd(test, carry);
+		lhs = ibuild.EmitLoadGReg(inst.RB);
+		val = ibuild.EmitAdd(lhs, rhs);
+		ibuild.EmitStoreGReg(val, inst.RD);
+		test = ibuild.EmitOr(test, ibuild.EmitICmpUgt(lhs, val));
+		ibuild.EmitStoreCarry(test);
+		if (inst.Rc)
+			ComputeRC(ibuild, val);
 	}
 
 	void Jit64::subfx(UGeckoInstruction inst)

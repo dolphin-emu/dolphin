@@ -167,12 +167,21 @@ static GekkoOPTemplate primarytable[] =
 	{28, Interpreter::andi_rc,   &Jit64::reg_imm,      {"andi_rc",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
 	{29, Interpreter::andis_rc,  &Jit64::reg_imm,      {"andis_rc", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
 
+#if JITTEST
+	{32, Interpreter::lwz,       &Jit64::lXz,      {"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
+	{33, Interpreter::lwzu,      &Jit64::lXz,      {"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+	{34, Interpreter::lbz,       &Jit64::lXz,      {"lbz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
+	{35, Interpreter::lbzu,      &Jit64::lXz,      {"lbzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+	{40, Interpreter::lhz,       &Jit64::lXz,      {"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
+	{41, Interpreter::lhzu,      &Jit64::lXz,      {"lhzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+#else
 	{32, Interpreter::lwz,       &Jit64::lXz,      {"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{33, Interpreter::lwzu,      &Jit64::Default,  {"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 	{34, Interpreter::lbz,       &Jit64::lXz,      {"lbz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{35, Interpreter::lbzu,      &Jit64::Default,  {"lbzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 	{40, Interpreter::lhz,       &Jit64::lXz,      {"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{41, Interpreter::lhzu,      &Jit64::Default,  {"lhzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
+#endif
 	{42, Interpreter::lha,       &Jit64::lha,      {"lha",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{43, Interpreter::lhau,      &Jit64::Default,  {"lhau", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 
@@ -302,13 +311,33 @@ static GekkoOPTemplate table31[] =
 	{24,  Interpreter::slwx,    &Jit64::slwx,     {"slwx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_B | FL_IN_S | FL_RC_BIT}},
 
 	{54,   Interpreter::dcbst,  &Jit64::Default,  {"dcbst",  OPTYPE_DCACHE, 0, 4}},
+#if JITTEST
+	{86,   Interpreter::dcbf,   &Jit64::DoNothing,  {"dcbf",   OPTYPE_DCACHE, 0, 4}},
+#else
 	{86,   Interpreter::dcbf,   &Jit64::Default,  {"dcbf",   OPTYPE_DCACHE, 0, 4}},
+#endif
 	{246,  Interpreter::dcbtst, &Jit64::Default,  {"dcbtst", OPTYPE_DCACHE, 0, 1}},
 	{278,  Interpreter::dcbt,   &Jit64::Default,  {"dcbt",   OPTYPE_DCACHE, 0, 1}},
 	{470,  Interpreter::dcbi,   &Jit64::Default,  {"dcbi",   OPTYPE_DCACHE, 0, 4}},
 	{758,  Interpreter::dcba,   &Jit64::Default,  {"dcba",   OPTYPE_DCACHE, 0, 4}},
 	{1014, Interpreter::dcbz,   &Jit64::dcbz,     {"dcbz",   OPTYPE_DCACHE, 0, 4}},
+#if JITTEST
+	//load word
+	{23,  Interpreter::lwzx,  &Jit64::lXzx,       {"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{55,  Interpreter::lwzux, &Jit64::lXzx,       {"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
+	//load halfword
+	{279, Interpreter::lhzx,  &Jit64::lXzx,       {"lhzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{311, Interpreter::lhzux, &Jit64::lXzx,       {"lhzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+
+	//load halfword signextend
+	{343, Interpreter::lhax,  &Jit64::lhax,       {"lhax",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{375, Interpreter::lhaux, &Jit64::Default,    {"lhaux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+
+	//load byte
+	{87,  Interpreter::lbzx,  &Jit64::lXzx,       {"lbzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
+	{119, Interpreter::lbzux, &Jit64::lXzx,       {"lbzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
+#else
 	//load word
 	{23,  Interpreter::lwzx,  &Jit64::lwzx,      {"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 	{55,  Interpreter::lwzux, &Jit64::lwzux,     {"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
@@ -324,7 +353,7 @@ static GekkoOPTemplate table31[] =
 	//load byte
 	{87,  Interpreter::lbzx,  &Jit64::lbzx,      {"lbzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 	{119, Interpreter::lbzux, &Jit64::Default,   {"lbzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
-
+#endif
 	//load byte reverse
 	{534, Interpreter::lwbrx, &Jit64::Default,  {"lwbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 	{790, Interpreter::lhbrx, &Jit64::Default,  {"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},

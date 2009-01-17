@@ -68,6 +68,11 @@ using namespace Gen;
 		else
 			destination = js.compilerPC + SignExt26(inst.LI << 2);
 
+		if (destination == js.compilerPC) {
+			ibuild.EmitShortIdleLoop(ibuild.EmitIntConst(js.compilerPC));
+			return;
+		}
+
 		ibuild.EmitBranchUncond(ibuild.EmitIntConst(destination));
 	}
 
@@ -109,7 +114,8 @@ using namespace Gen;
 		}
 
 		if (!Test) {
-			PanicAlert("Unconditional conditional branch?!");
+			Test = ibuild.EmitIntConst(1);
+			//PanicAlert("Unconditional conditional branch?!");
 		}
 
 		u32 destination;

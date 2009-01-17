@@ -28,7 +28,7 @@
 
 	void Jit64::fp_arith_s(UGeckoInstruction inst)
 	{
-		if (inst.Rc || inst.OPCD != 59 || (inst.SUBOP5 != 25 && inst.SUBOP5 != 20 && inst.SUBOP5 != 21)) {
+		if (inst.Rc || (inst.SUBOP5 != 25 && inst.SUBOP5 != 20 && inst.SUBOP5 != 21)) {
 			Default(inst); return;
 		}
 		IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
@@ -61,22 +61,24 @@
 
 	void Jit64::fmaddXX(UGeckoInstruction inst)
 	{
-		if (inst.Rc || inst.OPCD != 59) {
+		if (inst.Rc) {
 			Default(inst); return;
 		}
 
-		bool single_precision = inst.OPCD == 59;
-
 		IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
-		val = ibuild.EmitDoubleToSingle(val);
-		val = ibuild.EmitFSMul(val, ibuild.EmitDoubleToSingle(ibuild.EmitLoadFReg(inst.FC)));
+		val = ibuild.EmitFDMul(val, ibuild.EmitLoadFReg(inst.FC));
 		if (inst.SUBOP5 & 1)
-			val = ibuild.EmitFSAdd(val, ibuild.EmitDoubleToSingle(ibuild.EmitLoadFReg(inst.FB)));
+			val = ibuild.EmitFDAdd(val, ibuild.EmitLoadFReg(inst.FB));
 		else
-			val = ibuild.EmitFSSub(val, ibuild.EmitDoubleToSingle(ibuild.EmitLoadFReg(inst.FB)));
+			val = ibuild.EmitFDSub(val, ibuild.EmitLoadFReg(inst.FB));
 		if (inst.SUBOP5 & 2)
-			val = ibuild.EmitFSNeg(val);
-		val = ibuild.EmitDupSingleToMReg(val);
+			val = ibuild.EmitFDNeg(val);
+		if (inst.OPCD == 59) {
+			val = ibuild.EmitDoubleToSingle(val);
+			val = ibuild.EmitDupSingleToMReg(val);
+		} else {
+			val = ibuild.EmitInsertDoubleInMReg(val, ibuild.EmitLoadFReg(inst.FD));
+		}
 		ibuild.EmitStoreFReg(val, inst.FD);
 	}
 	
@@ -92,6 +94,11 @@
 
 	void Jit64::fcmpx(UGeckoInstruction inst)
 	{
-		Default(inst);
-		return;
+		printf("fcmpx at %x\n", js.compilerPC);
+		IREmitter::InstLoc lhs, rhs, res;
+		lhs = ibuild.EmitLoadFReg(inst.FA);
+		rhs = ibuild.EmitLoadFReg(inst.FB);
+		res = ibuild.EmitFDCmpCR(lhs, rhs);
+		ibuild.EmitStoreFPRF(res);
+		ibuild.EmitStoreCR(res, inst.CRFD);
 	}

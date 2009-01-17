@@ -54,6 +54,7 @@ namespace IREmitter {
 		StoreCarry,
 		StoreCTR,
 		StoreMSR,
+		StoreFPRF,
 		// Arbitrary interpreter instruction
 		InterpreterFallback,
 
@@ -184,6 +185,7 @@ namespace IREmitter {
 		StoreSingle,
 		StoreDouble,
 		StoreFReg,
+		FDCmpCR,
 
 		// "Trinary" operators
 		// FIXME: Need to change representation!
@@ -197,7 +199,9 @@ namespace IREmitter {
 		SystemCall,
 		RFIExit,
 		InterpreterBranch,
-		IdleLoop,
+		IdleLoop,      // The "usual" idle loop, load+compare+branch
+		ShortIdleLoop, // Idle loop seen in homebrew like wii mahjong,
+			       // just a branch
 
 		// "Opcode" representing a register too far away to
 		// reference directly; this is a size optimization
@@ -227,11 +231,19 @@ namespace IREmitter {
 	}
 
 	InstLoc inline getOp1(InstLoc i) {
-		return i - 1 - ((*i >> 8) & 255);
+		i = i - 1 - ((*i >> 8) & 255);
+		if (getOpcode(*i) == Tramp) {
+			i = i - 1 - (*i >> 8);
+		}
+		return i;
 	}
 
 	InstLoc inline getOp2(InstLoc i) {
-		return i - 1 - ((*i >> 16) & 255);
+		i = i - 1 - ((*i >> 16) & 255);
+		if (getOpcode(*i) == Tramp) {
+			i = i - 1 - (*i >> 8);
+		}
+		return i;
 	}
 
 	class IRBuilder {
@@ -287,6 +299,9 @@ namespace IREmitter {
 		}
 		InstLoc EmitStoreMSR(InstLoc val) {
 			return FoldUOp(StoreMSR, val);
+		}
+		InstLoc EmitStoreFPRF(InstLoc value) {
+			return FoldUOp(StoreFPRF, value);
 		}
 		InstLoc EmitLoadGReg(unsigned reg) {
 			return FoldZeroOp(LoadGReg, reg);
@@ -390,6 +405,9 @@ namespace IREmitter {
 		InstLoc EmitInterpreterBranch() {
 			return FoldZeroOp(InterpreterBranch, 0);
 		}
+		InstLoc EmitLoadCarry() {
+			return FoldZeroOp(LoadCarry, 0);
+		}
 		InstLoc EmitStoreCarry(InstLoc op1) {
 			return FoldUOp(StoreCarry, op1);
 		}
@@ -401,6 +419,9 @@ namespace IREmitter {
 		}
 		InstLoc EmitIdleLoop(InstLoc idleParam, InstLoc pc) {
 			return FoldBiOp(IdleLoop, idleParam, pc);
+		}
+		InstLoc EmitShortIdleLoop(InstLoc pc) {
+			return FoldUOp(ShortIdleLoop, pc);
 		}
 		InstLoc EmitLoadSingle(InstLoc addr) {
 			return FoldUOp(LoadSingle, addr);
@@ -497,6 +518,9 @@ namespace IREmitter {
 		}
 		InstLoc EmitDoubleToSingle(InstLoc op1) {
 			return FoldUOp(DoubleToSingle, op1);
+		}
+		InstLoc EmitFDCmpCR(InstLoc op1, InstLoc op2) {
+			return FoldBiOp(FDCmpCR, op1, op2);
 		}
 
 		void StartBackPass() { curReadPtr = &InstList[InstList.size()]; }

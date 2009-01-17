@@ -1197,11 +1197,9 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case RFIExit:
 		case InterpreterBranch:
 		case IdleLoop:
-			// No liveness effects
-			break;
+		case ShortIdleLoop:
 		case Tramp:
-			if (thisUsed)
-				regMarkUse(RI, I, I - 1 - (*I >> 8), 1);
+			// No liveness effects
 			break;
 		case SExt8:
 		case SExt16:
@@ -1232,6 +1230,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			break;
 		case StoreCR:
 		case StoreCarry:
+		case StoreFPRF:
 			regMarkUse(RI, I, getOp1(I), 1);
 			break;
 		case StoreGReg:
@@ -1277,6 +1276,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		case FPMerge01:
 		case FPMerge10:
 		case FPMerge11:
+		case FDCmpCR:
 		case InsertDoubleInMReg:
 			if (thisUsed) {
 				regMarkUse(RI, I, getOp1(I), 1);
@@ -1408,6 +1408,15 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			Jit->SetJumpTarget(nocarry);
 			Jit->JitClearCA();
 			Jit->SetJumpTarget(cont);
+			regNormalRegClear(RI, I);
+			break;
+		}
+		case StoreFPRF: {
+			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
+			Jit->AND(32, R(ECX), Imm8(0x1F));
+			Jit->SHL(32, R(ECX), Imm8(12));
+			Jit->AND(32, M(&FPSCR), Imm32(~(0x1F << 12)));
+			Jit->OR(32, M(&FPSCR), R(ECX));
 			regNormalRegClear(RI, I);
 			break;
 		}
@@ -1851,6 +1860,35 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			fregEmitBinInst(RI, I, &Jit64::SUBSD);
 			break;
 		}
+		case FDCmpCR: {
+			X64Reg destreg = regFindFreeReg(RI);
+			// TODO: Add case for NaN (CC_P)
+			Jit->MOVSD(XMM0, fregLocForInst(RI, getOp1(I)));
+			Jit->UCOMISD(XMM0, fregLocForInst(RI, getOp2(I)));
+			FixupBranch pNan     = Jit->J_CC(CC_P);
+			FixupBranch pEqual   = Jit->J_CC(CC_Z);
+			FixupBranch pLesser  = Jit->J_CC(CC_C);
+			// Greater
+			Jit->MOV(32, R(destreg), Imm32(0x4));
+			FixupBranch continue1 = Jit->J();
+			// NaN
+			Jit->SetJumpTarget(pNan);
+			Jit->MOV(32, R(destreg), Imm32(0x1));
+			FixupBranch continue2 = Jit->J();
+			// Equal
+			Jit->SetJumpTarget(pEqual);
+			Jit->MOV(32, R(destreg), Imm32(0x2));
+			FixupBranch continue3 = Jit->J();
+			// Less
+			Jit->SetJumpTarget(pLesser);
+			Jit->MOV(32, R(destreg), Imm32(0x8));
+			Jit->SetJumpTarget(continue1);
+			Jit->SetJumpTarget(continue2);
+			Jit->SetJumpTarget(continue3);
+			RI.regs[destreg] = I;
+			fregNormalRegClear(RI, I);
+			break;
+		}
 		case FPAdd: {
 			if (!thisUsed) break;
 			fregEmitBinInst(RI, I, &Jit64::ADDPS);
@@ -1962,7 +2000,14 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			unsigned IdleParam = ibuild->GetImmValue(getOp1(I));
 			unsigned InstLoc = ibuild->GetImmValue(getOp2(I));
 			Jit->ABI_CallFunctionC((void *)&PowerPC::OnIdle, IdleParam);
-			Jit->MOV(32, M(&PowerPC::ppcState.pc), Imm32(InstLoc + 12));
+			Jit->MOV(32, M(&PC), Imm32(InstLoc + 12));
+			Jit->JMP(asm_routines.testExceptions, true);
+			break;
+		}
+		case ShortIdleLoop: {
+			unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
+			Jit->ABI_CallFunction((void *)&CoreTiming::Idle);
+			Jit->MOV(32, M(&PC), Imm32(InstLoc));
 			Jit->JMP(asm_routines.testExceptions, true);
 			break;
 		}
@@ -1998,25 +2043,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 			Jit->WriteRfiExitDestInEAX();
 			break;
 		}
-		case Tramp: {
-			if (!thisUsed) break;
-			// FIXME: Optimize!
-			InstLoc Op = I - 1 - (*I >> 8);
-			if (isFResult(*Op)) {
-				X64Reg reg = fregFindFreeReg(RI);
-				Jit->MOVAPD(reg, fregLocForInst(RI, Op));
-				RI.fregs[reg] = I;
-				if (RI.IInfo[I - RI.FirstI] & 4)
-					fregClearInst(RI, Op);
-			} else {
-				X64Reg reg = regFindFreeReg(RI);
-				Jit->MOV(32, R(reg), regLocForInst(RI, Op));
-				RI.regs[reg] = I;
-				if (RI.IInfo[I - RI.FirstI] & 4)
-					regClearInst(RI, Op);
-			}
-			break;
-		}
+		case Tramp: break;
 		case Nop: break;
 		default:
 			PanicAlert("Unknown JIT instruction; aborting!");
@@ -2034,7 +2061,7 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		}
 	}
 
-	if (UseProfile && RI.numSpills)
+	if (!RI.MakeProfile && RI.numSpills)
 		printf("Block: %x, numspills %d\n", Jit->js.blockStart, RI.numSpills);
 
 	Jit->UD2();

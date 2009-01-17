@@ -280,11 +280,8 @@ public:
 	void subfx(UGeckoInstruction inst);
 	void subfex(UGeckoInstruction inst);
 
-	void lbzx(UGeckoInstruction inst);
-	void lwzx(UGeckoInstruction inst);
+	void lXzx(UGeckoInstruction inst);
 	void lhax(UGeckoInstruction inst);
-	
-	void lwzux(UGeckoInstruction inst);
 
 	void stXx(UGeckoInstruction inst);
 

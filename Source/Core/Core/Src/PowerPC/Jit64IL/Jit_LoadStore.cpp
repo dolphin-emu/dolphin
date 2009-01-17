@@ -39,24 +39,6 @@
 //#define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
 
-void Jit64::lbzx(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
-	if (inst.RA)
-		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
-	ibuild.EmitStoreGReg(ibuild.EmitLoad8(addr), inst.RD);
-}
-
-void Jit64::lwzx(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
-	if (inst.RA)
-		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
-	ibuild.EmitStoreGReg(ibuild.EmitLoad32(addr), inst.RD);
-}
-
 void Jit64::lhax(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -113,15 +95,24 @@ void Jit64::lha(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void Jit64::lwzux(UGeckoInstruction inst)
+void Jit64::lXzx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 	if (inst.RA) {
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
-		ibuild.EmitStoreGReg(addr, inst.RA);
+		if (inst.SUBOP10 & 32)
+			ibuild.EmitStoreGReg(addr, inst.RA);
 	}
-	ibuild.EmitStoreGReg(ibuild.EmitLoad32(addr), inst.RD);
+	IREmitter::InstLoc val;
+	switch (inst.SUBOP10 & ~32)
+	{
+	default: PanicAlert("lXzx: invalid access size");
+	case 23: val = ibuild.EmitLoad32(addr); break; //lwzx
+	case 279: val = ibuild.EmitLoad16(addr); break; //lhzx
+	case 87: val = ibuild.EmitLoad8(addr);  break; //lbzx
+	}
+	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
 // Zero cache line.
@@ -183,10 +174,28 @@ void Jit64::stXx(UGeckoInstruction inst)
 // A few games use these heavily in video codecs.
 void Jit64::lmw(UGeckoInstruction inst)
 {
-	Default(inst); return;
+	INSTRUCTION_START
+	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
+	if (inst.RA)
+		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+	for (int i = inst.RD; i < 32; i++)
+	{
+		IREmitter::InstLoc val = ibuild.EmitLoad32(addr);
+		ibuild.EmitStoreGReg(val, i);
+		addr = ibuild.EmitAdd(addr, ibuild.EmitIntConst(4));
+	}
 }
 
 void Jit64::stmw(UGeckoInstruction inst)
 {
-	Default(inst); return;
+	INSTRUCTION_START
+	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16);
+	if (inst.RA)
+		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
+	for (int i = inst.RD; i < 32; i++)
+	{
+		IREmitter::InstLoc val = ibuild.EmitLoadGReg(i);
+		ibuild.EmitStore32(val, addr);
+		addr = ibuild.EmitAdd(addr, ibuild.EmitIntConst(4));
+	}
 }
