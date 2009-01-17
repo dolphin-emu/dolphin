@@ -1,4 +1,3 @@
-#Someone who would use this, please fix it :)
 SUBDIRS:= `ls | egrep -v '^(CVS)$$'`
 
 all:
@@ -6,4 +5,3 @@ all:
 
 clean:
 	@for i in $(SUBDIRS); do if test -e $$i/Makefile ; then $(MAKE) -C $$i clean || { exit 1;} fi; done;
-
