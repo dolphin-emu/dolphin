@@ -20,13 +20,14 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // System specific declarations and definitions
 // ------------
-#define CALL __cdecl
 
 #ifdef _WIN32
 	#define EXPORT	__declspec(dllexport)
+	#define CALL __cdecl
 #else
 	#define EXPORT	__attribute__ ((visibility("default")))
-	
+	#define __cdecl
+	#define CALL
 	#ifndef TRUE
 		#define TRUE 1
 		#define FALSE 0 
