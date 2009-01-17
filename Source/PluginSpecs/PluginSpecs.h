@@ -18,8 +18,8 @@
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Declarations and definitions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+// System specific declarations and definitions
+// ------------
 #ifdef _WIN32
 	#define EXPORT	__declspec(dllexport)
 	#define CALL	__cdecl
@@ -42,6 +42,12 @@
 #if defined(__cplusplus)
 	extern "C" {
 #endif
+///////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Global values
+// ------------
 
 // Plugin types
 enum PLUGIN_TYPE {
@@ -58,6 +64,12 @@ enum PLUGIN_TYPE {
 #define STATE_MODE_WRITE   2
 #define STATE_MODE_MEASURE 3
 
+///////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Export structs
+// ------------
 typedef struct 
 {
 	u16 Version;		// Set to 0x0100
@@ -110,15 +122,16 @@ EXPORT void CALL DllDebugger(HWND _hParent, bool Show);
 // output:   none
 //
 EXPORT void CALL SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals);
-// __________________________________________________________________________________________________
 
+// ___________________________________________________________________________
 // Function: Initialize
 // Purpose: Initialize the plugin
 // input:    Init
 // output:   none
 //
 EXPORT void CALL Initialize(void *init);
-// __________________________________________________________________________________________________
+
+// ___________________________________________________________________________
 // Function: Shutdown
 // Purpose:  This function is called when the emulator is shutting down
 //           a game allowing the dll to de-initialise.
@@ -127,7 +140,7 @@ EXPORT void CALL Initialize(void *init);
 //
 EXPORT void CALL Shutdown(void);
 
-// __________________________________________________________________________________________________
+// ___________________________________________________________________________
 // Function: DoState
 // Purpose:  Saves/load state
 // input/output: ptr
