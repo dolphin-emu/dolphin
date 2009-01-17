@@ -30,7 +30,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				CommandLine="&quot;$(ProjectDir)..\Common\SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)..\Common\src\svnrev_template.h&quot; &quot;$(ProjectDir)..\Common\src\svnrev.h&quot;"
-				ExcludedFromBuild="true"
+				ExcludedFromBuild="false"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -131,7 +131,7 @@
 				Name="VCPostBuildEventTool"
 				Description="Copying Data\* to $(TargetDir)"
 				CommandLine="xcopy &quot;$(SolutionDir)..\Data&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;echo Copying External .dlls&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\Cg\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\SDL\win32\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;xcopy &quot;$(SolutionDir)..\Externals\WiiUse\Win32\*.dll&quot; &quot;$(TargetDir)&quot; /s /e /q /d&#x0D;&#x0A;"
-				ExcludedFromBuild="true"
+				ExcludedFromBuild="false"
 			/>
 		</Configuration>
 		<Configuration
