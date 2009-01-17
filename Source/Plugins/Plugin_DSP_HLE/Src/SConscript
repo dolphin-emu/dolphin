@@ -36,7 +36,7 @@ if dspenv['HAVE_WX']:
         'Debugger/PBView.cpp',
         'Debugger/Mails.cpp',
         'Debugger/Blocks.cpp',
-        'Logging/Logging.cpp',
+        'Debugger/Logging.cpp',
 
         ]
 

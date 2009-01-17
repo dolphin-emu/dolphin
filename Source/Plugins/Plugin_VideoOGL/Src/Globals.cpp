@@ -54,6 +54,15 @@ void CloseConsole()
 {
 	Console::Close();
 }
+#else
+// Dummy functions for console open/close
+void OpenConsole()
+{
+}
+
+void CloseConsole()
+{
+}
 #endif
 //////////////////////////////////
 

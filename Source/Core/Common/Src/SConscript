@@ -6,6 +6,7 @@ files = [
 	"ABI.cpp",
 	"MsgHandler.cpp",
 	"ChunkFile.cpp",
+	"ConsoleWindow.cpp",
 	"CPUDetect.cpp",
 	"DynamicLibrary.cpp",
 	"Hash.cpp",

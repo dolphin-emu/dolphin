@@ -32,7 +32,6 @@ files = [
 #        "stdafx.cpp",
 	"Tools.cpp",
         "Logging/AXTask.cpp",
-        "Logging/Console.cpp",
         "Logging/Logging.cpp",
         "Logging/ReadPBs.cpp",
 	]
