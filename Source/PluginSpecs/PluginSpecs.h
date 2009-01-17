@@ -1,46 +1,49 @@
-//__________________________________________________________________________________________________
-// Common plugin spec, version #1.0 maintained by F|RES
-//
+//////////////////////////////////////////////////////////////////////////////////////////
+//________________________________________________________________________________________
+// File description: Common plugin spec, version #1.0 maintained by F|RES
+///////////////////////////
 
 #ifndef _PLUGINS_H_INCLUDED__
 #define _PLUGINS_H_INCLUDED__
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// ------------
+#ifdef _WIN32
+	#include <windows.h>
+#endif
 #include "CommonTypes.h"
+///////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #ifdef _WIN32
-#define EXPORT	__declspec(dllexport)
-#define CALL	__cdecl
+	#define EXPORT	__declspec(dllexport)
+	#define CALL	__cdecl
 #else
-#define EXPORT	__attribute__ ((visibility("default")))
-#define CALL
-#endif
+	#define EXPORT	__attribute__ ((visibility("default")))
+	#define CALL
+	#define __cdecl
 
-#define __cdecl
+	#ifndef TRUE
+		#define TRUE 1
+		#define FALSE 0 
+	#endif
 
-#ifdef _WIN32
-
-#include <windows.h>
-
-#else
-
-#ifndef TRUE
-#define TRUE 1
-#define FALSE 0 
-#endif
-
-
-// simulate something that looks like win32
-// long term, kill these
-
-#define HWND  void*
-#define HINSTANCE void*
+	// simulate something that looks like win32
+	// long term, kill these
+	#define HWND  void*
+	#define HINSTANCE void*
 #endif
 
 #if defined(__cplusplus)
-extern "C" {
+	extern "C" {
 #endif
 
-// plugin types
+// Plugin types
 enum PLUGIN_TYPE {
     PLUGIN_TYPE_VIDEO = 1,
     PLUGIN_TYPE_DVD,
@@ -68,6 +71,8 @@ typedef struct
     void *config;
     void *messageLogger;
 } PLUGIN_GLOBALS;
+///////////////////////////////
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // GLOBAL I N T E R F A C E ///////////////////////////////////////////////////
@@ -129,8 +134,11 @@ EXPORT void CALL Shutdown(void);
 // input: mode
 //
 EXPORT void CALL DoState(unsigned char **ptr, int mode);
+///////////////////////////////
+
 
 #if defined(__cplusplus)
-}
+	}
 #endif
-#endif
+
+#endif // _PLUGINS_H_INCLUDED__
