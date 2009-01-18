@@ -51,7 +51,7 @@ public:
 	Common::PluginDSP *GetDSP();
 	Common::PluginVideo *GetVideo();
 
-	bool InitPlugins(SCoreStartupParameter scsp);
+	bool InitPlugins();
 	void ShutdownPlugins();
 	void ScanForPlugins();
 	void OpenConfig(void* _Parent, const char *_rFilename);
@@ -69,6 +69,7 @@ private:
 	Common::PluginWiimote *m_wiimote[4];
 	Common::PluginDSP *m_dsp;
 
+	SCoreStartupParameter& m_params;
 	CPluginManager();
 	~CPluginManager();
 	void *LoadPlugin(const char *_rFilename);

@@ -53,6 +53,7 @@
 #include "PowerPC/PowerPC.h"
  
 #include "PluginManager.h"
+#include "ConfigManager.h"
  
 #include "MemTools.h"
 #include "Host.h"
@@ -173,10 +174,10 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 	// start the thread again
 	_dbg_assert_(HLE, g_pThread == NULL);
  
-	if (!pManager.InitPlugins(_CoreParameter))
+	if (!pManager.InitPlugins())
 	    return false;
 
-	g_CoreStartupParameter = _CoreParameter;
+	g_CoreStartupParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
  
 	emuThreadGoing.Init();
 	// This will execute EmuThread() further down in this file

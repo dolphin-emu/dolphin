@@ -22,18 +22,22 @@
 #include "FileSearch.h"
 #include "FileUtil.h"
 #include "PluginManager.h"
+#include "ConfigManager.h"
+#include "LogManager.h"
 #include "StringUtil.h"
 
 
 CPluginManager CPluginManager::m_Instance;
 
 
-CPluginManager::CPluginManager()
+CPluginManager::CPluginManager() : 
+    m_params(SConfig::GetInstance().m_LocalCoreStartupParameter)
 {
     m_PluginGlobals = new PLUGIN_GLOBALS;
     m_PluginGlobals->eventHandler = EventHandler::GetInstance();
-    m_PluginGlobals->config = NULL;
+    m_PluginGlobals->config = (void *)&SConfig::GetInstance();
     m_PluginGlobals->messageLogger = NULL;
+
 }
 
 
@@ -48,54 +52,57 @@ CPluginManager::~CPluginManager()
     if (m_video)
 	delete m_video;
     
-    for (int i=0;i<1;i++) {
+    for (int i=0;i<MAXPADS;i++) {
 	if (m_pad[i])
 	    delete m_pad[i];
-
+    }
+    
+    for (int i=0;i<MAXWIIMOTES;i++) {
 	if (m_wiimote[i])
 	    delete m_wiimote[i];
-}
+    }
 }
 
-bool CPluginManager::InitPlugins(SCoreStartupParameter scsp) {
+bool CPluginManager::InitPlugins() {
 
-    // TODO error checking
-    m_dsp = (Common::PluginDSP*)LoadPlugin(scsp.m_strDSPPlugin.c_str());
-    if (!m_dsp) {
+    if (! GetVideo()) {
+	PanicAlert("Can't init Video Plugin");
 	return false;
     }
 
-    m_video = (Common::PluginVideo*)LoadPlugin(scsp.m_strVideoPlugin.c_str());
-    if (!m_video)
+    if (! GetDSP()) {
+	PanicAlert("Can't init DSP Plugin");
 	return false;
+    }
 
     bool pad = false;
     bool wiimote = false;
 
     for (int i=0;i<MAXPADS;i++) {
-	if (! scsp.m_strPadPlugin[i].empty())
-	    m_pad[i] = 
-		(Common::PluginPAD*)LoadPlugin(scsp.m_strPadPlugin[i].c_str());
+	if (! m_params.m_strPadPlugin[i].empty())
+	    GetPAD(i);
 
 	if (m_pad[i] != NULL)
 	    pad = true;
     }
 
-    if (! pad)
+    if (! pad) {
+	PanicAlert("Can't init any PAD Plugins");
 	return false;
-
-    if (scsp.bWii) {
+    }
+    if (m_params.bWii) {
 	for (int i=0;i<MAXWIIMOTES;i++) {
-	    if (! scsp.m_strWiimotePlugin[i].empty())
-		m_wiimote[i] = (Common::PluginWiimote*)LoadPlugin
-		    (scsp.m_strWiimotePlugin[i].c_str());
+	    if (! m_params.m_strWiimotePlugin[i].empty())
+		GetWiimote(i);
 
-	    if (m_wiimote[i] == NULL)
+	    if (m_wiimote[i] != NULL)
 		wiimote = true;
 	}
 
-	if (! wiimote)
+	if (! wiimote) {
+	    PanicAlert("Can't init any Wiimote Plugins");
 	    return false;
+	}
     }
 
     return true;
@@ -159,29 +166,32 @@ void CPluginManager::ScanForPlugins()
 }
 
 Common::PluginPAD *CPluginManager::GetPAD(int controller) {
-    //    if (m_pad[controller] == NULL)
-    //	InitPlugins();
+    if (m_pad[controller] == NULL)
+	m_pad[controller] = (Common::PluginPAD*)LoadPlugin
+	    (m_params.m_strPadPlugin[controller].c_str());
 
     return m_pad[controller];
 }
 
 Common::PluginWiimote *CPluginManager::GetWiimote(int controller) {
-    //    if (m_wiimote[controller] == NULL)
-    //	InitPlugins();
-    
+    if (m_wiimote[controller] == NULL)
+	m_wiimote[controller] = (Common::PluginWiimote*)LoadPlugin
+	    (m_params.m_strWiimotePlugin[controller].c_str());
+
     return m_wiimote[controller];
 }
 
 Common::PluginDSP *CPluginManager::GetDSP() {
-    //    if (m_dsp == NULL)
-    //	InitPlugins();
-    
+    if (m_dsp == NULL)
+	m_dsp = (Common::PluginDSP*)LoadPlugin(m_params.m_strDSPPlugin.c_str());
+
     return m_dsp;
 }
 
 Common::PluginVideo *CPluginManager::GetVideo() {
-    //    if (m_video == NULL)
-    //	InitPlugins();
+
+    if (m_video == NULL)
+	m_video = (Common::PluginVideo*)LoadPlugin(m_params.m_strVideoPlugin.c_str());
 
     return m_video;
 }
@@ -239,12 +249,6 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename)
 // -------------
 void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show)
 {
-	//int ret = 1;
-	//int ret = Common::CPlugin::Load(_rFilename, true);
-	//int ret = PluginVideo::LoadPlugin(_rFilename);
-	//int ret = PluginDSP::LoadPlugin(_rFilename);
-
-    
     if (Type == PLUGIN_TYPE_VIDEO) {
 	if(!m_video)
 	    m_video = (Common::PluginVideo*)LoadPlugin(_rFilename);
@@ -254,27 +258,6 @@ void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYP
 	    m_dsp = (Common::PluginDSP*)LoadPlugin(_rFilename);
 	m_dsp->Debug((HWND)_Parent, Show);
     }
-    /*		if (Type)
-		{
-			//Common::CPlugin::Debug((HWND)_Parent);
-			if (!PluginVideo::IsLoaded())
-				PluginVideo::LoadPlugin(_rFilename);
-
-			//PluginVideo::SetDllGlobals(m_PluginGlobals);
-			PluginVideo::Debug((HWND)_Parent, Show);
-		}
-		else
-		{
-			if(!PluginDSP::IsLoaded())
-			    PluginDSP::LoadPlugin(_rFilename);
-
-			//PluginDSP::SetDllGlobals(m_PluginGlobals);
-			PluginDSP::Debug((HWND)_Parent, Show);
-			}*/
-		//Common::CPlugin::Release(); // this is only if the wx dialog is called with ShowModal()
-
-		//m_DllDebugger = (void (__cdecl*)(HWND))PluginVideo::plugin.Get("DllDebugger");
-		//m_DllDebugger(NULL);
 }
 
 // ----------------------------------------
@@ -294,17 +277,6 @@ CPluginInfo::CPluginInfo(const char *_rFileName)
 
 	    delete plugin;
 	}
-	/*
-	The DLL loading code provides enough error messages already. Possibly make some return codes
-	and handle messages here instead?
-	else
-	{
-		if (!File::Exists(_rFileName)) {
-			PanicAlert("Could not load plugin %s - file does not exist", _rFileName);
-		} else {
-			PanicAlert("Failed to load plugin %s - unknown error.\n", _rFileName);
-		}
-	}*/
 }
 
 
