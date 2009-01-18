@@ -29,7 +29,7 @@
 #include "../PatchEngine.h"
 #include "../MemTools.h"
 
-#include "ConfigManager.h"
+#include "../ConfigManager.h"
 #include "VolumeCreator.h"
 #include "Boot.h"
 

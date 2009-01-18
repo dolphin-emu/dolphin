@@ -109,9 +109,11 @@ bool CPluginManager::InitPlugins() {
 }
 
 void CPluginManager::ShutdownPlugins() {
-   for (int i=0;i<1;i++) {
+   for (int i=0;i<MAXPADS;i++) {
        if (m_pad[i])
 	   m_pad[i]->Shutdown();
+   }
+   for (int i=0;i<MAXWIIMOTES;i++) {
        if (m_wiimote[i])
 	   m_wiimote[i]->Shutdown();
    }

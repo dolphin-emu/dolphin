@@ -45,7 +45,7 @@
 #include "../PowerPC/SymbolDB.h"
 #include "../MemTools.h"
 
-#include "ConfigManager.h"
+#include "../ConfigManager.h"
 #include "VolumeCreator.h" // DiscIO
 
 void CBoot::Load_FST(bool _bIsWii)
