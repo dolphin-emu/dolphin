@@ -528,6 +528,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\HW\MemmapFunctions.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\HW\SystemTimers.cpp"
 				>
 			</File>
