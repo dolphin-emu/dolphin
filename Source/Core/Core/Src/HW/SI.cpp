@@ -231,28 +231,22 @@ void UpdateInterrupts();
 
 void Init()
 {
-	for (int i = 0; i < NUMBER_OF_CHANNELS; i++)
-	{
-		g_Channel[i].m_Out.Hex = 0;
-		g_Channel[i].m_InHi.Hex = 0;
-		g_Channel[i].m_InLo.Hex = 0;		
-	}
+    for (int i = 0; i < NUMBER_OF_CHANNELS; i++) {
+	
+	g_Channel[i].m_Out.Hex = 0;
+	g_Channel[i].m_InHi.Hex = 0;
+	g_Channel[i].m_InLo.Hex = 0;		
+    }
 
-	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPAD(0);
-
-	unsigned int AttachedPadMask;
-	if (pad != NULL)
-	    AttachedPadMask = pad->PAD_GetAttachedPads();
-	else  
-	    AttachedPadMask = 1;
-
-	for (int i = 0; i < 4; i++)
-	{
-		if (AttachedPadMask & (1 << i))
-			g_Channel[i].m_pDevice = new CSIDevice_GCController(i);
-		else
-			g_Channel[i].m_pDevice = new CSIDevice_Dummy(i);
-	}
+    // TODO: allow dynamic attaching/detaching of plugins
+    // maybe this code should be in the pad plugin loader at all?
+    for (int i = 0; i < MAXPADS; i++) {
+	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPAD(i);
+	if (pad != NULL && (pad->PAD_GetAttachedPads() & (1 << i)))
+	    g_Channel[i].m_pDevice = new CSIDevice_GCController(i);
+	else
+	    g_Channel[i].m_pDevice = new CSIDevice_Dummy(i);
+    }
 
 	g_Poll.Hex = 0;
 	g_ComCSR.Hex = 0;

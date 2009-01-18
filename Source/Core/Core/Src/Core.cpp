@@ -332,13 +332,19 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.pGenerateDSPInterrupt = Callback_DSPInterrupt;
 	dspInit.pGetAudioStreaming = AudioInterface::Callback_GetStreaming;
 	pm.GetDSP()->Initialize((void *)&dspInit);
- 
+
+	
+	for (int i=0;i<MAXPADS;i++) {
+
 	// Load and Init PadPlugin	
 	SPADInitialize PADInitialize;
 	PADInitialize.hWnd = g_pWindowHandle;
 	PADInitialize.pLog = Callback_PADLog;
-	pm.GetPAD(0)->Initialize((void *)&PADInitialize);
- 
+	PADInitialize.padNumber = i;
+	pm.GetPAD(i)->Initialize((void *)&PADInitialize);
+
+	}
+
 	// Load and Init WiimotePlugin - only if we are booting in wii mode	
 	if (_CoreParameter.bWii) {
 		SWiimoteInitialize WiimoteInitialize;
