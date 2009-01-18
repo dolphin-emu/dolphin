@@ -38,7 +38,9 @@
 
 
 
-
+///////////////////////////////////////////////////////////////////////////////////
+// Includes
+// ----------------
 #include <string>
 #include <vector>
 
@@ -60,7 +62,12 @@
 		#include "../../../Branches/MusicMod/Main/Src/Main.h"  // MusicMod
 	#endif
 #endif
+/////////////////////////////////
 
+
+///////////////////////////////////////////////////////////////////////////////////
+// Declarations and definitions
+// ----------------
 static std::string s_DataBasePath_EUR = "Data_EUR";
 static std::string s_DataBasePath_USA = "Data_USA";
 static std::string s_DataBasePath_JAP = "Data_JAP";
@@ -73,9 +80,14 @@ extern CCodeWindow* g_pCodeWindow;
 namespace BootManager
 {
 #ifdef _WIN32
-extern "C" HINSTANCE wxGetInstance();
+	extern "C" HINSTANCE wxGetInstance();
 #endif
+/////////////////////////////////
 
+
+///////////////////////////////////////////////////////////////////////////////////
+// Boot the ISO or file
+// ----------------
 bool BootCore(const std::string& _rFilename)
 {
 	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
@@ -111,12 +123,10 @@ bool BootCore(const std::string& _rFilename)
 		#endif
 	#endif
 
-	if (!StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT))
-	{
-		return false;
-	}	
+	// If for example the ISO file is bad we return here
+	if (!StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT)) return false;
 
-	// ------------------------------------------------
+	// ====================================================
 	// Load game specific settings
 	// ----------------
 	IniFile ini;
@@ -180,11 +190,12 @@ bool BootCore(const std::string& _rFilename)
 		}
 		// ---------
 	}
-	// ---------
+	// ==============
 
 #if defined(HAVE_WX) && HAVE_WX
 	if(main_frame)
 	{
+		// Save the window handle of the eventual parent to the rendering window
 		StartUp.hMainWindow = main_frame->GetRenderHandle();
 
 		// Now that we know if we have a Wii game we can run this
@@ -222,5 +233,7 @@ void Stop()
 {
 	Core::Stop();
 }
+/////////////////////////////////
+
 
 } // namespace
