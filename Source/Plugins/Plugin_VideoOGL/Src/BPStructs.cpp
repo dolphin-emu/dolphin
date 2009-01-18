@@ -39,22 +39,7 @@
 // ---------------------------------------------------------------------------------------
 // State translation lookup tables
 // -------------
-static const GLenum glSrcFactors[8] =
-{
-    GL_ZERO,
-    GL_ONE,
-    GL_DST_COLOR,
-    GL_ONE_MINUS_DST_COLOR,
-    GL_SRC_ALPHA,
-    GL_ONE_MINUS_SRC_ALPHA, 
-    GL_DST_ALPHA,
-    GL_ONE_MINUS_DST_ALPHA
-};
 
-static const GLenum glDestFactors[8] = {
-    GL_ZERO, GL_ONE, GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR,
-    GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,  GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA
-};
 static const GLenum glCmpFuncs[8] = {
 	GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL, GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS
 };
@@ -162,7 +147,7 @@ void BPWritten(int addr, int changes, int newval)
             VertexManager::Flush();
             ((u32*)&bpmem)[addr] = newval;
             PRIM_LOG("constalpha: alp=%d, en=%d\n", bpmem.dstalpha.alpha, bpmem.dstalpha.enable);
-            PixelShaderManager::SetDestAlpha(bpmem.dstalpha);
+			Renderer::SetBlendMode(false);
         }
         break;
 
@@ -191,14 +176,7 @@ void BPWritten(int addr, int changes, int newval)
             PRIM_LOG("blendmode: en=%d, open=%d, colupd=%d, alphaupd=%d, dst=%d, src=%d, sub=%d, mode=%d\n", 
                 bpmem.blendmode.blendenable, bpmem.blendmode.logicopenable, bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate,
                 bpmem.blendmode.dstfactor, bpmem.blendmode.srcfactor, bpmem.blendmode.subtract, bpmem.blendmode.logicmode);
-
-            if (changes & 1) {
-                if (bpmem.blendmode.blendenable) {
-                    glEnable(GL_BLEND);
-                    
-                }
-                else glDisable(GL_BLEND);
-            }
+            
             if (changes & 2) {
                 if (Renderer::CanBlendLogicOp()) {
                     if (bpmem.blendmode.logicopenable) {
@@ -251,22 +229,14 @@ void BPWritten(int addr, int changes, int newval)
                 //    }
                 //}
             }
-            if (changes & 4) {
+            /*if (changes & 4) {
                 // pointless
                 //if (bpmem.blendmode.dither) glEnable(GL_DITHER);
                 //else glDisable(GL_DITHER);
             }
-            if (changes & 0xFE0) {
-                if (!bpmem.blendmode.subtract)
-                    glBlendFunc(glSrcFactors[bpmem.blendmode.srcfactor], glDestFactors[bpmem.blendmode.dstfactor]);
-            }
-            if (changes & 0x800) {
-                glBlendEquation(bpmem.blendmode.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD);
-                if (bpmem.blendmode.subtract)
-                    glBlendFunc(GL_ONE, GL_ONE);
-                else
-                    glBlendFunc(glSrcFactors[bpmem.blendmode.srcfactor], glDestFactors[bpmem.blendmode.dstfactor]);
-            }
+            */
+			if (changes & 0xFE1)
+				Renderer::SetBlendMode(false);
 
             if (changes & 0x18) 
                 Renderer::SetColorMask();

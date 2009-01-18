@@ -502,7 +502,6 @@ void Update()
     {
         LastTime += (TicksPerFrame / LineCount);
 
-        //
         VerticalBeamPos++;
         if (VerticalBeamPos > LineCount)
         {
@@ -517,19 +516,19 @@ void Update()
 			if (NextXFBRender == 1)
 			{
 				NextXFBRender = LinesPerField;
-				// The & mask is a hack for mario kart
-				u32 addr = (VideoInterface::m_FrameBufferTop.Hex & 0xFFFFFFF) | 0x80000000;
-				if (addr >= 0x80000000 &&
-					addr <= (0x81800000-640*480*2))
-					xfbPtr = Memory::GetPointer(addr);
+				u32 addr = (VideoInterface::m_FrameBufferTop.Hex & 0xFFFFFFF);
+				if (VideoInterface::m_FrameBufferTop.Hex & 0x10000000)
+					addr = addr << 5;
+				xfbPtr = Memory::GetPointer(addr);
 			}
 			else
 			{
 				NextXFBRender = 1;
-				u32 addr = (VideoInterface::m_FrameBufferBottom.Hex & 0xFFFFFFF) | 0x80000000;
-				if (addr >= 0x80000000 &&
-					addr <= (0x81800000-640*480*2))
-					xfbPtr = Memory::GetPointer(addr);
+				u32 addr = (VideoInterface::m_FrameBufferBottom.Hex & 0xFFFFFFF);
+				// check the top buffer address not the bottom
+				if (VideoInterface::m_FrameBufferTop.Hex & 0x10000000)
+					addr = addr << 5;
+				xfbPtr = Memory::GetPointer(addr);
 				yOffset = -1;
 			}
 			Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();

@@ -102,11 +102,30 @@ static bool s_bHaveStencilBuffer = false;
 
 static Renderer::RenderMode s_RenderMode = Renderer::RM_Normal;
 bool g_bBlendLogicOp = false;
+bool g_bBlendSeparate = false;
 int frameCount;
 
 void HandleCgError(CGcontext ctx, CGerror err, void *appdata);
 /////////////////////////////
 
+static const GLenum glSrcFactors[8] =
+{
+    GL_ZERO,
+    GL_ONE,
+    GL_DST_COLOR,
+    GL_ONE_MINUS_DST_COLOR,
+    GL_SRC_ALPHA,
+    GL_ONE_MINUS_SRC_ALPHA, 
+    GL_DST_ALPHA,
+    GL_ONE_MINUS_DST_ALPHA
+};
+
+static const GLenum glDestFactors[8] = {
+    GL_ZERO, GL_ONE, GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR,
+    GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,  GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA
+};
+
+static u32 s_blendMode;
 
 bool Renderer::Init()
 {
@@ -126,6 +145,8 @@ bool Renderer::Init()
 
     if (strstr(ptoken, "GL_EXT_blend_logic_op") != NULL)
         g_bBlendLogicOp = true;
+	if (strstr(ptoken, "GL_EXT_blend_func_separate") != NULL && strstr(ptoken, "GL_EXT_blend_equation_separate") != NULL)
+        g_bBlendSeparate = true;
     if (strstr(ptoken, "ATI_draw_buffers") != NULL  && strstr(ptoken, "ARB_draw_buffers") == NULL)
         //Checks if it ONLY has the ATI_draw_buffers extension, some have both
         s_bATIDrawBuffers = true;
@@ -556,12 +577,12 @@ void Renderer::RestoreGLState()
 
     if (bpmem.genMode.cullmode > 0) glEnable(GL_CULL_FACE);
     if (bpmem.zmode.testenable) glEnable(GL_DEPTH_TEST);
-    if (bpmem.blendmode.blendenable) glEnable(GL_BLEND);
     if (bpmem.zmode.updateenable) glDepthMask(GL_TRUE);
 
     glEnable(GL_VERTEX_PROGRAM_ARB);
     glEnable(GL_FRAGMENT_PROGRAM_ARB);
     SetColorMask();
+	SetBlendMode(true);
 }
 
 void Renderer::SetColorMask()
@@ -572,6 +593,68 @@ void Renderer::SetColorMask()
         glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_TRUE);
     else if (bpmem.blendmode.colorupdate) 
         glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_FALSE);
+}
+
+void Renderer::SetBlendMode(bool forceUpdate)
+{	
+	// blend mode bit mask
+	// 0 - blend enable
+	// 1 - dst alpha enable
+	// 2 - reverse subtract enable (else add)
+	// 3-5 - srcRGB function
+	// 6-8 - dstRGB function
+	// 9-16 - dstAlpha
+
+	u32 newval = bpmem.blendmode.subtract << 2;
+
+	if (g_bBlendSeparate) {
+		newval |= bpmem.dstalpha.enable ? 3 : 0;
+		newval |= bpmem.dstalpha.alpha << 9;
+	}
+
+	if (bpmem.blendmode.blendenable) {		
+		newval |= 1;
+
+		if (bpmem.blendmode.subtract) {
+			newval |= 0x0048; // src 1 dst 1
+		} else {
+			newval |= bpmem.blendmode.srcfactor << 3;
+			newval |= bpmem.blendmode.dstfactor << 6;
+		}
+	} else {
+		newval |= 0x0008;	// src 1 dst 0
+	}
+
+	u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
+
+	if (changes & 1) {
+		newval & 1 ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+	}
+
+	bool dstAlphaEnable = g_bBlendSeparate && newval & 2;
+
+	if (changes & 6) {		
+		// dst alpha enable or subtract enable change
+		if (dstAlphaEnable)
+			glBlendEquationSeparate(newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD, GL_FUNC_ADD);
+		else
+			glBlendEquation(newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD);
+	}
+
+	if (changes & 0x1FA) {
+		// dst alpha enable or blend RGB change
+		if (dstAlphaEnable)
+			glBlendFuncSeparate(glSrcFactors[(newval >> 3) & 7], glDestFactors[(newval >> 6) & 7], GL_CONSTANT_ALPHA, GL_ZERO);
+		else
+			glBlendFunc(glSrcFactors[(newval >> 3) & 7], glDestFactors[(newval >> 6) & 7]);
+	}
+
+	if (dstAlphaEnable && changes & 0x1FE00) {
+		// dst alpha color change
+		glBlendColor(0, 0, 0, (float)bpmem.dstalpha.alpha / 255.0f);
+	}
+
+	s_blendMode = newval;
 }
 
 // Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()

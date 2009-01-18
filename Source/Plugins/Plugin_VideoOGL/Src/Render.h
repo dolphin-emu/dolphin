@@ -116,6 +116,7 @@ public:
     static GLuint GetZBufferTarget();
 
     static void SetColorMask();
+	static void SetBlendMode(bool forceUpdate);
 	static bool SetScissorRect();
 
     static void SetRenderMode(RenderMode mode);
