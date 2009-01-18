@@ -712,6 +712,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\Debugger\Logging.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\Debugger\Mails.cpp"
 				>
 			</File>
