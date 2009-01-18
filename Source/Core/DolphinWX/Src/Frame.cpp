@@ -285,7 +285,7 @@ CFrame::CFrame(wxFrame* parent,
 	SetIcon(IconTemp);
 
 	// Give it a status bar
-	m_pStatusBar = CreateStatusBar(1, 0, ID_STATUSBAR);
+	m_pStatusBar = CreateStatusBar(1, wxST_SIZEGRIP, ID_STATUSBAR);
 
 	// Give it a menu bar
 	CreateMenu();
