@@ -187,6 +187,7 @@ void SConfig::LoadSettings()
 
 		ini.Get("Core", "RunCompareServer", &m_LocalCoreStartupParameter.bRunCompareServer, false);
 		ini.Get("Core", "RunCompareClient", &m_LocalCoreStartupParameter.bRunCompareClient, false);
+		ini.Get("Core", "TLBHack", &m_LocalCoreStartupParameter.iTLBHack, 0);
 
 		// Plugins
 		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin, m_DefaultGFXPlugin.c_str());
