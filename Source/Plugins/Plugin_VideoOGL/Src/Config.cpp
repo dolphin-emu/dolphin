@@ -45,7 +45,7 @@ void Config::Load()
     
     iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
     iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, 0);
-    iniFile.Get("Settings", "StretchToFit", &bStretchToFit, false);
+    iniFile.Get("Settings", "StretchToFit", &bStretchToFit, true);
     iniFile.Get("Settings", "KeepAR", &bKeepAR, false);
     iniFile.Get("Settings", "HideCursor", &bHideCursor, false);
     
