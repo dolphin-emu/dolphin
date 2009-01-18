@@ -100,7 +100,6 @@ bool BootCore(const std::string& _rFilename)
 
 	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
 	StartUp.m_strFilename = _rFilename;
-	//	SConfig::GetInstance().m_LastFilename = StartUp.m_strFilename;
 	StartUp.bRunCompareClient = false;
 	StartUp.bRunCompareServer = false;
 	std::string BaseDataPath;
@@ -183,11 +182,6 @@ bool BootCore(const std::string& _rFilename)
 	}
 	// ---------
 
-	// Save some values to our local version of SCoreStartupParameter
-	//	SConfig::GetInstance().m_LocalCoreStartupParameter.bWii = StartUp.bWii;
-	//	SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC = StartUp.bNTSC;
-	//	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strUniqueID = StartUp.m_strUniqueID;
-
 #if defined(HAVE_WX) && HAVE_WX
 	if(main_frame)
 	{
@@ -198,7 +192,7 @@ bool BootCore(const std::string& _rFilename)
 	}
 #endif
 	// init the core
-	if (!Core::Init(StartUp))
+	if (!Core::Init())
 	{
 		PanicAlert("Couldn't init the core.\nCheck your configuration.");
 		return false;

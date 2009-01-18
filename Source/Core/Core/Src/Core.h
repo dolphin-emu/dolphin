@@ -41,35 +41,36 @@ namespace Core
     };
 
     // Init core
-    bool Init(const SCoreStartupParameter _CoreParameter);
+    bool Init();
     void Stop();
-
+    
     bool SetState(EState _State);
     EState GetState();
 
-	// Save/Load state
-	void SaveState();
-	void LoadState();
-
-    // Get core parameters
-	extern SCoreStartupParameter g_CoreStartupParameter; //uck
+    // Save/Load state
+    void SaveState();
+    void LoadState();
+    
+    // Get core parameters kill use SConfig instead
     const SCoreStartupParameter& GetStartupParameter();
+    extern SCoreStartupParameter g_CoreStartupParameter; 
+
 
     // Make a screen shot
     bool MakeScreenshot(const std::string& _rFilename);
     void* GetWindowHandle();
-	bool GetRealWiimote();
-
-	extern bool bReadTrace;
-	extern bool bWriteTrace;
-
-	void StartTrace(bool write);
-	void DisplayMessage(const std::string &message, int time_in_ms); // This displays messages in a user-visible way.
-	void DisplayMessage(const char *message, int time_in_ms); // This displays messages in a user-visible way.
-
-	int SyncTrace();
-	void SetBlockStart(u32 addr);
-	void StopTrace();
+    bool GetRealWiimote();
+    
+    extern bool bReadTrace;
+    extern bool bWriteTrace;
+    
+    void StartTrace(bool write);
+    void DisplayMessage(const std::string &message, int time_in_ms); // This displays messages in a user-visible way.
+    void DisplayMessage(const char *message, int time_in_ms); // This displays messages in a user-visible way.
+    
+    int SyncTrace();
+    void SetBlockStart(u32 addr);
+    void StopTrace();
 }  // namespace
 
 #endif

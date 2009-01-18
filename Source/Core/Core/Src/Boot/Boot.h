@@ -36,7 +36,7 @@ public:
 		BOOT_BIOS
 	};
 
-	static bool BootUp(const SCoreStartupParameter& _StartupPara);
+	static bool BootUp();
 	static bool IsElfWii(const char *filename);
 
 	static std::string GenerateMapFilename();

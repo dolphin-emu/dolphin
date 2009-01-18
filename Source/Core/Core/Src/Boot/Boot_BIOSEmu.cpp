@@ -29,6 +29,7 @@
 #include "../PatchEngine.h"
 #include "../MemTools.h"
 
+#include "ConfigManager.h"
 #include "VolumeCreator.h"
 #include "Boot.h"
 
@@ -152,10 +153,11 @@ void CBoot::EmulatedBIOS(bool _bDebug)
     Memory::Write_U32(0x1cf7c580, 0x800000FC);
 
     // fake the VI Init of the BIOS 
-    Memory::Write_U32(Core::g_CoreStartupParameter.bNTSC ? 0 : 1, 0x800000CC);
+    Memory::Write_U32(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC 
+		      ? 0 : 1, 0x800000CC);
 
     // preset time base ticks
-	Memory::Write_U64( (u64)CEXIIPL::GetGCTime() * (u64)40500000, 0x800030D8);
+    Memory::Write_U64( (u64)CEXIIPL::GetGCTime() * (u64)40500000, 0x800030D8);
 }
 
 
@@ -289,8 +291,8 @@ bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
 		    Memory::Write_U8(0x00, 0x00000007);				// DVDInit
 		    Memory::Write_U16(0x0000, 0x000030e0);			// PADInit
 
-			// Fake the VI Init of the BIOS 
-			Memory::Write_U32(Core::g_CoreStartupParameter.bNTSC ? 0 : 1, 0x000000CC);
+		    // Fake the VI Init of the BIOS 
+		    Memory::Write_U32(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC ? 0 : 1, 0x000000CC);
 
 		    // Clear exception handler. Why? Don't we begin with only zeroes?
 		    for (int i = 0x3000; i <= 0x3038; i += 4)

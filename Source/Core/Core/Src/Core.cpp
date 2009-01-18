@@ -106,9 +106,7 @@ bool g_bHwInit = false;
 bool g_bRealWiimote = false;
 HWND g_pWindowHandle = NULL;
 Common::Thread* g_pThread = NULL;
- 
-SCoreStartupParameter g_CoreStartupParameter; //uck
- 
+SCoreStartupParameter g_CoreStartupParameter; 
 Common::Event emuThreadGoing;
 //////////////////////////////////////
  
@@ -139,11 +137,6 @@ void Callback_DebuggerBreak()
 	CCPU::EnableStepping(true);
 }
  
-const SCoreStartupParameter& GetStartupParameter()
-{
-	return g_CoreStartupParameter;
-}
- 
 void* GetWindowHandle()
 {
     return g_pWindowHandle;
@@ -159,7 +152,7 @@ bool GetRealWiimote()
 //////////////////////////////////////////////////////////////////////////////////////////
 // This is called from the GUI thread. See the booting call schedule in BootManager.cpp
 // 
-bool Init(const SCoreStartupParameter _CoreParameter)
+bool Init()
 {
 	if (g_pThread != NULL) {
 		PanicAlert("ERROR: Emu Thread already running. Report this bug.");
@@ -167,7 +160,9 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 	}
  
 	CPluginManager &pManager  = CPluginManager::GetInstance();
- 
+	SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+
+	g_CoreStartupParameter = _CoreParameter;
 	LogManager::Init();	
 	Host_SetWaitCursor(true);
  
@@ -177,11 +172,9 @@ bool Init(const SCoreStartupParameter _CoreParameter)
 	if (!pManager.InitPlugins())
 	    return false;
 
-	g_CoreStartupParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
- 
 	emuThreadGoing.Init();
 	// This will execute EmuThread() further down in this file
-	g_pThread = new Common::Thread(EmuThread, (void*)&g_CoreStartupParameter);
+	g_pThread = new Common::Thread(EmuThread, NULL);
 	emuThreadGoing.Wait();
 	emuThreadGoing.Shutdown();
 	// all right ... here we go
@@ -237,8 +230,9 @@ THREAD_RETURN CpuThread(void *pArg)
 {
     Common::SetCurrentThreadName("CPU thread");
  
-    const SCoreStartupParameter& _CoreParameter = g_CoreStartupParameter;
-    if (!g_CoreStartupParameter.bUseDualCore)
+    const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+
+    if (!_CoreParameter.bUseDualCore)
 	{
 	    //wglMakeCurrent
 	    CPluginManager::GetInstance().GetVideo()->Video_Prepare(); 
@@ -287,7 +281,8 @@ THREAD_RETURN CpuThread(void *pArg)
 THREAD_RETURN EmuThread(void *pArg)
 {
 	Common::SetCurrentThreadName("Emuthread - starting");
-	const SCoreStartupParameter _CoreParameter = *(SCoreStartupParameter*)pArg;
+	const SCoreStartupParameter _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+
 	CPluginManager &pm  = CPluginManager::GetInstance();
 	if (_CoreParameter.bLockThreads)
 		Common::Thread::SetCurrentThreadAffinity(2); // Force to second core
@@ -359,7 +354,7 @@ THREAD_RETURN EmuThread(void *pArg)
  
 	// Load GCM/DOL/ELF whatever ... we boot with the interpreter core
 	PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
-	CBoot::BootUp(_CoreParameter);
+	CBoot::BootUp();
  
 	if( g_pUpdateFPSDisplay != NULL )
         g_pUpdateFPSDisplay("Loading...");
@@ -387,7 +382,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	// ENTER THE VIDEO THREAD LOOP
 	//////////////////////////////////////////////////////////////////////////
  
-	if (!Core::GetStartupParameter().bUseDualCore)
+	if (!_CoreParameter.bUseDualCore)
 	{
 #ifdef _WIN32
 	    cpuThread = new Common::Thread(CpuThread, pArg);
@@ -528,11 +523,13 @@ void Callback_VideoLog(const TCHAR *_szMessage, int _bDoBreak)
 // We do not touch anything outside this function here
 void Callback_VideoCopiedToXFB()
 { 
+    SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	//count FPS
 	static Common::Timer Timer;
 	static u32 frames = 0;
 	static u64 ticks = 0;
 	static u64 idleTicks = 0;
+
 	frames++;
  
 	if (Timer.GetTimeDifference() >= 1000)
@@ -550,15 +547,15 @@ void Callback_VideoCopiedToXFB()
 		char temp[256];
 		sprintf(temp, "FPS:%8.2f - Core: %s | %s - Speed: %i MHz [Real: %i + IdleSkip: %i] / %i MHz", 
 			(float)frames / t, 
-			g_CoreStartupParameter.bUseJIT ? "JIT" : "Interpreter", 
-			g_CoreStartupParameter.bUseDualCore ? "DC" : "SC",
+			_CoreParameter.bUseJIT ? "JIT" : "Interpreter", 
+			_CoreParameter.bUseDualCore ? "DC" : "SC",
 			(int)(diff),
 			(int)(diff-idleDiff),
 			(int)(idleDiff),
 			SystemTimers::GetTicksPerSecond()/1000000);
  
 		if (g_pUpdateFPSDisplay != NULL)
-            g_pUpdateFPSDisplay(temp);
+		    g_pUpdateFPSDisplay(temp);
  
 		Host_UpdateStatusBar(temp);
  
@@ -600,8 +597,9 @@ void Callback_PADLog(const TCHAR* _szMessage)
 //std::string Callback_ISOName(void)
 const char *Callback_ISOName(void)
 {
-	if (g_CoreStartupParameter.m_strName.length() > 0)
-		return (const char *)g_CoreStartupParameter.m_strName.c_str();
+    SCoreStartupParameter& params = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	if (params.m_strName.length() > 0)
+		return (const char *)params.m_strName.c_str();
 	else	
           return (const char *)"";
 }
@@ -630,4 +628,10 @@ void Callback_WiimoteLog(const TCHAR* _szMessage, int _v)
 	LOGV(WII_IPC_WIIMOTE, _v, _szMessage);
 }
  
+// TODO: Get rid of at some point
+const SCoreStartupParameter& GetStartupParameter() {
+    return SConfig::GetInstance().m_LocalCoreStartupParameter;
+}
+
 } // end of namespace Core
+

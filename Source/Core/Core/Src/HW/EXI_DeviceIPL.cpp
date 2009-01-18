@@ -19,6 +19,8 @@
 
 #include "EXI_DeviceIPL.h"
 #include "../Core.h"
+#include "../ConfigManager.h"
+
 #include "MemoryUtil.h"
 
 // english
@@ -109,7 +111,7 @@ CEXIIPL::CEXIIPL() :
 	memset(m_RTC, 0, sizeof(m_RTC));
 
 	// SRAM
-    pStream = fopen(Core::GetStartupParameter().m_strSRAM.c_str(), "rb");
+    pStream = fopen(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strSRAM.c_str(), "rb");
     if (pStream != NULL)
     {
         fread(m_SRAM, 1, 64, pStream);
@@ -120,7 +122,7 @@ CEXIIPL::CEXIIPL() :
         memcpy(m_SRAM, sram_dump, sizeof(m_SRAM));
     }
     // We Overwrite it here since it's possible on the GC to change the language as you please
-    m_SRAM[0x12] = Core::GetStartupParameter().SelectedLanguage;
+    m_SRAM[0x12] = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 
 	WriteProtectMemory(m_pIPL, ROM_SIZE);
 	m_uAddress = 0;		
@@ -140,7 +142,7 @@ CEXIIPL::~CEXIIPL()
 	}	
 
     // SRAM
-    FILE *file = fopen(Core::GetStartupParameter().m_strSRAM.c_str(), "wb");
+    FILE *file = fopen(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strSRAM.c_str(), "wb");
     if (file)
     {
         fwrite(m_SRAM, 1, 64, file);

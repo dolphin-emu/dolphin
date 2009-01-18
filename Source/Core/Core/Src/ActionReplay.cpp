@@ -36,6 +36,7 @@
 #include "Core.h"
 #include "ARDecrypt.h"
 #include "LogManager.h"
+#include "ConfigManager.h"
 
 namespace ActionReplay
 {
@@ -73,7 +74,8 @@ bool SetLineSkip(int codetype, u8 subtype, bool *pSkip, bool skip, int *pCount);
 void LoadCodes(IniFile &ini, bool forceLoad)
 {
 	// Parses the Action Replay section of a game ini file.
-	if (!Core::GetStartupParameter().bEnableCheats && !forceLoad) 
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats 
+	    && !forceLoad) 
 		return;
 
 	std::vector<std::string> lines;
@@ -197,7 +199,7 @@ void LogInfo(const char *format, ...)
 
 void RunAllActive()
 {
-	if (Core::GetStartupParameter().bEnableCheats) {
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats) {
 		for (std::vector<ARCode>::iterator i = activeCodes.begin(); i != activeCodes.end(); ++i) 
 		{
 			if (i->active)

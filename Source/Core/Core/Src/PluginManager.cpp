@@ -250,13 +250,9 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename)
 void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show)
 {
     if (Type == PLUGIN_TYPE_VIDEO) {
-	if(!m_video)
-	    m_video = (Common::PluginVideo*)LoadPlugin(_rFilename);
-	m_video->Debug((HWND)_Parent, Show);
+	GetVideo()->Debug((HWND)_Parent, Show);
     } else if (Type == PLUGIN_TYPE_DSP) {
-	if (!m_dsp)
-	    m_dsp = (Common::PluginDSP*)LoadPlugin(_rFilename);
-	m_dsp->Debug((HWND)_Parent, Show);
+	GetDSP()->Debug((HWND)_Parent, Show);
     }
 }
 

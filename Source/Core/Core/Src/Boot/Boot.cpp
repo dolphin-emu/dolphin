@@ -45,6 +45,7 @@
 #include "../PowerPC/SymbolDB.h"
 #include "../MemTools.h"
 
+#include "ConfigManager.h"
 #include "VolumeCreator.h" // DiscIO
 
 void CBoot::Load_FST(bool _bIsWii)
@@ -91,7 +92,7 @@ std::string CBoot::GenerateMapFilename()
 	std::string strMapFilename;
 	BuildCompleteFilename(strMapFilename, strDriveDirectory, strFullfilename);
 	*/
-	return FULL_MAPS_DIR + Core::GetStartupParameter().GetUniqueID() + ".map";
+	return FULL_MAPS_DIR + SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID() + ".map";
 }
 
 bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_gameID)
@@ -154,9 +155,11 @@ bool CBoot::Load_BIOS(const std::string& _rBiosFilename)
 //////////////////////////////////////////////////////////////////////////////////////////
 // Third boot step after BootManager and Core. See Call schedule in BootManager.cpp
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
-bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
+bool CBoot::BootUp()
 {
     const bool bDebugIsoBootup = false;
+    SCoreStartupParameter& _StartupPara = 
+	SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	g_symbolDB.Clear();
     VideoInterface::PreInit(_StartupPara.bNTSC);
@@ -171,7 +174,7 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
                 break;
 
             bool isoWii = DiscIO::IsVolumeWiiDisc(pVolume);           
-			if (isoWii != Core::GetStartupParameter().bWii)
+			if (isoWii != _StartupPara.bWii)
 			{
 				PanicAlert("Warning - starting ISO in wrong console mode!");
 			}
@@ -192,7 +195,7 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
 		            EmulatedBIOS(bDebugIsoBootup);
 				else
 				{
-					Core::g_CoreStartupParameter.bWii = true;
+					_StartupPara.bWii = true;
 					EmulatedBIOS_Wii(bDebugIsoBootup);
 				}
             } 
@@ -206,7 +209,7 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
 						EmulatedBIOS(bDebugIsoBootup);
 					else
 					{
-						Core::g_CoreStartupParameter.bWii = true;
+						_StartupPara.bWii = true;
 						EmulatedBIOS_Wii(bDebugIsoBootup);
 					}
                 }
@@ -248,7 +251,7 @@ bool CBoot::BootUp(const SCoreStartupParameter& _StartupPara)
 
 			// Check if we have gotten a Wii file or not
 			bool elfWii = IsElfWii(_StartupPara.m_strFilename.c_str());
-			if (elfWii != Core::GetStartupParameter().bWii)
+			if (elfWii != _StartupPara.bWii)
 			{
 				PanicAlert("Warning - starting ELF in wrong console mode!");
 			}

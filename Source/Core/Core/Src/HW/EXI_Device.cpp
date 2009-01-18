@@ -25,7 +25,7 @@
 #include "EXI_DeviceEthernet.h"
 
 #include "../Core.h"
-
+#include "../ConfigManager.h"
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // --- interface IEXIDevice ---
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,11 +131,11 @@ IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
 		break;
 
 	case EXIDEVICE_MEMORYCARD_A:
-        return new CEXIMemoryCard("MemoryCardA", Core::GetStartupParameter().m_strMemoryCardA, 0);
+        return new CEXIMemoryCard("MemoryCardA", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strMemoryCardA, 0);
 		break;
 
 	case EXIDEVICE_MEMORYCARD_B:
-		return new CEXIMemoryCard("MemoryCardB", Core::GetStartupParameter().m_strMemoryCardB, 1);
+		return new CEXIMemoryCard("MemoryCardB", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strMemoryCardB, 1);
 		break;
 
 	case EXIDEVICE_IPL:

@@ -26,6 +26,7 @@
 #include "CommandProcessor.h"
 #include "CPU.h"
 #include "../Core.h"
+#include "../ConfigManager.h"
 
 namespace PixelEngine
 {
@@ -145,7 +146,7 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
 bool AllowIdleSkipping()
 {
-	return !Core::g_CoreStartupParameter.bUseDualCore || (!g_ctrlReg.PETokenEnable && !g_ctrlReg.PEFinishEnable);
+	return !SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore || (!g_ctrlReg.PETokenEnable && !g_ctrlReg.PEFinishEnable);
 }
 
 void UpdateInterrupts()

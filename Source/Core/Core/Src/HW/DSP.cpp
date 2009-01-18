@@ -41,6 +41,7 @@
 #include "AudioInterface.h"
 #include "../PowerPC/PowerPC.h"
 #include "../PluginManager.h"
+#include "../ConfigManager.h"
 
 namespace DSP
 {
@@ -178,7 +179,7 @@ u16 g_AR_MODE = 0x43;		// 0x23 -> Zelda standard mode (standard ARAM access ??)
 
 void DoState(PointerWrap &p)
 {
-	if (!Core::GetStartupParameter().bWii)
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		p.DoArray(g_ARAM, ARAM_SIZE);
 	p.Do(g_dspState);
 	p.Do(g_audioDMA);
@@ -203,7 +204,7 @@ void GenerateDSPInterrupt_Wrapper(u64 userdata, int cyclesLate)
 
 void Init()
 {
-	if (Core::GetStartupParameter().bWii)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		// On the Wii, ARAM is simply mapped to EXRAM.
 		g_ARAM = Memory::GetPointer(0x00000000);
@@ -220,7 +221,7 @@ void Init()
 
 void Shutdown()
 {
-	if (!Core::GetStartupParameter().bWii)
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		FreeMemoryPages(g_ARAM, ARAM_SIZE);
 	g_ARAM = NULL;
 }
@@ -626,7 +627,7 @@ u8 ReadARAM(u32 _iAddress)
 	//LOGV(DSPINTERFACE, 0, "ARAM (r) 0x%08x", _iAddress);
 
 //	_dbg_assert_(DSPINTERFACE,(_iAddress) < ARAM_SIZE);
-	if(Core::GetStartupParameter().bWii)
+	if(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		//LOGV(DSPINTERFACE, 0, "ARAM (r) 0x%08x 0x%08x 0x%08x", WII_MASK, _iAddress, (_iAddress & WII_MASK));
 

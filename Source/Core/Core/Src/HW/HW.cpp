@@ -34,6 +34,7 @@
 #include "VideoInterface.h"
 #include "WII_IPC.h"
 #include "../PluginManager.h"
+#include "../ConfigManager.h"
 #include "../CoreTiming.h"
 #include "SystemTimers.h"
 #include "../IPC_HLE/WII_IPC_HLE.h"
@@ -63,7 +64,7 @@ namespace HW
 		ExpansionInterface::Init();
 		CCPU::Init();
 		SystemTimers::Init();
-		if (Core::GetStartupParameter().bWii)
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		{
 			WII_IPC_HLE_Interface::Init();
 			WII_IPCInterface::Init();
@@ -81,7 +82,7 @@ namespace HW
 		SerialInterface::Shutdown();
 		AudioInterface::Shutdown();
 
-		if (Core::GetStartupParameter().bWii)
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		{
 			WII_IPC_HLE_Interface::Shutdown();
 			WII_IPCInterface::Shutdown();

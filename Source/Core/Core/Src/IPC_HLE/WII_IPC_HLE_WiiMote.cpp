@@ -21,6 +21,7 @@
 #include "WII_IPC_HLE_WiiMote.h" // Core
 #include "WII_IPC_HLE_Device_usb.h"
 #include "../PluginManager.h"
+#include "../ConfigManager.h"
 #include "../Host.h"
 #include "../Core.h"
 
@@ -385,8 +386,9 @@ void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 void CWII_IPC_HLE_WiiMote::ShowStatus(const void* _pData)
 {
 	// Check if it's enabled
-	bool LedsOn = Core::g_CoreStartupParameter.bWiiLeds;
-	bool SpeakersOn = Core::g_CoreStartupParameter.bWiiSpeakers;
+    SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	bool LedsOn = StartUp.bWiiLeds;
+	bool SpeakersOn = StartUp.bWiiSpeakers;
 
 	const u8* data = (const u8*)_pData;
 
@@ -438,7 +440,7 @@ void CWII_IPC_HLE_WiiMote::ShowStatus(const void* _pData)
 void CWII_IPC_HLE_WiiMote::UpdateStatus()
 {
 	// Check if it's enabled
-	if (!Core::g_CoreStartupParameter.bWiiSpeakers)
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiSpeakers)
 		return;
 	Host_UpdateStatus();
 }

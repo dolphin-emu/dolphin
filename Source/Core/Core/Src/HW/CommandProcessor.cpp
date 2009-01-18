@@ -71,7 +71,7 @@
 #include "../PowerPC/PowerPC.h"
 #include "../CoreTiming.h"
 #include "../PluginManager.h"
-
+#include "../ConfigManager.h"
 #include "MathUtil.h"
 #include "Thread.h"
 
@@ -332,7 +332,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 
 bool AllowIdleSkipping()
 {
-	return !Core::g_CoreStartupParameter.bUseDualCore || (!m_CPCtrlReg.CPIntEnable && !m_CPCtrlReg.BPEnable);
+	return !SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore || (!m_CPCtrlReg.CPIntEnable && !m_CPCtrlReg.BPEnable);
 }
 
 void Write16(const u16 _Value, const u32 _Address)
@@ -342,7 +342,7 @@ void Write16(const u16 _Value, const u32 _Address)
 	//Spin until queue is empty - it WILL become empty because this is the only thread
 	//that submits data
 
-	if (Core::g_CoreStartupParameter.bUseDualCore)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore)
 	{
 		// Force complete fifo flush if we attempt to set/reset the fifo (API GXSetGPFifo or equivalent)
 		// It's kind of an API hack but it works for lots of games... and I hope it's the same way for every games.
@@ -551,7 +551,7 @@ void Write16(const u16 _Value, const u32 _Address)
 	}
 
 	// TODO(mb2): better. Check if it help: avoid CPReadPointer overwrites when stupidly done like in Super Monkey Ball
-	if ((!fifo.bFF_GPReadEnable && fifo.CPReadIdle) || !Core::g_CoreStartupParameter.bUseDualCore) // TOCHECK(mb2): check again if thread safe?
+	if ((!fifo.bFF_GPReadEnable && fifo.CPReadIdle) || !SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore) // TOCHECK(mb2): check again if thread safe?
 		UpdateFifoRegister();
 }
 
@@ -572,7 +572,7 @@ void STACKALIGN GatherPipeBursted()
 	if (!fifo.bFF_GPLinkEnable)
 		return;
 
-	if (Core::g_CoreStartupParameter.bUseDualCore)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore)
 	{
 		// update the fifo-pointer
 		fifo.CPWritePointer += GPFifo::GATHER_PIPE_SIZE;
@@ -703,7 +703,7 @@ void UpdateFifoRegister()
 	//fifo.CPReadWriteDistance = dist;
 	Common::SyncInterlockedExchange((LONG*)&fifo.CPReadWriteDistance, dist);
 
-	if (!Core::g_CoreStartupParameter.bUseDualCore)
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore)
 		CatchUpGPU();
 }
 
