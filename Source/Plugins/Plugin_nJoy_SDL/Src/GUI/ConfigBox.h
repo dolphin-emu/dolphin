@@ -215,7 +215,7 @@ class ConfigBox : public wxDialog
 			IDTM_CONSTANT, IDTM_BUTTON,
 
 
-			// --------------------------------------------------------------------
+			// ==============================================
 			// Keys objects
 			// -----------------------------
 
@@ -241,7 +241,9 @@ class ConfigBox : public wxDialog
 			ID_DPAD_LEFT,
 			ID_DPAD_RIGHT,
 
-			// Buttons controls (it's important that they are placed in this order)			
+			// -------------------------------------
+			// Buttons controls (it's important that they are kept in this order)	
+			// ------
 			IDB_ANALOG_MAIN_X = 3000,
 			IDB_ANALOG_MAIN_Y,
 			IDB_ANALOG_SUB_X,
@@ -262,6 +264,7 @@ class ConfigBox : public wxDialog
 			IDB_BUTTONSTART,
 
 			IDB_BUTTONHALFPRESS,
+			// ------------------ Keep this order
 
 			// Text controls
 			IDT_ANALOG_MAIN_X = 4000,
@@ -276,6 +279,7 @@ class ConfigBox : public wxDialog
 			IDT_ANALOG_SUB_Y,
 			IDT_WEBSITE,
 			IDT_DEBUGGING, IDT_DEBUGGING2,
+			// ============
 
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
 		};

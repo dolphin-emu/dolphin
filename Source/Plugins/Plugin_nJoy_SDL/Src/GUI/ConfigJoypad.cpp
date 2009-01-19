@@ -256,7 +256,7 @@ void ConfigBox::DoGetButtons(int GetId)
 	// Collect the accepted buttons for this slot
 	bool LeftRight = (GetId == IDB_SHOULDER_L || GetId == IDB_SHOULDER_R);
 	bool Axis = (GetId >= IDB_ANALOG_MAIN_X && GetId <= IDB_SHOULDER_R);
-	bool Button = (GetId >= IDB_BUTTON_A && GetId <= IDB_BUTTONSTART)
+	bool Button = (GetId >= IDB_BUTTON_A && GetId <= IDB_BUTTONHALFPRESS)
 			   || (GetId == IDB_SHOULDER_L || GetId == IDB_SHOULDER_R)
 			   || (GetId >= IDB_DPAD_UP && GetId <= IDB_DPAD_RIGHT && joysticks[Controller].controllertype == CTL_DPAD_CUSTOM);
 	bool Hat = (GetId >= IDB_DPAD_UP && GetId <= IDB_DPAD_RIGHT)
@@ -429,7 +429,7 @@ void ConfigBox::DoGetButtons(int GetId)
 		GetButtonWaitingTimer = 0;
 	}
 
-	// We don't need thisgamepad handle any more
+	// We don't need this gamepad handle any more
 	if(SDL_JoystickOpened(joysticks[Controller].ID)) SDL_JoystickClose(joy);
 
 	// Update the button mapping
@@ -438,127 +438,5 @@ void ConfigBox::DoGetButtons(int GetId)
 	// Debugging
 	//Console::Print("IsRunning: %i\n", m_ButtonMappingTimer->IsRunning());
 }
-
-
-#if 0
-// Wait for Analog
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::GetAxis(wxCommandEvent& event)
-{
-	int ID = event.GetId();
-	int controller = notebookpage;
-
-	SDL_Joystick *joy = SDL_JoystickOpen(joysticks[controller].ID);
-
-	char format[128];
-	int axes = SDL_JoystickNumAxes(joy); // Get number of axes
-	bool waiting = true;
-	bool succeed = false;
-	int pressed = 0;
-	Sint16 value;
-	
-	int counter1 = 0;
-	int counter2 = 10;
-	
-	sprintf(format, "[%d]", counter2);
-	SetButtonText(ID, format);
-	wxWindow::Update();	// Win only? doesnt seem to work in linux...
-
-	while(waiting)
-	{		
-		// Go through all axes and read out their values
-		SDL_JoystickUpdate();
-		for(int i = 0; i < axes; i++)
-		{		
-			value = SDL_JoystickGetAxis(joy, i);
-			
-			if(AvoidValues(value)) continue; // Avoid values
-
-			pressed = i;	
-			waiting = false;
-			succeed = true;
-			break; // Stop this loop
-		}	
-
-		// Stop waiting for a button
-		counter1++;
-		if(counter1 == 100)
-		{
-			counter1 = 0;
-			counter2--;
-			
-			sprintf(format, "[%d]", counter2);
-			SetButtonText(ID, format);
-			wxWindow::Update();	// win only? doesnt seem to work in linux...
-			wxYieldIfNeeded(); // Let through debugging events
-
-			if(counter2<0)
-				waiting = false;
-		}	
-		SLEEP(10);
-	}
-	
-	sprintf(format, "%d", succeed ? pressed : -1); // Update the status text box
-	SetButtonText(ID, format);
-
-	if(SDL_JoystickOpened(joysticks[controller].ID)) // Close the handle
-		SDL_JoystickClose(joy);
-
-	// Update the axises for the advanced settings status
-	SaveButtonMapping(controller);
-}
-
-
-// Wait for D-Pad
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::GetHats(int ID)
-{	
-	// Get the active controller
-	int controller = notebookpage;
-
-	/* Open a new joystick. Joysticks[controller].ID is the system ID of the physical joystick
-	   that is mapped to controller, for example 0, 1, 2, 3 for the first four joysticks */
-	SDL_Joystick *joy = SDL_JoystickOpen(joysticks[controller].ID);
-
-	char format[128];
-	int hats = SDL_JoystickNumHats(joy); // Get the number of sticks
-	bool waiting = true;
-	bool succeed = false;
-	int pressed = 0;
-
-	int counter1 = 0;
-	int counter2 = 10;
-	
-	sprintf(format, "[%d]", counter2);
-	SetButtonText(ID, format);
-	wxWindow::Update();	// win only? doesnt seem to work in linux...
-
-	while(waiting)
-	{			
-		SDL_JoystickUpdate();
-
-		counter1++;
-		if(counter1==100)
-		{
-			counter1=0;
-			counter2--;
-			
-			sprintf(format, "[%d]", counter2);
-			SetButtonText(ID, format);
-			wxWindow::Update();	// win only? doesnt seem to work in linux...
-
-			if(counter2<0)
-				waiting = false;
-		}	
-		SLEEP(10);
-	}
-
-	sprintf(format, "%d", succeed ? pressed : -1);
-	SetButtonText(ID, format);
-
-	if(SDL_JoystickOpened(joysticks[controller].ID))
-		SDL_JoystickClose(joy);
-}
-#endif
 
 /////////////////////////////////////////////////////////// Configure button mapping

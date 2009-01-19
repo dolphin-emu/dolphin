@@ -280,9 +280,9 @@ void Initialize(void *init)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 int Search_Devices()
 {
-	// load config
+	// Load config
 	#ifdef _DEBUG
-	DEBUG_INIT();
+		DEBUG_INIT();
 	#endif
 
 	int numjoy = SDL_NumJoysticks();
@@ -542,10 +542,9 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	/* Debugging
 	Console::ClearScreen();
 	Console::Print(
-		"(%i %i) Left:%04x Right:%04x\n"
+		"Left:%04x Right:%04x Value:%i\n"
 		"D-Pad type: %s  L:%i  R:%i  U:%i  D:%i",
-		joysticks[_numPAD].buttons[CTL_L_SHOULDER], joysticks[_numPAD].buttons[CTL_L_SHOULDER],
-		TriggerLeft, TriggerRight,
+		TriggerLeft, TriggerRight, triggervalue,
 		(joysticks[_numPAD].controllertype ? "CTL_DPAD_CUSTOM" : "CTL_DPAD_HAT"),
 		0, 0, 0, 0
 		);*/
@@ -677,12 +676,15 @@ std::vector<int> Pad_Square_to_Circle(int _x, int _y)
 	vec.push_back(int_y);
 	return vec;
 }
-//////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////// Convert stick values
 
  
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Supporting functions: Read current joystick status
+// Supporting functions
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+// Read current joystick status
 /* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	The value joysticks[].buttons[] is the number of the assigned joypad button,
 	joystate[].buttons[] is the status of the button, it becomes 0 (no pressed) or 1 (pressed) */
