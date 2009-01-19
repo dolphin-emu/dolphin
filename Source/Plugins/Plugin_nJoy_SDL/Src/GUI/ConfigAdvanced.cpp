@@ -130,28 +130,36 @@ void ConfigBox::PadGetStatus()
 
 // Show the current pad status
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-std::string ShowStatus()
+std::string ShowStatus(int Controller)
 {
-	SDL_Joystick *joy = SDL_JoystickOpen(0);
-	int axes = SDL_JoystickNumAxes(joy);
-	int hats = SDL_JoystickNumHats(joy);
-	int but = SDL_JoystickNumButtons(joy);
+	// Make local shortcut
+	SDL_Joystick *joy = joystate[joysticks[Controller].ID].joy;
+
+	// Temporary storage
 	std::string StrAxes, StrHats, StrBut;
 	int value;
 
-	// Go through all axes and read out their values
+	// Get status
+	int Axes = joyinfo[joysticks[Controller].ID].NumAxes;
+	int Balls = joyinfo[joysticks[Controller].ID].NumBalls;
+	int Hats = joyinfo[joysticks[Controller].ID].NumHats;
+	int Buttons = joyinfo[joysticks[Controller].ID].NumButtons;
+
+	// Update the internal values
 	SDL_JoystickUpdate();
-	for(int i = 0; i < axes; i++)
+
+	// Go through all axes and read out their values
+	for(int i = 0; i < Axes; i++)
 	{	
 		value = SDL_JoystickGetAxis(joy, i);
 		StrAxes += StringFromFormat(" %i:%05i", i, value);
 	}
-	for(int i = 0;i < hats; i++)
+	for(int i = 0;i < Hats; i++)
 	{	
 		value = SDL_JoystickGetHat(joy, i);
 		StrHats += StringFromFormat(" %i:%i", i, value);
 	}
-	for(int i = 0;i < but; i++)
+	for(int i = 0;i < Buttons; i++)
 	{	
 		value = SDL_JoystickGetButton(joy, i);
 		StrBut += StringFromFormat(" %i:%i", i+1, value);
@@ -159,9 +167,8 @@ std::string ShowStatus()
 
 	return StringFromFormat(
 		"Axes: %s\nHats: %s\nBut: %s\nDevice: Ax: %i Balls:%i But:%i Hats:%i",
-		StrAxes.c_str(), StrHats.c_str(), StrBut.c_str(), 
-		joyinfo[joysticks[0].ID].NumAxes, joyinfo[joysticks[0].ID].NumBalls,
-		joyinfo[joysticks[0].ID].NumButtons, joyinfo[joysticks[0].ID].NumHats
+		StrAxes.c_str(), StrHats.c_str(), StrBut.c_str(),
+		Axes, Balls, Hats, Buttons
 		);
 }
 
@@ -173,10 +180,10 @@ void ConfigBox::Update()
 	if(!g_Config.bShowAdvanced) StrangeHack = false; else StrangeHack = true;
 
 	// Show the current status
-	/**/
+	/*
 	m_pStatusBar->SetLabel(wxString::Format(
-		"%s", ShowStatus().c_str()
-		));	
+		"%s", ShowStatus(notebookpage).c_str()
+		));*/
 }
 
 

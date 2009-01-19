@@ -63,7 +63,8 @@ class ConfigBox : public wxDialog
 
 	#if wxUSE_TIMER
 		void OnTimer(wxTimerEvent& WXUNUSED(event)) { Update(); }
-		wxTimer m_timer;
+		void OnButtonTimer(wxTimerEvent& WXUNUSED(event)) { DoGetButtons(GetButtonWaitingID); }
+		wxTimer *m_ConstantTimer, *m_ButtonMappingTimer;
 	#endif
 
 		// Debugging
@@ -71,6 +72,9 @@ class ConfigBox : public wxDialog
 
 		// Status window
 		int BoxW, BoxH;
+
+		// Configure buttons
+		int GetButtonWaitingID, GetButtonWaitingTimer;
 		
 	private:
 		wxButton *m_About;
@@ -85,7 +89,6 @@ class ConfigBox : public wxDialog
 		wxBitmap WxStaticBitmap1_BITMAP, WxStaticBitmap1_BITMAPGray;
 		wxStaticBoxSizer * m_sKeys[4];
 		wxBoxSizer *m_sMain[4], *m_sMainLeft[4], *m_sMainRight[4];
-
 
 		/////////////////////////////
 		// Settings
@@ -208,6 +211,9 @@ class ConfigBox : public wxDialog
 			// Advaced settings
 			IDCB_MAINSTICK_DIAGONAL, IDCB_MAINSTICK_S_TO_C, IDT_MAINSTICK_DIAGONAL,
 
+			// Timers
+			IDTM_CONSTANT, IDTM_BUTTON,
+
 
 			// --------------------------------------------------------------------
 			// Keys objects
@@ -292,12 +298,12 @@ class ConfigBox : public wxDialog
 		wxBitmap CreateBitmap(); wxBitmap CreateBitmapDot();
 		void PadGetStatus(); void Update();
  
-		void SetControllerAll(int controller);
-		void GetControllerAll(int controller);
+		void UpdateGUIKeys(int controller);
+		void SaveButtonMapping(int controller);
 
 		void NotebookPageChanged(wxNotebookEvent& event);
 
-		void GetButtons(wxCommandEvent& event);
+		void GetButtons(wxCommandEvent& event); void DoGetButtons(int);
 		void GetHats(int ID);
 		void GetAxis(wxCommandEvent& event);
 

@@ -220,7 +220,7 @@ void Config::Save(bool CheckedForDuplicates)
 		file.Set(SectionName.c_str(), "deadzone", joysticks[i].deadzone);
 		file.Set(SectionName.c_str(), "halfpress", joysticks[i].halfpress);
 		
-		//file.Set(SectionName.c_str(), "controllertype", joysticks[i].controllertype);
+		file.Set(SectionName.c_str(), "controllertype", joysticks[i].controllertype);
 		file.Set(SectionName.c_str(), "eventnum", joysticks[i].eventnum);
 
 		file.Set(SectionName.c_str(), "Diagonal", g_Config.SDiagonal);
@@ -293,7 +293,7 @@ void Config::Load(bool config)
 		file.Get(SectionName.c_str(), "sub_y", &joysticks[i].axis[CTL_SUB_Y], 3);
 		file.Get(SectionName.c_str(), "deadzone", &joysticks[i].deadzone, 9);	
 		file.Get(SectionName.c_str(), "halfpress", &joysticks[i].halfpress, 6);	
-		//file.Get(SectionName.c_str(), "controllertype", &joysticks[i].controllertype, 0);
+		file.Get(SectionName.c_str(), "controllertype", &joysticks[i].controllertype, 0);
 		file.Get(SectionName.c_str(), "eventnum", &joysticks[i].eventnum, 0);
 
 		file.Get(SectionName.c_str(), "Diagonal", &g_Config.SDiagonal, "100%");

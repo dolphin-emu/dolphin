@@ -43,12 +43,10 @@ extern CONTROLLER_INFO	*joyinfo;
 //extern CONTROLLER_MAPPING joysticks[4];
 extern bool emulator_running;
 
-static const char* ControllerType[] =
+static const char* DPadType[] =
 {
-	"Joystick (with hat)",
-	"Joystick (no hat)",
-//	"Joytstick (xbox360)",	// Shoulder buttons -> axis
-//	"Keyboard"				// Not supported yet, sorry F|RES ;( ...
+	"Hat",
+	"Custom",
 };
 ////////////////////////
 
@@ -91,16 +89,14 @@ BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
 	EVT_BUTTON(IDB_ANALOG_SUB_Y, ConfigBox::GetButtons)
 
 	#if wxUSE_TIMER
-		EVT_TIMER(wxID_ANY, ConfigBox::OnTimer)
+		EVT_TIMER(IDTM_CONSTANT, ConfigBox::OnTimer)
+		EVT_TIMER(IDTM_BUTTON, ConfigBox::OnButtonTimer)
 	#endif
 END_EVENT_TABLE()
 
 ConfigBox::ConfigBox(wxWindow *parent, wxWindowID id, const wxString &title,
 					 const wxPoint &position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
-	#if wxUSE_TIMER
-	, m_timer(this)
-	#endif
 {
 	// Define values
 	notebookpage = 0;
@@ -110,21 +106,28 @@ ConfigBox::ConfigBox(wxWindow *parent, wxWindowID id, const wxString &title,
 	CreateGUIControls();
 
 	#if wxUSE_TIMER
+		m_ConstantTimer = new wxTimer(this, IDTM_CONSTANT);
+		m_ButtonMappingTimer = new wxTimer(this, IDTM_BUTTON);
+
+		// Reset values
+		GetButtonWaitingID = 0; GetButtonWaitingTimer = 0;
+
+		// Start the constant timer
 		int TimesPerSecond = 30;
-		m_timer.Start( floor((double)(1000 / TimesPerSecond)) );
+		m_ConstantTimer->Start( floor((double)(1000 / TimesPerSecond)) );
 	#endif
 
-	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN,
+	// wxEVT_KEY_DOWN is blocked for enter, tab and the directional keys
+	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_UP,
 			wxKeyEventHandler(ConfigBox::OnKeyDown),
 			(wxObject*)0, this);
-
 }
 
 ConfigBox::~ConfigBox()
 {
 // The statbar sample has this so I add this to
 #if wxUSE_TIMER
-    if (m_timer.IsRunning()) m_timer.Stop();
+    if (m_ConstantTimer->IsRunning()) m_ConstantTimer->Stop();
 #endif
 }
 
@@ -177,7 +180,7 @@ void ConfigBox::OKClick(wxCommandEvent& event)
 			if (Tmp == wxOK) return; else if (Tmp == wxNO) g_Config.bSaveByIDNotice = false;
 		}
 
-		for(int i=0; i<4 ;i++) GetControllerAll(i); // Update joysticks array
+		for(int i=0; i<4 ;i++) SaveButtonMapping(i); // Update joysticks array
 		g_Config.Save(true);	// Save settings
 		g_Config.Load();	// Reload settings
 		Close(); // Call OnClose()
@@ -243,24 +246,29 @@ void ConfigBox::EnableDisable(wxCommandEvent& event)
 
 // Update GUI
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-// Called from: SetControllerAll(), ChangeControllertype()
+// Called from: UpdateGUIKeys(), ChangeControllertype()
 void ConfigBox::UpdateGUI(int _notebookpage)
 {
 	// Update the enable / disable status
 	joysticks[_notebookpage].enabled = m_Joyattach[_notebookpage]->GetValue();
 
 	// Controller type settings
-	bool HasHat = (joysticks[_notebookpage].controllertype == CTL_TYPE_JOYSTICK);
-	m_JoyDpadDown[_notebookpage]->Show(HasHat);
-	m_JoyDpadLeft[_notebookpage]->Show(HasHat);
-	m_JoyDpadRight[_notebookpage]->Show(HasHat);
-	m_bJoyDpadDown[_notebookpage]->Show(HasHat);
-	m_bJoyDpadLeft[_notebookpage]->Show(HasHat);
-	m_bJoyDpadRight[_notebookpage]->Show(HasHat);	
-	m_textDpadUp[_notebookpage]->Show(HasHat);
-	m_textDpadDown[_notebookpage]->Show(HasHat);
-	m_textDpadLeft[_notebookpage]->Show(HasHat);
-	m_textDpadRight[_notebookpage]->Show(HasHat);		
+	bool Hat = (joysticks[_notebookpage].controllertype == CTL_DPAD_HAT);
+	m_JoyDpadLeft[_notebookpage]->Show(!Hat);
+	m_JoyDpadRight[_notebookpage]->Show(!Hat);
+	m_JoyDpadDown[_notebookpage]->Show(!Hat);
+
+	m_bJoyDpadLeft[_notebookpage]->Show(!Hat);
+	m_bJoyDpadRight[_notebookpage]->Show(!Hat);
+	m_bJoyDpadDown[_notebookpage]->Show(!Hat);
+
+	m_textDpadDown[_notebookpage]->Show(!Hat);
+	m_textDpadLeft[_notebookpage]->Show(!Hat);
+	m_textDpadRight[_notebookpage]->Show(!Hat);	
+
+	m_textDpadUp[_notebookpage]->SetLabel(Hat ? wxT("Select hat") : wxT("Up"));
+	m_bJoyDpadUp[_notebookpage]->SetToolTip(Hat ?
+		wxT("Select a hat by pressing the hat in any direction") : wxT(""));
 
 	// General settings
 	m_CBSaveByID[_notebookpage]->SetValue(g_Config.bSaveByID.at(_notebookpage));
@@ -283,7 +291,6 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 		m_Controller[_notebookpage]->FindItem(IDC_DEADZONE)->Enable(joysticks[_notebookpage].enabled);
 		//m_Controller[_notebookpage]->FindItem(IDC_CONTROLTYPE)->Enable(joysticks[_notebookpage].enabled);
 	#endif
-		m_Controltype[_notebookpage]->SetSelection(HasHat ? 0 : 1);
 
 	 // Repaint the background
 	m_Controller[_notebookpage]->Refresh();
@@ -306,7 +313,7 @@ void ConfigBox::ChangeJoystick(wxCommandEvent& event)
 {
 	 // Before chaning the pad we save potential changes (to support SaveByID)
 	int TmpID = joysticks[notebookpage].ID; // Don't update the ID
-	GetControllerAll(notebookpage);
+	SaveButtonMapping(notebookpage);
 	joysticks[notebookpage].ID = TmpID;
 	g_Config.Save();
 
@@ -317,20 +324,22 @@ void ConfigBox::ChangeJoystick(wxCommandEvent& event)
 
 	// Update the controller type
 	if(joyinfo[joysticks[notebookpage].ID].NumHats > 0)
-		joysticks[notebookpage].controllertype = CTL_TYPE_JOYSTICK;
+		joysticks[notebookpage].controllertype = CTL_DPAD_HAT;
 
 	//PanicAlert("%i  %i", joysticks[notebookpage].ID, notebookpage);
 
 	// Load device settings to support SaveByID
 	g_Config.Load(true); // Then load the current
-	SetControllerAll(notebookpage); // Update joystick dialog items
+	UpdateGUIKeys(notebookpage); // Update joystick dialog items
 	UpdateGUI(notebookpage); // Update other dialog items
 
 	// Remap the controller
 	if (joysticks[notebookpage].enabled)
 	{
+		return;
 		if (SDL_JoystickOpened(notebookpage)) SDL_JoystickClose(joystate[notebookpage].joy);
 		joystate[notebookpage].joy = SDL_JoystickOpen(joysticks[notebookpage].ID);
+		PanicAlert("");
 	}
 }
 
@@ -360,9 +369,6 @@ void ConfigBox::CreateGUIControls()
 	#endif
 
 	SetIcon(wxNullIcon);
-
-	//WxStaticBitmap1_BITMAP(ConfigBox_WxStaticBitmap1_XPM);
-	//WxStaticBitmap1_BITMAP = new WxStaticBitmap1_BITMAP(ConfigBox_WxStaticBitmap1_XPM);
 
 #ifndef _WIN32
 	// Force a 8pt font so that it looks more or less "correct" regardless of the default font setting
@@ -423,10 +429,8 @@ void ConfigBox::CreateGUIControls()
 	// Populate the controller type list
 	// -----------------------------
 	wxArrayString arrayStringFor_Controltype;
-	arrayStringFor_Controltype.Add(wxString::FromAscii(ControllerType[CTL_TYPE_JOYSTICK]));
-	arrayStringFor_Controltype.Add(wxString::FromAscii(ControllerType[CTL_TYPE_JOYSTICK_NO_HAT]));
-	// arrayStringFor_Controltype.Add(wxString::FromAscii(ControllerType[CTL_TYPE_JOYSTICK_XBOX360]));
-	// arrayStringFor_Controltype.Add(wxString::FromAscii(ControllerType[CTL_TYPE_KEYBOARD]));
+	arrayStringFor_Controltype.Add(wxString::FromAscii(DPadType[CTL_DPAD_HAT]));
+	arrayStringFor_Controltype.Add(wxString::FromAscii(DPadType[CTL_DPAD_CUSTOM]));
 
 
 	// --------------------------------------------------------------------
@@ -451,7 +455,7 @@ void ConfigBox::CreateGUIControls()
 		int t = -75; // Top
 		int l = -4; // Left
 		m_sKeys[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Keys"));
-		m_pKeys[i] = new wxPanel(m_Controller[i], ID_KEYSPANEL1 + i, wxDefaultPosition, wxSize(600, 400));
+		m_pKeys[i] = new wxPanel(m_Controller[i], ID_KEYSPANEL1 + i, wxDefaultPosition, wxSize(600, 400), 0);
 		//m_sKeys[i] = new wxStaticBox (m_Controller[i], IDG_JOYSTICK, wxT("Keys"), wxDefaultPosition, wxSize(608, 500));
 		m_sKeys[i]->Add(m_pKeys[i], 0, (wxALL), 0); // margin = 0
 
@@ -487,7 +491,7 @@ void ConfigBox::CreateGUIControls()
 		m_bJoyShoulderR[i] = new wxButton(m_pKeys[i], IDB_SHOULDER_R, wxEmptyString, wxPoint(l + 526, t + 108), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
 		
 		// Left analog
-		int ALt = 170; int ALw = ALt + 14; int ALb = ALw + 2; // Set offset
+		int ALt = 169; int ALw = ALt + 14; int ALb = ALw + 2; // Set offset
 		m_JoyAnalogMainX[i] = new wxTextCtrl(m_pKeys[i], ID_ANALOG_MAIN_X, wxT("0"), wxPoint(l + 6, t + ALw), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
 		m_JoyAnalogMainX[i]->Enable(false);
 		m_JoyAnalogMainY[i] = new wxTextCtrl(m_pKeys[i], ID_ANALOG_MAIN_Y, wxT("0"), wxPoint(l + 6, t + ALw + 36), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
@@ -496,9 +500,9 @@ void ConfigBox::CreateGUIControls()
 		m_bJoyAnalogMainY[i] = new wxButton(m_pKeys[i], IDB_ANALOG_MAIN_Y, wxEmptyString, wxPoint(l + 70, t + ALb + 36), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
 		m_textMainX[i] = new wxStaticText(m_pKeys[i], IDT_ANALOG_MAIN_X, wxT("X-axis"), wxPoint(l + 6, t + ALt), wxDefaultSize, 0, wxT("X-axis"));
 		m_textMainY[i] = new wxStaticText(m_pKeys[i], IDT_ANALOG_MAIN_Y, wxT("Y-axis"), wxPoint(l + 6, t + ALt + 36), wxDefaultSize, 0, wxT("Y-axis"));
-		
+
 		// D-Pad
-		int DPt = 255; int DPw = DPt + 14; int DPb = DPw + 2; // Set offset
+		int DPt = 250; int DPw = DPt + 14; int DPb = DPw + 2; // Set offset
 		m_JoyDpadUp[i] = new wxTextCtrl(m_pKeys[i], ID_DPAD_UP, wxT("0"), wxPoint(l + 6, t + DPw), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
 		m_JoyDpadDown[i] = new wxTextCtrl(m_pKeys[i], ID_DPAD_DOWN, wxT("0"), wxPoint(l + 6, t + DPw + 36*1), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
 		m_JoyDpadLeft[i] = new wxTextCtrl(m_pKeys[i], ID_DPAD_LEFT, wxT("0"), wxPoint(l + 6, t + DPw + 36*2), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
@@ -515,7 +519,7 @@ void ConfigBox::CreateGUIControls()
 		m_textDpadDown[i] = new wxStaticText(m_pKeys[i], IDT_DPAD_DOWN, wxT("Down"), wxPoint(l + 6, t + DPt + 36*1), wxDefaultSize, 0, wxT("Down"));
 		m_textDpadLeft[i] = new wxStaticText(m_pKeys[i], IDT_DPAD_LEFT, wxT("Left"), wxPoint(l + 6, t + DPt + 36*2), wxDefaultSize, 0, wxT("Left"));
 		m_textDpadRight[i] = new wxStaticText(m_pKeys[i], IDT_DPAD_RIGHT, wxT("Right"), wxPoint(l + 6, t + DPt + 36*3), wxDefaultSize, 0, wxT("Right"));
-		
+
 		// Buttons
 		m_JoyButtonA[i] = new wxTextCtrl(m_pKeys[i], ID_BUTTON_A, wxT("0"), wxPoint(l + 552, t + 280), wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
 		m_JoyButtonA[i]->Enable(false);
@@ -604,19 +608,16 @@ void ConfigBox::CreateGUIControls()
 		m_gGBExtrasettings[i]->Add(m_bJoyButtonHalfpress[i], wxGBPosition(1, 2), wxGBSpan(1, 1), (wxLEFT | wxTOP), 2);
 		m_gExtrasettings[i]->Add(m_gGBExtrasettings[i], 0, wxEXPAND | wxALL, 3);
 
-
-		// Why is there a setting for this? Is it to replaced the analog stick with the digital pad?
-
 		// Populate controller typ
-		m_gControllertype[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Controller type"));
+		m_gControllertype[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("D-Pad"));
 		m_Controltype[i] = new wxComboBox(m_Controller[i], IDC_CONTROLTYPE, arrayStringFor_Controltype[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_Controltype, wxCB_READONLY);
-		m_gControllertype[i]->Add(m_Controltype[i], 0, wxEXPAND | wxALL, 3);	
-		m_Controltype[i]->Enable(false);
+		m_gControllertype[i]->Add(m_Controltype[i], 0, wxEXPAND | wxALL, 3);
+		m_Controltype[i]->SetToolTip(wxT("Use a 'hat' on your gamepad or configure a custom button for each direction."));
 
 		// Create objects for general settings
 		m_gGenSettings[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Settings") );
 		m_CBSaveByID[i] = new wxCheckBox(m_Controller[i], IDC_SAVEBYID, wxT("Save by ID"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_CBSaveByIDNotice[i] = new wxCheckBox(m_Controller[i], IDC_SAVEBYIDNOTICE, wxT("Notice"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_CBSaveByIDNotice[i] = new wxCheckBox(m_Controller[i], IDC_SAVEBYIDNOTICE, wxT("Notify"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		m_CBShowAdvanced[i] = new wxCheckBox(m_Controller[i], IDC_SHOWADVANCED, wxT("Show advanced settings"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		
 		// Populate general settings
@@ -735,7 +736,7 @@ void ConfigBox::CreateGUIControls()
 		}
 
 		// Set dialog items from saved values
-		SetControllerAll(i);
+		UpdateGUIKeys(i);
 
 		// Update GUI
 		UpdateGUI(i);
@@ -763,7 +764,7 @@ void ConfigBox::CreateGUIControls()
 	// --------------------------------------------------------------------
 	// Debugging
 	// -----------------------------
-	m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(100, 490), wxDefaultSize);
+	//m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(100, 490), wxDefaultSize);
 	//m_pStatusBar2 = new wxStaticText(this, IDT_DEBUGGING2, wxT("Debugging2"), wxPoint(100, 530), wxDefaultSize);
 	//m_pStatusBar->SetLabel(wxString::Format("Debugging text"));
 

@@ -6,7 +6,7 @@
 
 namespace Common {
     typedef void (__cdecl* TPAD_GetStatus)(u8, SPADStatus*);
-    typedef void (__cdecl* TPAD_Input)(u8, u8);
+    typedef void (__cdecl* TPAD_Input)(u16, u8);
     typedef void (__cdecl* TPAD_Rumble)(u8, unsigned int, unsigned int);
     typedef unsigned int (__cdecl* TPAD_GetAttachedPads)();
     

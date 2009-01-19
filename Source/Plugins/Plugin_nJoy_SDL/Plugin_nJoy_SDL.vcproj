@@ -507,10 +507,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\Config.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\nJoy.cpp"
 				>
 			</File>
@@ -532,6 +528,10 @@
 			</File>
 			<File
 				RelativePath=".\Src\GUI\AboutBox.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Config.h"
 				>
 			</File>
 			<File

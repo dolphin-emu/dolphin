@@ -29,9 +29,18 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Settings
+// ¯¯¯¯¯¯¯¯¯¯
 // Set this if you want to use the rumble 'hack' for controller one
 //#define USE_RUMBLE_DINPUT_HACK
+//////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// ¯¯¯¯¯¯¯¯¯¯
 #include <vector> // System
 #include <cstdio>
 #include <ctime>
@@ -67,21 +76,22 @@
 #endif // _WIN32
 
 #ifdef _WIN32
-#define SLEEP(x) Sleep(x)
+	#define SLEEP(x) Sleep(x)
 #else
-#include <unistd.h>
-#include <sys/ioctl.h>
-#define SLEEP(x) usleep(x*1000)
+	#include <unistd.h>
+	#include <sys/ioctl.h>
+	#define SLEEP(x) usleep(x*1000)
 #endif
 
 #ifdef __linux__
 #include <linux/input.h>
 #endif
+//////////////////////////////
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Define
-// ¯¯¯¯¯¯
+// ¯¯¯¯¯¯¯¯¯¯
 
 #define INPUT_VERSION	"0.3"
 #define INPUT_STATE		"PUBLIC RELEASE"
@@ -96,31 +106,37 @@
 /* ¯¯¯¯¯¯¯¯¯¯
 	CONTROLLER_STATE buttons (joystate) = 0 or 1
 	CONTROLLER_MAPPING buttons (joystick) = 0 or 1, 2, 3, 4, a certain joypad button
-	*/
 
-struct CONTROLLER_STATE{	// GC PAD INFO/STATE
+	Please remember: The axis limit is hardcoded here, if you allow more axises (for
+	example for analog A and B buttons) you must first incrase the size of the axis array
+	size here
+	*/
+struct CONTROLLER_STATE		// GC PAD INFO/STATE
+{
 	int buttons[8];			// Amount of buttons (A B X Y Z, L-Trigger R-Trigger Start) might need to change the triggers buttons
-	int dpad;				// 1 HAT (8 directions + neutral)
-	int dpad2[4];			// d-pad using buttons
-	int axis[4];			// 2 x 2 Axes (Main & Sub)
-	int halfpress;			// ...
+	int dpad;				// Automatic SDL D-Pad (8 directions + neutral)
+	int dpad2[4];			// D-pad using buttons
+	int axis[6];			// 2 x 2 Axes (Main & Sub)
+	int halfpress;			// Halfpress... you know, like not fully pressed ;)...
 	SDL_Joystick *joy;		// SDL joystick device
 };
 
-struct CONTROLLER_MAPPING{	// GC PAD MAPPING
-	int buttons[8];			// Amount of buttons (A B X Y Z, L-Trigger R-Trigger Start) might need to change the triggers buttons
-	int dpad;				// 1 HAT (8 directions + neutral)
-	int dpad2[4];			// d-pad using buttons
-	int axis[4];			// 2 x 2 Axes (Main & Sub)
+struct CONTROLLER_MAPPING	// GC PAD MAPPING
+{
+	int buttons[8];			// (See above)
+	int dpad;				// (See above)
+	int dpad2[4];			// (See above)
+	int axis[6];			// (See above)
+	int halfpress;			// (See above)
 	int enabled;			// Pad attached?
 	int deadzone;			// Deadzone... what else?
-	int halfpress;			// Halfpress... you know, like not fully pressed ;)...
 	int ID;					// SDL joystick device ID
 	int controllertype;		// Joystick, Joystick with no hat or a keyboard (perhaps a mouse later)
 	int eventnum;			// Linux Event Number, Can't be found dynamically yet
 };
 
-struct CONTROLLER_INFO{		// CONNECTED WINDOWS DEVICES INFO
+struct CONTROLLER_INFO		// CONNECTED WINDOWS DEVICES INFO
+{
 	int NumAxes;			// Amount of Axes
 	int NumButtons;			// Amount of Buttons
 	int NumBalls;			// Amount of Balls
@@ -132,10 +148,11 @@ struct CONTROLLER_INFO{		// CONNECTED WINDOWS DEVICES INFO
 
 enum
 {
-	CTL_MAIN_X = 0,
+	// CTL_L_SHOULDER and CTL_R_SHOULDER = 0 and 1
+	CTL_MAIN_X = 2,
 	CTL_MAIN_Y,
 	CTL_SUB_X,
-	CTL_SUB_Y,
+	CTL_SUB_Y
 };
 
 enum
@@ -152,10 +169,8 @@ enum
 
 enum
 {
-	CTL_TYPE_JOYSTICK = 0,
-	CTL_TYPE_JOYSTICK_NO_HAT,
-	CTL_TYPE_JOYSTICK_XBOX360,
-	CTL_TYPE_KEYBOARD
+	CTL_DPAD_HAT = 0, // Automatically use the first hat that SDL finds
+	CTL_DPAD_CUSTOM // Custom directional pad settings
 };
 
 enum
@@ -164,6 +179,15 @@ enum
 	CTL_D_PAD_DOWN,
 	CTL_D_PAD_LEFT,
 	CTL_D_PAD_RIGHT
+};
+
+// Button type for the configuration
+enum
+{
+	CTL_AXIS = 0,
+	CTL_HAT,
+	CTL_BUTTON,	
+	CTL_KEY
 };
 
 

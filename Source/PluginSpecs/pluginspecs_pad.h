@@ -70,7 +70,7 @@ EXPORT void CALL PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus);
 // input:   The key and if it's pressed or released
 // output:  None
 //
-EXPORT void CALL PAD_Input(u8 _Key, u8 _UpDown);
+EXPORT void CALL PAD_Input(u16 _Key, u8 _UpDown);
 
 // __________________________________________________________________________________________________
 // Function: PAD_Rumble

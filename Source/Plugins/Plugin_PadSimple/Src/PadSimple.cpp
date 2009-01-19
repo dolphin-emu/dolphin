@@ -590,7 +590,7 @@ void cocoa_Read(int _numPAD, SPADStatus* _pPADStatus)
 #endif
 // Set buttons status from wxWidgets in the main application
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void PAD_Input(u8 _Key, u8 _UpDown) {}
+void PAD_Input(u16 _Key, u8 _UpDown) {}
 
 
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
