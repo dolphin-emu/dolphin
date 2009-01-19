@@ -239,8 +239,8 @@ bool DolphinApp::OnInit()
 
 	ini.Get("MainWindow", "x", &x, 100);
 	ini.Get("MainWindow", "y", &y, 100);
-	ini.Get("MainWindow", "w", &w, 600);
-	ini.Get("MainWindow", "h", &h, 800);
+	ini.Get("MainWindow", "w", &w, 800);
+	ini.Get("MainWindow", "h", &h, 600);
 	// -------------------
 	if(UseDebugger)
 	{
@@ -250,7 +250,7 @@ bool DolphinApp::OnInit()
 	else
 	{
 		main_frame = new CFrame((wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
-				wxPoint(100, 100), wxSize(800, 600));
+				wxPoint(100, 100), wxSize(w, h));
 	}
 	// ------------------
 
