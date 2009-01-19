@@ -401,6 +401,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 				{
 					int TriggerValue = 0;
 
+
 					if(joysticks[_numPAD].buttons[a].c_str()[1] == '+')
 					{
 						if(joystate[_numPAD].buttons[a] >= 0)
@@ -411,6 +412,8 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 						if(joystate[_numPAD].buttons[a] <= 0)
 							TriggerValue = abs((255.0f / joysticks[_numPAD].sData[JoyNum].Min) * joystate[_numPAD].buttons[a]);
 					}
+
+
 					// Analog L and R
 					if(a == CTL_L_SHOULDER)
 					{

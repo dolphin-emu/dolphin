@@ -86,7 +86,9 @@ std::string GetLastErrorAsString()
    This is done when Dolphin is started to determine which dlls are good, and before opening
    the Config and Debugging windows from Plugin.cpp and before opening the dll for running
    the emulation in Video_...cpp in Core. Since this is fairly slow, TODO: think about
-   implementing some sort of cache. */
+   implementing some sort of cache.
+   
+   Called from: The Dolphin Core */
 int DynamicLibrary::Load(const char* filename)
 {
 	if (!filename || strlen(filename) == 0)

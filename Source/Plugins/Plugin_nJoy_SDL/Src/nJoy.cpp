@@ -47,14 +47,18 @@
 // Variables guide
 /* ¯¯¯¯¯¯¯¯¯
 
-   The arrays joysticks[] and joystate[] are numbered 0 to 3 for the four different virtual
-   controllers. Joysticks[].ID will have the number of the inputs device mapped to that controller,
-   this value can be between 0 and the total number of connected physical devices. The mapping
-   is initially done by PAD_Initialize(), but for the configuration we can remap them, like in
-   ConfigBox::ChangeJoystick().
+   Joyinfo: A hardcoded struct of with gamepad info that is populate by Search_Devices()
+   Joysticks: A custom struct with the button mapping
+   Joystate: A custom struct with the current button states
 
-   The joyinfo[] array is for a certain physical device. It's therefore used as
-   joyinfo[joysticks[controller].ID].
+   The arrays joysticks[] and joystate[] are numbered 0 to 3 for the four different virtual
+   controllers. Joysticks[].ID will have the number of the physical input device mapped to that
+   controller (this value range between 0 and the total number of connected physical devices). The
+   mapping of a certain physical device to joystate[].joy is initially done by Initialize(), but
+   for the configuration we can remap that, like in ConfigBox::ChangeJoystick().
+
+   The joyinfo[] array holds the physical gamepad info for a certain physical device. It's therefore
+   used as joyinfo[joysticks[controller].ID] if we want to get the joyinfo for a certain joystick.
 
 ////////////////////////*/
 
@@ -181,11 +185,6 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
 void DllConfig(HWND _hParent)
 {
 	#ifdef _WIN32
-	if (SDL_Init(SDL_INIT_JOYSTICK ) < 0)
-	{
-		MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
-		return;
-	}
 
 	// Start the pads so we can use them in the configuration and advanced controls
 	if(!emulator_running)
@@ -234,17 +233,19 @@ void DllDebugger(HWND _hParent, bool Show) {
 void Initialize(void *init)
 {
     SPADInitialize _PADInitialize  = *(SPADInitialize*)init;
-	emulator_running = TRUE;
+	emulator_running = true;
 	#ifdef _DEBUG
-	DEBUG_INIT();
+		DEBUG_INIT();
 	#endif
 
-	if (SDL_Init(SDL_INIT_JOYSTICK) < 0)
+	/* SDL 1.3 use DirectInput instead of the old Microsoft Multimeda API, and with this we need 
+	   the SDL_INIT_VIDEO flag to */
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0)	
 	{
 		#ifdef _WIN32
-		MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
+			MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
 		#else
-		printf("Could not initialize SDL! (%s)\n", SDL_GetError());
+			printf("Could not initialize SDL! (%s)\n", SDL_GetError());
 		#endif
 		return;
 	}
@@ -333,16 +334,19 @@ int Search_Devices()
  
 // Shutdown PAD (stop emulation)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// Called from: The Dolphin Core
 void Shutdown()
 {
-	if (joysticks[0].enabled)
+	//if(!emulator_running) return;
+
+	if (joysticks[0].enabled && SDL_JoystickOpened(joysticks[0].ID))
 		SDL_JoystickClose(joystate[0].joy);
-	if (joysticks[1].enabled)
+	if (joysticks[1].enabled && SDL_JoystickOpened(joysticks[1].ID))
 		SDL_JoystickClose(joystate[1].joy);
-	if (joysticks[2].enabled)
+	if (joysticks[2].enabled && SDL_JoystickOpened(joysticks[2].ID))
 		SDL_JoystickClose(joystate[2].joy);
-	if (joysticks[3].enabled)
-		SDL_JoystickClose(joystate[3].joy);
+	if (joysticks[3].enabled && SDL_JoystickOpened(joysticks[3].ID))
+		SDL_JoystickClose(joystate[3].joy);	
 
 	SDL_Quit();
 
@@ -352,7 +356,7 @@ void Shutdown()
 
 	delete [] joyinfo;
 
-	emulator_running = FALSE;
+	emulator_running = false;
 
 	#ifdef _WIN32
 		#ifdef USE_RUMBLE_DINPUT_HACK
@@ -383,8 +387,10 @@ void PAD_Input(u8 _Key, u8 _UpDown)
 void DoState(unsigned char **ptr, int mode) {
 }
 
-// Set PAD status. This is called from SerialInterface_Devices.cpp
+// Set PAD status.
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// Called from: SerialInterface_Devices.cpp
+// Function: Gives the current pad status to the Core
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
 	if (!joysticks[_numPAD].enabled)
@@ -456,12 +462,12 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 
 	if (joystate[_numPAD].buttons[CTL_A_BUTTON])
 	{
-		_pPADStatus->button|=PAD_BUTTON_A;
+		_pPADStatus->button |= PAD_BUTTON_A;
 		_pPADStatus->analogA = 255;			// Perhaps support pressure?
 	}
 	if (joystate[_numPAD].buttons[CTL_B_BUTTON])
 	{
-		_pPADStatus->button|=PAD_BUTTON_B;
+		_pPADStatus->button |= PAD_BUTTON_B;
 		_pPADStatus->analogB = 255;			// Perhaps support pressure?
 	}
 	if (joystate[_numPAD].buttons[CTL_X_BUTTON])	_pPADStatus->button|=PAD_BUTTON_X;
@@ -640,8 +646,11 @@ void ReadButton(int controller, int button)
 	}
 }
 
-// Request joystick state. The input value "controller" is for a virtual controller 0 to 3.
+// Request joystick state.
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// Called from: PAD_GetStatus()
+/* Function: Updates the joystate struct with the current pad status. The input value "controller" is
+   for a virtual controller 0 to 3. */
 void GetJoyState(int controller)
 {
 	SDL_JoystickUpdate();

@@ -41,6 +41,7 @@
 #include "Common.h" // Common
 #include "pluginspecs_pad.h"
 #include "IniFile.h"
+//#include "ConsoleWindow.h"
 
 #include "Config.h" // Local
 
@@ -51,8 +52,6 @@
 #endif
 
 #ifdef _WIN32
-	#pragma comment(lib, "SDL.lib")
-	#pragma comment(lib, "comctl32.lib")
 	#include <tchar.h>
 	#define _CRT_SECURE_NO_WARNINGS
 	#define DIRECTINPUT_VERSION 0x0800
@@ -117,7 +116,7 @@ struct CONTROLLER_MAPPING{	// GC PAD MAPPING
 	int deadzone;			// Deadzone... what else?
 	int halfpress;			// Halfpress... you know, like not fully pressed ;)...
 	int ID;					// SDL joystick device ID
-	int controllertype;		// Joystick, Joystick no hat or a keyboard (perhaps a mouse later)
+	int controllertype;		// Joystick, Joystick with no hat or a keyboard (perhaps a mouse later)
 	int eventnum;			// Linux Event Number, Can't be found dynamically yet
 };
 

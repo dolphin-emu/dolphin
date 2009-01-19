@@ -235,9 +235,18 @@ class ConfigBox : public wxDialog
 			ID_DPAD_LEFT,
 			ID_DPAD_RIGHT,
 
-			// Buttons controls
-			IDB_SHOULDER_L = 3000,
+			// Buttons controls (it's important that they are placed in this order)			
+			IDB_ANALOG_MAIN_X = 3000,
+			IDB_ANALOG_MAIN_Y,
+			IDB_ANALOG_SUB_X,
+			IDB_ANALOG_SUB_Y,
+			IDB_SHOULDER_L,
 			IDB_SHOULDER_R,
+
+			IDB_DPAD_UP,
+			IDB_DPAD_DOWN,
+			IDB_DPAD_LEFT,
+			IDB_DPAD_RIGHT,
 
 			IDB_BUTTON_A,
 			IDB_BUTTON_B,
@@ -245,17 +254,8 @@ class ConfigBox : public wxDialog
 			IDB_BUTTON_Y,
 			IDB_BUTTON_Z,
 			IDB_BUTTONSTART,
+
 			IDB_BUTTONHALFPRESS,
-
-			IDB_ANALOG_MAIN_X,
-			IDB_ANALOG_MAIN_Y,
-			IDB_ANALOG_SUB_X,
-			IDB_ANALOG_SUB_Y,
-
-			IDB_DPAD_UP,
-			IDB_DPAD_DOWN,
-			IDB_DPAD_LEFT,
-			IDB_DPAD_RIGHT,
 
 			// Text controls
 			IDT_ANALOG_MAIN_X = 4000,
@@ -281,7 +281,7 @@ class ConfigBox : public wxDialog
 
 		void ChangeJoystick(wxCommandEvent& event);
 		void ChangeControllertype(wxCommandEvent& event);
-		void EnableDisable(wxCommandEvent& event); void DoEnableDisable(int _notebookpage);
+		void EnableDisable(wxCommandEvent& event); void UpdateGUI(int _notebookpage);
 
 		void ChangeSettings(wxCommandEvent& event); // Settings
 		void ComboChange(wxCommandEvent& event);
@@ -293,7 +293,6 @@ class ConfigBox : public wxDialog
 		void PadGetStatus(); void Update();
  
 		void SetControllerAll(int controller);
-		void UpdateVisibleItems(int controller);
 		void GetControllerAll(int controller);
 
 		void NotebookPageChanged(wxNotebookEvent& event);

@@ -319,8 +319,6 @@ THREAD_RETURN EmuThread(void *pArg)
 	Callback_PeekMessages = VideoInitialize.pPeekMessages;
 	g_pUpdateFPSDisplay = VideoInitialize.pUpdateFPSDisplay;
 
-	
-
     // Load and init DSPPlugin	
 	DSPInitialize dspInit;
 	dspInit.hWnd = g_pWindowHandle;
@@ -332,8 +330,8 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.pDebuggerBreak = Callback_DebuggerBreak;
 	dspInit.pGenerateDSPInterrupt = Callback_DSPInterrupt;
 	dspInit.pGetAudioStreaming = AudioInterface::Callback_GetStreaming;
-	Plugins.GetDSP()->Initialize((void *)&dspInit);	
-	
+	Plugins.GetDSP()->Initialize((void *)&dspInit);
+
 	// Load and Init PadPlugin
 	for (int i = 0; i < MAXPADS; i++)
 	{			
@@ -427,8 +425,10 @@ THREAD_RETURN EmuThread(void *pArg)
 		// Returns after game exited
 		cpuThread = NULL;
 	}
+
+	// The hardware is uninitialized
 	g_bHwInit = false;
- 
+
 	Plugins.ShutdownPlugins();
  
 	HW::Shutdown();

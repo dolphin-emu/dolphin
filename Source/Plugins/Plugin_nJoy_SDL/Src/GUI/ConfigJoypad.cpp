@@ -76,10 +76,11 @@ void ConfigBox::SetControllerAll(int controller)
 	else
 		m_Joyattach[controller]->SetValue(FALSE);
 	
+	// Update the deadzone and controller type controls
 	m_Controltype[controller]->SetSelection(joysticks[controller].controllertype);
 	m_Deadzone[controller]->SetSelection(joysticks[controller].deadzone);
 
-	UpdateVisibleItems(controller);
+	UpdateGUI(controller);
 
 	if(joysticks[controller].controllertype == CTL_TYPE_JOYSTICK)
 	{
@@ -103,6 +104,7 @@ void ConfigBox::GetControllerAll(int controller)
 	long value;
 
 	joysticks[controller].ID = m_Joyname[controller]->GetSelection();
+	if(joyinfo[joysticks[controller].ID].NumHats > 0) joysticks[controller].controllertype = CTL_TYPE_JOYSTICK;
 
 	m_JoyShoulderL[controller]->GetValue().ToLong(&value); joysticks[controller].buttons[CTL_L_SHOULDER] = value; tmp.clear();
 	m_JoyShoulderR[controller]->GetValue().ToLong(&value); joysticks[controller].buttons[CTL_R_SHOULDER] = value; tmp.clear();
@@ -140,41 +142,6 @@ void ConfigBox::GetControllerAll(int controller)
 }
 
 
-void ConfigBox::UpdateVisibleItems(int controller)
-{	
-	if(joysticks[controller].controllertype)	
-	{
-		m_JoyDpadDown[controller]->Show(TRUE);
-		m_JoyDpadLeft[controller]->Show(TRUE);
-		m_JoyDpadRight[controller]->Show(TRUE);
-
-		m_bJoyDpadDown[controller]->Show(TRUE);
-		m_bJoyDpadLeft[controller]->Show(TRUE);
-		m_bJoyDpadRight[controller]->Show(TRUE);
-		
-		m_textDpadUp[controller]->Show(TRUE);
-		m_textDpadDown[controller]->Show(TRUE);
-		m_textDpadLeft[controller]->Show(TRUE);
-		m_textDpadRight[controller]->Show(TRUE);		
-	}
-	else
-	{	
-		m_JoyDpadDown[controller]->Show(FALSE);
-		m_JoyDpadLeft[controller]->Show(FALSE);
-		m_JoyDpadRight[controller]->Show(FALSE);
-
-		m_bJoyDpadDown[controller]->Show(FALSE);
-		m_bJoyDpadLeft[controller]->Show(FALSE);
-		m_bJoyDpadRight[controller]->Show(FALSE);
-				
-		m_textDpadUp[controller]->Show(FALSE);
-		m_textDpadDown[controller]->Show(FALSE);
-		m_textDpadLeft[controller]->Show(FALSE);
-		m_textDpadRight[controller]->Show(FALSE);		
-	}	
-}
-
-
 // Change controller type
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::ChangeControllertype(wxCommandEvent& event)
@@ -184,7 +151,7 @@ void ConfigBox::ChangeControllertype(wxCommandEvent& event)
 	joysticks[2].controllertype = m_Controltype[2]->GetSelection();
 	joysticks[3].controllertype = m_Controltype[3]->GetSelection();
 
-	for(int i=0; i<4 ;i++) UpdateVisibleItems(i);	
+	for(int i=0; i<4 ;i++) UpdateGUI(i);	
 }
 
 
@@ -195,22 +162,13 @@ void ConfigBox::SetButtonText(int id, char text[128])
 	switch(id)
 	{
 		case IDB_SHOULDER_L:
-		{
-			m_JoyShoulderL[controller]->SetValue(wxString::FromAscii(text));
-		}
-		break;
+			m_JoyShoulderL[controller]->SetValue(wxString::FromAscii(text)); break;
 
 		case IDB_SHOULDER_R:
-		{
-			m_JoyShoulderR[controller]->SetValue(wxString::FromAscii(text));
-		}
-		break;
+			m_JoyShoulderR[controller]->SetValue(wxString::FromAscii(text)); break;
 		
 		case IDB_BUTTON_A:
-		{
-			m_JoyButtonA[controller]->SetValue(wxString::FromAscii(text));
-		}
-		break;
+			m_JoyButtonA[controller]->SetValue(wxString::FromAscii(text)); break;
 		
 		case IDB_BUTTON_B:
 		{
@@ -225,16 +183,10 @@ void ConfigBox::SetButtonText(int id, char text[128])
 		break;
 
 		case IDB_BUTTON_Y:
-		{
-			m_JoyButtonY[controller]->SetValue(wxString::FromAscii(text));
-		}
-		break;
+			m_JoyButtonY[controller]->SetValue(wxString::FromAscii(text)); break;
 
 		case IDB_BUTTON_Z:
-		{
-			m_JoyButtonZ[controller]->SetValue(wxString::FromAscii(text));
-		}
-		break;
+			m_JoyButtonZ[controller]->SetValue(wxString::FromAscii(text)); break;
 
 		case IDB_BUTTONSTART:
 		{
@@ -267,38 +219,43 @@ void ConfigBox::SetButtonText(int id, char text[128])
 		break;
 
 		case IDB_DPAD_RIGHT:
-		{
-			m_JoyDpadRight[controller]->SetValue(wxString::FromAscii(text));
-		}
-		break;
+			m_JoyDpadRight[controller]->SetValue(wxString::FromAscii(text)); break;
 
 		case IDB_ANALOG_MAIN_X:
-		{
-			m_JoyAnalogMainX[controller]->SetValue(wxString::FromAscii(text));
-		}
-		break;
+			m_JoyAnalogMainX[controller]->SetValue(wxString::FromAscii(text)); break;
 
 		case IDB_ANALOG_MAIN_Y:
-		{
-			m_JoyAnalogMainY[controller]->SetValue(wxString::FromAscii(text));
-		}
-		break;
+			m_JoyAnalogMainY[controller]->SetValue(wxString::FromAscii(text)); break;
 
 		case IDB_ANALOG_SUB_X:
-		{
-			m_JoyAnalogSubX[controller]->SetValue(wxString::FromAscii(text));
-		}
-		break;
+			m_JoyAnalogSubX[controller]->SetValue(wxString::FromAscii(text)); break;
 
 		case IDB_ANALOG_SUB_Y:
-		{
-			m_JoyAnalogSubY[controller]->SetValue(wxString::FromAscii(text));
-		}
-		break;
+			m_JoyAnalogSubY[controller]->SetValue(wxString::FromAscii(text)); break;
 
 		default:
 			break;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Condifigure button mapping
+// ¯¯¯¯¯¯¯¯¯¯
+
+
+// Avoid extreme axis values
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+/* Function: We have to avoid very big values to becuse some triggers are -0x8000 in the
+   unpressed state (and then go from -0x8000 to 0x8000 as they are fully pressed) */
+bool AvoidValues(int value)
+{
+	// Avoid detecting very small or very big (for triggers) values
+	if(    (value > -0x1000 && value < 0x1000) // Small values
+		|| (value < -0x7000 || value > 0x7000)) // Big values
+		return true; // Avoid
+	else
+		return false; // Keep
 }
 
 
@@ -312,44 +269,85 @@ void ConfigBox::GetButtons(wxCommandEvent& event)
 	// Get the ID for the wxWidgets button that was pressed
 	int ID = event.GetId();
 
-	// DPAD type check	
-	if(ID == IDB_DPAD_UP)
-		if(joysticks[controller].controllertype == 0)
-		{
-			GetHats(ID);
-			return;
-		}
+	// Collect the accepted buttons for this slot
+	bool Axis = (event.GetId() >= IDB_ANALOG_MAIN_X && event.GetId() <= IDB_SHOULDER_R);
+	bool Button = (event.GetId() >= IDB_BUTTON_A && event.GetId() <= IDB_BUTTONSTART)
+			   || (event.GetId() == IDB_SHOULDER_L || event.GetId() == IDB_SHOULDER_R);
+	bool Hat = (event.GetId() >= IDB_DPAD_UP && event.GetId() <= IDB_DPAD_RIGHT);
 
-	/* Open a new joystick. Joysticks[controller].ID is the system ID of the physicaljoystick
+	/* Open a new joystick. Joysticks[controller].ID is the system ID of the physical joystick
 	   that is mapped to controller, for example 0, 1, 2, 3 for the first four joysticks */
 	SDL_Joystick *joy = SDL_JoystickOpen(joysticks[controller].ID);
 
+	 // Get the number of axes, hats and buttons
+	int buttons = SDL_JoystickNumButtons(joy);
+	int axes = SDL_JoystickNumAxes(joy);
+	int hats = SDL_JoystickNumHats(joy);	
+
 	// Declare values
 	char format[128];
-	int buttons = SDL_JoystickNumButtons(joy); // Get number of buttons
+	int value; // Axis value
 	bool waiting = true;
 	bool succeed = false;
 	int pressed = 0;
 	int counter1 = 0; // Waiting limits
 	int counter2 = 30; // Iterations to wait for
-		
+
+	// Update the text box
 	sprintf(format, "[%d]", counter2);
 	SetButtonText(ID, format);
-	wxWindow::Update();	// win only? doesnt seem to work in linux...
+	wxWindow::Update();	// Win only? doesnt seem to work in linux...
 
 	while(waiting)
-	{			
-		// Go through all axes and read out their values
+	{
+		// Update the internal status
 		SDL_JoystickUpdate();
-		for(int b = 0; b < buttons; b++)
-		{			
-			if(SDL_JoystickGetButton(joy, b))
+
+		// For the triggers we accept both a digital or an analog button
+		if(Axis)
+		{
+			for(int i = 0; i < axes; i++)
 			{
-				pressed = b;	
+				value = SDL_JoystickGetAxis(joy, i);
+
+				if(AvoidValues(value)) continue; // Avoid values
+
+				pressed = i;	
 				waiting = false;
 				succeed = true;
-				break;
-			}			
+				break; // Stop this loop
+			}
+		}
+
+		// Check for a hat
+		if(Hat)
+		{
+			for(int i = 0; i < hats; i++)
+			{	
+				value = SDL_JoystickGetHat(joy, i);
+				if(value)
+				{
+					pressed = value;	
+					waiting = false;
+					succeed = true;
+					break;
+				}			
+			}
+		}
+
+		// Check for a button
+		if(Button)
+		{
+			for(int i = 0; i < buttons; i++)
+			{			
+				if(SDL_JoystickGetButton(joy, i))
+				{
+					pressed = i;	
+					waiting = false;
+					succeed = true;
+					break;
+				}
+			}
 		}
 
 		// Check for keyboard action
@@ -409,22 +407,92 @@ void ConfigBox::GetButtons(wxCommandEvent& event)
 	sprintf(format, "%d", succeed ? pressed : -1);
 	SetButtonText(ID, format);
 
-	// We don't need this any more
+	// We don't need thisgamepad handle any more
 	if(SDL_JoystickOpened(joysticks[controller].ID)) SDL_JoystickClose(joy);
-
 }
+
+
+// Wait for Analog
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void ConfigBox::GetAxis(wxCommandEvent& event)
+{
+	int ID = event.GetId();
+	int controller = notebookpage;
+
+	SDL_Joystick *joy = SDL_JoystickOpen(joysticks[controller].ID);
+
+	char format[128];
+	int axes = SDL_JoystickNumAxes(joy); // Get number of axes
+	bool waiting = true;
+	bool succeed = false;
+	int pressed = 0;
+	Sint16 value;
+	
+	int counter1 = 0;
+	int counter2 = 10;
+	
+	sprintf(format, "[%d]", counter2);
+	SetButtonText(ID, format);
+	wxWindow::Update();	// Win only? doesnt seem to work in linux...
+
+	while(waiting)
+	{		
+		// Go through all axes and read out their values
+		SDL_JoystickUpdate();
+		for(int i = 0; i < axes; i++)
+		{		
+			value = SDL_JoystickGetAxis(joy, i);
+			
+			if(AvoidValues(value)) continue; // Avoid values
+
+			pressed = i;	
+			waiting = false;
+			succeed = true;
+			break; // Stop this loop
+		}	
+
+		// Stop waiting for a button
+		counter1++;
+		if(counter1 == 100)
+		{
+			counter1 = 0;
+			counter2--;
+			
+			sprintf(format, "[%d]", counter2);
+			SetButtonText(ID, format);
+			wxWindow::Update();	// win only? doesnt seem to work in linux...
+			wxYieldIfNeeded(); // Let through debugging events
+
+			if(counter2<0)
+				waiting = false;
+		}	
+		SLEEP(10);
+	}
+	
+	sprintf(format, "%d", succeed ? pressed : -1); // Update the status text box
+	SetButtonText(ID, format);
+
+	if(SDL_JoystickOpened(joysticks[controller].ID)) // Close the handle
+		SDL_JoystickClose(joy);
+
+	// Update the axises for the advanced settings status
+	GetControllerAll(controller);
+}
+
 
 // Wait for D-Pad
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::GetHats(int ID)
 {	
+	// Get the active controller
 	int controller = notebookpage;
 
-	SDL_Joystick *joy;
-	joy = SDL_JoystickOpen(joysticks[controller].ID);
+	/* Open a new joystick. Joysticks[controller].ID is the system ID of the physical joystick
+	   that is mapped to controller, for example 0, 1, 2, 3 for the first four joysticks */
+	SDL_Joystick *joy = SDL_JoystickOpen(joysticks[controller].ID);
 
 	char format[128];
-	int hats = SDL_JoystickNumHats(joy);
+	int hats = SDL_JoystickNumHats(joy); // Get the number of sticks
 	bool waiting = true;
 	bool succeed = false;
 	int pressed = 0;
@@ -439,16 +507,6 @@ void ConfigBox::GetHats(int ID)
 	while(waiting)
 	{			
 		SDL_JoystickUpdate();
-		for(int b = 0; b < hats; b++)
-		{			
-			if(SDL_JoystickGetHat(joy, b))
-			{
-				pressed = b;	
-				waiting = false;
-				succeed = true;
-				break;
-			}			
-		}
 
 		counter1++;
 		if(counter1==100)
@@ -473,69 +531,4 @@ void ConfigBox::GetHats(int ID)
 		SDL_JoystickClose(joy);
 }
 
-// Wait for Analog
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::GetAxis(wxCommandEvent& event)
-{
-	int ID = event.GetId();
-	int controller = notebookpage;
-
-	SDL_Joystick *joy;
-	joy=SDL_JoystickOpen(joysticks[controller].ID);
-
-	char format[128];
-	int axes = SDL_JoystickNumAxes(joy);
-	bool waiting = true;
-	bool succeed = false;
-	int pressed = 0;
-	Sint16 value;
-	
-	int counter1 = 0;
-	int counter2 = 10;
-	
-	sprintf(format, "[%d]", counter2);
-	SetButtonText(ID, format);
-	wxWindow::Update();	// win only? doesnt seem to work in linux...
-
-	while(waiting)
-	{		
-		// Go through all axes and read out their values
-		SDL_JoystickUpdate();
-		for(int b = 0; b < axes; b++)
-		{		
-			value = SDL_JoystickGetAxis(joy, b);
-			if(value < -10000 || value > 10000) // Avoid detecting small values
-			{
-				pressed = b;	
-				waiting = false;
-				succeed = true;
-				break;
-			}			
-		}	
-
-		// Stop waiting for a button
-		counter1++;
-		if(counter1 == 100)
-		{
-			counter1=0;
-			counter2--;
-			
-			sprintf(format, "[%d]", counter2);
-			SetButtonText(ID, format);
-			wxWindow::Update();	// win only? doesnt seem to work in linux...
-
-			if(counter2<0)
-				waiting = false;
-		}	
-		SLEEP(10);
-	}
-	
-	sprintf(format, "%d", succeed ? pressed : -1); // Update the status text box
-	SetButtonText(ID, format);
-
-	if(SDL_JoystickOpened(joysticks[controller].ID)) // Close the handle
-		SDL_JoystickClose(joy);
-
-	// Update the axises for the advanced settings status
-	GetControllerAll(controller);
-}
+/////////////////////////////////////////////////////////// Configure button mapping

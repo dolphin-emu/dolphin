@@ -128,6 +128,43 @@ void ConfigBox::PadGetStatus()
 	
 }
 
+// Show the current pad status
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+std::string ShowStatus()
+{
+	SDL_Joystick *joy = SDL_JoystickOpen(0);
+	int axes = SDL_JoystickNumAxes(joy);
+	int hats = SDL_JoystickNumHats(joy);
+	int but = SDL_JoystickNumButtons(joy);
+	std::string StrAxes, StrHats, StrBut;
+	int value;
+
+	// Go through all axes and read out their values
+	SDL_JoystickUpdate();
+	for(int i = 0; i < axes; i++)
+	{	
+		value = SDL_JoystickGetAxis(joy, i);
+		StrAxes += StringFromFormat(" %i:%05i", i, value);
+	}
+	for(int i = 0;i < hats; i++)
+	{	
+		value = SDL_JoystickGetHat(joy, i);
+		StrHats += StringFromFormat(" %i:%i", i, value);
+	}
+	for(int i = 0;i < but; i++)
+	{	
+		value = SDL_JoystickGetButton(joy, i);
+		StrBut += StringFromFormat(" %i:%i", i+1, value);
+	}
+
+	return StringFromFormat(
+		"Axes: %s\nHats: %s\nBut: %s\nDevice: Ax: %i Balls:%i But:%i Hats:%i",
+		StrAxes.c_str(), StrHats.c_str(), StrBut.c_str(), 
+		joyinfo[joysticks[0].ID].NumAxes, joyinfo[joysticks[0].ID].NumBalls,
+		joyinfo[joysticks[0].ID].NumButtons, joyinfo[joysticks[0].ID].NumHats
+		);
+}
+
 // Populate the advanced tab
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::Update()
@@ -135,11 +172,11 @@ void ConfigBox::Update()
 	if(StrangeHack) PadGetStatus();
 	if(!g_Config.bShowAdvanced) StrangeHack = false; else StrangeHack = true;
 
-	/*
+	// Show the current status
+	/**/
 	m_pStatusBar->SetLabel(wxString::Format(
-		"Id: %i",
-		joysticks[0].ID
-		));*/
+		"%s", ShowStatus().c_str()
+		));	
 }
 
 
