@@ -78,7 +78,8 @@ bool CPluginManager::InitPlugins() {
     bool pad = false;
     bool wiimote = false;
 
-    for (int i=0;i<MAXPADS;i++) {
+    for (int i = 0; i < MAXPADS; i++)
+	{
 	if (! m_params.m_strPadPlugin[i].empty())
 	    GetPAD(i);
 
@@ -91,7 +92,8 @@ bool CPluginManager::InitPlugins() {
 	return false;
     }
     if (m_params.bWii) {
-	for (int i=0;i<MAXWIIMOTES;i++) {
+	for (int i = 0; i < MAXWIIMOTES; i++)
+	{
 	    if (! m_params.m_strWiimotePlugin[i].empty())
 		GetWiimote(i);
 
@@ -108,15 +110,13 @@ bool CPluginManager::InitPlugins() {
     return true;
 }
 
-void CPluginManager::ShutdownPlugins() {
-   for (int i=0;i<MAXPADS;i++) {
-       if (m_pad[i])
-	   m_pad[i]->Shutdown();
-   }
-   for (int i=0;i<MAXWIIMOTES;i++) {
-       if (m_wiimote[i])
-	   m_wiimote[i]->Shutdown();
-   }
+void CPluginManager::ShutdownPlugins()
+{
+   for (int i = 0; i < MAXPADS; i++)
+       if (m_pad[i]) m_pad[i]->Shutdown();
+
+   for (int i = 0; i < MAXWIIMOTES; i++)
+       if (m_wiimote[i]) m_wiimote[i]->Shutdown();
 
    if (m_video)
        m_video->Shutdown();
@@ -167,23 +167,25 @@ void CPluginManager::ScanForPlugins()
 	}
 }
 
-Common::PluginPAD *CPluginManager::GetPAD(int controller) {
+Common::PluginPAD *CPluginManager::GetPAD(int controller)
+{
     if (m_pad[controller] == NULL)
-	m_pad[controller] = (Common::PluginPAD*)LoadPlugin
-	    (m_params.m_strPadPlugin[controller].c_str());
+	m_pad[controller] = (Common::PluginPAD*)LoadPlugin(m_params.m_strPadPlugin[controller].c_str());
 
     return m_pad[controller];
 }
 
-Common::PluginWiimote *CPluginManager::GetWiimote(int controller) {
+Common::PluginWiimote *CPluginManager::GetWiimote(int controller)
+{
     if (m_wiimote[controller] == NULL)
-	m_wiimote[controller] = (Common::PluginWiimote*)LoadPlugin
-	    (m_params.m_strWiimotePlugin[controller].c_str());
+		m_wiimote[controller] = (Common::PluginWiimote*)LoadPlugin
+			(m_params.m_strWiimotePlugin[controller].c_str());
 
     return m_wiimote[controller];
 }
 
-Common::PluginDSP *CPluginManager::GetDSP() {
+Common::PluginDSP *CPluginManager::GetDSP()
+{
     if (m_dsp == NULL)
 	m_dsp = (Common::PluginDSP*)LoadPlugin(m_params.m_strDSPPlugin.c_str());
 

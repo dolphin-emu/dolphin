@@ -245,7 +245,7 @@ bool DolphinApp::OnInit()
 	if(UseDebugger)
 	{
 		main_frame = new CFrame((wxFrame*) NULL, wxID_ANY, wxString::FromAscii(title),
-				wxPoint(x, y), wxSize(h, w));
+				wxPoint(x, y), wxSize(w, h));
 	}
 	else
 	{

@@ -192,13 +192,15 @@ void SConfig::LoadSettings()
 		// Plugins
 		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin, m_DefaultGFXPlugin.c_str());
 		ini.Get("Core", "DSPPlugin",  &m_LocalCoreStartupParameter.m_strDSPPlugin, m_DefaultDSPPlugin.c_str());
-		ini.Get("Core", "Pad1Plugin",  &m_LocalCoreStartupParameter.m_strPadPlugin[0], m_DefaultPADPlugin.c_str());
-		ini.Get("Core", "Pad2Plugin",  &m_LocalCoreStartupParameter.m_strPadPlugin[1], m_DefaultPADPlugin.c_str());
-		ini.Get("Core", "Pad3Plugin",  &m_LocalCoreStartupParameter.m_strPadPlugin[2], m_DefaultPADPlugin.c_str());
-		ini.Get("Core", "Pad4Plugin",  &m_LocalCoreStartupParameter.m_strPadPlugin[3], m_DefaultPADPlugin.c_str());
-		ini.Get("Core", "WiiMote1Plugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin[0], m_DefaultWiiMotePlugin.c_str());
-		ini.Get("Core", "WiiMote2Plugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin[1], m_DefaultWiiMotePlugin.c_str());
-		ini.Get("Core", "WiiMote3Plugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin[2], m_DefaultWiiMotePlugin.c_str());
-		ini.Get("Core", "WiiMote4Plugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin[3], m_DefaultWiiMotePlugin.c_str());
+		for (int i = 0; i < MAXPADS; i++)
+		{
+			std::string TmpName = StringFromFormat("Pad%iPlugin", (i + 1));
+			ini.Get("Core", TmpName.c_str(),  &m_LocalCoreStartupParameter.m_strPadPlugin[i], m_DefaultPADPlugin.c_str());
+		}
+		for (int i = 0; i < MAXWIIMOTES; i++)
+		{
+			std::string TmpName = StringFromFormat("WiiMote%iPlugin", (i + 1));
+			ini.Get("Core", "WiiMote1Plugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin[i], m_DefaultWiiMotePlugin.c_str());
+		}
 	}
 }

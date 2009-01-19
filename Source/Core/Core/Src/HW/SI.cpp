@@ -15,6 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// ¯¯¯¯¯¯¯¯¯¯
 #include "Common.h"
 #include "ChunkFile.h"
 
@@ -25,9 +29,19 @@
 #include "SI.h"
 #include "SI_Device.h"
 #include "SI_DeviceGCController.h"
+//////////////////////////////
+
 
 namespace SerialInterface
 {
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Declarations
+// ¯¯¯¯¯¯¯¯¯¯
+void RunSIBuffer();
+void UpdateInterrupts();	
+/////////////////////////////////////
+
 
 // SI Interrupt Types
 enum SIInterruptType
@@ -35,6 +49,7 @@ enum SIInterruptType
 	INT_RDSTINT		= 0,
 	INT_TCINT		= 1,
 };
+static void GenerateSIInterrupt(SIInterruptType _SIInterrupt);
 
 // SI number of channels
 enum
@@ -223,29 +238,36 @@ void DoState(PointerWrap &p)
 	p.Do(g_StatusReg);
 	p.Do(g_EXIClockCount);
 	p.Do(g_SIBuffer);
-}
+}	
 
-static void GenerateSIInterrupt(SIInterruptType _SIInterrupt);
-void RunSIBuffer();
-void UpdateInterrupts();		
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Initialize the Serial Interface
+// ¯¯¯¯¯¯¯¯¯¯
 void Init()
 {
-    for (int i = 0; i < NUMBER_OF_CHANNELS; i++) {
-	
-	g_Channel[i].m_Out.Hex = 0;
-	g_Channel[i].m_InHi.Hex = 0;
-	g_Channel[i].m_InLo.Hex = 0;		
-    }
+    for (int i = 0; i < NUMBER_OF_CHANNELS; i++)
+	{	
+		g_Channel[i].m_Out.Hex = 0;
+		g_Channel[i].m_InHi.Hex = 0;
+		g_Channel[i].m_InLo.Hex = 0;
+
+		// First attach a dummy device to all channels
+		g_Channel[i].m_pDevice = new CSIDevice_Dummy(i);
+    }	
 
     // TODO: allow dynamic attaching/detaching of plugins
     // maybe this code should be in the pad plugin loader at all?
-    for (int i = 0; i < MAXPADS; i++) {
-	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPAD(i);
-	if (pad != NULL && (pad->PAD_GetAttachedPads() & (1 << i)))
-	    g_Channel[i].m_pDevice = new CSIDevice_GCController(i);
-	else
-	    g_Channel[i].m_pDevice = new CSIDevice_Dummy(i);
+    for (int i = 0; i < MAXPADS; i++)
+	{
+		// Get pad status
+		Common::PluginPAD* pad = CPluginManager::GetInstance().GetPAD(i);
+
+		// Check if this pad is attached for the current plugin
+		if (pad != NULL && (pad->PAD_GetAttachedPads() & (1 << i)))
+			g_Channel[i].m_pDevice = new CSIDevice_GCController(i);
+		//else
+		//	g_Channel[i].m_pDevice = new CSIDevice_Dummy(i);
     }
 
 	g_Poll.Hex = 0;
@@ -254,6 +276,8 @@ void Init()
 	g_EXIClockCount.Hex = 0;
 	memset(g_SIBuffer, 0xce, 128);
 }
+//////////////////////////////////////
+
 
 void Shutdown()
 {
@@ -514,36 +538,37 @@ void GenerateSIInterrupt(SIInterruptType _SIInterrupt)
 
 void UpdateDevices()
 {
-	// update channels
+	// Update channels
 	g_StatusReg.RDST0 = g_Channel[0].m_pDevice->GetData(g_Channel[0].m_InHi.Hex, g_Channel[0].m_InLo.Hex) ? 1 : 0;
 	g_StatusReg.RDST1 = g_Channel[1].m_pDevice->GetData(g_Channel[1].m_InHi.Hex, g_Channel[1].m_InLo.Hex) ? 1 : 0;
 	g_StatusReg.RDST2 = g_Channel[2].m_pDevice->GetData(g_Channel[2].m_InHi.Hex, g_Channel[2].m_InLo.Hex) ? 1 : 0;
 	g_StatusReg.RDST3 = g_Channel[3].m_pDevice->GetData(g_Channel[3].m_InHi.Hex, g_Channel[3].m_InLo.Hex) ? 1 : 0;
 
-	// update interrupts
+	// Update interrupts
 	UpdateInterrupts();
 }
 
 void RunSIBuffer()
 {
-	// math inLength
+	// Math inLength
 	int inLength = g_ComCSR.INLNGTH;
 	if (inLength == 0)
 		inLength = 128;
 	else
 		inLength++;
 
-	// math outLength
+	// Math outLength
 	int outLength = g_ComCSR.OUTLNGTH;
 	if (outLength == 0)
 		outLength = 128;
 	else
 		outLength++;
 
-#ifdef LOGGING
-	int numOutput =
-#endif
+	#ifdef LOGGING
+		int numOutput =
+	#endif
 		g_Channel[g_ComCSR.CHANNEL].m_pDevice->RunBuffer(g_SIBuffer, inLength);
+
 	LOGV(SERIALINTERFACE, 2, "RunSIBuffer     (intLen: %i    outLen: %i) (processed: %i)", inLength, outLength, numOutput);
 
 	// Transfer completed

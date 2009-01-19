@@ -27,7 +27,7 @@ and stopped.
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Includes
-// 
+// -----------
 #include <string.h>
 #ifdef _WIN32
 #include <windows.h>
@@ -79,11 +79,14 @@ std::string GetLastErrorAsString()
 #endif
 }
 
-// Loading means loading the dll with LoadLibrary() to get an instance to the dll.
-// This is done when Dolphin is started to determine which dlls are good, and
-// before opening the Config and Debugging windows from Plugin.cpp and
-// before opening the dll for running the emulation in Video_...cpp in Core.
-// Since this is fairly slow, TODO: think about implementing some sort of cache.
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// -----------
+/* Function: Loading means loading the dll with LoadLibrary() to get an instance to the dll.
+   This is done when Dolphin is started to determine which dlls are good, and before opening
+   the Config and Debugging windows from Plugin.cpp and before opening the dll for running
+   the emulation in Video_...cpp in Core. Since this is fairly slow, TODO: think about
+   implementing some sort of cache. */
 int DynamicLibrary::Load(const char* filename)
 {
 	if (!filename || strlen(filename) == 0)
@@ -147,11 +150,12 @@ void* DynamicLibrary::Get(const char* funcname) const
 		PanicAlert("Can't find function %s - Library not loaded.");
 		return NULL;
 	}
-#ifdef _WIN32
-	retval = GetProcAddress(library, funcname);
-#else
-	retval = dlsym(library, funcname);
-#endif
+
+	#ifdef _WIN32
+		retval = GetProcAddress(library, funcname);
+	#else
+		retval = dlsym(library, funcname);
+	#endif
 
 	if (!retval)
 	{

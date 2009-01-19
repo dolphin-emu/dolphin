@@ -30,11 +30,13 @@
 namespace Common
 {
 
-CPlugin::~CPlugin() {
+CPlugin::~CPlugin()
+{
     m_hInstLib.Unload();
 }
 
-CPlugin::CPlugin(const char* _szName) : valid(false) {
+CPlugin::CPlugin(const char* _szName) : valid(false)
+{
     if (m_hInstLib.Load(_szName)) {
 
 	m_GetDllInfo = reinterpret_cast<TGetDllInfo>
@@ -101,14 +103,17 @@ void CPlugin::DoState(unsigned char **ptr, int mode) {
 	m_DoState(ptr, mode);
 }
 
-void CPlugin::Initialize(void *init) {
-    if (m_Initialize != 0)
-	m_Initialize(init);
+// Run Initialize() in the plugin
+void CPlugin::Initialize(void *init)
+{
+	/* We first check that we have found the Initialize() function, but there is no
+	   restriction on running this several times */
+    if (m_Initialize != 0) m_Initialize(init);
 }
 
-void CPlugin::Shutdown() {
-    if (m_Shutdown != 0)
-	m_Shutdown();
+void CPlugin::Shutdown()
+{
+    if (m_Shutdown != 0) m_Shutdown();
 }
 
 } // end of namespace Common

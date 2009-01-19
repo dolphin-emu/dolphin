@@ -20,12 +20,11 @@
 // Include
 // 
 #ifdef _WIN32
-#include <windows.h>
+	#include <windows.h>
 #else
-
 #endif
 
-#include "Thread.h"
+#include "Thread.h" // Common
 #include "Timer.h"
 #include "Common.h"
  
@@ -283,7 +282,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	Common::SetCurrentThreadName("Emuthread - starting");
 	const SCoreStartupParameter _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
-	CPluginManager &pm  = CPluginManager::GetInstance();
+	CPluginManager &Plugins = CPluginManager::GetInstance();
 	if (_CoreParameter.bLockThreads)
 		Common::Thread::SetCurrentThreadAffinity(2); // Force to second core
  
@@ -313,13 +312,15 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pMemoryBase         = Memory::base;
 	VideoInitialize.pKeyPress           = Callback_KeyPress;
 	VideoInitialize.bWii                = _CoreParameter.bWii;
-	pm.GetVideo()->Initialize(&VideoInitialize); // Call the dll
+	Plugins.GetVideo()->Initialize(&VideoInitialize); // Call the dll
  
 	// Under linux, this is an X11 Display, not an HWND!
 	g_pWindowHandle = (HWND)VideoInitialize.pWindowHandle;
 	Callback_PeekMessages = VideoInitialize.pPeekMessages;
 	g_pUpdateFPSDisplay = VideoInitialize.pUpdateFPSDisplay;
- 
+
+	
+
     // Load and init DSPPlugin	
 	DSPInitialize dspInit;
 	dspInit.hWnd = g_pWindowHandle;
@@ -331,28 +332,27 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.pDebuggerBreak = Callback_DebuggerBreak;
 	dspInit.pGenerateDSPInterrupt = Callback_DSPInterrupt;
 	dspInit.pGetAudioStreaming = AudioInterface::Callback_GetStreaming;
-	pm.GetDSP()->Initialize((void *)&dspInit);
-
+	Plugins.GetDSP()->Initialize((void *)&dspInit);	
 	
-	for (int i=0;i<MAXPADS;i++) {
-
-	// Load and Init PadPlugin	
-	SPADInitialize PADInitialize;
-	PADInitialize.hWnd = g_pWindowHandle;
-	PADInitialize.pLog = Callback_PADLog;
-	PADInitialize.padNumber = i;
-	pm.GetPAD(i)->Initialize((void *)&PADInitialize);
-
+	// Load and Init PadPlugin
+	for (int i = 0; i < MAXPADS; i++)
+	{			
+		SPADInitialize PADInitialize;
+		PADInitialize.hWnd = g_pWindowHandle;
+		PADInitialize.pLog = Callback_PADLog;
+		PADInitialize.padNumber = i;
+		Plugins.GetPAD(i)->Initialize((void *)&PADInitialize);
 	}
 
 	// Load and Init WiimotePlugin - only if we are booting in wii mode	
-	if (_CoreParameter.bWii) {
+	if (_CoreParameter.bWii)
+	{
 		SWiimoteInitialize WiimoteInitialize;
 		WiimoteInitialize.hWnd = g_pWindowHandle;
 		WiimoteInitialize.pLog = Callback_WiimoteLog;
 		WiimoteInitialize.pWiimoteInput = Callback_WiimoteInput;
 		// Wait for Wiiuse to find the number of connected Wiimotes
-		pm.GetWiimote(0)->Initialize((void *)&WiimoteInitialize);
+		Plugins.GetWiimote(0)->Initialize((void *)&WiimoteInitialize);
 	}
  
 	// The hardware is initialized.
@@ -410,9 +410,9 @@ THREAD_RETURN EmuThread(void *pArg)
 	else
 	{
 	    cpuThread = new Common::Thread(CpuThread, pArg);
-	    pm.GetVideo()->Video_Prepare(); //wglMakeCurrent
+	    Plugins.GetVideo()->Video_Prepare(); //wglMakeCurrent
 	    Common::SetCurrentThreadName("Video thread");
-	    pm.GetVideo()->Video_EnterLoop();
+	    Plugins.GetVideo()->Video_EnterLoop();
 	}
  
 	// Wait for CPU thread to exit - it should have been signaled to do so by now
@@ -429,7 +429,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	}
 	g_bHwInit = false;
  
-	pm.ShutdownPlugins();
+	Plugins.ShutdownPlugins();
  
 	HW::Shutdown();
  
