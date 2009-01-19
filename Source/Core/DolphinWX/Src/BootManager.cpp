@@ -112,9 +112,9 @@ bool BootCore(const std::string& _rFilename)
 
 	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
 	StartUp.m_strFilename = _rFilename;
+	SConfig::GetInstance().m_LastFilename = _rFilename;
 	StartUp.bRunCompareClient = false;
 	StartUp.bRunCompareServer = false;
-	std::string BaseDataPath;
 
 	#ifdef _WIN32
 		StartUp.hInstance = wxGetInstance();

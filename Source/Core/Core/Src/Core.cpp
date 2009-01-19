@@ -280,7 +280,7 @@ THREAD_RETURN CpuThread(void *pArg)
 THREAD_RETURN EmuThread(void *pArg)
 {
 	Common::SetCurrentThreadName("Emuthread - starting");
-	const SCoreStartupParameter _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	CPluginManager &Plugins = CPluginManager::GetInstance();
 	if (_CoreParameter.bLockThreads)
@@ -306,7 +306,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pCopiedToXFB		= Callback_VideoCopiedToXFB;
 	VideoInitialize.pVIRegs             = VideoInterface::m_UVIUnknownRegs;
 	VideoInitialize.pPeekMessages       = NULL;
-    VideoInitialize.pUpdateFPSDisplay   = NULL;
+	VideoInitialize.pUpdateFPSDisplay   = NULL;
 	VideoInitialize.pCPFifo             = (SCPFifoStruct*)&CommandProcessor::fifo;
 	VideoInitialize.pUpdateInterrupts   = &(CommandProcessor::UpdateInterruptsFromVideoPlugin);
 	VideoInitialize.pMemoryBase         = Memory::base;

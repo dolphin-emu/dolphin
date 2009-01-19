@@ -24,7 +24,7 @@
 
 #include <string>
 
-#define MAXPADS 1
+#define MAXPADS 4
 #define MAXWIIMOTES 1
 
 struct SCoreStartupParameter
