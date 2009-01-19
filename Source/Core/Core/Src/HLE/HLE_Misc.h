@@ -33,6 +33,7 @@ namespace HLE_Misc
     void SMB_rsqrt_internal();
     void SMB_atan2();
     void SMB_evil_vec_setlength();
+	void FZero_kill_infinites();
 }
 
 #endif

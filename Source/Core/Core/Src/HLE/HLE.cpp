@@ -74,6 +74,7 @@ static const SPatch OSPatches[] =
 	{ ".rsqrt_internal_needs_cr1",  HLE_Misc::SMB_rsqrt_internal },
 	{ ".atan2",						HLE_Misc::SMB_atan2},
 
+	//{ ".kill_infinites",			HLE_Misc::FZero_kill_infinites },
 	// special
 	//	{ "GXPeekZ",					HLE_Misc::GXPeekZ},
 	//	{ "GXPeekARGB",					HLE_Misc::GXPeekARGB},  

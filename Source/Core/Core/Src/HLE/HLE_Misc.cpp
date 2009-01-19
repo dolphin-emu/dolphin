@@ -25,18 +25,22 @@
 namespace HLE_Misc
 {
 
+// Helper to quickly read the floating point value at a memory location.
 inline float F(u32 addr) 
 {
 	u32 mem = Memory::ReadFast32(addr);
 	return *((float*)&mem);
 }
 
+// Helper to quickly write a floating point value to a memory location.
 inline void FW(u32 addr, float x) 
 {
 	u32 data = *((u32*)&x);
 	Memory::WriteUnchecked_U32(data, addr);
 }
 
+// If you just want to kill a function, one of the three following are usually appropriate.
+// According to the PPC ABI, the return value is always in r3.
 void UnimplementedFunction()
 {
     NPC = LR;
@@ -56,23 +60,27 @@ void UnimplementedFunctionFalse()
 
 void GXPeekZ()
 {
+	// Just some fake Z value.
     Memory::Write_U32(0xFFFFFF, GPR(5));
     NPC = LR;
 }
 
 void GXPeekARGB()
 {
+	// Just some fake color value.
     Memory::Write_U32(0xFFFFFFFF, GPR(5));
     NPC = LR;
 }
 
+// If you want a function to panic, you can rename it PanicAlert :p
+// Don't know if this is worth keeping.
 void HLEPanicAlert()
 {
 	::PanicAlert("HLE: PanicAlert %08x", LR);
 	NPC = LR;
 }
 
-// .evil_vec_cosine
+// Computes the cosine of the angle between the two fvec3s pointed at by r3 and r4.
 void SMB_EvilVecCosine()
 {
 	u32 r3 = GPR(3);
@@ -95,6 +103,7 @@ void SMB_EvilVecCosine()
     NPC = LR;
 }
 
+// Normalizes the vector pointed at by r3.
 void SMB_EvilNormalize()
 {
 	u32 r3 = GPR(3);
@@ -111,6 +120,8 @@ void SMB_EvilNormalize()
 	NPC = LR;
 }
 
+// Scales the vector pointed at by r3 to the length specified by f0.
+// Writes results to vector pointed at by r4.
 void SMB_evil_vec_setlength()
 {
 	u32 r3 = GPR(3);
@@ -128,7 +139,7 @@ void SMB_evil_vec_setlength()
 	NPC = LR;
 }
 
-
+// Internal square root function in the crazy math lib. Acts a bit odd, just read it. It's not a bug :p
 void SMB_sqrt_internal()
 {
 	double f = sqrt(rPS0(1));
@@ -139,6 +150,7 @@ void SMB_sqrt_internal()
 	NPC = LR;
 }
 
+// Internal inverse square root function in the crazy math lib. 
 void SMB_rsqrt_internal()
 {
 	double f = 1.0 / sqrt(rPS0(1));
@@ -158,4 +170,60 @@ void SMB_atan2()
 	GPR(3) = angle_fixpt;
 	NPC = LR;
 }
+
+
+// F-zero math lib range: 8006d044 - 8006f770
+
+void FZero_kill_infinites()
+{
+	// TODO: Kill infinites in FPR(1)
+
+	NPC = LR;
+}
+
+void FZero_evil_vec_something()
+{
+/*
+.evil_vec_something
+8006d668: lis	r5, 0xE000
+8006d66c: lfs	f6, 0 (r3)
+8006d670: lfs	f7, 0x0004 (r3)
+8006d674: fmuls	f1,f6,f6
+8006d678: lfs	f8, 0x0008 (r3)
+8006d67c: fmadds	f1,f7,f7,f1
+8006d680: fmadds	f1,f8,f8,f1
+8006d684: lfs	f2, 0x01A0 (r5)
+8006d688: mcrfs	cr1, cr4
+8006d68c: mcrfs	cr0, cr3
+8006d690: bso-	cr1,->0x8006D6E8
+8006d694: ble-	cr1,->0x8006D6E8
+8006d698: bso-	->0x8006D6E8
+8006d69c: fmr	f0,f2
+8006d6a0: fmuls	f4,f2,f1
+8006d6a4: fadds	f3,f2,f2
+8006d6a8: frsqrte	f1,f0,f1
+8006d6ac: fadds	f3,f3,f2
+8006d6b0: fmuls	f5,f1,f1
+8006d6b4: fnmsubs	f5,f5,f4,f3
+8006d6b8: fmuls	f1,f1,f5
+8006d6bc: fmuls	f5,f1,f1
+8006d6c0: fnmsubs	f5,f5,f4,f3
+8006d6c4: fmuls	f1,f1,f5
+8006d6c8: fmuls	f6,f6,f1
+8006d6cc: stfs	f6, 0 (r3)
+8006d6d0: fmuls	f7,f7,f1
+8006d6d4: stfs	f7, 0x0004 (r3)
+8006d6d8: fmuls	f8,f8,f1
+8006d6dc: stfs	f8, 0x0008 (r3)
+8006d6e0: fmuls	f1,f1,f0
+8006d6e4: blr	
+8006d6e8: lfs	f1, 0x0198 (r5)
+8006d6ec: stfs	f1, 0 (r3)
+8006d6f0: stfs	f1, 0x0004 (r3)
+8006d6f4: stfs	f1, 0x0008 (r3)
+8006d6f8: blr	
+*/
+	NPC = LR;
+}
+
 }

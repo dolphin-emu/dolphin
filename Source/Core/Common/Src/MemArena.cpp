@@ -33,8 +33,9 @@
 #define MAP_ANONYMOUS MAP_ANON
 #endif 
 
-
-const char* ram_temp_file = "/tmp/gc_mem.tmp";
+#ifndef _WIN32
+static const char* ram_temp_file = "/tmp/gc_mem.tmp";
+#endif
 
 void MemArena::GrabLowMemSpace(size_t size)
 {
@@ -64,7 +65,7 @@ void MemArena::ReleaseSpace()
 void* MemArena::CreateView(s64 offset, size_t size, bool ensure_low_mem)
 {
 #ifdef _WIN32
-	return(MapViewOfFile(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size));
+	return MapViewOfFile(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size);
 
 #else
 	void* ptr = mmap(0, size,
@@ -89,12 +90,10 @@ void* MemArena::CreateView(s64 offset, size_t size, bool ensure_low_mem)
 void* MemArena::CreateViewAt(s64 offset, size_t size, void* base)
 {
 #ifdef _WIN32
-	return(MapViewOfFileEx(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, base));
-
+	return MapViewOfFileEx(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, base);
 #else
-	return(mmap(base, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, fd, offset));
+	return mmap(base, size, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, fd, offset);
 #endif
-
 }
 
 
