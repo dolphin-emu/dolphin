@@ -240,7 +240,8 @@ extern readFn64  hwReadWii64[NUMHWMEMFUN];
 
 
 // =================================
-// These functions may be called by 
+/* These functions are primarily called by the Interpreter functions and are routed to the correct
+   location through ReadFromHardware2 and WriteToHardware2 */
 // ----------------
 u32 Read_Opcode(const u32 _Address)
 {
