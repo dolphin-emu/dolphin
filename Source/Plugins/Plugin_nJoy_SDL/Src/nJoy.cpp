@@ -477,15 +477,19 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 		_pPADStatus->triggerLeft = triggervalue;
 	}
 	else if(joystate[_numPAD].axis[CTL_L_SHOULDER])
-		_pPADStatus->triggerLeft = triggervalue;
+		_pPADStatus->triggerLeft = TriggerLeft;
 
 	if (joystate[_numPAD].buttons[CTL_R_SHOULDER])
 	{
 		_pPADStatus->button |= PAD_TRIGGER_R;
-		_pPADStatus->triggerRight = TriggerLeft;
+		_pPADStatus->triggerRight = triggervalue;
 	}
 	else if(joystate[_numPAD].axis[CTL_R_SHOULDER])
 		_pPADStatus->triggerRight = TriggerRight;
+
+	// Update the buttons in analog mode to
+	if(TriggerLeft == 0xff) _pPADStatus->button |= PAD_TRIGGER_L;
+	if(TriggerRight == 0xff) _pPADStatus->button |= PAD_TRIGGER_R;
 
 
 	///////////////////////////////////////////////////
@@ -529,7 +533,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 			_pPADStatus->button |= PAD_BUTTON_RIGHT;
 	}
 
-	//
+	// Update error code
 	_pPADStatus->err = PAD_ERR_NONE;
 
 	// Use rumble
@@ -537,10 +541,14 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 
 	/* Debugging
 	Console::ClearScreen();
-	Console::Print("TriggerLeft:%04x TriggerRight:%04x\nD-Pad type: %s  L:%i  R:%i  U:%i  D:%i",
+	Console::Print(
+		"(%i %i) Left:%04x Right:%04x\n"
+		"D-Pad type: %s  L:%i  R:%i  U:%i  D:%i",
+		joysticks[_numPAD].buttons[CTL_L_SHOULDER], joysticks[_numPAD].buttons[CTL_L_SHOULDER],
 		TriggerLeft, TriggerRight,
-		(joysticks[_numPAD].controllertype ? "CTL_DPAD_CUSTOM" : "CTL_DPAD_HAT")
-		);	*/
+		(joysticks[_numPAD].controllertype ? "CTL_DPAD_CUSTOM" : "CTL_DPAD_HAT"),
+		0, 0, 0, 0
+		);*/
 }
 
  
