@@ -200,6 +200,14 @@ namespace CPUCompare
 		asm_routines.Init();
 	}
 
+	void Jit64::ClearCache() 
+	{
+		blocks.Clear();
+		trampolines.ClearCodeSpace();
+		ClearCodeSpace();
+	}
+
+
 	void Jit64::Shutdown()
 	{
 		FreeCodeSpace();

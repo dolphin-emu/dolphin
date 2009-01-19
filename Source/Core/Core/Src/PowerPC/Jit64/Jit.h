@@ -168,11 +168,7 @@ public:
 
 	void NotifyBreakpoint(u32 em_address, bool set);
 
-	void ClearCache() 
-	{
-		blocks.Clear();
-		trampolines.ClearCodeSpace();
-	}
+	void ClearCache();
 
 	// Run!
 
