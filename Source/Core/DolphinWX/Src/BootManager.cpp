@@ -141,54 +141,57 @@ bool BootCore(const std::string& _rFilename)
 		ini.Get("Core", "OptimizeQuantizers", &StartUp.bOptimizeQuantizers, StartUp.bOptimizeQuantizers);
 		ini.Get("Core", "TLBHack", &StartUp.iTLBHack, StartUp.iTLBHack);
 
-		// ------------------------------------------------
-		// Update SYSCONF with game specific settings
-		// ----------------
-		bool bEnableProgressiveScan, bEnableWideScreen;
-		//bRefreshList = false;
-		FILE* pStream; // file handle
-		u8 m_SYSCONF[0x4000]; // SYSCONF file
-		u16 IPL_PGS = 0x17CC; // pregressive scan
-		u16 IPL_AR = 0x04D9; // widescreen
-		std::string FullSYSCONFPath = FULL_WII_USER_DIR "shared2/sys/SYSCONF";
-
-		// Load Wii SYSCONF
-		pStream = NULL;
-		pStream = fopen(FullSYSCONFPath.c_str(), "rb");
-		if (pStream != NULL)
+		if (StartUp.bWii)
 		{
-			fread(m_SYSCONF, 1, 0x4000, pStream);
-			fclose(pStream);
+			// ------------------------------------------------
+			// Update SYSCONF with game specific settings
+			// ----------------
+			bool bEnableProgressiveScan, bEnableWideScreen;
+			//bRefreshList = false;
+			FILE* pStream; // file handle
+			u8 m_SYSCONF[0x4000]; // SYSCONF file
+			u16 IPL_PGS = 0x17CC; // pregressive scan
+			u16 IPL_AR = 0x04D9; // widescreen
+			std::string FullSYSCONFPath = FULL_WII_USER_DIR "shared2/sys/SYSCONF";
 
-			//wxMessageBox(wxString::Format(": %02x", m_SYSCONF[IPL_AR]));
-
-			ini.Get("Core", "EnableProgressiveScan", &bEnableProgressiveScan, m_SYSCONF[IPL_PGS] != 0);
-			ini.Get("Core", "EnableWideScreen", &bEnableWideScreen, m_SYSCONF[IPL_AR] != 0);
-
-			m_SYSCONF[IPL_PGS] = bEnableProgressiveScan;
-			m_SYSCONF[IPL_AR] = bEnableWideScreen;
-
-			//wxMessageBox(wxString::Format(": %02x", m_SYSCONF[IPL_AR]));
-
-			// Enable custom Wii SYSCONF settings by saving the file to shared2
+			// Load Wii SYSCONF
 			pStream = NULL;
-			pStream = fopen(FullSYSCONFPath.c_str(), "wb");
+			pStream = fopen(FullSYSCONFPath.c_str(), "rb");
 			if (pStream != NULL)
 			{
-				fwrite(m_SYSCONF, 1, 0x4000, pStream);
+				fread(m_SYSCONF, 1, 0x4000, pStream);
 				fclose(pStream);
-			}	
+
+				//wxMessageBox(wxString::Format(": %02x", m_SYSCONF[IPL_AR]));
+
+				ini.Get("Core", "EnableProgressiveScan", &bEnableProgressiveScan, m_SYSCONF[IPL_PGS] != 0);
+				ini.Get("Core", "EnableWideScreen", &bEnableWideScreen, m_SYSCONF[IPL_AR] != 0);
+
+				m_SYSCONF[IPL_PGS] = bEnableProgressiveScan;
+				m_SYSCONF[IPL_AR] = bEnableWideScreen;
+
+				//wxMessageBox(wxString::Format(": %02x", m_SYSCONF[IPL_AR]));
+
+				// Enable custom Wii SYSCONF settings by saving the file to shared2
+				pStream = NULL;
+				pStream = fopen(FullSYSCONFPath.c_str(), "wb");
+				if (pStream != NULL)
+				{
+					fwrite(m_SYSCONF, 1, 0x4000, pStream);
+					fclose(pStream);
+				}	
+				else
+				{
+					PanicAlert("Could not write to %s", FullSYSCONFPath.c_str());
+				}	
+
+			}
 			else
 			{
-				PanicAlert("Could not write to %s", FullSYSCONFPath.c_str());
-			}	
-			
+				PanicAlert("Could not read %s", FullSYSCONFPath.c_str());
+			}
+			// ---------
 		}
-		else
-		{
-			PanicAlert("Could not read %s", FullSYSCONFPath.c_str());
-		}
-		// ---------
 	}
 	// ==============
 

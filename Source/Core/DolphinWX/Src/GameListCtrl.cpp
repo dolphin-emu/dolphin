@@ -106,7 +106,7 @@ void CGameListCtrl::BrowseForDirectory()
 	wxGetHomeDir(&dirHome);
 
 	// browse
-	wxDirDialog dialog(this, _("Browse directory"), dirHome, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+	wxDirDialog dialog(this, _("Browse for a directory to add"), dirHome, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
 
 	if (dialog.ShowModal() == wxID_OK)
 	{
@@ -549,15 +549,28 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 
 const GameListItem * CGameListCtrl::GetSelectedISO()
 {
-	long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); 
-	if (item == -1)
+	if (m_ISOFiles.size() == 0)
+	{
+		// There are no detected games, so add a GCMPath
+		BrowseForDirectory();
 		return 0;
+	}
 	else
 	{
-		if (GetSelectedItemCount() > 1)
-			SetItemState(item, 0, wxLIST_STATE_SELECTED);
+		long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); 
+		if (item == -1) // -1 means the selection is bogus, not a gamelistitem
+			return 0;
+		else
+		{
+			// Here is a little workaround for multiselections:
+			// when > 1 item is selected, return info on the first one
+			// and deselect it so the next time GetSelectedISO() is called,
+			// the next item's info is returned
+			if (GetSelectedItemCount() > 1)
+				SetItemState(item, 0, wxLIST_STATE_SELECTED);
 
-		return &m_ISOFiles[GetItemData(item)];
+			return &m_ISOFiles[GetItemData(item)];
+		}
 	}
 }
 
