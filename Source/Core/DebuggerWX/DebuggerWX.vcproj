@@ -116,6 +116,7 @@
 				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;__WXMSW__;_SECURE_SCL=0"
 				MinimalRebuild="true"
+				ExceptionHandling="2"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
