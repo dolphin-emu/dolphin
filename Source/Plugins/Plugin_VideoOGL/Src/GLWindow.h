@@ -21,8 +21,8 @@
 #endif
 enum OGL_Props {
     OGL_FULLSCREEN,
-    OGL_STRETCHTOFIT,
     OGL_KEEPRATIO,
+    OGL_HIDECURSOR,
     OGL_PROP_COUNT
 };
 
@@ -33,6 +33,8 @@ struct res {
 
 class GLWindow {
  private:
+
+    // TODO: what is xmax and ymax? do we need [xy]render?
     u32 xWin, yWin; // windows size
     int xOffset, yOffset; // offset in window
     float xMax, yMax; // ???
@@ -43,9 +45,8 @@ class GLWindow {
 protected:
 
     EventHandler* eventHandler;
-	res origRes, currFullRes, currWinRes;
+    res origRes, currFullRes, currWinRes;
     std::vector<res> fullResolutions;
-    std::vector<res> winResolutions;
     virtual void SetRender(u32 x, u32 y) {
 	xRender = x;
 	yRender = y;
@@ -64,23 +65,17 @@ public:
 	    SetWinSize(currFullRes.x, currFullRes.y);
 	else
 	    SetWinSize(currWinRes.x, currWinRes.y);
-
+	
 	float FactorX = 640.0f / (float)GetXwin();
 	float FactorY = 480.0f / (float)GetYwin();
-	float Max = (FactorX < FactorY) ? FactorX : FactorY;
+	//	float Max = (FactorX < FactorY) ? FactorX : FactorY;
 
-	if(GetProperty(OGL_STRETCHTOFIT)) {
-	    SetMax(1.0f / FactorX, 1.0f / FactorY);
-	    SetOffset(0,0);
-	} else {
-	    SetMax(1.0f / Max, 1.0f / Max);
-	    SetOffset((int)((GetXwin() - (640 * GetXmax())) / 2),
-		      (int)((GetYwin() - (480 * GetYmax())) / 2));
-	}
+	SetMax(1.0f / FactorX, 1.0f / FactorY);
+	SetOffset(0,0);
     }
     
     void SetEventHandler(EventHandler *eh) { eventHandler = eh;}
-	bool GetProperty(OGL_Props prop) {return properties[prop];}
+    bool GetProperty(OGL_Props prop) {return properties[prop];}
     virtual bool SetProperty(OGL_Props prop, bool value)
     {return properties[prop] = value;}
 
@@ -121,8 +116,8 @@ public:
 	       &currWinRes.x, &currWinRes.y);
 
 	SetProperty(OGL_FULLSCREEN, g_Config.bFullscreen);
-	SetProperty(OGL_STRETCHTOFIT, g_Config.bFullscreen);
-	SetProperty(OGL_KEEPRATIO, g_Config.bFullscreen);
+	SetProperty(OGL_KEEPRATIO, g_Config.bKeepAR);
+	SetProperty(OGL_HIDECURSOR, g_Config.bHideCursor);
 
 	updateDim();
     }

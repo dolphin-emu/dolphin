@@ -408,7 +408,8 @@ void LoadConfig()
 		file.Get(SectionName, controlNames[x],
 			 &key, (i==0)?defaultKeyForControl[x]:0);
 		
-		registerKey(i, x, (sf::Key::Code)key);
+		if (i == g_PADInitialize.padNumber && pad[i].bAttached)
+		    registerKey(i, x, (sf::Key::Code)key);
 	    }
 	}
 }
