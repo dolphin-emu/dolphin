@@ -179,9 +179,6 @@ void DllConfig(HWND _hParent)
 #elif defined(HAVE_WX) && HAVE_WX
 	ConfigDialog frame(NULL);
 	frame.ShowModal();
-#elif defined(HAVE_COCOA) && HAVE_COCOA
-	ConfigDialog frame(NULL);
-	frame.ShowModal();
 #endif
 	SaveConfig();
 }
@@ -511,10 +508,10 @@ void cocoa_Read(int _numPAD, SPADStatus* _pPADStatus)
                 //printf("error prox client\n");
         }
 
-	int cocoaKey = (int)[proxy keyCode];
+	long cocoaKey = (long)[proxy keyCode];
 
 	int i;
-        if ((int)[proxy type] == 10)
+        if ((long)[proxy type] == 10)
 	{
 		for (i = 0; i < NUMCONTROLS; i++) {
         		if (cocoaKey == pad[_numPAD].keyForControl[i]) {

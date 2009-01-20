@@ -366,7 +366,9 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 	m_JoyShoulderL[_notebookpage]->GetValue().ToLong(&Left);
 	m_JoyShoulderR[_notebookpage]->GetValue().ToLong(&Right);
 	bool AnalogTrigger = (Left >= 1000 || Right >= 1000);
+#ifdef _WIN32
 	bool XInput = XInput::IsConnected(0);	
+#endif
 
 	m_JoyDpadUp[_notebookpage]->Show(!Hat);
 	m_JoyDpadLeft[_notebookpage]->Show(!Hat);
@@ -390,7 +392,11 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 	m_CBShowAdvanced[_notebookpage]->SetValue(g_Config.bShowAdvanced);
 
 	// Controller type values
+#ifdef _WIN32
 	if (!XInput) m_TriggerType[_notebookpage]->SetSelection(CTL_TRIGGER_SDL);
+#else
+	m_TriggerType[_notebookpage]->SetSelection(CTL_TRIGGER_SDL);
+#endif
 
 	// Advanced settings
 	m_CoBDiagonal[_notebookpage]->SetValue(wxString::FromAscii(g_Config.SDiagonal.at(_notebookpage).c_str()));

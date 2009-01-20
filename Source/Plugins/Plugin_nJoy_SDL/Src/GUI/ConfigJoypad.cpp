@@ -394,6 +394,7 @@ void ConfigBox::DoGetButtons(int GetId)
 		}
 
 		// Check for a XInput trigger
+#ifdef _WIN32
 		if(XInput)
 		{
 			for(int i = 0; i <= XI_TRIGGER_R; i++)
@@ -406,6 +407,7 @@ void ConfigBox::DoGetButtons(int GetId)
 				}
 			}
 		}
+#endif
 
 		// Check for keyboard action
 		if (g_Pressed && Button)

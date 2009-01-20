@@ -27,9 +27,9 @@
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "../Debugger/Debugger.h"
-#include "../Debugger/File.h"
 extern CDebugger* m_frame;
 #endif
+#include "../Debugger/File.h"
 
 // --------------------
 // On and off

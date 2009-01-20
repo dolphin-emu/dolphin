@@ -731,16 +731,20 @@ void GetJoyState(int controller)
 	joystate[controller].axis[CTL_SUB_Y] = SDL_JoystickGetAxis(joystate[controller].joy, joysticks[controller].axis[CTL_SUB_Y]);
 
 	// Update trigger axises
+#ifdef _WIN32
 	if (joysticks[controller].triggertype == CTL_TRIGGER_SDL)
 	{
+#endif
 		joystate[controller].axis[CTL_L_SHOULDER] = SDL_JoystickGetAxis(joystate[controller].joy, joysticks[controller].buttons[CTL_L_SHOULDER] - 1000);
 		joystate[controller].axis[CTL_R_SHOULDER] = SDL_JoystickGetAxis(joystate[controller].joy, joysticks[controller].buttons[CTL_R_SHOULDER] - 1000);
+#ifdef _WIN32
 	}
 	else
 	{
 		joystate[controller].axis[CTL_L_SHOULDER] = XInput::GetXI(0, joysticks[controller].buttons[CTL_L_SHOULDER] - 1000);
 		joystate[controller].axis[CTL_R_SHOULDER] = XInput::GetXI(0, joysticks[controller].buttons[CTL_R_SHOULDER] - 1000);
 	}
+#endif
 
 	/* Debugging	
 	Console::ClearScreen();

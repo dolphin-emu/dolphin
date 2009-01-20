@@ -229,7 +229,9 @@ std::string ShowStatus(int VirtualController)
 		joysticks[0].ID, joysticks[1].ID, joysticks[2].ID, joysticks[3].ID,
 		controllertype, triggertype,
 		joy0, joy1, joy2, joy3,
+#ifdef _WIN32
 		XInput::IsConnected(0), XInput::GetXI(0, XI_TRIGGER_L), XInput::GetXI(0, XI_TRIGGER_R),
+#endif
 		StrAxes.c_str(), StrHats.c_str(), StrBut.c_str(),
 		Axes, Balls, Hats, Buttons
 		);

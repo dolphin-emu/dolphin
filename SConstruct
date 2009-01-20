@@ -211,6 +211,7 @@ env['HAVE_AO'] = conf.CheckPKG('ao')
 #osx 64 specifics
 if sys.platform == 'darwin':
     if env['osx'] == '64cocoa':
+        env['nowx'] = True
         compileFlags += ['-arch' , 'x86_64' ]
         conf.Define('MAP_32BIT', 0)
 
