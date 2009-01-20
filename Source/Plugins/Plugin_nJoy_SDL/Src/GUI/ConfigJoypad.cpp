@@ -52,7 +52,11 @@ void ConfigBox::UpdateGUIKeys(int controller)
 	// http://wiki.wxwidgets.org/Converting_everything_to_and_from_wxString
 	wxString tmp;
 
+	// Update selected gamepad
 	m_Joyname[controller]->SetSelection(joysticks[controller].ID);
+
+	// Update the enabled checkbox
+	m_Joyattach[controller]->SetValue(joysticks[controller].enabled);
 
 	tmp << joysticks[controller].buttons[CTL_L_SHOULDER]; m_JoyShoulderL[controller]->SetValue(tmp); tmp.clear();
 	tmp << joysticks[controller].buttons[CTL_R_SHOULDER]; m_JoyShoulderR[controller]->SetValue(tmp); tmp.clear();
@@ -70,19 +74,13 @@ void ConfigBox::UpdateGUIKeys(int controller)
 	tmp << joysticks[controller].axis[CTL_MAIN_Y]; m_JoyAnalogMainY[controller]->SetValue(tmp); tmp.clear();
 	tmp << joysticks[controller].axis[CTL_SUB_X]; m_JoyAnalogSubX[controller]->SetValue(tmp); tmp.clear();
 	tmp << joysticks[controller].axis[CTL_SUB_Y]; m_JoyAnalogSubY[controller]->SetValue(tmp); tmp.clear();
-
-	if(joysticks[controller].enabled)
-		m_Joyattach[controller]->SetValue(TRUE);
-	else
-		m_Joyattach[controller]->SetValue(FALSE);
 	
 	// Update the deadzone and controller type controls
 	m_ControlType[controller]->SetSelection(joysticks[controller].controllertype);
 	m_TriggerType[controller]->SetSelection(joysticks[controller].triggertype);
 	m_Deadzone[controller]->SetSelection(joysticks[controller].deadzone);
 
-	UpdateGUI(controller);
-
+	// Update D-Pad
 	if(joysticks[controller].controllertype == CTL_DPAD_HAT)
 	{
 		tmp << joysticks[controller].dpad; m_JoyDpadUp[controller]->SetValue(tmp); tmp.clear();		
@@ -93,20 +91,33 @@ void ConfigBox::UpdateGUIKeys(int controller)
 		tmp << joysticks[controller].dpad2[CTL_D_PAD_DOWN]; m_JoyDpadDown[controller]->SetValue(tmp); tmp.clear();
 		tmp << joysticks[controller].dpad2[CTL_D_PAD_LEFT]; m_JoyDpadLeft[controller]->SetValue(tmp); tmp.clear();
 		tmp << joysticks[controller].dpad2[CTL_D_PAD_RIGHT]; m_JoyDpadRight[controller]->SetValue(tmp); tmp.clear();
-	}	
+	}
 }
 
 /* Populate the joysticks array with the dialog items settings, for example
    selected joystick, enabled or disabled status and so on */
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::SaveButtonMapping(int controller)
+void ConfigBox::SaveButtonMapping(int controller, bool DontChangeId)
 {
 	// Temporary storage
 	wxString tmp;
 	long value;
 
-	// The controller ID
-	joysticks[controller].ID = m_Joyname[controller]->GetSelection();
+	// Replace "" with "-1" 
+	ToBlank(false);
+
+	// Set enabled or disable status and other settings
+	if(!DontChangeId) joysticks[controller].ID = m_Joyname[controller]->GetSelection();
+	joysticks[controller].enabled = m_Joyattach[controller]->GetValue();
+	joysticks[controller].controllertype = m_ControlType[controller]->GetSelection();
+	joysticks[controller].triggertype = m_TriggerType[controller]->GetSelection();
+	joysticks[controller].deadzone = m_Deadzone[controller]->GetSelection();
+
+	// The analog buttons
+	m_JoyAnalogMainX[controller]->GetValue().ToLong(&value); joysticks[controller].axis[CTL_MAIN_X] = value; tmp.clear();
+	m_JoyAnalogMainY[controller]->GetValue().ToLong(&value); joysticks[controller].axis[CTL_MAIN_Y] = value; tmp.clear();
+	m_JoyAnalogSubX[controller]->GetValue().ToLong(&value); joysticks[controller].axis[CTL_SUB_X] = value; tmp.clear();
+	m_JoyAnalogSubY[controller]->GetValue().ToLong(&value); joysticks[controller].axis[CTL_SUB_Y] = value; tmp.clear();
 
 	// The shoulder buttons
 	m_JoyShoulderL[controller]->GetValue().ToLong(&value); joysticks[controller].buttons[CTL_L_SHOULDER] = value;
@@ -120,9 +131,10 @@ void ConfigBox::SaveButtonMapping(int controller)
 	m_JoyButtonZ[controller]->GetValue().ToLong(&value); joysticks[controller].buttons[CTL_Z_TRIGGER] = value; tmp.clear();
 	m_JoyButtonStart[controller]->GetValue().ToLong(&value); joysticks[controller].buttons[CTL_START] = value; tmp.clear();
 
+	// The halfpress button
 	m_JoyButtonHalfpress[controller]->GetValue().ToLong(&value); joysticks[controller].halfpress = value; tmp.clear();
 
-	// Digital pad type
+	// The digital pad
 	if(joysticks[controller].controllertype == CTL_DPAD_HAT)
 	{
 		m_JoyDpadUp[controller]->GetValue().ToLong(&value); joysticks[controller].dpad = value; tmp.clear();
@@ -135,16 +147,8 @@ void ConfigBox::SaveButtonMapping(int controller)
 		m_JoyDpadRight[controller]->GetValue().ToLong(&value); joysticks[controller].dpad2[CTL_D_PAD_RIGHT] = value; tmp.clear();		
 	}
 
-	m_JoyAnalogMainX[controller]->GetValue().ToLong(&value); joysticks[controller].axis[CTL_MAIN_X] = value; tmp.clear();
-	m_JoyAnalogMainY[controller]->GetValue().ToLong(&value); joysticks[controller].axis[CTL_MAIN_Y] = value; tmp.clear();
-	m_JoyAnalogSubX[controller]->GetValue().ToLong(&value); joysticks[controller].axis[CTL_SUB_X] = value; tmp.clear();
-	m_JoyAnalogSubY[controller]->GetValue().ToLong(&value); joysticks[controller].axis[CTL_SUB_Y] = value; tmp.clear();
-
-	// Set enabled or disable status and other settings
-	joysticks[controller].enabled = m_Joyattach[controller]->GetValue();
-	joysticks[controller].controllertype = m_ControlType[controller]->GetSelection();
-	joysticks[controller].triggertype = m_TriggerType[controller]->GetSelection();
-	joysticks[controller].deadzone = m_Deadzone[controller]->GetSelection();
+	// Replace "-1" with "" 
+	ToBlank();
 }
 
 
@@ -166,47 +170,61 @@ void ConfigBox::SetButtonText(int id, char text[128])
 
 	switch(id)
 	{
-		case IDB_DPAD_RIGHT:
-			m_JoyDpadRight[controller]->SetValue(wxString::FromAscii(text)); break;
-		case IDB_DPAD_UP:
-			m_JoyDpadUp[controller]->SetValue(wxString::FromAscii(text)); break;
-		case IDB_DPAD_DOWN:
-			m_JoyDpadDown[controller]->SetValue(wxString::FromAscii(text)); break;
-		case IDB_DPAD_LEFT:
-			m_JoyDpadLeft[controller]->SetValue(wxString::FromAscii(text));	break;
+		case IDB_DPAD_RIGHT: m_JoyDpadRight[controller]->SetValue(wxString::FromAscii(text)); break;
+		case IDB_DPAD_UP: m_JoyDpadUp[controller]->SetValue(wxString::FromAscii(text)); break;
+		case IDB_DPAD_DOWN: m_JoyDpadDown[controller]->SetValue(wxString::FromAscii(text)); break;
+		case IDB_DPAD_LEFT: m_JoyDpadLeft[controller]->SetValue(wxString::FromAscii(text));	break;
 
-		case IDB_ANALOG_MAIN_X:
-			m_JoyAnalogMainX[controller]->SetValue(wxString::FromAscii(text)); break;
-		case IDB_ANALOG_MAIN_Y:
-			m_JoyAnalogMainY[controller]->SetValue(wxString::FromAscii(text)); break;
-		case IDB_ANALOG_SUB_X:
-			m_JoyAnalogSubX[controller]->SetValue(wxString::FromAscii(text)); break;
-		case IDB_ANALOG_SUB_Y:
-			m_JoyAnalogSubY[controller]->SetValue(wxString::FromAscii(text)); break;
+		case IDB_ANALOG_MAIN_X: m_JoyAnalogMainX[controller]->SetValue(wxString::FromAscii(text)); break;
+		case IDB_ANALOG_MAIN_Y: m_JoyAnalogMainY[controller]->SetValue(wxString::FromAscii(text)); break;
+		case IDB_ANALOG_SUB_X: m_JoyAnalogSubX[controller]->SetValue(wxString::FromAscii(text)); break;
+		case IDB_ANALOG_SUB_Y: m_JoyAnalogSubY[controller]->SetValue(wxString::FromAscii(text)); break;
 
-		case IDB_SHOULDER_L:
-			m_JoyShoulderL[controller]->SetValue(wxString::FromAscii(text)); break;
-		case IDB_SHOULDER_R:
-			m_JoyShoulderR[controller]->SetValue(wxString::FromAscii(text)); break;
+		case IDB_SHOULDER_L: m_JoyShoulderL[controller]->SetValue(wxString::FromAscii(text)); break;
+		case IDB_SHOULDER_R: m_JoyShoulderR[controller]->SetValue(wxString::FromAscii(text)); break;
 		
-		case IDB_BUTTON_A:
-			m_JoyButtonA[controller]->SetValue(wxString::FromAscii(text)); break;		
-		case IDB_BUTTON_B:
-			m_JoyButtonB[controller]->SetValue(wxString::FromAscii(text)); break;
-		case IDB_BUTTON_X:
-			m_JoyButtonX[controller]->SetValue(wxString::FromAscii(text)); break;
-		case IDB_BUTTON_Y:
-			m_JoyButtonY[controller]->SetValue(wxString::FromAscii(text)); break;
-		case IDB_BUTTON_Z:
-			m_JoyButtonZ[controller]->SetValue(wxString::FromAscii(text)); break;
-		case IDB_BUTTONSTART:
-			m_JoyButtonStart[controller]->SetValue(wxString::FromAscii(text)); break;
+		case IDB_BUTTON_A: m_JoyButtonA[controller]->SetValue(wxString::FromAscii(text)); break;		
+		case IDB_BUTTON_B: m_JoyButtonB[controller]->SetValue(wxString::FromAscii(text)); break;
+		case IDB_BUTTON_X: m_JoyButtonX[controller]->SetValue(wxString::FromAscii(text)); break;
+		case IDB_BUTTON_Y: m_JoyButtonY[controller]->SetValue(wxString::FromAscii(text)); break;
+		case IDB_BUTTON_Z: m_JoyButtonZ[controller]->SetValue(wxString::FromAscii(text)); break;
+		case IDB_BUTTONSTART: m_JoyButtonStart[controller]->SetValue(wxString::FromAscii(text)); break;
 
-		case IDB_BUTTONHALFPRESS:
-			m_JoyButtonHalfpress[controller]->SetValue(wxString::FromAscii(text)); break;
+		case IDB_BUTTONHALFPRESS: m_JoyButtonHalfpress[controller]->SetValue(wxString::FromAscii(text)); break;
+		default: break;
+	}
+}
 
-		default:
-			break;
+// Get the text in the textbox for the buttons
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+wxString ConfigBox::GetButtonText(int id)
+{
+	int controller = notebookpage;
+
+	switch(id)
+	{
+		case IDB_DPAD_RIGHT: return m_JoyDpadRight[controller]->GetValue();
+		case IDB_DPAD_UP: return m_JoyDpadUp[controller]->GetValue(); break;
+		case IDB_DPAD_DOWN: return m_JoyDpadDown[controller]->GetValue(); break;
+		case IDB_DPAD_LEFT: return m_JoyDpadLeft[controller]->GetValue();	break;
+
+		case IDB_ANALOG_MAIN_X: return m_JoyAnalogMainX[controller]->GetValue(); break;
+		case IDB_ANALOG_MAIN_Y: return m_JoyAnalogMainY[controller]->GetValue(); break;
+		case IDB_ANALOG_SUB_X: return m_JoyAnalogSubX[controller]->GetValue(); break;
+		case IDB_ANALOG_SUB_Y: return m_JoyAnalogSubY[controller]->GetValue(); break;
+
+		case IDB_SHOULDER_L: return m_JoyShoulderL[controller]->GetValue(); break;
+		case IDB_SHOULDER_R: return m_JoyShoulderR[controller]->GetValue(); break;
+		
+		case IDB_BUTTON_A: return m_JoyButtonA[controller]->GetValue(); break;		
+		case IDB_BUTTON_B: return m_JoyButtonB[controller]->GetValue(); break;
+		case IDB_BUTTON_X: return m_JoyButtonX[controller]->GetValue(); break;
+		case IDB_BUTTON_Y: return m_JoyButtonY[controller]->GetValue(); break;
+		case IDB_BUTTON_Z: return m_JoyButtonZ[controller]->GetValue(); break;
+		case IDB_BUTTONSTART: return m_JoyButtonStart[controller]->GetValue(); break;
+
+		case IDB_BUTTONHALFPRESS: return m_JoyButtonHalfpress[controller]->GetValue(); break;
+		default: break;
 	}
 }
 
@@ -312,6 +330,10 @@ void ConfigBox::DoGetButtons(int GetId)
 		#endif
 	}
 
+	// ===============================================
+	// Check for buttons
+	// ----------------
+
 	// If there is a timer but we should not create a new one
 	else
 	{
@@ -370,7 +392,8 @@ void ConfigBox::DoGetButtons(int GetId)
 				pressed = g_Pressed;
 				type = CTL_BUTTON;
 				Succeed = true;
-				g_Pressed = 0;			
+				g_Pressed = 0;
+				if(pressed == WXK_ESCAPE) pressed = -1; // Check for the exape key
 			}
 			else
 			{
@@ -379,41 +402,42 @@ void ConfigBox::DoGetButtons(int GetId)
 				Stop = true;
 			}
 		}
+	}
+	// ========================= Check for keys
 
-		// Count each time
-		GetButtonWaitingTimer++;
+	// ===============================================
+	// Process results
+	// ----------------
 
-		// This is run every second
-		if(GetButtonWaitingTimer % TimesPerSecond == 0)
-		{
-			//Console::Print("Second\n\n");
+	// Count each time
+	GetButtonWaitingTimer++;
 
-			// Current time
-			int TmpTime = Seconds - (GetButtonWaitingTimer / TimesPerSecond);
+	// This is run every second
+	if(GetButtonWaitingTimer % TimesPerSecond == 0)
+	{
+		// Current time
+		int TmpTime = Seconds - (GetButtonWaitingTimer / TimesPerSecond);
 
-			// Update text
-			sprintf(format, "[%d]", TmpTime);
-			SetButtonText(GetId, format);
-		}
+		// Update text
+		sprintf(format, "[%d]", TmpTime);
+		SetButtonText(GetId, format);
+	}
 
-		// Time's up
-		if( (GetButtonWaitingTimer / TimesPerSecond) >= Seconds )
-		{
-			Stop = true;
+	// Time's up
+	if( (GetButtonWaitingTimer / TimesPerSecond) >= Seconds )
+	{
+		Stop = true;
+		// Leave a blank mapping
+		SetButtonText(GetId, "-1");	
+	}
 
-			// Leave a blank mapping
-			SetButtonText(GetId, "");	
-		}
-
-		// If we got a button
-		if(Succeed)
-		{
-			Stop = true;
-			
-			// Write the number of the pressed button to the text box
-			sprintf(format, "%d", pressed);
-			SetButtonText(GetId, format);			
-		}
+	// If we got a button
+	if(Succeed)
+	{
+		Stop = true;		
+		// Write the number of the pressed button to the text box
+		sprintf(format, "%d", pressed);
+		SetButtonText(GetId, format);
 	}
 
 	// Stop the timer
@@ -421,12 +445,16 @@ void ConfigBox::DoGetButtons(int GetId)
 	{
 		m_ButtonMappingTimer->Stop();
 		GetButtonWaitingTimer = 0;
+
+		// Update the button mapping and GUI
+		SaveButtonMapping(Controller);
+		UpdateGUI(Controller);
 	}
 
 	// If we got a bad button
 	if(g_Pressed == -1)
 	{
-		SetButtonText(GetId, ""); // Update text
+		SetButtonText(GetId, "-1"); // Update text
 		
 		// Notify the user
 		wxMessageBox(wxString::Format(wxT(
@@ -434,12 +462,10 @@ void ConfigBox::DoGetButtons(int GetId)
 			" select another key with a higher key code."), pressed)
 			, wxT("Notice"), wxICON_INFORMATION);		
 	}
+	// ======================== Process results
 
 	// We don't need this gamepad handle any more
 	if(SDL_JoystickOpened(joysticks[Controller].ID)) SDL_JoystickClose(joy);
-
-	// Update the button mapping
-	SaveButtonMapping(Controller);
 
 	// Debugging
 	//Console::Print("IsRunning: %i\n", m_ButtonMappingTimer->IsRunning());

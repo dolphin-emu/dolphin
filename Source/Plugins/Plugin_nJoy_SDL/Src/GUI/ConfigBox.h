@@ -225,31 +225,34 @@ class ConfigBox : public wxDialog
 			// Keys objects
 			// -----------------------------
 
-			// Text controls
-			ID_SHOULDER_L = 2000,
-			ID_SHOULDER_R,
-			
-			ID_BUTTON_A,
-			ID_BUTTON_B,
-			ID_BUTTON_X,
-			ID_BUTTON_Y,
-			ID_BUTTON_Z,
-			ID_BUTTONSTART,
-			ID_BUTTONHALFPRESS,
-
-			ID_ANALOG_MAIN_X,
+			// -------------------------------------
+			// Text controls that hold the mapped key value
+			// ----------
+			ID_ANALOG_MAIN_X = 2000,
 			ID_ANALOG_MAIN_Y,
 			ID_ANALOG_SUB_X,
 			ID_ANALOG_SUB_Y,
+			ID_SHOULDER_L,
+			ID_SHOULDER_R,
 
 			ID_DPAD_UP,
 			ID_DPAD_DOWN,
 			ID_DPAD_LEFT,
 			ID_DPAD_RIGHT,
 
+			ID_BUTTON_A,
+			ID_BUTTON_B,
+			ID_BUTTON_X,
+			ID_BUTTON_Y,
+			ID_BUTTON_Z,
+			ID_BUTTONSTART,
+
+			ID_BUTTONHALFPRESS,
+			// ------------------ Keep this order
+
 			// -------------------------------------
 			// Buttons controls (it's important that they are kept in this order)	
-			// ------
+			// --------
 			IDB_ANALOG_MAIN_X = 3000,
 			IDB_ANALOG_MAIN_Y,
 			IDB_ANALOG_SUB_X,
@@ -272,18 +275,20 @@ class ConfigBox : public wxDialog
 			IDB_BUTTONHALFPRESS,
 			// ------------------ Keep this order
 
-			// Text controls
+			// Statis text controls that hold the button label
 			IDT_ANALOG_MAIN_X = 4000,
 			IDT_ANALOG_MAIN_Y,
+			IDT_ANALOG_SUB_X,
+			IDT_ANALOG_SUB_Y,
+
 			IDT_DPAD_UP,
 			IDT_DPAD_DOWN,
 			IDT_DPAD_LEFT,
 			IDT_DPAD_RIGHT,
 			IDT_DEADZONE,
 			IDT_BUTTONHALFPRESS,
-			IDT_DPADTYPE, IDT_TRIGGERTYPE,
-			IDT_ANALOG_SUB_X,
-			IDT_ANALOG_SUB_Y,
+
+			IDT_DPADTYPE, IDT_TRIGGERTYPE,	
 			IDT_WEBSITE,
 			IDT_DEBUGGING, IDT_DEBUGGING2,
 			// ============
@@ -295,8 +300,9 @@ class ConfigBox : public wxDialog
 		void AboutClick(wxCommandEvent& event);
 		void OKClick(wxCommandEvent& event);
 		void CancelClick(wxCommandEvent& event);
+		void DoSave(bool ChangePad = false, bool CheckedForDuplicates = false);
 
-		void ChangeJoystick(wxCommandEvent& event);
+		void ChangeJoystick(wxCommandEvent& event); void DoChangeJoystick();
 		void ChangeControllertype(wxCommandEvent& event);
 		void EnableDisable(wxCommandEvent& event); void UpdateGUI(int _notebookpage);
 
@@ -310,7 +316,8 @@ class ConfigBox : public wxDialog
 		void PadGetStatus(); void Update();
  
 		void UpdateGUIKeys(int controller);
-		void SaveButtonMapping(int controller);
+		void SaveButtonMapping(int controller, bool DontChangeId = false);
+		void ToBlank(bool ToBlank = true);
 
 		void NotebookPageChanged(wxNotebookEvent& event);
 
@@ -321,6 +328,7 @@ class ConfigBox : public wxDialog
 		void OnPaint(wxPaintEvent &event);
 
 		void SetButtonText(int id, char text[128]);
+		wxString GetButtonText(int id);
 		void OnKeyDown(wxKeyEvent& event);
 };
 

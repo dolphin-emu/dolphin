@@ -192,8 +192,8 @@ void ConfigBox::OKClick(wxCommandEvent& event)
 			if (Tmp == wxOK) return; else if (Tmp == wxNO) g_Config.bSaveByIDNotice = false;
 		}
 
-		for(int i=0; i<4 ;i++) SaveButtonMapping(i); // Update joysticks array
-		g_Config.Save(true);	// Save settings
+		for(int i = 0; i < 4; i++) SaveButtonMapping(i); // Update joysticks array
+		DoSave(false, true);	// Save settings
 		g_Config.Load();	// Reload settings
 		Close(); // Call OnClose()
 	}
@@ -207,6 +207,106 @@ void ConfigBox::CancelClick(wxCommandEvent& event)
 	{
 		g_Config.Load();	// Reload settings
 		Close(); // Call OnClose()
+	}
+}
+
+
+//////////////////////////////////////
+// Save Settings
+/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
+   Saving is currently done when:
+
+   1. Closing the configuration window
+   2. Changing the gamepad
+   3. When the gamepad is enabled or disbled */
+
+void ConfigBox::DoSave(bool ChangePad, bool CheckedForDuplicates)
+{
+	// Replace "" with "-1" before we are saving
+	ToBlank(false);
+
+	if(ChangePad)
+	{
+		// Since we are selecting the pad to save to by the Id we can't update it when we change the pad
+		for(int i = 0; i < 4; i++) SaveButtonMapping(i, true);
+		g_Config.Save(CheckedForDuplicates);
+		// Now we can update the ID
+		joysticks[notebookpage].ID = m_Joyname[notebookpage]->GetSelection();
+	}
+	else
+	{
+		for(int i = 0; i < 4; i++) SaveButtonMapping(i);
+		g_Config.Save(CheckedForDuplicates);
+	}		
+
+	// Then change it back
+	ToBlank();
+}
+
+// Enable or disable joystick and update the GUI
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void ConfigBox::EnableDisable(wxCommandEvent& event)
+{
+	// We will enable this device
+	joysticks[notebookpage].enabled = !joysticks[notebookpage].enabled;
+
+	// Update the GUI
+	UpdateGUI(notebookpage);
+}
+
+// Change Joystick
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+/* Function: When changing the joystick we save and load the settings and update the joysticks
+   and joystate array */
+void ConfigBox::DoChangeJoystick()
+{
+	// Before changing the pad we save potential changes (to support SaveByID)
+	DoSave(true);
+
+	// Load the settings for the new Id
+	g_Config.Load(true);
+	UpdateGUI(notebookpage); // Update the GUI
+
+	// Remap the controller
+	if (joysticks[notebookpage].enabled)
+	{
+		//Console::Print("Id: %i\n", joysticks[notebookpage].ID);
+		if (SDL_JoystickOpened(joysticks[notebookpage].ID)) SDL_JoystickClose(joystate[notebookpage].joy);
+		joystate[notebookpage].joy = SDL_JoystickOpen(joysticks[notebookpage].ID);
+	}
+}
+void ConfigBox::ChangeJoystick(wxCommandEvent& event)
+{
+	DoChangeJoystick();
+}
+
+// Notebook page changed
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+void ConfigBox::NotebookPageChanged(wxNotebookEvent& event)
+{
+	int oldnotebookpage = notebookpage;
+	notebookpage = event.GetSelection();
+	int OldId = joysticks[oldnotebookpage].ID;
+	int NewId = joysticks[notebookpage].ID;
+
+	// Check if it has changed. If it has save the old Id and load the new Id
+	if(OldId != NewId)
+		DoChangeJoystick();
+}
+
+// Replace the harder to understand -1 with "" for the sake of user friendliness
+void ConfigBox::ToBlank(bool ToBlank)
+{
+	if(ToBlank)
+	{
+		for(int i = IDB_ANALOG_MAIN_X; i <= IDB_BUTTONHALFPRESS; i++)
+			if(GetButtonText(i) == "-1") SetButtonText(i, "");
+	}
+	else
+	{
+		for(int i = IDB_ANALOG_MAIN_X; i <= IDB_BUTTONHALFPRESS; i++)
+			if(GetButtonText(i) == "") SetButtonText(i, "-1");
 	}
 }
 //////////////////////////////////
@@ -246,27 +346,13 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 }
 
 
-// Enable or disable joystick and update the GUI
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::EnableDisable(wxCommandEvent& event)
-{
-	// First save the settings as they are now, disabled controls will not be saved later
-	g_Config.Save();
-
-	// Update the enable / disable status
-	UpdateGUI(notebookpage);
-
-	// Update the status
-	SaveButtonMapping(notebookpage);
-}
-
 // Update GUI
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-// Called from: UpdateGUIKeys(), ChangeControllertype()
+// Called from: ChangeControllertype()
 void ConfigBox::UpdateGUI(int _notebookpage)
 {
-	// Update the enable / disable status
-	joysticks[_notebookpage].enabled = m_Joyattach[_notebookpage]->GetValue();
+	// Update the GUI from joysticks[]
+	UpdateGUIKeys(_notebookpage);
 
 	// Controller type settings
 	bool Hat = (joysticks[_notebookpage].controllertype == CTL_DPAD_HAT);
@@ -291,8 +377,6 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 	m_bJoyDpadDown[_notebookpage]->SetToolTip(Hat ?
 		wxT("Select a hat by pressing the hat in any direction") : wxT(""));
 
-	m_TriggerType[_notebookpage]->Enable(AnalogTrigger);
-
 	// General settings
 	m_CBSaveByID[_notebookpage]->SetValue(g_Config.bSaveByID.at(_notebookpage));
 	m_CBSaveByIDNotice[_notebookpage]->SetValue(g_Config.bSaveByIDNotice);
@@ -302,61 +386,27 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 	m_CoBDiagonal[_notebookpage]->SetValue(wxString::FromAscii(g_Config.SDiagonal.at(_notebookpage).c_str()));
 	m_CBS_to_C[_notebookpage]->SetValue(g_Config.bSquareToCircle.at(_notebookpage));
 
+	// Disabled pages
+	bool Enabled = joysticks[_notebookpage].enabled;
 	// There is no FindItem in linux so this doesn't work
 	#ifdef _WIN32
 		// Enable or disable all buttons
-		for(int i = IDB_ANALOG_MAIN_X; i < (IDB_ANALOG_MAIN_X + 13 + 4); i++)
-		{
-			m_Controller[_notebookpage]->FindItem(i)->Enable(joysticks[_notebookpage].enabled);
-		}
-
+		for(int i = IDB_ANALOG_MAIN_X; i <= IDB_BUTTONHALFPRESS; i++)
+			m_Controller[_notebookpage]->FindItem(i)->Enable(Enabled);
 		// Controller type settings
-		m_Controller[_notebookpage]->FindItem(IDC_DEADZONE)->Enable(joysticks[_notebookpage].enabled);
+		m_Controller[_notebookpage]->FindItem(IDC_DEADZONE)->Enable(Enabled);
+		m_Controller[_notebookpage]->FindItem(IDC_CONTROLTYPE)->Enable(Enabled);
+		m_Controller[_notebookpage]->FindItem(IDC_TRIGGERTYPE)->Enable(Enabled && AnalogTrigger);
+		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_DIAGONAL)->Enable(Enabled);		
+		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_S_TO_C)->Enable(Enabled);		
 	#endif
+
+	// Replace the harder to understand -1 with "" for the sake of user friendliness
+	ToBlank();
 
 	 // Repaint the background
 	m_Controller[_notebookpage]->Refresh();
 }
-
-
-// Notebook page changed
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::NotebookPageChanged(wxNotebookEvent& event)
-{
-	notebookpage = event.GetSelection();
-}
-
-
-// Change Joystick
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-/* Function: When changing the joystick we save and load the settings and update the joysticks
-   and joystate array */
-void ConfigBox::ChangeJoystick(wxCommandEvent& event)
-{
-	 // Before chaning the pad we save potential changes (to support SaveByID)
-	int TmpID = joysticks[notebookpage].ID; // Don't update the ID before saving
-	SaveButtonMapping(notebookpage); // Update the ID among other things
-	joysticks[notebookpage].ID = TmpID;
-	g_Config.Save();
-
-	// Update the physical device ID for the virtual device
-	joysticks[notebookpage].ID = m_Joyname[notebookpage]->GetSelection();
-
-	// Load device settings to support SaveByID
-	g_Config.Load(true); // Then load the current
-	UpdateGUIKeys(notebookpage); // Update joystick dialog items
-	UpdateGUI(notebookpage); // Update other dialog items
-
-	// Remap the controller
-	if (joysticks[notebookpage].enabled)
-	{
-		//Console::Print("Id: %i\n", joysticks[notebookpage].ID);
-
-		if (SDL_JoystickOpened(joysticks[notebookpage].ID)) SDL_JoystickClose(joystate[notebookpage].joy);
-		joystate[notebookpage].joy = SDL_JoystickOpen(joysticks[notebookpage].ID);
-	}
-}
-
 
 // Populate the config window
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -632,7 +682,7 @@ void ConfigBox::CreateGUIControls()
 		m_TriggerType[i] = new wxComboBox(m_Controller[i], IDC_TRIGGERTYPE, wxAS_TriggerType[0], wxDefaultPosition, wxDefaultSize, wxAS_TriggerType, wxCB_READONLY);
 
 		// Populate general settings 2 (controller typ)
-		m_gGenSettings[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("D-Pad and Analog Trigger"));
+		m_gGenSettings[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("D-Pad and Trigger"));
 		m_gGBGenSettings[i] = new wxGridBagSizer(0, 0);
 		m_gGBGenSettings[i]->Add(m_TSControltype[i], wxGBPosition(0, 0), wxGBSpan(1, 1), (wxTOP), 4);
 		m_gGBGenSettings[i]->Add(m_ControlType[i], wxGBPosition(0, 1), wxGBSpan(1, 1), (wxBOTTOM | wxLEFT), 2);
@@ -653,15 +703,15 @@ void ConfigBox::CreateGUIControls()
 		m_gGenSettingsID[i]->Add(m_sSaveByID[i], 0, wxEXPAND | wxALL, 3);
 		m_gGenSettingsID[i]->Add(m_CBShowAdvanced[i], 0, wxEXPAND | wxALL, 3);
 		
-		// Create tooltips
+		// Create tooltips	
 		m_ControlType[i]->SetToolTip(wxT(
 			"Use a 'hat' on your gamepad or configure a custom button for each direction."
-			));	
+			));
 		m_TriggerType[i]->SetToolTip(wxT(
 			"This is for the analog trigger settings. You can look under 'Trigger values' in the advanced settings to see"
 			" which of these modes work for your gamepad. If it works correctly the unpressed to pressed range should be"
 			" 0 to 255."
-			));	
+			));
 		m_CBSaveByID[i]->SetToolTip(wxString::Format(wxT(
 			"Map these settings to the selected controller device instead of to the"
 			"\nselected controller number (%i). This may be a more convenient way"
@@ -725,6 +775,10 @@ void ConfigBox::CreateGUIControls()
 
 		// The checkbox
 		m_CBS_to_C[i] = new wxCheckBox(m_Controller[i], IDCB_MAINSTICK_S_TO_C, wxT("Square-to-circle"));
+		m_CBS_to_C[i]->SetToolTip(wxT(
+			"This will convert a square stick radius to a circle stick radius like the one that the actual GameCube pad produce."
+			" That is also the input the games expect to see."
+			));
 
 		m_gStatusInSettings[i]->Add(m_CBS_to_C[i], 0, (wxALL), 4);
 		m_gStatusInSettings[i]->Add(m_gStatusInSettingsH[i], 0, (wxLEFT | wxRIGHT | wxBOTTOM), 4);		
@@ -779,7 +833,7 @@ void ConfigBox::CreateGUIControls()
 		}
 
 		// Set dialog items from saved values
-		UpdateGUIKeys(i);
+		//UpdateGUIKeys(i);
 
 		// Update GUI
 		UpdateGUI(i);

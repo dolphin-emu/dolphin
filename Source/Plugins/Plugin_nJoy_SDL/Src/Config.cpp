@@ -160,6 +160,7 @@ int Config::CheckForDuplicateJoypads(bool OK)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Config::Save(bool CheckedForDuplicates)
 {
+	// Load ini file
 	IniFile file;
 	file.Load("nJoy.ini");
 
@@ -296,7 +297,7 @@ void Config::Load(bool config)
 		file.Get(SectionName.c_str(), "sub_y", &joysticks[i].axis[CTL_SUB_Y], 3);
 
 		file.Get(SectionName.c_str(), "deadzone", &joysticks[i].deadzone, 9);
-		file.Get(SectionName.c_str(), "halfpress", &joysticks[i].halfpress, 6);	
+		file.Get(SectionName.c_str(), "halfpress", &joysticks[i].halfpress, -1);	
 		file.Get(SectionName.c_str(), "controllertype", &joysticks[i].controllertype, 0);
 		file.Get(SectionName.c_str(), "TriggerType", &joysticks[i].triggertype, 0);
 		file.Get(SectionName.c_str(), "eventnum", &joysticks[i].eventnum, 0);
