@@ -46,12 +46,19 @@ protected:
 
     EventHandler* eventHandler;
     res origRes, currFullRes, currWinRes;
-    std::vector<res> fullResolutions;
+    static std::vector<res> fullResolutions;
     virtual void SetRender(u32 x, u32 y) {
 	xRender = x;
 	yRender = y;
     }
 
+    static const std::vector<res>& getFsResolutions() {
+	return fullResolutions;
+    }
+ 
+    static void addFSResolution(res fsr) {
+	fullResolutions.push_back(fsr);
+    }
 public:
 
     virtual void SwapBuffers() {};
@@ -121,7 +128,8 @@ public:
 
 	updateDim();
     }
-    
+
+
     // setResolution
     // resolution iter
 };
