@@ -93,11 +93,12 @@ void SymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const char *name, int typ
 	XFuncMap::iterator iter = functions.find(startAddr);
 	if (iter != functions.end())
 	{
-		// already got it, let's just update name and checksum to be sure.
+		// already got it, let's just update name, checksum & size to be sure.
 		Symbol *tempfunc = &iter->second;
 		tempfunc->name = name;
 		tempfunc->hash = SignatureDB::ComputeCodeChecksum(startAddr, startAddr + size);
 		tempfunc->type = type;
+		tempfunc->size = size;
 	}
 	else
 	{
@@ -110,6 +111,7 @@ void SymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const char *name, int typ
 			PPCAnalyst::AnalyzeFunction(startAddr, tf, size);
 			checksumToFunction[tf.hash] = &(functions[startAddr]);
 		}
+		tf.size = size;
 		functions[startAddr] = tf;
 	}
 }

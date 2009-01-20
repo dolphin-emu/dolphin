@@ -45,6 +45,7 @@ enum
 	IDM_RENAMESYMBOL,
 	IDM_PATCHALERT,
 	IDM_COPYFUNCTION,
+	IDM_ADDFUNCTION,
 };
 
 
@@ -221,6 +222,8 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 		    wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(temp)));
 		    }
 		    break;
+
+
 		case IDM_COPYFUNCTION:
 			{
 			Symbol *symbol = g_symbolDB.GetSymbolFromAddr(selection);
@@ -289,6 +292,13 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			}
 			break;
 	
+		case IDM_ADDFUNCTION:
+			{
+			g_symbolDB.AddFunction(selection);
+			Host_NotifyMapLoaded();
+			}
+			break;
+
 		case IDM_RENAMESYMBOL:
 			{
 			Symbol *symbol = g_symbolDB.GetSymbolFromAddr(selection);
@@ -336,6 +346,7 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
 	menu.Append(IDM_RENAMESYMBOL, wxString::FromAscii("Rename &symbol"))->Enable(isSymbol);
 	menu.AppendSeparator();
 	menu.Append(IDM_RUNTOHERE, _T("&Run To Here"));
+	menu.Append(IDM_ADDFUNCTION, _T("&Add function"));
 	menu.Append(IDM_JITRESULTS, wxString::FromAscii("PPC vs X86"));
 	menu.Append(IDM_INSERTBLR, wxString::FromAscii("Insert &blr"));
 	menu.Append(IDM_PATCHALERT, wxString::FromAscii("Patch alert"));

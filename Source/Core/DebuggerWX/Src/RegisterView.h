@@ -22,31 +22,28 @@
 
 #include "Common.h"
 
-class CRegTable
-	: public wxGridTableBase
+class CRegTable : public wxGridTableBase
 {
-    public:
-		CRegTable(){;}
-        int GetNumberCols(void){return 4;}
-        int GetNumberRows(void){return 16;}
-		bool IsEmptyCell(int, int){return false;}
-        wxString GetValue(int, int);
-        void SetValue(int, int, const wxString &);
-		wxGridCellAttr *GetAttr(int, int, wxGridCellAttr::wxAttrKind);
- 
-    private:
-        DECLARE_NO_COPY_CLASS(CRegTable);
+public:
+	CRegTable() {}
+    int GetNumberCols(void){return 4;}
+    int GetNumberRows(void){return 16;}
+	bool IsEmptyCell(int, int){return false;}
+    wxString GetValue(int, int);
+    void SetValue(int, int, const wxString &);
+	wxGridCellAttr *GetAttr(int, int, wxGridCellAttr::wxAttrKind);
+
+private:
+    DECLARE_NO_COPY_CLASS(CRegTable);
 };
 
-class CRegisterView
-	: public wxGrid
+class CRegisterView : public wxGrid
 {
-	public:
-		CRegisterView(wxWindow* parent, wxWindowID id);
-
-		void Update();
-
-		u32 m_CachedRegs[32];
-		bool m_CachedRegHasChanged[32];
+public:
+	CRegisterView(wxWindow* parent, wxWindowID id);
+	void Update();
+	u32 m_CachedRegs[32];
+	bool m_CachedRegHasChanged[32];
 };
+
 #endif
