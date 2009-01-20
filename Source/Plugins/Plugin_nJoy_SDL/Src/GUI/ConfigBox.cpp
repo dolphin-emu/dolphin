@@ -54,7 +54,7 @@ static const char* DPadType[] =
 static const char* TriggerType[] =
 {
 	"SDL", // -0x8000 to 0x7fff
-	"XInput", // 0 to 0xff
+	"XInput", // 0x00 to 0xff
 };
 ////////////////////////
 
@@ -406,7 +406,7 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 		// Controller type settings
 		m_Controller[_notebookpage]->FindItem(IDC_DEADZONE)->Enable(Enabled);
 		m_Controller[_notebookpage]->FindItem(IDC_CONTROLTYPE)->Enable(Enabled);
-		m_Controller[_notebookpage]->FindItem(IDC_TRIGGERTYPE)->Enable(Enabled && AnalogTrigger && XInput);
+		m_Controller[_notebookpage]->FindItem(IDC_TRIGGERTYPE)->Enable(Enabled && XInput);
 		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_DIAGONAL)->Enable(Enabled);		
 		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_S_TO_C)->Enable(Enabled);		
 	#endif
