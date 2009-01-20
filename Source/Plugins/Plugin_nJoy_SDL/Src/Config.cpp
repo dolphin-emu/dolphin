@@ -41,8 +41,10 @@ Config g_Config;
 Config::Config()
 {
 	//memset(this, 0, sizeof(Config)); // Clear the memory
+
 	bSaveByID.resize(4); // Set vector size
-	bSquareToCircle.resize(4); // Set vector size
+	bSquareToCircle.resize(4);
+	SDiagonal.resize(4); 
 }
 
 
@@ -224,8 +226,8 @@ void Config::Save(bool CheckedForDuplicates)
 		file.Set(SectionName.c_str(), "TriggerType", joysticks[i].triggertype);
 		file.Set(SectionName.c_str(), "eventnum", joysticks[i].eventnum);
 
-		file.Set(SectionName.c_str(), "Diagonal", g_Config.SDiagonal);
-		file.Set(SectionName.c_str(), "SquareToCircle", g_Config.bSquareToCircle.at(i));		
+		file.Set(SectionName.c_str(), "Diagonal", g_Config.SDiagonal.at(i).c_str());
+		file.Set(SectionName.c_str(), "SquareToCircle", g_Config.bSquareToCircle.at(i));
 	}
 
 	file.Save("nJoy.ini");
@@ -299,7 +301,7 @@ void Config::Load(bool config)
 		file.Get(SectionName.c_str(), "TriggerType", &joysticks[i].triggertype, 0);
 		file.Get(SectionName.c_str(), "eventnum", &joysticks[i].eventnum, 0);
 
-		file.Get(SectionName.c_str(), "Diagonal", &g_Config.SDiagonal, "100%");
+		file.Get(SectionName.c_str(), "Diagonal", &g_Config.SDiagonal.at(i), "100%");
 		file.Get(SectionName.c_str(), "SquareToCircle", &Tmp, false); g_Config.bSquareToCircle.at(i) = Tmp;
 	}
 }

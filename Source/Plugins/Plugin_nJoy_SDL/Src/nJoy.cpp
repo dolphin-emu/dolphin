@@ -440,7 +440,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// Check if we should make adjustments
 	if(g_Config.bSquareToCircle.at(_numPAD))
 	{
-		std::vector<int> main_xy = Pad_Square_to_Circle(i_main_stick_x, i_main_stick_y);
+		std::vector<int> main_xy = Pad_Square_to_Circle(i_main_stick_x, i_main_stick_y, _numPAD);
 		i_main_stick_x = main_xy.at(0);
 		i_main_stick_y = main_xy.at(1);
 	}
@@ -469,14 +469,14 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	///////////////////////////////////////////////////
 	// The L and R triggers
 	// -----------	
-	int triggervalue = 255;
-	if (joystate[_numPAD].halfpress) triggervalue = 100;		
+	int TriggerValue = 255;
+	if (joystate[_numPAD].halfpress) TriggerValue = 100;		
 	_pPADStatus->button |= PAD_USE_ORIGIN; // Neutral value, no button pressed	
 
 	if (joystate[_numPAD].buttons[CTL_L_SHOULDER])
 	{
 		_pPADStatus->button |= PAD_TRIGGER_L;
-		_pPADStatus->triggerLeft = triggervalue;
+		_pPADStatus->triggerLeft = TriggerValue;
 	}
 	else if(joystate[_numPAD].axis[CTL_L_SHOULDER])
 		_pPADStatus->triggerLeft = TriggerLeft;
@@ -484,7 +484,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	if (joystate[_numPAD].buttons[CTL_R_SHOULDER])
 	{
 		_pPADStatus->button |= PAD_TRIGGER_R;
-		_pPADStatus->triggerRight = triggervalue;
+		_pPADStatus->triggerRight = TriggerValue;
 	}
 	else if(joystate[_numPAD].axis[CTL_R_SHOULDER])
 		_pPADStatus->triggerRight = TriggerRight;
@@ -547,7 +547,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 		"Trigger type: %s  Left:%04x Right:%04x Value:%i\n"
 		"D-Pad type: %s  L:%i  R:%i  U:%i  D:%i",
 		(joysticks[_numPAD].triggertype ? "CTL_TRIGGER_WHOLE" : "CTL_TRIGGER_HALF"),
-		TriggerLeft, TriggerRight, triggervalue,
+		TriggerLeft, TriggerRight, TriggerValue,
 		(joysticks[_numPAD].controllertype ? "CTL_DPAD_CUSTOM" : "CTL_DPAD_HAT"),
 		0, 0, 0, 0
 		);*/
@@ -600,17 +600,11 @@ u8 Pad_Convert(int _val, int _type)
 	if (_val >= 0x7f7f ) _val = 0x7fff;
 	if (_val <= -0x7f80 ) _val = -0x8000;
 
-	//Console::Print("0x%04x  %06i\n", _val, _val);
-
 	// Convert (-0x8000 to 0x7fff)
 	if(!_type && _val < 0) _val = -_val - 1;
 
-	//Console::Print("0x%04x  %06i\n", _val, _val);
-
 	// Convert (0x7fff to 0xfffe to 0xffff)
 	if(!_type) _val = (_val * 2) + 1;
-
-	//Console::Print("0x%04x  %06i\n", _val, _val);
 		
 	// Convert the range (-0x8000 to 0x7fff) to (0 to 0xffff)
 	if(_type) _val = 0x8000 +_val;
@@ -656,7 +650,7 @@ float SquareDistance(float deg)
 
 	return dist;
 }
-std::vector<int> Pad_Square_to_Circle(int _x, int _y)
+std::vector<int> Pad_Square_to_Circle(int _x, int _y, int _pad)
 {
 	/* Do we need this? */
 	if(_x > 32767) _x = 32767; if(_y > 32767) _y = 32767; // upper limit
@@ -665,7 +659,7 @@ std::vector<int> Pad_Square_to_Circle(int _x, int _y)
 	// ====================================
 	// Convert to circle
 	// -----------
-	int Tmp = atoi (g_Config.SDiagonal.substr(0, g_Config.SDiagonal.length() - 1).c_str());
+	int Tmp = atoi (g_Config.SDiagonal.at(_pad).substr(0, g_Config.SDiagonal.at(_pad).length() - 1).c_str());
 	float Diagonal = Tmp / 100.0;
 
 	// First make a perfect square in case we don't have one already

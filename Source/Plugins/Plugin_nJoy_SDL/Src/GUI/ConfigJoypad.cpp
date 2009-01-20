@@ -144,7 +144,7 @@ void ConfigBox::SaveButtonMapping(int controller)
 	joysticks[controller].enabled = m_Joyattach[controller]->GetValue();
 	joysticks[controller].controllertype = m_ControlType[controller]->GetSelection();
 	joysticks[controller].triggertype = m_TriggerType[controller]->GetSelection();
-	joysticks[controller].deadzone = m_Deadzone[controller]->GetSelection();	
+	joysticks[controller].deadzone = m_Deadzone[controller]->GetSelection();
 }
 
 
@@ -154,6 +154,7 @@ void ConfigBox::SaveButtonMapping(int controller)
 void ConfigBox::ChangeControllertype(wxCommandEvent& event)
 {
 	SaveButtonMapping(notebookpage);
+	UpdateGUI(notebookpage);
 }
 
 

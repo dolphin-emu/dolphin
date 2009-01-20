@@ -236,10 +236,12 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 			break;
 
 		case IDCB_MAINSTICK_DIAGONAL:
-			g_Config.SDiagonal = m_CoBDiagonal[notebookpage]->GetLabel().mb_str();
+			g_Config.SDiagonal.at(notebookpage) = m_CoBDiagonal[notebookpage]->GetLabel().mb_str();
+			break;
 
 		case IDCB_MAINSTICK_S_TO_C:
 			g_Config.bSquareToCircle.at(notebookpage) = m_CBS_to_C[notebookpage]->IsChecked();
+			break;
 	}
 }
 
@@ -268,6 +270,11 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 
 	// Controller type settings
 	bool Hat = (joysticks[_notebookpage].controllertype == CTL_DPAD_HAT);
+	long Left, Right;
+	m_JoyShoulderL[_notebookpage]->GetValue().ToLong(&Left);
+	m_JoyShoulderR[_notebookpage]->GetValue().ToLong(&Right);
+	bool AnalogTrigger = (Left >= 1000 || Right >= 1000);
+
 	m_JoyDpadUp[_notebookpage]->Show(!Hat);
 	m_JoyDpadLeft[_notebookpage]->Show(!Hat);
 	m_JoyDpadRight[_notebookpage]->Show(!Hat);
@@ -284,13 +291,15 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 	m_bJoyDpadDown[_notebookpage]->SetToolTip(Hat ?
 		wxT("Select a hat by pressing the hat in any direction") : wxT(""));
 
+	m_TriggerType[_notebookpage]->Enable(AnalogTrigger);
+
 	// General settings
 	m_CBSaveByID[_notebookpage]->SetValue(g_Config.bSaveByID.at(_notebookpage));
 	m_CBSaveByIDNotice[_notebookpage]->SetValue(g_Config.bSaveByIDNotice);
 	m_CBShowAdvanced[_notebookpage]->SetValue(g_Config.bShowAdvanced);
 
 	// Advanced settings
-	m_CoBDiagonal[_notebookpage]->SetValue(wxString::FromAscii(g_Config.SDiagonal.c_str()));
+	m_CoBDiagonal[_notebookpage]->SetValue(wxString::FromAscii(g_Config.SDiagonal.at(_notebookpage).c_str()));
 	m_CBS_to_C[_notebookpage]->SetValue(g_Config.bSquareToCircle.at(_notebookpage));
 
 	// There is no FindItem in linux so this doesn't work
@@ -454,7 +463,7 @@ void ConfigBox::CreateGUIControls()
 
 
 	// Populate all four pages
-	for(int i=0; i<4 ;i++)
+	for(int i = 0; i < 4; i++)
 	{
 		// --------------------------------------------------------------------
 		// Populate keys sizer
@@ -623,7 +632,7 @@ void ConfigBox::CreateGUIControls()
 		m_TriggerType[i] = new wxComboBox(m_Controller[i], IDC_TRIGGERTYPE, wxAS_TriggerType[0], wxDefaultPosition, wxDefaultSize, wxAS_TriggerType, wxCB_READONLY);
 
 		// Populate general settings 2 (controller typ)
-		m_gGenSettings[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("D-Pad and Trigger"));
+		m_gGenSettings[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("D-Pad and Analog Trigger"));
 		m_gGBGenSettings[i] = new wxGridBagSizer(0, 0);
 		m_gGBGenSettings[i]->Add(m_TSControltype[i], wxGBPosition(0, 0), wxGBSpan(1, 1), (wxTOP), 4);
 		m_gGBGenSettings[i]->Add(m_ControlType[i], wxGBPosition(0, 1), wxGBSpan(1, 1), (wxBOTTOM | wxLEFT), 2);
@@ -649,8 +658,9 @@ void ConfigBox::CreateGUIControls()
 			"Use a 'hat' on your gamepad or configure a custom button for each direction."
 			));	
 		m_TriggerType[i]->SetToolTip(wxT(
-			"You can look under 'Trigger values' in the advanced settings to see which of these modes work for your gamepad."
-			" If it works the unpressed to pressed range should be 0 - 255."
+			"This is for the analog trigger settings. You can look under 'Trigger values' in the advanced settings to see"
+			" which of these modes work for your gamepad. If it works correctly the unpressed to pressed range should be"
+			" 0 to 255."
 			));	
 		m_CBSaveByID[i]->SetToolTip(wxString::Format(wxT(
 			"Map these settings to the selected controller device instead of to the"

@@ -91,7 +91,7 @@ void ConfigBox::PadGetStatus()
 	int main_x_after = main_x, main_y_after = main_y;
 	if(g_Config.bSquareToCircle.at(notebookpage))
 	{
-		std::vector<int> main_xy = Pad_Square_to_Circle(main_x, main_y);
+		std::vector<int> main_xy = Pad_Square_to_Circle(main_x, main_y, notebookpage);
 		main_x_after = main_xy.at(0);
 		main_y_after = main_xy.at(1);
 	}
@@ -130,6 +130,14 @@ void ConfigBox::PadGetStatus()
 	//////////////////////////////////////
 	// Triggers
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	int TriggerValue = 255;
+	if (joystate[notebookpage].halfpress) TriggerValue = 100;
+
+	// Get the selected keys
+	long Left, Right;
+	m_JoyShoulderL[notebookpage]->GetValue().ToLong(&Left);
+	m_JoyShoulderR[notebookpage]->GetValue().ToLong(&Right);
+
 	int SDLTriggerLeft = joystate[notebookpage].axis[CTL_L_SHOULDER];
 	int SDLTriggerRight = joystate[notebookpage].axis[CTL_R_SHOULDER];
 
@@ -137,8 +145,12 @@ void ConfigBox::PadGetStatus()
 	u8 TriggerLeft = Pad_Convert(SDLTriggerLeft, TriggerType);
 	u8 TriggerRight = Pad_Convert(SDLTriggerRight, TriggerType);
 
+	// Get the digital values
+	if(Left < 1000 && joystate[notebookpage].buttons[CTL_L_SHOULDER]) TriggerLeft = TriggerValue;
+	if(Right < 1000 && joystate[notebookpage].buttons[CTL_R_SHOULDER]) TriggerRight = TriggerValue;
+
 	m_TStatusTriggers[notebookpage]->SetLabel(wxString::Format(
-		wxT("Left:%03i Right:%03i"),
+		wxT("Left:%03i  Right:%03i"),
 		TriggerLeft, TriggerRight	
 		));
 	///////////////////// Triggers
@@ -173,6 +185,10 @@ std::string ShowStatus(int VirtualController)
 	int Hats = joyinfo[PhysicalDevice].NumHats;
 	int Buttons = joyinfo[PhysicalDevice].NumButtons;
 
+	// More status
+	int controllertype = joysticks[VirtualController].controllertype;
+	int triggertype = joysticks[VirtualController].triggertype;
+
 	// Update the internal values
 	SDL_JoystickUpdate();
 
@@ -194,13 +210,15 @@ std::string ShowStatus(int VirtualController)
 	}
 
 	return StringFromFormat(
-		"joysticks.ID:  %i %i %i %i\n"
+		"joysticks.ID: %i %i %i %i\n"
+		"joysticks.controllertype, triggertype: %i %i\n"
 		"Handles: %i %i %i %i\n"
 		"Axes: %s\n"
 		"Hats: %s\n"
 		"But: %s\n"
 		"Device: Ax: %i Balls:%i But:%i Hats:%i",
 		joysticks[0].ID, joysticks[1].ID, joysticks[2].ID, joysticks[3].ID,
+		controllertype, triggertype,
 		(int)joy0, (int)joy1, (int)joy2, (int)joy3,
 		StrAxes.c_str(), StrHats.c_str(), StrBut.c_str(),
 		Axes, Balls, Hats, Buttons

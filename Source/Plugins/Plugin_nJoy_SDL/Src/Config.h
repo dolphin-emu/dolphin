@@ -30,7 +30,7 @@ struct Config
 	std::vector<bool> bSaveByID; bool bSaveByIDNotice;
 
 	// Joystick
-	std::string SDiagonal;
+	std::vector<std::string> SDiagonal;
 	std::vector<bool> bSquareToCircle;
 };
 

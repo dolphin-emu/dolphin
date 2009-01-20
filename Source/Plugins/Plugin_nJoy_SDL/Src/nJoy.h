@@ -234,7 +234,7 @@ void DEBUG_QUIT();
 
 void Pad_Use_Rumble(u8 _numPAD, SPADStatus* _pPADStatus); // Rumble
 u8 Pad_Convert(int _val, int _type = 1); // Value conversion
-std::vector<int> Pad_Square_to_Circle(int _x, int _y); // Value conversion
+std::vector<int> Pad_Square_to_Circle(int _x, int _y, int _pad); // Value conversion
 
 //void SaveConfig();
 //void LoadConfig();
