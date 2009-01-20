@@ -33,14 +33,16 @@ struct SCoreStartupParameter
 	HINSTANCE hInstance;
 #endif
 
-	// windows/GUI related
+	// Windows/GUI related
 	void* hMainWindow;
 
-	// flags
+	// Settings
 	bool bEnableDebugging; bool bAutomaticStart; bool bBootToPause;
 	bool bUseJIT;
 
-	bool bJITUnlimitedCache, bJITOff; // JIT
+	  // JIT
+	bool bJITUnlimitedCache, bJITBlockLinking;
+	bool bJITOff;
 	bool bJITLoadStoreOff, bJITLoadStorelXzOff, bJITLoadStorelwzOff, bJITLoadStorelbzxOff;
 	bool bJITLoadStoreFloatingOff;
 	bool bJITLoadStorePairedOff;
