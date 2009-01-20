@@ -276,14 +276,18 @@ void ConfigBox::DoGetButtons(int GetId)
 
 	// Collect the accepted buttons for this slot
 	bool LeftRight = (GetId == IDB_SHOULDER_L || GetId == IDB_SHOULDER_R);
+
 	bool Axis = (GetId >= IDB_ANALOG_MAIN_X && GetId <= IDB_SHOULDER_R)
-			   && (TriggerType == CTL_TRIGGER_SDL);
+			   && !(TriggerType == CTL_TRIGGER_XINPUT && (GetId == IDB_SHOULDER_L || GetId == IDB_SHOULDER_R) ); // Don't allow SDL here
+	
 	bool XInput = (TriggerType == CTL_TRIGGER_XINPUT);
-	bool Button = (GetId >= IDB_BUTTON_A && GetId <= IDB_BUTTONHALFPRESS)
-			   || (GetId == IDB_SHOULDER_L || GetId == IDB_SHOULDER_R)
-			   || (GetId >= IDB_DPAD_UP && GetId <= IDB_DPAD_RIGHT && ControllerType == CTL_DPAD_CUSTOM);
-	bool Hat = (GetId >= IDB_DPAD_UP && GetId <= IDB_DPAD_RIGHT)
-			   && (joysticks[Controller].controllertype == CTL_DPAD_HAT);
+
+	bool Button = (GetId >= IDB_BUTTON_A && GetId <= IDB_BUTTONHALFPRESS) // All digital buttons
+			   || (GetId == IDB_SHOULDER_L || GetId == IDB_SHOULDER_R) // both shoulder buttons
+			   || (GetId >= IDB_DPAD_UP && GetId <= IDB_DPAD_RIGHT && ControllerType == CTL_DPAD_CUSTOM); // Or the custom hat mode
+
+	bool Hat = (GetId >= IDB_DPAD_UP && GetId <= IDB_DPAD_RIGHT) // All DPads
+			   && (joysticks[Controller].controllertype == CTL_DPAD_HAT); // Not with the hat option defined
 
 	/* Open a new joystick. Joysticks[controller].GetId is the system GetId of the physical joystick
 	   that is mapped to controller, for example 0, 1, 2, 3 for the first four joysticks */
