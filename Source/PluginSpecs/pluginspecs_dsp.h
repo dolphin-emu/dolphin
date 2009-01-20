@@ -19,7 +19,7 @@ typedef unsigned int    (*TAudioGetStreaming)(short* _pDestBuffer, unsigned int 
 
 typedef struct
 {
-	void* hWnd;
+	void                   *hWnd;
 	TARAM_Read_U8			pARAM_Read_U8;
 	TGetMemoryPointer		pGetMemoryPointer;
 	TGetARAMPointer			pGetARAMPointer;
@@ -28,6 +28,7 @@ typedef struct
 	TDebuggerBreak			pDebuggerBreak;
 	TGenerateDSPInt			pGenerateDSPInterrupt;
 	TAudioGetStreaming		pGetAudioStreaming;
+	int                    *pEmulatorState;
 } DSPInitialize;
 
 

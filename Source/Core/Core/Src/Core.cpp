@@ -330,6 +330,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.pDebuggerBreak = Callback_DebuggerBreak;
 	dspInit.pGenerateDSPInterrupt = Callback_DSPInterrupt;
 	dspInit.pGetAudioStreaming = AudioInterface::Callback_GetStreaming;
+	dspInit.pEmulatorState = (int *)&PowerPC::state;
 	Plugins.GetDSP()->Initialize((void *)&dspInit);
 
 	// Load and Init PadPlugin

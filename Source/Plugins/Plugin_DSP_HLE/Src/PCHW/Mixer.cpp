@@ -58,6 +58,11 @@ void Mixer(short *buffer, int numSamples, int bits, int rate, int channels)
 	// silence
 	memset(buffer, 0, numSamples * 2 * sizeof(short));
 
+	if (g_dspInitialize.pEmulatorState) {
+		if (*g_dspInitialize.pEmulatorState != 0)
+			return;
+	}
+
 	// first get the DTK Music
 	if (g_Config.m_EnableDTKMusic)
 	{
