@@ -15,19 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// File description
 /* 
 
 All plugins from Core > Plugins are loaded and unloaded with this class when Dolpin is started
 and stopped.
 //////////////////////////////////////*/
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// -----------
 #include <string.h>
 #ifdef _WIN32
 #include <windows.h>
@@ -40,8 +33,6 @@ and stopped.
 #include "FileUtil.h"
 #include "StringUtil.h"
 #include "DynamicLibrary.h"
-///////////////////////////////////
-
 
 DynamicLibrary::DynamicLibrary()
 {
@@ -70,18 +61,15 @@ std::string GetLastErrorAsString()
 	}
 	return s;
 #else
-        static std::string errstr;
-        char *tmp = dlerror();
-        if (tmp)
-            errstr = tmp;
-        
-        return errstr;
+	static std::string errstr;
+	char *tmp = dlerror();
+	if (tmp)
+		errstr = tmp;
+	
+	return errstr;
 #endif
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// -----------
 /* Function: Loading means loading the dll with LoadLibrary() to get an instance to the dll.
    This is done when Dolphin is started to determine which dlls are good, and before opening
    the Config and Debugging windows from Plugin.cpp and before opening the dll for running
@@ -94,7 +82,7 @@ int DynamicLibrary::Load(const char* filename)
 	if (!filename || strlen(filename) == 0)
 	{
 		LOG(MASTER_LOG, "Missing filename of dynamic library to load");
-                PanicAlert("Missing filename of dynamic library to load");
+		PanicAlert("Missing filename of dynamic library to load");
 		return 0;
 	}
 	LOG(MASTER_LOG, "Trying to load library %s", filename);
@@ -120,7 +108,6 @@ int DynamicLibrary::Load(const char* filename)
 	library_file = filename;
 	return 1;
 }
-
 
 int DynamicLibrary::Unload()
 {

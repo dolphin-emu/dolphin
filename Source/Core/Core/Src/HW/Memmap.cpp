@@ -15,21 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-///////////////////////////////////////////////////////////////////////////////////
-// File description: 
-/* -------------
-
+/*
 These functions are primarily used by the interpreter versions of the LoadStore instructions.
 However, if a JITed instruction (for example lwz) wants to access a bad memory area that call
 may be redirected here (for example to Read_U32()).
+*/
 
-//////////////////////////*/
-
-
-///////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ----------------
 #include "Common.h"
 #include "MemoryUtil.h"
 #include "MemArena.h"

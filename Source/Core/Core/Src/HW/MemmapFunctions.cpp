@@ -15,43 +15,14 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-///////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ----------------
 #include "Common.h"
-#include "MemoryUtil.h"
-#include "MemArena.h"
-#include "ChunkFile.h"
 
 #include "Memmap.h"
+#include "WII_IOB.h"
 #include "../Core.h"
 #include "../PowerPC/PowerPC.h"
-#include "../PowerPC/Jit64/Jit.h"
-#include "../PowerPC/Jit64/JitCache.h"
-#include "CPU.h"
-#include "PeripheralInterface.h"
-#include "DSP.h"
-#include "DVDInterface.h"
-#include "GPFifo.h"
-#include "VideoInterface.h"
-#include "SI.h"
-#include "EXI.h"
-#include "PixelEngine.h"
-#include "CommandProcessor.h"
-#include "AudioInterface.h"
-#include "MemoryInterface.h"
-#include "WII_IOB.h"
-#include "WII_IPC.h"
-
 #include "../Debugger/Debugger_BreakPoints.h"
-#include "../Debugger/Debugger_SymbolMap.h"
-/////////////////////////////
 
-
-///////////////////////////////////////////////////////////////////////////////////
-// Declarations and definitions
-// ----------------
 namespace Memory
 {
 
@@ -61,7 +32,7 @@ namespace Memory
 
 // Pointers to low memory
 extern u8*	m_pFakeVMEM;
-extern u8*	m_pEXRAM; //wii
+extern u8*	m_pEXRAM;  // Wii
 extern u8*	m_pEFB;
 
 // Init
@@ -89,21 +60,9 @@ extern readFn16  hwReadWii16[NUMHWMEMFUN];
 extern readFn32  hwReadWii32[NUMHWMEMFUN];
 extern readFn64  hwReadWii64[NUMHWMEMFUN];
 
-// ==============
-
-
-// ===============
-
-/////////////////////////////
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////
 // Read and write
 // ----------------
-
-
-// =================================
 // The read and write macros that direct us to the right functions
 // ----------------
 /* Instructions: To test the TLB functions in F-Zero disable the "&& ((_Address & 0xFE000000)
@@ -149,7 +108,7 @@ extern readFn64  hwReadWii64[NUMHWMEMFUN];
 	else																				\
 	{																					\
 		/*if (bFakeVMEM && ((_Address & 0xFE000000) == 0x7e000000) )*/	                \
-		/*F-Zero:*/ if (bFakeVMEM)															\
+		/*F-Zero:*/ if (bFakeVMEM)														\
 		{                                                                               \
 			_var = bswap((*(u##_type*)&m_pFakeVMEM[_Address & FAKEVMEM_MASK]));			\
 		}                                                                               \
