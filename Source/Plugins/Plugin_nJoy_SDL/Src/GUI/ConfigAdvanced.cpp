@@ -210,7 +210,7 @@ std::string ShowStatus(int VirtualController)
 	}
 
 	return StringFromFormat(
-		"joysticks.ID: %i %i %i %i\n"
+		"joysticks.ID: %p %p %p %p\n"
 		"joysticks.controllertype, triggertype: %i %i\n"
 		"Handles: %i %i %i %i\n"
 		"Axes: %s\n"
@@ -219,7 +219,7 @@ std::string ShowStatus(int VirtualController)
 		"Device: Ax: %i Balls:%i But:%i Hats:%i",
 		joysticks[0].ID, joysticks[1].ID, joysticks[2].ID, joysticks[3].ID,
 		controllertype, triggertype,
-		(int)joy0, (int)joy1, (int)joy2, (int)joy3,
+		joy0, joy1, joy2, joy3,
 		StrAxes.c_str(), StrHats.c_str(), StrBut.c_str(),
 		Axes, Balls, Hats, Buttons
 		);
