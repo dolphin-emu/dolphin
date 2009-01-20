@@ -93,13 +93,25 @@ wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 
 	attr->SetBackgroundColour(wxColour(wxT("#FFFFFF")));
 	attr->SetFont(DefaultFont);
-	attr->SetAlignment(col & 1 ? wxALIGN_CENTER : wxALIGN_LEFT, wxALIGN_CENTER);
 
-	if (col == 0)
-		attr->SetTextColour(wxColour(wxT("#000000")));
-	else
-		attr->SetTextColour(m_CachedRegHasChanged[row] ? wxColor(wxT("#FF0000")) : wxColor(wxT("#000000")));
+	switch (col) {
+	case 1:
+	case 3:
+	case 4:
+		attr->SetAlignment(wxALIGN_CENTER, wxALIGN_CENTER);
+		break;
+	default:
+		attr->SetAlignment(wxALIGN_LEFT, wxALIGN_CENTER);
+		break;
+	}
 
+	bool red = false;
+	switch (col) {
+	case 1: red = row < 32 ? m_CachedRegHasChanged[row] : m_CachedSpecialRegHasChanged[row-32]; break;
+	case 3: 
+	case 4: red = row < 32 ? m_CachedFRegHasChanged[row][col-3] : false; break;
+	}
+	attr->SetTextColour(red ? wxColor(wxT("#FF0000")) : wxColor(wxT("#000000")));
 	attr->IncRef();
 	return attr;
 }
