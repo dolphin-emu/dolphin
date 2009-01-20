@@ -434,8 +434,8 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	int i_main_stick_y = -joystate[_numPAD].axis[CTL_MAIN_Y];
     int i_sub_stick_x = joystate[_numPAD].axis[CTL_SUB_X];
 	int i_sub_stick_y = -joystate[_numPAD].axis[CTL_SUB_Y];
-	int SDLTriggerLeft = -joystate[_numPAD].axis[CTL_L_SHOULDER];
-	int SDLTriggerRight = -joystate[_numPAD].axis[CTL_R_SHOULDER];
+	int SDLTriggerLeft = joystate[_numPAD].axis[CTL_L_SHOULDER];
+	int SDLTriggerRight = joystate[_numPAD].axis[CTL_R_SHOULDER];
 
 	// Check if we should make adjustments
 	if(g_Config.bSquareToCircle.at(_numPAD))
