@@ -301,12 +301,12 @@ void ConfigBox::ToBlank(bool ToBlank)
 	if(ToBlank)
 	{
 		for(int i = IDB_ANALOG_MAIN_X; i <= IDB_BUTTONHALFPRESS; i++)
-			if(GetButtonText(i) == "-1") SetButtonText(i, "");
+                    if(GetButtonText(i).toAscii() == "-1") SetButtonText(i, "");
 	}
 	else
 	{
 		for(int i = IDB_ANALOG_MAIN_X; i <= IDB_BUTTONHALFPRESS; i++)
-			if(GetButtonText(i) == "") SetButtonText(i, "-1");
+                    if(GetButtonText(i).empty()) SetButtonText(i, "-1");
 	}
 }
 //////////////////////////////////
