@@ -174,8 +174,6 @@ namespace CPUCompare
 	void Jit64::Init()
 	{
 		asm_routines.compareEnabled = ::Core::g_CoreStartupParameter.bRunCompareClient;
-		if (Core::g_CoreStartupParameter.bJITUnlimitedCache)
-			CODE_SIZE = 1024*1024*8*8;
 
 		jo.optimizeStack = true;
 		jo.enableBlocklink = false;  // Speed boost, but not 100% safe
@@ -192,6 +190,12 @@ namespace CPUCompare
 
 		gpr.SetEmitter(this);
 		fpr.SetEmitter(this);
+
+		// Custom settings
+		if (Core::g_CoreStartupParameter.bJITUnlimitedCache)
+			CODE_SIZE = 1024*1024*8*8;
+		if (Core::g_CoreStartupParameter.bJITBlockLinking)
+			{ jo.enableBlocklink = true; SuccessAlert("Your game was started with JIT Block Linking"); }
 
 		trampolines.Init();
 		AllocCodeSpace(CODE_SIZE);

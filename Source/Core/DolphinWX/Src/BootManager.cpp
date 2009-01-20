@@ -101,6 +101,7 @@ bool BootCore(const std::string& _rFilename)
 			StartUp.bBootToPause = g_pCodeWindow->BootToPause();
 			StartUp.bAutomaticStart = g_pCodeWindow->AutomaticStart();
 			StartUp.bJITUnlimitedCache = g_pCodeWindow->UnlimitedJITCache();
+			StartUp.bJITBlockLinking = g_pCodeWindow->JITBlockLinking();
 		}
 		else
 		{

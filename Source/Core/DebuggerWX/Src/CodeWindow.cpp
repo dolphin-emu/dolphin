@@ -467,13 +467,19 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		, wxITEM_CHECK);
 	automaticstart->Check(bAutomaticStart);		
 
-	#ifdef JIT_OFF_OPTIONS
 		pCoreMenu->AppendSeparator();
+
+		jitblocklinking = pCoreMenu->Append(IDM_JITBLOCKLINKING, _T("&JIT Block Linking"),
+			_T("Speed up the execution by linking the JIT blocks."
+			), wxITEM_CHECK);
+
 		jitunlimited = pCoreMenu->Append(IDM_JITUNLIMITED, _T("&Unlimited JIT Cache"),
 			_T("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from crashing."
 			" [This option must be selected before a game is started.]"
-			),
-			wxITEM_CHECK);
+			), wxITEM_CHECK);
+		
+
+	#ifdef JIT_OFF_OPTIONS
 		pCoreMenu->AppendSeparator();
 		jitoff = pCoreMenu->Append(IDM_JITOFF, _T("&JIT off (JIT core)"),
 			_T("Turn off all JIT functions, but still use the JIT core from Jit.cpp"),
@@ -601,6 +607,11 @@ bool CCodeWindow::AutomaticStart()
 bool CCodeWindow::UnlimitedJITCache()
 {
 	return GetMenuBar()->IsChecked(IDM_JITUNLIMITED);
+}
+
+bool CCodeWindow::JITBlockLinking()
+{
+	return GetMenuBar()->IsChecked(IDM_JITBLOCKLINKING);
 }
 // =========================
 

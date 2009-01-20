@@ -62,6 +62,7 @@ class CCodeWindow
 		bool BootToPause();
 		bool AutomaticStart();
 		bool UnlimitedJITCache();
+		bool JITBlockLinking();
 		//bool UseDualCore(); // not used
         void JumpToAddress(u32 _Address);
 
@@ -75,7 +76,8 @@ class CCodeWindow
 			IDM_INTERPRETER = 2000, // These cannot interfere with enums in Globals.h!
 			//IDM_DUALCORE, // not used
 			IDM_AUTOMATICSTART, IDM_BOOTTOPAUSE,
-			IDM_JITUNLIMITED, IDM_JITOFF, // jit
+			IDM_JITUNLIMITED, IDM_JITBLOCKLINKING,  // JIT
+			IDM_JITOFF,
 			IDM_JITLSOFF, IDM_JITLSLXZOFF, IDM_JITLSLWZOFF, IDM_JITLSLBZXOFF,
 			IDM_JITLSPOFF, IDM_JITLSFOFF,
 			IDM_JITIOFF,
@@ -161,7 +163,7 @@ class CCodeWindow
 		CMemoryWindow* m_MemoryWindow;
 		CJitWindow* m_JitWindow;
 
-		wxMenuItem* jitunlimited, *jitoff;
+		wxMenuItem* jitblocklinking, *jitunlimited, *jitoff;
 		wxMenuItem* jitlsoff, *jitlslxzoff, *jitlslwzoff, *jitlslbzxoff;
 		wxMenuItem* jitlspoff;
 		wxMenuItem* jitlsfoff;
