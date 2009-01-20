@@ -53,8 +53,8 @@ static const char* DPadType[] =
 // Trigger type
 static const char* TriggerType[] =
 {
-	"SDL", //  0x0000 to 0x8000
-	"XInput", // -0x8000 to 0x8000
+	"SDL", // -0x8000 to 0x7fff
+	"XInput", // 0 to 0xff
 };
 ////////////////////////
 
