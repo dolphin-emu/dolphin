@@ -855,9 +855,9 @@ void CCodeWindow::Update()
 
 	UpdateButtonStates();
 
-	/* Automatically show the current PC position when a breakpoint is hit or
-	   when we pause */
-	codeview->Center(PC);
+	/* DO NOT Automatically show the current PC position when a breakpoint is hit or
+	   when we pause SINCE THIS CAN BE CALLED AT OTHER TIMES TOO */
+	// codeview->Center(PC);
 }
 /////////////////////////////////////////////////
 
