@@ -422,6 +422,8 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// Update the pad status
 	GetJoyState(_numPAD);
 
+	// Get type
+	int TriggerType = joysticks[_numPAD].triggertype;
  
 	///////////////////////////////////////////////////
 	// The analog controls
@@ -432,10 +434,8 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	int i_main_stick_y = -joystate[_numPAD].axis[CTL_MAIN_Y];
     int i_sub_stick_x = joystate[_numPAD].axis[CTL_SUB_X];
 	int i_sub_stick_y = -joystate[_numPAD].axis[CTL_SUB_Y];
-
-	// This assumes the trigger is -0x8000 when unpressed
-	int SDLTriggerLeft = joystate[_numPAD].axis[CTL_L_SHOULDER];
-	int SDLTriggerRight = joystate[_numPAD].axis[CTL_R_SHOULDER];
+	int SDLTriggerLeft = -joystate[_numPAD].axis[CTL_L_SHOULDER];
+	int SDLTriggerRight = -joystate[_numPAD].axis[CTL_R_SHOULDER];
 
 	// Check if we should make adjustments
 	if(g_Config.bSquareToCircle.at(_numPAD))
@@ -445,13 +445,15 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 		i_main_stick_y = main_xy.at(1);
 	}
 
-	// Convert axis values from 0xffff to 0xff
+	// Convert axis values
 	u8 main_stick_x = Pad_Convert(i_main_stick_x);
 	u8 main_stick_y = Pad_Convert(i_main_stick_y);
     u8 sub_stick_x = Pad_Convert(i_sub_stick_x);
 	u8 sub_stick_y = Pad_Convert(i_sub_stick_y);
-	u8 TriggerLeft = Pad_Convert(SDLTriggerLeft);
-	u8 TriggerRight = Pad_Convert(SDLTriggerRight);
+
+	// Convert the triggers values
+	u8 TriggerLeft = Pad_Convert(SDLTriggerLeft, TriggerType);
+	u8 TriggerRight = Pad_Convert(SDLTriggerRight, TriggerType);
 
 	// Set Deadzones (perhaps out of function?)
 	int deadzone = (int)(((float)(128.00/100.00)) * (float)(joysticks[_numPAD].deadzone + 1));
@@ -539,11 +541,12 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// Use rumble
 	Pad_Use_Rumble(_numPAD, _pPADStatus);
 
-	/* Debugging
+	/* Debugging 
 	Console::ClearScreen();
 	Console::Print(
-		"Left:%04x Right:%04x Value:%i\n"
+		"Trigger type: %s  Left:%04x Right:%04x Value:%i\n"
 		"D-Pad type: %s  L:%i  R:%i  U:%i  D:%i",
+		(joysticks[_numPAD].triggertype ? "CTL_TRIGGER_WHOLE" : "CTL_TRIGGER_HALF"),
 		TriggerLeft, TriggerRight, triggervalue,
 		(joysticks[_numPAD].controllertype ? "CTL_DPAD_CUSTOM" : "CTL_DPAD_HAT"),
 		0, 0, 0, 0
@@ -572,7 +575,7 @@ unsigned int PAD_GetAttachedPads()
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Convert stick values, for example from circle to square analog stick radius
+// Convert stick values
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 /* Convert stick values.
@@ -580,21 +583,44 @@ unsigned int PAD_GetAttachedPads()
    The value returned by SDL_JoystickGetAxis is a signed integer s16
    (-32768 to 32767). The value used for the gamecube controller is an unsigned
    char u8 (0 to 255) with neutral at 0x80 (128), so that it's equivalent to a signed
-   -128 to 127. */
+   -128 to 127.
+   
+   type = CTL_TRIGGER_WHOLE, !type = CTL_TRIGGER_HALF
+   */
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-u8 Pad_Convert(int _val)
+u8 Pad_Convert(int _val, int _type)
 {
 	/* If the limits on joystate[].axis[] actually is a u16 then we don't need this
 	   but if it's not actually limited to that we need to apply these limits */
 	if(_val > 32767) _val = 32767; // upper limit
 	if(_val < -32768) _val = -32768; // lower limit
 
-	// Convert (-32768 to 32767) to (-128 to 127)
+	/* The XBox 360 pad only goes to 0x7f80 instead of 0x8000 (0x80 below the regular maximum)
+	   so I add the extra distance here */
+	if (_val >= 0x7f7f ) _val = 0x7fff;
+	if (_val <= -0x7f80 ) _val = -0x8000;
+
+	//Console::Print("0x%04x  %06i\n", _val, _val);
+
+	// Convert (-0x8000 to 0x7fff)
+	if(!_type && _val < 0) _val = -_val - 1;
+
+	//Console::Print("0x%04x  %06i\n", _val, _val);
+
+	// Convert (0x7fff to 0xfffe to 0xffff)
+	if(!_type) _val = (_val * 2) + 1;
+
+	//Console::Print("0x%04x  %06i\n", _val, _val);
+		
+	// Convert the range (-0x8000 to 0x7fff) to (0 to 0xffff)
+	if(_type) _val = 0x8000 +_val;
+
+	// Convert the range (-32768 to 32767) to (-128 to 127)
 	_val = _val >> 8;
 
-	// Convert (-128 to 127) to (0 to 255)
-	u8 val = 0x80 + _val;
+	//Console::Print("0x%04x  %06i\n\n", _val, _val);
 
+	u8 val = _val;
 	return val;
 }
 
@@ -703,8 +729,9 @@ void ReadButton(int controller, int button)
 
 // Request joystick state.
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-// Called from: PAD_GetStatus()
-/* Function: Updates the joystate struct with the current pad status. The input value "controller" is
+/* Called from: PAD_GetStatus()
+   Input: The virtual device 0, 1, 2 or 3
+   Function: Updates the joystate struct with the current pad status. The input value "controller" is
    for a virtual controller 0 to 3. */
 void GetJoyState(int controller)
 {
@@ -722,11 +749,22 @@ void GetJoyState(int controller)
 	joystate[controller].axis[CTL_L_SHOULDER] = SDL_JoystickGetAxis(joystate[controller].joy, joysticks[controller].buttons[CTL_L_SHOULDER] - 1000);
 	joystate[controller].axis[CTL_R_SHOULDER] = SDL_JoystickGetAxis(joystate[controller].joy, joysticks[controller].buttons[CTL_R_SHOULDER] - 1000);
 
-	// Debugging
-	/*
-	Console::Print("Controller:%i %i\n",
+	// Adjust for the half value variant (for example the 360 pad)
+	if (joysticks[controller].triggertype == CTL_TRIGGER_HALF)
+	{
+		if (joystate[controller].axis[CTL_L_SHOULDER] < 0) joystate[controller].axis[CTL_L_SHOULDER] = 0;
+		if (joystate[controller].axis[CTL_R_SHOULDER] > 0) joystate[controller].axis[CTL_R_SHOULDER] = 0;
+	}
+
+	/* Debugging	
+	Console::Print(
+		"Controller and handle: %i %i\n"
+		"Triggers:%i  %i %i  %i %i\n",
+		controller, (int)joystate[controller].joy,
+		joysticks[controller].triggertype,
+		joysticks[controller].buttons[CTL_L_SHOULDER], joysticks[controller].buttons[CTL_R_SHOULDER],
 		joystate[controller].axis[CTL_L_SHOULDER], joystate[controller].axis[CTL_R_SHOULDER]
-		);		*/
+		);	*/
 
 	ReadButton(controller, CTL_L_SHOULDER);
 	ReadButton(controller, CTL_R_SHOULDER);

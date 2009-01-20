@@ -95,26 +95,32 @@ class ConfigBox : public wxDialog
 		// ¯¯¯¯¯¯¯¯¯
 
 		wxComboBox *m_Joyname[4];
-		wxComboBox *m_Controltype[4];
+		wxComboBox *m_ControlType[4], *m_TriggerType[4];
 		wxComboBox *m_Deadzone[4];
 		
-		wxCheckBox *m_Joyattach[4];
+		wxCheckBox *m_Joyattach[4]; // Attached pad
 		wxStaticBoxSizer *m_gJoyname[4];
 
-		wxBoxSizer* m_sSettings[4]; // Settings
-		
-		wxStaticBoxSizer *m_gExtrasettings[4]; wxGridBagSizer * m_gGBExtrasettings[4]; // Extra settings
-		wxStaticBoxSizer *m_gControllertype[4];
+		wxStaticBoxSizer *m_gExtrasettings[4];  // Extra settings
+		wxGridBagSizer * m_gGBExtrasettings[4];
 
-		wxBoxSizer *m_sSaveByID[4]; wxStaticBoxSizer *m_gGenSettings[4]; // General settings
+		wxBoxSizer* m_sSettings[4]; // General settings 2
+		wxStaticBoxSizer *m_gGenSettings[4];		
+
+		wxBoxSizer *m_sSaveByID[4];
+		wxStaticBoxSizer *m_gGenSettingsID[4];
+		wxGridBagSizer * m_gGBGenSettings[4];
 		wxCheckBox *m_CBSaveByID[4], *m_CBSaveByIDNotice[4], *m_CBShowAdvanced[4];
+		wxStaticText *m_TSControltype[4], *m_TSTriggerType[4];
 
 		wxStaticBoxSizer *m_gStatusIn[4], *m_gStatusInSettings[4];  // Advanced settings
 		wxBoxSizer *m_gStatusInSettingsH[4];
 		wxGridBagSizer * m_GBAdvancedMainStick[4];
-		wxStaticText *m_TStatusIn[4], *m_TStatusOut[4];
-		wxComboBox *m_CoBDiagonal[4]; wxCheckBox *m_CBS_to_C[4]; wxStaticText *m_STDiagonal[4];
+		wxStaticText *m_TStatusIn[4], *m_TStatusOut[4], *m_STDiagonal[4];
+		wxComboBox *m_CoBDiagonal[4]; wxCheckBox *m_CBS_to_C[4];
 
+		wxStaticBoxSizer *m_gStatusTriggers[4]; // Triggers
+		wxStaticText *m_TStatusTriggers[4];
 
 		/////////////////////////////
 		// Keys
@@ -199,7 +205,7 @@ class ConfigBox : public wxDialog
 
 			IDG_EXTRASETTINGS, IDC_DEADZONE, // Extra settings
 
-			IDG_CONTROLLERTYPE,	IDC_CONTROLTYPE, // Controller type		
+			IDG_CONTROLLERTYPE,	IDC_CONTROLTYPE, IDC_TRIGGERTYPE, // Controller type		
 
 			IDC_SAVEBYID, IDC_SAVEBYIDNOTICE, IDC_SHOWADVANCED, // Settings
 			
@@ -209,7 +215,7 @@ class ConfigBox : public wxDialog
 			IDT_STATUS_IN, IDT_STATUS_OUT,
 
 			// Advaced settings
-			IDCB_MAINSTICK_DIAGONAL, IDCB_MAINSTICK_S_TO_C, IDT_MAINSTICK_DIAGONAL,
+			IDCB_MAINSTICK_DIAGONAL, IDCB_MAINSTICK_S_TO_C, IDT_MAINSTICK_DIAGONAL, IDT_TRIGGERS,
 
 			// Timers
 			IDTM_CONSTANT, IDTM_BUTTON,
@@ -275,6 +281,7 @@ class ConfigBox : public wxDialog
 			IDT_DPAD_RIGHT,
 			IDT_DEADZONE,
 			IDT_BUTTONHALFPRESS,
+			IDT_DPADTYPE, IDT_TRIGGERTYPE,
 			IDT_ANALOG_SUB_X,
 			IDT_ANALOG_SUB_Y,
 			IDT_WEBSITE,

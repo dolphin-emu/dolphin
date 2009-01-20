@@ -43,10 +43,18 @@ extern CONTROLLER_INFO	*joyinfo;
 //extern CONTROLLER_MAPPING joysticks[4];
 extern bool emulator_running;
 
+// D-Pad type
 static const char* DPadType[] =
 {
 	"Hat",
 	"Custom",
+};
+
+// Trigger type
+static const char* TriggerType[] =
+{
+	"Half", //  0x0000 to 0x8000
+	"Full", // -0x8000 to 0x8000
 };
 ////////////////////////
 
@@ -59,16 +67,20 @@ BEGIN_EVENT_TABLE(ConfigBox,wxDialog)
 	EVT_BUTTON(ID_ABOUT, ConfigBox::AboutClick)
 	EVT_BUTTON(ID_OK, ConfigBox::OKClick)
 	EVT_BUTTON(ID_CANCEL, ConfigBox::CancelClick)
-	EVT_COMBOBOX(IDC_JOYNAME, ConfigBox::ChangeJoystick)
-	EVT_COMBOBOX(IDC_CONTROLTYPE, ConfigBox::ChangeControllertype)
-	EVT_CHECKBOX(IDC_JOYATTACH, ConfigBox::EnableDisable)
 	EVT_NOTEBOOK_PAGE_CHANGED(ID_NOTEBOOK, ConfigBox::NotebookPageChanged)
 
-	EVT_CHECKBOX(IDC_SAVEBYID, ConfigBox::ChangeSettings) // Settings
+	// Change and enable or disable gamepad
+	EVT_COMBOBOX(IDC_JOYNAME, ConfigBox::ChangeJoystick)
+	EVT_CHECKBOX(IDC_JOYATTACH, ConfigBox::EnableDisable)
+
+	 // Settings
+	EVT_CHECKBOX(IDC_SAVEBYID, ConfigBox::ChangeSettings)
 	EVT_CHECKBOX(IDC_SAVEBYIDNOTICE, ConfigBox::ChangeSettings)
 	EVT_CHECKBOX(IDC_SHOWADVANCED, ConfigBox::ChangeSettings)
 	EVT_COMBOBOX(IDCB_MAINSTICK_DIAGONAL, ConfigBox::ChangeSettings)
 	EVT_CHECKBOX(IDCB_MAINSTICK_S_TO_C, ConfigBox::ChangeSettings)
+	EVT_COMBOBOX(IDC_CONTROLTYPE, ConfigBox::ChangeControllertype)
+	EVT_COMBOBOX(IDC_TRIGGERTYPE, ConfigBox::ChangeControllertype)
 
 	EVT_BUTTON(IDB_SHOULDER_L, ConfigBox::GetButtons)
 	EVT_BUTTON(IDB_SHOULDER_R, ConfigBox::GetButtons)
@@ -242,6 +254,8 @@ void ConfigBox::EnableDisable(wxCommandEvent& event)
 	// Update the enable / disable status
 	UpdateGUI(notebookpage);
 
+	// Update the status
+	SaveButtonMapping(notebookpage);
 }
 
 // Update GUI
@@ -254,20 +268,20 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 
 	// Controller type settings
 	bool Hat = (joysticks[_notebookpage].controllertype == CTL_DPAD_HAT);
+	m_JoyDpadUp[_notebookpage]->Show(!Hat);
 	m_JoyDpadLeft[_notebookpage]->Show(!Hat);
 	m_JoyDpadRight[_notebookpage]->Show(!Hat);
-	m_JoyDpadDown[_notebookpage]->Show(!Hat);
 
+	m_bJoyDpadUp[_notebookpage]->Show(!Hat);
 	m_bJoyDpadLeft[_notebookpage]->Show(!Hat);
 	m_bJoyDpadRight[_notebookpage]->Show(!Hat);
-	m_bJoyDpadDown[_notebookpage]->Show(!Hat);
-
-	m_textDpadDown[_notebookpage]->Show(!Hat);
+	
+	m_textDpadUp[_notebookpage]->Show(!Hat);
 	m_textDpadLeft[_notebookpage]->Show(!Hat);
 	m_textDpadRight[_notebookpage]->Show(!Hat);	
 
-	m_textDpadUp[_notebookpage]->SetLabel(Hat ? wxT("Select hat") : wxT("Up"));
-	m_bJoyDpadUp[_notebookpage]->SetToolTip(Hat ?
+	m_textDpadDown[_notebookpage]->SetLabel(Hat ? wxT("Select hat") : wxT("Up"));
+	m_bJoyDpadDown[_notebookpage]->SetToolTip(Hat ?
 		wxT("Select a hat by pressing the hat in any direction") : wxT(""));
 
 	// General settings
@@ -289,7 +303,6 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 
 		// Controller type settings
 		m_Controller[_notebookpage]->FindItem(IDC_DEADZONE)->Enable(joysticks[_notebookpage].enabled);
-		//m_Controller[_notebookpage]->FindItem(IDC_CONTROLTYPE)->Enable(joysticks[_notebookpage].enabled);
 	#endif
 
 	 // Repaint the background
@@ -305,28 +318,20 @@ void ConfigBox::NotebookPageChanged(wxNotebookEvent& event)
 }
 
 
-// Change Joystick.
+// Change Joystick
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 /* Function: When changing the joystick we save and load the settings and update the joysticks
    and joystate array */
 void ConfigBox::ChangeJoystick(wxCommandEvent& event)
 {
 	 // Before chaning the pad we save potential changes (to support SaveByID)
-	int TmpID = joysticks[notebookpage].ID; // Don't update the ID
-	SaveButtonMapping(notebookpage);
+	int TmpID = joysticks[notebookpage].ID; // Don't update the ID before saving
+	SaveButtonMapping(notebookpage); // Update the ID among other things
 	joysticks[notebookpage].ID = TmpID;
 	g_Config.Save();
 
-	//PanicAlert("%i", m_Joyname[notebookpage]->GetSelection());
-
-	// Update the ID for the virtual device to a new physical device
+	// Update the physical device ID for the virtual device
 	joysticks[notebookpage].ID = m_Joyname[notebookpage]->GetSelection();
-
-	// Update the controller type
-	if(joyinfo[joysticks[notebookpage].ID].NumHats > 0)
-		joysticks[notebookpage].controllertype = CTL_DPAD_HAT;
-
-	//PanicAlert("%i  %i", joysticks[notebookpage].ID, notebookpage);
 
 	// Load device settings to support SaveByID
 	g_Config.Load(true); // Then load the current
@@ -336,10 +341,10 @@ void ConfigBox::ChangeJoystick(wxCommandEvent& event)
 	// Remap the controller
 	if (joysticks[notebookpage].enabled)
 	{
-		return;
-		if (SDL_JoystickOpened(notebookpage)) SDL_JoystickClose(joystate[notebookpage].joy);
+		//Console::Print("Id: %i\n", joysticks[notebookpage].ID);
+
+		if (SDL_JoystickOpened(joysticks[notebookpage].ID)) SDL_JoystickClose(joystate[notebookpage].joy);
 		joystate[notebookpage].joy = SDL_JoystickOpen(joysticks[notebookpage].ID);
-		PanicAlert("");
 	}
 }
 
@@ -426,12 +431,15 @@ void ConfigBox::CreateGUIControls()
 	}
 
 	// --------------------------------------------------------------------
-	// Populate the controller type list
+	// Populate the DPad type and Trigger type list
 	// -----------------------------
-	wxArrayString arrayStringFor_Controltype;
-	arrayStringFor_Controltype.Add(wxString::FromAscii(DPadType[CTL_DPAD_HAT]));
-	arrayStringFor_Controltype.Add(wxString::FromAscii(DPadType[CTL_DPAD_CUSTOM]));
+	wxArrayString wxAS_DPadType;
+	wxAS_DPadType.Add(wxString::FromAscii(DPadType[CTL_DPAD_HAT]));
+	wxAS_DPadType.Add(wxString::FromAscii(DPadType[CTL_DPAD_CUSTOM]));
 
+	wxArrayString wxAS_TriggerType;
+	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[CTL_TRIGGER_HALF]));
+	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[CTL_TRIGGER_WHOLE]));
 
 	// --------------------------------------------------------------------
 	// Populate the deadzone list
@@ -580,54 +588,70 @@ void ConfigBox::CreateGUIControls()
 		m_Joyname[i]->SetToolTip(wxT("Save your settings and configure another joypad"));
 
 
-		// --------------------------------------------------------------------
-		// Populate settings sizer
-		// -----------------------------
+		////////////////////////////////////////////
+		// General settings
+		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
-		// Extra settings members
-		m_gGBExtrasettings[i] = new wxGridBagSizer(0, 0);
+		// General settings 1
 		m_JoyButtonHalfpress[i] = new wxTextCtrl(m_Controller[i], ID_BUTTONHALFPRESS, wxT("0"), wxDefaultPosition, wxSize(59, 19), wxTE_READONLY | wxTE_CENTRE, wxDefaultValidator, wxT("0"));
 		m_JoyButtonHalfpress[i]->Enable(false);
-		m_bJoyButtonHalfpress[i] = new wxButton(m_Controller[i], IDB_BUTTONHALFPRESS, wxEmptyString, wxPoint(231, 426), wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		m_bJoyButtonHalfpress[i] = new wxButton(m_Controller[i], IDB_BUTTONHALFPRESS, wxEmptyString, wxDefaultPosition, wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
 		#ifdef _WIN32
 		m_Deadzone[i] = new wxComboBox(m_Controller[i], IDC_DEADZONE, wxEmptyString, wxDefaultPosition, wxSize(59, 21), arrayStringFor_Deadzone, wxCB_READONLY, wxDefaultValidator, wxT("m_Deadzone"));
-		m_textDeadzone[i] = new wxStaticText(m_Controller[i], IDT_DEADZONE, wxT("Deadzone"), wxDefaultPosition, wxDefaultSize, 0, wxT("Deadzone"));		
-		m_textHalfpress[i] = new wxStaticText(m_Controller[i], IDT_BUTTONHALFPRESS, wxT("Half press"), wxDefaultPosition, wxDefaultSize, 0, wxT("Half press"));
+		m_textDeadzone[i] = new wxStaticText(m_Controller[i], IDT_DEADZONE, wxT("Deadzone"));		
+		m_textHalfpress[i] = new wxStaticText(m_Controller[i], IDT_BUTTONHALFPRESS, wxT("Half press"));
 		#else
 		m_Deadzone[i] = new wxComboBox(m_Controller[i], IDC_DEADZONE, wxEmptyString, wxPoint(167, 398), wxSize(80, 25), arrayStringFor_Deadzone, wxCB_READONLY, wxDefaultValidator, wxT("m_Deadzone"));
 		m_textDeadzone[i] = new wxStaticText(m_Controller[i], IDT_DEADZONE, wxT("Deadzone"), wxPoint(105, 404), wxDefaultSize, 0, wxT("Deadzone"));		
 		m_textHalfpress[i] = new wxStaticText(m_Controller[i], IDT_BUTTONHALFPRESS, wxT("Half press"), wxPoint(105, 428), wxDefaultSize, 0, wxT("Half press"));
 		#endif
 
-		// Populate extra settings
+		// Populate general settings 1		
 		m_gExtrasettings[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Extra settings"));
-		m_gGBExtrasettings[i]->Add(m_textDeadzone[i], wxGBPosition(0, 0), wxGBSpan(1, 1), (wxRIGHT | wxTOP), 2);
+		m_gGBExtrasettings[i] = new wxGridBagSizer(0, 0);
+		m_gGBExtrasettings[i]->Add(m_textDeadzone[i], wxGBPosition(0, 0), wxGBSpan(1, 1), (wxRIGHT | wxTOP), 3);
 		m_gGBExtrasettings[i]->Add(m_Deadzone[i], wxGBPosition(0, 1), wxGBSpan(1, 1), (wxBOTTOM), 2);
-		m_gGBExtrasettings[i]->Add(m_textHalfpress[i], wxGBPosition(1, 0), wxGBSpan(1, 1), (wxRIGHT | wxTOP), 2);
-		m_gGBExtrasettings[i]->Add(m_JoyButtonHalfpress[i], wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL, 0);
+		m_gGBExtrasettings[i]->Add(m_textHalfpress[i], wxGBPosition(1, 0), wxGBSpan(1, 1), (wxRIGHT | wxTOP), 3);
+		m_gGBExtrasettings[i]->Add(m_JoyButtonHalfpress[i], wxGBPosition(1, 1), wxGBSpan(1, 1), (wxALL), 0);
 		m_gGBExtrasettings[i]->Add(m_bJoyButtonHalfpress[i], wxGBPosition(1, 2), wxGBSpan(1, 1), (wxLEFT | wxTOP), 2);
 		m_gExtrasettings[i]->Add(m_gGBExtrasettings[i], 0, wxEXPAND | wxALL, 3);
 
-		// Populate controller typ
-		m_gControllertype[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("D-Pad"));
-		m_Controltype[i] = new wxComboBox(m_Controller[i], IDC_CONTROLTYPE, arrayStringFor_Controltype[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_Controltype, wxCB_READONLY);
-		m_gControllertype[i]->Add(m_Controltype[i], 0, wxEXPAND | wxALL, 3);
-		m_Controltype[i]->SetToolTip(wxT("Use a 'hat' on your gamepad or configure a custom button for each direction."));
+		// Create general settings 2 (controller typ)
+		m_TSControltype[i] = new wxStaticText(m_Controller[i], IDT_DPADTYPE, wxT("D-Pad"));		
+		m_TSTriggerType[i] = new wxStaticText(m_Controller[i], IDT_TRIGGERTYPE, wxT("Trigger"));
+		m_ControlType[i] = new wxComboBox(m_Controller[i], IDC_CONTROLTYPE, wxAS_DPadType[0], wxDefaultPosition, wxDefaultSize, wxAS_DPadType, wxCB_READONLY);
+		m_TriggerType[i] = new wxComboBox(m_Controller[i], IDC_TRIGGERTYPE, wxAS_TriggerType[0], wxDefaultPosition, wxDefaultSize, wxAS_TriggerType, wxCB_READONLY);
 
-		// Create objects for general settings
-		m_gGenSettings[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Settings") );
+		// Populate general settings 2 (controller typ)
+		m_gGenSettings[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("D-Pad and Trigger"));
+		m_gGBGenSettings[i] = new wxGridBagSizer(0, 0);
+		m_gGBGenSettings[i]->Add(m_TSControltype[i], wxGBPosition(0, 0), wxGBSpan(1, 1), (wxTOP), 4);
+		m_gGBGenSettings[i]->Add(m_ControlType[i], wxGBPosition(0, 1), wxGBSpan(1, 1), (wxBOTTOM | wxLEFT), 2);
+		m_gGBGenSettings[i]->Add(m_TSTriggerType[i], wxGBPosition(1, 0), wxGBSpan(1, 1), (wxTOP), 4);
+		m_gGBGenSettings[i]->Add(m_TriggerType[i], wxGBPosition(1, 1), wxGBSpan(1, 1), (wxLEFT), 2);
+		m_gGenSettings[i]->Add(m_gGBGenSettings[i], 0, wxEXPAND | wxALL, 3);		
+
+		// Create objects for general settings 3
+		m_gGenSettingsID[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Settings") );
 		m_CBSaveByID[i] = new wxCheckBox(m_Controller[i], IDC_SAVEBYID, wxT("Save by ID"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		m_CBSaveByIDNotice[i] = new wxCheckBox(m_Controller[i], IDC_SAVEBYIDNOTICE, wxT("Notify"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		m_CBShowAdvanced[i] = new wxCheckBox(m_Controller[i], IDC_SHOWADVANCED, wxT("Show advanced settings"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		
-		// Populate general settings
+		// Populate general settings 3
 		m_sSaveByID[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_sSaveByID[i]->Add(m_CBSaveByID[i], 0, wxEXPAND | wxALL, 0);
 		m_sSaveByID[i]->Add(m_CBSaveByIDNotice[i], 0, wxEXPAND | wxLEFT, 2);
-		m_gGenSettings[i]->Add(m_sSaveByID[i], 0, wxEXPAND | wxALL, 3);
-		m_gGenSettings[i]->Add(m_CBShowAdvanced[i], 0, wxEXPAND | wxALL, 3);
+		m_gGenSettingsID[i]->Add(m_sSaveByID[i], 0, wxEXPAND | wxALL, 3);
+		m_gGenSettingsID[i]->Add(m_CBShowAdvanced[i], 0, wxEXPAND | wxALL, 3);
 		
 		// Create tooltips
+		m_ControlType[i]->SetToolTip(wxT(
+			"Use a 'hat' on your gamepad or configure a custom button for each direction."
+			));	
+		m_TriggerType[i]->SetToolTip(wxT(
+			"You can look under 'Trigger values' in the advanced settings to see which of these modes work for your gamepad."
+			" If it works the unpressed to pressed range should be 0 - 255."
+			));	
 		m_CBSaveByID[i]->SetToolTip(wxString::Format(wxT(
 			"Map these settings to the selected controller device instead of to the"
 			"\nselected controller number (%i). This may be a more convenient way"
@@ -636,17 +660,20 @@ void ConfigBox::CreateGUIControls()
 			));
 		m_CBSaveByIDNotice[i]->SetToolTip(wxString::Format(wxT(
 			"Show a notification message if you have selected this option for multiple identical joypads.")
-			));
+			));		
 
 		// Populate settings
 		m_sSettings[i] = new wxBoxSizer ( wxHORIZONTAL );
 		m_sSettings[i]->Add(m_gExtrasettings[i], 0, wxEXPAND | wxALL, 0);
-		m_sSettings[i]->Add(m_gControllertype[i], 0, wxEXPAND | wxLEFT, 5);
 		m_sSettings[i]->Add(m_gGenSettings[i], 0, wxEXPAND | wxLEFT, 5);
+		m_sSettings[i]->Add(m_gGenSettingsID[i], 0, wxEXPAND | wxLEFT, 5);
+		// -------------------------
+
+		//////////////////////////// General settings
 
 
-		//////////////////////////////////////
-		// Populate advanced settings
+		////////////////////////////////////////////
+		// Advanced settings
 		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 		// Populate input status
@@ -694,7 +721,12 @@ void ConfigBox::CreateGUIControls()
 
 		m_gStatusInSettingsH[i]->Add(m_STDiagonal[i], 0, wxTOP, 3);
 		m_gStatusInSettingsH[i]->Add(m_CoBDiagonal[i], 0, wxLEFT, 3);
-		
+
+		// The trigger values
+		m_gStatusTriggers[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Trigger values"));
+		m_TStatusTriggers[i] = new wxStaticText(m_Controller[i], IDT_TRIGGERS, wxT("Left:  Right:"));
+		m_gStatusTriggers[i]->Add(m_TStatusTriggers[i], 0, (wxALL), 4);
+		////////////////////////// Advanced settings		
 		
 
 		//////////////////////////////////////
@@ -715,6 +747,7 @@ void ConfigBox::CreateGUIControls()
 		m_sMainRight[i] = new wxBoxSizer(wxVERTICAL);
 		m_sMainRight[i]->Add(m_gStatusIn[i], 0, wxEXPAND | (wxLEFT), 2);
 		m_sMainRight[i]->Add(m_gStatusInSettings[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);
+		m_sMainRight[i]->Add(m_gStatusTriggers[i], 0, wxEXPAND | (wxLEFT | wxTOP), 2);
 
 		// --------------------------------------------------------------------
 		// Populate main sizer
@@ -732,7 +765,7 @@ void ConfigBox::CreateGUIControls()
 		{
 			m_Joyname[i]->Enable(false);
 			m_Joyattach[i]->Enable(false);
-			m_Controltype[i]->Enable(false);			
+			m_ControlType[i]->Enable(false);			
 		}
 
 		// Set dialog items from saved values

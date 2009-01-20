@@ -131,7 +131,8 @@ struct CONTROLLER_MAPPING	// GC PAD MAPPING
 	int enabled;			// Pad attached?
 	int deadzone;			// Deadzone... what else?
 	int ID;					// SDL joystick device ID
-	int controllertype;		// Joystick, Joystick with no hat or a keyboard (perhaps a mouse later)
+	int controllertype;		// Hat: Hat or custom buttons
+	int triggertype;		// Triggers range
 	int eventnum;			// Linux Event Number, Can't be found dynamically yet
 };
 
@@ -167,10 +168,18 @@ enum
 	CTL_START	
 };
 
+// DPad Type
 enum
 {
 	CTL_DPAD_HAT = 0, // Automatically use the first hat that SDL finds
 	CTL_DPAD_CUSTOM // Custom directional pad settings
+};
+
+// Trigger Type
+enum
+{
+	CTL_TRIGGER_HALF = 0, // XBox 360
+	CTL_TRIGGER_WHOLE // Other pads
 };
 
 enum
@@ -224,7 +233,7 @@ void DEBUG_INIT();
 void DEBUG_QUIT();
 
 void Pad_Use_Rumble(u8 _numPAD, SPADStatus* _pPADStatus); // Rumble
-u8 Pad_Convert(int _val); // Value conversion
+u8 Pad_Convert(int _val, int _type = 1); // Value conversion
 std::vector<int> Pad_Square_to_Circle(int _x, int _y); // Value conversion
 
 //void SaveConfig();

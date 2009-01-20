@@ -77,7 +77,8 @@ void ConfigBox::UpdateGUIKeys(int controller)
 		m_Joyattach[controller]->SetValue(FALSE);
 	
 	// Update the deadzone and controller type controls
-	m_Controltype[controller]->SetSelection(joysticks[controller].controllertype);
+	m_ControlType[controller]->SetSelection(joysticks[controller].controllertype);
+	m_TriggerType[controller]->SetSelection(joysticks[controller].triggertype);
 	m_Deadzone[controller]->SetSelection(joysticks[controller].deadzone);
 
 	UpdateGUI(controller);
@@ -141,21 +142,18 @@ void ConfigBox::SaveButtonMapping(int controller)
 
 	// Set enabled or disable status and other settings
 	joysticks[controller].enabled = m_Joyattach[controller]->GetValue();
-	joysticks[controller].controllertype = m_Controltype[controller]->GetSelection();
-	joysticks[controller].deadzone = m_Deadzone[controller]->GetSelection();
+	joysticks[controller].controllertype = m_ControlType[controller]->GetSelection();
+	joysticks[controller].triggertype = m_TriggerType[controller]->GetSelection();
+	joysticks[controller].deadzone = m_Deadzone[controller]->GetSelection();	
 }
 
 
 // Change controller type
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// Called from: When the controller type is changed
 void ConfigBox::ChangeControllertype(wxCommandEvent& event)
 {
-	joysticks[0].controllertype = m_Controltype[0]->GetSelection();
-	joysticks[1].controllertype = m_Controltype[1]->GetSelection();
-	joysticks[2].controllertype = m_Controltype[2]->GetSelection();
-	joysticks[3].controllertype = m_Controltype[3]->GetSelection();
-
-	for(int i=0; i<4 ;i++) UpdateGUI(i);	
+	SaveButtonMapping(notebookpage);
 }
 
 
@@ -224,8 +222,8 @@ void ConfigBox::SetButtonText(int id, char text[128])
 bool AvoidValues(int value)
 {
 	// Avoid detecting very small or very big (for triggers) values
-	if(    (value > -0x1000 && value < 0x1000) // Small values
-		|| (value < -0x7000 || value > 0x7000)) // Big values
+	if(    (value > -0x2000 && value < 0x2000) // Small values
+		|| (value < -0x6000 || value > 0x6000)) // Big values
 		return true; // Avoid
 	else
 		return false; // Keep
@@ -375,14 +373,9 @@ void ConfigBox::DoGetButtons(int GetId)
 			}
 			else
 			{
-				wxMessageBox(wxString::Format(wxT(
-					"You selected a key with a to low key code (%i), please"
-					" select another key with a higher key code."), g_Pressed)
-					, wxT("Notice"), wxICON_INFORMATION);
-
 				pressed = g_Pressed;
-				Succeed = false;
-				g_Pressed = 0;		
+				g_Pressed = -1;
+				Stop = true;
 			}
 		}
 
@@ -427,6 +420,18 @@ void ConfigBox::DoGetButtons(int GetId)
 	{
 		m_ButtonMappingTimer->Stop();
 		GetButtonWaitingTimer = 0;
+	}
+
+	// If we got a bad button
+	if(g_Pressed == -1)
+	{
+		SetButtonText(GetId, ""); // Update text
+		
+		// Notify the user
+		wxMessageBox(wxString::Format(wxT(
+			"You selected a key with a to low key code (%i), please"
+			" select another key with a higher key code."), pressed)
+			, wxT("Notice"), wxICON_INFORMATION);		
 	}
 
 	// We don't need this gamepad handle any more

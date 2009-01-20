@@ -54,6 +54,7 @@ void ConfigBox::PadGetStatus()
 	{
 		m_TStatusIn[notebookpage]->SetLabel(wxT("Not connected"));
 		m_TStatusOut[notebookpage]->SetLabel(wxT("Not connected"));
+		m_TStatusTriggers[notebookpage]->SetLabel(wxT("Not connected"));
 		return;
 	}
 
@@ -62,12 +63,20 @@ void ConfigBox::PadGetStatus()
 	{
 		m_TStatusIn[notebookpage]->SetLabel(wxT("Not enabled"));
 		m_TStatusOut[notebookpage]->SetLabel(wxT("Not enabled"));
+		m_TStatusTriggers[notebookpage]->SetLabel(wxT("Not enabled"));
 		return;
 	}
+
+	// Get physical device status
+	int PhysicalDevice = joysticks[notebookpage].ID;
+	int TriggerType = joysticks[notebookpage].triggertype;
 
 	// Get pad status
 	GetJoyState(notebookpage);
 
+	//////////////////////////////////////
+	// Analog stick
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	// Set Deadzones perhaps out of function
 	//int deadzone = (int)(((float)(128.00/100.00)) * (float)(joysticks[_numPAD].deadzone+1));
 	//int deadzone2 = (int)(((float)(-128.00/100.00)) * (float)(joysticks[_numPAD].deadzone+1));
@@ -93,16 +102,6 @@ void ConfigBox::PadGetStatus()
 	float f_x_aft = main_x_after / 32767.0;
 	float f_y_aft = main_y_after / 32767.0;
 
-	/*
-	m_pStatusBar->SetLabel(wxString::Format(
-		"ID:%i  | %i %i = %1.2f %1.2f  |  %i %i = %1.2f %1.2f",
-		ID,
-		main_x, main_y,
-		f_x, f_y,		
-		main_x_after, main_y_after,
-		f_x_aft, f_y_aft
-		));*/
-
 	m_TStatusIn[notebookpage]->SetLabel(wxString::Format(
 		wxT("x:%1.2f y:%1.2f"),
 		f_x, f_y	
@@ -125,25 +124,54 @@ void ConfigBox::PadGetStatus()
 	// Adjust the dot
 	m_bmpDot[notebookpage]->SetPosition(wxPoint(main_x, main_y));
 	m_bmpDotOut[notebookpage]->SetPosition(wxPoint(main_x_out, main_y_out));
-	
+	///////////////////// Analog stick
+
+
+	//////////////////////////////////////
+	// Triggers
+	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	int SDLTriggerLeft = joystate[notebookpage].axis[CTL_L_SHOULDER];
+	int SDLTriggerRight = joystate[notebookpage].axis[CTL_R_SHOULDER];
+
+	// Convert the triggers values
+	u8 TriggerLeft = Pad_Convert(SDLTriggerLeft, TriggerType);
+	u8 TriggerRight = Pad_Convert(SDLTriggerRight, TriggerType);
+
+	m_TStatusTriggers[notebookpage]->SetLabel(wxString::Format(
+		wxT("Left:%03i Right:%03i"),
+		TriggerLeft, TriggerRight	
+		));
+	///////////////////// Triggers
 }
 
 // Show the current pad status
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-std::string ShowStatus(int Controller)
+std::string ShowStatus(int VirtualController)
 {
+	// Check if it's enabled
+	if (!joysticks[VirtualController].enabled) return "Disabled";
+
+	// Save the physical device
+	int PhysicalDevice = joysticks[VirtualController].ID;
+
 	// Make local shortcut
-	SDL_Joystick *joy = joystate[joysticks[Controller].ID].joy;
+	SDL_Joystick *joy = joystate[VirtualController].joy;
+
+	// Make shortcuts for all pads
+	SDL_Joystick *joy0 = joystate[joysticks[0].ID].joy;
+	SDL_Joystick *joy1 = joystate[joysticks[1].ID].joy;
+	SDL_Joystick *joy2 = joystate[joysticks[2].ID].joy;
+	SDL_Joystick *joy3 = joystate[joysticks[3].ID].joy;
 
 	// Temporary storage
 	std::string StrAxes, StrHats, StrBut;
 	int value;
 
 	// Get status
-	int Axes = joyinfo[joysticks[Controller].ID].NumAxes;
-	int Balls = joyinfo[joysticks[Controller].ID].NumBalls;
-	int Hats = joyinfo[joysticks[Controller].ID].NumHats;
-	int Buttons = joyinfo[joysticks[Controller].ID].NumButtons;
+	int Axes = joyinfo[PhysicalDevice].NumAxes;
+	int Balls = joyinfo[PhysicalDevice].NumBalls;
+	int Hats = joyinfo[PhysicalDevice].NumHats;
+	int Buttons = joyinfo[PhysicalDevice].NumButtons;
 
 	// Update the internal values
 	SDL_JoystickUpdate();
@@ -166,7 +194,14 @@ std::string ShowStatus(int Controller)
 	}
 
 	return StringFromFormat(
-		"Axes: %s\nHats: %s\nBut: %s\nDevice: Ax: %i Balls:%i But:%i Hats:%i",
+		"joysticks.ID:  %i %i %i %i\n"
+		"Handles: %i %i %i %i\n"
+		"Axes: %s\n"
+		"Hats: %s\n"
+		"But: %s\n"
+		"Device: Ax: %i Balls:%i But:%i Hats:%i",
+		joysticks[0].ID, joysticks[1].ID, joysticks[2].ID, joysticks[3].ID,
+		(int)joy0, (int)joy1, (int)joy2, (int)joy3,
 		StrAxes.c_str(), StrHats.c_str(), StrBut.c_str(),
 		Axes, Balls, Hats, Buttons
 		);
