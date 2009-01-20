@@ -53,6 +53,7 @@
 //#include "ConsoleWindow.h"
 
 #include "Config.h" // Local
+#include "XInput.h"
 
 #if defined(HAVE_WX) && HAVE_WX
 	#include "GUI/AboutBox.h"
@@ -178,8 +179,8 @@ enum
 // Trigger Type
 enum
 {
-	CTL_TRIGGER_HALF = 0, // XBox 360
-	CTL_TRIGGER_WHOLE // Other pads
+	CTL_TRIGGER_SDL = 0, // 
+	CTL_TRIGGER_XINPUT // The XBox 360 pad
 };
 
 enum
@@ -197,6 +198,13 @@ enum
 	CTL_HAT,
 	CTL_BUTTON,	
 	CTL_KEY
+};
+
+// XInput buttons
+enum
+{
+	XI_TRIGGER_L = 0,
+	XI_TRIGGER_R
 };
 
 
@@ -233,7 +241,7 @@ void DEBUG_INIT();
 void DEBUG_QUIT();
 
 void Pad_Use_Rumble(u8 _numPAD, SPADStatus* _pPADStatus); // Rumble
-u8 Pad_Convert(int _val, int _type = 1); // Value conversion
+int Pad_Convert(int _val); // Value conversion
 std::vector<int> Pad_Square_to_Circle(int _x, int _y, int _pad); // Value conversion
 
 //void SaveConfig();

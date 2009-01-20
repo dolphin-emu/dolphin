@@ -270,12 +270,18 @@ void ConfigBox::DoGetButtons(int GetId)
 	// Get the current controller	
 	int Controller = notebookpage;
 
+	// Get the controller and trigger type
+	int ControllerType = joysticks[Controller].controllertype;
+	int TriggerType = joysticks[Controller].triggertype;
+
 	// Collect the accepted buttons for this slot
 	bool LeftRight = (GetId == IDB_SHOULDER_L || GetId == IDB_SHOULDER_R);
-	bool Axis = (GetId >= IDB_ANALOG_MAIN_X && GetId <= IDB_SHOULDER_R);
+	bool Axis = (GetId >= IDB_ANALOG_MAIN_X && GetId <= IDB_SHOULDER_R)
+			   && (TriggerType == CTL_TRIGGER_SDL);
+	bool XInput = (TriggerType == CTL_TRIGGER_XINPUT);
 	bool Button = (GetId >= IDB_BUTTON_A && GetId <= IDB_BUTTONHALFPRESS)
 			   || (GetId == IDB_SHOULDER_L || GetId == IDB_SHOULDER_R)
-			   || (GetId >= IDB_DPAD_UP && GetId <= IDB_DPAD_RIGHT && joysticks[Controller].controllertype == CTL_DPAD_CUSTOM);
+			   || (GetId >= IDB_DPAD_UP && GetId <= IDB_DPAD_RIGHT && ControllerType == CTL_DPAD_CUSTOM);
 	bool Hat = (GetId >= IDB_DPAD_UP && GetId <= IDB_DPAD_RIGHT)
 			   && (joysticks[Controller].controllertype == CTL_DPAD_HAT);
 
@@ -378,6 +384,20 @@ void ConfigBox::DoGetButtons(int GetId)
 				{
 					pressed = i;
 					type = CTL_BUTTON;
+					Succeed = true;
+				}
+			}
+		}
+
+		// Check for a XInput trigger
+		if(XInput)
+		{
+			for(int i = 0; i <= XI_TRIGGER_R; i++)
+			{			
+				if(XInput::GetXI(0, i))
+				{
+					pressed = i + 1000;
+					type = CTL_AXIS;
 					Succeed = true;
 				}
 			}

@@ -138,12 +138,20 @@ void ConfigBox::PadGetStatus()
 	m_JoyShoulderL[notebookpage]->GetValue().ToLong(&Left);
 	m_JoyShoulderR[notebookpage]->GetValue().ToLong(&Right);
 
-	int SDLTriggerLeft = joystate[notebookpage].axis[CTL_L_SHOULDER];
-	int SDLTriggerRight = joystate[notebookpage].axis[CTL_R_SHOULDER];
+	// Get the trigger values
+	int TriggerLeft = joystate[notebookpage].axis[CTL_L_SHOULDER];
+	int TriggerRight = joystate[notebookpage].axis[CTL_R_SHOULDER];
 
 	// Convert the triggers values
-	u8 TriggerLeft = Pad_Convert(SDLTriggerLeft, TriggerType);
-	u8 TriggerRight = Pad_Convert(SDLTriggerRight, TriggerType);
+	if (joysticks[notebookpage].triggertype == CTL_TRIGGER_SDL)
+	{
+		TriggerLeft = Pad_Convert(TriggerLeft);
+		TriggerRight = Pad_Convert(TriggerRight);
+	}
+
+	// If we don't have any axis selected for the shoulder buttons
+	if(Left < 1000) TriggerLeft = 0;
+	if(Right < 1000) TriggerRight = 0;
 
 	// Get the digital values
 	if(Left < 1000 && joystate[notebookpage].buttons[CTL_L_SHOULDER]) TriggerLeft = TriggerValue;
@@ -196,7 +204,7 @@ std::string ShowStatus(int VirtualController)
 	for(int i = 0; i < Axes; i++)
 	{	
 		value = SDL_JoystickGetAxis(joy, i);
-		StrAxes += StringFromFormat(" %i:%05i", i, value);
+		StrAxes += StringFromFormat(" %i:%06i", i, value);
 	}
 	for(int i = 0;i < Hats; i++)
 	{	
@@ -210,9 +218,10 @@ std::string ShowStatus(int VirtualController)
 	}
 
 	return StringFromFormat(
-		"joysticks.ID: %p %p %p %p\n"
+		"joysticks.ID: %i %i %i %i\n"
 		"joysticks.controllertype, triggertype: %i %i\n"
 		"Handles: %i %i %i %i\n"
+		"XInput: %i %i %i\n"
 		"Axes: %s\n"
 		"Hats: %s\n"
 		"But: %s\n"
@@ -220,6 +229,7 @@ std::string ShowStatus(int VirtualController)
 		joysticks[0].ID, joysticks[1].ID, joysticks[2].ID, joysticks[3].ID,
 		controllertype, triggertype,
 		joy0, joy1, joy2, joy3,
+		XInput::IsConnected(0), XInput::GetXI(0, XI_TRIGGER_L), XInput::GetXI(0, XI_TRIGGER_R),
 		StrAxes.c_str(), StrHats.c_str(), StrBut.c_str(),
 		Axes, Balls, Hats, Buttons
 		);

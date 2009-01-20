@@ -53,8 +53,8 @@ static const char* DPadType[] =
 // Trigger type
 static const char* TriggerType[] =
 {
-	"Half", //  0x0000 to 0x8000
-	"Full", // -0x8000 to 0x8000
+	"SDL", //  0x0000 to 0x8000
+	"XInput", // -0x8000 to 0x8000
 };
 ////////////////////////
 
@@ -293,15 +293,21 @@ void ConfigBox::NotebookPageChanged(wxNotebookEvent& event)
 	// Check if it has changed. If it has save the old Id and load the new Id
 	if(OldId != NewId)
 		DoChangeJoystick();
+
 }
 
 // Replace the harder to understand -1 with "" for the sake of user friendliness
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::ToBlank(bool ToBlank)
 {
 	if(ToBlank)
 	{
 		for(int i = IDB_ANALOG_MAIN_X; i <= IDB_BUTTONHALFPRESS; i++)
+				#ifndef _WIN32
                     if(GetButtonText(i).ToAscii() == "-1") SetButtonText(i, "");
+				#else
+					if(GetButtonText(i) == "-1") SetButtonText(i, "");
+				#endif
 	}
 	else
 	{
@@ -360,6 +366,7 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 	m_JoyShoulderL[_notebookpage]->GetValue().ToLong(&Left);
 	m_JoyShoulderR[_notebookpage]->GetValue().ToLong(&Right);
 	bool AnalogTrigger = (Left >= 1000 || Right >= 1000);
+	bool XInput = XInput::IsConnected(0);	
 
 	m_JoyDpadUp[_notebookpage]->Show(!Hat);
 	m_JoyDpadLeft[_notebookpage]->Show(!Hat);
@@ -382,6 +389,9 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 	m_CBSaveByIDNotice[_notebookpage]->SetValue(g_Config.bSaveByIDNotice);
 	m_CBShowAdvanced[_notebookpage]->SetValue(g_Config.bShowAdvanced);
 
+	// Controller type values
+	if (!XInput) m_TriggerType[_notebookpage]->SetSelection(CTL_TRIGGER_SDL);
+
 	// Advanced settings
 	m_CoBDiagonal[_notebookpage]->SetValue(wxString::FromAscii(g_Config.SDiagonal.at(_notebookpage).c_str()));
 	m_CBS_to_C[_notebookpage]->SetValue(g_Config.bSquareToCircle.at(_notebookpage));
@@ -396,7 +406,7 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 		// Controller type settings
 		m_Controller[_notebookpage]->FindItem(IDC_DEADZONE)->Enable(Enabled);
 		m_Controller[_notebookpage]->FindItem(IDC_CONTROLTYPE)->Enable(Enabled);
-		m_Controller[_notebookpage]->FindItem(IDC_TRIGGERTYPE)->Enable(Enabled && AnalogTrigger);
+		m_Controller[_notebookpage]->FindItem(IDC_TRIGGERTYPE)->Enable(Enabled && AnalogTrigger && XInput);
 		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_DIAGONAL)->Enable(Enabled);		
 		m_Controller[_notebookpage]->FindItem(IDCB_MAINSTICK_S_TO_C)->Enable(Enabled);		
 	#endif
@@ -497,8 +507,8 @@ void ConfigBox::CreateGUIControls()
 	wxAS_DPadType.Add(wxString::FromAscii(DPadType[CTL_DPAD_CUSTOM]));
 
 	wxArrayString wxAS_TriggerType;
-	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[CTL_TRIGGER_HALF]));
-	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[CTL_TRIGGER_WHOLE]));
+	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[CTL_TRIGGER_SDL]));
+	wxAS_TriggerType.Add(wxString::FromAscii(TriggerType[CTL_TRIGGER_XINPUT]));
 
 	// --------------------------------------------------------------------
 	// Populate the deadzone list
@@ -708,9 +718,7 @@ void ConfigBox::CreateGUIControls()
 			"Use a 'hat' on your gamepad or configure a custom button for each direction."
 			));
 		m_TriggerType[i]->SetToolTip(wxT(
-			"This is for the analog trigger settings. You can look under 'Trigger values' in the advanced settings to see"
-			" which of these modes work for your gamepad. If it works correctly the unpressed to pressed range should be"
-			" 0 to 255."
+			"Select XInput if you want the triggers to work with the XBox 360 pad."
 			));
 		m_CBSaveByID[i]->SetToolTip(wxString::Format(wxT(
 			"Map these settings to the selected controller device instead of to the"
@@ -861,8 +869,8 @@ void ConfigBox::CreateGUIControls()
 	// --------------------------------------------------------------------
 	// Debugging
 	// -----------------------------
-	//m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(100, 490), wxDefaultSize);
-	//m_pStatusBar2 = new wxStaticText(this, IDT_DEBUGGING2, wxT("Debugging2"), wxPoint(100, 530), wxDefaultSize);
+	//m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(150, 100), wxDefaultSize);
+	//m_pStatusBar2 = new wxStaticText(this, IDT_DEBUGGING2, wxT("Debugging2"), wxPoint(150, 200), wxDefaultSize);
 	//m_pStatusBar->SetLabel(wxString::Format("Debugging text"));
 
 	// --------------------------------------------------------------------
