@@ -306,7 +306,7 @@ void ConfigBox::ToBlank(bool ToBlank)
 	else
 	{
 		for(int i = IDB_ANALOG_MAIN_X; i <= IDB_BUTTONHALFPRESS; i++)
-                    if(GetButtonText(i).Empty()) SetButtonText(i, "-1");
+                    if(GetButtonText(i).IsEmpty()) SetButtonText(i, "-1");
 	}
 }
 //////////////////////////////////
