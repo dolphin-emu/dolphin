@@ -25,6 +25,8 @@ namespace HLE
 	void PatchFunctions();
 	void Patch(u32 pc, const char *func_name);
 	void Execute(u32 _CurrentPC, u32 _Instruction);
+
+	u32 GetOrigInstruction(u32 em_address);
 }
 
 #endif

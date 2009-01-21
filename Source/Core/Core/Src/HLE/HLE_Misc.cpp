@@ -129,7 +129,7 @@ void SMB_evil_vec_setlength()
 	float x = F(r3);
 	float y = F(r3 + 4);
 	float z = F(r3 + 8);
-	float inv_len = (float)(rPS0(1) / sqrt(x*x + y*y + z*z));
+	float inv_len = (float)(rPS0(0) / sqrt(x*x + y*y + z*z));
 	x *= inv_len;
 	y *= inv_len;
 	z *= inv_len;
@@ -181,23 +181,71 @@ void FZero_kill_infinites()
 	NPC = LR;
 }
 
-void FZero_evil_vec_something()
+void FZ_sqrt() {
+	u32 r3 = GPR(3);
+	double x = rPS0(0);
+	x = sqrt(x);
+	FW(r3, (float)x);
+	rPS0(0) = x;
+	NPC = LR;
+}
+
+// Internal square root function in the crazy math lib. Acts a bit odd, just read it. It's not a bug :p
+void FZ_sqrt_internal()
 {
-/*
+	double f = sqrt(rPS0(1));
+	rPS0(0) = rPS0(1);
+	rPS1(0) = rPS0(1);
+	rPS0(1) = f;
+	rPS1(1) = f;
+	NPC = LR;
+}
+
+// Internal inverse square root function in the crazy math lib. 
+void FZ_rsqrt_internal()
+{
+	double f = 1.0 / sqrt(rPS0(1));
+	rPS0(1) = f;
+	rPS1(1) = f;
+	NPC = LR;
+}
+
+void FZero_evil_vec_normalize()
+{
+	u32 r3 = GPR(3);
+	float x = F(r3);
+	float y = F(r3 + 4);
+	float z = F(r3 + 8);
+	float sq_len = x*x + y*y + z*z;
+	float inv_len = 1.0f / sqrtf(sq_len);
+	x *= inv_len;
+	y *= inv_len;
+	z *= inv_len;
+	FW(r3, x);
+	FW(r3 + 4, y);
+	FW(r3 + 8, z);
+	rPS0(1) = inv_len * sq_len;  // len
+	rPS1(1) = inv_len * sq_len;  // len
+	NPC = LR;
+
+	/*
 .evil_vec_something
+
+(f6, f7, f8) <- [r3]
+f1 = f6 * f6
+f1 += f7 * f7
+f1 += f8 * f8
+f2 = mystery
+f4 = f2 * f1
+f3 = f2 + f2
+f1 = 1/f0
+
+f6 *= f1
+f7 *= f1
+f8 *= f1
+
 8006d668: lis	r5, 0xE000
-8006d66c: lfs	f6, 0 (r3)
-8006d670: lfs	f7, 0x0004 (r3)
-8006d674: fmuls	f1,f6,f6
-8006d678: lfs	f8, 0x0008 (r3)
-8006d67c: fmadds	f1,f7,f7,f1
-8006d680: fmadds	f1,f8,f8,f1
 8006d684: lfs	f2, 0x01A0 (r5)
-8006d688: mcrfs	cr1, cr4
-8006d68c: mcrfs	cr0, cr3
-8006d690: bso-	cr1,->0x8006D6E8
-8006d694: ble-	cr1,->0x8006D6E8
-8006d698: bso-	->0x8006D6E8
 8006d69c: fmr	f0,f2
 8006d6a0: fmuls	f4,f2,f1
 8006d6a4: fadds	f3,f2,f2
@@ -217,11 +265,6 @@ void FZero_evil_vec_something()
 8006d6dc: stfs	f8, 0x0008 (r3)
 8006d6e0: fmuls	f1,f1,f0
 8006d6e4: blr	
-8006d6e8: lfs	f1, 0x0198 (r5)
-8006d6ec: stfs	f1, 0 (r3)
-8006d6f0: stfs	f1, 0x0004 (r3)
-8006d6f4: stfs	f1, 0x0008 (r3)
-8006d6f8: blr	
 */
 	NPC = LR;
 }

@@ -289,7 +289,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 			sprintf(dis, "f: %f", flt);
 			char desc[256] = "";
 
-			dc.DrawText(wxString::FromAscii(dis), 17+fontSize*(8+8), rowY1);
+			dc.DrawText(wxString::FromAscii(dis), 17 + fontSize*(8 + 8), rowY1);
 
 			if (desc[0] == 0)
 			{
@@ -298,50 +298,14 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 
 			dc.SetTextForeground(_T("#0000FF"));
 
-			//char temp[256];
-			//UnDecorateSymbolName(desc,temp,255,UNDNAME_COMPLETE);
 			if (strlen(desc))
 			{
 				dc.DrawText(wxString::FromAscii(desc), 17+fontSize*(8+8+8+30), rowY1);
-			}
-
-			if (debugger->isBreakpoint(address))
-			{
-				dc.SetBrush(bpBrush);
-				dc.DrawRectangle(2, rowY1 + 1, 11, 11);
-//				DrawIconEx(hdc, 2, rowY1, breakPoint, 32, 32, 0, 0, DI_NORMAL);
 			}
 		}
 	}
 
 	dc.SetPen(currentPen);
-	/*
-	   for (i = 0; i < numBranches; i++)
-	   {
-	    int x = 250 + (branches[i].srcAddr % 9) * 8;
-	    MoveToEx(hdc, x-2, branches[i].src, 0);
-
-	    if (branches[i].dst < rect.bottom + 200 && branches[i].dst > -200)
-	    {
-	    LineTo(hdc, x+2, branches[i].src);
-	    LineTo(hdc, x+2, branches[i].dst);
-	    LineTo(hdc, x-4, branches[i].dst);
-
-	    MoveToEx(hdc, x, branches[i].dst - 4,0);
-	    LineTo(hdc, x-4, branches[i].dst);
-	    LineTo(hdc, x+1, branches[i].dst+5);
-	    }
-	    else
-	    {
-	    LineTo(hdc, x+4, branches[i].src);
-	    //MoveToEx(hdc,x+2,branches[i].dst-4,0);
-	    //LineTo(hdc,x+6,branches[i].dst);
-	    //LineTo(hdc,x+1,branches[i].dst+5);
-	    }
-	    //LineTo(hdc,x,branches[i].dst+4);
-
-	    //LineTo(hdc,x-2,branches[i].dst);
-	   }*/
 }
 
 

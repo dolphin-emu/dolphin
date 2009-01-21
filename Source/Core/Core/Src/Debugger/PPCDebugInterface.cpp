@@ -41,7 +41,7 @@ void PPCDebugInterface::disasm(unsigned int address, char *dest, int max_size)
 		}
 		else
 		{
-			strcpy(dest, "No RAM here - invalid");
+			strcpy(dest, "(No RAM here)");
 		}
 	}
 	else

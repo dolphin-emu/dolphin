@@ -700,7 +700,7 @@ void CompileInstruction(UGeckoInstruction _inst)
 	GekkoOPInfo *info = GetOpInfo(_inst);
 	if (info) {
 #ifdef OPLOG
-		if (!strcmp(info->opname, "mcrfs")) {
+		if (!strcmp(info->opname, "mffsx")) {  ///"mcrfs"
 			rsplocations.push_back(jit.js.compilerPC);
 		}
 #endif
@@ -766,7 +766,7 @@ void LogCompiledInstructions()
 #ifdef OPLOG
 	f = fopen(StringFromFormat(FULL_LOGS_DIR "mcrfs_at.txt", time).c_str(), "w");
 	for (size_t i = 0; i < rsplocations.size(); i++) {
-		fprintf(f, "mcrfs: %08x\n", rsplocations[i]);
+		fprintf(f, "mffsx: %08x\n", rsplocations[i]);
 	}
 	fclose(f);
 #endif
