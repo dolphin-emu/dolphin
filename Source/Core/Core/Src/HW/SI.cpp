@@ -246,28 +246,25 @@ void DoState(PointerWrap &p)
 // ¯¯¯¯¯¯¯¯¯¯
 void Init()
 {
+	// TODO: allow dynamic attaching/detaching of plugins
+    // maybe this code should be in the pad plugin loader at all?
     for (int i = 0; i < NUMBER_OF_CHANNELS; i++)
 	{	
 		g_Channel[i].m_Out.Hex = 0;
 		g_Channel[i].m_InHi.Hex = 0;
 		g_Channel[i].m_InLo.Hex = 0;
 
-		// First attach a dummy device to all channels
-		g_Channel[i].m_pDevice = new CSIDevice_Dummy(i);
-    }	
+		// Check the maxpads limit
+		int j = i; if(i >= MAXPADS) j = MAXPADS - 1;
 
-    // TODO: allow dynamic attaching/detaching of plugins
-    // maybe this code should be in the pad plugin loader at all?
-    for (int i = 0; i < MAXPADS; i++)
-	{
-		// Get pad status
-		Common::PluginPAD* pad = CPluginManager::GetInstance().GetPAD(i);
+		// Get pad
+		Common::PluginPAD* pad = CPluginManager::GetInstance().GetPAD(j);
 
 		// Check if this pad is attached for the current plugin
 		if (pad != NULL && (pad->PAD_GetAttachedPads() & (1 << i)))
 			g_Channel[i].m_pDevice = new CSIDevice_GCController(i);
-		//else
-		//	g_Channel[i].m_pDevice = new CSIDevice_Dummy(i);
+		else
+			g_Channel[i].m_pDevice = new CSIDevice_Dummy(i);
     }
 
 	g_Poll.Hex = 0;
