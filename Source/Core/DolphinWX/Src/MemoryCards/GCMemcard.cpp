@@ -818,6 +818,8 @@ u32 GCMemcard::ImportGci(const char *fileName, std::string fileName2)
 			// 0x2C and 0x2D, 0x2E and 0x2F, 0x30 and 0x31, 0x32 and 0x33,
 			// 0x34 and 0x35, 0x36 and 0x37, 0x38 and 0x39, 0x3A and 0x3B,
 			// 0x3C and 0x3D,0x3E and 0x3F.
+			// It seems that sav files also swap the BIFlags...
+			ByteSwap(&d->Unused1, &d->BIFlags);
 			ArrayByteSwap((d->ImageOffset));
 			ArrayByteSwap(&(d->ImageOffset[2]));
 			ArrayByteSwap((d->IconFmt));
@@ -915,6 +917,9 @@ bool GCMemcard::ReadBannerRGBA8(u8 index, u32* buffer)
 	if (!mcdFile) return false;
 
 	int flags = dir.Dir[index].BIFlags;
+	// Timesplitters 2 is the only game that I see this in
+	// May be a hack
+	if (flags == 0xFB) flags = ~flags;
 
 	int  bnrFormat = (flags&3);
 
@@ -955,7 +960,9 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8 *delays)
 	int fdelays  = BE16(dir.Dir[index].AnimSpeed);
 
 	int flags = dir.Dir[index].BIFlags;
-
+	// Timesplitters 2 is the only game that I see this in
+	// May be a hack
+	if (flags == 0xFB) flags = ~flags;
 	int bnrFormat = (flags&3);
 
 	u32 DataOffset = BE32(dir.Dir[index].ImageOffset);
