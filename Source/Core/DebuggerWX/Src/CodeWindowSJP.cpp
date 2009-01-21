@@ -242,14 +242,16 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 void CCodeWindow::NotifyMapLoaded()
 {
 	g_symbolDB.FillInCallers();
-	symbols->Show(false); // hide it for faster filling
+	//symbols->Show(false); // hide it for faster filling
+	symbols->Freeze();	// HyperIris: wx style fast filling
 	symbols->Clear();
 	for (SymbolDB::XFuncMap::iterator iter = g_symbolDB.GetIterator(); iter != g_symbolDB.End(); iter++)
 	{
 		int idx = symbols->Append(wxString::FromAscii(iter->second.name.c_str()));
 		symbols->SetClientData(idx, (void*)&iter->second);
 	}
-	symbols->Show(true);
+	symbols->Thaw();
+	//symbols->Show(true);
 	Update();
 }
 
