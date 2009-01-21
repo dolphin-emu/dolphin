@@ -1,5 +1,3 @@
-////////////////////////////////////////////////////////////
-//
 // SFML - Simple and Fast Multimedia Library
 // Copyright (C) 2007-2008 Laurent Gomila (laurent.gom@gmail.com)
 //
@@ -19,289 +17,246 @@
 //    and must not be misrepresented as being the original software.
 //
 // 3. This notice may not be removed or altered from any source distribution.
-//
-////////////////////////////////////////////////////////////
 
 #ifndef SFML_EVENT_HPP
 #define SFML_EVENT_HPP
 
-////////////////////////////////////////////////////////////
-// Headers
-////////////////////////////////////////////////////////////
-//#include <SFML/Config.hpp>
-
 
 namespace sf
 {
-////////////////////////////////////////////////////////////
-/// Definition of key codes for keyboard events
-////////////////////////////////////////////////////////////
-namespace Key
-{
-	enum Code
+	namespace Key
 	{
-		A = 'a',
-		B = 'b',
-		C = 'c',
-		D = 'd',
-		E = 'e',
-		F = 'f',
-		G = 'g',
-		H = 'h',
-		I = 'i',
-		J = 'j',
-		K = 'k',
-		L = 'l',
-		M = 'm',
-		N = 'n',
-		O = 'o',
-		P = 'p',
-		Q = 'q',
-		R = 'r',
-		S = 's',
-		T = 't',
-		U = 'u',
-		V = 'v',
-		W = 'w',
-		X = 'x',
-		Y = 'y',
-		Z = 'z',
-		Num0 = '0',
-		Num1 = '1',
-		Num2 = '2',
-		Num3 = '3',
-		Num4 = '4',
-		Num5 = '5',
-		Num6 = '6',
-		Num7 = '7',
-		Num8 = '8',
-		Num9 = '9', 
-		Escape = 256,
-		LControl,
-		LShift,
-		LAlt,
-		LSystem,	///< OS specific key (left side) : windows (Win and Linux), apple (MacOS), ...
-		RControl,
-		RShift,
-		RAlt,
-		RSystem,	///< OS specific key (right side) : windows (Win and Linux), apple (MacOS), ...
-		Menu,
-		LBracket,	///< [
-		RBracket,	///< ]
-		SemiColon,	///< ;
-		Comma,		///< ,
-		Period,		///< .
-		Quote,		///< '
-		Slash,		///< /
-		BackSlash,
-		Tilde,		///< ~
-		Equal,		///< =
-		Dash,		///< -
-		Space,
-		Return,
-		Back,
-		Tab,
-		PageUp,
-		PageDown,
-		End,
-		Home,
-		Insert,
-		Delete,
-		Add,		///< +
-		Subtract,	///< -
-		Multiply,	///< *
-		Divide,		///< /
-		Left,		///< Left arrow
-		Right,		///< Right arrow
-		Up,			///< Up arrow
-		Down,		///< Down arrow
-		Numpad0,
-		Numpad1,
-		Numpad2,
-		Numpad3,
-		Numpad4,
-		Numpad5,
-		Numpad6,
-		Numpad7,
-		Numpad8,
-		Numpad9,
-		F1,
-		F2,
-		F3,
-		F4,
-		F5,
-		F6,
-		F7,
-		F8,
-		F9,
-		F10,
-		F11,
-		F12,
-		F13,
-		F14,
-		F15,
-		Pause,
+		enum Code
+		{
+			A = 'a',
+			B = 'b',
+			C = 'c',
+			D = 'd',
+			E = 'e',
+			F = 'f',
+			G = 'g',
+			H = 'h',
+			I = 'i',
+			J = 'j',
+			K = 'k',
+			L = 'l',
+			M = 'm',
+			N = 'n',
+			O = 'o',
+			P = 'p',
+			Q = 'q',
+			R = 'r',
+			S = 's',
+			T = 't',
+			U = 'u',
+			V = 'v',
+			W = 'w',
+			X = 'x',
+			Y = 'y',
+			Z = 'z',
+			Num0 = '0',
+			Num1 = '1',
+			Num2 = '2',
+			Num3 = '3',
+			Num4 = '4',
+			Num5 = '5',
+			Num6 = '6',
+			Num7 = '7',
+			Num8 = '8',
+			Num9 = '9',
+			Escape = 256,
+			LControl,
+			LShift,
+			LAlt,
+			LSystem,
+			RControl,
+			RShift,
+			RAlt,
+			RSystem,
+			Menu,
+			LBracket,
+			RBracket,
+			SemiColon,
+			Comma,
+			Period,
+			Quote,
+			Slash,
+			BackSlash,
+			Tilde,
+			Equal,
+			Dash,
+			Space,
+			Return,
+			Back,
+			Tab,
+			PageUp,
+			PageDown,
+			End,
+			Home,
+			Insert,
+			Delete,
+			Add,
+			Subtract,
+			Multiply,
+			Divide,
+			Left,
+			Right,
+			Up,
+			Down,
+			Numpad0,
+			Numpad1,
+			Numpad2,
+			Numpad3,
+			Numpad4,
+			Numpad5,
+			Numpad6,
+			Numpad7,
+			Numpad8,
+			Numpad9,
+			F1,
+			F2,
+			F3,
+			F4,
+			F5,
+			F6,
+			F7,
+			F8,
+			F9,
+			F10,
+			F11,
+			F12,
+			F13,
+			F14,
+			F15,
+			Pause,
 
-		Count // For internal use
-	};
-}
+			Count // For internal use
+		};
+	}
 
 
-////////////////////////////////////////////////////////////
-/// Definition of button codes for mouse events
-////////////////////////////////////////////////////////////
-namespace Mouse
-{
-	enum Button
+	namespace Mouse
 	{
-		Left,
-		Right,
-		Middle,
-		XButton1,
-		XButton2,
+		enum Button
+		{
+			Left,
+			Right,
+			Middle,
+			XButton1,
+			XButton2,
 
-		Count // For internal use
-	};
-}
+			Count // For internal use
+		};
+	}
 
 
-////////////////////////////////////////////////////////////
-/// Definition of joystick axis for joystick events
-////////////////////////////////////////////////////////////
-namespace Joy
-{
-	enum Axis
+	namespace Joy
 	{
-		AxisX,
-		AxisY,
-		AxisZ,
-		AxisR,
-		AxisU,
-		AxisV,
-		AxisPOV,
+		enum Axis
+		{
+			AxisX,
+			AxisY,
+			AxisZ,
+			AxisR,
+			AxisU,
+			AxisV,
+			AxisPOV,
 
-		Count // For internal use
-	};
-}
+			Count // For internal use
+		};
+	}
 
 
-////////////////////////////////////////////////////////////
-/// Event defines a system event and its parameters
-////////////////////////////////////////////////////////////
-class Event
-{
-public :
-
-	////////////////////////////////////////////////////////////
-	/// Keyboard event parameters
-	////////////////////////////////////////////////////////////
-	struct KeyEvent
+	class Event
 	{
-		Key::Code Code;
-		bool      Alt;
-		bool      Control;
-		bool      Shift;
-	};
+	public :
 
-	////////////////////////////////////////////////////////////
-	/// Text event parameters
-	////////////////////////////////////////////////////////////
-	struct TextEvent
-	{
-		unsigned short Unicode;
-	};
+		struct KeyEvent
+		{
+			Key::Code Code;
+			bool      Alt;
+			bool      Control;
+			bool      Shift;
+		};
 
-	////////////////////////////////////////////////////////////
-	/// Mouse move event parameters
-	////////////////////////////////////////////////////////////
-	struct MouseMoveEvent
-	{
-		unsigned int X;
-		unsigned int Y;
-	};
+		struct TextEvent
+		{
+			// I'm not sure we need this...
+			unsigned short Unicode;
+		};
 
-	////////////////////////////////////////////////////////////
-	/// Mouse buttons events parameters
-	////////////////////////////////////////////////////////////
-	struct MouseButtonEvent
-	{
-		Mouse::Button Button;
-	};
+		struct MouseMoveEvent
+		{
+			int X;
+			int Y;
+		};
 
-	////////////////////////////////////////////////////////////
-	/// Mouse wheel events parameters
-	////////////////////////////////////////////////////////////
-	struct MouseWheelEvent
-	{
-		int Delta;
-	};
+		struct MouseButtonEvent
+		{
+			Mouse::Button Button;
+			int           X;
+			int           Y;
+		};
 
-	////////////////////////////////////////////////////////////
-	/// Joystick axis move event parameters
-	////////////////////////////////////////////////////////////
-	struct JoyMoveEvent
-	{
-		unsigned int JoystickId;
-		Joy::Axis    Axis;
-		float        Position;
-	};
+		struct MouseWheelEvent
+		{
+			int Delta;
+		};
 
-	////////////////////////////////////////////////////////////
-	/// Joystick buttons events parameters
-	////////////////////////////////////////////////////////////
-	struct JoyButtonEvent
-	{
-		unsigned int JoystickId;
-		unsigned int Button;
-	};
+		struct JoyMoveEvent
+		{
+			unsigned int JoystickId;
+			Joy::Axis    Axis;
+			float        Position;
+		};
 
-	////////////////////////////////////////////////////////////
-	/// Size events parameters
-	////////////////////////////////////////////////////////////
-	struct SizeEvent
-	{
-		unsigned int Width;
-		unsigned int Height;
-	};
+		struct JoyButtonEvent
+		{
+			unsigned int JoystickId;
+			unsigned int Button;
+		};
 
-	////////////////////////////////////////////////////////////
-	/// Enumeration of the different types of events
-	////////////////////////////////////////////////////////////
-	enum EventType
-	{
-		Closed,
-		Resized,
-		LostFocus,
-		GainedFocus,
-		TextEntered,
-		KeyPressed,
-		KeyReleased,
-		MouseWheelMoved,
-		MouseButtonPressed,
-		MouseButtonReleased,
-		MouseMoved,
-		JoyButtonPressed,
-		JoyButtonReleased,
-		JoyMoved
-	};
+		struct SizeEvent
+		{
+			unsigned int Width;
+			unsigned int Height;
+		};
 
-	////////////////////////////////////////////////////////////
-	// Member data
-	////////////////////////////////////////////////////////////
-	EventType Type; ///< Type of the event
+		enum EventType
+		{
+			Closed,
+			Resized,
+			LostFocus,
+			GainedFocus,
+			TextEntered,
+			KeyPressed,
+			KeyReleased,
+			MouseWheelMoved,
+			MouseButtonPressed,
+			MouseButtonReleased,
+			MouseMoved,
+			MouseEntered,
+			MouseLeft,
+			JoyButtonPressed,
+			JoyButtonReleased,
+			JoyMoved
+		};
 
-	union
-	{
-		KeyEvent         Key;
-		TextEvent        Text;
-		MouseMoveEvent   MouseMove;
-		MouseButtonEvent MouseButton;
-		MouseWheelEvent  MouseWheel;
-		JoyMoveEvent     JoyMove;
-		JoyButtonEvent   JoyButton;
-		SizeEvent        Size;
+		// Member data
+		EventType Type; 
+
+		union
+		{
+			KeyEvent         Key;
+			TextEvent        Text;
+			MouseMoveEvent   MouseMove;
+			MouseButtonEvent MouseButton;
+			MouseWheelEvent  MouseWheel;
+			JoyMoveEvent     JoyMove;
+			JoyButtonEvent   JoyButton;
+			SizeEvent        Size;
+		};
 	};
-};
 
 } // namespace sf
 
