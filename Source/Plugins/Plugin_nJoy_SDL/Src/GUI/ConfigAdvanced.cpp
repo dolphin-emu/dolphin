@@ -50,7 +50,7 @@ bool StrangeHack = true;
 void ConfigBox::PadGetStatus()
 {
 	// Return if it's not detected
-	if(joysticks[notebookpage].ID >= SDL_NumJoysticks())
+	if(PadMapping[notebookpage].ID >= SDL_NumJoysticks())
 	{
 		m_TStatusIn[notebookpage]->SetLabel(wxT("Not connected"));
 		m_TStatusOut[notebookpage]->SetLabel(wxT("Not connected"));
@@ -59,7 +59,7 @@ void ConfigBox::PadGetStatus()
 	}
 
 	// Return if it's not enabled
-	if (!joysticks[notebookpage].enabled)
+	if (!PadMapping[notebookpage].enabled)
 	{
 		m_TStatusIn[notebookpage]->SetLabel(wxT("Not enabled"));
 		m_TStatusOut[notebookpage]->SetLabel(wxT("Not enabled"));
@@ -68,8 +68,8 @@ void ConfigBox::PadGetStatus()
 	}
 
 	// Get physical device status
-	int PhysicalDevice = joysticks[notebookpage].ID;
-	int TriggerType = joysticks[notebookpage].triggertype;
+	int PhysicalDevice = PadMapping[notebookpage].ID;
+	int TriggerType = PadMapping[notebookpage].triggertype;
 
 	// Get pad status
 	GetJoyState(notebookpage);
@@ -78,8 +78,8 @@ void ConfigBox::PadGetStatus()
 	// Analog stick
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	// Set Deadzones perhaps out of function
-	//int deadzone = (int)(((float)(128.00/100.00)) * (float)(joysticks[_numPAD].deadzone+1));
-	//int deadzone2 = (int)(((float)(-128.00/100.00)) * (float)(joysticks[_numPAD].deadzone+1));
+	//int deadzone = (int)(((float)(128.00/100.00)) * (float)(PadMapping[_numPAD].deadzone+1));
+	//int deadzone2 = (int)(((float)(-128.00/100.00)) * (float)(PadMapping[_numPAD].deadzone+1));
 
 	// Get original values
 	int main_x = joystate[notebookpage].axis[CTL_MAIN_X];
@@ -89,7 +89,7 @@ void ConfigBox::PadGetStatus()
 
 	// Get adjusted values
 	int main_x_after = main_x, main_y_after = main_y;
-	if(g_Config.bSquareToCircle.at(notebookpage))
+	if(PadMapping[notebookpage].bSquareToCircle)
 	{
 		std::vector<int> main_xy = Pad_Square_to_Circle(main_x, main_y, notebookpage);
 		main_x_after = main_xy.at(0);
@@ -143,7 +143,7 @@ void ConfigBox::PadGetStatus()
 	int TriggerRight = joystate[notebookpage].axis[CTL_R_SHOULDER];
 
 	// Convert the triggers values
-	if (joysticks[notebookpage].triggertype == CTL_TRIGGER_SDL)
+	if (PadMapping[notebookpage].triggertype == CTL_TRIGGER_SDL)
 	{
 		TriggerLeft = Pad_Convert(TriggerLeft);
 		TriggerRight = Pad_Convert(TriggerRight);
@@ -169,19 +169,19 @@ void ConfigBox::PadGetStatus()
 std::string ShowStatus(int VirtualController)
 {
 	// Check if it's enabled
-	if (!joysticks[VirtualController].enabled) return "Disabled";
+	if (!PadMapping[VirtualController].enabled) return StringFromFormat("%i disabled", VirtualController);
 
 	// Save the physical device
-	int PhysicalDevice = joysticks[VirtualController].ID;
+	int PhysicalDevice = PadMapping[VirtualController].ID;
 
 	// Make local shortcut
 	SDL_Joystick *joy = joystate[VirtualController].joy;
 
 	// Make shortcuts for all pads
-	SDL_Joystick *joy0 = joystate[joysticks[0].ID].joy;
-	SDL_Joystick *joy1 = joystate[joysticks[1].ID].joy;
-	SDL_Joystick *joy2 = joystate[joysticks[2].ID].joy;
-	SDL_Joystick *joy3 = joystate[joysticks[3].ID].joy;
+	SDL_Joystick *joy0 = joystate[PadMapping[0].ID].joy;
+	SDL_Joystick *joy1 = joystate[PadMapping[1].ID].joy;
+	SDL_Joystick *joy2 = joystate[PadMapping[2].ID].joy;
+	SDL_Joystick *joy3 = joystate[PadMapping[3].ID].joy;
 
 	// Temporary storage
 	std::string StrAxes, StrHats, StrBut;
@@ -192,10 +192,6 @@ std::string ShowStatus(int VirtualController)
 	int Balls = joyinfo[PhysicalDevice].NumBalls;
 	int Hats = joyinfo[PhysicalDevice].NumHats;
 	int Buttons = joyinfo[PhysicalDevice].NumButtons;
-
-	// More status
-	int controllertype = joysticks[VirtualController].controllertype;
-	int triggertype = joysticks[VirtualController].triggertype;
 
 	// Update the internal values
 	SDL_JoystickUpdate();
@@ -218,20 +214,25 @@ std::string ShowStatus(int VirtualController)
 	}
 
 	return StringFromFormat(
-		"joysticks.ID: %i %i %i %i\n"
-		"joysticks.controllertype, triggertype: %i %i\n"
+		"PadMapping\n"
+		"ID: %i %i %i %i\n"
+		"Controllertype: %i %i %i %i\n"
+		"SquareToCircle: %i %i %i %i\n\n"		
 		"Handles: %i %i %i %i\n"
+
 		"XInput: %i %i %i\n"
 		"Axes: %s\n"
 		"Hats: %s\n"
 		"But: %s\n"
 		"Device: Ax: %i Balls:%i But:%i Hats:%i",
-		joysticks[0].ID, joysticks[1].ID, joysticks[2].ID, joysticks[3].ID,
-		controllertype, triggertype,
+		PadMapping[0].ID, PadMapping[1].ID, PadMapping[2].ID, PadMapping[3].ID,
+		PadMapping[0].controllertype, PadMapping[1].controllertype, PadMapping[2].controllertype, PadMapping[3].controllertype,
+		PadMapping[0].bSquareToCircle, PadMapping[1].bSquareToCircle, PadMapping[2].bSquareToCircle, PadMapping[3].bSquareToCircle,
 		joy0, joy1, joy2, joy3,
-#ifdef _WIN32
-		XInput::IsConnected(0), XInput::GetXI(0, XI_TRIGGER_L), XInput::GetXI(0, XI_TRIGGER_R),
-#endif
+
+		#ifdef _WIN32
+			XInput::IsConnected(0), XInput::GetXI(0, XI_TRIGGER_L), XInput::GetXI(0, XI_TRIGGER_R),
+		#endif
 		StrAxes.c_str(), StrHats.c_str(), StrBut.c_str(),
 		Axes, Balls, Hats, Buttons
 		);

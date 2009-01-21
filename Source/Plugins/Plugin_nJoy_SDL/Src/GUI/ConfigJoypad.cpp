@@ -40,7 +40,7 @@
 #include "Images/controller.xpm"
 
 extern CONTROLLER_INFO	*joyinfo;
-//extern CONTROLLER_MAPPING joysticks[4];
+//extern CONTROLLER_MAPPING PadMapping[4];
 extern bool emulator_running;
 ////////////////////////
 
@@ -53,114 +53,114 @@ void ConfigBox::UpdateGUIKeys(int controller)
 	wxString tmp;
 
 	// Update selected gamepad
-	m_Joyname[controller]->SetSelection(joysticks[controller].ID);
+	m_Joyname[controller]->SetSelection(PadMapping[controller].ID);
 
 	// Update the enabled checkbox
-	m_Joyattach[controller]->SetValue(joysticks[controller].enabled);
+	m_Joyattach[controller]->SetValue(PadMapping[controller].enabled);
 
-	tmp << joysticks[controller].buttons[CTL_L_SHOULDER]; m_JoyShoulderL[controller]->SetValue(tmp); tmp.clear();
-	tmp << joysticks[controller].buttons[CTL_R_SHOULDER]; m_JoyShoulderR[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].buttons[CTL_L_SHOULDER]; m_JoyShoulderL[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].buttons[CTL_R_SHOULDER]; m_JoyShoulderR[controller]->SetValue(tmp); tmp.clear();
 
-	tmp << joysticks[controller].buttons[CTL_A_BUTTON]; m_JoyButtonA[controller]->SetValue(tmp); tmp.clear();
-	tmp << joysticks[controller].buttons[CTL_B_BUTTON]; m_JoyButtonB[controller]->SetValue(tmp); tmp.clear();
-	tmp << joysticks[controller].buttons[CTL_X_BUTTON]; m_JoyButtonX[controller]->SetValue(tmp); tmp.clear();
-	tmp << joysticks[controller].buttons[CTL_Y_BUTTON]; m_JoyButtonY[controller]->SetValue(tmp); tmp.clear();
-	tmp << joysticks[controller].buttons[CTL_Z_TRIGGER]; m_JoyButtonZ[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].buttons[CTL_A_BUTTON]; m_JoyButtonA[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].buttons[CTL_B_BUTTON]; m_JoyButtonB[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].buttons[CTL_X_BUTTON]; m_JoyButtonX[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].buttons[CTL_Y_BUTTON]; m_JoyButtonY[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].buttons[CTL_Z_TRIGGER]; m_JoyButtonZ[controller]->SetValue(tmp); tmp.clear();
 
-	tmp << joysticks[controller].buttons[CTL_START]; m_JoyButtonStart[controller]->SetValue(tmp); tmp.clear();
-	tmp << joysticks[controller].halfpress; m_JoyButtonHalfpress[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].buttons[CTL_START]; m_JoyButtonStart[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].halfpress; m_JoyButtonHalfpress[controller]->SetValue(tmp); tmp.clear();
 
-	tmp << joysticks[controller].axis[CTL_MAIN_X]; m_JoyAnalogMainX[controller]->SetValue(tmp); tmp.clear();
-	tmp << joysticks[controller].axis[CTL_MAIN_Y]; m_JoyAnalogMainY[controller]->SetValue(tmp); tmp.clear();
-	tmp << joysticks[controller].axis[CTL_SUB_X]; m_JoyAnalogSubX[controller]->SetValue(tmp); tmp.clear();
-	tmp << joysticks[controller].axis[CTL_SUB_Y]; m_JoyAnalogSubY[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].axis[CTL_MAIN_X]; m_JoyAnalogMainX[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].axis[CTL_MAIN_Y]; m_JoyAnalogMainY[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].axis[CTL_SUB_X]; m_JoyAnalogSubX[controller]->SetValue(tmp); tmp.clear();
+	tmp << PadMapping[controller].axis[CTL_SUB_Y]; m_JoyAnalogSubY[controller]->SetValue(tmp); tmp.clear();
 	
 	// Update the deadzone and controller type controls
-	m_ControlType[controller]->SetSelection(joysticks[controller].controllertype);
-	m_TriggerType[controller]->SetSelection(joysticks[controller].triggertype);
-	m_Deadzone[controller]->SetSelection(joysticks[controller].deadzone);
+	m_ControlType[controller]->SetSelection(PadMapping[controller].controllertype);
+	m_TriggerType[controller]->SetSelection(PadMapping[controller].triggertype);
+	m_Deadzone[controller]->SetSelection(PadMapping[controller].deadzone);
+	m_CoBDiagonal[controller]->SetValue(wxString::FromAscii(PadMapping[controller].SDiagonal.c_str()));
+	m_CBS_to_C[controller]->SetValue(PadMapping[controller].bSquareToCircle);
+
+	LogMsg("bSquareToCircle: %i\n", PadMapping[controller].bSquareToCircle);
 
 	// Update D-Pad
-	if(joysticks[controller].controllertype == CTL_DPAD_HAT)
+	if(PadMapping[controller].controllertype == CTL_DPAD_HAT)
 	{
-		tmp << joysticks[controller].dpad; m_JoyDpadUp[controller]->SetValue(tmp); tmp.clear();		
+		tmp << PadMapping[controller].dpad; m_JoyDpadUp[controller]->SetValue(tmp); tmp.clear();		
 	}
 	else
 	{
-		tmp << joysticks[controller].dpad2[CTL_D_PAD_UP]; m_JoyDpadUp[controller]->SetValue(tmp); tmp.clear();
-		tmp << joysticks[controller].dpad2[CTL_D_PAD_DOWN]; m_JoyDpadDown[controller]->SetValue(tmp); tmp.clear();
-		tmp << joysticks[controller].dpad2[CTL_D_PAD_LEFT]; m_JoyDpadLeft[controller]->SetValue(tmp); tmp.clear();
-		tmp << joysticks[controller].dpad2[CTL_D_PAD_RIGHT]; m_JoyDpadRight[controller]->SetValue(tmp); tmp.clear();
+		tmp << PadMapping[controller].dpad2[CTL_D_PAD_UP]; m_JoyDpadUp[controller]->SetValue(tmp); tmp.clear();
+		tmp << PadMapping[controller].dpad2[CTL_D_PAD_DOWN]; m_JoyDpadDown[controller]->SetValue(tmp); tmp.clear();
+		tmp << PadMapping[controller].dpad2[CTL_D_PAD_LEFT]; m_JoyDpadLeft[controller]->SetValue(tmp); tmp.clear();
+		tmp << PadMapping[controller].dpad2[CTL_D_PAD_RIGHT]; m_JoyDpadRight[controller]->SetValue(tmp); tmp.clear();
 	}
 }
 
-/* Populate the joysticks array with the dialog items settings, for example
-   selected joystick, enabled or disabled status and so on */
+/* Populate the PadMapping array with the dialog items settings (for example
+   selected joystick, enabled or disabled status and so on) */
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::SaveButtonMapping(int controller, bool DontChangeId)
+void ConfigBox::SaveButtonMapping(int controller, bool DontChangeId, int FromSlot)
 {
 	// Temporary storage
 	wxString tmp;
 	long value;
 
+	// Save from or to the same or different slots
+	if (FromSlot == -1) FromSlot = controller;
+
 	// Replace "" with "-1" 
 	ToBlank(false);
 
 	// Set enabled or disable status and other settings
-	if(!DontChangeId) joysticks[controller].ID = m_Joyname[controller]->GetSelection();
-	joysticks[controller].enabled = m_Joyattach[controller]->GetValue();
-	joysticks[controller].controllertype = m_ControlType[controller]->GetSelection();
-	joysticks[controller].triggertype = m_TriggerType[controller]->GetSelection();
-	joysticks[controller].deadzone = m_Deadzone[controller]->GetSelection();
+	if(!DontChangeId) PadMapping[controller].ID = m_Joyname[FromSlot]->GetSelection();
+	if(FromSlot == controller) PadMapping[controller].enabled = m_Joyattach[FromSlot]->GetValue(); // Only enable one
+	PadMapping[controller].controllertype = m_ControlType[FromSlot]->GetSelection();
+	PadMapping[controller].triggertype = m_TriggerType[FromSlot]->GetSelection();
+	PadMapping[controller].deadzone = m_Deadzone[FromSlot]->GetSelection();
+	PadMapping[controller].SDiagonal = m_CoBDiagonal[FromSlot]->GetLabel().mb_str();
+	PadMapping[controller].bSquareToCircle = m_CBS_to_C[FromSlot]->IsChecked();	
 
 	// The analog buttons
-	m_JoyAnalogMainX[controller]->GetValue().ToLong(&value); joysticks[controller].axis[CTL_MAIN_X] = value; tmp.clear();
-	m_JoyAnalogMainY[controller]->GetValue().ToLong(&value); joysticks[controller].axis[CTL_MAIN_Y] = value; tmp.clear();
-	m_JoyAnalogSubX[controller]->GetValue().ToLong(&value); joysticks[controller].axis[CTL_SUB_X] = value; tmp.clear();
-	m_JoyAnalogSubY[controller]->GetValue().ToLong(&value); joysticks[controller].axis[CTL_SUB_Y] = value; tmp.clear();
+	m_JoyAnalogMainX[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].axis[CTL_MAIN_X] = value; tmp.clear();
+	m_JoyAnalogMainY[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].axis[CTL_MAIN_Y] = value; tmp.clear();
+	m_JoyAnalogSubX[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].axis[CTL_SUB_X] = value; tmp.clear();
+	m_JoyAnalogSubY[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].axis[CTL_SUB_Y] = value; tmp.clear();
 
 	// The shoulder buttons
-	m_JoyShoulderL[controller]->GetValue().ToLong(&value); joysticks[controller].buttons[CTL_L_SHOULDER] = value;
-	m_JoyShoulderR[controller]->GetValue().ToLong(&value); joysticks[controller].buttons[CTL_R_SHOULDER] = value;			
+	m_JoyShoulderL[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_L_SHOULDER] = value;
+	m_JoyShoulderR[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_R_SHOULDER] = value;			
 
 	// The digital buttons
-	m_JoyButtonA[controller]->GetValue().ToLong(&value); joysticks[controller].buttons[CTL_A_BUTTON] = value; tmp.clear();
-	m_JoyButtonB[controller]->GetValue().ToLong(&value); joysticks[controller].buttons[CTL_B_BUTTON] = value; tmp.clear();
-	m_JoyButtonX[controller]->GetValue().ToLong(&value); joysticks[controller].buttons[CTL_X_BUTTON] = value; tmp.clear();
-	m_JoyButtonY[controller]->GetValue().ToLong(&value); joysticks[controller].buttons[CTL_Y_BUTTON] = value; tmp.clear();
-	m_JoyButtonZ[controller]->GetValue().ToLong(&value); joysticks[controller].buttons[CTL_Z_TRIGGER] = value; tmp.clear();
-	m_JoyButtonStart[controller]->GetValue().ToLong(&value); joysticks[controller].buttons[CTL_START] = value; tmp.clear();
+	m_JoyButtonA[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_A_BUTTON] = value; tmp.clear();
+	m_JoyButtonB[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_B_BUTTON] = value; tmp.clear();
+	m_JoyButtonX[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_X_BUTTON] = value; tmp.clear();
+	m_JoyButtonY[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_Y_BUTTON] = value; tmp.clear();
+	m_JoyButtonZ[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_Z_TRIGGER] = value; tmp.clear();
+	m_JoyButtonStart[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_START] = value; tmp.clear();
+
+	LogMsg("SaveButtonMapping: Key:%i From:%i To:%i\n", m_TriggerType[FromSlot]->GetSelection(), FromSlot, controller);
 
 	// The halfpress button
-	m_JoyButtonHalfpress[controller]->GetValue().ToLong(&value); joysticks[controller].halfpress = value; tmp.clear();
+	m_JoyButtonHalfpress[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].halfpress = value; tmp.clear();
 
 	// The digital pad
-	if(joysticks[controller].controllertype == CTL_DPAD_HAT)
+	if(PadMapping[controller].controllertype == CTL_DPAD_HAT)
 	{
-		m_JoyDpadUp[controller]->GetValue().ToLong(&value); joysticks[controller].dpad = value; tmp.clear();
+		m_JoyDpadUp[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].dpad = value; tmp.clear();
 	}
 	else
 	{
-		m_JoyDpadUp[controller]->GetValue().ToLong(&value); joysticks[controller].dpad2[CTL_D_PAD_UP] = value; tmp.clear();
-		m_JoyDpadDown[controller]->GetValue().ToLong(&value); joysticks[controller].dpad2[CTL_D_PAD_DOWN] = value; tmp.clear();
-		m_JoyDpadLeft[controller]->GetValue().ToLong(&value); joysticks[controller].dpad2[CTL_D_PAD_LEFT] = value; tmp.clear();
-		m_JoyDpadRight[controller]->GetValue().ToLong(&value); joysticks[controller].dpad2[CTL_D_PAD_RIGHT] = value; tmp.clear();		
+		m_JoyDpadUp[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].dpad2[CTL_D_PAD_UP] = value; tmp.clear();
+		m_JoyDpadDown[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].dpad2[CTL_D_PAD_DOWN] = value; tmp.clear();
+		m_JoyDpadLeft[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].dpad2[CTL_D_PAD_LEFT] = value; tmp.clear();
+		m_JoyDpadRight[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].dpad2[CTL_D_PAD_RIGHT] = value; tmp.clear();		
 	}
 
 	// Replace "-1" with "" 
 	ToBlank();
 }
-
-
-// Change controller type
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-// Called from: When the controller type is changed
-void ConfigBox::ChangeControllertype(wxCommandEvent& event)
-{
-	SaveButtonMapping(notebookpage);
-	UpdateGUI(notebookpage);
-}
-
 
 // Update the textbox for the buttons
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -271,8 +271,8 @@ void ConfigBox::DoGetButtons(int GetId)
 	int Controller = notebookpage;
 
 	// Get the controller and trigger type
-	int ControllerType = joysticks[Controller].controllertype;
-	int TriggerType = joysticks[Controller].triggertype;
+	int ControllerType = PadMapping[Controller].controllertype;
+	int TriggerType = PadMapping[Controller].triggertype;
 
 	// Collect the accepted buttons for this slot
 	bool LeftRight = (GetId == IDB_SHOULDER_L || GetId == IDB_SHOULDER_R);
@@ -287,11 +287,11 @@ void ConfigBox::DoGetButtons(int GetId)
 			   || (GetId >= IDB_DPAD_UP && GetId <= IDB_DPAD_RIGHT && ControllerType == CTL_DPAD_CUSTOM); // Or the custom hat mode
 
 	bool Hat = (GetId >= IDB_DPAD_UP && GetId <= IDB_DPAD_RIGHT) // All DPads
-			   && (joysticks[Controller].controllertype == CTL_DPAD_HAT); // Not with the hat option defined
+			   && (PadMapping[Controller].controllertype == CTL_DPAD_HAT); // Not with the hat option defined
 
 	/* Open a new joystick. Joysticks[controller].GetId is the system GetId of the physical joystick
-	   that is mapped to controller, for example 0, 1, 2, 3 for the first four joysticks */
-	SDL_Joystick *joy = SDL_JoystickOpen(joysticks[Controller].ID);
+	   that is mapped to controller, for example 0, 1, 2, 3 for the first four PadMapping */
+	SDL_Joystick *joy = SDL_JoystickOpen(PadMapping[Controller].ID);
 
 	 // Get the number of axes, hats and buttons
 	int buttons = SDL_JoystickNumButtons(joy);
@@ -475,6 +475,13 @@ void ConfigBox::DoGetButtons(int GetId)
 		// Update the button mapping and GUI
 		SaveButtonMapping(Controller);
 		UpdateGUI(Controller);
+
+		/* Update the button mapping for all slots that use this device. (It doesn't make sense to have several slots
+		   controlled by the same device, but several DirectInput instances of different but identical devices may possible
+		   have the same id, I don't know. So we have to do this. The user may also have selected the same device for
+		   several disabled slots. */
+		if(g_Config.bSaveByID) UpdateAllSlots(Controller);
+
 	}
 
 	// If we got a bad button
@@ -491,7 +498,7 @@ void ConfigBox::DoGetButtons(int GetId)
 	// ======================== Process results
 
 	// We don't need this gamepad handle any more
-	if(SDL_JoystickOpened(joysticks[Controller].ID)) SDL_JoystickClose(joy);
+	if(SDL_JoystickOpened(PadMapping[Controller].ID)) SDL_JoystickClose(joy);
 
 	// Debugging
 	//Console::Print("IsRunning: %i\n", m_ButtonMappingTimer->IsRunning());

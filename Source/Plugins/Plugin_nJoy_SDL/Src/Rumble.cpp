@@ -172,7 +172,7 @@ void Pad_Use_Rumble(u8 _numPAD, SPADStatus* _pPADStatus)
 	#elif defined(__linux__)
 	if (!fd)
 	{
-		sprintf(device_file_name, "/dev/input/event%d", joysticks[_numPAD].eventnum); //TODO: Make dynamic //
+		sprintf(device_file_name, "/dev/input/event%d", PadMapping[_numPAD].eventnum); //TODO: Make dynamic //
 
 		/* Open device */
 		fd = open(device_file_name, O_RDWR);

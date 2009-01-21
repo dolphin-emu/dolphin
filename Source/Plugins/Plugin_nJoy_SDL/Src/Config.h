@@ -21,17 +21,13 @@
 struct Config
 {
     Config();
-    void Load(bool Config = false);
-    void Save(bool CheckedForDuplicates = false);
+    void Load(bool ChangePad = false, bool ChangeSaveByID = false);
+    void Save(int Slot = -1);
 	int CheckForDuplicateJoypads(bool OK);
 
     // General
 	bool bShowAdvanced; // Only allow one of these
-	std::vector<bool> bSaveByID; bool bSaveByIDNotice;
-
-	// Joystick
-	std::vector<std::string> SDiagonal;
-	std::vector<bool> bSquareToCircle;
+	bool bSaveByID;
 };
 
 extern Config g_Config;

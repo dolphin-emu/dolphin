@@ -69,6 +69,9 @@ class ConfigBox : public wxDialog
 
 		// Debugging
 		wxStaticText* m_pStatusBar, * m_pStatusBar2;
+		wxTextCtrl* m_TCDebugging;
+		bool Debugging;
+		void LogMsg(const char* format, ...);
 
 		// Status window
 		int BoxW, BoxH;
@@ -107,10 +110,9 @@ class ConfigBox : public wxDialog
 		wxBoxSizer* m_sSettings[4]; // General settings 2
 		wxStaticBoxSizer *m_gGenSettings[4];		
 
-		wxBoxSizer *m_sSaveByID[4];
 		wxStaticBoxSizer *m_gGenSettingsID[4];
 		wxGridBagSizer * m_gGBGenSettings[4];
-		wxCheckBox *m_CBSaveByID[4], *m_CBSaveByIDNotice[4], *m_CBShowAdvanced[4];
+		wxCheckBox *m_CBSaveByID[4], *m_CBShowAdvanced[4];
 		wxStaticText *m_TSControltype[4], *m_TSTriggerType[4];
 
 		wxStaticBoxSizer *m_gStatusIn[4], *m_gStatusInSettings[4];  // Advanced settings
@@ -185,7 +187,8 @@ class ConfigBox : public wxDialog
 		wxStaticBitmap *m_controllerimage[4],
 			*m_bmpSquare[4], *m_bmpDot[4], *m_bmpSquareOut[4], *m_bmpDotOut[4];
 		
-		int notebookpage;		
+		int notebookpage; bool ControlsCreated;
+
 	private:
 		enum
 		{
@@ -207,7 +210,7 @@ class ConfigBox : public wxDialog
 
 			IDG_CONTROLLERTYPE,	IDC_CONTROLTYPE, IDC_TRIGGERTYPE, // Controller type		
 
-			IDC_SAVEBYID, IDC_SAVEBYIDNOTICE, IDC_SHOWADVANCED, // Settings
+			IDC_SAVEBYID, IDC_SHOWADVANCED, // Settings
 			
 			ID_INSTATUS1, ID_INSTATUS2, ID_INSTATUS3, ID_INSTATUS4, // Advanced status
 			ID_STATUSBMP1, ID_STATUSBMP2, ID_STATUSBMP3, ID_STATUSBMP4,
@@ -290,7 +293,7 @@ class ConfigBox : public wxDialog
 
 			IDT_DPADTYPE, IDT_TRIGGERTYPE,	
 			IDT_WEBSITE,
-			IDT_DEBUGGING, IDT_DEBUGGING2,
+			IDT_DEBUGGING, IDT_DEBUGGING2, IDT_DEBUGGING3,
 			// ============
 
 			ID_DUMMY_VALUE_ //don't remove this value unless you have other enum values
@@ -300,13 +303,12 @@ class ConfigBox : public wxDialog
 		void AboutClick(wxCommandEvent& event);
 		void OKClick(wxCommandEvent& event);
 		void CancelClick(wxCommandEvent& event);
-		void DoSave(bool ChangePad = false, bool CheckedForDuplicates = false);
+		void DoSave(bool ChangePad = false, int Slot = -1);
 
-		void ChangeJoystick(wxCommandEvent& event); void DoChangeJoystick();
-		void ChangeControllertype(wxCommandEvent& event);
-		void EnableDisable(wxCommandEvent& event); void UpdateGUI(int _notebookpage);
+		void DoChangeJoystick(); void PadOpen(int Open); void PadClose(int Close);
+		void UpdateGUI(int _notebookpage);
 
-		void ChangeSettings(wxCommandEvent& event); // Settings
+		void ChangeSettings(wxCommandEvent& event); void UpdateAllSlots(int Slot); // Settings
 		void ComboChange(wxCommandEvent& event);
 
 		void OnClose(wxCloseEvent& event);
@@ -316,8 +318,9 @@ class ConfigBox : public wxDialog
 		void PadGetStatus(); void Update();
  
 		void UpdateGUIKeys(int controller);
-		void SaveButtonMapping(int controller, bool DontChangeId = false);
+		void SaveButtonMapping(int controller, bool DontChangeId = false, int FromSlot = -1);
 		void ToBlank(bool ToBlank = true);
+		void OnSaveById();
 
 		void NotebookPageChanged(wxNotebookEvent& event);
 

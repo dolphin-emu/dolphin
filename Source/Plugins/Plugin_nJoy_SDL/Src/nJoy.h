@@ -51,6 +51,7 @@
 #include "pluginspecs_pad.h"
 #include "IniFile.h"
 //#include "ConsoleWindow.h"
+//#include "Timer.h"
 
 #include "Config.h" // Local
 #include "XInput.h"
@@ -134,6 +135,8 @@ struct CONTROLLER_MAPPING	// GC PAD MAPPING
 	int ID;					// SDL joystick device ID
 	int controllertype;		// Hat: Hat or custom buttons
 	int triggertype;		// Triggers range
+	std::string SDiagonal;
+	bool bSquareToCircle;
 	int eventnum;			// Linux Event Number, Can't be found dynamically yet
 };
 
@@ -143,7 +146,7 @@ struct CONTROLLER_INFO		// CONNECTED WINDOWS DEVICES INFO
 	int NumButtons;			// Amount of Buttons
 	int NumBalls;			// Amount of Balls
 	int NumHats;			// Amount of Hats (POV)
-	const char *Name;		// Joypad/stickname
+	std::string Name;		// Joypad/stickname
 	int ID;					// SDL joystick device ID
 	SDL_Joystick *joy;		// SDL joystick device
 };
@@ -226,7 +229,7 @@ extern std::vector<u8> Keys;
 	extern FILE *pFile;
 	extern CONTROLLER_INFO *joyinfo;
 	extern CONTROLLER_STATE joystate[4];
-	extern CONTROLLER_MAPPING joysticks[4];
+	extern CONTROLLER_MAPPING PadMapping[4];
 	extern HWND m_hWnd; // Handle to window
 #endif
 
