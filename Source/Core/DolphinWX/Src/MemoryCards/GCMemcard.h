@@ -56,7 +56,7 @@ private:
 		u32 low;
 		u32 high;
 	};
-public:
+
 	struct Header {			//Offset	Size	Description
 		u8 Unk1[12];		//0x0000	12		?
 		OSTime fmtTime;		//0x000c	8		time of format (OSTime value)
@@ -135,7 +135,7 @@ public:
 	} bat,bat_backup;
 #pragma pack(pop)
 
-//public:
+public:
 	bool fail;
 
 	// constructor
