@@ -47,16 +47,22 @@ CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem)
 	if (FileSize > 0)
 	{
 		m_pBannerFile = new u8[FileSize];
-		_rFileSystem.ReadFile("opening.bnr", m_pBannerFile, FileSize);
-		m_IsValid = true;
+		if (m_pBannerFile)
+		{
+			_rFileSystem.ReadFile("opening.bnr", m_pBannerFile, FileSize);
+			m_IsValid = true;
+		}
 	}
 }
 
 
 CBannerLoaderGC::~CBannerLoaderGC()
 {
-	delete [] m_pBannerFile;
-	m_pBannerFile = NULL;
+	if (m_pBannerFile)
+	{
+		delete [] m_pBannerFile;
+		m_pBannerFile = NULL;
+	}
 }
 
 
@@ -83,23 +89,38 @@ CBannerLoaderGC::GetBanner(u32* _pBannerImage)
 
 
 bool
-CBannerLoaderGC::GetName(std::string& _rName, int language)
+CBannerLoaderGC::GetName(std::string& _rName, DiscIO::IVolume::ECountry language)
 {
-	_rName = "invalid image";
+	_rName = "no name";
+
+	bool returnCode = false;
 
 	if (!IsValid())
 	{
 		return(false);
 	}
 
-	DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
-
-	if (!CopyToStringAndCheck(_rName, language != 0 ? pBanner->comment[0].shortTitle : pBanner->comment[0].longTitle))
+	// find Banner type
+	if (DiscIO::IVolume::COUNTRY_JAP == language)
 	{
-		return(false);
-	}
+		DVDBanner* pBanner = (DVDBanner*)m_pBannerFile;
 
-	return(true);
+		// dunno, if dolphin using unicode, it will be better = =;
+		if (CopySJISToString(_rName, pBanner->comment.shortTitle))
+		{
+			returnCode = true;
+		}
+	} 
+	else
+	{
+		DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
+
+		if (CopyToStringAndCheck(_rName, pBanner->comment[0].shortTitle))//language != 0 ? pBanner->comment[0].shortTitle : pBanner->comment[0].longTitle))
+		{
+			returnCode = true;
+		}
+	}
+	return returnCode;
 }
 
 
@@ -125,23 +146,38 @@ CBannerLoaderGC::GetCompany(std::string& _rCompany)
 
 
 bool
-CBannerLoaderGC::GetDescription(std::string& _rDescription)
+CBannerLoaderGC::GetDescription(std::string& _rDescription, DiscIO::IVolume::ECountry language)
 {
-	_rDescription = "invalid images";
+	_rDescription = "";
+
+	bool returnCode = false;
 
 	if (!IsValid())
 	{
 		return(false);
 	}
 
-	DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
-
-	if (!CopyToStringAndCheck(_rDescription, pBanner->comment[0].comment))
+	// find Banner type
+	if (DiscIO::IVolume::COUNTRY_JAP == language)
 	{
-		_rDescription = "";
-	}
+		DVDBanner* pBanner = (DVDBanner*)m_pBannerFile;
 
-	return(true);
+		// dunno, if dolphin using unicode, it will be better = =;
+		if (CopySJISToString(_rDescription, pBanner->comment.comment))
+		{
+			returnCode = true;
+		}
+	}
+	else
+	{
+		DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
+
+		if (CopyToStringAndCheck(_rDescription, pBanner->comment[0].comment))
+		{
+			returnCode = true;
+		}
+	}
+	return returnCode;
 }
 
 

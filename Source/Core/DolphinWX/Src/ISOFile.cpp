@@ -77,9 +77,9 @@ GameListItem::GameListItem(const std::string& _rFileName)
 				{
 					if (pBannerLoader->IsValid())
 					{
-						pBannerLoader->GetName(m_Name, 0); //m_Country == DiscIO::IVolume::COUNTRY_JAP ? 1 : 0);
+						pBannerLoader->GetName(m_Name, m_Country); //m_Country == DiscIO::IVolume::COUNTRY_JAP ? 1 : 0);
 						pBannerLoader->GetCompany(m_Company);
-						pBannerLoader->GetDescription(m_Description);
+						pBannerLoader->GetDescription(m_Description, m_Country);
 						if (pBannerLoader->GetBanner(g_ImageTemp))
 						{
 							m_ImageSize = DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT * 3;
