@@ -29,10 +29,15 @@ void PPCDebugInterface::disasm(unsigned int address, char *dest, int max_size)
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
-		if (Memory::IsRAMAddress(address))
+		if (Memory::IsRAMAddress(address, true))
 		{
 			u32 op = Memory::Read_Instruction(address);
 			DisassembleGekko(op, address, dest, max_size);
+			UGeckoInstruction inst;
+			inst.hex = Memory::ReadUnchecked_U32(address);
+			if (inst.OPCD == 1) {
+				strcat(dest, " (hle)");
+			}
 		}
 		else
 		{
@@ -49,7 +54,7 @@ void PPCDebugInterface::getRawMemoryString(unsigned int address, char *dest, int
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
-		if (address < 0xE0000000)
+		if (Memory::IsRAMAddress(address, true))
 		{
 			snprintf(dest, max_size, "%08X", readMemory(address));
 		}
@@ -115,19 +120,20 @@ void PPCDebugInterface::insertBLR(unsigned int address)
 // -------------
 int PPCDebugInterface::getColor(unsigned int address)
 {
-	if (!Memory::IsRAMAddress(address))
+	if (!Memory::IsRAMAddress(address, true))
 		return 0xeeeeee;
-	int colors[6] =
-	{
-		 0xd0FFFF // light cyan
-		,0xFFd0d0 // light red
-		,0xd8d8FF // light blue
-		,0xFFd0FF // light purple
-		,0xd0FFd0 // light green
-		,0xFFFFd0 // light yellow
+	static const int colors[6] =
+	{ 
+		0xd0FFFF,  // light cyan
+		0xFFd0d0,  // light red
+		0xd8d8FF,  // light blue
+		0xFFd0FF,  // light purple
+		0xd0FFd0,  // light green
+		0xFFFFd0,  // light yellow
 	};
 	Symbol *symbol = g_symbolDB.GetSymbolFromAddr(address);
-	if (!symbol) return 0xFFFFFF;
+	if (!symbol)
+		return 0xFFFFFF;
 	if (symbol->type != Symbol::SYMBOL_FUNCTION)
 		return 0xEEEEFF;
 	return colors[symbol->index % 6];

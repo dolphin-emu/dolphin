@@ -2086,7 +2086,7 @@ typedef unsigned int ppc_word;
 					break;
 
 				case 20:
-					fdabc(dp,in,"rsqrte",3,0);
+					fdabc(dp,in,"rsqrte",1,0);
 					break;
 
 				case 24:
@@ -2121,15 +2121,15 @@ typedef unsigned int ppc_word;
 					break;
 
 				case 12:
-					fdabc(dp,in,"rsp",10,0);
+					fdabc(dp,in,"rsp",1,0);  // 10
 					break;
 
 				case 14:
-					fdabc(dp,in,"ctiw",10,0);
+					fdabc(dp,in,"ctiw",1,0);  // 10
 					break;
 
 				case 15:
-					fdabc(dp,in,"ctiwz",10,0);
+					fdabc(dp,in,"ctiwz",1,0); // 10
 					break;
 
 				case 32:

@@ -159,24 +159,12 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 
 	switch (event.GetId())
 	{
-	    case IDM_GOTOINMEMVIEW:
-		    // CMemoryDlg::Goto(selection);
-		    break;
-
 #if wxUSE_CLIPBOARD
 	    case IDM_COPYADDRESS:
 	    {
 		    wxTheClipboard->SetData(new wxTextDataObject(wxString::Format(_T("%08x"), selection)));
 	    }
-		    break;
-
-		case IDM_COPYCODE:
-		{
-			char disasm[256];
-			debugger->disasm(selection, disasm, 256);
-		    wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(disasm))); //Have to manually convert from char* to wxString, don't have to in Windows?
-		    break;
-		}
+	    break;
 
 	    case IDM_COPYHEX:
 	    {
@@ -186,22 +174,6 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 	    }
 		    break;
 #endif
-
-	    case IDM_RUNTOHERE:
-	    {
-		    debugger->setBreakpoint(selection);
-		    debugger->runToBreakpoint();
-		    redraw();
-	    }
-		    break;
-
-	    case IDM_DYNARECRESULTS:
-	    {
-//			CDynaViewDlg::ViewAddr(selection);
-//			CDynaViewDlg::Show(TRUE);
-//				MessageBox(NULL, "not impl", "CtrlDisAsmView", MB_OK);
-	    }
-		    break;
 	}
 
 #if wxUSE_CLIPBOARD
@@ -218,11 +190,8 @@ void CMemoryView::OnMouseUpR(wxMouseEvent& event)
 	//menu.Append(IDM_GOTOINMEMVIEW, "&Goto in mem view");
 #if wxUSE_CLIPBOARD
 	menu.Append(IDM_COPYADDRESS, wxString::FromAscii("Copy &address"));
-	menu.Append(IDM_COPYCODE, wxString::FromAscii("Copy &code"));
 	menu.Append(IDM_COPYHEX, wxString::FromAscii("Copy &hex"));
 #endif
-	menu.Append(IDM_RUNTOHERE, _T("&Run To Here"));
-	//menu.Append(IDM_DYNARECRESULTS, "Copy &address");
 	PopupMenu(&menu);
 	event.Skip(true);
 }
@@ -315,65 +284,10 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 		if (debugger->isAlive())
 		{
 			char dis[256] = {0};
-			debugger->disasm(address, dis, 256);
-			char* dis2 = strchr(dis, '\t');
+			u32 mem = debugger->readMemory(address);
+			float flt = *(float *)(&mem);
+			sprintf(dis, "f: %f", flt);
 			char desc[256] = "";
-
-			if (dis2)
-			{
-				*dis2 = 0;
-				dis2++;
-				const char* mojs = strstr(dis2, "0x8");
-
-				if (mojs)
-				{
-					for (int k = 0; k < 8; k++)
-					{
-						bool found = false;
-
-						for (int j = 0; j < 22; j++)
-						{
-							if (mojs[k + 2] == "0123456789ABCDEFabcdef"[j])
-							{
-								found = true;
-							}
-						}
-
-
-						if (!found)
-						{
-							mojs = 0;
-							break;
-						}
-					}
-				}
-
-				if (mojs)
-				{
-					int offs;
-					sscanf(mojs + 2, "%08x", &offs);
-					branches[numBranches].src = rowY1 + rowHeight / 2;
-					branches[numBranches].srcAddr = address / align;
-					branches[numBranches++].dst = (int)(rowY1 + ((s64)offs - (s64)address) * rowHeight / align + rowHeight / 2);
-					sprintf(desc, "-->%s", debugger->getDescription(offs).c_str());
-					dc.SetTextForeground(_T("#600060"));
-				}
-				else
-				{
-					dc.SetTextForeground(_T("#000000"));
-				}
-
-				dc.DrawText(wxString::FromAscii(dis2), 17+fontSize*(8+8+8), rowY1);
-			}
-
-			if (strcmp(dis, "blr"))
-			{
-				dc.SetTextForeground(_T("#007000"));
-			}
-			else
-			{
-				dc.SetTextForeground(_T("#8000FF"));
-			}
 
 			dc.DrawText(wxString::FromAscii(dis), 17+fontSize*(8+8), rowY1);
 

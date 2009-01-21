@@ -40,11 +40,11 @@ struct GekkoOPTemplate
 	int runCount;
 };
 
-struct inf
+struct op_inf
 {
     const char *name;
     int count;
-    bool operator < (const inf &o) const
+    bool operator < (const op_inf &o) const
     {
 	return count > o.count;
     }
@@ -686,7 +686,7 @@ void InitTables()
 	}
 }
 
-// #define OPLOG
+#define OPLOG
 
 #ifdef OPLOG
 namespace {
@@ -701,7 +701,7 @@ void CompileInstruction(UGeckoInstruction _inst)
 	if (info) {
 #ifdef OPLOG
 		if (!strcmp(info->opname, "mcrfs")) {
-			rsplocations.push_back(Jit64::js.compilerPC);
+			rsplocations.push_back(jit.js.compilerPC);
 		}
 #endif
 		info->compileCount++;
@@ -726,11 +726,10 @@ void CountInstruction(UGeckoInstruction _inst)
 
 void PrintInstructionRunCounts()
 {
-
-	std::vector<inf> temp;
+	std::vector<op_inf> temp;
 	for (int i = 0; i < m_numInstructions; i++)
 	{
-		inf x;
+		op_inf x;
 		x.name = m_allInstructions[i]->opname;
 		x.count = m_allInstructions[i]->runCount;
 		temp.push_back(x);
@@ -738,14 +737,13 @@ void PrintInstructionRunCounts()
 	std::sort(temp.begin(), temp.end());
 	for (int i = 0; i < m_numInstructions; i++)
 	{
-		if(temp[i].count == 0) 
+		if (temp[i].count == 0) 
 			break;
         LOG(GEKKO, "%s : %i", temp[i].name,temp[i].count);
 		//PanicAlert("%s : %i", temp[i].name,temp[i].count);
 	}
 }
 
-//TODO move to LogManager
 void LogCompiledInstructions()
 {
 	static int time = 0;

@@ -125,9 +125,16 @@ void CJitWindow::OnRefresh(wxCommandEvent& /*event*/) {
 
 void CJitWindow::ViewAddr(u32 em_address)
 {
-	the_jit_window->Show(true);
-	the_jit_window->Compare(em_address);
-	the_jit_window->SetFocus();	
+	if (the_jit_window)
+	{
+		the_jit_window->Show(true);
+		the_jit_window->Compare(em_address);
+		the_jit_window->SetFocus();	
+	}
+	else
+	{
+		PanicAlert("Jit window not available");
+	}
 }
 
 void CJitWindow::Compare(u32 em_address)

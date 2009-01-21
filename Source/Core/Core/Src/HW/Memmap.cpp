@@ -31,6 +31,7 @@ may be redirected here (for example to Read_U32()).
 #include "../PowerPC/PowerPC.h"
 #include "../PowerPC/Jit64/Jit.h"
 #include "../PowerPC/Jit64/JitCache.h"
+#include "../HLE/HLE.h"
 #include "CPU.h"
 #include "PeripheralInterface.h"
 #include "DSP.h"
@@ -525,8 +526,15 @@ bool AreMemoryBreakpointsActivated()
 
 u32 Read_Instruction(const u32 em_address)
 {
-	return jit.GetBlockCache()->GetOriginalCode(em_address);
+	UGeckoInstruction inst = ReadUnchecked_U32(em_address);
+	if (inst.OPCD == 0)
+		inst.hex = jit.GetBlockCache()->GetOriginalCode(em_address);
+	if (inst.OPCD == 1)
+		return HLE::GetOrigInstruction(em_address);
+	else
+		return inst.hex;
 }
+
 //////////////////////////////////////////////////////////
 
 

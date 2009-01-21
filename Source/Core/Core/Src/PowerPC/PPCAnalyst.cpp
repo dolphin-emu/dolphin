@@ -310,6 +310,9 @@ bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Blo
 		memset(&code[i], 0, sizeof(CodeOp));
 		code[i].address = address;
 		UGeckoInstruction inst = Memory::Read_Instruction(code[i].address);
+		UGeckoInstruction untouched_op = Memory::ReadUnchecked_U32(code[i].address);
+		if (untouched_op.OPCD == 1)  // Do handle HLE instructions.
+			inst = untouched_op;
 		_assert_msg_(GEKKO, inst.hex != 0, "Zero Op - Error flattening %08x op %08x", address + i*4, inst);
 		code[i].inst = inst;
 		code[i].branchTo = -1;
