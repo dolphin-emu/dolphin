@@ -44,7 +44,7 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IFileSystem& _rFileSystem)
 	{
 		m_pBannerFile = new u8[FileSize];
 		FILE* pFile = fopen(Filename, "rb");
-		if (pFile != NULL)
+		if ((pFile != NULL) && (m_pBannerFile != NULL))
 		{
 			fread(m_pBannerFile, FileSize, 1, pFile);
 			fclose(pFile);
