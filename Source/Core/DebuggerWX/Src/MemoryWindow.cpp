@@ -58,7 +58,9 @@ enum
 	IDM_REGISTERWINDOW,
 	IDM_BREAKPOINTWINDOW,
 	IDM_VALBOX,
-	IDM_SETVALBUTTON
+	IDM_SETVALBUTTON,
+	IDM_DUMP_MEMORY,
+
 };
 
 BEGIN_EVENT_TABLE(CMemoryWindow, wxFrame)
@@ -66,6 +68,7 @@ BEGIN_EVENT_TABLE(CMemoryWindow, wxFrame)
     EVT_LISTBOX(IDM_SYMBOLLIST,     CMemoryWindow::OnSymbolListChange)
     EVT_HOST_COMMAND(wxID_ANY,      CMemoryWindow::OnHostMessage)
 	EVT_BUTTON(IDM_SETVALBUTTON,    CMemoryWindow::SetMemoryValue)
+	EVT_BUTTON(IDM_DUMP_MEMORY,     CMemoryWindow::OnDumpMemory)
 END_EVENT_TABLE()
 
 
@@ -90,6 +93,9 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	sizerRight->Add(new wxButton(this, IDM_SETPC, _T("S&et PC")));
 	sizerRight->Add(valbox = new wxTextCtrl(this, IDM_VALBOX, _T("")));
 	sizerRight->Add(new wxButton(this, IDM_SETVALBUTTON, _T("Set &Value")));
+	
+	sizerRight->AddSpacer(5);
+	sizerRight->Add(new wxButton(this, IDM_DUMP_MEMORY, _T("&Dump Memory")));
 
 	SetSizer(sizerBig);
 
@@ -218,4 +224,18 @@ void CMemoryWindow::OnHostMessage(wxCommandEvent& event)
 	}
 }
 
+// this is a simple main 1Tsram dump,
+// so we can view memory in a tile/hex viewer for data analysis
+void CMemoryWindow::OnDumpMemory( wxCommandEvent& event )
+{
+	FILE* pDumpFile = fopen(FULL_MEMORY_DUMP_DIR, "wb");
+	if (pDumpFile)
+	{
+		if (Memory::m_pRAM)
+		{
+			fwrite(Memory::m_pRAM, Memory::REALRAM_SIZE, 1, pDumpFile);
+		}
+		fclose(pDumpFile);
+	}
+}
 
