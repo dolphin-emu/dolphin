@@ -164,37 +164,22 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
 // Call config dialog
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllConfig(HWND _hParent)
-{		
-	#ifdef _WIN32
-	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
+{
+	// Start the pads so we can use them in the configuration and advanced controls
+	if(!emulator_running)
 	{
-		MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
-		return;
+		SPADInitialize _PADInitialize;
+		_PADInitialize.hWnd = NULL;
+		_PADInitialize.pLog = NULL;
+		Initialize((void*)&_PADInitialize);
+		emulator_running = false; // Set it back to false
 	}
 
-	LoadConfig();	// load settings
-
 #if defined(HAVE_WX) && HAVE_WX
-	wxWindow win;
-	win.SetHWND(_hParent);
-	ConfigBox frame(&win);
-	frame.ShowModal();
-	win.SetHWND(0);
+	m_frame = new ConfigBox(NULL);
+	m_frame->ShowModal();
 #endif
-	#else
-	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
-	{
-		printf("Could not initialize SDL! (%s)\n", SDL_GetError());
-		return;
-	}
 
-	LoadConfig();	// load settings
-
-#if defined(HAVE_WX) && HAVE_WX
-	ConfigBox frame(NULL);
-	frame.ShowModal();
-#endif
-	#endif
 }
 
 void DllDebugger(HWND _hParent, bool Show) {
@@ -209,16 +194,6 @@ void Initialize(void *init)
 	#ifdef _DEBUG
 	DEBUG_INIT();
 	#endif
-
-	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
-	{
-		#ifdef _WIN32
-		MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
-		#else
-		printf("Could not initialize SDL! (%s)\n", SDL_GetError());
-		#endif
-		return;
-	}
 
 	#ifdef _WIN32
 	m_hWnd = (HWND)_PADInitialize.hWnd;
@@ -248,8 +223,6 @@ void Shutdown()
 		SDL_JoystickClose(joystate[2].joy);
 	if(joysticks[3].enabled)
 		SDL_JoystickClose(joystate[3].joy);
-
-	SDL_Quit();
 
 	#ifdef _DEBUG
 	DEBUG_QUIT();
@@ -700,13 +673,9 @@ int Search_Devices()
 	int numjoy = SDL_NumJoysticks();
 
 	if(numjoy == 0)
-	{		
-		#ifdef _WIN32
-		MessageBox(NULL, "No Joystick detected!", NULL,  MB_ICONWARNING);
-		#else
-		printf("No Joystick detected!\n");
-		#endif
-		return 0;
+	{	
+	    PanicAlert("No Joystick detected!\n");
+	    return 0;
 	}
 
 	if(joyinfo)

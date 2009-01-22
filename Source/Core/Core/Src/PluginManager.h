@@ -25,6 +25,7 @@
 #include "PluginWiimote.h"
 #include "EventHandler.h"
 #include "CoreParameter.h"
+#include "InputManager.h"
 
 class CPluginInfo
 {
@@ -70,6 +71,7 @@ private:
 	Common::PluginWiimote *m_wiimote[4];
 	Common::PluginDSP *m_dsp;
 
+	InputManager *m_InputManager;
 	SCoreStartupParameter& m_params;
 	CPluginManager();
 	~CPluginManager();

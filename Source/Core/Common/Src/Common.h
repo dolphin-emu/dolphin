@@ -38,6 +38,7 @@
 
 	#include "../../../PluginSpecs/CommonTypes.h"
 	#define HAVE_WIIUSE 1
+        #define HAVE_SDL 1
 	#define HAVE_WX 1
 #else
 	#include "CommonTypes.h"

@@ -181,12 +181,11 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
 }
 
+
 // Call config dialog
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllConfig(HWND _hParent)
 {
-	#ifdef _WIN32
-
 	// Start the pads so we can use them in the configuration and advanced controls
 	if(!emulator_running)
 	{
@@ -197,32 +196,11 @@ void DllConfig(HWND _hParent)
 		emulator_running = false; // Set it back to false
 	}
 
-	g_Config.Load(); // Load settings
-
-	// We don't need a parent for this wxDialog
-	//wxWindow win;
-	//win.SetHWND(_hParent);
-	//ConfigBox frame(&win);
-	//win.SetHWND(0);
-
+#if defined(HAVE_WX) && HAVE_WX
 	m_frame = new ConfigBox(NULL);
 	m_frame->ShowModal();
+#endif
 
-	#else
-	if (SDL_Init(SDL_INIT_JOYSTICK ) < 0)
-	{
-		printf("Could not initialize SDL! (%s)\n", SDL_GetError());
-		return;
-	}
-
-	g_Config.Load();	// load settings
-
-	#if defined(HAVE_WX) && HAVE_WX
-		ConfigBox frame(NULL);
-		frame.ShowModal();
-	#endif
-
-	#endif
 }
 
 void DllDebugger(HWND _hParent, bool Show) {
@@ -248,18 +226,6 @@ void Initialize(void *init)
 	#ifdef _DEBUG
 		DEBUG_INIT();
 	#endif
-
-	/* SDL 1.3 use DirectInput instead of the old Microsoft Multimeda API, and with this we need 
-	   the SDL_INIT_VIDEO flag to */
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0)
-	{
-		#ifdef _WIN32
-			MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
-		#else
-			printf("Could not initialize SDL! (%s)\n", SDL_GetError());
-		#endif
-		return;
-	}
 
 	#ifdef _WIN32
 		m_hWnd = (HWND)_PADInitialize.hWnd;
@@ -302,12 +268,8 @@ int Search_Devices()
 	// Warn the user if no PadMapping are detected
 	if (numjoy == 0)
 	{		
-		#ifdef _WIN32
-		//MessageBox(NULL, "No Joystick detected!", NULL,  MB_ICONWARNING);
-		#else
-		printf("No Joystick detected!\n");
-		#endif
-		return 0;
+	    PanicAlert("No Joystick detected!\n");
+	    return 0;
 	}
 
 	#ifdef _DEBUG
@@ -360,8 +322,6 @@ void Shutdown()
 		SDL_JoystickClose(joystate[2].joy);
 	if (PadMapping[3].enabled && SDL_JoystickOpened(PadMapping[3].ID))
 		SDL_JoystickClose(joystate[3].joy);	
-
-	SDL_Quit();
 
 	#ifdef _DEBUG
 		DEBUG_QUIT();

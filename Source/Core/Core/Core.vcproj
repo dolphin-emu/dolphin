@@ -1245,6 +1245,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\InputManager.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\InputManager.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\SConscript"
 			>
 		</File>
