@@ -215,21 +215,25 @@ void ConfigBox::CancelClick(wxCommandEvent& event)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::LogMsg(const char* format, ...)
 {
-	if(Debugging)
-	{
-		const int MaxMsgSize = 1024*2;
-		char buffer[MaxMsgSize];
-		va_list args;
-		va_start(args, format);
-		CharArrayFromFormatV(buffer, MaxMsgSize, format, args);
-		va_end(args);
+	#ifdef _WIN32
+	/*
+		if(Debugging)
+		{
+			const int MaxMsgSize = 1024*2;
+			char buffer[MaxMsgSize];
+			va_list args;
+			va_start(args, format);
+			CharArrayFromFormatV(buffer, MaxMsgSize, format, args);
+			va_end(args);
 
-		// Add timestamp
-		std::string StrTmp = buffer;
-		//StrTmp += Common::Timer::GetTimeFormatted();
+			// Add timestamp
+			std::string StrTmp = buffer;
+			//StrTmp += Common::Timer::GetTimeFormatted();
 
-		if(m_TCDebugging) m_TCDebugging->AppendText(StrTmp.c_str());
-	}
+			if(m_TCDebugging) m_TCDebugging->AppendText(StrTmp.c_str());
+		}
+	*/
+	#endif
 }
 
 
@@ -917,8 +921,9 @@ void ConfigBox::CreateGUIControls()
 	// -----------------------------
 	/*m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(135, 100), wxDefaultSize);
 	//m_pStatusBar2 = new wxStaticText(this, IDT_DEBUGGING2, wxT("Debugging2"), wxPoint(125, 200), wxDefaultSize);
-	//m_pStatusBar->SetLabel(wxString::Format("Debugging text"));
-	m_TCDebugging = new wxTextCtrl(this, IDT_DEBUGGING3, _T(""), wxDefaultPosition, wxSize(400, 400),
+	//m_pStatusBar->SetLabel(wxString::Format("Debugging text"));*/
+
+	/*m_TCDebugging = new wxTextCtrl(this, IDT_DEBUGGING3, _T(""), wxDefaultPosition, wxSize(400, 400),
 		wxTE_RICH | wxTE_MULTILINE | wxTE_DONTWRAP | wxNO_BORDER);
 	wxBoxSizer * m_LogSizer = new wxBoxSizer(wxVERTICAL);
 	m_LogSizer->Add(m_TCDebugging, 0, wxEXPAND | (wxALL), 0);
