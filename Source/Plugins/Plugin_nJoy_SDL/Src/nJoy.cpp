@@ -249,7 +249,7 @@ void Initialize(void *init)
 
 	/* SDL 1.3 use DirectInput instead of the old Microsoft Multimeda API, and with this we need 
 	   the SDL_INIT_VIDEO flag to */
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0)	
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0)
 	{
 		#ifdef _WIN32
 			MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
@@ -309,8 +309,8 @@ int Search_Devices()
 	}
 
 	#ifdef _DEBUG
-	fprintf(pFile, "Scanning for devices\n");
-	fprintf(pFile, "¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯\n");
+		fprintf(pFile, "Scanning for devices\n");
+		fprintf(pFile, "¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯\n");
 	#endif
 
 	for(int i = 0; i < numjoy; i++ )
@@ -409,7 +409,7 @@ void DoState(unsigned char **ptr, int mode) {}
 
 // Set PAD status
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-// Called from: SerialInterface_Devices.cpp
+// Called from: SI_DeviceGCController.cpp
 // Function: Gives the current pad status to the Core
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {

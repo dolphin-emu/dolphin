@@ -112,7 +112,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 // __________________________________________________________________________________________________
 // GetData
 //
-// return true on new data (max 7 Bytes and 6 bits ;)
+// Return true on new data (max 7 Bytes and 6 bits ;)
 //
 bool
 CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
@@ -120,7 +120,7 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	SPADStatus PadStatus;
 	memset(&PadStatus, 0 ,sizeof(PadStatus));
 	Common::PluginPAD* pad = 
-	    CPluginManager::GetInstance().GetPAD(ISIDevice::m_iDeviceNumber);
+	    CPluginManager::GetInstance().GetPAD((ISIDevice::m_iDeviceNumber >= MAXPADS) ? (MAXPADS - 1): ISIDevice::m_iDeviceNumber);
 	pad->PAD_GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 
 	_Hi  = (u32)((u8)PadStatus.stickY);
