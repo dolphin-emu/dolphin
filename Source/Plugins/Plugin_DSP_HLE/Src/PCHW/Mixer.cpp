@@ -127,7 +127,7 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate) {
 	}
 #else
 	while (queue_size > queue_maxlength) {
-		sleep(0);
+		usleep(1000);
 	}
 #endif
 	//convert into config option?
