@@ -51,7 +51,10 @@ HWND m_hWnd;
 #ifdef USE_RUMBLE_DINPUT_HACK
 bool g_rumbleEnable = FALSE;
 #endif
-
+// Declare config window so that we can write debugging info to it from functions in this file
+#if defined(HAVE_WX) && HAVE_WX
+	ConfigBox* m_frame;
+#endif
 // Rumble in windows
 #ifdef _WIN32
 HINSTANCE nJoy_hInst = NULL;
