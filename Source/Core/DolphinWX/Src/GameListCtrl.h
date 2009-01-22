@@ -31,7 +31,7 @@ public:
 	CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style);
 	~CGameListCtrl();
 
-	void Update();
+	void Update(bool bUpdateCache = false);
 	void BrowseForDirectory();
 	const GameListItem *GetSelectedISO();
 	const GameListItem *GetISO(int index) const;
@@ -60,7 +60,7 @@ private:
 	void InitBitmaps();
 	void InsertItemInReportView(long _Index);
 	void SetBackgroundColor();
-	void ScanForISOs();
+	void ScanForISOs(bool bUpdateCache);
 
 	DECLARE_EVENT_TABLE()
 

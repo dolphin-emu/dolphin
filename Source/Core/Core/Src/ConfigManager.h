@@ -23,6 +23,19 @@
 
 #include "Boot/Boot.h"
 
+// HyperIris: not sure but a temporary implement
+enum INTERFACE_LANGUAGE
+{
+	INTERFACE_ENGLISH = 0,
+	INTERFACE_GERMAN,
+	INTERFACE_FRENCH,
+	INTERFACE_SPANISH,
+	INTERFACE_ITALIAN,
+	INTERFACE_DUTCH,
+
+	INTERFACE_OTHER,
+};
+
 struct SConfig
 {
 	// hard coded default plugins ...
@@ -39,6 +52,8 @@ struct SConfig
 
 	SCoreStartupParameter m_LocalCoreStartupParameter;
 
+	// interface language
+	INTERFACE_LANGUAGE m_InterfaceLanguage;
 	// save settings
 	void SaveSettings();
 

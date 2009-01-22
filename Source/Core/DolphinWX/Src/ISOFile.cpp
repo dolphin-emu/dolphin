@@ -39,7 +39,7 @@
 
 static u32 g_ImageTemp[DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT];
 
-GameListItem::GameListItem(const std::string& _rFileName)
+GameListItem::GameListItem(const std::string& _rFileName, bool bUpdateCache)
 	: m_FileName(_rFileName)
 	, m_FileSize(0)
 	, m_Valid(false)
@@ -48,7 +48,7 @@ GameListItem::GameListItem(const std::string& _rFileName)
 	, m_ImageSize(0)
 {
 
-	if (LoadFromCache())
+	if ((bUpdateCache == false) && LoadFromCache())
 	{
 		m_Valid = true;
 	}

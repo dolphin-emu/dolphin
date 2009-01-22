@@ -24,7 +24,7 @@ class PointerWrap;
 class GameListItem
 {
 public:
-	GameListItem(const std::string& _rFileName);
+	GameListItem(const std::string& _rFileName, bool bUpdateCache = false);
 	~GameListItem();
 
 	bool IsValid() const {return m_Valid;}

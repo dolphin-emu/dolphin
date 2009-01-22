@@ -50,6 +50,13 @@ class CBannerLoaderGC
 			DVD_BANNER_HEIGHT = 32
 		};
 
+		enum BANNER_TYPE
+		{
+			BANNER_UNKNOWN,
+			BANNER_BNR1,
+			BANNER_BNR2,
+		};
+
 		// Banner Comment
 		struct DVDBannerComment
 		{
@@ -90,6 +97,7 @@ class CBannerLoaderGC
 
 		u32 decode5A3(u16 val);
 		void decode5A3image(u32* dst, u16* src, int width, int height);
+		BANNER_TYPE getBannerType();
 };
 } // namespace
 

@@ -17,6 +17,9 @@
 
 #include "stdafx.h"
 
+// HyperIris: need clean code
+#include "../../Core/Src/ConfigManager.h"
+
 #include "BannerLoaderGC.h"
 
 namespace DiscIO
@@ -101,25 +104,41 @@ CBannerLoaderGC::GetName(std::string& _rName, DiscIO::IVolume::ECountry language
 	}
 
 	// find Banner type
-	if (DiscIO::IVolume::COUNTRY_JAP == language)
+	switch (getBannerType())
 	{
-		DVDBanner* pBanner = (DVDBanner*)m_pBannerFile;
-
-		// dunno, if dolphin using unicode, it will be better = =;
-		if (CopySJISToString(_rName, pBanner->comment.shortTitle))
+	case CBannerLoaderGC::BANNER_BNR1:
 		{
-			returnCode = true;
+			DVDBanner* pBanner = (DVDBanner*)m_pBannerFile;
+			if (DiscIO::IVolume::COUNTRY_JAP == language)
+			{
+				// dunno, if dolphin using unicode, it will be better = =;
+				if (CopySJISToString(_rName, pBanner->comment.shortTitle))
+				{
+					returnCode = true;
+				}
+			} 
+			else
+			{
+				if (CopyToStringAndCheck(_rName, pBanner->comment.shortTitle))//language != 0 ? pBanner->comment[0].shortTitle : pBanner->comment[0].longTitle))
+				{
+					returnCode = true;
+				}
+			}
 		}
-	} 
-	else
-	{
-		DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
-
-		if (CopyToStringAndCheck(_rName, pBanner->comment[0].shortTitle))//language != 0 ? pBanner->comment[0].shortTitle : pBanner->comment[0].longTitle))
+		break;
+	case CBannerLoaderGC::BANNER_BNR2:
 		{
-			returnCode = true;
+			DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
+
+			u32 languageID = SConfig::GetInstance().m_InterfaceLanguage;
+			if (CopyToStringAndCheck(_rName, pBanner->comment[languageID].shortTitle))//language != 0 ? pBanner->comment[0].shortTitle : pBanner->comment[0].longTitle))
+			{
+				returnCode = true;
+			}
 		}
+		break;
 	}
+	
 	return returnCode;
 }
 
@@ -158,24 +177,39 @@ CBannerLoaderGC::GetDescription(std::string& _rDescription, DiscIO::IVolume::ECo
 	}
 
 	// find Banner type
-	if (DiscIO::IVolume::COUNTRY_JAP == language)
+	switch (getBannerType())
 	{
-		DVDBanner* pBanner = (DVDBanner*)m_pBannerFile;
-
-		// dunno, if dolphin using unicode, it will be better = =;
-		if (CopySJISToString(_rDescription, pBanner->comment.comment))
+	case CBannerLoaderGC::BANNER_BNR1:
 		{
-			returnCode = true;
+			DVDBanner* pBanner = (DVDBanner*)m_pBannerFile;
+			if (DiscIO::IVolume::COUNTRY_JAP == language)
+			{
+				// dunno, if dolphin using unicode, it will be better = =;
+				if (CopySJISToString(_rDescription, pBanner->comment.comment))
+				{
+					returnCode = true;
+				}
+			} 
+			else
+			{
+				if (CopyToStringAndCheck(_rDescription, pBanner->comment.comment))//language != 0 ? pBanner->comment[0].shortTitle : pBanner->comment[0].longTitle))
+				{
+					returnCode = true;
+				}
+			}
 		}
-	}
-	else
-	{
-		DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
-
-		if (CopyToStringAndCheck(_rDescription, pBanner->comment[0].comment))
+		break;
+	case CBannerLoaderGC::BANNER_BNR2:
 		{
-			returnCode = true;
+			DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
+
+			u32 languageID = SConfig::GetInstance().m_InterfaceLanguage;
+			if (CopyToStringAndCheck(_rDescription, pBanner->comment[languageID].comment))//language != 0 ? pBanner->comment[0].shortTitle : pBanner->comment[0].longTitle))
+			{
+				returnCode = true;
+			}
 		}
+		break;
 	}
 	return returnCode;
 }
@@ -225,5 +259,21 @@ CBannerLoaderGC::decode5A3image(u32* dst, u16* src, int width, int height)
 			}
 		}
 	}
+}
+
+CBannerLoaderGC::BANNER_TYPE CBannerLoaderGC::getBannerType()
+{
+	u32 bannerSignature = *(u32*)m_pBannerFile;
+	CBannerLoaderGC::BANNER_TYPE type = CBannerLoaderGC::BANNER_UNKNOWN;
+	switch (bannerSignature)
+	{
+	case 0x31524e42:
+		type = CBannerLoaderGC::BANNER_BNR1;
+		break;
+	case 0x32524e42:
+		type = CBannerLoaderGC::BANNER_BNR2;
+		break;
+	}
+	return type;
 }
 } // namespace

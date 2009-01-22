@@ -125,7 +125,7 @@ void CGameListCtrl::BrowseForDirectory()
 	}
 }
 
-void CGameListCtrl::Update()
+void CGameListCtrl::Update(bool bUpdateCache)
 {
 	if (m_imageListSmall)
 	{
@@ -135,7 +135,7 @@ void CGameListCtrl::Update()
 
 	Hide();
 
-	ScanForISOs();
+	ScanForISOs(bUpdateCache);
 
 	ClearAll();
 
@@ -363,7 +363,7 @@ void CGameListCtrl::SetBackgroundColor()
 	}
 }
 
-void CGameListCtrl::ScanForISOs()
+void CGameListCtrl::ScanForISOs(bool bUpdateCache)
 {
 	m_ISOFiles.clear();
 	CFileSearch::XStringVector Directories(SConfig::GetInstance().m_ISOFolder);
@@ -407,7 +407,7 @@ void CGameListCtrl::ScanForISOs()
 			{
 				break;
 			}
-			GameListItem ISOFile(rFilenames[i]);
+			GameListItem ISOFile(rFilenames[i], bUpdateCache);
 			if (ISOFile.IsValid())
 			{
 				m_ISOFiles.push_back(ISOFile);

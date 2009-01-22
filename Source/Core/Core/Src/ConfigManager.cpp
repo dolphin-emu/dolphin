@@ -72,6 +72,8 @@ void SConfig::SaveSettings()
 		ini.Set("Interface", "Theme", m_LocalCoreStartupParameter.iTheme);
 		ini.Set("Interface", "ShowWiimoteLeds", m_LocalCoreStartupParameter.bWiiLeds);
 		ini.Set("Interface", "ShowWiimoteSpeakers", m_LocalCoreStartupParameter.bWiiSpeakers);
+		// interface(UI) language
+		ini.Set("Interface", "Language",	m_InterfaceLanguage);
 
 		// Core
 		ini.Set("Core", "HLEBios",        m_LocalCoreStartupParameter.bHLEBios);
@@ -172,6 +174,8 @@ void SConfig::LoadSettings()
 		ini.Get("Interface", "Theme", &m_LocalCoreStartupParameter.iTheme, 0);
 		ini.Get("Interface", "ShowWiimoteLeds", &m_LocalCoreStartupParameter.bWiiLeds, false);
 		ini.Get("Interface", "ShowWiimoteSpeakers", &m_LocalCoreStartupParameter.bWiiSpeakers, false);
+		// interface(UI) language
+		ini.Get("Interface", "Language", (int*)&m_InterfaceLanguage, 0);
 
 		// Core
 		ini.Get("Core", "HLEBios",     &m_LocalCoreStartupParameter.bHLEBios,		true);

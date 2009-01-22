@@ -53,6 +53,8 @@ EVT_RADIOBOX(ID_INTERFACE_THEME, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_LEDS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_SPEAKERS, CConfigMain::CoreSettingsChanged)
 
+EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::InterfaceLanguageChanged)
+
 EVT_CHECKBOX(ID_ALLWAYS_HLEBIOS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_USEDYNAREC, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_USEDUALCORE, CConfigMain::CoreSettingsChanged)
@@ -97,7 +99,7 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 {
 	// Control refreshing of the ISOs list
 	bRefreshList = false;
-
+	bRefreshCache = false;
 	// Load Wii SYSCONF
 	FullSYSCONFPath = FULL_WII_USER_DIR "shared2/sys/SYSCONF";
 	pStream = NULL;
@@ -155,6 +157,21 @@ void CConfigMain::UpdateGUI()
 
 void CConfigMain::CreateGUIControls()
 {
+	// Deal with all the language arrayStrings here
+	// GC
+	arrayStringFor_GCSystemLang.Add(wxT("English"));
+	arrayStringFor_GCSystemLang.Add(wxT("German"));
+	arrayStringFor_GCSystemLang.Add(wxT("French"));
+	arrayStringFor_GCSystemLang.Add(wxT("Spanish"));
+	arrayStringFor_GCSystemLang.Add(wxT("Italian"));
+	arrayStringFor_GCSystemLang.Add(wxT("Dutch"));
+	// Wii
+	arrayStringFor_WiiSystemLang = arrayStringFor_GCSystemLang;
+	arrayStringFor_WiiSystemLang.Insert(wxT("Japanese"), 0);
+	// GUI
+	arrayStringFor_InterfaceLang = arrayStringFor_GCSystemLang;
+		
+	// Create the notebook and pages
 	Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 	GeneralPage = new wxPanel(Notebook, ID_GENERALPAGE, wxDefaultPosition, wxDefaultSize);
 	GamecubePage = new wxPanel(Notebook, ID_GAMECUBEPAGE, wxDefaultPosition, wxDefaultSize);
@@ -211,6 +228,15 @@ void CConfigMain::CreateGUIControls()
 	WiimoteStatusLEDs->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiLeds);
 	WiimoteStatusSpeakers = new wxCheckBox(GeneralPage, ID_INTERFACE_WIIMOTE_SPEAKERS, wxT("Speakers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	WiimoteStatusSpeakers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiSpeakers);
+
+	// Interface Language
+	// At the moment this only changes the language displayed in m_gamelistctrl
+	// If someone wants to control the whole GUI's language, it should be set here too
+	wxStaticText *InterfaceLangText = new wxStaticText(GeneralPage, ID_INTERFACE_LANG_TEXT, wxT("Game List Language:"), wxDefaultPosition, wxDefaultSize);
+	InterfaceLang = new wxChoice(GeneralPage, ID_INTERFACE_LANG, wxDefaultPosition, wxDefaultSize, arrayStringFor_InterfaceLang, 0, wxDefaultValidator);
+	// need redesign
+	InterfaceLang->SetSelection(SConfig::GetInstance().m_InterfaceLanguage);
+
 	// Themes
 	wxArrayString ThemeChoices;
 	ThemeChoices.Add(wxT("Boomy"));
@@ -231,6 +257,8 @@ void CConfigMain::CreateGUIControls()
 	WiimoteStatusLEDs->SetToolTip(wxT("Show which wiimotes are connected in the statusbar."));
 	WiimoteStatusSpeakers->SetToolTip(wxT("Show wiimote speaker status in the statusbar."));
 
+	InterfaceLang->SetToolTip(wxT("For the time being this will only change the text shown in"
+		"\nthe game list of PAL GC games."));
 	// Copyright notice
 	Theme->SetItemToolTip(0, wxT("Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"));
 	Theme->SetItemToolTip(1, wxT("Created by VistaIcons.com"));
@@ -265,6 +293,10 @@ void CConfigMain::CreateGUIControls()
 	sWiimoteStatus->Add(WiimoteStatusSpeakers, 0, wxLEFT, 5);
 	sbInterface->Add(sWiimoteStatus, 0, wxALL, 5);
 	sbInterface->Add(Theme, 0, wxEXPAND | wxALL, 5);
+	wxBoxSizer *sInterfaceLanguage = new wxBoxSizer(wxHORIZONTAL);
+	sInterfaceLanguage->Add(InterfaceLangText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sInterfaceLanguage->Add(InterfaceLang, 0, wxEXPAND | wxALL, 5);
+	sbInterface->Add(sInterfaceLanguage, 0, wxEXPAND | wxALL, 5);
 
 	// Populate the entire page
 	sGeneralPage = new wxBoxSizer(wxVERTICAL);
@@ -279,12 +311,14 @@ void CConfigMain::CreateGUIControls()
 	// Gamecube page
 	// --------
 	sbGamecubeIPLSettings = new wxStaticBoxSizer(wxVERTICAL, GamecubePage, wxT("IPL Settings"));
+/*
 	arrayStringFor_GCSystemLang.Add(wxT("English"));
 	arrayStringFor_GCSystemLang.Add(wxT("German"));
 	arrayStringFor_GCSystemLang.Add(wxT("French"));
 	arrayStringFor_GCSystemLang.Add(wxT("Spanish"));
 	arrayStringFor_GCSystemLang.Add(wxT("Italian"));
 	arrayStringFor_GCSystemLang.Add(wxT("Dutch"));
+*/
 	GCSystemLangText = new wxStaticText(GamecubePage, ID_GC_SRAM_LNG_TEXT, wxT("System Language:"), wxDefaultPosition, wxDefaultSize);
 	GCSystemLang = new wxChoice(GamecubePage, ID_GC_SRAM_LNG, wxDefaultPosition, wxDefaultSize, arrayStringFor_GCSystemLang, 0, wxDefaultValidator);
 	GCSystemLang->SetSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
@@ -319,8 +353,10 @@ void CConfigMain::CreateGUIControls()
 	WiiAspectRatioText = new wxStaticText(WiiPage, ID_WII_IPL_AR_TEXT, wxT("Aspect Ratio:"), wxDefaultPosition, wxDefaultSize);
 	WiiAspectRatio = new wxChoice(WiiPage, ID_WII_IPL_AR, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiAspectRatio, 0, wxDefaultValidator);
 	WiiAspectRatio->SetSelection(m_SYSCONF[IPL_AR]);
+/*
 	arrayStringFor_WiiSystemLang = arrayStringFor_GCSystemLang;
 	arrayStringFor_WiiSystemLang.Insert(wxT("Japanese"), 0);
+*/
 	WiiSystemLangText = new wxStaticText(WiiPage, ID_WII_IPL_LNG_TEXT, wxT("System Language:"), wxDefaultPosition, wxDefaultSize);
 	WiiSystemLang = new wxChoice(WiiPage, ID_WII_IPL_LNG, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiSystemLang, 0, wxDefaultValidator);
 	WiiSystemLang->SetSelection(m_SYSCONF[IPL_LNG]);
@@ -743,5 +779,17 @@ bool CConfigMain::GetFilename(wxChoice* _pChoice, std::string& _rFilename)
 	}
 
 	return(false);
+}
+
+void CConfigMain::InterfaceLanguageChanged( wxCommandEvent& event )
+{
+	switch (event.GetId())
+	{
+	case ID_INTERFACE_LANG:
+		SConfig::GetInstance().m_InterfaceLanguage = (INTERFACE_LANGUAGE)InterfaceLang->GetSelection();
+		break;
+	}
+	bRefreshList = true;
+	bRefreshCache = true;
 }
 // ==========================

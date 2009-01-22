@@ -42,6 +42,7 @@ class CConfigMain
 		void OnConfig(wxCommandEvent& event);
 
 		bool bRefreshList;
+		bool bRefreshCache;
 
 	private:
 
@@ -50,6 +51,10 @@ class CConfigMain
 		wxBoxSizer* sGeneralPage; // General Settings
 		wxCheckBox* ConfirmStop, * AutoHideCursor, *HideCursor;
 		wxCheckBox* WiimoteStatusLEDs, * WiimoteStatusSpeakers;
+		
+		wxArrayString arrayStringFor_InterfaceLang;
+		wxChoice* InterfaceLang;
+
 		wxRadioBox* Theme;
 		
 		wxBoxSizer* sCore;
@@ -215,6 +220,7 @@ class CConfigMain
 			ID_INTERFACE_CONFIRMSTOP, // Interface settings
 			ID_INTERFACE_HIDECURSOR_TEXT, ID_INTERFACE_HIDECURSOR, ID_INTERFACE_AUTOHIDECURSOR,
 			ID_INTERFACE_WIIMOTE_TEXT, ID_INTERFACE_WIIMOTE_LEDS, ID_INTERFACE_WIIMOTE_SPEAKERS,
+			ID_INTERFACE_LANG_TEXT, ID_INTERFACE_LANG,
 			ID_INTERFACE_THEME,
 
 			ID_WII_BT_BAR_TEXT,
@@ -255,6 +261,7 @@ class CConfigMain
 		void CreateGUIControls(); void UpdateGUI();
 		void OnClose(wxCloseEvent& event);
 		void CoreSettingsChanged(wxCommandEvent& event);
+		void InterfaceLanguageChanged(wxCommandEvent& event);
 		void GCSettingsChanged(wxCommandEvent& event);
 		void WiiSettingsChanged(wxCommandEvent& event);
 		void ISOPathsSelectionChanged(wxCommandEvent& event);
