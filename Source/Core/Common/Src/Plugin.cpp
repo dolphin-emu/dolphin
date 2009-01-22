@@ -70,25 +70,32 @@ void *CPlugin::LoadSymbol(const char *sym) {
     return m_hInstLib.Get(sym);
 }
 
+
+// ______________________________________________________________________________________
+// GetInfo: Get DLL info
 bool CPlugin::GetInfo(PLUGIN_INFO& _pluginInfo) {
-    if (m_GetDllInfo != 0) {
-	m_GetDllInfo(&_pluginInfo);
-	return(true);
+    if (m_GetDllInfo != 0)
+	{
+		m_GetDllInfo(&_pluginInfo);
+		return(true);
     }
 
     return(false);
 }
 
- 
-void CPlugin::Config(HWND _hwnd) {
-    if (m_DllConfig != 0)
-	m_DllConfig(_hwnd);
-
+// ______________________________________________________________________________________
+// Config: Open the Config window
+void CPlugin::Config(HWND _hwnd)
+{
+    if (m_DllConfig != 0) m_DllConfig(_hwnd);
 }
 
-void CPlugin::Debug(HWND _hwnd, bool Show) {
-    if (m_DllDebugger != 0)
-	m_DllDebugger(_hwnd, Show);
+
+// ______________________________________________________________________________________
+// Debug: Open the Debugging window
+void CPlugin::Debug(HWND _hwnd, bool Show)
+{
+    if (m_DllDebugger != 0) m_DllDebugger(_hwnd, Show);
 
 }
 

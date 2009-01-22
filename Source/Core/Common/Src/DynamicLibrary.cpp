@@ -15,13 +15,21 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-/* 
 
-All plugins from Core > Plugins are loaded and unloaded with this class when Dolpin is started
-and stopped.
+//////////////////////////////////////////////////////////////////////////////////////////
+// File description
+/* ¯¯¯¯¯¯¯¯¯¯¯¯
+
+   All plugins from Core > Plugins are loaded and unloaded with this class when Dolpin is started
+   and stopped.
+
 //////////////////////////////////////*/
 
-#include <string.h>
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// ¯¯¯¯¯¯¯¯¯¯¯¯
+#include <string.h> // System
 #ifdef _WIN32
 #include <windows.h>
 #else
@@ -29,10 +37,13 @@ and stopped.
 #include <stdio.h>
 #endif
 
-#include "Common.h"
+#include "Common.h" // Local
 #include "FileUtil.h"
 #include "StringUtil.h"
 #include "DynamicLibrary.h"
+#include "ConsoleWindow.h"
+////////////////////////////////////////
+
 
 DynamicLibrary::DynamicLibrary()
 {
@@ -41,33 +52,33 @@ DynamicLibrary::DynamicLibrary()
 
 std::string GetLastErrorAsString()
 {
-#ifdef _WIN32
-	LPVOID lpMsgBuf = 0;
-	DWORD error = GetLastError();
-	FormatMessage(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-		NULL,
-		error,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-		(LPTSTR) &lpMsgBuf,
-		0, NULL);
-	std::string s;
-	if (lpMsgBuf)
-	{
-		s = ((char *)lpMsgBuf);
-		LocalFree(lpMsgBuf);
-	} else {
-		s = StringFromFormat("(unknown error %08x)", error);
-	}
-	return s;
-#else
-	static std::string errstr;
-	char *tmp = dlerror();
-	if (tmp)
-		errstr = tmp;
-	
-	return errstr;
-#endif
+	#ifdef _WIN32
+		LPVOID lpMsgBuf = 0;
+		DWORD error = GetLastError();
+		FormatMessage(
+			FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+			NULL,
+			error,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+			(LPTSTR) &lpMsgBuf,
+			0, NULL);
+		std::string s;
+		if (lpMsgBuf)
+		{
+			s = ((char *)lpMsgBuf);
+			LocalFree(lpMsgBuf);
+		} else {
+			s = StringFromFormat("(unknown error %08x)", error);
+		}
+		return s;
+	#else
+		static std::string errstr;
+		char *tmp = dlerror();
+		if (tmp)
+			errstr = tmp;
+		
+		return errstr;
+	#endif
 }
 
 /* Function: Loading means loading the dll with LoadLibrary() to get an instance to the dll.
@@ -93,6 +104,7 @@ int DynamicLibrary::Load(const char* filename)
 	}
 
 #ifdef _WIN32
+	Console::Print("LoadLibrary: %s\n", filename);
 	library = LoadLibrary(filename);
 #else
 	library = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
@@ -118,6 +130,7 @@ int DynamicLibrary::Unload()
     }
         
 #ifdef _WIN32
+	Console::Print("FreeLibrary: %i\n", library);
 	retval = FreeLibrary(library);
 #else
     retval = dlclose(library)?0:1;

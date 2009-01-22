@@ -50,7 +50,7 @@
 #include "Common.h" // Common
 #include "pluginspecs_pad.h"
 #include "IniFile.h"
-//#include "ConsoleWindow.h"
+#include "ConsoleWindow.h"
 //#include "Timer.h"
 
 #include "Config.h" // Local

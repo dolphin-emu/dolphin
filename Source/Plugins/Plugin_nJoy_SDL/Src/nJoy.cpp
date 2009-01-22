@@ -241,6 +241,8 @@ void Initialize(void *init)
 	// Debugging
 	//Console::Open();
 
+	//Console::Print("Initialize: %i\n", SDL_WasInit(0));
+
     SPADInitialize _PADInitialize  = *(SPADInitialize*)init;
 	emulator_running = true;
 	#ifdef _DEBUG
@@ -348,6 +350,8 @@ int Search_Devices()
    Called from: The Dolphin Core, ConfigBox::OnClose() */
 void Shutdown()
 {
+	//Console::Print("Shutdown: %i\n", SDL_WasInit(0));
+
 	if (PadMapping[0].enabled && SDL_JoystickOpened(PadMapping[0].ID))
 		SDL_JoystickClose(joystate[0].joy);
 	if (PadMapping[1].enabled && SDL_JoystickOpened(PadMapping[1].ID))
@@ -364,6 +368,7 @@ void Shutdown()
 	#endif
 
 	delete [] joyinfo;
+	joyinfo = NULL;
 
 	emulator_running = false;
 

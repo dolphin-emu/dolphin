@@ -27,7 +27,8 @@
 #include "Thread.h" // Common
 #include "Timer.h"
 #include "Common.h"
- 
+#include "ConsoleWindow.h"
+
 #include "Console.h"
 #include "Core.h"
 #include "CPUDetect.h"
@@ -94,6 +95,7 @@ void Callback_KeyPress(int key, bool shift, bool control);
 TPeekMessages Callback_PeekMessages = NULL;
 TUpdateFPSDisplay g_pUpdateFPSDisplay = NULL;
  
+// Function declarations
 #ifdef _WIN32
 	DWORD WINAPI EmuThread(void *pArg);
 #else
@@ -150,10 +152,13 @@ bool GetRealWiimote()
  
 //////////////////////////////////////////////////////////////////////////////////////////
 // This is called from the GUI thread. See the booting call schedule in BootManager.cpp
-// 
+// -----------------
 bool Init()
 {
-	if (g_pThread != NULL) {
+	//Console::Open();
+
+	if (g_pThread != NULL)
+	{
 		PanicAlert("ERROR: Emu Thread already running. Report this bug.");
 		return false;
 	}
@@ -165,9 +170,10 @@ bool Init()
 	LogManager::Init();	
 	Host_SetWaitCursor(true);
  
-	// start the thread again
+	// Start the thread again
 	_dbg_assert_(HLE, g_pThread == NULL);
  
+	// LoadLibrary()
 	if (!pManager.InitPlugins())
 	    return false;
 
@@ -224,7 +230,7 @@ void Stop() // - Hammertime!
  
 //////////////////////////////////////////////////////////////////////////////////////////
 // Create the CPU thread
-// 
+// ---------------
 THREAD_RETURN CpuThread(void *pArg)
 {
     Common::SetCurrentThreadName("CPU thread");
@@ -253,12 +259,12 @@ THREAD_RETURN CpuThread(void *pArg)
  
     if (_CoreParameter.bUseFastMem)
 	{
-#ifdef _M_X64
-	    // Let's run under memory watch
-	    EMM::InstallExceptionHandler();
-#else
-	    PanicAlert("32-bit platforms do not support fastmem yet. Report this bug.");
-#endif
+		#ifdef _M_X64
+			// Let's run under memory watch
+			EMM::InstallExceptionHandler();
+		#else
+			PanicAlert("32-bit platforms do not support fastmem yet. Report this bug.");
+		#endif
 	}
  
     CCPU::Run();
@@ -274,7 +280,7 @@ THREAD_RETURN CpuThread(void *pArg)
  
 //////////////////////////////////////////////////////////////////////////////////////////
 // Initalize plugins and create emulation thread
-// 
+// -------------
 	/* Call browser: Init():g_pThread(). See the BootManager.cpp file description for a complete
 		call schedule. */
 THREAD_RETURN EmuThread(void *pArg)
@@ -288,7 +294,7 @@ THREAD_RETURN EmuThread(void *pArg)
  
 	LOG(OSREPORT, "Starting core = %s mode", _CoreParameter.bWii ? "Wii" : "Gamecube");
 	LOG(OSREPORT, "Dualcore = %s", _CoreParameter.bUseDualCore ? "Yes" : "No");
- 
+
 	HW::Init();	
  
 	emuThreadGoing.Set();
@@ -340,7 +346,8 @@ THREAD_RETURN EmuThread(void *pArg)
 		PADInitialize.hWnd = g_pWindowHandle;
 		PADInitialize.pLog = Callback_PADLog;
 		PADInitialize.padNumber = i;
-		Plugins.GetPAD(i)->Initialize((void *)&PADInitialize);
+		// Check if we should init the plugin
+		if(Plugins.OkayToInitPlugin(i)) Plugins.GetPAD(i)->Initialize((void *)&PADInitialize);
 	}
 
 	// Load and Init WiimotePlugin - only if we are booting in wii mode	
@@ -439,13 +446,15 @@ THREAD_RETURN EmuThread(void *pArg)
 	// so we can restart the plugins (or load new ones) for the next game.
 	if (_CoreParameter.hMainWindow == g_pWindowHandle)
 		Host_UpdateMainFrame();
+
+	//Console::Close();
 	return 0;
 }
  
  
 //////////////////////////////////////////////////////////////////////////////////////////
 // Set or get the running state
-// 
+// --------------
 bool SetState(EState _State)
 {
 	switch(_State)
@@ -485,7 +494,7 @@ EState GetState()
  
 //////////////////////////////////////////////////////////////////////////////////////////
 // Save or recreate the emulation state
-// 
+// ----------
 void SaveState() {
     State_Save(0);
 }

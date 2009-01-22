@@ -256,6 +256,7 @@ void Init()
 
 		// Access the pad and check the MAXPADS limit
 		Common::PluginPAD* pad = CPluginManager::GetInstance().GetPAD((i >= MAXPADS) ? (MAXPADS - 1): i);
+		//Common::PluginPAD* pad = CPluginManager::GetInstance().GetPAD(i);
 
 		// Check if this pad is attached for the current plugin
 		if (pad != NULL && (pad->PAD_GetAttachedPads() & (1 << i)))

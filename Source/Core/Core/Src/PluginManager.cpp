@@ -15,21 +15,31 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <string>
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Include
+// ¯¯¯¯¯¯¯¯¯¯¯¯
+#include <string> // System
 #include <vector>
 
-//#include "Globals.h"
-#include "FileSearch.h"
-#include "FileUtil.h"
+//#include "Globals.h" // Local
 #include "PluginManager.h"
 #include "ConfigManager.h"
 #include "LogManager.h"
-#include "StringUtil.h"
+#include "Core.h"
 
+#include "FileSearch.h" // Common
+#include "FileUtil.h"
+#include "StringUtil.h"
+#include "ConsoleWindow.h"
 
 CPluginManager CPluginManager::m_Instance;
+//////////////////////////////////////////////
 
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// The Plugin Manager Class
+// ¯¯¯¯¯¯¯¯¯¯¯¯
 CPluginManager::CPluginManager() : 
     m_params(SConfig::GetInstance().m_LocalCoreStartupParameter)
 {
@@ -40,71 +50,90 @@ CPluginManager::CPluginManager() :
 
 }
 
-
+// Function: FreeLibrary()
+// Called from: This will be called when Dolphin is closed, not when we Stop a game
 CPluginManager::~CPluginManager()
 {
-    if (m_PluginGlobals)
-	delete m_PluginGlobals;
+	Console::Print("Delete CPluginManager\n");
 
-    if (m_dsp)
-	delete m_dsp;
+    if (m_PluginGlobals) delete m_PluginGlobals;
 
-    if (m_video)
-	delete m_video;
+    if (m_dsp) delete m_dsp;
+
+    if (m_video) delete m_video;
     
-    for (int i=0;i<MAXPADS;i++) {
-	if (m_pad[i])
-	    delete m_pad[i];
-    }
+	/**/
+    for (int i = 0; i < MAXPADS; i++)
+	{
+		if (m_pad[i] && OkayToInitPlugin(i))
+		{
+			Console::Print("Delete: %i\n", i);
+			delete m_pad[i];
+		}
+		m_pad[i] = NULL;
+	}
+	
     
-    for (int i=0;i<MAXWIIMOTES;i++) {
-	if (m_wiimote[i])
-	    delete m_wiimote[i];
-    }
+    for (int i = 0; i < MAXWIIMOTES; i++)
+		if (m_wiimote[i]) delete m_wiimote[i];
 }
+//////////////////////////////////////////////
 
-bool CPluginManager::InitPlugins() {
 
-    if (! GetVideo()) {
-	PanicAlert("Can't init Video Plugin");
-	return false;
+//////////////////////////////////////////////////////////////////////////////////////////
+// Init and ShutDown Plugins 
+// ¯¯¯¯¯¯¯¯¯¯¯¯
+
+// Point the m_pad[] and other variables to a certain plugin
+bool CPluginManager::InitPlugins()
+{
+
+    if (! GetVideo())
+	{
+		PanicAlert("Can't init Video Plugin");
+		return false;
     }
 
-    if (! GetDSP()) {
-	PanicAlert("Can't init DSP Plugin");
-	return false;
+    if (! GetDSP())
+	{
+		PanicAlert("Can't init DSP Plugin");
+		return false;
     }
 
+	// Check if we get at least one pad or wiimote
     bool pad = false;
     bool wiimote = false;
 
+	// Init pad
     for (int i = 0; i < MAXPADS; i++)
 	{
-	if (! m_params.m_strPadPlugin[i].empty())
-	    GetPAD(i);
-
-	if (m_pad[i] != NULL)
-	    pad = true;
+		if (! m_params.m_strPadPlugin[i].empty())
+			GetPAD(i);
+		if (m_pad[i] != NULL)
+			pad = true;
     }
-
-    if (! pad) {
-	PanicAlert("Can't init any PAD Plugins");
-	return false;
-    }
-    if (m_params.bWii) {
-	for (int i = 0; i < MAXWIIMOTES; i++)
+    if (! pad)
 	{
-	    if (! m_params.m_strWiimotePlugin[i].empty())
-		GetWiimote(i);
+		PanicAlert("Can't init any PAD Plugins");
+		return false;
+    }
 
-	    if (m_wiimote[i] != NULL)
-		wiimote = true;
-	}
+	// Init wiimote
+    if (m_params.bWii)
+	{
+		for (int i = 0; i < MAXWIIMOTES; i++)
+		{
+			if (! m_params.m_strWiimotePlugin[i].empty())
+				GetWiimote(i);
 
-	if (! wiimote) {
-	    PanicAlert("Can't init any Wiimote Plugins");
-	    return false;
-	}
+			if (m_wiimote[i] != NULL)
+				wiimote = true;
+		}
+		if (! wiimote)
+		{
+			PanicAlert("Can't init any Wiimote Plugins");
+			return false;
+		}
     }
 
     return true;
@@ -112,22 +141,94 @@ bool CPluginManager::InitPlugins() {
 
 void CPluginManager::ShutdownPlugins()
 {
-   for (int i = 0; i < MAXPADS; i++)
-       if (m_pad[i]) m_pad[i]->Shutdown();
+	// Check if we can shutdown the plugin
+	for (int i = 0; i < MAXPADS; i++)
+	{
+		if (m_pad[i] && OkayToInitPlugin(i))
+		{
+			//Console::Print("Shutdown: %i\n", i);
+			m_pad[i]->Shutdown();
+		}
+		//delete m_pad[i];
+		//m_pad[i] = NULL;
+	}
 
-   for (int i = 0; i < MAXWIIMOTES; i++)
-       if (m_wiimote[i]) m_wiimote[i]->Shutdown();
+	for (int i = 0; i < MAXWIIMOTES; i++)
+		if (m_wiimote[i]) m_wiimote[i]->Shutdown();
 
-   if (m_video)
-       m_video->Shutdown();
+	if (m_video)
+	m_video->Shutdown();
 
-   if (m_dsp)
-       m_dsp->Shutdown();
+	if (m_dsp)
+	m_dsp->Shutdown();
+}
+//////////////////////////////////////////
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Supporting functions
+// ¯¯¯¯¯¯¯¯¯¯¯¯
+
+
+void *CPluginManager::LoadPlugin(const char *_rFilename)//, PLUGIN_TYPE type)
+{
+    CPluginInfo info(_rFilename);
+    PLUGIN_TYPE type = info.GetPluginInfo().Type;
+    Common::CPlugin *plugin = NULL;
+    switch (type)
+	{
+    case PLUGIN_TYPE_VIDEO:
+		plugin = new Common::PluginVideo(_rFilename);
+		break;
+
+    case PLUGIN_TYPE_PAD:
+		plugin = new Common::PluginPAD(_rFilename);
+		break;
+
+    case PLUGIN_TYPE_DSP:
+		plugin = new Common::PluginDSP(_rFilename);
+		break;
+
+    case PLUGIN_TYPE_WIIMOTE:
+		plugin = new Common::PluginWiimote(_rFilename);
+		break;
+		default:
+		PanicAlert("Trying to load unsupported type %d", type);
+    }
+
+    if (!plugin->IsValid())
+	{
+		PanicAlert("Can't open %s", _rFilename);
+		return NULL;
+    }
+    
+    plugin->SetGlobals(m_PluginGlobals);
+    return plugin;
 }
 
-PLUGIN_GLOBALS* CPluginManager::GetGlobals() {
+// ----------------------------------------
+/* Check if the plugin has already been initialized. If so, return the Id of the duplicate pad
+   so we can point the new m_pad[] to that */
+// -------------
+int CPluginManager::OkayToInitPlugin(int Plugin)
+{
+	//Console::Print("OkayToInitShutdown: %i", Plugin);
+	// Compare it to the earlier plugins
+	for(int i = 0; i < Plugin; i++)
+		if (m_params.m_strPadPlugin[Plugin] == m_params.m_strPadPlugin[i])
+		{
+			//Console::Print("(%i %i) %s\n", Plugin, i, g_CoreStartupParameter.m_strPadPlugin[Plugin].c_str());
+			return i;
+		}
+	return -1;
+}
+
+
+PLUGIN_GLOBALS* CPluginManager::GetGlobals()
+{
     return m_PluginGlobals;
 }
+
 
 // ----------------------------------------
 // Create list of available plugins
@@ -166,12 +267,29 @@ void CPluginManager::ScanForPlugins()
 		}
 	}
 }
+/////////////////////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Create or return the already created plugin pointers
+// ¯¯¯¯¯¯¯¯¯¯¯¯
 Common::PluginPAD *CPluginManager::GetPAD(int controller)
 {
     if (m_pad[controller] == NULL)
-	m_pad[controller] = (Common::PluginPAD*)LoadPlugin(m_params.m_strPadPlugin[controller].c_str());
+	{
+		if(OkayToInitPlugin(controller) == -1)
+		{
+			m_pad[controller] = (Common::PluginPAD*)LoadPlugin(m_params.m_strPadPlugin[controller].c_str());
+			Console::Print("LoadPlugin: %i\n", controller);
+		}
+		else
+		{
+			Console::Print("Pointed: %i to %i\n", controller, OkayToInitPlugin(controller));
+			m_pad[controller] = m_pad[OkayToInitPlugin(controller)];
+		}
+	}
 
+	//Console::Print("Returned: %i\n", controller);
     return m_pad[controller];
 }
 
@@ -199,45 +317,15 @@ Common::PluginVideo *CPluginManager::GetVideo() {
 
     return m_video;
 }
-
-void *CPluginManager::LoadPlugin(const char *_rFilename)//, PLUGIN_TYPE type)
-{
-    CPluginInfo info(_rFilename);
-    PLUGIN_TYPE type = info.GetPluginInfo().Type;
-    Common::CPlugin *plugin = NULL;
-    switch (type) {
-    case PLUGIN_TYPE_VIDEO:
-	plugin = new Common::PluginVideo(_rFilename);
-	break;
-
-    case PLUGIN_TYPE_PAD:
-	plugin = new Common::PluginPAD(_rFilename);
-	break;
-
-    case PLUGIN_TYPE_DSP:
-	plugin = new Common::PluginDSP(_rFilename);
-	break;
-
-    case PLUGIN_TYPE_WIIMOTE:
-	plugin = new Common::PluginWiimote(_rFilename);
-	break;
-    default:
-	PanicAlert("Trying to load unsupported type %d", type);
-    }
-
-    if (!plugin->IsValid()) {
-	PanicAlert("Can't open %s", _rFilename);
-	return NULL;
-    }
-    
-    plugin->SetGlobals(m_PluginGlobals);
+///////////////////////////////////////////
 
 
-    return plugin;
-}
+//////////////////////////////////////////////////////////////////////////////////////////
+// Call DLL functions
+// ¯¯¯¯¯¯¯¯¯¯¯¯
 
 // ----------------------------------------
-// Open config window. _rFilename = plugin filename ,ret = the dll slot number
+// Open config window. _rFilename = plugin filename , ret = the dll slot number
 // -------------
 void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename)
 {
@@ -254,9 +342,9 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename)
 void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show)
 {
     if (Type == PLUGIN_TYPE_VIDEO) {
-	GetVideo()->Debug((HWND)_Parent, Show);
+		GetVideo()->Debug((HWND)_Parent, Show);
     } else if (Type == PLUGIN_TYPE_DSP) {
-	GetDSP()->Debug((HWND)_Parent, Show);
+		GetDSP()->Debug((HWND)_Parent, Show);
     }
 }
 
@@ -278,5 +366,5 @@ CPluginInfo::CPluginInfo(const char *_rFileName)
 	    delete plugin;
 	}
 }
-
+///////////////////////////////////////////
 

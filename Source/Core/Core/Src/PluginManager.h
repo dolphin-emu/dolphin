@@ -53,6 +53,7 @@ public:
 
 	bool InitPlugins();
 	void ShutdownPlugins();
+	int OkayToInitPlugin(int Plugin);
 	void ScanForPlugins();
 	void OpenConfig(void* _Parent, const char *_rFilename);
 	void OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show);
