@@ -36,8 +36,9 @@ CPluginManager::CPluginManager() :
     m_PluginGlobals->eventHandler = EventHandler::GetInstance();
     m_PluginGlobals->config = (void *)&SConfig::GetInstance();
     m_PluginGlobals->messageLogger = NULL;
-    m_InputManager = new InputManager();
 
+    m_InputManager = new InputManager();
+    m_PluginGlobals->inputManager = m_InputManager;
 }
 
 
