@@ -218,30 +218,32 @@ void Initialize(void *init)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Shutdown()
 {
-	if(joysticks[0].enabled)
-		SDL_JoystickClose(joystate[0].joy);
-	if(joysticks[1].enabled)
-		SDL_JoystickClose(joystate[1].joy);
-	if(joysticks[2].enabled)
-		SDL_JoystickClose(joystate[2].joy);
-	if(joysticks[3].enabled)
-		SDL_JoystickClose(joystate[3].joy);
-
-	#ifdef _DEBUG
-	DEBUG_QUIT();
-	#endif
-
+    if(joysticks[0].enabled)
+	SDL_JoystickClose(joystate[0].joy);
+    if(joysticks[1].enabled)
+	SDL_JoystickClose(joystate[1].joy);
+    if(joysticks[2].enabled)
+	SDL_JoystickClose(joystate[2].joy);
+    if(joysticks[3].enabled)
+	SDL_JoystickClose(joystate[3].joy);
+    
+#ifdef _DEBUG
+    DEBUG_QUIT();
+#endif
+    
+    if (joyinfo) {
 	delete [] joyinfo;
-
-	emulator_running = FALSE;
-
-	#ifdef _WIN32
-	#ifdef USE_RUMBLE_DINPUT_HACK
-	FreeDirectInput();
-	#endif
-	#elif defined(__linux__)
-	close(fd);
-	#endif
+	joyinfo = NULL;
+    }
+    emulator_running = FALSE;
+    
+#ifdef _WIN32
+#ifdef USE_RUMBLE_DINPUT_HACK
+    FreeDirectInput();
+#endif
+#elif defined(__linux__)
+    close(fd);
+#endif
 }
 
 void DoState(unsigned char **ptr, int mode) {

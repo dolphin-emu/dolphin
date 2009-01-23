@@ -257,9 +257,11 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename)
 {
 
     Common::CPlugin *plugin = new Common::CPlugin(_rFilename);
+    m_InputManager->Init();
     plugin->SetGlobals(m_PluginGlobals);
     plugin->Config((HWND)_Parent);
     delete plugin;
+    m_InputManager->Shutdown();
 }
 
 // ----------------------------------------

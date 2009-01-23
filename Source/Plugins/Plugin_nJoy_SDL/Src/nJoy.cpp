@@ -258,12 +258,9 @@ int Search_Devices()
 	if (joyinfo)
 	{
 		delete [] joyinfo;
-		joyinfo = new CONTROLLER_INFO [numjoy];
 	}
-	else
-	{
-		joyinfo = new CONTROLLER_INFO [numjoy];
-	}
+
+	joyinfo = new CONTROLLER_INFO [numjoy];
 
 	// Warn the user if no PadMapping are detected
 	if (numjoy == 0)
@@ -312,33 +309,35 @@ int Search_Devices()
    Called from: The Dolphin Core, ConfigBox::OnClose() */
 void Shutdown()
 {
-	//Console::Print("Shutdown: %i\n", SDL_WasInit(0));
-
-	if (PadMapping[0].enabled && SDL_JoystickOpened(PadMapping[0].ID))
-		SDL_JoystickClose(joystate[0].joy);
-	if (PadMapping[1].enabled && SDL_JoystickOpened(PadMapping[1].ID))
-		SDL_JoystickClose(joystate[1].joy);
-	if (PadMapping[2].enabled && SDL_JoystickOpened(PadMapping[2].ID))
-		SDL_JoystickClose(joystate[2].joy);
-	if (PadMapping[3].enabled && SDL_JoystickOpened(PadMapping[3].ID))
-		SDL_JoystickClose(joystate[3].joy);	
-
-	#ifdef _DEBUG
-		DEBUG_QUIT();
-	#endif
-
+    //Console::Print("Shutdown: %i\n", SDL_WasInit(0));
+    
+    if (PadMapping[0].enabled && SDL_JoystickOpened(PadMapping[0].ID))
+	SDL_JoystickClose(joystate[0].joy);
+    if (PadMapping[1].enabled && SDL_JoystickOpened(PadMapping[1].ID))
+	SDL_JoystickClose(joystate[1].joy);
+    if (PadMapping[2].enabled && SDL_JoystickOpened(PadMapping[2].ID))
+	SDL_JoystickClose(joystate[2].joy);
+    if (PadMapping[3].enabled && SDL_JoystickOpened(PadMapping[3].ID))
+	SDL_JoystickClose(joystate[3].joy);	
+    
+#ifdef _DEBUG
+    DEBUG_QUIT();
+#endif
+    
+    if(joyinfo) {
 	delete [] joyinfo;
 	joyinfo = NULL;
-
-	emulator_running = false;
-
-	#ifdef _WIN32
-		#ifdef USE_RUMBLE_DINPUT_HACK
-		FreeDirectInput();
-		#endif
-	#elif defined(__linux__)
-		close(fd);
-	#endif
+    }
+    
+    emulator_running = false;
+    
+#ifdef _WIN32
+#ifdef USE_RUMBLE_DINPUT_HACK
+    FreeDirectInput();
+#endif
+#elif defined(__linux__)
+    close(fd);
+#endif
 }
 
 
