@@ -25,7 +25,6 @@
 #include "PluginWiimote.h"
 #include "EventHandler.h"
 #include "CoreParameter.h"
-#include "InputManager.h"
 
 class CPluginInfo
 {
@@ -47,23 +46,20 @@ class CPluginManager
 {
 public:
 	static CPluginManager& GetInstance() {return(m_Instance);}
-	Common::PluginPAD *GetPad(int controller);
+	Common::PluginPAD *GetPAD(int controller);
 	Common::PluginWiimote *GetWiimote(int controller);
 	Common::PluginDSP *GetDSP();
 	Common::PluginVideo *GetVideo();
-	Common::PluginPAD *FreePad();
 
 	bool InitPlugins();
 	void ShutdownPlugins();
 	int OkayToInitPlugin(int Plugin);
 	void ScanForPlugins();
-	void OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type);
+	void OpenConfig(void* _Parent, const char *_rFilename);
 	void OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show);
 	const CPluginInfos& GetPluginInfos() {return(m_PluginInfos);}
 	PLUGIN_GLOBALS* GetGlobals();
-
 private:
-
 	static CPluginManager m_Instance;
 	bool m_Initialized;
 
@@ -74,11 +70,10 @@ private:
 	Common::PluginWiimote *m_wiimote[4];
 	Common::PluginDSP *m_dsp;
 
-	InputManager *m_InputManager;
 	SCoreStartupParameter& m_params;
 	CPluginManager();
 	~CPluginManager();
-	void *LoadPlugin(const char *_rFilename, int Number = 0);
+	void *LoadPlugin(const char *_rFilename);
 
 };
 

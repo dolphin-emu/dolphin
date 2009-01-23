@@ -35,7 +35,7 @@ typedef struct
 {
 	HWND			hWnd;
 	TLog			pLog;
-    int				padNumber;
+    int                     padNumber;
 } SPADInitialize;
 
 typedef struct

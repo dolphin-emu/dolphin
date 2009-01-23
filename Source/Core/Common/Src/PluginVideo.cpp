@@ -1,11 +1,7 @@
 #include "PluginVideo.h"
 
-namespace Common
-{
-    PluginVideo::PluginVideo(const char *_Filename) :
-		CPlugin(_Filename),
-		validVideo(false)
-	{
+namespace Common {
+    PluginVideo::PluginVideo(const char *_Filename) : CPlugin(_Filename), validVideo(false) {
   
 	Video_Prepare  = reinterpret_cast<TVideo_Prepare>      
 	    (LoadSymbol("Video_Prepare"));

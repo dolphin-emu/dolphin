@@ -82,7 +82,6 @@ typedef struct
     void *eventHandler;
     void *config;
     void *messageLogger;
-    void *inputManager;
 } PLUGIN_GLOBALS;
 ///////////////////////////////
 

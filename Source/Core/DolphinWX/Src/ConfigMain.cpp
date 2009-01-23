@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "Core.h" // Core
-#include "ConsoleWindow.h" // Core
 
 #include "Globals.h" // Local
 #include "ConfigMain.h"
@@ -682,23 +681,18 @@ void CConfigMain::DVDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot = DVDRoot->GetPath().ToAscii();
 }
-// ==========================
 
-
-
-// =======================================================
-// Plugins settings
-// -------------
-
-// Update plugin filenames
 void CConfigMain::OnSelectionChanged(wxCommandEvent& WXUNUSED (event))
 {
 	GetFilename(GraphicSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
 	GetFilename(DSPSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin);
+
 	for (int i = 0; i < MAXPADS; i++)
-		GetFilename(PADSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[i]);	
+		GetFilename(PADSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[i]);
+	
 	for (int i = 0; i < MAXWIIMOTES; i++)
 		GetFilename(WiimoteSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin[i]);
+
 }
 
 void CConfigMain::OnConfig(wxCommandEvent& event)
@@ -722,25 +716,15 @@ void CConfigMain::OnConfig(wxCommandEvent& event)
 		    break;
 	}
 }
+// ==========================
 
-void CConfigMain::CallConfig(wxChoice* _pChoice)
-{
-	int Index = _pChoice->GetSelection();
-	Console::Print("CallConfig: %i\n", Index);
 
-	if (Index >= 0)
-	{
-		const CPluginInfo* pInfo = static_cast<CPluginInfo*>(_pChoice->GetClientData(Index));
 
-		if (pInfo != NULL)
-			CPluginManager::GetInstance().OpenConfig((HWND) this->GetHandle(), pInfo->GetFileName().c_str(), pInfo->GetPluginInfo().Type);
-	}
-}
-
+// =======================================================
+// Plugins settings
+// -------------
 void CConfigMain::FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::string& _SelectFilename)
 {
-	Console::Print("FillChoiceBox\n");
-
 	_pChoice->Clear();
 
 	int Index = -1;
@@ -766,16 +750,31 @@ void CConfigMain::FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::
 	_pChoice->Select(Index);
 }
 
-bool CConfigMain::GetFilename(wxChoice* _pChoice, std::string& _rFilename)
-{	
-	_rFilename.clear();
+void CConfigMain::CallConfig(wxChoice* _pChoice)
+{
 	int Index = _pChoice->GetSelection();
 
 	if (Index >= 0)
 	{
 		const CPluginInfo* pInfo = static_cast<CPluginInfo*>(_pChoice->GetClientData(Index));
+
+		if (pInfo != NULL)
+			CPluginManager::GetInstance().OpenConfig((HWND) this->GetHandle(), pInfo->GetFileName().c_str());
+	}
+}
+
+bool CConfigMain::GetFilename(wxChoice* _pChoice, std::string& _rFilename)
+{
+	_rFilename.clear();
+
+	int Index = _pChoice->GetSelection();
+	printf("%i\n", Index);
+
+	if (Index >= 0)
+	{
+		const CPluginInfo* pInfo = static_cast<CPluginInfo*>(_pChoice->GetClientData(Index));
 		_rFilename = pInfo->GetFileName();
-		Console::Print("GetFilename: %i %s\n", Index, _rFilename.c_str());
+		printf("%s\n", _rFilename.c_str());
 		return(true);
 	}
 

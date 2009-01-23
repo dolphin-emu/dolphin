@@ -51,10 +51,7 @@ HWND m_hWnd;
 #ifdef USE_RUMBLE_DINPUT_HACK
 bool g_rumbleEnable = FALSE;
 #endif
-// Declare config window so that we can write debugging info to it from functions in this file
-#if defined(HAVE_WX) && HAVE_WX
-	ConfigBox* m_frame;
-#endif
+
 // Rumble in windows
 #ifdef _WIN32
 HINSTANCE nJoy_hInst = NULL;
@@ -167,22 +164,37 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
 // Call config dialog
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllConfig(HWND _hParent)
-{
-	// Start the pads so we can use them in the configuration and advanced controls
-	if(!emulator_running)
+{		
+	#ifdef _WIN32
+	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
 	{
-		SPADInitialize _PADInitialize;
-		_PADInitialize.hWnd = NULL;
-		_PADInitialize.pLog = NULL;
-		Initialize((void*)&_PADInitialize);
-		emulator_running = false; // Set it back to false
+		MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
+		return;
 	}
 
-#if defined(HAVE_WX) && HAVE_WX
-	m_frame = new ConfigBox(NULL);
-	m_frame->ShowModal();
-#endif
+	LoadConfig();	// load settings
 
+#if defined(HAVE_WX) && HAVE_WX
+	wxWindow win;
+	win.SetHWND(_hParent);
+	ConfigBox frame(&win);
+	frame.ShowModal();
+	win.SetHWND(0);
+#endif
+	#else
+	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
+	{
+		printf("Could not initialize SDL! (%s)\n", SDL_GetError());
+		return;
+	}
+
+	LoadConfig();	// load settings
+
+#if defined(HAVE_WX) && HAVE_WX
+	ConfigBox frame(NULL);
+	frame.ShowModal();
+#endif
+	#endif
 }
 
 void DllDebugger(HWND _hParent, bool Show) {
@@ -197,6 +209,16 @@ void Initialize(void *init)
 	#ifdef _DEBUG
 	DEBUG_INIT();
 	#endif
+
+	if(SDL_Init(SDL_INIT_JOYSTICK ) < 0)
+	{
+		#ifdef _WIN32
+		MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
+		#else
+		printf("Could not initialize SDL! (%s)\n", SDL_GetError());
+		#endif
+		return;
+	}
 
 	#ifdef _WIN32
 	m_hWnd = (HWND)_PADInitialize.hWnd;
@@ -218,32 +240,32 @@ void Initialize(void *init)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void Shutdown()
 {
-    if(joysticks[0].enabled)
-	SDL_JoystickClose(joystate[0].joy);
-    if(joysticks[1].enabled)
-	SDL_JoystickClose(joystate[1].joy);
-    if(joysticks[2].enabled)
-	SDL_JoystickClose(joystate[2].joy);
-    if(joysticks[3].enabled)
-	SDL_JoystickClose(joystate[3].joy);
-    
-#ifdef _DEBUG
-    DEBUG_QUIT();
-#endif
-    
-    if (joyinfo) {
+	if(joysticks[0].enabled)
+		SDL_JoystickClose(joystate[0].joy);
+	if(joysticks[1].enabled)
+		SDL_JoystickClose(joystate[1].joy);
+	if(joysticks[2].enabled)
+		SDL_JoystickClose(joystate[2].joy);
+	if(joysticks[3].enabled)
+		SDL_JoystickClose(joystate[3].joy);
+
+	SDL_Quit();
+
+	#ifdef _DEBUG
+	DEBUG_QUIT();
+	#endif
+
 	delete [] joyinfo;
-	joyinfo = NULL;
-    }
-    emulator_running = FALSE;
-    
-#ifdef _WIN32
-#ifdef USE_RUMBLE_DINPUT_HACK
-    FreeDirectInput();
-#endif
-#elif defined(__linux__)
-    close(fd);
-#endif
+
+	emulator_running = FALSE;
+
+	#ifdef _WIN32
+	#ifdef USE_RUMBLE_DINPUT_HACK
+	FreeDirectInput();
+	#endif
+	#elif defined(__linux__)
+	close(fd);
+	#endif
 }
 
 void DoState(unsigned char **ptr, int mode) {
@@ -678,9 +700,13 @@ int Search_Devices()
 	int numjoy = SDL_NumJoysticks();
 
 	if(numjoy == 0)
-	{	
-	    PanicAlert("No Joystick detected!\n");
-	    return 0;
+	{		
+		#ifdef _WIN32
+		MessageBox(NULL, "No Joystick detected!", NULL,  MB_ICONWARNING);
+		#else
+		printf("No Joystick detected!\n");
+		#endif
+		return 0;
 	}
 
 	if(joyinfo)

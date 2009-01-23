@@ -435,7 +435,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 	else
 	{
 		if(Core::GetState() != Core::CORE_UNINITIALIZED)
-		    CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 1); // 1 = Down
+		    CPluginManager::GetInstance().GetPAD(0)->PAD_Input(event.GetKeyCode(), 1); // 1 = Down
 		event.Skip();
 	}
 }
@@ -443,7 +443,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 void CFrame::OnKeyUp(wxKeyEvent& event)
 {
 	if(Core::GetState() != Core::CORE_UNINITIALIZED)
-		CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 0); // 0 = Up
+		CPluginManager::GetInstance().GetPAD(0)->PAD_Input(event.GetKeyCode(), 0); // 0 = Up
 	event.Skip();
 }
 
@@ -453,7 +453,7 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 double GetDoubleTime()
 {
 	wxDateTime datetime = wxDateTime::UNow(); // Get timestamp
-	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970(); // Get continuous timestamp
+	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970(); // Get continous timestamp
 
 	/* Remove a few years. We only really want enough seconds to make sure that we are
 	   detecting actual actions, perhaps 60 seconds is enough really, but I leave a

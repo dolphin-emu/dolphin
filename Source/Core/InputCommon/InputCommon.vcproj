@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="InputCommon"
 	ProjectGUID="{C7E5D50A-2916-464B-86A7-E10B3CC88ADA}"
 	RootNamespace="VideoCommon"
@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc;&quot;$(SolutionDir)..\Externals\SDL\Include&quot;"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -109,7 +109,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc;&quot;$(SolutionDir)..\Externals\SDL\Include&quot;"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_SECURE_SCL=0;_LIB;__WXMSW__;wxUSE_BASE=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -175,7 +175,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc;..\..\..\Externals\SDL\Include"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -245,7 +245,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="false"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc;&quot;$(SolutionDir)..\Externals\SDL\Include&quot;"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -307,7 +307,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc;&quot;$(SolutionDir)..\Externals\SDL\Include&quot;"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -370,7 +370,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc;&quot;$(SolutionDir)..\Externals\SDL\Include&quot;"
+				AdditionalIncludeDirectories="../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;__WXMSW__;wxUSE_BASE=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -429,14 +429,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\InputCommon.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\InputManager.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\InputManager.h"
 			>
 		</File>
 		<File

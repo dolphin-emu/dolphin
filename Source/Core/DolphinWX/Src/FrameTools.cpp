@@ -539,8 +539,7 @@ void CFrame::OnPluginGFX(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
 			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
-			PLUGIN_TYPE_VIDEO
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str()
 			);
 }
 
@@ -549,8 +548,7 @@ void CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
 			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
-			PLUGIN_TYPE_DSP
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str()
 			);
 }
 
@@ -558,16 +556,14 @@ void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
 			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[0].c_str(),
-			PLUGIN_TYPE_PAD
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[0].c_str()
 			);
 }
 void CFrame::OnPluginWiimote(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
 			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin[0].c_str(),
-			PLUGIN_TYPE_WIIMOTE
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin[0].c_str()
 			);
 }
 
