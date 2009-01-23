@@ -197,31 +197,10 @@ void DllConfig(HWND _hParent)
 		emulator_running = false; // Set it back to false
 	}
 
-	g_Config.Load(); // Load settings
-
-	// We don't need a parent for this wxDialog
-	//wxWindow win;
-	//win.SetHWND(_hParent);
-	//ConfigBox frame(&win);
-	//win.SetHWND(0);
-
-	m_frame = new ConfigBox(NULL);
-	m_frame->ShowModal();
-
-	#else
-	if (SDL_Init(SDL_INIT_JOYSTICK ) < 0)
-	{
-		printf("Could not initialize SDL! (%s)\n", SDL_GetError());
-		return;
-	}
-
-	g_Config.Load();	// load settings
-
 	#if defined(HAVE_WX) && HAVE_WX
-		ConfigBox frame(NULL);
-		frame.ShowModal();
-	#endif
-
+		g_Config.Load(); // Load settings
+		m_frame = new ConfigBox(NULL);
+		m_frame->ShowModal();
 	#endif
 }
 
@@ -241,29 +220,34 @@ void Initialize(void *init)
 	// Debugging
 	//Console::Open();
 	SPADInitialize *_PADInitialize = (SPADInitialize*)init;
-	Console::Print("Initialize: %i, %i\n", _PADInitialize->padNumber, SDL_WasInit(0));
+	#ifndef INPUTCOMMON
+		Console::Print("Initialize: %i, %i\n", _PADInitialize->padNumber, SDL_WasInit(0));
+	#endif
 	
 	emulator_running = true;
 	#ifdef _DEBUG
 		DEBUG_INIT();
 	#endif
 
-	/* SDL 1.3 use DirectInput instead of the old Microsoft Multimeda API, and with this we need 
-	   the SDL_INIT_VIDEO flag to */
-	if (!SDL_WasInit(0))
-		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0)
-		{
-			#ifdef _WIN32
-				MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
-			#else
-				printf("Could not initialize SDL! (%s)\n", SDL_GetError());
-			#endif
-			return;
-		}
-
 	#ifdef _WIN32
 		m_hWnd = (HWND)_PADInitialize->hWnd;
 	#endif
+	
+	#ifndef INPUTCOMMON
+		/* SDL 1.3 use DirectInput instead of the old Microsoft Multimeda API, and with this we need 
+		   the SDL_INIT_VIDEO flag to */
+		if (!SDL_WasInit(0))
+			if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0)
+			{
+				#ifdef _WIN32
+					MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
+				#else
+					printf("Could not initialize SDL! (%s)\n", SDL_GetError());
+				#endif
+				return;
+			}
+	#endif
+
 	Search_Devices(); // Populate joyinfo for all attached devices
 	g_Config.Load(); // Load joystick mapping, PadMapping[].ID etc
 	if (PadMapping[0].enabled)
@@ -313,11 +297,7 @@ int Search_Devices()
 	// Warn the user if no PadMapping are detected
 	if (numjoy == 0)
 	{		
-		#ifdef _WIN32
-		//MessageBox(NULL, "No Joystick detected!", NULL,  MB_ICONWARNING);
-		#else
-		printf("No Joystick detected!\n");
-		#endif
+		PanicAlert("No Joystick detected");
 		return 0;
 	}
 
@@ -370,9 +350,11 @@ void Shutdown()
 	if (PadMapping[2].enabled && SDL_JoystickOpened(PadMapping[2].ID))
 		SDL_JoystickClose(joystate[2].joy);
 	if (PadMapping[3].enabled && SDL_JoystickOpened(PadMapping[3].ID))
-		SDL_JoystickClose(joystate[3].joy);	
+		SDL_JoystickClose(joystate[3].joy);
 
-	SDL_Quit();
+	#ifndef INPUTCOMMON
+		SDL_Quit();
+	#endif
 
 	#ifdef _DEBUG
 		DEBUG_QUIT();

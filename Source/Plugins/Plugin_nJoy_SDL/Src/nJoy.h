@@ -95,6 +95,8 @@
 // Define
 // ¯¯¯¯¯¯¯¯¯¯
 
+//#define INPUTCOMMON
+
 #define INPUT_VERSION	"0.3"
 #define INPUT_STATE		"PUBLIC RELEASE"
 #define RELDAY			"21"
