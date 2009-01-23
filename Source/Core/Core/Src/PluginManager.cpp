@@ -34,6 +34,8 @@
 #include "ConsoleWindow.h"
 
 CPluginManager CPluginManager::m_Instance;
+
+//#define INPUTCOMMON
 //////////////////////////////////////////////
 
 
@@ -44,12 +46,16 @@ CPluginManager::CPluginManager() :
     m_params(SConfig::GetInstance().m_LocalCoreStartupParameter)
 {
     m_PluginGlobals = new PLUGIN_GLOBALS;
-	//m_InputManager = new InputManager();
+	
 
     m_PluginGlobals->eventHandler = EventHandler::GetInstance();
     m_PluginGlobals->config = (void *)&SConfig::GetInstance();
-    m_PluginGlobals->messageLogger = NULL;	
-	//m_PluginGlobals->inputManager = m_InputManager;
+    m_PluginGlobals->messageLogger = NULL;
+
+	#ifdef INPUTCOMMON
+		m_InputManager = new InputManager();
+		m_PluginGlobals->inputManager = m_InputManager;
+	#endif
 }
 
 /* Function: FreeLibrary()
@@ -353,7 +359,9 @@ Common::PluginPAD *CPluginManager::FreePad()
 // -------------
 void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type)
 {
-	//m_InputManager->Init();
+	#ifdef INPUTCOMMON
+		m_InputManager->Init();
+	#endif
 
 	switch(Type)
 	{
@@ -371,7 +379,9 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 		break;
     }
 
-	//m_InputManager->Shutdown();
+	#ifdef INPUTCOMMON
+		m_InputManager->Shutdown();
+	#endif
 }
 
 // ----------------------------------------
