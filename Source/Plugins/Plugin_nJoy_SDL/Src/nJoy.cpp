@@ -185,8 +185,6 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllConfig(HWND _hParent)
 {
-	#ifdef _WIN32
-
 	// Start the pads so we can use them in the configuration and advanced controls
 	if(!emulator_running)
 	{
@@ -201,8 +199,6 @@ void DllConfig(HWND _hParent)
 		g_Config.Load(); // Load settings
 		m_frame = new ConfigBox(NULL);
 		m_frame->ShowModal();
-	#endif
-
 	#endif
 }
 
