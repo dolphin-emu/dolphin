@@ -5,6 +5,7 @@ Import('env')
 files = [
 	'EventHandler.cpp',
 	'InputCommon.cpp',
+        "InputManager.cpp",
 	]
 
 env_inputcommon = env.Clone()
