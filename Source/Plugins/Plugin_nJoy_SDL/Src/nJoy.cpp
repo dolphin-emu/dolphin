@@ -202,6 +202,8 @@ void DllConfig(HWND _hParent)
 		m_frame = new ConfigBox(NULL);
 		m_frame->ShowModal();
 	#endif
+
+	#endif
 }
 
 void DllDebugger(HWND _hParent, bool Show) {
