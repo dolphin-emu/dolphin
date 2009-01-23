@@ -44,14 +44,22 @@ CPluginManager::CPluginManager() :
     m_params(SConfig::GetInstance().m_LocalCoreStartupParameter)
 {
     m_PluginGlobals = new PLUGIN_GLOBALS;
+	//m_InputManager = new InputManager();
+
     m_PluginGlobals->eventHandler = EventHandler::GetInstance();
     m_PluginGlobals->config = (void *)&SConfig::GetInstance();
-    m_PluginGlobals->messageLogger = NULL;
-
+    m_PluginGlobals->messageLogger = NULL;	
+	//m_PluginGlobals->inputManager = m_InputManager;
 }
 
-// Function: FreeLibrary()
-// Called from: This will be called when Dolphin is closed, not when we Stop a game
+/* Function: FreeLibrary()
+   Called from: In an attempt to avoid the crash that occurs when the use LoadLibrary() and
+   FreeLibrary() often (every game a game is stopped and started) these functions will only
+   be used when
+		1. Dolphin is started
+		2. A plugin is changed
+		3. Dolphin is closed
+   it will not be used when we Start and Stop games. */
 CPluginManager::~CPluginManager()
 {
 	Console::Print("Delete CPluginManager\n");
