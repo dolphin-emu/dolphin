@@ -181,11 +181,12 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
 }
 
-
 // Call config dialog
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllConfig(HWND _hParent)
 {
+	#ifdef _WIN32
+
 	// Start the pads so we can use them in the configuration and advanced controls
 	if(!emulator_running)
 	{
@@ -196,11 +197,32 @@ void DllConfig(HWND _hParent)
 		emulator_running = false; // Set it back to false
 	}
 
-#if defined(HAVE_WX) && HAVE_WX
+	g_Config.Load(); // Load settings
+
+	// We don't need a parent for this wxDialog
+	//wxWindow win;
+	//win.SetHWND(_hParent);
+	//ConfigBox frame(&win);
+	//win.SetHWND(0);
+
 	m_frame = new ConfigBox(NULL);
 	m_frame->ShowModal();
-#endif
 
+	#else
+	if (SDL_Init(SDL_INIT_JOYSTICK ) < 0)
+	{
+		printf("Could not initialize SDL! (%s)\n", SDL_GetError());
+		return;
+	}
+
+	g_Config.Load();	// load settings
+
+	#if defined(HAVE_WX) && HAVE_WX
+		ConfigBox frame(NULL);
+		frame.ShowModal();
+	#endif
+
+	#endif
 }
 
 void DllDebugger(HWND _hParent, bool Show) {
@@ -218,19 +240,30 @@ void Initialize(void *init)
 {
 	// Debugging
 	//Console::Open();
-
-	//Console::Print("Initialize: %i\n", SDL_WasInit(0));
-
-    SPADInitialize _PADInitialize  = *(SPADInitialize*)init;
+	SPADInitialize *_PADInitialize = (SPADInitialize*)init;
+	Console::Print("Initialize: %i, %i\n", _PADInitialize->padNumber, SDL_WasInit(0));
+	
 	emulator_running = true;
 	#ifdef _DEBUG
 		DEBUG_INIT();
 	#endif
 
-	#ifdef _WIN32
-		m_hWnd = (HWND)_PADInitialize.hWnd;
-	#endif
+	/* SDL 1.3 use DirectInput instead of the old Microsoft Multimeda API, and with this we need 
+	   the SDL_INIT_VIDEO flag to */
+	if (!SDL_WasInit(0))
+		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0)
+		{
+			#ifdef _WIN32
+				MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
+			#else
+				printf("Could not initialize SDL! (%s)\n", SDL_GetError());
+			#endif
+			return;
+		}
 
+	#ifdef _WIN32
+		m_hWnd = (HWND)_PADInitialize->hWnd;
+	#endif
 	Search_Devices(); // Populate joyinfo for all attached devices
 	g_Config.Load(); // Load joystick mapping, PadMapping[].ID etc
 	if (PadMapping[0].enabled)
@@ -241,6 +274,18 @@ void Initialize(void *init)
 		joystate[2].joy = SDL_JoystickOpen(PadMapping[2].ID);
 	if (PadMapping[3].enabled)
 		joystate[3].joy = SDL_JoystickOpen(PadMapping[3].ID);
+
+	//_PADInitialize->padNumber = 55;
+	/* Check if any of the pads failed to open. In Windows there is a strange "IDirectInputDevice2::
+	   SetDataFormat() DirectX error -2147024809" after a few Open and Close */
+	if(    (PadMapping[0].enabled && joystate[0].joy == NULL)
+		|| (PadMapping[1].enabled && joystate[1].joy == NULL)
+		|| (PadMapping[2].enabled && joystate[2].joy == NULL)
+		|| (PadMapping[3].enabled && joystate[3].joy == NULL))
+	{
+		_PADInitialize->padNumber = -1;
+		Console::Print("%s\n", SDL_GetError());		
+	}
 }
 
  
@@ -258,15 +303,22 @@ int Search_Devices()
 	if (joyinfo)
 	{
 		delete [] joyinfo;
+		joyinfo = new CONTROLLER_INFO [numjoy];
 	}
-
-	joyinfo = new CONTROLLER_INFO [numjoy];
+	else
+	{
+		joyinfo = new CONTROLLER_INFO [numjoy];
+	}
 
 	// Warn the user if no PadMapping are detected
 	if (numjoy == 0)
 	{		
-	    PanicAlert("No Joystick detected!\n");
-	    return 0;
+		#ifdef _WIN32
+		//MessageBox(NULL, "No Joystick detected!", NULL,  MB_ICONWARNING);
+		#else
+		printf("No Joystick detected!\n");
+		#endif
+		return 0;
 	}
 
 	#ifdef _DEBUG
@@ -309,35 +361,35 @@ int Search_Devices()
    Called from: The Dolphin Core, ConfigBox::OnClose() */
 void Shutdown()
 {
-    //Console::Print("Shutdown: %i\n", SDL_WasInit(0));
-    
-    if (PadMapping[0].enabled && SDL_JoystickOpened(PadMapping[0].ID))
-	SDL_JoystickClose(joystate[0].joy);
-    if (PadMapping[1].enabled && SDL_JoystickOpened(PadMapping[1].ID))
-	SDL_JoystickClose(joystate[1].joy);
-    if (PadMapping[2].enabled && SDL_JoystickOpened(PadMapping[2].ID))
-	SDL_JoystickClose(joystate[2].joy);
-    if (PadMapping[3].enabled && SDL_JoystickOpened(PadMapping[3].ID))
-	SDL_JoystickClose(joystate[3].joy);	
-    
-#ifdef _DEBUG
-    DEBUG_QUIT();
-#endif
-    
-    if(joyinfo) {
+	Console::Print("Shutdown: %i\n", SDL_WasInit(0));
+
+	if (PadMapping[0].enabled && SDL_JoystickOpened(PadMapping[0].ID))
+		SDL_JoystickClose(joystate[0].joy);
+	if (PadMapping[1].enabled && SDL_JoystickOpened(PadMapping[1].ID))
+		SDL_JoystickClose(joystate[1].joy);
+	if (PadMapping[2].enabled && SDL_JoystickOpened(PadMapping[2].ID))
+		SDL_JoystickClose(joystate[2].joy);
+	if (PadMapping[3].enabled && SDL_JoystickOpened(PadMapping[3].ID))
+		SDL_JoystickClose(joystate[3].joy);	
+
+	SDL_Quit();
+
+	#ifdef _DEBUG
+		DEBUG_QUIT();
+	#endif
+
 	delete [] joyinfo;
 	joyinfo = NULL;
-    }
-    
-    emulator_running = false;
-    
-#ifdef _WIN32
-#ifdef USE_RUMBLE_DINPUT_HACK
-    FreeDirectInput();
-#endif
-#elif defined(__linux__)
-    close(fd);
-#endif
+
+	emulator_running = false;
+
+	#ifdef _WIN32
+		#ifdef USE_RUMBLE_DINPUT_HACK
+		FreeDirectInput();
+		#endif
+	#elif defined(__linux__)
+		close(fd);
+	#endif
 }
 
 
@@ -512,11 +564,14 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	Console::ClearScreen();
 	Console::Print(
 		"Trigger type: %s  Left:%04x Right:%04x Value:%i\n"
-		"D-Pad type: %s  L:%i  R:%i  U:%i  D:%i",
+		"D-Pad type: %s  L:%i  R:%i  U:%i  D:%i"
+		"Main stick x, y: %i %i",
+
 		(PadMapping[_numPAD].triggertype ? "CTL_TRIGGER_XINPUT" : "CTL_TRIGGER_SDL"),
 		TriggerLeft, TriggerRight, TriggerValue,
 		(PadMapping[_numPAD].controllertype ? "CTL_DPAD_CUSTOM" : "CTL_DPAD_HAT"),
-		0, 0, 0, 0
+		0, 0, 0, 0,
+		main_stick_x, main_stick_y
 		);*/
 }
 
@@ -731,7 +786,7 @@ void GetJoyState(int controller)
 	ReadButton(controller, CTL_START);
 
 	//
-	if (PadMapping[controller].halfpress < joyinfo[controller].NumButtons)
+	if (PadMapping[controller].halfpress < Buttons)
 		joystate[controller].halfpress = SDL_JoystickGetButton(joystate[controller].joy, PadMapping[controller].halfpress);
 
 	// Check if we have an analog or digital joypad

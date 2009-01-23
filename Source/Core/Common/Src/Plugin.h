@@ -36,35 +36,37 @@ class CPlugin
 {
 	public:
 
-	CPlugin(const char* _szName);
-	~CPlugin();
+		CPlugin(const char* _szName);
+		~CPlugin();
 
-	virtual bool IsValid() {return valid;};
+		virtual bool IsValid() {return valid;};
+		virtual std::string GetFilename() {return Filename;};
 
-	bool GetInfo(PLUGIN_INFO& _pluginInfo);
-	void SetGlobals(PLUGIN_GLOBALS* _PluginGlobals);
-	void *LoadSymbol(const char *sym);
+		bool GetInfo(PLUGIN_INFO& _pluginInfo);
+		void SetGlobals(PLUGIN_GLOBALS* _PluginGlobals);
+		void *LoadSymbol(const char *sym);
 
-	void Config(HWND _hwnd);
-	void About(HWND _hwnd);
-	void Debug(HWND _hwnd, bool Show);
-	void DoState(unsigned char **ptr, int mode);
-	void Initialize(void *init);
-	void Shutdown();
+		void Config(HWND _hwnd);
+		void About(HWND _hwnd);
+		void Debug(HWND _hwnd, bool Show);
+		void DoState(unsigned char **ptr, int mode);
+		void Initialize(void *init);
+		void Shutdown();
 
 	private:
 
-	DynamicLibrary m_hInstLib;
-	bool valid;
+		DynamicLibrary m_hInstLib;
+		bool valid;
+		std::string Filename;
 
-	// Functions
-	TGetDllInfo m_GetDllInfo;
-	TDllConfig m_DllConfig;
-	TDllDebugger m_DllDebugger;
-	TSetDllGlobals m_SetDllGlobals;
-	TInitialize m_Initialize;
-	TShutdown m_Shutdown;
-	TDoState m_DoState;
+		// Functions
+		TGetDllInfo m_GetDllInfo;
+		TDllConfig m_DllConfig;
+		TDllDebugger m_DllDebugger;
+		TSetDllGlobals m_SetDllGlobals;
+		TInitialize m_Initialize;
+		TShutdown m_Shutdown;
+		TDoState m_DoState;
 };
 } // end of namespace Common
 

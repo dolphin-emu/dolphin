@@ -37,8 +37,10 @@ CPlugin::~CPlugin()
 
 CPlugin::CPlugin(const char* _szName) : valid(false)
 {
-    if (m_hInstLib.Load(_szName)) {
+    if (m_hInstLib.Load(_szName))
+	{
 
+	// Create pointers to the DLL functions
 	m_GetDllInfo = reinterpret_cast<TGetDllInfo>
 	    (m_hInstLib.Get("GetDllInfo"));
 	m_DllConfig = reinterpret_cast<TDllConfig>
@@ -56,24 +58,28 @@ CPlugin::CPlugin(const char* _szName) : valid(false)
 	}
 
     if (m_GetDllInfo != 0 &&
-	m_DllConfig != 0 &&
-	m_DllDebugger != 0 &&
-	m_SetDllGlobals != 0 &&
-	m_Initialize != 0 &&
-	m_Shutdown != 0 &&
-	m_DoState != 0)
+		m_DllConfig != 0 &&
+		m_DllDebugger != 0 &&
+		m_SetDllGlobals != 0 &&
+		m_Initialize != 0 &&
+		m_Shutdown != 0 &&
+		m_DoState != 0)
 	valid = true;
 
+	// Save the filename for this plugin
+	Filename = _szName;
 }
 
-void *CPlugin::LoadSymbol(const char *sym) {
+void *CPlugin::LoadSymbol(const char *sym)
+{
     return m_hInstLib.Get(sym);
 }
 
 
 // ______________________________________________________________________________________
 // GetInfo: Get DLL info
-bool CPlugin::GetInfo(PLUGIN_INFO& _pluginInfo) {
+bool CPlugin::GetInfo(PLUGIN_INFO& _pluginInfo)
+{
     if (m_GetDllInfo != 0)
 	{
 		m_GetDllInfo(&_pluginInfo);

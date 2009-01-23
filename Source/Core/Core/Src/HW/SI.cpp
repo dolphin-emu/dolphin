@@ -254,9 +254,8 @@ void Init()
 		g_Channel[i].m_InHi.Hex = 0;
 		g_Channel[i].m_InLo.Hex = 0;
 
-		// Access the pad and check the MAXPADS limit
-		Common::PluginPAD* pad = CPluginManager::GetInstance().GetPAD((i >= MAXPADS) ? (MAXPADS - 1): i);
-		//Common::PluginPAD* pad = CPluginManager::GetInstance().GetPAD(i);
+		// Access the pap
+		Common::PluginPAD* pad = CPluginManager::GetInstance().GetPad(i);
 
 		// Check if this pad is attached for the current plugin
 		if (pad != NULL && (pad->PAD_GetAttachedPads() & (1 << i)))

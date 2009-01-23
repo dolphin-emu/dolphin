@@ -155,8 +155,6 @@ bool GetRealWiimote()
 // -----------------
 bool Init()
 {
-	//Console::Open();
-
 	if (g_pThread != NULL)
 	{
 		PanicAlert("ERROR: Emu Thread already running. Report this bug.");
@@ -347,7 +345,18 @@ THREAD_RETURN EmuThread(void *pArg)
 		PADInitialize.pLog = Callback_PADLog;
 		PADInitialize.padNumber = i;
 		// Check if we should init the plugin
-		Plugins.GetPAD(i)->Initialize((void *)&PADInitialize);
+		if(Plugins.OkayToInitPlugin(i))
+		{
+			Plugins.GetPad(i)->Initialize(&PADInitialize);
+
+			// Check if joypad open failed, in that case try again
+			if(PADInitialize.padNumber == -1)
+			{
+				Plugins.GetPad(i)->Shutdown();
+				Plugins.FreePad();
+				Plugins.GetPad(i)->Initialize(&PADInitialize);
+			}
+		}	
 	}
 
 	// Load and Init WiimotePlugin - only if we are booting in wii mode	
