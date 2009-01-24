@@ -64,7 +64,6 @@
 
 #ifdef _WIN32
 	#include <tchar.h>
-	#define _CRT_SECURE_NO_WARNINGS
 	#define DIRECTINPUT_VERSION 0x0800
 	#define WIN32_LEAN_AND_MEAN
 

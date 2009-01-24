@@ -380,7 +380,7 @@ void CGameListCtrl::ScanForISOs(bool bUpdateCache)
 	{
 		wxProgressDialog dialog(_T("Scanning for ISOs"),
 					_T("Scanning..."),
-					rFilenames.size(), // range
+					(int)rFilenames.size(), // range
 					this, // parent
 					wxPD_APP_MODAL |
 					// wxPD_AUTO_HIDE | -- try this as well

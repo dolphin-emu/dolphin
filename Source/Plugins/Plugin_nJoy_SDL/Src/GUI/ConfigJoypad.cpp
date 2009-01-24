@@ -56,7 +56,7 @@ void ConfigBox::UpdateGUIKeys(int controller)
 	m_Joyname[controller]->SetSelection(PadMapping[controller].ID);
 
 	// Update the enabled checkbox
-	m_Joyattach[controller]->SetValue(PadMapping[controller].enabled);
+	m_Joyattach[controller]->SetValue(PadMapping[controller].enabled == 1 ? true : false);
 
 	tmp << PadMapping[controller].buttons[CTL_L_SHOULDER]; m_JoyShoulderL[controller]->SetValue(tmp); tmp.clear();
 	tmp << PadMapping[controller].buttons[CTL_R_SHOULDER]; m_JoyShoulderR[controller]->SetValue(tmp); tmp.clear();
@@ -203,28 +203,32 @@ wxString ConfigBox::GetButtonText(int id)
 
 	switch(id)
 	{
+		// D-Pad
 		case IDB_DPAD_RIGHT: return m_JoyDpadRight[controller]->GetValue();
-		case IDB_DPAD_UP: return m_JoyDpadUp[controller]->GetValue(); break;
-		case IDB_DPAD_DOWN: return m_JoyDpadDown[controller]->GetValue(); break;
-		case IDB_DPAD_LEFT: return m_JoyDpadLeft[controller]->GetValue();	break;
+		case IDB_DPAD_UP: return m_JoyDpadUp[controller]->GetValue();
+		case IDB_DPAD_DOWN: return m_JoyDpadDown[controller]->GetValue();
+		case IDB_DPAD_LEFT: return m_JoyDpadLeft[controller]->GetValue();
 
-		case IDB_ANALOG_MAIN_X: return m_JoyAnalogMainX[controller]->GetValue(); break;
-		case IDB_ANALOG_MAIN_Y: return m_JoyAnalogMainY[controller]->GetValue(); break;
-		case IDB_ANALOG_SUB_X: return m_JoyAnalogSubX[controller]->GetValue(); break;
-		case IDB_ANALOG_SUB_Y: return m_JoyAnalogSubY[controller]->GetValue(); break;
+		// Analog Stick
+		case IDB_ANALOG_MAIN_X: return m_JoyAnalogMainX[controller]->GetValue();
+		case IDB_ANALOG_MAIN_Y: return m_JoyAnalogMainY[controller]->GetValue();
+		case IDB_ANALOG_SUB_X: return m_JoyAnalogSubX[controller]->GetValue();
+		case IDB_ANALOG_SUB_Y: return m_JoyAnalogSubY[controller]->GetValue();
 
-		case IDB_SHOULDER_L: return m_JoyShoulderL[controller]->GetValue(); break;
-		case IDB_SHOULDER_R: return m_JoyShoulderR[controller]->GetValue(); break;
+		// Shoulder Buttons
+		case IDB_SHOULDER_L: return m_JoyShoulderL[controller]->GetValue();
+		case IDB_SHOULDER_R: return m_JoyShoulderR[controller]->GetValue();
 		
-		case IDB_BUTTON_A: return m_JoyButtonA[controller]->GetValue(); break;		
-		case IDB_BUTTON_B: return m_JoyButtonB[controller]->GetValue(); break;
-		case IDB_BUTTON_X: return m_JoyButtonX[controller]->GetValue(); break;
-		case IDB_BUTTON_Y: return m_JoyButtonY[controller]->GetValue(); break;
-		case IDB_BUTTON_Z: return m_JoyButtonZ[controller]->GetValue(); break;
-		case IDB_BUTTONSTART: return m_JoyButtonStart[controller]->GetValue(); break;
+		// Buttons
+		case IDB_BUTTON_A: return m_JoyButtonA[controller]->GetValue();		
+		case IDB_BUTTON_B: return m_JoyButtonB[controller]->GetValue();
+		case IDB_BUTTON_X: return m_JoyButtonX[controller]->GetValue();
+		case IDB_BUTTON_Y: return m_JoyButtonY[controller]->GetValue();
+		case IDB_BUTTON_Z: return m_JoyButtonZ[controller]->GetValue();
+		case IDB_BUTTONSTART: return m_JoyButtonStart[controller]->GetValue();
 
-		case IDB_BUTTONHALFPRESS: return m_JoyButtonHalfpress[controller]->GetValue(); break;
-		default: break;
+		case IDB_BUTTONHALFPRESS: return m_JoyButtonHalfpress[controller]->GetValue();
+		default: return wxString("");
 	}
 }
 

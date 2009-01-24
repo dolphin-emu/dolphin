@@ -145,7 +145,7 @@ void CVolumeDirectory::SetUniqueID(std::string _ID)
 {
 	_dbg_assert_(DVDINTERFACE, m_diskHeader);
 
-	u32 length = _ID.length();
+	u32 length = (u32)_ID.length();
 	if(length > 6)
 		length = 6;
 
@@ -218,7 +218,7 @@ void CVolumeDirectory::SetName(std::string _Name)
 {
 	_dbg_assert_(DVDINTERFACE, m_diskHeader);
 
-	u32 length = _Name.length();
+	u32 length = (u32)_Name.length();
 	if(length > MAX_NAME_LENGTH)
 		length = MAX_NAME_LENGTH;
 
@@ -410,7 +410,7 @@ void CVolumeDirectory::WriteEntryName(u32& nameOffset, const std::string& name)
 {
 	strncpy((char*)(m_FSTData + nameOffset + m_fstNameOffset), name.c_str(), name.length() + 1);
 	
-	nameOffset += (name.length() + 1);
+	nameOffset += (u32)(name.length() + 1);
 }
 
 void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u32& nameOffset, u64& dataOffset, u32 parentEntryNum)
@@ -454,7 +454,7 @@ static u32 ComputeNameSize(const File::FSTEntry& parentEntry)
 		{
 			nameSize += ComputeNameSize(entry);
 		}
-		nameSize += entry.virtualName.length() + 1;
+		nameSize += (u32)entry.virtualName.length() + 1;
 	}
 	return nameSize;
 }

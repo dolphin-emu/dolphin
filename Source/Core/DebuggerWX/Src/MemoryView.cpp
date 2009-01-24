@@ -212,7 +212,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 		int src, dst, srcAddr;
 	};
 
-	branch branches[256];
+	// branch branches[256]; // TODO: This is not being used
 	int numBranches = 0;
 	// TODO: Add any drawing code here...
 	int width   = rc.width;

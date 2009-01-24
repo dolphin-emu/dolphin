@@ -655,7 +655,7 @@
 		int s = inst.RS;
 		if (gpr.R(s).IsImm() && !inst.Rc)
 		{
-			unsigned result = gpr.R(s).offset;
+			unsigned result = (int)gpr.R(s).offset;
 			if (inst.SH != 0)
 				result = _rotl(result, inst.SH);
 			result &= Helper_Mask(inst.MB, inst.ME);

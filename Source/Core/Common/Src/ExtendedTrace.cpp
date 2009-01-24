@@ -325,8 +325,8 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, FILE *file )
 		etfprint(file, "Call stack info: \n");
 		etfprint(file, lpszMessage);
 
-		GetFunctionInfoFromAddresses( callStack.AddrPC.Offset, callStack.AddrFrame.Offset, symInfo );
-		GetSourceInfoFromAddress( callStack.AddrPC.Offset, srcInfo );
+		GetFunctionInfoFromAddresses( (ULONG)callStack.AddrPC.Offset, (ULONG)callStack.AddrFrame.Offset, symInfo );
+		GetSourceInfoFromAddress( (ULONG)callStack.AddrPC.Offset, srcInfo );
 		etfprint(file, string("     ") + srcInfo + string(" : ") + symInfo + string("\n"));
 
 		for( ULONG index = 0; ; index++ ) 
@@ -348,8 +348,8 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, FILE *file )
 			if( !bResult || callStack.AddrFrame.Offset == 0 ) 
 				break;
 
-			GetFunctionInfoFromAddresses( callStack.AddrPC.Offset, callStack.AddrFrame.Offset, symInfo );
-			GetSourceInfoFromAddress( callStack.AddrPC.Offset, srcInfo );
+			GetFunctionInfoFromAddresses( (ULONG)callStack.AddrPC.Offset, (ULONG)callStack.AddrFrame.Offset, symInfo );
+			GetSourceInfoFromAddress( (UINT)callStack.AddrPC.Offset, srcInfo );
 			etfprint(file, string("     ") + srcInfo + string(" : ") + symInfo + string("\n"));
 
 		}
@@ -386,8 +386,8 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, FILE *file, DWORD eip, DWO
 		etfprint(file, "Call stack info: \n");
 		etfprint(file, lpszMessage);
 
-		GetFunctionInfoFromAddresses( callStack.AddrPC.Offset, callStack.AddrFrame.Offset, symInfo );
-		GetSourceInfoFromAddress( callStack.AddrPC.Offset, srcInfo );
+		GetFunctionInfoFromAddresses( (ULONG)callStack.AddrPC.Offset, (ULONG)callStack.AddrFrame.Offset, symInfo );
+		GetSourceInfoFromAddress( (UINT)callStack.AddrPC.Offset, srcInfo );
 		etfprint(file, string("     ") + srcInfo + string(" : ") + symInfo + string("\n"));
 
 		for( ULONG index = 0; ; index++ ) 
@@ -409,8 +409,8 @@ void StackTrace( HANDLE hThread, LPCTSTR lpszMessage, FILE *file, DWORD eip, DWO
 			if( !bResult || callStack.AddrFrame.Offset == 0 ) 
 				break;
 
-			GetFunctionInfoFromAddresses( callStack.AddrPC.Offset, callStack.AddrFrame.Offset, symInfo );
-			GetSourceInfoFromAddress( callStack.AddrPC.Offset, srcInfo );
+			GetFunctionInfoFromAddresses( (ULONG)callStack.AddrPC.Offset, (ULONG)callStack.AddrFrame.Offset, symInfo );
+			GetSourceInfoFromAddress( (UINT)callStack.AddrPC.Offset, srcInfo );
 			etfprint(file, string("     ") + srcInfo + string(" : ") + symInfo + string("\n"));
 
 		}

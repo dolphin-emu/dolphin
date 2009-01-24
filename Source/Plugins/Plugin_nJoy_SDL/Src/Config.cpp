@@ -38,6 +38,7 @@
 
 Config g_Config;
 extern ConfigBox* m_frame;
+
 //////////////////////////////////
 
 

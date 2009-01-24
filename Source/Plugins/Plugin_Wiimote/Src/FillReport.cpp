@@ -180,7 +180,7 @@ void FillReportAcc(wm_accel& _acc)
 		|| shake > 0
 		);	
 #endif
-	if(yhistsize > yhist.size()) yhistsize = yhist.size();
+	if(yhistsize > yhist.size()) yhistsize = (int)yhist.size();
 	for (int i = 1; i < yhistsize; i++)
 	{
 		yhist[i-1] = yhist[i];

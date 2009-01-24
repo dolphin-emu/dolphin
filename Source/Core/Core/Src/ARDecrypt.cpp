@@ -406,7 +406,7 @@ int GetVal(const char *flt, char chr)
 {
 	int ret;
 
-	ret = (strchr(flt,chr) - flt);
+	ret = (int)(strchr(flt,chr) - flt);
 	switch (ret)
 	{
 	case 32: // 'I'

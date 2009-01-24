@@ -51,7 +51,6 @@
 #pragma comment(lib, "comctl32.lib")
 #include <tchar.h>
 #include <math.h>
-#define _CRT_SECURE_NO_WARNINGS
 #define DIRECTINPUT_VERSION 0x0800
 #define WIN32_LEAN_AND_MEAN
 

@@ -218,7 +218,7 @@ if(m_frame->ScanMails)
 	if(addnew == m_frame->sMail.size())
 	{		
 		//Console::Print("%i  |  %i\n", addnew, m_frame->sMail.size());
-		u32 resizeTo = m_frame->sMail.size() + 1;		
+		u32 resizeTo = (u32)(m_frame->sMail.size() + 1);		
 
 		// ------------------------------------
 		// get timestamp

@@ -126,7 +126,7 @@ int Print(const char *fmt, ...)
 		// ----------------
 		if(__hStdOut)
 		{
-			WriteConsole(__hStdOut, s, strlen(s), &cCharsWritten, NULL);
+			WriteConsole(__hStdOut, s, (DWORD)strlen(s), &cCharsWritten, NULL);
 		}
 
 		// ----------------------------------------

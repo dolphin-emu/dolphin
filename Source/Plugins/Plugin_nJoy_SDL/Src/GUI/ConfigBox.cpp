@@ -455,7 +455,7 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 	LogMsg("Update: %i\n", g_Config.bSaveByID);
 
 	// Disabled pages
-	bool Enabled = PadMapping[_notebookpage].enabled;
+	bool Enabled = PadMapping[_notebookpage].enabled  == 1 ? true : false;
 	// There is no FindItem in linux so this doesn't work
 	#ifdef _WIN32
 		// Enable or disable all buttons

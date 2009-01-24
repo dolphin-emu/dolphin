@@ -199,7 +199,7 @@ void RasterFont::printMultilineText(const char *text, double start_x, double sta
 			//todo: add tabs every something like 4*char_width
 			*t=0;
 
-			int cpos = strlen(temp);
+			int cpos = (int)strlen(temp);
 
                         int newpos = (cpos+4)&(~3);
 

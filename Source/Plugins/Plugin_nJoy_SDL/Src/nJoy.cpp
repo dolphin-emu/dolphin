@@ -666,7 +666,7 @@ std::vector<int> Pad_Square_to_Circle(int _x, int _y, int _pad)
 	float SquareDist = SquareDistance(deg);
 	float adj_ratio1; // The original-to-square distance adjustment
 	float adj_ratio2 = SquareDist; // The circle-to-square distance adjustment
-	float final_ratio; // The final adjustment to the current distance
+	// float final_ratio; // The final adjustment to the current distance //TODO: This is not used
 	float result_dist; // The resulting distance
 
 	// Calculate the corner-to-square adjustment ratio

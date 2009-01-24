@@ -679,7 +679,7 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 		if (dlg.ShowModal() == wxID_OK)
 		{
 			Patches->Append(wxString::FromAscii(onFrame.back().name.c_str()));
-			Patches->Check(onFrame.size() - 1, onFrame.back().active);
+			Patches->Check((unsigned int)(onFrame.size() - 1), onFrame.back().active);
 		}
 		}
 		break;

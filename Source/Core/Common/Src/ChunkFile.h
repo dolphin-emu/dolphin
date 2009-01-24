@@ -172,7 +172,7 @@ public:
 			}
 
 			// get size
-			int sz = FileSize - sizeof(SChunkHeader);
+			int sz = (int)(FileSize - sizeof(SChunkHeader));
 			if (Header.ExpectedSize != sz)
 			{
 				fclose(pFile);
@@ -213,7 +213,7 @@ public:
 			SChunkHeader Header;
 			Header.Compress = 0;
 			Header.Revision = _Revision;
-			Header.ExpectedSize = sz;
+			Header.ExpectedSize = (int)sz;
 
 			fwrite(&Header, sizeof(SChunkHeader), 1, pFile);
 			fwrite(buffer, sz, 1, pFile);

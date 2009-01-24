@@ -642,7 +642,7 @@ extern DECLSPEC int SDLCALL SDL_vsnprintf(char *text, size_t maxlen,
                                           const char *fmt, va_list ap);
 #endif
 
-#ifndef HAVE_M_PI
+#ifndef M_PI
 #define M_PI    3.14159265358979323846264338327950288   /* pi */
 #endif
 

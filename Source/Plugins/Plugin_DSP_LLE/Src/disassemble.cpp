@@ -520,7 +520,7 @@ bool gd_dis_file(gd_globals_t* gdg, char* name, FILE* output)
 	}
 
 	fseek(in, 0, SEEK_END);
-	size = ftell(in);
+	size = (int)ftell(in);
 	fseek(in, 0, SEEK_SET);
 	gdg->binbuf = (uint16*)malloc(size);
 	fread(gdg->binbuf, 1, size, in);

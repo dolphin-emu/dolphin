@@ -101,7 +101,7 @@ bool IBannerLoader::CopySJISToString( std::string& _rDestination, const char* _s
 	// HyperIris: because dolphin using "Use Multi-Byte Character Set",
 	// we must convert the SJIS chars to unicode then to our windows local by hand
 	u32 unicodeNameSize = MultiByteToWideChar(932, MB_PRECOMPOSED, 
-		_src, strlen(_src),	NULL, NULL);
+		_src, (int)strlen(_src),	NULL, NULL);
 	if (unicodeNameSize > 0)
 	{
 		u16* pUnicodeStrBuffer = new u16[unicodeNameSize + 1];
@@ -109,7 +109,7 @@ bool IBannerLoader::CopySJISToString( std::string& _rDestination, const char* _s
 		{
 			memset(pUnicodeStrBuffer, 0, (unicodeNameSize + 1) * sizeof(u16));
 			if (MultiByteToWideChar(932, MB_PRECOMPOSED, 
-				_src, strlen(_src),
+				_src, (int)strlen(_src),
 				(LPWSTR)pUnicodeStrBuffer, unicodeNameSize))
 			{
 				u32 ansiNameSize = WideCharToMultiByte(CP_ACP, 0, 
@@ -150,7 +150,7 @@ bool IBannerLoader::CopyUnicodeToString( std::string& _rDestination, const u16* 
 	if (_src)
 	{
 		u32 ansiNameSize = WideCharToMultiByte(CP_ACP, 0, 
-			(LPCWSTR)_src, wcslen((const wchar_t*)_src),
+			(LPCWSTR)_src, (int)wcslen((const wchar_t*)_src),
 			NULL, NULL, NULL, NULL);
 		if (ansiNameSize > 0)
 		{
@@ -159,7 +159,7 @@ bool IBannerLoader::CopyUnicodeToString( std::string& _rDestination, const u16* 
 			{
 				memset(pAnsiStrBuffer, 0, (ansiNameSize + 1) * sizeof(char));
 				if (WideCharToMultiByte(CP_ACP, 0, 
-					(LPCWSTR)_src, wcslen((const wchar_t*)_src),
+					(LPCWSTR)_src, (int)wcslen((const wchar_t*)_src),
 					pAnsiStrBuffer, ansiNameSize, NULL, NULL))
 				{
 					_rDestination = pAnsiStrBuffer;

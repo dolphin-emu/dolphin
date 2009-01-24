@@ -164,7 +164,7 @@ void CreateAckDelay(u8 _ChannelID, u16 _ReportID)
 	wm_ackdelay Tmp;
 	Tmp.Delay = GlobalDelay;
 	Tmp.ChannelID = _ChannelID;
-	Tmp.ReportID = _ReportID;
+	Tmp.ReportID = (u8)_ReportID;
 	AckDelay.push_back(Tmp);
 }
 
@@ -267,7 +267,7 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 					//if((data[1] == WM_WRITE_DATA  || data[1] == WM_READ_DATA)
 					//	&& data[3] == 0xa4)
 					//{
-						CreateAckDelay(_channelID, sr->channel);
+						CreateAckDelay((u8)_channelID, (u16)sr->channel);
 					//}
 					//else
 					//{

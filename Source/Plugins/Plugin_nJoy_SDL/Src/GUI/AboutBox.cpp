@@ -33,7 +33,6 @@
 #include "../nJoy.h"
 #include "Images/njoy.xpm"
 
-
 BEGIN_EVENT_TABLE(AboutBox,wxDialog)
 	EVT_CLOSE(AboutBox::OnClose)
 	EVT_BUTTON(ID_OK, AboutBox::OKClick)
