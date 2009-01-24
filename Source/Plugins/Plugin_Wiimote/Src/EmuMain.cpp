@@ -171,7 +171,7 @@ void CreateAckDelay(u8 _ChannelID, u16 _ReportID)
 
 void CheckAckDelay()
 {
-	for (int i = 0; i < AckDelay.size(); i++)
+	for (int i = 0; i < (int)AckDelay.size(); i++)
 	{
 		// See if there are any acks to send
 		if (AckDelay.at(i).Delay >= 0)

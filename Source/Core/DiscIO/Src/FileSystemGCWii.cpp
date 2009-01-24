@@ -187,7 +187,7 @@ bool CFileSystemGCWii::InitFileSystem()
 			PanicAlert("Wtf?");
 		u64 NameTableOffset = FSTOffset;
 
-		m_FileInfoVector.reserve(Root.m_FileSize);
+		m_FileInfoVector.reserve((unsigned int)Root.m_FileSize);
 		for (u32 i = 0; i < Root.m_FileSize; i++)
 		{
 			SFileInfo sfi;

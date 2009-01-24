@@ -327,9 +327,9 @@ void Logging()
 			iupdonce = true;
 		}
 
-		for (int i = 0; i < viupd.size(); i++) // 0, 1,..., 9
+		for (int i = 0; i < (int)viupd.size(); i++) // 0, 1,..., 9
 		{
-			if (i < viupd.size()-1)
+			if (i < (int)viupd.size()-1)
 			{
 				viupd.at(viupd.size()-i-1) = viupd.at(viupd.size()-i-2);		// move all forward	
 			}
@@ -349,7 +349,7 @@ void Logging()
 			}				
 		}
 
-		for (int i = 0; i < viupd.size(); i++)
+		for (int i = 0; i < (int)viupd.size(); i++)
 		{
 			if(viupd.at(i) == 0)
 				sbuff = sbuff + " ";

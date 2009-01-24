@@ -92,7 +92,7 @@ CARCFile::ReadFile(const std::string& _rFullPath, u8* _pBuffer, size_t _MaxBuffe
 		return(0);
 	}
 
-	memcpy(_pBuffer, &m_pBuffer[pFileInfo->m_Offset], pFileInfo->m_FileSize);
+	memcpy(_pBuffer, &m_pBuffer[pFileInfo->m_Offset], (size_t)pFileInfo->m_FileSize);
 	return((size_t) pFileInfo->m_FileSize);
 }
 
@@ -156,7 +156,7 @@ CARCFile::ParseBuffer()
 
 	if (Root.IsDirectory())
 	{
-		m_FileInfoVector.resize(Root.m_FileSize);
+		m_FileInfoVector.resize((unsigned int)Root.m_FileSize);
 		const char* szNameTable = (char*)(m_pBuffer + FSTOffset);
 
 		for (size_t i = 0; i < m_FileInfoVector.size(); i++)

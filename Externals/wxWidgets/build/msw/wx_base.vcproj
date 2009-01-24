@@ -49,6 +49,7 @@
 				AdditionalIncludeDirectories="..\..\Include;..\..\Include\msvc;..\..\..\zlib"
 				PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;wxUSE_GUI=0;wxUSE_BASE=1;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
+				ExceptionHandling="2"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="false"
 				RuntimeTypeInfo="true"
@@ -127,6 +128,7 @@
 				AdditionalIncludeDirectories="..\..\Include;..\..\Include\msvc;..\..\..\zlib"
 				PreprocessorDefinitions="WIN32;_LIB;__WXMSW__;wxUSE_GUI=0;wxUSE_BASE=1;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				StringPooling="true"
+				ExceptionHandling="2"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				RuntimeTypeInfo="true"
@@ -139,7 +141,7 @@
 				WarningLevel="3"
 				WarnAsError="false"
 				SuppressStartupBanner="true"
-				DisableSpecificWarnings="4267;4535;"
+				DisableSpecificWarnings="4267"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -5733,6 +5735,10 @@
 			Name="Setup Headers"
 			>
 			<File
+				RelativePath="..\..\include\wx\univ\setup.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\wx\msw\setup.h"
 				>
 				<FileConfiguration
@@ -5795,10 +5801,6 @@
 						Outputs="..\..\lib\vc_lib\msw\wx\setup.h"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\..\include\wx\univ\setup.h"
-				>
 			</File>
 		</Filter>
 		<Filter

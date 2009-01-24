@@ -200,7 +200,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="comctl32.lib rpcrt4.lib"
+				AdditionalDependencies="rpcrt4.lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -465,6 +465,14 @@
 				RelativePath=".\resources\toolbar_add_breakpoint.c"
 				>
 				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|x64"
 					ExcludedFromBuild="true"
 					>
@@ -476,6 +484,14 @@
 			<File
 				RelativePath=".\resources\toolbar_add_memorycheck.c"
 				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|x64"
 					ExcludedFromBuild="true"
@@ -489,6 +505,14 @@
 				RelativePath=".\resources\toolbar_delete.c"
 				>
 				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|x64"
 					ExcludedFromBuild="true"
 					>
@@ -501,6 +525,14 @@
 				RelativePath=".\resources\toolbar_pause.c"
 				>
 				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|x64"
 					ExcludedFromBuild="true"
 					>
@@ -512,6 +544,14 @@
 			<File
 				RelativePath=".\resources\toolbar_play.c"
 				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|x64"
 					ExcludedFromBuild="true"
