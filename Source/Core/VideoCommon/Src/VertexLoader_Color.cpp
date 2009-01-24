@@ -69,19 +69,21 @@ void _SetCol565(u16 val)
 //////////////////////////////////////////////////////////////////////////
 inline u32 _Read24(u32 iAddress)
 {
-	u32 col = Memory_Read_U8(iAddress)   << RSHIFT;      //should just get a pointer to main memory instead of going thru slow memhandler
-	col     |= Memory_Read_U8(iAddress+1) << GSHIFT;    //we can guarantee that it is reading from main memory
-	col     |= Memory_Read_U8(iAddress+2) << BSHIFT;
-	return col | (0xFF<<ASHIFT);
+//	u32 col = Memory_Read_U8(iAddress)   << RSHIFT;      //should just get a pointer to main memory instead of going thru slow memhandler
+//	col     |= Memory_Read_U8(iAddress+1) << GSHIFT;    //we can guarantee that it is reading from main memory
+//	col     |= Memory_Read_U8(iAddress+2) << BSHIFT;
+//	return col | (0xFF<<ASHIFT);
+	return Memory_Read_U32_Unswapped(iAddress)|0xFF000000;
 }
 
 inline u32 _Read32(u32 iAddress)
 {
-	u32 col = Memory_Read_U8(iAddress)   << RSHIFT;      //should just get a pointer to main memory instead of going thru slow memhandler
-	col     |= Memory_Read_U8(iAddress+1) << GSHIFT;    //we can guarantee that it is reading from main memory
-	col     |= Memory_Read_U8(iAddress+2) << BSHIFT;
-	col     |= Memory_Read_U8(iAddress+3) << ASHIFT;
-	return col;
+//	u32 col = Memory_Read_U8(iAddress)   << RSHIFT;      //should just get a pointer to main memory instead of going thru slow memhandler
+//	col     |= Memory_Read_U8(iAddress+1) << GSHIFT;    //we can guarantee that it is reading from main memory
+//	col     |= Memory_Read_U8(iAddress+2) << BSHIFT;
+//	col     |= Memory_Read_U8(iAddress+3) << ASHIFT;
+//	return col;
+	return Memory_Read_U32_Unswapped(iAddress);
 }
 
 //////////////////////////////////////////////////////////////////////////

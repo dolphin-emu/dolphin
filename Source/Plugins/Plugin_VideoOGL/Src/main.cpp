@@ -360,12 +360,23 @@ unsigned int Video_Screenshot(TCHAR* _szFilename)
     return FALSE;
 }
 
-void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset)
+
+void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, BOOL scheduling)
 {
-	if(g_Config.bUseXFB)
+	if(g_Config.bUseXFB && XFB_isInit())
 	{
-		if (XFB_isInit())
-			XFB_Draw(_pXFB, _dwWidth, _dwHeight, _dwYOffset);
+		if (scheduling) // DC mode
+		{
+			XFB_SetUpdateArgs(_pXFB, _dwWidth, _dwHeight, _dwYOffset);
+			g_XFBUpdateRequested = TRUE;
+		}
+		else	// SC mode or DC without fifo&CP
+		{
+			if (_pXFB) // from CPU
+				XFB_Draw(_pXFB, _dwWidth, _dwHeight, _dwYOffset);
+			else // from GP
+				XFB_Draw();
+		}
 	}
 }
 

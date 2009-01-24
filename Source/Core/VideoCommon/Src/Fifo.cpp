@@ -25,7 +25,12 @@
 
 extern u8* g_pVideoData;
 
-bool fifoStateRun = true;
+// TODO (mb2): move/rm this global
+volatile BOOL g_XFBUpdateRequested = FALSE;
+
+#ifndef _WIN32
+static bool fifoStateRun = true;
+#endif
 
 // STATE_TO_SAVE
 static u8 *videoBuffer;
@@ -43,18 +48,25 @@ void Fifo_DoState(PointerWrap &p)
 void Fifo_Init()
 {
     videoBuffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
+#ifndef _WIN32
     fifoStateRun = true;
+#endif
+	g_XFBUpdateRequested = FALSE;
 }
 
 void Fifo_Shutdown()
 {
     FreeMemoryPages(videoBuffer, FIFO_SIZE);
+#ifndef _WIN32
     fifoStateRun = false;
+#endif
 }
 
 void Fifo_Stop() 
 {
+#ifndef _WIN32
     fifoStateRun = false;
+#endif
 }
 
 u8* FAKE_GetFifoStartPtr()
@@ -97,20 +109,26 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
     while (fifoStateRun)
 #endif
     {
-        if (_fifo.CPReadWriteDistance < _fifo.CPLoWatermark)
+        if (_fifo.CPReadWriteDistance == 0)
 			Common::SleepCurrentThread(1);
         //etc...
 
+		if (g_XFBUpdateRequested)
+		{
+			Video_UpdateXFB(NULL, 0, 0, 0, FALSE);
+			g_XFBUpdateRequested = FALSE;
+			video_initialize.pCopiedToXFB();
+		}
         // check if we are able to run this buffer
         if ((_fifo.bFF_GPReadEnable) && _fifo.CPReadWriteDistance && !(_fifo.bFF_BPEnable && _fifo.bFF_Breakpoint))
         {
 			Common::SyncInterlockedExchange((LONG*)&_fifo.CPReadIdle, 0);
 			//video_initialize.pLog("RUN...........................",FALSE);
 			int peek_counter = 0;
-            while (_fifo.bFF_GPReadEnable && (_fifo.CPReadWriteDistance > 0))
+            while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance)
 			{
 				peek_counter++;
-				if (peek_counter == 50) {
+				if (peek_counter == 1000) {
 					video_initialize.pPeekMessages();
 					peek_counter = 0;
 				}
@@ -146,6 +164,8 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 #else
 					// sending the whole CPReadWriteDistance
 					distToSend = _fifo.CPReadWriteDistance;
+					// send 1024B chunk max lenght to have better control over PeekMessages' period
+					distToSend = distToSend > 1024 ? 1024 : distToSend;
 					if ( (distToSend+readPtr) >= _fifo.CPEnd) // TODO: better?
 					{
 						distToSend =_fifo.CPEnd - readPtr;

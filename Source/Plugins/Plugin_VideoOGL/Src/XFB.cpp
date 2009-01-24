@@ -39,6 +39,16 @@ enum {
 
 static GLuint xfb_decoded_texture;
 static int XFBInitStatus = 0;
+static struct 
+{ 
+	u8* pXFB;
+	u32 width;
+	u32 height;
+	s32 yOffset;
+} tUpdateXFBArgs;
+
+void XFB_SetUpdateArgs(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset);
+
 
 void XFB_Init()
 {
@@ -106,6 +116,19 @@ void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset)
 
 	Renderer::RestoreGLState();
 	GL_REPORT_ERRORD();
+}
+
+void XFB_Draw()
+{
+	XFB_Draw(tUpdateXFBArgs.pXFB, tUpdateXFBArgs.width, tUpdateXFBArgs.height, tUpdateXFBArgs.yOffset);
+}
+
+void XFB_SetUpdateArgs(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset)
+{
+	tUpdateXFBArgs.pXFB = _pXFB;
+	tUpdateXFBArgs.width = _dwWidth;
+	tUpdateXFBArgs.height = _dwHeight;
+	tUpdateXFBArgs.yOffset = _dwYOffset;
 }
 
 #else

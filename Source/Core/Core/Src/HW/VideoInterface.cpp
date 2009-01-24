@@ -20,6 +20,8 @@
 
 #include "../PowerPC/PowerPC.h"
 
+#include "../Core.h" // <- for Core::GetStartupParameter().bUseDualCore
+#include "CommandProcessor.h" // <- for homebrew's XFB draw hack
 #include "PeripheralInterface.h"
 #include "VideoInterface.h"
 #include "Memmap.h"
@@ -513,30 +515,45 @@ void Update()
 			u8* xfbPtr = 0;
 			int yOffset = 0;
 
-			if (NextXFBRender == 1)
+			// (mb2) hack: We request XFB updates from CPUthread (here) only when homebrews use directly XFB without FIFO and CP
+			if (CommandProcessor::IsCommandProcessorNotUsed())
 			{
-				NextXFBRender = LinesPerField;
-				u32 addr = (VideoInterface::m_FrameBufferTop.Hex & 0xFFFFFFF);
-				if (VideoInterface::m_FrameBufferTop.Hex & 0x10000000)
-					addr = addr << 5;
-				xfbPtr = Memory::GetPointer(addr);
-			}
-			else
-			{
-				NextXFBRender = 1;
-				u32 addr = (VideoInterface::m_FrameBufferBottom.Hex & 0xFFFFFFF);
-				// check the top buffer address not the bottom
-				if (VideoInterface::m_FrameBufferTop.Hex & 0x10000000)
-					addr = addr << 5;
-				xfbPtr = Memory::GetPointer(addr);
-				yOffset = -1;
-			}
-			Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
-			if (xfbPtr && video->IsValid())
-			{
-				int fbWidth = m_VIHorizontalStepping.FieldSteps * 16;
-				int fbHeight = (m_VIHorizontalStepping.FbSteps / m_VIHorizontalStepping.FieldSteps) * m_VIVerticalTimingRegister.ACV;				
-				video->Video_UpdateXFB(xfbPtr, fbWidth, fbHeight, yOffset);
+				if (NextXFBRender == 1)
+				{
+					NextXFBRender = LinesPerField;
+					// TODO: proper VI regs typedef and logic for XFB to work.
+					// eg. Animal Crossing gc have smth in TFBL.XOF bitfield.
+					// "XOF - Horizontal Offset of the left-most pixel within the first word of the fetched picture."
+					u32 addr = (m_FrameBufferTop.Hex & 0x00FFFFFF);
+					if (m_FrameBufferTop.Hex & 0x10000000)
+						addr = addr << 5;
+					xfbPtr = Memory::GetPointer(addr);
+					_dbg_assert_msg_(VIDEOINTERFACE, xfbPtr, "Bad top XFB address");
+				}
+				else
+				{
+					NextXFBRender = 1;
+					// TODO: proper VI regs typedef and logic for XFB to work.
+					u32 addr = (m_FrameBufferBottom.Hex & 0x00FFFFFF);
+					// check the top buffer address not the bottom <- (mb2) why not on the bottom one?
+					if (m_FrameBufferTop.Hex & 0x10000000)
+						addr = addr << 5;
+					xfbPtr = Memory::GetPointer(addr);
+					_dbg_assert_msg_(VIDEOINTERFACE, xfbPtr, "Bad bottom XFB address");
+					yOffset = -1;
+				}
+				Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
+				if (xfbPtr && video->IsValid())
+				{
+					int fbWidth = m_VIHorizontalStepping.FieldSteps * 16;
+					int fbHeight = (m_VIHorizontalStepping.FbSteps / m_VIHorizontalStepping.FieldSteps) * m_VIVerticalTimingRegister.ACV;				
+					if (Core::GetStartupParameter().bUseDualCore)
+						// scheduled on EmuThread in DC mode
+						video->Video_UpdateXFB(xfbPtr, fbWidth, fbHeight, yOffset, TRUE); 
+					else
+						// otherwise do it now from here (CPUthread)
+						video->Video_UpdateXFB(xfbPtr, fbWidth, fbHeight, yOffset, FALSE);
+				}
 			}
 		}
 

@@ -27,9 +27,12 @@ void XFB_Write(u8 *xfb_in_ram, const TRectangle& sourceRc, u32 dstWd, u32 dstHt)
 
 // draw the XFB to the screen
 void XFB_Draw(u8 *xfb_in_ram, u32 width, u32 height, s32 yOffset);
+void XFB_Draw();
 
 void XFB_Shutdown();
 
 int XFB_isInit();
+
+void XFB_SetUpdateArgs(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset);
 
 #endif

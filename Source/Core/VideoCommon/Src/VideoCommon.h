@@ -43,6 +43,8 @@ enum {
 };
 
 extern SVideoInitialize g_VideoInitialize;
+// (mb2) for XFB update hack. TODO: find a static better place
+extern volatile BOOL g_XFBUpdateRequested;
 
 void DebugLog(const char* _fmt, ...);
 
@@ -64,6 +66,11 @@ inline u16 Memory_Read_U16(u32 _uAddress)
 inline u32 Memory_Read_U32(u32 _uAddress)
 {
 	return Common::swap32(*(u32*)g_VideoInitialize.pGetMemoryPointer(_uAddress));
+}
+
+inline u32 Memory_Read_U32_Unswapped(u32 _uAddress)
+{
+	return *(u32*)g_VideoInitialize.pGetMemoryPointer(_uAddress);
 }
 
 inline float Memory_Read_Float(u32 _uAddress)

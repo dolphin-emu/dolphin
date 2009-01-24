@@ -810,7 +810,8 @@ u8 *GetPointer(const u32 _Address)
 		_dbg_assert_msg_(MEMMAP, 0, "Memory", "GetPointer from IO Bridge doesnt work");
 		return NULL;
 	default:
-		PanicAlert("Tried to get pointer for unknown address %08x", _Address);
+		if (!PanicYesNo("Tried to get pointer for unknown address %08x\n Continue?", _Address))
+			Crash();
 		break;
 	}
 	return NULL;

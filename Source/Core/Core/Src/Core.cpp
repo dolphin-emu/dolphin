@@ -426,8 +426,8 @@ THREAD_RETURN EmuThread(void *pArg)
 	}
 	else
 	{
-	    cpuThread = new Common::Thread(CpuThread, pArg);
 	    Plugins.GetVideo()->Video_Prepare(); //wglMakeCurrent
+	    cpuThread = new Common::Thread(CpuThread, pArg);
 	    Common::SetCurrentThreadName("Video thread");
 	    Plugins.GetVideo()->Video_EnterLoop();
 	}
