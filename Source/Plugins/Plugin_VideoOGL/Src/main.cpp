@@ -361,7 +361,7 @@ unsigned int Video_Screenshot(TCHAR* _szFilename)
 }
 
 
-void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, BOOL scheduling)
+void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, bool scheduling)
 {
 	if(g_Config.bUseXFB && XFB_isInit())
 	{

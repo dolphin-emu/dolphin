@@ -44,7 +44,7 @@ enum {
 
 extern SVideoInitialize g_VideoInitialize;
 // (mb2) for XFB update hack. TODO: find a static better place
-extern volatile BOOL g_XFBUpdateRequested;
+extern volatile u32 g_XFBUpdateRequested;
 
 void DebugLog(const char* _fmt, ...);
 

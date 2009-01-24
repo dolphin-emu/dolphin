@@ -151,10 +151,10 @@ u16 m_tokenReg;
 
 SCPFifoStruct fifo; //This one is shared between gfx thread and emulator thread
 static u32 fake_GPWatchdogLastToken = 0;
-static BOOL fake_CommandProcessorNotUsed = TRUE; // This is used by VI when homebrews use directly XFB without FIFO and CP
+static bool fake_CommandProcessorNotUsed = true; // This is used by VI when homebrews use directly XFB without FIFO and CP
 
 // hack: This is used by VI when homebrews use directly XFB without FIFO and CP
-BOOL IsCommandProcessorNotUsed()
+bool IsCommandProcessorNotUsed()
 {
 	return fake_CommandProcessorNotUsed;
 }
@@ -228,7 +228,7 @@ void Init()
 	fifo.CPReadIdle = 1;
 
 	et_UpdateInterrupts = CoreTiming::RegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
-	fake_CommandProcessorNotUsed = TRUE;
+	fake_CommandProcessorNotUsed = true;
 }
 
 void Shutdown()
@@ -418,7 +418,7 @@ void Write16(const u16 _Value, const u32 _Address)
 
 	case CTRL_REGISTER:
 		{
-			fake_CommandProcessorNotUsed = FALSE;
+			fake_CommandProcessorNotUsed = false;
 			UCPCtrlReg tmpCtrl(_Value);
 
 			Common::SyncInterlockedExchange((LONG*)&fifo.bFF_GPReadEnable,	tmpCtrl.GPReadEnable);

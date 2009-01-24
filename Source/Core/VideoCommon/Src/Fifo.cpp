@@ -26,7 +26,7 @@
 extern u8* g_pVideoData;
 
 // TODO (mb2): move/rm this global
-volatile BOOL g_XFBUpdateRequested = FALSE;
+volatile u32 g_XFBUpdateRequested = FALSE;
 
 #ifndef _WIN32
 static bool fifoStateRun = true;

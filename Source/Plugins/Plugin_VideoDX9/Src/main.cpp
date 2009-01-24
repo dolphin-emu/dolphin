@@ -234,7 +234,7 @@ void Video_Stop(void)
 {
 }
 
-void Video_UpdateXFB(u8* /*_pXFB*/, u32 /*_dwWidth*/, u32 /*_dwHeight*/, s32 /*_dwYOffset*/, BOOL /*scheduling*/)
+void Video_UpdateXFB(u8* /*_pXFB*/, u32 /*_dwWidth*/, u32 /*_dwHeight*/, s32 /*_dwYOffset*/, bool /*scheduling*/)
 {
 	/*
 	ConvertXFB(tempBuffer, _pXFB, _dwWidth, _dwHeight);
