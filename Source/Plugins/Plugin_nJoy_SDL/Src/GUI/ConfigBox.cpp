@@ -39,7 +39,7 @@
 #include "../nJoy.h"
 #include "Images/controller.xpm"
 
-extern CONTROLLER_INFO	*joyinfo;
+//extern CONTROLLER_INFO	*joyinfo;
 //extern CONTROLLER_MAPPING PadMapping[4];
 extern bool emulator_running;
 
@@ -116,7 +116,7 @@ ConfigBox::ConfigBox(wxWindow *parent, wxWindowID id, const wxString &title,
 	// Define values
 	notebookpage = 0;
 	g_Pressed = 0;
-	Debugging = false;
+	Debugging = true;
 	m_TCDebugging = NULL;
 	ControlsCreated = false;
 
@@ -216,23 +216,21 @@ void ConfigBox::CancelClick(wxCommandEvent& event)
 void ConfigBox::LogMsg(const char* format, ...)
 {
 	#ifdef _WIN32
-	/*
-		if(Debugging)
-		{
-			const int MaxMsgSize = 1024*2;
-			char buffer[MaxMsgSize];
-			va_list args;
-			va_start(args, format);
-			CharArrayFromFormatV(buffer, MaxMsgSize, format, args);
-			va_end(args);
+	if(Debugging)
+	{
+		const int MaxMsgSize = 1024*2;
+		char buffer[MaxMsgSize];
+		va_list args;
+		va_start(args, format);
+		CharArrayFromFormatV(buffer, MaxMsgSize, format, args);
+		va_end(args);
 
-			// Add timestamp
-			std::string StrTmp = buffer;
-			//StrTmp += Common::Timer::GetTimeFormatted();
+		// Add timestamp
+		std::string StrTmp = buffer;
+		//StrTmp += Common::Timer::GetTimeFormatted();
 
-			if(m_TCDebugging) m_TCDebugging->AppendText(StrTmp.c_str());
-		}
-	*/
+		if(m_TCDebugging) m_TCDebugging->AppendText(StrTmp.c_str());
+	}	
 	#endif
 }
 
@@ -292,11 +290,11 @@ void ConfigBox::OnSaveById()
 // Change Joystick
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 /* Function: When changing the joystick we save and load the settings and update the PadMapping
-   and joystate array */
+   and PadState array */
 void ConfigBox::DoChangeJoystick()
 {
-	// Close the current pad
-	if (PadMapping[notebookpage].enabled) PadClose(notebookpage);
+	// Close the current pad, unless it's used by another slot
+	//if (PadMapping[notebookpage].enabled) PadClose(notebookpage);
 
 	// Before changing the pad we save potential changes to the current pad (to support SaveByID)
 	DoSave(true);
@@ -310,11 +308,19 @@ void ConfigBox::DoChangeJoystick()
 }
 void ConfigBox::PadOpen(int Open) // Open for slot 1, 2, 3 or 4
 {
-	joystate[Open].joy = SDL_JoystickOpen(PadMapping[Open].ID);
+	// Check that we got a good pad
+	if (!joyinfo.at(PadMapping[Open].ID).Good)
+	{
+		PadState[Open].joy = NULL;
+		return;
+	}
+
+	PadState[Open].joy = SDL_JoystickOpen(PadMapping[Open].ID);
 }
 void ConfigBox::PadClose(int Close) // Close for slot 1, 2, 3 or 4
 {
-	if (SDL_JoystickOpened(PadMapping[Close].ID)) SDL_JoystickClose(joystate[Close].joy);
+	if (SDL_JoystickOpened(PadMapping[Close].ID)) SDL_JoystickClose(PadState[Close].joy);
+	PadState[Close].joy = NULL;
 }
 
 // Notebook page changed
@@ -496,6 +502,8 @@ void ConfigBox::OnPaint( wxPaintEvent &event )
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::CreateGUIControls()
 {
+	Console::Print("CreateGUIControls()\n");
+
 	#ifndef _DEBUG		
 		SetTitle(wxT("Configure: nJoy v"INPUT_VERSION" Input Plugin"));
 	#else			
@@ -547,9 +555,9 @@ void ConfigBox::CreateGUIControls()
 	// Search for devices and add them to the device list
 	// -----------------------------
 	wxArrayString arrayStringFor_Joyname; // The string array
-	if(SDL_NumJoysticks() > 0)
+	if(NumGoodPads > 0)
 	{
-		for(int x = 0; x < SDL_NumJoysticks(); x++)
+		for(int x = 0; x < joyinfo.size(); x++)
 		{
 			arrayStringFor_Joyname.Add(wxString::FromAscii(joyinfo[x].Name.c_str()));
 		}
@@ -919,15 +927,15 @@ void ConfigBox::CreateGUIControls()
 	// --------------------------------------------------------------------
 	// Debugging
 	// -----------------------------
-	/*m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(135, 100), wxDefaultSize);
+	m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(135, 100), wxDefaultSize);
 	//m_pStatusBar2 = new wxStaticText(this, IDT_DEBUGGING2, wxT("Debugging2"), wxPoint(125, 200), wxDefaultSize);
-	//m_pStatusBar->SetLabel(wxString::Format("Debugging text"));*/
+	//m_pStatusBar->SetLabel(wxString::Format("Debugging text"));
 
-	/*m_TCDebugging = new wxTextCtrl(this, IDT_DEBUGGING3, _T(""), wxDefaultPosition, wxSize(400, 400),
+	/**/m_TCDebugging = new wxTextCtrl(this, IDT_DEBUGGING3, _T(""), wxDefaultPosition, wxSize(400, 400),
 		wxTE_RICH | wxTE_MULTILINE | wxTE_DONTWRAP | wxNO_BORDER);
 	wxBoxSizer * m_LogSizer = new wxBoxSizer(wxVERTICAL);
 	m_LogSizer->Add(m_TCDebugging, 0, wxEXPAND | (wxALL), 0);
-	m_MainSizer->Add(m_LogSizer, 0, wxEXPAND | ( wxLEFT | wxRIGHT | wxBOTTOM), 5);*/
+	m_MainSizer->Add(m_LogSizer, 0, wxEXPAND | ( wxLEFT | wxRIGHT | wxBOTTOM), 5);
 
 	// --------------------------------------------------------------------
 	// Set window size
@@ -937,6 +945,8 @@ void ConfigBox::CreateGUIControls()
 
 	// All done
 	ControlsCreated = true;
+
+	Console::Print("CreateGUIControls() end\n");
 }
 
 void ConfigBox::SizeWindow()

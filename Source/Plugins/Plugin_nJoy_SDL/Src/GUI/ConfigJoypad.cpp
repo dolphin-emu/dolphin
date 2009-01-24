@@ -39,8 +39,6 @@
 #include "../nJoy.h"
 #include "Images/controller.xpm"
 
-extern CONTROLLER_INFO	*joyinfo;
-//extern CONTROLLER_MAPPING PadMapping[4];
 extern bool emulator_running;
 ////////////////////////
 
@@ -387,7 +385,10 @@ void ConfigBox::DoGetButtons(int GetId)
 		if(Button)
 		{
 			for(int i = 0; i < buttons; i++)
-			{			
+			{		
+				// Some kind of bug in SDL 1.3 would give button 9 and 10 (nonexistent) the value 48 on the 360 pad
+				if (SDL_JoystickGetButton(joy, i) > 1) continue;
+
 				if(SDL_JoystickGetButton(joy, i))
 				{
 					pressed = i;
@@ -398,20 +399,20 @@ void ConfigBox::DoGetButtons(int GetId)
 		}
 
 		// Check for a XInput trigger
-#ifdef _WIN32
-		if(XInput)
-		{
-			for(int i = 0; i <= XI_TRIGGER_R; i++)
-			{			
-				if(XInput::GetXI(0, i))
-				{
-					pressed = i + 1000;
-					type = CTL_AXIS;
-					Succeed = true;
+		#ifdef _WIN32
+			if(XInput)
+			{
+				for(int i = 0; i <= XI_TRIGGER_R; i++)
+				{			
+					if(XInput::GetXI(0, i))
+					{
+						pressed = i + 1000;
+						type = CTL_AXIS;
+						Succeed = true;
+					}
 				}
 			}
-		}
-#endif
+		#endif
 
 		// Check for keyboard action
 		if (g_Pressed && Button)

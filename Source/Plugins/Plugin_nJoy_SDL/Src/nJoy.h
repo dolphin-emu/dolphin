@@ -105,7 +105,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 // Structures
 /* ¯¯¯¯¯¯¯¯¯¯
-	CONTROLLER_STATE buttons (joystate) = 0 or 1
+	CONTROLLER_STATE buttons (PadState) = 0 or 1
 	CONTROLLER_MAPPING buttons (joystick) = 0 or 1, 2, 3, 4, a certain joypad button
 
 	Please remember: The axis limit is hardcoded here, if you allow more axises (for
@@ -147,6 +147,7 @@ struct CONTROLLER_INFO		// CONNECTED WINDOWS DEVICES INFO
 	int NumHats;			// Amount of Hats (POV)
 	std::string Name;		// Joypad/stickname
 	int ID;					// SDL joystick device ID
+	bool Good;
 	SDL_Joystick *joy;		// SDL joystick device
 };
 
@@ -226,10 +227,12 @@ extern std::vector<u8> Keys;
 // ¯¯¯¯¯¯¯¯¯
 #ifndef _CONTROLLER_STATE_H
 	extern FILE *pFile;
-	extern CONTROLLER_INFO *joyinfo;
-	extern CONTROLLER_STATE joystate[4];
+	//extern CONTROLLER_INFO *joyinfo;
+	extern std::vector<CONTROLLER_INFO> joyinfo;
+	extern CONTROLLER_STATE PadState[4];
 	extern CONTROLLER_MAPPING PadMapping[4];
 	extern HWND m_hWnd; // Handle to window
+	extern int NumPads, NumGoodPads; // Number of goods pads
 #endif
 
 

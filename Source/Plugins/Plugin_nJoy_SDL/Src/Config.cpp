@@ -250,7 +250,8 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 		// =============================
 
 		// Debugging
-		//if(m_frame) m_frame->LogMsg("%i: Load triggertype: %s %i\n", i, SectionName.c_str(), PadMapping[i].triggertype);
+		if(m_frame) m_frame->LogMsg("%i: Enabled: %i\n", i, PadMapping[i].buttons[CTL_X_BUTTON]);
+		//Console::Print("%i: Enabled: %i\n", i, PadMapping[i].buttons[CTL_X_BUTTON]);
 	}
 }
 

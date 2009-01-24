@@ -37,7 +37,7 @@
 #include "../nJoy.h"
 #include "Images/controller.xpm"
 
-extern CONTROLLER_INFO	*joyinfo;
+//extern CONTROLLER_INFO	*joyinfo;
 extern bool emulator_running;
 ////////////////////////
 
@@ -82,10 +82,10 @@ void ConfigBox::PadGetStatus()
 	//int deadzone2 = (int)(((float)(-128.00/100.00)) * (float)(PadMapping[_numPAD].deadzone+1));
 
 	// Get original values
-	int main_x = joystate[notebookpage].axis[CTL_MAIN_X];
-	int main_y = joystate[notebookpage].axis[CTL_MAIN_Y];
-    //int sub_x = (joystate[_numPAD].axis[CTL_SUB_X];
-	//int sub_y = -(joystate[_numPAD].axis[CTL_SUB_Y];
+	int main_x = PadState[notebookpage].axis[CTL_MAIN_X];
+	int main_y = PadState[notebookpage].axis[CTL_MAIN_Y];
+    //int sub_x = (PadState[_numPAD].axis[CTL_SUB_X];
+	//int sub_y = -(PadState[_numPAD].axis[CTL_SUB_Y];
 
 	// Get adjusted values
 	int main_x_after = main_x, main_y_after = main_y;
@@ -131,7 +131,7 @@ void ConfigBox::PadGetStatus()
 	// Triggers
 	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	int TriggerValue = 255;
-	if (joystate[notebookpage].halfpress) TriggerValue = 100;
+	if (PadState[notebookpage].halfpress) TriggerValue = 100;
 
 	// Get the selected keys
 	long Left, Right;
@@ -139,8 +139,8 @@ void ConfigBox::PadGetStatus()
 	m_JoyShoulderR[notebookpage]->GetValue().ToLong(&Right);
 
 	// Get the trigger values
-	int TriggerLeft = joystate[notebookpage].axis[CTL_L_SHOULDER];
-	int TriggerRight = joystate[notebookpage].axis[CTL_R_SHOULDER];
+	int TriggerLeft = PadState[notebookpage].axis[CTL_L_SHOULDER];
+	int TriggerRight = PadState[notebookpage].axis[CTL_R_SHOULDER];
 
 	// Convert the triggers values
 	if (PadMapping[notebookpage].triggertype == CTL_TRIGGER_SDL)
@@ -154,8 +154,8 @@ void ConfigBox::PadGetStatus()
 	if(Right < 1000) TriggerRight = 0;
 
 	// Get the digital values
-	if(Left < 1000 && joystate[notebookpage].buttons[CTL_L_SHOULDER]) TriggerLeft = TriggerValue;
-	if(Right < 1000 && joystate[notebookpage].buttons[CTL_R_SHOULDER]) TriggerRight = TriggerValue;
+	if(Left < 1000 && PadState[notebookpage].buttons[CTL_L_SHOULDER]) TriggerLeft = TriggerValue;
+	if(Right < 1000 && PadState[notebookpage].buttons[CTL_R_SHOULDER]) TriggerRight = TriggerValue;
 
 	m_TStatusTriggers[notebookpage]->SetLabel(wxString::Format(
 		wxT("Left:%03i  Right:%03i"),
@@ -175,13 +175,13 @@ std::string ShowStatus(int VirtualController)
 	int PhysicalDevice = PadMapping[VirtualController].ID;
 
 	// Make local shortcut
-	SDL_Joystick *joy = joystate[VirtualController].joy;
+	SDL_Joystick *joy = PadState[VirtualController].joy;
 
 	// Make shortcuts for all pads
-	SDL_Joystick *joy0 = joystate[PadMapping[0].ID].joy;
-	SDL_Joystick *joy1 = joystate[PadMapping[1].ID].joy;
-	SDL_Joystick *joy2 = joystate[PadMapping[2].ID].joy;
-	SDL_Joystick *joy3 = joystate[PadMapping[3].ID].joy;
+	SDL_Joystick *joy0 = PadState[0].joy;
+	SDL_Joystick *joy1 = PadState[1].joy;
+	SDL_Joystick *joy2 = PadState[2].joy;
+	SDL_Joystick *joy3 = PadState[3].joy;
 
 	// Temporary storage
 	std::string StrAxes, StrHats, StrBut;
@@ -215,20 +215,23 @@ std::string ShowStatus(int VirtualController)
 
 	return StringFromFormat(
 		"PadMapping\n"
+		"Enabled: %i %i %i %i\n"
 		"ID: %i %i %i %i\n"
 		"Controllertype: %i %i %i %i\n"
 		"SquareToCircle: %i %i %i %i\n\n"		
-		"Handles: %i %i %i %i\n"
+		"Handles: %p %p %p %p\n"
 
 		"XInput: %i %i %i\n"
 		"Axes: %s\n"
 		"Hats: %s\n"
 		"But: %s\n"
-		"Device: Ax: %i Balls:%i But:%i Hats:%i",
+		"Device: Ax: %i Balls:%i Hats:%i But:%i",
+		PadMapping[0].enabled, PadMapping[1].enabled, PadMapping[2].enabled, PadMapping[3].enabled,
 		PadMapping[0].ID, PadMapping[1].ID, PadMapping[2].ID, PadMapping[3].ID,
 		PadMapping[0].controllertype, PadMapping[1].controllertype, PadMapping[2].controllertype, PadMapping[3].controllertype,
 		PadMapping[0].bSquareToCircle, PadMapping[1].bSquareToCircle, PadMapping[2].bSquareToCircle, PadMapping[3].bSquareToCircle,
 		joy0, joy1, joy2, joy3,
+		//PadState[PadMapping[0].ID].joy, PadState[PadMapping[1].ID].joy, PadState[PadMapping[2].ID].joy, PadState[PadMapping[3].ID].joy,
 
 		#ifdef _WIN32
 			XInput::IsConnected(0), XInput::GetXI(0, XI_TRIGGER_L), XInput::GetXI(0, XI_TRIGGER_R),
@@ -242,14 +245,18 @@ std::string ShowStatus(int VirtualController)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::Update()
 {
-	if(StrangeHack) PadGetStatus();
-	if(!g_Config.bShowAdvanced) StrangeHack = false; else StrangeHack = true;
-
 	// Show the current status
-	/*
+	/**/
 	m_pStatusBar->SetLabel(wxString::Format(
 		"%s", ShowStatus(notebookpage).c_str()
-		));*/
+		));
+
+	Console::Print("3: %p\n", PadState[PadMapping[3].ID].joy);
+
+	//LogMsg("Abc%s\n", ShowStatus(notebookpage).c_str());
+
+	if(StrangeHack) PadGetStatus();
+	if(!g_Config.bShowAdvanced) StrangeHack = false; else StrangeHack = true;
 }
 
 

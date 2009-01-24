@@ -149,7 +149,7 @@ void Pad_Use_Rumble(u8 _numPAD, SPADStatus* _pPADStatus)
 	#ifdef USE_RUMBLE_DINPUT_HACK
 
 	// Enable or disable rumble
-	if (joystate[_numPAD].halfpress)
+	if (PadState[_numPAD].halfpress)
 	if (!g_pDI)
 	if (FAILED(InitDirectInput(m_hWnd)))
 	{

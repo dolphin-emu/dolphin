@@ -51,10 +51,10 @@
    PadMapping[1, 2, 3 and 4]: The button mapping
    Joystate[1, 2, 3 and 4]: The current button states
 
-   The arrays PadMapping[] and joystate[] are numbered 0 to 3 for the four different virtual
+   The arrays PadMapping[] and PadState[] are numbered 0 to 3 for the four different virtual
    controllers. Joysticks[].ID will have the number of the physical input device mapped to that
    controller (this value range between 0 and the total number of connected physical devices). The
-   mapping of a certain physical device to joystate[].joy is initially done by Initialize(), but
+   mapping of a certain physical device to PadState[].joy is initially done by Initialize(), but
    for the configuration we can remap that, like in ConfigBox::ChangeJoystick().
 
    The joyinfo[] array holds the physical gamepad info for a certain physical device. It's therefore
@@ -84,10 +84,11 @@
 #define _CONTROLLER_STATE_H // Avoid certain declarations in nJoy.h
 FILE *pFile;
 HINSTANCE nJoy_hInst = NULL;
-CONTROLLER_INFO	*joyinfo = 0;
-CONTROLLER_STATE joystate[4];
+std::vector<CONTROLLER_INFO> joyinfo;
+CONTROLLER_STATE PadState[4];
 CONTROLLER_MAPPING PadMapping[4];
-bool emulator_running = FALSE;
+bool emulator_running = false;
+int NumPads = 0, NumGoodPads = 0;
 HWND m_hWnd; // Handle to window
 
 // TODO: fix this dirty hack to stop missing symbols
@@ -178,55 +179,52 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 #endif
 }
 
-void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
-}
+void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {}
 
 // Call config dialog
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DllConfig(HWND _hParent)
 {
+	// Debugging
+	//Console::Open();
+
 	#ifdef _WIN32
+		// Start the pads so we can use them in the configuration and advanced controls
+		if(!emulator_running)
+		{
+			NumPads = Search_Devices(); // Populate joyinfo for all attached devices
+		}
 
-	// Start the pads so we can use them in the configuration and advanced controls
-	if(!emulator_running)
-	{
-		SPADInitialize _PADInitialize;
-		_PADInitialize.hWnd = NULL;
-		_PADInitialize.pLog = NULL;
-		Initialize((void*)&_PADInitialize);
-		emulator_running = false; // Set it back to false
-	}
+		m_frame = new ConfigBox(NULL);
+		m_frame->ShowModal();
 
-	g_Config.Load(); // Load settings
-
-	// We don't need a parent for this wxDialog
-	//wxWindow win;
-	//win.SetHWND(_hParent);
-	//ConfigBox frame(&win);
-	//win.SetHWND(0);
-
-	m_frame = new ConfigBox(NULL);
-	m_frame->ShowModal();
-
+		/* Check if any of the pads failed to open. In Windows there is a strange "IDirectInputDevice2::
+		   SetDataFormat() DirectX error -2147024809" after a few Open and Close */
+		if (   (PadMapping[0].enabled && PadState[0].joy == NULL)
+			|| (PadMapping[1].enabled && PadState[1].joy == NULL)
+			|| (PadMapping[2].enabled && PadState[2].joy == NULL)
+			|| (PadMapping[3].enabled && PadState[3].joy == NULL))
+		{
+			//PostMessage(_hParent, 25, 0, 0);
+			Console::Print("%s\n", SDL_GetError());		
+		}
 	#else
-	if (SDL_Init(SDL_INIT_JOYSTICK ) < 0)
-	{
-		printf("Could not initialize SDL! (%s)\n", SDL_GetError());
-		return;
-	}
+		if (SDL_Init(SDL_INIT_JOYSTICK ) < 0)
+		{
+			printf("Could not initialize SDL! (%s)\n", SDL_GetError());
+			return;
+		}
 
-	g_Config.Load();	// load settings
+		g_Config.Load();	// load settings
 
-	#if defined(HAVE_WX) && HAVE_WX
-		ConfigBox frame(NULL);
-		frame.ShowModal();
-	#endif
-
+		#if defined(HAVE_WX) && HAVE_WX
+			ConfigBox frame(NULL);
+			frame.ShowModal();
+		#endif
 	#endif
 }
 
-void DllDebugger(HWND _hParent, bool Show) {
-}
+void DllDebugger(HWND _hParent, bool Show) {}
 
  
 // Init PAD (start emulation)
@@ -240,49 +238,26 @@ void Initialize(void *init)
 {
 	// Debugging
 	//Console::Open();
-
-	//Console::Print("Initialize: %i\n", SDL_WasInit(0));
-
+	Console::Print("Initialize: %i\n", SDL_WasInit(0));
     SPADInitialize *_PADInitialize = (SPADInitialize*)init;
 	emulator_running = true;
+
 	#ifdef _DEBUG
 		DEBUG_INIT();
 	#endif
-
-	/* SDL 1.3 use DirectInput instead of the old Microsoft Multimeda API, and with this we need 
-	   the SDL_INIT_VIDEO flag to */
-	if (!SDL_WasInit(0))
-		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0)
-		{
-			#ifdef _WIN32
-				MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
-			#else
-				printf("Could not initialize SDL! (%s)\n", SDL_GetError());
-			#endif
-			return;
-		}
 
 	#ifdef _WIN32
 		m_hWnd = (HWND)_PADInitialize->hWnd;
 	#endif
 
-	Search_Devices(); // Populate joyinfo for all attached devices
-	g_Config.Load(); // Load joystick mapping, PadMapping[].ID etc
-	if (PadMapping[0].enabled)
-		joystate[0].joy = SDL_JoystickOpen(PadMapping[0].ID);
-	if (PadMapping[1].enabled)
-		joystate[1].joy = SDL_JoystickOpen(PadMapping[1].ID);
-	if (PadMapping[2].enabled)
-		joystate[2].joy = SDL_JoystickOpen(PadMapping[2].ID);
-	if (PadMapping[3].enabled)
-		joystate[3].joy = SDL_JoystickOpen(PadMapping[3].ID);
+	NumPads = Search_Devices(); // Populate joyinfo for all attached devices
 
 	/* Check if any of the pads failed to open. In Windows there is a strange "IDirectInputDevice2::
 	   SetDataFormat() DirectX error -2147024809" after a few Open and Close */
-	if(    (PadMapping[0].enabled && joystate[0].joy == NULL)
-		|| (PadMapping[1].enabled && joystate[1].joy == NULL)
-		|| (PadMapping[2].enabled && joystate[2].joy == NULL)
-		|| (PadMapping[3].enabled && joystate[3].joy == NULL))
+	if (   (PadMapping[0].enabled && PadState[0].joy == NULL)
+		|| (PadMapping[1].enabled && PadState[1].joy == NULL)
+		|| (PadMapping[2].enabled && PadState[2].joy == NULL)
+		|| (PadMapping[3].enabled && PadState[3].joy == NULL))
 	{
 		_PADInitialize->padNumber = -1;
 		Console::Print("%s\n", SDL_GetError());		
@@ -299,62 +274,85 @@ int Search_Devices()
 		DEBUG_INIT();
 	#endif
 
-	int numjoy = SDL_NumJoysticks();
-
-	if (joyinfo)
-	{
-		delete [] joyinfo;
-		joyinfo = new CONTROLLER_INFO [numjoy];
-	}
-	else
-	{
-		joyinfo = new CONTROLLER_INFO [numjoy];
-	}
-
-	// Warn the user if no PadMapping are detected
-	if (numjoy == 0)
-	{		
-		#ifdef _WIN32
-		//MessageBox(NULL, "No Joystick detected!", NULL,  MB_ICONWARNING);
-		#else
-		printf("No Joystick detected!\n");
-		#endif
-		return 0;
-	}
+	/* SDL 1.3 use DirectInput instead of the old Microsoft Multimeda API, and with this we need 
+	   the SDL_INIT_VIDEO flag to */
+	if (!SDL_WasInit(0))
+		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0)
+		{
+			PanicAlert("Could not initialize SDL: %s", SDL_GetError());
+			return 0;
+		}
 
 	#ifdef _DEBUG
 		fprintf(pFile, "Scanning for devices\n");
 		fprintf(pFile, "¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯\n");
 	#endif
 
-	for(int i = 0; i < numjoy; i++ )
+	// Get device status
+	int numjoy = SDL_NumJoysticks();
+	for (int i = 0; i < numjoy; i++ )
 	{
-		// Open the device to be able to read the values
-		joyinfo[i].joy			= SDL_JoystickOpen(i);
-		joyinfo[i].ID			= i;
-		joyinfo[i].NumAxes		= SDL_JoystickNumAxes(joyinfo[i].joy);
-		joyinfo[i].NumButtons	= SDL_JoystickNumButtons(joyinfo[i].joy);
-		joyinfo[i].NumBalls		= SDL_JoystickNumBalls(joyinfo[i].joy);
-		joyinfo[i].NumHats		= SDL_JoystickNumHats(joyinfo[i].joy);
-		joyinfo[i].Name			= SDL_JoystickName(i);
+		CONTROLLER_INFO Tmp;
+
+		Tmp.joy			= SDL_JoystickOpen(i);
+		Tmp.ID			= i;
+		Tmp.NumAxes		= SDL_JoystickNumAxes(Tmp.joy);
+		Tmp.NumButtons	= SDL_JoystickNumButtons(Tmp.joy);
+		Tmp.NumBalls	= SDL_JoystickNumBalls(Tmp.joy);
+		Tmp.NumHats		= SDL_JoystickNumHats(Tmp.joy);
+		Tmp.Name		= SDL_JoystickName(i);
+
+		// Check if the device is okay
+		if (   Tmp.NumAxes == 0
+			&&  Tmp.NumBalls == 0
+			&&  Tmp.NumButtons == 0
+			&&  Tmp.NumHats == 0
+			)
+		{
+			Tmp.Good = false;
+		}
+		else
+		{
+			NumGoodPads++;
+			Tmp.Good = true;
+		}
+
+		joyinfo.push_back(Tmp);
 
 		#ifdef _DEBUG
-		fprintf(pFile, "ID: %d\n", i);
-		fprintf(pFile, "Name: %s\n", joyinfo[i].Name);
-		fprintf(pFile, "Buttons: %d\n", joyinfo[i].NumButtons);
-		fprintf(pFile, "Axes: %d\n", joyinfo[i].NumAxes);
-		fprintf(pFile, "Hats: %d\n", joyinfo[i].NumHats);
-		fprintf(pFile, "Balls: %d\n\n", joyinfo[i].NumBalls);
+			fprintf(pFile, "ID: %d\n", i);
+			fprintf(pFile, "Name: %s\n", joyinfo[i].Name);
+			fprintf(pFile, "Buttons: %d\n", joyinfo[i].NumButtons);
+			fprintf(pFile, "Axes: %d\n", joyinfo[i].NumAxes);
+			fprintf(pFile, "Hats: %d\n", joyinfo[i].NumHats);
+			fprintf(pFile, "Balls: %d\n\n", joyinfo[i].NumBalls);
 		#endif
 
 		// We have now read the values we need so we close the device
 		if (SDL_JoystickOpened(i)) SDL_JoystickClose(joyinfo[i].joy);
 	}
 
-	return numjoy;
+	// Warn the user if no gamepads are detected
+	if (NumGoodPads == 0 && emulator_running)
+	{
+		PanicAlert("No Joystick detected");
+		return joyinfo.size();
+	}
+
+	// Load PadMapping[] etc
+	g_Config.Load();
+
+	// Update the PadState[].joy handle
+	for (int i = 0; i < 4; i++)
+	{
+		if (PadMapping[i].enabled && joyinfo.size() > PadMapping[i].ID)
+			if(joyinfo.at(PadMapping[i].ID).Good)
+				PadState[i].joy = SDL_JoystickOpen(PadMapping[i].ID);
+	}
+
+	return joyinfo.size();
 }
 
- 
 // Shutdown PAD (stop emulation)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 /* Information: This function can not be run twice without an Initialize in between. If
@@ -362,16 +360,16 @@ int Search_Devices()
    Called from: The Dolphin Core, ConfigBox::OnClose() */
 void Shutdown()
 {
-	//Console::Print("Shutdown: %i\n", SDL_WasInit(0));
+	Console::Print("Shutdown: %i\n", SDL_WasInit(0));
 
-	if (PadMapping[0].enabled && SDL_JoystickOpened(PadMapping[0].ID))
-		SDL_JoystickClose(joystate[0].joy);
-	if (PadMapping[1].enabled && SDL_JoystickOpened(PadMapping[1].ID))
-		SDL_JoystickClose(joystate[1].joy);
-	if (PadMapping[2].enabled && SDL_JoystickOpened(PadMapping[2].ID))
-		SDL_JoystickClose(joystate[2].joy);
-	if (PadMapping[3].enabled && SDL_JoystickOpened(PadMapping[3].ID))
-		SDL_JoystickClose(joystate[3].joy);	
+	/* Close all devices carefully. We must check that we are not accessing any undefined
+	   vector elements or any bad devices */
+	for (int i = 0; i < 4; i++)
+	{
+		if (PadMapping[i].enabled && joyinfo.size() > PadMapping[i].ID)
+			if (joyinfo.at(PadMapping[i].ID).Good)
+				if(SDL_JoystickOpened(PadMapping[i].ID)) SDL_JoystickClose(PadState[i].joy);
+	}
 
 	SDL_Quit();
 
@@ -379,14 +377,16 @@ void Shutdown()
 		DEBUG_QUIT();
 	#endif
 
-	delete [] joyinfo;
-	joyinfo = NULL;
+	// Clear the physical device info
+	//delete [] joyinfo;
+	//joyinfo = NULL;
+	joyinfo.clear();
 
 	emulator_running = false;
 
 	#ifdef _WIN32
 		#ifdef USE_RUMBLE_DINPUT_HACK
-		FreeDirectInput();
+			FreeDirectInput();
 		#endif
 	#elif defined(__linux__)
 		close(fd);
@@ -404,13 +404,13 @@ void PAD_Input(u16 _Key, u8 _UpDown)
 		for(int j = CTL_L_SHOULDER; j <= CTL_START; j++)
 		{
 			if (PadMapping[i].buttons[j] == _Key)
-				{ joystate[i].buttons[j] = _UpDown; break; }
+				{ PadState[i].buttons[j] = _UpDown; break; }
 		}
 
 		for(int j = CTL_D_PAD_UP; j <= CTL_D_PAD_RIGHT; j++)
 		{
 			if (PadMapping[i].dpad2[j] == _Key)
-				{ joystate[i].dpad2[j] = _UpDown; break; }
+				{ PadState[i].dpad2[j] = _UpDown; break; }
 		}
 	}
 
@@ -430,8 +430,10 @@ void DoState(unsigned char **ptr, int mode) {}
 // Function: Gives the current pad status to the Core
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
-	if (!PadMapping[_numPAD].enabled)
-		return;
+	Console::Print("%i %i %i\n", _numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy);
+
+	// Check if the pad is enabled
+	if (!PadMapping[_numPAD].enabled || !PadState[_numPAD].joy) return;
 
 	// Clear pad status
 	memset(_pPADStatus, 0, sizeof(SPADStatus));
@@ -447,12 +449,12 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// -----------
 
 	// Read axis values
-	int i_main_stick_x = joystate[_numPAD].axis[CTL_MAIN_X];
-	int i_main_stick_y = -joystate[_numPAD].axis[CTL_MAIN_Y];
-    int i_sub_stick_x = joystate[_numPAD].axis[CTL_SUB_X];
-	int i_sub_stick_y = -joystate[_numPAD].axis[CTL_SUB_Y];
-	int TriggerLeft = joystate[_numPAD].axis[CTL_L_SHOULDER];
-	int TriggerRight = joystate[_numPAD].axis[CTL_R_SHOULDER];
+	int i_main_stick_x = PadState[_numPAD].axis[CTL_MAIN_X];
+	int i_main_stick_y = -PadState[_numPAD].axis[CTL_MAIN_Y];
+    int i_sub_stick_x = PadState[_numPAD].axis[CTL_SUB_X];
+	int i_sub_stick_y = -PadState[_numPAD].axis[CTL_SUB_Y];
+	int TriggerLeft = PadState[_numPAD].axis[CTL_L_SHOULDER];
+	int TriggerRight = PadState[_numPAD].axis[CTL_R_SHOULDER];
 
 	// Check if we should make adjustments
 	if(PadMapping[_numPAD].bSquareToCircle)
@@ -490,10 +492,10 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// The L and R triggers
 	// -----------	
 	int TriggerValue = 255;
-	if (joystate[_numPAD].halfpress) TriggerValue = 100;		
+	if (PadState[_numPAD].halfpress) TriggerValue = 100;		
 	_pPADStatus->button |= PAD_USE_ORIGIN; // Neutral value, no button pressed	
 
-	if (joystate[_numPAD].buttons[CTL_L_SHOULDER])
+	if (PadState[_numPAD].buttons[CTL_L_SHOULDER])
 	{
 		_pPADStatus->button |= PAD_TRIGGER_L;
 		_pPADStatus->triggerLeft = TriggerValue;
@@ -501,7 +503,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	else if(TriggerLeft > 0)
 		_pPADStatus->triggerLeft = TriggerLeft;
 
-	if (joystate[_numPAD].buttons[CTL_R_SHOULDER])
+	if (PadState[_numPAD].buttons[CTL_R_SHOULDER])
 	{
 		_pPADStatus->button |= PAD_TRIGGER_R;
 		_pPADStatus->triggerRight = TriggerValue;
@@ -517,20 +519,20 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	///////////////////////////////////////////////////
 	// The digital buttons
 	// -----------	
-	if (joystate[_numPAD].buttons[CTL_A_BUTTON])
+	if (PadState[_numPAD].buttons[CTL_A_BUTTON])
 	{
 		_pPADStatus->button |= PAD_BUTTON_A;
 		_pPADStatus->analogA = 255;			// Perhaps support pressure?
 	}
-	if (joystate[_numPAD].buttons[CTL_B_BUTTON])
+	if (PadState[_numPAD].buttons[CTL_B_BUTTON])
 	{
 		_pPADStatus->button |= PAD_BUTTON_B;
 		_pPADStatus->analogB = 255;			// Perhaps support pressure?
 	}
-	if (joystate[_numPAD].buttons[CTL_X_BUTTON])	_pPADStatus->button|=PAD_BUTTON_X;
-	if (joystate[_numPAD].buttons[CTL_Y_BUTTON])	_pPADStatus->button|=PAD_BUTTON_Y;
-	if (joystate[_numPAD].buttons[CTL_Z_TRIGGER])	_pPADStatus->button|=PAD_TRIGGER_Z;
-	if (joystate[_numPAD].buttons[CTL_START])		_pPADStatus->button|=PAD_BUTTON_START;
+	if (PadState[_numPAD].buttons[CTL_X_BUTTON])	_pPADStatus->button|=PAD_BUTTON_X;
+	if (PadState[_numPAD].buttons[CTL_Y_BUTTON])	_pPADStatus->button|=PAD_BUTTON_Y;
+	if (PadState[_numPAD].buttons[CTL_Z_TRIGGER])	_pPADStatus->button|=PAD_TRIGGER_Z;
+	if (PadState[_numPAD].buttons[CTL_START])		_pPADStatus->button|=PAD_BUTTON_START;
 
 
 	///////////////////////////////////////////////////
@@ -538,20 +540,20 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// -----------		
 	if (PadMapping[_numPAD].controllertype == CTL_DPAD_HAT)
 	{
-		if (joystate[_numPAD].dpad == SDL_HAT_LEFTUP	|| joystate[_numPAD].dpad == SDL_HAT_UP		|| joystate[_numPAD].dpad == SDL_HAT_RIGHTUP )		_pPADStatus->button|=PAD_BUTTON_UP;
-		if (joystate[_numPAD].dpad == SDL_HAT_LEFTUP	|| joystate[_numPAD].dpad == SDL_HAT_LEFT	|| joystate[_numPAD].dpad == SDL_HAT_LEFTDOWN )		_pPADStatus->button|=PAD_BUTTON_LEFT;
-		if (joystate[_numPAD].dpad == SDL_HAT_LEFTDOWN	|| joystate[_numPAD].dpad == SDL_HAT_DOWN	|| joystate[_numPAD].dpad == SDL_HAT_RIGHTDOWN )	_pPADStatus->button|=PAD_BUTTON_DOWN;
-		if (joystate[_numPAD].dpad == SDL_HAT_RIGHTUP	|| joystate[_numPAD].dpad == SDL_HAT_RIGHT	|| joystate[_numPAD].dpad == SDL_HAT_RIGHTDOWN )	_pPADStatus->button|=PAD_BUTTON_RIGHT;
+		if (PadState[_numPAD].dpad == SDL_HAT_LEFTUP	|| PadState[_numPAD].dpad == SDL_HAT_UP		|| PadState[_numPAD].dpad == SDL_HAT_RIGHTUP )		_pPADStatus->button|=PAD_BUTTON_UP;
+		if (PadState[_numPAD].dpad == SDL_HAT_LEFTUP	|| PadState[_numPAD].dpad == SDL_HAT_LEFT	|| PadState[_numPAD].dpad == SDL_HAT_LEFTDOWN )		_pPADStatus->button|=PAD_BUTTON_LEFT;
+		if (PadState[_numPAD].dpad == SDL_HAT_LEFTDOWN	|| PadState[_numPAD].dpad == SDL_HAT_DOWN	|| PadState[_numPAD].dpad == SDL_HAT_RIGHTDOWN )	_pPADStatus->button|=PAD_BUTTON_DOWN;
+		if (PadState[_numPAD].dpad == SDL_HAT_RIGHTUP	|| PadState[_numPAD].dpad == SDL_HAT_RIGHT	|| PadState[_numPAD].dpad == SDL_HAT_RIGHTDOWN )	_pPADStatus->button|=PAD_BUTTON_RIGHT;
 	}
 	else
 	{
-		if (joystate[_numPAD].dpad2[CTL_D_PAD_UP])
+		if (PadState[_numPAD].dpad2[CTL_D_PAD_UP])
 			_pPADStatus->button |= PAD_BUTTON_UP;
-		if (joystate[_numPAD].dpad2[CTL_D_PAD_DOWN])
+		if (PadState[_numPAD].dpad2[CTL_D_PAD_DOWN])
 			_pPADStatus->button |= PAD_BUTTON_DOWN;
-		if (joystate[_numPAD].dpad2[CTL_D_PAD_LEFT])
+		if (PadState[_numPAD].dpad2[CTL_D_PAD_LEFT])
 			_pPADStatus->button |= PAD_BUTTON_LEFT;
-		if (joystate[_numPAD].dpad2[CTL_D_PAD_RIGHT])
+		if (PadState[_numPAD].dpad2[CTL_D_PAD_RIGHT])
 			_pPADStatus->button |= PAD_BUTTON_RIGHT;
 	}
 
@@ -564,12 +566,20 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	/* Debugging 
 	Console::ClearScreen();
 	Console::Print(
+		"Pad %i: %i %i\n"
 		"Trigger type: %s  Left:%04x Right:%04x Value:%i\n"
+		"Buttons: %i  X:%i\n"
 		"D-Pad type: %s  L:%i  R:%i  U:%i  D:%i",
+
+		_numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy,
+
 		(PadMapping[_numPAD].triggertype ? "CTL_TRIGGER_XINPUT" : "CTL_TRIGGER_SDL"),
-		TriggerLeft, TriggerRight, TriggerValue,
+			_pPADStatus->triggerLeft, _pPADStatus->triggerRight, TriggerValue,
+
+		_pPADStatus->button, PadState[_numPAD].buttons[CTL_X_BUTTON], 
+
 		(PadMapping[_numPAD].controllertype ? "CTL_DPAD_CUSTOM" : "CTL_DPAD_HAT"),
-		0, 0, 0, 0
+			0, 0, 0, 0
 		);*/
 }
 
@@ -586,6 +596,8 @@ unsigned int PAD_GetAttachedPads()
 	if (PadMapping[1].enabled) connected |= 2;
 	if (PadMapping[2].enabled) connected |= 4;
 	if (PadMapping[3].enabled) connected |= 8;
+
+	//Console::Print("PAD_GetAttachedPads: %i %i %i\n", PadMapping[0].enabled, PadMapping[1].enabled, PadMapping[2].enabled, PadMapping[3].enabled);
 
 	return connected;
 }
@@ -608,7 +620,7 @@ unsigned int PAD_GetAttachedPads()
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 int Pad_Convert(int _val)
 {
-	/* If the limits on joystate[].axis[] actually is a u16 then we don't need this
+	/* If the limits on PadState[].axis[] actually is a u16 then we don't need this
 	   but if it's not actually limited to that we need to apply these limits */
 	if(_val > 32767) _val = 32767; // upper limit
 	if(_val < -32768) _val = -32768; // lower limit
@@ -713,7 +725,7 @@ std::vector<int> Pad_Square_to_Circle(int _x, int _y, int _pad)
 // Read current joystick status
 /* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	The value PadMapping[].buttons[] is the number of the assigned joypad button,
-	joystate[].buttons[] is the status of the button, it becomes 0 (no pressed) or 1 (pressed) */
+	PadState[].buttons[] is the status of the button, it becomes 0 (no pressed) or 1 (pressed) */
 
 
 // Read buttons status. Called from GetJoyState().
@@ -723,7 +735,7 @@ void ReadButton(int controller, int button)
 	int ctl_button = PadMapping[controller].buttons[button];
 	if (ctl_button < joyinfo[PadMapping[controller].ID].NumButtons)
 	{
-		joystate[controller].buttons[button] = SDL_JoystickGetButton(joystate[controller].joy, ctl_button);
+		PadState[controller].buttons[button] = SDL_JoystickGetButton(PadState[controller].joy, ctl_button);
 	}
 }
 
@@ -731,7 +743,7 @@ void ReadButton(int controller, int button)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 /* Called from: PAD_GetStatus()
    Input: The virtual device 0, 1, 2 or 3
-   Function: Updates the joystate struct with the current pad status. The input value "controller" is
+   Function: Updates the PadState struct with the current pad status. The input value "controller" is
    for a virtual controller 0 to 3. */
 void GetJoyState(int controller)
 {
@@ -742,36 +754,37 @@ void GetJoyState(int controller)
 	int Buttons = joyinfo[PadMapping[controller].ID].NumButtons;
 
 	// Update axis states. It doesn't hurt much if we happen to ask for nonexisting axises here.
-	joystate[controller].axis[CTL_MAIN_X] = SDL_JoystickGetAxis(joystate[controller].joy, PadMapping[controller].axis[CTL_MAIN_X]);
-	joystate[controller].axis[CTL_MAIN_Y] = SDL_JoystickGetAxis(joystate[controller].joy, PadMapping[controller].axis[CTL_MAIN_Y]);
-	joystate[controller].axis[CTL_SUB_X] = SDL_JoystickGetAxis(joystate[controller].joy, PadMapping[controller].axis[CTL_SUB_X]);
-	joystate[controller].axis[CTL_SUB_Y] = SDL_JoystickGetAxis(joystate[controller].joy, PadMapping[controller].axis[CTL_SUB_Y]);
+	PadState[controller].axis[CTL_MAIN_X] = SDL_JoystickGetAxis(PadState[controller].joy, PadMapping[controller].axis[CTL_MAIN_X]);
+	PadState[controller].axis[CTL_MAIN_Y] = SDL_JoystickGetAxis(PadState[controller].joy, PadMapping[controller].axis[CTL_MAIN_Y]);
+	PadState[controller].axis[CTL_SUB_X] = SDL_JoystickGetAxis(PadState[controller].joy, PadMapping[controller].axis[CTL_SUB_X]);
+	PadState[controller].axis[CTL_SUB_Y] = SDL_JoystickGetAxis(PadState[controller].joy, PadMapping[controller].axis[CTL_SUB_Y]);
 
 	// Update trigger axises
 #ifdef _WIN32
 	if (PadMapping[controller].triggertype == CTL_TRIGGER_SDL)
 	{
 #endif
-		joystate[controller].axis[CTL_L_SHOULDER] = SDL_JoystickGetAxis(joystate[controller].joy, PadMapping[controller].buttons[CTL_L_SHOULDER] - 1000);
-		joystate[controller].axis[CTL_R_SHOULDER] = SDL_JoystickGetAxis(joystate[controller].joy, PadMapping[controller].buttons[CTL_R_SHOULDER] - 1000);
+		if(PadMapping[controller].buttons[CTL_L_SHOULDER] >= 1000) PadState[controller].axis[CTL_L_SHOULDER] = SDL_JoystickGetAxis(PadState[controller].joy, PadMapping[controller].buttons[CTL_L_SHOULDER] - 1000);
+		if(PadMapping[controller].buttons[CTL_R_SHOULDER] >= 1000) PadState[controller].axis[CTL_R_SHOULDER] = SDL_JoystickGetAxis(PadState[controller].joy, PadMapping[controller].buttons[CTL_R_SHOULDER] - 1000);
 #ifdef _WIN32
 	}
 	else
 	{
-		joystate[controller].axis[CTL_L_SHOULDER] = XInput::GetXI(0, PadMapping[controller].buttons[CTL_L_SHOULDER] - 1000);
-		joystate[controller].axis[CTL_R_SHOULDER] = XInput::GetXI(0, PadMapping[controller].buttons[CTL_R_SHOULDER] - 1000);
+		PadState[controller].axis[CTL_L_SHOULDER] = XInput::GetXI(0, PadMapping[controller].buttons[CTL_L_SHOULDER] - 1000);
+		PadState[controller].axis[CTL_R_SHOULDER] = XInput::GetXI(0, PadMapping[controller].buttons[CTL_R_SHOULDER] - 1000);
 	}
 #endif
 
-	/* Debugging	
+	/* Debugging 
 	Console::ClearScreen();
+	Console::Print("sfjsdfgsdf");
 	Console::Print(
 		"Controller and handle: %i %i\n"
 		"Triggers:%i  %i %i  %i %i\n",
-		controller, (int)joystate[controller].joy,
+		controller, (int)PadState[controller].joy,
 		PadMapping[controller].triggertype,
 		PadMapping[controller].buttons[CTL_L_SHOULDER], PadMapping[controller].buttons[CTL_R_SHOULDER],
-		joystate[controller].axis[CTL_L_SHOULDER], joystate[controller].axis[CTL_R_SHOULDER]
+		PadState[controller].axis[CTL_L_SHOULDER], PadState[controller].axis[CTL_R_SHOULDER]
 		);	*/
 
 	ReadButton(controller, CTL_L_SHOULDER);
@@ -785,25 +798,25 @@ void GetJoyState(int controller)
 
 	//
 	if (PadMapping[controller].halfpress < joyinfo[controller].NumButtons)
-		joystate[controller].halfpress = SDL_JoystickGetButton(joystate[controller].joy, PadMapping[controller].halfpress);
+		PadState[controller].halfpress = SDL_JoystickGetButton(PadState[controller].joy, PadMapping[controller].halfpress);
 
 	// Check if we have an analog or digital joypad
 	if (PadMapping[controller].controllertype == CTL_DPAD_HAT)
 	{
-		joystate[controller].dpad = SDL_JoystickGetHat(joystate[controller].joy, PadMapping[controller].dpad);
+		PadState[controller].dpad = SDL_JoystickGetHat(PadState[controller].joy, PadMapping[controller].dpad);
 	}
 	else
 	{
 		/* Only do this if the assigned button is in range (to allow for the current way of saving keyboard
 		   keys in the same array) */
 		if(PadMapping[controller].dpad2[CTL_D_PAD_UP] <= Buttons)
-			joystate[controller].dpad2[CTL_D_PAD_UP] = SDL_JoystickGetButton(joystate[controller].joy, PadMapping[controller].dpad2[CTL_D_PAD_UP]);
+			PadState[controller].dpad2[CTL_D_PAD_UP] = SDL_JoystickGetButton(PadState[controller].joy, PadMapping[controller].dpad2[CTL_D_PAD_UP]);
 		if(PadMapping[controller].dpad2[CTL_D_PAD_DOWN] <= Buttons)
-			joystate[controller].dpad2[CTL_D_PAD_DOWN] = SDL_JoystickGetButton(joystate[controller].joy, PadMapping[controller].dpad2[CTL_D_PAD_DOWN]);
+			PadState[controller].dpad2[CTL_D_PAD_DOWN] = SDL_JoystickGetButton(PadState[controller].joy, PadMapping[controller].dpad2[CTL_D_PAD_DOWN]);
 		if(PadMapping[controller].dpad2[CTL_D_PAD_LEFT] <= Buttons)
-			joystate[controller].dpad2[CTL_D_PAD_LEFT] = SDL_JoystickGetButton(joystate[controller].joy, PadMapping[controller].dpad2[CTL_D_PAD_LEFT]);
+			PadState[controller].dpad2[CTL_D_PAD_LEFT] = SDL_JoystickGetButton(PadState[controller].joy, PadMapping[controller].dpad2[CTL_D_PAD_LEFT]);
 		if(PadMapping[controller].dpad2[CTL_D_PAD_RIGHT] <= Buttons)
-			joystate[controller].dpad2[CTL_D_PAD_RIGHT] = SDL_JoystickGetButton(joystate[controller].joy, PadMapping[controller].dpad2[CTL_D_PAD_RIGHT]);
+			PadState[controller].dpad2[CTL_D_PAD_RIGHT] = SDL_JoystickGetButton(PadState[controller].joy, PadMapping[controller].dpad2[CTL_D_PAD_RIGHT]);
 	}
 }
 //////////////////////////////////////////////////////////////////////////////////////////
