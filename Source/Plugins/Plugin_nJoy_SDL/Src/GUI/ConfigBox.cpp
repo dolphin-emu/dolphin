@@ -39,8 +39,6 @@
 #include "../nJoy.h"
 #include "Images/controller.xpm"
 
-//extern CONTROLLER_INFO	*joyinfo;
-//extern CONTROLLER_MAPPING PadMapping[4];
 extern bool emulator_running;
 
 // D-Pad type
@@ -116,7 +114,7 @@ ConfigBox::ConfigBox(wxWindow *parent, wxWindowID id, const wxString &title,
 	// Define values
 	notebookpage = 0;
 	g_Pressed = 0;
-	Debugging = true;
+	Debugging = false;
 	m_TCDebugging = NULL;
 	ControlsCreated = false;
 
@@ -927,15 +925,15 @@ void ConfigBox::CreateGUIControls()
 	// --------------------------------------------------------------------
 	// Debugging
 	// -----------------------------
-	m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(135, 100), wxDefaultSize);
+	//m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(135, 100), wxDefaultSize);
 	//m_pStatusBar2 = new wxStaticText(this, IDT_DEBUGGING2, wxT("Debugging2"), wxPoint(125, 200), wxDefaultSize);
 	//m_pStatusBar->SetLabel(wxString::Format("Debugging text"));
 
-	/**/m_TCDebugging = new wxTextCtrl(this, IDT_DEBUGGING3, _T(""), wxDefaultPosition, wxSize(400, 400),
+	/*m_TCDebugging = new wxTextCtrl(this, IDT_DEBUGGING3, _T(""), wxDefaultPosition, wxSize(400, 400),
 		wxTE_RICH | wxTE_MULTILINE | wxTE_DONTWRAP | wxNO_BORDER);
 	wxBoxSizer * m_LogSizer = new wxBoxSizer(wxVERTICAL);
 	m_LogSizer->Add(m_TCDebugging, 0, wxEXPAND | (wxALL), 0);
-	m_MainSizer->Add(m_LogSizer, 0, wxEXPAND | ( wxLEFT | wxRIGHT | wxBOTTOM), 5);
+	m_MainSizer->Add(m_LogSizer, 0, wxEXPAND | ( wxLEFT | wxRIGHT | wxBOTTOM), 5);*/
 
 	// --------------------------------------------------------------------
 	// Set window size

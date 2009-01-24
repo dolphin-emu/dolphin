@@ -227,7 +227,6 @@ extern std::vector<u8> Keys;
 // ¯¯¯¯¯¯¯¯¯
 #ifndef _CONTROLLER_STATE_H
 	extern FILE *pFile;
-	//extern CONTROLLER_INFO *joyinfo;
 	extern std::vector<CONTROLLER_INFO> joyinfo;
 	extern CONTROLLER_STATE PadState[4];
 	extern CONTROLLER_MAPPING PadMapping[4];

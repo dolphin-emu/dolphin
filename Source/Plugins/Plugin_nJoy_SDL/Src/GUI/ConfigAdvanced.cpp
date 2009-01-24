@@ -37,7 +37,6 @@
 #include "../nJoy.h"
 #include "Images/controller.xpm"
 
-//extern CONTROLLER_INFO	*joyinfo;
 extern bool emulator_running;
 ////////////////////////
 
@@ -246,12 +245,10 @@ std::string ShowStatus(int VirtualController)
 void ConfigBox::Update()
 {
 	// Show the current status
-	/**/
+	/*
 	m_pStatusBar->SetLabel(wxString::Format(
 		"%s", ShowStatus(notebookpage).c_str()
-		));
-
-	Console::Print("3: %p\n", PadState[PadMapping[3].ID].joy);
+		));*/
 
 	//LogMsg("Abc%s\n", ShowStatus(notebookpage).c_str());
 
