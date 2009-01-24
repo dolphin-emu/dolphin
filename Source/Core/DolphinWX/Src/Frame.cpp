@@ -435,7 +435,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 	else
 	{
 		if(Core::GetState() != Core::CORE_UNINITIALIZED)
-		    CPluginManager::GetInstance().GetPAD(0)->PAD_Input(event.GetKeyCode(), 1); // 1 = Down
+		    CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 1); // 1 = Down
 		event.Skip();
 	}
 }
@@ -443,7 +443,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 void CFrame::OnKeyUp(wxKeyEvent& event)
 {
 	if(Core::GetState() != Core::CORE_UNINITIALIZED)
-		CPluginManager::GetInstance().GetPAD(0)->PAD_Input(event.GetKeyCode(), 0); // 0 = Up
+		CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 0); // 0 = Up
 	event.Skip();
 }
 

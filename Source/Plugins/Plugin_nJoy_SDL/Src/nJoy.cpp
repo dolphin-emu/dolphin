@@ -243,7 +243,7 @@ void Initialize(void *init)
 
 	//Console::Print("Initialize: %i\n", SDL_WasInit(0));
 
-    SPADInitialize _PADInitialize  = *(SPADInitialize*)init;
+    SPADInitialize *_PADInitialize = (SPADInitialize*)init;
 	emulator_running = true;
 	#ifdef _DEBUG
 		DEBUG_INIT();
@@ -251,18 +251,19 @@ void Initialize(void *init)
 
 	/* SDL 1.3 use DirectInput instead of the old Microsoft Multimeda API, and with this we need 
 	   the SDL_INIT_VIDEO flag to */
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0)
-	{
-		#ifdef _WIN32
-			MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
-		#else
-			printf("Could not initialize SDL! (%s)\n", SDL_GetError());
-		#endif
-		return;
-	}
+	if (!SDL_WasInit(0))
+		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0)
+		{
+			#ifdef _WIN32
+				MessageBox(NULL, SDL_GetError(), "Could not initialize SDL!", MB_ICONERROR);
+			#else
+				printf("Could not initialize SDL! (%s)\n", SDL_GetError());
+			#endif
+			return;
+		}
 
 	#ifdef _WIN32
-		m_hWnd = (HWND)_PADInitialize.hWnd;
+		m_hWnd = (HWND)_PADInitialize->hWnd;
 	#endif
 
 	Search_Devices(); // Populate joyinfo for all attached devices
@@ -275,6 +276,17 @@ void Initialize(void *init)
 		joystate[2].joy = SDL_JoystickOpen(PadMapping[2].ID);
 	if (PadMapping[3].enabled)
 		joystate[3].joy = SDL_JoystickOpen(PadMapping[3].ID);
+
+	/* Check if any of the pads failed to open. In Windows there is a strange "IDirectInputDevice2::
+	   SetDataFormat() DirectX error -2147024809" after a few Open and Close */
+	if(    (PadMapping[0].enabled && joystate[0].joy == NULL)
+		|| (PadMapping[1].enabled && joystate[1].joy == NULL)
+		|| (PadMapping[2].enabled && joystate[2].joy == NULL)
+		|| (PadMapping[3].enabled && joystate[3].joy == NULL))
+	{
+		_PADInitialize->padNumber = -1;
+		Console::Print("%s\n", SDL_GetError());		
+	}
 }
 
  

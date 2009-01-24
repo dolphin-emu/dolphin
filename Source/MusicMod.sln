@@ -146,6 +146,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Main", "..\Branches\MusicMo
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Player", "..\Branches\MusicMod\Player\Player.vcproj", "{0B72B5D6-5D72-4391-84A7-9CCA5392668A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C573CAF7-EE6A-458E-8049-16C0BF34C2E9} = {C573CAF7-EE6A-458E-8049-16C0BF34C2E9}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestPlayer", "..\Branches\MusicMod\TestPlayer\TestPlayer.vcproj", "{0D14F1E9-490B-4A2D-A4EF-0535E8B3C718}"
 EndProject

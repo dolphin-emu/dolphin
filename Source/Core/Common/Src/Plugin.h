@@ -40,6 +40,7 @@ class CPlugin
 	~CPlugin();
 
 	virtual bool IsValid() {return valid;};
+	virtual std::string GetFilename() {return Filename;};
 
 	bool GetInfo(PLUGIN_INFO& _pluginInfo);
 	void SetGlobals(PLUGIN_GLOBALS* _PluginGlobals);
@@ -56,6 +57,7 @@ class CPlugin
 
 	DynamicLibrary m_hInstLib;
 	bool valid;
+	std::string Filename;
 
 	// Functions
 	TGetDllInfo m_GetDllInfo;

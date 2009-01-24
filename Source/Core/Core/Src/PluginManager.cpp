@@ -34,6 +34,8 @@
 #include "ConsoleWindow.h"
 
 CPluginManager CPluginManager::m_Instance;
+
+//#define INPUTCOMMON
 //////////////////////////////////////////////
 
 
@@ -44,14 +46,26 @@ CPluginManager::CPluginManager() :
     m_params(SConfig::GetInstance().m_LocalCoreStartupParameter)
 {
     m_PluginGlobals = new PLUGIN_GLOBALS;
+	
+
     m_PluginGlobals->eventHandler = EventHandler::GetInstance();
     m_PluginGlobals->config = (void *)&SConfig::GetInstance();
     m_PluginGlobals->messageLogger = NULL;
 
+	#ifdef INPUTCOMMON
+		m_InputManager = new InputManager();
+		m_PluginGlobals->inputManager = m_InputManager;
+	#endif
 }
 
-// Function: FreeLibrary()
-// Called from: This will be called when Dolphin is closed, not when we Stop a game
+/* Function: FreeLibrary()
+   Called from: In an attempt to avoid the crash that occurs when the use LoadLibrary() and
+   FreeLibrary() often (every game a game is stopped and started) these functions will only
+   be used when
+		1. Dolphin is started
+		2. A plugin is changed
+		3. Dolphin is closed
+   it will not be used when we Start and Stop games. */
 CPluginManager::~CPluginManager()
 {
 	Console::Print("Delete CPluginManager\n");
@@ -108,7 +122,7 @@ bool CPluginManager::InitPlugins()
     for (int i = 0; i < MAXPADS; i++)
 	{
 		if (! m_params.m_strPadPlugin[i].empty())
-			GetPAD(i);
+			GetPad(i);
 		if (m_pad[i] != NULL)
 			pad = true;
     }
@@ -148,8 +162,8 @@ void CPluginManager::ShutdownPlugins()
 		{
 			//Console::Print("Shutdown: %i\n", i);
 			m_pad[i]->Shutdown();
-		}
-		//delete m_pad[i];
+			//delete m_pad[i];
+		}		
 		//m_pad[i] = NULL;
 	}
 
@@ -157,10 +171,10 @@ void CPluginManager::ShutdownPlugins()
 		if (m_wiimote[i]) m_wiimote[i]->Shutdown();
 
 	if (m_video)
-	m_video->Shutdown();
+		m_video->Shutdown();
 
 	if (m_dsp)
-	m_dsp->Shutdown();
+		m_dsp->Shutdown();
 }
 //////////////////////////////////////////
 
@@ -168,31 +182,35 @@ void CPluginManager::ShutdownPlugins()
 //////////////////////////////////////////////////////////////////////////////////////////
 // Supporting functions
 // ¯¯¯¯¯¯¯¯¯¯¯¯
-
-
-void *CPluginManager::LoadPlugin(const char *_rFilename)//, PLUGIN_TYPE type)
+/* Called from: Get__() functions in this file only (not from anywhere else), therefore we
+   can leave all condition checks in the Get__() functions below. */
+void *CPluginManager::LoadPlugin(const char *_rFilename, int Number)//, PLUGIN_TYPE type)
 {
     CPluginInfo info(_rFilename);
     PLUGIN_TYPE type = info.GetPluginInfo().Type;
-    Common::CPlugin *plugin = NULL;
+	//std::string Filename = info.GetPluginInfo().Filename;
+	std::string Filename = _rFilename;
+	Common::CPlugin *plugin = NULL;
+
     switch (type)
 	{
     case PLUGIN_TYPE_VIDEO:
 		plugin = new Common::PluginVideo(_rFilename);
 		break;
 
-    case PLUGIN_TYPE_PAD:
-		plugin = new Common::PluginPAD(_rFilename);
-		break;
-
     case PLUGIN_TYPE_DSP:
 		plugin = new Common::PluginDSP(_rFilename);
+		break;
+
+	case PLUGIN_TYPE_PAD:
+		plugin = new Common::PluginPAD(_rFilename);
 		break;
 
     case PLUGIN_TYPE_WIIMOTE:
 		plugin = new Common::PluginWiimote(_rFilename);
 		break;
-		default:
+
+	default:
 		PanicAlert("Trying to load unsupported type %d", type);
     }
 
@@ -212,15 +230,13 @@ void *CPluginManager::LoadPlugin(const char *_rFilename)//, PLUGIN_TYPE type)
 // -------------
 int CPluginManager::OkayToInitPlugin(int Plugin)
 {
-	//Console::Print("OkayToInitShutdown: %i", Plugin);
 	// Compare it to the earlier plugins
 	for(int i = 0; i < Plugin; i++)
 		if (m_params.m_strPadPlugin[Plugin] == m_params.m_strPadPlugin[i])
-		{
-			//Console::Print("(%i %i) %s\n", Plugin, i, g_CoreStartupParameter.m_strPadPlugin[Plugin].c_str());
 			return i;
-		}
-	return -1;
+
+	// No there is no duplicate plugin
+	return -1;	
 }
 
 
@@ -271,51 +287,67 @@ void CPluginManager::ScanForPlugins()
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// Create or return the already created plugin pointers
+/* Create or return the already created plugin pointers. This will be called often for the
+   Pad and Wiimote from the SI_.cpp files. And often for the DSP from the DSP files. */
 // ¯¯¯¯¯¯¯¯¯¯¯¯
-Common::PluginPAD *CPluginManager::GetPAD(int controller)
+Common::PluginPAD *CPluginManager::GetPad(int controller)
 {
-    if (m_pad[controller] == NULL)
+	if (m_pad[controller] != NULL)
+		if (m_pad[controller]->GetFilename() == m_params.m_strPadPlugin[controller])
+			return m_pad[controller];
+		
+	// Else do this
+	if(OkayToInitPlugin(controller) == -1)
 	{
-		if(OkayToInitPlugin(controller) == -1)
-		{
-			m_pad[controller] = (Common::PluginPAD*)LoadPlugin(m_params.m_strPadPlugin[controller].c_str());
-			Console::Print("LoadPlugin: %i\n", controller);
-		}
-		else
-		{
-			Console::Print("Pointed: %i to %i\n", controller, OkayToInitPlugin(controller));
-			m_pad[controller] = m_pad[OkayToInitPlugin(controller)];
-		}
+		m_pad[controller] = (Common::PluginPAD*)LoadPlugin(m_params.m_strPadPlugin[controller].c_str(), controller);
+		Console::Print("LoadPlugin: %i\n", controller);
 	}
-
-	//Console::Print("Returned: %i\n", controller);
-    return m_pad[controller];
+	else
+	{
+		Console::Print("Pointed: %i to %i\n", controller, OkayToInitPlugin(controller));
+		m_pad[controller] = m_pad[OkayToInitPlugin(controller)];
+	}	
+	return m_pad[controller];
 }
 
 Common::PluginWiimote *CPluginManager::GetWiimote(int controller)
 {
-    if (m_wiimote[controller] == NULL)
-		m_wiimote[controller] = (Common::PluginWiimote*)LoadPlugin
-			(m_params.m_strWiimotePlugin[controller].c_str());
+	if (m_wiimote[controller] != NULL)
+		if (m_wiimote[controller]->GetFilename() == m_params.m_strWiimotePlugin[controller])
+			return m_wiimote[controller];
 
+	// Else load a new plugin
+	m_wiimote[controller] = (Common::PluginWiimote*)LoadPlugin(m_params.m_strWiimotePlugin[controller].c_str());
     return m_wiimote[controller];
 }
 
 Common::PluginDSP *CPluginManager::GetDSP()
 {
-    if (m_dsp == NULL)
+	if (m_dsp != NULL)
+		if (m_dsp->GetFilename() == m_params.m_strDSPPlugin)
+			return m_dsp;
+	// Else load a new plugin
 	m_dsp = (Common::PluginDSP*)LoadPlugin(m_params.m_strDSPPlugin.c_str());
-
     return m_dsp;
 }
 
-Common::PluginVideo *CPluginManager::GetVideo() {
+Common::PluginVideo *CPluginManager::GetVideo()
+{
+	if (m_video != NULL)
+		if (m_video->GetFilename() == m_params.m_strVideoPlugin)
+			return m_video;
 
-    if (m_video == NULL)
+	// Else load a new plugin
 	m_video = (Common::PluginVideo*)LoadPlugin(m_params.m_strVideoPlugin.c_str());
-
     return m_video;
+}
+
+Common::PluginPAD *CPluginManager::FreePad()
+{
+	delete m_pad[0];
+	m_pad[0] = NULL; m_pad[1] = NULL; m_pad[2] = NULL; m_pad[3] = NULL;
+	m_pad[0] = (Common::PluginPAD*)LoadPlugin(m_params.m_strPadPlugin[0].c_str(), 0);
+	return m_pad[0];
 }
 ///////////////////////////////////////////
 
@@ -325,15 +357,33 @@ Common::PluginVideo *CPluginManager::GetVideo() {
 // ¯¯¯¯¯¯¯¯¯¯¯¯
 
 // ----------------------------------------
-// Open config window. _rFilename = plugin filename , ret = the dll slot number
+// Open config window. Input: _rFilename = Plugin filename , Type = Plugin type
 // -------------
-void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename)
+void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type)
 {
+	#ifdef INPUTCOMMON
+		m_InputManager->Init();
+	#endif
 
-    Common::CPlugin *plugin = new Common::CPlugin(_rFilename);
-    plugin->SetGlobals(m_PluginGlobals);
-    plugin->Config((HWND)_Parent);
-    delete plugin;
+	switch(Type)
+	{
+	case PLUGIN_TYPE_VIDEO:
+		GetVideo()->Config((HWND)_Parent);
+		break;
+	case PLUGIN_TYPE_DSP:
+		GetDSP()->Config((HWND)_Parent);
+		break;
+	case PLUGIN_TYPE_PAD:
+		GetPad(0)->Config((HWND)_Parent);
+		break;
+	case PLUGIN_TYPE_WIIMOTE:
+		GetWiimote(0)->Config((HWND)_Parent);
+		break;
+    }
+
+	#ifdef INPUTCOMMON
+		m_InputManager->Shutdown();
+	#endif
 }
 
 // ----------------------------------------
@@ -341,10 +391,14 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename)
 // -------------
 void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show)
 {
-    if (Type == PLUGIN_TYPE_VIDEO) {
+	switch(Type)
+	{
+	case PLUGIN_TYPE_VIDEO:
 		GetVideo()->Debug((HWND)_Parent, Show);
-    } else if (Type == PLUGIN_TYPE_DSP) {
+		break;
+	case PLUGIN_TYPE_DSP:
 		GetDSP()->Debug((HWND)_Parent, Show);
+		break;
     }
 }
 

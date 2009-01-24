@@ -64,6 +64,8 @@ CPlugin::CPlugin(const char* _szName) : valid(false)
 	m_DoState != 0)
 	valid = true;
 
+	// Save the filename for this plugin
+	Filename = _szName;
 }
 
 void *CPlugin::LoadSymbol(const char *sym) {

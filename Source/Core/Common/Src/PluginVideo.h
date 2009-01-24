@@ -13,22 +13,23 @@ namespace Common {
     typedef void (__cdecl* TVideo_AddMessage)(const char* pstr, unsigned int milliseconds);
     typedef void (__cdecl* TVideo_Stop)();
 
-    class PluginVideo : public CPlugin {
+    class PluginVideo : public CPlugin
+	{
     public:
-	PluginVideo(const char *_Filename);
-	~PluginVideo();
-	virtual bool IsValid() {return validVideo;};
+		PluginVideo(const char *_Filename);
+		~PluginVideo();
+		virtual bool IsValid() {return validVideo;};
 
-	TVideo_Prepare      Video_Prepare;
-	TVideo_SendFifoData Video_SendFifoData;
-	TVideo_UpdateXFB    Video_UpdateXFB;
-	TVideo_Screenshot   Video_Screenshot;
-	TVideo_EnterLoop    Video_EnterLoop;
-	TVideo_AddMessage   Video_AddMessage;
-	TVideo_Stop         Video_Stop;
+		TVideo_Prepare      Video_Prepare;
+		TVideo_SendFifoData Video_SendFifoData;
+		TVideo_UpdateXFB    Video_UpdateXFB;
+		TVideo_Screenshot   Video_Screenshot;
+		TVideo_EnterLoop    Video_EnterLoop;
+		TVideo_AddMessage   Video_AddMessage;
+		TVideo_Stop         Video_Stop;
 
     private:
-	bool validVideo;
+		bool validVideo;
 
     };
 }

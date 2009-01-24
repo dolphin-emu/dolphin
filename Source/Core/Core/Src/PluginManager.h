@@ -46,16 +46,17 @@ class CPluginManager
 {
 public:
 	static CPluginManager& GetInstance() {return(m_Instance);}
-	Common::PluginPAD *GetPAD(int controller);
+	Common::PluginPAD *GetPad(int controller);
 	Common::PluginWiimote *GetWiimote(int controller);
 	Common::PluginDSP *GetDSP();
 	Common::PluginVideo *GetVideo();
+	Common::PluginPAD *FreePad();
 
 	bool InitPlugins();
 	void ShutdownPlugins();
 	int OkayToInitPlugin(int Plugin);
 	void ScanForPlugins();
-	void OpenConfig(void* _Parent, const char *_rFilename);
+	void OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type);
 	void OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show);
 	const CPluginInfos& GetPluginInfos() {return(m_PluginInfos);}
 	PLUGIN_GLOBALS* GetGlobals();
@@ -73,7 +74,7 @@ private:
 	SCoreStartupParameter& m_params;
 	CPluginManager();
 	~CPluginManager();
-	void *LoadPlugin(const char *_rFilename);
+	void *LoadPlugin(const char *_rFilename, int Number = 0);
 
 };
 
