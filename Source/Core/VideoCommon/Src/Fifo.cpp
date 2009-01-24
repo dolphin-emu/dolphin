@@ -177,7 +177,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 				}
 				Video_SendFifoData(uData, distToSend);
                 Common::SyncInterlockedExchange((LONG*)&_fifo.CPReadPointer, readPtr);
-                Common::SyncInterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -(__int64)distToSend);
+                Common::SyncInterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -(s64)distToSend);
 			}
 			//video_initialize.pLog("..........................IDLE",FALSE);
 			Common::SyncInterlockedExchange((LONG*)&_fifo.CPReadIdle, 1);

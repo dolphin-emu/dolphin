@@ -170,8 +170,8 @@ bool IBannerLoader::CopyUnicodeToString( std::string& _rDestination, const u16* 
 		}	
 	}
 #else
-	// not implement other than windows
-	_rDestination = _src;
+	// FIXME: Horribly broke on non win32
+	//	_rDestination = _src;
 	returnCode = true;
 #endif
 	return returnCode;

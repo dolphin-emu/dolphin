@@ -126,11 +126,13 @@ CBannerLoaderWii::GetName(std::string& _rName, DiscIO::IVolume::ECountry languag
 
 	// find Banner type
 	SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
+#ifdef _WIN32
 	if (DiscIO::IVolume::COUNTRY_JAP == language)
 	{
 		return CopyUnicodeToString(_rName, pBanner->m_Comment[0]);
 	}
 	else
+#endif
 	{
 		// very stupid
 		_rName = StupidWideCharToString(pBanner->m_Comment[0], WII_BANNER_COMMENT_SIZE);

@@ -226,7 +226,7 @@ wxString ConfigBox::GetButtonText(int id)
 		case IDB_BUTTONSTART: return m_JoyButtonStart[controller]->GetValue();
 
 		case IDB_BUTTONHALFPRESS: return m_JoyButtonHalfpress[controller]->GetValue();
-		default: return wxString("");
+		default: return wxString();
 	}
 }
 
