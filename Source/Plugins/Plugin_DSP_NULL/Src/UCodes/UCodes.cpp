@@ -15,12 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
 #include "../Globals.h"
 
 #include "UCodes.h"
 
 #include "UCode_AX.h"
+#include "UCode_AXWii.h"
 #include "UCode_Zelda.h"
 #include "UCode_Jac.h"
 #include "UCode_ROM.h"
@@ -44,7 +44,7 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	    case 0xd73338cf: // IPL
 	    case 0x42f64ac4: // Luigi       (after fix)
 	    case 0x4be6a5cb: // AC, Pikmin  (after fix)
-		    DebugLog("JAC ucode chosen");
+		    printf("JAC ucode chosen");
 		    return new CUCode_Jac(_rMailHandler);
 
 	    case 0x3ad3b7ac: // Naruto3
@@ -56,25 +56,28 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 	    case 0x07f88145: // bustamove, ikaruga, fzero, robotech battle cry, star soldier, soul calibur2,
 		    // Zelda:OOT, Tony hawk, viewtiful joe
 	    case 0xe2136399: // billy hatcher, dragonballz, mario party 5, TMNT, ava1080
-		    DebugLog("AX ucode chosen, yay!");
+		    printf("AX ucode chosen, yay!");
 		    return new CUCode_AX(_rMailHandler);
 
 	    case 0x6CA33A6D: // DK Jungle Beat
 	    case 0x86840740: // zelda
 	    case 0x56d36052: // mario
 	    case 0x2fcdf1ec: // mariokart, zelda 4 swords
-		    DebugLog("Zelda ucode chosen");
+		    printf("Zelda ucode chosen");
 		    return new CUCode_Zelda(_rMailHandler);
 
 		    // WII CRCs
 	    case 0x6c3f6f94: // zelda - PAL
 	    case 0xd643001f: // mario galaxy - PAL
-		    DebugLog("Zelda Wii ucode chosen");
+		    printf("Zelda Wii ucode chosen");
 		    return new CUCode_Zelda(_rMailHandler);
 
+		case 0x5ef56da3: // AX demo
 	    case 0x347112ba: // raving rabbits
-		    DebugLog("Wii - AX chosen");
-		    return new CUCode_AX(_rMailHandler, true);
+		case 0xfa450138: // wii sports - PAL
+		case 0xadbc06bd: // Elebits
+			printf("Wii - AXWii chosen");
+		    return new CUCode_AXWii(_rMailHandler, _CRC);
 
 	    default:
 		    PanicAlert("Unknown ucode (CRC = %08x) - forcing AX", _CRC);

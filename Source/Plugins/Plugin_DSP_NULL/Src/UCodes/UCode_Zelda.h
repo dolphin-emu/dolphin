@@ -68,6 +68,7 @@ public:
 
 	void HandleMail(u32 _uMail);
 	void Update();
+	void MixAdd(short* buffer, int size);
 };
 
 #endif

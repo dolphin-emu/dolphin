@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef UCODE_AX_STRUCTS
-#define UCODE_AX_STRUCTS
+#ifndef _UCODE_AX_STRUCTS_H
+#define _UCODE_AX_STRUCTS_H
 
 struct PBMixer
 {
@@ -29,9 +29,26 @@ struct PBMixer
 	u16 unknown4[6];
 };
 
+struct PBMixerWii
+{
+	u16 volume_left;
+	u16 unknown;
+	u16 volume_right;
+	u16 unknown2;
+
+	u16 unknown3[12];
+	u16 unknown4[8];
+};
+
 struct PBInitialTimeDelay
 {
-	u16 unknown[7];
+	u16 on;
+	u16 addrMemHigh;
+	u16 addrMemLow;
+	u16 offsetLeft;
+	u16 offsetRight;
+	u16 targetLeft;
+	u16 targetRight;
 };
 
 // Update data - read these each 1ms subframe and use them!
@@ -45,10 +62,27 @@ struct PBUpdates
 	u16 data_lo;
 };
 
-struct PBUnknown
+struct PBUpdatesWii
+{
+	u16 num_updates[3];
+	u16 data_hi;  // These point to main RAM. Not sure about the structure of the data.
+	u16 data_lo;
+};
+
+struct PBDpop
 {
 	s16 unknown[9];
 };
+
+	struct PBDpopWii
+	{
+		s16 unknown[12];
+	};
+
+	struct PBDpopWii_ // new CRC version
+	{
+		s16 unknown[7];
+	};
 
 struct PBVolumeEnvelope
 {
@@ -76,7 +110,7 @@ struct PBAudioAddr
 struct PBADPCMInfo
 {
 	s16 coefs[16];
-	u16 unknown;
+	u16 gain;
 	u16 pred_scale;
 	s16 yn1;
 	s16 yn2;
@@ -106,23 +140,97 @@ struct AXParamBlock
 	u16 this_pb_lo;
 
 	u16 src_type;     // Type of sample rate converter (none, ?, linear)
-	u16 unknown1;
+	u16 coef_select;
 
 	u16 mixer_control;
 	u16 running;       // 1=RUN 0=STOP
 	u16 is_stream;     // 1 = stream, 0 = one shot
 
-	PBMixer mixer;
-	PBInitialTimeDelay initial_time_delay;
-	PBUpdates updates;
-	PBUnknown unknown2;
-	PBVolumeEnvelope vol_env;
-	PBUnknown2 unknown3;
-	PBAudioAddr audio_addr;
-	PBADPCMInfo adpcm;
-	PBSampleRateConverter src;
-	PBADPCMLoopInfo adpcm_loop_info;
-	u16 unknown_maybe_padding[3];
+/*  9 */	PBMixer mixer;
+/* 27 */	PBInitialTimeDelay initial_time_delay;  
+/* 34 */	PBUpdates updates;
+/* 41 */	PBDpop dpop;
+/* 50 */	PBVolumeEnvelope vol_env;
+/* 52 */	PBUnknown2 unknown3;
+/* 55 */	PBAudioAddr audio_addr;
+/* 63 */	PBADPCMInfo adpcm;
+/* 83 */    PBSampleRateConverter src;
+/* 90 */	PBADPCMLoopInfo adpcm_loop_info;
+/* 93 */	u16 unknown_maybe_padding[3];
+};
+
+struct PBLpf
+{
+	u16 enabled;
+	u16 yn1;
+	u16 a0;
+	u16 b0;
+};
+
+struct PBHpf
+{
+	u16 enabled;
+	u16 yn1;
+	u16 a0;
+	u16 b0;
+};
+
+struct AXParamBlockWii
+{
+	u16 next_pb_hi;
+	u16 next_pb_lo;
+
+	u16 this_pb_hi;
+	u16 this_pb_lo;
+
+	u16 src_type;     // Type of sample rate converter (none, ?, linear)
+	u16 coef_select;
+	u32 mixer_control;
+
+	u16 running;       // 1=RUN   0=STOP
+	u16 is_stream;     // 1 = stream, 0 = one shot
+
+/*  10 */	PBMixerWii mixer;
+/*  34 */	PBInitialTimeDelay initial_time_delay;  
+/*  41 */	PBUpdatesWii updates;
+/*  46 */	PBDpopWii dpop;
+/*  58 */	PBVolumeEnvelope vol_env;
+/*  60 */	PBAudioAddr audio_addr;
+/*  68 */	PBADPCMInfo adpcm;
+/*  88 */	PBSampleRateConverter src;
+/*  95 */	PBADPCMLoopInfo adpcm_loop_info;
+/*  98 */	PBLpf lpf;
+/* 102 */	PBHpf hpf;
+/* 106 */	u16 pad[22];
+};
+
+struct AXParamBlockWii_ // new CRC version
+{
+	u16 next_pb_hi;
+	u16 next_pb_lo;
+
+	u16 this_pb_hi;
+	u16 this_pb_lo;
+
+	u16 src_type;     // Type of sample rate converter (none, ?, linear)
+	u16 coef_select;
+	u32 mixer_control;
+
+	u16 running;       // 1=RUN   0=STOP
+	u16 is_stream;     // 1 = stream, 0 = one shot
+
+/*  10 */	PBMixerWii mixer;
+/*  34 */	PBInitialTimeDelay initial_time_delay;  
+/*  41 */	PBUpdatesWii updates;
+/*  46 */	PBDpopWii_ dpop;
+/*  53 */	PBVolumeEnvelope vol_env;
+/*  55 */	PBAudioAddr audio_addr;
+/*  63 */	PBADPCMInfo adpcm;
+/*  83 */	PBSampleRateConverter src;
+/*  90 */	PBADPCMLoopInfo adpcm_loop_info;
+/*  93 */	PBLpf lpf;
+/* 97 */	PBHpf hpf;
+/* 101 */	u16 pad[27];
 };
 
 enum {
@@ -137,5 +245,4 @@ enum {
 	MIXCONTROL_RAMPING = 8,
 };
 
-
-#endif
+#endif  // _UCODE_AX_STRUCTS_H

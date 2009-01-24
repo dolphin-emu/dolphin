@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
 #include "../Globals.h"
 #include "UCodes.h"
 #include "UCode_Jac.h"
@@ -149,7 +148,7 @@ void CUCode_Jac::ExecuteList()
 		    break;
 
 	    default:
-		    PanicAlert("UCode Jac unknown cmd: %s (size %)", cmd, m_numSteps);
+		    PanicAlert("UCode Jac unknown cmd: %s (size %i)", cmd, m_numSteps);
 		    DebugLog("Jac UCode - unknown cmd: %x (size %i)", cmd, m_numSteps);
 		    break;
 	}

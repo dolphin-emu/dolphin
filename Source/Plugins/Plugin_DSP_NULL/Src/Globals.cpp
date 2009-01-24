@@ -4,6 +4,16 @@
 #include "Common.h"
 #include "Globals.h"
 
+
+// debugger externals that are needed even in Release builds
+bool gSSBM = true;
+bool gSSBMremedy1 = true;
+bool gSSBMremedy2 = true;
+bool gSequenced = true;
+bool gVolume = true;
+bool gReset = false;
+float ratioFactor; // a global to get the ratio factor from MixAdd
+
 void __Log(int, const char *fmt, ...)
 {
 	DebugLog(fmt);

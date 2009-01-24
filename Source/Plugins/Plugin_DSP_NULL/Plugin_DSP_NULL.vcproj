@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Plugin_DSP_NULL"
 	ProjectGUID="{C6CC7A52-0FDD-433A-B2CF-9C6F187DA807}"
 	RootNamespace="Plugin_DSP"
@@ -637,7 +637,23 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Src\UCodes\UCode_AX_ADPCM.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\UCodes\UCode_AX_Voice.h"
+					>
+				</File>
+				<File
 					RelativePath=".\Src\UCodes\UCode_AXStructs.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\UCodes\UCode_AXWii.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\UCodes\UCode_AXWii.h"
 					>
 				</File>
 			</Filter>

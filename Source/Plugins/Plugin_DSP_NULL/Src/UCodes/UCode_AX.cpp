@@ -15,19 +15,37 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h"
-#include "../Globals.h"
+#include "FileUtil.h" // For IsDirectory()
+#include "StringUtil.h" // For StringFromFormat()
+
+#include <sstream>
 
 #include "../MailHandler.h"
 
 #include "UCodes.h"
 #include "UCode_AXStructs.h"
 #include "UCode_AX.h"
+#include "UCode_AX_Voice.h"
 
-CUCode_AX::CUCode_AX(CMailHandler& _rMailHandler, bool wii)
+
+// ------------------------------------------------------------------
+// Externals
+// -----------
+extern bool gSSBM;
+extern bool gSSBMremedy1;
+extern bool gSSBMremedy2;
+extern bool gSequenced;
+extern bool gVolume;
+extern bool gReset;
+extern std::string gpName;
+
+std::vector<std::string> sMailLog, sMailTime;
+// -----------
+
+
+CUCode_AX::CUCode_AX(CMailHandler& _rMailHandler)
 	: IUCode(_rMailHandler)
 	, m_addressPBs(0xFFFFFFFF)
-	, wii_mode(wii)
 {
 	// we got loaded
 	m_rMailHandler.PushMail(0xDCD10000);
@@ -44,279 +62,211 @@ CUCode_AX::~CUCode_AX()
 	delete [] temprbuffer;
 }
 
-void CUCode_AX::HandleMail(u32 _uMail)
+
+// ============================================
+// Save file to harddrive
+// ----------------
+void CUCode_AX::SaveLogFile(std::string f, int resizeTo, bool type, bool Wii)
 {
-	if ((_uMail & 0xFFFF0000) == MAIL_AX_ALIST)
+	if (gpName.length() > 0) // this is currently off in the Release build
 	{
-		// a new List
-	}
-	else
-	{
-		AXTask(_uMail);
+		std::ostringstream ci;
+		std::ostringstream cType;
+	        
+		ci << (resizeTo - 1); // write ci
+		cType << type; // write cType
+
+		std::string FileName = FULL_MAIL_LOGS_DIR + gpName;
+		FileName += "_sep"; FileName += ci.str(); FileName += "_sep"; FileName += cType.str();
+		FileName += Wii ? "_sepWii_sep" : "_sepGC_sep"; FileName += ".log";
+
+		FILE* fhandle = fopen(FileName.c_str(), "w");
+		fprintf(fhandle, "%s", f.c_str());
+		fflush(fhandle); fhandle = NULL;
 	}
 }
 
-s16 CUCode_AX::ADPCM_Step(AXParamBlock& pb, u32& samplePos, u32 newSamplePos, u16 frac)
-{
-	PBADPCMInfo &adpcm = pb.adpcm;
 
-	while (samplePos < newSamplePos)
+// ============================================
+// Save the logged AX mail
+// ----------------
+void CUCode_AX::SaveLog_(bool Wii, const char* _fmt, va_list ap)
+{
+    char Msg[512];
+    vsprintf(Msg, _fmt, ap);
+
+	TmpMailLog += Msg;
+	TmpMailLog += "\n";
+}
+// ----------------
+
+
+// ============================================
+// Save the whole AX mail
+// ----------------
+void CUCode_AX::SaveMail(bool Wii, u32 _uMail)
+{
+}
+// ----------------
+
+
+int ReadOutPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num)
+{
+	int count = 0;
+	u32 blockAddr = pbs_address;
+
+	// reading and 'halfword' swap
+	for (int i = 0; i < _num; i++)
 	{
-		if ((samplePos & 15) == 0)
+		const short *pSrc = (const short *)g_dspInitialize.pGetMemoryPointer(blockAddr);
+		if (pSrc != NULL)
 		{
-			adpcm.pred_scale = g_dspInitialize.pARAM_Read_U8((samplePos & ~15) >> 1);
-			samplePos    += 2;
-			newSamplePos += 2;
+			short *pDest = (short *)&_pPBs[i];
+			for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
+			{
+				pDest[p] = Common::swap16(pSrc[p]);
+
+#if defined(HAVE_WX) && HAVE_WX                               
+				#if defined(_DEBUG) || defined(DEBUGFAST)
+					if(m_frame) m_frame->gLastBlock = blockAddr + p*2 + 2;  // save last block location
+				#endif
+#endif
+			}
+			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
+			count++;	
+
+			// Detect the last mail by checking when next_pb = 0
+			u32 next_pb = (Common::swap16(pSrc[0]) << 16) | Common::swap16(pSrc[1]);
+			if(next_pb == 0) break;
+		}
+		else
+			break;
+	}
+
+	// return the number of read PBs
+	return count;
+}
+
+void WriteBackPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num)
+{
+	u32 blockAddr = pbs_address;
+
+	// write back and 'halfword'swap
+	for (int i = 0; i < _num; i++)
+	{
+		short* pSrc  = (short*)&_pPBs[i];
+		short* pDest = (short*)g_dspInitialize.pGetMemoryPointer(blockAddr);
+		for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
+		{
+			pDest[p] = Common::swap16(pSrc[p]);
 		}
 
-		int scale = 1 << (adpcm.pred_scale & 0xF);
-		int coef_idx = adpcm.pred_scale >> 4;
-
-		s32 coef1 = adpcm.coefs[coef_idx * 2 + 0];
-		s32 coef2 = adpcm.coefs[coef_idx * 2 + 1];
-
-		int temp = (samplePos & 1) ?
-			   (g_dspInitialize.pARAM_Read_U8(samplePos >> 1) & 0xF) :
-			   (g_dspInitialize.pARAM_Read_U8(samplePos >> 1) >> 4);
-
-		if (temp >= 8)
-			temp -= 16;
-
-		// 0x400 = 0.5 in 11-bit fixed point
-		int val = (scale * temp) + ((0x400 + coef1 * adpcm.yn1 + coef2 * adpcm.yn2) >> 11);
-
-		if (val > 0x7FFF)
-			val = 0x7FFF;
-		else if (val < -0x7FFF)
-			val = -0x7FFF;
-		
-		adpcm.yn2 = adpcm.yn1;
-		adpcm.yn1 = val;
-
-		samplePos++;
+		// next block
+		blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
 	}
-
-	return adpcm.yn1;
-}
-
-void ADPCM_Loop(AXParamBlock& pb)
-{
-	if (!pb.is_stream)
-	{
-		pb.adpcm.yn1 = pb.adpcm_loop_info.yn1;
-		pb.adpcm.yn2 = pb.adpcm_loop_info.yn2;
-		pb.adpcm.pred_scale = pb.adpcm_loop_info.pred_scale;
-	}
-	//else stream and we should not attempt to replace values
 }
 
 void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 {
 	AXParamBlock PBs[NUMBER_OF_PBS];
 
+	// read out pbs
+	int numberOfPBs = ReadOutPBs(m_addressPBs, PBs, NUMBER_OF_PBS);
+
 	if (_iSize > 1024 * 1024)
 		_iSize = 1024 * 1024;
 
 	memset(templbuffer, 0, _iSize * sizeof(int));
 	memset(temprbuffer, 0, _iSize * sizeof(int));
-	// read out pbs
-	int numberOfPBs = ReadOutPBs(PBs, NUMBER_OF_PBS);
 
-	float ratioFactor = 32000.0f / 44100.0f;
+	// ---------------------------------------------------------------------------------------
+	/* Make the updates we are told to do. When there are multiple updates for a block they
+	   are placed in memory directly following updaddr. They are mostly for initial time
+	   delays, sometimes for the FIR filter or channel volumes. We do all of them at once here.
+	   If we get both an on and an off update we chose on. Perhaps that makes the RE1 music
+	   work better. */
+	// ------------
+	for (int i = 0; i < numberOfPBs; i++)
+	{
+		u16 *pDest = (u16 *)&PBs[i];
+		u16 upd0 = pDest[34]; u16 upd1 = pDest[35]; u16 upd2 = pDest[36]; // num_updates
+		u16 upd3 = pDest[37]; u16 upd4 = pDest[38];
+		u16 upd_hi = pDest[39]; // update addr
+		u16	upd_lo = pDest[40];
+		int numupd = upd0 + upd1 + upd2 + upd3 + upd4;
+		if(numupd > 64) numupd = 64; // prevent crazy values
+		const u32 updaddr   = (u32)(upd_hi << 16) | upd_lo;
+		int on = false, off = false;
+		for (int j = 0; j < numupd; j++)
+		{			
+			const u16 updpar   = Memory_Read_U16(updaddr + j);
+			const u16 upddata   = Memory_Read_U16(updaddr + j + 2);
+			// some safety checks, I hope it's enough
+			if(updaddr > 0x80000000 && updaddr < 0x817fffff
+				&& updpar < 63 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
+				// 0-3, those are important
+				//&& (upd0 || upd1 || upd2 || upd3 || upd4) // We should use these in some way to I think
+				// but I don't know how or when
+				&& gSequenced) // on and off option
+			{
+				pDest[updpar] = upddata;
+			}
+			if (updpar == 7 && upddata == 1) on++;
+			if (updpar == 7 && upddata == 1) off++;
+		}
+		// hack: if we get both an on and an off select on rather than off
+		if (on > 0 && off > 0) pDest[7] = 1;
+	}
+
+	//PrintFile(1, "%08x %04x %04x\n", updaddr, updpar, upddata);
+	// ------------
 
 	for (int i = 0; i < numberOfPBs; i++)
 	{
 		AXParamBlock& pb = PBs[i];
-
-		if (pb.running)
-		{
-			// =======================================================================================
-			// Set initial parameters
-			// ---------------------------------------------------------------------------------------
-			//constants
-			const u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
-			const u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
-			const u32 ratio     = (u32)(((pb.src.ratio_hi << 16) + pb.src.ratio_lo) * ratioFactor);
-
-			//variables
-			u32 samplePos = (pb.audio_addr.cur_addr_hi << 16) | pb.audio_addr.cur_addr_lo;
-			u32 frac = pb.src.cur_addr_frac;
-			// =======================================================================================
-
-			
-
-			// =======================================================================================
-			// Handle no-src streams - No src streams have pb.src_type == 2 and have pb.src.ratio_hi = 0
-			// and pb.src.ratio_lo = 0. We handle that by setting the sampling ratio integer to 1. This
-			// makes samplePos update in the correct way.
-			// ---------------------------------------------------------------------------------------
-			// Stream settings
-				// src_type = 2 (most other games have src_type = 0)
-			// ---------------------------------------------------------------------------------------
-			// Affected games:
-				// Baten Kaitos - Eternal Wings (2003)
-				// Baten Kaitos - Origins (2006)?
-				// ?
-			// ---------------------------------------------------------------------------------------
-			if(pb.src_type == 2)
-			{
-				pb.src.ratio_hi = 1;
-			}
-			// =======================================================================================
-
-
-			// =======================================================================================
-			// Games that use looping to play non-looping music streams. SSBM has info in all pb.adpcm_loop_info
-			// parameters but has pb.audio_addr.looping = 0. If we treat these streams like any other looping
-			// streams the music works.
-			// ---------------------------------------------------------------------------------------
-			if(pb.adpcm_loop_info.pred_scale || pb.adpcm_loop_info.yn1 || pb.adpcm_loop_info.yn2)
-			{
-				pb.audio_addr.looping = 1;
-			}
-			// =======================================================================================
-
-
-			// =======================================================================================
-			// Streaming music and volume - A lot of music in Paper Mario use the exat same settings, namely
-			// these:	
-				// Base settings
-					// is_stream = 1
-					// src_type = 0
-					// coef (unknown1) = 1
-				// PBAudioAddr
-					// audio_addr.looping = 1 (adpcm_loop_info.pred_scale = value, .yn1 = 0, .yn2 = 0)			
-			// However. Some of the ingame music and seemingly randomly some other music incorrectly get
-			// volume = 0 for both left and right. There's also an issue of a hanging very similar to the Baten
-			// hanging. The Baten issue fixed itself when the music stream was allowed to play to the end and
-			// then stop. However, all five music streams that is playing when the gate locks up in Paper Mario
-			// is loooping streams... I don't know what may be wrong.
-			// ---------------------------------------------------------------------------------------
-			// A game that may be used as a comparison is Starfox Assault also has is_stream = 1, but it
-			// has src_type = 1, coef (unknown1) = 0 and its pb.src.ratio_lo (fraction) != 0
-			// =======================================================================================
-
-
-			// =======================================================================================
-			// Walk through _iSize
-			for (int s = 0; s < _iSize; s++)
-			{
-				int sample = 0;
-				frac += ratio;
-				u32 newSamplePos = samplePos + (frac >> 16); //whole number of frac
-
-
-				// =======================================================================================
-				// Process sample format
-				// ---------------------------------------------------------------------------------------
-				switch (pb.audio_addr.sample_format)
-				{
-				    case AUDIOFORMAT_PCM8:
-					    pb.adpcm.yn2 = pb.adpcm.yn1; //save last sample
-					    pb.adpcm.yn1 = ((s8)g_dspInitialize.pARAM_Read_U8(samplePos)) << 8;
-
-					    if (pb.src_type == SRCTYPE_NEAREST)
-					    {
-						    sample = pb.adpcm.yn1;
-					    }
-					    else //linear interpolation
-					    {
-						    sample = (pb.adpcm.yn1 * (u16)frac + pb.adpcm.yn2 * (u16)(0xFFFF - frac)) >> 16;
-					    }
-
-					    samplePos = newSamplePos;
-					    break;
-
-				    case AUDIOFORMAT_PCM16:
-					    pb.adpcm.yn2 = pb.adpcm.yn1; //save last sample
-					    pb.adpcm.yn1 = (s16)(u16)((g_dspInitialize.pARAM_Read_U8(samplePos * 2) << 8) | (g_dspInitialize.pARAM_Read_U8((samplePos * 2 + 1))));
-					    if (pb.src_type == SRCTYPE_NEAREST)
-						    sample = pb.adpcm.yn1;
-					    else //linear interpolation
-						    sample = (pb.adpcm.yn1 * (u16)frac + pb.adpcm.yn2 * (u16)(0xFFFF - frac)) >> 16;
-
-					    samplePos = newSamplePos;
-					    break;
-
-				    case AUDIOFORMAT_ADPCM:
-					    sample = ADPCM_Step(pb, samplePos, newSamplePos, frac);
-					    break;
-
-				    default:
-					    break;
-				}
-				// =======================================================================================
-
-
-				// =======================================================================================
-				// Volume control
-				frac &= 0xffff;
-
-				int vol = pb.vol_env.cur_volume >> 9;
-				sample = sample * vol >> 8;
-
-				if (pb.mixer_control & MIXCONTROL_RAMPING)
-				{
-					int x = pb.vol_env.cur_volume;
-					x += pb.vol_env.cur_volume_delta;
-					if (x < 0) x = 0;
-					if (x >= 0x7fff) x = 0x7fff;
-					pb.vol_env.cur_volume = x; // maybe not per sample?? :P
-				}
-
-				int leftmix  = pb.mixer.volume_left >> 5;
-				int rightmix = pb.mixer.volume_right >> 5;
-				// =======================================================================================
-
-
-				int left  = sample * leftmix >> 8;
-				int right = sample * rightmix >> 8;
-
-				//adpcm has to walk from oldSamplePos to samplePos here
-				templbuffer[s] += left;
-				temprbuffer[s] += right;
-
-				if (samplePos >= sampleEnd)
-				{
-					if (pb.audio_addr.looping == 1)
-					{
-						samplePos = loopPos;
-						if (pb.audio_addr.sample_format == AUDIOFORMAT_ADPCM)
-							ADPCM_Loop(pb);
-					}
-					else
-					{
-						pb.running = 0;
-						break;
-					}
-				}
-			} // end of the _iSize loop
-			// =======================================================================================
-
-
-			pb.src.cur_addr_frac = (u16)frac;
-			pb.audio_addr.cur_addr_hi = samplePos >> 16;
-			pb.audio_addr.cur_addr_lo = (u16)samplePos;
-		}
+		MixAddVoice(pb, templbuffer, temprbuffer, _iSize, false);
 	}
+
+	// write back out pbs
+	WriteBackPBs(m_addressPBs, PBs, numberOfPBs);
 
 	for (int i = 0; i < _iSize; i++)
 	{
 		// Clamp into 16-bit. Maybe we should add a volume compressor here.
-		int left  = templbuffer[i];
-		int right = temprbuffer[i];
+		int left  = templbuffer[i] + _pBuffer[0];
+		int right = temprbuffer[i] + _pBuffer[1];
 		if (left < -32767)  left = -32767;
 		if (left > 32767)   left = 32767;
 		if (right < -32767) right = -32767;
 		if (right >  32767) right = 32767;
-		*_pBuffer++ += left;
-		*_pBuffer++ += right;
+		*_pBuffer++ = left;
+		*_pBuffer++ = right;
 	}
-
-	// write back out pbs
-	WriteBackPBs(PBs, numberOfPBs);
 }
 
+
+// ------------------------------------------------------------------------------
+// Handle incoming mail
+// -----------
+void CUCode_AX::HandleMail(u32 _uMail)
+{
+	if ((_uMail & 0xFFFF0000) == MAIL_AX_ALIST)
+	{
+		// a new List
+		DebugLog(" >>>> u32 MAIL : General Mail (%08x)", _uMail);
+	}
+	else
+	{
+		DebugLog(" >>>> u32 MAIL : AXTask Mail (%08x)", _uMail);
+		AXTask(_uMail);
+		
+	}
+}
+
+
+// ------------------------------------------------------------------------------
+// Update with DSP Interrupt
+// -----------
 void CUCode_AX::Update()
 {
 	// check if we have to sent something
@@ -325,14 +275,25 @@ void CUCode_AX::Update()
 		g_dspInitialize.pGenerateDSPInterrupt();
 	}
 }
+// -----------
 
+
+// Shortcut to avoid having to write SaveLog(false, ...) every time
+void CUCode_AX::SaveLog(const char* _fmt, ...)
+{
+}
+
+
+// ============================================
 // AX seems to bootup one task only and waits for resume-callbacks
 // everytime the DSP has "spare time" it sends a resume-mail to the CPU
 // and the __DSPHandler calls a AX-Callback which generates a new AXFrame
 bool CUCode_AX::AXTask(u32& _uMail)
 {
 	u32 uAddress = _uMail;
-	DebugLog("AXTask - AXCommandList-Addr: 0x%08x", uAddress);
+	SaveLog("Begin");
+	SaveLog("=====================================================================");
+	SaveLog("%08x : AXTask - AXCommandList-Addr:", uAddress);
 
 	u32 Addr__AXStudio;
 	u32 Addr__AXOutSBuffer;
@@ -342,6 +303,8 @@ bool CUCode_AX::AXTask(u32& _uMail)
 	u32 Addr__12;
 	u32 Addr__4_1;
 	u32 Addr__4_2;
+        //	u32 Addr__4_3;
+        //	u32 Addr__4_4;
 	u32 Addr__5_1;
 	u32 Addr__5_2;
 	u32 Addr__6;
@@ -359,12 +322,10 @@ bool CUCode_AX::AXTask(u32& _uMail)
 	    case AXLIST_STUDIOADDR: //00
 		    Addr__AXStudio = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-			if (wii_mode)
-				uAddress += 6;
-		    DebugLog("AXLIST studio address: %08x", Addr__AXStudio);
+		    SaveLog("%08x : AXLIST studio address: %08x", uAddress, Addr__AXStudio);
 		    break;
 
-	    case 0x001:
+	    case 0x001: // 2byte x 10
 	    {
 		    u32 address = Memory_Read_U32(uAddress);
 		    uAddress += 4;
@@ -374,7 +335,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		    uAddress += 2;
 		    u16 param3 = Memory_Read_U16(uAddress);
 		    uAddress += 2;
-		    DebugLog("AXLIST 1: %08x, %04x, %04x, %04x", address, param1, param2, param3);
+		    SaveLog("%08x : AXLIST 1: %08x, %04x, %04x, %04x", uAddress, address, param1, param2, param3);
 	    }
 		    break;
 
@@ -388,20 +349,20 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		    m_addressPBs = Memory_Read_U32(uAddress);
 		    uAddress += 4;
 
-		    DebugLog("AXLIST PB address: %08x", m_addressPBs);
+		    SaveLog("%08x : AXLIST PB address: %08x", uAddress, m_addressPBs);
 		    }
 		    break;
 
 	    case 0x0003:
-		    DebugLog("AXLIST command 0x0003 ????");
+		    SaveLog("%08x : AXLIST command 0x0003 ????");
 		    break;
 
-	    case 0x0004:
+	    case 0x0004:  // AUX?
 		    Addr__4_1 = Memory_Read_U32(uAddress);
 		    uAddress += 4;
 		    Addr__4_2 = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST 4_1 4_2 addresses: %08x %08x", Addr__4_1, Addr__4_2);
+		    SaveLog("%08x : AXLIST 4_1 4_2 addresses: %08x %08x", uAddress, Addr__4_1, Addr__4_2);
 		    break;
 
 	    case 0x0005:
@@ -409,56 +370,51 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		    uAddress += 4;
 		    Addr__5_2 = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST 5_1 5_2 addresses: %08x %08x", Addr__5_1, Addr__5_2);
+		    SaveLog("%08x : AXLIST 5_1 5_2 addresses: %08x %08x", uAddress, Addr__5_1, Addr__5_2);
 		    break;
 
 	    case 0x0006:
 		    Addr__6   = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST 6 address: %08x", Addr__6);
+		    SaveLog("%08x : AXLIST 6 address: %08x", uAddress, Addr__6);
 		    break;
 
 	    case AXLIST_SBUFFER:
-			// Hopefully this is where in main ram to write.
 		    Addr__AXOutSBuffer = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-			if (wii_mode) {
-				uAddress += 12;
-			}
-		    DebugLog("AXLIST OutSBuffer address: %08x", Addr__AXOutSBuffer);
+		    SaveLog("%08x : AXLIST OutSBuffer address: %08x", uAddress, Addr__AXOutSBuffer);
 		    break;
 
 	    case 0x0009:
 		    Addr__9   = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST 6 address: %08x", Addr__9);
+		    SaveLog("%08x : AXLIST 6 address: %08x", Addr__9);
 		    break;
 
 	    case AXLIST_COMPRESSORTABLE:  // 0xa
 		    Addr__A   = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-			if (wii_mode) {
-				// There's one more here.
-//				uAddress += 4;
-			}
-		    DebugLog("AXLIST CompressorTable address: %08x", Addr__A);
+		    SaveLog("%08x : AXLIST CompressorTable address: %08x", uAddress, Addr__A);
 		    break;
 
 	    case 0x000e:
 		    Addr__AXOutSBuffer_1 = Memory_Read_U32(uAddress);
 		    uAddress += 4;
+
+			// Addr__AXOutSBuffer_2 is the address in RAM that we are supposed to mix to.
+			// Although we don't, currently.
 		    Addr__AXOutSBuffer_2 = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    DebugLog("AXLIST sbuf2 addresses: %08x %08x", Addr__AXOutSBuffer_1, Addr__AXOutSBuffer_2);
+		    SaveLog("%08x : AXLIST sbuf2 addresses: %08x %08x", uAddress, Addr__AXOutSBuffer_1, Addr__AXOutSBuffer_2);
 		    break;
 
 	    case AXLIST_END:
 		    bExecuteList = false;
-		    DebugLog("AXLIST end");
+		    SaveLog("%08x : AXLIST end", uAddress);
 		    break;
 
 	    case 0x0010:  //Super Monkey Ball 2
-		    DebugLog("AXLIST unknown");
+		    SaveLog("%08x : AXLIST 0x0010", uAddress);
 		    //should probably read/skip stuff here
 		    uAddress += 8;
 		    break;
@@ -476,22 +432,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		    uAddress += 6 * 4; // 6 Addresses.
 		    break;
 
-		case 0x000d:
-			if (wii_mode) {
-				uAddress += 4 * 4;  // 4 addresses. another aux?
-				break;
-			}
-			// non-wii : fall through
-
-		case 0x000b:
-			if (wii_mode) {
-				uAddress += 2;  // one 0x8000 in rabbids
-				uAddress += 4 * 2; // then two RAM addressses
-				break;
-			}
-			// non-wii : fall through
-
-	    default:
+		default:
 			{
 		    static bool bFirst = true;
 		    if (bFirst == true)
@@ -508,8 +449,9 @@ bool CUCode_AX::AXTask(u32& _uMail)
 				    num += 2;
 			    }
 
+				// Wii AX will always show this
 			    PanicAlert(szTemp);
-			    bFirst = false;
+			   // bFirst = false;
 		    }
 
 		    // unknown command so stop the execution of this TaskList
@@ -520,55 +462,11 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		if (bExecuteList)
 			last_valid_command = iCommand;
 	}
-	DebugLog("AXTask - done, send resume");
+	SaveLog("AXTask - done, send resume");
+	SaveLog("=====================================================================");
+	SaveLog("End");
 
 	// i hope resume is okay AX
 	m_rMailHandler.PushMail(0xDCD10001);
 	return true;
-}
-
-int CUCode_AX::ReadOutPBs(AXParamBlock* _pPBs, int _num)
-{
-	int count = 0;
-	u32 blockAddr = m_addressPBs;
-
-	// reading and 'halfword' swap
-	for (int i = 0; i < _num; i++)
-	{
-		const short *pSrc = (const short *)g_dspInitialize.pGetMemoryPointer(blockAddr);
-		if (pSrc != NULL)
-		{
-			short *pDest = (short *)&_pPBs[i];
-			for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
-			{
-				pDest[p] = Common::swap16(pSrc[p]);
-			}
-			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
-			count++;
-		}
-		else
-			break;
-	}
-
-	// return the number of readed PBs
-	return count;
-}
-
-void CUCode_AX::WriteBackPBs(AXParamBlock* _pPBs, int _num)
-{
-	u32 blockAddr = m_addressPBs;
-
-	// write back and 'halfword'swap
-	for (int i = 0; i < _num; i++)
-	{
-		short* pSrc  = (short*)&_pPBs[i];
-		short* pDest = (short*)g_dspInitialize.pGetMemoryPointer(blockAddr);
-		for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
-		{
-			pDest[p] = Common::swap16(pSrc[p]);
-		}
-
-		// next block
-		blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
-	}
 }

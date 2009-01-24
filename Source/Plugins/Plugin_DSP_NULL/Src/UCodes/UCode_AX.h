@@ -18,25 +18,40 @@
 #ifndef _UCODE_AX
 #define _UCODE_AX
 
+#include <iostream>
+#include "pluginspecs_dsp.h"
 #include "UCode_AXStructs.h"
+
+enum
+{
+	NUMBER_OF_PBS = 128
+};
 
 class CUCode_AX	: public IUCode
 {
 public:
-	CUCode_AX(CMailHandler& _rMailHandler, bool wii = false);
+	CUCode_AX(CMailHandler& _rMailHandler);
 	virtual ~CUCode_AX();
 
 	void HandleMail(u32 _uMail);
 	void MixAdd(short* _pBuffer, int _iSize);
 	void Update();
 
+	// Logging
+	//template<class ParamBlockType>
+	//void Logging(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs, int numberOfPBs);
+	void Logging(short* _pBuffer, int _iSize, int a, bool Wii);
+	void SaveLog_(bool Wii, const char* _fmt, va_list ap);
+	void SaveMail(bool Wii, u32 _uMail);
+	void SaveLogFile(std::string f, int resizeTo, bool type, bool Wii);
+	std::string TmpMailLog;
+	int saveNext;
+
+	// PBs
+	u32 m_addressPBs;
+	u32 _CRC;
+
 private:
-
-	enum
-	{
-		NUMBER_OF_PBS = 64
-	};
-
 	enum
 	{
 		MAIL_AX_ALIST = 0xBABE0000,
@@ -47,21 +62,17 @@ private:
 		AXLIST_END = 0x000F
 	};
 
-	// PBs
-	u32 m_addressPBs;
-
 	int *templbuffer;
 	int *temprbuffer;
 
-	bool wii_mode;
-
 	// ax task message handler
 	bool AXTask(u32& _uMail);
-
+	void SaveLog(const char* _fmt, ...);
 	void SendMail(u32 _uMail);
-	int ReadOutPBs(AXParamBlock *_pPBs, int _num);
-	void WriteBackPBs(AXParamBlock *_pPBs, int _num);
-	s16 ADPCM_Step(AXParamBlock& pb, u32& samplePos, u32 newSamplePos, u16 frac);
 };
+
+int ReadOutPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num);
+void WriteBackPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num);
+
 
 #endif  // _UCODE_AX

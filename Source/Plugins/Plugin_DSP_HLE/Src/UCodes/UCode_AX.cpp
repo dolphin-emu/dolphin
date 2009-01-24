@@ -37,7 +37,6 @@ extern CDebugger* m_frame;
 #include "UCode_AX.h"
 #include "UCode_AX_Voice.h"
 
-
 // ------------------------------------------------------------------
 // Externals
 // -----------

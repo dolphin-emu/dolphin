@@ -16,14 +16,12 @@
 // http://code.google.com/p/dolphin-emu/
 
 // Games that uses this UCode:
-// Zelda: The Windwaker, Mario Sunshine, Mario Kart
+// Zelda: The Windwaker, Mario Sunshine, Mario Kart, Twilight Princess
 
-#include "Common.h"
 #include "../Globals.h"
 #include "UCodes.h"
 #include "UCode_Zelda.h"
 #include "../MailHandler.h"
-
 
 CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler)
 	: IUCode(_rMailHandler)
@@ -76,6 +74,10 @@ void CUCode_Zelda::HandleMail(u32 _uMail)
 	}
 }
 
+void CUCode_Zelda::MixAdd(short* buffer, int size)
+{
+	//TODO(XK): Zelda UCode MixAdd?
+}
 
 void CUCode_Zelda::ExecuteList()
 {

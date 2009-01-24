@@ -24,6 +24,8 @@
 DSPInitialize g_dspInitialize;
 u8* g_pMemory;
 
+std::string gpName;
+
 struct DSPState
 {
 	u32 CPUMailbox;
