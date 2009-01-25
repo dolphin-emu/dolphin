@@ -80,7 +80,7 @@ void ConfigBox::UpdateGUIKeys(int controller)
 	m_CoBDiagonal[controller]->SetValue(wxString::FromAscii(PadMapping[controller].SDiagonal.c_str()));
 	m_CBS_to_C[controller]->SetValue(PadMapping[controller].bSquareToCircle);
 
-	LogMsg("bSquareToCircle: %i\n", PadMapping[controller].bSquareToCircle);
+	//LogMsg("bSquareToCircle: %i\n", PadMapping[controller].bSquareToCircle);
 
 	// Update D-Pad
 	if(PadMapping[controller].controllertype == CTL_DPAD_HAT)
@@ -94,6 +94,9 @@ void ConfigBox::UpdateGUIKeys(int controller)
 		tmp << PadMapping[controller].dpad2[CTL_D_PAD_LEFT]; m_JoyDpadLeft[controller]->SetValue(tmp); tmp.clear();
 		tmp << PadMapping[controller].dpad2[CTL_D_PAD_RIGHT]; m_JoyDpadRight[controller]->SetValue(tmp); tmp.clear();
 	}
+
+	// Replace "-1" with "" in the GUI controls
+	//if(ControlsCreated) ToBlank();
 }
 
 /* Populate the PadMapping array with the dialog items settings (for example
@@ -108,7 +111,7 @@ void ConfigBox::SaveButtonMapping(int controller, bool DontChangeId, int FromSlo
 	// Save from or to the same or different slots
 	if (FromSlot == -1) FromSlot = controller;
 
-	// Replace "" with "-1" 
+	// Replace "" with "-1" in the GUI controls
 	ToBlank(false);
 
 	// Set enabled or disable status and other settings
@@ -138,7 +141,7 @@ void ConfigBox::SaveButtonMapping(int controller, bool DontChangeId, int FromSlo
 	m_JoyButtonZ[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_Z_TRIGGER] = value; tmp.clear();
 	m_JoyButtonStart[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_START] = value; tmp.clear();
 
-	LogMsg("SaveButtonMapping: Key:%i From:%i To:%i\n", m_TriggerType[FromSlot]->GetSelection(), FromSlot, controller);
+	//LogMsg("SaveButtonMapping: Key:%i From:%i To:%i\n", m_TriggerType[FromSlot]->GetSelection(), FromSlot, controller);
 
 	// The halfpress button
 	m_JoyButtonHalfpress[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].halfpress = value; tmp.clear();
@@ -162,9 +165,11 @@ void ConfigBox::SaveButtonMapping(int controller, bool DontChangeId, int FromSlo
 
 // Update the textbox for the buttons
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::SetButtonText(int id, char text[128])
+void ConfigBox::SetButtonText(int id, char text[128], int Page)
 {
-	int controller = notebookpage;
+	// Set controller value
+	int controller;	
+	if (Page == -1) controller = notebookpage; else controller = Page;
 
 	switch(id)
 	{
@@ -195,9 +200,11 @@ void ConfigBox::SetButtonText(int id, char text[128])
 
 // Get the text in the textbox for the buttons
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-wxString ConfigBox::GetButtonText(int id)
+wxString ConfigBox::GetButtonText(int id, int Page)
 {
-	int controller = notebookpage;
+	// Set controller value
+	int controller;	
+	if (Page == -1) controller = notebookpage; else controller = Page;
 
 	switch(id)
 	{
@@ -436,6 +443,7 @@ void ConfigBox::DoGetButtons(int GetId)
 	}
 	// ========================= Check for keys
 
+
 	// ===============================================
 	// Process results
 	// ----------------
@@ -459,7 +467,7 @@ void ConfigBox::DoGetButtons(int GetId)
 	{
 		Stop = true;
 		// Leave a blank mapping
-		SetButtonText(GetId, "-1");	
+		if(g_Config.bSaveByID) SetButtonTextAll(GetId, "-1"); else SetButtonText(GetId, "-1");
 	}
 
 	// If we got a button
@@ -468,7 +476,7 @@ void ConfigBox::DoGetButtons(int GetId)
 		Stop = true;		
 		// Write the number of the pressed button to the text box
 		sprintf(format, "%d", pressed);
-		SetButtonText(GetId, format);
+		if(g_Config.bSaveByID) SetButtonTextAll(GetId, format); else SetButtonText(GetId, format);
 	}
 
 	// Stop the timer
@@ -477,22 +485,18 @@ void ConfigBox::DoGetButtons(int GetId)
 		m_ButtonMappingTimer->Stop();
 		GetButtonWaitingTimer = 0;
 
-		// Update the button mapping and GUI
-		SaveButtonMapping(Controller);
-		UpdateGUI(Controller);
-
 		/* Update the button mapping for all slots that use this device. (It doesn't make sense to have several slots
 		   controlled by the same device, but several DirectInput instances of different but identical devices may possible
 		   have the same id, I don't know. So we have to do this. The user may also have selected the same device for
 		   several disabled slots. */
-		if(g_Config.bSaveByID) UpdateAllSlots(Controller);
-
+		if(g_Config.bSaveByID) SaveButtonMappingAll(Controller); else SaveButtonMapping(Controller);
 	}
 
 	// If we got a bad button
 	if(g_Pressed == -1)
 	{
-		SetButtonText(GetId, "-1"); // Update text
+		// Update text
+		if(g_Config.bSaveByID) SetButtonTextAll(GetId, "-1"); else SetButtonText(GetId, "-1");
 		
 		// Notify the user
 		wxMessageBox(wxString::Format(wxT(
@@ -506,7 +510,11 @@ void ConfigBox::DoGetButtons(int GetId)
 	if(SDL_JoystickOpened(PadMapping[Controller].ID)) SDL_JoystickClose(joy);
 
 	// Debugging
-	//Console::Print("IsRunning: %i\n", m_ButtonMappingTimer->IsRunning());
+	/*
+	Console::Print("Change: %i %i %i %i  '%s' '%s' '%s' '%s'\n",
+		PadMapping[0].halfpress, PadMapping[1].halfpress, PadMapping[2].halfpress, PadMapping[3].halfpress,
+		m_JoyButtonHalfpress[0]->GetValue().c_str(), m_JoyButtonHalfpress[1]->GetValue().c_str(), m_JoyButtonHalfpress[2]->GetValue().c_str(), m_JoyButtonHalfpress[3]->GetValue().c_str()
+		);*/
 }
 
 /////////////////////////////////////////////////////////// Configure button mapping

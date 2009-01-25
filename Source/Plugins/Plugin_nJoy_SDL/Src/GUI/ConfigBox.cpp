@@ -190,7 +190,7 @@ void ConfigBox::OKClick(wxCommandEvent& event)
 	if (event.GetId() == ID_OK)
 	{
 		DoSave();	// Save settings
-		g_Config.Load();	// Reload settings to PadMapping
+		//g_Config.Load();	// Reload settings to PadMapping
 		if(Debugging) PanicAlert("Done");
 		Close(); // Call OnClose()
 	}
@@ -243,6 +243,9 @@ void ConfigBox::LogMsg(const char* format, ...)
    2. Changing the gamepad
    3. When the gamepad is enabled or disbled
    4. When we change saving mode (by Id or by slot)
+
+   Input: ChangePad needs to be used when we change the pad for a slot. Slot needs to be used when
+   we only want to save changes to one slot.
 */
 void ConfigBox::DoSave(bool ChangePad, int Slot)
 {
@@ -253,19 +256,19 @@ void ConfigBox::DoSave(bool ChangePad, int Slot)
 	{
 		// Since we are selecting the pad to save to by the Id we can't update it when we change the pad
 		for(int i = 0; i < 4; i++) SaveButtonMapping(i, true);
-		//LogMsg("Old Id: %s  |  %i %i\n", joyinfo[PadMapping[notebookpage].ID].Name.c_str(), notebookpage, Slot);
+		
 		g_Config.Save(Slot);
 		// Now we can update the ID
 		PadMapping[notebookpage].ID = m_Joyname[notebookpage]->GetSelection();
-		//LogMsg("New Id: %s\n", joyinfo[PadMapping[notebookpage].ID].Name.c_str());
 	}
 	else
 	{
+		// Update PadMapping[] from the GUI controls
 		for(int i = 0; i < 4; i++) SaveButtonMapping(i);
 		g_Config.Save(Slot);
 	}		
 
-	// Then change it back
+	// Then change it back to ""
 	ToBlank();
 }
 
@@ -296,7 +299,7 @@ void ConfigBox::DoChangeJoystick()
 
 	// Before changing the pad we save potential changes to the current pad (to support SaveByID)
 	DoSave(true);
-
+	
 	// Load the settings for the new Id
 	g_Config.Load(true);
 	UpdateGUI(notebookpage); // Update the GUI
@@ -324,15 +327,15 @@ void ConfigBox::PadClose(int Close) // Close for slot 1, 2, 3 or 4
 // Notebook page changed
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::NotebookPageChanged(wxNotebookEvent& event)
-{
-	int oldnotebookpage = notebookpage;
+{	
+	//int oldnotebookpage = notebookpage;
 	notebookpage = event.GetSelection();
-	int OldId = PadMapping[oldnotebookpage].ID;
-	int NewId = PadMapping[notebookpage].ID;
+	//int OldId = PadMapping[oldnotebookpage].ID;
+	//int NewId = PadMapping[notebookpage].ID;
 
 	// Check if it has changed. If it has save the old Id and load the new Id
-	if(OldId != NewId) DoChangeJoystick();
-
+	//if(OldId != NewId && NumGoodPads > 0) DoChangeJoystick();
+	
 	// Update GUI
 	if(ControlsCreated) UpdateGUI(notebookpage);
 }
@@ -341,20 +344,25 @@ void ConfigBox::NotebookPageChanged(wxNotebookEvent& event)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::ToBlank(bool ToBlank)
 {
-	if(ToBlank)
+	if (!ControlsCreated) return;
+
+	for (int j = 0; j < 4; j++)
 	{
-		for(int i = IDB_ANALOG_MAIN_X; i <= IDB_BUTTONHALFPRESS; i++)
+		if(ToBlank)
+		{
+			for(int i = IDB_ANALOG_MAIN_X; i <= IDB_BUTTONHALFPRESS; i++)
 				#ifndef _WIN32
-                    if(GetButtonText(i).ToAscii() == "-1") SetButtonText(i, "");
+					if(GetButtonText(i, j).ToAscii() == "-1") SetButtonText(i, "", j);
 				#else
-					if(GetButtonText(i) == "-1") SetButtonText(i, "");
+					if(GetButtonText(i, j) == "-1") SetButtonText(i, "", j);
 				#endif
-	}
-	else
-	{
-		for(int i = IDB_ANALOG_MAIN_X; i <= IDB_BUTTONHALFPRESS; i++)
-                    if(GetButtonText(i).IsEmpty()) SetButtonText(i, "-1");
-	}
+		}
+		else
+		{
+			for(int i = IDB_ANALOG_MAIN_X; i <= IDB_BUTTONHALFPRESS; i++)
+				if(GetButtonText(i, j).IsEmpty()) SetButtonText(i, "-1", j);
+		}
+	}	
 }
 //////////////////////////////////
 
@@ -362,15 +370,21 @@ void ConfigBox::ToBlank(bool ToBlank)
 ///////////////////////////////////////////////////////////////////////////////////
 // Change settings
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-void ConfigBox::UpdateAllSlots(int Slot)
+void ConfigBox::SetButtonTextAll(int id, char text[128])
 {
 	for (int i = 0; i < 4; i++)
 	{
-		if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[Slot].ID].Name)
-			SaveButtonMapping(i, false, Slot);
-		//LogMsg("%i: %s\n", i, joyinfo[PadMapping[i].ID].Name.c_str());	
-		UpdateGUI(i);
+		if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[notebookpage].ID].Name)
+			SetButtonText(id, text, i);
 	};
+}
+
+void ConfigBox::SaveButtonMappingAll(int Slot)
+{
+	for (int i = 0; i < 4; i++)
+		if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[Slot].ID].Name)
+			SaveButtonMapping(i, false);
+	
 }
 void ConfigBox::ChangeSettings( wxCommandEvent& event )
 {
@@ -411,7 +425,7 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 	}
 
 	// Update all slots that use this device
-	if(g_Config.bSaveByID) UpdateAllSlots(notebookpage);
+	if(g_Config.bSaveByID) SaveButtonMappingAll(notebookpage);
 }
 ///////////////////////////////
 
@@ -944,7 +958,8 @@ void ConfigBox::CreateGUIControls()
 	// All done
 	ControlsCreated = true;
 
-	Console::Print("CreateGUIControls() end\n");
+	// Replace the harder to understand -1 with "" for the sake of user friendliness
+	ToBlank();
 }
 
 void ConfigBox::SizeWindow()

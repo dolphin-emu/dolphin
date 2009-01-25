@@ -308,7 +308,7 @@ class ConfigBox : public wxDialog
 		void DoChangeJoystick(); void PadOpen(int Open); void PadClose(int Close);
 		void UpdateGUI(int _notebookpage);
 
-		void ChangeSettings(wxCommandEvent& event); void UpdateAllSlots(int Slot); // Settings
+		void ChangeSettings(wxCommandEvent& event);
 		void ComboChange(wxCommandEvent& event);
 
 		void OnClose(wxCloseEvent& event);
@@ -319,6 +319,7 @@ class ConfigBox : public wxDialog
  
 		void UpdateGUIKeys(int controller);
 		void SaveButtonMapping(int controller, bool DontChangeId = false, int FromSlot = -1);
+		void SaveButtonMappingAll(int Slot);
 		void ToBlank(bool ToBlank = true);
 		void OnSaveById();
 
@@ -330,8 +331,8 @@ class ConfigBox : public wxDialog
 
 		void OnPaint(wxPaintEvent &event);
 
-		void SetButtonText(int id, char text[128]);
-		wxString GetButtonText(int id);
+		void SetButtonText(int id, char text[128], int Page = -1); void SetButtonTextAll(int id, char text[128]);
+		wxString GetButtonText(int id, int Page = -1);
 		void OnKeyDown(wxKeyEvent& event);
 };
 
