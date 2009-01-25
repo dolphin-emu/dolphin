@@ -39,6 +39,9 @@ void Config::Load()
 	iniFile.Get("Settings", "WideScreen", &bWideScreen, false);
 	iniFile.Get("Settings", "NunchuckConnected", &bNunchuckConnected, false);
 	iniFile.Get("Settings", "ClassicControllerConnected", &bClassicControllerConnected, false);
+
+	iniFile.Get("Real", "Connect", &bConnectRealWiimote, true);
+	iniFile.Get("Real", "Use", &bUseRealWiimote, true);
 }
 
 void Config::Save()
@@ -50,6 +53,8 @@ void Config::Save()
 	iniFile.Set("Settings", "NunchuckConnected", bNunchuckConnected);
 	iniFile.Set("Settings", "ClassicControllerConnected", bClassicControllerConnected);
 
+	iniFile.Set("Real", "Connect", bConnectRealWiimote);	
+	iniFile.Set("Real", "Use", bUseRealWiimote);	
 
     iniFile.Save(FULL_CONFIG_DIR "Wiimote.ini");
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_Wiimote"
 	ProjectGUID="{8D612734-FAA5-4B8A-804F-4DEA2367D495}"
 	RootNamespace="Plugin_Wiimote"
@@ -516,14 +516,6 @@
 	</References>
 	<Files>
 		<Filter
-			Name="misc"
-			>
-			<File
-				RelativePath="..\..\PluginSpecs\pluginspecs_wiimote.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="Debugging"
 			>
 			<File
@@ -587,6 +579,10 @@
 			Name="Real Wiimote"
 			>
 			<File
+				RelativePath=".\Src\ReadWiimote.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\wiimote_real.cpp"
 				>
 			</File>
@@ -617,6 +613,14 @@
 		</Filter>
 		<File
 			RelativePath=".\Src\main.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\main.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\PluginSpecs\pluginspecs_wiimote.h"
 			>
 		</File>
 	</Files>

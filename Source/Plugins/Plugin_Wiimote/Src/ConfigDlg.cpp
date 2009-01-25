@@ -23,14 +23,15 @@
 #include "ConfigDlg.h"
 #include "Config.h"
 #include "EmuSubroutines.h" // for WmRequestStatus
+#include "main.h"
+#include "wiimote_real.h"
 /////////////////////////////
 
+
 /////////////////////////////////////////////////////////////////////////
-// Defines
+// Definitions
 // ------------
-#ifndef _WIN32
-#define Sleep(x) usleep(x*1000)
-#endif
+
 /////////////////////////
 
 /////////////////////////////////////////////////////////////////////////
@@ -44,6 +45,10 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_WIDESCREEN, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_NUNCHUCKCONNECTED, ConfigDialog::GeneralSettingsChanged)	
 	EVT_CHECKBOX(ID_CLASSICCONTROLLERCONNECTED, ConfigDialog::GeneralSettingsChanged)
+
+	EVT_CHECKBOX(ID_CONNECT_REAL, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_USE_REAL, ConfigDialog::GeneralSettingsChanged)
+	
 END_EVENT_TABLE()
 /////////////////////////////
 
@@ -57,6 +62,8 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 
 ConfigDialog::~ConfigDialog()
 {
+	g_FrameOpen = false;
+	if (!g_EmulatorRunning) Shutdown();
 }
 
 
@@ -76,7 +83,10 @@ void ConfigDialog::CreateGUIControls()
 	//m_About = new wxButton(this, ID_ABOUTOGL, wxT("About"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	// Put notebook and buttons in sizers
+
+	////////////////////////////////////////////
+	// Put notebook and buttons in sMain
+	// ----------------	
 	wxBoxSizer* sButtons;
 	sButtons = new wxBoxSizer(wxHORIZONTAL);
 	//sButtons->Add(m_About, 0, wxALL, 5); // there is no about
@@ -87,10 +97,14 @@ void ConfigDialog::CreateGUIControls()
 	sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(m_Notebook, 1, wxEXPAND|wxALL, 5);
 	sMain->Add(sButtons, 0, wxEXPAND, 5);
+	/////////////////////////////////
 
 
+	////////////////////////////////////////////
+	// Emulated Wiimote
+	// ----------------
 	// General
-	sbBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageEmu, wxT("Basic Settings"));
+	wxStaticBoxSizer * sEmulatedBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageEmu, wxT("Basic Settings"));
 	m_SidewaysDPad = new wxCheckBox(m_PageEmu, ID_SIDEWAYSDPAD, wxT("Sideways D-Pad"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_SidewaysDPad->SetValue(g_Config.bSidewaysDPad);
 	m_WideScreen = new wxCheckBox(m_PageEmu, ID_WIDESCREEN, wxT("WideScreen Mode (for correct aiming)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -100,30 +114,56 @@ void ConfigDialog::CreateGUIControls()
 	m_ClassicControllerConnected = new wxCheckBox(m_PageEmu, ID_CLASSICCONTROLLERCONNECTED, wxT("Classic Controller connected"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ClassicControllerConnected->SetValue(g_Config.bClassicControllerConnected);
 
-
 	// ----------------------------------------------------------------------
 	// Set up sGeneral and sBasic
 	// Usage: The wxGBPosition() must have a column and row
 	// ----------------
-	sGeneral = new wxBoxSizer(wxVERTICAL);
-	sBasic = new wxGridBagSizer(0, 0);
-	sBasic->Add(m_SidewaysDPad, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasic->Add(m_WideScreen, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasic->Add(m_NunchuckConnected, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasic->Add(m_ClassicControllerConnected, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
-	sbBasic->Add(sBasic);
-	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
+	wxBoxSizer * sEmulatedMain = new wxBoxSizer(wxVERTICAL);
+	wxGridBagSizer * GbsBasic = new wxGridBagSizer(0, 0);
+	GbsBasic->Add(m_SidewaysDPad, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
+	GbsBasic->Add(m_WideScreen, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
+	GbsBasic->Add(m_NunchuckConnected, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
+	GbsBasic->Add(m_ClassicControllerConnected, wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
+	sEmulatedBasic->Add(GbsBasic);
+	sEmulatedMain->Add(sEmulatedBasic, 0, wxEXPAND | (wxALL), 5);
+	/////////////////////////////////
 
-	m_PageEmu->SetSizer(sGeneral);
-	sGeneral->Layout();
 
-	this->SetSizer(sMain);
-	this->Layout();
+	////////////////////////////////////////////
+	// Real Wiimote
 	// ----------------
+	// General
+	wxStaticBoxSizer * sbRealBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageReal, wxT("Basic Settings"));
+	m_ConnectRealWiimote = new wxCheckBox(m_PageReal, ID_CONNECT_REAL, wxT("Connect real Wiimote"));
+	m_UseRealWiimote = new wxCheckBox(m_PageReal, ID_USE_REAL, wxT("Use real Wiimote"));
+	m_ConnectRealWiimote->SetToolTip(wxT("Connected to the real wiimote"));
+	m_UseRealWiimote->SetToolTip(wxT("Use the real Wiimote in the game"));
+	m_ConnectRealWiimote->SetValue(g_Config.bConnectRealWiimote);
+	m_UseRealWiimote->SetValue(g_Config.bUseRealWiimote);
 
+	// ----------------------------------------------------------------------
+	// Set up sizers
+	// ----------------
+	wxBoxSizer * sRealMain = new wxBoxSizer(wxVERTICAL);
+	sRealMain->Add(sbRealBasic, 0, wxEXPAND | (wxALL), 5);
+	sbRealBasic->Add(m_ConnectRealWiimote, 0, wxEXPAND | (wxALL), 5);
+	sbRealBasic->Add(m_UseRealWiimote, 0, wxEXPAND | (wxALL), 5);
+	/////////////////////////////////
+
+
+	////////////////////////////////////////////
+	// Set sizers and layout
+	// ----------------
+	m_PageEmu->SetSizer(sEmulatedMain);
+	m_PageReal->SetSizer(sRealMain);
+	this->SetSizer(sMain);
+
+	//sEmulatedMain->Layout();
+	this->Layout();
 
 	Fit();
 	Center();
+	/////////////////////////////////
 }
 
 void ConfigDialog::OnClose(wxCloseEvent& WXUNUSED (event))
@@ -141,7 +181,27 @@ void ConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
 {
 
 }
-//////////////////////////
+/////////////////////////////////
+
+
+
+
+// ===================================================
+/* Do use real wiimote */
+// ----------------
+void ConfigDialog::DoConnectReal()
+{
+	g_Config.bConnectRealWiimote = m_ConnectRealWiimote->IsChecked();
+
+	if(g_Config.bConnectRealWiimote)
+	{
+		if (!g_RealWiiMoteInitialized) WiiMoteReal::Initialize();
+	}
+	else
+	{
+		if (g_RealWiiMoteInitialized) WiiMoteReal::Shutdown();
+	}
+}
 
 
 // ===================================================
@@ -159,7 +219,7 @@ void ConfigDialog::DoExtensionConnectedDisconnected()
 
 
 // ===================================================
-/* Change general Emulated Wii Remote settings */
+/* Change settings */
 // ----------------
 void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 {
@@ -214,5 +274,31 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		memcpy(WiiMoteEmu::g_RegExt + 0xfa, WiiMoteEmu::classic_id, sizeof(WiiMoteEmu::classic_id));
 		DoExtensionConnectedDisconnected();
 		break;
+
+
+		//////////////////////////
+		// Real Wiimote
+		// -----------
+	case ID_CONNECT_REAL:
+		DoConnectReal();
+		break;
+
+	case ID_USE_REAL:
+		g_Config.bUseRealWiimote = m_UseRealWiimote->IsChecked();
+		break;
+		/////////////////
 	}
+	UpdateGUI();
+}
+
+
+
+// =======================================================
+// Update the enabled/disabled status
+// -------------
+void ConfigDialog::UpdateGUI()
+{
+	// Save status
+	m_ConnectRealWiimote->Enable(g_RealWiiMotePresent);
+	m_UseRealWiimote->Enable(g_RealWiiMotePresent && g_Config.bConnectRealWiimote);
 }

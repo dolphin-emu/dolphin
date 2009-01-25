@@ -407,26 +407,24 @@ THREAD_RETURN EmuThread(void *pArg)
  
 	if (!_CoreParameter.bUseDualCore)
 	{
-#ifdef _WIN32
-	    cpuThread = new Common::Thread(CpuThread, pArg);
-	    //Common::SetCurrentThreadName("Idle thread");
-	    //TODO(ector) : investigate using GetMessage instead .. although
-	    //then we lose the powerdown check. ... unless powerdown sends a message :P
-	    while (PowerPC::state != PowerPC::CPU_POWERDOWN)
-		{
-		    if (Callback_PeekMessages) {
-			Callback_PeekMessages();
-		    }
-		    Common::SleepCurrentThread(20);
-		}
-#else
-	    // In single-core mode, the Emulation main thread is also the CPU thread
-	    CpuThread(pArg);
-#endif
+		#ifdef _WIN32
+			cpuThread = new Common::Thread(CpuThread, pArg);
+			//Common::SetCurrentThreadName("Idle thread");
+			//TODO(ector) : investigate using GetMessage instead .. although
+			//then we lose the powerdown check. ... unless powerdown sends a message :P
+			while (PowerPC::state != PowerPC::CPU_POWERDOWN)
+			{
+				if (Callback_PeekMessages) Callback_PeekMessages();
+				Common::SleepCurrentThread(20);
+			}
+		#else
+			// In single-core mode, the Emulation main thread is also the CPU thread
+			CpuThread(pArg);
+		#endif
 	}
 	else
 	{
-	    Plugins.GetVideo()->Video_Prepare(); //wglMakeCurrent
+	    Plugins.GetVideo()->Video_Prepare(); // wglMakeCurrent
 	    cpuThread = new Common::Thread(CpuThread, pArg);
 	    Common::SetCurrentThreadName("Video thread");
 	    Plugins.GetVideo()->Video_EnterLoop();

@@ -30,10 +30,13 @@ struct Config
     void Load();
     void Save();
 
-    // General
+    // Emulated Wiimote
 	bool bSidewaysDPad;
 	bool bWideScreen;
 	bool bNunchuckConnected, bClassicControllerConnected;
+
+	// Real Wiimote
+	bool bConnectRealWiimote, bUseRealWiimote;
 };
 
 extern Config g_Config;

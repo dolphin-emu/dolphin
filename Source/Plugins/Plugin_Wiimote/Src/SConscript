@@ -29,6 +29,7 @@ cxxflags = [ '-fPIC' ]
 if wmenv['HAVE_WIIUSE']:
     libs  += [ 'wiiuse' ]
     files += [ "wiimote_real.cpp" ]
+    files += [ "ReadWiimote.cpp" ]
     cxxflags += ['-DHAVE_WIIUSE']
 
 wmenv.Append(

@@ -19,16 +19,31 @@
 #ifndef WIIMOTE_REAL_H
 #define WIIMOTE_REAL_H
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+#include "wiiuse.h"
+///////////////////////////////////
+
+
 namespace WiiMoteReal
 {
+
+#define MAX_WIIMOTES 1
 
 int Initialize();
 void DoState(void* ptr, int mode);
 void Shutdown(void);
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size);
-void ControlChannel(u16 _channelID, const void* _pData, u32 _Size) ;
+void ControlChannel(u16 _channelID, const void* _pData, u32 _Size);
 void Update();
+void ReadWiimote();
 
-};
+#ifndef EXCLUDE_H
+	extern wiimote_t**	g_WiiMotesFromWiiUse;
+#endif
+
+}; // WiiMoteReal
 
 #endif

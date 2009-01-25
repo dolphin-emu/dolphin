@@ -97,12 +97,12 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 		WmDataReporting(_channelID, (wm_data_reporting*)sr->data);
 		break;
 	case WM_REQUEST_STATUS: // 0x15
-		WmRequestStatus(_channelID, (wm_request_status*)sr->data);
+		if (!g_Config.bUseRealWiimote) WmRequestStatus(_channelID, (wm_request_status*)sr->data);
 		//Temp = ArrayToString(sr->data, sizeof(wm_request_status), 0);
 		//Console::Print("\n%s: InterruptChannel: %s\n", Tm().c_str(), Temp.c_str());
 		break;
 	case WM_READ_DATA: // 0x17
-		WmReadData(_channelID, (wm_read_data*)sr->data);
+		if (!g_Config.bUseRealWiimote) WmReadData(_channelID, (wm_read_data*)sr->data);
 		break;
 
 	/* This enables or disables the IR lights, we update the global variable g_IR
@@ -116,7 +116,7 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 		break;
 
 	case WM_WRITE_DATA: // 0x16
-		WmWriteData(_channelID, (wm_write_data*)sr->data);
+		if (!g_Config.bUseRealWiimote) WmWriteData(_channelID, (wm_write_data*)sr->data);
 		break;
 	case WM_SPEAKER_ENABLE: // 0x14
 		LOGV(WII_IPC_WIIMOTE, 1, "  WM Speaker Enable 0x%02x: 0x%02x", sr->channel, sr->data[0]);

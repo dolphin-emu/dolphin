@@ -25,16 +25,16 @@
 #include "ConsoleWindow.h" // For Start, Print, GetHwnd
 
 #if defined(HAVE_WX) && HAVE_WX
-#include <wx/aboutdlg.h>
-#include "ConfigDlg.h"
+	#include <wx/aboutdlg.h>
+	#include "ConfigDlg.h"
 #endif
 
+#define EXCLUDEMAIN_H // Avoid certain declarations in main.h
+#include "Main.h" // Local
 #include "pluginspecs_wiimote.h"
-
 #include "EmuMain.h"
-
 #if HAVE_WIIUSE
-#include "wiimote_real.h"
+	#include "wiimote_real.h"
 #endif
 ///////////////////////////////////
 
@@ -44,7 +44,10 @@
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 SWiimoteInitialize g_WiimoteInitialize;
 
-bool g_UseRealWiiMote = false;
+bool g_EmulatorRunning = false;
+bool g_FrameOpen = false;
+bool g_RealWiiMotePresent = false;
+bool g_RealWiiMoteInitialized = false;
 
 HINSTANCE g_hInstance;
 
@@ -105,67 +108,64 @@ extern "C" void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_WIIMOTE;
-#ifdef DEBUGFAST
-	sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin (DebugFast)");
-#else
-#ifndef _DEBUG
-	sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin");
-#else
-	sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin (Debug)");
-#endif
-#endif
+	#ifdef DEBUGFAST
+		sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin (DebugFast)");
+	#else
+		#ifndef _DEBUG
+			sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin");
+		#else
+			sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin (Debug)");
+		#endif
+	#endif
 }
 
-void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
-}
+void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {}
 
-void DllDebugger(HWND _hParent, bool Show) {
-}
+void DllDebugger(HWND _hParent, bool Show) {}
 
 void DllConfig(HWND _hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
+
 	wxWindow win;
-#ifdef _WIN32
-	win.SetHWND(_hParent);
-#endif
+
+	#ifdef _WIN32
+		win.SetHWND(_hParent);
+	#endif
+
+	DoInitialize();
+	g_FrameOpen = true;
 	ConfigDialog frame(&win);
 	frame.ShowModal();
-#ifdef _WIN32
-	win.SetHWND(0);
-#endif
+	//frame.Show();
+
+	#ifdef _WIN32
+		win.SetHWND(0);
+	#endif
+
 #endif
 }
 
 extern "C" void Initialize(void *init)
 {
+	// Declarations
     SWiimoteInitialize _WiimoteInitialize = *(SWiimoteInitialize *)init;
-	// ----------------------------------------
-	// Debugging window
-	// ----------
-	/*Console::Open(100, 750, "Wiimote"); // give room for 20 rows
-	Console::Print("Wiimote console opened\n");
-
-	// Move window
-	//MoveWindow(Console::GetHwnd(), 0,400, 100*8,10*14, true); // small window
-	MoveWindow(Console::GetHwnd(), 400,0, 100*8,70*14, true); // big window*/
-	// ---------------
-
 	g_WiimoteInitialize = _WiimoteInitialize;
 
-	/* We will run WiiMoteReal::Initialize() even if we are not using a real wiimote,
-	   to check if there is a real wiimote connected. We will initiate wiiuse.dll, but
-	   we will return before creating a new thread for it if we find no real Wiimotes.
-	   Then g_UseRealWiiMote will also be false. This function call will be done
-	   instantly if there is no real Wiimote connected.  I'm not sure how long time
-	   it takes if a Wiimote is connected. */
-	#if HAVE_WIIUSE
-		g_UseRealWiiMote = WiiMoteReal::Initialize() > 0;
-	#endif
-	g_Config.Load(); // load config settings
+	g_EmulatorRunning = true;
 
-	WiiMoteEmu::Initialize();
+	DoInitialize();	
+}
 
+extern "C" void Shutdown(void)
+{
+	// We will only shutdown when both a game and the frame is closed
+	if (g_FrameOpen) { g_EmulatorRunning = false; return; }
+
+#if HAVE_WIIUSE
+	if(g_RealWiiMoteInitialized) WiiMoteReal::Shutdown();
+#endif
+	WiiMoteEmu::Shutdown();
 }
 
 
@@ -177,13 +177,6 @@ extern "C" void DoState(unsigned char **ptr, int mode)
 	WiiMoteEmu::DoState(ptr, mode);
 }
 
-extern "C" void Shutdown(void)
-{
-#if HAVE_WIIUSE
-	WiiMoteReal::Shutdown();
-#endif
-	WiiMoteEmu::Shutdown();
-}
 
 // ===================================================
 /* This function produce Wiimote Input (reports from the Wiimote) in response
@@ -203,16 +196,21 @@ extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32
 	}
 
 	// Decice where to send the message
-	if (! g_UseRealWiiMote)
+	//if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
             WiiMoteEmu::InterruptChannel(_channelID, _pData, _Size);		
 #if HAVE_WIIUSE
-	else
+	//else if (g_RealWiiMotePresent)
             WiiMoteReal::InterruptChannel(_channelID, _pData, _Size);
 #endif
 		
 	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
 }
+// ==============================
 
+
+// ===================================================
+/* Function: Used for the initial Bluetooth HID handshake. */
+// ----------------
 extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 {
 	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
@@ -225,16 +223,16 @@ extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _
 		LOGV(WII_IPC_WIIMOTE, 3, "    Data: %s", Temp.c_str());
 	}
 
-
-	if (! g_UseRealWiiMote)
-            WiiMoteEmu::ControlChannel(_channelID, _pData, _Size);
+	if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
+		WiiMoteEmu::ControlChannel(_channelID, _pData, _Size);
 #if HAVE_WIIUSE
-        else
-            WiiMoteReal::ControlChannel(_channelID, _pData, _Size);
+	else if (g_RealWiiMotePresent)
+		WiiMoteReal::ControlChannel(_channelID, _pData, _Size);
 #endif
 		
 	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
 }
+// ==============================
 
 
 // ===================================================
@@ -243,11 +241,11 @@ extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _
 // ----------------
 extern "C" void Wiimote_Update()
 {
-	if (! g_UseRealWiiMote)
-            WiiMoteEmu::Update();
+	if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
+		WiiMoteEmu::Update();
 #if HAVE_WIIUSE
-        else
-            WiiMoteReal::Update();
+	else if (g_RealWiiMotePresent)
+		WiiMoteReal::Update();
 #endif
 }
 
@@ -258,9 +256,44 @@ extern "C" unsigned int Wiimote_GetAttachedControllers()
 // ================
 
 
-// ===================================================
-/* Logging functions. */
-// ----------------
+//******************************************************************************
+// Supporting functions
+//******************************************************************************
+
+void DoInitialize()
+{
+	// ----------------------------------------
+	// Debugging window
+	// ----------
+	/*Console::Open(100, 750, "Wiimote"); // give room for 20 rows
+	Console::Print("Wiimote console opened\n");
+
+	// Move window
+	//MoveWindow(Console::GetHwnd(), 0,400, 100*8,10*14, true); // small window
+	MoveWindow(Console::GetHwnd(), 400,0, 100*8,70*14, true); // big window*/
+	// ---------------
+
+	// Load config settings
+	g_Config.Load();
+
+	/* We will run WiiMoteReal::Initialize() even if we are not using a real wiimote,
+	   to check if there is a real wiimote connected. We will initiate wiiuse.dll, but
+	   we will return before creating a new thread for it if we find no real Wiimotes.
+	   Then g_RealWiiMotePresent will also be false. This function call will be done
+	   instantly if there is no real Wiimote connected.  I'm not sure how long time
+	   it takes if a Wiimote is connected. */
+	#if HAVE_WIIUSE
+		if (g_Config.bConnectRealWiimote) WiiMoteReal::Initialize();
+	#endif
+
+	WiiMoteEmu::Initialize();
+}
+
+
+//******************************************************************************
+// Logging functions
+//******************************************************************************
+
 void __Log(int log, const char *_fmt, ...)
 {
 	char Msg[512];
@@ -285,4 +318,6 @@ void __Logv(int log, int v, const char *_fmt, ...)
 
 	g_WiimoteInitialize.pLog(Msg, v);
 }
-// ================
+
+
+

@@ -267,7 +267,7 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 					//if((data[1] == WM_WRITE_DATA  || data[1] == WM_READ_DATA)
 					//	&& data[3] == 0xa4)
 					//{
-						CreateAckDelay((u8)_channelID, (u16)sr->channel);
+						if (!g_Config.bUseRealWiimote) CreateAckDelay((u8)_channelID, (u16)sr->channel);
 					//}
 					//else
 					//{
@@ -353,15 +353,16 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 void Update() 
 {
 	//LOG(WII_IPC_WIIMOTE, "Wiimote_Update");
+	Console::Print("g_ReportingMode %i\n", g_ReportingMode);
 
 	switch(g_ReportingMode)
 	{
 	case 0:
 		break;
-	case WM_REPORT_CORE:			SendReportCore(g_ReportingChannel);			break;
-	case WM_REPORT_CORE_ACCEL:		SendReportCoreAccel(g_ReportingChannel);	break;
-	case WM_REPORT_CORE_ACCEL_IR12: SendReportCoreAccelIr12(g_ReportingChannel);break;
-	case WM_REPORT_CORE_ACCEL_EXT16: SendReportCoreAccelExt16(g_ReportingChannel);break;
+	case WM_REPORT_CORE:			SendReportCore(g_ReportingChannel);				break;
+	case WM_REPORT_CORE_ACCEL:		SendReportCoreAccel(g_ReportingChannel);		break;
+	case WM_REPORT_CORE_ACCEL_IR12: SendReportCoreAccelIr12(g_ReportingChannel);	break;
+	case WM_REPORT_CORE_ACCEL_EXT16: SendReportCoreAccelExt16(g_ReportingChannel);	break;
 	case WM_REPORT_CORE_ACCEL_IR10_EXT6: SendReportCoreAccelIr10Ext(g_ReportingChannel);break;
 	}
 

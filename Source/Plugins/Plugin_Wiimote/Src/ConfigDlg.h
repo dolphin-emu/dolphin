@@ -43,19 +43,17 @@ class ConfigDialog : public wxDialog
 
 	private:
 		DECLARE_EVENT_TABLE();
-
-		wxBoxSizer* sGeneral;
-		wxStaticBoxSizer* sbBasic;
-		wxGridBagSizer* sBasic;
 		
 		wxButton *m_About;
 		wxButton *m_Close;
 		wxNotebook *m_Notebook;
 		wxPanel *m_PageEmu, *m_PageReal;
 
-		wxCheckBox *m_SidewaysDPad; // general settings
+		wxCheckBox *m_SidewaysDPad; // Emulated Wiimote settings
 		wxCheckBox *m_WideScreen;
 		wxCheckBox *m_NunchuckConnected, *m_ClassicControllerConnected;
+
+		wxCheckBox *m_ConnectRealWiimote, *m_UseRealWiimote; // Real Wiimote settings
 
 		enum
 		{
@@ -66,17 +64,25 @@ class ConfigDialog : public wxDialog
 			ID_PAGEEMU,
 			ID_PAGEREAL,
 
-			ID_SIDEWAYSDPAD,
+			ID_SIDEWAYSDPAD, // Emulated
 			ID_WIDESCREEN,
-			ID_NUNCHUCKCONNECTED, ID_CLASSICCONTROLLERCONNECTED
+			ID_NUNCHUCKCONNECTED, ID_CLASSICCONTROLLERCONNECTED,
+
+			// Real
+			ID_CONNECT_REAL, ID_USE_REAL
 		};
 
 		void OnClose(wxCloseEvent& event);
 		void CreateGUIControls();
 
 		void AboutClick(wxCommandEvent& event);
-		void DoExtensionConnectedDisconnected();
+
+		void DoConnectReal(); // Real
+
+		void DoExtensionConnectedDisconnected(); // Emulated
+
 		void GeneralSettingsChanged(wxCommandEvent& event);
+		void UpdateGUI();
 };
 
 #endif
