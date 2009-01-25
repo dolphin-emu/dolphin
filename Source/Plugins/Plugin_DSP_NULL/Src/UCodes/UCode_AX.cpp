@@ -125,12 +125,6 @@ int ReadOutPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num)
 			for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
 			{
 				pDest[p] = Common::swap16(pSrc[p]);
-
-#if defined(HAVE_WX) && HAVE_WX                               
-				#if defined(_DEBUG) || defined(DEBUGFAST)
-					if(m_frame) m_frame->gLastBlock = blockAddr + p*2 + 2;  // save last block location
-				#endif
-#endif
 			}
 			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
 			count++;	
