@@ -30,7 +30,7 @@
 #endif
 
 #define EXCLUDEMAIN_H // Avoid certain declarations in main.h
-#include "Main.h" // Local
+#include "main.h" // Local
 #include "pluginspecs_wiimote.h"
 #include "EmuMain.h"
 #if HAVE_WIIUSE
