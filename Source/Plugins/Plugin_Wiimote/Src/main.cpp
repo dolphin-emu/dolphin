@@ -48,20 +48,23 @@ bool g_EmulatorRunning = false;
 bool g_FrameOpen = false;
 bool g_RealWiiMotePresent = false;
 bool g_RealWiiMoteInitialized = false;
+bool g_EmulatedWiiMoteInitialized = false;
 
 HINSTANCE g_hInstance;
 
 #if defined(HAVE_WX) && HAVE_WX
-class wxDLLApp : public wxApp
-{
-	bool OnInit()
-	{
-		return true;
-	}
-};
-IMPLEMENT_APP_NO_MAIN(wxDLLApp)
+	wxWindow win;
+	ConfigDialog *frame;
 
-WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+	class wxDLLApp : public wxApp
+	{
+		bool OnInit()
+		{
+			return true;
+		}
+	};
+	IMPLEMENT_APP_NO_MAIN(wxDLLApp)
+	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
 ////////////////////////////////////
 
@@ -127,17 +130,17 @@ void DllConfig(HWND _hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
 
-	wxWindow win;
-
 	#ifdef _WIN32
 		win.SetHWND(_hParent);
 	#endif
 
+	g_FrameOpen = true;	
+	frame = new ConfigDialog(&win);
+
 	DoInitialize();
-	g_FrameOpen = true;
-	ConfigDialog frame(&win);
-	frame.ShowModal();
-	//frame.Show();
+
+	frame->ShowModal();
+	//frame.Show();	
 
 	#ifdef _WIN32
 		win.SetHWND(0);
@@ -154,18 +157,33 @@ extern "C" void Initialize(void *init)
 
 	g_EmulatorRunning = true;
 
+	#if defined(HAVE_WX) && HAVE_WX
+		if(g_FrameOpen) if(frame) frame->UpdateGUI();
+	#endif
+
 	DoInitialize();	
 }
 
 extern "C" void Shutdown(void)
 {
 	// We will only shutdown when both a game and the frame is closed
-	if (g_FrameOpen) { g_EmulatorRunning = false; return; }
+	if (g_FrameOpen)
+	{
+		#if defined(HAVE_WX) && HAVE_WX
+			if(frame) frame->UpdateGUI();
+		#endif
+		return;
+	}
+
+	// Not running
+	g_EmulatorRunning = false;
 
 #if HAVE_WIIUSE
 	if(g_RealWiiMoteInitialized) WiiMoteReal::Shutdown();
 #endif
 	WiiMoteEmu::Shutdown();
+
+	Console::Close();
 }
 
 
@@ -180,7 +198,11 @@ extern "C" void DoState(unsigned char **ptr, int mode)
 
 // ===================================================
 /* This function produce Wiimote Input (reports from the Wiimote) in response
-   to Output from the Wii. It's called from WII_IPC_HLE_WiiMote.cpp. */
+   to Output from the Wii. It's called from WII_IPC_HLE_WiiMote.cpp.
+   
+   Switch between real and emulated wiimote: We send all this Input to WiiMoteEmu::InterruptChannel()
+   so that it knows the channel ID and the data reporting mode at all times.
+   */
 // ----------------
 extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 {
@@ -196,11 +218,11 @@ extern "C" void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32
 	}
 
 	// Decice where to send the message
-	//if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
-            WiiMoteEmu::InterruptChannel(_channelID, _pData, _Size);		
+	//if (!g_RealWiiMotePresent)
+		WiiMoteEmu::InterruptChannel(_channelID, _pData, _Size);		
 #if HAVE_WIIUSE
-	//else if (g_RealWiiMotePresent)
-            WiiMoteReal::InterruptChannel(_channelID, _pData, _Size);
+	if (g_RealWiiMotePresent)
+		WiiMoteReal::InterruptChannel(_channelID, _pData, _Size);
 #endif
 		
 	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
@@ -223,10 +245,10 @@ extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _
 		LOGV(WII_IPC_WIIMOTE, 3, "    Data: %s", Temp.c_str());
 	}
 
-	if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
+	if (!g_RealWiiMotePresent)
 		WiiMoteEmu::ControlChannel(_channelID, _pData, _Size);
 #if HAVE_WIIUSE
-	else if (g_RealWiiMotePresent)
+	else
 		WiiMoteReal::ControlChannel(_channelID, _pData, _Size);
 #endif
 		

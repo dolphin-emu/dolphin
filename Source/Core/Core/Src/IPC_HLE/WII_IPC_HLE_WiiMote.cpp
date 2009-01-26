@@ -993,6 +993,11 @@ void CWII_IPC_HLE_WiiMote::SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLeng
 	//	Debugger::PrintDataBuffer(LogTypes::WIIMOTE, DataFrame, pHeader->Length + sizeof(SL2CAP_Header), "m_pHost->SendACLFrame: ");
 }
 
+
+// ===================================================
+/* On a second boot the _dbg_assert_(WII_IPC_WIIMOTE, DoesChannelExist(scid)) makes a report. However
+   the game eventually starts and the Wiimote connects, but it takes at least ten seconds. */
+// ----------------
 void CWII_IPC_HLE_WiiMote::SendL2capData(u16 scid, const void* _pData, u32 _Size)
 {
 	//allocate
@@ -1017,6 +1022,7 @@ void CWII_IPC_HLE_WiiMote::SendL2capData(u16 scid, const void* _pData, u32 _Size
 	//
 	Host_SetWiiMoteConnectionState(2);
 }
+
 
 
 namespace Core

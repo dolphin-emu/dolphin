@@ -25,8 +25,9 @@
 #include <string>
 
 #include "Common.h" // Common
-#include "StringUtil.h" // for ArrayToString
+#include "StringUtil.h" // for ArrayToString()
 
+#include "main.h"
 #include "wiimote_hid.h"
 #include "EmuSubroutines.h"
 #include "EmuDefinitions.h"
@@ -108,6 +109,8 @@ void WriteCrypted16(u8* _baseBlock, u16 _address, u16 _value)
 // ----------------
 void Initialize()
 {
+	if (g_EmulatedWiiMoteInitialized) return;
+
 	memset(g_Eeprom, 0, WIIMOTE_EEPROM_SIZE);
 	memcpy(g_Eeprom, EepromData_0, sizeof(EepromData_0));
 	memcpy(g_Eeprom + 0x16D0, EepromData_16D0, sizeof(EepromData_16D0));
@@ -132,9 +135,11 @@ void Initialize()
 		memcpy(g_RegExt + 0xfa, classic_id, sizeof(classic_id));
 	}
 
+	g_EmulatedWiiMoteInitialized = true;
 
-//	g_RegExt[0xfd] = 0x1e;
-//	g_RegExt[0xfc] = 0x9a;
+	// I forgot what these were for?
+	//	g_RegExt[0xfd] = 0x1e;
+	//	g_RegExt[0xfc] = 0x9a;
 }
 // ================
 
@@ -197,6 +202,8 @@ void CheckAckDelay()
 // ----------------
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {
+	//Console::Print("Emu InterruptChannel\n");
+
 	LOGV(WII_IPC_WIIMOTE, 3, "=============================================================");
 	LOGV(WII_IPC_WIIMOTE, 3, "Wiimote_Input");
 	const u8* data = (const u8*)_pData;
@@ -267,7 +274,7 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 					//if((data[1] == WM_WRITE_DATA  || data[1] == WM_READ_DATA)
 					//	&& data[3] == 0xa4)
 					//{
-						if (!g_Config.bUseRealWiimote) CreateAckDelay((u8)_channelID, (u16)sr->channel);
+						if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent) CreateAckDelay((u8)_channelID, (u16)sr->channel);
 					//}
 					//else
 					//{
@@ -295,8 +302,10 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {
+	//Console::Print("Emu ControlChannel\n");
+
 	const u8* data = (const u8*)_pData;
-	// dump raw data
+	// Dump raw data
 	{
 		LOG(WII_IPC_WIIMOTE, "Wiimote_ControlChannel");
 		std::string Temp = ArrayToString(data, 0, _Size);
@@ -353,7 +362,7 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 void Update() 
 {
 	//LOG(WII_IPC_WIIMOTE, "Wiimote_Update");
-	Console::Print("g_ReportingMode %i\n", g_ReportingMode);
+	//Console::Print("Emu Update: %i\n", g_ReportingMode);
 
 	switch(g_ReportingMode)
 	{

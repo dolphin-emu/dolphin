@@ -41,7 +41,8 @@ void Update();
 void ReadWiimote();
 
 #ifndef EXCLUDE_H
-	extern wiimote_t**	g_WiiMotesFromWiiUse;
+	extern wiimote_t**		g_WiiMotesFromWiiUse;
+	extern int				g_NumberOfWiiMotes;
 #endif
 
 }; // WiiMoteReal

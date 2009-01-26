@@ -22,6 +22,9 @@
 // Includes
 // ¯¯¯¯¯¯¯¯¯¯
 #include <iostream> // System
+#if defined(HAVE_WX) && HAVE_WX
+	#include "ConfigDlg.h"
+#endif
 ////////////////////////////////
 
 
@@ -44,6 +47,11 @@ void DoInitialize();
 	extern bool g_FrameOpen;
 	extern bool g_RealWiiMotePresent;
 	extern bool g_RealWiiMoteInitialized;
+	extern bool g_EmulatedWiiMoteInitialized;
+	
+	#if defined(HAVE_WX) && HAVE_WX
+		extern ConfigDialog *frame;
+	#endif
 #endif
 ////////////////////////////////
 

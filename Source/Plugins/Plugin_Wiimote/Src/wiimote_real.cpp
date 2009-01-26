@@ -35,6 +35,9 @@
 #include "EmuMain.h"
 #define EXCLUDE_H // Avoid certain declarations in main.h
 #include "wiimote_real.h"
+#if defined(HAVE_WX) && HAVE_WX
+	#include "ConfigDlg.h"
+#endif
 
 extern SWiimoteInitialize g_WiimoteInitialize;
 ////////////////////////////////////////
@@ -241,7 +244,6 @@ void SendEvent(SEvent& _rEvent)
 //******************************************************************************
 // Function Definitions 
 //******************************************************************************
-
 int Initialize()
 {
 	if (g_RealWiiMoteInitialized) return g_NumberOfWiiMotes;
@@ -263,14 +265,7 @@ int Initialize()
 		//int Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
 		//Console::Print("Connected: %i\n", Connect);
 
-		wiiuse_rumble(g_WiiMotesFromWiiUse[0], 1);
-		wiiuse_set_leds(g_WiiMotesFromWiiUse[0], WIIMOTE_LED_4);
-		Sleep(40);
-		wiiuse_set_leds(g_WiiMotesFromWiiUse[0], WIIMOTE_LED_NONE);
-		Sleep(40);
-		wiiuse_set_leds(g_WiiMotesFromWiiUse[0], WIIMOTE_LED_4);
-		Sleep(120);		
-		wiiuse_rumble(g_WiiMotesFromWiiUse[0], 0);
+		if(frame) frame->StartTimer();
 	}
 	else
 	{
@@ -295,7 +290,7 @@ void DoState(void* ptr, int mode) {}
 
 void Shutdown(void)
 {
-    g_Shutdown = true;
+    g_Shutdown = true;	
 
     // Stop the thread
     if (g_pReadThread != NULL)
@@ -312,20 +307,31 @@ void Shutdown(void)
             g_WiiMotes[i] = NULL;
         }
 
-    // Clean up wiiuse
-    wiiuse_cleanup(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes);
+	#if defined(HAVE_WX) && HAVE_WX
+		if(frame) frame->ShutDown = true;
+		if(frame) frame->StartTimer();
+	#else
+		// Clean up wiiuse
+		wiiuse_cleanup(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes);
+
+		// Uninitialized
+		g_RealWiiMoteInitialized = false;
+	#endif
 
 	// Uninitialized
 	g_RealWiiMoteInitialized = false;
+	g_RealWiiMotePresent = false;
 }
 
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 {
+	//Console::Print("Real InterruptChannel\n");
     g_WiiMotes[0]->SendData(_channelID, (const u8*)_pData, _Size);
 }
 
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 {
+	//Console::Print("Real ControlChannel\n");
     g_WiiMotes[0]->SendData(_channelID, (const u8*)_pData, _Size);
 }
 
@@ -335,6 +341,7 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 // ---------------
 void Update()
 {
+	//Console::Print("Real Update\n");
     for (int i = 0; i < g_NumberOfWiiMotes; i++)
     {
         g_WiiMotes[i]->Update();

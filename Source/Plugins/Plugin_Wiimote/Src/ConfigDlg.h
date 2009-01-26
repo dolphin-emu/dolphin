@@ -39,7 +39,15 @@ class ConfigDialog : public wxDialog
 			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE);
 		virtual ~ConfigDialog();
+
 		void CloseClick(wxCommandEvent& event);
+		void UpdateGUI();
+
+		wxTimer * m_ExitTimer;
+		void DoFlashLights();
+		void StartTimer();
+		void FlashLights(wxTimerEvent& WXUNUSED(event)) { DoFlashLights(); }
+		bool ShutDown; int TimerCounter;
 
 	private:
 		DECLARE_EVENT_TABLE();
@@ -59,6 +67,7 @@ class ConfigDialog : public wxDialog
 		{
 			ID_CLOSE = 1000,
 			ID_ABOUTOGL,
+			IDTM_EXIT, // Timer
 
 			ID_NOTEBOOK,
 			ID_PAGEEMU,
@@ -81,8 +90,7 @@ class ConfigDialog : public wxDialog
 
 		void DoExtensionConnectedDisconnected(); // Emulated
 
-		void GeneralSettingsChanged(wxCommandEvent& event);
-		void UpdateGUI();
+		void GeneralSettingsChanged(wxCommandEvent& event);		
 };
 
 #endif

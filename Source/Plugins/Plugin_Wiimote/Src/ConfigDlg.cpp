@@ -48,16 +48,26 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 
 	EVT_CHECKBOX(ID_CONNECT_REAL, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_USE_REAL, ConfigDialog::GeneralSettingsChanged)
+
+	EVT_TIMER(IDTM_EXIT, ConfigDialog::FlashLights)
 	
 END_EVENT_TABLE()
 /////////////////////////////
 
 
-ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
+ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title,
+						   const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
+	#if wxUSE_TIMER
+		m_ExitTimer = new wxTimer(this, IDTM_EXIT);
+		// Reset values
+		ShutDown = false;
+	#endif
+	
 	g_Config.Load();
 	CreateGUIControls();
+	UpdateGUI();
 }
 
 ConfigDialog::~ConfigDialog()
@@ -184,6 +194,71 @@ void ConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
 /////////////////////////////////
 
 
+/////////////////////////////////////////////////////////////////////////
+/* Flash lights and rumble (for Connect and Disconnect) in its own thread like this
+   to avoid a delay when the Connect checkbox is pressed (that would occur if we use
+   Sleep() instead). */
+// ------------
+void ConfigDialog::StartTimer()
+{
+	TimerCounter = 0;
+
+	// Start the constant timer
+	int TimesPerSecond = 10;
+	m_ExitTimer->Start( floor((double)(1000 / TimesPerSecond)) );
+
+	// Run it immedeately for the first time
+	DoFlashLights();
+}
+
+void ConfigDialog::DoFlashLights()
+{
+	TimerCounter++;
+
+	if(TimerCounter == 1) wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[0], 1);
+
+	if(TimerCounter == 1)
+	{
+		wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_1);
+		wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_2);
+		wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_3);
+		wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_4);
+	}
+
+	// Make the rumble period equal on both Init and Shutdown
+	if (TimerCounter == 1 && ShutDown) TimerCounter++;
+
+	if (TimerCounter >= 3 || TimerCounter <= 5)
+	{
+		wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[0], 0);		
+	}
+
+	if(TimerCounter == 3)
+	{
+		if(ShutDown)
+		{
+			// Set led 4
+			wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_NONE);
+			wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_4);
+
+			// Clean up wiiuse
+			wiiuse_cleanup(WiiMoteReal::g_WiiMotesFromWiiUse, WiiMoteReal::g_NumberOfWiiMotes);
+
+			ShutDown = false;
+		}
+		else
+		{
+			wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_NONE);
+			wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_1);
+		}
+
+		// Stop timer
+		m_ExitTimer->Stop();
+	}
+
+	Console::Print("TimerCounter == %i\n", TimerCounter);
+}
+/////////////////////////////////
 
 
 // ===================================================
@@ -288,6 +363,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 		/////////////////
 	}
+	g_Config.Save();
 	UpdateGUI();
 }
 
@@ -298,7 +374,12 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 // -------------
 void ConfigDialog::UpdateGUI()
 {
-	// Save status
-	m_ConnectRealWiimote->Enable(g_RealWiiMotePresent);
+	/* I have disabled this option during a running game because it's enough to be able to switch
+	   between using and not using then. To also use the connect option during a running game would
+	   mean that the wiimote must be sent the current reporting mode and the channel ID after it
+	   has been initialized. If you know how to set that manually please feel free to make functions
+	   for that so that this option can be enabled during gameplay. */
+	m_ConnectRealWiimote->Enable(!g_EmulatorRunning);
 	m_UseRealWiimote->Enable(g_RealWiiMotePresent && g_Config.bConnectRealWiimote);
+	Console::Print("Present: %i, Connect: %i\n", g_RealWiiMotePresent, g_Config.bConnectRealWiimote);
 }
