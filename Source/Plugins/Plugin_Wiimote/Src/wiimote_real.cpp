@@ -265,6 +265,9 @@ int Initialize()
 		//int Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
 		//Console::Print("Connected: %i\n", Connect);
 
+		//wiiuse_set_timeout(g_WiiMotesFromWiiUse, MAX_WIIMOTES, 500, 1000);
+		//wiiuse_set_flags(g_WiiMotesFromWiiUse[0], WIIUSE_CONTINUOUS, NULL);
+
 		if(frame) frame->StartTimer();
 	}
 	else
@@ -272,7 +275,7 @@ int Initialize()
 		//wiiuse_disconnect(g_WiiMotesFromWiiUse);
 	}
 
-	// Create Wiimote clasess
+	// Create Wiimote classes
 	for (int i = 0; i < g_NumberOfWiiMotes; i++)
 		g_WiiMotes[i] = new CWiiMote(i + 1, g_WiiMotesFromWiiUse[i]);
 

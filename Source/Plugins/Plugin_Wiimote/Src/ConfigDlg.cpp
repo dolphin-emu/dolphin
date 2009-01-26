@@ -50,7 +50,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_USE_REAL, ConfigDialog::GeneralSettingsChanged)
 
 	EVT_TIMER(IDTM_EXIT, ConfigDialog::FlashLights)
-	
+	//EVT_TIMER(IDTM_UPDATE, ConfigDialog::Update)	
 END_EVENT_TABLE()
 /////////////////////////////
 
@@ -64,7 +64,7 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 		// Reset values
 		ShutDown = false;
 	#endif
-	
+
 	g_Config.Load();
 	CreateGUIControls();
 	UpdateGUI();
@@ -139,7 +139,7 @@ void ConfigDialog::CreateGUIControls()
 	/////////////////////////////////
 
 
-	////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////
 	// Real Wiimote
 	// ----------------
 	// General
@@ -151,13 +151,146 @@ void ConfigDialog::CreateGUIControls()
 	m_ConnectRealWiimote->SetValue(g_Config.bConnectRealWiimote);
 	m_UseRealWiimote->SetValue(g_Config.bUseRealWiimote);
 
+	// ==================================================
+	// Status
+	// ----------------
+	wxBoxSizer * sbRealStatus = new wxBoxSizer(wxHORIZONTAL);
+
+	wxStaticBoxSizer * sbRealBattery = new wxStaticBoxSizer(wxVERTICAL, m_PageReal, wxT("Battery"));
+	wxStaticBoxSizer * sbRealRoll = new wxStaticBoxSizer(wxHORIZONTAL, m_PageReal, wxT("Roll and Pitch"));
+	wxStaticBoxSizer * sbRealGForce = new wxStaticBoxSizer(wxHORIZONTAL, m_PageReal, wxT("G-Force"));
+	wxStaticBoxSizer * sbRealAccel = new wxStaticBoxSizer(wxHORIZONTAL, m_PageReal, wxT("Accelerometer"));
+
+	// Width and height of the gauges
+	static const int Gw = 35, Gh = 130;
+
+	m_GaugeBattery = new wxGauge( m_PageReal, wxID_ANY, 100, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
+	m_GaugeRoll[0] = new wxGauge( m_PageReal, wxID_ANY, 360, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
+	m_GaugeRoll[1] = new wxGauge( m_PageReal, wxID_ANY, 360, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
+	m_GaugeGForce[0] = new wxGauge( m_PageReal, wxID_ANY, 600, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
+	m_GaugeGForce[1] = new wxGauge( m_PageReal, wxID_ANY, 600, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
+	m_GaugeGForce[2] = new wxGauge( m_PageReal, wxID_ANY, 600, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
+	m_GaugeAccel[0] = new wxGauge( m_PageReal, wxID_ANY, 255, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
+	m_GaugeAccel[1] = new wxGauge( m_PageReal, wxID_ANY, 255, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
+	m_GaugeAccel[2] = new wxGauge( m_PageReal, wxID_ANY, 255, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
+
+	wxBoxSizer * sBoxBattery = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer * sBoxRoll[2];
+	sBoxRoll[0] = new wxBoxSizer(wxVERTICAL);
+	sBoxRoll[1] = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer * sBoxGForce[3];
+	sBoxGForce[0] = new wxBoxSizer(wxVERTICAL);
+	sBoxGForce[1] = new wxBoxSizer(wxVERTICAL);
+	sBoxGForce[2] = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer * sBoxAccel[3];
+	sBoxAccel[0] = new wxBoxSizer(wxVERTICAL);
+	sBoxAccel[1] = new wxBoxSizer(wxVERTICAL);
+	sBoxAccel[2] = new wxBoxSizer(wxVERTICAL);
+
+	wxStaticText * m_TextBattery = new wxStaticText(m_PageReal, wxID_ANY, wxT("Batt."), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
+	wxStaticText * m_TextRoll = new wxStaticText(m_PageReal, wxID_ANY, wxT("Roll"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
+	wxStaticText * m_TextPitch = new wxStaticText(m_PageReal, wxID_ANY, wxT("Pitch"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
+	wxStaticText *m_TextX[2], *m_TextY[2], *m_TextZ[2];
+	m_TextX[0] = new wxStaticText(m_PageReal, wxID_ANY, wxT("X"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextX[1] = new wxStaticText(m_PageReal, wxID_ANY, wxT("X"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
+	m_TextY[0] = new wxStaticText(m_PageReal, wxID_ANY, wxT("Y"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextY[1] = new wxStaticText(m_PageReal, wxID_ANY, wxT("Y"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
+	m_TextZ[0] = new wxStaticText(m_PageReal, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextZ[1] = new wxStaticText(m_PageReal, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
+
+	sBoxBattery->Add(m_GaugeBattery, 0, wxEXPAND | (wxALL), 5); sBoxBattery->Add(m_TextBattery, 0, wxEXPAND | (wxALL), 0);
+
+	sBoxRoll[0]->Add(m_GaugeRoll[0], 0, wxEXPAND | (wxALL), 5); sBoxRoll[0]->Add(m_TextRoll, 0, wxEXPAND | (wxALL), 0);
+	sBoxRoll[1]->Add(m_GaugeRoll[1], 0, wxEXPAND | (wxALL), 5); sBoxRoll[1]->Add(m_TextPitch, 0, wxEXPAND | (wxALL), 0);
+
+	sBoxGForce[0]->Add(m_GaugeGForce[0], 0, wxEXPAND | (wxALL), 5); sBoxGForce[0]->Add(m_TextX[0], 0, wxEXPAND | (wxALL), 0);
+	sBoxGForce[1]->Add(m_GaugeGForce[1], 0, wxEXPAND | (wxALL), 5); sBoxGForce[1]->Add(m_TextY[0], 0, wxEXPAND | (wxALL), 0);
+	sBoxGForce[2]->Add(m_GaugeGForce[2], 0, wxEXPAND | (wxALL), 5); sBoxGForce[2]->Add(m_TextZ[0], 0, wxEXPAND | (wxALL), 0);
+
+	sBoxAccel[0]->Add(m_GaugeAccel[0], 0, wxEXPAND | (wxALL), 5); sBoxAccel[0]->Add(m_TextX[1], 0, wxEXPAND | (wxALL), 0);
+	sBoxAccel[1]->Add(m_GaugeAccel[1], 0, wxEXPAND | (wxALL), 5); sBoxAccel[1]->Add(m_TextY[1], 0, wxEXPAND | (wxALL), 0);
+	sBoxAccel[2]->Add(m_GaugeAccel[2], 0, wxEXPAND | (wxALL), 5); sBoxAccel[2]->Add(m_TextZ[1], 0, wxEXPAND | (wxALL), 0);
+
+	sbRealBattery->Add(sBoxBattery, 0, wxEXPAND | (wxALL), 5);
+	sbRealRoll->Add(sBoxRoll[0], 0, wxEXPAND | (wxALL), 5); sbRealRoll->Add(sBoxRoll[1], 0, wxEXPAND | (wxALL), 5);
+	sbRealGForce->Add(sBoxGForce[0], 0, wxEXPAND | (wxALL), 5); sbRealGForce->Add(sBoxGForce[1], 0, wxEXPAND | (wxALL), 5); sbRealGForce->Add(sBoxGForce[2], 0, wxEXPAND | (wxALL), 5);
+	sbRealAccel->Add(sBoxAccel[0], 0, wxEXPAND | (wxALL), 5); sbRealAccel->Add(sBoxAccel[1], 0, wxEXPAND | (wxALL), 5); sbRealAccel->Add(sBoxAccel[2], 0, wxEXPAND | (wxALL), 5);
+	
+	sbRealStatus->Add(sbRealBattery, 0, wxEXPAND | (wxALL), 5);
+	sbRealStatus->Add(sbRealRoll, 0, wxEXPAND | (wxALL), 5);
+	sbRealStatus->Add(sbRealGForce, 0, wxEXPAND | (wxALL), 5);
+	sbRealStatus->Add(sbRealAccel, 0, wxEXPAND | (wxALL), 5);
+
+	m_GaugeBattery->SetToolTip(wxT("Press '+' to show the current status. Press '-' to stop recording the status."));
+	// ==========================================
+
+
+	// ====================================================================
+	// Record movement
+	// ----------------
+	wxStaticBoxSizer * sbRealRecord = new wxStaticBoxSizer(wxVERTICAL, m_PageReal, wxT("Record movements"));
+
+	wxArrayString StrHotKey;
+	for(int i = 0; i < 10; i++) StrHotKey.Add(wxString::Format("Shift + %i", i));
+
+	wxArrayString StrPlayBackSpeed;
+	for(int i = 1; i < 8; i++) StrPlayBackSpeed.Add(wxString::Format("%i", i*5));
+
+	wxBoxSizer * sRealRecord[RECORDING_ROWS];
+
+	wxStaticText * m_TextRec = new wxStaticText(m_PageReal, wxID_ANY, wxT("Rec."), wxDefaultPosition, wxSize(25, 15), wxALIGN_CENTRE);
+	wxStaticText * m_TextHotKey = new wxStaticText(m_PageReal, wxID_ANY, wxT("HotKey"), wxDefaultPosition, wxSize(62, 15), wxALIGN_CENTRE);
+	wxStaticText * m_TextMovement = new wxStaticText(m_PageReal, wxID_ANY, wxT("Movement name"), wxDefaultPosition, wxSize(262, 15), wxALIGN_CENTRE);
+	wxStaticText * m_TextGame = new wxStaticText(m_PageReal, wxID_ANY, wxT("Game name"), wxDefaultPosition, wxSize(262, 15), wxALIGN_CENTRE);
+	wxStaticText * m_TextRecSped = new wxStaticText(m_PageReal, wxID_ANY, wxT("R. s."), wxDefaultPosition, wxSize(35, 15), wxALIGN_CENTRE);
+	wxStaticText * m_TextPlaySpeed = new wxStaticText(m_PageReal, wxID_ANY, wxT("Pl. s."), wxDefaultPosition, wxSize(40, 15), wxALIGN_CENTRE);
+	m_TextRec->SetToolTip(wxT("Press this button, then start the recording by pressing 'A' on the Wiimote and stop the recording by pressing"
+		" 'A' again."));
+	m_TextRecSped->SetToolTip(wxT("Recording speed"));
+	m_TextPlaySpeed->SetToolTip(wxT("Playback speed"));
+
+	sRealRecord[0] = new wxBoxSizer(wxHORIZONTAL);
+	sRealRecord[0]->Add(m_TextRec, 0, wxEXPAND | (wxLEFT), 8);
+	sRealRecord[0]->Add(m_TextHotKey, 0, wxEXPAND | (wxLEFT), 5);
+	sRealRecord[0]->Add(m_TextMovement, 0, wxEXPAND | (wxLEFT), 5);
+	sRealRecord[0]->Add(m_TextGame, 0, wxEXPAND | (wxLEFT), 5);
+	sRealRecord[0]->Add(m_TextRecSped, 0, wxEXPAND | (wxLEFT), 5);
+	sRealRecord[0]->Add(m_TextPlaySpeed, 0, wxEXPAND | (wxLEFT), 5);
+	sbRealRecord->Add(sRealRecord[0], 0, wxEXPAND | (wxALL), 0);
+
+	for(int i = 1; i < RECORDING_ROWS; i++)
+	{
+		sRealRecord[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_RecordButton[i] = new wxButton(m_PageReal, IDB_RECORD, wxEmptyString, wxDefaultPosition, wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		m_RecordHotKey[i] = new wxChoice(m_PageReal, IDC_RECORD, wxDefaultPosition, wxDefaultSize, StrHotKey);
+		m_RecordText[i] = new wxTextCtrl(m_PageReal, IDT_RECORD_TEXT, wxT(""), wxDefaultPosition, wxSize(250, 19));
+		m_RecordGameText[i] = new wxTextCtrl(m_PageReal, IDT_RECORD_GAMETEXT, wxT(""), wxDefaultPosition, wxSize(250, 19));
+		m_RecordSpeed[i] = new wxTextCtrl(m_PageReal, IDT_RECORD_SPEED, wxT(""), wxDefaultPosition, wxSize(30, 19), wxTE_READONLY | wxTE_CENTRE);
+		m_RecordPlayBackSpeed[i] = new wxChoice(m_PageReal, IDT_RECORD_PLAYSPEED, wxDefaultPosition, wxDefaultSize, StrPlayBackSpeed);
+
+		m_RecordText[i]->SetMaxLength(50);
+		m_RecordGameText[i]->SetMaxLength(50);
+		m_RecordSpeed[i]->Enable(false);
+
+		sRealRecord[i]->Add(m_RecordButton[i], 0, wxEXPAND | (wxALL), 5);
+		sRealRecord[i]->Add(m_RecordHotKey[i], 0, wxEXPAND | (wxALL), 5);
+		sRealRecord[i]->Add(m_RecordText[i], 0, wxEXPAND | (wxALL), 5);
+		sRealRecord[i]->Add(m_RecordGameText[i], 0, wxEXPAND | (wxALL), 5);
+		sRealRecord[i]->Add(m_RecordSpeed[i], 0, wxEXPAND | (wxALL), 5);
+		sRealRecord[i]->Add(m_RecordPlayBackSpeed[i], 0, wxEXPAND | (wxALL), 5);
+
+		sbRealRecord->Add(sRealRecord[i], 0, wxEXPAND | (wxALL), 0);
+	}
+	// ==========================================
+
+
 	// ----------------------------------------------------------------------
 	// Set up sizers
 	// ----------------
-	wxBoxSizer * sRealMain = new wxBoxSizer(wxVERTICAL);
-	sRealMain->Add(sbRealBasic, 0, wxEXPAND | (wxALL), 5);
 	sbRealBasic->Add(m_ConnectRealWiimote, 0, wxEXPAND | (wxALL), 5);
 	sbRealBasic->Add(m_UseRealWiimote, 0, wxEXPAND | (wxALL), 5);
+
+	wxBoxSizer * sRealMain = new wxBoxSizer(wxVERTICAL);
+	sRealMain->Add(sbRealBasic, 0, wxEXPAND | (wxALL), 5);
+	sRealMain->Add(sbRealStatus, 0, wxEXPAND | (wxLEFT | wxLEFT | wxDOWN), 5);
+	sRealMain->Add(sbRealRecord, 0, wxEXPAND | (wxLEFT | wxLEFT | wxDOWN), 5);
 	/////////////////////////////////
 
 
@@ -194,6 +327,9 @@ void ConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
 /////////////////////////////////
 
 
+//void ConfigDialog::Update()
+
+
 /////////////////////////////////////////////////////////////////////////
 /* Flash lights and rumble (for Connect and Disconnect) in its own thread like this
    to avoid a delay when the Connect checkbox is pressed (that would occur if we use
@@ -215,30 +351,23 @@ void ConfigDialog::DoFlashLights()
 {
 	TimerCounter++;
 
-	if(TimerCounter == 1) wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[0], 1);
+	if(TimerCounter == 1)
+		wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[0], 1);
 
 	if(TimerCounter == 1)
-	{
-		wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_1);
-		wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_2);
-		wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_3);
-		wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_4);
-	}
+		wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_1 | WIIMOTE_LED_2 | WIIMOTE_LED_3 | WIIMOTE_LED_4);
 
 	// Make the rumble period equal on both Init and Shutdown
 	if (TimerCounter == 1 && ShutDown) TimerCounter++;
 
 	if (TimerCounter >= 3 || TimerCounter <= 5)
-	{
-		wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[0], 0);		
-	}
+		wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[0], 0);
 
 	if(TimerCounter == 3)
 	{
 		if(ShutDown)
 		{
 			// Set led 4
-			wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_NONE);
 			wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_4);
 
 			// Clean up wiiuse
@@ -248,7 +377,6 @@ void ConfigDialog::DoFlashLights()
 		}
 		else
 		{
-			wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_NONE);
 			wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_1);
 		}
 

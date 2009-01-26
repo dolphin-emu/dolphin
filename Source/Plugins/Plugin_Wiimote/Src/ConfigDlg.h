@@ -49,6 +49,9 @@ class ConfigDialog : public wxDialog
 		void FlashLights(wxTimerEvent& WXUNUSED(event)) { DoFlashLights(); }
 		bool ShutDown; int TimerCounter;
 
+		//void Update(wxTimerEvent& WXUNUSED(event));
+		wxGauge *m_GaugeBattery, *m_GaugeRoll[2], *m_GaugeGForce[3], *m_GaugeAccel[3];
+
 	private:
 		DECLARE_EVENT_TABLE();
 		
@@ -61,13 +64,21 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_WideScreen;
 		wxCheckBox *m_NunchuckConnected, *m_ClassicControllerConnected;
 
-		wxCheckBox *m_ConnectRealWiimote, *m_UseRealWiimote; // Real Wiimote settings
+		wxCheckBox *m_ConnectRealWiimote, *m_UseRealWiimote; // Real Wiimote settings	
+
+		static const int RECORDING_ROWS = 11;
+		wxButton * m_RecordButton[RECORDING_ROWS];
+		wxChoice * m_RecordHotKey[RECORDING_ROWS];
+		wxTextCtrl * m_RecordText[RECORDING_ROWS];
+		wxTextCtrl * m_RecordGameText[RECORDING_ROWS];
+		wxTextCtrl * m_RecordSpeed[RECORDING_ROWS];
+		wxChoice * m_RecordPlayBackSpeed[RECORDING_ROWS];
 
 		enum
 		{
 			ID_CLOSE = 1000,
 			ID_ABOUTOGL,
-			IDTM_EXIT, // Timer
+			IDTM_EXIT, IDTM_UPDATE, // Timer
 
 			ID_NOTEBOOK,
 			ID_PAGEEMU,
@@ -78,7 +89,8 @@ class ConfigDialog : public wxDialog
 			ID_NUNCHUCKCONNECTED, ID_CLASSICCONTROLLERCONNECTED,
 
 			// Real
-			ID_CONNECT_REAL, ID_USE_REAL
+			ID_CONNECT_REAL, ID_USE_REAL, IDT_STATUS,
+			IDB_RECORD, IDC_RECORD, IDT_RECORD_TEXT, IDT_RECORD_GAMETEXT, IDT_RECORD_SPEED, IDT_RECORD_PLAYSPEED
 		};
 
 		void OnClose(wxCloseEvent& event);

@@ -25,8 +25,10 @@
 #include "wiiuse.h" // Externals
 
 #include "ConsoleWindow.h" // Common
+#include "StringUtil.h"
 
 #include "wiimote_real.h" // Local
+#include "main.h" // Local
 ////////////////////////////////////////
 
 namespace WiiMoteReal
@@ -49,17 +51,58 @@ void handle_event(struct wiimote_t* wm)
 
 	/* if a button is pressed, report it */
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_A))		Console::Print("A pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_B))		printf("B pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_UP))		printf("UP pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_DOWN))	printf("DOWN pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_LEFT))	printf("LEFT pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_RIGHT))	printf("RIGHT pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_MINUS))	printf("MINUS pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_PLUS))	printf("PLUS pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_ONE))		printf("ONE pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_B))		Console::Print("B pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_UP))		Console::Print("UP pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_DOWN))	Console::Print("DOWN pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_LEFT))	Console::Print("LEFT pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_RIGHT))	Console::Print("RIGHT pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_MINUS))	Console::Print("MINUS pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_PLUS))	Console::Print("PLUS pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_ONE))		Console::Print("ONE pressed\n");
 	//if (IS_PRESSED(wm, WIIMOTE_BUTTON_ONE))		g_Run = false;
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_TWO))		printf("TWO pressed\n");
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_HOME))	printf("HOME pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_TWO))		Console::Print("TWO pressed\n");
+	if (IS_PRESSED(wm, WIIMOTE_BUTTON_HOME))	Console::Print("HOME pressed\n");
+
+	/*
+	 *	Pressing minus will tell the wiimote we are no longer interested in movement.
+	 *	This is useful because it saves battery power.
+	 */
+	if (IS_JUST_PRESSED(wm, WIIMOTE_BUTTON_MINUS))
+		wiiuse_motion_sensing(wm, 0);
+
+	/*
+	 *	Pressing plus will tell the wiimote we are interested in movement.
+	 */
+	if (IS_JUST_PRESSED(wm, WIIMOTE_BUTTON_PLUS))
+		wiiuse_motion_sensing(wm, 1);
+
+	/* If the accelerometer is turned on then print angles */
+	if (WIIUSE_USING_ACC(wm))
+	{
+		std::string Tmp;
+		Tmp += StringFromFormat("Roll: %2.1f  ", wm->orient.roll);
+		Tmp += StringFromFormat("Pitch: %2.1f  ", wm->orient.pitch);
+		Tmp += StringFromFormat("Battery: %1.2f\n", wm->battery_level);
+		Tmp += StringFromFormat("G-Force x, y, z: %1.2f %1.2f %1.2f\n", wm->gforce.x, wm->gforce.y, wm->gforce.z);
+		Tmp += StringFromFormat("Accel x, y, z: %03i %03i %03i\n\n", wm->accel.x, wm->accel.y, wm->accel.z);
+		Console::Print("%s", Tmp.c_str());
+
+		if(frame)
+		{
+			frame->m_GaugeBattery->SetValue((int)floor((wm->battery_level * 100) + 0.5));
+
+			frame->m_GaugeRoll[0]->SetValue(wm->orient.roll + 180);
+			frame->m_GaugeRoll[1]->SetValue(wm->orient.pitch + 180);
+
+			frame->m_GaugeGForce[0]->SetValue((int)floor((wm->gforce.x * 100) + 300.5));
+			frame->m_GaugeGForce[1]->SetValue((int)floor((wm->gforce.y * 100) + 300.5));
+			frame->m_GaugeGForce[2]->SetValue((int)floor((wm->gforce.z * 100) + 300.5));
+
+			frame->m_GaugeAccel[0]->SetValue(wm->accel.x);
+			frame->m_GaugeAccel[1]->SetValue(wm->accel.y);
+			frame->m_GaugeAccel[2]->SetValue(wm->accel.z);
+		}
+	}
 }
 
 void ReadWiimote()
