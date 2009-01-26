@@ -17,7 +17,6 @@
 
 #include "FileUtil.h" // For IsDirectory()
 #include "StringUtil.h" // For StringFromFormat()
-
 #include <sstream>
 
 #include "../MailHandler.h"
@@ -26,7 +25,6 @@
 #include "UCode_AXStructs.h"
 #include "UCode_AX.h"
 #include "UCode_AX_Voice.h"
-
 
 // ------------------------------------------------------------------
 // Externals
@@ -95,8 +93,9 @@ void CUCode_AX::SaveLog_(bool Wii, const char* _fmt, va_list ap)
     char Msg[512];
     vsprintf(Msg, _fmt, ap);
 
-	TmpMailLog += Msg;
-	TmpMailLog += "\n";
+    TmpMailLog += Msg;
+    TmpMailLog += "\n";
+
 }
 // ----------------
 
@@ -125,6 +124,7 @@ int ReadOutPBs(u32 pbs_address, AXParamBlock* _pPBs, int _num)
 			for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
 			{
 				pDest[p] = Common::swap16(pSrc[p]);
+
 			}
 			blockAddr = (_pPBs[i].next_pb_hi << 16) | _pPBs[i].next_pb_lo;
 			count++;	
@@ -236,6 +236,7 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 		*_pBuffer++ = left;
 		*_pBuffer++ = right;
 	}
+
 }
 
 
@@ -343,7 +344,6 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		    m_addressPBs = Memory_Read_U32(uAddress);
 		    uAddress += 4;
 
-		    SaveLog("%08x : AXLIST PB address: %08x", uAddress, m_addressPBs);
 		    }
 		    break;
 

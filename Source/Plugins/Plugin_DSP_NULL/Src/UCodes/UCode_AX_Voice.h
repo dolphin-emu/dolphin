@@ -54,6 +54,7 @@ inline int ReadOutPBsWii(u32 pbs_address, ParamBlockType& _pPBs, int _num)
 			{
 				if(p == 6 || p == 7) pDest[p] = pSrc[p]; // control for the u32
 				else pDest[p] = Common::swap16(pSrc[p]);
+
 			}
 
 			_pPBs[i].mixer_control = Common::swap32(_pPBs[i].mixer_control);

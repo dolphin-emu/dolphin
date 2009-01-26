@@ -102,8 +102,6 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs)
 
 	// -------------------------------------------
 	// write logging data to debugger
-
-	// ---------------------------------------------------------------------------------------
 	/* Make the updates we are told to do. See comments to the GC version in UCode_AX.cpp */
 	// ------------
 	for (int i = 0; i < numberOfPBs; i++)
@@ -205,7 +203,6 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
         //	u32 Addr__9;
 
 	bool bExecuteList = true;
-
 	if (false) 
 	{
 		// PanicAlert("%i", sizeof(AXParamBlockWii));  // 252 ??
@@ -242,7 +239,6 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		    {
 		    u32 address = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    SaveLog("%08x : AXLIST 1: %08x", uAddress, address);
 		    }
 		    break;
 
@@ -250,14 +246,13 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		    {
 		    u32 address = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    SaveLog("%08x : AXLIST 3: %08x", uAddress, address);
 		    }
 		    break;
 
 	    case 0x0004:  // PBs are here now
 		    m_addressPBs = Memory_Read_U32(uAddress);
 			lCUCode_AX->m_addressPBs = m_addressPBs; // for the sake of logging
-		    SaveLog("%08x : AXLIST PB address: %08x", uAddress, m_addressPBs);
+
 		    uAddress += 4;
 		    break;
 
@@ -270,7 +265,6 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 				uAddress += 4;
 				
 				uAddress += 2;
-				SaveLog("%08x : AXLIST 5_1 5_2 addresses: %08x %08x", uAddress, Addr__5_1, Addr__5_2);
 			}
 			else
 			{
