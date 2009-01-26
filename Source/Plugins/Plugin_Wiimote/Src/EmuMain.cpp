@@ -152,8 +152,7 @@ void DoState(void* ptr, int mode)
 /* We don't need to do anything here. All values will be reset as FreeLibrary() is called
    when we stop a game */
 void Shutdown(void) 
-{
-}
+{}
 
 
 // ===================================================

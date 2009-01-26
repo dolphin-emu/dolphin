@@ -146,8 +146,8 @@ void ConfigDialog::CreateGUIControls()
 	wxStaticBoxSizer * sbRealBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageReal, wxT("Basic Settings"));
 	m_ConnectRealWiimote = new wxCheckBox(m_PageReal, ID_CONNECT_REAL, wxT("Connect real Wiimote"));
 	m_UseRealWiimote = new wxCheckBox(m_PageReal, ID_USE_REAL, wxT("Use real Wiimote"));
-	m_ConnectRealWiimote->SetToolTip(wxT("Connected to the real wiimote"));
-	m_UseRealWiimote->SetToolTip(wxT("Use the real Wiimote in the game"));
+	m_ConnectRealWiimote->SetToolTip(wxT("Connected to the real wiimote. This can not be changed during gameplay."));
+	m_UseRealWiimote->SetToolTip(wxT("Use the real Wiimote in the game. This can be changed during gameplay."));
 	m_ConnectRealWiimote->SetValue(g_Config.bConnectRealWiimote);
 	m_UseRealWiimote->SetValue(g_Config.bUseRealWiimote);
 
@@ -284,6 +284,9 @@ void ConfigDialog::DoConnectReal()
 // ----------------
 void ConfigDialog::DoExtensionConnectedDisconnected()
 {
+	// There is no need for this if no game is running
+	if(!g_EmulatorRunning) return; 
+
 	u8 DataFrame[8]; // make a blank report for it
 	wm_request_status *rs = (wm_request_status*)DataFrame;
 
@@ -318,16 +321,18 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 			DoExtensionConnectedDisconnected();
 			/* It doesn't seem to be needed but shouldn't it at least take 25 ms to
 			   reconnect an extension after we disconnected another? */
-			Sleep(25);
+			if(g_EmulatorRunning) Sleep(25);
 		}
 
 		// Update status
 		g_Config.bNunchuckConnected = m_NunchuckConnected->IsChecked();
 
-		// Generate connect/disconnect status event
+		// Copy the calibration data
 		memcpy(WiiMoteEmu::g_RegExt + 0x20, WiiMoteEmu::nunchuck_calibration,
 			sizeof(WiiMoteEmu::nunchuck_calibration));
 		memcpy(WiiMoteEmu::g_RegExt + 0xfa, WiiMoteEmu::nunchuck_id, sizeof(WiiMoteEmu::nunchuck_id));
+
+		// Generate connect/disconnect status event
 		DoExtensionConnectedDisconnected();
 		break;
 
@@ -343,10 +348,11 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 
 		g_Config.bClassicControllerConnected = m_ClassicControllerConnected->IsChecked();
 
-		// Generate connect/disconnect status event
+		// Copy the calibration data
 		memcpy(WiiMoteEmu::g_RegExt + 0x20, WiiMoteEmu::classic_calibration,
 			sizeof(WiiMoteEmu::classic_calibration));
 		memcpy(WiiMoteEmu::g_RegExt + 0xfa, WiiMoteEmu::classic_id, sizeof(WiiMoteEmu::classic_id));
+		// Generate connect/disconnect status event
 		DoExtensionConnectedDisconnected();
 		break;
 

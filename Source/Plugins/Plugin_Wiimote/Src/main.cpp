@@ -164,19 +164,22 @@ extern "C" void Initialize(void *init)
 	DoInitialize();	
 }
 
+// If a game is not running this is called by the Configuration window when it's closed
 extern "C" void Shutdown(void)
 {
+	// Not running
+	g_EmulatorRunning = false;
+
 	// We will only shutdown when both a game and the frame is closed
 	if (g_FrameOpen)
 	{
 		#if defined(HAVE_WX) && HAVE_WX
 			if(frame) frame->UpdateGUI();
 		#endif
+
+		// Don't shut down the wiimote when we still have the window open
 		return;
 	}
-
-	// Not running
-	g_EmulatorRunning = false;
 
 #if HAVE_WIIUSE
 	if(g_RealWiiMoteInitialized) WiiMoteReal::Shutdown();
