@@ -37,8 +37,17 @@ CPlugin::~CPlugin()
 
 CPlugin::CPlugin(const char* _szName) : valid(false)
 {
-    if (m_hInstLib.Load(_szName)) {
 
+    m_GetDllInfo = NULL;
+    m_DllConfig = NULL; 
+    m_DllDebugger = NULL;
+    m_SetDllGlobals = NULL; 
+    m_Initialize = NULL;
+    m_Shutdown = NULL;
+    m_DoState = NULL;
+        
+    if (m_hInstLib.Load(_szName)) {
+        
 	m_GetDllInfo = reinterpret_cast<TGetDllInfo>
 	    (m_hInstLib.Get("GetDllInfo"));
 	m_DllConfig = reinterpret_cast<TDllConfig>
@@ -76,12 +85,11 @@ void *CPlugin::LoadSymbol(const char *sym) {
 // ______________________________________________________________________________________
 // GetInfo: Get DLL info
 bool CPlugin::GetInfo(PLUGIN_INFO& _pluginInfo) {
-    if (m_GetDllInfo != 0)
-	{
-		m_GetDllInfo(&_pluginInfo);
-		return(true);
+    if (m_GetDllInfo != NULL) {
+        m_GetDllInfo(&_pluginInfo);
+        return(true);
     }
-
+    
     return(false);
 }
 
@@ -89,7 +97,8 @@ bool CPlugin::GetInfo(PLUGIN_INFO& _pluginInfo) {
 // Config: Open the Config window
 void CPlugin::Config(HWND _hwnd)
 {
-    if (m_DllConfig != 0) m_DllConfig(_hwnd);
+    if (m_DllConfig != NULL)
+        m_DllConfig(_hwnd);
 }
 
 
@@ -97,32 +106,35 @@ void CPlugin::Config(HWND _hwnd)
 // Debug: Open the Debugging window
 void CPlugin::Debug(HWND _hwnd, bool Show)
 {
-    if (m_DllDebugger != 0) m_DllDebugger(_hwnd, Show);
+    if (m_DllDebugger != NULL)
+        m_DllDebugger(_hwnd, Show);
 
 }
 
 void CPlugin::SetGlobals(PLUGIN_GLOBALS* _pluginGlobals) {
-    if (m_SetDllGlobals != 0)
+    if (m_SetDllGlobals != NULL)
 	m_SetDllGlobals(_pluginGlobals);
 
 }
 
 void CPlugin::DoState(unsigned char **ptr, int mode) {
-    if (m_DoState != 0)
+    if (m_DoState != NULL)
 	m_DoState(ptr, mode);
 }
 
 // Run Initialize() in the plugin
 void CPlugin::Initialize(void *init)
 {
-	/* We first check that we have found the Initialize() function, but there is no
-	   restriction on running this several times */
-    if (m_Initialize != 0) m_Initialize(init);
+    /* We first check that we have found the Initialize() function, but there
+       is no restriction on running this several times */
+    if (m_Initialize != NULL)
+        m_Initialize(init);
 }
 
 void CPlugin::Shutdown()
 {
-    if (m_Shutdown != 0) m_Shutdown();
+    if (m_Shutdown != NULL)
+        m_Shutdown();
 }
 
 } // end of namespace Common

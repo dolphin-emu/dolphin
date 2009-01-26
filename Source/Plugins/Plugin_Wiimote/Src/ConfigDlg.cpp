@@ -228,10 +228,12 @@ void ConfigDialog::CreateGUIControls()
 	wxStaticBoxSizer * sbRealRecord = new wxStaticBoxSizer(wxVERTICAL, m_PageReal, wxT("Record movements"));
 
 	wxArrayString StrHotKey;
-	for(int i = 0; i < 10; i++) StrHotKey.Add(wxString::Format("Shift + %i", i));
+	for(int i = 0; i < 10; i++)
+            StrHotKey.Add(wxString::Format(wxT("Shift + %i"), i));
 
 	wxArrayString StrPlayBackSpeed;
-	for(int i = 1; i < 8; i++) StrPlayBackSpeed.Add(wxString::Format("%i", i*5));
+	for(int i = 1; i < 8; i++)
+            StrPlayBackSpeed.Add(wxString::Format(wxT("%i"), i*5));
 
 	wxBoxSizer * sRealRecord[RECORDING_ROWS];
 

@@ -15,20 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+/*
+  All plugins from Core > Plugins are loaded and unloaded with this class when
+  Dolpin is started and stopped.
+*/
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// File description
-/* ¯¯¯¯¯¯¯¯¯¯¯¯
-
-   All plugins from Core > Plugins are loaded and unloaded with this class when Dolpin is started
-   and stopped.
-
-//////////////////////////////////////*/
-
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Include
-// ¯¯¯¯¯¯¯¯¯¯¯¯
 #include <string.h> // System
 #ifdef _WIN32
 #include <windows.h>
@@ -42,7 +33,6 @@
 #include "StringUtil.h"
 #include "DynamicLibrary.h"
 #include "ConsoleWindow.h"
-////////////////////////////////////////
 
 
 DynamicLibrary::DynamicLibrary()
@@ -81,26 +71,25 @@ std::string GetLastErrorAsString()
 	#endif
 }
 
-/* Function: Loading means loading the dll with LoadLibrary() to get an instance to the dll.
-   This is done when Dolphin is started to determine which dlls are good, and before opening
-   the Config and Debugging windows from Plugin.cpp and before opening the dll for running
-   the emulation in Video_...cpp in Core. Since this is fairly slow, TODO: think about
+/* Function: Loading means loading the dll with LoadLibrary() to get an
+   instance to the dll.  This is done when Dolphin is started to determine
+   which dlls are good, and before opening the Config and Debugging windows
+   from Plugin.cpp and before opening the dll for running the emulation in
+   Video_...cpp in Core. Since this is fairly slow, TODO: think about
    implementing some sort of cache.
    
    Called from: The Dolphin Core */
 int DynamicLibrary::Load(const char* filename)
 {
-	if (!filename || strlen(filename) == 0)
-	{
-		LOG(MASTER_LOG, "Missing filename of dynamic library to load");
-		PanicAlert("Missing filename of dynamic library to load");
-		return 0;
+	if (!filename || strlen(filename) == 0)	{
+            LOG(MASTER_LOG, "Missing filename of dynamic library to load");
+            PanicAlert("Missing filename of dynamic library to load");
+            return 0;
 	}
 	LOG(MASTER_LOG, "Trying to load library %s", filename);
-	if (IsLoaded())
-	{
-		LOG(MASTER_LOG, "Trying to load already loaded library %s", filename);
-		return 2;
+	if (IsLoaded()) {
+            LOG(MASTER_LOG, "Trying to load already loaded library %s", filename);
+            return 2;
 	}
 
 #ifdef _WIN32
@@ -110,11 +99,10 @@ int DynamicLibrary::Load(const char* filename)
 	library = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
 #endif
         
-	if (!library)
-	{
-		LOG(MASTER_LOG, "Error loading DLL %s: %s", filename, GetLastErrorAsString().c_str());
-		PanicAlert("Error loading DLL %s: %s\n", filename, GetLastErrorAsString().c_str());
-		return 0;
+	if (!library) {
+            LOG(MASTER_LOG, "Error loading DLL %s: %s", filename, GetLastErrorAsString().c_str());
+            PanicAlert("Error loading DLL %s: %s\n", filename, GetLastErrorAsString().c_str());
+            return 0;
 	}
 
 	library_file = filename;
@@ -162,7 +150,7 @@ void* DynamicLibrary::Get(const char* funcname) const
 	if (!retval)
 	{
 		LOG(MASTER_LOG, "Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), GetLastErrorAsString().c_str());
-		//PanicAlert("Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), GetLastErrorAsString().c_str());
+		PanicAlert("Symbol %s missing in %s (error: %s)\n", funcname, library_file.c_str(), GetLastErrorAsString().c_str());
 	}
 
 	return retval;
