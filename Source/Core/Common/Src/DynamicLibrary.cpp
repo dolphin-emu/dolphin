@@ -130,7 +130,7 @@ int DynamicLibrary::Unload()
     }
         
 #ifdef _WIN32
-	Console::Print("FreeLibrary: %i\n", library);
+	Console::Print("FreeLibrary: %i\n", library_file.c_str());
 	retval = FreeLibrary(library);
 #else
     retval = dlclose(library)?0:1;

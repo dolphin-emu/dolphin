@@ -623,6 +623,10 @@
 			RelativePath="..\..\PluginSpecs\pluginspecs_wiimote.h"
 			>
 		</File>
+		<File
+			RelativePath=".\Src\SConscript"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

@@ -318,6 +318,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pMemoryBase         = Memory::base;
 	VideoInitialize.pKeyPress           = Callback_KeyPress;
 	VideoInitialize.bWii                = _CoreParameter.bWii;
+	Plugins.FreeVideo(); // This is needed for Stop and Start
 	Plugins.GetVideo()->Initialize(&VideoInitialize); // Call the dll
  
 	// Under linux, this is an X11 Display, not an HWND!

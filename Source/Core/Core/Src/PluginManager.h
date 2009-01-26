@@ -51,6 +51,7 @@ public:
 	Common::PluginDSP *GetDSP();
 	Common::PluginVideo *GetVideo();
 	Common::PluginPAD *FreePad();
+	Common::PluginVideo *FreeVideo();
 
 	bool InitPlugins();
 	void ShutdownPlugins();

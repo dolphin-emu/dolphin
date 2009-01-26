@@ -342,12 +342,23 @@ Common::PluginVideo *CPluginManager::GetVideo()
     return m_video;
 }
 
+// ----------------------------------------
+// Free plugins to completely reset all variables and potential DLLs loaded by the plugins in turn
+// -------------
+Common::PluginVideo *CPluginManager::FreeVideo()
+{
+	delete m_video;
+	m_video = NULL;
+	m_video = (Common::PluginVideo*)LoadPlugin(m_params.m_strVideoPlugin.c_str(), 0);
+	return m_video;
+}
 Common::PluginPAD *CPluginManager::FreePad()
 {
 	delete m_pad[0];
 	m_pad[0] = NULL; m_pad[1] = NULL; m_pad[2] = NULL; m_pad[3] = NULL;
 	m_pad[0] = (Common::PluginPAD*)LoadPlugin(m_params.m_strPadPlugin[0].c_str(), 0);
 	return m_pad[0];
+
 }
 ///////////////////////////////////////////
 
