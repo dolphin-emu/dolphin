@@ -100,7 +100,7 @@ void Video_SendFifoData(u8* _uData, u32 len)
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 {
     SCPFifoStruct &_fifo = *video_initialize.pCPFifo;
-	u32 distToSend;
+	s32 distToSend;
 
 #ifdef _WIN32
     // TODO(ector): Don't peek so often!
@@ -111,14 +111,14 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
     {
         if (_fifo.CPReadWriteDistance == 0)
 			Common::SleepCurrentThread(1);
-        //etc...
 
+		// Draw XFB if CP/GPfifo isn't used
 		if (g_XFBUpdateRequested)
 		{
 			Video_UpdateXFB(NULL, 0, 0, 0, FALSE);
-			g_XFBUpdateRequested = FALSE;
 			video_initialize.pCopiedToXFB();
 		}
+
         // check if we are able to run this buffer
         if ((_fifo.bFF_GPReadEnable) && _fifo.CPReadWriteDistance && !(_fifo.bFF_BPEnable && _fifo.bFF_Breakpoint))
         {
@@ -162,7 +162,6 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 				if ( readPtr >= _fifo.CPEnd) 
 					readPtr = _fifo.CPBase;
 #else
-					// sending the whole CPReadWriteDistance
 					distToSend = _fifo.CPReadWriteDistance;
 					// send 1024B chunk max lenght to have better control over PeekMessages' period
 					distToSend = distToSend > 1024 ? 1024 : distToSend;
@@ -177,7 +176,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 				}
 				Video_SendFifoData(uData, distToSend);
                 Common::SyncInterlockedExchange((LONG*)&_fifo.CPReadPointer, readPtr);
-                Common::SyncInterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -(s64)distToSend);
+                Common::SyncInterlockedExchangeAdd((LONG*)&_fifo.CPReadWriteDistance, -distToSend);
 			}
 			//video_initialize.pLog("..........................IDLE",FALSE);
 			Common::SyncInterlockedExchange((LONG*)&_fifo.CPReadIdle, 1);

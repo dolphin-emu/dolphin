@@ -133,7 +133,7 @@ int
 	// For DC watchdog hack
 	// Once every 4 frame-period seems to be enough (arbitrary taking 60fps as the ref).
 	// TODO: make it VI output frame rate compliant (30/60 and 25/50)
-	// Assuming game's frame-finish-watchdog wait more than 10 emulated frame-period before starting its mess.
+	// Assuming game's frame-finish-watchdog wait more than 4 emulated frame-period before starting its mess.
 	FAKE_GP_WATCHDOG_PERIOD = GetTicksPerSecond() / 15;
 ///////////////////////////////////
 

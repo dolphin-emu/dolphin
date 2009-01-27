@@ -516,7 +516,7 @@ void Update()
 			int yOffset = 0;
 
 			// (mb2) hack: We request XFB updates from CPUthread (here) only when homebrews use directly XFB without FIFO and CP
-			if (CommandProcessor::IsCommandProcessorNotUsed())
+			if (!Core::GetStartupParameter().bUseDualCore || CommandProcessor::IsCommandProcessorNotUsed())
 			{
 				if (NextXFBRender == 1)
 				{
@@ -546,7 +546,8 @@ void Update()
 				if (xfbPtr && video->IsValid())
 				{
 					int fbWidth = m_VIHorizontalStepping.FieldSteps * 16;
-					int fbHeight = (m_VIHorizontalStepping.FbSteps / m_VIHorizontalStepping.FieldSteps) * m_VIVerticalTimingRegister.ACV;				
+					int fbHeight = (m_VIHorizontalStepping.FbSteps / m_VIHorizontalStepping.FieldSteps) * m_VIVerticalTimingRegister.ACV;
+					//LOGV(VIDEOINTERFACE,2,"(VI->XFBUpdate): ptr: %08x | %ix%i", (u32)xfbptr, fbWidth, fbHeight);
 					if (Core::GetStartupParameter().bUseDualCore)
 						// scheduled on EmuThread in DC mode
 						video->Video_UpdateXFB(xfbPtr, fbWidth, fbHeight, yOffset, TRUE); 

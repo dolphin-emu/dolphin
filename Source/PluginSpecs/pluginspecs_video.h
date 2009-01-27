@@ -72,6 +72,7 @@ typedef struct
 	unsigned char                   *pVIRegs;
 	void *pMemoryBase;
 	bool bWii;
+	bool bUseDualCore;
 } SVideoInitialize;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
