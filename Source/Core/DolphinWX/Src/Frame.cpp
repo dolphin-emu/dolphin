@@ -240,7 +240,7 @@ EVT_MENU_RANGE(IDM_LOADSLOT1, IDM_LOADSLOT10, CFrame::OnLoadState)
 EVT_MENU_RANGE(IDM_SAVESLOT1, IDM_SAVESLOT10, CFrame::OnSaveState)
 
 EVT_SIZE(CFrame::OnResize)
-EVT_LIST_ITEM_ACTIVATED(LIST_CTRL, CFrame::OnEvent_ListCtrl_ItemActivated)
+EVT_LIST_ITEM_ACTIVATED(LIST_CTRL, CFrame::OnGameListCtrl_ItemActivated)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 #if wxUSE_TIMER
 	EVT_TIMER(wxID_ANY, CFrame::OnTimer)
@@ -412,10 +412,11 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 }
 
 
-void CFrame::OnEvent_ListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
+void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 {
 	BootGame();
 }
+
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
 	// Toggle fullscreen from Alt + Enter or Esc
@@ -593,28 +594,4 @@ void CFrame::Update()
 	}
 }
 #endif
-void CFrame::BootGame()
-{
-	// Start the selected ISO
-	if (m_GameListCtrl->GetSelectedISO() != 0)
-	{
-		BootManager::BootCore(m_GameListCtrl->GetSelectedISO()->GetFileName());
-	}
-
-	// Start the default ISO, or if we don't have a default ISO, start the last started ISO
-	else if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty() &&
-		wxFileExists(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.c_str(), wxConvUTF8)))
-	{
-		BootManager::BootCore(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM);
-	}
-
-	else if (!SConfig::GetInstance().m_LastFilename.empty() &&
-		wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
-	{
-		BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
-	}
-}
 //////////////////////////////////////////
-
-
-

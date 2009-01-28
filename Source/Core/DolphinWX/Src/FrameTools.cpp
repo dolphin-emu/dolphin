@@ -341,6 +341,50 @@ void CFrame::InitBitmaps()
 	if (GetToolBar() != NULL) RecreateToolbar();
 }
 
+void CFrame::BootGame()
+{
+	#ifdef MUSICMOD // Music modification
+		MM_OnPlay();
+	#endif
+
+
+	// shuffle2: wxBusyInfo is meant to be created on the stack
+	// and only stay around for the life of the scope it's in.
+	// If that is not what we want, find another solution. I don't
+	// think such a dialog is needed anyways, so maybe kill it?
+	wxBusyInfo bootingDialog(wxString::FromAscii("Booting..."), this);
+
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		if (Core::GetState() == Core::CORE_RUN)
+		{
+			Core::SetState(Core::CORE_PAUSE);
+		}
+		else
+		{
+			Core::SetState(Core::CORE_RUN);
+		}
+		UpdateGUI();
+	}
+	// Start the selected ISO
+	else if (m_GameListCtrl->GetSelectedISO() != 0)
+	{
+		BootManager::BootCore(m_GameListCtrl->GetSelectedISO()->GetFileName());
+	}
+	/* Start the default ISO, or if we don't have a default ISO, start the last
+	started ISO */
+	else if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty() &&
+		wxFileExists(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.
+		m_strDefaultGCM.c_str(), wxConvUTF8)))
+	{
+		BootManager::BootCore(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM);
+	}
+	else if (!SConfig::GetInstance().m_LastFilename.empty() &&
+		wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
+	{
+		BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
+	}
+}
 
 // =======================================================
 // Open file to boot or for changing disc
@@ -441,47 +485,7 @@ void CFrame::OnBrowse(wxCommandEvent& WXUNUSED (event))
 // -------------
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 {
-	#ifdef MUSICMOD // Music modification
-		MM_OnPlay();
-	#endif
-
-
-	// shuffle2: wxBusyInfo is meant to be created on the stack
-	// and only stay around for the life of the scope it's in.
-	// If that is not what we want, find another solution. I don't
-	// think such a dialog is needed anyways, so maybe kill it?
-	wxBusyInfo bootingDialog(wxString::FromAscii("Booting..."), this);
-
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
-	{
-		if (Core::GetState() == Core::CORE_RUN)
-		{
-			Core::SetState(Core::CORE_PAUSE);
-		}
-		else
-		{
-			Core::SetState(Core::CORE_RUN);
-		}
-		UpdateGUI();
-	}
-	// Start the selected ISO
-	else if (m_GameListCtrl->GetSelectedISO() != 0)
-	{
-		BootManager::BootCore(m_GameListCtrl->GetSelectedISO()->GetFileName());
-	}
-	/* Start the default ISO, or if we don't have a default ISO, start the last
-	   started ISO */
-	else if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty() &&
-		wxFileExists(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.
-			m_strDefaultGCM.c_str(), wxConvUTF8)))
-	{
-		BootManager::BootCore(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM);
-	}
-	else if (!SConfig::GetInstance().m_LastFilename.empty() &&
-	wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
-	{
-		BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
-	}
+	BootGame();
 }
 // =============
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Plugin_Wiimote"
 	ProjectGUID="{8D612734-FAA5-4B8A-804F-4DEA2367D495}"
 	RootNamespace="Plugin_Wiimote"
@@ -67,7 +67,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib wiiuse.lib rpcrt4.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib wiiuse.lib rpcrt4.lib"
 				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_WiimoteD.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\win32"
@@ -151,7 +151,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib wiiuse.lib rpcrt4.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib wiiuse.lib rpcrt4.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_WiimoteD.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\x64"
@@ -316,7 +316,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib wiiuse.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib wiiuse.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_Wiimote.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\x64"
@@ -396,7 +396,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/NODEFAULTLIB:msvcrt.lib"
-				AdditionalDependencies="comctl32.lib wiiuse.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib wiiuse.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_WiimoteDF.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\win32"
@@ -476,7 +476,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib wiiuse.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib wiiuse.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_WiimoteDF.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\x64"
