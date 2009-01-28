@@ -28,7 +28,11 @@
 #include "StringUtil.h"
 
 #include "wiimote_real.h" // Local
-#include "main.h" // Local
+#include "main.h"
+#if defined(HAVE_WX) && HAVE_WX
+	#include "ConfigDlg.h"
+#endif
+#include "Config.h"
 ////////////////////////////////////////
 
 namespace WiiMoteReal
@@ -68,13 +72,19 @@ void handle_event(struct wiimote_t* wm)
 	 *	This is useful because it saves battery power.
 	 */
 	if (IS_JUST_PRESSED(wm, WIIMOTE_BUTTON_MINUS))
+	{
 		wiiuse_motion_sensing(wm, 0);
+		g_MotionSensing = false;
+	}
 
 	/*
 	 *	Pressing plus will tell the wiimote we are interested in movement.
 	 */
 	if (IS_JUST_PRESSED(wm, WIIMOTE_BUTTON_PLUS))
+	{
 		wiiuse_motion_sensing(wm, 1);
+		g_MotionSensing = true;
+	}
 
 	/* If the accelerometer is turned on then print angles */
 	if (WIIUSE_USING_ACC(wm))
@@ -85,22 +95,30 @@ void handle_event(struct wiimote_t* wm)
 		Tmp += StringFromFormat("Battery: %1.2f\n", wm->battery_level);
 		Tmp += StringFromFormat("G-Force x, y, z: %1.2f %1.2f %1.2f\n", wm->gforce.x, wm->gforce.y, wm->gforce.z);
 		Tmp += StringFromFormat("Accel x, y, z: %03i %03i %03i\n\n", wm->accel.x, wm->accel.y, wm->accel.z);
-		Console::Print("%s", Tmp.c_str());
+		//Console::Print("%s", Tmp.c_str());
 
 		if(frame)
 		{
-			frame->m_GaugeBattery->SetValue((int)floor((wm->battery_level * 100) + 0.5));
+			if(g_Config.bUpdateRealWiimote)
+			{
+				frame->m_GaugeBattery->SetValue((int)floor((wm->battery_level * 100) + 0.5));
 
-			frame->m_GaugeRoll[0]->SetValue(wm->orient.roll + 180);
-			frame->m_GaugeRoll[1]->SetValue(wm->orient.pitch + 180);
+				frame->m_GaugeRoll[0]->SetValue(wm->orient.roll + 180);
+				frame->m_GaugeRoll[1]->SetValue(wm->orient.pitch + 180);
 
-			frame->m_GaugeGForce[0]->SetValue((int)floor((wm->gforce.x * 100) + 300.5));
-			frame->m_GaugeGForce[1]->SetValue((int)floor((wm->gforce.y * 100) + 300.5));
-			frame->m_GaugeGForce[2]->SetValue((int)floor((wm->gforce.z * 100) + 300.5));
+				frame->m_GaugeGForce[0]->SetValue((int)floor((wm->gforce.x * 100) + 300.5));
+				frame->m_GaugeGForce[1]->SetValue((int)floor((wm->gforce.y * 100) + 300.5));
+				frame->m_GaugeGForce[2]->SetValue((int)floor((wm->gforce.z * 100) + 300.5));
 
-			frame->m_GaugeAccel[0]->SetValue(wm->accel.x);
-			frame->m_GaugeAccel[1]->SetValue(wm->accel.y);
-			frame->m_GaugeAccel[2]->SetValue(wm->accel.z);
+				frame->m_GaugeAccel[0]->SetValue(wm->accel.x);
+				frame->m_GaugeAccel[1]->SetValue(wm->accel.y);
+				frame->m_GaugeAccel[2]->SetValue(wm->accel.z);
+			}
+
+			frame->DoRecordMovement(wm->accel.x, wm->accel.y, wm->accel.z);
+
+			if (IS_PRESSED(wm, WIIMOTE_BUTTON_A)) frame->DoRecordA(true);
+				else frame->DoRecordA(false);
 		}
 	}
 }

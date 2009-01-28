@@ -32,8 +32,9 @@
 
 #include "wiimote_hid.h"
 #include "main.h"
+#include "Config.h"
 #include "EmuMain.h"
-#define EXCLUDE_H // Avoid certain declarations in main.h
+#define EXCLUDE_H // Avoid certain declarations in wiimote_real.h
 #include "wiimote_real.h"
 #if defined(HAVE_WX) && HAVE_WX
 	#include "ConfigDlg.h"
@@ -67,6 +68,7 @@ int					g_NumberOfWiiMotes;
 CWiiMote*			g_WiiMotes[MAX_WIIMOTES];	
 bool				g_Shutdown = false;
 bool				g_LocalThread = true;
+bool				g_MotionSensing = false;
 
 //******************************************************************************
 // Probably this class should be in its own file
@@ -121,8 +123,10 @@ void SendData(u16 _channelID, const u8* _pData, u32 _Size)
 /////////////////////
 
 
-//////////////////////////////////////////
-// Read data from wiimote (but don't send it to the core, just filter and queue)
+//////////////////////////////////////////////////
+/* Read data from wiimote (but don't send it to the core, just filter and queue). If we are not currently
+   using the real Wiimote we only allow it to receive data mode changes, but don't ask for any data in
+   return */
 // ---------------
 void ReadData() 
 {
@@ -131,6 +135,7 @@ void ReadData()
 	// Send data to the Wiimote
     if (!m_EventWriteQueue.empty())
     {
+		Console::Print("Writing data to the Wiimote\n");
         SEvent& rEvent = m_EventWriteQueue.front();
         wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, MAX_PAYLOAD);
         m_EventWriteQueue.pop();
@@ -138,35 +143,37 @@ void ReadData()
 
     m_pCriticalSection->Leave();
 
-    if (wiiuse_io_read(m_pWiiMote))
-    {
-        const byte* pBuffer = m_pWiiMote->event_buf;
+	// Don't queue up data if we are not using the real Wiimote
+	if(g_Config.bUseRealWiimote)
+		if (wiiuse_io_read(m_pWiiMote))
+		{
+			const byte* pBuffer = m_pWiiMote->event_buf;
 
-        // Check if we have a channel (connection) if so save the data...
-        if (m_channelID > 0)
-        {
-            m_pCriticalSection->Enter();
+			// Check if we have a channel (connection) if so save the data...
+			if (m_channelID > 0)
+			{
+				m_pCriticalSection->Enter();
 
-            // Filter out reports
-            if (pBuffer[0] >= 0x30) 
-            {
-				// Copy Buffer to LastReport
-                memcpy(m_LastReport.m_PayLoad, pBuffer, MAX_PAYLOAD);
-                m_LastReportValid = true;
-            }
-            else
-            {
-				// Copy Buffer to ImportantEvent
-                SEvent ImportantEvent;
-                memcpy(ImportantEvent.m_PayLoad, pBuffer, MAX_PAYLOAD);
-                m_EventReadQueue.push(ImportantEvent);
-            }
-            m_pCriticalSection->Leave();
-        }
+				// Filter out reports
+				if (pBuffer[0] >= 0x30) 
+				{
+					// Copy Buffer to LastReport
+					memcpy(m_LastReport.m_PayLoad, pBuffer, MAX_PAYLOAD);
+					m_LastReportValid = true;
+				}
+				else
+				{
+					// Copy Buffer to ImportantEvent
+					SEvent ImportantEvent;
+					memcpy(ImportantEvent.m_PayLoad, pBuffer, MAX_PAYLOAD);
+					m_EventReadQueue.push(ImportantEvent);
+				}
+				m_pCriticalSection->Leave();
+			}
 
-		//std::string Temp = ArrayToString(pBuffer, sizeof(pBuffer), 0);
-		//Console::Print("Data:\n%s\n", Temp.c_str());
-	}
+			//std::string Temp = ArrayToString(pBuffer, sizeof(pBuffer), 0);
+			//Console::Print("Data:\n%s\n", Temp.c_str());
+		}
 };
 /////////////////////
 
@@ -181,10 +188,12 @@ void Update()
 
     if (m_EventReadQueue.empty())
     {
+		// Send the same data as last time
         if (m_LastReportValid) SendEvent(m_LastReport);
     }
     else
     {
+		// Send all the new data we have collected
         SendEvent(m_EventReadQueue.front());
         m_EventReadQueue.pop();
     }
@@ -352,7 +361,11 @@ void Update()
 }
 
 //////////////////////////////////
-// Continuously read the Wiimote status
+/* Continuously read the Wiimote status. However, the actual sending of data occurs in Update(). If we are
+   not currently using the real Wiimote we allow the separate ReadWiimote() function to run. Todo: Figure
+   out how to manually send the current data reporting mode to the real Wiimote so that we can entirely turn
+   off ReadData() (including wiiuse_io_write()) while we are not using the real wiimote. For example to risk
+   interrupting accelerometer recordings by a wiiuse_io_write(). */
 // ---------------
 #ifdef _WIN32
 	DWORD WINAPI ReadWiimote_ThreadFunc(void* arg)
@@ -364,7 +377,7 @@ void Update()
     {
 		if(g_EmulatorRunning)
 			for (int i = 0; i < g_NumberOfWiiMotes; i++) g_WiiMotes[i]->ReadData();
-		else
+		else if (!g_Config.bUseRealWiimote)
 			ReadWiimote();
     }
     return 0;

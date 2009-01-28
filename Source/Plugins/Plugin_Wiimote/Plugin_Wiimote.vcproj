@@ -233,7 +233,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/NODEFAULTLIB:msvcrt.lib"
-				AdditionalDependencies="comctl32.lib wiiuse.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib wiiuse.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_Wiimote.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\WiiUse\win32"

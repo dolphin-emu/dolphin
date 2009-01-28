@@ -20,17 +20,16 @@
 // Includes
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "Common.h" // Common
-#include "Config.h"
 #include "StringUtil.h"
 #include "ConsoleWindow.h" // For Start, Print, GetHwnd
-
-#if defined(HAVE_WX) && HAVE_WX
-	#include <wx/aboutdlg.h>
-	#include "ConfigDlg.h"
-#endif
+#include "Timer.h"
 
 #define EXCLUDEMAIN_H // Avoid certain declarations in main.h
 #include "main.h" // Local
+#if defined(HAVE_WX) && HAVE_WX
+	#include "ConfigDlg.h"
+#endif
+#include "Config.h"
 #include "pluginspecs_wiimote.h"
 #include "EmuMain.h"
 #if HAVE_WIIUSE
@@ -50,6 +49,17 @@ bool g_RealWiiMotePresent = false;
 bool g_RealWiiMoteInitialized = false;
 bool g_EmulatedWiiMoteInitialized = false;
 
+// Update speed
+int g_UpdateCounter = 0;
+double g_UpdateTime = 0;
+int g_UpdateRate = 0;
+int g_UpdateWriteScreen = 0;
+std::vector<int> g_UpdateTimeList (5, 0);
+
+// Movement recording
+std::vector<SRecordingAll> VRecording(RECORDING_ROWS); 
+
+// DLL instance
 HINSTANCE g_hInstance;
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -133,6 +143,8 @@ void DllConfig(HWND _hParent)
 	#ifdef _WIN32
 		win.SetHWND(_hParent);
 	#endif
+
+	Console::Open();
 
 	g_FrameOpen = true;	
 	frame = new ConfigDialog(&win);
@@ -266,6 +278,18 @@ extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _
 // ----------------
 extern "C" void Wiimote_Update()
 {
+	// Tell us about the update rate, but only about once every second to avoid a major slowdown
+	if (frame)
+	{
+		GetUpdateRate();
+		if (g_UpdateWriteScreen > g_UpdateRate)
+		{
+			frame->m_TextUpdateRate->SetLabel(wxString::Format("Update rate: %03i times/s", g_UpdateRate));
+			g_UpdateWriteScreen = 0;
+		}
+		g_UpdateWriteScreen++;
+	}
+
 	if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
 		WiiMoteEmu::Update();
 #if HAVE_WIIUSE
@@ -285,17 +309,79 @@ extern "C" unsigned int Wiimote_GetAttachedControllers()
 // Supporting functions
 //******************************************************************************
 
+
+/* Returns a timestamp with three decimals for precise time comparisons. The return format is
+   of the form seconds.milleseconds for example 1234.123. The leding seconds have no particular meaning
+   but are just there to enable use to tell if we have entered a new second or now. */
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+double GetDoubleTime()
+{
+#if defined(HAVE_WX) && HAVE_WX
+	wxDateTime datetime = wxDateTime::UNow(); // Get timestamp
+	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970(); // Get continous timestamp
+
+	/* Remove a few years. We only really want enough seconds to make sure that we are
+	   detecting actual actions, perhaps 60 seconds is enough really, but I leave a
+	   year of seconds anyway, in case the user's clock is incorrect or something like that */
+	TmpSeconds = TmpSeconds - (38 * 365 * 24 * 60 * 60);
+
+	//if (TmpSeconds < 0) return 0; // Check the the user's clock is working somewhat
+
+	u32 Seconds = (u32)TmpSeconds; // Make a smaller integer that fits in the double
+	double ms = datetime.GetMillisecond() / 1000.0;
+	double TmpTime = Seconds + ms;
+	return TmpTime;
+#endif
+}
+
+/* Calculate the current update frequency. Calculate the time between ten updates, and average
+   five such rates. If we assume there are 60 updates per second if the game is running at full
+   speed then we get this measure on average once every second. The reason to have a few updates
+   between each measurement is becase the milliseconds may not be perfectly accurate and may return
+   the same time even when a milliseconds has actually passed, for example.*/
+int GetUpdateRate()
+{
+#if defined(HAVE_WX) && HAVE_WX
+	if(g_UpdateCounter == 10)
+	{
+		// Erase the old ones
+		if(g_UpdateTimeList.size() == 5) g_UpdateTimeList.erase(g_UpdateTimeList.begin() + 0);
+
+		// Calculate the time and save it
+		int Time = (int)(10 / (GetDoubleTime() - g_UpdateTime));
+		g_UpdateTimeList.push_back(Time);
+		//Console::Print("Time: %i %f\n", Time, GetDoubleTime());
+
+		int TotalTime = 0;
+		for (int i = 0; i < g_UpdateTimeList.size(); i++)
+			TotalTime += g_UpdateTimeList.at(i);
+		g_UpdateRate = TotalTime / 5;
+
+		// Write the new update time
+		g_UpdateTime = GetDoubleTime();
+
+		g_UpdateCounter = 0;
+	}
+
+	g_UpdateCounter++;
+
+	return g_UpdateRate;
+#else
+	return 0;
+#endif
+}
+
 void DoInitialize()
 {
 	// ----------------------------------------
 	// Debugging window
 	// ----------
-	/*Console::Open(100, 750, "Wiimote"); // give room for 20 rows
+	/**/Console::Open(100, 750, "Wiimote"); // give room for 20 rows
 	Console::Print("Wiimote console opened\n");
 
 	// Move window
 	//MoveWindow(Console::GetHwnd(), 0,400, 100*8,10*14, true); // small window
-	MoveWindow(Console::GetHwnd(), 400,0, 100*8,70*14, true); // big window*/
+	MoveWindow(Console::GetHwnd(), 400,0, 100*8,70*14, true); // big window
 	// ---------------
 
 	// Load config settings

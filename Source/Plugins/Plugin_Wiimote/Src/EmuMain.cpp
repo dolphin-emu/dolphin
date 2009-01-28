@@ -26,8 +26,9 @@
 
 #include "Common.h" // Common
 #include "StringUtil.h" // for ArrayToString()
+#include "IniFile.h"
 
-#include "main.h"
+#include "main.h" // Local
 #include "wiimote_hid.h"
 #include "EmuSubroutines.h"
 #include "EmuDefinitions.h"
@@ -136,6 +137,61 @@ void Initialize()
 	}
 
 	g_EmulatedWiiMoteInitialized = true;
+
+	//////////////////////////////////////
+	// Load pre-recorded movements
+	// ---------------
+	IniFile file;
+	file.Load("WiimoteMovement.ini");
+
+	for(int i = 0; i < RECORDING_ROWS; i++)
+	{
+		// Get row name
+		std::string SaveName = StringFromFormat("Recording%i", i + 1);
+
+		// Get movement
+		std::string TmpMovement; file.Get(SaveName.c_str(), "Movement", &TmpMovement, "");
+
+		// Get time
+		std::string TmpTime; file.Get(SaveName.c_str(), "Time", &TmpTime, "");
+
+		SRecording Tmp;
+		for (int j = 0, k = 0; j < TmpMovement.length(); j+=7)
+		{
+			// Skip blank savings
+			if (TmpMovement.length() < 3) continue;
+
+			std::string StrX = TmpMovement.substr(j, 2);
+			std::string StrY = TmpMovement.substr(j + 2, 2);
+			std::string StrZ = TmpMovement.substr(j + 4, 2);
+			u32 TmpX, TmpY, TmpZ;
+			AsciiToHex(StrX.c_str(), TmpX);
+			AsciiToHex(StrY.c_str(), TmpY);
+			AsciiToHex(StrZ.c_str(), TmpZ);			
+			Tmp.x = (u8)TmpX;
+			Tmp.x = (u8)TmpY;
+			Tmp.x = (u8)TmpZ;
+
+			// Go to next set of time values
+			int Time = atoi(TmpTime.substr(k, 5).c_str());
+			Tmp.Time = (double)(Time/1000);
+			VRecording.at(i).Recording.push_back(Tmp);
+			k += 6;
+		}
+
+		// HotKey
+		int TmpRecordHotKey; file.Get(SaveName.c_str(), "HotKey", &TmpRecordHotKey, -1);
+		VRecording.at(i).HotKey = TmpRecordHotKey;
+
+		// Recording speed
+		int TmpPlaybackSpeed; file.Get(SaveName.c_str(), "PlaybackSpeed", &TmpPlaybackSpeed, -1);
+		VRecording.at(i).PlaybackSpeed = TmpPlaybackSpeed;
+
+		Console::Print("Size:%i HotKey:%i Speed:%i\n",
+			VRecording.at(i).Recording.size(), VRecording.at(i).HotKey, VRecording.at(i).PlaybackSpeed
+			);
+	}
+	//////////////////////////
 
 	// I forgot what these were for?
 	//	g_RegExt[0xfd] = 0x1e;

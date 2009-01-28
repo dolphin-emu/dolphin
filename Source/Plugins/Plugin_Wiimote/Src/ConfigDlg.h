@@ -18,6 +18,9 @@
 #ifndef __CONFIGDIALOG_h__
 #define __CONFIGDIALOG_h__
 
+#include <iostream>
+#include <vector>
+
 #include <wx/wx.h>
 #include <wx/dialog.h>
 #include <wx/textctrl.h>
@@ -30,7 +33,6 @@
 #include <wx/filepicker.h>
 #include <wx/gbsizer.h>
 
-
 class ConfigDialog : public wxDialog
 {
 	public:
@@ -40,17 +42,33 @@ class ConfigDialog : public wxDialog
 			long style = wxDEFAULT_DIALOG_STYLE);
 		virtual ~ConfigDialog();
 
+		// General open, close and event functions
 		void CloseClick(wxCommandEvent& event);
 		void UpdateGUI();
+		void OnKeyDown(wxKeyEvent& event);
+		void LoadFile(); void SaveFile();
+		
+		// Status
+		wxStaticText * m_TextUpdateRate;
 
+		// Flash lights on connect functions
 		wxTimer * m_ExitTimer;
 		void DoFlashLights();
 		void StartTimer();
 		void FlashLights(wxTimerEvent& WXUNUSED(event)) { DoFlashLights(); }
 		bool ShutDown; int TimerCounter;
 
-		//void Update(wxTimerEvent& WXUNUSED(event));
+		// Wiimote status
 		wxGauge *m_GaugeBattery, *m_GaugeRoll[2], *m_GaugeGForce[3], *m_GaugeAccel[3];
+		bool m_bWaitForRecording, m_bRecording, m_bAllowA;
+		int m_iRecordTo;
+		void RecordMovement(wxCommandEvent& event);
+		void DoRecordMovement(u8 _x, u8 _y, u8 _z);
+		void DoRecordA(bool Pressed);
+		void ConvertToString();
+		wxTimer *m_TimeoutTimer, *m_TimeoutATimer;
+		void Update(wxTimerEvent& WXUNUSED(event));
+		void UpdateA(wxTimerEvent& WXUNUSED(event));
 
 	private:
 		DECLARE_EVENT_TABLE();
@@ -60,25 +78,38 @@ class ConfigDialog : public wxDialog
 		wxNotebook *m_Notebook;
 		wxPanel *m_PageEmu, *m_PageReal;
 
+		bool ControlsCreated;
+
 		wxCheckBox *m_SidewaysDPad; // Emulated Wiimote settings
 		wxCheckBox *m_WideScreen;
 		wxCheckBox *m_NunchuckConnected, *m_ClassicControllerConnected;
 
-		wxCheckBox *m_ConnectRealWiimote, *m_UseRealWiimote; // Real Wiimote settings	
+		wxCheckBox *m_ConnectRealWiimote, *m_UseRealWiimote, *m_UpdateMeters; // Real Wiimote settings	
 
-		static const int RECORDING_ROWS = 11;
-		wxButton * m_RecordButton[RECORDING_ROWS];
-		wxChoice * m_RecordHotKey[RECORDING_ROWS];
-		wxTextCtrl * m_RecordText[RECORDING_ROWS];
-		wxTextCtrl * m_RecordGameText[RECORDING_ROWS];
-		wxTextCtrl * m_RecordSpeed[RECORDING_ROWS];
-		wxChoice * m_RecordPlayBackSpeed[RECORDING_ROWS];
+		//static const int RECORDING_ROWS = 15;
+		wxButton * m_RecordButton[RECORDING_ROWS + 1];
+		wxChoice * m_RecordHotKey[RECORDING_ROWS + 1];
+		wxTextCtrl * m_RecordText[RECORDING_ROWS + 1];
+		wxTextCtrl * m_RecordGameText[RECORDING_ROWS + 1];
+		wxTextCtrl * m_RecordSpeed[RECORDING_ROWS + 1];
+		wxChoice * m_RecordPlayBackSpeed[RECORDING_ROWS + 1];
+
+		/*
+		struct m_sRecording
+		{
+			u8 x;
+			u8 y;
+			u8 z;
+			double Time;
+		};
+		*/
+		std::vector<SRecording> m_vRecording;
 
 		enum
 		{
 			ID_CLOSE = 1000,
 			ID_ABOUTOGL,
-			IDTM_EXIT, IDTM_UPDATE, // Timer
+			IDTM_EXIT, IDTM_UPDATE, IDTM_UPDATEA, // Timer
 
 			ID_NOTEBOOK,
 			ID_PAGEEMU,
@@ -89,13 +120,14 @@ class ConfigDialog : public wxDialog
 			ID_NUNCHUCKCONNECTED, ID_CLASSICCONTROLLERCONNECTED,
 
 			// Real
-			ID_CONNECT_REAL, ID_USE_REAL, IDT_STATUS,
-			IDB_RECORD, IDC_RECORD, IDT_RECORD_TEXT, IDT_RECORD_GAMETEXT, IDT_RECORD_SPEED, IDT_RECORD_PLAYSPEED
+			ID_CONNECT_REAL, ID_USE_REAL, ID_UPDATE_REAL, IDT_STATUS,
+			IDB_RECORD = 2000,
+			IDC_RECORD = 3000,
+			IDT_RECORD_TEXT, IDT_RECORD_GAMETEXT, IDT_RECORD_SPEED, IDT_RECORD_PLAYSPEED
 		};
 
 		void OnClose(wxCloseEvent& event);
 		void CreateGUIControls();
-
 		void AboutClick(wxCommandEvent& event);
 
 		void DoConnectReal(); // Real
@@ -104,5 +136,7 @@ class ConfigDialog : public wxDialog
 
 		void GeneralSettingsChanged(wxCommandEvent& event);		
 };
+
+extern ConfigDialog *frame;
 
 #endif

@@ -36,7 +36,7 @@ struct Config
 	bool bNunchuckConnected, bClassicControllerConnected;
 
 	// Real Wiimote
-	bool bConnectRealWiimote, bUseRealWiimote;
+	bool bConnectRealWiimote, bUseRealWiimote, bUpdateRealWiimote;
 };
 
 extern Config g_Config;

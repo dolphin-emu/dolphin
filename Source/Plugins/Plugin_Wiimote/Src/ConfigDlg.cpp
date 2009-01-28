@@ -20,11 +20,15 @@
 // Include
 // ------------
 //#include "Common.h" // for u16
+#include "CommonTypes.h" // for u16
+#include "IniFile.h"
+#include "Timer.h"
+
+#include "wiimote_real.h" // Local
+#include "main.h"
 #include "ConfigDlg.h"
 #include "Config.h"
 #include "EmuSubroutines.h" // for WmRequestStatus
-#include "main.h"
-#include "wiimote_real.h"
 /////////////////////////////
 
 
@@ -48,13 +52,33 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 
 	EVT_CHECKBOX(ID_CONNECT_REAL, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_USE_REAL, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_UPDATE_REAL, ConfigDialog::GeneralSettingsChanged)
+
+	EVT_BUTTON(IDB_RECORD + 1, ConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 2, ConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 3, ConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 4, ConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 5, ConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 6, ConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 7, ConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 8, ConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 9, ConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 10, ConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 11, ConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 12, ConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 13, ConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 14, ConfigDialog::RecordMovement)
+	EVT_BUTTON(IDB_RECORD + 15, ConfigDialog::RecordMovement)
 
 	EVT_TIMER(IDTM_EXIT, ConfigDialog::FlashLights)
-	//EVT_TIMER(IDTM_UPDATE, ConfigDialog::Update)	
+	EVT_TIMER(IDTM_UPDATE, ConfigDialog::Update)	
 END_EVENT_TABLE()
 /////////////////////////////
 
 
+/////////////////////////////////////////////////////////////////////////
+// Class
+// ------------
 ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title,
 						   const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
@@ -63,18 +87,137 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 		m_ExitTimer = new wxTimer(this, IDTM_EXIT);
 		// Reset values
 		ShutDown = false;
+
+		m_TimeoutTimer = new wxTimer(this, IDTM_UPDATE);
+		m_TimeoutATimer = new wxTimer(this, IDTM_UPDATEA);
+		// Reset values
+		m_bWaitForRecording = false;
+		m_bRecording = false;
 	#endif
+
+	ControlsCreated = false;
+	m_vRecording.resize(RECORDING_ROWS + 1);
 
 	g_Config.Load();
 	CreateGUIControls();
+	LoadFile();
 	UpdateGUI();
+
+	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
+		wxKeyEventHandler(ConfigDialog::OnKeyDown),
+		(wxObject*)0, this);
 }
 
 ConfigDialog::~ConfigDialog()
-{
-	g_FrameOpen = false;
-	if (!g_EmulatorRunning) Shutdown();
+{	
 }
+
+void ConfigDialog::OnKeyDown(wxKeyEvent& event)
+{
+	event.Skip();
+
+	// Escape a recording event
+	if (event.GetKeyCode() == WXK_ESCAPE)
+	{
+		m_bWaitForRecording = false;
+		m_bRecording = false;
+		UpdateGUI();
+	}
+}
+void ConfigDialog::OnClose(wxCloseEvent& WXUNUSED (event))
+{
+	SaveFile();
+	g_Config.Save();
+	g_FrameOpen = false;	
+	SuccessAlert("Saved\n");
+	if (!g_EmulatorRunning) Shutdown();
+	EndModal(0);
+}
+
+void ConfigDialog::CloseClick(wxCommandEvent& WXUNUSED (event))
+{
+	// wxWidgets function. This will also trigger EVT_CLOSE().
+	Close();
+}
+
+void ConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
+{
+
+}
+
+void ConfigDialog::LoadFile()
+{
+	Console::Print("LoadFile\n");
+
+	IniFile file;
+	file.Load("WiimoteMovement.ini");
+
+	for(int i = 1; i < (RECORDING_ROWS + 1); i++)
+	{
+		// Get row name
+		std::string SaveName = StringFromFormat("Recording%i", i);
+
+		// HotKey
+		int TmpRecordHotKey; file.Get(SaveName.c_str(), "HotKey", &TmpRecordHotKey, -1);
+		m_RecordHotKey[i]->SetSelection(TmpRecordHotKey);
+
+		// Movement name
+		std::string TmpMovementName; file.Get(SaveName.c_str(), "MovementName", &TmpMovementName, "");
+		m_RecordText[i]->SetValue(TmpMovementName.c_str());
+
+		// Game name
+		std::string TmpGameName; file.Get(SaveName.c_str(), "GameName", &TmpGameName, "");
+		m_RecordGameText[i]->SetValue(TmpGameName.c_str());
+
+		// Recording speed
+		int TmpRecordSpeed; file.Get(SaveName.c_str(), "RecordingSpeed", &TmpRecordSpeed, -1);
+		if(TmpRecordSpeed != -1)
+			m_RecordSpeed[i]->SetValue(wxString::Format(wxT("%i"), TmpRecordSpeed));
+		else
+			m_RecordSpeed[i]->SetValue(wxT(""));
+
+		// Playback speed (currently always saved directly after a recording)
+		int TmpPlaybackSpeed; file.Get(SaveName.c_str(), "PlaybackSpeed", &TmpPlaybackSpeed, -1);
+		m_RecordPlayBackSpeed[i]->SetSelection(TmpPlaybackSpeed);
+	}
+}
+void ConfigDialog::SaveFile()
+{
+	Console::Print("SaveFile\n");
+
+	IniFile file;
+	file.Load("WiimoteMovement.ini");
+
+	for(int i = 1; i < (RECORDING_ROWS + 1); i++)
+	{
+		// Get row name
+		std::string SaveName = StringFromFormat("Recording%i", i);
+
+		// HotKey
+		file.Set(SaveName.c_str(), "HotKey", m_RecordHotKey[i]->GetSelection());
+
+		// Movement name
+		file.Set(SaveName.c_str(), "MovementName", m_RecordText[i]->GetValue().c_str());
+
+		// Game name
+		file.Set(SaveName.c_str(), "GameName", m_RecordGameText[i]->GetValue().c_str());
+
+		// Recording speed (currently always saved directly after a recording)
+		/*
+		wxString TmpRecordSpeed = m_RecordSpeed[i]->GetValue();		
+		if(TmpRecordSpeed.length() > 0)			
+			int TmpRecordSpeed; file.Set(SaveName.c_str(), "RecordingSpeed", TmpRecordSpeed);
+		else
+			int TmpRecordSpeed; file.Set(SaveName.c_str(), "RecordingSpeed", "-1");
+		*/
+
+		// Playback speed (currently always saved directly after a recording)
+		file.Set(SaveName.c_str(), "PlaybackSpeed", m_RecordPlayBackSpeed[i]->GetSelection());
+	}
+
+	file.Save("WiimoteMovement.ini");
+}
+/////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////
@@ -142,7 +285,7 @@ void ConfigDialog::CreateGUIControls()
 	////////////////////////////////////////////////////////////////////////////////
 	// Real Wiimote
 	// ----------------
-	// General
+	// Basic Settings
 	wxStaticBoxSizer * sbRealBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageReal, wxT("Basic Settings"));
 	m_ConnectRealWiimote = new wxCheckBox(m_PageReal, ID_CONNECT_REAL, wxT("Connect real Wiimote"));
 	m_UseRealWiimote = new wxCheckBox(m_PageReal, ID_USE_REAL, wxT("Use real Wiimote"));
@@ -151,10 +294,25 @@ void ConfigDialog::CreateGUIControls()
 	m_ConnectRealWiimote->SetValue(g_Config.bConnectRealWiimote);
 	m_UseRealWiimote->SetValue(g_Config.bUseRealWiimote);
 
-	// ==================================================
 	// Status
+	wxStaticBoxSizer * sbRealStatus = new wxStaticBoxSizer(wxVERTICAL, m_PageReal, wxT("Status"));
+	m_TextUpdateRate = new wxStaticText(m_PageReal, wxID_ANY, wxT("Update rate: 000 times/s"));
+	m_UpdateMeters = new wxCheckBox(m_PageReal, ID_UPDATE_REAL, wxT("Update gauges"));
+
+	m_UpdateMeters->SetValue(g_Config.bUpdateRealWiimote);
+
+	m_UpdateMeters->SetToolTip(wxT(
+		"You can turn this off when a game is running to avoid a unnecessary slowdown that comes from redrawing the\n"
+		"configuration screen. Remember that you also need to press '+' on your Wiimote before you can record movements."
+		));
+
+	sbRealStatus->Add(m_TextUpdateRate, 0, wxEXPAND | (wxALL), 5);
+	sbRealStatus->Add(m_UpdateMeters, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxUP), 5);
+
+	// ==================================================
+	// Wiimote Status
 	// ----------------
-	wxBoxSizer * sbRealStatus = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer * sbRealWiimoteStatus = new wxBoxSizer(wxHORIZONTAL);
 
 	wxStaticBoxSizer * sbRealBattery = new wxStaticBoxSizer(wxVERTICAL, m_PageReal, wxT("Battery"));
 	wxStaticBoxSizer * sbRealRoll = new wxStaticBoxSizer(wxHORIZONTAL, m_PageReal, wxT("Roll and Pitch"));
@@ -213,10 +371,10 @@ void ConfigDialog::CreateGUIControls()
 	sbRealGForce->Add(sBoxGForce[0], 0, wxEXPAND | (wxALL), 5); sbRealGForce->Add(sBoxGForce[1], 0, wxEXPAND | (wxALL), 5); sbRealGForce->Add(sBoxGForce[2], 0, wxEXPAND | (wxALL), 5);
 	sbRealAccel->Add(sBoxAccel[0], 0, wxEXPAND | (wxALL), 5); sbRealAccel->Add(sBoxAccel[1], 0, wxEXPAND | (wxALL), 5); sbRealAccel->Add(sBoxAccel[2], 0, wxEXPAND | (wxALL), 5);
 	
-	sbRealStatus->Add(sbRealBattery, 0, wxEXPAND | (wxALL), 5);
-	sbRealStatus->Add(sbRealRoll, 0, wxEXPAND | (wxALL), 5);
-	sbRealStatus->Add(sbRealGForce, 0, wxEXPAND | (wxALL), 5);
-	sbRealStatus->Add(sbRealAccel, 0, wxEXPAND | (wxALL), 5);
+	sbRealWiimoteStatus->Add(sbRealBattery, 0, wxEXPAND | (wxLEFT), 0);
+	sbRealWiimoteStatus->Add(sbRealRoll, 0, wxEXPAND | (wxLEFT), 5);
+	sbRealWiimoteStatus->Add(sbRealGForce, 0, wxEXPAND | (wxLEFT), 5);
+	sbRealWiimoteStatus->Add(sbRealAccel, 0, wxEXPAND | (wxLEFT), 5);
 
 	m_GaugeBattery->SetToolTip(wxT("Press '+' to show the current status. Press '-' to stop recording the status."));
 	// ==========================================
@@ -228,28 +386,35 @@ void ConfigDialog::CreateGUIControls()
 	wxStaticBoxSizer * sbRealRecord = new wxStaticBoxSizer(wxVERTICAL, m_PageReal, wxT("Record movements"));
 
 	wxArrayString StrHotKey;
-	for(int i = 0; i < 10; i++)
-            StrHotKey.Add(wxString::Format(wxT("Shift + %i"), i));
+	for(int i = 0; i < 10; i++) StrHotKey.Add(wxString::Format(wxT("%i"), i));
 
 	wxArrayString StrPlayBackSpeed;
-	for(int i = 1; i < 8; i++)
-            StrPlayBackSpeed.Add(wxString::Format(wxT("%i"), i*5));
+	for(int i = 1; i < 15; i++) StrPlayBackSpeed.Add(wxString::Format(wxT("%i"), i*25));
 
-	wxBoxSizer * sRealRecord[RECORDING_ROWS];
+	wxBoxSizer * sRealRecord[RECORDING_ROWS + 1];
 
-	wxStaticText * m_TextRec = new wxStaticText(m_PageReal, wxID_ANY, wxT("Rec."), wxDefaultPosition, wxSize(25, 15), wxALIGN_CENTRE);
-	wxStaticText * m_TextHotKey = new wxStaticText(m_PageReal, wxID_ANY, wxT("HotKey"), wxDefaultPosition, wxSize(62, 15), wxALIGN_CENTRE);
-	wxStaticText * m_TextMovement = new wxStaticText(m_PageReal, wxID_ANY, wxT("Movement name"), wxDefaultPosition, wxSize(262, 15), wxALIGN_CENTRE);
-	wxStaticText * m_TextGame = new wxStaticText(m_PageReal, wxID_ANY, wxT("Game name"), wxDefaultPosition, wxSize(262, 15), wxALIGN_CENTRE);
-	wxStaticText * m_TextRecSped = new wxStaticText(m_PageReal, wxID_ANY, wxT("R. s."), wxDefaultPosition, wxSize(35, 15), wxALIGN_CENTRE);
+	wxStaticText * m_TextRec = new wxStaticText(m_PageReal, wxID_ANY, wxT("Rec."), wxDefaultPosition, wxSize(80, 15), wxALIGN_CENTRE);
+	wxStaticText * m_TextHotKey = new wxStaticText(m_PageReal, wxID_ANY, wxT("HotKey"), wxDefaultPosition, wxSize(40, 15), wxALIGN_CENTRE);
+	wxStaticText * m_TextMovement = new wxStaticText(m_PageReal, wxID_ANY, wxT("Movement name"), wxDefaultPosition, wxSize(200, 15), wxALIGN_CENTRE);
+	wxStaticText * m_TextGame = new wxStaticText(m_PageReal, wxID_ANY, wxT("Game name"), wxDefaultPosition, wxSize(200, 15), wxALIGN_CENTRE);
+	wxStaticText * m_TextRecSped = new wxStaticText(m_PageReal, wxID_ANY, wxT("R. s."), wxDefaultPosition, wxSize(30, 15), wxALIGN_CENTRE);
 	wxStaticText * m_TextPlaySpeed = new wxStaticText(m_PageReal, wxID_ANY, wxT("Pl. s."), wxDefaultPosition, wxSize(40, 15), wxALIGN_CENTRE);
-	m_TextRec->SetToolTip(wxT("Press this button, then start the recording by pressing 'A' on the Wiimote and stop the recording by pressing"
-		" 'A' again."));
-	m_TextRecSped->SetToolTip(wxT("Recording speed"));
-	m_TextPlaySpeed->SetToolTip(wxT("Playback speed"));
+	m_TextRec->SetToolTip(wxT(
+		"To record a movement first press this button, then start the recording by pressing 'A' on the Wiimote and stop the recording\n"
+		"by letting go of 'A'"));
+	m_TextHotKey->SetToolTip(wxT("The HotKey is Shift + [Number] for Wiimote movements and Ctrl + [Number] for Nunchuck movements"));
+	m_TextRecSped->SetToolTip(wxT("Recording speed in average measurements per second"));
+	m_TextPlaySpeed->SetToolTip(wxT(
+		"Playback speed: A playback speed of 100 means that the playback occurs at the same rate as it was recorded. (You can see the\n"
+		"current update rate in the Status window above when a game is running.) However, if your framerate is only at 50% of full speed\n"
+		"you may want to select a playback rate of 50, because then the game might perceive the playback as a full speed playback. (This\n"
+		"holds if Wiimote_Update() is tied to the framerate, I'm not sure that this is the case. It seemed to vary somewhat with different\n"
+		"framerates but not nearly enough to say that it was tied to the framerate.) So until this is better understood you'll have\n"
+		"to try different playback rates and see which one that works."
+		));
 
 	sRealRecord[0] = new wxBoxSizer(wxHORIZONTAL);
-	sRealRecord[0]->Add(m_TextRec, 0, wxEXPAND | (wxLEFT), 8);
+	sRealRecord[0]->Add(m_TextRec, 0, wxEXPAND | (wxLEFT), 5);
 	sRealRecord[0]->Add(m_TextHotKey, 0, wxEXPAND | (wxLEFT), 5);
 	sRealRecord[0]->Add(m_TextMovement, 0, wxEXPAND | (wxLEFT), 5);
 	sRealRecord[0]->Add(m_TextGame, 0, wxEXPAND | (wxLEFT), 5);
@@ -257,28 +422,28 @@ void ConfigDialog::CreateGUIControls()
 	sRealRecord[0]->Add(m_TextPlaySpeed, 0, wxEXPAND | (wxLEFT), 5);
 	sbRealRecord->Add(sRealRecord[0], 0, wxEXPAND | (wxALL), 0);
 
-	for(int i = 1; i < RECORDING_ROWS; i++)
+	for(int i = 1; i < (RECORDING_ROWS + 1); i++)
 	{
 		sRealRecord[i] = new wxBoxSizer(wxHORIZONTAL);
-		m_RecordButton[i] = new wxButton(m_PageReal, IDB_RECORD, wxEmptyString, wxDefaultPosition, wxSize(21, 14), 0, wxDefaultValidator, wxEmptyString);
+		m_RecordButton[i] = new wxButton(m_PageReal, IDB_RECORD + i, wxEmptyString, wxDefaultPosition, wxSize(80, 20), 0, wxDefaultValidator, wxEmptyString);
 		m_RecordHotKey[i] = new wxChoice(m_PageReal, IDC_RECORD, wxDefaultPosition, wxDefaultSize, StrHotKey);
-		m_RecordText[i] = new wxTextCtrl(m_PageReal, IDT_RECORD_TEXT, wxT(""), wxDefaultPosition, wxSize(250, 19));
-		m_RecordGameText[i] = new wxTextCtrl(m_PageReal, IDT_RECORD_GAMETEXT, wxT(""), wxDefaultPosition, wxSize(250, 19));
+		m_RecordText[i] = new wxTextCtrl(m_PageReal, IDT_RECORD_TEXT, wxT(""), wxDefaultPosition, wxSize(200, 19));
+		m_RecordGameText[i] = new wxTextCtrl(m_PageReal, IDT_RECORD_GAMETEXT, wxT(""), wxDefaultPosition, wxSize(200, 19));
 		m_RecordSpeed[i] = new wxTextCtrl(m_PageReal, IDT_RECORD_SPEED, wxT(""), wxDefaultPosition, wxSize(30, 19), wxTE_READONLY | wxTE_CENTRE);
 		m_RecordPlayBackSpeed[i] = new wxChoice(m_PageReal, IDT_RECORD_PLAYSPEED, wxDefaultPosition, wxDefaultSize, StrPlayBackSpeed);
 
-		m_RecordText[i]->SetMaxLength(50);
-		m_RecordGameText[i]->SetMaxLength(50);
+		m_RecordText[i]->SetMaxLength(35);
+		m_RecordGameText[i]->SetMaxLength(35);
 		m_RecordSpeed[i]->Enable(false);
 
-		sRealRecord[i]->Add(m_RecordButton[i], 0, wxEXPAND | (wxALL), 5);
-		sRealRecord[i]->Add(m_RecordHotKey[i], 0, wxEXPAND | (wxALL), 5);
-		sRealRecord[i]->Add(m_RecordText[i], 0, wxEXPAND | (wxALL), 5);
-		sRealRecord[i]->Add(m_RecordGameText[i], 0, wxEXPAND | (wxALL), 5);
-		sRealRecord[i]->Add(m_RecordSpeed[i], 0, wxEXPAND | (wxALL), 5);
-		sRealRecord[i]->Add(m_RecordPlayBackSpeed[i], 0, wxEXPAND | (wxALL), 5);
+		sRealRecord[i]->Add(m_RecordButton[i], 0, wxEXPAND | (wxLEFT), 5);
+		sRealRecord[i]->Add(m_RecordHotKey[i], 0, wxEXPAND | (wxLEFT), 5);
+		sRealRecord[i]->Add(m_RecordText[i], 0, wxEXPAND | (wxLEFT), 5);
+		sRealRecord[i]->Add(m_RecordGameText[i], 0, wxEXPAND | (wxLEFT), 5);
+		sRealRecord[i]->Add(m_RecordSpeed[i], 0, wxEXPAND | (wxLEFT), 5);
+		sRealRecord[i]->Add(m_RecordPlayBackSpeed[i], 0, wxEXPAND | (wxLEFT), 5);
 
-		sbRealRecord->Add(sRealRecord[i], 0, wxEXPAND | (wxALL), 0);
+		sbRealRecord->Add(sRealRecord[i], 0, wxEXPAND | (wxTOP), 2);
 	}
 	// ==========================================
 
@@ -289,10 +454,14 @@ void ConfigDialog::CreateGUIControls()
 	sbRealBasic->Add(m_ConnectRealWiimote, 0, wxEXPAND | (wxALL), 5);
 	sbRealBasic->Add(m_UseRealWiimote, 0, wxEXPAND | (wxALL), 5);
 
+	wxBoxSizer * sRealBasicStatus = new wxBoxSizer(wxHORIZONTAL);
+	sRealBasicStatus->Add(sbRealBasic, 0, wxEXPAND | (wxLEFT), 0);
+	sRealBasicStatus->Add(sbRealStatus, 0, wxEXPAND | (wxLEFT), 5);
+
 	wxBoxSizer * sRealMain = new wxBoxSizer(wxVERTICAL);
-	sRealMain->Add(sbRealBasic, 0, wxEXPAND | (wxALL), 5);
-	sRealMain->Add(sbRealStatus, 0, wxEXPAND | (wxLEFT | wxLEFT | wxDOWN), 5);
-	sRealMain->Add(sbRealRecord, 0, wxEXPAND | (wxLEFT | wxLEFT | wxDOWN), 5);
+	sRealMain->Add(sRealBasicStatus, 0, wxEXPAND | (wxALL), 5);
+	sRealMain->Add(sbRealWiimoteStatus, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
+	sRealMain->Add(sbRealRecord, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 	/////////////////////////////////
 
 
@@ -308,28 +477,164 @@ void ConfigDialog::CreateGUIControls()
 
 	Fit();
 	Center();
+
+	ControlsCreated = true;
 	/////////////////////////////////
-}
-
-void ConfigDialog::OnClose(wxCloseEvent& WXUNUSED (event))
-{
-	g_Config.Save();
-	EndModal(0);
-}
-
-void ConfigDialog::CloseClick(wxCommandEvent& WXUNUSED (event))
-{
-	Close();
-}
-
-void ConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
-{
-
 }
 /////////////////////////////////
 
 
-//void ConfigDialog::Update()
+/////////////////////////////////////////////////////////////////////////
+/* Record movement */
+// ------------
+
+void ConfigDialog::ConvertToString()
+{
+	// Load ini file
+	IniFile file;
+	file.Load("WiimoteMovement.ini");
+	std::string TmpStr = "", TmpTime = "";
+
+	for (int i = 0; i < m_vRecording.size(); i++)
+	{
+		// Write the movement data
+		TmpStr += StringFromFormat("%02x", m_vRecording.at(i).x);
+		TmpStr += StringFromFormat("%02x", m_vRecording.at(i).y);
+		TmpStr += StringFromFormat("%02x", m_vRecording.at(i).z);
+		if(i < (m_vRecording.size() - 1)) TmpStr += ",";
+
+		/* Break just short of the IniFile.cpp byte limit so that we don't crash file.Load() the next time.
+		   This limit should never be hit because of the recording limit below. I keep it here just in case. */
+		if(TmpStr.length() > (1024*10 - 10))
+		{
+			break;
+			PanicAlert("Your recording was to long, the entire recording was not saved.");
+		}
+
+		// Write the timestamps. The upper limit is 99 seconds.
+		int Time = (int)((m_vRecording.at(i).Time - m_vRecording.at(0).Time) * 1000);
+		TmpTime += StringFromFormat("%05i", Time);
+		if(i < (m_vRecording.size() - 1)) TmpTime += ",";
+		//Console::Print("Time: %f %i\n", m_vRecording.at(i).Time, Time);
+	}
+	
+	// Recordings per second
+	double Recordings = (double)m_vRecording.size(); 
+	double Time = m_vRecording.at(m_vRecording.size() - 1).Time - m_vRecording.at(0).Time;
+	int Rate = (int)(Recordings / Time);
+	m_RecordSpeed[m_iRecordTo]->SetValue(wxString::Format(wxT("%i"), Rate));
+
+	std::string SaveName = StringFromFormat("Recording%i", m_iRecordTo);
+	file.Set(SaveName.c_str(), "Movement", TmpStr.c_str());
+	file.Set(SaveName.c_str(), "Time", TmpTime.c_str());
+	file.Set(SaveName.c_str(), "RecordingSpeed", Rate);	
+	file.Save("WiimoteMovement.ini");
+}
+
+// Timeout the recording
+void ConfigDialog::Update(wxTimerEvent& WXUNUSED(event))
+{
+	m_bWaitForRecording = false;
+	m_bRecording = false;
+	m_RecordButton[m_iRecordTo]->SetLabel("");
+	UpdateGUI();
+}
+
+// One second timeout for another A press
+void ConfigDialog::UpdateA(wxTimerEvent& WXUNUSED(event))
+{
+	m_bAllowA = true;
+	Console::Print("A allowed again");
+}
+
+void ConfigDialog::RecordMovement(wxCommandEvent& event)
+{
+	m_iRecordTo = event.GetId() - 2000;
+
+	if(WiiMoteReal::g_MotionSensing)
+	{
+		// Check if there already is a recording here
+		if(m_RecordSpeed[m_iRecordTo]->GetLineLength(0) > 0)
+		{
+			if(!AskYesNo("Do you want to replace the current recording?")) return;
+		}
+		m_RecordButton[m_iRecordTo]->SetLabel("Hold A");
+	}
+	else
+	{
+		m_RecordButton[m_iRecordTo]->SetLabel("Press +");
+		return;
+	}
+
+	m_bWaitForRecording = true;
+	m_bAllowA = true;
+	m_bRecording = false;
+
+	UpdateGUI();
+
+	m_TimeoutTimer->Start(5000, true);
+	//m_TimeoutATimer->Start(500, true);
+}
+
+void ConfigDialog::DoRecordA(bool Pressed)
+{
+	// Return if we are not waiting or recording
+	if (! (m_bWaitForRecording || m_bRecording)) return;
+
+	// Return if we are waiting but have not pressed A
+	if (m_bWaitForRecording && !Pressed) return;
+
+	// Return if we are recording but are still pressing A
+	if (m_bRecording && Pressed) return;
+
+	//m_bAllowA = false;
+	m_bRecording = Pressed;
+
+	// Start recording, only run this once
+	if(m_bRecording && m_bWaitForRecording)
+	{
+		m_RecordButton[m_iRecordTo]->SetLabel("Recording...");
+		m_vRecording.clear(); // Clear the list
+		m_TimeoutTimer->Stop();
+		m_bWaitForRecording = false;
+	}
+	// The recording is done
+	else
+	{
+		m_RecordButton[m_iRecordTo]->SetLabel("Done");
+		Console::Print("Done: %i %i\n", m_bWaitForRecording, m_bRecording);
+		//m_bAllowA = true;
+		ConvertToString();
+	}
+
+	UpdateGUI();
+}
+
+void ConfigDialog::DoRecordMovement(u8 _x, u8 _y, u8 _z)
+{
+	if (!m_bRecording) return;
+
+	Console::Print("DoRecordMovement\n");
+
+	SRecording Tmp;
+	Tmp.x = _x;
+	Tmp.y = _y;
+	Tmp.z = _z;
+	Tmp.Time = GetDoubleTime();
+	m_vRecording.push_back(Tmp);
+
+	/* The upper limit of a recording coincides with the IniFile.cpp limit, each list element
+	   is 7 bytes, therefore be divide by 7 */
+	if (m_vRecording.size() > (10*1024 / 7 - 2) )
+	{
+		m_bRecording = false;
+		m_RecordButton[m_iRecordTo]->SetLabel("Done");
+		ConvertToString();
+		UpdateGUI();
+	}
+}
+/////////////////////////////////
+
 
 
 /////////////////////////////////////////////////////////////////////////
@@ -493,9 +798,11 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_CONNECT_REAL:
 		DoConnectReal();
 		break;
-
 	case ID_USE_REAL:
 		g_Config.bUseRealWiimote = m_UseRealWiimote->IsChecked();
+		break;
+	case ID_UPDATE_REAL:
+		g_Config.bUpdateRealWiimote = m_UpdateMeters->IsChecked();
 		break;
 		/////////////////
 	}
@@ -510,6 +817,8 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 // -------------
 void ConfigDialog::UpdateGUI()
 {
+	Console::Print("UpdateGUI: \n");
+
 	/* I have disabled this option during a running game because it's enough to be able to switch
 	   between using and not using then. To also use the connect option during a running game would
 	   mean that the wiimote must be sent the current reporting mode and the channel ID after it
@@ -517,5 +826,7 @@ void ConfigDialog::UpdateGUI()
 	   for that so that this option can be enabled during gameplay. */
 	m_ConnectRealWiimote->Enable(!g_EmulatorRunning);
 	m_UseRealWiimote->Enable(g_RealWiiMotePresent && g_Config.bConnectRealWiimote);
-	Console::Print("Present: %i, Connect: %i\n", g_RealWiiMotePresent, g_Config.bConnectRealWiimote);
+
+	for(int i = IDB_RECORD + 1; i < (IDB_RECORD + RECORDING_ROWS + 1); i++)
+		if(ControlsCreated) m_Notebook->FindItem(i)->Enable(!(m_bWaitForRecording || m_bRecording));
 }

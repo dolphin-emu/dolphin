@@ -46,9 +46,12 @@ namespace WiiMoteEmu
 //******************************************************************************
 
 
+////////////////////////////////////////////////////////////
+// Wiimote core buttons
+// ---------------
 void FillReportInfo(wm_core& _core)
 {
-	/* This has to be filled with zeroes because when no buttons are pressed the
+	/* This has to be filled with zeroes (and not for example 0xff) because when no buttons are pressed the
 	   value is 00 00 */
 	memset(&_core, 0x00, sizeof(wm_core));
 
@@ -67,9 +70,7 @@ void FillReportInfo(wm_core& _core)
 	_core.home = GetAsyncKeyState('H') ? 1 : 0;
 
 
-	/* Sideways controls (for example for Wario Land) was not enabled automatically
-	   so I have to use this function. I'm not sure how it works on the actual Wii.
-	   */
+	/* Sideways controls (for example for Wario Land) if the Wiimote is intended to be held sideways */
 	if(g_Config.bSidewaysDPad)
 	{
 		_core.left = GetAsyncKeyState(VK_DOWN) ? 1 : 0;
@@ -88,15 +89,18 @@ void FillReportInfo(wm_core& _core)
         // TODO: fill in
 #endif
 }
+//////////////////////////
 
-// -----------------------------
-/* Global declarations for FillReportAcc. The accelerometer x, y and z values range from
-   0x00 to 0xff with the default netural values being [y = 0x84, x = 0x84, z = 0x9f]
-   according to a source. The extremes are 0x00 for (-) and 0xff for (+). It's important
-   that all values are not 0x80, the the mouse pointer can disappear from the screen
-   permanently then, until z is adjusted back. */
+
+////////////////////////////////////////////////////////////
+// Wiimote accelerometer
+// ---------------
+/* The accelerometer x, y and z values range from 0x00 to 0xff with the default netural values
+   being [y = 0x84, x = 0x84, z = 0x9f] according to a source. The extremes are 0x00 for (-)
+   and 0xff for (+). It's important that all values are not 0x80, the mouse pointer can disappear
+   from the screen permanently then, until z is adjusted back. */
 // ----------
-// the variables are global so they can be changed during debugging
+// Global declarations for FillReportAcc: These variables are global so they can be changed during debugging
 //int A = 0, B = 128, C = 64; // for debugging
 //int a = 1, b = 1, c = 2, d = -2; // for debugging
 //int consoleDisplay = 0;
@@ -283,6 +287,7 @@ void FillReportAcc(wm_accel& _acc)
 		AX, AY, AZ
 		);*/	
 }
+/////////////////////////
 
 
 void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
@@ -459,7 +464,7 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 
 int abc = 0;
 // ===================================================
-/* Generate the 6 byte extension report, encrypted. The bytes are JX JY AX AY AZ BT. */
+/* Generate the 6 byte extension report for the Nunchuck, encrypted. The bytes are JX JY AX AY AZ BT. */
 // ----------------
 void FillReportExtension(wm_extension& _ext)
 {
@@ -529,6 +534,7 @@ void FillReportExtension(wm_extension& _ext)
 	// Write it back to the extension
 	memcpy(&_ext, &g_RegExtTmpReport[0x08], sizeof(_ext));
 }
+// =======================
 
 
 // ===================================================
@@ -706,6 +712,7 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 	// Write it back
 	memcpy(&_ext, &g_RegExtTmpReport[0x08], sizeof(_ext));
 }
+// =======================
 
 
 } // end of namespace

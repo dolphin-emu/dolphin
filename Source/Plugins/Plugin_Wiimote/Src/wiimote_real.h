@@ -43,6 +43,7 @@ void ReadWiimote();
 #ifndef EXCLUDE_H
 	extern wiimote_t**		g_WiiMotesFromWiiUse;
 	extern int				g_NumberOfWiiMotes;
+	extern bool				g_MotionSensing;
 #endif
 
 }; // WiiMoteReal

@@ -22,9 +22,6 @@
 // Includes
 // ¯¯¯¯¯¯¯¯¯¯
 #include <iostream> // System
-#if defined(HAVE_WX) && HAVE_WX
-	#include "ConfigDlg.h"
-#endif
 ////////////////////////////////
 
 
@@ -41,6 +38,24 @@
 // Declarations
 // ¯¯¯¯¯¯¯¯¯
 void DoInitialize();
+double GetDoubleTime();
+int GetUpdateRate();
+
+// Movement recording
+#define RECORDING_ROWS 15
+struct SRecording
+{
+	u8 x;
+	u8 y;
+	u8 z;
+	double Time;
+};
+struct SRecordingAll
+{
+	std::vector<SRecording> Recording;
+	int HotKey;
+	int PlaybackSpeed;
+};
 
 #ifndef EXCLUDEMAIN_H
 	extern bool g_EmulatorRunning;
@@ -48,10 +63,20 @@ void DoInitialize();
 	extern bool g_RealWiiMotePresent;
 	extern bool g_RealWiiMoteInitialized;
 	extern bool g_EmulatedWiiMoteInitialized;
+
+	// Update speed
+	extern int g_UpdateCounter;
+	extern double g_UpdateTime;
+	extern int g_UpdateWriteScreen;
+	extern int g_UpdateRate;
+	extern std::vector<int> g_UpdateTimeList;
 	
-	#if defined(HAVE_WX) && HAVE_WX
-		extern ConfigDialog *frame;
-	#endif
+	// Movement recording
+	extern std::vector<SRecordingAll> VRecording;
+
+	//#if defined(HAVE_WX) && HAVE_WX && defined(__CONFIGDIALOG_h__)
+	//	extern ConfigDialog *frame;
+	//#endif
 #endif
 ////////////////////////////////
 
