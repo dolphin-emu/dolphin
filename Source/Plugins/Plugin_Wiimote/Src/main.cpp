@@ -376,12 +376,12 @@ void DoInitialize()
 	// ----------------------------------------
 	// Debugging window
 	// ----------
-	/**/Console::Open(100, 750, "Wiimote"); // give room for 20 rows
+	/*Console::Open(100, 750, "Wiimote"); // give room for 20 rows
 	Console::Print("Wiimote console opened\n");
 
 	// Move window
 	//MoveWindow(Console::GetHwnd(), 0,400, 100*8,10*14, true); // small window
-	MoveWindow(Console::GetHwnd(), 400,0, 100*8,70*14, true); // big window
+	MoveWindow(Console::GetHwnd(), 400,0, 100*8,70*14, true); // big window*/
 	// ---------------
 
 	// Load config settings
