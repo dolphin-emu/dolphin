@@ -129,7 +129,7 @@ void ConfigDialog::OnClose(wxCloseEvent& WXUNUSED (event))
 	SaveFile();
 	g_Config.Save();
 	g_FrameOpen = false;	
-	SuccessAlert("Saved\n");
+	//SuccessAlert("Saved\n");
 	if (!g_EmulatorRunning) Shutdown();
 	EndModal(0);
 }
