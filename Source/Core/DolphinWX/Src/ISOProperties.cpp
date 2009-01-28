@@ -54,14 +54,15 @@ END_EVENT_TABLE()
 CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
-	OpenISO = DiscIO::CreateVolumeFromFilename(fileName);
+        OpenISO = DiscIO::CreateVolumeFromFilename(fileName);
 	pFileSystem = DiscIO::CreateFileSystem(OpenISO);
 
 	pFileSystem->GetFileList(Our_Files);
 
 	GameListItem OpenISO_(fileName);
 
-	bRefreshList = false;
+        bRefreshList = false;
+
 	CreateGUIControls();
 
 	GameIniFile = FULL_GAMECONFIG_DIR + (OpenISO->GetUniqueID()) + ".ini";
@@ -409,7 +410,7 @@ void CISOProperties::OnClose(wxCloseEvent& WXUNUSED (event))
 	if (!SaveGameConfig())
 		wxMessageBox(wxString::Format(_("Could not save %s"), GameIniFile.c_str()), _("Error"), wxOK|wxICON_ERROR, this);
 
-	Destroy();
+	EndModal(bRefreshList ? wxID_OK : wxID_CANCEL);
 }
 
 void CISOProperties::OnCloseClick(wxCommandEvent& WXUNUSED (event))
@@ -492,7 +493,7 @@ void CISOProperties::OnExtractDir(wxCommandEvent& WXUNUSED (event))
 
 void CISOProperties::SetRefresh(wxCommandEvent& WXUNUSED (event))
 {
-	bRefreshList = true;
+        bRefreshList = true;
 }
 
 void CISOProperties::LoadGameConfig()
@@ -529,7 +530,7 @@ void CISOProperties::LoadGameConfig()
 	if (iTemp == -1)
 	{
 		iTemp = 0;
-		bRefreshList = true;
+	        bRefreshList = true;
 	}
 	EmuState->SetSelection(iTemp);
 
