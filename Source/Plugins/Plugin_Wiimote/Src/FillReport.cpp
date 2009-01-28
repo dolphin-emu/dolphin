@@ -69,7 +69,6 @@ void FillReportInfo(wm_core& _core)
 	_core.minus = GetAsyncKeyState('M') ? 1 : 0;
 	_core.home = GetAsyncKeyState('H') ? 1 : 0;
 
-
 	/* Sideways controls (for example for Wario Land) if the Wiimote is intended to be held sideways */
 	if(g_Config.bSidewaysDPad)
 	{
@@ -92,7 +91,7 @@ void FillReportInfo(wm_core& _core)
 //////////////////////////
 
 
-////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
 // Wiimote accelerometer
 // ---------------
 /* The accelerometer x, y and z values range from 0x00 to 0xff with the default netural values

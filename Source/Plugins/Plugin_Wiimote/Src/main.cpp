@@ -144,7 +144,7 @@ void DllConfig(HWND _hParent)
 		win.SetHWND(_hParent);
 	#endif
 
-	Console::Open();
+	//Console::Open();
 
 	g_FrameOpen = true;	
 	frame = new ConfigDialog(&win);
