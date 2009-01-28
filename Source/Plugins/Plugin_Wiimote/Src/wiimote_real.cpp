@@ -320,14 +320,24 @@ void Shutdown(void)
         }
 
 	#if defined(HAVE_WX) && HAVE_WX
-		if(frame) frame->ShutDown = true;
-		if(frame) frame->StartTimer();
+		/* We can only do this if we are not unloading the DLL, otherwise we can get stuck with a
+		   a rumble after we Stop a game */
+		if (!g_EmulatorRunning)
+		{
+			if(frame) frame->ShutDown = true;
+			if(frame) frame->StartTimer();
+		}
+		else
+		{
 	#else
 		// Clean up wiiuse
 		wiiuse_cleanup(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes);
 
 		// Uninitialized
 		g_RealWiiMoteInitialized = false;
+	#endif
+	#if defined(HAVE_WX) && HAVE_WX
+		}
 	#endif
 
 	// Uninitialized
