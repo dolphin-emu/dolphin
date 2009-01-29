@@ -22,7 +22,7 @@
 #include "Config.h"
 #include "Statistics.h"
 
-#include "GLUtil.h"
+#include "nGLUtil.h"
 
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>

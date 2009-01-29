@@ -8,22 +8,22 @@
 class SDLWindow : public GLWindow 
 {
 public:
-    virtual void SwapBuffers();
-    virtual void SetWindowText(const char *text);
-    virtual bool PeekMessages();
-    virtual void Update();
-    virtual bool MakeCurrent();
+	virtual void SwapBuffers();
+	virtual void SetWindowText(const char *text);
+	virtual bool PeekMessages();
+	virtual void Update();
+	virtual bool MakeCurrent();
 
-    static bool valid() { return true; }
-    ~SDLWindow();
-    SDLWindow();
+	static bool valid() { return true; }
+	~SDLWindow();
+	SDLWindow();
 
 };
 #else
 class SDLWindow : public GLWindow 
 {
- public:
-    SDLWindow() {}
+public:
+	SDLWindow() {}
 };
 #endif
 #endif

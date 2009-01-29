@@ -271,7 +271,7 @@ void EventHandler::SFKeyToString(sf::Key::Code keycode, char *keyStr) {
     case sf::Key::Divide:      sprintf(keyStr, "/"); break;
     case sf::Key::Left:        sprintf(keyStr, "Left"); break;
     case sf::Key::Right:       sprintf(keyStr, "Right"); break;
-    case sf::Key::Up:          sprintf(keyStr, "UP"); break;
+    case sf::Key::Up:          sprintf(keyStr, "Up"); break;
     case sf::Key::Down:        sprintf(keyStr, "Down"); break;
     case sf::Key::Numpad0:     sprintf(keyStr, "NP 0"); break;
     case sf::Key::Numpad1:     sprintf(keyStr, "NP 1"); break;
@@ -298,12 +298,12 @@ void EventHandler::SFKeyToString(sf::Key::Code keycode, char *keyStr) {
     case sf::Key::F13:         sprintf(keyStr, "F13"); break;
     case sf::Key::F14:         sprintf(keyStr, "F14"); break;
     case sf::Key::F15:         sprintf(keyStr, "F15"); break;
-    case sf::Key::Pause:       sprintf(keyStr, "Paues"); break;
+    case sf::Key::Pause:       sprintf(keyStr, "Pause"); break;
     default:                   
 	if (keycode > sf::Key::Escape)
 	    sprintf(keyStr, "Invalid Key");
 	else
-	    sprintf(keyStr, "%c", keycode);
+	    sprintf(keyStr, "%c", toupper(keycode));
 	break;
     }
 }

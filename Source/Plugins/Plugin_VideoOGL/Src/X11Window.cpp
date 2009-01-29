@@ -351,7 +351,7 @@ sf::Key::Code X11Window::KeysymToSF(KeySym Sym) {
         case XK_KP_6 :         return sf::Key::Numpad6;
         case XK_KP_7 :         return sf::Key::Numpad7;
         case XK_KP_8 :         return sf::Key::Numpad8;
-	case XK_Z :            return sf::Key::Z;
+		case XK_Z :            return sf::Key::Z;
         case XK_E :            return sf::Key::E;
         case XK_R :            return sf::Key::R;
         case XK_T :            return sf::Key::T;

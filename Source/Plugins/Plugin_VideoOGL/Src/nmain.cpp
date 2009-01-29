@@ -26,7 +26,7 @@
 #include "LookUpTables.h"
 #include "ImageWrite.h"
 #include "Render.h"
-#include "GLUtil.h"
+#include "nGLUtil.h"
 #include "Fifo.h"
 #include "OpcodeDecoding.h"
 #include "TextureMngr.h"
@@ -46,6 +46,53 @@
 
 SVideoInitialize g_VideoInitialize;
 PLUGIN_GLOBALS* globals;
+
+//////////////////////////////////////////////////////////////////////////
+// Nasty stuff which win32 needs for wxw
+//////////////////////////////////////////////////////////////////////////
+#if defined(_WIN32) && defined(HAVE_WX) && HAVE_WX
+HINSTANCE g_hInstance;
+
+class wxDLLApp : public wxApp
+{
+	bool OnInit()
+	{
+		return true;
+	}
+};
+IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+
+WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+
+BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
+					  DWORD dwReason,		// reason called
+					  LPVOID lpvReserved)	// reserved
+{
+	switch (dwReason)
+	{
+	case DLL_PROCESS_ATTACH:
+		{       // Use wxInitialize() if you don't want GUI instead of the following 12 lines
+			wxSetInstance((HINSTANCE)hinstDLL);
+			int argc = 0;
+			char **argv = NULL;
+			wxEntryStart(argc, argv);
+			if ( !wxTheApp || !wxTheApp->CallOnInit() )
+				return FALSE;
+		}
+		break; 
+
+	case DLL_PROCESS_DETACH:
+		wxEntryCleanup(); // Use wxUninitialize() if you don't want GUI 
+		break;
+	default:
+		break;
+	}
+
+	g_hInstance = hinstDLL;
+	return TRUE;
+}
+#endif
+//////////////////////////////////////////////////////////////////////////
 
 /* Create debugging window. There's currently a strange crash that occurs whe a game is loaded
    if the OpenGL plugin was loaded before. I'll try to fix that. Currently you may have to
@@ -102,11 +149,15 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
 
 void DllConfig(HWND _hParent)
 {
-    ConfigDialog frame(NULL);
-    g_Config.Load();
-    OpenGL_AddBackends(&frame);
-    OpenGL_AddResolutions(&frame);
-    frame.ShowModal();
+	wxWindow * win = new wxWindow();
+	win->SetHWND((WXHWND)_hParent);
+	win->AdoptAttributesFromHWND();
+	//win->Reparent(wxGetApp().GetTopWindow());
+	ConfigDialog *frame = new ConfigDialog(win);
+	g_Config.Load();
+	OpenGL_AddBackends(frame);
+	OpenGL_AddResolutions(frame);
+	frame->ShowModal();
 }
 
 void Initialize(void *init)
@@ -240,14 +291,6 @@ unsigned int Video_Screenshot(TCHAR* _szFilename)
         return TRUE;
 
     return FALSE;
-}
-
-void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset)
-{
-	if(g_Config.bUseXFB)
-	{
-		XFB_Draw(_pXFB, _dwWidth, _dwHeight, _dwYOffset);
-	}
 }
 
 void Video_AddMessage(const char* pstr, u32 milliseconds)

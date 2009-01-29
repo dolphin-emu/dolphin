@@ -24,7 +24,7 @@
 #include <vector>
 #include <cmath>
 
-#include "GLUtil.h"
+#include "nGLUtil.h"
 
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>
@@ -56,7 +56,7 @@
 #endif
 
 #ifdef _WIN32
-	#include "OS/Win32.h"
+	#include "Win32Window.h" // warning: crapcode
 #else
 #endif
 /////////////////////////////
@@ -494,19 +494,19 @@ void Renderer::ReinitView(int nNewWidth, int nNewHeight)
 
     if (oldscreen && !g_Config.bFullscreen) { // if transitioning from full screen
 #ifdef _WIN32
-        RECT rc;
-        rc.left = 0; rc.top = 0;
-        rc.right = nNewWidth; rc.bottom = nNewHeight;
-        AdjustWindowRect(&rc, EmuWindow::g_winstyle, FALSE);
+        //RECT rc;
+        //rc.left = 0; rc.top = 0;
+        //rc.right = nNewWidth; rc.bottom = nNewHeight;
+        //AdjustWindowRect(&rc, EmuWindow::g_winstyle, FALSE);
 
-        RECT rcdesktop;
-        GetWindowRect(GetDesktopWindow(), &rcdesktop);
+        //RECT rcdesktop;
+        //GetWindowRect(GetDesktopWindow(), &rcdesktop);
 
-        SetWindowLong(EmuWindow::GetWnd(), GWL_STYLE, EmuWindow::g_winstyle);
-        SetWindowPos(EmuWindow::GetWnd(), HWND_TOP, ((rcdesktop.right-rcdesktop.left)-(rc.right-rc.left))/2,
-            ((rcdesktop.bottom-rcdesktop.top)-(rc.bottom-rc.top))/2,
-            rc.right-rc.left, rc.bottom-rc.top, SWP_SHOWWINDOW);
-        UpdateWindow(EmuWindow::GetWnd());
+        //SetWindowLong(EmuWindow::GetWnd(), GWL_STYLE, EmuWindow::g_winstyle);
+        //SetWindowPos(EmuWindow:GetWnd(), HWND_TOP, ((rcdesktop.right-rcdesktop.left)-(rc.right-rc.left))/2,
+        //    ((rcdesktop.bottom-rcdesktop.top)-(rc.bottom-rc.top))/2,
+        //    rc.right-rc.left, rc.bottom-rc.top, SWP_SHOWWINDOW);
+        //UpdateWindow(EmuWindow::GetWnd());
 #else // linux
 #endif
     }

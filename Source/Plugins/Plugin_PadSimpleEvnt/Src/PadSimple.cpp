@@ -20,6 +20,7 @@
 
 #include "Common.h"
 
+#include "pluginspecs_pad.h"
 #include "PadSimple.h"
 #include "IniFile.h"
 
@@ -99,31 +100,31 @@ bool registerKey(int nPad, int id, sf::Key::Code code, int mods) {
     key.mods = mods;
     
     if (!eventHandler) {
-	PanicAlert("Can't get event handler");
-	return false;
+		PanicAlert("Can't get event handler");
+		return false;
     }
-
-    if (!eventHandler->RegisterEventListener(ParseKeyEvent, key)) {
-	char codestr[100];
-	eventHandler->SFKeyToString(code, codestr);
-	PanicAlert("Failed to register %s, might be already in use", codestr);
-	return false;
-    }
-
-    
-    // FIXME: unregister old event
+   
+ 
     // We need to handle mod change
     // and double registers
     if (pad[nPad].keyForControl[id] != 0) {
 
-	oldKey.inputType = KeyboardInput;
-	oldKey.keyCode = pad[nPad].keyForControl[id];
-	oldKey.mods = mods;
+		oldKey.inputType = KeyboardInput;
+		oldKey.keyCode = pad[nPad].keyForControl[id];
+		oldKey.mods = mods;
 
 
-	// Might be not be registered yet
+		// Might be not be registered yet
         eventHandler->RemoveEventListener(oldKey);
     }
+
+	if (!eventHandler->RegisterEventListener(ParseKeyEvent, key)) {
+		char codestr[100];
+		eventHandler->SFKeyToString(code, codestr);
+		PanicAlert("Failed to register %s, might be already in use", codestr);
+		return false;
+	}
+
 
     pad[nPad].keyForControl[id] = code;
 
@@ -253,17 +254,19 @@ bool ParseKeyEvent(sf::Event ev) {
     fprintf(stderr, "parsing type %d code %d\n", ev.Type, ev.Key.Code);
     
     // FIXME: should we support more than one control?
-    for (int i = 0; i < NUMCONTROLS; i++) {
-	if (ev.Key.Code == pad[0].keyForControl[i]) {
-	    KeyStatus[i] = (ev.Type == sf::Event::KeyPressed);
-	    break;
+	for (int i = 0; i < NUMCONTROLS; i++) {
+		if (ev.Key.Code == pad[0].keyForControl[i]) {
+			KeyStatus[i] = (ev.Type == sf::Event::KeyPressed);
+			break;
+		}
 	}
-    }
             
     return true;
 
 }
 
+void PAD_Input(u16 _Key, u8 _UpDown) {
+}
 
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
@@ -342,9 +345,6 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 #endif
 }
 
-void PAD_Input(u8 _Key, u8 _UpDown) {
-}
-
 void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength) {
 }
 
@@ -404,12 +404,12 @@ void LoadConfig()
 	    file.Get(SectionName, "Attached", &pad[i].bAttached, i==0);
 	    file.Get(SectionName, "DisableOnBackground", &pad[i].bDisable, false);
 	    for (int x = 0; x < NUMCONTROLS; x++) {
-		int key;
-		file.Get(SectionName, controlNames[x],
-			 &key, (i==0)?defaultKeyForControl[x]:0);
-		
-		if (i == g_PADInitialize.padNumber && pad[i].bAttached)
-		    registerKey(i, x, (sf::Key::Code)key);
+			int key;
+			file.Get(SectionName, controlNames[x],
+				 &key, (i==0)?defaultKeyForControl[x]:0);
+			
+			if (i == g_PADInitialize.padNumber && pad[i].bAttached)
+				registerKey(i, x, (sf::Key::Code)key);
 	    }
 	}
 }

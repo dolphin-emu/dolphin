@@ -26,65 +26,65 @@ GLWindow *glWin = NULL;
 
 void OpenGL_SwapBuffers()
 {
-    glWin->SwapBuffers();
+	glWin->SwapBuffers();
 }
 
 void OpenGL_SetWindowText(const char *text) 
 {
-    glWin->SetWindowText(text);
+	glWin->SetWindowText(text);
 }
 
 unsigned int Callback_PeekMessages()
 {
-    return glWin->PeekMessages();
+	return glWin->PeekMessages();
 }
 
 void UpdateFPSDisplay(const char *text)
 {
-    char temp[512];
-    sprintf(temp, "SVN R%s: GL: %s", SVN_REV_STR, text);
-    OpenGL_SetWindowText(temp);
+	char temp[512];
+	sprintf(temp, "SVN R%s: GL: %s", SVN_REV_STR, text);
+	OpenGL_SetWindowText(temp);
 
 }
 
 // =======================================================================================
 // Create window. Called from main.cpp
-bool OpenGL_Create(SVideoInitialize &_VideoInitialize, 
-		   int width, int height) 
+bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int width, int height)
 {
-    g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
-    g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
+	g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
+	g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
 
-    if (strncasecmp(g_Config.iBackend, "sdl", 10) == 0)
-	glWin = new SDLWindow();
-    else if (strncasecmp(g_Config.iBackend, "x11", 10) == 0)
-	glWin = new X11Window();
-    else if (strncasecmp(g_Config.iBackend, "wxgl", 10) == 0)
-	glWin = new WXGLWindow();
-    else
-	PanicAlert("Invalid backend %s", g_Config.iBackend);
-    
-    if (! glWin)
-	return false;
+	if (strncasecmp(g_Config.iBackend, "sdl", 10) == 0)
+		glWin = new SDLWindow();
+	else if (strncasecmp(g_Config.iBackend, "x11", 10) == 0)
+		glWin = new X11Window();
+	else if (strncasecmp(g_Config.iBackend, "wxgl", 10) == 0)
+		glWin = new WXGLWindow();
+	else if (strncasecmp(g_Config.iBackend, "windows", 10) == 0)
+		glWin = new Win32Window();
+	else
+		PanicAlert("Invalid backend %s", g_Config.iBackend);
 
-    glWin->SetEventHandler((EventHandler *)globals->eventHandler);
-    return true;
+	if (! glWin)
+		return false;
+
+	glWin->SetEventHandler((EventHandler *)globals->eventHandler);
+	return true;
 }
 
 bool OpenGL_MakeCurrent()
 {
-    return glWin->MakeCurrent();
+	return glWin->MakeCurrent();
 }
 
 
 // =======================================================================================
-// Update window width, size and etc. Called from Render.cpp
+// Update window width, size and etc. Called from Render.cpp and XFB.cpp
 // ----------------
 void OpenGL_Update()
 {
-    glWin->Update();
+	glWin->Update();
 }
-
 
 
 // =======================================================================================
@@ -92,46 +92,48 @@ void OpenGL_Update()
 // ----------------
 void OpenGL_Shutdown()
 {
-    delete glWin;
+	delete glWin;
 }
 
 u32 OpenGL_GetWidth() {
-    return glWin->GetXwin();
+	return glWin->GetXwin();
 }
 
 u32 OpenGL_GetHeight() {
-    return glWin->GetYwin();
+	return glWin->GetYwin();
 }
 
 void OpenGL_SetSize(u32 width, u32 height) {
-    glWin->SetWinSize(width, height);
+	glWin->SetWinSize(width, height);
 }
 
 int OpenGL_GetXoff() {
-    return glWin->GetXoff();
+	return glWin->GetXoff();
 }
 
 int OpenGL_GetYoff() {
-    return glWin->GetYoff();
+	return glWin->GetYoff();
 }
 
 float OpenGL_GetXmax() {
-    return glWin->GetXmax();
+	return glWin->GetXmax();
 }
 
 float OpenGL_GetYmax() {
-    return glWin->GetYmax();
+	return glWin->GetYmax();
 }
 
 void OpenGL_AddBackends(ConfigDialog *frame) {
-    if(SDLWindow::valid())
-	frame->AddRenderBackend("SDL");
-    if(X11Window::valid())
-	frame->AddRenderBackend("X11");
-    if(WXGLWindow::valid())
-	frame->AddRenderBackend("WXGL");
+	if(SDLWindow::valid())
+		frame->AddRenderBackend("SDL");
+	if(X11Window::valid())
+		frame->AddRenderBackend("X11");
+	if(WXGLWindow::valid())
+		frame->AddRenderBackend("WXGL");
+	if(Win32Window::valid())
+		frame->AddRenderBackend("Windows"); // Not "Win32" because retarded people will ask where "win64" is...
 }
 
 void OpenGL_AddResolutions(ConfigDialog *frame) {
-    // TODO get resolution iter
+	// TODO get resolution iter
 }

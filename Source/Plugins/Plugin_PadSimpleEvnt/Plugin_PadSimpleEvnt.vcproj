@@ -163,7 +163,7 @@
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="0"
 				FloatingPointModel="0"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="1"
 				PrecompiledHeaderThrough="stdafx.h"
 				PrecompiledHeaderFile="$(IntDir)\$(TargetName).pch"
 				AssemblerListingLocation="$(IntDir)\"
@@ -187,12 +187,13 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib"
+				AdditionalDependencies="comctl32.lib"
 				OutputFile="..\..\..\Binary\x64\plugins\Plugin_PadSimpleEvnt.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				GenerateManifest="false"
 				ProgramDatabaseFile="$(TargetDir)$(TargetName).pdb"
+				LinkTimeCodeGeneration="1"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				ImportLibrary="$(TargetDir)$(TargetName).lib"
@@ -640,6 +641,10 @@
 		</File>
 		<File
 			RelativePath=".\Src\PadSimple.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\PluginSpecs\pluginspecs_pad.h"
 			>
 		</File>
 		<File
