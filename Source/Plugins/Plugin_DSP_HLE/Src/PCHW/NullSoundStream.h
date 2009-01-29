@@ -28,7 +28,7 @@ public:
     
     virtual ~NullSound() {}
 
-    virtual bool isValid() {
+    static bool isValid() {
         return true;
     }  
 
