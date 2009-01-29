@@ -69,7 +69,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib Rpcrt4.lib comctl32.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib Rpcrt4.lib comctl32.lib"
 				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLED.dll"
 				LinkIncremental="2"
 				GenerateManifest="false"
@@ -154,7 +154,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib Rpcrt4.lib comctl32.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib Rpcrt4.lib comctl32.lib"
 				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_HLED.dll"
 				LinkIncremental="2"
 				GenerateManifest="false"
@@ -242,7 +242,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib comctl32.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib"
 				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLE.dll"
 				LinkIncremental="1"
 				GenerateManifest="false"
@@ -420,7 +420,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib comctl32.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib"
 				OutputFile="../../../Binary/Win32/Plugins/Plugin_DSP_HLEDF.dll"
 				LinkIncremental="1"
 				GenerateManifest="false"
@@ -509,7 +509,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib comctl32.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib"
 				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_HLEDF.dll"
 				LinkIncremental="1"
 				GenerateManifest="false"
