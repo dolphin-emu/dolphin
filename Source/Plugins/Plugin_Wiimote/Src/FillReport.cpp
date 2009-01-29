@@ -29,6 +29,7 @@
 #include "StringUtil.h" // For ArrayToString
 
 #include "wiimote_hid.h"
+#include "main.h"
 #include "EmuMain.h"
 #include "EmuSubroutines.h"
 #include "EmuDefinitions.h"
@@ -40,6 +41,137 @@ extern SWiimoteInitialize g_WiimoteInitialize;
 
 namespace WiiMoteEmu
 {
+
+
+//******************************************************************************
+// Recorded movements
+//******************************************************************************
+
+// ------------------------------------------
+// Variables
+// ----------------
+int g_RecordingPlaying = -1;
+int g_RecordingCounter = 0;
+int g_RecordingPoint = 0;
+double g_RecordingStart = 0;
+double g_RecordingCurrentTime = 0;
+// --------------------------
+
+void RecordingPlay(u8 &_x, u8 &_y, u8 &_z)
+{
+	// Return if the list is empty
+	if(VRecording.at(g_RecordingPlaying).Recording.size() == 0)
+	{
+		g_RecordingPlaying = -1;
+		Console::Print("Empty\n\n");
+		return;
+	}
+
+	// Return if the playback speed is unset
+	if(VRecording.at(g_RecordingPlaying).PlaybackSpeed < 0)
+	{
+		g_RecordingPlaying = -1;
+		Console::Print("PlaybackSpeed empty\n\n");
+		return;
+	}
+
+	// Get starting time
+	if(g_RecordingCounter == 0) g_RecordingStart = GetDoubleTime();
+
+	// Get current time
+	g_RecordingCurrentTime = GetDoubleTime() - g_RecordingStart;
+
+	// Modify the current time
+	g_RecordingCurrentTime *= ((25.0 + (double)VRecording.at(g_RecordingPlaying).PlaybackSpeed * 25.0) / 100.0);
+
+	// Select reading
+	for (int i = 0; i < VRecording.at(g_RecordingPlaying).Recording.size(); i++)
+		if (VRecording.at(g_RecordingPlaying).Recording.at(i).Time > g_RecordingCurrentTime)
+		{
+			g_RecordingPoint = i;
+			break; // Break loop
+		}
+
+	// Return if we are at the end of the list
+	if(g_RecordingCurrentTime >=
+		VRecording.at(g_RecordingPlaying).Recording.at(
+			VRecording.at(g_RecordingPlaying).Recording.size() - 1).Time)
+	{
+		g_RecordingCounter = 0;
+		g_RecordingPlaying = -1;
+		g_RecordingStart = 0;
+		g_RecordingCurrentTime = 0;
+		Console::Print("End\n\n");
+		return;
+	}
+
+	// Update values
+	_x = VRecording.at(g_RecordingPlaying).Recording.at(g_RecordingPoint).x;
+	_y = VRecording.at(g_RecordingPlaying).Recording.at(g_RecordingPoint).y;
+	_z = VRecording.at(g_RecordingPlaying).Recording.at(g_RecordingPoint).z;
+
+	Console::Print("Current time: %f %f  %i %i\n",
+		VRecording.at(g_RecordingPlaying).Recording.at(g_RecordingPoint).Time, g_RecordingCurrentTime,
+		VRecording.at(g_RecordingPlaying).Recording.size(), g_RecordingPoint
+		);
+
+	g_RecordingCounter++;
+}
+
+// Check if we should play a recording
+int RecordingCheckKeys(bool Wiimote)
+{
+#ifdef _WIN32
+	//Console::Print("RecordingCheckKeys\n");
+
+	// Return if we don't have both a Shift and Ctrl
+	if ( (GetAsyncKeyState(VK_SHIFT) && GetAsyncKeyState(VK_CONTROL)) ) return -1;
+
+	// Return if we don't have both a Wiimote and Shift
+	if ( Wiimote && !GetAsyncKeyState(VK_SHIFT) ) return -1;
+	
+	// Return if we don't have both a Nunchuck and Ctrl
+	if ( !Wiimote && !GetAsyncKeyState(VK_CONTROL) ) return -1;
+
+	// Check if we have exactly one numerical key
+	int Keys = 0;
+	for(int i = 0; i < 10; i++)
+	{
+		std::string Key = StringFromFormat("%i", i);
+		if(GetAsyncKeyState(Key[0])) Keys++;
+	}
+
+	//Console::Print("RecordingCheckKeys: %i\n", Keys);
+
+	// Return if we have less than or more than one
+	if (Keys != 1) return -1;
+
+	// Check which key it is
+	int Key;
+	for(int i = 0; i < 10; i++)
+	{
+		std::string TmpKey = StringFromFormat("%i", i);
+		if(GetAsyncKeyState(TmpKey[0])) { Key = i; break; }
+	}
+	
+	// Check if we have a HotKey match
+	bool Match = false;
+	for(int i = 0; i < RECORDING_ROWS; i++)
+	{
+		if (VRecording.at(i).HotKey == Key) Match = true;
+	}
+
+	// Return nothing if we don't have a match
+	if (!Match) return -1;
+
+	// Return the match
+	return Key;
+#else
+	return -1;
+#endif
+}
+
+
 
 //******************************************************************************
 // Subroutines
@@ -56,6 +188,9 @@ void FillReportInfo(wm_core& _core)
 	memset(&_core, 0x00, sizeof(wm_core));
 
 #ifdef _WIN32
+	// These keys are reserved for the recording
+	if ( GetAsyncKeyState(VK_SHIFT) || GetAsyncKeyState(VK_CONTROL) ) return;
+
 	// Allow both mouse buttons and keyboard to press a and b
 	if(GetAsyncKeyState(VK_LBUTTON) ? 1 : 0 || GetAsyncKeyState('A') ? 1 : 0)
 		_core.a = 1;
@@ -112,7 +247,24 @@ std::vector<u8> yhist(15); // for the tilt function
 void FillReportAcc(wm_accel& _acc)
 {
 #ifdef _WIN32
-	// -----------------------------
+	// ------------------------------------
+	// Recorded movements
+	// --------------
+	// Check for a playback command
+	if(g_RecordingPlaying < 0)
+	{
+		g_RecordingPlaying = RecordingCheckKeys(true);
+	}
+	else
+	{
+		RecordingPlay(_acc.x, _acc.y, _acc.z);
+		//Console::Print("X: %u\n", _acc.x);
+		return;
+	}
+	// ---------------------
+
+
+	// ------------------------------------
 	// Wiimote to Gamepad translations
 	// ----------
 	// Tilting Wiimote (Wario Land aiming, Mario Kart steering) : For some reason 150 and 40
@@ -467,6 +619,23 @@ int abc = 0;
 // ----------------
 void FillReportExtension(wm_extension& _ext)
 {
+#ifdef _WIN32
+	// ------------------------------------
+	// Recorded movements
+	// --------------
+	// Check for a playback command
+	if(g_RecordingPlaying < 0)
+	{
+		g_RecordingPlaying = RecordingCheckKeys(false);
+	}
+	else
+	{
+		RecordingPlay(_ext.ax, _ext.ay, _ext.az);
+		//Console::Print("X: %u\n", _acc.x);
+		return;
+	}
+	// ---------------------
+#endif
 
 	/* These are the default neutral values for the nunchuck accelerometer according
 	   to a source. */

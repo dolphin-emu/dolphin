@@ -51,13 +51,6 @@ class ConfigDialog : public wxDialog
 		// Status
 		wxStaticText * m_TextUpdateRate;
 
-		// Flash lights on connect functions
-		wxTimer * m_ExitTimer;
-		void DoFlashLights();
-		void StartTimer();
-		void FlashLights(wxTimerEvent& WXUNUSED(event)) { DoFlashLights(); }
-		bool ShutDown; int TimerCounter;
-
 		// Wiimote status
 		wxGauge *m_GaugeBattery, *m_GaugeRoll[2], *m_GaugeGForce[3], *m_GaugeAccel[3];
 		bool m_bWaitForRecording, m_bRecording, m_bAllowA;
@@ -73,8 +66,7 @@ class ConfigDialog : public wxDialog
 	private:
 		DECLARE_EVENT_TABLE();
 		
-		wxButton *m_About;
-		wxButton *m_Close;
+		wxButton *m_About, *m_Close, *m_Apply;
 		wxNotebook *m_Notebook;
 		wxPanel *m_PageEmu, *m_PageReal;
 
@@ -108,6 +100,7 @@ class ConfigDialog : public wxDialog
 		enum
 		{
 			ID_CLOSE = 1000,
+			ID_APPLY,
 			ID_ABOUTOGL,
 			IDTM_EXIT, IDTM_UPDATE, IDTM_UPDATEA, // Timer
 

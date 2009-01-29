@@ -253,6 +253,22 @@ void SendEvent(SEvent& _rEvent)
 //******************************************************************************
 // Function Definitions 
 //******************************************************************************
+
+// Flash lights, and if connecting, also rumble
+void FlashLights(bool Connect)
+{
+	if(Connect) wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[0], 1);
+	wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_1 | WIIMOTE_LED_2 | WIIMOTE_LED_3 | WIIMOTE_LED_4);
+	Sleep(100);
+	if(Connect) wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[0], 0);
+
+	// End with light 1 or 4
+	if(Connect)
+		wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_1);
+	else
+		wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_4);
+}
+
 int Initialize()
 {
 	if (g_RealWiiMoteInitialized) return g_NumberOfWiiMotes;
@@ -277,7 +293,7 @@ int Initialize()
 		//wiiuse_set_timeout(g_WiiMotesFromWiiUse, MAX_WIIMOTES, 500, 1000);
 		//wiiuse_set_flags(g_WiiMotesFromWiiUse[0], WIIUSE_CONTINUOUS, NULL);
 
-		if(frame) frame->StartTimer();
+		FlashLights(true);
 	}
 	else
 	{
@@ -319,26 +335,14 @@ void Shutdown(void)
             g_WiiMotes[i] = NULL;
         }
 
-	#if defined(HAVE_WX) && HAVE_WX
-		/* We can only do this if we are not unloading the DLL, otherwise we can get stuck with a
-		   a rumble after we Stop a game */
-		if (!g_EmulatorRunning)
-		{
-			if(frame) frame->ShutDown = true;
-			if(frame) frame->StartTimer();
-		}
-		else
-		{
-	#else
-		// Clean up wiiuse
-		wiiuse_cleanup(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes);
+	// Flash flights
+	if (!g_EmulatorRunning) FlashLights(false);
 
-		// Uninitialized
-		g_RealWiiMoteInitialized = false;
-	#endif
-	#if defined(HAVE_WX) && HAVE_WX
-		}
-	#endif
+	// Clean up wiiuse
+	wiiuse_cleanup(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes);
+
+	// Uninitialized
+	g_RealWiiMoteInitialized = false;
 
 	// Uninitialized
 	g_RealWiiMoteInitialized = false;
@@ -387,7 +391,7 @@ void Update()
     {
 		if(g_EmulatorRunning)
 			for (int i = 0; i < g_NumberOfWiiMotes; i++) g_WiiMotes[i]->ReadData();
-		else if (!g_Config.bUseRealWiimote)
+		if (!g_Config.bUseRealWiimote)
 			ReadWiimote();
     }
     return 0;

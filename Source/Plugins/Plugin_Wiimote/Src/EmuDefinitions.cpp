@@ -56,7 +56,7 @@ u8 g_RegIr[WIIMOTE_REG_IR_SIZE];
 u8 g_ReportingMode; // The reporting mode and channel id
 u16 g_ReportingChannel;
 
-std::vector<wm_ackdelay> AckDelay;
+std::vector<wm_ackdelay> AckDelay; // Ackk delay
 
 wiimote_key g_ExtKey; // The extension encryption key
 

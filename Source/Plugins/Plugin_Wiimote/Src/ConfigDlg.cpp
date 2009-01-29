@@ -28,6 +28,7 @@
 #include "main.h"
 #include "ConfigDlg.h"
 #include "Config.h"
+#include "EmuMain.h" // for LoadRecordedMovements()
 #include "EmuSubroutines.h" // for WmRequestStatus
 /////////////////////////////
 
@@ -44,7 +45,9 @@
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
 	EVT_BUTTON(ID_CLOSE, ConfigDialog::CloseClick)
+	EVT_BUTTON(ID_APPLY, ConfigDialog::CloseClick)
 	EVT_BUTTON(ID_ABOUTOGL, ConfigDialog::AboutClick)
+
 	EVT_CHECKBOX(ID_SIDEWAYSDPAD, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_WIDESCREEN, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_NUNCHUCKCONNECTED, ConfigDialog::GeneralSettingsChanged)	
@@ -53,6 +56,22 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_CONNECT_REAL, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_USE_REAL, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_UPDATE_REAL, ConfigDialog::GeneralSettingsChanged)
+
+	EVT_CHOICE(IDC_RECORD + 1, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 2, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 3, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 4, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 5, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 6, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 7, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 8, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 9, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 10, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 11, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 12, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 13, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 14, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_RECORD + 15, ConfigDialog::GeneralSettingsChanged)
 
 	EVT_BUTTON(IDB_RECORD + 1, ConfigDialog::RecordMovement)
 	EVT_BUTTON(IDB_RECORD + 2, ConfigDialog::RecordMovement)
@@ -70,7 +89,6 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_BUTTON(IDB_RECORD + 14, ConfigDialog::RecordMovement)
 	EVT_BUTTON(IDB_RECORD + 15, ConfigDialog::RecordMovement)
 
-	EVT_TIMER(IDTM_EXIT, ConfigDialog::FlashLights)
 	EVT_TIMER(IDTM_UPDATE, ConfigDialog::Update)	
 END_EVENT_TABLE()
 /////////////////////////////
@@ -84,10 +102,6 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 : wxDialog(parent, id, title, position, size, style)
 {
 	#if wxUSE_TIMER
-		m_ExitTimer = new wxTimer(this, IDTM_EXIT);
-		// Reset values
-		ShutDown = false;
-
 		m_TimeoutTimer = new wxTimer(this, IDTM_UPDATE);
 		m_TimeoutATimer = new wxTimer(this, IDTM_UPDATEA);
 		// Reset values
@@ -134,15 +148,23 @@ void ConfigDialog::OnClose(wxCloseEvent& WXUNUSED (event))
 	EndModal(0);
 }
 
-void ConfigDialog::CloseClick(wxCommandEvent& WXUNUSED (event))
+void ConfigDialog::CloseClick(wxCommandEvent& event)
 {
-	// wxWidgets function. This will also trigger EVT_CLOSE().
-	Close();
+	switch(event.GetId())
+	{
+	case ID_CLOSE:
+		// wxWidgets function. This will also trigger EVT_CLOSE().
+		Close();
+		break;
+	case ID_APPLY:
+		SaveFile();
+		WiiMoteEmu::LoadRecordedMovements();
+		break;
+	}
 }
 
 void ConfigDialog::AboutClick(wxCommandEvent& WXUNUSED (event))
 {
-
 }
 
 void ConfigDialog::LoadFile()
@@ -234,8 +256,9 @@ void ConfigDialog::CreateGUIControls()
 
 	// Buttons
 	//m_About = new wxButton(this, ID_ABOUTOGL, wxT("About"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-
+	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"));
+	m_Close->SetToolTip(wxT("Apply and Close"));
 
 	////////////////////////////////////////////
 	// Put notebook and buttons in sMain
@@ -244,12 +267,13 @@ void ConfigDialog::CreateGUIControls()
 	sButtons = new wxBoxSizer(wxHORIZONTAL);
 	//sButtons->Add(m_About, 0, wxALL, 5); // there is no about
 	sButtons->AddStretchSpacer();
-	sButtons->Add(m_Close, 0, wxALL, 5);
+	sButtons->Add(m_Apply, 0, (wxALL), 0);
+	sButtons->Add(m_Close, 0, (wxLEFT), 5);	
 
 	wxBoxSizer* sMain;
 	sMain = new wxBoxSizer(wxVERTICAL);
-	sMain->Add(m_Notebook, 1, wxEXPAND|wxALL, 5);
-	sMain->Add(sButtons, 0, wxEXPAND, 5);
+	sMain->Add(m_Notebook, 1, wxEXPAND | wxALL, 5);
+	sMain->Add(sButtons, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 	/////////////////////////////////
 
 
@@ -302,7 +326,7 @@ void ConfigDialog::CreateGUIControls()
 	m_UpdateMeters->SetValue(g_Config.bUpdateRealWiimote);
 
 	m_UpdateMeters->SetToolTip(wxT(
-		"You can turn this off when a game is running to avoid a unnecessary slowdown that comes from redrawing the\n"
+		"You can turn this off when a game is running to avoid a potential slowdown that may come from redrawing the\n"
 		"configuration screen. Remember that you also need to press '+' on your Wiimote before you can record movements."
 		));
 
@@ -387,9 +411,10 @@ void ConfigDialog::CreateGUIControls()
 
 	wxArrayString StrHotKey;
 	for(int i = 0; i < 10; i++) StrHotKey.Add(wxString::Format(wxT("%i"), i));
+	StrHotKey.Add(wxT(""));
 
 	wxArrayString StrPlayBackSpeed;
-	for(int i = 1; i < 15; i++) StrPlayBackSpeed.Add(wxString::Format(wxT("%i"), i*25));
+	for(int i = 1; i <= 20; i++) StrPlayBackSpeed.Add(wxString::Format(wxT("%i"), i*25));
 
 	wxBoxSizer * sRealRecord[RECORDING_ROWS + 1];
 
@@ -409,7 +434,7 @@ void ConfigDialog::CreateGUIControls()
 		"current update rate in the Status window above when a game is running.) However, if your framerate is only at 50% of full speed\n"
 		"you may want to select a playback rate of 50, because then the game might perceive the playback as a full speed playback. (This\n"
 		"holds if Wiimote_Update() is tied to the framerate, I'm not sure that this is the case. It seemed to vary somewhat with different\n"
-		"framerates but not nearly enough to say that it was tied to the framerate.) So until this is better understood you'll have\n"
+		"framerates but perhaps not enough to say that it was exactly tied to the framerate.) So until this is better understood you'll have\n"
 		"to try different playback rates and see which one that works."
 		));
 
@@ -426,7 +451,7 @@ void ConfigDialog::CreateGUIControls()
 	{
 		sRealRecord[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_RecordButton[i] = new wxButton(m_PageReal, IDB_RECORD + i, wxEmptyString, wxDefaultPosition, wxSize(80, 20), 0, wxDefaultValidator, wxEmptyString);
-		m_RecordHotKey[i] = new wxChoice(m_PageReal, IDC_RECORD, wxDefaultPosition, wxDefaultSize, StrHotKey);
+		m_RecordHotKey[i] = new wxChoice(m_PageReal, IDC_RECORD + i, wxDefaultPosition, wxDefaultSize, StrHotKey);
 		m_RecordText[i] = new wxTextCtrl(m_PageReal, IDT_RECORD_TEXT, wxT(""), wxDefaultPosition, wxSize(200, 19));
 		m_RecordGameText[i] = new wxTextCtrl(m_PageReal, IDT_RECORD_GAMETEXT, wxT(""), wxDefaultPosition, wxSize(200, 19));
 		m_RecordSpeed[i] = new wxTextCtrl(m_PageReal, IDT_RECORD_SPEED, wxT(""), wxDefaultPosition, wxSize(30, 19), wxTE_READONLY | wxTE_CENTRE);
@@ -636,66 +661,6 @@ void ConfigDialog::DoRecordMovement(u8 _x, u8 _y, u8 _z)
 /////////////////////////////////
 
 
-
-/////////////////////////////////////////////////////////////////////////
-/* Flash lights and rumble (for Connect and Disconnect) in its own thread like this
-   to avoid a delay when the Connect checkbox is pressed (that would occur if we use
-   Sleep() instead). */
-// ------------
-void ConfigDialog::StartTimer()
-{
-	TimerCounter = 0;
-
-	// Start the constant timer
-	int TimesPerSecond = 10;
-	m_ExitTimer->Start( floor((double)(1000 / TimesPerSecond)) );
-
-	// Run it immedeately for the first time
-	DoFlashLights();
-}
-
-void ConfigDialog::DoFlashLights()
-{
-	TimerCounter++;
-
-	if(TimerCounter == 1)
-		wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[0], 1);
-
-	if(TimerCounter == 1)
-		wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_1 | WIIMOTE_LED_2 | WIIMOTE_LED_3 | WIIMOTE_LED_4);
-
-	// Make the rumble period equal on both Init and Shutdown
-	if (TimerCounter == 1 && ShutDown) TimerCounter++;
-
-	if (TimerCounter >= 3 || TimerCounter <= 5)
-		wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[0], 0);
-
-	if(TimerCounter == 3)
-	{
-		if(ShutDown)
-		{
-			// Set led 4
-			wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_4);
-
-			// Clean up wiiuse
-			wiiuse_cleanup(WiiMoteReal::g_WiiMotesFromWiiUse, WiiMoteReal::g_NumberOfWiiMotes);
-
-			ShutDown = false;
-		}
-		else
-		{
-			wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_1);
-		}
-
-		// Stop timer
-		m_ExitTimer->Stop();
-	}
-
-	Console::Print("TimerCounter == %i\n", TimerCounter);
-}
-/////////////////////////////////
-
-
 // ===================================================
 /* Do use real wiimote */
 // ----------------
@@ -803,6 +768,31 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_UPDATE_REAL:
 		g_Config.bUpdateRealWiimote = m_UpdateMeters->IsChecked();
+		break;
+	case IDC_RECORD + 1:
+	case IDC_RECORD + 2:
+	case IDC_RECORD + 3:
+	case IDC_RECORD + 4:
+	case IDC_RECORD + 5:
+	case IDC_RECORD + 6:
+	case IDC_RECORD + 7:
+	case IDC_RECORD + 8:
+	case IDC_RECORD + 9:
+	case IDC_RECORD + 10:
+	case IDC_RECORD + 11:
+	case IDC_RECORD + 12:
+	case IDC_RECORD + 13:
+	case IDC_RECORD + 14:
+	case IDC_RECORD + 15:
+		// Check if any of the other choice boxes has the same hotkey
+		for (int i = 1; i < (RECORDING_ROWS + 1); i++)
+		{
+			int CurrentChoiceBox = (event.GetId() - IDC_RECORD);
+			if (i == CurrentChoiceBox) continue;
+			if (m_RecordHotKey[i]->GetSelection() == m_RecordHotKey[CurrentChoiceBox]->GetSelection()) m_RecordHotKey[i]->SetSelection(10);
+			Console::Print("HotKey: %i %i\n",
+				m_RecordHotKey[i]->GetSelection(), m_RecordHotKey[CurrentChoiceBox]->GetSelection());
+		}
 		break;
 		/////////////////
 	}

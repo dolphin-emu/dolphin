@@ -106,41 +106,10 @@ void WriteCrypted16(u8* _baseBlock, u16 _address, u16 _value)
 
 
 // ===================================================
-/* Write initial values to Eeprom and registers. */
+/* Load pre-recorded movements */
 // ----------------
-void Initialize()
+void LoadRecordedMovements()
 {
-	if (g_EmulatedWiiMoteInitialized) return;
-
-	memset(g_Eeprom, 0, WIIMOTE_EEPROM_SIZE);
-	memcpy(g_Eeprom, EepromData_0, sizeof(EepromData_0));
-	memcpy(g_Eeprom + 0x16D0, EepromData_16D0, sizeof(EepromData_16D0));
-
-	g_ReportingMode = 0;
-
-
-	/* Extension data for homebrew applications that use the 0x00000000 key. This
-	   writes 0x0000 in encrypted form (0xfefe) to 0xfe in the extension register. */
-	//WriteCrypted16(g_RegExt, 0xfe, 0x0000); // Fully inserted Nunchuk
-
-
-	// Copy extension id and calibration to its register	
-	if(g_Config.bNunchuckConnected)
-	{
-		memcpy(g_RegExt + 0x20, nunchuck_calibration, sizeof(nunchuck_calibration));
-		memcpy(g_RegExt + 0xfa, nunchuck_id, sizeof(nunchuck_id));
-	}
-	else if(g_Config.bClassicControllerConnected)
-	{
-		memcpy(g_RegExt + 0x20, classic_calibration, sizeof(classic_calibration));
-		memcpy(g_RegExt + 0xfa, classic_id, sizeof(classic_id));
-	}
-
-	g_EmulatedWiiMoteInitialized = true;
-
-	//////////////////////////////////////
-	// Load pre-recorded movements
-	// ---------------
 	IniFile file;
 	file.Load("WiimoteMovement.ini");
 
@@ -173,10 +142,12 @@ void Initialize()
 			Tmp.x = (u8)TmpZ;
 
 			// Go to next set of time values
-			int Time = atoi(TmpTime.substr(k, 5).c_str());
+			double Time = (double)atoi(TmpTime.substr(k, 5).c_str());
 			Tmp.Time = (double)(Time/1000);
 			VRecording.at(i).Recording.push_back(Tmp);
 			k += 6;
+
+			//Console::Print("Time:%f\n", Tmp.Time);
 		}
 
 		// HotKey
@@ -191,7 +162,47 @@ void Initialize()
 			VRecording.at(i).Recording.size(), VRecording.at(i).HotKey, VRecording.at(i).PlaybackSpeed
 			);
 	}
-	//////////////////////////
+}
+// ================
+
+
+
+
+// ===================================================
+/* Write initial values to Eeprom and registers. */
+// ----------------
+void Initialize()
+{
+	if (g_EmulatedWiiMoteInitialized) return;
+
+	memset(g_Eeprom, 0, WIIMOTE_EEPROM_SIZE);
+	memcpy(g_Eeprom, EepromData_0, sizeof(EepromData_0));
+	memcpy(g_Eeprom + 0x16D0, EepromData_16D0, sizeof(EepromData_16D0));
+
+	g_ReportingMode = 0;
+
+
+	/* Extension data for homebrew applications that use the 0x00000000 key. This
+	   writes 0x0000 in encrypted form (0xfefe) to 0xfe in the extension register. */
+	//WriteCrypted16(g_RegExt, 0xfe, 0x0000); // Fully inserted Nunchuk
+
+
+	// Copy extension id and calibration to its register	
+	if(g_Config.bNunchuckConnected)
+	{
+		memcpy(g_RegExt + 0x20, nunchuck_calibration, sizeof(nunchuck_calibration));
+		memcpy(g_RegExt + 0xfa, nunchuck_id, sizeof(nunchuck_id));
+	}
+	else if(g_Config.bClassicControllerConnected)
+	{
+		memcpy(g_RegExt + 0x20, classic_calibration, sizeof(classic_calibration));
+		memcpy(g_RegExt + 0xfa, classic_id, sizeof(classic_id));
+	}
+
+	g_EmulatedWiiMoteInitialized = true;
+
+	// Load pre-recorded movements
+	LoadRecordedMovements();
 
 	// I forgot what these were for?
 	//	g_RegExt[0xfd] = 0x1e;
