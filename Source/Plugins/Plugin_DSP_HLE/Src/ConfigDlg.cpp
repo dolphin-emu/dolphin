@@ -41,11 +41,15 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 	m_buttonEnableHLEAudio = new wxCheckBox(this, ID_ENABLE_HLE_AUDIO, wxT("Enable HLE Audio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_buttonEnableDTKMusic = new wxCheckBox(this, ID_ENABLE_DTK_MUSIC, wxT("Enable DTK Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_buttonEnableThrottle = new wxCheckBox(this, ID_ENABLE_THROTTLE, wxT("Enable Other Audio (Throttle)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, wxT("Audio Backend"), wxDefaultPosition, wxDefaultSize, 0);
+	m_BackendSelection = new wxComboBox(this, ID_BACKEND, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxArrayBackends, 0, wxDefaultValidator);
 
-	// Update checkboxes
+	
+	// Update values
 	m_buttonEnableHLEAudio->SetValue(g_Config.m_EnableHLEAudio ? true : false);
 	m_buttonEnableDTKMusic->SetValue(g_Config.m_EnableDTKMusic ? true : false);
 	m_buttonEnableThrottle->SetValue(g_Config.m_EnableThrottle ? true : false);
+	m_BackendSelection->SetValue(wxString::FromAscii(g_Config.sBackend));
 
 	// Add tooltips
 	m_buttonEnableHLEAudio->SetToolTip(wxT("This is the most common sound type"));
@@ -60,12 +64,21 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 	sbSettings->Add(m_buttonEnableHLEAudio, 0, wxALL, 5);
 	sbSettings->Add(m_buttonEnableDTKMusic, 0, wxALL, 5);
 	sbSettings->Add(m_buttonEnableThrottle, 0, wxALL, 5);
+	wxBoxSizer *sBackend = new wxBoxSizer(wxHORIZONTAL);
+	sBackend->Add(BackendText, 0, wxALIGN_CENTRE_VERTICAL|wxALL, 5);
+	sBackend->Add(m_BackendSelection);
+	sbSettings->Add(sBackend);
+
 	sMain->Add(sbSettings, 0, wxEXPAND|wxALL, 5);
 	wxBoxSizer *sButtons = new wxBoxSizer(wxHORIZONTAL);
 	sButtons->Add(150, 0); // Lazy way to make the dialog as wide as we want it
 	sButtons->Add(m_OK, 0, wxALL, 5);
 	sMain->Add(sButtons, 0, wxEXPAND);
 	this->SetSizerAndFit(sMain);
+}
+
+void ConfigDialog::AddBackend(const char* backend) {
+    m_BackendSelection->Append(wxString::FromAscii(backend));
 }
 
 ConfigDialog::~ConfigDialog()
@@ -77,6 +90,7 @@ void ConfigDialog::SettingsChanged(wxCommandEvent& event)
 	g_Config.m_EnableHLEAudio = m_buttonEnableHLEAudio->GetValue();
 	g_Config.m_EnableDTKMusic = m_buttonEnableDTKMusic->GetValue();
 	g_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
+	strcpy(g_Config.sBackend, m_BackendSelection->GetValue().mb_str());
 	g_Config.Save();
 
 	if (event.GetId() == wxID_OK)

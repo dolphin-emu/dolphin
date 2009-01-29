@@ -23,9 +23,7 @@
 #include "UCode_Zelda.h"
 #include "../MailHandler.h"
 
-#ifdef _WIN32
-#include "../PCHW/DSoundStream.h"
-#endif
+#include "../main.h"
 #include "../PCHW/Mixer.h"
 
 
@@ -126,10 +124,10 @@ void CUCode_Zelda::ExecuteList()
 
 			// We're ready to mix
 			mixer_HLEready = true;
-#ifdef _WIN32
+
 			DebugLog("Update the SoundThread to be in sync");
-			DSound::DSound_UpdateSound(); //do it in this thread to avoid sync problems
-#endif
+			soundStream->Update(); //do it in this thread to avoid sync problems
+
 
 		    DebugLog("DsyncFrame");
 		    DebugLog("???:                           0x%08x", tmp[0]);

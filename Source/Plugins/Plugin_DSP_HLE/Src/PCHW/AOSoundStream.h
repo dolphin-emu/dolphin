@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,18 +18,69 @@
 #ifndef __AOSOUNDSTREAM_H__
 #define __AOSOUNDSTREAM_H__
 
-namespace AOSound
+#include "SoundStream.h"
+
+#if defined(HAVE_AO) && HAVE_AO
+#include <ao/ao.h>
+#endif
+
+#include "Thread.h"
+
+
+class AOSound : public SoundStream
 {
-typedef void (*StreamCallback)(short* buffer, int numSamples, int bits, int rate, int channels);
 
-bool AOSound_StartSound(int sampleRate, StreamCallback _callback);
-void AOSound_UpdateSound();
-void AOSound_StopSound();
+#if defined(HAVE_AO) && HAVE_AO
+    
+    Common::Thread *thread;
 
-float AOSound_GetTimer();
-int AOSound_GetCurSample();
-int AOSound_GetSampleRate();
-}
+    Common::CriticalSection *soundCriticalSection;
+    
+    Common::Event *soundSyncEvent;
+    
+    int buf_size;
+    
+    ao_device *device;
+    ao_sample_format format;
+    int default_driver;
+    
+    short realtimeBuffer[1024 * 1024];
 
+public:
+    AOSound(int _sampleRate, StreamCallback _callback) :
+	SoundStream(_sampleRate, _callback) {}
+    
+    virtual ~AOSound() {}
+    
+    virtual bool Start();
+    
+    virtual void SoundLoop();
+    
+    virtual void Stop();
+    
+    static  bool isValid() {
+        return true;
+    }
+    
+    virtual bool usesMixer() { 
+	return true; 
+    }
+    
+    virtual void Update();
+
+    virtual int GetSampleRate() {
+        return sampleRate;
+    }
+    
+
+#else
+
+public:
+    AOSound(int _sampleRate, StreamCallback _callback) :
+	SoundStream(_sampleRate, _callback) {}
+
+#endif
+    
+};
 
 #endif //__AOSOUNDSTREAM_H__

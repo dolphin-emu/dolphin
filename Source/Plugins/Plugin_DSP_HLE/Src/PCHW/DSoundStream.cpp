@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,53 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "stdafx.h"
-
-#include <mmsystem.h>
-#include <dsound.h>
-
 #include "DSoundStream.h"
+#include "../main.h"
 
-namespace DSound
-{
+#include <dxerr.h>
 
-#define BUFSIZE 32768
-#define MAXWAIT 70   //ms
-
-CRITICAL_SECTION soundCriticalSection;
-HANDLE soundSyncEvent;
-HANDLE hThread;
-
-StreamCallback callback;
-
-IDirectSound8* ds;
-IDirectSoundBuffer* dsBuffer;
-
-int bufferSize;     //i bytes
-int totalRenderedBytes;
-int sampleRate;
-
-// playback position
-int currentPos;
-int lastPos;
-short realtimeBuffer[1024 * 1024];
-
-// We set this to shut down the sound thread.
-// 0=keep playing, 1=stop playing NOW.
-volatile int threadData;
-
-
-inline int FIX128(int x)
-{
-	return(x & (~127));
-}
-
-int DSound_GetSampleRate()
-{
-	return(sampleRate);
-}
-
-bool CreateBuffer()
+bool DSound::CreateBuffer()
 {
 	PCMWAVEFORMAT pcmwf;
 	DSBUFFERDESC dsbdesc;
@@ -80,22 +39,23 @@ bool CreateBuffer()
 	dsbdesc.dwSize  = sizeof(DSBUFFERDESC);
 	dsbdesc.dwFlags = DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_STICKYFOCUS; //VIKTIGT //DSBCAPS_CTRLPAN | DSBCAPS_CTRLVOLUME | DSBCAPS_CTRLFREQUENCY;
 	dsbdesc.dwBufferBytes = bufferSize = BUFSIZE;
-	dsbdesc.lpwfxFormat = (WAVEFORMATEX*)&pcmwf;
+	dsbdesc.lpwfxFormat = (WAVEFORMATEX *)&pcmwf;
 
-	if (SUCCEEDED(ds->CreateSoundBuffer(&dsbdesc, &dsBuffer, NULL)))
+	HRESULT res = ds->CreateSoundBuffer(&dsbdesc, &dsBuffer, NULL);
+	if (SUCCEEDED(res))
 	{
 		dsBuffer->SetCurrentPosition(0);
-		return(true);
+		return true;
 	}
-	else
-	{
+	else {
 		// Failed.
+		PanicAlert("Sound buffer creation failed: %s", DXGetErrorString(res)); 
 		dsBuffer = NULL;
-		return(false);
+		return false;
 	}
 }
 
-bool WriteDataToBuffer(DWORD dwOffset,                  // Our own write cursor.
+bool DSound::WriteDataToBuffer(DWORD dwOffset,                  // Our own write cursor.
 		char* soundData, // Start of our data.
 		DWORD dwSoundBytes) // Size of block to copy.
 {
@@ -122,20 +82,22 @@ bool WriteDataToBuffer(DWORD dwOffset,                  // Our own write cursor.
 
 		// Release the data back to DirectSound.
 		dsBuffer->Unlock(ptr1, numBytes1, ptr2, numBytes2);
-		return(true);
+		return true;
 	}
 
-	return(false);
-}
-
-inline int ModBufferSize(int x)
-{
-	return((x + bufferSize) % bufferSize);
+	return false;
 }
 
 // The audio thread.
-DWORD WINAPI soundThread(void*)
+DWORD WINAPI soundThread(void* args)
 {
+	((DSound *)args)->SoundLoop();
+	
+	return 0; //huzzah! :D
+}
+
+void DSound::SoundLoop() {
+
 	currentPos = 0;
 	lastPos = 0;
 
@@ -144,18 +106,19 @@ DWORD WINAPI soundThread(void*)
 	//  dsBuffer->Lock(0, bufferSize, (void **)&p1, &num1, (void **)&p2, &num2, 0);
 	dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
 
-	while (!threadData)
-	{
+	while (!threadData)	{
 		// No blocking inside the csection
-		EnterCriticalSection(&soundCriticalSection);
+		soundCriticalSection->Enter();
 		dsBuffer->GetCurrentPosition((DWORD*)&currentPos, 0);
-		int numBytesToRender = FIX128(ModBufferSize(currentPos - lastPos));
+		int numBytesToRender = FIX128(
+			ModBufferSize(currentPos - lastPos));
 
 		if (numBytesToRender >= 256)
 		{
 			if (numBytesToRender > sizeof(realtimeBuffer))
-				MessageBox(0,"soundThread: too big render call",0,0);
-			(*callback)(realtimeBuffer, numBytesToRender >> 2, 16, sampleRate, 2);
+				PanicAlert("soundThread: too big render call");
+			(*callback)(realtimeBuffer, numBytesToRender >> 2, 16, 
+								   sampleRate, 2);
 
 			WriteDataToBuffer(lastPos, (char*)realtimeBuffer, numBytesToRender);
 			currentPos = ModBufferSize(lastPos + numBytesToRender);
@@ -164,36 +127,32 @@ DWORD WINAPI soundThread(void*)
 			lastPos = currentPos;
 		}
 
-		LeaveCriticalSection(&soundCriticalSection);
-		WaitForSingleObject(soundSyncEvent, MAXWAIT);
+		soundCriticalSection->Leave();
+
+		soundSyncEvent->Wait();
 	}
 
 	dsBuffer->Stop();
-	return(0); //hurra!
 }
 
-bool DSound_StartSound(HWND window, int _sampleRate, StreamCallback _callback)
+bool DSound::Start()
 {
-	callback   = _callback;
-	threadData = 0;
-	sampleRate = _sampleRate;
-
 	//no security attributes, automatic resetting, init state nonset, untitled
-	soundSyncEvent = CreateEvent(0, false, false, 0);
+	soundSyncEvent = new Common::Event();
+	soundSyncEvent->Init();
 
 	//vi initierar den...........
-	InitializeCriticalSection(&soundCriticalSection);
+	soundCriticalSection = new Common::CriticalSection();
 
 	//vi vill ha access till DSOUND så...
 	if (FAILED(DirectSoundCreate8(0, &ds, 0)))
-		return false;
+            return false;
 
-	ds->SetCooperativeLevel(window, DSSCL_NORMAL);
+	if(hWnd)
+		ds->SetCooperativeLevel((HWND)hWnd, DSSCL_NORMAL);
 
 	if (!CreateBuffer())
-	{
 		return false;
-	}
 
 	DWORD num1;
 	short* p1;
@@ -201,48 +160,43 @@ bool DSound_StartSound(HWND window, int _sampleRate, StreamCallback _callback)
 	memset(p1, 0, num1);
 	dsBuffer->Unlock(p1, num1, 0, 0);
 	totalRenderedBytes = -bufferSize;
-	DWORD h;
-	hThread = CreateThread(0, 0, soundThread, 0, 0, &h);
-	SetThreadPriority(hThread, THREAD_PRIORITY_ABOVE_NORMAL);
+
+	thread = new Common::Thread(soundThread, (void *)this);
 	return true;
 }
 
-void DSound_UpdateSound()
+void DSound::Update()
 {
-	SetEvent(soundSyncEvent);
+	soundSyncEvent->Set();
 }
 
-void DSound_StopSound()
+void DSound::Stop()
 {
-	EnterCriticalSection(&soundCriticalSection);
+	soundCriticalSection->Enter();
 	threadData = 1;
 	// kick the thread if it's waiting
-	SetEvent(soundSyncEvent);
-	LeaveCriticalSection(&soundCriticalSection);
-	WaitForSingleObject(hThread, INFINITE);
-	CloseHandle(hThread);
+	soundSyncEvent->Set();
+	soundCriticalSection->Leave();
+	delete soundCriticalSection;
+	delete thread;
 
 	dsBuffer->Release();
 	ds->Release();
 
-	CloseHandle(soundSyncEvent);
-	soundSyncEvent = INVALID_HANDLE_VALUE;
-	hThread = INVALID_HANDLE_VALUE;
+	soundSyncEvent->Shutdown();
+	delete soundSyncEvent;
+	soundSyncEvent = NULL;
+	thread = NULL;
 }
 
-int DSound_GetCurSample()
+/* Unused, is it needed?
+int DSound::GetCurSample()
 {
-	EnterCriticalSection(&soundCriticalSection);
+	soundCriticalSection->Enter();
 	int playCursor;
 	dsBuffer->GetCurrentPosition((DWORD*)&playCursor, 0);
 	playCursor = ModBufferSize(playCursor - lastPos) + totalRenderedBytes;
-	LeaveCriticalSection(&soundCriticalSection);
-	return(playCursor);
+	soundCriticalSection->Leave();
+	return playCursor;
 }
-
-float DSound_GetTimer()
-{
-	return((float)DSound_GetCurSample() * (1.0f / (4.0f * sampleRate)));
-}
-
-}  // namespace
+*/

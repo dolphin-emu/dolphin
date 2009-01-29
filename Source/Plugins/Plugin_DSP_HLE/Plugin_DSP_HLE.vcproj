@@ -331,7 +331,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dsound.lib comctl32.lib"
+				AdditionalDependencies="dxguid.lib dsound.lib dxerr.lib comctl32.lib"
 				OutputFile="../../../Binary/x64/Plugins/Plugin_DSP_HLE.dll"
 				LinkIncremental="1"
 				GenerateManifest="false"
@@ -552,6 +552,14 @@
 			Name="PCHW"
 			>
 			<File
+				RelativePath=".\Src\PCHW\AOSoundStream.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PCHW\AOSoundStream.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\Pchw\DSoundStream.cpp"
 				>
 			</File>
@@ -565,6 +573,14 @@
 			</File>
 			<File
 				RelativePath=".\Src\Pchw\Mixer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PCHW\NullSoundStream.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PCHW\SoundStream.h"
 				>
 			</File>
 		</Filter>
@@ -774,6 +790,10 @@
 		</File>
 		<File
 			RelativePath=".\Src\main.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\main.h"
 			>
 		</File>
 		<File

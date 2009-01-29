@@ -16,9 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// -------------
 // This queue solution is temporary. I'll implement something more efficient later.
 #include <queue> // System
 
@@ -29,14 +26,11 @@
 #include "../Globals.h"
 #include "../DSPHandler.h"
 #include "../Debugger/File.h"
+#include "../main.h"
 
 #include "Mixer.h"
 #include "FixedSizeQueue.h"
 
-#ifdef _WIN32
-#include "../PCHW/DSoundStream.h"
-#endif
-///////////////////////
 
 
 namespace {
@@ -52,6 +46,11 @@ FixedSizeQueue<s16, queue_maxlength> sample_queue;
 
 volatile bool mixer_HLEready = false;
 volatile int queue_size = 0;
+bool bThrottling = false;
+
+void UpdateThrottle(bool update) {
+    bThrottling = update;
+}
 
 void Mixer(short *buffer, int numSamples, int bits, int rate, int channels)
 {
@@ -111,87 +110,85 @@ void Mixer_PushSamples(short *buffer, int num_stereo_samples, int sample_rate) {
 
 	static int PV1l=0,PV2l=0,PV3l=0,PV4l=0;
 	static int PV1r=0,PV2r=0,PV3r=0,PV4r=0;
-	static int acc=0;
+	static int acc=0;     
+       
+        bThrottling = g_Config.m_EnableThrottle;
+        
+        if(bThrottling) {
+            
+            /* This is only needed for non-AX sound, currently directly
+               streamed and DTK sound. For AX we call SoundStream::Update in
+               AXTask() for example. */
+            while (queue_size > queue_maxlength / 2) {
+                soundStream->Update();
+                Common::SleepCurrentThread(0);
+            }
 
-#ifdef _WIN32
-	if (! (GetAsyncKeyState(VK_TAB)) && g_Config.m_EnableThrottle) {
+            //convert into config option?
+            const int mode = 2;
 
-		/* This is only needed for non-AX sound, currently directly streamed and
-		   DTK sound. For AX we call DSound_UpdateSound in AXTask() for example. */
-		while (queue_size > queue_maxlength / 2) {
-			DSound::DSound_UpdateSound();
-			Sleep(0);
-		}
-	} else {
-		return;
-	}
-#else
-	while (queue_size > queue_maxlength) {
-		usleep(1000);
-	}
-#endif
-	//convert into config option?
-	const int mode = 2;
+            push_sync.Enter();
+            while (num_stereo_samples) 
+                {
+                    acc += sample_rate;
+                    while (num_stereo_samples && (acc >= 48000))
+                        {
+                            PV4l=PV3l;
+                            PV3l=PV2l;
+                            PV2l=PV1l;
+                            PV1l=*(buffer++); //32bit processing
+                            PV4r=PV3r;
+                            PV3r=PV2r;
+                            PV2r=PV1r;
+                            PV1r=*(buffer++); //32bit processing
+                            num_stereo_samples--;
+                            acc-=48000;
+                        }
 
-	push_sync.Enter();
-	while (num_stereo_samples) 
-	{
-		acc += sample_rate;
- 		while (num_stereo_samples && (acc >= 48000))
- 		{
- 			PV4l=PV3l;
- 			PV3l=PV2l;
- 			PV2l=PV1l;
- 			PV1l=*(buffer++); //32bit processing
- 			PV4r=PV3r;
- 			PV3r=PV2r;
- 			PV2r=PV1r;
- 			PV1r=*(buffer++); //32bit processing
-			num_stereo_samples--;
- 			acc-=48000;
- 		}
+                    // defaults to nearest
+                    s32 DataL = PV1l;
+                    s32 DataR = PV1r;
 
-		// defaults to nearest
-		s32 DataL = PV1l;
-		s32 DataR = PV1r;
-
- 		if (mode == 1) //linear
- 		{
-			DataL = PV1l + ((PV2l - PV1l)*acc)/48000;
-			DataR = PV1r + ((PV2r - PV1r)*acc)/48000;
-		}
- 		else if (mode == 2) //cubic
- 		{
- 			s32 a0l = PV1l - PV2l - PV4l + PV3l;
- 			s32 a0r = PV1r - PV2r - PV4r + PV3r;
- 			s32 a1l = PV4l - PV3l - a0l;
- 			s32 a1r = PV4r - PV3r - a0r;
- 			s32 a2l = PV1l - PV4l;
- 			s32 a2r = PV1r - PV4r;
- 			s32 a3l = PV2l;
- 			s32 a3r = PV2r;
+                    if (mode == 1) //linear
+                        {
+                            DataL = PV1l + ((PV2l - PV1l)*acc)/48000;
+                            DataR = PV1r + ((PV2r - PV1r)*acc)/48000;
+                        }
+                    else if (mode == 2) //cubic
+                        {
+                            s32 a0l = PV1l - PV2l - PV4l + PV3l;
+                            s32 a0r = PV1r - PV2r - PV4r + PV3r;
+                            s32 a1l = PV4l - PV3l - a0l;
+                            s32 a1r = PV4r - PV3r - a0r;
+                            s32 a2l = PV1l - PV4l;
+                            s32 a2r = PV1r - PV4r;
+                            s32 a3l = PV2l;
+                            s32 a3r = PV2r;
  
- 			s32 t0l = ((a0l    )*acc)/48000;
- 			s32 t0r = ((a0r    )*acc)/48000;
- 			s32 t1l = ((t0l+a1l)*acc)/48000;
- 			s32 t1r = ((t0r+a1r)*acc)/48000;
- 			s32 t2l = ((t1l+a2l)*acc)/48000;
- 			s32 t2r = ((t1r+a2r)*acc)/48000;
- 			s32 t3l = ((t2l+a3l));
- 			s32 t3r = ((t2r+a3r));
+                            s32 t0l = ((a0l    )*acc)/48000;
+                            s32 t0r = ((a0r    )*acc)/48000;
+                            s32 t1l = ((t0l+a1l)*acc)/48000;
+                            s32 t1r = ((t0r+a1r)*acc)/48000;
+                            s32 t2l = ((t1l+a2l)*acc)/48000;
+                            s32 t2r = ((t1r+a2r)*acc)/48000;
+                            s32 t3l = ((t2l+a3l));
+                            s32 t3r = ((t2r+a3r));
  
- 			DataL = t3l;
- 			DataR = t3r;
-		}
+                            DataL = t3l;
+                            DataR = t3r;
+                        }
 
-		int l = DataL, r = DataR;
-		if (l < -32767) l = -32767;
-		if (r < -32767) r = -32767;
-		if (l > 32767) l = 32767;
-		if (r > 32767) r = 32767;
-		sample_queue.push(l);
-		sample_queue.push(r);
-		queue_size += 2;
- 	}
-	push_sync.Leave();
+                    int l = DataL, r = DataR;
+                    if (l < -32767) l = -32767;
+                    if (r < -32767) r = -32767;
+                    if (l > 32767) l = 32767;
+                    if (r > 32767) r = 32767;
+                    sample_queue.push(l);
+                    sample_queue.push(r);
+                    queue_size += 2;
+                }
+            push_sync.Leave();
+        }
+
 }
+

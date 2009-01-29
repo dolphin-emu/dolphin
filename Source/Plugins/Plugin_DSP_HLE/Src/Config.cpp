@@ -26,22 +26,23 @@ CConfig::CConfig()
 	Load();
 }
 
-void CConfig::LoadDefaults()
-{
-	m_EnableHLEAudio = true;
-	m_EnableDTKMusic = true;
-}
-
 void CConfig::Load()
 {
 	// first load defaults
-	LoadDefaults();
-
+        std::string temp;
+        
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR "DSP.ini");
 	file.Get("Config", "EnableHLEAudio", &m_EnableHLEAudio, true); // Sound Settings
 	file.Get("Config", "EnableDTKMusic", &m_EnableDTKMusic, true);
 	file.Get("Config", "EnableThrottle", &m_EnableThrottle, true);
+
+#ifdef _WIN32
+        file.Get("Config", "Backend", &temp, "DSound");
+#else
+        file.Get("Config", "Backend", &temp, "AOSound");
+#endif
+        strncpy(sBackend, temp.c_str(), 16);
 }
 
 void CConfig::Save()
@@ -51,6 +52,7 @@ void CConfig::Save()
 	file.Set("Config", "EnableHLEAudio", m_EnableHLEAudio); // Sound Settings
 	file.Set("Config", "EnableDTKMusic", m_EnableDTKMusic);
 	file.Set("Config", "EnableThrottle", m_EnableThrottle);
-
+        file.Set("Config", "Backend", sBackend);
+        
 	file.Save(FULL_CONFIG_DIR "DSP.ini");
 }

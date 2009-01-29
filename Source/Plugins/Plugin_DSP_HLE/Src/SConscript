@@ -5,10 +5,6 @@ import sys
 
 name = "Plugin_DSP_HLE"
 
-if not env['HAVE_AO']:
-    print name + " must have AO to be build"
-    Return()
-
 files = [
 	'DSPHandler.cpp',
 	'MailHandler.cpp',
@@ -16,6 +12,7 @@ files = [
 	'Config.cpp',
 	'Globals.cpp',
 	'PCHW/AOSoundStream.cpp',
+#        'PCHW/NullSoundStream.cpp',
 	'PCHW/Mixer.cpp',
         'Debugger/File.cpp',
 	'UCodes/UCode_AX.cpp',
@@ -32,7 +29,7 @@ dspenv = env.Clone()
 
 if dspenv['HAVE_WX']:
     files += [
-		'ConfigDlg.cpp',
+        'ConfigDlg.cpp',
         'Debugger/Debugger.cpp',
         'Debugger/PBView.cpp',
         'Debugger/Mails.cpp',

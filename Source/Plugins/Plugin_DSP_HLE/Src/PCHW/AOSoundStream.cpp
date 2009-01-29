@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,78 +15,74 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <ao/ao.h>
-#include <pthread.h>
 #include <string.h>
 
 #include "AOSoundStream.h"
 
-namespace AOSound
+#if defined(HAVE_AO) && HAVE_AO
+
+void AOSound::SoundLoop()
 {
-	pthread_t thread;
-	StreamCallback callback;
-
-	int buf_size;
-	
-	ao_device *device;
-	ao_sample_format format;
-	int default_driver;
-	
-	int sampleRate;
-	volatile int threadData;
-
-	short realtimeBuffer[1024 * 1024];
-
-	int AOSound_GetSampleRate()
-	{
-		return sampleRate;
-	}
-
-	void *soundThread(void *)
-	{
-		ao_initialize();
-		default_driver = ao_default_driver_id();
-		format.bits = 16;
-		format.channels = 2;
-		format.rate = sampleRate;
-		format.byte_format = AO_FMT_LITTLE;
+    ao_initialize();
+    default_driver = ao_default_driver_id();
+    format.bits = 16;
+    format.channels = 2;
+    format.rate = sampleRate;
+    format.byte_format = AO_FMT_LITTLE;
 		
-		device = ao_open_live(default_driver, &format, NULL /* no options */);
-		if (device == NULL)
-		{
-			fprintf(stderr, "DSP_HLE: Error opening AO device.\n");
-			return false;
-		}   
-		buf_size = format.bits/8 * format.channels * format.rate;
+    device = ao_open_live(default_driver, &format, NULL /* no options */);
+    if (device == NULL) {
+	PanicAlert("DSP_HLE: Error opening AO device.\n");
+	ao_shutdown();
+	Stop();
+	return;
+    }   
 
-		while (!threadData)
-		{                    
-			uint_32 numBytesToRender = 256;
-			(*callback)(realtimeBuffer, numBytesToRender >> 2, 16, sampleRate, 2);
-			ao_play(device, (char*)realtimeBuffer, numBytesToRender);
-		}
+    buf_size = format.bits/8 * format.channels * format.rate;
 
-		ao_close(device);
-		device = 0;
-		ao_shutdown();
+    while (!threadData) {
+            soundCriticalSection->Enter();
+                    
+            uint_32 numBytesToRender = 256;
+            (*callback)(realtimeBuffer, numBytesToRender >> 2, 16, sampleRate, 2);
+            ao_play(device, (char*)realtimeBuffer, numBytesToRender);
+            soundCriticalSection->Leave();
+            soundSyncEvent->Wait();
+    }
 
-		return 0;
-	}
-
-	bool AOSound_StartSound(int _sampleRate, StreamCallback _callback)
-	{
-		callback   = _callback;
-		threadData = 0;
-		sampleRate = _sampleRate;
-		memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
-		pthread_create(&thread, NULL, soundThread, (void *)NULL);
-		return true;
-	}
-
-	void AOSound_StopSound()
-	{
-		threadData = 1;
-		void *retval;
-		pthread_join(thread, &retval);
-	}
+    ao_close(device);
+    device = NULL;
+    ao_shutdown();
 }
+
+void *soundThread(void *args) {
+	((AOSound *)args)->SoundLoop();
+	return NULL;
+}
+
+bool AOSound::Start() {
+    memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
+    soundCriticalSection = new Common::CriticalSection(1);
+    thread = new Common::Thread(soundThread, (void *)this);
+    soundSyncEvent = new Common::Event();
+    soundSyncEvent->Init();
+    return true;
+}
+
+void AOSound::Update() {
+    soundSyncEvent->Set();
+}
+    
+void AOSound::Stop()
+{
+    soundCriticalSection->Enter();
+    threadData = 1;
+    soundSyncEvent->Set();
+    soundCriticalSection->Leave();
+    soundSyncEvent->Shutdown();
+    delete soundCriticalSection;
+    delete thread;
+    delete soundSyncEvent;
+}
+
+#endif

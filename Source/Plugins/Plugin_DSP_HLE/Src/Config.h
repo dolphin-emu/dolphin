@@ -22,17 +22,16 @@
 
 struct CConfig
 {
-	bool m_EnableHLEAudio;
-	bool m_EnableDTKMusic;
-	bool m_EnableThrottle;
-
-	CConfig();
-
-	void LoadDefaults();
-
-	void Load();
-
-	void Save();
+    bool m_EnableHLEAudio;
+    bool m_EnableDTKMusic;
+    bool m_EnableThrottle;
+    char sBackend[10];
+    
+    CConfig();
+    
+    void Load();
+    
+    void Save();
 };
 
 extern CConfig g_Config;

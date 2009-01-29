@@ -24,11 +24,6 @@ extern CDebugger* m_frame;
 #endif
 #include <sstream>
 
-#ifdef _WIN32
-#include "../PCHW/DSoundStream.h"
-#else
-#include "../PCHW/AOSoundStream.h"
-#endif
 #include "../PCHW/Mixer.h"
 #include "../MailHandler.h"
 
@@ -525,10 +520,10 @@ bool CUCode_AX::AXTask(u32& _uMail)
 
 		    mixer_HLEready = true;
 		    SaveLog("%08x : AXLIST PB address: %08x", uAddress, m_addressPBs);
-#ifdef _WIN32
+
 		    SaveLog("Update the SoundThread to be in sync");
-		    DSound::DSound_UpdateSound(); //do it in this thread to avoid sync problems
-#endif
+            soundStream->Update(); //do it in this thread to avoid sync problems
+
 		    }
 		    break;
 

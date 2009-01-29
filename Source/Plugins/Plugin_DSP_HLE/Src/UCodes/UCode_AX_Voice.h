@@ -22,11 +22,6 @@
 #include "UCode_AX.h"
 #include "../main.h"
 
-#ifdef _WIN32
-#include "../PCHW/DSoundStream.h"
-#else
-#include "../PCHW/AOSoundStream.h"
-#endif
 
 // ----------------------------------------------------
 // Externals
@@ -112,11 +107,7 @@ inline void WriteBackPBsWii(u32 pbs_address, ParamBlockType& _pPBs, int _num)
 template<class ParamBlockType>
 inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, int _iSize, bool Wii)
 {
-#ifdef _WIN32
-	ratioFactor = 32000.0f / (float)DSound::DSound_GetSampleRate();
-#else
-	ratioFactor = 32000.0f / (float)AOSound::AOSound_GetSampleRate();
-#endif
+    ratioFactor = 32000.0f / (float)soundStream->GetSampleRate();
 
 	DoVoiceHacks(pb, Wii);
 
