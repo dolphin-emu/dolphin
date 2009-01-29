@@ -185,11 +185,11 @@ void ConfigDialog::LoadFile()
 
 		// Movement name
 		std::string TmpMovementName; file.Get(SaveName.c_str(), "MovementName", &TmpMovementName, "");
-		m_RecordText[i]->SetValue(TmpMovementName.c_str());
+		m_RecordText[i]->SetValue(wxString::FromAscii(TmpMovementName.c_str()));
 
 		// Game name
 		std::string TmpGameName; file.Get(SaveName.c_str(), "GameName", &TmpGameName, "");
-		m_RecordGameText[i]->SetValue(TmpGameName.c_str());
+		m_RecordGameText[i]->SetValue(wxString::FromAscii(TmpGameName.c_str()));
 
 		// Recording speed
 		int TmpRecordSpeed; file.Get(SaveName.c_str(), "RecordingSpeed", &TmpRecordSpeed, -1);
@@ -561,7 +561,7 @@ void ConfigDialog::Update(wxTimerEvent& WXUNUSED(event))
 {
 	m_bWaitForRecording = false;
 	m_bRecording = false;
-	m_RecordButton[m_iRecordTo]->SetLabel("");
+	m_RecordButton[m_iRecordTo]->SetLabel(wxT(""));
 	UpdateGUI();
 }
 
@@ -583,11 +583,11 @@ void ConfigDialog::RecordMovement(wxCommandEvent& event)
 		{
 			if(!AskYesNo("Do you want to replace the current recording?")) return;
 		}
-		m_RecordButton[m_iRecordTo]->SetLabel("Hold A");
+		m_RecordButton[m_iRecordTo]->SetLabel(wxT("Hold A"));
 	}
 	else
 	{
-		m_RecordButton[m_iRecordTo]->SetLabel("Press +");
+		m_RecordButton[m_iRecordTo]->SetLabel(wxT("Press +"));
 		return;
 	}
 
@@ -618,7 +618,7 @@ void ConfigDialog::DoRecordA(bool Pressed)
 	// Start recording, only run this once
 	if(m_bRecording && m_bWaitForRecording)
 	{
-		m_RecordButton[m_iRecordTo]->SetLabel("Recording...");
+		m_RecordButton[m_iRecordTo]->SetLabel(wxT("Recording..."));
 		m_vRecording.clear(); // Clear the list
 		m_TimeoutTimer->Stop();
 		m_bWaitForRecording = false;
@@ -626,7 +626,7 @@ void ConfigDialog::DoRecordA(bool Pressed)
 	// The recording is done
 	else
 	{
-		m_RecordButton[m_iRecordTo]->SetLabel("Done");
+		m_RecordButton[m_iRecordTo]->SetLabel(wxT("Done"));
 		Console::Print("Done: %i %i\n", m_bWaitForRecording, m_bRecording);
 		//m_bAllowA = true;
 		ConvertToString();
@@ -653,7 +653,7 @@ void ConfigDialog::DoRecordMovement(u8 _x, u8 _y, u8 _z)
 	if (m_vRecording.size() > (10*1024 / 7 - 2) )
 	{
 		m_bRecording = false;
-		m_RecordButton[m_iRecordTo]->SetLabel("Done");
+		m_RecordButton[m_iRecordTo]->SetLabel(wxT("Done"));
 		ConvertToString();
 		UpdateGUI();
 	}
@@ -817,6 +817,9 @@ void ConfigDialog::UpdateGUI()
 	m_ConnectRealWiimote->Enable(!g_EmulatorRunning);
 	m_UseRealWiimote->Enable(g_RealWiiMotePresent && g_Config.bConnectRealWiimote);
 
+// Linux has no FindItem()
+#ifdef _WIN32
 	for(int i = IDB_RECORD + 1; i < (IDB_RECORD + RECORDING_ROWS + 1); i++)
 		if(ControlsCreated) m_Notebook->FindItem(i)->Enable(!(m_bWaitForRecording || m_bRecording));
+#endif
 }
