@@ -254,3 +254,25 @@ void Video_AddMessage(const char* pstr, u32 milliseconds)
 {
 	Renderer::AddMessage(pstr,milliseconds);
 }
+
+void Video_UpdateXFB(u8* _pXFB, u32 _dwWidth, u32 _dwHeight, s32 _dwYOffset, bool scheduling)
+{
+	if(g_Config.bUseXFB && XFB_isInit())
+	{
+		if (scheduling) // from CPU in DC without fifo&CP (some 2D homebrews)
+		{
+			XFB_SetUpdateArgs(_pXFB, _dwWidth, _dwHeight, _dwYOffset);
+			g_XFBUpdateRequested = TRUE;
+		}
+		else
+		{
+			if (_pXFB) // from CPU in SC mode
+				XFB_Draw(_pXFB, _dwWidth, _dwHeight, _dwYOffset);
+			else // from GP in DC without fifo&CP (some 2D homebrews)
+			{
+				XFB_Draw();
+				g_XFBUpdateRequested = FALSE;
+			}
+		}
+	}
+}
