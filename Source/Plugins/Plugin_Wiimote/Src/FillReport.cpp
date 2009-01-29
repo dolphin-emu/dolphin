@@ -70,8 +70,8 @@ void RecordingPlay(u8 &_x, u8 &_y, u8 &_z)
 	// Return if the playback speed is unset
 	if(VRecording.at(g_RecordingPlaying).PlaybackSpeed < 0)
 	{
+		Console::Print("PlaybackSpeed empty: %i\n\n", g_RecordingPlaying);
 		g_RecordingPlaying = -1;
-		Console::Print("PlaybackSpeed empty\n\n");
 		return;
 	}
 
@@ -158,7 +158,13 @@ int RecordingCheckKeys(bool Wiimote)
 	bool Match = false;
 	for(int i = 0; i < RECORDING_ROWS; i++)
 	{
-		if (VRecording.at(i).HotKey == Key) Match = true;
+		if (VRecording.at(i).HotKey == Key)
+		{
+			//Console::Print("Match: %i %i\n", i, Key);
+			Match = true;
+			Key = i;
+			break;
+		}
 	}
 
 	// Return nothing if we don't have a match
