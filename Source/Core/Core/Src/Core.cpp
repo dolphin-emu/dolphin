@@ -96,11 +96,8 @@ TPeekMessages Callback_PeekMessages = NULL;
 TUpdateFPSDisplay g_pUpdateFPSDisplay = NULL;
  
 // Function declarations
-#ifdef _WIN32
-	DWORD WINAPI EmuThread(void *pArg);
-#else
-	void *EmuThread(void *pArg);
-#endif
+THREAD_RETURN EmuThread(void *pArg);
+
 void Stop();
  
 bool g_bHwInit = false;
