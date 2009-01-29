@@ -17,14 +17,22 @@
 
 #ifndef __NULLSOUNDSTREAM_H__
 #define __NULLSOUNDSTREAM_H__
+
 #include "SoundStream.h"
 
 class NullSound : public SoundStream
-{
+{   
 public:
+    NullSound(int _sampleRate, StreamCallback _callback) :
+        SoundStream(_sampleRate, _callback) {}
+    
+    virtual ~NullSound() {}
 
-	NullSound(int _sampleRate, StreamCallback _callback, void *hWnd = NULL) :
-	  SoundStream(_sampleRate, _callback) {}
+    virtual bool isValid() {
+        return true;
+    }  
+
+	virtual bool Start() { return true; }
 };
 
 #endif //__NULLSOUNDSTREAM_H__
