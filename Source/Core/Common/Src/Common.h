@@ -61,10 +61,12 @@
 // Function Cross-Compatibility
 #ifdef _WIN32
 #define strcasecmp _stricmp
+#define strncasecmp _strnicmp
 #define unlink _unlink
 #define snprintf _snprintf
 #else
 #define _stricmp strcasecmp
+#define _strnicmp strncasecmp
 #define _unlink unlink
 #define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
 #endif
