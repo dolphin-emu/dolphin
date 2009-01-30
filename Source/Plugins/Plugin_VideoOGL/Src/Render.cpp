@@ -24,7 +24,7 @@
 #include <vector>
 #include <cmath>
 
-#include "nGLUtil.h"
+#include "GLUtil.h"
 
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>

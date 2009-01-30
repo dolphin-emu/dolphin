@@ -15,7 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "nGLUtil.h"
+#include "GLUtil.h"
 #include "Profiler.h"
 #include "x64Emitter.h"
 #include "ABI.h"

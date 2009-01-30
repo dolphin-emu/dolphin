@@ -22,7 +22,6 @@
 #include "Globals.h"
 #include "Config.h"
 #include "ImageWrite.h"
-#include "nGLUtil.h"
 #include "Render.h"
 
 namespace TextureConverter

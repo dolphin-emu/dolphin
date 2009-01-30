@@ -19,7 +19,7 @@
 // Preliminary non-working code.
 
 #include "Globals.h"
-#include "nGLUtil.h"
+#include "GLUtil.h"
 #include "MemoryUtil.h"
 #include "Render.h"
 #include "TextureMngr.h"

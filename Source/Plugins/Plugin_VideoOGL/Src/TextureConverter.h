@@ -19,7 +19,7 @@
 #define _TEXTURECONVERTER_H
 
 #include "VideoCommon.h"
-#include "nGLUtil.h"
+#include "GLUtil.h"
 
 // Converts textures between formats
 // TODO: support multiple texture formats

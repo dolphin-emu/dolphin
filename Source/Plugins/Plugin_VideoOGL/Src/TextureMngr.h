@@ -21,7 +21,7 @@
 #include <map>
 
 #include "VideoCommon.h"
-#include "nGLUtil.h"
+#include "GLUtil.h"
 #include "BPStructs.h"
 
 class TextureMngr
