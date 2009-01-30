@@ -157,7 +157,8 @@ void Flush()
 	GL_REPORT_ERRORD();
 
 	// setup the pointers
-	g_nativeVertexFmt->SetupVertexPointers();
+	if(g_nativeVertexFmt)
+		g_nativeVertexFmt->SetupVertexPointers();
 	GL_REPORT_ERRORD();
 
 	// set the textures

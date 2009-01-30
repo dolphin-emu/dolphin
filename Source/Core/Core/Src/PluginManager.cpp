@@ -347,7 +347,8 @@ Common::PluginVideo *CPluginManager::GetVideo()
 // -------------
 Common::PluginVideo *CPluginManager::FreeVideo()
 {
-	delete m_video;
+	if(m_video)
+		delete m_video;
 	m_video = NULL;
 	m_video = (Common::PluginVideo*)LoadPlugin(m_params.m_strVideoPlugin.c_str(), 0);
 	return m_video;
