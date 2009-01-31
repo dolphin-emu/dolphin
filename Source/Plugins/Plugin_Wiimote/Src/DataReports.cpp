@@ -180,7 +180,7 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 	FillReportInfo(pReport->c);
 	FillReportAcc(pReport->a);
 
-	// We settle with emulating two objects, not all four
+	// We settle with emulating two objects, not all four. We leave object 2 and 3 with zero.
 	FillReportIR(pReport->ir[0], pReport->ir[1]);
 
 	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccelIr12()");

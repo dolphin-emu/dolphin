@@ -34,6 +34,7 @@
 #include "main.h"
 #include "Config.h"
 #include "EmuMain.h"
+#include "EmuDefinitions.h"
 #define EXCLUDE_H // Avoid certain declarations in wiimote_real.h
 #include "wiimote_real.h"
 #if defined(HAVE_WX) && HAVE_WX
@@ -242,6 +243,15 @@ void SendEvent(SEvent& _rEvent)
 
     memcpy(&Buffer[Offset], _rEvent.m_PayLoad, MAX_PAYLOAD);
     Offset += MAX_PAYLOAD;
+
+	/* Debugging 
+	//if(GetAsyncKeyState('V'))
+	{
+		std::string Temp = ArrayToString(Buffer, Offset, 0, 30);
+		Console::ClearScreen();
+		Console::Print("Reporting Mode: 0x%02x\n", WiiMoteEmu::g_ReportingMode);
+		Console::Print("DataFrame: %s\n", Temp.c_str());
+	}*/
 
     g_WiimoteInitialize.pWiimoteInput(m_channelID, Buffer, Offset);
 }

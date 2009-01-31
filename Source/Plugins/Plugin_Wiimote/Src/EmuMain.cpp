@@ -57,30 +57,41 @@ u16 convert16bit(const u8* src) {
 
 
 // ===================================================
-/* Calibrate the mouse position to the emulation window. */
+/* Calibrate the mouse position to the emulation window. g_WiimoteInitialize.hWnd is the rendering window handle. */
 // ----------------
 void GetMousePos(float& x, float& y)
 {
 #ifdef _WIN32
 	POINT point;
-
+	// Get the cursor position for the entire screen
 	GetCursorPos(&point);
+	// Get the cursor position relative to the upper left corner of the rendering window
 	ScreenToClient(g_WiimoteInitialize.hWnd, &point);
 
+	// Get the size of the rendering window. In my case top and left was zero.
 	RECT Rect;
 	GetClientRect(g_WiimoteInitialize.hWnd, &Rect);
-
+	// Width and height is the size of the rendering window
 	int width = Rect.right - Rect.left;
 	int height = Rect.bottom - Rect.top;
 
+	// Return the mouse position as a fraction of one
 	x = point.x / (float)width;
 	y = point.y / (float)height;
+
+	/*
+	Console::ClearScreen();
+	Console::Print("GetCursorPos: %i %i\n", point.x, point.y);
+	Console::Print("GetClientRect: %i %i  %i %i\n", Rect.left, Rect.right, Rect.top, Rect.bottom);
+	Console::Print("x and y: %f %f\n", x, y);
+	*/
 #else
-        // TODO fix on linux
+    // TODO fix on linux
 	x = 0.5f;
 	y = 0.5f;
 #endif
 }
+// ==============
 
 
 // ===================================================

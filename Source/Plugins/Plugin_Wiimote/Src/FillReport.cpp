@@ -197,11 +197,15 @@ void FillReportInfo(wm_core& _core)
 	// These keys are reserved for the recording
 	if ( GetAsyncKeyState(VK_SHIFT) || GetAsyncKeyState(VK_CONTROL) ) return;
 
+	// Check the mouse position. Don't allow mouse clicks from outside the window.
+	float x, y; GetMousePos(x, y);
+	bool InsideScreen = !(x < 0 || x > 1 || y < 0 || y > 1);
+
 	// Allow both mouse buttons and keyboard to press a and b
-	if(GetAsyncKeyState(VK_LBUTTON) ? 1 : 0 || GetAsyncKeyState('A') ? 1 : 0)
+	if((GetAsyncKeyState(VK_LBUTTON) && InsideScreen) || GetAsyncKeyState('A') ? 1 : 0)
 		_core.a = 1;
 
-	if(GetAsyncKeyState(VK_RBUTTON) ? 1 : 0 || GetAsyncKeyState('B') ? 1 : 0)
+	if((GetAsyncKeyState(VK_RBUTTON) && InsideScreen) || GetAsyncKeyState('B') ? 1 : 0)
 		_core.b = 1;
 
 	_core.one = GetAsyncKeyState('1') ? 1 : 0;
@@ -447,6 +451,9 @@ void FillReportAcc(wm_accel& _acc)
 /////////////////////////
 
 
+///////////////////////////////////////////////////////////////////
+// The extended 12 byte (3 byte per object) reporting
+// ---------------
 void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 {
 
@@ -465,12 +472,16 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 		Bottom = BOTTOM; SensorBarRadius = SENSOR_BAR_RADIUS;		
 	}
 
-	// Fill with 0xff (0r 0x00?) if empty
-	memset(&_ir0, 0x00, sizeof(wm_ir_extended));
-	memset(&_ir1, 0x00, sizeof(wm_ir_extended));
+	/* Fill with 0xff if empty. The real Wiimote seems to use 0xff when it sees to ojbects, at least from
+	   how WiiMoteReal::SendEvent() works. */
+	memset(&_ir0, 0xff, sizeof(wm_ir_extended));
+	memset(&_ir1, 0xff, sizeof(wm_ir_extended));
 
 	float MouseX, MouseY;
 	GetMousePos(MouseX, MouseY);
+
+	// If we are outside the screen leave the values at 0xff
+	if(MouseX > 1 || MouseX < 0 || MouseY > 1 || MouseY < 0) return;
 
 	int y0 = Top + (MouseY * (Bottom - Top));
 	int y1 = Top + (MouseY * (Bottom - Top));
@@ -548,12 +559,15 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 		Bottom = BOTTOM; SensorBarRadius = SENSOR_BAR_RADIUS;		
 	}
 
-	// Fill with 0x00 if empty
-	memset(&_ir0, 0x00, sizeof(wm_ir_basic));
-	memset(&_ir1, 0x00, sizeof(wm_ir_basic));
+	// Fill with 0xff if empty
+	memset(&_ir0, 0xff, sizeof(wm_ir_basic));
+	memset(&_ir1, 0xff, sizeof(wm_ir_basic));
 
 	float MouseX, MouseY;
 	GetMousePos(MouseX, MouseY);
+
+	// If we are outside the screen leave the values at 0xff
+	if(MouseX > 1 || MouseX < 0 || MouseY > 1 || MouseY < 0) return;
 
 	int y1 = Top + (MouseY * (Bottom - Top));
 	int y2 = Top + (MouseY * (Bottom - Top));
