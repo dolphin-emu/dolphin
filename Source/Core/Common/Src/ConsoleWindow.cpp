@@ -16,40 +16,33 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Includes
-// -------------
 #include <string> // System: To be able to add strings with "+"
 #include <stdio.h>
 #ifdef _WIN32
 	#include <windows.h>
+#else
+#include <stdarg.h>
 #endif
 
 #include "Common.h"
 #include "ConsoleWindow.h" // Common
-///////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Declarations and definitions
-// -------------
 
 namespace Console
 {
 
 // Create handles
-#ifdef _WIN32
 	FILE* __fStdOut = NULL;
+#ifdef _WIN32
 	HANDLE __hStdOut = NULL;
 #endif
 
-//////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
 /* Start console window - width and height is the size of console window, if you enable
    File the output will also be written to this file. */
-// -------------
 void Open(int Width, int Height, char * Name, bool File)
 {
 #ifdef _WIN32
@@ -71,9 +64,9 @@ void Open(int Width, int Height, char * Name, bool File)
 	SMALL_RECT coo = {0,0, (Width - 1),50}; // Top, left, right, bottom
 	SetConsoleWindowInfo(__hStdOut, TRUE, &coo);
 
-	// -----------------------------------------
+
+#endif
 	// Create a file and a file handle if File is enabled and we don't already have a file handle
-	// -------------
 	if(File && !__fStdOut)
 	{
 		// Edit the log file name
@@ -84,33 +77,28 @@ void Open(int Width, int Height, char * Name, bool File)
 		// Open the file handle
 		__fStdOut = fopen(FullFilename.c_str(), "w");
 	}
-	// ---------------
-#endif
+
 }
-//////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 /* Close the console window and close the eventual file handle */
-// -------------
 void Close()
 {
 #ifdef _WIN32
 	FreeConsole(); // Close the console window
-	if(__fStdOut) fclose(__fStdOut); // Close the file handle
 #endif
+	if(__fStdOut) fclose(__fStdOut); // Close the file handle
+
 }
-//////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Print to screen and file
-// -------------
 int Print(const char *fmt, ...)
 {
 #if defined(_WIN32)
 	if(__hStdOut)
 	{
+#endif
 		char s[1024*20]; // Warning, mind this value
 		va_list argptr;
 		int cnt; // To store the vsnprintf return message
@@ -119,41 +107,34 @@ int Print(const char *fmt, ...)
 		cnt = vsnprintf(s, 500, fmt, argptr);
 		va_end(argptr);
 
+
+#if defined(_WIN32)
 		DWORD cCharsWritten; // We will get a value back here
 
-		// ------------------------------------------
-		// Write to console
-		// ----------------
-		if(__hStdOut)
-		{
-			WriteConsole(__hStdOut, s, (DWORD)strlen(s), &cCharsWritten, NULL);
-		}
-
-		// ----------------------------------------
+		WriteConsole(__hStdOut, s, (DWORD)strlen(s), &cCharsWritten, NULL);
+#else
+		fprintf(stderr, "%s", s);
+#endif
 		// Write to the file
-		// ----------------
 		if(__fStdOut)
 		{
-			fprintf(__fStdOut, s);
-			fflush(__fStdOut); // Write file now, don't wait
+		    fprintf(__fStdOut, "%s", s);
+		    fflush(__fStdOut); // Write file now, don't wait
 		}
 
 		return(cnt);
-	}
-	else
+	
+#if defined(_WIN32) 
+	} else
 	{
 		return 0;
 	}
-#else
-	return 0;
 #endif
+
 }
-/////////////////////////////
 
 
-// =======================================================================================
 // Clear console screen
-// ---------------
 void ClearScreen() 
 { 
 #if defined(_WIN32)
@@ -177,13 +158,10 @@ void ClearScreen()
 	}
 #endif
 }
-// =====================
 
 
-// =======================================================================================
-/* Get window handle of console window to be able to resize it. We use GetConsoleTitle() and
-   FindWindow() to locate the console window handle. */
-// ---------------
+/* Get window handle of console window to be able to resize it. We use
+   GetConsoleTitle() and FindWindow() to locate the console window handle. */
 #if defined(_WIN32)
 HWND GetHwnd(void)
 {
@@ -213,6 +191,5 @@ HWND GetHwnd(void)
    return(hwndFound);
 }
 #endif // _WIN32
-// =====================
 
 } // namespace

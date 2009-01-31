@@ -15,9 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Include
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <string> // System
 #include <vector>
 
@@ -29,19 +27,11 @@
 #include "PluginManager.h"
 #include "ConfigManager.h"
 #include "Frame.h"
-//////////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Declarations and definitions
-// ¯¯¯¯¯¯¯¯¯¯
 extern CFrame* main_frame;
-///////////////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Event table
-// ¯¯¯¯¯¯¯¯¯¯
 BEGIN_EVENT_TABLE(CConfigMain, wxDialog)
 
 EVT_CLOSE(CConfigMain::OnClose)
@@ -89,12 +79,8 @@ EVT_CHOICE(ID_WIIMOTE_CB, CConfigMain::OnSelectionChanged)
 EVT_BUTTON(ID_WIIMOTE_CONFIG, CConfigMain::OnConfig)
 
 END_EVENT_TABLE()
-////////////////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Window class
-// ¯¯¯¯¯¯¯¯¯¯
 CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
@@ -129,12 +115,9 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 CConfigMain::~CConfigMain()
 {
 }
-////////////////////////////////////////////
 
 
-// ====================================================================
 // Enable or disable objects
-// -------------
 void CConfigMain::UpdateGUI()
 {
 	if(Core::GetState() != Core::CORE_UNINITIALIZED)
@@ -147,7 +130,7 @@ void CConfigMain::UpdateGUI()
 		OptimizeQuantizers->Disable();
 		SkipIdle->Disable();
 		EnableCheats->Disable();
-		// --------
+
 		GamecubePage->Disable();
 		WiiPage->Disable();
 		PathsPage->Disable();
@@ -187,13 +170,9 @@ void CConfigMain::CreateGUIControls()
 	Notebook->AddPage(PluginPage, wxT("Plugins"));
 
 
-	//////////////////////////////////
 	// General page
-	// --------
 
-	// -----------------------------------
 	// Core Settings
-	// -----------
 	// Basic Settings
 	UseDualCore = new wxCheckBox(GeneralPage, ID_USEDUALCORE, wxT("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UseDualCore->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);
@@ -211,9 +190,8 @@ void CConfigMain::CreateGUIControls()
 	OptimizeQuantizers = new wxCheckBox(GeneralPage, ID_OPTIMIZEQUANTIZERS, wxT("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	OptimizeQuantizers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bOptimizeQuantizers);
 
-	// -----------------------------------
 	// Interface settings
-	// -----------
+
 	// Confirm on stop
 	ConfirmStop = new wxCheckBox(GeneralPage, ID_INTERFACE_CONFIRMSTOP, wxT("Confirm On Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	ConfirmStop->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop);
@@ -308,9 +286,7 @@ void CConfigMain::CreateGUIControls()
 	sGeneralPage->Layout();
 
 
-	//////////////////////////////////
 	// Gamecube page
-	// --------
 	sbGamecubeIPLSettings = new wxStaticBoxSizer(wxVERTICAL, GamecubePage, wxT("IPL Settings"));
 /*
 	arrayStringFor_GCSystemLang.Add(wxT("English"));
@@ -334,9 +310,7 @@ void CConfigMain::CreateGUIControls()
 	sGamecube->Layout();
 
 
-	//////////////////////////////////
 	// Wii page
-	// --------
 	sbWiimoteSettings = new wxStaticBoxSizer(wxVERTICAL, WiiPage, wxT("Wiimote Settings"));
 	arrayStringFor_WiiSensBarPos.Add(wxT("Bottom")); arrayStringFor_WiiSensBarPos.Add(wxT("Top"));
 	WiiSensBarPosText = new wxStaticText(WiiPage, ID_WII_BT_BAR_TEXT, wxT("Sensor Bar Position:"), wxDefaultPosition, wxDefaultSize);
@@ -384,9 +358,7 @@ void CConfigMain::CreateGUIControls()
 	sWii->Layout();
 
 
-	//////////////////////////////////
 	// Paths page
-	// --------
 	sbISOPaths = new wxStaticBoxSizer(wxVERTICAL, PathsPage, wxT("ISO Directories"));
 	ISOPaths = new wxListBox(PathsPage, ID_ISOPATHS, wxDefaultPosition, wxDefaultSize, arrayStringFor_ISOPaths, wxLB_SINGLE, wxDefaultValidator);
 	AddISOPath = new wxButton(PathsPage, ID_ADDISOPATH, wxT("Add..."), wxDefaultPosition, wxDefaultSize, 0);
@@ -424,9 +396,7 @@ void CConfigMain::CreateGUIControls()
 	PathsPage->SetSizer(sPaths);
 	sPaths->Layout();
 
-	//////////////////////////////////
 	// Plugins page
-	// --------
 	sbGraphicsPlugin = new wxStaticBoxSizer(wxHORIZONTAL, PluginPage, wxT("Graphics"));
 	GraphicSelection = new wxChoice(PluginPage, ID_GRAPHIC_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
 	GraphicConfig = new wxButton(PluginPage, ID_GRAPHIC_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -523,9 +493,7 @@ void CConfigMain::CloseClick(wxCommandEvent& WXUNUSED (event))
 
 
 
-// ====================================================================
 // Core settings
-// -------------
 void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -587,13 +555,10 @@ void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 		break;
 	}
 }
-// ==========================
 
 
 
-// ====================================================================
 // Wii settings
-// -------------
 void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -619,13 +584,10 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 		break;
 	}
 }
-// ==========================
 
 
 
-// ====================================================================
 // Paths settings
-// -------------
 void CConfigMain::ISOPathsSelectionChanged(wxCommandEvent& WXUNUSED (event))
 {
 	if (!ISOPaths->GetStringSelection().empty())
@@ -684,9 +646,7 @@ void CConfigMain::DVDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
 }
 
 
-// =======================================================
 // Plugins settings
-// -------------
 
 // Update plugin filenames
 void CConfigMain::OnSelectionChanged(wxCommandEvent& WXUNUSED (event))
@@ -731,7 +691,7 @@ void CConfigMain::CallConfig(wxChoice* _pChoice)
 		const CPluginInfo* pInfo = static_cast<CPluginInfo*>(_pChoice->GetClientData(Index));
 
 		if (pInfo != NULL)
-			CPluginManager::GetInstance().OpenConfig((HWND) this->GetHandle(), pInfo->GetFileName().c_str(), pInfo->GetPluginInfo().Type);
+			CPluginManager::GetInstance().OpenConfig((HWND) this->GetHandle(), pInfo->GetFilename().c_str(), pInfo->GetPluginInfo().Type);
 	}
 }
 
@@ -754,7 +714,7 @@ void CConfigMain::FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::
 			temp = wxString::FromAscii(rInfos[i].GetPluginInfo().Name);
 			int NewIndex = _pChoice->Append(temp, (void*)&rInfos[i]);
 
-			if (rInfos[i].GetFileName() == _SelectFilename)
+			if (rInfos[i].GetFilename() == _SelectFilename)
 			{
 				Index = NewIndex;
 			}
@@ -772,7 +732,7 @@ bool CConfigMain::GetFilename(wxChoice* _pChoice, std::string& _rFilename)
 	if (Index >= 0)
 	{
 		const CPluginInfo* pInfo = static_cast<CPluginInfo*>(_pChoice->GetClientData(Index));
-		_rFilename = pInfo->GetFileName();
+		_rFilename = pInfo->GetFilename();
 		Console::Print("GetFilename: %i %s\n", Index, _rFilename.c_str());
 		return(true);
 	}
@@ -791,4 +751,3 @@ void CConfigMain::InterfaceLanguageChanged( wxCommandEvent& event )
 	bRefreshList = true;
 	bRefreshCache = true;
 }
-// ==========================

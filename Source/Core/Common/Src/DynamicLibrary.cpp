@@ -65,7 +65,7 @@ std::string GetLastErrorAsString()
 		static std::string errstr;
 		char *tmp = dlerror();
 		if (tmp)
-			errstr = tmp;
+		    errstr = tmp;
 		
 		return errstr;
 	#endif
@@ -121,7 +121,8 @@ int DynamicLibrary::Unload()
 	Console::Print("FreeLibrary: %i\n", library_file.c_str());
 	retval = FreeLibrary(library);
 #else
-    retval = dlclose(library)?0:1;
+	Console::Print("FreeLibrary: %i\n", library_file.c_str());
+	retval = dlclose(library)?0:1;
 #endif
     if (!retval) {
         PanicAlert("Error unloading DLL %s: %s", library_file.c_str(),

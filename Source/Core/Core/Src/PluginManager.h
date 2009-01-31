@@ -32,11 +32,11 @@ public:
 	CPluginInfo(const char *_rFileName);
 	bool IsValid() const {return(m_Valid);}
 	const PLUGIN_INFO& GetPluginInfo() const {return(m_PluginInfo);}
-	const std::string& GetFileName() const {return(m_FileName);}
+	const std::string& GetFilename() const {return(m_Filename);}
 
 private:
 	PLUGIN_INFO m_PluginInfo;
-	std::string m_FileName;
+	std::string m_Filename;
 	bool m_Valid;
 };
 
@@ -50,8 +50,9 @@ public:
 	Common::PluginWiimote *GetWiimote(int controller);
 	Common::PluginDSP *GetDSP();
 	Common::PluginVideo *GetVideo();
-	Common::PluginPAD *FreePad();
-	Common::PluginVideo *FreeVideo();
+
+	void FreePad(u32 pad);
+	void FreeVideo();
 
 	bool InitPlugins();
 	void ShutdownPlugins();

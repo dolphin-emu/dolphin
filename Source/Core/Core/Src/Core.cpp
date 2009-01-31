@@ -354,7 +354,7 @@ THREAD_RETURN EmuThread(void *pArg)
 			if(PADInitialize.padNumber == -1)
 			{
 				Plugins.GetPad(i)->Shutdown();
-				Plugins.FreePad();
+				Plugins.FreePad(i);
 				Plugins.GetPad(i)->Initialize(&PADInitialize);
 			}
 		}
