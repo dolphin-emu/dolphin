@@ -63,7 +63,7 @@ private:
 class Win32Window : public GLWindow 
 {
 public:
-	Win32Window {}
+    Win32Window() {}
 };
 
 #endif //_WIN32

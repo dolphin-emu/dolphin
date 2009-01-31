@@ -150,8 +150,10 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
 void DllConfig(HWND _hParent)
 {
 	wxWindow * win = new wxWindow();
+#ifdef _WIN32
 	win->SetHWND((WXHWND)_hParent);
 	win->AdoptAttributesFromHWND();
+#endif
 	//win->Reparent(wxGetApp().GetTopWindow());
 	ConfigDialog *frame = new ConfigDialog(win);
 	g_Config.Load();
