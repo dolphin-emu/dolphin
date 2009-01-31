@@ -17,14 +17,9 @@
 
  
 
-// =======================================================
-// File description
-// -------------
-/* This file is a simpler version of Plugin_...cpp found in Core. This file only loads
-   the config and debugging windows and works with all plugins. */
-// =============
+/* This file is a simpler version of Plugin_...cpp found in Core. This file
+   only loads the config and debugging windows and works with all plugins. */
 
- 
 #include "Plugin.h"
 
 namespace Common
@@ -35,7 +30,7 @@ CPlugin::~CPlugin()
     m_hInstLib.Unload();
 }
 
-CPlugin::CPlugin(const char* _szName) : valid(false)
+CPlugin::CPlugin(const char* _szName) : valid(false) 
 {
 
     m_GetDllInfo = NULL;
@@ -82,7 +77,7 @@ void *CPlugin::LoadSymbol(const char *sym) {
 }
 
 
-// ______________________________________________________________________________________
+
 // GetInfo: Get DLL info
 bool CPlugin::GetInfo(PLUGIN_INFO& _pluginInfo) {
     if (m_GetDllInfo != NULL) {
@@ -93,7 +88,7 @@ bool CPlugin::GetInfo(PLUGIN_INFO& _pluginInfo) {
     return(false);
 }
 
-// ______________________________________________________________________________________
+
 // Config: Open the Config window
 void CPlugin::Config(HWND _hwnd)
 {
@@ -102,7 +97,7 @@ void CPlugin::Config(HWND _hwnd)
 }
 
 
-// ______________________________________________________________________________________
+
 // Debug: Open the Debugging window
 void CPlugin::Debug(HWND _hwnd, bool Show)
 {

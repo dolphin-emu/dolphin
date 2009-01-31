@@ -3,6 +3,14 @@
 namespace Common {
     PluginVideo::PluginVideo(const char *_Filename) : CPlugin(_Filename), validVideo(false) {
   
+	Video_Prepare = 0;
+	Video_SendFifoData = 0;
+	Video_UpdateXFB = 0;
+	Video_EnterLoop = 0;
+	Video_Screenshot = 0;
+	Video_AddMessage = 0;
+	Video_Stop = 0;
+
 	Video_Prepare  = reinterpret_cast<TVideo_Prepare>      
 	    (LoadSymbol("Video_Prepare"));
 	Video_SendFifoData = reinterpret_cast<TVideo_SendFifoData>
@@ -28,6 +36,5 @@ namespace Common {
 	    validVideo = true;
     }
 
-    PluginVideo::~PluginVideo() {
-    }
+    PluginVideo::~PluginVideo() {}
 }

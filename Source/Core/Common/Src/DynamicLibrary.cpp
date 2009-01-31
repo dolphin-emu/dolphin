@@ -92,13 +92,13 @@ int DynamicLibrary::Load(const char* filename)
             return 2;
 	}
 
+	Console::Print("LoadLibrary: %s", filename);
 #ifdef _WIN32
-	Console::Print("LoadLibrary: %s\n", filename);
 	library = LoadLibrary(filename);
 #else
 	library = dlopen(filename, RTLD_NOW | RTLD_LOCAL);
 #endif
-        
+	Console::Print(" %p\n", library); 
 	if (!library) {
             LOG(MASTER_LOG, "Error loading DLL %s: %s", filename, GetLastErrorAsString().c_str());
             PanicAlert("Error loading DLL %s: %s\n", filename, GetLastErrorAsString().c_str());
@@ -116,15 +116,15 @@ int DynamicLibrary::Unload()
         PanicAlert("Error unloading DLL %s: not loaded", library_file.c_str());
         return 0;
     }
-        
+
+    Console::Print("FreeLibrary: %s %p\n", library_file.c_str(), library);        
 #ifdef _WIN32
-	Console::Print("FreeLibrary: %i\n", library_file.c_str());
-	retval = FreeLibrary(library);
+    retval = FreeLibrary(library);
 #else
-	Console::Print("FreeLibrary: %i\n", library_file.c_str());
-	retval = dlclose(library)?0:1;
+    retval = dlclose(library)?0:1;
 #endif
-    if (!retval) {
+
+    if (! retval) {
         PanicAlert("Error unloading DLL %s: %s", library_file.c_str(),
                    GetLastErrorAsString().c_str());
     }

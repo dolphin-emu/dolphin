@@ -133,24 +133,32 @@ bool CPluginManager::InitPlugins()
 
 void CPluginManager::ShutdownPlugins()
 {
-    // Check if we can shutdown the plugin
     for (int i = 0; i < MAXPADS; i++) {
 	if (m_pad[i] && OkayToInitPlugin(i)) {
-	    //Console::Print("Shutdown: %i\n", i);
-	    m_pad[i]->Shutdown();
-	    //delete m_pad[i];
-	}		
-	//m_pad[i] = NULL;
+	    Console::Print("Delete: %i\n", i);
+	    delete m_pad[i];
+	}
+	m_pad[i] = NULL;
     }
 
-    for (int i = 0; i < MAXWIIMOTES; i++)
+    for (int i = 0; i < MAXWIIMOTES; i++) {
 	if (m_wiimote[i]) m_wiimote[i]->Shutdown();
-    
+    }
+
+    for (int i = 0; i < MAXWIIMOTES; i++) {
+	delete m_wiimote[i];
+	m_wiimote[i] = NULL;
+    }
+
     if (m_video)
 	m_video->Shutdown();
-    
+    delete m_video;
+    m_video = NULL;
+
     if (m_dsp)
 	m_dsp->Shutdown();
+    delete m_dsp;
+    m_dsp = NULL;
 }
 
 // Supporting functions
@@ -266,9 +274,9 @@ Common::PluginPAD *CPluginManager::GetPad(int controller)
 	Console::Print("LoadPlugin: %i\n", controller);
     }
     else {
-	    Console::Print("Pointed: %i to %i\n", controller, OkayToInitPlugin(controller));
-	    m_pad[controller] = m_pad[OkayToInitPlugin(controller)];
-	}	
+	Console::Print("Pointed: %i to %i\n", controller, OkayToInitPlugin(controller));
+	m_pad[controller] = m_pad[OkayToInitPlugin(controller)];
+    }	
     return m_pad[controller];
 }
 
@@ -295,10 +303,13 @@ Common::PluginDSP *CPluginManager::GetDSP()
 
 Common::PluginVideo *CPluginManager::GetVideo()
 {
-    if (m_video != NULL)
-	if (m_video->GetFilename() == m_params.m_strVideoPlugin)
+    if (m_video != NULL && m_video->IsValid()) {
+	if (m_video->GetFilename() == m_params.m_strVideoPlugin) {
 	    return m_video;
-    
+	} else
+	    FreeVideo();
+    }
+
     // Else load a new plugin
     m_video = (Common::PluginVideo*)LoadPlugin(m_params.m_strVideoPlugin.c_str());
     return m_video;
