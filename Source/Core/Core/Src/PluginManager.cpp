@@ -101,18 +101,17 @@ CPluginManager::~CPluginManager()
 // Point the m_pad[] and other variables to a certain plugin
 bool CPluginManager::InitPlugins()
 {
-
-    if (! GetVideo())
-	{
-		PanicAlert("Can't init Video Plugin");
-		return false;
-    }
-
     if (! GetDSP())
 	{
 		PanicAlert("Can't init DSP Plugin");
 		return false;
     }
+
+	if (! GetVideo())
+	{
+		PanicAlert("Can't init Video Plugin");
+		return false;
+	}
 
 	// Check if we get at least one pad or wiimote
     bool pad = false;
