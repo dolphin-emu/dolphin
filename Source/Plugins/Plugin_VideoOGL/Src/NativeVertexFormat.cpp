@@ -31,7 +31,9 @@
 u32 s_prevcomponents; // previous state set
 
 #ifdef _WIN32
+#ifdef _M_IX86
 #define USE_JIT
+#endif
 #endif
 
 // Note the use of CallCdeclFunction3I etc.
