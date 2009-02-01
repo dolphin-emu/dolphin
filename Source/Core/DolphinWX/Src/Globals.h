@@ -16,27 +16,16 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-////////////////////////////////////////////////////////////////////////////////////////
-// File description
-/* ¯¯¯¯¯¯¯¯¯
-
-   This file is global in the DolphinWX and DebuggerWX projects.
-
-////////////////////////*/
-
-
-////////////////////////////////////////////////////////////////////////////////////////
-// Settings
-// ¯¯¯¯¯¯¯¯¯
-// Build with music modification. Define MUSICMOD here.
-#include "../../../Branches/MusicMod/Main/Src/Setup.h"
-//////////////////////////
-
+// This holds global data for DolphinWx and DebuggerWx
 
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
 #include "Common.h"
+#include "../../../Branches/MusicMod/Main/Src/Setup.h" // Build with music modification. Define MUSICMOD here.
+
+// Constant Colors
+const unsigned long COLOR_GRAY = 0xDCDCDC;
 
 enum
 {
@@ -70,6 +59,7 @@ enum
 	IDM_CHEATS,
 	IDM_CHANGEDISC,
 	IDM_PROPERTIES,
+	IDM_SDCARD,
 
 	IDM_HELPABOUT, // Help menu
 	IDM_HELPWEBSITE,
@@ -146,10 +136,7 @@ enum
 	#error You need to enable XPM support to use XPM bitmaps with toolbar!
 	#endif // USE_XPM_BITMAPS
 
-
-	//
 	// custom message macro
-	//
 	#define EVT_HOST_COMMAND(id, fn) \
 		DECLARE_EVENT_TABLE_ENTRY(\
 			wxEVT_HOST_COMMAND, id, wxID_ANY, \

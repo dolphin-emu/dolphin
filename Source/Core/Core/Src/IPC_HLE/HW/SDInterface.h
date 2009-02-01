@@ -19,10 +19,13 @@
 #define _SDINTERFACE_H
 
 #include "Common.h"
+#include <string>
 
 namespace SDInterface
 {
 	bool IsCardInserted();
+	void SetSourceType(bool isDumpFile);
+	void SetSourcePath(const std::string path);
 }
 
 #endif

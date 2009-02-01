@@ -201,6 +201,7 @@ class CFrame : public wxFrame
 
 		void OnMemcard(wxCommandEvent& event); // Misc
 		void OnShow_CheatsWindow(wxCommandEvent& event);
+		void OnShow_SDCardWindow(wxCommandEvent& event);
 
 		void OnGameListCtrl_ItemActivated(wxListEvent& event);
 

@@ -43,6 +43,7 @@ be accessed from Core::GetWindowHandle().
 #include "AboutDolphin.h"
 #include "GameListCtrl.h"
 #include "BootManager.h"
+#include "SDCardWindow.h"
 
 #include "Common.h" // Common
 #include "FileUtil.h"
@@ -81,23 +82,13 @@ extern "C" {
 #include "../resources/KDE.h"
 };
 
-// ----------------------------------------------------------------------------
 // Constants
-// ----------------------------------------------------------------------------
-
 static const long TOOLBAR_STYLE = wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
 
-
-// ----------------------------------------------------------------------------
 // Other Windows
-// ----------------------------------------------------------------------------
-
 wxCheatsWindow* CheatsWindow;
 
-
-// =======================================================
 // Create menu items
-// -------------
 void CFrame::CreateMenu()
 {
 	delete m_pMenuBar;
@@ -152,6 +143,7 @@ void CFrame::CreateMenu()
 	miscMenu->AppendSeparator();
 	miscMenu->Append(IDM_MEMCARD, _T("&Memcard manager"));
 	miscMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
+	// miscMenu->Append(IDM_SDCARD, _T("Mount &SDCard")); // Disable for now
 	m_pMenuBar->Append(miscMenu, _T("&Misc"));
 
 	// Help menu
@@ -169,9 +161,7 @@ void CFrame::CreateMenu()
 }
 
 
-// =======================================================
 // Create toolbar items
-// -------------
 void CFrame::PopulateToolbar(wxToolBar* toolBar)
 {
 	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
@@ -215,9 +205,7 @@ void CFrame::PopulateToolbar(wxToolBar* toolBar)
 }
 
 
-//////////////////////////////////////////////////
 // Delete and recreate the toolbar
-// ¯¯¯¯¯¯¯¯¯¯
 void CFrame::RecreateToolbar()
 {
 
@@ -234,9 +222,6 @@ void CFrame::RecreateToolbar()
 	SetToolBar(TheToolBar);
 	UpdateGUI();
 }
-///////////////////////////////
-
-
 void CFrame::InitBitmaps()
 {
 	// Get selected theme
@@ -386,9 +371,7 @@ void CFrame::BootGame()
 	}
 }
 
-// =======================================================
 // Open file to boot or for changing disc
-// -------------
 void CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 {
 	// Don't allow this for an initialized core
@@ -462,7 +445,7 @@ void CFrame::OnChangeDisc(wxCommandEvent& WXUNUSED (event))
 	DoOpen(false);
 	DVDInterface::SetLidOpen(false);
 }
-// =============
+
 
 
 void CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
@@ -479,16 +462,10 @@ void CFrame::OnBrowse(wxCommandEvent& WXUNUSED (event))
 	m_GameListCtrl->BrowseForDirectory();
 }
 
-
-// =======================================================
-// Play button
-// -------------
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 {
 	BootGame();
 }
-// =============
-
 
 void CFrame::DoStop()
 {
@@ -594,13 +571,8 @@ void CFrame::OnHelp(wxCommandEvent& event)
 		break;
 	}
 }
-// ========= // Toolbar
 
-
-// =======================================================
 // Miscellaneous menu
-// -------------
-
 void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))
 {
 	CMemcardManager MemcardManager(this);
@@ -611,14 +583,13 @@ void CFrame::OnShow_CheatsWindow(wxCommandEvent& WXUNUSED (event))
 {
 	CheatsWindow = new wxCheatsWindow(this, wxDefaultPosition, wxSize(600, 390));
 }
-// =============
-
-
-
-// =======================================================
+void CFrame::OnShow_SDCardWindow(wxCommandEvent& WXUNUSED (event))
+{
+	wxSDCardWindow SDWindow(this);
+	SDWindow.ShowModal();
+}
 /* Toogle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to cover
    the entire screen (when we render to the main window). */
-// -------------
 void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
 {
 	ShowFullScreen(true);
@@ -658,9 +629,7 @@ void CFrame::OnSaveState(wxCommandEvent& event)
 }
 
 
-// =======================================================
 // Let us enable and disable the toolbar
-// -------------
 void CFrame::OnToggleToolbar(wxCommandEvent& event)
 {
 	wxToolBarBase* toolBar = GetToolBar();
@@ -677,12 +646,8 @@ void CFrame::OnToggleToolbar(wxCommandEvent& event)
 
 	this->SendSizeEvent();
 }
-// ===================
 
-
-// =======================================================
 // Let us enable and disable the status bar
-// -------------
 void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 {
 	if (event.IsChecked())
@@ -692,12 +657,9 @@ void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 
 	this->SendSizeEvent();
 }
-// ===================
 
 
-// =======================================================
 // Update the enabled/disabled status
-// -------------
 void CFrame::UpdateGUI()
 {
 	#ifdef MUSICMOD

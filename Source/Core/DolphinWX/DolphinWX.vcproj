@@ -896,6 +896,14 @@
 				RelativePath=".\Src\PatchAddEdit.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Src\SDCardWindow.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SDCardWindow.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Misc"

@@ -15,29 +15,31 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// HW Address: 0d07xxxx
+#ifndef __SDCARD_WINDOW_h__
+#define __SDCARD_WINDOW_h__
 
-#include "SDInterface.h"
+#include <wx/wx.h>
 
-namespace SDInterface 
+class wxSDCardWindow : public wxDialog
 {
+public:
+	wxSDCardWindow(wxWindow* parent);
+	virtual ~wxSDCardWindow();
 
-bool g_bIsCardInserted = false;
-bool g_bIsDumpFile = false;
-std::string sourcePath = "";
+protected:
+	DECLARE_EVENT_TABLE();
 
-bool IsCardInserted()
-{
-	return g_bIsCardInserted;
-}
+	wxButton *m_Button_Close;
 
-void SetSourceType(bool isDumpFile)
-{
-	g_bIsDumpFile = isDumpFile;
-}
+	enum
+	{
+		ID_BUTTON_CLOSE,
+	};
 
-void SetSourcePath(const std::string path)
-{
-	sourcePath = path;
-}
-}
+	void Init_ChildControls();
+	void OnEvent_Window_Close(wxCloseEvent& event);
+	void OnEvent_ButtonClose_Press(wxCommandEvent& event);
+};
+
+
+#endif

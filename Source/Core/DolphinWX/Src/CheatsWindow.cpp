@@ -40,7 +40,7 @@ wxCheatsWindow::wxCheatsWindow(wxFrame* parent, const wxPoint& pos, const wxSize
 	Init_ChildControls();
 
 	// Setup Window
-	SetBackgroundColour(m_Notebook_Main->GetBackgroundColour());
+	SetBackgroundColour(wxColour(COLOR_GRAY));
 	SetSize(size);
 	SetPosition(pos);
 
