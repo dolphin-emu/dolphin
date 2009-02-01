@@ -114,13 +114,12 @@ bool IsFocus()
 	HWND TopLevel = GetParent(Parent);
 	// Support both rendering to main window and not
 	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == g_PADInitialize.hWnd)
-#else
-	// Todo: Fix the render to main window option in non-Windows to?
-	if (GetForegroundWindow() == g_PADInitialize.hWnd)
-#endif
 		return true;
 	else
 		return false;
+#else
+	return false;
+#endif
 }
 
 

@@ -339,6 +339,7 @@ extern "C" unsigned int Wiimote_GetAttachedControllers()
 // Check if Dolphin is in focus
 bool IsFocus()
 {
+#ifdef _WIN32
 	HWND Parent = GetParent(g_WiimoteInitialize.hWnd);
 	HWND TopLevel = GetParent(Parent);
 	// Support both rendering to main window and not
@@ -346,6 +347,9 @@ bool IsFocus()
 		return true;
 	else
 		return false;
+#else
+	return false;
+#endif
 }
 
 void ReadDebugging(bool Emu, const void* _pData)
