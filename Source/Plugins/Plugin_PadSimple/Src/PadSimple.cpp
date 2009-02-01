@@ -109,10 +109,15 @@ void SaveRecord()
 // Check if Dolphin is in focus
 bool IsFocus()
 {
+#ifdef _WIN32
 	HWND Parent = GetParent(g_PADInitialize.hWnd);
 	HWND TopLevel = GetParent(Parent);
 	// Support both rendering to main window and not
 	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == g_PADInitialize.hWnd)
+#else
+	// Todo: Fix the render to main window option in non-Windows to?
+	if (GetForegroundWindow() == g_PADInitialize.hWnd)
+#endif
 		return true;
 	else
 		return false;
