@@ -350,7 +350,7 @@ void ReadDebugging(bool Emu, const void* _pData)
 		size = sizeof(wm_status_report);
 		Name = "WM_STATUS_REPORT";
 		{
-			wm_status_report* pStatus = (wm_status_report*)(data + 2);
+			/*wm_status_report* pStatus = (wm_status_report*)(data + 2);
 			Console::Print(""
 				"Extension Controller: %i\n"
 				"Speaker enabled: %i\n"
@@ -368,26 +368,16 @@ void ReadDebugging(bool Emu, const void* _pData)
 				(pStatus->leds >> 2),
 				(pStatus->leds >> 3),
 				pStatus->battery_low
-				);
+				);*/
 		}
 		break;
 	case WM_READ_DATA_REPLY: // 0x21
 		size = sizeof(wm_read_data_reply);
 		Name = "REPLY";
-		// Pick up accelerometer neutral values
+		// Show the accelerometer neutral values, 
 		if (data[5] == 0x00 && data[6] == 0x10)
-		{
-			g_accel.cal_zero.x = data[13];
-			g_accel.cal_zero.y = data[14];
-			g_accel.cal_zero.z = data[15];
-
-			g_accel.cal_g.x = data[17] - data[13];
-			g_accel.cal_g.y = data[18] - data[14];
-			g_accel.cal_g.z = data[19] - data[15];
-
-			//Console::Print("Got neutral values: %i %i %i\n",
-			//	g_accel.cal_zero.x, g_accel.cal_zero.y, g_accel.cal_zero.z + g_accel.cal_g.z);
-		}
+			Console::Print("\nGame got neutral values: %i %i %i\n\n",
+				data[13], data[14], data[19]);
 		break;
 	case WM_WRITE_DATA_REPLY:  // 0x22
 		size = sizeof(wm_acknowledge) - 1;
@@ -634,6 +624,9 @@ void DoInitialize()
 	// Load config settings
 	g_Config.Load();
 
+	// Run this first so that WiiMoteReal::Initialize() overwrites g_Eeprom
+	WiiMoteEmu::Initialize();
+
 	/* We will run WiiMoteReal::Initialize() even if we are not using a real wiimote,
 	   to check if there is a real wiimote connected. We will initiate wiiuse.dll, but
 	   we will return before creating a new thread for it if we find no real Wiimotes.
@@ -643,8 +636,6 @@ void DoInitialize()
 	#if HAVE_WIIUSE
 		if (g_Config.bConnectRealWiimote) WiiMoteReal::Initialize();
 	#endif
-
-	WiiMoteEmu::Initialize();
 }
 
 

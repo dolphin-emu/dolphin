@@ -73,6 +73,7 @@ bool				g_LocalThread = true;
 bool				g_MotionSensing = false;
 u64					g_UpdateTime = 0;
 int					g_UpdateCounter = 0;
+bool				g_RunTemporary = false;
 
 //******************************************************************************
 // Probably this class should be in its own file
@@ -173,9 +174,11 @@ void ReadData()
 				memcpy(m_LastReport.m_PayLoad, pBuffer, MAX_PAYLOAD);
 				m_LastReportValid = true;
 
-				// Check if the data reporting mode is okay
-				//if (g_EmulatorRunning && pBuffer[0] != WiiMoteEmu::g_ReportingMode)
-				//	SetDataReportingMode();
+				/* Check if the data reporting mode is okay. This should not cause any harm outside the dual mode
+				   (being able to switch between the real and emulated wiimote) because WiiMoteEmu::g_ReportingMode
+				   should always have the right reporting mode. */
+				if (g_EmulatorRunning && pBuffer[0] != WiiMoteEmu::g_ReportingMode)
+					SetDataReportingMode();
 			}
 			else
 			{
@@ -427,42 +430,21 @@ int Initialize()
 	// Call Wiiuse.dll
     g_WiiMotesFromWiiUse = wiiuse_init(MAX_WIIMOTES);
     g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, MAX_WIIMOTES, 5);
+	if (g_NumberOfWiiMotes > 0) g_RealWiiMotePresent = true;
+	Console::Print("Found No of Wiimotes: %i\n", g_NumberOfWiiMotes);
 
 	// Remove the wiiuse_poll() threshold
 	wiiuse_set_accel_threshold(g_WiiMotesFromWiiUse[0], 0);
 
-	// Update the global accelerometer neutral values
-	while(g_WiiMotesFromWiiUse[0]->accel_calib.cal_zero.x == 0)
-		{wiiuse_poll(g_WiiMotesFromWiiUse, MAX_WIIMOTES);}
-	g_accel.cal_zero.x = g_WiiMotesFromWiiUse[0]->accel_calib.cal_zero.x;
-	g_accel.cal_zero.y = g_WiiMotesFromWiiUse[0]->accel_calib.cal_zero.y;
-	g_accel.cal_zero.z = g_WiiMotesFromWiiUse[0]->accel_calib.cal_zero.z;
-	g_accel.cal_g.x = g_WiiMotesFromWiiUse[0]->accel_calib.cal_g.x;
-	g_accel.cal_g.y = g_WiiMotesFromWiiUse[0]->accel_calib.cal_g.y;
-	g_accel.cal_g.z = g_WiiMotesFromWiiUse[0]->accel_calib.cal_g.z;
-	Console::Print("Got neutral values: %i %i %i\n",
-		g_accel.cal_zero.x, g_accel.cal_zero.y, g_accel.cal_zero.z + g_accel.cal_g.z);
+	// Set the sensor bar position, this only affects the internal wiiuse api functions
+	wiiuse_set_ir_position(g_WiiMotesFromWiiUse[0], WIIUSE_IR_ABOVE);
 
-	// Update the global extension settings
-	g_Config.bNunchuckConnected = (g_WiiMotesFromWiiUse[0]->exp.type == EXP_NUNCHUK);
-	g_Config.bClassicControllerConnected = (g_WiiMotesFromWiiUse[0]->exp.type == EXP_CLASSIC);
-
-	if (g_NumberOfWiiMotes > 0) g_RealWiiMotePresent = true;
-	Console::Print("Found No of Wiimotes: %i\n", g_NumberOfWiiMotes);
+	// I don't seem to need wiiuse_connect()
+	//int Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
+	//Console::Print("Connected: %i\n", Connect);	
 
 	// If we are connecting from the config window without a game running we flash the lights
-	if (!g_EmulatorRunning)
-	{
-		// I don't seem to need wiiuse_connect()
-		//int Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
-		//Console::Print("Connected: %i\n", Connect);	
-
-		FlashLights(true);
-	}
-	else
-	{
-		//wiiuse_disconnect(g_WiiMotesFromWiiUse);
-	}
+	if (!g_EmulatorRunning) FlashLights(true);
 
 	// Create Wiimote classes
 	for (int i = 0; i < g_NumberOfWiiMotes; i++)
@@ -471,6 +453,20 @@ int Initialize()
 	// Create a nee thread and start listening for Wiimote data
 	if (g_NumberOfWiiMotes > 0)
 		g_pReadThread = new Common::Thread(ReadWiimote_ThreadFunc, NULL);
+
+	// If we are not using the emulated wiimote we can run the thread temporary until the data has beeen copied
+	if(g_Config.bUseRealWiimote) g_RunTemporary = true;
+
+	/* Allocate memory and copy the Wiimote eeprom accelerometer neutral values to g_Eeprom. We can't
+	   change the neutral values the wiimote will report, I think, unless we update its eeprom? In any
+	   case it's probably better to let the current calibration be where it is and adjust the global
+	   values after that. I don't feel comfortable with overwriting critical data on a lot of Wiimotes. */
+	byte *data = (byte*)malloc(sizeof(byte) * sizeof(WiiMoteEmu::EepromData_0));
+	wiiuse_read_data(g_WiiMotesFromWiiUse[0], data, 0, sizeof(WiiMoteEmu::EepromData_0));
+
+	// Update the global extension settings
+	g_Config.bNunchuckConnected = (g_WiiMotesFromWiiUse[0]->exp.type == EXP_NUNCHUK);
+	g_Config.bClassicControllerConnected = (g_WiiMotesFromWiiUse[0]->exp.type == EXP_CLASSIC);
 
 	// Initialized
 	if (g_NumberOfWiiMotes > 0) { g_RealWiiMoteInitialized = true; g_Shutdown = false; }	
@@ -551,7 +547,7 @@ void Update()
 {
     while (!g_Shutdown)
     {
-		if(g_Config.bUseRealWiimote)
+		if(g_Config.bUseRealWiimote && !g_RunTemporary)
 			for (int i = 0; i < g_NumberOfWiiMotes; i++) g_WiiMotes[i]->ReadData();
 		else
 			ReadWiimote();

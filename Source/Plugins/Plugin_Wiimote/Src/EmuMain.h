@@ -28,6 +28,7 @@ u32 convert24bit(const u8* src);
 u16 convert16bit(const u8* src);
 void GetMousePos(float& x, float& y);
 
+void UpdateEeprom();
 void Initialize();
 void DoState(void* ptr, int mode);
 void Shutdown(void);

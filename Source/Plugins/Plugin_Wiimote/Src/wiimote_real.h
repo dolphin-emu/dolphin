@@ -50,6 +50,7 @@ void ReadWiimote();
 	extern bool				g_MotionSensing;
 	extern u64				g_UpdateTime;
 	extern int				g_UpdateCounter;
+	extern bool				g_RunTemporary;
 #endif
 
 }; // WiiMoteReal

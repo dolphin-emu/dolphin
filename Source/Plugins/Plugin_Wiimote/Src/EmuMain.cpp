@@ -176,7 +176,19 @@ void LoadRecordedMovements()
 }
 // ================
 
+// Update the accelerometer neutral values
+void UpdateEeprom()
+{
+	g_accel.cal_zero.x = g_Eeprom[22];
+	g_accel.cal_zero.y = g_Eeprom[23];
+	g_accel.cal_zero.z = g_Eeprom[24];
+	g_accel.cal_g.x = g_Eeprom[26] - g_Eeprom[22];
+	g_accel.cal_g.y = g_Eeprom[27] - g_Eeprom[24];
+	g_accel.cal_g.z = g_Eeprom[28] - g_Eeprom[24];
 
+	Console::Print("UpdateEeprom: %i %i %i\n",
+		WiiMoteEmu::g_Eeprom[22], WiiMoteEmu::g_Eeprom[23], WiiMoteEmu::g_Eeprom[27]);
+}
 
 
 // ===================================================
@@ -192,12 +204,7 @@ void Initialize()
 	memcpy(g_Eeprom + 0x16D0, EepromData_16D0, sizeof(EepromData_16D0));
 
 	// Write default accelerometer neutral values
-	g_accel.cal_zero.x = g_Eeprom[22];
-	g_accel.cal_zero.y = g_Eeprom[23];
-	g_accel.cal_zero.z = g_Eeprom[24];
-	g_accel.cal_g.x = g_Eeprom[26];
-	g_accel.cal_g.y = g_Eeprom[27];
-	g_accel.cal_g.z = g_Eeprom[28];
+	UpdateEeprom();
 
 	/* Extension data for homebrew applications that use the 0x00000000 key. This
 	   writes 0x0000 in encrypted form (0xfefe) to 0xfe in the extension register. */

@@ -31,6 +31,7 @@
 #include "wiimote_real.h" // Local
 #include "wiimote_hid.h"
 #include "EmuDefinitions.h"
+#include "EmuMain.h"
 #include "main.h"
 #if defined(HAVE_WX) && HAVE_WX
 	#include "ConfigDlg.h"
@@ -184,7 +185,7 @@ void handle_event(struct wiimote_t* wm)
 void ReadWiimote()
 {
 	handle_event(g_WiiMotesFromWiiUse[0]);
-
+	std::string Temp;
 	// Read formatted data
 	if (wiiuse_poll(g_WiiMotesFromWiiUse, MAX_WIIMOTES))
 	{
@@ -219,6 +220,17 @@ void ReadWiimote()
 					 *	Take a look at wiimotes[i]->read_req
 					 *	for the data.
 					 */
+					if(g_WiiMotesFromWiiUse[0]->read_req->size == sizeof(WiiMoteEmu::EepromData_0)
+						&& g_WiiMotesFromWiiUse[0]->read_req->addr == 0)
+					{				
+						Temp = ArrayToString(g_WiiMotesFromWiiUse[0]->read_req->buf, sizeof(WiiMoteEmu::EepromData_0), 0, 30);
+						memcpy(WiiMoteEmu::g_Eeprom, g_WiiMotesFromWiiUse[0]->read_req->buf, sizeof(WiiMoteEmu::EepromData_0));
+						WiiMoteEmu::UpdateEeprom();
+						Console::Print("EEPROM: %s\n", Temp.c_str());
+						Console::Print("Got neutral values: %i %i %i\n",
+							WiiMoteEmu::g_Eeprom[22],WiiMoteEmu::g_Eeprom[23], WiiMoteEmu::g_Eeprom[27]);
+						g_RunTemporary = false;
+					}
 					break;
 
 				case WIIUSE_NUNCHUK_INSERTED:
@@ -230,7 +242,7 @@ void ReadWiimote()
 					 */
 					 //wiiuse_set_nunchuk_orient_threshold((struct nunchuk_t*)&wiimotes[i]->exp.nunchuk, 90.0f);
 					 //wiiuse_set_nunchuk_accel_threshold((struct nunchuk_t*)&wiimotes[i]->exp.nunchuk, 100);
-					printf("Nunchuk inserted.\n");
+					Console::Print("Nunchuk inserted.\n");
 					break;
 
 				case WIIUSE_CLASSIC_CTRL_INSERTED:
