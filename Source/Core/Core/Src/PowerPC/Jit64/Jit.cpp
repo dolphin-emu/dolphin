@@ -221,7 +221,7 @@ namespace CPUCompare
 		asm_routines.Shutdown();
 	}
 
-
+	// This is only called by Default() in this file. It will execute an instruction with the interpreter functions.
 	void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 	{
 		gpr.Flush(FLUSH_ALL);
@@ -233,11 +233,14 @@ namespace CPUCompare
 		}
 		Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
 		ABI_CallFunctionC((void*)instr, inst.hex);
+		// This was added in revision 1954, I don't know what it does. MegaMan would hang if this was enabled.
+		/*
 		if (js.isLastInstruction)
 		{
 			MOV(32, R(EAX), M(&NPC));
 			WriteRfiExitDestInEAX();
 		}
+		*/
 	}
 
 	void Jit64::unknown_instruction(UGeckoInstruction inst)
