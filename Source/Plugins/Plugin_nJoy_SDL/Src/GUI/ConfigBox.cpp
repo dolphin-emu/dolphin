@@ -462,7 +462,7 @@ void ConfigBox::UpdateGUI(int _notebookpage)
 	m_textDpadLeft[_notebookpage]->Show(!Hat);
 	m_textDpadRight[_notebookpage]->Show(!Hat);	
 
-	m_textDpadDown[_notebookpage]->SetLabel(Hat ? wxT("Select hat") : wxT("Up"));
+	m_textDpadDown[_notebookpage]->SetLabel(Hat ? wxT("Select hat") : wxT("Down"));
 	m_bJoyDpadDown[_notebookpage]->SetToolTip(Hat ?
 		wxT("Select a hat by pressing the hat in any direction") : wxT(""));
 

@@ -243,6 +243,7 @@ void GetJoyState(int controller);
 int Search_Devices();
 void DEBUG_INIT();
 void DEBUG_QUIT();
+bool IsFocus();
 
 void Pad_Use_Rumble(u8 _numPAD, SPADStatus* _pPADStatus); // Rumble
 int Pad_Convert(int _val); // Value conversion

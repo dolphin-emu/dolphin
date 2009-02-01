@@ -90,6 +90,7 @@ CONTROLLER_MAPPING PadMapping[4];
 bool emulator_running = false;
 int NumPads = 0, NumGoodPads = 0;
 HWND m_hWnd; // Handle to window
+SPADInitialize *g_PADInitialize;
 
 // TODO: fix this dirty hack to stop missing symbols
 void __Log(int log, const char *format, ...) {}
@@ -239,7 +240,7 @@ void Initialize(void *init)
 	// Debugging
 	//Console::Open();
 	Console::Print("Initialize: %i\n", SDL_WasInit(0));
-    SPADInitialize *_PADInitialize = (SPADInitialize*)init;
+    g_PADInitialize = (SPADInitialize*)init;
 	emulator_running = true;
 
 	#ifdef _DEBUG
@@ -247,7 +248,7 @@ void Initialize(void *init)
 	#endif
 
 	#ifdef _WIN32
-		m_hWnd = (HWND)_PADInitialize->hWnd;
+		m_hWnd = (HWND)g_PADInitialize->hWnd;
 	#endif
 
 	NumPads = Search_Devices(); // Populate joyinfo for all attached devices
@@ -259,7 +260,7 @@ void Initialize(void *init)
 		|| (PadMapping[2].enabled && PadState[2].joy == NULL)
 		|| (PadMapping[3].enabled && PadState[3].joy == NULL))
 	{
-		_PADInitialize->padNumber = -1;
+		g_PADInitialize->padNumber = -1;
 		Console::Print("%s\n", SDL_GetError());		
 	}
 }
@@ -398,6 +399,9 @@ void Shutdown()
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PAD_Input(u16 _Key, u8 _UpDown)
 {
+	// Check that Dolphin is in focus, otherwise don't update the pad status
+	if (!IsFocus()) return;
+
 	// Check if the keys are interesting, and then update it
 	for(int i = 0; i < 4; i++)
 	{
@@ -606,6 +610,29 @@ unsigned int PAD_GetAttachedPads()
 
 
 
+//******************************************************************************
+// Supporting functions
+//******************************************************************************
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Check if Dolphin is in focus
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+bool IsFocus()
+{
+#ifdef _WIN32
+	HWND Parent = GetParent(g_PADInitialize->hWnd);
+	HWND TopLevel = GetParent(Parent);
+	// Support both rendering to main window and not
+	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == g_PADInitialize->hWnd)
+		return true;
+	else
+		return false;
+#else
+	return true;
+#endif
+}
+
+
 //////////////////////////////////////////////////////////////////////////////////////////
 // Convert stick values
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -747,6 +774,9 @@ void ReadButton(int controller, int button)
    for a virtual controller 0 to 3. */
 void GetJoyState(int controller)
 {
+	// Check that Dolphin is in focus, otherwise don't update the pad status
+	if (!IsFocus()) return;
+
 	// Update the gamepad status
 	SDL_JoystickUpdate();
 
