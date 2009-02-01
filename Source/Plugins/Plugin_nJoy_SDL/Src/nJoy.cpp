@@ -90,7 +90,7 @@ CONTROLLER_MAPPING PadMapping[4];
 bool emulator_running = false;
 int NumPads = 0, NumGoodPads = 0;
 HWND m_hWnd; // Handle to window
-SPADInitialize *g_PADInitialize;
+SPADInitialize *g_PADInitialize = NULL;
 
 // TODO: fix this dirty hack to stop missing symbols
 void __Log(int log, const char *format, ...) {}
@@ -399,8 +399,8 @@ void Shutdown()
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PAD_Input(u16 _Key, u8 _UpDown)
 {
-	// Check that Dolphin is in focus (and that the configuration window is not opened), otherwise don't update the pad status
-	if (!m_frame && !IsFocus()) return;
+	// Check that Dolphin is in focus, otherwise don't update the pad status
+	if (!IsFocus()) return;
 
 	// Check if the keys are interesting, and then update it
 	for(int i = 0; i < 4; i++)
@@ -627,10 +627,12 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 bool IsFocus()
 {
 #ifdef _WIN32
-	HWND Parent = GetParent(g_PADInitialize->hWnd);
+	HWND RenderingWindow = NULL; if (g_PADInitialize) RenderingWindow = g_PADInitialize->hWnd;
+	HWND Parent = GetParent(RenderingWindow);
 	HWND TopLevel = GetParent(Parent);
+	HWND Config = NULL; if (m_frame) Config = (HWND)m_frame->GetHWND();
 	// Support both rendering to main window and not
-	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == g_PADInitialize->hWnd)
+	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == RenderingWindow || GetForegroundWindow() == Config)
 		return true;
 	else
 		return false;
@@ -782,7 +784,7 @@ void ReadButton(int controller, int button)
 void GetJoyState(int controller)
 {
 	// Check that Dolphin is in focus, otherwise don't update the pad status
-	if (!m_frame && !IsFocus()) return;
+	if (!IsFocus()) return;
 
 	// Update the gamepad status
 	SDL_JoystickUpdate();
