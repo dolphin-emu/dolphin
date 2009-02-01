@@ -399,8 +399,8 @@ void Shutdown()
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PAD_Input(u16 _Key, u8 _UpDown)
 {
-	// Check that Dolphin is in focus, otherwise don't update the pad status
-	if (!IsFocus()) return;
+	// Check that Dolphin is in focus (and that the configuration window is not opened), otherwise don't update the pad status
+	if (!m_frame && !IsFocus()) return;
 
 	// Check if the keys are interesting, and then update it
 	for(int i = 0; i < 4; i++)
@@ -427,6 +427,25 @@ void PAD_Input(u16 _Key, u8 _UpDown)
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void DoState(unsigned char **ptr, int mode) {}
 
+ 
+// Set PAD attached pads
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+unsigned int PAD_GetAttachedPads()
+{
+	unsigned int connected = 0;
+
+	g_Config.Load();
+
+	if (PadMapping[0].enabled) connected |= 1;		
+	if (PadMapping[1].enabled) connected |= 2;
+	if (PadMapping[2].enabled) connected |= 4;
+	if (PadMapping[3].enabled) connected |= 8;
+
+	//Console::Print("PAD_GetAttachedPads: %i %i %i\n", PadMapping[0].enabled, PadMapping[1].enabled, PadMapping[2].enabled, PadMapping[3].enabled);
+
+	return connected;
+}
+
 
 // Set PAD status
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
@@ -434,7 +453,7 @@ void DoState(unsigned char **ptr, int mode) {}
 // Function: Gives the current pad status to the Core
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
-	Console::Print("%i %i %i\n", _numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy);
+	//Console::Print("%i %i %i\n", _numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy);
 
 	// Check if the pad is enabled
 	if (!PadMapping[_numPAD].enabled || !PadState[_numPAD].joy) return;
@@ -474,11 +493,11 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
     u8 sub_stick_x = Pad_Convert(i_sub_stick_x);
 	u8 sub_stick_y = Pad_Convert(i_sub_stick_y);
 
-	// Convert the triggers values
+	// Convert the triggers values, if we are using analog triggers at all
 	if(PadMapping[_numPAD].triggertype == CTL_TRIGGER_SDL)
 	{
-		TriggerLeft = Pad_Convert(TriggerLeft);
-		TriggerRight = Pad_Convert(TriggerRight);
+		if(PadMapping[_numPAD].buttons[CTL_L_SHOULDER] >= 1000) TriggerLeft = Pad_Convert(TriggerLeft);
+		if(PadMapping[_numPAD].buttons[CTL_R_SHOULDER] >= 1000) TriggerRight = Pad_Convert(TriggerRight);
 	}
 
 	// Set Deadzones (perhaps out of function?)
@@ -496,9 +515,11 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// The L and R triggers
 	// -----------	
 	int TriggerValue = 255;
-	if (PadState[_numPAD].halfpress) TriggerValue = 100;		
+	if (PadState[_numPAD].halfpress) TriggerValue = 100;
+
 	_pPADStatus->button |= PAD_USE_ORIGIN; // Neutral value, no button pressed	
 
+	// Check if the digital L button is pressed
 	if (PadState[_numPAD].buttons[CTL_L_SHOULDER])
 	{
 		_pPADStatus->button |= PAD_TRIGGER_L;
@@ -507,6 +528,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	else if(TriggerLeft > 0)
 		_pPADStatus->triggerLeft = TriggerLeft;
 
+	// Check if the digital R button is pressed
 	if (PadState[_numPAD].buttons[CTL_R_SHOULDER])
 	{
 		_pPADStatus->button |= PAD_TRIGGER_R;
@@ -571,40 +593,25 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	Console::ClearScreen();
 	Console::Print(
 		"Pad %i: %i %i\n"
-		"Trigger type: %s  Left:%04x Right:%04x Value:%i\n"
+		"State: L:%i R:%i HalfPress:%i\n"
+		"Trigger type: %s  StatusLeft:%04x StatusRight:%04x  TriggerLeft:%04x TriggerRight:%04x  TriggerValue:%i\n"
 		"Buttons: %i  X:%i\n"
 		"D-Pad type: %s  L:%i  R:%i  U:%i  D:%i",
 
 		_numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy,
 
-		(PadMapping[_numPAD].triggertype ? "CTL_TRIGGER_XINPUT" : "CTL_TRIGGER_SDL"),
-			_pPADStatus->triggerLeft, _pPADStatus->triggerRight, TriggerValue,
+		 PadState[_numPAD].buttons[CTL_L_SHOULDER], PadState[_numPAD].buttons[CTL_R_SHOULDER], PadState[_numPAD].halfpress,
 
-		_pPADStatus->button, PadState[_numPAD].buttons[CTL_X_BUTTON], 
+		(PadMapping[_numPAD].triggertype ? "CTL_TRIGGER_XINPUT" : "CTL_TRIGGER_SDL"),
+			_pPADStatus->triggerLeft, _pPADStatus->triggerRight,  TriggerLeft, TriggerRight,  TriggerValue,
+
+		_pPADStatus->button, PadState[_numPAD].buttons[CTL_X_BUTTON],
 
 		(PadMapping[_numPAD].controllertype ? "CTL_DPAD_CUSTOM" : "CTL_DPAD_HAT"),
 			0, 0, 0, 0
 		);*/
 }
 
- 
-// Set PAD attached pads
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-unsigned int PAD_GetAttachedPads()
-{
-	unsigned int connected = 0;
-
-	g_Config.Load();
-
-	if (PadMapping[0].enabled) connected |= 1;		
-	if (PadMapping[1].enabled) connected |= 2;
-	if (PadMapping[2].enabled) connected |= 4;
-	if (PadMapping[3].enabled) connected |= 8;
-
-	//Console::Print("PAD_GetAttachedPads: %i %i %i\n", PadMapping[0].enabled, PadMapping[1].enabled, PadMapping[2].enabled, PadMapping[3].enabled);
-
-	return connected;
-}
 
 ///////////////////////////////////////////////// Spec functions
 
@@ -775,7 +782,7 @@ void ReadButton(int controller, int button)
 void GetJoyState(int controller)
 {
 	// Check that Dolphin is in focus, otherwise don't update the pad status
-	if (!IsFocus()) return;
+	if (!m_frame && !IsFocus()) return;
 
 	// Update the gamepad status
 	SDL_JoystickUpdate();
@@ -789,13 +796,14 @@ void GetJoyState(int controller)
 	PadState[controller].axis[CTL_SUB_X] = SDL_JoystickGetAxis(PadState[controller].joy, PadMapping[controller].axis[CTL_SUB_X]);
 	PadState[controller].axis[CTL_SUB_Y] = SDL_JoystickGetAxis(PadState[controller].joy, PadMapping[controller].axis[CTL_SUB_Y]);
 
-	// Update trigger axises
+	// Update the analog trigger axis values
 #ifdef _WIN32
 	if (PadMapping[controller].triggertype == CTL_TRIGGER_SDL)
 	{
 #endif
-		if(PadMapping[controller].buttons[CTL_L_SHOULDER] >= 1000) PadState[controller].axis[CTL_L_SHOULDER] = SDL_JoystickGetAxis(PadState[controller].joy, PadMapping[controller].buttons[CTL_L_SHOULDER] - 1000);
-		if(PadMapping[controller].buttons[CTL_R_SHOULDER] >= 1000) PadState[controller].axis[CTL_R_SHOULDER] = SDL_JoystickGetAxis(PadState[controller].joy, PadMapping[controller].buttons[CTL_R_SHOULDER] - 1000);
+		// If we are using SDL analog triggers the buttons have to be mapped as 1000 or up, otherwise they are not used
+		if(PadMapping[controller].buttons[CTL_L_SHOULDER] >= 1000) PadState[controller].axis[CTL_L_SHOULDER] = SDL_JoystickGetAxis(PadState[controller].joy, PadMapping[controller].buttons[CTL_L_SHOULDER] - 1000); else PadState[controller].axis[CTL_L_SHOULDER] = 0;
+		if(PadMapping[controller].buttons[CTL_R_SHOULDER] >= 1000) PadState[controller].axis[CTL_R_SHOULDER] = SDL_JoystickGetAxis(PadState[controller].joy, PadMapping[controller].buttons[CTL_R_SHOULDER] - 1000); else PadState[controller].axis[CTL_R_SHOULDER] = 0;
 #ifdef _WIN32
 	}
 	else
@@ -805,18 +813,7 @@ void GetJoyState(int controller)
 	}
 #endif
 
-	/* Debugging 
-	Console::ClearScreen();
-	Console::Print("sfjsdfgsdf");
-	Console::Print(
-		"Controller and handle: %i %i\n"
-		"Triggers:%i  %i %i  %i %i\n",
-		controller, (int)PadState[controller].joy,
-		PadMapping[controller].triggertype,
-		PadMapping[controller].buttons[CTL_L_SHOULDER], PadMapping[controller].buttons[CTL_R_SHOULDER],
-		PadState[controller].axis[CTL_L_SHOULDER], PadState[controller].axis[CTL_R_SHOULDER]
-		);	*/
-
+	// Update button states to on or off
 	ReadButton(controller, CTL_L_SHOULDER);
 	ReadButton(controller, CTL_R_SHOULDER);
 	ReadButton(controller, CTL_A_BUTTON);
@@ -848,5 +845,21 @@ void GetJoyState(int controller)
 		if(PadMapping[controller].dpad2[CTL_D_PAD_RIGHT] <= Buttons)
 			PadState[controller].dpad2[CTL_D_PAD_RIGHT] = SDL_JoystickGetButton(PadState[controller].joy, PadMapping[controller].dpad2[CTL_D_PAD_RIGHT]);
 	}
+
+	/* Debugging 
+	Console::ClearScreen();
+	Console::Print(
+		"Controller and handle: %i %i\n"
+
+		"Triggers:%i  %i %i  %i %i  |  HalfPress: %i Mapping: %i\n",
+
+		controller, (int)PadState[controller].joy,
+
+		PadMapping[controller].triggertype,
+		PadMapping[controller].buttons[CTL_L_SHOULDER], PadMapping[controller].buttons[CTL_R_SHOULDER],
+		PadState[controller].axis[CTL_L_SHOULDER], PadState[controller].axis[CTL_R_SHOULDER],
+
+		PadState[controller].halfpress, PadMapping[controller].halfpress
+		);	*/
 }
 //////////////////////////////////////////////////////////////////////////////////////////
