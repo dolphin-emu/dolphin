@@ -286,4 +286,6 @@ using namespace Gen;
 		}
 		// Call interpreter
 		Default(inst);
+		MOV(32, R(EAX), M(&NPC));
+		WriteExitDestInEAX(0);	
 	}
