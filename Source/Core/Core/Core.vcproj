@@ -775,18 +775,6 @@
 					>
 				</File>
 			</Filter>
-			<Filter
-				Name="SDI - SD Interface"
-				>
-				<File
-					RelativePath=".\Src\HW\SDInterface.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\HW\SDInterface.h"
-					>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="PowerPC"
@@ -1179,6 +1167,22 @@
 				RelativePath=".\Src\IPC_HLE\WiiMote_HID_Attr.h"
 				>
 			</File>
+			<Filter
+				Name="HW"
+				>
+				<Filter
+					Name="SDIO - SD Interface"
+					>
+					<File
+						RelativePath=".\Src\IPC_HLE\HW\SDInterface.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Src\IPC_HLE\HW\SDInterface.h"
+						>
+					</File>
+				</Filter>
+			</Filter>
 		</Filter>
 		<File
 			RelativePath=".\Src\ConfigManager.cpp"

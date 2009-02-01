@@ -21,7 +21,7 @@
 
 #include "../HW/CPU.h"
 #include "../HW/Memmap.h"
-#include "../HW/SDInterface.h"
+#include "HW/SDInterface.h"
 #include "../Core.h"
 
 using namespace SDInterface;

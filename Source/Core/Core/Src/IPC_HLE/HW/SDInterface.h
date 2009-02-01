@@ -25,5 +25,4 @@ namespace SDInterface
 	bool IsCardInserted();
 }
 
-
 #endif
