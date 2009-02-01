@@ -775,6 +775,18 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="SDI - SD Interface"
+				>
+				<File
+					RelativePath=".\Src\HW\SDInterface.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\HW\SDInterface.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="PowerPC"

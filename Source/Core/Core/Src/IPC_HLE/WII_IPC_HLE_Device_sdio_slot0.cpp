@@ -21,42 +21,36 @@
 
 #include "../HW/CPU.h"
 #include "../HW/Memmap.h"
+#include "../HW/SDInterface.h"
 #include "../Core.h"
 
-// __________________________________________________________________________________________________
-//
+using namespace SDInterface;
+
 CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName )
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
 
 }
 
-// __________________________________________________________________________________________________
-//
 CWII_IPC_HLE_Device_sdio_slot0::~CWII_IPC_HLE_Device_sdio_slot0()
 {
 
 }
 
-// __________________________________________________________________________________________________
-//
-bool 
-CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
+bool CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
 {
 	LOG(WII_IPC_SD, "SD: Open");
     Memory::Write_U32(GetDeviceID(), _CommandAddress + 0x4);
     return true;
 }
 
-bool 
-CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress)
 {
 	LOG(WII_IPC_SD, "SD: Close");
     Memory::Write_U32(0, _CommandAddress + 0x4);
     return true;
 }
 
-// __________________________________________________________________________________________________
 // The front SD slot
 bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress) 
 {
@@ -103,9 +97,16 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		ReturnValue = ExecuteCommand(BufferIn, BufferInSize, BufferOut, BufferOutSize);	
 		break;
 
-	case 11: // sd_get_status 
-		LOGV(WII_IPC_SD, 0, "SD: sd_get_status. Answer: SD card is not inserted", BufferOut);
-		Memory::Write_U32(2, BufferOut); // SD card is not inserted
+	case 11: // sd_get_status
+		if (IsCardInserted())
+		{
+			// TODO
+		}
+		else
+		{
+			LOGV(WII_IPC_SD, 0, "SD: sd_get_status. Answer: SD card is not inserted", BufferOut);
+			Memory::Write_U32(2, BufferOut); // SD card is not inserted
+		}
 		break;
 	default:
 		PanicAlert("Unknown SD command (0x%08x)", Cmd);
@@ -124,8 +125,6 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 	return true;
 }
 
-// __________________________________________________________________________________________________
-//
 bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress) 
 {  
     PanicAlert("CWII_IPC_HLE_Device_sdio_slot0::IOCtlV() unknown");
@@ -136,8 +135,6 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
     return true;
 }
 
-// __________________________________________________________________________________________________
-//
 u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize)
 {
 	/* The game will send us a SendCMD with this information. To be able to read and write
