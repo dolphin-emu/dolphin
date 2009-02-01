@@ -19,7 +19,6 @@
 #include <stdio.h>
 
 #include "StringUtil.h"
-#include "TestFramework.h"
 
 // faster than sscanf
 bool AsciiToHex(const char* _szValue, u32& result)
