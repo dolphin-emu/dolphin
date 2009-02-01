@@ -15,12 +15,16 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+// HW Address: 0d07xxxx
+
 #include "SDInterface.h"
 
 namespace SDInterface {
 
+bool g_bIsCardInserted = false;
+
 bool IsCardInserted()
 {
-	return false;  // TODO
+	return g_bIsCardInserted;
 }
 }
