@@ -65,10 +65,10 @@ public:
 	static bool IsTempBreakPoint(u32 _iAddress);
 
 	// AddBreakPoint
-	static void Add(u32 em_address, bool temp=false);
+	static bool Add(u32 em_address, bool temp=false);
 
 	// Remove Breakpoint
-	static void Remove(u32 _iAddress);
+	static bool Remove(u32 _iAddress);
 	static void Clear();
 
 	static void UpdateBreakPointView();

@@ -23,6 +23,7 @@
 #include "../Core.h"
 #include "../HW/Memmap.h"
 #include "../PowerPC/PowerPC.h"
+#include "../PowerPC/Jit64/Jit.h"
 #include "../PowerPC/SymbolDB.h"
 
 void PPCDebugInterface::disasm(unsigned int address, char *dest, int max_size) 
@@ -91,12 +92,14 @@ bool PPCDebugInterface::isBreakpoint(unsigned int address)
 
 void PPCDebugInterface::setBreakpoint(unsigned int address)
 {
-	BreakPoints::Add(address);
+	if (BreakPoints::Add(address))
+		jit.NotifyBreakpoint(address, true);
 }
 
 void PPCDebugInterface::clearBreakpoint(unsigned int address)
 {
-	BreakPoints::Remove(address);
+	if (BreakPoints::Remove(address))
+		jit.NotifyBreakpoint(address, false);
 }
 
 void PPCDebugInterface::clearAllBreakpoints() {}

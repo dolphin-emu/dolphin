@@ -15,20 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// Lame slow breakpoint system
-// TODO: a real one
-
-//
-// [F|RES]: this class isn't really nice... for a better management we should use a base class for
-// breakpoints and memory checks. but probably this will be slower too
-//
-
-
 #include "Common.h"
+
 #include "../HW/CPU.h"
 #include "../Host.h"
 #include "../PowerPC/SymbolDB.h"
-#include "../PowerPC/Jit64/Jit.h"
 #include "Debugger_BreakPoints.h"
 
 BreakPoints::TBreakPoints BreakPoints::m_BreakPoints;
@@ -55,11 +46,9 @@ void TMemCheck::Action(u32 iValue, u32 addr, bool write, int size, u32 pc)
 bool BreakPoints::IsAddressBreakPoint(u32 _iAddress)
 {
 	std::vector<TBreakPoint>::iterator iter;
-
 	for (iter = m_BreakPoints.begin(); iter != m_BreakPoints.end(); ++iter)
 		if ((*iter).iAddress == _iAddress)
 			return true;
-
 	return false;
 }
 
@@ -74,7 +63,7 @@ bool BreakPoints::IsTempBreakPoint(u32 _iAddress)
 	return false;
 }
 
-void BreakPoints::Add(u32 em_address, bool temp)
+bool BreakPoints::Add(u32 em_address, bool temp)
 {
 	if (!IsAddressBreakPoint(em_address)) // only add new addresses
 	{
@@ -84,23 +73,24 @@ void BreakPoints::Add(u32 em_address, bool temp)
 		pt.iAddress = em_address;
 
 		m_BreakPoints.push_back(pt);
-		// jit.NotifyBreakpoint(em_address, true);
+		return true;
+	} else {
+		return false;
 	}
 }
 
-void BreakPoints::Remove(u32 _iAddress)
+bool BreakPoints::Remove(u32 _iAddress)
 {
 	std::vector<TBreakPoint>::iterator iter;
-
 	for (iter = m_BreakPoints.begin(); iter != m_BreakPoints.end(); ++iter)
 	{
 		if ((*iter).iAddress == _iAddress)
 		{
 			m_BreakPoints.erase(iter);
-			// jit.NotifyBreakpoint(em_address, false);
-			break;
+			return true;
 		}
 	}
+	return false;
 }
 
 void BreakPoints::Clear()
