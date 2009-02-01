@@ -42,6 +42,7 @@ double GetDoubleTime();
 int GetUpdateRate();
 void InterruptDebugging(bool Emu, const void* _pData);
 void ReadDebugging(bool Emu, const void* _pData);
+bool IsFocus();
 
 // Movement recording
 #define RECORDING_ROWS 15

@@ -336,6 +336,18 @@ extern "C" unsigned int Wiimote_GetAttachedControllers()
 // Supporting functions
 //******************************************************************************
 
+// Check if Dolphin is in focus
+bool IsFocus()
+{
+	HWND Parent = GetParent(g_WiimoteInitialize.hWnd);
+	HWND TopLevel = GetParent(Parent);
+	// Support both rendering to main window and not
+	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == g_WiimoteInitialize.hWnd)
+		return true;
+	else
+		return false;
+}
+
 void ReadDebugging(bool Emu, const void* _pData)
 {
 	//

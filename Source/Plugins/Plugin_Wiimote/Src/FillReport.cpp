@@ -208,6 +208,9 @@ void FillReportInfo(wm_core& _core)
 	// These keys are reserved for the recording
 	if ( GetAsyncKeyState(VK_SHIFT) || GetAsyncKeyState(VK_CONTROL) ) return;
 
+	// Check that Dolphin is in focus
+	if (!IsFocus()) return;
+
 	// Check the mouse position. Don't allow mouse clicks from outside the window.
 	float x, y; GetMousePos(x, y);
 	bool InsideScreen = !(x < 0 || x > 1 || y < 0 || y > 1);
@@ -286,6 +289,15 @@ void FillReportAcc(wm_accel& _acc)
 	}
 	// ---------------------
 
+
+	// Check that Dolphin is in focus
+	if (!IsFocus())
+	{
+		_acc.x = X;
+		_acc.y = y;
+		_acc.z = z;
+		return;
+	}
 
 	// ------------------------------------
 	// Wiimote to Gamepad translations
@@ -767,6 +779,13 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 	_ext.b2.bY = 0x01;
 	_ext.b2.bB = 0x01;
 	_ext.b2.bZL = 0x01;
+
+
+	// --------------------------------------
+	// Check that Dolphin is in focus
+	if (!IsFocus()) return;
+	// --------------------------------------
+
 
 	// --------------------------------------
 	/* Left and right analog sticks
