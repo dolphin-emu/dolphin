@@ -28,7 +28,7 @@
 #include <string>
 
 #include "Common.h" // Common
-
+#include "main.h"
 #include "wiimote_hid.h" // Local
 #include "EmuDefinitions.h"
 #include "Encryption.h"

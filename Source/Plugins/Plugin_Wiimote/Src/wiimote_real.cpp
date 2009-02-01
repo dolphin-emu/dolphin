@@ -29,6 +29,7 @@
 #include "Thread.h"
 #include "StringUtil.h"
 #include "ConsoleWindow.h"
+#include "Timer.h"
 
 #include "wiimote_hid.h"
 #include "main.h"
@@ -70,6 +71,8 @@ CWiiMote*			g_WiiMotes[MAX_WIIMOTES];
 bool				g_Shutdown = false;
 bool				g_LocalThread = true;
 bool				g_MotionSensing = false;
+u64					g_UpdateTime = 0;
+int					g_UpdateCounter = 0;
 
 //******************************************************************************
 // Probably this class should be in its own file
@@ -107,7 +110,7 @@ virtual ~CWiiMote()
 
 
 //////////////////////////////////////////
-// Send raw HID data from the core to wiimote
+// Queue raw HID data from the core to the wiimote
 // ---------------
 void SendData(u16 _channelID, const u8* _pData, u32 _Size)
 {
@@ -116,8 +119,12 @@ void SendData(u16 _channelID, const u8* _pData, u32 _Size)
     m_pCriticalSection->Enter();
     {
         SEvent WriteEvent;
-        memcpy(WriteEvent.m_PayLoad, _pData+1, _Size-1);
+        memcpy(WriteEvent.m_PayLoad, _pData + 1, _Size - 1);
         m_EventWriteQueue.push(WriteEvent);
+
+		// Debugging
+		//std::string Temp = ArrayToString(WriteEvent.m_PayLoad, 28, 0, 30);
+		//Console::Print("Wiimote Write:\n%s\n", Temp.c_str());
     }
     m_pCriticalSection->Leave();
 }
@@ -125,9 +132,7 @@ void SendData(u16 _channelID, const u8* _pData, u32 _Size)
 
 
 //////////////////////////////////////////////////
-/* Read data from wiimote (but don't send it to the core, just filter and queue). If we are not currently
-   using the real Wiimote we only allow it to receive data mode changes, but don't ask for any data in
-   return */
+/* Read and write data to the Wiimote */
 // ---------------
 void ReadData() 
 {
@@ -136,45 +141,62 @@ void ReadData()
 	// Send data to the Wiimote
     if (!m_EventWriteQueue.empty())
     {
-		Console::Print("Writing data to the Wiimote\n");
+		//Console::Print("Writing data to the Wiimote\n");
         SEvent& rEvent = m_EventWriteQueue.front();
         wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, MAX_PAYLOAD);
         m_EventWriteQueue.pop();
+
+#ifdef _WIN32
+		// Debugging. Move the data one step to the right first.
+		memcpy(rEvent.m_PayLoad + 1, rEvent.m_PayLoad, sizeof(rEvent.m_PayLoad) - 1);
+		rEvent.m_PayLoad[0] = 0xa2;
+		InterruptDebugging(false, rEvent.m_PayLoad);
+#endif
     }
 
     m_pCriticalSection->Leave();
 
-	// Don't queue up data if we are not using the real Wiimote
-	if(g_Config.bUseRealWiimote)
-		if (wiiuse_io_read(m_pWiiMote))
+	// Read data from wiimote (but don't send it to the core, just filter and queue)
+	if (wiiuse_io_read(m_pWiiMote))
+	{
+		const byte* pBuffer = m_pWiiMote->event_buf;
+
+		// Check if we have a channel (connection) if so save the data...
+		if (m_channelID > 0)
 		{
-			const byte* pBuffer = m_pWiiMote->event_buf;
+			m_pCriticalSection->Enter();
 
-			// Check if we have a channel (connection) if so save the data...
-			if (m_channelID > 0)
+			// Filter out data reports
+			if (pBuffer[0] >= 0x30) 
 			{
-				m_pCriticalSection->Enter();
+				// Copy Buffer to LastReport
+				memcpy(m_LastReport.m_PayLoad, pBuffer, MAX_PAYLOAD);
+				m_LastReportValid = true;
 
-				// Filter out reports
-				if (pBuffer[0] >= 0x30) 
-				{
-					// Copy Buffer to LastReport
-					memcpy(m_LastReport.m_PayLoad, pBuffer, MAX_PAYLOAD);
-					m_LastReportValid = true;
-				}
-				else
-				{
-					// Copy Buffer to ImportantEvent
-					SEvent ImportantEvent;
-					memcpy(ImportantEvent.m_PayLoad, pBuffer, MAX_PAYLOAD);
-					m_EventReadQueue.push(ImportantEvent);
-				}
-				m_pCriticalSection->Leave();
+				// Check if the data reporting mode is okay
+				//if (g_EmulatorRunning && pBuffer[0] != WiiMoteEmu::g_ReportingMode)
+				//	SetDataReportingMode();
 			}
+			else
+			{
+				// Copy Buffer to ImportantEvent
+				SEvent ImportantEvent;
+				memcpy(ImportantEvent.m_PayLoad, pBuffer, MAX_PAYLOAD);
 
-			//std::string Temp = ArrayToString(pBuffer, sizeof(pBuffer), 0);
-			//Console::Print("Data:\n%s\n", Temp.c_str());
+				// Put it in the read queue right away
+				m_EventReadQueue.push(ImportantEvent);
+			}
+			m_pCriticalSection->Leave();
 		}
+#ifdef _WIN32
+		/* Debugging
+		//if(GetAsyncKeyState('V'))
+		{
+			std::string Temp = ArrayToString(pBuffer, 20, 0, 30);
+			Console::Print("Data: %s\n", Temp.c_str());
+		} */
+#endif
+	}
 };
 /////////////////////
 
@@ -189,18 +211,31 @@ void Update()
 
     if (m_EventReadQueue.empty())
     {
-		// Send the same data as last time
+		// Send the data report
         if (m_LastReportValid) SendEvent(m_LastReport);
     }
     else
     {
-		// Send all the new data we have collected
+		// Send a 0x20, 0x21 or 0x22 report
         SendEvent(m_EventReadQueue.front());
         m_EventReadQueue.pop();
     }
 
     m_pCriticalSection->Leave();
 };
+/////////////////////
+
+
+//////////////////////////////////////////
+// Clear events
+// ---------------
+void ClearEvents()
+{
+	while (!m_EventReadQueue.empty())
+		m_EventReadQueue.pop();
+	while (!m_EventWriteQueue.empty())
+		m_EventWriteQueue.pop();	
+}
 /////////////////////
 
 private:
@@ -217,23 +252,22 @@ private:
 
     u8 m_WiimoteNumber; // Just for debugging
     u16 m_channelID;  
-
+    CEventQueue m_EventReadQueue; // Read from Wiimote
+    CEventQueue m_EventWriteQueue; // Write to Wiimote
     Common::CriticalSection* m_pCriticalSection;
-    CEventQueue m_EventReadQueue;
-    CEventQueue m_EventWriteQueue;
     bool m_LastReportValid;
     SEvent m_LastReport;
 	wiimote_t* m_pWiiMote; // This is g_WiiMotesFromWiiUse[]
 
 //////////////////////////////////////////
-// Send event
+// Send queued data to the core
 // ---------------
 void SendEvent(SEvent& _rEvent)
 {
     // We don't have an answer channel
     if (m_channelID == 0) return;
 
-    // Check event buffer;
+    // Check event buffer
     u8 Buffer[1024];
     u32 Offset = 0;
     hid_packet* pHidHeader = (hid_packet*)(Buffer + Offset);
@@ -241,19 +275,15 @@ void SendEvent(SEvent& _rEvent)
     pHidHeader->type = HID_TYPE_DATA;
     pHidHeader->param = HID_PARAM_INPUT;
 
+	// Create the buffer
     memcpy(&Buffer[Offset], _rEvent.m_PayLoad, MAX_PAYLOAD);
     Offset += MAX_PAYLOAD;
 
-	/* Debugging 
-	//if(GetAsyncKeyState('V'))
-	{
-		std::string Temp = ArrayToString(Buffer, Offset, 0, 30);
-		Console::ClearScreen();
-		Console::Print("Reporting Mode: 0x%02x\n", WiiMoteEmu::g_ReportingMode);
-		Console::Print("DataFrame: %s\n", Temp.c_str());
-	}*/
+	// Send it
+	g_WiimoteInitialize.pWiimoteInput(m_channelID, Buffer, Offset);
 
-    g_WiimoteInitialize.pWiimoteInput(m_channelID, Buffer, Offset);
+	// Debugging
+	ReadDebugging(false, Buffer);  
 }
 /////////////////////
 };
@@ -263,6 +293,113 @@ void SendEvent(SEvent& _rEvent)
 //******************************************************************************
 // Function Definitions 
 //******************************************************************************
+
+void SendAcc(u8 _ReportID)
+{
+	byte DataAcc[MAX_PAYLOAD];
+
+	DataAcc[0] = 0x22; // Report 0x12
+	DataAcc[1] = 0x00; // Core buttons
+	DataAcc[2] = 0x00;
+	DataAcc[3] = _ReportID; // Reporting mode
+
+	wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)DataAcc, MAX_PAYLOAD);
+
+	std::string Temp = ArrayToString(DataAcc, 28, 0, 30);
+	Console::Print("SendAcc: %s\n", Temp.c_str());
+
+	//22 00 00 _reportID 00
+}
+
+// Clear any potential queued events
+void ClearEvents()
+{
+	for (int i = 0; i < g_NumberOfWiiMotes; i++)
+		g_WiiMotes[i]->ClearEvents();
+}
+
+// Update the data reporting mode if we are switching between the emulated and the real Wiimote
+void SetDataReportingMode(u8 ReportingMode)
+{
+	// Don't allow this to run to often
+	if (Common::Timer::GetTimeSinceJan1970() == g_UpdateTime) return;
+
+	// Save the time
+	g_UpdateTime = Common::Timer::GetTimeSinceJan1970();
+
+	// Decide if we should we use custom values
+	if (ReportingMode == 0) ReportingMode = WiiMoteEmu::g_ReportingMode;
+
+	// Just in case this should happen
+	if (ReportingMode == 0) ReportingMode = 0x30;
+
+	// Shortcut
+	wiimote_t* wm = WiiMoteReal::g_WiiMotesFromWiiUse[0];
+
+	switch(ReportingMode) // See Wiimote_Update()
+	{
+	case WM_REPORT_CORE:
+		wiiuse_motion_sensing(wm, 0);
+		wiiuse_set_ir(wm, 0);
+		break;
+	case WM_REPORT_CORE_ACCEL:
+		wiiuse_motion_sensing(wm, 1);
+		wiiuse_set_ir(wm, 0);
+		break;
+	case WM_REPORT_CORE_ACCEL_IR12:
+		wiiuse_motion_sensing(wm, 1);
+		wiiuse_set_ir(wm, 1);
+		break;
+	case WM_REPORT_CORE_ACCEL_EXT16:
+		wiiuse_motion_sensing(wm, 1);
+		wiiuse_set_ir(wm, 0);
+		break;
+	case WM_REPORT_CORE_ACCEL_IR10_EXT6:
+		wiiuse_motion_sensing(wm, 1);
+		wiiuse_set_ir(wm, 1);
+		break;
+	}
+
+	/* On occasion something in this function caused an instant reboot of Windows XP SP3
+	   with Bluesoleil 6. So I'm trying to use the API functions to reach the same goal. */
+	/*byte DataReporting[MAX_PAYLOAD];
+	byte IR0[MAX_PAYLOAD];
+	byte IR1[MAX_PAYLOAD];
+
+	DataReporting[0] = 0x12; // Report 0x12
+	DataReporting[1] = 0x06; // Continuous reporting
+	DataReporting[2] = ReportingMode; // Reporting mode
+
+	IR0[0] = 0x13; // Report 0x13
+	if (IR) IR0[1] = 0x06; else IR0[1] = 0x02;
+	IR1[0] = 0x1a; // Report 0x1a
+	if (IR) IR1[1] = 0x06; else IR1[1] = 0x02;
+
+	// Calibrate IR
+	static const u8 IR_0[] = { 0x16, 0x04, 0xb0, 0x00, 0x30, 0x01,
+		0x01 };
+	static const u8 IR_1[] = { 0x16, 0x04, 0xb0, 0x00, 0x00, 0x09,
+		0x02, 0x00, 0x00, 0x71, 0x01, 0x00, 0xaa, 0x00, 0x64 };
+	static const u8 IR_2[] = { 0x16, 0x04, 0xb0, 0x00, 0x1a, 0x02,
+		0x63, 0x03 };
+	static const u8 IR_3[] = { 0x16, 0x04, 0xb0, 0x00, 0x33, 0x01,
+		0x03 };
+	static const u8 IR_4[] = { 0x16, 0x04, 0xb0, 0x00, 0x30, 0x01,
+		0x08 };
+
+	wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)DataReporting, MAX_PAYLOAD);
+	wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)IR0, MAX_PAYLOAD);
+	wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)IR1, MAX_PAYLOAD);
+
+	if (IR)
+	{
+		wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)IR_0, MAX_PAYLOAD);
+		wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)IR_1, MAX_PAYLOAD);
+		wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)IR_2, MAX_PAYLOAD);
+		wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)IR_3, MAX_PAYLOAD);
+		wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)IR_4, MAX_PAYLOAD);
+	}*/
+}
 
 // Flash lights, and if connecting, also rumble
 void FlashLights(bool Connect)
@@ -281,27 +418,44 @@ void FlashLights(bool Connect)
 
 int Initialize()
 {
+	// Return if already initialized
 	if (g_RealWiiMoteInitialized) return g_NumberOfWiiMotes;
 
+	// Clear the wiimote classes
     memset(g_WiiMotes, 0, sizeof(CWiiMote*) * MAX_WIIMOTES);
 
 	// Call Wiiuse.dll
     g_WiiMotesFromWiiUse = wiiuse_init(MAX_WIIMOTES);
     g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, MAX_WIIMOTES, 5);
 
-	if (g_NumberOfWiiMotes > 0) g_RealWiiMotePresent = true;
+	// Remove the wiiuse_poll() threshold
+	wiiuse_set_accel_threshold(g_WiiMotesFromWiiUse[0], 0);
 
+	// Update the global accelerometer neutral values
+	while(g_WiiMotesFromWiiUse[0]->accel_calib.cal_zero.x == 0)
+		{wiiuse_poll(g_WiiMotesFromWiiUse, MAX_WIIMOTES);}
+	g_accel.cal_zero.x = g_WiiMotesFromWiiUse[0]->accel_calib.cal_zero.x;
+	g_accel.cal_zero.y = g_WiiMotesFromWiiUse[0]->accel_calib.cal_zero.y;
+	g_accel.cal_zero.z = g_WiiMotesFromWiiUse[0]->accel_calib.cal_zero.z;
+	g_accel.cal_g.x = g_WiiMotesFromWiiUse[0]->accel_calib.cal_g.x;
+	g_accel.cal_g.y = g_WiiMotesFromWiiUse[0]->accel_calib.cal_g.y;
+	g_accel.cal_g.z = g_WiiMotesFromWiiUse[0]->accel_calib.cal_g.z;
+	Console::Print("Got neutral values: %i %i %i\n",
+		g_accel.cal_zero.x, g_accel.cal_zero.y, g_accel.cal_zero.z + g_accel.cal_g.z);
+
+	// Update the global extension settings
+	g_Config.bNunchuckConnected = (g_WiiMotesFromWiiUse[0]->exp.type == EXP_NUNCHUK);
+	g_Config.bClassicControllerConnected = (g_WiiMotesFromWiiUse[0]->exp.type == EXP_CLASSIC);
+
+	if (g_NumberOfWiiMotes > 0) g_RealWiiMotePresent = true;
 	Console::Print("Found No of Wiimotes: %i\n", g_NumberOfWiiMotes);
 
-	// For the status window
+	// If we are connecting from the config window without a game running we flash the lights
 	if (!g_EmulatorRunning)
 	{
-		// Do I need this?
+		// I don't seem to need wiiuse_connect()
 		//int Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
-		//Console::Print("Connected: %i\n", Connect);
-
-		//wiiuse_set_timeout(g_WiiMotesFromWiiUse, MAX_WIIMOTES, 500, 1000);
-		//wiiuse_set_flags(g_WiiMotesFromWiiUse[0], WIIUSE_CONTINUOUS, NULL);
+		//Console::Print("Connected: %i\n", Connect);	
 
 		FlashLights(true);
 	}
@@ -386,10 +540,8 @@ void Update()
 
 //////////////////////////////////
 /* Continuously read the Wiimote status. However, the actual sending of data occurs in Update(). If we are
-   not currently using the real Wiimote we allow the separate ReadWiimote() function to run. Todo: Figure
-   out how to manually send the current data reporting mode to the real Wiimote so that we can entirely turn
-   off ReadData() (including wiiuse_io_write()) while we are not using the real wiimote. For example to risk
-   interrupting accelerometer recordings by a wiiuse_io_write(). */
+   not currently using the real Wiimote we allow the separate ReadWiimote() function to run. Wo don't use
+   them at the same time to avoid a potential collision. */
 // ---------------
 #ifdef _WIN32
 	DWORD WINAPI ReadWiimote_ThreadFunc(void* arg)
@@ -399,9 +551,9 @@ void Update()
 {
     while (!g_Shutdown)
     {
-		if(g_EmulatorRunning)
+		if(g_Config.bUseRealWiimote)
 			for (int i = 0; i < g_NumberOfWiiMotes; i++) g_WiiMotes[i]->ReadData();
-		if (!g_Config.bUseRealWiimote)
+		else
 			ReadWiimote();
     }
     return 0;

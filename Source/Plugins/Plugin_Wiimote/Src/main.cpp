@@ -25,7 +25,10 @@
 #include "Timer.h"
 
 #define EXCLUDEMAIN_H // Avoid certain declarations in main.h
-#include "main.h" // Local
+#include "EmuDefinitions.h"  // Local
+#include "wiimote_hid.h"
+#include "main.h"
+#include "Logging.h"
 #if defined(HAVE_WX) && HAVE_WX
 	#include "ConfigDlg.h"
 #endif
@@ -43,11 +46,20 @@
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯
 SWiimoteInitialize g_WiimoteInitialize;
 
+// General
 bool g_EmulatorRunning = false;
 bool g_FrameOpen = false;
 bool g_RealWiiMotePresent = false;
 bool g_RealWiiMoteInitialized = false;
 bool g_EmulatedWiiMoteInitialized = false;
+
+// Settings
+accel_cal g_accel;
+
+// Debugging
+bool g_DebugAccelerometer = false;
+bool g_DebugData = false;
+bool g_DebugComm = true;
 
 // Update speed
 int g_UpdateCounter = 0;
@@ -145,11 +157,10 @@ void DllConfig(HWND _hParent)
 	#endif
 
 	//Console::Open();
+	DoInitialize();
 
 	g_FrameOpen = true;	
 	frame = new ConfigDialog(&win);
-
-	DoInitialize();
 
 	frame->ShowModal();
 	//frame.Show();	
@@ -258,12 +269,13 @@ extern "C" void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _
 		LOGV(WII_IPC_WIIMOTE, 3, "Wiimote_ControlChannel");
 		std::string Temp = ArrayToString(data, _Size);
 		LOGV(WII_IPC_WIIMOTE, 3, "    Data: %s", Temp.c_str());
+		//PanicAlert("Wiimote_ControlChannel");
 	}
 
-	if (!g_RealWiiMotePresent)
+	//if (!g_RealWiiMotePresent)
 		WiiMoteEmu::ControlChannel(_channelID, _pData, _Size);
 #if HAVE_WIIUSE
-	else
+	if (g_RealWiiMotePresent)
 		WiiMoteReal::ControlChannel(_channelID, _pData, _Size);
 #endif
 		
@@ -290,11 +302,26 @@ extern "C" void Wiimote_Update()
 		g_UpdateWriteScreen++;
 	}
 
+	// This functions will send:
+	//		Emulated Wiimote: Only data reports 0x30-0x37
+	//		Real Wiimote: Both data reports 0x30-0x37 and all other read reports
 	if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
 		WiiMoteEmu::Update();
 #if HAVE_WIIUSE
 	else if (g_RealWiiMotePresent)
 		WiiMoteReal::Update();
+#endif
+
+	// Debugging
+#ifdef _WIN32
+	if( GetAsyncKeyState(VK_HOME) && g_DebugComm ) g_DebugComm = false;
+		else if (GetAsyncKeyState(VK_HOME) && !g_DebugComm ) g_DebugComm = true;
+
+	if( GetAsyncKeyState(VK_PRIOR) && g_DebugData ) g_DebugData = false;
+		else if (GetAsyncKeyState(VK_PRIOR) && !g_DebugData ) g_DebugData = true;
+
+	if( GetAsyncKeyState(VK_NEXT) && g_DebugAccelerometer ) g_DebugAccelerometer = false;
+		else if (GetAsyncKeyState(VK_NEXT) && !g_DebugAccelerometer ) g_DebugAccelerometer = true;
 #endif
 }
 
@@ -308,6 +335,225 @@ extern "C" unsigned int Wiimote_GetAttachedControllers()
 //******************************************************************************
 // Supporting functions
 //******************************************************************************
+
+void ReadDebugging(bool Emu, const void* _pData)
+{
+	//
+	const u8* data = (const u8*)_pData;
+
+	int size;
+	bool DataReport = false;
+	std::string Name;
+	switch(data[1])
+	{
+	case WM_STATUS_REPORT: // 0x20
+		size = sizeof(wm_status_report);
+		Name = "WM_STATUS_REPORT";
+		{
+			wm_status_report* pStatus = (wm_status_report*)(data + 2);
+			Console::Print(""
+				"Extension Controller: %i\n"
+				"Speaker enabled: %i\n"
+				"IR camera enabled: %i\n"
+				"LED 1: %i\n"
+				"LED 2: %i\n"
+				"LED 3: %i\n"
+				"LED 4: %i\n"
+				"Battery low: %i\n\n",
+				pStatus->extension,
+				pStatus->speaker,
+				pStatus->ir,
+				(pStatus->leds >> 0),
+				(pStatus->leds >> 1),
+				(pStatus->leds >> 2),
+				(pStatus->leds >> 3),
+				pStatus->battery_low
+				);
+		}
+		break;
+	case WM_READ_DATA_REPLY: // 0x21
+		size = sizeof(wm_read_data_reply);
+		Name = "REPLY";
+		// Pick up accelerometer neutral values
+		if (data[5] == 0x00 && data[6] == 0x10)
+		{
+			g_accel.cal_zero.x = data[13];
+			g_accel.cal_zero.y = data[14];
+			g_accel.cal_zero.z = data[15];
+
+			g_accel.cal_g.x = data[17] - data[13];
+			g_accel.cal_g.y = data[18] - data[14];
+			g_accel.cal_g.z = data[19] - data[15];
+
+			//Console::Print("Got neutral values: %i %i %i\n",
+			//	g_accel.cal_zero.x, g_accel.cal_zero.y, g_accel.cal_zero.z + g_accel.cal_g.z);
+		}
+		break;
+	case WM_WRITE_DATA_REPLY:  // 0x22
+		size = sizeof(wm_acknowledge) - 1;
+		Name = "REPLY";
+		break;
+	case WM_REPORT_CORE: // 0x30-0x37
+		size = sizeof(wm_report_core);
+		DataReport = true;
+		break;
+	case WM_REPORT_CORE_ACCEL:
+		size = sizeof(wm_report_core_accel);
+		DataReport = true;
+		break;
+	case WM_REPORT_CORE_EXT8:
+		size = sizeof(wm_report_core_accel_ir12);
+		DataReport = true;
+		break;
+	case WM_REPORT_CORE_ACCEL_IR12:
+		size = sizeof(wm_report_core_accel_ir12);
+		DataReport = true;
+		break;
+	case WM_REPORT_CORE_EXT19:
+		size = sizeof(wm_report_core_accel_ext16);
+		DataReport = true;
+		break;
+	case WM_REPORT_CORE_ACCEL_EXT16:
+		size = sizeof(wm_report_core_accel_ext16);
+		DataReport = true;
+		break;
+	case WM_REPORT_CORE_IR10_EXT9:
+		size = sizeof(wm_report_core_accel_ir10_ext6);
+		DataReport = true;
+		break;
+	case WM_REPORT_CORE_ACCEL_IR10_EXT6:		
+		size = sizeof(wm_report_core_accel_ir10_ext6);
+		DataReport = true;
+		break;
+	default:
+		PanicAlert("%s ReadDebugging: Unknown channel 0x%02x", (Emu ? "Emu" : "Real"), data[1]);
+		return;
+	}
+
+	if (!DataReport && g_DebugComm)
+	{
+		std::string Temp = ArrayToString(data, size + 2, 0, 30);
+		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
+		Console::Print("Read[%s] %s: %s\n", (Emu ? "Emu" : "Real"), Name.c_str(),  Temp.c_str()); // No timestamp
+		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
+	}
+
+	if (DataReport && g_DebugData)
+	{
+		std::string Temp = ArrayToString(data, size + 2, 0, 30);
+		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
+
+		// Format accelerometer values
+		if(Temp.length() > 20)
+		{
+			std::string Tmp1 = Temp.substr(0, 12);
+			std::string Tmp2 = Temp.substr(20, (Temp.length() - 20));
+			std::string Temp = Tmp1 + StringFromFormat("%03i %03i %03i", data[4], data[5], data[6]) + Tmp2;
+		}
+		
+		Console::Print("Read[%s]: %s\n", (Emu ? "Emu" : "Real"), Temp.c_str()); // No timestamp
+		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
+	}
+	if(g_DebugAccelerometer)
+	{		
+		// Accelerometer only
+		Console::ClearScreen();	
+		Console::Print("Accel x, y, z: %03u %03u %03u\n", data[4], data[5], data[6]);
+	}
+}
+
+
+void InterruptDebugging(bool Emu, const void* _pData)
+{
+	//
+	const u8* data = (const u8*)_pData;
+	
+	if (g_DebugComm) Console::Print("Write[%s] ", (Emu ? "Emu" : "Real"));
+
+	int size;
+	switch(data[1])
+	{
+	case 0x10:
+		size = 4; // I don't know the size
+		if (g_DebugComm) Console::Print("0x10");
+		break;
+	case WM_LEDS: // 0x11
+		size = sizeof(wm_leds);
+		if (g_DebugComm) Console::Print("WM_LEDS");
+		break;
+	case WM_DATA_REPORTING: // 0x12
+		size = sizeof(wm_data_reporting);
+		if (g_DebugComm) Console::Print("WM_DATA_REPORTING");
+		break;
+	case WM_REQUEST_STATUS: // 0x15
+		size = sizeof(wm_request_status);
+		if (g_DebugComm) Console::Print("WM_REQUEST_STATUS");
+		break;
+	case WM_WRITE_DATA: // 0x16
+		if (g_DebugComm) Console::Print("WM_WRITE_DATA");
+		size = sizeof(wm_write_data);
+		switch(data[2] >> 0x01)
+		{
+		case WM_SPACE_EEPROM: 
+			if (g_DebugComm) Console::Print(" REG_EEPROM"); break;
+		case WM_SPACE_REGS1:
+		case WM_SPACE_REGS2:
+			switch(data[3])
+			{
+			case 0xa2:
+				if (g_DebugComm) Console::Print(" REG_SPEAKER"); break;
+			case 0xa4:
+				 if (g_DebugComm) Console::Print(" REG_EXT"); break;
+			case 0xb0:
+				 if (g_DebugComm) Console::Print(" REG_IR"); break;
+			}
+			break;
+		}
+		break;
+	case WM_READ_DATA: // 0x17
+		size = sizeof(wm_read_data);
+		if (g_DebugComm) Console::Print("WM_READ_DATA");
+		switch(data[2] >> 0x01)
+		{
+		case WM_SPACE_EEPROM:
+			if (g_DebugComm) Console::Print(" REG_EEPROM"); break;
+		case WM_SPACE_REGS1:
+		case WM_SPACE_REGS2:
+			switch(data[3])
+			{
+			case 0xa2:
+				if (g_DebugComm) Console::Print(" REG_SPEAKER"); break;
+			case 0xa4:
+				 if (g_DebugComm) Console::Print(" REG_EXT"); break;
+			case 0xb0:
+				if (g_DebugComm) Console::Print(" REG_IR"); break;
+			}
+			break;
+		}
+		break;
+	case WM_IR_PIXEL_CLOCK: // 0x13
+	case WM_IR_LOGIC: // 0x1a
+		if (g_DebugComm) Console::Print("WM_IR");
+		size = 1;
+		break;
+	case WM_SPEAKER_ENABLE: // 0x14
+	case WM_SPEAKER_MUTE:
+		if (g_DebugComm) Console::Print("WM_SPEAKER");
+		size = 1;
+		break;
+	default:
+		size = 15;
+		Console::Print("%s InterruptDebugging: Unknown channel 0x%02x", (Emu ? "Emu" : "Real"), data[1]);
+		break;
+	}
+	if (g_DebugComm)
+	{
+		std::string Temp = ArrayToString(data, size + 2, 0, 30);
+		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
+		Console::Print(": %s\n",  Temp.c_str()); // No timestamp
+		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
+	}
+}
 
 
 /* Returns a timestamp with three decimals for precise time comparisons. The return format is
@@ -376,12 +622,13 @@ void DoInitialize()
 	// ----------------------------------------
 	// Debugging window
 	// ----------
-	/*Console::Open(100, 750, "Wiimote"); // give room for 20 rows
-	Console::Print("Wiimote console opened\n");
+	/*Console::Open(130, 1000, "Wiimote"); // give room for 20 rows
+	Console::Print("\n\n\nWiimote console opened\n");
 
 	// Move window
 	//MoveWindow(Console::GetHwnd(), 0,400, 100*8,10*14, true); // small window
-	MoveWindow(Console::GetHwnd(), 400,0, 100*8,70*14, true); // big window*/
+	//MoveWindow(Console::GetHwnd(), 400,0, 100*8,70*14, true); // big window
+	MoveWindow(Console::GetHwnd(), 200,0, 130*8,70*14, true); // big wide window*/
 	// ---------------
 
 	// Load config settings

@@ -41,10 +41,10 @@ namespace WiiMoteEmu
 // Definitions and variable declarations
 //******************************************************************************
 
-u8 g_Leds = 0x0; // 4 bits
+u8 g_Leds = 0x1; // 4 bits
 u8 g_Speaker = 0x1; // 1 = on
-u8 g_SpeakerVoice = 0x1; // 1 = on
-u8 g_IR = 0x1; // 1 = on
+u8 g_SpeakerVoice = 0x0; // 1 = on
+u8 g_IR = 0x0; // 1 = on
 
 u8 g_Eeprom[WIIMOTE_EEPROM_SIZE];
 u8 g_RegSpeaker[WIIMOTE_REG_SPEAKER_SIZE];

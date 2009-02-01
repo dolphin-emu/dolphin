@@ -76,7 +76,7 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_WideScreen;
 		wxCheckBox *m_NunchuckConnected, *m_ClassicControllerConnected;
 
-		wxCheckBox *m_ConnectRealWiimote, *m_UseRealWiimote, *m_UpdateMeters; // Real Wiimote settings	
+		wxCheckBox *m_ConnectRealWiimote, *m_UseRealWiimote, *m_UpdateMeters; // Real Wiimote settings
 
 		//static const int RECORDING_ROWS = 15;
 		wxButton * m_RecordButton[RECORDING_ROWS + 1];

@@ -26,8 +26,11 @@
 
 #include "ConsoleWindow.h" // Common
 #include "StringUtil.h"
+#include "Timer.h"
 
 #include "wiimote_real.h" // Local
+#include "wiimote_hid.h"
+#include "EmuDefinitions.h"
 #include "main.h"
 #if defined(HAVE_WX) && HAVE_WX
 	#include "ConfigDlg.h"
@@ -54,7 +57,7 @@ void handle_event(struct wiimote_t* wm)
 	printf("\n\n--- EVENT [id %i] ---\n", wm->unid);
 
 	/* if a button is pressed, report it */
-	if (IS_PRESSED(wm, WIIMOTE_BUTTON_A))		Console::Print("A pressed\n");
+	//if (IS_PRESSED(wm, WIIMOTE_BUTTON_A))		Console::Print("A pressed\n");
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_B))		Console::Print("B pressed\n");
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_UP))		Console::Print("UP pressed\n");
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_DOWN))	Console::Print("DOWN pressed\n");
@@ -76,7 +79,6 @@ void handle_event(struct wiimote_t* wm)
 		wiiuse_motion_sensing(wm, 0);
 		g_MotionSensing = false;
 	}
-
 	/*
 	 *	Pressing plus will tell the wiimote we are interested in movement.
 	 */
@@ -86,45 +88,104 @@ void handle_event(struct wiimote_t* wm)
 		g_MotionSensing = true;
 	}
 
+	// Turn IR reporting on and off
+	if (IS_JUST_PRESSED(wm, WIIMOTE_BUTTON_UP))
+		wiiuse_set_ir(wm, 1);
+	if (IS_JUST_PRESSED(wm, WIIMOTE_BUTTON_DOWN))
+		wiiuse_set_ir(wm, 0);
+
+	/* Print battery status */
+		if(frame)
+			if(g_Config.bUpdateRealWiimote)
+				frame->m_GaugeBattery->SetValue((int)floor((wm->battery_level * 100) + 0.5));
+
 	/* If the accelerometer is turned on then print angles */
 	if (WIIUSE_USING_ACC(wm))
 	{
+
 		std::string Tmp;
 		Tmp += StringFromFormat("Roll: %2.1f  ", wm->orient.roll);
 		Tmp += StringFromFormat("Pitch: %2.1f  ", wm->orient.pitch);
 		Tmp += StringFromFormat("Battery: %1.2f\n", wm->battery_level);
 		Tmp += StringFromFormat("G-Force x, y, z: %1.2f %1.2f %1.2f\n", wm->gforce.x, wm->gforce.y, wm->gforce.z);
 		Tmp += StringFromFormat("Accel x, y, z: %03i %03i %03i\n\n", wm->accel.x, wm->accel.y, wm->accel.z);
-		//Console::Print("%s", Tmp.c_str());
 
 		if(frame)
 		{
 			if(g_Config.bUpdateRealWiimote)
-			{
-				frame->m_GaugeBattery->SetValue((int)floor((wm->battery_level * 100) + 0.5));
+			{		
 
+				// Disabled for now, they serve a limited purpose anyway. Enabled again.
+				/**/
 				frame->m_GaugeRoll[0]->SetValue(wm->orient.roll + 180);
 				frame->m_GaugeRoll[1]->SetValue(wm->orient.pitch + 180);
 
 				frame->m_GaugeGForce[0]->SetValue((int)floor((wm->gforce.x * 100) + 300.5));
 				frame->m_GaugeGForce[1]->SetValue((int)floor((wm->gforce.y * 100) + 300.5));
-				frame->m_GaugeGForce[2]->SetValue((int)floor((wm->gforce.z * 100) + 300.5));
+				frame->m_GaugeGForce[2]->SetValue((int)floor((wm->gforce.z * 100) + 300.5));				
 
 				frame->m_GaugeAccel[0]->SetValue(wm->accel.x);
 				frame->m_GaugeAccel[1]->SetValue(wm->accel.y);
 				frame->m_GaugeAccel[2]->SetValue(wm->accel.z);
+
+				if(frame->m_bRecording)
+					Console::Print("Wiiuse Recorded accel x, y, z: %03i %03i %03i\n", wm->accel.x, wm->accel.y, wm->accel.z);
 			}
 
 			frame->DoRecordMovement(wm->accel.x, wm->accel.y, wm->accel.z);
-
 			if (IS_PRESSED(wm, WIIMOTE_BUTTON_A)) frame->DoRecordA(true);
 				else frame->DoRecordA(false);
 		}
+	}
+	// Otherwise remove the values
+	else
+	{
+		if (frame)
+		{
+			frame->m_GaugeAccel[0]->SetValue(0);
+			frame->m_GaugeAccel[1]->SetValue(0);
+			frame->m_GaugeAccel[2]->SetValue(0);
+		}
+	}
+
+
+	/*
+	 *	If IR tracking is enabled then print the coordinates
+	 *	on the virtual screen that the wiimote is pointing to.
+	 *
+	 *	Also make sure that we see at least 1 dot.
+	 */
+	if (IS_JUST_PRESSED(wm, WIIMOTE_BUTTON_UP))
+		wiiuse_set_ir(wm, 1);
+	if (IS_JUST_PRESSED(wm, WIIMOTE_BUTTON_DOWN))
+		wiiuse_set_ir(wm, 0);
+
+	if (WIIUSE_USING_IR(wm))
+	{
+		/*Console::ClearScreen();
+
+		// Go through each of the 4 possible IR sources
+		for (int i = 0; i < 4; ++i)
+		{
+			// Check if the source is visible
+			if (wm->ir.dot[i].visible)
+				Console::Print("IR source %i: (%u, %u)\n", i, wm->ir.dot[i].x, wm->ir.dot[i].y);
+		}
+
+		Console::Print("IR cursor: (%u, %u)\n", wm->ir.x, wm->ir.y);
+		Console::Print("IR z distance: %f\n", wm->ir.z);
+	
+		const byte* pBuffer = wm->event_buf;
+		std::string Temp = ArrayToString(pBuffer, 20, 0, 30);
+		Console::Print("Data: %s\n", Temp.c_str());*/
 	}
 }
 
 void ReadWiimote()
 {
+	handle_event(g_WiiMotesFromWiiUse[0]);
+
+	// Read formatted data
 	if (wiiuse_poll(g_WiiMotesFromWiiUse, MAX_WIIMOTES))
 	{
 		/*
@@ -138,7 +199,7 @@ void ReadWiimote()
 			{
 				case WIIUSE_EVENT:
 					/* a generic event occured */
-					handle_event(g_WiiMotesFromWiiUse[i]);
+					//handle_event(g_WiiMotesFromWiiUse[i]);
 					break;
 
 				case WIIUSE_STATUS:

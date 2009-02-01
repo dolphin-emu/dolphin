@@ -56,7 +56,7 @@ void Config::Save()
 
 	iniFile.Set("Real", "Connect", bConnectRealWiimote);	
 	iniFile.Set("Real", "Use", bUseRealWiimote);
-	iniFile.Set("Real", "UpdateStatus", bUpdateRealWiimote);	
+	iniFile.Set("Real", "UpdateStatus", bUpdateRealWiimote);
 
     iniFile.Save(FULL_CONFIG_DIR "Wiimote.ini");
 }

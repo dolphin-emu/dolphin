@@ -38,12 +38,18 @@ void Shutdown(void);
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size);
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size);
 void Update();
+
+void SendAcc(u8 _ReportID);
+void SetDataReportingMode(u8 ReportingMode = 0);
+void ClearEvents();
 void ReadWiimote();
 
 #ifndef EXCLUDE_H
 	extern wiimote_t**		g_WiiMotesFromWiiUse;
 	extern int				g_NumberOfWiiMotes;
 	extern bool				g_MotionSensing;
+	extern u64				g_UpdateTime;
+	extern int				g_UpdateCounter;
 #endif
 
 }; // WiiMoteReal

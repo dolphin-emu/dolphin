@@ -48,74 +48,85 @@ namespace WiiMoteEmu
 //******************************************************************************
 
 // ------------------------------------------
-// Variables
+// Variables: 0 = Wiimote, 1 = Nunchuck
 // ----------------
-int g_RecordingPlaying = -1;
-int g_RecordingCounter = 0;
-int g_RecordingPoint = 0;
-double g_RecordingStart = 0;
-double g_RecordingCurrentTime = 0;
+int g_RecordingPlaying[2]; //g_RecordingPlaying[0] = -1; g_RecordingPlaying[1] = -1;
+int g_RecordingCounter[2]; //g_RecordingCounter[0] = 0; g_RecordingCounter[1] = 0;
+int g_RecordingPoint[2]; //g_RecordingPoint[0] = 0; g_RecordingPoint[1] = 0;
+double g_RecordingStart[2]; //g_RecordingStart[0] = 0; g_RecordingStart[1] = 0;
+double g_RecordingCurrentTime[2]; //g_RecordingCurrentTime[0] = 0; g_RecordingCurrentTime[1] = 0;
 // --------------------------
 
-void RecordingPlay(u8 &_x, u8 &_y, u8 &_z)
+void RecordingPlay(u8 &_x, u8 &_y, u8 &_z, int Wm)
 {
 	// Return if the list is empty
-	if(VRecording.at(g_RecordingPlaying).Recording.size() == 0)
+	if(VRecording.at(g_RecordingPlaying[Wm]).Recording.size() == 0)
 	{
-		g_RecordingPlaying = -1;
+		g_RecordingPlaying[Wm] = -1;
 		Console::Print("Empty\n\n");
 		return;
 	}
 
 	// Return if the playback speed is unset
-	if(VRecording.at(g_RecordingPlaying).PlaybackSpeed < 0)
+	if(VRecording.at(g_RecordingPlaying[Wm]).PlaybackSpeed < 0)
 	{
-		Console::Print("PlaybackSpeed empty: %i\n\n", g_RecordingPlaying);
-		g_RecordingPlaying = -1;
+		Console::Print("PlaybackSpeed empty: %i\n\n", g_RecordingPlaying[Wm]);
+		g_RecordingPlaying[Wm] = -1;
 		return;
 	}
 
 	// Get starting time
-	if(g_RecordingCounter == 0) g_RecordingStart = GetDoubleTime();
+	if(g_RecordingCounter[Wm] == 0)
+	{
+		Console::Print("\n\nBegin\n");
+		g_RecordingStart[Wm] = GetDoubleTime();
+	}
 
 	// Get current time
-	g_RecordingCurrentTime = GetDoubleTime() - g_RecordingStart;
+	g_RecordingCurrentTime[Wm] = GetDoubleTime() - g_RecordingStart[Wm];
 
 	// Modify the current time
-	g_RecordingCurrentTime *= ((25.0 + (double)VRecording.at(g_RecordingPlaying).PlaybackSpeed * 25.0) / 100.0);
+	g_RecordingCurrentTime[Wm] *= ((25.0 + (double)VRecording.at(g_RecordingPlaying[Wm]).PlaybackSpeed * 25.0) / 100.0);
 
 	// Select reading
-	for (int i = 0; i < VRecording.at(g_RecordingPlaying).Recording.size(); i++)
-		if (VRecording.at(g_RecordingPlaying).Recording.at(i).Time > g_RecordingCurrentTime)
+	for (int i = 0; i < VRecording.at(g_RecordingPlaying[Wm]).Recording.size(); i++)
+		if (VRecording.at(g_RecordingPlaying[Wm]).Recording.at(i).Time > g_RecordingCurrentTime[Wm])
 		{
-			g_RecordingPoint = i;
+			g_RecordingPoint[Wm] = i;
 			break; // Break loop
 		}
 
 	// Return if we are at the end of the list
-	if(g_RecordingCurrentTime >=
-		VRecording.at(g_RecordingPlaying).Recording.at(
-			VRecording.at(g_RecordingPlaying).Recording.size() - 1).Time)
+	if(g_RecordingCurrentTime[Wm] >=
+		VRecording.at(g_RecordingPlaying[Wm]).Recording.at(
+			VRecording.at(g_RecordingPlaying[Wm]).Recording.size() - 1).Time)
 	{
-		g_RecordingCounter = 0;
-		g_RecordingPlaying = -1;
-		g_RecordingStart = 0;
-		g_RecordingCurrentTime = 0;
+		g_RecordingCounter[Wm] = 0;
+		g_RecordingPlaying[Wm] = -1;
+		g_RecordingStart[Wm] = 0;
+		g_RecordingCurrentTime[Wm] = 0;
 		Console::Print("End\n\n");
 		return;
 	}
 
 	// Update values
-	_x = VRecording.at(g_RecordingPlaying).Recording.at(g_RecordingPoint).x;
-	_y = VRecording.at(g_RecordingPlaying).Recording.at(g_RecordingPoint).y;
-	_z = VRecording.at(g_RecordingPlaying).Recording.at(g_RecordingPoint).z;
+	_x = VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).x;
+	_y = VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).y;
+	_z = VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).z;
 
-	Console::Print("Current time: %f %f  %i %i\n",
-		VRecording.at(g_RecordingPlaying).Recording.at(g_RecordingPoint).Time, g_RecordingCurrentTime,
-		VRecording.at(g_RecordingPlaying).Recording.size(), g_RecordingPoint
-		);
+	/**/
+	if (g_DebugAccelerometer)
+	{
+		Console::ClearScreen();
+		Console::Print("Current time: %f %f  %i %i\n",
+			VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).Time, g_RecordingCurrentTime[Wm],
+			VRecording.at(g_RecordingPlaying[Wm]).Recording.size(), g_RecordingPoint[Wm]
+			);
+		Console::Print("Accel x, y, z: %03u %03u %03u\n\n", _x, _y, _z);
+	}
+	
 
-	g_RecordingCounter++;
+	g_RecordingCounter[Wm]++;
 }
 
 // Check if we should play a recording
@@ -249,27 +260,29 @@ void FillReportInfo(wm_core& _core)
 //int a = 1, b = 1, c = 2, d = -2; // for debugging
 //int consoleDisplay = 0;
 
-int X = 0x84, Y = 0x84, Z = 0x9f; // neutral values
-u8 x = X, y = Y, z = Z;
+u8 x, y, z;
 int shake = -1, yhistsize = 15; // for the shake function
 std::vector<u8> yhist(15); // for the tilt function
 
 void FillReportAcc(wm_accel& _acc)
 {
+	// Create shortcut names for the default neutral values
+	int X = g_accel.cal_zero.x, Y = g_accel.cal_zero.y, Z = g_accel.cal_zero.z + g_accel.cal_g.z;
+
 #ifdef _WIN32
 	// ------------------------------------
 	// Recorded movements
 	// --------------
 	// Check for a playback command
-	if(g_RecordingPlaying < 0)
+	if(g_RecordingPlaying[0] < 0)
 	{
-		g_RecordingPlaying = RecordingCheckKeys(true);
+		g_RecordingPlaying[0] = RecordingCheckKeys(true);
 	}
 	else
 	{
-		RecordingPlay(_acc.x, _acc.y, _acc.z);
-		//Console::Print("X: %u\n", _acc.x);
-		return;
+		RecordingPlay(_acc.x, _acc.y, _acc.z, 0);
+		//Console::Print("X, Y, Z: %u %u %u\n", _acc.x, _acc.y, _acc.z);
+		if (_acc.x != 0 && _acc.y != 0 && _acc.z != 0) return;
 	}
 	// ---------------------
 
@@ -326,7 +339,7 @@ void FillReportAcc(wm_accel& _acc)
 		y = Y;
 		shake = -1;
 	}
-	else // the default Y and Z if nothing is pressed
+	else // the default Z if nothing is pressed
 	{
 		z = Z;
 	}
@@ -542,7 +555,9 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 		);*/
 }
 
-
+///////////////////////////////////////////////////////////////////
+// The extended 10 byte reporting
+// ---------------
 void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 {
 	/* See description above */
@@ -596,7 +611,7 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	// ----------------------------
 	// Debugging for calibration
 	// ----------
-	/*
+	
 	if(GetAsyncKeyState(VK_NUMPAD1))
 		Right +=1;
 	else if(GetAsyncKeyState(VK_NUMPAD2))
@@ -617,7 +632,7 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 		SensorBarRadius += 1;
 	else if(GetAsyncKeyState(VK_DELETE))
 		SensorBarRadius -= 1;
-
+/*
 	//ClearScreen();
 	//if(consoleDisplay == 1)
 		
@@ -644,13 +659,13 @@ void FillReportExtension(wm_extension& _ext)
 	// Recorded movements
 	// --------------
 	// Check for a playback command
-	if(g_RecordingPlaying < 0)
+	if(g_RecordingPlaying[1] < 0)
 	{
-		g_RecordingPlaying = RecordingCheckKeys(false);
+		g_RecordingPlaying[1] = RecordingCheckKeys(false);
 	}
 	else
 	{
-		RecordingPlay(_ext.ax, _ext.ay, _ext.az);
+		RecordingPlay(_ext.ax, _ext.ay, _ext.az, 1);
 		//Console::Print("X: %u\n", _acc.x);
 		return;
 	}

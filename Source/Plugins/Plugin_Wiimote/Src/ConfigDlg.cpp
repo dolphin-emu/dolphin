@@ -25,6 +25,7 @@
 #include "Timer.h"
 
 #include "wiimote_real.h" // Local
+#include "wiimote_hid.h"
 #include "main.h"
 #include "ConfigDlg.h"
 #include "Config.h"
@@ -547,12 +548,27 @@ void ConfigDialog::ConvertToString()
 	double Recordings = (double)m_vRecording.size(); 
 	double Time = m_vRecording.at(m_vRecording.size() - 1).Time - m_vRecording.at(0).Time;
 	int Rate = (int)(Recordings / Time);
+
+	// If time or the number of recordings are zero we set the Rate to zero
+	if (Time == 0 || m_vRecording.size() == 0) Rate = 0;
+
+	// Update GUI	
 	m_RecordSpeed[m_iRecordTo]->SetValue(wxString::Format(wxT("%i"), Rate));
 
+	// Save file
 	std::string SaveName = StringFromFormat("Recording%i", m_iRecordTo);
 	file.Set(SaveName.c_str(), "Movement", TmpStr.c_str());
 	file.Set(SaveName.c_str(), "Time", TmpTime.c_str());
-	file.Set(SaveName.c_str(), "RecordingSpeed", Rate);	
+	file.Set(SaveName.c_str(), "RecordingSpeed", Rate);
+
+	// Set a default playback speed if none is set already
+	int TmpPlaySpeed; file.Get(SaveName.c_str(), "PlaybackSpeed", &TmpPlaySpeed, -1);
+	if (TmpPlaySpeed == -1)
+	{
+		file.Set(SaveName.c_str(), "PlaybackSpeed", 3);
+		m_RecordPlayBackSpeed[m_iRecordTo]->SetSelection(3);
+	}	
+
 	file.Save("WiimoteMovement.ini");
 }
 
@@ -639,7 +655,7 @@ void ConfigDialog::DoRecordMovement(u8 _x, u8 _y, u8 _z)
 {
 	if (!m_bRecording) return;
 
-	Console::Print("DoRecordMovement\n");
+	//Console::Print("DoRecordMovement\n");
 
 	SRecording Tmp;
 	Tmp.x = _x;
@@ -765,10 +781,13 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_USE_REAL:
 		g_Config.bUseRealWiimote = m_UseRealWiimote->IsChecked();
+		//if(g_Config.bUseRealWiimote) WiiMoteReal::SetDataReportingMode();
+		if(g_Config.bUseRealWiimote) WiiMoteReal::ClearEvents();		
 		break;
 	case ID_UPDATE_REAL:
 		g_Config.bUpdateRealWiimote = m_UpdateMeters->IsChecked();
 		break;
+
 	case IDC_RECORD + 1:
 	case IDC_RECORD + 2:
 	case IDC_RECORD + 3:
@@ -809,13 +828,25 @@ void ConfigDialog::UpdateGUI()
 {
 	Console::Print("UpdateGUI: \n");
 
+	/* We can't allow different values for this one if we are using the real and emulated wiimote
+	   side by side so that we can switch between between during gameplay. We update the checked
+	   or unchecked values from the g_Config settings, and we make sure they are up to date with
+	   unplugged and reinserted extensions. */	
+	m_NunchuckConnected->SetValue(g_Config.bNunchuckConnected);
+	m_ClassicControllerConnected->SetValue(g_Config.bClassicControllerConnected);
+	m_NunchuckConnected->Enable(!(g_RealWiiMotePresent && g_Config.bConnectRealWiimote));
+	m_ClassicControllerConnected->Enable(!(g_RealWiiMotePresent && g_Config.bConnectRealWiimote));
+
 	/* I have disabled this option during a running game because it's enough to be able to switch
 	   between using and not using then. To also use the connect option during a running game would
 	   mean that the wiimote must be sent the current reporting mode and the channel ID after it
-	   has been initialized. If you know how to set that manually please feel free to make functions
-	   for that so that this option can be enabled during gameplay. */
+	   has been initialized. Functions for that are basically already in place so these two options
+	   could possibly be simplified to one option. */
 	m_ConnectRealWiimote->Enable(!g_EmulatorRunning);
 	m_UseRealWiimote->Enable(g_RealWiiMotePresent && g_Config.bConnectRealWiimote);
+
+	
+	
 
 // Linux has no FindItem()
 #ifdef _WIN32

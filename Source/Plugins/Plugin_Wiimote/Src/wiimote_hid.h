@@ -25,7 +25,7 @@
 #pragma pack(push, 1)
 #endif
 
-//source: HID_010_SPC_PFL/1.0 (official HID specification)
+// Source: HID_010_SPC_PFL/1.0 (official HID specification)
 
 struct hid_packet {
 	u8 param : 4;
@@ -225,6 +225,10 @@ struct wm_classic_extension
 	wm_cc_5 b2; // byte 5
 };
 
+//******************************************************************************
+// Data reports
+//******************************************************************************
+
 #define WM_REPORT_CORE 0x30
 struct wm_report_core {
 	wm_core c;
@@ -282,8 +286,23 @@ struct wm_report_ext21
 #define WM_SPEAKER_MUTE 0x19 
 
 
+//******************************************************************************
+// Custom structs
+//******************************************************************************
+
+/**
+ *	@struct accel_t
+ *	@brief Accelerometer struct. For any device with an accelerometer.
+ */
+struct accel_cal
+{
+	wm_accel cal_zero;		/**< zero calibration					*/
+	wm_accel cal_g;			/**< 1g difference around 0cal			*/
+};
+
+
 #if defined(_MSC_VER)
-#pragma pack(pop)
+	#pragma pack(pop)
 #endif
 
 #endif	//WIIMOTE_HID_H

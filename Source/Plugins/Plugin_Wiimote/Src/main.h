@@ -40,6 +40,8 @@
 void DoInitialize();
 double GetDoubleTime();
 int GetUpdateRate();
+void InterruptDebugging(bool Emu, const void* _pData);
+void ReadDebugging(bool Emu, const void* _pData);
 
 // Movement recording
 #define RECORDING_ROWS 15
@@ -58,11 +60,20 @@ struct SRecordingAll
 };
 
 #ifndef EXCLUDEMAIN_H
+	// General
 	extern bool g_EmulatorRunning;
 	extern bool g_FrameOpen;
 	extern bool g_RealWiiMotePresent;
 	extern bool g_RealWiiMoteInitialized;
 	extern bool g_EmulatedWiiMoteInitialized;
+
+	// Settings
+	extern accel_cal g_accel;
+
+	// Debugging
+	extern bool g_DebugAccelerometer;
+	extern bool g_DebugData;
+	extern bool g_DebugComm;
 
 	// Update speed
 	extern int g_UpdateCounter;

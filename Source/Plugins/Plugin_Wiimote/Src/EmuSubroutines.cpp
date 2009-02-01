@@ -46,11 +46,8 @@
 #include "StringUtil.h"
 #include "pluginspecs_wiimote.h"
 
-#include "main.h" // Local
-#include "wiimote_hid.h"
-#include "EmuMain.h"
+#include "EmuMain.h" // Local
 #include "EmuSubroutines.h"
-#include "EmuDefinitions.h"
 #include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
 #include "Config.h" // for g_Config
 /////////////////////////////////
@@ -141,7 +138,8 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 // ===================================================
 /* Generate the right address for wm reports. */
 // ----------------
-int WriteWmReport(u8* dst, u8 channel) {
+int WriteWmReport(u8* dst, u8 channel)
+{
 	u32 Offset = 0;
 	hid_packet* pHidHeader = (hid_packet*)(dst + Offset);
 	Offset += sizeof(hid_packet);
@@ -196,9 +194,9 @@ void WmSendAck(u16 _channelID, u8 _reportID, u32 address)
 
 	LOGV(WII_IPC_WIIMOTE, 2, "  WMSendAck()");
 	LOGV(WII_IPC_WIIMOTE, 2, "      Report ID: %02x", _reportID);
-	std::string Temp = ArrayToString(DataFrame, Offset, 0);
+	//std::string Temp = ArrayToString(DataFrame, Offset, 0);
 	//LOGV(WII_IPC_WIIMOTE, 2, "      Data: %s", Temp.c_str());
-	Console::Print("%s: WMSendAck: %s\n", Tm(true).c_str(), Temp.c_str());
+	//Console::Print("%s: WMSendAck: %s\n", Tm(true).c_str(), Temp.c_str());
 
 	/* Debug. Write the report for extension registry writes.
 	if((_reportID == 0x16 || _reportID == 0x17)  &&  ((address >> 16) & 0xfe) == 0xa4)
@@ -208,6 +206,9 @@ void WmSendAck(u16 _channelID, u8 _reportID, u32 address)
 	}*/
 
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
+
+	// Debugging
+	ReadDebugging(true, DataFrame);
 }
 
 
@@ -231,14 +232,16 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 
 	/* Now we determine what address space we are reading from. Space 0 is Eeprom and
 	   space 1 and 2 is the registers. */
-	if(rd->space == 0) 
+	if(rd->space == WM_SPACE_EEPROM) 
 	{
 		if (address + size > WIIMOTE_EEPROM_SIZE) 
 		{
-			PanicAlert("WmReadData: address + size out of bounds!");
+			PanicAlert("WmReadData: address + size out of bounds");
 			return;
 		}
-		SendReadDataReply(_channelID, g_Eeprom+address, address, (u8)size);
+		SendReadDataReply(_channelID, g_Eeprom + address, address, (u8)size);
+		/*Console::Print("Read RegEeprom: Size: %i, Address: %08x,  Offset: %08x\n",
+				size, address, (address & 0xffff));*/
 	} 
 	else if(rd->space == WM_SPACE_REGS1 || rd->space == WM_SPACE_REGS2)
 	{
@@ -250,28 +253,28 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 			block = g_RegSpeaker;
 			blockSize = WIIMOTE_REG_SPEAKER_SIZE;
 			LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xa2: g_RegSpeaker");
-			//Tmp = ArrayToString(g_RegSpeaker, size, (address & 0xffff));
+			/*Tmp = ArrayToString(g_RegSpeaker, size, (address & 0xffff));
 			//LOGV(WII_IPC_WIIMOTE, 0, "    Data: %s", Temp.c_str());
-			//Console::Print("Read RegSpkr:   Size %i  Address %08x  Offset %08x\nData %s\n",
-			//	size, address, (address & 0xffff), Tmp.c_str());
+			Console::Print("Read RegSpkr:   Size %i  Address %08x  Offset %08x\nData %s\n",
+				size, address, (address & 0xffff), Tmp.c_str());*/
 			break;
 		case 0xA4:
 			block = g_RegExt;
 			blockSize = WIIMOTE_REG_EXT_SIZE;
 			LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xa4: Read ExtReg ****************************");
-			//Tmp = ArrayToString(g_RegExt, size, (address & 0xffff));
+			/*Tmp = ArrayToString(g_RegExt, size, (address & 0xffff));
 			//LOGV(WII_IPC_WIIMOTE, 0, "    Data: %s", Temp.c_str());		
-			//Console::Print("Read RegExt: Size %i Address %08x  Offset %08x\nData %s\n",
-			//		size, address, (address & 0xffff), Tmp.c_str());
+			Console::Print("Read RegExt: Size %i Address %08x  Offset %08x\nData %s\n",
+					size, address, (address & 0xffff), Tmp.c_str());*/
 			break;
 		case 0xB0:
 			block = g_RegIr;
 			blockSize = WIIMOTE_REG_IR_SIZE;
 			LOGV(WII_IPC_WIIMOTE, 0, "    Case: 0xb0 g_RegIr");
-			//Tmp = ArrayToString(g_RegIr, size, (address & 0xffff));
+			/*Tmp = ArrayToString(g_RegIr, size, (address & 0xffff));
 			//LOGV(WII_IPC_WIIMOTE, 0, "    Data: %s", Temp.c_str());
-			//Console::Print("Read RegIR: Size %i Address %08x  Offset %08x\nData %s\n",
-			//		size, address, (address & 0xffff), Tmp.c_str());
+			Console::Print("Read RegIR: Size %i Address %08x  Offset %08x\nData %s\n",
+					size, address, (address & 0xffff), Tmp.c_str());*/
 			break;
 		default:
 			PanicAlert("WmWriteData: bad register block!");
@@ -320,7 +323,7 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 		}
 
 		// Let this function process the message and send it to the Wii
-		SendReadDataReply(_channelID, block+address, address, (u8)size);
+		SendReadDataReply(_channelID, block + address, address, (u8)size);
 
 
 	} 
@@ -360,6 +363,8 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 			return;
 		}
 		memcpy(g_Eeprom + address, wd->data, wd->size);
+		/*Console::Print("Write RegEeprom: Size: %i, Address: %08x,  Offset: %08x\n",
+					wd->size, address, (address & 0xffff));*/
 	}
 	// Write to registers
 	else if(wd->size <= 16 && (wd->space == WM_SPACE_REGS1 || wd->space == WM_SPACE_REGS2))
@@ -372,9 +377,9 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 				block = g_RegSpeaker;
 				blockSize = WIIMOTE_REG_SPEAKER_SIZE;
 				LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xa2: RegSpeaker");
-				//Console::Print("Write RegSpeaker: Size: %i, Address: %08x,  Offset: %08x\n",
-				//	wd->size, address, (address & 0xffff));
-				//Console::Print("Data: %s\n", Temp.c_str());
+				/*Console::Print("Write RegSpeaker: Size: %i, Address: %08x,  Offset: %08x\n",
+					wd->size, address, (address & 0xffff));
+				Console::Print("Data: %s\n", Temp.c_str());*/
 				break;
 			case 0xA4:
 				block = g_RegExt; // Extension Controller register
@@ -398,7 +403,6 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 				PanicAlert("WmWriteData: bad register block!");
 				return;
 		}
-
 		
 		 // Remove for example 0xa40000 from the address
 		 address &= 0xFFFF;
@@ -455,51 +459,70 @@ void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _Size)
 {
 	LOGV(WII_IPC_WIIMOTE, 0, "=========================================");
 	int dataOffset = 0;
+	const u8* data = (const u8*)_Base;
 	while (_Size > 0)
 	{
 		u8 DataFrame[1024];
 		u32 Offset = WriteWmReport(DataFrame, WM_READ_DATA_REPLY);
 		
+		// Limit the size to 16 bytes
 		int copySize = _Size;
-		if (copySize > 16)
-		{
-			copySize = 16;
-		}
+		if (copySize > 16) copySize = 16;
 
+		// Connect pReply->data to the empty DataFrame
 		wm_read_data_reply* pReply = (wm_read_data_reply*)(DataFrame + Offset);
 		Offset += sizeof(wm_read_data_reply);
 		pReply->buttons = 0;
 		pReply->error = 0;
-		pReply->size = (copySize - 1) & 0xF;
+		pReply->size = (copySize - 1) & 0xf;
 		pReply->address = Common::swap16(_Address + dataOffset);
 
+		// Write a pice of _Base to DataFrame
+		memcpy(pReply->data, data + dataOffset, copySize);
 
-		// Write a pice
-		memcpy(pReply->data + dataOffset, _Base, copySize);
-
-		if(copySize < 16) // check if we have less than 16 bytes left to send
-		{
+		// Check if we have less than 16 bytes left to send
+		if(copySize < 16)
 			memset(pReply->data + copySize, 0, 16 - copySize);
-		}
+
+		// Update DataOffset for the next loop
 		dataOffset += copySize;
 
+		/* Out of bounds. The real Wiimote generate an error for the first request to 0x1770
+		   if we dont't replicate that the game will never read the capibration data at the
+		   beginning of Eeprom. I think this error is supposed to occur when we try to read above
+		   the freely usable space that ends at 0x16ff. */
+		if (Common::swap16(pReply->address + pReply->size) > WIIMOTE_EEPROM_FREE_SIZE)
+		{
+			pReply->size = 0x0f;
+			pReply->error = 0x08;
+		}
 
+		// Logging
 		LOG(WII_IPC_WIIMOTE, "  SendReadDataReply()");
 		LOG(WII_IPC_WIIMOTE, "    Buttons: 0x%04x", pReply->buttons);
 		LOG(WII_IPC_WIIMOTE, "    Error: 0x%x", pReply->error);
 		LOG(WII_IPC_WIIMOTE, "    Size: 0x%x", pReply->size);
 		LOG(WII_IPC_WIIMOTE, "    Address: 0x%04x", pReply->address);
+		/**/Console::Print("  SendReadDataReply()\n");
+		Console::Print("    dataOffset: 0x%x\n", dataOffset);
+		Console::Print("    copySize: 0x%x\n", copySize);
+		Console::Print("    Size: 0x%x\n", pReply->size);
+		Console::Print("    Address: 0x%04x\n", Common::swap16(pReply->address));
+
+		//std::string Temp = ArrayToString(data, 0x40);
+		//Console::Print("Eeprom: %s\n", Temp.c_str());		
 
 		// Send a piece
 		g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 
 		_Size -= copySize;
+
+		// Debugging
+		ReadDebugging(true, DataFrame);
 	}
 
 	if (_Size != 0)
-	{
 		PanicAlert("WiiMote-Plugin: SendReadDataReply() failed");
-	}
 	LOGV(WII_IPC_WIIMOTE, 0, "==========================================");
 }
 // ================
@@ -551,6 +574,9 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs)
 
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 	LOGV(WII_IPC_WIIMOTE, 0, "=================================================");
+
+	// Debugging
+	ReadDebugging(true, DataFrame);
 }
 
 } // WiiMoteEmu

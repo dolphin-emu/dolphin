@@ -28,10 +28,10 @@
 #include "StringUtil.h" // for ArrayToString()
 #include "IniFile.h"
 
-#include "main.h" // Local
+#include "EmuDefinitions.h" // Local
+#include "main.h" 
 #include "wiimote_hid.h"
 #include "EmuSubroutines.h"
-#include "EmuDefinitions.h"
 #include "EmuMain.h"
 #include "Encryption.h" // for extension encryption
 #include "Logging.h" // for startConsoleWin, Console::Print, GetConsoleHwnd
@@ -149,8 +149,8 @@ void LoadRecordedMovements()
 			AsciiToHex(StrY.c_str(), TmpY);
 			AsciiToHex(StrZ.c_str(), TmpZ);			
 			Tmp.x = (u8)TmpX;
-			Tmp.x = (u8)TmpY;
-			Tmp.x = (u8)TmpZ;
+			Tmp.y = (u8)TmpY;
+			Tmp.z = (u8)TmpZ;
 
 			// Go to next set of time values
 			double Time = (double)atoi(TmpTime.substr(k, 5).c_str());
@@ -186,12 +186,18 @@ void Initialize()
 {
 	if (g_EmulatedWiiMoteInitialized) return;
 
+	// Write default Eeprom data
 	memset(g_Eeprom, 0, WIIMOTE_EEPROM_SIZE);
 	memcpy(g_Eeprom, EepromData_0, sizeof(EepromData_0));
 	memcpy(g_Eeprom + 0x16D0, EepromData_16D0, sizeof(EepromData_16D0));
 
-	g_ReportingMode = 0;
-
+	// Write default accelerometer neutral values
+	g_accel.cal_zero.x = g_Eeprom[22];
+	g_accel.cal_zero.y = g_Eeprom[23];
+	g_accel.cal_zero.z = g_Eeprom[24];
+	g_accel.cal_g.x = g_Eeprom[26];
+	g_accel.cal_g.y = g_Eeprom[27];
+	g_accel.cal_g.z = g_Eeprom[28];
 
 	/* Extension data for homebrew applications that use the 0x00000000 key. This
 	   writes 0x0000 in encrypted form (0xfefe) to 0xfe in the extension register. */
@@ -210,10 +216,18 @@ void Initialize()
 		memcpy(g_RegExt + 0xfa, classic_id, sizeof(classic_id));
 	}
 
+	g_ReportingMode = 0;
 	g_EmulatedWiiMoteInitialized = true;
 
 	// Load pre-recorded movements
 	LoadRecordedMovements();
+
+	// Set default recording values
+	g_RecordingPlaying[0] = -1; g_RecordingPlaying[1] = -1;
+	g_RecordingCounter[0] = 0; g_RecordingCounter[1] = 0;
+	g_RecordingPoint[0] = 0; g_RecordingPoint[1] = 0;
+	g_RecordingStart[0] = 0; g_RecordingStart[1] = 0;
+	g_RecordingCurrentTime[0] = 0; g_RecordingCurrentTime[1] = 0;
 
 	// I forgot what these were for?
 	//	g_RegExt[0xfd] = 0x1e;
@@ -285,48 +299,11 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 	LOGV(WII_IPC_WIIMOTE, 3, "Wiimote_Input");
 	const u8* data = (const u8*)_pData;
 
-	// -----------------------------------------------------
 	/* Debugging. We have not yet decided how much of 'data' we will use, it's not determined
 	   by sizeof(data). We have to determine it by looking at the data cases. */
-	// -----------------	
-	/*int size;
-	switch(data[1])
-	{
-	case 0x10:
-		size = 4; // I don't know the size
-		break;
-	case WM_LEDS: // 0x11
-		size = sizeof(wm_leds);
-		break;
-	case WM_DATA_REPORTING:  // 0x12
-		size = sizeof(wm_data_reporting);
-		break;
-	case WM_REQUEST_STATUS: // 0x15
-		size = sizeof(wm_request_status);
-		break;
-	case WM_WRITE_DATA: // 0x16
-		size = sizeof(wm_write_data);
-		break;
-	case WM_READ_DATA: // 0x17
-		size = sizeof(wm_read_data);
-		break;
-	case WM_IR_PIXEL_CLOCK: // 0x13
-	case WM_IR_LOGIC: // 0x1a
-	case WM_SPEAKER_ENABLE: // 0x14
-	case WM_SPEAKER_MUTE:
-		size = 1;
-		break;
-	default:
-		PanicAlert("HidOutputReport: Unknown channel 0x%02x", data[1]);
-		return;
-	}
-	std::string Temp = ArrayToString(data, size + 2, 0, 30);
-	//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
-	Console::Print("\n%s: InterruptChannel: %s\n", Tm(true).c_str(), Temp.c_str());*/
-	// -----------------------------------
+	InterruptDebugging(true, data);
 
 	hid_packet* hidp = (hid_packet*) data;
-
 	switch(hidp->type)
 	{
 	case HID_TYPE_DATA:
@@ -351,7 +328,11 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 					//if((data[1] == WM_WRITE_DATA  || data[1] == WM_READ_DATA)
 					//	&& data[3] == 0xa4)
 					//{
-						if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent) CreateAckDelay((u8)_channelID, (u16)sr->channel);
+						// There are no 0x22 replys to these report from the real wiimote
+						if(!(data[1] == WM_READ_DATA && data[2] == 0x00)
+							&& !(data[1] == WM_REQUEST_STATUS)
+							)
+							if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent) CreateAckDelay((u8)_channelID, (u16)sr->channel);
 					//}
 					//else
 					//{
@@ -413,7 +394,7 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 		{
 			HidOutputReport(_channelID, (wm_report*)hidp->data);
 
-			//return handshake
+			// Return handshake
 			u8 handshake = 0;
 			g_WiimoteInitialize.pWiimoteInput(_channelID, &handshake, 1);
 		}
