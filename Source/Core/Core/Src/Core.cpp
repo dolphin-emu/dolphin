@@ -345,12 +345,12 @@ THREAD_RETURN EmuThread(void *pArg)
 		PADInitialize.pLog = Callback_PADLog;
 		PADInitialize.padNumber = i;
 		// Check if we should init the plugin
-		if(Plugins.OkayToInitPlugin(i))
+		if (Plugins.OkayToInitPlugin(i))
 		{
 			Plugins.GetPad(i)->Initialize(&PADInitialize);
 
 			// Check if joypad open failed, in that case try again
-			if(PADInitialize.padNumber == -1)
+			if (PADInitialize.padNumber == -1)
 			{
 				Plugins.GetPad(i)->Shutdown();
 				Plugins.FreePad(i);
@@ -560,8 +560,8 @@ void Callback_VideoCopiedToXFB()
 		u64 newTicks = CoreTiming::GetTicks();
 		u64 newIdleTicks = CoreTiming::GetIdleTicks();
  
-		s64 diff = (newTicks - ticks)/1000000;
-		s64 idleDiff = (newIdleTicks - idleTicks)/1000000;
+		s64 diff = (newTicks - ticks) / 1000000;
+		s64 idleDiff = (newIdleTicks - idleTicks) / 1000000;
  
 		ticks = newTicks;
 		idleTicks = newIdleTicks;
@@ -570,18 +570,21 @@ void Callback_VideoCopiedToXFB()
 		char temp[256];
 		sprintf(temp, "FPS:%8.2f - Core: %s | %s - Speed: %i MHz [Real: %i + IdleSkip: %i] / %i MHz", 
 			(float)frames / t, 
-			_CoreParameter.bUseJIT ? "JIT" : "Interpreter", 
+#ifdef _M_IX86
+			_CoreParameter.bUseJIT ? "JIT32" : "Int32", 
+#else
+			_CoreParameter.bUseJIT ? "JIT64" : "Int64", 
+#endif
 			_CoreParameter.bUseDualCore ? "DC" : "SC",
 			(int)(diff),
-			(int)(diff-idleDiff),
+			(int)(diff - idleDiff),
 			(int)(idleDiff),
-			SystemTimers::GetTicksPerSecond()/1000000);
+			SystemTimers::GetTicksPerSecond() / 1000000);
  
 		if (g_pUpdateFPSDisplay != NULL)
 		    g_pUpdateFPSDisplay(temp);
  
 		Host_UpdateStatusBar(temp);
- 
  
 		frames = 0;
         Timer.Update();
