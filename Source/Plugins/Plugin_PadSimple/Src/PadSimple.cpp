@@ -636,7 +636,6 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	_pPADStatus->button |= PAD_USE_ORIGIN;
 #ifdef _WIN32
 	// Just update pad on focus
-	// TODO fix g_PADInitialize.hWnd != DolphinWX frame
 	if (pad[_numPAD].bDisable)
 	{
 		if (!IsFocus()) return;
