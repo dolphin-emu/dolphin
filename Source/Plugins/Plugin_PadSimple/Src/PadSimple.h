@@ -86,5 +86,6 @@ extern SPads pad[];
 
 void LoadConfig();
 void SaveConfig();
+bool IsFocus();
 
 #endif

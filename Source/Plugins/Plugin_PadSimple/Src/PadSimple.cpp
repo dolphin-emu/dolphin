@@ -60,6 +60,10 @@ SPADInitialize g_PADInitialize;
 SPADStatus recordBuffer[RECORD_SIZE];
 int count = 0;
 
+//******************************************************************************
+// Supporting functions
+//******************************************************************************
+
 void RecordInput(const SPADStatus& _rPADStatus)
 {
 	if (count >= RECORD_SIZE)
@@ -100,6 +104,18 @@ void SaveRecord()
 		fwrite(recordBuffer, 1, RECORD_SIZE * sizeof(SPADStatus), pStream);
 		fclose(pStream);
 	}
+}
+
+// Check if Dolphin is in focus
+bool IsFocus()
+{
+	HWND Parent = GetParent(g_PADInitialize.hWnd);
+	HWND TopLevel = GetParent(Parent);
+	// Support both rendering to main window and not
+	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == g_PADInitialize.hWnd)
+		return true;
+	else
+		return false;
 }
 
 
@@ -145,6 +161,11 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 }
 
 #endif
+
+
+//******************************************************************************
+// Plugin specification functions
+//******************************************************************************
 
 
 void GetDllInfo(PLUGIN_INFO* _PluginInfo)
@@ -618,8 +639,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// TODO fix g_PADInitialize.hWnd != DolphinWX frame
 	if (pad[_numPAD].bDisable)
 	{
-		if (g_PADInitialize.hWnd != GetForegroundWindow())
-			return;
+		if (!IsFocus()) return;
 	}
 	// Dolphin doesn't really care about the pad error codes anyways...
 	_pPADStatus->err = PAD_ERR_NONE;
@@ -689,6 +709,9 @@ unsigned int PAD_GetAttachedPads()
 	return connected;
 }
 
+//******************************************************************************
+// Load and save the configuration
+//******************************************************************************
 
 void LoadConfig()
 {
