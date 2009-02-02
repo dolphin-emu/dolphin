@@ -23,7 +23,7 @@
 #include "ConfigDlg.h"
 #include "Debugger/File.h" // For file logging
 #include "Debugger/Debugger.h" // For the CDebugger class
-CDebugger* m_frame;
+CDebugger* m_frame = NULL;
 #endif
 
 #include "ConsoleWindow.h" // Common: For the Windows console

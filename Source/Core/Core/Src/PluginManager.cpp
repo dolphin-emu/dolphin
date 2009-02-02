@@ -134,6 +134,23 @@ void CPluginManager::ShutdownPlugins()
 {
 	for (int i = 0; i < MAXPADS; i++) {
 		if (m_pad[i] && OkayToInitPlugin(i)) {
+			m_pad[i]->Shutdown();
+		}
+	}
+
+	for (int i = 0; i < MAXWIIMOTES; i++) {
+		if (m_wiimote[i]) m_wiimote[i]->Shutdown();
+	}
+
+	if (m_video)
+		m_video->Shutdown();
+
+	if (m_dsp)
+		m_dsp->Shutdown();
+
+
+	for (int i = 0; i < MAXPADS; i++) {
+		if (m_pad[i] && OkayToInitPlugin(i)) {
 			Console::Print("Delete: %i\n", i);
 			delete m_pad[i];
 		}
@@ -141,23 +158,16 @@ void CPluginManager::ShutdownPlugins()
 	}
 
 	for (int i = 0; i < MAXWIIMOTES; i++) {
-		if (m_wiimote[i]) m_wiimote[i]->Shutdown();
-	}
-
-	for (int i = 0; i < MAXWIIMOTES; i++) {
 		delete m_wiimote[i];
 		m_wiimote[i] = NULL;
 	}
 
-	if (m_video)
-		m_video->Shutdown();
+	delete m_dsp;
+	m_dsp = NULL;
+
 	delete m_video;
 	m_video = NULL;
 
-	if (m_dsp)
-		m_dsp->Shutdown();
-	delete m_dsp;
-	m_dsp = NULL;
 }
 
 // Supporting functions

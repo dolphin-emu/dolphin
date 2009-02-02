@@ -49,10 +49,6 @@ void AOSound::SoundLoop()
             soundCriticalSection->Leave();
             soundSyncEvent->Wait();
     }
-
-    ao_close(device);
-    device = NULL;
-    ao_shutdown();
 }
 
 void *soundThread(void *args) {
@@ -83,6 +79,10 @@ void AOSound::Stop()
     delete soundCriticalSection;
     delete thread;
     delete soundSyncEvent;
+
+    ao_close(device);
+    device = NULL;
+    ao_shutdown();
 }
 
 #endif
