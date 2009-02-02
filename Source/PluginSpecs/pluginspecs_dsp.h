@@ -29,6 +29,7 @@ typedef struct
 	TGenerateDSPInt			pGenerateDSPInterrupt;
 	TAudioGetStreaming		pGetAudioStreaming;
 	int                    *pEmulatorState;
+	bool					bWii;
 } DSPInitialize;
 
 

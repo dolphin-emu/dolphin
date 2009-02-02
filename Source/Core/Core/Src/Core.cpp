@@ -335,6 +335,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.pGenerateDSPInterrupt = Callback_DSPInterrupt;
 	dspInit.pGetAudioStreaming = AudioInterface::Callback_GetStreaming;
 	dspInit.pEmulatorState = (int *)&PowerPC::state;
+	dspInit.bWii = _CoreParameter.bWii;
 	Plugins.GetDSP()->Initialize((void *)&dspInit);
 
 	// Load and Init PadPlugin
