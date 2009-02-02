@@ -320,6 +320,7 @@ class ConfigBox : public wxDialog
 		void UpdateGUIKeys(int controller);
 		void SaveButtonMapping(int controller, bool DontChangeId = false, int FromSlot = -1);
 		void SaveButtonMappingAll(int Slot);
+		void UpdateGUIAll(int Slot);
 		void ToBlank(bool ToBlank = true);
 		void OnSaveById();
 

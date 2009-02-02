@@ -216,9 +216,6 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 			   the current amount of connected PadMapping */
 			if(PadMapping[i].ID >= SDL_NumJoysticks()) continue;
 
-			//PanicAlert("%i  %i",PadMapping[i].ID, SDL_NumJoysticks());
-			//PanicAlert("%s", joyinfo[PadMapping[i].ID].Name);
-
 			// Create a section name			
 			SectionName = joyinfo[PadMapping[i].ID].Name;
 		}

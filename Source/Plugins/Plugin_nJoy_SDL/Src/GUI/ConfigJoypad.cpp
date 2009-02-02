@@ -80,7 +80,7 @@ void ConfigBox::UpdateGUIKeys(int controller)
 	m_CoBDiagonal[controller]->SetValue(wxString::FromAscii(PadMapping[controller].SDiagonal.c_str()));
 	m_CBS_to_C[controller]->SetValue(PadMapping[controller].bSquareToCircle);
 
-	//LogMsg("bSquareToCircle: %i\n", PadMapping[controller].bSquareToCircle);
+	//LogMsg("m_TriggerType[%i] = %i\n", controller, PadMapping[controller].triggertype);
 
 	// Update D-Pad
 	if(PadMapping[controller].controllertype == CTL_DPAD_HAT)
@@ -141,7 +141,8 @@ void ConfigBox::SaveButtonMapping(int controller, bool DontChangeId, int FromSlo
 	m_JoyButtonZ[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_Z_TRIGGER] = value; tmp.clear();
 	m_JoyButtonStart[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[CTL_START] = value; tmp.clear();
 
-	//LogMsg("SaveButtonMapping: Key:%i From:%i To:%i\n", m_TriggerType[FromSlot]->GetSelection(), FromSlot, controller);
+	//LogMsg("PadMapping[%i].triggertype = %i, m_TriggerType[%i]->GetSelection() = %i\n",
+	//	controller, PadMapping[controller].triggertype, FromSlot, m_TriggerType[FromSlot]->GetSelection());
 
 	// The halfpress button
 	m_JoyButtonHalfpress[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].halfpress = value; tmp.clear();

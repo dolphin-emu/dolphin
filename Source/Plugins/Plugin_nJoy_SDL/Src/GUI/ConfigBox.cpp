@@ -272,20 +272,19 @@ void ConfigBox::DoSave(bool ChangePad, int Slot)
 	ToBlank();
 }
 
-// OnSaveById
+// On changing the SaveById option we update all pages
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::OnSaveById()
 {
 	// Save current settings
 	DoSave(false, notebookpage);
 
-	// Update the setting and load the settings
+	// Update the SaveByID setting and load the settings
 	g_Config.bSaveByID = m_CBSaveByID[notebookpage]->IsChecked();
 	g_Config.Load(false, true);
 
-	// Update GUI and PadMapping[]
-	UpdateGUI(notebookpage);
-	SaveButtonMapping(notebookpage);
+	// Update the GUI from the now updated PadMapping[]
+	UpdateGUIAll(-1);
 }
 
 // Change Joystick
@@ -328,14 +327,12 @@ void ConfigBox::PadClose(int Close) // Close for slot 1, 2, 3 or 4
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void ConfigBox::NotebookPageChanged(wxNotebookEvent& event)
 {	
-	//int oldnotebookpage = notebookpage;
-	notebookpage = event.GetSelection();
-	//int OldId = PadMapping[oldnotebookpage].ID;
-	//int NewId = PadMapping[notebookpage].ID;
+	// Save current settings now, don't wait for OK
+	if(ControlsCreated && !g_Config.bSaveByID) DoSave(false, notebookpage);
 
-	// Check if it has changed. If it has save the old Id and load the new Id
-	//if(OldId != NewId && NumGoodPads > 0) DoChangeJoystick();
-	
+	// Update the global variable
+	notebookpage = event.GetSelection();
+
 	// Update GUI
 	if(ControlsCreated) UpdateGUI(notebookpage);
 }
@@ -383,9 +380,24 @@ void ConfigBox::SaveButtonMappingAll(int Slot)
 {
 	for (int i = 0; i < 4; i++)
 		if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[Slot].ID].Name)
-			SaveButtonMapping(i, false);
+			SaveButtonMapping(i, false, Slot);
 	
 }
+
+void ConfigBox::UpdateGUIAll(int Slot)
+{
+	if(Slot == -1)
+	{
+		for (int i = 0; i < 4; i++) UpdateGUI(i);
+	}
+	else
+	{
+		for (int i = 0; i < 4; i++)
+			if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[Slot].ID].Name)
+				UpdateGUI(i);
+	}
+}
+
 void ConfigBox::ChangeSettings( wxCommandEvent& event )
 {
 	switch(event.GetId())
@@ -404,10 +416,9 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 			SizeWindow();
 			break;
 
-		case IDC_CONTROLTYPE: 
-		case IDC_TRIGGERTYPE: 
-			SaveButtonMapping(notebookpage);
-			UpdateGUI(notebookpage);
+		case IDC_CONTROLTYPE:
+		case IDC_TRIGGERTYPE:
+			//UpdateGUI(notebookpage);
 			break;
 
 		case IDC_JOYNAME: 
@@ -426,6 +437,7 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 
 	// Update all slots that use this device
 	if(g_Config.bSaveByID) SaveButtonMappingAll(notebookpage);
+	if(g_Config.bSaveByID) UpdateGUIAll(notebookpage);
 }
 ///////////////////////////////
 
