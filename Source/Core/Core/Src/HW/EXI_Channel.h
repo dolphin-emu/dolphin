@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -40,18 +40,18 @@ private:
 		u32 hex;
 		struct
 		{
-			unsigned EXIINTMASK		: 1; // 31
+			unsigned EXIINTMASK		: 1; //31
 			unsigned EXIINT			: 1; //30
 			unsigned TCINTMASK		: 1; //29
 			unsigned TCINT			: 1; //28
-			unsigned CLK			: 3;  //27
+			unsigned CLK			: 3; //27
 			unsigned CHIP_SELECT	: 3; //24
 			unsigned EXTINTMASK		: 1; //21
 			unsigned EXTINT			: 1; //20
-			unsigned EXT			: 1;		// External Insertion Status (1: External EXI device present) //19
-			unsigned ROMDIS			: 1;		// ROM Disable  //18
+			unsigned EXT			: 1; //19 // External Insertion Status (1: External EXI device present)
+			unsigned ROMDIS			: 1; //18 // ROM Disable
 			unsigned				:18;
-		};	
+		};
 		UEXI_STATUS() {hex = 0;}
 		UEXI_STATUS(u32 _hex) {hex = _hex;}
 	};
@@ -60,7 +60,7 @@ private:
 	union UEXI_CONTROL
 	{
 		u32 hex;
-		struct 
+		struct
 		{
 			unsigned TSTART			: 1;
 			unsigned DMA			: 1;
@@ -73,13 +73,13 @@ private:
 	// STATE_TO_SAVE
 	UEXI_STATUS		m_Status;
 	UEXI_CONTROL	m_Control;
-	u32			m_DMAMemoryAddress;
-	u32			m_DMALength;
-	u32			m_ImmData;
-			
+	u32				m_DMAMemoryAddress;
+	u32				m_DMALength;
+	u32				m_ImmData;
+
 	// get device
 	IEXIDevice* GetDevice(u8 _CHIP_SELECT);
-	
+
 	// Devices
 	enum
 	{

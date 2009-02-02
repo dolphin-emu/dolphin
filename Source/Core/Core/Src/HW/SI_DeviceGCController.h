@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,15 +18,15 @@
 #ifndef _SI_DEVICEGCCONTROLLER_H
 #define _SI_DEVICEGCCONTROLLER_H
 
-// =====================================================================================================
+//////////////////////////////////////////////////////////////////////////
 // standard gamecube controller
-// =====================================================================================================
+//////////////////////////////////////////////////////////////////////////
 
 class CSIDevice_GCController : public ISIDevice
 {
 private:
 	
-	// commands
+	// Commands
 	enum EBufferCommands
 	{
 		CMD_INVALID		= 0xFFFFFFFF,
@@ -41,10 +41,10 @@ private:
 		u8 unk_1;
 		u8 uOriginStickX;
 		u8 uOriginStickY;
-		u8 uSubStickStickX; // ???
-		u8 uSubStickStickY; // ???
-		u8 uTrigger_L;		 // ???
-		u8 uTrigger_R;		 // ???
+		u8 uSubStickStickX;	// ???
+		u8 uSubStickStickY;	// ???
+		u8 uTrigger_L;		// ???
+		u8 uTrigger_R;		// ???
 		u8 unk_4;
 		u8 unk_5;
 		u8 unk_6;
@@ -75,16 +75,16 @@ private:
 
 public:
 
-	// constructor
+	// Constructor
 	CSIDevice_GCController(int _iDeviceNumber);
 
-	// run the SI Buffer
+	// Run the SI Buffer
 	virtual int RunBuffer(u8* _pBuffer, int _iLength);
 
-	// return true on new data
+	// Return true on new data
 	virtual bool GetData(u32& _Hi, u32& _Low);
 
-	// send a command directly
+	// Send a command directly
 	virtual void SendCommand(u32 _Cmd);
 };
 #endif

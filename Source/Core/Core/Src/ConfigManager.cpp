@@ -76,19 +76,30 @@ void SConfig::SaveSettings()
 		ini.Set("Interface", "Language",	m_InterfaceLanguage);
 
 		// Core
-		ini.Set("Core", "HLEBios",        m_LocalCoreStartupParameter.bHLEBios);
-		ini.Set("Core", "UseDynarec",     m_LocalCoreStartupParameter.bUseJIT);
-		ini.Set("Core", "UseDualCore",    m_LocalCoreStartupParameter.bUseDualCore);
-		ini.Set("Core", "SkipIdle",	      m_LocalCoreStartupParameter.bSkipIdle);
-		ini.Set("Core", "LockThreads",    m_LocalCoreStartupParameter.bLockThreads);
-		ini.Set("Core", "DefaultGCM",     m_LocalCoreStartupParameter.m_strDefaultGCM);
-		ini.Set("Core", "DVDRoot",        m_LocalCoreStartupParameter.m_strDVDRoot);
+		ini.Set("Core", "HLEBios",			m_LocalCoreStartupParameter.bHLEBios);
+		ini.Set("Core", "UseDynarec",		m_LocalCoreStartupParameter.bUseJIT);
+		ini.Set("Core", "UseDualCore",		m_LocalCoreStartupParameter.bUseDualCore);
+		ini.Set("Core", "SkipIdle",			m_LocalCoreStartupParameter.bSkipIdle);
+		ini.Set("Core", "LockThreads",		m_LocalCoreStartupParameter.bLockThreads);
+		ini.Set("Core", "DefaultGCM",		m_LocalCoreStartupParameter.m_strDefaultGCM);
+		ini.Set("Core", "DVDRoot",			m_LocalCoreStartupParameter.m_strDVDRoot);
 		ini.Set("Core", "OptimizeQuantizers", m_LocalCoreStartupParameter.bOptimizeQuantizers);
-		ini.Set("Core", "EnableCheats", m_LocalCoreStartupParameter.bEnableCheats);
-		ini.Set("Core", "SelectedLanguage", m_LocalCoreStartupParameter.SelectedLanguage);
+		ini.Set("Core", "EnableCheats",		m_LocalCoreStartupParameter.bEnableCheats);
+		ini.Set("Core", "SelectedLanguage",	m_LocalCoreStartupParameter.SelectedLanguage);
+		ini.Set("Core", "MemcardA",			m_strMemoryCardA);
+		ini.Set("Core", "MemcardB",			m_strMemoryCardB);
+		ini.Set("Core", "SlotA",			m_EXIDevice[0]);
+		ini.Set("Core", "SlotB",			m_EXIDevice[1]);
+		ini.Set("Core", "SerialPort1",		m_EXIDevice[2]);
+		char sidevicenum[16];
+		for (int i = 0; i < 4; ++i)
+		{
+			sprintf(sidevicenum, "SIDevice%i", i);
+			ini.Set("Core", sidevicenum,	m_SIDevice[i]);
+		}
 
-		ini.Set("Core", "RunCompareServer", m_LocalCoreStartupParameter.bRunCompareServer);
-		ini.Set("Core", "RunCompareClient", m_LocalCoreStartupParameter.bRunCompareClient);
+		ini.Set("Core", "RunCompareServer",	m_LocalCoreStartupParameter.bRunCompareServer);
+		ini.Set("Core", "RunCompareClient",	m_LocalCoreStartupParameter.bRunCompareClient);
 
 		// Plugins
 		ini.Set("Core", "GFXPlugin",  m_LocalCoreStartupParameter.m_strVideoPlugin);
@@ -98,9 +109,6 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "Pad3Plugin",  m_LocalCoreStartupParameter.m_strPadPlugin[2]);
 		ini.Set("Core", "Pad4Plugin",  m_LocalCoreStartupParameter.m_strPadPlugin[3]);
 		ini.Set("Core", "WiiMote1Plugin",  m_LocalCoreStartupParameter.m_strWiimotePlugin[0]);
-		ini.Set("Core", "WiiMote2Plugin",  m_LocalCoreStartupParameter.m_strWiimotePlugin[1]);
-		ini.Set("Core", "WiiMote3Plugin",  m_LocalCoreStartupParameter.m_strWiimotePlugin[2]);
-		ini.Set("Core", "WiiMote4Plugin",  m_LocalCoreStartupParameter.m_strWiimotePlugin[3]);
 	}
 
 	ini.Save(CONFIG_FILE);
@@ -141,9 +149,9 @@ void SConfig::LoadSettings()
 	// Hard coded default plugin
 	{
 		m_DefaultGFXPlugin = PLUGINS_DIR DIR_SEP DEFAULT_GFX_PLUGIN;
-		m_DefaultDSPPlugin = PLUGINS_DIR DIR_SEP DEFAULT_DSP_PLUGIN; 
-		m_DefaultPADPlugin = PLUGINS_DIR DIR_SEP DEFAULT_PAD_PLUGIN; 
-		m_DefaultWiiMotePlugin = PLUGINS_DIR DIR_SEP DEFAULT_WIIMOTE_PLUGIN;  
+		m_DefaultDSPPlugin = PLUGINS_DIR DIR_SEP DEFAULT_DSP_PLUGIN;
+		m_DefaultPADPlugin = PLUGINS_DIR DIR_SEP DEFAULT_PAD_PLUGIN;
+		m_DefaultWiiMotePlugin = PLUGINS_DIR DIR_SEP DEFAULT_WIIMOTE_PLUGIN;
 	}
 #endif
 	// General
@@ -188,6 +196,17 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "OptimizeQuantizers", &m_LocalCoreStartupParameter.bOptimizeQuantizers, true);
 		ini.Get("Core", "EnableCheats", &m_LocalCoreStartupParameter.bEnableCheats, false);
 		ini.Get("Core", "SelectedLanguage", &m_LocalCoreStartupParameter.SelectedLanguage, 0);
+		ini.Get("Core", "MemcardA",			&m_strMemoryCardA);
+		ini.Get("Core", "MemcardB",			&m_strMemoryCardB);
+		ini.Get("Core", "SlotA",			(int*)&m_EXIDevice[0]);
+		ini.Get("Core", "SlotB",			(int*)&m_EXIDevice[1]);
+		ini.Get("Core", "SerialPort1",		(int*)&m_EXIDevice[2]);
+		char sidevicenum[16];
+		for (int i = 0; i < 4; ++i)
+		{
+			sprintf(sidevicenum, "SIDevice%i", i);
+			ini.Get("Core", sidevicenum,	(u32*)&m_SIDevice[i]);
+		}
 
 		ini.Get("Core", "RunCompareServer", &m_LocalCoreStartupParameter.bRunCompareServer, false);
 		ini.Get("Core", "RunCompareClient", &m_LocalCoreStartupParameter.bRunCompareClient, false);
@@ -201,10 +220,6 @@ void SConfig::LoadSettings()
 			std::string TmpName = StringFromFormat("Pad%iPlugin", (i + 1));
 			ini.Get("Core", TmpName.c_str(),  &m_LocalCoreStartupParameter.m_strPadPlugin[i], m_DefaultPADPlugin.c_str());
 		}
-		for (int i = 0; i < MAXWIIMOTES; i++)
-		{
-			std::string TmpName = StringFromFormat("WiiMote%iPlugin", (i + 1));
-			ini.Get("Core", "WiiMote1Plugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin[i], m_DefaultWiiMotePlugin.c_str());
-		}
+		ini.Get("Core", "WiiMote1Plugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin[0], m_DefaultWiiMotePlugin.c_str());
 	}
 }

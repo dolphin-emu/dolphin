@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,11 +17,11 @@
 
 #include "Common.h"
 #include "ChunkFile.h"
+#include "../ConfigManager.h"
 
 #include "PeripheralInterface.h"
 #include "../PowerPC/PowerPC.h"
 
-#include "EXI_Device.h"
 #include "EXI_Channel.h"
 
 namespace ExpansionInterface
@@ -36,17 +36,19 @@ CEXIChannel *g_Channels;
 
 void Init()
 {
-	g_Channels = new CEXIChannel[3];
+	g_Channels = new CEXIChannel[NUM_CHANNELS];
 	g_Channels[0].m_ChannelId = 0;
 	g_Channels[1].m_ChannelId = 1;
 	g_Channels[2].m_ChannelId = 2;
 
-	g_Channels[0].AddDevice(EXIDEVICE_MEMORYCARD_A,	0);
-	g_Channels[0].AddDevice(EXIDEVICE_IPL,			1);
-	g_Channels[1].AddDevice(EXIDEVICE_MEMORYCARD_B,	0);
-	//g_Channels[0].AddDevice(EXIDEVICE_ETH,			2);
-	//g_Channels[1].AddDevice(EXIDEVICE_MIC,			0);
-	g_Channels[2].AddDevice(EXIDEVICE_AD16,			0);
+	// m_EXIDevice[0] = SlotA
+	// m_EXIDevice[1] = SlotB
+	// m_EXIDevice[2] = Serial Port 1 (ETH)
+	g_Channels[0].AddDevice(SConfig::GetInstance().m_EXIDevice[0],	0);
+	g_Channels[0].AddDevice(EXIDEVICE_IPL,							1);
+	g_Channels[0].AddDevice(SConfig::GetInstance().m_EXIDevice[2],	2);
+	g_Channels[1].AddDevice(SConfig::GetInstance().m_EXIDevice[1],	0);
+	g_Channels[2].AddDevice(EXIDEVICE_AD16,							0);
 }
 
 void Shutdown()

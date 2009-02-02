@@ -22,6 +22,8 @@
 #include <vector>
 
 #include "Boot/Boot.h"
+#include "HW/EXI_Device.h"
+#include "HW/SI_Device.h"
 
 // HyperIris: not sure but a temporary implement
 enum INTERFACE_LANGUAGE
@@ -51,6 +53,11 @@ struct SConfig
 	std::vector<std::string>m_ISOFolder;
 
 	SCoreStartupParameter m_LocalCoreStartupParameter;
+
+	std::string m_strMemoryCardA;
+	std::string m_strMemoryCardB;
+	TEXIDevices m_EXIDevice[3];
+	TSIDevices m_SIDevice[4];
 
 	// interface language
 	INTERFACE_LANGUAGE m_InterfaceLanguage;

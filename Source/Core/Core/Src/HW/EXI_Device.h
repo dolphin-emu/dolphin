@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -23,25 +23,25 @@
 class IEXIDevice
 {
 private:
-	// byte transfer function for this device
+	// Byte transfer function for this device
 	virtual void TransferByte(u8& _byte) {};
 
 public:
-	// immediate copy functions
+	// Immediate copy functions
 	virtual void ImmWrite(u32 _uData,  u32 _uSize);
 	virtual u32 ImmRead(u32 _uSize);
 
-	// dma copy functions
+	// DMA copy functions
 	virtual void DMAWrite(u32 _uAddr, u32 _uSize);
 	virtual void DMARead (u32 _uAddr, u32 _uSize);
 
 	virtual bool IsPresent();
 	virtual void SetCS(int _iCS);
 
-	// update
+	// Update
 	virtual void Update();
 
-	// is generating interrupt ?
+	// Is generating interrupt ?
 	virtual bool IsInterruptSet();
 
 	virtual ~IEXIDevice() {};

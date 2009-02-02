@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -25,9 +25,9 @@
 #include "EXI_Device.h"
 #include "EXI_DeviceMic.h"
 
-// =====================================================================================================
+//////////////////////////////////////////////////////////////////////////
 // --- standard gamecube controller ---
-// =====================================================================================================
+//////////////////////////////////////////////////////////////////////////
 
 CSIDevice_GCController::CSIDevice_GCController(int _iDeviceNumber) :
 	ISIDevice(_iDeviceNumber)
@@ -45,23 +45,23 @@ CSIDevice_GCController::CSIDevice_GCController(int _iDeviceNumber) :
 
 int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 {
-	// for debug logging only
+	// For debug logging only
 	ISIDevice::RunBuffer(_pBuffer, _iLength);
 
 	int iPosition = 0;
 	while(iPosition < _iLength)
 	{
-		// read the command
+		// Read the command
 		EBufferCommands command = static_cast<EBufferCommands>(_pBuffer[iPosition ^ 3]);
 		iPosition++;
 
-		// handle it
+		// Handle it
 		switch(command)
 		{
 		case CMD_RESET:
 			{
 				*(u32*)&_pBuffer[0] = SI_GC_CONTROLLER; // | SI_GC_NOMOTOR;
-				iPosition = _iLength; // break the while loop
+				iPosition = _iLength; // Break the while loop
 			}
 			break;
 
@@ -109,11 +109,10 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 	return iPosition;
 }
 
-// __________________________________________________________________________________________________
+//////////////////////////////////////////////////////////////////////////
 // GetData
-//
+//////////////////////////////////////////////////////////////////////////
 // Return true on new data (max 7 Bytes and 6 bits ;)
-//
 bool
 CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 {
@@ -131,7 +130,7 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	_Low |= (u32)((u8)PadStatus.triggerLeft << 8);
 	_Low |= (u32)((u8)PadStatus.substickY << 16);
 	_Low |= (u32)((u8)PadStatus.substickX << 24);
-	SetMic(PadStatus.MicButton);
+	SetMic(PadStatus.MicButton); // This is dumb and should not be here
 
 	// F|RES:
 	// i dunno if i should force it here
@@ -141,9 +140,9 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	return true;
 }
 
-// __________________________________________________________________________________________________
+//////////////////////////////////////////////////////////////////////////
 // SendCommand
-//
+//////////////////////////////////////////////////////////////////////////
 void
 CSIDevice_GCController::SendCommand(u32 _Cmd)
 {

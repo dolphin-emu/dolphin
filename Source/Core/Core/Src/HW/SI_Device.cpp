@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,11 +16,12 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "SI_Device.h"
+#include "SI_DeviceGCController.h"
+#include "SI_DeviceGBA.h"
 
-// =====================================================================================================
-// --- base class ---
-// =====================================================================================================
-
+//////////////////////////////////////////////////////////////////////////
+// --- interface ISIDevice ---
+//////////////////////////////////////////////////////////////////////////
 int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 {
 #ifdef _DEBUG
@@ -29,7 +30,7 @@ int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 	char szTemp[256] = "";
 	int num = 0;
 	while(num < _iLength)
-	{		
+	{
 		char szTemp2[128] = "";
 		sprintf(szTemp2, "0x%02x ", _pBuffer[num^3]);
 		strcat(szTemp, szTemp2);
@@ -39,32 +40,58 @@ int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 		{
 			LOG(SERIALINTERFACE, szTemp);
 			szTemp[0] = '\0';
-		}		
+		}
 	}
-	LOG(SERIALINTERFACE, szTemp);		
+	LOG(SERIALINTERFACE, szTemp);
 #endif
 	return 0;
 };
 
-// =====================================================================================================
-// --- dummy device ---
-// =====================================================================================================
-
-CSIDevice_Dummy::CSIDevice_Dummy(int _iDeviceNumber) :
-	ISIDevice(_iDeviceNumber)
-{}
-
-int CSIDevice_Dummy::RunBuffer(u8* _pBuffer, int _iLength)
+//////////////////////////////////////////////////////////////////////////
+// --- class CSIDummy ---
+//////////////////////////////////////////////////////////////////////////
+// Just a dummy that logs reads and writes
+// to be used for SI devices we haven't emulated
+class CSIDevice_Dummy : public ISIDevice
 {
-	reinterpret_cast<u32*>(_pBuffer)[0] = 0x00000000; // no device
-	return 4;
-}
+public:
+	CSIDevice_Dummy(int _iDeviceNumber) :
+	  ISIDevice(_iDeviceNumber)
+	{}
 
-bool CSIDevice_Dummy::GetData(u32& _Hi, u32& _Low)
-{
-	return false;
-}
+	virtual ~CSIDevice_Dummy(){}
 
-void CSIDevice_Dummy::SendCommand(u32 _Cmd)
+	int RunBuffer(u8* _pBuffer, int _iLength)
+	{
+		// (shuffle2) Logging of this function will be done above, in ISIDevice::RunBuffer
+		// No device. (shuffle2) Maybe this should be SI_ERROR_NO_RESPONSE?
+		reinterpret_cast<u32*>(_pBuffer)[0] = 0x00000000;
+		return 4;
+	}
+
+	bool GetData(u32& _Hi, u32& _Low)	{LOG(SERIALINTERFACE, "SI DUMMY %i GetData", this->m_iDeviceNumber); return false;}
+	void SendCommand(u32 _Cmd)			{LOG(SERIALINTERFACE, "SI DUMMY %i SendCommand: %08x", this->m_iDeviceNumber, _Cmd);}
+};
+
+//////////////////////////////////////////////////////////////////////////
+// F A C T O R Y /////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+ISIDevice* SIDevice_Create(TSIDevices _SIDevice, int _iDeviceNumber)
 {
+	switch(_SIDevice)
+	{
+	case SI_DUMMY:
+		return new CSIDevice_Dummy(_iDeviceNumber);
+		break;
+
+	case SI_GC_CONTROLLER:
+		return new CSIDevice_GCController(_iDeviceNumber);
+		break;
+
+	case SI_GBA:
+		return new CSIDevice_GBA(_iDeviceNumber);
+		break;
+	}
+	return NULL;
 }

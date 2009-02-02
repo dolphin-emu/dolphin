@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// Include
 #include <string> // System
 #include <vector>
 
@@ -28,14 +27,14 @@
 #include "ConfigManager.h"
 #include "Frame.h"
 
-// Declarations and definitions
+
 extern CFrame* main_frame;
 
-// Event table
+
 BEGIN_EVENT_TABLE(CConfigMain, wxDialog)
 
 EVT_CLOSE(CConfigMain::OnClose)
-EVT_BUTTON(ID_CLOSE, CConfigMain::CloseClick)
+EVT_BUTTON(wxID_CLOSE, CConfigMain::CloseClick)
 
 EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_HIDECURSOR, CConfigMain::CoreSettingsChanged)
@@ -43,8 +42,7 @@ EVT_CHECKBOX(ID_INTERFACE_AUTOHIDECURSOR, CConfigMain::CoreSettingsChanged)
 EVT_RADIOBOX(ID_INTERFACE_THEME, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_LEDS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_SPEAKERS, CConfigMain::CoreSettingsChanged)
-
-EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::InterfaceLanguageChanged)
+EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::CoreSettingsChanged)
 
 EVT_CHECKBOX(ID_ALLWAYS_HLEBIOS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_USEDYNAREC, CConfigMain::CoreSettingsChanged)
@@ -55,6 +53,15 @@ EVT_CHECKBOX(ID_IDLESKIP, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_ENABLECHEATS, CConfigMain::CoreSettingsChanged)
 
 EVT_CHOICE(ID_GC_SRAM_LNG, CConfigMain::GCSettingsChanged)
+EVT_CHOICE(ID_GC_EXIDEVICE_SLOTA, CConfigMain::GCSettingsChanged)
+EVT_BUTTON(ID_GC_EXIDEVICE_SLOTA_PATH, CConfigMain::GCSettingsChanged)
+EVT_CHOICE(ID_GC_EXIDEVICE_SLOTB, CConfigMain::GCSettingsChanged)
+EVT_BUTTON(ID_GC_EXIDEVICE_SLOTB_PATH, CConfigMain::GCSettingsChanged)
+EVT_CHOICE(ID_GC_EXIDEVICE_SP1, CConfigMain::GCSettingsChanged)
+EVT_CHOICE(ID_GC_SIDEVICE0, CConfigMain::GCSettingsChanged)
+EVT_CHOICE(ID_GC_SIDEVICE1, CConfigMain::GCSettingsChanged)
+EVT_CHOICE(ID_GC_SIDEVICE2, CConfigMain::GCSettingsChanged)
+EVT_CHOICE(ID_GC_SIDEVICE3, CConfigMain::GCSettingsChanged)
 
 EVT_CHOICE(ID_WII_BT_BAR, CConfigMain::WiiSettingsChanged)
 EVT_CHECKBOX(ID_WII_IPL_SSV, CConfigMain::WiiSettingsChanged)
@@ -80,7 +87,6 @@ EVT_BUTTON(ID_WIIMOTE_CONFIG, CConfigMain::OnConfig)
 
 END_EVENT_TABLE()
 
-// Window class
 CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
@@ -116,8 +122,8 @@ CConfigMain::~CConfigMain()
 {
 }
 
-
-// Enable or disable objects
+//////////////////////////////////////////////////////////////////////////
+// Used to restrict changing of some options while emulator is running
 void CConfigMain::UpdateGUI()
 {
 	if(Core::GetState() != Core::CORE_UNINITIALIZED)
@@ -130,14 +136,16 @@ void CConfigMain::UpdateGUI()
 		OptimizeQuantizers->Disable();
 		SkipIdle->Disable();
 		EnableCheats->Disable();
-
-		GamecubePage->Disable();
+		// Disable GC Stuff, but devices should be dynamic soon
+		GCSystemLang->Disable();
+		GCEXIDevice[0]->Disable(); GCEXIDevice[1]->Disable(); GCEXIDevice[2]->Disable();
+		GCMemcardPath[0]->Disable(); GCMemcardPath[1]->Disable();
+		GCSIDevice[0]->Disable(); GCSIDevice[1]->Disable(); GCSIDevice[2]->Disable(); GCSIDevice[3]->Disable();
 		WiiPage->Disable();
 		PathsPage->Disable();
 		PluginPage->Disable();
 	}
 }
-// ==========================
 
 void CConfigMain::CreateGUIControls()
 {
@@ -170,17 +178,17 @@ void CConfigMain::CreateGUIControls()
 	Notebook->AddPage(PluginPage, wxT("Plugins"));
 
 
+	//////////////////////////////////////////////////////////////////////////
 	// General page
 
-	// Core Settings
-	// Basic Settings
+	// Core Settings - Basic
 	UseDualCore = new wxCheckBox(GeneralPage, ID_USEDUALCORE, wxT("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UseDualCore->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);
 	SkipIdle = new wxCheckBox(GeneralPage, ID_IDLESKIP, wxT("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	SkipIdle->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);
 	EnableCheats = new wxCheckBox(GeneralPage, ID_ENABLECHEATS, wxT("Enable Cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	EnableCheats->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);
-	// Advanced Settings
+	// Core Settings - Advanced
 	AllwaysHLEBIOS = new wxCheckBox(GeneralPage, ID_ALLWAYS_HLEBIOS, wxT("HLE the BIOS all the time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	AllwaysHLEBIOS->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios);
 	UseDynaRec = new wxCheckBox(GeneralPage, ID_USEDYNAREC, wxT("Enable the JIT dynarec"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -286,19 +294,62 @@ void CConfigMain::CreateGUIControls()
 	sGeneralPage->Layout();
 
 
+	//////////////////////////////////////////////////////////////////////////
 	// Gamecube page
+	// IPL settings
 	sbGamecubeIPLSettings = new wxStaticBoxSizer(wxVERTICAL, GamecubePage, wxT("IPL Settings"));
-/*
-	arrayStringFor_GCSystemLang.Add(wxT("English"));
-	arrayStringFor_GCSystemLang.Add(wxT("German"));
-	arrayStringFor_GCSystemLang.Add(wxT("French"));
-	arrayStringFor_GCSystemLang.Add(wxT("Spanish"));
-	arrayStringFor_GCSystemLang.Add(wxT("Italian"));
-	arrayStringFor_GCSystemLang.Add(wxT("Dutch"));
-*/
 	GCSystemLangText = new wxStaticText(GamecubePage, ID_GC_SRAM_LNG_TEXT, wxT("System Language:"), wxDefaultPosition, wxDefaultSize);
 	GCSystemLang = new wxChoice(GamecubePage, ID_GC_SRAM_LNG, wxDefaultPosition, wxDefaultSize, arrayStringFor_GCSystemLang, 0, wxDefaultValidator);
 	GCSystemLang->SetSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
+	// Devices
+	wxStaticBoxSizer *sbGamecubeDeviceSettings = new wxStaticBoxSizer(wxVERTICAL, GamecubePage, wxT("Device Settings"));
+	// EXI Devices
+	wxStaticText *GCEXIDeviceText[3];
+	GCEXIDeviceText[0] = new wxStaticText(GamecubePage, ID_GC_EXIDEVICE_SLOTA_TEXT, wxT("Slot A"), wxDefaultPosition, wxDefaultSize);
+	GCEXIDeviceText[1] = new wxStaticText(GamecubePage, ID_GC_EXIDEVICE_SLOTB_TEXT, wxT("Slot B"), wxDefaultPosition, wxDefaultSize);
+	GCEXIDeviceText[2] = new wxStaticText(GamecubePage, ID_GC_EXIDEVICE_SP1_TEXT,	wxT("SP1   "), wxDefaultPosition, wxDefaultSize);
+	GCEXIDeviceText[2]->SetToolTip(wxT("Serial Port 1 - This is the port the network adapter uses"));
+	const wxString SlotDevices[] = {"null","Memory Card", "Mic"};
+	const wxString SP1Devices[] = {"null","BBA"};
+	GCEXIDevice[0] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SLOTA, wxDefaultPosition, wxDefaultSize, 3, SlotDevices, 0, wxDefaultValidator);
+	GCEXIDevice[1] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SLOTB, wxDefaultPosition, wxDefaultSize, 3, SlotDevices, 0, wxDefaultValidator);
+	GCEXIDevice[2] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SP1, wxDefaultPosition, wxDefaultSize, 2, SP1Devices, 0, wxDefaultValidator);
+	GCMemcardPath[0] = new wxButton(GamecubePage, ID_GC_EXIDEVICE_SLOTA_PATH, wxT("..."), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
+	GCMemcardPath[1] = new wxButton(GamecubePage, ID_GC_EXIDEVICE_SLOTB_PATH, wxT("..."), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
+	for (int i = 0; i < 3; ++i)
+	{
+		bool isMemcard = false;
+		if (SConfig::GetInstance().m_EXIDevice[i] == EXIDEVICE_MEMORYCARD_A)
+			isMemcard = GCEXIDevice[i]->SetStringSelection(SlotDevices[1]);
+		else if (SConfig::GetInstance().m_EXIDevice[i] == EXIDEVICE_MEMORYCARD_B)
+			isMemcard = GCEXIDevice[i]->SetStringSelection(SlotDevices[1]);
+		else if (SConfig::GetInstance().m_EXIDevice[i] == EXIDEVICE_MIC)
+			GCEXIDevice[i]->SetStringSelection(SlotDevices[2]);
+		else if (SConfig::GetInstance().m_EXIDevice[i] == EXIDEVICE_ETH)
+			GCEXIDevice[i]->SetStringSelection(SP1Devices[1]);
+		else
+			GCEXIDevice[i]->SetStringSelection(wxT("null"));
+		if (!isMemcard && i < 2)
+			GCMemcardPath[i]->Disable();
+	}
+	//SI Devices
+	wxStaticText *GCSIDeviceText[4];
+	GCSIDeviceText[0] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 1"), wxDefaultPosition, wxDefaultSize);
+	GCSIDeviceText[1] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 2"), wxDefaultPosition, wxDefaultSize);
+	GCSIDeviceText[2] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 3"), wxDefaultPosition, wxDefaultSize);
+	GCSIDeviceText[3] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 4"), wxDefaultPosition, wxDefaultSize);
+	const wxString SIDevices[] = {"null","Standard Controller"};
+	GCSIDevice[0] = new wxChoice(GamecubePage, ID_GC_SIDEVICE0, wxDefaultPosition, wxDefaultSize, 2, SIDevices, 0, wxDefaultValidator);
+	GCSIDevice[1] = new wxChoice(GamecubePage, ID_GC_SIDEVICE1, wxDefaultPosition, wxDefaultSize, 2, SIDevices, 0, wxDefaultValidator);
+	GCSIDevice[2] = new wxChoice(GamecubePage, ID_GC_SIDEVICE2, wxDefaultPosition, wxDefaultSize, 2, SIDevices, 0, wxDefaultValidator);
+	GCSIDevice[3] = new wxChoice(GamecubePage, ID_GC_SIDEVICE3, wxDefaultPosition, wxDefaultSize, 2, SIDevices, 0, wxDefaultValidator);
+	for (int i = 0; i < 4; ++i)
+	{
+		if (SConfig::GetInstance().m_SIDevice[i] == SI_GC_CONTROLLER)
+			GCSIDevice[i]->SetStringSelection(SIDevices[1]);
+		else
+			GCSIDevice[i]->SetStringSelection(SIDevices[0]);
+	}
 
 	sGamecube = new wxBoxSizer(wxVERTICAL);
 	sGamecubeIPLSettings = new wxGridBagSizer(0, 0);
@@ -306,10 +357,30 @@ void CConfigMain::CreateGUIControls()
 	sGamecubeIPLSettings->Add(GCSystemLang, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
 	sbGamecubeIPLSettings->Add(sGamecubeIPLSettings);
 	sGamecube->Add(sbGamecubeIPLSettings, 0, wxEXPAND|wxALL, 5);
+	wxBoxSizer *sEXIDevices[4];
+	wxBoxSizer *sSIDevices[4];
+	for (int i = 0; i < 3; ++i)
+	{
+		sEXIDevices[i] = new wxBoxSizer(wxHORIZONTAL);
+		sEXIDevices[i]->Add(GCEXIDeviceText[i], 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+		sEXIDevices[i]->Add(GCEXIDevice[i], 0, wxALL, 5);
+		if (i < 2)
+			sEXIDevices[i]->Add(GCMemcardPath[i], 0, wxALL, 5);
+		sbGamecubeDeviceSettings->Add(sEXIDevices[i]);
+	}
+	for (int i = 0; i < 4; ++i)
+	{
+		sSIDevices[i] = new wxBoxSizer(wxHORIZONTAL);
+		sSIDevices[i]->Add(GCSIDeviceText[i], 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+		sSIDevices[i]->Add(GCSIDevice[i], 0, wxALL, 5);
+		sbGamecubeDeviceSettings->Add(sSIDevices[i]);
+	}
+	sGamecube->Add(sbGamecubeDeviceSettings, 0, wxEXPAND|wxALL, 5);
 	GamecubePage->SetSizer(sGamecube);
 	sGamecube->Layout();
 
 
+	//////////////////////////////////////////////////////////////////////////
 	// Wii page
 	sbWiimoteSettings = new wxStaticBoxSizer(wxVERTICAL, WiiPage, wxT("Wiimote Settings"));
 	arrayStringFor_WiiSensBarPos.Add(wxT("Bottom")); arrayStringFor_WiiSensBarPos.Add(wxT("Top"));
@@ -328,10 +399,6 @@ void CConfigMain::CreateGUIControls()
 	WiiAspectRatioText = new wxStaticText(WiiPage, ID_WII_IPL_AR_TEXT, wxT("Aspect Ratio:"), wxDefaultPosition, wxDefaultSize);
 	WiiAspectRatio = new wxChoice(WiiPage, ID_WII_IPL_AR, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiAspectRatio, 0, wxDefaultValidator);
 	WiiAspectRatio->SetSelection(m_SYSCONF[IPL_AR]);
-/*
-	arrayStringFor_WiiSystemLang = arrayStringFor_GCSystemLang;
-	arrayStringFor_WiiSystemLang.Insert(wxT("Japanese"), 0);
-*/
 	WiiSystemLangText = new wxStaticText(WiiPage, ID_WII_IPL_LNG_TEXT, wxT("System Language:"), wxDefaultPosition, wxDefaultSize);
 	WiiSystemLang = new wxChoice(WiiPage, ID_WII_IPL_LNG, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiSystemLang, 0, wxDefaultValidator);
 	WiiSystemLang->SetSelection(m_SYSCONF[IPL_LNG]);
@@ -358,6 +425,7 @@ void CConfigMain::CreateGUIControls()
 	sWii->Layout();
 
 
+	//////////////////////////////////////////////////////////////////////////
 	// Paths page
 	sbISOPaths = new wxStaticBoxSizer(wxVERTICAL, PathsPage, wxT("ISO Directories"));
 	ISOPaths = new wxListBox(PathsPage, ID_ISOPATHS, wxDefaultPosition, wxDefaultSize, arrayStringFor_ISOPaths, wxLB_SINGLE, wxDefaultValidator);
@@ -396,6 +464,7 @@ void CConfigMain::CreateGUIControls()
 	PathsPage->SetSizer(sPaths);
 	sPaths->Layout();
 
+	//////////////////////////////////////////////////////////////////////////
 	// Plugins page
 	sbGraphicsPlugin = new wxStaticBoxSizer(wxHORIZONTAL, PluginPage, wxT("Graphics"));
 	GraphicSelection = new wxChoice(PluginPage, ID_GRAPHIC_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
@@ -442,7 +511,7 @@ void CConfigMain::CreateGUIControls()
 
 
 
-	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Close = new wxButton(this, wxID_CLOSE);
 
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
 	sButtons->Add(0, 0, 1, wxEXPAND, 5);
@@ -463,10 +532,10 @@ void CConfigMain::CreateGUIControls()
 
 void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
 {
-	Destroy();
+	EndModal((bRefreshList || bRefreshCache) ? wxID_OK : wxID_CLOSE);
 
-	/* First check that we did successfully populate m_SYSCONF earlier, otherwise don't
-       save anything, it will be a corrupted file */
+	// First check that we did successfully populate m_SYSCONF earlier, otherwise don't
+	// save anything, it will be a corrupted file
 	if(m_bSysconfOK)
 	{
 		// Save SYSCONF with the new settings
@@ -491,9 +560,8 @@ void CConfigMain::CloseClick(wxCommandEvent& WXUNUSED (event))
 	Close();
 }
 
-
-
-// Core settings
+//////////////////////////////////////////////////////////////////////////
+// Core AND Interface settings
 void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
@@ -521,6 +589,11 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	case ID_INTERFACE_WIIMOTE_SPEAKERS:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiSpeakers = WiimoteStatusSpeakers->IsChecked();
 		break;
+	case ID_INTERFACE_LANG:
+		SConfig::GetInstance().m_InterfaceLanguage = (INTERFACE_LANGUAGE)InterfaceLang->GetSelection();
+		bRefreshList = true;
+		bRefreshCache = true;
+		break;
 
 	case ID_ALLWAYS_HLEBIOS: // Core
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios = AllwaysHLEBIOS->IsChecked();
@@ -546,18 +619,90 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	}
 }
 
+//////////////////////////////////////////////////////////////////////////
+// GC settings
 void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 {
+	int sidevice = 0;
 	switch (event.GetId())
 	{
 	case ID_GC_SRAM_LNG:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage = GCSystemLang->GetSelection();
 		break;
+
+ 	case ID_GC_EXIDEVICE_SLOTA:
+		switch (event.GetSelection())
+		{
+		case 1: // memcard
+			SConfig::GetInstance().m_EXIDevice[0] = EXIDEVICE_MEMORYCARD_A;
+			break;
+		case 2: // mic
+			SConfig::GetInstance().m_EXIDevice[0] = EXIDEVICE_MIC;
+			break;
+		default:
+			SConfig::GetInstance().m_EXIDevice[0] = EXIDEVICE_DUMMY;
+			break;
+		}
+		GCMemcardPath[0]->Enable(event.GetSelection() == 1);
+ 		break;
+	case ID_GC_EXIDEVICE_SLOTA_PATH:
+		ChooseMemcardPath(SConfig::GetInstance().m_strMemoryCardA, true);
+		break;
+	case ID_GC_EXIDEVICE_SLOTB:
+		switch (event.GetSelection())
+		{
+		case 1: // memcard
+			SConfig::GetInstance().m_EXIDevice[1] = EXIDEVICE_MEMORYCARD_B;
+			break;
+		case 2: // mic
+			SConfig::GetInstance().m_EXIDevice[1] = EXIDEVICE_MIC;
+			break;
+		default:
+			SConfig::GetInstance().m_EXIDevice[1] = EXIDEVICE_DUMMY;
+			break;
+		}
+		GCMemcardPath[1]->Enable(event.GetSelection() == 1);
+		break;
+	case ID_GC_EXIDEVICE_SLOTB_PATH:
+		ChooseMemcardPath(SConfig::GetInstance().m_strMemoryCardB, false);
+		break;
+	case ID_GC_EXIDEVICE_SP1: // The only thing we emulate on SP1 is the BBA
+		SConfig::GetInstance().m_EXIDevice[2] = event.GetSelection() ? EXIDEVICE_ETH : EXIDEVICE_DUMMY;
+		break;
+
+ 	case ID_GC_SIDEVICE3:
+		sidevice++;
+ 	case ID_GC_SIDEVICE2:
+		sidevice++;
+ 	case ID_GC_SIDEVICE1:
+ 		sidevice++;
+ 	case ID_GC_SIDEVICE0:
+		ChooseSIDevice(std::string(event.GetString().mb_str()), sidevice);
+ 		break;
 	}
 }
 
+void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
+{
+	std::string filename = std::string(wxFileSelector(wxT("Choose a file to open"),
+		wxT(FULL_GC_USER_DIR), wxT(isSlotA ? GC_MEMCARDA:GC_MEMCARDB), wxEmptyString,
+		wxT("Gamecube Memory Cards (*.raw,*.gcp)|*.raw;*.gcp")).mb_str());
+	if (!filename.empty())
+		strMemcard = filename;
+}
 
+void CConfigMain::ChooseSIDevice(std::string deviceName, int deviceNum)
+{
+	TSIDevices tempType;
+	if (deviceName.compare("Standard Controller") == 0)
+		tempType = SI_GC_CONTROLLER;
+	else
+		tempType = SI_DUMMY;
 
+	SConfig::GetInstance().m_SIDevice[deviceNum] = tempType;
+}
+
+//////////////////////////////////////////////////////////////////////////
 // Wii settings
 void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 {
@@ -585,8 +730,7 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 	}
 }
 
-
-
+//////////////////////////////////////////////////////////////////////////
 // Paths settings
 void CConfigMain::ISOPathsSelectionChanged(wxCommandEvent& WXUNUSED (event))
 {
@@ -645,12 +789,11 @@ void CConfigMain::DVDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
 	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot = DVDRoot->GetPath().ToAscii();
 }
 
-
-// Plugins settings
-
-// Update plugin filenames
+//////////////////////////////////////////////////////////////////////////
+// Plugin settings
 void CConfigMain::OnSelectionChanged(wxCommandEvent& WXUNUSED (event))
 {
+	// Update plugin filenames
 	GetFilename(GraphicSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
 	GetFilename(DSPSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin);
 	for (int i = 0; i < MAXPADS; i++)
@@ -738,16 +881,4 @@ bool CConfigMain::GetFilename(wxChoice* _pChoice, std::string& _rFilename)
 	}
 
 	return(false);
-}
-
-void CConfigMain::InterfaceLanguageChanged( wxCommandEvent& event )
-{
-	switch (event.GetId())
-	{
-	case ID_INTERFACE_LANG:
-		SConfig::GetInstance().m_InterfaceLanguage = (INTERFACE_LANGUAGE)InterfaceLang->GetSelection();
-		break;
-	}
-	bRefreshList = true;
-	bRefreshCache = true;
 }

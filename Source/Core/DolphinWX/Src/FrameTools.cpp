@@ -510,8 +510,7 @@ void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 {
 	CConfigMain ConfigMain(this);
-	ConfigMain.ShowModal();
-	if (ConfigMain.bRefreshList)
+	if (ConfigMain.ShowModal() == wxID_OK)
 		m_GameListCtrl->Update(ConfigMain.bRefreshCache);
 }
 

@@ -24,6 +24,7 @@
 #include "Boot/Boot.h" // Core
 #include "Boot/Boot_DOL.h"
 #include "CoreParameter.h"
+#include "ConfigManager.h"
 #include "Core.h" // for bWii
 
 SCoreStartupParameter::SCoreStartupParameter()
@@ -155,14 +156,61 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
     }
 
 	// Setup paths
-    m_strBios = FULL_GC_SYS_DIR + Region + DIR_SEP GC_IPL;
-    m_strMemoryCardA = FULL_GC_USER_DIR + Region + DIR_SEP GC_MEMCARDA;
-    m_strMemoryCardB = FULL_GC_USER_DIR + Region + DIR_SEP GC_MEMCARDB;
-    m_strSRAM = GC_SRAM_FILE;
+	CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardA, Region, true);
+	CheckMemcardPath(SConfig::GetInstance().m_strMemoryCardB, Region, false);
+	m_strSRAM = GC_SRAM_FILE;
+	m_strBios = FULL_GC_SYS_DIR + Region + DIR_SEP GC_IPL;
 	if (!File::Exists(m_strBios.c_str())) {
 		LOG(BOOT, "BIOS file %s not found - using HLE.", m_strBios.c_str());
 		bHLEBios = true;
 	}
 
 	return true;
+}
+
+void SCoreStartupParameter::CheckMemcardPath(std::string& memcardPath, std::string gameRegion, bool isSlotA)
+{
+	std::string ext("." + gameRegion + ".raw");
+	if (memcardPath.empty())
+	{
+		// Use default memcard path if there is no user defined name
+		std::string defaultFilename = isSlotA ? GC_MEMCARDA : GC_MEMCARDB;
+		memcardPath = FULL_GC_USER_DIR + defaultFilename + ext;
+	}
+	else
+	{
+		std::string filename = memcardPath;
+		std::string region = filename.substr(filename.size()-7, 3);
+		bool hasregion = false;
+		hasregion |= region.compare(USA_DIR) == 0;
+		hasregion |= region.compare(JAP_DIR) == 0;
+		hasregion |= region.compare(EUR_DIR) == 0;
+		if (!hasregion)
+		{
+			// filename doesn't have region in the extension
+			if (File::Exists(filename.c_str()))
+			{
+				// If the old file exists we are polite and ask if we should copy it
+				std::string oldFilename = filename;
+				filename.replace(filename.size()-4, 4, ext);
+				if (PanicYesNo("Memory Card filename in Slot %c is incorrect\n"
+					"Region not specified\n\n"
+					"Slot %c path was changed to\n"
+					"%s\n"
+					"Would you like to copy the old file to this new location?\n",
+					isSlotA ? 'A':'B', isSlotA ? 'A':'B', filename.c_str()))
+				{
+					if (!File::Copy(oldFilename.c_str(), filename.c_str()))
+						PanicAlert("Copy failed");
+				}
+			}
+			memcardPath = filename; // Always correct the path!
+		}
+		else if (region.compare(gameRegion) != 0)
+		{
+			// filename has region, but it's not == gameRegion
+			// Just set the correct filename, the EXI Device will create it if it doesn't exist
+			memcardPath = filename.replace(filename.size()-ext.size(), ext.size(), ext);;
+		}
+	}
 }

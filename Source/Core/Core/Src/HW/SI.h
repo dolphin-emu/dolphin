@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -33,4 +33,5 @@ void HWCALL Read32(u32& _uReturnValue, const u32 _iAddress);
 void HWCALL Write32(const u32 _iValue, const u32 _iAddress);
 
 }; // end of namespace SerialInterface
+
 #endif

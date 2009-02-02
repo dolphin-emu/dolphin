@@ -619,6 +619,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Src\HW\SI_Channel.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\HW\SI_Channel.h"
+					>
+				</File>
+				<File
 					RelativePath=".\Src\HW\SI_Device.cpp"
 					>
 				</File>
@@ -627,11 +635,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\Src\HW\SI_DeviceGBAController.cpp"
+					RelativePath=".\Src\HW\SI_DeviceGBA.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\Src\HW\SI_DeviceGBAController.h"
+					RelativePath=".\Src\HW\SI_DeviceGBA.h"
 					>
 				</File>
 				<File

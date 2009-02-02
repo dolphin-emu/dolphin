@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -26,10 +26,10 @@
 
 #include "../Core.h"
 #include "../ConfigManager.h"
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-// --- interface IEXIDevice ---
-/////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////
+// --- interface IEXIDevice ---
+//////////////////////////////////////////////////////////////////////////
 void IEXIDevice::ImmWrite(u32 _uData,  u32 _uSize)
 {
 	while (_uSize--)
@@ -56,21 +56,21 @@ u32 IEXIDevice::ImmRead(u32 _uSize)
 void IEXIDevice::DMAWrite(u32 _uAddr, u32 _uSize)
 {
 //	_dbg_assert_(EXPANSIONINTERFACE, 0);
-	while (_uSize--) 
-	{ 
-		u8 uByte = Memory::Read_U8(_uAddr++); 
-		TransferByte(uByte); 
-	} 
+	while (_uSize--)
+	{
+		u8 uByte = Memory::Read_U8(_uAddr++);
+		TransferByte(uByte);
+	}
 }
 
-void IEXIDevice::DMARead(u32 _uAddr, u32 _uSize) 
+void IEXIDevice::DMARead(u32 _uAddr, u32 _uSize)
 {
 //	_dbg_assert_(EXPANSIONINTERFACE, 0);
-	while (_uSize--) 
-	{ 
-		u8 uByte = 0; 
-		TransferByte(uByte); 
-		Memory::Write_U8(uByte, _uAddr++); 
+	while (_uSize--)
+	{
+		u8 uByte = 0;
+		TransferByte(uByte);
+		Memory::Write_U8(uByte, _uAddr++);
 	}
 };
 
@@ -92,11 +92,10 @@ void IEXIDevice::SetCS(int _iCS)
 {
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 // --- class CEXIDummy ---
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// just a dummy that logs reads and writes
+//////////////////////////////////////////////////////////////////////////
+// Just a dummy that logs reads and writes
 // to be used for EXI devices we haven't emulated
 class CEXIDummy : public IEXIDevice
 {
@@ -112,15 +111,15 @@ public:
 
 	virtual ~CEXIDummy(){}
 
-	void ImmWrite(u32 data,  u32 size){LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmWrite: %08x",m_strName.c_str(),data);}
-	u32 ImmRead (u32 size)			{LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmRead",m_strName.c_str()); return 0;}
-	void DMAWrite(u32 addr, u32 size) {LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMAWrite: %08x bytes, from %08x to device",m_strName.c_str(),size,addr);}
-	void DMARead (u32 addr, u32 size) {LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMARead:  %08x bytes, from device to %08x",m_strName.c_str(),size,addr);}
+	void ImmWrite(u32 data, u32 size)	{LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmWrite: %08x", m_strName.c_str(), data);}
+	u32 ImmRead (u32 size)				{LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmRead", m_strName.c_str()); return 0;}
+	void DMAWrite(u32 addr, u32 size)	{LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMAWrite: %08x bytes, from %08x to device", m_strName.c_str(), size, addr);}
+	void DMARead (u32 addr, u32 size)	{LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMARead:  %08x bytes, from device to %08x", m_strName.c_str(), size, addr);}
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-// F A C T O R Y ////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// F A C T O R Y /////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
 IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
 {
@@ -131,11 +130,11 @@ IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
 		break;
 
 	case EXIDEVICE_MEMORYCARD_A:
-        return new CEXIMemoryCard("MemoryCardA", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strMemoryCardA, 0);
+        return new CEXIMemoryCard("MemoryCardA", SConfig::GetInstance().m_strMemoryCardA, 0);
 		break;
 
 	case EXIDEVICE_MEMORYCARD_B:
-		return new CEXIMemoryCard("MemoryCardB", SConfig::GetInstance().m_LocalCoreStartupParameter.m_strMemoryCardB, 1);
+		return new CEXIMemoryCard("MemoryCardB", SConfig::GetInstance().m_strMemoryCardB, 1);
 		break;
 
 	case EXIDEVICE_IPL:
@@ -145,7 +144,7 @@ IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
 	case EXIDEVICE_AD16:
 		return new CEXIAD16();
 		break;
-		
+
 	case EXIDEVICE_MIC:
 		return new CEXIMic(1);
 		break;
@@ -157,4 +156,3 @@ IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
 	}
 	return NULL;
 }
-

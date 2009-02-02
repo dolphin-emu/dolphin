@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "EXI_Channel.h"
+#include "EXI_Device.h"
 #include "EXI.h"
 
 #define EXI_READ		0
@@ -28,7 +29,7 @@
 
 CEXIChannel::CEXIChannel() :
 	m_DMAMemoryAddress(0),
-	m_DMALength(0),	
+	m_DMALength(0),
 	m_ImmData(0),
 	m_ChannelId(-1)
 {
@@ -53,7 +54,7 @@ CEXIChannel::~CEXIChannel()
 
 void CEXIChannel::RemoveDevices()
 {
-	for (int i = 0; i < NUM_DEVICES; i++) 
+	for (int i = 0; i < NUM_DEVICES; i++)
 	{
 		if (m_pDevices[i] != NULL)
 		{
@@ -101,7 +102,7 @@ bool CEXIChannel::IsCausingInterrupt()
 
 	if ((m_Status.EXIINT	& m_Status.EXIINTMASK) ||
 		(m_Status.TCINT		& m_Status.TCINTMASK) ||
-		(m_Status.EXTINT	& m_Status.EXTINTMASK)) 
+		(m_Status.EXTINT	& m_Status.EXTINTMASK))
 	{
 		return true;
 	}
@@ -113,7 +114,7 @@ bool CEXIChannel::IsCausingInterrupt()
 
 IEXIDevice* CEXIChannel::GetDevice(u8 _CHIP_SELECT)
 {
-	switch(_CHIP_SELECT) 
+	switch(_CHIP_SELECT)
 	{
 	case 1: return m_pDevices[0];
 	case 2: return m_pDevices[1];
@@ -164,7 +165,7 @@ void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 		_uReturnValue = m_Control.hex;
 		break;
 
-	case EXI_IMMDATA:		
+	case EXI_IMMDATA:
 		_uReturnValue = m_ImmData;
 		break;
 
@@ -172,7 +173,7 @@ void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 		_dbg_assert_(EXPANSIONINTERFACE, 0);
 		_uReturnValue = 0xDEADBEEF;
 	}
-	
+
 }
 
 void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
@@ -185,12 +186,12 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 		{
 			UEXI_STATUS newStatus(_iValue);
 
-			// static			
+			// static
 			m_Status.EXIINTMASK		= newStatus.EXIINTMASK;
 			m_Status.TCINTMASK		= newStatus.TCINTMASK;
 			m_Status.EXTINTMASK		= newStatus.EXTINTMASK;
 			m_Status.CLK			= newStatus.CLK;
-			m_Status.ROMDIS			= newStatus.ROMDIS;			
+			m_Status.ROMDIS			= newStatus.ROMDIS;
 
 			// Device
 			if (m_Status.CHIP_SELECT != newStatus.CHIP_SELECT)
@@ -200,7 +201,7 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 					u8 dwDeviceMask = 1 << i;
 					IEXIDevice* pDevice = GetDevice(dwDeviceMask);
 					if (pDevice != NULL)
-					{					
+					{
 						if (((newStatus.CHIP_SELECT & dwDeviceMask) == dwDeviceMask) &&
 							((m_Status.CHIP_SELECT & dwDeviceMask) == 0))
 							// device gets activated
@@ -211,8 +212,8 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 							// device gets deactivated
 							pDevice->SetCS(0);
 					}
-				}		
-				m_Status.CHIP_SELECT = newStatus.CHIP_SELECT;								
+				}
+				m_Status.CHIP_SELECT = newStatus.CHIP_SELECT;
 			}
 
 			// External Status
@@ -262,7 +263,7 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 						pDevice->ImmWrite(m_ImmData, m_Control.TLEN + 1);
 						m_ImmData = pDevice->ImmRead(m_Control.TLEN + 1); */
 						break;
-					
+
 					default: _dbg_assert_msg_(EXPANSIONINTERFACE,0,"EXI Imm: Unknown transfer type %i", m_Control.RW);
 				}
 				m_Control.TSTART = 0;

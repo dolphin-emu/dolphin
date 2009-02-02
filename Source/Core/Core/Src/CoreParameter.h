@@ -40,7 +40,7 @@ struct SCoreStartupParameter
 	bool bEnableDebugging; bool bAutomaticStart; bool bBootToPause;
 	bool bUseJIT;
 
-	  // JIT
+	// JIT
 	bool bJITUnlimitedCache, bJITBlockLinking;
 	bool bJITOff;
 	bool bJITLoadStoreOff, bJITLoadStorelXzOff, bJITLoadStorelwzOff, bJITLoadStorelbzxOff;
@@ -69,9 +69,11 @@ struct SCoreStartupParameter
 
 	int  SelectedLanguage;
 
-	bool bWii; bool bWiiLeds; bool bWiiSpeakers; // Wii settings
+	// Wii settings
+	bool bWii; bool bWiiLeds; bool bWiiSpeakers;
 
-	bool bConfirmStop, bHideCursor, bAutoHideCursor; // Interface settings
+	// Interface settings
+	bool bConfirmStop, bHideCursor, bAutoHideCursor;
 	int iTheme; 
 	
 	enum EBootBios
@@ -98,25 +100,20 @@ struct SCoreStartupParameter
 	std::string m_strWiimotePlugin[MAXWIIMOTES];
 
 	std::string m_strFilename;
-	std::string m_strBios;	
-	std::string m_strMemoryCardA;
-	std::string m_strMemoryCardB;
+	std::string m_strBios;
 	std::string m_strSRAM;
 	std::string m_strDefaultGCM;
 	std::string m_strDVDRoot;
 	std::string m_strUniqueID;
 	std::string m_strName;
 
-	// 
+	// Constructor just calls LoadDefaults
 	SCoreStartupParameter();
 
 	void LoadDefaults();
 	bool AutoSetup(EBootBios _BootBios);
 	const std::string &GetUniqueID() const { return m_strUniqueID; }
+	void CheckMemcardPath(std::string& memcardPath, std::string Region, bool isSlotA);
 };
 
 #endif
-
-
-
-

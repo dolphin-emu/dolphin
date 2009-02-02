@@ -36,6 +36,7 @@ class CConfigMain
 			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE);
 		virtual ~CConfigMain();
+
 		void OnClick(wxMouseEvent& event);
 		void CloseClick(wxCommandEvent& event);
 		void OnSelectionChanged(wxCommandEvent& event);
@@ -72,7 +73,10 @@ class CConfigMain
 		wxGridBagSizer* sGamecubeIPLSettings;
 		wxArrayString arrayStringFor_GCSystemLang;
 		wxStaticText* GCSystemLangText;
-		wxChoice* GCSystemLang;		
+		wxChoice* GCSystemLang;
+		wxChoice *GCEXIDevice[3];
+		wxButton *GCMemcardPath[2];
+		wxChoice *GCSIDevice[4];
 
 		wxBoxSizer* sWii; // Wii settings
 		wxStaticBoxSizer* sbWiimoteSettings;
@@ -205,7 +209,7 @@ class CConfigMain
 			ID_WIIPAGE,
 			ID_PATHSPAGE,
 			ID_PLUGINPAGE,
-			ID_CLOSE,
+
 			ID_ALLWAYS_HLEBIOS,
 			ID_USEDYNAREC,
 			ID_USEDUALCORE,
@@ -213,9 +217,6 @@ class CConfigMain
 			ID_OPTIMIZEQUANTIZERS,
 			ID_IDLESKIP,
 			ID_ENABLECHEATS,
-			ID_ENABLEISOCACHE,
-			ID_GC_SRAM_LNG_TEXT,
-			ID_GC_SRAM_LNG,
 
 			ID_INTERFACE_CONFIRMSTOP, // Interface settings
 			ID_INTERFACE_HIDECURSOR_TEXT, ID_INTERFACE_HIDECURSOR, ID_INTERFACE_AUTOHIDECURSOR,
@@ -223,9 +224,24 @@ class CConfigMain
 			ID_INTERFACE_LANG_TEXT, ID_INTERFACE_LANG,
 			ID_INTERFACE_THEME,
 
+			ID_GC_SRAM_LNG_TEXT,
+			ID_GC_SRAM_LNG,
+			ID_GC_EXIDEVICE_SLOTA_TEXT,
+			ID_GC_EXIDEVICE_SLOTA,
+			ID_GC_EXIDEVICE_SLOTA_PATH,
+			ID_GC_EXIDEVICE_SLOTB_TEXT,
+			ID_GC_EXIDEVICE_SLOTB,
+			ID_GC_EXIDEVICE_SLOTB_PATH,
+			ID_GC_EXIDEVICE_SP1_TEXT,
+			ID_GC_EXIDEVICE_SP1,
+			ID_GC_SIDEVICE_TEXT,
+			ID_GC_SIDEVICE0,
+			ID_GC_SIDEVICE1,
+			ID_GC_SIDEVICE2,
+			ID_GC_SIDEVICE3,
+
 			ID_WII_BT_BAR_TEXT,
 			ID_WII_BT_BAR,
-
 			ID_WII_IPL_SSV,
 			ID_WII_IPL_PGS,
 			ID_WII_IPL_E60,
@@ -233,6 +249,7 @@ class CConfigMain
 			ID_WII_IPL_AR,
 			ID_WII_IPL_LNG_TEXT,
 			ID_WII_IPL_LNG,
+
 			ID_ISOPATHS,
 			ID_ADDISOPATH,
 			ID_REMOVEISOPATH,
@@ -240,6 +257,7 @@ class CConfigMain
 			ID_DEFAULTISO,
 			ID_DVDROOT_TEXT,
 			ID_DVDROOT,
+
 			ID_WIIMOTE_ABOUT,
 			ID_WIIMOTE_CONFIG,
 			ID_WIIMOTE_TEXT,
@@ -258,11 +276,13 @@ class CConfigMain
 			ID_GRAPHIC_CB
 		};
 
-		void CreateGUIControls(); void UpdateGUI();
+		void CreateGUIControls();
+		void UpdateGUI();
 		void OnClose(wxCloseEvent& event);
 		void CoreSettingsChanged(wxCommandEvent& event);
-		void InterfaceLanguageChanged(wxCommandEvent& event);
 		void GCSettingsChanged(wxCommandEvent& event);
+		void ChooseMemcardPath(std::string& strMemcard, bool isSlotA);
+		void ChooseSIDevice(std::string deviceName, int deviceNum);
 		void WiiSettingsChanged(wxCommandEvent& event);
 		void ISOPathsSelectionChanged(wxCommandEvent& event);
 		void AddRemoveISOPaths(wxCommandEvent& event);
@@ -270,9 +290,7 @@ class CConfigMain
 		void DVDRootChanged(wxFileDirPickerEvent& event);
 
 		void FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::string& _SelectFilename);
-
 		void CallConfig(wxChoice* _pChoice);
-
 		bool GetFilename(wxChoice* _pChoice, std::string& _rFilename);
 };
 
