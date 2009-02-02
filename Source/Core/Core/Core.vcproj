@@ -627,6 +627,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Src\HW\SI_DeviceGBAController.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\HW\SI_DeviceGBAController.h"
+					>
+				</File>
+				<File
 					RelativePath=".\Src\HW\SI_DeviceGCController.cpp"
 					>
 				</File>
