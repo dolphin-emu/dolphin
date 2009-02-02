@@ -309,8 +309,8 @@ void CConfigMain::CreateGUIControls()
 	GCEXIDeviceText[1] = new wxStaticText(GamecubePage, ID_GC_EXIDEVICE_SLOTB_TEXT, wxT("Slot B"), wxDefaultPosition, wxDefaultSize);
 	GCEXIDeviceText[2] = new wxStaticText(GamecubePage, ID_GC_EXIDEVICE_SP1_TEXT,	wxT("SP1   "), wxDefaultPosition, wxDefaultSize);
 	GCEXIDeviceText[2]->SetToolTip(wxT("Serial Port 1 - This is the port the network adapter uses"));
-	const wxString SlotDevices[] = {"null","Memory Card", "Mic"};
-	const wxString SP1Devices[] = {"null","BBA"};
+	const wxString SlotDevices[] = {wxT("null"),wxT("Memory Card"), wxT("Mic")};
+	const wxString SP1Devices[] = {wxT("null"),wxT("BBA")};
 	GCEXIDevice[0] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SLOTA, wxDefaultPosition, wxDefaultSize, 3, SlotDevices, 0, wxDefaultValidator);
 	GCEXIDevice[1] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SLOTB, wxDefaultPosition, wxDefaultSize, 3, SlotDevices, 0, wxDefaultValidator);
 	GCEXIDevice[2] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SP1, wxDefaultPosition, wxDefaultSize, 2, SP1Devices, 0, wxDefaultValidator);
@@ -338,7 +338,7 @@ void CConfigMain::CreateGUIControls()
 	GCSIDeviceText[1] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 2"), wxDefaultPosition, wxDefaultSize);
 	GCSIDeviceText[2] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 3"), wxDefaultPosition, wxDefaultSize);
 	GCSIDeviceText[3] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 4"), wxDefaultPosition, wxDefaultSize);
-	const wxString SIDevices[] = {"null","Standard Controller"};
+	const wxString SIDevices[] = {wxT("null"),wxT("Standard Controller")};
 	GCSIDevice[0] = new wxChoice(GamecubePage, ID_GC_SIDEVICE0, wxDefaultPosition, wxDefaultSize, 2, SIDevices, 0, wxDefaultValidator);
 	GCSIDevice[1] = new wxChoice(GamecubePage, ID_GC_SIDEVICE1, wxDefaultPosition, wxDefaultSize, 2, SIDevices, 0, wxDefaultValidator);
 	GCSIDevice[2] = new wxChoice(GamecubePage, ID_GC_SIDEVICE2, wxDefaultPosition, wxDefaultSize, 2, SIDevices, 0, wxDefaultValidator);
@@ -684,8 +684,10 @@ void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 
 void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 {
-	std::string filename = std::string(wxFileSelector(wxT("Choose a file to open"),
-		wxT(FULL_GC_USER_DIR), wxT(isSlotA ? GC_MEMCARDA:GC_MEMCARDB), wxEmptyString,
+	std::string filename = std::string(wxFileSelector
+									   (wxT("Choose a file to open"),
+										wxT(FULL_GC_USER_DIR), isSlotA ? wxT(GC_MEMCARDA):wxT(GC_MEMCARDB), 
+										wxEmptyString,
 		wxT("Gamecube Memory Cards (*.raw,*.gcp)|*.raw;*.gcp")).mb_str());
 	if (!filename.empty())
 		strMemcard = filename;
