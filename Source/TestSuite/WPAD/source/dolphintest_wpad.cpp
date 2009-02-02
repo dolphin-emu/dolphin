@@ -3,6 +3,7 @@
 //code by WinterMute
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
 #include <string.h>
 #include <malloc.h>
 #include <ogcsys.h>
@@ -76,48 +77,48 @@ void countevs(int chan, const WPADData *data) {
 void print_wiimote_connection_status(int wiimote_connection_status) {
 	switch(wiimote_connection_status) {
 		case WPAD_ERR_NO_CONTROLLER:
-			printf("  Wiimote not connected\n");
+			std::cout<<"  Wiimote not connected\n";
 			break;
 		case WPAD_ERR_NOT_READY:
-			printf("  Wiimote not ready\n");
+			std::cout<<"  Wiimote not ready\n";
 			break;
 		case WPAD_ERR_NONE:
-			printf("  Wiimote ready\n");
+			std::cout<<"  Wiimote ready\n";
 			break;
 		default:
-			printf("  Unknown Wimote state %d\n",wiimote_connection_status);
+			std::cout<<"  Unknown Wimote state "<<wiimote_connection_status<<"\n";
 	}
 }
 
 void print_wiimote_buttons(WPADData *wd) {
-	printf("  Buttons down:\n   ");
-	if(wd->btns_h & WPAD_BUTTON_A) printf("A ");
-	if(wd->btns_h & WPAD_BUTTON_B) printf("B ");
-	if(wd->btns_h & WPAD_BUTTON_1) printf("1 ");
-	if(wd->btns_h & WPAD_BUTTON_2) printf("2 ");
-	if(wd->btns_h & WPAD_BUTTON_MINUS) printf("MINUS ");
-	if(wd->btns_h & WPAD_BUTTON_HOME) printf("HOME ");
-	if(wd->btns_h & WPAD_BUTTON_PLUS) printf("PLUS ");
-	printf("\n   ");
-	if(wd->btns_h & WPAD_BUTTON_LEFT) printf("LEFT ");
-	if(wd->btns_h & WPAD_BUTTON_RIGHT) printf("RIGHT ");
-	if(wd->btns_h & WPAD_BUTTON_UP) printf("UP ");
-	if(wd->btns_h & WPAD_BUTTON_DOWN) printf("DOWN ");
-	printf("\n");
+	std::cout<<"  Buttons down:\n   ";
+	if(wd->btns_h & WPAD_BUTTON_A) std::cout<<"A ";
+	if(wd->btns_h & WPAD_BUTTON_B) std::cout<<"B ";
+	if(wd->btns_h & WPAD_BUTTON_1) std::cout<<"1 ";
+	if(wd->btns_h & WPAD_BUTTON_2) std::cout<<"2 ";
+	if(wd->btns_h & WPAD_BUTTON_MINUS) std::cout<<"MINUS ";
+	if(wd->btns_h & WPAD_BUTTON_HOME) std::cout<<"HOME ";
+	if(wd->btns_h & WPAD_BUTTON_PLUS) std::cout<<"PLUS ";
+	std::cout<<"\n   ";
+	if(wd->btns_h & WPAD_BUTTON_LEFT) std::cout<<"LEFT ";
+	if(wd->btns_h & WPAD_BUTTON_RIGHT) std::cout<<"RIGHT ";
+	if(wd->btns_h & WPAD_BUTTON_UP) std::cout<<"UP ";
+	if(wd->btns_h & WPAD_BUTTON_DOWN) std::cout<<"DOWN ";
+	std::cout<<"\n";
 }
 
 void print_and_draw_wiimote_data(void *screen_buffer) {
 	//Makes the var wd point to the data on the wiimote
 	WPADData *wd = WPAD_Data(0);
-	printf("  Data->Err: %d\n",wd->err);
-	printf("  IR Dots:\n");
+	std::cout<<"  Data->Err: "<<wd->err<<"\n";
+	std::cout<<"  IR Dots:\n";
 	int i;
 	for(i=0; i<4; i++) {
 		if(wd->ir.dot[i].visible) {
-			printf("   %4d, %3d\n", wd->ir.dot[i].rx, wd->ir.dot[i].ry);
+			std::cout<<"   "<<wd->ir.dot[i].rx<<", "<<wd->ir.dot[i].ry<<"\n";
 			drawdot(screen_buffer, rmode, 1024, 768, wd->ir.dot[i].rx, wd->ir.dot[i].ry, COLOR_YELLOW);
 		} else {
-			printf("   None\n");
+			std::cout<<"   None\n";
 		}
 	}
 	//ir.valid - TRUE is the wiimote is pointing at the screen, else it is false
@@ -126,31 +127,31 @@ void print_and_draw_wiimote_data(void *screen_buffer) {
 
 		//ir.x/ir.y - The x/y coordinates that the wiimote is pointing to, relative to the screen.
 		//ir.angle - how far (in degrees) the wiimote is twisted (based on ir)
-		printf("  Cursor: %.02f,%.02f\n",wd->ir.x, wd->ir.y);
-		printf("    @ %.02f deg\n",wd->ir.angle);
+		std::cout<<"  Cursor: "<<wd->ir.x<<","<<wd->ir.y<<"\n";
+		std::cout<<"    @ "<<wd->ir.angle<<" deg\n";
 
 		drawdot(screen_buffer, rmode, rmode->fbWidth, rmode->xfbHeight, wd->ir.x, wd->ir.y, COLOR_RED);
 		drawdot(screen_buffer, rmode, rmode->fbWidth, rmode->xfbHeight, wd->ir.x + 10*sinf(theta), wd->ir.y - 10*cosf(theta), COLOR_BLUE);        
 	} else {
-		printf("  No Cursor\n\n");
+		std::cout<<"  No Cursor\n\n";
 	}
 	if(wd->ir.raw_valid) {
 		//ir.z - How far away the wiimote is from the screen in meters
-		printf("  Distance: %.02fm\n", wd->ir.z);
+		std::cout<<"  Distance: "<<wd->ir.z<<"m\n";
 		//orient.yaw - The left/right angle of the wiimote to the screen
-		printf("  Yaw: %.02f deg\n", wd->orient.yaw);
+		std::cout<<"  Yaw: "<<wd->orient.yaw<<" deg\n";
 	} else {
-		printf("\n\n");
+		std::cout<<"\n\n";
 	}
-	printf("  Accel:\n");
+	std::cout<<"  Accel:\n";
 	//accel.x/accel.y/accel.z - analog values for the accelleration of the wiimote
 	//(Note: Gravity pulls downwards, so even if the wiimote is not moving,
 	//one(or more) axis will have a reading as if it is moving "upwards")
-	printf("   XYZ: %3d,%3d,%3d\n",wd->accel.x,wd->accel.y,wd->accel.z);
+	std::cout<<"   XYZ: "<<wd->accel.x<<","<<wd->accel.y<<","<<wd->accel.z<<"\n";
 	//orient.pitch - how far the wiimote is "tilted" in degrees
-	printf("   Pitch: %.02f\n",wd->orient.pitch);
+	std::cout<<"   Pitch: "<<wd->orient.pitch<<"\n";
 	//orient.roll - how far the wiimote is "twisted" in degrees (uses accelerometer)
-	printf("   Roll:  %.02f\n",wd->orient.roll);
+	std::cout<<"   Roll:  "<<wd->orient.roll<<"\n";
 
 	print_wiimote_buttons(wd);
 
@@ -194,12 +195,12 @@ int main(int argc, char **argv) {
 	while(!doreload && !dooff) {
 		CON_Init(xfb[fbi],0,0,rmode->fbWidth,rmode->xfbHeight,rmode->fbWidth*VI_DISPLAY_PIX_SZ);
 		//VIDEO_ClearFrameBuffer(rmode,xfb[fbi],COLOR_BLACK);
-		printf("\n\n\n");
+		std::cout<<"\n\n\n";
 		WPAD_ReadPending(WPAD_CHAN_ALL, countevs);
 		int wiimote_connection_status = WPAD_Probe(0, &type);
 		print_wiimote_connection_status(wiimote_connection_status);
 
-		printf("  Event count: %d\n",evctr);
+		std::cout<<"  Event count: "<<evctr<<"\n";
 		if(wiimote_connection_status == WPAD_ERR_NONE) {
 			print_and_draw_wiimote_data(xfb[fbi]);
 		}
