@@ -60,8 +60,9 @@ class ConfigDialog : public wxDialog
 		void DoRecordMovement(u8 _x, u8 _y, u8 _z, const u8 *_IR, int IRBytes);
 		void DoRecordA(bool Pressed);
 		void ConvertToString();
-		wxTimer *m_TimeoutTimer, *m_TimeoutATimer;
+		wxTimer *m_TimeoutTimer, *m_ShutDownTimer, *m_TimeoutATimer;
 		void Update(wxTimerEvent& WXUNUSED(event));
+		void ShutDown(wxTimerEvent& WXUNUSED(event));
 		void UpdateA(wxTimerEvent& WXUNUSED(event));
 
 	private:
@@ -105,7 +106,7 @@ class ConfigDialog : public wxDialog
 			ID_CLOSE = 1000,
 			ID_APPLY,
 			ID_ABOUTOGL,
-			IDTM_EXIT, IDTM_UPDATE, IDTM_UPDATEA, // Timer
+			IDTM_EXIT, IDTM_UPDATE, IDTM_SHUTDOWN, IDTM_UPDATEA, // Timer
 
 			ID_NOTEBOOK,
 			ID_PAGEEMU,

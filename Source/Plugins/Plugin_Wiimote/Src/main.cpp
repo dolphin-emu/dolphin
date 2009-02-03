@@ -76,7 +76,7 @@ HINSTANCE g_hInstance;
 
 #if defined(HAVE_WX) && HAVE_WX
 	wxWindow win;
-	ConfigDialog *frame;
+	ConfigDialog *frame = NULL;
 
 	class wxDLLApp : public wxApp
 	{
@@ -159,11 +159,12 @@ void DllConfig(HWND _hParent)
 	//Console::Open();
 	DoInitialize();
 
-	g_FrameOpen = true;	
 	frame = new ConfigDialog(&win);
-
-	frame->ShowModal();
-	//frame.Show();	
+	g_FrameOpen = true;
+	/* We don't need to use ShowModal() anymore becaue FreeLibrary() is not called after this function
+	   anymore */
+	//frame->ShowModal();
+	frame->Show();	
 
 	#ifdef _WIN32
 		win.SetHWND(0);
@@ -200,7 +201,8 @@ extern "C" void Shutdown(void)
 			if(frame) frame->UpdateGUI();
 		#endif
 
-		// Don't shut down the wiimote when we still have the window open
+		/* Don't shut down the wiimote when we still have the config window open, we may still want
+		   want to use the Wiimote in the config window. */
 		return;
 	}
 

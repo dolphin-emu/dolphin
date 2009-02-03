@@ -69,6 +69,7 @@ Common::Thread*		g_pReadThread = NULL;
 int					g_NumberOfWiiMotes;
 CWiiMote*			g_WiiMotes[MAX_WIIMOTES];	
 bool				g_Shutdown = false;
+bool				g_ThreadGoing = false;
 bool				g_LocalThread = true;
 bool				g_IRSensing = false;
 bool				g_MotionSensing = false;
@@ -471,8 +472,8 @@ int Initialize()
 	g_Config.bClassicControllerConnected = (g_WiiMotesFromWiiUse[0]->exp.type == EXP_CLASSIC);
 
 	// Initialized
-	if (g_NumberOfWiiMotes > 0) { g_RealWiiMoteInitialized = true; g_Shutdown = false; }	
-
+	if (g_NumberOfWiiMotes > 0) { g_RealWiiMoteInitialized = true; g_Shutdown = false; }
+	
     return g_NumberOfWiiMotes;
 }
 
@@ -483,16 +484,11 @@ void Shutdown(void)
 	// Stop the loop in the thread
     g_Shutdown = true;
 
-	// Sleep this thread to wait for activity in g_pReadThread to stop entirely
-	Sleep(100);
-
     // Stop the thread
     if (g_pReadThread != NULL)
         {
-			// This sometimes hangs for some reason so I'm trying to disable it
-			// It seemed to hang in WaitForSingleObject(), but I don't know why
-            //g_pReadThread->WaitForDeath();
-            delete g_pReadThread;
+			g_pReadThread->WaitForDeath();
+			delete g_pReadThread;
             g_pReadThread = NULL;
         }
 
@@ -555,10 +551,13 @@ void Update()
 {
     while (!g_Shutdown)
     {
+		// We need g_ThreadGoing to do a manual WaitForSingleObject() from the configuration window
+		g_ThreadGoing = true;
 		if(g_Config.bUseRealWiimote && !g_RunTemporary)
 			for (int i = 0; i < g_NumberOfWiiMotes; i++) g_WiiMotes[i]->ReadData();
 		else
 			ReadWiimote();
+		g_ThreadGoing = false;
     }
     return 0;
 }

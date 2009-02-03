@@ -90,7 +90,8 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_BUTTON(IDB_RECORD + 14, ConfigDialog::RecordMovement)
 	EVT_BUTTON(IDB_RECORD + 15, ConfigDialog::RecordMovement)
 
-	EVT_TIMER(IDTM_UPDATE, ConfigDialog::Update)	
+	EVT_TIMER(IDTM_UPDATE, ConfigDialog::Update)
+	EVT_TIMER(IDTM_SHUTDOWN, ConfigDialog::ShutDown)
 END_EVENT_TABLE()
 /////////////////////////////
 
@@ -104,6 +105,7 @@ ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &titl
 {
 	#if wxUSE_TIMER
 		m_TimeoutTimer = new wxTimer(this, IDTM_UPDATE);
+		m_ShutDownTimer = new wxTimer(this, IDTM_SHUTDOWN);
 		m_TimeoutATimer = new wxTimer(this, IDTM_UPDATEA);
 		// Reset values
 		m_bWaitForRecording = false;
@@ -139,14 +141,28 @@ void ConfigDialog::OnKeyDown(wxKeyEvent& event)
 		UpdateGUI();
 	}
 }
+
 void ConfigDialog::OnClose(wxCloseEvent& WXUNUSED (event))
 {
+	g_FrameOpen = false;
 	SaveFile();
-	g_Config.Save();
-	g_FrameOpen = false;	
+	g_Config.Save();	
 	//SuccessAlert("Saved\n");
 	if (!g_EmulatorRunning) Shutdown();
 	EndModal(0);
+}
+
+/* Timeout the shutdown. In Windows at least the g_pReadThread execution will hang at any attempt to
+   call a frame function after the main thread has entered WaitForSingleObject() or any other loop.
+   We must therefore shut down the thread from here and wait for that before we can call ShutDown(). */
+void ConfigDialog::ShutDown(wxTimerEvent& WXUNUSED(event))
+{
+	// Close() is a wxWidgets function that will trigger EVT_CLOSE() and then call this->Destroy().
+	if(!WiiMoteReal::g_ThreadGoing)
+	{
+		m_ShutDownTimer->Stop();
+		Close();
+	}
 }
 
 void ConfigDialog::CloseClick(wxCommandEvent& event)
@@ -154,8 +170,8 @@ void ConfigDialog::CloseClick(wxCommandEvent& event)
 	switch(event.GetId())
 	{
 	case ID_CLOSE:
-		// wxWidgets function. This will also trigger EVT_CLOSE().
-		Close();
+		WiiMoteReal::g_Shutdown = true;
+		m_ShutDownTimer->Start(10);
 		break;
 	case ID_APPLY:
 		SaveFile();

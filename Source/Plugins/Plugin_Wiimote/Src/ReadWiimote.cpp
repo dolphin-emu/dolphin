@@ -20,13 +20,13 @@
 // Includes
 // ¯¯¯¯¯¯¯¯¯¯
 #include <iostream> // System
-#include "pluginspecs_wiimote.h"
 
 #include "wiiuse.h" // Externals
 
 #include "ConsoleWindow.h" // Common
 #include "StringUtil.h"
 #include "Timer.h"
+#include "pluginspecs_wiimote.h"
 
 #include "wiimote_real.h" // Local
 #include "wiimote_hid.h"
@@ -44,13 +44,13 @@ namespace WiiMoteReal
 
 void handle_ctrl_status(struct wiimote_t* wm)
 {
-	printf("\n\n--- CONTROLLER STATUS [wiimote id %i] ---\n", wm->unid);
+	Console::Print("\n\n--- CONTROLLER STATUS [wiimote id %i] ---\n", wm->unid);
 
-	printf("attachment:      %i\n", wm->exp.type);
-	printf("speaker:         %i\n", WIIUSE_USING_SPEAKER(wm));
-	printf("ir:              %i\n", WIIUSE_USING_IR(wm));
-	printf("leds:            %i %i %i %i\n", WIIUSE_IS_LED_SET(wm, 1), WIIUSE_IS_LED_SET(wm, 2), WIIUSE_IS_LED_SET(wm, 3), WIIUSE_IS_LED_SET(wm, 4));
-	printf("battery:         %f %%\n", wm->battery_level);
+	Console::Print("attachment:      %i\n", wm->exp.type);
+	Console::Print("speaker:         %i\n", WIIUSE_USING_SPEAKER(wm));
+	Console::Print("ir:              %i\n", WIIUSE_USING_IR(wm));
+	Console::Print("leds:            %i %i %i %i\n", WIIUSE_IS_LED_SET(wm, 1), WIIUSE_IS_LED_SET(wm, 2), WIIUSE_IS_LED_SET(wm, 3), WIIUSE_IS_LED_SET(wm, 4));
+	Console::Print("battery:         %f %%\n", wm->battery_level);
 }
 
 
@@ -73,7 +73,7 @@ bool IRDataOK(struct wiimote_t* wm)
 
 void handle_event(struct wiimote_t* wm)
 {
-	printf("\n\n--- EVENT [id %i] ---\n", wm->unid);
+	//Console::Print("\n\n--- EVENT [id %i] ---\n", wm->unid);
 
 	/* if a button is pressed, report it */
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_A))		Console::Print("A pressed\n");
@@ -111,9 +111,8 @@ void handle_event(struct wiimote_t* wm)
 		wiiuse_set_ir(wm, 1);
 
 	/* Print battery status */
-		if(frame)
-			if(g_Config.bUpdateRealWiimote)
-				frame->m_GaugeBattery->SetValue((int)floor((wm->battery_level * 100) + 0.5));
+	if(frame && g_Config.bUpdateRealWiimote)
+		frame->m_GaugeBattery->SetValue((int)floor((wm->battery_level * 100) + 0.5));
 
 	/* If the accelerometer is turned on then print angles */
 	if (WIIUSE_USING_ACC(wm) && WIIUSE_USING_IR(wm))
@@ -211,9 +210,15 @@ void handle_event(struct wiimote_t* wm)
 
 void ReadWiimote()
 {
+	/* I place this outside wiiuse_poll() to produce a continous recording regardless of the status
+	   change of the Wiimote, wiiuse_poll() is only true if the status has changed. However, this the
+	   timing functions for recording playback that checks the time of the recording this should not
+	   be needed. But I still use it becase it seemed like state_changed() or the threshold values or
+	   something else might fail so that only huge status changed were reported. */
 	handle_event(g_WiiMotesFromWiiUse[0]);
 	std::string Temp;
-	// Read formatted data
+
+	// Read formatted Wiimote data
 	if (wiiuse_poll(g_WiiMotesFromWiiUse, MAX_WIIMOTES))
 	{
 		/*
@@ -297,4 +302,7 @@ void ReadWiimote()
 	}
 }
 
+
 }; // end of namespace
+
+
