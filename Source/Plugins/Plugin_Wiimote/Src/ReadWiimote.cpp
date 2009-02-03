@@ -114,6 +114,11 @@ void handle_event(struct wiimote_t* wm)
 	if(frame && g_Config.bUpdateRealWiimote)
 		frame->m_GaugeBattery->SetValue((int)floor((wm->battery_level * 100) + 0.5));
 
+	/* Create shortcut to the nunchuck */
+	struct nunchuk_t* nc = NULL;
+	if (wm->exp.type == EXP_NUNCHUK)
+		nc = (nunchuk_t*)&wm->exp.nunchuk;
+
 	/* If the accelerometer is turned on then print angles */
 	if (WIIUSE_USING_ACC(wm) && WIIUSE_USING_IR(wm))
 	{
@@ -146,19 +151,31 @@ void handle_event(struct wiimote_t* wm)
 
 		Tmp += StringFromFormat("IR cursor: (%u, %u)\n", wm->ir.x, wm->ir.y);
 		Tmp += StringFromFormat("IR z distance: %f\n", wm->ir.z);
-		std::string TmpData = ArrayToString(g_EventBuffer, ReportSize, 0, 30);
-		Tmp += "Data: " + TmpData;
+		//std::string TmpData = ArrayToString(g_EventBuffer, ReportSize, 0, 30);
+		//Tmp += "Data: " + TmpData;
 
-		Console::ClearScreen();
-		Console::Print("%s\n\n", Tmp.c_str());
+		//Console::ClearScreen();
+		//Console::Print("%s\n\n", Tmp.c_str());
 
 		if(frame)
 		{
-			if(g_Config.bUpdateRealWiimote)
-			{		
+			// Produce adjussted accelerometer values
+			u8 AccelX = 0, AccelY = 0, AccelZ = 0;			
+			if((wm->accel.x + g_Config.iAccNunNeutralX) <= 255) AccelX = wm->accel.x + g_Config.iAccNeutralX;
+			if((wm->accel.y + g_Config.iAccNunNeutralY) <= 255) AccelY = wm->accel.y + g_Config.iAccNeutralY;
+			if((wm->accel.z + g_Config.iAccNunNeutralZ) <= 255) AccelZ = wm->accel.z + g_Config.iAccNeutralZ;
+			// And for the Nunchuck
+			u8 AccelNX = 0, AccelNY = 0, AccelNZ = 0;
+			if(wm->exp.type == EXP_NUNCHUK)
+			{
+				if((nc->accel.x + g_Config.iAccNunNeutralX) <= 255) AccelNX = nc->accel.x + g_Config.iAccNunNeutralX;
+				if((nc->accel.y + g_Config.iAccNunNeutralY) <= 255) AccelNY = nc->accel.y + g_Config.iAccNunNeutralY;
+				if((nc->accel.z + g_Config.iAccNunNeutralZ) <= 255) AccelNZ = nc->accel.z + g_Config.iAccNunNeutralZ;
+			}
 
-				// Disabled for now, they serve a limited purpose anyway. Enabled again.
-				/**/
+			if(g_Config.bUpdateRealWiimote)
+			{
+				// Update gauges
 				frame->m_GaugeRoll[0]->SetValue(wm->orient.roll + 180);
 				frame->m_GaugeRoll[1]->SetValue(wm->orient.pitch + 180);
 
@@ -166,12 +183,15 @@ void handle_event(struct wiimote_t* wm)
 				frame->m_GaugeGForce[1]->SetValue((int)floor((wm->gforce.y * 100) + 300.5));
 				frame->m_GaugeGForce[2]->SetValue((int)floor((wm->gforce.z * 100) + 300.5));				
 
-				frame->m_GaugeAccel[0]->SetValue(wm->accel.x);
-				frame->m_GaugeAccel[1]->SetValue(wm->accel.y);
-				frame->m_GaugeAccel[2]->SetValue(wm->accel.z);
+				frame->m_GaugeAccel[0]->SetValue(AccelX);
+				frame->m_GaugeAccel[1]->SetValue(AccelY);
+				frame->m_GaugeAccel[2]->SetValue(AccelZ);
 
 				frame->m_TextIR->SetLabel(wxString::Format(
 					"Cursor: %03u %03u\nDistance:%4.0f", wm->ir.x, wm->ir.y, wm->ir.z));
+
+				frame->m_TextAccNeutralCurrent->SetLabel(wxString::Format(
+					"Current: %03u %03u %03u", AccelX, AccelY, AccelZ));
 
 				if(frame->m_bRecording)
 					Console::Print("Wiiuse Recorded accel x, y, z: %03i %03i %03i\n", wm->accel.x, wm->accel.y, wm->accel.z);
@@ -179,7 +199,7 @@ void handle_event(struct wiimote_t* wm)
 	
 			// Send the data to be saved
 			//const u8* data = (const u8*)wm->event_buf;
-			frame->DoRecordMovement(wm->accel.x, wm->accel.y, wm->accel.z, (g_EventBuffer + 6),
+			frame->DoRecordMovement(AccelX, AccelY, AccelZ, (g_EventBuffer + 6),
 				(WIIUSE_USING_EXP(wm) ? 10 : 12));
 
 			// Turn recording on and off
@@ -192,6 +212,9 @@ void handle_event(struct wiimote_t* wm)
 	{
 		if (frame)
 		{
+			
+			frame->m_TextAccNeutralCurrent->SetLabel(wxT("Current: 000 000 000"));
+
 			frame->m_GaugeRoll[0]->SetValue(0);
 			frame->m_GaugeRoll[1]->SetValue(0);
 

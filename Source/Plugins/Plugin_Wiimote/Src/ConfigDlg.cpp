@@ -57,6 +57,7 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_CONNECT_REAL, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_USE_REAL, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_UPDATE_REAL, ConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(ID_NEUTRAL_CHOICE, ConfigDialog::GeneralSettingsChanged)	
 
 	EVT_CHOICE(IDC_RECORD + 1, ConfigDialog::GeneralSettingsChanged)
 	EVT_CHOICE(IDC_RECORD + 2, ConfigDialog::GeneralSettingsChanged)
@@ -348,7 +349,9 @@ void ConfigDialog::CreateGUIControls()
 	m_ConnectRealWiimote->SetValue(g_Config.bConnectRealWiimote);
 	m_UseRealWiimote->SetValue(g_Config.bUseRealWiimote);
 
+	// ---------------------------------------------
 	// Status
+	// ----------------	
 	wxStaticBoxSizer * sbRealStatus = new wxStaticBoxSizer(wxVERTICAL, m_PageReal, wxT("Status"));
 	m_TextUpdateRate = new wxStaticText(m_PageReal, wxID_ANY, wxT("Update rate: 000 times/s"));
 	m_UpdateMeters = new wxCheckBox(m_PageReal, ID_UPDATE_REAL, wxT("Update gauges"));
@@ -362,6 +365,66 @@ void ConfigDialog::CreateGUIControls()
 
 	sbRealStatus->Add(m_TextUpdateRate, 0, wxEXPAND | (wxALL), 5);
 	sbRealStatus->Add(m_UpdateMeters, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxUP), 5);
+	// -----------------------
+
+	// ---------------------------------------------
+	// Wiimote accelerometer neutral values
+	// ----------------	
+	wxStaticBoxSizer * sbRealNeutral = new wxStaticBoxSizer(wxVERTICAL, m_PageReal, wxT("Wiimote neutral"));
+	wxStaticText * m_TextAccNeutralTarget = new wxStaticText(m_PageReal, wxID_ANY, wxT("Target: 132 132 159"));
+	m_TextAccNeutralCurrent = new wxStaticText(m_PageReal, wxID_ANY, wxT("Current: 000 000 000"));
+	wxArrayString StrAccNeutral;
+	for(int i = 0; i < 31; i++) StrAccNeutral.Add(wxString::Format(wxT("%i"), i));
+	for(int i = 0; i < 3; i++) m_AccNeutralChoice[i] = new wxChoice(m_PageReal, ID_NEUTRAL_CHOICE, wxDefaultPosition, wxDefaultSize, StrAccNeutral);
+	m_AccNeutralChoice[0]->SetSelection(g_Config.iAccNeutralX);
+	m_AccNeutralChoice[1]->SetSelection(g_Config.iAccNeutralY);
+	m_AccNeutralChoice[2]->SetSelection(g_Config.iAccNeutralZ);
+
+	wxBoxSizer * sbRealWiimoteNeutralChoices = new wxBoxSizer(wxHORIZONTAL);
+	sbRealWiimoteNeutralChoices->Add(m_AccNeutralChoice[0], 0, wxEXPAND | (wxALL), 0);
+	sbRealWiimoteNeutralChoices->Add(m_AccNeutralChoice[1], 0, wxEXPAND | (wxLEFT), 2);
+	sbRealWiimoteNeutralChoices->Add(m_AccNeutralChoice[2], 0, wxEXPAND | (wxLEFT), 2);
+
+	sbRealNeutral->Add(m_TextAccNeutralTarget, 0, wxEXPAND | (wxALL), 5);
+	sbRealNeutral->Add(m_TextAccNeutralCurrent, 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
+	sbRealNeutral->Add(sbRealWiimoteNeutralChoices, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxUP), 5);
+
+	m_TextAccNeutralTarget->SetToolTip(wxT(
+		"To produce compatible accelerometer recordings that can be shared with other users without problems"
+		" you have to adjust the Current value to the Target value before you make a recording."
+		));
+	// -----------------------
+
+	// ---------------------------------------------
+	// Nunchuck accelerometer neutral values
+	// ----------------	
+	/*
+	wxStaticBoxSizer * sbRealNNeutral = new wxStaticBoxSizer(wxVERTICAL, m_PageReal, wxT("Nunchuck neutrals"));
+	wxStaticText * m_TextAccNeutralTarget = new wxStaticText(m_PageReal, wxID_ANY, wxT("Target: 132 132 159"));
+	m_TextAccNeutralCurrent = new wxStaticText(m_PageReal, wxID_ANY, wxT("Current: 000 000 000"));
+	wxArrayString StrAccNeutral;
+	for(int i = 0; i < 31; i++) StrAccNeutral.Add(wxString::Format(wxT("%i"), i));
+	for(int i = 0; i < 3; i++) m_AccNeutralChoice[i] = new wxChoice(m_PageReal, ID_NEUTRAL_CHOICE, wxDefaultPosition, wxDefaultSize, StrAccNeutral);
+	m_AccNeutralChoice[0]->SetSelection(g_Config.iAccNeutralX);
+	m_AccNeutralChoice[1]->SetSelection(g_Config.iAccNeutralY);
+	m_AccNeutralChoice[2]->SetSelection(g_Config.iAccNeutralZ);
+
+	wxBoxSizer * sbRealWiimoteNeutralChoices = new wxBoxSizer(wxHORIZONTAL);
+	sbRealWiimoteNeutralChoices->Add(m_AccNeutralChoice[0], 0, wxEXPAND | (wxALL), 0);
+	sbRealWiimoteNeutralChoices->Add(m_AccNeutralChoice[1], 0, wxEXPAND | (wxLEFT), 2);
+	sbRealWiimoteNeutralChoices->Add(m_AccNeutralChoice[2], 0, wxEXPAND | (wxLEFT), 2);
+
+	sbRealNeutral->Add(m_TextAccNeutralTarget, 0, wxEXPAND | (wxALL), 5);
+	sbRealNeutral->Add(m_TextAccNeutralCurrent, 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
+	sbRealNeutral->Add(sbRealWiimoteNeutralChoices, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxUP), 5);
+
+	m_TextAccNeutralTarget->SetToolTip(wxT(
+		"To produce compatible accelerometer recordings that can be shared with other users without problems"
+		" you have to adjust the Current value to the Target value before you make a recording."
+		));
+		*/
+	// -----------------------
+
 
 	// ==================================================
 	// Wiimote Status
@@ -532,6 +595,7 @@ void ConfigDialog::CreateGUIControls()
 	wxBoxSizer * sRealBasicStatus = new wxBoxSizer(wxHORIZONTAL);
 	sRealBasicStatus->Add(sbRealBasic, 0, wxEXPAND | (wxLEFT), 0);
 	sRealBasicStatus->Add(sbRealStatus, 0, wxEXPAND | (wxLEFT), 5);
+	sRealBasicStatus->Add(sbRealNeutral, 0, wxEXPAND | (wxLEFT), 5);
 
 	wxBoxSizer * sRealMain = new wxBoxSizer(wxVERTICAL);
 	sRealMain->Add(sRealBasicStatus, 0, wxEXPAND | (wxALL), 5);
@@ -853,6 +917,14 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_UPDATE_REAL:
 		g_Config.bUpdateRealWiimote = m_UpdateMeters->IsChecked();
 		break;
+	case ID_NEUTRAL_CHOICE:
+		g_Config.iAccNeutralX = m_AccNeutralChoice[0]->GetSelection();
+		g_Config.iAccNeutralY = m_AccNeutralChoice[1]->GetSelection();
+		g_Config.iAccNeutralZ = m_AccNeutralChoice[2]->GetSelection();
+		//g_Config.iAccNunNeutralX = m_AccNunNeutralChoice[0]->GetSelection();
+		//g_Config.iAccNunNeutralY = m_AccNunNeutralChoice[1]->GetSelection();
+		//g_Config.iAccNunNeutralZ = m_AccNunNeutralChoice[2]->GetSelection();
+		break;		
 
 	case IDC_RECORD + 1:
 	case IDC_RECORD + 2:

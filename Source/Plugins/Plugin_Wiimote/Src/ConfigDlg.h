@@ -53,7 +53,7 @@ class ConfigDialog : public wxDialog
 
 		// Wiimote status
 		wxGauge *m_GaugeBattery, *m_GaugeRoll[2], *m_GaugeGForce[3], *m_GaugeAccel[3];
-		wxStaticText * m_TextIR;
+		wxStaticText *m_TextIR, *m_TextAccNeutralCurrent;
 		bool m_bWaitForRecording, m_bRecording, m_bAllowA;
 		int m_iRecordTo;
 		void RecordMovement(wxCommandEvent& event);
@@ -79,6 +79,7 @@ class ConfigDialog : public wxDialog
 		wxCheckBox *m_NunchuckConnected, *m_ClassicControllerConnected;
 
 		wxCheckBox *m_ConnectRealWiimote, *m_UseRealWiimote, *m_UpdateMeters; // Real Wiimote settings
+		wxChoice *m_AccNeutralChoice[3], *m_AccNunNeutralChoice[3];
 
 		//static const int RECORDING_ROWS = 15;
 		wxButton * m_RecordButton[RECORDING_ROWS + 1];
@@ -117,7 +118,7 @@ class ConfigDialog : public wxDialog
 			ID_NUNCHUCKCONNECTED, ID_CLASSICCONTROLLERCONNECTED,
 
 			// Real
-			ID_CONNECT_REAL, ID_USE_REAL, ID_UPDATE_REAL, IDT_STATUS,
+			ID_CONNECT_REAL, ID_USE_REAL, ID_UPDATE_REAL, IDT_STATUS, ID_NEUTRAL_CHOICE,
 			IDB_RECORD = 2000,
 			IDC_RECORD = 3000,
 			IDT_RECORD_TEXT, IDT_RECORD_GAMETEXT, IDT_RECORD_IRBYTESTEXT, IDT_RECORD_SPEED, IDT_RECORD_PLAYSPEED

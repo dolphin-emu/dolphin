@@ -37,6 +37,8 @@ struct Config
 
 	// Real Wiimote
 	bool bConnectRealWiimote, bUseRealWiimote, bUpdateRealWiimote;
+	int iAccNeutralX, iAccNeutralY, iAccNeutralZ;
+	int iAccNunNeutralX, iAccNunNeutralY, iAccNunNeutralZ;
 };
 
 extern Config g_Config;

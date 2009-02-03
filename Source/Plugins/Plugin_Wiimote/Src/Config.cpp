@@ -43,6 +43,12 @@ void Config::Load()
 	iniFile.Get("Real", "Connect", &bConnectRealWiimote, true);
 	iniFile.Get("Real", "Use", &bUseRealWiimote, true);
 	iniFile.Get("Real", "UpdateStatus", &bUpdateRealWiimote, true);
+	iniFile.Get("Real", "AccNeutralX", &iAccNeutralX, 0);
+	iniFile.Get("Real", "AccNeutralY", &iAccNeutralY, 0);
+	iniFile.Get("Real", "AccNeutralZ", &iAccNeutralZ, 0);
+	iniFile.Get("Real", "AccNunNeutralX", &iAccNunNeutralX, 0);
+	iniFile.Get("Real", "AccNunNeutralY", &iAccNunNeutralY, 0);
+	iniFile.Get("Real", "AccNunNeutralZ", &iAccNunNeutralZ, 0);
 }
 
 void Config::Save()
@@ -57,6 +63,12 @@ void Config::Save()
 	iniFile.Set("Real", "Connect", bConnectRealWiimote);	
 	iniFile.Set("Real", "Use", bUseRealWiimote);
 	iniFile.Set("Real", "UpdateStatus", bUpdateRealWiimote);
+	iniFile.Set("Real", "AccNeutralX", iAccNeutralX);
+	iniFile.Set("Real", "AccNeutralY", iAccNeutralY);
+	iniFile.Set("Real", "AccNeutralZ", iAccNeutralZ);
+	iniFile.Set("Real", "AccNunNeutralX", iAccNunNeutralX);
+	iniFile.Set("Real", "AccNunNeutralY", iAccNunNeutralY);
+	iniFile.Set("Real", "AccNunNeutralZ", iAccNunNeutralZ);
 
     iniFile.Save(FULL_CONFIG_DIR "Wiimote.ini");
 }
