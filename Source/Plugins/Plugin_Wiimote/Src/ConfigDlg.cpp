@@ -192,6 +192,10 @@ void ConfigDialog::LoadFile()
 		std::string TmpGameName; file.Get(SaveName.c_str(), "GameName", &TmpGameName, "");
 		m_RecordGameText[i]->SetValue(wxString::FromAscii(TmpGameName.c_str()));
 
+		// IR Bytes
+		std::string TmpIRBytes; file.Get(SaveName.c_str(), "IRBytes", &TmpIRBytes, "");
+		m_RecordIRBytesText[i]->SetValue(wxString::FromAscii(TmpIRBytes.c_str()));
+
 		// Recording speed
 		int TmpRecordSpeed; file.Get(SaveName.c_str(), "RecordingSpeed", &TmpRecordSpeed, -1);
 		if(TmpRecordSpeed != -1)
@@ -343,6 +347,7 @@ void ConfigDialog::CreateGUIControls()
 	wxStaticBoxSizer * sbRealRoll = new wxStaticBoxSizer(wxHORIZONTAL, m_PageReal, wxT("Roll and Pitch"));
 	wxStaticBoxSizer * sbRealGForce = new wxStaticBoxSizer(wxHORIZONTAL, m_PageReal, wxT("G-Force"));
 	wxStaticBoxSizer * sbRealAccel = new wxStaticBoxSizer(wxHORIZONTAL, m_PageReal, wxT("Accelerometer"));
+	wxStaticBoxSizer * sbRealIR = new wxStaticBoxSizer(wxHORIZONTAL, m_PageReal, wxT("IR"));
 
 	// Width and height of the gauges
 	static const int Gw = 35, Gh = 130;
@@ -357,6 +362,12 @@ void ConfigDialog::CreateGUIControls()
 	m_GaugeAccel[1] = new wxGauge( m_PageReal, wxID_ANY, 255, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
 	m_GaugeAccel[2] = new wxGauge( m_PageReal, wxID_ANY, 255, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
 
+	// The text controls
+	m_TextIR = new wxStaticText(m_PageReal, wxID_ANY, wxT("Cursor: 000 000\nDistance: 0000"));
+
+	// -----------------------------
+	// The sizers for all gauges together with their label
+	// -----------
 	wxBoxSizer * sBoxBattery = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer * sBoxRoll[2];
 	sBoxRoll[0] = new wxBoxSizer(wxVERTICAL);
@@ -377,7 +388,11 @@ void ConfigDialog::CreateGUIControls()
 	m_TextX[0] = new wxStaticText(m_PageReal, wxID_ANY, wxT("X"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextX[1] = new wxStaticText(m_PageReal, wxID_ANY, wxT("X"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
 	m_TextY[0] = new wxStaticText(m_PageReal, wxID_ANY, wxT("Y"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextY[1] = new wxStaticText(m_PageReal, wxID_ANY, wxT("Y"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
 	m_TextZ[0] = new wxStaticText(m_PageReal, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextZ[1] = new wxStaticText(m_PageReal, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
+	// ----------------
 
+	// -----------------------------
+	// Set up sizers
+	// -----------
 	sBoxBattery->Add(m_GaugeBattery, 0, wxEXPAND | (wxALL), 5); sBoxBattery->Add(m_TextBattery, 0, wxEXPAND | (wxALL), 0);
 
 	sBoxRoll[0]->Add(m_GaugeRoll[0], 0, wxEXPAND | (wxALL), 5); sBoxRoll[0]->Add(m_TextRoll, 0, wxEXPAND | (wxALL), 0);
@@ -395,12 +410,16 @@ void ConfigDialog::CreateGUIControls()
 	sbRealRoll->Add(sBoxRoll[0], 0, wxEXPAND | (wxALL), 5); sbRealRoll->Add(sBoxRoll[1], 0, wxEXPAND | (wxALL), 5);
 	sbRealGForce->Add(sBoxGForce[0], 0, wxEXPAND | (wxALL), 5); sbRealGForce->Add(sBoxGForce[1], 0, wxEXPAND | (wxALL), 5); sbRealGForce->Add(sBoxGForce[2], 0, wxEXPAND | (wxALL), 5);
 	sbRealAccel->Add(sBoxAccel[0], 0, wxEXPAND | (wxALL), 5); sbRealAccel->Add(sBoxAccel[1], 0, wxEXPAND | (wxALL), 5); sbRealAccel->Add(sBoxAccel[2], 0, wxEXPAND | (wxALL), 5);
-	
+	sbRealIR->Add(m_TextIR, 0, wxEXPAND | (wxALL), 5);
+
 	sbRealWiimoteStatus->Add(sbRealBattery, 0, wxEXPAND | (wxLEFT), 0);
 	sbRealWiimoteStatus->Add(sbRealRoll, 0, wxEXPAND | (wxLEFT), 5);
 	sbRealWiimoteStatus->Add(sbRealGForce, 0, wxEXPAND | (wxLEFT), 5);
 	sbRealWiimoteStatus->Add(sbRealAccel, 0, wxEXPAND | (wxLEFT), 5);
+	sbRealWiimoteStatus->Add(sbRealIR, 0, wxEXPAND | (wxLEFT), 5);
+	// ----------------
 
+	// Tool tips
 	m_GaugeBattery->SetToolTip(wxT("Press '+' to show the current status. Press '-' to stop recording the status."));
 	// ==========================================
 
@@ -423,7 +442,8 @@ void ConfigDialog::CreateGUIControls()
 	wxStaticText * m_TextHotKey = new wxStaticText(m_PageReal, wxID_ANY, wxT("HotKey"), wxDefaultPosition, wxSize(40, 15), wxALIGN_CENTRE);
 	wxStaticText * m_TextMovement = new wxStaticText(m_PageReal, wxID_ANY, wxT("Movement name"), wxDefaultPosition, wxSize(200, 15), wxALIGN_CENTRE);
 	wxStaticText * m_TextGame = new wxStaticText(m_PageReal, wxID_ANY, wxT("Game name"), wxDefaultPosition, wxSize(200, 15), wxALIGN_CENTRE);
-	wxStaticText * m_TextRecSped = new wxStaticText(m_PageReal, wxID_ANY, wxT("R. s."), wxDefaultPosition, wxSize(30, 15), wxALIGN_CENTRE);
+	wxStaticText * m_TextIRBytes = new wxStaticText(m_PageReal, wxID_ANY, wxT("IR"), wxDefaultPosition, wxSize(20, 15), wxALIGN_CENTRE);
+	wxStaticText * m_TextRecSped = new wxStaticText(m_PageReal, wxID_ANY, wxT("R. s."), wxDefaultPosition, wxSize(33, 15), wxALIGN_CENTRE);
 	wxStaticText * m_TextPlaySpeed = new wxStaticText(m_PageReal, wxID_ANY, wxT("Pl. s."), wxDefaultPosition, wxSize(40, 15), wxALIGN_CENTRE);
 	m_TextRec->SetToolTip(wxT(
 		"To record a movement first press this button, then start the recording by pressing 'A' on the Wiimote and stop the recording\n"
@@ -444,6 +464,7 @@ void ConfigDialog::CreateGUIControls()
 	sRealRecord[0]->Add(m_TextHotKey, 0, wxEXPAND | (wxLEFT), 5);
 	sRealRecord[0]->Add(m_TextMovement, 0, wxEXPAND | (wxLEFT), 5);
 	sRealRecord[0]->Add(m_TextGame, 0, wxEXPAND | (wxLEFT), 5);
+	sRealRecord[0]->Add(m_TextIRBytes, 0, wxEXPAND | (wxLEFT), 5);
 	sRealRecord[0]->Add(m_TextRecSped, 0, wxEXPAND | (wxLEFT), 5);
 	sRealRecord[0]->Add(m_TextPlaySpeed, 0, wxEXPAND | (wxLEFT), 5);
 	sbRealRecord->Add(sRealRecord[0], 0, wxEXPAND | (wxALL), 0);
@@ -455,17 +476,20 @@ void ConfigDialog::CreateGUIControls()
 		m_RecordHotKey[i] = new wxChoice(m_PageReal, IDC_RECORD + i, wxDefaultPosition, wxDefaultSize, StrHotKey);
 		m_RecordText[i] = new wxTextCtrl(m_PageReal, IDT_RECORD_TEXT, wxT(""), wxDefaultPosition, wxSize(200, 19));
 		m_RecordGameText[i] = new wxTextCtrl(m_PageReal, IDT_RECORD_GAMETEXT, wxT(""), wxDefaultPosition, wxSize(200, 19));
+		m_RecordIRBytesText[i] = new wxTextCtrl(m_PageReal, IDT_RECORD_IRBYTESTEXT, wxT(""), wxDefaultPosition, wxSize(25, 19));
 		m_RecordSpeed[i] = new wxTextCtrl(m_PageReal, IDT_RECORD_SPEED, wxT(""), wxDefaultPosition, wxSize(30, 19), wxTE_READONLY | wxTE_CENTRE);
 		m_RecordPlayBackSpeed[i] = new wxChoice(m_PageReal, IDT_RECORD_PLAYSPEED, wxDefaultPosition, wxDefaultSize, StrPlayBackSpeed);
 
 		m_RecordText[i]->SetMaxLength(35);
 		m_RecordGameText[i]->SetMaxLength(35);
+		m_RecordIRBytesText[i]->Enable(false);
 		m_RecordSpeed[i]->Enable(false);
 
 		sRealRecord[i]->Add(m_RecordButton[i], 0, wxEXPAND | (wxLEFT), 5);
 		sRealRecord[i]->Add(m_RecordHotKey[i], 0, wxEXPAND | (wxLEFT), 5);
 		sRealRecord[i]->Add(m_RecordText[i], 0, wxEXPAND | (wxLEFT), 5);
 		sRealRecord[i]->Add(m_RecordGameText[i], 0, wxEXPAND | (wxLEFT), 5);
+		sRealRecord[i]->Add(m_RecordIRBytesText[i], 0, wxEXPAND | (wxLEFT), 5);
 		sRealRecord[i]->Add(m_RecordSpeed[i], 0, wxEXPAND | (wxLEFT), 5);
 		sRealRecord[i]->Add(m_RecordPlayBackSpeed[i], 0, wxEXPAND | (wxLEFT), 5);
 
@@ -519,7 +543,7 @@ void ConfigDialog::ConvertToString()
 	// Load ini file
 	IniFile file;
 	file.Load("WiimoteMovement.ini");
-	std::string TmpStr = "", TmpTime = "";
+	std::string TmpStr = "", TmpIR = "", TmpTime = "";
 
 	for (int i = 0; i < m_vRecording.size(); i++)
 	{
@@ -529,19 +553,23 @@ void ConfigDialog::ConvertToString()
 		TmpStr += StringFromFormat("%02x", m_vRecording.at(i).z);
 		if(i < (m_vRecording.size() - 1)) TmpStr += ",";
 
-		/* Break just short of the IniFile.cpp byte limit so that we don't crash file.Load() the next time.
-		   This limit should never be hit because of the recording limit below. I keep it here just in case. */
-		if(TmpStr.length() > (1024*10 - 10))
-		{
-			break;
-			PanicAlert("Your recording was to long, the entire recording was not saved.");
-		}
+		// Write the IR data
+		TmpIR += ArrayToString(m_vRecording.at(i).IR, IRBytes, 0, 30, false);
+		if(i < (m_vRecording.size() - 1)) TmpIR += ",";
 
 		// Write the timestamps. The upper limit is 99 seconds.
 		int Time = (int)((m_vRecording.at(i).Time - m_vRecording.at(0).Time) * 1000);
 		TmpTime += StringFromFormat("%05i", Time);
 		if(i < (m_vRecording.size() - 1)) TmpTime += ",";
 		//Console::Print("Time: %f %i\n", m_vRecording.at(i).Time, Time);
+
+		/* Break just short of the IniFile.cpp byte limit so that we don't crash file.Load() the next time.
+		   This limit should never be hit because of the recording limit below. I keep it here just in case. */
+		if(TmpStr.length() > (1024*10 - 10) || TmpIR.length() > (1024*10 - 10) || TmpTime.length() > (1024*10 - 10))
+		{
+			break;
+			PanicAlert("Your recording was to long, the entire recording was not saved.");
+		}
 	}
 	
 	// Recordings per second
@@ -553,12 +581,15 @@ void ConfigDialog::ConvertToString()
 	if (Time == 0 || m_vRecording.size() == 0) Rate = 0;
 
 	// Update GUI	
+	m_RecordIRBytesText[m_iRecordTo]->SetValue(wxString::Format(wxT("%i"), IRBytes));
 	m_RecordSpeed[m_iRecordTo]->SetValue(wxString::Format(wxT("%i"), Rate));
 
 	// Save file
 	std::string SaveName = StringFromFormat("Recording%i", m_iRecordTo);
 	file.Set(SaveName.c_str(), "Movement", TmpStr.c_str());
+	file.Set(SaveName.c_str(), "IR", TmpIR.c_str());
 	file.Set(SaveName.c_str(), "Time", TmpTime.c_str());
+	file.Set(SaveName.c_str(), "IRBytes", IRBytes);
 	file.Set(SaveName.c_str(), "RecordingSpeed", Rate);
 
 	// Set a default playback speed if none is set already
@@ -651,8 +682,11 @@ void ConfigDialog::DoRecordA(bool Pressed)
 	UpdateGUI();
 }
 
-void ConfigDialog::DoRecordMovement(u8 _x, u8 _y, u8 _z)
+void ConfigDialog::DoRecordMovement(u8 _x, u8 _y, u8 _z, const u8 *_IR, int _IRBytes)
 {
+	//std::string Tmp1 = ArrayToString(_IR, 20, 0, 30);
+	//Console::Print("DoRecordMovement: %s\n", Tmp1.c_str());
+
 	if (!m_bRecording) return;
 
 	//Console::Print("DoRecordMovement\n");
@@ -662,7 +696,11 @@ void ConfigDialog::DoRecordMovement(u8 _x, u8 _y, u8 _z)
 	Tmp.y = _y;
 	Tmp.z = _z;
 	Tmp.Time = GetDoubleTime();
+	memcpy(Tmp.IR, _IR, _IRBytes);
 	m_vRecording.push_back(Tmp);
+
+	// Save the number of IR bytes
+	IRBytes = _IRBytes;
 
 	/* The upper limit of a recording coincides with the IniFile.cpp limit, each list element
 	   is 7 bytes, therefore be divide by 7 */
@@ -834,8 +872,8 @@ void ConfigDialog::UpdateGUI()
 	   unplugged and reinserted extensions. */	
 	m_NunchuckConnected->SetValue(g_Config.bNunchuckConnected);
 	m_ClassicControllerConnected->SetValue(g_Config.bClassicControllerConnected);
-	m_NunchuckConnected->Enable(!(g_RealWiiMotePresent && g_Config.bConnectRealWiimote));
-	m_ClassicControllerConnected->Enable(!(g_RealWiiMotePresent && g_Config.bConnectRealWiimote));
+	m_NunchuckConnected->Enable(!(g_RealWiiMotePresent && g_Config.bConnectRealWiimote && g_EmulatorRunning));
+	m_ClassicControllerConnected->Enable(!(g_RealWiiMotePresent && g_Config.bConnectRealWiimote && g_EmulatorRunning));
 
 	/* I have disabled this option during a running game because it's enough to be able to switch
 	   between using and not using then. To also use the connect option during a running game would
@@ -844,9 +882,6 @@ void ConfigDialog::UpdateGUI()
 	   could possibly be simplified to one option. */
 	m_ConnectRealWiimote->Enable(!g_EmulatorRunning);
 	m_UseRealWiimote->Enable(g_RealWiiMotePresent && g_Config.bConnectRealWiimote);
-
-	
-	
 
 // Linux has no FindItem()
 #ifdef _WIN32

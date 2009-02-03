@@ -185,8 +185,10 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 	FillReportInfo(pReport->c);
 	FillReportAcc(pReport->a);
 
-	// We settle with emulating two objects, not all four. We leave object 2 and 3 with zero.
+	// We settle with emulating two objects, not all four. We leave object 2 and 3 with 0xff.
 	FillReportIR(pReport->ir[0], pReport->ir[1]);
+	memset(&pReport->ir[2], 0xff, sizeof(wm_ir_extended));
+	memset(&pReport->ir[3], 0xff, sizeof(wm_ir_extended));
 
 	LOGV(WII_IPC_WIIMOTE, 2, "  SendReportCoreAccelIr12()");
 	LOGV(WII_IPC_WIIMOTE, 2, "    Offset: %08x", Offset);

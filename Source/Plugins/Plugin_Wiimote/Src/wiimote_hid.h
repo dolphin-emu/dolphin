@@ -154,7 +154,7 @@ struct wm_accel {
 	u8 x, y, z;
 };
 
-//filled with 0xFF if empty
+// Filled with 0xFF if empty
 struct wm_ir_basic
 {
 	u8 x1;

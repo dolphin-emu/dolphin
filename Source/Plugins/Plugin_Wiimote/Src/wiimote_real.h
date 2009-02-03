@@ -48,9 +48,11 @@ void ReadWiimote();
 	extern wiimote_t**		g_WiiMotesFromWiiUse;
 	extern int				g_NumberOfWiiMotes;
 	extern bool				g_MotionSensing;
+	extern bool				g_IRSensing;
 	extern u64				g_UpdateTime;
 	extern int				g_UpdateCounter;
 	extern bool				g_RunTemporary;
+	extern u8				g_EventBuffer[32];
 #endif
 
 }; // WiiMoteReal

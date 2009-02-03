@@ -43,28 +43,29 @@ namespace WiiMoteEmu
 {
 
 
-//******************************************************************************
+//**************************************************************************************
 // Recorded movements
-//******************************************************************************
+//**************************************************************************************
 
 // ------------------------------------------
 // Variables: 0 = Wiimote, 1 = Nunchuck
 // ----------------
-int g_RecordingPlaying[2]; //g_RecordingPlaying[0] = -1; g_RecordingPlaying[1] = -1;
-int g_RecordingCounter[2]; //g_RecordingCounter[0] = 0; g_RecordingCounter[1] = 0;
-int g_RecordingPoint[2]; //g_RecordingPoint[0] = 0; g_RecordingPoint[1] = 0;
-double g_RecordingStart[2]; //g_RecordingStart[0] = 0; g_RecordingStart[1] = 0;
-double g_RecordingCurrentTime[2]; //g_RecordingCurrentTime[0] = 0; g_RecordingCurrentTime[1] = 0;
+int g_RecordingPlaying[3]; //g_RecordingPlaying[0] = -1; g_RecordingPlaying[1] = -1;
+int g_RecordingCounter[3]; //g_RecordingCounter[0] = 0; g_RecordingCounter[1] = 0;
+int g_RecordingPoint[3]; //g_RecordingPoint[0] = 0; g_RecordingPoint[1] = 0;
+double g_RecordingStart[3]; //g_RecordingStart[0] = 0; g_RecordingStart[1] = 0;
+double g_RecordingCurrentTime[3]; //g_RecordingCurrentTime[0] = 0; g_RecordingCurrentTime[1] = 0;
 // --------------------------
 
-void RecordingPlay(u8 &_x, u8 &_y, u8 &_z, int Wm)
+template<class IRReportType>
+bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 {
 	// Return if the list is empty
 	if(VRecording.at(g_RecordingPlaying[Wm]).Recording.size() == 0)
 	{
 		g_RecordingPlaying[Wm] = -1;
 		Console::Print("Empty\n\n");
-		return;
+		return false;
 	}
 
 	// Return if the playback speed is unset
@@ -72,7 +73,22 @@ void RecordingPlay(u8 &_x, u8 &_y, u8 &_z, int Wm)
 	{
 		Console::Print("PlaybackSpeed empty: %i\n\n", g_RecordingPlaying[Wm]);
 		g_RecordingPlaying[Wm] = -1;
-		return;
+		return false;
+	}
+
+	// Get IR bytes
+	int IRBytes = VRecording.at(g_RecordingPlaying[Wm]).IRBytes;
+
+	// Return if the IR mode is wrong
+	if (Wm == WM_RECORDING_IR
+		&& (   (IRBytes == 12 && !(g_ReportingMode == 0x33))
+			|| (IRBytes == 10 && !(g_ReportingMode == 0x36 || g_ReportingMode == 0x37))
+			)
+		)
+	{
+		Console::Print("Wrong IR mode: %i\n\n", g_RecordingPlaying[Wm]);
+		g_RecordingPlaying[Wm] = -1;
+		return false;
 	}
 
 	// Get starting time
@@ -106,13 +122,14 @@ void RecordingPlay(u8 &_x, u8 &_y, u8 &_z, int Wm)
 		g_RecordingStart[Wm] = 0;
 		g_RecordingCurrentTime[Wm] = 0;
 		Console::Print("End\n\n");
-		return;
+		return false;
 	}
 
 	// Update values
 	_x = VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).x;
 	_y = VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).y;
 	_z = VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).z;
+	if(Wm == WM_RECORDING_IR) memcpy(&_IR, VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).IR, IRBytes);
 
 	/**/
 	if (g_DebugAccelerometer)
@@ -124,25 +141,53 @@ void RecordingPlay(u8 &_x, u8 &_y, u8 &_z, int Wm)
 			);
 		Console::Print("Accel x, y, z: %03u %03u %03u\n\n", _x, _y, _z);
 	}
-	
 
 	g_RecordingCounter[Wm]++;
+
+	return true;
+}
+/* Because the playback is neatly controlled by RecordingPlayAccIR() we use these functions to be able to
+   use RecordingPlayAccIR() for both accelerometer and IR recordings */
+bool RecordingPlay(u8 &_x, u8 &_y, u8 &_z, int Wm)
+{
+	wm_ir_basic IR;
+	return RecordingPlayAccIR(_x, _y, _z, IR, Wm);
+}
+template<class IRReportType>
+bool RecordingPlayIR(IRReportType &_IR)
+{
+	u8 x, y, z;
+	return RecordingPlayAccIR(x, y, z, _IR, 2);
 }
 
-// Check if we should play a recording
-int RecordingCheckKeys(bool Wiimote)
+// Check if we should start the playback of a recording. Once it has been started it can not currently
+// be stopped, it will always run to the end of the recording.
+int RecordingCheckKeys(int Wiimote)
 {
 #ifdef _WIN32
-	//Console::Print("RecordingCheckKeys\n");
+	//Console::Print("RecordingCheckKeys: %i\n", Wiimote);
 
-	// Return if we don't have both a Shift and Ctrl
+	// ------------------------------------
+	// Don't allow multiple action keys
+	// --------------
+	// Return if we have both a Shift, Ctrl, and Alt
+	if ( GetAsyncKeyState(VK_SHIFT) && GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_MENU) ) return -1;
+	// Return if we have both a Shift and Ctrl
 	if ( (GetAsyncKeyState(VK_SHIFT) && GetAsyncKeyState(VK_CONTROL)) ) return -1;
+	// Return if we have both a Ctrl and Alt
+	if ( (GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_MENU)) ) return -1;
+	// Return if we have both a Shift and Alt
+	if ( (GetAsyncKeyState(VK_SHIFT) && GetAsyncKeyState(VK_MENU)) ) return -1;
+	// ---------------------
 
 	// Return if we don't have both a Wiimote and Shift
-	if ( Wiimote && !GetAsyncKeyState(VK_SHIFT) ) return -1;
+	if ( Wiimote == 0 && !GetAsyncKeyState(VK_SHIFT) ) return -1;
 	
 	// Return if we don't have both a Nunchuck and Ctrl
-	if ( !Wiimote && !GetAsyncKeyState(VK_CONTROL) ) return -1;
+	if ( Wiimote == 1  && !GetAsyncKeyState(VK_CONTROL) ) return -1;
+
+	// Return if we don't have both a IR call and Alt
+	if ( Wiimote == 2  && !GetAsyncKeyState(VK_MENU) ) return -1;
 
 	// Check if we have exactly one numerical key
 	int Keys = 0;
@@ -279,13 +324,13 @@ void FillReportAcc(wm_accel& _acc)
 	// Check for a playback command
 	if(g_RecordingPlaying[0] < 0)
 	{
-		g_RecordingPlaying[0] = RecordingCheckKeys(true);
+		g_RecordingPlaying[0] = RecordingCheckKeys(0);
 	}
 	else
 	{
-		RecordingPlay(_acc.x, _acc.y, _acc.z, 0);
+		// If the recording reached the end or failed somehow we will not return
+		if (RecordingPlay(_acc.x, _acc.y, _acc.z, 0)) return;
 		//Console::Print("X, Y, Z: %u %u %u\n", _acc.x, _acc.y, _acc.z);
-		if (_acc.x != 0 && _acc.y != 0 && _acc.z != 0) return;
 	}
 	// ---------------------
 
@@ -481,10 +526,27 @@ void FillReportAcc(wm_accel& _acc)
 // ---------------
 void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 {
+	// ------------------------------------
+	// Recorded movements
+	// --------------
+	// Check for a playback command
+	if(g_RecordingPlaying[2] < 0)
+	{
+		g_RecordingPlaying[2] = RecordingCheckKeys(2);
+	}
+	else
+	{
+		//Console::Print("X, Y, Z: %u %u %u\n", _acc.x, _acc.y, _acc.z);
+		if (RecordingPlayIR(_ir0)) return;		
+	}
+	// ---------------------
 
-/* DESCRIPTION: The calibration is controlled by these values, their absolute value and
-   the relative distance between between them control the calibration. WideScreen mode
-   has its own settings. */
+
+	// --------------------------------------
+	/* The calibration is controlled by these values, their absolute value and
+	   the relative distance between between them control the calibration. WideScreen mode
+	   has its own settings. */
+	// ----------
 	int Top, Left, Right, Bottom, SensorBarRadius;
 	if(g_Config.bWideScreen)
 	{		
@@ -496,9 +558,10 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 		Top = TOP; Left = LEFT; Right = RIGHT;
 		Bottom = BOTTOM; SensorBarRadius = SENSOR_BAR_RADIUS;		
 	}
+	// ------------------
 
-	/* Fill with 0xff if empty. The real Wiimote seems to use 0xff when it sees to ojbects, at least from
-	   how WiiMoteReal::SendEvent() works. */
+	/* Fill with 0xff if empty. The real Wiimote seems to use 0xff when it doesn't see a certain point,
+	   at least from how WiiMoteReal::SendEvent() works. */
 	memset(&_ir0, 0xff, sizeof(wm_ir_extended));
 	memset(&_ir1, 0xff, sizeof(wm_ir_extended));
 
@@ -508,6 +571,9 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	// If we are outside the screen leave the values at 0xff
 	if(MouseX > 1 || MouseX < 0 || MouseY > 1 || MouseY < 0) return;
 
+	// --------------------------------------
+	// Actual position calculation
+	// ----------
 	int y0 = Top + (MouseY * (Bottom - Top));
 	int y1 = Top + (MouseY * (Bottom - Top));
 
@@ -527,7 +593,7 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	_ir1.size = 10;
 	_ir1.xHi = x1 >> 8;
 	_ir1.yHi = y1 >> 8;
-
+	// ------------------
 
 	// ----------------------------
 	// Debugging for calibration
@@ -565,14 +631,33 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 		_ir0.y, _ir0.yHi, _ir1.y, _ir1.yHi,
 		_ir0.size, _ir1.size
 		);*/
+	// ------------------
 }
 
 ///////////////////////////////////////////////////////////////////
-// The extended 10 byte reporting
+// The 10 byte reporting used when an extension is connected
 // ---------------
 void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 {
-	/* See description above */
+	// ------------------------------------
+	// Recorded movements
+	// --------------
+	// Check for a playback command
+	if(g_RecordingPlaying[2] < 0)
+	{
+		g_RecordingPlaying[2] = RecordingCheckKeys(2);
+	}
+	// We are playing back a recording, we don't accept any manual input this time
+	else
+	{
+		//Console::Print("X, Y, Z: %u %u %u\n", _acc.x, _acc.y, _acc.z);
+		if (RecordingPlayIR(_ir0)) return;		
+	}
+	// ---------------------
+
+	// --------------------------------------
+	/* See calibration description above */
+	// ----------
 	int Top, Left, Right, Bottom, SensorBarRadius;
 
 	if(g_Config.bWideScreen)
@@ -585,6 +670,7 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 		Top = TOP; Left = LEFT; Right = RIGHT;
 		Bottom = BOTTOM; SensorBarRadius = SENSOR_BAR_RADIUS;		
 	}
+	// ------------------
 
 	// Fill with 0xff if empty
 	memset(&_ir0, 0xff, sizeof(wm_ir_basic));
@@ -602,8 +688,7 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	int x1 = Left + (MouseX * (Right - Left)) - SensorBarRadius;
 	int x2 = Left + (MouseX * (Right - Left)) + SensorBarRadius;
 
-	/* As with the extented report we settle with emulating two out of four
-	   possible objects */
+	/* As with the extented report we settle with emulating two out of four possible objects */
 	x1 = 1023 - x1;
 	_ir0.x1 = x1 & 0xff;
 	_ir0.y1 = y1 & 0xff;
@@ -620,10 +705,10 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	//_ir1.x1Hi = (x1 >> 8) & 0x3;
 	//_ir1.y1Hi = (y1 >> 8) & 0x3;
 
-	// ----------------------------
+	// ------------------------------------
 	// Debugging for calibration
-	// ----------
-	
+	// ----------	
+	/*
 	if(GetAsyncKeyState(VK_NUMPAD1))
 		Right +=1;
 	else if(GetAsyncKeyState(VK_NUMPAD2))
@@ -644,7 +729,7 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 		SensorBarRadius += 1;
 	else if(GetAsyncKeyState(VK_DELETE))
 		SensorBarRadius -= 1;
-/*
+
 	//ClearScreen();
 	//if(consoleDisplay == 1)
 		
@@ -658,53 +743,56 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 		_ir1.x1, _ir1.x1Hi, _ir1.x2, _ir1.x2Hi,
 		_ir1.y1, _ir1.y1Hi, _ir1.y2, _ir1.y2Hi
 		);*/
+	// ------------------
 }
 
-int abc = 0;
+
+//**************************************************************************************
+// Extensions
+//**************************************************************************************
+
+
 // ===================================================
 /* Generate the 6 byte extension report for the Nunchuck, encrypted. The bytes are JX JY AX AY AZ BT. */
 // ----------------
 void FillReportExtension(wm_extension& _ext)
 {
-#ifdef _WIN32
 	// ------------------------------------
 	// Recorded movements
 	// --------------
 	// Check for a playback command
 	if(g_RecordingPlaying[1] < 0)
 	{
-		g_RecordingPlaying[1] = RecordingCheckKeys(false);
+		g_RecordingPlaying[1] = RecordingCheckKeys(1);
+
 	}
+	// We should play back the accelerometer values
 	else
 	{
-		RecordingPlay(_ext.ax, _ext.ay, _ext.az, 1);
 		//Console::Print("X: %u\n", _acc.x);
-		return;
+		//
+		if (!RecordingPlay(_ext.ax, _ext.ay, _ext.az, 1))
+		{
+			/* These are the default neutral values for the nunchuck accelerometer according to the calibration
+			   data we have in nunchuck_calibration[] */
+			_ext.ax = 0x80;
+			_ext.ay = 0x80;
+			_ext.az = 0xb3;
+		}
 	}
 	// ---------------------
-#endif
 
-	/* These are the default neutral values for the nunchuck accelerometer according
-	   to a source. */
-	_ext.ax = 0x80;
-	_ext.ay = 0x80;
-	_ext.az = 0xb3;
-
-
-	_ext.ax += abc;
-
-	abc ++;
-	if (abc > 50) abc = 0;
-
-
-	_ext.jx = 0x80; // these are the default values unless we use them
+	// ------------------------------------
+	// The default joystick and button values unless we use them
+	// --------------
+	_ext.jx = 0x80;
 	_ext.jy = 0x80;
 	_ext.bt = 0x03; // 0x03 means no button pressed, the button is zero active
-	
+	// ---------------------
+
 
 #ifdef _WIN32
-	/* We use a 192 range (32 to 224) that match our calibration values in
-	   nunchuck_calibration */
+	/* We use a 192 range (32 to 224) that match our calibration values in nunchuck_calibration[] */
 	if(GetAsyncKeyState(VK_NUMPAD4)) // left
 		_ext.jx = 0x20;
 

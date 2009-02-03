@@ -34,7 +34,7 @@ void StringFromFormatV(std::string* out, const char* format, va_list args);
 bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list args);
 
 // Good
-std::string ArrayToString(const u8 *data, u32 size, u32 offset = 0, int line_len = 20);
+std::string ArrayToString(const u8 *data, u32 size, u32 offset = 0, int line_len = 20, bool Spaces = true);
 
 
 template<size_t Count>

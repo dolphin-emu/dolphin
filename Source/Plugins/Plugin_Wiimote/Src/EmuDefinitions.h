@@ -56,11 +56,11 @@ namespace WiiMoteEmu
 #define wSENSOR_BAR_RADIUS 200
 
 // Movement recording
-extern int g_RecordingPlaying[2]; 
-extern int g_RecordingCounter[2];
-extern int g_RecordingPoint[2];
-extern double g_RecordingStart[2];
-extern double g_RecordingCurrentTime[2];
+extern int g_RecordingPlaying[3]; 
+extern int g_RecordingCounter[3];
+extern int g_RecordingPoint[3];
+extern double g_RecordingStart[3];
+extern double g_RecordingCurrentTime[3];
 
 // Registry sizes 
 #define WIIMOTE_EEPROM_SIZE (16*1024)

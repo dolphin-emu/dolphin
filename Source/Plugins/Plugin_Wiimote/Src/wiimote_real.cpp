@@ -70,10 +70,12 @@ int					g_NumberOfWiiMotes;
 CWiiMote*			g_WiiMotes[MAX_WIIMOTES];	
 bool				g_Shutdown = false;
 bool				g_LocalThread = true;
+bool				g_IRSensing = false;
 bool				g_MotionSensing = false;
 u64					g_UpdateTime = 0;
 int					g_UpdateCounter = 0;
 bool				g_RunTemporary = false;
+u8					g_EventBuffer[32];
 
 //******************************************************************************
 // Probably this class should be in its own file

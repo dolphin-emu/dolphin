@@ -48,15 +48,16 @@ class ConfigDialog : public wxDialog
 		void OnKeyDown(wxKeyEvent& event);
 		void LoadFile(); void SaveFile();
 		
-		// Status
+		// General status
 		wxStaticText * m_TextUpdateRate;
 
 		// Wiimote status
 		wxGauge *m_GaugeBattery, *m_GaugeRoll[2], *m_GaugeGForce[3], *m_GaugeAccel[3];
+		wxStaticText * m_TextIR;
 		bool m_bWaitForRecording, m_bRecording, m_bAllowA;
 		int m_iRecordTo;
 		void RecordMovement(wxCommandEvent& event);
-		void DoRecordMovement(u8 _x, u8 _y, u8 _z);
+		void DoRecordMovement(u8 _x, u8 _y, u8 _z, const u8 *_IR, int IRBytes);
 		void DoRecordA(bool Pressed);
 		void ConvertToString();
 		wxTimer *m_TimeoutTimer, *m_TimeoutATimer;
@@ -83,6 +84,7 @@ class ConfigDialog : public wxDialog
 		wxChoice * m_RecordHotKey[RECORDING_ROWS + 1];
 		wxTextCtrl * m_RecordText[RECORDING_ROWS + 1];
 		wxTextCtrl * m_RecordGameText[RECORDING_ROWS + 1];
+		wxTextCtrl * m_RecordIRBytesText[RECORDING_ROWS + 1];
 		wxTextCtrl * m_RecordSpeed[RECORDING_ROWS + 1];
 		wxChoice * m_RecordPlayBackSpeed[RECORDING_ROWS + 1];
 
@@ -96,6 +98,7 @@ class ConfigDialog : public wxDialog
 		};
 		*/
 		std::vector<SRecording> m_vRecording;
+		int IRBytes;
 
 		enum
 		{
@@ -116,7 +119,7 @@ class ConfigDialog : public wxDialog
 			ID_CONNECT_REAL, ID_USE_REAL, ID_UPDATE_REAL, IDT_STATUS,
 			IDB_RECORD = 2000,
 			IDC_RECORD = 3000,
-			IDT_RECORD_TEXT, IDT_RECORD_GAMETEXT, IDT_RECORD_SPEED, IDT_RECORD_PLAYSPEED
+			IDT_RECORD_TEXT, IDT_RECORD_GAMETEXT, IDT_RECORD_IRBYTESTEXT, IDT_RECORD_SPEED, IDT_RECORD_PLAYSPEED
 		};
 
 		void OnClose(wxCloseEvent& event);

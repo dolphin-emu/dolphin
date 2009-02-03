@@ -46,18 +46,23 @@ bool IsFocus();
 
 // Movement recording
 #define RECORDING_ROWS 15
+#define WM_RECORDING_WIIMOTE 0
+#define WM_RECORDING_NUNCHUCK 1
+#define WM_RECORDING_IR 2
 struct SRecording
 {
 	u8 x;
 	u8 y;
 	u8 z;
 	double Time;
+	u8 IR[12];
 };
 struct SRecordingAll
 {
 	std::vector<SRecording> Recording;
 	int HotKey;
 	int PlaybackSpeed;
+	int IRBytes;
 };
 
 #ifndef EXCLUDEMAIN_H

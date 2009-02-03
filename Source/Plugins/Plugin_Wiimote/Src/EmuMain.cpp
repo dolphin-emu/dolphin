@@ -126,17 +126,27 @@ void LoadRecordedMovements()
 
 	for(int i = 0; i < RECORDING_ROWS; i++)
 	{
+		// Logging
+		Console::Print("Recording%i ", i + 1);
+
 		// Get row name
 		std::string SaveName = StringFromFormat("Recording%i", i + 1);
 
 		// Get movement
 		std::string TmpMovement; file.Get(SaveName.c_str(), "Movement", &TmpMovement, "");
 
+		// Get IR
+		std::string TmpIR; file.Get(SaveName.c_str(), "IR", &TmpIR, "");
+
 		// Get time
 		std::string TmpTime; file.Get(SaveName.c_str(), "Time", &TmpTime, "");
 
+		// Get IR bytes
+		int TmpIRBytes; file.Get(SaveName.c_str(), "IRBytes", &TmpIRBytes, 0);
+		VRecording.at(i).IRBytes = TmpIRBytes;
+
 		SRecording Tmp;
-		for (int j = 0, k = 0; j < TmpMovement.length(); j+=7)
+		for (int j = 0, k = 0, l = 0; j < TmpMovement.length(); j+=7)
 		{
 			// Skip blank savings
 			if (TmpMovement.length() < 3) continue;
@@ -152,26 +162,62 @@ void LoadRecordedMovements()
 			Tmp.y = (u8)TmpY;
 			Tmp.z = (u8)TmpZ;
 
-			// Go to next set of time values
-			double Time = (double)atoi(TmpTime.substr(k, 5).c_str());
-			Tmp.Time = (double)(Time/1000);
-			VRecording.at(i).Recording.push_back(Tmp);
-			k += 6;
+			// ---------------------------------
+			// Go to next set of IR values
+			// ---------
+			// If there is no IR data saving we fill the array with zeroes. This should only be able to occur from manual ini editing
+			// but we check for it anyway
+			if (TmpIRBytes == 0) for(int i = 0; i < 12; i++) Tmp.IR[i] = 0;
+			for(int ii = 0; ii < TmpIRBytes; ii++)
+			{
+				if(TmpIR.length() < (k + i + TmpIRBytes)) continue; // Safety check
+				std::string TmpStr = TmpIR.substr(k + ii*2, 2);
+				u32 TmpU32;
+				AsciiToHex(TmpStr.c_str(), TmpU32);
+				Tmp.IR[ii] = (u8)TmpU32;
+			}
+			if (TmpIRBytes == 10) k += (10*2 + 1); else k += (12*2 + 1);
+			// ---------------------
 
+			// Go to next set of time values
+			double Time = (double)atoi(TmpTime.substr(l, 5).c_str());
+			Tmp.Time = (double)(Time/1000);
+			l += 6;
+
+			// Save the values
+			VRecording.at(i).Recording.push_back(Tmp);
+
+			// ---------------------------------
+			// Log results
+			// ---------
 			//Console::Print("Time:%f\n", Tmp.Time);
+			//std::string TmpIRLog = ArrayToString(Tmp.IR, TmpIRBytes, 0, 30);
+			//Console::Print("IR: %s\n", TmpIRLog.c_str());
+			//Console::Print("\n");
 		}
 
-		// HotKey
+		// Get HotKey
 		int TmpRecordHotKey; file.Get(SaveName.c_str(), "HotKey", &TmpRecordHotKey, -1);
 		VRecording.at(i).HotKey = TmpRecordHotKey;
 
-		// Recording speed
+		// Get Recording speed
 		int TmpPlaybackSpeed; file.Get(SaveName.c_str(), "PlaybackSpeed", &TmpPlaybackSpeed, -1);
 		VRecording.at(i).PlaybackSpeed = TmpPlaybackSpeed;
 
-		Console::Print("Size:%i HotKey:%i Speed:%i\n",
-			VRecording.at(i).Recording.size(), VRecording.at(i).HotKey, VRecording.at(i).PlaybackSpeed
+		// ---------------------------------
+		// Logging
+		// ---------
+		std::string TmpIRLog;
+		if(TmpIRBytes > 0)
+			TmpIRLog = ArrayToString(VRecording.at(i).Recording.at(0).IR, TmpIRBytes, 0, 30);
+		else
+			TmpIRLog = "";
+
+		Console::Print("Size:%i HotKey:%i Speed:%i IR: %s\n",
+			VRecording.at(i).Recording.size(), VRecording.at(i).HotKey, VRecording.at(i).PlaybackSpeed,
+			TmpIRLog.c_str()
 			);
+		// ---------------------
 	}
 }
 // ================
@@ -331,22 +377,10 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 					   for now I'm delaying all inputs. Both for status changes and Eeprom
 					   and registry reads and writes. */
 
-					// Limit the delay to certain registry reads and writes
-					//if((data[1] == WM_WRITE_DATA  || data[1] == WM_READ_DATA)
-					//	&& data[3] == 0xa4)
-					//{
-						// There are no 0x22 replys to these report from the real wiimote
-						if(!(data[1] == WM_READ_DATA && data[2] == 0x00)
-							&& !(data[1] == WM_REQUEST_STATUS)
-							)
-							if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent) CreateAckDelay((u8)_channelID, (u16)sr->channel);
-					//}
-					//else
-					//{
-						//wm_write_data *wd = (wm_write_data*)sr->data;
-						//u32 address = convert24bit(wd->address);
-						//WmSendAck(_channelID, sr->channel, address);
-					//}
+					// There are no 0x22 replys to these report from the real wiimote from what I could see
+					// Report 0x10 that seems to be only used for rumble
+					if(!(data[1] == WM_READ_DATA && data[2] == 0x00) && !(data[1] == WM_REQUEST_STATUS))
+						if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent) CreateAckDelay((u8)_channelID, (u16)sr->channel);
 				}
 				break;
 
