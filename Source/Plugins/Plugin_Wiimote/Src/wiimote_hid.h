@@ -22,8 +22,9 @@
 
 #ifdef _MSC_VER
 #pragma warning(disable:4200)
-#pragma pack(push, 1)
 #endif
+
+#pragma pack(push, 1)
 
 // Source: HID_010_SPC_PFL/1.0 (official HID specification)
 
@@ -301,8 +302,6 @@ struct accel_cal
 };
 
 
-#if defined(_MSC_VER)
-	#pragma pack(pop)
-#endif
+#pragma pack(pop)
 
 #endif	//WIIMOTE_HID_H

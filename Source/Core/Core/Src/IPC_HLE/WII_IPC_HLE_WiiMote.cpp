@@ -28,9 +28,7 @@
 #include "l2cap.h" // Local
 #include "WiiMote_HID_Attr.h"
 
-#if defined(_MSC_VER)
 #pragma pack(push, 1)
-#endif
 
 #define SDP_CHANNEL						0x01
 #define HIDP_CONTROL_CHANNEL			0x11
@@ -131,9 +129,7 @@ struct SL2CAP_CommandDisconnectionResponse // 0x07
 	u16 scid;
 };
 
-#if defined(_MSC_VER)
 #pragma pack(pop)
-#endif
 
 static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb;
 

@@ -31,10 +31,11 @@ typedef unsigned short __u16;
 typedef unsigned char __u8;
 typedef unsigned long __u32;
 
-#ifdef _MSC_VER
+
 #define __attribute__(a)
 #pragma pack(push)
 #pragma pack(1)
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4200)
 #endif
