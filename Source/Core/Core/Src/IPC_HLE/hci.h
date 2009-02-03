@@ -1,10 +1,7 @@
 #ifndef _NETBT_HCI_H_
 #define _NETBT_HCI_H_
 
-#if defined(_MSC_VER)
 #pragma pack(push, 1)
-#endif
-
 
 typedef u8 uint8_t;
 #ifdef _WIN32
@@ -2554,8 +2551,6 @@ struct SHCIEventLinkKeyNotification
 }
 #endif
 
-#if defined(_MSC_VER)
-    #pragma pack(pop)
-#endif
+#pragma pack(pop)
 
 #endif	/* _NETBT_HCI_H */
