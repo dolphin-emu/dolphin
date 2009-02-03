@@ -867,7 +867,7 @@ void ConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 			DoExtensionConnectedDisconnected();
 			/* It doesn't seem to be needed but shouldn't it at least take 25 ms to
 			   reconnect an extension after we disconnected another? */
-			if(g_EmulatorRunning) Sleep(25);
+			if(g_EmulatorRunning) sleep(25);
 		}
 
 		// Update status

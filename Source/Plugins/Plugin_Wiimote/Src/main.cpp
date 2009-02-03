@@ -16,9 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "Common.h" // Common
 #include "StringUtil.h"
 #include "ConsoleWindow.h" // For Start, Print, GetHwnd
@@ -298,7 +296,7 @@ extern "C" void Wiimote_Update()
 		GetUpdateRate();
 		if (g_UpdateWriteScreen > g_UpdateRate)
 		{
-			frame->m_TextUpdateRate->SetLabel(wxString::Format("Update rate: %03i times/s", g_UpdateRate));
+			frame->m_TextUpdateRate->SetLabel(wxString::Format(wxT("Update rate: %03i times/s"), g_UpdateRate));
 			g_UpdateWriteScreen = 0;
 		}
 		g_UpdateWriteScreen++;

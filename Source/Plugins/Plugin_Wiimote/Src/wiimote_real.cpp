@@ -16,9 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Includes
-// ¯¯¯¯¯¯¯¯¯¯
 #include <iostream> // System
 #include "pluginspecs_wiimote.h"
 
@@ -412,7 +410,7 @@ void FlashLights(bool Connect)
 {
 	if(Connect) wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[0], 1);
 	wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[0], WIIMOTE_LED_1 | WIIMOTE_LED_2 | WIIMOTE_LED_3 | WIIMOTE_LED_4);
-	Sleep(100);
+	sleep(100);
 	if(Connect) wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[0], 0);
 
 	// End with light 1 or 4

@@ -32,10 +32,10 @@ void AOSound::SoundLoop()
 		
     device = ao_open_live(default_driver, &format, NULL /* no options */);
     if (device == NULL) {
-	PanicAlert("DSP_HLE: Error opening AO device.\n");
-	ao_shutdown();
-	Stop();
-	return;
+		PanicAlert("DSP_HLE: Error opening AO device.\n");
+		ao_shutdown();
+		Stop();
+		return;
     }   
 
     buf_size = format.bits/8 * format.channels * format.rate;
@@ -57,11 +57,14 @@ void *soundThread(void *args) {
 }
 
 bool AOSound::Start() {
-    memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
-    soundCriticalSection = new Common::CriticalSection(1);
-    thread = new Common::Thread(soundThread, (void *)this);
+	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
+
     soundSyncEvent = new Common::Event();
     soundSyncEvent->Init();
+
+    soundCriticalSection = new Common::CriticalSection(1);
+
+    thread = new Common::Thread(soundThread, (void *)this);
     return true;
 }
 
