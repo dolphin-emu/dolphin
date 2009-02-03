@@ -480,12 +480,18 @@ void DoState(void* ptr, int mode) {}
 
 void Shutdown(void)
 {
-    g_Shutdown = true;	
+	// Stop the loop in the thread
+    g_Shutdown = true;
+
+	// Sleep this thread to wait for activity in g_pReadThread to stop entirely
+	Sleep(100);
 
     // Stop the thread
     if (g_pReadThread != NULL)
         {
-            g_pReadThread->WaitForDeath();
+			// This sometimes hangs for some reason so I'm trying to disable it
+			// It seemed to hang in WaitForSingleObject(), but I don't know why
+            //g_pReadThread->WaitForDeath();
             delete g_pReadThread;
             g_pReadThread = NULL;
         }
