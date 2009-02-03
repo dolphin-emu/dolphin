@@ -23,7 +23,7 @@
 #ifdef _WIN32
 #define sleep(x) Sleep(x)
 #else
-#define sleep(x) usleep(x/1000)
+#define sleep(x) usleep(x*1000)
 #endif
 // Declarations
 void DoInitialize();

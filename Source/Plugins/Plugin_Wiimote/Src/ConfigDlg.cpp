@@ -16,9 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-/////////////////////////////////////////////////////////////////////////
 // Include
-// ------------
 //#include "Common.h" // for u16
 #include "CommonTypes.h" // for u16
 #include "IniFile.h"
@@ -31,18 +29,10 @@
 #include "Config.h"
 #include "EmuMain.h" // for LoadRecordedMovements()
 #include "EmuSubroutines.h" // for WmRequestStatus
-/////////////////////////////
 
 
-/////////////////////////////////////////////////////////////////////////
-// Definitions
-// ------------
 
-/////////////////////////
-
-/////////////////////////////////////////////////////////////////////////
 // Event table
-// ------------
 BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_CLOSE(ConfigDialog::OnClose)
 	EVT_BUTTON(ID_CLOSE, ConfigDialog::CloseClick)
@@ -94,12 +84,8 @@ BEGIN_EVENT_TABLE(ConfigDialog,wxDialog)
 	EVT_TIMER(IDTM_UPDATE, ConfigDialog::Update)
 	EVT_TIMER(IDTM_SHUTDOWN, ConfigDialog::ShutDown)
 END_EVENT_TABLE()
-/////////////////////////////
 
-
-/////////////////////////////////////////////////////////////////////////
 // Class
-// ------------
 ConfigDialog::ConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title,
 						   const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
@@ -393,42 +379,8 @@ void ConfigDialog::CreateGUIControls()
 		"To produce compatible accelerometer recordings that can be shared with other users without problems"
 		" you have to adjust the Current value to the Target value before you make a recording."
 		));
-	// -----------------------
 
-	// ---------------------------------------------
-	// Nunchuck accelerometer neutral values
-	// ----------------	
-	/*
-	wxStaticBoxSizer * sbRealNNeutral = new wxStaticBoxSizer(wxVERTICAL, m_PageReal, wxT("Nunchuck neutrals"));
-	wxStaticText * m_TextAccNeutralTarget = new wxStaticText(m_PageReal, wxID_ANY, wxT("Target: 132 132 159"));
-	m_TextAccNeutralCurrent = new wxStaticText(m_PageReal, wxID_ANY, wxT("Current: 000 000 000"));
-	wxArrayString StrAccNeutral;
-	for(int i = 0; i < 31; i++) StrAccNeutral.Add(wxString::Format(wxT("%i"), i));
-	for(int i = 0; i < 3; i++) m_AccNeutralChoice[i] = new wxChoice(m_PageReal, ID_NEUTRAL_CHOICE, wxDefaultPosition, wxDefaultSize, StrAccNeutral);
-	m_AccNeutralChoice[0]->SetSelection(g_Config.iAccNeutralX);
-	m_AccNeutralChoice[1]->SetSelection(g_Config.iAccNeutralY);
-	m_AccNeutralChoice[2]->SetSelection(g_Config.iAccNeutralZ);
-
-	wxBoxSizer * sbRealWiimoteNeutralChoices = new wxBoxSizer(wxHORIZONTAL);
-	sbRealWiimoteNeutralChoices->Add(m_AccNeutralChoice[0], 0, wxEXPAND | (wxALL), 0);
-	sbRealWiimoteNeutralChoices->Add(m_AccNeutralChoice[1], 0, wxEXPAND | (wxLEFT), 2);
-	sbRealWiimoteNeutralChoices->Add(m_AccNeutralChoice[2], 0, wxEXPAND | (wxLEFT), 2);
-
-	sbRealNeutral->Add(m_TextAccNeutralTarget, 0, wxEXPAND | (wxALL), 5);
-	sbRealNeutral->Add(m_TextAccNeutralCurrent, 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
-	sbRealNeutral->Add(sbRealWiimoteNeutralChoices, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxUP), 5);
-
-	m_TextAccNeutralTarget->SetToolTip(wxT(
-		"To produce compatible accelerometer recordings that can be shared with other users without problems"
-		" you have to adjust the Current value to the Target value before you make a recording."
-		));
-		*/
-	// -----------------------
-
-
-	// ==================================================
 	// Wiimote Status
-	// ----------------
 	wxBoxSizer * sbRealWiimoteStatus = new wxBoxSizer(wxHORIZONTAL);
 
 	wxStaticBoxSizer * sbRealBattery = new wxStaticBoxSizer(wxVERTICAL, m_PageReal, wxT("Battery"));
