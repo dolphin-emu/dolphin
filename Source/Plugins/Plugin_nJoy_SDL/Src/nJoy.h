@@ -232,7 +232,6 @@ extern std::vector<u8> Keys;
 	extern CONTROLLER_MAPPING PadMapping[4];
 	extern HWND m_hWnd; // Handle to window
 	extern int NumPads, NumGoodPads; // Number of goods pads
-	extern bool bCheckFocus;
 #endif
 
 

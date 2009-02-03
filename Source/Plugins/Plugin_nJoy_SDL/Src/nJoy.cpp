@@ -89,7 +89,6 @@ CONTROLLER_STATE PadState[4];
 CONTROLLER_MAPPING PadMapping[4];
 bool emulator_running = false;
 int NumPads = 0, NumGoodPads = 0;
-bool bCheckFocus = true;
 HWND m_hWnd; // Handle to window
 SPADInitialize *g_PADInitialize = NULL;
 
@@ -396,12 +395,12 @@ void Shutdown()
 }
 
 
-// Set buttons status from wxWidgets in the main application
+// Set buttons status from keyboard input. Currently this is done from wxWidgets in the main application.
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 void PAD_Input(u16 _Key, u8 _UpDown)
 {
 	// Check that Dolphin is in focus, otherwise don't update the pad status
-	if (bCheckFocus && !IsFocus()) return;
+	if (!IsFocus()) return;
 
 	// Check if the keys are interesting, and then update it
 	for(int i = 0; i < 4; i++)
@@ -785,7 +784,7 @@ void ReadButton(int controller, int button)
 void GetJoyState(int controller)
 {
 	// Check that Dolphin is in focus, otherwise don't update the pad status
-	if (bCheckFocus && !IsFocus()) return;
+	if (!g_Config.bCheckFocus && !IsFocus()) return;
 
 	// Update the gamepad status
 	SDL_JoystickUpdate();

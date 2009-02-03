@@ -417,10 +417,10 @@ void ConfigBox::ChangeSettings( wxCommandEvent& event )
 			SizeWindow();
 			break;
 		case IDC_CHECKFOCUS:
-			bCheckFocus = m_CBCheckFocus[notebookpage]->IsChecked();
+			g_Config.bCheckFocus = m_CBCheckFocus[notebookpage]->IsChecked();
 			for(int i = 0; i < 4; i++)
 			{
-				m_CBCheckFocus[i]->SetValue(bCheckFocus);
+				m_CBCheckFocus[i]->SetValue(g_Config.bCheckFocus);
 			}
 			break;
 		case IDC_CONTROLTYPE:
@@ -804,7 +804,7 @@ void ConfigBox::CreateGUIControls()
 		m_gGenSettingsID[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Settings") );
 		m_CBSaveByID[i] = new wxCheckBox(m_Controller[i], IDC_SAVEBYID, wxT("Save by ID"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		m_CBShowAdvanced[i] = new wxCheckBox(m_Controller[i], IDC_SHOWADVANCED, wxT("Show advanced settings"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_CBCheckFocus[i] = new wxCheckBox(m_Controller[i], IDC_CHECKFOCUS, wxT("Only accept input when Dolphin is in focus"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_CBCheckFocus[i] = new wxCheckBox(m_Controller[i], IDC_CHECKFOCUS, wxT("Allow out of focus input"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		
 		// Populate general settings 3
 		m_gGenSettingsID[i]->Add(m_CBSaveByID[i], 0, wxEXPAND | wxALL, 3);
@@ -824,6 +824,8 @@ void ConfigBox::CreateGUIControls()
 			"\nto save your settings if you have multiple controllers.")
 			, i+1
 			));	
+		m_CBCheckFocus[i]->SetToolTip(wxT(
+			"Allow Gamepad input even when Dolphin is not in focus. Out of focus keyboard input is never allowed."));	
 
 		// Populate settings
 		m_sSettings[i] = new wxBoxSizer ( wxHORIZONTAL );

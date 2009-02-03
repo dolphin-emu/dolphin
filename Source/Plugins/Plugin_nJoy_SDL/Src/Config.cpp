@@ -164,7 +164,7 @@ void Config::Save(int Slot)
 
 		file.Set(SectionName.c_str(), "Diagonal", PadMapping[i].SDiagonal);
 		file.Set(SectionName.c_str(), "SquareToCircle", PadMapping[i].bSquareToCircle);
-		file.Set(SectionName.c_str(), "CheckForFocus", bCheckFocus);
+		file.Set(SectionName.c_str(), "CheckForFocus", g_Config.bCheckFocus);
 		// ======================================
 
 		// Debugging
@@ -247,7 +247,7 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 
 		file.Get(SectionName.c_str(), "Diagonal", &PadMapping[i].SDiagonal, "100%");
 		file.Get(SectionName.c_str(), "SquareToCircle", &Tmp, false); PadMapping[i].bSquareToCircle = Tmp;
-		file.Get(SectionName.c_str(), "CheckForFocus", &bCheckFocus, true);
+		file.Get(SectionName.c_str(), "CheckForFocus", &g_Config.bCheckFocus, false);
 		// =============================
 
 		// Debugging
