@@ -274,20 +274,18 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		}
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
-		SetItem(_Index, COLUMN_TITLE, wxString(rISOFile.GetName(0).c_str()), -1);
-		SetItem(_Index, COLUMN_NOTES, wxString(rISOFile.GetDescription(0).c_str()), -1);
+		SetItem(_Index, COLUMN_TITLE, wxString::From8BitData(rISOFile.GetName(0).c_str()), -1);
+		SetItem(_Index, COLUMN_NOTES, wxString::From8BitData(rISOFile.GetDescription(0).c_str()), -1);
 		break;
 	default:
 		SetItem(_Index, COLUMN_TITLE, 
-			//wxString::FromAscii(rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
-			wxString(rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
+			wxString::From8BitData(rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
 		SetItem(_Index, COLUMN_NOTES, 
-			//wxString::FromAscii(rISOFile.GetDescription((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
-			wxString(rISOFile.GetDescription((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
+			wxString::From8BitData(rISOFile.GetDescription((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
 		break;
 	}
 
-	SetItem(_Index, COLUMN_COMPANY, wxString::FromAscii(rISOFile.GetCompany().c_str()), -1);
+	SetItem(_Index, COLUMN_COMPANY, wxString::From8BitData(rISOFile.GetCompany().c_str()), -1);
 	
 	SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
 
