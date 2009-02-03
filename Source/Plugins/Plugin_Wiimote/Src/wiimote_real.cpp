@@ -441,8 +441,9 @@ int Initialize()
 	wiiuse_set_ir_position(g_WiiMotesFromWiiUse[0], WIIUSE_IR_ABOVE);
 
 	// I don't seem to need wiiuse_connect()
-	//int Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
-	//Console::Print("Connected: %i\n", Connect);	
+	// Linux needs it
+	int Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
+	Console::Print("Connected: %i\n", Connect);	
 
 	// If we are connecting from the config window without a game running we flash the lights
 	if (!g_EmulatorRunning) FlashLights(true);
