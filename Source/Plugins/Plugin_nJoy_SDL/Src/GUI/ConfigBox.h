@@ -112,7 +112,7 @@ class ConfigBox : public wxDialog
 
 		wxStaticBoxSizer *m_gGenSettingsID[4];
 		wxGridBagSizer * m_gGBGenSettings[4];
-		wxCheckBox *m_CBSaveByID[4], *m_CBShowAdvanced[4];
+		wxCheckBox *m_CBSaveByID[4], *m_CBShowAdvanced[4], *m_CBCheckFocus[4];
 		wxStaticText *m_TSControltype[4], *m_TSTriggerType[4];
 
 		wxStaticBoxSizer *m_gStatusIn[4], *m_gStatusInSettings[4];  // Advanced settings
@@ -210,7 +210,7 @@ class ConfigBox : public wxDialog
 
 			IDG_CONTROLLERTYPE,	IDC_CONTROLTYPE, IDC_TRIGGERTYPE, // Controller type		
 
-			IDC_SAVEBYID, IDC_SHOWADVANCED, // Settings
+			IDC_SAVEBYID, IDC_SHOWADVANCED, IDC_CHECKFOCUS, // Settings
 			
 			ID_INSTATUS1, ID_INSTATUS2, ID_INSTATUS3, ID_INSTATUS4, // Advanced status
 			ID_STATUSBMP1, ID_STATUSBMP2, ID_STATUSBMP3, ID_STATUSBMP4,

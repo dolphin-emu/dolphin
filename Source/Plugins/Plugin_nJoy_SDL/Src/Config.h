@@ -28,6 +28,7 @@ struct Config
     // General
 	bool bShowAdvanced; // Only allow one of these
 	bool bSaveByID;
+	bool bCheckFocus;
 };
 
 extern Config g_Config;
