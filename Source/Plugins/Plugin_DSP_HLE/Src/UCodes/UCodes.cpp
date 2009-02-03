@@ -72,18 +72,14 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 		printf("Zelda Wii ucode chosen");
 		return new CUCode_Zelda(_rMailHandler);
 
-	case 0x5ef56da3: // AX demo
-	case 0x347112ba: // raving rabbits
-	case 0xfa450138: // wii sports - PAL
-	case 0xadbc06bd: // Elebits
-	case 0xb7eb9a9c: // Wii Pikmin - JAP
-		printf("Wii - AXWii chosen");
-		return new CUCode_AXWii(_rMailHandler, _CRC);
-
 	default:
-		PanicAlert("Unknown ucode (CRC = %08x) - forcing AX/AXWii", _CRC);
-		if(g_dspInitialize.bWii)
+		if(g_dspInitialize.bWii) {
+			printf("Wii - AXWii chosen");
 			return new CUCode_AXWii(_rMailHandler, _CRC);
+		}
+		
+		PanicAlert("Unknown GC UCode (CRC = %08x) - forcing AX", _CRC);
+
 		return new CUCode_AX(_rMailHandler);
 	}
 
