@@ -319,7 +319,9 @@ void ConfigDialog::CreateGUIControls()
 	m_ConnectRealWiimote = new wxCheckBox(m_PageReal, ID_CONNECT_REAL, wxT("Connect real Wiimote"));
 	m_UseRealWiimote = new wxCheckBox(m_PageReal, ID_USE_REAL, wxT("Use real Wiimote"));
 	m_ConnectRealWiimote->SetToolTip(wxT("Connected to the real wiimote. This can not be changed during gameplay."));
-	m_UseRealWiimote->SetToolTip(wxT("Use the real Wiimote in the game. This can be changed during gameplay."));
+	m_UseRealWiimote->SetToolTip(wxT(
+		"Use the real Wiimote in the game. This can be changed during gameplay. This can not be selected"
+		" when a recording is to be done. No status in this window will be updated when this is checked."));
 	m_ConnectRealWiimote->SetValue(g_Config.bConnectRealWiimote);
 	m_UseRealWiimote->SetValue(g_Config.bUseRealWiimote);
 
@@ -635,6 +637,9 @@ void ConfigDialog::RecordMovement(wxCommandEvent& event)
 	else
 	{
 		m_RecordButton[m_iRecordTo]->SetLabel(wxT("Press +"));
+		// This is for usability purposes, it may not be obvious at all that this must be unchecked
+		// for the recording to work
+		m_UseRealWiimote->SetValue(false); g_Config.bUseRealWiimote = false;
 		return;
 	}
 
