@@ -170,8 +170,15 @@ void ConfigDialog::CloseClick(wxCommandEvent& event)
 	switch(event.GetId())
 	{
 	case ID_CLOSE:
-		WiiMoteReal::g_Shutdown = true;
-		m_ShutDownTimer->Start(10);
+		if(!g_EmulatorRunning)
+		{
+			WiiMoteReal::g_Shutdown = true;
+			m_ShutDownTimer->Start(10);
+		}
+		else
+		{
+			Close();
+		}
 		break;
 	case ID_APPLY:
 		SaveFile();
