@@ -43,7 +43,6 @@ class CConfigMain
 		void OnConfig(wxCommandEvent& event);
 
 		bool bRefreshList;
-		bool bRefreshCache;
 
 	private:
 

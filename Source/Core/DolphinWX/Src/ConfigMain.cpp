@@ -92,7 +92,7 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 {
 	// Control refreshing of the ISOs list
 	bRefreshList = false;
-	bRefreshCache = false;
+
 	// Load Wii SYSCONF
 	FullSYSCONFPath = FULL_WII_USER_DIR "shared2/sys/SYSCONF";
 	pStream = NULL;
@@ -532,7 +532,7 @@ void CConfigMain::CreateGUIControls()
 
 void CConfigMain::OnClose(wxCloseEvent& WXUNUSED (event))
 {
-	EndModal((bRefreshList || bRefreshCache) ? wxID_OK : wxID_CLOSE);
+	EndModal((bRefreshList) ? wxID_OK : wxID_CLOSE);
 
 	// First check that we did successfully populate m_SYSCONF earlier, otherwise don't
 	// save anything, it will be a corrupted file
@@ -592,7 +592,6 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	case ID_INTERFACE_LANG:
 		SConfig::GetInstance().m_InterfaceLanguage = (INTERFACE_LANGUAGE)InterfaceLang->GetSelection();
 		bRefreshList = true;
-		bRefreshCache = true;
 		break;
 
 	case ID_ALLWAYS_HLEBIOS: // Core

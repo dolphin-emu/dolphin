@@ -18,6 +18,7 @@
 #include "Globals.h"
 
 #include <wx/imaglist.h>
+#include <wx/fontmap.h>
 
 #include <algorithm>
 
@@ -45,15 +46,32 @@ std::string CGameListCtrl::m_currentFilename;
 static int currentColumn = 0;
 bool operator < (const GameListItem &one, const GameListItem &other)
 {
+	int indexOne = 0;
+	int indexOther = 0;
+
+	switch (one.GetCountry())
+	{
+	case DiscIO::IVolume::COUNTRY_JAP:;
+	case DiscIO::IVolume::COUNTRY_USA:indexOne = 0; break;
+	default: indexOne = (int)SConfig::GetInstance().m_InterfaceLanguage;
+	}
+
+	switch (other.GetCountry())
+	{
+	case DiscIO::IVolume::COUNTRY_JAP:;
+	case DiscIO::IVolume::COUNTRY_USA:indexOther = 0; break;
+	default: indexOther = (int)SConfig::GetInstance().m_InterfaceLanguage;
+	}
+
 	switch(currentColumn)
 	{
-	case CGameListCtrl::COLUMN_TITLE:   return strcasecmp(one.GetName().c_str(),        other.GetName().c_str()) < 0;
+	case CGameListCtrl::COLUMN_TITLE:   return strcasecmp(one.GetName(indexOne).c_str(),        other.GetName(indexOther).c_str()) < 0;
 	case CGameListCtrl::COLUMN_COMPANY: return strcasecmp(one.GetCompany().c_str(),     other.GetCompany().c_str()) < 0;
-	case CGameListCtrl::COLUMN_NOTES:   return strcasecmp(one.GetDescription().c_str(), other.GetDescription().c_str()) < 0;
+	case CGameListCtrl::COLUMN_NOTES:   return strcasecmp(one.GetDescription(indexOne).c_str(), other.GetDescription(indexOther).c_str()) < 0;
 	case CGameListCtrl::COLUMN_COUNTRY: return (one.GetCountry() < other.GetCountry());
 	case CGameListCtrl::COLUMN_SIZE:    return (one.GetFileSize() < other.GetFileSize());
 	case CGameListCtrl::COLUMN_ISSUES:  return strcasecmp(one.GetIssues().c_str(), other.GetIssues().c_str()) < 0;
-	default:                            return strcasecmp(one.GetName().c_str(), other.GetName().c_str()) < 0;
+	default:                            return strcasecmp(one.GetName(indexOne).c_str(), other.GetName(indexOther).c_str()) < 0;
 	}
 }
 
@@ -125,7 +143,7 @@ void CGameListCtrl::BrowseForDirectory()
 	}
 }
 
-void CGameListCtrl::Update(bool bUpdateCache)
+void CGameListCtrl::Update()
 {
 	if (m_imageListSmall)
 	{
@@ -135,7 +153,7 @@ void CGameListCtrl::Update(bool bUpdateCache)
 
 	Hide();
 
-	ScanForISOs(bUpdateCache);
+	ScanForISOs();
 
 	ClearAll();
 
@@ -233,9 +251,44 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// title: 0xFF0000
 	// company: 0x007030
 
-	SetItem(_Index, COLUMN_TITLE, wxString::FromAscii(rISOFile.GetName().c_str()), -1);
+	switch (rISOFile.GetCountry())
+	{
+	case DiscIO::IVolume::COUNTRY_JAP:
+		{
+			// keep these codes, when we move to wx unicode...
+			//wxCSConv convFrom(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
+			//wxCSConv convTo(wxFontMapper::GetEncodingName(wxFONTENCODING_DEFAULT));
+			//SetItem(_Index, COLUMN_TITLE, wxString(wxString(rISOFile.GetName()).wc_str(convFrom) , convTo), -1);
+			//SetItem(_Index, COLUMN_NOTES, wxString(wxString(rISOFile.GetDescription()).wc_str(convFrom) , convTo), -1);
+			wxString name;
+			if (CopySJISToString(name, rISOFile.GetName(0).c_str()))
+			{
+				SetItem(_Index, COLUMN_TITLE, name, -1);
+			}
+
+			wxString description;
+			if (CopySJISToString(description, rISOFile.GetDescription(0).c_str()))
+			{
+				SetItem(_Index, COLUMN_NOTES, description, -1);
+			}
+		}
+		break;
+	case DiscIO::IVolume::COUNTRY_USA:
+		SetItem(_Index, COLUMN_TITLE, wxString(rISOFile.GetName(0).c_str()), -1);
+		SetItem(_Index, COLUMN_NOTES, wxString(rISOFile.GetDescription(0).c_str()), -1);
+		break;
+	default:
+		SetItem(_Index, COLUMN_TITLE, 
+			//wxString::FromAscii(rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
+			wxString(rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
+		SetItem(_Index, COLUMN_NOTES, 
+			//wxString::FromAscii(rISOFile.GetDescription((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
+			wxString(rISOFile.GetDescription((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
+		break;
+	}
+
 	SetItem(_Index, COLUMN_COMPANY, wxString::FromAscii(rISOFile.GetCompany().c_str()), -1);
-	SetItem(_Index, COLUMN_NOTES, wxString::FromAscii(rISOFile.GetDescription().c_str()), -1);
+	
 	SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
 
 	// Load the INI file for columns that read from it
@@ -363,7 +416,7 @@ void CGameListCtrl::SetBackgroundColor()
 	}
 }
 
-void CGameListCtrl::ScanForISOs(bool bUpdateCache)
+void CGameListCtrl::ScanForISOs()
 {
 	m_ISOFiles.clear();
 	CFileSearch::XStringVector Directories(SConfig::GetInstance().m_ISOFolder);
@@ -407,7 +460,7 @@ void CGameListCtrl::ScanForISOs(bool bUpdateCache)
 			{
 				break;
 			}
-			GameListItem ISOFile(rFilenames[i], bUpdateCache);
+			GameListItem ISOFile(rFilenames[i]);
 			if (ISOFile.IsValid())
 			{
 				m_ISOFiles.push_back(ISOFile);
@@ -446,14 +499,31 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 		sortData = -sortData;
 	}
 
+	int indexOne = 0;
+	int indexOther = 0;
+
+	switch (iso1->GetCountry())
+	{
+	case DiscIO::IVolume::COUNTRY_JAP:;
+	case DiscIO::IVolume::COUNTRY_USA:indexOne = 0; break;
+	default: indexOne = (int)SConfig::GetInstance().m_InterfaceLanguage;
+	}
+
+	switch (iso2->GetCountry())
+	{
+	case DiscIO::IVolume::COUNTRY_JAP:;
+	case DiscIO::IVolume::COUNTRY_USA:indexOther = 0; break;
+	default: indexOther = (int)SConfig::GetInstance().m_InterfaceLanguage;
+	}
+
 	switch(sortData)
 	{
 	case CGameListCtrl::COLUMN_TITLE:
-		return strcasecmp(iso1->GetName().c_str(),iso2->GetName().c_str()) *t;
+		return strcasecmp(iso1->GetName(indexOne).c_str(),iso2->GetName(indexOther).c_str()) *t;
 	case CGameListCtrl::COLUMN_COMPANY:
 		return strcasecmp(iso1->GetCompany().c_str(),iso2->GetCompany().c_str()) *t;
 	case CGameListCtrl::COLUMN_NOTES:
-		return strcasecmp(iso1->GetDescription().c_str(),iso2->GetDescription().c_str()) *t;
+		return strcasecmp(iso1->GetDescription(indexOne).c_str(),iso2->GetDescription(indexOther).c_str()) *t;
 	case CGameListCtrl::COLUMN_ISSUES:
 		return strcasecmp(iso1->GetIssues().c_str(),iso2->GetIssues().c_str()) *t;
 	case CGameListCtrl::COLUMN_COUNTRY:
@@ -838,4 +908,53 @@ void CGameListCtrl::UnselectAll()
 		SetItemState(i, 0, wxLIST_STATE_SELECTED);
 	}
 
+}
+
+bool CGameListCtrl::CopySJISToString( wxString& _rDestination, const char* _src )
+{
+	bool returnCode = false;
+#ifdef WIN32
+	// HyperIris: because dolphin using "Use Multi-Byte Character Set",
+	// we must convert the SJIS chars to unicode then to our windows local by hand
+	u32 unicodeNameSize = MultiByteToWideChar(932, MB_PRECOMPOSED, 
+		_src, (int)strlen(_src),	NULL, NULL);
+	if (unicodeNameSize > 0)
+	{
+		u16* pUnicodeStrBuffer = new u16[unicodeNameSize + 1];
+		if (pUnicodeStrBuffer)
+		{
+			memset(pUnicodeStrBuffer, 0, (unicodeNameSize + 1) * sizeof(u16));
+			if (MultiByteToWideChar(932, MB_PRECOMPOSED, 
+				_src, (int)strlen(_src),
+				(LPWSTR)pUnicodeStrBuffer, unicodeNameSize))
+			{
+				u32 ansiNameSize = WideCharToMultiByte(CP_ACP, 0, 
+					(LPCWSTR)pUnicodeStrBuffer, unicodeNameSize,
+					NULL, NULL, NULL, NULL);
+				if (ansiNameSize > 0)
+				{
+					char* pAnsiStrBuffer = new char[ansiNameSize + 1];
+					if (pAnsiStrBuffer)
+					{
+						memset(pAnsiStrBuffer, 0, (ansiNameSize + 1) * sizeof(char));
+						if (WideCharToMultiByte(CP_ACP, 0, 
+							(LPCWSTR)pUnicodeStrBuffer, unicodeNameSize,
+							pAnsiStrBuffer, ansiNameSize, NULL, NULL))
+						{
+							_rDestination = pAnsiStrBuffer;
+							returnCode = true;
+						}
+						delete pAnsiStrBuffer;
+					}
+				}
+			}
+			delete pUnicodeStrBuffer;
+		}		
+	}
+#else
+	// not implement other than windows
+	//_rDestination = _src;
+	//returnCode = true;
+#endif
+	return returnCode;
 }

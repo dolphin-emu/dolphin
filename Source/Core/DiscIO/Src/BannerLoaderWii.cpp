@@ -115,9 +115,12 @@ CBannerLoaderWii::StupidWideCharToString(u16* _pSrc, size_t _max)
 }
 
 bool
-CBannerLoaderWii::GetName(std::string& _rName, DiscIO::IVolume::ECountry language)
+CBannerLoaderWii::GetName(std::string* _rName)
 {
-	_rName = "no name";
+	for (int i = 0; i < 6; i++)
+	{
+		_rName[i] = "no name";
+	}
 
 	if (!IsValid())
 	{
@@ -126,19 +129,17 @@ CBannerLoaderWii::GetName(std::string& _rName, DiscIO::IVolume::ECountry languag
 
 	// find Banner type
 	SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
-#ifdef _WIN32
-	if (DiscIO::IVolume::COUNTRY_JAP == language)
+
+	std::string name;
+	if (CopyUnicodeToString(name, pBanner->m_Comment[0]))
 	{
-		return CopyUnicodeToString(_rName, pBanner->m_Comment[0]);
-	}
-	else
-#endif
-	{
-		// very stupid
-		_rName = StupidWideCharToString(pBanner->m_Comment[0], WII_BANNER_COMMENT_SIZE);
+		for (int i = 0; i < 6; i++)
+		{
+			_rName[i] = name;
+		}
 		return true;
 	}
-	return true;
+	return false;
 }
 
 
@@ -151,9 +152,12 @@ CBannerLoaderWii::GetCompany(std::string& _rCompany)
 
 
 bool
-CBannerLoaderWii::GetDescription(std::string& _rDescription, DiscIO::IVolume::ECountry language)
+CBannerLoaderWii::GetDescription(std::string* _rDescription)
 {
-	_rDescription = "";
+	for (int i = 0; i< 6; i++)
+	{
+		_rDescription[i] = "";
+	}
 
 	if (!IsValid())
 	{
@@ -162,17 +166,16 @@ CBannerLoaderWii::GetDescription(std::string& _rDescription, DiscIO::IVolume::EC
 
 	// find Banner type
 	SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
-	if (DiscIO::IVolume::COUNTRY_JAP == language)
+
+	std::string description;
+	if (CopyUnicodeToString(description, pBanner->m_Comment[1]))
 	{
-		return CopyUnicodeToString(_rDescription, pBanner->m_Comment[1]);
-	}
-	else
-	{
-		// very stupid
-		_rDescription = StupidWideCharToString(pBanner->m_Comment[1], WII_BANNER_COMMENT_SIZE);
+		for (int i = 0; i< 6; i++)
+		{
+			_rDescription[i] = description;
+		}
 		return true;
 	}
-
 	return false;
 }
 

@@ -32,14 +32,14 @@
 #include "ChunkFile.h"
 #include "../resources/no_banner.cpp"
 
-#define CACHE_REVISION 0x105
+#define CACHE_REVISION 0x106
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
 
 static u32 g_ImageTemp[DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT];
 
-GameListItem::GameListItem(const std::string& _rFileName, bool bUpdateCache)
+GameListItem::GameListItem(const std::string& _rFileName)
 	: m_FileName(_rFileName)
 	, m_FileSize(0)
 	, m_Valid(false)
@@ -48,7 +48,7 @@ GameListItem::GameListItem(const std::string& _rFileName, bool bUpdateCache)
 	, m_ImageSize(0)
 {
 
-	if ((bUpdateCache == false) && LoadFromCache())
+	if (LoadFromCache())
 	{
 		m_Valid = true;
 	}
@@ -58,11 +58,11 @@ GameListItem::GameListItem(const std::string& _rFileName, bool bUpdateCache)
 
 		if (pVolume != NULL)
 		{
-			m_Name = _rFileName;
+			m_Name[0] = _rFileName;
 			m_Country  = pVolume->GetCountry();
 			m_FileSize = File::GetSize(_rFileName.c_str());
 			m_VolumeSize = pVolume->GetSize();
-			m_Name = pVolume->GetName();
+			m_Name[0] = pVolume->GetName();
 			m_UniqueID = pVolume->GetUniqueID();
 			m_BlobCompressed = DiscIO::IsCompressedBlob(_rFileName.c_str());
 
@@ -77,9 +77,9 @@ GameListItem::GameListItem(const std::string& _rFileName, bool bUpdateCache)
 				{
 					if (pBannerLoader->IsValid())
 					{
-						pBannerLoader->GetName(m_Name, m_Country); //m_Country == DiscIO::IVolume::COUNTRY_JAP ? 1 : 0);
+						pBannerLoader->GetName(m_Name); //m_Country == DiscIO::IVolume::COUNTRY_JAP ? 1 : 0);
 						pBannerLoader->GetCompany(m_Company);
-						pBannerLoader->GetDescription(m_Description, m_Country);
+						pBannerLoader->GetDescription(m_Description);
 						if (pBannerLoader->GetBanner(g_ImageTemp))
 						{
 							m_ImageSize = DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT * 3;
@@ -149,9 +149,11 @@ void GameListItem::SaveToCache()
 
 void GameListItem::DoState(PointerWrap &p)
 {
-	p.Do(m_Name);
+	p.Do(m_Name[0]);	p.Do(m_Name[1]);	p.Do(m_Name[2]);
+	p.Do(m_Name[3]);	p.Do(m_Name[4]);	p.Do(m_Name[5]);
 	p.Do(m_Company);
-	p.Do(m_Description);
+	p.Do(m_Description[0]);	p.Do(m_Description[1]);	p.Do(m_Description[2]);
+	p.Do(m_Description[3]);	p.Do(m_Description[4]);	p.Do(m_Description[5]);
 	p.Do(m_UniqueID);
 	p.Do(m_FileSize);
 	p.Do(m_VolumeSize);
@@ -169,4 +171,22 @@ std::string GameListItem::CreateCacheFilename()
 	std::string fullname(FULL_CACHE_DIR);
 	fullname += Filename;
 	return fullname;
+}
+
+const std::string& GameListItem::GetDescription(int index) const
+{
+	if ((index >=0) && (index < 6))
+	{
+		return m_Description[index];
+	} 
+	return m_Description[0];
+}
+
+const std::string& GameListItem::GetName(int index) const
+{
+	if ((index >=0) && (index < 6))
+	{
+		return m_Name[index];
+	} 
+	return m_Name[0];
 }

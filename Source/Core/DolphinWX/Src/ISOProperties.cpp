@@ -113,10 +113,14 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	//m_Version;
 	//if (OpenISO_.GetBNRVersion() == "BNR1")
 		m_Lang->Enable(false);
-	m_ShortName->SetValue(wxString(OpenISO_.GetName().c_str(), wxConvUTF8));
+
+	// hyperiris: temp fix, need real work
+	m_ShortName->SetValue(wxString(OpenISO_.GetName(0).c_str(), wxConvUTF8));
 	//m_LongName->SetValue(wxString(OpenISO_.GetLongName().c_str(), wxConvUTF8));
 	m_Maker->SetValue(wxString(OpenISO_.GetCompany().c_str(), wxConvUTF8));//dev too
-	m_Comment->SetValue(wxString(OpenISO_.GetDescription().c_str(), wxConvUTF8));
+
+	// hyperiris: temp fix, need real work
+	m_Comment->SetValue(wxString(OpenISO_.GetDescription(0).c_str(), wxConvUTF8));
 	m_Banner->SetBitmap(OpenISO_.GetImage());
 	m_Banner->Connect(wxID_ANY, wxEVT_RIGHT_DOWN,
 		wxMouseEventHandler(CISOProperties::RightClickOnBanner), (wxObject*)NULL, this);
@@ -128,7 +132,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 	std::string filename, extension;
 	SplitPath(fileName, 0, &filename, &extension);
-	SetTitle(wxString::Format(_("%s%s: %s - %s"), filename.c_str(), extension.c_str(), OpenISO_.GetUniqueID().c_str(), OpenISO_.GetName().c_str()));
+
+	// hyperiris: temp fix, need real work
+	SetTitle(wxString::Format(_("%s%s: %s - %s"), filename.c_str(), extension.c_str(), OpenISO_.GetUniqueID().c_str(), OpenISO_.GetName(0).c_str()));
 }
 
 CISOProperties::~CISOProperties()

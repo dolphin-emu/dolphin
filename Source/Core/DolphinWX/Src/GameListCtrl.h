@@ -31,7 +31,7 @@ public:
 	CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style);
 	~CGameListCtrl();
 
-	void Update(bool bUpdateCache = false);
+	void Update();
 	void BrowseForDirectory();
 	const GameListItem *GetSelectedISO();
 	const GameListItem *GetISO(int index) const;
@@ -60,7 +60,7 @@ private:
 	void InitBitmaps();
 	void InsertItemInReportView(long _Index);
 	void SetBackgroundColor();
-	void ScanForISOs(bool bUpdateCache);
+	void ScanForISOs();
 
 	DECLARE_EVENT_TABLE()
 
@@ -90,6 +90,9 @@ private:
 	static size_t m_numberItem;
 	static void CompressCB(const char* text, float percent, void* arg);
 	static void MultiCompressCB(const char* text, float percent, void* arg);
+
+	// hyperiris: put it here will be nice, if we moce to wx unicode, it simple to fix
+	bool CopySJISToString(wxString& _rDestination, const char* _src);
 };
 
 

@@ -92,9 +92,12 @@ CBannerLoaderGC::GetBanner(u32* _pBannerImage)
 
 
 bool
-CBannerLoaderGC::GetName(std::string& _rName, DiscIO::IVolume::ECountry language)
+CBannerLoaderGC::GetName(std::string _rName[])
 {
-	_rName = "no name";
+	for (int i = 0; i < 6; i++)
+	{
+		_rName[i] = "no name";
+	}
 
 	bool returnCode = false;
 
@@ -109,21 +112,10 @@ CBannerLoaderGC::GetName(std::string& _rName, DiscIO::IVolume::ECountry language
 	case CBannerLoaderGC::BANNER_BNR1:
 		{
 			DVDBanner* pBanner = (DVDBanner*)m_pBannerFile;
-			if (DiscIO::IVolume::COUNTRY_JAP == language)
-			{
-				// dunno, if dolphin using unicode, it will be better = =;
-				if (CopySJISToString(_rName, pBanner->comment.shortTitle))
-				{
-					returnCode = true;
-				}
-			} 
-			else
-			{
-				if (CopyToStringAndCheck(_rName, pBanner->comment.shortTitle))//language != 0 ? pBanner->comment[0].shortTitle : pBanner->comment[0].longTitle))
-				{
-					returnCode = true;
-				}
-			}
+			char tempBuffer[33] = {0};
+			memcpy(tempBuffer, pBanner->comment.shortTitle, 32);
+			_rName[0] = tempBuffer;
+			returnCode = true;
 		}
 		break;
 	case CBannerLoaderGC::BANNER_BNR2:
@@ -131,10 +123,15 @@ CBannerLoaderGC::GetName(std::string& _rName, DiscIO::IVolume::ECountry language
 			DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
 
 			u32 languageID = SConfig::GetInstance().m_InterfaceLanguage;
-			if (CopyToStringAndCheck(_rName, pBanner->comment[languageID].shortTitle))//language != 0 ? pBanner->comment[0].shortTitle : pBanner->comment[0].longTitle))
+			for (int i = 0; i < 6; i++)
 			{
-				returnCode = true;
+				char tempBuffer[33] = {0};
+				memcpy(tempBuffer, pBanner->comment[i].shortTitle, 32);
+				_rName[i] = tempBuffer;
 			}
+
+			returnCode = true;
+
 		}
 		break;
 	}
@@ -165,9 +162,12 @@ CBannerLoaderGC::GetCompany(std::string& _rCompany)
 
 
 bool
-CBannerLoaderGC::GetDescription(std::string& _rDescription, DiscIO::IVolume::ECountry language)
+CBannerLoaderGC::GetDescription(std::string* _rDescription)
 {
-	_rDescription = "";
+	for (int i = 0; i< 6; i++)
+	{
+		_rDescription[i] = "";
+	}
 
 	bool returnCode = false;
 
@@ -182,32 +182,23 @@ CBannerLoaderGC::GetDescription(std::string& _rDescription, DiscIO::IVolume::ECo
 	case CBannerLoaderGC::BANNER_BNR1:
 		{
 			DVDBanner* pBanner = (DVDBanner*)m_pBannerFile;
-			if (DiscIO::IVolume::COUNTRY_JAP == language)
-			{
-				// dunno, if dolphin using unicode, it will be better = =;
-				if (CopySJISToString(_rDescription, pBanner->comment.comment))
-				{
-					returnCode = true;
-				}
-			} 
-			else
-			{
-				if (CopyToStringAndCheck(_rDescription, pBanner->comment.comment))//language != 0 ? pBanner->comment[0].shortTitle : pBanner->comment[0].longTitle))
-				{
-					returnCode = true;
-				}
-			}
+			char tempBuffer[129] = {0};
+			memcpy(tempBuffer, pBanner->comment.comment, 128);
+			_rDescription[0] = tempBuffer;
+			returnCode = true;
 		}
 		break;
 	case CBannerLoaderGC::BANNER_BNR2:
 		{
 			DVDBanner2* pBanner = (DVDBanner2*)m_pBannerFile;
 
-			u32 languageID = SConfig::GetInstance().m_InterfaceLanguage;
-			if (CopyToStringAndCheck(_rDescription, pBanner->comment[languageID].comment))//language != 0 ? pBanner->comment[0].shortTitle : pBanner->comment[0].longTitle))
+			for (int i = 0; i< 6; i++)
 			{
-				returnCode = true;
+				char tempBuffer[129] = {0};
+				memcpy(tempBuffer, pBanner->comment[i].comment, 128);
+				_rDescription[i] = tempBuffer;
 			}
+			returnCode = true;
 		}
 		break;
 	}

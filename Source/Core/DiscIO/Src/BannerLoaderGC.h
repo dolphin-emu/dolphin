@@ -35,11 +35,11 @@ class CBannerLoaderGC
 
 		virtual bool GetBanner(u32* _pBannerImage);
 
-		virtual bool GetName(std::string& _rName, DiscIO::IVolume::ECountry language);
+		virtual bool GetName(std::string* _rName);
 
 		virtual bool GetCompany(std::string& _rCompany);
 
-		virtual bool GetDescription(std::string& _rDescription, DiscIO::IVolume::ECountry language);
+		virtual bool GetDescription(std::string* _rDescription);
 
 
 	private:
