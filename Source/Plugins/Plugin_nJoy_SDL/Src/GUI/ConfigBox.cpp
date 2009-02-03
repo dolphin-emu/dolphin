@@ -825,7 +825,7 @@ void ConfigBox::CreateGUIControls()
 			, i+1
 			));	
 		m_CBCheckFocus[i]->SetToolTip(wxT(
-			"Allow Gamepad input even when Dolphin is not in focus. Out of focus keyboard input is never allowed."));	
+			"Allow gamepad input even when Dolphin is not in focus. Out of focus keyboard input is never allowed."));	
 
 		// Populate settings
 		m_sSettings[i] = new wxBoxSizer ( wxHORIZONTAL );
