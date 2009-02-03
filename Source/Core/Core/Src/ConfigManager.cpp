@@ -198,14 +198,14 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "SelectedLanguage", &m_LocalCoreStartupParameter.SelectedLanguage, 0);
 		ini.Get("Core", "MemcardA",			&m_strMemoryCardA);
 		ini.Get("Core", "MemcardB",			&m_strMemoryCardB);
-		ini.Get("Core", "SlotA",			(int*)&m_EXIDevice[0]);
-		ini.Get("Core", "SlotB",			(int*)&m_EXIDevice[1]);
-		ini.Get("Core", "SerialPort1",		(int*)&m_EXIDevice[2]);
+		ini.Get("Core", "SlotA",			(int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD_A);
+		ini.Get("Core", "SlotB",			(int*)&m_EXIDevice[1], EXIDEVICE_MEMORYCARD_B);
+		ini.Get("Core", "SerialPort1",		(int*)&m_EXIDevice[2], EXIDEVICE_DUMMY);
 		char sidevicenum[16];
 		for (int i = 0; i < 4; ++i)
 		{
 			sprintf(sidevicenum, "SIDevice%i", i);
-			ini.Get("Core", sidevicenum,	(u32*)&m_SIDevice[i]);
+			ini.Get("Core", sidevicenum,	(u32*)&m_SIDevice[i], i==0 ? SI_GC_CONTROLLER:SI_DUMMY);
 		}
 
 		ini.Get("Core", "RunCompareServer", &m_LocalCoreStartupParameter.bRunCompareServer, false);
