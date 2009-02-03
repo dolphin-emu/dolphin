@@ -35,10 +35,8 @@ typedef unsigned long __u32;
 #define __attribute__(a)
 #pragma pack(push)
 #pragma pack(1)
-#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4200)
-#endif
 
 
 /* L2CAP defaults */
@@ -208,10 +206,8 @@ struct l2cap_info_rsp {
 #define L2CAP_IR_SUCCESS    0x0000
 #define L2CAP_IR_NOTSUPP    0x0001
 
-#ifdef _MSC_VER
 #pragma warning(pop)
 #pragma pack(pop)
-#endif
 
 struct value_string
 {
