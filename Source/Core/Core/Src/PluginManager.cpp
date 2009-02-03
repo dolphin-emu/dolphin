@@ -54,10 +54,19 @@ CPluginManager::CPluginManager() :
    FreeLibrary() Called from: In an attempt to avoid the crash that occurs when
    the use LoadLibrary() and FreeLibrary() often (every game a game is stopped
    and started) these functions will only be used when
-   1. Dolphin is started
-   2. A plugin is changed
-   3. Dolphin is closed
-   it will not be used when we Start and Stop games. 
+		1. Dolphin is started
+		2. A plugin is changed
+		3. Dolphin is closed
+   it will not be used when we Start and Stop games. With these exceptions:
+		1. Video plugin: If FreeLibrary() is not called between Stop and Start it will fail for
+		several games on the next Start, but not for all games.
+		2. Sond plugin: If FreeLibrary() is not called between Stop and Start I got the "Tried to
+		"get pointer for unknown address ffffffff" message for all games I tried.
+	If it was not for the crash I always got earlier after several (perhaps as many as twenty) Stop and Start
+	I would be indifferent about how often FreeLibrary() i used, but since it seems like it can fail
+	infrequently, at least for nJoy, I'd rather use FreeLibrary() more sparingly. However, I could not
+	reproduce any crash now after several Stop and Start so maybe it has gone away or I was lucky. In any case
+	if it works I'd rather be without FreeLibrary() between Start and Stop.
 */
 CPluginManager::~CPluginManager()
 {
@@ -74,7 +83,6 @@ CPluginManager::~CPluginManager()
 		}
 		m_pad[i] = NULL;
 	}
-
 
 	for (int i = 0; i < MAXWIIMOTES; i++)
 		if (m_wiimote[i]) delete m_wiimote[i];
@@ -143,13 +151,26 @@ void CPluginManager::ShutdownPlugins()
 	}
 
 	if (m_video)
+	{
 		m_video->Shutdown();
+		// This is needed for Stop and Start to work
+		delete m_video;
+		m_video = NULL;
+	}
 
 	if (m_dsp)
+	{
 		m_dsp->Shutdown();
+		// This is needed for Stop and Start to work
+		delete m_dsp;
+		m_dsp = NULL;
+	}
 
-
-	for (int i = 0; i < MAXPADS; i++) {
+	// Disabled FreeLibrary() for these plugins. See comment above PluginManager::~CPluginManager()
+	// for an explanation about the current LoadLibrary() and FreeLibrary() behavior.
+	/*
+	for (int i = 0; i < MAXPADS; i++)
+	{
 		if (m_pad[i] && OkayToInitPlugin(i)) {
 			Console::Print("Delete: %i\n", i);
 			delete m_pad[i];
@@ -157,17 +178,11 @@ void CPluginManager::ShutdownPlugins()
 		m_pad[i] = NULL;
 	}
 
-	for (int i = 0; i < MAXWIIMOTES; i++) {
+	for (int i = 0; i < MAXWIIMOTES; i++)
+	{
 		delete m_wiimote[i];
 		m_wiimote[i] = NULL;
-	}
-
-	delete m_dsp;
-	m_dsp = NULL;
-
-	delete m_video;
-	m_video = NULL;
-
+	}*/
 }
 
 // Supporting functions
