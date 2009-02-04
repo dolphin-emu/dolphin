@@ -22,15 +22,15 @@ int main()
 {
 	Initialise();
 
-	time_t gc_time;
-	gc_time = time(NULL);
+	time_t wii_time;
+	wii_time = time(NULL);
 
-	srand(gc_time);
+	srand(wii_time);
 
 	while(1)
 	{
-		gc_time = time(NULL);
-		std::cout<<"\x1b[10;0HGC RTC time is"<<ctime(&gc_time);
+		wii_time = time(NULL);
+		std::cout<<"\x1b[10;0HWii RTC time is"<<ctime(&wii_time);
 
 		VIDEO_WaitVSync();
 	}

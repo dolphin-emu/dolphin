@@ -17,27 +17,6 @@
 	</ToolFiles>
 	<Configurations>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory="build"
-			IntermediateDirectory="build"
-			ConfigurationType="0"
-			BuildLogFile="build\BuildLog.htm"
-			>
-			<Tool
-				Name="VCNMakeTool"
-				BuildCommandLine="make -r 2&gt;&amp;1 | sed -e &apos;s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/’"
-				ReBuildCommandLine="make clean &amp;&amp; make -r 2&gt;&amp;1 | sed -e &apos;s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/’"
-				CleanCommandLine="make clean"
-				Output="dolphintest_si.dol"
-				PreprocessorDefinitions="WIN32;_DEBUG"
-				IncludeSearchPath="$(ProjectDir)\include;C:\devkitPro\libogc\include"
-				ForcedIncludes=""
-				AssemblySearchPath=""
-				ForcedUsingAssemblies=""
-				CompileAsManaged=""
-			/>
-		</Configuration>
-		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="build"
 			IntermediateDirectory="build"
@@ -49,7 +28,7 @@
 				BuildCommandLine="make -r 2&gt;&amp;1 | sed -e &apos;s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/’"
 				ReBuildCommandLine="make clean &amp;&amp; make -r 2&gt;&amp;1 | sed -e &apos;s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/’"
 				CleanCommandLine="make clean"
-				Output="dolphintest_si.dol"
+				Output="dolphintest_wpad.dol"
 				PreprocessorDefinitions="WIN32;NDEBUG"
 				IncludeSearchPath="$(ProjectDir)\include;C:\devkitPro\libogc\include"
 				ForcedIncludes=""

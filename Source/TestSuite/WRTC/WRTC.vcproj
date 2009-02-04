@@ -2,8 +2,8 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="GX"
-	ProjectGUID="{F45E42B2-939B-4F02-954B-E68251FD4CCF}"
+	Name="WRTC"
+	ProjectGUID="{F75021E3-73BF-425C-BA57-3FE7E2F6E02C}"
 	RootNamespace="TestSuite"
 	Keyword="MakeFileProj"
 	TargetFrameworkVersion="196613"
@@ -28,7 +28,7 @@
 				BuildCommandLine="make -r 2&gt;&amp;1 | sed -e &apos;s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/’"
 				ReBuildCommandLine="make clean &amp;&amp; make -r 2&gt;&amp;1 | sed -e &apos;s/\(.[a-zA-Z]\+\):\([0-9]\+\):/\1(\2):/’"
 				CleanCommandLine="make clean"
-				Output="dolphintest_gx.dol"
+				Output="dolphintest_wrtc.dol"
 				PreprocessorDefinitions="WIN32;NDEBUG"
 				IncludeSearchPath="$(ProjectDir)\include;C:\devkitPro\libogc\include"
 				ForcedIncludes=""
@@ -47,7 +47,7 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\source\dolphintest_gx.cpp"
+				RelativePath=".\source\dolphintest_wrtc.cpp"
 				>
 			</File>
 		</Filter>
