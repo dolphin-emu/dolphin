@@ -265,10 +265,10 @@ void wiimote_gen_key(wiimote_key *key, u8 *keydata)
 	Console::Print("rand: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n", rand[0], rand[1], rand[2], rand[3], rand[4], rand[5], rand[6], rand[7], rand[8], rand[9]);
 	Console::Print("key:  %02x %02x %02x %02x %02x %02x\n", skey[0], skey[1], skey[2], skey[3], skey[4], skey[5]);
 	
-	for(idx=0;idx<7;idx++)
+	for(idx = 0; idx < 7; idx++)
 	{
 		genkey(rand, idx, testkey);
-		if(!memcmp(testkey,skey,6))
+		if(!memcmp(testkey, skey, 6))
 			break;
 	}
 	// default case is idx = 7 which is valid (homebrew uses it for the 0x17 case)

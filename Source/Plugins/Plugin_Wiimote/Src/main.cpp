@@ -211,7 +211,7 @@ extern "C" void Shutdown(void)
 #endif
 	WiiMoteEmu::Shutdown();
 
-	Console::Close();
+	//Console::Close();
 }
 
 
@@ -354,10 +354,26 @@ bool IsFocus()
 #endif
 }
 
-void ReadDebugging(bool Emu, const void* _pData)
+/*
+// We have to 
+void DecryptData(u8 *_data)
+{
+			// Clear g_RegExtTmp by copying zeroes to it
+			memset(WiiMoteEmu::g_RegExtTmpReport, 0, sizeof(WiiMoteEmu::g_RegExtTmp));
+			// Write the nunchuck inputs to it. We begin writing at 0x08
+			memcpy(WiiMoteEmu::g_RegExtTmpReport + 0x08, data + 17, sizeof(wm_extension));
+			// Decrypt it
+			wiimote_decrypt(&WiiMoteEmu::g_ExtKey, &WiiMoteEmu::g_RegExtTmpReport[0x08], 0x08, 0x06);
+			// Write it back
+			memcpy(data + 17, &WiiMoteEmu::g_RegExtTmpReport[0x08], sizeof(wm_extension));
+}
+*/
+
+void ReadDebugging(bool Emu, const void* _pData, int Size)
 {
 	//
-	const u8* data = (const u8*)_pData;
+	//const u8* data = (const u8*)_pData;
+	u8* data = (u8*)_pData;
 
 	int size;
 	bool DataReport = false;
@@ -392,10 +408,34 @@ void ReadDebugging(bool Emu, const void* _pData)
 	case WM_READ_DATA_REPLY: // 0x21
 		size = sizeof(wm_read_data_reply);
 		Name = "REPLY";
-		// Show the accelerometer neutral values, 
+		// data[4]: Size and error
+		// data[5, 6]: The registry offset
+
+		// Show the accelerometer neutral values
 		if (data[5] == 0x00 && data[6] == 0x10)
-			Console::Print("\nGame got neutral values: %i %i %i\n\n",
+		{
+			Console::Print("\nGame got the Wiimote accelerometer neutral values: %i %i %i\n\n",
 				data[13], data[14], data[19]);
+		}
+		// Show the nunchuck neutral values
+		// We have already sent the data report so we can safely decrypt it now
+		wiimote_decrypt(&WiiMoteEmu::g_ExtKey, &data[7], 0x00, Size - 7);
+		if(data[4] == 0xf0 && data[5] == 0x00 && data[6] == 0x20)
+		{
+			Console::Print("\nGame got the Nunchuck calibration:\n");
+			Console::Print("Cal_zero.x: %i\n", data[7 + 0]);
+			Console::Print("Cal_zero.y: %i\n", data[7 + 1]);
+			Console::Print("Cal_zero.z: %i\n",  data[7 + 2]);
+			Console::Print("Cal_g.x: %i\n", data[7 + 4]);
+			Console::Print("Cal_g.y: %i\n",  data[7 + 5]);
+			Console::Print("Cal_g.z: %i\n",  data[7 + 6]);
+			Console::Print("Js.Max.x: %i\n",  data[7 + 8]);
+			Console::Print("Js.Min.x: %i\n",  data[7 + 9]);
+			Console::Print("Js.Center.x: %i\n", data[7 + 10]);
+			Console::Print("Js.Max.y: %i\n",  data[7 + 11]);
+			Console::Print("Js.Min.y: %i\n",  data[7 + 12]);
+			Console::Print("JS.Center.y: %i\n\n", data[7 + 13]);
+		}
 		break;
 	case WM_WRITE_DATA_REPLY:  // 0x22
 		size = sizeof(wm_acknowledge) - 1;
@@ -440,26 +480,38 @@ void ReadDebugging(bool Emu, const void* _pData)
 
 	if (!DataReport && g_DebugComm)
 	{
-		std::string Temp = ArrayToString(data, size + 2, 0, 30);
+		std::string TmpData = ArrayToString(data, size + 2, 0, 30);
 		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
-		Console::Print("Read[%s] %s: %s\n", (Emu ? "Emu" : "Real"), Name.c_str(),  Temp.c_str()); // No timestamp
+		Console::Print("Read[%s] %s: %s\n", (Emu ? "Emu" : "Real"), Name.c_str(), TmpData.c_str()); // No timestamp
 		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
 	}
 
 	if (DataReport && g_DebugData)
 	{
-		std::string Temp = ArrayToString(data, size + 2, 0, 30);
+		// Decrypt extension data
+		if(WiiMoteEmu::g_ReportingMode == 0x37)
+			wiimote_decrypt(&WiiMoteEmu::g_ExtKey, &data[17], 0x00, 0x06);
+
+		// Produce string
+		std::string TmpData = ArrayToString(data, size + 2, 0, 30);
 		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
 
-		// Format accelerometer values
-		if(Temp.length() > 20)
+		// Format accelerometer values to regular 10 base values
+		if(TmpData.length() > 20)
 		{
-			std::string Tmp1 = Temp.substr(0, 12);
-			std::string Tmp2 = Temp.substr(20, (Temp.length() - 20));
-			std::string Temp = Tmp1 + StringFromFormat("%03i %03i %03i", data[4], data[5], data[6]) + Tmp2;
+			std::string Tmp1 = TmpData.substr(0, 12);
+			std::string Tmp2 = TmpData.substr(20, (TmpData.length() - 20));
+			TmpData = Tmp1 + StringFromFormat("%03i %03i %03i", data[4], data[5], data[6]) + Tmp2;
 		}
-		
-		Console::Print("Read[%s]: %s\n", (Emu ? "Emu" : "Real"), Temp.c_str()); // No timestamp
+		// Format accelerometer values for the Nunchuck to regular 10 base values
+		if(TmpData.length() > 68 && WiiMoteEmu::g_ReportingMode == 0x37)
+		{
+			std::string Tmp1 = TmpData.substr(0, 60);
+			std::string Tmp2 = TmpData.substr(68, (TmpData.length() - 68));
+			TmpData = Tmp1 + StringFromFormat("%03i %03i %03i", data[19], data[20], data[21]) + Tmp2;
+		}
+
+		Console::Print("Read[%s]: %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str()); // No timestamp
 		//Console::Print(" (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
 	}
 	if(g_DebugAccelerometer)
@@ -500,6 +552,10 @@ void InterruptDebugging(bool Emu, const void* _pData)
 	case WM_WRITE_DATA: // 0x16
 		if (g_DebugComm) Console::Print("WM_WRITE_DATA");
 		size = sizeof(wm_write_data);
+		// data[2]: The address space 0, 1 or 2
+		// data[3]: The registry type
+		// data[5]: The registry offset
+		// data[6]: The number of bytes
 		switch(data[2] >> 0x01)
 		{
 		case WM_SPACE_EEPROM: 
@@ -511,7 +567,7 @@ void InterruptDebugging(bool Emu, const void* _pData)
 			case 0xa2:
 				if (g_DebugComm) Console::Print(" REG_SPEAKER"); break;
 			case 0xa4:
-				 if (g_DebugComm) Console::Print(" REG_EXT"); break;
+				if (g_DebugComm) Console::Print(" REG_EXT"); break;
 			case 0xb0:
 				 if (g_DebugComm) Console::Print(" REG_IR"); break;
 			}
@@ -520,6 +576,10 @@ void InterruptDebugging(bool Emu, const void* _pData)
 		break;
 	case WM_READ_DATA: // 0x17
 		size = sizeof(wm_read_data);
+		// data[2]: The address space 0, 1 or 2
+		// data[3]: The registry type
+		// data[5]: The registry offset
+		// data[7]: The number of bytes, 6 and 7 together
 		if (g_DebugComm) Console::Print("WM_READ_DATA");
 		switch(data[2] >> 0x01)
 		{

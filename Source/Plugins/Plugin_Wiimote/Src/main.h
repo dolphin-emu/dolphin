@@ -39,7 +39,7 @@ void DoInitialize();
 double GetDoubleTime();
 int GetUpdateRate();
 void InterruptDebugging(bool Emu, const void* _pData);
-void ReadDebugging(bool Emu, const void* _pData);
+void ReadDebugging(bool Emu, const void* _pData, int Size);
 bool IsFocus();
 
 

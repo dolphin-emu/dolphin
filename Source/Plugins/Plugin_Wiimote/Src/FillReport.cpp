@@ -761,24 +761,16 @@ void FillReportExtension(wm_extension& _ext)
 	// Recorded movements
 	// --------------
 	// Check for a playback command
-	if(g_RecordingPlaying[1] < 0)
-	{
-		g_RecordingPlaying[1] = RecordingCheckKeys(1);
+	if(g_RecordingPlaying[1] < 0) g_RecordingPlaying[1] = RecordingCheckKeys(1);
 
-	}
-	// We should play back the accelerometer values
-	else
+	// We should not play back the accelerometer values
+	if (!(g_RecordingPlaying[1] >= 0 && RecordingPlay(_ext.ax, _ext.ay, _ext.az, 1)))
 	{
-		//Console::Print("X: %u\n", _acc.x);
-		//
-		if (!RecordingPlay(_ext.ax, _ext.ay, _ext.az, 1))
-		{
-			/* These are the default neutral values for the nunchuck accelerometer according to the calibration
-			   data we have in nunchuck_calibration[] */
-			_ext.ax = 0x80;
-			_ext.ay = 0x80;
-			_ext.az = 0xb3;
-		}
+		/* These are the default neutral values for the nunchuck accelerometer according to the calibration
+		   data we have in nunchuck_calibration[] */
+		_ext.ax = 0x80;
+		_ext.ay = 0x80;
+		_ext.az = 0xb3;
 	}
 	// ---------------------
 

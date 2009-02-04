@@ -996,26 +996,29 @@ void CWII_IPC_HLE_WiiMote::SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLeng
 // ----------------
 void CWII_IPC_HLE_WiiMote::SendL2capData(u16 scid, const void* _pData, u32 _Size)
 {
-	//allocate
+	// Allocate DataFrame
 	u8 DataFrame[1024];
 	u32 Offset = 0;
 	SL2CAP_Header* pHeader = (SL2CAP_Header*)DataFrame;
 	Offset += sizeof(SL2CAP_Header);
 
+	// Check if we are already reporting on this channel
 	_dbg_assert_(WII_IPC_WIIMOTE, DoesChannelExist(scid));
 	SChannel& rChannel = m_Channel[scid];
 
-	//assemble
+	// Add an additonal 4 byte header to the Wiimote report
 	pHeader->CID = rChannel.DCID;
 	pHeader->Length = _Size;
 
+	// Copy the Wiimote report to DataFrame
 	memcpy(DataFrame + Offset, _pData, _Size);
+	// Update Offset to the final size of the report
 	Offset += _Size;
 
-	//send
+	// Send the report
 	m_pHost->SendACLFrame(GetConnectionHandle(), DataFrame, Offset);
 
-	//
+	// Update the status bar
 	Host_SetWiiMoteConnectionState(2);
 }
 
@@ -1023,22 +1026,16 @@ void CWII_IPC_HLE_WiiMote::SendL2capData(u16 scid, const void* _pData, u32 _Size
 
 namespace Core
 {
-	/* This is called continously from the Wiimote plugin as soon as it has received
-	   a reporting mode */
+	/* This is called continuously from the Wiimote plugin as soon as it has received
+	   a reporting mode. _Size is the byte size of the report. */
 	void Callback_WiimoteInput(u16 _channelID, const void* _pData, u32 _Size)
 	{
 		LOGV(WII_IPC_WIIMOTE, 3, "=========================================================");
 		const u8* pData = (const u8*)_pData;
 		LOGV(WII_IPC_WIIMOTE, 3, "Callback_WiimoteInput:");
-		std::string Temp;
-		for (u32 j=0; j<_Size; j++)
-		{
-			char Buffer[128];
-			sprintf(Buffer, "%02x ", pData[j]);
-			Temp.append(Buffer);
-		}
-		LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
-		//LOGV(WII_IPC_WIIMOTE, 3, "   Channel: %s", _channelID);
+		//std::string Temp = ArrayToString(pData, _Size, 0, 50);
+		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
+		LOGV(WII_IPC_WIIMOTE, 3, "   Channel: %s", _channelID);
 
 		s_Usb->m_WiiMotes[0].SendL2capData(_channelID, _pData, _Size);
 		LOGV(WII_IPC_WIIMOTE, 3, "=========================================================");

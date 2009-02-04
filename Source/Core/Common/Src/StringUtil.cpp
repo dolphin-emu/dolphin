@@ -151,14 +151,13 @@ std::string StringFromFormat(const char* format, ...)
 // ----------------
 std::string ArrayToString(const u8 *data, u32 size, u32 offset, int line_len, bool Spaces)
 {
-	//const u8* _data = (const u8*)data;
 	std::string Temp;
 	for (u32 i = 0; i < size; i++)
 	{
 		char Buffer[128];
 		if (Spaces) sprintf(Buffer, "%02x ", data[i + offset]);
 			else sprintf(Buffer, "%02x", data[i + offset]);
-		if((i + 1) % line_len == 0) Temp.append("\n"); // break long lines
+		if(i > 0 && i % line_len == 0) Temp.append("\n"); // break long lines
 		Temp.append(Buffer);
 	}	
 	return Temp;

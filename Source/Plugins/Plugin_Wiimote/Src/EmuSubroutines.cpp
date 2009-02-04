@@ -113,7 +113,7 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 		break;
 
 	case WM_WRITE_DATA: // 0x16
-		if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent) WmWriteData(_channelID, (wm_write_data*)sr->data);
+		WmWriteData(_channelID, (wm_write_data*)sr->data);
 		break;
 	case WM_SPEAKER_ENABLE: // 0x14
 		LOGV(WII_IPC_WIIMOTE, 1, "  WM Speaker Enable 0x%02x: 0x%02x", sr->channel, sr->data[0]);
@@ -136,16 +136,19 @@ void HidOutputReport(u16 _channelID, wm_report* sr) {
 
 
 // ===================================================
-/* Generate the right address for wm reports. */
+/* Generate the right header for wm reports. The returned values is the length of the header before
+   the data begins. It's always two for all reports 0x20 - 0x22, 0x30 - 0x37 */
 // ----------------
 int WriteWmReport(u8* dst, u8 channel)
 {
+	// Update the first byte to 0xa1
 	u32 Offset = 0;
 	hid_packet* pHidHeader = (hid_packet*)(dst + Offset);
 	Offset += sizeof(hid_packet);
 	pHidHeader->type = HID_TYPE_DATA;
 	pHidHeader->param = HID_PARAM_INPUT;
 
+	// Update the second byte to the current report type 0x20 - 0x22, 0x30 - 0x37
 	wm_report* pReport = (wm_report*)(dst + Offset);
 	Offset += sizeof(wm_report);
 	pReport->channel = channel;
@@ -208,7 +211,7 @@ void WmSendAck(u16 _channelID, u8 _reportID, u32 address)
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 
 	// Debugging
-	ReadDebugging(true, DataFrame);
+	ReadDebugging(true, DataFrame, Offset);
 }
 
 
@@ -261,8 +264,8 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 		case 0xA4:
 			block = g_RegExt;
 			blockSize = WIIMOTE_REG_EXT_SIZE;
-			LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xa4: Read ExtReg ****************************");
-			/*Tmp = ArrayToString(g_RegExt, size, (address & 0xffff));
+			LOGV(WII_IPC_WIIMOTE, 0, "    Case 0xa4: Read ExtReg");
+			/*Tmp = ArrayToString(g_RegExt, size, (address & 0xffff), 40);
 			//LOGV(WII_IPC_WIIMOTE, 0, "    Data: %s", Temp.c_str());		
 			Console::Print("Read RegExt: Size %i Address %08x  Offset %08x\nData %s\n",
 					size, address, (address & 0xffff), Tmp.c_str());*/
@@ -305,16 +308,15 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 				// Encrypt g_RegExtTmp at that location
 				wiimote_encrypt(&g_ExtKey, &g_RegExtTmp[address & 0xffff], (address & 0xffff), (u8)size);
 
+				// Update the block that SendReadDataReply will eventually send to the Wii
+				block = g_RegExtTmp;
+
 				/* Debugging: Show the encrypted data
 				std::string Temp = ArrayToString(g_RegExtTmp, size, offset);
 				Console::Print("Encrypted data:\n%s\n", Temp.c_str());*/
-
-				// Update the block that SendReadDataReply will eventually send to the Wii
-				block = g_RegExtTmp;
 			}
 		}
-		//---------
-
+		//-------------
 
 		address &= 0xFFFF;
 		if(address + size > blockSize) {
@@ -324,20 +326,101 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 
 		// Let this function process the message and send it to the Wii
 		SendReadDataReply(_channelID, block + address, address, (u8)size);
-
-
 	} 
 	else
 	{
 		PanicAlert("WmReadData: unimplemented parameters (size: %i, addr: 0x%x!", size, rd->space);
 	}
 
-	// Acknowledge the 0x17 read, we will do this from InterruptChannel() 
-	//WmSendAck(_channelID, WM_READ_DATA, _address);
-
 	LOGV(WII_IPC_WIIMOTE, 0, "===========================================================");
 }
+// ===================================================
+/* Here we produce the actual 0x21 Input report that we send to the Wii. The message
+   is divided into 16 bytes pieces and sent piece by piece. There will be five formatting
+   bytes at the begging of all reports. A common format is 00 00 f0 00 20, the 00 00
+   means that no buttons are pressed, the f means 16 bytes in the message, the 0
+   means no error, the 00 20 means that the message is at the 00 20 offest in the
+   registry that was read.
+   
+   _Base: The data beginning at _Base[0]
+	_Address: The starting address inside the registry, this is used to check for out of bounds reading
+   _Size: The total size to send
+   */
+// ----------------
+void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _Size)
+{
+	LOGV(WII_IPC_WIIMOTE, 0, "=========================================");
+	int dataOffset = 0;
+	const u8* data = (const u8*)_Base;
 
+	while (_Size > 0)
+	{
+		u8 DataFrame[1024];
+		// Write the first two bytes to DataFrame
+		u32 Offset = WriteWmReport(DataFrame, WM_READ_DATA_REPLY);
+		
+		// Limit the size to 16 bytes
+		int copySize = _Size;
+		if (copySize > 16) copySize = 16;
+
+		// Connect pReply->data to the almost empty DataFrame
+		wm_read_data_reply* pReply = (wm_read_data_reply*)(DataFrame + Offset);	
+		// Now we increase Offset to the final size of the report
+		Offset += sizeof(wm_read_data_reply);
+		// Add header values
+		pReply->buttons = 0;
+		pReply->error = 0;
+		pReply->size = (copySize - 1) & 0xf;
+		pReply->address = Common::swap16(_Address + dataOffset);
+
+		// Write a pice of _Base to DataFrame
+		memcpy(pReply->data, data + dataOffset, copySize);
+
+		// Check if we have less than 16 bytes left to send
+		if(copySize < 16) memset(pReply->data + copySize, 0, 16 - copySize);
+
+		// Update DataOffset for the next loop
+		dataOffset += copySize;
+
+		/* Out of bounds. The real Wiimote generate an error for the first request to 0x1770
+		   if we dont't replicate that the game will never read the capibration data at the
+		   beginning of Eeprom. I think this error is supposed to occur when we try to read above
+		   the freely usable space that ends at 0x16ff. */
+		if (Common::swap16(pReply->address + pReply->size) > WIIMOTE_EEPROM_FREE_SIZE)
+		{
+			pReply->size = 0x0f;
+			pReply->error = 0x08;
+		}
+
+		// Logging
+		LOG(WII_IPC_WIIMOTE, "  SendReadDataReply()");
+		LOG(WII_IPC_WIIMOTE, "    Buttons: 0x%04x", pReply->buttons);
+		LOG(WII_IPC_WIIMOTE, "    Error: 0x%x", pReply->error);
+		LOG(WII_IPC_WIIMOTE, "    Size: 0x%x", pReply->size);
+		LOG(WII_IPC_WIIMOTE, "    Address: 0x%04x", pReply->address);
+		/*Console::Print("  SendReadDataReply()\n");
+		Console::Print("    Offset: 0x%x\n", Offset);
+		Console::Print("    dataOffset: 0x%x\n", dataOffset);
+		Console::Print("    copySize: 0x%x\n", copySize);
+		Console::Print("    Size: 0x%x\n", pReply->size);
+		Console::Print("    Address: 0x%04x\n", Common::swap16(pReply->address));*/
+		//std::string Temp = ArrayToString(data, 0x40);
+		//Console::Print("Data:\n%s\n", Temp.c_str());		
+
+		// Send a piece
+		g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
+		// Update the size that is left
+		_Size -= copySize;
+
+		// Debugging
+		ReadDebugging(true, DataFrame, Offset);
+	}
+
+	if (_Size != 0)
+		PanicAlert("WiiMote-Plugin: SendReadDataReply() failed");
+	LOGV(WII_IPC_WIIMOTE, 0, "==========================================");
+}
+// ================
 
 
 // ===================================================
@@ -446,88 +529,6 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 	LOGV(WII_IPC_WIIMOTE, 0, "==========================================================");
 }
 
-
-// ===================================================
-/* Here we produce the actual 0x21 Input report that we send to the Wii. The message
-   is divided into 16 bytes pieces and sent piece by piece. There will be five formatting
-   bytes at the begging of all reports. A common format is 00 00 f0 00 20, the 00 00
-   means that no buttons are pressed, the f means 16 bytes in the message, the 0
-   means no error, the 00 20 means that the message is at the 00 20 offest in the
-   registry that was read. */
-// ----------------
-void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _Size)
-{
-	LOGV(WII_IPC_WIIMOTE, 0, "=========================================");
-	int dataOffset = 0;
-	const u8* data = (const u8*)_Base;
-	while (_Size > 0)
-	{
-		u8 DataFrame[1024];
-		u32 Offset = WriteWmReport(DataFrame, WM_READ_DATA_REPLY);
-		
-		// Limit the size to 16 bytes
-		int copySize = _Size;
-		if (copySize > 16) copySize = 16;
-
-		// Connect pReply->data to the empty DataFrame
-		wm_read_data_reply* pReply = (wm_read_data_reply*)(DataFrame + Offset);
-		Offset += sizeof(wm_read_data_reply);
-		pReply->buttons = 0;
-		pReply->error = 0;
-		pReply->size = (copySize - 1) & 0xf;
-		pReply->address = Common::swap16(_Address + dataOffset);
-
-		// Write a pice of _Base to DataFrame
-		memcpy(pReply->data, data + dataOffset, copySize);
-
-		// Check if we have less than 16 bytes left to send
-		if(copySize < 16)
-			memset(pReply->data + copySize, 0, 16 - copySize);
-
-		// Update DataOffset for the next loop
-		dataOffset += copySize;
-
-		/* Out of bounds. The real Wiimote generate an error for the first request to 0x1770
-		   if we dont't replicate that the game will never read the capibration data at the
-		   beginning of Eeprom. I think this error is supposed to occur when we try to read above
-		   the freely usable space that ends at 0x16ff. */
-		if (Common::swap16(pReply->address + pReply->size) > WIIMOTE_EEPROM_FREE_SIZE)
-		{
-			pReply->size = 0x0f;
-			pReply->error = 0x08;
-		}
-
-		// Logging
-		LOG(WII_IPC_WIIMOTE, "  SendReadDataReply()");
-		LOG(WII_IPC_WIIMOTE, "    Buttons: 0x%04x", pReply->buttons);
-		LOG(WII_IPC_WIIMOTE, "    Error: 0x%x", pReply->error);
-		LOG(WII_IPC_WIIMOTE, "    Size: 0x%x", pReply->size);
-		LOG(WII_IPC_WIIMOTE, "    Address: 0x%04x", pReply->address);
-		/*Console::Print("  SendReadDataReply()\n");
-		Console::Print("    dataOffset: 0x%x\n", dataOffset);
-		Console::Print("    copySize: 0x%x\n", copySize);
-		Console::Print("    Size: 0x%x\n", pReply->size);
-		Console::Print("    Address: 0x%04x\n", Common::swap16(pReply->address));*/
-
-		//std::string Temp = ArrayToString(data, 0x40);
-		//Console::Print("Eeprom: %s\n", Temp.c_str());		
-
-		// Send a piece
-		g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
-
-		_Size -= copySize;
-
-		// Debugging
-		ReadDebugging(true, DataFrame);
-	}
-
-	if (_Size != 0)
-		PanicAlert("WiiMote-Plugin: SendReadDataReply() failed");
-	LOGV(WII_IPC_WIIMOTE, 0, "==========================================");
-}
-// ================
-
-
 // ===================================================
 /* Here we produce a status report to send to the Wii. We currently ignore the status
    request rs and all its eventual instructions it may include (for example turn off
@@ -576,7 +577,7 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs)
 	LOGV(WII_IPC_WIIMOTE, 0, "=================================================");
 
 	// Debugging
-	ReadDebugging(true, DataFrame);
+	ReadDebugging(true, DataFrame, Offset);
 }
 
 } // WiiMoteEmu

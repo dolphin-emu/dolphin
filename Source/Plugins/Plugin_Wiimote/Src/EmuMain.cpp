@@ -276,11 +276,14 @@ void Initialize()
 	LoadRecordedMovements();
 
 	// Set default recording values
-	g_RecordingPlaying[0] = -1; g_RecordingPlaying[1] = -1;
-	g_RecordingCounter[0] = 0; g_RecordingCounter[1] = 0;
-	g_RecordingPoint[0] = 0; g_RecordingPoint[1] = 0;
-	g_RecordingStart[0] = 0; g_RecordingStart[1] = 0;
-	g_RecordingCurrentTime[0] = 0; g_RecordingCurrentTime[1] = 0;
+	for (int i = 0; i < 3; i++)
+	{
+		g_RecordingPlaying[i] = -1;
+		g_RecordingCounter[i] = 0;
+		g_RecordingPoint[i] = 0;
+		g_RecordingStart[i] = 0;
+		g_RecordingCurrentTime[i] = 0;
+	}
 
 	// I forgot what these were for?
 	//	g_RegExt[0xfd] = 0x1e;

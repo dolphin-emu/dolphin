@@ -283,13 +283,15 @@ void SendEvent(SEvent& _rEvent)
 
 	// Create the buffer
     memcpy(&Buffer[Offset], _rEvent.m_PayLoad, MAX_PAYLOAD);
+	/* This Offset value is not exactly correct like it is for the emulated Wiimote reports. It's
+	   often to big, but I guess that's okay. The game will know how big the actual data is. */
     Offset += MAX_PAYLOAD;
 
 	// Send it
 	g_WiimoteInitialize.pWiimoteInput(m_channelID, Buffer, Offset);
 
 	// Debugging
-	ReadDebugging(false, Buffer);  
+	ReadDebugging(false, Buffer, Offset);  
 }
 /////////////////////
 };
