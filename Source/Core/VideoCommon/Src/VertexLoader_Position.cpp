@@ -27,8 +27,6 @@
 extern float posScale;
 extern TVtxAttr *pVtxAttr;
 
-#define LOG_VTX() PRIM_LOG("vtx: %f %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0], ((float*)VertexManager::s_pCurBufferPointer)[1], ((float*)VertexManager::s_pCurBufferPointer)[2]);
-
 // Thoughts on the implementation of a vertex loader compiler.
 // s_pCurBufferPointer should definitely be in a register.
 // Could load the position scale factor in XMM7, for example.

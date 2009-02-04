@@ -92,11 +92,18 @@ struct TRectangle
 void DebugLog(const char* _fmt, ...); // This one goes to the main program
 void HandleGLError();
 
+#ifdef LOGGING
+#define LOG_VTX() LOG("vtx: %f %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0], ((float*)VertexManager::s_pCurBufferPointer)[1], ((float*)VertexManager::s_pCurBufferPointer)[2]);
+#else
+#define LOG_VTX()
+#endif
+
 #ifdef _WIN32
 #define ERROR_LOG(...) LOG(VIDEO, __VA_ARGS__)
 #define INFO_LOG(...) LOG(VIDEO, __VA_ARGS__)
 #define PRIM_LOG(...) LOG(VIDEO, __VA_ARGS__)
 #define DEBUG_LOG(...) LOG(VIDEO, __VA_ARGS__)
+
 #else
 #define ERROR_LOG(...) LOG(VIDEO, ##__VA_ARGS__)
 #define INFO_LOG(...) LOG(VIDEO, ##__VA_ARGS__)
