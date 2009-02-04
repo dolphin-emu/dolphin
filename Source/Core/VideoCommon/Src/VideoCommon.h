@@ -86,29 +86,23 @@ struct TRectangle
 };
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
+
 // Logging
 // ¯¯¯¯¯¯¯¯¯¯
 void DebugLog(const char* _fmt, ...); // This one goes to the main program
-void __Log(const char *format, ...); // This one is for the local console
-void __Log(int type, const char *format, ...);
 void HandleGLError();
 
-#define ERROR_LOG __Log
-
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	// FIXME ugly hack for debug to build should use logmanager
-	//#define INFO_LOG if( g_Config.iLog & CONF_LOG ) __Log
-	//#define PRIM_LOG if( g_Config.iLog & CONF_PRIMLOG ) __Log
-	#define INFO_LOG __Log
-	#define PRIM_LOG __Log
-	#define DEBUG_LOG __Log
+#ifdef _WIN32
+#define ERROR_LOG(...) LOG(VIDEO, __VA_ARGS__)
+#define INFO_LOG(...) LOG(VIDEO, __VA_ARGS__)
+#define PRIM_LOG(...) LOG(VIDEO, __VA_ARGS__)
+#define DEBUG_LOG(...) LOG(VIDEO, __VA_ARGS__)
 #else
-	#define INFO_LOG(...)
-	#define PRIM_LOG(...)
-	#define DEBUG_LOG(...)
+#define ERROR_LOG(...) LOG(VIDEO, ##__VA_ARGS__)
+#define INFO_LOG(...) LOG(VIDEO, ##__VA_ARGS__)
+#define PRIM_LOG(...) LOG(VIDEO, ##__VA_ARGS__)
+#define DEBUG_LOG(...) LOG(VIDEO, ##__VA_ARGS__)
 #endif
-///////////////////////////////////
 
 
 #endif  // _VIDEOCOMMON_H

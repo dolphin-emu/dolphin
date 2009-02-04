@@ -16,9 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// -------------
 #include "Globals.h"
 #include <list>
 #include <vector>
@@ -59,12 +56,7 @@
 	#include "Win32Window.h" // warning: crapcode
 #else
 #endif
-/////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
-// Declarations and definitions
-// -------------
 struct MESSAGE
 {
     MESSAGE() {}
@@ -139,9 +131,9 @@ bool Renderer::Init()
     const char* ptoken = (const char*)glGetString(GL_EXTENSIONS);
     if (ptoken == NULL) return false;
 
-    __Log("Supported OpenGL Extensions:\n");
-    __Log(ptoken);     // write to the log file
-    __Log("\n");
+    INFO_LOG("Supported OpenGL Extensions:\n");
+    INFO_LOG(ptoken);     // write to the log file
+    INFO_LOG("\n");
 
     if (strstr(ptoken, "GL_EXT_blend_logic_op") != NULL)
         g_bBlendLogicOp = true;
@@ -326,8 +318,8 @@ bool Renderer::Init()
     glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB, (GLint *)&nenvfragparams);
     glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[0]);
     glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[1]);
-    __Log("max program env parameters: vert=%d, frag=%d\n", nenvvertparams, nenvfragparams);
-    __Log("max program address register parameters: vert=%d, frag=%d\n", naddrregisters[0], naddrregisters[1]);
+    DEBUG_LOG("max program env parameters: vert=%d, frag=%d\n", nenvvertparams, nenvfragparams);
+    DEBUG_LOG("max program address register parameters: vert=%d, frag=%d\n", naddrregisters[0], naddrregisters[1]);
 
     if (nenvvertparams < 238)
         ERROR_LOG("not enough vertex shader environment constants!!\n");
@@ -689,7 +681,7 @@ bool Renderer::SetScissorRect()
 	rc_bottom *= MValueY;
 	if (rc_bottom > 480 * MValueY) rc_bottom = 480 * MValueY;
 
-   /*__Log("Scissor: lt=(%d,%d), rb=(%d,%d,%i), off=(%d,%d)\n",
+   /*LOG("Scissor: lt=(%d,%d), rb=(%d,%d,%i), off=(%d,%d)\n",
 		rc_left, rc_top,
 		rc_right, rc_bottom, Renderer::GetTargetHeight(),
 		xoff, yoff

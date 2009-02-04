@@ -138,12 +138,12 @@ protected:
     void DumpCommands(u32 _CommandAddress, size_t _NumberOfCommands = 8,
 		int LogType = LogTypes::WII_IPC_HLE, int Verbosity = 0)
     {
-		// Because I have to use __Logv here I add this #if
+		// Because I have to use LOGV here I add this #if
 		#if defined(_DEBUG) || defined(DEBUGFAST)
-			__Logv(LogType, Verbosity, "CommandDump of %s", GetDeviceName().c_str());
+			LOGVP(LogType, Verbosity, "CommandDump of %s", GetDeviceName().c_str());
 			for (u32 i = 0; i < _NumberOfCommands; i++)
 			{            
-				__Logv(LogType, Verbosity, "    Command%02i: 0x%08x", i,
+				LOGVP(LogType, Verbosity, "    Command%02i: 0x%08x", i,
 					Memory::Read_U32(_CommandAddress + i*4));	
 			}
 		#endif

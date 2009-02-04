@@ -196,14 +196,10 @@ inline u64 swap64(u64 data) {return(((u64)swap32(data) << 32) | swap32(data >> 3
 } // end of namespace Common
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Utility functions
-// ¯¯¯¯¯¯¯¯¯
 
 
-///////////////////////////
 // Message alerts
-// ¯¯¯¯¯¯¯¯¯
 enum MSG_TYPE
 {
 	INFORMATION,
@@ -230,12 +226,7 @@ extern bool MsgAlert(const char* caption, bool yes_no, int Style, const char* fo
 
 
 
-///////////////////////////
 // Logging
-// ¯¯¯¯¯¯¯¯¯
-
-extern void __Log(int logNumber, const char* text, ...);
-extern void __Logv(int log, int v, const char *format, ...);
 
 // dummy class
 class LogTypes
@@ -279,14 +270,25 @@ class LogTypes
 	};
 };
 
+#ifdef LOGGING
+extern void __Log(int logNumber, const char* text, ...);
+extern void __Logv(int log, int v, const char *format, ...);
 
 void Host_UpdateLogDisplay();
 
 // Logging macros. LOGGING is turned on from earlier in this file
-#ifdef LOGGING
 
+#ifdef _WIN32
 #define LOG(t, ...) __Log(LogTypes::t, __VA_ARGS__);
 #define LOGV(t,v, ...) __Log(LogTypes::t + (v)*100, __VA_ARGS__);
+#define LOGP(t, ...) __Log(t, __VA_ARGS__);
+#define LOGVP(t,v, ...) __Log(t + (v)*100, __VA_ARGS__);
+#else
+#define LOG(t, ...) __Log(LogTypes::t, ##__VA_ARGS__);
+#define LOGV(t,v, ...) __Log(LogTypes::t + (v)*100, ##__VA_ARGS__);
+#define LOGP(t, ...) __Log(t, ##__VA_ARGS__);
+#define LOGVP(t,v, ...) __Log(t + (v)*100, ##__VA_ARGS__);
+#endif
 
 #define _dbg_assert_(_t_, _a_) \
 	if (!(_a_)){\
@@ -305,6 +307,8 @@ void Host_UpdateLogDisplay();
 
 #define LOG(_t_, ...)
 #define LOGV(_t_,_v_, ...)
+#define LOGP(_t_, ...)
+#define LOGVP(_t_,_v_, ...)
 #define _dbg_clear_()
 #ifndef _dbg_assert_
 #define _dbg_assert_(_t_, _a_) ;
@@ -326,9 +330,7 @@ void Host_UpdateLogDisplay();
 #endif
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Compile time asserts
-// ¯¯¯¯¯¯¯¯¯
 namespace 
 {
 
@@ -344,7 +346,6 @@ namespace
 	#endif
 #endif
 }
-//////////////////////////////////
 
 
 #endif	// #ifndef _COMMON_H

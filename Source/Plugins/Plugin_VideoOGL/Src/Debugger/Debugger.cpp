@@ -16,9 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-// =======================================================================================
-// Includes
-// ---------------
 #include "../Globals.h" // The precompiled header
 
 #include "IniFile.h" // Common
@@ -29,20 +26,13 @@
 #include "PBView.h" // Debugger files
 #include "Debugger.h"
 #include "Logging.h" // Open and close console
-// ========================
 
 
-// =======================================================================================
-// Declarations and definitions
-// ---------------
 extern int gPreset;
 int A, B;
-// ========================
 
 
-// =======================================================================================
 // Event table and class
-// ---------------
 BEGIN_EVENT_TABLE(CDebugger,wxDialog)
 	EVT_SHOW(CDebugger::OnShow)
 	EVT_CLOSE(CDebugger::OnClose)
@@ -81,12 +71,9 @@ CDebugger::~CDebugger()
 	this->Save(file);
 	file.Save(DEBUGGER_CONFIG_FILE);
 } 
-// =========================
 
 
-// ==========================================================================
 // System functions
-// --------------
 void CDebugger::OnShow(wxShowEvent& /*event*/)
 {	
 	// bring the console back to
@@ -130,12 +117,8 @@ void CDebugger::OnUpdate(wxCommandEvent& /*event*/)
 {
 	this->NotifyUpdate();
 }
-// ===============
 
-
-// ==========================================================================
 // Save and load settings
-// --------------
 void CDebugger::Save(IniFile& _IniFile) const
 {
 	// TODO1: make this work when we close the entire program to, currently on total close we get
@@ -182,7 +165,6 @@ void CDebugger::Load(IniFile& _IniFile)
 	_IniFile.Get("VideoWindow", "LogLevel", &g_Config.iLog, 0);
 	m_settings->Check(g_Config.iLog - 1, true);
 }
-// ===============
 
 
 void CDebugger::CreateGUIControls()
@@ -209,7 +191,6 @@ void CDebugger::CreateGUIControls()
 
 
 
-	// ===================================================================
 	// Main Page
 
 
@@ -238,12 +219,8 @@ void CDebugger::CreateGUIControls()
 	m_buttonSizer->Add(m_Am, 0, 0, 5);
 	m_buttonSizer->Add(m_Bp, 0, 0, 5);
 	m_buttonSizer->Add(m_Bm, 0, 0, 5);
-	// ------------------------
 
-
-	// --------------------------------------------------------------------
 	// m_PageMain: Options
-	// -------------------------
 	wxStaticBoxSizer * m_optionsSizer = new wxStaticBoxSizer(wxVERTICAL, m_PageMain, wxT("Options"));
 	//m_Label[0] = new wxStaticBox(m_PageMain, IDG_LABEL1, wxT("Options"),
 	//	wxDefaultPosition, wxDefaultSize, 0);
@@ -259,12 +236,9 @@ void CDebugger::CreateGUIControls()
 	
     m_optionsSizer->Add(m_Check[0], 0, 0, 5);
 	m_optionsSizer->Add(m_Check[2], 0, 0, 5);	
-	// ------------------------
 
 
-	// --------------------------------------------------------------------
 	// m_PageMain: Log settings checkboxes
-	// -------------------------
 	wxStaticBoxSizer * m_logSizer = new wxStaticBoxSizer(wxVERTICAL, m_PageMain, wxT("Log setting"));
 	m_settings = new wxCheckListBox(m_PageMain, ID_CHECKLIST1, wxDefaultPosition, wxDefaultSize,
 		0, NULL, wxNO_BORDER);
@@ -397,7 +371,7 @@ void CDebugger::Ap(wxCommandEvent& event)
 {
 	A += 50;
 	//MessageBox(0, "", "", 0);
-	__Log("%i", A);
+	DEBUG_LOG("%i", A);
 }
 void CDebugger::Am(wxCommandEvent& event)
 {

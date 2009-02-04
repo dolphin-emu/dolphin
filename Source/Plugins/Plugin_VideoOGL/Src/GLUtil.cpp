@@ -562,12 +562,13 @@ bool OpenGL_MakeCurrent()
     glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
     XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
                  &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
-    ERROR_LOG("GLWin Depth %d", GLWin.depth);
-    if (glXIsDirect(GLWin.dpy, GLWin.ctx))
-        ERROR_LOG("you have Direct Rendering!");
-    else
-        ERROR_LOG("no Direct Rendering possible!");
-
+    ERROR_LOG("GLWin Depth %d", GLWin.depth)
+        if (glXIsDirect(GLWin.dpy, GLWin.ctx)) {
+            ERROR_LOG("you have Direct Rendering!");
+        } else {
+         ERROR_LOG("no Direct Rendering possible!");
+        }
+    
     // better for pad plugin key input (thc)
     XSelectInput(GLWin.dpy, GLWin.win, ExposureMask | KeyPressMask | ButtonPressMask | KeyReleaseMask | ButtonReleaseMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask |
                  FocusChangeMask );

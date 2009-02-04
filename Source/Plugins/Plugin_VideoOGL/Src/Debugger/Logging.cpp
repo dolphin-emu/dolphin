@@ -17,12 +17,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 //
-//////////////////////////////////////////////////////////////////////////////////////////
 
-
-// =======================================================================================
-// Includes
-// ---------------
 #include "../Globals.h"  // This is the precompiled header and must be the first ...
 
 #include <iostream>
@@ -40,16 +35,8 @@
 	#include "ConsoleWindow.h" // Open and close console, clear console window
 #endif
 #include "../Debugger/Logging.h" // For global logging values
-// =======================
 
-
-// =======================================================================================
-// Declarations and definitions
-// ---------------
-
-// -------------------------
 // Externals
-// -------------
 extern int nFiles;
 float ratioFactor; // a global to get the ratio factor from MixAdd
 int gPreset = 0;
@@ -62,26 +49,16 @@ extern bool gReset;
 bool gOnlyLooping = false;
 //extern int gleft, gright, gtop, gbottom; // from BPStructs.cpp
 
-// -------------------------
-// Counters
-// -------------
 int j = 0;
 int k = 0;
 bool iupdonce = false;
 std::vector<u16> viupd(15); // the length of the update frequency bar
 
-// -------------------------
-// Classes
-// -------------
 #if defined(HAVE_WX) && HAVE_WX
 extern CDebugger* m_frame;
 #endif		
-// =======================
 
 
-// =======================================================================================
-// Write title
-// --------------
 std::string writeTitle(int a)
 {
 	std::string b;
@@ -91,20 +68,13 @@ std::string writeTitle(int a)
 	}
 	return b;
 }
-// =======================================================================================
 
-
-
-// =======================================================================================
 // Write main message (presets)
-// --------------
 std::string writeMessage(int a, int i)
 {
 	char buf [1000] = "";
 	std::string sbuf;
-	// =======================================================================================
-	// PRESETS
-	// ---------------------------------------------------------------------------------------
+
 	/*
 	PRESET 0
 	"lef rig top bot | xof yof\n";
@@ -122,27 +92,12 @@ std::string writeMessage(int a, int i)
 }
 
 
-// =======================================================================================
-
-
-
 // Logging
 void Logging(int a)
 {
 
 
-	// =======================================================================================
-	// Update parameter values
-	// --------------
-	// AXPB base
-
-
-	// ==============
-
-	
-	// =======================================================================================
 	// Control how often the screen is updated, and then update the screen
-	// --------------
 	if(a == 0) j++;
 	//if(l == pow((double)2,32)) l=0; // reset l
 	//l++;
@@ -150,13 +105,10 @@ void Logging(int a)
 	{
 
 			
-		// =======================================================================================
 		// Write header
-		// --------------
 		char buffer [1000] = "";
 		std::string sbuff;
 		sbuff = writeTitle(gPreset);		
-		// ==============
 
 
 		// hopefully this is false if we don't have a debugging window and so it doesn't cause a crash
@@ -172,7 +124,7 @@ void Logging(int a)
 		sbuff = sbuff + "\n";
 
 
-		// =======================================================================================
+
 		// Write global values
 		// ---------------
 		/*
@@ -250,7 +202,7 @@ void Logging(int a)
 		Console::ClearScreen();
 		#endif
 
-		__Log("%s", sbuff.c_str());
+		LOG(VIDEO, "%s", sbuff.c_str());
 		sbuff.clear(); strcpy(buffer, "");
 		// ================
 

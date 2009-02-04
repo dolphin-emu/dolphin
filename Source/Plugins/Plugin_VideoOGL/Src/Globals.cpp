@@ -16,9 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
-// Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #if defined(HAVE_WX) && HAVE_WX
 	#include <wx/wx.h>
 	#include <wx/filepicker.h>
@@ -35,41 +32,26 @@
 #include "IniFile.h"
 #include "ConsoleWindow.h"
 #include <assert.h>
-/////////////////////////////////////
 
-
-//////////////////////////////////////////////////////////////////////////////////////////
 // Open and close the Windows console window
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
-#ifdef _WIN32
+
 void OpenConsole()
 {
 	Console::Open(100, 300, "OpenGL Plugin Output"); // give room for 300 rows
 	Console::Print("OpenGL console opened\n");
+        #ifdef _WIN32
 	MoveWindow(Console::GetHwnd(), 0,400, 1280,550, true); // Move window. Todo: make this
 			// adjustable from the debugging window
+        #endif
 }
 
 void CloseConsole()
 {
 	Console::Close();
 }
-#else
-// Dummy functions for console open/close
-void OpenConsole()
-{
-}
-
-void CloseConsole()
-{
-}
-#endif
-//////////////////////////////////
 
 
-//////////////////////////////////////////////////////////////////////////////////////////
 // Write logs
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 // The log file handle
 static FILE* pfLog = NULL;
@@ -77,6 +59,7 @@ static FILE* pfLog = NULL;
 // This is on by default, but can be controlled from the debugging window
 bool LocalLogFile = true;
 
+#ifdef LOGGING
 void __Log(const char *fmt, ...)
 {
     char* Msg = (char*)alloca(strlen(fmt)+512);
@@ -96,12 +79,8 @@ void __Log(const char *fmt, ...)
     if (pfLog != NULL && LocalLogFile)
         fwrite(Msg, strlen(Msg), 1, pfLog);
 
-	#ifdef _WIN32
-		// Write to the console screen, if one exists
-		Console::Print(Msg);
-	#else
-		//printf("%s", Msg);
-	#endif
+    Console::Print(Msg);
+
 }
 
 void __Log(int type, const char *fmt, ...)
@@ -114,10 +93,7 @@ void __Log(int type, const char *fmt, ...)
     va_end( ap );
 
     g_VideoInitialize.pLog(Msg, FALSE);
-
-#ifdef _WIN32
-	// Write to the console screen, if one exists
     Console::Print(Msg);
-#endif
 }
-//////////////////////////////////
+#endif
+
