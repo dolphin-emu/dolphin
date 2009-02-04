@@ -16,7 +16,9 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+//////////////////////////////////////////////////////////////////////////////////////////
 // Includes
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <iostream> // System
 #include "pluginspecs_wiimote.h"
 
@@ -437,16 +439,17 @@ int Initialize()
 	// Remove the wiiuse_poll() threshold
 	wiiuse_set_accel_threshold(g_WiiMotesFromWiiUse[0], 0);
 
-	// Set the sensor bar position, this only affects the internal wiiuse api functions
+	// Set the sensor bar position, this should only affect the internal wiiuse api functions
 	wiiuse_set_ir_position(g_WiiMotesFromWiiUse[0], WIIUSE_IR_ABOVE);
 
-	// I don't seem to need wiiuse_connect()
-	// Linux needs it
-	int Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
-	Console::Print("Connected: %i\n", Connect);	
+	// I don't seem to need wiiuse_connect() in Windows. But Linux needs it.
+	#ifndef _WIN32
+		int Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
+		Console::Print("Connected: %i\n", Connect);
+	#endif
 
 	// If we are connecting from the config window without a game running we flash the lights
-	if (!g_EmulatorRunning) FlashLights(true);
+	if (!g_EmulatorRunning && g_RealWiiMotePresent) FlashLights(true);
 
 	// Create Wiimote classes
 	for (int i = 0; i < g_NumberOfWiiMotes; i++)
@@ -499,7 +502,7 @@ void Shutdown(void)
         }
 
 	// Flash flights
-	if (!g_EmulatorRunning) FlashLights(false);
+	if (!g_EmulatorRunning && g_RealWiiMotePresent) FlashLights(false);
 
 	// Clean up wiiuse
 	wiiuse_cleanup(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes);

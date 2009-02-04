@@ -288,10 +288,16 @@ void wiimote_gen_key(wiimote_key *key, u8 *keydata)
 // ----------------
 void wiimote_encrypt(wiimote_key *key, u8 *data, int addr, u8 len)
 {
-	for(int i = 0; i < len; i++, addr++)
-	{		
-		//Console::Print("data[%i] from %02x ", i, data[i]);
+	for(int i = 0; i < len; i++, addr++)	
 		data[i] = (data[i] - key->ft[addr%8]) ^ key->sb[addr%8];
-		//Console::Print("to %02x\n", data[i]);
-	}
+}
+
+
+// ===================================================
+/* Decrypt data */
+// ----------------
+void wiimote_decrypt(wiimote_key *key, u8 *data, int addr, u8 len)
+{
+	for(int i = 0; i < len; i++, addr++)
+		data[i] = (data[i] ^ key->sb[addr%8]) + key->ft[addr%8];
 }

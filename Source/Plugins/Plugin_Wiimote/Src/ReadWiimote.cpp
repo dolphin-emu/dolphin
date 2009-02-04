@@ -147,8 +147,17 @@ void handle_event(struct wiimote_t* wm)
 				Tmp += StringFromFormat("IR source %i: (%u, %u)\n", i, wm->ir.dot[i].x, wm->ir.dot[i].y);
 		}
 
+		Tmp += "\n";
 		Tmp += StringFromFormat("IR cursor: (%u, %u)\n", wm->ir.x, wm->ir.y);
 		Tmp += StringFromFormat("IR z distance: %f\n", wm->ir.z);
+
+		if(wm->exp.type == EXP_NUNCHUK)
+		{
+			Tmp += "\n";
+			Tmp += StringFromFormat("Nunchuck accel x, y, z: %03i %03i %03i\n", nc->accel.x, nc->accel.y, nc->accel.z);
+		}
+
+		//Tmp += "\n";
 		//std::string TmpData = ArrayToString(g_EventBuffer, ReportSize, 0, 30);
 		//Tmp += "Data: " + TmpData;
 
@@ -157,7 +166,7 @@ void handle_event(struct wiimote_t* wm)
 
 		if(frame)
 		{
-			// Produce adjussted accelerometer values
+			// Produce adjusted accelerometer values
 			u8 AccelX = 0, AccelY = 0, AccelZ = 0;			
 			if((wm->accel.x + g_Config.iAccNunNeutralX) <= 255) AccelX = wm->accel.x + g_Config.iAccNeutralX;
 			if((wm->accel.y + g_Config.iAccNunNeutralY) <= 255) AccelY = wm->accel.y + g_Config.iAccNeutralY;

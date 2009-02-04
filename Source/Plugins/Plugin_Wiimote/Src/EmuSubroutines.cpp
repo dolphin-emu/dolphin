@@ -503,11 +503,11 @@ void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _Size)
 		LOG(WII_IPC_WIIMOTE, "    Error: 0x%x", pReply->error);
 		LOG(WII_IPC_WIIMOTE, "    Size: 0x%x", pReply->size);
 		LOG(WII_IPC_WIIMOTE, "    Address: 0x%04x", pReply->address);
-		/**/Console::Print("  SendReadDataReply()\n");
+		/*Console::Print("  SendReadDataReply()\n");
 		Console::Print("    dataOffset: 0x%x\n", dataOffset);
 		Console::Print("    copySize: 0x%x\n", copySize);
 		Console::Print("    Size: 0x%x\n", pReply->size);
-		Console::Print("    Address: 0x%04x\n", Common::swap16(pReply->address));
+		Console::Print("    Address: 0x%04x\n", Common::swap16(pReply->address));*/
 
 		//std::string Temp = ArrayToString(data, 0x40);
 		//Console::Print("Eeprom: %s\n", Temp.c_str());		

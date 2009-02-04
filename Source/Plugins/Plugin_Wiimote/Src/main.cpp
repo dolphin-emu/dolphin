@@ -16,7 +16,9 @@
 // http://code.google.com/p/dolphin-emu/
 
 
+//////////////////////////////////////////////////////////////////////////////////////////
 // Includes
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include "Common.h" // Common
 #include "StringUtil.h"
 #include "ConsoleWindow.h" // For Start, Print, GetHwnd

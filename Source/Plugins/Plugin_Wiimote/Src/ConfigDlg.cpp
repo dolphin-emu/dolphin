@@ -933,7 +933,7 @@ void ConfigDialog::UpdateGUI()
 	   has been initialized. Functions for that are basically already in place so these two options
 	   could possibly be simplified to one option. */
 	m_ConnectRealWiimote->Enable(!g_EmulatorRunning);
-	m_UseRealWiimote->Enable(g_RealWiiMotePresent && g_Config.bConnectRealWiimote);
+	m_UseRealWiimote->Enable(!(g_EmulatorRunning && g_RealWiiMotePresent && g_Config.bConnectRealWiimote));
 
 // Linux has no FindItem()
 #ifdef _WIN32

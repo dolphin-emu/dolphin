@@ -18,20 +18,30 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+//////////////////////////////////////////////////////////////////////////////////////////
+// Includes
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯
 #include <iostream> // System
+////////////////////////////////
 
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Definitions and declarations
+// ¯¯¯¯¯¯¯¯¯
 #ifdef _WIN32
 #define sleep(x) Sleep(x)
 #else
 #define sleep(x) usleep(x*1000)
 #endif
-// Declarations
+
+
 void DoInitialize();
 double GetDoubleTime();
 int GetUpdateRate();
 void InterruptDebugging(bool Emu, const void* _pData);
 void ReadDebugging(bool Emu, const void* _pData);
 bool IsFocus();
+
 
 // Movement recording
 #define RECORDING_ROWS 15

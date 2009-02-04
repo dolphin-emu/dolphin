@@ -31,6 +31,7 @@ typedef struct {
 
 
 void wiimote_encrypt(wiimote_key *key, u8 *data, int addr, u8 len);
+void wiimote_decrypt(wiimote_key *key, u8 *data, int addr, u8 len);
 
 void wiimote_gen_key(wiimote_key *key, u8 *keydata);
 
