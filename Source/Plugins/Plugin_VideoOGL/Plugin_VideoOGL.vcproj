@@ -853,26 +853,10 @@
 				RelativePath=".\Src\Debugger\Debugger.h"
 				>
 			</File>
-			<File
-				RelativePath=".\Src\Debugger\PBView.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Debugger\PBView.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Logging"
 			>
-			<File
-				RelativePath=".\Src\Debugger\Logging.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Debugger\Logging.h"
-				>
-			</File>
 			<File
 				RelativePath=".\Src\rasterfont.cpp"
 				>

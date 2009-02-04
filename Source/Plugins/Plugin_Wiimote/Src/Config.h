@@ -1,4 +1,4 @@
-// Copyright (C) 2003-2008 Dolphin Project.
+// Copyright (C) 2003-2009 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -17,12 +17,6 @@
 
 #ifndef _CONFIG_H
 #define _CONFIG_H
-
-#define CONF_LOG 1
-#define CONF_PRIMLOG 2
-#define CONF_SAVETEXTURES 4
-#define CONF_SAVETARGETS 8
-#define CONF_SAVESHADERS 16
 
 struct Config
 {

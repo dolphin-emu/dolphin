@@ -62,7 +62,7 @@ class ConfigDialog : public wxDialog
 		wxStaticBoxSizer* sbRendering;
 		wxGridBagSizer* sRendering;
 		wxStaticBoxSizer* sbUtilities;
-		wxGridBagSizer* sUtilities;
+		wxBoxSizer* sUtilities;
 		wxStaticBoxSizer* sbHacks;
 		wxGridBagSizer* sHacks;
 		

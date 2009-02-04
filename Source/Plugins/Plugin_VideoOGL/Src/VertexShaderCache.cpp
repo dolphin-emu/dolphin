@@ -90,7 +90,7 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 	if (g_Config.iLog & CONF_SAVESHADERS && code) {
 		static int counter = 0;
 		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%s/vs_%04i.txt", g_Config.texDumpPath, counter++);
+		sprintf(szTemp, "%s/vs_%04i.txt", FULL_DUMP_DIR, counter++);
 
 		SaveData(szTemp, code);
 	}

@@ -115,7 +115,7 @@ FRAGMENTSHADER& GetOrCreateEncodingShader(u32 format)
     if (g_Config.iLog & CONF_SAVESHADERS && shader) {
         static int counter = 0;
         char szTemp[MAX_PATH];
-		sprintf(szTemp, "%s/enc_%04i.txt", g_Config.texDumpPath, counter++);
+		sprintf(szTemp, "%s/enc_%04i.txt", FULL_DUMP_DIR, counter++);
         
         SaveData(szTemp, shader);
     }

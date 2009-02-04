@@ -31,4 +31,7 @@ extern bool LocalLogFile;
 // A global plugin specification
 extern PLUGIN_GLOBALS* globals;
 
+void OpenConsole();
+void CloseConsole();
+
 #endif // _GLOBALS_H

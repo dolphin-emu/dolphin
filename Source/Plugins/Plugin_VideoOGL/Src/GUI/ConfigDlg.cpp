@@ -294,11 +294,11 @@ void ConfigDialog::CreateGUIControls()
 	sbRendering->Add(sRenderBoxRow1);
 	sAdvanced->Add(sbRendering, 0, wxEXPAND|wxALL, 5);
 
-	sUtilities = new wxGridBagSizer(0, 0);
-	sUtilities->Add(m_DumpTextures, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sUtilities->Add(m_TexturePath, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
-	sbUtilities->Add(sUtilities);
-	sAdvanced->Add(sbUtilities, 0, wxEXPAND|wxALL, 5);
+	sUtilities = new wxBoxSizer(wxHORIZONTAL);
+	sUtilities->Add(m_DumpTextures, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sUtilities->Add(m_TexturePath, 1, wxALL|wxEXPAND, 5);
+	sbUtilities->Add(sUtilities, 1, wxEXPAND);
+	sAdvanced->Add(sbUtilities, 1, wxEXPAND|wxALL, 5);
 
 	sHacks = new wxGridBagSizer(0, 0);
 	sHacks->Add(m_ProjectionHax1, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);

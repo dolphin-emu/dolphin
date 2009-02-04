@@ -46,7 +46,6 @@
 #include "VertexLoader.h"
 #include "XFB.h"
 #include "Timer.h"
-#include "Debugger/Logging.h" // for Logging()
 
 #if defined(HAVE_WX) && HAVE_WX
 	#include "Debugger/Debugger.h" // for the CDebugger class
@@ -923,11 +922,6 @@ void Renderer::SwapBuffers()
         fpscount = 0;
     }
 
-	// Write logging data to debugger
-#if defined(HAVE_WX) && HAVE_WX
-	if (m_frame)
-		Logging(0);
-#endif	
     if (g_Config.bOverlayStats) {
         char st[2048];
         char *p = st;

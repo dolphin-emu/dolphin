@@ -101,29 +101,22 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
    as the one that is rendering the game. However, that could be done. */
 
 #if defined(HAVE_WX) && HAVE_WX
-CDebugger* m_frame;
+CDebugger *m_frame;
 void DllDebugger(HWND _hParent, bool Show)
 {
-	if(m_frame && Show) // if we have created it, let us show it again
+	if(!m_frame && Show)
 	{
-		m_frame->DoShow();
-	}
-	else if(!m_frame && Show) 
-	{		
 		m_frame = new CDebugger(NULL);
 		m_frame->Show();
 	}
-	else if(m_frame && !Show)
+	else if (m_frame && !Show)
 	{
-		m_frame->DoHide();
+		if(m_frame->Close())
+			m_frame = NULL;
 	}
 }
 
-void DoDllDebugger()
-{
-	//m_frame = new CDebugger(NULL);
-	//m_frame->Show();
-}
+void DoDllDebugger(){}
 #else
 void DllDebugger(HWND _hParent, bool Show) { }
 void DoDllDebugger() { }
@@ -156,7 +149,6 @@ void DllConfig(HWND _hParent)
 #endif
 	//win->Reparent(wxGetApp().GetTopWindow());
 	ConfigDialog *frame = new ConfigDialog(win);
-	g_Config.Load();
 	OpenGL_AddBackends(frame);
 	OpenGL_AddResolutions(frame);
 	frame->ShowModal();

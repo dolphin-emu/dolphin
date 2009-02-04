@@ -205,10 +205,10 @@ void Flush()
 						PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, 0, 0);
 						TextureMngr::EnableTex2D(i);
 					}
-					if (g_Config.iLog & CONF_PRIMLOG) {
+					if (g_Config.iLog & CONF_SAVETEXTURES) {
 						// save the textures
 						char strfile[255];
-						sprintf(strfile, "frames/tex%.3d_%d.tga", g_Config.iSaveTargetId, i);
+						sprintf(strfile, "%sframes/tex%.3d_%d.tga", FULL_DUMP_DIR, g_Config.iSaveTargetId, i);
 						SaveTexture(strfile, tentry->isNonPow2?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D, tentry->texture, tentry->w, tentry->h);
 					}
 				}
@@ -269,20 +269,20 @@ void Flush()
 	}
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
-	if (g_Config.iLog & CONF_PRIMLOG) {
+	if (g_Config.iLog & CONF_SAVESHADERS) {
 		// save the shaders
 		char strfile[255];
-		sprintf(strfile, "frames/ps%.3d.txt", g_Config.iSaveTargetId);
+		sprintf(strfile, "%sframes/ps%.3d.txt", FULL_DUMP_DIR, g_Config.iSaveTargetId);
 		std::ofstream fps(strfile);
 		fps << ps->strprog.c_str();
-		sprintf(strfile, "frames/vs%.3d.txt", g_Config.iSaveTargetId);
+		sprintf(strfile, "%sframes/vs%.3d.txt", FULL_DUMP_DIR, g_Config.iSaveTargetId);
 		std::ofstream fvs(strfile);
 		fvs << vs->strprog.c_str();
 	}
 
 	if (g_Config.iLog & CONF_SAVETARGETS) {
 		char str[128];
-		sprintf(str, "frames/targ%.3d.tga", g_Config.iSaveTargetId);
+		sprintf(str, "%sframes/targ%.3d.tga", FULL_DUMP_DIR, g_Config.iSaveTargetId);
 		Renderer::SaveRenderTarget(str, 0);
 	}
 #endif
