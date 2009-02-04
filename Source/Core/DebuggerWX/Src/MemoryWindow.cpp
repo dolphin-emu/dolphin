@@ -228,7 +228,7 @@ void CMemoryWindow::OnHostMessage(wxCommandEvent& event)
 // so we can view memory in a tile/hex viewer for data analysis
 void CMemoryWindow::OnDumpMemory( wxCommandEvent& event )
 {
-	FILE* pDumpFile = fopen(FULL_MEMORY_DUMP_DIR, "wb");
+	FILE* pDumpFile = fopen(MAINRAM_DUMP_FILE, "wb");
 	if (pDumpFile)
 	{
 		if (Memory::m_pRAM)
