@@ -354,21 +354,6 @@ bool IsFocus()
 #endif
 }
 
-/*
-// We have to 
-void DecryptData(u8 *_data)
-{
-			// Clear g_RegExtTmp by copying zeroes to it
-			memset(WiiMoteEmu::g_RegExtTmpReport, 0, sizeof(WiiMoteEmu::g_RegExtTmp));
-			// Write the nunchuck inputs to it. We begin writing at 0x08
-			memcpy(WiiMoteEmu::g_RegExtTmpReport + 0x08, data + 17, sizeof(wm_extension));
-			// Decrypt it
-			wiimote_decrypt(&WiiMoteEmu::g_ExtKey, &WiiMoteEmu::g_RegExtTmpReport[0x08], 0x08, 0x06);
-			// Write it back
-			memcpy(data + 17, &WiiMoteEmu::g_RegExtTmpReport[0x08], sizeof(wm_extension));
-}
-*/
-
 void ReadDebugging(bool Emu, const void* _pData, int Size)
 {
 	//
@@ -436,6 +421,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			Console::Print("Js.Min.y: %i\n",  data[7 + 12]);
 			Console::Print("JS.Center.y: %i\n\n", data[7 + 13]);
 		}
+		
 		break;
 	case WM_WRITE_DATA_REPLY:  // 0x22
 		size = sizeof(wm_acknowledge) - 1;

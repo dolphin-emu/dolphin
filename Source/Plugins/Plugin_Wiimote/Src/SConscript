@@ -18,6 +18,7 @@ files = [
 if wmenv['HAVE_WX']:
     files += [
         "ConfigDlg.cpp",
+        "ConfigRecording.cpp",
         "Logging.cpp",
         "FillReport.cpp",
         ]

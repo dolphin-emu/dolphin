@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_Wiimote"
 	ProjectGUID="{8D612734-FAA5-4B8A-804F-4DEA2367D495}"
 	RootNamespace="Plugin_Wiimote"
@@ -608,6 +608,10 @@
 			</File>
 			<File
 				RelativePath=".\Src\ConfigDlg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\ConfigRecording.cpp"
 				>
 			</File>
 		</Filter>

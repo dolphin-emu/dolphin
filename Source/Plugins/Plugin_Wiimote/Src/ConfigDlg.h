@@ -67,21 +67,29 @@ class ConfigDialog : public wxDialog
 
 	private:
 		DECLARE_EVENT_TABLE();
-		
-		wxButton *m_About, *m_Close, *m_Apply;
+
+		bool ControlsCreated; int Page, BoxW, BoxH;
+
 		wxNotebook *m_Notebook;
-		wxPanel *m_PageEmu, *m_PageReal;
+		wxPanel *m_Controller[4], *m_PageRecording;
+		wxButton *m_About, *m_Close, *m_Apply;
+		wxBoxSizer *m_MainSizer, *m_sMain[4], *m_SizePadding[4],*m_SizeExtensionsPadding[4], *m_SizeBasicGeneral[4], *sRecordingMain, *m_HorizControllers[4], *m_TiltHoriz[4];
+		wxStaticBoxSizer *m_SizeBasic[4], *m_SizeExtensions[4], *m_gTilt[4], *m_gJoyname[4];
 
-		bool ControlsCreated;
+		wxCheckBox *m_SidewaysDPad[4], *m_Joyattach[4]; // Emulated Wiimote settings
+		wxCheckBox *m_WideScreen[4];
+		wxCheckBox *m_NunchuckConnected[4], *m_ClassicControllerConnected[4];
+		wxComboBox *m_TiltCombo[4], *m_TiltComboRange[4], *m_Joyname[4];
+		wxStaticText *m_TiltText[4];
 
-		wxCheckBox *m_SidewaysDPad; // Emulated Wiimote settings
-		wxCheckBox *m_WideScreen;
-		wxCheckBox *m_NunchuckConnected, *m_ClassicControllerConnected;
-
-		wxCheckBox *m_ConnectRealWiimote, *m_UseRealWiimote, *m_UpdateMeters; // Real Wiimote settings
+		wxCheckBox *m_ConnectRealWiimote[4], *m_UseRealWiimote[4], *m_UpdateMeters; // Real Wiimote settings
 		wxChoice *m_AccNeutralChoice[3], *m_AccNunNeutralChoice[3];
 
-		//static const int RECORDING_ROWS = 15;
+		wxPanel *m_pInStatus[4], *m_pRightStatus[4];
+		wxStaticBitmap *m_bmpDot[4], *m_bmpSquare[4], *m_bmpDotRight[4], *m_bmpSquareRight[4];
+		wxStaticBoxSizer *m_gAnalogLeft[4], *m_gAnalogRight[4];
+		wxBitmap CreateBitmapDot(), CreateBitmap();		
+
 		wxButton * m_RecordButton[RECORDING_ROWS + 1];
 		wxChoice * m_RecordHotKey[RECORDING_ROWS + 1];
 		wxTextCtrl * m_RecordText[RECORDING_ROWS + 1];
@@ -109,13 +117,12 @@ class ConfigDialog : public wxDialog
 			ID_ABOUTOGL,
 			IDTM_EXIT, IDTM_UPDATE, IDTM_SHUTDOWN, IDTM_UPDATEA, // Timer
 
-			ID_NOTEBOOK,
-			ID_PAGEEMU,
-			ID_PAGEREAL,
+			ID_NOTEBOOK, ID_CONTROLLERPAGE1, ID_CONTROLLERPAGE2, ID_CONTROLLERPAGE3, ID_CONTROLLERPAGE4, ID_PAGE_RECORDING,
 
 			ID_SIDEWAYSDPAD, // Emulated
 			ID_WIDESCREEN,
 			ID_NUNCHUCKCONNECTED, ID_CLASSICCONTROLLERCONNECTED,
+			IDC_JOYNAME, IDC_JOYATTACH, ID_TILT_COMBO, ID_TILT_CHECK, 
 
 			// Real
 			ID_CONNECT_REAL, ID_USE_REAL, ID_UPDATE_REAL, IDT_STATUS, ID_NEUTRAL_CHOICE,
@@ -126,6 +133,7 @@ class ConfigDialog : public wxDialog
 
 		void OnClose(wxCloseEvent& event);
 		void CreateGUIControls();
+		void CreateGUIControlsRecording();
 		void AboutClick(wxCommandEvent& event);
 
 		void DoConnectReal(); // Real
