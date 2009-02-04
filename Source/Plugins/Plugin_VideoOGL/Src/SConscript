@@ -51,6 +51,7 @@ else:
 if gfxenv['HAVE_WX']:
 	files += [
                 'GUI/ConfigDlg.cpp',
+				'Debugger/Debugger.cpp',
                 ]
 
 if gfxenv['HAVE_COCOA']:
