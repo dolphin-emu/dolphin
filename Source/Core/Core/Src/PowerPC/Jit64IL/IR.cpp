@@ -585,6 +585,18 @@ InstLoc IRBuilder::FoldInterpreterFallback(InstLoc Op1, InstLoc Op2) {
 	return EmitBiOp(InterpreterFallback, Op1, Op2);
 }
 
+InstLoc IRBuilder::FoldDoubleBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2) {
+	if (getOpcode(*Op1) == InsertDoubleInMReg) {
+		return FoldDoubleBiOp(Opcode, getOp1(Op1), Op2);
+	}
+
+	if (getOpcode(*Op2) == InsertDoubleInMReg) {
+		return FoldDoubleBiOp(Opcode, Op1, getOp1(Op2));
+	}
+
+	return EmitBiOp(Opcode, Op1, Op2);
+}
+
 InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned extra) {
 	switch (Opcode) {
 		case Add: return FoldAdd(Op1, Op2);
@@ -601,6 +613,7 @@ InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 		case ICmpSgt: case ICmpSlt: case ICmpSge: case ICmpSle:
 			return FoldICmp(Opcode, Op1, Op2);
 		case InterpreterFallback: return FoldInterpreterFallback(Op1, Op2);
+		case FDMul: case FDAdd: case FDSub: return FoldDoubleBiOp(Opcode, Op1, Op2);
 		default: return EmitBiOp(Opcode, Op1, Op2, extra);
 	}
 }
