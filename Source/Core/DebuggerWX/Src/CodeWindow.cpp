@@ -469,8 +469,8 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 
 		pCoreMenu->AppendSeparator();
 
-		jitblocklinking = pCoreMenu->Append(IDM_JITBLOCKLINKING, _T("&JIT Block Linking"),
-			_T("Speed up the execution by linking the JIT blocks."
+		jitblocklinking = pCoreMenu->Append(IDM_JITBLOCKLINKING, _T("&JIT Block Linking off"),
+			_T("Provide safer execution by not linking the JIT blocks."
 			), wxITEM_CHECK);
 
 		jitunlimited = pCoreMenu->Append(IDM_JITUNLIMITED, _T("&Unlimited JIT Cache"),

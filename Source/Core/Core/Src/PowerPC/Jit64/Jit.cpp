@@ -176,7 +176,12 @@ namespace CPUCompare
 		asm_routines.compareEnabled = ::Core::g_CoreStartupParameter.bRunCompareClient;
 
 		jo.optimizeStack = true;
-		jo.enableBlocklink = false;  // Speed boost, but not 100% safe
+		/* This will enable block linking in JitBlockCache::FinalizeBlock(), it gives faster execution but may not
+		   be as stable as the alternative (to not link the blocks). However, I have not heard about any good examples
+		   where this cause problems, so I'm enabling this by default, since I seem to get perhaps as much as 20% more
+		   fps with this option enabled. If you suspect that this option cause problems you can also disable it from the
+		   debugging window. */
+		jo.enableBlocklink = true;
 #ifdef _M_X64
 		jo.enableFastMem = Core::GetStartupParameter().bUseFastMem;
 #else
@@ -195,7 +200,7 @@ namespace CPUCompare
 		if (Core::g_CoreStartupParameter.bJITUnlimitedCache)
 			CODE_SIZE = 1024*1024*8*8;
 		if (Core::g_CoreStartupParameter.bJITBlockLinking)
-			{ jo.enableBlocklink = true; SuccessAlert("Your game was started with JIT Block Linking"); }
+			{ jo.enableBlocklink = false; SuccessAlert("Your game was started without JIT Block Linking"); }
 
 		trampolines.Init();
 		AllocCodeSpace(CODE_SIZE);
