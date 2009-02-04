@@ -65,26 +65,19 @@ PLUGIN_GLOBALS* globals;
 CDebugger* m_frame;
 void DllDebugger(HWND _hParent, bool Show)
 {
-	if(m_frame && Show) // if we have created it, let us show it again
+	if(!m_frame && Show)
 	{
-		m_frame->DoShow();
-	}
-	else if(!m_frame && Show)
-	{		
 		m_frame = new CDebugger(NULL);
 		m_frame->Show();
 	}
-	else if(m_frame && !Show)
+	else if (m_frame && !Show)
 	{
-		m_frame->DoHide();
+		if(m_frame->Close())
+			m_frame = NULL;
 	}
 }
 
-void DoDllDebugger()
-{
-	//m_frame = new CDebugger(NULL);
-	//m_frame->Show();
-}
+void DoDllDebugger(){}
 #else
 void DllDebugger(HWND _hParent, bool Show) { }
 void DoDllDebugger() { }
