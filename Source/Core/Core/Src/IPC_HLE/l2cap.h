@@ -31,13 +31,13 @@ typedef unsigned short __u16;
 typedef unsigned char __u8;
 typedef unsigned long __u32;
 
-
-#define __attribute__(a)
 #pragma pack(push)
 #pragma pack(1)
+
+#ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable:4200)
-
+#endif
 
 /* L2CAP defaults */
 #define L2CAP_DEFAULT_MTU	672
@@ -172,7 +172,7 @@ struct l2cap_conf_rfc {
     __le16     retrans_timeout;
     __le16     monitor_timeout;
     __le16     max_pdu_size;
-} __attribute__ ((packed));
+};
 
 #define L2CAP_MODE_BASIC	0x00
 #define L2CAP_MODE_RETRANS	0x01

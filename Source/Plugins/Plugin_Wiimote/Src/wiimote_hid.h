@@ -20,7 +20,9 @@
 
 #include <CommonTypes.h>
 
+#ifdef _MSC_VER
 #pragma warning(disable:4200)
+#endif
 #pragma pack(push, 1)
 
 // Source: HID_010_SPC_PFL/1.0 (official HID specification)
