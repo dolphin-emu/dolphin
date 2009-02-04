@@ -26,8 +26,12 @@
 #include "JitCache.h"
 #include "JitRegCache.h"
 
+//#define INSTRUCTION_START Default(inst); return;
+#define INSTRUCTION_START
+
 	void Jit64::fp_arith_s(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		if (inst.Rc || (inst.SUBOP5 != 25 && inst.SUBOP5 != 20 && inst.SUBOP5 != 21)) {
 			Default(inst); return;
 		}
@@ -61,6 +65,7 @@
 
 	void Jit64::fmaddXX(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		if (inst.Rc) {
 			Default(inst); return;
 		}
@@ -84,6 +89,7 @@
 	
 	void Jit64::fmrx(UGeckoInstruction inst)
 	{
+		INSTRUCTION_START
 		if (inst.Rc) {
 			Default(inst); return;
 		}
@@ -94,7 +100,7 @@
 
 	void Jit64::fcmpx(UGeckoInstruction inst)
 	{
-		printf("fcmpx at %x\n", js.compilerPC);
+		INSTRUCTION_START
 		IREmitter::InstLoc lhs, rhs, res;
 		lhs = ibuild.EmitLoadFReg(inst.FA);
 		rhs = ibuild.EmitLoadFReg(inst.FB);

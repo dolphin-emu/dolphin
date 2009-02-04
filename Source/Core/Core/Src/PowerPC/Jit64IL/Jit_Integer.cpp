@@ -259,6 +259,8 @@
 
 	void Jit64::mulhwux(UGeckoInstruction inst)
 	{
+		Default(inst); return;
+#if 0
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
 
@@ -286,12 +288,13 @@
 		} else {
 			MOV(32, gpr.R(d), R(EDX));
 		}
+#endif
 	}
 
 	// skipped some of the special handling in here - if we get crashes, let the interpreter handle this op
 	void Jit64::divwux(UGeckoInstruction inst) {
 		Default(inst); return;
-
+#if 0
 		int a = inst.RA, b = inst.RB, d = inst.RD;
 		gpr.FlushLockX(EDX);
 		gpr.Lock(a, b, d);
@@ -310,6 +313,7 @@
 		if (inst.Rc) {
 			CALL((u8*)asm_routines.computeRc);
 		}
+#endif
 	}
 
 	u32 Helper_Mask(u8 mb, u8 me)
@@ -335,6 +339,7 @@
 	void Jit64::addex(UGeckoInstruction inst)
 	{
 		Default(inst); return;
+#if 0
 		// USES_XER
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITIntegerOff)
 			{Default(inst); return;} // turn off from debugger
@@ -359,6 +364,7 @@
 		{
 			CALL((u8*)asm_routines.computeRc);
 		}
+#endif
 	}
 
 	void Jit64::rlwinmx(UGeckoInstruction inst)

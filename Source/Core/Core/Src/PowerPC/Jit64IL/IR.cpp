@@ -2074,8 +2074,8 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile) {
 		}
 	}
 
-	if (!RI.MakeProfile && RI.numSpills)
-		printf("Block: %x, numspills %d\n", Jit->js.blockStart, RI.numSpills);
+	//if (!RI.MakeProfile && RI.numSpills)
+	//	printf("Block: %x, numspills %d\n", Jit->js.blockStart, RI.numSpills);
 
 	Jit->UD2();
 }

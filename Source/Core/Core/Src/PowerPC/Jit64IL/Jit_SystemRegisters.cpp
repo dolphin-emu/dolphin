@@ -96,6 +96,8 @@
 
 	void Jit64::mfcr(UGeckoInstruction inst)
 	{
+		Default(inst); return;
+#if 0
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
 			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
@@ -110,10 +112,13 @@
 		}
 		OR(8, R(EAX), M(&PowerPC::ppcState.cr_fast[7]));
 		MOV(32, gpr.R(d), R(EAX));
+#endif
 	}
 
 	void Jit64::mtcrf(UGeckoInstruction inst)
 	{
+		Default(inst); return;
+#if 0
 		if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITSystemRegistersOff)
 			{Default(inst); return;} // turn off from debugger
 		INSTRUCTION_START;
@@ -147,4 +152,5 @@
 			OR(32, R(EAX), R(ECX));
 			MOV(32, M(&PowerPC::ppcState.cr), R(EAX));
 		}
+#endif
 	}

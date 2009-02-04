@@ -118,6 +118,8 @@ void Jit64::lXzx(UGeckoInstruction inst)
 // Zero cache line.
 void Jit64::dcbz(UGeckoInstruction inst)
 {
+	Default(inst); return;
+#if 0
 	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreOff)
 		{Default(inst); return;} // turn off from debugger	
 	INSTRUCTION_START;
@@ -133,6 +135,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 	AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
 	MOVAPS(MDisp(EAX, (u32)Memory::base), XMM0);
 	MOVAPS(MDisp(EAX, (u32)Memory::base + 16), XMM0);
+#endif
 #endif
 }
 

@@ -37,10 +37,14 @@
 #include "JitAsm.h"
 #include "JitRegCache.h"
 
+//#define INSTRUCTION_START Default(inst); return;
+#define INSTRUCTION_START
+
 // The big problem is likely instructions that set the quantizers in the same block.
 // We will have to break block after quantizers are written to.
 void Jit64::psq_st(UGeckoInstruction inst)
 {
+	INSTRUCTION_START
 	if (inst.W) {Default(inst); return;}
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_12), val;
 	if (inst.RA)
@@ -54,6 +58,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 
 void Jit64::psq_l(UGeckoInstruction inst)
 {
+	INSTRUCTION_START
 	if (inst.W) {Default(inst); return;}
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_12), val;
 	if (inst.RA)

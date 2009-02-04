@@ -36,24 +36,16 @@
 #include "JitAsm.h"
 #include "JitRegCache.h"
 
-// pshufb todo: MOVQ
-const u8 GC_ALIGNED16(bswapShuffle1x4[16]) = {3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-const u8 GC_ALIGNED16(bswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
-const u8 GC_ALIGNED16(bswapShuffle1x8[16]) = {7, 6, 5, 4, 3, 2, 1, 0, 8, 9, 10, 11, 12, 13, 14, 15};
-const u8 GC_ALIGNED16(bswapShuffle1x8Dupe[16]) = {7, 6, 5, 4, 3, 2, 1, 0, 7, 6, 5, 4, 3, 2, 1, 0};
-const u8 GC_ALIGNED16(bswapShuffle2x8[16]) = {7, 6, 5, 4, 3, 2, 1, 0, 15, 14, 13, 12, 11, 10, 9, 8};
+//#define INSTRUCTION_START Default(inst); return;
+#define INSTRUCTION_START
 
-namespace {
-
-u64 GC_ALIGNED16(temp64);
-u32 GC_ALIGNED16(temp32);
-}
 // TODO: Add peephole optimizations for multiple consecutive lfd/lfs/stfd/stfs since they are so common,
 // and pshufb could help a lot.
 // Also add hacks for things like lfs/stfs the same reg consecutively, that is, simple memory moves.
 
 void Jit64::lfs(UGeckoInstruction inst)
 {
+	INSTRUCTION_START
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16), val;
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
@@ -65,6 +57,7 @@ void Jit64::lfs(UGeckoInstruction inst)
 
 void Jit64::lfd(UGeckoInstruction inst)
 {
+	INSTRUCTION_START
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16), val;
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
@@ -77,6 +70,7 @@ void Jit64::lfd(UGeckoInstruction inst)
 
 void Jit64::stfd(UGeckoInstruction inst)
 {
+	INSTRUCTION_START
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16),
 			   val  = ibuild.EmitLoadFReg(inst.RS);
 	if (inst.RA)
@@ -90,6 +84,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 
 void Jit64::stfs(UGeckoInstruction inst)
 {
+	INSTRUCTION_START
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_16),
 			   val  = ibuild.EmitLoadFReg(inst.RS);
 	if (inst.RA)
@@ -104,6 +99,7 @@ void Jit64::stfs(UGeckoInstruction inst)
 
 void Jit64::stfsx(UGeckoInstruction inst)
 {
+	INSTRUCTION_START
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB),
 			   val  = ibuild.EmitLoadFReg(inst.RS);
 	if (inst.RA)
@@ -116,6 +112,7 @@ void Jit64::stfsx(UGeckoInstruction inst)
 
 void Jit64::lfsx(UGeckoInstruction inst)
 {
+	INSTRUCTION_START
 	IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB), val;
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
