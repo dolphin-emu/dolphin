@@ -249,8 +249,8 @@ void ReadWiimote()
 	std::string Temp;
 
 	/* Timeout for data reading. This is used in Initialize() to read the Eeprom, if we have not gotten
-	   what we wanted in the WIIUSE_READ_DATA case we stop this loop to avoid interference with the regular
-	   wiiuse_io_read() and wiiuse_io_write() communication. */
+	   what we wanted in the WIIUSE_READ_DATA case we stop this loop and enable the regular
+	   wiiuse_io_read() and wiiuse_io_write() loop again. */
 	if (g_RunTemporary)
 	{
 		// This holds if the update rate of wiiuse_poll() is kept at the default value of 10 ms

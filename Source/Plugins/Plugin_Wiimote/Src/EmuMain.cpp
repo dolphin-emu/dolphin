@@ -236,6 +236,19 @@ void UpdateEeprom()
 		WiiMoteEmu::g_Eeprom[22], WiiMoteEmu::g_Eeprom[23], WiiMoteEmu::g_Eeprom[27]);
 }
 
+// Set initial values
+void ResetVariables()
+{
+	u8 g_Leds = 0x0; // 4 bits
+	u8 g_Speaker = 0x0; // 1 = on
+	u8 g_SpeakerVoice = 0x0; // 1 = on
+	u8 g_IR = 0x0; // 1 = on
+
+	g_ReportingMode = 0;
+	g_ReportingChannel = 0;
+
+	g_EmulatedWiiMoteInitialized = false;
+}
 
 // ===================================================
 /* Write initial values to Eeprom and registers. */
@@ -243,6 +256,9 @@ void UpdateEeprom()
 void Initialize()
 {
 	if (g_EmulatedWiiMoteInitialized) return;
+
+	// Reset variables
+	ResetVariables();
 
 	// Write default Eeprom data
 	memset(g_Eeprom, 0, WIIMOTE_EEPROM_SIZE);
@@ -297,10 +313,12 @@ void DoState(void* ptr, int mode)
 	//TODO: implement
 }
 
-/* We don't need to do anything here. All values will be reset as FreeLibrary() is called
-   when we stop a game */
+/* This is not needed if we call FreeLibrary() when we stop a game, but if it's not called we need to reset
+   these variables. */
 void Shutdown(void) 
-{}
+{
+	ResetVariables();
+}
 
 
 // ===================================================
