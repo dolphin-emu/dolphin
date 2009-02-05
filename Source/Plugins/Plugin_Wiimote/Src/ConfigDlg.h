@@ -76,7 +76,7 @@ class ConfigDialog : public wxDialog
 		wxBoxSizer *m_MainSizer, *m_sMain[4], *m_SizePadding[4],*m_SizeExtensionsPadding[4], *m_SizeBasicGeneral[4], *sRecordingMain, *m_HorizControllers[4], *m_TiltHoriz[4];
 		wxStaticBoxSizer *m_SizeBasic[4], *m_SizeExtensions[4], *m_gTilt[4], *m_gJoyname[4];
 
-		wxCheckBox *m_SidewaysDPad[4], *m_Joyattach[4]; // Emulated Wiimote settings
+		wxCheckBox *m_SidewaysDPad[4], *m_WiimoteOnline[4]; // Emulated Wiimote settings
 		wxCheckBox *m_WideScreen[4];
 		wxCheckBox *m_NunchuckConnected[4], *m_ClassicControllerConnected[4];
 		wxComboBox *m_TiltCombo[4], *m_TiltComboRange[4], *m_Joyname[4];
@@ -87,7 +87,7 @@ class ConfigDialog : public wxDialog
 
 		wxPanel *m_pInStatus[4], *m_pRightStatus[4];
 		wxStaticBitmap *m_bmpDot[4], *m_bmpSquare[4], *m_bmpDotRight[4], *m_bmpSquareRight[4];
-		wxStaticBoxSizer *m_gAnalogLeft[4], *m_gAnalogRight[4];
+		wxStaticBoxSizer *m_gAnalogLeft[4], *m_gAnalogRight[4], *m_gTrigger[4];
 		wxBitmap CreateBitmapDot(), CreateBitmap();		
 
 		wxButton * m_RecordButton[RECORDING_ROWS + 1];

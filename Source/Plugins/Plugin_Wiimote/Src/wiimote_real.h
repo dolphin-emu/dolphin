@@ -54,6 +54,7 @@ void ReadWiimote();
 	extern u64				g_UpdateTime;
 	extern int				g_UpdateCounter;
 	extern bool				g_RunTemporary;
+	extern int				g_RunTemporaryCountdown;
 	extern u8				g_EventBuffer[32];
 #endif
 

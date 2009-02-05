@@ -76,6 +76,7 @@ bool				g_MotionSensing = false;
 u64					g_UpdateTime = 0;
 int					g_UpdateCounter = 0;
 bool				g_RunTemporary = false;
+int					g_RunTemporaryCountdown = 0;
 u8					g_EventBuffer[32];
 
 //******************************************************************************
