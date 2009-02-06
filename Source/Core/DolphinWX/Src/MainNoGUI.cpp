@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
 	std::string bootFile(args_info.inputs[0]);
 
 	updateMainFrameEvent.Init();
-	DetectCPU();
+	cpu_info.Detect();
 	BootManager::BootCore(bootFile);
 	while (PowerPC::state != PowerPC::CPU_POWERDOWN)
 	{

@@ -51,6 +51,7 @@ void CloseConsole()
 }
 
 
+//////////////////////////////////////////////////////////////////////////////////////////
 // Write logs
 
 // The log file handle
@@ -62,12 +63,15 @@ bool LocalLogFile = true;
 #ifdef LOGGING
 void __Log(const char *fmt, ...)
 {
-    char* Msg = (char*)alloca(strlen(fmt)+512);
+	int len = strlen(fmt);
+	if (!len)
+		return;
+    char* Msg = (char*)alloca(len + 512);
     va_list ap;
 
-    va_start( ap, fmt );
-    vsnprintf( Msg, strlen(fmt)+512, fmt, ap );
-    va_end( ap );
+    va_start(ap, fmt);
+    vsnprintf(Msg, len + 512, fmt, ap);
+    va_end(ap);
 
     g_VideoInitialize.pLog(Msg, FALSE);
 
@@ -85,15 +89,18 @@ void __Log(const char *fmt, ...)
 
 void __Log(int type, const char *fmt, ...)
 {
-    char* Msg = (char*)alloca(strlen(fmt)+512);
+	int len = strlen(fmt);
+	if (!len)
+		return;
+    char* Msg = (char*)alloca(len + 512);
     va_list ap;
 
-    va_start( ap, fmt );
-    vsnprintf( Msg, strlen(fmt)+512, fmt, ap );
-    va_end( ap );
+    va_start(ap, fmt);
+    vsnprintf(Msg, len + 512, fmt, ap);
+    va_end(ap);
 
     g_VideoInitialize.pLog(Msg, FALSE);
     Console::Print(Msg);
 }
-#endif
 
+#endif

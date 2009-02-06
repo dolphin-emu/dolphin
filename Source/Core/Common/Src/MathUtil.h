@@ -31,5 +31,4 @@ void SaveSSEState();
 void LoadSSEState();
 void LoadDefaultSSEState();
 
-
 #endif

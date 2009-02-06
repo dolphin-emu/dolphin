@@ -56,11 +56,6 @@ struct CPUInfo
 	std::string Summarize();
 };
 
-
 extern CPUInfo cpu_info;
 
-inline void DetectCPU() {cpu_info.Detect();}
-
-
 #endif
-

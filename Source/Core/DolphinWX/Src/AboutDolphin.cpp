@@ -14,12 +14,12 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
+
 #include "Common.h"
 #include "AboutDolphin.h"
 #include "svnrev.h"
 #include "CPUDetect.h"
 #include "../resources/dolphin_logo.cpp"
-
 
 BEGIN_EVENT_TABLE(AboutDolphin, wxDialog)
 	EVT_CLOSE(AboutDolphin::OnClose)
