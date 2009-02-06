@@ -97,9 +97,8 @@ private:
 
 	void WriteCall(TPipelineFunction);
 
-	void WriteGetVariable(int bits, Gen::OpArg, void*);
-
-	void WriteSetVariable(int bits, void*, Gen::OpArg);
+	void WriteGetVariable(int bits, Gen::OpArg dest, void *address);
+	void WriteSetVariable(int bits, void *address, Gen::OpArg dest);
 };									  
 
 #endif

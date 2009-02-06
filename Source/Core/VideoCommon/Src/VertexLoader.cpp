@@ -700,17 +700,35 @@ void VertexLoader::SetVAT(u32 _group0, u32 _group1, u32 _group2)
 	m_VtxAttr.texCoord[7].Frac		= vat.g2.Tex7Frac;
 };
 
-void VertexLoader::AppendToString(std::string *dest) {
+void VertexLoader::AppendToString(std::string *dest)
+{
+	dest->reserve(150);
 	static const char *posMode[4] = {
-		"Invalid",
-		"Direct",
-		"Idx8",
-		"Idx16",
+		"Inv",
+		"Dir",
+		"I8 ",
+		"I16",
 	};
 	static const char *posFormats[5] = {
-		"u8", "s8", "u16", "s16", "flt",
+		"u8 ", "s8 ", "u16", "s16", "flt",
 	};
-	dest->append(StringFromFormat("sz: %i skin: %i Pos: %i %s %s Nrm: %i %s %s - %i vtx\n",
-		m_VertexSize, m_VtxDesc.PosMatIdx, m_VtxAttr.PosElements ? 3 : 2, posMode[m_VtxDesc.Position], posFormats[m_VtxAttr.PosFormat],
-		m_VtxAttr.NormalElements, posMode[m_VtxDesc.Normal], posFormats[m_VtxAttr.NormalFormat], m_numLoadedVertices));
+	dest->append(StringFromFormat("%ib skin: %i P: %i %s %s ",
+		m_VertexSize, m_VtxDesc.PosMatIdx,
+		m_VtxAttr.PosElements ? 3 : 2, posMode[m_VtxDesc.Position], posFormats[m_VtxAttr.PosFormat]));
+	dest->append(StringFromFormat("Nrm: %i %s %s ",
+		m_VtxAttr.NormalElements, posMode[m_VtxDesc.Normal], posFormats[m_VtxAttr.NormalFormat]));
+
+	int tex_mode[8] = {
+		m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord, m_VtxDesc.Tex3Coord, 
+		m_VtxDesc.Tex4Coord, m_VtxDesc.Tex5Coord, m_VtxDesc.Tex6Coord, m_VtxDesc.Tex7Coord
+	};
+	for (int i = 0; i < 8; i++)
+	{
+		if (tex_mode[i])
+		{
+			dest->append(StringFromFormat("T%i: %i %s %s ",
+				i, m_VtxAttr.texCoord[i].Elements, posMode[tex_mode[i]], posFormats[m_VtxAttr.texCoord[i].Format]));
+		}
+	}
+	dest->append(StringFromFormat(" - %i v\n", m_numLoadedVertices));
 }
