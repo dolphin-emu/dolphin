@@ -30,7 +30,10 @@ namespace VertexManager
 static GLuint s_vboBuffers[0x40] = {0};
 static int s_nCurVBOIndex = 0; // current free buffer
 static u8 *s_pBaseBufferPointer = NULL;
-static std::vector< std::pair<u32, u32> > s_vStoredPrimitives; // every element, mode and count to be passed to glDrawArrays
+static std::vector< GLint > s_vertexFirstOffset;
+static std::vector< GLsizei > s_vertexGroupSize;
+static std::vector< std::pair< GLenum, int > > s_vertexGroups;
+u32 s_vertexCount;
 
 static const GLenum c_primitiveType[8] =
 {
@@ -58,7 +61,6 @@ bool Init()
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	g_nativeVertexFmt = NULL;
-	s_vStoredPrimitives.reserve(1000);
 	GL_REPORT_ERRORD();
 
 	return true;
@@ -70,7 +72,10 @@ void Shutdown()
 	glDeleteBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
 	memset(s_vboBuffers, 0, sizeof(s_vboBuffers));
 
-	s_vStoredPrimitives.resize(0);
+	s_vertexFirstOffset.resize(0);
+	s_vertexGroupSize.resize(0);
+	s_vertexGroups.resize(0);
+	s_vertexCount = 0;
 	s_nCurVBOIndex = 0;
 	ResetBuffer();
 }
@@ -79,7 +84,10 @@ void ResetBuffer()
 {
 	s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
 	s_pCurBufferPointer = s_pBaseBufferPointer;
-	s_vStoredPrimitives.resize(0);
+	s_vertexFirstOffset.resize(0);
+	s_vertexGroupSize.resize(0);
+	s_vertexGroups.resize(0);
+	s_vertexCount = 0;
 }
 
 int GetRemainingSize()
@@ -93,7 +101,7 @@ void AddVertices(int primitive, int numvertices)
 	_assert_(g_nativeVertexFmt != NULL);
 
 	ADDSTAT(stats.thisFrame.numPrims, numvertices);
-	if (s_vStoredPrimitives.size() && s_vStoredPrimitives[s_vStoredPrimitives.size() - 1].first == c_primitiveType[primitive]) {
+	if (!s_vertexGroups.empty() && s_vertexGroups.back().first == c_primitiveType[primitive]) {
 		// We can join primitives for free here. Not likely to help much, though, but whatever...
 		if (c_primitiveType[primitive] == GL_TRIANGLES ||
 			c_primitiveType[primitive] == GL_LINES ||
@@ -101,14 +109,19 @@ void AddVertices(int primitive, int numvertices)
 			c_primitiveType[primitive] == GL_QUADS) {
 			INCSTAT(stats.thisFrame.numPrimitiveJoins);
 			// Easy join
-			std::pair<u32, u32> &last_pair = s_vStoredPrimitives[s_vStoredPrimitives.size() - 1];
-			last_pair.second += numvertices;
+			s_vertexGroupSize.back() += numvertices;
+			s_vertexCount += numvertices;
 			return;
 		}
-		// Joining strips is a lot more work but would bring more gain. Not sure if it's worth it though.
 	}
 
-	s_vStoredPrimitives.push_back(std::pair<int, int>(c_primitiveType[primitive], numvertices));
+	s_vertexFirstOffset.push_back(s_vertexCount);
+	s_vertexGroupSize.push_back(numvertices);
+	s_vertexCount += numvertices;
+	if (!s_vertexGroups.empty() && s_vertexGroups.back().first == c_primitiveType[primitive])
+		s_vertexGroups.back().second++;
+	else
+		s_vertexGroups.push_back(std::make_pair(c_primitiveType[primitive], 1));
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	static const char *sprims[8] = {"quads", "nothing", "tris", "tstrip", "tfan", "lines", "lstrip", "points"};
@@ -118,7 +131,7 @@ void AddVertices(int primitive, int numvertices)
 
 void Flush()
 {
-	if (s_vStoredPrimitives.size() == 0)
+	if (s_vertexCount == 0)
 		return;
 
 	_assert_(s_pCurBufferPointer != s_pBaseBufferPointer);
@@ -260,12 +273,15 @@ void Flush()
 	PRIM_LOG("\n");
 #endif
 
-	int offset = 0;
-	for (std::vector< std::pair<u32, u32> >::const_iterator it = s_vStoredPrimitives.begin(); it != s_vStoredPrimitives.end(); ++it)
+	int groupStart = 0;
+	for (unsigned i = 0; i < s_vertexGroups.size(); i++)
 	{
 		INCSTAT(stats.thisFrame.numDrawCalls);
-		glDrawArrays(it->first, offset, it->second);
-		offset += it->second;
+		glMultiDrawArrays(s_vertexGroups[i].first,
+		                  &s_vertexFirstOffset[groupStart],
+		                  &s_vertexGroupSize[groupStart], 
+		                  s_vertexGroups[i].second);
+		groupStart += s_vertexGroups[i].second;
 	}
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
