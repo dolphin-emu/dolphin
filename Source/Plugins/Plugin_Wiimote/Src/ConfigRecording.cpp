@@ -181,7 +181,7 @@ void ConfigDialog::CreateGUIControlsRecording()
 	wxStaticBoxSizer * sbRealIR = new wxStaticBoxSizer(wxHORIZONTAL, m_PageRecording, wxT("IR"));
 
 	// Width and height of the gauges
-	static const int Gw = 35, Gh = 130;
+	static const int Gw = 35, Gh = 110;
 
 	m_GaugeBattery = new wxGauge( m_PageRecording, wxID_ANY, 100, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
 	m_GaugeRoll[0] = new wxGauge( m_PageRecording, wxID_ANY, 360, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
